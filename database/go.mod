@@ -1,4 +1,4 @@
-module github.com/yekta/stablecog/go-apps/database
+module github.com/stablecog/go-apps/database
 
 go 1.19
 

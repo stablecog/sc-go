@@ -11,13 +11,13 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
-	"github.com/yekta/stablecog/go-apps/database/ent/generationg"
-	"github.com/yekta/stablecog/go-apps/database/ent/model"
-	"github.com/yekta/stablecog/go-apps/database/ent/negativeprompt"
-	"github.com/yekta/stablecog/go-apps/database/ent/prompt"
-	"github.com/yekta/stablecog/go-apps/database/ent/scheduler"
-	"github.com/yekta/stablecog/go-apps/database/ent/user"
-	"github.com/yekta/stablecog/go-apps/database/enttypes"
+	"github.com/stablecog/go-apps/database/ent/generationg"
+	"github.com/stablecog/go-apps/database/ent/model"
+	"github.com/stablecog/go-apps/database/ent/negativeprompt"
+	"github.com/stablecog/go-apps/database/ent/prompt"
+	"github.com/stablecog/go-apps/database/ent/scheduler"
+	"github.com/stablecog/go-apps/database/ent/user"
+	"github.com/stablecog/go-apps/database/enttypes"
 )
 
 // GenerationGCreate is the builder for creating a GenerationG entity.

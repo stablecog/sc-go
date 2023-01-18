@@ -8,8 +8,8 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
-	"github.com/yekta/stablecog/go-apps/database/ent/admin"
-	"github.com/yekta/stablecog/go-apps/database/ent/predicate"
+	"github.com/stablecog/go-apps/database/ent/admin"
+	"github.com/stablecog/go-apps/database/ent/predicate"
 )
 
 // AdminDelete is the builder for deleting a Admin entity.

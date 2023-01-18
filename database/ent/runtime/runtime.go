@@ -2,7 +2,7 @@
 
 package runtime
 
-// The schema-stitching logic is generated in github.com/yekta/stablecog/go-apps/database/ent/runtime.go
+// The schema-stitching logic is generated in github.com/stablecog/go-apps/database/ent/runtime.go
 
 const (
 	Version = "v0.11.5"                                         // Version of ent codegen.

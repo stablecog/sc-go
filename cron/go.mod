@@ -1,4 +1,4 @@
-module github.com/yekta/stablecog/go-apps/cron
+module github.com/stablecog/go-apps/cron
 
 go 1.19
 

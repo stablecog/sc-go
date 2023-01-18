@@ -10,7 +10,7 @@ import (
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
-	"github.com/yekta/stablecog/go-apps/database/enttypes"
+	"github.com/stablecog/go-apps/database/enttypes"
 )
 
 // Upscale holds the schema definition for the Upscale entity.

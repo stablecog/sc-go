@@ -7,9 +7,9 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/yekta/stablecog/go-apps/cron/jobs"
-	"github.com/yekta/stablecog/go-apps/cron/utils"
-	"github.com/yekta/stablecog/go-apps/database"
+	"github.com/stablecog/go-apps/cron/jobs"
+	"github.com/stablecog/go-apps/cron/utils"
+	"github.com/stablecog/go-apps/database"
 	"k8s.io/klog/v2"
 )
 

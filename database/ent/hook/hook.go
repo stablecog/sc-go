@@ -6,7 +6,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/yekta/stablecog/go-apps/database/ent"
+	"github.com/stablecog/go-apps/database/ent"
 )
 
 // The AdminFunc type is an adapter to allow the use of ordinary

@@ -5,7 +5,7 @@ import (
 
 	"github.com/alicebob/miniredis/v2"
 	"github.com/go-redis/redis/v9"
-	"github.com/yekta/stablecog/go-apps/utils"
+	"github.com/stablecog/go-apps/utils"
 	"k8s.io/klog/v2"
 )
 

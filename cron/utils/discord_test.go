@@ -11,11 +11,11 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/jarcoal/httpmock"
+	"github.com/stablecog/go-apps/cron/models"
+	"github.com/stablecog/go-apps/database"
+	"github.com/stablecog/go-apps/database/ent"
+	"github.com/stablecog/go-apps/database/ent/generation"
 	"github.com/stretchr/testify/assert"
-	"github.com/yekta/stablecog/go-apps/cron/models"
-	"github.com/yekta/stablecog/go-apps/database"
-	"github.com/yekta/stablecog/go-apps/database/ent"
-	"github.com/yekta/stablecog/go-apps/database/ent/generation"
 )
 
 var MockDiscordHealthTracker *DiscordHealthTracker

@@ -4,8 +4,8 @@ import (
 	"context"
 
 	"github.com/go-redis/redis/v9"
-	"github.com/yekta/stablecog/go-apps/cron/utils"
-	"github.com/yekta/stablecog/go-apps/database/ent"
+	"github.com/stablecog/go-apps/cron/utils"
+	"github.com/stablecog/go-apps/database/ent"
 )
 
 type JobRunner struct {

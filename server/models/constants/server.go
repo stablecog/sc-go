@@ -1,6 +1,6 @@
 package constants
 
-import "github.com/yekta/stablecog/go-apps/server/models"
+import "github.com/stablecog/go-apps/server/models"
 
 var DefaultServerModels = []string{
 	"Stable Diffusion v1.5",

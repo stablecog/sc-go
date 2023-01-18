@@ -9,13 +9,13 @@ import (
 
 	"entgo.io/ent/dialect/sql"
 	"github.com/google/uuid"
-	"github.com/yekta/stablecog/go-apps/database/ent/generation"
-	"github.com/yekta/stablecog/go-apps/database/ent/model"
-	"github.com/yekta/stablecog/go-apps/database/ent/negativeprompt"
-	"github.com/yekta/stablecog/go-apps/database/ent/prompt"
-	"github.com/yekta/stablecog/go-apps/database/ent/scheduler"
-	"github.com/yekta/stablecog/go-apps/database/ent/user"
-	"github.com/yekta/stablecog/go-apps/database/enttypes"
+	"github.com/stablecog/go-apps/database/ent/generation"
+	"github.com/stablecog/go-apps/database/ent/model"
+	"github.com/stablecog/go-apps/database/ent/negativeprompt"
+	"github.com/stablecog/go-apps/database/ent/prompt"
+	"github.com/stablecog/go-apps/database/ent/scheduler"
+	"github.com/stablecog/go-apps/database/ent/user"
+	"github.com/stablecog/go-apps/database/enttypes"
 )
 
 // Generation is the model entity for the Generation schema.

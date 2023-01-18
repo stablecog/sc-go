@@ -5,8 +5,8 @@ import (
 	"io"
 	"net/http"
 
-	"github.com/yekta/stablecog/go-apps/server/models"
-	"github.com/yekta/stablecog/go-apps/utils"
+	"github.com/stablecog/go-apps/server/models"
+	"github.com/stablecog/go-apps/utils"
 )
 
 // POST health endpoint

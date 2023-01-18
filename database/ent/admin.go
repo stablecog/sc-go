@@ -9,7 +9,7 @@ import (
 
 	"entgo.io/ent/dialect/sql"
 	"github.com/google/uuid"
-	"github.com/yekta/stablecog/go-apps/database/ent/admin"
+	"github.com/stablecog/go-apps/database/ent/admin"
 )
 
 // Admin is the model entity for the Admin schema.

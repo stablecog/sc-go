@@ -9,7 +9,7 @@ import (
 
 	"entgo.io/ent/dialect/sql"
 	"github.com/google/uuid"
-	"github.com/yekta/stablecog/go-apps/database/ent/generationrealtime"
+	"github.com/stablecog/go-apps/database/ent/generationrealtime"
 )
 
 // GenerationRealtime is the model entity for the GenerationRealtime schema.

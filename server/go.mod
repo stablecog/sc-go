@@ -1,4 +1,4 @@
-module github.com/yekta/stablecog/go-apps/server
+module github.com/stablecog/go-apps/server
 
 go 1.19
 

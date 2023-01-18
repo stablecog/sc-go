@@ -11,7 +11,7 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
-	"github.com/yekta/stablecog/go-apps/database/ent/server"
+	"github.com/stablecog/go-apps/database/ent/server"
 )
 
 // ServerCreate is the builder for creating a Server entity.

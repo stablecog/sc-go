@@ -1,3 +1,3 @@
-module github.com/yekta/stablecog/go-apps
+module github.com/stablecog/go-apps
 
 go 1.19

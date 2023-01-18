@@ -11,8 +11,8 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
-	"github.com/yekta/stablecog/go-apps/database/ent/predicate"
-	"github.com/yekta/stablecog/go-apps/database/ent/upscalerealtime"
+	"github.com/stablecog/go-apps/database/ent/predicate"
+	"github.com/stablecog/go-apps/database/ent/upscalerealtime"
 )
 
 // UpscaleRealtimeUpdate is the builder for updating UpscaleRealtime entities.

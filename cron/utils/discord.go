@@ -10,10 +10,10 @@ import (
 	"time"
 
 	"github.com/go-redis/redis/v9"
-	"github.com/yekta/stablecog/go-apps/cron/models"
-	"github.com/yekta/stablecog/go-apps/database/ent"
-	dbgeneration "github.com/yekta/stablecog/go-apps/database/ent/generation"
-	"github.com/yekta/stablecog/go-apps/utils"
+	"github.com/stablecog/go-apps/cron/models"
+	"github.com/stablecog/go-apps/database/ent"
+	dbgeneration "github.com/stablecog/go-apps/database/ent/generation"
+	"github.com/stablecog/go-apps/utils"
 	"k8s.io/klog/v2"
 )
 

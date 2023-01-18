@@ -8,8 +8,8 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
-	"github.com/yekta/stablecog/go-apps/database/ent/negativeprompt"
-	"github.com/yekta/stablecog/go-apps/database/ent/predicate"
+	"github.com/stablecog/go-apps/database/ent/negativeprompt"
+	"github.com/stablecog/go-apps/database/ent/predicate"
 )
 
 // NegativePromptDelete is the builder for deleting a NegativePrompt entity.

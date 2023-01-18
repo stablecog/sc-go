@@ -9,7 +9,7 @@ import (
 
 	"entgo.io/ent/dialect/sql"
 	"github.com/google/uuid"
-	"github.com/yekta/stablecog/go-apps/database/ent/model"
+	"github.com/stablecog/go-apps/database/ent/model"
 )
 
 // Model is the model entity for the Model schema.

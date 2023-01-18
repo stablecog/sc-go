@@ -6,8 +6,8 @@ import (
 	"time"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/yekta/stablecog/go-apps/utils"
-	"github.com/yekta/stablecog/go-apps/utils/color"
+	"github.com/stablecog/go-apps/utils"
+	"github.com/stablecog/go-apps/utils/color"
 	"k8s.io/klog/v2"
 )
 

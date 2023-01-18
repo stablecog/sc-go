@@ -11,10 +11,10 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
-	"github.com/yekta/stablecog/go-apps/database/ent/generation"
-	"github.com/yekta/stablecog/go-apps/database/ent/generationg"
-	"github.com/yekta/stablecog/go-apps/database/ent/upscale"
-	"github.com/yekta/stablecog/go-apps/database/ent/user"
+	"github.com/stablecog/go-apps/database/ent/generation"
+	"github.com/stablecog/go-apps/database/ent/generationg"
+	"github.com/stablecog/go-apps/database/ent/upscale"
+	"github.com/stablecog/go-apps/database/ent/user"
 )
 
 // UserCreate is the builder for creating a User entity.

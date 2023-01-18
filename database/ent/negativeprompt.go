@@ -9,7 +9,7 @@ import (
 
 	"entgo.io/ent/dialect/sql"
 	"github.com/google/uuid"
-	"github.com/yekta/stablecog/go-apps/database/ent/negativeprompt"
+	"github.com/stablecog/go-apps/database/ent/negativeprompt"
 )
 
 // NegativePrompt is the model entity for the NegativePrompt schema.

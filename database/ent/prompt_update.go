@@ -12,10 +12,10 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
-	"github.com/yekta/stablecog/go-apps/database/ent/generation"
-	"github.com/yekta/stablecog/go-apps/database/ent/generationg"
-	"github.com/yekta/stablecog/go-apps/database/ent/predicate"
-	"github.com/yekta/stablecog/go-apps/database/ent/prompt"
+	"github.com/stablecog/go-apps/database/ent/generation"
+	"github.com/stablecog/go-apps/database/ent/generationg"
+	"github.com/stablecog/go-apps/database/ent/predicate"
+	"github.com/stablecog/go-apps/database/ent/prompt"
 )
 
 // PromptUpdate is the builder for updating Prompt entities.

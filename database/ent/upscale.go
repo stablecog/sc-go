@@ -9,9 +9,9 @@ import (
 
 	"entgo.io/ent/dialect/sql"
 	"github.com/google/uuid"
-	"github.com/yekta/stablecog/go-apps/database/ent/upscale"
-	"github.com/yekta/stablecog/go-apps/database/ent/user"
-	"github.com/yekta/stablecog/go-apps/database/enttypes"
+	"github.com/stablecog/go-apps/database/ent/upscale"
+	"github.com/stablecog/go-apps/database/ent/user"
+	"github.com/stablecog/go-apps/database/enttypes"
 )
 
 // Upscale is the model entity for the Upscale schema.

@@ -4,8 +4,8 @@ import (
 	"os"
 	"testing"
 
+	"github.com/stablecog/go-apps/utils"
 	"github.com/stretchr/testify/assert"
-	"github.com/yekta/stablecog/go-apps/utils"
 )
 
 func TestGetSqlDbConnPostgres(t *testing.T) {

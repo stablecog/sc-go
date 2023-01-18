@@ -7,9 +7,9 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/cors"
-	"github.com/yekta/stablecog/go-apps/server/controller"
-	"github.com/yekta/stablecog/go-apps/server/middleware"
-	"github.com/yekta/stablecog/go-apps/utils"
+	"github.com/stablecog/go-apps/server/controller"
+	"github.com/stablecog/go-apps/server/middleware"
+	"github.com/stablecog/go-apps/utils"
 	"k8s.io/klog/v2"
 )
 

@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/yekta/stablecog/go-apps/database/ent"
-	dbgeneration "github.com/yekta/stablecog/go-apps/database/ent/generation"
-	"github.com/yekta/stablecog/go-apps/database/ent/server"
+	"github.com/stablecog/go-apps/database/ent"
+	dbgeneration "github.com/stablecog/go-apps/database/ent/generation"
+	"github.com/stablecog/go-apps/database/ent/server"
 	"k8s.io/klog/v2"
 )
 

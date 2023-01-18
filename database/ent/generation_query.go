@@ -11,13 +11,13 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
-	"github.com/yekta/stablecog/go-apps/database/ent/generation"
-	"github.com/yekta/stablecog/go-apps/database/ent/model"
-	"github.com/yekta/stablecog/go-apps/database/ent/negativeprompt"
-	"github.com/yekta/stablecog/go-apps/database/ent/predicate"
-	"github.com/yekta/stablecog/go-apps/database/ent/prompt"
-	"github.com/yekta/stablecog/go-apps/database/ent/scheduler"
-	"github.com/yekta/stablecog/go-apps/database/ent/user"
+	"github.com/stablecog/go-apps/database/ent/generation"
+	"github.com/stablecog/go-apps/database/ent/model"
+	"github.com/stablecog/go-apps/database/ent/negativeprompt"
+	"github.com/stablecog/go-apps/database/ent/predicate"
+	"github.com/stablecog/go-apps/database/ent/prompt"
+	"github.com/stablecog/go-apps/database/ent/scheduler"
+	"github.com/stablecog/go-apps/database/ent/user"
 )
 
 // GenerationQuery is the builder for querying Generation entities.
