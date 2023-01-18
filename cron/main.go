@@ -24,6 +24,7 @@ func main() {
 	showHelp := flag.Bool("help", false, "Show help")
 	healthCheck := flag.Bool("healthCheck", false, "Run the health check job")
 	syncMeili := flag.Bool("syncMeili", false, "Sync the meili index")
+	stats := flag.Bool("stats", false, "Run the stats job")
 	klog.InitFlags(nil)
 	flag.Set("logtostderr", "true")
 	flag.Set("stderrthreshold", "INFO")
@@ -87,6 +88,15 @@ func main() {
 		err := jobRunner.SyncMeili()
 		if err != nil {
 			klog.Fatalf("Error syncing meili: %v", err)
+			os.Exit(1)
+		}
+		os.Exit(0)
+	}
+
+	if *stats {
+		err := jobRunner.GetAndSetStats()
+		if err != nil {
+			klog.Fatalf("Error running stats job: %v", err)
 			os.Exit(1)
 		}
 		os.Exit(0)
