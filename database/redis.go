@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/alicebob/miniredis/v2"
-	"github.com/go-redis/redis/v9"
+	"github.com/go-redis/redis/v8"
 	"github.com/stablecog/go-apps/utils"
 	"k8s.io/klog/v2"
 )

@@ -3,7 +3,7 @@ package jobs
 import (
 	"context"
 
-	"github.com/go-redis/redis/v9"
+	"github.com/go-redis/redis/v8"
 	"github.com/stablecog/go-apps/cron/utils"
 	"github.com/stablecog/go-apps/database/ent"
 )

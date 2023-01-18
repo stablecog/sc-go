@@ -4,6 +4,7 @@
 !.data/*/.gitkeep
 .env
 .DS_Store
+*.db
 
 # Binaries for programs and plugins
 *.exe

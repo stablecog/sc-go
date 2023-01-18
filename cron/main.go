@@ -1,5 +1,5 @@
 // Sets up a CLI to trigger the various cron jobs
-package cron
+package main
 
 import (
 	"context"
@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/joho/godotenv"
 	"github.com/stablecog/go-apps/cron/jobs"
 	"github.com/stablecog/go-apps/cron/utils"
 	"github.com/stablecog/go-apps/database"
@@ -32,6 +33,12 @@ func main() {
 	if *showHelp {
 		usage()
 		os.Exit(0)
+	}
+
+	// Load .env
+	err := godotenv.Load("../.env")
+	if err != nil {
+		klog.Warningf("Error loading .env file (this is fine): %v", err)
 	}
 
 	ctx := context.Background()

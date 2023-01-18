@@ -3,7 +3,7 @@ module github.com/stablecog/go-apps/cron
 go 1.19
 
 require (
-	github.com/go-redis/redis/v9 v9.0.0-rc.2
+	github.com/go-redis/redis/v8 v8.11.5
 	github.com/google/uuid v1.3.0
 	github.com/jarcoal/httpmock v1.2.0
 	github.com/stablecog/go-apps/database v0.0.0-20230118153414-2fd508cf8aec
@@ -11,6 +11,8 @@ require (
 	github.com/stretchr/testify v1.8.1
 	k8s.io/klog/v2 v2.80.1
 )
+
+require github.com/go-redis/redis/v9 v9.0.0-rc.2 // indirect
 
 require (
 	ariga.io/atlas v0.8.4-0.20221212165942-e53dd27a603d // indirect
@@ -34,6 +36,7 @@ require (
 	github.com/jackc/pgservicefile v0.0.0-20200714003250-2b9c44734f2b // indirect
 	github.com/jackc/pgtype v1.12.0 // indirect
 	github.com/jackc/pgx/v4 v4.17.2 // indirect
+	github.com/joho/godotenv v1.4.0
 	github.com/mattn/go-sqlite3 v1.14.16 // indirect
 	github.com/mitchellh/go-wordwrap v0.0.0-20150314170334-ad45545899c7 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect

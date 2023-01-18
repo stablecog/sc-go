@@ -3,7 +3,7 @@ module github.com/stablecog/go-apps/database
 go 1.19
 
 require (
-	github.com/go-redis/redis/v9 v9.0.0-rc.2
+	github.com/go-redis/redis/v8 v8.11.5
 	github.com/stablecog/go-apps/utils v0.0.0-20230118153414-2fd508cf8aec
 	github.com/stretchr/testify v1.8.1
 	k8s.io/klog/v2 v2.80.1
