@@ -52,8 +52,6 @@ func NewDiscordHealthTracker(ctx context.Context, redis *redis.Client) *DiscordH
 func (d *DiscordHealthTracker) SendDiscordNotificationIfNeeded(
 	status string,
 	statusPrev string,
-	servers []*ent.Server,
-	serversStateChanged bool,
 	generations []*ent.Generation,
 	lastGenerationTime time.Time,
 	lastCheckTime time.Time,
@@ -67,7 +65,6 @@ func (d *DiscordHealthTracker) SendDiscordNotificationIfNeeded(
 	sinceUnhealthyNotification := time.Since(d.lastUnhealthyNotificationTime)
 
 	if statusPrev == "unknown" || (status == statusPrev &&
-		!serversStateChanged &&
 		((status == "unhealthy" && sinceUnhealthyNotification < unhealthyNotificationInterval) ||
 			(status == "healthy" && sinceHealthyNotification < healthyNotificationInterval))) {
 		klogInfof("Skipping Discord notification, not needed")
@@ -76,7 +73,7 @@ func (d *DiscordHealthTracker) SendDiscordNotificationIfNeeded(
 
 	start := time.Now().UnixMilli()
 	klog.Infoln("Sending Discord notification...")
-	webhookBody := getDiscordWebhookBody(status, servers, generations, lastGenerationTime, lastCheckTime)
+	webhookBody := getDiscordWebhookBody(status, generations, lastGenerationTime, lastCheckTime)
 	reqBody, err := json.Marshal(webhookBody)
 	if err != nil {
 		klog.Errorf("Error marshalling webhook body: %s", err)
@@ -109,7 +106,6 @@ func (d *DiscordHealthTracker) SendDiscordNotificationIfNeeded(
 
 func getDiscordWebhookBody(
 	status string,
-	servers []*ent.Server,
 	generations []*ent.Generation,
 	lastGenerationTime time.Time,
 	lastCheckTime time.Time,
@@ -120,19 +116,8 @@ func getDiscordWebhookBody(
 	} else {
 		statusStr = "🟢👌🟢"
 	}
-	serversStr := ""
-	serversStrArr := []string{}
 	generationsStr := ""
 	generationsStrArr := []string{}
-	for _, server := range servers {
-		if !server.Enabled {
-			serversStrArr = append(serversStrArr, "🖥️⚪️")
-		} else if server.Healthy {
-			serversStrArr = append(serversStrArr, "🖥️🟢")
-		} else {
-			serversStrArr = append(serversStrArr, "🖥️🔴")
-		}
-	}
 	for _, generation := range generations {
 		if generation.Status != nil {
 			if *generation.Status == dbgeneration.StatusFailed {
@@ -148,7 +133,6 @@ func getDiscordWebhookBody(
 			}
 		}
 	}
-	serversStr = strings.Join(serversStrArr, "  ")
 	generationsStr = strings.Join(generationsStrArr, "")
 	body := models.DiscordWebhookBody{
 		Embeds: []models.DiscordWebhookEmbed{
@@ -158,10 +142,6 @@ func getDiscordWebhookBody(
 					{
 						Name:  "Status",
 						Value: fmt.Sprintf("```%s```", statusStr),
-					},
-					{
-						Name:  "Servers",
-						Value: fmt.Sprintf("```%s```", serversStr),
 					},
 					{
 						Name:  "Generations",

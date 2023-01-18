@@ -51,14 +51,6 @@ func TestSendDiscordNotificationIfNeeded(t *testing.T) {
 		logs = append(logs, fmt.Sprintf(format, args...))
 	}
 
-	// Mock servers
-	servers := []*ent.Server{}
-	servers = append(servers, &ent.Server{
-		ID:      uuid.New(),
-		URL:     "https://test1.com",
-		Enabled: true,
-	})
-
 	// Mock generations
 	generations := []*ent.Generation{}
 	failedStatus := generation.StatusFailed
@@ -87,12 +79,12 @@ func TestSendDiscordNotificationIfNeeded(t *testing.T) {
 	})
 
 	// ! Test invalid address
-	err := MockDiscordHealthTracker.SendDiscordNotificationIfNeeded("test", "test", servers, false, generations, time.Now(), time.Now())
+	err := MockDiscordHealthTracker.SendDiscordNotificationIfNeeded("test", "test", generations, time.Now(), time.Now())
 	assert.NotNil(t, err)
 	assert.Equal(t, "Post \"http://localhost:123456\": dial tcp: address 123456: invalid port", err.Error())
 
 	// ! Test notification not needed
-	err = MockDiscordHealthTracker.SendDiscordNotificationIfNeeded("test", "unknown", servers, false, generations, time.Now(), time.Now())
+	err = MockDiscordHealthTracker.SendDiscordNotificationIfNeeded("test", "unknown", generations, time.Now(), time.Now())
 	assert.Nil(t, err)
 	assert.Equal(t, "Skipping Discord notification, not needed", logs[0])
 
@@ -102,7 +94,7 @@ func TestSendDiscordNotificationIfNeeded(t *testing.T) {
 	err = MockDiscordHealthTracker.redis.Set(MockDiscordHealthTracker.ctx, lastUnhealthyKey, MockDiscordHealthTracker.lastNotificationTime.Format(time.RFC3339), rTTL).Err()
 	assert.Nil(t, err)
 
-	err = MockDiscordHealthTracker.SendDiscordNotificationIfNeeded("unhealthy", "unhealthy", servers, false, generations, time.Now(), time.Now())
+	err = MockDiscordHealthTracker.SendDiscordNotificationIfNeeded("unhealthy", "unhealthy", generations, time.Now(), time.Now())
 	assert.Nil(t, err)
 	assert.Equal(t, "Skipping Discord notification, not needed", logs[1])
 
@@ -124,9 +116,8 @@ func TestSendDiscordNotificationIfNeeded(t *testing.T) {
 			assert.Nil(t, err)
 			assert.Equal(t, 11437547, request.Embeds[0].Color)
 			assert.Equal(t, "```🟢👌🟢```", request.Embeds[0].Fields[0].Value)
-			assert.Equal(t, "```🖥️🔴```", request.Embeds[0].Fields[1].Value)
-			assert.Equal(t, "```🌶️🔴🟡🟢```", request.Embeds[0].Fields[2].Value)
-			assert.Equal(t, "```Just now```", request.Embeds[0].Fields[3].Value)
+			assert.Equal(t, "```🌶️🔴🟡🟢```", request.Embeds[0].Fields[1].Value)
+			assert.Equal(t, "```Just now```", request.Embeds[0].Fields[2].Value)
 
 			resp, err := httpmock.NewJsonResponse(200, map[string]interface{}{
 				"status": "ok",
@@ -135,6 +126,6 @@ func TestSendDiscordNotificationIfNeeded(t *testing.T) {
 		},
 	)
 
-	err = MockDiscordHealthTracker.SendDiscordNotificationIfNeeded("healthy", "unhealthy", servers, false, generations, time.Now(), time.Now())
+	err = MockDiscordHealthTracker.SendDiscordNotificationIfNeeded("healthy", "unhealthy", generations, time.Now(), time.Now())
 	assert.Nil(t, err)
 }
