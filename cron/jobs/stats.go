@@ -60,7 +60,7 @@ func (j *JobRunner) GetAndSetStatFromPostgresToRedis(
 	if val != "" {
 		num, err := strconv.ParseInt(val, 10, 64)
 		if err == nil {
-			*statsValue = num
+			statsValue = &num
 			klog.Infof("Redis - Got '%s' from Redis, skipping Supabase", rKey)
 			return nil
 		}

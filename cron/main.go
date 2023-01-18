@@ -6,7 +6,9 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"time"
 
+	"github.com/go-co-op/gocron"
 	"github.com/joho/godotenv"
 	"github.com/stablecog/go-apps/cron/jobs"
 	"github.com/stablecog/go-apps/cron/utils"
@@ -25,6 +27,7 @@ func main() {
 	healthCheck := flag.Bool("healthCheck", false, "Run the health check job")
 	syncMeili := flag.Bool("syncMeili", false, "Sync the meili index")
 	stats := flag.Bool("stats", false, "Run the stats job")
+	allJobs := flag.Bool("all", false, "Run all jobs in a blocking process")
 	klog.InitFlags(nil)
 	flag.Set("logtostderr", "true")
 	flag.Set("stderrthreshold", "INFO")
@@ -99,6 +102,16 @@ func main() {
 			klog.Fatalf("Error running stats job: %v", err)
 			os.Exit(1)
 		}
+		os.Exit(0)
+	}
+
+	if *allJobs {
+		klog.Infoln("🏡 Starting all jobs...")
+		s := gocron.NewScheduler(time.UTC)
+		s.Every(15).Seconds().Do(jobRunner.CheckHealth)
+		s.Every(10).Seconds().Do(jobRunner.GetAndSetStats)
+		s.Every(60).Seconds().Do(jobRunner.SyncMeili)
+		s.StartBlocking()
 		os.Exit(0)
 	}
 
