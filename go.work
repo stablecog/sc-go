@@ -1,0 +1,8 @@
+go 1.19
+
+use (
+	./cron
+	./database
+	./server
+	./utils
+)
