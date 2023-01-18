@@ -10,9 +10,10 @@ import (
 )
 
 type JobRunner struct {
-	Redis   *redis.Client
-	Ctx     context.Context
-	Db      *ent.Client
-	Discord *utils.DiscordHealthTracker
-	Meili   *meilisearch.Client
+	Redis            *redis.Client
+	Ctx              context.Context
+	Db               *ent.Client
+	Discord          *utils.DiscordHealthTracker
+	Meili            *meilisearch.Client
+	LastHealthStatus string
 }

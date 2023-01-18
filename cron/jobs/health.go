@@ -19,7 +19,6 @@ const maxGenerationDuration = 2 * time.Minute
 const rTTL = 2 * time.Hour
 
 var lastGenerationKey = fmt.Sprintf("%s:last_generation", redisHealthKeyPrefix)
-var lastStatusKey = fmt.Sprintf("%s:last_status", redisHealthKeyPrefix)
 
 // Query last generations from database
 func (j *JobRunner) GetLastGenerations(limit int) ([]*ent.Generation, error) {
@@ -41,11 +40,8 @@ func (j *JobRunner) CheckHealth() error {
 		return err
 	}
 
-	// Get last status
-	lastStatus := "unknown"
-	lastStatusStr := j.Redis.Get(j.Ctx, lastStatusKey).Val()
-	if lastStatusStr != "" {
-		lastStatus = lastStatusStr
+	if j.LastHealthStatus == "" {
+		j.LastHealthStatus = "unknown"
 	}
 
 	var generationsFailed int
@@ -79,17 +75,17 @@ func (j *JobRunner) CheckHealth() error {
 	klog.Infof("Generation fail rate: %d/%d", generationsFailed, len(generations))
 	klog.Infof("Generation fail rate without NSFW: %d/%d", generationsFailedWithoutNSFW, len(generations))
 
-	lastStatusPrev := lastStatus
+	lastStatusPrev := j.LastHealthStatus
 	if generationFailWithoutNSFWRate > maxGenerationFailWithoutNSFWRate {
-		lastStatus = "unhealthy"
+		j.LastHealthStatus = "unhealthy"
 	} else {
-		lastStatus = "healthy"
+		j.LastHealthStatus = "healthy"
 	}
 	now := time.Now()
 	klog.Infof("Done checking health in: %dms", now.Sub(start).Milliseconds())
 
 	return j.Discord.SendDiscordNotificationIfNeeded(
-		lastStatus,
+		j.LastHealthStatus,
 		lastStatusPrev,
 		generations,
 		lastGenerationTime,
