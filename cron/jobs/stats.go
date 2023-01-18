@@ -11,7 +11,6 @@ import (
 )
 
 const redisStatsPrefix = "stats"
-const statsTTL = 10 * time.Second // redis expiry
 
 func (j *JobRunner) GetAndSetStats() error {
 	start := time.Now()
@@ -78,7 +77,7 @@ func (j *JobRunner) GetAndSetStatFromPostgresToRedis(
 	}
 
 	statsValue = &data
-	errSet := j.Redis.Set(j.Ctx, rKey, data, statsTTL).Err()
+	errSet := j.Redis.Set(j.Ctx, rKey, data, 0).Err()
 	if errSet != nil {
 		klog.Errorf("Redis - Error setting '%s': %v", rKey, err)
 		return errSet
