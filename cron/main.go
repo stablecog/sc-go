@@ -23,6 +23,7 @@ func usage() {
 func main() {
 	showHelp := flag.Bool("help", false, "Show help")
 	healthCheck := flag.Bool("healthCheck", false, "Run the health check job")
+	syncMeili := flag.Bool("syncMeili", false, "Sync the meili index")
 	klog.InitFlags(nil)
 	flag.Set("logtostderr", "true")
 	flag.Set("stderrthreshold", "INFO")
@@ -70,12 +71,22 @@ func main() {
 		Db:      entClient,
 		Redis:   redis,
 		Discord: utils.NewDiscordHealthTracker(ctx, redis),
+		Meili:   database.NewMeiliSearchClient(),
 	}
 
 	if *healthCheck {
 		err := jobRunner.CheckHealth()
 		if err != nil {
 			klog.Fatalf("Error running health check: %v", err)
+			os.Exit(1)
+		}
+		os.Exit(0)
+	}
+
+	if *syncMeili {
+		err := jobRunner.SyncMeili()
+		if err != nil {
+			klog.Fatalf("Error syncing meili: %v", err)
 			os.Exit(1)
 		}
 		os.Exit(0)
