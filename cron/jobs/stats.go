@@ -2,7 +2,6 @@ package jobs
 
 import (
 	"fmt"
-	"strconv"
 	"sync"
 	"time"
 
@@ -16,26 +15,25 @@ func (j *JobRunner) GetAndSetStats() error {
 	start := time.Now()
 	klog.Infof("Getting stats...")
 
-	// Map for stats
-	stats := map[string]*int64{
-		"generation_count": nil,
-		"upscale_count":    nil,
+	// Stats methods, they map to SQL functions and redis keys
+	stats := []string{
+		"generation_count",
+		"upscale_count",
 	}
 
 	var wg sync.WaitGroup
 	errors := []error{}
 	wg.Add(len(stats))
-	for name, value := range stats {
-		go func(name string, value *int64) {
+	for _, value := range stats {
+		go func(value string) {
 			defer wg.Done()
 			err := j.GetAndSetStatFromPostgresToRedis(
-				name,
 				value,
 			)
 			if err != nil {
 				errors = append(errors, err)
 			}
-		}(name, value)
+		}(value)
 	}
 	wg.Wait()
 
@@ -52,18 +50,8 @@ func (j *JobRunner) GetAndSetStats() error {
 
 func (j *JobRunner) GetAndSetStatFromPostgresToRedis(
 	statsName string,
-	statsValue *int64,
 ) error {
 	rKey := fmt.Sprintf("%s:%s", redisStatsPrefix, statsName)
-	val := j.Redis.Get(j.Ctx, rKey).Val()
-	if val != "" {
-		num, err := strconv.ParseInt(val, 10, 64)
-		if err == nil {
-			statsValue = &num
-			klog.Infof("Redis - Got '%s' from Redis, skipping Supabase", rKey)
-			return nil
-		}
-	}
 	res, err := j.Db.QueryContext(j.Ctx, fmt.Sprintf("select %s()", statsName))
 	if err != nil {
 		return err
@@ -76,7 +64,6 @@ func (j *JobRunner) GetAndSetStatFromPostgresToRedis(
 		return err
 	}
 
-	statsValue = &data
 	errSet := j.Redis.Set(j.Ctx, rKey, data, 0).Err()
 	if errSet != nil {
 		klog.Errorf("Redis - Error setting '%s': %v", rKey, err)
