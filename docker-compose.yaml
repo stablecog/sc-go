@@ -6,7 +6,7 @@ services:
     security_opt:
       - 'seccomp:unconfined'
     environment:
-      - GOPRIVATE=github.com/bbedward
+      - GOPRIVATE=github.com/stablecog
       - PORT=13337
     ports:
       - '127.0.0.1:13337:13337'
