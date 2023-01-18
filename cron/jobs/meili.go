@@ -2,7 +2,6 @@ package jobs
 
 import (
 	"fmt"
-	"log"
 	"math/big"
 	"time"
 
@@ -20,7 +19,7 @@ import (
 const redisMeiliKeyPrefix = "meili"
 const maxTotalHits = 5000
 
-// var shouldSetSettings = true
+var shouldSetSettings = true
 
 var lastSyncedGenUpdatedAtKey = fmt.Sprintf("%s:last_sync_gen_updated_at", redisMeiliKeyPrefix)
 var sortableAttributes = []string{"updated_at", "created_at"}
@@ -60,23 +59,25 @@ func (j *JobRunner) SyncMeili() error {
 	}
 	lastGen := generations[len(generations)-1]
 
-	// if shouldSetSettings {
-	_, err = j.Meili.Index("generation_g").UpdateSortableAttributes(&sortableAttributes)
-	if err != nil {
-		log.Printf("-- MeiliWorker - Meili update sortable attributes error: %v", err)
-	} else {
-		log.Printf("-- MeiliWorker - Meili sortable attributes updated")
+	if shouldSetSettings {
+		_, err = j.Meili.Index("generation_g").UpdateSortableAttributes(&sortableAttributes)
+		if err != nil {
+			klog.Errorf("-- MeiliWorker - Meili update sortable attributes error: %v", err)
+			return err
+		} else {
+			klog.Infof("-- MeiliWorker - Meili sortable attributes updated")
+		}
+		_, errMax := j.Meili.Index("generation_g").UpdatePagination(&meilisearch.Pagination{MaxTotalHits: int64(maxTotalHits)})
+		if errMax != nil {
+			klog.Errorf("-- MeiliWorker - Meili update max total hits error: %v", errMax)
+			return errMax
+		} else {
+			klog.Infof("-- MeiliWorker - Meili max total hits updated")
+		}
+		if err == nil && errMax == nil {
+			shouldSetSettings = false
+		}
 	}
-	_, errMax := j.Meili.Index("generation_g").UpdatePagination(&meilisearch.Pagination{MaxTotalHits: int64(maxTotalHits)})
-	if errMax != nil {
-		log.Printf("-- MeiliWorker - Meili update max total hits error: %v", errMax)
-	} else {
-		log.Printf("-- MeiliWorker - Meili max total hits updated")
-	}
-	// 	if err == nil && errMax == nil {
-	// 		shouldSetSettings = false
-	// 	}
-	// }
 
 	var generationsMeili []MeiliGenerationG
 
@@ -111,12 +112,12 @@ func (j *JobRunner) SyncMeili() error {
 
 	_, errMeili := j.Meili.Index("generation_g").AddDocuments(generationsMeili)
 	if errMeili != nil {
-		log.Printf("-- MeiliWorker - Meili error: %v", errMeili)
+		klog.Errorf("-- MeiliWorker - Meili error: %v", errMeili)
 		return errMeili
 	} else {
 		lastSyncedGenUpdatedAt = lastGen.UpdatedAt
 		j.Redis.Set(j.Ctx, lastSyncedGenUpdatedAtKey, lastSyncedGenUpdatedAt.UTC().Format(time.RFC3339), rTTL)
-		log.Printf("-- MeiliWorker - Successfully indexed - %s -- ", lastSyncedGenUpdatedAt.UTC())
+		klog.Infof("-- MeiliWorker - Successfully indexed - %s -- ", lastSyncedGenUpdatedAt.UTC())
 	}
 
 	return nil
