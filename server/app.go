@@ -8,6 +8,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/cors"
 	"github.com/stablecog/go-apps/server/controller"
+	"github.com/stablecog/go-apps/server/controller/websocket"
 	"github.com/stablecog/go-apps/server/middleware"
 	"github.com/stablecog/go-apps/utils"
 	"k8s.io/klog/v2"
@@ -42,8 +43,18 @@ func main() {
 	// Create controller
 	hc := controller.HttpController{}
 
+	// Create and start websocket hub
+	hub := websocket.NewHub()
+	go hub.Run()
+
 	// HTTP Routes
-	app.Post("/health", hc.PostHealth)
+	app.Route("/api/v1", func(r chi.Router) {
+		r.Post("/health", hc.PostHealth)
+		// Websocket
+		r.HandleFunc("/ws", func(w http.ResponseWriter, r *http.Request) {
+			websocket.ServeWS(hub, w, r)
+		})
+	})
 
 	// Start server
 	port := utils.GetEnv("PORT", "13337")
