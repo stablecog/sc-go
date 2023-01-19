@@ -5,7 +5,6 @@ import (
 	"log"
 	"time"
 
-	"github.com/google/uuid"
 	"github.com/gorilla/websocket"
 )
 
@@ -44,7 +43,7 @@ type Client struct {
 	Send chan []byte
 
 	// identifier for connected client
-	Uid uuid.UUID
+	Uid string
 }
 
 // readPump pumps messages from the websocket connection to the hub.

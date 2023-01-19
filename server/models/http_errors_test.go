@@ -26,6 +26,23 @@ func TestErrUnableToParseJson(t *testing.T) {
 	assert.Equal(t, "Unable to parse json", respJson["error"])
 }
 
+func TestErrUnauthorized(t *testing.T) {
+	w := httptest.NewRecorder()
+	// Build request
+	req := httptest.NewRequest("GET", "/", nil)
+	req.Header.Set("Content-Type", "application/json")
+	ErrUnauthorized(w, req)
+	resp := w.Result()
+	defer resp.Body.Close()
+	assert.Equal(t, 400, resp.StatusCode)
+
+	var respJson map[string]interface{}
+	respBody, _ := io.ReadAll(resp.Body)
+	json.Unmarshal(respBody, &respJson)
+
+	assert.Equal(t, "Unauthorized", respJson["error"])
+}
+
 func TestErrInternalServerError(t *testing.T) {
 	w := httptest.NewRecorder()
 	// Build request

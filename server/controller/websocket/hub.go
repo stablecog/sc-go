@@ -1,9 +1,8 @@
 package websocket
 
 import (
+	"strings"
 	"sync"
-
-	"github.com/google/uuid"
 )
 
 // Hub maintains the set of active clients and broadcasts messages to the
@@ -25,7 +24,7 @@ type Hub struct {
 	mu sync.Mutex
 }
 
-func (h *Hub) GetClientByUid(uid uuid.UUID) *Client {
+func (h *Hub) GetClientByUid(uid string) *Client {
 	h.mu.Lock()
 	defer h.mu.Unlock()
 	for client := range h.clients {
@@ -34,6 +33,19 @@ func (h *Hub) GetClientByUid(uid uuid.UUID) *Client {
 		}
 	}
 	return nil
+}
+
+// Get count of unregistered clients (guests)
+func (h *Hub) GetGuestCount() int {
+	h.mu.Lock()
+	defer h.mu.Unlock()
+	count := 0
+	for client := range h.clients {
+		if strings.HasPrefix("guest", client.Uid) {
+			count++
+		}
+	}
+	return count
 }
 
 func NewHub() *Hub {

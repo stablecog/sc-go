@@ -19,6 +19,15 @@ func ErrUnableToParseJson(w http.ResponseWriter, r *http.Request) {
 	render.JSON(w, r, &UnableToParseJsonError)
 }
 
+var UnauthorizedError = ErrorResponse{
+	Error: "Unauthorized",
+}
+
+func ErrUnauthorized(w http.ResponseWriter, r *http.Request) {
+	render.Status(r, http.StatusBadRequest)
+	render.JSON(w, r, &UnauthorizedError)
+}
+
 func ErrBadRequest(w http.ResponseWriter, r *http.Request, errorText string) {
 	render.Status(r, http.StatusBadRequest)
 	render.JSON(w, r, &ErrorResponse{
