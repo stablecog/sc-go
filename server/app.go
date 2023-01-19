@@ -28,7 +28,7 @@ func main() {
 	// Cors middleware
 	app.Use(cors.Handler(cors.Options{
 		// AllowedOrigins:   []string{"https://foo.com"}, // Use this to allow specific origin hosts
-		AllowedOrigins: []string{"http://localhost:3000"},
+		AllowedOrigins: []string{"http://localhost:3000", "http://localhost:5173"},
 		// AllowOriginFunc:  func(r *http.Request, origin string) bool { return true },
 		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
 		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token"},
@@ -48,7 +48,7 @@ func main() {
 	go hub.Run()
 
 	// HTTP Routes
-	app.Route("/api/v1", func(r chi.Router) {
+	app.Route("/v1", func(r chi.Router) {
 		r.Post("/health", hc.PostHealth)
 		// Websocket
 		r.HandleFunc("/ws", func(w http.ResponseWriter, r *http.Request) {
