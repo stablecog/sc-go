@@ -1,6 +1,7 @@
 package websocket
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 
@@ -14,6 +15,14 @@ func ServeWS(hub *Hub, w http.ResponseWriter, r *http.Request) {
 	// ! TODO - proper cors check
 	upgrader.CheckOrigin = func(r *http.Request) bool { return true }
 	conn, err := upgrader.Upgrade(w, r, nil)
+	if err != nil {
+		klog.Error(err)
+		return
+	}
+
+	// Parse respopnse
+	response := WebsocketConnResponse{Authenticated: authenticated}
+	marshalled, err := json.Marshal(response)
 	if err != nil {
 		klog.Error(err)
 		return
@@ -33,4 +42,11 @@ func ServeWS(hub *Hub, w http.ResponseWriter, r *http.Request) {
 	// new goroutines.
 	go client.writePump()
 	go client.readPump()
+
+	// Send response
+	client.Send <- marshalled
+}
+
+type WebsocketConnResponse struct {
+	Authenticated bool `json:"authenticated"`
 }
