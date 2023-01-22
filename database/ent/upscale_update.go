@@ -34,53 +34,53 @@ func (uu *UpscaleUpdate) Where(ps ...predicate.Upscale) *UpscaleUpdate {
 }
 
 // SetWidth sets the "width" field.
-func (uu *UpscaleUpdate) SetWidth(i int) *UpscaleUpdate {
+func (uu *UpscaleUpdate) SetWidth(i int32) *UpscaleUpdate {
 	uu.mutation.ResetWidth()
 	uu.mutation.SetWidth(i)
 	return uu
 }
 
 // AddWidth adds i to the "width" field.
-func (uu *UpscaleUpdate) AddWidth(i int) *UpscaleUpdate {
+func (uu *UpscaleUpdate) AddWidth(i int32) *UpscaleUpdate {
 	uu.mutation.AddWidth(i)
 	return uu
 }
 
 // SetHeight sets the "height" field.
-func (uu *UpscaleUpdate) SetHeight(i int) *UpscaleUpdate {
+func (uu *UpscaleUpdate) SetHeight(i int32) *UpscaleUpdate {
 	uu.mutation.ResetHeight()
 	uu.mutation.SetHeight(i)
 	return uu
 }
 
 // AddHeight adds i to the "height" field.
-func (uu *UpscaleUpdate) AddHeight(i int) *UpscaleUpdate {
+func (uu *UpscaleUpdate) AddHeight(i int32) *UpscaleUpdate {
 	uu.mutation.AddHeight(i)
 	return uu
 }
 
 // SetScale sets the "scale" field.
-func (uu *UpscaleUpdate) SetScale(i int) *UpscaleUpdate {
+func (uu *UpscaleUpdate) SetScale(i int32) *UpscaleUpdate {
 	uu.mutation.ResetScale()
 	uu.mutation.SetScale(i)
 	return uu
 }
 
 // AddScale adds i to the "scale" field.
-func (uu *UpscaleUpdate) AddScale(i int) *UpscaleUpdate {
+func (uu *UpscaleUpdate) AddScale(i int32) *UpscaleUpdate {
 	uu.mutation.AddScale(i)
 	return uu
 }
 
 // SetDurationMs sets the "duration_ms" field.
-func (uu *UpscaleUpdate) SetDurationMs(i int) *UpscaleUpdate {
+func (uu *UpscaleUpdate) SetDurationMs(i int32) *UpscaleUpdate {
 	uu.mutation.ResetDurationMs()
 	uu.mutation.SetDurationMs(i)
 	return uu
 }
 
 // AddDurationMs adds i to the "duration_ms" field.
-func (uu *UpscaleUpdate) AddDurationMs(i int) *UpscaleUpdate {
+func (uu *UpscaleUpdate) AddDurationMs(i int32) *UpscaleUpdate {
 	uu.mutation.AddDurationMs(i)
 	return uu
 }
@@ -284,28 +284,28 @@ func (uu *UpscaleUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 	}
 	if value, ok := uu.mutation.Width(); ok {
-		_spec.SetField(upscale.FieldWidth, field.TypeInt, value)
+		_spec.SetField(upscale.FieldWidth, field.TypeInt32, value)
 	}
 	if value, ok := uu.mutation.AddedWidth(); ok {
-		_spec.AddField(upscale.FieldWidth, field.TypeInt, value)
+		_spec.AddField(upscale.FieldWidth, field.TypeInt32, value)
 	}
 	if value, ok := uu.mutation.Height(); ok {
-		_spec.SetField(upscale.FieldHeight, field.TypeInt, value)
+		_spec.SetField(upscale.FieldHeight, field.TypeInt32, value)
 	}
 	if value, ok := uu.mutation.AddedHeight(); ok {
-		_spec.AddField(upscale.FieldHeight, field.TypeInt, value)
+		_spec.AddField(upscale.FieldHeight, field.TypeInt32, value)
 	}
 	if value, ok := uu.mutation.Scale(); ok {
-		_spec.SetField(upscale.FieldScale, field.TypeInt, value)
+		_spec.SetField(upscale.FieldScale, field.TypeInt32, value)
 	}
 	if value, ok := uu.mutation.AddedScale(); ok {
-		_spec.AddField(upscale.FieldScale, field.TypeInt, value)
+		_spec.AddField(upscale.FieldScale, field.TypeInt32, value)
 	}
 	if value, ok := uu.mutation.DurationMs(); ok {
-		_spec.SetField(upscale.FieldDurationMs, field.TypeInt, value)
+		_spec.SetField(upscale.FieldDurationMs, field.TypeInt32, value)
 	}
 	if value, ok := uu.mutation.AddedDurationMs(); ok {
-		_spec.AddField(upscale.FieldDurationMs, field.TypeInt, value)
+		_spec.AddField(upscale.FieldDurationMs, field.TypeInt32, value)
 	}
 	if value, ok := uu.mutation.CountryCode(); ok {
 		_spec.SetField(upscale.FieldCountryCode, field.TypeString, value)
@@ -499,53 +499,53 @@ type UpscaleUpdateOne struct {
 }
 
 // SetWidth sets the "width" field.
-func (uuo *UpscaleUpdateOne) SetWidth(i int) *UpscaleUpdateOne {
+func (uuo *UpscaleUpdateOne) SetWidth(i int32) *UpscaleUpdateOne {
 	uuo.mutation.ResetWidth()
 	uuo.mutation.SetWidth(i)
 	return uuo
 }
 
 // AddWidth adds i to the "width" field.
-func (uuo *UpscaleUpdateOne) AddWidth(i int) *UpscaleUpdateOne {
+func (uuo *UpscaleUpdateOne) AddWidth(i int32) *UpscaleUpdateOne {
 	uuo.mutation.AddWidth(i)
 	return uuo
 }
 
 // SetHeight sets the "height" field.
-func (uuo *UpscaleUpdateOne) SetHeight(i int) *UpscaleUpdateOne {
+func (uuo *UpscaleUpdateOne) SetHeight(i int32) *UpscaleUpdateOne {
 	uuo.mutation.ResetHeight()
 	uuo.mutation.SetHeight(i)
 	return uuo
 }
 
 // AddHeight adds i to the "height" field.
-func (uuo *UpscaleUpdateOne) AddHeight(i int) *UpscaleUpdateOne {
+func (uuo *UpscaleUpdateOne) AddHeight(i int32) *UpscaleUpdateOne {
 	uuo.mutation.AddHeight(i)
 	return uuo
 }
 
 // SetScale sets the "scale" field.
-func (uuo *UpscaleUpdateOne) SetScale(i int) *UpscaleUpdateOne {
+func (uuo *UpscaleUpdateOne) SetScale(i int32) *UpscaleUpdateOne {
 	uuo.mutation.ResetScale()
 	uuo.mutation.SetScale(i)
 	return uuo
 }
 
 // AddScale adds i to the "scale" field.
-func (uuo *UpscaleUpdateOne) AddScale(i int) *UpscaleUpdateOne {
+func (uuo *UpscaleUpdateOne) AddScale(i int32) *UpscaleUpdateOne {
 	uuo.mutation.AddScale(i)
 	return uuo
 }
 
 // SetDurationMs sets the "duration_ms" field.
-func (uuo *UpscaleUpdateOne) SetDurationMs(i int) *UpscaleUpdateOne {
+func (uuo *UpscaleUpdateOne) SetDurationMs(i int32) *UpscaleUpdateOne {
 	uuo.mutation.ResetDurationMs()
 	uuo.mutation.SetDurationMs(i)
 	return uuo
 }
 
 // AddDurationMs adds i to the "duration_ms" field.
-func (uuo *UpscaleUpdateOne) AddDurationMs(i int) *UpscaleUpdateOne {
+func (uuo *UpscaleUpdateOne) AddDurationMs(i int32) *UpscaleUpdateOne {
 	uuo.mutation.AddDurationMs(i)
 	return uuo
 }
@@ -773,28 +773,28 @@ func (uuo *UpscaleUpdateOne) sqlSave(ctx context.Context) (_node *Upscale, err e
 		}
 	}
 	if value, ok := uuo.mutation.Width(); ok {
-		_spec.SetField(upscale.FieldWidth, field.TypeInt, value)
+		_spec.SetField(upscale.FieldWidth, field.TypeInt32, value)
 	}
 	if value, ok := uuo.mutation.AddedWidth(); ok {
-		_spec.AddField(upscale.FieldWidth, field.TypeInt, value)
+		_spec.AddField(upscale.FieldWidth, field.TypeInt32, value)
 	}
 	if value, ok := uuo.mutation.Height(); ok {
-		_spec.SetField(upscale.FieldHeight, field.TypeInt, value)
+		_spec.SetField(upscale.FieldHeight, field.TypeInt32, value)
 	}
 	if value, ok := uuo.mutation.AddedHeight(); ok {
-		_spec.AddField(upscale.FieldHeight, field.TypeInt, value)
+		_spec.AddField(upscale.FieldHeight, field.TypeInt32, value)
 	}
 	if value, ok := uuo.mutation.Scale(); ok {
-		_spec.SetField(upscale.FieldScale, field.TypeInt, value)
+		_spec.SetField(upscale.FieldScale, field.TypeInt32, value)
 	}
 	if value, ok := uuo.mutation.AddedScale(); ok {
-		_spec.AddField(upscale.FieldScale, field.TypeInt, value)
+		_spec.AddField(upscale.FieldScale, field.TypeInt32, value)
 	}
 	if value, ok := uuo.mutation.DurationMs(); ok {
-		_spec.SetField(upscale.FieldDurationMs, field.TypeInt, value)
+		_spec.SetField(upscale.FieldDurationMs, field.TypeInt32, value)
 	}
 	if value, ok := uuo.mutation.AddedDurationMs(); ok {
-		_spec.AddField(upscale.FieldDurationMs, field.TypeInt, value)
+		_spec.AddField(upscale.FieldDurationMs, field.TypeInt32, value)
 	}
 	if value, ok := uuo.mutation.CountryCode(); ok {
 		_spec.SetField(upscale.FieldCountryCode, field.TypeString, value)

@@ -20,10 +20,10 @@ type Upscale struct {
 func (Upscale) Fields() []ent.Field {
 	return []ent.Field{
 		field.UUID("id", uuid.UUID{}).Default(uuid.New),
-		field.Int("width"),
-		field.Int("height"),
-		field.Int("scale"),
-		field.Int("duration_ms"),
+		field.Int32("width"),
+		field.Int32("height"),
+		field.Int32("scale"),
+		field.Int32("duration_ms"),
 		field.Text("country_code"),
 		field.Enum("status").Values("started", "succeeded", "failed"),
 		field.Text("failure_reason").Nillable(),

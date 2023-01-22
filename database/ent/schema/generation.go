@@ -4,13 +4,11 @@ import (
 	"time"
 
 	"entgo.io/ent"
-	"entgo.io/ent/dialect"
 	"entgo.io/ent/dialect/entsql"
 	"entgo.io/ent/schema"
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
-	"github.com/stablecog/go-apps/database/enttypes"
 )
 
 // Generation holds the schema definition for the Generation entity.
@@ -22,16 +20,12 @@ type Generation struct {
 func (Generation) Fields() []ent.Field {
 	return []ent.Field{
 		field.UUID("id", uuid.UUID{}).Default(uuid.New),
-		field.Int("width"),
-		field.Int("height"),
-		field.Int("interference_steps"),
+		field.Int32("width"),
+		field.Int32("height"),
+		field.Int32("interference_steps"),
 		field.Float("guidance_scale"),
-		field.Int("seed").
-			Optional().
-			GoType(enttypes.BigInt{}).SchemaType(map[string]string{
-			dialect.Postgres: "bigint",
-		}).Nillable(),
-		field.Int("duration_ms"),
+		field.Int("seed").Nillable(),
+		field.Int32("duration_ms"),
 		field.Enum("status").Values("started", "succeeded", "failed", "rejected"),
 		field.Text("failure_reason").Nillable(),
 		field.Text("country_code"),

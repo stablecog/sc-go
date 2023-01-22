@@ -57,22 +57,22 @@ func IDLTE(id uuid.UUID) predicate.Upscale {
 }
 
 // Width applies equality check predicate on the "width" field. It's identical to WidthEQ.
-func Width(v int) predicate.Upscale {
+func Width(v int32) predicate.Upscale {
 	return predicate.Upscale(sql.FieldEQ(FieldWidth, v))
 }
 
 // Height applies equality check predicate on the "height" field. It's identical to HeightEQ.
-func Height(v int) predicate.Upscale {
+func Height(v int32) predicate.Upscale {
 	return predicate.Upscale(sql.FieldEQ(FieldHeight, v))
 }
 
 // Scale applies equality check predicate on the "scale" field. It's identical to ScaleEQ.
-func Scale(v int) predicate.Upscale {
+func Scale(v int32) predicate.Upscale {
 	return predicate.Upscale(sql.FieldEQ(FieldScale, v))
 }
 
 // DurationMs applies equality check predicate on the "duration_ms" field. It's identical to DurationMsEQ.
-func DurationMs(v int) predicate.Upscale {
+func DurationMs(v int32) predicate.Upscale {
 	return predicate.Upscale(sql.FieldEQ(FieldDurationMs, v))
 }
 
@@ -112,162 +112,162 @@ func UpdatedAt(v time.Time) predicate.Upscale {
 }
 
 // WidthEQ applies the EQ predicate on the "width" field.
-func WidthEQ(v int) predicate.Upscale {
+func WidthEQ(v int32) predicate.Upscale {
 	return predicate.Upscale(sql.FieldEQ(FieldWidth, v))
 }
 
 // WidthNEQ applies the NEQ predicate on the "width" field.
-func WidthNEQ(v int) predicate.Upscale {
+func WidthNEQ(v int32) predicate.Upscale {
 	return predicate.Upscale(sql.FieldNEQ(FieldWidth, v))
 }
 
 // WidthIn applies the In predicate on the "width" field.
-func WidthIn(vs ...int) predicate.Upscale {
+func WidthIn(vs ...int32) predicate.Upscale {
 	return predicate.Upscale(sql.FieldIn(FieldWidth, vs...))
 }
 
 // WidthNotIn applies the NotIn predicate on the "width" field.
-func WidthNotIn(vs ...int) predicate.Upscale {
+func WidthNotIn(vs ...int32) predicate.Upscale {
 	return predicate.Upscale(sql.FieldNotIn(FieldWidth, vs...))
 }
 
 // WidthGT applies the GT predicate on the "width" field.
-func WidthGT(v int) predicate.Upscale {
+func WidthGT(v int32) predicate.Upscale {
 	return predicate.Upscale(sql.FieldGT(FieldWidth, v))
 }
 
 // WidthGTE applies the GTE predicate on the "width" field.
-func WidthGTE(v int) predicate.Upscale {
+func WidthGTE(v int32) predicate.Upscale {
 	return predicate.Upscale(sql.FieldGTE(FieldWidth, v))
 }
 
 // WidthLT applies the LT predicate on the "width" field.
-func WidthLT(v int) predicate.Upscale {
+func WidthLT(v int32) predicate.Upscale {
 	return predicate.Upscale(sql.FieldLT(FieldWidth, v))
 }
 
 // WidthLTE applies the LTE predicate on the "width" field.
-func WidthLTE(v int) predicate.Upscale {
+func WidthLTE(v int32) predicate.Upscale {
 	return predicate.Upscale(sql.FieldLTE(FieldWidth, v))
 }
 
 // HeightEQ applies the EQ predicate on the "height" field.
-func HeightEQ(v int) predicate.Upscale {
+func HeightEQ(v int32) predicate.Upscale {
 	return predicate.Upscale(sql.FieldEQ(FieldHeight, v))
 }
 
 // HeightNEQ applies the NEQ predicate on the "height" field.
-func HeightNEQ(v int) predicate.Upscale {
+func HeightNEQ(v int32) predicate.Upscale {
 	return predicate.Upscale(sql.FieldNEQ(FieldHeight, v))
 }
 
 // HeightIn applies the In predicate on the "height" field.
-func HeightIn(vs ...int) predicate.Upscale {
+func HeightIn(vs ...int32) predicate.Upscale {
 	return predicate.Upscale(sql.FieldIn(FieldHeight, vs...))
 }
 
 // HeightNotIn applies the NotIn predicate on the "height" field.
-func HeightNotIn(vs ...int) predicate.Upscale {
+func HeightNotIn(vs ...int32) predicate.Upscale {
 	return predicate.Upscale(sql.FieldNotIn(FieldHeight, vs...))
 }
 
 // HeightGT applies the GT predicate on the "height" field.
-func HeightGT(v int) predicate.Upscale {
+func HeightGT(v int32) predicate.Upscale {
 	return predicate.Upscale(sql.FieldGT(FieldHeight, v))
 }
 
 // HeightGTE applies the GTE predicate on the "height" field.
-func HeightGTE(v int) predicate.Upscale {
+func HeightGTE(v int32) predicate.Upscale {
 	return predicate.Upscale(sql.FieldGTE(FieldHeight, v))
 }
 
 // HeightLT applies the LT predicate on the "height" field.
-func HeightLT(v int) predicate.Upscale {
+func HeightLT(v int32) predicate.Upscale {
 	return predicate.Upscale(sql.FieldLT(FieldHeight, v))
 }
 
 // HeightLTE applies the LTE predicate on the "height" field.
-func HeightLTE(v int) predicate.Upscale {
+func HeightLTE(v int32) predicate.Upscale {
 	return predicate.Upscale(sql.FieldLTE(FieldHeight, v))
 }
 
 // ScaleEQ applies the EQ predicate on the "scale" field.
-func ScaleEQ(v int) predicate.Upscale {
+func ScaleEQ(v int32) predicate.Upscale {
 	return predicate.Upscale(sql.FieldEQ(FieldScale, v))
 }
 
 // ScaleNEQ applies the NEQ predicate on the "scale" field.
-func ScaleNEQ(v int) predicate.Upscale {
+func ScaleNEQ(v int32) predicate.Upscale {
 	return predicate.Upscale(sql.FieldNEQ(FieldScale, v))
 }
 
 // ScaleIn applies the In predicate on the "scale" field.
-func ScaleIn(vs ...int) predicate.Upscale {
+func ScaleIn(vs ...int32) predicate.Upscale {
 	return predicate.Upscale(sql.FieldIn(FieldScale, vs...))
 }
 
 // ScaleNotIn applies the NotIn predicate on the "scale" field.
-func ScaleNotIn(vs ...int) predicate.Upscale {
+func ScaleNotIn(vs ...int32) predicate.Upscale {
 	return predicate.Upscale(sql.FieldNotIn(FieldScale, vs...))
 }
 
 // ScaleGT applies the GT predicate on the "scale" field.
-func ScaleGT(v int) predicate.Upscale {
+func ScaleGT(v int32) predicate.Upscale {
 	return predicate.Upscale(sql.FieldGT(FieldScale, v))
 }
 
 // ScaleGTE applies the GTE predicate on the "scale" field.
-func ScaleGTE(v int) predicate.Upscale {
+func ScaleGTE(v int32) predicate.Upscale {
 	return predicate.Upscale(sql.FieldGTE(FieldScale, v))
 }
 
 // ScaleLT applies the LT predicate on the "scale" field.
-func ScaleLT(v int) predicate.Upscale {
+func ScaleLT(v int32) predicate.Upscale {
 	return predicate.Upscale(sql.FieldLT(FieldScale, v))
 }
 
 // ScaleLTE applies the LTE predicate on the "scale" field.
-func ScaleLTE(v int) predicate.Upscale {
+func ScaleLTE(v int32) predicate.Upscale {
 	return predicate.Upscale(sql.FieldLTE(FieldScale, v))
 }
 
 // DurationMsEQ applies the EQ predicate on the "duration_ms" field.
-func DurationMsEQ(v int) predicate.Upscale {
+func DurationMsEQ(v int32) predicate.Upscale {
 	return predicate.Upscale(sql.FieldEQ(FieldDurationMs, v))
 }
 
 // DurationMsNEQ applies the NEQ predicate on the "duration_ms" field.
-func DurationMsNEQ(v int) predicate.Upscale {
+func DurationMsNEQ(v int32) predicate.Upscale {
 	return predicate.Upscale(sql.FieldNEQ(FieldDurationMs, v))
 }
 
 // DurationMsIn applies the In predicate on the "duration_ms" field.
-func DurationMsIn(vs ...int) predicate.Upscale {
+func DurationMsIn(vs ...int32) predicate.Upscale {
 	return predicate.Upscale(sql.FieldIn(FieldDurationMs, vs...))
 }
 
 // DurationMsNotIn applies the NotIn predicate on the "duration_ms" field.
-func DurationMsNotIn(vs ...int) predicate.Upscale {
+func DurationMsNotIn(vs ...int32) predicate.Upscale {
 	return predicate.Upscale(sql.FieldNotIn(FieldDurationMs, vs...))
 }
 
 // DurationMsGT applies the GT predicate on the "duration_ms" field.
-func DurationMsGT(v int) predicate.Upscale {
+func DurationMsGT(v int32) predicate.Upscale {
 	return predicate.Upscale(sql.FieldGT(FieldDurationMs, v))
 }
 
 // DurationMsGTE applies the GTE predicate on the "duration_ms" field.
-func DurationMsGTE(v int) predicate.Upscale {
+func DurationMsGTE(v int32) predicate.Upscale {
 	return predicate.Upscale(sql.FieldGTE(FieldDurationMs, v))
 }
 
 // DurationMsLT applies the LT predicate on the "duration_ms" field.
-func DurationMsLT(v int) predicate.Upscale {
+func DurationMsLT(v int32) predicate.Upscale {
 	return predicate.Upscale(sql.FieldLT(FieldDurationMs, v))
 }
 
 // DurationMsLTE applies the LTE predicate on the "duration_ms" field.
-func DurationMsLTE(v int) predicate.Upscale {
+func DurationMsLTE(v int32) predicate.Upscale {
 	return predicate.Upscale(sql.FieldLTE(FieldDurationMs, v))
 }
 

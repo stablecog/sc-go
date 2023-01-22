@@ -21,13 +21,13 @@ type Upscale struct {
 	// ID of the ent.
 	ID uuid.UUID `json:"id,omitempty"`
 	// Width holds the value of the "width" field.
-	Width int `json:"width,omitempty"`
+	Width int32 `json:"width,omitempty"`
 	// Height holds the value of the "height" field.
-	Height int `json:"height,omitempty"`
+	Height int32 `json:"height,omitempty"`
 	// Scale holds the value of the "scale" field.
-	Scale int `json:"scale,omitempty"`
+	Scale int32 `json:"scale,omitempty"`
 	// DurationMs holds the value of the "duration_ms" field.
-	DurationMs int `json:"duration_ms,omitempty"`
+	DurationMs int32 `json:"duration_ms,omitempty"`
 	// CountryCode holds the value of the "country_code" field.
 	CountryCode string `json:"country_code,omitempty"`
 	// Status holds the value of the "status" field.
@@ -150,25 +150,25 @@ func (u *Upscale) assignValues(columns []string, values []any) error {
 			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for field width", values[i])
 			} else if value.Valid {
-				u.Width = int(value.Int64)
+				u.Width = int32(value.Int64)
 			}
 		case upscale.FieldHeight:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for field height", values[i])
 			} else if value.Valid {
-				u.Height = int(value.Int64)
+				u.Height = int32(value.Int64)
 			}
 		case upscale.FieldScale:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for field scale", values[i])
 			} else if value.Valid {
-				u.Scale = int(value.Int64)
+				u.Scale = int32(value.Int64)
 			}
 		case upscale.FieldDurationMs:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for field duration_ms", values[i])
 			} else if value.Valid {
-				u.DurationMs = int(value.Int64)
+				u.DurationMs = int32(value.Int64)
 			}
 		case upscale.FieldCountryCode:
 			if value, ok := values[i].(*sql.NullString); !ok {

@@ -518,7 +518,7 @@ func (gq *GenerationQuery) WithGenerationOutputs(opts ...func(*GenerationOutputQ
 // Example:
 //
 //	var v []struct {
-//		Width int `json:"width,omitempty"`
+//		Width int32 `json:"width,omitempty"`
 //		Count int `json:"count,omitempty"`
 //	}
 //
@@ -541,7 +541,7 @@ func (gq *GenerationQuery) GroupBy(field string, fields ...string) *GenerationGr
 // Example:
 //
 //	var v []struct {
-//		Width int `json:"width,omitempty"`
+//		Width int32 `json:"width,omitempty"`
 //	}
 //
 //	client.Generation.Query().

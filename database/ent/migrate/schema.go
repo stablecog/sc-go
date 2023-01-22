@@ -27,12 +27,12 @@ var (
 	// GenerationsColumns holds the columns for the "generations" table.
 	GenerationsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID},
-		{Name: "width", Type: field.TypeInt},
-		{Name: "height", Type: field.TypeInt},
-		{Name: "interference_steps", Type: field.TypeInt},
+		{Name: "width", Type: field.TypeInt32},
+		{Name: "height", Type: field.TypeInt32},
+		{Name: "interference_steps", Type: field.TypeInt32},
 		{Name: "guidance_scale", Type: field.TypeFloat64},
-		{Name: "seed", Type: field.TypeInt, Nullable: true, SchemaType: map[string]string{"postgres": "bigint"}},
-		{Name: "duration_ms", Type: field.TypeInt},
+		{Name: "seed", Type: field.TypeInt},
+		{Name: "duration_ms", Type: field.TypeInt32},
 		{Name: "status", Type: field.TypeEnum, Enums: []string{"started", "succeeded", "failed", "rejected"}},
 		{Name: "failure_reason", Type: field.TypeString, Size: 2147483647},
 		{Name: "country_code", Type: field.TypeString, Size: 2147483647},
@@ -167,10 +167,10 @@ var (
 	// UpscalesColumns holds the columns for the "upscales" table.
 	UpscalesColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID},
-		{Name: "width", Type: field.TypeInt},
-		{Name: "height", Type: field.TypeInt},
-		{Name: "scale", Type: field.TypeInt},
-		{Name: "duration_ms", Type: field.TypeInt},
+		{Name: "width", Type: field.TypeInt32},
+		{Name: "height", Type: field.TypeInt32},
+		{Name: "scale", Type: field.TypeInt32},
+		{Name: "duration_ms", Type: field.TypeInt32},
 		{Name: "country_code", Type: field.TypeString, Size: 2147483647},
 		{Name: "status", Type: field.TypeEnum, Enums: []string{"started", "succeeded", "failed"}},
 		{Name: "failure_reason", Type: field.TypeString, Size: 2147483647},

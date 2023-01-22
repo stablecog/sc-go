@@ -19,7 +19,6 @@ import (
 	"github.com/stablecog/go-apps/database/ent/prompt"
 	"github.com/stablecog/go-apps/database/ent/scheduler"
 	"github.com/stablecog/go-apps/database/ent/user"
-	"github.com/stablecog/go-apps/database/enttypes"
 )
 
 // GenerationCreate is the builder for creating a Generation entity.
@@ -30,19 +29,19 @@ type GenerationCreate struct {
 }
 
 // SetWidth sets the "width" field.
-func (gc *GenerationCreate) SetWidth(i int) *GenerationCreate {
+func (gc *GenerationCreate) SetWidth(i int32) *GenerationCreate {
 	gc.mutation.SetWidth(i)
 	return gc
 }
 
 // SetHeight sets the "height" field.
-func (gc *GenerationCreate) SetHeight(i int) *GenerationCreate {
+func (gc *GenerationCreate) SetHeight(i int32) *GenerationCreate {
 	gc.mutation.SetHeight(i)
 	return gc
 }
 
 // SetInterferenceSteps sets the "interference_steps" field.
-func (gc *GenerationCreate) SetInterferenceSteps(i int) *GenerationCreate {
+func (gc *GenerationCreate) SetInterferenceSteps(i int32) *GenerationCreate {
 	gc.mutation.SetInterferenceSteps(i)
 	return gc
 }
@@ -54,21 +53,13 @@ func (gc *GenerationCreate) SetGuidanceScale(f float64) *GenerationCreate {
 }
 
 // SetSeed sets the "seed" field.
-func (gc *GenerationCreate) SetSeed(ei enttypes.BigInt) *GenerationCreate {
-	gc.mutation.SetSeed(ei)
-	return gc
-}
-
-// SetNillableSeed sets the "seed" field if the given value is not nil.
-func (gc *GenerationCreate) SetNillableSeed(ei *enttypes.BigInt) *GenerationCreate {
-	if ei != nil {
-		gc.SetSeed(*ei)
-	}
+func (gc *GenerationCreate) SetSeed(i int) *GenerationCreate {
+	gc.mutation.SetSeed(i)
 	return gc
 }
 
 // SetDurationMs sets the "duration_ms" field.
-func (gc *GenerationCreate) SetDurationMs(i int) *GenerationCreate {
+func (gc *GenerationCreate) SetDurationMs(i int32) *GenerationCreate {
 	gc.mutation.SetDurationMs(i)
 	return gc
 }
@@ -307,6 +298,9 @@ func (gc *GenerationCreate) check() error {
 	if _, ok := gc.mutation.GuidanceScale(); !ok {
 		return &ValidationError{Name: "guidance_scale", err: errors.New(`ent: missing required field "Generation.guidance_scale"`)}
 	}
+	if _, ok := gc.mutation.Seed(); !ok {
+		return &ValidationError{Name: "seed", err: errors.New(`ent: missing required field "Generation.seed"`)}
+	}
 	if _, ok := gc.mutation.DurationMs(); !ok {
 		return &ValidationError{Name: "duration_ms", err: errors.New(`ent: missing required field "Generation.duration_ms"`)}
 	}
@@ -408,15 +402,15 @@ func (gc *GenerationCreate) createSpec() (*Generation, *sqlgraph.CreateSpec) {
 		_spec.ID.Value = &id
 	}
 	if value, ok := gc.mutation.Width(); ok {
-		_spec.SetField(generation.FieldWidth, field.TypeInt, value)
+		_spec.SetField(generation.FieldWidth, field.TypeInt32, value)
 		_node.Width = value
 	}
 	if value, ok := gc.mutation.Height(); ok {
-		_spec.SetField(generation.FieldHeight, field.TypeInt, value)
+		_spec.SetField(generation.FieldHeight, field.TypeInt32, value)
 		_node.Height = value
 	}
 	if value, ok := gc.mutation.InterferenceSteps(); ok {
-		_spec.SetField(generation.FieldInterferenceSteps, field.TypeInt, value)
+		_spec.SetField(generation.FieldInterferenceSteps, field.TypeInt32, value)
 		_node.InterferenceSteps = value
 	}
 	if value, ok := gc.mutation.GuidanceScale(); ok {
@@ -428,7 +422,7 @@ func (gc *GenerationCreate) createSpec() (*Generation, *sqlgraph.CreateSpec) {
 		_node.Seed = &value
 	}
 	if value, ok := gc.mutation.DurationMs(); ok {
-		_spec.SetField(generation.FieldDurationMs, field.TypeInt, value)
+		_spec.SetField(generation.FieldDurationMs, field.TypeInt32, value)
 		_node.DurationMs = value
 	}
 	if value, ok := gc.mutation.Status(); ok {

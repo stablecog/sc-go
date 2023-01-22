@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"fmt"
 	"net/http"
@@ -63,12 +64,12 @@ func main() {
 	}
 	defer entClient.Close()
 	// Run migrations
-	// ctx := context.Background()
-	// klog.Infoln("🦋 Running migrations...")
-	// if err := entClient.Schema.Create(ctx); err != nil {
-	// 	klog.Fatalf("Failed to run migrations: %v", err)
-	// 	os.Exit(1)
-	// }
+	ctx := context.Background()
+	klog.Infoln("🦋 Running migrations...")
+	if err := entClient.Schema.Create(ctx); err != nil {
+		klog.Fatalf("Failed to run migrations: %v", err)
+		os.Exit(1)
+	}
 
 	// Create controller
 	hc := controller.HttpController{}

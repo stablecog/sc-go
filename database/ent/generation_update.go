@@ -21,7 +21,6 @@ import (
 	"github.com/stablecog/go-apps/database/ent/prompt"
 	"github.com/stablecog/go-apps/database/ent/scheduler"
 	"github.com/stablecog/go-apps/database/ent/user"
-	"github.com/stablecog/go-apps/database/enttypes"
 )
 
 // GenerationUpdate is the builder for updating Generation entities.
@@ -38,40 +37,40 @@ func (gu *GenerationUpdate) Where(ps ...predicate.Generation) *GenerationUpdate 
 }
 
 // SetWidth sets the "width" field.
-func (gu *GenerationUpdate) SetWidth(i int) *GenerationUpdate {
+func (gu *GenerationUpdate) SetWidth(i int32) *GenerationUpdate {
 	gu.mutation.ResetWidth()
 	gu.mutation.SetWidth(i)
 	return gu
 }
 
 // AddWidth adds i to the "width" field.
-func (gu *GenerationUpdate) AddWidth(i int) *GenerationUpdate {
+func (gu *GenerationUpdate) AddWidth(i int32) *GenerationUpdate {
 	gu.mutation.AddWidth(i)
 	return gu
 }
 
 // SetHeight sets the "height" field.
-func (gu *GenerationUpdate) SetHeight(i int) *GenerationUpdate {
+func (gu *GenerationUpdate) SetHeight(i int32) *GenerationUpdate {
 	gu.mutation.ResetHeight()
 	gu.mutation.SetHeight(i)
 	return gu
 }
 
 // AddHeight adds i to the "height" field.
-func (gu *GenerationUpdate) AddHeight(i int) *GenerationUpdate {
+func (gu *GenerationUpdate) AddHeight(i int32) *GenerationUpdate {
 	gu.mutation.AddHeight(i)
 	return gu
 }
 
 // SetInterferenceSteps sets the "interference_steps" field.
-func (gu *GenerationUpdate) SetInterferenceSteps(i int) *GenerationUpdate {
+func (gu *GenerationUpdate) SetInterferenceSteps(i int32) *GenerationUpdate {
 	gu.mutation.ResetInterferenceSteps()
 	gu.mutation.SetInterferenceSteps(i)
 	return gu
 }
 
 // AddInterferenceSteps adds i to the "interference_steps" field.
-func (gu *GenerationUpdate) AddInterferenceSteps(i int) *GenerationUpdate {
+func (gu *GenerationUpdate) AddInterferenceSteps(i int32) *GenerationUpdate {
 	gu.mutation.AddInterferenceSteps(i)
 	return gu
 }
@@ -90,41 +89,27 @@ func (gu *GenerationUpdate) AddGuidanceScale(f float64) *GenerationUpdate {
 }
 
 // SetSeed sets the "seed" field.
-func (gu *GenerationUpdate) SetSeed(ei enttypes.BigInt) *GenerationUpdate {
+func (gu *GenerationUpdate) SetSeed(i int) *GenerationUpdate {
 	gu.mutation.ResetSeed()
-	gu.mutation.SetSeed(ei)
+	gu.mutation.SetSeed(i)
 	return gu
 }
 
-// SetNillableSeed sets the "seed" field if the given value is not nil.
-func (gu *GenerationUpdate) SetNillableSeed(ei *enttypes.BigInt) *GenerationUpdate {
-	if ei != nil {
-		gu.SetSeed(*ei)
-	}
-	return gu
-}
-
-// AddSeed adds ei to the "seed" field.
-func (gu *GenerationUpdate) AddSeed(ei enttypes.BigInt) *GenerationUpdate {
-	gu.mutation.AddSeed(ei)
-	return gu
-}
-
-// ClearSeed clears the value of the "seed" field.
-func (gu *GenerationUpdate) ClearSeed() *GenerationUpdate {
-	gu.mutation.ClearSeed()
+// AddSeed adds i to the "seed" field.
+func (gu *GenerationUpdate) AddSeed(i int) *GenerationUpdate {
+	gu.mutation.AddSeed(i)
 	return gu
 }
 
 // SetDurationMs sets the "duration_ms" field.
-func (gu *GenerationUpdate) SetDurationMs(i int) *GenerationUpdate {
+func (gu *GenerationUpdate) SetDurationMs(i int32) *GenerationUpdate {
 	gu.mutation.ResetDurationMs()
 	gu.mutation.SetDurationMs(i)
 	return gu
 }
 
 // AddDurationMs adds i to the "duration_ms" field.
-func (gu *GenerationUpdate) AddDurationMs(i int) *GenerationUpdate {
+func (gu *GenerationUpdate) AddDurationMs(i int32) *GenerationUpdate {
 	gu.mutation.AddDurationMs(i)
 	return gu
 }
@@ -412,22 +397,22 @@ func (gu *GenerationUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 	}
 	if value, ok := gu.mutation.Width(); ok {
-		_spec.SetField(generation.FieldWidth, field.TypeInt, value)
+		_spec.SetField(generation.FieldWidth, field.TypeInt32, value)
 	}
 	if value, ok := gu.mutation.AddedWidth(); ok {
-		_spec.AddField(generation.FieldWidth, field.TypeInt, value)
+		_spec.AddField(generation.FieldWidth, field.TypeInt32, value)
 	}
 	if value, ok := gu.mutation.Height(); ok {
-		_spec.SetField(generation.FieldHeight, field.TypeInt, value)
+		_spec.SetField(generation.FieldHeight, field.TypeInt32, value)
 	}
 	if value, ok := gu.mutation.AddedHeight(); ok {
-		_spec.AddField(generation.FieldHeight, field.TypeInt, value)
+		_spec.AddField(generation.FieldHeight, field.TypeInt32, value)
 	}
 	if value, ok := gu.mutation.InterferenceSteps(); ok {
-		_spec.SetField(generation.FieldInterferenceSteps, field.TypeInt, value)
+		_spec.SetField(generation.FieldInterferenceSteps, field.TypeInt32, value)
 	}
 	if value, ok := gu.mutation.AddedInterferenceSteps(); ok {
-		_spec.AddField(generation.FieldInterferenceSteps, field.TypeInt, value)
+		_spec.AddField(generation.FieldInterferenceSteps, field.TypeInt32, value)
 	}
 	if value, ok := gu.mutation.GuidanceScale(); ok {
 		_spec.SetField(generation.FieldGuidanceScale, field.TypeFloat64, value)
@@ -441,14 +426,11 @@ func (gu *GenerationUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if value, ok := gu.mutation.AddedSeed(); ok {
 		_spec.AddField(generation.FieldSeed, field.TypeInt, value)
 	}
-	if gu.mutation.SeedCleared() {
-		_spec.ClearField(generation.FieldSeed, field.TypeInt)
-	}
 	if value, ok := gu.mutation.DurationMs(); ok {
-		_spec.SetField(generation.FieldDurationMs, field.TypeInt, value)
+		_spec.SetField(generation.FieldDurationMs, field.TypeInt32, value)
 	}
 	if value, ok := gu.mutation.AddedDurationMs(); ok {
-		_spec.AddField(generation.FieldDurationMs, field.TypeInt, value)
+		_spec.AddField(generation.FieldDurationMs, field.TypeInt32, value)
 	}
 	if value, ok := gu.mutation.Status(); ok {
 		_spec.SetField(generation.FieldStatus, field.TypeEnum, value)
@@ -747,40 +729,40 @@ type GenerationUpdateOne struct {
 }
 
 // SetWidth sets the "width" field.
-func (guo *GenerationUpdateOne) SetWidth(i int) *GenerationUpdateOne {
+func (guo *GenerationUpdateOne) SetWidth(i int32) *GenerationUpdateOne {
 	guo.mutation.ResetWidth()
 	guo.mutation.SetWidth(i)
 	return guo
 }
 
 // AddWidth adds i to the "width" field.
-func (guo *GenerationUpdateOne) AddWidth(i int) *GenerationUpdateOne {
+func (guo *GenerationUpdateOne) AddWidth(i int32) *GenerationUpdateOne {
 	guo.mutation.AddWidth(i)
 	return guo
 }
 
 // SetHeight sets the "height" field.
-func (guo *GenerationUpdateOne) SetHeight(i int) *GenerationUpdateOne {
+func (guo *GenerationUpdateOne) SetHeight(i int32) *GenerationUpdateOne {
 	guo.mutation.ResetHeight()
 	guo.mutation.SetHeight(i)
 	return guo
 }
 
 // AddHeight adds i to the "height" field.
-func (guo *GenerationUpdateOne) AddHeight(i int) *GenerationUpdateOne {
+func (guo *GenerationUpdateOne) AddHeight(i int32) *GenerationUpdateOne {
 	guo.mutation.AddHeight(i)
 	return guo
 }
 
 // SetInterferenceSteps sets the "interference_steps" field.
-func (guo *GenerationUpdateOne) SetInterferenceSteps(i int) *GenerationUpdateOne {
+func (guo *GenerationUpdateOne) SetInterferenceSteps(i int32) *GenerationUpdateOne {
 	guo.mutation.ResetInterferenceSteps()
 	guo.mutation.SetInterferenceSteps(i)
 	return guo
 }
 
 // AddInterferenceSteps adds i to the "interference_steps" field.
-func (guo *GenerationUpdateOne) AddInterferenceSteps(i int) *GenerationUpdateOne {
+func (guo *GenerationUpdateOne) AddInterferenceSteps(i int32) *GenerationUpdateOne {
 	guo.mutation.AddInterferenceSteps(i)
 	return guo
 }
@@ -799,41 +781,27 @@ func (guo *GenerationUpdateOne) AddGuidanceScale(f float64) *GenerationUpdateOne
 }
 
 // SetSeed sets the "seed" field.
-func (guo *GenerationUpdateOne) SetSeed(ei enttypes.BigInt) *GenerationUpdateOne {
+func (guo *GenerationUpdateOne) SetSeed(i int) *GenerationUpdateOne {
 	guo.mutation.ResetSeed()
-	guo.mutation.SetSeed(ei)
+	guo.mutation.SetSeed(i)
 	return guo
 }
 
-// SetNillableSeed sets the "seed" field if the given value is not nil.
-func (guo *GenerationUpdateOne) SetNillableSeed(ei *enttypes.BigInt) *GenerationUpdateOne {
-	if ei != nil {
-		guo.SetSeed(*ei)
-	}
-	return guo
-}
-
-// AddSeed adds ei to the "seed" field.
-func (guo *GenerationUpdateOne) AddSeed(ei enttypes.BigInt) *GenerationUpdateOne {
-	guo.mutation.AddSeed(ei)
-	return guo
-}
-
-// ClearSeed clears the value of the "seed" field.
-func (guo *GenerationUpdateOne) ClearSeed() *GenerationUpdateOne {
-	guo.mutation.ClearSeed()
+// AddSeed adds i to the "seed" field.
+func (guo *GenerationUpdateOne) AddSeed(i int) *GenerationUpdateOne {
+	guo.mutation.AddSeed(i)
 	return guo
 }
 
 // SetDurationMs sets the "duration_ms" field.
-func (guo *GenerationUpdateOne) SetDurationMs(i int) *GenerationUpdateOne {
+func (guo *GenerationUpdateOne) SetDurationMs(i int32) *GenerationUpdateOne {
 	guo.mutation.ResetDurationMs()
 	guo.mutation.SetDurationMs(i)
 	return guo
 }
 
 // AddDurationMs adds i to the "duration_ms" field.
-func (guo *GenerationUpdateOne) AddDurationMs(i int) *GenerationUpdateOne {
+func (guo *GenerationUpdateOne) AddDurationMs(i int32) *GenerationUpdateOne {
 	guo.mutation.AddDurationMs(i)
 	return guo
 }
@@ -1145,22 +1113,22 @@ func (guo *GenerationUpdateOne) sqlSave(ctx context.Context) (_node *Generation,
 		}
 	}
 	if value, ok := guo.mutation.Width(); ok {
-		_spec.SetField(generation.FieldWidth, field.TypeInt, value)
+		_spec.SetField(generation.FieldWidth, field.TypeInt32, value)
 	}
 	if value, ok := guo.mutation.AddedWidth(); ok {
-		_spec.AddField(generation.FieldWidth, field.TypeInt, value)
+		_spec.AddField(generation.FieldWidth, field.TypeInt32, value)
 	}
 	if value, ok := guo.mutation.Height(); ok {
-		_spec.SetField(generation.FieldHeight, field.TypeInt, value)
+		_spec.SetField(generation.FieldHeight, field.TypeInt32, value)
 	}
 	if value, ok := guo.mutation.AddedHeight(); ok {
-		_spec.AddField(generation.FieldHeight, field.TypeInt, value)
+		_spec.AddField(generation.FieldHeight, field.TypeInt32, value)
 	}
 	if value, ok := guo.mutation.InterferenceSteps(); ok {
-		_spec.SetField(generation.FieldInterferenceSteps, field.TypeInt, value)
+		_spec.SetField(generation.FieldInterferenceSteps, field.TypeInt32, value)
 	}
 	if value, ok := guo.mutation.AddedInterferenceSteps(); ok {
-		_spec.AddField(generation.FieldInterferenceSteps, field.TypeInt, value)
+		_spec.AddField(generation.FieldInterferenceSteps, field.TypeInt32, value)
 	}
 	if value, ok := guo.mutation.GuidanceScale(); ok {
 		_spec.SetField(generation.FieldGuidanceScale, field.TypeFloat64, value)
@@ -1174,14 +1142,11 @@ func (guo *GenerationUpdateOne) sqlSave(ctx context.Context) (_node *Generation,
 	if value, ok := guo.mutation.AddedSeed(); ok {
 		_spec.AddField(generation.FieldSeed, field.TypeInt, value)
 	}
-	if guo.mutation.SeedCleared() {
-		_spec.ClearField(generation.FieldSeed, field.TypeInt)
-	}
 	if value, ok := guo.mutation.DurationMs(); ok {
-		_spec.SetField(generation.FieldDurationMs, field.TypeInt, value)
+		_spec.SetField(generation.FieldDurationMs, field.TypeInt32, value)
 	}
 	if value, ok := guo.mutation.AddedDurationMs(); ok {
-		_spec.AddField(generation.FieldDurationMs, field.TypeInt, value)
+		_spec.AddField(generation.FieldDurationMs, field.TypeInt32, value)
 	}
 	if value, ok := guo.mutation.Status(); ok {
 		_spec.SetField(generation.FieldStatus, field.TypeEnum, value)

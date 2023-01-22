@@ -26,25 +26,25 @@ type UpscaleCreate struct {
 }
 
 // SetWidth sets the "width" field.
-func (uc *UpscaleCreate) SetWidth(i int) *UpscaleCreate {
+func (uc *UpscaleCreate) SetWidth(i int32) *UpscaleCreate {
 	uc.mutation.SetWidth(i)
 	return uc
 }
 
 // SetHeight sets the "height" field.
-func (uc *UpscaleCreate) SetHeight(i int) *UpscaleCreate {
+func (uc *UpscaleCreate) SetHeight(i int32) *UpscaleCreate {
 	uc.mutation.SetHeight(i)
 	return uc
 }
 
 // SetScale sets the "scale" field.
-func (uc *UpscaleCreate) SetScale(i int) *UpscaleCreate {
+func (uc *UpscaleCreate) SetScale(i int32) *UpscaleCreate {
 	uc.mutation.SetScale(i)
 	return uc
 }
 
 // SetDurationMs sets the "duration_ms" field.
-func (uc *UpscaleCreate) SetDurationMs(i int) *UpscaleCreate {
+func (uc *UpscaleCreate) SetDurationMs(i int32) *UpscaleCreate {
 	uc.mutation.SetDurationMs(i)
 	return uc
 }
@@ -306,19 +306,19 @@ func (uc *UpscaleCreate) createSpec() (*Upscale, *sqlgraph.CreateSpec) {
 		_spec.ID.Value = &id
 	}
 	if value, ok := uc.mutation.Width(); ok {
-		_spec.SetField(upscale.FieldWidth, field.TypeInt, value)
+		_spec.SetField(upscale.FieldWidth, field.TypeInt32, value)
 		_node.Width = value
 	}
 	if value, ok := uc.mutation.Height(); ok {
-		_spec.SetField(upscale.FieldHeight, field.TypeInt, value)
+		_spec.SetField(upscale.FieldHeight, field.TypeInt32, value)
 		_node.Height = value
 	}
 	if value, ok := uc.mutation.Scale(); ok {
-		_spec.SetField(upscale.FieldScale, field.TypeInt, value)
+		_spec.SetField(upscale.FieldScale, field.TypeInt32, value)
 		_node.Scale = value
 	}
 	if value, ok := uc.mutation.DurationMs(); ok {
-		_spec.SetField(upscale.FieldDurationMs, field.TypeInt, value)
+		_spec.SetField(upscale.FieldDurationMs, field.TypeInt32, value)
 		_node.DurationMs = value
 	}
 	if value, ok := uc.mutation.CountryCode(); ok {

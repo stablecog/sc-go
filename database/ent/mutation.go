@@ -23,7 +23,6 @@ import (
 	"github.com/stablecog/go-apps/database/ent/upscaleoutput"
 	"github.com/stablecog/go-apps/database/ent/user"
 	"github.com/stablecog/go-apps/database/ent/userrole"
-	"github.com/stablecog/go-apps/database/enttypes"
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
@@ -782,18 +781,18 @@ type GenerationMutation struct {
 	op                        Op
 	typ                       string
 	id                        *uuid.UUID
-	width                     *int
-	addwidth                  *int
-	height                    *int
-	addheight                 *int
-	interference_steps        *int
-	addinterference_steps     *int
+	width                     *int32
+	addwidth                  *int32
+	height                    *int32
+	addheight                 *int32
+	interference_steps        *int32
+	addinterference_steps     *int32
 	guidance_scale            *float64
 	addguidance_scale         *float64
-	seed                      *enttypes.BigInt
-	addseed                   *enttypes.BigInt
-	duration_ms               *int
-	addduration_ms            *int
+	seed                      *int
+	addseed                   *int
+	duration_ms               *int32
+	addduration_ms            *int32
 	status                    *generation.Status
 	failure_reason            *string
 	country_code              *string
@@ -925,13 +924,13 @@ func (m *GenerationMutation) IDs(ctx context.Context) ([]uuid.UUID, error) {
 }
 
 // SetWidth sets the "width" field.
-func (m *GenerationMutation) SetWidth(i int) {
+func (m *GenerationMutation) SetWidth(i int32) {
 	m.width = &i
 	m.addwidth = nil
 }
 
 // Width returns the value of the "width" field in the mutation.
-func (m *GenerationMutation) Width() (r int, exists bool) {
+func (m *GenerationMutation) Width() (r int32, exists bool) {
 	v := m.width
 	if v == nil {
 		return
@@ -942,7 +941,7 @@ func (m *GenerationMutation) Width() (r int, exists bool) {
 // OldWidth returns the old "width" field's value of the Generation entity.
 // If the Generation object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *GenerationMutation) OldWidth(ctx context.Context) (v int, err error) {
+func (m *GenerationMutation) OldWidth(ctx context.Context) (v int32, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldWidth is only allowed on UpdateOne operations")
 	}
@@ -957,7 +956,7 @@ func (m *GenerationMutation) OldWidth(ctx context.Context) (v int, err error) {
 }
 
 // AddWidth adds i to the "width" field.
-func (m *GenerationMutation) AddWidth(i int) {
+func (m *GenerationMutation) AddWidth(i int32) {
 	if m.addwidth != nil {
 		*m.addwidth += i
 	} else {
@@ -966,7 +965,7 @@ func (m *GenerationMutation) AddWidth(i int) {
 }
 
 // AddedWidth returns the value that was added to the "width" field in this mutation.
-func (m *GenerationMutation) AddedWidth() (r int, exists bool) {
+func (m *GenerationMutation) AddedWidth() (r int32, exists bool) {
 	v := m.addwidth
 	if v == nil {
 		return
@@ -981,13 +980,13 @@ func (m *GenerationMutation) ResetWidth() {
 }
 
 // SetHeight sets the "height" field.
-func (m *GenerationMutation) SetHeight(i int) {
+func (m *GenerationMutation) SetHeight(i int32) {
 	m.height = &i
 	m.addheight = nil
 }
 
 // Height returns the value of the "height" field in the mutation.
-func (m *GenerationMutation) Height() (r int, exists bool) {
+func (m *GenerationMutation) Height() (r int32, exists bool) {
 	v := m.height
 	if v == nil {
 		return
@@ -998,7 +997,7 @@ func (m *GenerationMutation) Height() (r int, exists bool) {
 // OldHeight returns the old "height" field's value of the Generation entity.
 // If the Generation object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *GenerationMutation) OldHeight(ctx context.Context) (v int, err error) {
+func (m *GenerationMutation) OldHeight(ctx context.Context) (v int32, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldHeight is only allowed on UpdateOne operations")
 	}
@@ -1013,7 +1012,7 @@ func (m *GenerationMutation) OldHeight(ctx context.Context) (v int, err error) {
 }
 
 // AddHeight adds i to the "height" field.
-func (m *GenerationMutation) AddHeight(i int) {
+func (m *GenerationMutation) AddHeight(i int32) {
 	if m.addheight != nil {
 		*m.addheight += i
 	} else {
@@ -1022,7 +1021,7 @@ func (m *GenerationMutation) AddHeight(i int) {
 }
 
 // AddedHeight returns the value that was added to the "height" field in this mutation.
-func (m *GenerationMutation) AddedHeight() (r int, exists bool) {
+func (m *GenerationMutation) AddedHeight() (r int32, exists bool) {
 	v := m.addheight
 	if v == nil {
 		return
@@ -1037,13 +1036,13 @@ func (m *GenerationMutation) ResetHeight() {
 }
 
 // SetInterferenceSteps sets the "interference_steps" field.
-func (m *GenerationMutation) SetInterferenceSteps(i int) {
+func (m *GenerationMutation) SetInterferenceSteps(i int32) {
 	m.interference_steps = &i
 	m.addinterference_steps = nil
 }
 
 // InterferenceSteps returns the value of the "interference_steps" field in the mutation.
-func (m *GenerationMutation) InterferenceSteps() (r int, exists bool) {
+func (m *GenerationMutation) InterferenceSteps() (r int32, exists bool) {
 	v := m.interference_steps
 	if v == nil {
 		return
@@ -1054,7 +1053,7 @@ func (m *GenerationMutation) InterferenceSteps() (r int, exists bool) {
 // OldInterferenceSteps returns the old "interference_steps" field's value of the Generation entity.
 // If the Generation object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *GenerationMutation) OldInterferenceSteps(ctx context.Context) (v int, err error) {
+func (m *GenerationMutation) OldInterferenceSteps(ctx context.Context) (v int32, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldInterferenceSteps is only allowed on UpdateOne operations")
 	}
@@ -1069,7 +1068,7 @@ func (m *GenerationMutation) OldInterferenceSteps(ctx context.Context) (v int, e
 }
 
 // AddInterferenceSteps adds i to the "interference_steps" field.
-func (m *GenerationMutation) AddInterferenceSteps(i int) {
+func (m *GenerationMutation) AddInterferenceSteps(i int32) {
 	if m.addinterference_steps != nil {
 		*m.addinterference_steps += i
 	} else {
@@ -1078,7 +1077,7 @@ func (m *GenerationMutation) AddInterferenceSteps(i int) {
 }
 
 // AddedInterferenceSteps returns the value that was added to the "interference_steps" field in this mutation.
-func (m *GenerationMutation) AddedInterferenceSteps() (r int, exists bool) {
+func (m *GenerationMutation) AddedInterferenceSteps() (r int32, exists bool) {
 	v := m.addinterference_steps
 	if v == nil {
 		return
@@ -1149,13 +1148,13 @@ func (m *GenerationMutation) ResetGuidanceScale() {
 }
 
 // SetSeed sets the "seed" field.
-func (m *GenerationMutation) SetSeed(ei enttypes.BigInt) {
-	m.seed = &ei
+func (m *GenerationMutation) SetSeed(i int) {
+	m.seed = &i
 	m.addseed = nil
 }
 
 // Seed returns the value of the "seed" field in the mutation.
-func (m *GenerationMutation) Seed() (r enttypes.BigInt, exists bool) {
+func (m *GenerationMutation) Seed() (r int, exists bool) {
 	v := m.seed
 	if v == nil {
 		return
@@ -1166,7 +1165,7 @@ func (m *GenerationMutation) Seed() (r enttypes.BigInt, exists bool) {
 // OldSeed returns the old "seed" field's value of the Generation entity.
 // If the Generation object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *GenerationMutation) OldSeed(ctx context.Context) (v *enttypes.BigInt, err error) {
+func (m *GenerationMutation) OldSeed(ctx context.Context) (v *int, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldSeed is only allowed on UpdateOne operations")
 	}
@@ -1180,17 +1179,17 @@ func (m *GenerationMutation) OldSeed(ctx context.Context) (v *enttypes.BigInt, e
 	return oldValue.Seed, nil
 }
 
-// AddSeed adds ei to the "seed" field.
-func (m *GenerationMutation) AddSeed(ei enttypes.BigInt) {
+// AddSeed adds i to the "seed" field.
+func (m *GenerationMutation) AddSeed(i int) {
 	if m.addseed != nil {
-		*m.addseed = m.addseed.Add(ei)
+		*m.addseed += i
 	} else {
-		m.addseed = &ei
+		m.addseed = &i
 	}
 }
 
 // AddedSeed returns the value that was added to the "seed" field in this mutation.
-func (m *GenerationMutation) AddedSeed() (r enttypes.BigInt, exists bool) {
+func (m *GenerationMutation) AddedSeed() (r int, exists bool) {
 	v := m.addseed
 	if v == nil {
 		return
@@ -1198,34 +1197,20 @@ func (m *GenerationMutation) AddedSeed() (r enttypes.BigInt, exists bool) {
 	return *v, true
 }
 
-// ClearSeed clears the value of the "seed" field.
-func (m *GenerationMutation) ClearSeed() {
-	m.seed = nil
-	m.addseed = nil
-	m.clearedFields[generation.FieldSeed] = struct{}{}
-}
-
-// SeedCleared returns if the "seed" field was cleared in this mutation.
-func (m *GenerationMutation) SeedCleared() bool {
-	_, ok := m.clearedFields[generation.FieldSeed]
-	return ok
-}
-
 // ResetSeed resets all changes to the "seed" field.
 func (m *GenerationMutation) ResetSeed() {
 	m.seed = nil
 	m.addseed = nil
-	delete(m.clearedFields, generation.FieldSeed)
 }
 
 // SetDurationMs sets the "duration_ms" field.
-func (m *GenerationMutation) SetDurationMs(i int) {
+func (m *GenerationMutation) SetDurationMs(i int32) {
 	m.duration_ms = &i
 	m.addduration_ms = nil
 }
 
 // DurationMs returns the value of the "duration_ms" field in the mutation.
-func (m *GenerationMutation) DurationMs() (r int, exists bool) {
+func (m *GenerationMutation) DurationMs() (r int32, exists bool) {
 	v := m.duration_ms
 	if v == nil {
 		return
@@ -1236,7 +1221,7 @@ func (m *GenerationMutation) DurationMs() (r int, exists bool) {
 // OldDurationMs returns the old "duration_ms" field's value of the Generation entity.
 // If the Generation object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *GenerationMutation) OldDurationMs(ctx context.Context) (v int, err error) {
+func (m *GenerationMutation) OldDurationMs(ctx context.Context) (v int32, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldDurationMs is only allowed on UpdateOne operations")
 	}
@@ -1251,7 +1236,7 @@ func (m *GenerationMutation) OldDurationMs(ctx context.Context) (v int, err erro
 }
 
 // AddDurationMs adds i to the "duration_ms" field.
-func (m *GenerationMutation) AddDurationMs(i int) {
+func (m *GenerationMutation) AddDurationMs(i int32) {
 	if m.addduration_ms != nil {
 		*m.addduration_ms += i
 	} else {
@@ -1260,7 +1245,7 @@ func (m *GenerationMutation) AddDurationMs(i int) {
 }
 
 // AddedDurationMs returns the value that was added to the "duration_ms" field in this mutation.
-func (m *GenerationMutation) AddedDurationMs() (r int, exists bool) {
+func (m *GenerationMutation) AddedDurationMs() (r int32, exists bool) {
 	v := m.addduration_ms
 	if v == nil {
 		return
@@ -2126,21 +2111,21 @@ func (m *GenerationMutation) OldField(ctx context.Context, name string) (ent.Val
 func (m *GenerationMutation) SetField(name string, value ent.Value) error {
 	switch name {
 	case generation.FieldWidth:
-		v, ok := value.(int)
+		v, ok := value.(int32)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetWidth(v)
 		return nil
 	case generation.FieldHeight:
-		v, ok := value.(int)
+		v, ok := value.(int32)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetHeight(v)
 		return nil
 	case generation.FieldInterferenceSteps:
-		v, ok := value.(int)
+		v, ok := value.(int32)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
@@ -2154,14 +2139,14 @@ func (m *GenerationMutation) SetField(name string, value ent.Value) error {
 		m.SetGuidanceScale(v)
 		return nil
 	case generation.FieldSeed:
-		v, ok := value.(enttypes.BigInt)
+		v, ok := value.(int)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetSeed(v)
 		return nil
 	case generation.FieldDurationMs:
-		v, ok := value.(int)
+		v, ok := value.(int32)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
@@ -2300,21 +2285,21 @@ func (m *GenerationMutation) AddedField(name string) (ent.Value, bool) {
 func (m *GenerationMutation) AddField(name string, value ent.Value) error {
 	switch name {
 	case generation.FieldWidth:
-		v, ok := value.(int)
+		v, ok := value.(int32)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.AddWidth(v)
 		return nil
 	case generation.FieldHeight:
-		v, ok := value.(int)
+		v, ok := value.(int32)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.AddHeight(v)
 		return nil
 	case generation.FieldInterferenceSteps:
-		v, ok := value.(int)
+		v, ok := value.(int32)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
@@ -2328,14 +2313,14 @@ func (m *GenerationMutation) AddField(name string, value ent.Value) error {
 		m.AddGuidanceScale(v)
 		return nil
 	case generation.FieldSeed:
-		v, ok := value.(enttypes.BigInt)
+		v, ok := value.(int)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.AddSeed(v)
 		return nil
 	case generation.FieldDurationMs:
-		v, ok := value.(int)
+		v, ok := value.(int32)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
@@ -2348,11 +2333,7 @@ func (m *GenerationMutation) AddField(name string, value ent.Value) error {
 // ClearedFields returns all nullable fields that were cleared during this
 // mutation.
 func (m *GenerationMutation) ClearedFields() []string {
-	var fields []string
-	if m.FieldCleared(generation.FieldSeed) {
-		fields = append(fields, generation.FieldSeed)
-	}
-	return fields
+	return nil
 }
 
 // FieldCleared returns a boolean indicating if a field with the given name was
@@ -2365,11 +2346,6 @@ func (m *GenerationMutation) FieldCleared(name string) bool {
 // ClearField clears the value of the field with the given name. It returns an
 // error if the field is not defined in the schema.
 func (m *GenerationMutation) ClearField(name string) error {
-	switch name {
-	case generation.FieldSeed:
-		m.ClearSeed()
-		return nil
-	}
 	return fmt.Errorf("unknown Generation nullable field %s", name)
 }
 
@@ -5376,14 +5352,14 @@ type UpscaleMutation struct {
 	op                     Op
 	typ                    string
 	id                     *uuid.UUID
-	width                  *int
-	addwidth               *int
-	height                 *int
-	addheight              *int
-	scale                  *int
-	addscale               *int
-	duration_ms            *int
-	addduration_ms         *int
+	width                  *int32
+	addwidth               *int32
+	height                 *int32
+	addheight              *int32
+	scale                  *int32
+	addscale               *int32
+	duration_ms            *int32
+	addduration_ms         *int32
 	country_code           *string
 	status                 *upscale.Status
 	failure_reason         *string
@@ -5509,13 +5485,13 @@ func (m *UpscaleMutation) IDs(ctx context.Context) ([]uuid.UUID, error) {
 }
 
 // SetWidth sets the "width" field.
-func (m *UpscaleMutation) SetWidth(i int) {
+func (m *UpscaleMutation) SetWidth(i int32) {
 	m.width = &i
 	m.addwidth = nil
 }
 
 // Width returns the value of the "width" field in the mutation.
-func (m *UpscaleMutation) Width() (r int, exists bool) {
+func (m *UpscaleMutation) Width() (r int32, exists bool) {
 	v := m.width
 	if v == nil {
 		return
@@ -5526,7 +5502,7 @@ func (m *UpscaleMutation) Width() (r int, exists bool) {
 // OldWidth returns the old "width" field's value of the Upscale entity.
 // If the Upscale object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *UpscaleMutation) OldWidth(ctx context.Context) (v int, err error) {
+func (m *UpscaleMutation) OldWidth(ctx context.Context) (v int32, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldWidth is only allowed on UpdateOne operations")
 	}
@@ -5541,7 +5517,7 @@ func (m *UpscaleMutation) OldWidth(ctx context.Context) (v int, err error) {
 }
 
 // AddWidth adds i to the "width" field.
-func (m *UpscaleMutation) AddWidth(i int) {
+func (m *UpscaleMutation) AddWidth(i int32) {
 	if m.addwidth != nil {
 		*m.addwidth += i
 	} else {
@@ -5550,7 +5526,7 @@ func (m *UpscaleMutation) AddWidth(i int) {
 }
 
 // AddedWidth returns the value that was added to the "width" field in this mutation.
-func (m *UpscaleMutation) AddedWidth() (r int, exists bool) {
+func (m *UpscaleMutation) AddedWidth() (r int32, exists bool) {
 	v := m.addwidth
 	if v == nil {
 		return
@@ -5565,13 +5541,13 @@ func (m *UpscaleMutation) ResetWidth() {
 }
 
 // SetHeight sets the "height" field.
-func (m *UpscaleMutation) SetHeight(i int) {
+func (m *UpscaleMutation) SetHeight(i int32) {
 	m.height = &i
 	m.addheight = nil
 }
 
 // Height returns the value of the "height" field in the mutation.
-func (m *UpscaleMutation) Height() (r int, exists bool) {
+func (m *UpscaleMutation) Height() (r int32, exists bool) {
 	v := m.height
 	if v == nil {
 		return
@@ -5582,7 +5558,7 @@ func (m *UpscaleMutation) Height() (r int, exists bool) {
 // OldHeight returns the old "height" field's value of the Upscale entity.
 // If the Upscale object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *UpscaleMutation) OldHeight(ctx context.Context) (v int, err error) {
+func (m *UpscaleMutation) OldHeight(ctx context.Context) (v int32, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldHeight is only allowed on UpdateOne operations")
 	}
@@ -5597,7 +5573,7 @@ func (m *UpscaleMutation) OldHeight(ctx context.Context) (v int, err error) {
 }
 
 // AddHeight adds i to the "height" field.
-func (m *UpscaleMutation) AddHeight(i int) {
+func (m *UpscaleMutation) AddHeight(i int32) {
 	if m.addheight != nil {
 		*m.addheight += i
 	} else {
@@ -5606,7 +5582,7 @@ func (m *UpscaleMutation) AddHeight(i int) {
 }
 
 // AddedHeight returns the value that was added to the "height" field in this mutation.
-func (m *UpscaleMutation) AddedHeight() (r int, exists bool) {
+func (m *UpscaleMutation) AddedHeight() (r int32, exists bool) {
 	v := m.addheight
 	if v == nil {
 		return
@@ -5621,13 +5597,13 @@ func (m *UpscaleMutation) ResetHeight() {
 }
 
 // SetScale sets the "scale" field.
-func (m *UpscaleMutation) SetScale(i int) {
+func (m *UpscaleMutation) SetScale(i int32) {
 	m.scale = &i
 	m.addscale = nil
 }
 
 // Scale returns the value of the "scale" field in the mutation.
-func (m *UpscaleMutation) Scale() (r int, exists bool) {
+func (m *UpscaleMutation) Scale() (r int32, exists bool) {
 	v := m.scale
 	if v == nil {
 		return
@@ -5638,7 +5614,7 @@ func (m *UpscaleMutation) Scale() (r int, exists bool) {
 // OldScale returns the old "scale" field's value of the Upscale entity.
 // If the Upscale object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *UpscaleMutation) OldScale(ctx context.Context) (v int, err error) {
+func (m *UpscaleMutation) OldScale(ctx context.Context) (v int32, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldScale is only allowed on UpdateOne operations")
 	}
@@ -5653,7 +5629,7 @@ func (m *UpscaleMutation) OldScale(ctx context.Context) (v int, err error) {
 }
 
 // AddScale adds i to the "scale" field.
-func (m *UpscaleMutation) AddScale(i int) {
+func (m *UpscaleMutation) AddScale(i int32) {
 	if m.addscale != nil {
 		*m.addscale += i
 	} else {
@@ -5662,7 +5638,7 @@ func (m *UpscaleMutation) AddScale(i int) {
 }
 
 // AddedScale returns the value that was added to the "scale" field in this mutation.
-func (m *UpscaleMutation) AddedScale() (r int, exists bool) {
+func (m *UpscaleMutation) AddedScale() (r int32, exists bool) {
 	v := m.addscale
 	if v == nil {
 		return
@@ -5677,13 +5653,13 @@ func (m *UpscaleMutation) ResetScale() {
 }
 
 // SetDurationMs sets the "duration_ms" field.
-func (m *UpscaleMutation) SetDurationMs(i int) {
+func (m *UpscaleMutation) SetDurationMs(i int32) {
 	m.duration_ms = &i
 	m.addduration_ms = nil
 }
 
 // DurationMs returns the value of the "duration_ms" field in the mutation.
-func (m *UpscaleMutation) DurationMs() (r int, exists bool) {
+func (m *UpscaleMutation) DurationMs() (r int32, exists bool) {
 	v := m.duration_ms
 	if v == nil {
 		return
@@ -5694,7 +5670,7 @@ func (m *UpscaleMutation) DurationMs() (r int, exists bool) {
 // OldDurationMs returns the old "duration_ms" field's value of the Upscale entity.
 // If the Upscale object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *UpscaleMutation) OldDurationMs(ctx context.Context) (v int, err error) {
+func (m *UpscaleMutation) OldDurationMs(ctx context.Context) (v int32, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldDurationMs is only allowed on UpdateOne operations")
 	}
@@ -5709,7 +5685,7 @@ func (m *UpscaleMutation) OldDurationMs(ctx context.Context) (v int, err error) 
 }
 
 // AddDurationMs adds i to the "duration_ms" field.
-func (m *UpscaleMutation) AddDurationMs(i int) {
+func (m *UpscaleMutation) AddDurationMs(i int32) {
 	if m.addduration_ms != nil {
 		*m.addduration_ms += i
 	} else {
@@ -5718,7 +5694,7 @@ func (m *UpscaleMutation) AddDurationMs(i int) {
 }
 
 // AddedDurationMs returns the value that was added to the "duration_ms" field in this mutation.
-func (m *UpscaleMutation) AddedDurationMs() (r int, exists bool) {
+func (m *UpscaleMutation) AddedDurationMs() (r int32, exists bool) {
 	v := m.addduration_ms
 	if v == nil {
 		return
@@ -6311,28 +6287,28 @@ func (m *UpscaleMutation) OldField(ctx context.Context, name string) (ent.Value,
 func (m *UpscaleMutation) SetField(name string, value ent.Value) error {
 	switch name {
 	case upscale.FieldWidth:
-		v, ok := value.(int)
+		v, ok := value.(int32)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetWidth(v)
 		return nil
 	case upscale.FieldHeight:
-		v, ok := value.(int)
+		v, ok := value.(int32)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetHeight(v)
 		return nil
 	case upscale.FieldScale:
-		v, ok := value.(int)
+		v, ok := value.(int32)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetScale(v)
 		return nil
 	case upscale.FieldDurationMs:
-		v, ok := value.(int)
+		v, ok := value.(int32)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
@@ -6440,28 +6416,28 @@ func (m *UpscaleMutation) AddedField(name string) (ent.Value, bool) {
 func (m *UpscaleMutation) AddField(name string, value ent.Value) error {
 	switch name {
 	case upscale.FieldWidth:
-		v, ok := value.(int)
+		v, ok := value.(int32)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.AddWidth(v)
 		return nil
 	case upscale.FieldHeight:
-		v, ok := value.(int)
+		v, ok := value.(int32)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.AddHeight(v)
 		return nil
 	case upscale.FieldScale:
-		v, ok := value.(int)
+		v, ok := value.(int32)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.AddScale(v)
 		return nil
 	case upscale.FieldDurationMs:
-		v, ok := value.(int)
+		v, ok := value.(int32)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}

@@ -410,7 +410,7 @@ func (uq *UpscaleQuery) WithUpscaleOutputs(opts ...func(*UpscaleOutputQuery)) *U
 // Example:
 //
 //	var v []struct {
-//		Width int `json:"width,omitempty"`
+//		Width int32 `json:"width,omitempty"`
 //		Count int `json:"count,omitempty"`
 //	}
 //
@@ -433,7 +433,7 @@ func (uq *UpscaleQuery) GroupBy(field string, fields ...string) *UpscaleGroupBy 
 // Example:
 //
 //	var v []struct {
-//		Width int `json:"width,omitempty"`
+//		Width int32 `json:"width,omitempty"`
 //	}
 //
 //	client.Upscale.Query().

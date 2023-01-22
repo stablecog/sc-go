@@ -9,7 +9,6 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"github.com/google/uuid"
 	"github.com/stablecog/go-apps/database/ent/predicate"
-	"github.com/stablecog/go-apps/database/enttypes"
 )
 
 // ID filters vertices based on their ID field.
@@ -58,17 +57,17 @@ func IDLTE(id uuid.UUID) predicate.Generation {
 }
 
 // Width applies equality check predicate on the "width" field. It's identical to WidthEQ.
-func Width(v int) predicate.Generation {
+func Width(v int32) predicate.Generation {
 	return predicate.Generation(sql.FieldEQ(FieldWidth, v))
 }
 
 // Height applies equality check predicate on the "height" field. It's identical to HeightEQ.
-func Height(v int) predicate.Generation {
+func Height(v int32) predicate.Generation {
 	return predicate.Generation(sql.FieldEQ(FieldHeight, v))
 }
 
 // InterferenceSteps applies equality check predicate on the "interference_steps" field. It's identical to InterferenceStepsEQ.
-func InterferenceSteps(v int) predicate.Generation {
+func InterferenceSteps(v int32) predicate.Generation {
 	return predicate.Generation(sql.FieldEQ(FieldInterferenceSteps, v))
 }
 
@@ -78,12 +77,12 @@ func GuidanceScale(v float64) predicate.Generation {
 }
 
 // Seed applies equality check predicate on the "seed" field. It's identical to SeedEQ.
-func Seed(v enttypes.BigInt) predicate.Generation {
+func Seed(v int) predicate.Generation {
 	return predicate.Generation(sql.FieldEQ(FieldSeed, v))
 }
 
 // DurationMs applies equality check predicate on the "duration_ms" field. It's identical to DurationMsEQ.
-func DurationMs(v int) predicate.Generation {
+func DurationMs(v int32) predicate.Generation {
 	return predicate.Generation(sql.FieldEQ(FieldDurationMs, v))
 }
 
@@ -138,122 +137,122 @@ func UpdatedAt(v time.Time) predicate.Generation {
 }
 
 // WidthEQ applies the EQ predicate on the "width" field.
-func WidthEQ(v int) predicate.Generation {
+func WidthEQ(v int32) predicate.Generation {
 	return predicate.Generation(sql.FieldEQ(FieldWidth, v))
 }
 
 // WidthNEQ applies the NEQ predicate on the "width" field.
-func WidthNEQ(v int) predicate.Generation {
+func WidthNEQ(v int32) predicate.Generation {
 	return predicate.Generation(sql.FieldNEQ(FieldWidth, v))
 }
 
 // WidthIn applies the In predicate on the "width" field.
-func WidthIn(vs ...int) predicate.Generation {
+func WidthIn(vs ...int32) predicate.Generation {
 	return predicate.Generation(sql.FieldIn(FieldWidth, vs...))
 }
 
 // WidthNotIn applies the NotIn predicate on the "width" field.
-func WidthNotIn(vs ...int) predicate.Generation {
+func WidthNotIn(vs ...int32) predicate.Generation {
 	return predicate.Generation(sql.FieldNotIn(FieldWidth, vs...))
 }
 
 // WidthGT applies the GT predicate on the "width" field.
-func WidthGT(v int) predicate.Generation {
+func WidthGT(v int32) predicate.Generation {
 	return predicate.Generation(sql.FieldGT(FieldWidth, v))
 }
 
 // WidthGTE applies the GTE predicate on the "width" field.
-func WidthGTE(v int) predicate.Generation {
+func WidthGTE(v int32) predicate.Generation {
 	return predicate.Generation(sql.FieldGTE(FieldWidth, v))
 }
 
 // WidthLT applies the LT predicate on the "width" field.
-func WidthLT(v int) predicate.Generation {
+func WidthLT(v int32) predicate.Generation {
 	return predicate.Generation(sql.FieldLT(FieldWidth, v))
 }
 
 // WidthLTE applies the LTE predicate on the "width" field.
-func WidthLTE(v int) predicate.Generation {
+func WidthLTE(v int32) predicate.Generation {
 	return predicate.Generation(sql.FieldLTE(FieldWidth, v))
 }
 
 // HeightEQ applies the EQ predicate on the "height" field.
-func HeightEQ(v int) predicate.Generation {
+func HeightEQ(v int32) predicate.Generation {
 	return predicate.Generation(sql.FieldEQ(FieldHeight, v))
 }
 
 // HeightNEQ applies the NEQ predicate on the "height" field.
-func HeightNEQ(v int) predicate.Generation {
+func HeightNEQ(v int32) predicate.Generation {
 	return predicate.Generation(sql.FieldNEQ(FieldHeight, v))
 }
 
 // HeightIn applies the In predicate on the "height" field.
-func HeightIn(vs ...int) predicate.Generation {
+func HeightIn(vs ...int32) predicate.Generation {
 	return predicate.Generation(sql.FieldIn(FieldHeight, vs...))
 }
 
 // HeightNotIn applies the NotIn predicate on the "height" field.
-func HeightNotIn(vs ...int) predicate.Generation {
+func HeightNotIn(vs ...int32) predicate.Generation {
 	return predicate.Generation(sql.FieldNotIn(FieldHeight, vs...))
 }
 
 // HeightGT applies the GT predicate on the "height" field.
-func HeightGT(v int) predicate.Generation {
+func HeightGT(v int32) predicate.Generation {
 	return predicate.Generation(sql.FieldGT(FieldHeight, v))
 }
 
 // HeightGTE applies the GTE predicate on the "height" field.
-func HeightGTE(v int) predicate.Generation {
+func HeightGTE(v int32) predicate.Generation {
 	return predicate.Generation(sql.FieldGTE(FieldHeight, v))
 }
 
 // HeightLT applies the LT predicate on the "height" field.
-func HeightLT(v int) predicate.Generation {
+func HeightLT(v int32) predicate.Generation {
 	return predicate.Generation(sql.FieldLT(FieldHeight, v))
 }
 
 // HeightLTE applies the LTE predicate on the "height" field.
-func HeightLTE(v int) predicate.Generation {
+func HeightLTE(v int32) predicate.Generation {
 	return predicate.Generation(sql.FieldLTE(FieldHeight, v))
 }
 
 // InterferenceStepsEQ applies the EQ predicate on the "interference_steps" field.
-func InterferenceStepsEQ(v int) predicate.Generation {
+func InterferenceStepsEQ(v int32) predicate.Generation {
 	return predicate.Generation(sql.FieldEQ(FieldInterferenceSteps, v))
 }
 
 // InterferenceStepsNEQ applies the NEQ predicate on the "interference_steps" field.
-func InterferenceStepsNEQ(v int) predicate.Generation {
+func InterferenceStepsNEQ(v int32) predicate.Generation {
 	return predicate.Generation(sql.FieldNEQ(FieldInterferenceSteps, v))
 }
 
 // InterferenceStepsIn applies the In predicate on the "interference_steps" field.
-func InterferenceStepsIn(vs ...int) predicate.Generation {
+func InterferenceStepsIn(vs ...int32) predicate.Generation {
 	return predicate.Generation(sql.FieldIn(FieldInterferenceSteps, vs...))
 }
 
 // InterferenceStepsNotIn applies the NotIn predicate on the "interference_steps" field.
-func InterferenceStepsNotIn(vs ...int) predicate.Generation {
+func InterferenceStepsNotIn(vs ...int32) predicate.Generation {
 	return predicate.Generation(sql.FieldNotIn(FieldInterferenceSteps, vs...))
 }
 
 // InterferenceStepsGT applies the GT predicate on the "interference_steps" field.
-func InterferenceStepsGT(v int) predicate.Generation {
+func InterferenceStepsGT(v int32) predicate.Generation {
 	return predicate.Generation(sql.FieldGT(FieldInterferenceSteps, v))
 }
 
 // InterferenceStepsGTE applies the GTE predicate on the "interference_steps" field.
-func InterferenceStepsGTE(v int) predicate.Generation {
+func InterferenceStepsGTE(v int32) predicate.Generation {
 	return predicate.Generation(sql.FieldGTE(FieldInterferenceSteps, v))
 }
 
 // InterferenceStepsLT applies the LT predicate on the "interference_steps" field.
-func InterferenceStepsLT(v int) predicate.Generation {
+func InterferenceStepsLT(v int32) predicate.Generation {
 	return predicate.Generation(sql.FieldLT(FieldInterferenceSteps, v))
 }
 
 // InterferenceStepsLTE applies the LTE predicate on the "interference_steps" field.
-func InterferenceStepsLTE(v int) predicate.Generation {
+func InterferenceStepsLTE(v int32) predicate.Generation {
 	return predicate.Generation(sql.FieldLTE(FieldInterferenceSteps, v))
 }
 
@@ -298,92 +297,82 @@ func GuidanceScaleLTE(v float64) predicate.Generation {
 }
 
 // SeedEQ applies the EQ predicate on the "seed" field.
-func SeedEQ(v enttypes.BigInt) predicate.Generation {
+func SeedEQ(v int) predicate.Generation {
 	return predicate.Generation(sql.FieldEQ(FieldSeed, v))
 }
 
 // SeedNEQ applies the NEQ predicate on the "seed" field.
-func SeedNEQ(v enttypes.BigInt) predicate.Generation {
+func SeedNEQ(v int) predicate.Generation {
 	return predicate.Generation(sql.FieldNEQ(FieldSeed, v))
 }
 
 // SeedIn applies the In predicate on the "seed" field.
-func SeedIn(vs ...enttypes.BigInt) predicate.Generation {
+func SeedIn(vs ...int) predicate.Generation {
 	return predicate.Generation(sql.FieldIn(FieldSeed, vs...))
 }
 
 // SeedNotIn applies the NotIn predicate on the "seed" field.
-func SeedNotIn(vs ...enttypes.BigInt) predicate.Generation {
+func SeedNotIn(vs ...int) predicate.Generation {
 	return predicate.Generation(sql.FieldNotIn(FieldSeed, vs...))
 }
 
 // SeedGT applies the GT predicate on the "seed" field.
-func SeedGT(v enttypes.BigInt) predicate.Generation {
+func SeedGT(v int) predicate.Generation {
 	return predicate.Generation(sql.FieldGT(FieldSeed, v))
 }
 
 // SeedGTE applies the GTE predicate on the "seed" field.
-func SeedGTE(v enttypes.BigInt) predicate.Generation {
+func SeedGTE(v int) predicate.Generation {
 	return predicate.Generation(sql.FieldGTE(FieldSeed, v))
 }
 
 // SeedLT applies the LT predicate on the "seed" field.
-func SeedLT(v enttypes.BigInt) predicate.Generation {
+func SeedLT(v int) predicate.Generation {
 	return predicate.Generation(sql.FieldLT(FieldSeed, v))
 }
 
 // SeedLTE applies the LTE predicate on the "seed" field.
-func SeedLTE(v enttypes.BigInt) predicate.Generation {
+func SeedLTE(v int) predicate.Generation {
 	return predicate.Generation(sql.FieldLTE(FieldSeed, v))
 }
 
-// SeedIsNil applies the IsNil predicate on the "seed" field.
-func SeedIsNil() predicate.Generation {
-	return predicate.Generation(sql.FieldIsNull(FieldSeed))
-}
-
-// SeedNotNil applies the NotNil predicate on the "seed" field.
-func SeedNotNil() predicate.Generation {
-	return predicate.Generation(sql.FieldNotNull(FieldSeed))
-}
-
 // DurationMsEQ applies the EQ predicate on the "duration_ms" field.
-func DurationMsEQ(v int) predicate.Generation {
+func DurationMsEQ(v int32) predicate.Generation {
 	return predicate.Generation(sql.FieldEQ(FieldDurationMs, v))
 }
 
 // DurationMsNEQ applies the NEQ predicate on the "duration_ms" field.
-func DurationMsNEQ(v int) predicate.Generation {
+func DurationMsNEQ(v int32) predicate.Generation {
 	return predicate.Generation(sql.FieldNEQ(FieldDurationMs, v))
 }
 
 // DurationMsIn applies the In predicate on the "duration_ms" field.
-func DurationMsIn(vs ...int) predicate.Generation {
+func DurationMsIn(vs ...int32) predicate.Generation {
 	return predicate.Generation(sql.FieldIn(FieldDurationMs, vs...))
 }
 
 // DurationMsNotIn applies the NotIn predicate on the "duration_ms" field.
-func DurationMsNotIn(vs ...int) predicate.Generation {
+func DurationMsNotIn(vs ...int32) predicate.Generation {
 	return predicate.Generation(sql.FieldNotIn(FieldDurationMs, vs...))
 }
 
 // DurationMsGT applies the GT predicate on the "duration_ms" field.
-func DurationMsGT(v int) predicate.Generation {
+func DurationMsGT(v int32) predicate.Generation {
 	return predicate.Generation(sql.FieldGT(FieldDurationMs, v))
 }
 
 // DurationMsGTE applies the GTE predicate on the "duration_ms" field.
-func DurationMsGTE(v int) predicate.Generation {
+func DurationMsGTE(v int32) predicate.Generation {
 	return predicate.Generation(sql.FieldGTE(FieldDurationMs, v))
 }
 
 // DurationMsLT applies the LT predicate on the "duration_ms" field.
-func DurationMsLT(v int) predicate.Generation {
+func DurationMsLT(v int32) predicate.Generation {
 	return predicate.Generation(sql.FieldLT(FieldDurationMs, v))
 }
 
 // DurationMsLTE applies the LTE predicate on the "duration_ms" field.
-func DurationMsLTE(v int) predicate.Generation {
+func DurationMsLTE(v int32) predicate.Generation {
 	return predicate.Generation(sql.FieldLTE(FieldDurationMs, v))
 }
 
