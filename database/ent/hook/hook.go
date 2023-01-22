@@ -9,16 +9,16 @@ import (
 	"github.com/stablecog/go-apps/database/ent"
 )
 
-// The AdminFunc type is an adapter to allow the use of ordinary
-// function as Admin mutator.
-type AdminFunc func(context.Context, *ent.AdminMutation) (ent.Value, error)
+// The DeviceInfoFunc type is an adapter to allow the use of ordinary
+// function as DeviceInfo mutator.
+type DeviceInfoFunc func(context.Context, *ent.DeviceInfoMutation) (ent.Value, error)
 
 // Mutate calls f(ctx, m).
-func (f AdminFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
-	if mv, ok := m.(*ent.AdminMutation); ok {
+func (f DeviceInfoFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.DeviceInfoMutation); ok {
 		return f(ctx, mv)
 	}
-	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.AdminMutation", m)
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.DeviceInfoMutation", m)
 }
 
 // The GenerationFunc type is an adapter to allow the use of ordinary
@@ -33,40 +33,28 @@ func (f GenerationFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, 
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.GenerationMutation", m)
 }
 
-// The GenerationGFunc type is an adapter to allow the use of ordinary
-// function as GenerationG mutator.
-type GenerationGFunc func(context.Context, *ent.GenerationGMutation) (ent.Value, error)
+// The GenerationModelFunc type is an adapter to allow the use of ordinary
+// function as GenerationModel mutator.
+type GenerationModelFunc func(context.Context, *ent.GenerationModelMutation) (ent.Value, error)
 
 // Mutate calls f(ctx, m).
-func (f GenerationGFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
-	if mv, ok := m.(*ent.GenerationGMutation); ok {
+func (f GenerationModelFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.GenerationModelMutation); ok {
 		return f(ctx, mv)
 	}
-	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.GenerationGMutation", m)
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.GenerationModelMutation", m)
 }
 
-// The GenerationRealtimeFunc type is an adapter to allow the use of ordinary
-// function as GenerationRealtime mutator.
-type GenerationRealtimeFunc func(context.Context, *ent.GenerationRealtimeMutation) (ent.Value, error)
+// The GenerationOutputFunc type is an adapter to allow the use of ordinary
+// function as GenerationOutput mutator.
+type GenerationOutputFunc func(context.Context, *ent.GenerationOutputMutation) (ent.Value, error)
 
 // Mutate calls f(ctx, m).
-func (f GenerationRealtimeFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
-	if mv, ok := m.(*ent.GenerationRealtimeMutation); ok {
+func (f GenerationOutputFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.GenerationOutputMutation); ok {
 		return f(ctx, mv)
 	}
-	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.GenerationRealtimeMutation", m)
-}
-
-// The ModelFunc type is an adapter to allow the use of ordinary
-// function as Model mutator.
-type ModelFunc func(context.Context, *ent.ModelMutation) (ent.Value, error)
-
-// Mutate calls f(ctx, m).
-func (f ModelFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
-	if mv, ok := m.(*ent.ModelMutation); ok {
-		return f(ctx, mv)
-	}
-	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.ModelMutation", m)
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.GenerationOutputMutation", m)
 }
 
 // The NegativePromptFunc type is an adapter to allow the use of ordinary
@@ -105,18 +93,6 @@ func (f SchedulerFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, e
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.SchedulerMutation", m)
 }
 
-// The ServerFunc type is an adapter to allow the use of ordinary
-// function as Server mutator.
-type ServerFunc func(context.Context, *ent.ServerMutation) (ent.Value, error)
-
-// Mutate calls f(ctx, m).
-func (f ServerFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
-	if mv, ok := m.(*ent.ServerMutation); ok {
-		return f(ctx, mv)
-	}
-	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.ServerMutation", m)
-}
-
 // The UpscaleFunc type is an adapter to allow the use of ordinary
 // function as Upscale mutator.
 type UpscaleFunc func(context.Context, *ent.UpscaleMutation) (ent.Value, error)
@@ -129,16 +105,28 @@ func (f UpscaleFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, err
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.UpscaleMutation", m)
 }
 
-// The UpscaleRealtimeFunc type is an adapter to allow the use of ordinary
-// function as UpscaleRealtime mutator.
-type UpscaleRealtimeFunc func(context.Context, *ent.UpscaleRealtimeMutation) (ent.Value, error)
+// The UpscaleModelFunc type is an adapter to allow the use of ordinary
+// function as UpscaleModel mutator.
+type UpscaleModelFunc func(context.Context, *ent.UpscaleModelMutation) (ent.Value, error)
 
 // Mutate calls f(ctx, m).
-func (f UpscaleRealtimeFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
-	if mv, ok := m.(*ent.UpscaleRealtimeMutation); ok {
+func (f UpscaleModelFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.UpscaleModelMutation); ok {
 		return f(ctx, mv)
 	}
-	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.UpscaleRealtimeMutation", m)
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.UpscaleModelMutation", m)
+}
+
+// The UpscaleOutputFunc type is an adapter to allow the use of ordinary
+// function as UpscaleOutput mutator.
+type UpscaleOutputFunc func(context.Context, *ent.UpscaleOutputMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f UpscaleOutputFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.UpscaleOutputMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.UpscaleOutputMutation", m)
 }
 
 // The UserFunc type is an adapter to allow the use of ordinary
@@ -151,6 +139,18 @@ func (f UserFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error)
 		return f(ctx, mv)
 	}
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.UserMutation", m)
+}
+
+// The UserRoleFunc type is an adapter to allow the use of ordinary
+// function as UserRole mutator.
+type UserRoleFunc func(context.Context, *ent.UserRoleMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f UserRoleFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.UserRoleMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.UserRoleMutation", m)
 }
 
 // Condition is a hook condition function.

@@ -4,9 +4,11 @@ import (
 	"flag"
 	"fmt"
 	"net/http"
+	"os"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/cors"
+	"github.com/joho/godotenv"
 	"github.com/stablecog/go-apps/database"
 	"github.com/stablecog/go-apps/server/controller"
 	"github.com/stablecog/go-apps/server/controller/websocket"
@@ -16,6 +18,12 @@ import (
 )
 
 func main() {
+	// Load .env
+	err := godotenv.Load("../.env")
+	if err != nil {
+		klog.Warningf("Error loading .env file (this is fine): %v", err)
+	}
+
 	// Setup logger
 	klog.InitFlags(nil)
 	flag.Set("logtostderr", "true")
@@ -40,6 +48,27 @@ func main() {
 
 	// Log middleware
 	app.Use(middleware.LogMiddleware)
+
+	// Setup sql
+	klog.Infoln("🏡 Connecting to database...")
+	dbconn, err := database.GetSqlDbConn(false)
+	if err != nil {
+		klog.Fatalf("Failed to connect to database: %v", err)
+		os.Exit(1)
+	}
+	entClient, err := database.NewEntClient(dbconn)
+	if err != nil {
+		klog.Fatalf("Failed to create ent client: %v", err)
+		os.Exit(1)
+	}
+	defer entClient.Close()
+	// Run migrations
+	// ctx := context.Background()
+	// klog.Infoln("🦋 Running migrations...")
+	// if err := entClient.Schema.Create(ctx); err != nil {
+	// 	klog.Fatalf("Failed to run migrations: %v", err)
+	// 	os.Exit(1)
+	// }
 
 	// Create controller
 	hc := controller.HttpController{}

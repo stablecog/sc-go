@@ -10,19 +10,19 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/stablecog/go-apps/database/ent/admin"
+	"github.com/stablecog/go-apps/database/ent/deviceinfo"
 	"github.com/stablecog/go-apps/database/ent/generation"
-	"github.com/stablecog/go-apps/database/ent/generationg"
-	"github.com/stablecog/go-apps/database/ent/generationrealtime"
-	"github.com/stablecog/go-apps/database/ent/model"
+	"github.com/stablecog/go-apps/database/ent/generationmodel"
+	"github.com/stablecog/go-apps/database/ent/generationoutput"
 	"github.com/stablecog/go-apps/database/ent/negativeprompt"
 	"github.com/stablecog/go-apps/database/ent/predicate"
 	"github.com/stablecog/go-apps/database/ent/prompt"
 	"github.com/stablecog/go-apps/database/ent/scheduler"
-	"github.com/stablecog/go-apps/database/ent/server"
 	"github.com/stablecog/go-apps/database/ent/upscale"
-	"github.com/stablecog/go-apps/database/ent/upscalerealtime"
+	"github.com/stablecog/go-apps/database/ent/upscalemodel"
+	"github.com/stablecog/go-apps/database/ent/upscaleoutput"
 	"github.com/stablecog/go-apps/database/ent/user"
+	"github.com/stablecog/go-apps/database/ent/userrole"
 	"github.com/stablecog/go-apps/database/enttypes"
 
 	"entgo.io/ent"
@@ -38,45 +38,54 @@ const (
 	OpUpdateOne = ent.OpUpdateOne
 
 	// Node types.
-	TypeAdmin              = "Admin"
-	TypeGeneration         = "Generation"
-	TypeGenerationG        = "GenerationG"
-	TypeGenerationRealtime = "GenerationRealtime"
-	TypeModel              = "Model"
-	TypeNegativePrompt     = "NegativePrompt"
-	TypePrompt             = "Prompt"
-	TypeScheduler          = "Scheduler"
-	TypeServer             = "Server"
-	TypeUpscale            = "Upscale"
-	TypeUpscaleRealtime    = "UpscaleRealtime"
-	TypeUser               = "User"
+	TypeDeviceInfo       = "DeviceInfo"
+	TypeGeneration       = "Generation"
+	TypeGenerationModel  = "GenerationModel"
+	TypeGenerationOutput = "GenerationOutput"
+	TypeNegativePrompt   = "NegativePrompt"
+	TypePrompt           = "Prompt"
+	TypeScheduler        = "Scheduler"
+	TypeUpscale          = "Upscale"
+	TypeUpscaleModel     = "UpscaleModel"
+	TypeUpscaleOutput    = "UpscaleOutput"
+	TypeUser             = "User"
+	TypeUserRole         = "UserRole"
 )
 
-// AdminMutation represents an operation that mutates the Admin nodes in the graph.
-type AdminMutation struct {
+// DeviceInfoMutation represents an operation that mutates the DeviceInfo nodes in the graph.
+type DeviceInfoMutation struct {
 	config
-	op            Op
-	typ           string
-	id            *uuid.UUID
-	created_at    *time.Time
-	updated_at    *time.Time
-	clearedFields map[string]struct{}
-	done          bool
-	oldValue      func(context.Context) (*Admin, error)
-	predicates    []predicate.Admin
+	op                 Op
+	typ                string
+	id                 *uuid.UUID
+	_type              *string
+	os                 *string
+	browser            *string
+	created_at         *time.Time
+	updated_at         *time.Time
+	clearedFields      map[string]struct{}
+	generations        map[uuid.UUID]struct{}
+	removedgenerations map[uuid.UUID]struct{}
+	clearedgenerations bool
+	upscales           map[uuid.UUID]struct{}
+	removedupscales    map[uuid.UUID]struct{}
+	clearedupscales    bool
+	done               bool
+	oldValue           func(context.Context) (*DeviceInfo, error)
+	predicates         []predicate.DeviceInfo
 }
 
-var _ ent.Mutation = (*AdminMutation)(nil)
+var _ ent.Mutation = (*DeviceInfoMutation)(nil)
 
-// adminOption allows management of the mutation configuration using functional options.
-type adminOption func(*AdminMutation)
+// deviceinfoOption allows management of the mutation configuration using functional options.
+type deviceinfoOption func(*DeviceInfoMutation)
 
-// newAdminMutation creates new mutation for the Admin entity.
-func newAdminMutation(c config, op Op, opts ...adminOption) *AdminMutation {
-	m := &AdminMutation{
+// newDeviceInfoMutation creates new mutation for the DeviceInfo entity.
+func newDeviceInfoMutation(c config, op Op, opts ...deviceinfoOption) *DeviceInfoMutation {
+	m := &DeviceInfoMutation{
 		config:        c,
 		op:            op,
-		typ:           TypeAdmin,
+		typ:           TypeDeviceInfo,
 		clearedFields: make(map[string]struct{}),
 	}
 	for _, opt := range opts {
@@ -85,20 +94,20 @@ func newAdminMutation(c config, op Op, opts ...adminOption) *AdminMutation {
 	return m
 }
 
-// withAdminID sets the ID field of the mutation.
-func withAdminID(id uuid.UUID) adminOption {
-	return func(m *AdminMutation) {
+// withDeviceInfoID sets the ID field of the mutation.
+func withDeviceInfoID(id uuid.UUID) deviceinfoOption {
+	return func(m *DeviceInfoMutation) {
 		var (
 			err   error
 			once  sync.Once
-			value *Admin
+			value *DeviceInfo
 		)
-		m.oldValue = func(ctx context.Context) (*Admin, error) {
+		m.oldValue = func(ctx context.Context) (*DeviceInfo, error) {
 			once.Do(func() {
 				if m.done {
 					err = errors.New("querying old values post mutation is not allowed")
 				} else {
-					value, err = m.Client().Admin.Get(ctx, id)
+					value, err = m.Client().DeviceInfo.Get(ctx, id)
 				}
 			})
 			return value, err
@@ -107,10 +116,10 @@ func withAdminID(id uuid.UUID) adminOption {
 	}
 }
 
-// withAdmin sets the old Admin of the mutation.
-func withAdmin(node *Admin) adminOption {
-	return func(m *AdminMutation) {
-		m.oldValue = func(context.Context) (*Admin, error) {
+// withDeviceInfo sets the old DeviceInfo of the mutation.
+func withDeviceInfo(node *DeviceInfo) deviceinfoOption {
+	return func(m *DeviceInfoMutation) {
+		m.oldValue = func(context.Context) (*DeviceInfo, error) {
 			return node, nil
 		}
 		m.id = &node.ID
@@ -119,7 +128,7 @@ func withAdmin(node *Admin) adminOption {
 
 // Client returns a new `ent.Client` from the mutation. If the mutation was
 // executed in a transaction (ent.Tx), a transactional client is returned.
-func (m AdminMutation) Client() *Client {
+func (m DeviceInfoMutation) Client() *Client {
 	client := &Client{config: m.config}
 	client.init()
 	return client
@@ -127,7 +136,7 @@ func (m AdminMutation) Client() *Client {
 
 // Tx returns an `ent.Tx` for mutations that were executed in transactions;
 // it returns an error otherwise.
-func (m AdminMutation) Tx() (*Tx, error) {
+func (m DeviceInfoMutation) Tx() (*Tx, error) {
 	if _, ok := m.driver.(*txDriver); !ok {
 		return nil, errors.New("ent: mutation is not running in a transaction")
 	}
@@ -137,14 +146,14 @@ func (m AdminMutation) Tx() (*Tx, error) {
 }
 
 // SetID sets the value of the id field. Note that this
-// operation is only accepted on creation of Admin entities.
-func (m *AdminMutation) SetID(id uuid.UUID) {
+// operation is only accepted on creation of DeviceInfo entities.
+func (m *DeviceInfoMutation) SetID(id uuid.UUID) {
 	m.id = &id
 }
 
 // ID returns the ID value in the mutation. Note that the ID is only available
 // if it was provided to the builder or after it was returned from the database.
-func (m *AdminMutation) ID() (id uuid.UUID, exists bool) {
+func (m *DeviceInfoMutation) ID() (id uuid.UUID, exists bool) {
 	if m.id == nil {
 		return
 	}
@@ -155,7 +164,7 @@ func (m *AdminMutation) ID() (id uuid.UUID, exists bool) {
 // That means, if the mutation is applied within a transaction with an isolation level such
 // as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
 // or updated by the mutation.
-func (m *AdminMutation) IDs(ctx context.Context) ([]uuid.UUID, error) {
+func (m *DeviceInfoMutation) IDs(ctx context.Context) ([]uuid.UUID, error) {
 	switch {
 	case m.op.Is(OpUpdateOne | OpDeleteOne):
 		id, exists := m.ID()
@@ -164,19 +173,127 @@ func (m *AdminMutation) IDs(ctx context.Context) ([]uuid.UUID, error) {
 		}
 		fallthrough
 	case m.op.Is(OpUpdate | OpDelete):
-		return m.Client().Admin.Query().Where(m.predicates...).IDs(ctx)
+		return m.Client().DeviceInfo.Query().Where(m.predicates...).IDs(ctx)
 	default:
 		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
 	}
 }
 
+// SetType sets the "type" field.
+func (m *DeviceInfoMutation) SetType(s string) {
+	m._type = &s
+}
+
+// GetType returns the value of the "type" field in the mutation.
+func (m *DeviceInfoMutation) GetType() (r string, exists bool) {
+	v := m._type
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldType returns the old "type" field's value of the DeviceInfo entity.
+// If the DeviceInfo object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *DeviceInfoMutation) OldType(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldType is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldType requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldType: %w", err)
+	}
+	return oldValue.Type, nil
+}
+
+// ResetType resets all changes to the "type" field.
+func (m *DeviceInfoMutation) ResetType() {
+	m._type = nil
+}
+
+// SetOs sets the "os" field.
+func (m *DeviceInfoMutation) SetOs(s string) {
+	m.os = &s
+}
+
+// Os returns the value of the "os" field in the mutation.
+func (m *DeviceInfoMutation) Os() (r string, exists bool) {
+	v := m.os
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldOs returns the old "os" field's value of the DeviceInfo entity.
+// If the DeviceInfo object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *DeviceInfoMutation) OldOs(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldOs is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldOs requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldOs: %w", err)
+	}
+	return oldValue.Os, nil
+}
+
+// ResetOs resets all changes to the "os" field.
+func (m *DeviceInfoMutation) ResetOs() {
+	m.os = nil
+}
+
+// SetBrowser sets the "browser" field.
+func (m *DeviceInfoMutation) SetBrowser(s string) {
+	m.browser = &s
+}
+
+// Browser returns the value of the "browser" field in the mutation.
+func (m *DeviceInfoMutation) Browser() (r string, exists bool) {
+	v := m.browser
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldBrowser returns the old "browser" field's value of the DeviceInfo entity.
+// If the DeviceInfo object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *DeviceInfoMutation) OldBrowser(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldBrowser is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldBrowser requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldBrowser: %w", err)
+	}
+	return oldValue.Browser, nil
+}
+
+// ResetBrowser resets all changes to the "browser" field.
+func (m *DeviceInfoMutation) ResetBrowser() {
+	m.browser = nil
+}
+
 // SetCreatedAt sets the "created_at" field.
-func (m *AdminMutation) SetCreatedAt(t time.Time) {
+func (m *DeviceInfoMutation) SetCreatedAt(t time.Time) {
 	m.created_at = &t
 }
 
 // CreatedAt returns the value of the "created_at" field in the mutation.
-func (m *AdminMutation) CreatedAt() (r time.Time, exists bool) {
+func (m *DeviceInfoMutation) CreatedAt() (r time.Time, exists bool) {
 	v := m.created_at
 	if v == nil {
 		return
@@ -184,10 +301,10 @@ func (m *AdminMutation) CreatedAt() (r time.Time, exists bool) {
 	return *v, true
 }
 
-// OldCreatedAt returns the old "created_at" field's value of the Admin entity.
-// If the Admin object wasn't provided to the builder, the object is fetched from the database.
+// OldCreatedAt returns the old "created_at" field's value of the DeviceInfo entity.
+// If the DeviceInfo object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *AdminMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+func (m *DeviceInfoMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
 	}
@@ -202,17 +319,17 @@ func (m *AdminMutation) OldCreatedAt(ctx context.Context) (v time.Time, err erro
 }
 
 // ResetCreatedAt resets all changes to the "created_at" field.
-func (m *AdminMutation) ResetCreatedAt() {
+func (m *DeviceInfoMutation) ResetCreatedAt() {
 	m.created_at = nil
 }
 
 // SetUpdatedAt sets the "updated_at" field.
-func (m *AdminMutation) SetUpdatedAt(t time.Time) {
+func (m *DeviceInfoMutation) SetUpdatedAt(t time.Time) {
 	m.updated_at = &t
 }
 
 // UpdatedAt returns the value of the "updated_at" field in the mutation.
-func (m *AdminMutation) UpdatedAt() (r time.Time, exists bool) {
+func (m *DeviceInfoMutation) UpdatedAt() (r time.Time, exists bool) {
 	v := m.updated_at
 	if v == nil {
 		return
@@ -220,10 +337,10 @@ func (m *AdminMutation) UpdatedAt() (r time.Time, exists bool) {
 	return *v, true
 }
 
-// OldUpdatedAt returns the old "updated_at" field's value of the Admin entity.
-// If the Admin object wasn't provided to the builder, the object is fetched from the database.
+// OldUpdatedAt returns the old "updated_at" field's value of the DeviceInfo entity.
+// If the DeviceInfo object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *AdminMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
+func (m *DeviceInfoMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
 	}
@@ -238,19 +355,127 @@ func (m *AdminMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err erro
 }
 
 // ResetUpdatedAt resets all changes to the "updated_at" field.
-func (m *AdminMutation) ResetUpdatedAt() {
+func (m *DeviceInfoMutation) ResetUpdatedAt() {
 	m.updated_at = nil
 }
 
-// Where appends a list predicates to the AdminMutation builder.
-func (m *AdminMutation) Where(ps ...predicate.Admin) {
+// AddGenerationIDs adds the "generations" edge to the Generation entity by ids.
+func (m *DeviceInfoMutation) AddGenerationIDs(ids ...uuid.UUID) {
+	if m.generations == nil {
+		m.generations = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.generations[ids[i]] = struct{}{}
+	}
+}
+
+// ClearGenerations clears the "generations" edge to the Generation entity.
+func (m *DeviceInfoMutation) ClearGenerations() {
+	m.clearedgenerations = true
+}
+
+// GenerationsCleared reports if the "generations" edge to the Generation entity was cleared.
+func (m *DeviceInfoMutation) GenerationsCleared() bool {
+	return m.clearedgenerations
+}
+
+// RemoveGenerationIDs removes the "generations" edge to the Generation entity by IDs.
+func (m *DeviceInfoMutation) RemoveGenerationIDs(ids ...uuid.UUID) {
+	if m.removedgenerations == nil {
+		m.removedgenerations = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.generations, ids[i])
+		m.removedgenerations[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedGenerations returns the removed IDs of the "generations" edge to the Generation entity.
+func (m *DeviceInfoMutation) RemovedGenerationsIDs() (ids []uuid.UUID) {
+	for id := range m.removedgenerations {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// GenerationsIDs returns the "generations" edge IDs in the mutation.
+func (m *DeviceInfoMutation) GenerationsIDs() (ids []uuid.UUID) {
+	for id := range m.generations {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetGenerations resets all changes to the "generations" edge.
+func (m *DeviceInfoMutation) ResetGenerations() {
+	m.generations = nil
+	m.clearedgenerations = false
+	m.removedgenerations = nil
+}
+
+// AddUpscaleIDs adds the "upscales" edge to the Upscale entity by ids.
+func (m *DeviceInfoMutation) AddUpscaleIDs(ids ...uuid.UUID) {
+	if m.upscales == nil {
+		m.upscales = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.upscales[ids[i]] = struct{}{}
+	}
+}
+
+// ClearUpscales clears the "upscales" edge to the Upscale entity.
+func (m *DeviceInfoMutation) ClearUpscales() {
+	m.clearedupscales = true
+}
+
+// UpscalesCleared reports if the "upscales" edge to the Upscale entity was cleared.
+func (m *DeviceInfoMutation) UpscalesCleared() bool {
+	return m.clearedupscales
+}
+
+// RemoveUpscaleIDs removes the "upscales" edge to the Upscale entity by IDs.
+func (m *DeviceInfoMutation) RemoveUpscaleIDs(ids ...uuid.UUID) {
+	if m.removedupscales == nil {
+		m.removedupscales = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.upscales, ids[i])
+		m.removedupscales[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedUpscales returns the removed IDs of the "upscales" edge to the Upscale entity.
+func (m *DeviceInfoMutation) RemovedUpscalesIDs() (ids []uuid.UUID) {
+	for id := range m.removedupscales {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// UpscalesIDs returns the "upscales" edge IDs in the mutation.
+func (m *DeviceInfoMutation) UpscalesIDs() (ids []uuid.UUID) {
+	for id := range m.upscales {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetUpscales resets all changes to the "upscales" edge.
+func (m *DeviceInfoMutation) ResetUpscales() {
+	m.upscales = nil
+	m.clearedupscales = false
+	m.removedupscales = nil
+}
+
+// Where appends a list predicates to the DeviceInfoMutation builder.
+func (m *DeviceInfoMutation) Where(ps ...predicate.DeviceInfo) {
 	m.predicates = append(m.predicates, ps...)
 }
 
-// WhereP appends storage-level predicates to the AdminMutation builder. Using this method,
+// WhereP appends storage-level predicates to the DeviceInfoMutation builder. Using this method,
 // users can use type-assertion to append predicates that do not depend on any generated package.
-func (m *AdminMutation) WhereP(ps ...func(*sql.Selector)) {
-	p := make([]predicate.Admin, len(ps))
+func (m *DeviceInfoMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.DeviceInfo, len(ps))
 	for i := range ps {
 		p[i] = ps[i]
 	}
@@ -258,30 +483,39 @@ func (m *AdminMutation) WhereP(ps ...func(*sql.Selector)) {
 }
 
 // Op returns the operation name.
-func (m *AdminMutation) Op() Op {
+func (m *DeviceInfoMutation) Op() Op {
 	return m.op
 }
 
 // SetOp allows setting the mutation operation.
-func (m *AdminMutation) SetOp(op Op) {
+func (m *DeviceInfoMutation) SetOp(op Op) {
 	m.op = op
 }
 
-// Type returns the node type of this mutation (Admin).
-func (m *AdminMutation) Type() string {
+// Type returns the node type of this mutation (DeviceInfo).
+func (m *DeviceInfoMutation) Type() string {
 	return m.typ
 }
 
 // Fields returns all fields that were changed during this mutation. Note that in
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
-func (m *AdminMutation) Fields() []string {
-	fields := make([]string, 0, 2)
+func (m *DeviceInfoMutation) Fields() []string {
+	fields := make([]string, 0, 5)
+	if m._type != nil {
+		fields = append(fields, deviceinfo.FieldType)
+	}
+	if m.os != nil {
+		fields = append(fields, deviceinfo.FieldOs)
+	}
+	if m.browser != nil {
+		fields = append(fields, deviceinfo.FieldBrowser)
+	}
 	if m.created_at != nil {
-		fields = append(fields, admin.FieldCreatedAt)
+		fields = append(fields, deviceinfo.FieldCreatedAt)
 	}
 	if m.updated_at != nil {
-		fields = append(fields, admin.FieldUpdatedAt)
+		fields = append(fields, deviceinfo.FieldUpdatedAt)
 	}
 	return fields
 }
@@ -289,11 +523,17 @@ func (m *AdminMutation) Fields() []string {
 // Field returns the value of a field with the given name. The second boolean
 // return value indicates that this field was not set, or was not defined in the
 // schema.
-func (m *AdminMutation) Field(name string) (ent.Value, bool) {
+func (m *DeviceInfoMutation) Field(name string) (ent.Value, bool) {
 	switch name {
-	case admin.FieldCreatedAt:
+	case deviceinfo.FieldType:
+		return m.GetType()
+	case deviceinfo.FieldOs:
+		return m.Os()
+	case deviceinfo.FieldBrowser:
+		return m.Browser()
+	case deviceinfo.FieldCreatedAt:
 		return m.CreatedAt()
-	case admin.FieldUpdatedAt:
+	case deviceinfo.FieldUpdatedAt:
 		return m.UpdatedAt()
 	}
 	return nil, false
@@ -302,29 +542,56 @@ func (m *AdminMutation) Field(name string) (ent.Value, bool) {
 // OldField returns the old value of the field from the database. An error is
 // returned if the mutation operation is not UpdateOne, or the query to the
 // database failed.
-func (m *AdminMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+func (m *DeviceInfoMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
 	switch name {
-	case admin.FieldCreatedAt:
+	case deviceinfo.FieldType:
+		return m.OldType(ctx)
+	case deviceinfo.FieldOs:
+		return m.OldOs(ctx)
+	case deviceinfo.FieldBrowser:
+		return m.OldBrowser(ctx)
+	case deviceinfo.FieldCreatedAt:
 		return m.OldCreatedAt(ctx)
-	case admin.FieldUpdatedAt:
+	case deviceinfo.FieldUpdatedAt:
 		return m.OldUpdatedAt(ctx)
 	}
-	return nil, fmt.Errorf("unknown Admin field %s", name)
+	return nil, fmt.Errorf("unknown DeviceInfo field %s", name)
 }
 
 // SetField sets the value of a field with the given name. It returns an error if
 // the field is not defined in the schema, or if the type mismatched the field
 // type.
-func (m *AdminMutation) SetField(name string, value ent.Value) error {
+func (m *DeviceInfoMutation) SetField(name string, value ent.Value) error {
 	switch name {
-	case admin.FieldCreatedAt:
+	case deviceinfo.FieldType:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetType(v)
+		return nil
+	case deviceinfo.FieldOs:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetOs(v)
+		return nil
+	case deviceinfo.FieldBrowser:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetBrowser(v)
+		return nil
+	case deviceinfo.FieldCreatedAt:
 		v, ok := value.(time.Time)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetCreatedAt(v)
 		return nil
-	case admin.FieldUpdatedAt:
+	case deviceinfo.FieldUpdatedAt:
 		v, ok := value.(time.Time)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
@@ -332,158 +599,225 @@ func (m *AdminMutation) SetField(name string, value ent.Value) error {
 		m.SetUpdatedAt(v)
 		return nil
 	}
-	return fmt.Errorf("unknown Admin field %s", name)
+	return fmt.Errorf("unknown DeviceInfo field %s", name)
 }
 
 // AddedFields returns all numeric fields that were incremented/decremented during
 // this mutation.
-func (m *AdminMutation) AddedFields() []string {
+func (m *DeviceInfoMutation) AddedFields() []string {
 	return nil
 }
 
 // AddedField returns the numeric value that was incremented/decremented on a field
 // with the given name. The second boolean return value indicates that this field
 // was not set, or was not defined in the schema.
-func (m *AdminMutation) AddedField(name string) (ent.Value, bool) {
+func (m *DeviceInfoMutation) AddedField(name string) (ent.Value, bool) {
 	return nil, false
 }
 
 // AddField adds the value to the field with the given name. It returns an error if
 // the field is not defined in the schema, or if the type mismatched the field
 // type.
-func (m *AdminMutation) AddField(name string, value ent.Value) error {
+func (m *DeviceInfoMutation) AddField(name string, value ent.Value) error {
 	switch name {
 	}
-	return fmt.Errorf("unknown Admin numeric field %s", name)
+	return fmt.Errorf("unknown DeviceInfo numeric field %s", name)
 }
 
 // ClearedFields returns all nullable fields that were cleared during this
 // mutation.
-func (m *AdminMutation) ClearedFields() []string {
+func (m *DeviceInfoMutation) ClearedFields() []string {
 	return nil
 }
 
 // FieldCleared returns a boolean indicating if a field with the given name was
 // cleared in this mutation.
-func (m *AdminMutation) FieldCleared(name string) bool {
+func (m *DeviceInfoMutation) FieldCleared(name string) bool {
 	_, ok := m.clearedFields[name]
 	return ok
 }
 
 // ClearField clears the value of the field with the given name. It returns an
 // error if the field is not defined in the schema.
-func (m *AdminMutation) ClearField(name string) error {
-	return fmt.Errorf("unknown Admin nullable field %s", name)
+func (m *DeviceInfoMutation) ClearField(name string) error {
+	return fmt.Errorf("unknown DeviceInfo nullable field %s", name)
 }
 
 // ResetField resets all changes in the mutation for the field with the given name.
 // It returns an error if the field is not defined in the schema.
-func (m *AdminMutation) ResetField(name string) error {
+func (m *DeviceInfoMutation) ResetField(name string) error {
 	switch name {
-	case admin.FieldCreatedAt:
+	case deviceinfo.FieldType:
+		m.ResetType()
+		return nil
+	case deviceinfo.FieldOs:
+		m.ResetOs()
+		return nil
+	case deviceinfo.FieldBrowser:
+		m.ResetBrowser()
+		return nil
+	case deviceinfo.FieldCreatedAt:
 		m.ResetCreatedAt()
 		return nil
-	case admin.FieldUpdatedAt:
+	case deviceinfo.FieldUpdatedAt:
 		m.ResetUpdatedAt()
 		return nil
 	}
-	return fmt.Errorf("unknown Admin field %s", name)
+	return fmt.Errorf("unknown DeviceInfo field %s", name)
 }
 
 // AddedEdges returns all edge names that were set/added in this mutation.
-func (m *AdminMutation) AddedEdges() []string {
-	edges := make([]string, 0, 0)
+func (m *DeviceInfoMutation) AddedEdges() []string {
+	edges := make([]string, 0, 2)
+	if m.generations != nil {
+		edges = append(edges, deviceinfo.EdgeGenerations)
+	}
+	if m.upscales != nil {
+		edges = append(edges, deviceinfo.EdgeUpscales)
+	}
 	return edges
 }
 
 // AddedIDs returns all IDs (to other nodes) that were added for the given edge
 // name in this mutation.
-func (m *AdminMutation) AddedIDs(name string) []ent.Value {
+func (m *DeviceInfoMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case deviceinfo.EdgeGenerations:
+		ids := make([]ent.Value, 0, len(m.generations))
+		for id := range m.generations {
+			ids = append(ids, id)
+		}
+		return ids
+	case deviceinfo.EdgeUpscales:
+		ids := make([]ent.Value, 0, len(m.upscales))
+		for id := range m.upscales {
+			ids = append(ids, id)
+		}
+		return ids
+	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
-func (m *AdminMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 0)
+func (m *DeviceInfoMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 2)
+	if m.removedgenerations != nil {
+		edges = append(edges, deviceinfo.EdgeGenerations)
+	}
+	if m.removedupscales != nil {
+		edges = append(edges, deviceinfo.EdgeUpscales)
+	}
 	return edges
 }
 
 // RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
 // the given name in this mutation.
-func (m *AdminMutation) RemovedIDs(name string) []ent.Value {
+func (m *DeviceInfoMutation) RemovedIDs(name string) []ent.Value {
+	switch name {
+	case deviceinfo.EdgeGenerations:
+		ids := make([]ent.Value, 0, len(m.removedgenerations))
+		for id := range m.removedgenerations {
+			ids = append(ids, id)
+		}
+		return ids
+	case deviceinfo.EdgeUpscales:
+		ids := make([]ent.Value, 0, len(m.removedupscales))
+		for id := range m.removedupscales {
+			ids = append(ids, id)
+		}
+		return ids
+	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
-func (m *AdminMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 0)
+func (m *DeviceInfoMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 2)
+	if m.clearedgenerations {
+		edges = append(edges, deviceinfo.EdgeGenerations)
+	}
+	if m.clearedupscales {
+		edges = append(edges, deviceinfo.EdgeUpscales)
+	}
 	return edges
 }
 
 // EdgeCleared returns a boolean which indicates if the edge with the given name
 // was cleared in this mutation.
-func (m *AdminMutation) EdgeCleared(name string) bool {
+func (m *DeviceInfoMutation) EdgeCleared(name string) bool {
+	switch name {
+	case deviceinfo.EdgeGenerations:
+		return m.clearedgenerations
+	case deviceinfo.EdgeUpscales:
+		return m.clearedupscales
+	}
 	return false
 }
 
 // ClearEdge clears the value of the edge with the given name. It returns an error
 // if that edge is not defined in the schema.
-func (m *AdminMutation) ClearEdge(name string) error {
-	return fmt.Errorf("unknown Admin unique edge %s", name)
+func (m *DeviceInfoMutation) ClearEdge(name string) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown DeviceInfo unique edge %s", name)
 }
 
 // ResetEdge resets all changes to the edge with the given name in this mutation.
 // It returns an error if the edge is not defined in the schema.
-func (m *AdminMutation) ResetEdge(name string) error {
-	return fmt.Errorf("unknown Admin edge %s", name)
+func (m *DeviceInfoMutation) ResetEdge(name string) error {
+	switch name {
+	case deviceinfo.EdgeGenerations:
+		m.ResetGenerations()
+		return nil
+	case deviceinfo.EdgeUpscales:
+		m.ResetUpscales()
+		return nil
+	}
+	return fmt.Errorf("unknown DeviceInfo edge %s", name)
 }
 
 // GenerationMutation represents an operation that mutates the Generation nodes in the graph.
 type GenerationMutation struct {
 	config
-	op                     Op
-	typ                    string
-	id                     *uuid.UUID
-	image_id               *string
-	width                  *int
-	addwidth               *int
-	height                 *int
-	addheight              *int
-	seed                   *enttypes.BigInt
-	addseed                *enttypes.BigInt
-	num_inference_steps    *int
-	addnum_inference_steps *int
-	guidance_scale         *float64
-	addguidance_scale      *float64
-	hidden                 *bool
-	user_tier              *generation.UserTier
-	server_url             *string
-	country_code           *string
-	device_type            *string
-	device_os              *string
-	device_browser         *string
-	user_agent             *string
-	duration_ms            *int
-	addduration_ms         *int
-	status                 *generation.Status
-	failure_reason         *string
-	image_object_name      *string
-	created_at             *time.Time
-	updated_at             *time.Time
-	clearedFields          map[string]struct{}
-	user                   *uuid.UUID
-	cleareduser            bool
-	model                  *uuid.UUID
-	clearedmodel           bool
-	prompt                 *uuid.UUID
-	clearedprompt          bool
-	negative_prompt        *uuid.UUID
-	clearednegative_prompt bool
-	scheduler              *uuid.UUID
-	clearedscheduler       bool
-	done                   bool
-	oldValue               func(context.Context) (*Generation, error)
-	predicates             []predicate.Generation
+	op                        Op
+	typ                       string
+	id                        *uuid.UUID
+	width                     *int
+	addwidth                  *int
+	height                    *int
+	addheight                 *int
+	interference_steps        *int
+	addinterference_steps     *int
+	guidance_scale            *float64
+	addguidance_scale         *float64
+	seed                      *enttypes.BigInt
+	addseed                   *enttypes.BigInt
+	duration_ms               *int
+	addduration_ms            *int
+	status                    *generation.Status
+	failure_reason            *string
+	country_code              *string
+	created_at                *time.Time
+	updated_at                *time.Time
+	clearedFields             map[string]struct{}
+	device_info               *uuid.UUID
+	cleareddevice_info        bool
+	schedulers                *uuid.UUID
+	clearedschedulers         bool
+	prompts                   *uuid.UUID
+	clearedprompts            bool
+	negative_prompts          *uuid.UUID
+	clearednegative_prompts   bool
+	generation_models         *uuid.UUID
+	clearedgeneration_models  bool
+	users                     *uuid.UUID
+	clearedusers              bool
+	generation_outputs        map[uuid.UUID]struct{}
+	removedgeneration_outputs map[uuid.UUID]struct{}
+	clearedgeneration_outputs bool
+	done                      bool
+	oldValue                  func(context.Context) (*Generation, error)
+	predicates                []predicate.Generation
 }
 
 var _ ent.Mutation = (*GenerationMutation)(nil)
@@ -588,150 +922,6 @@ func (m *GenerationMutation) IDs(ctx context.Context) ([]uuid.UUID, error) {
 	default:
 		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
 	}
-}
-
-// SetPromptID sets the "prompt_id" field.
-func (m *GenerationMutation) SetPromptID(u uuid.UUID) {
-	m.prompt = &u
-}
-
-// PromptID returns the value of the "prompt_id" field in the mutation.
-func (m *GenerationMutation) PromptID() (r uuid.UUID, exists bool) {
-	v := m.prompt
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldPromptID returns the old "prompt_id" field's value of the Generation entity.
-// If the Generation object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *GenerationMutation) OldPromptID(ctx context.Context) (v *uuid.UUID, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldPromptID is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldPromptID requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldPromptID: %w", err)
-	}
-	return oldValue.PromptID, nil
-}
-
-// ResetPromptID resets all changes to the "prompt_id" field.
-func (m *GenerationMutation) ResetPromptID() {
-	m.prompt = nil
-}
-
-// SetNegativePromptID sets the "negative_prompt_id" field.
-func (m *GenerationMutation) SetNegativePromptID(u uuid.UUID) {
-	m.negative_prompt = &u
-}
-
-// NegativePromptID returns the value of the "negative_prompt_id" field in the mutation.
-func (m *GenerationMutation) NegativePromptID() (r uuid.UUID, exists bool) {
-	v := m.negative_prompt
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldNegativePromptID returns the old "negative_prompt_id" field's value of the Generation entity.
-// If the Generation object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *GenerationMutation) OldNegativePromptID(ctx context.Context) (v *uuid.UUID, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldNegativePromptID is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldNegativePromptID requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldNegativePromptID: %w", err)
-	}
-	return oldValue.NegativePromptID, nil
-}
-
-// ResetNegativePromptID resets all changes to the "negative_prompt_id" field.
-func (m *GenerationMutation) ResetNegativePromptID() {
-	m.negative_prompt = nil
-}
-
-// SetModelID sets the "model_id" field.
-func (m *GenerationMutation) SetModelID(u uuid.UUID) {
-	m.model = &u
-}
-
-// ModelID returns the value of the "model_id" field in the mutation.
-func (m *GenerationMutation) ModelID() (r uuid.UUID, exists bool) {
-	v := m.model
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldModelID returns the old "model_id" field's value of the Generation entity.
-// If the Generation object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *GenerationMutation) OldModelID(ctx context.Context) (v uuid.UUID, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldModelID is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldModelID requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldModelID: %w", err)
-	}
-	return oldValue.ModelID, nil
-}
-
-// ResetModelID resets all changes to the "model_id" field.
-func (m *GenerationMutation) ResetModelID() {
-	m.model = nil
-}
-
-// SetImageID sets the "image_id" field.
-func (m *GenerationMutation) SetImageID(s string) {
-	m.image_id = &s
-}
-
-// ImageID returns the value of the "image_id" field in the mutation.
-func (m *GenerationMutation) ImageID() (r string, exists bool) {
-	v := m.image_id
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldImageID returns the old "image_id" field's value of the Generation entity.
-// If the Generation object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *GenerationMutation) OldImageID(ctx context.Context) (v string, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldImageID is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldImageID requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldImageID: %w", err)
-	}
-	return oldValue.ImageID, nil
-}
-
-// ResetImageID resets all changes to the "image_id" field.
-func (m *GenerationMutation) ResetImageID() {
-	m.image_id = nil
 }
 
 // SetWidth sets the "width" field.
@@ -846,6 +1036,118 @@ func (m *GenerationMutation) ResetHeight() {
 	m.addheight = nil
 }
 
+// SetInterferenceSteps sets the "interference_steps" field.
+func (m *GenerationMutation) SetInterferenceSteps(i int) {
+	m.interference_steps = &i
+	m.addinterference_steps = nil
+}
+
+// InterferenceSteps returns the value of the "interference_steps" field in the mutation.
+func (m *GenerationMutation) InterferenceSteps() (r int, exists bool) {
+	v := m.interference_steps
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldInterferenceSteps returns the old "interference_steps" field's value of the Generation entity.
+// If the Generation object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *GenerationMutation) OldInterferenceSteps(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldInterferenceSteps is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldInterferenceSteps requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldInterferenceSteps: %w", err)
+	}
+	return oldValue.InterferenceSteps, nil
+}
+
+// AddInterferenceSteps adds i to the "interference_steps" field.
+func (m *GenerationMutation) AddInterferenceSteps(i int) {
+	if m.addinterference_steps != nil {
+		*m.addinterference_steps += i
+	} else {
+		m.addinterference_steps = &i
+	}
+}
+
+// AddedInterferenceSteps returns the value that was added to the "interference_steps" field in this mutation.
+func (m *GenerationMutation) AddedInterferenceSteps() (r int, exists bool) {
+	v := m.addinterference_steps
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetInterferenceSteps resets all changes to the "interference_steps" field.
+func (m *GenerationMutation) ResetInterferenceSteps() {
+	m.interference_steps = nil
+	m.addinterference_steps = nil
+}
+
+// SetGuidanceScale sets the "guidance_scale" field.
+func (m *GenerationMutation) SetGuidanceScale(f float64) {
+	m.guidance_scale = &f
+	m.addguidance_scale = nil
+}
+
+// GuidanceScale returns the value of the "guidance_scale" field in the mutation.
+func (m *GenerationMutation) GuidanceScale() (r float64, exists bool) {
+	v := m.guidance_scale
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldGuidanceScale returns the old "guidance_scale" field's value of the Generation entity.
+// If the Generation object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *GenerationMutation) OldGuidanceScale(ctx context.Context) (v float64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldGuidanceScale is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldGuidanceScale requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldGuidanceScale: %w", err)
+	}
+	return oldValue.GuidanceScale, nil
+}
+
+// AddGuidanceScale adds f to the "guidance_scale" field.
+func (m *GenerationMutation) AddGuidanceScale(f float64) {
+	if m.addguidance_scale != nil {
+		*m.addguidance_scale += f
+	} else {
+		m.addguidance_scale = &f
+	}
+}
+
+// AddedGuidanceScale returns the value that was added to the "guidance_scale" field in this mutation.
+func (m *GenerationMutation) AddedGuidanceScale() (r float64, exists bool) {
+	v := m.addguidance_scale
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetGuidanceScale resets all changes to the "guidance_scale" field.
+func (m *GenerationMutation) ResetGuidanceScale() {
+	m.guidance_scale = nil
+	m.addguidance_scale = nil
+}
+
 // SetSeed sets the "seed" field.
 func (m *GenerationMutation) SetSeed(ei enttypes.BigInt) {
 	m.seed = &ei
@@ -916,478 +1218,6 @@ func (m *GenerationMutation) ResetSeed() {
 	delete(m.clearedFields, generation.FieldSeed)
 }
 
-// SetNumInferenceSteps sets the "num_inference_steps" field.
-func (m *GenerationMutation) SetNumInferenceSteps(i int) {
-	m.num_inference_steps = &i
-	m.addnum_inference_steps = nil
-}
-
-// NumInferenceSteps returns the value of the "num_inference_steps" field in the mutation.
-func (m *GenerationMutation) NumInferenceSteps() (r int, exists bool) {
-	v := m.num_inference_steps
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldNumInferenceSteps returns the old "num_inference_steps" field's value of the Generation entity.
-// If the Generation object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *GenerationMutation) OldNumInferenceSteps(ctx context.Context) (v *int, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldNumInferenceSteps is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldNumInferenceSteps requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldNumInferenceSteps: %w", err)
-	}
-	return oldValue.NumInferenceSteps, nil
-}
-
-// AddNumInferenceSteps adds i to the "num_inference_steps" field.
-func (m *GenerationMutation) AddNumInferenceSteps(i int) {
-	if m.addnum_inference_steps != nil {
-		*m.addnum_inference_steps += i
-	} else {
-		m.addnum_inference_steps = &i
-	}
-}
-
-// AddedNumInferenceSteps returns the value that was added to the "num_inference_steps" field in this mutation.
-func (m *GenerationMutation) AddedNumInferenceSteps() (r int, exists bool) {
-	v := m.addnum_inference_steps
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// ResetNumInferenceSteps resets all changes to the "num_inference_steps" field.
-func (m *GenerationMutation) ResetNumInferenceSteps() {
-	m.num_inference_steps = nil
-	m.addnum_inference_steps = nil
-}
-
-// SetGuidanceScale sets the "guidance_scale" field.
-func (m *GenerationMutation) SetGuidanceScale(f float64) {
-	m.guidance_scale = &f
-	m.addguidance_scale = nil
-}
-
-// GuidanceScale returns the value of the "guidance_scale" field in the mutation.
-func (m *GenerationMutation) GuidanceScale() (r float64, exists bool) {
-	v := m.guidance_scale
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldGuidanceScale returns the old "guidance_scale" field's value of the Generation entity.
-// If the Generation object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *GenerationMutation) OldGuidanceScale(ctx context.Context) (v float64, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldGuidanceScale is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldGuidanceScale requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldGuidanceScale: %w", err)
-	}
-	return oldValue.GuidanceScale, nil
-}
-
-// AddGuidanceScale adds f to the "guidance_scale" field.
-func (m *GenerationMutation) AddGuidanceScale(f float64) {
-	if m.addguidance_scale != nil {
-		*m.addguidance_scale += f
-	} else {
-		m.addguidance_scale = &f
-	}
-}
-
-// AddedGuidanceScale returns the value that was added to the "guidance_scale" field in this mutation.
-func (m *GenerationMutation) AddedGuidanceScale() (r float64, exists bool) {
-	v := m.addguidance_scale
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// ResetGuidanceScale resets all changes to the "guidance_scale" field.
-func (m *GenerationMutation) ResetGuidanceScale() {
-	m.guidance_scale = nil
-	m.addguidance_scale = nil
-}
-
-// SetHidden sets the "hidden" field.
-func (m *GenerationMutation) SetHidden(b bool) {
-	m.hidden = &b
-}
-
-// Hidden returns the value of the "hidden" field in the mutation.
-func (m *GenerationMutation) Hidden() (r bool, exists bool) {
-	v := m.hidden
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldHidden returns the old "hidden" field's value of the Generation entity.
-// If the Generation object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *GenerationMutation) OldHidden(ctx context.Context) (v bool, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldHidden is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldHidden requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldHidden: %w", err)
-	}
-	return oldValue.Hidden, nil
-}
-
-// ResetHidden resets all changes to the "hidden" field.
-func (m *GenerationMutation) ResetHidden() {
-	m.hidden = nil
-}
-
-// SetSchedulerID sets the "scheduler_id" field.
-func (m *GenerationMutation) SetSchedulerID(u uuid.UUID) {
-	m.scheduler = &u
-}
-
-// SchedulerID returns the value of the "scheduler_id" field in the mutation.
-func (m *GenerationMutation) SchedulerID() (r uuid.UUID, exists bool) {
-	v := m.scheduler
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldSchedulerID returns the old "scheduler_id" field's value of the Generation entity.
-// If the Generation object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *GenerationMutation) OldSchedulerID(ctx context.Context) (v uuid.UUID, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldSchedulerID is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldSchedulerID requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldSchedulerID: %w", err)
-	}
-	return oldValue.SchedulerID, nil
-}
-
-// ResetSchedulerID resets all changes to the "scheduler_id" field.
-func (m *GenerationMutation) ResetSchedulerID() {
-	m.scheduler = nil
-}
-
-// SetUserID sets the "user_id" field.
-func (m *GenerationMutation) SetUserID(u uuid.UUID) {
-	m.user = &u
-}
-
-// UserID returns the value of the "user_id" field in the mutation.
-func (m *GenerationMutation) UserID() (r uuid.UUID, exists bool) {
-	v := m.user
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldUserID returns the old "user_id" field's value of the Generation entity.
-// If the Generation object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *GenerationMutation) OldUserID(ctx context.Context) (v *uuid.UUID, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldUserID is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldUserID requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldUserID: %w", err)
-	}
-	return oldValue.UserID, nil
-}
-
-// ResetUserID resets all changes to the "user_id" field.
-func (m *GenerationMutation) ResetUserID() {
-	m.user = nil
-}
-
-// SetUserTier sets the "user_tier" field.
-func (m *GenerationMutation) SetUserTier(gt generation.UserTier) {
-	m.user_tier = &gt
-}
-
-// UserTier returns the value of the "user_tier" field in the mutation.
-func (m *GenerationMutation) UserTier() (r generation.UserTier, exists bool) {
-	v := m.user_tier
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldUserTier returns the old "user_tier" field's value of the Generation entity.
-// If the Generation object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *GenerationMutation) OldUserTier(ctx context.Context) (v generation.UserTier, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldUserTier is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldUserTier requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldUserTier: %w", err)
-	}
-	return oldValue.UserTier, nil
-}
-
-// ResetUserTier resets all changes to the "user_tier" field.
-func (m *GenerationMutation) ResetUserTier() {
-	m.user_tier = nil
-}
-
-// SetServerURL sets the "server_url" field.
-func (m *GenerationMutation) SetServerURL(s string) {
-	m.server_url = &s
-}
-
-// ServerURL returns the value of the "server_url" field in the mutation.
-func (m *GenerationMutation) ServerURL() (r string, exists bool) {
-	v := m.server_url
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldServerURL returns the old "server_url" field's value of the Generation entity.
-// If the Generation object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *GenerationMutation) OldServerURL(ctx context.Context) (v string, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldServerURL is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldServerURL requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldServerURL: %w", err)
-	}
-	return oldValue.ServerURL, nil
-}
-
-// ResetServerURL resets all changes to the "server_url" field.
-func (m *GenerationMutation) ResetServerURL() {
-	m.server_url = nil
-}
-
-// SetCountryCode sets the "country_code" field.
-func (m *GenerationMutation) SetCountryCode(s string) {
-	m.country_code = &s
-}
-
-// CountryCode returns the value of the "country_code" field in the mutation.
-func (m *GenerationMutation) CountryCode() (r string, exists bool) {
-	v := m.country_code
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldCountryCode returns the old "country_code" field's value of the Generation entity.
-// If the Generation object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *GenerationMutation) OldCountryCode(ctx context.Context) (v *string, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldCountryCode is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldCountryCode requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldCountryCode: %w", err)
-	}
-	return oldValue.CountryCode, nil
-}
-
-// ResetCountryCode resets all changes to the "country_code" field.
-func (m *GenerationMutation) ResetCountryCode() {
-	m.country_code = nil
-}
-
-// SetDeviceType sets the "device_type" field.
-func (m *GenerationMutation) SetDeviceType(s string) {
-	m.device_type = &s
-}
-
-// DeviceType returns the value of the "device_type" field in the mutation.
-func (m *GenerationMutation) DeviceType() (r string, exists bool) {
-	v := m.device_type
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldDeviceType returns the old "device_type" field's value of the Generation entity.
-// If the Generation object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *GenerationMutation) OldDeviceType(ctx context.Context) (v *string, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldDeviceType is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldDeviceType requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldDeviceType: %w", err)
-	}
-	return oldValue.DeviceType, nil
-}
-
-// ResetDeviceType resets all changes to the "device_type" field.
-func (m *GenerationMutation) ResetDeviceType() {
-	m.device_type = nil
-}
-
-// SetDeviceOs sets the "device_os" field.
-func (m *GenerationMutation) SetDeviceOs(s string) {
-	m.device_os = &s
-}
-
-// DeviceOs returns the value of the "device_os" field in the mutation.
-func (m *GenerationMutation) DeviceOs() (r string, exists bool) {
-	v := m.device_os
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldDeviceOs returns the old "device_os" field's value of the Generation entity.
-// If the Generation object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *GenerationMutation) OldDeviceOs(ctx context.Context) (v *string, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldDeviceOs is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldDeviceOs requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldDeviceOs: %w", err)
-	}
-	return oldValue.DeviceOs, nil
-}
-
-// ResetDeviceOs resets all changes to the "device_os" field.
-func (m *GenerationMutation) ResetDeviceOs() {
-	m.device_os = nil
-}
-
-// SetDeviceBrowser sets the "device_browser" field.
-func (m *GenerationMutation) SetDeviceBrowser(s string) {
-	m.device_browser = &s
-}
-
-// DeviceBrowser returns the value of the "device_browser" field in the mutation.
-func (m *GenerationMutation) DeviceBrowser() (r string, exists bool) {
-	v := m.device_browser
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldDeviceBrowser returns the old "device_browser" field's value of the Generation entity.
-// If the Generation object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *GenerationMutation) OldDeviceBrowser(ctx context.Context) (v *string, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldDeviceBrowser is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldDeviceBrowser requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldDeviceBrowser: %w", err)
-	}
-	return oldValue.DeviceBrowser, nil
-}
-
-// ResetDeviceBrowser resets all changes to the "device_browser" field.
-func (m *GenerationMutation) ResetDeviceBrowser() {
-	m.device_browser = nil
-}
-
-// SetUserAgent sets the "user_agent" field.
-func (m *GenerationMutation) SetUserAgent(s string) {
-	m.user_agent = &s
-}
-
-// UserAgent returns the value of the "user_agent" field in the mutation.
-func (m *GenerationMutation) UserAgent() (r string, exists bool) {
-	v := m.user_agent
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldUserAgent returns the old "user_agent" field's value of the Generation entity.
-// If the Generation object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *GenerationMutation) OldUserAgent(ctx context.Context) (v *string, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldUserAgent is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldUserAgent requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldUserAgent: %w", err)
-	}
-	return oldValue.UserAgent, nil
-}
-
-// ResetUserAgent resets all changes to the "user_agent" field.
-func (m *GenerationMutation) ResetUserAgent() {
-	m.user_agent = nil
-}
-
 // SetDurationMs sets the "duration_ms" field.
 func (m *GenerationMutation) SetDurationMs(i int) {
 	m.duration_ms = &i
@@ -1406,7 +1236,7 @@ func (m *GenerationMutation) DurationMs() (r int, exists bool) {
 // OldDurationMs returns the old "duration_ms" field's value of the Generation entity.
 // If the Generation object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *GenerationMutation) OldDurationMs(ctx context.Context) (v *int, err error) {
+func (m *GenerationMutation) OldDurationMs(ctx context.Context) (v int, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldDurationMs is only allowed on UpdateOne operations")
 	}
@@ -1461,7 +1291,7 @@ func (m *GenerationMutation) Status() (r generation.Status, exists bool) {
 // OldStatus returns the old "status" field's value of the Generation entity.
 // If the Generation object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *GenerationMutation) OldStatus(ctx context.Context) (v *generation.Status, err error) {
+func (m *GenerationMutation) OldStatus(ctx context.Context) (v generation.Status, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldStatus is only allowed on UpdateOne operations")
 	}
@@ -1516,40 +1346,256 @@ func (m *GenerationMutation) ResetFailureReason() {
 	m.failure_reason = nil
 }
 
-// SetImageObjectName sets the "image_object_name" field.
-func (m *GenerationMutation) SetImageObjectName(s string) {
-	m.image_object_name = &s
+// SetCountryCode sets the "country_code" field.
+func (m *GenerationMutation) SetCountryCode(s string) {
+	m.country_code = &s
 }
 
-// ImageObjectName returns the value of the "image_object_name" field in the mutation.
-func (m *GenerationMutation) ImageObjectName() (r string, exists bool) {
-	v := m.image_object_name
+// CountryCode returns the value of the "country_code" field in the mutation.
+func (m *GenerationMutation) CountryCode() (r string, exists bool) {
+	v := m.country_code
 	if v == nil {
 		return
 	}
 	return *v, true
 }
 
-// OldImageObjectName returns the old "image_object_name" field's value of the Generation entity.
+// OldCountryCode returns the old "country_code" field's value of the Generation entity.
 // If the Generation object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *GenerationMutation) OldImageObjectName(ctx context.Context) (v *string, err error) {
+func (m *GenerationMutation) OldCountryCode(ctx context.Context) (v string, err error) {
 	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldImageObjectName is only allowed on UpdateOne operations")
+		return v, errors.New("OldCountryCode is only allowed on UpdateOne operations")
 	}
 	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldImageObjectName requires an ID field in the mutation")
+		return v, errors.New("OldCountryCode requires an ID field in the mutation")
 	}
 	oldValue, err := m.oldValue(ctx)
 	if err != nil {
-		return v, fmt.Errorf("querying old value for OldImageObjectName: %w", err)
+		return v, fmt.Errorf("querying old value for OldCountryCode: %w", err)
 	}
-	return oldValue.ImageObjectName, nil
+	return oldValue.CountryCode, nil
 }
 
-// ResetImageObjectName resets all changes to the "image_object_name" field.
-func (m *GenerationMutation) ResetImageObjectName() {
-	m.image_object_name = nil
+// ResetCountryCode resets all changes to the "country_code" field.
+func (m *GenerationMutation) ResetCountryCode() {
+	m.country_code = nil
+}
+
+// SetPromptID sets the "prompt_id" field.
+func (m *GenerationMutation) SetPromptID(u uuid.UUID) {
+	m.prompts = &u
+}
+
+// PromptID returns the value of the "prompt_id" field in the mutation.
+func (m *GenerationMutation) PromptID() (r uuid.UUID, exists bool) {
+	v := m.prompts
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldPromptID returns the old "prompt_id" field's value of the Generation entity.
+// If the Generation object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *GenerationMutation) OldPromptID(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldPromptID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldPromptID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldPromptID: %w", err)
+	}
+	return oldValue.PromptID, nil
+}
+
+// ResetPromptID resets all changes to the "prompt_id" field.
+func (m *GenerationMutation) ResetPromptID() {
+	m.prompts = nil
+}
+
+// SetNegativePromptID sets the "negative_prompt_id" field.
+func (m *GenerationMutation) SetNegativePromptID(u uuid.UUID) {
+	m.negative_prompts = &u
+}
+
+// NegativePromptID returns the value of the "negative_prompt_id" field in the mutation.
+func (m *GenerationMutation) NegativePromptID() (r uuid.UUID, exists bool) {
+	v := m.negative_prompts
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldNegativePromptID returns the old "negative_prompt_id" field's value of the Generation entity.
+// If the Generation object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *GenerationMutation) OldNegativePromptID(ctx context.Context) (v *uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldNegativePromptID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldNegativePromptID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldNegativePromptID: %w", err)
+	}
+	return oldValue.NegativePromptID, nil
+}
+
+// ResetNegativePromptID resets all changes to the "negative_prompt_id" field.
+func (m *GenerationMutation) ResetNegativePromptID() {
+	m.negative_prompts = nil
+}
+
+// SetModelID sets the "model_id" field.
+func (m *GenerationMutation) SetModelID(u uuid.UUID) {
+	m.generation_models = &u
+}
+
+// ModelID returns the value of the "model_id" field in the mutation.
+func (m *GenerationMutation) ModelID() (r uuid.UUID, exists bool) {
+	v := m.generation_models
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldModelID returns the old "model_id" field's value of the Generation entity.
+// If the Generation object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *GenerationMutation) OldModelID(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldModelID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldModelID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldModelID: %w", err)
+	}
+	return oldValue.ModelID, nil
+}
+
+// ResetModelID resets all changes to the "model_id" field.
+func (m *GenerationMutation) ResetModelID() {
+	m.generation_models = nil
+}
+
+// SetSchedulerID sets the "scheduler_id" field.
+func (m *GenerationMutation) SetSchedulerID(u uuid.UUID) {
+	m.schedulers = &u
+}
+
+// SchedulerID returns the value of the "scheduler_id" field in the mutation.
+func (m *GenerationMutation) SchedulerID() (r uuid.UUID, exists bool) {
+	v := m.schedulers
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSchedulerID returns the old "scheduler_id" field's value of the Generation entity.
+// If the Generation object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *GenerationMutation) OldSchedulerID(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSchedulerID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSchedulerID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSchedulerID: %w", err)
+	}
+	return oldValue.SchedulerID, nil
+}
+
+// ResetSchedulerID resets all changes to the "scheduler_id" field.
+func (m *GenerationMutation) ResetSchedulerID() {
+	m.schedulers = nil
+}
+
+// SetUserID sets the "user_id" field.
+func (m *GenerationMutation) SetUserID(u uuid.UUID) {
+	m.users = &u
+}
+
+// UserID returns the value of the "user_id" field in the mutation.
+func (m *GenerationMutation) UserID() (r uuid.UUID, exists bool) {
+	v := m.users
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUserID returns the old "user_id" field's value of the Generation entity.
+// If the Generation object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *GenerationMutation) OldUserID(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUserID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUserID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUserID: %w", err)
+	}
+	return oldValue.UserID, nil
+}
+
+// ResetUserID resets all changes to the "user_id" field.
+func (m *GenerationMutation) ResetUserID() {
+	m.users = nil
+}
+
+// SetDeviceInfoID sets the "device_info_id" field.
+func (m *GenerationMutation) SetDeviceInfoID(u uuid.UUID) {
+	m.device_info = &u
+}
+
+// DeviceInfoID returns the value of the "device_info_id" field in the mutation.
+func (m *GenerationMutation) DeviceInfoID() (r uuid.UUID, exists bool) {
+	v := m.device_info
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDeviceInfoID returns the old "device_info_id" field's value of the Generation entity.
+// If the Generation object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *GenerationMutation) OldDeviceInfoID(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDeviceInfoID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDeviceInfoID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDeviceInfoID: %w", err)
+	}
+	return oldValue.DeviceInfoID, nil
+}
+
+// ResetDeviceInfoID resets all changes to the "device_info_id" field.
+func (m *GenerationMutation) ResetDeviceInfoID() {
+	m.device_info = nil
 }
 
 // SetCreatedAt sets the "created_at" field.
@@ -1624,134 +1670,279 @@ func (m *GenerationMutation) ResetUpdatedAt() {
 	m.updated_at = nil
 }
 
-// ClearUser clears the "user" edge to the User entity.
-func (m *GenerationMutation) ClearUser() {
-	m.cleareduser = true
+// ClearDeviceInfo clears the "device_info" edge to the DeviceInfo entity.
+func (m *GenerationMutation) ClearDeviceInfo() {
+	m.cleareddevice_info = true
 }
 
-// UserCleared reports if the "user" edge to the User entity was cleared.
-func (m *GenerationMutation) UserCleared() bool {
-	return m.cleareduser
+// DeviceInfoCleared reports if the "device_info" edge to the DeviceInfo entity was cleared.
+func (m *GenerationMutation) DeviceInfoCleared() bool {
+	return m.cleareddevice_info
 }
 
-// UserIDs returns the "user" edge IDs in the mutation.
+// DeviceInfoIDs returns the "device_info" edge IDs in the mutation.
 // Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
-// UserID instead. It exists only for internal usage by the builders.
-func (m *GenerationMutation) UserIDs() (ids []uuid.UUID) {
-	if id := m.user; id != nil {
+// DeviceInfoID instead. It exists only for internal usage by the builders.
+func (m *GenerationMutation) DeviceInfoIDs() (ids []uuid.UUID) {
+	if id := m.device_info; id != nil {
 		ids = append(ids, *id)
 	}
 	return
 }
 
-// ResetUser resets all changes to the "user" edge.
-func (m *GenerationMutation) ResetUser() {
-	m.user = nil
-	m.cleareduser = false
+// ResetDeviceInfo resets all changes to the "device_info" edge.
+func (m *GenerationMutation) ResetDeviceInfo() {
+	m.device_info = nil
+	m.cleareddevice_info = false
 }
 
-// ClearModel clears the "model" edge to the Model entity.
-func (m *GenerationMutation) ClearModel() {
-	m.clearedmodel = true
+// SetSchedulersID sets the "schedulers" edge to the Scheduler entity by id.
+func (m *GenerationMutation) SetSchedulersID(id uuid.UUID) {
+	m.schedulers = &id
 }
 
-// ModelCleared reports if the "model" edge to the Model entity was cleared.
-func (m *GenerationMutation) ModelCleared() bool {
-	return m.clearedmodel
+// ClearSchedulers clears the "schedulers" edge to the Scheduler entity.
+func (m *GenerationMutation) ClearSchedulers() {
+	m.clearedschedulers = true
 }
 
-// ModelIDs returns the "model" edge IDs in the mutation.
+// SchedulersCleared reports if the "schedulers" edge to the Scheduler entity was cleared.
+func (m *GenerationMutation) SchedulersCleared() bool {
+	return m.clearedschedulers
+}
+
+// SchedulersID returns the "schedulers" edge ID in the mutation.
+func (m *GenerationMutation) SchedulersID() (id uuid.UUID, exists bool) {
+	if m.schedulers != nil {
+		return *m.schedulers, true
+	}
+	return
+}
+
+// SchedulersIDs returns the "schedulers" edge IDs in the mutation.
 // Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
-// ModelID instead. It exists only for internal usage by the builders.
-func (m *GenerationMutation) ModelIDs() (ids []uuid.UUID) {
-	if id := m.model; id != nil {
+// SchedulersID instead. It exists only for internal usage by the builders.
+func (m *GenerationMutation) SchedulersIDs() (ids []uuid.UUID) {
+	if id := m.schedulers; id != nil {
 		ids = append(ids, *id)
 	}
 	return
 }
 
-// ResetModel resets all changes to the "model" edge.
-func (m *GenerationMutation) ResetModel() {
-	m.model = nil
-	m.clearedmodel = false
+// ResetSchedulers resets all changes to the "schedulers" edge.
+func (m *GenerationMutation) ResetSchedulers() {
+	m.schedulers = nil
+	m.clearedschedulers = false
 }
 
-// ClearPrompt clears the "prompt" edge to the Prompt entity.
-func (m *GenerationMutation) ClearPrompt() {
-	m.clearedprompt = true
+// SetPromptsID sets the "prompts" edge to the Prompt entity by id.
+func (m *GenerationMutation) SetPromptsID(id uuid.UUID) {
+	m.prompts = &id
 }
 
-// PromptCleared reports if the "prompt" edge to the Prompt entity was cleared.
-func (m *GenerationMutation) PromptCleared() bool {
-	return m.clearedprompt
+// ClearPrompts clears the "prompts" edge to the Prompt entity.
+func (m *GenerationMutation) ClearPrompts() {
+	m.clearedprompts = true
 }
 
-// PromptIDs returns the "prompt" edge IDs in the mutation.
+// PromptsCleared reports if the "prompts" edge to the Prompt entity was cleared.
+func (m *GenerationMutation) PromptsCleared() bool {
+	return m.clearedprompts
+}
+
+// PromptsID returns the "prompts" edge ID in the mutation.
+func (m *GenerationMutation) PromptsID() (id uuid.UUID, exists bool) {
+	if m.prompts != nil {
+		return *m.prompts, true
+	}
+	return
+}
+
+// PromptsIDs returns the "prompts" edge IDs in the mutation.
 // Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
-// PromptID instead. It exists only for internal usage by the builders.
-func (m *GenerationMutation) PromptIDs() (ids []uuid.UUID) {
-	if id := m.prompt; id != nil {
+// PromptsID instead. It exists only for internal usage by the builders.
+func (m *GenerationMutation) PromptsIDs() (ids []uuid.UUID) {
+	if id := m.prompts; id != nil {
 		ids = append(ids, *id)
 	}
 	return
 }
 
-// ResetPrompt resets all changes to the "prompt" edge.
-func (m *GenerationMutation) ResetPrompt() {
-	m.prompt = nil
-	m.clearedprompt = false
+// ResetPrompts resets all changes to the "prompts" edge.
+func (m *GenerationMutation) ResetPrompts() {
+	m.prompts = nil
+	m.clearedprompts = false
 }
 
-// ClearNegativePrompt clears the "negative_prompt" edge to the NegativePrompt entity.
-func (m *GenerationMutation) ClearNegativePrompt() {
-	m.clearednegative_prompt = true
+// SetNegativePromptsID sets the "negative_prompts" edge to the NegativePrompt entity by id.
+func (m *GenerationMutation) SetNegativePromptsID(id uuid.UUID) {
+	m.negative_prompts = &id
 }
 
-// NegativePromptCleared reports if the "negative_prompt" edge to the NegativePrompt entity was cleared.
-func (m *GenerationMutation) NegativePromptCleared() bool {
-	return m.clearednegative_prompt
+// ClearNegativePrompts clears the "negative_prompts" edge to the NegativePrompt entity.
+func (m *GenerationMutation) ClearNegativePrompts() {
+	m.clearednegative_prompts = true
 }
 
-// NegativePromptIDs returns the "negative_prompt" edge IDs in the mutation.
+// NegativePromptsCleared reports if the "negative_prompts" edge to the NegativePrompt entity was cleared.
+func (m *GenerationMutation) NegativePromptsCleared() bool {
+	return m.clearednegative_prompts
+}
+
+// NegativePromptsID returns the "negative_prompts" edge ID in the mutation.
+func (m *GenerationMutation) NegativePromptsID() (id uuid.UUID, exists bool) {
+	if m.negative_prompts != nil {
+		return *m.negative_prompts, true
+	}
+	return
+}
+
+// NegativePromptsIDs returns the "negative_prompts" edge IDs in the mutation.
 // Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
-// NegativePromptID instead. It exists only for internal usage by the builders.
-func (m *GenerationMutation) NegativePromptIDs() (ids []uuid.UUID) {
-	if id := m.negative_prompt; id != nil {
+// NegativePromptsID instead. It exists only for internal usage by the builders.
+func (m *GenerationMutation) NegativePromptsIDs() (ids []uuid.UUID) {
+	if id := m.negative_prompts; id != nil {
 		ids = append(ids, *id)
 	}
 	return
 }
 
-// ResetNegativePrompt resets all changes to the "negative_prompt" edge.
-func (m *GenerationMutation) ResetNegativePrompt() {
-	m.negative_prompt = nil
-	m.clearednegative_prompt = false
+// ResetNegativePrompts resets all changes to the "negative_prompts" edge.
+func (m *GenerationMutation) ResetNegativePrompts() {
+	m.negative_prompts = nil
+	m.clearednegative_prompts = false
 }
 
-// ClearScheduler clears the "scheduler" edge to the Scheduler entity.
-func (m *GenerationMutation) ClearScheduler() {
-	m.clearedscheduler = true
+// SetGenerationModelsID sets the "generation_models" edge to the GenerationModel entity by id.
+func (m *GenerationMutation) SetGenerationModelsID(id uuid.UUID) {
+	m.generation_models = &id
 }
 
-// SchedulerCleared reports if the "scheduler" edge to the Scheduler entity was cleared.
-func (m *GenerationMutation) SchedulerCleared() bool {
-	return m.clearedscheduler
+// ClearGenerationModels clears the "generation_models" edge to the GenerationModel entity.
+func (m *GenerationMutation) ClearGenerationModels() {
+	m.clearedgeneration_models = true
 }
 
-// SchedulerIDs returns the "scheduler" edge IDs in the mutation.
+// GenerationModelsCleared reports if the "generation_models" edge to the GenerationModel entity was cleared.
+func (m *GenerationMutation) GenerationModelsCleared() bool {
+	return m.clearedgeneration_models
+}
+
+// GenerationModelsID returns the "generation_models" edge ID in the mutation.
+func (m *GenerationMutation) GenerationModelsID() (id uuid.UUID, exists bool) {
+	if m.generation_models != nil {
+		return *m.generation_models, true
+	}
+	return
+}
+
+// GenerationModelsIDs returns the "generation_models" edge IDs in the mutation.
 // Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
-// SchedulerID instead. It exists only for internal usage by the builders.
-func (m *GenerationMutation) SchedulerIDs() (ids []uuid.UUID) {
-	if id := m.scheduler; id != nil {
+// GenerationModelsID instead. It exists only for internal usage by the builders.
+func (m *GenerationMutation) GenerationModelsIDs() (ids []uuid.UUID) {
+	if id := m.generation_models; id != nil {
 		ids = append(ids, *id)
 	}
 	return
 }
 
-// ResetScheduler resets all changes to the "scheduler" edge.
-func (m *GenerationMutation) ResetScheduler() {
-	m.scheduler = nil
-	m.clearedscheduler = false
+// ResetGenerationModels resets all changes to the "generation_models" edge.
+func (m *GenerationMutation) ResetGenerationModels() {
+	m.generation_models = nil
+	m.clearedgeneration_models = false
+}
+
+// SetUsersID sets the "users" edge to the User entity by id.
+func (m *GenerationMutation) SetUsersID(id uuid.UUID) {
+	m.users = &id
+}
+
+// ClearUsers clears the "users" edge to the User entity.
+func (m *GenerationMutation) ClearUsers() {
+	m.clearedusers = true
+}
+
+// UsersCleared reports if the "users" edge to the User entity was cleared.
+func (m *GenerationMutation) UsersCleared() bool {
+	return m.clearedusers
+}
+
+// UsersID returns the "users" edge ID in the mutation.
+func (m *GenerationMutation) UsersID() (id uuid.UUID, exists bool) {
+	if m.users != nil {
+		return *m.users, true
+	}
+	return
+}
+
+// UsersIDs returns the "users" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// UsersID instead. It exists only for internal usage by the builders.
+func (m *GenerationMutation) UsersIDs() (ids []uuid.UUID) {
+	if id := m.users; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetUsers resets all changes to the "users" edge.
+func (m *GenerationMutation) ResetUsers() {
+	m.users = nil
+	m.clearedusers = false
+}
+
+// AddGenerationOutputIDs adds the "generation_outputs" edge to the GenerationOutput entity by ids.
+func (m *GenerationMutation) AddGenerationOutputIDs(ids ...uuid.UUID) {
+	if m.generation_outputs == nil {
+		m.generation_outputs = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.generation_outputs[ids[i]] = struct{}{}
+	}
+}
+
+// ClearGenerationOutputs clears the "generation_outputs" edge to the GenerationOutput entity.
+func (m *GenerationMutation) ClearGenerationOutputs() {
+	m.clearedgeneration_outputs = true
+}
+
+// GenerationOutputsCleared reports if the "generation_outputs" edge to the GenerationOutput entity was cleared.
+func (m *GenerationMutation) GenerationOutputsCleared() bool {
+	return m.clearedgeneration_outputs
+}
+
+// RemoveGenerationOutputIDs removes the "generation_outputs" edge to the GenerationOutput entity by IDs.
+func (m *GenerationMutation) RemoveGenerationOutputIDs(ids ...uuid.UUID) {
+	if m.removedgeneration_outputs == nil {
+		m.removedgeneration_outputs = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.generation_outputs, ids[i])
+		m.removedgeneration_outputs[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedGenerationOutputs returns the removed IDs of the "generation_outputs" edge to the GenerationOutput entity.
+func (m *GenerationMutation) RemovedGenerationOutputsIDs() (ids []uuid.UUID) {
+	for id := range m.removedgeneration_outputs {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// GenerationOutputsIDs returns the "generation_outputs" edge IDs in the mutation.
+func (m *GenerationMutation) GenerationOutputsIDs() (ids []uuid.UUID) {
+	for id := range m.generation_outputs {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetGenerationOutputs resets all changes to the "generation_outputs" edge.
+func (m *GenerationMutation) ResetGenerationOutputs() {
+	m.generation_outputs = nil
+	m.clearedgeneration_outputs = false
+	m.removedgeneration_outputs = nil
 }
 
 // Where appends a list predicates to the GenerationMutation builder.
@@ -1788,63 +1979,21 @@ func (m *GenerationMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *GenerationMutation) Fields() []string {
-	fields := make([]string, 0, 25)
-	if m.prompt != nil {
-		fields = append(fields, generation.FieldPromptID)
-	}
-	if m.negative_prompt != nil {
-		fields = append(fields, generation.FieldNegativePromptID)
-	}
-	if m.model != nil {
-		fields = append(fields, generation.FieldModelID)
-	}
-	if m.image_id != nil {
-		fields = append(fields, generation.FieldImageID)
-	}
+	fields := make([]string, 0, 17)
 	if m.width != nil {
 		fields = append(fields, generation.FieldWidth)
 	}
 	if m.height != nil {
 		fields = append(fields, generation.FieldHeight)
 	}
-	if m.seed != nil {
-		fields = append(fields, generation.FieldSeed)
-	}
-	if m.num_inference_steps != nil {
-		fields = append(fields, generation.FieldNumInferenceSteps)
+	if m.interference_steps != nil {
+		fields = append(fields, generation.FieldInterferenceSteps)
 	}
 	if m.guidance_scale != nil {
 		fields = append(fields, generation.FieldGuidanceScale)
 	}
-	if m.hidden != nil {
-		fields = append(fields, generation.FieldHidden)
-	}
-	if m.scheduler != nil {
-		fields = append(fields, generation.FieldSchedulerID)
-	}
-	if m.user != nil {
-		fields = append(fields, generation.FieldUserID)
-	}
-	if m.user_tier != nil {
-		fields = append(fields, generation.FieldUserTier)
-	}
-	if m.server_url != nil {
-		fields = append(fields, generation.FieldServerURL)
-	}
-	if m.country_code != nil {
-		fields = append(fields, generation.FieldCountryCode)
-	}
-	if m.device_type != nil {
-		fields = append(fields, generation.FieldDeviceType)
-	}
-	if m.device_os != nil {
-		fields = append(fields, generation.FieldDeviceOs)
-	}
-	if m.device_browser != nil {
-		fields = append(fields, generation.FieldDeviceBrowser)
-	}
-	if m.user_agent != nil {
-		fields = append(fields, generation.FieldUserAgent)
+	if m.seed != nil {
+		fields = append(fields, generation.FieldSeed)
 	}
 	if m.duration_ms != nil {
 		fields = append(fields, generation.FieldDurationMs)
@@ -1855,8 +2004,26 @@ func (m *GenerationMutation) Fields() []string {
 	if m.failure_reason != nil {
 		fields = append(fields, generation.FieldFailureReason)
 	}
-	if m.image_object_name != nil {
-		fields = append(fields, generation.FieldImageObjectName)
+	if m.country_code != nil {
+		fields = append(fields, generation.FieldCountryCode)
+	}
+	if m.prompts != nil {
+		fields = append(fields, generation.FieldPromptID)
+	}
+	if m.negative_prompts != nil {
+		fields = append(fields, generation.FieldNegativePromptID)
+	}
+	if m.generation_models != nil {
+		fields = append(fields, generation.FieldModelID)
+	}
+	if m.schedulers != nil {
+		fields = append(fields, generation.FieldSchedulerID)
+	}
+	if m.users != nil {
+		fields = append(fields, generation.FieldUserID)
+	}
+	if m.device_info != nil {
+		fields = append(fields, generation.FieldDeviceInfoID)
 	}
 	if m.created_at != nil {
 		fields = append(fields, generation.FieldCreatedAt)
@@ -1872,52 +2039,36 @@ func (m *GenerationMutation) Fields() []string {
 // schema.
 func (m *GenerationMutation) Field(name string) (ent.Value, bool) {
 	switch name {
-	case generation.FieldPromptID:
-		return m.PromptID()
-	case generation.FieldNegativePromptID:
-		return m.NegativePromptID()
-	case generation.FieldModelID:
-		return m.ModelID()
-	case generation.FieldImageID:
-		return m.ImageID()
 	case generation.FieldWidth:
 		return m.Width()
 	case generation.FieldHeight:
 		return m.Height()
-	case generation.FieldSeed:
-		return m.Seed()
-	case generation.FieldNumInferenceSteps:
-		return m.NumInferenceSteps()
+	case generation.FieldInterferenceSteps:
+		return m.InterferenceSteps()
 	case generation.FieldGuidanceScale:
 		return m.GuidanceScale()
-	case generation.FieldHidden:
-		return m.Hidden()
-	case generation.FieldSchedulerID:
-		return m.SchedulerID()
-	case generation.FieldUserID:
-		return m.UserID()
-	case generation.FieldUserTier:
-		return m.UserTier()
-	case generation.FieldServerURL:
-		return m.ServerURL()
-	case generation.FieldCountryCode:
-		return m.CountryCode()
-	case generation.FieldDeviceType:
-		return m.DeviceType()
-	case generation.FieldDeviceOs:
-		return m.DeviceOs()
-	case generation.FieldDeviceBrowser:
-		return m.DeviceBrowser()
-	case generation.FieldUserAgent:
-		return m.UserAgent()
+	case generation.FieldSeed:
+		return m.Seed()
 	case generation.FieldDurationMs:
 		return m.DurationMs()
 	case generation.FieldStatus:
 		return m.Status()
 	case generation.FieldFailureReason:
 		return m.FailureReason()
-	case generation.FieldImageObjectName:
-		return m.ImageObjectName()
+	case generation.FieldCountryCode:
+		return m.CountryCode()
+	case generation.FieldPromptID:
+		return m.PromptID()
+	case generation.FieldNegativePromptID:
+		return m.NegativePromptID()
+	case generation.FieldModelID:
+		return m.ModelID()
+	case generation.FieldSchedulerID:
+		return m.SchedulerID()
+	case generation.FieldUserID:
+		return m.UserID()
+	case generation.FieldDeviceInfoID:
+		return m.DeviceInfoID()
 	case generation.FieldCreatedAt:
 		return m.CreatedAt()
 	case generation.FieldUpdatedAt:
@@ -1931,52 +2082,36 @@ func (m *GenerationMutation) Field(name string) (ent.Value, bool) {
 // database failed.
 func (m *GenerationMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
 	switch name {
-	case generation.FieldPromptID:
-		return m.OldPromptID(ctx)
-	case generation.FieldNegativePromptID:
-		return m.OldNegativePromptID(ctx)
-	case generation.FieldModelID:
-		return m.OldModelID(ctx)
-	case generation.FieldImageID:
-		return m.OldImageID(ctx)
 	case generation.FieldWidth:
 		return m.OldWidth(ctx)
 	case generation.FieldHeight:
 		return m.OldHeight(ctx)
-	case generation.FieldSeed:
-		return m.OldSeed(ctx)
-	case generation.FieldNumInferenceSteps:
-		return m.OldNumInferenceSteps(ctx)
+	case generation.FieldInterferenceSteps:
+		return m.OldInterferenceSteps(ctx)
 	case generation.FieldGuidanceScale:
 		return m.OldGuidanceScale(ctx)
-	case generation.FieldHidden:
-		return m.OldHidden(ctx)
-	case generation.FieldSchedulerID:
-		return m.OldSchedulerID(ctx)
-	case generation.FieldUserID:
-		return m.OldUserID(ctx)
-	case generation.FieldUserTier:
-		return m.OldUserTier(ctx)
-	case generation.FieldServerURL:
-		return m.OldServerURL(ctx)
-	case generation.FieldCountryCode:
-		return m.OldCountryCode(ctx)
-	case generation.FieldDeviceType:
-		return m.OldDeviceType(ctx)
-	case generation.FieldDeviceOs:
-		return m.OldDeviceOs(ctx)
-	case generation.FieldDeviceBrowser:
-		return m.OldDeviceBrowser(ctx)
-	case generation.FieldUserAgent:
-		return m.OldUserAgent(ctx)
+	case generation.FieldSeed:
+		return m.OldSeed(ctx)
 	case generation.FieldDurationMs:
 		return m.OldDurationMs(ctx)
 	case generation.FieldStatus:
 		return m.OldStatus(ctx)
 	case generation.FieldFailureReason:
 		return m.OldFailureReason(ctx)
-	case generation.FieldImageObjectName:
-		return m.OldImageObjectName(ctx)
+	case generation.FieldCountryCode:
+		return m.OldCountryCode(ctx)
+	case generation.FieldPromptID:
+		return m.OldPromptID(ctx)
+	case generation.FieldNegativePromptID:
+		return m.OldNegativePromptID(ctx)
+	case generation.FieldModelID:
+		return m.OldModelID(ctx)
+	case generation.FieldSchedulerID:
+		return m.OldSchedulerID(ctx)
+	case generation.FieldUserID:
+		return m.OldUserID(ctx)
+	case generation.FieldDeviceInfoID:
+		return m.OldDeviceInfoID(ctx)
 	case generation.FieldCreatedAt:
 		return m.OldCreatedAt(ctx)
 	case generation.FieldUpdatedAt:
@@ -1990,34 +2125,6 @@ func (m *GenerationMutation) OldField(ctx context.Context, name string) (ent.Val
 // type.
 func (m *GenerationMutation) SetField(name string, value ent.Value) error {
 	switch name {
-	case generation.FieldPromptID:
-		v, ok := value.(uuid.UUID)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetPromptID(v)
-		return nil
-	case generation.FieldNegativePromptID:
-		v, ok := value.(uuid.UUID)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetNegativePromptID(v)
-		return nil
-	case generation.FieldModelID:
-		v, ok := value.(uuid.UUID)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetModelID(v)
-		return nil
-	case generation.FieldImageID:
-		v, ok := value.(string)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetImageID(v)
-		return nil
 	case generation.FieldWidth:
 		v, ok := value.(int)
 		if !ok {
@@ -2032,19 +2139,12 @@ func (m *GenerationMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetHeight(v)
 		return nil
-	case generation.FieldSeed:
-		v, ok := value.(enttypes.BigInt)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetSeed(v)
-		return nil
-	case generation.FieldNumInferenceSteps:
+	case generation.FieldInterferenceSteps:
 		v, ok := value.(int)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
-		m.SetNumInferenceSteps(v)
+		m.SetInterferenceSteps(v)
 		return nil
 	case generation.FieldGuidanceScale:
 		v, ok := value.(float64)
@@ -2053,75 +2153,12 @@ func (m *GenerationMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetGuidanceScale(v)
 		return nil
-	case generation.FieldHidden:
-		v, ok := value.(bool)
+	case generation.FieldSeed:
+		v, ok := value.(enttypes.BigInt)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
-		m.SetHidden(v)
-		return nil
-	case generation.FieldSchedulerID:
-		v, ok := value.(uuid.UUID)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetSchedulerID(v)
-		return nil
-	case generation.FieldUserID:
-		v, ok := value.(uuid.UUID)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetUserID(v)
-		return nil
-	case generation.FieldUserTier:
-		v, ok := value.(generation.UserTier)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetUserTier(v)
-		return nil
-	case generation.FieldServerURL:
-		v, ok := value.(string)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetServerURL(v)
-		return nil
-	case generation.FieldCountryCode:
-		v, ok := value.(string)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetCountryCode(v)
-		return nil
-	case generation.FieldDeviceType:
-		v, ok := value.(string)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetDeviceType(v)
-		return nil
-	case generation.FieldDeviceOs:
-		v, ok := value.(string)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetDeviceOs(v)
-		return nil
-	case generation.FieldDeviceBrowser:
-		v, ok := value.(string)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetDeviceBrowser(v)
-		return nil
-	case generation.FieldUserAgent:
-		v, ok := value.(string)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetUserAgent(v)
+		m.SetSeed(v)
 		return nil
 	case generation.FieldDurationMs:
 		v, ok := value.(int)
@@ -2144,12 +2181,54 @@ func (m *GenerationMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetFailureReason(v)
 		return nil
-	case generation.FieldImageObjectName:
+	case generation.FieldCountryCode:
 		v, ok := value.(string)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
-		m.SetImageObjectName(v)
+		m.SetCountryCode(v)
+		return nil
+	case generation.FieldPromptID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetPromptID(v)
+		return nil
+	case generation.FieldNegativePromptID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetNegativePromptID(v)
+		return nil
+	case generation.FieldModelID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetModelID(v)
+		return nil
+	case generation.FieldSchedulerID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSchedulerID(v)
+		return nil
+	case generation.FieldUserID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUserID(v)
+		return nil
+	case generation.FieldDeviceInfoID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDeviceInfoID(v)
 		return nil
 	case generation.FieldCreatedAt:
 		v, ok := value.(time.Time)
@@ -2179,14 +2258,14 @@ func (m *GenerationMutation) AddedFields() []string {
 	if m.addheight != nil {
 		fields = append(fields, generation.FieldHeight)
 	}
-	if m.addseed != nil {
-		fields = append(fields, generation.FieldSeed)
-	}
-	if m.addnum_inference_steps != nil {
-		fields = append(fields, generation.FieldNumInferenceSteps)
+	if m.addinterference_steps != nil {
+		fields = append(fields, generation.FieldInterferenceSteps)
 	}
 	if m.addguidance_scale != nil {
 		fields = append(fields, generation.FieldGuidanceScale)
+	}
+	if m.addseed != nil {
+		fields = append(fields, generation.FieldSeed)
 	}
 	if m.addduration_ms != nil {
 		fields = append(fields, generation.FieldDurationMs)
@@ -2203,12 +2282,12 @@ func (m *GenerationMutation) AddedField(name string) (ent.Value, bool) {
 		return m.AddedWidth()
 	case generation.FieldHeight:
 		return m.AddedHeight()
-	case generation.FieldSeed:
-		return m.AddedSeed()
-	case generation.FieldNumInferenceSteps:
-		return m.AddedNumInferenceSteps()
+	case generation.FieldInterferenceSteps:
+		return m.AddedInterferenceSteps()
 	case generation.FieldGuidanceScale:
 		return m.AddedGuidanceScale()
+	case generation.FieldSeed:
+		return m.AddedSeed()
 	case generation.FieldDurationMs:
 		return m.AddedDurationMs()
 	}
@@ -2234,19 +2313,12 @@ func (m *GenerationMutation) AddField(name string, value ent.Value) error {
 		}
 		m.AddHeight(v)
 		return nil
-	case generation.FieldSeed:
-		v, ok := value.(enttypes.BigInt)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.AddSeed(v)
-		return nil
-	case generation.FieldNumInferenceSteps:
+	case generation.FieldInterferenceSteps:
 		v, ok := value.(int)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
-		m.AddNumInferenceSteps(v)
+		m.AddInterferenceSteps(v)
 		return nil
 	case generation.FieldGuidanceScale:
 		v, ok := value.(float64)
@@ -2254,6 +2326,13 @@ func (m *GenerationMutation) AddField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.AddGuidanceScale(v)
+		return nil
+	case generation.FieldSeed:
+		v, ok := value.(enttypes.BigInt)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddSeed(v)
 		return nil
 	case generation.FieldDurationMs:
 		v, ok := value.(int)
@@ -2298,62 +2377,20 @@ func (m *GenerationMutation) ClearField(name string) error {
 // It returns an error if the field is not defined in the schema.
 func (m *GenerationMutation) ResetField(name string) error {
 	switch name {
-	case generation.FieldPromptID:
-		m.ResetPromptID()
-		return nil
-	case generation.FieldNegativePromptID:
-		m.ResetNegativePromptID()
-		return nil
-	case generation.FieldModelID:
-		m.ResetModelID()
-		return nil
-	case generation.FieldImageID:
-		m.ResetImageID()
-		return nil
 	case generation.FieldWidth:
 		m.ResetWidth()
 		return nil
 	case generation.FieldHeight:
 		m.ResetHeight()
 		return nil
-	case generation.FieldSeed:
-		m.ResetSeed()
-		return nil
-	case generation.FieldNumInferenceSteps:
-		m.ResetNumInferenceSteps()
+	case generation.FieldInterferenceSteps:
+		m.ResetInterferenceSteps()
 		return nil
 	case generation.FieldGuidanceScale:
 		m.ResetGuidanceScale()
 		return nil
-	case generation.FieldHidden:
-		m.ResetHidden()
-		return nil
-	case generation.FieldSchedulerID:
-		m.ResetSchedulerID()
-		return nil
-	case generation.FieldUserID:
-		m.ResetUserID()
-		return nil
-	case generation.FieldUserTier:
-		m.ResetUserTier()
-		return nil
-	case generation.FieldServerURL:
-		m.ResetServerURL()
-		return nil
-	case generation.FieldCountryCode:
-		m.ResetCountryCode()
-		return nil
-	case generation.FieldDeviceType:
-		m.ResetDeviceType()
-		return nil
-	case generation.FieldDeviceOs:
-		m.ResetDeviceOs()
-		return nil
-	case generation.FieldDeviceBrowser:
-		m.ResetDeviceBrowser()
-		return nil
-	case generation.FieldUserAgent:
-		m.ResetUserAgent()
+	case generation.FieldSeed:
+		m.ResetSeed()
 		return nil
 	case generation.FieldDurationMs:
 		m.ResetDurationMs()
@@ -2364,8 +2401,26 @@ func (m *GenerationMutation) ResetField(name string) error {
 	case generation.FieldFailureReason:
 		m.ResetFailureReason()
 		return nil
-	case generation.FieldImageObjectName:
-		m.ResetImageObjectName()
+	case generation.FieldCountryCode:
+		m.ResetCountryCode()
+		return nil
+	case generation.FieldPromptID:
+		m.ResetPromptID()
+		return nil
+	case generation.FieldNegativePromptID:
+		m.ResetNegativePromptID()
+		return nil
+	case generation.FieldModelID:
+		m.ResetModelID()
+		return nil
+	case generation.FieldSchedulerID:
+		m.ResetSchedulerID()
+		return nil
+	case generation.FieldUserID:
+		m.ResetUserID()
+		return nil
+	case generation.FieldDeviceInfoID:
+		m.ResetDeviceInfoID()
 		return nil
 	case generation.FieldCreatedAt:
 		m.ResetCreatedAt()
@@ -2379,21 +2434,27 @@ func (m *GenerationMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *GenerationMutation) AddedEdges() []string {
-	edges := make([]string, 0, 5)
-	if m.user != nil {
-		edges = append(edges, generation.EdgeUser)
+	edges := make([]string, 0, 7)
+	if m.device_info != nil {
+		edges = append(edges, generation.EdgeDeviceInfo)
 	}
-	if m.model != nil {
-		edges = append(edges, generation.EdgeModel)
+	if m.schedulers != nil {
+		edges = append(edges, generation.EdgeSchedulers)
 	}
-	if m.prompt != nil {
-		edges = append(edges, generation.EdgePrompt)
+	if m.prompts != nil {
+		edges = append(edges, generation.EdgePrompts)
 	}
-	if m.negative_prompt != nil {
-		edges = append(edges, generation.EdgeNegativePrompt)
+	if m.negative_prompts != nil {
+		edges = append(edges, generation.EdgeNegativePrompts)
 	}
-	if m.scheduler != nil {
-		edges = append(edges, generation.EdgeScheduler)
+	if m.generation_models != nil {
+		edges = append(edges, generation.EdgeGenerationModels)
+	}
+	if m.users != nil {
+		edges = append(edges, generation.EdgeUsers)
+	}
+	if m.generation_outputs != nil {
+		edges = append(edges, generation.EdgeGenerationOutputs)
 	}
 	return edges
 }
@@ -2402,59 +2463,86 @@ func (m *GenerationMutation) AddedEdges() []string {
 // name in this mutation.
 func (m *GenerationMutation) AddedIDs(name string) []ent.Value {
 	switch name {
-	case generation.EdgeUser:
-		if id := m.user; id != nil {
+	case generation.EdgeDeviceInfo:
+		if id := m.device_info; id != nil {
 			return []ent.Value{*id}
 		}
-	case generation.EdgeModel:
-		if id := m.model; id != nil {
+	case generation.EdgeSchedulers:
+		if id := m.schedulers; id != nil {
 			return []ent.Value{*id}
 		}
-	case generation.EdgePrompt:
-		if id := m.prompt; id != nil {
+	case generation.EdgePrompts:
+		if id := m.prompts; id != nil {
 			return []ent.Value{*id}
 		}
-	case generation.EdgeNegativePrompt:
-		if id := m.negative_prompt; id != nil {
+	case generation.EdgeNegativePrompts:
+		if id := m.negative_prompts; id != nil {
 			return []ent.Value{*id}
 		}
-	case generation.EdgeScheduler:
-		if id := m.scheduler; id != nil {
+	case generation.EdgeGenerationModels:
+		if id := m.generation_models; id != nil {
 			return []ent.Value{*id}
 		}
+	case generation.EdgeUsers:
+		if id := m.users; id != nil {
+			return []ent.Value{*id}
+		}
+	case generation.EdgeGenerationOutputs:
+		ids := make([]ent.Value, 0, len(m.generation_outputs))
+		for id := range m.generation_outputs {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *GenerationMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 5)
+	edges := make([]string, 0, 7)
+	if m.removedgeneration_outputs != nil {
+		edges = append(edges, generation.EdgeGenerationOutputs)
+	}
 	return edges
 }
 
 // RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
 // the given name in this mutation.
 func (m *GenerationMutation) RemovedIDs(name string) []ent.Value {
+	switch name {
+	case generation.EdgeGenerationOutputs:
+		ids := make([]ent.Value, 0, len(m.removedgeneration_outputs))
+		for id := range m.removedgeneration_outputs {
+			ids = append(ids, id)
+		}
+		return ids
+	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *GenerationMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 5)
-	if m.cleareduser {
-		edges = append(edges, generation.EdgeUser)
+	edges := make([]string, 0, 7)
+	if m.cleareddevice_info {
+		edges = append(edges, generation.EdgeDeviceInfo)
 	}
-	if m.clearedmodel {
-		edges = append(edges, generation.EdgeModel)
+	if m.clearedschedulers {
+		edges = append(edges, generation.EdgeSchedulers)
 	}
-	if m.clearedprompt {
-		edges = append(edges, generation.EdgePrompt)
+	if m.clearedprompts {
+		edges = append(edges, generation.EdgePrompts)
 	}
-	if m.clearednegative_prompt {
-		edges = append(edges, generation.EdgeNegativePrompt)
+	if m.clearednegative_prompts {
+		edges = append(edges, generation.EdgeNegativePrompts)
 	}
-	if m.clearedscheduler {
-		edges = append(edges, generation.EdgeScheduler)
+	if m.clearedgeneration_models {
+		edges = append(edges, generation.EdgeGenerationModels)
+	}
+	if m.clearedusers {
+		edges = append(edges, generation.EdgeUsers)
+	}
+	if m.clearedgeneration_outputs {
+		edges = append(edges, generation.EdgeGenerationOutputs)
 	}
 	return edges
 }
@@ -2463,16 +2551,20 @@ func (m *GenerationMutation) ClearedEdges() []string {
 // was cleared in this mutation.
 func (m *GenerationMutation) EdgeCleared(name string) bool {
 	switch name {
-	case generation.EdgeUser:
-		return m.cleareduser
-	case generation.EdgeModel:
-		return m.clearedmodel
-	case generation.EdgePrompt:
-		return m.clearedprompt
-	case generation.EdgeNegativePrompt:
-		return m.clearednegative_prompt
-	case generation.EdgeScheduler:
-		return m.clearedscheduler
+	case generation.EdgeDeviceInfo:
+		return m.cleareddevice_info
+	case generation.EdgeSchedulers:
+		return m.clearedschedulers
+	case generation.EdgePrompts:
+		return m.clearedprompts
+	case generation.EdgeNegativePrompts:
+		return m.clearednegative_prompts
+	case generation.EdgeGenerationModels:
+		return m.clearedgeneration_models
+	case generation.EdgeUsers:
+		return m.clearedusers
+	case generation.EdgeGenerationOutputs:
+		return m.clearedgeneration_outputs
 	}
 	return false
 }
@@ -2481,20 +2573,23 @@ func (m *GenerationMutation) EdgeCleared(name string) bool {
 // if that edge is not defined in the schema.
 func (m *GenerationMutation) ClearEdge(name string) error {
 	switch name {
-	case generation.EdgeUser:
-		m.ClearUser()
+	case generation.EdgeDeviceInfo:
+		m.ClearDeviceInfo()
 		return nil
-	case generation.EdgeModel:
-		m.ClearModel()
+	case generation.EdgeSchedulers:
+		m.ClearSchedulers()
 		return nil
-	case generation.EdgePrompt:
-		m.ClearPrompt()
+	case generation.EdgePrompts:
+		m.ClearPrompts()
 		return nil
-	case generation.EdgeNegativePrompt:
-		m.ClearNegativePrompt()
+	case generation.EdgeNegativePrompts:
+		m.ClearNegativePrompts()
 		return nil
-	case generation.EdgeScheduler:
-		m.ClearScheduler()
+	case generation.EdgeGenerationModels:
+		m.ClearGenerationModels()
+		return nil
+	case generation.EdgeUsers:
+		m.ClearUsers()
 		return nil
 	}
 	return fmt.Errorf("unknown Generation unique edge %s", name)
@@ -2504,73 +2599,60 @@ func (m *GenerationMutation) ClearEdge(name string) error {
 // It returns an error if the edge is not defined in the schema.
 func (m *GenerationMutation) ResetEdge(name string) error {
 	switch name {
-	case generation.EdgeUser:
-		m.ResetUser()
+	case generation.EdgeDeviceInfo:
+		m.ResetDeviceInfo()
 		return nil
-	case generation.EdgeModel:
-		m.ResetModel()
+	case generation.EdgeSchedulers:
+		m.ResetSchedulers()
 		return nil
-	case generation.EdgePrompt:
-		m.ResetPrompt()
+	case generation.EdgePrompts:
+		m.ResetPrompts()
 		return nil
-	case generation.EdgeNegativePrompt:
-		m.ResetNegativePrompt()
+	case generation.EdgeNegativePrompts:
+		m.ResetNegativePrompts()
 		return nil
-	case generation.EdgeScheduler:
-		m.ResetScheduler()
+	case generation.EdgeGenerationModels:
+		m.ResetGenerationModels()
+		return nil
+	case generation.EdgeUsers:
+		m.ResetUsers()
+		return nil
+	case generation.EdgeGenerationOutputs:
+		m.ResetGenerationOutputs()
 		return nil
 	}
 	return fmt.Errorf("unknown Generation edge %s", name)
 }
 
-// GenerationGMutation represents an operation that mutates the GenerationG nodes in the graph.
-type GenerationGMutation struct {
+// GenerationModelMutation represents an operation that mutates the GenerationModel nodes in the graph.
+type GenerationModelMutation struct {
 	config
-	op                     Op
-	typ                    string
-	id                     *uuid.UUID
-	image_id               *string
-	width                  *int
-	addwidth               *int
-	height                 *int
-	addheight              *int
-	seed                   *enttypes.BigInt
-	addseed                *enttypes.BigInt
-	num_inference_steps    *int
-	addnum_inference_steps *int
-	guidance_scale         *float64
-	addguidance_scale      *float64
-	hidden                 *bool
-	user_tier              *generationg.UserTier
-	created_at             *time.Time
-	updated_at             *time.Time
-	clearedFields          map[string]struct{}
-	user                   *uuid.UUID
-	cleareduser            bool
-	model                  *uuid.UUID
-	clearedmodel           bool
-	prompt                 *uuid.UUID
-	clearedprompt          bool
-	negative_prompt        *uuid.UUID
-	clearednegative_prompt bool
-	scheduler              *uuid.UUID
-	clearedscheduler       bool
-	done                   bool
-	oldValue               func(context.Context) (*GenerationG, error)
-	predicates             []predicate.GenerationG
+	op                 Op
+	typ                string
+	id                 *uuid.UUID
+	name               *string
+	created_at         *time.Time
+	updated_at         *time.Time
+	clearedFields      map[string]struct{}
+	generations        map[uuid.UUID]struct{}
+	removedgenerations map[uuid.UUID]struct{}
+	clearedgenerations bool
+	done               bool
+	oldValue           func(context.Context) (*GenerationModel, error)
+	predicates         []predicate.GenerationModel
 }
 
-var _ ent.Mutation = (*GenerationGMutation)(nil)
+var _ ent.Mutation = (*GenerationModelMutation)(nil)
 
-// generationgOption allows management of the mutation configuration using functional options.
-type generationgOption func(*GenerationGMutation)
+// generationmodelOption allows management of the mutation configuration using functional options.
+type generationmodelOption func(*GenerationModelMutation)
 
-// newGenerationGMutation creates new mutation for the GenerationG entity.
-func newGenerationGMutation(c config, op Op, opts ...generationgOption) *GenerationGMutation {
-	m := &GenerationGMutation{
+// newGenerationModelMutation creates new mutation for the GenerationModel entity.
+func newGenerationModelMutation(c config, op Op, opts ...generationmodelOption) *GenerationModelMutation {
+	m := &GenerationModelMutation{
 		config:        c,
 		op:            op,
-		typ:           TypeGenerationG,
+		typ:           TypeGenerationModel,
 		clearedFields: make(map[string]struct{}),
 	}
 	for _, opt := range opts {
@@ -2579,20 +2661,20 @@ func newGenerationGMutation(c config, op Op, opts ...generationgOption) *Generat
 	return m
 }
 
-// withGenerationGID sets the ID field of the mutation.
-func withGenerationGID(id uuid.UUID) generationgOption {
-	return func(m *GenerationGMutation) {
+// withGenerationModelID sets the ID field of the mutation.
+func withGenerationModelID(id uuid.UUID) generationmodelOption {
+	return func(m *GenerationModelMutation) {
 		var (
 			err   error
 			once  sync.Once
-			value *GenerationG
+			value *GenerationModel
 		)
-		m.oldValue = func(ctx context.Context) (*GenerationG, error) {
+		m.oldValue = func(ctx context.Context) (*GenerationModel, error) {
 			once.Do(func() {
 				if m.done {
 					err = errors.New("querying old values post mutation is not allowed")
 				} else {
-					value, err = m.Client().GenerationG.Get(ctx, id)
+					value, err = m.Client().GenerationModel.Get(ctx, id)
 				}
 			})
 			return value, err
@@ -2601,10 +2683,10 @@ func withGenerationGID(id uuid.UUID) generationgOption {
 	}
 }
 
-// withGenerationG sets the old GenerationG of the mutation.
-func withGenerationG(node *GenerationG) generationgOption {
-	return func(m *GenerationGMutation) {
-		m.oldValue = func(context.Context) (*GenerationG, error) {
+// withGenerationModel sets the old GenerationModel of the mutation.
+func withGenerationModel(node *GenerationModel) generationmodelOption {
+	return func(m *GenerationModelMutation) {
+		m.oldValue = func(context.Context) (*GenerationModel, error) {
 			return node, nil
 		}
 		m.id = &node.ID
@@ -2613,7 +2695,7 @@ func withGenerationG(node *GenerationG) generationgOption {
 
 // Client returns a new `ent.Client` from the mutation. If the mutation was
 // executed in a transaction (ent.Tx), a transactional client is returned.
-func (m GenerationGMutation) Client() *Client {
+func (m GenerationModelMutation) Client() *Client {
 	client := &Client{config: m.config}
 	client.init()
 	return client
@@ -2621,7 +2703,7 @@ func (m GenerationGMutation) Client() *Client {
 
 // Tx returns an `ent.Tx` for mutations that were executed in transactions;
 // it returns an error otherwise.
-func (m GenerationGMutation) Tx() (*Tx, error) {
+func (m GenerationModelMutation) Tx() (*Tx, error) {
 	if _, ok := m.driver.(*txDriver); !ok {
 		return nil, errors.New("ent: mutation is not running in a transaction")
 	}
@@ -2631,14 +2713,14 @@ func (m GenerationGMutation) Tx() (*Tx, error) {
 }
 
 // SetID sets the value of the id field. Note that this
-// operation is only accepted on creation of GenerationG entities.
-func (m *GenerationGMutation) SetID(id uuid.UUID) {
+// operation is only accepted on creation of GenerationModel entities.
+func (m *GenerationModelMutation) SetID(id uuid.UUID) {
 	m.id = &id
 }
 
 // ID returns the ID value in the mutation. Note that the ID is only available
 // if it was provided to the builder or after it was returned from the database.
-func (m *GenerationGMutation) ID() (id uuid.UUID, exists bool) {
+func (m *GenerationModelMutation) ID() (id uuid.UUID, exists bool) {
 	if m.id == nil {
 		return
 	}
@@ -2649,7 +2731,7 @@ func (m *GenerationGMutation) ID() (id uuid.UUID, exists bool) {
 // That means, if the mutation is applied within a transaction with an isolation level such
 // as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
 // or updated by the mutation.
-func (m *GenerationGMutation) IDs(ctx context.Context) ([]uuid.UUID, error) {
+func (m *GenerationModelMutation) IDs(ctx context.Context) ([]uuid.UUID, error) {
 	switch {
 	case m.op.Is(OpUpdateOne | OpDeleteOne):
 		id, exists := m.ID()
@@ -2658,2468 +2740,19 @@ func (m *GenerationGMutation) IDs(ctx context.Context) ([]uuid.UUID, error) {
 		}
 		fallthrough
 	case m.op.Is(OpUpdate | OpDelete):
-		return m.Client().GenerationG.Query().Where(m.predicates...).IDs(ctx)
-	default:
-		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
-	}
-}
-
-// SetPromptID sets the "prompt_id" field.
-func (m *GenerationGMutation) SetPromptID(u uuid.UUID) {
-	m.prompt = &u
-}
-
-// PromptID returns the value of the "prompt_id" field in the mutation.
-func (m *GenerationGMutation) PromptID() (r uuid.UUID, exists bool) {
-	v := m.prompt
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldPromptID returns the old "prompt_id" field's value of the GenerationG entity.
-// If the GenerationG object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *GenerationGMutation) OldPromptID(ctx context.Context) (v uuid.UUID, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldPromptID is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldPromptID requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldPromptID: %w", err)
-	}
-	return oldValue.PromptID, nil
-}
-
-// ResetPromptID resets all changes to the "prompt_id" field.
-func (m *GenerationGMutation) ResetPromptID() {
-	m.prompt = nil
-}
-
-// SetNegativePromptID sets the "negative_prompt_id" field.
-func (m *GenerationGMutation) SetNegativePromptID(u uuid.UUID) {
-	m.negative_prompt = &u
-}
-
-// NegativePromptID returns the value of the "negative_prompt_id" field in the mutation.
-func (m *GenerationGMutation) NegativePromptID() (r uuid.UUID, exists bool) {
-	v := m.negative_prompt
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldNegativePromptID returns the old "negative_prompt_id" field's value of the GenerationG entity.
-// If the GenerationG object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *GenerationGMutation) OldNegativePromptID(ctx context.Context) (v *uuid.UUID, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldNegativePromptID is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldNegativePromptID requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldNegativePromptID: %w", err)
-	}
-	return oldValue.NegativePromptID, nil
-}
-
-// ResetNegativePromptID resets all changes to the "negative_prompt_id" field.
-func (m *GenerationGMutation) ResetNegativePromptID() {
-	m.negative_prompt = nil
-}
-
-// SetModelID sets the "model_id" field.
-func (m *GenerationGMutation) SetModelID(u uuid.UUID) {
-	m.model = &u
-}
-
-// ModelID returns the value of the "model_id" field in the mutation.
-func (m *GenerationGMutation) ModelID() (r uuid.UUID, exists bool) {
-	v := m.model
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldModelID returns the old "model_id" field's value of the GenerationG entity.
-// If the GenerationG object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *GenerationGMutation) OldModelID(ctx context.Context) (v uuid.UUID, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldModelID is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldModelID requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldModelID: %w", err)
-	}
-	return oldValue.ModelID, nil
-}
-
-// ResetModelID resets all changes to the "model_id" field.
-func (m *GenerationGMutation) ResetModelID() {
-	m.model = nil
-}
-
-// SetImageID sets the "image_id" field.
-func (m *GenerationGMutation) SetImageID(s string) {
-	m.image_id = &s
-}
-
-// ImageID returns the value of the "image_id" field in the mutation.
-func (m *GenerationGMutation) ImageID() (r string, exists bool) {
-	v := m.image_id
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldImageID returns the old "image_id" field's value of the GenerationG entity.
-// If the GenerationG object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *GenerationGMutation) OldImageID(ctx context.Context) (v string, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldImageID is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldImageID requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldImageID: %w", err)
-	}
-	return oldValue.ImageID, nil
-}
-
-// ResetImageID resets all changes to the "image_id" field.
-func (m *GenerationGMutation) ResetImageID() {
-	m.image_id = nil
-}
-
-// SetWidth sets the "width" field.
-func (m *GenerationGMutation) SetWidth(i int) {
-	m.width = &i
-	m.addwidth = nil
-}
-
-// Width returns the value of the "width" field in the mutation.
-func (m *GenerationGMutation) Width() (r int, exists bool) {
-	v := m.width
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldWidth returns the old "width" field's value of the GenerationG entity.
-// If the GenerationG object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *GenerationGMutation) OldWidth(ctx context.Context) (v int, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldWidth is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldWidth requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldWidth: %w", err)
-	}
-	return oldValue.Width, nil
-}
-
-// AddWidth adds i to the "width" field.
-func (m *GenerationGMutation) AddWidth(i int) {
-	if m.addwidth != nil {
-		*m.addwidth += i
-	} else {
-		m.addwidth = &i
-	}
-}
-
-// AddedWidth returns the value that was added to the "width" field in this mutation.
-func (m *GenerationGMutation) AddedWidth() (r int, exists bool) {
-	v := m.addwidth
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// ResetWidth resets all changes to the "width" field.
-func (m *GenerationGMutation) ResetWidth() {
-	m.width = nil
-	m.addwidth = nil
-}
-
-// SetHeight sets the "height" field.
-func (m *GenerationGMutation) SetHeight(i int) {
-	m.height = &i
-	m.addheight = nil
-}
-
-// Height returns the value of the "height" field in the mutation.
-func (m *GenerationGMutation) Height() (r int, exists bool) {
-	v := m.height
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldHeight returns the old "height" field's value of the GenerationG entity.
-// If the GenerationG object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *GenerationGMutation) OldHeight(ctx context.Context) (v int, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldHeight is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldHeight requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldHeight: %w", err)
-	}
-	return oldValue.Height, nil
-}
-
-// AddHeight adds i to the "height" field.
-func (m *GenerationGMutation) AddHeight(i int) {
-	if m.addheight != nil {
-		*m.addheight += i
-	} else {
-		m.addheight = &i
-	}
-}
-
-// AddedHeight returns the value that was added to the "height" field in this mutation.
-func (m *GenerationGMutation) AddedHeight() (r int, exists bool) {
-	v := m.addheight
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// ResetHeight resets all changes to the "height" field.
-func (m *GenerationGMutation) ResetHeight() {
-	m.height = nil
-	m.addheight = nil
-}
-
-// SetSeed sets the "seed" field.
-func (m *GenerationGMutation) SetSeed(ei enttypes.BigInt) {
-	m.seed = &ei
-	m.addseed = nil
-}
-
-// Seed returns the value of the "seed" field in the mutation.
-func (m *GenerationGMutation) Seed() (r enttypes.BigInt, exists bool) {
-	v := m.seed
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldSeed returns the old "seed" field's value of the GenerationG entity.
-// If the GenerationG object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *GenerationGMutation) OldSeed(ctx context.Context) (v *enttypes.BigInt, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldSeed is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldSeed requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldSeed: %w", err)
-	}
-	return oldValue.Seed, nil
-}
-
-// AddSeed adds ei to the "seed" field.
-func (m *GenerationGMutation) AddSeed(ei enttypes.BigInt) {
-	if m.addseed != nil {
-		*m.addseed = m.addseed.Add(ei)
-	} else {
-		m.addseed = &ei
-	}
-}
-
-// AddedSeed returns the value that was added to the "seed" field in this mutation.
-func (m *GenerationGMutation) AddedSeed() (r enttypes.BigInt, exists bool) {
-	v := m.addseed
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// ClearSeed clears the value of the "seed" field.
-func (m *GenerationGMutation) ClearSeed() {
-	m.seed = nil
-	m.addseed = nil
-	m.clearedFields[generationg.FieldSeed] = struct{}{}
-}
-
-// SeedCleared returns if the "seed" field was cleared in this mutation.
-func (m *GenerationGMutation) SeedCleared() bool {
-	_, ok := m.clearedFields[generationg.FieldSeed]
-	return ok
-}
-
-// ResetSeed resets all changes to the "seed" field.
-func (m *GenerationGMutation) ResetSeed() {
-	m.seed = nil
-	m.addseed = nil
-	delete(m.clearedFields, generationg.FieldSeed)
-}
-
-// SetNumInferenceSteps sets the "num_inference_steps" field.
-func (m *GenerationGMutation) SetNumInferenceSteps(i int) {
-	m.num_inference_steps = &i
-	m.addnum_inference_steps = nil
-}
-
-// NumInferenceSteps returns the value of the "num_inference_steps" field in the mutation.
-func (m *GenerationGMutation) NumInferenceSteps() (r int, exists bool) {
-	v := m.num_inference_steps
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldNumInferenceSteps returns the old "num_inference_steps" field's value of the GenerationG entity.
-// If the GenerationG object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *GenerationGMutation) OldNumInferenceSteps(ctx context.Context) (v *int, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldNumInferenceSteps is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldNumInferenceSteps requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldNumInferenceSteps: %w", err)
-	}
-	return oldValue.NumInferenceSteps, nil
-}
-
-// AddNumInferenceSteps adds i to the "num_inference_steps" field.
-func (m *GenerationGMutation) AddNumInferenceSteps(i int) {
-	if m.addnum_inference_steps != nil {
-		*m.addnum_inference_steps += i
-	} else {
-		m.addnum_inference_steps = &i
-	}
-}
-
-// AddedNumInferenceSteps returns the value that was added to the "num_inference_steps" field in this mutation.
-func (m *GenerationGMutation) AddedNumInferenceSteps() (r int, exists bool) {
-	v := m.addnum_inference_steps
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// ResetNumInferenceSteps resets all changes to the "num_inference_steps" field.
-func (m *GenerationGMutation) ResetNumInferenceSteps() {
-	m.num_inference_steps = nil
-	m.addnum_inference_steps = nil
-}
-
-// SetGuidanceScale sets the "guidance_scale" field.
-func (m *GenerationGMutation) SetGuidanceScale(f float64) {
-	m.guidance_scale = &f
-	m.addguidance_scale = nil
-}
-
-// GuidanceScale returns the value of the "guidance_scale" field in the mutation.
-func (m *GenerationGMutation) GuidanceScale() (r float64, exists bool) {
-	v := m.guidance_scale
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldGuidanceScale returns the old "guidance_scale" field's value of the GenerationG entity.
-// If the GenerationG object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *GenerationGMutation) OldGuidanceScale(ctx context.Context) (v float64, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldGuidanceScale is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldGuidanceScale requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldGuidanceScale: %w", err)
-	}
-	return oldValue.GuidanceScale, nil
-}
-
-// AddGuidanceScale adds f to the "guidance_scale" field.
-func (m *GenerationGMutation) AddGuidanceScale(f float64) {
-	if m.addguidance_scale != nil {
-		*m.addguidance_scale += f
-	} else {
-		m.addguidance_scale = &f
-	}
-}
-
-// AddedGuidanceScale returns the value that was added to the "guidance_scale" field in this mutation.
-func (m *GenerationGMutation) AddedGuidanceScale() (r float64, exists bool) {
-	v := m.addguidance_scale
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// ResetGuidanceScale resets all changes to the "guidance_scale" field.
-func (m *GenerationGMutation) ResetGuidanceScale() {
-	m.guidance_scale = nil
-	m.addguidance_scale = nil
-}
-
-// SetHidden sets the "hidden" field.
-func (m *GenerationGMutation) SetHidden(b bool) {
-	m.hidden = &b
-}
-
-// Hidden returns the value of the "hidden" field in the mutation.
-func (m *GenerationGMutation) Hidden() (r bool, exists bool) {
-	v := m.hidden
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldHidden returns the old "hidden" field's value of the GenerationG entity.
-// If the GenerationG object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *GenerationGMutation) OldHidden(ctx context.Context) (v bool, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldHidden is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldHidden requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldHidden: %w", err)
-	}
-	return oldValue.Hidden, nil
-}
-
-// ResetHidden resets all changes to the "hidden" field.
-func (m *GenerationGMutation) ResetHidden() {
-	m.hidden = nil
-}
-
-// SetSchedulerID sets the "scheduler_id" field.
-func (m *GenerationGMutation) SetSchedulerID(u uuid.UUID) {
-	m.scheduler = &u
-}
-
-// SchedulerID returns the value of the "scheduler_id" field in the mutation.
-func (m *GenerationGMutation) SchedulerID() (r uuid.UUID, exists bool) {
-	v := m.scheduler
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldSchedulerID returns the old "scheduler_id" field's value of the GenerationG entity.
-// If the GenerationG object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *GenerationGMutation) OldSchedulerID(ctx context.Context) (v uuid.UUID, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldSchedulerID is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldSchedulerID requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldSchedulerID: %w", err)
-	}
-	return oldValue.SchedulerID, nil
-}
-
-// ResetSchedulerID resets all changes to the "scheduler_id" field.
-func (m *GenerationGMutation) ResetSchedulerID() {
-	m.scheduler = nil
-}
-
-// SetUserID sets the "user_id" field.
-func (m *GenerationGMutation) SetUserID(u uuid.UUID) {
-	m.user = &u
-}
-
-// UserID returns the value of the "user_id" field in the mutation.
-func (m *GenerationGMutation) UserID() (r uuid.UUID, exists bool) {
-	v := m.user
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldUserID returns the old "user_id" field's value of the GenerationG entity.
-// If the GenerationG object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *GenerationGMutation) OldUserID(ctx context.Context) (v *uuid.UUID, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldUserID is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldUserID requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldUserID: %w", err)
-	}
-	return oldValue.UserID, nil
-}
-
-// ResetUserID resets all changes to the "user_id" field.
-func (m *GenerationGMutation) ResetUserID() {
-	m.user = nil
-}
-
-// SetUserTier sets the "user_tier" field.
-func (m *GenerationGMutation) SetUserTier(gt generationg.UserTier) {
-	m.user_tier = &gt
-}
-
-// UserTier returns the value of the "user_tier" field in the mutation.
-func (m *GenerationGMutation) UserTier() (r generationg.UserTier, exists bool) {
-	v := m.user_tier
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldUserTier returns the old "user_tier" field's value of the GenerationG entity.
-// If the GenerationG object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *GenerationGMutation) OldUserTier(ctx context.Context) (v generationg.UserTier, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldUserTier is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldUserTier requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldUserTier: %w", err)
-	}
-	return oldValue.UserTier, nil
-}
-
-// ResetUserTier resets all changes to the "user_tier" field.
-func (m *GenerationGMutation) ResetUserTier() {
-	m.user_tier = nil
-}
-
-// SetCreatedAt sets the "created_at" field.
-func (m *GenerationGMutation) SetCreatedAt(t time.Time) {
-	m.created_at = &t
-}
-
-// CreatedAt returns the value of the "created_at" field in the mutation.
-func (m *GenerationGMutation) CreatedAt() (r time.Time, exists bool) {
-	v := m.created_at
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldCreatedAt returns the old "created_at" field's value of the GenerationG entity.
-// If the GenerationG object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *GenerationGMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
-	}
-	return oldValue.CreatedAt, nil
-}
-
-// ResetCreatedAt resets all changes to the "created_at" field.
-func (m *GenerationGMutation) ResetCreatedAt() {
-	m.created_at = nil
-}
-
-// SetUpdatedAt sets the "updated_at" field.
-func (m *GenerationGMutation) SetUpdatedAt(t time.Time) {
-	m.updated_at = &t
-}
-
-// UpdatedAt returns the value of the "updated_at" field in the mutation.
-func (m *GenerationGMutation) UpdatedAt() (r time.Time, exists bool) {
-	v := m.updated_at
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldUpdatedAt returns the old "updated_at" field's value of the GenerationG entity.
-// If the GenerationG object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *GenerationGMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldUpdatedAt requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
-	}
-	return oldValue.UpdatedAt, nil
-}
-
-// ResetUpdatedAt resets all changes to the "updated_at" field.
-func (m *GenerationGMutation) ResetUpdatedAt() {
-	m.updated_at = nil
-}
-
-// ClearUser clears the "user" edge to the User entity.
-func (m *GenerationGMutation) ClearUser() {
-	m.cleareduser = true
-}
-
-// UserCleared reports if the "user" edge to the User entity was cleared.
-func (m *GenerationGMutation) UserCleared() bool {
-	return m.cleareduser
-}
-
-// UserIDs returns the "user" edge IDs in the mutation.
-// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
-// UserID instead. It exists only for internal usage by the builders.
-func (m *GenerationGMutation) UserIDs() (ids []uuid.UUID) {
-	if id := m.user; id != nil {
-		ids = append(ids, *id)
-	}
-	return
-}
-
-// ResetUser resets all changes to the "user" edge.
-func (m *GenerationGMutation) ResetUser() {
-	m.user = nil
-	m.cleareduser = false
-}
-
-// ClearModel clears the "model" edge to the Model entity.
-func (m *GenerationGMutation) ClearModel() {
-	m.clearedmodel = true
-}
-
-// ModelCleared reports if the "model" edge to the Model entity was cleared.
-func (m *GenerationGMutation) ModelCleared() bool {
-	return m.clearedmodel
-}
-
-// ModelIDs returns the "model" edge IDs in the mutation.
-// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
-// ModelID instead. It exists only for internal usage by the builders.
-func (m *GenerationGMutation) ModelIDs() (ids []uuid.UUID) {
-	if id := m.model; id != nil {
-		ids = append(ids, *id)
-	}
-	return
-}
-
-// ResetModel resets all changes to the "model" edge.
-func (m *GenerationGMutation) ResetModel() {
-	m.model = nil
-	m.clearedmodel = false
-}
-
-// ClearPrompt clears the "prompt" edge to the Prompt entity.
-func (m *GenerationGMutation) ClearPrompt() {
-	m.clearedprompt = true
-}
-
-// PromptCleared reports if the "prompt" edge to the Prompt entity was cleared.
-func (m *GenerationGMutation) PromptCleared() bool {
-	return m.clearedprompt
-}
-
-// PromptIDs returns the "prompt" edge IDs in the mutation.
-// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
-// PromptID instead. It exists only for internal usage by the builders.
-func (m *GenerationGMutation) PromptIDs() (ids []uuid.UUID) {
-	if id := m.prompt; id != nil {
-		ids = append(ids, *id)
-	}
-	return
-}
-
-// ResetPrompt resets all changes to the "prompt" edge.
-func (m *GenerationGMutation) ResetPrompt() {
-	m.prompt = nil
-	m.clearedprompt = false
-}
-
-// ClearNegativePrompt clears the "negative_prompt" edge to the NegativePrompt entity.
-func (m *GenerationGMutation) ClearNegativePrompt() {
-	m.clearednegative_prompt = true
-}
-
-// NegativePromptCleared reports if the "negative_prompt" edge to the NegativePrompt entity was cleared.
-func (m *GenerationGMutation) NegativePromptCleared() bool {
-	return m.clearednegative_prompt
-}
-
-// NegativePromptIDs returns the "negative_prompt" edge IDs in the mutation.
-// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
-// NegativePromptID instead. It exists only for internal usage by the builders.
-func (m *GenerationGMutation) NegativePromptIDs() (ids []uuid.UUID) {
-	if id := m.negative_prompt; id != nil {
-		ids = append(ids, *id)
-	}
-	return
-}
-
-// ResetNegativePrompt resets all changes to the "negative_prompt" edge.
-func (m *GenerationGMutation) ResetNegativePrompt() {
-	m.negative_prompt = nil
-	m.clearednegative_prompt = false
-}
-
-// ClearScheduler clears the "scheduler" edge to the Scheduler entity.
-func (m *GenerationGMutation) ClearScheduler() {
-	m.clearedscheduler = true
-}
-
-// SchedulerCleared reports if the "scheduler" edge to the Scheduler entity was cleared.
-func (m *GenerationGMutation) SchedulerCleared() bool {
-	return m.clearedscheduler
-}
-
-// SchedulerIDs returns the "scheduler" edge IDs in the mutation.
-// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
-// SchedulerID instead. It exists only for internal usage by the builders.
-func (m *GenerationGMutation) SchedulerIDs() (ids []uuid.UUID) {
-	if id := m.scheduler; id != nil {
-		ids = append(ids, *id)
-	}
-	return
-}
-
-// ResetScheduler resets all changes to the "scheduler" edge.
-func (m *GenerationGMutation) ResetScheduler() {
-	m.scheduler = nil
-	m.clearedscheduler = false
-}
-
-// Where appends a list predicates to the GenerationGMutation builder.
-func (m *GenerationGMutation) Where(ps ...predicate.GenerationG) {
-	m.predicates = append(m.predicates, ps...)
-}
-
-// WhereP appends storage-level predicates to the GenerationGMutation builder. Using this method,
-// users can use type-assertion to append predicates that do not depend on any generated package.
-func (m *GenerationGMutation) WhereP(ps ...func(*sql.Selector)) {
-	p := make([]predicate.GenerationG, len(ps))
-	for i := range ps {
-		p[i] = ps[i]
-	}
-	m.Where(p...)
-}
-
-// Op returns the operation name.
-func (m *GenerationGMutation) Op() Op {
-	return m.op
-}
-
-// SetOp allows setting the mutation operation.
-func (m *GenerationGMutation) SetOp(op Op) {
-	m.op = op
-}
-
-// Type returns the node type of this mutation (GenerationG).
-func (m *GenerationGMutation) Type() string {
-	return m.typ
-}
-
-// Fields returns all fields that were changed during this mutation. Note that in
-// order to get all numeric fields that were incremented/decremented, call
-// AddedFields().
-func (m *GenerationGMutation) Fields() []string {
-	fields := make([]string, 0, 15)
-	if m.prompt != nil {
-		fields = append(fields, generationg.FieldPromptID)
-	}
-	if m.negative_prompt != nil {
-		fields = append(fields, generationg.FieldNegativePromptID)
-	}
-	if m.model != nil {
-		fields = append(fields, generationg.FieldModelID)
-	}
-	if m.image_id != nil {
-		fields = append(fields, generationg.FieldImageID)
-	}
-	if m.width != nil {
-		fields = append(fields, generationg.FieldWidth)
-	}
-	if m.height != nil {
-		fields = append(fields, generationg.FieldHeight)
-	}
-	if m.seed != nil {
-		fields = append(fields, generationg.FieldSeed)
-	}
-	if m.num_inference_steps != nil {
-		fields = append(fields, generationg.FieldNumInferenceSteps)
-	}
-	if m.guidance_scale != nil {
-		fields = append(fields, generationg.FieldGuidanceScale)
-	}
-	if m.hidden != nil {
-		fields = append(fields, generationg.FieldHidden)
-	}
-	if m.scheduler != nil {
-		fields = append(fields, generationg.FieldSchedulerID)
-	}
-	if m.user != nil {
-		fields = append(fields, generationg.FieldUserID)
-	}
-	if m.user_tier != nil {
-		fields = append(fields, generationg.FieldUserTier)
-	}
-	if m.created_at != nil {
-		fields = append(fields, generationg.FieldCreatedAt)
-	}
-	if m.updated_at != nil {
-		fields = append(fields, generationg.FieldUpdatedAt)
-	}
-	return fields
-}
-
-// Field returns the value of a field with the given name. The second boolean
-// return value indicates that this field was not set, or was not defined in the
-// schema.
-func (m *GenerationGMutation) Field(name string) (ent.Value, bool) {
-	switch name {
-	case generationg.FieldPromptID:
-		return m.PromptID()
-	case generationg.FieldNegativePromptID:
-		return m.NegativePromptID()
-	case generationg.FieldModelID:
-		return m.ModelID()
-	case generationg.FieldImageID:
-		return m.ImageID()
-	case generationg.FieldWidth:
-		return m.Width()
-	case generationg.FieldHeight:
-		return m.Height()
-	case generationg.FieldSeed:
-		return m.Seed()
-	case generationg.FieldNumInferenceSteps:
-		return m.NumInferenceSteps()
-	case generationg.FieldGuidanceScale:
-		return m.GuidanceScale()
-	case generationg.FieldHidden:
-		return m.Hidden()
-	case generationg.FieldSchedulerID:
-		return m.SchedulerID()
-	case generationg.FieldUserID:
-		return m.UserID()
-	case generationg.FieldUserTier:
-		return m.UserTier()
-	case generationg.FieldCreatedAt:
-		return m.CreatedAt()
-	case generationg.FieldUpdatedAt:
-		return m.UpdatedAt()
-	}
-	return nil, false
-}
-
-// OldField returns the old value of the field from the database. An error is
-// returned if the mutation operation is not UpdateOne, or the query to the
-// database failed.
-func (m *GenerationGMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
-	switch name {
-	case generationg.FieldPromptID:
-		return m.OldPromptID(ctx)
-	case generationg.FieldNegativePromptID:
-		return m.OldNegativePromptID(ctx)
-	case generationg.FieldModelID:
-		return m.OldModelID(ctx)
-	case generationg.FieldImageID:
-		return m.OldImageID(ctx)
-	case generationg.FieldWidth:
-		return m.OldWidth(ctx)
-	case generationg.FieldHeight:
-		return m.OldHeight(ctx)
-	case generationg.FieldSeed:
-		return m.OldSeed(ctx)
-	case generationg.FieldNumInferenceSteps:
-		return m.OldNumInferenceSteps(ctx)
-	case generationg.FieldGuidanceScale:
-		return m.OldGuidanceScale(ctx)
-	case generationg.FieldHidden:
-		return m.OldHidden(ctx)
-	case generationg.FieldSchedulerID:
-		return m.OldSchedulerID(ctx)
-	case generationg.FieldUserID:
-		return m.OldUserID(ctx)
-	case generationg.FieldUserTier:
-		return m.OldUserTier(ctx)
-	case generationg.FieldCreatedAt:
-		return m.OldCreatedAt(ctx)
-	case generationg.FieldUpdatedAt:
-		return m.OldUpdatedAt(ctx)
-	}
-	return nil, fmt.Errorf("unknown GenerationG field %s", name)
-}
-
-// SetField sets the value of a field with the given name. It returns an error if
-// the field is not defined in the schema, or if the type mismatched the field
-// type.
-func (m *GenerationGMutation) SetField(name string, value ent.Value) error {
-	switch name {
-	case generationg.FieldPromptID:
-		v, ok := value.(uuid.UUID)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetPromptID(v)
-		return nil
-	case generationg.FieldNegativePromptID:
-		v, ok := value.(uuid.UUID)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetNegativePromptID(v)
-		return nil
-	case generationg.FieldModelID:
-		v, ok := value.(uuid.UUID)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetModelID(v)
-		return nil
-	case generationg.FieldImageID:
-		v, ok := value.(string)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetImageID(v)
-		return nil
-	case generationg.FieldWidth:
-		v, ok := value.(int)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetWidth(v)
-		return nil
-	case generationg.FieldHeight:
-		v, ok := value.(int)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetHeight(v)
-		return nil
-	case generationg.FieldSeed:
-		v, ok := value.(enttypes.BigInt)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetSeed(v)
-		return nil
-	case generationg.FieldNumInferenceSteps:
-		v, ok := value.(int)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetNumInferenceSteps(v)
-		return nil
-	case generationg.FieldGuidanceScale:
-		v, ok := value.(float64)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetGuidanceScale(v)
-		return nil
-	case generationg.FieldHidden:
-		v, ok := value.(bool)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetHidden(v)
-		return nil
-	case generationg.FieldSchedulerID:
-		v, ok := value.(uuid.UUID)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetSchedulerID(v)
-		return nil
-	case generationg.FieldUserID:
-		v, ok := value.(uuid.UUID)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetUserID(v)
-		return nil
-	case generationg.FieldUserTier:
-		v, ok := value.(generationg.UserTier)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetUserTier(v)
-		return nil
-	case generationg.FieldCreatedAt:
-		v, ok := value.(time.Time)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetCreatedAt(v)
-		return nil
-	case generationg.FieldUpdatedAt:
-		v, ok := value.(time.Time)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetUpdatedAt(v)
-		return nil
-	}
-	return fmt.Errorf("unknown GenerationG field %s", name)
-}
-
-// AddedFields returns all numeric fields that were incremented/decremented during
-// this mutation.
-func (m *GenerationGMutation) AddedFields() []string {
-	var fields []string
-	if m.addwidth != nil {
-		fields = append(fields, generationg.FieldWidth)
-	}
-	if m.addheight != nil {
-		fields = append(fields, generationg.FieldHeight)
-	}
-	if m.addseed != nil {
-		fields = append(fields, generationg.FieldSeed)
-	}
-	if m.addnum_inference_steps != nil {
-		fields = append(fields, generationg.FieldNumInferenceSteps)
-	}
-	if m.addguidance_scale != nil {
-		fields = append(fields, generationg.FieldGuidanceScale)
-	}
-	return fields
-}
-
-// AddedField returns the numeric value that was incremented/decremented on a field
-// with the given name. The second boolean return value indicates that this field
-// was not set, or was not defined in the schema.
-func (m *GenerationGMutation) AddedField(name string) (ent.Value, bool) {
-	switch name {
-	case generationg.FieldWidth:
-		return m.AddedWidth()
-	case generationg.FieldHeight:
-		return m.AddedHeight()
-	case generationg.FieldSeed:
-		return m.AddedSeed()
-	case generationg.FieldNumInferenceSteps:
-		return m.AddedNumInferenceSteps()
-	case generationg.FieldGuidanceScale:
-		return m.AddedGuidanceScale()
-	}
-	return nil, false
-}
-
-// AddField adds the value to the field with the given name. It returns an error if
-// the field is not defined in the schema, or if the type mismatched the field
-// type.
-func (m *GenerationGMutation) AddField(name string, value ent.Value) error {
-	switch name {
-	case generationg.FieldWidth:
-		v, ok := value.(int)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.AddWidth(v)
-		return nil
-	case generationg.FieldHeight:
-		v, ok := value.(int)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.AddHeight(v)
-		return nil
-	case generationg.FieldSeed:
-		v, ok := value.(enttypes.BigInt)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.AddSeed(v)
-		return nil
-	case generationg.FieldNumInferenceSteps:
-		v, ok := value.(int)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.AddNumInferenceSteps(v)
-		return nil
-	case generationg.FieldGuidanceScale:
-		v, ok := value.(float64)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.AddGuidanceScale(v)
-		return nil
-	}
-	return fmt.Errorf("unknown GenerationG numeric field %s", name)
-}
-
-// ClearedFields returns all nullable fields that were cleared during this
-// mutation.
-func (m *GenerationGMutation) ClearedFields() []string {
-	var fields []string
-	if m.FieldCleared(generationg.FieldSeed) {
-		fields = append(fields, generationg.FieldSeed)
-	}
-	return fields
-}
-
-// FieldCleared returns a boolean indicating if a field with the given name was
-// cleared in this mutation.
-func (m *GenerationGMutation) FieldCleared(name string) bool {
-	_, ok := m.clearedFields[name]
-	return ok
-}
-
-// ClearField clears the value of the field with the given name. It returns an
-// error if the field is not defined in the schema.
-func (m *GenerationGMutation) ClearField(name string) error {
-	switch name {
-	case generationg.FieldSeed:
-		m.ClearSeed()
-		return nil
-	}
-	return fmt.Errorf("unknown GenerationG nullable field %s", name)
-}
-
-// ResetField resets all changes in the mutation for the field with the given name.
-// It returns an error if the field is not defined in the schema.
-func (m *GenerationGMutation) ResetField(name string) error {
-	switch name {
-	case generationg.FieldPromptID:
-		m.ResetPromptID()
-		return nil
-	case generationg.FieldNegativePromptID:
-		m.ResetNegativePromptID()
-		return nil
-	case generationg.FieldModelID:
-		m.ResetModelID()
-		return nil
-	case generationg.FieldImageID:
-		m.ResetImageID()
-		return nil
-	case generationg.FieldWidth:
-		m.ResetWidth()
-		return nil
-	case generationg.FieldHeight:
-		m.ResetHeight()
-		return nil
-	case generationg.FieldSeed:
-		m.ResetSeed()
-		return nil
-	case generationg.FieldNumInferenceSteps:
-		m.ResetNumInferenceSteps()
-		return nil
-	case generationg.FieldGuidanceScale:
-		m.ResetGuidanceScale()
-		return nil
-	case generationg.FieldHidden:
-		m.ResetHidden()
-		return nil
-	case generationg.FieldSchedulerID:
-		m.ResetSchedulerID()
-		return nil
-	case generationg.FieldUserID:
-		m.ResetUserID()
-		return nil
-	case generationg.FieldUserTier:
-		m.ResetUserTier()
-		return nil
-	case generationg.FieldCreatedAt:
-		m.ResetCreatedAt()
-		return nil
-	case generationg.FieldUpdatedAt:
-		m.ResetUpdatedAt()
-		return nil
-	}
-	return fmt.Errorf("unknown GenerationG field %s", name)
-}
-
-// AddedEdges returns all edge names that were set/added in this mutation.
-func (m *GenerationGMutation) AddedEdges() []string {
-	edges := make([]string, 0, 5)
-	if m.user != nil {
-		edges = append(edges, generationg.EdgeUser)
-	}
-	if m.model != nil {
-		edges = append(edges, generationg.EdgeModel)
-	}
-	if m.prompt != nil {
-		edges = append(edges, generationg.EdgePrompt)
-	}
-	if m.negative_prompt != nil {
-		edges = append(edges, generationg.EdgeNegativePrompt)
-	}
-	if m.scheduler != nil {
-		edges = append(edges, generationg.EdgeScheduler)
-	}
-	return edges
-}
-
-// AddedIDs returns all IDs (to other nodes) that were added for the given edge
-// name in this mutation.
-func (m *GenerationGMutation) AddedIDs(name string) []ent.Value {
-	switch name {
-	case generationg.EdgeUser:
-		if id := m.user; id != nil {
-			return []ent.Value{*id}
-		}
-	case generationg.EdgeModel:
-		if id := m.model; id != nil {
-			return []ent.Value{*id}
-		}
-	case generationg.EdgePrompt:
-		if id := m.prompt; id != nil {
-			return []ent.Value{*id}
-		}
-	case generationg.EdgeNegativePrompt:
-		if id := m.negative_prompt; id != nil {
-			return []ent.Value{*id}
-		}
-	case generationg.EdgeScheduler:
-		if id := m.scheduler; id != nil {
-			return []ent.Value{*id}
-		}
-	}
-	return nil
-}
-
-// RemovedEdges returns all edge names that were removed in this mutation.
-func (m *GenerationGMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 5)
-	return edges
-}
-
-// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
-// the given name in this mutation.
-func (m *GenerationGMutation) RemovedIDs(name string) []ent.Value {
-	return nil
-}
-
-// ClearedEdges returns all edge names that were cleared in this mutation.
-func (m *GenerationGMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 5)
-	if m.cleareduser {
-		edges = append(edges, generationg.EdgeUser)
-	}
-	if m.clearedmodel {
-		edges = append(edges, generationg.EdgeModel)
-	}
-	if m.clearedprompt {
-		edges = append(edges, generationg.EdgePrompt)
-	}
-	if m.clearednegative_prompt {
-		edges = append(edges, generationg.EdgeNegativePrompt)
-	}
-	if m.clearedscheduler {
-		edges = append(edges, generationg.EdgeScheduler)
-	}
-	return edges
-}
-
-// EdgeCleared returns a boolean which indicates if the edge with the given name
-// was cleared in this mutation.
-func (m *GenerationGMutation) EdgeCleared(name string) bool {
-	switch name {
-	case generationg.EdgeUser:
-		return m.cleareduser
-	case generationg.EdgeModel:
-		return m.clearedmodel
-	case generationg.EdgePrompt:
-		return m.clearedprompt
-	case generationg.EdgeNegativePrompt:
-		return m.clearednegative_prompt
-	case generationg.EdgeScheduler:
-		return m.clearedscheduler
-	}
-	return false
-}
-
-// ClearEdge clears the value of the edge with the given name. It returns an error
-// if that edge is not defined in the schema.
-func (m *GenerationGMutation) ClearEdge(name string) error {
-	switch name {
-	case generationg.EdgeUser:
-		m.ClearUser()
-		return nil
-	case generationg.EdgeModel:
-		m.ClearModel()
-		return nil
-	case generationg.EdgePrompt:
-		m.ClearPrompt()
-		return nil
-	case generationg.EdgeNegativePrompt:
-		m.ClearNegativePrompt()
-		return nil
-	case generationg.EdgeScheduler:
-		m.ClearScheduler()
-		return nil
-	}
-	return fmt.Errorf("unknown GenerationG unique edge %s", name)
-}
-
-// ResetEdge resets all changes to the edge with the given name in this mutation.
-// It returns an error if the edge is not defined in the schema.
-func (m *GenerationGMutation) ResetEdge(name string) error {
-	switch name {
-	case generationg.EdgeUser:
-		m.ResetUser()
-		return nil
-	case generationg.EdgeModel:
-		m.ResetModel()
-		return nil
-	case generationg.EdgePrompt:
-		m.ResetPrompt()
-		return nil
-	case generationg.EdgeNegativePrompt:
-		m.ResetNegativePrompt()
-		return nil
-	case generationg.EdgeScheduler:
-		m.ResetScheduler()
-		return nil
-	}
-	return fmt.Errorf("unknown GenerationG edge %s", name)
-}
-
-// GenerationRealtimeMutation represents an operation that mutates the GenerationRealtime nodes in the graph.
-type GenerationRealtimeMutation struct {
-	config
-	op                        Op
-	typ                       string
-	id                        *uuid.UUID
-	country_code              *string
-	duration_ms               *int
-	addduration_ms            *int
-	status                    *generationrealtime.Status
-	uses_default_server       *bool
-	width                     *int
-	addwidth                  *int
-	height                    *int
-	addheight                 *int
-	num_interference_steps    *int
-	addnum_interference_steps *int
-	created_at                *time.Time
-	updated_at                *time.Time
-	user_tier                 *generationrealtime.UserTier
-	clearedFields             map[string]struct{}
-	done                      bool
-	oldValue                  func(context.Context) (*GenerationRealtime, error)
-	predicates                []predicate.GenerationRealtime
-}
-
-var _ ent.Mutation = (*GenerationRealtimeMutation)(nil)
-
-// generationrealtimeOption allows management of the mutation configuration using functional options.
-type generationrealtimeOption func(*GenerationRealtimeMutation)
-
-// newGenerationRealtimeMutation creates new mutation for the GenerationRealtime entity.
-func newGenerationRealtimeMutation(c config, op Op, opts ...generationrealtimeOption) *GenerationRealtimeMutation {
-	m := &GenerationRealtimeMutation{
-		config:        c,
-		op:            op,
-		typ:           TypeGenerationRealtime,
-		clearedFields: make(map[string]struct{}),
-	}
-	for _, opt := range opts {
-		opt(m)
-	}
-	return m
-}
-
-// withGenerationRealtimeID sets the ID field of the mutation.
-func withGenerationRealtimeID(id uuid.UUID) generationrealtimeOption {
-	return func(m *GenerationRealtimeMutation) {
-		var (
-			err   error
-			once  sync.Once
-			value *GenerationRealtime
-		)
-		m.oldValue = func(ctx context.Context) (*GenerationRealtime, error) {
-			once.Do(func() {
-				if m.done {
-					err = errors.New("querying old values post mutation is not allowed")
-				} else {
-					value, err = m.Client().GenerationRealtime.Get(ctx, id)
-				}
-			})
-			return value, err
-		}
-		m.id = &id
-	}
-}
-
-// withGenerationRealtime sets the old GenerationRealtime of the mutation.
-func withGenerationRealtime(node *GenerationRealtime) generationrealtimeOption {
-	return func(m *GenerationRealtimeMutation) {
-		m.oldValue = func(context.Context) (*GenerationRealtime, error) {
-			return node, nil
-		}
-		m.id = &node.ID
-	}
-}
-
-// Client returns a new `ent.Client` from the mutation. If the mutation was
-// executed in a transaction (ent.Tx), a transactional client is returned.
-func (m GenerationRealtimeMutation) Client() *Client {
-	client := &Client{config: m.config}
-	client.init()
-	return client
-}
-
-// Tx returns an `ent.Tx` for mutations that were executed in transactions;
-// it returns an error otherwise.
-func (m GenerationRealtimeMutation) Tx() (*Tx, error) {
-	if _, ok := m.driver.(*txDriver); !ok {
-		return nil, errors.New("ent: mutation is not running in a transaction")
-	}
-	tx := &Tx{config: m.config}
-	tx.init()
-	return tx, nil
-}
-
-// SetID sets the value of the id field. Note that this
-// operation is only accepted on creation of GenerationRealtime entities.
-func (m *GenerationRealtimeMutation) SetID(id uuid.UUID) {
-	m.id = &id
-}
-
-// ID returns the ID value in the mutation. Note that the ID is only available
-// if it was provided to the builder or after it was returned from the database.
-func (m *GenerationRealtimeMutation) ID() (id uuid.UUID, exists bool) {
-	if m.id == nil {
-		return
-	}
-	return *m.id, true
-}
-
-// IDs queries the database and returns the entity ids that match the mutation's predicate.
-// That means, if the mutation is applied within a transaction with an isolation level such
-// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
-// or updated by the mutation.
-func (m *GenerationRealtimeMutation) IDs(ctx context.Context) ([]uuid.UUID, error) {
-	switch {
-	case m.op.Is(OpUpdateOne | OpDeleteOne):
-		id, exists := m.ID()
-		if exists {
-			return []uuid.UUID{id}, nil
-		}
-		fallthrough
-	case m.op.Is(OpUpdate | OpDelete):
-		return m.Client().GenerationRealtime.Query().Where(m.predicates...).IDs(ctx)
-	default:
-		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
-	}
-}
-
-// SetCountryCode sets the "country_code" field.
-func (m *GenerationRealtimeMutation) SetCountryCode(s string) {
-	m.country_code = &s
-}
-
-// CountryCode returns the value of the "country_code" field in the mutation.
-func (m *GenerationRealtimeMutation) CountryCode() (r string, exists bool) {
-	v := m.country_code
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldCountryCode returns the old "country_code" field's value of the GenerationRealtime entity.
-// If the GenerationRealtime object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *GenerationRealtimeMutation) OldCountryCode(ctx context.Context) (v *string, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldCountryCode is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldCountryCode requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldCountryCode: %w", err)
-	}
-	return oldValue.CountryCode, nil
-}
-
-// ResetCountryCode resets all changes to the "country_code" field.
-func (m *GenerationRealtimeMutation) ResetCountryCode() {
-	m.country_code = nil
-}
-
-// SetDurationMs sets the "duration_ms" field.
-func (m *GenerationRealtimeMutation) SetDurationMs(i int) {
-	m.duration_ms = &i
-	m.addduration_ms = nil
-}
-
-// DurationMs returns the value of the "duration_ms" field in the mutation.
-func (m *GenerationRealtimeMutation) DurationMs() (r int, exists bool) {
-	v := m.duration_ms
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldDurationMs returns the old "duration_ms" field's value of the GenerationRealtime entity.
-// If the GenerationRealtime object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *GenerationRealtimeMutation) OldDurationMs(ctx context.Context) (v *int, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldDurationMs is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldDurationMs requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldDurationMs: %w", err)
-	}
-	return oldValue.DurationMs, nil
-}
-
-// AddDurationMs adds i to the "duration_ms" field.
-func (m *GenerationRealtimeMutation) AddDurationMs(i int) {
-	if m.addduration_ms != nil {
-		*m.addduration_ms += i
-	} else {
-		m.addduration_ms = &i
-	}
-}
-
-// AddedDurationMs returns the value that was added to the "duration_ms" field in this mutation.
-func (m *GenerationRealtimeMutation) AddedDurationMs() (r int, exists bool) {
-	v := m.addduration_ms
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// ResetDurationMs resets all changes to the "duration_ms" field.
-func (m *GenerationRealtimeMutation) ResetDurationMs() {
-	m.duration_ms = nil
-	m.addduration_ms = nil
-}
-
-// SetStatus sets the "status" field.
-func (m *GenerationRealtimeMutation) SetStatus(ge generationrealtime.Status) {
-	m.status = &ge
-}
-
-// Status returns the value of the "status" field in the mutation.
-func (m *GenerationRealtimeMutation) Status() (r generationrealtime.Status, exists bool) {
-	v := m.status
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldStatus returns the old "status" field's value of the GenerationRealtime entity.
-// If the GenerationRealtime object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *GenerationRealtimeMutation) OldStatus(ctx context.Context) (v *generationrealtime.Status, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldStatus is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldStatus requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldStatus: %w", err)
-	}
-	return oldValue.Status, nil
-}
-
-// ResetStatus resets all changes to the "status" field.
-func (m *GenerationRealtimeMutation) ResetStatus() {
-	m.status = nil
-}
-
-// SetUsesDefaultServer sets the "uses_default_server" field.
-func (m *GenerationRealtimeMutation) SetUsesDefaultServer(b bool) {
-	m.uses_default_server = &b
-}
-
-// UsesDefaultServer returns the value of the "uses_default_server" field in the mutation.
-func (m *GenerationRealtimeMutation) UsesDefaultServer() (r bool, exists bool) {
-	v := m.uses_default_server
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldUsesDefaultServer returns the old "uses_default_server" field's value of the GenerationRealtime entity.
-// If the GenerationRealtime object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *GenerationRealtimeMutation) OldUsesDefaultServer(ctx context.Context) (v bool, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldUsesDefaultServer is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldUsesDefaultServer requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldUsesDefaultServer: %w", err)
-	}
-	return oldValue.UsesDefaultServer, nil
-}
-
-// ResetUsesDefaultServer resets all changes to the "uses_default_server" field.
-func (m *GenerationRealtimeMutation) ResetUsesDefaultServer() {
-	m.uses_default_server = nil
-}
-
-// SetWidth sets the "width" field.
-func (m *GenerationRealtimeMutation) SetWidth(i int) {
-	m.width = &i
-	m.addwidth = nil
-}
-
-// Width returns the value of the "width" field in the mutation.
-func (m *GenerationRealtimeMutation) Width() (r int, exists bool) {
-	v := m.width
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldWidth returns the old "width" field's value of the GenerationRealtime entity.
-// If the GenerationRealtime object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *GenerationRealtimeMutation) OldWidth(ctx context.Context) (v *int, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldWidth is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldWidth requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldWidth: %w", err)
-	}
-	return oldValue.Width, nil
-}
-
-// AddWidth adds i to the "width" field.
-func (m *GenerationRealtimeMutation) AddWidth(i int) {
-	if m.addwidth != nil {
-		*m.addwidth += i
-	} else {
-		m.addwidth = &i
-	}
-}
-
-// AddedWidth returns the value that was added to the "width" field in this mutation.
-func (m *GenerationRealtimeMutation) AddedWidth() (r int, exists bool) {
-	v := m.addwidth
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// ResetWidth resets all changes to the "width" field.
-func (m *GenerationRealtimeMutation) ResetWidth() {
-	m.width = nil
-	m.addwidth = nil
-}
-
-// SetHeight sets the "height" field.
-func (m *GenerationRealtimeMutation) SetHeight(i int) {
-	m.height = &i
-	m.addheight = nil
-}
-
-// Height returns the value of the "height" field in the mutation.
-func (m *GenerationRealtimeMutation) Height() (r int, exists bool) {
-	v := m.height
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldHeight returns the old "height" field's value of the GenerationRealtime entity.
-// If the GenerationRealtime object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *GenerationRealtimeMutation) OldHeight(ctx context.Context) (v *int, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldHeight is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldHeight requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldHeight: %w", err)
-	}
-	return oldValue.Height, nil
-}
-
-// AddHeight adds i to the "height" field.
-func (m *GenerationRealtimeMutation) AddHeight(i int) {
-	if m.addheight != nil {
-		*m.addheight += i
-	} else {
-		m.addheight = &i
-	}
-}
-
-// AddedHeight returns the value that was added to the "height" field in this mutation.
-func (m *GenerationRealtimeMutation) AddedHeight() (r int, exists bool) {
-	v := m.addheight
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// ResetHeight resets all changes to the "height" field.
-func (m *GenerationRealtimeMutation) ResetHeight() {
-	m.height = nil
-	m.addheight = nil
-}
-
-// SetNumInterferenceSteps sets the "num_interference_steps" field.
-func (m *GenerationRealtimeMutation) SetNumInterferenceSteps(i int) {
-	m.num_interference_steps = &i
-	m.addnum_interference_steps = nil
-}
-
-// NumInterferenceSteps returns the value of the "num_interference_steps" field in the mutation.
-func (m *GenerationRealtimeMutation) NumInterferenceSteps() (r int, exists bool) {
-	v := m.num_interference_steps
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldNumInterferenceSteps returns the old "num_interference_steps" field's value of the GenerationRealtime entity.
-// If the GenerationRealtime object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *GenerationRealtimeMutation) OldNumInterferenceSteps(ctx context.Context) (v *int, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldNumInterferenceSteps is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldNumInterferenceSteps requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldNumInterferenceSteps: %w", err)
-	}
-	return oldValue.NumInterferenceSteps, nil
-}
-
-// AddNumInterferenceSteps adds i to the "num_interference_steps" field.
-func (m *GenerationRealtimeMutation) AddNumInterferenceSteps(i int) {
-	if m.addnum_interference_steps != nil {
-		*m.addnum_interference_steps += i
-	} else {
-		m.addnum_interference_steps = &i
-	}
-}
-
-// AddedNumInterferenceSteps returns the value that was added to the "num_interference_steps" field in this mutation.
-func (m *GenerationRealtimeMutation) AddedNumInterferenceSteps() (r int, exists bool) {
-	v := m.addnum_interference_steps
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// ResetNumInterferenceSteps resets all changes to the "num_interference_steps" field.
-func (m *GenerationRealtimeMutation) ResetNumInterferenceSteps() {
-	m.num_interference_steps = nil
-	m.addnum_interference_steps = nil
-}
-
-// SetCreatedAt sets the "created_at" field.
-func (m *GenerationRealtimeMutation) SetCreatedAt(t time.Time) {
-	m.created_at = &t
-}
-
-// CreatedAt returns the value of the "created_at" field in the mutation.
-func (m *GenerationRealtimeMutation) CreatedAt() (r time.Time, exists bool) {
-	v := m.created_at
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldCreatedAt returns the old "created_at" field's value of the GenerationRealtime entity.
-// If the GenerationRealtime object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *GenerationRealtimeMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
-	}
-	return oldValue.CreatedAt, nil
-}
-
-// ResetCreatedAt resets all changes to the "created_at" field.
-func (m *GenerationRealtimeMutation) ResetCreatedAt() {
-	m.created_at = nil
-}
-
-// SetUpdatedAt sets the "updated_at" field.
-func (m *GenerationRealtimeMutation) SetUpdatedAt(t time.Time) {
-	m.updated_at = &t
-}
-
-// UpdatedAt returns the value of the "updated_at" field in the mutation.
-func (m *GenerationRealtimeMutation) UpdatedAt() (r time.Time, exists bool) {
-	v := m.updated_at
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldUpdatedAt returns the old "updated_at" field's value of the GenerationRealtime entity.
-// If the GenerationRealtime object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *GenerationRealtimeMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldUpdatedAt requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
-	}
-	return oldValue.UpdatedAt, nil
-}
-
-// ResetUpdatedAt resets all changes to the "updated_at" field.
-func (m *GenerationRealtimeMutation) ResetUpdatedAt() {
-	m.updated_at = nil
-}
-
-// SetUserTier sets the "user_tier" field.
-func (m *GenerationRealtimeMutation) SetUserTier(gt generationrealtime.UserTier) {
-	m.user_tier = &gt
-}
-
-// UserTier returns the value of the "user_tier" field in the mutation.
-func (m *GenerationRealtimeMutation) UserTier() (r generationrealtime.UserTier, exists bool) {
-	v := m.user_tier
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldUserTier returns the old "user_tier" field's value of the GenerationRealtime entity.
-// If the GenerationRealtime object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *GenerationRealtimeMutation) OldUserTier(ctx context.Context) (v generationrealtime.UserTier, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldUserTier is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldUserTier requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldUserTier: %w", err)
-	}
-	return oldValue.UserTier, nil
-}
-
-// ResetUserTier resets all changes to the "user_tier" field.
-func (m *GenerationRealtimeMutation) ResetUserTier() {
-	m.user_tier = nil
-}
-
-// Where appends a list predicates to the GenerationRealtimeMutation builder.
-func (m *GenerationRealtimeMutation) Where(ps ...predicate.GenerationRealtime) {
-	m.predicates = append(m.predicates, ps...)
-}
-
-// WhereP appends storage-level predicates to the GenerationRealtimeMutation builder. Using this method,
-// users can use type-assertion to append predicates that do not depend on any generated package.
-func (m *GenerationRealtimeMutation) WhereP(ps ...func(*sql.Selector)) {
-	p := make([]predicate.GenerationRealtime, len(ps))
-	for i := range ps {
-		p[i] = ps[i]
-	}
-	m.Where(p...)
-}
-
-// Op returns the operation name.
-func (m *GenerationRealtimeMutation) Op() Op {
-	return m.op
-}
-
-// SetOp allows setting the mutation operation.
-func (m *GenerationRealtimeMutation) SetOp(op Op) {
-	m.op = op
-}
-
-// Type returns the node type of this mutation (GenerationRealtime).
-func (m *GenerationRealtimeMutation) Type() string {
-	return m.typ
-}
-
-// Fields returns all fields that were changed during this mutation. Note that in
-// order to get all numeric fields that were incremented/decremented, call
-// AddedFields().
-func (m *GenerationRealtimeMutation) Fields() []string {
-	fields := make([]string, 0, 10)
-	if m.country_code != nil {
-		fields = append(fields, generationrealtime.FieldCountryCode)
-	}
-	if m.duration_ms != nil {
-		fields = append(fields, generationrealtime.FieldDurationMs)
-	}
-	if m.status != nil {
-		fields = append(fields, generationrealtime.FieldStatus)
-	}
-	if m.uses_default_server != nil {
-		fields = append(fields, generationrealtime.FieldUsesDefaultServer)
-	}
-	if m.width != nil {
-		fields = append(fields, generationrealtime.FieldWidth)
-	}
-	if m.height != nil {
-		fields = append(fields, generationrealtime.FieldHeight)
-	}
-	if m.num_interference_steps != nil {
-		fields = append(fields, generationrealtime.FieldNumInterferenceSteps)
-	}
-	if m.created_at != nil {
-		fields = append(fields, generationrealtime.FieldCreatedAt)
-	}
-	if m.updated_at != nil {
-		fields = append(fields, generationrealtime.FieldUpdatedAt)
-	}
-	if m.user_tier != nil {
-		fields = append(fields, generationrealtime.FieldUserTier)
-	}
-	return fields
-}
-
-// Field returns the value of a field with the given name. The second boolean
-// return value indicates that this field was not set, or was not defined in the
-// schema.
-func (m *GenerationRealtimeMutation) Field(name string) (ent.Value, bool) {
-	switch name {
-	case generationrealtime.FieldCountryCode:
-		return m.CountryCode()
-	case generationrealtime.FieldDurationMs:
-		return m.DurationMs()
-	case generationrealtime.FieldStatus:
-		return m.Status()
-	case generationrealtime.FieldUsesDefaultServer:
-		return m.UsesDefaultServer()
-	case generationrealtime.FieldWidth:
-		return m.Width()
-	case generationrealtime.FieldHeight:
-		return m.Height()
-	case generationrealtime.FieldNumInterferenceSteps:
-		return m.NumInterferenceSteps()
-	case generationrealtime.FieldCreatedAt:
-		return m.CreatedAt()
-	case generationrealtime.FieldUpdatedAt:
-		return m.UpdatedAt()
-	case generationrealtime.FieldUserTier:
-		return m.UserTier()
-	}
-	return nil, false
-}
-
-// OldField returns the old value of the field from the database. An error is
-// returned if the mutation operation is not UpdateOne, or the query to the
-// database failed.
-func (m *GenerationRealtimeMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
-	switch name {
-	case generationrealtime.FieldCountryCode:
-		return m.OldCountryCode(ctx)
-	case generationrealtime.FieldDurationMs:
-		return m.OldDurationMs(ctx)
-	case generationrealtime.FieldStatus:
-		return m.OldStatus(ctx)
-	case generationrealtime.FieldUsesDefaultServer:
-		return m.OldUsesDefaultServer(ctx)
-	case generationrealtime.FieldWidth:
-		return m.OldWidth(ctx)
-	case generationrealtime.FieldHeight:
-		return m.OldHeight(ctx)
-	case generationrealtime.FieldNumInterferenceSteps:
-		return m.OldNumInterferenceSteps(ctx)
-	case generationrealtime.FieldCreatedAt:
-		return m.OldCreatedAt(ctx)
-	case generationrealtime.FieldUpdatedAt:
-		return m.OldUpdatedAt(ctx)
-	case generationrealtime.FieldUserTier:
-		return m.OldUserTier(ctx)
-	}
-	return nil, fmt.Errorf("unknown GenerationRealtime field %s", name)
-}
-
-// SetField sets the value of a field with the given name. It returns an error if
-// the field is not defined in the schema, or if the type mismatched the field
-// type.
-func (m *GenerationRealtimeMutation) SetField(name string, value ent.Value) error {
-	switch name {
-	case generationrealtime.FieldCountryCode:
-		v, ok := value.(string)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetCountryCode(v)
-		return nil
-	case generationrealtime.FieldDurationMs:
-		v, ok := value.(int)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetDurationMs(v)
-		return nil
-	case generationrealtime.FieldStatus:
-		v, ok := value.(generationrealtime.Status)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetStatus(v)
-		return nil
-	case generationrealtime.FieldUsesDefaultServer:
-		v, ok := value.(bool)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetUsesDefaultServer(v)
-		return nil
-	case generationrealtime.FieldWidth:
-		v, ok := value.(int)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetWidth(v)
-		return nil
-	case generationrealtime.FieldHeight:
-		v, ok := value.(int)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetHeight(v)
-		return nil
-	case generationrealtime.FieldNumInterferenceSteps:
-		v, ok := value.(int)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetNumInterferenceSteps(v)
-		return nil
-	case generationrealtime.FieldCreatedAt:
-		v, ok := value.(time.Time)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetCreatedAt(v)
-		return nil
-	case generationrealtime.FieldUpdatedAt:
-		v, ok := value.(time.Time)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetUpdatedAt(v)
-		return nil
-	case generationrealtime.FieldUserTier:
-		v, ok := value.(generationrealtime.UserTier)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetUserTier(v)
-		return nil
-	}
-	return fmt.Errorf("unknown GenerationRealtime field %s", name)
-}
-
-// AddedFields returns all numeric fields that were incremented/decremented during
-// this mutation.
-func (m *GenerationRealtimeMutation) AddedFields() []string {
-	var fields []string
-	if m.addduration_ms != nil {
-		fields = append(fields, generationrealtime.FieldDurationMs)
-	}
-	if m.addwidth != nil {
-		fields = append(fields, generationrealtime.FieldWidth)
-	}
-	if m.addheight != nil {
-		fields = append(fields, generationrealtime.FieldHeight)
-	}
-	if m.addnum_interference_steps != nil {
-		fields = append(fields, generationrealtime.FieldNumInterferenceSteps)
-	}
-	return fields
-}
-
-// AddedField returns the numeric value that was incremented/decremented on a field
-// with the given name. The second boolean return value indicates that this field
-// was not set, or was not defined in the schema.
-func (m *GenerationRealtimeMutation) AddedField(name string) (ent.Value, bool) {
-	switch name {
-	case generationrealtime.FieldDurationMs:
-		return m.AddedDurationMs()
-	case generationrealtime.FieldWidth:
-		return m.AddedWidth()
-	case generationrealtime.FieldHeight:
-		return m.AddedHeight()
-	case generationrealtime.FieldNumInterferenceSteps:
-		return m.AddedNumInterferenceSteps()
-	}
-	return nil, false
-}
-
-// AddField adds the value to the field with the given name. It returns an error if
-// the field is not defined in the schema, or if the type mismatched the field
-// type.
-func (m *GenerationRealtimeMutation) AddField(name string, value ent.Value) error {
-	switch name {
-	case generationrealtime.FieldDurationMs:
-		v, ok := value.(int)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.AddDurationMs(v)
-		return nil
-	case generationrealtime.FieldWidth:
-		v, ok := value.(int)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.AddWidth(v)
-		return nil
-	case generationrealtime.FieldHeight:
-		v, ok := value.(int)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.AddHeight(v)
-		return nil
-	case generationrealtime.FieldNumInterferenceSteps:
-		v, ok := value.(int)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.AddNumInterferenceSteps(v)
-		return nil
-	}
-	return fmt.Errorf("unknown GenerationRealtime numeric field %s", name)
-}
-
-// ClearedFields returns all nullable fields that were cleared during this
-// mutation.
-func (m *GenerationRealtimeMutation) ClearedFields() []string {
-	return nil
-}
-
-// FieldCleared returns a boolean indicating if a field with the given name was
-// cleared in this mutation.
-func (m *GenerationRealtimeMutation) FieldCleared(name string) bool {
-	_, ok := m.clearedFields[name]
-	return ok
-}
-
-// ClearField clears the value of the field with the given name. It returns an
-// error if the field is not defined in the schema.
-func (m *GenerationRealtimeMutation) ClearField(name string) error {
-	return fmt.Errorf("unknown GenerationRealtime nullable field %s", name)
-}
-
-// ResetField resets all changes in the mutation for the field with the given name.
-// It returns an error if the field is not defined in the schema.
-func (m *GenerationRealtimeMutation) ResetField(name string) error {
-	switch name {
-	case generationrealtime.FieldCountryCode:
-		m.ResetCountryCode()
-		return nil
-	case generationrealtime.FieldDurationMs:
-		m.ResetDurationMs()
-		return nil
-	case generationrealtime.FieldStatus:
-		m.ResetStatus()
-		return nil
-	case generationrealtime.FieldUsesDefaultServer:
-		m.ResetUsesDefaultServer()
-		return nil
-	case generationrealtime.FieldWidth:
-		m.ResetWidth()
-		return nil
-	case generationrealtime.FieldHeight:
-		m.ResetHeight()
-		return nil
-	case generationrealtime.FieldNumInterferenceSteps:
-		m.ResetNumInterferenceSteps()
-		return nil
-	case generationrealtime.FieldCreatedAt:
-		m.ResetCreatedAt()
-		return nil
-	case generationrealtime.FieldUpdatedAt:
-		m.ResetUpdatedAt()
-		return nil
-	case generationrealtime.FieldUserTier:
-		m.ResetUserTier()
-		return nil
-	}
-	return fmt.Errorf("unknown GenerationRealtime field %s", name)
-}
-
-// AddedEdges returns all edge names that were set/added in this mutation.
-func (m *GenerationRealtimeMutation) AddedEdges() []string {
-	edges := make([]string, 0, 0)
-	return edges
-}
-
-// AddedIDs returns all IDs (to other nodes) that were added for the given edge
-// name in this mutation.
-func (m *GenerationRealtimeMutation) AddedIDs(name string) []ent.Value {
-	return nil
-}
-
-// RemovedEdges returns all edge names that were removed in this mutation.
-func (m *GenerationRealtimeMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 0)
-	return edges
-}
-
-// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
-// the given name in this mutation.
-func (m *GenerationRealtimeMutation) RemovedIDs(name string) []ent.Value {
-	return nil
-}
-
-// ClearedEdges returns all edge names that were cleared in this mutation.
-func (m *GenerationRealtimeMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 0)
-	return edges
-}
-
-// EdgeCleared returns a boolean which indicates if the edge with the given name
-// was cleared in this mutation.
-func (m *GenerationRealtimeMutation) EdgeCleared(name string) bool {
-	return false
-}
-
-// ClearEdge clears the value of the edge with the given name. It returns an error
-// if that edge is not defined in the schema.
-func (m *GenerationRealtimeMutation) ClearEdge(name string) error {
-	return fmt.Errorf("unknown GenerationRealtime unique edge %s", name)
-}
-
-// ResetEdge resets all changes to the edge with the given name in this mutation.
-// It returns an error if the edge is not defined in the schema.
-func (m *GenerationRealtimeMutation) ResetEdge(name string) error {
-	return fmt.Errorf("unknown GenerationRealtime edge %s", name)
-}
-
-// ModelMutation represents an operation that mutates the Model nodes in the graph.
-type ModelMutation struct {
-	config
-	op                  Op
-	typ                 string
-	id                  *uuid.UUID
-	name                *string
-	created_at          *time.Time
-	updated_at          *time.Time
-	clearedFields       map[string]struct{}
-	generation          map[uuid.UUID]struct{}
-	removedgeneration   map[uuid.UUID]struct{}
-	clearedgeneration   bool
-	generation_g        map[uuid.UUID]struct{}
-	removedgeneration_g map[uuid.UUID]struct{}
-	clearedgeneration_g bool
-	done                bool
-	oldValue            func(context.Context) (*Model, error)
-	predicates          []predicate.Model
-}
-
-var _ ent.Mutation = (*ModelMutation)(nil)
-
-// modelOption allows management of the mutation configuration using functional options.
-type modelOption func(*ModelMutation)
-
-// newModelMutation creates new mutation for the Model entity.
-func newModelMutation(c config, op Op, opts ...modelOption) *ModelMutation {
-	m := &ModelMutation{
-		config:        c,
-		op:            op,
-		typ:           TypeModel,
-		clearedFields: make(map[string]struct{}),
-	}
-	for _, opt := range opts {
-		opt(m)
-	}
-	return m
-}
-
-// withModelID sets the ID field of the mutation.
-func withModelID(id uuid.UUID) modelOption {
-	return func(m *ModelMutation) {
-		var (
-			err   error
-			once  sync.Once
-			value *Model
-		)
-		m.oldValue = func(ctx context.Context) (*Model, error) {
-			once.Do(func() {
-				if m.done {
-					err = errors.New("querying old values post mutation is not allowed")
-				} else {
-					value, err = m.Client().Model.Get(ctx, id)
-				}
-			})
-			return value, err
-		}
-		m.id = &id
-	}
-}
-
-// withModel sets the old Model of the mutation.
-func withModel(node *Model) modelOption {
-	return func(m *ModelMutation) {
-		m.oldValue = func(context.Context) (*Model, error) {
-			return node, nil
-		}
-		m.id = &node.ID
-	}
-}
-
-// Client returns a new `ent.Client` from the mutation. If the mutation was
-// executed in a transaction (ent.Tx), a transactional client is returned.
-func (m ModelMutation) Client() *Client {
-	client := &Client{config: m.config}
-	client.init()
-	return client
-}
-
-// Tx returns an `ent.Tx` for mutations that were executed in transactions;
-// it returns an error otherwise.
-func (m ModelMutation) Tx() (*Tx, error) {
-	if _, ok := m.driver.(*txDriver); !ok {
-		return nil, errors.New("ent: mutation is not running in a transaction")
-	}
-	tx := &Tx{config: m.config}
-	tx.init()
-	return tx, nil
-}
-
-// SetID sets the value of the id field. Note that this
-// operation is only accepted on creation of Model entities.
-func (m *ModelMutation) SetID(id uuid.UUID) {
-	m.id = &id
-}
-
-// ID returns the ID value in the mutation. Note that the ID is only available
-// if it was provided to the builder or after it was returned from the database.
-func (m *ModelMutation) ID() (id uuid.UUID, exists bool) {
-	if m.id == nil {
-		return
-	}
-	return *m.id, true
-}
-
-// IDs queries the database and returns the entity ids that match the mutation's predicate.
-// That means, if the mutation is applied within a transaction with an isolation level such
-// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
-// or updated by the mutation.
-func (m *ModelMutation) IDs(ctx context.Context) ([]uuid.UUID, error) {
-	switch {
-	case m.op.Is(OpUpdateOne | OpDeleteOne):
-		id, exists := m.ID()
-		if exists {
-			return []uuid.UUID{id}, nil
-		}
-		fallthrough
-	case m.op.Is(OpUpdate | OpDelete):
-		return m.Client().Model.Query().Where(m.predicates...).IDs(ctx)
+		return m.Client().GenerationModel.Query().Where(m.predicates...).IDs(ctx)
 	default:
 		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
 	}
 }
 
 // SetName sets the "name" field.
-func (m *ModelMutation) SetName(s string) {
+func (m *GenerationModelMutation) SetName(s string) {
 	m.name = &s
 }
 
 // Name returns the value of the "name" field in the mutation.
-func (m *ModelMutation) Name() (r string, exists bool) {
+func (m *GenerationModelMutation) Name() (r string, exists bool) {
 	v := m.name
 	if v == nil {
 		return
@@ -5127,10 +2760,10 @@ func (m *ModelMutation) Name() (r string, exists bool) {
 	return *v, true
 }
 
-// OldName returns the old "name" field's value of the Model entity.
-// If the Model object wasn't provided to the builder, the object is fetched from the database.
+// OldName returns the old "name" field's value of the GenerationModel entity.
+// If the GenerationModel object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *ModelMutation) OldName(ctx context.Context) (v string, err error) {
+func (m *GenerationModelMutation) OldName(ctx context.Context) (v string, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldName is only allowed on UpdateOne operations")
 	}
@@ -5145,17 +2778,17 @@ func (m *ModelMutation) OldName(ctx context.Context) (v string, err error) {
 }
 
 // ResetName resets all changes to the "name" field.
-func (m *ModelMutation) ResetName() {
+func (m *GenerationModelMutation) ResetName() {
 	m.name = nil
 }
 
 // SetCreatedAt sets the "created_at" field.
-func (m *ModelMutation) SetCreatedAt(t time.Time) {
+func (m *GenerationModelMutation) SetCreatedAt(t time.Time) {
 	m.created_at = &t
 }
 
 // CreatedAt returns the value of the "created_at" field in the mutation.
-func (m *ModelMutation) CreatedAt() (r time.Time, exists bool) {
+func (m *GenerationModelMutation) CreatedAt() (r time.Time, exists bool) {
 	v := m.created_at
 	if v == nil {
 		return
@@ -5163,10 +2796,10 @@ func (m *ModelMutation) CreatedAt() (r time.Time, exists bool) {
 	return *v, true
 }
 
-// OldCreatedAt returns the old "created_at" field's value of the Model entity.
-// If the Model object wasn't provided to the builder, the object is fetched from the database.
+// OldCreatedAt returns the old "created_at" field's value of the GenerationModel entity.
+// If the GenerationModel object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *ModelMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+func (m *GenerationModelMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
 	}
@@ -5181,17 +2814,17 @@ func (m *ModelMutation) OldCreatedAt(ctx context.Context) (v time.Time, err erro
 }
 
 // ResetCreatedAt resets all changes to the "created_at" field.
-func (m *ModelMutation) ResetCreatedAt() {
+func (m *GenerationModelMutation) ResetCreatedAt() {
 	m.created_at = nil
 }
 
 // SetUpdatedAt sets the "updated_at" field.
-func (m *ModelMutation) SetUpdatedAt(t time.Time) {
+func (m *GenerationModelMutation) SetUpdatedAt(t time.Time) {
 	m.updated_at = &t
 }
 
 // UpdatedAt returns the value of the "updated_at" field in the mutation.
-func (m *ModelMutation) UpdatedAt() (r time.Time, exists bool) {
+func (m *GenerationModelMutation) UpdatedAt() (r time.Time, exists bool) {
 	v := m.updated_at
 	if v == nil {
 		return
@@ -5199,10 +2832,10 @@ func (m *ModelMutation) UpdatedAt() (r time.Time, exists bool) {
 	return *v, true
 }
 
-// OldUpdatedAt returns the old "updated_at" field's value of the Model entity.
-// If the Model object wasn't provided to the builder, the object is fetched from the database.
+// OldUpdatedAt returns the old "updated_at" field's value of the GenerationModel entity.
+// If the GenerationModel object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *ModelMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
+func (m *GenerationModelMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
 	}
@@ -5217,127 +2850,73 @@ func (m *ModelMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err erro
 }
 
 // ResetUpdatedAt resets all changes to the "updated_at" field.
-func (m *ModelMutation) ResetUpdatedAt() {
+func (m *GenerationModelMutation) ResetUpdatedAt() {
 	m.updated_at = nil
 }
 
-// AddGenerationIDs adds the "generation" edge to the Generation entity by ids.
-func (m *ModelMutation) AddGenerationIDs(ids ...uuid.UUID) {
-	if m.generation == nil {
-		m.generation = make(map[uuid.UUID]struct{})
+// AddGenerationIDs adds the "generations" edge to the Generation entity by ids.
+func (m *GenerationModelMutation) AddGenerationIDs(ids ...uuid.UUID) {
+	if m.generations == nil {
+		m.generations = make(map[uuid.UUID]struct{})
 	}
 	for i := range ids {
-		m.generation[ids[i]] = struct{}{}
+		m.generations[ids[i]] = struct{}{}
 	}
 }
 
-// ClearGeneration clears the "generation" edge to the Generation entity.
-func (m *ModelMutation) ClearGeneration() {
-	m.clearedgeneration = true
+// ClearGenerations clears the "generations" edge to the Generation entity.
+func (m *GenerationModelMutation) ClearGenerations() {
+	m.clearedgenerations = true
 }
 
-// GenerationCleared reports if the "generation" edge to the Generation entity was cleared.
-func (m *ModelMutation) GenerationCleared() bool {
-	return m.clearedgeneration
+// GenerationsCleared reports if the "generations" edge to the Generation entity was cleared.
+func (m *GenerationModelMutation) GenerationsCleared() bool {
+	return m.clearedgenerations
 }
 
-// RemoveGenerationIDs removes the "generation" edge to the Generation entity by IDs.
-func (m *ModelMutation) RemoveGenerationIDs(ids ...uuid.UUID) {
-	if m.removedgeneration == nil {
-		m.removedgeneration = make(map[uuid.UUID]struct{})
+// RemoveGenerationIDs removes the "generations" edge to the Generation entity by IDs.
+func (m *GenerationModelMutation) RemoveGenerationIDs(ids ...uuid.UUID) {
+	if m.removedgenerations == nil {
+		m.removedgenerations = make(map[uuid.UUID]struct{})
 	}
 	for i := range ids {
-		delete(m.generation, ids[i])
-		m.removedgeneration[ids[i]] = struct{}{}
+		delete(m.generations, ids[i])
+		m.removedgenerations[ids[i]] = struct{}{}
 	}
 }
 
-// RemovedGeneration returns the removed IDs of the "generation" edge to the Generation entity.
-func (m *ModelMutation) RemovedGenerationIDs() (ids []uuid.UUID) {
-	for id := range m.removedgeneration {
+// RemovedGenerations returns the removed IDs of the "generations" edge to the Generation entity.
+func (m *GenerationModelMutation) RemovedGenerationsIDs() (ids []uuid.UUID) {
+	for id := range m.removedgenerations {
 		ids = append(ids, id)
 	}
 	return
 }
 
-// GenerationIDs returns the "generation" edge IDs in the mutation.
-func (m *ModelMutation) GenerationIDs() (ids []uuid.UUID) {
-	for id := range m.generation {
+// GenerationsIDs returns the "generations" edge IDs in the mutation.
+func (m *GenerationModelMutation) GenerationsIDs() (ids []uuid.UUID) {
+	for id := range m.generations {
 		ids = append(ids, id)
 	}
 	return
 }
 
-// ResetGeneration resets all changes to the "generation" edge.
-func (m *ModelMutation) ResetGeneration() {
-	m.generation = nil
-	m.clearedgeneration = false
-	m.removedgeneration = nil
+// ResetGenerations resets all changes to the "generations" edge.
+func (m *GenerationModelMutation) ResetGenerations() {
+	m.generations = nil
+	m.clearedgenerations = false
+	m.removedgenerations = nil
 }
 
-// AddGenerationGIDs adds the "generation_g" edge to the GenerationG entity by ids.
-func (m *ModelMutation) AddGenerationGIDs(ids ...uuid.UUID) {
-	if m.generation_g == nil {
-		m.generation_g = make(map[uuid.UUID]struct{})
-	}
-	for i := range ids {
-		m.generation_g[ids[i]] = struct{}{}
-	}
-}
-
-// ClearGenerationG clears the "generation_g" edge to the GenerationG entity.
-func (m *ModelMutation) ClearGenerationG() {
-	m.clearedgeneration_g = true
-}
-
-// GenerationGCleared reports if the "generation_g" edge to the GenerationG entity was cleared.
-func (m *ModelMutation) GenerationGCleared() bool {
-	return m.clearedgeneration_g
-}
-
-// RemoveGenerationGIDs removes the "generation_g" edge to the GenerationG entity by IDs.
-func (m *ModelMutation) RemoveGenerationGIDs(ids ...uuid.UUID) {
-	if m.removedgeneration_g == nil {
-		m.removedgeneration_g = make(map[uuid.UUID]struct{})
-	}
-	for i := range ids {
-		delete(m.generation_g, ids[i])
-		m.removedgeneration_g[ids[i]] = struct{}{}
-	}
-}
-
-// RemovedGenerationG returns the removed IDs of the "generation_g" edge to the GenerationG entity.
-func (m *ModelMutation) RemovedGenerationGIDs() (ids []uuid.UUID) {
-	for id := range m.removedgeneration_g {
-		ids = append(ids, id)
-	}
-	return
-}
-
-// GenerationGIDs returns the "generation_g" edge IDs in the mutation.
-func (m *ModelMutation) GenerationGIDs() (ids []uuid.UUID) {
-	for id := range m.generation_g {
-		ids = append(ids, id)
-	}
-	return
-}
-
-// ResetGenerationG resets all changes to the "generation_g" edge.
-func (m *ModelMutation) ResetGenerationG() {
-	m.generation_g = nil
-	m.clearedgeneration_g = false
-	m.removedgeneration_g = nil
-}
-
-// Where appends a list predicates to the ModelMutation builder.
-func (m *ModelMutation) Where(ps ...predicate.Model) {
+// Where appends a list predicates to the GenerationModelMutation builder.
+func (m *GenerationModelMutation) Where(ps ...predicate.GenerationModel) {
 	m.predicates = append(m.predicates, ps...)
 }
 
-// WhereP appends storage-level predicates to the ModelMutation builder. Using this method,
+// WhereP appends storage-level predicates to the GenerationModelMutation builder. Using this method,
 // users can use type-assertion to append predicates that do not depend on any generated package.
-func (m *ModelMutation) WhereP(ps ...func(*sql.Selector)) {
-	p := make([]predicate.Model, len(ps))
+func (m *GenerationModelMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.GenerationModel, len(ps))
 	for i := range ps {
 		p[i] = ps[i]
 	}
@@ -5345,33 +2924,33 @@ func (m *ModelMutation) WhereP(ps ...func(*sql.Selector)) {
 }
 
 // Op returns the operation name.
-func (m *ModelMutation) Op() Op {
+func (m *GenerationModelMutation) Op() Op {
 	return m.op
 }
 
 // SetOp allows setting the mutation operation.
-func (m *ModelMutation) SetOp(op Op) {
+func (m *GenerationModelMutation) SetOp(op Op) {
 	m.op = op
 }
 
-// Type returns the node type of this mutation (Model).
-func (m *ModelMutation) Type() string {
+// Type returns the node type of this mutation (GenerationModel).
+func (m *GenerationModelMutation) Type() string {
 	return m.typ
 }
 
 // Fields returns all fields that were changed during this mutation. Note that in
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
-func (m *ModelMutation) Fields() []string {
+func (m *GenerationModelMutation) Fields() []string {
 	fields := make([]string, 0, 3)
 	if m.name != nil {
-		fields = append(fields, model.FieldName)
+		fields = append(fields, generationmodel.FieldName)
 	}
 	if m.created_at != nil {
-		fields = append(fields, model.FieldCreatedAt)
+		fields = append(fields, generationmodel.FieldCreatedAt)
 	}
 	if m.updated_at != nil {
-		fields = append(fields, model.FieldUpdatedAt)
+		fields = append(fields, generationmodel.FieldUpdatedAt)
 	}
 	return fields
 }
@@ -5379,13 +2958,13 @@ func (m *ModelMutation) Fields() []string {
 // Field returns the value of a field with the given name. The second boolean
 // return value indicates that this field was not set, or was not defined in the
 // schema.
-func (m *ModelMutation) Field(name string) (ent.Value, bool) {
+func (m *GenerationModelMutation) Field(name string) (ent.Value, bool) {
 	switch name {
-	case model.FieldName:
+	case generationmodel.FieldName:
 		return m.Name()
-	case model.FieldCreatedAt:
+	case generationmodel.FieldCreatedAt:
 		return m.CreatedAt()
-	case model.FieldUpdatedAt:
+	case generationmodel.FieldUpdatedAt:
 		return m.UpdatedAt()
 	}
 	return nil, false
@@ -5394,38 +2973,38 @@ func (m *ModelMutation) Field(name string) (ent.Value, bool) {
 // OldField returns the old value of the field from the database. An error is
 // returned if the mutation operation is not UpdateOne, or the query to the
 // database failed.
-func (m *ModelMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+func (m *GenerationModelMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
 	switch name {
-	case model.FieldName:
+	case generationmodel.FieldName:
 		return m.OldName(ctx)
-	case model.FieldCreatedAt:
+	case generationmodel.FieldCreatedAt:
 		return m.OldCreatedAt(ctx)
-	case model.FieldUpdatedAt:
+	case generationmodel.FieldUpdatedAt:
 		return m.OldUpdatedAt(ctx)
 	}
-	return nil, fmt.Errorf("unknown Model field %s", name)
+	return nil, fmt.Errorf("unknown GenerationModel field %s", name)
 }
 
 // SetField sets the value of a field with the given name. It returns an error if
 // the field is not defined in the schema, or if the type mismatched the field
 // type.
-func (m *ModelMutation) SetField(name string, value ent.Value) error {
+func (m *GenerationModelMutation) SetField(name string, value ent.Value) error {
 	switch name {
-	case model.FieldName:
+	case generationmodel.FieldName:
 		v, ok := value.(string)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetName(v)
 		return nil
-	case model.FieldCreatedAt:
+	case generationmodel.FieldCreatedAt:
 		v, ok := value.(time.Time)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetCreatedAt(v)
 		return nil
-	case model.FieldUpdatedAt:
+	case generationmodel.FieldUpdatedAt:
 		v, ok := value.(time.Time)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
@@ -5433,92 +3012,83 @@ func (m *ModelMutation) SetField(name string, value ent.Value) error {
 		m.SetUpdatedAt(v)
 		return nil
 	}
-	return fmt.Errorf("unknown Model field %s", name)
+	return fmt.Errorf("unknown GenerationModel field %s", name)
 }
 
 // AddedFields returns all numeric fields that were incremented/decremented during
 // this mutation.
-func (m *ModelMutation) AddedFields() []string {
+func (m *GenerationModelMutation) AddedFields() []string {
 	return nil
 }
 
 // AddedField returns the numeric value that was incremented/decremented on a field
 // with the given name. The second boolean return value indicates that this field
 // was not set, or was not defined in the schema.
-func (m *ModelMutation) AddedField(name string) (ent.Value, bool) {
+func (m *GenerationModelMutation) AddedField(name string) (ent.Value, bool) {
 	return nil, false
 }
 
 // AddField adds the value to the field with the given name. It returns an error if
 // the field is not defined in the schema, or if the type mismatched the field
 // type.
-func (m *ModelMutation) AddField(name string, value ent.Value) error {
+func (m *GenerationModelMutation) AddField(name string, value ent.Value) error {
 	switch name {
 	}
-	return fmt.Errorf("unknown Model numeric field %s", name)
+	return fmt.Errorf("unknown GenerationModel numeric field %s", name)
 }
 
 // ClearedFields returns all nullable fields that were cleared during this
 // mutation.
-func (m *ModelMutation) ClearedFields() []string {
+func (m *GenerationModelMutation) ClearedFields() []string {
 	return nil
 }
 
 // FieldCleared returns a boolean indicating if a field with the given name was
 // cleared in this mutation.
-func (m *ModelMutation) FieldCleared(name string) bool {
+func (m *GenerationModelMutation) FieldCleared(name string) bool {
 	_, ok := m.clearedFields[name]
 	return ok
 }
 
 // ClearField clears the value of the field with the given name. It returns an
 // error if the field is not defined in the schema.
-func (m *ModelMutation) ClearField(name string) error {
-	return fmt.Errorf("unknown Model nullable field %s", name)
+func (m *GenerationModelMutation) ClearField(name string) error {
+	return fmt.Errorf("unknown GenerationModel nullable field %s", name)
 }
 
 // ResetField resets all changes in the mutation for the field with the given name.
 // It returns an error if the field is not defined in the schema.
-func (m *ModelMutation) ResetField(name string) error {
+func (m *GenerationModelMutation) ResetField(name string) error {
 	switch name {
-	case model.FieldName:
+	case generationmodel.FieldName:
 		m.ResetName()
 		return nil
-	case model.FieldCreatedAt:
+	case generationmodel.FieldCreatedAt:
 		m.ResetCreatedAt()
 		return nil
-	case model.FieldUpdatedAt:
+	case generationmodel.FieldUpdatedAt:
 		m.ResetUpdatedAt()
 		return nil
 	}
-	return fmt.Errorf("unknown Model field %s", name)
+	return fmt.Errorf("unknown GenerationModel field %s", name)
 }
 
 // AddedEdges returns all edge names that were set/added in this mutation.
-func (m *ModelMutation) AddedEdges() []string {
-	edges := make([]string, 0, 2)
-	if m.generation != nil {
-		edges = append(edges, model.EdgeGeneration)
-	}
-	if m.generation_g != nil {
-		edges = append(edges, model.EdgeGenerationG)
+func (m *GenerationModelMutation) AddedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.generations != nil {
+		edges = append(edges, generationmodel.EdgeGenerations)
 	}
 	return edges
 }
 
 // AddedIDs returns all IDs (to other nodes) that were added for the given edge
 // name in this mutation.
-func (m *ModelMutation) AddedIDs(name string) []ent.Value {
+func (m *GenerationModelMutation) AddedIDs(name string) []ent.Value {
 	switch name {
-	case model.EdgeGeneration:
-		ids := make([]ent.Value, 0, len(m.generation))
-		for id := range m.generation {
-			ids = append(ids, id)
-		}
-		return ids
-	case model.EdgeGenerationG:
-		ids := make([]ent.Value, 0, len(m.generation_g))
-		for id := range m.generation_g {
+	case generationmodel.EdgeGenerations:
+		ids := make([]ent.Value, 0, len(m.generations))
+		for id := range m.generations {
 			ids = append(ids, id)
 		}
 		return ids
@@ -5527,30 +3097,21 @@ func (m *ModelMutation) AddedIDs(name string) []ent.Value {
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
-func (m *ModelMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 2)
-	if m.removedgeneration != nil {
-		edges = append(edges, model.EdgeGeneration)
-	}
-	if m.removedgeneration_g != nil {
-		edges = append(edges, model.EdgeGenerationG)
+func (m *GenerationModelMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.removedgenerations != nil {
+		edges = append(edges, generationmodel.EdgeGenerations)
 	}
 	return edges
 }
 
 // RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
 // the given name in this mutation.
-func (m *ModelMutation) RemovedIDs(name string) []ent.Value {
+func (m *GenerationModelMutation) RemovedIDs(name string) []ent.Value {
 	switch name {
-	case model.EdgeGeneration:
-		ids := make([]ent.Value, 0, len(m.removedgeneration))
-		for id := range m.removedgeneration {
-			ids = append(ids, id)
-		}
-		return ids
-	case model.EdgeGenerationG:
-		ids := make([]ent.Value, 0, len(m.removedgeneration_g))
-		for id := range m.removedgeneration_g {
+	case generationmodel.EdgeGenerations:
+		ids := make([]ent.Value, 0, len(m.removedgenerations))
+		for id := range m.removedgenerations {
 			ids = append(ids, id)
 		}
 		return ids
@@ -5559,70 +3120,673 @@ func (m *ModelMutation) RemovedIDs(name string) []ent.Value {
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
-func (m *ModelMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 2)
-	if m.clearedgeneration {
-		edges = append(edges, model.EdgeGeneration)
-	}
-	if m.clearedgeneration_g {
-		edges = append(edges, model.EdgeGenerationG)
+func (m *GenerationModelMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.clearedgenerations {
+		edges = append(edges, generationmodel.EdgeGenerations)
 	}
 	return edges
 }
 
 // EdgeCleared returns a boolean which indicates if the edge with the given name
 // was cleared in this mutation.
-func (m *ModelMutation) EdgeCleared(name string) bool {
+func (m *GenerationModelMutation) EdgeCleared(name string) bool {
 	switch name {
-	case model.EdgeGeneration:
-		return m.clearedgeneration
-	case model.EdgeGenerationG:
-		return m.clearedgeneration_g
+	case generationmodel.EdgeGenerations:
+		return m.clearedgenerations
 	}
 	return false
 }
 
 // ClearEdge clears the value of the edge with the given name. It returns an error
 // if that edge is not defined in the schema.
-func (m *ModelMutation) ClearEdge(name string) error {
+func (m *GenerationModelMutation) ClearEdge(name string) error {
 	switch name {
 	}
-	return fmt.Errorf("unknown Model unique edge %s", name)
+	return fmt.Errorf("unknown GenerationModel unique edge %s", name)
 }
 
 // ResetEdge resets all changes to the edge with the given name in this mutation.
 // It returns an error if the edge is not defined in the schema.
-func (m *ModelMutation) ResetEdge(name string) error {
+func (m *GenerationModelMutation) ResetEdge(name string) error {
 	switch name {
-	case model.EdgeGeneration:
-		m.ResetGeneration()
-		return nil
-	case model.EdgeGenerationG:
-		m.ResetGenerationG()
+	case generationmodel.EdgeGenerations:
+		m.ResetGenerations()
 		return nil
 	}
-	return fmt.Errorf("unknown Model edge %s", name)
+	return fmt.Errorf("unknown GenerationModel edge %s", name)
+}
+
+// GenerationOutputMutation represents an operation that mutates the GenerationOutput nodes in the graph.
+type GenerationOutputMutation struct {
+	config
+	op                 Op
+	typ                string
+	id                 *uuid.UUID
+	image_url          *string
+	upscaled_image_url *string
+	created_at         *time.Time
+	updated_at         *time.Time
+	clearedFields      map[string]struct{}
+	generations        *uuid.UUID
+	clearedgenerations bool
+	done               bool
+	oldValue           func(context.Context) (*GenerationOutput, error)
+	predicates         []predicate.GenerationOutput
+}
+
+var _ ent.Mutation = (*GenerationOutputMutation)(nil)
+
+// generationoutputOption allows management of the mutation configuration using functional options.
+type generationoutputOption func(*GenerationOutputMutation)
+
+// newGenerationOutputMutation creates new mutation for the GenerationOutput entity.
+func newGenerationOutputMutation(c config, op Op, opts ...generationoutputOption) *GenerationOutputMutation {
+	m := &GenerationOutputMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeGenerationOutput,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withGenerationOutputID sets the ID field of the mutation.
+func withGenerationOutputID(id uuid.UUID) generationoutputOption {
+	return func(m *GenerationOutputMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *GenerationOutput
+		)
+		m.oldValue = func(ctx context.Context) (*GenerationOutput, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().GenerationOutput.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withGenerationOutput sets the old GenerationOutput of the mutation.
+func withGenerationOutput(node *GenerationOutput) generationoutputOption {
+	return func(m *GenerationOutputMutation) {
+		m.oldValue = func(context.Context) (*GenerationOutput, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m GenerationOutputMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m GenerationOutputMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of GenerationOutput entities.
+func (m *GenerationOutputMutation) SetID(id uuid.UUID) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *GenerationOutputMutation) ID() (id uuid.UUID, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *GenerationOutputMutation) IDs(ctx context.Context) ([]uuid.UUID, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []uuid.UUID{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().GenerationOutput.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetImageURL sets the "image_url" field.
+func (m *GenerationOutputMutation) SetImageURL(s string) {
+	m.image_url = &s
+}
+
+// ImageURL returns the value of the "image_url" field in the mutation.
+func (m *GenerationOutputMutation) ImageURL() (r string, exists bool) {
+	v := m.image_url
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldImageURL returns the old "image_url" field's value of the GenerationOutput entity.
+// If the GenerationOutput object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *GenerationOutputMutation) OldImageURL(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldImageURL is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldImageURL requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldImageURL: %w", err)
+	}
+	return oldValue.ImageURL, nil
+}
+
+// ResetImageURL resets all changes to the "image_url" field.
+func (m *GenerationOutputMutation) ResetImageURL() {
+	m.image_url = nil
+}
+
+// SetUpscaledImageURL sets the "upscaled_image_url" field.
+func (m *GenerationOutputMutation) SetUpscaledImageURL(s string) {
+	m.upscaled_image_url = &s
+}
+
+// UpscaledImageURL returns the value of the "upscaled_image_url" field in the mutation.
+func (m *GenerationOutputMutation) UpscaledImageURL() (r string, exists bool) {
+	v := m.upscaled_image_url
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpscaledImageURL returns the old "upscaled_image_url" field's value of the GenerationOutput entity.
+// If the GenerationOutput object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *GenerationOutputMutation) OldUpscaledImageURL(ctx context.Context) (v *string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpscaledImageURL is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpscaledImageURL requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpscaledImageURL: %w", err)
+	}
+	return oldValue.UpscaledImageURL, nil
+}
+
+// ResetUpscaledImageURL resets all changes to the "upscaled_image_url" field.
+func (m *GenerationOutputMutation) ResetUpscaledImageURL() {
+	m.upscaled_image_url = nil
+}
+
+// SetGenerationID sets the "generation_id" field.
+func (m *GenerationOutputMutation) SetGenerationID(u uuid.UUID) {
+	m.generations = &u
+}
+
+// GenerationID returns the value of the "generation_id" field in the mutation.
+func (m *GenerationOutputMutation) GenerationID() (r uuid.UUID, exists bool) {
+	v := m.generations
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldGenerationID returns the old "generation_id" field's value of the GenerationOutput entity.
+// If the GenerationOutput object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *GenerationOutputMutation) OldGenerationID(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldGenerationID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldGenerationID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldGenerationID: %w", err)
+	}
+	return oldValue.GenerationID, nil
+}
+
+// ResetGenerationID resets all changes to the "generation_id" field.
+func (m *GenerationOutputMutation) ResetGenerationID() {
+	m.generations = nil
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *GenerationOutputMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *GenerationOutputMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the GenerationOutput entity.
+// If the GenerationOutput object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *GenerationOutputMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *GenerationOutputMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (m *GenerationOutputMutation) SetUpdatedAt(t time.Time) {
+	m.updated_at = &t
+}
+
+// UpdatedAt returns the value of the "updated_at" field in the mutation.
+func (m *GenerationOutputMutation) UpdatedAt() (r time.Time, exists bool) {
+	v := m.updated_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedAt returns the old "updated_at" field's value of the GenerationOutput entity.
+// If the GenerationOutput object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *GenerationOutputMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
+	}
+	return oldValue.UpdatedAt, nil
+}
+
+// ResetUpdatedAt resets all changes to the "updated_at" field.
+func (m *GenerationOutputMutation) ResetUpdatedAt() {
+	m.updated_at = nil
+}
+
+// SetGenerationsID sets the "generations" edge to the Generation entity by id.
+func (m *GenerationOutputMutation) SetGenerationsID(id uuid.UUID) {
+	m.generations = &id
+}
+
+// ClearGenerations clears the "generations" edge to the Generation entity.
+func (m *GenerationOutputMutation) ClearGenerations() {
+	m.clearedgenerations = true
+}
+
+// GenerationsCleared reports if the "generations" edge to the Generation entity was cleared.
+func (m *GenerationOutputMutation) GenerationsCleared() bool {
+	return m.clearedgenerations
+}
+
+// GenerationsID returns the "generations" edge ID in the mutation.
+func (m *GenerationOutputMutation) GenerationsID() (id uuid.UUID, exists bool) {
+	if m.generations != nil {
+		return *m.generations, true
+	}
+	return
+}
+
+// GenerationsIDs returns the "generations" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// GenerationsID instead. It exists only for internal usage by the builders.
+func (m *GenerationOutputMutation) GenerationsIDs() (ids []uuid.UUID) {
+	if id := m.generations; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetGenerations resets all changes to the "generations" edge.
+func (m *GenerationOutputMutation) ResetGenerations() {
+	m.generations = nil
+	m.clearedgenerations = false
+}
+
+// Where appends a list predicates to the GenerationOutputMutation builder.
+func (m *GenerationOutputMutation) Where(ps ...predicate.GenerationOutput) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the GenerationOutputMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *GenerationOutputMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.GenerationOutput, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *GenerationOutputMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *GenerationOutputMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (GenerationOutput).
+func (m *GenerationOutputMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *GenerationOutputMutation) Fields() []string {
+	fields := make([]string, 0, 5)
+	if m.image_url != nil {
+		fields = append(fields, generationoutput.FieldImageURL)
+	}
+	if m.upscaled_image_url != nil {
+		fields = append(fields, generationoutput.FieldUpscaledImageURL)
+	}
+	if m.generations != nil {
+		fields = append(fields, generationoutput.FieldGenerationID)
+	}
+	if m.created_at != nil {
+		fields = append(fields, generationoutput.FieldCreatedAt)
+	}
+	if m.updated_at != nil {
+		fields = append(fields, generationoutput.FieldUpdatedAt)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *GenerationOutputMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case generationoutput.FieldImageURL:
+		return m.ImageURL()
+	case generationoutput.FieldUpscaledImageURL:
+		return m.UpscaledImageURL()
+	case generationoutput.FieldGenerationID:
+		return m.GenerationID()
+	case generationoutput.FieldCreatedAt:
+		return m.CreatedAt()
+	case generationoutput.FieldUpdatedAt:
+		return m.UpdatedAt()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *GenerationOutputMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case generationoutput.FieldImageURL:
+		return m.OldImageURL(ctx)
+	case generationoutput.FieldUpscaledImageURL:
+		return m.OldUpscaledImageURL(ctx)
+	case generationoutput.FieldGenerationID:
+		return m.OldGenerationID(ctx)
+	case generationoutput.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	case generationoutput.FieldUpdatedAt:
+		return m.OldUpdatedAt(ctx)
+	}
+	return nil, fmt.Errorf("unknown GenerationOutput field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *GenerationOutputMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case generationoutput.FieldImageURL:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetImageURL(v)
+		return nil
+	case generationoutput.FieldUpscaledImageURL:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpscaledImageURL(v)
+		return nil
+	case generationoutput.FieldGenerationID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetGenerationID(v)
+		return nil
+	case generationoutput.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	case generationoutput.FieldUpdatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedAt(v)
+		return nil
+	}
+	return fmt.Errorf("unknown GenerationOutput field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *GenerationOutputMutation) AddedFields() []string {
+	return nil
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *GenerationOutputMutation) AddedField(name string) (ent.Value, bool) {
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *GenerationOutputMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown GenerationOutput numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *GenerationOutputMutation) ClearedFields() []string {
+	return nil
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *GenerationOutputMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *GenerationOutputMutation) ClearField(name string) error {
+	return fmt.Errorf("unknown GenerationOutput nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *GenerationOutputMutation) ResetField(name string) error {
+	switch name {
+	case generationoutput.FieldImageURL:
+		m.ResetImageURL()
+		return nil
+	case generationoutput.FieldUpscaledImageURL:
+		m.ResetUpscaledImageURL()
+		return nil
+	case generationoutput.FieldGenerationID:
+		m.ResetGenerationID()
+		return nil
+	case generationoutput.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	case generationoutput.FieldUpdatedAt:
+		m.ResetUpdatedAt()
+		return nil
+	}
+	return fmt.Errorf("unknown GenerationOutput field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *GenerationOutputMutation) AddedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.generations != nil {
+		edges = append(edges, generationoutput.EdgeGenerations)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *GenerationOutputMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case generationoutput.EdgeGenerations:
+		if id := m.generations; id != nil {
+			return []ent.Value{*id}
+		}
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *GenerationOutputMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 1)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *GenerationOutputMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *GenerationOutputMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.clearedgenerations {
+		edges = append(edges, generationoutput.EdgeGenerations)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *GenerationOutputMutation) EdgeCleared(name string) bool {
+	switch name {
+	case generationoutput.EdgeGenerations:
+		return m.clearedgenerations
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *GenerationOutputMutation) ClearEdge(name string) error {
+	switch name {
+	case generationoutput.EdgeGenerations:
+		m.ClearGenerations()
+		return nil
+	}
+	return fmt.Errorf("unknown GenerationOutput unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *GenerationOutputMutation) ResetEdge(name string) error {
+	switch name {
+	case generationoutput.EdgeGenerations:
+		m.ResetGenerations()
+		return nil
+	}
+	return fmt.Errorf("unknown GenerationOutput edge %s", name)
 }
 
 // NegativePromptMutation represents an operation that mutates the NegativePrompt nodes in the graph.
 type NegativePromptMutation struct {
 	config
-	op                  Op
-	typ                 string
-	id                  *uuid.UUID
-	text                *string
-	created_at          *time.Time
-	updated_at          *time.Time
-	clearedFields       map[string]struct{}
-	generation          map[uuid.UUID]struct{}
-	removedgeneration   map[uuid.UUID]struct{}
-	clearedgeneration   bool
-	generation_g        map[uuid.UUID]struct{}
-	removedgeneration_g map[uuid.UUID]struct{}
-	clearedgeneration_g bool
-	done                bool
-	oldValue            func(context.Context) (*NegativePrompt, error)
-	predicates          []predicate.NegativePrompt
+	op                 Op
+	typ                string
+	id                 *uuid.UUID
+	text               *string
+	created_at         *time.Time
+	updated_at         *time.Time
+	clearedFields      map[string]struct{}
+	generations        map[uuid.UUID]struct{}
+	removedgenerations map[uuid.UUID]struct{}
+	clearedgenerations bool
+	done               bool
+	oldValue           func(context.Context) (*NegativePrompt, error)
+	predicates         []predicate.NegativePrompt
 }
 
 var _ ent.Mutation = (*NegativePromptMutation)(nil)
@@ -5837,112 +4001,58 @@ func (m *NegativePromptMutation) ResetUpdatedAt() {
 	m.updated_at = nil
 }
 
-// AddGenerationIDs adds the "generation" edge to the Generation entity by ids.
+// AddGenerationIDs adds the "generations" edge to the Generation entity by ids.
 func (m *NegativePromptMutation) AddGenerationIDs(ids ...uuid.UUID) {
-	if m.generation == nil {
-		m.generation = make(map[uuid.UUID]struct{})
+	if m.generations == nil {
+		m.generations = make(map[uuid.UUID]struct{})
 	}
 	for i := range ids {
-		m.generation[ids[i]] = struct{}{}
+		m.generations[ids[i]] = struct{}{}
 	}
 }
 
-// ClearGeneration clears the "generation" edge to the Generation entity.
-func (m *NegativePromptMutation) ClearGeneration() {
-	m.clearedgeneration = true
+// ClearGenerations clears the "generations" edge to the Generation entity.
+func (m *NegativePromptMutation) ClearGenerations() {
+	m.clearedgenerations = true
 }
 
-// GenerationCleared reports if the "generation" edge to the Generation entity was cleared.
-func (m *NegativePromptMutation) GenerationCleared() bool {
-	return m.clearedgeneration
+// GenerationsCleared reports if the "generations" edge to the Generation entity was cleared.
+func (m *NegativePromptMutation) GenerationsCleared() bool {
+	return m.clearedgenerations
 }
 
-// RemoveGenerationIDs removes the "generation" edge to the Generation entity by IDs.
+// RemoveGenerationIDs removes the "generations" edge to the Generation entity by IDs.
 func (m *NegativePromptMutation) RemoveGenerationIDs(ids ...uuid.UUID) {
-	if m.removedgeneration == nil {
-		m.removedgeneration = make(map[uuid.UUID]struct{})
+	if m.removedgenerations == nil {
+		m.removedgenerations = make(map[uuid.UUID]struct{})
 	}
 	for i := range ids {
-		delete(m.generation, ids[i])
-		m.removedgeneration[ids[i]] = struct{}{}
+		delete(m.generations, ids[i])
+		m.removedgenerations[ids[i]] = struct{}{}
 	}
 }
 
-// RemovedGeneration returns the removed IDs of the "generation" edge to the Generation entity.
-func (m *NegativePromptMutation) RemovedGenerationIDs() (ids []uuid.UUID) {
-	for id := range m.removedgeneration {
+// RemovedGenerations returns the removed IDs of the "generations" edge to the Generation entity.
+func (m *NegativePromptMutation) RemovedGenerationsIDs() (ids []uuid.UUID) {
+	for id := range m.removedgenerations {
 		ids = append(ids, id)
 	}
 	return
 }
 
-// GenerationIDs returns the "generation" edge IDs in the mutation.
-func (m *NegativePromptMutation) GenerationIDs() (ids []uuid.UUID) {
-	for id := range m.generation {
+// GenerationsIDs returns the "generations" edge IDs in the mutation.
+func (m *NegativePromptMutation) GenerationsIDs() (ids []uuid.UUID) {
+	for id := range m.generations {
 		ids = append(ids, id)
 	}
 	return
 }
 
-// ResetGeneration resets all changes to the "generation" edge.
-func (m *NegativePromptMutation) ResetGeneration() {
-	m.generation = nil
-	m.clearedgeneration = false
-	m.removedgeneration = nil
-}
-
-// AddGenerationGIDs adds the "generation_g" edge to the GenerationG entity by ids.
-func (m *NegativePromptMutation) AddGenerationGIDs(ids ...uuid.UUID) {
-	if m.generation_g == nil {
-		m.generation_g = make(map[uuid.UUID]struct{})
-	}
-	for i := range ids {
-		m.generation_g[ids[i]] = struct{}{}
-	}
-}
-
-// ClearGenerationG clears the "generation_g" edge to the GenerationG entity.
-func (m *NegativePromptMutation) ClearGenerationG() {
-	m.clearedgeneration_g = true
-}
-
-// GenerationGCleared reports if the "generation_g" edge to the GenerationG entity was cleared.
-func (m *NegativePromptMutation) GenerationGCleared() bool {
-	return m.clearedgeneration_g
-}
-
-// RemoveGenerationGIDs removes the "generation_g" edge to the GenerationG entity by IDs.
-func (m *NegativePromptMutation) RemoveGenerationGIDs(ids ...uuid.UUID) {
-	if m.removedgeneration_g == nil {
-		m.removedgeneration_g = make(map[uuid.UUID]struct{})
-	}
-	for i := range ids {
-		delete(m.generation_g, ids[i])
-		m.removedgeneration_g[ids[i]] = struct{}{}
-	}
-}
-
-// RemovedGenerationG returns the removed IDs of the "generation_g" edge to the GenerationG entity.
-func (m *NegativePromptMutation) RemovedGenerationGIDs() (ids []uuid.UUID) {
-	for id := range m.removedgeneration_g {
-		ids = append(ids, id)
-	}
-	return
-}
-
-// GenerationGIDs returns the "generation_g" edge IDs in the mutation.
-func (m *NegativePromptMutation) GenerationGIDs() (ids []uuid.UUID) {
-	for id := range m.generation_g {
-		ids = append(ids, id)
-	}
-	return
-}
-
-// ResetGenerationG resets all changes to the "generation_g" edge.
-func (m *NegativePromptMutation) ResetGenerationG() {
-	m.generation_g = nil
-	m.clearedgeneration_g = false
-	m.removedgeneration_g = nil
+// ResetGenerations resets all changes to the "generations" edge.
+func (m *NegativePromptMutation) ResetGenerations() {
+	m.generations = nil
+	m.clearedgenerations = false
+	m.removedgenerations = nil
 }
 
 // Where appends a list predicates to the NegativePromptMutation builder.
@@ -6112,12 +4222,9 @@ func (m *NegativePromptMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *NegativePromptMutation) AddedEdges() []string {
-	edges := make([]string, 0, 2)
-	if m.generation != nil {
-		edges = append(edges, negativeprompt.EdgeGeneration)
-	}
-	if m.generation_g != nil {
-		edges = append(edges, negativeprompt.EdgeGenerationG)
+	edges := make([]string, 0, 1)
+	if m.generations != nil {
+		edges = append(edges, negativeprompt.EdgeGenerations)
 	}
 	return edges
 }
@@ -6126,15 +4233,9 @@ func (m *NegativePromptMutation) AddedEdges() []string {
 // name in this mutation.
 func (m *NegativePromptMutation) AddedIDs(name string) []ent.Value {
 	switch name {
-	case negativeprompt.EdgeGeneration:
-		ids := make([]ent.Value, 0, len(m.generation))
-		for id := range m.generation {
-			ids = append(ids, id)
-		}
-		return ids
-	case negativeprompt.EdgeGenerationG:
-		ids := make([]ent.Value, 0, len(m.generation_g))
-		for id := range m.generation_g {
+	case negativeprompt.EdgeGenerations:
+		ids := make([]ent.Value, 0, len(m.generations))
+		for id := range m.generations {
 			ids = append(ids, id)
 		}
 		return ids
@@ -6144,12 +4245,9 @@ func (m *NegativePromptMutation) AddedIDs(name string) []ent.Value {
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *NegativePromptMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 2)
-	if m.removedgeneration != nil {
-		edges = append(edges, negativeprompt.EdgeGeneration)
-	}
-	if m.removedgeneration_g != nil {
-		edges = append(edges, negativeprompt.EdgeGenerationG)
+	edges := make([]string, 0, 1)
+	if m.removedgenerations != nil {
+		edges = append(edges, negativeprompt.EdgeGenerations)
 	}
 	return edges
 }
@@ -6158,15 +4256,9 @@ func (m *NegativePromptMutation) RemovedEdges() []string {
 // the given name in this mutation.
 func (m *NegativePromptMutation) RemovedIDs(name string) []ent.Value {
 	switch name {
-	case negativeprompt.EdgeGeneration:
-		ids := make([]ent.Value, 0, len(m.removedgeneration))
-		for id := range m.removedgeneration {
-			ids = append(ids, id)
-		}
-		return ids
-	case negativeprompt.EdgeGenerationG:
-		ids := make([]ent.Value, 0, len(m.removedgeneration_g))
-		for id := range m.removedgeneration_g {
+	case negativeprompt.EdgeGenerations:
+		ids := make([]ent.Value, 0, len(m.removedgenerations))
+		for id := range m.removedgenerations {
 			ids = append(ids, id)
 		}
 		return ids
@@ -6176,12 +4268,9 @@ func (m *NegativePromptMutation) RemovedIDs(name string) []ent.Value {
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *NegativePromptMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 2)
-	if m.clearedgeneration {
-		edges = append(edges, negativeprompt.EdgeGeneration)
-	}
-	if m.clearedgeneration_g {
-		edges = append(edges, negativeprompt.EdgeGenerationG)
+	edges := make([]string, 0, 1)
+	if m.clearedgenerations {
+		edges = append(edges, negativeprompt.EdgeGenerations)
 	}
 	return edges
 }
@@ -6190,10 +4279,8 @@ func (m *NegativePromptMutation) ClearedEdges() []string {
 // was cleared in this mutation.
 func (m *NegativePromptMutation) EdgeCleared(name string) bool {
 	switch name {
-	case negativeprompt.EdgeGeneration:
-		return m.clearedgeneration
-	case negativeprompt.EdgeGenerationG:
-		return m.clearedgeneration_g
+	case negativeprompt.EdgeGenerations:
+		return m.clearedgenerations
 	}
 	return false
 }
@@ -6210,11 +4297,8 @@ func (m *NegativePromptMutation) ClearEdge(name string) error {
 // It returns an error if the edge is not defined in the schema.
 func (m *NegativePromptMutation) ResetEdge(name string) error {
 	switch name {
-	case negativeprompt.EdgeGeneration:
-		m.ResetGeneration()
-		return nil
-	case negativeprompt.EdgeGenerationG:
-		m.ResetGenerationG()
+	case negativeprompt.EdgeGenerations:
+		m.ResetGenerations()
 		return nil
 	}
 	return fmt.Errorf("unknown NegativePrompt edge %s", name)
@@ -6223,22 +4307,19 @@ func (m *NegativePromptMutation) ResetEdge(name string) error {
 // PromptMutation represents an operation that mutates the Prompt nodes in the graph.
 type PromptMutation struct {
 	config
-	op                  Op
-	typ                 string
-	id                  *uuid.UUID
-	text                *string
-	created_at          *time.Time
-	updated_at          *time.Time
-	clearedFields       map[string]struct{}
-	generation          map[uuid.UUID]struct{}
-	removedgeneration   map[uuid.UUID]struct{}
-	clearedgeneration   bool
-	generation_g        map[uuid.UUID]struct{}
-	removedgeneration_g map[uuid.UUID]struct{}
-	clearedgeneration_g bool
-	done                bool
-	oldValue            func(context.Context) (*Prompt, error)
-	predicates          []predicate.Prompt
+	op                 Op
+	typ                string
+	id                 *uuid.UUID
+	text               *string
+	created_at         *time.Time
+	updated_at         *time.Time
+	clearedFields      map[string]struct{}
+	generations        map[uuid.UUID]struct{}
+	removedgenerations map[uuid.UUID]struct{}
+	clearedgenerations bool
+	done               bool
+	oldValue           func(context.Context) (*Prompt, error)
+	predicates         []predicate.Prompt
 }
 
 var _ ent.Mutation = (*PromptMutation)(nil)
@@ -6453,112 +4534,58 @@ func (m *PromptMutation) ResetUpdatedAt() {
 	m.updated_at = nil
 }
 
-// AddGenerationIDs adds the "generation" edge to the Generation entity by ids.
+// AddGenerationIDs adds the "generations" edge to the Generation entity by ids.
 func (m *PromptMutation) AddGenerationIDs(ids ...uuid.UUID) {
-	if m.generation == nil {
-		m.generation = make(map[uuid.UUID]struct{})
+	if m.generations == nil {
+		m.generations = make(map[uuid.UUID]struct{})
 	}
 	for i := range ids {
-		m.generation[ids[i]] = struct{}{}
+		m.generations[ids[i]] = struct{}{}
 	}
 }
 
-// ClearGeneration clears the "generation" edge to the Generation entity.
-func (m *PromptMutation) ClearGeneration() {
-	m.clearedgeneration = true
+// ClearGenerations clears the "generations" edge to the Generation entity.
+func (m *PromptMutation) ClearGenerations() {
+	m.clearedgenerations = true
 }
 
-// GenerationCleared reports if the "generation" edge to the Generation entity was cleared.
-func (m *PromptMutation) GenerationCleared() bool {
-	return m.clearedgeneration
+// GenerationsCleared reports if the "generations" edge to the Generation entity was cleared.
+func (m *PromptMutation) GenerationsCleared() bool {
+	return m.clearedgenerations
 }
 
-// RemoveGenerationIDs removes the "generation" edge to the Generation entity by IDs.
+// RemoveGenerationIDs removes the "generations" edge to the Generation entity by IDs.
 func (m *PromptMutation) RemoveGenerationIDs(ids ...uuid.UUID) {
-	if m.removedgeneration == nil {
-		m.removedgeneration = make(map[uuid.UUID]struct{})
+	if m.removedgenerations == nil {
+		m.removedgenerations = make(map[uuid.UUID]struct{})
 	}
 	for i := range ids {
-		delete(m.generation, ids[i])
-		m.removedgeneration[ids[i]] = struct{}{}
+		delete(m.generations, ids[i])
+		m.removedgenerations[ids[i]] = struct{}{}
 	}
 }
 
-// RemovedGeneration returns the removed IDs of the "generation" edge to the Generation entity.
-func (m *PromptMutation) RemovedGenerationIDs() (ids []uuid.UUID) {
-	for id := range m.removedgeneration {
+// RemovedGenerations returns the removed IDs of the "generations" edge to the Generation entity.
+func (m *PromptMutation) RemovedGenerationsIDs() (ids []uuid.UUID) {
+	for id := range m.removedgenerations {
 		ids = append(ids, id)
 	}
 	return
 }
 
-// GenerationIDs returns the "generation" edge IDs in the mutation.
-func (m *PromptMutation) GenerationIDs() (ids []uuid.UUID) {
-	for id := range m.generation {
+// GenerationsIDs returns the "generations" edge IDs in the mutation.
+func (m *PromptMutation) GenerationsIDs() (ids []uuid.UUID) {
+	for id := range m.generations {
 		ids = append(ids, id)
 	}
 	return
 }
 
-// ResetGeneration resets all changes to the "generation" edge.
-func (m *PromptMutation) ResetGeneration() {
-	m.generation = nil
-	m.clearedgeneration = false
-	m.removedgeneration = nil
-}
-
-// AddGenerationGIDs adds the "generation_g" edge to the GenerationG entity by ids.
-func (m *PromptMutation) AddGenerationGIDs(ids ...uuid.UUID) {
-	if m.generation_g == nil {
-		m.generation_g = make(map[uuid.UUID]struct{})
-	}
-	for i := range ids {
-		m.generation_g[ids[i]] = struct{}{}
-	}
-}
-
-// ClearGenerationG clears the "generation_g" edge to the GenerationG entity.
-func (m *PromptMutation) ClearGenerationG() {
-	m.clearedgeneration_g = true
-}
-
-// GenerationGCleared reports if the "generation_g" edge to the GenerationG entity was cleared.
-func (m *PromptMutation) GenerationGCleared() bool {
-	return m.clearedgeneration_g
-}
-
-// RemoveGenerationGIDs removes the "generation_g" edge to the GenerationG entity by IDs.
-func (m *PromptMutation) RemoveGenerationGIDs(ids ...uuid.UUID) {
-	if m.removedgeneration_g == nil {
-		m.removedgeneration_g = make(map[uuid.UUID]struct{})
-	}
-	for i := range ids {
-		delete(m.generation_g, ids[i])
-		m.removedgeneration_g[ids[i]] = struct{}{}
-	}
-}
-
-// RemovedGenerationG returns the removed IDs of the "generation_g" edge to the GenerationG entity.
-func (m *PromptMutation) RemovedGenerationGIDs() (ids []uuid.UUID) {
-	for id := range m.removedgeneration_g {
-		ids = append(ids, id)
-	}
-	return
-}
-
-// GenerationGIDs returns the "generation_g" edge IDs in the mutation.
-func (m *PromptMutation) GenerationGIDs() (ids []uuid.UUID) {
-	for id := range m.generation_g {
-		ids = append(ids, id)
-	}
-	return
-}
-
-// ResetGenerationG resets all changes to the "generation_g" edge.
-func (m *PromptMutation) ResetGenerationG() {
-	m.generation_g = nil
-	m.clearedgeneration_g = false
-	m.removedgeneration_g = nil
+// ResetGenerations resets all changes to the "generations" edge.
+func (m *PromptMutation) ResetGenerations() {
+	m.generations = nil
+	m.clearedgenerations = false
+	m.removedgenerations = nil
 }
 
 // Where appends a list predicates to the PromptMutation builder.
@@ -6728,12 +4755,9 @@ func (m *PromptMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *PromptMutation) AddedEdges() []string {
-	edges := make([]string, 0, 2)
-	if m.generation != nil {
-		edges = append(edges, prompt.EdgeGeneration)
-	}
-	if m.generation_g != nil {
-		edges = append(edges, prompt.EdgeGenerationG)
+	edges := make([]string, 0, 1)
+	if m.generations != nil {
+		edges = append(edges, prompt.EdgeGenerations)
 	}
 	return edges
 }
@@ -6742,15 +4766,9 @@ func (m *PromptMutation) AddedEdges() []string {
 // name in this mutation.
 func (m *PromptMutation) AddedIDs(name string) []ent.Value {
 	switch name {
-	case prompt.EdgeGeneration:
-		ids := make([]ent.Value, 0, len(m.generation))
-		for id := range m.generation {
-			ids = append(ids, id)
-		}
-		return ids
-	case prompt.EdgeGenerationG:
-		ids := make([]ent.Value, 0, len(m.generation_g))
-		for id := range m.generation_g {
+	case prompt.EdgeGenerations:
+		ids := make([]ent.Value, 0, len(m.generations))
+		for id := range m.generations {
 			ids = append(ids, id)
 		}
 		return ids
@@ -6760,12 +4778,9 @@ func (m *PromptMutation) AddedIDs(name string) []ent.Value {
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *PromptMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 2)
-	if m.removedgeneration != nil {
-		edges = append(edges, prompt.EdgeGeneration)
-	}
-	if m.removedgeneration_g != nil {
-		edges = append(edges, prompt.EdgeGenerationG)
+	edges := make([]string, 0, 1)
+	if m.removedgenerations != nil {
+		edges = append(edges, prompt.EdgeGenerations)
 	}
 	return edges
 }
@@ -6774,15 +4789,9 @@ func (m *PromptMutation) RemovedEdges() []string {
 // the given name in this mutation.
 func (m *PromptMutation) RemovedIDs(name string) []ent.Value {
 	switch name {
-	case prompt.EdgeGeneration:
-		ids := make([]ent.Value, 0, len(m.removedgeneration))
-		for id := range m.removedgeneration {
-			ids = append(ids, id)
-		}
-		return ids
-	case prompt.EdgeGenerationG:
-		ids := make([]ent.Value, 0, len(m.removedgeneration_g))
-		for id := range m.removedgeneration_g {
+	case prompt.EdgeGenerations:
+		ids := make([]ent.Value, 0, len(m.removedgenerations))
+		for id := range m.removedgenerations {
 			ids = append(ids, id)
 		}
 		return ids
@@ -6792,12 +4801,9 @@ func (m *PromptMutation) RemovedIDs(name string) []ent.Value {
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *PromptMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 2)
-	if m.clearedgeneration {
-		edges = append(edges, prompt.EdgeGeneration)
-	}
-	if m.clearedgeneration_g {
-		edges = append(edges, prompt.EdgeGenerationG)
+	edges := make([]string, 0, 1)
+	if m.clearedgenerations {
+		edges = append(edges, prompt.EdgeGenerations)
 	}
 	return edges
 }
@@ -6806,10 +4812,8 @@ func (m *PromptMutation) ClearedEdges() []string {
 // was cleared in this mutation.
 func (m *PromptMutation) EdgeCleared(name string) bool {
 	switch name {
-	case prompt.EdgeGeneration:
-		return m.clearedgeneration
-	case prompt.EdgeGenerationG:
-		return m.clearedgeneration_g
+	case prompt.EdgeGenerations:
+		return m.clearedgenerations
 	}
 	return false
 }
@@ -6826,11 +4830,8 @@ func (m *PromptMutation) ClearEdge(name string) error {
 // It returns an error if the edge is not defined in the schema.
 func (m *PromptMutation) ResetEdge(name string) error {
 	switch name {
-	case prompt.EdgeGeneration:
-		m.ResetGeneration()
-		return nil
-	case prompt.EdgeGenerationG:
-		m.ResetGenerationG()
+	case prompt.EdgeGenerations:
+		m.ResetGenerations()
 		return nil
 	}
 	return fmt.Errorf("unknown Prompt edge %s", name)
@@ -6839,22 +4840,19 @@ func (m *PromptMutation) ResetEdge(name string) error {
 // SchedulerMutation represents an operation that mutates the Scheduler nodes in the graph.
 type SchedulerMutation struct {
 	config
-	op                  Op
-	typ                 string
-	id                  *uuid.UUID
-	name                *string
-	created_at          *time.Time
-	updated_at          *time.Time
-	clearedFields       map[string]struct{}
-	generation          map[uuid.UUID]struct{}
-	removedgeneration   map[uuid.UUID]struct{}
-	clearedgeneration   bool
-	generation_g        map[uuid.UUID]struct{}
-	removedgeneration_g map[uuid.UUID]struct{}
-	clearedgeneration_g bool
-	done                bool
-	oldValue            func(context.Context) (*Scheduler, error)
-	predicates          []predicate.Scheduler
+	op                 Op
+	typ                string
+	id                 *uuid.UUID
+	name               *string
+	created_at         *time.Time
+	updated_at         *time.Time
+	clearedFields      map[string]struct{}
+	generations        map[uuid.UUID]struct{}
+	removedgenerations map[uuid.UUID]struct{}
+	clearedgenerations bool
+	done               bool
+	oldValue           func(context.Context) (*Scheduler, error)
+	predicates         []predicate.Scheduler
 }
 
 var _ ent.Mutation = (*SchedulerMutation)(nil)
@@ -7069,112 +5067,58 @@ func (m *SchedulerMutation) ResetUpdatedAt() {
 	m.updated_at = nil
 }
 
-// AddGenerationIDs adds the "generation" edge to the Generation entity by ids.
+// AddGenerationIDs adds the "generations" edge to the Generation entity by ids.
 func (m *SchedulerMutation) AddGenerationIDs(ids ...uuid.UUID) {
-	if m.generation == nil {
-		m.generation = make(map[uuid.UUID]struct{})
+	if m.generations == nil {
+		m.generations = make(map[uuid.UUID]struct{})
 	}
 	for i := range ids {
-		m.generation[ids[i]] = struct{}{}
+		m.generations[ids[i]] = struct{}{}
 	}
 }
 
-// ClearGeneration clears the "generation" edge to the Generation entity.
-func (m *SchedulerMutation) ClearGeneration() {
-	m.clearedgeneration = true
+// ClearGenerations clears the "generations" edge to the Generation entity.
+func (m *SchedulerMutation) ClearGenerations() {
+	m.clearedgenerations = true
 }
 
-// GenerationCleared reports if the "generation" edge to the Generation entity was cleared.
-func (m *SchedulerMutation) GenerationCleared() bool {
-	return m.clearedgeneration
+// GenerationsCleared reports if the "generations" edge to the Generation entity was cleared.
+func (m *SchedulerMutation) GenerationsCleared() bool {
+	return m.clearedgenerations
 }
 
-// RemoveGenerationIDs removes the "generation" edge to the Generation entity by IDs.
+// RemoveGenerationIDs removes the "generations" edge to the Generation entity by IDs.
 func (m *SchedulerMutation) RemoveGenerationIDs(ids ...uuid.UUID) {
-	if m.removedgeneration == nil {
-		m.removedgeneration = make(map[uuid.UUID]struct{})
+	if m.removedgenerations == nil {
+		m.removedgenerations = make(map[uuid.UUID]struct{})
 	}
 	for i := range ids {
-		delete(m.generation, ids[i])
-		m.removedgeneration[ids[i]] = struct{}{}
+		delete(m.generations, ids[i])
+		m.removedgenerations[ids[i]] = struct{}{}
 	}
 }
 
-// RemovedGeneration returns the removed IDs of the "generation" edge to the Generation entity.
-func (m *SchedulerMutation) RemovedGenerationIDs() (ids []uuid.UUID) {
-	for id := range m.removedgeneration {
+// RemovedGenerations returns the removed IDs of the "generations" edge to the Generation entity.
+func (m *SchedulerMutation) RemovedGenerationsIDs() (ids []uuid.UUID) {
+	for id := range m.removedgenerations {
 		ids = append(ids, id)
 	}
 	return
 }
 
-// GenerationIDs returns the "generation" edge IDs in the mutation.
-func (m *SchedulerMutation) GenerationIDs() (ids []uuid.UUID) {
-	for id := range m.generation {
+// GenerationsIDs returns the "generations" edge IDs in the mutation.
+func (m *SchedulerMutation) GenerationsIDs() (ids []uuid.UUID) {
+	for id := range m.generations {
 		ids = append(ids, id)
 	}
 	return
 }
 
-// ResetGeneration resets all changes to the "generation" edge.
-func (m *SchedulerMutation) ResetGeneration() {
-	m.generation = nil
-	m.clearedgeneration = false
-	m.removedgeneration = nil
-}
-
-// AddGenerationGIDs adds the "generation_g" edge to the GenerationG entity by ids.
-func (m *SchedulerMutation) AddGenerationGIDs(ids ...uuid.UUID) {
-	if m.generation_g == nil {
-		m.generation_g = make(map[uuid.UUID]struct{})
-	}
-	for i := range ids {
-		m.generation_g[ids[i]] = struct{}{}
-	}
-}
-
-// ClearGenerationG clears the "generation_g" edge to the GenerationG entity.
-func (m *SchedulerMutation) ClearGenerationG() {
-	m.clearedgeneration_g = true
-}
-
-// GenerationGCleared reports if the "generation_g" edge to the GenerationG entity was cleared.
-func (m *SchedulerMutation) GenerationGCleared() bool {
-	return m.clearedgeneration_g
-}
-
-// RemoveGenerationGIDs removes the "generation_g" edge to the GenerationG entity by IDs.
-func (m *SchedulerMutation) RemoveGenerationGIDs(ids ...uuid.UUID) {
-	if m.removedgeneration_g == nil {
-		m.removedgeneration_g = make(map[uuid.UUID]struct{})
-	}
-	for i := range ids {
-		delete(m.generation_g, ids[i])
-		m.removedgeneration_g[ids[i]] = struct{}{}
-	}
-}
-
-// RemovedGenerationG returns the removed IDs of the "generation_g" edge to the GenerationG entity.
-func (m *SchedulerMutation) RemovedGenerationGIDs() (ids []uuid.UUID) {
-	for id := range m.removedgeneration_g {
-		ids = append(ids, id)
-	}
-	return
-}
-
-// GenerationGIDs returns the "generation_g" edge IDs in the mutation.
-func (m *SchedulerMutation) GenerationGIDs() (ids []uuid.UUID) {
-	for id := range m.generation_g {
-		ids = append(ids, id)
-	}
-	return
-}
-
-// ResetGenerationG resets all changes to the "generation_g" edge.
-func (m *SchedulerMutation) ResetGenerationG() {
-	m.generation_g = nil
-	m.clearedgeneration_g = false
-	m.removedgeneration_g = nil
+// ResetGenerations resets all changes to the "generations" edge.
+func (m *SchedulerMutation) ResetGenerations() {
+	m.generations = nil
+	m.clearedgenerations = false
+	m.removedgenerations = nil
 }
 
 // Where appends a list predicates to the SchedulerMutation builder.
@@ -7344,12 +5288,9 @@ func (m *SchedulerMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *SchedulerMutation) AddedEdges() []string {
-	edges := make([]string, 0, 2)
-	if m.generation != nil {
-		edges = append(edges, scheduler.EdgeGeneration)
-	}
-	if m.generation_g != nil {
-		edges = append(edges, scheduler.EdgeGenerationG)
+	edges := make([]string, 0, 1)
+	if m.generations != nil {
+		edges = append(edges, scheduler.EdgeGenerations)
 	}
 	return edges
 }
@@ -7358,15 +5299,9 @@ func (m *SchedulerMutation) AddedEdges() []string {
 // name in this mutation.
 func (m *SchedulerMutation) AddedIDs(name string) []ent.Value {
 	switch name {
-	case scheduler.EdgeGeneration:
-		ids := make([]ent.Value, 0, len(m.generation))
-		for id := range m.generation {
-			ids = append(ids, id)
-		}
-		return ids
-	case scheduler.EdgeGenerationG:
-		ids := make([]ent.Value, 0, len(m.generation_g))
-		for id := range m.generation_g {
+	case scheduler.EdgeGenerations:
+		ids := make([]ent.Value, 0, len(m.generations))
+		for id := range m.generations {
 			ids = append(ids, id)
 		}
 		return ids
@@ -7376,12 +5311,9 @@ func (m *SchedulerMutation) AddedIDs(name string) []ent.Value {
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *SchedulerMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 2)
-	if m.removedgeneration != nil {
-		edges = append(edges, scheduler.EdgeGeneration)
-	}
-	if m.removedgeneration_g != nil {
-		edges = append(edges, scheduler.EdgeGenerationG)
+	edges := make([]string, 0, 1)
+	if m.removedgenerations != nil {
+		edges = append(edges, scheduler.EdgeGenerations)
 	}
 	return edges
 }
@@ -7390,15 +5322,9 @@ func (m *SchedulerMutation) RemovedEdges() []string {
 // the given name in this mutation.
 func (m *SchedulerMutation) RemovedIDs(name string) []ent.Value {
 	switch name {
-	case scheduler.EdgeGeneration:
-		ids := make([]ent.Value, 0, len(m.removedgeneration))
-		for id := range m.removedgeneration {
-			ids = append(ids, id)
-		}
-		return ids
-	case scheduler.EdgeGenerationG:
-		ids := make([]ent.Value, 0, len(m.removedgeneration_g))
-		for id := range m.removedgeneration_g {
+	case scheduler.EdgeGenerations:
+		ids := make([]ent.Value, 0, len(m.removedgenerations))
+		for id := range m.removedgenerations {
 			ids = append(ids, id)
 		}
 		return ids
@@ -7408,12 +5334,9 @@ func (m *SchedulerMutation) RemovedIDs(name string) []ent.Value {
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *SchedulerMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 2)
-	if m.clearedgeneration {
-		edges = append(edges, scheduler.EdgeGeneration)
-	}
-	if m.clearedgeneration_g {
-		edges = append(edges, scheduler.EdgeGenerationG)
+	edges := make([]string, 0, 1)
+	if m.clearedgenerations {
+		edges = append(edges, scheduler.EdgeGenerations)
 	}
 	return edges
 }
@@ -7422,10 +5345,8 @@ func (m *SchedulerMutation) ClearedEdges() []string {
 // was cleared in this mutation.
 func (m *SchedulerMutation) EdgeCleared(name string) bool {
 	switch name {
-	case scheduler.EdgeGeneration:
-		return m.clearedgeneration
-	case scheduler.EdgeGenerationG:
-		return m.clearedgeneration_g
+	case scheduler.EdgeGenerations:
+		return m.clearedgenerations
 	}
 	return false
 }
@@ -7442,739 +5363,11 @@ func (m *SchedulerMutation) ClearEdge(name string) error {
 // It returns an error if the edge is not defined in the schema.
 func (m *SchedulerMutation) ResetEdge(name string) error {
 	switch name {
-	case scheduler.EdgeGeneration:
-		m.ResetGeneration()
-		return nil
-	case scheduler.EdgeGenerationG:
-		m.ResetGenerationG()
+	case scheduler.EdgeGenerations:
+		m.ResetGenerations()
 		return nil
 	}
 	return fmt.Errorf("unknown Scheduler edge %s", name)
-}
-
-// ServerMutation represents an operation that mutates the Server nodes in the graph.
-type ServerMutation struct {
-	config
-	op       Op
-	typ      string
-	id       *uuid.UUID
-	url      *string
-	healthy  *bool
-	enabled  *bool
-	features *struct {
-		Name   string   "json:\"name\""
-		Values []string "json:\"values,omitempty\""
-	}
-	last_health_check_at *time.Time
-	created_at           *time.Time
-	updated_at           *time.Time
-	user_tier            *server.UserTier
-	clearedFields        map[string]struct{}
-	done                 bool
-	oldValue             func(context.Context) (*Server, error)
-	predicates           []predicate.Server
-}
-
-var _ ent.Mutation = (*ServerMutation)(nil)
-
-// serverOption allows management of the mutation configuration using functional options.
-type serverOption func(*ServerMutation)
-
-// newServerMutation creates new mutation for the Server entity.
-func newServerMutation(c config, op Op, opts ...serverOption) *ServerMutation {
-	m := &ServerMutation{
-		config:        c,
-		op:            op,
-		typ:           TypeServer,
-		clearedFields: make(map[string]struct{}),
-	}
-	for _, opt := range opts {
-		opt(m)
-	}
-	return m
-}
-
-// withServerID sets the ID field of the mutation.
-func withServerID(id uuid.UUID) serverOption {
-	return func(m *ServerMutation) {
-		var (
-			err   error
-			once  sync.Once
-			value *Server
-		)
-		m.oldValue = func(ctx context.Context) (*Server, error) {
-			once.Do(func() {
-				if m.done {
-					err = errors.New("querying old values post mutation is not allowed")
-				} else {
-					value, err = m.Client().Server.Get(ctx, id)
-				}
-			})
-			return value, err
-		}
-		m.id = &id
-	}
-}
-
-// withServer sets the old Server of the mutation.
-func withServer(node *Server) serverOption {
-	return func(m *ServerMutation) {
-		m.oldValue = func(context.Context) (*Server, error) {
-			return node, nil
-		}
-		m.id = &node.ID
-	}
-}
-
-// Client returns a new `ent.Client` from the mutation. If the mutation was
-// executed in a transaction (ent.Tx), a transactional client is returned.
-func (m ServerMutation) Client() *Client {
-	client := &Client{config: m.config}
-	client.init()
-	return client
-}
-
-// Tx returns an `ent.Tx` for mutations that were executed in transactions;
-// it returns an error otherwise.
-func (m ServerMutation) Tx() (*Tx, error) {
-	if _, ok := m.driver.(*txDriver); !ok {
-		return nil, errors.New("ent: mutation is not running in a transaction")
-	}
-	tx := &Tx{config: m.config}
-	tx.init()
-	return tx, nil
-}
-
-// SetID sets the value of the id field. Note that this
-// operation is only accepted on creation of Server entities.
-func (m *ServerMutation) SetID(id uuid.UUID) {
-	m.id = &id
-}
-
-// ID returns the ID value in the mutation. Note that the ID is only available
-// if it was provided to the builder or after it was returned from the database.
-func (m *ServerMutation) ID() (id uuid.UUID, exists bool) {
-	if m.id == nil {
-		return
-	}
-	return *m.id, true
-}
-
-// IDs queries the database and returns the entity ids that match the mutation's predicate.
-// That means, if the mutation is applied within a transaction with an isolation level such
-// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
-// or updated by the mutation.
-func (m *ServerMutation) IDs(ctx context.Context) ([]uuid.UUID, error) {
-	switch {
-	case m.op.Is(OpUpdateOne | OpDeleteOne):
-		id, exists := m.ID()
-		if exists {
-			return []uuid.UUID{id}, nil
-		}
-		fallthrough
-	case m.op.Is(OpUpdate | OpDelete):
-		return m.Client().Server.Query().Where(m.predicates...).IDs(ctx)
-	default:
-		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
-	}
-}
-
-// SetURL sets the "url" field.
-func (m *ServerMutation) SetURL(s string) {
-	m.url = &s
-}
-
-// URL returns the value of the "url" field in the mutation.
-func (m *ServerMutation) URL() (r string, exists bool) {
-	v := m.url
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldURL returns the old "url" field's value of the Server entity.
-// If the Server object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *ServerMutation) OldURL(ctx context.Context) (v string, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldURL is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldURL requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldURL: %w", err)
-	}
-	return oldValue.URL, nil
-}
-
-// ResetURL resets all changes to the "url" field.
-func (m *ServerMutation) ResetURL() {
-	m.url = nil
-}
-
-// SetHealthy sets the "healthy" field.
-func (m *ServerMutation) SetHealthy(b bool) {
-	m.healthy = &b
-}
-
-// Healthy returns the value of the "healthy" field in the mutation.
-func (m *ServerMutation) Healthy() (r bool, exists bool) {
-	v := m.healthy
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldHealthy returns the old "healthy" field's value of the Server entity.
-// If the Server object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *ServerMutation) OldHealthy(ctx context.Context) (v bool, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldHealthy is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldHealthy requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldHealthy: %w", err)
-	}
-	return oldValue.Healthy, nil
-}
-
-// ResetHealthy resets all changes to the "healthy" field.
-func (m *ServerMutation) ResetHealthy() {
-	m.healthy = nil
-}
-
-// SetEnabled sets the "enabled" field.
-func (m *ServerMutation) SetEnabled(b bool) {
-	m.enabled = &b
-}
-
-// Enabled returns the value of the "enabled" field in the mutation.
-func (m *ServerMutation) Enabled() (r bool, exists bool) {
-	v := m.enabled
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldEnabled returns the old "enabled" field's value of the Server entity.
-// If the Server object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *ServerMutation) OldEnabled(ctx context.Context) (v bool, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldEnabled is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldEnabled requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldEnabled: %w", err)
-	}
-	return oldValue.Enabled, nil
-}
-
-// ResetEnabled resets all changes to the "enabled" field.
-func (m *ServerMutation) ResetEnabled() {
-	m.enabled = nil
-}
-
-// SetFeatures sets the "features" field.
-func (m *ServerMutation) SetFeatures(s struct {
-	Name   string   "json:\"name\""
-	Values []string "json:\"values,omitempty\""
-}) {
-	m.features = &s
-}
-
-// Features returns the value of the "features" field in the mutation.
-func (m *ServerMutation) Features() (r struct {
-	Name   string   "json:\"name\""
-	Values []string "json:\"values,omitempty\""
-}, exists bool) {
-	v := m.features
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldFeatures returns the old "features" field's value of the Server entity.
-// If the Server object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *ServerMutation) OldFeatures(ctx context.Context) (v struct {
-	Name   string   "json:\"name\""
-	Values []string "json:\"values,omitempty\""
-}, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldFeatures is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldFeatures requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldFeatures: %w", err)
-	}
-	return oldValue.Features, nil
-}
-
-// ResetFeatures resets all changes to the "features" field.
-func (m *ServerMutation) ResetFeatures() {
-	m.features = nil
-}
-
-// SetLastHealthCheckAt sets the "last_health_check_at" field.
-func (m *ServerMutation) SetLastHealthCheckAt(t time.Time) {
-	m.last_health_check_at = &t
-}
-
-// LastHealthCheckAt returns the value of the "last_health_check_at" field in the mutation.
-func (m *ServerMutation) LastHealthCheckAt() (r time.Time, exists bool) {
-	v := m.last_health_check_at
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldLastHealthCheckAt returns the old "last_health_check_at" field's value of the Server entity.
-// If the Server object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *ServerMutation) OldLastHealthCheckAt(ctx context.Context) (v time.Time, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldLastHealthCheckAt is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldLastHealthCheckAt requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldLastHealthCheckAt: %w", err)
-	}
-	return oldValue.LastHealthCheckAt, nil
-}
-
-// ResetLastHealthCheckAt resets all changes to the "last_health_check_at" field.
-func (m *ServerMutation) ResetLastHealthCheckAt() {
-	m.last_health_check_at = nil
-}
-
-// SetCreatedAt sets the "created_at" field.
-func (m *ServerMutation) SetCreatedAt(t time.Time) {
-	m.created_at = &t
-}
-
-// CreatedAt returns the value of the "created_at" field in the mutation.
-func (m *ServerMutation) CreatedAt() (r time.Time, exists bool) {
-	v := m.created_at
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldCreatedAt returns the old "created_at" field's value of the Server entity.
-// If the Server object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *ServerMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
-	}
-	return oldValue.CreatedAt, nil
-}
-
-// ResetCreatedAt resets all changes to the "created_at" field.
-func (m *ServerMutation) ResetCreatedAt() {
-	m.created_at = nil
-}
-
-// SetUpdatedAt sets the "updated_at" field.
-func (m *ServerMutation) SetUpdatedAt(t time.Time) {
-	m.updated_at = &t
-}
-
-// UpdatedAt returns the value of the "updated_at" field in the mutation.
-func (m *ServerMutation) UpdatedAt() (r time.Time, exists bool) {
-	v := m.updated_at
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldUpdatedAt returns the old "updated_at" field's value of the Server entity.
-// If the Server object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *ServerMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldUpdatedAt requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
-	}
-	return oldValue.UpdatedAt, nil
-}
-
-// ResetUpdatedAt resets all changes to the "updated_at" field.
-func (m *ServerMutation) ResetUpdatedAt() {
-	m.updated_at = nil
-}
-
-// SetUserTier sets the "user_tier" field.
-func (m *ServerMutation) SetUserTier(st server.UserTier) {
-	m.user_tier = &st
-}
-
-// UserTier returns the value of the "user_tier" field in the mutation.
-func (m *ServerMutation) UserTier() (r server.UserTier, exists bool) {
-	v := m.user_tier
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldUserTier returns the old "user_tier" field's value of the Server entity.
-// If the Server object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *ServerMutation) OldUserTier(ctx context.Context) (v server.UserTier, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldUserTier is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldUserTier requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldUserTier: %w", err)
-	}
-	return oldValue.UserTier, nil
-}
-
-// ResetUserTier resets all changes to the "user_tier" field.
-func (m *ServerMutation) ResetUserTier() {
-	m.user_tier = nil
-}
-
-// Where appends a list predicates to the ServerMutation builder.
-func (m *ServerMutation) Where(ps ...predicate.Server) {
-	m.predicates = append(m.predicates, ps...)
-}
-
-// WhereP appends storage-level predicates to the ServerMutation builder. Using this method,
-// users can use type-assertion to append predicates that do not depend on any generated package.
-func (m *ServerMutation) WhereP(ps ...func(*sql.Selector)) {
-	p := make([]predicate.Server, len(ps))
-	for i := range ps {
-		p[i] = ps[i]
-	}
-	m.Where(p...)
-}
-
-// Op returns the operation name.
-func (m *ServerMutation) Op() Op {
-	return m.op
-}
-
-// SetOp allows setting the mutation operation.
-func (m *ServerMutation) SetOp(op Op) {
-	m.op = op
-}
-
-// Type returns the node type of this mutation (Server).
-func (m *ServerMutation) Type() string {
-	return m.typ
-}
-
-// Fields returns all fields that were changed during this mutation. Note that in
-// order to get all numeric fields that were incremented/decremented, call
-// AddedFields().
-func (m *ServerMutation) Fields() []string {
-	fields := make([]string, 0, 8)
-	if m.url != nil {
-		fields = append(fields, server.FieldURL)
-	}
-	if m.healthy != nil {
-		fields = append(fields, server.FieldHealthy)
-	}
-	if m.enabled != nil {
-		fields = append(fields, server.FieldEnabled)
-	}
-	if m.features != nil {
-		fields = append(fields, server.FieldFeatures)
-	}
-	if m.last_health_check_at != nil {
-		fields = append(fields, server.FieldLastHealthCheckAt)
-	}
-	if m.created_at != nil {
-		fields = append(fields, server.FieldCreatedAt)
-	}
-	if m.updated_at != nil {
-		fields = append(fields, server.FieldUpdatedAt)
-	}
-	if m.user_tier != nil {
-		fields = append(fields, server.FieldUserTier)
-	}
-	return fields
-}
-
-// Field returns the value of a field with the given name. The second boolean
-// return value indicates that this field was not set, or was not defined in the
-// schema.
-func (m *ServerMutation) Field(name string) (ent.Value, bool) {
-	switch name {
-	case server.FieldURL:
-		return m.URL()
-	case server.FieldHealthy:
-		return m.Healthy()
-	case server.FieldEnabled:
-		return m.Enabled()
-	case server.FieldFeatures:
-		return m.Features()
-	case server.FieldLastHealthCheckAt:
-		return m.LastHealthCheckAt()
-	case server.FieldCreatedAt:
-		return m.CreatedAt()
-	case server.FieldUpdatedAt:
-		return m.UpdatedAt()
-	case server.FieldUserTier:
-		return m.UserTier()
-	}
-	return nil, false
-}
-
-// OldField returns the old value of the field from the database. An error is
-// returned if the mutation operation is not UpdateOne, or the query to the
-// database failed.
-func (m *ServerMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
-	switch name {
-	case server.FieldURL:
-		return m.OldURL(ctx)
-	case server.FieldHealthy:
-		return m.OldHealthy(ctx)
-	case server.FieldEnabled:
-		return m.OldEnabled(ctx)
-	case server.FieldFeatures:
-		return m.OldFeatures(ctx)
-	case server.FieldLastHealthCheckAt:
-		return m.OldLastHealthCheckAt(ctx)
-	case server.FieldCreatedAt:
-		return m.OldCreatedAt(ctx)
-	case server.FieldUpdatedAt:
-		return m.OldUpdatedAt(ctx)
-	case server.FieldUserTier:
-		return m.OldUserTier(ctx)
-	}
-	return nil, fmt.Errorf("unknown Server field %s", name)
-}
-
-// SetField sets the value of a field with the given name. It returns an error if
-// the field is not defined in the schema, or if the type mismatched the field
-// type.
-func (m *ServerMutation) SetField(name string, value ent.Value) error {
-	switch name {
-	case server.FieldURL:
-		v, ok := value.(string)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetURL(v)
-		return nil
-	case server.FieldHealthy:
-		v, ok := value.(bool)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetHealthy(v)
-		return nil
-	case server.FieldEnabled:
-		v, ok := value.(bool)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetEnabled(v)
-		return nil
-	case server.FieldFeatures:
-		v, ok := value.(struct {
-			Name   string   "json:\"name\""
-			Values []string "json:\"values,omitempty\""
-		})
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetFeatures(v)
-		return nil
-	case server.FieldLastHealthCheckAt:
-		v, ok := value.(time.Time)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetLastHealthCheckAt(v)
-		return nil
-	case server.FieldCreatedAt:
-		v, ok := value.(time.Time)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetCreatedAt(v)
-		return nil
-	case server.FieldUpdatedAt:
-		v, ok := value.(time.Time)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetUpdatedAt(v)
-		return nil
-	case server.FieldUserTier:
-		v, ok := value.(server.UserTier)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetUserTier(v)
-		return nil
-	}
-	return fmt.Errorf("unknown Server field %s", name)
-}
-
-// AddedFields returns all numeric fields that were incremented/decremented during
-// this mutation.
-func (m *ServerMutation) AddedFields() []string {
-	return nil
-}
-
-// AddedField returns the numeric value that was incremented/decremented on a field
-// with the given name. The second boolean return value indicates that this field
-// was not set, or was not defined in the schema.
-func (m *ServerMutation) AddedField(name string) (ent.Value, bool) {
-	return nil, false
-}
-
-// AddField adds the value to the field with the given name. It returns an error if
-// the field is not defined in the schema, or if the type mismatched the field
-// type.
-func (m *ServerMutation) AddField(name string, value ent.Value) error {
-	switch name {
-	}
-	return fmt.Errorf("unknown Server numeric field %s", name)
-}
-
-// ClearedFields returns all nullable fields that were cleared during this
-// mutation.
-func (m *ServerMutation) ClearedFields() []string {
-	return nil
-}
-
-// FieldCleared returns a boolean indicating if a field with the given name was
-// cleared in this mutation.
-func (m *ServerMutation) FieldCleared(name string) bool {
-	_, ok := m.clearedFields[name]
-	return ok
-}
-
-// ClearField clears the value of the field with the given name. It returns an
-// error if the field is not defined in the schema.
-func (m *ServerMutation) ClearField(name string) error {
-	return fmt.Errorf("unknown Server nullable field %s", name)
-}
-
-// ResetField resets all changes in the mutation for the field with the given name.
-// It returns an error if the field is not defined in the schema.
-func (m *ServerMutation) ResetField(name string) error {
-	switch name {
-	case server.FieldURL:
-		m.ResetURL()
-		return nil
-	case server.FieldHealthy:
-		m.ResetHealthy()
-		return nil
-	case server.FieldEnabled:
-		m.ResetEnabled()
-		return nil
-	case server.FieldFeatures:
-		m.ResetFeatures()
-		return nil
-	case server.FieldLastHealthCheckAt:
-		m.ResetLastHealthCheckAt()
-		return nil
-	case server.FieldCreatedAt:
-		m.ResetCreatedAt()
-		return nil
-	case server.FieldUpdatedAt:
-		m.ResetUpdatedAt()
-		return nil
-	case server.FieldUserTier:
-		m.ResetUserTier()
-		return nil
-	}
-	return fmt.Errorf("unknown Server field %s", name)
-}
-
-// AddedEdges returns all edge names that were set/added in this mutation.
-func (m *ServerMutation) AddedEdges() []string {
-	edges := make([]string, 0, 0)
-	return edges
-}
-
-// AddedIDs returns all IDs (to other nodes) that were added for the given edge
-// name in this mutation.
-func (m *ServerMutation) AddedIDs(name string) []ent.Value {
-	return nil
-}
-
-// RemovedEdges returns all edge names that were removed in this mutation.
-func (m *ServerMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 0)
-	return edges
-}
-
-// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
-// the given name in this mutation.
-func (m *ServerMutation) RemovedIDs(name string) []ent.Value {
-	return nil
-}
-
-// ClearedEdges returns all edge names that were cleared in this mutation.
-func (m *ServerMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 0)
-	return edges
-}
-
-// EdgeCleared returns a boolean which indicates if the edge with the given name
-// was cleared in this mutation.
-func (m *ServerMutation) EdgeCleared(name string) bool {
-	return false
-}
-
-// ClearEdge clears the value of the edge with the given name. It returns an error
-// if that edge is not defined in the schema.
-func (m *ServerMutation) ClearEdge(name string) error {
-	return fmt.Errorf("unknown Server unique edge %s", name)
-}
-
-// ResetEdge resets all changes to the edge with the given name in this mutation.
-// It returns an error if the edge is not defined in the schema.
-func (m *ServerMutation) ResetEdge(name string) error {
-	return fmt.Errorf("unknown Server edge %s", name)
 }
 
 // UpscaleMutation represents an operation that mutates the Upscale nodes in the graph.
@@ -8189,30 +5382,23 @@ type UpscaleMutation struct {
 	addheight              *int
 	scale                  *int
 	addscale               *int
-	status                 *upscale.Status
-	server_url             *string
-	duration_msg           *int
-	addduration_msg        *int
-	_type                  *string
-	prompt                 *string
-	negative_prompt        *string
-	seed                   *enttypes.BigInt
-	addseed                *enttypes.BigInt
-	num_inference_steps    *int
-	addnum_inference_steps *int
-	guidance_scale         *float64
-	addguidance_scale      *float64
+	duration_ms            *int
+	addduration_ms         *int
 	country_code           *string
-	device_type            *string
-	device_os              *string
-	device_browser         *string
-	user_agent             *string
+	status                 *upscale.Status
+	failure_reason         *string
 	created_at             *time.Time
 	updated_at             *time.Time
-	user_tier              *upscale.UserTier
 	clearedFields          map[string]struct{}
 	user                   *uuid.UUID
 	cleareduser            bool
+	device_info            *uuid.UUID
+	cleareddevice_info     bool
+	upscale_models         *uuid.UUID
+	clearedupscale_models  bool
+	upscale_outputs        map[uuid.UUID]struct{}
+	removedupscale_outputs map[uuid.UUID]struct{}
+	clearedupscale_outputs bool
 	done                   bool
 	oldValue               func(context.Context) (*Upscale, error)
 	predicates             []predicate.Upscale
@@ -8490,6 +5676,98 @@ func (m *UpscaleMutation) ResetScale() {
 	m.addscale = nil
 }
 
+// SetDurationMs sets the "duration_ms" field.
+func (m *UpscaleMutation) SetDurationMs(i int) {
+	m.duration_ms = &i
+	m.addduration_ms = nil
+}
+
+// DurationMs returns the value of the "duration_ms" field in the mutation.
+func (m *UpscaleMutation) DurationMs() (r int, exists bool) {
+	v := m.duration_ms
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDurationMs returns the old "duration_ms" field's value of the Upscale entity.
+// If the Upscale object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UpscaleMutation) OldDurationMs(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDurationMs is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDurationMs requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDurationMs: %w", err)
+	}
+	return oldValue.DurationMs, nil
+}
+
+// AddDurationMs adds i to the "duration_ms" field.
+func (m *UpscaleMutation) AddDurationMs(i int) {
+	if m.addduration_ms != nil {
+		*m.addduration_ms += i
+	} else {
+		m.addduration_ms = &i
+	}
+}
+
+// AddedDurationMs returns the value that was added to the "duration_ms" field in this mutation.
+func (m *UpscaleMutation) AddedDurationMs() (r int, exists bool) {
+	v := m.addduration_ms
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetDurationMs resets all changes to the "duration_ms" field.
+func (m *UpscaleMutation) ResetDurationMs() {
+	m.duration_ms = nil
+	m.addduration_ms = nil
+}
+
+// SetCountryCode sets the "country_code" field.
+func (m *UpscaleMutation) SetCountryCode(s string) {
+	m.country_code = &s
+}
+
+// CountryCode returns the value of the "country_code" field in the mutation.
+func (m *UpscaleMutation) CountryCode() (r string, exists bool) {
+	v := m.country_code
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCountryCode returns the old "country_code" field's value of the Upscale entity.
+// If the Upscale object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UpscaleMutation) OldCountryCode(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCountryCode is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCountryCode requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCountryCode: %w", err)
+	}
+	return oldValue.CountryCode, nil
+}
+
+// ResetCountryCode resets all changes to the "country_code" field.
+func (m *UpscaleMutation) ResetCountryCode() {
+	m.country_code = nil
+}
+
 // SetStatus sets the "status" field.
 func (m *UpscaleMutation) SetStatus(u upscale.Status) {
 	m.status = &u
@@ -8526,566 +5804,148 @@ func (m *UpscaleMutation) ResetStatus() {
 	m.status = nil
 }
 
-// SetServerURL sets the "server_url" field.
-func (m *UpscaleMutation) SetServerURL(s string) {
-	m.server_url = &s
+// SetFailureReason sets the "failure_reason" field.
+func (m *UpscaleMutation) SetFailureReason(s string) {
+	m.failure_reason = &s
 }
 
-// ServerURL returns the value of the "server_url" field in the mutation.
-func (m *UpscaleMutation) ServerURL() (r string, exists bool) {
-	v := m.server_url
+// FailureReason returns the value of the "failure_reason" field in the mutation.
+func (m *UpscaleMutation) FailureReason() (r string, exists bool) {
+	v := m.failure_reason
 	if v == nil {
 		return
 	}
 	return *v, true
 }
 
-// OldServerURL returns the old "server_url" field's value of the Upscale entity.
+// OldFailureReason returns the old "failure_reason" field's value of the Upscale entity.
 // If the Upscale object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *UpscaleMutation) OldServerURL(ctx context.Context) (v string, err error) {
+func (m *UpscaleMutation) OldFailureReason(ctx context.Context) (v *string, err error) {
 	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldServerURL is only allowed on UpdateOne operations")
+		return v, errors.New("OldFailureReason is only allowed on UpdateOne operations")
 	}
 	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldServerURL requires an ID field in the mutation")
+		return v, errors.New("OldFailureReason requires an ID field in the mutation")
 	}
 	oldValue, err := m.oldValue(ctx)
 	if err != nil {
-		return v, fmt.Errorf("querying old value for OldServerURL: %w", err)
+		return v, fmt.Errorf("querying old value for OldFailureReason: %w", err)
 	}
-	return oldValue.ServerURL, nil
+	return oldValue.FailureReason, nil
 }
 
-// ResetServerURL resets all changes to the "server_url" field.
-func (m *UpscaleMutation) ResetServerURL() {
-	m.server_url = nil
+// ResetFailureReason resets all changes to the "failure_reason" field.
+func (m *UpscaleMutation) ResetFailureReason() {
+	m.failure_reason = nil
 }
 
-// SetDurationMsg sets the "duration_msg" field.
-func (m *UpscaleMutation) SetDurationMsg(i int) {
-	m.duration_msg = &i
-	m.addduration_msg = nil
+// SetModelID sets the "model_id" field.
+func (m *UpscaleMutation) SetModelID(u uuid.UUID) {
+	m.upscale_models = &u
 }
 
-// DurationMsg returns the value of the "duration_msg" field in the mutation.
-func (m *UpscaleMutation) DurationMsg() (r int, exists bool) {
-	v := m.duration_msg
+// ModelID returns the value of the "model_id" field in the mutation.
+func (m *UpscaleMutation) ModelID() (r uuid.UUID, exists bool) {
+	v := m.upscale_models
 	if v == nil {
 		return
 	}
 	return *v, true
 }
 
-// OldDurationMsg returns the old "duration_msg" field's value of the Upscale entity.
+// OldModelID returns the old "model_id" field's value of the Upscale entity.
 // If the Upscale object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *UpscaleMutation) OldDurationMsg(ctx context.Context) (v *int, err error) {
+func (m *UpscaleMutation) OldModelID(ctx context.Context) (v uuid.UUID, err error) {
 	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldDurationMsg is only allowed on UpdateOne operations")
+		return v, errors.New("OldModelID is only allowed on UpdateOne operations")
 	}
 	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldDurationMsg requires an ID field in the mutation")
+		return v, errors.New("OldModelID requires an ID field in the mutation")
 	}
 	oldValue, err := m.oldValue(ctx)
 	if err != nil {
-		return v, fmt.Errorf("querying old value for OldDurationMsg: %w", err)
+		return v, fmt.Errorf("querying old value for OldModelID: %w", err)
 	}
-	return oldValue.DurationMsg, nil
+	return oldValue.ModelID, nil
 }
 
-// AddDurationMsg adds i to the "duration_msg" field.
-func (m *UpscaleMutation) AddDurationMsg(i int) {
-	if m.addduration_msg != nil {
-		*m.addduration_msg += i
-	} else {
-		m.addduration_msg = &i
-	}
+// ResetModelID resets all changes to the "model_id" field.
+func (m *UpscaleMutation) ResetModelID() {
+	m.upscale_models = nil
 }
 
-// AddedDurationMsg returns the value that was added to the "duration_msg" field in this mutation.
-func (m *UpscaleMutation) AddedDurationMsg() (r int, exists bool) {
-	v := m.addduration_msg
+// SetUserID sets the "user_id" field.
+func (m *UpscaleMutation) SetUserID(u uuid.UUID) {
+	m.user = &u
+}
+
+// UserID returns the value of the "user_id" field in the mutation.
+func (m *UpscaleMutation) UserID() (r uuid.UUID, exists bool) {
+	v := m.user
 	if v == nil {
 		return
 	}
 	return *v, true
 }
 
-// ResetDurationMsg resets all changes to the "duration_msg" field.
-func (m *UpscaleMutation) ResetDurationMsg() {
-	m.duration_msg = nil
-	m.addduration_msg = nil
-}
-
-// SetType sets the "type" field.
-func (m *UpscaleMutation) SetType(s string) {
-	m._type = &s
-}
-
-// GetType returns the value of the "type" field in the mutation.
-func (m *UpscaleMutation) GetType() (r string, exists bool) {
-	v := m._type
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldType returns the old "type" field's value of the Upscale entity.
+// OldUserID returns the old "user_id" field's value of the Upscale entity.
 // If the Upscale object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *UpscaleMutation) OldType(ctx context.Context) (v *string, err error) {
+func (m *UpscaleMutation) OldUserID(ctx context.Context) (v uuid.UUID, err error) {
 	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldType is only allowed on UpdateOne operations")
+		return v, errors.New("OldUserID is only allowed on UpdateOne operations")
 	}
 	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldType requires an ID field in the mutation")
+		return v, errors.New("OldUserID requires an ID field in the mutation")
 	}
 	oldValue, err := m.oldValue(ctx)
 	if err != nil {
-		return v, fmt.Errorf("querying old value for OldType: %w", err)
+		return v, fmt.Errorf("querying old value for OldUserID: %w", err)
 	}
-	return oldValue.Type, nil
+	return oldValue.UserID, nil
 }
 
-// ResetType resets all changes to the "type" field.
-func (m *UpscaleMutation) ResetType() {
-	m._type = nil
+// ResetUserID resets all changes to the "user_id" field.
+func (m *UpscaleMutation) ResetUserID() {
+	m.user = nil
 }
 
-// SetPrompt sets the "prompt" field.
-func (m *UpscaleMutation) SetPrompt(s string) {
-	m.prompt = &s
+// SetDeviceInfoID sets the "device_info_id" field.
+func (m *UpscaleMutation) SetDeviceInfoID(u uuid.UUID) {
+	m.device_info = &u
 }
 
-// Prompt returns the value of the "prompt" field in the mutation.
-func (m *UpscaleMutation) Prompt() (r string, exists bool) {
-	v := m.prompt
+// DeviceInfoID returns the value of the "device_info_id" field in the mutation.
+func (m *UpscaleMutation) DeviceInfoID() (r uuid.UUID, exists bool) {
+	v := m.device_info
 	if v == nil {
 		return
 	}
 	return *v, true
 }
 
-// OldPrompt returns the old "prompt" field's value of the Upscale entity.
+// OldDeviceInfoID returns the old "device_info_id" field's value of the Upscale entity.
 // If the Upscale object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *UpscaleMutation) OldPrompt(ctx context.Context) (v *string, err error) {
+func (m *UpscaleMutation) OldDeviceInfoID(ctx context.Context) (v uuid.UUID, err error) {
 	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldPrompt is only allowed on UpdateOne operations")
+		return v, errors.New("OldDeviceInfoID is only allowed on UpdateOne operations")
 	}
 	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldPrompt requires an ID field in the mutation")
+		return v, errors.New("OldDeviceInfoID requires an ID field in the mutation")
 	}
 	oldValue, err := m.oldValue(ctx)
 	if err != nil {
-		return v, fmt.Errorf("querying old value for OldPrompt: %w", err)
+		return v, fmt.Errorf("querying old value for OldDeviceInfoID: %w", err)
 	}
-	return oldValue.Prompt, nil
+	return oldValue.DeviceInfoID, nil
 }
 
-// ResetPrompt resets all changes to the "prompt" field.
-func (m *UpscaleMutation) ResetPrompt() {
-	m.prompt = nil
-}
-
-// SetNegativePrompt sets the "negative_prompt" field.
-func (m *UpscaleMutation) SetNegativePrompt(s string) {
-	m.negative_prompt = &s
-}
-
-// NegativePrompt returns the value of the "negative_prompt" field in the mutation.
-func (m *UpscaleMutation) NegativePrompt() (r string, exists bool) {
-	v := m.negative_prompt
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldNegativePrompt returns the old "negative_prompt" field's value of the Upscale entity.
-// If the Upscale object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *UpscaleMutation) OldNegativePrompt(ctx context.Context) (v *string, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldNegativePrompt is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldNegativePrompt requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldNegativePrompt: %w", err)
-	}
-	return oldValue.NegativePrompt, nil
-}
-
-// ResetNegativePrompt resets all changes to the "negative_prompt" field.
-func (m *UpscaleMutation) ResetNegativePrompt() {
-	m.negative_prompt = nil
-}
-
-// SetSeed sets the "seed" field.
-func (m *UpscaleMutation) SetSeed(ei enttypes.BigInt) {
-	m.seed = &ei
-	m.addseed = nil
-}
-
-// Seed returns the value of the "seed" field in the mutation.
-func (m *UpscaleMutation) Seed() (r enttypes.BigInt, exists bool) {
-	v := m.seed
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldSeed returns the old "seed" field's value of the Upscale entity.
-// If the Upscale object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *UpscaleMutation) OldSeed(ctx context.Context) (v *enttypes.BigInt, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldSeed is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldSeed requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldSeed: %w", err)
-	}
-	return oldValue.Seed, nil
-}
-
-// AddSeed adds ei to the "seed" field.
-func (m *UpscaleMutation) AddSeed(ei enttypes.BigInt) {
-	if m.addseed != nil {
-		*m.addseed = m.addseed.Add(ei)
-	} else {
-		m.addseed = &ei
-	}
-}
-
-// AddedSeed returns the value that was added to the "seed" field in this mutation.
-func (m *UpscaleMutation) AddedSeed() (r enttypes.BigInt, exists bool) {
-	v := m.addseed
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// ClearSeed clears the value of the "seed" field.
-func (m *UpscaleMutation) ClearSeed() {
-	m.seed = nil
-	m.addseed = nil
-	m.clearedFields[upscale.FieldSeed] = struct{}{}
-}
-
-// SeedCleared returns if the "seed" field was cleared in this mutation.
-func (m *UpscaleMutation) SeedCleared() bool {
-	_, ok := m.clearedFields[upscale.FieldSeed]
-	return ok
-}
-
-// ResetSeed resets all changes to the "seed" field.
-func (m *UpscaleMutation) ResetSeed() {
-	m.seed = nil
-	m.addseed = nil
-	delete(m.clearedFields, upscale.FieldSeed)
-}
-
-// SetNumInferenceSteps sets the "num_inference_steps" field.
-func (m *UpscaleMutation) SetNumInferenceSteps(i int) {
-	m.num_inference_steps = &i
-	m.addnum_inference_steps = nil
-}
-
-// NumInferenceSteps returns the value of the "num_inference_steps" field in the mutation.
-func (m *UpscaleMutation) NumInferenceSteps() (r int, exists bool) {
-	v := m.num_inference_steps
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldNumInferenceSteps returns the old "num_inference_steps" field's value of the Upscale entity.
-// If the Upscale object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *UpscaleMutation) OldNumInferenceSteps(ctx context.Context) (v *int, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldNumInferenceSteps is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldNumInferenceSteps requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldNumInferenceSteps: %w", err)
-	}
-	return oldValue.NumInferenceSteps, nil
-}
-
-// AddNumInferenceSteps adds i to the "num_inference_steps" field.
-func (m *UpscaleMutation) AddNumInferenceSteps(i int) {
-	if m.addnum_inference_steps != nil {
-		*m.addnum_inference_steps += i
-	} else {
-		m.addnum_inference_steps = &i
-	}
-}
-
-// AddedNumInferenceSteps returns the value that was added to the "num_inference_steps" field in this mutation.
-func (m *UpscaleMutation) AddedNumInferenceSteps() (r int, exists bool) {
-	v := m.addnum_inference_steps
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// ResetNumInferenceSteps resets all changes to the "num_inference_steps" field.
-func (m *UpscaleMutation) ResetNumInferenceSteps() {
-	m.num_inference_steps = nil
-	m.addnum_inference_steps = nil
-}
-
-// SetGuidanceScale sets the "guidance_scale" field.
-func (m *UpscaleMutation) SetGuidanceScale(f float64) {
-	m.guidance_scale = &f
-	m.addguidance_scale = nil
-}
-
-// GuidanceScale returns the value of the "guidance_scale" field in the mutation.
-func (m *UpscaleMutation) GuidanceScale() (r float64, exists bool) {
-	v := m.guidance_scale
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldGuidanceScale returns the old "guidance_scale" field's value of the Upscale entity.
-// If the Upscale object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *UpscaleMutation) OldGuidanceScale(ctx context.Context) (v *float64, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldGuidanceScale is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldGuidanceScale requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldGuidanceScale: %w", err)
-	}
-	return oldValue.GuidanceScale, nil
-}
-
-// AddGuidanceScale adds f to the "guidance_scale" field.
-func (m *UpscaleMutation) AddGuidanceScale(f float64) {
-	if m.addguidance_scale != nil {
-		*m.addguidance_scale += f
-	} else {
-		m.addguidance_scale = &f
-	}
-}
-
-// AddedGuidanceScale returns the value that was added to the "guidance_scale" field in this mutation.
-func (m *UpscaleMutation) AddedGuidanceScale() (r float64, exists bool) {
-	v := m.addguidance_scale
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// ResetGuidanceScale resets all changes to the "guidance_scale" field.
-func (m *UpscaleMutation) ResetGuidanceScale() {
-	m.guidance_scale = nil
-	m.addguidance_scale = nil
-}
-
-// SetCountryCode sets the "country_code" field.
-func (m *UpscaleMutation) SetCountryCode(s string) {
-	m.country_code = &s
-}
-
-// CountryCode returns the value of the "country_code" field in the mutation.
-func (m *UpscaleMutation) CountryCode() (r string, exists bool) {
-	v := m.country_code
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldCountryCode returns the old "country_code" field's value of the Upscale entity.
-// If the Upscale object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *UpscaleMutation) OldCountryCode(ctx context.Context) (v *string, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldCountryCode is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldCountryCode requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldCountryCode: %w", err)
-	}
-	return oldValue.CountryCode, nil
-}
-
-// ResetCountryCode resets all changes to the "country_code" field.
-func (m *UpscaleMutation) ResetCountryCode() {
-	m.country_code = nil
-}
-
-// SetDeviceType sets the "device_type" field.
-func (m *UpscaleMutation) SetDeviceType(s string) {
-	m.device_type = &s
-}
-
-// DeviceType returns the value of the "device_type" field in the mutation.
-func (m *UpscaleMutation) DeviceType() (r string, exists bool) {
-	v := m.device_type
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldDeviceType returns the old "device_type" field's value of the Upscale entity.
-// If the Upscale object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *UpscaleMutation) OldDeviceType(ctx context.Context) (v *string, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldDeviceType is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldDeviceType requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldDeviceType: %w", err)
-	}
-	return oldValue.DeviceType, nil
-}
-
-// ResetDeviceType resets all changes to the "device_type" field.
-func (m *UpscaleMutation) ResetDeviceType() {
-	m.device_type = nil
-}
-
-// SetDeviceOs sets the "device_os" field.
-func (m *UpscaleMutation) SetDeviceOs(s string) {
-	m.device_os = &s
-}
-
-// DeviceOs returns the value of the "device_os" field in the mutation.
-func (m *UpscaleMutation) DeviceOs() (r string, exists bool) {
-	v := m.device_os
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldDeviceOs returns the old "device_os" field's value of the Upscale entity.
-// If the Upscale object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *UpscaleMutation) OldDeviceOs(ctx context.Context) (v *string, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldDeviceOs is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldDeviceOs requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldDeviceOs: %w", err)
-	}
-	return oldValue.DeviceOs, nil
-}
-
-// ResetDeviceOs resets all changes to the "device_os" field.
-func (m *UpscaleMutation) ResetDeviceOs() {
-	m.device_os = nil
-}
-
-// SetDeviceBrowser sets the "device_browser" field.
-func (m *UpscaleMutation) SetDeviceBrowser(s string) {
-	m.device_browser = &s
-}
-
-// DeviceBrowser returns the value of the "device_browser" field in the mutation.
-func (m *UpscaleMutation) DeviceBrowser() (r string, exists bool) {
-	v := m.device_browser
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldDeviceBrowser returns the old "device_browser" field's value of the Upscale entity.
-// If the Upscale object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *UpscaleMutation) OldDeviceBrowser(ctx context.Context) (v *string, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldDeviceBrowser is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldDeviceBrowser requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldDeviceBrowser: %w", err)
-	}
-	return oldValue.DeviceBrowser, nil
-}
-
-// ResetDeviceBrowser resets all changes to the "device_browser" field.
-func (m *UpscaleMutation) ResetDeviceBrowser() {
-	m.device_browser = nil
-}
-
-// SetUserAgent sets the "user_agent" field.
-func (m *UpscaleMutation) SetUserAgent(s string) {
-	m.user_agent = &s
-}
-
-// UserAgent returns the value of the "user_agent" field in the mutation.
-func (m *UpscaleMutation) UserAgent() (r string, exists bool) {
-	v := m.user_agent
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldUserAgent returns the old "user_agent" field's value of the Upscale entity.
-// If the Upscale object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *UpscaleMutation) OldUserAgent(ctx context.Context) (v *string, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldUserAgent is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldUserAgent requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldUserAgent: %w", err)
-	}
-	return oldValue.UserAgent, nil
-}
-
-// ResetUserAgent resets all changes to the "user_agent" field.
-func (m *UpscaleMutation) ResetUserAgent() {
-	m.user_agent = nil
+// ResetDeviceInfoID resets all changes to the "device_info_id" field.
+func (m *UpscaleMutation) ResetDeviceInfoID() {
+	m.device_info = nil
 }
 
 // SetCreatedAt sets the "created_at" field.
@@ -9160,78 +6020,6 @@ func (m *UpscaleMutation) ResetUpdatedAt() {
 	m.updated_at = nil
 }
 
-// SetUserID sets the "user_id" field.
-func (m *UpscaleMutation) SetUserID(u uuid.UUID) {
-	m.user = &u
-}
-
-// UserID returns the value of the "user_id" field in the mutation.
-func (m *UpscaleMutation) UserID() (r uuid.UUID, exists bool) {
-	v := m.user
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldUserID returns the old "user_id" field's value of the Upscale entity.
-// If the Upscale object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *UpscaleMutation) OldUserID(ctx context.Context) (v *uuid.UUID, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldUserID is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldUserID requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldUserID: %w", err)
-	}
-	return oldValue.UserID, nil
-}
-
-// ResetUserID resets all changes to the "user_id" field.
-func (m *UpscaleMutation) ResetUserID() {
-	m.user = nil
-}
-
-// SetUserTier sets the "user_tier" field.
-func (m *UpscaleMutation) SetUserTier(ut upscale.UserTier) {
-	m.user_tier = &ut
-}
-
-// UserTier returns the value of the "user_tier" field in the mutation.
-func (m *UpscaleMutation) UserTier() (r upscale.UserTier, exists bool) {
-	v := m.user_tier
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldUserTier returns the old "user_tier" field's value of the Upscale entity.
-// If the Upscale object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *UpscaleMutation) OldUserTier(ctx context.Context) (v upscale.UserTier, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldUserTier is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldUserTier requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldUserTier: %w", err)
-	}
-	return oldValue.UserTier, nil
-}
-
-// ResetUserTier resets all changes to the "user_tier" field.
-func (m *UpscaleMutation) ResetUserTier() {
-	m.user_tier = nil
-}
-
 // ClearUser clears the "user" edge to the User entity.
 func (m *UpscaleMutation) ClearUser() {
 	m.cleareduser = true
@@ -9256,6 +6044,125 @@ func (m *UpscaleMutation) UserIDs() (ids []uuid.UUID) {
 func (m *UpscaleMutation) ResetUser() {
 	m.user = nil
 	m.cleareduser = false
+}
+
+// ClearDeviceInfo clears the "device_info" edge to the DeviceInfo entity.
+func (m *UpscaleMutation) ClearDeviceInfo() {
+	m.cleareddevice_info = true
+}
+
+// DeviceInfoCleared reports if the "device_info" edge to the DeviceInfo entity was cleared.
+func (m *UpscaleMutation) DeviceInfoCleared() bool {
+	return m.cleareddevice_info
+}
+
+// DeviceInfoIDs returns the "device_info" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// DeviceInfoID instead. It exists only for internal usage by the builders.
+func (m *UpscaleMutation) DeviceInfoIDs() (ids []uuid.UUID) {
+	if id := m.device_info; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetDeviceInfo resets all changes to the "device_info" edge.
+func (m *UpscaleMutation) ResetDeviceInfo() {
+	m.device_info = nil
+	m.cleareddevice_info = false
+}
+
+// SetUpscaleModelsID sets the "upscale_models" edge to the UpscaleModel entity by id.
+func (m *UpscaleMutation) SetUpscaleModelsID(id uuid.UUID) {
+	m.upscale_models = &id
+}
+
+// ClearUpscaleModels clears the "upscale_models" edge to the UpscaleModel entity.
+func (m *UpscaleMutation) ClearUpscaleModels() {
+	m.clearedupscale_models = true
+}
+
+// UpscaleModelsCleared reports if the "upscale_models" edge to the UpscaleModel entity was cleared.
+func (m *UpscaleMutation) UpscaleModelsCleared() bool {
+	return m.clearedupscale_models
+}
+
+// UpscaleModelsID returns the "upscale_models" edge ID in the mutation.
+func (m *UpscaleMutation) UpscaleModelsID() (id uuid.UUID, exists bool) {
+	if m.upscale_models != nil {
+		return *m.upscale_models, true
+	}
+	return
+}
+
+// UpscaleModelsIDs returns the "upscale_models" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// UpscaleModelsID instead. It exists only for internal usage by the builders.
+func (m *UpscaleMutation) UpscaleModelsIDs() (ids []uuid.UUID) {
+	if id := m.upscale_models; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetUpscaleModels resets all changes to the "upscale_models" edge.
+func (m *UpscaleMutation) ResetUpscaleModels() {
+	m.upscale_models = nil
+	m.clearedupscale_models = false
+}
+
+// AddUpscaleOutputIDs adds the "upscale_outputs" edge to the UpscaleOutput entity by ids.
+func (m *UpscaleMutation) AddUpscaleOutputIDs(ids ...uuid.UUID) {
+	if m.upscale_outputs == nil {
+		m.upscale_outputs = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.upscale_outputs[ids[i]] = struct{}{}
+	}
+}
+
+// ClearUpscaleOutputs clears the "upscale_outputs" edge to the UpscaleOutput entity.
+func (m *UpscaleMutation) ClearUpscaleOutputs() {
+	m.clearedupscale_outputs = true
+}
+
+// UpscaleOutputsCleared reports if the "upscale_outputs" edge to the UpscaleOutput entity was cleared.
+func (m *UpscaleMutation) UpscaleOutputsCleared() bool {
+	return m.clearedupscale_outputs
+}
+
+// RemoveUpscaleOutputIDs removes the "upscale_outputs" edge to the UpscaleOutput entity by IDs.
+func (m *UpscaleMutation) RemoveUpscaleOutputIDs(ids ...uuid.UUID) {
+	if m.removedupscale_outputs == nil {
+		m.removedupscale_outputs = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.upscale_outputs, ids[i])
+		m.removedupscale_outputs[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedUpscaleOutputs returns the removed IDs of the "upscale_outputs" edge to the UpscaleOutput entity.
+func (m *UpscaleMutation) RemovedUpscaleOutputsIDs() (ids []uuid.UUID) {
+	for id := range m.removedupscale_outputs {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// UpscaleOutputsIDs returns the "upscale_outputs" edge IDs in the mutation.
+func (m *UpscaleMutation) UpscaleOutputsIDs() (ids []uuid.UUID) {
+	for id := range m.upscale_outputs {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetUpscaleOutputs resets all changes to the "upscale_outputs" edge.
+func (m *UpscaleMutation) ResetUpscaleOutputs() {
+	m.upscale_outputs = nil
+	m.clearedupscale_outputs = false
+	m.removedupscale_outputs = nil
 }
 
 // Where appends a list predicates to the UpscaleMutation builder.
@@ -9292,7 +6199,7 @@ func (m *UpscaleMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *UpscaleMutation) Fields() []string {
-	fields := make([]string, 0, 21)
+	fields := make([]string, 0, 12)
 	if m.width != nil {
 		fields = append(fields, upscale.FieldWidth)
 	}
@@ -9302,59 +6209,32 @@ func (m *UpscaleMutation) Fields() []string {
 	if m.scale != nil {
 		fields = append(fields, upscale.FieldScale)
 	}
-	if m.status != nil {
-		fields = append(fields, upscale.FieldStatus)
-	}
-	if m.server_url != nil {
-		fields = append(fields, upscale.FieldServerURL)
-	}
-	if m.duration_msg != nil {
-		fields = append(fields, upscale.FieldDurationMsg)
-	}
-	if m._type != nil {
-		fields = append(fields, upscale.FieldType)
-	}
-	if m.prompt != nil {
-		fields = append(fields, upscale.FieldPrompt)
-	}
-	if m.negative_prompt != nil {
-		fields = append(fields, upscale.FieldNegativePrompt)
-	}
-	if m.seed != nil {
-		fields = append(fields, upscale.FieldSeed)
-	}
-	if m.num_inference_steps != nil {
-		fields = append(fields, upscale.FieldNumInferenceSteps)
-	}
-	if m.guidance_scale != nil {
-		fields = append(fields, upscale.FieldGuidanceScale)
+	if m.duration_ms != nil {
+		fields = append(fields, upscale.FieldDurationMs)
 	}
 	if m.country_code != nil {
 		fields = append(fields, upscale.FieldCountryCode)
 	}
-	if m.device_type != nil {
-		fields = append(fields, upscale.FieldDeviceType)
+	if m.status != nil {
+		fields = append(fields, upscale.FieldStatus)
 	}
-	if m.device_os != nil {
-		fields = append(fields, upscale.FieldDeviceOs)
+	if m.failure_reason != nil {
+		fields = append(fields, upscale.FieldFailureReason)
 	}
-	if m.device_browser != nil {
-		fields = append(fields, upscale.FieldDeviceBrowser)
+	if m.upscale_models != nil {
+		fields = append(fields, upscale.FieldModelID)
 	}
-	if m.user_agent != nil {
-		fields = append(fields, upscale.FieldUserAgent)
+	if m.user != nil {
+		fields = append(fields, upscale.FieldUserID)
+	}
+	if m.device_info != nil {
+		fields = append(fields, upscale.FieldDeviceInfoID)
 	}
 	if m.created_at != nil {
 		fields = append(fields, upscale.FieldCreatedAt)
 	}
 	if m.updated_at != nil {
 		fields = append(fields, upscale.FieldUpdatedAt)
-	}
-	if m.user != nil {
-		fields = append(fields, upscale.FieldUserID)
-	}
-	if m.user_tier != nil {
-		fields = append(fields, upscale.FieldUserTier)
 	}
 	return fields
 }
@@ -9370,42 +6250,24 @@ func (m *UpscaleMutation) Field(name string) (ent.Value, bool) {
 		return m.Height()
 	case upscale.FieldScale:
 		return m.Scale()
-	case upscale.FieldStatus:
-		return m.Status()
-	case upscale.FieldServerURL:
-		return m.ServerURL()
-	case upscale.FieldDurationMsg:
-		return m.DurationMsg()
-	case upscale.FieldType:
-		return m.GetType()
-	case upscale.FieldPrompt:
-		return m.Prompt()
-	case upscale.FieldNegativePrompt:
-		return m.NegativePrompt()
-	case upscale.FieldSeed:
-		return m.Seed()
-	case upscale.FieldNumInferenceSteps:
-		return m.NumInferenceSteps()
-	case upscale.FieldGuidanceScale:
-		return m.GuidanceScale()
+	case upscale.FieldDurationMs:
+		return m.DurationMs()
 	case upscale.FieldCountryCode:
 		return m.CountryCode()
-	case upscale.FieldDeviceType:
-		return m.DeviceType()
-	case upscale.FieldDeviceOs:
-		return m.DeviceOs()
-	case upscale.FieldDeviceBrowser:
-		return m.DeviceBrowser()
-	case upscale.FieldUserAgent:
-		return m.UserAgent()
+	case upscale.FieldStatus:
+		return m.Status()
+	case upscale.FieldFailureReason:
+		return m.FailureReason()
+	case upscale.FieldModelID:
+		return m.ModelID()
+	case upscale.FieldUserID:
+		return m.UserID()
+	case upscale.FieldDeviceInfoID:
+		return m.DeviceInfoID()
 	case upscale.FieldCreatedAt:
 		return m.CreatedAt()
 	case upscale.FieldUpdatedAt:
 		return m.UpdatedAt()
-	case upscale.FieldUserID:
-		return m.UserID()
-	case upscale.FieldUserTier:
-		return m.UserTier()
 	}
 	return nil, false
 }
@@ -9421,42 +6283,24 @@ func (m *UpscaleMutation) OldField(ctx context.Context, name string) (ent.Value,
 		return m.OldHeight(ctx)
 	case upscale.FieldScale:
 		return m.OldScale(ctx)
-	case upscale.FieldStatus:
-		return m.OldStatus(ctx)
-	case upscale.FieldServerURL:
-		return m.OldServerURL(ctx)
-	case upscale.FieldDurationMsg:
-		return m.OldDurationMsg(ctx)
-	case upscale.FieldType:
-		return m.OldType(ctx)
-	case upscale.FieldPrompt:
-		return m.OldPrompt(ctx)
-	case upscale.FieldNegativePrompt:
-		return m.OldNegativePrompt(ctx)
-	case upscale.FieldSeed:
-		return m.OldSeed(ctx)
-	case upscale.FieldNumInferenceSteps:
-		return m.OldNumInferenceSteps(ctx)
-	case upscale.FieldGuidanceScale:
-		return m.OldGuidanceScale(ctx)
+	case upscale.FieldDurationMs:
+		return m.OldDurationMs(ctx)
 	case upscale.FieldCountryCode:
 		return m.OldCountryCode(ctx)
-	case upscale.FieldDeviceType:
-		return m.OldDeviceType(ctx)
-	case upscale.FieldDeviceOs:
-		return m.OldDeviceOs(ctx)
-	case upscale.FieldDeviceBrowser:
-		return m.OldDeviceBrowser(ctx)
-	case upscale.FieldUserAgent:
-		return m.OldUserAgent(ctx)
+	case upscale.FieldStatus:
+		return m.OldStatus(ctx)
+	case upscale.FieldFailureReason:
+		return m.OldFailureReason(ctx)
+	case upscale.FieldModelID:
+		return m.OldModelID(ctx)
+	case upscale.FieldUserID:
+		return m.OldUserID(ctx)
+	case upscale.FieldDeviceInfoID:
+		return m.OldDeviceInfoID(ctx)
 	case upscale.FieldCreatedAt:
 		return m.OldCreatedAt(ctx)
 	case upscale.FieldUpdatedAt:
 		return m.OldUpdatedAt(ctx)
-	case upscale.FieldUserID:
-		return m.OldUserID(ctx)
-	case upscale.FieldUserTier:
-		return m.OldUserTier(ctx)
 	}
 	return nil, fmt.Errorf("unknown Upscale field %s", name)
 }
@@ -9487,68 +6331,12 @@ func (m *UpscaleMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetScale(v)
 		return nil
-	case upscale.FieldStatus:
-		v, ok := value.(upscale.Status)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetStatus(v)
-		return nil
-	case upscale.FieldServerURL:
-		v, ok := value.(string)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetServerURL(v)
-		return nil
-	case upscale.FieldDurationMsg:
+	case upscale.FieldDurationMs:
 		v, ok := value.(int)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
-		m.SetDurationMsg(v)
-		return nil
-	case upscale.FieldType:
-		v, ok := value.(string)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetType(v)
-		return nil
-	case upscale.FieldPrompt:
-		v, ok := value.(string)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetPrompt(v)
-		return nil
-	case upscale.FieldNegativePrompt:
-		v, ok := value.(string)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetNegativePrompt(v)
-		return nil
-	case upscale.FieldSeed:
-		v, ok := value.(enttypes.BigInt)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetSeed(v)
-		return nil
-	case upscale.FieldNumInferenceSteps:
-		v, ok := value.(int)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetNumInferenceSteps(v)
-		return nil
-	case upscale.FieldGuidanceScale:
-		v, ok := value.(float64)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetGuidanceScale(v)
+		m.SetDurationMs(v)
 		return nil
 	case upscale.FieldCountryCode:
 		v, ok := value.(string)
@@ -9557,33 +6345,40 @@ func (m *UpscaleMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetCountryCode(v)
 		return nil
-	case upscale.FieldDeviceType:
-		v, ok := value.(string)
+	case upscale.FieldStatus:
+		v, ok := value.(upscale.Status)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
-		m.SetDeviceType(v)
+		m.SetStatus(v)
 		return nil
-	case upscale.FieldDeviceOs:
+	case upscale.FieldFailureReason:
 		v, ok := value.(string)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
-		m.SetDeviceOs(v)
+		m.SetFailureReason(v)
 		return nil
-	case upscale.FieldDeviceBrowser:
-		v, ok := value.(string)
+	case upscale.FieldModelID:
+		v, ok := value.(uuid.UUID)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
-		m.SetDeviceBrowser(v)
+		m.SetModelID(v)
 		return nil
-	case upscale.FieldUserAgent:
-		v, ok := value.(string)
+	case upscale.FieldUserID:
+		v, ok := value.(uuid.UUID)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
-		m.SetUserAgent(v)
+		m.SetUserID(v)
+		return nil
+	case upscale.FieldDeviceInfoID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDeviceInfoID(v)
 		return nil
 	case upscale.FieldCreatedAt:
 		v, ok := value.(time.Time)
@@ -9598,20 +6393,6 @@ func (m *UpscaleMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetUpdatedAt(v)
-		return nil
-	case upscale.FieldUserID:
-		v, ok := value.(uuid.UUID)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetUserID(v)
-		return nil
-	case upscale.FieldUserTier:
-		v, ok := value.(upscale.UserTier)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetUserTier(v)
 		return nil
 	}
 	return fmt.Errorf("unknown Upscale field %s", name)
@@ -9630,17 +6411,8 @@ func (m *UpscaleMutation) AddedFields() []string {
 	if m.addscale != nil {
 		fields = append(fields, upscale.FieldScale)
 	}
-	if m.addduration_msg != nil {
-		fields = append(fields, upscale.FieldDurationMsg)
-	}
-	if m.addseed != nil {
-		fields = append(fields, upscale.FieldSeed)
-	}
-	if m.addnum_inference_steps != nil {
-		fields = append(fields, upscale.FieldNumInferenceSteps)
-	}
-	if m.addguidance_scale != nil {
-		fields = append(fields, upscale.FieldGuidanceScale)
+	if m.addduration_ms != nil {
+		fields = append(fields, upscale.FieldDurationMs)
 	}
 	return fields
 }
@@ -9656,14 +6428,8 @@ func (m *UpscaleMutation) AddedField(name string) (ent.Value, bool) {
 		return m.AddedHeight()
 	case upscale.FieldScale:
 		return m.AddedScale()
-	case upscale.FieldDurationMsg:
-		return m.AddedDurationMsg()
-	case upscale.FieldSeed:
-		return m.AddedSeed()
-	case upscale.FieldNumInferenceSteps:
-		return m.AddedNumInferenceSteps()
-	case upscale.FieldGuidanceScale:
-		return m.AddedGuidanceScale()
+	case upscale.FieldDurationMs:
+		return m.AddedDurationMs()
 	}
 	return nil, false
 }
@@ -9694,33 +6460,12 @@ func (m *UpscaleMutation) AddField(name string, value ent.Value) error {
 		}
 		m.AddScale(v)
 		return nil
-	case upscale.FieldDurationMsg:
+	case upscale.FieldDurationMs:
 		v, ok := value.(int)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
-		m.AddDurationMsg(v)
-		return nil
-	case upscale.FieldSeed:
-		v, ok := value.(enttypes.BigInt)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.AddSeed(v)
-		return nil
-	case upscale.FieldNumInferenceSteps:
-		v, ok := value.(int)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.AddNumInferenceSteps(v)
-		return nil
-	case upscale.FieldGuidanceScale:
-		v, ok := value.(float64)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.AddGuidanceScale(v)
+		m.AddDurationMs(v)
 		return nil
 	}
 	return fmt.Errorf("unknown Upscale numeric field %s", name)
@@ -9729,11 +6474,7 @@ func (m *UpscaleMutation) AddField(name string, value ent.Value) error {
 // ClearedFields returns all nullable fields that were cleared during this
 // mutation.
 func (m *UpscaleMutation) ClearedFields() []string {
-	var fields []string
-	if m.FieldCleared(upscale.FieldSeed) {
-		fields = append(fields, upscale.FieldSeed)
-	}
-	return fields
+	return nil
 }
 
 // FieldCleared returns a boolean indicating if a field with the given name was
@@ -9746,11 +6487,6 @@ func (m *UpscaleMutation) FieldCleared(name string) bool {
 // ClearField clears the value of the field with the given name. It returns an
 // error if the field is not defined in the schema.
 func (m *UpscaleMutation) ClearField(name string) error {
-	switch name {
-	case upscale.FieldSeed:
-		m.ClearSeed()
-		return nil
-	}
 	return fmt.Errorf("unknown Upscale nullable field %s", name)
 }
 
@@ -9767,47 +6503,26 @@ func (m *UpscaleMutation) ResetField(name string) error {
 	case upscale.FieldScale:
 		m.ResetScale()
 		return nil
-	case upscale.FieldStatus:
-		m.ResetStatus()
-		return nil
-	case upscale.FieldServerURL:
-		m.ResetServerURL()
-		return nil
-	case upscale.FieldDurationMsg:
-		m.ResetDurationMsg()
-		return nil
-	case upscale.FieldType:
-		m.ResetType()
-		return nil
-	case upscale.FieldPrompt:
-		m.ResetPrompt()
-		return nil
-	case upscale.FieldNegativePrompt:
-		m.ResetNegativePrompt()
-		return nil
-	case upscale.FieldSeed:
-		m.ResetSeed()
-		return nil
-	case upscale.FieldNumInferenceSteps:
-		m.ResetNumInferenceSteps()
-		return nil
-	case upscale.FieldGuidanceScale:
-		m.ResetGuidanceScale()
+	case upscale.FieldDurationMs:
+		m.ResetDurationMs()
 		return nil
 	case upscale.FieldCountryCode:
 		m.ResetCountryCode()
 		return nil
-	case upscale.FieldDeviceType:
-		m.ResetDeviceType()
+	case upscale.FieldStatus:
+		m.ResetStatus()
 		return nil
-	case upscale.FieldDeviceOs:
-		m.ResetDeviceOs()
+	case upscale.FieldFailureReason:
+		m.ResetFailureReason()
 		return nil
-	case upscale.FieldDeviceBrowser:
-		m.ResetDeviceBrowser()
+	case upscale.FieldModelID:
+		m.ResetModelID()
 		return nil
-	case upscale.FieldUserAgent:
-		m.ResetUserAgent()
+	case upscale.FieldUserID:
+		m.ResetUserID()
+		return nil
+	case upscale.FieldDeviceInfoID:
+		m.ResetDeviceInfoID()
 		return nil
 	case upscale.FieldCreatedAt:
 		m.ResetCreatedAt()
@@ -9815,21 +6530,24 @@ func (m *UpscaleMutation) ResetField(name string) error {
 	case upscale.FieldUpdatedAt:
 		m.ResetUpdatedAt()
 		return nil
-	case upscale.FieldUserID:
-		m.ResetUserID()
-		return nil
-	case upscale.FieldUserTier:
-		m.ResetUserTier()
-		return nil
 	}
 	return fmt.Errorf("unknown Upscale field %s", name)
 }
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *UpscaleMutation) AddedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 4)
 	if m.user != nil {
 		edges = append(edges, upscale.EdgeUser)
+	}
+	if m.device_info != nil {
+		edges = append(edges, upscale.EdgeDeviceInfo)
+	}
+	if m.upscale_models != nil {
+		edges = append(edges, upscale.EdgeUpscaleModels)
+	}
+	if m.upscale_outputs != nil {
+		edges = append(edges, upscale.EdgeUpscaleOutputs)
 	}
 	return edges
 }
@@ -9842,27 +6560,61 @@ func (m *UpscaleMutation) AddedIDs(name string) []ent.Value {
 		if id := m.user; id != nil {
 			return []ent.Value{*id}
 		}
+	case upscale.EdgeDeviceInfo:
+		if id := m.device_info; id != nil {
+			return []ent.Value{*id}
+		}
+	case upscale.EdgeUpscaleModels:
+		if id := m.upscale_models; id != nil {
+			return []ent.Value{*id}
+		}
+	case upscale.EdgeUpscaleOutputs:
+		ids := make([]ent.Value, 0, len(m.upscale_outputs))
+		for id := range m.upscale_outputs {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *UpscaleMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 4)
+	if m.removedupscale_outputs != nil {
+		edges = append(edges, upscale.EdgeUpscaleOutputs)
+	}
 	return edges
 }
 
 // RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
 // the given name in this mutation.
 func (m *UpscaleMutation) RemovedIDs(name string) []ent.Value {
+	switch name {
+	case upscale.EdgeUpscaleOutputs:
+		ids := make([]ent.Value, 0, len(m.removedupscale_outputs))
+		for id := range m.removedupscale_outputs {
+			ids = append(ids, id)
+		}
+		return ids
+	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *UpscaleMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 4)
 	if m.cleareduser {
 		edges = append(edges, upscale.EdgeUser)
+	}
+	if m.cleareddevice_info {
+		edges = append(edges, upscale.EdgeDeviceInfo)
+	}
+	if m.clearedupscale_models {
+		edges = append(edges, upscale.EdgeUpscaleModels)
+	}
+	if m.clearedupscale_outputs {
+		edges = append(edges, upscale.EdgeUpscaleOutputs)
 	}
 	return edges
 }
@@ -9873,6 +6625,12 @@ func (m *UpscaleMutation) EdgeCleared(name string) bool {
 	switch name {
 	case upscale.EdgeUser:
 		return m.cleareduser
+	case upscale.EdgeDeviceInfo:
+		return m.cleareddevice_info
+	case upscale.EdgeUpscaleModels:
+		return m.clearedupscale_models
+	case upscale.EdgeUpscaleOutputs:
+		return m.clearedupscale_outputs
 	}
 	return false
 }
@@ -9883,6 +6641,12 @@ func (m *UpscaleMutation) ClearEdge(name string) error {
 	switch name {
 	case upscale.EdgeUser:
 		m.ClearUser()
+		return nil
+	case upscale.EdgeDeviceInfo:
+		m.ClearDeviceInfo()
+		return nil
+	case upscale.EdgeUpscaleModels:
+		m.ClearUpscaleModels()
 		return nil
 	}
 	return fmt.Errorf("unknown Upscale unique edge %s", name)
@@ -9895,45 +6659,48 @@ func (m *UpscaleMutation) ResetEdge(name string) error {
 	case upscale.EdgeUser:
 		m.ResetUser()
 		return nil
+	case upscale.EdgeDeviceInfo:
+		m.ResetDeviceInfo()
+		return nil
+	case upscale.EdgeUpscaleModels:
+		m.ResetUpscaleModels()
+		return nil
+	case upscale.EdgeUpscaleOutputs:
+		m.ResetUpscaleOutputs()
+		return nil
 	}
 	return fmt.Errorf("unknown Upscale edge %s", name)
 }
 
-// UpscaleRealtimeMutation represents an operation that mutates the UpscaleRealtime nodes in the graph.
-type UpscaleRealtimeMutation struct {
+// UpscaleModelMutation represents an operation that mutates the UpscaleModel nodes in the graph.
+type UpscaleModelMutation struct {
 	config
-	op                  Op
-	typ                 string
-	id                  *uuid.UUID
-	status              *upscalerealtime.Status
-	country_code        *string
-	uses_default_server *bool
-	width               *int
-	addwidth            *int
-	height              *int
-	addheight           *int
-	scale               *int
-	addscale            *int
-	created_at          *time.Time
-	updated_at          *time.Time
-	user_tier           *upscalerealtime.UserTier
-	clearedFields       map[string]struct{}
-	done                bool
-	oldValue            func(context.Context) (*UpscaleRealtime, error)
-	predicates          []predicate.UpscaleRealtime
+	op              Op
+	typ             string
+	id              *uuid.UUID
+	name            *string
+	created_at      *time.Time
+	updated_at      *time.Time
+	clearedFields   map[string]struct{}
+	upscales        map[uuid.UUID]struct{}
+	removedupscales map[uuid.UUID]struct{}
+	clearedupscales bool
+	done            bool
+	oldValue        func(context.Context) (*UpscaleModel, error)
+	predicates      []predicate.UpscaleModel
 }
 
-var _ ent.Mutation = (*UpscaleRealtimeMutation)(nil)
+var _ ent.Mutation = (*UpscaleModelMutation)(nil)
 
-// upscalerealtimeOption allows management of the mutation configuration using functional options.
-type upscalerealtimeOption func(*UpscaleRealtimeMutation)
+// upscalemodelOption allows management of the mutation configuration using functional options.
+type upscalemodelOption func(*UpscaleModelMutation)
 
-// newUpscaleRealtimeMutation creates new mutation for the UpscaleRealtime entity.
-func newUpscaleRealtimeMutation(c config, op Op, opts ...upscalerealtimeOption) *UpscaleRealtimeMutation {
-	m := &UpscaleRealtimeMutation{
+// newUpscaleModelMutation creates new mutation for the UpscaleModel entity.
+func newUpscaleModelMutation(c config, op Op, opts ...upscalemodelOption) *UpscaleModelMutation {
+	m := &UpscaleModelMutation{
 		config:        c,
 		op:            op,
-		typ:           TypeUpscaleRealtime,
+		typ:           TypeUpscaleModel,
 		clearedFields: make(map[string]struct{}),
 	}
 	for _, opt := range opts {
@@ -9942,20 +6709,20 @@ func newUpscaleRealtimeMutation(c config, op Op, opts ...upscalerealtimeOption) 
 	return m
 }
 
-// withUpscaleRealtimeID sets the ID field of the mutation.
-func withUpscaleRealtimeID(id uuid.UUID) upscalerealtimeOption {
-	return func(m *UpscaleRealtimeMutation) {
+// withUpscaleModelID sets the ID field of the mutation.
+func withUpscaleModelID(id uuid.UUID) upscalemodelOption {
+	return func(m *UpscaleModelMutation) {
 		var (
 			err   error
 			once  sync.Once
-			value *UpscaleRealtime
+			value *UpscaleModel
 		)
-		m.oldValue = func(ctx context.Context) (*UpscaleRealtime, error) {
+		m.oldValue = func(ctx context.Context) (*UpscaleModel, error) {
 			once.Do(func() {
 				if m.done {
 					err = errors.New("querying old values post mutation is not allowed")
 				} else {
-					value, err = m.Client().UpscaleRealtime.Get(ctx, id)
+					value, err = m.Client().UpscaleModel.Get(ctx, id)
 				}
 			})
 			return value, err
@@ -9964,10 +6731,10 @@ func withUpscaleRealtimeID(id uuid.UUID) upscalerealtimeOption {
 	}
 }
 
-// withUpscaleRealtime sets the old UpscaleRealtime of the mutation.
-func withUpscaleRealtime(node *UpscaleRealtime) upscalerealtimeOption {
-	return func(m *UpscaleRealtimeMutation) {
-		m.oldValue = func(context.Context) (*UpscaleRealtime, error) {
+// withUpscaleModel sets the old UpscaleModel of the mutation.
+func withUpscaleModel(node *UpscaleModel) upscalemodelOption {
+	return func(m *UpscaleModelMutation) {
+		m.oldValue = func(context.Context) (*UpscaleModel, error) {
 			return node, nil
 		}
 		m.id = &node.ID
@@ -9976,7 +6743,7 @@ func withUpscaleRealtime(node *UpscaleRealtime) upscalerealtimeOption {
 
 // Client returns a new `ent.Client` from the mutation. If the mutation was
 // executed in a transaction (ent.Tx), a transactional client is returned.
-func (m UpscaleRealtimeMutation) Client() *Client {
+func (m UpscaleModelMutation) Client() *Client {
 	client := &Client{config: m.config}
 	client.init()
 	return client
@@ -9984,7 +6751,7 @@ func (m UpscaleRealtimeMutation) Client() *Client {
 
 // Tx returns an `ent.Tx` for mutations that were executed in transactions;
 // it returns an error otherwise.
-func (m UpscaleRealtimeMutation) Tx() (*Tx, error) {
+func (m UpscaleModelMutation) Tx() (*Tx, error) {
 	if _, ok := m.driver.(*txDriver); !ok {
 		return nil, errors.New("ent: mutation is not running in a transaction")
 	}
@@ -9994,14 +6761,14 @@ func (m UpscaleRealtimeMutation) Tx() (*Tx, error) {
 }
 
 // SetID sets the value of the id field. Note that this
-// operation is only accepted on creation of UpscaleRealtime entities.
-func (m *UpscaleRealtimeMutation) SetID(id uuid.UUID) {
+// operation is only accepted on creation of UpscaleModel entities.
+func (m *UpscaleModelMutation) SetID(id uuid.UUID) {
 	m.id = &id
 }
 
 // ID returns the ID value in the mutation. Note that the ID is only available
 // if it was provided to the builder or after it was returned from the database.
-func (m *UpscaleRealtimeMutation) ID() (id uuid.UUID, exists bool) {
+func (m *UpscaleModelMutation) ID() (id uuid.UUID, exists bool) {
 	if m.id == nil {
 		return
 	}
@@ -10012,7 +6779,7 @@ func (m *UpscaleRealtimeMutation) ID() (id uuid.UUID, exists bool) {
 // That means, if the mutation is applied within a transaction with an isolation level such
 // as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
 // or updated by the mutation.
-func (m *UpscaleRealtimeMutation) IDs(ctx context.Context) ([]uuid.UUID, error) {
+func (m *UpscaleModelMutation) IDs(ctx context.Context) ([]uuid.UUID, error) {
 	switch {
 	case m.op.Is(OpUpdateOne | OpDeleteOne):
 		id, exists := m.ID()
@@ -10021,295 +6788,55 @@ func (m *UpscaleRealtimeMutation) IDs(ctx context.Context) ([]uuid.UUID, error) 
 		}
 		fallthrough
 	case m.op.Is(OpUpdate | OpDelete):
-		return m.Client().UpscaleRealtime.Query().Where(m.predicates...).IDs(ctx)
+		return m.Client().UpscaleModel.Query().Where(m.predicates...).IDs(ctx)
 	default:
 		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
 	}
 }
 
-// SetStatus sets the "status" field.
-func (m *UpscaleRealtimeMutation) SetStatus(u upscalerealtime.Status) {
-	m.status = &u
+// SetName sets the "name" field.
+func (m *UpscaleModelMutation) SetName(s string) {
+	m.name = &s
 }
 
-// Status returns the value of the "status" field in the mutation.
-func (m *UpscaleRealtimeMutation) Status() (r upscalerealtime.Status, exists bool) {
-	v := m.status
+// Name returns the value of the "name" field in the mutation.
+func (m *UpscaleModelMutation) Name() (r string, exists bool) {
+	v := m.name
 	if v == nil {
 		return
 	}
 	return *v, true
 }
 
-// OldStatus returns the old "status" field's value of the UpscaleRealtime entity.
-// If the UpscaleRealtime object wasn't provided to the builder, the object is fetched from the database.
+// OldName returns the old "name" field's value of the UpscaleModel entity.
+// If the UpscaleModel object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *UpscaleRealtimeMutation) OldStatus(ctx context.Context) (v upscalerealtime.Status, err error) {
+func (m *UpscaleModelMutation) OldName(ctx context.Context) (v string, err error) {
 	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldStatus is only allowed on UpdateOne operations")
+		return v, errors.New("OldName is only allowed on UpdateOne operations")
 	}
 	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldStatus requires an ID field in the mutation")
+		return v, errors.New("OldName requires an ID field in the mutation")
 	}
 	oldValue, err := m.oldValue(ctx)
 	if err != nil {
-		return v, fmt.Errorf("querying old value for OldStatus: %w", err)
+		return v, fmt.Errorf("querying old value for OldName: %w", err)
 	}
-	return oldValue.Status, nil
+	return oldValue.Name, nil
 }
 
-// ResetStatus resets all changes to the "status" field.
-func (m *UpscaleRealtimeMutation) ResetStatus() {
-	m.status = nil
-}
-
-// SetCountryCode sets the "country_code" field.
-func (m *UpscaleRealtimeMutation) SetCountryCode(s string) {
-	m.country_code = &s
-}
-
-// CountryCode returns the value of the "country_code" field in the mutation.
-func (m *UpscaleRealtimeMutation) CountryCode() (r string, exists bool) {
-	v := m.country_code
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldCountryCode returns the old "country_code" field's value of the UpscaleRealtime entity.
-// If the UpscaleRealtime object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *UpscaleRealtimeMutation) OldCountryCode(ctx context.Context) (v *string, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldCountryCode is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldCountryCode requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldCountryCode: %w", err)
-	}
-	return oldValue.CountryCode, nil
-}
-
-// ResetCountryCode resets all changes to the "country_code" field.
-func (m *UpscaleRealtimeMutation) ResetCountryCode() {
-	m.country_code = nil
-}
-
-// SetUsesDefaultServer sets the "uses_default_server" field.
-func (m *UpscaleRealtimeMutation) SetUsesDefaultServer(b bool) {
-	m.uses_default_server = &b
-}
-
-// UsesDefaultServer returns the value of the "uses_default_server" field in the mutation.
-func (m *UpscaleRealtimeMutation) UsesDefaultServer() (r bool, exists bool) {
-	v := m.uses_default_server
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldUsesDefaultServer returns the old "uses_default_server" field's value of the UpscaleRealtime entity.
-// If the UpscaleRealtime object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *UpscaleRealtimeMutation) OldUsesDefaultServer(ctx context.Context) (v bool, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldUsesDefaultServer is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldUsesDefaultServer requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldUsesDefaultServer: %w", err)
-	}
-	return oldValue.UsesDefaultServer, nil
-}
-
-// ResetUsesDefaultServer resets all changes to the "uses_default_server" field.
-func (m *UpscaleRealtimeMutation) ResetUsesDefaultServer() {
-	m.uses_default_server = nil
-}
-
-// SetWidth sets the "width" field.
-func (m *UpscaleRealtimeMutation) SetWidth(i int) {
-	m.width = &i
-	m.addwidth = nil
-}
-
-// Width returns the value of the "width" field in the mutation.
-func (m *UpscaleRealtimeMutation) Width() (r int, exists bool) {
-	v := m.width
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldWidth returns the old "width" field's value of the UpscaleRealtime entity.
-// If the UpscaleRealtime object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *UpscaleRealtimeMutation) OldWidth(ctx context.Context) (v *int, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldWidth is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldWidth requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldWidth: %w", err)
-	}
-	return oldValue.Width, nil
-}
-
-// AddWidth adds i to the "width" field.
-func (m *UpscaleRealtimeMutation) AddWidth(i int) {
-	if m.addwidth != nil {
-		*m.addwidth += i
-	} else {
-		m.addwidth = &i
-	}
-}
-
-// AddedWidth returns the value that was added to the "width" field in this mutation.
-func (m *UpscaleRealtimeMutation) AddedWidth() (r int, exists bool) {
-	v := m.addwidth
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// ResetWidth resets all changes to the "width" field.
-func (m *UpscaleRealtimeMutation) ResetWidth() {
-	m.width = nil
-	m.addwidth = nil
-}
-
-// SetHeight sets the "height" field.
-func (m *UpscaleRealtimeMutation) SetHeight(i int) {
-	m.height = &i
-	m.addheight = nil
-}
-
-// Height returns the value of the "height" field in the mutation.
-func (m *UpscaleRealtimeMutation) Height() (r int, exists bool) {
-	v := m.height
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldHeight returns the old "height" field's value of the UpscaleRealtime entity.
-// If the UpscaleRealtime object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *UpscaleRealtimeMutation) OldHeight(ctx context.Context) (v *int, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldHeight is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldHeight requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldHeight: %w", err)
-	}
-	return oldValue.Height, nil
-}
-
-// AddHeight adds i to the "height" field.
-func (m *UpscaleRealtimeMutation) AddHeight(i int) {
-	if m.addheight != nil {
-		*m.addheight += i
-	} else {
-		m.addheight = &i
-	}
-}
-
-// AddedHeight returns the value that was added to the "height" field in this mutation.
-func (m *UpscaleRealtimeMutation) AddedHeight() (r int, exists bool) {
-	v := m.addheight
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// ResetHeight resets all changes to the "height" field.
-func (m *UpscaleRealtimeMutation) ResetHeight() {
-	m.height = nil
-	m.addheight = nil
-}
-
-// SetScale sets the "scale" field.
-func (m *UpscaleRealtimeMutation) SetScale(i int) {
-	m.scale = &i
-	m.addscale = nil
-}
-
-// Scale returns the value of the "scale" field in the mutation.
-func (m *UpscaleRealtimeMutation) Scale() (r int, exists bool) {
-	v := m.scale
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldScale returns the old "scale" field's value of the UpscaleRealtime entity.
-// If the UpscaleRealtime object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *UpscaleRealtimeMutation) OldScale(ctx context.Context) (v *int, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldScale is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldScale requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldScale: %w", err)
-	}
-	return oldValue.Scale, nil
-}
-
-// AddScale adds i to the "scale" field.
-func (m *UpscaleRealtimeMutation) AddScale(i int) {
-	if m.addscale != nil {
-		*m.addscale += i
-	} else {
-		m.addscale = &i
-	}
-}
-
-// AddedScale returns the value that was added to the "scale" field in this mutation.
-func (m *UpscaleRealtimeMutation) AddedScale() (r int, exists bool) {
-	v := m.addscale
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// ResetScale resets all changes to the "scale" field.
-func (m *UpscaleRealtimeMutation) ResetScale() {
-	m.scale = nil
-	m.addscale = nil
+// ResetName resets all changes to the "name" field.
+func (m *UpscaleModelMutation) ResetName() {
+	m.name = nil
 }
 
 // SetCreatedAt sets the "created_at" field.
-func (m *UpscaleRealtimeMutation) SetCreatedAt(t time.Time) {
+func (m *UpscaleModelMutation) SetCreatedAt(t time.Time) {
 	m.created_at = &t
 }
 
 // CreatedAt returns the value of the "created_at" field in the mutation.
-func (m *UpscaleRealtimeMutation) CreatedAt() (r time.Time, exists bool) {
+func (m *UpscaleModelMutation) CreatedAt() (r time.Time, exists bool) {
 	v := m.created_at
 	if v == nil {
 		return
@@ -10317,10 +6844,10 @@ func (m *UpscaleRealtimeMutation) CreatedAt() (r time.Time, exists bool) {
 	return *v, true
 }
 
-// OldCreatedAt returns the old "created_at" field's value of the UpscaleRealtime entity.
-// If the UpscaleRealtime object wasn't provided to the builder, the object is fetched from the database.
+// OldCreatedAt returns the old "created_at" field's value of the UpscaleModel entity.
+// If the UpscaleModel object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *UpscaleRealtimeMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+func (m *UpscaleModelMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
 	}
@@ -10335,17 +6862,17 @@ func (m *UpscaleRealtimeMutation) OldCreatedAt(ctx context.Context) (v time.Time
 }
 
 // ResetCreatedAt resets all changes to the "created_at" field.
-func (m *UpscaleRealtimeMutation) ResetCreatedAt() {
+func (m *UpscaleModelMutation) ResetCreatedAt() {
 	m.created_at = nil
 }
 
 // SetUpdatedAt sets the "updated_at" field.
-func (m *UpscaleRealtimeMutation) SetUpdatedAt(t time.Time) {
+func (m *UpscaleModelMutation) SetUpdatedAt(t time.Time) {
 	m.updated_at = &t
 }
 
 // UpdatedAt returns the value of the "updated_at" field in the mutation.
-func (m *UpscaleRealtimeMutation) UpdatedAt() (r time.Time, exists bool) {
+func (m *UpscaleModelMutation) UpdatedAt() (r time.Time, exists bool) {
 	v := m.updated_at
 	if v == nil {
 		return
@@ -10353,10 +6880,10 @@ func (m *UpscaleRealtimeMutation) UpdatedAt() (r time.Time, exists bool) {
 	return *v, true
 }
 
-// OldUpdatedAt returns the old "updated_at" field's value of the UpscaleRealtime entity.
-// If the UpscaleRealtime object wasn't provided to the builder, the object is fetched from the database.
+// OldUpdatedAt returns the old "updated_at" field's value of the UpscaleModel entity.
+// If the UpscaleModel object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *UpscaleRealtimeMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
+func (m *UpscaleModelMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
 	}
@@ -10371,55 +6898,73 @@ func (m *UpscaleRealtimeMutation) OldUpdatedAt(ctx context.Context) (v time.Time
 }
 
 // ResetUpdatedAt resets all changes to the "updated_at" field.
-func (m *UpscaleRealtimeMutation) ResetUpdatedAt() {
+func (m *UpscaleModelMutation) ResetUpdatedAt() {
 	m.updated_at = nil
 }
 
-// SetUserTier sets the "user_tier" field.
-func (m *UpscaleRealtimeMutation) SetUserTier(ut upscalerealtime.UserTier) {
-	m.user_tier = &ut
+// AddUpscaleIDs adds the "upscales" edge to the Upscale entity by ids.
+func (m *UpscaleModelMutation) AddUpscaleIDs(ids ...uuid.UUID) {
+	if m.upscales == nil {
+		m.upscales = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.upscales[ids[i]] = struct{}{}
+	}
 }
 
-// UserTier returns the value of the "user_tier" field in the mutation.
-func (m *UpscaleRealtimeMutation) UserTier() (r upscalerealtime.UserTier, exists bool) {
-	v := m.user_tier
-	if v == nil {
-		return
-	}
-	return *v, true
+// ClearUpscales clears the "upscales" edge to the Upscale entity.
+func (m *UpscaleModelMutation) ClearUpscales() {
+	m.clearedupscales = true
 }
 
-// OldUserTier returns the old "user_tier" field's value of the UpscaleRealtime entity.
-// If the UpscaleRealtime object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *UpscaleRealtimeMutation) OldUserTier(ctx context.Context) (v upscalerealtime.UserTier, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldUserTier is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldUserTier requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldUserTier: %w", err)
-	}
-	return oldValue.UserTier, nil
+// UpscalesCleared reports if the "upscales" edge to the Upscale entity was cleared.
+func (m *UpscaleModelMutation) UpscalesCleared() bool {
+	return m.clearedupscales
 }
 
-// ResetUserTier resets all changes to the "user_tier" field.
-func (m *UpscaleRealtimeMutation) ResetUserTier() {
-	m.user_tier = nil
+// RemoveUpscaleIDs removes the "upscales" edge to the Upscale entity by IDs.
+func (m *UpscaleModelMutation) RemoveUpscaleIDs(ids ...uuid.UUID) {
+	if m.removedupscales == nil {
+		m.removedupscales = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.upscales, ids[i])
+		m.removedupscales[ids[i]] = struct{}{}
+	}
 }
 
-// Where appends a list predicates to the UpscaleRealtimeMutation builder.
-func (m *UpscaleRealtimeMutation) Where(ps ...predicate.UpscaleRealtime) {
+// RemovedUpscales returns the removed IDs of the "upscales" edge to the Upscale entity.
+func (m *UpscaleModelMutation) RemovedUpscalesIDs() (ids []uuid.UUID) {
+	for id := range m.removedupscales {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// UpscalesIDs returns the "upscales" edge IDs in the mutation.
+func (m *UpscaleModelMutation) UpscalesIDs() (ids []uuid.UUID) {
+	for id := range m.upscales {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetUpscales resets all changes to the "upscales" edge.
+func (m *UpscaleModelMutation) ResetUpscales() {
+	m.upscales = nil
+	m.clearedupscales = false
+	m.removedupscales = nil
+}
+
+// Where appends a list predicates to the UpscaleModelMutation builder.
+func (m *UpscaleModelMutation) Where(ps ...predicate.UpscaleModel) {
 	m.predicates = append(m.predicates, ps...)
 }
 
-// WhereP appends storage-level predicates to the UpscaleRealtimeMutation builder. Using this method,
+// WhereP appends storage-level predicates to the UpscaleModelMutation builder. Using this method,
 // users can use type-assertion to append predicates that do not depend on any generated package.
-func (m *UpscaleRealtimeMutation) WhereP(ps ...func(*sql.Selector)) {
-	p := make([]predicate.UpscaleRealtime, len(ps))
+func (m *UpscaleModelMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.UpscaleModel, len(ps))
 	for i := range ps {
 		p[i] = ps[i]
 	}
@@ -10427,51 +6972,33 @@ func (m *UpscaleRealtimeMutation) WhereP(ps ...func(*sql.Selector)) {
 }
 
 // Op returns the operation name.
-func (m *UpscaleRealtimeMutation) Op() Op {
+func (m *UpscaleModelMutation) Op() Op {
 	return m.op
 }
 
 // SetOp allows setting the mutation operation.
-func (m *UpscaleRealtimeMutation) SetOp(op Op) {
+func (m *UpscaleModelMutation) SetOp(op Op) {
 	m.op = op
 }
 
-// Type returns the node type of this mutation (UpscaleRealtime).
-func (m *UpscaleRealtimeMutation) Type() string {
+// Type returns the node type of this mutation (UpscaleModel).
+func (m *UpscaleModelMutation) Type() string {
 	return m.typ
 }
 
 // Fields returns all fields that were changed during this mutation. Note that in
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
-func (m *UpscaleRealtimeMutation) Fields() []string {
-	fields := make([]string, 0, 9)
-	if m.status != nil {
-		fields = append(fields, upscalerealtime.FieldStatus)
-	}
-	if m.country_code != nil {
-		fields = append(fields, upscalerealtime.FieldCountryCode)
-	}
-	if m.uses_default_server != nil {
-		fields = append(fields, upscalerealtime.FieldUsesDefaultServer)
-	}
-	if m.width != nil {
-		fields = append(fields, upscalerealtime.FieldWidth)
-	}
-	if m.height != nil {
-		fields = append(fields, upscalerealtime.FieldHeight)
-	}
-	if m.scale != nil {
-		fields = append(fields, upscalerealtime.FieldScale)
+func (m *UpscaleModelMutation) Fields() []string {
+	fields := make([]string, 0, 3)
+	if m.name != nil {
+		fields = append(fields, upscalemodel.FieldName)
 	}
 	if m.created_at != nil {
-		fields = append(fields, upscalerealtime.FieldCreatedAt)
+		fields = append(fields, upscalemodel.FieldCreatedAt)
 	}
 	if m.updated_at != nil {
-		fields = append(fields, upscalerealtime.FieldUpdatedAt)
-	}
-	if m.user_tier != nil {
-		fields = append(fields, upscalerealtime.FieldUserTier)
+		fields = append(fields, upscalemodel.FieldUpdatedAt)
 	}
 	return fields
 }
@@ -10479,26 +7006,14 @@ func (m *UpscaleRealtimeMutation) Fields() []string {
 // Field returns the value of a field with the given name. The second boolean
 // return value indicates that this field was not set, or was not defined in the
 // schema.
-func (m *UpscaleRealtimeMutation) Field(name string) (ent.Value, bool) {
+func (m *UpscaleModelMutation) Field(name string) (ent.Value, bool) {
 	switch name {
-	case upscalerealtime.FieldStatus:
-		return m.Status()
-	case upscalerealtime.FieldCountryCode:
-		return m.CountryCode()
-	case upscalerealtime.FieldUsesDefaultServer:
-		return m.UsesDefaultServer()
-	case upscalerealtime.FieldWidth:
-		return m.Width()
-	case upscalerealtime.FieldHeight:
-		return m.Height()
-	case upscalerealtime.FieldScale:
-		return m.Scale()
-	case upscalerealtime.FieldCreatedAt:
+	case upscalemodel.FieldName:
+		return m.Name()
+	case upscalemodel.FieldCreatedAt:
 		return m.CreatedAt()
-	case upscalerealtime.FieldUpdatedAt:
+	case upscalemodel.FieldUpdatedAt:
 		return m.UpdatedAt()
-	case upscalerealtime.FieldUserTier:
-		return m.UserTier()
 	}
 	return nil, false
 }
@@ -10506,263 +7021,748 @@ func (m *UpscaleRealtimeMutation) Field(name string) (ent.Value, bool) {
 // OldField returns the old value of the field from the database. An error is
 // returned if the mutation operation is not UpdateOne, or the query to the
 // database failed.
-func (m *UpscaleRealtimeMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+func (m *UpscaleModelMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
 	switch name {
-	case upscalerealtime.FieldStatus:
-		return m.OldStatus(ctx)
-	case upscalerealtime.FieldCountryCode:
-		return m.OldCountryCode(ctx)
-	case upscalerealtime.FieldUsesDefaultServer:
-		return m.OldUsesDefaultServer(ctx)
-	case upscalerealtime.FieldWidth:
-		return m.OldWidth(ctx)
-	case upscalerealtime.FieldHeight:
-		return m.OldHeight(ctx)
-	case upscalerealtime.FieldScale:
-		return m.OldScale(ctx)
-	case upscalerealtime.FieldCreatedAt:
+	case upscalemodel.FieldName:
+		return m.OldName(ctx)
+	case upscalemodel.FieldCreatedAt:
 		return m.OldCreatedAt(ctx)
-	case upscalerealtime.FieldUpdatedAt:
+	case upscalemodel.FieldUpdatedAt:
 		return m.OldUpdatedAt(ctx)
-	case upscalerealtime.FieldUserTier:
-		return m.OldUserTier(ctx)
 	}
-	return nil, fmt.Errorf("unknown UpscaleRealtime field %s", name)
+	return nil, fmt.Errorf("unknown UpscaleModel field %s", name)
 }
 
 // SetField sets the value of a field with the given name. It returns an error if
 // the field is not defined in the schema, or if the type mismatched the field
 // type.
-func (m *UpscaleRealtimeMutation) SetField(name string, value ent.Value) error {
+func (m *UpscaleModelMutation) SetField(name string, value ent.Value) error {
 	switch name {
-	case upscalerealtime.FieldStatus:
-		v, ok := value.(upscalerealtime.Status)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetStatus(v)
-		return nil
-	case upscalerealtime.FieldCountryCode:
+	case upscalemodel.FieldName:
 		v, ok := value.(string)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
-		m.SetCountryCode(v)
+		m.SetName(v)
 		return nil
-	case upscalerealtime.FieldUsesDefaultServer:
-		v, ok := value.(bool)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetUsesDefaultServer(v)
-		return nil
-	case upscalerealtime.FieldWidth:
-		v, ok := value.(int)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetWidth(v)
-		return nil
-	case upscalerealtime.FieldHeight:
-		v, ok := value.(int)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetHeight(v)
-		return nil
-	case upscalerealtime.FieldScale:
-		v, ok := value.(int)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetScale(v)
-		return nil
-	case upscalerealtime.FieldCreatedAt:
+	case upscalemodel.FieldCreatedAt:
 		v, ok := value.(time.Time)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetCreatedAt(v)
 		return nil
-	case upscalerealtime.FieldUpdatedAt:
+	case upscalemodel.FieldUpdatedAt:
 		v, ok := value.(time.Time)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetUpdatedAt(v)
 		return nil
-	case upscalerealtime.FieldUserTier:
-		v, ok := value.(upscalerealtime.UserTier)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetUserTier(v)
-		return nil
 	}
-	return fmt.Errorf("unknown UpscaleRealtime field %s", name)
+	return fmt.Errorf("unknown UpscaleModel field %s", name)
 }
 
 // AddedFields returns all numeric fields that were incremented/decremented during
 // this mutation.
-func (m *UpscaleRealtimeMutation) AddedFields() []string {
-	var fields []string
-	if m.addwidth != nil {
-		fields = append(fields, upscalerealtime.FieldWidth)
-	}
-	if m.addheight != nil {
-		fields = append(fields, upscalerealtime.FieldHeight)
-	}
-	if m.addscale != nil {
-		fields = append(fields, upscalerealtime.FieldScale)
-	}
-	return fields
+func (m *UpscaleModelMutation) AddedFields() []string {
+	return nil
 }
 
 // AddedField returns the numeric value that was incremented/decremented on a field
 // with the given name. The second boolean return value indicates that this field
 // was not set, or was not defined in the schema.
-func (m *UpscaleRealtimeMutation) AddedField(name string) (ent.Value, bool) {
-	switch name {
-	case upscalerealtime.FieldWidth:
-		return m.AddedWidth()
-	case upscalerealtime.FieldHeight:
-		return m.AddedHeight()
-	case upscalerealtime.FieldScale:
-		return m.AddedScale()
-	}
+func (m *UpscaleModelMutation) AddedField(name string) (ent.Value, bool) {
 	return nil, false
 }
 
 // AddField adds the value to the field with the given name. It returns an error if
 // the field is not defined in the schema, or if the type mismatched the field
 // type.
-func (m *UpscaleRealtimeMutation) AddField(name string, value ent.Value) error {
+func (m *UpscaleModelMutation) AddField(name string, value ent.Value) error {
 	switch name {
-	case upscalerealtime.FieldWidth:
-		v, ok := value.(int)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.AddWidth(v)
-		return nil
-	case upscalerealtime.FieldHeight:
-		v, ok := value.(int)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.AddHeight(v)
-		return nil
-	case upscalerealtime.FieldScale:
-		v, ok := value.(int)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.AddScale(v)
-		return nil
 	}
-	return fmt.Errorf("unknown UpscaleRealtime numeric field %s", name)
+	return fmt.Errorf("unknown UpscaleModel numeric field %s", name)
 }
 
 // ClearedFields returns all nullable fields that were cleared during this
 // mutation.
-func (m *UpscaleRealtimeMutation) ClearedFields() []string {
+func (m *UpscaleModelMutation) ClearedFields() []string {
 	return nil
 }
 
 // FieldCleared returns a boolean indicating if a field with the given name was
 // cleared in this mutation.
-func (m *UpscaleRealtimeMutation) FieldCleared(name string) bool {
+func (m *UpscaleModelMutation) FieldCleared(name string) bool {
 	_, ok := m.clearedFields[name]
 	return ok
 }
 
 // ClearField clears the value of the field with the given name. It returns an
 // error if the field is not defined in the schema.
-func (m *UpscaleRealtimeMutation) ClearField(name string) error {
-	return fmt.Errorf("unknown UpscaleRealtime nullable field %s", name)
+func (m *UpscaleModelMutation) ClearField(name string) error {
+	return fmt.Errorf("unknown UpscaleModel nullable field %s", name)
 }
 
 // ResetField resets all changes in the mutation for the field with the given name.
 // It returns an error if the field is not defined in the schema.
-func (m *UpscaleRealtimeMutation) ResetField(name string) error {
+func (m *UpscaleModelMutation) ResetField(name string) error {
 	switch name {
-	case upscalerealtime.FieldStatus:
-		m.ResetStatus()
+	case upscalemodel.FieldName:
+		m.ResetName()
 		return nil
-	case upscalerealtime.FieldCountryCode:
-		m.ResetCountryCode()
-		return nil
-	case upscalerealtime.FieldUsesDefaultServer:
-		m.ResetUsesDefaultServer()
-		return nil
-	case upscalerealtime.FieldWidth:
-		m.ResetWidth()
-		return nil
-	case upscalerealtime.FieldHeight:
-		m.ResetHeight()
-		return nil
-	case upscalerealtime.FieldScale:
-		m.ResetScale()
-		return nil
-	case upscalerealtime.FieldCreatedAt:
+	case upscalemodel.FieldCreatedAt:
 		m.ResetCreatedAt()
 		return nil
-	case upscalerealtime.FieldUpdatedAt:
+	case upscalemodel.FieldUpdatedAt:
 		m.ResetUpdatedAt()
 		return nil
-	case upscalerealtime.FieldUserTier:
-		m.ResetUserTier()
-		return nil
 	}
-	return fmt.Errorf("unknown UpscaleRealtime field %s", name)
+	return fmt.Errorf("unknown UpscaleModel field %s", name)
 }
 
 // AddedEdges returns all edge names that were set/added in this mutation.
-func (m *UpscaleRealtimeMutation) AddedEdges() []string {
-	edges := make([]string, 0, 0)
+func (m *UpscaleModelMutation) AddedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.upscales != nil {
+		edges = append(edges, upscalemodel.EdgeUpscales)
+	}
 	return edges
 }
 
 // AddedIDs returns all IDs (to other nodes) that were added for the given edge
 // name in this mutation.
-func (m *UpscaleRealtimeMutation) AddedIDs(name string) []ent.Value {
+func (m *UpscaleModelMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case upscalemodel.EdgeUpscales:
+		ids := make([]ent.Value, 0, len(m.upscales))
+		for id := range m.upscales {
+			ids = append(ids, id)
+		}
+		return ids
+	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
-func (m *UpscaleRealtimeMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 0)
+func (m *UpscaleModelMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.removedupscales != nil {
+		edges = append(edges, upscalemodel.EdgeUpscales)
+	}
 	return edges
 }
 
 // RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
 // the given name in this mutation.
-func (m *UpscaleRealtimeMutation) RemovedIDs(name string) []ent.Value {
+func (m *UpscaleModelMutation) RemovedIDs(name string) []ent.Value {
+	switch name {
+	case upscalemodel.EdgeUpscales:
+		ids := make([]ent.Value, 0, len(m.removedupscales))
+		for id := range m.removedupscales {
+			ids = append(ids, id)
+		}
+		return ids
+	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
-func (m *UpscaleRealtimeMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 0)
+func (m *UpscaleModelMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.clearedupscales {
+		edges = append(edges, upscalemodel.EdgeUpscales)
+	}
 	return edges
 }
 
 // EdgeCleared returns a boolean which indicates if the edge with the given name
 // was cleared in this mutation.
-func (m *UpscaleRealtimeMutation) EdgeCleared(name string) bool {
+func (m *UpscaleModelMutation) EdgeCleared(name string) bool {
+	switch name {
+	case upscalemodel.EdgeUpscales:
+		return m.clearedupscales
+	}
 	return false
 }
 
 // ClearEdge clears the value of the edge with the given name. It returns an error
 // if that edge is not defined in the schema.
-func (m *UpscaleRealtimeMutation) ClearEdge(name string) error {
-	return fmt.Errorf("unknown UpscaleRealtime unique edge %s", name)
+func (m *UpscaleModelMutation) ClearEdge(name string) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown UpscaleModel unique edge %s", name)
 }
 
 // ResetEdge resets all changes to the edge with the given name in this mutation.
 // It returns an error if the edge is not defined in the schema.
-func (m *UpscaleRealtimeMutation) ResetEdge(name string) error {
-	return fmt.Errorf("unknown UpscaleRealtime edge %s", name)
+func (m *UpscaleModelMutation) ResetEdge(name string) error {
+	switch name {
+	case upscalemodel.EdgeUpscales:
+		m.ResetUpscales()
+		return nil
+	}
+	return fmt.Errorf("unknown UpscaleModel edge %s", name)
+}
+
+// UpscaleOutputMutation represents an operation that mutates the UpscaleOutput nodes in the graph.
+type UpscaleOutputMutation struct {
+	config
+	op              Op
+	typ             string
+	id              *uuid.UUID
+	image_url       *string
+	created_at      *time.Time
+	updated_at      *time.Time
+	clearedFields   map[string]struct{}
+	upscales        *uuid.UUID
+	clearedupscales bool
+	done            bool
+	oldValue        func(context.Context) (*UpscaleOutput, error)
+	predicates      []predicate.UpscaleOutput
+}
+
+var _ ent.Mutation = (*UpscaleOutputMutation)(nil)
+
+// upscaleoutputOption allows management of the mutation configuration using functional options.
+type upscaleoutputOption func(*UpscaleOutputMutation)
+
+// newUpscaleOutputMutation creates new mutation for the UpscaleOutput entity.
+func newUpscaleOutputMutation(c config, op Op, opts ...upscaleoutputOption) *UpscaleOutputMutation {
+	m := &UpscaleOutputMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeUpscaleOutput,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withUpscaleOutputID sets the ID field of the mutation.
+func withUpscaleOutputID(id uuid.UUID) upscaleoutputOption {
+	return func(m *UpscaleOutputMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *UpscaleOutput
+		)
+		m.oldValue = func(ctx context.Context) (*UpscaleOutput, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().UpscaleOutput.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withUpscaleOutput sets the old UpscaleOutput of the mutation.
+func withUpscaleOutput(node *UpscaleOutput) upscaleoutputOption {
+	return func(m *UpscaleOutputMutation) {
+		m.oldValue = func(context.Context) (*UpscaleOutput, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m UpscaleOutputMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m UpscaleOutputMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of UpscaleOutput entities.
+func (m *UpscaleOutputMutation) SetID(id uuid.UUID) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *UpscaleOutputMutation) ID() (id uuid.UUID, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *UpscaleOutputMutation) IDs(ctx context.Context) ([]uuid.UUID, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []uuid.UUID{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().UpscaleOutput.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetImageURL sets the "image_url" field.
+func (m *UpscaleOutputMutation) SetImageURL(s string) {
+	m.image_url = &s
+}
+
+// ImageURL returns the value of the "image_url" field in the mutation.
+func (m *UpscaleOutputMutation) ImageURL() (r string, exists bool) {
+	v := m.image_url
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldImageURL returns the old "image_url" field's value of the UpscaleOutput entity.
+// If the UpscaleOutput object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UpscaleOutputMutation) OldImageURL(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldImageURL is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldImageURL requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldImageURL: %w", err)
+	}
+	return oldValue.ImageURL, nil
+}
+
+// ResetImageURL resets all changes to the "image_url" field.
+func (m *UpscaleOutputMutation) ResetImageURL() {
+	m.image_url = nil
+}
+
+// SetUpscaleID sets the "upscale_id" field.
+func (m *UpscaleOutputMutation) SetUpscaleID(u uuid.UUID) {
+	m.upscales = &u
+}
+
+// UpscaleID returns the value of the "upscale_id" field in the mutation.
+func (m *UpscaleOutputMutation) UpscaleID() (r uuid.UUID, exists bool) {
+	v := m.upscales
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpscaleID returns the old "upscale_id" field's value of the UpscaleOutput entity.
+// If the UpscaleOutput object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UpscaleOutputMutation) OldUpscaleID(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpscaleID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpscaleID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpscaleID: %w", err)
+	}
+	return oldValue.UpscaleID, nil
+}
+
+// ResetUpscaleID resets all changes to the "upscale_id" field.
+func (m *UpscaleOutputMutation) ResetUpscaleID() {
+	m.upscales = nil
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *UpscaleOutputMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *UpscaleOutputMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the UpscaleOutput entity.
+// If the UpscaleOutput object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UpscaleOutputMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *UpscaleOutputMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (m *UpscaleOutputMutation) SetUpdatedAt(t time.Time) {
+	m.updated_at = &t
+}
+
+// UpdatedAt returns the value of the "updated_at" field in the mutation.
+func (m *UpscaleOutputMutation) UpdatedAt() (r time.Time, exists bool) {
+	v := m.updated_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedAt returns the old "updated_at" field's value of the UpscaleOutput entity.
+// If the UpscaleOutput object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UpscaleOutputMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
+	}
+	return oldValue.UpdatedAt, nil
+}
+
+// ResetUpdatedAt resets all changes to the "updated_at" field.
+func (m *UpscaleOutputMutation) ResetUpdatedAt() {
+	m.updated_at = nil
+}
+
+// SetUpscalesID sets the "upscales" edge to the Upscale entity by id.
+func (m *UpscaleOutputMutation) SetUpscalesID(id uuid.UUID) {
+	m.upscales = &id
+}
+
+// ClearUpscales clears the "upscales" edge to the Upscale entity.
+func (m *UpscaleOutputMutation) ClearUpscales() {
+	m.clearedupscales = true
+}
+
+// UpscalesCleared reports if the "upscales" edge to the Upscale entity was cleared.
+func (m *UpscaleOutputMutation) UpscalesCleared() bool {
+	return m.clearedupscales
+}
+
+// UpscalesID returns the "upscales" edge ID in the mutation.
+func (m *UpscaleOutputMutation) UpscalesID() (id uuid.UUID, exists bool) {
+	if m.upscales != nil {
+		return *m.upscales, true
+	}
+	return
+}
+
+// UpscalesIDs returns the "upscales" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// UpscalesID instead. It exists only for internal usage by the builders.
+func (m *UpscaleOutputMutation) UpscalesIDs() (ids []uuid.UUID) {
+	if id := m.upscales; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetUpscales resets all changes to the "upscales" edge.
+func (m *UpscaleOutputMutation) ResetUpscales() {
+	m.upscales = nil
+	m.clearedupscales = false
+}
+
+// Where appends a list predicates to the UpscaleOutputMutation builder.
+func (m *UpscaleOutputMutation) Where(ps ...predicate.UpscaleOutput) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the UpscaleOutputMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *UpscaleOutputMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.UpscaleOutput, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *UpscaleOutputMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *UpscaleOutputMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (UpscaleOutput).
+func (m *UpscaleOutputMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *UpscaleOutputMutation) Fields() []string {
+	fields := make([]string, 0, 4)
+	if m.image_url != nil {
+		fields = append(fields, upscaleoutput.FieldImageURL)
+	}
+	if m.upscales != nil {
+		fields = append(fields, upscaleoutput.FieldUpscaleID)
+	}
+	if m.created_at != nil {
+		fields = append(fields, upscaleoutput.FieldCreatedAt)
+	}
+	if m.updated_at != nil {
+		fields = append(fields, upscaleoutput.FieldUpdatedAt)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *UpscaleOutputMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case upscaleoutput.FieldImageURL:
+		return m.ImageURL()
+	case upscaleoutput.FieldUpscaleID:
+		return m.UpscaleID()
+	case upscaleoutput.FieldCreatedAt:
+		return m.CreatedAt()
+	case upscaleoutput.FieldUpdatedAt:
+		return m.UpdatedAt()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *UpscaleOutputMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case upscaleoutput.FieldImageURL:
+		return m.OldImageURL(ctx)
+	case upscaleoutput.FieldUpscaleID:
+		return m.OldUpscaleID(ctx)
+	case upscaleoutput.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	case upscaleoutput.FieldUpdatedAt:
+		return m.OldUpdatedAt(ctx)
+	}
+	return nil, fmt.Errorf("unknown UpscaleOutput field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *UpscaleOutputMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case upscaleoutput.FieldImageURL:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetImageURL(v)
+		return nil
+	case upscaleoutput.FieldUpscaleID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpscaleID(v)
+		return nil
+	case upscaleoutput.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	case upscaleoutput.FieldUpdatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedAt(v)
+		return nil
+	}
+	return fmt.Errorf("unknown UpscaleOutput field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *UpscaleOutputMutation) AddedFields() []string {
+	return nil
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *UpscaleOutputMutation) AddedField(name string) (ent.Value, bool) {
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *UpscaleOutputMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown UpscaleOutput numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *UpscaleOutputMutation) ClearedFields() []string {
+	return nil
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *UpscaleOutputMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *UpscaleOutputMutation) ClearField(name string) error {
+	return fmt.Errorf("unknown UpscaleOutput nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *UpscaleOutputMutation) ResetField(name string) error {
+	switch name {
+	case upscaleoutput.FieldImageURL:
+		m.ResetImageURL()
+		return nil
+	case upscaleoutput.FieldUpscaleID:
+		m.ResetUpscaleID()
+		return nil
+	case upscaleoutput.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	case upscaleoutput.FieldUpdatedAt:
+		m.ResetUpdatedAt()
+		return nil
+	}
+	return fmt.Errorf("unknown UpscaleOutput field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *UpscaleOutputMutation) AddedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.upscales != nil {
+		edges = append(edges, upscaleoutput.EdgeUpscales)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *UpscaleOutputMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case upscaleoutput.EdgeUpscales:
+		if id := m.upscales; id != nil {
+			return []ent.Value{*id}
+		}
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *UpscaleOutputMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 1)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *UpscaleOutputMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *UpscaleOutputMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.clearedupscales {
+		edges = append(edges, upscaleoutput.EdgeUpscales)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *UpscaleOutputMutation) EdgeCleared(name string) bool {
+	switch name {
+	case upscaleoutput.EdgeUpscales:
+		return m.clearedupscales
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *UpscaleOutputMutation) ClearEdge(name string) error {
+	switch name {
+	case upscaleoutput.EdgeUpscales:
+		m.ClearUpscales()
+		return nil
+	}
+	return fmt.Errorf("unknown UpscaleOutput unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *UpscaleOutputMutation) ResetEdge(name string) error {
+	switch name {
+	case upscaleoutput.EdgeUpscales:
+		m.ResetUpscales()
+		return nil
+	}
+	return fmt.Errorf("unknown UpscaleOutput edge %s", name)
 }
 
 // UserMutation represents an operation that mutates the User nodes in the graph.
@@ -10773,21 +7773,20 @@ type UserMutation struct {
 	id                    *uuid.UUID
 	email                 *string
 	stripe_customer_id    *string
-	subscription_tier     *user.SubscriptionTier
 	subscription_category *user.SubscriptionCategory
 	created_at            *time.Time
 	updated_at            *time.Time
 	confirmed_at          *time.Time
 	clearedFields         map[string]struct{}
-	upscale               map[uuid.UUID]struct{}
-	removedupscale        map[uuid.UUID]struct{}
-	clearedupscale        bool
-	generation            map[uuid.UUID]struct{}
-	removedgeneration     map[uuid.UUID]struct{}
-	clearedgeneration     bool
-	generation_g          map[uuid.UUID]struct{}
-	removedgeneration_g   map[uuid.UUID]struct{}
-	clearedgeneration_g   bool
+	user_roles            map[uuid.UUID]struct{}
+	removeduser_roles     map[uuid.UUID]struct{}
+	cleareduser_roles     bool
+	generations           map[uuid.UUID]struct{}
+	removedgenerations    map[uuid.UUID]struct{}
+	clearedgenerations    bool
+	upscales              map[uuid.UUID]struct{}
+	removedupscales       map[uuid.UUID]struct{}
+	clearedupscales       bool
 	done                  bool
 	oldValue              func(context.Context) (*User, error)
 	predicates            []predicate.User
@@ -10969,42 +7968,6 @@ func (m *UserMutation) ResetStripeCustomerID() {
 	m.stripe_customer_id = nil
 }
 
-// SetSubscriptionTier sets the "subscription_tier" field.
-func (m *UserMutation) SetSubscriptionTier(ut user.SubscriptionTier) {
-	m.subscription_tier = &ut
-}
-
-// SubscriptionTier returns the value of the "subscription_tier" field in the mutation.
-func (m *UserMutation) SubscriptionTier() (r user.SubscriptionTier, exists bool) {
-	v := m.subscription_tier
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldSubscriptionTier returns the old "subscription_tier" field's value of the User entity.
-// If the User object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *UserMutation) OldSubscriptionTier(ctx context.Context) (v user.SubscriptionTier, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldSubscriptionTier is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldSubscriptionTier requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldSubscriptionTier: %w", err)
-	}
-	return oldValue.SubscriptionTier, nil
-}
-
-// ResetSubscriptionTier resets all changes to the "subscription_tier" field.
-func (m *UserMutation) ResetSubscriptionTier() {
-	m.subscription_tier = nil
-}
-
 // SetSubscriptionCategory sets the "subscription_category" field.
 func (m *UserMutation) SetSubscriptionCategory(uc user.SubscriptionCategory) {
 	m.subscription_category = &uc
@@ -11149,166 +8112,166 @@ func (m *UserMutation) ResetConfirmedAt() {
 	m.confirmed_at = nil
 }
 
-// AddUpscaleIDs adds the "upscale" edge to the Upscale entity by ids.
-func (m *UserMutation) AddUpscaleIDs(ids ...uuid.UUID) {
-	if m.upscale == nil {
-		m.upscale = make(map[uuid.UUID]struct{})
+// AddUserRoleIDs adds the "user_roles" edge to the UserRole entity by ids.
+func (m *UserMutation) AddUserRoleIDs(ids ...uuid.UUID) {
+	if m.user_roles == nil {
+		m.user_roles = make(map[uuid.UUID]struct{})
 	}
 	for i := range ids {
-		m.upscale[ids[i]] = struct{}{}
+		m.user_roles[ids[i]] = struct{}{}
 	}
 }
 
-// ClearUpscale clears the "upscale" edge to the Upscale entity.
-func (m *UserMutation) ClearUpscale() {
-	m.clearedupscale = true
+// ClearUserRoles clears the "user_roles" edge to the UserRole entity.
+func (m *UserMutation) ClearUserRoles() {
+	m.cleareduser_roles = true
 }
 
-// UpscaleCleared reports if the "upscale" edge to the Upscale entity was cleared.
-func (m *UserMutation) UpscaleCleared() bool {
-	return m.clearedupscale
+// UserRolesCleared reports if the "user_roles" edge to the UserRole entity was cleared.
+func (m *UserMutation) UserRolesCleared() bool {
+	return m.cleareduser_roles
 }
 
-// RemoveUpscaleIDs removes the "upscale" edge to the Upscale entity by IDs.
-func (m *UserMutation) RemoveUpscaleIDs(ids ...uuid.UUID) {
-	if m.removedupscale == nil {
-		m.removedupscale = make(map[uuid.UUID]struct{})
+// RemoveUserRoleIDs removes the "user_roles" edge to the UserRole entity by IDs.
+func (m *UserMutation) RemoveUserRoleIDs(ids ...uuid.UUID) {
+	if m.removeduser_roles == nil {
+		m.removeduser_roles = make(map[uuid.UUID]struct{})
 	}
 	for i := range ids {
-		delete(m.upscale, ids[i])
-		m.removedupscale[ids[i]] = struct{}{}
+		delete(m.user_roles, ids[i])
+		m.removeduser_roles[ids[i]] = struct{}{}
 	}
 }
 
-// RemovedUpscale returns the removed IDs of the "upscale" edge to the Upscale entity.
-func (m *UserMutation) RemovedUpscaleIDs() (ids []uuid.UUID) {
-	for id := range m.removedupscale {
+// RemovedUserRoles returns the removed IDs of the "user_roles" edge to the UserRole entity.
+func (m *UserMutation) RemovedUserRolesIDs() (ids []uuid.UUID) {
+	for id := range m.removeduser_roles {
 		ids = append(ids, id)
 	}
 	return
 }
 
-// UpscaleIDs returns the "upscale" edge IDs in the mutation.
-func (m *UserMutation) UpscaleIDs() (ids []uuid.UUID) {
-	for id := range m.upscale {
+// UserRolesIDs returns the "user_roles" edge IDs in the mutation.
+func (m *UserMutation) UserRolesIDs() (ids []uuid.UUID) {
+	for id := range m.user_roles {
 		ids = append(ids, id)
 	}
 	return
 }
 
-// ResetUpscale resets all changes to the "upscale" edge.
-func (m *UserMutation) ResetUpscale() {
-	m.upscale = nil
-	m.clearedupscale = false
-	m.removedupscale = nil
+// ResetUserRoles resets all changes to the "user_roles" edge.
+func (m *UserMutation) ResetUserRoles() {
+	m.user_roles = nil
+	m.cleareduser_roles = false
+	m.removeduser_roles = nil
 }
 
-// AddGenerationIDs adds the "generation" edge to the Generation entity by ids.
+// AddGenerationIDs adds the "generations" edge to the Generation entity by ids.
 func (m *UserMutation) AddGenerationIDs(ids ...uuid.UUID) {
-	if m.generation == nil {
-		m.generation = make(map[uuid.UUID]struct{})
+	if m.generations == nil {
+		m.generations = make(map[uuid.UUID]struct{})
 	}
 	for i := range ids {
-		m.generation[ids[i]] = struct{}{}
+		m.generations[ids[i]] = struct{}{}
 	}
 }
 
-// ClearGeneration clears the "generation" edge to the Generation entity.
-func (m *UserMutation) ClearGeneration() {
-	m.clearedgeneration = true
+// ClearGenerations clears the "generations" edge to the Generation entity.
+func (m *UserMutation) ClearGenerations() {
+	m.clearedgenerations = true
 }
 
-// GenerationCleared reports if the "generation" edge to the Generation entity was cleared.
-func (m *UserMutation) GenerationCleared() bool {
-	return m.clearedgeneration
+// GenerationsCleared reports if the "generations" edge to the Generation entity was cleared.
+func (m *UserMutation) GenerationsCleared() bool {
+	return m.clearedgenerations
 }
 
-// RemoveGenerationIDs removes the "generation" edge to the Generation entity by IDs.
+// RemoveGenerationIDs removes the "generations" edge to the Generation entity by IDs.
 func (m *UserMutation) RemoveGenerationIDs(ids ...uuid.UUID) {
-	if m.removedgeneration == nil {
-		m.removedgeneration = make(map[uuid.UUID]struct{})
+	if m.removedgenerations == nil {
+		m.removedgenerations = make(map[uuid.UUID]struct{})
 	}
 	for i := range ids {
-		delete(m.generation, ids[i])
-		m.removedgeneration[ids[i]] = struct{}{}
+		delete(m.generations, ids[i])
+		m.removedgenerations[ids[i]] = struct{}{}
 	}
 }
 
-// RemovedGeneration returns the removed IDs of the "generation" edge to the Generation entity.
-func (m *UserMutation) RemovedGenerationIDs() (ids []uuid.UUID) {
-	for id := range m.removedgeneration {
+// RemovedGenerations returns the removed IDs of the "generations" edge to the Generation entity.
+func (m *UserMutation) RemovedGenerationsIDs() (ids []uuid.UUID) {
+	for id := range m.removedgenerations {
 		ids = append(ids, id)
 	}
 	return
 }
 
-// GenerationIDs returns the "generation" edge IDs in the mutation.
-func (m *UserMutation) GenerationIDs() (ids []uuid.UUID) {
-	for id := range m.generation {
+// GenerationsIDs returns the "generations" edge IDs in the mutation.
+func (m *UserMutation) GenerationsIDs() (ids []uuid.UUID) {
+	for id := range m.generations {
 		ids = append(ids, id)
 	}
 	return
 }
 
-// ResetGeneration resets all changes to the "generation" edge.
-func (m *UserMutation) ResetGeneration() {
-	m.generation = nil
-	m.clearedgeneration = false
-	m.removedgeneration = nil
+// ResetGenerations resets all changes to the "generations" edge.
+func (m *UserMutation) ResetGenerations() {
+	m.generations = nil
+	m.clearedgenerations = false
+	m.removedgenerations = nil
 }
 
-// AddGenerationGIDs adds the "generation_g" edge to the GenerationG entity by ids.
-func (m *UserMutation) AddGenerationGIDs(ids ...uuid.UUID) {
-	if m.generation_g == nil {
-		m.generation_g = make(map[uuid.UUID]struct{})
+// AddUpscaleIDs adds the "upscales" edge to the Upscale entity by ids.
+func (m *UserMutation) AddUpscaleIDs(ids ...uuid.UUID) {
+	if m.upscales == nil {
+		m.upscales = make(map[uuid.UUID]struct{})
 	}
 	for i := range ids {
-		m.generation_g[ids[i]] = struct{}{}
+		m.upscales[ids[i]] = struct{}{}
 	}
 }
 
-// ClearGenerationG clears the "generation_g" edge to the GenerationG entity.
-func (m *UserMutation) ClearGenerationG() {
-	m.clearedgeneration_g = true
+// ClearUpscales clears the "upscales" edge to the Upscale entity.
+func (m *UserMutation) ClearUpscales() {
+	m.clearedupscales = true
 }
 
-// GenerationGCleared reports if the "generation_g" edge to the GenerationG entity was cleared.
-func (m *UserMutation) GenerationGCleared() bool {
-	return m.clearedgeneration_g
+// UpscalesCleared reports if the "upscales" edge to the Upscale entity was cleared.
+func (m *UserMutation) UpscalesCleared() bool {
+	return m.clearedupscales
 }
 
-// RemoveGenerationGIDs removes the "generation_g" edge to the GenerationG entity by IDs.
-func (m *UserMutation) RemoveGenerationGIDs(ids ...uuid.UUID) {
-	if m.removedgeneration_g == nil {
-		m.removedgeneration_g = make(map[uuid.UUID]struct{})
+// RemoveUpscaleIDs removes the "upscales" edge to the Upscale entity by IDs.
+func (m *UserMutation) RemoveUpscaleIDs(ids ...uuid.UUID) {
+	if m.removedupscales == nil {
+		m.removedupscales = make(map[uuid.UUID]struct{})
 	}
 	for i := range ids {
-		delete(m.generation_g, ids[i])
-		m.removedgeneration_g[ids[i]] = struct{}{}
+		delete(m.upscales, ids[i])
+		m.removedupscales[ids[i]] = struct{}{}
 	}
 }
 
-// RemovedGenerationG returns the removed IDs of the "generation_g" edge to the GenerationG entity.
-func (m *UserMutation) RemovedGenerationGIDs() (ids []uuid.UUID) {
-	for id := range m.removedgeneration_g {
+// RemovedUpscales returns the removed IDs of the "upscales" edge to the Upscale entity.
+func (m *UserMutation) RemovedUpscalesIDs() (ids []uuid.UUID) {
+	for id := range m.removedupscales {
 		ids = append(ids, id)
 	}
 	return
 }
 
-// GenerationGIDs returns the "generation_g" edge IDs in the mutation.
-func (m *UserMutation) GenerationGIDs() (ids []uuid.UUID) {
-	for id := range m.generation_g {
+// UpscalesIDs returns the "upscales" edge IDs in the mutation.
+func (m *UserMutation) UpscalesIDs() (ids []uuid.UUID) {
+	for id := range m.upscales {
 		ids = append(ids, id)
 	}
 	return
 }
 
-// ResetGenerationG resets all changes to the "generation_g" edge.
-func (m *UserMutation) ResetGenerationG() {
-	m.generation_g = nil
-	m.clearedgeneration_g = false
-	m.removedgeneration_g = nil
+// ResetUpscales resets all changes to the "upscales" edge.
+func (m *UserMutation) ResetUpscales() {
+	m.upscales = nil
+	m.clearedupscales = false
+	m.removedupscales = nil
 }
 
 // Where appends a list predicates to the UserMutation builder.
@@ -11345,15 +8308,12 @@ func (m *UserMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *UserMutation) Fields() []string {
-	fields := make([]string, 0, 7)
+	fields := make([]string, 0, 6)
 	if m.email != nil {
 		fields = append(fields, user.FieldEmail)
 	}
 	if m.stripe_customer_id != nil {
 		fields = append(fields, user.FieldStripeCustomerID)
-	}
-	if m.subscription_tier != nil {
-		fields = append(fields, user.FieldSubscriptionTier)
 	}
 	if m.subscription_category != nil {
 		fields = append(fields, user.FieldSubscriptionCategory)
@@ -11379,8 +8339,6 @@ func (m *UserMutation) Field(name string) (ent.Value, bool) {
 		return m.Email()
 	case user.FieldStripeCustomerID:
 		return m.StripeCustomerID()
-	case user.FieldSubscriptionTier:
-		return m.SubscriptionTier()
 	case user.FieldSubscriptionCategory:
 		return m.SubscriptionCategory()
 	case user.FieldCreatedAt:
@@ -11402,8 +8360,6 @@ func (m *UserMutation) OldField(ctx context.Context, name string) (ent.Value, er
 		return m.OldEmail(ctx)
 	case user.FieldStripeCustomerID:
 		return m.OldStripeCustomerID(ctx)
-	case user.FieldSubscriptionTier:
-		return m.OldSubscriptionTier(ctx)
 	case user.FieldSubscriptionCategory:
 		return m.OldSubscriptionCategory(ctx)
 	case user.FieldCreatedAt:
@@ -11434,13 +8390,6 @@ func (m *UserMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetStripeCustomerID(v)
-		return nil
-	case user.FieldSubscriptionTier:
-		v, ok := value.(user.SubscriptionTier)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetSubscriptionTier(v)
 		return nil
 	case user.FieldSubscriptionCategory:
 		v, ok := value.(user.SubscriptionCategory)
@@ -11525,9 +8474,6 @@ func (m *UserMutation) ResetField(name string) error {
 	case user.FieldStripeCustomerID:
 		m.ResetStripeCustomerID()
 		return nil
-	case user.FieldSubscriptionTier:
-		m.ResetSubscriptionTier()
-		return nil
 	case user.FieldSubscriptionCategory:
 		m.ResetSubscriptionCategory()
 		return nil
@@ -11547,14 +8493,14 @@ func (m *UserMutation) ResetField(name string) error {
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *UserMutation) AddedEdges() []string {
 	edges := make([]string, 0, 3)
-	if m.upscale != nil {
-		edges = append(edges, user.EdgeUpscale)
+	if m.user_roles != nil {
+		edges = append(edges, user.EdgeUserRoles)
 	}
-	if m.generation != nil {
-		edges = append(edges, user.EdgeGeneration)
+	if m.generations != nil {
+		edges = append(edges, user.EdgeGenerations)
 	}
-	if m.generation_g != nil {
-		edges = append(edges, user.EdgeGenerationG)
+	if m.upscales != nil {
+		edges = append(edges, user.EdgeUpscales)
 	}
 	return edges
 }
@@ -11563,21 +8509,21 @@ func (m *UserMutation) AddedEdges() []string {
 // name in this mutation.
 func (m *UserMutation) AddedIDs(name string) []ent.Value {
 	switch name {
-	case user.EdgeUpscale:
-		ids := make([]ent.Value, 0, len(m.upscale))
-		for id := range m.upscale {
+	case user.EdgeUserRoles:
+		ids := make([]ent.Value, 0, len(m.user_roles))
+		for id := range m.user_roles {
 			ids = append(ids, id)
 		}
 		return ids
-	case user.EdgeGeneration:
-		ids := make([]ent.Value, 0, len(m.generation))
-		for id := range m.generation {
+	case user.EdgeGenerations:
+		ids := make([]ent.Value, 0, len(m.generations))
+		for id := range m.generations {
 			ids = append(ids, id)
 		}
 		return ids
-	case user.EdgeGenerationG:
-		ids := make([]ent.Value, 0, len(m.generation_g))
-		for id := range m.generation_g {
+	case user.EdgeUpscales:
+		ids := make([]ent.Value, 0, len(m.upscales))
+		for id := range m.upscales {
 			ids = append(ids, id)
 		}
 		return ids
@@ -11588,14 +8534,14 @@ func (m *UserMutation) AddedIDs(name string) []ent.Value {
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *UserMutation) RemovedEdges() []string {
 	edges := make([]string, 0, 3)
-	if m.removedupscale != nil {
-		edges = append(edges, user.EdgeUpscale)
+	if m.removeduser_roles != nil {
+		edges = append(edges, user.EdgeUserRoles)
 	}
-	if m.removedgeneration != nil {
-		edges = append(edges, user.EdgeGeneration)
+	if m.removedgenerations != nil {
+		edges = append(edges, user.EdgeGenerations)
 	}
-	if m.removedgeneration_g != nil {
-		edges = append(edges, user.EdgeGenerationG)
+	if m.removedupscales != nil {
+		edges = append(edges, user.EdgeUpscales)
 	}
 	return edges
 }
@@ -11604,21 +8550,21 @@ func (m *UserMutation) RemovedEdges() []string {
 // the given name in this mutation.
 func (m *UserMutation) RemovedIDs(name string) []ent.Value {
 	switch name {
-	case user.EdgeUpscale:
-		ids := make([]ent.Value, 0, len(m.removedupscale))
-		for id := range m.removedupscale {
+	case user.EdgeUserRoles:
+		ids := make([]ent.Value, 0, len(m.removeduser_roles))
+		for id := range m.removeduser_roles {
 			ids = append(ids, id)
 		}
 		return ids
-	case user.EdgeGeneration:
-		ids := make([]ent.Value, 0, len(m.removedgeneration))
-		for id := range m.removedgeneration {
+	case user.EdgeGenerations:
+		ids := make([]ent.Value, 0, len(m.removedgenerations))
+		for id := range m.removedgenerations {
 			ids = append(ids, id)
 		}
 		return ids
-	case user.EdgeGenerationG:
-		ids := make([]ent.Value, 0, len(m.removedgeneration_g))
-		for id := range m.removedgeneration_g {
+	case user.EdgeUpscales:
+		ids := make([]ent.Value, 0, len(m.removedupscales))
+		for id := range m.removedupscales {
 			ids = append(ids, id)
 		}
 		return ids
@@ -11629,14 +8575,14 @@ func (m *UserMutation) RemovedIDs(name string) []ent.Value {
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *UserMutation) ClearedEdges() []string {
 	edges := make([]string, 0, 3)
-	if m.clearedupscale {
-		edges = append(edges, user.EdgeUpscale)
+	if m.cleareduser_roles {
+		edges = append(edges, user.EdgeUserRoles)
 	}
-	if m.clearedgeneration {
-		edges = append(edges, user.EdgeGeneration)
+	if m.clearedgenerations {
+		edges = append(edges, user.EdgeGenerations)
 	}
-	if m.clearedgeneration_g {
-		edges = append(edges, user.EdgeGenerationG)
+	if m.clearedupscales {
+		edges = append(edges, user.EdgeUpscales)
 	}
 	return edges
 }
@@ -11645,12 +8591,12 @@ func (m *UserMutation) ClearedEdges() []string {
 // was cleared in this mutation.
 func (m *UserMutation) EdgeCleared(name string) bool {
 	switch name {
-	case user.EdgeUpscale:
-		return m.clearedupscale
-	case user.EdgeGeneration:
-		return m.clearedgeneration
-	case user.EdgeGenerationG:
-		return m.clearedgeneration_g
+	case user.EdgeUserRoles:
+		return m.cleareduser_roles
+	case user.EdgeGenerations:
+		return m.clearedgenerations
+	case user.EdgeUpscales:
+		return m.clearedupscales
 	}
 	return false
 }
@@ -11667,15 +8613,575 @@ func (m *UserMutation) ClearEdge(name string) error {
 // It returns an error if the edge is not defined in the schema.
 func (m *UserMutation) ResetEdge(name string) error {
 	switch name {
-	case user.EdgeUpscale:
-		m.ResetUpscale()
+	case user.EdgeUserRoles:
+		m.ResetUserRoles()
 		return nil
-	case user.EdgeGeneration:
-		m.ResetGeneration()
+	case user.EdgeGenerations:
+		m.ResetGenerations()
 		return nil
-	case user.EdgeGenerationG:
-		m.ResetGenerationG()
+	case user.EdgeUpscales:
+		m.ResetUpscales()
 		return nil
 	}
 	return fmt.Errorf("unknown User edge %s", name)
+}
+
+// UserRoleMutation represents an operation that mutates the UserRole nodes in the graph.
+type UserRoleMutation struct {
+	config
+	op            Op
+	typ           string
+	id            *uuid.UUID
+	role_name     *userrole.RoleName
+	created_at    *time.Time
+	updated_at    *time.Time
+	clearedFields map[string]struct{}
+	users         *uuid.UUID
+	clearedusers  bool
+	done          bool
+	oldValue      func(context.Context) (*UserRole, error)
+	predicates    []predicate.UserRole
+}
+
+var _ ent.Mutation = (*UserRoleMutation)(nil)
+
+// userroleOption allows management of the mutation configuration using functional options.
+type userroleOption func(*UserRoleMutation)
+
+// newUserRoleMutation creates new mutation for the UserRole entity.
+func newUserRoleMutation(c config, op Op, opts ...userroleOption) *UserRoleMutation {
+	m := &UserRoleMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeUserRole,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withUserRoleID sets the ID field of the mutation.
+func withUserRoleID(id uuid.UUID) userroleOption {
+	return func(m *UserRoleMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *UserRole
+		)
+		m.oldValue = func(ctx context.Context) (*UserRole, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().UserRole.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withUserRole sets the old UserRole of the mutation.
+func withUserRole(node *UserRole) userroleOption {
+	return func(m *UserRoleMutation) {
+		m.oldValue = func(context.Context) (*UserRole, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m UserRoleMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m UserRoleMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of UserRole entities.
+func (m *UserRoleMutation) SetID(id uuid.UUID) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *UserRoleMutation) ID() (id uuid.UUID, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *UserRoleMutation) IDs(ctx context.Context) ([]uuid.UUID, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []uuid.UUID{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().UserRole.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetUserID sets the "user_id" field.
+func (m *UserRoleMutation) SetUserID(u uuid.UUID) {
+	m.users = &u
+}
+
+// UserID returns the value of the "user_id" field in the mutation.
+func (m *UserRoleMutation) UserID() (r uuid.UUID, exists bool) {
+	v := m.users
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUserID returns the old "user_id" field's value of the UserRole entity.
+// If the UserRole object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UserRoleMutation) OldUserID(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUserID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUserID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUserID: %w", err)
+	}
+	return oldValue.UserID, nil
+}
+
+// ResetUserID resets all changes to the "user_id" field.
+func (m *UserRoleMutation) ResetUserID() {
+	m.users = nil
+}
+
+// SetRoleName sets the "role_name" field.
+func (m *UserRoleMutation) SetRoleName(un userrole.RoleName) {
+	m.role_name = &un
+}
+
+// RoleName returns the value of the "role_name" field in the mutation.
+func (m *UserRoleMutation) RoleName() (r userrole.RoleName, exists bool) {
+	v := m.role_name
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldRoleName returns the old "role_name" field's value of the UserRole entity.
+// If the UserRole object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UserRoleMutation) OldRoleName(ctx context.Context) (v userrole.RoleName, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldRoleName is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldRoleName requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldRoleName: %w", err)
+	}
+	return oldValue.RoleName, nil
+}
+
+// ResetRoleName resets all changes to the "role_name" field.
+func (m *UserRoleMutation) ResetRoleName() {
+	m.role_name = nil
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *UserRoleMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *UserRoleMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the UserRole entity.
+// If the UserRole object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UserRoleMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *UserRoleMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (m *UserRoleMutation) SetUpdatedAt(t time.Time) {
+	m.updated_at = &t
+}
+
+// UpdatedAt returns the value of the "updated_at" field in the mutation.
+func (m *UserRoleMutation) UpdatedAt() (r time.Time, exists bool) {
+	v := m.updated_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedAt returns the old "updated_at" field's value of the UserRole entity.
+// If the UserRole object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UserRoleMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
+	}
+	return oldValue.UpdatedAt, nil
+}
+
+// ResetUpdatedAt resets all changes to the "updated_at" field.
+func (m *UserRoleMutation) ResetUpdatedAt() {
+	m.updated_at = nil
+}
+
+// SetUsersID sets the "users" edge to the User entity by id.
+func (m *UserRoleMutation) SetUsersID(id uuid.UUID) {
+	m.users = &id
+}
+
+// ClearUsers clears the "users" edge to the User entity.
+func (m *UserRoleMutation) ClearUsers() {
+	m.clearedusers = true
+}
+
+// UsersCleared reports if the "users" edge to the User entity was cleared.
+func (m *UserRoleMutation) UsersCleared() bool {
+	return m.clearedusers
+}
+
+// UsersID returns the "users" edge ID in the mutation.
+func (m *UserRoleMutation) UsersID() (id uuid.UUID, exists bool) {
+	if m.users != nil {
+		return *m.users, true
+	}
+	return
+}
+
+// UsersIDs returns the "users" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// UsersID instead. It exists only for internal usage by the builders.
+func (m *UserRoleMutation) UsersIDs() (ids []uuid.UUID) {
+	if id := m.users; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetUsers resets all changes to the "users" edge.
+func (m *UserRoleMutation) ResetUsers() {
+	m.users = nil
+	m.clearedusers = false
+}
+
+// Where appends a list predicates to the UserRoleMutation builder.
+func (m *UserRoleMutation) Where(ps ...predicate.UserRole) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the UserRoleMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *UserRoleMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.UserRole, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *UserRoleMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *UserRoleMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (UserRole).
+func (m *UserRoleMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *UserRoleMutation) Fields() []string {
+	fields := make([]string, 0, 4)
+	if m.users != nil {
+		fields = append(fields, userrole.FieldUserID)
+	}
+	if m.role_name != nil {
+		fields = append(fields, userrole.FieldRoleName)
+	}
+	if m.created_at != nil {
+		fields = append(fields, userrole.FieldCreatedAt)
+	}
+	if m.updated_at != nil {
+		fields = append(fields, userrole.FieldUpdatedAt)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *UserRoleMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case userrole.FieldUserID:
+		return m.UserID()
+	case userrole.FieldRoleName:
+		return m.RoleName()
+	case userrole.FieldCreatedAt:
+		return m.CreatedAt()
+	case userrole.FieldUpdatedAt:
+		return m.UpdatedAt()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *UserRoleMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case userrole.FieldUserID:
+		return m.OldUserID(ctx)
+	case userrole.FieldRoleName:
+		return m.OldRoleName(ctx)
+	case userrole.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	case userrole.FieldUpdatedAt:
+		return m.OldUpdatedAt(ctx)
+	}
+	return nil, fmt.Errorf("unknown UserRole field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *UserRoleMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case userrole.FieldUserID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUserID(v)
+		return nil
+	case userrole.FieldRoleName:
+		v, ok := value.(userrole.RoleName)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetRoleName(v)
+		return nil
+	case userrole.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	case userrole.FieldUpdatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedAt(v)
+		return nil
+	}
+	return fmt.Errorf("unknown UserRole field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *UserRoleMutation) AddedFields() []string {
+	return nil
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *UserRoleMutation) AddedField(name string) (ent.Value, bool) {
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *UserRoleMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown UserRole numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *UserRoleMutation) ClearedFields() []string {
+	return nil
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *UserRoleMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *UserRoleMutation) ClearField(name string) error {
+	return fmt.Errorf("unknown UserRole nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *UserRoleMutation) ResetField(name string) error {
+	switch name {
+	case userrole.FieldUserID:
+		m.ResetUserID()
+		return nil
+	case userrole.FieldRoleName:
+		m.ResetRoleName()
+		return nil
+	case userrole.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	case userrole.FieldUpdatedAt:
+		m.ResetUpdatedAt()
+		return nil
+	}
+	return fmt.Errorf("unknown UserRole field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *UserRoleMutation) AddedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.users != nil {
+		edges = append(edges, userrole.EdgeUsers)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *UserRoleMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case userrole.EdgeUsers:
+		if id := m.users; id != nil {
+			return []ent.Value{*id}
+		}
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *UserRoleMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 1)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *UserRoleMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *UserRoleMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.clearedusers {
+		edges = append(edges, userrole.EdgeUsers)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *UserRoleMutation) EdgeCleared(name string) bool {
+	switch name {
+	case userrole.EdgeUsers:
+		return m.clearedusers
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *UserRoleMutation) ClearEdge(name string) error {
+	switch name {
+	case userrole.EdgeUsers:
+		m.ClearUsers()
+		return nil
+	}
+	return fmt.Errorf("unknown UserRole unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *UserRoleMutation) ResetEdge(name string) error {
+	switch name {
+	case userrole.EdgeUsers:
+		m.ResetUsers()
+		return nil
+	}
+	return fmt.Errorf("unknown UserRole edge %s", name)
 }

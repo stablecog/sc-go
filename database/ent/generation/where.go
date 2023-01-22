@@ -57,6 +57,46 @@ func IDLTE(id uuid.UUID) predicate.Generation {
 	return predicate.Generation(sql.FieldLTE(FieldID, id))
 }
 
+// Width applies equality check predicate on the "width" field. It's identical to WidthEQ.
+func Width(v int) predicate.Generation {
+	return predicate.Generation(sql.FieldEQ(FieldWidth, v))
+}
+
+// Height applies equality check predicate on the "height" field. It's identical to HeightEQ.
+func Height(v int) predicate.Generation {
+	return predicate.Generation(sql.FieldEQ(FieldHeight, v))
+}
+
+// InterferenceSteps applies equality check predicate on the "interference_steps" field. It's identical to InterferenceStepsEQ.
+func InterferenceSteps(v int) predicate.Generation {
+	return predicate.Generation(sql.FieldEQ(FieldInterferenceSteps, v))
+}
+
+// GuidanceScale applies equality check predicate on the "guidance_scale" field. It's identical to GuidanceScaleEQ.
+func GuidanceScale(v float64) predicate.Generation {
+	return predicate.Generation(sql.FieldEQ(FieldGuidanceScale, v))
+}
+
+// Seed applies equality check predicate on the "seed" field. It's identical to SeedEQ.
+func Seed(v enttypes.BigInt) predicate.Generation {
+	return predicate.Generation(sql.FieldEQ(FieldSeed, v))
+}
+
+// DurationMs applies equality check predicate on the "duration_ms" field. It's identical to DurationMsEQ.
+func DurationMs(v int) predicate.Generation {
+	return predicate.Generation(sql.FieldEQ(FieldDurationMs, v))
+}
+
+// FailureReason applies equality check predicate on the "failure_reason" field. It's identical to FailureReasonEQ.
+func FailureReason(v string) predicate.Generation {
+	return predicate.Generation(sql.FieldEQ(FieldFailureReason, v))
+}
+
+// CountryCode applies equality check predicate on the "country_code" field. It's identical to CountryCodeEQ.
+func CountryCode(v string) predicate.Generation {
+	return predicate.Generation(sql.FieldEQ(FieldCountryCode, v))
+}
+
 // PromptID applies equality check predicate on the "prompt_id" field. It's identical to PromptIDEQ.
 func PromptID(v uuid.UUID) predicate.Generation {
 	return predicate.Generation(sql.FieldEQ(FieldPromptID, v))
@@ -72,41 +112,6 @@ func ModelID(v uuid.UUID) predicate.Generation {
 	return predicate.Generation(sql.FieldEQ(FieldModelID, v))
 }
 
-// ImageID applies equality check predicate on the "image_id" field. It's identical to ImageIDEQ.
-func ImageID(v string) predicate.Generation {
-	return predicate.Generation(sql.FieldEQ(FieldImageID, v))
-}
-
-// Width applies equality check predicate on the "width" field. It's identical to WidthEQ.
-func Width(v int) predicate.Generation {
-	return predicate.Generation(sql.FieldEQ(FieldWidth, v))
-}
-
-// Height applies equality check predicate on the "height" field. It's identical to HeightEQ.
-func Height(v int) predicate.Generation {
-	return predicate.Generation(sql.FieldEQ(FieldHeight, v))
-}
-
-// Seed applies equality check predicate on the "seed" field. It's identical to SeedEQ.
-func Seed(v enttypes.BigInt) predicate.Generation {
-	return predicate.Generation(sql.FieldEQ(FieldSeed, v))
-}
-
-// NumInferenceSteps applies equality check predicate on the "num_inference_steps" field. It's identical to NumInferenceStepsEQ.
-func NumInferenceSteps(v int) predicate.Generation {
-	return predicate.Generation(sql.FieldEQ(FieldNumInferenceSteps, v))
-}
-
-// GuidanceScale applies equality check predicate on the "guidance_scale" field. It's identical to GuidanceScaleEQ.
-func GuidanceScale(v float64) predicate.Generation {
-	return predicate.Generation(sql.FieldEQ(FieldGuidanceScale, v))
-}
-
-// Hidden applies equality check predicate on the "hidden" field. It's identical to HiddenEQ.
-func Hidden(v bool) predicate.Generation {
-	return predicate.Generation(sql.FieldEQ(FieldHidden, v))
-}
-
 // SchedulerID applies equality check predicate on the "scheduler_id" field. It's identical to SchedulerIDEQ.
 func SchedulerID(v uuid.UUID) predicate.Generation {
 	return predicate.Generation(sql.FieldEQ(FieldSchedulerID, v))
@@ -117,49 +122,9 @@ func UserID(v uuid.UUID) predicate.Generation {
 	return predicate.Generation(sql.FieldEQ(FieldUserID, v))
 }
 
-// ServerURL applies equality check predicate on the "server_url" field. It's identical to ServerURLEQ.
-func ServerURL(v string) predicate.Generation {
-	return predicate.Generation(sql.FieldEQ(FieldServerURL, v))
-}
-
-// CountryCode applies equality check predicate on the "country_code" field. It's identical to CountryCodeEQ.
-func CountryCode(v string) predicate.Generation {
-	return predicate.Generation(sql.FieldEQ(FieldCountryCode, v))
-}
-
-// DeviceType applies equality check predicate on the "device_type" field. It's identical to DeviceTypeEQ.
-func DeviceType(v string) predicate.Generation {
-	return predicate.Generation(sql.FieldEQ(FieldDeviceType, v))
-}
-
-// DeviceOs applies equality check predicate on the "device_os" field. It's identical to DeviceOsEQ.
-func DeviceOs(v string) predicate.Generation {
-	return predicate.Generation(sql.FieldEQ(FieldDeviceOs, v))
-}
-
-// DeviceBrowser applies equality check predicate on the "device_browser" field. It's identical to DeviceBrowserEQ.
-func DeviceBrowser(v string) predicate.Generation {
-	return predicate.Generation(sql.FieldEQ(FieldDeviceBrowser, v))
-}
-
-// UserAgent applies equality check predicate on the "user_agent" field. It's identical to UserAgentEQ.
-func UserAgent(v string) predicate.Generation {
-	return predicate.Generation(sql.FieldEQ(FieldUserAgent, v))
-}
-
-// DurationMs applies equality check predicate on the "duration_ms" field. It's identical to DurationMsEQ.
-func DurationMs(v int) predicate.Generation {
-	return predicate.Generation(sql.FieldEQ(FieldDurationMs, v))
-}
-
-// FailureReason applies equality check predicate on the "failure_reason" field. It's identical to FailureReasonEQ.
-func FailureReason(v string) predicate.Generation {
-	return predicate.Generation(sql.FieldEQ(FieldFailureReason, v))
-}
-
-// ImageObjectName applies equality check predicate on the "image_object_name" field. It's identical to ImageObjectNameEQ.
-func ImageObjectName(v string) predicate.Generation {
-	return predicate.Generation(sql.FieldEQ(FieldImageObjectName, v))
+// DeviceInfoID applies equality check predicate on the "device_info_id" field. It's identical to DeviceInfoIDEQ.
+func DeviceInfoID(v uuid.UUID) predicate.Generation {
+	return predicate.Generation(sql.FieldEQ(FieldDeviceInfoID, v))
 }
 
 // CreatedAt applies equality check predicate on the "created_at" field. It's identical to CreatedAtEQ.
@@ -170,131 +135,6 @@ func CreatedAt(v time.Time) predicate.Generation {
 // UpdatedAt applies equality check predicate on the "updated_at" field. It's identical to UpdatedAtEQ.
 func UpdatedAt(v time.Time) predicate.Generation {
 	return predicate.Generation(sql.FieldEQ(FieldUpdatedAt, v))
-}
-
-// PromptIDEQ applies the EQ predicate on the "prompt_id" field.
-func PromptIDEQ(v uuid.UUID) predicate.Generation {
-	return predicate.Generation(sql.FieldEQ(FieldPromptID, v))
-}
-
-// PromptIDNEQ applies the NEQ predicate on the "prompt_id" field.
-func PromptIDNEQ(v uuid.UUID) predicate.Generation {
-	return predicate.Generation(sql.FieldNEQ(FieldPromptID, v))
-}
-
-// PromptIDIn applies the In predicate on the "prompt_id" field.
-func PromptIDIn(vs ...uuid.UUID) predicate.Generation {
-	return predicate.Generation(sql.FieldIn(FieldPromptID, vs...))
-}
-
-// PromptIDNotIn applies the NotIn predicate on the "prompt_id" field.
-func PromptIDNotIn(vs ...uuid.UUID) predicate.Generation {
-	return predicate.Generation(sql.FieldNotIn(FieldPromptID, vs...))
-}
-
-// NegativePromptIDEQ applies the EQ predicate on the "negative_prompt_id" field.
-func NegativePromptIDEQ(v uuid.UUID) predicate.Generation {
-	return predicate.Generation(sql.FieldEQ(FieldNegativePromptID, v))
-}
-
-// NegativePromptIDNEQ applies the NEQ predicate on the "negative_prompt_id" field.
-func NegativePromptIDNEQ(v uuid.UUID) predicate.Generation {
-	return predicate.Generation(sql.FieldNEQ(FieldNegativePromptID, v))
-}
-
-// NegativePromptIDIn applies the In predicate on the "negative_prompt_id" field.
-func NegativePromptIDIn(vs ...uuid.UUID) predicate.Generation {
-	return predicate.Generation(sql.FieldIn(FieldNegativePromptID, vs...))
-}
-
-// NegativePromptIDNotIn applies the NotIn predicate on the "negative_prompt_id" field.
-func NegativePromptIDNotIn(vs ...uuid.UUID) predicate.Generation {
-	return predicate.Generation(sql.FieldNotIn(FieldNegativePromptID, vs...))
-}
-
-// ModelIDEQ applies the EQ predicate on the "model_id" field.
-func ModelIDEQ(v uuid.UUID) predicate.Generation {
-	return predicate.Generation(sql.FieldEQ(FieldModelID, v))
-}
-
-// ModelIDNEQ applies the NEQ predicate on the "model_id" field.
-func ModelIDNEQ(v uuid.UUID) predicate.Generation {
-	return predicate.Generation(sql.FieldNEQ(FieldModelID, v))
-}
-
-// ModelIDIn applies the In predicate on the "model_id" field.
-func ModelIDIn(vs ...uuid.UUID) predicate.Generation {
-	return predicate.Generation(sql.FieldIn(FieldModelID, vs...))
-}
-
-// ModelIDNotIn applies the NotIn predicate on the "model_id" field.
-func ModelIDNotIn(vs ...uuid.UUID) predicate.Generation {
-	return predicate.Generation(sql.FieldNotIn(FieldModelID, vs...))
-}
-
-// ImageIDEQ applies the EQ predicate on the "image_id" field.
-func ImageIDEQ(v string) predicate.Generation {
-	return predicate.Generation(sql.FieldEQ(FieldImageID, v))
-}
-
-// ImageIDNEQ applies the NEQ predicate on the "image_id" field.
-func ImageIDNEQ(v string) predicate.Generation {
-	return predicate.Generation(sql.FieldNEQ(FieldImageID, v))
-}
-
-// ImageIDIn applies the In predicate on the "image_id" field.
-func ImageIDIn(vs ...string) predicate.Generation {
-	return predicate.Generation(sql.FieldIn(FieldImageID, vs...))
-}
-
-// ImageIDNotIn applies the NotIn predicate on the "image_id" field.
-func ImageIDNotIn(vs ...string) predicate.Generation {
-	return predicate.Generation(sql.FieldNotIn(FieldImageID, vs...))
-}
-
-// ImageIDGT applies the GT predicate on the "image_id" field.
-func ImageIDGT(v string) predicate.Generation {
-	return predicate.Generation(sql.FieldGT(FieldImageID, v))
-}
-
-// ImageIDGTE applies the GTE predicate on the "image_id" field.
-func ImageIDGTE(v string) predicate.Generation {
-	return predicate.Generation(sql.FieldGTE(FieldImageID, v))
-}
-
-// ImageIDLT applies the LT predicate on the "image_id" field.
-func ImageIDLT(v string) predicate.Generation {
-	return predicate.Generation(sql.FieldLT(FieldImageID, v))
-}
-
-// ImageIDLTE applies the LTE predicate on the "image_id" field.
-func ImageIDLTE(v string) predicate.Generation {
-	return predicate.Generation(sql.FieldLTE(FieldImageID, v))
-}
-
-// ImageIDContains applies the Contains predicate on the "image_id" field.
-func ImageIDContains(v string) predicate.Generation {
-	return predicate.Generation(sql.FieldContains(FieldImageID, v))
-}
-
-// ImageIDHasPrefix applies the HasPrefix predicate on the "image_id" field.
-func ImageIDHasPrefix(v string) predicate.Generation {
-	return predicate.Generation(sql.FieldHasPrefix(FieldImageID, v))
-}
-
-// ImageIDHasSuffix applies the HasSuffix predicate on the "image_id" field.
-func ImageIDHasSuffix(v string) predicate.Generation {
-	return predicate.Generation(sql.FieldHasSuffix(FieldImageID, v))
-}
-
-// ImageIDEqualFold applies the EqualFold predicate on the "image_id" field.
-func ImageIDEqualFold(v string) predicate.Generation {
-	return predicate.Generation(sql.FieldEqualFold(FieldImageID, v))
-}
-
-// ImageIDContainsFold applies the ContainsFold predicate on the "image_id" field.
-func ImageIDContainsFold(v string) predicate.Generation {
-	return predicate.Generation(sql.FieldContainsFold(FieldImageID, v))
 }
 
 // WidthEQ applies the EQ predicate on the "width" field.
@@ -377,6 +217,86 @@ func HeightLTE(v int) predicate.Generation {
 	return predicate.Generation(sql.FieldLTE(FieldHeight, v))
 }
 
+// InterferenceStepsEQ applies the EQ predicate on the "interference_steps" field.
+func InterferenceStepsEQ(v int) predicate.Generation {
+	return predicate.Generation(sql.FieldEQ(FieldInterferenceSteps, v))
+}
+
+// InterferenceStepsNEQ applies the NEQ predicate on the "interference_steps" field.
+func InterferenceStepsNEQ(v int) predicate.Generation {
+	return predicate.Generation(sql.FieldNEQ(FieldInterferenceSteps, v))
+}
+
+// InterferenceStepsIn applies the In predicate on the "interference_steps" field.
+func InterferenceStepsIn(vs ...int) predicate.Generation {
+	return predicate.Generation(sql.FieldIn(FieldInterferenceSteps, vs...))
+}
+
+// InterferenceStepsNotIn applies the NotIn predicate on the "interference_steps" field.
+func InterferenceStepsNotIn(vs ...int) predicate.Generation {
+	return predicate.Generation(sql.FieldNotIn(FieldInterferenceSteps, vs...))
+}
+
+// InterferenceStepsGT applies the GT predicate on the "interference_steps" field.
+func InterferenceStepsGT(v int) predicate.Generation {
+	return predicate.Generation(sql.FieldGT(FieldInterferenceSteps, v))
+}
+
+// InterferenceStepsGTE applies the GTE predicate on the "interference_steps" field.
+func InterferenceStepsGTE(v int) predicate.Generation {
+	return predicate.Generation(sql.FieldGTE(FieldInterferenceSteps, v))
+}
+
+// InterferenceStepsLT applies the LT predicate on the "interference_steps" field.
+func InterferenceStepsLT(v int) predicate.Generation {
+	return predicate.Generation(sql.FieldLT(FieldInterferenceSteps, v))
+}
+
+// InterferenceStepsLTE applies the LTE predicate on the "interference_steps" field.
+func InterferenceStepsLTE(v int) predicate.Generation {
+	return predicate.Generation(sql.FieldLTE(FieldInterferenceSteps, v))
+}
+
+// GuidanceScaleEQ applies the EQ predicate on the "guidance_scale" field.
+func GuidanceScaleEQ(v float64) predicate.Generation {
+	return predicate.Generation(sql.FieldEQ(FieldGuidanceScale, v))
+}
+
+// GuidanceScaleNEQ applies the NEQ predicate on the "guidance_scale" field.
+func GuidanceScaleNEQ(v float64) predicate.Generation {
+	return predicate.Generation(sql.FieldNEQ(FieldGuidanceScale, v))
+}
+
+// GuidanceScaleIn applies the In predicate on the "guidance_scale" field.
+func GuidanceScaleIn(vs ...float64) predicate.Generation {
+	return predicate.Generation(sql.FieldIn(FieldGuidanceScale, vs...))
+}
+
+// GuidanceScaleNotIn applies the NotIn predicate on the "guidance_scale" field.
+func GuidanceScaleNotIn(vs ...float64) predicate.Generation {
+	return predicate.Generation(sql.FieldNotIn(FieldGuidanceScale, vs...))
+}
+
+// GuidanceScaleGT applies the GT predicate on the "guidance_scale" field.
+func GuidanceScaleGT(v float64) predicate.Generation {
+	return predicate.Generation(sql.FieldGT(FieldGuidanceScale, v))
+}
+
+// GuidanceScaleGTE applies the GTE predicate on the "guidance_scale" field.
+func GuidanceScaleGTE(v float64) predicate.Generation {
+	return predicate.Generation(sql.FieldGTE(FieldGuidanceScale, v))
+}
+
+// GuidanceScaleLT applies the LT predicate on the "guidance_scale" field.
+func GuidanceScaleLT(v float64) predicate.Generation {
+	return predicate.Generation(sql.FieldLT(FieldGuidanceScale, v))
+}
+
+// GuidanceScaleLTE applies the LTE predicate on the "guidance_scale" field.
+func GuidanceScaleLTE(v float64) predicate.Generation {
+	return predicate.Generation(sql.FieldLTE(FieldGuidanceScale, v))
+}
+
 // SeedEQ applies the EQ predicate on the "seed" field.
 func SeedEQ(v enttypes.BigInt) predicate.Generation {
 	return predicate.Generation(sql.FieldEQ(FieldSeed, v))
@@ -425,546 +345,6 @@ func SeedIsNil() predicate.Generation {
 // SeedNotNil applies the NotNil predicate on the "seed" field.
 func SeedNotNil() predicate.Generation {
 	return predicate.Generation(sql.FieldNotNull(FieldSeed))
-}
-
-// NumInferenceStepsEQ applies the EQ predicate on the "num_inference_steps" field.
-func NumInferenceStepsEQ(v int) predicate.Generation {
-	return predicate.Generation(sql.FieldEQ(FieldNumInferenceSteps, v))
-}
-
-// NumInferenceStepsNEQ applies the NEQ predicate on the "num_inference_steps" field.
-func NumInferenceStepsNEQ(v int) predicate.Generation {
-	return predicate.Generation(sql.FieldNEQ(FieldNumInferenceSteps, v))
-}
-
-// NumInferenceStepsIn applies the In predicate on the "num_inference_steps" field.
-func NumInferenceStepsIn(vs ...int) predicate.Generation {
-	return predicate.Generation(sql.FieldIn(FieldNumInferenceSteps, vs...))
-}
-
-// NumInferenceStepsNotIn applies the NotIn predicate on the "num_inference_steps" field.
-func NumInferenceStepsNotIn(vs ...int) predicate.Generation {
-	return predicate.Generation(sql.FieldNotIn(FieldNumInferenceSteps, vs...))
-}
-
-// NumInferenceStepsGT applies the GT predicate on the "num_inference_steps" field.
-func NumInferenceStepsGT(v int) predicate.Generation {
-	return predicate.Generation(sql.FieldGT(FieldNumInferenceSteps, v))
-}
-
-// NumInferenceStepsGTE applies the GTE predicate on the "num_inference_steps" field.
-func NumInferenceStepsGTE(v int) predicate.Generation {
-	return predicate.Generation(sql.FieldGTE(FieldNumInferenceSteps, v))
-}
-
-// NumInferenceStepsLT applies the LT predicate on the "num_inference_steps" field.
-func NumInferenceStepsLT(v int) predicate.Generation {
-	return predicate.Generation(sql.FieldLT(FieldNumInferenceSteps, v))
-}
-
-// NumInferenceStepsLTE applies the LTE predicate on the "num_inference_steps" field.
-func NumInferenceStepsLTE(v int) predicate.Generation {
-	return predicate.Generation(sql.FieldLTE(FieldNumInferenceSteps, v))
-}
-
-// GuidanceScaleEQ applies the EQ predicate on the "guidance_scale" field.
-func GuidanceScaleEQ(v float64) predicate.Generation {
-	return predicate.Generation(sql.FieldEQ(FieldGuidanceScale, v))
-}
-
-// GuidanceScaleNEQ applies the NEQ predicate on the "guidance_scale" field.
-func GuidanceScaleNEQ(v float64) predicate.Generation {
-	return predicate.Generation(sql.FieldNEQ(FieldGuidanceScale, v))
-}
-
-// GuidanceScaleIn applies the In predicate on the "guidance_scale" field.
-func GuidanceScaleIn(vs ...float64) predicate.Generation {
-	return predicate.Generation(sql.FieldIn(FieldGuidanceScale, vs...))
-}
-
-// GuidanceScaleNotIn applies the NotIn predicate on the "guidance_scale" field.
-func GuidanceScaleNotIn(vs ...float64) predicate.Generation {
-	return predicate.Generation(sql.FieldNotIn(FieldGuidanceScale, vs...))
-}
-
-// GuidanceScaleGT applies the GT predicate on the "guidance_scale" field.
-func GuidanceScaleGT(v float64) predicate.Generation {
-	return predicate.Generation(sql.FieldGT(FieldGuidanceScale, v))
-}
-
-// GuidanceScaleGTE applies the GTE predicate on the "guidance_scale" field.
-func GuidanceScaleGTE(v float64) predicate.Generation {
-	return predicate.Generation(sql.FieldGTE(FieldGuidanceScale, v))
-}
-
-// GuidanceScaleLT applies the LT predicate on the "guidance_scale" field.
-func GuidanceScaleLT(v float64) predicate.Generation {
-	return predicate.Generation(sql.FieldLT(FieldGuidanceScale, v))
-}
-
-// GuidanceScaleLTE applies the LTE predicate on the "guidance_scale" field.
-func GuidanceScaleLTE(v float64) predicate.Generation {
-	return predicate.Generation(sql.FieldLTE(FieldGuidanceScale, v))
-}
-
-// HiddenEQ applies the EQ predicate on the "hidden" field.
-func HiddenEQ(v bool) predicate.Generation {
-	return predicate.Generation(sql.FieldEQ(FieldHidden, v))
-}
-
-// HiddenNEQ applies the NEQ predicate on the "hidden" field.
-func HiddenNEQ(v bool) predicate.Generation {
-	return predicate.Generation(sql.FieldNEQ(FieldHidden, v))
-}
-
-// SchedulerIDEQ applies the EQ predicate on the "scheduler_id" field.
-func SchedulerIDEQ(v uuid.UUID) predicate.Generation {
-	return predicate.Generation(sql.FieldEQ(FieldSchedulerID, v))
-}
-
-// SchedulerIDNEQ applies the NEQ predicate on the "scheduler_id" field.
-func SchedulerIDNEQ(v uuid.UUID) predicate.Generation {
-	return predicate.Generation(sql.FieldNEQ(FieldSchedulerID, v))
-}
-
-// SchedulerIDIn applies the In predicate on the "scheduler_id" field.
-func SchedulerIDIn(vs ...uuid.UUID) predicate.Generation {
-	return predicate.Generation(sql.FieldIn(FieldSchedulerID, vs...))
-}
-
-// SchedulerIDNotIn applies the NotIn predicate on the "scheduler_id" field.
-func SchedulerIDNotIn(vs ...uuid.UUID) predicate.Generation {
-	return predicate.Generation(sql.FieldNotIn(FieldSchedulerID, vs...))
-}
-
-// UserIDEQ applies the EQ predicate on the "user_id" field.
-func UserIDEQ(v uuid.UUID) predicate.Generation {
-	return predicate.Generation(sql.FieldEQ(FieldUserID, v))
-}
-
-// UserIDNEQ applies the NEQ predicate on the "user_id" field.
-func UserIDNEQ(v uuid.UUID) predicate.Generation {
-	return predicate.Generation(sql.FieldNEQ(FieldUserID, v))
-}
-
-// UserIDIn applies the In predicate on the "user_id" field.
-func UserIDIn(vs ...uuid.UUID) predicate.Generation {
-	return predicate.Generation(sql.FieldIn(FieldUserID, vs...))
-}
-
-// UserIDNotIn applies the NotIn predicate on the "user_id" field.
-func UserIDNotIn(vs ...uuid.UUID) predicate.Generation {
-	return predicate.Generation(sql.FieldNotIn(FieldUserID, vs...))
-}
-
-// UserTierEQ applies the EQ predicate on the "user_tier" field.
-func UserTierEQ(v UserTier) predicate.Generation {
-	return predicate.Generation(sql.FieldEQ(FieldUserTier, v))
-}
-
-// UserTierNEQ applies the NEQ predicate on the "user_tier" field.
-func UserTierNEQ(v UserTier) predicate.Generation {
-	return predicate.Generation(sql.FieldNEQ(FieldUserTier, v))
-}
-
-// UserTierIn applies the In predicate on the "user_tier" field.
-func UserTierIn(vs ...UserTier) predicate.Generation {
-	return predicate.Generation(sql.FieldIn(FieldUserTier, vs...))
-}
-
-// UserTierNotIn applies the NotIn predicate on the "user_tier" field.
-func UserTierNotIn(vs ...UserTier) predicate.Generation {
-	return predicate.Generation(sql.FieldNotIn(FieldUserTier, vs...))
-}
-
-// ServerURLEQ applies the EQ predicate on the "server_url" field.
-func ServerURLEQ(v string) predicate.Generation {
-	return predicate.Generation(sql.FieldEQ(FieldServerURL, v))
-}
-
-// ServerURLNEQ applies the NEQ predicate on the "server_url" field.
-func ServerURLNEQ(v string) predicate.Generation {
-	return predicate.Generation(sql.FieldNEQ(FieldServerURL, v))
-}
-
-// ServerURLIn applies the In predicate on the "server_url" field.
-func ServerURLIn(vs ...string) predicate.Generation {
-	return predicate.Generation(sql.FieldIn(FieldServerURL, vs...))
-}
-
-// ServerURLNotIn applies the NotIn predicate on the "server_url" field.
-func ServerURLNotIn(vs ...string) predicate.Generation {
-	return predicate.Generation(sql.FieldNotIn(FieldServerURL, vs...))
-}
-
-// ServerURLGT applies the GT predicate on the "server_url" field.
-func ServerURLGT(v string) predicate.Generation {
-	return predicate.Generation(sql.FieldGT(FieldServerURL, v))
-}
-
-// ServerURLGTE applies the GTE predicate on the "server_url" field.
-func ServerURLGTE(v string) predicate.Generation {
-	return predicate.Generation(sql.FieldGTE(FieldServerURL, v))
-}
-
-// ServerURLLT applies the LT predicate on the "server_url" field.
-func ServerURLLT(v string) predicate.Generation {
-	return predicate.Generation(sql.FieldLT(FieldServerURL, v))
-}
-
-// ServerURLLTE applies the LTE predicate on the "server_url" field.
-func ServerURLLTE(v string) predicate.Generation {
-	return predicate.Generation(sql.FieldLTE(FieldServerURL, v))
-}
-
-// ServerURLContains applies the Contains predicate on the "server_url" field.
-func ServerURLContains(v string) predicate.Generation {
-	return predicate.Generation(sql.FieldContains(FieldServerURL, v))
-}
-
-// ServerURLHasPrefix applies the HasPrefix predicate on the "server_url" field.
-func ServerURLHasPrefix(v string) predicate.Generation {
-	return predicate.Generation(sql.FieldHasPrefix(FieldServerURL, v))
-}
-
-// ServerURLHasSuffix applies the HasSuffix predicate on the "server_url" field.
-func ServerURLHasSuffix(v string) predicate.Generation {
-	return predicate.Generation(sql.FieldHasSuffix(FieldServerURL, v))
-}
-
-// ServerURLEqualFold applies the EqualFold predicate on the "server_url" field.
-func ServerURLEqualFold(v string) predicate.Generation {
-	return predicate.Generation(sql.FieldEqualFold(FieldServerURL, v))
-}
-
-// ServerURLContainsFold applies the ContainsFold predicate on the "server_url" field.
-func ServerURLContainsFold(v string) predicate.Generation {
-	return predicate.Generation(sql.FieldContainsFold(FieldServerURL, v))
-}
-
-// CountryCodeEQ applies the EQ predicate on the "country_code" field.
-func CountryCodeEQ(v string) predicate.Generation {
-	return predicate.Generation(sql.FieldEQ(FieldCountryCode, v))
-}
-
-// CountryCodeNEQ applies the NEQ predicate on the "country_code" field.
-func CountryCodeNEQ(v string) predicate.Generation {
-	return predicate.Generation(sql.FieldNEQ(FieldCountryCode, v))
-}
-
-// CountryCodeIn applies the In predicate on the "country_code" field.
-func CountryCodeIn(vs ...string) predicate.Generation {
-	return predicate.Generation(sql.FieldIn(FieldCountryCode, vs...))
-}
-
-// CountryCodeNotIn applies the NotIn predicate on the "country_code" field.
-func CountryCodeNotIn(vs ...string) predicate.Generation {
-	return predicate.Generation(sql.FieldNotIn(FieldCountryCode, vs...))
-}
-
-// CountryCodeGT applies the GT predicate on the "country_code" field.
-func CountryCodeGT(v string) predicate.Generation {
-	return predicate.Generation(sql.FieldGT(FieldCountryCode, v))
-}
-
-// CountryCodeGTE applies the GTE predicate on the "country_code" field.
-func CountryCodeGTE(v string) predicate.Generation {
-	return predicate.Generation(sql.FieldGTE(FieldCountryCode, v))
-}
-
-// CountryCodeLT applies the LT predicate on the "country_code" field.
-func CountryCodeLT(v string) predicate.Generation {
-	return predicate.Generation(sql.FieldLT(FieldCountryCode, v))
-}
-
-// CountryCodeLTE applies the LTE predicate on the "country_code" field.
-func CountryCodeLTE(v string) predicate.Generation {
-	return predicate.Generation(sql.FieldLTE(FieldCountryCode, v))
-}
-
-// CountryCodeContains applies the Contains predicate on the "country_code" field.
-func CountryCodeContains(v string) predicate.Generation {
-	return predicate.Generation(sql.FieldContains(FieldCountryCode, v))
-}
-
-// CountryCodeHasPrefix applies the HasPrefix predicate on the "country_code" field.
-func CountryCodeHasPrefix(v string) predicate.Generation {
-	return predicate.Generation(sql.FieldHasPrefix(FieldCountryCode, v))
-}
-
-// CountryCodeHasSuffix applies the HasSuffix predicate on the "country_code" field.
-func CountryCodeHasSuffix(v string) predicate.Generation {
-	return predicate.Generation(sql.FieldHasSuffix(FieldCountryCode, v))
-}
-
-// CountryCodeEqualFold applies the EqualFold predicate on the "country_code" field.
-func CountryCodeEqualFold(v string) predicate.Generation {
-	return predicate.Generation(sql.FieldEqualFold(FieldCountryCode, v))
-}
-
-// CountryCodeContainsFold applies the ContainsFold predicate on the "country_code" field.
-func CountryCodeContainsFold(v string) predicate.Generation {
-	return predicate.Generation(sql.FieldContainsFold(FieldCountryCode, v))
-}
-
-// DeviceTypeEQ applies the EQ predicate on the "device_type" field.
-func DeviceTypeEQ(v string) predicate.Generation {
-	return predicate.Generation(sql.FieldEQ(FieldDeviceType, v))
-}
-
-// DeviceTypeNEQ applies the NEQ predicate on the "device_type" field.
-func DeviceTypeNEQ(v string) predicate.Generation {
-	return predicate.Generation(sql.FieldNEQ(FieldDeviceType, v))
-}
-
-// DeviceTypeIn applies the In predicate on the "device_type" field.
-func DeviceTypeIn(vs ...string) predicate.Generation {
-	return predicate.Generation(sql.FieldIn(FieldDeviceType, vs...))
-}
-
-// DeviceTypeNotIn applies the NotIn predicate on the "device_type" field.
-func DeviceTypeNotIn(vs ...string) predicate.Generation {
-	return predicate.Generation(sql.FieldNotIn(FieldDeviceType, vs...))
-}
-
-// DeviceTypeGT applies the GT predicate on the "device_type" field.
-func DeviceTypeGT(v string) predicate.Generation {
-	return predicate.Generation(sql.FieldGT(FieldDeviceType, v))
-}
-
-// DeviceTypeGTE applies the GTE predicate on the "device_type" field.
-func DeviceTypeGTE(v string) predicate.Generation {
-	return predicate.Generation(sql.FieldGTE(FieldDeviceType, v))
-}
-
-// DeviceTypeLT applies the LT predicate on the "device_type" field.
-func DeviceTypeLT(v string) predicate.Generation {
-	return predicate.Generation(sql.FieldLT(FieldDeviceType, v))
-}
-
-// DeviceTypeLTE applies the LTE predicate on the "device_type" field.
-func DeviceTypeLTE(v string) predicate.Generation {
-	return predicate.Generation(sql.FieldLTE(FieldDeviceType, v))
-}
-
-// DeviceTypeContains applies the Contains predicate on the "device_type" field.
-func DeviceTypeContains(v string) predicate.Generation {
-	return predicate.Generation(sql.FieldContains(FieldDeviceType, v))
-}
-
-// DeviceTypeHasPrefix applies the HasPrefix predicate on the "device_type" field.
-func DeviceTypeHasPrefix(v string) predicate.Generation {
-	return predicate.Generation(sql.FieldHasPrefix(FieldDeviceType, v))
-}
-
-// DeviceTypeHasSuffix applies the HasSuffix predicate on the "device_type" field.
-func DeviceTypeHasSuffix(v string) predicate.Generation {
-	return predicate.Generation(sql.FieldHasSuffix(FieldDeviceType, v))
-}
-
-// DeviceTypeEqualFold applies the EqualFold predicate on the "device_type" field.
-func DeviceTypeEqualFold(v string) predicate.Generation {
-	return predicate.Generation(sql.FieldEqualFold(FieldDeviceType, v))
-}
-
-// DeviceTypeContainsFold applies the ContainsFold predicate on the "device_type" field.
-func DeviceTypeContainsFold(v string) predicate.Generation {
-	return predicate.Generation(sql.FieldContainsFold(FieldDeviceType, v))
-}
-
-// DeviceOsEQ applies the EQ predicate on the "device_os" field.
-func DeviceOsEQ(v string) predicate.Generation {
-	return predicate.Generation(sql.FieldEQ(FieldDeviceOs, v))
-}
-
-// DeviceOsNEQ applies the NEQ predicate on the "device_os" field.
-func DeviceOsNEQ(v string) predicate.Generation {
-	return predicate.Generation(sql.FieldNEQ(FieldDeviceOs, v))
-}
-
-// DeviceOsIn applies the In predicate on the "device_os" field.
-func DeviceOsIn(vs ...string) predicate.Generation {
-	return predicate.Generation(sql.FieldIn(FieldDeviceOs, vs...))
-}
-
-// DeviceOsNotIn applies the NotIn predicate on the "device_os" field.
-func DeviceOsNotIn(vs ...string) predicate.Generation {
-	return predicate.Generation(sql.FieldNotIn(FieldDeviceOs, vs...))
-}
-
-// DeviceOsGT applies the GT predicate on the "device_os" field.
-func DeviceOsGT(v string) predicate.Generation {
-	return predicate.Generation(sql.FieldGT(FieldDeviceOs, v))
-}
-
-// DeviceOsGTE applies the GTE predicate on the "device_os" field.
-func DeviceOsGTE(v string) predicate.Generation {
-	return predicate.Generation(sql.FieldGTE(FieldDeviceOs, v))
-}
-
-// DeviceOsLT applies the LT predicate on the "device_os" field.
-func DeviceOsLT(v string) predicate.Generation {
-	return predicate.Generation(sql.FieldLT(FieldDeviceOs, v))
-}
-
-// DeviceOsLTE applies the LTE predicate on the "device_os" field.
-func DeviceOsLTE(v string) predicate.Generation {
-	return predicate.Generation(sql.FieldLTE(FieldDeviceOs, v))
-}
-
-// DeviceOsContains applies the Contains predicate on the "device_os" field.
-func DeviceOsContains(v string) predicate.Generation {
-	return predicate.Generation(sql.FieldContains(FieldDeviceOs, v))
-}
-
-// DeviceOsHasPrefix applies the HasPrefix predicate on the "device_os" field.
-func DeviceOsHasPrefix(v string) predicate.Generation {
-	return predicate.Generation(sql.FieldHasPrefix(FieldDeviceOs, v))
-}
-
-// DeviceOsHasSuffix applies the HasSuffix predicate on the "device_os" field.
-func DeviceOsHasSuffix(v string) predicate.Generation {
-	return predicate.Generation(sql.FieldHasSuffix(FieldDeviceOs, v))
-}
-
-// DeviceOsEqualFold applies the EqualFold predicate on the "device_os" field.
-func DeviceOsEqualFold(v string) predicate.Generation {
-	return predicate.Generation(sql.FieldEqualFold(FieldDeviceOs, v))
-}
-
-// DeviceOsContainsFold applies the ContainsFold predicate on the "device_os" field.
-func DeviceOsContainsFold(v string) predicate.Generation {
-	return predicate.Generation(sql.FieldContainsFold(FieldDeviceOs, v))
-}
-
-// DeviceBrowserEQ applies the EQ predicate on the "device_browser" field.
-func DeviceBrowserEQ(v string) predicate.Generation {
-	return predicate.Generation(sql.FieldEQ(FieldDeviceBrowser, v))
-}
-
-// DeviceBrowserNEQ applies the NEQ predicate on the "device_browser" field.
-func DeviceBrowserNEQ(v string) predicate.Generation {
-	return predicate.Generation(sql.FieldNEQ(FieldDeviceBrowser, v))
-}
-
-// DeviceBrowserIn applies the In predicate on the "device_browser" field.
-func DeviceBrowserIn(vs ...string) predicate.Generation {
-	return predicate.Generation(sql.FieldIn(FieldDeviceBrowser, vs...))
-}
-
-// DeviceBrowserNotIn applies the NotIn predicate on the "device_browser" field.
-func DeviceBrowserNotIn(vs ...string) predicate.Generation {
-	return predicate.Generation(sql.FieldNotIn(FieldDeviceBrowser, vs...))
-}
-
-// DeviceBrowserGT applies the GT predicate on the "device_browser" field.
-func DeviceBrowserGT(v string) predicate.Generation {
-	return predicate.Generation(sql.FieldGT(FieldDeviceBrowser, v))
-}
-
-// DeviceBrowserGTE applies the GTE predicate on the "device_browser" field.
-func DeviceBrowserGTE(v string) predicate.Generation {
-	return predicate.Generation(sql.FieldGTE(FieldDeviceBrowser, v))
-}
-
-// DeviceBrowserLT applies the LT predicate on the "device_browser" field.
-func DeviceBrowserLT(v string) predicate.Generation {
-	return predicate.Generation(sql.FieldLT(FieldDeviceBrowser, v))
-}
-
-// DeviceBrowserLTE applies the LTE predicate on the "device_browser" field.
-func DeviceBrowserLTE(v string) predicate.Generation {
-	return predicate.Generation(sql.FieldLTE(FieldDeviceBrowser, v))
-}
-
-// DeviceBrowserContains applies the Contains predicate on the "device_browser" field.
-func DeviceBrowserContains(v string) predicate.Generation {
-	return predicate.Generation(sql.FieldContains(FieldDeviceBrowser, v))
-}
-
-// DeviceBrowserHasPrefix applies the HasPrefix predicate on the "device_browser" field.
-func DeviceBrowserHasPrefix(v string) predicate.Generation {
-	return predicate.Generation(sql.FieldHasPrefix(FieldDeviceBrowser, v))
-}
-
-// DeviceBrowserHasSuffix applies the HasSuffix predicate on the "device_browser" field.
-func DeviceBrowserHasSuffix(v string) predicate.Generation {
-	return predicate.Generation(sql.FieldHasSuffix(FieldDeviceBrowser, v))
-}
-
-// DeviceBrowserEqualFold applies the EqualFold predicate on the "device_browser" field.
-func DeviceBrowserEqualFold(v string) predicate.Generation {
-	return predicate.Generation(sql.FieldEqualFold(FieldDeviceBrowser, v))
-}
-
-// DeviceBrowserContainsFold applies the ContainsFold predicate on the "device_browser" field.
-func DeviceBrowserContainsFold(v string) predicate.Generation {
-	return predicate.Generation(sql.FieldContainsFold(FieldDeviceBrowser, v))
-}
-
-// UserAgentEQ applies the EQ predicate on the "user_agent" field.
-func UserAgentEQ(v string) predicate.Generation {
-	return predicate.Generation(sql.FieldEQ(FieldUserAgent, v))
-}
-
-// UserAgentNEQ applies the NEQ predicate on the "user_agent" field.
-func UserAgentNEQ(v string) predicate.Generation {
-	return predicate.Generation(sql.FieldNEQ(FieldUserAgent, v))
-}
-
-// UserAgentIn applies the In predicate on the "user_agent" field.
-func UserAgentIn(vs ...string) predicate.Generation {
-	return predicate.Generation(sql.FieldIn(FieldUserAgent, vs...))
-}
-
-// UserAgentNotIn applies the NotIn predicate on the "user_agent" field.
-func UserAgentNotIn(vs ...string) predicate.Generation {
-	return predicate.Generation(sql.FieldNotIn(FieldUserAgent, vs...))
-}
-
-// UserAgentGT applies the GT predicate on the "user_agent" field.
-func UserAgentGT(v string) predicate.Generation {
-	return predicate.Generation(sql.FieldGT(FieldUserAgent, v))
-}
-
-// UserAgentGTE applies the GTE predicate on the "user_agent" field.
-func UserAgentGTE(v string) predicate.Generation {
-	return predicate.Generation(sql.FieldGTE(FieldUserAgent, v))
-}
-
-// UserAgentLT applies the LT predicate on the "user_agent" field.
-func UserAgentLT(v string) predicate.Generation {
-	return predicate.Generation(sql.FieldLT(FieldUserAgent, v))
-}
-
-// UserAgentLTE applies the LTE predicate on the "user_agent" field.
-func UserAgentLTE(v string) predicate.Generation {
-	return predicate.Generation(sql.FieldLTE(FieldUserAgent, v))
-}
-
-// UserAgentContains applies the Contains predicate on the "user_agent" field.
-func UserAgentContains(v string) predicate.Generation {
-	return predicate.Generation(sql.FieldContains(FieldUserAgent, v))
-}
-
-// UserAgentHasPrefix applies the HasPrefix predicate on the "user_agent" field.
-func UserAgentHasPrefix(v string) predicate.Generation {
-	return predicate.Generation(sql.FieldHasPrefix(FieldUserAgent, v))
-}
-
-// UserAgentHasSuffix applies the HasSuffix predicate on the "user_agent" field.
-func UserAgentHasSuffix(v string) predicate.Generation {
-	return predicate.Generation(sql.FieldHasSuffix(FieldUserAgent, v))
-}
-
-// UserAgentEqualFold applies the EqualFold predicate on the "user_agent" field.
-func UserAgentEqualFold(v string) predicate.Generation {
-	return predicate.Generation(sql.FieldEqualFold(FieldUserAgent, v))
-}
-
-// UserAgentContainsFold applies the ContainsFold predicate on the "user_agent" field.
-func UserAgentContainsFold(v string) predicate.Generation {
-	return predicate.Generation(sql.FieldContainsFold(FieldUserAgent, v))
 }
 
 // DurationMsEQ applies the EQ predicate on the "duration_ms" field.
@@ -1092,69 +472,189 @@ func FailureReasonContainsFold(v string) predicate.Generation {
 	return predicate.Generation(sql.FieldContainsFold(FieldFailureReason, v))
 }
 
-// ImageObjectNameEQ applies the EQ predicate on the "image_object_name" field.
-func ImageObjectNameEQ(v string) predicate.Generation {
-	return predicate.Generation(sql.FieldEQ(FieldImageObjectName, v))
+// CountryCodeEQ applies the EQ predicate on the "country_code" field.
+func CountryCodeEQ(v string) predicate.Generation {
+	return predicate.Generation(sql.FieldEQ(FieldCountryCode, v))
 }
 
-// ImageObjectNameNEQ applies the NEQ predicate on the "image_object_name" field.
-func ImageObjectNameNEQ(v string) predicate.Generation {
-	return predicate.Generation(sql.FieldNEQ(FieldImageObjectName, v))
+// CountryCodeNEQ applies the NEQ predicate on the "country_code" field.
+func CountryCodeNEQ(v string) predicate.Generation {
+	return predicate.Generation(sql.FieldNEQ(FieldCountryCode, v))
 }
 
-// ImageObjectNameIn applies the In predicate on the "image_object_name" field.
-func ImageObjectNameIn(vs ...string) predicate.Generation {
-	return predicate.Generation(sql.FieldIn(FieldImageObjectName, vs...))
+// CountryCodeIn applies the In predicate on the "country_code" field.
+func CountryCodeIn(vs ...string) predicate.Generation {
+	return predicate.Generation(sql.FieldIn(FieldCountryCode, vs...))
 }
 
-// ImageObjectNameNotIn applies the NotIn predicate on the "image_object_name" field.
-func ImageObjectNameNotIn(vs ...string) predicate.Generation {
-	return predicate.Generation(sql.FieldNotIn(FieldImageObjectName, vs...))
+// CountryCodeNotIn applies the NotIn predicate on the "country_code" field.
+func CountryCodeNotIn(vs ...string) predicate.Generation {
+	return predicate.Generation(sql.FieldNotIn(FieldCountryCode, vs...))
 }
 
-// ImageObjectNameGT applies the GT predicate on the "image_object_name" field.
-func ImageObjectNameGT(v string) predicate.Generation {
-	return predicate.Generation(sql.FieldGT(FieldImageObjectName, v))
+// CountryCodeGT applies the GT predicate on the "country_code" field.
+func CountryCodeGT(v string) predicate.Generation {
+	return predicate.Generation(sql.FieldGT(FieldCountryCode, v))
 }
 
-// ImageObjectNameGTE applies the GTE predicate on the "image_object_name" field.
-func ImageObjectNameGTE(v string) predicate.Generation {
-	return predicate.Generation(sql.FieldGTE(FieldImageObjectName, v))
+// CountryCodeGTE applies the GTE predicate on the "country_code" field.
+func CountryCodeGTE(v string) predicate.Generation {
+	return predicate.Generation(sql.FieldGTE(FieldCountryCode, v))
 }
 
-// ImageObjectNameLT applies the LT predicate on the "image_object_name" field.
-func ImageObjectNameLT(v string) predicate.Generation {
-	return predicate.Generation(sql.FieldLT(FieldImageObjectName, v))
+// CountryCodeLT applies the LT predicate on the "country_code" field.
+func CountryCodeLT(v string) predicate.Generation {
+	return predicate.Generation(sql.FieldLT(FieldCountryCode, v))
 }
 
-// ImageObjectNameLTE applies the LTE predicate on the "image_object_name" field.
-func ImageObjectNameLTE(v string) predicate.Generation {
-	return predicate.Generation(sql.FieldLTE(FieldImageObjectName, v))
+// CountryCodeLTE applies the LTE predicate on the "country_code" field.
+func CountryCodeLTE(v string) predicate.Generation {
+	return predicate.Generation(sql.FieldLTE(FieldCountryCode, v))
 }
 
-// ImageObjectNameContains applies the Contains predicate on the "image_object_name" field.
-func ImageObjectNameContains(v string) predicate.Generation {
-	return predicate.Generation(sql.FieldContains(FieldImageObjectName, v))
+// CountryCodeContains applies the Contains predicate on the "country_code" field.
+func CountryCodeContains(v string) predicate.Generation {
+	return predicate.Generation(sql.FieldContains(FieldCountryCode, v))
 }
 
-// ImageObjectNameHasPrefix applies the HasPrefix predicate on the "image_object_name" field.
-func ImageObjectNameHasPrefix(v string) predicate.Generation {
-	return predicate.Generation(sql.FieldHasPrefix(FieldImageObjectName, v))
+// CountryCodeHasPrefix applies the HasPrefix predicate on the "country_code" field.
+func CountryCodeHasPrefix(v string) predicate.Generation {
+	return predicate.Generation(sql.FieldHasPrefix(FieldCountryCode, v))
 }
 
-// ImageObjectNameHasSuffix applies the HasSuffix predicate on the "image_object_name" field.
-func ImageObjectNameHasSuffix(v string) predicate.Generation {
-	return predicate.Generation(sql.FieldHasSuffix(FieldImageObjectName, v))
+// CountryCodeHasSuffix applies the HasSuffix predicate on the "country_code" field.
+func CountryCodeHasSuffix(v string) predicate.Generation {
+	return predicate.Generation(sql.FieldHasSuffix(FieldCountryCode, v))
 }
 
-// ImageObjectNameEqualFold applies the EqualFold predicate on the "image_object_name" field.
-func ImageObjectNameEqualFold(v string) predicate.Generation {
-	return predicate.Generation(sql.FieldEqualFold(FieldImageObjectName, v))
+// CountryCodeEqualFold applies the EqualFold predicate on the "country_code" field.
+func CountryCodeEqualFold(v string) predicate.Generation {
+	return predicate.Generation(sql.FieldEqualFold(FieldCountryCode, v))
 }
 
-// ImageObjectNameContainsFold applies the ContainsFold predicate on the "image_object_name" field.
-func ImageObjectNameContainsFold(v string) predicate.Generation {
-	return predicate.Generation(sql.FieldContainsFold(FieldImageObjectName, v))
+// CountryCodeContainsFold applies the ContainsFold predicate on the "country_code" field.
+func CountryCodeContainsFold(v string) predicate.Generation {
+	return predicate.Generation(sql.FieldContainsFold(FieldCountryCode, v))
+}
+
+// PromptIDEQ applies the EQ predicate on the "prompt_id" field.
+func PromptIDEQ(v uuid.UUID) predicate.Generation {
+	return predicate.Generation(sql.FieldEQ(FieldPromptID, v))
+}
+
+// PromptIDNEQ applies the NEQ predicate on the "prompt_id" field.
+func PromptIDNEQ(v uuid.UUID) predicate.Generation {
+	return predicate.Generation(sql.FieldNEQ(FieldPromptID, v))
+}
+
+// PromptIDIn applies the In predicate on the "prompt_id" field.
+func PromptIDIn(vs ...uuid.UUID) predicate.Generation {
+	return predicate.Generation(sql.FieldIn(FieldPromptID, vs...))
+}
+
+// PromptIDNotIn applies the NotIn predicate on the "prompt_id" field.
+func PromptIDNotIn(vs ...uuid.UUID) predicate.Generation {
+	return predicate.Generation(sql.FieldNotIn(FieldPromptID, vs...))
+}
+
+// NegativePromptIDEQ applies the EQ predicate on the "negative_prompt_id" field.
+func NegativePromptIDEQ(v uuid.UUID) predicate.Generation {
+	return predicate.Generation(sql.FieldEQ(FieldNegativePromptID, v))
+}
+
+// NegativePromptIDNEQ applies the NEQ predicate on the "negative_prompt_id" field.
+func NegativePromptIDNEQ(v uuid.UUID) predicate.Generation {
+	return predicate.Generation(sql.FieldNEQ(FieldNegativePromptID, v))
+}
+
+// NegativePromptIDIn applies the In predicate on the "negative_prompt_id" field.
+func NegativePromptIDIn(vs ...uuid.UUID) predicate.Generation {
+	return predicate.Generation(sql.FieldIn(FieldNegativePromptID, vs...))
+}
+
+// NegativePromptIDNotIn applies the NotIn predicate on the "negative_prompt_id" field.
+func NegativePromptIDNotIn(vs ...uuid.UUID) predicate.Generation {
+	return predicate.Generation(sql.FieldNotIn(FieldNegativePromptID, vs...))
+}
+
+// ModelIDEQ applies the EQ predicate on the "model_id" field.
+func ModelIDEQ(v uuid.UUID) predicate.Generation {
+	return predicate.Generation(sql.FieldEQ(FieldModelID, v))
+}
+
+// ModelIDNEQ applies the NEQ predicate on the "model_id" field.
+func ModelIDNEQ(v uuid.UUID) predicate.Generation {
+	return predicate.Generation(sql.FieldNEQ(FieldModelID, v))
+}
+
+// ModelIDIn applies the In predicate on the "model_id" field.
+func ModelIDIn(vs ...uuid.UUID) predicate.Generation {
+	return predicate.Generation(sql.FieldIn(FieldModelID, vs...))
+}
+
+// ModelIDNotIn applies the NotIn predicate on the "model_id" field.
+func ModelIDNotIn(vs ...uuid.UUID) predicate.Generation {
+	return predicate.Generation(sql.FieldNotIn(FieldModelID, vs...))
+}
+
+// SchedulerIDEQ applies the EQ predicate on the "scheduler_id" field.
+func SchedulerIDEQ(v uuid.UUID) predicate.Generation {
+	return predicate.Generation(sql.FieldEQ(FieldSchedulerID, v))
+}
+
+// SchedulerIDNEQ applies the NEQ predicate on the "scheduler_id" field.
+func SchedulerIDNEQ(v uuid.UUID) predicate.Generation {
+	return predicate.Generation(sql.FieldNEQ(FieldSchedulerID, v))
+}
+
+// SchedulerIDIn applies the In predicate on the "scheduler_id" field.
+func SchedulerIDIn(vs ...uuid.UUID) predicate.Generation {
+	return predicate.Generation(sql.FieldIn(FieldSchedulerID, vs...))
+}
+
+// SchedulerIDNotIn applies the NotIn predicate on the "scheduler_id" field.
+func SchedulerIDNotIn(vs ...uuid.UUID) predicate.Generation {
+	return predicate.Generation(sql.FieldNotIn(FieldSchedulerID, vs...))
+}
+
+// UserIDEQ applies the EQ predicate on the "user_id" field.
+func UserIDEQ(v uuid.UUID) predicate.Generation {
+	return predicate.Generation(sql.FieldEQ(FieldUserID, v))
+}
+
+// UserIDNEQ applies the NEQ predicate on the "user_id" field.
+func UserIDNEQ(v uuid.UUID) predicate.Generation {
+	return predicate.Generation(sql.FieldNEQ(FieldUserID, v))
+}
+
+// UserIDIn applies the In predicate on the "user_id" field.
+func UserIDIn(vs ...uuid.UUID) predicate.Generation {
+	return predicate.Generation(sql.FieldIn(FieldUserID, vs...))
+}
+
+// UserIDNotIn applies the NotIn predicate on the "user_id" field.
+func UserIDNotIn(vs ...uuid.UUID) predicate.Generation {
+	return predicate.Generation(sql.FieldNotIn(FieldUserID, vs...))
+}
+
+// DeviceInfoIDEQ applies the EQ predicate on the "device_info_id" field.
+func DeviceInfoIDEQ(v uuid.UUID) predicate.Generation {
+	return predicate.Generation(sql.FieldEQ(FieldDeviceInfoID, v))
+}
+
+// DeviceInfoIDNEQ applies the NEQ predicate on the "device_info_id" field.
+func DeviceInfoIDNEQ(v uuid.UUID) predicate.Generation {
+	return predicate.Generation(sql.FieldNEQ(FieldDeviceInfoID, v))
+}
+
+// DeviceInfoIDIn applies the In predicate on the "device_info_id" field.
+func DeviceInfoIDIn(vs ...uuid.UUID) predicate.Generation {
+	return predicate.Generation(sql.FieldIn(FieldDeviceInfoID, vs...))
+}
+
+// DeviceInfoIDNotIn applies the NotIn predicate on the "device_info_id" field.
+func DeviceInfoIDNotIn(vs ...uuid.UUID) predicate.Generation {
+	return predicate.Generation(sql.FieldNotIn(FieldDeviceInfoID, vs...))
 }
 
 // CreatedAtEQ applies the EQ predicate on the "created_at" field.
@@ -1237,24 +737,24 @@ func UpdatedAtLTE(v time.Time) predicate.Generation {
 	return predicate.Generation(sql.FieldLTE(FieldUpdatedAt, v))
 }
 
-// HasUser applies the HasEdge predicate on the "user" edge.
-func HasUser() predicate.Generation {
+// HasDeviceInfo applies the HasEdge predicate on the "device_info" edge.
+func HasDeviceInfo() predicate.Generation {
 	return predicate.Generation(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, UserTable, UserColumn),
+			sqlgraph.Edge(sqlgraph.M2O, true, DeviceInfoTable, DeviceInfoColumn),
 		)
 		sqlgraph.HasNeighbors(s, step)
 	})
 }
 
-// HasUserWith applies the HasEdge predicate on the "user" edge with a given conditions (other predicates).
-func HasUserWith(preds ...predicate.User) predicate.Generation {
+// HasDeviceInfoWith applies the HasEdge predicate on the "device_info" edge with a given conditions (other predicates).
+func HasDeviceInfoWith(preds ...predicate.DeviceInfo) predicate.Generation {
 	return predicate.Generation(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(UserInverseTable, FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, UserTable, UserColumn),
+			sqlgraph.To(DeviceInfoInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, DeviceInfoTable, DeviceInfoColumn),
 		)
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
@@ -1264,24 +764,24 @@ func HasUserWith(preds ...predicate.User) predicate.Generation {
 	})
 }
 
-// HasModel applies the HasEdge predicate on the "model" edge.
-func HasModel() predicate.Generation {
+// HasSchedulers applies the HasEdge predicate on the "schedulers" edge.
+func HasSchedulers() predicate.Generation {
 	return predicate.Generation(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, ModelTable, ModelColumn),
+			sqlgraph.Edge(sqlgraph.M2O, true, SchedulersTable, SchedulersColumn),
 		)
 		sqlgraph.HasNeighbors(s, step)
 	})
 }
 
-// HasModelWith applies the HasEdge predicate on the "model" edge with a given conditions (other predicates).
-func HasModelWith(preds ...predicate.Model) predicate.Generation {
+// HasSchedulersWith applies the HasEdge predicate on the "schedulers" edge with a given conditions (other predicates).
+func HasSchedulersWith(preds ...predicate.Scheduler) predicate.Generation {
 	return predicate.Generation(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(ModelInverseTable, FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, ModelTable, ModelColumn),
+			sqlgraph.To(SchedulersInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, SchedulersTable, SchedulersColumn),
 		)
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
@@ -1291,24 +791,24 @@ func HasModelWith(preds ...predicate.Model) predicate.Generation {
 	})
 }
 
-// HasPrompt applies the HasEdge predicate on the "prompt" edge.
-func HasPrompt() predicate.Generation {
+// HasPrompts applies the HasEdge predicate on the "prompts" edge.
+func HasPrompts() predicate.Generation {
 	return predicate.Generation(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, PromptTable, PromptColumn),
+			sqlgraph.Edge(sqlgraph.M2O, true, PromptsTable, PromptsColumn),
 		)
 		sqlgraph.HasNeighbors(s, step)
 	})
 }
 
-// HasPromptWith applies the HasEdge predicate on the "prompt" edge with a given conditions (other predicates).
-func HasPromptWith(preds ...predicate.Prompt) predicate.Generation {
+// HasPromptsWith applies the HasEdge predicate on the "prompts" edge with a given conditions (other predicates).
+func HasPromptsWith(preds ...predicate.Prompt) predicate.Generation {
 	return predicate.Generation(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(PromptInverseTable, FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, PromptTable, PromptColumn),
+			sqlgraph.To(PromptsInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, PromptsTable, PromptsColumn),
 		)
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
@@ -1318,24 +818,24 @@ func HasPromptWith(preds ...predicate.Prompt) predicate.Generation {
 	})
 }
 
-// HasNegativePrompt applies the HasEdge predicate on the "negative_prompt" edge.
-func HasNegativePrompt() predicate.Generation {
+// HasNegativePrompts applies the HasEdge predicate on the "negative_prompts" edge.
+func HasNegativePrompts() predicate.Generation {
 	return predicate.Generation(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, NegativePromptTable, NegativePromptColumn),
+			sqlgraph.Edge(sqlgraph.M2O, true, NegativePromptsTable, NegativePromptsColumn),
 		)
 		sqlgraph.HasNeighbors(s, step)
 	})
 }
 
-// HasNegativePromptWith applies the HasEdge predicate on the "negative_prompt" edge with a given conditions (other predicates).
-func HasNegativePromptWith(preds ...predicate.NegativePrompt) predicate.Generation {
+// HasNegativePromptsWith applies the HasEdge predicate on the "negative_prompts" edge with a given conditions (other predicates).
+func HasNegativePromptsWith(preds ...predicate.NegativePrompt) predicate.Generation {
 	return predicate.Generation(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(NegativePromptInverseTable, FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, NegativePromptTable, NegativePromptColumn),
+			sqlgraph.To(NegativePromptsInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, NegativePromptsTable, NegativePromptsColumn),
 		)
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
@@ -1345,24 +845,78 @@ func HasNegativePromptWith(preds ...predicate.NegativePrompt) predicate.Generati
 	})
 }
 
-// HasScheduler applies the HasEdge predicate on the "scheduler" edge.
-func HasScheduler() predicate.Generation {
+// HasGenerationModels applies the HasEdge predicate on the "generation_models" edge.
+func HasGenerationModels() predicate.Generation {
 	return predicate.Generation(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, SchedulerTable, SchedulerColumn),
+			sqlgraph.Edge(sqlgraph.M2O, true, GenerationModelsTable, GenerationModelsColumn),
 		)
 		sqlgraph.HasNeighbors(s, step)
 	})
 }
 
-// HasSchedulerWith applies the HasEdge predicate on the "scheduler" edge with a given conditions (other predicates).
-func HasSchedulerWith(preds ...predicate.Scheduler) predicate.Generation {
+// HasGenerationModelsWith applies the HasEdge predicate on the "generation_models" edge with a given conditions (other predicates).
+func HasGenerationModelsWith(preds ...predicate.GenerationModel) predicate.Generation {
 	return predicate.Generation(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(SchedulerInverseTable, FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, SchedulerTable, SchedulerColumn),
+			sqlgraph.To(GenerationModelsInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, GenerationModelsTable, GenerationModelsColumn),
+		)
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasUsers applies the HasEdge predicate on the "users" edge.
+func HasUsers() predicate.Generation {
+	return predicate.Generation(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, UsersTable, UsersColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasUsersWith applies the HasEdge predicate on the "users" edge with a given conditions (other predicates).
+func HasUsersWith(preds ...predicate.User) predicate.Generation {
+	return predicate.Generation(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(UsersInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, UsersTable, UsersColumn),
+		)
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasGenerationOutputs applies the HasEdge predicate on the "generation_outputs" edge.
+func HasGenerationOutputs() predicate.Generation {
+	return predicate.Generation(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, GenerationOutputsTable, GenerationOutputsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasGenerationOutputsWith applies the HasEdge predicate on the "generation_outputs" edge with a given conditions (other predicates).
+func HasGenerationOutputsWith(preds ...predicate.GenerationOutput) predicate.Generation {
+	return predicate.Generation(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(GenerationOutputsInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, GenerationOutputsTable, GenerationOutputsColumn),
 		)
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {

@@ -13,10 +13,10 @@ import (
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
 	"github.com/stablecog/go-apps/database/ent/generation"
-	"github.com/stablecog/go-apps/database/ent/generationg"
 	"github.com/stablecog/go-apps/database/ent/predicate"
 	"github.com/stablecog/go-apps/database/ent/upscale"
 	"github.com/stablecog/go-apps/database/ent/user"
+	"github.com/stablecog/go-apps/database/ent/userrole"
 )
 
 // UserQuery is the builder for querying User entities.
@@ -29,9 +29,9 @@ type UserQuery struct {
 	fields          []string
 	inters          []Interceptor
 	predicates      []predicate.User
-	withUpscale     *UpscaleQuery
-	withGeneration  *GenerationQuery
-	withGenerationG *GenerationGQuery
+	withUserRoles   *UserRoleQuery
+	withGenerations *GenerationQuery
+	withUpscales    *UpscaleQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -68,9 +68,9 @@ func (uq *UserQuery) Order(o ...OrderFunc) *UserQuery {
 	return uq
 }
 
-// QueryUpscale chains the current query on the "upscale" edge.
-func (uq *UserQuery) QueryUpscale() *UpscaleQuery {
-	query := (&UpscaleClient{config: uq.config}).Query()
+// QueryUserRoles chains the current query on the "user_roles" edge.
+func (uq *UserQuery) QueryUserRoles() *UserRoleQuery {
+	query := (&UserRoleClient{config: uq.config}).Query()
 	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
 		if err := uq.prepareQuery(ctx); err != nil {
 			return nil, err
@@ -81,8 +81,8 @@ func (uq *UserQuery) QueryUpscale() *UpscaleQuery {
 		}
 		step := sqlgraph.NewStep(
 			sqlgraph.From(user.Table, user.FieldID, selector),
-			sqlgraph.To(upscale.Table, upscale.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, user.UpscaleTable, user.UpscaleColumn),
+			sqlgraph.To(userrole.Table, userrole.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.UserRolesTable, user.UserRolesColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(uq.driver.Dialect(), step)
 		return fromU, nil
@@ -90,8 +90,8 @@ func (uq *UserQuery) QueryUpscale() *UpscaleQuery {
 	return query
 }
 
-// QueryGeneration chains the current query on the "generation" edge.
-func (uq *UserQuery) QueryGeneration() *GenerationQuery {
+// QueryGenerations chains the current query on the "generations" edge.
+func (uq *UserQuery) QueryGenerations() *GenerationQuery {
 	query := (&GenerationClient{config: uq.config}).Query()
 	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
 		if err := uq.prepareQuery(ctx); err != nil {
@@ -104,7 +104,7 @@ func (uq *UserQuery) QueryGeneration() *GenerationQuery {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(user.Table, user.FieldID, selector),
 			sqlgraph.To(generation.Table, generation.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, user.GenerationTable, user.GenerationColumn),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.GenerationsTable, user.GenerationsColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(uq.driver.Dialect(), step)
 		return fromU, nil
@@ -112,9 +112,9 @@ func (uq *UserQuery) QueryGeneration() *GenerationQuery {
 	return query
 }
 
-// QueryGenerationG chains the current query on the "generation_g" edge.
-func (uq *UserQuery) QueryGenerationG() *GenerationGQuery {
-	query := (&GenerationGClient{config: uq.config}).Query()
+// QueryUpscales chains the current query on the "upscales" edge.
+func (uq *UserQuery) QueryUpscales() *UpscaleQuery {
+	query := (&UpscaleClient{config: uq.config}).Query()
 	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
 		if err := uq.prepareQuery(ctx); err != nil {
 			return nil, err
@@ -125,8 +125,8 @@ func (uq *UserQuery) QueryGenerationG() *GenerationGQuery {
 		}
 		step := sqlgraph.NewStep(
 			sqlgraph.From(user.Table, user.FieldID, selector),
-			sqlgraph.To(generationg.Table, generationg.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, user.GenerationGTable, user.GenerationGColumn),
+			sqlgraph.To(upscale.Table, upscale.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.UpscalesTable, user.UpscalesColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(uq.driver.Dialect(), step)
 		return fromU, nil
@@ -325,9 +325,9 @@ func (uq *UserQuery) Clone() *UserQuery {
 		order:           append([]OrderFunc{}, uq.order...),
 		inters:          append([]Interceptor{}, uq.inters...),
 		predicates:      append([]predicate.User{}, uq.predicates...),
-		withUpscale:     uq.withUpscale.Clone(),
-		withGeneration:  uq.withGeneration.Clone(),
-		withGenerationG: uq.withGenerationG.Clone(),
+		withUserRoles:   uq.withUserRoles.Clone(),
+		withGenerations: uq.withGenerations.Clone(),
+		withUpscales:    uq.withUpscales.Clone(),
 		// clone intermediate query.
 		sql:    uq.sql.Clone(),
 		path:   uq.path,
@@ -335,36 +335,36 @@ func (uq *UserQuery) Clone() *UserQuery {
 	}
 }
 
-// WithUpscale tells the query-builder to eager-load the nodes that are connected to
-// the "upscale" edge. The optional arguments are used to configure the query builder of the edge.
-func (uq *UserQuery) WithUpscale(opts ...func(*UpscaleQuery)) *UserQuery {
-	query := (&UpscaleClient{config: uq.config}).Query()
+// WithUserRoles tells the query-builder to eager-load the nodes that are connected to
+// the "user_roles" edge. The optional arguments are used to configure the query builder of the edge.
+func (uq *UserQuery) WithUserRoles(opts ...func(*UserRoleQuery)) *UserQuery {
+	query := (&UserRoleClient{config: uq.config}).Query()
 	for _, opt := range opts {
 		opt(query)
 	}
-	uq.withUpscale = query
+	uq.withUserRoles = query
 	return uq
 }
 
-// WithGeneration tells the query-builder to eager-load the nodes that are connected to
-// the "generation" edge. The optional arguments are used to configure the query builder of the edge.
-func (uq *UserQuery) WithGeneration(opts ...func(*GenerationQuery)) *UserQuery {
+// WithGenerations tells the query-builder to eager-load the nodes that are connected to
+// the "generations" edge. The optional arguments are used to configure the query builder of the edge.
+func (uq *UserQuery) WithGenerations(opts ...func(*GenerationQuery)) *UserQuery {
 	query := (&GenerationClient{config: uq.config}).Query()
 	for _, opt := range opts {
 		opt(query)
 	}
-	uq.withGeneration = query
+	uq.withGenerations = query
 	return uq
 }
 
-// WithGenerationG tells the query-builder to eager-load the nodes that are connected to
-// the "generation_g" edge. The optional arguments are used to configure the query builder of the edge.
-func (uq *UserQuery) WithGenerationG(opts ...func(*GenerationGQuery)) *UserQuery {
-	query := (&GenerationGClient{config: uq.config}).Query()
+// WithUpscales tells the query-builder to eager-load the nodes that are connected to
+// the "upscales" edge. The optional arguments are used to configure the query builder of the edge.
+func (uq *UserQuery) WithUpscales(opts ...func(*UpscaleQuery)) *UserQuery {
+	query := (&UpscaleClient{config: uq.config}).Query()
 	for _, opt := range opts {
 		opt(query)
 	}
-	uq.withGenerationG = query
+	uq.withUpscales = query
 	return uq
 }
 
@@ -447,9 +447,9 @@ func (uq *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 		nodes       = []*User{}
 		_spec       = uq.querySpec()
 		loadedTypes = [3]bool{
-			uq.withUpscale != nil,
-			uq.withGeneration != nil,
-			uq.withGenerationG != nil,
+			uq.withUserRoles != nil,
+			uq.withGenerations != nil,
+			uq.withUpscales != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -470,31 +470,31 @@ func (uq *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 	if len(nodes) == 0 {
 		return nodes, nil
 	}
-	if query := uq.withUpscale; query != nil {
-		if err := uq.loadUpscale(ctx, query, nodes,
-			func(n *User) { n.Edges.Upscale = []*Upscale{} },
-			func(n *User, e *Upscale) { n.Edges.Upscale = append(n.Edges.Upscale, e) }); err != nil {
+	if query := uq.withUserRoles; query != nil {
+		if err := uq.loadUserRoles(ctx, query, nodes,
+			func(n *User) { n.Edges.UserRoles = []*UserRole{} },
+			func(n *User, e *UserRole) { n.Edges.UserRoles = append(n.Edges.UserRoles, e) }); err != nil {
 			return nil, err
 		}
 	}
-	if query := uq.withGeneration; query != nil {
-		if err := uq.loadGeneration(ctx, query, nodes,
-			func(n *User) { n.Edges.Generation = []*Generation{} },
-			func(n *User, e *Generation) { n.Edges.Generation = append(n.Edges.Generation, e) }); err != nil {
+	if query := uq.withGenerations; query != nil {
+		if err := uq.loadGenerations(ctx, query, nodes,
+			func(n *User) { n.Edges.Generations = []*Generation{} },
+			func(n *User, e *Generation) { n.Edges.Generations = append(n.Edges.Generations, e) }); err != nil {
 			return nil, err
 		}
 	}
-	if query := uq.withGenerationG; query != nil {
-		if err := uq.loadGenerationG(ctx, query, nodes,
-			func(n *User) { n.Edges.GenerationG = []*GenerationG{} },
-			func(n *User, e *GenerationG) { n.Edges.GenerationG = append(n.Edges.GenerationG, e) }); err != nil {
+	if query := uq.withUpscales; query != nil {
+		if err := uq.loadUpscales(ctx, query, nodes,
+			func(n *User) { n.Edges.Upscales = []*Upscale{} },
+			func(n *User, e *Upscale) { n.Edges.Upscales = append(n.Edges.Upscales, e) }); err != nil {
 			return nil, err
 		}
 	}
 	return nodes, nil
 }
 
-func (uq *UserQuery) loadUpscale(ctx context.Context, query *UpscaleQuery, nodes []*User, init func(*User), assign func(*User, *Upscale)) error {
+func (uq *UserQuery) loadUserRoles(ctx context.Context, query *UserRoleQuery, nodes []*User, init func(*User), assign func(*User, *UserRole)) error {
 	fks := make([]driver.Value, 0, len(nodes))
 	nodeids := make(map[uuid.UUID]*User)
 	for i := range nodes {
@@ -504,8 +504,8 @@ func (uq *UserQuery) loadUpscale(ctx context.Context, query *UpscaleQuery, nodes
 			init(nodes[i])
 		}
 	}
-	query.Where(predicate.Upscale(func(s *sql.Selector) {
-		s.Where(sql.InValues(user.UpscaleColumn, fks...))
+	query.Where(predicate.UserRole(func(s *sql.Selector) {
+		s.Where(sql.InValues(user.UserRolesColumn, fks...))
 	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {
@@ -513,18 +513,15 @@ func (uq *UserQuery) loadUpscale(ctx context.Context, query *UpscaleQuery, nodes
 	}
 	for _, n := range neighbors {
 		fk := n.UserID
-		if fk == nil {
-			return fmt.Errorf(`foreign-key "user_id" is nil for node %v`, n.ID)
-		}
-		node, ok := nodeids[*fk]
+		node, ok := nodeids[fk]
 		if !ok {
-			return fmt.Errorf(`unexpected foreign-key "user_id" returned %v for node %v`, *fk, n.ID)
+			return fmt.Errorf(`unexpected foreign-key "user_id" returned %v for node %v`, fk, n.ID)
 		}
 		assign(node, n)
 	}
 	return nil
 }
-func (uq *UserQuery) loadGeneration(ctx context.Context, query *GenerationQuery, nodes []*User, init func(*User), assign func(*User, *Generation)) error {
+func (uq *UserQuery) loadGenerations(ctx context.Context, query *GenerationQuery, nodes []*User, init func(*User), assign func(*User, *Generation)) error {
 	fks := make([]driver.Value, 0, len(nodes))
 	nodeids := make(map[uuid.UUID]*User)
 	for i := range nodes {
@@ -535,7 +532,7 @@ func (uq *UserQuery) loadGeneration(ctx context.Context, query *GenerationQuery,
 		}
 	}
 	query.Where(predicate.Generation(func(s *sql.Selector) {
-		s.Where(sql.InValues(user.GenerationColumn, fks...))
+		s.Where(sql.InValues(user.GenerationsColumn, fks...))
 	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {
@@ -543,18 +540,15 @@ func (uq *UserQuery) loadGeneration(ctx context.Context, query *GenerationQuery,
 	}
 	for _, n := range neighbors {
 		fk := n.UserID
-		if fk == nil {
-			return fmt.Errorf(`foreign-key "user_id" is nil for node %v`, n.ID)
-		}
-		node, ok := nodeids[*fk]
+		node, ok := nodeids[fk]
 		if !ok {
-			return fmt.Errorf(`unexpected foreign-key "user_id" returned %v for node %v`, *fk, n.ID)
+			return fmt.Errorf(`unexpected foreign-key "user_id" returned %v for node %v`, fk, n.ID)
 		}
 		assign(node, n)
 	}
 	return nil
 }
-func (uq *UserQuery) loadGenerationG(ctx context.Context, query *GenerationGQuery, nodes []*User, init func(*User), assign func(*User, *GenerationG)) error {
+func (uq *UserQuery) loadUpscales(ctx context.Context, query *UpscaleQuery, nodes []*User, init func(*User), assign func(*User, *Upscale)) error {
 	fks := make([]driver.Value, 0, len(nodes))
 	nodeids := make(map[uuid.UUID]*User)
 	for i := range nodes {
@@ -564,8 +558,8 @@ func (uq *UserQuery) loadGenerationG(ctx context.Context, query *GenerationGQuer
 			init(nodes[i])
 		}
 	}
-	query.Where(predicate.GenerationG(func(s *sql.Selector) {
-		s.Where(sql.InValues(user.GenerationGColumn, fks...))
+	query.Where(predicate.Upscale(func(s *sql.Selector) {
+		s.Where(sql.InValues(user.UpscalesColumn, fks...))
 	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {
@@ -573,12 +567,9 @@ func (uq *UserQuery) loadGenerationG(ctx context.Context, query *GenerationGQuer
 	}
 	for _, n := range neighbors {
 		fk := n.UserID
-		if fk == nil {
-			return fmt.Errorf(`foreign-key "user_id" is nil for node %v`, n.ID)
-		}
-		node, ok := nodeids[*fk]
+		node, ok := nodeids[fk]
 		if !ok {
-			return fmt.Errorf(`unexpected foreign-key "user_id" returned %v for node %v`, *fk, n.ID)
+			return fmt.Errorf(`unexpected foreign-key "user_id" returned %v for node %v`, fk, n.ID)
 		}
 		assign(node, n)
 	}

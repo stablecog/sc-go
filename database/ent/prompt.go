@@ -30,31 +30,20 @@ type Prompt struct {
 
 // PromptEdges holds the relations/edges for other nodes in the graph.
 type PromptEdges struct {
-	// Generation holds the value of the generation edge.
-	Generation []*Generation `json:"generation,omitempty"`
-	// GenerationG holds the value of the generation_g edge.
-	GenerationG []*GenerationG `json:"generation_g,omitempty"`
+	// Generations holds the value of the generations edge.
+	Generations []*Generation `json:"generations,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [2]bool
+	loadedTypes [1]bool
 }
 
-// GenerationOrErr returns the Generation value or an error if the edge
+// GenerationsOrErr returns the Generations value or an error if the edge
 // was not loaded in eager-loading.
-func (e PromptEdges) GenerationOrErr() ([]*Generation, error) {
+func (e PromptEdges) GenerationsOrErr() ([]*Generation, error) {
 	if e.loadedTypes[0] {
-		return e.Generation, nil
+		return e.Generations, nil
 	}
-	return nil, &NotLoadedError{edge: "generation"}
-}
-
-// GenerationGOrErr returns the GenerationG value or an error if the edge
-// was not loaded in eager-loading.
-func (e PromptEdges) GenerationGOrErr() ([]*GenerationG, error) {
-	if e.loadedTypes[1] {
-		return e.GenerationG, nil
-	}
-	return nil, &NotLoadedError{edge: "generation_g"}
+	return nil, &NotLoadedError{edge: "generations"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -112,14 +101,9 @@ func (pr *Prompt) assignValues(columns []string, values []any) error {
 	return nil
 }
 
-// QueryGeneration queries the "generation" edge of the Prompt entity.
-func (pr *Prompt) QueryGeneration() *GenerationQuery {
-	return (&PromptClient{config: pr.config}).QueryGeneration(pr)
-}
-
-// QueryGenerationG queries the "generation_g" edge of the Prompt entity.
-func (pr *Prompt) QueryGenerationG() *GenerationGQuery {
-	return (&PromptClient{config: pr.config}).QueryGenerationG(pr)
+// QueryGenerations queries the "generations" edge of the Prompt entity.
+func (pr *Prompt) QueryGenerations() *GenerationQuery {
+	return (&PromptClient{config: pr.config}).QueryGenerations(pr)
 }
 
 // Update returns a builder for updating this Prompt.

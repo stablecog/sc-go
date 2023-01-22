@@ -30,31 +30,20 @@ type NegativePrompt struct {
 
 // NegativePromptEdges holds the relations/edges for other nodes in the graph.
 type NegativePromptEdges struct {
-	// Generation holds the value of the generation edge.
-	Generation []*Generation `json:"generation,omitempty"`
-	// GenerationG holds the value of the generation_g edge.
-	GenerationG []*GenerationG `json:"generation_g,omitempty"`
+	// Generations holds the value of the generations edge.
+	Generations []*Generation `json:"generations,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [2]bool
+	loadedTypes [1]bool
 }
 
-// GenerationOrErr returns the Generation value or an error if the edge
+// GenerationsOrErr returns the Generations value or an error if the edge
 // was not loaded in eager-loading.
-func (e NegativePromptEdges) GenerationOrErr() ([]*Generation, error) {
+func (e NegativePromptEdges) GenerationsOrErr() ([]*Generation, error) {
 	if e.loadedTypes[0] {
-		return e.Generation, nil
+		return e.Generations, nil
 	}
-	return nil, &NotLoadedError{edge: "generation"}
-}
-
-// GenerationGOrErr returns the GenerationG value or an error if the edge
-// was not loaded in eager-loading.
-func (e NegativePromptEdges) GenerationGOrErr() ([]*GenerationG, error) {
-	if e.loadedTypes[1] {
-		return e.GenerationG, nil
-	}
-	return nil, &NotLoadedError{edge: "generation_g"}
+	return nil, &NotLoadedError{edge: "generations"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -112,14 +101,9 @@ func (np *NegativePrompt) assignValues(columns []string, values []any) error {
 	return nil
 }
 
-// QueryGeneration queries the "generation" edge of the NegativePrompt entity.
-func (np *NegativePrompt) QueryGeneration() *GenerationQuery {
-	return (&NegativePromptClient{config: np.config}).QueryGeneration(np)
-}
-
-// QueryGenerationG queries the "generation_g" edge of the NegativePrompt entity.
-func (np *NegativePrompt) QueryGenerationG() *GenerationGQuery {
-	return (&NegativePromptClient{config: np.config}).QueryGenerationG(np)
+// QueryGenerations queries the "generations" edge of the NegativePrompt entity.
+func (np *NegativePrompt) QueryGenerations() *GenerationQuery {
+	return (&NegativePromptClient{config: np.config}).QueryGenerations(np)
 }
 
 // Update returns a builder for updating this NegativePrompt.

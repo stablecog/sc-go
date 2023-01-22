@@ -11,9 +11,11 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
+	"github.com/stablecog/go-apps/database/ent/deviceinfo"
 	"github.com/stablecog/go-apps/database/ent/upscale"
+	"github.com/stablecog/go-apps/database/ent/upscalemodel"
+	"github.com/stablecog/go-apps/database/ent/upscaleoutput"
 	"github.com/stablecog/go-apps/database/ent/user"
-	"github.com/stablecog/go-apps/database/enttypes"
 )
 
 // UpscaleCreate is the builder for creating a Upscale entity.
@@ -41,65 +43,9 @@ func (uc *UpscaleCreate) SetScale(i int) *UpscaleCreate {
 	return uc
 }
 
-// SetStatus sets the "status" field.
-func (uc *UpscaleCreate) SetStatus(u upscale.Status) *UpscaleCreate {
-	uc.mutation.SetStatus(u)
-	return uc
-}
-
-// SetServerURL sets the "server_url" field.
-func (uc *UpscaleCreate) SetServerURL(s string) *UpscaleCreate {
-	uc.mutation.SetServerURL(s)
-	return uc
-}
-
-// SetDurationMsg sets the "duration_msg" field.
-func (uc *UpscaleCreate) SetDurationMsg(i int) *UpscaleCreate {
-	uc.mutation.SetDurationMsg(i)
-	return uc
-}
-
-// SetType sets the "type" field.
-func (uc *UpscaleCreate) SetType(s string) *UpscaleCreate {
-	uc.mutation.SetType(s)
-	return uc
-}
-
-// SetPrompt sets the "prompt" field.
-func (uc *UpscaleCreate) SetPrompt(s string) *UpscaleCreate {
-	uc.mutation.SetPrompt(s)
-	return uc
-}
-
-// SetNegativePrompt sets the "negative_prompt" field.
-func (uc *UpscaleCreate) SetNegativePrompt(s string) *UpscaleCreate {
-	uc.mutation.SetNegativePrompt(s)
-	return uc
-}
-
-// SetSeed sets the "seed" field.
-func (uc *UpscaleCreate) SetSeed(ei enttypes.BigInt) *UpscaleCreate {
-	uc.mutation.SetSeed(ei)
-	return uc
-}
-
-// SetNillableSeed sets the "seed" field if the given value is not nil.
-func (uc *UpscaleCreate) SetNillableSeed(ei *enttypes.BigInt) *UpscaleCreate {
-	if ei != nil {
-		uc.SetSeed(*ei)
-	}
-	return uc
-}
-
-// SetNumInferenceSteps sets the "num_inference_steps" field.
-func (uc *UpscaleCreate) SetNumInferenceSteps(i int) *UpscaleCreate {
-	uc.mutation.SetNumInferenceSteps(i)
-	return uc
-}
-
-// SetGuidanceScale sets the "guidance_scale" field.
-func (uc *UpscaleCreate) SetGuidanceScale(f float64) *UpscaleCreate {
-	uc.mutation.SetGuidanceScale(f)
+// SetDurationMs sets the "duration_ms" field.
+func (uc *UpscaleCreate) SetDurationMs(i int) *UpscaleCreate {
+	uc.mutation.SetDurationMs(i)
 	return uc
 }
 
@@ -109,27 +55,33 @@ func (uc *UpscaleCreate) SetCountryCode(s string) *UpscaleCreate {
 	return uc
 }
 
-// SetDeviceType sets the "device_type" field.
-func (uc *UpscaleCreate) SetDeviceType(s string) *UpscaleCreate {
-	uc.mutation.SetDeviceType(s)
+// SetStatus sets the "status" field.
+func (uc *UpscaleCreate) SetStatus(u upscale.Status) *UpscaleCreate {
+	uc.mutation.SetStatus(u)
 	return uc
 }
 
-// SetDeviceOs sets the "device_os" field.
-func (uc *UpscaleCreate) SetDeviceOs(s string) *UpscaleCreate {
-	uc.mutation.SetDeviceOs(s)
+// SetFailureReason sets the "failure_reason" field.
+func (uc *UpscaleCreate) SetFailureReason(s string) *UpscaleCreate {
+	uc.mutation.SetFailureReason(s)
 	return uc
 }
 
-// SetDeviceBrowser sets the "device_browser" field.
-func (uc *UpscaleCreate) SetDeviceBrowser(s string) *UpscaleCreate {
-	uc.mutation.SetDeviceBrowser(s)
+// SetModelID sets the "model_id" field.
+func (uc *UpscaleCreate) SetModelID(u uuid.UUID) *UpscaleCreate {
+	uc.mutation.SetModelID(u)
 	return uc
 }
 
-// SetUserAgent sets the "user_agent" field.
-func (uc *UpscaleCreate) SetUserAgent(s string) *UpscaleCreate {
-	uc.mutation.SetUserAgent(s)
+// SetUserID sets the "user_id" field.
+func (uc *UpscaleCreate) SetUserID(u uuid.UUID) *UpscaleCreate {
+	uc.mutation.SetUserID(u)
+	return uc
+}
+
+// SetDeviceInfoID sets the "device_info_id" field.
+func (uc *UpscaleCreate) SetDeviceInfoID(u uuid.UUID) *UpscaleCreate {
+	uc.mutation.SetDeviceInfoID(u)
 	return uc
 }
 
@@ -161,26 +113,6 @@ func (uc *UpscaleCreate) SetNillableUpdatedAt(t *time.Time) *UpscaleCreate {
 	return uc
 }
 
-// SetUserID sets the "user_id" field.
-func (uc *UpscaleCreate) SetUserID(u uuid.UUID) *UpscaleCreate {
-	uc.mutation.SetUserID(u)
-	return uc
-}
-
-// SetUserTier sets the "user_tier" field.
-func (uc *UpscaleCreate) SetUserTier(ut upscale.UserTier) *UpscaleCreate {
-	uc.mutation.SetUserTier(ut)
-	return uc
-}
-
-// SetNillableUserTier sets the "user_tier" field if the given value is not nil.
-func (uc *UpscaleCreate) SetNillableUserTier(ut *upscale.UserTier) *UpscaleCreate {
-	if ut != nil {
-		uc.SetUserTier(*ut)
-	}
-	return uc
-}
-
 // SetID sets the "id" field.
 func (uc *UpscaleCreate) SetID(u uuid.UUID) *UpscaleCreate {
 	uc.mutation.SetID(u)
@@ -198,6 +130,37 @@ func (uc *UpscaleCreate) SetNillableID(u *uuid.UUID) *UpscaleCreate {
 // SetUser sets the "user" edge to the User entity.
 func (uc *UpscaleCreate) SetUser(u *User) *UpscaleCreate {
 	return uc.SetUserID(u.ID)
+}
+
+// SetDeviceInfo sets the "device_info" edge to the DeviceInfo entity.
+func (uc *UpscaleCreate) SetDeviceInfo(d *DeviceInfo) *UpscaleCreate {
+	return uc.SetDeviceInfoID(d.ID)
+}
+
+// SetUpscaleModelsID sets the "upscale_models" edge to the UpscaleModel entity by ID.
+func (uc *UpscaleCreate) SetUpscaleModelsID(id uuid.UUID) *UpscaleCreate {
+	uc.mutation.SetUpscaleModelsID(id)
+	return uc
+}
+
+// SetUpscaleModels sets the "upscale_models" edge to the UpscaleModel entity.
+func (uc *UpscaleCreate) SetUpscaleModels(u *UpscaleModel) *UpscaleCreate {
+	return uc.SetUpscaleModelsID(u.ID)
+}
+
+// AddUpscaleOutputIDs adds the "upscale_outputs" edge to the UpscaleOutput entity by IDs.
+func (uc *UpscaleCreate) AddUpscaleOutputIDs(ids ...uuid.UUID) *UpscaleCreate {
+	uc.mutation.AddUpscaleOutputIDs(ids...)
+	return uc
+}
+
+// AddUpscaleOutputs adds the "upscale_outputs" edges to the UpscaleOutput entity.
+func (uc *UpscaleCreate) AddUpscaleOutputs(u ...*UpscaleOutput) *UpscaleCreate {
+	ids := make([]uuid.UUID, len(u))
+	for i := range u {
+		ids[i] = u[i].ID
+	}
+	return uc.AddUpscaleOutputIDs(ids...)
 }
 
 // Mutation returns the UpscaleMutation object of the builder.
@@ -243,10 +206,6 @@ func (uc *UpscaleCreate) defaults() {
 		v := upscale.DefaultUpdatedAt()
 		uc.mutation.SetUpdatedAt(v)
 	}
-	if _, ok := uc.mutation.UserTier(); !ok {
-		v := upscale.DefaultUserTier
-		uc.mutation.SetUserTier(v)
-	}
 	if _, ok := uc.mutation.ID(); !ok {
 		v := upscale.DefaultID()
 		uc.mutation.SetID(v)
@@ -264,6 +223,12 @@ func (uc *UpscaleCreate) check() error {
 	if _, ok := uc.mutation.Scale(); !ok {
 		return &ValidationError{Name: "scale", err: errors.New(`ent: missing required field "Upscale.scale"`)}
 	}
+	if _, ok := uc.mutation.DurationMs(); !ok {
+		return &ValidationError{Name: "duration_ms", err: errors.New(`ent: missing required field "Upscale.duration_ms"`)}
+	}
+	if _, ok := uc.mutation.CountryCode(); !ok {
+		return &ValidationError{Name: "country_code", err: errors.New(`ent: missing required field "Upscale.country_code"`)}
+	}
 	if _, ok := uc.mutation.Status(); !ok {
 		return &ValidationError{Name: "status", err: errors.New(`ent: missing required field "Upscale.status"`)}
 	}
@@ -272,41 +237,17 @@ func (uc *UpscaleCreate) check() error {
 			return &ValidationError{Name: "status", err: fmt.Errorf(`ent: validator failed for field "Upscale.status": %w`, err)}
 		}
 	}
-	if _, ok := uc.mutation.ServerURL(); !ok {
-		return &ValidationError{Name: "server_url", err: errors.New(`ent: missing required field "Upscale.server_url"`)}
+	if _, ok := uc.mutation.FailureReason(); !ok {
+		return &ValidationError{Name: "failure_reason", err: errors.New(`ent: missing required field "Upscale.failure_reason"`)}
 	}
-	if _, ok := uc.mutation.DurationMsg(); !ok {
-		return &ValidationError{Name: "duration_msg", err: errors.New(`ent: missing required field "Upscale.duration_msg"`)}
+	if _, ok := uc.mutation.ModelID(); !ok {
+		return &ValidationError{Name: "model_id", err: errors.New(`ent: missing required field "Upscale.model_id"`)}
 	}
-	if _, ok := uc.mutation.GetType(); !ok {
-		return &ValidationError{Name: "type", err: errors.New(`ent: missing required field "Upscale.type"`)}
+	if _, ok := uc.mutation.UserID(); !ok {
+		return &ValidationError{Name: "user_id", err: errors.New(`ent: missing required field "Upscale.user_id"`)}
 	}
-	if _, ok := uc.mutation.Prompt(); !ok {
-		return &ValidationError{Name: "prompt", err: errors.New(`ent: missing required field "Upscale.prompt"`)}
-	}
-	if _, ok := uc.mutation.NegativePrompt(); !ok {
-		return &ValidationError{Name: "negative_prompt", err: errors.New(`ent: missing required field "Upscale.negative_prompt"`)}
-	}
-	if _, ok := uc.mutation.NumInferenceSteps(); !ok {
-		return &ValidationError{Name: "num_inference_steps", err: errors.New(`ent: missing required field "Upscale.num_inference_steps"`)}
-	}
-	if _, ok := uc.mutation.GuidanceScale(); !ok {
-		return &ValidationError{Name: "guidance_scale", err: errors.New(`ent: missing required field "Upscale.guidance_scale"`)}
-	}
-	if _, ok := uc.mutation.CountryCode(); !ok {
-		return &ValidationError{Name: "country_code", err: errors.New(`ent: missing required field "Upscale.country_code"`)}
-	}
-	if _, ok := uc.mutation.DeviceType(); !ok {
-		return &ValidationError{Name: "device_type", err: errors.New(`ent: missing required field "Upscale.device_type"`)}
-	}
-	if _, ok := uc.mutation.DeviceOs(); !ok {
-		return &ValidationError{Name: "device_os", err: errors.New(`ent: missing required field "Upscale.device_os"`)}
-	}
-	if _, ok := uc.mutation.DeviceBrowser(); !ok {
-		return &ValidationError{Name: "device_browser", err: errors.New(`ent: missing required field "Upscale.device_browser"`)}
-	}
-	if _, ok := uc.mutation.UserAgent(); !ok {
-		return &ValidationError{Name: "user_agent", err: errors.New(`ent: missing required field "Upscale.user_agent"`)}
+	if _, ok := uc.mutation.DeviceInfoID(); !ok {
+		return &ValidationError{Name: "device_info_id", err: errors.New(`ent: missing required field "Upscale.device_info_id"`)}
 	}
 	if _, ok := uc.mutation.CreatedAt(); !ok {
 		return &ValidationError{Name: "created_at", err: errors.New(`ent: missing required field "Upscale.created_at"`)}
@@ -315,18 +256,13 @@ func (uc *UpscaleCreate) check() error {
 		return &ValidationError{Name: "updated_at", err: errors.New(`ent: missing required field "Upscale.updated_at"`)}
 	}
 	if _, ok := uc.mutation.UserID(); !ok {
-		return &ValidationError{Name: "user_id", err: errors.New(`ent: missing required field "Upscale.user_id"`)}
-	}
-	if _, ok := uc.mutation.UserTier(); !ok {
-		return &ValidationError{Name: "user_tier", err: errors.New(`ent: missing required field "Upscale.user_tier"`)}
-	}
-	if v, ok := uc.mutation.UserTier(); ok {
-		if err := upscale.UserTierValidator(v); err != nil {
-			return &ValidationError{Name: "user_tier", err: fmt.Errorf(`ent: validator failed for field "Upscale.user_tier": %w`, err)}
-		}
-	}
-	if _, ok := uc.mutation.UserID(); !ok {
 		return &ValidationError{Name: "user", err: errors.New(`ent: missing required edge "Upscale.user"`)}
+	}
+	if _, ok := uc.mutation.DeviceInfoID(); !ok {
+		return &ValidationError{Name: "device_info", err: errors.New(`ent: missing required edge "Upscale.device_info"`)}
+	}
+	if _, ok := uc.mutation.UpscaleModelsID(); !ok {
+		return &ValidationError{Name: "upscale_models", err: errors.New(`ent: missing required edge "Upscale.upscale_models"`)}
 	}
 	return nil
 }
@@ -381,61 +317,21 @@ func (uc *UpscaleCreate) createSpec() (*Upscale, *sqlgraph.CreateSpec) {
 		_spec.SetField(upscale.FieldScale, field.TypeInt, value)
 		_node.Scale = value
 	}
+	if value, ok := uc.mutation.DurationMs(); ok {
+		_spec.SetField(upscale.FieldDurationMs, field.TypeInt, value)
+		_node.DurationMs = value
+	}
+	if value, ok := uc.mutation.CountryCode(); ok {
+		_spec.SetField(upscale.FieldCountryCode, field.TypeString, value)
+		_node.CountryCode = value
+	}
 	if value, ok := uc.mutation.Status(); ok {
 		_spec.SetField(upscale.FieldStatus, field.TypeEnum, value)
 		_node.Status = value
 	}
-	if value, ok := uc.mutation.ServerURL(); ok {
-		_spec.SetField(upscale.FieldServerURL, field.TypeString, value)
-		_node.ServerURL = value
-	}
-	if value, ok := uc.mutation.DurationMsg(); ok {
-		_spec.SetField(upscale.FieldDurationMsg, field.TypeInt, value)
-		_node.DurationMsg = &value
-	}
-	if value, ok := uc.mutation.GetType(); ok {
-		_spec.SetField(upscale.FieldType, field.TypeString, value)
-		_node.Type = &value
-	}
-	if value, ok := uc.mutation.Prompt(); ok {
-		_spec.SetField(upscale.FieldPrompt, field.TypeString, value)
-		_node.Prompt = &value
-	}
-	if value, ok := uc.mutation.NegativePrompt(); ok {
-		_spec.SetField(upscale.FieldNegativePrompt, field.TypeString, value)
-		_node.NegativePrompt = &value
-	}
-	if value, ok := uc.mutation.Seed(); ok {
-		_spec.SetField(upscale.FieldSeed, field.TypeInt, value)
-		_node.Seed = &value
-	}
-	if value, ok := uc.mutation.NumInferenceSteps(); ok {
-		_spec.SetField(upscale.FieldNumInferenceSteps, field.TypeInt, value)
-		_node.NumInferenceSteps = &value
-	}
-	if value, ok := uc.mutation.GuidanceScale(); ok {
-		_spec.SetField(upscale.FieldGuidanceScale, field.TypeFloat64, value)
-		_node.GuidanceScale = &value
-	}
-	if value, ok := uc.mutation.CountryCode(); ok {
-		_spec.SetField(upscale.FieldCountryCode, field.TypeString, value)
-		_node.CountryCode = &value
-	}
-	if value, ok := uc.mutation.DeviceType(); ok {
-		_spec.SetField(upscale.FieldDeviceType, field.TypeString, value)
-		_node.DeviceType = &value
-	}
-	if value, ok := uc.mutation.DeviceOs(); ok {
-		_spec.SetField(upscale.FieldDeviceOs, field.TypeString, value)
-		_node.DeviceOs = &value
-	}
-	if value, ok := uc.mutation.DeviceBrowser(); ok {
-		_spec.SetField(upscale.FieldDeviceBrowser, field.TypeString, value)
-		_node.DeviceBrowser = &value
-	}
-	if value, ok := uc.mutation.UserAgent(); ok {
-		_spec.SetField(upscale.FieldUserAgent, field.TypeString, value)
-		_node.UserAgent = &value
+	if value, ok := uc.mutation.FailureReason(); ok {
+		_spec.SetField(upscale.FieldFailureReason, field.TypeString, value)
+		_node.FailureReason = &value
 	}
 	if value, ok := uc.mutation.CreatedAt(); ok {
 		_spec.SetField(upscale.FieldCreatedAt, field.TypeTime, value)
@@ -444,10 +340,6 @@ func (uc *UpscaleCreate) createSpec() (*Upscale, *sqlgraph.CreateSpec) {
 	if value, ok := uc.mutation.UpdatedAt(); ok {
 		_spec.SetField(upscale.FieldUpdatedAt, field.TypeTime, value)
 		_node.UpdatedAt = value
-	}
-	if value, ok := uc.mutation.UserTier(); ok {
-		_spec.SetField(upscale.FieldUserTier, field.TypeEnum, value)
-		_node.UserTier = value
 	}
 	if nodes := uc.mutation.UserIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -466,7 +358,66 @@ func (uc *UpscaleCreate) createSpec() (*Upscale, *sqlgraph.CreateSpec) {
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		_node.UserID = &nodes[0]
+		_node.UserID = nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := uc.mutation.DeviceInfoIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   upscale.DeviceInfoTable,
+			Columns: []string{upscale.DeviceInfoColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: deviceinfo.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.DeviceInfoID = nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := uc.mutation.UpscaleModelsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   upscale.UpscaleModelsTable,
+			Columns: []string{upscale.UpscaleModelsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: upscalemodel.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.ModelID = nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := uc.mutation.UpscaleOutputsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   upscale.UpscaleOutputsTable,
+			Columns: []string{upscale.UpscaleOutputsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: upscaleoutput.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec

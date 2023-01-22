@@ -12,7 +12,6 @@ import (
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
 	"github.com/stablecog/go-apps/database/ent/generation"
-	"github.com/stablecog/go-apps/database/ent/generationg"
 	"github.com/stablecog/go-apps/database/ent/scheduler"
 )
 
@@ -71,34 +70,19 @@ func (sc *SchedulerCreate) SetNillableID(u *uuid.UUID) *SchedulerCreate {
 	return sc
 }
 
-// AddGenerationIDs adds the "generation" edge to the Generation entity by IDs.
+// AddGenerationIDs adds the "generations" edge to the Generation entity by IDs.
 func (sc *SchedulerCreate) AddGenerationIDs(ids ...uuid.UUID) *SchedulerCreate {
 	sc.mutation.AddGenerationIDs(ids...)
 	return sc
 }
 
-// AddGeneration adds the "generation" edges to the Generation entity.
-func (sc *SchedulerCreate) AddGeneration(g ...*Generation) *SchedulerCreate {
+// AddGenerations adds the "generations" edges to the Generation entity.
+func (sc *SchedulerCreate) AddGenerations(g ...*Generation) *SchedulerCreate {
 	ids := make([]uuid.UUID, len(g))
 	for i := range g {
 		ids[i] = g[i].ID
 	}
 	return sc.AddGenerationIDs(ids...)
-}
-
-// AddGenerationGIDs adds the "generation_g" edge to the GenerationG entity by IDs.
-func (sc *SchedulerCreate) AddGenerationGIDs(ids ...uuid.UUID) *SchedulerCreate {
-	sc.mutation.AddGenerationGIDs(ids...)
-	return sc
-}
-
-// AddGenerationG adds the "generation_g" edges to the GenerationG entity.
-func (sc *SchedulerCreate) AddGenerationG(g ...*GenerationG) *SchedulerCreate {
-	ids := make([]uuid.UUID, len(g))
-	for i := range g {
-		ids[i] = g[i].ID
-	}
-	return sc.AddGenerationGIDs(ids...)
 }
 
 // Mutation returns the SchedulerMutation object of the builder.
@@ -214,36 +198,17 @@ func (sc *SchedulerCreate) createSpec() (*Scheduler, *sqlgraph.CreateSpec) {
 		_spec.SetField(scheduler.FieldUpdatedAt, field.TypeTime, value)
 		_node.UpdatedAt = value
 	}
-	if nodes := sc.mutation.GenerationIDs(); len(nodes) > 0 {
+	if nodes := sc.mutation.GenerationsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   scheduler.GenerationTable,
-			Columns: []string{scheduler.GenerationColumn},
+			Table:   scheduler.GenerationsTable,
+			Columns: []string{scheduler.GenerationsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeUUID,
 					Column: generation.FieldID,
-				},
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges = append(_spec.Edges, edge)
-	}
-	if nodes := sc.mutation.GenerationGIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   scheduler.GenerationGTable,
-			Columns: []string{scheduler.GenerationGColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: generationg.FieldID,
 				},
 			},
 		}

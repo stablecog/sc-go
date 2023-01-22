@@ -14,131 +14,125 @@ const (
 	Label = "generation"
 	// FieldID holds the string denoting the id field in the database.
 	FieldID = "id"
-	// FieldPromptID holds the string denoting the prompt_id field in the database.
-	FieldPromptID = "prompt_id"
-	// FieldNegativePromptID holds the string denoting the negative_prompt_id field in the database.
-	FieldNegativePromptID = "negative_prompt_id"
-	// FieldModelID holds the string denoting the model_id field in the database.
-	FieldModelID = "model_id"
-	// FieldImageID holds the string denoting the image_id field in the database.
-	FieldImageID = "image_id"
 	// FieldWidth holds the string denoting the width field in the database.
 	FieldWidth = "width"
 	// FieldHeight holds the string denoting the height field in the database.
 	FieldHeight = "height"
-	// FieldSeed holds the string denoting the seed field in the database.
-	FieldSeed = "seed"
-	// FieldNumInferenceSteps holds the string denoting the num_inference_steps field in the database.
-	FieldNumInferenceSteps = "num_inference_steps"
+	// FieldInterferenceSteps holds the string denoting the interference_steps field in the database.
+	FieldInterferenceSteps = "interference_steps"
 	// FieldGuidanceScale holds the string denoting the guidance_scale field in the database.
 	FieldGuidanceScale = "guidance_scale"
-	// FieldHidden holds the string denoting the hidden field in the database.
-	FieldHidden = "hidden"
-	// FieldSchedulerID holds the string denoting the scheduler_id field in the database.
-	FieldSchedulerID = "scheduler_id"
-	// FieldUserID holds the string denoting the user_id field in the database.
-	FieldUserID = "user_id"
-	// FieldUserTier holds the string denoting the user_tier field in the database.
-	FieldUserTier = "user_tier"
-	// FieldServerURL holds the string denoting the server_url field in the database.
-	FieldServerURL = "server_url"
-	// FieldCountryCode holds the string denoting the country_code field in the database.
-	FieldCountryCode = "country_code"
-	// FieldDeviceType holds the string denoting the device_type field in the database.
-	FieldDeviceType = "device_type"
-	// FieldDeviceOs holds the string denoting the device_os field in the database.
-	FieldDeviceOs = "device_os"
-	// FieldDeviceBrowser holds the string denoting the device_browser field in the database.
-	FieldDeviceBrowser = "device_browser"
-	// FieldUserAgent holds the string denoting the user_agent field in the database.
-	FieldUserAgent = "user_agent"
+	// FieldSeed holds the string denoting the seed field in the database.
+	FieldSeed = "seed"
 	// FieldDurationMs holds the string denoting the duration_ms field in the database.
 	FieldDurationMs = "duration_ms"
 	// FieldStatus holds the string denoting the status field in the database.
 	FieldStatus = "status"
 	// FieldFailureReason holds the string denoting the failure_reason field in the database.
 	FieldFailureReason = "failure_reason"
-	// FieldImageObjectName holds the string denoting the image_object_name field in the database.
-	FieldImageObjectName = "image_object_name"
+	// FieldCountryCode holds the string denoting the country_code field in the database.
+	FieldCountryCode = "country_code"
+	// FieldPromptID holds the string denoting the prompt_id field in the database.
+	FieldPromptID = "prompt_id"
+	// FieldNegativePromptID holds the string denoting the negative_prompt_id field in the database.
+	FieldNegativePromptID = "negative_prompt_id"
+	// FieldModelID holds the string denoting the model_id field in the database.
+	FieldModelID = "model_id"
+	// FieldSchedulerID holds the string denoting the scheduler_id field in the database.
+	FieldSchedulerID = "scheduler_id"
+	// FieldUserID holds the string denoting the user_id field in the database.
+	FieldUserID = "user_id"
+	// FieldDeviceInfoID holds the string denoting the device_info_id field in the database.
+	FieldDeviceInfoID = "device_info_id"
 	// FieldCreatedAt holds the string denoting the created_at field in the database.
 	FieldCreatedAt = "created_at"
 	// FieldUpdatedAt holds the string denoting the updated_at field in the database.
 	FieldUpdatedAt = "updated_at"
-	// EdgeUser holds the string denoting the user edge name in mutations.
-	EdgeUser = "user"
-	// EdgeModel holds the string denoting the model edge name in mutations.
-	EdgeModel = "model"
-	// EdgePrompt holds the string denoting the prompt edge name in mutations.
-	EdgePrompt = "prompt"
-	// EdgeNegativePrompt holds the string denoting the negative_prompt edge name in mutations.
-	EdgeNegativePrompt = "negative_prompt"
-	// EdgeScheduler holds the string denoting the scheduler edge name in mutations.
-	EdgeScheduler = "scheduler"
+	// EdgeDeviceInfo holds the string denoting the device_info edge name in mutations.
+	EdgeDeviceInfo = "device_info"
+	// EdgeSchedulers holds the string denoting the schedulers edge name in mutations.
+	EdgeSchedulers = "schedulers"
+	// EdgePrompts holds the string denoting the prompts edge name in mutations.
+	EdgePrompts = "prompts"
+	// EdgeNegativePrompts holds the string denoting the negative_prompts edge name in mutations.
+	EdgeNegativePrompts = "negative_prompts"
+	// EdgeGenerationModels holds the string denoting the generation_models edge name in mutations.
+	EdgeGenerationModels = "generation_models"
+	// EdgeUsers holds the string denoting the users edge name in mutations.
+	EdgeUsers = "users"
+	// EdgeGenerationOutputs holds the string denoting the generation_outputs edge name in mutations.
+	EdgeGenerationOutputs = "generation_outputs"
 	// Table holds the table name of the generation in the database.
-	Table = "generation"
-	// UserTable is the table that holds the user relation/edge.
-	UserTable = "generation"
-	// UserInverseTable is the table name for the User entity.
-	// It exists in this package in order to avoid circular dependency with the "user" package.
-	UserInverseTable = "user"
-	// UserColumn is the table column denoting the user relation/edge.
-	UserColumn = "user_id"
-	// ModelTable is the table that holds the model relation/edge.
-	ModelTable = "generation"
-	// ModelInverseTable is the table name for the Model entity.
-	// It exists in this package in order to avoid circular dependency with the "model" package.
-	ModelInverseTable = "model"
-	// ModelColumn is the table column denoting the model relation/edge.
-	ModelColumn = "model_id"
-	// PromptTable is the table that holds the prompt relation/edge.
-	PromptTable = "generation"
-	// PromptInverseTable is the table name for the Prompt entity.
-	// It exists in this package in order to avoid circular dependency with the "prompt" package.
-	PromptInverseTable = "prompt"
-	// PromptColumn is the table column denoting the prompt relation/edge.
-	PromptColumn = "prompt_id"
-	// NegativePromptTable is the table that holds the negative_prompt relation/edge.
-	NegativePromptTable = "generation"
-	// NegativePromptInverseTable is the table name for the NegativePrompt entity.
-	// It exists in this package in order to avoid circular dependency with the "negativeprompt" package.
-	NegativePromptInverseTable = "negative_prompt"
-	// NegativePromptColumn is the table column denoting the negative_prompt relation/edge.
-	NegativePromptColumn = "negative_prompt_id"
-	// SchedulerTable is the table that holds the scheduler relation/edge.
-	SchedulerTable = "generation"
-	// SchedulerInverseTable is the table name for the Scheduler entity.
+	Table = "generations"
+	// DeviceInfoTable is the table that holds the device_info relation/edge.
+	DeviceInfoTable = "generations"
+	// DeviceInfoInverseTable is the table name for the DeviceInfo entity.
+	// It exists in this package in order to avoid circular dependency with the "deviceinfo" package.
+	DeviceInfoInverseTable = "device_info"
+	// DeviceInfoColumn is the table column denoting the device_info relation/edge.
+	DeviceInfoColumn = "device_info_id"
+	// SchedulersTable is the table that holds the schedulers relation/edge.
+	SchedulersTable = "generations"
+	// SchedulersInverseTable is the table name for the Scheduler entity.
 	// It exists in this package in order to avoid circular dependency with the "scheduler" package.
-	SchedulerInverseTable = "scheduler"
-	// SchedulerColumn is the table column denoting the scheduler relation/edge.
-	SchedulerColumn = "scheduler_id"
+	SchedulersInverseTable = "schedulers"
+	// SchedulersColumn is the table column denoting the schedulers relation/edge.
+	SchedulersColumn = "scheduler_id"
+	// PromptsTable is the table that holds the prompts relation/edge.
+	PromptsTable = "generations"
+	// PromptsInverseTable is the table name for the Prompt entity.
+	// It exists in this package in order to avoid circular dependency with the "prompt" package.
+	PromptsInverseTable = "prompts"
+	// PromptsColumn is the table column denoting the prompts relation/edge.
+	PromptsColumn = "prompt_id"
+	// NegativePromptsTable is the table that holds the negative_prompts relation/edge.
+	NegativePromptsTable = "generations"
+	// NegativePromptsInverseTable is the table name for the NegativePrompt entity.
+	// It exists in this package in order to avoid circular dependency with the "negativeprompt" package.
+	NegativePromptsInverseTable = "negative_prompts"
+	// NegativePromptsColumn is the table column denoting the negative_prompts relation/edge.
+	NegativePromptsColumn = "negative_prompt_id"
+	// GenerationModelsTable is the table that holds the generation_models relation/edge.
+	GenerationModelsTable = "generations"
+	// GenerationModelsInverseTable is the table name for the GenerationModel entity.
+	// It exists in this package in order to avoid circular dependency with the "generationmodel" package.
+	GenerationModelsInverseTable = "generation_models"
+	// GenerationModelsColumn is the table column denoting the generation_models relation/edge.
+	GenerationModelsColumn = "model_id"
+	// UsersTable is the table that holds the users relation/edge.
+	UsersTable = "generations"
+	// UsersInverseTable is the table name for the User entity.
+	// It exists in this package in order to avoid circular dependency with the "user" package.
+	UsersInverseTable = "users"
+	// UsersColumn is the table column denoting the users relation/edge.
+	UsersColumn = "user_id"
+	// GenerationOutputsTable is the table that holds the generation_outputs relation/edge.
+	GenerationOutputsTable = "generation_outputs"
+	// GenerationOutputsInverseTable is the table name for the GenerationOutput entity.
+	// It exists in this package in order to avoid circular dependency with the "generationoutput" package.
+	GenerationOutputsInverseTable = "generation_outputs"
+	// GenerationOutputsColumn is the table column denoting the generation_outputs relation/edge.
+	GenerationOutputsColumn = "generation_id"
 )
 
 // Columns holds all SQL columns for generation fields.
 var Columns = []string{
 	FieldID,
-	FieldPromptID,
-	FieldNegativePromptID,
-	FieldModelID,
-	FieldImageID,
 	FieldWidth,
 	FieldHeight,
-	FieldSeed,
-	FieldNumInferenceSteps,
+	FieldInterferenceSteps,
 	FieldGuidanceScale,
-	FieldHidden,
-	FieldSchedulerID,
-	FieldUserID,
-	FieldUserTier,
-	FieldServerURL,
-	FieldCountryCode,
-	FieldDeviceType,
-	FieldDeviceOs,
-	FieldDeviceBrowser,
-	FieldUserAgent,
+	FieldSeed,
 	FieldDurationMs,
 	FieldStatus,
 	FieldFailureReason,
-	FieldImageObjectName,
+	FieldCountryCode,
+	FieldPromptID,
+	FieldNegativePromptID,
+	FieldModelID,
+	FieldSchedulerID,
+	FieldUserID,
+	FieldDeviceInfoID,
 	FieldCreatedAt,
 	FieldUpdatedAt,
 }
@@ -154,8 +148,6 @@ func ValidColumn(column string) bool {
 }
 
 var (
-	// DefaultHidden holds the default value on creation for the "hidden" field.
-	DefaultHidden bool
 	// DefaultCreatedAt holds the default value on creation for the "created_at" field.
 	DefaultCreatedAt func() time.Time
 	// DefaultUpdatedAt holds the default value on creation for the "updated_at" field.
@@ -165,32 +157,6 @@ var (
 	// DefaultID holds the default value on creation for the "id" field.
 	DefaultID func() uuid.UUID
 )
-
-// UserTier defines the type for the "user_tier" enum field.
-type UserTier string
-
-// UserTierFREE is the default value of the UserTier enum.
-const DefaultUserTier = UserTierFREE
-
-// UserTier values.
-const (
-	UserTierFREE UserTier = "FREE"
-	UserTierPRO  UserTier = "PRO"
-)
-
-func (ut UserTier) String() string {
-	return string(ut)
-}
-
-// UserTierValidator is a validator for the "user_tier" field enum values. It is called by the builders before save.
-func UserTierValidator(ut UserTier) error {
-	switch ut {
-	case UserTierFREE, UserTierPRO:
-		return nil
-	default:
-		return fmt.Errorf("generation: invalid enum value for user_tier field: %q", ut)
-	}
-}
 
 // Status defines the type for the "status" enum field.
 type Status string

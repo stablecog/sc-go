@@ -4,13 +4,11 @@ import (
 	"time"
 
 	"entgo.io/ent"
-	"entgo.io/ent/dialect"
 	"entgo.io/ent/dialect/entsql"
 	"entgo.io/ent/schema"
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
-	"github.com/stablecog/go-apps/database/enttypes"
 )
 
 // Upscale holds the schema definition for the Upscale entity.
@@ -25,28 +23,17 @@ func (Upscale) Fields() []ent.Field {
 		field.Int("width"),
 		field.Int("height"),
 		field.Int("scale"),
+		field.Int("duration_ms"),
+		field.Text("country_code"),
 		field.Enum("status").Values("started", "succeeded", "failed"),
-		field.Text("server_url"),
-		field.Int("duration_msg").Nillable(),
-		field.Text("type").Nillable(),
-		field.Text("prompt").Nillable(),
-		field.Text("negative_prompt").Nillable(),
-		field.Int("seed").
-			Optional().
-			GoType(enttypes.BigInt{}).SchemaType(map[string]string{
-			dialect.Postgres: "bigint",
-		}).Nillable(),
-		field.Int("num_inference_steps").Nillable(),
-		field.Float("guidance_scale").Nillable(),
-		field.Text("country_code").Nillable(),
-		field.Text("device_type").Nillable(),
-		field.Text("device_os").Nillable(),
-		field.Text("device_browser").Nillable(),
-		field.Text("user_agent").Nillable(),
+		field.Text("failure_reason").Nillable(),
+		// ! Relationships / many-to-one
+		field.UUID("model_id", uuid.UUID{}),
+		field.UUID("user_id", uuid.UUID{}),
+		field.UUID("device_info_id", uuid.UUID{}),
+		// ! End relationships
 		field.Time("created_at").Default(time.Now).Immutable(),
 		field.Time("updated_at").Default(time.Now).UpdateDefault(time.Now),
-		field.UUID("user_id", uuid.UUID{}).Nillable(),
-		field.Enum("user_tier").Values("FREE", "PRO").Default("FREE"),
 	}
 }
 
@@ -55,16 +42,33 @@ func (Upscale) Edges() []ent.Edge {
 	return []ent.Edge{
 		// M2O with users
 		edge.From("user", User.Type).
-			Ref("upscale").
+			Ref("upscales").
 			Field("user_id").
 			Required().
 			Unique(),
+		// M2O with device_info
+		edge.From("device_info", DeviceInfo.Type).
+			Ref("upscales").
+			Field("device_info_id").
+			Required().
+			Unique(),
+		// M2O with upscale_models
+		edge.From("upscale_models", UpscaleModel.Type).
+			Ref("upscales").
+			Field("model_id").
+			Required().
+			Unique(),
+		// O2M with upscale_outputs
+		edge.To("upscale_outputs", UpscaleOutput.Type).
+			Annotations(entsql.Annotation{
+				OnDelete: entsql.Cascade,
+			}),
 	}
 }
 
 // Annotations of the Upscale.
 func (Upscale) Annotations() []schema.Annotation {
 	return []schema.Annotation{
-		entsql.Annotation{Table: "upscale"},
+		entsql.Annotation{Table: "upscales"},
 	}
 }

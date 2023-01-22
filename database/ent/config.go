@@ -31,32 +31,32 @@ type config struct {
 // hooks and interceptors per client, for fast access.
 type (
 	hooks struct {
-		Admin              []ent.Hook
-		Generation         []ent.Hook
-		GenerationG        []ent.Hook
-		GenerationRealtime []ent.Hook
-		Model              []ent.Hook
-		NegativePrompt     []ent.Hook
-		Prompt             []ent.Hook
-		Scheduler          []ent.Hook
-		Server             []ent.Hook
-		Upscale            []ent.Hook
-		UpscaleRealtime    []ent.Hook
-		User               []ent.Hook
+		DeviceInfo       []ent.Hook
+		Generation       []ent.Hook
+		GenerationModel  []ent.Hook
+		GenerationOutput []ent.Hook
+		NegativePrompt   []ent.Hook
+		Prompt           []ent.Hook
+		Scheduler        []ent.Hook
+		Upscale          []ent.Hook
+		UpscaleModel     []ent.Hook
+		UpscaleOutput    []ent.Hook
+		User             []ent.Hook
+		UserRole         []ent.Hook
 	}
 	inters struct {
-		Admin              []ent.Interceptor
-		Generation         []ent.Interceptor
-		GenerationG        []ent.Interceptor
-		GenerationRealtime []ent.Interceptor
-		Model              []ent.Interceptor
-		NegativePrompt     []ent.Interceptor
-		Prompt             []ent.Interceptor
-		Scheduler          []ent.Interceptor
-		Server             []ent.Interceptor
-		Upscale            []ent.Interceptor
-		UpscaleRealtime    []ent.Interceptor
-		User               []ent.Interceptor
+		DeviceInfo       []ent.Interceptor
+		Generation       []ent.Interceptor
+		GenerationModel  []ent.Interceptor
+		GenerationOutput []ent.Interceptor
+		NegativePrompt   []ent.Interceptor
+		Prompt           []ent.Interceptor
+		Scheduler        []ent.Interceptor
+		Upscale          []ent.Interceptor
+		UpscaleModel     []ent.Interceptor
+		UpscaleOutput    []ent.Interceptor
+		User             []ent.Interceptor
+		UserRole         []ent.Interceptor
 	}
 )
 

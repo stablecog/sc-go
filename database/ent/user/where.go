@@ -211,26 +211,6 @@ func StripeCustomerIDContainsFold(v string) predicate.User {
 	return predicate.User(sql.FieldContainsFold(FieldStripeCustomerID, v))
 }
 
-// SubscriptionTierEQ applies the EQ predicate on the "subscription_tier" field.
-func SubscriptionTierEQ(v SubscriptionTier) predicate.User {
-	return predicate.User(sql.FieldEQ(FieldSubscriptionTier, v))
-}
-
-// SubscriptionTierNEQ applies the NEQ predicate on the "subscription_tier" field.
-func SubscriptionTierNEQ(v SubscriptionTier) predicate.User {
-	return predicate.User(sql.FieldNEQ(FieldSubscriptionTier, v))
-}
-
-// SubscriptionTierIn applies the In predicate on the "subscription_tier" field.
-func SubscriptionTierIn(vs ...SubscriptionTier) predicate.User {
-	return predicate.User(sql.FieldIn(FieldSubscriptionTier, vs...))
-}
-
-// SubscriptionTierNotIn applies the NotIn predicate on the "subscription_tier" field.
-func SubscriptionTierNotIn(vs ...SubscriptionTier) predicate.User {
-	return predicate.User(sql.FieldNotIn(FieldSubscriptionTier, vs...))
-}
-
 // SubscriptionCategoryEQ applies the EQ predicate on the "subscription_category" field.
 func SubscriptionCategoryEQ(v SubscriptionCategory) predicate.User {
 	return predicate.User(sql.FieldEQ(FieldSubscriptionCategory, v))
@@ -371,24 +351,24 @@ func ConfirmedAtLTE(v time.Time) predicate.User {
 	return predicate.User(sql.FieldLTE(FieldConfirmedAt, v))
 }
 
-// HasUpscale applies the HasEdge predicate on the "upscale" edge.
-func HasUpscale() predicate.User {
+// HasUserRoles applies the HasEdge predicate on the "user_roles" edge.
+func HasUserRoles() predicate.User {
 	return predicate.User(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, UpscaleTable, UpscaleColumn),
+			sqlgraph.Edge(sqlgraph.O2M, false, UserRolesTable, UserRolesColumn),
 		)
 		sqlgraph.HasNeighbors(s, step)
 	})
 }
 
-// HasUpscaleWith applies the HasEdge predicate on the "upscale" edge with a given conditions (other predicates).
-func HasUpscaleWith(preds ...predicate.Upscale) predicate.User {
+// HasUserRolesWith applies the HasEdge predicate on the "user_roles" edge with a given conditions (other predicates).
+func HasUserRolesWith(preds ...predicate.UserRole) predicate.User {
 	return predicate.User(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(UpscaleInverseTable, FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, UpscaleTable, UpscaleColumn),
+			sqlgraph.To(UserRolesInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, UserRolesTable, UserRolesColumn),
 		)
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
@@ -398,24 +378,24 @@ func HasUpscaleWith(preds ...predicate.Upscale) predicate.User {
 	})
 }
 
-// HasGeneration applies the HasEdge predicate on the "generation" edge.
-func HasGeneration() predicate.User {
+// HasGenerations applies the HasEdge predicate on the "generations" edge.
+func HasGenerations() predicate.User {
 	return predicate.User(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, GenerationTable, GenerationColumn),
+			sqlgraph.Edge(sqlgraph.O2M, false, GenerationsTable, GenerationsColumn),
 		)
 		sqlgraph.HasNeighbors(s, step)
 	})
 }
 
-// HasGenerationWith applies the HasEdge predicate on the "generation" edge with a given conditions (other predicates).
-func HasGenerationWith(preds ...predicate.Generation) predicate.User {
+// HasGenerationsWith applies the HasEdge predicate on the "generations" edge with a given conditions (other predicates).
+func HasGenerationsWith(preds ...predicate.Generation) predicate.User {
 	return predicate.User(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(GenerationInverseTable, FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, GenerationTable, GenerationColumn),
+			sqlgraph.To(GenerationsInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, GenerationsTable, GenerationsColumn),
 		)
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
@@ -425,24 +405,24 @@ func HasGenerationWith(preds ...predicate.Generation) predicate.User {
 	})
 }
 
-// HasGenerationG applies the HasEdge predicate on the "generation_g" edge.
-func HasGenerationG() predicate.User {
+// HasUpscales applies the HasEdge predicate on the "upscales" edge.
+func HasUpscales() predicate.User {
 	return predicate.User(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, GenerationGTable, GenerationGColumn),
+			sqlgraph.Edge(sqlgraph.O2M, false, UpscalesTable, UpscalesColumn),
 		)
 		sqlgraph.HasNeighbors(s, step)
 	})
 }
 
-// HasGenerationGWith applies the HasEdge predicate on the "generation_g" edge with a given conditions (other predicates).
-func HasGenerationGWith(preds ...predicate.GenerationG) predicate.User {
+// HasUpscalesWith applies the HasEdge predicate on the "upscales" edge with a given conditions (other predicates).
+func HasUpscalesWith(preds ...predicate.Upscale) predicate.User {
 	return predicate.User(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(GenerationGInverseTable, FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, GenerationGTable, GenerationGColumn),
+			sqlgraph.To(UpscalesInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, UpscalesTable, UpscalesColumn),
 		)
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {

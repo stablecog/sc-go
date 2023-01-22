@@ -13,7 +13,6 @@ import (
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
 	"github.com/stablecog/go-apps/database/ent/generation"
-	"github.com/stablecog/go-apps/database/ent/generationg"
 	"github.com/stablecog/go-apps/database/ent/negativeprompt"
 	"github.com/stablecog/go-apps/database/ent/predicate"
 )
@@ -28,8 +27,7 @@ type NegativePromptQuery struct {
 	fields          []string
 	inters          []Interceptor
 	predicates      []predicate.NegativePrompt
-	withGeneration  *GenerationQuery
-	withGenerationG *GenerationGQuery
+	withGenerations *GenerationQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -66,8 +64,8 @@ func (npq *NegativePromptQuery) Order(o ...OrderFunc) *NegativePromptQuery {
 	return npq
 }
 
-// QueryGeneration chains the current query on the "generation" edge.
-func (npq *NegativePromptQuery) QueryGeneration() *GenerationQuery {
+// QueryGenerations chains the current query on the "generations" edge.
+func (npq *NegativePromptQuery) QueryGenerations() *GenerationQuery {
 	query := (&GenerationClient{config: npq.config}).Query()
 	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
 		if err := npq.prepareQuery(ctx); err != nil {
@@ -80,29 +78,7 @@ func (npq *NegativePromptQuery) QueryGeneration() *GenerationQuery {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(negativeprompt.Table, negativeprompt.FieldID, selector),
 			sqlgraph.To(generation.Table, generation.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, negativeprompt.GenerationTable, negativeprompt.GenerationColumn),
-		)
-		fromU = sqlgraph.SetNeighbors(npq.driver.Dialect(), step)
-		return fromU, nil
-	}
-	return query
-}
-
-// QueryGenerationG chains the current query on the "generation_g" edge.
-func (npq *NegativePromptQuery) QueryGenerationG() *GenerationGQuery {
-	query := (&GenerationGClient{config: npq.config}).Query()
-	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
-		if err := npq.prepareQuery(ctx); err != nil {
-			return nil, err
-		}
-		selector := npq.sqlQuery(ctx)
-		if err := selector.Err(); err != nil {
-			return nil, err
-		}
-		step := sqlgraph.NewStep(
-			sqlgraph.From(negativeprompt.Table, negativeprompt.FieldID, selector),
-			sqlgraph.To(generationg.Table, generationg.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, negativeprompt.GenerationGTable, negativeprompt.GenerationGColumn),
+			sqlgraph.Edge(sqlgraph.O2M, false, negativeprompt.GenerationsTable, negativeprompt.GenerationsColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(npq.driver.Dialect(), step)
 		return fromU, nil
@@ -301,8 +277,7 @@ func (npq *NegativePromptQuery) Clone() *NegativePromptQuery {
 		order:           append([]OrderFunc{}, npq.order...),
 		inters:          append([]Interceptor{}, npq.inters...),
 		predicates:      append([]predicate.NegativePrompt{}, npq.predicates...),
-		withGeneration:  npq.withGeneration.Clone(),
-		withGenerationG: npq.withGenerationG.Clone(),
+		withGenerations: npq.withGenerations.Clone(),
 		// clone intermediate query.
 		sql:    npq.sql.Clone(),
 		path:   npq.path,
@@ -310,25 +285,14 @@ func (npq *NegativePromptQuery) Clone() *NegativePromptQuery {
 	}
 }
 
-// WithGeneration tells the query-builder to eager-load the nodes that are connected to
-// the "generation" edge. The optional arguments are used to configure the query builder of the edge.
-func (npq *NegativePromptQuery) WithGeneration(opts ...func(*GenerationQuery)) *NegativePromptQuery {
+// WithGenerations tells the query-builder to eager-load the nodes that are connected to
+// the "generations" edge. The optional arguments are used to configure the query builder of the edge.
+func (npq *NegativePromptQuery) WithGenerations(opts ...func(*GenerationQuery)) *NegativePromptQuery {
 	query := (&GenerationClient{config: npq.config}).Query()
 	for _, opt := range opts {
 		opt(query)
 	}
-	npq.withGeneration = query
-	return npq
-}
-
-// WithGenerationG tells the query-builder to eager-load the nodes that are connected to
-// the "generation_g" edge. The optional arguments are used to configure the query builder of the edge.
-func (npq *NegativePromptQuery) WithGenerationG(opts ...func(*GenerationGQuery)) *NegativePromptQuery {
-	query := (&GenerationGClient{config: npq.config}).Query()
-	for _, opt := range opts {
-		opt(query)
-	}
-	npq.withGenerationG = query
+	npq.withGenerations = query
 	return npq
 }
 
@@ -410,9 +374,8 @@ func (npq *NegativePromptQuery) sqlAll(ctx context.Context, hooks ...queryHook) 
 	var (
 		nodes       = []*NegativePrompt{}
 		_spec       = npq.querySpec()
-		loadedTypes = [2]bool{
-			npq.withGeneration != nil,
-			npq.withGenerationG != nil,
+		loadedTypes = [1]bool{
+			npq.withGenerations != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -433,24 +396,17 @@ func (npq *NegativePromptQuery) sqlAll(ctx context.Context, hooks ...queryHook) 
 	if len(nodes) == 0 {
 		return nodes, nil
 	}
-	if query := npq.withGeneration; query != nil {
-		if err := npq.loadGeneration(ctx, query, nodes,
-			func(n *NegativePrompt) { n.Edges.Generation = []*Generation{} },
-			func(n *NegativePrompt, e *Generation) { n.Edges.Generation = append(n.Edges.Generation, e) }); err != nil {
-			return nil, err
-		}
-	}
-	if query := npq.withGenerationG; query != nil {
-		if err := npq.loadGenerationG(ctx, query, nodes,
-			func(n *NegativePrompt) { n.Edges.GenerationG = []*GenerationG{} },
-			func(n *NegativePrompt, e *GenerationG) { n.Edges.GenerationG = append(n.Edges.GenerationG, e) }); err != nil {
+	if query := npq.withGenerations; query != nil {
+		if err := npq.loadGenerations(ctx, query, nodes,
+			func(n *NegativePrompt) { n.Edges.Generations = []*Generation{} },
+			func(n *NegativePrompt, e *Generation) { n.Edges.Generations = append(n.Edges.Generations, e) }); err != nil {
 			return nil, err
 		}
 	}
 	return nodes, nil
 }
 
-func (npq *NegativePromptQuery) loadGeneration(ctx context.Context, query *GenerationQuery, nodes []*NegativePrompt, init func(*NegativePrompt), assign func(*NegativePrompt, *Generation)) error {
+func (npq *NegativePromptQuery) loadGenerations(ctx context.Context, query *GenerationQuery, nodes []*NegativePrompt, init func(*NegativePrompt), assign func(*NegativePrompt, *Generation)) error {
 	fks := make([]driver.Value, 0, len(nodes))
 	nodeids := make(map[uuid.UUID]*NegativePrompt)
 	for i := range nodes {
@@ -461,37 +417,7 @@ func (npq *NegativePromptQuery) loadGeneration(ctx context.Context, query *Gener
 		}
 	}
 	query.Where(predicate.Generation(func(s *sql.Selector) {
-		s.Where(sql.InValues(negativeprompt.GenerationColumn, fks...))
-	}))
-	neighbors, err := query.All(ctx)
-	if err != nil {
-		return err
-	}
-	for _, n := range neighbors {
-		fk := n.NegativePromptID
-		if fk == nil {
-			return fmt.Errorf(`foreign-key "negative_prompt_id" is nil for node %v`, n.ID)
-		}
-		node, ok := nodeids[*fk]
-		if !ok {
-			return fmt.Errorf(`unexpected foreign-key "negative_prompt_id" returned %v for node %v`, *fk, n.ID)
-		}
-		assign(node, n)
-	}
-	return nil
-}
-func (npq *NegativePromptQuery) loadGenerationG(ctx context.Context, query *GenerationGQuery, nodes []*NegativePrompt, init func(*NegativePrompt), assign func(*NegativePrompt, *GenerationG)) error {
-	fks := make([]driver.Value, 0, len(nodes))
-	nodeids := make(map[uuid.UUID]*NegativePrompt)
-	for i := range nodes {
-		fks = append(fks, nodes[i].ID)
-		nodeids[nodes[i].ID] = nodes[i]
-		if init != nil {
-			init(nodes[i])
-		}
-	}
-	query.Where(predicate.GenerationG(func(s *sql.Selector) {
-		s.Where(sql.InValues(negativeprompt.GenerationGColumn, fks...))
+		s.Where(sql.InValues(negativeprompt.GenerationsColumn, fks...))
 	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {

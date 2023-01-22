@@ -11,18 +11,18 @@ import (
 	"github.com/google/uuid"
 	"github.com/stablecog/go-apps/database/ent/migrate"
 
-	"github.com/stablecog/go-apps/database/ent/admin"
+	"github.com/stablecog/go-apps/database/ent/deviceinfo"
 	"github.com/stablecog/go-apps/database/ent/generation"
-	"github.com/stablecog/go-apps/database/ent/generationg"
-	"github.com/stablecog/go-apps/database/ent/generationrealtime"
-	"github.com/stablecog/go-apps/database/ent/model"
+	"github.com/stablecog/go-apps/database/ent/generationmodel"
+	"github.com/stablecog/go-apps/database/ent/generationoutput"
 	"github.com/stablecog/go-apps/database/ent/negativeprompt"
 	"github.com/stablecog/go-apps/database/ent/prompt"
 	"github.com/stablecog/go-apps/database/ent/scheduler"
-	"github.com/stablecog/go-apps/database/ent/server"
 	"github.com/stablecog/go-apps/database/ent/upscale"
-	"github.com/stablecog/go-apps/database/ent/upscalerealtime"
+	"github.com/stablecog/go-apps/database/ent/upscalemodel"
+	"github.com/stablecog/go-apps/database/ent/upscaleoutput"
 	"github.com/stablecog/go-apps/database/ent/user"
+	"github.com/stablecog/go-apps/database/ent/userrole"
 
 	"entgo.io/ent/dialect"
 	"entgo.io/ent/dialect/sql"
@@ -34,30 +34,30 @@ type Client struct {
 	config
 	// Schema is the client for creating, migrating and dropping schema.
 	Schema *migrate.Schema
-	// Admin is the client for interacting with the Admin builders.
-	Admin *AdminClient
+	// DeviceInfo is the client for interacting with the DeviceInfo builders.
+	DeviceInfo *DeviceInfoClient
 	// Generation is the client for interacting with the Generation builders.
 	Generation *GenerationClient
-	// GenerationG is the client for interacting with the GenerationG builders.
-	GenerationG *GenerationGClient
-	// GenerationRealtime is the client for interacting with the GenerationRealtime builders.
-	GenerationRealtime *GenerationRealtimeClient
-	// Model is the client for interacting with the Model builders.
-	Model *ModelClient
+	// GenerationModel is the client for interacting with the GenerationModel builders.
+	GenerationModel *GenerationModelClient
+	// GenerationOutput is the client for interacting with the GenerationOutput builders.
+	GenerationOutput *GenerationOutputClient
 	// NegativePrompt is the client for interacting with the NegativePrompt builders.
 	NegativePrompt *NegativePromptClient
 	// Prompt is the client for interacting with the Prompt builders.
 	Prompt *PromptClient
 	// Scheduler is the client for interacting with the Scheduler builders.
 	Scheduler *SchedulerClient
-	// Server is the client for interacting with the Server builders.
-	Server *ServerClient
 	// Upscale is the client for interacting with the Upscale builders.
 	Upscale *UpscaleClient
-	// UpscaleRealtime is the client for interacting with the UpscaleRealtime builders.
-	UpscaleRealtime *UpscaleRealtimeClient
+	// UpscaleModel is the client for interacting with the UpscaleModel builders.
+	UpscaleModel *UpscaleModelClient
+	// UpscaleOutput is the client for interacting with the UpscaleOutput builders.
+	UpscaleOutput *UpscaleOutputClient
 	// User is the client for interacting with the User builders.
 	User *UserClient
+	// UserRole is the client for interacting with the UserRole builders.
+	UserRole *UserRoleClient
 }
 
 // NewClient creates a new client configured with the given options.
@@ -71,18 +71,18 @@ func NewClient(opts ...Option) *Client {
 
 func (c *Client) init() {
 	c.Schema = migrate.NewSchema(c.driver)
-	c.Admin = NewAdminClient(c.config)
+	c.DeviceInfo = NewDeviceInfoClient(c.config)
 	c.Generation = NewGenerationClient(c.config)
-	c.GenerationG = NewGenerationGClient(c.config)
-	c.GenerationRealtime = NewGenerationRealtimeClient(c.config)
-	c.Model = NewModelClient(c.config)
+	c.GenerationModel = NewGenerationModelClient(c.config)
+	c.GenerationOutput = NewGenerationOutputClient(c.config)
 	c.NegativePrompt = NewNegativePromptClient(c.config)
 	c.Prompt = NewPromptClient(c.config)
 	c.Scheduler = NewSchedulerClient(c.config)
-	c.Server = NewServerClient(c.config)
 	c.Upscale = NewUpscaleClient(c.config)
-	c.UpscaleRealtime = NewUpscaleRealtimeClient(c.config)
+	c.UpscaleModel = NewUpscaleModelClient(c.config)
+	c.UpscaleOutput = NewUpscaleOutputClient(c.config)
 	c.User = NewUserClient(c.config)
+	c.UserRole = NewUserRoleClient(c.config)
 }
 
 // Open opens a database/sql.DB specified by the driver name and
@@ -114,20 +114,20 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 	cfg := c.config
 	cfg.driver = tx
 	return &Tx{
-		ctx:                ctx,
-		config:             cfg,
-		Admin:              NewAdminClient(cfg),
-		Generation:         NewGenerationClient(cfg),
-		GenerationG:        NewGenerationGClient(cfg),
-		GenerationRealtime: NewGenerationRealtimeClient(cfg),
-		Model:              NewModelClient(cfg),
-		NegativePrompt:     NewNegativePromptClient(cfg),
-		Prompt:             NewPromptClient(cfg),
-		Scheduler:          NewSchedulerClient(cfg),
-		Server:             NewServerClient(cfg),
-		Upscale:            NewUpscaleClient(cfg),
-		UpscaleRealtime:    NewUpscaleRealtimeClient(cfg),
-		User:               NewUserClient(cfg),
+		ctx:              ctx,
+		config:           cfg,
+		DeviceInfo:       NewDeviceInfoClient(cfg),
+		Generation:       NewGenerationClient(cfg),
+		GenerationModel:  NewGenerationModelClient(cfg),
+		GenerationOutput: NewGenerationOutputClient(cfg),
+		NegativePrompt:   NewNegativePromptClient(cfg),
+		Prompt:           NewPromptClient(cfg),
+		Scheduler:        NewSchedulerClient(cfg),
+		Upscale:          NewUpscaleClient(cfg),
+		UpscaleModel:     NewUpscaleModelClient(cfg),
+		UpscaleOutput:    NewUpscaleOutputClient(cfg),
+		User:             NewUserClient(cfg),
+		UserRole:         NewUserRoleClient(cfg),
 	}, nil
 }
 
@@ -145,27 +145,27 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 	cfg := c.config
 	cfg.driver = &txDriver{tx: tx, drv: c.driver}
 	return &Tx{
-		ctx:                ctx,
-		config:             cfg,
-		Admin:              NewAdminClient(cfg),
-		Generation:         NewGenerationClient(cfg),
-		GenerationG:        NewGenerationGClient(cfg),
-		GenerationRealtime: NewGenerationRealtimeClient(cfg),
-		Model:              NewModelClient(cfg),
-		NegativePrompt:     NewNegativePromptClient(cfg),
-		Prompt:             NewPromptClient(cfg),
-		Scheduler:          NewSchedulerClient(cfg),
-		Server:             NewServerClient(cfg),
-		Upscale:            NewUpscaleClient(cfg),
-		UpscaleRealtime:    NewUpscaleRealtimeClient(cfg),
-		User:               NewUserClient(cfg),
+		ctx:              ctx,
+		config:           cfg,
+		DeviceInfo:       NewDeviceInfoClient(cfg),
+		Generation:       NewGenerationClient(cfg),
+		GenerationModel:  NewGenerationModelClient(cfg),
+		GenerationOutput: NewGenerationOutputClient(cfg),
+		NegativePrompt:   NewNegativePromptClient(cfg),
+		Prompt:           NewPromptClient(cfg),
+		Scheduler:        NewSchedulerClient(cfg),
+		Upscale:          NewUpscaleClient(cfg),
+		UpscaleModel:     NewUpscaleModelClient(cfg),
+		UpscaleOutput:    NewUpscaleOutputClient(cfg),
+		User:             NewUserClient(cfg),
+		UserRole:         NewUserRoleClient(cfg),
 	}, nil
 }
 
 // Debug returns a new debug-client. It's used to get verbose logging on specific operations.
 //
 //	client.Debug().
-//		Admin.
+//		DeviceInfo.
 //		Query().
 //		Count(ctx)
 func (c *Client) Debug() *Client {
@@ -187,154 +187,154 @@ func (c *Client) Close() error {
 // Use adds the mutation hooks to all the entity clients.
 // In order to add hooks to a specific client, call: `client.Node.Use(...)`.
 func (c *Client) Use(hooks ...Hook) {
-	c.Admin.Use(hooks...)
+	c.DeviceInfo.Use(hooks...)
 	c.Generation.Use(hooks...)
-	c.GenerationG.Use(hooks...)
-	c.GenerationRealtime.Use(hooks...)
-	c.Model.Use(hooks...)
+	c.GenerationModel.Use(hooks...)
+	c.GenerationOutput.Use(hooks...)
 	c.NegativePrompt.Use(hooks...)
 	c.Prompt.Use(hooks...)
 	c.Scheduler.Use(hooks...)
-	c.Server.Use(hooks...)
 	c.Upscale.Use(hooks...)
-	c.UpscaleRealtime.Use(hooks...)
+	c.UpscaleModel.Use(hooks...)
+	c.UpscaleOutput.Use(hooks...)
 	c.User.Use(hooks...)
+	c.UserRole.Use(hooks...)
 }
 
 // Intercept adds the query interceptors to all the entity clients.
 // In order to add interceptors to a specific client, call: `client.Node.Intercept(...)`.
 func (c *Client) Intercept(interceptors ...Interceptor) {
-	c.Admin.Intercept(interceptors...)
+	c.DeviceInfo.Intercept(interceptors...)
 	c.Generation.Intercept(interceptors...)
-	c.GenerationG.Intercept(interceptors...)
-	c.GenerationRealtime.Intercept(interceptors...)
-	c.Model.Intercept(interceptors...)
+	c.GenerationModel.Intercept(interceptors...)
+	c.GenerationOutput.Intercept(interceptors...)
 	c.NegativePrompt.Intercept(interceptors...)
 	c.Prompt.Intercept(interceptors...)
 	c.Scheduler.Intercept(interceptors...)
-	c.Server.Intercept(interceptors...)
 	c.Upscale.Intercept(interceptors...)
-	c.UpscaleRealtime.Intercept(interceptors...)
+	c.UpscaleModel.Intercept(interceptors...)
+	c.UpscaleOutput.Intercept(interceptors...)
 	c.User.Intercept(interceptors...)
+	c.UserRole.Intercept(interceptors...)
 }
 
 // Mutate implements the ent.Mutator interface.
 func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 	switch m := m.(type) {
-	case *AdminMutation:
-		return c.Admin.mutate(ctx, m)
+	case *DeviceInfoMutation:
+		return c.DeviceInfo.mutate(ctx, m)
 	case *GenerationMutation:
 		return c.Generation.mutate(ctx, m)
-	case *GenerationGMutation:
-		return c.GenerationG.mutate(ctx, m)
-	case *GenerationRealtimeMutation:
-		return c.GenerationRealtime.mutate(ctx, m)
-	case *ModelMutation:
-		return c.Model.mutate(ctx, m)
+	case *GenerationModelMutation:
+		return c.GenerationModel.mutate(ctx, m)
+	case *GenerationOutputMutation:
+		return c.GenerationOutput.mutate(ctx, m)
 	case *NegativePromptMutation:
 		return c.NegativePrompt.mutate(ctx, m)
 	case *PromptMutation:
 		return c.Prompt.mutate(ctx, m)
 	case *SchedulerMutation:
 		return c.Scheduler.mutate(ctx, m)
-	case *ServerMutation:
-		return c.Server.mutate(ctx, m)
 	case *UpscaleMutation:
 		return c.Upscale.mutate(ctx, m)
-	case *UpscaleRealtimeMutation:
-		return c.UpscaleRealtime.mutate(ctx, m)
+	case *UpscaleModelMutation:
+		return c.UpscaleModel.mutate(ctx, m)
+	case *UpscaleOutputMutation:
+		return c.UpscaleOutput.mutate(ctx, m)
 	case *UserMutation:
 		return c.User.mutate(ctx, m)
+	case *UserRoleMutation:
+		return c.UserRole.mutate(ctx, m)
 	default:
 		return nil, fmt.Errorf("ent: unknown mutation type %T", m)
 	}
 }
 
-// AdminClient is a client for the Admin schema.
-type AdminClient struct {
+// DeviceInfoClient is a client for the DeviceInfo schema.
+type DeviceInfoClient struct {
 	config
 }
 
-// NewAdminClient returns a client for the Admin from the given config.
-func NewAdminClient(c config) *AdminClient {
-	return &AdminClient{config: c}
+// NewDeviceInfoClient returns a client for the DeviceInfo from the given config.
+func NewDeviceInfoClient(c config) *DeviceInfoClient {
+	return &DeviceInfoClient{config: c}
 }
 
 // Use adds a list of mutation hooks to the hooks stack.
-// A call to `Use(f, g, h)` equals to `admin.Hooks(f(g(h())))`.
-func (c *AdminClient) Use(hooks ...Hook) {
-	c.hooks.Admin = append(c.hooks.Admin, hooks...)
+// A call to `Use(f, g, h)` equals to `deviceinfo.Hooks(f(g(h())))`.
+func (c *DeviceInfoClient) Use(hooks ...Hook) {
+	c.hooks.DeviceInfo = append(c.hooks.DeviceInfo, hooks...)
 }
 
 // Use adds a list of query interceptors to the interceptors stack.
-// A call to `Intercept(f, g, h)` equals to `admin.Intercept(f(g(h())))`.
-func (c *AdminClient) Intercept(interceptors ...Interceptor) {
-	c.inters.Admin = append(c.inters.Admin, interceptors...)
+// A call to `Intercept(f, g, h)` equals to `deviceinfo.Intercept(f(g(h())))`.
+func (c *DeviceInfoClient) Intercept(interceptors ...Interceptor) {
+	c.inters.DeviceInfo = append(c.inters.DeviceInfo, interceptors...)
 }
 
-// Create returns a builder for creating a Admin entity.
-func (c *AdminClient) Create() *AdminCreate {
-	mutation := newAdminMutation(c.config, OpCreate)
-	return &AdminCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+// Create returns a builder for creating a DeviceInfo entity.
+func (c *DeviceInfoClient) Create() *DeviceInfoCreate {
+	mutation := newDeviceInfoMutation(c.config, OpCreate)
+	return &DeviceInfoCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
-// CreateBulk returns a builder for creating a bulk of Admin entities.
-func (c *AdminClient) CreateBulk(builders ...*AdminCreate) *AdminCreateBulk {
-	return &AdminCreateBulk{config: c.config, builders: builders}
+// CreateBulk returns a builder for creating a bulk of DeviceInfo entities.
+func (c *DeviceInfoClient) CreateBulk(builders ...*DeviceInfoCreate) *DeviceInfoCreateBulk {
+	return &DeviceInfoCreateBulk{config: c.config, builders: builders}
 }
 
-// Update returns an update builder for Admin.
-func (c *AdminClient) Update() *AdminUpdate {
-	mutation := newAdminMutation(c.config, OpUpdate)
-	return &AdminUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+// Update returns an update builder for DeviceInfo.
+func (c *DeviceInfoClient) Update() *DeviceInfoUpdate {
+	mutation := newDeviceInfoMutation(c.config, OpUpdate)
+	return &DeviceInfoUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
 // UpdateOne returns an update builder for the given entity.
-func (c *AdminClient) UpdateOne(a *Admin) *AdminUpdateOne {
-	mutation := newAdminMutation(c.config, OpUpdateOne, withAdmin(a))
-	return &AdminUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+func (c *DeviceInfoClient) UpdateOne(di *DeviceInfo) *DeviceInfoUpdateOne {
+	mutation := newDeviceInfoMutation(c.config, OpUpdateOne, withDeviceInfo(di))
+	return &DeviceInfoUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
 // UpdateOneID returns an update builder for the given id.
-func (c *AdminClient) UpdateOneID(id uuid.UUID) *AdminUpdateOne {
-	mutation := newAdminMutation(c.config, OpUpdateOne, withAdminID(id))
-	return &AdminUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+func (c *DeviceInfoClient) UpdateOneID(id uuid.UUID) *DeviceInfoUpdateOne {
+	mutation := newDeviceInfoMutation(c.config, OpUpdateOne, withDeviceInfoID(id))
+	return &DeviceInfoUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
-// Delete returns a delete builder for Admin.
-func (c *AdminClient) Delete() *AdminDelete {
-	mutation := newAdminMutation(c.config, OpDelete)
-	return &AdminDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+// Delete returns a delete builder for DeviceInfo.
+func (c *DeviceInfoClient) Delete() *DeviceInfoDelete {
+	mutation := newDeviceInfoMutation(c.config, OpDelete)
+	return &DeviceInfoDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
 // DeleteOne returns a builder for deleting the given entity.
-func (c *AdminClient) DeleteOne(a *Admin) *AdminDeleteOne {
-	return c.DeleteOneID(a.ID)
+func (c *DeviceInfoClient) DeleteOne(di *DeviceInfo) *DeviceInfoDeleteOne {
+	return c.DeleteOneID(di.ID)
 }
 
 // DeleteOneID returns a builder for deleting the given entity by its id.
-func (c *AdminClient) DeleteOneID(id uuid.UUID) *AdminDeleteOne {
-	builder := c.Delete().Where(admin.ID(id))
+func (c *DeviceInfoClient) DeleteOneID(id uuid.UUID) *DeviceInfoDeleteOne {
+	builder := c.Delete().Where(deviceinfo.ID(id))
 	builder.mutation.id = &id
 	builder.mutation.op = OpDeleteOne
-	return &AdminDeleteOne{builder}
+	return &DeviceInfoDeleteOne{builder}
 }
 
-// Query returns a query builder for Admin.
-func (c *AdminClient) Query() *AdminQuery {
-	return &AdminQuery{
+// Query returns a query builder for DeviceInfo.
+func (c *DeviceInfoClient) Query() *DeviceInfoQuery {
+	return &DeviceInfoQuery{
 		config: c.config,
 		inters: c.Interceptors(),
 	}
 }
 
-// Get returns a Admin entity by its id.
-func (c *AdminClient) Get(ctx context.Context, id uuid.UUID) (*Admin, error) {
-	return c.Query().Where(admin.ID(id)).Only(ctx)
+// Get returns a DeviceInfo entity by its id.
+func (c *DeviceInfoClient) Get(ctx context.Context, id uuid.UUID) (*DeviceInfo, error) {
+	return c.Query().Where(deviceinfo.ID(id)).Only(ctx)
 }
 
 // GetX is like Get, but panics if an error occurs.
-func (c *AdminClient) GetX(ctx context.Context, id uuid.UUID) *Admin {
+func (c *DeviceInfoClient) GetX(ctx context.Context, id uuid.UUID) *DeviceInfo {
 	obj, err := c.Get(ctx, id)
 	if err != nil {
 		panic(err)
@@ -342,28 +342,60 @@ func (c *AdminClient) GetX(ctx context.Context, id uuid.UUID) *Admin {
 	return obj
 }
 
+// QueryGenerations queries the generations edge of a DeviceInfo.
+func (c *DeviceInfoClient) QueryGenerations(di *DeviceInfo) *GenerationQuery {
+	query := (&GenerationClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := di.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(deviceinfo.Table, deviceinfo.FieldID, id),
+			sqlgraph.To(generation.Table, generation.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, deviceinfo.GenerationsTable, deviceinfo.GenerationsColumn),
+		)
+		fromV = sqlgraph.Neighbors(di.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryUpscales queries the upscales edge of a DeviceInfo.
+func (c *DeviceInfoClient) QueryUpscales(di *DeviceInfo) *UpscaleQuery {
+	query := (&UpscaleClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := di.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(deviceinfo.Table, deviceinfo.FieldID, id),
+			sqlgraph.To(upscale.Table, upscale.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, deviceinfo.UpscalesTable, deviceinfo.UpscalesColumn),
+		)
+		fromV = sqlgraph.Neighbors(di.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
-func (c *AdminClient) Hooks() []Hook {
-	return c.hooks.Admin
+func (c *DeviceInfoClient) Hooks() []Hook {
+	return c.hooks.DeviceInfo
 }
 
 // Interceptors returns the client interceptors.
-func (c *AdminClient) Interceptors() []Interceptor {
-	return c.inters.Admin
+func (c *DeviceInfoClient) Interceptors() []Interceptor {
+	return c.inters.DeviceInfo
 }
 
-func (c *AdminClient) mutate(ctx context.Context, m *AdminMutation) (Value, error) {
+func (c *DeviceInfoClient) mutate(ctx context.Context, m *DeviceInfoMutation) (Value, error) {
 	switch m.Op() {
 	case OpCreate:
-		return (&AdminCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+		return (&DeviceInfoCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
 	case OpUpdate:
-		return (&AdminUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+		return (&DeviceInfoUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
 	case OpUpdateOne:
-		return (&AdminUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+		return (&DeviceInfoUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
 	case OpDelete, OpDeleteOne:
-		return (&AdminDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+		return (&DeviceInfoDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
-		return nil, fmt.Errorf("ent: unknown Admin mutation op: %q", m.Op())
+		return nil, fmt.Errorf("ent: unknown DeviceInfo mutation op: %q", m.Op())
 	}
 }
 
@@ -459,15 +491,15 @@ func (c *GenerationClient) GetX(ctx context.Context, id uuid.UUID) *Generation {
 	return obj
 }
 
-// QueryUser queries the user edge of a Generation.
-func (c *GenerationClient) QueryUser(ge *Generation) *UserQuery {
-	query := (&UserClient{config: c.config}).Query()
+// QueryDeviceInfo queries the device_info edge of a Generation.
+func (c *GenerationClient) QueryDeviceInfo(ge *Generation) *DeviceInfoQuery {
+	query := (&DeviceInfoClient{config: c.config}).Query()
 	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := ge.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(generation.Table, generation.FieldID, id),
-			sqlgraph.To(user.Table, user.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, generation.UserTable, generation.UserColumn),
+			sqlgraph.To(deviceinfo.Table, deviceinfo.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, generation.DeviceInfoTable, generation.DeviceInfoColumn),
 		)
 		fromV = sqlgraph.Neighbors(ge.driver.Dialect(), step)
 		return fromV, nil
@@ -475,63 +507,95 @@ func (c *GenerationClient) QueryUser(ge *Generation) *UserQuery {
 	return query
 }
 
-// QueryModel queries the model edge of a Generation.
-func (c *GenerationClient) QueryModel(ge *Generation) *ModelQuery {
-	query := (&ModelClient{config: c.config}).Query()
-	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
-		id := ge.ID
-		step := sqlgraph.NewStep(
-			sqlgraph.From(generation.Table, generation.FieldID, id),
-			sqlgraph.To(model.Table, model.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, generation.ModelTable, generation.ModelColumn),
-		)
-		fromV = sqlgraph.Neighbors(ge.driver.Dialect(), step)
-		return fromV, nil
-	}
-	return query
-}
-
-// QueryPrompt queries the prompt edge of a Generation.
-func (c *GenerationClient) QueryPrompt(ge *Generation) *PromptQuery {
-	query := (&PromptClient{config: c.config}).Query()
-	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
-		id := ge.ID
-		step := sqlgraph.NewStep(
-			sqlgraph.From(generation.Table, generation.FieldID, id),
-			sqlgraph.To(prompt.Table, prompt.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, generation.PromptTable, generation.PromptColumn),
-		)
-		fromV = sqlgraph.Neighbors(ge.driver.Dialect(), step)
-		return fromV, nil
-	}
-	return query
-}
-
-// QueryNegativePrompt queries the negative_prompt edge of a Generation.
-func (c *GenerationClient) QueryNegativePrompt(ge *Generation) *NegativePromptQuery {
-	query := (&NegativePromptClient{config: c.config}).Query()
-	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
-		id := ge.ID
-		step := sqlgraph.NewStep(
-			sqlgraph.From(generation.Table, generation.FieldID, id),
-			sqlgraph.To(negativeprompt.Table, negativeprompt.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, generation.NegativePromptTable, generation.NegativePromptColumn),
-		)
-		fromV = sqlgraph.Neighbors(ge.driver.Dialect(), step)
-		return fromV, nil
-	}
-	return query
-}
-
-// QueryScheduler queries the scheduler edge of a Generation.
-func (c *GenerationClient) QueryScheduler(ge *Generation) *SchedulerQuery {
+// QuerySchedulers queries the schedulers edge of a Generation.
+func (c *GenerationClient) QuerySchedulers(ge *Generation) *SchedulerQuery {
 	query := (&SchedulerClient{config: c.config}).Query()
 	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := ge.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(generation.Table, generation.FieldID, id),
 			sqlgraph.To(scheduler.Table, scheduler.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, generation.SchedulerTable, generation.SchedulerColumn),
+			sqlgraph.Edge(sqlgraph.M2O, true, generation.SchedulersTable, generation.SchedulersColumn),
+		)
+		fromV = sqlgraph.Neighbors(ge.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryPrompts queries the prompts edge of a Generation.
+func (c *GenerationClient) QueryPrompts(ge *Generation) *PromptQuery {
+	query := (&PromptClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := ge.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(generation.Table, generation.FieldID, id),
+			sqlgraph.To(prompt.Table, prompt.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, generation.PromptsTable, generation.PromptsColumn),
+		)
+		fromV = sqlgraph.Neighbors(ge.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryNegativePrompts queries the negative_prompts edge of a Generation.
+func (c *GenerationClient) QueryNegativePrompts(ge *Generation) *NegativePromptQuery {
+	query := (&NegativePromptClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := ge.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(generation.Table, generation.FieldID, id),
+			sqlgraph.To(negativeprompt.Table, negativeprompt.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, generation.NegativePromptsTable, generation.NegativePromptsColumn),
+		)
+		fromV = sqlgraph.Neighbors(ge.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryGenerationModels queries the generation_models edge of a Generation.
+func (c *GenerationClient) QueryGenerationModels(ge *Generation) *GenerationModelQuery {
+	query := (&GenerationModelClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := ge.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(generation.Table, generation.FieldID, id),
+			sqlgraph.To(generationmodel.Table, generationmodel.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, generation.GenerationModelsTable, generation.GenerationModelsColumn),
+		)
+		fromV = sqlgraph.Neighbors(ge.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryUsers queries the users edge of a Generation.
+func (c *GenerationClient) QueryUsers(ge *Generation) *UserQuery {
+	query := (&UserClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := ge.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(generation.Table, generation.FieldID, id),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, generation.UsersTable, generation.UsersColumn),
+		)
+		fromV = sqlgraph.Neighbors(ge.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryGenerationOutputs queries the generation_outputs edge of a Generation.
+func (c *GenerationClient) QueryGenerationOutputs(ge *Generation) *GenerationOutputQuery {
+	query := (&GenerationOutputClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := ge.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(generation.Table, generation.FieldID, id),
+			sqlgraph.To(generationoutput.Table, generationoutput.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, generation.GenerationOutputsTable, generation.GenerationOutputsColumn),
 		)
 		fromV = sqlgraph.Neighbors(ge.driver.Dialect(), step)
 		return fromV, nil
@@ -564,91 +628,91 @@ func (c *GenerationClient) mutate(ctx context.Context, m *GenerationMutation) (V
 	}
 }
 
-// GenerationGClient is a client for the GenerationG schema.
-type GenerationGClient struct {
+// GenerationModelClient is a client for the GenerationModel schema.
+type GenerationModelClient struct {
 	config
 }
 
-// NewGenerationGClient returns a client for the GenerationG from the given config.
-func NewGenerationGClient(c config) *GenerationGClient {
-	return &GenerationGClient{config: c}
+// NewGenerationModelClient returns a client for the GenerationModel from the given config.
+func NewGenerationModelClient(c config) *GenerationModelClient {
+	return &GenerationModelClient{config: c}
 }
 
 // Use adds a list of mutation hooks to the hooks stack.
-// A call to `Use(f, g, h)` equals to `generationg.Hooks(f(g(h())))`.
-func (c *GenerationGClient) Use(hooks ...Hook) {
-	c.hooks.GenerationG = append(c.hooks.GenerationG, hooks...)
+// A call to `Use(f, g, h)` equals to `generationmodel.Hooks(f(g(h())))`.
+func (c *GenerationModelClient) Use(hooks ...Hook) {
+	c.hooks.GenerationModel = append(c.hooks.GenerationModel, hooks...)
 }
 
 // Use adds a list of query interceptors to the interceptors stack.
-// A call to `Intercept(f, g, h)` equals to `generationg.Intercept(f(g(h())))`.
-func (c *GenerationGClient) Intercept(interceptors ...Interceptor) {
-	c.inters.GenerationG = append(c.inters.GenerationG, interceptors...)
+// A call to `Intercept(f, g, h)` equals to `generationmodel.Intercept(f(g(h())))`.
+func (c *GenerationModelClient) Intercept(interceptors ...Interceptor) {
+	c.inters.GenerationModel = append(c.inters.GenerationModel, interceptors...)
 }
 
-// Create returns a builder for creating a GenerationG entity.
-func (c *GenerationGClient) Create() *GenerationGCreate {
-	mutation := newGenerationGMutation(c.config, OpCreate)
-	return &GenerationGCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+// Create returns a builder for creating a GenerationModel entity.
+func (c *GenerationModelClient) Create() *GenerationModelCreate {
+	mutation := newGenerationModelMutation(c.config, OpCreate)
+	return &GenerationModelCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
-// CreateBulk returns a builder for creating a bulk of GenerationG entities.
-func (c *GenerationGClient) CreateBulk(builders ...*GenerationGCreate) *GenerationGCreateBulk {
-	return &GenerationGCreateBulk{config: c.config, builders: builders}
+// CreateBulk returns a builder for creating a bulk of GenerationModel entities.
+func (c *GenerationModelClient) CreateBulk(builders ...*GenerationModelCreate) *GenerationModelCreateBulk {
+	return &GenerationModelCreateBulk{config: c.config, builders: builders}
 }
 
-// Update returns an update builder for GenerationG.
-func (c *GenerationGClient) Update() *GenerationGUpdate {
-	mutation := newGenerationGMutation(c.config, OpUpdate)
-	return &GenerationGUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+// Update returns an update builder for GenerationModel.
+func (c *GenerationModelClient) Update() *GenerationModelUpdate {
+	mutation := newGenerationModelMutation(c.config, OpUpdate)
+	return &GenerationModelUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
 // UpdateOne returns an update builder for the given entity.
-func (c *GenerationGClient) UpdateOne(ge *GenerationG) *GenerationGUpdateOne {
-	mutation := newGenerationGMutation(c.config, OpUpdateOne, withGenerationG(ge))
-	return &GenerationGUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+func (c *GenerationModelClient) UpdateOne(gm *GenerationModel) *GenerationModelUpdateOne {
+	mutation := newGenerationModelMutation(c.config, OpUpdateOne, withGenerationModel(gm))
+	return &GenerationModelUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
 // UpdateOneID returns an update builder for the given id.
-func (c *GenerationGClient) UpdateOneID(id uuid.UUID) *GenerationGUpdateOne {
-	mutation := newGenerationGMutation(c.config, OpUpdateOne, withGenerationGID(id))
-	return &GenerationGUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+func (c *GenerationModelClient) UpdateOneID(id uuid.UUID) *GenerationModelUpdateOne {
+	mutation := newGenerationModelMutation(c.config, OpUpdateOne, withGenerationModelID(id))
+	return &GenerationModelUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
-// Delete returns a delete builder for GenerationG.
-func (c *GenerationGClient) Delete() *GenerationGDelete {
-	mutation := newGenerationGMutation(c.config, OpDelete)
-	return &GenerationGDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+// Delete returns a delete builder for GenerationModel.
+func (c *GenerationModelClient) Delete() *GenerationModelDelete {
+	mutation := newGenerationModelMutation(c.config, OpDelete)
+	return &GenerationModelDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
 // DeleteOne returns a builder for deleting the given entity.
-func (c *GenerationGClient) DeleteOne(ge *GenerationG) *GenerationGDeleteOne {
-	return c.DeleteOneID(ge.ID)
+func (c *GenerationModelClient) DeleteOne(gm *GenerationModel) *GenerationModelDeleteOne {
+	return c.DeleteOneID(gm.ID)
 }
 
 // DeleteOneID returns a builder for deleting the given entity by its id.
-func (c *GenerationGClient) DeleteOneID(id uuid.UUID) *GenerationGDeleteOne {
-	builder := c.Delete().Where(generationg.ID(id))
+func (c *GenerationModelClient) DeleteOneID(id uuid.UUID) *GenerationModelDeleteOne {
+	builder := c.Delete().Where(generationmodel.ID(id))
 	builder.mutation.id = &id
 	builder.mutation.op = OpDeleteOne
-	return &GenerationGDeleteOne{builder}
+	return &GenerationModelDeleteOne{builder}
 }
 
-// Query returns a query builder for GenerationG.
-func (c *GenerationGClient) Query() *GenerationGQuery {
-	return &GenerationGQuery{
+// Query returns a query builder for GenerationModel.
+func (c *GenerationModelClient) Query() *GenerationModelQuery {
+	return &GenerationModelQuery{
 		config: c.config,
 		inters: c.Interceptors(),
 	}
 }
 
-// Get returns a GenerationG entity by its id.
-func (c *GenerationGClient) Get(ctx context.Context, id uuid.UUID) (*GenerationG, error) {
-	return c.Query().Where(generationg.ID(id)).Only(ctx)
+// Get returns a GenerationModel entity by its id.
+func (c *GenerationModelClient) Get(ctx context.Context, id uuid.UUID) (*GenerationModel, error) {
+	return c.Query().Where(generationmodel.ID(id)).Only(ctx)
 }
 
 // GetX is like Get, but panics if an error occurs.
-func (c *GenerationGClient) GetX(ctx context.Context, id uuid.UUID) *GenerationG {
+func (c *GenerationModelClient) GetX(ctx context.Context, id uuid.UUID) *GenerationModel {
 	obj, err := c.Get(ctx, id)
 	if err != nil {
 		panic(err)
@@ -656,374 +720,177 @@ func (c *GenerationGClient) GetX(ctx context.Context, id uuid.UUID) *GenerationG
 	return obj
 }
 
-// QueryUser queries the user edge of a GenerationG.
-func (c *GenerationGClient) QueryUser(ge *GenerationG) *UserQuery {
-	query := (&UserClient{config: c.config}).Query()
-	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
-		id := ge.ID
-		step := sqlgraph.NewStep(
-			sqlgraph.From(generationg.Table, generationg.FieldID, id),
-			sqlgraph.To(user.Table, user.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, generationg.UserTable, generationg.UserColumn),
-		)
-		fromV = sqlgraph.Neighbors(ge.driver.Dialect(), step)
-		return fromV, nil
-	}
-	return query
-}
-
-// QueryModel queries the model edge of a GenerationG.
-func (c *GenerationGClient) QueryModel(ge *GenerationG) *ModelQuery {
-	query := (&ModelClient{config: c.config}).Query()
-	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
-		id := ge.ID
-		step := sqlgraph.NewStep(
-			sqlgraph.From(generationg.Table, generationg.FieldID, id),
-			sqlgraph.To(model.Table, model.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, generationg.ModelTable, generationg.ModelColumn),
-		)
-		fromV = sqlgraph.Neighbors(ge.driver.Dialect(), step)
-		return fromV, nil
-	}
-	return query
-}
-
-// QueryPrompt queries the prompt edge of a GenerationG.
-func (c *GenerationGClient) QueryPrompt(ge *GenerationG) *PromptQuery {
-	query := (&PromptClient{config: c.config}).Query()
-	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
-		id := ge.ID
-		step := sqlgraph.NewStep(
-			sqlgraph.From(generationg.Table, generationg.FieldID, id),
-			sqlgraph.To(prompt.Table, prompt.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, generationg.PromptTable, generationg.PromptColumn),
-		)
-		fromV = sqlgraph.Neighbors(ge.driver.Dialect(), step)
-		return fromV, nil
-	}
-	return query
-}
-
-// QueryNegativePrompt queries the negative_prompt edge of a GenerationG.
-func (c *GenerationGClient) QueryNegativePrompt(ge *GenerationG) *NegativePromptQuery {
-	query := (&NegativePromptClient{config: c.config}).Query()
-	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
-		id := ge.ID
-		step := sqlgraph.NewStep(
-			sqlgraph.From(generationg.Table, generationg.FieldID, id),
-			sqlgraph.To(negativeprompt.Table, negativeprompt.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, generationg.NegativePromptTable, generationg.NegativePromptColumn),
-		)
-		fromV = sqlgraph.Neighbors(ge.driver.Dialect(), step)
-		return fromV, nil
-	}
-	return query
-}
-
-// QueryScheduler queries the scheduler edge of a GenerationG.
-func (c *GenerationGClient) QueryScheduler(ge *GenerationG) *SchedulerQuery {
-	query := (&SchedulerClient{config: c.config}).Query()
-	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
-		id := ge.ID
-		step := sqlgraph.NewStep(
-			sqlgraph.From(generationg.Table, generationg.FieldID, id),
-			sqlgraph.To(scheduler.Table, scheduler.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, generationg.SchedulerTable, generationg.SchedulerColumn),
-		)
-		fromV = sqlgraph.Neighbors(ge.driver.Dialect(), step)
-		return fromV, nil
-	}
-	return query
-}
-
-// Hooks returns the client hooks.
-func (c *GenerationGClient) Hooks() []Hook {
-	return c.hooks.GenerationG
-}
-
-// Interceptors returns the client interceptors.
-func (c *GenerationGClient) Interceptors() []Interceptor {
-	return c.inters.GenerationG
-}
-
-func (c *GenerationGClient) mutate(ctx context.Context, m *GenerationGMutation) (Value, error) {
-	switch m.Op() {
-	case OpCreate:
-		return (&GenerationGCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
-	case OpUpdate:
-		return (&GenerationGUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
-	case OpUpdateOne:
-		return (&GenerationGUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
-	case OpDelete, OpDeleteOne:
-		return (&GenerationGDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
-	default:
-		return nil, fmt.Errorf("ent: unknown GenerationG mutation op: %q", m.Op())
-	}
-}
-
-// GenerationRealtimeClient is a client for the GenerationRealtime schema.
-type GenerationRealtimeClient struct {
-	config
-}
-
-// NewGenerationRealtimeClient returns a client for the GenerationRealtime from the given config.
-func NewGenerationRealtimeClient(c config) *GenerationRealtimeClient {
-	return &GenerationRealtimeClient{config: c}
-}
-
-// Use adds a list of mutation hooks to the hooks stack.
-// A call to `Use(f, g, h)` equals to `generationrealtime.Hooks(f(g(h())))`.
-func (c *GenerationRealtimeClient) Use(hooks ...Hook) {
-	c.hooks.GenerationRealtime = append(c.hooks.GenerationRealtime, hooks...)
-}
-
-// Use adds a list of query interceptors to the interceptors stack.
-// A call to `Intercept(f, g, h)` equals to `generationrealtime.Intercept(f(g(h())))`.
-func (c *GenerationRealtimeClient) Intercept(interceptors ...Interceptor) {
-	c.inters.GenerationRealtime = append(c.inters.GenerationRealtime, interceptors...)
-}
-
-// Create returns a builder for creating a GenerationRealtime entity.
-func (c *GenerationRealtimeClient) Create() *GenerationRealtimeCreate {
-	mutation := newGenerationRealtimeMutation(c.config, OpCreate)
-	return &GenerationRealtimeCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// CreateBulk returns a builder for creating a bulk of GenerationRealtime entities.
-func (c *GenerationRealtimeClient) CreateBulk(builders ...*GenerationRealtimeCreate) *GenerationRealtimeCreateBulk {
-	return &GenerationRealtimeCreateBulk{config: c.config, builders: builders}
-}
-
-// Update returns an update builder for GenerationRealtime.
-func (c *GenerationRealtimeClient) Update() *GenerationRealtimeUpdate {
-	mutation := newGenerationRealtimeMutation(c.config, OpUpdate)
-	return &GenerationRealtimeUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// UpdateOne returns an update builder for the given entity.
-func (c *GenerationRealtimeClient) UpdateOne(gr *GenerationRealtime) *GenerationRealtimeUpdateOne {
-	mutation := newGenerationRealtimeMutation(c.config, OpUpdateOne, withGenerationRealtime(gr))
-	return &GenerationRealtimeUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// UpdateOneID returns an update builder for the given id.
-func (c *GenerationRealtimeClient) UpdateOneID(id uuid.UUID) *GenerationRealtimeUpdateOne {
-	mutation := newGenerationRealtimeMutation(c.config, OpUpdateOne, withGenerationRealtimeID(id))
-	return &GenerationRealtimeUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// Delete returns a delete builder for GenerationRealtime.
-func (c *GenerationRealtimeClient) Delete() *GenerationRealtimeDelete {
-	mutation := newGenerationRealtimeMutation(c.config, OpDelete)
-	return &GenerationRealtimeDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// DeleteOne returns a builder for deleting the given entity.
-func (c *GenerationRealtimeClient) DeleteOne(gr *GenerationRealtime) *GenerationRealtimeDeleteOne {
-	return c.DeleteOneID(gr.ID)
-}
-
-// DeleteOneID returns a builder for deleting the given entity by its id.
-func (c *GenerationRealtimeClient) DeleteOneID(id uuid.UUID) *GenerationRealtimeDeleteOne {
-	builder := c.Delete().Where(generationrealtime.ID(id))
-	builder.mutation.id = &id
-	builder.mutation.op = OpDeleteOne
-	return &GenerationRealtimeDeleteOne{builder}
-}
-
-// Query returns a query builder for GenerationRealtime.
-func (c *GenerationRealtimeClient) Query() *GenerationRealtimeQuery {
-	return &GenerationRealtimeQuery{
-		config: c.config,
-		inters: c.Interceptors(),
-	}
-}
-
-// Get returns a GenerationRealtime entity by its id.
-func (c *GenerationRealtimeClient) Get(ctx context.Context, id uuid.UUID) (*GenerationRealtime, error) {
-	return c.Query().Where(generationrealtime.ID(id)).Only(ctx)
-}
-
-// GetX is like Get, but panics if an error occurs.
-func (c *GenerationRealtimeClient) GetX(ctx context.Context, id uuid.UUID) *GenerationRealtime {
-	obj, err := c.Get(ctx, id)
-	if err != nil {
-		panic(err)
-	}
-	return obj
-}
-
-// Hooks returns the client hooks.
-func (c *GenerationRealtimeClient) Hooks() []Hook {
-	return c.hooks.GenerationRealtime
-}
-
-// Interceptors returns the client interceptors.
-func (c *GenerationRealtimeClient) Interceptors() []Interceptor {
-	return c.inters.GenerationRealtime
-}
-
-func (c *GenerationRealtimeClient) mutate(ctx context.Context, m *GenerationRealtimeMutation) (Value, error) {
-	switch m.Op() {
-	case OpCreate:
-		return (&GenerationRealtimeCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
-	case OpUpdate:
-		return (&GenerationRealtimeUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
-	case OpUpdateOne:
-		return (&GenerationRealtimeUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
-	case OpDelete, OpDeleteOne:
-		return (&GenerationRealtimeDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
-	default:
-		return nil, fmt.Errorf("ent: unknown GenerationRealtime mutation op: %q", m.Op())
-	}
-}
-
-// ModelClient is a client for the Model schema.
-type ModelClient struct {
-	config
-}
-
-// NewModelClient returns a client for the Model from the given config.
-func NewModelClient(c config) *ModelClient {
-	return &ModelClient{config: c}
-}
-
-// Use adds a list of mutation hooks to the hooks stack.
-// A call to `Use(f, g, h)` equals to `model.Hooks(f(g(h())))`.
-func (c *ModelClient) Use(hooks ...Hook) {
-	c.hooks.Model = append(c.hooks.Model, hooks...)
-}
-
-// Use adds a list of query interceptors to the interceptors stack.
-// A call to `Intercept(f, g, h)` equals to `model.Intercept(f(g(h())))`.
-func (c *ModelClient) Intercept(interceptors ...Interceptor) {
-	c.inters.Model = append(c.inters.Model, interceptors...)
-}
-
-// Create returns a builder for creating a Model entity.
-func (c *ModelClient) Create() *ModelCreate {
-	mutation := newModelMutation(c.config, OpCreate)
-	return &ModelCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// CreateBulk returns a builder for creating a bulk of Model entities.
-func (c *ModelClient) CreateBulk(builders ...*ModelCreate) *ModelCreateBulk {
-	return &ModelCreateBulk{config: c.config, builders: builders}
-}
-
-// Update returns an update builder for Model.
-func (c *ModelClient) Update() *ModelUpdate {
-	mutation := newModelMutation(c.config, OpUpdate)
-	return &ModelUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// UpdateOne returns an update builder for the given entity.
-func (c *ModelClient) UpdateOne(m *Model) *ModelUpdateOne {
-	mutation := newModelMutation(c.config, OpUpdateOne, withModel(m))
-	return &ModelUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// UpdateOneID returns an update builder for the given id.
-func (c *ModelClient) UpdateOneID(id uuid.UUID) *ModelUpdateOne {
-	mutation := newModelMutation(c.config, OpUpdateOne, withModelID(id))
-	return &ModelUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// Delete returns a delete builder for Model.
-func (c *ModelClient) Delete() *ModelDelete {
-	mutation := newModelMutation(c.config, OpDelete)
-	return &ModelDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// DeleteOne returns a builder for deleting the given entity.
-func (c *ModelClient) DeleteOne(m *Model) *ModelDeleteOne {
-	return c.DeleteOneID(m.ID)
-}
-
-// DeleteOneID returns a builder for deleting the given entity by its id.
-func (c *ModelClient) DeleteOneID(id uuid.UUID) *ModelDeleteOne {
-	builder := c.Delete().Where(model.ID(id))
-	builder.mutation.id = &id
-	builder.mutation.op = OpDeleteOne
-	return &ModelDeleteOne{builder}
-}
-
-// Query returns a query builder for Model.
-func (c *ModelClient) Query() *ModelQuery {
-	return &ModelQuery{
-		config: c.config,
-		inters: c.Interceptors(),
-	}
-}
-
-// Get returns a Model entity by its id.
-func (c *ModelClient) Get(ctx context.Context, id uuid.UUID) (*Model, error) {
-	return c.Query().Where(model.ID(id)).Only(ctx)
-}
-
-// GetX is like Get, but panics if an error occurs.
-func (c *ModelClient) GetX(ctx context.Context, id uuid.UUID) *Model {
-	obj, err := c.Get(ctx, id)
-	if err != nil {
-		panic(err)
-	}
-	return obj
-}
-
-// QueryGeneration queries the generation edge of a Model.
-func (c *ModelClient) QueryGeneration(m *Model) *GenerationQuery {
+// QueryGenerations queries the generations edge of a GenerationModel.
+func (c *GenerationModelClient) QueryGenerations(gm *GenerationModel) *GenerationQuery {
 	query := (&GenerationClient{config: c.config}).Query()
 	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
-		id := m.ID
+		id := gm.ID
 		step := sqlgraph.NewStep(
-			sqlgraph.From(model.Table, model.FieldID, id),
+			sqlgraph.From(generationmodel.Table, generationmodel.FieldID, id),
 			sqlgraph.To(generation.Table, generation.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, model.GenerationTable, model.GenerationColumn),
+			sqlgraph.Edge(sqlgraph.O2M, false, generationmodel.GenerationsTable, generationmodel.GenerationsColumn),
 		)
-		fromV = sqlgraph.Neighbors(m.driver.Dialect(), step)
-		return fromV, nil
-	}
-	return query
-}
-
-// QueryGenerationG queries the generation_g edge of a Model.
-func (c *ModelClient) QueryGenerationG(m *Model) *GenerationGQuery {
-	query := (&GenerationGClient{config: c.config}).Query()
-	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
-		id := m.ID
-		step := sqlgraph.NewStep(
-			sqlgraph.From(model.Table, model.FieldID, id),
-			sqlgraph.To(generationg.Table, generationg.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, model.GenerationGTable, model.GenerationGColumn),
-		)
-		fromV = sqlgraph.Neighbors(m.driver.Dialect(), step)
+		fromV = sqlgraph.Neighbors(gm.driver.Dialect(), step)
 		return fromV, nil
 	}
 	return query
 }
 
 // Hooks returns the client hooks.
-func (c *ModelClient) Hooks() []Hook {
-	return c.hooks.Model
+func (c *GenerationModelClient) Hooks() []Hook {
+	return c.hooks.GenerationModel
 }
 
 // Interceptors returns the client interceptors.
-func (c *ModelClient) Interceptors() []Interceptor {
-	return c.inters.Model
+func (c *GenerationModelClient) Interceptors() []Interceptor {
+	return c.inters.GenerationModel
 }
 
-func (c *ModelClient) mutate(ctx context.Context, m *ModelMutation) (Value, error) {
+func (c *GenerationModelClient) mutate(ctx context.Context, m *GenerationModelMutation) (Value, error) {
 	switch m.Op() {
 	case OpCreate:
-		return (&ModelCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+		return (&GenerationModelCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
 	case OpUpdate:
-		return (&ModelUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+		return (&GenerationModelUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
 	case OpUpdateOne:
-		return (&ModelUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+		return (&GenerationModelUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
 	case OpDelete, OpDeleteOne:
-		return (&ModelDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+		return (&GenerationModelDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
-		return nil, fmt.Errorf("ent: unknown Model mutation op: %q", m.Op())
+		return nil, fmt.Errorf("ent: unknown GenerationModel mutation op: %q", m.Op())
+	}
+}
+
+// GenerationOutputClient is a client for the GenerationOutput schema.
+type GenerationOutputClient struct {
+	config
+}
+
+// NewGenerationOutputClient returns a client for the GenerationOutput from the given config.
+func NewGenerationOutputClient(c config) *GenerationOutputClient {
+	return &GenerationOutputClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `generationoutput.Hooks(f(g(h())))`.
+func (c *GenerationOutputClient) Use(hooks ...Hook) {
+	c.hooks.GenerationOutput = append(c.hooks.GenerationOutput, hooks...)
+}
+
+// Use adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `generationoutput.Intercept(f(g(h())))`.
+func (c *GenerationOutputClient) Intercept(interceptors ...Interceptor) {
+	c.inters.GenerationOutput = append(c.inters.GenerationOutput, interceptors...)
+}
+
+// Create returns a builder for creating a GenerationOutput entity.
+func (c *GenerationOutputClient) Create() *GenerationOutputCreate {
+	mutation := newGenerationOutputMutation(c.config, OpCreate)
+	return &GenerationOutputCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of GenerationOutput entities.
+func (c *GenerationOutputClient) CreateBulk(builders ...*GenerationOutputCreate) *GenerationOutputCreateBulk {
+	return &GenerationOutputCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for GenerationOutput.
+func (c *GenerationOutputClient) Update() *GenerationOutputUpdate {
+	mutation := newGenerationOutputMutation(c.config, OpUpdate)
+	return &GenerationOutputUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *GenerationOutputClient) UpdateOne(_go *GenerationOutput) *GenerationOutputUpdateOne {
+	mutation := newGenerationOutputMutation(c.config, OpUpdateOne, withGenerationOutput(_go))
+	return &GenerationOutputUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *GenerationOutputClient) UpdateOneID(id uuid.UUID) *GenerationOutputUpdateOne {
+	mutation := newGenerationOutputMutation(c.config, OpUpdateOne, withGenerationOutputID(id))
+	return &GenerationOutputUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for GenerationOutput.
+func (c *GenerationOutputClient) Delete() *GenerationOutputDelete {
+	mutation := newGenerationOutputMutation(c.config, OpDelete)
+	return &GenerationOutputDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *GenerationOutputClient) DeleteOne(_go *GenerationOutput) *GenerationOutputDeleteOne {
+	return c.DeleteOneID(_go.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *GenerationOutputClient) DeleteOneID(id uuid.UUID) *GenerationOutputDeleteOne {
+	builder := c.Delete().Where(generationoutput.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &GenerationOutputDeleteOne{builder}
+}
+
+// Query returns a query builder for GenerationOutput.
+func (c *GenerationOutputClient) Query() *GenerationOutputQuery {
+	return &GenerationOutputQuery{
+		config: c.config,
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a GenerationOutput entity by its id.
+func (c *GenerationOutputClient) Get(ctx context.Context, id uuid.UUID) (*GenerationOutput, error) {
+	return c.Query().Where(generationoutput.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *GenerationOutputClient) GetX(ctx context.Context, id uuid.UUID) *GenerationOutput {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryGenerations queries the generations edge of a GenerationOutput.
+func (c *GenerationOutputClient) QueryGenerations(_go *GenerationOutput) *GenerationQuery {
+	query := (&GenerationClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _go.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(generationoutput.Table, generationoutput.FieldID, id),
+			sqlgraph.To(generation.Table, generation.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, generationoutput.GenerationsTable, generationoutput.GenerationsColumn),
+		)
+		fromV = sqlgraph.Neighbors(_go.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *GenerationOutputClient) Hooks() []Hook {
+	return c.hooks.GenerationOutput
+}
+
+// Interceptors returns the client interceptors.
+func (c *GenerationOutputClient) Interceptors() []Interceptor {
+	return c.inters.GenerationOutput
+}
+
+func (c *GenerationOutputClient) mutate(ctx context.Context, m *GenerationOutputMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&GenerationOutputCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&GenerationOutputUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&GenerationOutputUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&GenerationOutputDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown GenerationOutput mutation op: %q", m.Op())
 	}
 }
 
@@ -1119,31 +986,15 @@ func (c *NegativePromptClient) GetX(ctx context.Context, id uuid.UUID) *Negative
 	return obj
 }
 
-// QueryGeneration queries the generation edge of a NegativePrompt.
-func (c *NegativePromptClient) QueryGeneration(np *NegativePrompt) *GenerationQuery {
+// QueryGenerations queries the generations edge of a NegativePrompt.
+func (c *NegativePromptClient) QueryGenerations(np *NegativePrompt) *GenerationQuery {
 	query := (&GenerationClient{config: c.config}).Query()
 	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := np.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(negativeprompt.Table, negativeprompt.FieldID, id),
 			sqlgraph.To(generation.Table, generation.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, negativeprompt.GenerationTable, negativeprompt.GenerationColumn),
-		)
-		fromV = sqlgraph.Neighbors(np.driver.Dialect(), step)
-		return fromV, nil
-	}
-	return query
-}
-
-// QueryGenerationG queries the generation_g edge of a NegativePrompt.
-func (c *NegativePromptClient) QueryGenerationG(np *NegativePrompt) *GenerationGQuery {
-	query := (&GenerationGClient{config: c.config}).Query()
-	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
-		id := np.ID
-		step := sqlgraph.NewStep(
-			sqlgraph.From(negativeprompt.Table, negativeprompt.FieldID, id),
-			sqlgraph.To(generationg.Table, generationg.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, negativeprompt.GenerationGTable, negativeprompt.GenerationGColumn),
+			sqlgraph.Edge(sqlgraph.O2M, false, negativeprompt.GenerationsTable, negativeprompt.GenerationsColumn),
 		)
 		fromV = sqlgraph.Neighbors(np.driver.Dialect(), step)
 		return fromV, nil
@@ -1268,31 +1119,15 @@ func (c *PromptClient) GetX(ctx context.Context, id uuid.UUID) *Prompt {
 	return obj
 }
 
-// QueryGeneration queries the generation edge of a Prompt.
-func (c *PromptClient) QueryGeneration(pr *Prompt) *GenerationQuery {
+// QueryGenerations queries the generations edge of a Prompt.
+func (c *PromptClient) QueryGenerations(pr *Prompt) *GenerationQuery {
 	query := (&GenerationClient{config: c.config}).Query()
 	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := pr.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(prompt.Table, prompt.FieldID, id),
 			sqlgraph.To(generation.Table, generation.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, prompt.GenerationTable, prompt.GenerationColumn),
-		)
-		fromV = sqlgraph.Neighbors(pr.driver.Dialect(), step)
-		return fromV, nil
-	}
-	return query
-}
-
-// QueryGenerationG queries the generation_g edge of a Prompt.
-func (c *PromptClient) QueryGenerationG(pr *Prompt) *GenerationGQuery {
-	query := (&GenerationGClient{config: c.config}).Query()
-	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
-		id := pr.ID
-		step := sqlgraph.NewStep(
-			sqlgraph.From(prompt.Table, prompt.FieldID, id),
-			sqlgraph.To(generationg.Table, generationg.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, prompt.GenerationGTable, prompt.GenerationGColumn),
+			sqlgraph.Edge(sqlgraph.O2M, false, prompt.GenerationsTable, prompt.GenerationsColumn),
 		)
 		fromV = sqlgraph.Neighbors(pr.driver.Dialect(), step)
 		return fromV, nil
@@ -1417,31 +1252,15 @@ func (c *SchedulerClient) GetX(ctx context.Context, id uuid.UUID) *Scheduler {
 	return obj
 }
 
-// QueryGeneration queries the generation edge of a Scheduler.
-func (c *SchedulerClient) QueryGeneration(s *Scheduler) *GenerationQuery {
+// QueryGenerations queries the generations edge of a Scheduler.
+func (c *SchedulerClient) QueryGenerations(s *Scheduler) *GenerationQuery {
 	query := (&GenerationClient{config: c.config}).Query()
 	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := s.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(scheduler.Table, scheduler.FieldID, id),
 			sqlgraph.To(generation.Table, generation.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, scheduler.GenerationTable, scheduler.GenerationColumn),
-		)
-		fromV = sqlgraph.Neighbors(s.driver.Dialect(), step)
-		return fromV, nil
-	}
-	return query
-}
-
-// QueryGenerationG queries the generation_g edge of a Scheduler.
-func (c *SchedulerClient) QueryGenerationG(s *Scheduler) *GenerationGQuery {
-	query := (&GenerationGClient{config: c.config}).Query()
-	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
-		id := s.ID
-		step := sqlgraph.NewStep(
-			sqlgraph.From(scheduler.Table, scheduler.FieldID, id),
-			sqlgraph.To(generationg.Table, generationg.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, scheduler.GenerationGTable, scheduler.GenerationGColumn),
+			sqlgraph.Edge(sqlgraph.O2M, false, scheduler.GenerationsTable, scheduler.GenerationsColumn),
 		)
 		fromV = sqlgraph.Neighbors(s.driver.Dialect(), step)
 		return fromV, nil
@@ -1471,123 +1290,6 @@ func (c *SchedulerClient) mutate(ctx context.Context, m *SchedulerMutation) (Val
 		return (&SchedulerDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("ent: unknown Scheduler mutation op: %q", m.Op())
-	}
-}
-
-// ServerClient is a client for the Server schema.
-type ServerClient struct {
-	config
-}
-
-// NewServerClient returns a client for the Server from the given config.
-func NewServerClient(c config) *ServerClient {
-	return &ServerClient{config: c}
-}
-
-// Use adds a list of mutation hooks to the hooks stack.
-// A call to `Use(f, g, h)` equals to `server.Hooks(f(g(h())))`.
-func (c *ServerClient) Use(hooks ...Hook) {
-	c.hooks.Server = append(c.hooks.Server, hooks...)
-}
-
-// Use adds a list of query interceptors to the interceptors stack.
-// A call to `Intercept(f, g, h)` equals to `server.Intercept(f(g(h())))`.
-func (c *ServerClient) Intercept(interceptors ...Interceptor) {
-	c.inters.Server = append(c.inters.Server, interceptors...)
-}
-
-// Create returns a builder for creating a Server entity.
-func (c *ServerClient) Create() *ServerCreate {
-	mutation := newServerMutation(c.config, OpCreate)
-	return &ServerCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// CreateBulk returns a builder for creating a bulk of Server entities.
-func (c *ServerClient) CreateBulk(builders ...*ServerCreate) *ServerCreateBulk {
-	return &ServerCreateBulk{config: c.config, builders: builders}
-}
-
-// Update returns an update builder for Server.
-func (c *ServerClient) Update() *ServerUpdate {
-	mutation := newServerMutation(c.config, OpUpdate)
-	return &ServerUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// UpdateOne returns an update builder for the given entity.
-func (c *ServerClient) UpdateOne(s *Server) *ServerUpdateOne {
-	mutation := newServerMutation(c.config, OpUpdateOne, withServer(s))
-	return &ServerUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// UpdateOneID returns an update builder for the given id.
-func (c *ServerClient) UpdateOneID(id uuid.UUID) *ServerUpdateOne {
-	mutation := newServerMutation(c.config, OpUpdateOne, withServerID(id))
-	return &ServerUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// Delete returns a delete builder for Server.
-func (c *ServerClient) Delete() *ServerDelete {
-	mutation := newServerMutation(c.config, OpDelete)
-	return &ServerDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// DeleteOne returns a builder for deleting the given entity.
-func (c *ServerClient) DeleteOne(s *Server) *ServerDeleteOne {
-	return c.DeleteOneID(s.ID)
-}
-
-// DeleteOneID returns a builder for deleting the given entity by its id.
-func (c *ServerClient) DeleteOneID(id uuid.UUID) *ServerDeleteOne {
-	builder := c.Delete().Where(server.ID(id))
-	builder.mutation.id = &id
-	builder.mutation.op = OpDeleteOne
-	return &ServerDeleteOne{builder}
-}
-
-// Query returns a query builder for Server.
-func (c *ServerClient) Query() *ServerQuery {
-	return &ServerQuery{
-		config: c.config,
-		inters: c.Interceptors(),
-	}
-}
-
-// Get returns a Server entity by its id.
-func (c *ServerClient) Get(ctx context.Context, id uuid.UUID) (*Server, error) {
-	return c.Query().Where(server.ID(id)).Only(ctx)
-}
-
-// GetX is like Get, but panics if an error occurs.
-func (c *ServerClient) GetX(ctx context.Context, id uuid.UUID) *Server {
-	obj, err := c.Get(ctx, id)
-	if err != nil {
-		panic(err)
-	}
-	return obj
-}
-
-// Hooks returns the client hooks.
-func (c *ServerClient) Hooks() []Hook {
-	return c.hooks.Server
-}
-
-// Interceptors returns the client interceptors.
-func (c *ServerClient) Interceptors() []Interceptor {
-	return c.inters.Server
-}
-
-func (c *ServerClient) mutate(ctx context.Context, m *ServerMutation) (Value, error) {
-	switch m.Op() {
-	case OpCreate:
-		return (&ServerCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
-	case OpUpdate:
-		return (&ServerUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
-	case OpUpdateOne:
-		return (&ServerUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
-	case OpDelete, OpDeleteOne:
-		return (&ServerDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
-	default:
-		return nil, fmt.Errorf("ent: unknown Server mutation op: %q", m.Op())
 	}
 }
 
@@ -1699,6 +1401,54 @@ func (c *UpscaleClient) QueryUser(u *Upscale) *UserQuery {
 	return query
 }
 
+// QueryDeviceInfo queries the device_info edge of a Upscale.
+func (c *UpscaleClient) QueryDeviceInfo(u *Upscale) *DeviceInfoQuery {
+	query := (&DeviceInfoClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := u.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(upscale.Table, upscale.FieldID, id),
+			sqlgraph.To(deviceinfo.Table, deviceinfo.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, upscale.DeviceInfoTable, upscale.DeviceInfoColumn),
+		)
+		fromV = sqlgraph.Neighbors(u.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryUpscaleModels queries the upscale_models edge of a Upscale.
+func (c *UpscaleClient) QueryUpscaleModels(u *Upscale) *UpscaleModelQuery {
+	query := (&UpscaleModelClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := u.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(upscale.Table, upscale.FieldID, id),
+			sqlgraph.To(upscalemodel.Table, upscalemodel.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, upscale.UpscaleModelsTable, upscale.UpscaleModelsColumn),
+		)
+		fromV = sqlgraph.Neighbors(u.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryUpscaleOutputs queries the upscale_outputs edge of a Upscale.
+func (c *UpscaleClient) QueryUpscaleOutputs(u *Upscale) *UpscaleOutputQuery {
+	query := (&UpscaleOutputClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := u.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(upscale.Table, upscale.FieldID, id),
+			sqlgraph.To(upscaleoutput.Table, upscaleoutput.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, upscale.UpscaleOutputsTable, upscale.UpscaleOutputsColumn),
+		)
+		fromV = sqlgraph.Neighbors(u.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *UpscaleClient) Hooks() []Hook {
 	return c.hooks.Upscale
@@ -1724,91 +1474,91 @@ func (c *UpscaleClient) mutate(ctx context.Context, m *UpscaleMutation) (Value, 
 	}
 }
 
-// UpscaleRealtimeClient is a client for the UpscaleRealtime schema.
-type UpscaleRealtimeClient struct {
+// UpscaleModelClient is a client for the UpscaleModel schema.
+type UpscaleModelClient struct {
 	config
 }
 
-// NewUpscaleRealtimeClient returns a client for the UpscaleRealtime from the given config.
-func NewUpscaleRealtimeClient(c config) *UpscaleRealtimeClient {
-	return &UpscaleRealtimeClient{config: c}
+// NewUpscaleModelClient returns a client for the UpscaleModel from the given config.
+func NewUpscaleModelClient(c config) *UpscaleModelClient {
+	return &UpscaleModelClient{config: c}
 }
 
 // Use adds a list of mutation hooks to the hooks stack.
-// A call to `Use(f, g, h)` equals to `upscalerealtime.Hooks(f(g(h())))`.
-func (c *UpscaleRealtimeClient) Use(hooks ...Hook) {
-	c.hooks.UpscaleRealtime = append(c.hooks.UpscaleRealtime, hooks...)
+// A call to `Use(f, g, h)` equals to `upscalemodel.Hooks(f(g(h())))`.
+func (c *UpscaleModelClient) Use(hooks ...Hook) {
+	c.hooks.UpscaleModel = append(c.hooks.UpscaleModel, hooks...)
 }
 
 // Use adds a list of query interceptors to the interceptors stack.
-// A call to `Intercept(f, g, h)` equals to `upscalerealtime.Intercept(f(g(h())))`.
-func (c *UpscaleRealtimeClient) Intercept(interceptors ...Interceptor) {
-	c.inters.UpscaleRealtime = append(c.inters.UpscaleRealtime, interceptors...)
+// A call to `Intercept(f, g, h)` equals to `upscalemodel.Intercept(f(g(h())))`.
+func (c *UpscaleModelClient) Intercept(interceptors ...Interceptor) {
+	c.inters.UpscaleModel = append(c.inters.UpscaleModel, interceptors...)
 }
 
-// Create returns a builder for creating a UpscaleRealtime entity.
-func (c *UpscaleRealtimeClient) Create() *UpscaleRealtimeCreate {
-	mutation := newUpscaleRealtimeMutation(c.config, OpCreate)
-	return &UpscaleRealtimeCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+// Create returns a builder for creating a UpscaleModel entity.
+func (c *UpscaleModelClient) Create() *UpscaleModelCreate {
+	mutation := newUpscaleModelMutation(c.config, OpCreate)
+	return &UpscaleModelCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
-// CreateBulk returns a builder for creating a bulk of UpscaleRealtime entities.
-func (c *UpscaleRealtimeClient) CreateBulk(builders ...*UpscaleRealtimeCreate) *UpscaleRealtimeCreateBulk {
-	return &UpscaleRealtimeCreateBulk{config: c.config, builders: builders}
+// CreateBulk returns a builder for creating a bulk of UpscaleModel entities.
+func (c *UpscaleModelClient) CreateBulk(builders ...*UpscaleModelCreate) *UpscaleModelCreateBulk {
+	return &UpscaleModelCreateBulk{config: c.config, builders: builders}
 }
 
-// Update returns an update builder for UpscaleRealtime.
-func (c *UpscaleRealtimeClient) Update() *UpscaleRealtimeUpdate {
-	mutation := newUpscaleRealtimeMutation(c.config, OpUpdate)
-	return &UpscaleRealtimeUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+// Update returns an update builder for UpscaleModel.
+func (c *UpscaleModelClient) Update() *UpscaleModelUpdate {
+	mutation := newUpscaleModelMutation(c.config, OpUpdate)
+	return &UpscaleModelUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
 // UpdateOne returns an update builder for the given entity.
-func (c *UpscaleRealtimeClient) UpdateOne(ur *UpscaleRealtime) *UpscaleRealtimeUpdateOne {
-	mutation := newUpscaleRealtimeMutation(c.config, OpUpdateOne, withUpscaleRealtime(ur))
-	return &UpscaleRealtimeUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+func (c *UpscaleModelClient) UpdateOne(um *UpscaleModel) *UpscaleModelUpdateOne {
+	mutation := newUpscaleModelMutation(c.config, OpUpdateOne, withUpscaleModel(um))
+	return &UpscaleModelUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
 // UpdateOneID returns an update builder for the given id.
-func (c *UpscaleRealtimeClient) UpdateOneID(id uuid.UUID) *UpscaleRealtimeUpdateOne {
-	mutation := newUpscaleRealtimeMutation(c.config, OpUpdateOne, withUpscaleRealtimeID(id))
-	return &UpscaleRealtimeUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+func (c *UpscaleModelClient) UpdateOneID(id uuid.UUID) *UpscaleModelUpdateOne {
+	mutation := newUpscaleModelMutation(c.config, OpUpdateOne, withUpscaleModelID(id))
+	return &UpscaleModelUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
-// Delete returns a delete builder for UpscaleRealtime.
-func (c *UpscaleRealtimeClient) Delete() *UpscaleRealtimeDelete {
-	mutation := newUpscaleRealtimeMutation(c.config, OpDelete)
-	return &UpscaleRealtimeDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+// Delete returns a delete builder for UpscaleModel.
+func (c *UpscaleModelClient) Delete() *UpscaleModelDelete {
+	mutation := newUpscaleModelMutation(c.config, OpDelete)
+	return &UpscaleModelDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
 // DeleteOne returns a builder for deleting the given entity.
-func (c *UpscaleRealtimeClient) DeleteOne(ur *UpscaleRealtime) *UpscaleRealtimeDeleteOne {
-	return c.DeleteOneID(ur.ID)
+func (c *UpscaleModelClient) DeleteOne(um *UpscaleModel) *UpscaleModelDeleteOne {
+	return c.DeleteOneID(um.ID)
 }
 
 // DeleteOneID returns a builder for deleting the given entity by its id.
-func (c *UpscaleRealtimeClient) DeleteOneID(id uuid.UUID) *UpscaleRealtimeDeleteOne {
-	builder := c.Delete().Where(upscalerealtime.ID(id))
+func (c *UpscaleModelClient) DeleteOneID(id uuid.UUID) *UpscaleModelDeleteOne {
+	builder := c.Delete().Where(upscalemodel.ID(id))
 	builder.mutation.id = &id
 	builder.mutation.op = OpDeleteOne
-	return &UpscaleRealtimeDeleteOne{builder}
+	return &UpscaleModelDeleteOne{builder}
 }
 
-// Query returns a query builder for UpscaleRealtime.
-func (c *UpscaleRealtimeClient) Query() *UpscaleRealtimeQuery {
-	return &UpscaleRealtimeQuery{
+// Query returns a query builder for UpscaleModel.
+func (c *UpscaleModelClient) Query() *UpscaleModelQuery {
+	return &UpscaleModelQuery{
 		config: c.config,
 		inters: c.Interceptors(),
 	}
 }
 
-// Get returns a UpscaleRealtime entity by its id.
-func (c *UpscaleRealtimeClient) Get(ctx context.Context, id uuid.UUID) (*UpscaleRealtime, error) {
-	return c.Query().Where(upscalerealtime.ID(id)).Only(ctx)
+// Get returns a UpscaleModel entity by its id.
+func (c *UpscaleModelClient) Get(ctx context.Context, id uuid.UUID) (*UpscaleModel, error) {
+	return c.Query().Where(upscalemodel.ID(id)).Only(ctx)
 }
 
 // GetX is like Get, but panics if an error occurs.
-func (c *UpscaleRealtimeClient) GetX(ctx context.Context, id uuid.UUID) *UpscaleRealtime {
+func (c *UpscaleModelClient) GetX(ctx context.Context, id uuid.UUID) *UpscaleModel {
 	obj, err := c.Get(ctx, id)
 	if err != nil {
 		panic(err)
@@ -1816,28 +1566,177 @@ func (c *UpscaleRealtimeClient) GetX(ctx context.Context, id uuid.UUID) *Upscale
 	return obj
 }
 
+// QueryUpscales queries the upscales edge of a UpscaleModel.
+func (c *UpscaleModelClient) QueryUpscales(um *UpscaleModel) *UpscaleQuery {
+	query := (&UpscaleClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := um.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(upscalemodel.Table, upscalemodel.FieldID, id),
+			sqlgraph.To(upscale.Table, upscale.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, upscalemodel.UpscalesTable, upscalemodel.UpscalesColumn),
+		)
+		fromV = sqlgraph.Neighbors(um.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
-func (c *UpscaleRealtimeClient) Hooks() []Hook {
-	return c.hooks.UpscaleRealtime
+func (c *UpscaleModelClient) Hooks() []Hook {
+	return c.hooks.UpscaleModel
 }
 
 // Interceptors returns the client interceptors.
-func (c *UpscaleRealtimeClient) Interceptors() []Interceptor {
-	return c.inters.UpscaleRealtime
+func (c *UpscaleModelClient) Interceptors() []Interceptor {
+	return c.inters.UpscaleModel
 }
 
-func (c *UpscaleRealtimeClient) mutate(ctx context.Context, m *UpscaleRealtimeMutation) (Value, error) {
+func (c *UpscaleModelClient) mutate(ctx context.Context, m *UpscaleModelMutation) (Value, error) {
 	switch m.Op() {
 	case OpCreate:
-		return (&UpscaleRealtimeCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+		return (&UpscaleModelCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
 	case OpUpdate:
-		return (&UpscaleRealtimeUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+		return (&UpscaleModelUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
 	case OpUpdateOne:
-		return (&UpscaleRealtimeUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+		return (&UpscaleModelUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
 	case OpDelete, OpDeleteOne:
-		return (&UpscaleRealtimeDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+		return (&UpscaleModelDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
-		return nil, fmt.Errorf("ent: unknown UpscaleRealtime mutation op: %q", m.Op())
+		return nil, fmt.Errorf("ent: unknown UpscaleModel mutation op: %q", m.Op())
+	}
+}
+
+// UpscaleOutputClient is a client for the UpscaleOutput schema.
+type UpscaleOutputClient struct {
+	config
+}
+
+// NewUpscaleOutputClient returns a client for the UpscaleOutput from the given config.
+func NewUpscaleOutputClient(c config) *UpscaleOutputClient {
+	return &UpscaleOutputClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `upscaleoutput.Hooks(f(g(h())))`.
+func (c *UpscaleOutputClient) Use(hooks ...Hook) {
+	c.hooks.UpscaleOutput = append(c.hooks.UpscaleOutput, hooks...)
+}
+
+// Use adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `upscaleoutput.Intercept(f(g(h())))`.
+func (c *UpscaleOutputClient) Intercept(interceptors ...Interceptor) {
+	c.inters.UpscaleOutput = append(c.inters.UpscaleOutput, interceptors...)
+}
+
+// Create returns a builder for creating a UpscaleOutput entity.
+func (c *UpscaleOutputClient) Create() *UpscaleOutputCreate {
+	mutation := newUpscaleOutputMutation(c.config, OpCreate)
+	return &UpscaleOutputCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of UpscaleOutput entities.
+func (c *UpscaleOutputClient) CreateBulk(builders ...*UpscaleOutputCreate) *UpscaleOutputCreateBulk {
+	return &UpscaleOutputCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for UpscaleOutput.
+func (c *UpscaleOutputClient) Update() *UpscaleOutputUpdate {
+	mutation := newUpscaleOutputMutation(c.config, OpUpdate)
+	return &UpscaleOutputUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *UpscaleOutputClient) UpdateOne(uo *UpscaleOutput) *UpscaleOutputUpdateOne {
+	mutation := newUpscaleOutputMutation(c.config, OpUpdateOne, withUpscaleOutput(uo))
+	return &UpscaleOutputUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *UpscaleOutputClient) UpdateOneID(id uuid.UUID) *UpscaleOutputUpdateOne {
+	mutation := newUpscaleOutputMutation(c.config, OpUpdateOne, withUpscaleOutputID(id))
+	return &UpscaleOutputUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for UpscaleOutput.
+func (c *UpscaleOutputClient) Delete() *UpscaleOutputDelete {
+	mutation := newUpscaleOutputMutation(c.config, OpDelete)
+	return &UpscaleOutputDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *UpscaleOutputClient) DeleteOne(uo *UpscaleOutput) *UpscaleOutputDeleteOne {
+	return c.DeleteOneID(uo.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *UpscaleOutputClient) DeleteOneID(id uuid.UUID) *UpscaleOutputDeleteOne {
+	builder := c.Delete().Where(upscaleoutput.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &UpscaleOutputDeleteOne{builder}
+}
+
+// Query returns a query builder for UpscaleOutput.
+func (c *UpscaleOutputClient) Query() *UpscaleOutputQuery {
+	return &UpscaleOutputQuery{
+		config: c.config,
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a UpscaleOutput entity by its id.
+func (c *UpscaleOutputClient) Get(ctx context.Context, id uuid.UUID) (*UpscaleOutput, error) {
+	return c.Query().Where(upscaleoutput.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *UpscaleOutputClient) GetX(ctx context.Context, id uuid.UUID) *UpscaleOutput {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryUpscales queries the upscales edge of a UpscaleOutput.
+func (c *UpscaleOutputClient) QueryUpscales(uo *UpscaleOutput) *UpscaleQuery {
+	query := (&UpscaleClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := uo.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(upscaleoutput.Table, upscaleoutput.FieldID, id),
+			sqlgraph.To(upscale.Table, upscale.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, upscaleoutput.UpscalesTable, upscaleoutput.UpscalesColumn),
+		)
+		fromV = sqlgraph.Neighbors(uo.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *UpscaleOutputClient) Hooks() []Hook {
+	return c.hooks.UpscaleOutput
+}
+
+// Interceptors returns the client interceptors.
+func (c *UpscaleOutputClient) Interceptors() []Interceptor {
+	return c.inters.UpscaleOutput
+}
+
+func (c *UpscaleOutputClient) mutate(ctx context.Context, m *UpscaleOutputMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&UpscaleOutputCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&UpscaleOutputUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&UpscaleOutputUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&UpscaleOutputDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown UpscaleOutput mutation op: %q", m.Op())
 	}
 }
 
@@ -1933,15 +1832,15 @@ func (c *UserClient) GetX(ctx context.Context, id uuid.UUID) *User {
 	return obj
 }
 
-// QueryUpscale queries the upscale edge of a User.
-func (c *UserClient) QueryUpscale(u *User) *UpscaleQuery {
-	query := (&UpscaleClient{config: c.config}).Query()
+// QueryUserRoles queries the user_roles edge of a User.
+func (c *UserClient) QueryUserRoles(u *User) *UserRoleQuery {
+	query := (&UserRoleClient{config: c.config}).Query()
 	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := u.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(user.Table, user.FieldID, id),
-			sqlgraph.To(upscale.Table, upscale.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, user.UpscaleTable, user.UpscaleColumn),
+			sqlgraph.To(userrole.Table, userrole.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.UserRolesTable, user.UserRolesColumn),
 		)
 		fromV = sqlgraph.Neighbors(u.driver.Dialect(), step)
 		return fromV, nil
@@ -1949,15 +1848,15 @@ func (c *UserClient) QueryUpscale(u *User) *UpscaleQuery {
 	return query
 }
 
-// QueryGeneration queries the generation edge of a User.
-func (c *UserClient) QueryGeneration(u *User) *GenerationQuery {
+// QueryGenerations queries the generations edge of a User.
+func (c *UserClient) QueryGenerations(u *User) *GenerationQuery {
 	query := (&GenerationClient{config: c.config}).Query()
 	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := u.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(user.Table, user.FieldID, id),
 			sqlgraph.To(generation.Table, generation.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, user.GenerationTable, user.GenerationColumn),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.GenerationsTable, user.GenerationsColumn),
 		)
 		fromV = sqlgraph.Neighbors(u.driver.Dialect(), step)
 		return fromV, nil
@@ -1965,15 +1864,15 @@ func (c *UserClient) QueryGeneration(u *User) *GenerationQuery {
 	return query
 }
 
-// QueryGenerationG queries the generation_g edge of a User.
-func (c *UserClient) QueryGenerationG(u *User) *GenerationGQuery {
-	query := (&GenerationGClient{config: c.config}).Query()
+// QueryUpscales queries the upscales edge of a User.
+func (c *UserClient) QueryUpscales(u *User) *UpscaleQuery {
+	query := (&UpscaleClient{config: c.config}).Query()
 	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := u.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(user.Table, user.FieldID, id),
-			sqlgraph.To(generationg.Table, generationg.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, user.GenerationGTable, user.GenerationGColumn),
+			sqlgraph.To(upscale.Table, upscale.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.UpscalesTable, user.UpscalesColumn),
 		)
 		fromV = sqlgraph.Neighbors(u.driver.Dialect(), step)
 		return fromV, nil
@@ -2003,5 +1902,138 @@ func (c *UserClient) mutate(ctx context.Context, m *UserMutation) (Value, error)
 		return (&UserDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("ent: unknown User mutation op: %q", m.Op())
+	}
+}
+
+// UserRoleClient is a client for the UserRole schema.
+type UserRoleClient struct {
+	config
+}
+
+// NewUserRoleClient returns a client for the UserRole from the given config.
+func NewUserRoleClient(c config) *UserRoleClient {
+	return &UserRoleClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `userrole.Hooks(f(g(h())))`.
+func (c *UserRoleClient) Use(hooks ...Hook) {
+	c.hooks.UserRole = append(c.hooks.UserRole, hooks...)
+}
+
+// Use adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `userrole.Intercept(f(g(h())))`.
+func (c *UserRoleClient) Intercept(interceptors ...Interceptor) {
+	c.inters.UserRole = append(c.inters.UserRole, interceptors...)
+}
+
+// Create returns a builder for creating a UserRole entity.
+func (c *UserRoleClient) Create() *UserRoleCreate {
+	mutation := newUserRoleMutation(c.config, OpCreate)
+	return &UserRoleCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of UserRole entities.
+func (c *UserRoleClient) CreateBulk(builders ...*UserRoleCreate) *UserRoleCreateBulk {
+	return &UserRoleCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for UserRole.
+func (c *UserRoleClient) Update() *UserRoleUpdate {
+	mutation := newUserRoleMutation(c.config, OpUpdate)
+	return &UserRoleUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *UserRoleClient) UpdateOne(ur *UserRole) *UserRoleUpdateOne {
+	mutation := newUserRoleMutation(c.config, OpUpdateOne, withUserRole(ur))
+	return &UserRoleUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *UserRoleClient) UpdateOneID(id uuid.UUID) *UserRoleUpdateOne {
+	mutation := newUserRoleMutation(c.config, OpUpdateOne, withUserRoleID(id))
+	return &UserRoleUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for UserRole.
+func (c *UserRoleClient) Delete() *UserRoleDelete {
+	mutation := newUserRoleMutation(c.config, OpDelete)
+	return &UserRoleDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *UserRoleClient) DeleteOne(ur *UserRole) *UserRoleDeleteOne {
+	return c.DeleteOneID(ur.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *UserRoleClient) DeleteOneID(id uuid.UUID) *UserRoleDeleteOne {
+	builder := c.Delete().Where(userrole.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &UserRoleDeleteOne{builder}
+}
+
+// Query returns a query builder for UserRole.
+func (c *UserRoleClient) Query() *UserRoleQuery {
+	return &UserRoleQuery{
+		config: c.config,
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a UserRole entity by its id.
+func (c *UserRoleClient) Get(ctx context.Context, id uuid.UUID) (*UserRole, error) {
+	return c.Query().Where(userrole.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *UserRoleClient) GetX(ctx context.Context, id uuid.UUID) *UserRole {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryUsers queries the users edge of a UserRole.
+func (c *UserRoleClient) QueryUsers(ur *UserRole) *UserQuery {
+	query := (&UserClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := ur.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(userrole.Table, userrole.FieldID, id),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, userrole.UsersTable, userrole.UsersColumn),
+		)
+		fromV = sqlgraph.Neighbors(ur.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *UserRoleClient) Hooks() []Hook {
+	return c.hooks.UserRole
+}
+
+// Interceptors returns the client interceptors.
+func (c *UserRoleClient) Interceptors() []Interceptor {
+	return c.inters.UserRole
+}
+
+func (c *UserRoleClient) mutate(ctx context.Context, m *UserRoleMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&UserRoleCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&UserRoleUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&UserRoleUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&UserRoleDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown UserRole mutation op: %q", m.Op())
 	}
 }

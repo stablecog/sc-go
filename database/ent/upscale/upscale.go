@@ -20,53 +20,62 @@ const (
 	FieldHeight = "height"
 	// FieldScale holds the string denoting the scale field in the database.
 	FieldScale = "scale"
-	// FieldStatus holds the string denoting the status field in the database.
-	FieldStatus = "status"
-	// FieldServerURL holds the string denoting the server_url field in the database.
-	FieldServerURL = "server_url"
-	// FieldDurationMsg holds the string denoting the duration_msg field in the database.
-	FieldDurationMsg = "duration_msg"
-	// FieldType holds the string denoting the type field in the database.
-	FieldType = "type"
-	// FieldPrompt holds the string denoting the prompt field in the database.
-	FieldPrompt = "prompt"
-	// FieldNegativePrompt holds the string denoting the negative_prompt field in the database.
-	FieldNegativePrompt = "negative_prompt"
-	// FieldSeed holds the string denoting the seed field in the database.
-	FieldSeed = "seed"
-	// FieldNumInferenceSteps holds the string denoting the num_inference_steps field in the database.
-	FieldNumInferenceSteps = "num_inference_steps"
-	// FieldGuidanceScale holds the string denoting the guidance_scale field in the database.
-	FieldGuidanceScale = "guidance_scale"
+	// FieldDurationMs holds the string denoting the duration_ms field in the database.
+	FieldDurationMs = "duration_ms"
 	// FieldCountryCode holds the string denoting the country_code field in the database.
 	FieldCountryCode = "country_code"
-	// FieldDeviceType holds the string denoting the device_type field in the database.
-	FieldDeviceType = "device_type"
-	// FieldDeviceOs holds the string denoting the device_os field in the database.
-	FieldDeviceOs = "device_os"
-	// FieldDeviceBrowser holds the string denoting the device_browser field in the database.
-	FieldDeviceBrowser = "device_browser"
-	// FieldUserAgent holds the string denoting the user_agent field in the database.
-	FieldUserAgent = "user_agent"
+	// FieldStatus holds the string denoting the status field in the database.
+	FieldStatus = "status"
+	// FieldFailureReason holds the string denoting the failure_reason field in the database.
+	FieldFailureReason = "failure_reason"
+	// FieldModelID holds the string denoting the model_id field in the database.
+	FieldModelID = "model_id"
+	// FieldUserID holds the string denoting the user_id field in the database.
+	FieldUserID = "user_id"
+	// FieldDeviceInfoID holds the string denoting the device_info_id field in the database.
+	FieldDeviceInfoID = "device_info_id"
 	// FieldCreatedAt holds the string denoting the created_at field in the database.
 	FieldCreatedAt = "created_at"
 	// FieldUpdatedAt holds the string denoting the updated_at field in the database.
 	FieldUpdatedAt = "updated_at"
-	// FieldUserID holds the string denoting the user_id field in the database.
-	FieldUserID = "user_id"
-	// FieldUserTier holds the string denoting the user_tier field in the database.
-	FieldUserTier = "user_tier"
 	// EdgeUser holds the string denoting the user edge name in mutations.
 	EdgeUser = "user"
+	// EdgeDeviceInfo holds the string denoting the device_info edge name in mutations.
+	EdgeDeviceInfo = "device_info"
+	// EdgeUpscaleModels holds the string denoting the upscale_models edge name in mutations.
+	EdgeUpscaleModels = "upscale_models"
+	// EdgeUpscaleOutputs holds the string denoting the upscale_outputs edge name in mutations.
+	EdgeUpscaleOutputs = "upscale_outputs"
 	// Table holds the table name of the upscale in the database.
-	Table = "upscale"
+	Table = "upscales"
 	// UserTable is the table that holds the user relation/edge.
-	UserTable = "upscale"
+	UserTable = "upscales"
 	// UserInverseTable is the table name for the User entity.
 	// It exists in this package in order to avoid circular dependency with the "user" package.
-	UserInverseTable = "user"
+	UserInverseTable = "users"
 	// UserColumn is the table column denoting the user relation/edge.
 	UserColumn = "user_id"
+	// DeviceInfoTable is the table that holds the device_info relation/edge.
+	DeviceInfoTable = "upscales"
+	// DeviceInfoInverseTable is the table name for the DeviceInfo entity.
+	// It exists in this package in order to avoid circular dependency with the "deviceinfo" package.
+	DeviceInfoInverseTable = "device_info"
+	// DeviceInfoColumn is the table column denoting the device_info relation/edge.
+	DeviceInfoColumn = "device_info_id"
+	// UpscaleModelsTable is the table that holds the upscale_models relation/edge.
+	UpscaleModelsTable = "upscales"
+	// UpscaleModelsInverseTable is the table name for the UpscaleModel entity.
+	// It exists in this package in order to avoid circular dependency with the "upscalemodel" package.
+	UpscaleModelsInverseTable = "upscale_models"
+	// UpscaleModelsColumn is the table column denoting the upscale_models relation/edge.
+	UpscaleModelsColumn = "model_id"
+	// UpscaleOutputsTable is the table that holds the upscale_outputs relation/edge.
+	UpscaleOutputsTable = "upscale_outputs"
+	// UpscaleOutputsInverseTable is the table name for the UpscaleOutput entity.
+	// It exists in this package in order to avoid circular dependency with the "upscaleoutput" package.
+	UpscaleOutputsInverseTable = "upscale_outputs"
+	// UpscaleOutputsColumn is the table column denoting the upscale_outputs relation/edge.
+	UpscaleOutputsColumn = "upscale_id"
 )
 
 // Columns holds all SQL columns for upscale fields.
@@ -75,24 +84,15 @@ var Columns = []string{
 	FieldWidth,
 	FieldHeight,
 	FieldScale,
-	FieldStatus,
-	FieldServerURL,
-	FieldDurationMsg,
-	FieldType,
-	FieldPrompt,
-	FieldNegativePrompt,
-	FieldSeed,
-	FieldNumInferenceSteps,
-	FieldGuidanceScale,
+	FieldDurationMs,
 	FieldCountryCode,
-	FieldDeviceType,
-	FieldDeviceOs,
-	FieldDeviceBrowser,
-	FieldUserAgent,
+	FieldStatus,
+	FieldFailureReason,
+	FieldModelID,
+	FieldUserID,
+	FieldDeviceInfoID,
 	FieldCreatedAt,
 	FieldUpdatedAt,
-	FieldUserID,
-	FieldUserTier,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -137,31 +137,5 @@ func StatusValidator(s Status) error {
 		return nil
 	default:
 		return fmt.Errorf("upscale: invalid enum value for status field: %q", s)
-	}
-}
-
-// UserTier defines the type for the "user_tier" enum field.
-type UserTier string
-
-// UserTierFREE is the default value of the UserTier enum.
-const DefaultUserTier = UserTierFREE
-
-// UserTier values.
-const (
-	UserTierFREE UserTier = "FREE"
-	UserTierPRO  UserTier = "PRO"
-)
-
-func (ut UserTier) String() string {
-	return string(ut)
-}
-
-// UserTierValidator is a validator for the "user_tier" field enum values. It is called by the builders before save.
-func UserTierValidator(ut UserTier) error {
-	switch ut {
-	case UserTierFREE, UserTierPRO:
-		return nil
-	default:
-		return fmt.Errorf("upscale: invalid enum value for user_tier field: %q", ut)
 	}
 }

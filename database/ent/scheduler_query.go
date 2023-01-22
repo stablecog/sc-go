@@ -13,7 +13,6 @@ import (
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
 	"github.com/stablecog/go-apps/database/ent/generation"
-	"github.com/stablecog/go-apps/database/ent/generationg"
 	"github.com/stablecog/go-apps/database/ent/predicate"
 	"github.com/stablecog/go-apps/database/ent/scheduler"
 )
@@ -28,8 +27,7 @@ type SchedulerQuery struct {
 	fields          []string
 	inters          []Interceptor
 	predicates      []predicate.Scheduler
-	withGeneration  *GenerationQuery
-	withGenerationG *GenerationGQuery
+	withGenerations *GenerationQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -66,8 +64,8 @@ func (sq *SchedulerQuery) Order(o ...OrderFunc) *SchedulerQuery {
 	return sq
 }
 
-// QueryGeneration chains the current query on the "generation" edge.
-func (sq *SchedulerQuery) QueryGeneration() *GenerationQuery {
+// QueryGenerations chains the current query on the "generations" edge.
+func (sq *SchedulerQuery) QueryGenerations() *GenerationQuery {
 	query := (&GenerationClient{config: sq.config}).Query()
 	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
 		if err := sq.prepareQuery(ctx); err != nil {
@@ -80,29 +78,7 @@ func (sq *SchedulerQuery) QueryGeneration() *GenerationQuery {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(scheduler.Table, scheduler.FieldID, selector),
 			sqlgraph.To(generation.Table, generation.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, scheduler.GenerationTable, scheduler.GenerationColumn),
-		)
-		fromU = sqlgraph.SetNeighbors(sq.driver.Dialect(), step)
-		return fromU, nil
-	}
-	return query
-}
-
-// QueryGenerationG chains the current query on the "generation_g" edge.
-func (sq *SchedulerQuery) QueryGenerationG() *GenerationGQuery {
-	query := (&GenerationGClient{config: sq.config}).Query()
-	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
-		if err := sq.prepareQuery(ctx); err != nil {
-			return nil, err
-		}
-		selector := sq.sqlQuery(ctx)
-		if err := selector.Err(); err != nil {
-			return nil, err
-		}
-		step := sqlgraph.NewStep(
-			sqlgraph.From(scheduler.Table, scheduler.FieldID, selector),
-			sqlgraph.To(generationg.Table, generationg.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, scheduler.GenerationGTable, scheduler.GenerationGColumn),
+			sqlgraph.Edge(sqlgraph.O2M, false, scheduler.GenerationsTable, scheduler.GenerationsColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(sq.driver.Dialect(), step)
 		return fromU, nil
@@ -301,8 +277,7 @@ func (sq *SchedulerQuery) Clone() *SchedulerQuery {
 		order:           append([]OrderFunc{}, sq.order...),
 		inters:          append([]Interceptor{}, sq.inters...),
 		predicates:      append([]predicate.Scheduler{}, sq.predicates...),
-		withGeneration:  sq.withGeneration.Clone(),
-		withGenerationG: sq.withGenerationG.Clone(),
+		withGenerations: sq.withGenerations.Clone(),
 		// clone intermediate query.
 		sql:    sq.sql.Clone(),
 		path:   sq.path,
@@ -310,25 +285,14 @@ func (sq *SchedulerQuery) Clone() *SchedulerQuery {
 	}
 }
 
-// WithGeneration tells the query-builder to eager-load the nodes that are connected to
-// the "generation" edge. The optional arguments are used to configure the query builder of the edge.
-func (sq *SchedulerQuery) WithGeneration(opts ...func(*GenerationQuery)) *SchedulerQuery {
+// WithGenerations tells the query-builder to eager-load the nodes that are connected to
+// the "generations" edge. The optional arguments are used to configure the query builder of the edge.
+func (sq *SchedulerQuery) WithGenerations(opts ...func(*GenerationQuery)) *SchedulerQuery {
 	query := (&GenerationClient{config: sq.config}).Query()
 	for _, opt := range opts {
 		opt(query)
 	}
-	sq.withGeneration = query
-	return sq
-}
-
-// WithGenerationG tells the query-builder to eager-load the nodes that are connected to
-// the "generation_g" edge. The optional arguments are used to configure the query builder of the edge.
-func (sq *SchedulerQuery) WithGenerationG(opts ...func(*GenerationGQuery)) *SchedulerQuery {
-	query := (&GenerationGClient{config: sq.config}).Query()
-	for _, opt := range opts {
-		opt(query)
-	}
-	sq.withGenerationG = query
+	sq.withGenerations = query
 	return sq
 }
 
@@ -410,9 +374,8 @@ func (sq *SchedulerQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Sc
 	var (
 		nodes       = []*Scheduler{}
 		_spec       = sq.querySpec()
-		loadedTypes = [2]bool{
-			sq.withGeneration != nil,
-			sq.withGenerationG != nil,
+		loadedTypes = [1]bool{
+			sq.withGenerations != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -433,24 +396,17 @@ func (sq *SchedulerQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Sc
 	if len(nodes) == 0 {
 		return nodes, nil
 	}
-	if query := sq.withGeneration; query != nil {
-		if err := sq.loadGeneration(ctx, query, nodes,
-			func(n *Scheduler) { n.Edges.Generation = []*Generation{} },
-			func(n *Scheduler, e *Generation) { n.Edges.Generation = append(n.Edges.Generation, e) }); err != nil {
-			return nil, err
-		}
-	}
-	if query := sq.withGenerationG; query != nil {
-		if err := sq.loadGenerationG(ctx, query, nodes,
-			func(n *Scheduler) { n.Edges.GenerationG = []*GenerationG{} },
-			func(n *Scheduler, e *GenerationG) { n.Edges.GenerationG = append(n.Edges.GenerationG, e) }); err != nil {
+	if query := sq.withGenerations; query != nil {
+		if err := sq.loadGenerations(ctx, query, nodes,
+			func(n *Scheduler) { n.Edges.Generations = []*Generation{} },
+			func(n *Scheduler, e *Generation) { n.Edges.Generations = append(n.Edges.Generations, e) }); err != nil {
 			return nil, err
 		}
 	}
 	return nodes, nil
 }
 
-func (sq *SchedulerQuery) loadGeneration(ctx context.Context, query *GenerationQuery, nodes []*Scheduler, init func(*Scheduler), assign func(*Scheduler, *Generation)) error {
+func (sq *SchedulerQuery) loadGenerations(ctx context.Context, query *GenerationQuery, nodes []*Scheduler, init func(*Scheduler), assign func(*Scheduler, *Generation)) error {
 	fks := make([]driver.Value, 0, len(nodes))
 	nodeids := make(map[uuid.UUID]*Scheduler)
 	for i := range nodes {
@@ -461,34 +417,7 @@ func (sq *SchedulerQuery) loadGeneration(ctx context.Context, query *GenerationQ
 		}
 	}
 	query.Where(predicate.Generation(func(s *sql.Selector) {
-		s.Where(sql.InValues(scheduler.GenerationColumn, fks...))
-	}))
-	neighbors, err := query.All(ctx)
-	if err != nil {
-		return err
-	}
-	for _, n := range neighbors {
-		fk := n.SchedulerID
-		node, ok := nodeids[fk]
-		if !ok {
-			return fmt.Errorf(`unexpected foreign-key "scheduler_id" returned %v for node %v`, fk, n.ID)
-		}
-		assign(node, n)
-	}
-	return nil
-}
-func (sq *SchedulerQuery) loadGenerationG(ctx context.Context, query *GenerationGQuery, nodes []*Scheduler, init func(*Scheduler), assign func(*Scheduler, *GenerationG)) error {
-	fks := make([]driver.Value, 0, len(nodes))
-	nodeids := make(map[uuid.UUID]*Scheduler)
-	for i := range nodes {
-		fks = append(fks, nodes[i].ID)
-		nodeids[nodes[i].ID] = nodes[i]
-		if init != nil {
-			init(nodes[i])
-		}
-	}
-	query.Where(predicate.GenerationG(func(s *sql.Selector) {
-		s.Where(sql.InValues(scheduler.GenerationGColumn, fks...))
+		s.Where(sql.InValues(scheduler.GenerationsColumn, fks...))
 	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {

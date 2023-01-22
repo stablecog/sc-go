@@ -4,6 +4,7 @@ package ent
 
 import (
 	"context"
+	"database/sql/driver"
 	"fmt"
 	"math"
 
@@ -11,22 +12,28 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
+	"github.com/stablecog/go-apps/database/ent/deviceinfo"
 	"github.com/stablecog/go-apps/database/ent/predicate"
 	"github.com/stablecog/go-apps/database/ent/upscale"
+	"github.com/stablecog/go-apps/database/ent/upscalemodel"
+	"github.com/stablecog/go-apps/database/ent/upscaleoutput"
 	"github.com/stablecog/go-apps/database/ent/user"
 )
 
 // UpscaleQuery is the builder for querying Upscale entities.
 type UpscaleQuery struct {
 	config
-	limit      *int
-	offset     *int
-	unique     *bool
-	order      []OrderFunc
-	fields     []string
-	inters     []Interceptor
-	predicates []predicate.Upscale
-	withUser   *UserQuery
+	limit              *int
+	offset             *int
+	unique             *bool
+	order              []OrderFunc
+	fields             []string
+	inters             []Interceptor
+	predicates         []predicate.Upscale
+	withUser           *UserQuery
+	withDeviceInfo     *DeviceInfoQuery
+	withUpscaleModels  *UpscaleModelQuery
+	withUpscaleOutputs *UpscaleOutputQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -78,6 +85,72 @@ func (uq *UpscaleQuery) QueryUser() *UserQuery {
 			sqlgraph.From(upscale.Table, upscale.FieldID, selector),
 			sqlgraph.To(user.Table, user.FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, true, upscale.UserTable, upscale.UserColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(uq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryDeviceInfo chains the current query on the "device_info" edge.
+func (uq *UpscaleQuery) QueryDeviceInfo() *DeviceInfoQuery {
+	query := (&DeviceInfoClient{config: uq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := uq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := uq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(upscale.Table, upscale.FieldID, selector),
+			sqlgraph.To(deviceinfo.Table, deviceinfo.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, upscale.DeviceInfoTable, upscale.DeviceInfoColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(uq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryUpscaleModels chains the current query on the "upscale_models" edge.
+func (uq *UpscaleQuery) QueryUpscaleModels() *UpscaleModelQuery {
+	query := (&UpscaleModelClient{config: uq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := uq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := uq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(upscale.Table, upscale.FieldID, selector),
+			sqlgraph.To(upscalemodel.Table, upscalemodel.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, upscale.UpscaleModelsTable, upscale.UpscaleModelsColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(uq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryUpscaleOutputs chains the current query on the "upscale_outputs" edge.
+func (uq *UpscaleQuery) QueryUpscaleOutputs() *UpscaleOutputQuery {
+	query := (&UpscaleOutputClient{config: uq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := uq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := uq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(upscale.Table, upscale.FieldID, selector),
+			sqlgraph.To(upscaleoutput.Table, upscaleoutput.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, upscale.UpscaleOutputsTable, upscale.UpscaleOutputsColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(uq.driver.Dialect(), step)
 		return fromU, nil
@@ -270,13 +343,16 @@ func (uq *UpscaleQuery) Clone() *UpscaleQuery {
 		return nil
 	}
 	return &UpscaleQuery{
-		config:     uq.config,
-		limit:      uq.limit,
-		offset:     uq.offset,
-		order:      append([]OrderFunc{}, uq.order...),
-		inters:     append([]Interceptor{}, uq.inters...),
-		predicates: append([]predicate.Upscale{}, uq.predicates...),
-		withUser:   uq.withUser.Clone(),
+		config:             uq.config,
+		limit:              uq.limit,
+		offset:             uq.offset,
+		order:              append([]OrderFunc{}, uq.order...),
+		inters:             append([]Interceptor{}, uq.inters...),
+		predicates:         append([]predicate.Upscale{}, uq.predicates...),
+		withUser:           uq.withUser.Clone(),
+		withDeviceInfo:     uq.withDeviceInfo.Clone(),
+		withUpscaleModels:  uq.withUpscaleModels.Clone(),
+		withUpscaleOutputs: uq.withUpscaleOutputs.Clone(),
 		// clone intermediate query.
 		sql:    uq.sql.Clone(),
 		path:   uq.path,
@@ -292,6 +368,39 @@ func (uq *UpscaleQuery) WithUser(opts ...func(*UserQuery)) *UpscaleQuery {
 		opt(query)
 	}
 	uq.withUser = query
+	return uq
+}
+
+// WithDeviceInfo tells the query-builder to eager-load the nodes that are connected to
+// the "device_info" edge. The optional arguments are used to configure the query builder of the edge.
+func (uq *UpscaleQuery) WithDeviceInfo(opts ...func(*DeviceInfoQuery)) *UpscaleQuery {
+	query := (&DeviceInfoClient{config: uq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	uq.withDeviceInfo = query
+	return uq
+}
+
+// WithUpscaleModels tells the query-builder to eager-load the nodes that are connected to
+// the "upscale_models" edge. The optional arguments are used to configure the query builder of the edge.
+func (uq *UpscaleQuery) WithUpscaleModels(opts ...func(*UpscaleModelQuery)) *UpscaleQuery {
+	query := (&UpscaleModelClient{config: uq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	uq.withUpscaleModels = query
+	return uq
+}
+
+// WithUpscaleOutputs tells the query-builder to eager-load the nodes that are connected to
+// the "upscale_outputs" edge. The optional arguments are used to configure the query builder of the edge.
+func (uq *UpscaleQuery) WithUpscaleOutputs(opts ...func(*UpscaleOutputQuery)) *UpscaleQuery {
+	query := (&UpscaleOutputClient{config: uq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	uq.withUpscaleOutputs = query
 	return uq
 }
 
@@ -373,8 +482,11 @@ func (uq *UpscaleQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Upsc
 	var (
 		nodes       = []*Upscale{}
 		_spec       = uq.querySpec()
-		loadedTypes = [1]bool{
+		loadedTypes = [4]bool{
 			uq.withUser != nil,
+			uq.withDeviceInfo != nil,
+			uq.withUpscaleModels != nil,
+			uq.withUpscaleOutputs != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -401,6 +513,25 @@ func (uq *UpscaleQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Upsc
 			return nil, err
 		}
 	}
+	if query := uq.withDeviceInfo; query != nil {
+		if err := uq.loadDeviceInfo(ctx, query, nodes, nil,
+			func(n *Upscale, e *DeviceInfo) { n.Edges.DeviceInfo = e }); err != nil {
+			return nil, err
+		}
+	}
+	if query := uq.withUpscaleModels; query != nil {
+		if err := uq.loadUpscaleModels(ctx, query, nodes, nil,
+			func(n *Upscale, e *UpscaleModel) { n.Edges.UpscaleModels = e }); err != nil {
+			return nil, err
+		}
+	}
+	if query := uq.withUpscaleOutputs; query != nil {
+		if err := uq.loadUpscaleOutputs(ctx, query, nodes,
+			func(n *Upscale) { n.Edges.UpscaleOutputs = []*UpscaleOutput{} },
+			func(n *Upscale, e *UpscaleOutput) { n.Edges.UpscaleOutputs = append(n.Edges.UpscaleOutputs, e) }); err != nil {
+			return nil, err
+		}
+	}
 	return nodes, nil
 }
 
@@ -408,10 +539,7 @@ func (uq *UpscaleQuery) loadUser(ctx context.Context, query *UserQuery, nodes []
 	ids := make([]uuid.UUID, 0, len(nodes))
 	nodeids := make(map[uuid.UUID][]*Upscale)
 	for i := range nodes {
-		if nodes[i].UserID == nil {
-			continue
-		}
-		fk := *nodes[i].UserID
+		fk := nodes[i].UserID
 		if _, ok := nodeids[fk]; !ok {
 			ids = append(ids, fk)
 		}
@@ -430,6 +558,85 @@ func (uq *UpscaleQuery) loadUser(ctx context.Context, query *UserQuery, nodes []
 		for i := range nodes {
 			assign(nodes[i], n)
 		}
+	}
+	return nil
+}
+func (uq *UpscaleQuery) loadDeviceInfo(ctx context.Context, query *DeviceInfoQuery, nodes []*Upscale, init func(*Upscale), assign func(*Upscale, *DeviceInfo)) error {
+	ids := make([]uuid.UUID, 0, len(nodes))
+	nodeids := make(map[uuid.UUID][]*Upscale)
+	for i := range nodes {
+		fk := nodes[i].DeviceInfoID
+		if _, ok := nodeids[fk]; !ok {
+			ids = append(ids, fk)
+		}
+		nodeids[fk] = append(nodeids[fk], nodes[i])
+	}
+	query.Where(deviceinfo.IDIn(ids...))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nodeids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "device_info_id" returned %v`, n.ID)
+		}
+		for i := range nodes {
+			assign(nodes[i], n)
+		}
+	}
+	return nil
+}
+func (uq *UpscaleQuery) loadUpscaleModels(ctx context.Context, query *UpscaleModelQuery, nodes []*Upscale, init func(*Upscale), assign func(*Upscale, *UpscaleModel)) error {
+	ids := make([]uuid.UUID, 0, len(nodes))
+	nodeids := make(map[uuid.UUID][]*Upscale)
+	for i := range nodes {
+		fk := nodes[i].ModelID
+		if _, ok := nodeids[fk]; !ok {
+			ids = append(ids, fk)
+		}
+		nodeids[fk] = append(nodeids[fk], nodes[i])
+	}
+	query.Where(upscalemodel.IDIn(ids...))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nodeids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "model_id" returned %v`, n.ID)
+		}
+		for i := range nodes {
+			assign(nodes[i], n)
+		}
+	}
+	return nil
+}
+func (uq *UpscaleQuery) loadUpscaleOutputs(ctx context.Context, query *UpscaleOutputQuery, nodes []*Upscale, init func(*Upscale), assign func(*Upscale, *UpscaleOutput)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*Upscale)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	query.Where(predicate.UpscaleOutput(func(s *sql.Selector) {
+		s.Where(sql.InValues(upscale.UpscaleOutputsColumn, fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.UpscaleID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "upscale_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
 	}
 	return nil
 }

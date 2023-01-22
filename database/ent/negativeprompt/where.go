@@ -216,51 +216,24 @@ func UpdatedAtLTE(v time.Time) predicate.NegativePrompt {
 	return predicate.NegativePrompt(sql.FieldLTE(FieldUpdatedAt, v))
 }
 
-// HasGeneration applies the HasEdge predicate on the "generation" edge.
-func HasGeneration() predicate.NegativePrompt {
+// HasGenerations applies the HasEdge predicate on the "generations" edge.
+func HasGenerations() predicate.NegativePrompt {
 	return predicate.NegativePrompt(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, GenerationTable, GenerationColumn),
+			sqlgraph.Edge(sqlgraph.O2M, false, GenerationsTable, GenerationsColumn),
 		)
 		sqlgraph.HasNeighbors(s, step)
 	})
 }
 
-// HasGenerationWith applies the HasEdge predicate on the "generation" edge with a given conditions (other predicates).
-func HasGenerationWith(preds ...predicate.Generation) predicate.NegativePrompt {
+// HasGenerationsWith applies the HasEdge predicate on the "generations" edge with a given conditions (other predicates).
+func HasGenerationsWith(preds ...predicate.Generation) predicate.NegativePrompt {
 	return predicate.NegativePrompt(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(GenerationInverseTable, FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, GenerationTable, GenerationColumn),
-		)
-		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
-			for _, p := range preds {
-				p(s)
-			}
-		})
-	})
-}
-
-// HasGenerationG applies the HasEdge predicate on the "generation_g" edge.
-func HasGenerationG() predicate.NegativePrompt {
-	return predicate.NegativePrompt(func(s *sql.Selector) {
-		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, GenerationGTable, GenerationGColumn),
-		)
-		sqlgraph.HasNeighbors(s, step)
-	})
-}
-
-// HasGenerationGWith applies the HasEdge predicate on the "generation_g" edge with a given conditions (other predicates).
-func HasGenerationGWith(preds ...predicate.GenerationG) predicate.NegativePrompt {
-	return predicate.NegativePrompt(func(s *sql.Selector) {
-		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(GenerationGInverseTable, FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, GenerationGTable, GenerationGColumn),
+			sqlgraph.To(GenerationsInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, GenerationsTable, GenerationsColumn),
 		)
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {

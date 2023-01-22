@@ -21,8 +21,6 @@ type User struct {
 	Email string `json:"email,omitempty"`
 	// StripeCustomerID holds the value of the "stripe_customer_id" field.
 	StripeCustomerID *string `json:"stripe_customer_id,omitempty"`
-	// SubscriptionTier holds the value of the "subscription_tier" field.
-	SubscriptionTier user.SubscriptionTier `json:"subscription_tier,omitempty"`
 	// SubscriptionCategory holds the value of the "subscription_category" field.
 	SubscriptionCategory *user.SubscriptionCategory `json:"subscription_category,omitempty"`
 	// CreatedAt holds the value of the "created_at" field.
@@ -38,42 +36,42 @@ type User struct {
 
 // UserEdges holds the relations/edges for other nodes in the graph.
 type UserEdges struct {
-	// Upscale holds the value of the upscale edge.
-	Upscale []*Upscale `json:"upscale,omitempty"`
-	// Generation holds the value of the generation edge.
-	Generation []*Generation `json:"generation,omitempty"`
-	// GenerationG holds the value of the generation_g edge.
-	GenerationG []*GenerationG `json:"generation_g,omitempty"`
+	// UserRoles holds the value of the user_roles edge.
+	UserRoles []*UserRole `json:"user_roles,omitempty"`
+	// Generations holds the value of the generations edge.
+	Generations []*Generation `json:"generations,omitempty"`
+	// Upscales holds the value of the upscales edge.
+	Upscales []*Upscale `json:"upscales,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
 	loadedTypes [3]bool
 }
 
-// UpscaleOrErr returns the Upscale value or an error if the edge
+// UserRolesOrErr returns the UserRoles value or an error if the edge
 // was not loaded in eager-loading.
-func (e UserEdges) UpscaleOrErr() ([]*Upscale, error) {
+func (e UserEdges) UserRolesOrErr() ([]*UserRole, error) {
 	if e.loadedTypes[0] {
-		return e.Upscale, nil
+		return e.UserRoles, nil
 	}
-	return nil, &NotLoadedError{edge: "upscale"}
+	return nil, &NotLoadedError{edge: "user_roles"}
 }
 
-// GenerationOrErr returns the Generation value or an error if the edge
+// GenerationsOrErr returns the Generations value or an error if the edge
 // was not loaded in eager-loading.
-func (e UserEdges) GenerationOrErr() ([]*Generation, error) {
+func (e UserEdges) GenerationsOrErr() ([]*Generation, error) {
 	if e.loadedTypes[1] {
-		return e.Generation, nil
+		return e.Generations, nil
 	}
-	return nil, &NotLoadedError{edge: "generation"}
+	return nil, &NotLoadedError{edge: "generations"}
 }
 
-// GenerationGOrErr returns the GenerationG value or an error if the edge
+// UpscalesOrErr returns the Upscales value or an error if the edge
 // was not loaded in eager-loading.
-func (e UserEdges) GenerationGOrErr() ([]*GenerationG, error) {
+func (e UserEdges) UpscalesOrErr() ([]*Upscale, error) {
 	if e.loadedTypes[2] {
-		return e.GenerationG, nil
+		return e.Upscales, nil
 	}
-	return nil, &NotLoadedError{edge: "generation_g"}
+	return nil, &NotLoadedError{edge: "upscales"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -81,7 +79,7 @@ func (*User) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case user.FieldEmail, user.FieldStripeCustomerID, user.FieldSubscriptionTier, user.FieldSubscriptionCategory:
+		case user.FieldEmail, user.FieldStripeCustomerID, user.FieldSubscriptionCategory:
 			values[i] = new(sql.NullString)
 		case user.FieldCreatedAt, user.FieldUpdatedAt, user.FieldConfirmedAt:
 			values[i] = new(sql.NullTime)
@@ -121,12 +119,6 @@ func (u *User) assignValues(columns []string, values []any) error {
 				u.StripeCustomerID = new(string)
 				*u.StripeCustomerID = value.String
 			}
-		case user.FieldSubscriptionTier:
-			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field subscription_tier", values[i])
-			} else if value.Valid {
-				u.SubscriptionTier = user.SubscriptionTier(value.String)
-			}
 		case user.FieldSubscriptionCategory:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field subscription_category", values[i])
@@ -158,19 +150,19 @@ func (u *User) assignValues(columns []string, values []any) error {
 	return nil
 }
 
-// QueryUpscale queries the "upscale" edge of the User entity.
-func (u *User) QueryUpscale() *UpscaleQuery {
-	return (&UserClient{config: u.config}).QueryUpscale(u)
+// QueryUserRoles queries the "user_roles" edge of the User entity.
+func (u *User) QueryUserRoles() *UserRoleQuery {
+	return (&UserClient{config: u.config}).QueryUserRoles(u)
 }
 
-// QueryGeneration queries the "generation" edge of the User entity.
-func (u *User) QueryGeneration() *GenerationQuery {
-	return (&UserClient{config: u.config}).QueryGeneration(u)
+// QueryGenerations queries the "generations" edge of the User entity.
+func (u *User) QueryGenerations() *GenerationQuery {
+	return (&UserClient{config: u.config}).QueryGenerations(u)
 }
 
-// QueryGenerationG queries the "generation_g" edge of the User entity.
-func (u *User) QueryGenerationG() *GenerationGQuery {
-	return (&UserClient{config: u.config}).QueryGenerationG(u)
+// QueryUpscales queries the "upscales" edge of the User entity.
+func (u *User) QueryUpscales() *UpscaleQuery {
+	return (&UserClient{config: u.config}).QueryUpscales(u)
 }
 
 // Update returns a builder for updating this User.
@@ -203,9 +195,6 @@ func (u *User) String() string {
 		builder.WriteString("stripe_customer_id=")
 		builder.WriteString(*v)
 	}
-	builder.WriteString(", ")
-	builder.WriteString("subscription_tier=")
-	builder.WriteString(fmt.Sprintf("%v", u.SubscriptionTier))
 	builder.WriteString(", ")
 	if v := u.SubscriptionCategory; v != nil {
 		builder.WriteString("subscription_category=")

@@ -14,30 +14,30 @@ import (
 // Tx is a transactional client that is created by calling Client.Tx().
 type Tx struct {
 	config
-	// Admin is the client for interacting with the Admin builders.
-	Admin *AdminClient
+	// DeviceInfo is the client for interacting with the DeviceInfo builders.
+	DeviceInfo *DeviceInfoClient
 	// Generation is the client for interacting with the Generation builders.
 	Generation *GenerationClient
-	// GenerationG is the client for interacting with the GenerationG builders.
-	GenerationG *GenerationGClient
-	// GenerationRealtime is the client for interacting with the GenerationRealtime builders.
-	GenerationRealtime *GenerationRealtimeClient
-	// Model is the client for interacting with the Model builders.
-	Model *ModelClient
+	// GenerationModel is the client for interacting with the GenerationModel builders.
+	GenerationModel *GenerationModelClient
+	// GenerationOutput is the client for interacting with the GenerationOutput builders.
+	GenerationOutput *GenerationOutputClient
 	// NegativePrompt is the client for interacting with the NegativePrompt builders.
 	NegativePrompt *NegativePromptClient
 	// Prompt is the client for interacting with the Prompt builders.
 	Prompt *PromptClient
 	// Scheduler is the client for interacting with the Scheduler builders.
 	Scheduler *SchedulerClient
-	// Server is the client for interacting with the Server builders.
-	Server *ServerClient
 	// Upscale is the client for interacting with the Upscale builders.
 	Upscale *UpscaleClient
-	// UpscaleRealtime is the client for interacting with the UpscaleRealtime builders.
-	UpscaleRealtime *UpscaleRealtimeClient
+	// UpscaleModel is the client for interacting with the UpscaleModel builders.
+	UpscaleModel *UpscaleModelClient
+	// UpscaleOutput is the client for interacting with the UpscaleOutput builders.
+	UpscaleOutput *UpscaleOutputClient
 	// User is the client for interacting with the User builders.
 	User *UserClient
+	// UserRole is the client for interacting with the UserRole builders.
+	UserRole *UserRoleClient
 
 	// lazily loaded.
 	client     *Client
@@ -169,18 +169,18 @@ func (tx *Tx) Client() *Client {
 }
 
 func (tx *Tx) init() {
-	tx.Admin = NewAdminClient(tx.config)
+	tx.DeviceInfo = NewDeviceInfoClient(tx.config)
 	tx.Generation = NewGenerationClient(tx.config)
-	tx.GenerationG = NewGenerationGClient(tx.config)
-	tx.GenerationRealtime = NewGenerationRealtimeClient(tx.config)
-	tx.Model = NewModelClient(tx.config)
+	tx.GenerationModel = NewGenerationModelClient(tx.config)
+	tx.GenerationOutput = NewGenerationOutputClient(tx.config)
 	tx.NegativePrompt = NewNegativePromptClient(tx.config)
 	tx.Prompt = NewPromptClient(tx.config)
 	tx.Scheduler = NewSchedulerClient(tx.config)
-	tx.Server = NewServerClient(tx.config)
 	tx.Upscale = NewUpscaleClient(tx.config)
-	tx.UpscaleRealtime = NewUpscaleRealtimeClient(tx.config)
+	tx.UpscaleModel = NewUpscaleModelClient(tx.config)
+	tx.UpscaleOutput = NewUpscaleOutputClient(tx.config)
 	tx.User = NewUserClient(tx.config)
+	tx.UserRole = NewUserRoleClient(tx.config)
 }
 
 // txDriver wraps the given dialect.Tx with a nop dialect.Driver implementation.
@@ -190,7 +190,7 @@ func (tx *Tx) init() {
 // of them in order to commit or rollback the transaction.
 //
 // If a closed transaction is embedded in one of the generated entities, and the entity
-// applies a query, for example: Admin.QueryXXX(), the query will be executed
+// applies a query, for example: DeviceInfo.QueryXXX(), the query will be executed
 // through the driver which created this transaction.
 //
 // Note that txDriver is not goroutine safe.

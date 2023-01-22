@@ -11,18 +11,18 @@ import (
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
-	"github.com/stablecog/go-apps/database/ent/admin"
+	"github.com/stablecog/go-apps/database/ent/deviceinfo"
 	"github.com/stablecog/go-apps/database/ent/generation"
-	"github.com/stablecog/go-apps/database/ent/generationg"
-	"github.com/stablecog/go-apps/database/ent/generationrealtime"
-	"github.com/stablecog/go-apps/database/ent/model"
+	"github.com/stablecog/go-apps/database/ent/generationmodel"
+	"github.com/stablecog/go-apps/database/ent/generationoutput"
 	"github.com/stablecog/go-apps/database/ent/negativeprompt"
 	"github.com/stablecog/go-apps/database/ent/prompt"
 	"github.com/stablecog/go-apps/database/ent/scheduler"
-	"github.com/stablecog/go-apps/database/ent/server"
 	"github.com/stablecog/go-apps/database/ent/upscale"
-	"github.com/stablecog/go-apps/database/ent/upscalerealtime"
+	"github.com/stablecog/go-apps/database/ent/upscalemodel"
+	"github.com/stablecog/go-apps/database/ent/upscaleoutput"
 	"github.com/stablecog/go-apps/database/ent/user"
+	"github.com/stablecog/go-apps/database/ent/userrole"
 )
 
 // ent aliases to avoid import conflicts in user's code.
@@ -49,18 +49,18 @@ type OrderFunc func(*sql.Selector)
 // columnChecker returns a function indicates if the column exists in the given column.
 func columnChecker(table string) func(string) error {
 	checks := map[string]func(string) bool{
-		admin.Table:              admin.ValidColumn,
-		generation.Table:         generation.ValidColumn,
-		generationg.Table:        generationg.ValidColumn,
-		generationrealtime.Table: generationrealtime.ValidColumn,
-		model.Table:              model.ValidColumn,
-		negativeprompt.Table:     negativeprompt.ValidColumn,
-		prompt.Table:             prompt.ValidColumn,
-		scheduler.Table:          scheduler.ValidColumn,
-		server.Table:             server.ValidColumn,
-		upscale.Table:            upscale.ValidColumn,
-		upscalerealtime.Table:    upscalerealtime.ValidColumn,
-		user.Table:               user.ValidColumn,
+		deviceinfo.Table:       deviceinfo.ValidColumn,
+		generation.Table:       generation.ValidColumn,
+		generationmodel.Table:  generationmodel.ValidColumn,
+		generationoutput.Table: generationoutput.ValidColumn,
+		negativeprompt.Table:   negativeprompt.ValidColumn,
+		prompt.Table:           prompt.ValidColumn,
+		scheduler.Table:        scheduler.ValidColumn,
+		upscale.Table:          upscale.ValidColumn,
+		upscalemodel.Table:     upscalemodel.ValidColumn,
+		upscaleoutput.Table:    upscaleoutput.ValidColumn,
+		user.Table:             user.ValidColumn,
+		userrole.Table:         userrole.ValidColumn,
 	}
 	check, ok := checks[table]
 	if !ok {

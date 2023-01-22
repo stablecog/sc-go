@@ -12,7 +12,6 @@ import (
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
 	"github.com/stablecog/go-apps/database/ent/generation"
-	"github.com/stablecog/go-apps/database/ent/generationg"
 	"github.com/stablecog/go-apps/database/ent/prompt"
 )
 
@@ -71,34 +70,19 @@ func (pc *PromptCreate) SetNillableID(u *uuid.UUID) *PromptCreate {
 	return pc
 }
 
-// AddGenerationIDs adds the "generation" edge to the Generation entity by IDs.
+// AddGenerationIDs adds the "generations" edge to the Generation entity by IDs.
 func (pc *PromptCreate) AddGenerationIDs(ids ...uuid.UUID) *PromptCreate {
 	pc.mutation.AddGenerationIDs(ids...)
 	return pc
 }
 
-// AddGeneration adds the "generation" edges to the Generation entity.
-func (pc *PromptCreate) AddGeneration(g ...*Generation) *PromptCreate {
+// AddGenerations adds the "generations" edges to the Generation entity.
+func (pc *PromptCreate) AddGenerations(g ...*Generation) *PromptCreate {
 	ids := make([]uuid.UUID, len(g))
 	for i := range g {
 		ids[i] = g[i].ID
 	}
 	return pc.AddGenerationIDs(ids...)
-}
-
-// AddGenerationGIDs adds the "generation_g" edge to the GenerationG entity by IDs.
-func (pc *PromptCreate) AddGenerationGIDs(ids ...uuid.UUID) *PromptCreate {
-	pc.mutation.AddGenerationGIDs(ids...)
-	return pc
-}
-
-// AddGenerationG adds the "generation_g" edges to the GenerationG entity.
-func (pc *PromptCreate) AddGenerationG(g ...*GenerationG) *PromptCreate {
-	ids := make([]uuid.UUID, len(g))
-	for i := range g {
-		ids[i] = g[i].ID
-	}
-	return pc.AddGenerationGIDs(ids...)
 }
 
 // Mutation returns the PromptMutation object of the builder.
@@ -214,36 +198,17 @@ func (pc *PromptCreate) createSpec() (*Prompt, *sqlgraph.CreateSpec) {
 		_spec.SetField(prompt.FieldUpdatedAt, field.TypeTime, value)
 		_node.UpdatedAt = value
 	}
-	if nodes := pc.mutation.GenerationIDs(); len(nodes) > 0 {
+	if nodes := pc.mutation.GenerationsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   prompt.GenerationTable,
-			Columns: []string{prompt.GenerationColumn},
+			Table:   prompt.GenerationsTable,
+			Columns: []string{prompt.GenerationsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeUUID,
 					Column: generation.FieldID,
-				},
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges = append(_spec.Edges, edge)
-	}
-	if nodes := pc.mutation.GenerationGIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   prompt.GenerationGTable,
-			Columns: []string{prompt.GenerationGColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: generationg.FieldID,
 				},
 			},
 		}

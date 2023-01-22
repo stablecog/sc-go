@@ -12,9 +12,9 @@ import (
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
 	"github.com/stablecog/go-apps/database/ent/generation"
-	"github.com/stablecog/go-apps/database/ent/generationg"
 	"github.com/stablecog/go-apps/database/ent/upscale"
 	"github.com/stablecog/go-apps/database/ent/user"
+	"github.com/stablecog/go-apps/database/ent/userrole"
 )
 
 // UserCreate is the builder for creating a User entity.
@@ -33,20 +33,6 @@ func (uc *UserCreate) SetEmail(s string) *UserCreate {
 // SetStripeCustomerID sets the "stripe_customer_id" field.
 func (uc *UserCreate) SetStripeCustomerID(s string) *UserCreate {
 	uc.mutation.SetStripeCustomerID(s)
-	return uc
-}
-
-// SetSubscriptionTier sets the "subscription_tier" field.
-func (uc *UserCreate) SetSubscriptionTier(ut user.SubscriptionTier) *UserCreate {
-	uc.mutation.SetSubscriptionTier(ut)
-	return uc
-}
-
-// SetNillableSubscriptionTier sets the "subscription_tier" field if the given value is not nil.
-func (uc *UserCreate) SetNillableSubscriptionTier(ut *user.SubscriptionTier) *UserCreate {
-	if ut != nil {
-		uc.SetSubscriptionTier(*ut)
-	}
 	return uc
 }
 
@@ -104,29 +90,29 @@ func (uc *UserCreate) SetNillableID(u *uuid.UUID) *UserCreate {
 	return uc
 }
 
-// AddUpscaleIDs adds the "upscale" edge to the Upscale entity by IDs.
-func (uc *UserCreate) AddUpscaleIDs(ids ...uuid.UUID) *UserCreate {
-	uc.mutation.AddUpscaleIDs(ids...)
+// AddUserRoleIDs adds the "user_roles" edge to the UserRole entity by IDs.
+func (uc *UserCreate) AddUserRoleIDs(ids ...uuid.UUID) *UserCreate {
+	uc.mutation.AddUserRoleIDs(ids...)
 	return uc
 }
 
-// AddUpscale adds the "upscale" edges to the Upscale entity.
-func (uc *UserCreate) AddUpscale(u ...*Upscale) *UserCreate {
+// AddUserRoles adds the "user_roles" edges to the UserRole entity.
+func (uc *UserCreate) AddUserRoles(u ...*UserRole) *UserCreate {
 	ids := make([]uuid.UUID, len(u))
 	for i := range u {
 		ids[i] = u[i].ID
 	}
-	return uc.AddUpscaleIDs(ids...)
+	return uc.AddUserRoleIDs(ids...)
 }
 
-// AddGenerationIDs adds the "generation" edge to the Generation entity by IDs.
+// AddGenerationIDs adds the "generations" edge to the Generation entity by IDs.
 func (uc *UserCreate) AddGenerationIDs(ids ...uuid.UUID) *UserCreate {
 	uc.mutation.AddGenerationIDs(ids...)
 	return uc
 }
 
-// AddGeneration adds the "generation" edges to the Generation entity.
-func (uc *UserCreate) AddGeneration(g ...*Generation) *UserCreate {
+// AddGenerations adds the "generations" edges to the Generation entity.
+func (uc *UserCreate) AddGenerations(g ...*Generation) *UserCreate {
 	ids := make([]uuid.UUID, len(g))
 	for i := range g {
 		ids[i] = g[i].ID
@@ -134,19 +120,19 @@ func (uc *UserCreate) AddGeneration(g ...*Generation) *UserCreate {
 	return uc.AddGenerationIDs(ids...)
 }
 
-// AddGenerationGIDs adds the "generation_g" edge to the GenerationG entity by IDs.
-func (uc *UserCreate) AddGenerationGIDs(ids ...uuid.UUID) *UserCreate {
-	uc.mutation.AddGenerationGIDs(ids...)
+// AddUpscaleIDs adds the "upscales" edge to the Upscale entity by IDs.
+func (uc *UserCreate) AddUpscaleIDs(ids ...uuid.UUID) *UserCreate {
+	uc.mutation.AddUpscaleIDs(ids...)
 	return uc
 }
 
-// AddGenerationG adds the "generation_g" edges to the GenerationG entity.
-func (uc *UserCreate) AddGenerationG(g ...*GenerationG) *UserCreate {
-	ids := make([]uuid.UUID, len(g))
-	for i := range g {
-		ids[i] = g[i].ID
+// AddUpscales adds the "upscales" edges to the Upscale entity.
+func (uc *UserCreate) AddUpscales(u ...*Upscale) *UserCreate {
+	ids := make([]uuid.UUID, len(u))
+	for i := range u {
+		ids[i] = u[i].ID
 	}
-	return uc.AddGenerationGIDs(ids...)
+	return uc.AddUpscaleIDs(ids...)
 }
 
 // Mutation returns the UserMutation object of the builder.
@@ -184,10 +170,6 @@ func (uc *UserCreate) ExecX(ctx context.Context) {
 
 // defaults sets the default values of the builder before save.
 func (uc *UserCreate) defaults() {
-	if _, ok := uc.mutation.SubscriptionTier(); !ok {
-		v := user.DefaultSubscriptionTier
-		uc.mutation.SetSubscriptionTier(v)
-	}
 	if _, ok := uc.mutation.CreatedAt(); !ok {
 		v := user.DefaultCreatedAt()
 		uc.mutation.SetCreatedAt(v)
@@ -209,14 +191,6 @@ func (uc *UserCreate) check() error {
 	}
 	if _, ok := uc.mutation.StripeCustomerID(); !ok {
 		return &ValidationError{Name: "stripe_customer_id", err: errors.New(`ent: missing required field "User.stripe_customer_id"`)}
-	}
-	if _, ok := uc.mutation.SubscriptionTier(); !ok {
-		return &ValidationError{Name: "subscription_tier", err: errors.New(`ent: missing required field "User.subscription_tier"`)}
-	}
-	if v, ok := uc.mutation.SubscriptionTier(); ok {
-		if err := user.SubscriptionTierValidator(v); err != nil {
-			return &ValidationError{Name: "subscription_tier", err: fmt.Errorf(`ent: validator failed for field "User.subscription_tier": %w`, err)}
-		}
 	}
 	if _, ok := uc.mutation.SubscriptionCategory(); !ok {
 		return &ValidationError{Name: "subscription_category", err: errors.New(`ent: missing required field "User.subscription_category"`)}
@@ -284,10 +258,6 @@ func (uc *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 		_spec.SetField(user.FieldStripeCustomerID, field.TypeString, value)
 		_node.StripeCustomerID = &value
 	}
-	if value, ok := uc.mutation.SubscriptionTier(); ok {
-		_spec.SetField(user.FieldSubscriptionTier, field.TypeEnum, value)
-		_node.SubscriptionTier = value
-	}
 	if value, ok := uc.mutation.SubscriptionCategory(); ok {
 		_spec.SetField(user.FieldSubscriptionCategory, field.TypeEnum, value)
 		_node.SubscriptionCategory = &value
@@ -304,17 +274,17 @@ func (uc *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 		_spec.SetField(user.FieldConfirmedAt, field.TypeTime, value)
 		_node.ConfirmedAt = &value
 	}
-	if nodes := uc.mutation.UpscaleIDs(); len(nodes) > 0 {
+	if nodes := uc.mutation.UserRolesIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   user.UpscaleTable,
-			Columns: []string{user.UpscaleColumn},
+			Table:   user.UserRolesTable,
+			Columns: []string{user.UserRolesColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeUUID,
-					Column: upscale.FieldID,
+					Column: userrole.FieldID,
 				},
 			},
 		}
@@ -323,12 +293,12 @@ func (uc *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if nodes := uc.mutation.GenerationIDs(); len(nodes) > 0 {
+	if nodes := uc.mutation.GenerationsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   user.GenerationTable,
-			Columns: []string{user.GenerationColumn},
+			Table:   user.GenerationsTable,
+			Columns: []string{user.GenerationsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
@@ -342,17 +312,17 @@ func (uc *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if nodes := uc.mutation.GenerationGIDs(); len(nodes) > 0 {
+	if nodes := uc.mutation.UpscalesIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   user.GenerationGTable,
-			Columns: []string{user.GenerationGColumn},
+			Table:   user.UpscalesTable,
+			Columns: []string{user.UpscalesColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeUUID,
-					Column: generationg.FieldID,
+					Column: upscale.FieldID,
 				},
 			},
 		}

@@ -1,5 +1,21 @@
 version: '3.9'
 services:
+  db:
+    container_name: stablecog_go_postgres
+    image: postgres:14
+    user: 1000:20
+    ports:
+      - '127.0.0.1:53337:5432'
+    restart: unless-stopped
+    environment:
+      - POSTGRES_DB=stablecog_go
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - PGDATA=/var/lib/postgresql/data/dev
+    volumes:
+      - .data/postgres:/var/lib/postgresql/data:delegated # Delegated indicates the containers view of the volume takes priority
+    networks: [ 'app-network' ]
+
   app:
     container_name: stablecog_go_dev
     image: appditto/go-vscode-dev:latest
@@ -19,7 +35,7 @@ services:
     stdin_open: true
     tty: true
     user: go
-    networks: ['app-network']
+    networks: [ 'app-network' ]
 
 networks:
   app-network:

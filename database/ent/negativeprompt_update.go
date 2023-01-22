@@ -13,7 +13,6 @@ import (
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
 	"github.com/stablecog/go-apps/database/ent/generation"
-	"github.com/stablecog/go-apps/database/ent/generationg"
 	"github.com/stablecog/go-apps/database/ent/negativeprompt"
 	"github.com/stablecog/go-apps/database/ent/predicate"
 )
@@ -43,14 +42,14 @@ func (npu *NegativePromptUpdate) SetUpdatedAt(t time.Time) *NegativePromptUpdate
 	return npu
 }
 
-// AddGenerationIDs adds the "generation" edge to the Generation entity by IDs.
+// AddGenerationIDs adds the "generations" edge to the Generation entity by IDs.
 func (npu *NegativePromptUpdate) AddGenerationIDs(ids ...uuid.UUID) *NegativePromptUpdate {
 	npu.mutation.AddGenerationIDs(ids...)
 	return npu
 }
 
-// AddGeneration adds the "generation" edges to the Generation entity.
-func (npu *NegativePromptUpdate) AddGeneration(g ...*Generation) *NegativePromptUpdate {
+// AddGenerations adds the "generations" edges to the Generation entity.
+func (npu *NegativePromptUpdate) AddGenerations(g ...*Generation) *NegativePromptUpdate {
 	ids := make([]uuid.UUID, len(g))
 	for i := range g {
 		ids[i] = g[i].ID
@@ -58,66 +57,30 @@ func (npu *NegativePromptUpdate) AddGeneration(g ...*Generation) *NegativePrompt
 	return npu.AddGenerationIDs(ids...)
 }
 
-// AddGenerationGIDs adds the "generation_g" edge to the GenerationG entity by IDs.
-func (npu *NegativePromptUpdate) AddGenerationGIDs(ids ...uuid.UUID) *NegativePromptUpdate {
-	npu.mutation.AddGenerationGIDs(ids...)
-	return npu
-}
-
-// AddGenerationG adds the "generation_g" edges to the GenerationG entity.
-func (npu *NegativePromptUpdate) AddGenerationG(g ...*GenerationG) *NegativePromptUpdate {
-	ids := make([]uuid.UUID, len(g))
-	for i := range g {
-		ids[i] = g[i].ID
-	}
-	return npu.AddGenerationGIDs(ids...)
-}
-
 // Mutation returns the NegativePromptMutation object of the builder.
 func (npu *NegativePromptUpdate) Mutation() *NegativePromptMutation {
 	return npu.mutation
 }
 
-// ClearGeneration clears all "generation" edges to the Generation entity.
-func (npu *NegativePromptUpdate) ClearGeneration() *NegativePromptUpdate {
-	npu.mutation.ClearGeneration()
+// ClearGenerations clears all "generations" edges to the Generation entity.
+func (npu *NegativePromptUpdate) ClearGenerations() *NegativePromptUpdate {
+	npu.mutation.ClearGenerations()
 	return npu
 }
 
-// RemoveGenerationIDs removes the "generation" edge to Generation entities by IDs.
+// RemoveGenerationIDs removes the "generations" edge to Generation entities by IDs.
 func (npu *NegativePromptUpdate) RemoveGenerationIDs(ids ...uuid.UUID) *NegativePromptUpdate {
 	npu.mutation.RemoveGenerationIDs(ids...)
 	return npu
 }
 
-// RemoveGeneration removes "generation" edges to Generation entities.
-func (npu *NegativePromptUpdate) RemoveGeneration(g ...*Generation) *NegativePromptUpdate {
+// RemoveGenerations removes "generations" edges to Generation entities.
+func (npu *NegativePromptUpdate) RemoveGenerations(g ...*Generation) *NegativePromptUpdate {
 	ids := make([]uuid.UUID, len(g))
 	for i := range g {
 		ids[i] = g[i].ID
 	}
 	return npu.RemoveGenerationIDs(ids...)
-}
-
-// ClearGenerationG clears all "generation_g" edges to the GenerationG entity.
-func (npu *NegativePromptUpdate) ClearGenerationG() *NegativePromptUpdate {
-	npu.mutation.ClearGenerationG()
-	return npu
-}
-
-// RemoveGenerationGIDs removes the "generation_g" edge to GenerationG entities by IDs.
-func (npu *NegativePromptUpdate) RemoveGenerationGIDs(ids ...uuid.UUID) *NegativePromptUpdate {
-	npu.mutation.RemoveGenerationGIDs(ids...)
-	return npu
-}
-
-// RemoveGenerationG removes "generation_g" edges to GenerationG entities.
-func (npu *NegativePromptUpdate) RemoveGenerationG(g ...*GenerationG) *NegativePromptUpdate {
-	ids := make([]uuid.UUID, len(g))
-	for i := range g {
-		ids[i] = g[i].ID
-	}
-	return npu.RemoveGenerationGIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -180,12 +143,12 @@ func (npu *NegativePromptUpdate) sqlSave(ctx context.Context) (n int, err error)
 	if value, ok := npu.mutation.UpdatedAt(); ok {
 		_spec.SetField(negativeprompt.FieldUpdatedAt, field.TypeTime, value)
 	}
-	if npu.mutation.GenerationCleared() {
+	if npu.mutation.GenerationsCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   negativeprompt.GenerationTable,
-			Columns: []string{negativeprompt.GenerationColumn},
+			Table:   negativeprompt.GenerationsTable,
+			Columns: []string{negativeprompt.GenerationsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
@@ -196,31 +159,12 @@ func (npu *NegativePromptUpdate) sqlSave(ctx context.Context) (n int, err error)
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := npu.mutation.RemovedGenerationIDs(); len(nodes) > 0 && !npu.mutation.GenerationCleared() {
+	if nodes := npu.mutation.RemovedGenerationsIDs(); len(nodes) > 0 && !npu.mutation.GenerationsCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   negativeprompt.GenerationTable,
-			Columns: []string{negativeprompt.GenerationColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: generation.FieldID,
-				},
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := npu.mutation.GenerationIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   negativeprompt.GenerationTable,
-			Columns: []string{negativeprompt.GenerationColumn},
+			Table:   negativeprompt.GenerationsTable,
+			Columns: []string{negativeprompt.GenerationsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
@@ -232,54 +176,19 @@ func (npu *NegativePromptUpdate) sqlSave(ctx context.Context) (n int, err error)
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		_spec.Edges.Add = append(_spec.Edges.Add, edge)
-	}
-	if npu.mutation.GenerationGCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   negativeprompt.GenerationGTable,
-			Columns: []string{negativeprompt.GenerationGColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: generationg.FieldID,
-				},
-			},
-		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := npu.mutation.RemovedGenerationGIDs(); len(nodes) > 0 && !npu.mutation.GenerationGCleared() {
+	if nodes := npu.mutation.GenerationsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   negativeprompt.GenerationGTable,
-			Columns: []string{negativeprompt.GenerationGColumn},
+			Table:   negativeprompt.GenerationsTable,
+			Columns: []string{negativeprompt.GenerationsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeUUID,
-					Column: generationg.FieldID,
-				},
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := npu.mutation.GenerationGIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   negativeprompt.GenerationGTable,
-			Columns: []string{negativeprompt.GenerationGColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: generationg.FieldID,
+					Column: generation.FieldID,
 				},
 			},
 		}
@@ -320,14 +229,14 @@ func (npuo *NegativePromptUpdateOne) SetUpdatedAt(t time.Time) *NegativePromptUp
 	return npuo
 }
 
-// AddGenerationIDs adds the "generation" edge to the Generation entity by IDs.
+// AddGenerationIDs adds the "generations" edge to the Generation entity by IDs.
 func (npuo *NegativePromptUpdateOne) AddGenerationIDs(ids ...uuid.UUID) *NegativePromptUpdateOne {
 	npuo.mutation.AddGenerationIDs(ids...)
 	return npuo
 }
 
-// AddGeneration adds the "generation" edges to the Generation entity.
-func (npuo *NegativePromptUpdateOne) AddGeneration(g ...*Generation) *NegativePromptUpdateOne {
+// AddGenerations adds the "generations" edges to the Generation entity.
+func (npuo *NegativePromptUpdateOne) AddGenerations(g ...*Generation) *NegativePromptUpdateOne {
 	ids := make([]uuid.UUID, len(g))
 	for i := range g {
 		ids[i] = g[i].ID
@@ -335,66 +244,30 @@ func (npuo *NegativePromptUpdateOne) AddGeneration(g ...*Generation) *NegativePr
 	return npuo.AddGenerationIDs(ids...)
 }
 
-// AddGenerationGIDs adds the "generation_g" edge to the GenerationG entity by IDs.
-func (npuo *NegativePromptUpdateOne) AddGenerationGIDs(ids ...uuid.UUID) *NegativePromptUpdateOne {
-	npuo.mutation.AddGenerationGIDs(ids...)
-	return npuo
-}
-
-// AddGenerationG adds the "generation_g" edges to the GenerationG entity.
-func (npuo *NegativePromptUpdateOne) AddGenerationG(g ...*GenerationG) *NegativePromptUpdateOne {
-	ids := make([]uuid.UUID, len(g))
-	for i := range g {
-		ids[i] = g[i].ID
-	}
-	return npuo.AddGenerationGIDs(ids...)
-}
-
 // Mutation returns the NegativePromptMutation object of the builder.
 func (npuo *NegativePromptUpdateOne) Mutation() *NegativePromptMutation {
 	return npuo.mutation
 }
 
-// ClearGeneration clears all "generation" edges to the Generation entity.
-func (npuo *NegativePromptUpdateOne) ClearGeneration() *NegativePromptUpdateOne {
-	npuo.mutation.ClearGeneration()
+// ClearGenerations clears all "generations" edges to the Generation entity.
+func (npuo *NegativePromptUpdateOne) ClearGenerations() *NegativePromptUpdateOne {
+	npuo.mutation.ClearGenerations()
 	return npuo
 }
 
-// RemoveGenerationIDs removes the "generation" edge to Generation entities by IDs.
+// RemoveGenerationIDs removes the "generations" edge to Generation entities by IDs.
 func (npuo *NegativePromptUpdateOne) RemoveGenerationIDs(ids ...uuid.UUID) *NegativePromptUpdateOne {
 	npuo.mutation.RemoveGenerationIDs(ids...)
 	return npuo
 }
 
-// RemoveGeneration removes "generation" edges to Generation entities.
-func (npuo *NegativePromptUpdateOne) RemoveGeneration(g ...*Generation) *NegativePromptUpdateOne {
+// RemoveGenerations removes "generations" edges to Generation entities.
+func (npuo *NegativePromptUpdateOne) RemoveGenerations(g ...*Generation) *NegativePromptUpdateOne {
 	ids := make([]uuid.UUID, len(g))
 	for i := range g {
 		ids[i] = g[i].ID
 	}
 	return npuo.RemoveGenerationIDs(ids...)
-}
-
-// ClearGenerationG clears all "generation_g" edges to the GenerationG entity.
-func (npuo *NegativePromptUpdateOne) ClearGenerationG() *NegativePromptUpdateOne {
-	npuo.mutation.ClearGenerationG()
-	return npuo
-}
-
-// RemoveGenerationGIDs removes the "generation_g" edge to GenerationG entities by IDs.
-func (npuo *NegativePromptUpdateOne) RemoveGenerationGIDs(ids ...uuid.UUID) *NegativePromptUpdateOne {
-	npuo.mutation.RemoveGenerationGIDs(ids...)
-	return npuo
-}
-
-// RemoveGenerationG removes "generation_g" edges to GenerationG entities.
-func (npuo *NegativePromptUpdateOne) RemoveGenerationG(g ...*GenerationG) *NegativePromptUpdateOne {
-	ids := make([]uuid.UUID, len(g))
-	for i := range g {
-		ids[i] = g[i].ID
-	}
-	return npuo.RemoveGenerationGIDs(ids...)
 }
 
 // Select allows selecting one or more fields (columns) of the returned entity.
@@ -481,12 +354,12 @@ func (npuo *NegativePromptUpdateOne) sqlSave(ctx context.Context) (_node *Negati
 	if value, ok := npuo.mutation.UpdatedAt(); ok {
 		_spec.SetField(negativeprompt.FieldUpdatedAt, field.TypeTime, value)
 	}
-	if npuo.mutation.GenerationCleared() {
+	if npuo.mutation.GenerationsCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   negativeprompt.GenerationTable,
-			Columns: []string{negativeprompt.GenerationColumn},
+			Table:   negativeprompt.GenerationsTable,
+			Columns: []string{negativeprompt.GenerationsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
@@ -497,31 +370,12 @@ func (npuo *NegativePromptUpdateOne) sqlSave(ctx context.Context) (_node *Negati
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := npuo.mutation.RemovedGenerationIDs(); len(nodes) > 0 && !npuo.mutation.GenerationCleared() {
+	if nodes := npuo.mutation.RemovedGenerationsIDs(); len(nodes) > 0 && !npuo.mutation.GenerationsCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   negativeprompt.GenerationTable,
-			Columns: []string{negativeprompt.GenerationColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: generation.FieldID,
-				},
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := npuo.mutation.GenerationIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   negativeprompt.GenerationTable,
-			Columns: []string{negativeprompt.GenerationColumn},
+			Table:   negativeprompt.GenerationsTable,
+			Columns: []string{negativeprompt.GenerationsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
@@ -533,54 +387,19 @@ func (npuo *NegativePromptUpdateOne) sqlSave(ctx context.Context) (_node *Negati
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		_spec.Edges.Add = append(_spec.Edges.Add, edge)
-	}
-	if npuo.mutation.GenerationGCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   negativeprompt.GenerationGTable,
-			Columns: []string{negativeprompt.GenerationGColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: generationg.FieldID,
-				},
-			},
-		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := npuo.mutation.RemovedGenerationGIDs(); len(nodes) > 0 && !npuo.mutation.GenerationGCleared() {
+	if nodes := npuo.mutation.GenerationsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   negativeprompt.GenerationGTable,
-			Columns: []string{negativeprompt.GenerationGColumn},
+			Table:   negativeprompt.GenerationsTable,
+			Columns: []string{negativeprompt.GenerationsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeUUID,
-					Column: generationg.FieldID,
-				},
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := npuo.mutation.GenerationGIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   negativeprompt.GenerationGTable,
-			Columns: []string{negativeprompt.GenerationGColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: generationg.FieldID,
+					Column: generation.FieldID,
 				},
 			},
 		}

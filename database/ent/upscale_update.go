@@ -12,10 +12,12 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
+	"github.com/stablecog/go-apps/database/ent/deviceinfo"
 	"github.com/stablecog/go-apps/database/ent/predicate"
 	"github.com/stablecog/go-apps/database/ent/upscale"
+	"github.com/stablecog/go-apps/database/ent/upscalemodel"
+	"github.com/stablecog/go-apps/database/ent/upscaleoutput"
 	"github.com/stablecog/go-apps/database/ent/user"
-	"github.com/stablecog/go-apps/database/enttypes"
 )
 
 // UpscaleUpdate is the builder for updating Upscale entities.
@@ -70,99 +72,16 @@ func (uu *UpscaleUpdate) AddScale(i int) *UpscaleUpdate {
 	return uu
 }
 
-// SetStatus sets the "status" field.
-func (uu *UpscaleUpdate) SetStatus(u upscale.Status) *UpscaleUpdate {
-	uu.mutation.SetStatus(u)
+// SetDurationMs sets the "duration_ms" field.
+func (uu *UpscaleUpdate) SetDurationMs(i int) *UpscaleUpdate {
+	uu.mutation.ResetDurationMs()
+	uu.mutation.SetDurationMs(i)
 	return uu
 }
 
-// SetServerURL sets the "server_url" field.
-func (uu *UpscaleUpdate) SetServerURL(s string) *UpscaleUpdate {
-	uu.mutation.SetServerURL(s)
-	return uu
-}
-
-// SetDurationMsg sets the "duration_msg" field.
-func (uu *UpscaleUpdate) SetDurationMsg(i int) *UpscaleUpdate {
-	uu.mutation.ResetDurationMsg()
-	uu.mutation.SetDurationMsg(i)
-	return uu
-}
-
-// AddDurationMsg adds i to the "duration_msg" field.
-func (uu *UpscaleUpdate) AddDurationMsg(i int) *UpscaleUpdate {
-	uu.mutation.AddDurationMsg(i)
-	return uu
-}
-
-// SetType sets the "type" field.
-func (uu *UpscaleUpdate) SetType(s string) *UpscaleUpdate {
-	uu.mutation.SetType(s)
-	return uu
-}
-
-// SetPrompt sets the "prompt" field.
-func (uu *UpscaleUpdate) SetPrompt(s string) *UpscaleUpdate {
-	uu.mutation.SetPrompt(s)
-	return uu
-}
-
-// SetNegativePrompt sets the "negative_prompt" field.
-func (uu *UpscaleUpdate) SetNegativePrompt(s string) *UpscaleUpdate {
-	uu.mutation.SetNegativePrompt(s)
-	return uu
-}
-
-// SetSeed sets the "seed" field.
-func (uu *UpscaleUpdate) SetSeed(ei enttypes.BigInt) *UpscaleUpdate {
-	uu.mutation.ResetSeed()
-	uu.mutation.SetSeed(ei)
-	return uu
-}
-
-// SetNillableSeed sets the "seed" field if the given value is not nil.
-func (uu *UpscaleUpdate) SetNillableSeed(ei *enttypes.BigInt) *UpscaleUpdate {
-	if ei != nil {
-		uu.SetSeed(*ei)
-	}
-	return uu
-}
-
-// AddSeed adds ei to the "seed" field.
-func (uu *UpscaleUpdate) AddSeed(ei enttypes.BigInt) *UpscaleUpdate {
-	uu.mutation.AddSeed(ei)
-	return uu
-}
-
-// ClearSeed clears the value of the "seed" field.
-func (uu *UpscaleUpdate) ClearSeed() *UpscaleUpdate {
-	uu.mutation.ClearSeed()
-	return uu
-}
-
-// SetNumInferenceSteps sets the "num_inference_steps" field.
-func (uu *UpscaleUpdate) SetNumInferenceSteps(i int) *UpscaleUpdate {
-	uu.mutation.ResetNumInferenceSteps()
-	uu.mutation.SetNumInferenceSteps(i)
-	return uu
-}
-
-// AddNumInferenceSteps adds i to the "num_inference_steps" field.
-func (uu *UpscaleUpdate) AddNumInferenceSteps(i int) *UpscaleUpdate {
-	uu.mutation.AddNumInferenceSteps(i)
-	return uu
-}
-
-// SetGuidanceScale sets the "guidance_scale" field.
-func (uu *UpscaleUpdate) SetGuidanceScale(f float64) *UpscaleUpdate {
-	uu.mutation.ResetGuidanceScale()
-	uu.mutation.SetGuidanceScale(f)
-	return uu
-}
-
-// AddGuidanceScale adds f to the "guidance_scale" field.
-func (uu *UpscaleUpdate) AddGuidanceScale(f float64) *UpscaleUpdate {
-	uu.mutation.AddGuidanceScale(f)
+// AddDurationMs adds i to the "duration_ms" field.
+func (uu *UpscaleUpdate) AddDurationMs(i int) *UpscaleUpdate {
+	uu.mutation.AddDurationMs(i)
 	return uu
 }
 
@@ -172,33 +91,21 @@ func (uu *UpscaleUpdate) SetCountryCode(s string) *UpscaleUpdate {
 	return uu
 }
 
-// SetDeviceType sets the "device_type" field.
-func (uu *UpscaleUpdate) SetDeviceType(s string) *UpscaleUpdate {
-	uu.mutation.SetDeviceType(s)
+// SetStatus sets the "status" field.
+func (uu *UpscaleUpdate) SetStatus(u upscale.Status) *UpscaleUpdate {
+	uu.mutation.SetStatus(u)
 	return uu
 }
 
-// SetDeviceOs sets the "device_os" field.
-func (uu *UpscaleUpdate) SetDeviceOs(s string) *UpscaleUpdate {
-	uu.mutation.SetDeviceOs(s)
+// SetFailureReason sets the "failure_reason" field.
+func (uu *UpscaleUpdate) SetFailureReason(s string) *UpscaleUpdate {
+	uu.mutation.SetFailureReason(s)
 	return uu
 }
 
-// SetDeviceBrowser sets the "device_browser" field.
-func (uu *UpscaleUpdate) SetDeviceBrowser(s string) *UpscaleUpdate {
-	uu.mutation.SetDeviceBrowser(s)
-	return uu
-}
-
-// SetUserAgent sets the "user_agent" field.
-func (uu *UpscaleUpdate) SetUserAgent(s string) *UpscaleUpdate {
-	uu.mutation.SetUserAgent(s)
-	return uu
-}
-
-// SetUpdatedAt sets the "updated_at" field.
-func (uu *UpscaleUpdate) SetUpdatedAt(t time.Time) *UpscaleUpdate {
-	uu.mutation.SetUpdatedAt(t)
+// SetModelID sets the "model_id" field.
+func (uu *UpscaleUpdate) SetModelID(u uuid.UUID) *UpscaleUpdate {
+	uu.mutation.SetModelID(u)
 	return uu
 }
 
@@ -208,23 +115,52 @@ func (uu *UpscaleUpdate) SetUserID(u uuid.UUID) *UpscaleUpdate {
 	return uu
 }
 
-// SetUserTier sets the "user_tier" field.
-func (uu *UpscaleUpdate) SetUserTier(ut upscale.UserTier) *UpscaleUpdate {
-	uu.mutation.SetUserTier(ut)
+// SetDeviceInfoID sets the "device_info_id" field.
+func (uu *UpscaleUpdate) SetDeviceInfoID(u uuid.UUID) *UpscaleUpdate {
+	uu.mutation.SetDeviceInfoID(u)
 	return uu
 }
 
-// SetNillableUserTier sets the "user_tier" field if the given value is not nil.
-func (uu *UpscaleUpdate) SetNillableUserTier(ut *upscale.UserTier) *UpscaleUpdate {
-	if ut != nil {
-		uu.SetUserTier(*ut)
-	}
+// SetUpdatedAt sets the "updated_at" field.
+func (uu *UpscaleUpdate) SetUpdatedAt(t time.Time) *UpscaleUpdate {
+	uu.mutation.SetUpdatedAt(t)
 	return uu
 }
 
 // SetUser sets the "user" edge to the User entity.
 func (uu *UpscaleUpdate) SetUser(u *User) *UpscaleUpdate {
 	return uu.SetUserID(u.ID)
+}
+
+// SetDeviceInfo sets the "device_info" edge to the DeviceInfo entity.
+func (uu *UpscaleUpdate) SetDeviceInfo(d *DeviceInfo) *UpscaleUpdate {
+	return uu.SetDeviceInfoID(d.ID)
+}
+
+// SetUpscaleModelsID sets the "upscale_models" edge to the UpscaleModel entity by ID.
+func (uu *UpscaleUpdate) SetUpscaleModelsID(id uuid.UUID) *UpscaleUpdate {
+	uu.mutation.SetUpscaleModelsID(id)
+	return uu
+}
+
+// SetUpscaleModels sets the "upscale_models" edge to the UpscaleModel entity.
+func (uu *UpscaleUpdate) SetUpscaleModels(u *UpscaleModel) *UpscaleUpdate {
+	return uu.SetUpscaleModelsID(u.ID)
+}
+
+// AddUpscaleOutputIDs adds the "upscale_outputs" edge to the UpscaleOutput entity by IDs.
+func (uu *UpscaleUpdate) AddUpscaleOutputIDs(ids ...uuid.UUID) *UpscaleUpdate {
+	uu.mutation.AddUpscaleOutputIDs(ids...)
+	return uu
+}
+
+// AddUpscaleOutputs adds the "upscale_outputs" edges to the UpscaleOutput entity.
+func (uu *UpscaleUpdate) AddUpscaleOutputs(u ...*UpscaleOutput) *UpscaleUpdate {
+	ids := make([]uuid.UUID, len(u))
+	for i := range u {
+		ids[i] = u[i].ID
+	}
+	return uu.AddUpscaleOutputIDs(ids...)
 }
 
 // Mutation returns the UpscaleMutation object of the builder.
@@ -236,6 +172,39 @@ func (uu *UpscaleUpdate) Mutation() *UpscaleMutation {
 func (uu *UpscaleUpdate) ClearUser() *UpscaleUpdate {
 	uu.mutation.ClearUser()
 	return uu
+}
+
+// ClearDeviceInfo clears the "device_info" edge to the DeviceInfo entity.
+func (uu *UpscaleUpdate) ClearDeviceInfo() *UpscaleUpdate {
+	uu.mutation.ClearDeviceInfo()
+	return uu
+}
+
+// ClearUpscaleModels clears the "upscale_models" edge to the UpscaleModel entity.
+func (uu *UpscaleUpdate) ClearUpscaleModels() *UpscaleUpdate {
+	uu.mutation.ClearUpscaleModels()
+	return uu
+}
+
+// ClearUpscaleOutputs clears all "upscale_outputs" edges to the UpscaleOutput entity.
+func (uu *UpscaleUpdate) ClearUpscaleOutputs() *UpscaleUpdate {
+	uu.mutation.ClearUpscaleOutputs()
+	return uu
+}
+
+// RemoveUpscaleOutputIDs removes the "upscale_outputs" edge to UpscaleOutput entities by IDs.
+func (uu *UpscaleUpdate) RemoveUpscaleOutputIDs(ids ...uuid.UUID) *UpscaleUpdate {
+	uu.mutation.RemoveUpscaleOutputIDs(ids...)
+	return uu
+}
+
+// RemoveUpscaleOutputs removes "upscale_outputs" edges to UpscaleOutput entities.
+func (uu *UpscaleUpdate) RemoveUpscaleOutputs(u ...*UpscaleOutput) *UpscaleUpdate {
+	ids := make([]uuid.UUID, len(u))
+	for i := range u {
+		ids[i] = u[i].ID
+	}
+	return uu.RemoveUpscaleOutputIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -281,13 +250,14 @@ func (uu *UpscaleUpdate) check() error {
 			return &ValidationError{Name: "status", err: fmt.Errorf(`ent: validator failed for field "Upscale.status": %w`, err)}
 		}
 	}
-	if v, ok := uu.mutation.UserTier(); ok {
-		if err := upscale.UserTierValidator(v); err != nil {
-			return &ValidationError{Name: "user_tier", err: fmt.Errorf(`ent: validator failed for field "Upscale.user_tier": %w`, err)}
-		}
-	}
 	if _, ok := uu.mutation.UserID(); uu.mutation.UserCleared() && !ok {
 		return errors.New(`ent: clearing a required unique edge "Upscale.user"`)
+	}
+	if _, ok := uu.mutation.DeviceInfoID(); uu.mutation.DeviceInfoCleared() && !ok {
+		return errors.New(`ent: clearing a required unique edge "Upscale.device_info"`)
+	}
+	if _, ok := uu.mutation.UpscaleModelsID(); uu.mutation.UpscaleModelsCleared() && !ok {
+		return errors.New(`ent: clearing a required unique edge "Upscale.upscale_models"`)
 	}
 	return nil
 }
@@ -331,68 +301,23 @@ func (uu *UpscaleUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if value, ok := uu.mutation.AddedScale(); ok {
 		_spec.AddField(upscale.FieldScale, field.TypeInt, value)
 	}
-	if value, ok := uu.mutation.Status(); ok {
-		_spec.SetField(upscale.FieldStatus, field.TypeEnum, value)
+	if value, ok := uu.mutation.DurationMs(); ok {
+		_spec.SetField(upscale.FieldDurationMs, field.TypeInt, value)
 	}
-	if value, ok := uu.mutation.ServerURL(); ok {
-		_spec.SetField(upscale.FieldServerURL, field.TypeString, value)
-	}
-	if value, ok := uu.mutation.DurationMsg(); ok {
-		_spec.SetField(upscale.FieldDurationMsg, field.TypeInt, value)
-	}
-	if value, ok := uu.mutation.AddedDurationMsg(); ok {
-		_spec.AddField(upscale.FieldDurationMsg, field.TypeInt, value)
-	}
-	if value, ok := uu.mutation.GetType(); ok {
-		_spec.SetField(upscale.FieldType, field.TypeString, value)
-	}
-	if value, ok := uu.mutation.Prompt(); ok {
-		_spec.SetField(upscale.FieldPrompt, field.TypeString, value)
-	}
-	if value, ok := uu.mutation.NegativePrompt(); ok {
-		_spec.SetField(upscale.FieldNegativePrompt, field.TypeString, value)
-	}
-	if value, ok := uu.mutation.Seed(); ok {
-		_spec.SetField(upscale.FieldSeed, field.TypeInt, value)
-	}
-	if value, ok := uu.mutation.AddedSeed(); ok {
-		_spec.AddField(upscale.FieldSeed, field.TypeInt, value)
-	}
-	if uu.mutation.SeedCleared() {
-		_spec.ClearField(upscale.FieldSeed, field.TypeInt)
-	}
-	if value, ok := uu.mutation.NumInferenceSteps(); ok {
-		_spec.SetField(upscale.FieldNumInferenceSteps, field.TypeInt, value)
-	}
-	if value, ok := uu.mutation.AddedNumInferenceSteps(); ok {
-		_spec.AddField(upscale.FieldNumInferenceSteps, field.TypeInt, value)
-	}
-	if value, ok := uu.mutation.GuidanceScale(); ok {
-		_spec.SetField(upscale.FieldGuidanceScale, field.TypeFloat64, value)
-	}
-	if value, ok := uu.mutation.AddedGuidanceScale(); ok {
-		_spec.AddField(upscale.FieldGuidanceScale, field.TypeFloat64, value)
+	if value, ok := uu.mutation.AddedDurationMs(); ok {
+		_spec.AddField(upscale.FieldDurationMs, field.TypeInt, value)
 	}
 	if value, ok := uu.mutation.CountryCode(); ok {
 		_spec.SetField(upscale.FieldCountryCode, field.TypeString, value)
 	}
-	if value, ok := uu.mutation.DeviceType(); ok {
-		_spec.SetField(upscale.FieldDeviceType, field.TypeString, value)
+	if value, ok := uu.mutation.Status(); ok {
+		_spec.SetField(upscale.FieldStatus, field.TypeEnum, value)
 	}
-	if value, ok := uu.mutation.DeviceOs(); ok {
-		_spec.SetField(upscale.FieldDeviceOs, field.TypeString, value)
-	}
-	if value, ok := uu.mutation.DeviceBrowser(); ok {
-		_spec.SetField(upscale.FieldDeviceBrowser, field.TypeString, value)
-	}
-	if value, ok := uu.mutation.UserAgent(); ok {
-		_spec.SetField(upscale.FieldUserAgent, field.TypeString, value)
+	if value, ok := uu.mutation.FailureReason(); ok {
+		_spec.SetField(upscale.FieldFailureReason, field.TypeString, value)
 	}
 	if value, ok := uu.mutation.UpdatedAt(); ok {
 		_spec.SetField(upscale.FieldUpdatedAt, field.TypeTime, value)
-	}
-	if value, ok := uu.mutation.UserTier(); ok {
-		_spec.SetField(upscale.FieldUserTier, field.TypeEnum, value)
 	}
 	if uu.mutation.UserCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -421,6 +346,130 @@ func (uu *UpscaleUpdate) sqlSave(ctx context.Context) (n int, err error) {
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeUUID,
 					Column: user.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if uu.mutation.DeviceInfoCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   upscale.DeviceInfoTable,
+			Columns: []string{upscale.DeviceInfoColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: deviceinfo.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uu.mutation.DeviceInfoIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   upscale.DeviceInfoTable,
+			Columns: []string{upscale.DeviceInfoColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: deviceinfo.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if uu.mutation.UpscaleModelsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   upscale.UpscaleModelsTable,
+			Columns: []string{upscale.UpscaleModelsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: upscalemodel.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uu.mutation.UpscaleModelsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   upscale.UpscaleModelsTable,
+			Columns: []string{upscale.UpscaleModelsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: upscalemodel.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if uu.mutation.UpscaleOutputsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   upscale.UpscaleOutputsTable,
+			Columns: []string{upscale.UpscaleOutputsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: upscaleoutput.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uu.mutation.RemovedUpscaleOutputsIDs(); len(nodes) > 0 && !uu.mutation.UpscaleOutputsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   upscale.UpscaleOutputsTable,
+			Columns: []string{upscale.UpscaleOutputsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: upscaleoutput.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uu.mutation.UpscaleOutputsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   upscale.UpscaleOutputsTable,
+			Columns: []string{upscale.UpscaleOutputsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: upscaleoutput.FieldID,
 				},
 			},
 		}
@@ -488,99 +537,16 @@ func (uuo *UpscaleUpdateOne) AddScale(i int) *UpscaleUpdateOne {
 	return uuo
 }
 
-// SetStatus sets the "status" field.
-func (uuo *UpscaleUpdateOne) SetStatus(u upscale.Status) *UpscaleUpdateOne {
-	uuo.mutation.SetStatus(u)
+// SetDurationMs sets the "duration_ms" field.
+func (uuo *UpscaleUpdateOne) SetDurationMs(i int) *UpscaleUpdateOne {
+	uuo.mutation.ResetDurationMs()
+	uuo.mutation.SetDurationMs(i)
 	return uuo
 }
 
-// SetServerURL sets the "server_url" field.
-func (uuo *UpscaleUpdateOne) SetServerURL(s string) *UpscaleUpdateOne {
-	uuo.mutation.SetServerURL(s)
-	return uuo
-}
-
-// SetDurationMsg sets the "duration_msg" field.
-func (uuo *UpscaleUpdateOne) SetDurationMsg(i int) *UpscaleUpdateOne {
-	uuo.mutation.ResetDurationMsg()
-	uuo.mutation.SetDurationMsg(i)
-	return uuo
-}
-
-// AddDurationMsg adds i to the "duration_msg" field.
-func (uuo *UpscaleUpdateOne) AddDurationMsg(i int) *UpscaleUpdateOne {
-	uuo.mutation.AddDurationMsg(i)
-	return uuo
-}
-
-// SetType sets the "type" field.
-func (uuo *UpscaleUpdateOne) SetType(s string) *UpscaleUpdateOne {
-	uuo.mutation.SetType(s)
-	return uuo
-}
-
-// SetPrompt sets the "prompt" field.
-func (uuo *UpscaleUpdateOne) SetPrompt(s string) *UpscaleUpdateOne {
-	uuo.mutation.SetPrompt(s)
-	return uuo
-}
-
-// SetNegativePrompt sets the "negative_prompt" field.
-func (uuo *UpscaleUpdateOne) SetNegativePrompt(s string) *UpscaleUpdateOne {
-	uuo.mutation.SetNegativePrompt(s)
-	return uuo
-}
-
-// SetSeed sets the "seed" field.
-func (uuo *UpscaleUpdateOne) SetSeed(ei enttypes.BigInt) *UpscaleUpdateOne {
-	uuo.mutation.ResetSeed()
-	uuo.mutation.SetSeed(ei)
-	return uuo
-}
-
-// SetNillableSeed sets the "seed" field if the given value is not nil.
-func (uuo *UpscaleUpdateOne) SetNillableSeed(ei *enttypes.BigInt) *UpscaleUpdateOne {
-	if ei != nil {
-		uuo.SetSeed(*ei)
-	}
-	return uuo
-}
-
-// AddSeed adds ei to the "seed" field.
-func (uuo *UpscaleUpdateOne) AddSeed(ei enttypes.BigInt) *UpscaleUpdateOne {
-	uuo.mutation.AddSeed(ei)
-	return uuo
-}
-
-// ClearSeed clears the value of the "seed" field.
-func (uuo *UpscaleUpdateOne) ClearSeed() *UpscaleUpdateOne {
-	uuo.mutation.ClearSeed()
-	return uuo
-}
-
-// SetNumInferenceSteps sets the "num_inference_steps" field.
-func (uuo *UpscaleUpdateOne) SetNumInferenceSteps(i int) *UpscaleUpdateOne {
-	uuo.mutation.ResetNumInferenceSteps()
-	uuo.mutation.SetNumInferenceSteps(i)
-	return uuo
-}
-
-// AddNumInferenceSteps adds i to the "num_inference_steps" field.
-func (uuo *UpscaleUpdateOne) AddNumInferenceSteps(i int) *UpscaleUpdateOne {
-	uuo.mutation.AddNumInferenceSteps(i)
-	return uuo
-}
-
-// SetGuidanceScale sets the "guidance_scale" field.
-func (uuo *UpscaleUpdateOne) SetGuidanceScale(f float64) *UpscaleUpdateOne {
-	uuo.mutation.ResetGuidanceScale()
-	uuo.mutation.SetGuidanceScale(f)
-	return uuo
-}
-
-// AddGuidanceScale adds f to the "guidance_scale" field.
-func (uuo *UpscaleUpdateOne) AddGuidanceScale(f float64) *UpscaleUpdateOne {
-	uuo.mutation.AddGuidanceScale(f)
+// AddDurationMs adds i to the "duration_ms" field.
+func (uuo *UpscaleUpdateOne) AddDurationMs(i int) *UpscaleUpdateOne {
+	uuo.mutation.AddDurationMs(i)
 	return uuo
 }
 
@@ -590,33 +556,21 @@ func (uuo *UpscaleUpdateOne) SetCountryCode(s string) *UpscaleUpdateOne {
 	return uuo
 }
 
-// SetDeviceType sets the "device_type" field.
-func (uuo *UpscaleUpdateOne) SetDeviceType(s string) *UpscaleUpdateOne {
-	uuo.mutation.SetDeviceType(s)
+// SetStatus sets the "status" field.
+func (uuo *UpscaleUpdateOne) SetStatus(u upscale.Status) *UpscaleUpdateOne {
+	uuo.mutation.SetStatus(u)
 	return uuo
 }
 
-// SetDeviceOs sets the "device_os" field.
-func (uuo *UpscaleUpdateOne) SetDeviceOs(s string) *UpscaleUpdateOne {
-	uuo.mutation.SetDeviceOs(s)
+// SetFailureReason sets the "failure_reason" field.
+func (uuo *UpscaleUpdateOne) SetFailureReason(s string) *UpscaleUpdateOne {
+	uuo.mutation.SetFailureReason(s)
 	return uuo
 }
 
-// SetDeviceBrowser sets the "device_browser" field.
-func (uuo *UpscaleUpdateOne) SetDeviceBrowser(s string) *UpscaleUpdateOne {
-	uuo.mutation.SetDeviceBrowser(s)
-	return uuo
-}
-
-// SetUserAgent sets the "user_agent" field.
-func (uuo *UpscaleUpdateOne) SetUserAgent(s string) *UpscaleUpdateOne {
-	uuo.mutation.SetUserAgent(s)
-	return uuo
-}
-
-// SetUpdatedAt sets the "updated_at" field.
-func (uuo *UpscaleUpdateOne) SetUpdatedAt(t time.Time) *UpscaleUpdateOne {
-	uuo.mutation.SetUpdatedAt(t)
+// SetModelID sets the "model_id" field.
+func (uuo *UpscaleUpdateOne) SetModelID(u uuid.UUID) *UpscaleUpdateOne {
+	uuo.mutation.SetModelID(u)
 	return uuo
 }
 
@@ -626,23 +580,52 @@ func (uuo *UpscaleUpdateOne) SetUserID(u uuid.UUID) *UpscaleUpdateOne {
 	return uuo
 }
 
-// SetUserTier sets the "user_tier" field.
-func (uuo *UpscaleUpdateOne) SetUserTier(ut upscale.UserTier) *UpscaleUpdateOne {
-	uuo.mutation.SetUserTier(ut)
+// SetDeviceInfoID sets the "device_info_id" field.
+func (uuo *UpscaleUpdateOne) SetDeviceInfoID(u uuid.UUID) *UpscaleUpdateOne {
+	uuo.mutation.SetDeviceInfoID(u)
 	return uuo
 }
 
-// SetNillableUserTier sets the "user_tier" field if the given value is not nil.
-func (uuo *UpscaleUpdateOne) SetNillableUserTier(ut *upscale.UserTier) *UpscaleUpdateOne {
-	if ut != nil {
-		uuo.SetUserTier(*ut)
-	}
+// SetUpdatedAt sets the "updated_at" field.
+func (uuo *UpscaleUpdateOne) SetUpdatedAt(t time.Time) *UpscaleUpdateOne {
+	uuo.mutation.SetUpdatedAt(t)
 	return uuo
 }
 
 // SetUser sets the "user" edge to the User entity.
 func (uuo *UpscaleUpdateOne) SetUser(u *User) *UpscaleUpdateOne {
 	return uuo.SetUserID(u.ID)
+}
+
+// SetDeviceInfo sets the "device_info" edge to the DeviceInfo entity.
+func (uuo *UpscaleUpdateOne) SetDeviceInfo(d *DeviceInfo) *UpscaleUpdateOne {
+	return uuo.SetDeviceInfoID(d.ID)
+}
+
+// SetUpscaleModelsID sets the "upscale_models" edge to the UpscaleModel entity by ID.
+func (uuo *UpscaleUpdateOne) SetUpscaleModelsID(id uuid.UUID) *UpscaleUpdateOne {
+	uuo.mutation.SetUpscaleModelsID(id)
+	return uuo
+}
+
+// SetUpscaleModels sets the "upscale_models" edge to the UpscaleModel entity.
+func (uuo *UpscaleUpdateOne) SetUpscaleModels(u *UpscaleModel) *UpscaleUpdateOne {
+	return uuo.SetUpscaleModelsID(u.ID)
+}
+
+// AddUpscaleOutputIDs adds the "upscale_outputs" edge to the UpscaleOutput entity by IDs.
+func (uuo *UpscaleUpdateOne) AddUpscaleOutputIDs(ids ...uuid.UUID) *UpscaleUpdateOne {
+	uuo.mutation.AddUpscaleOutputIDs(ids...)
+	return uuo
+}
+
+// AddUpscaleOutputs adds the "upscale_outputs" edges to the UpscaleOutput entity.
+func (uuo *UpscaleUpdateOne) AddUpscaleOutputs(u ...*UpscaleOutput) *UpscaleUpdateOne {
+	ids := make([]uuid.UUID, len(u))
+	for i := range u {
+		ids[i] = u[i].ID
+	}
+	return uuo.AddUpscaleOutputIDs(ids...)
 }
 
 // Mutation returns the UpscaleMutation object of the builder.
@@ -654,6 +637,39 @@ func (uuo *UpscaleUpdateOne) Mutation() *UpscaleMutation {
 func (uuo *UpscaleUpdateOne) ClearUser() *UpscaleUpdateOne {
 	uuo.mutation.ClearUser()
 	return uuo
+}
+
+// ClearDeviceInfo clears the "device_info" edge to the DeviceInfo entity.
+func (uuo *UpscaleUpdateOne) ClearDeviceInfo() *UpscaleUpdateOne {
+	uuo.mutation.ClearDeviceInfo()
+	return uuo
+}
+
+// ClearUpscaleModels clears the "upscale_models" edge to the UpscaleModel entity.
+func (uuo *UpscaleUpdateOne) ClearUpscaleModels() *UpscaleUpdateOne {
+	uuo.mutation.ClearUpscaleModels()
+	return uuo
+}
+
+// ClearUpscaleOutputs clears all "upscale_outputs" edges to the UpscaleOutput entity.
+func (uuo *UpscaleUpdateOne) ClearUpscaleOutputs() *UpscaleUpdateOne {
+	uuo.mutation.ClearUpscaleOutputs()
+	return uuo
+}
+
+// RemoveUpscaleOutputIDs removes the "upscale_outputs" edge to UpscaleOutput entities by IDs.
+func (uuo *UpscaleUpdateOne) RemoveUpscaleOutputIDs(ids ...uuid.UUID) *UpscaleUpdateOne {
+	uuo.mutation.RemoveUpscaleOutputIDs(ids...)
+	return uuo
+}
+
+// RemoveUpscaleOutputs removes "upscale_outputs" edges to UpscaleOutput entities.
+func (uuo *UpscaleUpdateOne) RemoveUpscaleOutputs(u ...*UpscaleOutput) *UpscaleUpdateOne {
+	ids := make([]uuid.UUID, len(u))
+	for i := range u {
+		ids[i] = u[i].ID
+	}
+	return uuo.RemoveUpscaleOutputIDs(ids...)
 }
 
 // Select allows selecting one or more fields (columns) of the returned entity.
@@ -706,13 +722,14 @@ func (uuo *UpscaleUpdateOne) check() error {
 			return &ValidationError{Name: "status", err: fmt.Errorf(`ent: validator failed for field "Upscale.status": %w`, err)}
 		}
 	}
-	if v, ok := uuo.mutation.UserTier(); ok {
-		if err := upscale.UserTierValidator(v); err != nil {
-			return &ValidationError{Name: "user_tier", err: fmt.Errorf(`ent: validator failed for field "Upscale.user_tier": %w`, err)}
-		}
-	}
 	if _, ok := uuo.mutation.UserID(); uuo.mutation.UserCleared() && !ok {
 		return errors.New(`ent: clearing a required unique edge "Upscale.user"`)
+	}
+	if _, ok := uuo.mutation.DeviceInfoID(); uuo.mutation.DeviceInfoCleared() && !ok {
+		return errors.New(`ent: clearing a required unique edge "Upscale.device_info"`)
+	}
+	if _, ok := uuo.mutation.UpscaleModelsID(); uuo.mutation.UpscaleModelsCleared() && !ok {
+		return errors.New(`ent: clearing a required unique edge "Upscale.upscale_models"`)
 	}
 	return nil
 }
@@ -773,68 +790,23 @@ func (uuo *UpscaleUpdateOne) sqlSave(ctx context.Context) (_node *Upscale, err e
 	if value, ok := uuo.mutation.AddedScale(); ok {
 		_spec.AddField(upscale.FieldScale, field.TypeInt, value)
 	}
-	if value, ok := uuo.mutation.Status(); ok {
-		_spec.SetField(upscale.FieldStatus, field.TypeEnum, value)
+	if value, ok := uuo.mutation.DurationMs(); ok {
+		_spec.SetField(upscale.FieldDurationMs, field.TypeInt, value)
 	}
-	if value, ok := uuo.mutation.ServerURL(); ok {
-		_spec.SetField(upscale.FieldServerURL, field.TypeString, value)
-	}
-	if value, ok := uuo.mutation.DurationMsg(); ok {
-		_spec.SetField(upscale.FieldDurationMsg, field.TypeInt, value)
-	}
-	if value, ok := uuo.mutation.AddedDurationMsg(); ok {
-		_spec.AddField(upscale.FieldDurationMsg, field.TypeInt, value)
-	}
-	if value, ok := uuo.mutation.GetType(); ok {
-		_spec.SetField(upscale.FieldType, field.TypeString, value)
-	}
-	if value, ok := uuo.mutation.Prompt(); ok {
-		_spec.SetField(upscale.FieldPrompt, field.TypeString, value)
-	}
-	if value, ok := uuo.mutation.NegativePrompt(); ok {
-		_spec.SetField(upscale.FieldNegativePrompt, field.TypeString, value)
-	}
-	if value, ok := uuo.mutation.Seed(); ok {
-		_spec.SetField(upscale.FieldSeed, field.TypeInt, value)
-	}
-	if value, ok := uuo.mutation.AddedSeed(); ok {
-		_spec.AddField(upscale.FieldSeed, field.TypeInt, value)
-	}
-	if uuo.mutation.SeedCleared() {
-		_spec.ClearField(upscale.FieldSeed, field.TypeInt)
-	}
-	if value, ok := uuo.mutation.NumInferenceSteps(); ok {
-		_spec.SetField(upscale.FieldNumInferenceSteps, field.TypeInt, value)
-	}
-	if value, ok := uuo.mutation.AddedNumInferenceSteps(); ok {
-		_spec.AddField(upscale.FieldNumInferenceSteps, field.TypeInt, value)
-	}
-	if value, ok := uuo.mutation.GuidanceScale(); ok {
-		_spec.SetField(upscale.FieldGuidanceScale, field.TypeFloat64, value)
-	}
-	if value, ok := uuo.mutation.AddedGuidanceScale(); ok {
-		_spec.AddField(upscale.FieldGuidanceScale, field.TypeFloat64, value)
+	if value, ok := uuo.mutation.AddedDurationMs(); ok {
+		_spec.AddField(upscale.FieldDurationMs, field.TypeInt, value)
 	}
 	if value, ok := uuo.mutation.CountryCode(); ok {
 		_spec.SetField(upscale.FieldCountryCode, field.TypeString, value)
 	}
-	if value, ok := uuo.mutation.DeviceType(); ok {
-		_spec.SetField(upscale.FieldDeviceType, field.TypeString, value)
+	if value, ok := uuo.mutation.Status(); ok {
+		_spec.SetField(upscale.FieldStatus, field.TypeEnum, value)
 	}
-	if value, ok := uuo.mutation.DeviceOs(); ok {
-		_spec.SetField(upscale.FieldDeviceOs, field.TypeString, value)
-	}
-	if value, ok := uuo.mutation.DeviceBrowser(); ok {
-		_spec.SetField(upscale.FieldDeviceBrowser, field.TypeString, value)
-	}
-	if value, ok := uuo.mutation.UserAgent(); ok {
-		_spec.SetField(upscale.FieldUserAgent, field.TypeString, value)
+	if value, ok := uuo.mutation.FailureReason(); ok {
+		_spec.SetField(upscale.FieldFailureReason, field.TypeString, value)
 	}
 	if value, ok := uuo.mutation.UpdatedAt(); ok {
 		_spec.SetField(upscale.FieldUpdatedAt, field.TypeTime, value)
-	}
-	if value, ok := uuo.mutation.UserTier(); ok {
-		_spec.SetField(upscale.FieldUserTier, field.TypeEnum, value)
 	}
 	if uuo.mutation.UserCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -863,6 +835,130 @@ func (uuo *UpscaleUpdateOne) sqlSave(ctx context.Context) (_node *Upscale, err e
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeUUID,
 					Column: user.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if uuo.mutation.DeviceInfoCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   upscale.DeviceInfoTable,
+			Columns: []string{upscale.DeviceInfoColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: deviceinfo.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uuo.mutation.DeviceInfoIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   upscale.DeviceInfoTable,
+			Columns: []string{upscale.DeviceInfoColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: deviceinfo.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if uuo.mutation.UpscaleModelsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   upscale.UpscaleModelsTable,
+			Columns: []string{upscale.UpscaleModelsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: upscalemodel.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uuo.mutation.UpscaleModelsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   upscale.UpscaleModelsTable,
+			Columns: []string{upscale.UpscaleModelsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: upscalemodel.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if uuo.mutation.UpscaleOutputsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   upscale.UpscaleOutputsTable,
+			Columns: []string{upscale.UpscaleOutputsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: upscaleoutput.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uuo.mutation.RemovedUpscaleOutputsIDs(); len(nodes) > 0 && !uuo.mutation.UpscaleOutputsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   upscale.UpscaleOutputsTable,
+			Columns: []string{upscale.UpscaleOutputsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: upscaleoutput.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uuo.mutation.UpscaleOutputsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   upscale.UpscaleOutputsTable,
+			Columns: []string{upscale.UpscaleOutputsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: upscaleoutput.FieldID,
 				},
 			},
 		}

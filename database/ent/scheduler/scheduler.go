@@ -19,26 +19,17 @@ const (
 	FieldCreatedAt = "created_at"
 	// FieldUpdatedAt holds the string denoting the updated_at field in the database.
 	FieldUpdatedAt = "updated_at"
-	// EdgeGeneration holds the string denoting the generation edge name in mutations.
-	EdgeGeneration = "generation"
-	// EdgeGenerationG holds the string denoting the generation_g edge name in mutations.
-	EdgeGenerationG = "generation_g"
+	// EdgeGenerations holds the string denoting the generations edge name in mutations.
+	EdgeGenerations = "generations"
 	// Table holds the table name of the scheduler in the database.
-	Table = "scheduler"
-	// GenerationTable is the table that holds the generation relation/edge.
-	GenerationTable = "generation"
-	// GenerationInverseTable is the table name for the Generation entity.
+	Table = "schedulers"
+	// GenerationsTable is the table that holds the generations relation/edge.
+	GenerationsTable = "generations"
+	// GenerationsInverseTable is the table name for the Generation entity.
 	// It exists in this package in order to avoid circular dependency with the "generation" package.
-	GenerationInverseTable = "generation"
-	// GenerationColumn is the table column denoting the generation relation/edge.
-	GenerationColumn = "scheduler_id"
-	// GenerationGTable is the table that holds the generation_g relation/edge.
-	GenerationGTable = "generation_g"
-	// GenerationGInverseTable is the table name for the GenerationG entity.
-	// It exists in this package in order to avoid circular dependency with the "generationg" package.
-	GenerationGInverseTable = "generation_g"
-	// GenerationGColumn is the table column denoting the generation_g relation/edge.
-	GenerationGColumn = "scheduler_id"
+	GenerationsInverseTable = "generations"
+	// GenerationsColumn is the table column denoting the generations relation/edge.
+	GenerationsColumn = "scheduler_id"
 )
 
 // Columns holds all SQL columns for scheduler fields.

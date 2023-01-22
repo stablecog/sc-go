@@ -13,10 +13,10 @@ import (
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
 	"github.com/stablecog/go-apps/database/ent/generation"
-	"github.com/stablecog/go-apps/database/ent/generationg"
 	"github.com/stablecog/go-apps/database/ent/predicate"
 	"github.com/stablecog/go-apps/database/ent/upscale"
 	"github.com/stablecog/go-apps/database/ent/user"
+	"github.com/stablecog/go-apps/database/ent/userrole"
 )
 
 // UserUpdate is the builder for updating User entities.
@@ -44,20 +44,6 @@ func (uu *UserUpdate) SetStripeCustomerID(s string) *UserUpdate {
 	return uu
 }
 
-// SetSubscriptionTier sets the "subscription_tier" field.
-func (uu *UserUpdate) SetSubscriptionTier(ut user.SubscriptionTier) *UserUpdate {
-	uu.mutation.SetSubscriptionTier(ut)
-	return uu
-}
-
-// SetNillableSubscriptionTier sets the "subscription_tier" field if the given value is not nil.
-func (uu *UserUpdate) SetNillableSubscriptionTier(ut *user.SubscriptionTier) *UserUpdate {
-	if ut != nil {
-		uu.SetSubscriptionTier(*ut)
-	}
-	return uu
-}
-
 // SetSubscriptionCategory sets the "subscription_category" field.
 func (uu *UserUpdate) SetSubscriptionCategory(uc user.SubscriptionCategory) *UserUpdate {
 	uu.mutation.SetSubscriptionCategory(uc)
@@ -76,29 +62,29 @@ func (uu *UserUpdate) SetConfirmedAt(t time.Time) *UserUpdate {
 	return uu
 }
 
-// AddUpscaleIDs adds the "upscale" edge to the Upscale entity by IDs.
-func (uu *UserUpdate) AddUpscaleIDs(ids ...uuid.UUID) *UserUpdate {
-	uu.mutation.AddUpscaleIDs(ids...)
+// AddUserRoleIDs adds the "user_roles" edge to the UserRole entity by IDs.
+func (uu *UserUpdate) AddUserRoleIDs(ids ...uuid.UUID) *UserUpdate {
+	uu.mutation.AddUserRoleIDs(ids...)
 	return uu
 }
 
-// AddUpscale adds the "upscale" edges to the Upscale entity.
-func (uu *UserUpdate) AddUpscale(u ...*Upscale) *UserUpdate {
+// AddUserRoles adds the "user_roles" edges to the UserRole entity.
+func (uu *UserUpdate) AddUserRoles(u ...*UserRole) *UserUpdate {
 	ids := make([]uuid.UUID, len(u))
 	for i := range u {
 		ids[i] = u[i].ID
 	}
-	return uu.AddUpscaleIDs(ids...)
+	return uu.AddUserRoleIDs(ids...)
 }
 
-// AddGenerationIDs adds the "generation" edge to the Generation entity by IDs.
+// AddGenerationIDs adds the "generations" edge to the Generation entity by IDs.
 func (uu *UserUpdate) AddGenerationIDs(ids ...uuid.UUID) *UserUpdate {
 	uu.mutation.AddGenerationIDs(ids...)
 	return uu
 }
 
-// AddGeneration adds the "generation" edges to the Generation entity.
-func (uu *UserUpdate) AddGeneration(g ...*Generation) *UserUpdate {
+// AddGenerations adds the "generations" edges to the Generation entity.
+func (uu *UserUpdate) AddGenerations(g ...*Generation) *UserUpdate {
 	ids := make([]uuid.UUID, len(g))
 	for i := range g {
 		ids[i] = g[i].ID
@@ -106,19 +92,19 @@ func (uu *UserUpdate) AddGeneration(g ...*Generation) *UserUpdate {
 	return uu.AddGenerationIDs(ids...)
 }
 
-// AddGenerationGIDs adds the "generation_g" edge to the GenerationG entity by IDs.
-func (uu *UserUpdate) AddGenerationGIDs(ids ...uuid.UUID) *UserUpdate {
-	uu.mutation.AddGenerationGIDs(ids...)
+// AddUpscaleIDs adds the "upscales" edge to the Upscale entity by IDs.
+func (uu *UserUpdate) AddUpscaleIDs(ids ...uuid.UUID) *UserUpdate {
+	uu.mutation.AddUpscaleIDs(ids...)
 	return uu
 }
 
-// AddGenerationG adds the "generation_g" edges to the GenerationG entity.
-func (uu *UserUpdate) AddGenerationG(g ...*GenerationG) *UserUpdate {
-	ids := make([]uuid.UUID, len(g))
-	for i := range g {
-		ids[i] = g[i].ID
+// AddUpscales adds the "upscales" edges to the Upscale entity.
+func (uu *UserUpdate) AddUpscales(u ...*Upscale) *UserUpdate {
+	ids := make([]uuid.UUID, len(u))
+	for i := range u {
+		ids[i] = u[i].ID
 	}
-	return uu.AddGenerationGIDs(ids...)
+	return uu.AddUpscaleIDs(ids...)
 }
 
 // Mutation returns the UserMutation object of the builder.
@@ -126,41 +112,41 @@ func (uu *UserUpdate) Mutation() *UserMutation {
 	return uu.mutation
 }
 
-// ClearUpscale clears all "upscale" edges to the Upscale entity.
-func (uu *UserUpdate) ClearUpscale() *UserUpdate {
-	uu.mutation.ClearUpscale()
+// ClearUserRoles clears all "user_roles" edges to the UserRole entity.
+func (uu *UserUpdate) ClearUserRoles() *UserUpdate {
+	uu.mutation.ClearUserRoles()
 	return uu
 }
 
-// RemoveUpscaleIDs removes the "upscale" edge to Upscale entities by IDs.
-func (uu *UserUpdate) RemoveUpscaleIDs(ids ...uuid.UUID) *UserUpdate {
-	uu.mutation.RemoveUpscaleIDs(ids...)
+// RemoveUserRoleIDs removes the "user_roles" edge to UserRole entities by IDs.
+func (uu *UserUpdate) RemoveUserRoleIDs(ids ...uuid.UUID) *UserUpdate {
+	uu.mutation.RemoveUserRoleIDs(ids...)
 	return uu
 }
 
-// RemoveUpscale removes "upscale" edges to Upscale entities.
-func (uu *UserUpdate) RemoveUpscale(u ...*Upscale) *UserUpdate {
+// RemoveUserRoles removes "user_roles" edges to UserRole entities.
+func (uu *UserUpdate) RemoveUserRoles(u ...*UserRole) *UserUpdate {
 	ids := make([]uuid.UUID, len(u))
 	for i := range u {
 		ids[i] = u[i].ID
 	}
-	return uu.RemoveUpscaleIDs(ids...)
+	return uu.RemoveUserRoleIDs(ids...)
 }
 
-// ClearGeneration clears all "generation" edges to the Generation entity.
-func (uu *UserUpdate) ClearGeneration() *UserUpdate {
-	uu.mutation.ClearGeneration()
+// ClearGenerations clears all "generations" edges to the Generation entity.
+func (uu *UserUpdate) ClearGenerations() *UserUpdate {
+	uu.mutation.ClearGenerations()
 	return uu
 }
 
-// RemoveGenerationIDs removes the "generation" edge to Generation entities by IDs.
+// RemoveGenerationIDs removes the "generations" edge to Generation entities by IDs.
 func (uu *UserUpdate) RemoveGenerationIDs(ids ...uuid.UUID) *UserUpdate {
 	uu.mutation.RemoveGenerationIDs(ids...)
 	return uu
 }
 
-// RemoveGeneration removes "generation" edges to Generation entities.
-func (uu *UserUpdate) RemoveGeneration(g ...*Generation) *UserUpdate {
+// RemoveGenerations removes "generations" edges to Generation entities.
+func (uu *UserUpdate) RemoveGenerations(g ...*Generation) *UserUpdate {
 	ids := make([]uuid.UUID, len(g))
 	for i := range g {
 		ids[i] = g[i].ID
@@ -168,25 +154,25 @@ func (uu *UserUpdate) RemoveGeneration(g ...*Generation) *UserUpdate {
 	return uu.RemoveGenerationIDs(ids...)
 }
 
-// ClearGenerationG clears all "generation_g" edges to the GenerationG entity.
-func (uu *UserUpdate) ClearGenerationG() *UserUpdate {
-	uu.mutation.ClearGenerationG()
+// ClearUpscales clears all "upscales" edges to the Upscale entity.
+func (uu *UserUpdate) ClearUpscales() *UserUpdate {
+	uu.mutation.ClearUpscales()
 	return uu
 }
 
-// RemoveGenerationGIDs removes the "generation_g" edge to GenerationG entities by IDs.
-func (uu *UserUpdate) RemoveGenerationGIDs(ids ...uuid.UUID) *UserUpdate {
-	uu.mutation.RemoveGenerationGIDs(ids...)
+// RemoveUpscaleIDs removes the "upscales" edge to Upscale entities by IDs.
+func (uu *UserUpdate) RemoveUpscaleIDs(ids ...uuid.UUID) *UserUpdate {
+	uu.mutation.RemoveUpscaleIDs(ids...)
 	return uu
 }
 
-// RemoveGenerationG removes "generation_g" edges to GenerationG entities.
-func (uu *UserUpdate) RemoveGenerationG(g ...*GenerationG) *UserUpdate {
-	ids := make([]uuid.UUID, len(g))
-	for i := range g {
-		ids[i] = g[i].ID
+// RemoveUpscales removes "upscales" edges to Upscale entities.
+func (uu *UserUpdate) RemoveUpscales(u ...*Upscale) *UserUpdate {
+	ids := make([]uuid.UUID, len(u))
+	for i := range u {
+		ids[i] = u[i].ID
 	}
-	return uu.RemoveGenerationGIDs(ids...)
+	return uu.RemoveUpscaleIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -227,11 +213,6 @@ func (uu *UserUpdate) defaults() {
 
 // check runs all checks and user-defined validators on the builder.
 func (uu *UserUpdate) check() error {
-	if v, ok := uu.mutation.SubscriptionTier(); ok {
-		if err := user.SubscriptionTierValidator(v); err != nil {
-			return &ValidationError{Name: "subscription_tier", err: fmt.Errorf(`ent: validator failed for field "User.subscription_tier": %w`, err)}
-		}
-	}
 	if v, ok := uu.mutation.SubscriptionCategory(); ok {
 		if err := user.SubscriptionCategoryValidator(v); err != nil {
 			return &ValidationError{Name: "subscription_category", err: fmt.Errorf(`ent: validator failed for field "User.subscription_category": %w`, err)}
@@ -267,9 +248,6 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if value, ok := uu.mutation.StripeCustomerID(); ok {
 		_spec.SetField(user.FieldStripeCustomerID, field.TypeString, value)
 	}
-	if value, ok := uu.mutation.SubscriptionTier(); ok {
-		_spec.SetField(user.FieldSubscriptionTier, field.TypeEnum, value)
-	}
 	if value, ok := uu.mutation.SubscriptionCategory(); ok {
 		_spec.SetField(user.FieldSubscriptionCategory, field.TypeEnum, value)
 	}
@@ -279,33 +257,33 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if value, ok := uu.mutation.ConfirmedAt(); ok {
 		_spec.SetField(user.FieldConfirmedAt, field.TypeTime, value)
 	}
-	if uu.mutation.UpscaleCleared() {
+	if uu.mutation.UserRolesCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   user.UpscaleTable,
-			Columns: []string{user.UpscaleColumn},
+			Table:   user.UserRolesTable,
+			Columns: []string{user.UserRolesColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeUUID,
-					Column: upscale.FieldID,
+					Column: userrole.FieldID,
 				},
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := uu.mutation.RemovedUpscaleIDs(); len(nodes) > 0 && !uu.mutation.UpscaleCleared() {
+	if nodes := uu.mutation.RemovedUserRolesIDs(); len(nodes) > 0 && !uu.mutation.UserRolesCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   user.UpscaleTable,
-			Columns: []string{user.UpscaleColumn},
+			Table:   user.UserRolesTable,
+			Columns: []string{user.UserRolesColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeUUID,
-					Column: upscale.FieldID,
+					Column: userrole.FieldID,
 				},
 			},
 		}
@@ -314,71 +292,17 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := uu.mutation.UpscaleIDs(); len(nodes) > 0 {
+	if nodes := uu.mutation.UserRolesIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   user.UpscaleTable,
-			Columns: []string{user.UpscaleColumn},
+			Table:   user.UserRolesTable,
+			Columns: []string{user.UserRolesColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeUUID,
-					Column: upscale.FieldID,
-				},
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Add = append(_spec.Edges.Add, edge)
-	}
-	if uu.mutation.GenerationCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   user.GenerationTable,
-			Columns: []string{user.GenerationColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: generation.FieldID,
-				},
-			},
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := uu.mutation.RemovedGenerationIDs(); len(nodes) > 0 && !uu.mutation.GenerationCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   user.GenerationTable,
-			Columns: []string{user.GenerationColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: generation.FieldID,
-				},
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := uu.mutation.GenerationIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   user.GenerationTable,
-			Columns: []string{user.GenerationColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: generation.FieldID,
+					Column: userrole.FieldID,
 				},
 			},
 		}
@@ -387,33 +311,33 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if uu.mutation.GenerationGCleared() {
+	if uu.mutation.GenerationsCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   user.GenerationGTable,
-			Columns: []string{user.GenerationGColumn},
+			Table:   user.GenerationsTable,
+			Columns: []string{user.GenerationsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeUUID,
-					Column: generationg.FieldID,
+					Column: generation.FieldID,
 				},
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := uu.mutation.RemovedGenerationGIDs(); len(nodes) > 0 && !uu.mutation.GenerationGCleared() {
+	if nodes := uu.mutation.RemovedGenerationsIDs(); len(nodes) > 0 && !uu.mutation.GenerationsCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   user.GenerationGTable,
-			Columns: []string{user.GenerationGColumn},
+			Table:   user.GenerationsTable,
+			Columns: []string{user.GenerationsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeUUID,
-					Column: generationg.FieldID,
+					Column: generation.FieldID,
 				},
 			},
 		}
@@ -422,17 +346,71 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := uu.mutation.GenerationGIDs(); len(nodes) > 0 {
+	if nodes := uu.mutation.GenerationsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   user.GenerationGTable,
-			Columns: []string{user.GenerationGColumn},
+			Table:   user.GenerationsTable,
+			Columns: []string{user.GenerationsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeUUID,
-					Column: generationg.FieldID,
+					Column: generation.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if uu.mutation.UpscalesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.UpscalesTable,
+			Columns: []string{user.UpscalesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: upscale.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uu.mutation.RemovedUpscalesIDs(); len(nodes) > 0 && !uu.mutation.UpscalesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.UpscalesTable,
+			Columns: []string{user.UpscalesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: upscale.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uu.mutation.UpscalesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.UpscalesTable,
+			Columns: []string{user.UpscalesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: upscale.FieldID,
 				},
 			},
 		}
@@ -473,20 +451,6 @@ func (uuo *UserUpdateOne) SetStripeCustomerID(s string) *UserUpdateOne {
 	return uuo
 }
 
-// SetSubscriptionTier sets the "subscription_tier" field.
-func (uuo *UserUpdateOne) SetSubscriptionTier(ut user.SubscriptionTier) *UserUpdateOne {
-	uuo.mutation.SetSubscriptionTier(ut)
-	return uuo
-}
-
-// SetNillableSubscriptionTier sets the "subscription_tier" field if the given value is not nil.
-func (uuo *UserUpdateOne) SetNillableSubscriptionTier(ut *user.SubscriptionTier) *UserUpdateOne {
-	if ut != nil {
-		uuo.SetSubscriptionTier(*ut)
-	}
-	return uuo
-}
-
 // SetSubscriptionCategory sets the "subscription_category" field.
 func (uuo *UserUpdateOne) SetSubscriptionCategory(uc user.SubscriptionCategory) *UserUpdateOne {
 	uuo.mutation.SetSubscriptionCategory(uc)
@@ -505,29 +469,29 @@ func (uuo *UserUpdateOne) SetConfirmedAt(t time.Time) *UserUpdateOne {
 	return uuo
 }
 
-// AddUpscaleIDs adds the "upscale" edge to the Upscale entity by IDs.
-func (uuo *UserUpdateOne) AddUpscaleIDs(ids ...uuid.UUID) *UserUpdateOne {
-	uuo.mutation.AddUpscaleIDs(ids...)
+// AddUserRoleIDs adds the "user_roles" edge to the UserRole entity by IDs.
+func (uuo *UserUpdateOne) AddUserRoleIDs(ids ...uuid.UUID) *UserUpdateOne {
+	uuo.mutation.AddUserRoleIDs(ids...)
 	return uuo
 }
 
-// AddUpscale adds the "upscale" edges to the Upscale entity.
-func (uuo *UserUpdateOne) AddUpscale(u ...*Upscale) *UserUpdateOne {
+// AddUserRoles adds the "user_roles" edges to the UserRole entity.
+func (uuo *UserUpdateOne) AddUserRoles(u ...*UserRole) *UserUpdateOne {
 	ids := make([]uuid.UUID, len(u))
 	for i := range u {
 		ids[i] = u[i].ID
 	}
-	return uuo.AddUpscaleIDs(ids...)
+	return uuo.AddUserRoleIDs(ids...)
 }
 
-// AddGenerationIDs adds the "generation" edge to the Generation entity by IDs.
+// AddGenerationIDs adds the "generations" edge to the Generation entity by IDs.
 func (uuo *UserUpdateOne) AddGenerationIDs(ids ...uuid.UUID) *UserUpdateOne {
 	uuo.mutation.AddGenerationIDs(ids...)
 	return uuo
 }
 
-// AddGeneration adds the "generation" edges to the Generation entity.
-func (uuo *UserUpdateOne) AddGeneration(g ...*Generation) *UserUpdateOne {
+// AddGenerations adds the "generations" edges to the Generation entity.
+func (uuo *UserUpdateOne) AddGenerations(g ...*Generation) *UserUpdateOne {
 	ids := make([]uuid.UUID, len(g))
 	for i := range g {
 		ids[i] = g[i].ID
@@ -535,19 +499,19 @@ func (uuo *UserUpdateOne) AddGeneration(g ...*Generation) *UserUpdateOne {
 	return uuo.AddGenerationIDs(ids...)
 }
 
-// AddGenerationGIDs adds the "generation_g" edge to the GenerationG entity by IDs.
-func (uuo *UserUpdateOne) AddGenerationGIDs(ids ...uuid.UUID) *UserUpdateOne {
-	uuo.mutation.AddGenerationGIDs(ids...)
+// AddUpscaleIDs adds the "upscales" edge to the Upscale entity by IDs.
+func (uuo *UserUpdateOne) AddUpscaleIDs(ids ...uuid.UUID) *UserUpdateOne {
+	uuo.mutation.AddUpscaleIDs(ids...)
 	return uuo
 }
 
-// AddGenerationG adds the "generation_g" edges to the GenerationG entity.
-func (uuo *UserUpdateOne) AddGenerationG(g ...*GenerationG) *UserUpdateOne {
-	ids := make([]uuid.UUID, len(g))
-	for i := range g {
-		ids[i] = g[i].ID
+// AddUpscales adds the "upscales" edges to the Upscale entity.
+func (uuo *UserUpdateOne) AddUpscales(u ...*Upscale) *UserUpdateOne {
+	ids := make([]uuid.UUID, len(u))
+	for i := range u {
+		ids[i] = u[i].ID
 	}
-	return uuo.AddGenerationGIDs(ids...)
+	return uuo.AddUpscaleIDs(ids...)
 }
 
 // Mutation returns the UserMutation object of the builder.
@@ -555,41 +519,41 @@ func (uuo *UserUpdateOne) Mutation() *UserMutation {
 	return uuo.mutation
 }
 
-// ClearUpscale clears all "upscale" edges to the Upscale entity.
-func (uuo *UserUpdateOne) ClearUpscale() *UserUpdateOne {
-	uuo.mutation.ClearUpscale()
+// ClearUserRoles clears all "user_roles" edges to the UserRole entity.
+func (uuo *UserUpdateOne) ClearUserRoles() *UserUpdateOne {
+	uuo.mutation.ClearUserRoles()
 	return uuo
 }
 
-// RemoveUpscaleIDs removes the "upscale" edge to Upscale entities by IDs.
-func (uuo *UserUpdateOne) RemoveUpscaleIDs(ids ...uuid.UUID) *UserUpdateOne {
-	uuo.mutation.RemoveUpscaleIDs(ids...)
+// RemoveUserRoleIDs removes the "user_roles" edge to UserRole entities by IDs.
+func (uuo *UserUpdateOne) RemoveUserRoleIDs(ids ...uuid.UUID) *UserUpdateOne {
+	uuo.mutation.RemoveUserRoleIDs(ids...)
 	return uuo
 }
 
-// RemoveUpscale removes "upscale" edges to Upscale entities.
-func (uuo *UserUpdateOne) RemoveUpscale(u ...*Upscale) *UserUpdateOne {
+// RemoveUserRoles removes "user_roles" edges to UserRole entities.
+func (uuo *UserUpdateOne) RemoveUserRoles(u ...*UserRole) *UserUpdateOne {
 	ids := make([]uuid.UUID, len(u))
 	for i := range u {
 		ids[i] = u[i].ID
 	}
-	return uuo.RemoveUpscaleIDs(ids...)
+	return uuo.RemoveUserRoleIDs(ids...)
 }
 
-// ClearGeneration clears all "generation" edges to the Generation entity.
-func (uuo *UserUpdateOne) ClearGeneration() *UserUpdateOne {
-	uuo.mutation.ClearGeneration()
+// ClearGenerations clears all "generations" edges to the Generation entity.
+func (uuo *UserUpdateOne) ClearGenerations() *UserUpdateOne {
+	uuo.mutation.ClearGenerations()
 	return uuo
 }
 
-// RemoveGenerationIDs removes the "generation" edge to Generation entities by IDs.
+// RemoveGenerationIDs removes the "generations" edge to Generation entities by IDs.
 func (uuo *UserUpdateOne) RemoveGenerationIDs(ids ...uuid.UUID) *UserUpdateOne {
 	uuo.mutation.RemoveGenerationIDs(ids...)
 	return uuo
 }
 
-// RemoveGeneration removes "generation" edges to Generation entities.
-func (uuo *UserUpdateOne) RemoveGeneration(g ...*Generation) *UserUpdateOne {
+// RemoveGenerations removes "generations" edges to Generation entities.
+func (uuo *UserUpdateOne) RemoveGenerations(g ...*Generation) *UserUpdateOne {
 	ids := make([]uuid.UUID, len(g))
 	for i := range g {
 		ids[i] = g[i].ID
@@ -597,25 +561,25 @@ func (uuo *UserUpdateOne) RemoveGeneration(g ...*Generation) *UserUpdateOne {
 	return uuo.RemoveGenerationIDs(ids...)
 }
 
-// ClearGenerationG clears all "generation_g" edges to the GenerationG entity.
-func (uuo *UserUpdateOne) ClearGenerationG() *UserUpdateOne {
-	uuo.mutation.ClearGenerationG()
+// ClearUpscales clears all "upscales" edges to the Upscale entity.
+func (uuo *UserUpdateOne) ClearUpscales() *UserUpdateOne {
+	uuo.mutation.ClearUpscales()
 	return uuo
 }
 
-// RemoveGenerationGIDs removes the "generation_g" edge to GenerationG entities by IDs.
-func (uuo *UserUpdateOne) RemoveGenerationGIDs(ids ...uuid.UUID) *UserUpdateOne {
-	uuo.mutation.RemoveGenerationGIDs(ids...)
+// RemoveUpscaleIDs removes the "upscales" edge to Upscale entities by IDs.
+func (uuo *UserUpdateOne) RemoveUpscaleIDs(ids ...uuid.UUID) *UserUpdateOne {
+	uuo.mutation.RemoveUpscaleIDs(ids...)
 	return uuo
 }
 
-// RemoveGenerationG removes "generation_g" edges to GenerationG entities.
-func (uuo *UserUpdateOne) RemoveGenerationG(g ...*GenerationG) *UserUpdateOne {
-	ids := make([]uuid.UUID, len(g))
-	for i := range g {
-		ids[i] = g[i].ID
+// RemoveUpscales removes "upscales" edges to Upscale entities.
+func (uuo *UserUpdateOne) RemoveUpscales(u ...*Upscale) *UserUpdateOne {
+	ids := make([]uuid.UUID, len(u))
+	for i := range u {
+		ids[i] = u[i].ID
 	}
-	return uuo.RemoveGenerationGIDs(ids...)
+	return uuo.RemoveUpscaleIDs(ids...)
 }
 
 // Select allows selecting one or more fields (columns) of the returned entity.
@@ -663,11 +627,6 @@ func (uuo *UserUpdateOne) defaults() {
 
 // check runs all checks and user-defined validators on the builder.
 func (uuo *UserUpdateOne) check() error {
-	if v, ok := uuo.mutation.SubscriptionTier(); ok {
-		if err := user.SubscriptionTierValidator(v); err != nil {
-			return &ValidationError{Name: "subscription_tier", err: fmt.Errorf(`ent: validator failed for field "User.subscription_tier": %w`, err)}
-		}
-	}
 	if v, ok := uuo.mutation.SubscriptionCategory(); ok {
 		if err := user.SubscriptionCategoryValidator(v); err != nil {
 			return &ValidationError{Name: "subscription_category", err: fmt.Errorf(`ent: validator failed for field "User.subscription_category": %w`, err)}
@@ -720,9 +679,6 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 	if value, ok := uuo.mutation.StripeCustomerID(); ok {
 		_spec.SetField(user.FieldStripeCustomerID, field.TypeString, value)
 	}
-	if value, ok := uuo.mutation.SubscriptionTier(); ok {
-		_spec.SetField(user.FieldSubscriptionTier, field.TypeEnum, value)
-	}
 	if value, ok := uuo.mutation.SubscriptionCategory(); ok {
 		_spec.SetField(user.FieldSubscriptionCategory, field.TypeEnum, value)
 	}
@@ -732,33 +688,33 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 	if value, ok := uuo.mutation.ConfirmedAt(); ok {
 		_spec.SetField(user.FieldConfirmedAt, field.TypeTime, value)
 	}
-	if uuo.mutation.UpscaleCleared() {
+	if uuo.mutation.UserRolesCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   user.UpscaleTable,
-			Columns: []string{user.UpscaleColumn},
+			Table:   user.UserRolesTable,
+			Columns: []string{user.UserRolesColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeUUID,
-					Column: upscale.FieldID,
+					Column: userrole.FieldID,
 				},
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := uuo.mutation.RemovedUpscaleIDs(); len(nodes) > 0 && !uuo.mutation.UpscaleCleared() {
+	if nodes := uuo.mutation.RemovedUserRolesIDs(); len(nodes) > 0 && !uuo.mutation.UserRolesCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   user.UpscaleTable,
-			Columns: []string{user.UpscaleColumn},
+			Table:   user.UserRolesTable,
+			Columns: []string{user.UserRolesColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeUUID,
-					Column: upscale.FieldID,
+					Column: userrole.FieldID,
 				},
 			},
 		}
@@ -767,71 +723,17 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := uuo.mutation.UpscaleIDs(); len(nodes) > 0 {
+	if nodes := uuo.mutation.UserRolesIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   user.UpscaleTable,
-			Columns: []string{user.UpscaleColumn},
+			Table:   user.UserRolesTable,
+			Columns: []string{user.UserRolesColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeUUID,
-					Column: upscale.FieldID,
-				},
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Add = append(_spec.Edges.Add, edge)
-	}
-	if uuo.mutation.GenerationCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   user.GenerationTable,
-			Columns: []string{user.GenerationColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: generation.FieldID,
-				},
-			},
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := uuo.mutation.RemovedGenerationIDs(); len(nodes) > 0 && !uuo.mutation.GenerationCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   user.GenerationTable,
-			Columns: []string{user.GenerationColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: generation.FieldID,
-				},
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := uuo.mutation.GenerationIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   user.GenerationTable,
-			Columns: []string{user.GenerationColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: generation.FieldID,
+					Column: userrole.FieldID,
 				},
 			},
 		}
@@ -840,33 +742,33 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if uuo.mutation.GenerationGCleared() {
+	if uuo.mutation.GenerationsCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   user.GenerationGTable,
-			Columns: []string{user.GenerationGColumn},
+			Table:   user.GenerationsTable,
+			Columns: []string{user.GenerationsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeUUID,
-					Column: generationg.FieldID,
+					Column: generation.FieldID,
 				},
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := uuo.mutation.RemovedGenerationGIDs(); len(nodes) > 0 && !uuo.mutation.GenerationGCleared() {
+	if nodes := uuo.mutation.RemovedGenerationsIDs(); len(nodes) > 0 && !uuo.mutation.GenerationsCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   user.GenerationGTable,
-			Columns: []string{user.GenerationGColumn},
+			Table:   user.GenerationsTable,
+			Columns: []string{user.GenerationsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeUUID,
-					Column: generationg.FieldID,
+					Column: generation.FieldID,
 				},
 			},
 		}
@@ -875,17 +777,71 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := uuo.mutation.GenerationGIDs(); len(nodes) > 0 {
+	if nodes := uuo.mutation.GenerationsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   user.GenerationGTable,
-			Columns: []string{user.GenerationGColumn},
+			Table:   user.GenerationsTable,
+			Columns: []string{user.GenerationsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeUUID,
-					Column: generationg.FieldID,
+					Column: generation.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if uuo.mutation.UpscalesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.UpscalesTable,
+			Columns: []string{user.UpscalesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: upscale.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uuo.mutation.RemovedUpscalesIDs(); len(nodes) > 0 && !uuo.mutation.UpscalesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.UpscalesTable,
+			Columns: []string{user.UpscalesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: upscale.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uuo.mutation.UpscalesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.UpscalesTable,
+			Columns: []string{user.UpscalesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: upscale.FieldID,
 				},
 			},
 		}

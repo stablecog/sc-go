@@ -6,20 +6,17 @@ import (
 	"entgo.io/ent/dialect/sql"
 )
 
-// Admin is the predicate function for admin builders.
-type Admin func(*sql.Selector)
+// DeviceInfo is the predicate function for deviceinfo builders.
+type DeviceInfo func(*sql.Selector)
 
 // Generation is the predicate function for generation builders.
 type Generation func(*sql.Selector)
 
-// GenerationG is the predicate function for generationg builders.
-type GenerationG func(*sql.Selector)
+// GenerationModel is the predicate function for generationmodel builders.
+type GenerationModel func(*sql.Selector)
 
-// GenerationRealtime is the predicate function for generationrealtime builders.
-type GenerationRealtime func(*sql.Selector)
-
-// Model is the predicate function for model builders.
-type Model func(*sql.Selector)
+// GenerationOutput is the predicate function for generationoutput builders.
+type GenerationOutput func(*sql.Selector)
 
 // NegativePrompt is the predicate function for negativeprompt builders.
 type NegativePrompt func(*sql.Selector)
@@ -30,14 +27,17 @@ type Prompt func(*sql.Selector)
 // Scheduler is the predicate function for scheduler builders.
 type Scheduler func(*sql.Selector)
 
-// Server is the predicate function for server builders.
-type Server func(*sql.Selector)
-
 // Upscale is the predicate function for upscale builders.
 type Upscale func(*sql.Selector)
 
-// UpscaleRealtime is the predicate function for upscalerealtime builders.
-type UpscaleRealtime func(*sql.Selector)
+// UpscaleModel is the predicate function for upscalemodel builders.
+type UpscaleModel func(*sql.Selector)
+
+// UpscaleOutput is the predicate function for upscaleoutput builders.
+type UpscaleOutput func(*sql.Selector)
 
 // User is the predicate function for user builders.
 type User func(*sql.Selector)
+
+// UserRole is the predicate function for userrole builders.
+type UserRole func(*sql.Selector)

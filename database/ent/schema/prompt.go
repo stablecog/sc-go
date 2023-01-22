@@ -29,13 +29,8 @@ func (Prompt) Fields() []ent.Field {
 // Edges of the Prompt.
 func (Prompt) Edges() []ent.Edge {
 	return []ent.Edge{
-		// O2M with generation
-		edge.To("generation", Generation.Type).
-			Annotations(entsql.Annotation{
-				OnDelete: entsql.Cascade,
-			}),
-		// O2M with generation_g
-		edge.To("generation_g", GenerationG.Type).
+		// O2M with generations
+		edge.To("generations", Generation.Type).
 			Annotations(entsql.Annotation{
 				OnDelete: entsql.Cascade,
 			}),
@@ -45,6 +40,6 @@ func (Prompt) Edges() []ent.Edge {
 // Annotations of the Prompt.
 func (Prompt) Annotations() []schema.Annotation {
 	return []schema.Annotation{
-		entsql.Annotation{Table: "prompt"},
+		entsql.Annotation{Table: "prompts"},
 	}
 }
