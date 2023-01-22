@@ -53,13 +53,16 @@ func main() {
 	hub := websocket.NewHub()
 	go hub.Run()
 
-	// HTTP Routes
+	// Routes
 	app.Route("/v1", func(r chi.Router) {
-		r.Post("/health", hc.PostHealth)
+		r.Get("/health", hc.GetHealth)
+
 		// Websocket, optional auth
-		r.Use(mw.OptionalAuthMiddleware)
-		r.HandleFunc("/ws", func(w http.ResponseWriter, r *http.Request) {
-			websocket.ServeWS(hub, w, r)
+		r.Route("/ws", func(r chi.Router) {
+			r.Use(mw.OptionalAuthMiddleware)
+			r.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+				websocket.ServeWS(hub, w, r)
+			})
 		})
 	})
 
