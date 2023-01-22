@@ -6,7 +6,11 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"strings"
 
+	"ariga.io/atlas/sql/migrate"
+	"entgo.io/ent/dialect"
+	"entgo.io/ent/dialect/sql/schema"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/cors"
 	"github.com/joho/godotenv"
@@ -66,7 +70,23 @@ func main() {
 	defer entClient.Close()
 	// Run migrations
 	klog.Infoln("🦋 Running migrations...")
-	if err := entClient.Schema.Create(ctx); err != nil {
+	if err := entClient.Schema.Create(
+		ctx,
+		schema.WithApplyHook(func(next schema.Applier) schema.Applier {
+			return schema.ApplyFunc(func(ctx context.Context, conn dialect.ExecQuerier, plan *migrate.Plan) error {
+				// Omit changes to users table
+				filteredChanges := make([]*migrate.Change, 0)
+				for _, c := range plan.Changes {
+					if !strings.Contains(strings.ToLower(c.Cmd), "table \"users\"") {
+						filteredChanges = append(filteredChanges, c)
+						continue
+					}
+					klog.Infof("Skipping migration: %s", c.Cmd)
+				}
+				return next.Apply(ctx, conn, plan)
+			})
+		}),
+	); err != nil {
 		klog.Fatalf("Failed to run migrations: %v", err)
 		os.Exit(1)
 	}
