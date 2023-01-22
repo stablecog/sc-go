@@ -30,7 +30,7 @@ var (
 		{Name: "width", Type: field.TypeInt32},
 		{Name: "height", Type: field.TypeInt32},
 		{Name: "interference_steps", Type: field.TypeInt32},
-		{Name: "guidance_scale", Type: field.TypeFloat64},
+		{Name: "guidance_scale", Type: field.TypeFloat32},
 		{Name: "seed", Type: field.TypeInt},
 		{Name: "duration_ms", Type: field.TypeInt32},
 		{Name: "status", Type: field.TypeEnum, Enums: []string{"started", "succeeded", "failed", "rejected"}},

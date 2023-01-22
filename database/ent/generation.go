@@ -30,7 +30,7 @@ type Generation struct {
 	// InterferenceSteps holds the value of the "interference_steps" field.
 	InterferenceSteps int32 `json:"interference_steps,omitempty"`
 	// GuidanceScale holds the value of the "guidance_scale" field.
-	GuidanceScale float64 `json:"guidance_scale,omitempty"`
+	GuidanceScale float32 `json:"guidance_scale,omitempty"`
 	// Seed holds the value of the "seed" field.
 	Seed *int `json:"seed,omitempty"`
 	// DurationMs holds the value of the "duration_ms" field.
@@ -230,7 +230,7 @@ func (ge *Generation) assignValues(columns []string, values []any) error {
 			if value, ok := values[i].(*sql.NullFloat64); !ok {
 				return fmt.Errorf("unexpected type %T for field guidance_scale", values[i])
 			} else if value.Valid {
-				ge.GuidanceScale = value.Float64
+				ge.GuidanceScale = float32(value.Float64)
 			}
 		case generation.FieldSeed:
 			if value, ok := values[i].(*sql.NullInt64); !ok {

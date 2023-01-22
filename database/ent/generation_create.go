@@ -47,7 +47,7 @@ func (gc *GenerationCreate) SetInterferenceSteps(i int32) *GenerationCreate {
 }
 
 // SetGuidanceScale sets the "guidance_scale" field.
-func (gc *GenerationCreate) SetGuidanceScale(f float64) *GenerationCreate {
+func (gc *GenerationCreate) SetGuidanceScale(f float32) *GenerationCreate {
 	gc.mutation.SetGuidanceScale(f)
 	return gc
 }
@@ -414,7 +414,7 @@ func (gc *GenerationCreate) createSpec() (*Generation, *sqlgraph.CreateSpec) {
 		_node.InterferenceSteps = value
 	}
 	if value, ok := gc.mutation.GuidanceScale(); ok {
-		_spec.SetField(generation.FieldGuidanceScale, field.TypeFloat64, value)
+		_spec.SetField(generation.FieldGuidanceScale, field.TypeFloat32, value)
 		_node.GuidanceScale = value
 	}
 	if value, ok := gc.mutation.Seed(); ok {

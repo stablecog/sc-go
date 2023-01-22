@@ -72,7 +72,7 @@ func InterferenceSteps(v int32) predicate.Generation {
 }
 
 // GuidanceScale applies equality check predicate on the "guidance_scale" field. It's identical to GuidanceScaleEQ.
-func GuidanceScale(v float64) predicate.Generation {
+func GuidanceScale(v float32) predicate.Generation {
 	return predicate.Generation(sql.FieldEQ(FieldGuidanceScale, v))
 }
 
@@ -257,42 +257,42 @@ func InterferenceStepsLTE(v int32) predicate.Generation {
 }
 
 // GuidanceScaleEQ applies the EQ predicate on the "guidance_scale" field.
-func GuidanceScaleEQ(v float64) predicate.Generation {
+func GuidanceScaleEQ(v float32) predicate.Generation {
 	return predicate.Generation(sql.FieldEQ(FieldGuidanceScale, v))
 }
 
 // GuidanceScaleNEQ applies the NEQ predicate on the "guidance_scale" field.
-func GuidanceScaleNEQ(v float64) predicate.Generation {
+func GuidanceScaleNEQ(v float32) predicate.Generation {
 	return predicate.Generation(sql.FieldNEQ(FieldGuidanceScale, v))
 }
 
 // GuidanceScaleIn applies the In predicate on the "guidance_scale" field.
-func GuidanceScaleIn(vs ...float64) predicate.Generation {
+func GuidanceScaleIn(vs ...float32) predicate.Generation {
 	return predicate.Generation(sql.FieldIn(FieldGuidanceScale, vs...))
 }
 
 // GuidanceScaleNotIn applies the NotIn predicate on the "guidance_scale" field.
-func GuidanceScaleNotIn(vs ...float64) predicate.Generation {
+func GuidanceScaleNotIn(vs ...float32) predicate.Generation {
 	return predicate.Generation(sql.FieldNotIn(FieldGuidanceScale, vs...))
 }
 
 // GuidanceScaleGT applies the GT predicate on the "guidance_scale" field.
-func GuidanceScaleGT(v float64) predicate.Generation {
+func GuidanceScaleGT(v float32) predicate.Generation {
 	return predicate.Generation(sql.FieldGT(FieldGuidanceScale, v))
 }
 
 // GuidanceScaleGTE applies the GTE predicate on the "guidance_scale" field.
-func GuidanceScaleGTE(v float64) predicate.Generation {
+func GuidanceScaleGTE(v float32) predicate.Generation {
 	return predicate.Generation(sql.FieldGTE(FieldGuidanceScale, v))
 }
 
 // GuidanceScaleLT applies the LT predicate on the "guidance_scale" field.
-func GuidanceScaleLT(v float64) predicate.Generation {
+func GuidanceScaleLT(v float32) predicate.Generation {
 	return predicate.Generation(sql.FieldLT(FieldGuidanceScale, v))
 }
 
 // GuidanceScaleLTE applies the LTE predicate on the "guidance_scale" field.
-func GuidanceScaleLTE(v float64) predicate.Generation {
+func GuidanceScaleLTE(v float32) predicate.Generation {
 	return predicate.Generation(sql.FieldLTE(FieldGuidanceScale, v))
 }
 

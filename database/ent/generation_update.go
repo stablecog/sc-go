@@ -76,14 +76,14 @@ func (gu *GenerationUpdate) AddInterferenceSteps(i int32) *GenerationUpdate {
 }
 
 // SetGuidanceScale sets the "guidance_scale" field.
-func (gu *GenerationUpdate) SetGuidanceScale(f float64) *GenerationUpdate {
+func (gu *GenerationUpdate) SetGuidanceScale(f float32) *GenerationUpdate {
 	gu.mutation.ResetGuidanceScale()
 	gu.mutation.SetGuidanceScale(f)
 	return gu
 }
 
 // AddGuidanceScale adds f to the "guidance_scale" field.
-func (gu *GenerationUpdate) AddGuidanceScale(f float64) *GenerationUpdate {
+func (gu *GenerationUpdate) AddGuidanceScale(f float32) *GenerationUpdate {
 	gu.mutation.AddGuidanceScale(f)
 	return gu
 }
@@ -415,10 +415,10 @@ func (gu *GenerationUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		_spec.AddField(generation.FieldInterferenceSteps, field.TypeInt32, value)
 	}
 	if value, ok := gu.mutation.GuidanceScale(); ok {
-		_spec.SetField(generation.FieldGuidanceScale, field.TypeFloat64, value)
+		_spec.SetField(generation.FieldGuidanceScale, field.TypeFloat32, value)
 	}
 	if value, ok := gu.mutation.AddedGuidanceScale(); ok {
-		_spec.AddField(generation.FieldGuidanceScale, field.TypeFloat64, value)
+		_spec.AddField(generation.FieldGuidanceScale, field.TypeFloat32, value)
 	}
 	if value, ok := gu.mutation.Seed(); ok {
 		_spec.SetField(generation.FieldSeed, field.TypeInt, value)
@@ -768,14 +768,14 @@ func (guo *GenerationUpdateOne) AddInterferenceSteps(i int32) *GenerationUpdateO
 }
 
 // SetGuidanceScale sets the "guidance_scale" field.
-func (guo *GenerationUpdateOne) SetGuidanceScale(f float64) *GenerationUpdateOne {
+func (guo *GenerationUpdateOne) SetGuidanceScale(f float32) *GenerationUpdateOne {
 	guo.mutation.ResetGuidanceScale()
 	guo.mutation.SetGuidanceScale(f)
 	return guo
 }
 
 // AddGuidanceScale adds f to the "guidance_scale" field.
-func (guo *GenerationUpdateOne) AddGuidanceScale(f float64) *GenerationUpdateOne {
+func (guo *GenerationUpdateOne) AddGuidanceScale(f float32) *GenerationUpdateOne {
 	guo.mutation.AddGuidanceScale(f)
 	return guo
 }
@@ -1131,10 +1131,10 @@ func (guo *GenerationUpdateOne) sqlSave(ctx context.Context) (_node *Generation,
 		_spec.AddField(generation.FieldInterferenceSteps, field.TypeInt32, value)
 	}
 	if value, ok := guo.mutation.GuidanceScale(); ok {
-		_spec.SetField(generation.FieldGuidanceScale, field.TypeFloat64, value)
+		_spec.SetField(generation.FieldGuidanceScale, field.TypeFloat32, value)
 	}
 	if value, ok := guo.mutation.AddedGuidanceScale(); ok {
-		_spec.AddField(generation.FieldGuidanceScale, field.TypeFloat64, value)
+		_spec.AddField(generation.FieldGuidanceScale, field.TypeFloat32, value)
 	}
 	if value, ok := guo.mutation.Seed(); ok {
 		_spec.SetField(generation.FieldSeed, field.TypeInt, value)

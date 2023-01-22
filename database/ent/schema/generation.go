@@ -23,7 +23,7 @@ func (Generation) Fields() []ent.Field {
 		field.Int32("width"),
 		field.Int32("height"),
 		field.Int32("interference_steps"),
-		field.Float("guidance_scale"),
+		field.Float32("guidance_scale"),
 		field.Int("seed").Nillable(),
 		field.Int32("duration_ms"),
 		field.Enum("status").Values("started", "succeeded", "failed", "rejected"),

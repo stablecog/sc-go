@@ -787,8 +787,8 @@ type GenerationMutation struct {
 	addheight                 *int32
 	interference_steps        *int32
 	addinterference_steps     *int32
-	guidance_scale            *float64
-	addguidance_scale         *float64
+	guidance_scale            *float32
+	addguidance_scale         *float32
 	seed                      *int
 	addseed                   *int
 	duration_ms               *int32
@@ -1092,13 +1092,13 @@ func (m *GenerationMutation) ResetInterferenceSteps() {
 }
 
 // SetGuidanceScale sets the "guidance_scale" field.
-func (m *GenerationMutation) SetGuidanceScale(f float64) {
+func (m *GenerationMutation) SetGuidanceScale(f float32) {
 	m.guidance_scale = &f
 	m.addguidance_scale = nil
 }
 
 // GuidanceScale returns the value of the "guidance_scale" field in the mutation.
-func (m *GenerationMutation) GuidanceScale() (r float64, exists bool) {
+func (m *GenerationMutation) GuidanceScale() (r float32, exists bool) {
 	v := m.guidance_scale
 	if v == nil {
 		return
@@ -1109,7 +1109,7 @@ func (m *GenerationMutation) GuidanceScale() (r float64, exists bool) {
 // OldGuidanceScale returns the old "guidance_scale" field's value of the Generation entity.
 // If the Generation object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *GenerationMutation) OldGuidanceScale(ctx context.Context) (v float64, err error) {
+func (m *GenerationMutation) OldGuidanceScale(ctx context.Context) (v float32, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldGuidanceScale is only allowed on UpdateOne operations")
 	}
@@ -1124,7 +1124,7 @@ func (m *GenerationMutation) OldGuidanceScale(ctx context.Context) (v float64, e
 }
 
 // AddGuidanceScale adds f to the "guidance_scale" field.
-func (m *GenerationMutation) AddGuidanceScale(f float64) {
+func (m *GenerationMutation) AddGuidanceScale(f float32) {
 	if m.addguidance_scale != nil {
 		*m.addguidance_scale += f
 	} else {
@@ -1133,7 +1133,7 @@ func (m *GenerationMutation) AddGuidanceScale(f float64) {
 }
 
 // AddedGuidanceScale returns the value that was added to the "guidance_scale" field in this mutation.
-func (m *GenerationMutation) AddedGuidanceScale() (r float64, exists bool) {
+func (m *GenerationMutation) AddedGuidanceScale() (r float32, exists bool) {
 	v := m.addguidance_scale
 	if v == nil {
 		return
@@ -2132,7 +2132,7 @@ func (m *GenerationMutation) SetField(name string, value ent.Value) error {
 		m.SetInterferenceSteps(v)
 		return nil
 	case generation.FieldGuidanceScale:
-		v, ok := value.(float64)
+		v, ok := value.(float32)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
@@ -2306,7 +2306,7 @@ func (m *GenerationMutation) AddField(name string, value ent.Value) error {
 		m.AddInterferenceSteps(v)
 		return nil
 	case generation.FieldGuidanceScale:
-		v, ok := value.(float64)
+		v, ok := value.(float32)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
