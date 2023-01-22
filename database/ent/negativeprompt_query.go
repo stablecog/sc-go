@@ -20,11 +20,8 @@ import (
 // NegativePromptQuery is the builder for querying NegativePrompt entities.
 type NegativePromptQuery struct {
 	config
-	limit           *int
-	offset          *int
-	unique          *bool
+	ctx             *QueryContext
 	order           []OrderFunc
-	fields          []string
 	inters          []Interceptor
 	predicates      []predicate.NegativePrompt
 	withGenerations *GenerationQuery
@@ -41,20 +38,20 @@ func (npq *NegativePromptQuery) Where(ps ...predicate.NegativePrompt) *NegativeP
 
 // Limit the number of records to be returned by this query.
 func (npq *NegativePromptQuery) Limit(limit int) *NegativePromptQuery {
-	npq.limit = &limit
+	npq.ctx.Limit = &limit
 	return npq
 }
 
 // Offset to start from.
 func (npq *NegativePromptQuery) Offset(offset int) *NegativePromptQuery {
-	npq.offset = &offset
+	npq.ctx.Offset = &offset
 	return npq
 }
 
 // Unique configures the query builder to filter duplicate records on query.
 // By default, unique is set to true, and can be disabled using this method.
 func (npq *NegativePromptQuery) Unique(unique bool) *NegativePromptQuery {
-	npq.unique = &unique
+	npq.ctx.Unique = &unique
 	return npq
 }
 
@@ -89,7 +86,7 @@ func (npq *NegativePromptQuery) QueryGenerations() *GenerationQuery {
 // First returns the first NegativePrompt entity from the query.
 // Returns a *NotFoundError when no NegativePrompt was found.
 func (npq *NegativePromptQuery) First(ctx context.Context) (*NegativePrompt, error) {
-	nodes, err := npq.Limit(1).All(newQueryContext(ctx, TypeNegativePrompt, "First"))
+	nodes, err := npq.Limit(1).All(setContextOp(ctx, npq.ctx, "First"))
 	if err != nil {
 		return nil, err
 	}
@@ -112,7 +109,7 @@ func (npq *NegativePromptQuery) FirstX(ctx context.Context) *NegativePrompt {
 // Returns a *NotFoundError when no NegativePrompt ID was found.
 func (npq *NegativePromptQuery) FirstID(ctx context.Context) (id uuid.UUID, err error) {
 	var ids []uuid.UUID
-	if ids, err = npq.Limit(1).IDs(newQueryContext(ctx, TypeNegativePrompt, "FirstID")); err != nil {
+	if ids, err = npq.Limit(1).IDs(setContextOp(ctx, npq.ctx, "FirstID")); err != nil {
 		return
 	}
 	if len(ids) == 0 {
@@ -135,7 +132,7 @@ func (npq *NegativePromptQuery) FirstIDX(ctx context.Context) uuid.UUID {
 // Returns a *NotSingularError when more than one NegativePrompt entity is found.
 // Returns a *NotFoundError when no NegativePrompt entities are found.
 func (npq *NegativePromptQuery) Only(ctx context.Context) (*NegativePrompt, error) {
-	nodes, err := npq.Limit(2).All(newQueryContext(ctx, TypeNegativePrompt, "Only"))
+	nodes, err := npq.Limit(2).All(setContextOp(ctx, npq.ctx, "Only"))
 	if err != nil {
 		return nil, err
 	}
@@ -163,7 +160,7 @@ func (npq *NegativePromptQuery) OnlyX(ctx context.Context) *NegativePrompt {
 // Returns a *NotFoundError when no entities are found.
 func (npq *NegativePromptQuery) OnlyID(ctx context.Context) (id uuid.UUID, err error) {
 	var ids []uuid.UUID
-	if ids, err = npq.Limit(2).IDs(newQueryContext(ctx, TypeNegativePrompt, "OnlyID")); err != nil {
+	if ids, err = npq.Limit(2).IDs(setContextOp(ctx, npq.ctx, "OnlyID")); err != nil {
 		return
 	}
 	switch len(ids) {
@@ -188,7 +185,7 @@ func (npq *NegativePromptQuery) OnlyIDX(ctx context.Context) uuid.UUID {
 
 // All executes the query and returns a list of NegativePrompts.
 func (npq *NegativePromptQuery) All(ctx context.Context) ([]*NegativePrompt, error) {
-	ctx = newQueryContext(ctx, TypeNegativePrompt, "All")
+	ctx = setContextOp(ctx, npq.ctx, "All")
 	if err := npq.prepareQuery(ctx); err != nil {
 		return nil, err
 	}
@@ -208,7 +205,7 @@ func (npq *NegativePromptQuery) AllX(ctx context.Context) []*NegativePrompt {
 // IDs executes the query and returns a list of NegativePrompt IDs.
 func (npq *NegativePromptQuery) IDs(ctx context.Context) ([]uuid.UUID, error) {
 	var ids []uuid.UUID
-	ctx = newQueryContext(ctx, TypeNegativePrompt, "IDs")
+	ctx = setContextOp(ctx, npq.ctx, "IDs")
 	if err := npq.Select(negativeprompt.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
@@ -226,7 +223,7 @@ func (npq *NegativePromptQuery) IDsX(ctx context.Context) []uuid.UUID {
 
 // Count returns the count of the given query.
 func (npq *NegativePromptQuery) Count(ctx context.Context) (int, error) {
-	ctx = newQueryContext(ctx, TypeNegativePrompt, "Count")
+	ctx = setContextOp(ctx, npq.ctx, "Count")
 	if err := npq.prepareQuery(ctx); err != nil {
 		return 0, err
 	}
@@ -244,7 +241,7 @@ func (npq *NegativePromptQuery) CountX(ctx context.Context) int {
 
 // Exist returns true if the query has elements in the graph.
 func (npq *NegativePromptQuery) Exist(ctx context.Context) (bool, error) {
-	ctx = newQueryContext(ctx, TypeNegativePrompt, "Exist")
+	ctx = setContextOp(ctx, npq.ctx, "Exist")
 	switch _, err := npq.FirstID(ctx); {
 	case IsNotFound(err):
 		return false, nil
@@ -272,16 +269,14 @@ func (npq *NegativePromptQuery) Clone() *NegativePromptQuery {
 	}
 	return &NegativePromptQuery{
 		config:          npq.config,
-		limit:           npq.limit,
-		offset:          npq.offset,
+		ctx:             npq.ctx.Clone(),
 		order:           append([]OrderFunc{}, npq.order...),
 		inters:          append([]Interceptor{}, npq.inters...),
 		predicates:      append([]predicate.NegativePrompt{}, npq.predicates...),
 		withGenerations: npq.withGenerations.Clone(),
 		// clone intermediate query.
-		sql:    npq.sql.Clone(),
-		path:   npq.path,
-		unique: npq.unique,
+		sql:  npq.sql.Clone(),
+		path: npq.path,
 	}
 }
 
@@ -311,9 +306,9 @@ func (npq *NegativePromptQuery) WithGenerations(opts ...func(*GenerationQuery)) 
 //		Aggregate(ent.Count()).
 //		Scan(ctx, &v)
 func (npq *NegativePromptQuery) GroupBy(field string, fields ...string) *NegativePromptGroupBy {
-	npq.fields = append([]string{field}, fields...)
+	npq.ctx.Fields = append([]string{field}, fields...)
 	grbuild := &NegativePromptGroupBy{build: npq}
-	grbuild.flds = &npq.fields
+	grbuild.flds = &npq.ctx.Fields
 	grbuild.label = negativeprompt.Label
 	grbuild.scan = grbuild.Scan
 	return grbuild
@@ -332,10 +327,10 @@ func (npq *NegativePromptQuery) GroupBy(field string, fields ...string) *Negativ
 //		Select(negativeprompt.FieldText).
 //		Scan(ctx, &v)
 func (npq *NegativePromptQuery) Select(fields ...string) *NegativePromptSelect {
-	npq.fields = append(npq.fields, fields...)
+	npq.ctx.Fields = append(npq.ctx.Fields, fields...)
 	sbuild := &NegativePromptSelect{NegativePromptQuery: npq}
 	sbuild.label = negativeprompt.Label
-	sbuild.flds, sbuild.scan = &npq.fields, sbuild.Scan
+	sbuild.flds, sbuild.scan = &npq.ctx.Fields, sbuild.Scan
 	return sbuild
 }
 
@@ -355,7 +350,7 @@ func (npq *NegativePromptQuery) prepareQuery(ctx context.Context) error {
 			}
 		}
 	}
-	for _, f := range npq.fields {
+	for _, f := range npq.ctx.Fields {
 		if !negativeprompt.ValidColumn(f) {
 			return &ValidationError{Name: f, err: fmt.Errorf("ent: invalid field %q for query", f)}
 		}
@@ -439,9 +434,9 @@ func (npq *NegativePromptQuery) loadGenerations(ctx context.Context, query *Gene
 
 func (npq *NegativePromptQuery) sqlCount(ctx context.Context) (int, error) {
 	_spec := npq.querySpec()
-	_spec.Node.Columns = npq.fields
-	if len(npq.fields) > 0 {
-		_spec.Unique = npq.unique != nil && *npq.unique
+	_spec.Node.Columns = npq.ctx.Fields
+	if len(npq.ctx.Fields) > 0 {
+		_spec.Unique = npq.ctx.Unique != nil && *npq.ctx.Unique
 	}
 	return sqlgraph.CountNodes(ctx, npq.driver, _spec)
 }
@@ -459,10 +454,10 @@ func (npq *NegativePromptQuery) querySpec() *sqlgraph.QuerySpec {
 		From:   npq.sql,
 		Unique: true,
 	}
-	if unique := npq.unique; unique != nil {
+	if unique := npq.ctx.Unique; unique != nil {
 		_spec.Unique = *unique
 	}
-	if fields := npq.fields; len(fields) > 0 {
+	if fields := npq.ctx.Fields; len(fields) > 0 {
 		_spec.Node.Columns = make([]string, 0, len(fields))
 		_spec.Node.Columns = append(_spec.Node.Columns, negativeprompt.FieldID)
 		for i := range fields {
@@ -478,10 +473,10 @@ func (npq *NegativePromptQuery) querySpec() *sqlgraph.QuerySpec {
 			}
 		}
 	}
-	if limit := npq.limit; limit != nil {
+	if limit := npq.ctx.Limit; limit != nil {
 		_spec.Limit = *limit
 	}
-	if offset := npq.offset; offset != nil {
+	if offset := npq.ctx.Offset; offset != nil {
 		_spec.Offset = *offset
 	}
 	if ps := npq.order; len(ps) > 0 {
@@ -497,7 +492,7 @@ func (npq *NegativePromptQuery) querySpec() *sqlgraph.QuerySpec {
 func (npq *NegativePromptQuery) sqlQuery(ctx context.Context) *sql.Selector {
 	builder := sql.Dialect(npq.driver.Dialect())
 	t1 := builder.Table(negativeprompt.Table)
-	columns := npq.fields
+	columns := npq.ctx.Fields
 	if len(columns) == 0 {
 		columns = negativeprompt.Columns
 	}
@@ -506,7 +501,7 @@ func (npq *NegativePromptQuery) sqlQuery(ctx context.Context) *sql.Selector {
 		selector = npq.sql
 		selector.Select(selector.Columns(columns...)...)
 	}
-	if npq.unique != nil && *npq.unique {
+	if npq.ctx.Unique != nil && *npq.ctx.Unique {
 		selector.Distinct()
 	}
 	for _, p := range npq.predicates {
@@ -515,12 +510,12 @@ func (npq *NegativePromptQuery) sqlQuery(ctx context.Context) *sql.Selector {
 	for _, p := range npq.order {
 		p(selector)
 	}
-	if offset := npq.offset; offset != nil {
+	if offset := npq.ctx.Offset; offset != nil {
 		// limit is mandatory for offset clause. We start
 		// with default value, and override it below if needed.
 		selector.Offset(*offset).Limit(math.MaxInt32)
 	}
-	if limit := npq.limit; limit != nil {
+	if limit := npq.ctx.Limit; limit != nil {
 		selector.Limit(*limit)
 	}
 	return selector
@@ -540,7 +535,7 @@ func (npgb *NegativePromptGroupBy) Aggregate(fns ...AggregateFunc) *NegativeProm
 
 // Scan applies the selector query and scans the result into the given value.
 func (npgb *NegativePromptGroupBy) Scan(ctx context.Context, v any) error {
-	ctx = newQueryContext(ctx, TypeNegativePrompt, "GroupBy")
+	ctx = setContextOp(ctx, npgb.build.ctx, "GroupBy")
 	if err := npgb.build.prepareQuery(ctx); err != nil {
 		return err
 	}
@@ -588,7 +583,7 @@ func (nps *NegativePromptSelect) Aggregate(fns ...AggregateFunc) *NegativePrompt
 
 // Scan applies the selector query and scans the result into the given value.
 func (nps *NegativePromptSelect) Scan(ctx context.Context, v any) error {
-	ctx = newQueryContext(ctx, TypeNegativePrompt, "Select")
+	ctx = setContextOp(ctx, nps.ctx, "Select")
 	if err := nps.prepareQuery(ctx); err != nil {
 		return err
 	}

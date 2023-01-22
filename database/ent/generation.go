@@ -41,6 +41,10 @@ type Generation struct {
 	FailureReason *string `json:"failure_reason,omitempty"`
 	// CountryCode holds the value of the "country_code" field.
 	CountryCode string `json:"country_code,omitempty"`
+	// IsSubmittedToGallery holds the value of the "is_submitted_to_gallery" field.
+	IsSubmittedToGallery bool `json:"is_submitted_to_gallery,omitempty"`
+	// IsPublic holds the value of the "is_public" field.
+	IsPublic bool `json:"is_public,omitempty"`
 	// PromptID holds the value of the "prompt_id" field.
 	PromptID uuid.UUID `json:"prompt_id,omitempty"`
 	// NegativePromptID holds the value of the "negative_prompt_id" field.
@@ -177,6 +181,8 @@ func (*Generation) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case generation.FieldNegativePromptID:
 			values[i] = &sql.NullScanner{S: new(uuid.UUID)}
+		case generation.FieldIsSubmittedToGallery, generation.FieldIsPublic:
+			values[i] = new(sql.NullBool)
 		case generation.FieldGuidanceScale:
 			values[i] = new(sql.NullFloat64)
 		case generation.FieldWidth, generation.FieldHeight, generation.FieldInterferenceSteps, generation.FieldSeed, generation.FieldDurationMs:
@@ -264,6 +270,18 @@ func (ge *Generation) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				ge.CountryCode = value.String
 			}
+		case generation.FieldIsSubmittedToGallery:
+			if value, ok := values[i].(*sql.NullBool); !ok {
+				return fmt.Errorf("unexpected type %T for field is_submitted_to_gallery", values[i])
+			} else if value.Valid {
+				ge.IsSubmittedToGallery = value.Bool
+			}
+		case generation.FieldIsPublic:
+			if value, ok := values[i].(*sql.NullBool); !ok {
+				return fmt.Errorf("unexpected type %T for field is_public", values[i])
+			} else if value.Valid {
+				ge.IsPublic = value.Bool
+			}
 		case generation.FieldPromptID:
 			if value, ok := values[i].(*uuid.UUID); !ok {
 				return fmt.Errorf("unexpected type %T for field prompt_id", values[i])
@@ -320,44 +338,44 @@ func (ge *Generation) assignValues(columns []string, values []any) error {
 
 // QueryDeviceInfo queries the "device_info" edge of the Generation entity.
 func (ge *Generation) QueryDeviceInfo() *DeviceInfoQuery {
-	return (&GenerationClient{config: ge.config}).QueryDeviceInfo(ge)
+	return NewGenerationClient(ge.config).QueryDeviceInfo(ge)
 }
 
 // QuerySchedulers queries the "schedulers" edge of the Generation entity.
 func (ge *Generation) QuerySchedulers() *SchedulerQuery {
-	return (&GenerationClient{config: ge.config}).QuerySchedulers(ge)
+	return NewGenerationClient(ge.config).QuerySchedulers(ge)
 }
 
 // QueryPrompts queries the "prompts" edge of the Generation entity.
 func (ge *Generation) QueryPrompts() *PromptQuery {
-	return (&GenerationClient{config: ge.config}).QueryPrompts(ge)
+	return NewGenerationClient(ge.config).QueryPrompts(ge)
 }
 
 // QueryNegativePrompts queries the "negative_prompts" edge of the Generation entity.
 func (ge *Generation) QueryNegativePrompts() *NegativePromptQuery {
-	return (&GenerationClient{config: ge.config}).QueryNegativePrompts(ge)
+	return NewGenerationClient(ge.config).QueryNegativePrompts(ge)
 }
 
 // QueryGenerationModels queries the "generation_models" edge of the Generation entity.
 func (ge *Generation) QueryGenerationModels() *GenerationModelQuery {
-	return (&GenerationClient{config: ge.config}).QueryGenerationModels(ge)
+	return NewGenerationClient(ge.config).QueryGenerationModels(ge)
 }
 
 // QueryUsers queries the "users" edge of the Generation entity.
 func (ge *Generation) QueryUsers() *UserQuery {
-	return (&GenerationClient{config: ge.config}).QueryUsers(ge)
+	return NewGenerationClient(ge.config).QueryUsers(ge)
 }
 
 // QueryGenerationOutputs queries the "generation_outputs" edge of the Generation entity.
 func (ge *Generation) QueryGenerationOutputs() *GenerationOutputQuery {
-	return (&GenerationClient{config: ge.config}).QueryGenerationOutputs(ge)
+	return NewGenerationClient(ge.config).QueryGenerationOutputs(ge)
 }
 
 // Update returns a builder for updating this Generation.
 // Note that you need to call Generation.Unwrap() before calling this method if this Generation
 // was returned from a transaction, and the transaction was committed or rolled back.
 func (ge *Generation) Update() *GenerationUpdateOne {
-	return (&GenerationClient{config: ge.config}).UpdateOne(ge)
+	return NewGenerationClient(ge.config).UpdateOne(ge)
 }
 
 // Unwrap unwraps the Generation entity that was returned from a transaction after it was closed,
@@ -406,6 +424,12 @@ func (ge *Generation) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("country_code=")
 	builder.WriteString(ge.CountryCode)
+	builder.WriteString(", ")
+	builder.WriteString("is_submitted_to_gallery=")
+	builder.WriteString(fmt.Sprintf("%v", ge.IsSubmittedToGallery))
+	builder.WriteString(", ")
+	builder.WriteString("is_public=")
+	builder.WriteString(fmt.Sprintf("%v", ge.IsPublic))
 	builder.WriteString(", ")
 	builder.WriteString("prompt_id=")
 	builder.WriteString(fmt.Sprintf("%v", ge.PromptID))

@@ -20,11 +20,8 @@ import (
 // UpscaleModelQuery is the builder for querying UpscaleModel entities.
 type UpscaleModelQuery struct {
 	config
-	limit        *int
-	offset       *int
-	unique       *bool
+	ctx          *QueryContext
 	order        []OrderFunc
-	fields       []string
 	inters       []Interceptor
 	predicates   []predicate.UpscaleModel
 	withUpscales *UpscaleQuery
@@ -41,20 +38,20 @@ func (umq *UpscaleModelQuery) Where(ps ...predicate.UpscaleModel) *UpscaleModelQ
 
 // Limit the number of records to be returned by this query.
 func (umq *UpscaleModelQuery) Limit(limit int) *UpscaleModelQuery {
-	umq.limit = &limit
+	umq.ctx.Limit = &limit
 	return umq
 }
 
 // Offset to start from.
 func (umq *UpscaleModelQuery) Offset(offset int) *UpscaleModelQuery {
-	umq.offset = &offset
+	umq.ctx.Offset = &offset
 	return umq
 }
 
 // Unique configures the query builder to filter duplicate records on query.
 // By default, unique is set to true, and can be disabled using this method.
 func (umq *UpscaleModelQuery) Unique(unique bool) *UpscaleModelQuery {
-	umq.unique = &unique
+	umq.ctx.Unique = &unique
 	return umq
 }
 
@@ -89,7 +86,7 @@ func (umq *UpscaleModelQuery) QueryUpscales() *UpscaleQuery {
 // First returns the first UpscaleModel entity from the query.
 // Returns a *NotFoundError when no UpscaleModel was found.
 func (umq *UpscaleModelQuery) First(ctx context.Context) (*UpscaleModel, error) {
-	nodes, err := umq.Limit(1).All(newQueryContext(ctx, TypeUpscaleModel, "First"))
+	nodes, err := umq.Limit(1).All(setContextOp(ctx, umq.ctx, "First"))
 	if err != nil {
 		return nil, err
 	}
@@ -112,7 +109,7 @@ func (umq *UpscaleModelQuery) FirstX(ctx context.Context) *UpscaleModel {
 // Returns a *NotFoundError when no UpscaleModel ID was found.
 func (umq *UpscaleModelQuery) FirstID(ctx context.Context) (id uuid.UUID, err error) {
 	var ids []uuid.UUID
-	if ids, err = umq.Limit(1).IDs(newQueryContext(ctx, TypeUpscaleModel, "FirstID")); err != nil {
+	if ids, err = umq.Limit(1).IDs(setContextOp(ctx, umq.ctx, "FirstID")); err != nil {
 		return
 	}
 	if len(ids) == 0 {
@@ -135,7 +132,7 @@ func (umq *UpscaleModelQuery) FirstIDX(ctx context.Context) uuid.UUID {
 // Returns a *NotSingularError when more than one UpscaleModel entity is found.
 // Returns a *NotFoundError when no UpscaleModel entities are found.
 func (umq *UpscaleModelQuery) Only(ctx context.Context) (*UpscaleModel, error) {
-	nodes, err := umq.Limit(2).All(newQueryContext(ctx, TypeUpscaleModel, "Only"))
+	nodes, err := umq.Limit(2).All(setContextOp(ctx, umq.ctx, "Only"))
 	if err != nil {
 		return nil, err
 	}
@@ -163,7 +160,7 @@ func (umq *UpscaleModelQuery) OnlyX(ctx context.Context) *UpscaleModel {
 // Returns a *NotFoundError when no entities are found.
 func (umq *UpscaleModelQuery) OnlyID(ctx context.Context) (id uuid.UUID, err error) {
 	var ids []uuid.UUID
-	if ids, err = umq.Limit(2).IDs(newQueryContext(ctx, TypeUpscaleModel, "OnlyID")); err != nil {
+	if ids, err = umq.Limit(2).IDs(setContextOp(ctx, umq.ctx, "OnlyID")); err != nil {
 		return
 	}
 	switch len(ids) {
@@ -188,7 +185,7 @@ func (umq *UpscaleModelQuery) OnlyIDX(ctx context.Context) uuid.UUID {
 
 // All executes the query and returns a list of UpscaleModels.
 func (umq *UpscaleModelQuery) All(ctx context.Context) ([]*UpscaleModel, error) {
-	ctx = newQueryContext(ctx, TypeUpscaleModel, "All")
+	ctx = setContextOp(ctx, umq.ctx, "All")
 	if err := umq.prepareQuery(ctx); err != nil {
 		return nil, err
 	}
@@ -208,7 +205,7 @@ func (umq *UpscaleModelQuery) AllX(ctx context.Context) []*UpscaleModel {
 // IDs executes the query and returns a list of UpscaleModel IDs.
 func (umq *UpscaleModelQuery) IDs(ctx context.Context) ([]uuid.UUID, error) {
 	var ids []uuid.UUID
-	ctx = newQueryContext(ctx, TypeUpscaleModel, "IDs")
+	ctx = setContextOp(ctx, umq.ctx, "IDs")
 	if err := umq.Select(upscalemodel.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
@@ -226,7 +223,7 @@ func (umq *UpscaleModelQuery) IDsX(ctx context.Context) []uuid.UUID {
 
 // Count returns the count of the given query.
 func (umq *UpscaleModelQuery) Count(ctx context.Context) (int, error) {
-	ctx = newQueryContext(ctx, TypeUpscaleModel, "Count")
+	ctx = setContextOp(ctx, umq.ctx, "Count")
 	if err := umq.prepareQuery(ctx); err != nil {
 		return 0, err
 	}
@@ -244,7 +241,7 @@ func (umq *UpscaleModelQuery) CountX(ctx context.Context) int {
 
 // Exist returns true if the query has elements in the graph.
 func (umq *UpscaleModelQuery) Exist(ctx context.Context) (bool, error) {
-	ctx = newQueryContext(ctx, TypeUpscaleModel, "Exist")
+	ctx = setContextOp(ctx, umq.ctx, "Exist")
 	switch _, err := umq.FirstID(ctx); {
 	case IsNotFound(err):
 		return false, nil
@@ -272,16 +269,14 @@ func (umq *UpscaleModelQuery) Clone() *UpscaleModelQuery {
 	}
 	return &UpscaleModelQuery{
 		config:       umq.config,
-		limit:        umq.limit,
-		offset:       umq.offset,
+		ctx:          umq.ctx.Clone(),
 		order:        append([]OrderFunc{}, umq.order...),
 		inters:       append([]Interceptor{}, umq.inters...),
 		predicates:   append([]predicate.UpscaleModel{}, umq.predicates...),
 		withUpscales: umq.withUpscales.Clone(),
 		// clone intermediate query.
-		sql:    umq.sql.Clone(),
-		path:   umq.path,
-		unique: umq.unique,
+		sql:  umq.sql.Clone(),
+		path: umq.path,
 	}
 }
 
@@ -311,9 +306,9 @@ func (umq *UpscaleModelQuery) WithUpscales(opts ...func(*UpscaleQuery)) *Upscale
 //		Aggregate(ent.Count()).
 //		Scan(ctx, &v)
 func (umq *UpscaleModelQuery) GroupBy(field string, fields ...string) *UpscaleModelGroupBy {
-	umq.fields = append([]string{field}, fields...)
+	umq.ctx.Fields = append([]string{field}, fields...)
 	grbuild := &UpscaleModelGroupBy{build: umq}
-	grbuild.flds = &umq.fields
+	grbuild.flds = &umq.ctx.Fields
 	grbuild.label = upscalemodel.Label
 	grbuild.scan = grbuild.Scan
 	return grbuild
@@ -332,10 +327,10 @@ func (umq *UpscaleModelQuery) GroupBy(field string, fields ...string) *UpscaleMo
 //		Select(upscalemodel.FieldName).
 //		Scan(ctx, &v)
 func (umq *UpscaleModelQuery) Select(fields ...string) *UpscaleModelSelect {
-	umq.fields = append(umq.fields, fields...)
+	umq.ctx.Fields = append(umq.ctx.Fields, fields...)
 	sbuild := &UpscaleModelSelect{UpscaleModelQuery: umq}
 	sbuild.label = upscalemodel.Label
-	sbuild.flds, sbuild.scan = &umq.fields, sbuild.Scan
+	sbuild.flds, sbuild.scan = &umq.ctx.Fields, sbuild.Scan
 	return sbuild
 }
 
@@ -355,7 +350,7 @@ func (umq *UpscaleModelQuery) prepareQuery(ctx context.Context) error {
 			}
 		}
 	}
-	for _, f := range umq.fields {
+	for _, f := range umq.ctx.Fields {
 		if !upscalemodel.ValidColumn(f) {
 			return &ValidationError{Name: f, err: fmt.Errorf("ent: invalid field %q for query", f)}
 		}
@@ -436,9 +431,9 @@ func (umq *UpscaleModelQuery) loadUpscales(ctx context.Context, query *UpscaleQu
 
 func (umq *UpscaleModelQuery) sqlCount(ctx context.Context) (int, error) {
 	_spec := umq.querySpec()
-	_spec.Node.Columns = umq.fields
-	if len(umq.fields) > 0 {
-		_spec.Unique = umq.unique != nil && *umq.unique
+	_spec.Node.Columns = umq.ctx.Fields
+	if len(umq.ctx.Fields) > 0 {
+		_spec.Unique = umq.ctx.Unique != nil && *umq.ctx.Unique
 	}
 	return sqlgraph.CountNodes(ctx, umq.driver, _spec)
 }
@@ -456,10 +451,10 @@ func (umq *UpscaleModelQuery) querySpec() *sqlgraph.QuerySpec {
 		From:   umq.sql,
 		Unique: true,
 	}
-	if unique := umq.unique; unique != nil {
+	if unique := umq.ctx.Unique; unique != nil {
 		_spec.Unique = *unique
 	}
-	if fields := umq.fields; len(fields) > 0 {
+	if fields := umq.ctx.Fields; len(fields) > 0 {
 		_spec.Node.Columns = make([]string, 0, len(fields))
 		_spec.Node.Columns = append(_spec.Node.Columns, upscalemodel.FieldID)
 		for i := range fields {
@@ -475,10 +470,10 @@ func (umq *UpscaleModelQuery) querySpec() *sqlgraph.QuerySpec {
 			}
 		}
 	}
-	if limit := umq.limit; limit != nil {
+	if limit := umq.ctx.Limit; limit != nil {
 		_spec.Limit = *limit
 	}
-	if offset := umq.offset; offset != nil {
+	if offset := umq.ctx.Offset; offset != nil {
 		_spec.Offset = *offset
 	}
 	if ps := umq.order; len(ps) > 0 {
@@ -494,7 +489,7 @@ func (umq *UpscaleModelQuery) querySpec() *sqlgraph.QuerySpec {
 func (umq *UpscaleModelQuery) sqlQuery(ctx context.Context) *sql.Selector {
 	builder := sql.Dialect(umq.driver.Dialect())
 	t1 := builder.Table(upscalemodel.Table)
-	columns := umq.fields
+	columns := umq.ctx.Fields
 	if len(columns) == 0 {
 		columns = upscalemodel.Columns
 	}
@@ -503,7 +498,7 @@ func (umq *UpscaleModelQuery) sqlQuery(ctx context.Context) *sql.Selector {
 		selector = umq.sql
 		selector.Select(selector.Columns(columns...)...)
 	}
-	if umq.unique != nil && *umq.unique {
+	if umq.ctx.Unique != nil && *umq.ctx.Unique {
 		selector.Distinct()
 	}
 	for _, p := range umq.predicates {
@@ -512,12 +507,12 @@ func (umq *UpscaleModelQuery) sqlQuery(ctx context.Context) *sql.Selector {
 	for _, p := range umq.order {
 		p(selector)
 	}
-	if offset := umq.offset; offset != nil {
+	if offset := umq.ctx.Offset; offset != nil {
 		// limit is mandatory for offset clause. We start
 		// with default value, and override it below if needed.
 		selector.Offset(*offset).Limit(math.MaxInt32)
 	}
-	if limit := umq.limit; limit != nil {
+	if limit := umq.ctx.Limit; limit != nil {
 		selector.Limit(*limit)
 	}
 	return selector
@@ -537,7 +532,7 @@ func (umgb *UpscaleModelGroupBy) Aggregate(fns ...AggregateFunc) *UpscaleModelGr
 
 // Scan applies the selector query and scans the result into the given value.
 func (umgb *UpscaleModelGroupBy) Scan(ctx context.Context, v any) error {
-	ctx = newQueryContext(ctx, TypeUpscaleModel, "GroupBy")
+	ctx = setContextOp(ctx, umgb.build.ctx, "GroupBy")
 	if err := umgb.build.prepareQuery(ctx); err != nil {
 		return err
 	}
@@ -585,7 +580,7 @@ func (ums *UpscaleModelSelect) Aggregate(fns ...AggregateFunc) *UpscaleModelSele
 
 // Scan applies the selector query and scans the result into the given value.
 func (ums *UpscaleModelSelect) Scan(ctx context.Context, v any) error {
-	ctx = newQueryContext(ctx, TypeUpscaleModel, "Select")
+	ctx = setContextOp(ctx, ums.ctx, "Select")
 	if err := ums.prepareQuery(ctx); err != nil {
 		return err
 	}

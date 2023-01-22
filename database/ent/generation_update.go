@@ -132,6 +132,34 @@ func (gu *GenerationUpdate) SetCountryCode(s string) *GenerationUpdate {
 	return gu
 }
 
+// SetIsSubmittedToGallery sets the "is_submitted_to_gallery" field.
+func (gu *GenerationUpdate) SetIsSubmittedToGallery(b bool) *GenerationUpdate {
+	gu.mutation.SetIsSubmittedToGallery(b)
+	return gu
+}
+
+// SetNillableIsSubmittedToGallery sets the "is_submitted_to_gallery" field if the given value is not nil.
+func (gu *GenerationUpdate) SetNillableIsSubmittedToGallery(b *bool) *GenerationUpdate {
+	if b != nil {
+		gu.SetIsSubmittedToGallery(*b)
+	}
+	return gu
+}
+
+// SetIsPublic sets the "is_public" field.
+func (gu *GenerationUpdate) SetIsPublic(b bool) *GenerationUpdate {
+	gu.mutation.SetIsPublic(b)
+	return gu
+}
+
+// SetNillableIsPublic sets the "is_public" field if the given value is not nil.
+func (gu *GenerationUpdate) SetNillableIsPublic(b *bool) *GenerationUpdate {
+	if b != nil {
+		gu.SetIsPublic(*b)
+	}
+	return gu
+}
+
 // SetPromptID sets the "prompt_id" field.
 func (gu *GenerationUpdate) SetPromptID(u uuid.UUID) *GenerationUpdate {
 	gu.mutation.SetPromptID(u)
@@ -440,6 +468,12 @@ func (gu *GenerationUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if value, ok := gu.mutation.CountryCode(); ok {
 		_spec.SetField(generation.FieldCountryCode, field.TypeString, value)
+	}
+	if value, ok := gu.mutation.IsSubmittedToGallery(); ok {
+		_spec.SetField(generation.FieldIsSubmittedToGallery, field.TypeBool, value)
+	}
+	if value, ok := gu.mutation.IsPublic(); ok {
+		_spec.SetField(generation.FieldIsPublic, field.TypeBool, value)
 	}
 	if value, ok := gu.mutation.UpdatedAt(); ok {
 		_spec.SetField(generation.FieldUpdatedAt, field.TypeTime, value)
@@ -824,6 +858,34 @@ func (guo *GenerationUpdateOne) SetCountryCode(s string) *GenerationUpdateOne {
 	return guo
 }
 
+// SetIsSubmittedToGallery sets the "is_submitted_to_gallery" field.
+func (guo *GenerationUpdateOne) SetIsSubmittedToGallery(b bool) *GenerationUpdateOne {
+	guo.mutation.SetIsSubmittedToGallery(b)
+	return guo
+}
+
+// SetNillableIsSubmittedToGallery sets the "is_submitted_to_gallery" field if the given value is not nil.
+func (guo *GenerationUpdateOne) SetNillableIsSubmittedToGallery(b *bool) *GenerationUpdateOne {
+	if b != nil {
+		guo.SetIsSubmittedToGallery(*b)
+	}
+	return guo
+}
+
+// SetIsPublic sets the "is_public" field.
+func (guo *GenerationUpdateOne) SetIsPublic(b bool) *GenerationUpdateOne {
+	guo.mutation.SetIsPublic(b)
+	return guo
+}
+
+// SetNillableIsPublic sets the "is_public" field if the given value is not nil.
+func (guo *GenerationUpdateOne) SetNillableIsPublic(b *bool) *GenerationUpdateOne {
+	if b != nil {
+		guo.SetIsPublic(*b)
+	}
+	return guo
+}
+
 // SetPromptID sets the "prompt_id" field.
 func (guo *GenerationUpdateOne) SetPromptID(u uuid.UUID) *GenerationUpdateOne {
 	guo.mutation.SetPromptID(u)
@@ -1156,6 +1218,12 @@ func (guo *GenerationUpdateOne) sqlSave(ctx context.Context) (_node *Generation,
 	}
 	if value, ok := guo.mutation.CountryCode(); ok {
 		_spec.SetField(generation.FieldCountryCode, field.TypeString, value)
+	}
+	if value, ok := guo.mutation.IsSubmittedToGallery(); ok {
+		_spec.SetField(generation.FieldIsSubmittedToGallery, field.TypeBool, value)
+	}
+	if value, ok := guo.mutation.IsPublic(); ok {
+		_spec.SetField(generation.FieldIsPublic, field.TypeBool, value)
 	}
 	if value, ok := guo.mutation.UpdatedAt(); ok {
 		_spec.SetField(generation.FieldUpdatedAt, field.TypeTime, value)

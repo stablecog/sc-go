@@ -103,14 +103,14 @@ func (np *NegativePrompt) assignValues(columns []string, values []any) error {
 
 // QueryGenerations queries the "generations" edge of the NegativePrompt entity.
 func (np *NegativePrompt) QueryGenerations() *GenerationQuery {
-	return (&NegativePromptClient{config: np.config}).QueryGenerations(np)
+	return NewNegativePromptClient(np.config).QueryGenerations(np)
 }
 
 // Update returns a builder for updating this NegativePrompt.
 // Note that you need to call NegativePrompt.Unwrap() before calling this method if this NegativePrompt
 // was returned from a transaction, and the transaction was committed or rolled back.
 func (np *NegativePrompt) Update() *NegativePromptUpdateOne {
-	return (&NegativePromptClient{config: np.config}).UpdateOne(np)
+	return NewNegativePromptClient(np.config).UpdateOne(np)
 }
 
 // Unwrap unwraps the NegativePrompt entity that was returned from a transaction after it was closed,

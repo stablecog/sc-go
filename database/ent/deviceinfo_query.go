@@ -21,11 +21,8 @@ import (
 // DeviceInfoQuery is the builder for querying DeviceInfo entities.
 type DeviceInfoQuery struct {
 	config
-	limit           *int
-	offset          *int
-	unique          *bool
+	ctx             *QueryContext
 	order           []OrderFunc
-	fields          []string
 	inters          []Interceptor
 	predicates      []predicate.DeviceInfo
 	withGenerations *GenerationQuery
@@ -43,20 +40,20 @@ func (diq *DeviceInfoQuery) Where(ps ...predicate.DeviceInfo) *DeviceInfoQuery {
 
 // Limit the number of records to be returned by this query.
 func (diq *DeviceInfoQuery) Limit(limit int) *DeviceInfoQuery {
-	diq.limit = &limit
+	diq.ctx.Limit = &limit
 	return diq
 }
 
 // Offset to start from.
 func (diq *DeviceInfoQuery) Offset(offset int) *DeviceInfoQuery {
-	diq.offset = &offset
+	diq.ctx.Offset = &offset
 	return diq
 }
 
 // Unique configures the query builder to filter duplicate records on query.
 // By default, unique is set to true, and can be disabled using this method.
 func (diq *DeviceInfoQuery) Unique(unique bool) *DeviceInfoQuery {
-	diq.unique = &unique
+	diq.ctx.Unique = &unique
 	return diq
 }
 
@@ -113,7 +110,7 @@ func (diq *DeviceInfoQuery) QueryUpscales() *UpscaleQuery {
 // First returns the first DeviceInfo entity from the query.
 // Returns a *NotFoundError when no DeviceInfo was found.
 func (diq *DeviceInfoQuery) First(ctx context.Context) (*DeviceInfo, error) {
-	nodes, err := diq.Limit(1).All(newQueryContext(ctx, TypeDeviceInfo, "First"))
+	nodes, err := diq.Limit(1).All(setContextOp(ctx, diq.ctx, "First"))
 	if err != nil {
 		return nil, err
 	}
@@ -136,7 +133,7 @@ func (diq *DeviceInfoQuery) FirstX(ctx context.Context) *DeviceInfo {
 // Returns a *NotFoundError when no DeviceInfo ID was found.
 func (diq *DeviceInfoQuery) FirstID(ctx context.Context) (id uuid.UUID, err error) {
 	var ids []uuid.UUID
-	if ids, err = diq.Limit(1).IDs(newQueryContext(ctx, TypeDeviceInfo, "FirstID")); err != nil {
+	if ids, err = diq.Limit(1).IDs(setContextOp(ctx, diq.ctx, "FirstID")); err != nil {
 		return
 	}
 	if len(ids) == 0 {
@@ -159,7 +156,7 @@ func (diq *DeviceInfoQuery) FirstIDX(ctx context.Context) uuid.UUID {
 // Returns a *NotSingularError when more than one DeviceInfo entity is found.
 // Returns a *NotFoundError when no DeviceInfo entities are found.
 func (diq *DeviceInfoQuery) Only(ctx context.Context) (*DeviceInfo, error) {
-	nodes, err := diq.Limit(2).All(newQueryContext(ctx, TypeDeviceInfo, "Only"))
+	nodes, err := diq.Limit(2).All(setContextOp(ctx, diq.ctx, "Only"))
 	if err != nil {
 		return nil, err
 	}
@@ -187,7 +184,7 @@ func (diq *DeviceInfoQuery) OnlyX(ctx context.Context) *DeviceInfo {
 // Returns a *NotFoundError when no entities are found.
 func (diq *DeviceInfoQuery) OnlyID(ctx context.Context) (id uuid.UUID, err error) {
 	var ids []uuid.UUID
-	if ids, err = diq.Limit(2).IDs(newQueryContext(ctx, TypeDeviceInfo, "OnlyID")); err != nil {
+	if ids, err = diq.Limit(2).IDs(setContextOp(ctx, diq.ctx, "OnlyID")); err != nil {
 		return
 	}
 	switch len(ids) {
@@ -212,7 +209,7 @@ func (diq *DeviceInfoQuery) OnlyIDX(ctx context.Context) uuid.UUID {
 
 // All executes the query and returns a list of DeviceInfos.
 func (diq *DeviceInfoQuery) All(ctx context.Context) ([]*DeviceInfo, error) {
-	ctx = newQueryContext(ctx, TypeDeviceInfo, "All")
+	ctx = setContextOp(ctx, diq.ctx, "All")
 	if err := diq.prepareQuery(ctx); err != nil {
 		return nil, err
 	}
@@ -232,7 +229,7 @@ func (diq *DeviceInfoQuery) AllX(ctx context.Context) []*DeviceInfo {
 // IDs executes the query and returns a list of DeviceInfo IDs.
 func (diq *DeviceInfoQuery) IDs(ctx context.Context) ([]uuid.UUID, error) {
 	var ids []uuid.UUID
-	ctx = newQueryContext(ctx, TypeDeviceInfo, "IDs")
+	ctx = setContextOp(ctx, diq.ctx, "IDs")
 	if err := diq.Select(deviceinfo.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
@@ -250,7 +247,7 @@ func (diq *DeviceInfoQuery) IDsX(ctx context.Context) []uuid.UUID {
 
 // Count returns the count of the given query.
 func (diq *DeviceInfoQuery) Count(ctx context.Context) (int, error) {
-	ctx = newQueryContext(ctx, TypeDeviceInfo, "Count")
+	ctx = setContextOp(ctx, diq.ctx, "Count")
 	if err := diq.prepareQuery(ctx); err != nil {
 		return 0, err
 	}
@@ -268,7 +265,7 @@ func (diq *DeviceInfoQuery) CountX(ctx context.Context) int {
 
 // Exist returns true if the query has elements in the graph.
 func (diq *DeviceInfoQuery) Exist(ctx context.Context) (bool, error) {
-	ctx = newQueryContext(ctx, TypeDeviceInfo, "Exist")
+	ctx = setContextOp(ctx, diq.ctx, "Exist")
 	switch _, err := diq.FirstID(ctx); {
 	case IsNotFound(err):
 		return false, nil
@@ -296,17 +293,15 @@ func (diq *DeviceInfoQuery) Clone() *DeviceInfoQuery {
 	}
 	return &DeviceInfoQuery{
 		config:          diq.config,
-		limit:           diq.limit,
-		offset:          diq.offset,
+		ctx:             diq.ctx.Clone(),
 		order:           append([]OrderFunc{}, diq.order...),
 		inters:          append([]Interceptor{}, diq.inters...),
 		predicates:      append([]predicate.DeviceInfo{}, diq.predicates...),
 		withGenerations: diq.withGenerations.Clone(),
 		withUpscales:    diq.withUpscales.Clone(),
 		// clone intermediate query.
-		sql:    diq.sql.Clone(),
-		path:   diq.path,
-		unique: diq.unique,
+		sql:  diq.sql.Clone(),
+		path: diq.path,
 	}
 }
 
@@ -347,9 +342,9 @@ func (diq *DeviceInfoQuery) WithUpscales(opts ...func(*UpscaleQuery)) *DeviceInf
 //		Aggregate(ent.Count()).
 //		Scan(ctx, &v)
 func (diq *DeviceInfoQuery) GroupBy(field string, fields ...string) *DeviceInfoGroupBy {
-	diq.fields = append([]string{field}, fields...)
+	diq.ctx.Fields = append([]string{field}, fields...)
 	grbuild := &DeviceInfoGroupBy{build: diq}
-	grbuild.flds = &diq.fields
+	grbuild.flds = &diq.ctx.Fields
 	grbuild.label = deviceinfo.Label
 	grbuild.scan = grbuild.Scan
 	return grbuild
@@ -368,10 +363,10 @@ func (diq *DeviceInfoQuery) GroupBy(field string, fields ...string) *DeviceInfoG
 //		Select(deviceinfo.FieldType).
 //		Scan(ctx, &v)
 func (diq *DeviceInfoQuery) Select(fields ...string) *DeviceInfoSelect {
-	diq.fields = append(diq.fields, fields...)
+	diq.ctx.Fields = append(diq.ctx.Fields, fields...)
 	sbuild := &DeviceInfoSelect{DeviceInfoQuery: diq}
 	sbuild.label = deviceinfo.Label
-	sbuild.flds, sbuild.scan = &diq.fields, sbuild.Scan
+	sbuild.flds, sbuild.scan = &diq.ctx.Fields, sbuild.Scan
 	return sbuild
 }
 
@@ -391,7 +386,7 @@ func (diq *DeviceInfoQuery) prepareQuery(ctx context.Context) error {
 			}
 		}
 	}
-	for _, f := range diq.fields {
+	for _, f := range diq.ctx.Fields {
 		if !deviceinfo.ValidColumn(f) {
 			return &ValidationError{Name: f, err: fmt.Errorf("ent: invalid field %q for query", f)}
 		}
@@ -507,9 +502,9 @@ func (diq *DeviceInfoQuery) loadUpscales(ctx context.Context, query *UpscaleQuer
 
 func (diq *DeviceInfoQuery) sqlCount(ctx context.Context) (int, error) {
 	_spec := diq.querySpec()
-	_spec.Node.Columns = diq.fields
-	if len(diq.fields) > 0 {
-		_spec.Unique = diq.unique != nil && *diq.unique
+	_spec.Node.Columns = diq.ctx.Fields
+	if len(diq.ctx.Fields) > 0 {
+		_spec.Unique = diq.ctx.Unique != nil && *diq.ctx.Unique
 	}
 	return sqlgraph.CountNodes(ctx, diq.driver, _spec)
 }
@@ -527,10 +522,10 @@ func (diq *DeviceInfoQuery) querySpec() *sqlgraph.QuerySpec {
 		From:   diq.sql,
 		Unique: true,
 	}
-	if unique := diq.unique; unique != nil {
+	if unique := diq.ctx.Unique; unique != nil {
 		_spec.Unique = *unique
 	}
-	if fields := diq.fields; len(fields) > 0 {
+	if fields := diq.ctx.Fields; len(fields) > 0 {
 		_spec.Node.Columns = make([]string, 0, len(fields))
 		_spec.Node.Columns = append(_spec.Node.Columns, deviceinfo.FieldID)
 		for i := range fields {
@@ -546,10 +541,10 @@ func (diq *DeviceInfoQuery) querySpec() *sqlgraph.QuerySpec {
 			}
 		}
 	}
-	if limit := diq.limit; limit != nil {
+	if limit := diq.ctx.Limit; limit != nil {
 		_spec.Limit = *limit
 	}
-	if offset := diq.offset; offset != nil {
+	if offset := diq.ctx.Offset; offset != nil {
 		_spec.Offset = *offset
 	}
 	if ps := diq.order; len(ps) > 0 {
@@ -565,7 +560,7 @@ func (diq *DeviceInfoQuery) querySpec() *sqlgraph.QuerySpec {
 func (diq *DeviceInfoQuery) sqlQuery(ctx context.Context) *sql.Selector {
 	builder := sql.Dialect(diq.driver.Dialect())
 	t1 := builder.Table(deviceinfo.Table)
-	columns := diq.fields
+	columns := diq.ctx.Fields
 	if len(columns) == 0 {
 		columns = deviceinfo.Columns
 	}
@@ -574,7 +569,7 @@ func (diq *DeviceInfoQuery) sqlQuery(ctx context.Context) *sql.Selector {
 		selector = diq.sql
 		selector.Select(selector.Columns(columns...)...)
 	}
-	if diq.unique != nil && *diq.unique {
+	if diq.ctx.Unique != nil && *diq.ctx.Unique {
 		selector.Distinct()
 	}
 	for _, p := range diq.predicates {
@@ -583,12 +578,12 @@ func (diq *DeviceInfoQuery) sqlQuery(ctx context.Context) *sql.Selector {
 	for _, p := range diq.order {
 		p(selector)
 	}
-	if offset := diq.offset; offset != nil {
+	if offset := diq.ctx.Offset; offset != nil {
 		// limit is mandatory for offset clause. We start
 		// with default value, and override it below if needed.
 		selector.Offset(*offset).Limit(math.MaxInt32)
 	}
-	if limit := diq.limit; limit != nil {
+	if limit := diq.ctx.Limit; limit != nil {
 		selector.Limit(*limit)
 	}
 	return selector
@@ -608,7 +603,7 @@ func (digb *DeviceInfoGroupBy) Aggregate(fns ...AggregateFunc) *DeviceInfoGroupB
 
 // Scan applies the selector query and scans the result into the given value.
 func (digb *DeviceInfoGroupBy) Scan(ctx context.Context, v any) error {
-	ctx = newQueryContext(ctx, TypeDeviceInfo, "GroupBy")
+	ctx = setContextOp(ctx, digb.build.ctx, "GroupBy")
 	if err := digb.build.prepareQuery(ctx); err != nil {
 		return err
 	}
@@ -656,7 +651,7 @@ func (dis *DeviceInfoSelect) Aggregate(fns ...AggregateFunc) *DeviceInfoSelect {
 
 // Scan applies the selector query and scans the result into the given value.
 func (dis *DeviceInfoSelect) Scan(ctx context.Context, v any) error {
-	ctx = newQueryContext(ctx, TypeDeviceInfo, "Select")
+	ctx = setContextOp(ctx, dis.ctx, "Select")
 	if err := dis.prepareQuery(ctx); err != nil {
 		return err
 	}

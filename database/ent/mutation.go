@@ -796,6 +796,8 @@ type GenerationMutation struct {
 	status                    *generation.Status
 	failure_reason            *string
 	country_code              *string
+	is_submitted_to_gallery   *bool
+	is_public                 *bool
 	created_at                *time.Time
 	updated_at                *time.Time
 	clearedFields             map[string]struct{}
@@ -1365,6 +1367,78 @@ func (m *GenerationMutation) OldCountryCode(ctx context.Context) (v string, err 
 // ResetCountryCode resets all changes to the "country_code" field.
 func (m *GenerationMutation) ResetCountryCode() {
 	m.country_code = nil
+}
+
+// SetIsSubmittedToGallery sets the "is_submitted_to_gallery" field.
+func (m *GenerationMutation) SetIsSubmittedToGallery(b bool) {
+	m.is_submitted_to_gallery = &b
+}
+
+// IsSubmittedToGallery returns the value of the "is_submitted_to_gallery" field in the mutation.
+func (m *GenerationMutation) IsSubmittedToGallery() (r bool, exists bool) {
+	v := m.is_submitted_to_gallery
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldIsSubmittedToGallery returns the old "is_submitted_to_gallery" field's value of the Generation entity.
+// If the Generation object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *GenerationMutation) OldIsSubmittedToGallery(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldIsSubmittedToGallery is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldIsSubmittedToGallery requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldIsSubmittedToGallery: %w", err)
+	}
+	return oldValue.IsSubmittedToGallery, nil
+}
+
+// ResetIsSubmittedToGallery resets all changes to the "is_submitted_to_gallery" field.
+func (m *GenerationMutation) ResetIsSubmittedToGallery() {
+	m.is_submitted_to_gallery = nil
+}
+
+// SetIsPublic sets the "is_public" field.
+func (m *GenerationMutation) SetIsPublic(b bool) {
+	m.is_public = &b
+}
+
+// IsPublic returns the value of the "is_public" field in the mutation.
+func (m *GenerationMutation) IsPublic() (r bool, exists bool) {
+	v := m.is_public
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldIsPublic returns the old "is_public" field's value of the Generation entity.
+// If the Generation object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *GenerationMutation) OldIsPublic(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldIsPublic is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldIsPublic requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldIsPublic: %w", err)
+	}
+	return oldValue.IsPublic, nil
+}
+
+// ResetIsPublic resets all changes to the "is_public" field.
+func (m *GenerationMutation) ResetIsPublic() {
+	m.is_public = nil
 }
 
 // SetPromptID sets the "prompt_id" field.
@@ -1964,7 +2038,7 @@ func (m *GenerationMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *GenerationMutation) Fields() []string {
-	fields := make([]string, 0, 17)
+	fields := make([]string, 0, 19)
 	if m.width != nil {
 		fields = append(fields, generation.FieldWidth)
 	}
@@ -1991,6 +2065,12 @@ func (m *GenerationMutation) Fields() []string {
 	}
 	if m.country_code != nil {
 		fields = append(fields, generation.FieldCountryCode)
+	}
+	if m.is_submitted_to_gallery != nil {
+		fields = append(fields, generation.FieldIsSubmittedToGallery)
+	}
+	if m.is_public != nil {
+		fields = append(fields, generation.FieldIsPublic)
 	}
 	if m.prompts != nil {
 		fields = append(fields, generation.FieldPromptID)
@@ -2042,6 +2122,10 @@ func (m *GenerationMutation) Field(name string) (ent.Value, bool) {
 		return m.FailureReason()
 	case generation.FieldCountryCode:
 		return m.CountryCode()
+	case generation.FieldIsSubmittedToGallery:
+		return m.IsSubmittedToGallery()
+	case generation.FieldIsPublic:
+		return m.IsPublic()
 	case generation.FieldPromptID:
 		return m.PromptID()
 	case generation.FieldNegativePromptID:
@@ -2085,6 +2169,10 @@ func (m *GenerationMutation) OldField(ctx context.Context, name string) (ent.Val
 		return m.OldFailureReason(ctx)
 	case generation.FieldCountryCode:
 		return m.OldCountryCode(ctx)
+	case generation.FieldIsSubmittedToGallery:
+		return m.OldIsSubmittedToGallery(ctx)
+	case generation.FieldIsPublic:
+		return m.OldIsPublic(ctx)
 	case generation.FieldPromptID:
 		return m.OldPromptID(ctx)
 	case generation.FieldNegativePromptID:
@@ -2172,6 +2260,20 @@ func (m *GenerationMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetCountryCode(v)
+		return nil
+	case generation.FieldIsSubmittedToGallery:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetIsSubmittedToGallery(v)
+		return nil
+	case generation.FieldIsPublic:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetIsPublic(v)
 		return nil
 	case generation.FieldPromptID:
 		v, ok := value.(uuid.UUID)
@@ -2379,6 +2481,12 @@ func (m *GenerationMutation) ResetField(name string) error {
 		return nil
 	case generation.FieldCountryCode:
 		m.ResetCountryCode()
+		return nil
+	case generation.FieldIsSubmittedToGallery:
+		m.ResetIsSubmittedToGallery()
+		return nil
+	case generation.FieldIsPublic:
+		m.ResetIsPublic()
 		return nil
 	case generation.FieldPromptID:
 		m.ResetPromptID()

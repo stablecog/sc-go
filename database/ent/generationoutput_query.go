@@ -19,11 +19,8 @@ import (
 // GenerationOutputQuery is the builder for querying GenerationOutput entities.
 type GenerationOutputQuery struct {
 	config
-	limit           *int
-	offset          *int
-	unique          *bool
+	ctx             *QueryContext
 	order           []OrderFunc
-	fields          []string
 	inters          []Interceptor
 	predicates      []predicate.GenerationOutput
 	withGenerations *GenerationQuery
@@ -40,20 +37,20 @@ func (goq *GenerationOutputQuery) Where(ps ...predicate.GenerationOutput) *Gener
 
 // Limit the number of records to be returned by this query.
 func (goq *GenerationOutputQuery) Limit(limit int) *GenerationOutputQuery {
-	goq.limit = &limit
+	goq.ctx.Limit = &limit
 	return goq
 }
 
 // Offset to start from.
 func (goq *GenerationOutputQuery) Offset(offset int) *GenerationOutputQuery {
-	goq.offset = &offset
+	goq.ctx.Offset = &offset
 	return goq
 }
 
 // Unique configures the query builder to filter duplicate records on query.
 // By default, unique is set to true, and can be disabled using this method.
 func (goq *GenerationOutputQuery) Unique(unique bool) *GenerationOutputQuery {
-	goq.unique = &unique
+	goq.ctx.Unique = &unique
 	return goq
 }
 
@@ -88,7 +85,7 @@ func (goq *GenerationOutputQuery) QueryGenerations() *GenerationQuery {
 // First returns the first GenerationOutput entity from the query.
 // Returns a *NotFoundError when no GenerationOutput was found.
 func (goq *GenerationOutputQuery) First(ctx context.Context) (*GenerationOutput, error) {
-	nodes, err := goq.Limit(1).All(newQueryContext(ctx, TypeGenerationOutput, "First"))
+	nodes, err := goq.Limit(1).All(setContextOp(ctx, goq.ctx, "First"))
 	if err != nil {
 		return nil, err
 	}
@@ -111,7 +108,7 @@ func (goq *GenerationOutputQuery) FirstX(ctx context.Context) *GenerationOutput 
 // Returns a *NotFoundError when no GenerationOutput ID was found.
 func (goq *GenerationOutputQuery) FirstID(ctx context.Context) (id uuid.UUID, err error) {
 	var ids []uuid.UUID
-	if ids, err = goq.Limit(1).IDs(newQueryContext(ctx, TypeGenerationOutput, "FirstID")); err != nil {
+	if ids, err = goq.Limit(1).IDs(setContextOp(ctx, goq.ctx, "FirstID")); err != nil {
 		return
 	}
 	if len(ids) == 0 {
@@ -134,7 +131,7 @@ func (goq *GenerationOutputQuery) FirstIDX(ctx context.Context) uuid.UUID {
 // Returns a *NotSingularError when more than one GenerationOutput entity is found.
 // Returns a *NotFoundError when no GenerationOutput entities are found.
 func (goq *GenerationOutputQuery) Only(ctx context.Context) (*GenerationOutput, error) {
-	nodes, err := goq.Limit(2).All(newQueryContext(ctx, TypeGenerationOutput, "Only"))
+	nodes, err := goq.Limit(2).All(setContextOp(ctx, goq.ctx, "Only"))
 	if err != nil {
 		return nil, err
 	}
@@ -162,7 +159,7 @@ func (goq *GenerationOutputQuery) OnlyX(ctx context.Context) *GenerationOutput {
 // Returns a *NotFoundError when no entities are found.
 func (goq *GenerationOutputQuery) OnlyID(ctx context.Context) (id uuid.UUID, err error) {
 	var ids []uuid.UUID
-	if ids, err = goq.Limit(2).IDs(newQueryContext(ctx, TypeGenerationOutput, "OnlyID")); err != nil {
+	if ids, err = goq.Limit(2).IDs(setContextOp(ctx, goq.ctx, "OnlyID")); err != nil {
 		return
 	}
 	switch len(ids) {
@@ -187,7 +184,7 @@ func (goq *GenerationOutputQuery) OnlyIDX(ctx context.Context) uuid.UUID {
 
 // All executes the query and returns a list of GenerationOutputs.
 func (goq *GenerationOutputQuery) All(ctx context.Context) ([]*GenerationOutput, error) {
-	ctx = newQueryContext(ctx, TypeGenerationOutput, "All")
+	ctx = setContextOp(ctx, goq.ctx, "All")
 	if err := goq.prepareQuery(ctx); err != nil {
 		return nil, err
 	}
@@ -207,7 +204,7 @@ func (goq *GenerationOutputQuery) AllX(ctx context.Context) []*GenerationOutput 
 // IDs executes the query and returns a list of GenerationOutput IDs.
 func (goq *GenerationOutputQuery) IDs(ctx context.Context) ([]uuid.UUID, error) {
 	var ids []uuid.UUID
-	ctx = newQueryContext(ctx, TypeGenerationOutput, "IDs")
+	ctx = setContextOp(ctx, goq.ctx, "IDs")
 	if err := goq.Select(generationoutput.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
@@ -225,7 +222,7 @@ func (goq *GenerationOutputQuery) IDsX(ctx context.Context) []uuid.UUID {
 
 // Count returns the count of the given query.
 func (goq *GenerationOutputQuery) Count(ctx context.Context) (int, error) {
-	ctx = newQueryContext(ctx, TypeGenerationOutput, "Count")
+	ctx = setContextOp(ctx, goq.ctx, "Count")
 	if err := goq.prepareQuery(ctx); err != nil {
 		return 0, err
 	}
@@ -243,7 +240,7 @@ func (goq *GenerationOutputQuery) CountX(ctx context.Context) int {
 
 // Exist returns true if the query has elements in the graph.
 func (goq *GenerationOutputQuery) Exist(ctx context.Context) (bool, error) {
-	ctx = newQueryContext(ctx, TypeGenerationOutput, "Exist")
+	ctx = setContextOp(ctx, goq.ctx, "Exist")
 	switch _, err := goq.FirstID(ctx); {
 	case IsNotFound(err):
 		return false, nil
@@ -271,16 +268,14 @@ func (goq *GenerationOutputQuery) Clone() *GenerationOutputQuery {
 	}
 	return &GenerationOutputQuery{
 		config:          goq.config,
-		limit:           goq.limit,
-		offset:          goq.offset,
+		ctx:             goq.ctx.Clone(),
 		order:           append([]OrderFunc{}, goq.order...),
 		inters:          append([]Interceptor{}, goq.inters...),
 		predicates:      append([]predicate.GenerationOutput{}, goq.predicates...),
 		withGenerations: goq.withGenerations.Clone(),
 		// clone intermediate query.
-		sql:    goq.sql.Clone(),
-		path:   goq.path,
-		unique: goq.unique,
+		sql:  goq.sql.Clone(),
+		path: goq.path,
 	}
 }
 
@@ -310,9 +305,9 @@ func (goq *GenerationOutputQuery) WithGenerations(opts ...func(*GenerationQuery)
 //		Aggregate(ent.Count()).
 //		Scan(ctx, &v)
 func (goq *GenerationOutputQuery) GroupBy(field string, fields ...string) *GenerationOutputGroupBy {
-	goq.fields = append([]string{field}, fields...)
+	goq.ctx.Fields = append([]string{field}, fields...)
 	grbuild := &GenerationOutputGroupBy{build: goq}
-	grbuild.flds = &goq.fields
+	grbuild.flds = &goq.ctx.Fields
 	grbuild.label = generationoutput.Label
 	grbuild.scan = grbuild.Scan
 	return grbuild
@@ -331,10 +326,10 @@ func (goq *GenerationOutputQuery) GroupBy(field string, fields ...string) *Gener
 //		Select(generationoutput.FieldImageURL).
 //		Scan(ctx, &v)
 func (goq *GenerationOutputQuery) Select(fields ...string) *GenerationOutputSelect {
-	goq.fields = append(goq.fields, fields...)
+	goq.ctx.Fields = append(goq.ctx.Fields, fields...)
 	sbuild := &GenerationOutputSelect{GenerationOutputQuery: goq}
 	sbuild.label = generationoutput.Label
-	sbuild.flds, sbuild.scan = &goq.fields, sbuild.Scan
+	sbuild.flds, sbuild.scan = &goq.ctx.Fields, sbuild.Scan
 	return sbuild
 }
 
@@ -354,7 +349,7 @@ func (goq *GenerationOutputQuery) prepareQuery(ctx context.Context) error {
 			}
 		}
 	}
-	for _, f := range goq.fields {
+	for _, f := range goq.ctx.Fields {
 		if !generationoutput.ValidColumn(f) {
 			return &ValidationError{Name: f, err: fmt.Errorf("ent: invalid field %q for query", f)}
 		}
@@ -414,6 +409,9 @@ func (goq *GenerationOutputQuery) loadGenerations(ctx context.Context, query *Ge
 		}
 		nodeids[fk] = append(nodeids[fk], nodes[i])
 	}
+	if len(ids) == 0 {
+		return nil
+	}
 	query.Where(generation.IDIn(ids...))
 	neighbors, err := query.All(ctx)
 	if err != nil {
@@ -433,9 +431,9 @@ func (goq *GenerationOutputQuery) loadGenerations(ctx context.Context, query *Ge
 
 func (goq *GenerationOutputQuery) sqlCount(ctx context.Context) (int, error) {
 	_spec := goq.querySpec()
-	_spec.Node.Columns = goq.fields
-	if len(goq.fields) > 0 {
-		_spec.Unique = goq.unique != nil && *goq.unique
+	_spec.Node.Columns = goq.ctx.Fields
+	if len(goq.ctx.Fields) > 0 {
+		_spec.Unique = goq.ctx.Unique != nil && *goq.ctx.Unique
 	}
 	return sqlgraph.CountNodes(ctx, goq.driver, _spec)
 }
@@ -453,10 +451,10 @@ func (goq *GenerationOutputQuery) querySpec() *sqlgraph.QuerySpec {
 		From:   goq.sql,
 		Unique: true,
 	}
-	if unique := goq.unique; unique != nil {
+	if unique := goq.ctx.Unique; unique != nil {
 		_spec.Unique = *unique
 	}
-	if fields := goq.fields; len(fields) > 0 {
+	if fields := goq.ctx.Fields; len(fields) > 0 {
 		_spec.Node.Columns = make([]string, 0, len(fields))
 		_spec.Node.Columns = append(_spec.Node.Columns, generationoutput.FieldID)
 		for i := range fields {
@@ -472,10 +470,10 @@ func (goq *GenerationOutputQuery) querySpec() *sqlgraph.QuerySpec {
 			}
 		}
 	}
-	if limit := goq.limit; limit != nil {
+	if limit := goq.ctx.Limit; limit != nil {
 		_spec.Limit = *limit
 	}
-	if offset := goq.offset; offset != nil {
+	if offset := goq.ctx.Offset; offset != nil {
 		_spec.Offset = *offset
 	}
 	if ps := goq.order; len(ps) > 0 {
@@ -491,7 +489,7 @@ func (goq *GenerationOutputQuery) querySpec() *sqlgraph.QuerySpec {
 func (goq *GenerationOutputQuery) sqlQuery(ctx context.Context) *sql.Selector {
 	builder := sql.Dialect(goq.driver.Dialect())
 	t1 := builder.Table(generationoutput.Table)
-	columns := goq.fields
+	columns := goq.ctx.Fields
 	if len(columns) == 0 {
 		columns = generationoutput.Columns
 	}
@@ -500,7 +498,7 @@ func (goq *GenerationOutputQuery) sqlQuery(ctx context.Context) *sql.Selector {
 		selector = goq.sql
 		selector.Select(selector.Columns(columns...)...)
 	}
-	if goq.unique != nil && *goq.unique {
+	if goq.ctx.Unique != nil && *goq.ctx.Unique {
 		selector.Distinct()
 	}
 	for _, p := range goq.predicates {
@@ -509,12 +507,12 @@ func (goq *GenerationOutputQuery) sqlQuery(ctx context.Context) *sql.Selector {
 	for _, p := range goq.order {
 		p(selector)
 	}
-	if offset := goq.offset; offset != nil {
+	if offset := goq.ctx.Offset; offset != nil {
 		// limit is mandatory for offset clause. We start
 		// with default value, and override it below if needed.
 		selector.Offset(*offset).Limit(math.MaxInt32)
 	}
-	if limit := goq.limit; limit != nil {
+	if limit := goq.ctx.Limit; limit != nil {
 		selector.Limit(*limit)
 	}
 	return selector
@@ -534,7 +532,7 @@ func (gogb *GenerationOutputGroupBy) Aggregate(fns ...AggregateFunc) *Generation
 
 // Scan applies the selector query and scans the result into the given value.
 func (gogb *GenerationOutputGroupBy) Scan(ctx context.Context, v any) error {
-	ctx = newQueryContext(ctx, TypeGenerationOutput, "GroupBy")
+	ctx = setContextOp(ctx, gogb.build.ctx, "GroupBy")
 	if err := gogb.build.prepareQuery(ctx); err != nil {
 		return err
 	}
@@ -582,7 +580,7 @@ func (gos *GenerationOutputSelect) Aggregate(fns ...AggregateFunc) *GenerationOu
 
 // Scan applies the selector query and scans the result into the given value.
 func (gos *GenerationOutputSelect) Scan(ctx context.Context, v any) error {
-	ctx = newQueryContext(ctx, TypeGenerationOutput, "Select")
+	ctx = setContextOp(ctx, gos.ctx, "Select")
 	if err := gos.prepareQuery(ctx); err != nil {
 		return err
 	}

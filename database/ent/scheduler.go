@@ -103,14 +103,14 @@ func (s *Scheduler) assignValues(columns []string, values []any) error {
 
 // QueryGenerations queries the "generations" edge of the Scheduler entity.
 func (s *Scheduler) QueryGenerations() *GenerationQuery {
-	return (&SchedulerClient{config: s.config}).QueryGenerations(s)
+	return NewSchedulerClient(s.config).QueryGenerations(s)
 }
 
 // Update returns a builder for updating this Scheduler.
 // Note that you need to call Scheduler.Unwrap() before calling this method if this Scheduler
 // was returned from a transaction, and the transaction was committed or rolled back.
 func (s *Scheduler) Update() *SchedulerUpdateOne {
-	return (&SchedulerClient{config: s.config}).UpdateOne(s)
+	return NewSchedulerClient(s.config).UpdateOne(s)
 }
 
 // Unwrap unwraps the Scheduler entity that was returned from a transaction after it was closed,

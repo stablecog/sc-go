@@ -130,19 +130,19 @@ func (di *DeviceInfo) assignValues(columns []string, values []any) error {
 
 // QueryGenerations queries the "generations" edge of the DeviceInfo entity.
 func (di *DeviceInfo) QueryGenerations() *GenerationQuery {
-	return (&DeviceInfoClient{config: di.config}).QueryGenerations(di)
+	return NewDeviceInfoClient(di.config).QueryGenerations(di)
 }
 
 // QueryUpscales queries the "upscales" edge of the DeviceInfo entity.
 func (di *DeviceInfo) QueryUpscales() *UpscaleQuery {
-	return (&DeviceInfoClient{config: di.config}).QueryUpscales(di)
+	return NewDeviceInfoClient(di.config).QueryUpscales(di)
 }
 
 // Update returns a builder for updating this DeviceInfo.
 // Note that you need to call DeviceInfo.Unwrap() before calling this method if this DeviceInfo
 // was returned from a transaction, and the transaction was committed or rolled back.
 func (di *DeviceInfo) Update() *DeviceInfoUpdateOne {
-	return (&DeviceInfoClient{config: di.config}).UpdateOne(di)
+	return NewDeviceInfoClient(di.config).UpdateOne(di)
 }
 
 // Unwrap unwraps the DeviceInfo entity that was returned from a transaction after it was closed,

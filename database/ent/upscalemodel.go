@@ -103,14 +103,14 @@ func (um *UpscaleModel) assignValues(columns []string, values []any) error {
 
 // QueryUpscales queries the "upscales" edge of the UpscaleModel entity.
 func (um *UpscaleModel) QueryUpscales() *UpscaleQuery {
-	return (&UpscaleModelClient{config: um.config}).QueryUpscales(um)
+	return NewUpscaleModelClient(um.config).QueryUpscales(um)
 }
 
 // Update returns a builder for updating this UpscaleModel.
 // Note that you need to call UpscaleModel.Unwrap() before calling this method if this UpscaleModel
 // was returned from a transaction, and the transaction was committed or rolled back.
 func (um *UpscaleModel) Update() *UpscaleModelUpdateOne {
-	return (&UpscaleModelClient{config: um.config}).UpdateOne(um)
+	return NewUpscaleModelClient(um.config).UpdateOne(um)
 }
 
 // Unwrap unwraps the UpscaleModel entity that was returned from a transaction after it was closed,

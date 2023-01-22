@@ -116,14 +116,14 @@ func (uo *UpscaleOutput) assignValues(columns []string, values []any) error {
 
 // QueryUpscales queries the "upscales" edge of the UpscaleOutput entity.
 func (uo *UpscaleOutput) QueryUpscales() *UpscaleQuery {
-	return (&UpscaleOutputClient{config: uo.config}).QueryUpscales(uo)
+	return NewUpscaleOutputClient(uo.config).QueryUpscales(uo)
 }
 
 // Update returns a builder for updating this UpscaleOutput.
 // Note that you need to call UpscaleOutput.Unwrap() before calling this method if this UpscaleOutput
 // was returned from a transaction, and the transaction was committed or rolled back.
 func (uo *UpscaleOutput) Update() *UpscaleOutputUpdateOne {
-	return (&UpscaleOutputClient{config: uo.config}).UpdateOne(uo)
+	return NewUpscaleOutputClient(uo.config).UpdateOne(uo)
 }
 
 // Unwrap unwraps the UpscaleOutput entity that was returned from a transaction after it was closed,

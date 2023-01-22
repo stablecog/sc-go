@@ -103,14 +103,14 @@ func (pr *Prompt) assignValues(columns []string, values []any) error {
 
 // QueryGenerations queries the "generations" edge of the Prompt entity.
 func (pr *Prompt) QueryGenerations() *GenerationQuery {
-	return (&PromptClient{config: pr.config}).QueryGenerations(pr)
+	return NewPromptClient(pr.config).QueryGenerations(pr)
 }
 
 // Update returns a builder for updating this Prompt.
 // Note that you need to call Prompt.Unwrap() before calling this method if this Prompt
 // was returned from a transaction, and the transaction was committed or rolled back.
 func (pr *Prompt) Update() *PromptUpdateOne {
-	return (&PromptClient{config: pr.config}).UpdateOne(pr)
+	return NewPromptClient(pr.config).UpdateOne(pr)
 }
 
 // Unwrap unwraps the Prompt entity that was returned from a transaction after it was closed,

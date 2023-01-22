@@ -19,11 +19,8 @@ import (
 // UpscaleOutputQuery is the builder for querying UpscaleOutput entities.
 type UpscaleOutputQuery struct {
 	config
-	limit        *int
-	offset       *int
-	unique       *bool
+	ctx          *QueryContext
 	order        []OrderFunc
-	fields       []string
 	inters       []Interceptor
 	predicates   []predicate.UpscaleOutput
 	withUpscales *UpscaleQuery
@@ -40,20 +37,20 @@ func (uoq *UpscaleOutputQuery) Where(ps ...predicate.UpscaleOutput) *UpscaleOutp
 
 // Limit the number of records to be returned by this query.
 func (uoq *UpscaleOutputQuery) Limit(limit int) *UpscaleOutputQuery {
-	uoq.limit = &limit
+	uoq.ctx.Limit = &limit
 	return uoq
 }
 
 // Offset to start from.
 func (uoq *UpscaleOutputQuery) Offset(offset int) *UpscaleOutputQuery {
-	uoq.offset = &offset
+	uoq.ctx.Offset = &offset
 	return uoq
 }
 
 // Unique configures the query builder to filter duplicate records on query.
 // By default, unique is set to true, and can be disabled using this method.
 func (uoq *UpscaleOutputQuery) Unique(unique bool) *UpscaleOutputQuery {
-	uoq.unique = &unique
+	uoq.ctx.Unique = &unique
 	return uoq
 }
 
@@ -88,7 +85,7 @@ func (uoq *UpscaleOutputQuery) QueryUpscales() *UpscaleQuery {
 // First returns the first UpscaleOutput entity from the query.
 // Returns a *NotFoundError when no UpscaleOutput was found.
 func (uoq *UpscaleOutputQuery) First(ctx context.Context) (*UpscaleOutput, error) {
-	nodes, err := uoq.Limit(1).All(newQueryContext(ctx, TypeUpscaleOutput, "First"))
+	nodes, err := uoq.Limit(1).All(setContextOp(ctx, uoq.ctx, "First"))
 	if err != nil {
 		return nil, err
 	}
@@ -111,7 +108,7 @@ func (uoq *UpscaleOutputQuery) FirstX(ctx context.Context) *UpscaleOutput {
 // Returns a *NotFoundError when no UpscaleOutput ID was found.
 func (uoq *UpscaleOutputQuery) FirstID(ctx context.Context) (id uuid.UUID, err error) {
 	var ids []uuid.UUID
-	if ids, err = uoq.Limit(1).IDs(newQueryContext(ctx, TypeUpscaleOutput, "FirstID")); err != nil {
+	if ids, err = uoq.Limit(1).IDs(setContextOp(ctx, uoq.ctx, "FirstID")); err != nil {
 		return
 	}
 	if len(ids) == 0 {
@@ -134,7 +131,7 @@ func (uoq *UpscaleOutputQuery) FirstIDX(ctx context.Context) uuid.UUID {
 // Returns a *NotSingularError when more than one UpscaleOutput entity is found.
 // Returns a *NotFoundError when no UpscaleOutput entities are found.
 func (uoq *UpscaleOutputQuery) Only(ctx context.Context) (*UpscaleOutput, error) {
-	nodes, err := uoq.Limit(2).All(newQueryContext(ctx, TypeUpscaleOutput, "Only"))
+	nodes, err := uoq.Limit(2).All(setContextOp(ctx, uoq.ctx, "Only"))
 	if err != nil {
 		return nil, err
 	}
@@ -162,7 +159,7 @@ func (uoq *UpscaleOutputQuery) OnlyX(ctx context.Context) *UpscaleOutput {
 // Returns a *NotFoundError when no entities are found.
 func (uoq *UpscaleOutputQuery) OnlyID(ctx context.Context) (id uuid.UUID, err error) {
 	var ids []uuid.UUID
-	if ids, err = uoq.Limit(2).IDs(newQueryContext(ctx, TypeUpscaleOutput, "OnlyID")); err != nil {
+	if ids, err = uoq.Limit(2).IDs(setContextOp(ctx, uoq.ctx, "OnlyID")); err != nil {
 		return
 	}
 	switch len(ids) {
@@ -187,7 +184,7 @@ func (uoq *UpscaleOutputQuery) OnlyIDX(ctx context.Context) uuid.UUID {
 
 // All executes the query and returns a list of UpscaleOutputs.
 func (uoq *UpscaleOutputQuery) All(ctx context.Context) ([]*UpscaleOutput, error) {
-	ctx = newQueryContext(ctx, TypeUpscaleOutput, "All")
+	ctx = setContextOp(ctx, uoq.ctx, "All")
 	if err := uoq.prepareQuery(ctx); err != nil {
 		return nil, err
 	}
@@ -207,7 +204,7 @@ func (uoq *UpscaleOutputQuery) AllX(ctx context.Context) []*UpscaleOutput {
 // IDs executes the query and returns a list of UpscaleOutput IDs.
 func (uoq *UpscaleOutputQuery) IDs(ctx context.Context) ([]uuid.UUID, error) {
 	var ids []uuid.UUID
-	ctx = newQueryContext(ctx, TypeUpscaleOutput, "IDs")
+	ctx = setContextOp(ctx, uoq.ctx, "IDs")
 	if err := uoq.Select(upscaleoutput.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
@@ -225,7 +222,7 @@ func (uoq *UpscaleOutputQuery) IDsX(ctx context.Context) []uuid.UUID {
 
 // Count returns the count of the given query.
 func (uoq *UpscaleOutputQuery) Count(ctx context.Context) (int, error) {
-	ctx = newQueryContext(ctx, TypeUpscaleOutput, "Count")
+	ctx = setContextOp(ctx, uoq.ctx, "Count")
 	if err := uoq.prepareQuery(ctx); err != nil {
 		return 0, err
 	}
@@ -243,7 +240,7 @@ func (uoq *UpscaleOutputQuery) CountX(ctx context.Context) int {
 
 // Exist returns true if the query has elements in the graph.
 func (uoq *UpscaleOutputQuery) Exist(ctx context.Context) (bool, error) {
-	ctx = newQueryContext(ctx, TypeUpscaleOutput, "Exist")
+	ctx = setContextOp(ctx, uoq.ctx, "Exist")
 	switch _, err := uoq.FirstID(ctx); {
 	case IsNotFound(err):
 		return false, nil
@@ -271,16 +268,14 @@ func (uoq *UpscaleOutputQuery) Clone() *UpscaleOutputQuery {
 	}
 	return &UpscaleOutputQuery{
 		config:       uoq.config,
-		limit:        uoq.limit,
-		offset:       uoq.offset,
+		ctx:          uoq.ctx.Clone(),
 		order:        append([]OrderFunc{}, uoq.order...),
 		inters:       append([]Interceptor{}, uoq.inters...),
 		predicates:   append([]predicate.UpscaleOutput{}, uoq.predicates...),
 		withUpscales: uoq.withUpscales.Clone(),
 		// clone intermediate query.
-		sql:    uoq.sql.Clone(),
-		path:   uoq.path,
-		unique: uoq.unique,
+		sql:  uoq.sql.Clone(),
+		path: uoq.path,
 	}
 }
 
@@ -310,9 +305,9 @@ func (uoq *UpscaleOutputQuery) WithUpscales(opts ...func(*UpscaleQuery)) *Upscal
 //		Aggregate(ent.Count()).
 //		Scan(ctx, &v)
 func (uoq *UpscaleOutputQuery) GroupBy(field string, fields ...string) *UpscaleOutputGroupBy {
-	uoq.fields = append([]string{field}, fields...)
+	uoq.ctx.Fields = append([]string{field}, fields...)
 	grbuild := &UpscaleOutputGroupBy{build: uoq}
-	grbuild.flds = &uoq.fields
+	grbuild.flds = &uoq.ctx.Fields
 	grbuild.label = upscaleoutput.Label
 	grbuild.scan = grbuild.Scan
 	return grbuild
@@ -331,10 +326,10 @@ func (uoq *UpscaleOutputQuery) GroupBy(field string, fields ...string) *UpscaleO
 //		Select(upscaleoutput.FieldImageURL).
 //		Scan(ctx, &v)
 func (uoq *UpscaleOutputQuery) Select(fields ...string) *UpscaleOutputSelect {
-	uoq.fields = append(uoq.fields, fields...)
+	uoq.ctx.Fields = append(uoq.ctx.Fields, fields...)
 	sbuild := &UpscaleOutputSelect{UpscaleOutputQuery: uoq}
 	sbuild.label = upscaleoutput.Label
-	sbuild.flds, sbuild.scan = &uoq.fields, sbuild.Scan
+	sbuild.flds, sbuild.scan = &uoq.ctx.Fields, sbuild.Scan
 	return sbuild
 }
 
@@ -354,7 +349,7 @@ func (uoq *UpscaleOutputQuery) prepareQuery(ctx context.Context) error {
 			}
 		}
 	}
-	for _, f := range uoq.fields {
+	for _, f := range uoq.ctx.Fields {
 		if !upscaleoutput.ValidColumn(f) {
 			return &ValidationError{Name: f, err: fmt.Errorf("ent: invalid field %q for query", f)}
 		}
@@ -414,6 +409,9 @@ func (uoq *UpscaleOutputQuery) loadUpscales(ctx context.Context, query *UpscaleQ
 		}
 		nodeids[fk] = append(nodeids[fk], nodes[i])
 	}
+	if len(ids) == 0 {
+		return nil
+	}
 	query.Where(upscale.IDIn(ids...))
 	neighbors, err := query.All(ctx)
 	if err != nil {
@@ -433,9 +431,9 @@ func (uoq *UpscaleOutputQuery) loadUpscales(ctx context.Context, query *UpscaleQ
 
 func (uoq *UpscaleOutputQuery) sqlCount(ctx context.Context) (int, error) {
 	_spec := uoq.querySpec()
-	_spec.Node.Columns = uoq.fields
-	if len(uoq.fields) > 0 {
-		_spec.Unique = uoq.unique != nil && *uoq.unique
+	_spec.Node.Columns = uoq.ctx.Fields
+	if len(uoq.ctx.Fields) > 0 {
+		_spec.Unique = uoq.ctx.Unique != nil && *uoq.ctx.Unique
 	}
 	return sqlgraph.CountNodes(ctx, uoq.driver, _spec)
 }
@@ -453,10 +451,10 @@ func (uoq *UpscaleOutputQuery) querySpec() *sqlgraph.QuerySpec {
 		From:   uoq.sql,
 		Unique: true,
 	}
-	if unique := uoq.unique; unique != nil {
+	if unique := uoq.ctx.Unique; unique != nil {
 		_spec.Unique = *unique
 	}
-	if fields := uoq.fields; len(fields) > 0 {
+	if fields := uoq.ctx.Fields; len(fields) > 0 {
 		_spec.Node.Columns = make([]string, 0, len(fields))
 		_spec.Node.Columns = append(_spec.Node.Columns, upscaleoutput.FieldID)
 		for i := range fields {
@@ -472,10 +470,10 @@ func (uoq *UpscaleOutputQuery) querySpec() *sqlgraph.QuerySpec {
 			}
 		}
 	}
-	if limit := uoq.limit; limit != nil {
+	if limit := uoq.ctx.Limit; limit != nil {
 		_spec.Limit = *limit
 	}
-	if offset := uoq.offset; offset != nil {
+	if offset := uoq.ctx.Offset; offset != nil {
 		_spec.Offset = *offset
 	}
 	if ps := uoq.order; len(ps) > 0 {
@@ -491,7 +489,7 @@ func (uoq *UpscaleOutputQuery) querySpec() *sqlgraph.QuerySpec {
 func (uoq *UpscaleOutputQuery) sqlQuery(ctx context.Context) *sql.Selector {
 	builder := sql.Dialect(uoq.driver.Dialect())
 	t1 := builder.Table(upscaleoutput.Table)
-	columns := uoq.fields
+	columns := uoq.ctx.Fields
 	if len(columns) == 0 {
 		columns = upscaleoutput.Columns
 	}
@@ -500,7 +498,7 @@ func (uoq *UpscaleOutputQuery) sqlQuery(ctx context.Context) *sql.Selector {
 		selector = uoq.sql
 		selector.Select(selector.Columns(columns...)...)
 	}
-	if uoq.unique != nil && *uoq.unique {
+	if uoq.ctx.Unique != nil && *uoq.ctx.Unique {
 		selector.Distinct()
 	}
 	for _, p := range uoq.predicates {
@@ -509,12 +507,12 @@ func (uoq *UpscaleOutputQuery) sqlQuery(ctx context.Context) *sql.Selector {
 	for _, p := range uoq.order {
 		p(selector)
 	}
-	if offset := uoq.offset; offset != nil {
+	if offset := uoq.ctx.Offset; offset != nil {
 		// limit is mandatory for offset clause. We start
 		// with default value, and override it below if needed.
 		selector.Offset(*offset).Limit(math.MaxInt32)
 	}
-	if limit := uoq.limit; limit != nil {
+	if limit := uoq.ctx.Limit; limit != nil {
 		selector.Limit(*limit)
 	}
 	return selector
@@ -534,7 +532,7 @@ func (uogb *UpscaleOutputGroupBy) Aggregate(fns ...AggregateFunc) *UpscaleOutput
 
 // Scan applies the selector query and scans the result into the given value.
 func (uogb *UpscaleOutputGroupBy) Scan(ctx context.Context, v any) error {
-	ctx = newQueryContext(ctx, TypeUpscaleOutput, "GroupBy")
+	ctx = setContextOp(ctx, uogb.build.ctx, "GroupBy")
 	if err := uogb.build.prepareQuery(ctx); err != nil {
 		return err
 	}
@@ -582,7 +580,7 @@ func (uos *UpscaleOutputSelect) Aggregate(fns ...AggregateFunc) *UpscaleOutputSe
 
 // Scan applies the selector query and scans the result into the given value.
 func (uos *UpscaleOutputSelect) Scan(ctx context.Context, v any) error {
-	ctx = newQueryContext(ctx, TypeUpscaleOutput, "Select")
+	ctx = setContextOp(ctx, uos.ctx, "Select")
 	if err := uos.prepareQuery(ctx); err != nil {
 		return err
 	}

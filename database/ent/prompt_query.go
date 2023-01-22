@@ -20,11 +20,8 @@ import (
 // PromptQuery is the builder for querying Prompt entities.
 type PromptQuery struct {
 	config
-	limit           *int
-	offset          *int
-	unique          *bool
+	ctx             *QueryContext
 	order           []OrderFunc
-	fields          []string
 	inters          []Interceptor
 	predicates      []predicate.Prompt
 	withGenerations *GenerationQuery
@@ -41,20 +38,20 @@ func (pq *PromptQuery) Where(ps ...predicate.Prompt) *PromptQuery {
 
 // Limit the number of records to be returned by this query.
 func (pq *PromptQuery) Limit(limit int) *PromptQuery {
-	pq.limit = &limit
+	pq.ctx.Limit = &limit
 	return pq
 }
 
 // Offset to start from.
 func (pq *PromptQuery) Offset(offset int) *PromptQuery {
-	pq.offset = &offset
+	pq.ctx.Offset = &offset
 	return pq
 }
 
 // Unique configures the query builder to filter duplicate records on query.
 // By default, unique is set to true, and can be disabled using this method.
 func (pq *PromptQuery) Unique(unique bool) *PromptQuery {
-	pq.unique = &unique
+	pq.ctx.Unique = &unique
 	return pq
 }
 
@@ -89,7 +86,7 @@ func (pq *PromptQuery) QueryGenerations() *GenerationQuery {
 // First returns the first Prompt entity from the query.
 // Returns a *NotFoundError when no Prompt was found.
 func (pq *PromptQuery) First(ctx context.Context) (*Prompt, error) {
-	nodes, err := pq.Limit(1).All(newQueryContext(ctx, TypePrompt, "First"))
+	nodes, err := pq.Limit(1).All(setContextOp(ctx, pq.ctx, "First"))
 	if err != nil {
 		return nil, err
 	}
@@ -112,7 +109,7 @@ func (pq *PromptQuery) FirstX(ctx context.Context) *Prompt {
 // Returns a *NotFoundError when no Prompt ID was found.
 func (pq *PromptQuery) FirstID(ctx context.Context) (id uuid.UUID, err error) {
 	var ids []uuid.UUID
-	if ids, err = pq.Limit(1).IDs(newQueryContext(ctx, TypePrompt, "FirstID")); err != nil {
+	if ids, err = pq.Limit(1).IDs(setContextOp(ctx, pq.ctx, "FirstID")); err != nil {
 		return
 	}
 	if len(ids) == 0 {
@@ -135,7 +132,7 @@ func (pq *PromptQuery) FirstIDX(ctx context.Context) uuid.UUID {
 // Returns a *NotSingularError when more than one Prompt entity is found.
 // Returns a *NotFoundError when no Prompt entities are found.
 func (pq *PromptQuery) Only(ctx context.Context) (*Prompt, error) {
-	nodes, err := pq.Limit(2).All(newQueryContext(ctx, TypePrompt, "Only"))
+	nodes, err := pq.Limit(2).All(setContextOp(ctx, pq.ctx, "Only"))
 	if err != nil {
 		return nil, err
 	}
@@ -163,7 +160,7 @@ func (pq *PromptQuery) OnlyX(ctx context.Context) *Prompt {
 // Returns a *NotFoundError when no entities are found.
 func (pq *PromptQuery) OnlyID(ctx context.Context) (id uuid.UUID, err error) {
 	var ids []uuid.UUID
-	if ids, err = pq.Limit(2).IDs(newQueryContext(ctx, TypePrompt, "OnlyID")); err != nil {
+	if ids, err = pq.Limit(2).IDs(setContextOp(ctx, pq.ctx, "OnlyID")); err != nil {
 		return
 	}
 	switch len(ids) {
@@ -188,7 +185,7 @@ func (pq *PromptQuery) OnlyIDX(ctx context.Context) uuid.UUID {
 
 // All executes the query and returns a list of Prompts.
 func (pq *PromptQuery) All(ctx context.Context) ([]*Prompt, error) {
-	ctx = newQueryContext(ctx, TypePrompt, "All")
+	ctx = setContextOp(ctx, pq.ctx, "All")
 	if err := pq.prepareQuery(ctx); err != nil {
 		return nil, err
 	}
@@ -208,7 +205,7 @@ func (pq *PromptQuery) AllX(ctx context.Context) []*Prompt {
 // IDs executes the query and returns a list of Prompt IDs.
 func (pq *PromptQuery) IDs(ctx context.Context) ([]uuid.UUID, error) {
 	var ids []uuid.UUID
-	ctx = newQueryContext(ctx, TypePrompt, "IDs")
+	ctx = setContextOp(ctx, pq.ctx, "IDs")
 	if err := pq.Select(prompt.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
@@ -226,7 +223,7 @@ func (pq *PromptQuery) IDsX(ctx context.Context) []uuid.UUID {
 
 // Count returns the count of the given query.
 func (pq *PromptQuery) Count(ctx context.Context) (int, error) {
-	ctx = newQueryContext(ctx, TypePrompt, "Count")
+	ctx = setContextOp(ctx, pq.ctx, "Count")
 	if err := pq.prepareQuery(ctx); err != nil {
 		return 0, err
 	}
@@ -244,7 +241,7 @@ func (pq *PromptQuery) CountX(ctx context.Context) int {
 
 // Exist returns true if the query has elements in the graph.
 func (pq *PromptQuery) Exist(ctx context.Context) (bool, error) {
-	ctx = newQueryContext(ctx, TypePrompt, "Exist")
+	ctx = setContextOp(ctx, pq.ctx, "Exist")
 	switch _, err := pq.FirstID(ctx); {
 	case IsNotFound(err):
 		return false, nil
@@ -272,16 +269,14 @@ func (pq *PromptQuery) Clone() *PromptQuery {
 	}
 	return &PromptQuery{
 		config:          pq.config,
-		limit:           pq.limit,
-		offset:          pq.offset,
+		ctx:             pq.ctx.Clone(),
 		order:           append([]OrderFunc{}, pq.order...),
 		inters:          append([]Interceptor{}, pq.inters...),
 		predicates:      append([]predicate.Prompt{}, pq.predicates...),
 		withGenerations: pq.withGenerations.Clone(),
 		// clone intermediate query.
-		sql:    pq.sql.Clone(),
-		path:   pq.path,
-		unique: pq.unique,
+		sql:  pq.sql.Clone(),
+		path: pq.path,
 	}
 }
 
@@ -311,9 +306,9 @@ func (pq *PromptQuery) WithGenerations(opts ...func(*GenerationQuery)) *PromptQu
 //		Aggregate(ent.Count()).
 //		Scan(ctx, &v)
 func (pq *PromptQuery) GroupBy(field string, fields ...string) *PromptGroupBy {
-	pq.fields = append([]string{field}, fields...)
+	pq.ctx.Fields = append([]string{field}, fields...)
 	grbuild := &PromptGroupBy{build: pq}
-	grbuild.flds = &pq.fields
+	grbuild.flds = &pq.ctx.Fields
 	grbuild.label = prompt.Label
 	grbuild.scan = grbuild.Scan
 	return grbuild
@@ -332,10 +327,10 @@ func (pq *PromptQuery) GroupBy(field string, fields ...string) *PromptGroupBy {
 //		Select(prompt.FieldText).
 //		Scan(ctx, &v)
 func (pq *PromptQuery) Select(fields ...string) *PromptSelect {
-	pq.fields = append(pq.fields, fields...)
+	pq.ctx.Fields = append(pq.ctx.Fields, fields...)
 	sbuild := &PromptSelect{PromptQuery: pq}
 	sbuild.label = prompt.Label
-	sbuild.flds, sbuild.scan = &pq.fields, sbuild.Scan
+	sbuild.flds, sbuild.scan = &pq.ctx.Fields, sbuild.Scan
 	return sbuild
 }
 
@@ -355,7 +350,7 @@ func (pq *PromptQuery) prepareQuery(ctx context.Context) error {
 			}
 		}
 	}
-	for _, f := range pq.fields {
+	for _, f := range pq.ctx.Fields {
 		if !prompt.ValidColumn(f) {
 			return &ValidationError{Name: f, err: fmt.Errorf("ent: invalid field %q for query", f)}
 		}
@@ -436,9 +431,9 @@ func (pq *PromptQuery) loadGenerations(ctx context.Context, query *GenerationQue
 
 func (pq *PromptQuery) sqlCount(ctx context.Context) (int, error) {
 	_spec := pq.querySpec()
-	_spec.Node.Columns = pq.fields
-	if len(pq.fields) > 0 {
-		_spec.Unique = pq.unique != nil && *pq.unique
+	_spec.Node.Columns = pq.ctx.Fields
+	if len(pq.ctx.Fields) > 0 {
+		_spec.Unique = pq.ctx.Unique != nil && *pq.ctx.Unique
 	}
 	return sqlgraph.CountNodes(ctx, pq.driver, _spec)
 }
@@ -456,10 +451,10 @@ func (pq *PromptQuery) querySpec() *sqlgraph.QuerySpec {
 		From:   pq.sql,
 		Unique: true,
 	}
-	if unique := pq.unique; unique != nil {
+	if unique := pq.ctx.Unique; unique != nil {
 		_spec.Unique = *unique
 	}
-	if fields := pq.fields; len(fields) > 0 {
+	if fields := pq.ctx.Fields; len(fields) > 0 {
 		_spec.Node.Columns = make([]string, 0, len(fields))
 		_spec.Node.Columns = append(_spec.Node.Columns, prompt.FieldID)
 		for i := range fields {
@@ -475,10 +470,10 @@ func (pq *PromptQuery) querySpec() *sqlgraph.QuerySpec {
 			}
 		}
 	}
-	if limit := pq.limit; limit != nil {
+	if limit := pq.ctx.Limit; limit != nil {
 		_spec.Limit = *limit
 	}
-	if offset := pq.offset; offset != nil {
+	if offset := pq.ctx.Offset; offset != nil {
 		_spec.Offset = *offset
 	}
 	if ps := pq.order; len(ps) > 0 {
@@ -494,7 +489,7 @@ func (pq *PromptQuery) querySpec() *sqlgraph.QuerySpec {
 func (pq *PromptQuery) sqlQuery(ctx context.Context) *sql.Selector {
 	builder := sql.Dialect(pq.driver.Dialect())
 	t1 := builder.Table(prompt.Table)
-	columns := pq.fields
+	columns := pq.ctx.Fields
 	if len(columns) == 0 {
 		columns = prompt.Columns
 	}
@@ -503,7 +498,7 @@ func (pq *PromptQuery) sqlQuery(ctx context.Context) *sql.Selector {
 		selector = pq.sql
 		selector.Select(selector.Columns(columns...)...)
 	}
-	if pq.unique != nil && *pq.unique {
+	if pq.ctx.Unique != nil && *pq.ctx.Unique {
 		selector.Distinct()
 	}
 	for _, p := range pq.predicates {
@@ -512,12 +507,12 @@ func (pq *PromptQuery) sqlQuery(ctx context.Context) *sql.Selector {
 	for _, p := range pq.order {
 		p(selector)
 	}
-	if offset := pq.offset; offset != nil {
+	if offset := pq.ctx.Offset; offset != nil {
 		// limit is mandatory for offset clause. We start
 		// with default value, and override it below if needed.
 		selector.Offset(*offset).Limit(math.MaxInt32)
 	}
-	if limit := pq.limit; limit != nil {
+	if limit := pq.ctx.Limit; limit != nil {
 		selector.Limit(*limit)
 	}
 	return selector
@@ -537,7 +532,7 @@ func (pgb *PromptGroupBy) Aggregate(fns ...AggregateFunc) *PromptGroupBy {
 
 // Scan applies the selector query and scans the result into the given value.
 func (pgb *PromptGroupBy) Scan(ctx context.Context, v any) error {
-	ctx = newQueryContext(ctx, TypePrompt, "GroupBy")
+	ctx = setContextOp(ctx, pgb.build.ctx, "GroupBy")
 	if err := pgb.build.prepareQuery(ctx); err != nil {
 		return err
 	}
@@ -585,7 +580,7 @@ func (ps *PromptSelect) Aggregate(fns ...AggregateFunc) *PromptSelect {
 
 // Scan applies the selector query and scans the result into the given value.
 func (ps *PromptSelect) Scan(ctx context.Context, v any) error {
-	ctx = newQueryContext(ctx, TypePrompt, "Select")
+	ctx = setContextOp(ctx, ps.ctx, "Select")
 	if err := ps.prepareQuery(ctx); err != nil {
 		return err
 	}

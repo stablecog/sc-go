@@ -226,29 +226,29 @@ func (u *Upscale) assignValues(columns []string, values []any) error {
 
 // QueryUser queries the "user" edge of the Upscale entity.
 func (u *Upscale) QueryUser() *UserQuery {
-	return (&UpscaleClient{config: u.config}).QueryUser(u)
+	return NewUpscaleClient(u.config).QueryUser(u)
 }
 
 // QueryDeviceInfo queries the "device_info" edge of the Upscale entity.
 func (u *Upscale) QueryDeviceInfo() *DeviceInfoQuery {
-	return (&UpscaleClient{config: u.config}).QueryDeviceInfo(u)
+	return NewUpscaleClient(u.config).QueryDeviceInfo(u)
 }
 
 // QueryUpscaleModels queries the "upscale_models" edge of the Upscale entity.
 func (u *Upscale) QueryUpscaleModels() *UpscaleModelQuery {
-	return (&UpscaleClient{config: u.config}).QueryUpscaleModels(u)
+	return NewUpscaleClient(u.config).QueryUpscaleModels(u)
 }
 
 // QueryUpscaleOutputs queries the "upscale_outputs" edge of the Upscale entity.
 func (u *Upscale) QueryUpscaleOutputs() *UpscaleOutputQuery {
-	return (&UpscaleClient{config: u.config}).QueryUpscaleOutputs(u)
+	return NewUpscaleClient(u.config).QueryUpscaleOutputs(u)
 }
 
 // Update returns a builder for updating this Upscale.
 // Note that you need to call Upscale.Unwrap() before calling this method if this Upscale
 // was returned from a transaction, and the transaction was committed or rolled back.
 func (u *Upscale) Update() *UpscaleUpdateOne {
-	return (&UpscaleClient{config: u.config}).UpdateOne(u)
+	return NewUpscaleClient(u.config).UpdateOne(u)
 }
 
 // Unwrap unwraps the Upscale entity that was returned from a transaction after it was closed,

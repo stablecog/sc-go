@@ -103,14 +103,14 @@ func (gm *GenerationModel) assignValues(columns []string, values []any) error {
 
 // QueryGenerations queries the "generations" edge of the GenerationModel entity.
 func (gm *GenerationModel) QueryGenerations() *GenerationQuery {
-	return (&GenerationModelClient{config: gm.config}).QueryGenerations(gm)
+	return NewGenerationModelClient(gm.config).QueryGenerations(gm)
 }
 
 // Update returns a builder for updating this GenerationModel.
 // Note that you need to call GenerationModel.Unwrap() before calling this method if this GenerationModel
 // was returned from a transaction, and the transaction was committed or rolled back.
 func (gm *GenerationModel) Update() *GenerationModelUpdateOne {
-	return (&GenerationModelClient{config: gm.config}).UpdateOne(gm)
+	return NewGenerationModelClient(gm.config).UpdateOne(gm)
 }
 
 // Unwrap unwraps the GenerationModel entity that was returned from a transaction after it was closed,

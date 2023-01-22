@@ -20,11 +20,8 @@ import (
 // GenerationModelQuery is the builder for querying GenerationModel entities.
 type GenerationModelQuery struct {
 	config
-	limit           *int
-	offset          *int
-	unique          *bool
+	ctx             *QueryContext
 	order           []OrderFunc
-	fields          []string
 	inters          []Interceptor
 	predicates      []predicate.GenerationModel
 	withGenerations *GenerationQuery
@@ -41,20 +38,20 @@ func (gmq *GenerationModelQuery) Where(ps ...predicate.GenerationModel) *Generat
 
 // Limit the number of records to be returned by this query.
 func (gmq *GenerationModelQuery) Limit(limit int) *GenerationModelQuery {
-	gmq.limit = &limit
+	gmq.ctx.Limit = &limit
 	return gmq
 }
 
 // Offset to start from.
 func (gmq *GenerationModelQuery) Offset(offset int) *GenerationModelQuery {
-	gmq.offset = &offset
+	gmq.ctx.Offset = &offset
 	return gmq
 }
 
 // Unique configures the query builder to filter duplicate records on query.
 // By default, unique is set to true, and can be disabled using this method.
 func (gmq *GenerationModelQuery) Unique(unique bool) *GenerationModelQuery {
-	gmq.unique = &unique
+	gmq.ctx.Unique = &unique
 	return gmq
 }
 
@@ -89,7 +86,7 @@ func (gmq *GenerationModelQuery) QueryGenerations() *GenerationQuery {
 // First returns the first GenerationModel entity from the query.
 // Returns a *NotFoundError when no GenerationModel was found.
 func (gmq *GenerationModelQuery) First(ctx context.Context) (*GenerationModel, error) {
-	nodes, err := gmq.Limit(1).All(newQueryContext(ctx, TypeGenerationModel, "First"))
+	nodes, err := gmq.Limit(1).All(setContextOp(ctx, gmq.ctx, "First"))
 	if err != nil {
 		return nil, err
 	}
@@ -112,7 +109,7 @@ func (gmq *GenerationModelQuery) FirstX(ctx context.Context) *GenerationModel {
 // Returns a *NotFoundError when no GenerationModel ID was found.
 func (gmq *GenerationModelQuery) FirstID(ctx context.Context) (id uuid.UUID, err error) {
 	var ids []uuid.UUID
-	if ids, err = gmq.Limit(1).IDs(newQueryContext(ctx, TypeGenerationModel, "FirstID")); err != nil {
+	if ids, err = gmq.Limit(1).IDs(setContextOp(ctx, gmq.ctx, "FirstID")); err != nil {
 		return
 	}
 	if len(ids) == 0 {
@@ -135,7 +132,7 @@ func (gmq *GenerationModelQuery) FirstIDX(ctx context.Context) uuid.UUID {
 // Returns a *NotSingularError when more than one GenerationModel entity is found.
 // Returns a *NotFoundError when no GenerationModel entities are found.
 func (gmq *GenerationModelQuery) Only(ctx context.Context) (*GenerationModel, error) {
-	nodes, err := gmq.Limit(2).All(newQueryContext(ctx, TypeGenerationModel, "Only"))
+	nodes, err := gmq.Limit(2).All(setContextOp(ctx, gmq.ctx, "Only"))
 	if err != nil {
 		return nil, err
 	}
@@ -163,7 +160,7 @@ func (gmq *GenerationModelQuery) OnlyX(ctx context.Context) *GenerationModel {
 // Returns a *NotFoundError when no entities are found.
 func (gmq *GenerationModelQuery) OnlyID(ctx context.Context) (id uuid.UUID, err error) {
 	var ids []uuid.UUID
-	if ids, err = gmq.Limit(2).IDs(newQueryContext(ctx, TypeGenerationModel, "OnlyID")); err != nil {
+	if ids, err = gmq.Limit(2).IDs(setContextOp(ctx, gmq.ctx, "OnlyID")); err != nil {
 		return
 	}
 	switch len(ids) {
@@ -188,7 +185,7 @@ func (gmq *GenerationModelQuery) OnlyIDX(ctx context.Context) uuid.UUID {
 
 // All executes the query and returns a list of GenerationModels.
 func (gmq *GenerationModelQuery) All(ctx context.Context) ([]*GenerationModel, error) {
-	ctx = newQueryContext(ctx, TypeGenerationModel, "All")
+	ctx = setContextOp(ctx, gmq.ctx, "All")
 	if err := gmq.prepareQuery(ctx); err != nil {
 		return nil, err
 	}
@@ -208,7 +205,7 @@ func (gmq *GenerationModelQuery) AllX(ctx context.Context) []*GenerationModel {
 // IDs executes the query and returns a list of GenerationModel IDs.
 func (gmq *GenerationModelQuery) IDs(ctx context.Context) ([]uuid.UUID, error) {
 	var ids []uuid.UUID
-	ctx = newQueryContext(ctx, TypeGenerationModel, "IDs")
+	ctx = setContextOp(ctx, gmq.ctx, "IDs")
 	if err := gmq.Select(generationmodel.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
@@ -226,7 +223,7 @@ func (gmq *GenerationModelQuery) IDsX(ctx context.Context) []uuid.UUID {
 
 // Count returns the count of the given query.
 func (gmq *GenerationModelQuery) Count(ctx context.Context) (int, error) {
-	ctx = newQueryContext(ctx, TypeGenerationModel, "Count")
+	ctx = setContextOp(ctx, gmq.ctx, "Count")
 	if err := gmq.prepareQuery(ctx); err != nil {
 		return 0, err
 	}
@@ -244,7 +241,7 @@ func (gmq *GenerationModelQuery) CountX(ctx context.Context) int {
 
 // Exist returns true if the query has elements in the graph.
 func (gmq *GenerationModelQuery) Exist(ctx context.Context) (bool, error) {
-	ctx = newQueryContext(ctx, TypeGenerationModel, "Exist")
+	ctx = setContextOp(ctx, gmq.ctx, "Exist")
 	switch _, err := gmq.FirstID(ctx); {
 	case IsNotFound(err):
 		return false, nil
@@ -272,16 +269,14 @@ func (gmq *GenerationModelQuery) Clone() *GenerationModelQuery {
 	}
 	return &GenerationModelQuery{
 		config:          gmq.config,
-		limit:           gmq.limit,
-		offset:          gmq.offset,
+		ctx:             gmq.ctx.Clone(),
 		order:           append([]OrderFunc{}, gmq.order...),
 		inters:          append([]Interceptor{}, gmq.inters...),
 		predicates:      append([]predicate.GenerationModel{}, gmq.predicates...),
 		withGenerations: gmq.withGenerations.Clone(),
 		// clone intermediate query.
-		sql:    gmq.sql.Clone(),
-		path:   gmq.path,
-		unique: gmq.unique,
+		sql:  gmq.sql.Clone(),
+		path: gmq.path,
 	}
 }
 
@@ -311,9 +306,9 @@ func (gmq *GenerationModelQuery) WithGenerations(opts ...func(*GenerationQuery))
 //		Aggregate(ent.Count()).
 //		Scan(ctx, &v)
 func (gmq *GenerationModelQuery) GroupBy(field string, fields ...string) *GenerationModelGroupBy {
-	gmq.fields = append([]string{field}, fields...)
+	gmq.ctx.Fields = append([]string{field}, fields...)
 	grbuild := &GenerationModelGroupBy{build: gmq}
-	grbuild.flds = &gmq.fields
+	grbuild.flds = &gmq.ctx.Fields
 	grbuild.label = generationmodel.Label
 	grbuild.scan = grbuild.Scan
 	return grbuild
@@ -332,10 +327,10 @@ func (gmq *GenerationModelQuery) GroupBy(field string, fields ...string) *Genera
 //		Select(generationmodel.FieldName).
 //		Scan(ctx, &v)
 func (gmq *GenerationModelQuery) Select(fields ...string) *GenerationModelSelect {
-	gmq.fields = append(gmq.fields, fields...)
+	gmq.ctx.Fields = append(gmq.ctx.Fields, fields...)
 	sbuild := &GenerationModelSelect{GenerationModelQuery: gmq}
 	sbuild.label = generationmodel.Label
-	sbuild.flds, sbuild.scan = &gmq.fields, sbuild.Scan
+	sbuild.flds, sbuild.scan = &gmq.ctx.Fields, sbuild.Scan
 	return sbuild
 }
 
@@ -355,7 +350,7 @@ func (gmq *GenerationModelQuery) prepareQuery(ctx context.Context) error {
 			}
 		}
 	}
-	for _, f := range gmq.fields {
+	for _, f := range gmq.ctx.Fields {
 		if !generationmodel.ValidColumn(f) {
 			return &ValidationError{Name: f, err: fmt.Errorf("ent: invalid field %q for query", f)}
 		}
@@ -436,9 +431,9 @@ func (gmq *GenerationModelQuery) loadGenerations(ctx context.Context, query *Gen
 
 func (gmq *GenerationModelQuery) sqlCount(ctx context.Context) (int, error) {
 	_spec := gmq.querySpec()
-	_spec.Node.Columns = gmq.fields
-	if len(gmq.fields) > 0 {
-		_spec.Unique = gmq.unique != nil && *gmq.unique
+	_spec.Node.Columns = gmq.ctx.Fields
+	if len(gmq.ctx.Fields) > 0 {
+		_spec.Unique = gmq.ctx.Unique != nil && *gmq.ctx.Unique
 	}
 	return sqlgraph.CountNodes(ctx, gmq.driver, _spec)
 }
@@ -456,10 +451,10 @@ func (gmq *GenerationModelQuery) querySpec() *sqlgraph.QuerySpec {
 		From:   gmq.sql,
 		Unique: true,
 	}
-	if unique := gmq.unique; unique != nil {
+	if unique := gmq.ctx.Unique; unique != nil {
 		_spec.Unique = *unique
 	}
-	if fields := gmq.fields; len(fields) > 0 {
+	if fields := gmq.ctx.Fields; len(fields) > 0 {
 		_spec.Node.Columns = make([]string, 0, len(fields))
 		_spec.Node.Columns = append(_spec.Node.Columns, generationmodel.FieldID)
 		for i := range fields {
@@ -475,10 +470,10 @@ func (gmq *GenerationModelQuery) querySpec() *sqlgraph.QuerySpec {
 			}
 		}
 	}
-	if limit := gmq.limit; limit != nil {
+	if limit := gmq.ctx.Limit; limit != nil {
 		_spec.Limit = *limit
 	}
-	if offset := gmq.offset; offset != nil {
+	if offset := gmq.ctx.Offset; offset != nil {
 		_spec.Offset = *offset
 	}
 	if ps := gmq.order; len(ps) > 0 {
@@ -494,7 +489,7 @@ func (gmq *GenerationModelQuery) querySpec() *sqlgraph.QuerySpec {
 func (gmq *GenerationModelQuery) sqlQuery(ctx context.Context) *sql.Selector {
 	builder := sql.Dialect(gmq.driver.Dialect())
 	t1 := builder.Table(generationmodel.Table)
-	columns := gmq.fields
+	columns := gmq.ctx.Fields
 	if len(columns) == 0 {
 		columns = generationmodel.Columns
 	}
@@ -503,7 +498,7 @@ func (gmq *GenerationModelQuery) sqlQuery(ctx context.Context) *sql.Selector {
 		selector = gmq.sql
 		selector.Select(selector.Columns(columns...)...)
 	}
-	if gmq.unique != nil && *gmq.unique {
+	if gmq.ctx.Unique != nil && *gmq.ctx.Unique {
 		selector.Distinct()
 	}
 	for _, p := range gmq.predicates {
@@ -512,12 +507,12 @@ func (gmq *GenerationModelQuery) sqlQuery(ctx context.Context) *sql.Selector {
 	for _, p := range gmq.order {
 		p(selector)
 	}
-	if offset := gmq.offset; offset != nil {
+	if offset := gmq.ctx.Offset; offset != nil {
 		// limit is mandatory for offset clause. We start
 		// with default value, and override it below if needed.
 		selector.Offset(*offset).Limit(math.MaxInt32)
 	}
-	if limit := gmq.limit; limit != nil {
+	if limit := gmq.ctx.Limit; limit != nil {
 		selector.Limit(*limit)
 	}
 	return selector
@@ -537,7 +532,7 @@ func (gmgb *GenerationModelGroupBy) Aggregate(fns ...AggregateFunc) *GenerationM
 
 // Scan applies the selector query and scans the result into the given value.
 func (gmgb *GenerationModelGroupBy) Scan(ctx context.Context, v any) error {
-	ctx = newQueryContext(ctx, TypeGenerationModel, "GroupBy")
+	ctx = setContextOp(ctx, gmgb.build.ctx, "GroupBy")
 	if err := gmgb.build.prepareQuery(ctx); err != nil {
 		return err
 	}
@@ -585,7 +580,7 @@ func (gms *GenerationModelSelect) Aggregate(fns ...AggregateFunc) *GenerationMod
 
 // Scan applies the selector query and scans the result into the given value.
 func (gms *GenerationModelSelect) Scan(ctx context.Context, v any) error {
-	ctx = newQueryContext(ctx, TypeGenerationModel, "Select")
+	ctx = setContextOp(ctx, gms.ctx, "Select")
 	if err := gms.prepareQuery(ctx); err != nil {
 		return err
 	}

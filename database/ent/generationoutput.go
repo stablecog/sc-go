@@ -125,14 +125,14 @@ func (_go *GenerationOutput) assignValues(columns []string, values []any) error 
 
 // QueryGenerations queries the "generations" edge of the GenerationOutput entity.
 func (_go *GenerationOutput) QueryGenerations() *GenerationQuery {
-	return (&GenerationOutputClient{config: _go.config}).QueryGenerations(_go)
+	return NewGenerationOutputClient(_go.config).QueryGenerations(_go)
 }
 
 // Update returns a builder for updating this GenerationOutput.
 // Note that you need to call GenerationOutput.Unwrap() before calling this method if this GenerationOutput
 // was returned from a transaction, and the transaction was committed or rolled back.
 func (_go *GenerationOutput) Update() *GenerationOutputUpdateOne {
-	return (&GenerationOutputClient{config: _go.config}).UpdateOne(_go)
+	return NewGenerationOutputClient(_go.config).UpdateOne(_go)
 }
 
 // Unwrap unwraps the GenerationOutput entity that was returned from a transaction after it was closed,

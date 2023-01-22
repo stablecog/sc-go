@@ -29,6 +29,8 @@ func (Generation) Fields() []ent.Field {
 		field.Enum("status").Values("started", "succeeded", "failed", "rejected"),
 		field.Text("failure_reason").Nillable(),
 		field.Text("country_code"),
+		field.Bool("is_submitted_to_gallery").Default(false),
+		field.Bool("is_public").Default(false),
 		// ! Relationships / many-to-one
 		field.UUID("prompt_id", uuid.UUID{}),
 		field.UUID("negative_prompt_id", uuid.UUID{}).Nillable(),

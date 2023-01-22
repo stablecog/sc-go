@@ -96,6 +96,16 @@ func CountryCode(v string) predicate.Generation {
 	return predicate.Generation(sql.FieldEQ(FieldCountryCode, v))
 }
 
+// IsSubmittedToGallery applies equality check predicate on the "is_submitted_to_gallery" field. It's identical to IsSubmittedToGalleryEQ.
+func IsSubmittedToGallery(v bool) predicate.Generation {
+	return predicate.Generation(sql.FieldEQ(FieldIsSubmittedToGallery, v))
+}
+
+// IsPublic applies equality check predicate on the "is_public" field. It's identical to IsPublicEQ.
+func IsPublic(v bool) predicate.Generation {
+	return predicate.Generation(sql.FieldEQ(FieldIsPublic, v))
+}
+
 // PromptID applies equality check predicate on the "prompt_id" field. It's identical to PromptIDEQ.
 func PromptID(v uuid.UUID) predicate.Generation {
 	return predicate.Generation(sql.FieldEQ(FieldPromptID, v))
@@ -524,6 +534,26 @@ func CountryCodeEqualFold(v string) predicate.Generation {
 // CountryCodeContainsFold applies the ContainsFold predicate on the "country_code" field.
 func CountryCodeContainsFold(v string) predicate.Generation {
 	return predicate.Generation(sql.FieldContainsFold(FieldCountryCode, v))
+}
+
+// IsSubmittedToGalleryEQ applies the EQ predicate on the "is_submitted_to_gallery" field.
+func IsSubmittedToGalleryEQ(v bool) predicate.Generation {
+	return predicate.Generation(sql.FieldEQ(FieldIsSubmittedToGallery, v))
+}
+
+// IsSubmittedToGalleryNEQ applies the NEQ predicate on the "is_submitted_to_gallery" field.
+func IsSubmittedToGalleryNEQ(v bool) predicate.Generation {
+	return predicate.Generation(sql.FieldNEQ(FieldIsSubmittedToGallery, v))
+}
+
+// IsPublicEQ applies the EQ predicate on the "is_public" field.
+func IsPublicEQ(v bool) predicate.Generation {
+	return predicate.Generation(sql.FieldEQ(FieldIsPublic, v))
+}
+
+// IsPublicNEQ applies the NEQ predicate on the "is_public" field.
+func IsPublicNEQ(v bool) predicate.Generation {
+	return predicate.Generation(sql.FieldNEQ(FieldIsPublic, v))
 }
 
 // PromptIDEQ applies the EQ predicate on the "prompt_id" field.

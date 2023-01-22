@@ -116,14 +116,14 @@ func (ur *UserRole) assignValues(columns []string, values []any) error {
 
 // QueryUsers queries the "users" edge of the UserRole entity.
 func (ur *UserRole) QueryUsers() *UserQuery {
-	return (&UserRoleClient{config: ur.config}).QueryUsers(ur)
+	return NewUserRoleClient(ur.config).QueryUsers(ur)
 }
 
 // Update returns a builder for updating this UserRole.
 // Note that you need to call UserRole.Unwrap() before calling this method if this UserRole
 // was returned from a transaction, and the transaction was committed or rolled back.
 func (ur *UserRole) Update() *UserRoleUpdateOne {
-	return (&UserRoleClient{config: ur.config}).UpdateOne(ur)
+	return NewUserRoleClient(ur.config).UpdateOne(ur)
 }
 
 // Unwrap unwraps the UserRole entity that was returned from a transaction after it was closed,

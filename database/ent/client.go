@@ -324,6 +324,7 @@ func (c *DeviceInfoClient) DeleteOneID(id uuid.UUID) *DeviceInfoDeleteOne {
 func (c *DeviceInfoClient) Query() *DeviceInfoQuery {
 	return &DeviceInfoQuery{
 		config: c.config,
+		ctx:    &QueryContext{Type: TypeDeviceInfo},
 		inters: c.Interceptors(),
 	}
 }
@@ -473,6 +474,7 @@ func (c *GenerationClient) DeleteOneID(id uuid.UUID) *GenerationDeleteOne {
 func (c *GenerationClient) Query() *GenerationQuery {
 	return &GenerationQuery{
 		config: c.config,
+		ctx:    &QueryContext{Type: TypeGeneration},
 		inters: c.Interceptors(),
 	}
 }
@@ -702,6 +704,7 @@ func (c *GenerationModelClient) DeleteOneID(id uuid.UUID) *GenerationModelDelete
 func (c *GenerationModelClient) Query() *GenerationModelQuery {
 	return &GenerationModelQuery{
 		config: c.config,
+		ctx:    &QueryContext{Type: TypeGenerationModel},
 		inters: c.Interceptors(),
 	}
 }
@@ -835,6 +838,7 @@ func (c *GenerationOutputClient) DeleteOneID(id uuid.UUID) *GenerationOutputDele
 func (c *GenerationOutputClient) Query() *GenerationOutputQuery {
 	return &GenerationOutputQuery{
 		config: c.config,
+		ctx:    &QueryContext{Type: TypeGenerationOutput},
 		inters: c.Interceptors(),
 	}
 }
@@ -968,6 +972,7 @@ func (c *NegativePromptClient) DeleteOneID(id uuid.UUID) *NegativePromptDeleteOn
 func (c *NegativePromptClient) Query() *NegativePromptQuery {
 	return &NegativePromptQuery{
 		config: c.config,
+		ctx:    &QueryContext{Type: TypeNegativePrompt},
 		inters: c.Interceptors(),
 	}
 }
@@ -1101,6 +1106,7 @@ func (c *PromptClient) DeleteOneID(id uuid.UUID) *PromptDeleteOne {
 func (c *PromptClient) Query() *PromptQuery {
 	return &PromptQuery{
 		config: c.config,
+		ctx:    &QueryContext{Type: TypePrompt},
 		inters: c.Interceptors(),
 	}
 }
@@ -1234,6 +1240,7 @@ func (c *SchedulerClient) DeleteOneID(id uuid.UUID) *SchedulerDeleteOne {
 func (c *SchedulerClient) Query() *SchedulerQuery {
 	return &SchedulerQuery{
 		config: c.config,
+		ctx:    &QueryContext{Type: TypeScheduler},
 		inters: c.Interceptors(),
 	}
 }
@@ -1367,6 +1374,7 @@ func (c *UpscaleClient) DeleteOneID(id uuid.UUID) *UpscaleDeleteOne {
 func (c *UpscaleClient) Query() *UpscaleQuery {
 	return &UpscaleQuery{
 		config: c.config,
+		ctx:    &QueryContext{Type: TypeUpscale},
 		inters: c.Interceptors(),
 	}
 }
@@ -1548,6 +1556,7 @@ func (c *UpscaleModelClient) DeleteOneID(id uuid.UUID) *UpscaleModelDeleteOne {
 func (c *UpscaleModelClient) Query() *UpscaleModelQuery {
 	return &UpscaleModelQuery{
 		config: c.config,
+		ctx:    &QueryContext{Type: TypeUpscaleModel},
 		inters: c.Interceptors(),
 	}
 }
@@ -1681,6 +1690,7 @@ func (c *UpscaleOutputClient) DeleteOneID(id uuid.UUID) *UpscaleOutputDeleteOne 
 func (c *UpscaleOutputClient) Query() *UpscaleOutputQuery {
 	return &UpscaleOutputQuery{
 		config: c.config,
+		ctx:    &QueryContext{Type: TypeUpscaleOutput},
 		inters: c.Interceptors(),
 	}
 }
@@ -1814,6 +1824,7 @@ func (c *UserClient) DeleteOneID(id uuid.UUID) *UserDeleteOne {
 func (c *UserClient) Query() *UserQuery {
 	return &UserQuery{
 		config: c.config,
+		ctx:    &QueryContext{Type: TypeUser},
 		inters: c.Interceptors(),
 	}
 }
@@ -1979,6 +1990,7 @@ func (c *UserRoleClient) DeleteOneID(id uuid.UUID) *UserRoleDeleteOne {
 func (c *UserRoleClient) Query() *UserRoleQuery {
 	return &UserRoleQuery{
 		config: c.config,
+		ctx:    &QueryContext{Type: TypeUserRole},
 		inters: c.Interceptors(),
 	}
 }

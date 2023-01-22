@@ -32,6 +32,10 @@ const (
 	FieldFailureReason = "failure_reason"
 	// FieldCountryCode holds the string denoting the country_code field in the database.
 	FieldCountryCode = "country_code"
+	// FieldIsSubmittedToGallery holds the string denoting the is_submitted_to_gallery field in the database.
+	FieldIsSubmittedToGallery = "is_submitted_to_gallery"
+	// FieldIsPublic holds the string denoting the is_public field in the database.
+	FieldIsPublic = "is_public"
 	// FieldPromptID holds the string denoting the prompt_id field in the database.
 	FieldPromptID = "prompt_id"
 	// FieldNegativePromptID holds the string denoting the negative_prompt_id field in the database.
@@ -127,6 +131,8 @@ var Columns = []string{
 	FieldStatus,
 	FieldFailureReason,
 	FieldCountryCode,
+	FieldIsSubmittedToGallery,
+	FieldIsPublic,
 	FieldPromptID,
 	FieldNegativePromptID,
 	FieldModelID,
@@ -148,6 +154,10 @@ func ValidColumn(column string) bool {
 }
 
 var (
+	// DefaultIsSubmittedToGallery holds the default value on creation for the "is_submitted_to_gallery" field.
+	DefaultIsSubmittedToGallery bool
+	// DefaultIsPublic holds the default value on creation for the "is_public" field.
+	DefaultIsPublic bool
 	// DefaultCreatedAt holds the default value on creation for the "created_at" field.
 	DefaultCreatedAt func() time.Time
 	// DefaultUpdatedAt holds the default value on creation for the "updated_at" field.
