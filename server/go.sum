@@ -152,6 +152,8 @@ github.com/mattn/go-sqlite3 v1.14.16 h1:yOQRA0RpS5PFz/oikGwBEqvAWhWg5ufRz4ETLjwp
 github.com/mattn/go-sqlite3 v1.14.16/go.mod h1:2eHXhiwb8IkHr+BDWZGa96P6+rkvnG63S2DGjv9HUNg=
 github.com/meilisearch/meilisearch-go v0.22.0 h1:1J8VO5M8+WpGCOAjeUZy239RsLMWyRxqC2oN703J1cM=
 github.com/meilisearch/meilisearch-go v0.22.0/go.mod h1:XmVwi0ZyCdkEQ4cQvA3nh5TT0UByux4kBEWs4WUEp20=
+github.com/mileusna/useragent v1.2.1 h1:p3RJWhi3LfuI6BHdddojREyK3p6qX67vIfOVMnUIVr0=
+github.com/mileusna/useragent v1.2.1/go.mod h1:3d8TOmwL/5I8pJjyVDteHtgDGcefrFUX4ccGOMKNYYc=
 github.com/mitchellh/go-wordwrap v0.0.0-20150314170334-ad45545899c7 h1:DpOJ2HYzCv8LZP15IdmG+YdwD2luVPHITV96TkirNBM=
 github.com/mitchellh/go-wordwrap v0.0.0-20150314170334-ad45545899c7/go.mod h1:ZXFpozHsX6DPmq2I0TCekCxypsnAUbP2oI0UX1GXzOo=
 github.com/nxadm/tail v1.4.8 h1:nPr65rt6Y5JFSKQO7qToXr7pePgD6Gwiw05lkbyAQTE=

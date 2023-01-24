@@ -124,3 +124,31 @@ func TestIsNumInterferenceStepsAvailableForFree(t *testing.T) {
 	assert.False(t, fc.IsNumInterferenceStepsAvailableForFree(31))
 	assert.True(t, fc.IsNumInterferenceStepsAvailableForFree(30))
 }
+
+func TestGetGenerationModelNameFromID(t *testing.T) {
+	fc := GetCache()
+	// Predictable uuid
+	uid := uuid.MustParse("00000000-0000-0000-0000-000000000000")
+	// Add to models
+	fc.UpdateGenerationModels([]*ent.GenerationModel{
+		{ID: uid, Name: "test"},
+	})
+	// Assert
+	assert.Equal(t, "test", fc.GetGenerationModelNameFromID(uid))
+	// Assert empty if not found
+	assert.Equal(t, "", fc.GetGenerationModelNameFromID(uuid.MustParse("00000000-0000-0000-0000-000000000001")))
+}
+
+func TestGetSchedulerNameFromID(t *testing.T) {
+	fc := GetCache()
+	// Predictable uuid
+	uid := uuid.MustParse("00000000-0000-0000-0000-000000000000")
+	// Add to models
+	fc.UpdateSchedulers([]*ent.Scheduler{
+		{ID: uid, Name: "test"},
+	})
+	// Assert
+	assert.Equal(t, "test", fc.GetSchedulerNameFromID(uid))
+	// Assert empty if not found
+	assert.Equal(t, "", fc.GetSchedulerNameFromID(uuid.MustParse("00000000-0000-0000-0000-000000000001")))
+}

@@ -76,6 +76,13 @@ func main() {
 		}
 	}
 
+	// Setup redis
+	redis, err := database.NewRedis(ctx)
+	if err != nil {
+		klog.Fatalf("Error connecting to redis: %v", err)
+		os.Exit(1)
+	}
+
 	// Create repository (database access)
 	repo := &repository.Repository{
 		DB:  entClient,
@@ -99,7 +106,8 @@ func main() {
 
 	// Create controller
 	hc := controller.HttpController{
-		Repo: repo,
+		Repo:  repo,
+		Redis: redis,
 	}
 
 	// Create middleware

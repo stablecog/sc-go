@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/go-chi/render"
+	"github.com/go-redis/redis/v8"
 	"github.com/google/uuid"
 	"github.com/stablecog/go-apps/models"
 	"github.com/stablecog/go-apps/models/constants"
@@ -84,8 +85,9 @@ func (c *HttpController) PostGenerate(w http.ResponseWriter, r *http.Request) {
 		generateReq.Seed = rand.Intn(math.MaxInt32)
 	}
 
-	// Get country code
-	//countryCode := utils.GetCountryCode(r)
+	// Parse request headers
+	countryCode := utils.GetCountryCode(r)
+	deviceInfo := utils.GetClientDeviceInfo(r)
 
 	isProUser, err := c.Repo.IsProUser(userID)
 	if err != nil {
@@ -122,12 +124,74 @@ func (c *HttpController) PostGenerate(w http.ResponseWriter, r *http.Request) {
 
 	// ! TODO - parallel generation toggle
 
+	// Get model and scheduler name for cog
+	modelName := models.GetCache().GetGenerationModelNameFromID(generateReq.ModelId)
+	schedulerName := models.GetCache().GetSchedulerNameFromID(generateReq.SchedulerId)
+	if modelName == "" || schedulerName == "" {
+		klog.Errorf("Error getting model or scheduler name: %s - %s", modelName, schedulerName)
+		models.ErrInternalServerError(w, r, "An unknown error has occured")
+		return
+	}
+
 	// Format prompts
 	generateReq.Prompt = utils.FormatPrompt(generateReq.Prompt)
 	generateReq.NegativePrompt = utils.FormatPrompt(generateReq.NegativePrompt)
 
+	// Create generation
+	_, err = c.Repo.CreateGeneration(
+		userID,
+		string(deviceInfo.DeviceType),
+		deviceInfo.DeviceOs,
+		deviceInfo.DeviceBrowser,
+		countryCode,
+		generateReq)
+	if err != nil {
+		klog.Errorf("Error creating generation: %v", err)
+		models.ErrInternalServerError(w, r, "Error creating generation")
+		return
+	}
+
+	// Get language codes
+	promptFlores, negativePromptFlores := utils.GetPromptFloresCodes(generateReq.Prompt, generateReq.NegativePrompt)
+	// Generate a unique request ID for the cog
+	requestId := uuid.NewString()
+
+	cogReqBody := models.CogGenerateQueueRequest{
+		BaseCogRequestQueue: models.BaseCogRequestQueue{
+			WebhookEventsFilter: []models.WebhookEventFilterOption{models.WebhookEventStart, models.WebhookEventCompleted},
+			// ! TODO
+			Webhook: "TODO",
+		},
+		BaseCogGenerateRequest: models.BaseCogGenerateRequest{
+			ID:                   requestId,
+			Prompt:               generateReq.Prompt,
+			NegativePrompt:       generateReq.NegativePrompt,
+			PromptFlores:         promptFlores,
+			NegativePromptFlores: negativePromptFlores,
+			Width:                fmt.Sprint(generateReq.Width),
+			Height:               fmt.Sprint(generateReq.Height),
+			NumInferenceSteps:    fmt.Sprint(generateReq.NumInferenceSteps),
+			GuidanceScale:        fmt.Sprint(generateReq.GuidanceScale),
+			Model:                modelName,
+			Scheduler:            schedulerName,
+			Seed:                 fmt.Sprint(generateReq.Seed),
+			OutputImageExt:       string(models.DefaultOutputImageExtension),
+		},
+	}
+
+	_, err = c.Redis.XAdd(r.Context(), &redis.XAddArgs{
+		Stream: "input_queue",
+		ID:     "*", // Auto generate ID
+		Values: []interface{}{"value", cogReqBody},
+	}).Result()
+	if err != nil {
+		klog.Errorf("Failed to write request %s to queue: %v", requestId, err)
+		models.ErrInternalServerError(w, r, "Failed to queue generate request")
+		return
+	}
+
 	render.Status(r, http.StatusOK)
 	render.JSON(w, r, map[string]string{
-		"status": "ok",
+		"id": requestId,
 	})
 }

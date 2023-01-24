@@ -102,3 +102,21 @@ func (f *Cache) IsHeightAvailableForFree(width int32) bool {
 func (f *Cache) IsNumInterferenceStepsAvailableForFree(width int32) bool {
 	return slices.Contains(f.FreeInterferenceSteps, width)
 }
+
+func (f *Cache) GetGenerationModelNameFromID(id uuid.UUID) string {
+	for _, model := range f.GenerateModels {
+		if model.ID == id {
+			return model.Name
+		}
+	}
+	return ""
+}
+
+func (f *Cache) GetSchedulerNameFromID(id uuid.UUID) string {
+	for _, scheduler := range f.Schedulers {
+		if scheduler.ID == id {
+			return scheduler.Name
+		}
+	}
+	return ""
+}
