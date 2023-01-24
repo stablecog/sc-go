@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/stablecog/go-apps/server/models"
+	"github.com/stablecog/go-apps/models"
 )
 
 // Enforces authorization

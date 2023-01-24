@@ -22,7 +22,7 @@ func (Generation) Fields() []ent.Field {
 		field.UUID("id", uuid.UUID{}).Default(uuid.New),
 		field.Int32("width"),
 		field.Int32("height"),
-		field.Int32("interference_steps"),
+		field.Int32("num_interference_steps"),
 		field.Float32("guidance_scale"),
 		field.Int("seed").Nillable(),
 		field.Enum("status").Values("started", "succeeded", "failed", "rejected"),

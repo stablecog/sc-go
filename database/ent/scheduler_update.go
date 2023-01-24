@@ -42,6 +42,14 @@ func (su *SchedulerUpdate) SetIsFree(b bool) *SchedulerUpdate {
 	return su
 }
 
+// SetNillableIsFree sets the "is_free" field if the given value is not nil.
+func (su *SchedulerUpdate) SetNillableIsFree(b *bool) *SchedulerUpdate {
+	if b != nil {
+		su.SetIsFree(*b)
+	}
+	return su
+}
+
 // SetUpdatedAt sets the "updated_at" field.
 func (su *SchedulerUpdate) SetUpdatedAt(t time.Time) *SchedulerUpdate {
 	su.mutation.SetUpdatedAt(t)
@@ -235,6 +243,14 @@ func (suo *SchedulerUpdateOne) SetName(s string) *SchedulerUpdateOne {
 // SetIsFree sets the "is_free" field.
 func (suo *SchedulerUpdateOne) SetIsFree(b bool) *SchedulerUpdateOne {
 	suo.mutation.SetIsFree(b)
+	return suo
+}
+
+// SetNillableIsFree sets the "is_free" field if the given value is not nil.
+func (suo *SchedulerUpdateOne) SetNillableIsFree(b *bool) *SchedulerUpdateOne {
+	if b != nil {
+		suo.SetIsFree(*b)
+	}
 	return suo
 }
 

@@ -12,10 +12,10 @@ import (
 	"github.com/joho/godotenv"
 	"github.com/stablecog/go-apps/database"
 	"github.com/stablecog/go-apps/database/repository"
+	"github.com/stablecog/go-apps/models"
 	"github.com/stablecog/go-apps/server/controller"
 	"github.com/stablecog/go-apps/server/controller/websocket"
 	"github.com/stablecog/go-apps/server/middleware"
-	"github.com/stablecog/go-apps/server/models"
 	"github.com/stablecog/go-apps/utils"
 	"k8s.io/klog/v2"
 )
@@ -67,27 +67,14 @@ func main() {
 	}
 	defer entClient.Close()
 	// Run migrations
-	// klog.Infoln("🦋 Running migrations...")
-	// if err := entClient.Schema.Create(
-	// 	ctx,
-	// 	schema.WithApplyHook(func(next schema.Applier) schema.Applier {
-	// 		return schema.ApplyFunc(func(ctx context.Context, conn dialect.ExecQuerier, plan *migrate.Plan) error {
-	// 			// Omit changes to users table
-	// 			filteredChanges := make([]*migrate.Change, 0)
-	// 			for _, c := range plan.Changes {
-	// 				if !strings.Contains(strings.ToLower(c.Cmd), "table \"users\"") {
-	// 					filteredChanges = append(filteredChanges, c)
-	// 					continue
-	// 				}
-	// 				klog.Infof("Skipping migration: %s", c.Cmd)
-	// 			}
-	// 			return next.Apply(ctx, conn, plan)
-	// 		})
-	// 	}),
-	// ); err != nil {
-	// 	klog.Fatalf("Failed to run migrations: %v", err)
-	// 	os.Exit(1)
-	// }
+	// We can't run on supabase, :(
+	if utils.GetEnv("RUN_MIGRATIONS", "") == "true" {
+		klog.Infoln("🦋 Running migrations...")
+		if err := entClient.Schema.Create(ctx); err != nil {
+			klog.Fatalf("Failed to run migrations: %v", err)
+			os.Exit(1)
+		}
+	}
 
 	// Create repository (database access)
 	repo := &repository.Repository{
@@ -95,19 +82,20 @@ func main() {
 		Ctx: ctx,
 	}
 
-	// Get free model IDs and scheduler IDs and update cache
+	// Get models, schedulers and put in cache
 	// ! Not getting these is fatal and will result in crash
-	freeModelIds, err := repo.GetFreeGeneratedModelIDs()
+	generationModels, err := repo.GetAllGenerationModels()
 	if err != nil {
-		klog.Fatalf("Failed to get free model IDs: %v", err)
+		klog.Fatalf("Failed to get generation_models: %v", err)
 		panic(err)
 	}
-	freeSchedulerIds, err := repo.GetFreeSchedulerIDs()
+	models.GetCache().UpdateGenerationModels(generationModels)
+	schedulers, err := repo.GetAllSchedulers()
 	if err != nil {
-		klog.Fatalf("Failed to get free model IDs: %v", err)
+		klog.Fatalf("Failed to get schedulers: %v", err)
 		panic(err)
 	}
-	models.GetCache().UpdateFreeModelsAndSchedulers(freeModelIds, freeSchedulerIds)
+	models.GetCache().UpdateSchedulers(schedulers)
 
 	// Create controller
 	hc := controller.HttpController{

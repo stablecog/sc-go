@@ -34,6 +34,14 @@ func (sc *SchedulerCreate) SetIsFree(b bool) *SchedulerCreate {
 	return sc
 }
 
+// SetNillableIsFree sets the "is_free" field if the given value is not nil.
+func (sc *SchedulerCreate) SetNillableIsFree(b *bool) *SchedulerCreate {
+	if b != nil {
+		sc.SetIsFree(*b)
+	}
+	return sc
+}
+
 // SetCreatedAt sets the "created_at" field.
 func (sc *SchedulerCreate) SetCreatedAt(t time.Time) *SchedulerCreate {
 	sc.mutation.SetCreatedAt(t)
@@ -126,6 +134,10 @@ func (sc *SchedulerCreate) ExecX(ctx context.Context) {
 
 // defaults sets the default values of the builder before save.
 func (sc *SchedulerCreate) defaults() {
+	if _, ok := sc.mutation.IsFree(); !ok {
+		v := scheduler.DefaultIsFree
+		sc.mutation.SetIsFree(v)
+	}
 	if _, ok := sc.mutation.CreatedAt(); !ok {
 		v := scheduler.DefaultCreatedAt()
 		sc.mutation.SetCreatedAt(v)

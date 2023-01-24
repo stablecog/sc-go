@@ -1,0 +1,31 @@
+package models
+
+import "github.com/google/uuid"
+
+type GenerateOutputImageExtension string
+
+const (
+	PNG  GenerateOutputImageExtension = "png"
+	JPG  GenerateOutputImageExtension = "jpg"
+	JPEG GenerateOutputImageExtension = "jpeg"
+	WEBP GenerateOutputImageExtension = "webp"
+)
+
+const DefaultOutputImageExtension = WEBP
+
+type GenerateRequestBody struct {
+	Prompt            string  `json:"prompt"`
+	NegativePrompt    string  `json:"negative_prompt,omitempty"`
+	Width             int32   `json:"width"`
+	Height            int32   `json:"height"`
+	NumInferenceSteps int32   `json:"num_inference_steps"`
+	GuidanceScale     float32 `json:"guidance_scale"`
+	// ServerUrl             string  `json:"server_url"`
+	ModelId     uuid.UUID `json:"model_id"`
+	SchedulerId uuid.UUID `json:"scheduler_id"`
+	Seed        int       `json:"seed"`
+	// InitImage             string  `json:"init_image,omitempty"`
+	// Mask                  string  `json:"mask,omitempty"`
+	// PromptStrength        float32 `json:"prompt_strength,omitempty"`
+	// ShouldSubmitToGallery bool    `json:"should_submit_to_gallery"`
+}

@@ -27,8 +27,8 @@ type Generation struct {
 	Width int32 `json:"width,omitempty"`
 	// Height holds the value of the "height" field.
 	Height int32 `json:"height,omitempty"`
-	// InterferenceSteps holds the value of the "interference_steps" field.
-	InterferenceSteps int32 `json:"interference_steps,omitempty"`
+	// NumInterferenceSteps holds the value of the "num_interference_steps" field.
+	NumInterferenceSteps int32 `json:"num_interference_steps,omitempty"`
 	// GuidanceScale holds the value of the "guidance_scale" field.
 	GuidanceScale float32 `json:"guidance_scale,omitempty"`
 	// Seed holds the value of the "seed" field.
@@ -189,7 +189,7 @@ func (*Generation) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullBool)
 		case generation.FieldGuidanceScale:
 			values[i] = new(sql.NullFloat64)
-		case generation.FieldWidth, generation.FieldHeight, generation.FieldInterferenceSteps, generation.FieldSeed:
+		case generation.FieldWidth, generation.FieldHeight, generation.FieldNumInterferenceSteps, generation.FieldSeed:
 			values[i] = new(sql.NullInt64)
 		case generation.FieldStatus, generation.FieldFailureReason, generation.FieldCountryCode, generation.FieldInitImageURL:
 			values[i] = new(sql.NullString)
@@ -230,11 +230,11 @@ func (ge *Generation) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				ge.Height = int32(value.Int64)
 			}
-		case generation.FieldInterferenceSteps:
+		case generation.FieldNumInterferenceSteps:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
-				return fmt.Errorf("unexpected type %T for field interference_steps", values[i])
+				return fmt.Errorf("unexpected type %T for field num_interference_steps", values[i])
 			} else if value.Valid {
-				ge.InterferenceSteps = int32(value.Int64)
+				ge.NumInterferenceSteps = int32(value.Int64)
 			}
 		case generation.FieldGuidanceScale:
 			if value, ok := values[i].(*sql.NullFloat64); !ok {
@@ -419,8 +419,8 @@ func (ge *Generation) String() string {
 	builder.WriteString("height=")
 	builder.WriteString(fmt.Sprintf("%v", ge.Height))
 	builder.WriteString(", ")
-	builder.WriteString("interference_steps=")
-	builder.WriteString(fmt.Sprintf("%v", ge.InterferenceSteps))
+	builder.WriteString("num_interference_steps=")
+	builder.WriteString(fmt.Sprintf("%v", ge.NumInterferenceSteps))
 	builder.WriteString(", ")
 	builder.WriteString("guidance_scale=")
 	builder.WriteString(fmt.Sprintf("%v", ge.GuidanceScale))

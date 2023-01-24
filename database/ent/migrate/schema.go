@@ -29,7 +29,7 @@ var (
 		{Name: "id", Type: field.TypeUUID},
 		{Name: "width", Type: field.TypeInt32},
 		{Name: "height", Type: field.TypeInt32},
-		{Name: "interference_steps", Type: field.TypeInt32},
+		{Name: "num_interference_steps", Type: field.TypeInt32},
 		{Name: "guidance_scale", Type: field.TypeFloat32},
 		{Name: "seed", Type: field.TypeInt},
 		{Name: "status", Type: field.TypeEnum, Enums: []string{"started", "succeeded", "failed", "rejected"}},
@@ -160,7 +160,7 @@ var (
 	SchedulersColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID},
 		{Name: "name", Type: field.TypeString, Size: 2147483647},
-		{Name: "is_free", Type: field.TypeBool},
+		{Name: "is_free", Type: field.TypeBool, Default: false},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},
 	}

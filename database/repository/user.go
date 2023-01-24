@@ -5,13 +5,8 @@ import (
 	"github.com/stablecog/go-apps/database/ent/userrole"
 )
 
-func (r *Repository) IsProUser(userID string) (bool, error) {
-	// Parse as uuid
-	uid, err := uuid.Parse(userID)
-	if err != nil {
-		return false, err
-	}
-	roles, err := r.DB.UserRole.Query().Where(userrole.UserIDEQ(uid)).All(r.Ctx)
+func (r *Repository) IsProUser(userID uuid.UUID) (bool, error) {
+	roles, err := r.DB.UserRole.Query().Where(userrole.UserIDEQ(userID)).All(r.Ctx)
 	if err != nil {
 		return false, err
 	}

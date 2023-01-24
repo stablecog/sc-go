@@ -785,8 +785,8 @@ type GenerationMutation struct {
 	addwidth                  *int32
 	height                    *int32
 	addheight                 *int32
-	interference_steps        *int32
-	addinterference_steps     *int32
+	num_interference_steps    *int32
+	addnum_interference_steps *int32
 	guidance_scale            *float32
 	addguidance_scale         *float32
 	seed                      *int
@@ -1038,60 +1038,60 @@ func (m *GenerationMutation) ResetHeight() {
 	m.addheight = nil
 }
 
-// SetInterferenceSteps sets the "interference_steps" field.
-func (m *GenerationMutation) SetInterferenceSteps(i int32) {
-	m.interference_steps = &i
-	m.addinterference_steps = nil
+// SetNumInterferenceSteps sets the "num_interference_steps" field.
+func (m *GenerationMutation) SetNumInterferenceSteps(i int32) {
+	m.num_interference_steps = &i
+	m.addnum_interference_steps = nil
 }
 
-// InterferenceSteps returns the value of the "interference_steps" field in the mutation.
-func (m *GenerationMutation) InterferenceSteps() (r int32, exists bool) {
-	v := m.interference_steps
+// NumInterferenceSteps returns the value of the "num_interference_steps" field in the mutation.
+func (m *GenerationMutation) NumInterferenceSteps() (r int32, exists bool) {
+	v := m.num_interference_steps
 	if v == nil {
 		return
 	}
 	return *v, true
 }
 
-// OldInterferenceSteps returns the old "interference_steps" field's value of the Generation entity.
+// OldNumInterferenceSteps returns the old "num_interference_steps" field's value of the Generation entity.
 // If the Generation object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *GenerationMutation) OldInterferenceSteps(ctx context.Context) (v int32, err error) {
+func (m *GenerationMutation) OldNumInterferenceSteps(ctx context.Context) (v int32, err error) {
 	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldInterferenceSteps is only allowed on UpdateOne operations")
+		return v, errors.New("OldNumInterferenceSteps is only allowed on UpdateOne operations")
 	}
 	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldInterferenceSteps requires an ID field in the mutation")
+		return v, errors.New("OldNumInterferenceSteps requires an ID field in the mutation")
 	}
 	oldValue, err := m.oldValue(ctx)
 	if err != nil {
-		return v, fmt.Errorf("querying old value for OldInterferenceSteps: %w", err)
+		return v, fmt.Errorf("querying old value for OldNumInterferenceSteps: %w", err)
 	}
-	return oldValue.InterferenceSteps, nil
+	return oldValue.NumInterferenceSteps, nil
 }
 
-// AddInterferenceSteps adds i to the "interference_steps" field.
-func (m *GenerationMutation) AddInterferenceSteps(i int32) {
-	if m.addinterference_steps != nil {
-		*m.addinterference_steps += i
+// AddNumInterferenceSteps adds i to the "num_interference_steps" field.
+func (m *GenerationMutation) AddNumInterferenceSteps(i int32) {
+	if m.addnum_interference_steps != nil {
+		*m.addnum_interference_steps += i
 	} else {
-		m.addinterference_steps = &i
+		m.addnum_interference_steps = &i
 	}
 }
 
-// AddedInterferenceSteps returns the value that was added to the "interference_steps" field in this mutation.
-func (m *GenerationMutation) AddedInterferenceSteps() (r int32, exists bool) {
-	v := m.addinterference_steps
+// AddedNumInterferenceSteps returns the value that was added to the "num_interference_steps" field in this mutation.
+func (m *GenerationMutation) AddedNumInterferenceSteps() (r int32, exists bool) {
+	v := m.addnum_interference_steps
 	if v == nil {
 		return
 	}
 	return *v, true
 }
 
-// ResetInterferenceSteps resets all changes to the "interference_steps" field.
-func (m *GenerationMutation) ResetInterferenceSteps() {
-	m.interference_steps = nil
-	m.addinterference_steps = nil
+// ResetNumInterferenceSteps resets all changes to the "num_interference_steps" field.
+func (m *GenerationMutation) ResetNumInterferenceSteps() {
+	m.num_interference_steps = nil
+	m.addnum_interference_steps = nil
 }
 
 // SetGuidanceScale sets the "guidance_scale" field.
@@ -2098,8 +2098,8 @@ func (m *GenerationMutation) Fields() []string {
 	if m.height != nil {
 		fields = append(fields, generation.FieldHeight)
 	}
-	if m.interference_steps != nil {
-		fields = append(fields, generation.FieldInterferenceSteps)
+	if m.num_interference_steps != nil {
+		fields = append(fields, generation.FieldNumInterferenceSteps)
 	}
 	if m.guidance_scale != nil {
 		fields = append(fields, generation.FieldGuidanceScale)
@@ -2167,8 +2167,8 @@ func (m *GenerationMutation) Field(name string) (ent.Value, bool) {
 		return m.Width()
 	case generation.FieldHeight:
 		return m.Height()
-	case generation.FieldInterferenceSteps:
-		return m.InterferenceSteps()
+	case generation.FieldNumInterferenceSteps:
+		return m.NumInterferenceSteps()
 	case generation.FieldGuidanceScale:
 		return m.GuidanceScale()
 	case generation.FieldSeed:
@@ -2218,8 +2218,8 @@ func (m *GenerationMutation) OldField(ctx context.Context, name string) (ent.Val
 		return m.OldWidth(ctx)
 	case generation.FieldHeight:
 		return m.OldHeight(ctx)
-	case generation.FieldInterferenceSteps:
-		return m.OldInterferenceSteps(ctx)
+	case generation.FieldNumInterferenceSteps:
+		return m.OldNumInterferenceSteps(ctx)
 	case generation.FieldGuidanceScale:
 		return m.OldGuidanceScale(ctx)
 	case generation.FieldSeed:
@@ -2279,12 +2279,12 @@ func (m *GenerationMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetHeight(v)
 		return nil
-	case generation.FieldInterferenceSteps:
+	case generation.FieldNumInterferenceSteps:
 		v, ok := value.(int32)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
-		m.SetInterferenceSteps(v)
+		m.SetNumInterferenceSteps(v)
 		return nil
 	case generation.FieldGuidanceScale:
 		v, ok := value.(float32)
@@ -2426,8 +2426,8 @@ func (m *GenerationMutation) AddedFields() []string {
 	if m.addheight != nil {
 		fields = append(fields, generation.FieldHeight)
 	}
-	if m.addinterference_steps != nil {
-		fields = append(fields, generation.FieldInterferenceSteps)
+	if m.addnum_interference_steps != nil {
+		fields = append(fields, generation.FieldNumInterferenceSteps)
 	}
 	if m.addguidance_scale != nil {
 		fields = append(fields, generation.FieldGuidanceScale)
@@ -2447,8 +2447,8 @@ func (m *GenerationMutation) AddedField(name string) (ent.Value, bool) {
 		return m.AddedWidth()
 	case generation.FieldHeight:
 		return m.AddedHeight()
-	case generation.FieldInterferenceSteps:
-		return m.AddedInterferenceSteps()
+	case generation.FieldNumInterferenceSteps:
+		return m.AddedNumInterferenceSteps()
 	case generation.FieldGuidanceScale:
 		return m.AddedGuidanceScale()
 	case generation.FieldSeed:
@@ -2476,12 +2476,12 @@ func (m *GenerationMutation) AddField(name string, value ent.Value) error {
 		}
 		m.AddHeight(v)
 		return nil
-	case generation.FieldInterferenceSteps:
+	case generation.FieldNumInterferenceSteps:
 		v, ok := value.(int32)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
-		m.AddInterferenceSteps(v)
+		m.AddNumInterferenceSteps(v)
 		return nil
 	case generation.FieldGuidanceScale:
 		v, ok := value.(float32)
@@ -2530,8 +2530,8 @@ func (m *GenerationMutation) ResetField(name string) error {
 	case generation.FieldHeight:
 		m.ResetHeight()
 		return nil
-	case generation.FieldInterferenceSteps:
-		m.ResetInterferenceSteps()
+	case generation.FieldNumInterferenceSteps:
+		m.ResetNumInterferenceSteps()
 		return nil
 	case generation.FieldGuidanceScale:
 		m.ResetGuidanceScale()

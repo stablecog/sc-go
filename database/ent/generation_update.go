@@ -62,16 +62,16 @@ func (gu *GenerationUpdate) AddHeight(i int32) *GenerationUpdate {
 	return gu
 }
 
-// SetInterferenceSteps sets the "interference_steps" field.
-func (gu *GenerationUpdate) SetInterferenceSteps(i int32) *GenerationUpdate {
-	gu.mutation.ResetInterferenceSteps()
-	gu.mutation.SetInterferenceSteps(i)
+// SetNumInterferenceSteps sets the "num_interference_steps" field.
+func (gu *GenerationUpdate) SetNumInterferenceSteps(i int32) *GenerationUpdate {
+	gu.mutation.ResetNumInterferenceSteps()
+	gu.mutation.SetNumInterferenceSteps(i)
 	return gu
 }
 
-// AddInterferenceSteps adds i to the "interference_steps" field.
-func (gu *GenerationUpdate) AddInterferenceSteps(i int32) *GenerationUpdate {
-	gu.mutation.AddInterferenceSteps(i)
+// AddNumInterferenceSteps adds i to the "num_interference_steps" field.
+func (gu *GenerationUpdate) AddNumInterferenceSteps(i int32) *GenerationUpdate {
+	gu.mutation.AddNumInterferenceSteps(i)
 	return gu
 }
 
@@ -441,11 +441,11 @@ func (gu *GenerationUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if value, ok := gu.mutation.AddedHeight(); ok {
 		_spec.AddField(generation.FieldHeight, field.TypeInt32, value)
 	}
-	if value, ok := gu.mutation.InterferenceSteps(); ok {
-		_spec.SetField(generation.FieldInterferenceSteps, field.TypeInt32, value)
+	if value, ok := gu.mutation.NumInterferenceSteps(); ok {
+		_spec.SetField(generation.FieldNumInterferenceSteps, field.TypeInt32, value)
 	}
-	if value, ok := gu.mutation.AddedInterferenceSteps(); ok {
-		_spec.AddField(generation.FieldInterferenceSteps, field.TypeInt32, value)
+	if value, ok := gu.mutation.AddedNumInterferenceSteps(); ok {
+		_spec.AddField(generation.FieldNumInterferenceSteps, field.TypeInt32, value)
 	}
 	if value, ok := gu.mutation.GuidanceScale(); ok {
 		_spec.SetField(generation.FieldGuidanceScale, field.TypeFloat32, value)
@@ -796,16 +796,16 @@ func (guo *GenerationUpdateOne) AddHeight(i int32) *GenerationUpdateOne {
 	return guo
 }
 
-// SetInterferenceSteps sets the "interference_steps" field.
-func (guo *GenerationUpdateOne) SetInterferenceSteps(i int32) *GenerationUpdateOne {
-	guo.mutation.ResetInterferenceSteps()
-	guo.mutation.SetInterferenceSteps(i)
+// SetNumInterferenceSteps sets the "num_interference_steps" field.
+func (guo *GenerationUpdateOne) SetNumInterferenceSteps(i int32) *GenerationUpdateOne {
+	guo.mutation.ResetNumInterferenceSteps()
+	guo.mutation.SetNumInterferenceSteps(i)
 	return guo
 }
 
-// AddInterferenceSteps adds i to the "interference_steps" field.
-func (guo *GenerationUpdateOne) AddInterferenceSteps(i int32) *GenerationUpdateOne {
-	guo.mutation.AddInterferenceSteps(i)
+// AddNumInterferenceSteps adds i to the "num_interference_steps" field.
+func (guo *GenerationUpdateOne) AddNumInterferenceSteps(i int32) *GenerationUpdateOne {
+	guo.mutation.AddNumInterferenceSteps(i)
 	return guo
 }
 
@@ -1199,11 +1199,11 @@ func (guo *GenerationUpdateOne) sqlSave(ctx context.Context) (_node *Generation,
 	if value, ok := guo.mutation.AddedHeight(); ok {
 		_spec.AddField(generation.FieldHeight, field.TypeInt32, value)
 	}
-	if value, ok := guo.mutation.InterferenceSteps(); ok {
-		_spec.SetField(generation.FieldInterferenceSteps, field.TypeInt32, value)
+	if value, ok := guo.mutation.NumInterferenceSteps(); ok {
+		_spec.SetField(generation.FieldNumInterferenceSteps, field.TypeInt32, value)
 	}
-	if value, ok := guo.mutation.AddedInterferenceSteps(); ok {
-		_spec.AddField(generation.FieldInterferenceSteps, field.TypeInt32, value)
+	if value, ok := guo.mutation.AddedNumInterferenceSteps(); ok {
+		_spec.AddField(generation.FieldNumInterferenceSteps, field.TypeInt32, value)
 	}
 	if value, ok := guo.mutation.GuidanceScale(); ok {
 		_spec.SetField(generation.FieldGuidanceScale, field.TypeFloat32, value)

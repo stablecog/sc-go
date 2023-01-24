@@ -18,8 +18,8 @@ const (
 	FieldWidth = "width"
 	// FieldHeight holds the string denoting the height field in the database.
 	FieldHeight = "height"
-	// FieldInterferenceSteps holds the string denoting the interference_steps field in the database.
-	FieldInterferenceSteps = "interference_steps"
+	// FieldNumInterferenceSteps holds the string denoting the num_interference_steps field in the database.
+	FieldNumInterferenceSteps = "num_interference_steps"
 	// FieldGuidanceScale holds the string denoting the guidance_scale field in the database.
 	FieldGuidanceScale = "guidance_scale"
 	// FieldSeed holds the string denoting the seed field in the database.
@@ -128,7 +128,7 @@ var Columns = []string{
 	FieldID,
 	FieldWidth,
 	FieldHeight,
-	FieldInterferenceSteps,
+	FieldNumInterferenceSteps,
 	FieldGuidanceScale,
 	FieldSeed,
 	FieldStatus,

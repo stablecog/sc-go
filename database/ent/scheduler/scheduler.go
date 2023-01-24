@@ -54,6 +54,8 @@ func ValidColumn(column string) bool {
 }
 
 var (
+	// DefaultIsFree holds the default value on creation for the "is_free" field.
+	DefaultIsFree bool
 	// DefaultCreatedAt holds the default value on creation for the "created_at" field.
 	DefaultCreatedAt func() time.Time
 	// DefaultUpdatedAt holds the default value on creation for the "updated_at" field.

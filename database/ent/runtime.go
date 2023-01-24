@@ -135,6 +135,10 @@ func init() {
 	prompt.DefaultID = promptDescID.Default.(func() uuid.UUID)
 	schedulerFields := schema.Scheduler{}.Fields()
 	_ = schedulerFields
+	// schedulerDescIsFree is the schema descriptor for is_free field.
+	schedulerDescIsFree := schedulerFields[2].Descriptor()
+	// scheduler.DefaultIsFree holds the default value on creation for the is_free field.
+	scheduler.DefaultIsFree = schedulerDescIsFree.Default.(bool)
 	// schedulerDescCreatedAt is the schema descriptor for created_at field.
 	schedulerDescCreatedAt := schedulerFields[3].Descriptor()
 	// scheduler.DefaultCreatedAt holds the default value on creation for the created_at field.
