@@ -62,7 +62,7 @@ func (j *JobRunner) CheckHealth() error {
 			continue
 		} else if *generation.Status == dbgeneration.StatusFailed {
 			generationsFailed++
-			if generation.FailureReason != nil && *generation.FailureReason != "NSFW" {
+			if generation.FailureReason == nil || *generation.FailureReason != "NSFW" {
 				generationsFailedWithoutNSFW++
 			}
 		} else if *generation.Status == dbgeneration.StatusStarted && time.Now().Sub(generation.CreatedAt) > maxGenerationDuration {
