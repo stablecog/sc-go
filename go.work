@@ -3,7 +3,7 @@ go 1.19
 use (
 	./cron
 	./database
-	./models
 	./server
+	./shared
 	./utils
 )

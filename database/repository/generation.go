@@ -4,12 +4,12 @@ import (
 	"github.com/google/uuid"
 	"github.com/stablecog/go-apps/database/ent"
 	"github.com/stablecog/go-apps/database/ent/generation"
-	"github.com/stablecog/go-apps/models"
+	"github.com/stablecog/go-apps/server/requests"
 )
 
 // CreateGeneration creates the initial generation in the database
 // Takes in a userID (creator),  device info, countryCode, and a request body
-func (r *Repository) CreateGeneration(userID uuid.UUID, deviceType, deviceOs, deviceBrowser, countryCode string, req models.GenerateRequestBody) (*ent.Generation, error) {
+func (r *Repository) CreateGeneration(userID uuid.UUID, deviceType, deviceOs, deviceBrowser, countryCode string, req requests.GenerateRequestBody) (*ent.Generation, error) {
 	// Get prompt, negative prompt, device info
 	promptId, negativePromptId, deviceInfoId, err := r.GetOrCreateDeviceInfoAndPrompts(req.Prompt, req.NegativePrompt, deviceType, deviceOs, deviceBrowser)
 	if err != nil {

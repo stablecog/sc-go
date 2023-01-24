@@ -12,10 +12,10 @@ import (
 	"github.com/joho/godotenv"
 	"github.com/stablecog/go-apps/database"
 	"github.com/stablecog/go-apps/database/repository"
-	"github.com/stablecog/go-apps/models"
 	"github.com/stablecog/go-apps/server/controller"
 	"github.com/stablecog/go-apps/server/controller/websocket"
 	"github.com/stablecog/go-apps/server/middleware"
+	"github.com/stablecog/go-apps/shared"
 	"github.com/stablecog/go-apps/utils"
 	"k8s.io/klog/v2"
 )
@@ -96,13 +96,13 @@ func main() {
 		klog.Fatalf("Failed to get generation_models: %v", err)
 		panic(err)
 	}
-	models.GetCache().UpdateGenerationModels(generationModels)
+	shared.GetCache().UpdateGenerationModels(generationModels)
 	schedulers, err := repo.GetAllSchedulers()
 	if err != nil {
 		klog.Fatalf("Failed to get schedulers: %v", err)
 		panic(err)
 	}
-	models.GetCache().UpdateSchedulers(schedulers)
+	shared.GetCache().UpdateSchedulers(schedulers)
 
 	// Create controller
 	hc := controller.HttpController{

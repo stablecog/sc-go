@@ -3,7 +3,7 @@ package utils
 import (
 	"testing"
 
-	"github.com/stablecog/go-apps/models/constants"
+	"github.com/stablecog/go-apps/shared"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -22,9 +22,9 @@ func TestFormatPrompt(t *testing.T) {
 	assert.Equal(t, "", FormatPrompt(""))
 	// Create a string longer than the max prompt length
 	var longStr string
-	for i := 0; i < constants.MaxPromptLen+1; i++ {
+	for i := 0; i < shared.MaxPromptLen+1; i++ {
 		longStr += "a"
 	}
-	assert.Equal(t, constants.MaxPromptLen+1, len(longStr))
-	assert.Equal(t, constants.MaxPromptLen, len(FormatPrompt(longStr)))
+	assert.Equal(t, shared.MaxPromptLen+1, len(longStr))
+	assert.Equal(t, shared.MaxPromptLen, len(FormatPrompt(longStr)))
 }

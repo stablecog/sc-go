@@ -1,4 +1,4 @@
-package models
+package requests
 
 // Represents requests that go directly from our app to the cog
 

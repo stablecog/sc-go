@@ -3,7 +3,7 @@ package utils
 import (
 	"strings"
 
-	"github.com/stablecog/go-apps/models/constants"
+	"github.com/stablecog/go-apps/shared"
 )
 
 // RemoveRedundantSpaces removes all redundant spaces from a string
@@ -22,8 +22,8 @@ func RemoveLineBreaks(s string) string {
 // e.g. "  hello   world  " -> "hello world"
 func FormatPrompt(s string) string {
 	cleanStr := RemoveRedundantSpaces(RemoveLineBreaks(s))
-	if len(cleanStr) > constants.MaxPromptLen {
-		cleanStr = cleanStr[:constants.MaxPromptLen]
+	if len(cleanStr) > shared.MaxPromptLen {
+		cleanStr = cleanStr[:shared.MaxPromptLen]
 	}
 	return cleanStr
 }

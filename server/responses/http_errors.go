@@ -1,4 +1,4 @@
-package models
+package responses
 
 import (
 	"net/http"

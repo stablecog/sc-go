@@ -1,11 +1,9 @@
-package constants
+package shared
 
-// Various constants used for API input validations
-
-// Generate
+// Generation related
 const MaxGenerateWidth = 768
 const MaxGenerateHeight = 768
 const MaxProPixelSteps = 640 * 640 * 50
 
-// Prompt
+// Prompt realted
 const MaxPromptLen = 500
