@@ -24,8 +24,6 @@ const (
 	FieldGuidanceScale = "guidance_scale"
 	// FieldSeed holds the string denoting the seed field in the database.
 	FieldSeed = "seed"
-	// FieldDurationMs holds the string denoting the duration_ms field in the database.
-	FieldDurationMs = "duration_ms"
 	// FieldStatus holds the string denoting the status field in the database.
 	FieldStatus = "status"
 	// FieldFailureReason holds the string denoting the failure_reason field in the database.
@@ -36,6 +34,8 @@ const (
 	FieldIsSubmittedToGallery = "is_submitted_to_gallery"
 	// FieldIsPublic holds the string denoting the is_public field in the database.
 	FieldIsPublic = "is_public"
+	// FieldInitImageURL holds the string denoting the init_image_url field in the database.
+	FieldInitImageURL = "init_image_url"
 	// FieldPromptID holds the string denoting the prompt_id field in the database.
 	FieldPromptID = "prompt_id"
 	// FieldNegativePromptID holds the string denoting the negative_prompt_id field in the database.
@@ -48,6 +48,10 @@ const (
 	FieldUserID = "user_id"
 	// FieldDeviceInfoID holds the string denoting the device_info_id field in the database.
 	FieldDeviceInfoID = "device_info_id"
+	// FieldStartedAt holds the string denoting the started_at field in the database.
+	FieldStartedAt = "started_at"
+	// FieldCompletedAt holds the string denoting the completed_at field in the database.
+	FieldCompletedAt = "completed_at"
 	// FieldCreatedAt holds the string denoting the created_at field in the database.
 	FieldCreatedAt = "created_at"
 	// FieldUpdatedAt holds the string denoting the updated_at field in the database.
@@ -127,18 +131,20 @@ var Columns = []string{
 	FieldInterferenceSteps,
 	FieldGuidanceScale,
 	FieldSeed,
-	FieldDurationMs,
 	FieldStatus,
 	FieldFailureReason,
 	FieldCountryCode,
 	FieldIsSubmittedToGallery,
 	FieldIsPublic,
+	FieldInitImageURL,
 	FieldPromptID,
 	FieldNegativePromptID,
 	FieldModelID,
 	FieldSchedulerID,
 	FieldUserID,
 	FieldDeviceInfoID,
+	FieldStartedAt,
+	FieldCompletedAt,
 	FieldCreatedAt,
 	FieldUpdatedAt,
 }

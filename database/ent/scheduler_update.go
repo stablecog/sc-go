@@ -36,6 +36,12 @@ func (su *SchedulerUpdate) SetName(s string) *SchedulerUpdate {
 	return su
 }
 
+// SetIsFree sets the "is_free" field.
+func (su *SchedulerUpdate) SetIsFree(b bool) *SchedulerUpdate {
+	su.mutation.SetIsFree(b)
+	return su
+}
+
 // SetUpdatedAt sets the "updated_at" field.
 func (su *SchedulerUpdate) SetUpdatedAt(t time.Time) *SchedulerUpdate {
 	su.mutation.SetUpdatedAt(t)
@@ -140,6 +146,9 @@ func (su *SchedulerUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if value, ok := su.mutation.Name(); ok {
 		_spec.SetField(scheduler.FieldName, field.TypeString, value)
 	}
+	if value, ok := su.mutation.IsFree(); ok {
+		_spec.SetField(scheduler.FieldIsFree, field.TypeBool, value)
+	}
 	if value, ok := su.mutation.UpdatedAt(); ok {
 		_spec.SetField(scheduler.FieldUpdatedAt, field.TypeTime, value)
 	}
@@ -220,6 +229,12 @@ type SchedulerUpdateOne struct {
 // SetName sets the "name" field.
 func (suo *SchedulerUpdateOne) SetName(s string) *SchedulerUpdateOne {
 	suo.mutation.SetName(s)
+	return suo
+}
+
+// SetIsFree sets the "is_free" field.
+func (suo *SchedulerUpdateOne) SetIsFree(b bool) *SchedulerUpdateOne {
+	suo.mutation.SetIsFree(b)
 	return suo
 }
 
@@ -350,6 +365,9 @@ func (suo *SchedulerUpdateOne) sqlSave(ctx context.Context) (_node *Scheduler, e
 	}
 	if value, ok := suo.mutation.Name(); ok {
 		_spec.SetField(scheduler.FieldName, field.TypeString, value)
+	}
+	if value, ok := suo.mutation.IsFree(); ok {
+		_spec.SetField(scheduler.FieldIsFree, field.TypeBool, value)
 	}
 	if value, ok := suo.mutation.UpdatedAt(); ok {
 		_spec.SetField(scheduler.FieldUpdatedAt, field.TypeTime, value)

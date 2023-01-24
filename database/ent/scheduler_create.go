@@ -28,6 +28,12 @@ func (sc *SchedulerCreate) SetName(s string) *SchedulerCreate {
 	return sc
 }
 
+// SetIsFree sets the "is_free" field.
+func (sc *SchedulerCreate) SetIsFree(b bool) *SchedulerCreate {
+	sc.mutation.SetIsFree(b)
+	return sc
+}
+
 // SetCreatedAt sets the "created_at" field.
 func (sc *SchedulerCreate) SetCreatedAt(t time.Time) *SchedulerCreate {
 	sc.mutation.SetCreatedAt(t)
@@ -139,6 +145,9 @@ func (sc *SchedulerCreate) check() error {
 	if _, ok := sc.mutation.Name(); !ok {
 		return &ValidationError{Name: "name", err: errors.New(`ent: missing required field "Scheduler.name"`)}
 	}
+	if _, ok := sc.mutation.IsFree(); !ok {
+		return &ValidationError{Name: "is_free", err: errors.New(`ent: missing required field "Scheduler.is_free"`)}
+	}
 	if _, ok := sc.mutation.CreatedAt(); !ok {
 		return &ValidationError{Name: "created_at", err: errors.New(`ent: missing required field "Scheduler.created_at"`)}
 	}
@@ -189,6 +198,10 @@ func (sc *SchedulerCreate) createSpec() (*Scheduler, *sqlgraph.CreateSpec) {
 	if value, ok := sc.mutation.Name(); ok {
 		_spec.SetField(scheduler.FieldName, field.TypeString, value)
 		_node.Name = value
+	}
+	if value, ok := sc.mutation.IsFree(); ok {
+		_spec.SetField(scheduler.FieldIsFree, field.TypeBool, value)
+		_node.IsFree = value
 	}
 	if value, ok := sc.mutation.CreatedAt(); ok {
 		_spec.SetField(scheduler.FieldCreatedAt, field.TypeTime, value)

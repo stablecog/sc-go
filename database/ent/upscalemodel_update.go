@@ -36,6 +36,20 @@ func (umu *UpscaleModelUpdate) SetName(s string) *UpscaleModelUpdate {
 	return umu
 }
 
+// SetIsFree sets the "is_free" field.
+func (umu *UpscaleModelUpdate) SetIsFree(b bool) *UpscaleModelUpdate {
+	umu.mutation.SetIsFree(b)
+	return umu
+}
+
+// SetNillableIsFree sets the "is_free" field if the given value is not nil.
+func (umu *UpscaleModelUpdate) SetNillableIsFree(b *bool) *UpscaleModelUpdate {
+	if b != nil {
+		umu.SetIsFree(*b)
+	}
+	return umu
+}
+
 // SetUpdatedAt sets the "updated_at" field.
 func (umu *UpscaleModelUpdate) SetUpdatedAt(t time.Time) *UpscaleModelUpdate {
 	umu.mutation.SetUpdatedAt(t)
@@ -140,6 +154,9 @@ func (umu *UpscaleModelUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if value, ok := umu.mutation.Name(); ok {
 		_spec.SetField(upscalemodel.FieldName, field.TypeString, value)
 	}
+	if value, ok := umu.mutation.IsFree(); ok {
+		_spec.SetField(upscalemodel.FieldIsFree, field.TypeBool, value)
+	}
 	if value, ok := umu.mutation.UpdatedAt(); ok {
 		_spec.SetField(upscalemodel.FieldUpdatedAt, field.TypeTime, value)
 	}
@@ -220,6 +237,20 @@ type UpscaleModelUpdateOne struct {
 // SetName sets the "name" field.
 func (umuo *UpscaleModelUpdateOne) SetName(s string) *UpscaleModelUpdateOne {
 	umuo.mutation.SetName(s)
+	return umuo
+}
+
+// SetIsFree sets the "is_free" field.
+func (umuo *UpscaleModelUpdateOne) SetIsFree(b bool) *UpscaleModelUpdateOne {
+	umuo.mutation.SetIsFree(b)
+	return umuo
+}
+
+// SetNillableIsFree sets the "is_free" field if the given value is not nil.
+func (umuo *UpscaleModelUpdateOne) SetNillableIsFree(b *bool) *UpscaleModelUpdateOne {
+	if b != nil {
+		umuo.SetIsFree(*b)
+	}
 	return umuo
 }
 
@@ -350,6 +381,9 @@ func (umuo *UpscaleModelUpdateOne) sqlSave(ctx context.Context) (_node *UpscaleM
 	}
 	if value, ok := umuo.mutation.Name(); ok {
 		_spec.SetField(upscalemodel.FieldName, field.TypeString, value)
+	}
+	if value, ok := umuo.mutation.IsFree(); ok {
+		_spec.SetField(upscalemodel.FieldIsFree, field.TypeBool, value)
 	}
 	if value, ok := umuo.mutation.UpdatedAt(); ok {
 		_spec.SetField(upscalemodel.FieldUpdatedAt, field.TypeTime, value)

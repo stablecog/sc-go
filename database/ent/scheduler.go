@@ -19,6 +19,8 @@ type Scheduler struct {
 	ID uuid.UUID `json:"id,omitempty"`
 	// Name holds the value of the "name" field.
 	Name string `json:"name,omitempty"`
+	// IsFree holds the value of the "is_free" field.
+	IsFree bool `json:"is_free,omitempty"`
 	// CreatedAt holds the value of the "created_at" field.
 	CreatedAt time.Time `json:"created_at,omitempty"`
 	// UpdatedAt holds the value of the "updated_at" field.
@@ -51,6 +53,8 @@ func (*Scheduler) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
+		case scheduler.FieldIsFree:
+			values[i] = new(sql.NullBool)
 		case scheduler.FieldName:
 			values[i] = new(sql.NullString)
 		case scheduler.FieldCreatedAt, scheduler.FieldUpdatedAt:
@@ -83,6 +87,12 @@ func (s *Scheduler) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field name", values[i])
 			} else if value.Valid {
 				s.Name = value.String
+			}
+		case scheduler.FieldIsFree:
+			if value, ok := values[i].(*sql.NullBool); !ok {
+				return fmt.Errorf("unexpected type %T for field is_free", values[i])
+			} else if value.Valid {
+				s.IsFree = value.Bool
 			}
 		case scheduler.FieldCreatedAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
@@ -131,6 +141,9 @@ func (s *Scheduler) String() string {
 	builder.WriteString(fmt.Sprintf("id=%v, ", s.ID))
 	builder.WriteString("name=")
 	builder.WriteString(s.Name)
+	builder.WriteString(", ")
+	builder.WriteString("is_free=")
+	builder.WriteString(fmt.Sprintf("%v", s.IsFree))
 	builder.WriteString(", ")
 	builder.WriteString("created_at=")
 	builder.WriteString(s.CreatedAt.Format(time.ANSIC))

@@ -15,6 +15,8 @@ const (
 	FieldID = "id"
 	// FieldName holds the string denoting the name field in the database.
 	FieldName = "name"
+	// FieldIsFree holds the string denoting the is_free field in the database.
+	FieldIsFree = "is_free"
 	// FieldCreatedAt holds the string denoting the created_at field in the database.
 	FieldCreatedAt = "created_at"
 	// FieldUpdatedAt holds the string denoting the updated_at field in the database.
@@ -36,6 +38,7 @@ const (
 var Columns = []string{
 	FieldID,
 	FieldName,
+	FieldIsFree,
 	FieldCreatedAt,
 	FieldUpdatedAt,
 }
@@ -51,6 +54,8 @@ func ValidColumn(column string) bool {
 }
 
 var (
+	// DefaultIsFree holds the default value on creation for the "is_free" field.
+	DefaultIsFree bool
 	// DefaultCreatedAt holds the default value on creation for the "created_at" field.
 	DefaultCreatedAt func() time.Time
 	// DefaultUpdatedAt holds the default value on creation for the "updated_at" field.

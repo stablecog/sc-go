@@ -61,6 +61,11 @@ func Name(v string) predicate.Scheduler {
 	return predicate.Scheduler(sql.FieldEQ(FieldName, v))
 }
 
+// IsFree applies equality check predicate on the "is_free" field. It's identical to IsFreeEQ.
+func IsFree(v bool) predicate.Scheduler {
+	return predicate.Scheduler(sql.FieldEQ(FieldIsFree, v))
+}
+
 // CreatedAt applies equality check predicate on the "created_at" field. It's identical to CreatedAtEQ.
 func CreatedAt(v time.Time) predicate.Scheduler {
 	return predicate.Scheduler(sql.FieldEQ(FieldCreatedAt, v))
@@ -134,6 +139,16 @@ func NameEqualFold(v string) predicate.Scheduler {
 // NameContainsFold applies the ContainsFold predicate on the "name" field.
 func NameContainsFold(v string) predicate.Scheduler {
 	return predicate.Scheduler(sql.FieldContainsFold(FieldName, v))
+}
+
+// IsFreeEQ applies the EQ predicate on the "is_free" field.
+func IsFreeEQ(v bool) predicate.Scheduler {
+	return predicate.Scheduler(sql.FieldEQ(FieldIsFree, v))
+}
+
+// IsFreeNEQ applies the NEQ predicate on the "is_free" field.
+func IsFreeNEQ(v bool) predicate.Scheduler {
+	return predicate.Scheduler(sql.FieldNEQ(FieldIsFree, v))
 }
 
 // CreatedAtEQ applies the EQ predicate on the "created_at" field.

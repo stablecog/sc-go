@@ -58,12 +58,6 @@ func (gc *GenerationCreate) SetSeed(i int) *GenerationCreate {
 	return gc
 }
 
-// SetDurationMs sets the "duration_ms" field.
-func (gc *GenerationCreate) SetDurationMs(i int32) *GenerationCreate {
-	gc.mutation.SetDurationMs(i)
-	return gc
-}
-
 // SetStatus sets the "status" field.
 func (gc *GenerationCreate) SetStatus(ge generation.Status) *GenerationCreate {
 	gc.mutation.SetStatus(ge)
@@ -110,6 +104,12 @@ func (gc *GenerationCreate) SetNillableIsPublic(b *bool) *GenerationCreate {
 	return gc
 }
 
+// SetInitImageURL sets the "init_image_url" field.
+func (gc *GenerationCreate) SetInitImageURL(s string) *GenerationCreate {
+	gc.mutation.SetInitImageURL(s)
+	return gc
+}
+
 // SetPromptID sets the "prompt_id" field.
 func (gc *GenerationCreate) SetPromptID(u uuid.UUID) *GenerationCreate {
 	gc.mutation.SetPromptID(u)
@@ -143,6 +143,18 @@ func (gc *GenerationCreate) SetUserID(u uuid.UUID) *GenerationCreate {
 // SetDeviceInfoID sets the "device_info_id" field.
 func (gc *GenerationCreate) SetDeviceInfoID(u uuid.UUID) *GenerationCreate {
 	gc.mutation.SetDeviceInfoID(u)
+	return gc
+}
+
+// SetStartedAt sets the "started_at" field.
+func (gc *GenerationCreate) SetStartedAt(t time.Time) *GenerationCreate {
+	gc.mutation.SetStartedAt(t)
+	return gc
+}
+
+// SetCompletedAt sets the "completed_at" field.
+func (gc *GenerationCreate) SetCompletedAt(t time.Time) *GenerationCreate {
+	gc.mutation.SetCompletedAt(t)
 	return gc
 }
 
@@ -337,9 +349,6 @@ func (gc *GenerationCreate) check() error {
 	if _, ok := gc.mutation.Seed(); !ok {
 		return &ValidationError{Name: "seed", err: errors.New(`ent: missing required field "Generation.seed"`)}
 	}
-	if _, ok := gc.mutation.DurationMs(); !ok {
-		return &ValidationError{Name: "duration_ms", err: errors.New(`ent: missing required field "Generation.duration_ms"`)}
-	}
 	if _, ok := gc.mutation.Status(); !ok {
 		return &ValidationError{Name: "status", err: errors.New(`ent: missing required field "Generation.status"`)}
 	}
@@ -360,6 +369,9 @@ func (gc *GenerationCreate) check() error {
 	if _, ok := gc.mutation.IsPublic(); !ok {
 		return &ValidationError{Name: "is_public", err: errors.New(`ent: missing required field "Generation.is_public"`)}
 	}
+	if _, ok := gc.mutation.InitImageURL(); !ok {
+		return &ValidationError{Name: "init_image_url", err: errors.New(`ent: missing required field "Generation.init_image_url"`)}
+	}
 	if _, ok := gc.mutation.PromptID(); !ok {
 		return &ValidationError{Name: "prompt_id", err: errors.New(`ent: missing required field "Generation.prompt_id"`)}
 	}
@@ -377,6 +389,12 @@ func (gc *GenerationCreate) check() error {
 	}
 	if _, ok := gc.mutation.DeviceInfoID(); !ok {
 		return &ValidationError{Name: "device_info_id", err: errors.New(`ent: missing required field "Generation.device_info_id"`)}
+	}
+	if _, ok := gc.mutation.StartedAt(); !ok {
+		return &ValidationError{Name: "started_at", err: errors.New(`ent: missing required field "Generation.started_at"`)}
+	}
+	if _, ok := gc.mutation.CompletedAt(); !ok {
+		return &ValidationError{Name: "completed_at", err: errors.New(`ent: missing required field "Generation.completed_at"`)}
 	}
 	if _, ok := gc.mutation.CreatedAt(); !ok {
 		return &ValidationError{Name: "created_at", err: errors.New(`ent: missing required field "Generation.created_at"`)}
@@ -463,10 +481,6 @@ func (gc *GenerationCreate) createSpec() (*Generation, *sqlgraph.CreateSpec) {
 		_spec.SetField(generation.FieldSeed, field.TypeInt, value)
 		_node.Seed = &value
 	}
-	if value, ok := gc.mutation.DurationMs(); ok {
-		_spec.SetField(generation.FieldDurationMs, field.TypeInt32, value)
-		_node.DurationMs = value
-	}
 	if value, ok := gc.mutation.Status(); ok {
 		_spec.SetField(generation.FieldStatus, field.TypeEnum, value)
 		_node.Status = value
@@ -486,6 +500,18 @@ func (gc *GenerationCreate) createSpec() (*Generation, *sqlgraph.CreateSpec) {
 	if value, ok := gc.mutation.IsPublic(); ok {
 		_spec.SetField(generation.FieldIsPublic, field.TypeBool, value)
 		_node.IsPublic = value
+	}
+	if value, ok := gc.mutation.InitImageURL(); ok {
+		_spec.SetField(generation.FieldInitImageURL, field.TypeString, value)
+		_node.InitImageURL = &value
+	}
+	if value, ok := gc.mutation.StartedAt(); ok {
+		_spec.SetField(generation.FieldStartedAt, field.TypeTime, value)
+		_node.StartedAt = &value
+	}
+	if value, ok := gc.mutation.CompletedAt(); ok {
+		_spec.SetField(generation.FieldCompletedAt, field.TypeTime, value)
+		_node.CompletedAt = &value
 	}
 	if value, ok := gc.mutation.CreatedAt(); ok {
 		_spec.SetField(generation.FieldCreatedAt, field.TypeTime, value)

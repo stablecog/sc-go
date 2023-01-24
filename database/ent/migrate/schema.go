@@ -32,12 +32,14 @@ var (
 		{Name: "interference_steps", Type: field.TypeInt32},
 		{Name: "guidance_scale", Type: field.TypeFloat32},
 		{Name: "seed", Type: field.TypeInt},
-		{Name: "duration_ms", Type: field.TypeInt32},
 		{Name: "status", Type: field.TypeEnum, Enums: []string{"started", "succeeded", "failed", "rejected"}},
 		{Name: "failure_reason", Type: field.TypeString, Size: 2147483647},
 		{Name: "country_code", Type: field.TypeString, Size: 2147483647},
 		{Name: "is_submitted_to_gallery", Type: field.TypeBool, Default: false},
 		{Name: "is_public", Type: field.TypeBool, Default: false},
+		{Name: "init_image_url", Type: field.TypeString, Size: 2147483647},
+		{Name: "started_at", Type: field.TypeTime},
+		{Name: "completed_at", Type: field.TypeTime},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},
 		{Name: "device_info_id", Type: field.TypeUUID},
@@ -55,37 +57,37 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "generations_device_info_generations",
-				Columns:    []*schema.Column{GenerationsColumns[14]},
+				Columns:    []*schema.Column{GenerationsColumns[16]},
 				RefColumns: []*schema.Column{DeviceInfoColumns[0]},
 				OnDelete:   schema.Cascade,
 			},
 			{
 				Symbol:     "generations_generation_models_generations",
-				Columns:    []*schema.Column{GenerationsColumns[15]},
+				Columns:    []*schema.Column{GenerationsColumns[17]},
 				RefColumns: []*schema.Column{GenerationModelsColumns[0]},
 				OnDelete:   schema.Cascade,
 			},
 			{
 				Symbol:     "generations_negative_prompts_generations",
-				Columns:    []*schema.Column{GenerationsColumns[16]},
+				Columns:    []*schema.Column{GenerationsColumns[18]},
 				RefColumns: []*schema.Column{NegativePromptsColumns[0]},
 				OnDelete:   schema.Cascade,
 			},
 			{
 				Symbol:     "generations_prompts_generations",
-				Columns:    []*schema.Column{GenerationsColumns[17]},
+				Columns:    []*schema.Column{GenerationsColumns[19]},
 				RefColumns: []*schema.Column{PromptsColumns[0]},
 				OnDelete:   schema.Cascade,
 			},
 			{
 				Symbol:     "generations_schedulers_generations",
-				Columns:    []*schema.Column{GenerationsColumns[18]},
+				Columns:    []*schema.Column{GenerationsColumns[20]},
 				RefColumns: []*schema.Column{SchedulersColumns[0]},
 				OnDelete:   schema.Cascade,
 			},
 			{
 				Symbol:     "generations_users_generations",
-				Columns:    []*schema.Column{GenerationsColumns[19]},
+				Columns:    []*schema.Column{GenerationsColumns[21]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.Cascade,
 			},
@@ -95,6 +97,7 @@ var (
 	GenerationModelsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID},
 		{Name: "name", Type: field.TypeString, Size: 2147483647},
+		{Name: "is_free", Type: field.TypeBool, Default: false},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},
 	}
@@ -157,6 +160,7 @@ var (
 	SchedulersColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID},
 		{Name: "name", Type: field.TypeString, Size: 2147483647},
+		{Name: "is_free", Type: field.TypeBool},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},
 	}
@@ -212,6 +216,7 @@ var (
 	UpscaleModelsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID},
 		{Name: "name", Type: field.TypeString, Size: 2147483647},
+		{Name: "is_free", Type: field.TypeBool, Default: false},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},
 	}

@@ -101,19 +101,6 @@ func (gu *GenerationUpdate) AddSeed(i int) *GenerationUpdate {
 	return gu
 }
 
-// SetDurationMs sets the "duration_ms" field.
-func (gu *GenerationUpdate) SetDurationMs(i int32) *GenerationUpdate {
-	gu.mutation.ResetDurationMs()
-	gu.mutation.SetDurationMs(i)
-	return gu
-}
-
-// AddDurationMs adds i to the "duration_ms" field.
-func (gu *GenerationUpdate) AddDurationMs(i int32) *GenerationUpdate {
-	gu.mutation.AddDurationMs(i)
-	return gu
-}
-
 // SetStatus sets the "status" field.
 func (gu *GenerationUpdate) SetStatus(ge generation.Status) *GenerationUpdate {
 	gu.mutation.SetStatus(ge)
@@ -160,6 +147,12 @@ func (gu *GenerationUpdate) SetNillableIsPublic(b *bool) *GenerationUpdate {
 	return gu
 }
 
+// SetInitImageURL sets the "init_image_url" field.
+func (gu *GenerationUpdate) SetInitImageURL(s string) *GenerationUpdate {
+	gu.mutation.SetInitImageURL(s)
+	return gu
+}
+
 // SetPromptID sets the "prompt_id" field.
 func (gu *GenerationUpdate) SetPromptID(u uuid.UUID) *GenerationUpdate {
 	gu.mutation.SetPromptID(u)
@@ -193,6 +186,18 @@ func (gu *GenerationUpdate) SetUserID(u uuid.UUID) *GenerationUpdate {
 // SetDeviceInfoID sets the "device_info_id" field.
 func (gu *GenerationUpdate) SetDeviceInfoID(u uuid.UUID) *GenerationUpdate {
 	gu.mutation.SetDeviceInfoID(u)
+	return gu
+}
+
+// SetStartedAt sets the "started_at" field.
+func (gu *GenerationUpdate) SetStartedAt(t time.Time) *GenerationUpdate {
+	gu.mutation.SetStartedAt(t)
+	return gu
+}
+
+// SetCompletedAt sets the "completed_at" field.
+func (gu *GenerationUpdate) SetCompletedAt(t time.Time) *GenerationUpdate {
+	gu.mutation.SetCompletedAt(t)
 	return gu
 }
 
@@ -454,12 +459,6 @@ func (gu *GenerationUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if value, ok := gu.mutation.AddedSeed(); ok {
 		_spec.AddField(generation.FieldSeed, field.TypeInt, value)
 	}
-	if value, ok := gu.mutation.DurationMs(); ok {
-		_spec.SetField(generation.FieldDurationMs, field.TypeInt32, value)
-	}
-	if value, ok := gu.mutation.AddedDurationMs(); ok {
-		_spec.AddField(generation.FieldDurationMs, field.TypeInt32, value)
-	}
 	if value, ok := gu.mutation.Status(); ok {
 		_spec.SetField(generation.FieldStatus, field.TypeEnum, value)
 	}
@@ -474,6 +473,15 @@ func (gu *GenerationUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if value, ok := gu.mutation.IsPublic(); ok {
 		_spec.SetField(generation.FieldIsPublic, field.TypeBool, value)
+	}
+	if value, ok := gu.mutation.InitImageURL(); ok {
+		_spec.SetField(generation.FieldInitImageURL, field.TypeString, value)
+	}
+	if value, ok := gu.mutation.StartedAt(); ok {
+		_spec.SetField(generation.FieldStartedAt, field.TypeTime, value)
+	}
+	if value, ok := gu.mutation.CompletedAt(); ok {
+		_spec.SetField(generation.FieldCompletedAt, field.TypeTime, value)
 	}
 	if value, ok := gu.mutation.UpdatedAt(); ok {
 		_spec.SetField(generation.FieldUpdatedAt, field.TypeTime, value)
@@ -827,19 +835,6 @@ func (guo *GenerationUpdateOne) AddSeed(i int) *GenerationUpdateOne {
 	return guo
 }
 
-// SetDurationMs sets the "duration_ms" field.
-func (guo *GenerationUpdateOne) SetDurationMs(i int32) *GenerationUpdateOne {
-	guo.mutation.ResetDurationMs()
-	guo.mutation.SetDurationMs(i)
-	return guo
-}
-
-// AddDurationMs adds i to the "duration_ms" field.
-func (guo *GenerationUpdateOne) AddDurationMs(i int32) *GenerationUpdateOne {
-	guo.mutation.AddDurationMs(i)
-	return guo
-}
-
 // SetStatus sets the "status" field.
 func (guo *GenerationUpdateOne) SetStatus(ge generation.Status) *GenerationUpdateOne {
 	guo.mutation.SetStatus(ge)
@@ -886,6 +881,12 @@ func (guo *GenerationUpdateOne) SetNillableIsPublic(b *bool) *GenerationUpdateOn
 	return guo
 }
 
+// SetInitImageURL sets the "init_image_url" field.
+func (guo *GenerationUpdateOne) SetInitImageURL(s string) *GenerationUpdateOne {
+	guo.mutation.SetInitImageURL(s)
+	return guo
+}
+
 // SetPromptID sets the "prompt_id" field.
 func (guo *GenerationUpdateOne) SetPromptID(u uuid.UUID) *GenerationUpdateOne {
 	guo.mutation.SetPromptID(u)
@@ -919,6 +920,18 @@ func (guo *GenerationUpdateOne) SetUserID(u uuid.UUID) *GenerationUpdateOne {
 // SetDeviceInfoID sets the "device_info_id" field.
 func (guo *GenerationUpdateOne) SetDeviceInfoID(u uuid.UUID) *GenerationUpdateOne {
 	guo.mutation.SetDeviceInfoID(u)
+	return guo
+}
+
+// SetStartedAt sets the "started_at" field.
+func (guo *GenerationUpdateOne) SetStartedAt(t time.Time) *GenerationUpdateOne {
+	guo.mutation.SetStartedAt(t)
+	return guo
+}
+
+// SetCompletedAt sets the "completed_at" field.
+func (guo *GenerationUpdateOne) SetCompletedAt(t time.Time) *GenerationUpdateOne {
+	guo.mutation.SetCompletedAt(t)
 	return guo
 }
 
@@ -1204,12 +1217,6 @@ func (guo *GenerationUpdateOne) sqlSave(ctx context.Context) (_node *Generation,
 	if value, ok := guo.mutation.AddedSeed(); ok {
 		_spec.AddField(generation.FieldSeed, field.TypeInt, value)
 	}
-	if value, ok := guo.mutation.DurationMs(); ok {
-		_spec.SetField(generation.FieldDurationMs, field.TypeInt32, value)
-	}
-	if value, ok := guo.mutation.AddedDurationMs(); ok {
-		_spec.AddField(generation.FieldDurationMs, field.TypeInt32, value)
-	}
 	if value, ok := guo.mutation.Status(); ok {
 		_spec.SetField(generation.FieldStatus, field.TypeEnum, value)
 	}
@@ -1224,6 +1231,15 @@ func (guo *GenerationUpdateOne) sqlSave(ctx context.Context) (_node *Generation,
 	}
 	if value, ok := guo.mutation.IsPublic(); ok {
 		_spec.SetField(generation.FieldIsPublic, field.TypeBool, value)
+	}
+	if value, ok := guo.mutation.InitImageURL(); ok {
+		_spec.SetField(generation.FieldInitImageURL, field.TypeString, value)
+	}
+	if value, ok := guo.mutation.StartedAt(); ok {
+		_spec.SetField(generation.FieldStartedAt, field.TypeTime, value)
+	}
+	if value, ok := guo.mutation.CompletedAt(); ok {
+		_spec.SetField(generation.FieldCompletedAt, field.TypeTime, value)
 	}
 	if value, ok := guo.mutation.UpdatedAt(); ok {
 		_spec.SetField(generation.FieldUpdatedAt, field.TypeTime, value)

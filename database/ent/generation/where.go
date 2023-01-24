@@ -81,11 +81,6 @@ func Seed(v int) predicate.Generation {
 	return predicate.Generation(sql.FieldEQ(FieldSeed, v))
 }
 
-// DurationMs applies equality check predicate on the "duration_ms" field. It's identical to DurationMsEQ.
-func DurationMs(v int32) predicate.Generation {
-	return predicate.Generation(sql.FieldEQ(FieldDurationMs, v))
-}
-
 // FailureReason applies equality check predicate on the "failure_reason" field. It's identical to FailureReasonEQ.
 func FailureReason(v string) predicate.Generation {
 	return predicate.Generation(sql.FieldEQ(FieldFailureReason, v))
@@ -104,6 +99,11 @@ func IsSubmittedToGallery(v bool) predicate.Generation {
 // IsPublic applies equality check predicate on the "is_public" field. It's identical to IsPublicEQ.
 func IsPublic(v bool) predicate.Generation {
 	return predicate.Generation(sql.FieldEQ(FieldIsPublic, v))
+}
+
+// InitImageURL applies equality check predicate on the "init_image_url" field. It's identical to InitImageURLEQ.
+func InitImageURL(v string) predicate.Generation {
+	return predicate.Generation(sql.FieldEQ(FieldInitImageURL, v))
 }
 
 // PromptID applies equality check predicate on the "prompt_id" field. It's identical to PromptIDEQ.
@@ -134,6 +134,16 @@ func UserID(v uuid.UUID) predicate.Generation {
 // DeviceInfoID applies equality check predicate on the "device_info_id" field. It's identical to DeviceInfoIDEQ.
 func DeviceInfoID(v uuid.UUID) predicate.Generation {
 	return predicate.Generation(sql.FieldEQ(FieldDeviceInfoID, v))
+}
+
+// StartedAt applies equality check predicate on the "started_at" field. It's identical to StartedAtEQ.
+func StartedAt(v time.Time) predicate.Generation {
+	return predicate.Generation(sql.FieldEQ(FieldStartedAt, v))
+}
+
+// CompletedAt applies equality check predicate on the "completed_at" field. It's identical to CompletedAtEQ.
+func CompletedAt(v time.Time) predicate.Generation {
+	return predicate.Generation(sql.FieldEQ(FieldCompletedAt, v))
 }
 
 // CreatedAt applies equality check predicate on the "created_at" field. It's identical to CreatedAtEQ.
@@ -346,46 +356,6 @@ func SeedLTE(v int) predicate.Generation {
 	return predicate.Generation(sql.FieldLTE(FieldSeed, v))
 }
 
-// DurationMsEQ applies the EQ predicate on the "duration_ms" field.
-func DurationMsEQ(v int32) predicate.Generation {
-	return predicate.Generation(sql.FieldEQ(FieldDurationMs, v))
-}
-
-// DurationMsNEQ applies the NEQ predicate on the "duration_ms" field.
-func DurationMsNEQ(v int32) predicate.Generation {
-	return predicate.Generation(sql.FieldNEQ(FieldDurationMs, v))
-}
-
-// DurationMsIn applies the In predicate on the "duration_ms" field.
-func DurationMsIn(vs ...int32) predicate.Generation {
-	return predicate.Generation(sql.FieldIn(FieldDurationMs, vs...))
-}
-
-// DurationMsNotIn applies the NotIn predicate on the "duration_ms" field.
-func DurationMsNotIn(vs ...int32) predicate.Generation {
-	return predicate.Generation(sql.FieldNotIn(FieldDurationMs, vs...))
-}
-
-// DurationMsGT applies the GT predicate on the "duration_ms" field.
-func DurationMsGT(v int32) predicate.Generation {
-	return predicate.Generation(sql.FieldGT(FieldDurationMs, v))
-}
-
-// DurationMsGTE applies the GTE predicate on the "duration_ms" field.
-func DurationMsGTE(v int32) predicate.Generation {
-	return predicate.Generation(sql.FieldGTE(FieldDurationMs, v))
-}
-
-// DurationMsLT applies the LT predicate on the "duration_ms" field.
-func DurationMsLT(v int32) predicate.Generation {
-	return predicate.Generation(sql.FieldLT(FieldDurationMs, v))
-}
-
-// DurationMsLTE applies the LTE predicate on the "duration_ms" field.
-func DurationMsLTE(v int32) predicate.Generation {
-	return predicate.Generation(sql.FieldLTE(FieldDurationMs, v))
-}
-
 // StatusEQ applies the EQ predicate on the "status" field.
 func StatusEQ(v Status) predicate.Generation {
 	return predicate.Generation(sql.FieldEQ(FieldStatus, v))
@@ -556,6 +526,71 @@ func IsPublicNEQ(v bool) predicate.Generation {
 	return predicate.Generation(sql.FieldNEQ(FieldIsPublic, v))
 }
 
+// InitImageURLEQ applies the EQ predicate on the "init_image_url" field.
+func InitImageURLEQ(v string) predicate.Generation {
+	return predicate.Generation(sql.FieldEQ(FieldInitImageURL, v))
+}
+
+// InitImageURLNEQ applies the NEQ predicate on the "init_image_url" field.
+func InitImageURLNEQ(v string) predicate.Generation {
+	return predicate.Generation(sql.FieldNEQ(FieldInitImageURL, v))
+}
+
+// InitImageURLIn applies the In predicate on the "init_image_url" field.
+func InitImageURLIn(vs ...string) predicate.Generation {
+	return predicate.Generation(sql.FieldIn(FieldInitImageURL, vs...))
+}
+
+// InitImageURLNotIn applies the NotIn predicate on the "init_image_url" field.
+func InitImageURLNotIn(vs ...string) predicate.Generation {
+	return predicate.Generation(sql.FieldNotIn(FieldInitImageURL, vs...))
+}
+
+// InitImageURLGT applies the GT predicate on the "init_image_url" field.
+func InitImageURLGT(v string) predicate.Generation {
+	return predicate.Generation(sql.FieldGT(FieldInitImageURL, v))
+}
+
+// InitImageURLGTE applies the GTE predicate on the "init_image_url" field.
+func InitImageURLGTE(v string) predicate.Generation {
+	return predicate.Generation(sql.FieldGTE(FieldInitImageURL, v))
+}
+
+// InitImageURLLT applies the LT predicate on the "init_image_url" field.
+func InitImageURLLT(v string) predicate.Generation {
+	return predicate.Generation(sql.FieldLT(FieldInitImageURL, v))
+}
+
+// InitImageURLLTE applies the LTE predicate on the "init_image_url" field.
+func InitImageURLLTE(v string) predicate.Generation {
+	return predicate.Generation(sql.FieldLTE(FieldInitImageURL, v))
+}
+
+// InitImageURLContains applies the Contains predicate on the "init_image_url" field.
+func InitImageURLContains(v string) predicate.Generation {
+	return predicate.Generation(sql.FieldContains(FieldInitImageURL, v))
+}
+
+// InitImageURLHasPrefix applies the HasPrefix predicate on the "init_image_url" field.
+func InitImageURLHasPrefix(v string) predicate.Generation {
+	return predicate.Generation(sql.FieldHasPrefix(FieldInitImageURL, v))
+}
+
+// InitImageURLHasSuffix applies the HasSuffix predicate on the "init_image_url" field.
+func InitImageURLHasSuffix(v string) predicate.Generation {
+	return predicate.Generation(sql.FieldHasSuffix(FieldInitImageURL, v))
+}
+
+// InitImageURLEqualFold applies the EqualFold predicate on the "init_image_url" field.
+func InitImageURLEqualFold(v string) predicate.Generation {
+	return predicate.Generation(sql.FieldEqualFold(FieldInitImageURL, v))
+}
+
+// InitImageURLContainsFold applies the ContainsFold predicate on the "init_image_url" field.
+func InitImageURLContainsFold(v string) predicate.Generation {
+	return predicate.Generation(sql.FieldContainsFold(FieldInitImageURL, v))
+}
+
 // PromptIDEQ applies the EQ predicate on the "prompt_id" field.
 func PromptIDEQ(v uuid.UUID) predicate.Generation {
 	return predicate.Generation(sql.FieldEQ(FieldPromptID, v))
@@ -674,6 +709,86 @@ func DeviceInfoIDIn(vs ...uuid.UUID) predicate.Generation {
 // DeviceInfoIDNotIn applies the NotIn predicate on the "device_info_id" field.
 func DeviceInfoIDNotIn(vs ...uuid.UUID) predicate.Generation {
 	return predicate.Generation(sql.FieldNotIn(FieldDeviceInfoID, vs...))
+}
+
+// StartedAtEQ applies the EQ predicate on the "started_at" field.
+func StartedAtEQ(v time.Time) predicate.Generation {
+	return predicate.Generation(sql.FieldEQ(FieldStartedAt, v))
+}
+
+// StartedAtNEQ applies the NEQ predicate on the "started_at" field.
+func StartedAtNEQ(v time.Time) predicate.Generation {
+	return predicate.Generation(sql.FieldNEQ(FieldStartedAt, v))
+}
+
+// StartedAtIn applies the In predicate on the "started_at" field.
+func StartedAtIn(vs ...time.Time) predicate.Generation {
+	return predicate.Generation(sql.FieldIn(FieldStartedAt, vs...))
+}
+
+// StartedAtNotIn applies the NotIn predicate on the "started_at" field.
+func StartedAtNotIn(vs ...time.Time) predicate.Generation {
+	return predicate.Generation(sql.FieldNotIn(FieldStartedAt, vs...))
+}
+
+// StartedAtGT applies the GT predicate on the "started_at" field.
+func StartedAtGT(v time.Time) predicate.Generation {
+	return predicate.Generation(sql.FieldGT(FieldStartedAt, v))
+}
+
+// StartedAtGTE applies the GTE predicate on the "started_at" field.
+func StartedAtGTE(v time.Time) predicate.Generation {
+	return predicate.Generation(sql.FieldGTE(FieldStartedAt, v))
+}
+
+// StartedAtLT applies the LT predicate on the "started_at" field.
+func StartedAtLT(v time.Time) predicate.Generation {
+	return predicate.Generation(sql.FieldLT(FieldStartedAt, v))
+}
+
+// StartedAtLTE applies the LTE predicate on the "started_at" field.
+func StartedAtLTE(v time.Time) predicate.Generation {
+	return predicate.Generation(sql.FieldLTE(FieldStartedAt, v))
+}
+
+// CompletedAtEQ applies the EQ predicate on the "completed_at" field.
+func CompletedAtEQ(v time.Time) predicate.Generation {
+	return predicate.Generation(sql.FieldEQ(FieldCompletedAt, v))
+}
+
+// CompletedAtNEQ applies the NEQ predicate on the "completed_at" field.
+func CompletedAtNEQ(v time.Time) predicate.Generation {
+	return predicate.Generation(sql.FieldNEQ(FieldCompletedAt, v))
+}
+
+// CompletedAtIn applies the In predicate on the "completed_at" field.
+func CompletedAtIn(vs ...time.Time) predicate.Generation {
+	return predicate.Generation(sql.FieldIn(FieldCompletedAt, vs...))
+}
+
+// CompletedAtNotIn applies the NotIn predicate on the "completed_at" field.
+func CompletedAtNotIn(vs ...time.Time) predicate.Generation {
+	return predicate.Generation(sql.FieldNotIn(FieldCompletedAt, vs...))
+}
+
+// CompletedAtGT applies the GT predicate on the "completed_at" field.
+func CompletedAtGT(v time.Time) predicate.Generation {
+	return predicate.Generation(sql.FieldGT(FieldCompletedAt, v))
+}
+
+// CompletedAtGTE applies the GTE predicate on the "completed_at" field.
+func CompletedAtGTE(v time.Time) predicate.Generation {
+	return predicate.Generation(sql.FieldGTE(FieldCompletedAt, v))
+}
+
+// CompletedAtLT applies the LT predicate on the "completed_at" field.
+func CompletedAtLT(v time.Time) predicate.Generation {
+	return predicate.Generation(sql.FieldLT(FieldCompletedAt, v))
+}
+
+// CompletedAtLTE applies the LTE predicate on the "completed_at" field.
+func CompletedAtLTE(v time.Time) predicate.Generation {
+	return predicate.Generation(sql.FieldLTE(FieldCompletedAt, v))
 }
 
 // CreatedAtEQ applies the EQ predicate on the "created_at" field.

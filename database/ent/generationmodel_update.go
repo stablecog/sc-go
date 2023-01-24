@@ -36,6 +36,20 @@ func (gmu *GenerationModelUpdate) SetName(s string) *GenerationModelUpdate {
 	return gmu
 }
 
+// SetIsFree sets the "is_free" field.
+func (gmu *GenerationModelUpdate) SetIsFree(b bool) *GenerationModelUpdate {
+	gmu.mutation.SetIsFree(b)
+	return gmu
+}
+
+// SetNillableIsFree sets the "is_free" field if the given value is not nil.
+func (gmu *GenerationModelUpdate) SetNillableIsFree(b *bool) *GenerationModelUpdate {
+	if b != nil {
+		gmu.SetIsFree(*b)
+	}
+	return gmu
+}
+
 // SetUpdatedAt sets the "updated_at" field.
 func (gmu *GenerationModelUpdate) SetUpdatedAt(t time.Time) *GenerationModelUpdate {
 	gmu.mutation.SetUpdatedAt(t)
@@ -140,6 +154,9 @@ func (gmu *GenerationModelUpdate) sqlSave(ctx context.Context) (n int, err error
 	if value, ok := gmu.mutation.Name(); ok {
 		_spec.SetField(generationmodel.FieldName, field.TypeString, value)
 	}
+	if value, ok := gmu.mutation.IsFree(); ok {
+		_spec.SetField(generationmodel.FieldIsFree, field.TypeBool, value)
+	}
 	if value, ok := gmu.mutation.UpdatedAt(); ok {
 		_spec.SetField(generationmodel.FieldUpdatedAt, field.TypeTime, value)
 	}
@@ -220,6 +237,20 @@ type GenerationModelUpdateOne struct {
 // SetName sets the "name" field.
 func (gmuo *GenerationModelUpdateOne) SetName(s string) *GenerationModelUpdateOne {
 	gmuo.mutation.SetName(s)
+	return gmuo
+}
+
+// SetIsFree sets the "is_free" field.
+func (gmuo *GenerationModelUpdateOne) SetIsFree(b bool) *GenerationModelUpdateOne {
+	gmuo.mutation.SetIsFree(b)
+	return gmuo
+}
+
+// SetNillableIsFree sets the "is_free" field if the given value is not nil.
+func (gmuo *GenerationModelUpdateOne) SetNillableIsFree(b *bool) *GenerationModelUpdateOne {
+	if b != nil {
+		gmuo.SetIsFree(*b)
+	}
 	return gmuo
 }
 
@@ -350,6 +381,9 @@ func (gmuo *GenerationModelUpdateOne) sqlSave(ctx context.Context) (_node *Gener
 	}
 	if value, ok := gmuo.mutation.Name(); ok {
 		_spec.SetField(generationmodel.FieldName, field.TypeString, value)
+	}
+	if value, ok := gmuo.mutation.IsFree(); ok {
+		_spec.SetField(generationmodel.FieldIsFree, field.TypeBool, value)
 	}
 	if value, ok := gmuo.mutation.UpdatedAt(); ok {
 		_spec.SetField(generationmodel.FieldUpdatedAt, field.TypeTime, value)

@@ -791,13 +791,14 @@ type GenerationMutation struct {
 	addguidance_scale         *float32
 	seed                      *int
 	addseed                   *int
-	duration_ms               *int32
-	addduration_ms            *int32
 	status                    *generation.Status
 	failure_reason            *string
 	country_code              *string
 	is_submitted_to_gallery   *bool
 	is_public                 *bool
+	init_image_url            *string
+	started_at                *time.Time
+	completed_at              *time.Time
 	created_at                *time.Time
 	updated_at                *time.Time
 	clearedFields             map[string]struct{}
@@ -1205,62 +1206,6 @@ func (m *GenerationMutation) ResetSeed() {
 	m.addseed = nil
 }
 
-// SetDurationMs sets the "duration_ms" field.
-func (m *GenerationMutation) SetDurationMs(i int32) {
-	m.duration_ms = &i
-	m.addduration_ms = nil
-}
-
-// DurationMs returns the value of the "duration_ms" field in the mutation.
-func (m *GenerationMutation) DurationMs() (r int32, exists bool) {
-	v := m.duration_ms
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldDurationMs returns the old "duration_ms" field's value of the Generation entity.
-// If the Generation object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *GenerationMutation) OldDurationMs(ctx context.Context) (v int32, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldDurationMs is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldDurationMs requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldDurationMs: %w", err)
-	}
-	return oldValue.DurationMs, nil
-}
-
-// AddDurationMs adds i to the "duration_ms" field.
-func (m *GenerationMutation) AddDurationMs(i int32) {
-	if m.addduration_ms != nil {
-		*m.addduration_ms += i
-	} else {
-		m.addduration_ms = &i
-	}
-}
-
-// AddedDurationMs returns the value that was added to the "duration_ms" field in this mutation.
-func (m *GenerationMutation) AddedDurationMs() (r int32, exists bool) {
-	v := m.addduration_ms
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// ResetDurationMs resets all changes to the "duration_ms" field.
-func (m *GenerationMutation) ResetDurationMs() {
-	m.duration_ms = nil
-	m.addduration_ms = nil
-}
-
 // SetStatus sets the "status" field.
 func (m *GenerationMutation) SetStatus(ge generation.Status) {
 	m.status = &ge
@@ -1439,6 +1384,42 @@ func (m *GenerationMutation) OldIsPublic(ctx context.Context) (v bool, err error
 // ResetIsPublic resets all changes to the "is_public" field.
 func (m *GenerationMutation) ResetIsPublic() {
 	m.is_public = nil
+}
+
+// SetInitImageURL sets the "init_image_url" field.
+func (m *GenerationMutation) SetInitImageURL(s string) {
+	m.init_image_url = &s
+}
+
+// InitImageURL returns the value of the "init_image_url" field in the mutation.
+func (m *GenerationMutation) InitImageURL() (r string, exists bool) {
+	v := m.init_image_url
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldInitImageURL returns the old "init_image_url" field's value of the Generation entity.
+// If the Generation object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *GenerationMutation) OldInitImageURL(ctx context.Context) (v *string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldInitImageURL is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldInitImageURL requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldInitImageURL: %w", err)
+	}
+	return oldValue.InitImageURL, nil
+}
+
+// ResetInitImageURL resets all changes to the "init_image_url" field.
+func (m *GenerationMutation) ResetInitImageURL() {
+	m.init_image_url = nil
 }
 
 // SetPromptID sets the "prompt_id" field.
@@ -1655,6 +1636,78 @@ func (m *GenerationMutation) OldDeviceInfoID(ctx context.Context) (v uuid.UUID, 
 // ResetDeviceInfoID resets all changes to the "device_info_id" field.
 func (m *GenerationMutation) ResetDeviceInfoID() {
 	m.device_info = nil
+}
+
+// SetStartedAt sets the "started_at" field.
+func (m *GenerationMutation) SetStartedAt(t time.Time) {
+	m.started_at = &t
+}
+
+// StartedAt returns the value of the "started_at" field in the mutation.
+func (m *GenerationMutation) StartedAt() (r time.Time, exists bool) {
+	v := m.started_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldStartedAt returns the old "started_at" field's value of the Generation entity.
+// If the Generation object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *GenerationMutation) OldStartedAt(ctx context.Context) (v *time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldStartedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldStartedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldStartedAt: %w", err)
+	}
+	return oldValue.StartedAt, nil
+}
+
+// ResetStartedAt resets all changes to the "started_at" field.
+func (m *GenerationMutation) ResetStartedAt() {
+	m.started_at = nil
+}
+
+// SetCompletedAt sets the "completed_at" field.
+func (m *GenerationMutation) SetCompletedAt(t time.Time) {
+	m.completed_at = &t
+}
+
+// CompletedAt returns the value of the "completed_at" field in the mutation.
+func (m *GenerationMutation) CompletedAt() (r time.Time, exists bool) {
+	v := m.completed_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCompletedAt returns the old "completed_at" field's value of the Generation entity.
+// If the Generation object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *GenerationMutation) OldCompletedAt(ctx context.Context) (v *time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCompletedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCompletedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCompletedAt: %w", err)
+	}
+	return oldValue.CompletedAt, nil
+}
+
+// ResetCompletedAt resets all changes to the "completed_at" field.
+func (m *GenerationMutation) ResetCompletedAt() {
+	m.completed_at = nil
 }
 
 // SetCreatedAt sets the "created_at" field.
@@ -2038,7 +2091,7 @@ func (m *GenerationMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *GenerationMutation) Fields() []string {
-	fields := make([]string, 0, 19)
+	fields := make([]string, 0, 21)
 	if m.width != nil {
 		fields = append(fields, generation.FieldWidth)
 	}
@@ -2054,9 +2107,6 @@ func (m *GenerationMutation) Fields() []string {
 	if m.seed != nil {
 		fields = append(fields, generation.FieldSeed)
 	}
-	if m.duration_ms != nil {
-		fields = append(fields, generation.FieldDurationMs)
-	}
 	if m.status != nil {
 		fields = append(fields, generation.FieldStatus)
 	}
@@ -2071,6 +2121,9 @@ func (m *GenerationMutation) Fields() []string {
 	}
 	if m.is_public != nil {
 		fields = append(fields, generation.FieldIsPublic)
+	}
+	if m.init_image_url != nil {
+		fields = append(fields, generation.FieldInitImageURL)
 	}
 	if m.prompts != nil {
 		fields = append(fields, generation.FieldPromptID)
@@ -2089,6 +2142,12 @@ func (m *GenerationMutation) Fields() []string {
 	}
 	if m.device_info != nil {
 		fields = append(fields, generation.FieldDeviceInfoID)
+	}
+	if m.started_at != nil {
+		fields = append(fields, generation.FieldStartedAt)
+	}
+	if m.completed_at != nil {
+		fields = append(fields, generation.FieldCompletedAt)
 	}
 	if m.created_at != nil {
 		fields = append(fields, generation.FieldCreatedAt)
@@ -2114,8 +2173,6 @@ func (m *GenerationMutation) Field(name string) (ent.Value, bool) {
 		return m.GuidanceScale()
 	case generation.FieldSeed:
 		return m.Seed()
-	case generation.FieldDurationMs:
-		return m.DurationMs()
 	case generation.FieldStatus:
 		return m.Status()
 	case generation.FieldFailureReason:
@@ -2126,6 +2183,8 @@ func (m *GenerationMutation) Field(name string) (ent.Value, bool) {
 		return m.IsSubmittedToGallery()
 	case generation.FieldIsPublic:
 		return m.IsPublic()
+	case generation.FieldInitImageURL:
+		return m.InitImageURL()
 	case generation.FieldPromptID:
 		return m.PromptID()
 	case generation.FieldNegativePromptID:
@@ -2138,6 +2197,10 @@ func (m *GenerationMutation) Field(name string) (ent.Value, bool) {
 		return m.UserID()
 	case generation.FieldDeviceInfoID:
 		return m.DeviceInfoID()
+	case generation.FieldStartedAt:
+		return m.StartedAt()
+	case generation.FieldCompletedAt:
+		return m.CompletedAt()
 	case generation.FieldCreatedAt:
 		return m.CreatedAt()
 	case generation.FieldUpdatedAt:
@@ -2161,8 +2224,6 @@ func (m *GenerationMutation) OldField(ctx context.Context, name string) (ent.Val
 		return m.OldGuidanceScale(ctx)
 	case generation.FieldSeed:
 		return m.OldSeed(ctx)
-	case generation.FieldDurationMs:
-		return m.OldDurationMs(ctx)
 	case generation.FieldStatus:
 		return m.OldStatus(ctx)
 	case generation.FieldFailureReason:
@@ -2173,6 +2234,8 @@ func (m *GenerationMutation) OldField(ctx context.Context, name string) (ent.Val
 		return m.OldIsSubmittedToGallery(ctx)
 	case generation.FieldIsPublic:
 		return m.OldIsPublic(ctx)
+	case generation.FieldInitImageURL:
+		return m.OldInitImageURL(ctx)
 	case generation.FieldPromptID:
 		return m.OldPromptID(ctx)
 	case generation.FieldNegativePromptID:
@@ -2185,6 +2248,10 @@ func (m *GenerationMutation) OldField(ctx context.Context, name string) (ent.Val
 		return m.OldUserID(ctx)
 	case generation.FieldDeviceInfoID:
 		return m.OldDeviceInfoID(ctx)
+	case generation.FieldStartedAt:
+		return m.OldStartedAt(ctx)
+	case generation.FieldCompletedAt:
+		return m.OldCompletedAt(ctx)
 	case generation.FieldCreatedAt:
 		return m.OldCreatedAt(ctx)
 	case generation.FieldUpdatedAt:
@@ -2233,13 +2300,6 @@ func (m *GenerationMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetSeed(v)
 		return nil
-	case generation.FieldDurationMs:
-		v, ok := value.(int32)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetDurationMs(v)
-		return nil
 	case generation.FieldStatus:
 		v, ok := value.(generation.Status)
 		if !ok {
@@ -2274,6 +2334,13 @@ func (m *GenerationMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetIsPublic(v)
+		return nil
+	case generation.FieldInitImageURL:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetInitImageURL(v)
 		return nil
 	case generation.FieldPromptID:
 		v, ok := value.(uuid.UUID)
@@ -2317,6 +2384,20 @@ func (m *GenerationMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetDeviceInfoID(v)
 		return nil
+	case generation.FieldStartedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetStartedAt(v)
+		return nil
+	case generation.FieldCompletedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCompletedAt(v)
+		return nil
 	case generation.FieldCreatedAt:
 		v, ok := value.(time.Time)
 		if !ok {
@@ -2354,9 +2435,6 @@ func (m *GenerationMutation) AddedFields() []string {
 	if m.addseed != nil {
 		fields = append(fields, generation.FieldSeed)
 	}
-	if m.addduration_ms != nil {
-		fields = append(fields, generation.FieldDurationMs)
-	}
 	return fields
 }
 
@@ -2375,8 +2453,6 @@ func (m *GenerationMutation) AddedField(name string) (ent.Value, bool) {
 		return m.AddedGuidanceScale()
 	case generation.FieldSeed:
 		return m.AddedSeed()
-	case generation.FieldDurationMs:
-		return m.AddedDurationMs()
 	}
 	return nil, false
 }
@@ -2421,13 +2497,6 @@ func (m *GenerationMutation) AddField(name string, value ent.Value) error {
 		}
 		m.AddSeed(v)
 		return nil
-	case generation.FieldDurationMs:
-		v, ok := value.(int32)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.AddDurationMs(v)
-		return nil
 	}
 	return fmt.Errorf("unknown Generation numeric field %s", name)
 }
@@ -2470,9 +2539,6 @@ func (m *GenerationMutation) ResetField(name string) error {
 	case generation.FieldSeed:
 		m.ResetSeed()
 		return nil
-	case generation.FieldDurationMs:
-		m.ResetDurationMs()
-		return nil
 	case generation.FieldStatus:
 		m.ResetStatus()
 		return nil
@@ -2487,6 +2553,9 @@ func (m *GenerationMutation) ResetField(name string) error {
 		return nil
 	case generation.FieldIsPublic:
 		m.ResetIsPublic()
+		return nil
+	case generation.FieldInitImageURL:
+		m.ResetInitImageURL()
 		return nil
 	case generation.FieldPromptID:
 		m.ResetPromptID()
@@ -2505,6 +2574,12 @@ func (m *GenerationMutation) ResetField(name string) error {
 		return nil
 	case generation.FieldDeviceInfoID:
 		m.ResetDeviceInfoID()
+		return nil
+	case generation.FieldStartedAt:
+		m.ResetStartedAt()
+		return nil
+	case generation.FieldCompletedAt:
+		m.ResetCompletedAt()
 		return nil
 	case generation.FieldCreatedAt:
 		m.ResetCreatedAt()
@@ -2715,6 +2790,7 @@ type GenerationModelMutation struct {
 	typ                string
 	id                 *uuid.UUID
 	name               *string
+	is_free            *bool
 	created_at         *time.Time
 	updated_at         *time.Time
 	clearedFields      map[string]struct{}
@@ -2864,6 +2940,42 @@ func (m *GenerationModelMutation) OldName(ctx context.Context) (v string, err er
 // ResetName resets all changes to the "name" field.
 func (m *GenerationModelMutation) ResetName() {
 	m.name = nil
+}
+
+// SetIsFree sets the "is_free" field.
+func (m *GenerationModelMutation) SetIsFree(b bool) {
+	m.is_free = &b
+}
+
+// IsFree returns the value of the "is_free" field in the mutation.
+func (m *GenerationModelMutation) IsFree() (r bool, exists bool) {
+	v := m.is_free
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldIsFree returns the old "is_free" field's value of the GenerationModel entity.
+// If the GenerationModel object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *GenerationModelMutation) OldIsFree(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldIsFree is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldIsFree requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldIsFree: %w", err)
+	}
+	return oldValue.IsFree, nil
+}
+
+// ResetIsFree resets all changes to the "is_free" field.
+func (m *GenerationModelMutation) ResetIsFree() {
+	m.is_free = nil
 }
 
 // SetCreatedAt sets the "created_at" field.
@@ -3026,9 +3138,12 @@ func (m *GenerationModelMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *GenerationModelMutation) Fields() []string {
-	fields := make([]string, 0, 3)
+	fields := make([]string, 0, 4)
 	if m.name != nil {
 		fields = append(fields, generationmodel.FieldName)
+	}
+	if m.is_free != nil {
+		fields = append(fields, generationmodel.FieldIsFree)
 	}
 	if m.created_at != nil {
 		fields = append(fields, generationmodel.FieldCreatedAt)
@@ -3046,6 +3161,8 @@ func (m *GenerationModelMutation) Field(name string) (ent.Value, bool) {
 	switch name {
 	case generationmodel.FieldName:
 		return m.Name()
+	case generationmodel.FieldIsFree:
+		return m.IsFree()
 	case generationmodel.FieldCreatedAt:
 		return m.CreatedAt()
 	case generationmodel.FieldUpdatedAt:
@@ -3061,6 +3178,8 @@ func (m *GenerationModelMutation) OldField(ctx context.Context, name string) (en
 	switch name {
 	case generationmodel.FieldName:
 		return m.OldName(ctx)
+	case generationmodel.FieldIsFree:
+		return m.OldIsFree(ctx)
 	case generationmodel.FieldCreatedAt:
 		return m.OldCreatedAt(ctx)
 	case generationmodel.FieldUpdatedAt:
@@ -3080,6 +3199,13 @@ func (m *GenerationModelMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetName(v)
+		return nil
+	case generationmodel.FieldIsFree:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetIsFree(v)
 		return nil
 	case generationmodel.FieldCreatedAt:
 		v, ok := value.(time.Time)
@@ -3146,6 +3272,9 @@ func (m *GenerationModelMutation) ResetField(name string) error {
 	switch name {
 	case generationmodel.FieldName:
 		m.ResetName()
+		return nil
+	case generationmodel.FieldIsFree:
+		m.ResetIsFree()
 		return nil
 	case generationmodel.FieldCreatedAt:
 		m.ResetCreatedAt()
@@ -4928,6 +5057,7 @@ type SchedulerMutation struct {
 	typ                string
 	id                 *uuid.UUID
 	name               *string
+	is_free            *bool
 	created_at         *time.Time
 	updated_at         *time.Time
 	clearedFields      map[string]struct{}
@@ -5077,6 +5207,42 @@ func (m *SchedulerMutation) OldName(ctx context.Context) (v string, err error) {
 // ResetName resets all changes to the "name" field.
 func (m *SchedulerMutation) ResetName() {
 	m.name = nil
+}
+
+// SetIsFree sets the "is_free" field.
+func (m *SchedulerMutation) SetIsFree(b bool) {
+	m.is_free = &b
+}
+
+// IsFree returns the value of the "is_free" field in the mutation.
+func (m *SchedulerMutation) IsFree() (r bool, exists bool) {
+	v := m.is_free
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldIsFree returns the old "is_free" field's value of the Scheduler entity.
+// If the Scheduler object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SchedulerMutation) OldIsFree(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldIsFree is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldIsFree requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldIsFree: %w", err)
+	}
+	return oldValue.IsFree, nil
+}
+
+// ResetIsFree resets all changes to the "is_free" field.
+func (m *SchedulerMutation) ResetIsFree() {
+	m.is_free = nil
 }
 
 // SetCreatedAt sets the "created_at" field.
@@ -5239,9 +5405,12 @@ func (m *SchedulerMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *SchedulerMutation) Fields() []string {
-	fields := make([]string, 0, 3)
+	fields := make([]string, 0, 4)
 	if m.name != nil {
 		fields = append(fields, scheduler.FieldName)
+	}
+	if m.is_free != nil {
+		fields = append(fields, scheduler.FieldIsFree)
 	}
 	if m.created_at != nil {
 		fields = append(fields, scheduler.FieldCreatedAt)
@@ -5259,6 +5428,8 @@ func (m *SchedulerMutation) Field(name string) (ent.Value, bool) {
 	switch name {
 	case scheduler.FieldName:
 		return m.Name()
+	case scheduler.FieldIsFree:
+		return m.IsFree()
 	case scheduler.FieldCreatedAt:
 		return m.CreatedAt()
 	case scheduler.FieldUpdatedAt:
@@ -5274,6 +5445,8 @@ func (m *SchedulerMutation) OldField(ctx context.Context, name string) (ent.Valu
 	switch name {
 	case scheduler.FieldName:
 		return m.OldName(ctx)
+	case scheduler.FieldIsFree:
+		return m.OldIsFree(ctx)
 	case scheduler.FieldCreatedAt:
 		return m.OldCreatedAt(ctx)
 	case scheduler.FieldUpdatedAt:
@@ -5293,6 +5466,13 @@ func (m *SchedulerMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetName(v)
+		return nil
+	case scheduler.FieldIsFree:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetIsFree(v)
 		return nil
 	case scheduler.FieldCreatedAt:
 		v, ok := value.(time.Time)
@@ -5359,6 +5539,9 @@ func (m *SchedulerMutation) ResetField(name string) error {
 	switch name {
 	case scheduler.FieldName:
 		m.ResetName()
+		return nil
+	case scheduler.FieldIsFree:
+		m.ResetIsFree()
 		return nil
 	case scheduler.FieldCreatedAt:
 		m.ResetCreatedAt()
@@ -6763,6 +6946,7 @@ type UpscaleModelMutation struct {
 	typ             string
 	id              *uuid.UUID
 	name            *string
+	is_free         *bool
 	created_at      *time.Time
 	updated_at      *time.Time
 	clearedFields   map[string]struct{}
@@ -6912,6 +7096,42 @@ func (m *UpscaleModelMutation) OldName(ctx context.Context) (v string, err error
 // ResetName resets all changes to the "name" field.
 func (m *UpscaleModelMutation) ResetName() {
 	m.name = nil
+}
+
+// SetIsFree sets the "is_free" field.
+func (m *UpscaleModelMutation) SetIsFree(b bool) {
+	m.is_free = &b
+}
+
+// IsFree returns the value of the "is_free" field in the mutation.
+func (m *UpscaleModelMutation) IsFree() (r bool, exists bool) {
+	v := m.is_free
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldIsFree returns the old "is_free" field's value of the UpscaleModel entity.
+// If the UpscaleModel object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UpscaleModelMutation) OldIsFree(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldIsFree is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldIsFree requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldIsFree: %w", err)
+	}
+	return oldValue.IsFree, nil
+}
+
+// ResetIsFree resets all changes to the "is_free" field.
+func (m *UpscaleModelMutation) ResetIsFree() {
+	m.is_free = nil
 }
 
 // SetCreatedAt sets the "created_at" field.
@@ -7074,9 +7294,12 @@ func (m *UpscaleModelMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *UpscaleModelMutation) Fields() []string {
-	fields := make([]string, 0, 3)
+	fields := make([]string, 0, 4)
 	if m.name != nil {
 		fields = append(fields, upscalemodel.FieldName)
+	}
+	if m.is_free != nil {
+		fields = append(fields, upscalemodel.FieldIsFree)
 	}
 	if m.created_at != nil {
 		fields = append(fields, upscalemodel.FieldCreatedAt)
@@ -7094,6 +7317,8 @@ func (m *UpscaleModelMutation) Field(name string) (ent.Value, bool) {
 	switch name {
 	case upscalemodel.FieldName:
 		return m.Name()
+	case upscalemodel.FieldIsFree:
+		return m.IsFree()
 	case upscalemodel.FieldCreatedAt:
 		return m.CreatedAt()
 	case upscalemodel.FieldUpdatedAt:
@@ -7109,6 +7334,8 @@ func (m *UpscaleModelMutation) OldField(ctx context.Context, name string) (ent.V
 	switch name {
 	case upscalemodel.FieldName:
 		return m.OldName(ctx)
+	case upscalemodel.FieldIsFree:
+		return m.OldIsFree(ctx)
 	case upscalemodel.FieldCreatedAt:
 		return m.OldCreatedAt(ctx)
 	case upscalemodel.FieldUpdatedAt:
@@ -7128,6 +7355,13 @@ func (m *UpscaleModelMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetName(v)
+		return nil
+	case upscalemodel.FieldIsFree:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetIsFree(v)
 		return nil
 	case upscalemodel.FieldCreatedAt:
 		v, ok := value.(time.Time)
@@ -7194,6 +7428,9 @@ func (m *UpscaleModelMutation) ResetField(name string) error {
 	switch name {
 	case upscalemodel.FieldName:
 		m.ResetName()
+		return nil
+	case upscalemodel.FieldIsFree:
+		m.ResetIsFree()
 		return nil
 	case upscalemodel.FieldCreatedAt:
 		m.ResetCreatedAt()

@@ -19,6 +19,8 @@ type GenerationModel struct {
 	ID uuid.UUID `json:"id,omitempty"`
 	// Name holds the value of the "name" field.
 	Name string `json:"name,omitempty"`
+	// IsFree holds the value of the "is_free" field.
+	IsFree bool `json:"is_free,omitempty"`
 	// CreatedAt holds the value of the "created_at" field.
 	CreatedAt time.Time `json:"created_at,omitempty"`
 	// UpdatedAt holds the value of the "updated_at" field.
@@ -51,6 +53,8 @@ func (*GenerationModel) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
+		case generationmodel.FieldIsFree:
+			values[i] = new(sql.NullBool)
 		case generationmodel.FieldName:
 			values[i] = new(sql.NullString)
 		case generationmodel.FieldCreatedAt, generationmodel.FieldUpdatedAt:
@@ -83,6 +87,12 @@ func (gm *GenerationModel) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field name", values[i])
 			} else if value.Valid {
 				gm.Name = value.String
+			}
+		case generationmodel.FieldIsFree:
+			if value, ok := values[i].(*sql.NullBool); !ok {
+				return fmt.Errorf("unexpected type %T for field is_free", values[i])
+			} else if value.Valid {
+				gm.IsFree = value.Bool
 			}
 		case generationmodel.FieldCreatedAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
@@ -131,6 +141,9 @@ func (gm *GenerationModel) String() string {
 	builder.WriteString(fmt.Sprintf("id=%v, ", gm.ID))
 	builder.WriteString("name=")
 	builder.WriteString(gm.Name)
+	builder.WriteString(", ")
+	builder.WriteString("is_free=")
+	builder.WriteString(fmt.Sprintf("%v", gm.IsFree))
 	builder.WriteString(", ")
 	builder.WriteString("created_at=")
 	builder.WriteString(gm.CreatedAt.Format(time.ANSIC))

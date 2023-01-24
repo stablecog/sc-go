@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"fmt"
 	"net/http"
@@ -10,9 +11,11 @@ import (
 	"github.com/go-chi/cors"
 	"github.com/joho/godotenv"
 	"github.com/stablecog/go-apps/database"
+	"github.com/stablecog/go-apps/database/repository"
 	"github.com/stablecog/go-apps/server/controller"
 	"github.com/stablecog/go-apps/server/controller/websocket"
 	"github.com/stablecog/go-apps/server/middleware"
+	"github.com/stablecog/go-apps/server/models"
 	"github.com/stablecog/go-apps/utils"
 	"k8s.io/klog/v2"
 )
@@ -33,7 +36,7 @@ func main() {
 	flag.Parse()
 
 	app := chi.NewRouter()
-	// ctx := context.Background()
+	ctx := context.Background()
 
 	// Cors middleware
 	app.Use(cors.Handler(cors.Options{
@@ -86,6 +89,26 @@ func main() {
 	// 	os.Exit(1)
 	// }
 
+	// Create repository (database access)
+	repo := repository.Repository{
+		DB:  entClient,
+		Ctx: ctx,
+	}
+
+	// Get free model IDs and scheduler IDs and update cache
+	// ! Not getting these is fatal and will result in crash
+	freeModelIds, err := repo.GetFreeGeneratedModelIDs()
+	if err != nil {
+		klog.Fatalf("Failed to get free model IDs: %v", err)
+		panic(err)
+	}
+	freeSchedulerIds, err := repo.GetFreeSchedulerIDs()
+	if err != nil {
+		klog.Fatalf("Failed to get free model IDs: %v", err)
+		panic(err)
+	}
+	models.GetCache().UpdateFreeModelsAndSchedulers(freeModelIds, freeSchedulerIds)
+
 	// Create controller
 	hc := controller.HttpController{}
 
@@ -101,6 +124,12 @@ func main() {
 	// Routes
 	app.Route("/v1", func(r chi.Router) {
 		r.Get("/health", hc.GetHealth)
+
+		// Auth
+		r.Route("/auth", func(r chi.Router) {
+			r.Use(mw.AuthMiddleware)
+			r.Post("/generate", hc.PostGenerate)
+		})
 
 		// Websocket, optional auth
 		r.Route("/ws", func(r chi.Router) {

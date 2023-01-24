@@ -33,8 +33,6 @@ type Generation struct {
 	GuidanceScale float32 `json:"guidance_scale,omitempty"`
 	// Seed holds the value of the "seed" field.
 	Seed *int `json:"seed,omitempty"`
-	// DurationMs holds the value of the "duration_ms" field.
-	DurationMs int32 `json:"duration_ms,omitempty"`
 	// Status holds the value of the "status" field.
 	Status generation.Status `json:"status,omitempty"`
 	// FailureReason holds the value of the "failure_reason" field.
@@ -45,6 +43,8 @@ type Generation struct {
 	IsSubmittedToGallery bool `json:"is_submitted_to_gallery,omitempty"`
 	// IsPublic holds the value of the "is_public" field.
 	IsPublic bool `json:"is_public,omitempty"`
+	// InitImageURL holds the value of the "init_image_url" field.
+	InitImageURL *string `json:"init_image_url,omitempty"`
 	// PromptID holds the value of the "prompt_id" field.
 	PromptID uuid.UUID `json:"prompt_id,omitempty"`
 	// NegativePromptID holds the value of the "negative_prompt_id" field.
@@ -57,6 +57,10 @@ type Generation struct {
 	UserID uuid.UUID `json:"user_id,omitempty"`
 	// DeviceInfoID holds the value of the "device_info_id" field.
 	DeviceInfoID uuid.UUID `json:"device_info_id,omitempty"`
+	// StartedAt holds the value of the "started_at" field.
+	StartedAt *time.Time `json:"started_at,omitempty"`
+	// CompletedAt holds the value of the "completed_at" field.
+	CompletedAt *time.Time `json:"completed_at,omitempty"`
 	// CreatedAt holds the value of the "created_at" field.
 	CreatedAt time.Time `json:"created_at,omitempty"`
 	// UpdatedAt holds the value of the "updated_at" field.
@@ -185,11 +189,11 @@ func (*Generation) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullBool)
 		case generation.FieldGuidanceScale:
 			values[i] = new(sql.NullFloat64)
-		case generation.FieldWidth, generation.FieldHeight, generation.FieldInterferenceSteps, generation.FieldSeed, generation.FieldDurationMs:
+		case generation.FieldWidth, generation.FieldHeight, generation.FieldInterferenceSteps, generation.FieldSeed:
 			values[i] = new(sql.NullInt64)
-		case generation.FieldStatus, generation.FieldFailureReason, generation.FieldCountryCode:
+		case generation.FieldStatus, generation.FieldFailureReason, generation.FieldCountryCode, generation.FieldInitImageURL:
 			values[i] = new(sql.NullString)
-		case generation.FieldCreatedAt, generation.FieldUpdatedAt:
+		case generation.FieldStartedAt, generation.FieldCompletedAt, generation.FieldCreatedAt, generation.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
 		case generation.FieldID, generation.FieldPromptID, generation.FieldModelID, generation.FieldSchedulerID, generation.FieldUserID, generation.FieldDeviceInfoID:
 			values[i] = new(uuid.UUID)
@@ -245,12 +249,6 @@ func (ge *Generation) assignValues(columns []string, values []any) error {
 				ge.Seed = new(int)
 				*ge.Seed = int(value.Int64)
 			}
-		case generation.FieldDurationMs:
-			if value, ok := values[i].(*sql.NullInt64); !ok {
-				return fmt.Errorf("unexpected type %T for field duration_ms", values[i])
-			} else if value.Valid {
-				ge.DurationMs = int32(value.Int64)
-			}
 		case generation.FieldStatus:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field status", values[i])
@@ -281,6 +279,13 @@ func (ge *Generation) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field is_public", values[i])
 			} else if value.Valid {
 				ge.IsPublic = value.Bool
+			}
+		case generation.FieldInitImageURL:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field init_image_url", values[i])
+			} else if value.Valid {
+				ge.InitImageURL = new(string)
+				*ge.InitImageURL = value.String
 			}
 		case generation.FieldPromptID:
 			if value, ok := values[i].(*uuid.UUID); !ok {
@@ -318,6 +323,20 @@ func (ge *Generation) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field device_info_id", values[i])
 			} else if value != nil {
 				ge.DeviceInfoID = *value
+			}
+		case generation.FieldStartedAt:
+			if value, ok := values[i].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field started_at", values[i])
+			} else if value.Valid {
+				ge.StartedAt = new(time.Time)
+				*ge.StartedAt = value.Time
+			}
+		case generation.FieldCompletedAt:
+			if value, ok := values[i].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field completed_at", values[i])
+			} else if value.Valid {
+				ge.CompletedAt = new(time.Time)
+				*ge.CompletedAt = value.Time
 			}
 		case generation.FieldCreatedAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
@@ -411,9 +430,6 @@ func (ge *Generation) String() string {
 		builder.WriteString(fmt.Sprintf("%v", *v))
 	}
 	builder.WriteString(", ")
-	builder.WriteString("duration_ms=")
-	builder.WriteString(fmt.Sprintf("%v", ge.DurationMs))
-	builder.WriteString(", ")
 	builder.WriteString("status=")
 	builder.WriteString(fmt.Sprintf("%v", ge.Status))
 	builder.WriteString(", ")
@@ -430,6 +446,11 @@ func (ge *Generation) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("is_public=")
 	builder.WriteString(fmt.Sprintf("%v", ge.IsPublic))
+	builder.WriteString(", ")
+	if v := ge.InitImageURL; v != nil {
+		builder.WriteString("init_image_url=")
+		builder.WriteString(*v)
+	}
 	builder.WriteString(", ")
 	builder.WriteString("prompt_id=")
 	builder.WriteString(fmt.Sprintf("%v", ge.PromptID))
@@ -450,6 +471,16 @@ func (ge *Generation) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("device_info_id=")
 	builder.WriteString(fmt.Sprintf("%v", ge.DeviceInfoID))
+	builder.WriteString(", ")
+	if v := ge.StartedAt; v != nil {
+		builder.WriteString("started_at=")
+		builder.WriteString(v.Format(time.ANSIC))
+	}
+	builder.WriteString(", ")
+	if v := ge.CompletedAt; v != nil {
+		builder.WriteString("completed_at=")
+		builder.WriteString(v.Format(time.ANSIC))
+	}
 	builder.WriteString(", ")
 	builder.WriteString("created_at=")
 	builder.WriteString(ge.CreatedAt.Format(time.ANSIC))
