@@ -110,7 +110,6 @@ func main() {
 		s := gocron.NewScheduler(time.UTC)
 		s.Every(15).Seconds().Do(jobRunner.CheckHealth)
 		s.Every(10).Seconds().Do(jobRunner.GetAndSetStats)
-		s.Every(60).Seconds().Do(jobRunner.SyncMeili)
 		s.StartBlocking()
 		os.Exit(0)
 	}
