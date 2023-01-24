@@ -90,7 +90,7 @@ func main() {
 	// }
 
 	// Create repository (database access)
-	repo := repository.Repository{
+	repo := &repository.Repository{
 		DB:  entClient,
 		Ctx: ctx,
 	}
@@ -110,7 +110,9 @@ func main() {
 	models.GetCache().UpdateFreeModelsAndSchedulers(freeModelIds, freeSchedulerIds)
 
 	// Create controller
-	hc := controller.HttpController{}
+	hc := controller.HttpController{
+		Repo: repo,
+	}
 
 	// Create middleware
 	mw := middleware.Middleware{
