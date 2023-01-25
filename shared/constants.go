@@ -10,3 +10,25 @@ const MAX_PROMPT_LENGTH = 500
 
 // The name of the redis stream used to enqueue cog requests
 const COG_REDIS_QUEUE = "input_queue"
+
+// This is the name of the channel in redis, that is used to broadcast webhook events
+// We use this, because we may have multiple replicas of our service, and we want to
+// broadcast these events to all of them to make sure the consumer that cares about
+// the message gets it
+const COG_REDIS_WEBHOOK_QUEUE_CHANNEL = "queue:webhook"
+
+// Allowed image extensions used by various APIs
+type ImageExtension string
+
+const (
+	PNG  ImageExtension = "png"
+	JPG  ImageExtension = "jpg"
+	JPEG ImageExtension = "jpeg"
+	WEBP ImageExtension = "webp"
+)
+
+// Default image extension for generate
+const DEFAULT_GENERATE_OUTPUT_IMAGE_EXTENSION = WEBP
+
+// Allowed image extensions for upload
+var ALLOWS_IMAGE_EXTENSIONS_UPLOAD = []ImageExtension{WEBP, JPEG, PNG}

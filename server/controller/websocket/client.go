@@ -43,6 +43,7 @@ type Client struct {
 	Send chan []byte
 
 	// identifier for connected client
+	// Is the user_id (uuid) when authenticated, otherwise a string like `guest_<int>`
 	Uid string
 }
 

@@ -158,7 +158,7 @@ func (c *HttpController) PostGenerate(w http.ResponseWriter, r *http.Request) {
 
 	cogReqBody := requests.CogGenerateQueueRequest{
 		BaseCogRequestQueue: requests.BaseCogRequestQueue{
-			WebhookEventsFilter: []requests.WebhookEventFilterOption{requests.WebhookEventStart, requests.WebhookEventCompleted},
+			WebhookEventsFilter: []requests.WebhookEventFilterOption{requests.WebhookEventFilterStart, requests.WebhookEventFilterStart},
 			// ! TODO
 			Webhook: "TODO",
 		},
@@ -175,7 +175,7 @@ func (c *HttpController) PostGenerate(w http.ResponseWriter, r *http.Request) {
 			Model:                modelName,
 			Scheduler:            schedulerName,
 			Seed:                 fmt.Sprint(generateReq.Seed),
-			OutputImageExt:       string(requests.DefaultOutputImageExtension),
+			OutputImageExt:       string(shared.DEFAULT_GENERATE_OUTPUT_IMAGE_EXTENSION),
 		},
 	}
 

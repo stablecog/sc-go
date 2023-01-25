@@ -2,17 +2,6 @@ package requests
 
 import "github.com/google/uuid"
 
-type GenerateOutputImageExtension string
-
-const (
-	PNG  GenerateOutputImageExtension = "png"
-	JPG  GenerateOutputImageExtension = "jpg"
-	JPEG GenerateOutputImageExtension = "jpeg"
-	WEBP GenerateOutputImageExtension = "webp"
-)
-
-const DefaultOutputImageExtension = WEBP
-
 type GenerateRequestBody struct {
 	Prompt            string    `json:"prompt"`
 	NegativePrompt    string    `json:"negative_prompt,omitempty"`

@@ -2,12 +2,13 @@ package requests
 
 // Represents requests that go directly from our app to the cog
 
+// Filters specify what events we want the cog to send to our webhook
 type WebhookEventFilterOption string
 
 const (
-	WebhookEventStart     WebhookEventFilterOption = "start"
-	WebhookEventOutput    WebhookEventFilterOption = "output"
-	WebhookEventCompleted WebhookEventFilterOption = "completed"
+	WebhookEventFilterStart     WebhookEventFilterOption = "start"
+	WebhookEventFilterOutput    WebhookEventFilterOption = "output"
+	WebhookEventFilterCompleted WebhookEventFilterOption = "completed"
 )
 
 // Common fields for all requests using cog's redis queue

@@ -7,6 +7,10 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/config"
+	"github.com/aws/aws-sdk-go-v2/credentials"
+	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/cors"
 	"github.com/joho/godotenv"
@@ -104,10 +108,29 @@ func main() {
 	}
 	shared.GetCache().UpdateSchedulers(schedulers)
 
+	// Setup s3
+	s3Data := utils.GetS3Data()
+	s3resolver := aws.EndpointResolverWithOptionsFunc(
+		func(service, region string, options ...interface{}) (aws.Endpoint, error) {
+			return aws.Endpoint{
+				URL: fmt.Sprintf("https://%s.r2.cloudflarestorage.com", s3Data.AccountId),
+			}, nil
+		},
+	)
+	cfg, err := config.LoadDefaultConfig(
+		ctx,
+		config.WithEndpointResolverWithOptions(s3resolver),
+		config.WithCredentialsProvider(credentials.NewStaticCredentialsProvider(s3Data.AccessKeyId, s3Data.SecretKey, "")),
+	)
+	s3Client := s3.NewFromConfig(cfg)
+	s3PresignClient := s3.NewPresignClient(s3Client)
+
 	// Create controller
 	hc := controller.HttpController{
-		Repo:  repo,
-		Redis: redis,
+		Repo:            repo,
+		Redis:           redis,
+		S3Client:        s3Client,
+		S3PresignClient: s3PresignClient,
 	}
 
 	// Create middleware
@@ -127,6 +150,13 @@ func main() {
 		r.Route("/auth", func(r chi.Router) {
 			r.Use(mw.AuthMiddleware)
 			r.Post("/generate", hc.PostGenerate)
+		})
+
+		// Webhook
+		r.Route("/queue", func(r chi.Router) {
+			// ! TODO - remove QUEUE_SECRET after STA-22 is implemented
+			r.Put(fmt.Sprintf("/upload/%s/*", utils.GetEnv("QUEUE_SECRET", "")), hc.PutUploadFile)
+			r.Post(fmt.Sprintf("/webhook/%s", utils.GetEnv("QUEUE_SECRET", "")), hc.PostWebhook)
 		})
 
 		// Websocket, optional auth
