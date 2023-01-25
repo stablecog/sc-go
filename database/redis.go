@@ -5,6 +5,7 @@ import (
 
 	"github.com/alicebob/miniredis/v2"
 	"github.com/go-redis/redis/v8"
+	"github.com/stablecog/go-apps/shared"
 	"github.com/stablecog/go-apps/utils"
 	"k8s.io/klog/v2"
 )
@@ -12,15 +13,20 @@ import (
 var klogInfof = klog.Infof
 var klogErrorf = klog.Errorf
 
+type RedisWrapper struct {
+	Client *redis.Client
+}
+
 // Should return render redis url if render is set
-func GetRedisURL() string {
+func getRedisURL() string {
 	if utils.GetEnv("RENDER", "") != "" {
 		return utils.GetEnv("REDIS_CONNECTION_STRING_RENDER", "")
 	}
 	return utils.GetEnv("REDIS_CONNECTION_STRING", "")
 }
 
-func NewRedis(ctx context.Context) (*redis.Client, error) {
+// Returns our *RedisWrapper, since we wrap some useful methods with the redis client
+func NewRedis(ctx context.Context) (*RedisWrapper, error) {
 	var opts *redis.Options
 	var err error
 	if utils.GetEnv("MOCK_REDIS", "false") == "true" {
@@ -30,7 +36,7 @@ func NewRedis(ctx context.Context) (*redis.Client, error) {
 			Addr: mr.Addr(),
 		}
 	} else {
-		opts, err = redis.ParseURL(GetRedisURL())
+		opts, err = redis.ParseURL(getRedisURL())
 		if err != nil {
 			klogErrorf("Error parsing REDIS_CONNECTION_STRING: %v", err)
 			return nil, err
@@ -42,5 +48,17 @@ func NewRedis(ctx context.Context) (*redis.Client, error) {
 		klogErrorf("Error pinging Redis: %v", err)
 		return nil, err
 	}
-	return redis, nil
+	return &RedisWrapper{
+		Client: redis,
+	}, nil
+}
+
+// Enqueues a request for the cog
+func (r *RedisWrapper) EnqueueCogGenerateRequest(ctx context.Context, request interface{}) error {
+	_, err := r.Client.XAdd(ctx, &redis.XAddArgs{
+		Stream: shared.COG_REDIS_QUEUE,
+		ID:     "*", // Asterisk auto-generates an ID for the item on the stream
+		Values: []interface{}{"value", request},
+	}).Result()
+	return err
 }

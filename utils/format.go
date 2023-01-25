@@ -22,8 +22,8 @@ func RemoveLineBreaks(s string) string {
 // e.g. "  hello   world  " -> "hello world"
 func FormatPrompt(s string) string {
 	cleanStr := RemoveRedundantSpaces(RemoveLineBreaks(s))
-	if len(cleanStr) > shared.MaxPromptLen {
-		cleanStr = cleanStr[:shared.MaxPromptLen]
+	if len(cleanStr) > shared.MAX_PROMPT_LENGTH {
+		cleanStr = cleanStr[:shared.MAX_PROMPT_LENGTH]
 	}
 	return cleanStr
 }

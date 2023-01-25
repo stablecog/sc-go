@@ -19,9 +19,9 @@ func TestGetRedisURL(t *testing.T) {
 	defer os.Unsetenv("REDIS_CONNECTION_STRING")
 
 	// Assert
-	assert.Equal(t, "wewantthis", GetRedisURL())
+	assert.Equal(t, "wewantthis", getRedisURL())
 	os.Unsetenv("RENDER")
-	assert.Equal(t, "weDoNotwantthisIfRenderIsSet", GetRedisURL())
+	assert.Equal(t, "weDoNotwantthisIfRenderIsSet", getRedisURL())
 }
 
 func TestMockRedis(t *testing.T) {

@@ -10,7 +10,6 @@ import (
 	"time"
 
 	"github.com/go-chi/render"
-	"github.com/go-redis/redis/v8"
 	"github.com/google/uuid"
 	"github.com/stablecog/go-apps/server/requests"
 	"github.com/stablecog/go-apps/server/responses"
@@ -46,17 +45,17 @@ func (c *HttpController) PostGenerate(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Validate request body
-	if generateReq.Height > shared.MaxGenerateHeight {
-		responses.ErrBadRequest(w, r, fmt.Sprintf("Height is too large, max is: %d", shared.MaxGenerateHeight))
+	if generateReq.Height > shared.MAX_GENERATE_HEIGHT {
+		responses.ErrBadRequest(w, r, fmt.Sprintf("Height is too large, max is: %d", shared.MAX_GENERATE_HEIGHT))
 		return
 	}
 
-	if generateReq.Width > shared.MaxGenerateWidth {
-		responses.ErrBadRequest(w, r, fmt.Sprintf("Width is too large, max is: %d", shared.MaxGenerateWidth))
+	if generateReq.Width > shared.MAX_GENERATE_WIDTH {
+		responses.ErrBadRequest(w, r, fmt.Sprintf("Width is too large, max is: %d", shared.MAX_GENERATE_WIDTH))
 		return
 	}
 
-	if generateReq.Width*generateReq.Height*generateReq.NumInferenceSteps >= shared.MaxProPixelSteps {
+	if generateReq.Width*generateReq.Height*generateReq.NumInferenceSteps >= shared.MAX_PRO_PIXEL_STEPS {
 		klog.Infof(
 			"Pick fewer inference steps or smaller dimensions: %d - %d - %d",
 			generateReq.Width,
@@ -180,11 +179,7 @@ func (c *HttpController) PostGenerate(w http.ResponseWriter, r *http.Request) {
 		},
 	}
 
-	_, err = c.Redis.XAdd(r.Context(), &redis.XAddArgs{
-		Stream: "input_queue",
-		ID:     "*", // Auto generate ID
-		Values: []interface{}{"value", cogReqBody},
-	}).Result()
+	err = c.Redis.EnqueueCogGenerateRequest(r.Context(), cogReqBody)
 	if err != nil {
 		klog.Errorf("Failed to write request %s to queue: %v", requestId, err)
 		responses.ErrInternalServerError(w, r, "Failed to queue generate request")
