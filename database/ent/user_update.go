@@ -44,9 +44,37 @@ func (uu *UserUpdate) SetStripeCustomerID(s string) *UserUpdate {
 	return uu
 }
 
+// SetNillableStripeCustomerID sets the "stripe_customer_id" field if the given value is not nil.
+func (uu *UserUpdate) SetNillableStripeCustomerID(s *string) *UserUpdate {
+	if s != nil {
+		uu.SetStripeCustomerID(*s)
+	}
+	return uu
+}
+
+// ClearStripeCustomerID clears the value of the "stripe_customer_id" field.
+func (uu *UserUpdate) ClearStripeCustomerID() *UserUpdate {
+	uu.mutation.ClearStripeCustomerID()
+	return uu
+}
+
 // SetSubscriptionCategory sets the "subscription_category" field.
 func (uu *UserUpdate) SetSubscriptionCategory(uc user.SubscriptionCategory) *UserUpdate {
 	uu.mutation.SetSubscriptionCategory(uc)
+	return uu
+}
+
+// SetNillableSubscriptionCategory sets the "subscription_category" field if the given value is not nil.
+func (uu *UserUpdate) SetNillableSubscriptionCategory(uc *user.SubscriptionCategory) *UserUpdate {
+	if uc != nil {
+		uu.SetSubscriptionCategory(*uc)
+	}
+	return uu
+}
+
+// ClearSubscriptionCategory clears the value of the "subscription_category" field.
+func (uu *UserUpdate) ClearSubscriptionCategory() *UserUpdate {
+	uu.mutation.ClearSubscriptionCategory()
 	return uu
 }
 
@@ -59,6 +87,20 @@ func (uu *UserUpdate) SetUpdatedAt(t time.Time) *UserUpdate {
 // SetConfirmedAt sets the "confirmed_at" field.
 func (uu *UserUpdate) SetConfirmedAt(t time.Time) *UserUpdate {
 	uu.mutation.SetConfirmedAt(t)
+	return uu
+}
+
+// SetNillableConfirmedAt sets the "confirmed_at" field if the given value is not nil.
+func (uu *UserUpdate) SetNillableConfirmedAt(t *time.Time) *UserUpdate {
+	if t != nil {
+		uu.SetConfirmedAt(*t)
+	}
+	return uu
+}
+
+// ClearConfirmedAt clears the value of the "confirmed_at" field.
+func (uu *UserUpdate) ClearConfirmedAt() *UserUpdate {
+	uu.mutation.ClearConfirmedAt()
 	return uu
 }
 
@@ -248,14 +290,23 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if value, ok := uu.mutation.StripeCustomerID(); ok {
 		_spec.SetField(user.FieldStripeCustomerID, field.TypeString, value)
 	}
+	if uu.mutation.StripeCustomerIDCleared() {
+		_spec.ClearField(user.FieldStripeCustomerID, field.TypeString)
+	}
 	if value, ok := uu.mutation.SubscriptionCategory(); ok {
 		_spec.SetField(user.FieldSubscriptionCategory, field.TypeEnum, value)
+	}
+	if uu.mutation.SubscriptionCategoryCleared() {
+		_spec.ClearField(user.FieldSubscriptionCategory, field.TypeEnum)
 	}
 	if value, ok := uu.mutation.UpdatedAt(); ok {
 		_spec.SetField(user.FieldUpdatedAt, field.TypeTime, value)
 	}
 	if value, ok := uu.mutation.ConfirmedAt(); ok {
 		_spec.SetField(user.FieldConfirmedAt, field.TypeTime, value)
+	}
+	if uu.mutation.ConfirmedAtCleared() {
+		_spec.ClearField(user.FieldConfirmedAt, field.TypeTime)
 	}
 	if uu.mutation.UserRolesCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -451,9 +502,37 @@ func (uuo *UserUpdateOne) SetStripeCustomerID(s string) *UserUpdateOne {
 	return uuo
 }
 
+// SetNillableStripeCustomerID sets the "stripe_customer_id" field if the given value is not nil.
+func (uuo *UserUpdateOne) SetNillableStripeCustomerID(s *string) *UserUpdateOne {
+	if s != nil {
+		uuo.SetStripeCustomerID(*s)
+	}
+	return uuo
+}
+
+// ClearStripeCustomerID clears the value of the "stripe_customer_id" field.
+func (uuo *UserUpdateOne) ClearStripeCustomerID() *UserUpdateOne {
+	uuo.mutation.ClearStripeCustomerID()
+	return uuo
+}
+
 // SetSubscriptionCategory sets the "subscription_category" field.
 func (uuo *UserUpdateOne) SetSubscriptionCategory(uc user.SubscriptionCategory) *UserUpdateOne {
 	uuo.mutation.SetSubscriptionCategory(uc)
+	return uuo
+}
+
+// SetNillableSubscriptionCategory sets the "subscription_category" field if the given value is not nil.
+func (uuo *UserUpdateOne) SetNillableSubscriptionCategory(uc *user.SubscriptionCategory) *UserUpdateOne {
+	if uc != nil {
+		uuo.SetSubscriptionCategory(*uc)
+	}
+	return uuo
+}
+
+// ClearSubscriptionCategory clears the value of the "subscription_category" field.
+func (uuo *UserUpdateOne) ClearSubscriptionCategory() *UserUpdateOne {
+	uuo.mutation.ClearSubscriptionCategory()
 	return uuo
 }
 
@@ -466,6 +545,20 @@ func (uuo *UserUpdateOne) SetUpdatedAt(t time.Time) *UserUpdateOne {
 // SetConfirmedAt sets the "confirmed_at" field.
 func (uuo *UserUpdateOne) SetConfirmedAt(t time.Time) *UserUpdateOne {
 	uuo.mutation.SetConfirmedAt(t)
+	return uuo
+}
+
+// SetNillableConfirmedAt sets the "confirmed_at" field if the given value is not nil.
+func (uuo *UserUpdateOne) SetNillableConfirmedAt(t *time.Time) *UserUpdateOne {
+	if t != nil {
+		uuo.SetConfirmedAt(*t)
+	}
+	return uuo
+}
+
+// ClearConfirmedAt clears the value of the "confirmed_at" field.
+func (uuo *UserUpdateOne) ClearConfirmedAt() *UserUpdateOne {
+	uuo.mutation.ClearConfirmedAt()
 	return uuo
 }
 
@@ -679,14 +772,23 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 	if value, ok := uuo.mutation.StripeCustomerID(); ok {
 		_spec.SetField(user.FieldStripeCustomerID, field.TypeString, value)
 	}
+	if uuo.mutation.StripeCustomerIDCleared() {
+		_spec.ClearField(user.FieldStripeCustomerID, field.TypeString)
+	}
 	if value, ok := uuo.mutation.SubscriptionCategory(); ok {
 		_spec.SetField(user.FieldSubscriptionCategory, field.TypeEnum, value)
+	}
+	if uuo.mutation.SubscriptionCategoryCleared() {
+		_spec.ClearField(user.FieldSubscriptionCategory, field.TypeEnum)
 	}
 	if value, ok := uuo.mutation.UpdatedAt(); ok {
 		_spec.SetField(user.FieldUpdatedAt, field.TypeTime, value)
 	}
 	if value, ok := uuo.mutation.ConfirmedAt(); ok {
 		_spec.SetField(user.FieldConfirmedAt, field.TypeTime, value)
+	}
+	if uuo.mutation.ConfirmedAtCleared() {
+		_spec.ClearField(user.FieldConfirmedAt, field.TypeTime)
 	}
 	if uuo.mutation.UserRolesCleared() {
 		edge := &sqlgraph.EdgeSpec{

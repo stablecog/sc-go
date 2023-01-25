@@ -32,7 +32,7 @@ type Generation struct {
 	// GuidanceScale holds the value of the "guidance_scale" field.
 	GuidanceScale float32 `json:"guidance_scale,omitempty"`
 	// Seed holds the value of the "seed" field.
-	Seed *int `json:"seed,omitempty"`
+	Seed int `json:"seed,omitempty"`
 	// Status holds the value of the "status" field.
 	Status generation.Status `json:"status,omitempty"`
 	// FailureReason holds the value of the "failure_reason" field.
@@ -246,8 +246,7 @@ func (ge *Generation) assignValues(columns []string, values []any) error {
 			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for field seed", values[i])
 			} else if value.Valid {
-				ge.Seed = new(int)
-				*ge.Seed = int(value.Int64)
+				ge.Seed = int(value.Int64)
 			}
 		case generation.FieldStatus:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -425,10 +424,8 @@ func (ge *Generation) String() string {
 	builder.WriteString("guidance_scale=")
 	builder.WriteString(fmt.Sprintf("%v", ge.GuidanceScale))
 	builder.WriteString(", ")
-	if v := ge.Seed; v != nil {
-		builder.WriteString("seed=")
-		builder.WriteString(fmt.Sprintf("%v", *v))
-	}
+	builder.WriteString("seed=")
+	builder.WriteString(fmt.Sprintf("%v", ge.Seed))
 	builder.WriteString(", ")
 	builder.WriteString("status=")
 	builder.WriteString(fmt.Sprintf("%v", ge.Status))

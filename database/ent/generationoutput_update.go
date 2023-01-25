@@ -42,6 +42,20 @@ func (gou *GenerationOutputUpdate) SetUpscaledImageURL(s string) *GenerationOutp
 	return gou
 }
 
+// SetNillableUpscaledImageURL sets the "upscaled_image_url" field if the given value is not nil.
+func (gou *GenerationOutputUpdate) SetNillableUpscaledImageURL(s *string) *GenerationOutputUpdate {
+	if s != nil {
+		gou.SetUpscaledImageURL(*s)
+	}
+	return gou
+}
+
+// ClearUpscaledImageURL clears the value of the "upscaled_image_url" field.
+func (gou *GenerationOutputUpdate) ClearUpscaledImageURL() *GenerationOutputUpdate {
+	gou.mutation.ClearUpscaledImageURL()
+	return gou
+}
+
 // SetGenerationID sets the "generation_id" field.
 func (gou *GenerationOutputUpdate) SetGenerationID(u uuid.UUID) *GenerationOutputUpdate {
 	gou.mutation.SetGenerationID(u)
@@ -147,6 +161,9 @@ func (gou *GenerationOutputUpdate) sqlSave(ctx context.Context) (n int, err erro
 	if value, ok := gou.mutation.UpscaledImageURL(); ok {
 		_spec.SetField(generationoutput.FieldUpscaledImageURL, field.TypeString, value)
 	}
+	if gou.mutation.UpscaledImageURLCleared() {
+		_spec.ClearField(generationoutput.FieldUpscaledImageURL, field.TypeString)
+	}
 	if value, ok := gou.mutation.UpdatedAt(); ok {
 		_spec.SetField(generationoutput.FieldUpdatedAt, field.TypeTime, value)
 	}
@@ -214,6 +231,20 @@ func (gouo *GenerationOutputUpdateOne) SetImageURL(s string) *GenerationOutputUp
 // SetUpscaledImageURL sets the "upscaled_image_url" field.
 func (gouo *GenerationOutputUpdateOne) SetUpscaledImageURL(s string) *GenerationOutputUpdateOne {
 	gouo.mutation.SetUpscaledImageURL(s)
+	return gouo
+}
+
+// SetNillableUpscaledImageURL sets the "upscaled_image_url" field if the given value is not nil.
+func (gouo *GenerationOutputUpdateOne) SetNillableUpscaledImageURL(s *string) *GenerationOutputUpdateOne {
+	if s != nil {
+		gouo.SetUpscaledImageURL(*s)
+	}
+	return gouo
+}
+
+// ClearUpscaledImageURL clears the value of the "upscaled_image_url" field.
+func (gouo *GenerationOutputUpdateOne) ClearUpscaledImageURL() *GenerationOutputUpdateOne {
+	gouo.mutation.ClearUpscaledImageURL()
 	return gouo
 }
 
@@ -345,6 +376,9 @@ func (gouo *GenerationOutputUpdateOne) sqlSave(ctx context.Context) (_node *Gene
 	}
 	if value, ok := gouo.mutation.UpscaledImageURL(); ok {
 		_spec.SetField(generationoutput.FieldUpscaledImageURL, field.TypeString, value)
+	}
+	if gouo.mutation.UpscaledImageURLCleared() {
+		_spec.ClearField(generationoutput.FieldUpscaledImageURL, field.TypeString)
 	}
 	if value, ok := gouo.mutation.UpdatedAt(); ok {
 		_spec.SetField(generationoutput.FieldUpdatedAt, field.TypeTime, value)

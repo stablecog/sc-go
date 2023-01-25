@@ -24,13 +24,13 @@ func (Generation) Fields() []ent.Field {
 		field.Int32("height"),
 		field.Int32("num_interference_steps"),
 		field.Float32("guidance_scale"),
-		field.Int("seed").Nillable(),
+		field.Int("seed"),
 		field.Enum("status").Values("started", "succeeded", "failed", "rejected"),
-		field.Text("failure_reason").Nillable(),
+		field.Text("failure_reason").Optional().Nillable(),
 		field.Text("country_code"),
 		field.Bool("is_submitted_to_gallery").Default(false),
 		field.Bool("is_public").Default(false),
-		field.Text("init_image_url").Nillable(),
+		field.Text("init_image_url").Optional().Nillable(),
 		// ! Relationships / many-to-one
 		field.UUID("prompt_id", uuid.UUID{}),
 		field.UUID("negative_prompt_id", uuid.UUID{}).Nillable(),
@@ -39,8 +39,8 @@ func (Generation) Fields() []ent.Field {
 		field.UUID("user_id", uuid.UUID{}),
 		field.UUID("device_info_id", uuid.UUID{}),
 		// ! End relationships
-		field.Time("started_at").Nillable(),
-		field.Time("completed_at").Nillable(),
+		field.Time("started_at").Optional().Nillable(),
+		field.Time("completed_at").Optional().Nillable(),
 		field.Time("created_at").Default(time.Now).Immutable(),
 		field.Time("updated_at").Default(time.Now).UpdateDefault(time.Now),
 	}

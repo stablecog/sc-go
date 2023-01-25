@@ -113,6 +113,20 @@ func (gu *GenerationUpdate) SetFailureReason(s string) *GenerationUpdate {
 	return gu
 }
 
+// SetNillableFailureReason sets the "failure_reason" field if the given value is not nil.
+func (gu *GenerationUpdate) SetNillableFailureReason(s *string) *GenerationUpdate {
+	if s != nil {
+		gu.SetFailureReason(*s)
+	}
+	return gu
+}
+
+// ClearFailureReason clears the value of the "failure_reason" field.
+func (gu *GenerationUpdate) ClearFailureReason() *GenerationUpdate {
+	gu.mutation.ClearFailureReason()
+	return gu
+}
+
 // SetCountryCode sets the "country_code" field.
 func (gu *GenerationUpdate) SetCountryCode(s string) *GenerationUpdate {
 	gu.mutation.SetCountryCode(s)
@@ -150,6 +164,20 @@ func (gu *GenerationUpdate) SetNillableIsPublic(b *bool) *GenerationUpdate {
 // SetInitImageURL sets the "init_image_url" field.
 func (gu *GenerationUpdate) SetInitImageURL(s string) *GenerationUpdate {
 	gu.mutation.SetInitImageURL(s)
+	return gu
+}
+
+// SetNillableInitImageURL sets the "init_image_url" field if the given value is not nil.
+func (gu *GenerationUpdate) SetNillableInitImageURL(s *string) *GenerationUpdate {
+	if s != nil {
+		gu.SetInitImageURL(*s)
+	}
+	return gu
+}
+
+// ClearInitImageURL clears the value of the "init_image_url" field.
+func (gu *GenerationUpdate) ClearInitImageURL() *GenerationUpdate {
+	gu.mutation.ClearInitImageURL()
 	return gu
 }
 
@@ -195,9 +223,37 @@ func (gu *GenerationUpdate) SetStartedAt(t time.Time) *GenerationUpdate {
 	return gu
 }
 
+// SetNillableStartedAt sets the "started_at" field if the given value is not nil.
+func (gu *GenerationUpdate) SetNillableStartedAt(t *time.Time) *GenerationUpdate {
+	if t != nil {
+		gu.SetStartedAt(*t)
+	}
+	return gu
+}
+
+// ClearStartedAt clears the value of the "started_at" field.
+func (gu *GenerationUpdate) ClearStartedAt() *GenerationUpdate {
+	gu.mutation.ClearStartedAt()
+	return gu
+}
+
 // SetCompletedAt sets the "completed_at" field.
 func (gu *GenerationUpdate) SetCompletedAt(t time.Time) *GenerationUpdate {
 	gu.mutation.SetCompletedAt(t)
+	return gu
+}
+
+// SetNillableCompletedAt sets the "completed_at" field if the given value is not nil.
+func (gu *GenerationUpdate) SetNillableCompletedAt(t *time.Time) *GenerationUpdate {
+	if t != nil {
+		gu.SetCompletedAt(*t)
+	}
+	return gu
+}
+
+// ClearCompletedAt clears the value of the "completed_at" field.
+func (gu *GenerationUpdate) ClearCompletedAt() *GenerationUpdate {
+	gu.mutation.ClearCompletedAt()
 	return gu
 }
 
@@ -465,6 +521,9 @@ func (gu *GenerationUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if value, ok := gu.mutation.FailureReason(); ok {
 		_spec.SetField(generation.FieldFailureReason, field.TypeString, value)
 	}
+	if gu.mutation.FailureReasonCleared() {
+		_spec.ClearField(generation.FieldFailureReason, field.TypeString)
+	}
 	if value, ok := gu.mutation.CountryCode(); ok {
 		_spec.SetField(generation.FieldCountryCode, field.TypeString, value)
 	}
@@ -477,11 +536,20 @@ func (gu *GenerationUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if value, ok := gu.mutation.InitImageURL(); ok {
 		_spec.SetField(generation.FieldInitImageURL, field.TypeString, value)
 	}
+	if gu.mutation.InitImageURLCleared() {
+		_spec.ClearField(generation.FieldInitImageURL, field.TypeString)
+	}
 	if value, ok := gu.mutation.StartedAt(); ok {
 		_spec.SetField(generation.FieldStartedAt, field.TypeTime, value)
 	}
+	if gu.mutation.StartedAtCleared() {
+		_spec.ClearField(generation.FieldStartedAt, field.TypeTime)
+	}
 	if value, ok := gu.mutation.CompletedAt(); ok {
 		_spec.SetField(generation.FieldCompletedAt, field.TypeTime, value)
+	}
+	if gu.mutation.CompletedAtCleared() {
+		_spec.ClearField(generation.FieldCompletedAt, field.TypeTime)
 	}
 	if value, ok := gu.mutation.UpdatedAt(); ok {
 		_spec.SetField(generation.FieldUpdatedAt, field.TypeTime, value)
@@ -847,6 +915,20 @@ func (guo *GenerationUpdateOne) SetFailureReason(s string) *GenerationUpdateOne 
 	return guo
 }
 
+// SetNillableFailureReason sets the "failure_reason" field if the given value is not nil.
+func (guo *GenerationUpdateOne) SetNillableFailureReason(s *string) *GenerationUpdateOne {
+	if s != nil {
+		guo.SetFailureReason(*s)
+	}
+	return guo
+}
+
+// ClearFailureReason clears the value of the "failure_reason" field.
+func (guo *GenerationUpdateOne) ClearFailureReason() *GenerationUpdateOne {
+	guo.mutation.ClearFailureReason()
+	return guo
+}
+
 // SetCountryCode sets the "country_code" field.
 func (guo *GenerationUpdateOne) SetCountryCode(s string) *GenerationUpdateOne {
 	guo.mutation.SetCountryCode(s)
@@ -884,6 +966,20 @@ func (guo *GenerationUpdateOne) SetNillableIsPublic(b *bool) *GenerationUpdateOn
 // SetInitImageURL sets the "init_image_url" field.
 func (guo *GenerationUpdateOne) SetInitImageURL(s string) *GenerationUpdateOne {
 	guo.mutation.SetInitImageURL(s)
+	return guo
+}
+
+// SetNillableInitImageURL sets the "init_image_url" field if the given value is not nil.
+func (guo *GenerationUpdateOne) SetNillableInitImageURL(s *string) *GenerationUpdateOne {
+	if s != nil {
+		guo.SetInitImageURL(*s)
+	}
+	return guo
+}
+
+// ClearInitImageURL clears the value of the "init_image_url" field.
+func (guo *GenerationUpdateOne) ClearInitImageURL() *GenerationUpdateOne {
+	guo.mutation.ClearInitImageURL()
 	return guo
 }
 
@@ -929,9 +1025,37 @@ func (guo *GenerationUpdateOne) SetStartedAt(t time.Time) *GenerationUpdateOne {
 	return guo
 }
 
+// SetNillableStartedAt sets the "started_at" field if the given value is not nil.
+func (guo *GenerationUpdateOne) SetNillableStartedAt(t *time.Time) *GenerationUpdateOne {
+	if t != nil {
+		guo.SetStartedAt(*t)
+	}
+	return guo
+}
+
+// ClearStartedAt clears the value of the "started_at" field.
+func (guo *GenerationUpdateOne) ClearStartedAt() *GenerationUpdateOne {
+	guo.mutation.ClearStartedAt()
+	return guo
+}
+
 // SetCompletedAt sets the "completed_at" field.
 func (guo *GenerationUpdateOne) SetCompletedAt(t time.Time) *GenerationUpdateOne {
 	guo.mutation.SetCompletedAt(t)
+	return guo
+}
+
+// SetNillableCompletedAt sets the "completed_at" field if the given value is not nil.
+func (guo *GenerationUpdateOne) SetNillableCompletedAt(t *time.Time) *GenerationUpdateOne {
+	if t != nil {
+		guo.SetCompletedAt(*t)
+	}
+	return guo
+}
+
+// ClearCompletedAt clears the value of the "completed_at" field.
+func (guo *GenerationUpdateOne) ClearCompletedAt() *GenerationUpdateOne {
+	guo.mutation.ClearCompletedAt()
 	return guo
 }
 
@@ -1223,6 +1347,9 @@ func (guo *GenerationUpdateOne) sqlSave(ctx context.Context) (_node *Generation,
 	if value, ok := guo.mutation.FailureReason(); ok {
 		_spec.SetField(generation.FieldFailureReason, field.TypeString, value)
 	}
+	if guo.mutation.FailureReasonCleared() {
+		_spec.ClearField(generation.FieldFailureReason, field.TypeString)
+	}
 	if value, ok := guo.mutation.CountryCode(); ok {
 		_spec.SetField(generation.FieldCountryCode, field.TypeString, value)
 	}
@@ -1235,11 +1362,20 @@ func (guo *GenerationUpdateOne) sqlSave(ctx context.Context) (_node *Generation,
 	if value, ok := guo.mutation.InitImageURL(); ok {
 		_spec.SetField(generation.FieldInitImageURL, field.TypeString, value)
 	}
+	if guo.mutation.InitImageURLCleared() {
+		_spec.ClearField(generation.FieldInitImageURL, field.TypeString)
+	}
 	if value, ok := guo.mutation.StartedAt(); ok {
 		_spec.SetField(generation.FieldStartedAt, field.TypeTime, value)
 	}
+	if guo.mutation.StartedAtCleared() {
+		_spec.ClearField(generation.FieldStartedAt, field.TypeTime)
+	}
 	if value, ok := guo.mutation.CompletedAt(); ok {
 		_spec.SetField(generation.FieldCompletedAt, field.TypeTime, value)
+	}
+	if guo.mutation.CompletedAtCleared() {
+		_spec.ClearField(generation.FieldCompletedAt, field.TypeTime)
 	}
 	if value, ok := guo.mutation.UpdatedAt(); ok {
 		_spec.SetField(generation.FieldUpdatedAt, field.TypeTime, value)

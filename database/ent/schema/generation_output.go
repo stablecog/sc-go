@@ -21,7 +21,7 @@ func (GenerationOutput) Fields() []ent.Field {
 	return []ent.Field{
 		field.UUID("id", uuid.UUID{}).Default(uuid.New),
 		field.Text("image_url"),
-		field.Text("upscaled_image_url").Nillable(),
+		field.Text("upscaled_image_url").Optional().Nillable(),
 		// ! Relationships / many-to-one
 		field.UUID("generation_id", uuid.UUID{}),
 		// ! End relationships

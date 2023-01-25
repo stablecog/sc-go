@@ -431,6 +431,16 @@ func FailureReasonHasSuffix(v string) predicate.Generation {
 	return predicate.Generation(sql.FieldHasSuffix(FieldFailureReason, v))
 }
 
+// FailureReasonIsNil applies the IsNil predicate on the "failure_reason" field.
+func FailureReasonIsNil() predicate.Generation {
+	return predicate.Generation(sql.FieldIsNull(FieldFailureReason))
+}
+
+// FailureReasonNotNil applies the NotNil predicate on the "failure_reason" field.
+func FailureReasonNotNil() predicate.Generation {
+	return predicate.Generation(sql.FieldNotNull(FieldFailureReason))
+}
+
 // FailureReasonEqualFold applies the EqualFold predicate on the "failure_reason" field.
 func FailureReasonEqualFold(v string) predicate.Generation {
 	return predicate.Generation(sql.FieldEqualFold(FieldFailureReason, v))
@@ -579,6 +589,16 @@ func InitImageURLHasPrefix(v string) predicate.Generation {
 // InitImageURLHasSuffix applies the HasSuffix predicate on the "init_image_url" field.
 func InitImageURLHasSuffix(v string) predicate.Generation {
 	return predicate.Generation(sql.FieldHasSuffix(FieldInitImageURL, v))
+}
+
+// InitImageURLIsNil applies the IsNil predicate on the "init_image_url" field.
+func InitImageURLIsNil() predicate.Generation {
+	return predicate.Generation(sql.FieldIsNull(FieldInitImageURL))
+}
+
+// InitImageURLNotNil applies the NotNil predicate on the "init_image_url" field.
+func InitImageURLNotNil() predicate.Generation {
+	return predicate.Generation(sql.FieldNotNull(FieldInitImageURL))
 }
 
 // InitImageURLEqualFold applies the EqualFold predicate on the "init_image_url" field.
@@ -751,6 +771,16 @@ func StartedAtLTE(v time.Time) predicate.Generation {
 	return predicate.Generation(sql.FieldLTE(FieldStartedAt, v))
 }
 
+// StartedAtIsNil applies the IsNil predicate on the "started_at" field.
+func StartedAtIsNil() predicate.Generation {
+	return predicate.Generation(sql.FieldIsNull(FieldStartedAt))
+}
+
+// StartedAtNotNil applies the NotNil predicate on the "started_at" field.
+func StartedAtNotNil() predicate.Generation {
+	return predicate.Generation(sql.FieldNotNull(FieldStartedAt))
+}
+
 // CompletedAtEQ applies the EQ predicate on the "completed_at" field.
 func CompletedAtEQ(v time.Time) predicate.Generation {
 	return predicate.Generation(sql.FieldEQ(FieldCompletedAt, v))
@@ -789,6 +819,16 @@ func CompletedAtLT(v time.Time) predicate.Generation {
 // CompletedAtLTE applies the LTE predicate on the "completed_at" field.
 func CompletedAtLTE(v time.Time) predicate.Generation {
 	return predicate.Generation(sql.FieldLTE(FieldCompletedAt, v))
+}
+
+// CompletedAtIsNil applies the IsNil predicate on the "completed_at" field.
+func CompletedAtIsNil() predicate.Generation {
+	return predicate.Generation(sql.FieldIsNull(FieldCompletedAt))
+}
+
+// CompletedAtNotNil applies the NotNil predicate on the "completed_at" field.
+func CompletedAtNotNil() predicate.Generation {
+	return predicate.Generation(sql.FieldNotNull(FieldCompletedAt))
 }
 
 // CreatedAtEQ applies the EQ predicate on the "created_at" field.

@@ -70,6 +70,14 @@ func (gc *GenerationCreate) SetFailureReason(s string) *GenerationCreate {
 	return gc
 }
 
+// SetNillableFailureReason sets the "failure_reason" field if the given value is not nil.
+func (gc *GenerationCreate) SetNillableFailureReason(s *string) *GenerationCreate {
+	if s != nil {
+		gc.SetFailureReason(*s)
+	}
+	return gc
+}
+
 // SetCountryCode sets the "country_code" field.
 func (gc *GenerationCreate) SetCountryCode(s string) *GenerationCreate {
 	gc.mutation.SetCountryCode(s)
@@ -107,6 +115,14 @@ func (gc *GenerationCreate) SetNillableIsPublic(b *bool) *GenerationCreate {
 // SetInitImageURL sets the "init_image_url" field.
 func (gc *GenerationCreate) SetInitImageURL(s string) *GenerationCreate {
 	gc.mutation.SetInitImageURL(s)
+	return gc
+}
+
+// SetNillableInitImageURL sets the "init_image_url" field if the given value is not nil.
+func (gc *GenerationCreate) SetNillableInitImageURL(s *string) *GenerationCreate {
+	if s != nil {
+		gc.SetInitImageURL(*s)
+	}
 	return gc
 }
 
@@ -152,9 +168,25 @@ func (gc *GenerationCreate) SetStartedAt(t time.Time) *GenerationCreate {
 	return gc
 }
 
+// SetNillableStartedAt sets the "started_at" field if the given value is not nil.
+func (gc *GenerationCreate) SetNillableStartedAt(t *time.Time) *GenerationCreate {
+	if t != nil {
+		gc.SetStartedAt(*t)
+	}
+	return gc
+}
+
 // SetCompletedAt sets the "completed_at" field.
 func (gc *GenerationCreate) SetCompletedAt(t time.Time) *GenerationCreate {
 	gc.mutation.SetCompletedAt(t)
+	return gc
+}
+
+// SetNillableCompletedAt sets the "completed_at" field if the given value is not nil.
+func (gc *GenerationCreate) SetNillableCompletedAt(t *time.Time) *GenerationCreate {
+	if t != nil {
+		gc.SetCompletedAt(*t)
+	}
 	return gc
 }
 
@@ -357,9 +389,6 @@ func (gc *GenerationCreate) check() error {
 			return &ValidationError{Name: "status", err: fmt.Errorf(`ent: validator failed for field "Generation.status": %w`, err)}
 		}
 	}
-	if _, ok := gc.mutation.FailureReason(); !ok {
-		return &ValidationError{Name: "failure_reason", err: errors.New(`ent: missing required field "Generation.failure_reason"`)}
-	}
 	if _, ok := gc.mutation.CountryCode(); !ok {
 		return &ValidationError{Name: "country_code", err: errors.New(`ent: missing required field "Generation.country_code"`)}
 	}
@@ -368,9 +397,6 @@ func (gc *GenerationCreate) check() error {
 	}
 	if _, ok := gc.mutation.IsPublic(); !ok {
 		return &ValidationError{Name: "is_public", err: errors.New(`ent: missing required field "Generation.is_public"`)}
-	}
-	if _, ok := gc.mutation.InitImageURL(); !ok {
-		return &ValidationError{Name: "init_image_url", err: errors.New(`ent: missing required field "Generation.init_image_url"`)}
 	}
 	if _, ok := gc.mutation.PromptID(); !ok {
 		return &ValidationError{Name: "prompt_id", err: errors.New(`ent: missing required field "Generation.prompt_id"`)}
@@ -389,12 +415,6 @@ func (gc *GenerationCreate) check() error {
 	}
 	if _, ok := gc.mutation.DeviceInfoID(); !ok {
 		return &ValidationError{Name: "device_info_id", err: errors.New(`ent: missing required field "Generation.device_info_id"`)}
-	}
-	if _, ok := gc.mutation.StartedAt(); !ok {
-		return &ValidationError{Name: "started_at", err: errors.New(`ent: missing required field "Generation.started_at"`)}
-	}
-	if _, ok := gc.mutation.CompletedAt(); !ok {
-		return &ValidationError{Name: "completed_at", err: errors.New(`ent: missing required field "Generation.completed_at"`)}
 	}
 	if _, ok := gc.mutation.CreatedAt(); !ok {
 		return &ValidationError{Name: "created_at", err: errors.New(`ent: missing required field "Generation.created_at"`)}
@@ -479,7 +499,7 @@ func (gc *GenerationCreate) createSpec() (*Generation, *sqlgraph.CreateSpec) {
 	}
 	if value, ok := gc.mutation.Seed(); ok {
 		_spec.SetField(generation.FieldSeed, field.TypeInt, value)
-		_node.Seed = &value
+		_node.Seed = value
 	}
 	if value, ok := gc.mutation.Status(); ok {
 		_spec.SetField(generation.FieldStatus, field.TypeEnum, value)

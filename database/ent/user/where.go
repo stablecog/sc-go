@@ -201,6 +201,16 @@ func StripeCustomerIDHasSuffix(v string) predicate.User {
 	return predicate.User(sql.FieldHasSuffix(FieldStripeCustomerID, v))
 }
 
+// StripeCustomerIDIsNil applies the IsNil predicate on the "stripe_customer_id" field.
+func StripeCustomerIDIsNil() predicate.User {
+	return predicate.User(sql.FieldIsNull(FieldStripeCustomerID))
+}
+
+// StripeCustomerIDNotNil applies the NotNil predicate on the "stripe_customer_id" field.
+func StripeCustomerIDNotNil() predicate.User {
+	return predicate.User(sql.FieldNotNull(FieldStripeCustomerID))
+}
+
 // StripeCustomerIDEqualFold applies the EqualFold predicate on the "stripe_customer_id" field.
 func StripeCustomerIDEqualFold(v string) predicate.User {
 	return predicate.User(sql.FieldEqualFold(FieldStripeCustomerID, v))
@@ -229,6 +239,16 @@ func SubscriptionCategoryIn(vs ...SubscriptionCategory) predicate.User {
 // SubscriptionCategoryNotIn applies the NotIn predicate on the "subscription_category" field.
 func SubscriptionCategoryNotIn(vs ...SubscriptionCategory) predicate.User {
 	return predicate.User(sql.FieldNotIn(FieldSubscriptionCategory, vs...))
+}
+
+// SubscriptionCategoryIsNil applies the IsNil predicate on the "subscription_category" field.
+func SubscriptionCategoryIsNil() predicate.User {
+	return predicate.User(sql.FieldIsNull(FieldSubscriptionCategory))
+}
+
+// SubscriptionCategoryNotNil applies the NotNil predicate on the "subscription_category" field.
+func SubscriptionCategoryNotNil() predicate.User {
+	return predicate.User(sql.FieldNotNull(FieldSubscriptionCategory))
 }
 
 // CreatedAtEQ applies the EQ predicate on the "created_at" field.
@@ -349,6 +369,16 @@ func ConfirmedAtLT(v time.Time) predicate.User {
 // ConfirmedAtLTE applies the LTE predicate on the "confirmed_at" field.
 func ConfirmedAtLTE(v time.Time) predicate.User {
 	return predicate.User(sql.FieldLTE(FieldConfirmedAt, v))
+}
+
+// ConfirmedAtIsNil applies the IsNil predicate on the "confirmed_at" field.
+func ConfirmedAtIsNil() predicate.User {
+	return predicate.User(sql.FieldIsNull(FieldConfirmedAt))
+}
+
+// ConfirmedAtNotNil applies the NotNil predicate on the "confirmed_at" field.
+func ConfirmedAtNotNil() predicate.User {
+	return predicate.User(sql.FieldNotNull(FieldConfirmedAt))
 }
 
 // HasUserRoles applies the HasEdge predicate on the "user_roles" edge.

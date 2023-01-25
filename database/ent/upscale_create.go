@@ -67,9 +67,11 @@ func (uc *UpscaleCreate) SetFailureReason(s string) *UpscaleCreate {
 	return uc
 }
 
-// SetModelID sets the "model_id" field.
-func (uc *UpscaleCreate) SetModelID(u uuid.UUID) *UpscaleCreate {
-	uc.mutation.SetModelID(u)
+// SetNillableFailureReason sets the "failure_reason" field if the given value is not nil.
+func (uc *UpscaleCreate) SetNillableFailureReason(s *string) *UpscaleCreate {
+	if s != nil {
+		uc.SetFailureReason(*s)
+	}
 	return uc
 }
 
@@ -82,6 +84,12 @@ func (uc *UpscaleCreate) SetUserID(u uuid.UUID) *UpscaleCreate {
 // SetDeviceInfoID sets the "device_info_id" field.
 func (uc *UpscaleCreate) SetDeviceInfoID(u uuid.UUID) *UpscaleCreate {
 	uc.mutation.SetDeviceInfoID(u)
+	return uc
+}
+
+// SetModelID sets the "model_id" field.
+func (uc *UpscaleCreate) SetModelID(u uuid.UUID) *UpscaleCreate {
+	uc.mutation.SetModelID(u)
 	return uc
 }
 
@@ -237,17 +245,14 @@ func (uc *UpscaleCreate) check() error {
 			return &ValidationError{Name: "status", err: fmt.Errorf(`ent: validator failed for field "Upscale.status": %w`, err)}
 		}
 	}
-	if _, ok := uc.mutation.FailureReason(); !ok {
-		return &ValidationError{Name: "failure_reason", err: errors.New(`ent: missing required field "Upscale.failure_reason"`)}
-	}
-	if _, ok := uc.mutation.ModelID(); !ok {
-		return &ValidationError{Name: "model_id", err: errors.New(`ent: missing required field "Upscale.model_id"`)}
-	}
 	if _, ok := uc.mutation.UserID(); !ok {
 		return &ValidationError{Name: "user_id", err: errors.New(`ent: missing required field "Upscale.user_id"`)}
 	}
 	if _, ok := uc.mutation.DeviceInfoID(); !ok {
 		return &ValidationError{Name: "device_info_id", err: errors.New(`ent: missing required field "Upscale.device_info_id"`)}
+	}
+	if _, ok := uc.mutation.ModelID(); !ok {
+		return &ValidationError{Name: "model_id", err: errors.New(`ent: missing required field "Upscale.model_id"`)}
 	}
 	if _, ok := uc.mutation.CreatedAt(); !ok {
 		return &ValidationError{Name: "created_at", err: errors.New(`ent: missing required field "Upscale.created_at"`)}

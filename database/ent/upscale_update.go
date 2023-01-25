@@ -103,9 +103,17 @@ func (uu *UpscaleUpdate) SetFailureReason(s string) *UpscaleUpdate {
 	return uu
 }
 
-// SetModelID sets the "model_id" field.
-func (uu *UpscaleUpdate) SetModelID(u uuid.UUID) *UpscaleUpdate {
-	uu.mutation.SetModelID(u)
+// SetNillableFailureReason sets the "failure_reason" field if the given value is not nil.
+func (uu *UpscaleUpdate) SetNillableFailureReason(s *string) *UpscaleUpdate {
+	if s != nil {
+		uu.SetFailureReason(*s)
+	}
+	return uu
+}
+
+// ClearFailureReason clears the value of the "failure_reason" field.
+func (uu *UpscaleUpdate) ClearFailureReason() *UpscaleUpdate {
+	uu.mutation.ClearFailureReason()
 	return uu
 }
 
@@ -118,6 +126,12 @@ func (uu *UpscaleUpdate) SetUserID(u uuid.UUID) *UpscaleUpdate {
 // SetDeviceInfoID sets the "device_info_id" field.
 func (uu *UpscaleUpdate) SetDeviceInfoID(u uuid.UUID) *UpscaleUpdate {
 	uu.mutation.SetDeviceInfoID(u)
+	return uu
+}
+
+// SetModelID sets the "model_id" field.
+func (uu *UpscaleUpdate) SetModelID(u uuid.UUID) *UpscaleUpdate {
+	uu.mutation.SetModelID(u)
 	return uu
 }
 
@@ -315,6 +329,9 @@ func (uu *UpscaleUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if value, ok := uu.mutation.FailureReason(); ok {
 		_spec.SetField(upscale.FieldFailureReason, field.TypeString, value)
+	}
+	if uu.mutation.FailureReasonCleared() {
+		_spec.ClearField(upscale.FieldFailureReason, field.TypeString)
 	}
 	if value, ok := uu.mutation.UpdatedAt(); ok {
 		_spec.SetField(upscale.FieldUpdatedAt, field.TypeTime, value)
@@ -568,9 +585,17 @@ func (uuo *UpscaleUpdateOne) SetFailureReason(s string) *UpscaleUpdateOne {
 	return uuo
 }
 
-// SetModelID sets the "model_id" field.
-func (uuo *UpscaleUpdateOne) SetModelID(u uuid.UUID) *UpscaleUpdateOne {
-	uuo.mutation.SetModelID(u)
+// SetNillableFailureReason sets the "failure_reason" field if the given value is not nil.
+func (uuo *UpscaleUpdateOne) SetNillableFailureReason(s *string) *UpscaleUpdateOne {
+	if s != nil {
+		uuo.SetFailureReason(*s)
+	}
+	return uuo
+}
+
+// ClearFailureReason clears the value of the "failure_reason" field.
+func (uuo *UpscaleUpdateOne) ClearFailureReason() *UpscaleUpdateOne {
+	uuo.mutation.ClearFailureReason()
 	return uuo
 }
 
@@ -583,6 +608,12 @@ func (uuo *UpscaleUpdateOne) SetUserID(u uuid.UUID) *UpscaleUpdateOne {
 // SetDeviceInfoID sets the "device_info_id" field.
 func (uuo *UpscaleUpdateOne) SetDeviceInfoID(u uuid.UUID) *UpscaleUpdateOne {
 	uuo.mutation.SetDeviceInfoID(u)
+	return uuo
+}
+
+// SetModelID sets the "model_id" field.
+func (uuo *UpscaleUpdateOne) SetModelID(u uuid.UUID) *UpscaleUpdateOne {
+	uuo.mutation.SetModelID(u)
 	return uuo
 }
 
@@ -804,6 +835,9 @@ func (uuo *UpscaleUpdateOne) sqlSave(ctx context.Context) (_node *Upscale, err e
 	}
 	if value, ok := uuo.mutation.FailureReason(); ok {
 		_spec.SetField(upscale.FieldFailureReason, field.TypeString, value)
+	}
+	if uuo.mutation.FailureReasonCleared() {
+		_spec.ClearField(upscale.FieldFailureReason, field.TypeString)
 	}
 	if value, ok := uuo.mutation.UpdatedAt(); ok {
 		_spec.SetField(upscale.FieldUpdatedAt, field.TypeTime, value)

@@ -201,6 +201,16 @@ func UpscaledImageURLHasSuffix(v string) predicate.GenerationOutput {
 	return predicate.GenerationOutput(sql.FieldHasSuffix(FieldUpscaledImageURL, v))
 }
 
+// UpscaledImageURLIsNil applies the IsNil predicate on the "upscaled_image_url" field.
+func UpscaledImageURLIsNil() predicate.GenerationOutput {
+	return predicate.GenerationOutput(sql.FieldIsNull(FieldUpscaledImageURL))
+}
+
+// UpscaledImageURLNotNil applies the NotNil predicate on the "upscaled_image_url" field.
+func UpscaledImageURLNotNil() predicate.GenerationOutput {
+	return predicate.GenerationOutput(sql.FieldNotNull(FieldUpscaledImageURL))
+}
+
 // UpscaledImageURLEqualFold applies the EqualFold predicate on the "upscaled_image_url" field.
 func UpscaledImageURLEqualFold(v string) predicate.GenerationOutput {
 	return predicate.GenerationOutput(sql.FieldEqualFold(FieldUpscaledImageURL, v))

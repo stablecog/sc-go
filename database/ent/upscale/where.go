@@ -86,11 +86,6 @@ func FailureReason(v string) predicate.Upscale {
 	return predicate.Upscale(sql.FieldEQ(FieldFailureReason, v))
 }
 
-// ModelID applies equality check predicate on the "model_id" field. It's identical to ModelIDEQ.
-func ModelID(v uuid.UUID) predicate.Upscale {
-	return predicate.Upscale(sql.FieldEQ(FieldModelID, v))
-}
-
 // UserID applies equality check predicate on the "user_id" field. It's identical to UserIDEQ.
 func UserID(v uuid.UUID) predicate.Upscale {
 	return predicate.Upscale(sql.FieldEQ(FieldUserID, v))
@@ -99,6 +94,11 @@ func UserID(v uuid.UUID) predicate.Upscale {
 // DeviceInfoID applies equality check predicate on the "device_info_id" field. It's identical to DeviceInfoIDEQ.
 func DeviceInfoID(v uuid.UUID) predicate.Upscale {
 	return predicate.Upscale(sql.FieldEQ(FieldDeviceInfoID, v))
+}
+
+// ModelID applies equality check predicate on the "model_id" field. It's identical to ModelIDEQ.
+func ModelID(v uuid.UUID) predicate.Upscale {
+	return predicate.Upscale(sql.FieldEQ(FieldModelID, v))
 }
 
 // CreatedAt applies equality check predicate on the "created_at" field. It's identical to CreatedAtEQ.
@@ -411,6 +411,16 @@ func FailureReasonHasSuffix(v string) predicate.Upscale {
 	return predicate.Upscale(sql.FieldHasSuffix(FieldFailureReason, v))
 }
 
+// FailureReasonIsNil applies the IsNil predicate on the "failure_reason" field.
+func FailureReasonIsNil() predicate.Upscale {
+	return predicate.Upscale(sql.FieldIsNull(FieldFailureReason))
+}
+
+// FailureReasonNotNil applies the NotNil predicate on the "failure_reason" field.
+func FailureReasonNotNil() predicate.Upscale {
+	return predicate.Upscale(sql.FieldNotNull(FieldFailureReason))
+}
+
 // FailureReasonEqualFold applies the EqualFold predicate on the "failure_reason" field.
 func FailureReasonEqualFold(v string) predicate.Upscale {
 	return predicate.Upscale(sql.FieldEqualFold(FieldFailureReason, v))
@@ -419,26 +429,6 @@ func FailureReasonEqualFold(v string) predicate.Upscale {
 // FailureReasonContainsFold applies the ContainsFold predicate on the "failure_reason" field.
 func FailureReasonContainsFold(v string) predicate.Upscale {
 	return predicate.Upscale(sql.FieldContainsFold(FieldFailureReason, v))
-}
-
-// ModelIDEQ applies the EQ predicate on the "model_id" field.
-func ModelIDEQ(v uuid.UUID) predicate.Upscale {
-	return predicate.Upscale(sql.FieldEQ(FieldModelID, v))
-}
-
-// ModelIDNEQ applies the NEQ predicate on the "model_id" field.
-func ModelIDNEQ(v uuid.UUID) predicate.Upscale {
-	return predicate.Upscale(sql.FieldNEQ(FieldModelID, v))
-}
-
-// ModelIDIn applies the In predicate on the "model_id" field.
-func ModelIDIn(vs ...uuid.UUID) predicate.Upscale {
-	return predicate.Upscale(sql.FieldIn(FieldModelID, vs...))
-}
-
-// ModelIDNotIn applies the NotIn predicate on the "model_id" field.
-func ModelIDNotIn(vs ...uuid.UUID) predicate.Upscale {
-	return predicate.Upscale(sql.FieldNotIn(FieldModelID, vs...))
 }
 
 // UserIDEQ applies the EQ predicate on the "user_id" field.
@@ -479,6 +469,26 @@ func DeviceInfoIDIn(vs ...uuid.UUID) predicate.Upscale {
 // DeviceInfoIDNotIn applies the NotIn predicate on the "device_info_id" field.
 func DeviceInfoIDNotIn(vs ...uuid.UUID) predicate.Upscale {
 	return predicate.Upscale(sql.FieldNotIn(FieldDeviceInfoID, vs...))
+}
+
+// ModelIDEQ applies the EQ predicate on the "model_id" field.
+func ModelIDEQ(v uuid.UUID) predicate.Upscale {
+	return predicate.Upscale(sql.FieldEQ(FieldModelID, v))
+}
+
+// ModelIDNEQ applies the NEQ predicate on the "model_id" field.
+func ModelIDNEQ(v uuid.UUID) predicate.Upscale {
+	return predicate.Upscale(sql.FieldNEQ(FieldModelID, v))
+}
+
+// ModelIDIn applies the In predicate on the "model_id" field.
+func ModelIDIn(vs ...uuid.UUID) predicate.Upscale {
+	return predicate.Upscale(sql.FieldIn(FieldModelID, vs...))
+}
+
+// ModelIDNotIn applies the NotIn predicate on the "model_id" field.
+func ModelIDNotIn(vs ...uuid.UUID) predicate.Upscale {
+	return predicate.Upscale(sql.FieldNotIn(FieldModelID, vs...))
 }
 
 // CreatedAtEQ applies the EQ predicate on the "created_at" field.

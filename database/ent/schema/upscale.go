@@ -26,11 +26,11 @@ func (Upscale) Fields() []ent.Field {
 		field.Int32("duration_ms"),
 		field.Text("country_code"),
 		field.Enum("status").Values("started", "succeeded", "failed"),
-		field.Text("failure_reason").Nillable(),
+		field.Text("failure_reason").Optional().Nillable(),
 		// ! Relationships / many-to-one
-		field.UUID("model_id", uuid.UUID{}),
 		field.UUID("user_id", uuid.UUID{}),
 		field.UUID("device_info_id", uuid.UUID{}),
+		field.UUID("model_id", uuid.UUID{}),
 		// ! End relationships
 		field.Time("created_at").Default(time.Now).Immutable(),
 		field.Time("updated_at").Default(time.Now).UpdateDefault(time.Now),

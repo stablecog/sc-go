@@ -34,6 +34,14 @@ func (goc *GenerationOutputCreate) SetUpscaledImageURL(s string) *GenerationOutp
 	return goc
 }
 
+// SetNillableUpscaledImageURL sets the "upscaled_image_url" field if the given value is not nil.
+func (goc *GenerationOutputCreate) SetNillableUpscaledImageURL(s *string) *GenerationOutputCreate {
+	if s != nil {
+		goc.SetUpscaledImageURL(*s)
+	}
+	return goc
+}
+
 // SetGenerationID sets the "generation_id" field.
 func (goc *GenerationOutputCreate) SetGenerationID(u uuid.UUID) *GenerationOutputCreate {
 	goc.mutation.SetGenerationID(u)
@@ -146,9 +154,6 @@ func (goc *GenerationOutputCreate) defaults() {
 func (goc *GenerationOutputCreate) check() error {
 	if _, ok := goc.mutation.ImageURL(); !ok {
 		return &ValidationError{Name: "image_url", err: errors.New(`ent: missing required field "GenerationOutput.image_url"`)}
-	}
-	if _, ok := goc.mutation.UpscaledImageURL(); !ok {
-		return &ValidationError{Name: "upscaled_image_url", err: errors.New(`ent: missing required field "GenerationOutput.upscaled_image_url"`)}
 	}
 	if _, ok := goc.mutation.GenerationID(); !ok {
 		return &ValidationError{Name: "generation_id", err: errors.New(`ent: missing required field "GenerationOutput.generation_id"`)}

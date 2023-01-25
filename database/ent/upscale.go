@@ -34,12 +34,12 @@ type Upscale struct {
 	Status upscale.Status `json:"status,omitempty"`
 	// FailureReason holds the value of the "failure_reason" field.
 	FailureReason *string `json:"failure_reason,omitempty"`
-	// ModelID holds the value of the "model_id" field.
-	ModelID uuid.UUID `json:"model_id,omitempty"`
 	// UserID holds the value of the "user_id" field.
 	UserID uuid.UUID `json:"user_id,omitempty"`
 	// DeviceInfoID holds the value of the "device_info_id" field.
 	DeviceInfoID uuid.UUID `json:"device_info_id,omitempty"`
+	// ModelID holds the value of the "model_id" field.
+	ModelID uuid.UUID `json:"model_id,omitempty"`
 	// CreatedAt holds the value of the "created_at" field.
 	CreatedAt time.Time `json:"created_at,omitempty"`
 	// UpdatedAt holds the value of the "updated_at" field.
@@ -123,7 +123,7 @@ func (*Upscale) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullString)
 		case upscale.FieldCreatedAt, upscale.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
-		case upscale.FieldID, upscale.FieldModelID, upscale.FieldUserID, upscale.FieldDeviceInfoID:
+		case upscale.FieldID, upscale.FieldUserID, upscale.FieldDeviceInfoID, upscale.FieldModelID:
 			values[i] = new(uuid.UUID)
 		default:
 			return nil, fmt.Errorf("unexpected column %q for type Upscale", columns[i])
@@ -189,12 +189,6 @@ func (u *Upscale) assignValues(columns []string, values []any) error {
 				u.FailureReason = new(string)
 				*u.FailureReason = value.String
 			}
-		case upscale.FieldModelID:
-			if value, ok := values[i].(*uuid.UUID); !ok {
-				return fmt.Errorf("unexpected type %T for field model_id", values[i])
-			} else if value != nil {
-				u.ModelID = *value
-			}
 		case upscale.FieldUserID:
 			if value, ok := values[i].(*uuid.UUID); !ok {
 				return fmt.Errorf("unexpected type %T for field user_id", values[i])
@@ -206,6 +200,12 @@ func (u *Upscale) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field device_info_id", values[i])
 			} else if value != nil {
 				u.DeviceInfoID = *value
+			}
+		case upscale.FieldModelID:
+			if value, ok := values[i].(*uuid.UUID); !ok {
+				return fmt.Errorf("unexpected type %T for field model_id", values[i])
+			} else if value != nil {
+				u.ModelID = *value
 			}
 		case upscale.FieldCreatedAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
@@ -290,14 +290,14 @@ func (u *Upscale) String() string {
 		builder.WriteString(*v)
 	}
 	builder.WriteString(", ")
-	builder.WriteString("model_id=")
-	builder.WriteString(fmt.Sprintf("%v", u.ModelID))
-	builder.WriteString(", ")
 	builder.WriteString("user_id=")
 	builder.WriteString(fmt.Sprintf("%v", u.UserID))
 	builder.WriteString(", ")
 	builder.WriteString("device_info_id=")
 	builder.WriteString(fmt.Sprintf("%v", u.DeviceInfoID))
+	builder.WriteString(", ")
+	builder.WriteString("model_id=")
+	builder.WriteString(fmt.Sprintf("%v", u.ModelID))
 	builder.WriteString(", ")
 	builder.WriteString("created_at=")
 	builder.WriteString(u.CreatedAt.Format(time.ANSIC))

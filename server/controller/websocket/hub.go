@@ -35,6 +35,22 @@ func (h *Hub) GetClientByUid(uid string) *Client {
 	return nil
 }
 
+// Braodcast a message to all clients that match the given uid
+func (h *Hub) BroadcastToClientsWithUid(uid string, message []byte) {
+	h.mu.Lock()
+	defer h.mu.Unlock()
+	for client := range h.clients {
+		if client.Uid == uid {
+			select {
+			case client.Send <- message:
+			default:
+				close(client.Send)
+				delete(h.clients, client)
+			}
+		}
+	}
+}
+
 // Get count of unregistered clients (guests)
 func (h *Hub) GetGuestCount() int {
 	h.mu.Lock()
@@ -75,6 +91,7 @@ func (h *Hub) Run() {
 					close(client.Send)
 				}
 			}()
+		// Broadcast messages to all clients
 		case message := <-h.Broadcast:
 			func() {
 				h.mu.Lock()

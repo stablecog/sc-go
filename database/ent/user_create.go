@@ -36,9 +36,25 @@ func (uc *UserCreate) SetStripeCustomerID(s string) *UserCreate {
 	return uc
 }
 
+// SetNillableStripeCustomerID sets the "stripe_customer_id" field if the given value is not nil.
+func (uc *UserCreate) SetNillableStripeCustomerID(s *string) *UserCreate {
+	if s != nil {
+		uc.SetStripeCustomerID(*s)
+	}
+	return uc
+}
+
 // SetSubscriptionCategory sets the "subscription_category" field.
 func (uc *UserCreate) SetSubscriptionCategory(value user.SubscriptionCategory) *UserCreate {
 	uc.mutation.SetSubscriptionCategory(value)
+	return uc
+}
+
+// SetNillableSubscriptionCategory sets the "subscription_category" field if the given value is not nil.
+func (uc *UserCreate) SetNillableSubscriptionCategory(value *user.SubscriptionCategory) *UserCreate {
+	if value != nil {
+		uc.SetSubscriptionCategory(*value)
+	}
 	return uc
 }
 
@@ -73,6 +89,14 @@ func (uc *UserCreate) SetNillableUpdatedAt(t *time.Time) *UserCreate {
 // SetConfirmedAt sets the "confirmed_at" field.
 func (uc *UserCreate) SetConfirmedAt(t time.Time) *UserCreate {
 	uc.mutation.SetConfirmedAt(t)
+	return uc
+}
+
+// SetNillableConfirmedAt sets the "confirmed_at" field if the given value is not nil.
+func (uc *UserCreate) SetNillableConfirmedAt(t *time.Time) *UserCreate {
+	if t != nil {
+		uc.SetConfirmedAt(*t)
+	}
 	return uc
 }
 
@@ -189,12 +213,6 @@ func (uc *UserCreate) check() error {
 	if _, ok := uc.mutation.Email(); !ok {
 		return &ValidationError{Name: "email", err: errors.New(`ent: missing required field "User.email"`)}
 	}
-	if _, ok := uc.mutation.StripeCustomerID(); !ok {
-		return &ValidationError{Name: "stripe_customer_id", err: errors.New(`ent: missing required field "User.stripe_customer_id"`)}
-	}
-	if _, ok := uc.mutation.SubscriptionCategory(); !ok {
-		return &ValidationError{Name: "subscription_category", err: errors.New(`ent: missing required field "User.subscription_category"`)}
-	}
 	if v, ok := uc.mutation.SubscriptionCategory(); ok {
 		if err := user.SubscriptionCategoryValidator(v); err != nil {
 			return &ValidationError{Name: "subscription_category", err: fmt.Errorf(`ent: validator failed for field "User.subscription_category": %w`, err)}
@@ -205,9 +223,6 @@ func (uc *UserCreate) check() error {
 	}
 	if _, ok := uc.mutation.UpdatedAt(); !ok {
 		return &ValidationError{Name: "updated_at", err: errors.New(`ent: missing required field "User.updated_at"`)}
-	}
-	if _, ok := uc.mutation.ConfirmedAt(); !ok {
-		return &ValidationError{Name: "confirmed_at", err: errors.New(`ent: missing required field "User.confirmed_at"`)}
 	}
 	return nil
 }

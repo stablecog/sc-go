@@ -1168,7 +1168,7 @@ func (m *GenerationMutation) Seed() (r int, exists bool) {
 // OldSeed returns the old "seed" field's value of the Generation entity.
 // If the Generation object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *GenerationMutation) OldSeed(ctx context.Context) (v *int, err error) {
+func (m *GenerationMutation) OldSeed(ctx context.Context) (v int, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldSeed is only allowed on UpdateOne operations")
 	}
@@ -1273,9 +1273,22 @@ func (m *GenerationMutation) OldFailureReason(ctx context.Context) (v *string, e
 	return oldValue.FailureReason, nil
 }
 
+// ClearFailureReason clears the value of the "failure_reason" field.
+func (m *GenerationMutation) ClearFailureReason() {
+	m.failure_reason = nil
+	m.clearedFields[generation.FieldFailureReason] = struct{}{}
+}
+
+// FailureReasonCleared returns if the "failure_reason" field was cleared in this mutation.
+func (m *GenerationMutation) FailureReasonCleared() bool {
+	_, ok := m.clearedFields[generation.FieldFailureReason]
+	return ok
+}
+
 // ResetFailureReason resets all changes to the "failure_reason" field.
 func (m *GenerationMutation) ResetFailureReason() {
 	m.failure_reason = nil
+	delete(m.clearedFields, generation.FieldFailureReason)
 }
 
 // SetCountryCode sets the "country_code" field.
@@ -1417,9 +1430,22 @@ func (m *GenerationMutation) OldInitImageURL(ctx context.Context) (v *string, er
 	return oldValue.InitImageURL, nil
 }
 
+// ClearInitImageURL clears the value of the "init_image_url" field.
+func (m *GenerationMutation) ClearInitImageURL() {
+	m.init_image_url = nil
+	m.clearedFields[generation.FieldInitImageURL] = struct{}{}
+}
+
+// InitImageURLCleared returns if the "init_image_url" field was cleared in this mutation.
+func (m *GenerationMutation) InitImageURLCleared() bool {
+	_, ok := m.clearedFields[generation.FieldInitImageURL]
+	return ok
+}
+
 // ResetInitImageURL resets all changes to the "init_image_url" field.
 func (m *GenerationMutation) ResetInitImageURL() {
 	m.init_image_url = nil
+	delete(m.clearedFields, generation.FieldInitImageURL)
 }
 
 // SetPromptID sets the "prompt_id" field.
@@ -1669,9 +1695,22 @@ func (m *GenerationMutation) OldStartedAt(ctx context.Context) (v *time.Time, er
 	return oldValue.StartedAt, nil
 }
 
+// ClearStartedAt clears the value of the "started_at" field.
+func (m *GenerationMutation) ClearStartedAt() {
+	m.started_at = nil
+	m.clearedFields[generation.FieldStartedAt] = struct{}{}
+}
+
+// StartedAtCleared returns if the "started_at" field was cleared in this mutation.
+func (m *GenerationMutation) StartedAtCleared() bool {
+	_, ok := m.clearedFields[generation.FieldStartedAt]
+	return ok
+}
+
 // ResetStartedAt resets all changes to the "started_at" field.
 func (m *GenerationMutation) ResetStartedAt() {
 	m.started_at = nil
+	delete(m.clearedFields, generation.FieldStartedAt)
 }
 
 // SetCompletedAt sets the "completed_at" field.
@@ -1705,9 +1744,22 @@ func (m *GenerationMutation) OldCompletedAt(ctx context.Context) (v *time.Time, 
 	return oldValue.CompletedAt, nil
 }
 
+// ClearCompletedAt clears the value of the "completed_at" field.
+func (m *GenerationMutation) ClearCompletedAt() {
+	m.completed_at = nil
+	m.clearedFields[generation.FieldCompletedAt] = struct{}{}
+}
+
+// CompletedAtCleared returns if the "completed_at" field was cleared in this mutation.
+func (m *GenerationMutation) CompletedAtCleared() bool {
+	_, ok := m.clearedFields[generation.FieldCompletedAt]
+	return ok
+}
+
 // ResetCompletedAt resets all changes to the "completed_at" field.
 func (m *GenerationMutation) ResetCompletedAt() {
 	m.completed_at = nil
+	delete(m.clearedFields, generation.FieldCompletedAt)
 }
 
 // SetCreatedAt sets the "created_at" field.
@@ -2504,7 +2556,20 @@ func (m *GenerationMutation) AddField(name string, value ent.Value) error {
 // ClearedFields returns all nullable fields that were cleared during this
 // mutation.
 func (m *GenerationMutation) ClearedFields() []string {
-	return nil
+	var fields []string
+	if m.FieldCleared(generation.FieldFailureReason) {
+		fields = append(fields, generation.FieldFailureReason)
+	}
+	if m.FieldCleared(generation.FieldInitImageURL) {
+		fields = append(fields, generation.FieldInitImageURL)
+	}
+	if m.FieldCleared(generation.FieldStartedAt) {
+		fields = append(fields, generation.FieldStartedAt)
+	}
+	if m.FieldCleared(generation.FieldCompletedAt) {
+		fields = append(fields, generation.FieldCompletedAt)
+	}
+	return fields
 }
 
 // FieldCleared returns a boolean indicating if a field with the given name was
@@ -2517,6 +2582,20 @@ func (m *GenerationMutation) FieldCleared(name string) bool {
 // ClearField clears the value of the field with the given name. It returns an
 // error if the field is not defined in the schema.
 func (m *GenerationMutation) ClearField(name string) error {
+	switch name {
+	case generation.FieldFailureReason:
+		m.ClearFailureReason()
+		return nil
+	case generation.FieldInitImageURL:
+		m.ClearInitImageURL()
+		return nil
+	case generation.FieldStartedAt:
+		m.ClearStartedAt()
+		return nil
+	case generation.FieldCompletedAt:
+		m.ClearCompletedAt()
+		return nil
+	}
 	return fmt.Errorf("unknown Generation nullable field %s", name)
 }
 
@@ -3559,9 +3638,22 @@ func (m *GenerationOutputMutation) OldUpscaledImageURL(ctx context.Context) (v *
 	return oldValue.UpscaledImageURL, nil
 }
 
+// ClearUpscaledImageURL clears the value of the "upscaled_image_url" field.
+func (m *GenerationOutputMutation) ClearUpscaledImageURL() {
+	m.upscaled_image_url = nil
+	m.clearedFields[generationoutput.FieldUpscaledImageURL] = struct{}{}
+}
+
+// UpscaledImageURLCleared returns if the "upscaled_image_url" field was cleared in this mutation.
+func (m *GenerationOutputMutation) UpscaledImageURLCleared() bool {
+	_, ok := m.clearedFields[generationoutput.FieldUpscaledImageURL]
+	return ok
+}
+
 // ResetUpscaledImageURL resets all changes to the "upscaled_image_url" field.
 func (m *GenerationOutputMutation) ResetUpscaledImageURL() {
 	m.upscaled_image_url = nil
+	delete(m.clearedFields, generationoutput.FieldUpscaledImageURL)
 }
 
 // SetGenerationID sets the "generation_id" field.
@@ -3871,7 +3963,11 @@ func (m *GenerationOutputMutation) AddField(name string, value ent.Value) error 
 // ClearedFields returns all nullable fields that were cleared during this
 // mutation.
 func (m *GenerationOutputMutation) ClearedFields() []string {
-	return nil
+	var fields []string
+	if m.FieldCleared(generationoutput.FieldUpscaledImageURL) {
+		fields = append(fields, generationoutput.FieldUpscaledImageURL)
+	}
+	return fields
 }
 
 // FieldCleared returns a boolean indicating if a field with the given name was
@@ -3884,6 +3980,11 @@ func (m *GenerationOutputMutation) FieldCleared(name string) bool {
 // ClearField clears the value of the field with the given name. It returns an
 // error if the field is not defined in the schema.
 func (m *GenerationOutputMutation) ClearField(name string) error {
+	switch name {
+	case generationoutput.FieldUpscaledImageURL:
+		m.ClearUpscaledImageURL()
+		return nil
+	}
 	return fmt.Errorf("unknown GenerationOutput nullable field %s", name)
 }
 
@@ -6102,45 +6203,22 @@ func (m *UpscaleMutation) OldFailureReason(ctx context.Context) (v *string, err 
 	return oldValue.FailureReason, nil
 }
 
+// ClearFailureReason clears the value of the "failure_reason" field.
+func (m *UpscaleMutation) ClearFailureReason() {
+	m.failure_reason = nil
+	m.clearedFields[upscale.FieldFailureReason] = struct{}{}
+}
+
+// FailureReasonCleared returns if the "failure_reason" field was cleared in this mutation.
+func (m *UpscaleMutation) FailureReasonCleared() bool {
+	_, ok := m.clearedFields[upscale.FieldFailureReason]
+	return ok
+}
+
 // ResetFailureReason resets all changes to the "failure_reason" field.
 func (m *UpscaleMutation) ResetFailureReason() {
 	m.failure_reason = nil
-}
-
-// SetModelID sets the "model_id" field.
-func (m *UpscaleMutation) SetModelID(u uuid.UUID) {
-	m.upscale_models = &u
-}
-
-// ModelID returns the value of the "model_id" field in the mutation.
-func (m *UpscaleMutation) ModelID() (r uuid.UUID, exists bool) {
-	v := m.upscale_models
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldModelID returns the old "model_id" field's value of the Upscale entity.
-// If the Upscale object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *UpscaleMutation) OldModelID(ctx context.Context) (v uuid.UUID, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldModelID is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldModelID requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldModelID: %w", err)
-	}
-	return oldValue.ModelID, nil
-}
-
-// ResetModelID resets all changes to the "model_id" field.
-func (m *UpscaleMutation) ResetModelID() {
-	m.upscale_models = nil
+	delete(m.clearedFields, upscale.FieldFailureReason)
 }
 
 // SetUserID sets the "user_id" field.
@@ -6213,6 +6291,42 @@ func (m *UpscaleMutation) OldDeviceInfoID(ctx context.Context) (v uuid.UUID, err
 // ResetDeviceInfoID resets all changes to the "device_info_id" field.
 func (m *UpscaleMutation) ResetDeviceInfoID() {
 	m.device_info = nil
+}
+
+// SetModelID sets the "model_id" field.
+func (m *UpscaleMutation) SetModelID(u uuid.UUID) {
+	m.upscale_models = &u
+}
+
+// ModelID returns the value of the "model_id" field in the mutation.
+func (m *UpscaleMutation) ModelID() (r uuid.UUID, exists bool) {
+	v := m.upscale_models
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldModelID returns the old "model_id" field's value of the Upscale entity.
+// If the Upscale object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UpscaleMutation) OldModelID(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldModelID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldModelID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldModelID: %w", err)
+	}
+	return oldValue.ModelID, nil
+}
+
+// ResetModelID resets all changes to the "model_id" field.
+func (m *UpscaleMutation) ResetModelID() {
+	m.upscale_models = nil
 }
 
 // SetCreatedAt sets the "created_at" field.
@@ -6488,14 +6602,14 @@ func (m *UpscaleMutation) Fields() []string {
 	if m.failure_reason != nil {
 		fields = append(fields, upscale.FieldFailureReason)
 	}
-	if m.upscale_models != nil {
-		fields = append(fields, upscale.FieldModelID)
-	}
 	if m.user != nil {
 		fields = append(fields, upscale.FieldUserID)
 	}
 	if m.device_info != nil {
 		fields = append(fields, upscale.FieldDeviceInfoID)
+	}
+	if m.upscale_models != nil {
+		fields = append(fields, upscale.FieldModelID)
 	}
 	if m.created_at != nil {
 		fields = append(fields, upscale.FieldCreatedAt)
@@ -6525,12 +6639,12 @@ func (m *UpscaleMutation) Field(name string) (ent.Value, bool) {
 		return m.Status()
 	case upscale.FieldFailureReason:
 		return m.FailureReason()
-	case upscale.FieldModelID:
-		return m.ModelID()
 	case upscale.FieldUserID:
 		return m.UserID()
 	case upscale.FieldDeviceInfoID:
 		return m.DeviceInfoID()
+	case upscale.FieldModelID:
+		return m.ModelID()
 	case upscale.FieldCreatedAt:
 		return m.CreatedAt()
 	case upscale.FieldUpdatedAt:
@@ -6558,12 +6672,12 @@ func (m *UpscaleMutation) OldField(ctx context.Context, name string) (ent.Value,
 		return m.OldStatus(ctx)
 	case upscale.FieldFailureReason:
 		return m.OldFailureReason(ctx)
-	case upscale.FieldModelID:
-		return m.OldModelID(ctx)
 	case upscale.FieldUserID:
 		return m.OldUserID(ctx)
 	case upscale.FieldDeviceInfoID:
 		return m.OldDeviceInfoID(ctx)
+	case upscale.FieldModelID:
+		return m.OldModelID(ctx)
 	case upscale.FieldCreatedAt:
 		return m.OldCreatedAt(ctx)
 	case upscale.FieldUpdatedAt:
@@ -6626,13 +6740,6 @@ func (m *UpscaleMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetFailureReason(v)
 		return nil
-	case upscale.FieldModelID:
-		v, ok := value.(uuid.UUID)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetModelID(v)
-		return nil
 	case upscale.FieldUserID:
 		v, ok := value.(uuid.UUID)
 		if !ok {
@@ -6646,6 +6753,13 @@ func (m *UpscaleMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetDeviceInfoID(v)
+		return nil
+	case upscale.FieldModelID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetModelID(v)
 		return nil
 	case upscale.FieldCreatedAt:
 		v, ok := value.(time.Time)
@@ -6741,7 +6855,11 @@ func (m *UpscaleMutation) AddField(name string, value ent.Value) error {
 // ClearedFields returns all nullable fields that were cleared during this
 // mutation.
 func (m *UpscaleMutation) ClearedFields() []string {
-	return nil
+	var fields []string
+	if m.FieldCleared(upscale.FieldFailureReason) {
+		fields = append(fields, upscale.FieldFailureReason)
+	}
+	return fields
 }
 
 // FieldCleared returns a boolean indicating if a field with the given name was
@@ -6754,6 +6872,11 @@ func (m *UpscaleMutation) FieldCleared(name string) bool {
 // ClearField clears the value of the field with the given name. It returns an
 // error if the field is not defined in the schema.
 func (m *UpscaleMutation) ClearField(name string) error {
+	switch name {
+	case upscale.FieldFailureReason:
+		m.ClearFailureReason()
+		return nil
+	}
 	return fmt.Errorf("unknown Upscale nullable field %s", name)
 }
 
@@ -6782,14 +6905,14 @@ func (m *UpscaleMutation) ResetField(name string) error {
 	case upscale.FieldFailureReason:
 		m.ResetFailureReason()
 		return nil
-	case upscale.FieldModelID:
-		m.ResetModelID()
-		return nil
 	case upscale.FieldUserID:
 		m.ResetUserID()
 		return nil
 	case upscale.FieldDeviceInfoID:
 		m.ResetDeviceInfoID()
+		return nil
+	case upscale.FieldModelID:
+		m.ResetModelID()
 		return nil
 	case upscale.FieldCreatedAt:
 		m.ResetCreatedAt()
@@ -8284,9 +8407,22 @@ func (m *UserMutation) OldStripeCustomerID(ctx context.Context) (v *string, err 
 	return oldValue.StripeCustomerID, nil
 }
 
+// ClearStripeCustomerID clears the value of the "stripe_customer_id" field.
+func (m *UserMutation) ClearStripeCustomerID() {
+	m.stripe_customer_id = nil
+	m.clearedFields[user.FieldStripeCustomerID] = struct{}{}
+}
+
+// StripeCustomerIDCleared returns if the "stripe_customer_id" field was cleared in this mutation.
+func (m *UserMutation) StripeCustomerIDCleared() bool {
+	_, ok := m.clearedFields[user.FieldStripeCustomerID]
+	return ok
+}
+
 // ResetStripeCustomerID resets all changes to the "stripe_customer_id" field.
 func (m *UserMutation) ResetStripeCustomerID() {
 	m.stripe_customer_id = nil
+	delete(m.clearedFields, user.FieldStripeCustomerID)
 }
 
 // SetSubscriptionCategory sets the "subscription_category" field.
@@ -8320,9 +8456,22 @@ func (m *UserMutation) OldSubscriptionCategory(ctx context.Context) (v *user.Sub
 	return oldValue.SubscriptionCategory, nil
 }
 
+// ClearSubscriptionCategory clears the value of the "subscription_category" field.
+func (m *UserMutation) ClearSubscriptionCategory() {
+	m.subscription_category = nil
+	m.clearedFields[user.FieldSubscriptionCategory] = struct{}{}
+}
+
+// SubscriptionCategoryCleared returns if the "subscription_category" field was cleared in this mutation.
+func (m *UserMutation) SubscriptionCategoryCleared() bool {
+	_, ok := m.clearedFields[user.FieldSubscriptionCategory]
+	return ok
+}
+
 // ResetSubscriptionCategory resets all changes to the "subscription_category" field.
 func (m *UserMutation) ResetSubscriptionCategory() {
 	m.subscription_category = nil
+	delete(m.clearedFields, user.FieldSubscriptionCategory)
 }
 
 // SetCreatedAt sets the "created_at" field.
@@ -8428,9 +8577,22 @@ func (m *UserMutation) OldConfirmedAt(ctx context.Context) (v *time.Time, err er
 	return oldValue.ConfirmedAt, nil
 }
 
+// ClearConfirmedAt clears the value of the "confirmed_at" field.
+func (m *UserMutation) ClearConfirmedAt() {
+	m.confirmed_at = nil
+	m.clearedFields[user.FieldConfirmedAt] = struct{}{}
+}
+
+// ConfirmedAtCleared returns if the "confirmed_at" field was cleared in this mutation.
+func (m *UserMutation) ConfirmedAtCleared() bool {
+	_, ok := m.clearedFields[user.FieldConfirmedAt]
+	return ok
+}
+
 // ResetConfirmedAt resets all changes to the "confirmed_at" field.
 func (m *UserMutation) ResetConfirmedAt() {
 	m.confirmed_at = nil
+	delete(m.clearedFields, user.FieldConfirmedAt)
 }
 
 // AddUserRoleIDs adds the "user_roles" edge to the UserRole entity by ids.
@@ -8769,7 +8931,17 @@ func (m *UserMutation) AddField(name string, value ent.Value) error {
 // ClearedFields returns all nullable fields that were cleared during this
 // mutation.
 func (m *UserMutation) ClearedFields() []string {
-	return nil
+	var fields []string
+	if m.FieldCleared(user.FieldStripeCustomerID) {
+		fields = append(fields, user.FieldStripeCustomerID)
+	}
+	if m.FieldCleared(user.FieldSubscriptionCategory) {
+		fields = append(fields, user.FieldSubscriptionCategory)
+	}
+	if m.FieldCleared(user.FieldConfirmedAt) {
+		fields = append(fields, user.FieldConfirmedAt)
+	}
+	return fields
 }
 
 // FieldCleared returns a boolean indicating if a field with the given name was
@@ -8782,6 +8954,17 @@ func (m *UserMutation) FieldCleared(name string) bool {
 // ClearField clears the value of the field with the given name. It returns an
 // error if the field is not defined in the schema.
 func (m *UserMutation) ClearField(name string) error {
+	switch name {
+	case user.FieldStripeCustomerID:
+		m.ClearStripeCustomerID()
+		return nil
+	case user.FieldSubscriptionCategory:
+		m.ClearSubscriptionCategory()
+		return nil
+	case user.FieldConfirmedAt:
+		m.ClearConfirmedAt()
+		return nil
+	}
 	return fmt.Errorf("unknown User nullable field %s", name)
 }
 

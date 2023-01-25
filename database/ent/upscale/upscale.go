@@ -28,12 +28,12 @@ const (
 	FieldStatus = "status"
 	// FieldFailureReason holds the string denoting the failure_reason field in the database.
 	FieldFailureReason = "failure_reason"
-	// FieldModelID holds the string denoting the model_id field in the database.
-	FieldModelID = "model_id"
 	// FieldUserID holds the string denoting the user_id field in the database.
 	FieldUserID = "user_id"
 	// FieldDeviceInfoID holds the string denoting the device_info_id field in the database.
 	FieldDeviceInfoID = "device_info_id"
+	// FieldModelID holds the string denoting the model_id field in the database.
+	FieldModelID = "model_id"
 	// FieldCreatedAt holds the string denoting the created_at field in the database.
 	FieldCreatedAt = "created_at"
 	// FieldUpdatedAt holds the string denoting the updated_at field in the database.
@@ -88,9 +88,9 @@ var Columns = []string{
 	FieldCountryCode,
 	FieldStatus,
 	FieldFailureReason,
-	FieldModelID,
 	FieldUserID,
 	FieldDeviceInfoID,
+	FieldModelID,
 	FieldCreatedAt,
 	FieldUpdatedAt,
 }
