@@ -25,7 +25,7 @@ func (Generation) Fields() []ent.Field {
 		field.Int32("num_interference_steps"),
 		field.Float32("guidance_scale"),
 		field.Int("seed"),
-		field.Enum("status").Values("started", "succeeded", "failed", "rejected"),
+		field.Enum("status").Values("queued", "started", "succeeded", "failed", "rejected"),
 		field.Text("failure_reason").Optional().Nillable(),
 		field.Text("country_code"),
 		field.Bool("is_submitted_to_gallery").Default(false),

@@ -159,8 +159,7 @@ func (c *HttpController) PostGenerate(w http.ResponseWriter, r *http.Request) {
 	cogReqBody := requests.CogGenerateQueueRequest{
 		BaseCogRequestQueue: requests.BaseCogRequestQueue{
 			WebhookEventsFilter: []requests.WebhookEventFilterOption{requests.WebhookEventFilterStart, requests.WebhookEventFilterStart},
-			// ! TODO
-			Webhook: "TODO",
+			Webhook:             fmt.Sprintf("%s/v1/queue/webhook/%s", utils.GetEnv("PUBLIC_API_URL", "https://api.stablecog.com"), utils.GetEnv("QUEUE_SECRET", "")),
 		},
 		BaseCogGenerateRequest: requests.BaseCogGenerateRequest{
 			ID:                   requestId,
@@ -185,6 +184,9 @@ func (c *HttpController) PostGenerate(w http.ResponseWriter, r *http.Request) {
 		responses.ErrInternalServerError(w, r, "Failed to queue generate request")
 		return
 	}
+
+	// Track the request in our internal map
+	c.CogRequestUserMap.Put(requestId, userID.String())
 
 	render.Status(r, http.StatusOK)
 	render.JSON(w, r, &responses.GenerateResponse{

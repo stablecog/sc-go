@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"flag"
 	"fmt"
 	"net/http"
@@ -13,12 +14,15 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/cors"
+	"github.com/google/uuid"
 	"github.com/joho/godotenv"
 	"github.com/stablecog/go-apps/database"
 	"github.com/stablecog/go-apps/database/repository"
 	"github.com/stablecog/go-apps/server/controller"
 	"github.com/stablecog/go-apps/server/controller/websocket"
 	"github.com/stablecog/go-apps/server/middleware"
+	"github.com/stablecog/go-apps/server/requests"
+	"github.com/stablecog/go-apps/server/responses"
 	"github.com/stablecog/go-apps/shared"
 	"github.com/stablecog/go-apps/utils"
 	"k8s.io/klog/v2"
@@ -108,6 +112,11 @@ func main() {
 	}
 	shared.GetCache().UpdateSchedulers(schedulers)
 
+	// Create a thread-safe HashMap to store in-flight cog requests
+	// We use this to track requests that are in queue, and coordinate responses
+	// To appropriate users over websocket
+	cogRequestUserMap := shared.NewSyncMap[string]()
+
 	// Setup s3
 	s3Data := utils.GetS3Data()
 	s3resolver := aws.EndpointResolverWithOptionsFunc(
@@ -127,10 +136,11 @@ func main() {
 
 	// Create controller
 	hc := controller.HttpController{
-		Repo:            repo,
-		Redis:           redis,
-		S3Client:        s3Client,
-		S3PresignClient: s3PresignClient,
+		Repo:              repo,
+		Redis:             redis,
+		S3Client:          s3Client,
+		S3PresignClient:   s3PresignClient,
+		CogRequestUserMap: cogRequestUserMap,
 	}
 
 	// Create middleware
@@ -167,6 +177,65 @@ func main() {
 			})
 		})
 	})
+
+	// Subscribe to webhook events
+	pubsub := redis.Client.Subscribe(ctx, shared.COG_REDIS_WEBHOOK_QUEUE_CHANNEL)
+	defer pubsub.Close()
+
+	// Listen for messages
+	go func() {
+		klog.Infof("Listening for webhook messages on channel: %s", shared.COG_REDIS_WEBHOOK_QUEUE_CHANNEL)
+		for msg := range pubsub.Channel() {
+			klog.Infof("Received webhook message: %s", msg.Payload)
+			var webhookMessage requests.WebhookRequest
+			err := json.Unmarshal([]byte(msg.Payload), &webhookMessage)
+			if err != nil {
+				klog.Errorf("--- Error unmarshalling webhook message: %v", err)
+				continue
+			}
+
+			// See if this request belongs to our instance
+			userIdStr := cogRequestUserMap.Get(webhookMessage.Input.Id)
+			if userIdStr == "" {
+				continue
+			}
+			userId, err := uuid.Parse(userIdStr)
+			if err != nil {
+				klog.Errorf("--- Error parsing user id: %v", err)
+				continue
+			}
+
+			// Processing, update this generation as started in database
+			if webhookMessage.Status == requests.WebhookProcessing {
+				// In goroutine since we don't care, like whatever man
+				go repo.SetGenerationStarted(webhookMessage.Input.Id)
+			} else if webhookMessage.Status == requests.WebhookFailed {
+				go repo.SetGenerationFailed(webhookMessage.Input.Id, webhookMessage.Error)
+			} else if webhookMessage.Status == requests.WebhookSucceeded {
+				go repo.SetGenerationSucceeded(webhookMessage.Input.Id, webhookMessage.Output)
+			} else {
+				klog.Warningf("--- Unknown webhook status, not sure how to proceed so not proceeding at all: %s", webhookMessage.Status)
+				continue
+			}
+
+			// Regardless of the status, we always send over websocket so user knows what's up
+			// Send message to user
+			resp := responses.WebsocketStatusUpdateResponse{
+				Status: webhookMessage.Status,
+				Id:     webhookMessage.Input.Id,
+			}
+			if webhookMessage.Status == requests.WebhookSucceeded {
+				resp.Outputs = webhookMessage.Output
+			}
+			// Marshal
+			respBytes, err := json.Marshal(resp)
+			if err != nil {
+				klog.Errorf("--- Error marshalling websocket started response: %v", err)
+				continue
+			}
+			hub.BroadcastToClientsWithUid(userId.String(), respBytes)
+		}
+	}()
 
 	// Start server
 	port := utils.GetEnv("PORT", "13337")

@@ -32,7 +32,7 @@ var (
 		{Name: "num_interference_steps", Type: field.TypeInt32},
 		{Name: "guidance_scale", Type: field.TypeFloat32},
 		{Name: "seed", Type: field.TypeInt},
-		{Name: "status", Type: field.TypeEnum, Enums: []string{"started", "succeeded", "failed", "rejected"}},
+		{Name: "status", Type: field.TypeEnum, Enums: []string{"queued", "started", "succeeded", "failed", "rejected"}},
 		{Name: "failure_reason", Type: field.TypeString, Nullable: true, Size: 2147483647},
 		{Name: "country_code", Type: field.TypeString, Size: 2147483647},
 		{Name: "is_submitted_to_gallery", Type: field.TypeBool, Default: false},
