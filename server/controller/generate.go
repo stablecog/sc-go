@@ -45,7 +45,7 @@ func (c *HttpController) PostGenerate(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Make sure the websocket ID is valid
-	if generateReq.WebsocketId == "" || c.Hub.GetClientByUid(generateReq.WebsocketId) == nil {
+	if !utils.IsSha256Hash(generateReq.WebsocketId) || c.Hub.GetClientByUid(generateReq.WebsocketId) == nil {
 		responses.ErrBadRequest(w, r, "Invalid websocket ID")
 		return
 	}
