@@ -3,6 +3,8 @@ package websocket
 import (
 	"strings"
 	"sync"
+
+	"github.com/stablecog/go-apps/database"
 )
 
 // Hub maintains the set of active clients and broadcasts messages to the
@@ -19,6 +21,9 @@ type Hub struct {
 
 	// Unregister requests from clients.
 	Unregister chan *Client
+
+	// Auth
+	SupabseAuth *database.SupabaseAuth
 
 	// We need a mutex to protect the clients map
 	mu sync.Mutex
@@ -64,12 +69,13 @@ func (h *Hub) GetGuestCount() int {
 	return count
 }
 
-func NewHub() *Hub {
+func NewHub(auth *database.SupabaseAuth) *Hub {
 	return &Hub{
-		Broadcast:  make(chan []byte),
-		Register:   make(chan *Client),
-		Unregister: make(chan *Client),
-		clients:    make(map[*Client]bool),
+		Broadcast:   make(chan []byte),
+		Register:    make(chan *Client),
+		Unregister:  make(chan *Client),
+		clients:     make(map[*Client]bool),
+		SupabseAuth: auth,
 	}
 }
 

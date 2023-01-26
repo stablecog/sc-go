@@ -139,6 +139,9 @@ func main() {
 	s3Client := s3.NewFromConfig(cfg)
 	s3PresignClient := s3.NewPresignClient(s3Client)
 
+	// Setup supabase auth
+	auth := database.NewSupabaseAuth()
+
 	// Create controller
 	hc := controller.HttpController{
 		Repo:              repo,
@@ -150,11 +153,11 @@ func main() {
 
 	// Create middleware
 	mw := middleware.Middleware{
-		SupabaseAuth: database.NewSupabaseAuth(),
+		SupabaseAuth: auth,
 	}
 
 	// Create and start websocket hub
-	hub := websocket.NewHub()
+	hub := websocket.NewHub(auth)
 	go hub.Run()
 
 	// Routes
@@ -176,7 +179,6 @@ func main() {
 
 		// Websocket, optional auth
 		r.Route("/ws", func(r chi.Router) {
-			r.Use(mw.OptionalAuthMiddleware)
 			r.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 				websocket.ServeWS(hub, w, r)
 			})
