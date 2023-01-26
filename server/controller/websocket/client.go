@@ -1,12 +1,11 @@
 package websocket
 
 import (
-	"encoding/json"
+	"bytes"
+	"log"
 	"time"
 
 	"github.com/gorilla/websocket"
-	"github.com/stablecog/go-apps/server/requests"
-	"k8s.io/klog/v2"
 )
 
 const (
@@ -65,35 +64,12 @@ func (c *Client) readPump() {
 		_, message, err := c.Conn.ReadMessage()
 		if err != nil {
 			if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {
-				klog.Errorf("error: %v", err)
+				log.Printf("error: %v", err)
 			}
 			break
 		}
-		var authRequest requests.WebsocketAuthMessage
-		err = json.Unmarshal(message, &authRequest)
-		if err != nil {
-			klog.Errorf("Received unknown websocket message from %s: %s", c.Uid, string(message))
-			continue
-		}
-		userId, err := c.Hub.SupabseAuth.GetSupabaseUserIdFromAccessToken(authRequest.Token)
-		if err != nil {
-			response := WebsocketConnResponse{Authenticated: false}
-			marshalled, err := json.Marshal(response)
-			if err != nil {
-				klog.Errorf("Error marshalling websocket auth response %v", err)
-				continue
-			}
-			c.Send <- marshalled
-			continue
-		}
-		c.Uid = userId
-		response := WebsocketConnResponse{Authenticated: true}
-		marshalled, err := json.Marshal(response)
-		if err != nil {
-			klog.Errorf("Error marshalling websocket auth response %v", err)
-			continue
-		}
-		c.Send <- marshalled
+		message = bytes.TrimSpace(bytes.Replace(message, newline, space, -1))
+		c.Hub.Broadcast <- message
 	}
 }
 
