@@ -16,7 +16,6 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/cors"
 	"github.com/go-co-op/gocron"
-	"github.com/google/uuid"
 	"github.com/joho/godotenv"
 	"github.com/stablecog/go-apps/database"
 	"github.com/stablecog/go-apps/database/repository"
@@ -120,7 +119,7 @@ func main() {
 	// Create a thread-safe HashMap to store in-flight cog requests
 	// We use this to track requests that are in queue, and coordinate responses
 	// To appropriate users over websocket
-	cogRequestUserMap := shared.NewSyncMap[string]()
+	cogRequestWebsocketConnMap := shared.NewSyncMap[string]()
 
 	// Setup s3
 	s3Data := utils.GetS3Data()
@@ -145,12 +144,12 @@ func main() {
 
 	// Create controller
 	hc := controller.HttpController{
-		Repo:              repo,
-		Redis:             redis,
-		S3Client:          s3Client,
-		S3PresignClient:   s3PresignClient,
-		CogRequestUserMap: cogRequestUserMap,
-		Hub:               hub,
+		Repo:                       repo,
+		Redis:                      redis,
+		S3Client:                   s3Client,
+		S3PresignClient:            s3PresignClient,
+		CogRequestWebsocketConnMap: cogRequestWebsocketConnMap,
+		Hub:                        hub,
 	}
 
 	// Create middleware
@@ -200,13 +199,14 @@ func main() {
 			}
 
 			// See if this request belongs to our instance
-			userIdStr := cogRequestUserMap.Get(webhookMessage.Input.Id)
-			if userIdStr == "" {
+			websocketIdStr := cogRequestWebsocketConnMap.Get(webhookMessage.Input.Id)
+			if websocketIdStr == "" {
 				continue
 			}
-			userId, err := uuid.Parse(userIdStr)
-			if err != nil {
-				klog.Errorf("--- Error parsing user id: %v", err)
+			// Ensure is valid
+			if !utils.IsSha256Hash(websocketIdStr) {
+				// Not sure how we get here, we never should
+				klog.Errorf("--- Invalid websocket id: %s", websocketIdStr)
 				continue
 			}
 
@@ -238,7 +238,7 @@ func main() {
 				klog.Errorf("--- Error marshalling websocket started response: %v", err)
 				continue
 			}
-			hub.BroadcastToClientsWithUid(userId.String(), respBytes)
+			hub.BroadcastToClientsWithUid(websocketIdStr, respBytes)
 		}
 	}()
 

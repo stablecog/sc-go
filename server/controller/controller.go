@@ -9,10 +9,10 @@ import (
 )
 
 type HttpController struct {
-	Repo              *repository.Repository
-	Redis             *database.RedisWrapper
-	S3Client          *s3.Client
-	S3PresignClient   *s3.PresignClient
-	CogRequestUserMap *shared.SyncMap[string]
-	Hub               *websocket.Hub
+	Repo                       *repository.Repository
+	Redis                      *database.RedisWrapper
+	S3Client                   *s3.Client
+	S3PresignClient            *s3.PresignClient
+	CogRequestWebsocketConnMap *shared.SyncMap[string]
+	Hub                        *websocket.Hub
 }

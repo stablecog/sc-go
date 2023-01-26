@@ -192,7 +192,7 @@ func (c *HttpController) PostGenerate(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Track the request in our internal map
-	c.CogRequestUserMap.Put(requestId, generateReq.WebsocketId)
+	c.CogRequestWebsocketConnMap.Put(requestId, generateReq.WebsocketId)
 
 	render.Status(r, http.StatusOK)
 	render.JSON(w, r, &responses.GenerateResponse{

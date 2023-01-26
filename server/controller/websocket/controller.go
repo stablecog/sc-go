@@ -2,8 +2,10 @@ package websocket
 
 import (
 	"net/http"
+	"strings"
 
 	"github.com/stablecog/go-apps/server/responses"
+	"github.com/stablecog/go-apps/utils"
 	"k8s.io/klog/v2"
 )
 
@@ -11,9 +13,9 @@ import (
 func ServeWS(hub *Hub, w http.ResponseWriter, r *http.Request) {
 	// Retrieve id from query parameters
 	query := r.URL.Query()
-	requestId := query.Get("id")
-	if requestId == "" {
-		responses.ErrBadRequest(w, r, "Missing id query parameter")
+	requestId := strings.ToLower(query.Get("session_id"))
+	if !utils.IsSha256Hash(requestId) {
+		responses.ErrBadRequest(w, r, "Invalid ID")
 		return
 	}
 	// ! TODO - proper cors check
