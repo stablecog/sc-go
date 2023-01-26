@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"time"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
@@ -14,6 +15,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/cors"
+	"github.com/go-co-op/gocron"
 	"github.com/google/uuid"
 	"github.com/joho/godotenv"
 	"github.com/stablecog/go-apps/database"
@@ -98,19 +100,22 @@ func main() {
 	}
 
 	// Get models, schedulers and put in cache
-	// ! Not getting these is fatal and will result in crash
-	generationModels, err := repo.GetAllGenerationModels()
+	klog.Infof("📦 Updating cache...")
+	err = shared.GetCache().UpdateCache(repo)
 	if err != nil {
-		klog.Fatalf("Failed to get generation_models: %v", err)
+		// ! Not getting these is fatal and will result in crash
 		panic(err)
 	}
-	shared.GetCache().UpdateGenerationModels(generationModels)
-	schedulers, err := repo.GetAllSchedulers()
-	if err != nil {
-		klog.Fatalf("Failed to get schedulers: %v", err)
-		panic(err)
-	}
-	shared.GetCache().UpdateSchedulers(schedulers)
+	// Update periodically
+	s := gocron.NewScheduler(time.UTC)
+	s.Every(5).Minutes().StartAt(time.Now().Add(5 * time.Minute)).Do(func() {
+		klog.Infof("📦 Updating cache...")
+		err = shared.GetCache().UpdateCache(repo)
+		if err != nil {
+			klog.Errorf("Error updating cache: %v", err)
+		}
+	})
+	s.StartAsync()
 
 	// Create a thread-safe HashMap to store in-flight cog requests
 	// We use this to track requests that are in queue, and coordinate responses
