@@ -1515,9 +1515,22 @@ func (m *GenerationMutation) OldNegativePromptID(ctx context.Context) (v *uuid.U
 	return oldValue.NegativePromptID, nil
 }
 
+// ClearNegativePromptID clears the value of the "negative_prompt_id" field.
+func (m *GenerationMutation) ClearNegativePromptID() {
+	m.negative_prompts = nil
+	m.clearedFields[generation.FieldNegativePromptID] = struct{}{}
+}
+
+// NegativePromptIDCleared returns if the "negative_prompt_id" field was cleared in this mutation.
+func (m *GenerationMutation) NegativePromptIDCleared() bool {
+	_, ok := m.clearedFields[generation.FieldNegativePromptID]
+	return ok
+}
+
 // ResetNegativePromptID resets all changes to the "negative_prompt_id" field.
 func (m *GenerationMutation) ResetNegativePromptID() {
 	m.negative_prompts = nil
+	delete(m.clearedFields, generation.FieldNegativePromptID)
 }
 
 // SetModelID sets the "model_id" field.
@@ -1950,7 +1963,7 @@ func (m *GenerationMutation) ClearNegativePrompts() {
 
 // NegativePromptsCleared reports if the "negative_prompts" edge to the NegativePrompt entity was cleared.
 func (m *GenerationMutation) NegativePromptsCleared() bool {
-	return m.clearednegative_prompts
+	return m.NegativePromptIDCleared() || m.clearednegative_prompts
 }
 
 // NegativePromptsID returns the "negative_prompts" edge ID in the mutation.
@@ -2563,6 +2576,9 @@ func (m *GenerationMutation) ClearedFields() []string {
 	if m.FieldCleared(generation.FieldInitImageURL) {
 		fields = append(fields, generation.FieldInitImageURL)
 	}
+	if m.FieldCleared(generation.FieldNegativePromptID) {
+		fields = append(fields, generation.FieldNegativePromptID)
+	}
 	if m.FieldCleared(generation.FieldStartedAt) {
 		fields = append(fields, generation.FieldStartedAt)
 	}
@@ -2588,6 +2604,9 @@ func (m *GenerationMutation) ClearField(name string) error {
 		return nil
 	case generation.FieldInitImageURL:
 		m.ClearInitImageURL()
+		return nil
+	case generation.FieldNegativePromptID:
+		m.ClearNegativePromptID()
 		return nil
 	case generation.FieldStartedAt:
 		m.ClearStartedAt()

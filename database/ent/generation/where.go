@@ -651,6 +651,16 @@ func NegativePromptIDNotIn(vs ...uuid.UUID) predicate.Generation {
 	return predicate.Generation(sql.FieldNotIn(FieldNegativePromptID, vs...))
 }
 
+// NegativePromptIDIsNil applies the IsNil predicate on the "negative_prompt_id" field.
+func NegativePromptIDIsNil() predicate.Generation {
+	return predicate.Generation(sql.FieldIsNull(FieldNegativePromptID))
+}
+
+// NegativePromptIDNotNil applies the NotNil predicate on the "negative_prompt_id" field.
+func NegativePromptIDNotNil() predicate.Generation {
+	return predicate.Generation(sql.FieldNotNull(FieldNegativePromptID))
+}
+
 // ModelIDEQ applies the EQ predicate on the "model_id" field.
 func ModelIDEQ(v uuid.UUID) predicate.Generation {
 	return predicate.Generation(sql.FieldEQ(FieldModelID, v))

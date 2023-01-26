@@ -138,6 +138,14 @@ func (gc *GenerationCreate) SetNegativePromptID(u uuid.UUID) *GenerationCreate {
 	return gc
 }
 
+// SetNillableNegativePromptID sets the "negative_prompt_id" field if the given value is not nil.
+func (gc *GenerationCreate) SetNillableNegativePromptID(u *uuid.UUID) *GenerationCreate {
+	if u != nil {
+		gc.SetNegativePromptID(*u)
+	}
+	return gc
+}
+
 // SetModelID sets the "model_id" field.
 func (gc *GenerationCreate) SetModelID(u uuid.UUID) *GenerationCreate {
 	gc.mutation.SetModelID(u)
@@ -262,6 +270,14 @@ func (gc *GenerationCreate) SetPrompts(p *Prompt) *GenerationCreate {
 // SetNegativePromptsID sets the "negative_prompts" edge to the NegativePrompt entity by ID.
 func (gc *GenerationCreate) SetNegativePromptsID(id uuid.UUID) *GenerationCreate {
 	gc.mutation.SetNegativePromptsID(id)
+	return gc
+}
+
+// SetNillableNegativePromptsID sets the "negative_prompts" edge to the NegativePrompt entity by ID if the given value is not nil.
+func (gc *GenerationCreate) SetNillableNegativePromptsID(id *uuid.UUID) *GenerationCreate {
+	if id != nil {
+		gc = gc.SetNegativePromptsID(*id)
+	}
 	return gc
 }
 
@@ -401,9 +417,6 @@ func (gc *GenerationCreate) check() error {
 	if _, ok := gc.mutation.PromptID(); !ok {
 		return &ValidationError{Name: "prompt_id", err: errors.New(`ent: missing required field "Generation.prompt_id"`)}
 	}
-	if _, ok := gc.mutation.NegativePromptID(); !ok {
-		return &ValidationError{Name: "negative_prompt_id", err: errors.New(`ent: missing required field "Generation.negative_prompt_id"`)}
-	}
 	if _, ok := gc.mutation.ModelID(); !ok {
 		return &ValidationError{Name: "model_id", err: errors.New(`ent: missing required field "Generation.model_id"`)}
 	}
@@ -430,9 +443,6 @@ func (gc *GenerationCreate) check() error {
 	}
 	if _, ok := gc.mutation.PromptsID(); !ok {
 		return &ValidationError{Name: "prompts", err: errors.New(`ent: missing required edge "Generation.prompts"`)}
-	}
-	if _, ok := gc.mutation.NegativePromptsID(); !ok {
-		return &ValidationError{Name: "negative_prompts", err: errors.New(`ent: missing required edge "Generation.negative_prompts"`)}
 	}
 	if _, ok := gc.mutation.GenerationModelsID(); !ok {
 		return &ValidationError{Name: "generation_models", err: errors.New(`ent: missing required edge "Generation.generation_models"`)}

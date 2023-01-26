@@ -33,7 +33,7 @@ func (Generation) Fields() []ent.Field {
 		field.Text("init_image_url").Optional().Nillable(),
 		// ! Relationships / many-to-one
 		field.UUID("prompt_id", uuid.UUID{}),
-		field.UUID("negative_prompt_id", uuid.UUID{}).Nillable(),
+		field.UUID("negative_prompt_id", uuid.UUID{}).Optional().Nillable(),
 		field.UUID("model_id", uuid.UUID{}),
 		field.UUID("scheduler_id", uuid.UUID{}),
 		field.UUID("user_id", uuid.UUID{}),
@@ -71,7 +71,6 @@ func (Generation) Edges() []ent.Edge {
 		edge.From("negative_prompts", NegativePrompt.Type).
 			Ref("generations").
 			Field("negative_prompt_id").
-			Required().
 			Unique(),
 		// M2O with generation_models
 		edge.From("generation_models", GenerationModel.Type).

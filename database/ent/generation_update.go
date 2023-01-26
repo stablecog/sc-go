@@ -193,6 +193,20 @@ func (gu *GenerationUpdate) SetNegativePromptID(u uuid.UUID) *GenerationUpdate {
 	return gu
 }
 
+// SetNillableNegativePromptID sets the "negative_prompt_id" field if the given value is not nil.
+func (gu *GenerationUpdate) SetNillableNegativePromptID(u *uuid.UUID) *GenerationUpdate {
+	if u != nil {
+		gu.SetNegativePromptID(*u)
+	}
+	return gu
+}
+
+// ClearNegativePromptID clears the value of the "negative_prompt_id" field.
+func (gu *GenerationUpdate) ClearNegativePromptID() *GenerationUpdate {
+	gu.mutation.ClearNegativePromptID()
+	return gu
+}
+
 // SetModelID sets the "model_id" field.
 func (gu *GenerationUpdate) SetModelID(u uuid.UUID) *GenerationUpdate {
 	gu.mutation.SetModelID(u)
@@ -293,6 +307,14 @@ func (gu *GenerationUpdate) SetPrompts(p *Prompt) *GenerationUpdate {
 // SetNegativePromptsID sets the "negative_prompts" edge to the NegativePrompt entity by ID.
 func (gu *GenerationUpdate) SetNegativePromptsID(id uuid.UUID) *GenerationUpdate {
 	gu.mutation.SetNegativePromptsID(id)
+	return gu
+}
+
+// SetNillableNegativePromptsID sets the "negative_prompts" edge to the NegativePrompt entity by ID if the given value is not nil.
+func (gu *GenerationUpdate) SetNillableNegativePromptsID(id *uuid.UUID) *GenerationUpdate {
+	if id != nil {
+		gu = gu.SetNegativePromptsID(*id)
+	}
 	return gu
 }
 
@@ -451,9 +473,6 @@ func (gu *GenerationUpdate) check() error {
 	}
 	if _, ok := gu.mutation.PromptsID(); gu.mutation.PromptsCleared() && !ok {
 		return errors.New(`ent: clearing a required unique edge "Generation.prompts"`)
-	}
-	if _, ok := gu.mutation.NegativePromptsID(); gu.mutation.NegativePromptsCleared() && !ok {
-		return errors.New(`ent: clearing a required unique edge "Generation.negative_prompts"`)
 	}
 	if _, ok := gu.mutation.GenerationModelsID(); gu.mutation.GenerationModelsCleared() && !ok {
 		return errors.New(`ent: clearing a required unique edge "Generation.generation_models"`)
@@ -995,6 +1014,20 @@ func (guo *GenerationUpdateOne) SetNegativePromptID(u uuid.UUID) *GenerationUpda
 	return guo
 }
 
+// SetNillableNegativePromptID sets the "negative_prompt_id" field if the given value is not nil.
+func (guo *GenerationUpdateOne) SetNillableNegativePromptID(u *uuid.UUID) *GenerationUpdateOne {
+	if u != nil {
+		guo.SetNegativePromptID(*u)
+	}
+	return guo
+}
+
+// ClearNegativePromptID clears the value of the "negative_prompt_id" field.
+func (guo *GenerationUpdateOne) ClearNegativePromptID() *GenerationUpdateOne {
+	guo.mutation.ClearNegativePromptID()
+	return guo
+}
+
 // SetModelID sets the "model_id" field.
 func (guo *GenerationUpdateOne) SetModelID(u uuid.UUID) *GenerationUpdateOne {
 	guo.mutation.SetModelID(u)
@@ -1095,6 +1128,14 @@ func (guo *GenerationUpdateOne) SetPrompts(p *Prompt) *GenerationUpdateOne {
 // SetNegativePromptsID sets the "negative_prompts" edge to the NegativePrompt entity by ID.
 func (guo *GenerationUpdateOne) SetNegativePromptsID(id uuid.UUID) *GenerationUpdateOne {
 	guo.mutation.SetNegativePromptsID(id)
+	return guo
+}
+
+// SetNillableNegativePromptsID sets the "negative_prompts" edge to the NegativePrompt entity by ID if the given value is not nil.
+func (guo *GenerationUpdateOne) SetNillableNegativePromptsID(id *uuid.UUID) *GenerationUpdateOne {
+	if id != nil {
+		guo = guo.SetNegativePromptsID(*id)
+	}
 	return guo
 }
 
@@ -1260,9 +1301,6 @@ func (guo *GenerationUpdateOne) check() error {
 	}
 	if _, ok := guo.mutation.PromptsID(); guo.mutation.PromptsCleared() && !ok {
 		return errors.New(`ent: clearing a required unique edge "Generation.prompts"`)
-	}
-	if _, ok := guo.mutation.NegativePromptsID(); guo.mutation.NegativePromptsCleared() && !ok {
-		return errors.New(`ent: clearing a required unique edge "Generation.negative_prompts"`)
 	}
 	if _, ok := guo.mutation.GenerationModelsID(); guo.mutation.GenerationModelsCleared() && !ok {
 		return errors.New(`ent: clearing a required unique edge "Generation.generation_models"`)

@@ -28,9 +28,9 @@ var singleCache *Cache
 
 func newCache() *Cache {
 	return &Cache{
-		FreeWidths:            []int32{512},
-		FreeHeights:           []int32{512},
-		FreeInterferenceSteps: []int32{30},
+		FreeWidths:            []int32{MAX_GENERATE_WIDTH_FREE},
+		FreeHeights:           []int32{MAX_GENERATE_HEIGHT_FREE},
+		FreeInterferenceSteps: []int32{MAX_GENERATE_INTERFERENCE_STEPS_FREE},
 	}
 }
 

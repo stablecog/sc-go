@@ -1,5 +1,7 @@
 package requests
 
+import "encoding/json"
+
 // Represents requests that go directly from our app to the cog
 
 // Filters specify what events we want the cog to send to our webhook
@@ -43,4 +45,8 @@ type BaseCogGenerateRequest struct {
 type CogGenerateQueueRequest struct {
 	BaseCogRequestQueue
 	BaseCogGenerateRequest
+}
+
+func (i CogGenerateQueueRequest) MarshalBinary() (data []byte, err error) {
+	return json.Marshal(i)
 }

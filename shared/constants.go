@@ -3,6 +3,9 @@ package shared
 // Generation related
 const MAX_GENERATE_WIDTH = 768
 const MAX_GENERATE_HEIGHT = 768
+const MAX_GENERATE_WIDTH_FREE = 512
+const MAX_GENERATE_HEIGHT_FREE = 512
+const MAX_GENERATE_INTERFERENCE_STEPS_FREE = 30
 const MAX_PRO_PIXEL_STEPS = 640 * 640 * 50
 
 // Prompt related
