@@ -1,7 +1,6 @@
 package websocket
 
 import (
-	"strings"
 	"sync"
 )
 
@@ -49,19 +48,6 @@ func (h *Hub) BroadcastToClientsWithUid(uid string, message []byte) {
 			}
 		}
 	}
-}
-
-// Get count of unregistered clients (guests)
-func (h *Hub) GetGuestCount() int {
-	h.mu.Lock()
-	defer h.mu.Unlock()
-	count := 0
-	for client := range h.clients {
-		if strings.HasPrefix("guest", client.Uid) {
-			count++
-		}
-	}
-	return count
 }
 
 func NewHub() *Hub {

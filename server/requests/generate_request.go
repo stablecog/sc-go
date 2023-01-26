@@ -12,5 +12,6 @@ type GenerateRequestBody struct {
 	ModelId           uuid.UUID `json:"model_id"`
 	SchedulerId       uuid.UUID `json:"scheduler_id"`
 	Seed              int       `json:"seed"`
+	WebsocketId       string    `json:"websocket_id"`
 	// ShouldSubmitToGallery bool    `json:"should_submit_to_gallery"`
 }
