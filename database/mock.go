@@ -7,6 +7,8 @@ import (
 	"github.com/google/uuid"
 	"github.com/stablecog/go-apps/database/ent"
 	"github.com/stablecog/go-apps/database/ent/userrole"
+	"github.com/stablecog/go-apps/database/repository"
+	"github.com/stablecog/go-apps/server/requests"
 )
 
 // Mock user IDs
@@ -21,7 +23,7 @@ const MOCK_SCHEDULER_ID_FREE = "b4dff6e9-91a7-449b-b1a7-c25000e3ccd0"
 const MOCK_SCHEDULER_ID_PRO = "b4dff6e9-91a7-449b-b1a7-c25000e3ccd1"
 
 // Just creates some mock data for our tests
-func CreateMockData(ctx context.Context, db *ent.Client) error {
+func CreateMockData(ctx context.Context, db *ent.Client, repo *repository.Repository) error {
 	// ! Mock users
 	// Create a user
 	u, err := db.User.Create().SetEmail("mockadmin@stablecog.com").SetID(uuid.MustParse(MOCK_ADMIN_UUID)).SetConfirmedAt(time.Now()).Save(ctx)
@@ -68,6 +70,96 @@ func CreateMockData(ctx context.Context, db *ent.Client) error {
 	}
 	// Create a scheduler for the pro user
 	_, err = db.Scheduler.Create().SetID(uuid.MustParse(MOCK_SCHEDULER_ID_PRO)).SetName("mockproscheduler").SetIsFree(false).Save(ctx)
+	if err != nil {
+		return err
+	}
+
+	// ! Mock some generations
+	// With negative prompt, success, and outpts
+	gen, err := repo.CreateGeneration(uuid.MustParse(MOCK_ADMIN_UUID), "browser", "macos", "chrome", "DE", requests.GenerateRequestBody{
+		Prompt:            "This is a prompt",
+		NegativePrompt:    "This is a negative prompt",
+		Width:             512,
+		Height:            512,
+		NumInferenceSteps: 30,
+		GuidanceScale:     1.0,
+		ModelId:           uuid.MustParse(MOCK_GENERATION_MODEL_ID_FREE),
+		SchedulerId:       uuid.MustParse(MOCK_SCHEDULER_ID_FREE),
+		Seed:              1234,
+	})
+	if err != nil {
+		return err
+	}
+	err = repo.SetGenerationStarted(gen.ID.String())
+	if err != nil {
+		return err
+	}
+	err = repo.SetGenerationSucceeded(gen.ID.String(), []string{"output_1", "output_2", "output_3"})
+	if err != nil {
+		return err
+	}
+
+	// Without negative prompt, also success
+	gen, err = repo.CreateGeneration(uuid.MustParse(MOCK_ADMIN_UUID), "browser", "macos", "chrome", "DE", requests.GenerateRequestBody{
+		Prompt:            "This is a prompt 2",
+		Width:             512,
+		Height:            512,
+		NumInferenceSteps: 30,
+		GuidanceScale:     1.0,
+		ModelId:           uuid.MustParse(MOCK_GENERATION_MODEL_ID_FREE),
+		SchedulerId:       uuid.MustParse(MOCK_SCHEDULER_ID_FREE),
+		Seed:              1234,
+	})
+	if err != nil {
+		return err
+	}
+	err = repo.SetGenerationStarted(gen.ID.String())
+	if err != nil {
+		return err
+	}
+	err = repo.SetGenerationSucceeded(gen.ID.String(), []string{"output_4", "output_5", "output_6"})
+	if err != nil {
+		return err
+	}
+
+	// Failure
+	gen, err = repo.CreateGeneration(uuid.MustParse(MOCK_ADMIN_UUID), "browser", "macos", "chrome", "DE", requests.GenerateRequestBody{
+		Prompt:            "This is a prompt 3",
+		Width:             512,
+		Height:            512,
+		NumInferenceSteps: 30,
+		GuidanceScale:     1.0,
+		ModelId:           uuid.MustParse(MOCK_GENERATION_MODEL_ID_FREE),
+		SchedulerId:       uuid.MustParse(MOCK_SCHEDULER_ID_FREE),
+		Seed:              1234,
+	})
+	if err != nil {
+		return err
+	}
+	err = repo.SetGenerationStarted(gen.ID.String())
+	if err != nil {
+		return err
+	}
+	err = repo.SetGenerationFailed(gen.ID.String(), "Failed to generate")
+	if err != nil {
+		return err
+	}
+
+	// In progress
+	gen, err = repo.CreateGeneration(uuid.MustParse(MOCK_ADMIN_UUID), "browser", "macos", "chrome", "DE", requests.GenerateRequestBody{
+		Prompt:            "This is a prompt 4",
+		Width:             512,
+		Height:            512,
+		NumInferenceSteps: 30,
+		GuidanceScale:     1.0,
+		ModelId:           uuid.MustParse(MOCK_GENERATION_MODEL_ID_FREE),
+		SchedulerId:       uuid.MustParse(MOCK_SCHEDULER_ID_FREE),
+		Seed:              1234,
+	})
+	if err != nil {
+		return err
+	}
+	err = repo.SetGenerationStarted(gen.ID.String())
 	if err != nil {
 		return err
 	}

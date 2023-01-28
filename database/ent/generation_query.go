@@ -31,10 +31,10 @@ type GenerationQuery struct {
 	inters                []Interceptor
 	predicates            []predicate.Generation
 	withDeviceInfo        *DeviceInfoQuery
-	withSchedulers        *SchedulerQuery
-	withPrompts           *PromptQuery
-	withNegativePrompts   *NegativePromptQuery
-	withGenerationModels  *GenerationModelQuery
+	withScheduler         *SchedulerQuery
+	withPrompt            *PromptQuery
+	withNegativePrompt    *NegativePromptQuery
+	withGenerationModel   *GenerationModelQuery
 	withUsers             *UserQuery
 	withGenerationOutputs *GenerationOutputQuery
 	// intermediate query (i.e. traversal path).
@@ -95,8 +95,8 @@ func (gq *GenerationQuery) QueryDeviceInfo() *DeviceInfoQuery {
 	return query
 }
 
-// QuerySchedulers chains the current query on the "schedulers" edge.
-func (gq *GenerationQuery) QuerySchedulers() *SchedulerQuery {
+// QueryScheduler chains the current query on the "scheduler" edge.
+func (gq *GenerationQuery) QueryScheduler() *SchedulerQuery {
 	query := (&SchedulerClient{config: gq.config}).Query()
 	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
 		if err := gq.prepareQuery(ctx); err != nil {
@@ -109,7 +109,7 @@ func (gq *GenerationQuery) QuerySchedulers() *SchedulerQuery {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(generation.Table, generation.FieldID, selector),
 			sqlgraph.To(scheduler.Table, scheduler.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, generation.SchedulersTable, generation.SchedulersColumn),
+			sqlgraph.Edge(sqlgraph.M2O, true, generation.SchedulerTable, generation.SchedulerColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(gq.driver.Dialect(), step)
 		return fromU, nil
@@ -117,8 +117,8 @@ func (gq *GenerationQuery) QuerySchedulers() *SchedulerQuery {
 	return query
 }
 
-// QueryPrompts chains the current query on the "prompts" edge.
-func (gq *GenerationQuery) QueryPrompts() *PromptQuery {
+// QueryPrompt chains the current query on the "prompt" edge.
+func (gq *GenerationQuery) QueryPrompt() *PromptQuery {
 	query := (&PromptClient{config: gq.config}).Query()
 	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
 		if err := gq.prepareQuery(ctx); err != nil {
@@ -131,7 +131,7 @@ func (gq *GenerationQuery) QueryPrompts() *PromptQuery {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(generation.Table, generation.FieldID, selector),
 			sqlgraph.To(prompt.Table, prompt.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, generation.PromptsTable, generation.PromptsColumn),
+			sqlgraph.Edge(sqlgraph.M2O, true, generation.PromptTable, generation.PromptColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(gq.driver.Dialect(), step)
 		return fromU, nil
@@ -139,8 +139,8 @@ func (gq *GenerationQuery) QueryPrompts() *PromptQuery {
 	return query
 }
 
-// QueryNegativePrompts chains the current query on the "negative_prompts" edge.
-func (gq *GenerationQuery) QueryNegativePrompts() *NegativePromptQuery {
+// QueryNegativePrompt chains the current query on the "negative_prompt" edge.
+func (gq *GenerationQuery) QueryNegativePrompt() *NegativePromptQuery {
 	query := (&NegativePromptClient{config: gq.config}).Query()
 	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
 		if err := gq.prepareQuery(ctx); err != nil {
@@ -153,7 +153,7 @@ func (gq *GenerationQuery) QueryNegativePrompts() *NegativePromptQuery {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(generation.Table, generation.FieldID, selector),
 			sqlgraph.To(negativeprompt.Table, negativeprompt.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, generation.NegativePromptsTable, generation.NegativePromptsColumn),
+			sqlgraph.Edge(sqlgraph.M2O, true, generation.NegativePromptTable, generation.NegativePromptColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(gq.driver.Dialect(), step)
 		return fromU, nil
@@ -161,8 +161,8 @@ func (gq *GenerationQuery) QueryNegativePrompts() *NegativePromptQuery {
 	return query
 }
 
-// QueryGenerationModels chains the current query on the "generation_models" edge.
-func (gq *GenerationQuery) QueryGenerationModels() *GenerationModelQuery {
+// QueryGenerationModel chains the current query on the "generation_model" edge.
+func (gq *GenerationQuery) QueryGenerationModel() *GenerationModelQuery {
 	query := (&GenerationModelClient{config: gq.config}).Query()
 	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
 		if err := gq.prepareQuery(ctx); err != nil {
@@ -175,7 +175,7 @@ func (gq *GenerationQuery) QueryGenerationModels() *GenerationModelQuery {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(generation.Table, generation.FieldID, selector),
 			sqlgraph.To(generationmodel.Table, generationmodel.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, generation.GenerationModelsTable, generation.GenerationModelsColumn),
+			sqlgraph.Edge(sqlgraph.M2O, true, generation.GenerationModelTable, generation.GenerationModelColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(gq.driver.Dialect(), step)
 		return fromU, nil
@@ -418,10 +418,10 @@ func (gq *GenerationQuery) Clone() *GenerationQuery {
 		inters:                append([]Interceptor{}, gq.inters...),
 		predicates:            append([]predicate.Generation{}, gq.predicates...),
 		withDeviceInfo:        gq.withDeviceInfo.Clone(),
-		withSchedulers:        gq.withSchedulers.Clone(),
-		withPrompts:           gq.withPrompts.Clone(),
-		withNegativePrompts:   gq.withNegativePrompts.Clone(),
-		withGenerationModels:  gq.withGenerationModels.Clone(),
+		withScheduler:         gq.withScheduler.Clone(),
+		withPrompt:            gq.withPrompt.Clone(),
+		withNegativePrompt:    gq.withNegativePrompt.Clone(),
+		withGenerationModel:   gq.withGenerationModel.Clone(),
 		withUsers:             gq.withUsers.Clone(),
 		withGenerationOutputs: gq.withGenerationOutputs.Clone(),
 		// clone intermediate query.
@@ -441,47 +441,47 @@ func (gq *GenerationQuery) WithDeviceInfo(opts ...func(*DeviceInfoQuery)) *Gener
 	return gq
 }
 
-// WithSchedulers tells the query-builder to eager-load the nodes that are connected to
-// the "schedulers" edge. The optional arguments are used to configure the query builder of the edge.
-func (gq *GenerationQuery) WithSchedulers(opts ...func(*SchedulerQuery)) *GenerationQuery {
+// WithScheduler tells the query-builder to eager-load the nodes that are connected to
+// the "scheduler" edge. The optional arguments are used to configure the query builder of the edge.
+func (gq *GenerationQuery) WithScheduler(opts ...func(*SchedulerQuery)) *GenerationQuery {
 	query := (&SchedulerClient{config: gq.config}).Query()
 	for _, opt := range opts {
 		opt(query)
 	}
-	gq.withSchedulers = query
+	gq.withScheduler = query
 	return gq
 }
 
-// WithPrompts tells the query-builder to eager-load the nodes that are connected to
-// the "prompts" edge. The optional arguments are used to configure the query builder of the edge.
-func (gq *GenerationQuery) WithPrompts(opts ...func(*PromptQuery)) *GenerationQuery {
+// WithPrompt tells the query-builder to eager-load the nodes that are connected to
+// the "prompt" edge. The optional arguments are used to configure the query builder of the edge.
+func (gq *GenerationQuery) WithPrompt(opts ...func(*PromptQuery)) *GenerationQuery {
 	query := (&PromptClient{config: gq.config}).Query()
 	for _, opt := range opts {
 		opt(query)
 	}
-	gq.withPrompts = query
+	gq.withPrompt = query
 	return gq
 }
 
-// WithNegativePrompts tells the query-builder to eager-load the nodes that are connected to
-// the "negative_prompts" edge. The optional arguments are used to configure the query builder of the edge.
-func (gq *GenerationQuery) WithNegativePrompts(opts ...func(*NegativePromptQuery)) *GenerationQuery {
+// WithNegativePrompt tells the query-builder to eager-load the nodes that are connected to
+// the "negative_prompt" edge. The optional arguments are used to configure the query builder of the edge.
+func (gq *GenerationQuery) WithNegativePrompt(opts ...func(*NegativePromptQuery)) *GenerationQuery {
 	query := (&NegativePromptClient{config: gq.config}).Query()
 	for _, opt := range opts {
 		opt(query)
 	}
-	gq.withNegativePrompts = query
+	gq.withNegativePrompt = query
 	return gq
 }
 
-// WithGenerationModels tells the query-builder to eager-load the nodes that are connected to
-// the "generation_models" edge. The optional arguments are used to configure the query builder of the edge.
-func (gq *GenerationQuery) WithGenerationModels(opts ...func(*GenerationModelQuery)) *GenerationQuery {
+// WithGenerationModel tells the query-builder to eager-load the nodes that are connected to
+// the "generation_model" edge. The optional arguments are used to configure the query builder of the edge.
+func (gq *GenerationQuery) WithGenerationModel(opts ...func(*GenerationModelQuery)) *GenerationQuery {
 	query := (&GenerationModelClient{config: gq.config}).Query()
 	for _, opt := range opts {
 		opt(query)
 	}
-	gq.withGenerationModels = query
+	gq.withGenerationModel = query
 	return gq
 }
 
@@ -587,10 +587,10 @@ func (gq *GenerationQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*G
 		_spec       = gq.querySpec()
 		loadedTypes = [7]bool{
 			gq.withDeviceInfo != nil,
-			gq.withSchedulers != nil,
-			gq.withPrompts != nil,
-			gq.withNegativePrompts != nil,
-			gq.withGenerationModels != nil,
+			gq.withScheduler != nil,
+			gq.withPrompt != nil,
+			gq.withNegativePrompt != nil,
+			gq.withGenerationModel != nil,
 			gq.withUsers != nil,
 			gq.withGenerationOutputs != nil,
 		}
@@ -619,27 +619,27 @@ func (gq *GenerationQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*G
 			return nil, err
 		}
 	}
-	if query := gq.withSchedulers; query != nil {
-		if err := gq.loadSchedulers(ctx, query, nodes, nil,
-			func(n *Generation, e *Scheduler) { n.Edges.Schedulers = e }); err != nil {
+	if query := gq.withScheduler; query != nil {
+		if err := gq.loadScheduler(ctx, query, nodes, nil,
+			func(n *Generation, e *Scheduler) { n.Edges.Scheduler = e }); err != nil {
 			return nil, err
 		}
 	}
-	if query := gq.withPrompts; query != nil {
-		if err := gq.loadPrompts(ctx, query, nodes, nil,
-			func(n *Generation, e *Prompt) { n.Edges.Prompts = e }); err != nil {
+	if query := gq.withPrompt; query != nil {
+		if err := gq.loadPrompt(ctx, query, nodes, nil,
+			func(n *Generation, e *Prompt) { n.Edges.Prompt = e }); err != nil {
 			return nil, err
 		}
 	}
-	if query := gq.withNegativePrompts; query != nil {
-		if err := gq.loadNegativePrompts(ctx, query, nodes, nil,
-			func(n *Generation, e *NegativePrompt) { n.Edges.NegativePrompts = e }); err != nil {
+	if query := gq.withNegativePrompt; query != nil {
+		if err := gq.loadNegativePrompt(ctx, query, nodes, nil,
+			func(n *Generation, e *NegativePrompt) { n.Edges.NegativePrompt = e }); err != nil {
 			return nil, err
 		}
 	}
-	if query := gq.withGenerationModels; query != nil {
-		if err := gq.loadGenerationModels(ctx, query, nodes, nil,
-			func(n *Generation, e *GenerationModel) { n.Edges.GenerationModels = e }); err != nil {
+	if query := gq.withGenerationModel; query != nil {
+		if err := gq.loadGenerationModel(ctx, query, nodes, nil,
+			func(n *Generation, e *GenerationModel) { n.Edges.GenerationModel = e }); err != nil {
 			return nil, err
 		}
 	}
@@ -690,7 +690,7 @@ func (gq *GenerationQuery) loadDeviceInfo(ctx context.Context, query *DeviceInfo
 	}
 	return nil
 }
-func (gq *GenerationQuery) loadSchedulers(ctx context.Context, query *SchedulerQuery, nodes []*Generation, init func(*Generation), assign func(*Generation, *Scheduler)) error {
+func (gq *GenerationQuery) loadScheduler(ctx context.Context, query *SchedulerQuery, nodes []*Generation, init func(*Generation), assign func(*Generation, *Scheduler)) error {
 	ids := make([]uuid.UUID, 0, len(nodes))
 	nodeids := make(map[uuid.UUID][]*Generation)
 	for i := range nodes {
@@ -719,7 +719,7 @@ func (gq *GenerationQuery) loadSchedulers(ctx context.Context, query *SchedulerQ
 	}
 	return nil
 }
-func (gq *GenerationQuery) loadPrompts(ctx context.Context, query *PromptQuery, nodes []*Generation, init func(*Generation), assign func(*Generation, *Prompt)) error {
+func (gq *GenerationQuery) loadPrompt(ctx context.Context, query *PromptQuery, nodes []*Generation, init func(*Generation), assign func(*Generation, *Prompt)) error {
 	ids := make([]uuid.UUID, 0, len(nodes))
 	nodeids := make(map[uuid.UUID][]*Generation)
 	for i := range nodes {
@@ -748,7 +748,7 @@ func (gq *GenerationQuery) loadPrompts(ctx context.Context, query *PromptQuery, 
 	}
 	return nil
 }
-func (gq *GenerationQuery) loadNegativePrompts(ctx context.Context, query *NegativePromptQuery, nodes []*Generation, init func(*Generation), assign func(*Generation, *NegativePrompt)) error {
+func (gq *GenerationQuery) loadNegativePrompt(ctx context.Context, query *NegativePromptQuery, nodes []*Generation, init func(*Generation), assign func(*Generation, *NegativePrompt)) error {
 	ids := make([]uuid.UUID, 0, len(nodes))
 	nodeids := make(map[uuid.UUID][]*Generation)
 	for i := range nodes {
@@ -780,7 +780,7 @@ func (gq *GenerationQuery) loadNegativePrompts(ctx context.Context, query *Negat
 	}
 	return nil
 }
-func (gq *GenerationQuery) loadGenerationModels(ctx context.Context, query *GenerationModelQuery, nodes []*Generation, init func(*Generation), assign func(*Generation, *GenerationModel)) error {
+func (gq *GenerationQuery) loadGenerationModel(ctx context.Context, query *GenerationModelQuery, nodes []*Generation, init func(*Generation), assign func(*Generation, *GenerationModel)) error {
 	ids := make([]uuid.UUID, 0, len(nodes))
 	nodeids := make(map[uuid.UUID][]*Generation)
 	for i := range nodes {

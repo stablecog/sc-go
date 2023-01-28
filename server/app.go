@@ -161,10 +161,14 @@ func main() {
 	app.Route("/v1", func(r chi.Router) {
 		r.Get("/health", hc.GetHealth)
 
-		// Auth
-		r.Route("/auth", func(r chi.Router) {
+		// Routes that require authentication
+		r.Route("/generate", func(r chi.Router) {
 			r.Use(mw.AuthMiddleware)
-			r.Post("/generate", hc.PostGenerate)
+			r.Post("/", hc.PostGenerate)
+		})
+		r.Route("/user", func(r chi.Router) {
+			r.Use(mw.AuthMiddleware)
+			r.Get("/generations", hc.GetUserGenerations)
 		})
 
 		// Webhook
@@ -174,7 +178,7 @@ func main() {
 			r.Post(fmt.Sprintf("/webhook/%s", utils.GetEnv("QUEUE_SECRET", "")), hc.PostWebhook)
 		})
 
-		// Websocket, optional auth
+		// Websocket
 		r.Route("/ws", func(r chi.Router) {
 			r.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 				websocket.ServeWS(hub, w, r)

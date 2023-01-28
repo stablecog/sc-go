@@ -948,24 +948,24 @@ func HasDeviceInfoWith(preds ...predicate.DeviceInfo) predicate.Generation {
 	})
 }
 
-// HasSchedulers applies the HasEdge predicate on the "schedulers" edge.
-func HasSchedulers() predicate.Generation {
+// HasScheduler applies the HasEdge predicate on the "scheduler" edge.
+func HasScheduler() predicate.Generation {
 	return predicate.Generation(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, SchedulersTable, SchedulersColumn),
+			sqlgraph.Edge(sqlgraph.M2O, true, SchedulerTable, SchedulerColumn),
 		)
 		sqlgraph.HasNeighbors(s, step)
 	})
 }
 
-// HasSchedulersWith applies the HasEdge predicate on the "schedulers" edge with a given conditions (other predicates).
-func HasSchedulersWith(preds ...predicate.Scheduler) predicate.Generation {
+// HasSchedulerWith applies the HasEdge predicate on the "scheduler" edge with a given conditions (other predicates).
+func HasSchedulerWith(preds ...predicate.Scheduler) predicate.Generation {
 	return predicate.Generation(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(SchedulersInverseTable, FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, SchedulersTable, SchedulersColumn),
+			sqlgraph.To(SchedulerInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, SchedulerTable, SchedulerColumn),
 		)
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
@@ -975,24 +975,24 @@ func HasSchedulersWith(preds ...predicate.Scheduler) predicate.Generation {
 	})
 }
 
-// HasPrompts applies the HasEdge predicate on the "prompts" edge.
-func HasPrompts() predicate.Generation {
+// HasPrompt applies the HasEdge predicate on the "prompt" edge.
+func HasPrompt() predicate.Generation {
 	return predicate.Generation(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, PromptsTable, PromptsColumn),
+			sqlgraph.Edge(sqlgraph.M2O, true, PromptTable, PromptColumn),
 		)
 		sqlgraph.HasNeighbors(s, step)
 	})
 }
 
-// HasPromptsWith applies the HasEdge predicate on the "prompts" edge with a given conditions (other predicates).
-func HasPromptsWith(preds ...predicate.Prompt) predicate.Generation {
+// HasPromptWith applies the HasEdge predicate on the "prompt" edge with a given conditions (other predicates).
+func HasPromptWith(preds ...predicate.Prompt) predicate.Generation {
 	return predicate.Generation(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(PromptsInverseTable, FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, PromptsTable, PromptsColumn),
+			sqlgraph.To(PromptInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, PromptTable, PromptColumn),
 		)
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
@@ -1002,24 +1002,24 @@ func HasPromptsWith(preds ...predicate.Prompt) predicate.Generation {
 	})
 }
 
-// HasNegativePrompts applies the HasEdge predicate on the "negative_prompts" edge.
-func HasNegativePrompts() predicate.Generation {
+// HasNegativePrompt applies the HasEdge predicate on the "negative_prompt" edge.
+func HasNegativePrompt() predicate.Generation {
 	return predicate.Generation(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, NegativePromptsTable, NegativePromptsColumn),
+			sqlgraph.Edge(sqlgraph.M2O, true, NegativePromptTable, NegativePromptColumn),
 		)
 		sqlgraph.HasNeighbors(s, step)
 	})
 }
 
-// HasNegativePromptsWith applies the HasEdge predicate on the "negative_prompts" edge with a given conditions (other predicates).
-func HasNegativePromptsWith(preds ...predicate.NegativePrompt) predicate.Generation {
+// HasNegativePromptWith applies the HasEdge predicate on the "negative_prompt" edge with a given conditions (other predicates).
+func HasNegativePromptWith(preds ...predicate.NegativePrompt) predicate.Generation {
 	return predicate.Generation(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(NegativePromptsInverseTable, FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, NegativePromptsTable, NegativePromptsColumn),
+			sqlgraph.To(NegativePromptInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, NegativePromptTable, NegativePromptColumn),
 		)
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
@@ -1029,24 +1029,24 @@ func HasNegativePromptsWith(preds ...predicate.NegativePrompt) predicate.Generat
 	})
 }
 
-// HasGenerationModels applies the HasEdge predicate on the "generation_models" edge.
-func HasGenerationModels() predicate.Generation {
+// HasGenerationModel applies the HasEdge predicate on the "generation_model" edge.
+func HasGenerationModel() predicate.Generation {
 	return predicate.Generation(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, GenerationModelsTable, GenerationModelsColumn),
+			sqlgraph.Edge(sqlgraph.M2O, true, GenerationModelTable, GenerationModelColumn),
 		)
 		sqlgraph.HasNeighbors(s, step)
 	})
 }
 
-// HasGenerationModelsWith applies the HasEdge predicate on the "generation_models" edge with a given conditions (other predicates).
-func HasGenerationModelsWith(preds ...predicate.GenerationModel) predicate.Generation {
+// HasGenerationModelWith applies the HasEdge predicate on the "generation_model" edge with a given conditions (other predicates).
+func HasGenerationModelWith(preds ...predicate.GenerationModel) predicate.Generation {
 	return predicate.Generation(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(GenerationModelsInverseTable, FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, GenerationModelsTable, GenerationModelsColumn),
+			sqlgraph.To(GenerationModelInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, GenerationModelTable, GenerationModelColumn),
 		)
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {

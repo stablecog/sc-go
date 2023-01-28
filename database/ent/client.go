@@ -509,15 +509,15 @@ func (c *GenerationClient) QueryDeviceInfo(ge *Generation) *DeviceInfoQuery {
 	return query
 }
 
-// QuerySchedulers queries the schedulers edge of a Generation.
-func (c *GenerationClient) QuerySchedulers(ge *Generation) *SchedulerQuery {
+// QueryScheduler queries the scheduler edge of a Generation.
+func (c *GenerationClient) QueryScheduler(ge *Generation) *SchedulerQuery {
 	query := (&SchedulerClient{config: c.config}).Query()
 	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := ge.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(generation.Table, generation.FieldID, id),
 			sqlgraph.To(scheduler.Table, scheduler.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, generation.SchedulersTable, generation.SchedulersColumn),
+			sqlgraph.Edge(sqlgraph.M2O, true, generation.SchedulerTable, generation.SchedulerColumn),
 		)
 		fromV = sqlgraph.Neighbors(ge.driver.Dialect(), step)
 		return fromV, nil
@@ -525,15 +525,15 @@ func (c *GenerationClient) QuerySchedulers(ge *Generation) *SchedulerQuery {
 	return query
 }
 
-// QueryPrompts queries the prompts edge of a Generation.
-func (c *GenerationClient) QueryPrompts(ge *Generation) *PromptQuery {
+// QueryPrompt queries the prompt edge of a Generation.
+func (c *GenerationClient) QueryPrompt(ge *Generation) *PromptQuery {
 	query := (&PromptClient{config: c.config}).Query()
 	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := ge.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(generation.Table, generation.FieldID, id),
 			sqlgraph.To(prompt.Table, prompt.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, generation.PromptsTable, generation.PromptsColumn),
+			sqlgraph.Edge(sqlgraph.M2O, true, generation.PromptTable, generation.PromptColumn),
 		)
 		fromV = sqlgraph.Neighbors(ge.driver.Dialect(), step)
 		return fromV, nil
@@ -541,15 +541,15 @@ func (c *GenerationClient) QueryPrompts(ge *Generation) *PromptQuery {
 	return query
 }
 
-// QueryNegativePrompts queries the negative_prompts edge of a Generation.
-func (c *GenerationClient) QueryNegativePrompts(ge *Generation) *NegativePromptQuery {
+// QueryNegativePrompt queries the negative_prompt edge of a Generation.
+func (c *GenerationClient) QueryNegativePrompt(ge *Generation) *NegativePromptQuery {
 	query := (&NegativePromptClient{config: c.config}).Query()
 	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := ge.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(generation.Table, generation.FieldID, id),
 			sqlgraph.To(negativeprompt.Table, negativeprompt.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, generation.NegativePromptsTable, generation.NegativePromptsColumn),
+			sqlgraph.Edge(sqlgraph.M2O, true, generation.NegativePromptTable, generation.NegativePromptColumn),
 		)
 		fromV = sqlgraph.Neighbors(ge.driver.Dialect(), step)
 		return fromV, nil
@@ -557,15 +557,15 @@ func (c *GenerationClient) QueryNegativePrompts(ge *Generation) *NegativePromptQ
 	return query
 }
 
-// QueryGenerationModels queries the generation_models edge of a Generation.
-func (c *GenerationClient) QueryGenerationModels(ge *Generation) *GenerationModelQuery {
+// QueryGenerationModel queries the generation_model edge of a Generation.
+func (c *GenerationClient) QueryGenerationModel(ge *Generation) *GenerationModelQuery {
 	query := (&GenerationModelClient{config: c.config}).Query()
 	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := ge.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(generation.Table, generation.FieldID, id),
 			sqlgraph.To(generationmodel.Table, generationmodel.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, generation.GenerationModelsTable, generation.GenerationModelsColumn),
+			sqlgraph.Edge(sqlgraph.M2O, true, generation.GenerationModelTable, generation.GenerationModelColumn),
 		)
 		fromV = sqlgraph.Neighbors(ge.driver.Dialect(), step)
 		return fromV, nil

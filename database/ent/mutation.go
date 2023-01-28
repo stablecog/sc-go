@@ -804,14 +804,14 @@ type GenerationMutation struct {
 	clearedFields             map[string]struct{}
 	device_info               *uuid.UUID
 	cleareddevice_info        bool
-	schedulers                *uuid.UUID
-	clearedschedulers         bool
-	prompts                   *uuid.UUID
-	clearedprompts            bool
-	negative_prompts          *uuid.UUID
-	clearednegative_prompts   bool
-	generation_models         *uuid.UUID
-	clearedgeneration_models  bool
+	scheduler                 *uuid.UUID
+	clearedscheduler          bool
+	prompt                    *uuid.UUID
+	clearedprompt             bool
+	negative_prompt           *uuid.UUID
+	clearednegative_prompt    bool
+	generation_model          *uuid.UUID
+	clearedgeneration_model   bool
 	users                     *uuid.UUID
 	clearedusers              bool
 	generation_outputs        map[uuid.UUID]struct{}
@@ -1450,12 +1450,12 @@ func (m *GenerationMutation) ResetInitImageURL() {
 
 // SetPromptID sets the "prompt_id" field.
 func (m *GenerationMutation) SetPromptID(u uuid.UUID) {
-	m.prompts = &u
+	m.prompt = &u
 }
 
 // PromptID returns the value of the "prompt_id" field in the mutation.
 func (m *GenerationMutation) PromptID() (r uuid.UUID, exists bool) {
-	v := m.prompts
+	v := m.prompt
 	if v == nil {
 		return
 	}
@@ -1481,17 +1481,17 @@ func (m *GenerationMutation) OldPromptID(ctx context.Context) (v uuid.UUID, err 
 
 // ResetPromptID resets all changes to the "prompt_id" field.
 func (m *GenerationMutation) ResetPromptID() {
-	m.prompts = nil
+	m.prompt = nil
 }
 
 // SetNegativePromptID sets the "negative_prompt_id" field.
 func (m *GenerationMutation) SetNegativePromptID(u uuid.UUID) {
-	m.negative_prompts = &u
+	m.negative_prompt = &u
 }
 
 // NegativePromptID returns the value of the "negative_prompt_id" field in the mutation.
 func (m *GenerationMutation) NegativePromptID() (r uuid.UUID, exists bool) {
-	v := m.negative_prompts
+	v := m.negative_prompt
 	if v == nil {
 		return
 	}
@@ -1517,7 +1517,7 @@ func (m *GenerationMutation) OldNegativePromptID(ctx context.Context) (v *uuid.U
 
 // ClearNegativePromptID clears the value of the "negative_prompt_id" field.
 func (m *GenerationMutation) ClearNegativePromptID() {
-	m.negative_prompts = nil
+	m.negative_prompt = nil
 	m.clearedFields[generation.FieldNegativePromptID] = struct{}{}
 }
 
@@ -1529,18 +1529,18 @@ func (m *GenerationMutation) NegativePromptIDCleared() bool {
 
 // ResetNegativePromptID resets all changes to the "negative_prompt_id" field.
 func (m *GenerationMutation) ResetNegativePromptID() {
-	m.negative_prompts = nil
+	m.negative_prompt = nil
 	delete(m.clearedFields, generation.FieldNegativePromptID)
 }
 
 // SetModelID sets the "model_id" field.
 func (m *GenerationMutation) SetModelID(u uuid.UUID) {
-	m.generation_models = &u
+	m.generation_model = &u
 }
 
 // ModelID returns the value of the "model_id" field in the mutation.
 func (m *GenerationMutation) ModelID() (r uuid.UUID, exists bool) {
-	v := m.generation_models
+	v := m.generation_model
 	if v == nil {
 		return
 	}
@@ -1566,17 +1566,17 @@ func (m *GenerationMutation) OldModelID(ctx context.Context) (v uuid.UUID, err e
 
 // ResetModelID resets all changes to the "model_id" field.
 func (m *GenerationMutation) ResetModelID() {
-	m.generation_models = nil
+	m.generation_model = nil
 }
 
 // SetSchedulerID sets the "scheduler_id" field.
 func (m *GenerationMutation) SetSchedulerID(u uuid.UUID) {
-	m.schedulers = &u
+	m.scheduler = &u
 }
 
 // SchedulerID returns the value of the "scheduler_id" field in the mutation.
 func (m *GenerationMutation) SchedulerID() (r uuid.UUID, exists bool) {
-	v := m.schedulers
+	v := m.scheduler
 	if v == nil {
 		return
 	}
@@ -1602,7 +1602,7 @@ func (m *GenerationMutation) OldSchedulerID(ctx context.Context) (v uuid.UUID, e
 
 // ResetSchedulerID resets all changes to the "scheduler_id" field.
 func (m *GenerationMutation) ResetSchedulerID() {
-	m.schedulers = nil
+	m.scheduler = nil
 }
 
 // SetUserID sets the "user_id" field.
@@ -1873,160 +1873,121 @@ func (m *GenerationMutation) ResetDeviceInfo() {
 	m.cleareddevice_info = false
 }
 
-// SetSchedulersID sets the "schedulers" edge to the Scheduler entity by id.
-func (m *GenerationMutation) SetSchedulersID(id uuid.UUID) {
-	m.schedulers = &id
+// ClearScheduler clears the "scheduler" edge to the Scheduler entity.
+func (m *GenerationMutation) ClearScheduler() {
+	m.clearedscheduler = true
 }
 
-// ClearSchedulers clears the "schedulers" edge to the Scheduler entity.
-func (m *GenerationMutation) ClearSchedulers() {
-	m.clearedschedulers = true
+// SchedulerCleared reports if the "scheduler" edge to the Scheduler entity was cleared.
+func (m *GenerationMutation) SchedulerCleared() bool {
+	return m.clearedscheduler
 }
 
-// SchedulersCleared reports if the "schedulers" edge to the Scheduler entity was cleared.
-func (m *GenerationMutation) SchedulersCleared() bool {
-	return m.clearedschedulers
-}
-
-// SchedulersID returns the "schedulers" edge ID in the mutation.
-func (m *GenerationMutation) SchedulersID() (id uuid.UUID, exists bool) {
-	if m.schedulers != nil {
-		return *m.schedulers, true
-	}
-	return
-}
-
-// SchedulersIDs returns the "schedulers" edge IDs in the mutation.
+// SchedulerIDs returns the "scheduler" edge IDs in the mutation.
 // Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
-// SchedulersID instead. It exists only for internal usage by the builders.
-func (m *GenerationMutation) SchedulersIDs() (ids []uuid.UUID) {
-	if id := m.schedulers; id != nil {
+// SchedulerID instead. It exists only for internal usage by the builders.
+func (m *GenerationMutation) SchedulerIDs() (ids []uuid.UUID) {
+	if id := m.scheduler; id != nil {
 		ids = append(ids, *id)
 	}
 	return
 }
 
-// ResetSchedulers resets all changes to the "schedulers" edge.
-func (m *GenerationMutation) ResetSchedulers() {
-	m.schedulers = nil
-	m.clearedschedulers = false
+// ResetScheduler resets all changes to the "scheduler" edge.
+func (m *GenerationMutation) ResetScheduler() {
+	m.scheduler = nil
+	m.clearedscheduler = false
 }
 
-// SetPromptsID sets the "prompts" edge to the Prompt entity by id.
-func (m *GenerationMutation) SetPromptsID(id uuid.UUID) {
-	m.prompts = &id
+// ClearPrompt clears the "prompt" edge to the Prompt entity.
+func (m *GenerationMutation) ClearPrompt() {
+	m.clearedprompt = true
 }
 
-// ClearPrompts clears the "prompts" edge to the Prompt entity.
-func (m *GenerationMutation) ClearPrompts() {
-	m.clearedprompts = true
+// PromptCleared reports if the "prompt" edge to the Prompt entity was cleared.
+func (m *GenerationMutation) PromptCleared() bool {
+	return m.clearedprompt
 }
 
-// PromptsCleared reports if the "prompts" edge to the Prompt entity was cleared.
-func (m *GenerationMutation) PromptsCleared() bool {
-	return m.clearedprompts
-}
-
-// PromptsID returns the "prompts" edge ID in the mutation.
-func (m *GenerationMutation) PromptsID() (id uuid.UUID, exists bool) {
-	if m.prompts != nil {
-		return *m.prompts, true
-	}
-	return
-}
-
-// PromptsIDs returns the "prompts" edge IDs in the mutation.
+// PromptIDs returns the "prompt" edge IDs in the mutation.
 // Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
-// PromptsID instead. It exists only for internal usage by the builders.
-func (m *GenerationMutation) PromptsIDs() (ids []uuid.UUID) {
-	if id := m.prompts; id != nil {
+// PromptID instead. It exists only for internal usage by the builders.
+func (m *GenerationMutation) PromptIDs() (ids []uuid.UUID) {
+	if id := m.prompt; id != nil {
 		ids = append(ids, *id)
 	}
 	return
 }
 
-// ResetPrompts resets all changes to the "prompts" edge.
-func (m *GenerationMutation) ResetPrompts() {
-	m.prompts = nil
-	m.clearedprompts = false
+// ResetPrompt resets all changes to the "prompt" edge.
+func (m *GenerationMutation) ResetPrompt() {
+	m.prompt = nil
+	m.clearedprompt = false
 }
 
-// SetNegativePromptsID sets the "negative_prompts" edge to the NegativePrompt entity by id.
-func (m *GenerationMutation) SetNegativePromptsID(id uuid.UUID) {
-	m.negative_prompts = &id
+// ClearNegativePrompt clears the "negative_prompt" edge to the NegativePrompt entity.
+func (m *GenerationMutation) ClearNegativePrompt() {
+	m.clearednegative_prompt = true
 }
 
-// ClearNegativePrompts clears the "negative_prompts" edge to the NegativePrompt entity.
-func (m *GenerationMutation) ClearNegativePrompts() {
-	m.clearednegative_prompts = true
+// NegativePromptCleared reports if the "negative_prompt" edge to the NegativePrompt entity was cleared.
+func (m *GenerationMutation) NegativePromptCleared() bool {
+	return m.NegativePromptIDCleared() || m.clearednegative_prompt
 }
 
-// NegativePromptsCleared reports if the "negative_prompts" edge to the NegativePrompt entity was cleared.
-func (m *GenerationMutation) NegativePromptsCleared() bool {
-	return m.NegativePromptIDCleared() || m.clearednegative_prompts
-}
-
-// NegativePromptsID returns the "negative_prompts" edge ID in the mutation.
-func (m *GenerationMutation) NegativePromptsID() (id uuid.UUID, exists bool) {
-	if m.negative_prompts != nil {
-		return *m.negative_prompts, true
-	}
-	return
-}
-
-// NegativePromptsIDs returns the "negative_prompts" edge IDs in the mutation.
+// NegativePromptIDs returns the "negative_prompt" edge IDs in the mutation.
 // Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
-// NegativePromptsID instead. It exists only for internal usage by the builders.
-func (m *GenerationMutation) NegativePromptsIDs() (ids []uuid.UUID) {
-	if id := m.negative_prompts; id != nil {
+// NegativePromptID instead. It exists only for internal usage by the builders.
+func (m *GenerationMutation) NegativePromptIDs() (ids []uuid.UUID) {
+	if id := m.negative_prompt; id != nil {
 		ids = append(ids, *id)
 	}
 	return
 }
 
-// ResetNegativePrompts resets all changes to the "negative_prompts" edge.
-func (m *GenerationMutation) ResetNegativePrompts() {
-	m.negative_prompts = nil
-	m.clearednegative_prompts = false
+// ResetNegativePrompt resets all changes to the "negative_prompt" edge.
+func (m *GenerationMutation) ResetNegativePrompt() {
+	m.negative_prompt = nil
+	m.clearednegative_prompt = false
 }
 
-// SetGenerationModelsID sets the "generation_models" edge to the GenerationModel entity by id.
-func (m *GenerationMutation) SetGenerationModelsID(id uuid.UUID) {
-	m.generation_models = &id
+// SetGenerationModelID sets the "generation_model" edge to the GenerationModel entity by id.
+func (m *GenerationMutation) SetGenerationModelID(id uuid.UUID) {
+	m.generation_model = &id
 }
 
-// ClearGenerationModels clears the "generation_models" edge to the GenerationModel entity.
-func (m *GenerationMutation) ClearGenerationModels() {
-	m.clearedgeneration_models = true
+// ClearGenerationModel clears the "generation_model" edge to the GenerationModel entity.
+func (m *GenerationMutation) ClearGenerationModel() {
+	m.clearedgeneration_model = true
 }
 
-// GenerationModelsCleared reports if the "generation_models" edge to the GenerationModel entity was cleared.
-func (m *GenerationMutation) GenerationModelsCleared() bool {
-	return m.clearedgeneration_models
+// GenerationModelCleared reports if the "generation_model" edge to the GenerationModel entity was cleared.
+func (m *GenerationMutation) GenerationModelCleared() bool {
+	return m.clearedgeneration_model
 }
 
-// GenerationModelsID returns the "generation_models" edge ID in the mutation.
-func (m *GenerationMutation) GenerationModelsID() (id uuid.UUID, exists bool) {
-	if m.generation_models != nil {
-		return *m.generation_models, true
+// GenerationModelID returns the "generation_model" edge ID in the mutation.
+func (m *GenerationMutation) GenerationModelID() (id uuid.UUID, exists bool) {
+	if m.generation_model != nil {
+		return *m.generation_model, true
 	}
 	return
 }
 
-// GenerationModelsIDs returns the "generation_models" edge IDs in the mutation.
+// GenerationModelIDs returns the "generation_model" edge IDs in the mutation.
 // Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
-// GenerationModelsID instead. It exists only for internal usage by the builders.
-func (m *GenerationMutation) GenerationModelsIDs() (ids []uuid.UUID) {
-	if id := m.generation_models; id != nil {
+// GenerationModelID instead. It exists only for internal usage by the builders.
+func (m *GenerationMutation) GenerationModelIDs() (ids []uuid.UUID) {
+	if id := m.generation_model; id != nil {
 		ids = append(ids, *id)
 	}
 	return
 }
 
-// ResetGenerationModels resets all changes to the "generation_models" edge.
-func (m *GenerationMutation) ResetGenerationModels() {
-	m.generation_models = nil
-	m.clearedgeneration_models = false
+// ResetGenerationModel resets all changes to the "generation_model" edge.
+func (m *GenerationMutation) ResetGenerationModel() {
+	m.generation_model = nil
+	m.clearedgeneration_model = false
 }
 
 // SetUsersID sets the "users" edge to the User entity by id.
@@ -2190,16 +2151,16 @@ func (m *GenerationMutation) Fields() []string {
 	if m.init_image_url != nil {
 		fields = append(fields, generation.FieldInitImageURL)
 	}
-	if m.prompts != nil {
+	if m.prompt != nil {
 		fields = append(fields, generation.FieldPromptID)
 	}
-	if m.negative_prompts != nil {
+	if m.negative_prompt != nil {
 		fields = append(fields, generation.FieldNegativePromptID)
 	}
-	if m.generation_models != nil {
+	if m.generation_model != nil {
 		fields = append(fields, generation.FieldModelID)
 	}
-	if m.schedulers != nil {
+	if m.scheduler != nil {
 		fields = append(fields, generation.FieldSchedulerID)
 	}
 	if m.users != nil {
@@ -2695,17 +2656,17 @@ func (m *GenerationMutation) AddedEdges() []string {
 	if m.device_info != nil {
 		edges = append(edges, generation.EdgeDeviceInfo)
 	}
-	if m.schedulers != nil {
-		edges = append(edges, generation.EdgeSchedulers)
+	if m.scheduler != nil {
+		edges = append(edges, generation.EdgeScheduler)
 	}
-	if m.prompts != nil {
-		edges = append(edges, generation.EdgePrompts)
+	if m.prompt != nil {
+		edges = append(edges, generation.EdgePrompt)
 	}
-	if m.negative_prompts != nil {
-		edges = append(edges, generation.EdgeNegativePrompts)
+	if m.negative_prompt != nil {
+		edges = append(edges, generation.EdgeNegativePrompt)
 	}
-	if m.generation_models != nil {
-		edges = append(edges, generation.EdgeGenerationModels)
+	if m.generation_model != nil {
+		edges = append(edges, generation.EdgeGenerationModel)
 	}
 	if m.users != nil {
 		edges = append(edges, generation.EdgeUsers)
@@ -2724,20 +2685,20 @@ func (m *GenerationMutation) AddedIDs(name string) []ent.Value {
 		if id := m.device_info; id != nil {
 			return []ent.Value{*id}
 		}
-	case generation.EdgeSchedulers:
-		if id := m.schedulers; id != nil {
+	case generation.EdgeScheduler:
+		if id := m.scheduler; id != nil {
 			return []ent.Value{*id}
 		}
-	case generation.EdgePrompts:
-		if id := m.prompts; id != nil {
+	case generation.EdgePrompt:
+		if id := m.prompt; id != nil {
 			return []ent.Value{*id}
 		}
-	case generation.EdgeNegativePrompts:
-		if id := m.negative_prompts; id != nil {
+	case generation.EdgeNegativePrompt:
+		if id := m.negative_prompt; id != nil {
 			return []ent.Value{*id}
 		}
-	case generation.EdgeGenerationModels:
-		if id := m.generation_models; id != nil {
+	case generation.EdgeGenerationModel:
+		if id := m.generation_model; id != nil {
 			return []ent.Value{*id}
 		}
 	case generation.EdgeUsers:
@@ -2783,17 +2744,17 @@ func (m *GenerationMutation) ClearedEdges() []string {
 	if m.cleareddevice_info {
 		edges = append(edges, generation.EdgeDeviceInfo)
 	}
-	if m.clearedschedulers {
-		edges = append(edges, generation.EdgeSchedulers)
+	if m.clearedscheduler {
+		edges = append(edges, generation.EdgeScheduler)
 	}
-	if m.clearedprompts {
-		edges = append(edges, generation.EdgePrompts)
+	if m.clearedprompt {
+		edges = append(edges, generation.EdgePrompt)
 	}
-	if m.clearednegative_prompts {
-		edges = append(edges, generation.EdgeNegativePrompts)
+	if m.clearednegative_prompt {
+		edges = append(edges, generation.EdgeNegativePrompt)
 	}
-	if m.clearedgeneration_models {
-		edges = append(edges, generation.EdgeGenerationModels)
+	if m.clearedgeneration_model {
+		edges = append(edges, generation.EdgeGenerationModel)
 	}
 	if m.clearedusers {
 		edges = append(edges, generation.EdgeUsers)
@@ -2810,14 +2771,14 @@ func (m *GenerationMutation) EdgeCleared(name string) bool {
 	switch name {
 	case generation.EdgeDeviceInfo:
 		return m.cleareddevice_info
-	case generation.EdgeSchedulers:
-		return m.clearedschedulers
-	case generation.EdgePrompts:
-		return m.clearedprompts
-	case generation.EdgeNegativePrompts:
-		return m.clearednegative_prompts
-	case generation.EdgeGenerationModels:
-		return m.clearedgeneration_models
+	case generation.EdgeScheduler:
+		return m.clearedscheduler
+	case generation.EdgePrompt:
+		return m.clearedprompt
+	case generation.EdgeNegativePrompt:
+		return m.clearednegative_prompt
+	case generation.EdgeGenerationModel:
+		return m.clearedgeneration_model
 	case generation.EdgeUsers:
 		return m.clearedusers
 	case generation.EdgeGenerationOutputs:
@@ -2833,17 +2794,17 @@ func (m *GenerationMutation) ClearEdge(name string) error {
 	case generation.EdgeDeviceInfo:
 		m.ClearDeviceInfo()
 		return nil
-	case generation.EdgeSchedulers:
-		m.ClearSchedulers()
+	case generation.EdgeScheduler:
+		m.ClearScheduler()
 		return nil
-	case generation.EdgePrompts:
-		m.ClearPrompts()
+	case generation.EdgePrompt:
+		m.ClearPrompt()
 		return nil
-	case generation.EdgeNegativePrompts:
-		m.ClearNegativePrompts()
+	case generation.EdgeNegativePrompt:
+		m.ClearNegativePrompt()
 		return nil
-	case generation.EdgeGenerationModels:
-		m.ClearGenerationModels()
+	case generation.EdgeGenerationModel:
+		m.ClearGenerationModel()
 		return nil
 	case generation.EdgeUsers:
 		m.ClearUsers()
@@ -2859,17 +2820,17 @@ func (m *GenerationMutation) ResetEdge(name string) error {
 	case generation.EdgeDeviceInfo:
 		m.ResetDeviceInfo()
 		return nil
-	case generation.EdgeSchedulers:
-		m.ResetSchedulers()
+	case generation.EdgeScheduler:
+		m.ResetScheduler()
 		return nil
-	case generation.EdgePrompts:
-		m.ResetPrompts()
+	case generation.EdgePrompt:
+		m.ResetPrompt()
 		return nil
-	case generation.EdgeNegativePrompts:
-		m.ResetNegativePrompts()
+	case generation.EdgeNegativePrompt:
+		m.ResetNegativePrompt()
 		return nil
-	case generation.EdgeGenerationModels:
-		m.ResetGenerationModels()
+	case generation.EdgeGenerationModel:
+		m.ResetGenerationModel()
 		return nil
 	case generation.EdgeUsers:
 		m.ResetUsers()

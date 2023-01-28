@@ -56,24 +56,24 @@ func (Generation) Edges() []ent.Edge {
 			Required().
 			Unique(),
 		// M2O with schedulers
-		edge.From("schedulers", Scheduler.Type).
+		edge.From("scheduler", Scheduler.Type).
 			Ref("generations").
 			Field("scheduler_id").
 			Required().
 			Unique(),
-		// M2O with prompts
-		edge.From("prompts", Prompt.Type).
+		// M2O with prompt
+		edge.From("prompt", Prompt.Type).
 			Ref("generations").
 			Field("prompt_id").
 			Required().
 			Unique(),
 		// M2O with negative_prompts
-		edge.From("negative_prompts", NegativePrompt.Type).
+		edge.From("negative_prompt", NegativePrompt.Type).
 			Ref("generations").
 			Field("negative_prompt_id").
 			Unique(),
 		// M2O with generation_models
-		edge.From("generation_models", GenerationModel.Type).
+		edge.From("generation_model", GenerationModel.Type).
 			Ref("generations").
 			Field("model_id").
 			Required().

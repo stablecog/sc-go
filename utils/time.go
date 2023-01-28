@@ -21,3 +21,14 @@ func RelativeTimeStr(t time.Time) string {
 	}
 	return fmt.Sprint(diffInSeconds/60/60, "h ago")
 }
+
+// Parse an iso string into a time.Time
+// e.g. 2023-01-27T14:40:53.858Z
+// represents javascript toISOString()
+func ParseIsoTime(isoTime string) (time.Time, error) {
+	return time.Parse(time.RFC3339, isoTime)
+}
+
+func TimeToIsoString(ts time.Time) string {
+	return ts.Format(time.RFC3339Nano)
+}

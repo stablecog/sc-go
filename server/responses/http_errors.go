@@ -24,7 +24,7 @@ var UnauthorizedError = ErrorResponse{
 }
 
 func ErrUnauthorized(w http.ResponseWriter, r *http.Request) {
-	render.Status(r, http.StatusBadRequest)
+	render.Status(r, http.StatusUnauthorized)
 	render.JSON(w, r, &UnauthorizedError)
 }
 

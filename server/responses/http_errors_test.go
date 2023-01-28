@@ -34,7 +34,7 @@ func TestErrUnauthorized(t *testing.T) {
 	ErrUnauthorized(w, req)
 	resp := w.Result()
 	defer resp.Body.Close()
-	assert.Equal(t, 400, resp.StatusCode)
+	assert.Equal(t, 401, resp.StatusCode)
 
 	var respJson map[string]interface{}
 	respBody, _ := io.ReadAll(resp.Body)

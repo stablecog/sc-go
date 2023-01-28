@@ -245,56 +245,30 @@ func (gc *GenerationCreate) SetDeviceInfo(d *DeviceInfo) *GenerationCreate {
 	return gc.SetDeviceInfoID(d.ID)
 }
 
-// SetSchedulersID sets the "schedulers" edge to the Scheduler entity by ID.
-func (gc *GenerationCreate) SetSchedulersID(id uuid.UUID) *GenerationCreate {
-	gc.mutation.SetSchedulersID(id)
+// SetScheduler sets the "scheduler" edge to the Scheduler entity.
+func (gc *GenerationCreate) SetScheduler(s *Scheduler) *GenerationCreate {
+	return gc.SetSchedulerID(s.ID)
+}
+
+// SetPrompt sets the "prompt" edge to the Prompt entity.
+func (gc *GenerationCreate) SetPrompt(p *Prompt) *GenerationCreate {
+	return gc.SetPromptID(p.ID)
+}
+
+// SetNegativePrompt sets the "negative_prompt" edge to the NegativePrompt entity.
+func (gc *GenerationCreate) SetNegativePrompt(n *NegativePrompt) *GenerationCreate {
+	return gc.SetNegativePromptID(n.ID)
+}
+
+// SetGenerationModelID sets the "generation_model" edge to the GenerationModel entity by ID.
+func (gc *GenerationCreate) SetGenerationModelID(id uuid.UUID) *GenerationCreate {
+	gc.mutation.SetGenerationModelID(id)
 	return gc
 }
 
-// SetSchedulers sets the "schedulers" edge to the Scheduler entity.
-func (gc *GenerationCreate) SetSchedulers(s *Scheduler) *GenerationCreate {
-	return gc.SetSchedulersID(s.ID)
-}
-
-// SetPromptsID sets the "prompts" edge to the Prompt entity by ID.
-func (gc *GenerationCreate) SetPromptsID(id uuid.UUID) *GenerationCreate {
-	gc.mutation.SetPromptsID(id)
-	return gc
-}
-
-// SetPrompts sets the "prompts" edge to the Prompt entity.
-func (gc *GenerationCreate) SetPrompts(p *Prompt) *GenerationCreate {
-	return gc.SetPromptsID(p.ID)
-}
-
-// SetNegativePromptsID sets the "negative_prompts" edge to the NegativePrompt entity by ID.
-func (gc *GenerationCreate) SetNegativePromptsID(id uuid.UUID) *GenerationCreate {
-	gc.mutation.SetNegativePromptsID(id)
-	return gc
-}
-
-// SetNillableNegativePromptsID sets the "negative_prompts" edge to the NegativePrompt entity by ID if the given value is not nil.
-func (gc *GenerationCreate) SetNillableNegativePromptsID(id *uuid.UUID) *GenerationCreate {
-	if id != nil {
-		gc = gc.SetNegativePromptsID(*id)
-	}
-	return gc
-}
-
-// SetNegativePrompts sets the "negative_prompts" edge to the NegativePrompt entity.
-func (gc *GenerationCreate) SetNegativePrompts(n *NegativePrompt) *GenerationCreate {
-	return gc.SetNegativePromptsID(n.ID)
-}
-
-// SetGenerationModelsID sets the "generation_models" edge to the GenerationModel entity by ID.
-func (gc *GenerationCreate) SetGenerationModelsID(id uuid.UUID) *GenerationCreate {
-	gc.mutation.SetGenerationModelsID(id)
-	return gc
-}
-
-// SetGenerationModels sets the "generation_models" edge to the GenerationModel entity.
-func (gc *GenerationCreate) SetGenerationModels(g *GenerationModel) *GenerationCreate {
-	return gc.SetGenerationModelsID(g.ID)
+// SetGenerationModel sets the "generation_model" edge to the GenerationModel entity.
+func (gc *GenerationCreate) SetGenerationModel(g *GenerationModel) *GenerationCreate {
+	return gc.SetGenerationModelID(g.ID)
 }
 
 // SetUsersID sets the "users" edge to the User entity by ID.
@@ -438,14 +412,14 @@ func (gc *GenerationCreate) check() error {
 	if _, ok := gc.mutation.DeviceInfoID(); !ok {
 		return &ValidationError{Name: "device_info", err: errors.New(`ent: missing required edge "Generation.device_info"`)}
 	}
-	if _, ok := gc.mutation.SchedulersID(); !ok {
-		return &ValidationError{Name: "schedulers", err: errors.New(`ent: missing required edge "Generation.schedulers"`)}
+	if _, ok := gc.mutation.SchedulerID(); !ok {
+		return &ValidationError{Name: "scheduler", err: errors.New(`ent: missing required edge "Generation.scheduler"`)}
 	}
-	if _, ok := gc.mutation.PromptsID(); !ok {
-		return &ValidationError{Name: "prompts", err: errors.New(`ent: missing required edge "Generation.prompts"`)}
+	if _, ok := gc.mutation.PromptID(); !ok {
+		return &ValidationError{Name: "prompt", err: errors.New(`ent: missing required edge "Generation.prompt"`)}
 	}
-	if _, ok := gc.mutation.GenerationModelsID(); !ok {
-		return &ValidationError{Name: "generation_models", err: errors.New(`ent: missing required edge "Generation.generation_models"`)}
+	if _, ok := gc.mutation.GenerationModelID(); !ok {
+		return &ValidationError{Name: "generation_model", err: errors.New(`ent: missing required edge "Generation.generation_model"`)}
 	}
 	if _, ok := gc.mutation.UsersID(); !ok {
 		return &ValidationError{Name: "users", err: errors.New(`ent: missing required edge "Generation.users"`)}
@@ -571,12 +545,12 @@ func (gc *GenerationCreate) createSpec() (*Generation, *sqlgraph.CreateSpec) {
 		_node.DeviceInfoID = nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if nodes := gc.mutation.SchedulersIDs(); len(nodes) > 0 {
+	if nodes := gc.mutation.SchedulerIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
-			Table:   generation.SchedulersTable,
-			Columns: []string{generation.SchedulersColumn},
+			Table:   generation.SchedulerTable,
+			Columns: []string{generation.SchedulerColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
@@ -591,12 +565,12 @@ func (gc *GenerationCreate) createSpec() (*Generation, *sqlgraph.CreateSpec) {
 		_node.SchedulerID = nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if nodes := gc.mutation.PromptsIDs(); len(nodes) > 0 {
+	if nodes := gc.mutation.PromptIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
-			Table:   generation.PromptsTable,
-			Columns: []string{generation.PromptsColumn},
+			Table:   generation.PromptTable,
+			Columns: []string{generation.PromptColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
@@ -611,12 +585,12 @@ func (gc *GenerationCreate) createSpec() (*Generation, *sqlgraph.CreateSpec) {
 		_node.PromptID = nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if nodes := gc.mutation.NegativePromptsIDs(); len(nodes) > 0 {
+	if nodes := gc.mutation.NegativePromptIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
-			Table:   generation.NegativePromptsTable,
-			Columns: []string{generation.NegativePromptsColumn},
+			Table:   generation.NegativePromptTable,
+			Columns: []string{generation.NegativePromptColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
@@ -631,12 +605,12 @@ func (gc *GenerationCreate) createSpec() (*Generation, *sqlgraph.CreateSpec) {
 		_node.NegativePromptID = &nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if nodes := gc.mutation.GenerationModelsIDs(); len(nodes) > 0 {
+	if nodes := gc.mutation.GenerationModelIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
-			Table:   generation.GenerationModelsTable,
-			Columns: []string{generation.GenerationModelsColumn},
+			Table:   generation.GenerationModelTable,
+			Columns: []string{generation.GenerationModelColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{

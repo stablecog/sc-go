@@ -101,3 +101,33 @@ func (r *Repository) SetGenerationSucceeded(generationID string, outputs []strin
 	}
 	return nil
 }
+
+// From("generation").
+// Select("id,width,height,num_inference_steps,guidance_scale,created_at,updated_at,model:model_id(id,name),scheduler:scheduler_id(id,name),prompt:prompt_id(id,text),negative_prompt:negative_prompt_id(id,text),image_object_name,seed,duration_ms", "estimated", false).
+// Eq("user_id", supabaseUserId).
+// Not("image_object_name", "is", "null").
+// Order("created_at", &postgrest.OrderOpts{Ascending: false}).
+// Range((p-1)*pSize, p*pSize, "").
+// ExecuteTo(&generations)
+
+// Get user generations from the database using page options
+// Offset actually represents created_at, we paginate using this for performance reasons
+// If present, we will get results after the offset (anything before, represents previous pages)
+func (r *Repository) GetUserGenerations(userID uuid.UUID, per_page int, offset *time.Time) ([]*ent.Generation, error) {
+	var query *ent.GenerationQuery
+	if offset != nil {
+		query = r.DB.Generation.Query().
+			Where(generation.UserID(userID), generation.CreatedAtLT(*offset))
+	} else {
+		query = r.DB.Generation.Query().
+			Where(generation.UserID(userID))
+	}
+	return query.WithPrompt().
+		WithNegativePrompt().
+		WithScheduler().
+		WithGenerationOutputs().
+		WithGenerationModel().
+		Order(ent.Desc(generation.FieldCreatedAt)).
+		Limit(per_page).
+		All(r.Ctx)
+}

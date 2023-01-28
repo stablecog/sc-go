@@ -58,14 +58,14 @@ const (
 	FieldUpdatedAt = "updated_at"
 	// EdgeDeviceInfo holds the string denoting the device_info edge name in mutations.
 	EdgeDeviceInfo = "device_info"
-	// EdgeSchedulers holds the string denoting the schedulers edge name in mutations.
-	EdgeSchedulers = "schedulers"
-	// EdgePrompts holds the string denoting the prompts edge name in mutations.
-	EdgePrompts = "prompts"
-	// EdgeNegativePrompts holds the string denoting the negative_prompts edge name in mutations.
-	EdgeNegativePrompts = "negative_prompts"
-	// EdgeGenerationModels holds the string denoting the generation_models edge name in mutations.
-	EdgeGenerationModels = "generation_models"
+	// EdgeScheduler holds the string denoting the scheduler edge name in mutations.
+	EdgeScheduler = "scheduler"
+	// EdgePrompt holds the string denoting the prompt edge name in mutations.
+	EdgePrompt = "prompt"
+	// EdgeNegativePrompt holds the string denoting the negative_prompt edge name in mutations.
+	EdgeNegativePrompt = "negative_prompt"
+	// EdgeGenerationModel holds the string denoting the generation_model edge name in mutations.
+	EdgeGenerationModel = "generation_model"
 	// EdgeUsers holds the string denoting the users edge name in mutations.
 	EdgeUsers = "users"
 	// EdgeGenerationOutputs holds the string denoting the generation_outputs edge name in mutations.
@@ -79,34 +79,34 @@ const (
 	DeviceInfoInverseTable = "device_info"
 	// DeviceInfoColumn is the table column denoting the device_info relation/edge.
 	DeviceInfoColumn = "device_info_id"
-	// SchedulersTable is the table that holds the schedulers relation/edge.
-	SchedulersTable = "generations"
-	// SchedulersInverseTable is the table name for the Scheduler entity.
+	// SchedulerTable is the table that holds the scheduler relation/edge.
+	SchedulerTable = "generations"
+	// SchedulerInverseTable is the table name for the Scheduler entity.
 	// It exists in this package in order to avoid circular dependency with the "scheduler" package.
-	SchedulersInverseTable = "schedulers"
-	// SchedulersColumn is the table column denoting the schedulers relation/edge.
-	SchedulersColumn = "scheduler_id"
-	// PromptsTable is the table that holds the prompts relation/edge.
-	PromptsTable = "generations"
-	// PromptsInverseTable is the table name for the Prompt entity.
+	SchedulerInverseTable = "schedulers"
+	// SchedulerColumn is the table column denoting the scheduler relation/edge.
+	SchedulerColumn = "scheduler_id"
+	// PromptTable is the table that holds the prompt relation/edge.
+	PromptTable = "generations"
+	// PromptInverseTable is the table name for the Prompt entity.
 	// It exists in this package in order to avoid circular dependency with the "prompt" package.
-	PromptsInverseTable = "prompts"
-	// PromptsColumn is the table column denoting the prompts relation/edge.
-	PromptsColumn = "prompt_id"
-	// NegativePromptsTable is the table that holds the negative_prompts relation/edge.
-	NegativePromptsTable = "generations"
-	// NegativePromptsInverseTable is the table name for the NegativePrompt entity.
+	PromptInverseTable = "prompts"
+	// PromptColumn is the table column denoting the prompt relation/edge.
+	PromptColumn = "prompt_id"
+	// NegativePromptTable is the table that holds the negative_prompt relation/edge.
+	NegativePromptTable = "generations"
+	// NegativePromptInverseTable is the table name for the NegativePrompt entity.
 	// It exists in this package in order to avoid circular dependency with the "negativeprompt" package.
-	NegativePromptsInverseTable = "negative_prompts"
-	// NegativePromptsColumn is the table column denoting the negative_prompts relation/edge.
-	NegativePromptsColumn = "negative_prompt_id"
-	// GenerationModelsTable is the table that holds the generation_models relation/edge.
-	GenerationModelsTable = "generations"
-	// GenerationModelsInverseTable is the table name for the GenerationModel entity.
+	NegativePromptInverseTable = "negative_prompts"
+	// NegativePromptColumn is the table column denoting the negative_prompt relation/edge.
+	NegativePromptColumn = "negative_prompt_id"
+	// GenerationModelTable is the table that holds the generation_model relation/edge.
+	GenerationModelTable = "generations"
+	// GenerationModelInverseTable is the table name for the GenerationModel entity.
 	// It exists in this package in order to avoid circular dependency with the "generationmodel" package.
-	GenerationModelsInverseTable = "generation_models"
-	// GenerationModelsColumn is the table column denoting the generation_models relation/edge.
-	GenerationModelsColumn = "model_id"
+	GenerationModelInverseTable = "generation_models"
+	// GenerationModelColumn is the table column denoting the generation_model relation/edge.
+	GenerationModelColumn = "model_id"
 	// UsersTable is the table that holds the users relation/edge.
 	UsersTable = "generations"
 	// UsersInverseTable is the table name for the User entity.

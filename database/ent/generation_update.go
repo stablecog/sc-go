@@ -282,56 +282,30 @@ func (gu *GenerationUpdate) SetDeviceInfo(d *DeviceInfo) *GenerationUpdate {
 	return gu.SetDeviceInfoID(d.ID)
 }
 
-// SetSchedulersID sets the "schedulers" edge to the Scheduler entity by ID.
-func (gu *GenerationUpdate) SetSchedulersID(id uuid.UUID) *GenerationUpdate {
-	gu.mutation.SetSchedulersID(id)
+// SetScheduler sets the "scheduler" edge to the Scheduler entity.
+func (gu *GenerationUpdate) SetScheduler(s *Scheduler) *GenerationUpdate {
+	return gu.SetSchedulerID(s.ID)
+}
+
+// SetPrompt sets the "prompt" edge to the Prompt entity.
+func (gu *GenerationUpdate) SetPrompt(p *Prompt) *GenerationUpdate {
+	return gu.SetPromptID(p.ID)
+}
+
+// SetNegativePrompt sets the "negative_prompt" edge to the NegativePrompt entity.
+func (gu *GenerationUpdate) SetNegativePrompt(n *NegativePrompt) *GenerationUpdate {
+	return gu.SetNegativePromptID(n.ID)
+}
+
+// SetGenerationModelID sets the "generation_model" edge to the GenerationModel entity by ID.
+func (gu *GenerationUpdate) SetGenerationModelID(id uuid.UUID) *GenerationUpdate {
+	gu.mutation.SetGenerationModelID(id)
 	return gu
 }
 
-// SetSchedulers sets the "schedulers" edge to the Scheduler entity.
-func (gu *GenerationUpdate) SetSchedulers(s *Scheduler) *GenerationUpdate {
-	return gu.SetSchedulersID(s.ID)
-}
-
-// SetPromptsID sets the "prompts" edge to the Prompt entity by ID.
-func (gu *GenerationUpdate) SetPromptsID(id uuid.UUID) *GenerationUpdate {
-	gu.mutation.SetPromptsID(id)
-	return gu
-}
-
-// SetPrompts sets the "prompts" edge to the Prompt entity.
-func (gu *GenerationUpdate) SetPrompts(p *Prompt) *GenerationUpdate {
-	return gu.SetPromptsID(p.ID)
-}
-
-// SetNegativePromptsID sets the "negative_prompts" edge to the NegativePrompt entity by ID.
-func (gu *GenerationUpdate) SetNegativePromptsID(id uuid.UUID) *GenerationUpdate {
-	gu.mutation.SetNegativePromptsID(id)
-	return gu
-}
-
-// SetNillableNegativePromptsID sets the "negative_prompts" edge to the NegativePrompt entity by ID if the given value is not nil.
-func (gu *GenerationUpdate) SetNillableNegativePromptsID(id *uuid.UUID) *GenerationUpdate {
-	if id != nil {
-		gu = gu.SetNegativePromptsID(*id)
-	}
-	return gu
-}
-
-// SetNegativePrompts sets the "negative_prompts" edge to the NegativePrompt entity.
-func (gu *GenerationUpdate) SetNegativePrompts(n *NegativePrompt) *GenerationUpdate {
-	return gu.SetNegativePromptsID(n.ID)
-}
-
-// SetGenerationModelsID sets the "generation_models" edge to the GenerationModel entity by ID.
-func (gu *GenerationUpdate) SetGenerationModelsID(id uuid.UUID) *GenerationUpdate {
-	gu.mutation.SetGenerationModelsID(id)
-	return gu
-}
-
-// SetGenerationModels sets the "generation_models" edge to the GenerationModel entity.
-func (gu *GenerationUpdate) SetGenerationModels(g *GenerationModel) *GenerationUpdate {
-	return gu.SetGenerationModelsID(g.ID)
+// SetGenerationModel sets the "generation_model" edge to the GenerationModel entity.
+func (gu *GenerationUpdate) SetGenerationModel(g *GenerationModel) *GenerationUpdate {
+	return gu.SetGenerationModelID(g.ID)
 }
 
 // SetUsersID sets the "users" edge to the User entity by ID.
@@ -371,27 +345,27 @@ func (gu *GenerationUpdate) ClearDeviceInfo() *GenerationUpdate {
 	return gu
 }
 
-// ClearSchedulers clears the "schedulers" edge to the Scheduler entity.
-func (gu *GenerationUpdate) ClearSchedulers() *GenerationUpdate {
-	gu.mutation.ClearSchedulers()
+// ClearScheduler clears the "scheduler" edge to the Scheduler entity.
+func (gu *GenerationUpdate) ClearScheduler() *GenerationUpdate {
+	gu.mutation.ClearScheduler()
 	return gu
 }
 
-// ClearPrompts clears the "prompts" edge to the Prompt entity.
-func (gu *GenerationUpdate) ClearPrompts() *GenerationUpdate {
-	gu.mutation.ClearPrompts()
+// ClearPrompt clears the "prompt" edge to the Prompt entity.
+func (gu *GenerationUpdate) ClearPrompt() *GenerationUpdate {
+	gu.mutation.ClearPrompt()
 	return gu
 }
 
-// ClearNegativePrompts clears the "negative_prompts" edge to the NegativePrompt entity.
-func (gu *GenerationUpdate) ClearNegativePrompts() *GenerationUpdate {
-	gu.mutation.ClearNegativePrompts()
+// ClearNegativePrompt clears the "negative_prompt" edge to the NegativePrompt entity.
+func (gu *GenerationUpdate) ClearNegativePrompt() *GenerationUpdate {
+	gu.mutation.ClearNegativePrompt()
 	return gu
 }
 
-// ClearGenerationModels clears the "generation_models" edge to the GenerationModel entity.
-func (gu *GenerationUpdate) ClearGenerationModels() *GenerationUpdate {
-	gu.mutation.ClearGenerationModels()
+// ClearGenerationModel clears the "generation_model" edge to the GenerationModel entity.
+func (gu *GenerationUpdate) ClearGenerationModel() *GenerationUpdate {
+	gu.mutation.ClearGenerationModel()
 	return gu
 }
 
@@ -468,14 +442,14 @@ func (gu *GenerationUpdate) check() error {
 	if _, ok := gu.mutation.DeviceInfoID(); gu.mutation.DeviceInfoCleared() && !ok {
 		return errors.New(`ent: clearing a required unique edge "Generation.device_info"`)
 	}
-	if _, ok := gu.mutation.SchedulersID(); gu.mutation.SchedulersCleared() && !ok {
-		return errors.New(`ent: clearing a required unique edge "Generation.schedulers"`)
+	if _, ok := gu.mutation.SchedulerID(); gu.mutation.SchedulerCleared() && !ok {
+		return errors.New(`ent: clearing a required unique edge "Generation.scheduler"`)
 	}
-	if _, ok := gu.mutation.PromptsID(); gu.mutation.PromptsCleared() && !ok {
-		return errors.New(`ent: clearing a required unique edge "Generation.prompts"`)
+	if _, ok := gu.mutation.PromptID(); gu.mutation.PromptCleared() && !ok {
+		return errors.New(`ent: clearing a required unique edge "Generation.prompt"`)
 	}
-	if _, ok := gu.mutation.GenerationModelsID(); gu.mutation.GenerationModelsCleared() && !ok {
-		return errors.New(`ent: clearing a required unique edge "Generation.generation_models"`)
+	if _, ok := gu.mutation.GenerationModelID(); gu.mutation.GenerationModelCleared() && !ok {
+		return errors.New(`ent: clearing a required unique edge "Generation.generation_model"`)
 	}
 	if _, ok := gu.mutation.UsersID(); gu.mutation.UsersCleared() && !ok {
 		return errors.New(`ent: clearing a required unique edge "Generation.users"`)
@@ -608,12 +582,12 @@ func (gu *GenerationUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if gu.mutation.SchedulersCleared() {
+	if gu.mutation.SchedulerCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
-			Table:   generation.SchedulersTable,
-			Columns: []string{generation.SchedulersColumn},
+			Table:   generation.SchedulerTable,
+			Columns: []string{generation.SchedulerColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
@@ -624,12 +598,12 @@ func (gu *GenerationUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := gu.mutation.SchedulersIDs(); len(nodes) > 0 {
+	if nodes := gu.mutation.SchedulerIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
-			Table:   generation.SchedulersTable,
-			Columns: []string{generation.SchedulersColumn},
+			Table:   generation.SchedulerTable,
+			Columns: []string{generation.SchedulerColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
@@ -643,12 +617,12 @@ func (gu *GenerationUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if gu.mutation.PromptsCleared() {
+	if gu.mutation.PromptCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
-			Table:   generation.PromptsTable,
-			Columns: []string{generation.PromptsColumn},
+			Table:   generation.PromptTable,
+			Columns: []string{generation.PromptColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
@@ -659,12 +633,12 @@ func (gu *GenerationUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := gu.mutation.PromptsIDs(); len(nodes) > 0 {
+	if nodes := gu.mutation.PromptIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
-			Table:   generation.PromptsTable,
-			Columns: []string{generation.PromptsColumn},
+			Table:   generation.PromptTable,
+			Columns: []string{generation.PromptColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
@@ -678,12 +652,12 @@ func (gu *GenerationUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if gu.mutation.NegativePromptsCleared() {
+	if gu.mutation.NegativePromptCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
-			Table:   generation.NegativePromptsTable,
-			Columns: []string{generation.NegativePromptsColumn},
+			Table:   generation.NegativePromptTable,
+			Columns: []string{generation.NegativePromptColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
@@ -694,12 +668,12 @@ func (gu *GenerationUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := gu.mutation.NegativePromptsIDs(); len(nodes) > 0 {
+	if nodes := gu.mutation.NegativePromptIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
-			Table:   generation.NegativePromptsTable,
-			Columns: []string{generation.NegativePromptsColumn},
+			Table:   generation.NegativePromptTable,
+			Columns: []string{generation.NegativePromptColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
@@ -713,12 +687,12 @@ func (gu *GenerationUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if gu.mutation.GenerationModelsCleared() {
+	if gu.mutation.GenerationModelCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
-			Table:   generation.GenerationModelsTable,
-			Columns: []string{generation.GenerationModelsColumn},
+			Table:   generation.GenerationModelTable,
+			Columns: []string{generation.GenerationModelColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
@@ -729,12 +703,12 @@ func (gu *GenerationUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := gu.mutation.GenerationModelsIDs(); len(nodes) > 0 {
+	if nodes := gu.mutation.GenerationModelIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
-			Table:   generation.GenerationModelsTable,
-			Columns: []string{generation.GenerationModelsColumn},
+			Table:   generation.GenerationModelTable,
+			Columns: []string{generation.GenerationModelColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
@@ -1103,56 +1077,30 @@ func (guo *GenerationUpdateOne) SetDeviceInfo(d *DeviceInfo) *GenerationUpdateOn
 	return guo.SetDeviceInfoID(d.ID)
 }
 
-// SetSchedulersID sets the "schedulers" edge to the Scheduler entity by ID.
-func (guo *GenerationUpdateOne) SetSchedulersID(id uuid.UUID) *GenerationUpdateOne {
-	guo.mutation.SetSchedulersID(id)
+// SetScheduler sets the "scheduler" edge to the Scheduler entity.
+func (guo *GenerationUpdateOne) SetScheduler(s *Scheduler) *GenerationUpdateOne {
+	return guo.SetSchedulerID(s.ID)
+}
+
+// SetPrompt sets the "prompt" edge to the Prompt entity.
+func (guo *GenerationUpdateOne) SetPrompt(p *Prompt) *GenerationUpdateOne {
+	return guo.SetPromptID(p.ID)
+}
+
+// SetNegativePrompt sets the "negative_prompt" edge to the NegativePrompt entity.
+func (guo *GenerationUpdateOne) SetNegativePrompt(n *NegativePrompt) *GenerationUpdateOne {
+	return guo.SetNegativePromptID(n.ID)
+}
+
+// SetGenerationModelID sets the "generation_model" edge to the GenerationModel entity by ID.
+func (guo *GenerationUpdateOne) SetGenerationModelID(id uuid.UUID) *GenerationUpdateOne {
+	guo.mutation.SetGenerationModelID(id)
 	return guo
 }
 
-// SetSchedulers sets the "schedulers" edge to the Scheduler entity.
-func (guo *GenerationUpdateOne) SetSchedulers(s *Scheduler) *GenerationUpdateOne {
-	return guo.SetSchedulersID(s.ID)
-}
-
-// SetPromptsID sets the "prompts" edge to the Prompt entity by ID.
-func (guo *GenerationUpdateOne) SetPromptsID(id uuid.UUID) *GenerationUpdateOne {
-	guo.mutation.SetPromptsID(id)
-	return guo
-}
-
-// SetPrompts sets the "prompts" edge to the Prompt entity.
-func (guo *GenerationUpdateOne) SetPrompts(p *Prompt) *GenerationUpdateOne {
-	return guo.SetPromptsID(p.ID)
-}
-
-// SetNegativePromptsID sets the "negative_prompts" edge to the NegativePrompt entity by ID.
-func (guo *GenerationUpdateOne) SetNegativePromptsID(id uuid.UUID) *GenerationUpdateOne {
-	guo.mutation.SetNegativePromptsID(id)
-	return guo
-}
-
-// SetNillableNegativePromptsID sets the "negative_prompts" edge to the NegativePrompt entity by ID if the given value is not nil.
-func (guo *GenerationUpdateOne) SetNillableNegativePromptsID(id *uuid.UUID) *GenerationUpdateOne {
-	if id != nil {
-		guo = guo.SetNegativePromptsID(*id)
-	}
-	return guo
-}
-
-// SetNegativePrompts sets the "negative_prompts" edge to the NegativePrompt entity.
-func (guo *GenerationUpdateOne) SetNegativePrompts(n *NegativePrompt) *GenerationUpdateOne {
-	return guo.SetNegativePromptsID(n.ID)
-}
-
-// SetGenerationModelsID sets the "generation_models" edge to the GenerationModel entity by ID.
-func (guo *GenerationUpdateOne) SetGenerationModelsID(id uuid.UUID) *GenerationUpdateOne {
-	guo.mutation.SetGenerationModelsID(id)
-	return guo
-}
-
-// SetGenerationModels sets the "generation_models" edge to the GenerationModel entity.
-func (guo *GenerationUpdateOne) SetGenerationModels(g *GenerationModel) *GenerationUpdateOne {
-	return guo.SetGenerationModelsID(g.ID)
+// SetGenerationModel sets the "generation_model" edge to the GenerationModel entity.
+func (guo *GenerationUpdateOne) SetGenerationModel(g *GenerationModel) *GenerationUpdateOne {
+	return guo.SetGenerationModelID(g.ID)
 }
 
 // SetUsersID sets the "users" edge to the User entity by ID.
@@ -1192,27 +1140,27 @@ func (guo *GenerationUpdateOne) ClearDeviceInfo() *GenerationUpdateOne {
 	return guo
 }
 
-// ClearSchedulers clears the "schedulers" edge to the Scheduler entity.
-func (guo *GenerationUpdateOne) ClearSchedulers() *GenerationUpdateOne {
-	guo.mutation.ClearSchedulers()
+// ClearScheduler clears the "scheduler" edge to the Scheduler entity.
+func (guo *GenerationUpdateOne) ClearScheduler() *GenerationUpdateOne {
+	guo.mutation.ClearScheduler()
 	return guo
 }
 
-// ClearPrompts clears the "prompts" edge to the Prompt entity.
-func (guo *GenerationUpdateOne) ClearPrompts() *GenerationUpdateOne {
-	guo.mutation.ClearPrompts()
+// ClearPrompt clears the "prompt" edge to the Prompt entity.
+func (guo *GenerationUpdateOne) ClearPrompt() *GenerationUpdateOne {
+	guo.mutation.ClearPrompt()
 	return guo
 }
 
-// ClearNegativePrompts clears the "negative_prompts" edge to the NegativePrompt entity.
-func (guo *GenerationUpdateOne) ClearNegativePrompts() *GenerationUpdateOne {
-	guo.mutation.ClearNegativePrompts()
+// ClearNegativePrompt clears the "negative_prompt" edge to the NegativePrompt entity.
+func (guo *GenerationUpdateOne) ClearNegativePrompt() *GenerationUpdateOne {
+	guo.mutation.ClearNegativePrompt()
 	return guo
 }
 
-// ClearGenerationModels clears the "generation_models" edge to the GenerationModel entity.
-func (guo *GenerationUpdateOne) ClearGenerationModels() *GenerationUpdateOne {
-	guo.mutation.ClearGenerationModels()
+// ClearGenerationModel clears the "generation_model" edge to the GenerationModel entity.
+func (guo *GenerationUpdateOne) ClearGenerationModel() *GenerationUpdateOne {
+	guo.mutation.ClearGenerationModel()
 	return guo
 }
 
@@ -1296,14 +1244,14 @@ func (guo *GenerationUpdateOne) check() error {
 	if _, ok := guo.mutation.DeviceInfoID(); guo.mutation.DeviceInfoCleared() && !ok {
 		return errors.New(`ent: clearing a required unique edge "Generation.device_info"`)
 	}
-	if _, ok := guo.mutation.SchedulersID(); guo.mutation.SchedulersCleared() && !ok {
-		return errors.New(`ent: clearing a required unique edge "Generation.schedulers"`)
+	if _, ok := guo.mutation.SchedulerID(); guo.mutation.SchedulerCleared() && !ok {
+		return errors.New(`ent: clearing a required unique edge "Generation.scheduler"`)
 	}
-	if _, ok := guo.mutation.PromptsID(); guo.mutation.PromptsCleared() && !ok {
-		return errors.New(`ent: clearing a required unique edge "Generation.prompts"`)
+	if _, ok := guo.mutation.PromptID(); guo.mutation.PromptCleared() && !ok {
+		return errors.New(`ent: clearing a required unique edge "Generation.prompt"`)
 	}
-	if _, ok := guo.mutation.GenerationModelsID(); guo.mutation.GenerationModelsCleared() && !ok {
-		return errors.New(`ent: clearing a required unique edge "Generation.generation_models"`)
+	if _, ok := guo.mutation.GenerationModelID(); guo.mutation.GenerationModelCleared() && !ok {
+		return errors.New(`ent: clearing a required unique edge "Generation.generation_model"`)
 	}
 	if _, ok := guo.mutation.UsersID(); guo.mutation.UsersCleared() && !ok {
 		return errors.New(`ent: clearing a required unique edge "Generation.users"`)
@@ -1453,12 +1401,12 @@ func (guo *GenerationUpdateOne) sqlSave(ctx context.Context) (_node *Generation,
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if guo.mutation.SchedulersCleared() {
+	if guo.mutation.SchedulerCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
-			Table:   generation.SchedulersTable,
-			Columns: []string{generation.SchedulersColumn},
+			Table:   generation.SchedulerTable,
+			Columns: []string{generation.SchedulerColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
@@ -1469,12 +1417,12 @@ func (guo *GenerationUpdateOne) sqlSave(ctx context.Context) (_node *Generation,
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := guo.mutation.SchedulersIDs(); len(nodes) > 0 {
+	if nodes := guo.mutation.SchedulerIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
-			Table:   generation.SchedulersTable,
-			Columns: []string{generation.SchedulersColumn},
+			Table:   generation.SchedulerTable,
+			Columns: []string{generation.SchedulerColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
@@ -1488,12 +1436,12 @@ func (guo *GenerationUpdateOne) sqlSave(ctx context.Context) (_node *Generation,
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if guo.mutation.PromptsCleared() {
+	if guo.mutation.PromptCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
-			Table:   generation.PromptsTable,
-			Columns: []string{generation.PromptsColumn},
+			Table:   generation.PromptTable,
+			Columns: []string{generation.PromptColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
@@ -1504,12 +1452,12 @@ func (guo *GenerationUpdateOne) sqlSave(ctx context.Context) (_node *Generation,
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := guo.mutation.PromptsIDs(); len(nodes) > 0 {
+	if nodes := guo.mutation.PromptIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
-			Table:   generation.PromptsTable,
-			Columns: []string{generation.PromptsColumn},
+			Table:   generation.PromptTable,
+			Columns: []string{generation.PromptColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
@@ -1523,12 +1471,12 @@ func (guo *GenerationUpdateOne) sqlSave(ctx context.Context) (_node *Generation,
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if guo.mutation.NegativePromptsCleared() {
+	if guo.mutation.NegativePromptCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
-			Table:   generation.NegativePromptsTable,
-			Columns: []string{generation.NegativePromptsColumn},
+			Table:   generation.NegativePromptTable,
+			Columns: []string{generation.NegativePromptColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
@@ -1539,12 +1487,12 @@ func (guo *GenerationUpdateOne) sqlSave(ctx context.Context) (_node *Generation,
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := guo.mutation.NegativePromptsIDs(); len(nodes) > 0 {
+	if nodes := guo.mutation.NegativePromptIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
-			Table:   generation.NegativePromptsTable,
-			Columns: []string{generation.NegativePromptsColumn},
+			Table:   generation.NegativePromptTable,
+			Columns: []string{generation.NegativePromptColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
@@ -1558,12 +1506,12 @@ func (guo *GenerationUpdateOne) sqlSave(ctx context.Context) (_node *Generation,
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if guo.mutation.GenerationModelsCleared() {
+	if guo.mutation.GenerationModelCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
-			Table:   generation.GenerationModelsTable,
-			Columns: []string{generation.GenerationModelsColumn},
+			Table:   generation.GenerationModelTable,
+			Columns: []string{generation.GenerationModelColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
@@ -1574,12 +1522,12 @@ func (guo *GenerationUpdateOne) sqlSave(ctx context.Context) (_node *Generation,
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := guo.mutation.GenerationModelsIDs(); len(nodes) > 0 {
+	if nodes := guo.mutation.GenerationModelIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
-			Table:   generation.GenerationModelsTable,
-			Columns: []string{generation.GenerationModelsColumn},
+			Table:   generation.GenerationModelTable,
+			Columns: []string{generation.GenerationModelColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{

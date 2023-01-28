@@ -74,14 +74,14 @@ type Generation struct {
 type GenerationEdges struct {
 	// DeviceInfo holds the value of the device_info edge.
 	DeviceInfo *DeviceInfo `json:"device_info,omitempty"`
-	// Schedulers holds the value of the schedulers edge.
-	Schedulers *Scheduler `json:"schedulers,omitempty"`
-	// Prompts holds the value of the prompts edge.
-	Prompts *Prompt `json:"prompts,omitempty"`
-	// NegativePrompts holds the value of the negative_prompts edge.
-	NegativePrompts *NegativePrompt `json:"negative_prompts,omitempty"`
-	// GenerationModels holds the value of the generation_models edge.
-	GenerationModels *GenerationModel `json:"generation_models,omitempty"`
+	// Scheduler holds the value of the scheduler edge.
+	Scheduler *Scheduler `json:"scheduler,omitempty"`
+	// Prompt holds the value of the prompt edge.
+	Prompt *Prompt `json:"prompt,omitempty"`
+	// NegativePrompt holds the value of the negative_prompt edge.
+	NegativePrompt *NegativePrompt `json:"negative_prompt,omitempty"`
+	// GenerationModel holds the value of the generation_model edge.
+	GenerationModel *GenerationModel `json:"generation_model,omitempty"`
 	// Users holds the value of the users edge.
 	Users *User `json:"users,omitempty"`
 	// GenerationOutputs holds the value of the generation_outputs edge.
@@ -104,56 +104,56 @@ func (e GenerationEdges) DeviceInfoOrErr() (*DeviceInfo, error) {
 	return nil, &NotLoadedError{edge: "device_info"}
 }
 
-// SchedulersOrErr returns the Schedulers value or an error if the edge
+// SchedulerOrErr returns the Scheduler value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
-func (e GenerationEdges) SchedulersOrErr() (*Scheduler, error) {
+func (e GenerationEdges) SchedulerOrErr() (*Scheduler, error) {
 	if e.loadedTypes[1] {
-		if e.Schedulers == nil {
+		if e.Scheduler == nil {
 			// Edge was loaded but was not found.
 			return nil, &NotFoundError{label: scheduler.Label}
 		}
-		return e.Schedulers, nil
+		return e.Scheduler, nil
 	}
-	return nil, &NotLoadedError{edge: "schedulers"}
+	return nil, &NotLoadedError{edge: "scheduler"}
 }
 
-// PromptsOrErr returns the Prompts value or an error if the edge
+// PromptOrErr returns the Prompt value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
-func (e GenerationEdges) PromptsOrErr() (*Prompt, error) {
+func (e GenerationEdges) PromptOrErr() (*Prompt, error) {
 	if e.loadedTypes[2] {
-		if e.Prompts == nil {
+		if e.Prompt == nil {
 			// Edge was loaded but was not found.
 			return nil, &NotFoundError{label: prompt.Label}
 		}
-		return e.Prompts, nil
+		return e.Prompt, nil
 	}
-	return nil, &NotLoadedError{edge: "prompts"}
+	return nil, &NotLoadedError{edge: "prompt"}
 }
 
-// NegativePromptsOrErr returns the NegativePrompts value or an error if the edge
+// NegativePromptOrErr returns the NegativePrompt value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
-func (e GenerationEdges) NegativePromptsOrErr() (*NegativePrompt, error) {
+func (e GenerationEdges) NegativePromptOrErr() (*NegativePrompt, error) {
 	if e.loadedTypes[3] {
-		if e.NegativePrompts == nil {
+		if e.NegativePrompt == nil {
 			// Edge was loaded but was not found.
 			return nil, &NotFoundError{label: negativeprompt.Label}
 		}
-		return e.NegativePrompts, nil
+		return e.NegativePrompt, nil
 	}
-	return nil, &NotLoadedError{edge: "negative_prompts"}
+	return nil, &NotLoadedError{edge: "negative_prompt"}
 }
 
-// GenerationModelsOrErr returns the GenerationModels value or an error if the edge
+// GenerationModelOrErr returns the GenerationModel value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
-func (e GenerationEdges) GenerationModelsOrErr() (*GenerationModel, error) {
+func (e GenerationEdges) GenerationModelOrErr() (*GenerationModel, error) {
 	if e.loadedTypes[4] {
-		if e.GenerationModels == nil {
+		if e.GenerationModel == nil {
 			// Edge was loaded but was not found.
 			return nil, &NotFoundError{label: generationmodel.Label}
 		}
-		return e.GenerationModels, nil
+		return e.GenerationModel, nil
 	}
-	return nil, &NotLoadedError{edge: "generation_models"}
+	return nil, &NotLoadedError{edge: "generation_model"}
 }
 
 // UsersOrErr returns the Users value or an error if the edge
@@ -359,24 +359,24 @@ func (ge *Generation) QueryDeviceInfo() *DeviceInfoQuery {
 	return NewGenerationClient(ge.config).QueryDeviceInfo(ge)
 }
 
-// QuerySchedulers queries the "schedulers" edge of the Generation entity.
-func (ge *Generation) QuerySchedulers() *SchedulerQuery {
-	return NewGenerationClient(ge.config).QuerySchedulers(ge)
+// QueryScheduler queries the "scheduler" edge of the Generation entity.
+func (ge *Generation) QueryScheduler() *SchedulerQuery {
+	return NewGenerationClient(ge.config).QueryScheduler(ge)
 }
 
-// QueryPrompts queries the "prompts" edge of the Generation entity.
-func (ge *Generation) QueryPrompts() *PromptQuery {
-	return NewGenerationClient(ge.config).QueryPrompts(ge)
+// QueryPrompt queries the "prompt" edge of the Generation entity.
+func (ge *Generation) QueryPrompt() *PromptQuery {
+	return NewGenerationClient(ge.config).QueryPrompt(ge)
 }
 
-// QueryNegativePrompts queries the "negative_prompts" edge of the Generation entity.
-func (ge *Generation) QueryNegativePrompts() *NegativePromptQuery {
-	return NewGenerationClient(ge.config).QueryNegativePrompts(ge)
+// QueryNegativePrompt queries the "negative_prompt" edge of the Generation entity.
+func (ge *Generation) QueryNegativePrompt() *NegativePromptQuery {
+	return NewGenerationClient(ge.config).QueryNegativePrompt(ge)
 }
 
-// QueryGenerationModels queries the "generation_models" edge of the Generation entity.
-func (ge *Generation) QueryGenerationModels() *GenerationModelQuery {
-	return NewGenerationClient(ge.config).QueryGenerationModels(ge)
+// QueryGenerationModel queries the "generation_model" edge of the Generation entity.
+func (ge *Generation) QueryGenerationModel() *GenerationModelQuery {
+	return NewGenerationClient(ge.config).QueryGenerationModel(ge)
 }
 
 // QueryUsers queries the "users" edge of the Generation entity.
