@@ -10,16 +10,16 @@ import (
 
 func TestNewCache(t *testing.T) {
 	fc := newCache()
-	assert.Equal(t, 512, fc.FreeWidths[0])
-	assert.Equal(t, 512, fc.FreeHeights[0])
-	assert.Equal(t, 30, fc.FreeInterferenceSteps[0])
+	assert.Equal(t, int32(512), fc.FreeWidths[0])
+	assert.Equal(t, int32(512), fc.FreeHeights[0])
+	assert.Equal(t, int32(30), fc.FreeInterferenceSteps[0])
 }
 
 func TestGetCacheReturnsSameInstance(t *testing.T) {
 	fc1 := GetCache()
 	fc1.FreeHeights[0] = 1024
 	fc2 := GetCache()
-	assert.Equal(t, 1024, fc2.FreeHeights[0])
+	assert.Equal(t, int32(1024), fc2.FreeHeights[0])
 }
 
 func TestUpdateGenerateModels(t *testing.T) {
