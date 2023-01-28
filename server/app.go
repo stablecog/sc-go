@@ -14,6 +14,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/credentials"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/go-chi/chi/v5"
+	chimiddleware "github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/cors"
 	"github.com/go-co-op/gocron"
 	"github.com/joho/godotenv"
@@ -60,7 +61,7 @@ func main() {
 	}))
 
 	// Log middleware
-	app.Use(middleware.LogMiddleware)
+	app.Use(chimiddleware.Logger)
 
 	// Setup sql
 	klog.Infoln("🏡 Connecting to database...")
@@ -162,12 +163,9 @@ func main() {
 		r.Get("/health", hc.GetHealth)
 
 		// Routes that require authentication
-		r.Route("/generate", func(r chi.Router) {
-			r.Use(mw.AuthMiddleware)
-			r.Post("/", hc.PostGenerate)
-		})
 		r.Route("/user", func(r chi.Router) {
 			r.Use(mw.AuthMiddleware)
+			r.Post("/generate", hc.PostGenerate)
 			r.Get("/generations", hc.GetUserGenerations)
 		})
 
