@@ -6,13 +6,11 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"strings"
 	"time"
 
 	"github.com/go-redis/redis/v8"
 	"github.com/stablecog/go-apps/cron/models"
 	"github.com/stablecog/go-apps/database/ent"
-	dbgeneration "github.com/stablecog/go-apps/database/ent/generation"
 	"github.com/stablecog/go-apps/utils"
 	"k8s.io/klog/v2"
 )
@@ -110,54 +108,55 @@ func getDiscordWebhookBody(
 	lastGenerationTime time.Time,
 	lastCheckTime time.Time,
 ) models.DiscordWebhookBody {
-	var statusStr string
-	if status == "unhealthy" {
-		statusStr = "🔴💀🔴"
-	} else {
-		statusStr = "🟢👌🟢"
-	}
-	generationsStr := ""
-	generationsStrArr := []string{}
-	for _, generation := range generations {
-		if generation.Status != nil {
-			if *generation.Status == dbgeneration.StatusFailed {
-				if generation.FailureReason != nil && *generation.FailureReason == "NSFW" {
-					generationsStrArr = append(generationsStrArr, "🌶️")
-				} else {
-					generationsStrArr = append(generationsStrArr, "🔴")
-				}
-			} else if *generation.Status == "started" {
-				generationsStrArr = append(generationsStrArr, "🟡")
-			} else {
-				generationsStrArr = append(generationsStrArr, "🟢")
-			}
-		}
-	}
-	generationsStr = strings.Join(generationsStrArr, "")
-	body := models.DiscordWebhookBody{
-		Embeds: []models.DiscordWebhookEmbed{
-			{
-				Color: 11437547,
-				Fields: []models.DiscordWebhookField{
-					{
-						Name:  "Status",
-						Value: fmt.Sprintf("```%s```", statusStr),
-					},
-					{
-						Name:  "Generations",
-						Value: fmt.Sprintf("```%s```", generationsStr),
-					},
-					{
-						Name:  "Last Generation",
-						Value: fmt.Sprintf("```%s```", utils.RelativeTimeStr(lastGenerationTime)),
-					},
-				},
-				Footer: models.DiscordWebhookEmbedFooter{
-					Text: lastCheckTime.Format(time.RFC1123),
-				},
-			},
-		},
-		Attachments: []models.DiscordWebhookAttachment{},
-	}
-	return body
+	return models.DiscordWebhookBody{}
+	// var statusStr string
+	// if status == "unhealthy" {
+	// 	statusStr = "🔴💀🔴"
+	// } else {
+	// 	statusStr = "🟢👌🟢"
+	// }
+	// generationsStr := ""
+	// generationsStrArr := []string{}
+	// for _, generation := range generations {
+	// 	if generation.Status != nil {
+	// 		if *generation.Status == dbgeneration.StatusFailed {
+	// 			if generation.FailureReason != nil && *generation.FailureReason == "NSFW" {
+	// 				generationsStrArr = append(generationsStrArr, "🌶️")
+	// 			} else {
+	// 				generationsStrArr = append(generationsStrArr, "🔴")
+	// 			}
+	// 		} else if *generation.Status == "started" {
+	// 			generationsStrArr = append(generationsStrArr, "🟡")
+	// 		} else {
+	// 			generationsStrArr = append(generationsStrArr, "🟢")
+	// 		}
+	// 	}
+	// }
+	// generationsStr = strings.Join(generationsStrArr, "")
+	// body := models.DiscordWebhookBody{
+	// 	Embeds: []models.DiscordWebhookEmbed{
+	// 		{
+	// 			Color: 11437547,
+	// 			Fields: []models.DiscordWebhookField{
+	// 				{
+	// 					Name:  "Status",
+	// 					Value: fmt.Sprintf("```%s```", statusStr),
+	// 				},
+	// 				{
+	// 					Name:  "Generations",
+	// 					Value: fmt.Sprintf("```%s```", generationsStr),
+	// 				},
+	// 				{
+	// 					Name:  "Last Generation",
+	// 					Value: fmt.Sprintf("```%s```", utils.RelativeTimeStr(lastGenerationTime)),
+	// 				},
+	// 			},
+	// 			Footer: models.DiscordWebhookEmbedFooter{
+	// 				Text: lastCheckTime.Format(time.RFC1123),
+	// 			},
+	// 		},
+	// 	},
+	// 	Attachments: []models.DiscordWebhookAttachment{},
+	// }
+	// return body
 }

@@ -30,10 +30,8 @@ const (
 	FieldFailureReason = "failure_reason"
 	// FieldCountryCode holds the string denoting the country_code field in the database.
 	FieldCountryCode = "country_code"
-	// FieldIsSubmittedToGallery holds the string denoting the is_submitted_to_gallery field in the database.
-	FieldIsSubmittedToGallery = "is_submitted_to_gallery"
-	// FieldIsPublic holds the string denoting the is_public field in the database.
-	FieldIsPublic = "is_public"
+	// FieldGalleryStatus holds the string denoting the gallery_status field in the database.
+	FieldGalleryStatus = "gallery_status"
 	// FieldInitImageURL holds the string denoting the init_image_url field in the database.
 	FieldInitImageURL = "init_image_url"
 	// FieldPromptID holds the string denoting the prompt_id field in the database.
@@ -134,8 +132,7 @@ var Columns = []string{
 	FieldStatus,
 	FieldFailureReason,
 	FieldCountryCode,
-	FieldIsSubmittedToGallery,
-	FieldIsPublic,
+	FieldGalleryStatus,
 	FieldInitImageURL,
 	FieldPromptID,
 	FieldNegativePromptID,
@@ -160,10 +157,6 @@ func ValidColumn(column string) bool {
 }
 
 var (
-	// DefaultIsSubmittedToGallery holds the default value on creation for the "is_submitted_to_gallery" field.
-	DefaultIsSubmittedToGallery bool
-	// DefaultIsPublic holds the default value on creation for the "is_public" field.
-	DefaultIsPublic bool
 	// DefaultCreatedAt holds the default value on creation for the "created_at" field.
 	DefaultCreatedAt func() time.Time
 	// DefaultUpdatedAt holds the default value on creation for the "updated_at" field.
@@ -197,5 +190,33 @@ func StatusValidator(s Status) error {
 		return nil
 	default:
 		return fmt.Errorf("generation: invalid enum value for status field: %q", s)
+	}
+}
+
+// GalleryStatus defines the type for the "gallery_status" enum field.
+type GalleryStatus string
+
+// GalleryStatusNotSubmitted is the default value of the GalleryStatus enum.
+const DefaultGalleryStatus = GalleryStatusNotSubmitted
+
+// GalleryStatus values.
+const (
+	GalleryStatusNotSubmitted GalleryStatus = "not_submitted"
+	GalleryStatusSubmitted    GalleryStatus = "submitted"
+	GalleryStatusAccepted     GalleryStatus = "accepted"
+	GalleryStatusRejected     GalleryStatus = "rejected"
+)
+
+func (gs GalleryStatus) String() string {
+	return string(gs)
+}
+
+// GalleryStatusValidator is a validator for the "gallery_status" field enum values. It is called by the builders before save.
+func GalleryStatusValidator(gs GalleryStatus) error {
+	switch gs {
+	case GalleryStatusNotSubmitted, GalleryStatusSubmitted, GalleryStatusAccepted, GalleryStatusRejected:
+		return nil
+	default:
+		return fmt.Errorf("generation: invalid enum value for gallery_status field: %q", gs)
 	}
 }

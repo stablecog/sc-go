@@ -30,7 +30,7 @@ func TestGenerateUnauthorizedIfUserIdMissingInContext(t *testing.T) {
 	MockController.PostGenerate(w, req)
 	resp := w.Result()
 	defer resp.Body.Close()
-	assert.Equal(t, 400, resp.StatusCode)
+	assert.Equal(t, 401, resp.StatusCode)
 	var respJson map[string]interface{}
 	respBody, _ := io.ReadAll(resp.Body)
 	json.Unmarshal(respBody, &respJson)
@@ -54,7 +54,7 @@ func TestGenerateUnauthorizedIfUserIdNotUuid(t *testing.T) {
 	MockController.PostGenerate(w, req.WithContext(ctx))
 	resp := w.Result()
 	defer resp.Body.Close()
-	assert.Equal(t, 400, resp.StatusCode)
+	assert.Equal(t, 401, resp.StatusCode)
 	var respJson map[string]interface{}
 	respBody, _ := io.ReadAll(resp.Body)
 	json.Unmarshal(respBody, &respJson)

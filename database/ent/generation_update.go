@@ -133,30 +133,16 @@ func (gu *GenerationUpdate) SetCountryCode(s string) *GenerationUpdate {
 	return gu
 }
 
-// SetIsSubmittedToGallery sets the "is_submitted_to_gallery" field.
-func (gu *GenerationUpdate) SetIsSubmittedToGallery(b bool) *GenerationUpdate {
-	gu.mutation.SetIsSubmittedToGallery(b)
+// SetGalleryStatus sets the "gallery_status" field.
+func (gu *GenerationUpdate) SetGalleryStatus(gs generation.GalleryStatus) *GenerationUpdate {
+	gu.mutation.SetGalleryStatus(gs)
 	return gu
 }
 
-// SetNillableIsSubmittedToGallery sets the "is_submitted_to_gallery" field if the given value is not nil.
-func (gu *GenerationUpdate) SetNillableIsSubmittedToGallery(b *bool) *GenerationUpdate {
-	if b != nil {
-		gu.SetIsSubmittedToGallery(*b)
-	}
-	return gu
-}
-
-// SetIsPublic sets the "is_public" field.
-func (gu *GenerationUpdate) SetIsPublic(b bool) *GenerationUpdate {
-	gu.mutation.SetIsPublic(b)
-	return gu
-}
-
-// SetNillableIsPublic sets the "is_public" field if the given value is not nil.
-func (gu *GenerationUpdate) SetNillableIsPublic(b *bool) *GenerationUpdate {
-	if b != nil {
-		gu.SetIsPublic(*b)
+// SetNillableGalleryStatus sets the "gallery_status" field if the given value is not nil.
+func (gu *GenerationUpdate) SetNillableGalleryStatus(gs *generation.GalleryStatus) *GenerationUpdate {
+	if gs != nil {
+		gu.SetGalleryStatus(*gs)
 	}
 	return gu
 }
@@ -439,6 +425,11 @@ func (gu *GenerationUpdate) check() error {
 			return &ValidationError{Name: "status", err: fmt.Errorf(`ent: validator failed for field "Generation.status": %w`, err)}
 		}
 	}
+	if v, ok := gu.mutation.GalleryStatus(); ok {
+		if err := generation.GalleryStatusValidator(v); err != nil {
+			return &ValidationError{Name: "gallery_status", err: fmt.Errorf(`ent: validator failed for field "Generation.gallery_status": %w`, err)}
+		}
+	}
 	if _, ok := gu.mutation.DeviceInfoID(); gu.mutation.DeviceInfoCleared() && !ok {
 		return errors.New(`ent: clearing a required unique edge "Generation.device_info"`)
 	}
@@ -520,11 +511,8 @@ func (gu *GenerationUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if value, ok := gu.mutation.CountryCode(); ok {
 		_spec.SetField(generation.FieldCountryCode, field.TypeString, value)
 	}
-	if value, ok := gu.mutation.IsSubmittedToGallery(); ok {
-		_spec.SetField(generation.FieldIsSubmittedToGallery, field.TypeBool, value)
-	}
-	if value, ok := gu.mutation.IsPublic(); ok {
-		_spec.SetField(generation.FieldIsPublic, field.TypeBool, value)
+	if value, ok := gu.mutation.GalleryStatus(); ok {
+		_spec.SetField(generation.FieldGalleryStatus, field.TypeEnum, value)
 	}
 	if value, ok := gu.mutation.InitImageURL(); ok {
 		_spec.SetField(generation.FieldInitImageURL, field.TypeString, value)
@@ -928,30 +916,16 @@ func (guo *GenerationUpdateOne) SetCountryCode(s string) *GenerationUpdateOne {
 	return guo
 }
 
-// SetIsSubmittedToGallery sets the "is_submitted_to_gallery" field.
-func (guo *GenerationUpdateOne) SetIsSubmittedToGallery(b bool) *GenerationUpdateOne {
-	guo.mutation.SetIsSubmittedToGallery(b)
+// SetGalleryStatus sets the "gallery_status" field.
+func (guo *GenerationUpdateOne) SetGalleryStatus(gs generation.GalleryStatus) *GenerationUpdateOne {
+	guo.mutation.SetGalleryStatus(gs)
 	return guo
 }
 
-// SetNillableIsSubmittedToGallery sets the "is_submitted_to_gallery" field if the given value is not nil.
-func (guo *GenerationUpdateOne) SetNillableIsSubmittedToGallery(b *bool) *GenerationUpdateOne {
-	if b != nil {
-		guo.SetIsSubmittedToGallery(*b)
-	}
-	return guo
-}
-
-// SetIsPublic sets the "is_public" field.
-func (guo *GenerationUpdateOne) SetIsPublic(b bool) *GenerationUpdateOne {
-	guo.mutation.SetIsPublic(b)
-	return guo
-}
-
-// SetNillableIsPublic sets the "is_public" field if the given value is not nil.
-func (guo *GenerationUpdateOne) SetNillableIsPublic(b *bool) *GenerationUpdateOne {
-	if b != nil {
-		guo.SetIsPublic(*b)
+// SetNillableGalleryStatus sets the "gallery_status" field if the given value is not nil.
+func (guo *GenerationUpdateOne) SetNillableGalleryStatus(gs *generation.GalleryStatus) *GenerationUpdateOne {
+	if gs != nil {
+		guo.SetGalleryStatus(*gs)
 	}
 	return guo
 }
@@ -1241,6 +1215,11 @@ func (guo *GenerationUpdateOne) check() error {
 			return &ValidationError{Name: "status", err: fmt.Errorf(`ent: validator failed for field "Generation.status": %w`, err)}
 		}
 	}
+	if v, ok := guo.mutation.GalleryStatus(); ok {
+		if err := generation.GalleryStatusValidator(v); err != nil {
+			return &ValidationError{Name: "gallery_status", err: fmt.Errorf(`ent: validator failed for field "Generation.gallery_status": %w`, err)}
+		}
+	}
 	if _, ok := guo.mutation.DeviceInfoID(); guo.mutation.DeviceInfoCleared() && !ok {
 		return errors.New(`ent: clearing a required unique edge "Generation.device_info"`)
 	}
@@ -1339,11 +1318,8 @@ func (guo *GenerationUpdateOne) sqlSave(ctx context.Context) (_node *Generation,
 	if value, ok := guo.mutation.CountryCode(); ok {
 		_spec.SetField(generation.FieldCountryCode, field.TypeString, value)
 	}
-	if value, ok := guo.mutation.IsSubmittedToGallery(); ok {
-		_spec.SetField(generation.FieldIsSubmittedToGallery, field.TypeBool, value)
-	}
-	if value, ok := guo.mutation.IsPublic(); ok {
-		_spec.SetField(generation.FieldIsPublic, field.TypeBool, value)
+	if value, ok := guo.mutation.GalleryStatus(); ok {
+		_spec.SetField(generation.FieldGalleryStatus, field.TypeEnum, value)
 	}
 	if value, ok := guo.mutation.InitImageURL(); ok {
 		_spec.SetField(generation.FieldInitImageURL, field.TypeString, value)

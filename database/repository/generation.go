@@ -18,6 +18,11 @@ func (r *Repository) CreateGeneration(userID uuid.UUID, deviceType, deviceOs, de
 	if err != nil {
 		return nil, err
 	}
+	// Gallery status depends on req body
+	galleryStatus := generation.GalleryStatusNotSubmitted
+	if req.ShouldSubmitToGallery {
+		galleryStatus = generation.GalleryStatusSubmitted
+	}
 	insert := r.DB.Generation.Create().
 		SetStatus(generation.StatusQueued).
 		SetWidth(req.Width).
@@ -30,7 +35,8 @@ func (r *Repository) CreateGeneration(userID uuid.UUID, deviceType, deviceOs, de
 		SetPromptID(promptId).
 		SetDeviceInfoID(deviceInfoId).
 		SetCountryCode(countryCode).
-		SetUserID(userID)
+		SetUserID(userID).
+		SetGalleryStatus(galleryStatus)
 	if negativePromptId != nil {
 		insert.SetNegativePromptID(*negativePromptId)
 	}

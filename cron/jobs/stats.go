@@ -64,7 +64,7 @@ func (j *JobRunner) GetAndSetStatFromPostgresToRedis(
 		return err
 	}
 
-	errSet := j.Redis.Set(j.Ctx, rKey, data, 0).Err()
+	errSet := j.Redis.Client.Set(j.Ctx, rKey, data, 0).Err()
 	if errSet != nil {
 		klog.Errorf("Redis - Error setting '%s': %v", rKey, err)
 		return errSet

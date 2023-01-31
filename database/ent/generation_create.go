@@ -84,30 +84,16 @@ func (gc *GenerationCreate) SetCountryCode(s string) *GenerationCreate {
 	return gc
 }
 
-// SetIsSubmittedToGallery sets the "is_submitted_to_gallery" field.
-func (gc *GenerationCreate) SetIsSubmittedToGallery(b bool) *GenerationCreate {
-	gc.mutation.SetIsSubmittedToGallery(b)
+// SetGalleryStatus sets the "gallery_status" field.
+func (gc *GenerationCreate) SetGalleryStatus(gs generation.GalleryStatus) *GenerationCreate {
+	gc.mutation.SetGalleryStatus(gs)
 	return gc
 }
 
-// SetNillableIsSubmittedToGallery sets the "is_submitted_to_gallery" field if the given value is not nil.
-func (gc *GenerationCreate) SetNillableIsSubmittedToGallery(b *bool) *GenerationCreate {
-	if b != nil {
-		gc.SetIsSubmittedToGallery(*b)
-	}
-	return gc
-}
-
-// SetIsPublic sets the "is_public" field.
-func (gc *GenerationCreate) SetIsPublic(b bool) *GenerationCreate {
-	gc.mutation.SetIsPublic(b)
-	return gc
-}
-
-// SetNillableIsPublic sets the "is_public" field if the given value is not nil.
-func (gc *GenerationCreate) SetNillableIsPublic(b *bool) *GenerationCreate {
-	if b != nil {
-		gc.SetIsPublic(*b)
+// SetNillableGalleryStatus sets the "gallery_status" field if the given value is not nil.
+func (gc *GenerationCreate) SetNillableGalleryStatus(gs *generation.GalleryStatus) *GenerationCreate {
+	if gs != nil {
+		gc.SetGalleryStatus(*gs)
 	}
 	return gc
 }
@@ -332,13 +318,9 @@ func (gc *GenerationCreate) ExecX(ctx context.Context) {
 
 // defaults sets the default values of the builder before save.
 func (gc *GenerationCreate) defaults() {
-	if _, ok := gc.mutation.IsSubmittedToGallery(); !ok {
-		v := generation.DefaultIsSubmittedToGallery
-		gc.mutation.SetIsSubmittedToGallery(v)
-	}
-	if _, ok := gc.mutation.IsPublic(); !ok {
-		v := generation.DefaultIsPublic
-		gc.mutation.SetIsPublic(v)
+	if _, ok := gc.mutation.GalleryStatus(); !ok {
+		v := generation.DefaultGalleryStatus
+		gc.mutation.SetGalleryStatus(v)
 	}
 	if _, ok := gc.mutation.CreatedAt(); !ok {
 		v := generation.DefaultCreatedAt()
@@ -382,11 +364,13 @@ func (gc *GenerationCreate) check() error {
 	if _, ok := gc.mutation.CountryCode(); !ok {
 		return &ValidationError{Name: "country_code", err: errors.New(`ent: missing required field "Generation.country_code"`)}
 	}
-	if _, ok := gc.mutation.IsSubmittedToGallery(); !ok {
-		return &ValidationError{Name: "is_submitted_to_gallery", err: errors.New(`ent: missing required field "Generation.is_submitted_to_gallery"`)}
+	if _, ok := gc.mutation.GalleryStatus(); !ok {
+		return &ValidationError{Name: "gallery_status", err: errors.New(`ent: missing required field "Generation.gallery_status"`)}
 	}
-	if _, ok := gc.mutation.IsPublic(); !ok {
-		return &ValidationError{Name: "is_public", err: errors.New(`ent: missing required field "Generation.is_public"`)}
+	if v, ok := gc.mutation.GalleryStatus(); ok {
+		if err := generation.GalleryStatusValidator(v); err != nil {
+			return &ValidationError{Name: "gallery_status", err: fmt.Errorf(`ent: validator failed for field "Generation.gallery_status": %w`, err)}
+		}
 	}
 	if _, ok := gc.mutation.PromptID(); !ok {
 		return &ValidationError{Name: "prompt_id", err: errors.New(`ent: missing required field "Generation.prompt_id"`)}
@@ -497,13 +481,9 @@ func (gc *GenerationCreate) createSpec() (*Generation, *sqlgraph.CreateSpec) {
 		_spec.SetField(generation.FieldCountryCode, field.TypeString, value)
 		_node.CountryCode = value
 	}
-	if value, ok := gc.mutation.IsSubmittedToGallery(); ok {
-		_spec.SetField(generation.FieldIsSubmittedToGallery, field.TypeBool, value)
-		_node.IsSubmittedToGallery = value
-	}
-	if value, ok := gc.mutation.IsPublic(); ok {
-		_spec.SetField(generation.FieldIsPublic, field.TypeBool, value)
-		_node.IsPublic = value
+	if value, ok := gc.mutation.GalleryStatus(); ok {
+		_spec.SetField(generation.FieldGalleryStatus, field.TypeEnum, value)
+		_node.GalleryStatus = value
 	}
 	if value, ok := gc.mutation.InitImageURL(); ok {
 		_spec.SetField(generation.FieldInitImageURL, field.TypeString, value)

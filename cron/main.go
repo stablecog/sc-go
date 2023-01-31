@@ -74,7 +74,7 @@ func main() {
 		Ctx:     ctx,
 		Db:      entClient,
 		Redis:   redis,
-		Discord: utils.NewDiscordHealthTracker(ctx, redis),
+		Discord: utils.NewDiscordHealthTracker(ctx, redis.Client),
 		Meili:   database.NewMeiliSearchClient(),
 	}
 

@@ -15,7 +15,12 @@ func TestNewCache(t *testing.T) {
 	assert.Equal(t, int32(30), fc.FreeInterferenceSteps[0])
 }
 
+func resetCache() {
+	singleCache = newCache()
+}
+
 func TestGetCacheReturnsSameInstance(t *testing.T) {
+	resetCache()
 	fc1 := GetCache()
 	fc1.FreeHeights[0] = 1024
 	fc2 := GetCache()
@@ -23,6 +28,7 @@ func TestGetCacheReturnsSameInstance(t *testing.T) {
 }
 
 func TestUpdateGenerateModels(t *testing.T) {
+	resetCache()
 	fc := GetCache()
 	assert.Len(t, fc.GenerateModels, 0)
 	models := []*ent.GenerationModel{
@@ -34,6 +40,7 @@ func TestUpdateGenerateModels(t *testing.T) {
 }
 
 func TestUpdateSchedulers(t *testing.T) {
+	resetCache()
 	fc := GetCache()
 	assert.Len(t, fc.Schedulers, 0)
 	schedulrs := []*ent.Scheduler{
@@ -45,6 +52,7 @@ func TestUpdateSchedulers(t *testing.T) {
 }
 
 func TestIsValidGenerationModelID(t *testing.T) {
+	resetCache()
 	fc := GetCache()
 	// Predictable uuid
 	uid := uuid.MustParse("00000000-0000-0000-0000-000000000000")
@@ -57,6 +65,7 @@ func TestIsValidGenerationModelID(t *testing.T) {
 	assert.True(t, fc.IsValidGenerationModelID(uid))
 }
 func TestIsValidSchedulerID(t *testing.T) {
+	resetCache()
 	fc := GetCache()
 	// Predictable uuid
 	uid := uuid.MustParse("00000000-0000-0000-0000-000000000000")
@@ -70,6 +79,7 @@ func TestIsValidSchedulerID(t *testing.T) {
 }
 
 func TestIsGenerationModelAvailableForFree(t *testing.T) {
+	resetCache()
 	fc := GetCache()
 	// Predictable uuid
 	uid := uuid.MustParse("00000000-0000-0000-0000-000000000000")
@@ -89,6 +99,7 @@ func TestIsGenerationModelAvailableForFree(t *testing.T) {
 }
 
 func TestIsSchedulerAvailableForFree(t *testing.T) {
+	resetCache()
 	fc := GetCache()
 	// Predictable uuid
 	uid := uuid.MustParse("00000000-0000-0000-0000-000000000000")
@@ -108,24 +119,28 @@ func TestIsSchedulerAvailableForFree(t *testing.T) {
 }
 
 func TestIsWidthAvailableForFree(t *testing.T) {
+	resetCache()
 	fc := GetCache()
 	assert.False(t, fc.IsWidthAvailableForFree(1024))
 	assert.True(t, fc.IsWidthAvailableForFree(512))
 }
 
 func TestIsHeightAvailableForFree(t *testing.T) {
+	resetCache()
 	fc := GetCache()
 	assert.False(t, fc.IsHeightAvailableForFree(1024))
 	assert.True(t, fc.IsHeightAvailableForFree(512))
 }
 
 func TestIsNumInterferenceStepsAvailableForFree(t *testing.T) {
+	resetCache()
 	fc := GetCache()
 	assert.False(t, fc.IsNumInterferenceStepsAvailableForFree(31))
 	assert.True(t, fc.IsNumInterferenceStepsAvailableForFree(30))
 }
 
 func TestGetGenerationModelNameFromID(t *testing.T) {
+	resetCache()
 	fc := GetCache()
 	// Predictable uuid
 	uid := uuid.MustParse("00000000-0000-0000-0000-000000000000")
@@ -140,6 +155,7 @@ func TestGetGenerationModelNameFromID(t *testing.T) {
 }
 
 func TestGetSchedulerNameFromID(t *testing.T) {
+	resetCache()
 	fc := GetCache()
 	// Predictable uuid
 	uid := uuid.MustParse("00000000-0000-0000-0000-000000000000")

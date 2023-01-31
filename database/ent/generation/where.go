@@ -91,16 +91,6 @@ func CountryCode(v string) predicate.Generation {
 	return predicate.Generation(sql.FieldEQ(FieldCountryCode, v))
 }
 
-// IsSubmittedToGallery applies equality check predicate on the "is_submitted_to_gallery" field. It's identical to IsSubmittedToGalleryEQ.
-func IsSubmittedToGallery(v bool) predicate.Generation {
-	return predicate.Generation(sql.FieldEQ(FieldIsSubmittedToGallery, v))
-}
-
-// IsPublic applies equality check predicate on the "is_public" field. It's identical to IsPublicEQ.
-func IsPublic(v bool) predicate.Generation {
-	return predicate.Generation(sql.FieldEQ(FieldIsPublic, v))
-}
-
 // InitImageURL applies equality check predicate on the "init_image_url" field. It's identical to InitImageURLEQ.
 func InitImageURL(v string) predicate.Generation {
 	return predicate.Generation(sql.FieldEQ(FieldInitImageURL, v))
@@ -516,24 +506,24 @@ func CountryCodeContainsFold(v string) predicate.Generation {
 	return predicate.Generation(sql.FieldContainsFold(FieldCountryCode, v))
 }
 
-// IsSubmittedToGalleryEQ applies the EQ predicate on the "is_submitted_to_gallery" field.
-func IsSubmittedToGalleryEQ(v bool) predicate.Generation {
-	return predicate.Generation(sql.FieldEQ(FieldIsSubmittedToGallery, v))
+// GalleryStatusEQ applies the EQ predicate on the "gallery_status" field.
+func GalleryStatusEQ(v GalleryStatus) predicate.Generation {
+	return predicate.Generation(sql.FieldEQ(FieldGalleryStatus, v))
 }
 
-// IsSubmittedToGalleryNEQ applies the NEQ predicate on the "is_submitted_to_gallery" field.
-func IsSubmittedToGalleryNEQ(v bool) predicate.Generation {
-	return predicate.Generation(sql.FieldNEQ(FieldIsSubmittedToGallery, v))
+// GalleryStatusNEQ applies the NEQ predicate on the "gallery_status" field.
+func GalleryStatusNEQ(v GalleryStatus) predicate.Generation {
+	return predicate.Generation(sql.FieldNEQ(FieldGalleryStatus, v))
 }
 
-// IsPublicEQ applies the EQ predicate on the "is_public" field.
-func IsPublicEQ(v bool) predicate.Generation {
-	return predicate.Generation(sql.FieldEQ(FieldIsPublic, v))
+// GalleryStatusIn applies the In predicate on the "gallery_status" field.
+func GalleryStatusIn(vs ...GalleryStatus) predicate.Generation {
+	return predicate.Generation(sql.FieldIn(FieldGalleryStatus, vs...))
 }
 
-// IsPublicNEQ applies the NEQ predicate on the "is_public" field.
-func IsPublicNEQ(v bool) predicate.Generation {
-	return predicate.Generation(sql.FieldNEQ(FieldIsPublic, v))
+// GalleryStatusNotIn applies the NotIn predicate on the "gallery_status" field.
+func GalleryStatusNotIn(vs ...GalleryStatus) predicate.Generation {
+	return predicate.Generation(sql.FieldNotIn(FieldGalleryStatus, vs...))
 }
 
 // InitImageURLEQ applies the EQ predicate on the "init_image_url" field.
