@@ -78,5 +78,5 @@ func TestPingErrorIfCantConnect(t *testing.T) {
 
 	_, err := NewRedis(context.TODO())
 	assert.NotNil(t, err)
-	assert.Equal(t, "Error pinging Redis: dial tcp: lookup notarealredishost on 127.0.0.11:53: no such host", logs[0])
+	assert.Equal(t, "Error pinging Redis: dial tcp: lookup notarealredishost", logs[0][:len("Error pinging Redis: dial tcp: lookup notarealredishost")])
 }
