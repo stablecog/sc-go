@@ -27,6 +27,12 @@ type Prompt func(*sql.Selector)
 // Scheduler is the predicate function for scheduler builders.
 type Scheduler func(*sql.Selector)
 
+// Subscription is the predicate function for subscription builders.
+type Subscription func(*sql.Selector)
+
+// SubscriptionTier is the predicate function for subscriptiontier builders.
+type SubscriptionTier func(*sql.Selector)
+
 // Upscale is the predicate function for upscale builders.
 type Upscale func(*sql.Selector)
 

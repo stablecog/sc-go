@@ -41,27 +41,13 @@ func main() {
 	klog.InitFlags(nil)
 	flag.Set("logtostderr", "true")
 	flag.Set("stderrthreshold", "INFO")
+	loadTiers := flag.Bool("loadTiers", false, "Load subscription tiers into database")
 	flag.Set("v", "3")
 
 	flag.Parse()
 
-	app := chi.NewRouter()
+	// Setup database
 	ctx := context.Background()
-
-	// Cors middleware
-	app.Use(cors.Handler(cors.Options{
-		// AllowedOrigins:   []string{"https://foo.com"}, // Use this to allow specific origin hosts
-		AllowedOrigins: []string{"http://localhost:3000", "http://localhost:5173"},
-		// AllowOriginFunc:  func(r *http.Request, origin string) bool { return true },
-		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
-		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token"},
-		ExposedHeaders:   []string{"Link"},
-		AllowCredentials: true,
-		MaxAge:           300, // Maximum value not ignored by any of major browsers
-	}))
-
-	// Log middleware
-	app.Use(chimiddleware.Logger)
 
 	// Setup sql
 	klog.Infoln("🏡 Connecting to database...")
@@ -99,9 +85,36 @@ func main() {
 		Ctx: ctx,
 	}
 
+	if *loadTiers {
+		klog.Infoln("📦 Loading subscription tiers...")
+		err = repo.CreateSubscriptionTiers()
+		if err != nil {
+			klog.Fatalf("Error loading subscription tiers: %v", err)
+			os.Exit(1)
+		}
+		os.Exit(0)
+	}
+
+	app := chi.NewRouter()
+
+	// Cors middleware
+	app.Use(cors.Handler(cors.Options{
+		// AllowedOrigins:   []string{"https://foo.com"}, // Use this to allow specific origin hosts
+		AllowedOrigins: []string{"http://localhost:3000", "http://localhost:5173"},
+		// AllowOriginFunc:  func(r *http.Request, origin string) bool { return true },
+		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token"},
+		ExposedHeaders:   []string{"Link"},
+		AllowCredentials: true,
+		MaxAge:           300, // Maximum value not ignored by any of major browsers
+	}))
+
+	// Log middleware
+	app.Use(chimiddleware.Logger)
+
 	// Get models, schedulers and put in cache
 	klog.Infof("📦 Updating cache...")
-	err = shared.GetCache().UpdateCache(repo)
+	err = repo.UpdateCache()
 	if err != nil {
 		// ! Not getting these is fatal and will result in crash
 		panic(err)
@@ -110,7 +123,7 @@ func main() {
 	s := gocron.NewScheduler(time.UTC)
 	s.Every(5).Minutes().StartAt(time.Now().Add(5 * time.Minute)).Do(func() {
 		klog.Infof("📦 Updating cache...")
-		err = shared.GetCache().UpdateCache(repo)
+		err = repo.UpdateCache()
 		if err != nil {
 			klog.Errorf("Error updating cache: %v", err)
 		}

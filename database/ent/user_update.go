@@ -14,6 +14,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/stablecog/go-apps/database/ent/generation"
 	"github.com/stablecog/go-apps/database/ent/predicate"
+	"github.com/stablecog/go-apps/database/ent/subscription"
 	"github.com/stablecog/go-apps/database/ent/upscale"
 	"github.com/stablecog/go-apps/database/ent/user"
 	"github.com/stablecog/go-apps/database/ent/userrole"
@@ -55,26 +56,6 @@ func (uu *UserUpdate) SetNillableStripeCustomerID(s *string) *UserUpdate {
 // ClearStripeCustomerID clears the value of the "stripe_customer_id" field.
 func (uu *UserUpdate) ClearStripeCustomerID() *UserUpdate {
 	uu.mutation.ClearStripeCustomerID()
-	return uu
-}
-
-// SetSubscriptionCategory sets the "subscription_category" field.
-func (uu *UserUpdate) SetSubscriptionCategory(uc user.SubscriptionCategory) *UserUpdate {
-	uu.mutation.SetSubscriptionCategory(uc)
-	return uu
-}
-
-// SetNillableSubscriptionCategory sets the "subscription_category" field if the given value is not nil.
-func (uu *UserUpdate) SetNillableSubscriptionCategory(uc *user.SubscriptionCategory) *UserUpdate {
-	if uc != nil {
-		uu.SetSubscriptionCategory(*uc)
-	}
-	return uu
-}
-
-// ClearSubscriptionCategory clears the value of the "subscription_category" field.
-func (uu *UserUpdate) ClearSubscriptionCategory() *UserUpdate {
-	uu.mutation.ClearSubscriptionCategory()
 	return uu
 }
 
@@ -149,6 +130,25 @@ func (uu *UserUpdate) AddUpscales(u ...*Upscale) *UserUpdate {
 	return uu.AddUpscaleIDs(ids...)
 }
 
+// SetSubscriptionsID sets the "subscriptions" edge to the Subscription entity by ID.
+func (uu *UserUpdate) SetSubscriptionsID(id uuid.UUID) *UserUpdate {
+	uu.mutation.SetSubscriptionsID(id)
+	return uu
+}
+
+// SetNillableSubscriptionsID sets the "subscriptions" edge to the Subscription entity by ID if the given value is not nil.
+func (uu *UserUpdate) SetNillableSubscriptionsID(id *uuid.UUID) *UserUpdate {
+	if id != nil {
+		uu = uu.SetSubscriptionsID(*id)
+	}
+	return uu
+}
+
+// SetSubscriptions sets the "subscriptions" edge to the Subscription entity.
+func (uu *UserUpdate) SetSubscriptions(s *Subscription) *UserUpdate {
+	return uu.SetSubscriptionsID(s.ID)
+}
+
 // Mutation returns the UserMutation object of the builder.
 func (uu *UserUpdate) Mutation() *UserMutation {
 	return uu.mutation
@@ -217,6 +217,12 @@ func (uu *UserUpdate) RemoveUpscales(u ...*Upscale) *UserUpdate {
 	return uu.RemoveUpscaleIDs(ids...)
 }
 
+// ClearSubscriptions clears the "subscriptions" edge to the Subscription entity.
+func (uu *UserUpdate) ClearSubscriptions() *UserUpdate {
+	uu.mutation.ClearSubscriptions()
+	return uu
+}
+
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (uu *UserUpdate) Save(ctx context.Context) (int, error) {
 	uu.defaults()
@@ -253,20 +259,7 @@ func (uu *UserUpdate) defaults() {
 	}
 }
 
-// check runs all checks and user-defined validators on the builder.
-func (uu *UserUpdate) check() error {
-	if v, ok := uu.mutation.SubscriptionCategory(); ok {
-		if err := user.SubscriptionCategoryValidator(v); err != nil {
-			return &ValidationError{Name: "subscription_category", err: fmt.Errorf(`ent: validator failed for field "User.subscription_category": %w`, err)}
-		}
-	}
-	return nil
-}
-
 func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
-	if err := uu.check(); err != nil {
-		return n, err
-	}
 	_spec := &sqlgraph.UpdateSpec{
 		Node: &sqlgraph.NodeSpec{
 			Table:   user.Table,
@@ -292,12 +285,6 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if uu.mutation.StripeCustomerIDCleared() {
 		_spec.ClearField(user.FieldStripeCustomerID, field.TypeString)
-	}
-	if value, ok := uu.mutation.SubscriptionCategory(); ok {
-		_spec.SetField(user.FieldSubscriptionCategory, field.TypeEnum, value)
-	}
-	if uu.mutation.SubscriptionCategoryCleared() {
-		_spec.ClearField(user.FieldSubscriptionCategory, field.TypeEnum)
 	}
 	if value, ok := uu.mutation.UpdatedAt(); ok {
 		_spec.SetField(user.FieldUpdatedAt, field.TypeTime, value)
@@ -470,6 +457,41 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if uu.mutation.SubscriptionsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: false,
+			Table:   user.SubscriptionsTable,
+			Columns: []string{user.SubscriptionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: subscription.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uu.mutation.SubscriptionsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: false,
+			Table:   user.SubscriptionsTable,
+			Columns: []string{user.SubscriptionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: subscription.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if n, err = sqlgraph.UpdateNodes(ctx, uu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{user.Label}
@@ -513,26 +535,6 @@ func (uuo *UserUpdateOne) SetNillableStripeCustomerID(s *string) *UserUpdateOne 
 // ClearStripeCustomerID clears the value of the "stripe_customer_id" field.
 func (uuo *UserUpdateOne) ClearStripeCustomerID() *UserUpdateOne {
 	uuo.mutation.ClearStripeCustomerID()
-	return uuo
-}
-
-// SetSubscriptionCategory sets the "subscription_category" field.
-func (uuo *UserUpdateOne) SetSubscriptionCategory(uc user.SubscriptionCategory) *UserUpdateOne {
-	uuo.mutation.SetSubscriptionCategory(uc)
-	return uuo
-}
-
-// SetNillableSubscriptionCategory sets the "subscription_category" field if the given value is not nil.
-func (uuo *UserUpdateOne) SetNillableSubscriptionCategory(uc *user.SubscriptionCategory) *UserUpdateOne {
-	if uc != nil {
-		uuo.SetSubscriptionCategory(*uc)
-	}
-	return uuo
-}
-
-// ClearSubscriptionCategory clears the value of the "subscription_category" field.
-func (uuo *UserUpdateOne) ClearSubscriptionCategory() *UserUpdateOne {
-	uuo.mutation.ClearSubscriptionCategory()
 	return uuo
 }
 
@@ -607,6 +609,25 @@ func (uuo *UserUpdateOne) AddUpscales(u ...*Upscale) *UserUpdateOne {
 	return uuo.AddUpscaleIDs(ids...)
 }
 
+// SetSubscriptionsID sets the "subscriptions" edge to the Subscription entity by ID.
+func (uuo *UserUpdateOne) SetSubscriptionsID(id uuid.UUID) *UserUpdateOne {
+	uuo.mutation.SetSubscriptionsID(id)
+	return uuo
+}
+
+// SetNillableSubscriptionsID sets the "subscriptions" edge to the Subscription entity by ID if the given value is not nil.
+func (uuo *UserUpdateOne) SetNillableSubscriptionsID(id *uuid.UUID) *UserUpdateOne {
+	if id != nil {
+		uuo = uuo.SetSubscriptionsID(*id)
+	}
+	return uuo
+}
+
+// SetSubscriptions sets the "subscriptions" edge to the Subscription entity.
+func (uuo *UserUpdateOne) SetSubscriptions(s *Subscription) *UserUpdateOne {
+	return uuo.SetSubscriptionsID(s.ID)
+}
+
 // Mutation returns the UserMutation object of the builder.
 func (uuo *UserUpdateOne) Mutation() *UserMutation {
 	return uuo.mutation
@@ -675,6 +696,12 @@ func (uuo *UserUpdateOne) RemoveUpscales(u ...*Upscale) *UserUpdateOne {
 	return uuo.RemoveUpscaleIDs(ids...)
 }
 
+// ClearSubscriptions clears the "subscriptions" edge to the Subscription entity.
+func (uuo *UserUpdateOne) ClearSubscriptions() *UserUpdateOne {
+	uuo.mutation.ClearSubscriptions()
+	return uuo
+}
+
 // Select allows selecting one or more fields (columns) of the returned entity.
 // The default is selecting all fields defined in the entity schema.
 func (uuo *UserUpdateOne) Select(field string, fields ...string) *UserUpdateOne {
@@ -718,20 +745,7 @@ func (uuo *UserUpdateOne) defaults() {
 	}
 }
 
-// check runs all checks and user-defined validators on the builder.
-func (uuo *UserUpdateOne) check() error {
-	if v, ok := uuo.mutation.SubscriptionCategory(); ok {
-		if err := user.SubscriptionCategoryValidator(v); err != nil {
-			return &ValidationError{Name: "subscription_category", err: fmt.Errorf(`ent: validator failed for field "User.subscription_category": %w`, err)}
-		}
-	}
-	return nil
-}
-
 func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) {
-	if err := uuo.check(); err != nil {
-		return _node, err
-	}
 	_spec := &sqlgraph.UpdateSpec{
 		Node: &sqlgraph.NodeSpec{
 			Table:   user.Table,
@@ -774,12 +788,6 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 	}
 	if uuo.mutation.StripeCustomerIDCleared() {
 		_spec.ClearField(user.FieldStripeCustomerID, field.TypeString)
-	}
-	if value, ok := uuo.mutation.SubscriptionCategory(); ok {
-		_spec.SetField(user.FieldSubscriptionCategory, field.TypeEnum, value)
-	}
-	if uuo.mutation.SubscriptionCategoryCleared() {
-		_spec.ClearField(user.FieldSubscriptionCategory, field.TypeEnum)
 	}
 	if value, ok := uuo.mutation.UpdatedAt(); ok {
 		_spec.SetField(user.FieldUpdatedAt, field.TypeTime, value)
@@ -944,6 +952,41 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeUUID,
 					Column: upscale.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if uuo.mutation.SubscriptionsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: false,
+			Table:   user.SubscriptionsTable,
+			Columns: []string{user.SubscriptionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: subscription.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uuo.mutation.SubscriptionsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: false,
+			Table:   user.SubscriptionsTable,
+			Columns: []string{user.SubscriptionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: subscription.FieldID,
 				},
 			},
 		}

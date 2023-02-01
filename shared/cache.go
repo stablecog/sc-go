@@ -5,9 +5,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/stablecog/go-apps/database/ent"
-	"github.com/stablecog/go-apps/database/repository"
 	"golang.org/x/exp/slices"
-	"k8s.io/klog/v2"
 )
 
 // A singleton that caches the features available to free users
@@ -121,21 +119,4 @@ func (f *Cache) GetSchedulerNameFromID(id uuid.UUID) string {
 		}
 	}
 	return ""
-}
-
-// Update the cache from the database
-func (f *Cache) UpdateCache(repo *repository.Repository) error {
-	generationModels, err := repo.GetAllGenerationModels()
-	if err != nil {
-		klog.Fatalf("Failed to get generation_models: %v", err)
-		return err
-	}
-	f.UpdateGenerationModels(generationModels)
-	schedulers, err := repo.GetAllSchedulers()
-	if err != nil {
-		klog.Fatalf("Failed to get schedulers: %v", err)
-		return err
-	}
-	f.UpdateSchedulers(schedulers)
-	return nil
 }

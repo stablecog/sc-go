@@ -22,7 +22,6 @@ func (User) Fields() []ent.Field {
 		field.UUID("id", uuid.UUID{}).Default(uuid.New),
 		field.Text("email"),
 		field.Text("stripe_customer_id").Optional().Nillable(),
-		field.Enum("subscription_category").Values("GIFTED", "FRIEND_BOUGHT").Optional().Nillable(),
 		field.Time("created_at").Default(time.Now).Immutable(),
 		field.Time("updated_at").Default(time.Now).UpdateDefault(time.Now),
 		field.Time("confirmed_at").Optional().Nillable(),
@@ -47,6 +46,9 @@ func (User) Edges() []ent.Edge {
 			Annotations(entsql.Annotation{
 				OnDelete: entsql.Cascade,
 			}),
+		// O2O with subscriptions
+		edge.To("subscriptions", Subscription.Type).
+			Unique(),
 	}
 }
 

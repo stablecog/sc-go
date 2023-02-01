@@ -93,6 +93,30 @@ func (f SchedulerFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, e
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.SchedulerMutation", m)
 }
 
+// The SubscriptionFunc type is an adapter to allow the use of ordinary
+// function as Subscription mutator.
+type SubscriptionFunc func(context.Context, *ent.SubscriptionMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f SubscriptionFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.SubscriptionMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.SubscriptionMutation", m)
+}
+
+// The SubscriptionTierFunc type is an adapter to allow the use of ordinary
+// function as SubscriptionTier mutator.
+type SubscriptionTierFunc func(context.Context, *ent.SubscriptionTierMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f SubscriptionTierFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.SubscriptionTierMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.SubscriptionTierMutation", m)
+}
+
 // The UpscaleFunc type is an adapter to allow the use of ordinary
 // function as Upscale mutator.
 type UpscaleFunc func(context.Context, *ent.UpscaleMutation) (ent.Value, error)

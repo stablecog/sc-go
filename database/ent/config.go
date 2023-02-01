@@ -38,6 +38,8 @@ type (
 		NegativePrompt   []ent.Hook
 		Prompt           []ent.Hook
 		Scheduler        []ent.Hook
+		Subscription     []ent.Hook
+		SubscriptionTier []ent.Hook
 		Upscale          []ent.Hook
 		UpscaleModel     []ent.Hook
 		UpscaleOutput    []ent.Hook
@@ -52,6 +54,8 @@ type (
 		NegativePrompt   []ent.Interceptor
 		Prompt           []ent.Interceptor
 		Scheduler        []ent.Interceptor
+		Subscription     []ent.Interceptor
+		SubscriptionTier []ent.Interceptor
 		Upscale          []ent.Interceptor
 		UpscaleModel     []ent.Interceptor
 		UpscaleOutput    []ent.Interceptor

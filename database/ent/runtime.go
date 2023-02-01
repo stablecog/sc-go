@@ -14,6 +14,8 @@ import (
 	"github.com/stablecog/go-apps/database/ent/prompt"
 	"github.com/stablecog/go-apps/database/ent/scheduler"
 	"github.com/stablecog/go-apps/database/ent/schema"
+	"github.com/stablecog/go-apps/database/ent/subscription"
+	"github.com/stablecog/go-apps/database/ent/subscriptiontier"
 	"github.com/stablecog/go-apps/database/ent/upscale"
 	"github.com/stablecog/go-apps/database/ent/upscalemodel"
 	"github.com/stablecog/go-apps/database/ent/upscaleoutput"
@@ -145,6 +147,38 @@ func init() {
 	schedulerDescID := schedulerFields[0].Descriptor()
 	// scheduler.DefaultID holds the default value on creation for the id field.
 	scheduler.DefaultID = schedulerDescID.Default.(func() uuid.UUID)
+	subscriptionFields := schema.Subscription{}.Fields()
+	_ = subscriptionFields
+	// subscriptionDescCreatedAt is the schema descriptor for created_at field.
+	subscriptionDescCreatedAt := subscriptionFields[6].Descriptor()
+	// subscription.DefaultCreatedAt holds the default value on creation for the created_at field.
+	subscription.DefaultCreatedAt = subscriptionDescCreatedAt.Default.(func() time.Time)
+	// subscriptionDescUpdatedAt is the schema descriptor for updated_at field.
+	subscriptionDescUpdatedAt := subscriptionFields[7].Descriptor()
+	// subscription.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	subscription.DefaultUpdatedAt = subscriptionDescUpdatedAt.Default.(func() time.Time)
+	// subscription.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	subscription.UpdateDefaultUpdatedAt = subscriptionDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// subscriptionDescID is the schema descriptor for id field.
+	subscriptionDescID := subscriptionFields[0].Descriptor()
+	// subscription.DefaultID holds the default value on creation for the id field.
+	subscription.DefaultID = subscriptionDescID.Default.(func() uuid.UUID)
+	subscriptiontierFields := schema.SubscriptionTier{}.Fields()
+	_ = subscriptiontierFields
+	// subscriptiontierDescCreatedAt is the schema descriptor for created_at field.
+	subscriptiontierDescCreatedAt := subscriptiontierFields[3].Descriptor()
+	// subscriptiontier.DefaultCreatedAt holds the default value on creation for the created_at field.
+	subscriptiontier.DefaultCreatedAt = subscriptiontierDescCreatedAt.Default.(func() time.Time)
+	// subscriptiontierDescUpdatedAt is the schema descriptor for updated_at field.
+	subscriptiontierDescUpdatedAt := subscriptiontierFields[4].Descriptor()
+	// subscriptiontier.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	subscriptiontier.DefaultUpdatedAt = subscriptiontierDescUpdatedAt.Default.(func() time.Time)
+	// subscriptiontier.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	subscriptiontier.UpdateDefaultUpdatedAt = subscriptiontierDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// subscriptiontierDescID is the schema descriptor for id field.
+	subscriptiontierDescID := subscriptiontierFields[0].Descriptor()
+	// subscriptiontier.DefaultID holds the default value on creation for the id field.
+	subscriptiontier.DefaultID = subscriptiontierDescID.Default.(func() uuid.UUID)
 	upscaleFields := schema.Upscale{}.Fields()
 	_ = upscaleFields
 	// upscaleDescCreatedAt is the schema descriptor for created_at field.
@@ -200,11 +234,11 @@ func init() {
 	userFields := schema.User{}.Fields()
 	_ = userFields
 	// userDescCreatedAt is the schema descriptor for created_at field.
-	userDescCreatedAt := userFields[4].Descriptor()
+	userDescCreatedAt := userFields[3].Descriptor()
 	// user.DefaultCreatedAt holds the default value on creation for the created_at field.
 	user.DefaultCreatedAt = userDescCreatedAt.Default.(func() time.Time)
 	// userDescUpdatedAt is the schema descriptor for updated_at field.
-	userDescUpdatedAt := userFields[5].Descriptor()
+	userDescUpdatedAt := userFields[4].Descriptor()
 	// user.DefaultUpdatedAt holds the default value on creation for the updated_at field.
 	user.DefaultUpdatedAt = userDescUpdatedAt.Default.(func() time.Time)
 	// user.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.

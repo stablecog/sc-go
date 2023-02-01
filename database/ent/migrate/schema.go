@@ -169,6 +169,51 @@ var (
 		Columns:    SchedulersColumns,
 		PrimaryKey: []*schema.Column{SchedulersColumns[0]},
 	}
+	// SubscriptionsColumns holds the columns for the "subscriptions" table.
+	SubscriptionsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID},
+		{Name: "paid_started_at", Type: field.TypeTime, Nullable: true},
+		{Name: "paid_cancelled_at", Type: field.TypeTime, Nullable: true},
+		{Name: "paid_expires_at", Type: field.TypeTime, Nullable: true},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "subscription_tier_id", Type: field.TypeUUID},
+		{Name: "user_id", Type: field.TypeUUID, Unique: true},
+	}
+	// SubscriptionsTable holds the schema information for the "subscriptions" table.
+	SubscriptionsTable = &schema.Table{
+		Name:       "subscriptions",
+		Columns:    SubscriptionsColumns,
+		PrimaryKey: []*schema.Column{SubscriptionsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "subscriptions_subscription_tiers_subscriptions",
+				Columns:    []*schema.Column{SubscriptionsColumns[6]},
+				RefColumns: []*schema.Column{SubscriptionTiersColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+			{
+				Symbol:     "subscriptions_users_subscriptions",
+				Columns:    []*schema.Column{SubscriptionsColumns[7]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
+	}
+	// SubscriptionTiersColumns holds the columns for the "subscription_tiers" table.
+	SubscriptionTiersColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID},
+		{Name: "name", Type: field.TypeString, Unique: true},
+		{Name: "base_credits", Type: field.TypeInt32},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+	}
+	// SubscriptionTiersTable holds the schema information for the "subscription_tiers" table.
+	SubscriptionTiersTable = &schema.Table{
+		Name:       "subscription_tiers",
+		Columns:    SubscriptionTiersColumns,
+		PrimaryKey: []*schema.Column{SubscriptionTiersColumns[0]},
+	}
 	// UpscalesColumns holds the columns for the "upscales" table.
 	UpscalesColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID},
@@ -252,7 +297,6 @@ var (
 		{Name: "id", Type: field.TypeUUID},
 		{Name: "email", Type: field.TypeString, Size: 2147483647},
 		{Name: "stripe_customer_id", Type: field.TypeString, Nullable: true, Size: 2147483647},
-		{Name: "subscription_category", Type: field.TypeEnum, Nullable: true, Enums: []string{"GIFTED", "FRIEND_BOUGHT"}},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},
 		{Name: "confirmed_at", Type: field.TypeTime, Nullable: true},
@@ -266,7 +310,7 @@ var (
 	// UserRolesColumns holds the columns for the "user_roles" table.
 	UserRolesColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID},
-		{Name: "role_name", Type: field.TypeEnum, Enums: []string{"ADMIN", "PRO"}},
+		{Name: "role_name", Type: field.TypeEnum, Enums: []string{"ADMIN"}},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},
 		{Name: "user_id", Type: field.TypeUUID},
@@ -294,6 +338,8 @@ var (
 		NegativePromptsTable,
 		PromptsTable,
 		SchedulersTable,
+		SubscriptionsTable,
+		SubscriptionTiersTable,
 		UpscalesTable,
 		UpscaleModelsTable,
 		UpscaleOutputsTable,
@@ -330,6 +376,14 @@ func init() {
 	}
 	SchedulersTable.Annotation = &entsql.Annotation{
 		Table: "schedulers",
+	}
+	SubscriptionsTable.ForeignKeys[0].RefTable = SubscriptionTiersTable
+	SubscriptionsTable.ForeignKeys[1].RefTable = UsersTable
+	SubscriptionsTable.Annotation = &entsql.Annotation{
+		Table: "subscriptions",
+	}
+	SubscriptionTiersTable.Annotation = &entsql.Annotation{
+		Table: "subscription_tiers",
 	}
 	UpscalesTable.ForeignKeys[0].RefTable = DeviceInfoTable
 	UpscalesTable.ForeignKeys[1].RefTable = UpscaleModelsTable

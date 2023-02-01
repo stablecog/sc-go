@@ -18,6 +18,8 @@ import (
 	"github.com/stablecog/go-apps/database/ent/negativeprompt"
 	"github.com/stablecog/go-apps/database/ent/prompt"
 	"github.com/stablecog/go-apps/database/ent/scheduler"
+	"github.com/stablecog/go-apps/database/ent/subscription"
+	"github.com/stablecog/go-apps/database/ent/subscriptiontier"
 	"github.com/stablecog/go-apps/database/ent/upscale"
 	"github.com/stablecog/go-apps/database/ent/upscalemodel"
 	"github.com/stablecog/go-apps/database/ent/upscaleoutput"
@@ -57,6 +59,8 @@ func columnChecker(table string) func(string) error {
 		negativeprompt.Table:   negativeprompt.ValidColumn,
 		prompt.Table:           prompt.ValidColumn,
 		scheduler.Table:        scheduler.ValidColumn,
+		subscription.Table:     subscription.ValidColumn,
+		subscriptiontier.Table: subscriptiontier.ValidColumn,
 		upscale.Table:          upscale.ValidColumn,
 		upscalemodel.Table:     upscalemodel.ValidColumn,
 		upscaleoutput.Table:    upscaleoutput.ValidColumn,

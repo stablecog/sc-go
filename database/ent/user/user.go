@@ -3,7 +3,6 @@
 package user
 
 import (
-	"fmt"
 	"time"
 
 	"github.com/google/uuid"
@@ -18,8 +17,6 @@ const (
 	FieldEmail = "email"
 	// FieldStripeCustomerID holds the string denoting the stripe_customer_id field in the database.
 	FieldStripeCustomerID = "stripe_customer_id"
-	// FieldSubscriptionCategory holds the string denoting the subscription_category field in the database.
-	FieldSubscriptionCategory = "subscription_category"
 	// FieldCreatedAt holds the string denoting the created_at field in the database.
 	FieldCreatedAt = "created_at"
 	// FieldUpdatedAt holds the string denoting the updated_at field in the database.
@@ -32,6 +29,8 @@ const (
 	EdgeGenerations = "generations"
 	// EdgeUpscales holds the string denoting the upscales edge name in mutations.
 	EdgeUpscales = "upscales"
+	// EdgeSubscriptions holds the string denoting the subscriptions edge name in mutations.
+	EdgeSubscriptions = "subscriptions"
 	// Table holds the table name of the user in the database.
 	Table = "users"
 	// UserRolesTable is the table that holds the user_roles relation/edge.
@@ -55,6 +54,13 @@ const (
 	UpscalesInverseTable = "upscales"
 	// UpscalesColumn is the table column denoting the upscales relation/edge.
 	UpscalesColumn = "user_id"
+	// SubscriptionsTable is the table that holds the subscriptions relation/edge.
+	SubscriptionsTable = "subscriptions"
+	// SubscriptionsInverseTable is the table name for the Subscription entity.
+	// It exists in this package in order to avoid circular dependency with the "subscription" package.
+	SubscriptionsInverseTable = "subscriptions"
+	// SubscriptionsColumn is the table column denoting the subscriptions relation/edge.
+	SubscriptionsColumn = "user_id"
 )
 
 // Columns holds all SQL columns for user fields.
@@ -62,7 +68,6 @@ var Columns = []string{
 	FieldID,
 	FieldEmail,
 	FieldStripeCustomerID,
-	FieldSubscriptionCategory,
 	FieldCreatedAt,
 	FieldUpdatedAt,
 	FieldConfirmedAt,
@@ -88,26 +93,3 @@ var (
 	// DefaultID holds the default value on creation for the "id" field.
 	DefaultID func() uuid.UUID
 )
-
-// SubscriptionCategory defines the type for the "subscription_category" enum field.
-type SubscriptionCategory string
-
-// SubscriptionCategory values.
-const (
-	SubscriptionCategoryGIFTED        SubscriptionCategory = "GIFTED"
-	SubscriptionCategoryFRIEND_BOUGHT SubscriptionCategory = "FRIEND_BOUGHT"
-)
-
-func (sc SubscriptionCategory) String() string {
-	return string(sc)
-}
-
-// SubscriptionCategoryValidator is a validator for the "subscription_category" field enum values. It is called by the builders before save.
-func SubscriptionCategoryValidator(sc SubscriptionCategory) error {
-	switch sc {
-	case SubscriptionCategoryGIFTED, SubscriptionCategoryFRIEND_BOUGHT:
-		return nil
-	default:
-		return fmt.Errorf("user: invalid enum value for subscription_category field: %q", sc)
-	}
-}

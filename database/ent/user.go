@@ -9,6 +9,7 @@ import (
 
 	"entgo.io/ent/dialect/sql"
 	"github.com/google/uuid"
+	"github.com/stablecog/go-apps/database/ent/subscription"
 	"github.com/stablecog/go-apps/database/ent/user"
 )
 
@@ -21,8 +22,6 @@ type User struct {
 	Email string `json:"email,omitempty"`
 	// StripeCustomerID holds the value of the "stripe_customer_id" field.
 	StripeCustomerID *string `json:"stripe_customer_id,omitempty"`
-	// SubscriptionCategory holds the value of the "subscription_category" field.
-	SubscriptionCategory *user.SubscriptionCategory `json:"subscription_category,omitempty"`
 	// CreatedAt holds the value of the "created_at" field.
 	CreatedAt time.Time `json:"created_at,omitempty"`
 	// UpdatedAt holds the value of the "updated_at" field.
@@ -42,9 +41,11 @@ type UserEdges struct {
 	Generations []*Generation `json:"generations,omitempty"`
 	// Upscales holds the value of the upscales edge.
 	Upscales []*Upscale `json:"upscales,omitempty"`
+	// Subscriptions holds the value of the subscriptions edge.
+	Subscriptions *Subscription `json:"subscriptions,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [3]bool
+	loadedTypes [4]bool
 }
 
 // UserRolesOrErr returns the UserRoles value or an error if the edge
@@ -74,12 +75,25 @@ func (e UserEdges) UpscalesOrErr() ([]*Upscale, error) {
 	return nil, &NotLoadedError{edge: "upscales"}
 }
 
+// SubscriptionsOrErr returns the Subscriptions value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e UserEdges) SubscriptionsOrErr() (*Subscription, error) {
+	if e.loadedTypes[3] {
+		if e.Subscriptions == nil {
+			// Edge was loaded but was not found.
+			return nil, &NotFoundError{label: subscription.Label}
+		}
+		return e.Subscriptions, nil
+	}
+	return nil, &NotLoadedError{edge: "subscriptions"}
+}
+
 // scanValues returns the types for scanning values from sql.Rows.
 func (*User) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case user.FieldEmail, user.FieldStripeCustomerID, user.FieldSubscriptionCategory:
+		case user.FieldEmail, user.FieldStripeCustomerID:
 			values[i] = new(sql.NullString)
 		case user.FieldCreatedAt, user.FieldUpdatedAt, user.FieldConfirmedAt:
 			values[i] = new(sql.NullTime)
@@ -118,13 +132,6 @@ func (u *User) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				u.StripeCustomerID = new(string)
 				*u.StripeCustomerID = value.String
-			}
-		case user.FieldSubscriptionCategory:
-			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field subscription_category", values[i])
-			} else if value.Valid {
-				u.SubscriptionCategory = new(user.SubscriptionCategory)
-				*u.SubscriptionCategory = user.SubscriptionCategory(value.String)
 			}
 		case user.FieldCreatedAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
@@ -165,6 +172,11 @@ func (u *User) QueryUpscales() *UpscaleQuery {
 	return NewUserClient(u.config).QueryUpscales(u)
 }
 
+// QuerySubscriptions queries the "subscriptions" edge of the User entity.
+func (u *User) QuerySubscriptions() *SubscriptionQuery {
+	return NewUserClient(u.config).QuerySubscriptions(u)
+}
+
 // Update returns a builder for updating this User.
 // Note that you need to call User.Unwrap() before calling this method if this User
 // was returned from a transaction, and the transaction was committed or rolled back.
@@ -194,11 +206,6 @@ func (u *User) String() string {
 	if v := u.StripeCustomerID; v != nil {
 		builder.WriteString("stripe_customer_id=")
 		builder.WriteString(*v)
-	}
-	builder.WriteString(", ")
-	if v := u.SubscriptionCategory; v != nil {
-		builder.WriteString("subscription_category=")
-		builder.WriteString(fmt.Sprintf("%v", *v))
 	}
 	builder.WriteString(", ")
 	builder.WriteString("created_at=")

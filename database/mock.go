@@ -6,6 +6,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/stablecog/go-apps/database/ent"
+	"github.com/stablecog/go-apps/database/ent/subscriptiontier"
 	"github.com/stablecog/go-apps/database/ent/userrole"
 	"github.com/stablecog/go-apps/database/repository"
 	"github.com/stablecog/go-apps/server/requests"
@@ -24,6 +25,19 @@ const MOCK_SCHEDULER_ID_PRO = "b4dff6e9-91a7-449b-b1a7-c25000e3ccd1"
 
 // Just creates some mock data for our tests
 func CreateMockData(ctx context.Context, db *ent.Client, repo *repository.Repository) error {
+	// Create sub tiers
+	err := repo.CreateSubscriptionTiers()
+	if err != nil {
+		return err
+	}
+	proTier, err := db.SubscriptionTier.Query().Where(subscriptiontier.NameEQ("pro")).Only(ctx)
+	if err != nil {
+		return err
+	}
+	freeTier, err := db.SubscriptionTier.Query().Where(subscriptiontier.NameEQ("free")).Only(ctx)
+	if err != nil {
+		return err
+	}
 	// ! Mock users
 	// Create a user
 	u, err := db.User.Create().SetEmail("mockadmin@stablecog.com").SetID(uuid.MustParse(MOCK_ADMIN_UUID)).SetConfirmedAt(time.Now()).Save(ctx)
@@ -35,17 +49,27 @@ func CreateMockData(ctx context.Context, db *ent.Client, repo *repository.Reposi
 	if err != nil {
 		return err
 	}
+	// Give user PRO subscription
+	_, err = db.Subscription.Create().SetSubscriptionTier(proTier).SetUserID(u.ID).Save(ctx)
+	if err != nil {
+		return err
+	}
 	// Create two more users, "PRO" and free tier
 	u, err = db.User.Create().SetEmail("mockpro@stablecog.com").SetID(uuid.MustParse(MOCK_PRO_UUID)).SetConfirmedAt(time.Now()).Save(ctx)
 	if err != nil {
 		return err
 	}
-	// Give user PRO role
-	_, err = db.UserRole.Create().SetRoleName(userrole.RoleNamePRO).SetUserID(u.ID).Save(ctx)
+	// Give user PRO subscription
+	_, err = db.Subscription.Create().SetSubscriptionTier(proTier).SetUserID(u.ID).Save(ctx)
 	if err != nil {
 		return err
 	}
 	u, err = db.User.Create().SetEmail("mockbasic@stablecog.com").SetID(uuid.MustParse(MOCK_FREE_UUID)).SetConfirmedAt(time.Now()).Save(ctx)
+	if err != nil {
+		return err
+	}
+	// Give user FREE subscription
+	_, err = db.Subscription.Create().SetSubscriptionTier(freeTier).SetUserID(u.ID).Save(ctx)
 	if err != nil {
 		return err
 	}

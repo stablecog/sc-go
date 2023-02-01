@@ -12,6 +12,7 @@ import (
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
 	"github.com/stablecog/go-apps/database/ent/generation"
+	"github.com/stablecog/go-apps/database/ent/subscription"
 	"github.com/stablecog/go-apps/database/ent/upscale"
 	"github.com/stablecog/go-apps/database/ent/user"
 	"github.com/stablecog/go-apps/database/ent/userrole"
@@ -40,20 +41,6 @@ func (uc *UserCreate) SetStripeCustomerID(s string) *UserCreate {
 func (uc *UserCreate) SetNillableStripeCustomerID(s *string) *UserCreate {
 	if s != nil {
 		uc.SetStripeCustomerID(*s)
-	}
-	return uc
-}
-
-// SetSubscriptionCategory sets the "subscription_category" field.
-func (uc *UserCreate) SetSubscriptionCategory(value user.SubscriptionCategory) *UserCreate {
-	uc.mutation.SetSubscriptionCategory(value)
-	return uc
-}
-
-// SetNillableSubscriptionCategory sets the "subscription_category" field if the given value is not nil.
-func (uc *UserCreate) SetNillableSubscriptionCategory(value *user.SubscriptionCategory) *UserCreate {
-	if value != nil {
-		uc.SetSubscriptionCategory(*value)
 	}
 	return uc
 }
@@ -159,6 +146,25 @@ func (uc *UserCreate) AddUpscales(u ...*Upscale) *UserCreate {
 	return uc.AddUpscaleIDs(ids...)
 }
 
+// SetSubscriptionsID sets the "subscriptions" edge to the Subscription entity by ID.
+func (uc *UserCreate) SetSubscriptionsID(id uuid.UUID) *UserCreate {
+	uc.mutation.SetSubscriptionsID(id)
+	return uc
+}
+
+// SetNillableSubscriptionsID sets the "subscriptions" edge to the Subscription entity by ID if the given value is not nil.
+func (uc *UserCreate) SetNillableSubscriptionsID(id *uuid.UUID) *UserCreate {
+	if id != nil {
+		uc = uc.SetSubscriptionsID(*id)
+	}
+	return uc
+}
+
+// SetSubscriptions sets the "subscriptions" edge to the Subscription entity.
+func (uc *UserCreate) SetSubscriptions(s *Subscription) *UserCreate {
+	return uc.SetSubscriptionsID(s.ID)
+}
+
 // Mutation returns the UserMutation object of the builder.
 func (uc *UserCreate) Mutation() *UserMutation {
 	return uc.mutation
@@ -212,11 +218,6 @@ func (uc *UserCreate) defaults() {
 func (uc *UserCreate) check() error {
 	if _, ok := uc.mutation.Email(); !ok {
 		return &ValidationError{Name: "email", err: errors.New(`ent: missing required field "User.email"`)}
-	}
-	if v, ok := uc.mutation.SubscriptionCategory(); ok {
-		if err := user.SubscriptionCategoryValidator(v); err != nil {
-			return &ValidationError{Name: "subscription_category", err: fmt.Errorf(`ent: validator failed for field "User.subscription_category": %w`, err)}
-		}
 	}
 	if _, ok := uc.mutation.CreatedAt(); !ok {
 		return &ValidationError{Name: "created_at", err: errors.New(`ent: missing required field "User.created_at"`)}
@@ -272,10 +273,6 @@ func (uc *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 	if value, ok := uc.mutation.StripeCustomerID(); ok {
 		_spec.SetField(user.FieldStripeCustomerID, field.TypeString, value)
 		_node.StripeCustomerID = &value
-	}
-	if value, ok := uc.mutation.SubscriptionCategory(); ok {
-		_spec.SetField(user.FieldSubscriptionCategory, field.TypeEnum, value)
-		_node.SubscriptionCategory = &value
 	}
 	if value, ok := uc.mutation.CreatedAt(); ok {
 		_spec.SetField(user.FieldCreatedAt, field.TypeTime, value)
@@ -338,6 +335,25 @@ func (uc *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeUUID,
 					Column: upscale.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := uc.mutation.SubscriptionsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: false,
+			Table:   user.SubscriptionsTable,
+			Columns: []string{user.SubscriptionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: subscription.FieldID,
 				},
 			},
 		}

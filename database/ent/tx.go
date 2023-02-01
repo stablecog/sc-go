@@ -28,6 +28,10 @@ type Tx struct {
 	Prompt *PromptClient
 	// Scheduler is the client for interacting with the Scheduler builders.
 	Scheduler *SchedulerClient
+	// Subscription is the client for interacting with the Subscription builders.
+	Subscription *SubscriptionClient
+	// SubscriptionTier is the client for interacting with the SubscriptionTier builders.
+	SubscriptionTier *SubscriptionTierClient
 	// Upscale is the client for interacting with the Upscale builders.
 	Upscale *UpscaleClient
 	// UpscaleModel is the client for interacting with the UpscaleModel builders.
@@ -176,6 +180,8 @@ func (tx *Tx) init() {
 	tx.NegativePrompt = NewNegativePromptClient(tx.config)
 	tx.Prompt = NewPromptClient(tx.config)
 	tx.Scheduler = NewSchedulerClient(tx.config)
+	tx.Subscription = NewSubscriptionClient(tx.config)
+	tx.SubscriptionTier = NewSubscriptionTierClient(tx.config)
 	tx.Upscale = NewUpscaleClient(tx.config)
 	tx.UpscaleModel = NewUpscaleModelClient(tx.config)
 	tx.UpscaleOutput = NewUpscaleOutputClient(tx.config)

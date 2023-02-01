@@ -18,6 +18,8 @@ import (
 	"github.com/stablecog/go-apps/database/ent/negativeprompt"
 	"github.com/stablecog/go-apps/database/ent/prompt"
 	"github.com/stablecog/go-apps/database/ent/scheduler"
+	"github.com/stablecog/go-apps/database/ent/subscription"
+	"github.com/stablecog/go-apps/database/ent/subscriptiontier"
 	"github.com/stablecog/go-apps/database/ent/upscale"
 	"github.com/stablecog/go-apps/database/ent/upscalemodel"
 	"github.com/stablecog/go-apps/database/ent/upscaleoutput"
@@ -48,6 +50,10 @@ type Client struct {
 	Prompt *PromptClient
 	// Scheduler is the client for interacting with the Scheduler builders.
 	Scheduler *SchedulerClient
+	// Subscription is the client for interacting with the Subscription builders.
+	Subscription *SubscriptionClient
+	// SubscriptionTier is the client for interacting with the SubscriptionTier builders.
+	SubscriptionTier *SubscriptionTierClient
 	// Upscale is the client for interacting with the Upscale builders.
 	Upscale *UpscaleClient
 	// UpscaleModel is the client for interacting with the UpscaleModel builders.
@@ -78,6 +84,8 @@ func (c *Client) init() {
 	c.NegativePrompt = NewNegativePromptClient(c.config)
 	c.Prompt = NewPromptClient(c.config)
 	c.Scheduler = NewSchedulerClient(c.config)
+	c.Subscription = NewSubscriptionClient(c.config)
+	c.SubscriptionTier = NewSubscriptionTierClient(c.config)
 	c.Upscale = NewUpscaleClient(c.config)
 	c.UpscaleModel = NewUpscaleModelClient(c.config)
 	c.UpscaleOutput = NewUpscaleOutputClient(c.config)
@@ -123,6 +131,8 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		NegativePrompt:   NewNegativePromptClient(cfg),
 		Prompt:           NewPromptClient(cfg),
 		Scheduler:        NewSchedulerClient(cfg),
+		Subscription:     NewSubscriptionClient(cfg),
+		SubscriptionTier: NewSubscriptionTierClient(cfg),
 		Upscale:          NewUpscaleClient(cfg),
 		UpscaleModel:     NewUpscaleModelClient(cfg),
 		UpscaleOutput:    NewUpscaleOutputClient(cfg),
@@ -154,6 +164,8 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		NegativePrompt:   NewNegativePromptClient(cfg),
 		Prompt:           NewPromptClient(cfg),
 		Scheduler:        NewSchedulerClient(cfg),
+		Subscription:     NewSubscriptionClient(cfg),
+		SubscriptionTier: NewSubscriptionTierClient(cfg),
 		Upscale:          NewUpscaleClient(cfg),
 		UpscaleModel:     NewUpscaleModelClient(cfg),
 		UpscaleOutput:    NewUpscaleOutputClient(cfg),
@@ -194,6 +206,8 @@ func (c *Client) Use(hooks ...Hook) {
 	c.NegativePrompt.Use(hooks...)
 	c.Prompt.Use(hooks...)
 	c.Scheduler.Use(hooks...)
+	c.Subscription.Use(hooks...)
+	c.SubscriptionTier.Use(hooks...)
 	c.Upscale.Use(hooks...)
 	c.UpscaleModel.Use(hooks...)
 	c.UpscaleOutput.Use(hooks...)
@@ -211,6 +225,8 @@ func (c *Client) Intercept(interceptors ...Interceptor) {
 	c.NegativePrompt.Intercept(interceptors...)
 	c.Prompt.Intercept(interceptors...)
 	c.Scheduler.Intercept(interceptors...)
+	c.Subscription.Intercept(interceptors...)
+	c.SubscriptionTier.Intercept(interceptors...)
 	c.Upscale.Intercept(interceptors...)
 	c.UpscaleModel.Intercept(interceptors...)
 	c.UpscaleOutput.Intercept(interceptors...)
@@ -235,6 +251,10 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.Prompt.mutate(ctx, m)
 	case *SchedulerMutation:
 		return c.Scheduler.mutate(ctx, m)
+	case *SubscriptionMutation:
+		return c.Subscription.mutate(ctx, m)
+	case *SubscriptionTierMutation:
+		return c.SubscriptionTier.mutate(ctx, m)
 	case *UpscaleMutation:
 		return c.Upscale.mutate(ctx, m)
 	case *UpscaleModelMutation:
@@ -1300,6 +1320,290 @@ func (c *SchedulerClient) mutate(ctx context.Context, m *SchedulerMutation) (Val
 	}
 }
 
+// SubscriptionClient is a client for the Subscription schema.
+type SubscriptionClient struct {
+	config
+}
+
+// NewSubscriptionClient returns a client for the Subscription from the given config.
+func NewSubscriptionClient(c config) *SubscriptionClient {
+	return &SubscriptionClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `subscription.Hooks(f(g(h())))`.
+func (c *SubscriptionClient) Use(hooks ...Hook) {
+	c.hooks.Subscription = append(c.hooks.Subscription, hooks...)
+}
+
+// Use adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `subscription.Intercept(f(g(h())))`.
+func (c *SubscriptionClient) Intercept(interceptors ...Interceptor) {
+	c.inters.Subscription = append(c.inters.Subscription, interceptors...)
+}
+
+// Create returns a builder for creating a Subscription entity.
+func (c *SubscriptionClient) Create() *SubscriptionCreate {
+	mutation := newSubscriptionMutation(c.config, OpCreate)
+	return &SubscriptionCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of Subscription entities.
+func (c *SubscriptionClient) CreateBulk(builders ...*SubscriptionCreate) *SubscriptionCreateBulk {
+	return &SubscriptionCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for Subscription.
+func (c *SubscriptionClient) Update() *SubscriptionUpdate {
+	mutation := newSubscriptionMutation(c.config, OpUpdate)
+	return &SubscriptionUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *SubscriptionClient) UpdateOne(s *Subscription) *SubscriptionUpdateOne {
+	mutation := newSubscriptionMutation(c.config, OpUpdateOne, withSubscription(s))
+	return &SubscriptionUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *SubscriptionClient) UpdateOneID(id uuid.UUID) *SubscriptionUpdateOne {
+	mutation := newSubscriptionMutation(c.config, OpUpdateOne, withSubscriptionID(id))
+	return &SubscriptionUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for Subscription.
+func (c *SubscriptionClient) Delete() *SubscriptionDelete {
+	mutation := newSubscriptionMutation(c.config, OpDelete)
+	return &SubscriptionDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *SubscriptionClient) DeleteOne(s *Subscription) *SubscriptionDeleteOne {
+	return c.DeleteOneID(s.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *SubscriptionClient) DeleteOneID(id uuid.UUID) *SubscriptionDeleteOne {
+	builder := c.Delete().Where(subscription.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &SubscriptionDeleteOne{builder}
+}
+
+// Query returns a query builder for Subscription.
+func (c *SubscriptionClient) Query() *SubscriptionQuery {
+	return &SubscriptionQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeSubscription},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a Subscription entity by its id.
+func (c *SubscriptionClient) Get(ctx context.Context, id uuid.UUID) (*Subscription, error) {
+	return c.Query().Where(subscription.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *SubscriptionClient) GetX(ctx context.Context, id uuid.UUID) *Subscription {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryUser queries the user edge of a Subscription.
+func (c *SubscriptionClient) QueryUser(s *Subscription) *UserQuery {
+	query := (&UserClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := s.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(subscription.Table, subscription.FieldID, id),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.O2O, true, subscription.UserTable, subscription.UserColumn),
+		)
+		fromV = sqlgraph.Neighbors(s.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QuerySubscriptionTier queries the subscription_tier edge of a Subscription.
+func (c *SubscriptionClient) QuerySubscriptionTier(s *Subscription) *SubscriptionTierQuery {
+	query := (&SubscriptionTierClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := s.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(subscription.Table, subscription.FieldID, id),
+			sqlgraph.To(subscriptiontier.Table, subscriptiontier.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, subscription.SubscriptionTierTable, subscription.SubscriptionTierColumn),
+		)
+		fromV = sqlgraph.Neighbors(s.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *SubscriptionClient) Hooks() []Hook {
+	return c.hooks.Subscription
+}
+
+// Interceptors returns the client interceptors.
+func (c *SubscriptionClient) Interceptors() []Interceptor {
+	return c.inters.Subscription
+}
+
+func (c *SubscriptionClient) mutate(ctx context.Context, m *SubscriptionMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&SubscriptionCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&SubscriptionUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&SubscriptionUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&SubscriptionDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown Subscription mutation op: %q", m.Op())
+	}
+}
+
+// SubscriptionTierClient is a client for the SubscriptionTier schema.
+type SubscriptionTierClient struct {
+	config
+}
+
+// NewSubscriptionTierClient returns a client for the SubscriptionTier from the given config.
+func NewSubscriptionTierClient(c config) *SubscriptionTierClient {
+	return &SubscriptionTierClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `subscriptiontier.Hooks(f(g(h())))`.
+func (c *SubscriptionTierClient) Use(hooks ...Hook) {
+	c.hooks.SubscriptionTier = append(c.hooks.SubscriptionTier, hooks...)
+}
+
+// Use adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `subscriptiontier.Intercept(f(g(h())))`.
+func (c *SubscriptionTierClient) Intercept(interceptors ...Interceptor) {
+	c.inters.SubscriptionTier = append(c.inters.SubscriptionTier, interceptors...)
+}
+
+// Create returns a builder for creating a SubscriptionTier entity.
+func (c *SubscriptionTierClient) Create() *SubscriptionTierCreate {
+	mutation := newSubscriptionTierMutation(c.config, OpCreate)
+	return &SubscriptionTierCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of SubscriptionTier entities.
+func (c *SubscriptionTierClient) CreateBulk(builders ...*SubscriptionTierCreate) *SubscriptionTierCreateBulk {
+	return &SubscriptionTierCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for SubscriptionTier.
+func (c *SubscriptionTierClient) Update() *SubscriptionTierUpdate {
+	mutation := newSubscriptionTierMutation(c.config, OpUpdate)
+	return &SubscriptionTierUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *SubscriptionTierClient) UpdateOne(st *SubscriptionTier) *SubscriptionTierUpdateOne {
+	mutation := newSubscriptionTierMutation(c.config, OpUpdateOne, withSubscriptionTier(st))
+	return &SubscriptionTierUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *SubscriptionTierClient) UpdateOneID(id uuid.UUID) *SubscriptionTierUpdateOne {
+	mutation := newSubscriptionTierMutation(c.config, OpUpdateOne, withSubscriptionTierID(id))
+	return &SubscriptionTierUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for SubscriptionTier.
+func (c *SubscriptionTierClient) Delete() *SubscriptionTierDelete {
+	mutation := newSubscriptionTierMutation(c.config, OpDelete)
+	return &SubscriptionTierDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *SubscriptionTierClient) DeleteOne(st *SubscriptionTier) *SubscriptionTierDeleteOne {
+	return c.DeleteOneID(st.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *SubscriptionTierClient) DeleteOneID(id uuid.UUID) *SubscriptionTierDeleteOne {
+	builder := c.Delete().Where(subscriptiontier.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &SubscriptionTierDeleteOne{builder}
+}
+
+// Query returns a query builder for SubscriptionTier.
+func (c *SubscriptionTierClient) Query() *SubscriptionTierQuery {
+	return &SubscriptionTierQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeSubscriptionTier},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a SubscriptionTier entity by its id.
+func (c *SubscriptionTierClient) Get(ctx context.Context, id uuid.UUID) (*SubscriptionTier, error) {
+	return c.Query().Where(subscriptiontier.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *SubscriptionTierClient) GetX(ctx context.Context, id uuid.UUID) *SubscriptionTier {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QuerySubscriptions queries the subscriptions edge of a SubscriptionTier.
+func (c *SubscriptionTierClient) QuerySubscriptions(st *SubscriptionTier) *SubscriptionQuery {
+	query := (&SubscriptionClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := st.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(subscriptiontier.Table, subscriptiontier.FieldID, id),
+			sqlgraph.To(subscription.Table, subscription.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, subscriptiontier.SubscriptionsTable, subscriptiontier.SubscriptionsColumn),
+		)
+		fromV = sqlgraph.Neighbors(st.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *SubscriptionTierClient) Hooks() []Hook {
+	return c.hooks.SubscriptionTier
+}
+
+// Interceptors returns the client interceptors.
+func (c *SubscriptionTierClient) Interceptors() []Interceptor {
+	return c.inters.SubscriptionTier
+}
+
+func (c *SubscriptionTierClient) mutate(ctx context.Context, m *SubscriptionTierMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&SubscriptionTierCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&SubscriptionTierUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&SubscriptionTierUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&SubscriptionTierDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown SubscriptionTier mutation op: %q", m.Op())
+	}
+}
+
 // UpscaleClient is a client for the Upscale schema.
 type UpscaleClient struct {
 	config
@@ -1884,6 +2188,22 @@ func (c *UserClient) QueryUpscales(u *User) *UpscaleQuery {
 			sqlgraph.From(user.Table, user.FieldID, id),
 			sqlgraph.To(upscale.Table, upscale.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, user.UpscalesTable, user.UpscalesColumn),
+		)
+		fromV = sqlgraph.Neighbors(u.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QuerySubscriptions queries the subscriptions edge of a User.
+func (c *UserClient) QuerySubscriptions(u *User) *SubscriptionQuery {
+	query := (&SubscriptionClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := u.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, id),
+			sqlgraph.To(subscription.Table, subscription.FieldID),
+			sqlgraph.Edge(sqlgraph.O2O, false, user.SubscriptionsTable, user.SubscriptionsColumn),
 		)
 		fromV = sqlgraph.Neighbors(u.driver.Dialect(), step)
 		return fromV, nil

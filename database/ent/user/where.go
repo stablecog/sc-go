@@ -221,36 +221,6 @@ func StripeCustomerIDContainsFold(v string) predicate.User {
 	return predicate.User(sql.FieldContainsFold(FieldStripeCustomerID, v))
 }
 
-// SubscriptionCategoryEQ applies the EQ predicate on the "subscription_category" field.
-func SubscriptionCategoryEQ(v SubscriptionCategory) predicate.User {
-	return predicate.User(sql.FieldEQ(FieldSubscriptionCategory, v))
-}
-
-// SubscriptionCategoryNEQ applies the NEQ predicate on the "subscription_category" field.
-func SubscriptionCategoryNEQ(v SubscriptionCategory) predicate.User {
-	return predicate.User(sql.FieldNEQ(FieldSubscriptionCategory, v))
-}
-
-// SubscriptionCategoryIn applies the In predicate on the "subscription_category" field.
-func SubscriptionCategoryIn(vs ...SubscriptionCategory) predicate.User {
-	return predicate.User(sql.FieldIn(FieldSubscriptionCategory, vs...))
-}
-
-// SubscriptionCategoryNotIn applies the NotIn predicate on the "subscription_category" field.
-func SubscriptionCategoryNotIn(vs ...SubscriptionCategory) predicate.User {
-	return predicate.User(sql.FieldNotIn(FieldSubscriptionCategory, vs...))
-}
-
-// SubscriptionCategoryIsNil applies the IsNil predicate on the "subscription_category" field.
-func SubscriptionCategoryIsNil() predicate.User {
-	return predicate.User(sql.FieldIsNull(FieldSubscriptionCategory))
-}
-
-// SubscriptionCategoryNotNil applies the NotNil predicate on the "subscription_category" field.
-func SubscriptionCategoryNotNil() predicate.User {
-	return predicate.User(sql.FieldNotNull(FieldSubscriptionCategory))
-}
-
 // CreatedAtEQ applies the EQ predicate on the "created_at" field.
 func CreatedAtEQ(v time.Time) predicate.User {
 	return predicate.User(sql.FieldEQ(FieldCreatedAt, v))
@@ -453,6 +423,33 @@ func HasUpscalesWith(preds ...predicate.Upscale) predicate.User {
 			sqlgraph.From(Table, FieldID),
 			sqlgraph.To(UpscalesInverseTable, FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, UpscalesTable, UpscalesColumn),
+		)
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasSubscriptions applies the HasEdge predicate on the "subscriptions" edge.
+func HasSubscriptions() predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2O, false, SubscriptionsTable, SubscriptionsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasSubscriptionsWith applies the HasEdge predicate on the "subscriptions" edge with a given conditions (other predicates).
+func HasSubscriptionsWith(preds ...predicate.Subscription) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(SubscriptionsInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.O2O, false, SubscriptionsTable, SubscriptionsColumn),
 		)
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {

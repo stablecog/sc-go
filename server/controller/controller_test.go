@@ -54,7 +54,7 @@ func testMainWrapper(m *testing.M) int {
 	}
 
 	// Populate cache
-	if err := shared.GetCache().UpdateCache(repo); err != nil {
+	if err := repo.UpdateCache(); err != nil {
 		klog.Fatalf("Failed to populate cache: %v", err)
 		os.Exit(1)
 	}
