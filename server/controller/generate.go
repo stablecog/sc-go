@@ -23,7 +23,7 @@ import (
 
 // POST generate endpoint
 // Adds generate to queue, if authenticated, returns the ID of the generation
-func (c *HttpController) PostGenerate(w http.ResponseWriter, r *http.Request) {
+func (c *HttpController) HandleGenerate(w http.ResponseWriter, r *http.Request) {
 	userID := c.GetUserIDIfAuthenticated(w, r)
 	if userID == nil {
 		return
@@ -195,7 +195,7 @@ func (c *HttpController) PostGenerate(w http.ResponseWriter, r *http.Request) {
 }
 
 // HTTP POST submit a generation to gallery
-func (c *HttpController) PostSubmitGenerationToGallery(w http.ResponseWriter, r *http.Request) {
+func (c *HttpController) HandleSubmitGenerationToGallery(w http.ResponseWriter, r *http.Request) {
 	userID := c.GetUserIDIfAuthenticated(w, r)
 	if userID == nil {
 		return
@@ -226,6 +226,6 @@ func (c *HttpController) PostSubmitGenerationToGallery(w http.ResponseWriter, r 
 		return
 	}
 
-	// Empty response body for successful submission
+	// Empty response body for successful
 	render.Status(r, http.StatusOK)
 }

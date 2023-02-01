@@ -76,3 +76,20 @@ func TestErrBadRequest(t *testing.T) {
 
 	assert.Equal(t, "server error", respJson["error"])
 }
+
+func TestErrMethodNotAllowed(t *testing.T) {
+	w := httptest.NewRecorder()
+	// Build request
+	req := httptest.NewRequest("GET", "/", nil)
+	req.Header.Set("Content-Type", "application/json")
+	ErrMethodNotAllowed(w, req, "method not allowed")
+	resp := w.Result()
+	defer resp.Body.Close()
+	assert.Equal(t, 405, resp.StatusCode)
+
+	var respJson map[string]interface{}
+	respBody, _ := io.ReadAll(resp.Body)
+	json.Unmarshal(respBody, &respJson)
+
+	assert.Equal(t, "method not allowed", respJson["error"])
+}

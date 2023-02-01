@@ -41,3 +41,10 @@ func ErrInternalServerError(w http.ResponseWriter, r *http.Request, errorText st
 		Error: errorText,
 	})
 }
+
+func ErrMethodNotAllowed(w http.ResponseWriter, r *http.Request, errorText string) {
+	render.Status(r, http.StatusMethodNotAllowed)
+	render.JSON(w, r, &ErrorResponse{
+		Error: errorText,
+	})
+}

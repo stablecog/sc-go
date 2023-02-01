@@ -169,25 +169,40 @@ func main() {
 	// Create middleware
 	mw := middleware.Middleware{
 		SupabaseAuth: database.NewSupabaseAuth(),
+		Repo:         repo,
 	}
 
 	// Routes
 	app.Route("/v1", func(r chi.Router) {
-		r.Get("/health", hc.GetHealth)
+		r.Get("/health", hc.HandleHealth)
 
 		// Routes that require authentication
 		r.Route("/user", func(r chi.Router) {
 			r.Use(mw.AuthMiddleware)
-			r.Post("/generate", hc.PostGenerate)
-			r.Get("/generations", hc.GetUserGenerations)
-			r.Post("/gallery_submit", hc.PostSubmitGenerationToGallery)
+			r.Post("/generate", hc.HandleGenerate)
+			r.Get("/generations", hc.HandleUserGenerations)
+			r.Post("/gallery_submit", hc.HandleSubmitGenerationToGallery)
+		})
+
+		// Admin only routes
+		r.Route("/admin", func(r chi.Router) {
+			r.Use(mw.AuthMiddleware)
+			r.Use(mw.AdminMiddleware)
+			r.Post("/gallery_modify", hc.HandleGenerationDeleteAndApproveRejectGallery)
+		})
+
+		// Super admin only routes
+		r.Route("/super_admin", func(r chi.Router) {
+			r.Use(mw.AuthMiddleware)
+			r.Use(mw.SuperAdminMiddleware)
+			r.Delete("/generation_delete", hc.HandleGenerationDeleteAndApproveRejectGallery)
 		})
 
 		// Webhook
 		r.Route("/queue", func(r chi.Router) {
 			// ! TODO - remove QUEUE_SECRET after STA-22 is implemented
-			r.Put(fmt.Sprintf("/upload/%s/*", utils.GetEnv("QUEUE_SECRET", "")), hc.PutUploadFile)
-			r.Post(fmt.Sprintf("/webhook/%s", utils.GetEnv("QUEUE_SECRET", "")), hc.PostWebhook)
+			r.Put(fmt.Sprintf("/upload/%s/*", utils.GetEnv("QUEUE_SECRET", "")), hc.HandleUploadFile)
+			r.Post(fmt.Sprintf("/webhook/%s", utils.GetEnv("QUEUE_SECRET", "")), hc.HandleCogWebhook)
 		})
 
 		// Websocket

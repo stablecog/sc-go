@@ -13,7 +13,7 @@ import (
 )
 
 // HTTP Post for cog webhook
-func (c *HttpController) PostWebhook(w http.ResponseWriter, r *http.Request) {
+func (c *HttpController) HandleCogWebhook(w http.ResponseWriter, r *http.Request) {
 	// Parse request body
 	reqBody, _ := io.ReadAll(r.Body)
 	var req requests.WebhookRequest

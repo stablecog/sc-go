@@ -18,7 +18,7 @@ import (
 
 // HTTP PUT for uploading files to S3 bucket
 // Invoked by the cog
-func (c *HttpController) PutUploadFile(w http.ResponseWriter, r *http.Request) {
+func (c *HttpController) HandleUploadFile(w http.ResponseWriter, r *http.Request) {
 	// Parse request
 	paths := strings.Split(r.URL.Path, "/")
 	if len(paths) != 5 {

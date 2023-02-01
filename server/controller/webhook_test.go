@@ -13,7 +13,7 @@ import (
 )
 
 // Ensures webhook broadcasts to redis when status is one we want
-func TestPostWebhookValid(t *testing.T) {
+func TestHandleCogWebhookValid(t *testing.T) {
 	/* Setup */
 	pubsub := MockController.Redis.Client.Subscribe(context.Background(), shared.COG_REDIS_WEBHOOK_QUEUE_CHANNEL)
 	reqBody := requests.WebhookRequest{
@@ -28,7 +28,7 @@ func TestPostWebhookValid(t *testing.T) {
 	req := httptest.NewRequest("POST", "/", bytes.NewReader(body))
 	req.Header.Set("Content-Type", "application/json")
 
-	MockController.PostWebhook(w, req)
+	MockController.HandleCogWebhook(w, req)
 	resp := w.Result()
 	defer resp.Body.Close()
 	assert.Equal(t, 200, resp.StatusCode)
@@ -41,7 +41,7 @@ func TestPostWebhookValid(t *testing.T) {
 
 // ! Idk how to test this one, ReceiveMessage panics
 // ! ReceiveTimeout doesn't return an error after the timeout even though it says it will
-// func TestPostWebhookInvalid(t *testing.T) {
+// func TestHandleCogWebhookInvalid(t *testing.T) {
 // 	/* Setup */
 // 	pubsub := MockController.Redis.Client.Subscribe(context.Background(), shared.COG_REDIS_WEBHOOK_QUEUE_CHANNEL)
 // 	reqBody := requests.WebhookRequest{
@@ -56,7 +56,7 @@ func TestPostWebhookValid(t *testing.T) {
 // 	req := httptest.NewRequest("POST", "/", bytes.NewReader(body))
 // 	req.Header.Set("Content-Type", "application/json")
 
-// 	MockController.PostWebhook(w, req)
+// 	MockController.HandleCogWebhook(w, req)
 // 	resp := w.Result()
 // 	defer resp.Body.Close()
 // 	assert.Equal(t, 200, resp.StatusCode)

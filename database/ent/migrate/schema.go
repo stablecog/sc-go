@@ -310,7 +310,7 @@ var (
 	// UserRolesColumns holds the columns for the "user_roles" table.
 	UserRolesColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID},
-		{Name: "role_name", Type: field.TypeEnum, Enums: []string{"ADMIN"}},
+		{Name: "role_name", Type: field.TypeEnum, Enums: []string{"SUPER_ADMIN", "GALLERY_ADMIN"}},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},
 		{Name: "user_id", Type: field.TypeUUID},

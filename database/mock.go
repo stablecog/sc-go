@@ -45,7 +45,7 @@ func CreateMockData(ctx context.Context, db *ent.Client, repo *repository.Reposi
 		return err
 	}
 	// Give user admin role
-	_, err = db.UserRole.Create().SetRoleName(userrole.RoleNameADMIN).SetUserID(u.ID).Save(ctx)
+	_, err = db.UserRole.Create().SetRoleName(userrole.RoleNameSUPER_ADMIN).SetUserID(u.ID).Save(ctx)
 	if err != nil {
 		return err
 	}
