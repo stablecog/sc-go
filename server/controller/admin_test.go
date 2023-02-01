@@ -65,10 +65,10 @@ func TestHandleGenerationDeleteAndApproveRejectGallery(t *testing.T) {
 	assert.Equal(t, "Cannot use POST to delete image", errorResp["error"])
 
 	// ! Can approve generation
-	generations, err := MockController.Repo.GetUserGenerations(uuid.MustParse(database.MOCK_ADMIN_UUID), 50, nil)
+	// Create mock generation
+	targetG, err := database.CreateMockGenerationForDeletion(ctx, MockController.Repo)
 	assert.Nil(t, err)
-	assert.NotEqual(t, generation.GalleryStatusAccepted, generations[1].GalleryStatus)
-	targetGUid := generations[1].ID
+	targetGUid := targetG.ID
 
 	reqBody = requests.AdminGalleryRequestBody{
 		Action:       requests.AdminGalleryActionApprove,

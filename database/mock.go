@@ -190,3 +190,29 @@ func CreateMockData(ctx context.Context, db *ent.Client, repo *repository.Reposi
 
 	return nil
 }
+
+func CreateMockGenerationForDeletion(ctx context.Context, repo *repository.Repository) (*ent.Generation, error) {
+	gen, err := repo.CreateGeneration(uuid.MustParse(MOCK_ADMIN_UUID), "browser", "macos", "chrome", "DE", requests.GenerateRequestBody{
+		Prompt:            "to_delete",
+		Width:             512,
+		Height:            512,
+		NumInferenceSteps: 30,
+		GuidanceScale:     1.0,
+		ModelId:           uuid.MustParse(MOCK_GENERATION_MODEL_ID_FREE),
+		SchedulerId:       uuid.MustParse(MOCK_SCHEDULER_ID_FREE),
+		Seed:              1234,
+	})
+	if err != nil {
+		return nil, err
+	}
+	err = repo.SetGenerationStarted(gen.ID.String())
+	if err != nil {
+		return nil, err
+	}
+	err = repo.SetGenerationSucceeded(gen.ID.String(), []string{"output_4", "output_5", "output_6"})
+	if err != nil {
+		return nil, err
+	}
+
+	return gen, nil
+}
