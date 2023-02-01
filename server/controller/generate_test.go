@@ -11,6 +11,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/stablecog/go-apps/database"
+	"github.com/stablecog/go-apps/database/ent/generation"
 	"github.com/stablecog/go-apps/server/requests"
 	"github.com/stablecog/go-apps/server/responses"
 	"github.com/stablecog/go-apps/shared"
@@ -360,4 +361,87 @@ func TestGenerateValidRequest(t *testing.T) {
 
 	// make sure we have this ID on our map
 	assert.Equal(t, MockWSId, MockController.CogRequestWebsocketConnMap.Get(generateResp.ID))
+}
+
+func TestSubmitGenerationToGallery(t *testing.T) {
+	// ! Generation that doesnt exist
+	reqBody := requests.GenerateSubmitToGalleryRequestBody{
+		GenerationID: uuid.New(),
+	}
+	body, _ := json.Marshal(reqBody)
+	w := httptest.NewRecorder()
+	// Build request
+	req := httptest.NewRequest("POST", "/", bytes.NewReader(body))
+	req.Header.Set("Content-Type", "application/json")
+
+	// Setup context
+	ctx := context.WithValue(req.Context(), "user_id", database.MOCK_PRO_UUID)
+
+	MockController.PostSubmitGenerationToGallery(w, req.WithContext(ctx))
+	resp := w.Result()
+	defer resp.Body.Close()
+	assert.Equal(t, 400, resp.StatusCode)
+	var errorResp map[string]string
+	respBody, _ := io.ReadAll(resp.Body)
+	json.Unmarshal(respBody, &errorResp)
+
+	assert.Equal(t, "Generation not found", errorResp["error"])
+
+	// ! Generation that does exist
+	// Retrieve generation
+	generations, err := MockController.Repo.GetUserGenerations(uuid.MustParse(database.MOCK_ADMIN_UUID), 50, nil)
+	assert.Nil(t, err)
+	assert.NotEmpty(t, generations)
+	assert.Equal(t, generation.GalleryStatusNotSubmitted, generations[0].GalleryStatus)
+
+	reqBody = requests.GenerateSubmitToGalleryRequestBody{
+		GenerationID: generations[0].ID,
+	}
+	body, _ = json.Marshal(reqBody)
+	w = httptest.NewRecorder()
+	// Build request
+	req = httptest.NewRequest("POST", "/", bytes.NewReader(body))
+	req.Header.Set("Content-Type", "application/json")
+
+	// Setup context
+	ctx = context.WithValue(req.Context(), "user_id", database.MOCK_ADMIN_UUID)
+
+	MockController.PostSubmitGenerationToGallery(w, req.WithContext(ctx))
+	resp = w.Result()
+	defer resp.Body.Close()
+	assert.Equal(t, 200, resp.StatusCode)
+
+	// Make sure updated in DB
+	generations, err = MockController.Repo.GetUserGenerations(uuid.MustParse(database.MOCK_ADMIN_UUID), 50, nil)
+	assert.Nil(t, err)
+	assert.NotEmpty(t, generations)
+	assert.Equal(t, generation.GalleryStatusSubmitted, generations[0].GalleryStatus)
+
+	// ! Generation that is already submitted
+	// Retrieve generation
+	generations, err = MockController.Repo.GetUserGenerations(uuid.MustParse(database.MOCK_ADMIN_UUID), 50, nil)
+	assert.Nil(t, err)
+	assert.NotEmpty(t, generations)
+	assert.Equal(t, generation.GalleryStatusSubmitted, generations[0].GalleryStatus)
+
+	reqBody = requests.GenerateSubmitToGalleryRequestBody{
+		GenerationID: generations[0].ID,
+	}
+	body, _ = json.Marshal(reqBody)
+	w = httptest.NewRecorder()
+	// Build request
+	req = httptest.NewRequest("POST", "/", bytes.NewReader(body))
+	req.Header.Set("Content-Type", "application/json")
+
+	// Setup context
+	ctx = context.WithValue(req.Context(), "user_id", database.MOCK_ADMIN_UUID)
+
+	MockController.PostSubmitGenerationToGallery(w, req.WithContext(ctx))
+	resp = w.Result()
+	defer resp.Body.Close()
+	assert.Equal(t, 400, resp.StatusCode)
+	respBody, _ = io.ReadAll(resp.Body)
+	json.Unmarshal(respBody, &errorResp)
+
+	assert.Equal(t, "Generation already submitted to gallery", errorResp["error"])
 }

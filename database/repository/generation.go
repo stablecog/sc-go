@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/google/uuid"
@@ -9,6 +10,26 @@ import (
 	"github.com/stablecog/go-apps/server/requests"
 	"k8s.io/klog/v2"
 )
+
+// Submit a generation to gallery if not already submitted
+var ErrAlreadySubmitted = fmt.Errorf("Already submitted to gallery")
+
+func (r *Repository) SubmitGenerationToGalleryForUser(id uuid.UUID, userID uuid.UUID) error {
+	g, err := r.DB.Generation.Query().Where(generation.IDEQ(id), generation.UserIDEQ(userID)).First(r.Ctx)
+	if err != nil {
+		klog.Errorf("Error getting generation %s: %v", id, err)
+		return err
+	}
+	if g.GalleryStatus == generation.GalleryStatusSubmitted || g.GalleryStatus == generation.GalleryStatusAccepted || g.GalleryStatus == generation.GalleryStatusRejected {
+		return ErrAlreadySubmitted
+	}
+	// Update status
+	_, err = r.DB.Generation.UpdateOneID(id).SetGalleryStatus(generation.GalleryStatusSubmitted).Save(r.Ctx)
+	if err != nil {
+		klog.Errorf("Error submitting generation to gallery %s: %v", id, err)
+	}
+	return err
+}
 
 // CreateGeneration creates the initial generation in the database
 // Takes in a userID (creator),  device info, countryCode, and a request body
@@ -107,14 +128,6 @@ func (r *Repository) SetGenerationSucceeded(generationID string, outputs []strin
 	}
 	return nil
 }
-
-// From("generation").
-// Select("id,width,height,num_inference_steps,guidance_scale,created_at,updated_at,model:model_id(id,name),scheduler:scheduler_id(id,name),prompt:prompt_id(id,text),negative_prompt:negative_prompt_id(id,text),image_object_name,seed,duration_ms", "estimated", false).
-// Eq("user_id", supabaseUserId).
-// Not("image_object_name", "is", "null").
-// Order("created_at", &postgrest.OrderOpts{Ascending: false}).
-// Range((p-1)*pSize, p*pSize, "").
-// ExecuteTo(&generations)
 
 // Get user generations from the database using page options
 // Offset actually represents created_at, we paginate using this for performance reasons

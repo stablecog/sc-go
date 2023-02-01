@@ -79,6 +79,7 @@ func (c *HttpController) GetUserGenerations(w http.ResponseWriter, r *http.Reque
 			StartedAt:         generation.StartedAt,
 			CompletedAt:       generation.CompletedAt,
 			Status:            generation.Status,
+			GalleryStatus:     generation.GalleryStatus,
 		}
 		// Negative prompt can actually be nil
 		if generation.Edges.NegativePrompt != nil {

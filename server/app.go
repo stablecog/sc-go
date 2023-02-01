@@ -180,6 +180,7 @@ func main() {
 			r.Use(mw.AuthMiddleware)
 			r.Post("/generate", hc.PostGenerate)
 			r.Get("/generations", hc.GetUserGenerations)
+			r.Post("/gallery_submit", hc.PostSubmitGenerationToGallery)
 		})
 
 		// Webhook

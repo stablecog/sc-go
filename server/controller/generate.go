@@ -2,6 +2,7 @@ package controller
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"math"
@@ -11,6 +12,8 @@ import (
 
 	"github.com/go-chi/render"
 	"github.com/google/uuid"
+	"github.com/stablecog/go-apps/database/ent"
+	"github.com/stablecog/go-apps/database/repository"
 	"github.com/stablecog/go-apps/server/requests"
 	"github.com/stablecog/go-apps/server/responses"
 	"github.com/stablecog/go-apps/shared"
@@ -21,24 +24,15 @@ import (
 // POST generate endpoint
 // Adds generate to queue, if authenticated, returns the ID of the generation
 func (c *HttpController) PostGenerate(w http.ResponseWriter, r *http.Request) {
-	// See if authenticated
-	userIDStr, authenticated := r.Context().Value("user_id").(string)
-	// This should always be true because of the auth middleware, but check it anyway
-	if !authenticated || userIDStr == "" {
-		responses.ErrUnauthorized(w, r)
-		return
-	}
-	// Ensure valid uuid
-	userID, err := uuid.Parse(userIDStr)
-	if err != nil {
-		responses.ErrUnauthorized(w, r)
+	userID := c.GetUserIDIfAuthenticated(w, r)
+	if userID == nil {
 		return
 	}
 
 	// Parse request body
 	reqBody, _ := io.ReadAll(r.Body)
 	var generateReq requests.GenerateRequestBody
-	err = json.Unmarshal(reqBody, &generateReq)
+	err := json.Unmarshal(reqBody, &generateReq)
 	if err != nil {
 		responses.ErrUnableToParseJson(w, r)
 		return
@@ -95,7 +89,7 @@ func (c *HttpController) PostGenerate(w http.ResponseWriter, r *http.Request) {
 	countryCode := utils.GetCountryCode(r)
 	deviceInfo := utils.GetClientDeviceInfo(r)
 
-	isProUser, err := c.Repo.IsProUser(userID)
+	isProUser, err := c.Repo.IsProUser(*userID)
 	if err != nil {
 		klog.Errorf("Error checking if user is pro: %v", err)
 		responses.ErrInternalServerError(w, r, "Error retrieving user")
@@ -145,7 +139,7 @@ func (c *HttpController) PostGenerate(w http.ResponseWriter, r *http.Request) {
 
 	// Create generation
 	_, err = c.Repo.CreateGeneration(
-		userID,
+		*userID,
 		string(deviceInfo.DeviceType),
 		deviceInfo.DeviceOs,
 		deviceInfo.DeviceBrowser,
@@ -198,4 +192,40 @@ func (c *HttpController) PostGenerate(w http.ResponseWriter, r *http.Request) {
 	render.JSON(w, r, &responses.GenerateResponse{
 		ID: requestId,
 	})
+}
+
+// HTTP POST submit a generation to gallery
+func (c *HttpController) PostSubmitGenerationToGallery(w http.ResponseWriter, r *http.Request) {
+	userID := c.GetUserIDIfAuthenticated(w, r)
+	if userID == nil {
+		return
+	}
+
+	// Parse request body
+	reqBody, _ := io.ReadAll(r.Body)
+	var submitToGalleryReq requests.GenerateSubmitToGalleryRequestBody
+	err := json.Unmarshal(reqBody, &submitToGalleryReq)
+	if err != nil {
+		responses.ErrUnableToParseJson(w, r)
+		return
+	}
+
+	// See if generation already exists
+	err = c.Repo.SubmitGenerationToGalleryForUser(submitToGalleryReq.GenerationID, *userID)
+	if err != nil {
+		if ent.IsNotFound(err) {
+			responses.ErrBadRequest(w, r, "Generation not found")
+			return
+		}
+		if errors.Is(err, repository.ErrAlreadySubmitted) {
+			responses.ErrBadRequest(w, r, "Generation already submitted to gallery")
+			return
+		}
+		klog.Errorf("Error submitting generation to gallery: %v", err)
+		responses.ErrInternalServerError(w, r, "Error submitting generation to gallery")
+		return
+	}
+
+	// Empty response body for successful submission
+	render.Status(r, http.StatusOK)
 }
