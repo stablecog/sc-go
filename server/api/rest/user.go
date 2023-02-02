@@ -72,7 +72,7 @@ func (c *RestAPI) HandleQueryGenerations(w http.ResponseWriter, r *http.Request)
 		generationResponse := responses.UserGenerationsResponse{
 			Width:             generation.Width,
 			Height:            generation.Height,
-			NumInferenceSteps: generation.NumInterferenceSteps,
+			NumInferenceSteps: generation.InferenceSteps,
 			GuidanceScale:     generation.GuidanceScale,
 			Seed:              generation.Seed,
 			CreatedAt:         generation.CreatedAt,

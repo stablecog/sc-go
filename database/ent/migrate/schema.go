@@ -29,7 +29,7 @@ var (
 		{Name: "id", Type: field.TypeUUID},
 		{Name: "width", Type: field.TypeInt32},
 		{Name: "height", Type: field.TypeInt32},
-		{Name: "num_interference_steps", Type: field.TypeInt32},
+		{Name: "inference_steps", Type: field.TypeInt32},
 		{Name: "guidance_scale", Type: field.TypeFloat32},
 		{Name: "seed", Type: field.TypeInt},
 		{Name: "status", Type: field.TypeEnum, Enums: []string{"queued", "started", "succeeded", "failed", "rejected"}},

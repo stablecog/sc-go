@@ -66,9 +66,9 @@ func Height(v int32) predicate.Generation {
 	return predicate.Generation(sql.FieldEQ(FieldHeight, v))
 }
 
-// NumInterferenceSteps applies equality check predicate on the "num_interference_steps" field. It's identical to NumInterferenceStepsEQ.
-func NumInterferenceSteps(v int32) predicate.Generation {
-	return predicate.Generation(sql.FieldEQ(FieldNumInterferenceSteps, v))
+// InferenceSteps applies equality check predicate on the "inference_steps" field. It's identical to InferenceStepsEQ.
+func InferenceSteps(v int32) predicate.Generation {
+	return predicate.Generation(sql.FieldEQ(FieldInferenceSteps, v))
 }
 
 // GuidanceScale applies equality check predicate on the "guidance_scale" field. It's identical to GuidanceScaleEQ.
@@ -226,44 +226,44 @@ func HeightLTE(v int32) predicate.Generation {
 	return predicate.Generation(sql.FieldLTE(FieldHeight, v))
 }
 
-// NumInterferenceStepsEQ applies the EQ predicate on the "num_interference_steps" field.
-func NumInterferenceStepsEQ(v int32) predicate.Generation {
-	return predicate.Generation(sql.FieldEQ(FieldNumInterferenceSteps, v))
+// InferenceStepsEQ applies the EQ predicate on the "inference_steps" field.
+func InferenceStepsEQ(v int32) predicate.Generation {
+	return predicate.Generation(sql.FieldEQ(FieldInferenceSteps, v))
 }
 
-// NumInterferenceStepsNEQ applies the NEQ predicate on the "num_interference_steps" field.
-func NumInterferenceStepsNEQ(v int32) predicate.Generation {
-	return predicate.Generation(sql.FieldNEQ(FieldNumInterferenceSteps, v))
+// InferenceStepsNEQ applies the NEQ predicate on the "inference_steps" field.
+func InferenceStepsNEQ(v int32) predicate.Generation {
+	return predicate.Generation(sql.FieldNEQ(FieldInferenceSteps, v))
 }
 
-// NumInterferenceStepsIn applies the In predicate on the "num_interference_steps" field.
-func NumInterferenceStepsIn(vs ...int32) predicate.Generation {
-	return predicate.Generation(sql.FieldIn(FieldNumInterferenceSteps, vs...))
+// InferenceStepsIn applies the In predicate on the "inference_steps" field.
+func InferenceStepsIn(vs ...int32) predicate.Generation {
+	return predicate.Generation(sql.FieldIn(FieldInferenceSteps, vs...))
 }
 
-// NumInterferenceStepsNotIn applies the NotIn predicate on the "num_interference_steps" field.
-func NumInterferenceStepsNotIn(vs ...int32) predicate.Generation {
-	return predicate.Generation(sql.FieldNotIn(FieldNumInterferenceSteps, vs...))
+// InferenceStepsNotIn applies the NotIn predicate on the "inference_steps" field.
+func InferenceStepsNotIn(vs ...int32) predicate.Generation {
+	return predicate.Generation(sql.FieldNotIn(FieldInferenceSteps, vs...))
 }
 
-// NumInterferenceStepsGT applies the GT predicate on the "num_interference_steps" field.
-func NumInterferenceStepsGT(v int32) predicate.Generation {
-	return predicate.Generation(sql.FieldGT(FieldNumInterferenceSteps, v))
+// InferenceStepsGT applies the GT predicate on the "inference_steps" field.
+func InferenceStepsGT(v int32) predicate.Generation {
+	return predicate.Generation(sql.FieldGT(FieldInferenceSteps, v))
 }
 
-// NumInterferenceStepsGTE applies the GTE predicate on the "num_interference_steps" field.
-func NumInterferenceStepsGTE(v int32) predicate.Generation {
-	return predicate.Generation(sql.FieldGTE(FieldNumInterferenceSteps, v))
+// InferenceStepsGTE applies the GTE predicate on the "inference_steps" field.
+func InferenceStepsGTE(v int32) predicate.Generation {
+	return predicate.Generation(sql.FieldGTE(FieldInferenceSteps, v))
 }
 
-// NumInterferenceStepsLT applies the LT predicate on the "num_interference_steps" field.
-func NumInterferenceStepsLT(v int32) predicate.Generation {
-	return predicate.Generation(sql.FieldLT(FieldNumInterferenceSteps, v))
+// InferenceStepsLT applies the LT predicate on the "inference_steps" field.
+func InferenceStepsLT(v int32) predicate.Generation {
+	return predicate.Generation(sql.FieldLT(FieldInferenceSteps, v))
 }
 
-// NumInterferenceStepsLTE applies the LTE predicate on the "num_interference_steps" field.
-func NumInterferenceStepsLTE(v int32) predicate.Generation {
-	return predicate.Generation(sql.FieldLTE(FieldNumInterferenceSteps, v))
+// InferenceStepsLTE applies the LTE predicate on the "inference_steps" field.
+func InferenceStepsLTE(v int32) predicate.Generation {
+	return predicate.Generation(sql.FieldLTE(FieldInferenceSteps, v))
 }
 
 // GuidanceScaleEQ applies the EQ predicate on the "guidance_scale" field.

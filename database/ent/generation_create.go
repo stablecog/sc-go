@@ -40,9 +40,9 @@ func (gc *GenerationCreate) SetHeight(i int32) *GenerationCreate {
 	return gc
 }
 
-// SetNumInterferenceSteps sets the "num_interference_steps" field.
-func (gc *GenerationCreate) SetNumInterferenceSteps(i int32) *GenerationCreate {
-	gc.mutation.SetNumInterferenceSteps(i)
+// SetInferenceSteps sets the "inference_steps" field.
+func (gc *GenerationCreate) SetInferenceSteps(i int32) *GenerationCreate {
+	gc.mutation.SetInferenceSteps(i)
 	return gc
 }
 
@@ -344,8 +344,8 @@ func (gc *GenerationCreate) check() error {
 	if _, ok := gc.mutation.Height(); !ok {
 		return &ValidationError{Name: "height", err: errors.New(`ent: missing required field "Generation.height"`)}
 	}
-	if _, ok := gc.mutation.NumInterferenceSteps(); !ok {
-		return &ValidationError{Name: "num_interference_steps", err: errors.New(`ent: missing required field "Generation.num_interference_steps"`)}
+	if _, ok := gc.mutation.InferenceSteps(); !ok {
+		return &ValidationError{Name: "inference_steps", err: errors.New(`ent: missing required field "Generation.inference_steps"`)}
 	}
 	if _, ok := gc.mutation.GuidanceScale(); !ok {
 		return &ValidationError{Name: "guidance_scale", err: errors.New(`ent: missing required field "Generation.guidance_scale"`)}
@@ -457,9 +457,9 @@ func (gc *GenerationCreate) createSpec() (*Generation, *sqlgraph.CreateSpec) {
 		_spec.SetField(generation.FieldHeight, field.TypeInt32, value)
 		_node.Height = value
 	}
-	if value, ok := gc.mutation.NumInterferenceSteps(); ok {
-		_spec.SetField(generation.FieldNumInterferenceSteps, field.TypeInt32, value)
-		_node.NumInterferenceSteps = value
+	if value, ok := gc.mutation.InferenceSteps(); ok {
+		_spec.SetField(generation.FieldInferenceSteps, field.TypeInt32, value)
+		_node.InferenceSteps = value
 	}
 	if value, ok := gc.mutation.GuidanceScale(); ok {
 		_spec.SetField(generation.FieldGuidanceScale, field.TypeFloat32, value)
