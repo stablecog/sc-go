@@ -28,7 +28,7 @@ func TestGenerateUnauthorizedIfUserIdMissingInContext(t *testing.T) {
 	req := httptest.NewRequest("POST", "/", bytes.NewReader(body))
 	req.Header.Set("Content-Type", "application/json")
 
-	MockController.HandleGenerate(w, req)
+	MockController.HandleCreateGeneration(w, req)
 	resp := w.Result()
 	defer resp.Body.Close()
 	assert.Equal(t, 401, resp.StatusCode)
@@ -52,7 +52,7 @@ func TestGenerateUnauthorizedIfUserIdNotUuid(t *testing.T) {
 	// Setup context
 	ctx := context.WithValue(req.Context(), "user_id", "not-uuid")
 
-	MockController.HandleGenerate(w, req.WithContext(ctx))
+	MockController.HandleCreateGeneration(w, req.WithContext(ctx))
 	resp := w.Result()
 	defer resp.Body.Close()
 	assert.Equal(t, 401, resp.StatusCode)
@@ -76,7 +76,7 @@ func TestGenerateFailsWithInvalidWebsocketID(t *testing.T) {
 	// Setup context
 	ctx := context.WithValue(req.Context(), "user_id", database.MOCK_ADMIN_UUID)
 
-	MockController.HandleGenerate(w, req.WithContext(ctx))
+	MockController.HandleCreateGeneration(w, req.WithContext(ctx))
 	resp := w.Result()
 	defer resp.Body.Close()
 	assert.Equal(t, 400, resp.StatusCode)
@@ -102,7 +102,7 @@ func TestGenerateEnforcesMaxWidthMaxHeight(t *testing.T) {
 	// Setup context
 	ctx := context.WithValue(req.Context(), "user_id", database.MOCK_ADMIN_UUID)
 
-	MockController.HandleGenerate(w, req.WithContext(ctx))
+	MockController.HandleCreateGeneration(w, req.WithContext(ctx))
 	resp := w.Result()
 	defer resp.Body.Close()
 	assert.Equal(t, 400, resp.StatusCode)
@@ -127,7 +127,7 @@ func TestGenerateEnforcesMaxWidthMaxHeight(t *testing.T) {
 	// Setup context
 	ctx = context.WithValue(req.Context(), "user_id", database.MOCK_ADMIN_UUID)
 
-	MockController.HandleGenerate(w, req.WithContext(ctx))
+	MockController.HandleCreateGeneration(w, req.WithContext(ctx))
 	resp = w.Result()
 	defer resp.Body.Close()
 	assert.Equal(t, 400, resp.StatusCode)
@@ -155,7 +155,7 @@ func TestGenerateRejectsInvalidModelOrScheduler(t *testing.T) {
 	// Setup context
 	ctx := context.WithValue(req.Context(), "user_id", database.MOCK_ADMIN_UUID)
 
-	MockController.HandleGenerate(w, req.WithContext(ctx))
+	MockController.HandleCreateGeneration(w, req.WithContext(ctx))
 	resp := w.Result()
 	defer resp.Body.Close()
 	assert.Equal(t, 400, resp.StatusCode)
@@ -182,7 +182,7 @@ func TestGenerateRejectsInvalidModelOrScheduler(t *testing.T) {
 	// Setup context
 	ctx = context.WithValue(req.Context(), "user_id", database.MOCK_ADMIN_UUID)
 
-	MockController.HandleGenerate(w, req.WithContext(ctx))
+	MockController.HandleCreateGeneration(w, req.WithContext(ctx))
 	resp = w.Result()
 	defer resp.Body.Close()
 	assert.Equal(t, 400, resp.StatusCode)
@@ -211,7 +211,7 @@ func TestGenerateProRestrictions(t *testing.T) {
 	// Setup context
 	ctx := context.WithValue(req.Context(), "user_id", database.MOCK_FREE_UUID)
 
-	MockController.HandleGenerate(w, req.WithContext(ctx))
+	MockController.HandleCreateGeneration(w, req.WithContext(ctx))
 	resp := w.Result()
 	defer resp.Body.Close()
 	assert.Equal(t, 400, resp.StatusCode)
@@ -238,7 +238,7 @@ func TestGenerateProRestrictions(t *testing.T) {
 	// Setup context
 	ctx = context.WithValue(req.Context(), "user_id", database.MOCK_FREE_UUID)
 
-	MockController.HandleGenerate(w, req.WithContext(ctx))
+	MockController.HandleCreateGeneration(w, req.WithContext(ctx))
 	resp = w.Result()
 	defer resp.Body.Close()
 	assert.Equal(t, 400, resp.StatusCode)
@@ -264,7 +264,7 @@ func TestGenerateProRestrictions(t *testing.T) {
 	// Setup context
 	ctx = context.WithValue(req.Context(), "user_id", database.MOCK_FREE_UUID)
 
-	MockController.HandleGenerate(w, req.WithContext(ctx))
+	MockController.HandleCreateGeneration(w, req.WithContext(ctx))
 	resp = w.Result()
 	defer resp.Body.Close()
 	assert.Equal(t, 400, resp.StatusCode)
@@ -290,7 +290,7 @@ func TestGenerateProRestrictions(t *testing.T) {
 	// Setup context
 	ctx = context.WithValue(req.Context(), "user_id", database.MOCK_FREE_UUID)
 
-	MockController.HandleGenerate(w, req.WithContext(ctx))
+	MockController.HandleCreateGeneration(w, req.WithContext(ctx))
 	resp = w.Result()
 	defer resp.Body.Close()
 	assert.Equal(t, 400, resp.StatusCode)
@@ -317,7 +317,7 @@ func TestGenerateProRestrictions(t *testing.T) {
 	// Setup context
 	ctx = context.WithValue(req.Context(), "user_id", database.MOCK_FREE_UUID)
 
-	MockController.HandleGenerate(w, req.WithContext(ctx))
+	MockController.HandleCreateGeneration(w, req.WithContext(ctx))
 	resp = w.Result()
 	defer resp.Body.Close()
 	assert.Equal(t, 400, resp.StatusCode)
@@ -347,7 +347,7 @@ func TestGenerateValidRequest(t *testing.T) {
 	// Setup context
 	ctx := context.WithValue(req.Context(), "user_id", database.MOCK_PRO_UUID)
 
-	MockController.HandleGenerate(w, req.WithContext(ctx))
+	MockController.HandleCreateGeneration(w, req.WithContext(ctx))
 	resp := w.Result()
 	defer resp.Body.Close()
 	assert.Equal(t, 200, resp.StatusCode)

@@ -23,7 +23,7 @@ import (
 
 // POST generate endpoint
 // Adds generate to queue, if authenticated, returns the ID of the generation
-func (c *RestAPI) HandleGenerate(w http.ResponseWriter, r *http.Request) {
+func (c *RestAPI) HandleCreateGeneration(w http.ResponseWriter, r *http.Request) {
 	userID := c.GetUserIDIfAuthenticated(w, r)
 	if userID == nil {
 		return

@@ -180,8 +180,8 @@ func main() {
 		r.Route("/user", func(r chi.Router) {
 			r.Use(mw.AuthMiddleware)
 			r.Route("/generation", func(r chi.Router) {
-				r.Post("/create", hc.HandleGenerate)
-				r.Get("/query", hc.HandleUserGenerations)
+				r.Post("/create", hc.HandleCreateGeneration)
+				r.Get("/query", hc.HandleQueryGenerations)
 			})
 			r.Route("/gallery", func(r chi.Router) {
 				r.Post("/submit", hc.HandleSubmitGenerationToGallery)
@@ -193,7 +193,7 @@ func main() {
 			r.Route("/gallery", func(r chi.Router) {
 				r.Use(mw.AuthMiddleware)
 				r.Use(mw.AdminMiddleware)
-				r.Post("/review", hc.HandleGenerationApproveRejectGallery)
+				r.Post("/review", hc.HandleReviewGallerySubmission)
 			})
 			r.Route("/generation", func(r chi.Router) {
 				r.Use(mw.AuthMiddleware)

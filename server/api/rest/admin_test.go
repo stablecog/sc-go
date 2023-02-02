@@ -15,7 +15,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestHandleGenerationApproveRejectGallery(t *testing.T) {
+func TestHandleReviewGallerySubmission(t *testing.T) {
 
 	// ! Can approve generation
 	// Retrieve generations
@@ -36,7 +36,7 @@ func TestHandleGenerationApproveRejectGallery(t *testing.T) {
 	// Setup context
 	ctx := context.WithValue(req.Context(), "user_id", database.MOCK_ADMIN_UUID)
 
-	MockController.HandleGenerationApproveRejectGallery(w, req.WithContext(ctx))
+	MockController.HandleReviewGallerySubmission(w, req.WithContext(ctx))
 	resp := w.Result()
 	defer resp.Body.Close()
 	assert.Equal(t, 200, resp.StatusCode)
@@ -59,7 +59,7 @@ func TestHandleGenerationApproveRejectGallery(t *testing.T) {
 	// Setup context
 	ctx = context.WithValue(req.Context(), "user_id", database.MOCK_ADMIN_UUID)
 
-	MockController.HandleGenerationApproveRejectGallery(w, req.WithContext(ctx))
+	MockController.HandleReviewGallerySubmission(w, req.WithContext(ctx))
 	resp = w.Result()
 	defer resp.Body.Close()
 	assert.Equal(t, 200, resp.StatusCode)

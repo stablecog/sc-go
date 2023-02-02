@@ -15,7 +15,7 @@ import (
 // Admin-related routes, these must be behind admin middleware and auth middleware
 
 // HTTP POST - admin approve/reject image in gallery
-func (c *RestAPI) HandleGenerationApproveRejectGallery(w http.ResponseWriter, r *http.Request) {
+func (c *RestAPI) HandleReviewGallerySubmission(w http.ResponseWriter, r *http.Request) {
 	// Get user id (of admin)
 	userID := c.GetUserIDIfAuthenticated(w, r)
 	if userID == nil {

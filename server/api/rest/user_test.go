@@ -16,7 +16,7 @@ import (
 )
 
 // Retrieving for user that has no generations
-func TestHandleUserGenerationsDontExist(t *testing.T) {
+func TestHandleQueryGenerationsDontExist(t *testing.T) {
 	w := httptest.NewRecorder()
 	// Build request
 	req := httptest.NewRequest("GET", "/gens", nil)
@@ -24,7 +24,7 @@ func TestHandleUserGenerationsDontExist(t *testing.T) {
 
 	ctx := context.WithValue(req.Context(), "user_id", database.MOCK_FREE_UUID)
 
-	MockController.HandleUserGenerations(w, req.WithContext(ctx))
+	MockController.HandleQueryGenerations(w, req.WithContext(ctx))
 	resp := w.Result()
 	defer resp.Body.Close()
 	assert.Equal(t, 200, resp.StatusCode)
@@ -35,7 +35,7 @@ func TestHandleUserGenerationsDontExist(t *testing.T) {
 	assert.Len(t, genResponse, 0)
 }
 
-func TestHandleUserGenerationsDefaultParams(t *testing.T) {
+func TestHandleQueryGenerationsDefaultParams(t *testing.T) {
 	w := httptest.NewRecorder()
 	// Build request
 	req := httptest.NewRequest("GET", "/gens", nil)
@@ -43,7 +43,7 @@ func TestHandleUserGenerationsDefaultParams(t *testing.T) {
 
 	ctx := context.WithValue(req.Context(), "user_id", database.MOCK_ADMIN_UUID)
 
-	MockController.HandleUserGenerations(w, req.WithContext(ctx))
+	MockController.HandleQueryGenerations(w, req.WithContext(ctx))
 	resp := w.Result()
 	defer resp.Body.Close()
 	assert.Equal(t, 200, resp.StatusCode)
@@ -111,7 +111,7 @@ func TestHandleUserGenerationsDefaultParams(t *testing.T) {
 	assert.Equal(t, 1234, genResponse[3].Seed)
 }
 
-func TestHandleUserGenerationsOffset(t *testing.T) {
+func TestHandleQueryGenerationsOffset(t *testing.T) {
 	w := httptest.NewRecorder()
 	// Build request
 	req := httptest.NewRequest("GET", "/gens", nil)
@@ -119,7 +119,7 @@ func TestHandleUserGenerationsOffset(t *testing.T) {
 
 	ctx := context.WithValue(req.Context(), "user_id", database.MOCK_ADMIN_UUID)
 
-	MockController.HandleUserGenerations(w, req.WithContext(ctx))
+	MockController.HandleQueryGenerations(w, req.WithContext(ctx))
 	resp := w.Result()
 	defer resp.Body.Close()
 	assert.Equal(t, 200, resp.StatusCode)
@@ -150,7 +150,7 @@ func TestHandleUserGenerationsOffset(t *testing.T) {
 	req.Header.Set("Content-Type", "application/json")
 
 	ctx = context.WithValue(req.Context(), "user_id", database.MOCK_ADMIN_UUID)
-	MockController.HandleUserGenerations(w, req.WithContext(ctx))
+	MockController.HandleQueryGenerations(w, req.WithContext(ctx))
 	resp = w.Result()
 	defer resp.Body.Close()
 	assert.Equal(t, 200, resp.StatusCode)
@@ -162,7 +162,7 @@ func TestHandleUserGenerationsOffset(t *testing.T) {
 }
 
 // Test per page param
-func TestHandleUserGenerationsPerPage(t *testing.T) {
+func TestHandleQueryGenerationsPerPage(t *testing.T) {
 	w := httptest.NewRecorder()
 	// Build request
 	req := httptest.NewRequest("GET", "/gens?per_page=1", nil)
@@ -170,7 +170,7 @@ func TestHandleUserGenerationsPerPage(t *testing.T) {
 
 	ctx := context.WithValue(req.Context(), "user_id", database.MOCK_ADMIN_UUID)
 
-	MockController.HandleUserGenerations(w, req.WithContext(ctx))
+	MockController.HandleQueryGenerations(w, req.WithContext(ctx))
 	resp := w.Result()
 	defer resp.Body.Close()
 	assert.Equal(t, 200, resp.StatusCode)
@@ -197,13 +197,13 @@ func TestHandleUserGenerationsPerPage(t *testing.T) {
 }
 
 // ! Error conditions in API
-func TestHandleUserGenerationsUnauthorized(t *testing.T) {
+func TestHandleQueryGenerationsUnauthorized(t *testing.T) {
 	w := httptest.NewRecorder()
 	// Build request
 	req := httptest.NewRequest("GET", "/gens?per_page=1", nil)
 	req.Header.Set("Content-Type", "application/json")
 
-	MockController.HandleUserGenerations(w, req)
+	MockController.HandleQueryGenerations(w, req)
 	resp := w.Result()
 	defer resp.Body.Close()
 	assert.Equal(t, 401, resp.StatusCode)
@@ -214,7 +214,7 @@ func TestHandleUserGenerationsUnauthorized(t *testing.T) {
 	assert.Equal(t, "Unauthorized", genResponse["error"])
 }
 
-func TestHandleUserGenerationsBadPerPage(t *testing.T) {
+func TestHandleQueryGenerationsBadPerPage(t *testing.T) {
 	w := httptest.NewRecorder()
 	// Build request
 	req := httptest.NewRequest("GET", "/gens?per_page=HelloWorld", nil)
@@ -222,7 +222,7 @@ func TestHandleUserGenerationsBadPerPage(t *testing.T) {
 
 	ctx := context.WithValue(req.Context(), "user_id", database.MOCK_FREE_UUID)
 
-	MockController.HandleUserGenerations(w, req.WithContext(ctx))
+	MockController.HandleQueryGenerations(w, req.WithContext(ctx))
 	resp := w.Result()
 	defer resp.Body.Close()
 	assert.Equal(t, 400, resp.StatusCode)
@@ -240,7 +240,7 @@ func TestHandleUserGenerationsBadPerPage(t *testing.T) {
 
 	ctx = context.WithValue(req.Context(), "user_id", database.MOCK_FREE_UUID)
 
-	MockController.HandleUserGenerations(w, req.WithContext(ctx))
+	MockController.HandleQueryGenerations(w, req.WithContext(ctx))
 	resp = w.Result()
 	defer resp.Body.Close()
 	assert.Equal(t, 400, resp.StatusCode)
@@ -256,7 +256,7 @@ func TestHandleUserGenerationsBadPerPage(t *testing.T) {
 
 	ctx = context.WithValue(req.Context(), "user_id", database.MOCK_FREE_UUID)
 
-	MockController.HandleUserGenerations(w, req.WithContext(ctx))
+	MockController.HandleQueryGenerations(w, req.WithContext(ctx))
 	resp = w.Result()
 	defer resp.Body.Close()
 	assert.Equal(t, 400, resp.StatusCode)
@@ -266,7 +266,7 @@ func TestHandleUserGenerationsBadPerPage(t *testing.T) {
 	assert.Equal(t, "per_page must be between 1 and 100", errorResp["error"])
 }
 
-func TestHandleUserGenerationsBadOffset(t *testing.T) {
+func TestHandleQueryGenerationsBadOffset(t *testing.T) {
 	w := httptest.NewRecorder()
 	// Build request
 	req := httptest.NewRequest("GET", "/gens?offset=HelloWorld", nil)
@@ -274,7 +274,7 @@ func TestHandleUserGenerationsBadOffset(t *testing.T) {
 
 	ctx := context.WithValue(req.Context(), "user_id", database.MOCK_FREE_UUID)
 
-	MockController.HandleUserGenerations(w, req.WithContext(ctx))
+	MockController.HandleQueryGenerations(w, req.WithContext(ctx))
 	resp := w.Result()
 	defer resp.Body.Close()
 	assert.Equal(t, 400, resp.StatusCode)
