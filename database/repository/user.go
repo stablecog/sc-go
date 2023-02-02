@@ -9,7 +9,7 @@ import (
 
 // ! This will eventually be deprecated to simply deduct credits
 func (r *Repository) IsProUser(userID uuid.UUID) (bool, error) {
-	subTier, err := r.DB.Subscription.Query().Where(subscription.UserIDEQ(userID)).QuerySubscriptionTier().First(r.Ctx)
+	subTier, err := r.DB.Debug().Subscription.Query().Where(subscription.UserIDEQ(userID)).QuerySubscriptionTier().First(r.Ctx)
 	if err != nil {
 		return false, err
 	}
@@ -40,7 +40,7 @@ func (r *Repository) IsSuperAdmin(userID uuid.UUID) (bool, error) {
 }
 
 func (r *Repository) GetRoles(userID uuid.UUID) ([]userrole.RoleName, error) {
-	roles, err := r.DB.UserRole.Query().Where(userrole.UserIDEQ(userID)).All(r.Ctx)
+	roles, err := r.DB.Debug().UserRole.Query().Where(userrole.UserIDEQ(userID)).All(r.Ctx)
 	if err != nil {
 		klog.Errorf("Error getting user roles: %v", err)
 		return nil, err
