@@ -23,15 +23,12 @@ import (
 // POST generate endpoint
 // Adds generate to queue, if authenticated, returns the ID of the generation
 func (c *RestAPI) HandleCreateGeneration(w http.ResponseWriter, r *http.Request) {
-	start := time.Now()
 	userID := c.GetUserIDIfAuthenticated(w, r)
 	if userID == nil {
 		return
 	}
-	fmt.Printf("--- GetUserIDIFAuthenticated took: %s\n", time.Now().Sub(start))
 
 	// Parse request body
-	start = time.Now()
 	reqBody, _ := io.ReadAll(r.Body)
 	var generateReq requests.GenerateRequestBody
 	err := json.Unmarshal(reqBody, &generateReq)
@@ -39,15 +36,12 @@ func (c *RestAPI) HandleCreateGeneration(w http.ResponseWriter, r *http.Request)
 		responses.ErrUnableToParseJson(w, r)
 		return
 	}
-	fmt.Printf("--- ParseRequestBody took: %s\n", time.Now().Sub(start))
 
 	// Make sure the websocket ID is valid
-	start = time.Now()
 	if !utils.IsSha256Hash(generateReq.WebsocketId) || c.Hub.GetClientByUid(generateReq.WebsocketId) == nil {
 		responses.ErrBadRequest(w, r, "Invalid websocket ID")
 		return
 	}
-	fmt.Printf("--- Validate websocket ID took: %s\n", time.Now().Sub(start))
 
 	// Validate request body
 	if generateReq.Height > shared.MAX_GENERATE_HEIGHT {
@@ -72,7 +66,6 @@ func (c *RestAPI) HandleCreateGeneration(w http.ResponseWriter, r *http.Request)
 	}
 
 	// Validate model and scheduler IDs in request are valid
-	start = time.Now()
 	if !shared.GetCache().IsValidGenerationModelID(generateReq.ModelId) {
 		klog.Infof("Invalid model ID: %s", generateReq.ModelId)
 		responses.ErrBadRequest(w, r, "Invalid model ID")
@@ -84,7 +77,6 @@ func (c *RestAPI) HandleCreateGeneration(w http.ResponseWriter, r *http.Request)
 		responses.ErrBadRequest(w, r, "Invalid scheduler ID")
 		return
 	}
-	fmt.Printf("--- Checking model and scheduler IDs took: %s\n", time.Now().Sub(start))
 
 	// Generate seed if not provided
 	if generateReq.Seed < 0 {
@@ -93,22 +85,17 @@ func (c *RestAPI) HandleCreateGeneration(w http.ResponseWriter, r *http.Request)
 	}
 
 	// Parse request headers
-	start = time.Now()
 	countryCode := utils.GetCountryCode(r)
 	deviceInfo := utils.GetClientDeviceInfo(r)
-	fmt.Printf("--- Parse request headers took: %s\n", time.Now().Sub(start))
 
-	start = time.Now()
 	isProUser, err := c.Repo.IsProUser(*userID)
 	if err != nil {
 		klog.Errorf("Error checking if user is pro: %v", err)
 		responses.ErrInternalServerError(w, r, "Error retrieving user")
 		return
 	}
-	fmt.Printf("--- Check if user is pro took: %s\n", time.Now().Sub(start))
 
 	// If not pro user, they are restricted from some features
-	start = time.Now()
 	if !isProUser {
 		if !shared.GetCache().IsGenerationModelAvailableForFree(generateReq.ModelId) {
 			responses.ErrBadRequest(w, r, "That model is not available on the free plan :(")
@@ -131,7 +118,6 @@ func (c *RestAPI) HandleCreateGeneration(w http.ResponseWriter, r *http.Request)
 			return
 		}
 	}
-	fmt.Printf("--- Check pro features: %s\n", time.Now().Sub(start))
 
 	// ! TODO - rate limit free
 
@@ -147,13 +133,10 @@ func (c *RestAPI) HandleCreateGeneration(w http.ResponseWriter, r *http.Request)
 	}
 
 	// Format prompts
-	start = time.Now()
 	generateReq.Prompt = utils.FormatPrompt(generateReq.Prompt)
 	generateReq.NegativePrompt = utils.FormatPrompt(generateReq.NegativePrompt)
-	fmt.Printf("--- Format prompts took: %s\n", time.Now().Sub(start))
 
 	// Create generation
-	start = time.Now()
 	g, err := c.Repo.CreateGeneration(
 		*userID,
 		string(deviceInfo.DeviceType),
@@ -166,7 +149,6 @@ func (c *RestAPI) HandleCreateGeneration(w http.ResponseWriter, r *http.Request)
 		responses.ErrInternalServerError(w, r, "Error creating generation")
 		return
 	}
-	fmt.Printf("--- Create generation took: %s\n", time.Now().Sub(start))
 
 	// Get language codes
 	promptFlores, negativePromptFlores := utils.GetPromptFloresCodes(generateReq.Prompt, generateReq.NegativePrompt)
@@ -195,19 +177,15 @@ func (c *RestAPI) HandleCreateGeneration(w http.ResponseWriter, r *http.Request)
 		},
 	}
 
-	start = time.Now()
 	err = c.Redis.EnqueueCogGenerateRequest(r.Context(), cogReqBody)
 	if err != nil {
 		klog.Errorf("Failed to write request %s to queue: %v", requestId, err)
 		responses.ErrInternalServerError(w, r, "Failed to queue generate request")
 		return
 	}
-	fmt.Printf("--- Enqueue cog request took: %s\n", time.Now().Sub(start))
 
 	// Track the request in our internal map
-	start = time.Now()
 	c.CogRequestWebsocketConnMap.Put(requestId, generateReq.WebsocketId)
-	fmt.Printf("--- Put request in map took: %s\n", time.Now().Sub(start))
 
 	render.Status(r, http.StatusOK)
 	render.JSON(w, r, &responses.GenerateResponse{
