@@ -13,7 +13,7 @@ import (
 func ServeWS(hub *Hub, w http.ResponseWriter, r *http.Request) {
 	// Retrieve id from query parameters
 	query := r.URL.Query()
-	requestId := strings.ToLower(query.Get("session_id"))
+	requestId := strings.ToLower(query.Get("websocket_id"))
 	if !utils.IsSha256Hash(requestId) {
 		responses.ErrBadRequest(w, r, "Invalid ID")
 		return
