@@ -70,16 +70,16 @@ func (c *RestAPI) HandleQueryGenerations(w http.ResponseWriter, r *http.Request)
 	var generationsResponse []responses.UserGenerationsResponse
 	for _, generation := range generations {
 		generationResponse := responses.UserGenerationsResponse{
-			Width:             generation.Width,
-			Height:            generation.Height,
-			NumInferenceSteps: generation.InferenceSteps,
-			GuidanceScale:     generation.GuidanceScale,
-			Seed:              generation.Seed,
-			CreatedAt:         generation.CreatedAt,
-			StartedAt:         generation.StartedAt,
-			CompletedAt:       generation.CompletedAt,
-			Status:            generation.Status,
-			GalleryStatus:     generation.GalleryStatus,
+			Width:          generation.Width,
+			Height:         generation.Height,
+			InferenceSteps: generation.InferenceSteps,
+			GuidanceScale:  generation.GuidanceScale,
+			Seed:           generation.Seed,
+			CreatedAt:      generation.CreatedAt,
+			StartedAt:      generation.StartedAt,
+			CompletedAt:    generation.CompletedAt,
+			Status:         generation.Status,
+			GalleryStatus:  generation.GalleryStatus,
 		}
 		// Negative prompt can actually be nil
 		if generation.Edges.NegativePrompt != nil {
