@@ -11,7 +11,6 @@ import (
 	"time"
 
 	"github.com/go-chi/render"
-	"github.com/google/uuid"
 	"github.com/stablecog/go-apps/database/ent"
 	"github.com/stablecog/go-apps/database/repository"
 	"github.com/stablecog/go-apps/server/requests"
@@ -138,7 +137,7 @@ func (c *RestAPI) HandleCreateGeneration(w http.ResponseWriter, r *http.Request)
 	generateReq.NegativePrompt = utils.FormatPrompt(generateReq.NegativePrompt)
 
 	// Create generation
-	_, err = c.Repo.CreateGeneration(
+	g, err := c.Repo.CreateGeneration(
 		*userID,
 		string(deviceInfo.DeviceType),
 		deviceInfo.DeviceOs,
@@ -154,7 +153,7 @@ func (c *RestAPI) HandleCreateGeneration(w http.ResponseWriter, r *http.Request)
 	// Get language codes
 	promptFlores, negativePromptFlores := utils.GetPromptFloresCodes(generateReq.Prompt, generateReq.NegativePrompt)
 	// Generate a unique request ID for the cog
-	requestId := uuid.NewString()
+	requestId := g.ID.String()
 
 	cogReqBody := requests.CogGenerateQueueRequest{
 		BaseCogRequestQueue: requests.BaseCogRequestQueue{
