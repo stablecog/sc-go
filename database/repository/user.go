@@ -9,12 +9,12 @@ import (
 
 // ! This will eventually be deprecated to simply deduct credits
 func (r *Repository) IsProUser(userID uuid.UUID) (bool, error) {
-	sub, err := r.DB.Subscription.Query().Where(subscription.UserIDEQ(userID)).WithSubscriptionTier().First(r.Ctx)
+	subTier, err := r.DB.Subscription.Query().Where(subscription.UserIDEQ(userID)).QuerySubscriptionTier().First(r.Ctx)
 	if err != nil {
 		return false, err
 	}
 
-	isPro := sub.Edges.SubscriptionTier.Name == "pro"
+	isPro := subTier.Name == "pro"
 	if isPro {
 		return isPro, nil
 	}
