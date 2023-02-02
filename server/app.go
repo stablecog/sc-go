@@ -19,6 +19,7 @@ import (
 	"github.com/go-co-op/gocron"
 	"github.com/joho/godotenv"
 	"github.com/stablecog/go-apps/database"
+	"github.com/stablecog/go-apps/database/ent"
 	"github.com/stablecog/go-apps/database/repository"
 	"github.com/stablecog/go-apps/server/api/rest"
 	"github.com/stablecog/go-apps/server/api/websocket"
@@ -246,13 +247,18 @@ func main() {
 			}
 
 			// Processing, update this generation as started in database
+			var outputs []*ent.GenerationOutput
 			if webhookMessage.Status == requests.WebhookProcessing {
 				// In goroutine since we don't care, like whatever man
 				go repo.SetGenerationStarted(webhookMessage.Input.Id)
 			} else if webhookMessage.Status == requests.WebhookFailed {
 				go repo.SetGenerationFailed(webhookMessage.Input.Id, webhookMessage.Error)
 			} else if webhookMessage.Status == requests.WebhookSucceeded {
-				go repo.SetGenerationSucceeded(webhookMessage.Input.Id, webhookMessage.Output)
+				outputs, err = repo.SetGenerationSucceeded(webhookMessage.Input.Id, webhookMessage.Output)
+				if err != nil {
+					klog.Errorf("--- Error setting generation succeeded for ID %s: %v", webhookMessage.Input.Id, err)
+					continue
+				}
 			} else {
 				klog.Warningf("--- Unknown webhook status, not sure how to proceed so not proceeding at all: %s", webhookMessage.Status)
 				continue
@@ -265,7 +271,7 @@ func main() {
 				Id:     webhookMessage.Input.Id,
 			}
 			if webhookMessage.Status == requests.WebhookSucceeded {
-				resp.Outputs = webhookMessage.Output
+				resp.Outputs = outputs
 			}
 			// Marshal
 			respBytes, err := json.Marshal(resp)

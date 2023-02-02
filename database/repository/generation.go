@@ -75,42 +75,44 @@ func (r *Repository) SetGenerationFailed(generationID string, reason string) err
 	return err
 }
 
-func (r *Repository) SetGenerationSucceeded(generationID string, outputs []string) error {
+func (r *Repository) SetGenerationSucceeded(generationID string, outputs []string) ([]*ent.GenerationOutput, error) {
 	uid, err := uuid.Parse(generationID)
 	if err != nil {
 		klog.Errorf("Error parsing generation id in SetGenerationFailed %s: %v", generationID, err)
-		return err
+		return nil, err
 	}
 	// Start a transaction
 	tx, err := r.DB.Tx(r.Ctx)
 	if err != nil {
 		klog.Errorf("Error starting transaction in SetGenerationSucceeded %s: %v", generationID, err)
-		return err
+		return nil, err
 	}
 	// Update the generation
 	_, err = tx.Generation.UpdateOneID(uid).SetStatus(generation.StatusSucceeded).SetCompletedAt(time.Now()).Save(r.Ctx)
 	if err != nil {
 		tx.Rollback()
 		klog.Errorf("Error setting generation succeeded %s: %v", generationID, err)
-		return err
+		return nil, err
 	}
 
 	// Insert all generation outputs
+	var outputRet []*ent.GenerationOutput
 	for _, output := range outputs {
-		_, err = tx.GenerationOutput.Create().SetGenerationID(uid).SetImageURL(output).Save(r.Ctx)
+		gOutput, err := tx.GenerationOutput.Create().SetGenerationID(uid).SetImageURL(output).Save(r.Ctx)
 		if err != nil {
 			tx.Rollback()
 			klog.Errorf("Error inserting generation output %s: %v", generationID, err)
-			return err
+			return nil, err
 		}
+		outputRet = append(outputRet, gOutput)
 	}
 	// Commit the transaction
 	err = tx.Commit()
 	if err != nil {
 		klog.Errorf("Error committing transaction in SetGenerationSucceeded %s: %v", generationID, err)
-		return err
+		return nil, err
 	}
-	return nil
+	return outputRet, nil
 }
 
 // Get user generations from the database using page options

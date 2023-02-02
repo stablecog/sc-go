@@ -118,7 +118,7 @@ func CreateMockData(ctx context.Context, db *ent.Client, repo *repository.Reposi
 	if err != nil {
 		return err
 	}
-	err = repo.SetGenerationSucceeded(gen.ID.String(), []string{"output_1", "output_2", "output_3"})
+	_, err = repo.SetGenerationSucceeded(gen.ID.String(), []string{"output_1", "output_2", "output_3"})
 	if err != nil {
 		return err
 	}
@@ -141,7 +141,7 @@ func CreateMockData(ctx context.Context, db *ent.Client, repo *repository.Reposi
 	if err != nil {
 		return err
 	}
-	err = repo.SetGenerationSucceeded(gen.ID.String(), []string{"output_4", "output_5", "output_6"})
+	_, err = repo.SetGenerationSucceeded(gen.ID.String(), []string{"output_4", "output_5", "output_6"})
 	if err != nil {
 		return err
 	}
@@ -209,7 +209,7 @@ func CreateMockGenerationForDeletion(ctx context.Context, repo *repository.Repos
 	if err != nil {
 		return nil, err
 	}
-	err = repo.SetGenerationSucceeded(gen.ID.String(), []string{"output_4", "output_5", "output_6"})
+	_, err = repo.SetGenerationSucceeded(gen.ID.String(), []string{"output_4", "output_5", "output_6"})
 	if err != nil {
 		return nil, err
 	}
