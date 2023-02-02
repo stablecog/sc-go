@@ -161,7 +161,7 @@ func (c *RestAPI) HandleCreateGeneration(w http.ResponseWriter, r *http.Request)
 			WebhookEventsFilter: []requests.WebhookEventFilterOption{requests.WebhookEventFilterStart, requests.WebhookEventFilterStart},
 			Webhook:             fmt.Sprintf("%s/v1/queue/webhook/%s", utils.GetEnv("PUBLIC_API_URL", "https://api.stablecog.com"), utils.GetEnv("QUEUE_SECRET", "")),
 		},
-		BaseCogGenerateRequest: requests.BaseCogGenerateRequest{
+		Input: requests.BaseCogGenerateRequest{
 			ID:                   requestId,
 			Prompt:               generateReq.Prompt,
 			NegativePrompt:       generateReq.NegativePrompt,

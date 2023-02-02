@@ -44,7 +44,7 @@ type BaseCogGenerateRequest struct {
 // Redis queue request
 type CogGenerateQueueRequest struct {
 	BaseCogRequestQueue
-	BaseCogGenerateRequest
+	Input BaseCogGenerateRequest `json:"input"`
 }
 
 func (i CogGenerateQueueRequest) MarshalBinary() (data []byte, err error) {
