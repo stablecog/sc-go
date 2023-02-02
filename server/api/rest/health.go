@@ -1,4 +1,4 @@
-package controller
+package rest
 
 import (
 	"net/http"
@@ -7,7 +7,7 @@ import (
 )
 
 // GET health endpoint
-func (c *HttpController) HandleHealth(w http.ResponseWriter, r *http.Request) {
+func (c *RestAPI) HandleHealth(w http.ResponseWriter, r *http.Request) {
 	render.Status(r, http.StatusOK)
 	render.JSON(w, r, map[string]string{
 		"status": "ok",

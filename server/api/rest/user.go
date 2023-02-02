@@ -1,4 +1,4 @@
-package controller
+package rest
 
 import (
 	"fmt"
@@ -20,7 +20,7 @@ const MAX_PER_PAGE = 100
 // Takes query paramers for pagination
 // per_page: number of generations to return
 // offset: offset for pagination, it is an iso time string in UTC
-func (c *HttpController) HandleUserGenerations(w http.ResponseWriter, r *http.Request) {
+func (c *RestAPI) HandleUserGenerations(w http.ResponseWriter, r *http.Request) {
 	// See if authenticated
 	userIDStr, authenticated := r.Context().Value("user_id").(string)
 	// This should always be true because of the auth middleware, but check it anyway

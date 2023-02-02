@@ -20,8 +20,8 @@ import (
 	"github.com/joho/godotenv"
 	"github.com/stablecog/go-apps/database"
 	"github.com/stablecog/go-apps/database/repository"
-	"github.com/stablecog/go-apps/server/controller"
-	"github.com/stablecog/go-apps/server/controller/websocket"
+	"github.com/stablecog/go-apps/server/api/rest"
+	"github.com/stablecog/go-apps/server/api/websocket"
 	"github.com/stablecog/go-apps/server/middleware"
 	"github.com/stablecog/go-apps/server/requests"
 	"github.com/stablecog/go-apps/server/responses"
@@ -157,7 +157,7 @@ func main() {
 	go hub.Run()
 
 	// Create controller
-	hc := controller.HttpController{
+	hc := rest.RestAPI{
 		Repo:                       repo,
 		Redis:                      redis,
 		S3Client:                   s3Client,
@@ -179,23 +179,27 @@ func main() {
 		// Routes that require authentication
 		r.Route("/user", func(r chi.Router) {
 			r.Use(mw.AuthMiddleware)
-			r.Post("/generate", hc.HandleGenerate)
-			r.Get("/generations", hc.HandleUserGenerations)
-			r.Post("/gallery_submit", hc.HandleSubmitGenerationToGallery)
+			r.Route("/generation", func(r chi.Router) {
+				r.Post("/create", hc.HandleGenerate)
+				r.Get("/query", hc.HandleUserGenerations)
+			})
+			r.Route("/gallery", func(r chi.Router) {
+				r.Post("/submit", hc.HandleSubmitGenerationToGallery)
+			})
 		})
 
 		// Admin only routes
 		r.Route("/admin", func(r chi.Router) {
-			r.Use(mw.AuthMiddleware)
-			r.Use(mw.AdminMiddleware)
-			r.Post("/gallery_modify", hc.HandleGenerationDeleteAndApproveRejectGallery)
-		})
-
-		// Super admin only routes
-		r.Route("/super_admin", func(r chi.Router) {
-			r.Use(mw.AuthMiddleware)
-			r.Use(mw.SuperAdminMiddleware)
-			r.Delete("/generation_delete", hc.HandleGenerationDeleteAndApproveRejectGallery)
+			r.Route("/gallery", func(r chi.Router) {
+				r.Use(mw.AuthMiddleware)
+				r.Use(mw.AdminMiddleware)
+				r.Post("/review", hc.HandleGenerationApproveRejectGallery)
+			})
+			r.Route("/generation", func(r chi.Router) {
+				r.Use(mw.AuthMiddleware)
+				r.Use(mw.SuperAdminMiddleware)
+				r.Delete("/delete", hc.HandleDeleteGeneration)
+			})
 		})
 
 		// Webhook

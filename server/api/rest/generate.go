@@ -1,4 +1,4 @@
-package controller
+package rest
 
 import (
 	"encoding/json"
@@ -23,7 +23,7 @@ import (
 
 // POST generate endpoint
 // Adds generate to queue, if authenticated, returns the ID of the generation
-func (c *HttpController) HandleGenerate(w http.ResponseWriter, r *http.Request) {
+func (c *RestAPI) HandleGenerate(w http.ResponseWriter, r *http.Request) {
 	userID := c.GetUserIDIfAuthenticated(w, r)
 	if userID == nil {
 		return
@@ -195,7 +195,7 @@ func (c *HttpController) HandleGenerate(w http.ResponseWriter, r *http.Request) 
 }
 
 // HTTP POST submit a generation to gallery
-func (c *HttpController) HandleSubmitGenerationToGallery(w http.ResponseWriter, r *http.Request) {
+func (c *RestAPI) HandleSubmitGenerationToGallery(w http.ResponseWriter, r *http.Request) {
 	userID := c.GetUserIDIfAuthenticated(w, r)
 	if userID == nil {
 		return

@@ -1,5 +1,5 @@
 // Test setup for the controller package
-package controller
+package rest
 
 import (
 	"context"
@@ -8,7 +8,7 @@ import (
 
 	"github.com/stablecog/go-apps/database"
 	"github.com/stablecog/go-apps/database/repository"
-	"github.com/stablecog/go-apps/server/controller/websocket"
+	"github.com/stablecog/go-apps/server/api/websocket"
 	"github.com/stablecog/go-apps/shared"
 	"k8s.io/klog/v2"
 )
@@ -16,7 +16,7 @@ import (
 // A valid websocket ID that will be acceptable by APIs
 const MockWSId = "e08abf9698f7d27e634de0d36cc974a0d908ec41c0a7e5e5738d2431f9a700e3"
 
-var MockController *HttpController
+var MockController *RestAPI
 
 func TestMain(m *testing.M) {
 	os.Exit(testMainWrapper(m))
@@ -77,7 +77,7 @@ func testMainWrapper(m *testing.M) int {
 	}
 
 	// Setup controller
-	MockController = &HttpController{
+	MockController = &RestAPI{
 		Repo:                       repo,
 		Redis:                      redis,
 		Hub:                        hub,
