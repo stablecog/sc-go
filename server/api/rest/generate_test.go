@@ -301,12 +301,12 @@ func TestGenerateProRestrictions(t *testing.T) {
 
 	// ! PRO only interference steps
 	reqBody = requests.GenerateRequestBody{
-		WebsocketId:       MockWSId,
-		Height:            shared.MAX_GENERATE_HEIGHT_FREE,
-		Width:             shared.MAX_GENERATE_WIDTH_FREE,
-		NumInferenceSteps: shared.MAX_GENERATE_INTERFERENCE_STEPS_FREE + 1,
-		SchedulerId:       uuid.MustParse(database.MOCK_SCHEDULER_ID_FREE),
-		ModelId:           uuid.MustParse(database.MOCK_GENERATION_MODEL_ID_FREE),
+		WebsocketId:    MockWSId,
+		Height:         shared.MAX_GENERATE_HEIGHT_FREE,
+		Width:          shared.MAX_GENERATE_WIDTH_FREE,
+		InferenceSteps: shared.MAX_GENERATE_INTERFERENCE_STEPS_FREE + 1,
+		SchedulerId:    uuid.MustParse(database.MOCK_SCHEDULER_ID_FREE),
+		ModelId:        uuid.MustParse(database.MOCK_GENERATION_MODEL_ID_FREE),
 	}
 	body, _ = json.Marshal(reqBody)
 	w = httptest.NewRecorder()
@@ -330,13 +330,13 @@ func TestGenerateProRestrictions(t *testing.T) {
 func TestGenerateValidRequest(t *testing.T) {
 	// ! Perfectly valid request
 	reqBody := requests.GenerateRequestBody{
-		WebsocketId:       MockWSId,
-		Height:            shared.MAX_GENERATE_HEIGHT,
-		Width:             shared.MAX_GENERATE_WIDTH,
-		SchedulerId:       uuid.MustParse(database.MOCK_SCHEDULER_ID_FREE),
-		ModelId:           uuid.MustParse(database.MOCK_GENERATION_MODEL_ID_PRO),
-		NumInferenceSteps: shared.MAX_GENERATE_INTERFERENCE_STEPS_FREE + 1,
-		Prompt:            "A portrait of a cat by Van Gogh",
+		WebsocketId:    MockWSId,
+		Height:         shared.MAX_GENERATE_HEIGHT,
+		Width:          shared.MAX_GENERATE_WIDTH,
+		SchedulerId:    uuid.MustParse(database.MOCK_SCHEDULER_ID_FREE),
+		ModelId:        uuid.MustParse(database.MOCK_GENERATION_MODEL_ID_PRO),
+		InferenceSteps: shared.MAX_GENERATE_INTERFERENCE_STEPS_FREE + 1,
+		Prompt:         "A portrait of a cat by Van Gogh",
 	}
 	body, _ := json.Marshal(reqBody)
 	w := httptest.NewRecorder()

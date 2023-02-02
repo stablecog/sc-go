@@ -101,15 +101,15 @@ func CreateMockData(ctx context.Context, db *ent.Client, repo *repository.Reposi
 	// ! Mock some generations
 	// With negative prompt, success, and outpts
 	gen, err := repo.CreateGeneration(uuid.MustParse(MOCK_ADMIN_UUID), "browser", "macos", "chrome", "DE", requests.GenerateRequestBody{
-		Prompt:            "This is a prompt",
-		NegativePrompt:    "This is a negative prompt",
-		Width:             512,
-		Height:            512,
-		NumInferenceSteps: 30,
-		GuidanceScale:     1.0,
-		ModelId:           uuid.MustParse(MOCK_GENERATION_MODEL_ID_FREE),
-		SchedulerId:       uuid.MustParse(MOCK_SCHEDULER_ID_FREE),
-		Seed:              1234,
+		Prompt:         "This is a prompt",
+		NegativePrompt: "This is a negative prompt",
+		Width:          512,
+		Height:         512,
+		InferenceSteps: 30,
+		GuidanceScale:  1.0,
+		ModelId:        uuid.MustParse(MOCK_GENERATION_MODEL_ID_FREE),
+		SchedulerId:    uuid.MustParse(MOCK_SCHEDULER_ID_FREE),
+		Seed:           1234,
 	})
 	if err != nil {
 		return err
@@ -125,14 +125,14 @@ func CreateMockData(ctx context.Context, db *ent.Client, repo *repository.Reposi
 
 	// Without negative prompt, also success
 	gen, err = repo.CreateGeneration(uuid.MustParse(MOCK_ADMIN_UUID), "browser", "macos", "chrome", "DE", requests.GenerateRequestBody{
-		Prompt:            "This is a prompt 2",
-		Width:             512,
-		Height:            512,
-		NumInferenceSteps: 30,
-		GuidanceScale:     1.0,
-		ModelId:           uuid.MustParse(MOCK_GENERATION_MODEL_ID_FREE),
-		SchedulerId:       uuid.MustParse(MOCK_SCHEDULER_ID_FREE),
-		Seed:              1234,
+		Prompt:         "This is a prompt 2",
+		Width:          512,
+		Height:         512,
+		InferenceSteps: 30,
+		GuidanceScale:  1.0,
+		ModelId:        uuid.MustParse(MOCK_GENERATION_MODEL_ID_FREE),
+		SchedulerId:    uuid.MustParse(MOCK_SCHEDULER_ID_FREE),
+		Seed:           1234,
 	})
 	if err != nil {
 		return err
@@ -148,14 +148,14 @@ func CreateMockData(ctx context.Context, db *ent.Client, repo *repository.Reposi
 
 	// Failure
 	gen, err = repo.CreateGeneration(uuid.MustParse(MOCK_ADMIN_UUID), "browser", "macos", "chrome", "DE", requests.GenerateRequestBody{
-		Prompt:            "This is a prompt 3",
-		Width:             512,
-		Height:            512,
-		NumInferenceSteps: 30,
-		GuidanceScale:     1.0,
-		ModelId:           uuid.MustParse(MOCK_GENERATION_MODEL_ID_FREE),
-		SchedulerId:       uuid.MustParse(MOCK_SCHEDULER_ID_FREE),
-		Seed:              1234,
+		Prompt:         "This is a prompt 3",
+		Width:          512,
+		Height:         512,
+		InferenceSteps: 30,
+		GuidanceScale:  1.0,
+		ModelId:        uuid.MustParse(MOCK_GENERATION_MODEL_ID_FREE),
+		SchedulerId:    uuid.MustParse(MOCK_SCHEDULER_ID_FREE),
+		Seed:           1234,
 	})
 	if err != nil {
 		return err
@@ -171,14 +171,14 @@ func CreateMockData(ctx context.Context, db *ent.Client, repo *repository.Reposi
 
 	// In progress
 	gen, err = repo.CreateGeneration(uuid.MustParse(MOCK_ADMIN_UUID), "browser", "macos", "chrome", "DE", requests.GenerateRequestBody{
-		Prompt:            "This is a prompt 4",
-		Width:             512,
-		Height:            512,
-		NumInferenceSteps: 30,
-		GuidanceScale:     1.0,
-		ModelId:           uuid.MustParse(MOCK_GENERATION_MODEL_ID_FREE),
-		SchedulerId:       uuid.MustParse(MOCK_SCHEDULER_ID_FREE),
-		Seed:              1234,
+		Prompt:         "This is a prompt 4",
+		Width:          512,
+		Height:         512,
+		InferenceSteps: 30,
+		GuidanceScale:  1.0,
+		ModelId:        uuid.MustParse(MOCK_GENERATION_MODEL_ID_FREE),
+		SchedulerId:    uuid.MustParse(MOCK_SCHEDULER_ID_FREE),
+		Seed:           1234,
 	})
 	if err != nil {
 		return err
@@ -193,14 +193,14 @@ func CreateMockData(ctx context.Context, db *ent.Client, repo *repository.Reposi
 
 func CreateMockGenerationForDeletion(ctx context.Context, repo *repository.Repository) (*ent.Generation, error) {
 	gen, err := repo.CreateGeneration(uuid.MustParse(MOCK_ADMIN_UUID), "browser", "macos", "chrome", "DE", requests.GenerateRequestBody{
-		Prompt:            "to_delete",
-		Width:             512,
-		Height:            512,
-		NumInferenceSteps: 30,
-		GuidanceScale:     1.0,
-		ModelId:           uuid.MustParse(MOCK_GENERATION_MODEL_ID_FREE),
-		SchedulerId:       uuid.MustParse(MOCK_SCHEDULER_ID_FREE),
-		Seed:              1234,
+		Prompt:         "to_delete",
+		Width:          512,
+		Height:         512,
+		InferenceSteps: 30,
+		GuidanceScale:  1.0,
+		ModelId:        uuid.MustParse(MOCK_GENERATION_MODEL_ID_FREE),
+		SchedulerId:    uuid.MustParse(MOCK_SCHEDULER_ID_FREE),
+		Seed:           1234,
 	})
 	if err != nil {
 		return nil, err

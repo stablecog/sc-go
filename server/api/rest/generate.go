@@ -55,12 +55,12 @@ func (c *RestAPI) HandleCreateGeneration(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	if generateReq.Width*generateReq.Height*generateReq.NumInferenceSteps >= shared.MAX_PRO_PIXEL_STEPS {
+	if generateReq.Width*generateReq.Height*generateReq.InferenceSteps >= shared.MAX_PRO_PIXEL_STEPS {
 		klog.Infof(
 			"Pick fewer inference steps or smaller dimensions: %d - %d - %d",
 			generateReq.Width,
 			generateReq.Height,
-			generateReq.NumInferenceSteps,
+			generateReq.InferenceSteps,
 		)
 		responses.ErrBadRequest(w, r, "Pick fewer inference steps or smaller dimensions")
 		return
@@ -114,7 +114,7 @@ func (c *RestAPI) HandleCreateGeneration(w http.ResponseWriter, r *http.Request)
 			responses.ErrBadRequest(w, r, "That generation width is not available on the free plan :(")
 			return
 		}
-		if !shared.GetCache().IsNumInterferenceStepsAvailableForFree(generateReq.NumInferenceSteps) {
+		if !shared.GetCache().IsNumInterferenceStepsAvailableForFree(generateReq.InferenceSteps) {
 			responses.ErrBadRequest(w, r, "That number of inference steps is not available on the free plan :(")
 			return
 		}
@@ -169,7 +169,7 @@ func (c *RestAPI) HandleCreateGeneration(w http.ResponseWriter, r *http.Request)
 			NegativePromptFlores: negativePromptFlores,
 			Width:                fmt.Sprint(generateReq.Width),
 			Height:               fmt.Sprint(generateReq.Height),
-			NumInferenceSteps:    fmt.Sprint(generateReq.NumInferenceSteps),
+			NumInferenceSteps:    fmt.Sprint(generateReq.InferenceSteps),
 			GuidanceScale:        fmt.Sprint(generateReq.GuidanceScale),
 			Model:                modelName,
 			Scheduler:            schedulerName,

@@ -33,7 +33,7 @@ func (r *Repository) CreateGeneration(userID uuid.UUID, deviceType, deviceOs, de
 		SetWidth(req.Width).
 		SetHeight(req.Height).
 		SetGuidanceScale(req.GuidanceScale).
-		SetInferenceSteps(req.NumInferenceSteps).
+		SetInferenceSteps(req.InferenceSteps).
 		SetSeed(req.Seed).
 		SetModelID(req.ModelId).
 		SetSchedulerID(req.SchedulerId).

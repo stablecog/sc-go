@@ -7,7 +7,7 @@ type GenerateRequestBody struct {
 	NegativePrompt        string    `json:"negative_prompt,omitempty"`
 	Width                 int32     `json:"width"`
 	Height                int32     `json:"height"`
-	NumInferenceSteps     int32     `json:"num_inference_steps"`
+	InferenceSteps        int32     `json:"inference_steps"`
 	GuidanceScale         float32   `json:"guidance_scale"`
 	ModelId               uuid.UUID `json:"model_id"`
 	SchedulerId           uuid.UUID `json:"scheduler_id"`
