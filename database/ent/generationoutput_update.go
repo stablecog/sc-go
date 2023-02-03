@@ -20,8 +20,9 @@ import (
 // GenerationOutputUpdate is the builder for updating GenerationOutput entities.
 type GenerationOutputUpdate struct {
 	config
-	hooks    []Hook
-	mutation *GenerationOutputMutation
+	hooks     []Hook
+	mutation  *GenerationOutputMutation
+	modifiers []func(*sql.UpdateBuilder)
 }
 
 // Where appends a list predicates to the GenerationOutputUpdate builder.
@@ -53,6 +54,20 @@ func (gou *GenerationOutputUpdate) SetNillableUpscaledImageURL(s *string) *Gener
 // ClearUpscaledImageURL clears the value of the "upscaled_image_url" field.
 func (gou *GenerationOutputUpdate) ClearUpscaledImageURL() *GenerationOutputUpdate {
 	gou.mutation.ClearUpscaledImageURL()
+	return gou
+}
+
+// SetGalleryStatus sets the "gallery_status" field.
+func (gou *GenerationOutputUpdate) SetGalleryStatus(gs generationoutput.GalleryStatus) *GenerationOutputUpdate {
+	gou.mutation.SetGalleryStatus(gs)
+	return gou
+}
+
+// SetNillableGalleryStatus sets the "gallery_status" field if the given value is not nil.
+func (gou *GenerationOutputUpdate) SetNillableGalleryStatus(gs *generationoutput.GalleryStatus) *GenerationOutputUpdate {
+	if gs != nil {
+		gou.SetGalleryStatus(*gs)
+	}
 	return gou
 }
 
@@ -128,10 +143,21 @@ func (gou *GenerationOutputUpdate) defaults() {
 
 // check runs all checks and user-defined validators on the builder.
 func (gou *GenerationOutputUpdate) check() error {
+	if v, ok := gou.mutation.GalleryStatus(); ok {
+		if err := generationoutput.GalleryStatusValidator(v); err != nil {
+			return &ValidationError{Name: "gallery_status", err: fmt.Errorf(`ent: validator failed for field "GenerationOutput.gallery_status": %w`, err)}
+		}
+	}
 	if _, ok := gou.mutation.GenerationsID(); gou.mutation.GenerationsCleared() && !ok {
 		return errors.New(`ent: clearing a required unique edge "GenerationOutput.generations"`)
 	}
 	return nil
+}
+
+// Modify adds a statement modifier for attaching custom logic to the UPDATE statement.
+func (gou *GenerationOutputUpdate) Modify(modifiers ...func(u *sql.UpdateBuilder)) *GenerationOutputUpdate {
+	gou.modifiers = append(gou.modifiers, modifiers...)
+	return gou
 }
 
 func (gou *GenerationOutputUpdate) sqlSave(ctx context.Context) (n int, err error) {
@@ -163,6 +189,9 @@ func (gou *GenerationOutputUpdate) sqlSave(ctx context.Context) (n int, err erro
 	}
 	if gou.mutation.UpscaledImageURLCleared() {
 		_spec.ClearField(generationoutput.FieldUpscaledImageURL, field.TypeString)
+	}
+	if value, ok := gou.mutation.GalleryStatus(); ok {
+		_spec.SetField(generationoutput.FieldGalleryStatus, field.TypeEnum, value)
 	}
 	if value, ok := gou.mutation.UpdatedAt(); ok {
 		_spec.SetField(generationoutput.FieldUpdatedAt, field.TypeTime, value)
@@ -202,6 +231,7 @@ func (gou *GenerationOutputUpdate) sqlSave(ctx context.Context) (n int, err erro
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	_spec.AddModifiers(gou.modifiers...)
 	if n, err = sqlgraph.UpdateNodes(ctx, gou.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{generationoutput.Label}
@@ -217,9 +247,10 @@ func (gou *GenerationOutputUpdate) sqlSave(ctx context.Context) (n int, err erro
 // GenerationOutputUpdateOne is the builder for updating a single GenerationOutput entity.
 type GenerationOutputUpdateOne struct {
 	config
-	fields   []string
-	hooks    []Hook
-	mutation *GenerationOutputMutation
+	fields    []string
+	hooks     []Hook
+	mutation  *GenerationOutputMutation
+	modifiers []func(*sql.UpdateBuilder)
 }
 
 // SetImageURL sets the "image_url" field.
@@ -245,6 +276,20 @@ func (gouo *GenerationOutputUpdateOne) SetNillableUpscaledImageURL(s *string) *G
 // ClearUpscaledImageURL clears the value of the "upscaled_image_url" field.
 func (gouo *GenerationOutputUpdateOne) ClearUpscaledImageURL() *GenerationOutputUpdateOne {
 	gouo.mutation.ClearUpscaledImageURL()
+	return gouo
+}
+
+// SetGalleryStatus sets the "gallery_status" field.
+func (gouo *GenerationOutputUpdateOne) SetGalleryStatus(gs generationoutput.GalleryStatus) *GenerationOutputUpdateOne {
+	gouo.mutation.SetGalleryStatus(gs)
+	return gouo
+}
+
+// SetNillableGalleryStatus sets the "gallery_status" field if the given value is not nil.
+func (gouo *GenerationOutputUpdateOne) SetNillableGalleryStatus(gs *generationoutput.GalleryStatus) *GenerationOutputUpdateOne {
+	if gs != nil {
+		gouo.SetGalleryStatus(*gs)
+	}
 	return gouo
 }
 
@@ -327,10 +372,21 @@ func (gouo *GenerationOutputUpdateOne) defaults() {
 
 // check runs all checks and user-defined validators on the builder.
 func (gouo *GenerationOutputUpdateOne) check() error {
+	if v, ok := gouo.mutation.GalleryStatus(); ok {
+		if err := generationoutput.GalleryStatusValidator(v); err != nil {
+			return &ValidationError{Name: "gallery_status", err: fmt.Errorf(`ent: validator failed for field "GenerationOutput.gallery_status": %w`, err)}
+		}
+	}
 	if _, ok := gouo.mutation.GenerationsID(); gouo.mutation.GenerationsCleared() && !ok {
 		return errors.New(`ent: clearing a required unique edge "GenerationOutput.generations"`)
 	}
 	return nil
+}
+
+// Modify adds a statement modifier for attaching custom logic to the UPDATE statement.
+func (gouo *GenerationOutputUpdateOne) Modify(modifiers ...func(u *sql.UpdateBuilder)) *GenerationOutputUpdateOne {
+	gouo.modifiers = append(gouo.modifiers, modifiers...)
+	return gouo
 }
 
 func (gouo *GenerationOutputUpdateOne) sqlSave(ctx context.Context) (_node *GenerationOutput, err error) {
@@ -380,6 +436,9 @@ func (gouo *GenerationOutputUpdateOne) sqlSave(ctx context.Context) (_node *Gene
 	if gouo.mutation.UpscaledImageURLCleared() {
 		_spec.ClearField(generationoutput.FieldUpscaledImageURL, field.TypeString)
 	}
+	if value, ok := gouo.mutation.GalleryStatus(); ok {
+		_spec.SetField(generationoutput.FieldGalleryStatus, field.TypeEnum, value)
+	}
 	if value, ok := gouo.mutation.UpdatedAt(); ok {
 		_spec.SetField(generationoutput.FieldUpdatedAt, field.TypeTime, value)
 	}
@@ -418,6 +477,7 @@ func (gouo *GenerationOutputUpdateOne) sqlSave(ctx context.Context) (_node *Gene
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	_spec.AddModifiers(gouo.modifiers...)
 	_node = &GenerationOutput{config: gouo.config}
 	_spec.Assign = _node.assignValues
 	_spec.ScanValues = _node.scanValues

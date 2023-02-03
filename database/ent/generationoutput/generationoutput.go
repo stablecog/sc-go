@@ -3,6 +3,7 @@
 package generationoutput
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/google/uuid"
@@ -17,6 +18,8 @@ const (
 	FieldImageURL = "image_url"
 	// FieldUpscaledImageURL holds the string denoting the upscaled_image_url field in the database.
 	FieldUpscaledImageURL = "upscaled_image_url"
+	// FieldGalleryStatus holds the string denoting the gallery_status field in the database.
+	FieldGalleryStatus = "gallery_status"
 	// FieldGenerationID holds the string denoting the generation_id field in the database.
 	FieldGenerationID = "generation_id"
 	// FieldCreatedAt holds the string denoting the created_at field in the database.
@@ -41,6 +44,7 @@ var Columns = []string{
 	FieldID,
 	FieldImageURL,
 	FieldUpscaledImageURL,
+	FieldGalleryStatus,
 	FieldGenerationID,
 	FieldCreatedAt,
 	FieldUpdatedAt,
@@ -66,3 +70,31 @@ var (
 	// DefaultID holds the default value on creation for the "id" field.
 	DefaultID func() uuid.UUID
 )
+
+// GalleryStatus defines the type for the "gallery_status" enum field.
+type GalleryStatus string
+
+// GalleryStatusNotSubmitted is the default value of the GalleryStatus enum.
+const DefaultGalleryStatus = GalleryStatusNotSubmitted
+
+// GalleryStatus values.
+const (
+	GalleryStatusNotSubmitted GalleryStatus = "not_submitted"
+	GalleryStatusSubmitted    GalleryStatus = "submitted"
+	GalleryStatusAccepted     GalleryStatus = "accepted"
+	GalleryStatusRejected     GalleryStatus = "rejected"
+)
+
+func (gs GalleryStatus) String() string {
+	return string(gs)
+}
+
+// GalleryStatusValidator is a validator for the "gallery_status" field enum values. It is called by the builders before save.
+func GalleryStatusValidator(gs GalleryStatus) error {
+	switch gs {
+	case GalleryStatusNotSubmitted, GalleryStatusSubmitted, GalleryStatusAccepted, GalleryStatusRejected:
+		return nil
+	default:
+		return fmt.Errorf("generationoutput: invalid enum value for gallery_status field: %q", gs)
+	}
+}

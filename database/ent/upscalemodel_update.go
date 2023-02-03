@@ -20,8 +20,9 @@ import (
 // UpscaleModelUpdate is the builder for updating UpscaleModel entities.
 type UpscaleModelUpdate struct {
 	config
-	hooks    []Hook
-	mutation *UpscaleModelMutation
+	hooks     []Hook
+	mutation  *UpscaleModelMutation
+	modifiers []func(*sql.UpdateBuilder)
 }
 
 // Where appends a list predicates to the UpscaleModelUpdate builder.
@@ -133,6 +134,12 @@ func (umu *UpscaleModelUpdate) defaults() {
 	}
 }
 
+// Modify adds a statement modifier for attaching custom logic to the UPDATE statement.
+func (umu *UpscaleModelUpdate) Modify(modifiers ...func(u *sql.UpdateBuilder)) *UpscaleModelUpdate {
+	umu.modifiers = append(umu.modifiers, modifiers...)
+	return umu
+}
+
 func (umu *UpscaleModelUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	_spec := &sqlgraph.UpdateSpec{
 		Node: &sqlgraph.NodeSpec{
@@ -214,6 +221,7 @@ func (umu *UpscaleModelUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	_spec.AddModifiers(umu.modifiers...)
 	if n, err = sqlgraph.UpdateNodes(ctx, umu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{upscalemodel.Label}
@@ -229,9 +237,10 @@ func (umu *UpscaleModelUpdate) sqlSave(ctx context.Context) (n int, err error) {
 // UpscaleModelUpdateOne is the builder for updating a single UpscaleModel entity.
 type UpscaleModelUpdateOne struct {
 	config
-	fields   []string
-	hooks    []Hook
-	mutation *UpscaleModelMutation
+	fields    []string
+	hooks     []Hook
+	mutation  *UpscaleModelMutation
+	modifiers []func(*sql.UpdateBuilder)
 }
 
 // SetName sets the "name" field.
@@ -344,6 +353,12 @@ func (umuo *UpscaleModelUpdateOne) defaults() {
 	}
 }
 
+// Modify adds a statement modifier for attaching custom logic to the UPDATE statement.
+func (umuo *UpscaleModelUpdateOne) Modify(modifiers ...func(u *sql.UpdateBuilder)) *UpscaleModelUpdateOne {
+	umuo.modifiers = append(umuo.modifiers, modifiers...)
+	return umuo
+}
+
 func (umuo *UpscaleModelUpdateOne) sqlSave(ctx context.Context) (_node *UpscaleModel, err error) {
 	_spec := &sqlgraph.UpdateSpec{
 		Node: &sqlgraph.NodeSpec{
@@ -442,6 +457,7 @@ func (umuo *UpscaleModelUpdateOne) sqlSave(ctx context.Context) (_node *UpscaleM
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	_spec.AddModifiers(umuo.modifiers...)
 	_node = &UpscaleModel{config: umuo.config}
 	_spec.Assign = _node.assignValues
 	_spec.ScanValues = _node.scanValues

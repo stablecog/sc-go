@@ -2,7 +2,6 @@ package rest
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io"
 	"math"
@@ -11,8 +10,6 @@ import (
 	"time"
 
 	"github.com/go-chi/render"
-	"github.com/stablecog/go-apps/database/ent"
-	"github.com/stablecog/go-apps/database/repository"
 	"github.com/stablecog/go-apps/server/requests"
 	"github.com/stablecog/go-apps/server/responses"
 	"github.com/stablecog/go-apps/shared"
@@ -244,22 +241,16 @@ func (c *RestAPI) HandleSubmitGenerationToGallery(w http.ResponseWriter, r *http
 		return
 	}
 
-	// See if generation already exists
-	err = c.Repo.SubmitGenerationToGalleryForUser(submitToGalleryReq.GenerationID, *userID)
+	submitted, err := c.Repo.SubmitGenerationOutputsToGalleryForUser(submitToGalleryReq.GenerationOutputIDs, *userID)
 	if err != nil {
-		if ent.IsNotFound(err) {
-			responses.ErrBadRequest(w, r, "Generation not found")
-			return
-		}
-		if errors.Is(err, repository.ErrAlreadySubmitted) {
-			responses.ErrBadRequest(w, r, "Generation already submitted to gallery")
-			return
-		}
-		klog.Errorf("Error submitting generation to gallery: %v", err)
-		responses.ErrInternalServerError(w, r, "Error submitting generation to gallery")
+		responses.ErrInternalServerError(w, r, "Error submitting generation outputs to gallery")
 		return
 	}
 
-	// Empty response body for successful
+	res := responses.GenerateSubmitToGalleryResponse{
+		Submitted: submitted,
+	}
+
+	render.JSON(w, r, res)
 	render.Status(r, http.StatusOK)
 }

@@ -22,6 +22,7 @@ func (GenerationOutput) Fields() []ent.Field {
 		field.UUID("id", uuid.UUID{}).Default(uuid.New),
 		field.Text("image_url"),
 		field.Text("upscaled_image_url").Optional().Nillable(),
+		field.Enum("gallery_status").Values("not_submitted", "submitted", "accepted", "rejected").Default("not_submitted"),
 		// ! Relationships / many-to-one
 		field.UUID("generation_id", uuid.UUID{}),
 		// ! End relationships

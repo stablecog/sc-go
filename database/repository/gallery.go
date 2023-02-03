@@ -5,49 +5,58 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/stablecog/go-apps/database/ent/generation"
+	"github.com/stablecog/go-apps/database/ent/generationoutput"
 	"k8s.io/klog/v2"
 )
 
-// Submit a generation to gallery if not already submitted
-var ErrAlreadySubmitted = fmt.Errorf("Already submitted to gallery")
+// Submits all generation outputs to gallery for review, from user
+// Verifies that all outputs belong to the user
+// Only submits generation outputs that are not already submitted, accepted, or rejected
+// Returns count of how many were submitted
+func (r *Repository) SubmitGenerationOutputsToGalleryForUser(outputIDs []uuid.UUID, userID uuid.UUID) (int, error) {
+	// Make sure the user owns all the generations of these outputs
+	count, err := r.DB.GenerationOutput.Query().Where(generationoutput.IDIn(outputIDs...)).QueryGenerations().Where(generation.UserIDNEQ(userID)).Count(r.Ctx)
+	if err != nil {
+		klog.Errorf("Error getting generation count: %v", err)
+		return 0, err
+	}
+	if count > 0 {
+		klog.Warningf("User %s tried to submit generation outputs that don't belong to them", userID.String())
+		return 0, fmt.Errorf("Not all outputs belong to user")
+	}
 
-func (r *Repository) SubmitGenerationToGalleryForUser(id uuid.UUID, userID uuid.UUID) error {
-	g, err := r.DB.Generation.Query().Where(generation.IDEQ(id), generation.UserIDEQ(userID)).First(r.Ctx)
+	updated, err := r.DB.GenerationOutput.Update().
+		Where(generationoutput.IDIn(outputIDs...), generationoutput.GalleryStatusNotIn(generationoutput.GalleryStatusAccepted, generationoutput.GalleryStatusRejected, generationoutput.GalleryStatusSubmitted)).
+		SetGalleryStatus(generationoutput.GalleryStatusSubmitted).Save(r.Ctx)
+
 	if err != nil {
-		klog.Errorf("Error getting generation %s: %v", id, err)
-		return err
+		klog.Errorf("Error submitting generation outputs to gallery: %v", err)
+		return 0, err
 	}
-	if g.GalleryStatus == generation.GalleryStatusSubmitted || g.GalleryStatus == generation.GalleryStatusAccepted || g.GalleryStatus == generation.GalleryStatusRejected {
-		return ErrAlreadySubmitted
-	}
-	// Update status
-	_, err = r.DB.Generation.UpdateOneID(id).SetGalleryStatus(generation.GalleryStatusSubmitted).Save(r.Ctx)
-	if err != nil {
-		klog.Errorf("Error submitting generation to gallery %s: %v", id, err)
-	}
-	return err
+
+	return updated, nil
 }
 
-// Approve or reject a generation
-func (r *Repository) ApproveOrRejectGeneration(id uuid.UUID, approved bool) error {
-	var status generation.GalleryStatus
+// Approve or reject a generation outputs for gallery
+func (r *Repository) ApproveOrRejectGenerationOutputs(outputIDs []uuid.UUID, approved bool) (int, error) {
+	var status generationoutput.GalleryStatus
 	if approved {
-		status = generation.GalleryStatusAccepted
+		status = generationoutput.GalleryStatusAccepted
 	} else {
-		status = generation.GalleryStatusRejected
+		status = generationoutput.GalleryStatusRejected
 	}
-	_, err := r.DB.Generation.UpdateOneID(id).SetGalleryStatus(status).Save(r.Ctx)
+	updated, err := r.DB.GenerationOutput.Update().Where(generationoutput.IDIn(outputIDs...)).SetGalleryStatus(status).Save(r.Ctx)
 	if err != nil {
-		return err
+		return 0, err
 	}
-	return nil
+	return updated, nil
 }
 
 // Delete a generation
-func (r *Repository) DeleteGeneration(id uuid.UUID) error {
-	err := r.DB.Generation.DeleteOneID(id).Exec(r.Ctx)
+func (r *Repository) DeleteGenerations(generationIDs []uuid.UUID) (int, error) {
+	deleted, err := r.DB.Generation.Delete().Where(generation.IDIn(generationIDs...)).Exec(r.Ctx)
 	if err != nil {
-		return err
+		return 0, err
 	}
-	return nil
+	return deleted, nil
 }

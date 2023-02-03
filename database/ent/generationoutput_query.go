@@ -24,6 +24,7 @@ type GenerationOutputQuery struct {
 	inters          []Interceptor
 	predicates      []predicate.GenerationOutput
 	withGenerations *GenerationQuery
+	modifiers       []func(*sql.Selector)
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -381,6 +382,9 @@ func (goq *GenerationOutputQuery) sqlAll(ctx context.Context, hooks ...queryHook
 		node.Edges.loadedTypes = loadedTypes
 		return node.assignValues(columns, values)
 	}
+	if len(goq.modifiers) > 0 {
+		_spec.Modifiers = goq.modifiers
+	}
 	for i := range hooks {
 		hooks[i](ctx, _spec)
 	}
@@ -431,6 +435,9 @@ func (goq *GenerationOutputQuery) loadGenerations(ctx context.Context, query *Ge
 
 func (goq *GenerationOutputQuery) sqlCount(ctx context.Context) (int, error) {
 	_spec := goq.querySpec()
+	if len(goq.modifiers) > 0 {
+		_spec.Modifiers = goq.modifiers
+	}
 	_spec.Node.Columns = goq.ctx.Fields
 	if len(goq.ctx.Fields) > 0 {
 		_spec.Unique = goq.ctx.Unique != nil && *goq.ctx.Unique
@@ -501,6 +508,9 @@ func (goq *GenerationOutputQuery) sqlQuery(ctx context.Context) *sql.Selector {
 	if goq.ctx.Unique != nil && *goq.ctx.Unique {
 		selector.Distinct()
 	}
+	for _, m := range goq.modifiers {
+		m(selector)
+	}
 	for _, p := range goq.predicates {
 		p(selector)
 	}
@@ -516,6 +526,12 @@ func (goq *GenerationOutputQuery) sqlQuery(ctx context.Context) *sql.Selector {
 		selector.Limit(*limit)
 	}
 	return selector
+}
+
+// Modify adds a query modifier for attaching custom logic to queries.
+func (goq *GenerationOutputQuery) Modify(modifiers ...func(s *sql.Selector)) *GenerationOutputSelect {
+	goq.modifiers = append(goq.modifiers, modifiers...)
+	return goq.Select()
 }
 
 // GenerationOutputGroupBy is the group-by builder for GenerationOutput entities.
@@ -606,4 +622,10 @@ func (gos *GenerationOutputSelect) sqlScan(ctx context.Context, root *Generation
 	}
 	defer rows.Close()
 	return sql.ScanSlice(rows, v)
+}
+
+// Modify adds a query modifier for attaching custom logic to queries.
+func (gos *GenerationOutputSelect) Modify(modifiers ...func(s *sql.Selector)) *GenerationOutputSelect {
+	gos.modifiers = append(gos.modifiers, modifiers...)
+	return gos
 }

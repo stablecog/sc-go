@@ -37,6 +37,7 @@ type GenerationQuery struct {
 	withGenerationModel   *GenerationModelQuery
 	withUsers             *UserQuery
 	withGenerationOutputs *GenerationOutputQuery
+	modifiers             []func(*sql.Selector)
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -604,6 +605,9 @@ func (gq *GenerationQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*G
 		node.Edges.loadedTypes = loadedTypes
 		return node.assignValues(columns, values)
 	}
+	if len(gq.modifiers) > 0 {
+		_spec.Modifiers = gq.modifiers
+	}
 	for i := range hooks {
 		hooks[i](ctx, _spec)
 	}
@@ -868,6 +872,9 @@ func (gq *GenerationQuery) loadGenerationOutputs(ctx context.Context, query *Gen
 
 func (gq *GenerationQuery) sqlCount(ctx context.Context) (int, error) {
 	_spec := gq.querySpec()
+	if len(gq.modifiers) > 0 {
+		_spec.Modifiers = gq.modifiers
+	}
 	_spec.Node.Columns = gq.ctx.Fields
 	if len(gq.ctx.Fields) > 0 {
 		_spec.Unique = gq.ctx.Unique != nil && *gq.ctx.Unique
@@ -938,6 +945,9 @@ func (gq *GenerationQuery) sqlQuery(ctx context.Context) *sql.Selector {
 	if gq.ctx.Unique != nil && *gq.ctx.Unique {
 		selector.Distinct()
 	}
+	for _, m := range gq.modifiers {
+		m(selector)
+	}
 	for _, p := range gq.predicates {
 		p(selector)
 	}
@@ -953,6 +963,12 @@ func (gq *GenerationQuery) sqlQuery(ctx context.Context) *sql.Selector {
 		selector.Limit(*limit)
 	}
 	return selector
+}
+
+// Modify adds a query modifier for attaching custom logic to queries.
+func (gq *GenerationQuery) Modify(modifiers ...func(s *sql.Selector)) *GenerationSelect {
+	gq.modifiers = append(gq.modifiers, modifiers...)
+	return gq.Select()
 }
 
 // GenerationGroupBy is the group-by builder for Generation entities.
@@ -1043,4 +1059,10 @@ func (gs *GenerationSelect) sqlScan(ctx context.Context, root *GenerationQuery, 
 	}
 	defer rows.Close()
 	return sql.ScanSlice(rows, v)
+}
+
+// Modify adds a query modifier for attaching custom logic to queries.
+func (gs *GenerationSelect) Modify(modifiers ...func(s *sql.Selector)) *GenerationSelect {
+	gs.modifiers = append(gs.modifiers, modifiers...)
+	return gs
 }

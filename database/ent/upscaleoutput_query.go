@@ -24,6 +24,7 @@ type UpscaleOutputQuery struct {
 	inters       []Interceptor
 	predicates   []predicate.UpscaleOutput
 	withUpscales *UpscaleQuery
+	modifiers    []func(*sql.Selector)
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -381,6 +382,9 @@ func (uoq *UpscaleOutputQuery) sqlAll(ctx context.Context, hooks ...queryHook) (
 		node.Edges.loadedTypes = loadedTypes
 		return node.assignValues(columns, values)
 	}
+	if len(uoq.modifiers) > 0 {
+		_spec.Modifiers = uoq.modifiers
+	}
 	for i := range hooks {
 		hooks[i](ctx, _spec)
 	}
@@ -431,6 +435,9 @@ func (uoq *UpscaleOutputQuery) loadUpscales(ctx context.Context, query *UpscaleQ
 
 func (uoq *UpscaleOutputQuery) sqlCount(ctx context.Context) (int, error) {
 	_spec := uoq.querySpec()
+	if len(uoq.modifiers) > 0 {
+		_spec.Modifiers = uoq.modifiers
+	}
 	_spec.Node.Columns = uoq.ctx.Fields
 	if len(uoq.ctx.Fields) > 0 {
 		_spec.Unique = uoq.ctx.Unique != nil && *uoq.ctx.Unique
@@ -501,6 +508,9 @@ func (uoq *UpscaleOutputQuery) sqlQuery(ctx context.Context) *sql.Selector {
 	if uoq.ctx.Unique != nil && *uoq.ctx.Unique {
 		selector.Distinct()
 	}
+	for _, m := range uoq.modifiers {
+		m(selector)
+	}
 	for _, p := range uoq.predicates {
 		p(selector)
 	}
@@ -516,6 +526,12 @@ func (uoq *UpscaleOutputQuery) sqlQuery(ctx context.Context) *sql.Selector {
 		selector.Limit(*limit)
 	}
 	return selector
+}
+
+// Modify adds a query modifier for attaching custom logic to queries.
+func (uoq *UpscaleOutputQuery) Modify(modifiers ...func(s *sql.Selector)) *UpscaleOutputSelect {
+	uoq.modifiers = append(uoq.modifiers, modifiers...)
+	return uoq.Select()
 }
 
 // UpscaleOutputGroupBy is the group-by builder for UpscaleOutput entities.
@@ -606,4 +622,10 @@ func (uos *UpscaleOutputSelect) sqlScan(ctx context.Context, root *UpscaleOutput
 	}
 	defer rows.Close()
 	return sql.ScanSlice(rows, v)
+}
+
+// Modify adds a query modifier for attaching custom logic to queries.
+func (uos *UpscaleOutputSelect) Modify(modifiers ...func(s *sql.Selector)) *UpscaleOutputSelect {
+	uos.modifiers = append(uos.modifiers, modifiers...)
+	return uos
 }

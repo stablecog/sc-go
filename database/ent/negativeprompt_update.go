@@ -20,8 +20,9 @@ import (
 // NegativePromptUpdate is the builder for updating NegativePrompt entities.
 type NegativePromptUpdate struct {
 	config
-	hooks    []Hook
-	mutation *NegativePromptMutation
+	hooks     []Hook
+	mutation  *NegativePromptMutation
+	modifiers []func(*sql.UpdateBuilder)
 }
 
 // Where appends a list predicates to the NegativePromptUpdate builder.
@@ -119,6 +120,12 @@ func (npu *NegativePromptUpdate) defaults() {
 	}
 }
 
+// Modify adds a statement modifier for attaching custom logic to the UPDATE statement.
+func (npu *NegativePromptUpdate) Modify(modifiers ...func(u *sql.UpdateBuilder)) *NegativePromptUpdate {
+	npu.modifiers = append(npu.modifiers, modifiers...)
+	return npu
+}
+
 func (npu *NegativePromptUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	_spec := &sqlgraph.UpdateSpec{
 		Node: &sqlgraph.NodeSpec{
@@ -197,6 +204,7 @@ func (npu *NegativePromptUpdate) sqlSave(ctx context.Context) (n int, err error)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	_spec.AddModifiers(npu.modifiers...)
 	if n, err = sqlgraph.UpdateNodes(ctx, npu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{negativeprompt.Label}
@@ -212,9 +220,10 @@ func (npu *NegativePromptUpdate) sqlSave(ctx context.Context) (n int, err error)
 // NegativePromptUpdateOne is the builder for updating a single NegativePrompt entity.
 type NegativePromptUpdateOne struct {
 	config
-	fields   []string
-	hooks    []Hook
-	mutation *NegativePromptMutation
+	fields    []string
+	hooks     []Hook
+	mutation  *NegativePromptMutation
+	modifiers []func(*sql.UpdateBuilder)
 }
 
 // SetText sets the "text" field.
@@ -313,6 +322,12 @@ func (npuo *NegativePromptUpdateOne) defaults() {
 	}
 }
 
+// Modify adds a statement modifier for attaching custom logic to the UPDATE statement.
+func (npuo *NegativePromptUpdateOne) Modify(modifiers ...func(u *sql.UpdateBuilder)) *NegativePromptUpdateOne {
+	npuo.modifiers = append(npuo.modifiers, modifiers...)
+	return npuo
+}
+
 func (npuo *NegativePromptUpdateOne) sqlSave(ctx context.Context) (_node *NegativePrompt, err error) {
 	_spec := &sqlgraph.UpdateSpec{
 		Node: &sqlgraph.NodeSpec{
@@ -408,6 +423,7 @@ func (npuo *NegativePromptUpdateOne) sqlSave(ctx context.Context) (_node *Negati
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	_spec.AddModifiers(npuo.modifiers...)
 	_node = &NegativePrompt{config: npuo.config}
 	_spec.Assign = _node.assignValues
 	_spec.ScanValues = _node.scanValues

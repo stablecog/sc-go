@@ -21,8 +21,9 @@ import (
 // SubscriptionUpdate is the builder for updating Subscription entities.
 type SubscriptionUpdate struct {
 	config
-	hooks    []Hook
-	mutation *SubscriptionMutation
+	hooks     []Hook
+	mutation  *SubscriptionMutation
+	modifiers []func(*sql.UpdateBuilder)
 }
 
 // Where appends a list predicates to the SubscriptionUpdate builder.
@@ -183,6 +184,12 @@ func (su *SubscriptionUpdate) check() error {
 	return nil
 }
 
+// Modify adds a statement modifier for attaching custom logic to the UPDATE statement.
+func (su *SubscriptionUpdate) Modify(modifiers ...func(u *sql.UpdateBuilder)) *SubscriptionUpdate {
+	su.modifiers = append(su.modifiers, modifiers...)
+	return su
+}
+
 func (su *SubscriptionUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if err := su.check(); err != nil {
 		return n, err
@@ -295,6 +302,7 @@ func (su *SubscriptionUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	_spec.AddModifiers(su.modifiers...)
 	if n, err = sqlgraph.UpdateNodes(ctx, su.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{subscription.Label}
@@ -310,9 +318,10 @@ func (su *SubscriptionUpdate) sqlSave(ctx context.Context) (n int, err error) {
 // SubscriptionUpdateOne is the builder for updating a single Subscription entity.
 type SubscriptionUpdateOne struct {
 	config
-	fields   []string
-	hooks    []Hook
-	mutation *SubscriptionMutation
+	fields    []string
+	hooks     []Hook
+	mutation  *SubscriptionMutation
+	modifiers []func(*sql.UpdateBuilder)
 }
 
 // SetUserID sets the "user_id" field.
@@ -474,6 +483,12 @@ func (suo *SubscriptionUpdateOne) check() error {
 	return nil
 }
 
+// Modify adds a statement modifier for attaching custom logic to the UPDATE statement.
+func (suo *SubscriptionUpdateOne) Modify(modifiers ...func(u *sql.UpdateBuilder)) *SubscriptionUpdateOne {
+	suo.modifiers = append(suo.modifiers, modifiers...)
+	return suo
+}
+
 func (suo *SubscriptionUpdateOne) sqlSave(ctx context.Context) (_node *Subscription, err error) {
 	if err := suo.check(); err != nil {
 		return _node, err
@@ -603,6 +618,7 @@ func (suo *SubscriptionUpdateOne) sqlSave(ctx context.Context) (_node *Subscript
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	_spec.AddModifiers(suo.modifiers...)
 	_node = &Subscription{config: suo.config}
 	_spec.Assign = _node.assignValues
 	_spec.ScanValues = _node.scanValues

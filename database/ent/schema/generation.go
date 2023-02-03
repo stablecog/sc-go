@@ -28,8 +28,8 @@ func (Generation) Fields() []ent.Field {
 		field.Enum("status").Values("queued", "started", "succeeded", "failed", "rejected"),
 		field.Text("failure_reason").Optional().Nillable(),
 		field.Text("country_code"),
-		field.Enum("gallery_status").Values("not_submitted", "submitted", "accepted", "rejected").Default("not_submitted"),
 		field.Text("init_image_url").Optional().Nillable(),
+		field.Bool("should_submit_to_gallery").Default(false),
 		// ! Relationships / many-to-one
 		field.UUID("prompt_id", uuid.UUID{}),
 		field.UUID("negative_prompt_id", uuid.UUID{}).Optional().Nillable(),

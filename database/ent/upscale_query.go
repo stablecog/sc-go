@@ -31,6 +31,7 @@ type UpscaleQuery struct {
 	withDeviceInfo     *DeviceInfoQuery
 	withUpscaleModels  *UpscaleModelQuery
 	withUpscaleOutputs *UpscaleOutputQuery
+	modifiers          []func(*sql.Selector)
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -493,6 +494,9 @@ func (uq *UpscaleQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Upsc
 		node.Edges.loadedTypes = loadedTypes
 		return node.assignValues(columns, values)
 	}
+	if len(uq.modifiers) > 0 {
+		_spec.Modifiers = uq.modifiers
+	}
 	for i := range hooks {
 		hooks[i](ctx, _spec)
 	}
@@ -647,6 +651,9 @@ func (uq *UpscaleQuery) loadUpscaleOutputs(ctx context.Context, query *UpscaleOu
 
 func (uq *UpscaleQuery) sqlCount(ctx context.Context) (int, error) {
 	_spec := uq.querySpec()
+	if len(uq.modifiers) > 0 {
+		_spec.Modifiers = uq.modifiers
+	}
 	_spec.Node.Columns = uq.ctx.Fields
 	if len(uq.ctx.Fields) > 0 {
 		_spec.Unique = uq.ctx.Unique != nil && *uq.ctx.Unique
@@ -717,6 +724,9 @@ func (uq *UpscaleQuery) sqlQuery(ctx context.Context) *sql.Selector {
 	if uq.ctx.Unique != nil && *uq.ctx.Unique {
 		selector.Distinct()
 	}
+	for _, m := range uq.modifiers {
+		m(selector)
+	}
 	for _, p := range uq.predicates {
 		p(selector)
 	}
@@ -732,6 +742,12 @@ func (uq *UpscaleQuery) sqlQuery(ctx context.Context) *sql.Selector {
 		selector.Limit(*limit)
 	}
 	return selector
+}
+
+// Modify adds a query modifier for attaching custom logic to queries.
+func (uq *UpscaleQuery) Modify(modifiers ...func(s *sql.Selector)) *UpscaleSelect {
+	uq.modifiers = append(uq.modifiers, modifiers...)
+	return uq.Select()
 }
 
 // UpscaleGroupBy is the group-by builder for Upscale entities.
@@ -822,4 +838,10 @@ func (us *UpscaleSelect) sqlScan(ctx context.Context, root *UpscaleQuery, v any)
 	}
 	defer rows.Close()
 	return sql.ScanSlice(rows, v)
+}
+
+// Modify adds a query modifier for attaching custom logic to queries.
+func (us *UpscaleSelect) Modify(modifiers ...func(s *sql.Selector)) *UpscaleSelect {
+	us.modifiers = append(us.modifiers, modifiers...)
+	return us
 }

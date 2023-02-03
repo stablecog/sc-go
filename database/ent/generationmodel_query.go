@@ -25,6 +25,7 @@ type GenerationModelQuery struct {
 	inters          []Interceptor
 	predicates      []predicate.GenerationModel
 	withGenerations *GenerationQuery
+	modifiers       []func(*sql.Selector)
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -382,6 +383,9 @@ func (gmq *GenerationModelQuery) sqlAll(ctx context.Context, hooks ...queryHook)
 		node.Edges.loadedTypes = loadedTypes
 		return node.assignValues(columns, values)
 	}
+	if len(gmq.modifiers) > 0 {
+		_spec.Modifiers = gmq.modifiers
+	}
 	for i := range hooks {
 		hooks[i](ctx, _spec)
 	}
@@ -431,6 +435,9 @@ func (gmq *GenerationModelQuery) loadGenerations(ctx context.Context, query *Gen
 
 func (gmq *GenerationModelQuery) sqlCount(ctx context.Context) (int, error) {
 	_spec := gmq.querySpec()
+	if len(gmq.modifiers) > 0 {
+		_spec.Modifiers = gmq.modifiers
+	}
 	_spec.Node.Columns = gmq.ctx.Fields
 	if len(gmq.ctx.Fields) > 0 {
 		_spec.Unique = gmq.ctx.Unique != nil && *gmq.ctx.Unique
@@ -501,6 +508,9 @@ func (gmq *GenerationModelQuery) sqlQuery(ctx context.Context) *sql.Selector {
 	if gmq.ctx.Unique != nil && *gmq.ctx.Unique {
 		selector.Distinct()
 	}
+	for _, m := range gmq.modifiers {
+		m(selector)
+	}
 	for _, p := range gmq.predicates {
 		p(selector)
 	}
@@ -516,6 +526,12 @@ func (gmq *GenerationModelQuery) sqlQuery(ctx context.Context) *sql.Selector {
 		selector.Limit(*limit)
 	}
 	return selector
+}
+
+// Modify adds a query modifier for attaching custom logic to queries.
+func (gmq *GenerationModelQuery) Modify(modifiers ...func(s *sql.Selector)) *GenerationModelSelect {
+	gmq.modifiers = append(gmq.modifiers, modifiers...)
+	return gmq.Select()
 }
 
 // GenerationModelGroupBy is the group-by builder for GenerationModel entities.
@@ -606,4 +622,10 @@ func (gms *GenerationModelSelect) sqlScan(ctx context.Context, root *GenerationM
 	}
 	defer rows.Close()
 	return sql.ScanSlice(rows, v)
+}
+
+// Modify adds a query modifier for attaching custom logic to queries.
+func (gms *GenerationModelSelect) Modify(modifiers ...func(s *sql.Selector)) *GenerationModelSelect {
+	gms.modifiers = append(gms.modifiers, modifiers...)
+	return gms
 }

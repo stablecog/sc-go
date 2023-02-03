@@ -42,6 +42,20 @@ func (goc *GenerationOutputCreate) SetNillableUpscaledImageURL(s *string) *Gener
 	return goc
 }
 
+// SetGalleryStatus sets the "gallery_status" field.
+func (goc *GenerationOutputCreate) SetGalleryStatus(gs generationoutput.GalleryStatus) *GenerationOutputCreate {
+	goc.mutation.SetGalleryStatus(gs)
+	return goc
+}
+
+// SetNillableGalleryStatus sets the "gallery_status" field if the given value is not nil.
+func (goc *GenerationOutputCreate) SetNillableGalleryStatus(gs *generationoutput.GalleryStatus) *GenerationOutputCreate {
+	if gs != nil {
+		goc.SetGalleryStatus(*gs)
+	}
+	return goc
+}
+
 // SetGenerationID sets the "generation_id" field.
 func (goc *GenerationOutputCreate) SetGenerationID(u uuid.UUID) *GenerationOutputCreate {
 	goc.mutation.SetGenerationID(u)
@@ -136,6 +150,10 @@ func (goc *GenerationOutputCreate) ExecX(ctx context.Context) {
 
 // defaults sets the default values of the builder before save.
 func (goc *GenerationOutputCreate) defaults() {
+	if _, ok := goc.mutation.GalleryStatus(); !ok {
+		v := generationoutput.DefaultGalleryStatus
+		goc.mutation.SetGalleryStatus(v)
+	}
 	if _, ok := goc.mutation.CreatedAt(); !ok {
 		v := generationoutput.DefaultCreatedAt()
 		goc.mutation.SetCreatedAt(v)
@@ -154,6 +172,14 @@ func (goc *GenerationOutputCreate) defaults() {
 func (goc *GenerationOutputCreate) check() error {
 	if _, ok := goc.mutation.ImageURL(); !ok {
 		return &ValidationError{Name: "image_url", err: errors.New(`ent: missing required field "GenerationOutput.image_url"`)}
+	}
+	if _, ok := goc.mutation.GalleryStatus(); !ok {
+		return &ValidationError{Name: "gallery_status", err: errors.New(`ent: missing required field "GenerationOutput.gallery_status"`)}
+	}
+	if v, ok := goc.mutation.GalleryStatus(); ok {
+		if err := generationoutput.GalleryStatusValidator(v); err != nil {
+			return &ValidationError{Name: "gallery_status", err: fmt.Errorf(`ent: validator failed for field "GenerationOutput.gallery_status": %w`, err)}
+		}
 	}
 	if _, ok := goc.mutation.GenerationID(); !ok {
 		return &ValidationError{Name: "generation_id", err: errors.New(`ent: missing required field "GenerationOutput.generation_id"`)}
@@ -215,6 +241,10 @@ func (goc *GenerationOutputCreate) createSpec() (*GenerationOutput, *sqlgraph.Cr
 	if value, ok := goc.mutation.UpscaledImageURL(); ok {
 		_spec.SetField(generationoutput.FieldUpscaledImageURL, field.TypeString, value)
 		_node.UpscaledImageURL = &value
+	}
+	if value, ok := goc.mutation.GalleryStatus(); ok {
+		_spec.SetField(generationoutput.FieldGalleryStatus, field.TypeEnum, value)
+		_node.GalleryStatus = value
 	}
 	if value, ok := goc.mutation.CreatedAt(); ok {
 		_spec.SetField(generationoutput.FieldCreatedAt, field.TypeTime, value)

@@ -1,8 +1,7 @@
+// * Requests that go from our application to the cog
 package requests
 
 import "encoding/json"
-
-// Represents requests that go directly from our app to the cog
 
 // Filters specify what events we want the cog to send to our webhook
 type WebhookEventFilterOption string

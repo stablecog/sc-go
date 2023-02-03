@@ -39,10 +39,10 @@ type Generation struct {
 	FailureReason *string `json:"failure_reason,omitempty"`
 	// CountryCode holds the value of the "country_code" field.
 	CountryCode string `json:"country_code,omitempty"`
-	// GalleryStatus holds the value of the "gallery_status" field.
-	GalleryStatus generation.GalleryStatus `json:"gallery_status,omitempty"`
 	// InitImageURL holds the value of the "init_image_url" field.
 	InitImageURL *string `json:"init_image_url,omitempty"`
+	// ShouldSubmitToGallery holds the value of the "should_submit_to_gallery" field.
+	ShouldSubmitToGallery bool `json:"should_submit_to_gallery,omitempty"`
 	// PromptID holds the value of the "prompt_id" field.
 	PromptID uuid.UUID `json:"prompt_id,omitempty"`
 	// NegativePromptID holds the value of the "negative_prompt_id" field.
@@ -183,11 +183,13 @@ func (*Generation) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case generation.FieldNegativePromptID:
 			values[i] = &sql.NullScanner{S: new(uuid.UUID)}
+		case generation.FieldShouldSubmitToGallery:
+			values[i] = new(sql.NullBool)
 		case generation.FieldGuidanceScale:
 			values[i] = new(sql.NullFloat64)
 		case generation.FieldWidth, generation.FieldHeight, generation.FieldInferenceSteps, generation.FieldSeed:
 			values[i] = new(sql.NullInt64)
-		case generation.FieldStatus, generation.FieldFailureReason, generation.FieldCountryCode, generation.FieldGalleryStatus, generation.FieldInitImageURL:
+		case generation.FieldStatus, generation.FieldFailureReason, generation.FieldCountryCode, generation.FieldInitImageURL:
 			values[i] = new(sql.NullString)
 		case generation.FieldStartedAt, generation.FieldCompletedAt, generation.FieldCreatedAt, generation.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
@@ -263,18 +265,18 @@ func (ge *Generation) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				ge.CountryCode = value.String
 			}
-		case generation.FieldGalleryStatus:
-			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field gallery_status", values[i])
-			} else if value.Valid {
-				ge.GalleryStatus = generation.GalleryStatus(value.String)
-			}
 		case generation.FieldInitImageURL:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field init_image_url", values[i])
 			} else if value.Valid {
 				ge.InitImageURL = new(string)
 				*ge.InitImageURL = value.String
+			}
+		case generation.FieldShouldSubmitToGallery:
+			if value, ok := values[i].(*sql.NullBool); !ok {
+				return fmt.Errorf("unexpected type %T for field should_submit_to_gallery", values[i])
+			} else if value.Valid {
+				ge.ShouldSubmitToGallery = value.Bool
 			}
 		case generation.FieldPromptID:
 			if value, ok := values[i].(*uuid.UUID); !ok {
@@ -428,13 +430,13 @@ func (ge *Generation) String() string {
 	builder.WriteString("country_code=")
 	builder.WriteString(ge.CountryCode)
 	builder.WriteString(", ")
-	builder.WriteString("gallery_status=")
-	builder.WriteString(fmt.Sprintf("%v", ge.GalleryStatus))
-	builder.WriteString(", ")
 	if v := ge.InitImageURL; v != nil {
 		builder.WriteString("init_image_url=")
 		builder.WriteString(*v)
 	}
+	builder.WriteString(", ")
+	builder.WriteString("should_submit_to_gallery=")
+	builder.WriteString(fmt.Sprintf("%v", ge.ShouldSubmitToGallery))
 	builder.WriteString(", ")
 	builder.WriteString("prompt_id=")
 	builder.WriteString(fmt.Sprintf("%v", ge.PromptID))

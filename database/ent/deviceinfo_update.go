@@ -21,8 +21,9 @@ import (
 // DeviceInfoUpdate is the builder for updating DeviceInfo entities.
 type DeviceInfoUpdate struct {
 	config
-	hooks    []Hook
-	mutation *DeviceInfoMutation
+	hooks     []Hook
+	mutation  *DeviceInfoMutation
+	modifiers []func(*sql.UpdateBuilder)
 }
 
 // Where appends a list predicates to the DeviceInfoUpdate builder.
@@ -168,6 +169,12 @@ func (diu *DeviceInfoUpdate) defaults() {
 	}
 }
 
+// Modify adds a statement modifier for attaching custom logic to the UPDATE statement.
+func (diu *DeviceInfoUpdate) Modify(modifiers ...func(u *sql.UpdateBuilder)) *DeviceInfoUpdate {
+	diu.modifiers = append(diu.modifiers, modifiers...)
+	return diu
+}
+
 func (diu *DeviceInfoUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	_spec := &sqlgraph.UpdateSpec{
 		Node: &sqlgraph.NodeSpec{
@@ -306,6 +313,7 @@ func (diu *DeviceInfoUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	_spec.AddModifiers(diu.modifiers...)
 	if n, err = sqlgraph.UpdateNodes(ctx, diu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{deviceinfo.Label}
@@ -321,9 +329,10 @@ func (diu *DeviceInfoUpdate) sqlSave(ctx context.Context) (n int, err error) {
 // DeviceInfoUpdateOne is the builder for updating a single DeviceInfo entity.
 type DeviceInfoUpdateOne struct {
 	config
-	fields   []string
-	hooks    []Hook
-	mutation *DeviceInfoMutation
+	fields    []string
+	hooks     []Hook
+	mutation  *DeviceInfoMutation
+	modifiers []func(*sql.UpdateBuilder)
 }
 
 // SetType sets the "type" field.
@@ -468,6 +477,12 @@ func (diuo *DeviceInfoUpdateOne) defaults() {
 		v := deviceinfo.UpdateDefaultUpdatedAt()
 		diuo.mutation.SetUpdatedAt(v)
 	}
+}
+
+// Modify adds a statement modifier for attaching custom logic to the UPDATE statement.
+func (diuo *DeviceInfoUpdateOne) Modify(modifiers ...func(u *sql.UpdateBuilder)) *DeviceInfoUpdateOne {
+	diuo.modifiers = append(diuo.modifiers, modifiers...)
+	return diuo
 }
 
 func (diuo *DeviceInfoUpdateOne) sqlSave(ctx context.Context) (_node *DeviceInfo, err error) {
@@ -625,6 +640,7 @@ func (diuo *DeviceInfoUpdateOne) sqlSave(ctx context.Context) (_node *DeviceInfo
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	_spec.AddModifiers(diuo.modifiers...)
 	_node = &DeviceInfo{config: diuo.config}
 	_spec.Assign = _node.assignValues
 	_spec.ScanValues = _node.scanValues

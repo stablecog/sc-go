@@ -25,6 +25,7 @@ type NegativePromptQuery struct {
 	inters          []Interceptor
 	predicates      []predicate.NegativePrompt
 	withGenerations *GenerationQuery
+	modifiers       []func(*sql.Selector)
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -382,6 +383,9 @@ func (npq *NegativePromptQuery) sqlAll(ctx context.Context, hooks ...queryHook) 
 		node.Edges.loadedTypes = loadedTypes
 		return node.assignValues(columns, values)
 	}
+	if len(npq.modifiers) > 0 {
+		_spec.Modifiers = npq.modifiers
+	}
 	for i := range hooks {
 		hooks[i](ctx, _spec)
 	}
@@ -434,6 +438,9 @@ func (npq *NegativePromptQuery) loadGenerations(ctx context.Context, query *Gene
 
 func (npq *NegativePromptQuery) sqlCount(ctx context.Context) (int, error) {
 	_spec := npq.querySpec()
+	if len(npq.modifiers) > 0 {
+		_spec.Modifiers = npq.modifiers
+	}
 	_spec.Node.Columns = npq.ctx.Fields
 	if len(npq.ctx.Fields) > 0 {
 		_spec.Unique = npq.ctx.Unique != nil && *npq.ctx.Unique
@@ -504,6 +511,9 @@ func (npq *NegativePromptQuery) sqlQuery(ctx context.Context) *sql.Selector {
 	if npq.ctx.Unique != nil && *npq.ctx.Unique {
 		selector.Distinct()
 	}
+	for _, m := range npq.modifiers {
+		m(selector)
+	}
 	for _, p := range npq.predicates {
 		p(selector)
 	}
@@ -519,6 +529,12 @@ func (npq *NegativePromptQuery) sqlQuery(ctx context.Context) *sql.Selector {
 		selector.Limit(*limit)
 	}
 	return selector
+}
+
+// Modify adds a query modifier for attaching custom logic to queries.
+func (npq *NegativePromptQuery) Modify(modifiers ...func(s *sql.Selector)) *NegativePromptSelect {
+	npq.modifiers = append(npq.modifiers, modifiers...)
+	return npq.Select()
 }
 
 // NegativePromptGroupBy is the group-by builder for NegativePrompt entities.
@@ -609,4 +625,10 @@ func (nps *NegativePromptSelect) sqlScan(ctx context.Context, root *NegativeProm
 	}
 	defer rows.Close()
 	return sql.ScanSlice(rows, v)
+}
+
+// Modify adds a query modifier for attaching custom logic to queries.
+func (nps *NegativePromptSelect) Modify(modifiers ...func(s *sql.Selector)) *NegativePromptSelect {
+	nps.modifiers = append(nps.modifiers, modifiers...)
+	return nps
 }

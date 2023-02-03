@@ -31,9 +31,10 @@ func (c *RestAPI) HandleReviewGallerySubmission(w http.ResponseWriter, r *http.R
 		return
 	}
 
+	var updateCount int
 	switch adminGalleryReq.Action {
 	case requests.AdminGalleryActionApprove, requests.AdminGalleryActionReject:
-		err = c.Repo.ApproveOrRejectGeneration(adminGalleryReq.GenerationID, adminGalleryReq.Action == requests.AdminGalleryActionApprove)
+		updateCount, err = c.Repo.ApproveOrRejectGenerationOutputs(adminGalleryReq.GenerationOutputIDs, adminGalleryReq.Action == requests.AdminGalleryActionApprove)
 		if err != nil {
 			if ent.IsNotFound(err) {
 				responses.ErrBadRequest(w, r, "Generation not found")
@@ -47,6 +48,10 @@ func (c *RestAPI) HandleReviewGallerySubmission(w http.ResponseWriter, r *http.R
 		return
 	}
 
+	res := responses.AdminGalleryResponseBody{
+		Updated: updateCount,
+	}
+	render.JSON(w, r, res)
 	render.Status(r, http.StatusOK)
 }
 
@@ -60,28 +65,22 @@ func (c *RestAPI) HandleDeleteGeneration(w http.ResponseWriter, r *http.Request)
 
 	// Parse request body
 	reqBody, _ := io.ReadAll(r.Body)
-	var adminGalleryReq requests.AdminGalleryRequestBody
-	err := json.Unmarshal(reqBody, &adminGalleryReq)
+	var adminDeleteReq requests.AdminGenerationDeleteRequest
+	err := json.Unmarshal(reqBody, &adminDeleteReq)
 	if err != nil {
 		responses.ErrUnableToParseJson(w, r)
 		return
 	}
 
-	switch adminGalleryReq.Action {
-	case requests.AdminGalleryActionDelete:
-		err = c.Repo.DeleteGeneration(adminGalleryReq.GenerationID)
-		if err != nil {
-			if ent.IsNotFound(err) {
-				responses.ErrBadRequest(w, r, "Generation not found")
-				return
-			}
-			responses.ErrInternalServerError(w, r, err.Error())
-			return
-		}
-	default:
-		responses.ErrBadRequest(w, r, fmt.Sprintf("Unsupported action %s", adminGalleryReq.Action))
+	count, err := c.Repo.DeleteGenerations(adminDeleteReq.GenerationIDs)
+	if err != nil {
+		responses.ErrInternalServerError(w, r, err.Error())
 		return
 	}
 
+	res := responses.AdminDeleteResponseBody{
+		Deleted: count,
+	}
+	render.JSON(w, r, res)
 	render.Status(r, http.StatusOK)
 }

@@ -1,7 +1,14 @@
+// * Requests initiated by logged in users
 package requests
 
 import "github.com/google/uuid"
 
+// Request for submitting outputs to gallery
+type GenerateSubmitToGalleryRequestBody struct {
+	GenerationOutputIDs []uuid.UUID `json:"generation_output_ids"`
+}
+
+// Request for creating a new generation
 type GenerateRequestBody struct {
 	Prompt                string    `json:"prompt"`
 	NegativePrompt        string    `json:"negative_prompt,omitempty"`

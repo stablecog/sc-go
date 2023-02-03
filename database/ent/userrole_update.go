@@ -20,8 +20,9 @@ import (
 // UserRoleUpdate is the builder for updating UserRole entities.
 type UserRoleUpdate struct {
 	config
-	hooks    []Hook
-	mutation *UserRoleMutation
+	hooks     []Hook
+	mutation  *UserRoleMutation
+	modifiers []func(*sql.UpdateBuilder)
 }
 
 // Where appends a list predicates to the UserRoleUpdate builder.
@@ -119,6 +120,12 @@ func (uru *UserRoleUpdate) check() error {
 	return nil
 }
 
+// Modify adds a statement modifier for attaching custom logic to the UPDATE statement.
+func (uru *UserRoleUpdate) Modify(modifiers ...func(u *sql.UpdateBuilder)) *UserRoleUpdate {
+	uru.modifiers = append(uru.modifiers, modifiers...)
+	return uru
+}
+
 func (uru *UserRoleUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if err := uru.check(); err != nil {
 		return n, err
@@ -181,6 +188,7 @@ func (uru *UserRoleUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	_spec.AddModifiers(uru.modifiers...)
 	if n, err = sqlgraph.UpdateNodes(ctx, uru.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{userrole.Label}
@@ -196,9 +204,10 @@ func (uru *UserRoleUpdate) sqlSave(ctx context.Context) (n int, err error) {
 // UserRoleUpdateOne is the builder for updating a single UserRole entity.
 type UserRoleUpdateOne struct {
 	config
-	fields   []string
-	hooks    []Hook
-	mutation *UserRoleMutation
+	fields    []string
+	hooks     []Hook
+	mutation  *UserRoleMutation
+	modifiers []func(*sql.UpdateBuilder)
 }
 
 // SetUserID sets the "user_id" field.
@@ -297,6 +306,12 @@ func (uruo *UserRoleUpdateOne) check() error {
 	return nil
 }
 
+// Modify adds a statement modifier for attaching custom logic to the UPDATE statement.
+func (uruo *UserRoleUpdateOne) Modify(modifiers ...func(u *sql.UpdateBuilder)) *UserRoleUpdateOne {
+	uruo.modifiers = append(uruo.modifiers, modifiers...)
+	return uruo
+}
+
 func (uruo *UserRoleUpdateOne) sqlSave(ctx context.Context) (_node *UserRole, err error) {
 	if err := uruo.check(); err != nil {
 		return _node, err
@@ -376,6 +391,7 @@ func (uruo *UserRoleUpdateOne) sqlSave(ctx context.Context) (_node *UserRole, er
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	_spec.AddModifiers(uruo.modifiers...)
 	_node = &UserRole{config: uruo.config}
 	_spec.Assign = _node.assignValues
 	_spec.ScanValues = _node.scanValues

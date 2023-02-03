@@ -20,8 +20,9 @@ import (
 // SchedulerUpdate is the builder for updating Scheduler entities.
 type SchedulerUpdate struct {
 	config
-	hooks    []Hook
-	mutation *SchedulerMutation
+	hooks     []Hook
+	mutation  *SchedulerMutation
+	modifiers []func(*sql.UpdateBuilder)
 }
 
 // Where appends a list predicates to the SchedulerUpdate builder.
@@ -133,6 +134,12 @@ func (su *SchedulerUpdate) defaults() {
 	}
 }
 
+// Modify adds a statement modifier for attaching custom logic to the UPDATE statement.
+func (su *SchedulerUpdate) Modify(modifiers ...func(u *sql.UpdateBuilder)) *SchedulerUpdate {
+	su.modifiers = append(su.modifiers, modifiers...)
+	return su
+}
+
 func (su *SchedulerUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	_spec := &sqlgraph.UpdateSpec{
 		Node: &sqlgraph.NodeSpec{
@@ -214,6 +221,7 @@ func (su *SchedulerUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	_spec.AddModifiers(su.modifiers...)
 	if n, err = sqlgraph.UpdateNodes(ctx, su.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{scheduler.Label}
@@ -229,9 +237,10 @@ func (su *SchedulerUpdate) sqlSave(ctx context.Context) (n int, err error) {
 // SchedulerUpdateOne is the builder for updating a single Scheduler entity.
 type SchedulerUpdateOne struct {
 	config
-	fields   []string
-	hooks    []Hook
-	mutation *SchedulerMutation
+	fields    []string
+	hooks     []Hook
+	mutation  *SchedulerMutation
+	modifiers []func(*sql.UpdateBuilder)
 }
 
 // SetName sets the "name" field.
@@ -344,6 +353,12 @@ func (suo *SchedulerUpdateOne) defaults() {
 	}
 }
 
+// Modify adds a statement modifier for attaching custom logic to the UPDATE statement.
+func (suo *SchedulerUpdateOne) Modify(modifiers ...func(u *sql.UpdateBuilder)) *SchedulerUpdateOne {
+	suo.modifiers = append(suo.modifiers, modifiers...)
+	return suo
+}
+
 func (suo *SchedulerUpdateOne) sqlSave(ctx context.Context) (_node *Scheduler, err error) {
 	_spec := &sqlgraph.UpdateSpec{
 		Node: &sqlgraph.NodeSpec{
@@ -442,6 +457,7 @@ func (suo *SchedulerUpdateOne) sqlSave(ctx context.Context) (_node *Scheduler, e
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	_spec.AddModifiers(suo.modifiers...)
 	_node = &Scheduler{config: suo.config}
 	_spec.Assign = _node.assignValues
 	_spec.ScanValues = _node.scanValues

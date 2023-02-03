@@ -10,7 +10,7 @@ import (
 
 	"github.com/stablecog/go-apps/database"
 	"github.com/stablecog/go-apps/database/ent/generation"
-	"github.com/stablecog/go-apps/server/responses"
+	"github.com/stablecog/go-apps/database/repository"
 	"github.com/stablecog/go-apps/utils"
 	"github.com/stretchr/testify/assert"
 )
@@ -28,7 +28,7 @@ func TestHandleQueryGenerationsDontExist(t *testing.T) {
 	resp := w.Result()
 	defer resp.Body.Close()
 	assert.Equal(t, 200, resp.StatusCode)
-	var genResponse []responses.UserGenerationsResponse
+	var genResponse []repository.UserGenerationQueryResult
 	respBody, _ := io.ReadAll(resp.Body)
 	json.Unmarshal(respBody, &genResponse)
 
@@ -47,7 +47,7 @@ func TestHandleQueryGenerationsDefaultParams(t *testing.T) {
 	resp := w.Result()
 	defer resp.Body.Close()
 	assert.Equal(t, 200, resp.StatusCode)
-	var genResponse []responses.UserGenerationsResponse
+	var genResponse []repository.UserGenerationQueryResult
 	respBody, _ := io.ReadAll(resp.Body)
 	json.Unmarshal(respBody, &genResponse)
 
@@ -55,7 +55,7 @@ func TestHandleQueryGenerationsDefaultParams(t *testing.T) {
 
 	// They should be in order of how we mocked them (descending)
 	assert.Equal(t, "This is a prompt 4", genResponse[0].Prompt)
-	assert.Equal(t, generation.StatusStarted, genResponse[0].Status)
+	assert.Equal(t, string(generation.StatusStarted), genResponse[0].Status)
 	assert.NotNil(t, genResponse[0].StartedAt)
 	assert.Nil(t, genResponse[0].CompletedAt)
 	assert.Empty(t, genResponse[0].NegativePrompt)
@@ -69,7 +69,7 @@ func TestHandleQueryGenerationsDefaultParams(t *testing.T) {
 	assert.Equal(t, 1234, genResponse[0].Seed)
 
 	assert.Equal(t, "This is a prompt 3", genResponse[1].Prompt)
-	assert.Equal(t, generation.StatusFailed, genResponse[1].Status)
+	assert.Equal(t, string(generation.StatusFailed), genResponse[1].Status)
 	assert.NotNil(t, genResponse[1].StartedAt)
 	assert.Nil(t, genResponse[1].CompletedAt)
 	assert.Empty(t, genResponse[1].NegativePrompt)
@@ -83,7 +83,7 @@ func TestHandleQueryGenerationsDefaultParams(t *testing.T) {
 	assert.Equal(t, 1234, genResponse[1].Seed)
 
 	assert.Equal(t, "This is a prompt 2", genResponse[2].Prompt)
-	assert.Equal(t, generation.StatusSucceeded, genResponse[2].Status)
+	assert.Equal(t, string(generation.StatusSucceeded), genResponse[2].Status)
 	assert.NotNil(t, genResponse[2].StartedAt)
 	assert.NotNil(t, genResponse[2].CompletedAt)
 	assert.Empty(t, genResponse[2].NegativePrompt)
@@ -97,7 +97,7 @@ func TestHandleQueryGenerationsDefaultParams(t *testing.T) {
 	assert.Equal(t, 1234, genResponse[2].Seed)
 
 	assert.Equal(t, "This is a prompt", genResponse[3].Prompt)
-	assert.Equal(t, generation.StatusSucceeded, genResponse[3].Status)
+	assert.Equal(t, string(generation.StatusSucceeded), genResponse[3].Status)
 	assert.NotNil(t, genResponse[3].StartedAt)
 	assert.NotNil(t, genResponse[3].CompletedAt)
 	assert.Equal(t, "This is a negative prompt", genResponse[3].NegativePrompt)
@@ -123,7 +123,7 @@ func TestHandleQueryGenerationsOffset(t *testing.T) {
 	resp := w.Result()
 	defer resp.Body.Close()
 	assert.Equal(t, 200, resp.StatusCode)
-	var genResponse []responses.UserGenerationsResponse
+	var genResponse []repository.UserGenerationQueryResult
 	respBody, _ := io.ReadAll(resp.Body)
 	json.Unmarshal(respBody, &genResponse)
 
@@ -131,7 +131,7 @@ func TestHandleQueryGenerationsOffset(t *testing.T) {
 
 	// Get tiemstamp of first item so we can exclude it in "second page"
 	assert.Equal(t, "This is a prompt 4", genResponse[0].Prompt)
-	assert.Equal(t, generation.StatusStarted, genResponse[0].Status)
+	assert.Equal(t, string(generation.StatusStarted), genResponse[0].Status)
 	assert.NotNil(t, genResponse[0].StartedAt)
 	assert.Nil(t, genResponse[0].CompletedAt)
 	assert.Empty(t, genResponse[0].NegativePrompt)
@@ -174,15 +174,14 @@ func TestHandleQueryGenerationsPerPage(t *testing.T) {
 	resp := w.Result()
 	defer resp.Body.Close()
 	assert.Equal(t, 200, resp.StatusCode)
-	var genResponse []responses.UserGenerationsResponse
+	var genResponse []repository.UserGenerationQueryResult
 	respBody, _ := io.ReadAll(resp.Body)
 	json.Unmarshal(respBody, &genResponse)
 
 	assert.Len(t, genResponse, 1)
 
-	// Get tiemstamp of first item so we can exclude it in "second page"
 	assert.Equal(t, "This is a prompt 4", genResponse[0].Prompt)
-	assert.Equal(t, generation.StatusStarted, genResponse[0].Status)
+	assert.Equal(t, string(generation.StatusStarted), genResponse[0].Status)
 	assert.NotNil(t, genResponse[0].StartedAt)
 	assert.Nil(t, genResponse[0].CompletedAt)
 	assert.Empty(t, genResponse[0].NegativePrompt)

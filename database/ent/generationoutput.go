@@ -22,6 +22,8 @@ type GenerationOutput struct {
 	ImageURL string `json:"image_url,omitempty"`
 	// UpscaledImageURL holds the value of the "upscaled_image_url" field.
 	UpscaledImageURL *string `json:"upscaled_image_url,omitempty"`
+	// GalleryStatus holds the value of the "gallery_status" field.
+	GalleryStatus generationoutput.GalleryStatus `json:"gallery_status,omitempty"`
 	// GenerationID holds the value of the "generation_id" field.
 	GenerationID uuid.UUID `json:"generation_id,omitempty"`
 	// CreatedAt holds the value of the "created_at" field.
@@ -60,7 +62,7 @@ func (*GenerationOutput) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case generationoutput.FieldImageURL, generationoutput.FieldUpscaledImageURL:
+		case generationoutput.FieldImageURL, generationoutput.FieldUpscaledImageURL, generationoutput.FieldGalleryStatus:
 			values[i] = new(sql.NullString)
 		case generationoutput.FieldCreatedAt, generationoutput.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
@@ -99,6 +101,12 @@ func (_go *GenerationOutput) assignValues(columns []string, values []any) error 
 			} else if value.Valid {
 				_go.UpscaledImageURL = new(string)
 				*_go.UpscaledImageURL = value.String
+			}
+		case generationoutput.FieldGalleryStatus:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field gallery_status", values[i])
+			} else if value.Valid {
+				_go.GalleryStatus = generationoutput.GalleryStatus(value.String)
 			}
 		case generationoutput.FieldGenerationID:
 			if value, ok := values[i].(*uuid.UUID); !ok {
@@ -158,6 +166,9 @@ func (_go *GenerationOutput) String() string {
 		builder.WriteString("upscaled_image_url=")
 		builder.WriteString(*v)
 	}
+	builder.WriteString(", ")
+	builder.WriteString("gallery_status=")
+	builder.WriteString(fmt.Sprintf("%v", _go.GalleryStatus))
 	builder.WriteString(", ")
 	builder.WriteString("generation_id=")
 	builder.WriteString(fmt.Sprintf("%v", _go.GenerationID))

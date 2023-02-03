@@ -798,8 +798,8 @@ type GenerationMutation struct {
 	status                    *generation.Status
 	failure_reason            *string
 	country_code              *string
-	gallery_status            *generation.GalleryStatus
 	init_image_url            *string
+	should_submit_to_gallery  *bool
 	started_at                *time.Time
 	completed_at              *time.Time
 	created_at                *time.Time
@@ -1330,42 +1330,6 @@ func (m *GenerationMutation) ResetCountryCode() {
 	m.country_code = nil
 }
 
-// SetGalleryStatus sets the "gallery_status" field.
-func (m *GenerationMutation) SetGalleryStatus(gs generation.GalleryStatus) {
-	m.gallery_status = &gs
-}
-
-// GalleryStatus returns the value of the "gallery_status" field in the mutation.
-func (m *GenerationMutation) GalleryStatus() (r generation.GalleryStatus, exists bool) {
-	v := m.gallery_status
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldGalleryStatus returns the old "gallery_status" field's value of the Generation entity.
-// If the Generation object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *GenerationMutation) OldGalleryStatus(ctx context.Context) (v generation.GalleryStatus, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldGalleryStatus is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldGalleryStatus requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldGalleryStatus: %w", err)
-	}
-	return oldValue.GalleryStatus, nil
-}
-
-// ResetGalleryStatus resets all changes to the "gallery_status" field.
-func (m *GenerationMutation) ResetGalleryStatus() {
-	m.gallery_status = nil
-}
-
 // SetInitImageURL sets the "init_image_url" field.
 func (m *GenerationMutation) SetInitImageURL(s string) {
 	m.init_image_url = &s
@@ -1413,6 +1377,42 @@ func (m *GenerationMutation) InitImageURLCleared() bool {
 func (m *GenerationMutation) ResetInitImageURL() {
 	m.init_image_url = nil
 	delete(m.clearedFields, generation.FieldInitImageURL)
+}
+
+// SetShouldSubmitToGallery sets the "should_submit_to_gallery" field.
+func (m *GenerationMutation) SetShouldSubmitToGallery(b bool) {
+	m.should_submit_to_gallery = &b
+}
+
+// ShouldSubmitToGallery returns the value of the "should_submit_to_gallery" field in the mutation.
+func (m *GenerationMutation) ShouldSubmitToGallery() (r bool, exists bool) {
+	v := m.should_submit_to_gallery
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldShouldSubmitToGallery returns the old "should_submit_to_gallery" field's value of the Generation entity.
+// If the Generation object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *GenerationMutation) OldShouldSubmitToGallery(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldShouldSubmitToGallery is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldShouldSubmitToGallery requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldShouldSubmitToGallery: %w", err)
+	}
+	return oldValue.ShouldSubmitToGallery, nil
+}
+
+// ResetShouldSubmitToGallery resets all changes to the "should_submit_to_gallery" field.
+func (m *GenerationMutation) ResetShouldSubmitToGallery() {
+	m.should_submit_to_gallery = nil
 }
 
 // SetPromptID sets the "prompt_id" field.
@@ -2109,11 +2109,11 @@ func (m *GenerationMutation) Fields() []string {
 	if m.country_code != nil {
 		fields = append(fields, generation.FieldCountryCode)
 	}
-	if m.gallery_status != nil {
-		fields = append(fields, generation.FieldGalleryStatus)
-	}
 	if m.init_image_url != nil {
 		fields = append(fields, generation.FieldInitImageURL)
+	}
+	if m.should_submit_to_gallery != nil {
+		fields = append(fields, generation.FieldShouldSubmitToGallery)
 	}
 	if m.prompt != nil {
 		fields = append(fields, generation.FieldPromptID)
@@ -2169,10 +2169,10 @@ func (m *GenerationMutation) Field(name string) (ent.Value, bool) {
 		return m.FailureReason()
 	case generation.FieldCountryCode:
 		return m.CountryCode()
-	case generation.FieldGalleryStatus:
-		return m.GalleryStatus()
 	case generation.FieldInitImageURL:
 		return m.InitImageURL()
+	case generation.FieldShouldSubmitToGallery:
+		return m.ShouldSubmitToGallery()
 	case generation.FieldPromptID:
 		return m.PromptID()
 	case generation.FieldNegativePromptID:
@@ -2218,10 +2218,10 @@ func (m *GenerationMutation) OldField(ctx context.Context, name string) (ent.Val
 		return m.OldFailureReason(ctx)
 	case generation.FieldCountryCode:
 		return m.OldCountryCode(ctx)
-	case generation.FieldGalleryStatus:
-		return m.OldGalleryStatus(ctx)
 	case generation.FieldInitImageURL:
 		return m.OldInitImageURL(ctx)
+	case generation.FieldShouldSubmitToGallery:
+		return m.OldShouldSubmitToGallery(ctx)
 	case generation.FieldPromptID:
 		return m.OldPromptID(ctx)
 	case generation.FieldNegativePromptID:
@@ -2307,19 +2307,19 @@ func (m *GenerationMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetCountryCode(v)
 		return nil
-	case generation.FieldGalleryStatus:
-		v, ok := value.(generation.GalleryStatus)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetGalleryStatus(v)
-		return nil
 	case generation.FieldInitImageURL:
 		v, ok := value.(string)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetInitImageURL(v)
+		return nil
+	case generation.FieldShouldSubmitToGallery:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetShouldSubmitToGallery(v)
 		return nil
 	case generation.FieldPromptID:
 		v, ok := value.(uuid.UUID)
@@ -2560,11 +2560,11 @@ func (m *GenerationMutation) ResetField(name string) error {
 	case generation.FieldCountryCode:
 		m.ResetCountryCode()
 		return nil
-	case generation.FieldGalleryStatus:
-		m.ResetGalleryStatus()
-		return nil
 	case generation.FieldInitImageURL:
 		m.ResetInitImageURL()
+		return nil
+	case generation.FieldShouldSubmitToGallery:
+		m.ResetShouldSubmitToGallery()
 		return nil
 	case generation.FieldPromptID:
 		m.ResetPromptID()
@@ -3387,6 +3387,7 @@ type GenerationOutputMutation struct {
 	id                 *uuid.UUID
 	image_url          *string
 	upscaled_image_url *string
+	gallery_status     *generationoutput.GalleryStatus
 	created_at         *time.Time
 	updated_at         *time.Time
 	clearedFields      map[string]struct{}
@@ -3586,6 +3587,42 @@ func (m *GenerationOutputMutation) ResetUpscaledImageURL() {
 	delete(m.clearedFields, generationoutput.FieldUpscaledImageURL)
 }
 
+// SetGalleryStatus sets the "gallery_status" field.
+func (m *GenerationOutputMutation) SetGalleryStatus(gs generationoutput.GalleryStatus) {
+	m.gallery_status = &gs
+}
+
+// GalleryStatus returns the value of the "gallery_status" field in the mutation.
+func (m *GenerationOutputMutation) GalleryStatus() (r generationoutput.GalleryStatus, exists bool) {
+	v := m.gallery_status
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldGalleryStatus returns the old "gallery_status" field's value of the GenerationOutput entity.
+// If the GenerationOutput object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *GenerationOutputMutation) OldGalleryStatus(ctx context.Context) (v generationoutput.GalleryStatus, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldGalleryStatus is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldGalleryStatus requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldGalleryStatus: %w", err)
+	}
+	return oldValue.GalleryStatus, nil
+}
+
+// ResetGalleryStatus resets all changes to the "gallery_status" field.
+func (m *GenerationOutputMutation) ResetGalleryStatus() {
+	m.gallery_status = nil
+}
+
 // SetGenerationID sets the "generation_id" field.
 func (m *GenerationOutputMutation) SetGenerationID(u uuid.UUID) {
 	m.generations = &u
@@ -3767,12 +3804,15 @@ func (m *GenerationOutputMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *GenerationOutputMutation) Fields() []string {
-	fields := make([]string, 0, 5)
+	fields := make([]string, 0, 6)
 	if m.image_url != nil {
 		fields = append(fields, generationoutput.FieldImageURL)
 	}
 	if m.upscaled_image_url != nil {
 		fields = append(fields, generationoutput.FieldUpscaledImageURL)
+	}
+	if m.gallery_status != nil {
+		fields = append(fields, generationoutput.FieldGalleryStatus)
 	}
 	if m.generations != nil {
 		fields = append(fields, generationoutput.FieldGenerationID)
@@ -3795,6 +3835,8 @@ func (m *GenerationOutputMutation) Field(name string) (ent.Value, bool) {
 		return m.ImageURL()
 	case generationoutput.FieldUpscaledImageURL:
 		return m.UpscaledImageURL()
+	case generationoutput.FieldGalleryStatus:
+		return m.GalleryStatus()
 	case generationoutput.FieldGenerationID:
 		return m.GenerationID()
 	case generationoutput.FieldCreatedAt:
@@ -3814,6 +3856,8 @@ func (m *GenerationOutputMutation) OldField(ctx context.Context, name string) (e
 		return m.OldImageURL(ctx)
 	case generationoutput.FieldUpscaledImageURL:
 		return m.OldUpscaledImageURL(ctx)
+	case generationoutput.FieldGalleryStatus:
+		return m.OldGalleryStatus(ctx)
 	case generationoutput.FieldGenerationID:
 		return m.OldGenerationID(ctx)
 	case generationoutput.FieldCreatedAt:
@@ -3842,6 +3886,13 @@ func (m *GenerationOutputMutation) SetField(name string, value ent.Value) error 
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetUpscaledImageURL(v)
+		return nil
+	case generationoutput.FieldGalleryStatus:
+		v, ok := value.(generationoutput.GalleryStatus)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetGalleryStatus(v)
 		return nil
 	case generationoutput.FieldGenerationID:
 		v, ok := value.(uuid.UUID)
@@ -3927,6 +3978,9 @@ func (m *GenerationOutputMutation) ResetField(name string) error {
 		return nil
 	case generationoutput.FieldUpscaledImageURL:
 		m.ResetUpscaledImageURL()
+		return nil
+	case generationoutput.FieldGalleryStatus:
+		m.ResetGalleryStatus()
 		return nil
 	case generationoutput.FieldGenerationID:
 		m.ResetGenerationID()

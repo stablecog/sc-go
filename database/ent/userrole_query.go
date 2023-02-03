@@ -24,6 +24,7 @@ type UserRoleQuery struct {
 	inters     []Interceptor
 	predicates []predicate.UserRole
 	withUsers  *UserQuery
+	modifiers  []func(*sql.Selector)
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -381,6 +382,9 @@ func (urq *UserRoleQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Us
 		node.Edges.loadedTypes = loadedTypes
 		return node.assignValues(columns, values)
 	}
+	if len(urq.modifiers) > 0 {
+		_spec.Modifiers = urq.modifiers
+	}
 	for i := range hooks {
 		hooks[i](ctx, _spec)
 	}
@@ -431,6 +435,9 @@ func (urq *UserRoleQuery) loadUsers(ctx context.Context, query *UserQuery, nodes
 
 func (urq *UserRoleQuery) sqlCount(ctx context.Context) (int, error) {
 	_spec := urq.querySpec()
+	if len(urq.modifiers) > 0 {
+		_spec.Modifiers = urq.modifiers
+	}
 	_spec.Node.Columns = urq.ctx.Fields
 	if len(urq.ctx.Fields) > 0 {
 		_spec.Unique = urq.ctx.Unique != nil && *urq.ctx.Unique
@@ -501,6 +508,9 @@ func (urq *UserRoleQuery) sqlQuery(ctx context.Context) *sql.Selector {
 	if urq.ctx.Unique != nil && *urq.ctx.Unique {
 		selector.Distinct()
 	}
+	for _, m := range urq.modifiers {
+		m(selector)
+	}
 	for _, p := range urq.predicates {
 		p(selector)
 	}
@@ -516,6 +526,12 @@ func (urq *UserRoleQuery) sqlQuery(ctx context.Context) *sql.Selector {
 		selector.Limit(*limit)
 	}
 	return selector
+}
+
+// Modify adds a query modifier for attaching custom logic to queries.
+func (urq *UserRoleQuery) Modify(modifiers ...func(s *sql.Selector)) *UserRoleSelect {
+	urq.modifiers = append(urq.modifiers, modifiers...)
+	return urq.Select()
 }
 
 // UserRoleGroupBy is the group-by builder for UserRole entities.
@@ -606,4 +622,10 @@ func (urs *UserRoleSelect) sqlScan(ctx context.Context, root *UserRoleQuery, v a
 	}
 	defer rows.Close()
 	return sql.ScanSlice(rows, v)
+}
+
+// Modify adds a query modifier for attaching custom logic to queries.
+func (urs *UserRoleSelect) Modify(modifiers ...func(s *sql.Selector)) *UserRoleSelect {
+	urs.modifiers = append(urs.modifiers, modifiers...)
+	return urs
 }

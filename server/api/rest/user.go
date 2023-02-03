@@ -66,46 +66,7 @@ func (c *RestAPI) HandleQueryGenerations(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	// Format response
-	var generationsResponse []responses.UserGenerationsResponse
-	for _, generation := range generations {
-		generationResponse := responses.UserGenerationsResponse{
-			Width:          generation.Width,
-			Height:         generation.Height,
-			InferenceSteps: generation.InferenceSteps,
-			GuidanceScale:  generation.GuidanceScale,
-			Seed:           generation.Seed,
-			CreatedAt:      generation.CreatedAt,
-			StartedAt:      generation.StartedAt,
-			CompletedAt:    generation.CompletedAt,
-			Status:         generation.Status,
-			GalleryStatus:  generation.GalleryStatus,
-		}
-		// Negative prompt can actually be nil
-		if generation.Edges.NegativePrompt != nil {
-			generationResponse.NegativePrompt = generation.Edges.NegativePrompt.Text
-		}
-		// These are nillable because they are joins, but they shouldn't be empty
-		// make sure anyway since we don't want to panic
-		if generation.Edges.Prompt != nil {
-			generationResponse.Prompt = generation.Edges.Prompt.Text
-		}
-		if generation.Edges.GenerationModel != nil {
-			generationResponse.Model = generation.Edges.GenerationModel.Name
-		}
-		if generation.Edges.Scheduler != nil {
-			generationResponse.Scheduler = generation.Edges.Scheduler.Name
-		}
-		if generation.Edges.GenerationOutputs != nil {
-			generationResponse.Outputs = []string{}
-			for _, output := range generation.Edges.GenerationOutputs {
-				generationResponse.Outputs = append(generationResponse.Outputs, output.ImageURL)
-			}
-		}
-		generationsResponse = append(generationsResponse, generationResponse)
-	}
-
 	// Return generations
+	render.JSON(w, r, generations)
 	render.Status(r, http.StatusOK)
-	render.JSON(w, r, generationsResponse)
 }

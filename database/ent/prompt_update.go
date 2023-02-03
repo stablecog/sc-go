@@ -20,8 +20,9 @@ import (
 // PromptUpdate is the builder for updating Prompt entities.
 type PromptUpdate struct {
 	config
-	hooks    []Hook
-	mutation *PromptMutation
+	hooks     []Hook
+	mutation  *PromptMutation
+	modifiers []func(*sql.UpdateBuilder)
 }
 
 // Where appends a list predicates to the PromptUpdate builder.
@@ -119,6 +120,12 @@ func (pu *PromptUpdate) defaults() {
 	}
 }
 
+// Modify adds a statement modifier for attaching custom logic to the UPDATE statement.
+func (pu *PromptUpdate) Modify(modifiers ...func(u *sql.UpdateBuilder)) *PromptUpdate {
+	pu.modifiers = append(pu.modifiers, modifiers...)
+	return pu
+}
+
 func (pu *PromptUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	_spec := &sqlgraph.UpdateSpec{
 		Node: &sqlgraph.NodeSpec{
@@ -197,6 +204,7 @@ func (pu *PromptUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	_spec.AddModifiers(pu.modifiers...)
 	if n, err = sqlgraph.UpdateNodes(ctx, pu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{prompt.Label}
@@ -212,9 +220,10 @@ func (pu *PromptUpdate) sqlSave(ctx context.Context) (n int, err error) {
 // PromptUpdateOne is the builder for updating a single Prompt entity.
 type PromptUpdateOne struct {
 	config
-	fields   []string
-	hooks    []Hook
-	mutation *PromptMutation
+	fields    []string
+	hooks     []Hook
+	mutation  *PromptMutation
+	modifiers []func(*sql.UpdateBuilder)
 }
 
 // SetText sets the "text" field.
@@ -313,6 +322,12 @@ func (puo *PromptUpdateOne) defaults() {
 	}
 }
 
+// Modify adds a statement modifier for attaching custom logic to the UPDATE statement.
+func (puo *PromptUpdateOne) Modify(modifiers ...func(u *sql.UpdateBuilder)) *PromptUpdateOne {
+	puo.modifiers = append(puo.modifiers, modifiers...)
+	return puo
+}
+
 func (puo *PromptUpdateOne) sqlSave(ctx context.Context) (_node *Prompt, err error) {
 	_spec := &sqlgraph.UpdateSpec{
 		Node: &sqlgraph.NodeSpec{
@@ -408,6 +423,7 @@ func (puo *PromptUpdateOne) sqlSave(ctx context.Context) (_node *Prompt, err err
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	_spec.AddModifiers(puo.modifiers...)
 	_node = &Prompt{config: puo.config}
 	_spec.Assign = _node.assignValues
 	_spec.ScanValues = _node.scanValues

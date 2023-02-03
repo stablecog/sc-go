@@ -45,6 +45,10 @@ func init() {
 	deviceinfo.DefaultID = deviceinfoDescID.Default.(func() uuid.UUID)
 	generationFields := schema.Generation{}.Fields()
 	_ = generationFields
+	// generationDescShouldSubmitToGallery is the schema descriptor for should_submit_to_gallery field.
+	generationDescShouldSubmitToGallery := generationFields[10].Descriptor()
+	// generation.DefaultShouldSubmitToGallery holds the default value on creation for the should_submit_to_gallery field.
+	generation.DefaultShouldSubmitToGallery = generationDescShouldSubmitToGallery.Default.(bool)
 	// generationDescCreatedAt is the schema descriptor for created_at field.
 	generationDescCreatedAt := generationFields[19].Descriptor()
 	// generation.DefaultCreatedAt holds the default value on creation for the created_at field.
@@ -82,11 +86,11 @@ func init() {
 	generationoutputFields := schema.GenerationOutput{}.Fields()
 	_ = generationoutputFields
 	// generationoutputDescCreatedAt is the schema descriptor for created_at field.
-	generationoutputDescCreatedAt := generationoutputFields[4].Descriptor()
+	generationoutputDescCreatedAt := generationoutputFields[5].Descriptor()
 	// generationoutput.DefaultCreatedAt holds the default value on creation for the created_at field.
 	generationoutput.DefaultCreatedAt = generationoutputDescCreatedAt.Default.(func() time.Time)
 	// generationoutputDescUpdatedAt is the schema descriptor for updated_at field.
-	generationoutputDescUpdatedAt := generationoutputFields[5].Descriptor()
+	generationoutputDescUpdatedAt := generationoutputFields[6].Descriptor()
 	// generationoutput.DefaultUpdatedAt holds the default value on creation for the updated_at field.
 	generationoutput.DefaultUpdatedAt = generationoutputDescUpdatedAt.Default.(func() time.Time)
 	// generationoutput.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.

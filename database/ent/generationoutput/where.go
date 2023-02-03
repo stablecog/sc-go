@@ -221,6 +221,26 @@ func UpscaledImageURLContainsFold(v string) predicate.GenerationOutput {
 	return predicate.GenerationOutput(sql.FieldContainsFold(FieldUpscaledImageURL, v))
 }
 
+// GalleryStatusEQ applies the EQ predicate on the "gallery_status" field.
+func GalleryStatusEQ(v GalleryStatus) predicate.GenerationOutput {
+	return predicate.GenerationOutput(sql.FieldEQ(FieldGalleryStatus, v))
+}
+
+// GalleryStatusNEQ applies the NEQ predicate on the "gallery_status" field.
+func GalleryStatusNEQ(v GalleryStatus) predicate.GenerationOutput {
+	return predicate.GenerationOutput(sql.FieldNEQ(FieldGalleryStatus, v))
+}
+
+// GalleryStatusIn applies the In predicate on the "gallery_status" field.
+func GalleryStatusIn(vs ...GalleryStatus) predicate.GenerationOutput {
+	return predicate.GenerationOutput(sql.FieldIn(FieldGalleryStatus, vs...))
+}
+
+// GalleryStatusNotIn applies the NotIn predicate on the "gallery_status" field.
+func GalleryStatusNotIn(vs ...GalleryStatus) predicate.GenerationOutput {
+	return predicate.GenerationOutput(sql.FieldNotIn(FieldGalleryStatus, vs...))
+}
+
 // GenerationIDEQ applies the EQ predicate on the "generation_id" field.
 func GenerationIDEQ(v uuid.UUID) predicate.GenerationOutput {
 	return predicate.GenerationOutput(sql.FieldEQ(FieldGenerationID, v))

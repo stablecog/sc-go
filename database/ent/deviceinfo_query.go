@@ -27,6 +27,7 @@ type DeviceInfoQuery struct {
 	predicates      []predicate.DeviceInfo
 	withGenerations *GenerationQuery
 	withUpscales    *UpscaleQuery
+	modifiers       []func(*sql.Selector)
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -419,6 +420,9 @@ func (diq *DeviceInfoQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*
 		node.Edges.loadedTypes = loadedTypes
 		return node.assignValues(columns, values)
 	}
+	if len(diq.modifiers) > 0 {
+		_spec.Modifiers = diq.modifiers
+	}
 	for i := range hooks {
 		hooks[i](ctx, _spec)
 	}
@@ -502,6 +506,9 @@ func (diq *DeviceInfoQuery) loadUpscales(ctx context.Context, query *UpscaleQuer
 
 func (diq *DeviceInfoQuery) sqlCount(ctx context.Context) (int, error) {
 	_spec := diq.querySpec()
+	if len(diq.modifiers) > 0 {
+		_spec.Modifiers = diq.modifiers
+	}
 	_spec.Node.Columns = diq.ctx.Fields
 	if len(diq.ctx.Fields) > 0 {
 		_spec.Unique = diq.ctx.Unique != nil && *diq.ctx.Unique
@@ -572,6 +579,9 @@ func (diq *DeviceInfoQuery) sqlQuery(ctx context.Context) *sql.Selector {
 	if diq.ctx.Unique != nil && *diq.ctx.Unique {
 		selector.Distinct()
 	}
+	for _, m := range diq.modifiers {
+		m(selector)
+	}
 	for _, p := range diq.predicates {
 		p(selector)
 	}
@@ -587,6 +597,12 @@ func (diq *DeviceInfoQuery) sqlQuery(ctx context.Context) *sql.Selector {
 		selector.Limit(*limit)
 	}
 	return selector
+}
+
+// Modify adds a query modifier for attaching custom logic to queries.
+func (diq *DeviceInfoQuery) Modify(modifiers ...func(s *sql.Selector)) *DeviceInfoSelect {
+	diq.modifiers = append(diq.modifiers, modifiers...)
+	return diq.Select()
 }
 
 // DeviceInfoGroupBy is the group-by builder for DeviceInfo entities.
@@ -677,4 +693,10 @@ func (dis *DeviceInfoSelect) sqlScan(ctx context.Context, root *DeviceInfoQuery,
 	}
 	defer rows.Close()
 	return sql.ScanSlice(rows, v)
+}
+
+// Modify adds a query modifier for attaching custom logic to queries.
+func (dis *DeviceInfoSelect) Modify(modifiers ...func(s *sql.Selector)) *DeviceInfoSelect {
+	dis.modifiers = append(dis.modifiers, modifiers...)
+	return dis
 }

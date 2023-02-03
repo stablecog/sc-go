@@ -96,6 +96,11 @@ func InitImageURL(v string) predicate.Generation {
 	return predicate.Generation(sql.FieldEQ(FieldInitImageURL, v))
 }
 
+// ShouldSubmitToGallery applies equality check predicate on the "should_submit_to_gallery" field. It's identical to ShouldSubmitToGalleryEQ.
+func ShouldSubmitToGallery(v bool) predicate.Generation {
+	return predicate.Generation(sql.FieldEQ(FieldShouldSubmitToGallery, v))
+}
+
 // PromptID applies equality check predicate on the "prompt_id" field. It's identical to PromptIDEQ.
 func PromptID(v uuid.UUID) predicate.Generation {
 	return predicate.Generation(sql.FieldEQ(FieldPromptID, v))
@@ -506,26 +511,6 @@ func CountryCodeContainsFold(v string) predicate.Generation {
 	return predicate.Generation(sql.FieldContainsFold(FieldCountryCode, v))
 }
 
-// GalleryStatusEQ applies the EQ predicate on the "gallery_status" field.
-func GalleryStatusEQ(v GalleryStatus) predicate.Generation {
-	return predicate.Generation(sql.FieldEQ(FieldGalleryStatus, v))
-}
-
-// GalleryStatusNEQ applies the NEQ predicate on the "gallery_status" field.
-func GalleryStatusNEQ(v GalleryStatus) predicate.Generation {
-	return predicate.Generation(sql.FieldNEQ(FieldGalleryStatus, v))
-}
-
-// GalleryStatusIn applies the In predicate on the "gallery_status" field.
-func GalleryStatusIn(vs ...GalleryStatus) predicate.Generation {
-	return predicate.Generation(sql.FieldIn(FieldGalleryStatus, vs...))
-}
-
-// GalleryStatusNotIn applies the NotIn predicate on the "gallery_status" field.
-func GalleryStatusNotIn(vs ...GalleryStatus) predicate.Generation {
-	return predicate.Generation(sql.FieldNotIn(FieldGalleryStatus, vs...))
-}
-
 // InitImageURLEQ applies the EQ predicate on the "init_image_url" field.
 func InitImageURLEQ(v string) predicate.Generation {
 	return predicate.Generation(sql.FieldEQ(FieldInitImageURL, v))
@@ -599,6 +584,16 @@ func InitImageURLEqualFold(v string) predicate.Generation {
 // InitImageURLContainsFold applies the ContainsFold predicate on the "init_image_url" field.
 func InitImageURLContainsFold(v string) predicate.Generation {
 	return predicate.Generation(sql.FieldContainsFold(FieldInitImageURL, v))
+}
+
+// ShouldSubmitToGalleryEQ applies the EQ predicate on the "should_submit_to_gallery" field.
+func ShouldSubmitToGalleryEQ(v bool) predicate.Generation {
+	return predicate.Generation(sql.FieldEQ(FieldShouldSubmitToGallery, v))
+}
+
+// ShouldSubmitToGalleryNEQ applies the NEQ predicate on the "should_submit_to_gallery" field.
+func ShouldSubmitToGalleryNEQ(v bool) predicate.Generation {
+	return predicate.Generation(sql.FieldNEQ(FieldShouldSubmitToGallery, v))
 }
 
 // PromptIDEQ applies the EQ predicate on the "prompt_id" field.

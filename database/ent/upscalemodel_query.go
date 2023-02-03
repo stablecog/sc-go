@@ -25,6 +25,7 @@ type UpscaleModelQuery struct {
 	inters       []Interceptor
 	predicates   []predicate.UpscaleModel
 	withUpscales *UpscaleQuery
+	modifiers    []func(*sql.Selector)
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -382,6 +383,9 @@ func (umq *UpscaleModelQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([
 		node.Edges.loadedTypes = loadedTypes
 		return node.assignValues(columns, values)
 	}
+	if len(umq.modifiers) > 0 {
+		_spec.Modifiers = umq.modifiers
+	}
 	for i := range hooks {
 		hooks[i](ctx, _spec)
 	}
@@ -431,6 +435,9 @@ func (umq *UpscaleModelQuery) loadUpscales(ctx context.Context, query *UpscaleQu
 
 func (umq *UpscaleModelQuery) sqlCount(ctx context.Context) (int, error) {
 	_spec := umq.querySpec()
+	if len(umq.modifiers) > 0 {
+		_spec.Modifiers = umq.modifiers
+	}
 	_spec.Node.Columns = umq.ctx.Fields
 	if len(umq.ctx.Fields) > 0 {
 		_spec.Unique = umq.ctx.Unique != nil && *umq.ctx.Unique
@@ -501,6 +508,9 @@ func (umq *UpscaleModelQuery) sqlQuery(ctx context.Context) *sql.Selector {
 	if umq.ctx.Unique != nil && *umq.ctx.Unique {
 		selector.Distinct()
 	}
+	for _, m := range umq.modifiers {
+		m(selector)
+	}
 	for _, p := range umq.predicates {
 		p(selector)
 	}
@@ -516,6 +526,12 @@ func (umq *UpscaleModelQuery) sqlQuery(ctx context.Context) *sql.Selector {
 		selector.Limit(*limit)
 	}
 	return selector
+}
+
+// Modify adds a query modifier for attaching custom logic to queries.
+func (umq *UpscaleModelQuery) Modify(modifiers ...func(s *sql.Selector)) *UpscaleModelSelect {
+	umq.modifiers = append(umq.modifiers, modifiers...)
+	return umq.Select()
 }
 
 // UpscaleModelGroupBy is the group-by builder for UpscaleModel entities.
@@ -606,4 +622,10 @@ func (ums *UpscaleModelSelect) sqlScan(ctx context.Context, root *UpscaleModelQu
 	}
 	defer rows.Close()
 	return sql.ScanSlice(rows, v)
+}
+
+// Modify adds a query modifier for attaching custom logic to queries.
+func (ums *UpscaleModelSelect) Modify(modifiers ...func(s *sql.Selector)) *UpscaleModelSelect {
+	ums.modifiers = append(ums.modifiers, modifiers...)
+	return ums
 }

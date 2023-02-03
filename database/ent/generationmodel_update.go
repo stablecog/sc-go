@@ -20,8 +20,9 @@ import (
 // GenerationModelUpdate is the builder for updating GenerationModel entities.
 type GenerationModelUpdate struct {
 	config
-	hooks    []Hook
-	mutation *GenerationModelMutation
+	hooks     []Hook
+	mutation  *GenerationModelMutation
+	modifiers []func(*sql.UpdateBuilder)
 }
 
 // Where appends a list predicates to the GenerationModelUpdate builder.
@@ -133,6 +134,12 @@ func (gmu *GenerationModelUpdate) defaults() {
 	}
 }
 
+// Modify adds a statement modifier for attaching custom logic to the UPDATE statement.
+func (gmu *GenerationModelUpdate) Modify(modifiers ...func(u *sql.UpdateBuilder)) *GenerationModelUpdate {
+	gmu.modifiers = append(gmu.modifiers, modifiers...)
+	return gmu
+}
+
 func (gmu *GenerationModelUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	_spec := &sqlgraph.UpdateSpec{
 		Node: &sqlgraph.NodeSpec{
@@ -214,6 +221,7 @@ func (gmu *GenerationModelUpdate) sqlSave(ctx context.Context) (n int, err error
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	_spec.AddModifiers(gmu.modifiers...)
 	if n, err = sqlgraph.UpdateNodes(ctx, gmu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{generationmodel.Label}
@@ -229,9 +237,10 @@ func (gmu *GenerationModelUpdate) sqlSave(ctx context.Context) (n int, err error
 // GenerationModelUpdateOne is the builder for updating a single GenerationModel entity.
 type GenerationModelUpdateOne struct {
 	config
-	fields   []string
-	hooks    []Hook
-	mutation *GenerationModelMutation
+	fields    []string
+	hooks     []Hook
+	mutation  *GenerationModelMutation
+	modifiers []func(*sql.UpdateBuilder)
 }
 
 // SetName sets the "name" field.
@@ -344,6 +353,12 @@ func (gmuo *GenerationModelUpdateOne) defaults() {
 	}
 }
 
+// Modify adds a statement modifier for attaching custom logic to the UPDATE statement.
+func (gmuo *GenerationModelUpdateOne) Modify(modifiers ...func(u *sql.UpdateBuilder)) *GenerationModelUpdateOne {
+	gmuo.modifiers = append(gmuo.modifiers, modifiers...)
+	return gmuo
+}
+
 func (gmuo *GenerationModelUpdateOne) sqlSave(ctx context.Context) (_node *GenerationModel, err error) {
 	_spec := &sqlgraph.UpdateSpec{
 		Node: &sqlgraph.NodeSpec{
@@ -442,6 +457,7 @@ func (gmuo *GenerationModelUpdateOne) sqlSave(ctx context.Context) (_node *Gener
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	_spec.AddModifiers(gmuo.modifiers...)
 	_node = &GenerationModel{config: gmuo.config}
 	_spec.Assign = _node.assignValues
 	_spec.ScanValues = _node.scanValues

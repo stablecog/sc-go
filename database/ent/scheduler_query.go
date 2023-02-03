@@ -25,6 +25,7 @@ type SchedulerQuery struct {
 	inters          []Interceptor
 	predicates      []predicate.Scheduler
 	withGenerations *GenerationQuery
+	modifiers       []func(*sql.Selector)
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -382,6 +383,9 @@ func (sq *SchedulerQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Sc
 		node.Edges.loadedTypes = loadedTypes
 		return node.assignValues(columns, values)
 	}
+	if len(sq.modifiers) > 0 {
+		_spec.Modifiers = sq.modifiers
+	}
 	for i := range hooks {
 		hooks[i](ctx, _spec)
 	}
@@ -431,6 +435,9 @@ func (sq *SchedulerQuery) loadGenerations(ctx context.Context, query *Generation
 
 func (sq *SchedulerQuery) sqlCount(ctx context.Context) (int, error) {
 	_spec := sq.querySpec()
+	if len(sq.modifiers) > 0 {
+		_spec.Modifiers = sq.modifiers
+	}
 	_spec.Node.Columns = sq.ctx.Fields
 	if len(sq.ctx.Fields) > 0 {
 		_spec.Unique = sq.ctx.Unique != nil && *sq.ctx.Unique
@@ -501,6 +508,9 @@ func (sq *SchedulerQuery) sqlQuery(ctx context.Context) *sql.Selector {
 	if sq.ctx.Unique != nil && *sq.ctx.Unique {
 		selector.Distinct()
 	}
+	for _, m := range sq.modifiers {
+		m(selector)
+	}
 	for _, p := range sq.predicates {
 		p(selector)
 	}
@@ -516,6 +526,12 @@ func (sq *SchedulerQuery) sqlQuery(ctx context.Context) *sql.Selector {
 		selector.Limit(*limit)
 	}
 	return selector
+}
+
+// Modify adds a query modifier for attaching custom logic to queries.
+func (sq *SchedulerQuery) Modify(modifiers ...func(s *sql.Selector)) *SchedulerSelect {
+	sq.modifiers = append(sq.modifiers, modifiers...)
+	return sq.Select()
 }
 
 // SchedulerGroupBy is the group-by builder for Scheduler entities.
@@ -606,4 +622,10 @@ func (ss *SchedulerSelect) sqlScan(ctx context.Context, root *SchedulerQuery, v 
 	}
 	defer rows.Close()
 	return sql.ScanSlice(rows, v)
+}
+
+// Modify adds a query modifier for attaching custom logic to queries.
+func (ss *SchedulerSelect) Modify(modifiers ...func(s *sql.Selector)) *SchedulerSelect {
+	ss.modifiers = append(ss.modifiers, modifiers...)
+	return ss
 }

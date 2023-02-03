@@ -35,8 +35,8 @@ var (
 		{Name: "status", Type: field.TypeEnum, Enums: []string{"queued", "started", "succeeded", "failed", "rejected"}},
 		{Name: "failure_reason", Type: field.TypeString, Nullable: true, Size: 2147483647},
 		{Name: "country_code", Type: field.TypeString, Size: 2147483647},
-		{Name: "gallery_status", Type: field.TypeEnum, Enums: []string{"not_submitted", "submitted", "accepted", "rejected"}, Default: "not_submitted"},
 		{Name: "init_image_url", Type: field.TypeString, Nullable: true, Size: 2147483647},
+		{Name: "should_submit_to_gallery", Type: field.TypeBool, Default: false},
 		{Name: "started_at", Type: field.TypeTime, Nullable: true},
 		{Name: "completed_at", Type: field.TypeTime, Nullable: true},
 		{Name: "created_at", Type: field.TypeTime},
@@ -111,6 +111,7 @@ var (
 		{Name: "id", Type: field.TypeUUID},
 		{Name: "image_url", Type: field.TypeString, Size: 2147483647},
 		{Name: "upscaled_image_url", Type: field.TypeString, Nullable: true, Size: 2147483647},
+		{Name: "gallery_status", Type: field.TypeEnum, Enums: []string{"not_submitted", "submitted", "accepted", "rejected"}, Default: "not_submitted"},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},
 		{Name: "generation_id", Type: field.TypeUUID},
@@ -123,7 +124,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "generation_outputs_generations_generation_outputs",
-				Columns:    []*schema.Column{GenerationOutputsColumns[5]},
+				Columns:    []*schema.Column{GenerationOutputsColumns[6]},
 				RefColumns: []*schema.Column{GenerationsColumns[0]},
 				OnDelete:   schema.Cascade,
 			},

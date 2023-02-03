@@ -26,8 +26,9 @@ import (
 // GenerationUpdate is the builder for updating Generation entities.
 type GenerationUpdate struct {
 	config
-	hooks    []Hook
-	mutation *GenerationMutation
+	hooks     []Hook
+	mutation  *GenerationMutation
+	modifiers []func(*sql.UpdateBuilder)
 }
 
 // Where appends a list predicates to the GenerationUpdate builder.
@@ -133,20 +134,6 @@ func (gu *GenerationUpdate) SetCountryCode(s string) *GenerationUpdate {
 	return gu
 }
 
-// SetGalleryStatus sets the "gallery_status" field.
-func (gu *GenerationUpdate) SetGalleryStatus(gs generation.GalleryStatus) *GenerationUpdate {
-	gu.mutation.SetGalleryStatus(gs)
-	return gu
-}
-
-// SetNillableGalleryStatus sets the "gallery_status" field if the given value is not nil.
-func (gu *GenerationUpdate) SetNillableGalleryStatus(gs *generation.GalleryStatus) *GenerationUpdate {
-	if gs != nil {
-		gu.SetGalleryStatus(*gs)
-	}
-	return gu
-}
-
 // SetInitImageURL sets the "init_image_url" field.
 func (gu *GenerationUpdate) SetInitImageURL(s string) *GenerationUpdate {
 	gu.mutation.SetInitImageURL(s)
@@ -164,6 +151,20 @@ func (gu *GenerationUpdate) SetNillableInitImageURL(s *string) *GenerationUpdate
 // ClearInitImageURL clears the value of the "init_image_url" field.
 func (gu *GenerationUpdate) ClearInitImageURL() *GenerationUpdate {
 	gu.mutation.ClearInitImageURL()
+	return gu
+}
+
+// SetShouldSubmitToGallery sets the "should_submit_to_gallery" field.
+func (gu *GenerationUpdate) SetShouldSubmitToGallery(b bool) *GenerationUpdate {
+	gu.mutation.SetShouldSubmitToGallery(b)
+	return gu
+}
+
+// SetNillableShouldSubmitToGallery sets the "should_submit_to_gallery" field if the given value is not nil.
+func (gu *GenerationUpdate) SetNillableShouldSubmitToGallery(b *bool) *GenerationUpdate {
+	if b != nil {
+		gu.SetShouldSubmitToGallery(*b)
+	}
 	return gu
 }
 
@@ -425,11 +426,6 @@ func (gu *GenerationUpdate) check() error {
 			return &ValidationError{Name: "status", err: fmt.Errorf(`ent: validator failed for field "Generation.status": %w`, err)}
 		}
 	}
-	if v, ok := gu.mutation.GalleryStatus(); ok {
-		if err := generation.GalleryStatusValidator(v); err != nil {
-			return &ValidationError{Name: "gallery_status", err: fmt.Errorf(`ent: validator failed for field "Generation.gallery_status": %w`, err)}
-		}
-	}
 	if _, ok := gu.mutation.DeviceInfoID(); gu.mutation.DeviceInfoCleared() && !ok {
 		return errors.New(`ent: clearing a required unique edge "Generation.device_info"`)
 	}
@@ -446,6 +442,12 @@ func (gu *GenerationUpdate) check() error {
 		return errors.New(`ent: clearing a required unique edge "Generation.users"`)
 	}
 	return nil
+}
+
+// Modify adds a statement modifier for attaching custom logic to the UPDATE statement.
+func (gu *GenerationUpdate) Modify(modifiers ...func(u *sql.UpdateBuilder)) *GenerationUpdate {
+	gu.modifiers = append(gu.modifiers, modifiers...)
+	return gu
 }
 
 func (gu *GenerationUpdate) sqlSave(ctx context.Context) (n int, err error) {
@@ -511,14 +513,14 @@ func (gu *GenerationUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if value, ok := gu.mutation.CountryCode(); ok {
 		_spec.SetField(generation.FieldCountryCode, field.TypeString, value)
 	}
-	if value, ok := gu.mutation.GalleryStatus(); ok {
-		_spec.SetField(generation.FieldGalleryStatus, field.TypeEnum, value)
-	}
 	if value, ok := gu.mutation.InitImageURL(); ok {
 		_spec.SetField(generation.FieldInitImageURL, field.TypeString, value)
 	}
 	if gu.mutation.InitImageURLCleared() {
 		_spec.ClearField(generation.FieldInitImageURL, field.TypeString)
+	}
+	if value, ok := gu.mutation.ShouldSubmitToGallery(); ok {
+		_spec.SetField(generation.FieldShouldSubmitToGallery, field.TypeBool, value)
 	}
 	if value, ok := gu.mutation.StartedAt(); ok {
 		_spec.SetField(generation.FieldStartedAt, field.TypeTime, value)
@@ -799,6 +801,7 @@ func (gu *GenerationUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	_spec.AddModifiers(gu.modifiers...)
 	if n, err = sqlgraph.UpdateNodes(ctx, gu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{generation.Label}
@@ -814,9 +817,10 @@ func (gu *GenerationUpdate) sqlSave(ctx context.Context) (n int, err error) {
 // GenerationUpdateOne is the builder for updating a single Generation entity.
 type GenerationUpdateOne struct {
 	config
-	fields   []string
-	hooks    []Hook
-	mutation *GenerationMutation
+	fields    []string
+	hooks     []Hook
+	mutation  *GenerationMutation
+	modifiers []func(*sql.UpdateBuilder)
 }
 
 // SetWidth sets the "width" field.
@@ -916,20 +920,6 @@ func (guo *GenerationUpdateOne) SetCountryCode(s string) *GenerationUpdateOne {
 	return guo
 }
 
-// SetGalleryStatus sets the "gallery_status" field.
-func (guo *GenerationUpdateOne) SetGalleryStatus(gs generation.GalleryStatus) *GenerationUpdateOne {
-	guo.mutation.SetGalleryStatus(gs)
-	return guo
-}
-
-// SetNillableGalleryStatus sets the "gallery_status" field if the given value is not nil.
-func (guo *GenerationUpdateOne) SetNillableGalleryStatus(gs *generation.GalleryStatus) *GenerationUpdateOne {
-	if gs != nil {
-		guo.SetGalleryStatus(*gs)
-	}
-	return guo
-}
-
 // SetInitImageURL sets the "init_image_url" field.
 func (guo *GenerationUpdateOne) SetInitImageURL(s string) *GenerationUpdateOne {
 	guo.mutation.SetInitImageURL(s)
@@ -947,6 +937,20 @@ func (guo *GenerationUpdateOne) SetNillableInitImageURL(s *string) *GenerationUp
 // ClearInitImageURL clears the value of the "init_image_url" field.
 func (guo *GenerationUpdateOne) ClearInitImageURL() *GenerationUpdateOne {
 	guo.mutation.ClearInitImageURL()
+	return guo
+}
+
+// SetShouldSubmitToGallery sets the "should_submit_to_gallery" field.
+func (guo *GenerationUpdateOne) SetShouldSubmitToGallery(b bool) *GenerationUpdateOne {
+	guo.mutation.SetShouldSubmitToGallery(b)
+	return guo
+}
+
+// SetNillableShouldSubmitToGallery sets the "should_submit_to_gallery" field if the given value is not nil.
+func (guo *GenerationUpdateOne) SetNillableShouldSubmitToGallery(b *bool) *GenerationUpdateOne {
+	if b != nil {
+		guo.SetShouldSubmitToGallery(*b)
+	}
 	return guo
 }
 
@@ -1215,11 +1219,6 @@ func (guo *GenerationUpdateOne) check() error {
 			return &ValidationError{Name: "status", err: fmt.Errorf(`ent: validator failed for field "Generation.status": %w`, err)}
 		}
 	}
-	if v, ok := guo.mutation.GalleryStatus(); ok {
-		if err := generation.GalleryStatusValidator(v); err != nil {
-			return &ValidationError{Name: "gallery_status", err: fmt.Errorf(`ent: validator failed for field "Generation.gallery_status": %w`, err)}
-		}
-	}
 	if _, ok := guo.mutation.DeviceInfoID(); guo.mutation.DeviceInfoCleared() && !ok {
 		return errors.New(`ent: clearing a required unique edge "Generation.device_info"`)
 	}
@@ -1236,6 +1235,12 @@ func (guo *GenerationUpdateOne) check() error {
 		return errors.New(`ent: clearing a required unique edge "Generation.users"`)
 	}
 	return nil
+}
+
+// Modify adds a statement modifier for attaching custom logic to the UPDATE statement.
+func (guo *GenerationUpdateOne) Modify(modifiers ...func(u *sql.UpdateBuilder)) *GenerationUpdateOne {
+	guo.modifiers = append(guo.modifiers, modifiers...)
+	return guo
 }
 
 func (guo *GenerationUpdateOne) sqlSave(ctx context.Context) (_node *Generation, err error) {
@@ -1318,14 +1323,14 @@ func (guo *GenerationUpdateOne) sqlSave(ctx context.Context) (_node *Generation,
 	if value, ok := guo.mutation.CountryCode(); ok {
 		_spec.SetField(generation.FieldCountryCode, field.TypeString, value)
 	}
-	if value, ok := guo.mutation.GalleryStatus(); ok {
-		_spec.SetField(generation.FieldGalleryStatus, field.TypeEnum, value)
-	}
 	if value, ok := guo.mutation.InitImageURL(); ok {
 		_spec.SetField(generation.FieldInitImageURL, field.TypeString, value)
 	}
 	if guo.mutation.InitImageURLCleared() {
 		_spec.ClearField(generation.FieldInitImageURL, field.TypeString)
+	}
+	if value, ok := guo.mutation.ShouldSubmitToGallery(); ok {
+		_spec.SetField(generation.FieldShouldSubmitToGallery, field.TypeBool, value)
 	}
 	if value, ok := guo.mutation.StartedAt(); ok {
 		_spec.SetField(generation.FieldStartedAt, field.TypeTime, value)
@@ -1606,6 +1611,7 @@ func (guo *GenerationUpdateOne) sqlSave(ctx context.Context) (_node *Generation,
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	_spec.AddModifiers(guo.modifiers...)
 	_node = &Generation{config: guo.config}
 	_spec.Assign = _node.assignValues
 	_spec.ScanValues = _node.scanValues
