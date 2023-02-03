@@ -10,10 +10,33 @@ jobs:
     runs-on: ubuntu-latest
     container: golang:1.19
 
+    # Setup postgres service for tests
+    services:
+      db:
+        image: postgres:14
+        env:
+          POSTGRES_DB: testing
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_USER: postgres
+        ports:
+          - 5432:5432
+        # set health checks to wait until postgres has started
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
     steps:
       - name: Check out code
         uses: actions/checkout@master
 
       - name: Run Tests
+        env:
+          GITHUB_ACTIONS: true
+          POSTGRES_DB: db
+          POSTGRES_PORT: 5432
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
         run: |
           go test -v -parallel 1 $(go list -f '{{.Dir}}/...' -m | xargs)

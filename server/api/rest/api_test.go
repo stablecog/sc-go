@@ -11,6 +11,7 @@ import (
 	"github.com/stablecog/go-apps/database/repository"
 	"github.com/stablecog/go-apps/server/api/websocket"
 	"github.com/stablecog/go-apps/shared"
+	"github.com/stablecog/go-apps/utils"
 	"k8s.io/klog/v2"
 )
 
@@ -25,28 +26,31 @@ func TestMain(m *testing.M) {
 
 func testMainWrapper(m *testing.M) int {
 	ctx := context.Background()
-	// Setup embedded postgres
-	postgres := embeddedpostgres.NewDatabase(embeddedpostgres.DefaultConfig().
-		Username("test").
-		Password("test").
-		Database("test").
-		Version(embeddedpostgres.V14))
-	err := postgres.Start()
-	if err != nil {
-		klog.Fatalf("Failed to start embedded postgres: %v", err)
-		os.Exit(1)
-	}
-	defer postgres.Stop()
+	if utils.GetEnv("GITHUB_ACTIONS", "") != "true" {
+		klog.Infof("Setting up embedded postgres")
+		// Setup embedded postgres
+		postgres := embeddedpostgres.NewDatabase(embeddedpostgres.DefaultConfig().
+			Username("test").
+			Password("test").
+			Database("test").
+			Version(embeddedpostgres.V14))
+		err := postgres.Start()
+		if err != nil {
+			klog.Fatalf("Failed to start embedded postgres: %v", err)
+			os.Exit(1)
+		}
+		defer postgres.Stop()
 
-	// Set in env
-	os.Setenv("POSTGRES_DB", "test")
-	os.Setenv("POSTGRES_USER", "test")
-	os.Setenv("POSTGRES_PASSWORD", "test")
-	os.Setenv("POSTGRES_HOST", "localhost")
-	defer os.Unsetenv("POSTGRES_DB")
-	defer os.Unsetenv("POSTGRES_USER")
-	defer os.Unsetenv("POSTGRES_PASSWORD")
-	defer os.Unsetenv("POSTGRES_HOST")
+		// Set in env
+		os.Setenv("POSTGRES_DB", "test")
+		os.Setenv("POSTGRES_USER", "test")
+		os.Setenv("POSTGRES_PASSWORD", "test")
+		os.Setenv("POSTGRES_HOST", "localhost")
+		defer os.Unsetenv("POSTGRES_DB")
+		defer os.Unsetenv("POSTGRES_USER")
+		defer os.Unsetenv("POSTGRES_PASSWORD")
+		defer os.Unsetenv("POSTGRES_HOST")
+	}
 	dbconn, err := database.GetSqlDbConn()
 	if err != nil {
 		klog.Fatalf("Failed to connect to database: %v", err)
