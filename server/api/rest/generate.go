@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/go-chi/render"
+	"github.com/google/uuid"
 	"github.com/stablecog/go-apps/server/requests"
 	"github.com/stablecog/go-apps/server/responses"
 	"github.com/stablecog/go-apps/shared"
@@ -189,7 +190,7 @@ func (c *RestAPI) HandleCreateGeneration(w http.ResponseWriter, r *http.Request)
 		},
 		Input: requests.BaseCogGenerateRequest{
 			ID:                   requestId,
-			UserID:               userID.String(),
+			UploadPath:           fmt.Sprintf("%s/%s", userID.String(), uuid.NewString()),
 			Prompt:               generateReq.Prompt,
 			NegativePrompt:       generateReq.NegativePrompt,
 			PromptFlores:         promptFlores,
