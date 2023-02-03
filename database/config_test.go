@@ -8,15 +8,23 @@ import (
 )
 
 func TestGetSqlDbConnPostgres(t *testing.T) {
+	// Get original env vars
+	postgresDb := os.Getenv("POSTGRES_DB")
+	postgresUser := os.Getenv("POSTGRES_USER")
+	postgresPassword := os.Getenv("POSTGRES_PASSWORD")
+	postgresHost := os.Getenv("POSTGRES_HOST")
 	// Postgres
 	os.Setenv("POSTGRES_DB", "pippin")
 	os.Setenv("POSTGRES_USER", "user")
 	os.Setenv("POSTGRES_PASSWORD", "password")
 	os.Setenv("POSTGRES_HOST", "127.0.0.1")
-	defer os.Unsetenv("POSTGRES_DB")
-	defer os.Unsetenv("POSTGRES_USER")
-	defer os.Unsetenv("POSTGRES_PASSWORD")
-	defer os.Unsetenv("POSTGRES_HOST")
+	// Reset env
+	defer func() {
+		os.Setenv("POSTGRES_DB", postgresDb)
+		os.Setenv("POSTGRES_USER", postgresUser)
+		os.Setenv("POSTGRES_PASSWORD", postgresPassword)
+		os.Setenv("POSTGRES_HOST", postgresHost)
+	}()
 
 	conn, err := GetSqlDbConn()
 	assert.Nil(t, err)

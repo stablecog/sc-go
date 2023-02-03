@@ -34,9 +34,10 @@ jobs:
       - name: Run Tests
         env:
           GITHUB_ACTIONS: true
-          POSTGRES_DB: db
+          POSTGRES_DB: testing
           POSTGRES_PORT: 5432
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres
+          POSTGRES_HOST: db
         run: |
           go test -v -parallel 1 $(go list -f '{{.Dir}}/...' -m | xargs)
