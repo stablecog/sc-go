@@ -71,6 +71,18 @@ func (c *RestAPI) HandleCreateGeneration(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
+	if generateReq.NumOutputs > shared.MAX_GENERATE_NUM_OUTPUTS {
+		klog.Infof("Number of outputs can't be more than %d", shared.MAX_GENERATE_NUM_OUTPUTS)
+		responses.ErrBadRequest(w, r, fmt.Sprintf("Number of outputs can't be more than %d", shared.MAX_GENERATE_NUM_OUTPUTS))
+		return
+	}
+
+	if generateReq.NumOutputs < shared.MIN_GENERATE_NUM_OUTPUTS {
+		klog.Infof("Number of outputs can't be less than %d", shared.MIN_GENERATE_NUM_OUTPUTS)
+		responses.ErrBadRequest(w, r, fmt.Sprintf("Number of outputs can't be less than %d", shared.MIN_GENERATE_NUM_OUTPUTS))
+		return
+	}
+
 	// Validate model and scheduler IDs in request are valid
 	start = time.Now()
 	if !shared.GetCache().IsValidGenerationModelID(generateReq.ModelId) {
@@ -191,6 +203,7 @@ func (c *RestAPI) HandleCreateGeneration(w http.ResponseWriter, r *http.Request)
 			Model:                modelName,
 			Scheduler:            schedulerName,
 			Seed:                 fmt.Sprint(generateReq.Seed),
+			NumOutputs:           fmt.Sprint(generateReq.NumOutputs),
 			OutputImageExt:       string(shared.DEFAULT_GENERATE_OUTPUT_IMAGE_EXTENSION),
 		},
 	}
