@@ -57,7 +57,7 @@ func main() {
 
 	// Setup sql
 	klog.Infoln("🏡 Connecting to database...")
-	dbconn, err := database.GetSqlDbConn(false)
+	dbconn, err := database.GetSqlDbConn()
 	if err != nil {
 		klog.Fatalf("Failed to connect to database: %v", err)
 		os.Exit(1)

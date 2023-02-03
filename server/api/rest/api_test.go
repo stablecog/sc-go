@@ -6,6 +6,7 @@ import (
 	"os"
 	"testing"
 
+	embeddedpostgres "github.com/fergusstrange/embedded-postgres"
 	"github.com/stablecog/go-apps/database"
 	"github.com/stablecog/go-apps/database/repository"
 	"github.com/stablecog/go-apps/server/api/websocket"
@@ -23,9 +24,28 @@ func TestMain(m *testing.M) {
 }
 
 func testMainWrapper(m *testing.M) int {
-	// We use an in-memory sqlite database for testing
 	ctx := context.Background()
-	dbconn, err := database.GetSqlDbConn(true)
+	// Setup embedded postgres
+	postgres := embeddedpostgres.NewDatabase(embeddedpostgres.DefaultConfig().
+		Username("test").
+		Password("test").
+		Database("test").
+		Version(embeddedpostgres.V14))
+	err := postgres.Start()
+	if err != nil {
+		klog.Fatalf("Failed to start embedded postgres: %v", err)
+		os.Exit(1)
+	}
+	defer postgres.Stop()
+
+	// Set in env
+	os.Setenv("POSTGRES_DB", "test")
+	os.Setenv("POSTGRES_USER", "test")
+	os.Setenv("POSTGRES_PASSWORD", "test")
+	defer os.Unsetenv("POSTGRES_DB")
+	defer os.Unsetenv("POSTGRES_USER")
+	defer os.Unsetenv("POSTGRES_PASSWORD")
+	dbconn, err := database.GetSqlDbConn()
 	if err != nil {
 		klog.Fatalf("Failed to connect to database: %v", err)
 		os.Exit(1)

@@ -2,9 +2,8 @@ package database
 
 import (
 	"fmt"
-	"path"
+	"os"
 
-	"entgo.io/ent/dialect"
 	"github.com/stablecog/go-apps/utils"
 	"k8s.io/klog/v2"
 )
@@ -30,49 +29,25 @@ func (c *PostgresConn) Dialect() string {
 	return "pgx"
 }
 
-type SqliteConn struct {
-	FileName string
-	Mode     string
-}
-
-func (c *SqliteConn) DSN() string {
-	return fmt.Sprintf("file:%s?cache=shared&mode=%s&_fk=1", c.FileName, c.Mode)
-}
-
-func (c *SqliteConn) Dialect() string {
-	return dialect.SQLite
-}
-
 // Gets the DB connection information based on environment variables
-func GetSqlDbConn(mock bool) (SqlDBConn, error) {
-	if mock {
-		return &SqliteConn{FileName: "testing", Mode: "memory"}, nil
-	}
-	// First see if postgres is confiugred
+func GetSqlDbConn() (SqlDBConn, error) {
+	// Use postgres
 	postgresDb := utils.GetEnv("POSTGRES_DB", "")
 	postgresUser := utils.GetEnv("POSTGRES_USER", "")
 	postgresPassword := utils.GetEnv("POSTGRES_PASSWORD", "")
 	postgresHost := utils.GetEnv("POSTGRES_HOST", "127.0.0.1")
 	postgresPort := utils.GetEnv("POSTGRES_PORT", "5432")
 
-	if postgresDb != "" && postgresUser != "" && postgresPassword != "" {
-		klog.V(3).Infof("Using PostgreSQL database %s@%s:%s", postgresUser, postgresHost, postgresPort)
-		return &PostgresConn{
-			Host:     postgresHost,
-			Port:     postgresPort,
-			Password: postgresPassword,
-			User:     postgresUser,
-			DBName:   postgresDb,
-		}, nil
+	if postgresDb == "" || postgresUser == "" || postgresPassword == "" {
+		klog.Error("Postgres environment variables not set, not sure what to do? so exiting")
+		os.Exit(1)
 	}
-
-	klog.V(3).Infof("⚠️⚠️⚠️ No PostgreSQL configuration found, falling back to SQLite ⚠️⚠️⚠️")
-
-	// Default to SQLite
-	sqliteDb := path.Join(utils.RootDir(), "stablecog.db")
-	klog.V(3).Infof("Using SQLite database at %s", sqliteDb)
-	return &SqliteConn{
-		FileName: sqliteDb,
-		Mode:     "rwc",
+	klog.V(3).Infof("Using PostgreSQL database %s@%s:%s", postgresUser, postgresHost, postgresPort)
+	return &PostgresConn{
+		Host:     postgresHost,
+		Port:     postgresPort,
+		Password: postgresPassword,
+		User:     postgresUser,
+		DBName:   postgresDb,
 	}, nil
 }
