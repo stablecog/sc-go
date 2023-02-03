@@ -29,10 +29,12 @@ func TestNewEntClient(t *testing.T) {
 	os.Setenv("POSTGRES_USER", "test2")
 	os.Setenv("POSTGRES_PASSWORD", "test2")
 	os.Setenv("POSTGRES_PORT", "12345")
+	os.Setenv("POSTGRES_HOST", "localhost")
 	defer os.Unsetenv("POSTGRES_DB")
 	defer os.Unsetenv("POSTGRES_USER")
 	defer os.Unsetenv("POSTGRES_PASSWORD")
 	defer os.Unsetenv("POSTGRES_PORT")
+	defer os.Unsetenv("POSTGRES_HOST")
 	dbconn, _ := GetSqlDbConn()
 
 	client, err := NewEntClient(dbconn)

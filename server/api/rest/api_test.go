@@ -42,9 +42,11 @@ func testMainWrapper(m *testing.M) int {
 	os.Setenv("POSTGRES_DB", "test")
 	os.Setenv("POSTGRES_USER", "test")
 	os.Setenv("POSTGRES_PASSWORD", "test")
+	os.Setenv("POSTGRES_HOST", "localhost")
 	defer os.Unsetenv("POSTGRES_DB")
 	defer os.Unsetenv("POSTGRES_USER")
 	defer os.Unsetenv("POSTGRES_PASSWORD")
+	defer os.Unsetenv("POSTGRES_HOST")
 	dbconn, err := database.GetSqlDbConn()
 	if err != nil {
 		klog.Fatalf("Failed to connect to database: %v", err)
