@@ -23,6 +23,7 @@ type BaseCogRequestQueue struct {
 // Base request
 type BaseCogGenerateRequest struct {
 	ID                   string `json:"id"`
+	UserID               string `json:"user_id"`
 	Prompt               string `json:"prompt"`
 	NegativePrompt       string `json:"negative_prompt,omitempty"`
 	Width                string `json:"width"`

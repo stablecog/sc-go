@@ -189,6 +189,7 @@ func (c *RestAPI) HandleCreateGeneration(w http.ResponseWriter, r *http.Request)
 		},
 		Input: requests.BaseCogGenerateRequest{
 			ID:                   requestId,
+			UserID:               userID.String(),
 			Prompt:               generateReq.Prompt,
 			NegativePrompt:       generateReq.NegativePrompt,
 			PromptFlores:         promptFlores,
