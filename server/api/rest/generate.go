@@ -185,7 +185,7 @@ func (c *RestAPI) HandleCreateGeneration(w http.ResponseWriter, r *http.Request)
 	cogReqBody := requests.CogGenerateQueueRequest{
 		BaseCogRequestQueue: requests.BaseCogRequestQueue{
 			WebhookEventsFilter: []requests.WebhookEventFilterOption{requests.WebhookEventFilterStart, requests.WebhookEventFilterStart},
-			Webhook:             fmt.Sprintf("%s/v1/queue/webhook/%s", utils.GetEnv("PUBLIC_API_URL", "https://api.stablecog.com"), utils.GetEnv("QUEUE_SECRET", "")),
+			RedisPubsubKey:      shared.COG_REDIS_WEBHOOK_QUEUE_CHANNEL,
 		},
 		Input: requests.BaseCogGenerateRequest{
 			ID:                   requestId,
