@@ -33,7 +33,7 @@ const (
 )
 
 // Default image extension for generate
-const DEFAULT_GENERATE_OUTPUT_IMAGE_EXTENSION = JPG
+const DEFAULT_GENERATE_output_image_extensionENSION = JPG
 
 // Allowed image extensions for upload
 var ALLOWS_IMAGE_EXTENSIONS_UPLOAD = []ImageExtension{WEBP, JPEG, PNG}
