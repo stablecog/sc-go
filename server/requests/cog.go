@@ -14,7 +14,8 @@ const (
 
 // Common fields for all requests using cog's redis queue
 type BaseCogRequestQueue struct {
-	Webhook             string                     `json:"webhook"`
+	Webhook             string                     `json:"webhook,omitempty"`
+	RedisPubsubKey      string                     `json:"redis_pubsub_key,omitempty"`
 	WebhookEventsFilter []WebhookEventFilterOption `json:"webhook_events_filter"`
 }
 
