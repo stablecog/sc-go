@@ -173,6 +173,13 @@ func main() {
 	app.Route("/v1", func(r chi.Router) {
 		r.Get("/health", hc.HandleHealth)
 
+		// Websocket
+		r.Route("/ws", func(r chi.Router) {
+			r.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+				websocket.ServeWS(hub, w, r)
+			})
+		})
+
 		// Routes that require authentication
 		r.Route("/user", func(r chi.Router) {
 			r.Use(mw.AuthMiddleware)
