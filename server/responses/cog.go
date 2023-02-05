@@ -25,6 +25,6 @@ type CogStatusUpdate struct {
 	Input     CogInput      `json:"input"`
 	Status    CogTaskStatus `json:"status"`
 	Error     string        `json:"error"`
-	Outputs   []string      `json:"outputs"`
+	Outputs   []string      `json:"output"`
 	NSFWCount int           `json:"nsfw_count"`
 }
