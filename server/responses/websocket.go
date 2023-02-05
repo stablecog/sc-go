@@ -7,6 +7,6 @@ import (
 type WebsocketStatusUpdateResponse struct {
 	Status  CogTaskStatus           `json:"status"`
 	Id      string                  `json:"id"`
-	Error   string                  `json:"error"`
+	Error   string                  `json:"error,omitempty"`
 	Outputs []*ent.GenerationOutput `json:"outputs,omitempty"`
 }
