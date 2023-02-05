@@ -24,7 +24,6 @@ import (
 	"github.com/stablecog/go-apps/server/api/rest"
 	"github.com/stablecog/go-apps/server/api/websocket"
 	"github.com/stablecog/go-apps/server/middleware"
-	"github.com/stablecog/go-apps/server/requests"
 	"github.com/stablecog/go-apps/server/responses"
 	"github.com/stablecog/go-apps/shared"
 	"github.com/stablecog/go-apps/utils"
@@ -220,15 +219,15 @@ func main() {
 		klog.Infof("Listening for webhook messages on channel: %s", shared.COG_REDIS_WEBHOOK_QUEUE_CHANNEL)
 		for msg := range pubsub.Channel() {
 			klog.Infof("Received webhook message: %s", msg.Payload)
-			var webhookMessage requests.WebhookRequest
-			err := json.Unmarshal([]byte(msg.Payload), &webhookMessage)
+			var cogMessage responses.CogStatusUpdate
+			err := json.Unmarshal([]byte(msg.Payload), &cogMessage)
 			if err != nil {
 				klog.Errorf("--- Error unmarshalling webhook message: %v", err)
 				continue
 			}
 
 			// See if this request belongs to our instance
-			websocketIdStr := cogRequestWebsocketConnMap.Get(webhookMessage.Input.Id)
+			websocketIdStr := cogRequestWebsocketConnMap.Get(cogMessage.Input.Id)
 			if websocketIdStr == "" {
 				continue
 			}
@@ -241,29 +240,43 @@ func main() {
 
 			// Processing, update this generation as started in database
 			var outputs []*ent.GenerationOutput
-			if webhookMessage.Status == requests.WebhookProcessing {
-				// In goroutine since we don't care, like whatever man
-				go repo.SetGenerationStarted(webhookMessage.Input.Id)
-			} else if webhookMessage.Status == requests.WebhookFailed {
-				go repo.SetGenerationFailed(webhookMessage.Input.Id, webhookMessage.Error)
-			} else if webhookMessage.Status == requests.WebhookSucceeded {
-				outputs, err = repo.SetGenerationSucceeded(webhookMessage.Input.Id, webhookMessage.Data.Outputs)
-				if err != nil {
-					klog.Errorf("--- Error setting generation succeeded for ID %s: %v", webhookMessage.Input.Id, err)
-					continue
+			var cogErr string
+			if cogMessage.Status == responses.CogProcessing {
+				// In goroutine since we want them to know it started asap
+				go repo.SetGenerationStarted(cogMessage.Input.Id)
+			} else if cogMessage.Status == responses.CogFailed {
+				repo.SetGenerationFailed(cogMessage.Input.Id, cogMessage.Error)
+				cogErr = cogMessage.Error
+			} else if cogMessage.Status == responses.CogSucceeded {
+				// NSFW counts as failure
+				if len(cogMessage.Outputs) == 0 && cogMessage.NSFWCount > 0 {
+					cogErr = "NSFW"
+					repo.SetGenerationFailed(cogMessage.Input.Id, cogErr)
+					cogMessage.Status = responses.CogFailed
+				} else if len(cogMessage.Outputs) == 0 && cogMessage.NSFWCount == 0 {
+					cogErr = "No outputs"
+					repo.SetGenerationFailed(cogMessage.Input.Id, cogErr)
+					cogMessage.Status = responses.CogFailed
+				} else {
+					outputs, err = repo.SetGenerationSucceeded(cogMessage.Input.Id, cogMessage.Outputs)
+					if err != nil {
+						klog.Errorf("--- Error setting generation succeeded for ID %s: %v", cogMessage.Input.Id, err)
+						continue
+					}
 				}
 			} else {
-				klog.Warningf("--- Unknown webhook status, not sure how to proceed so not proceeding at all: %s", webhookMessage.Status)
+				klog.Warningf("--- Unknown webhook status, not sure how to proceed so not proceeding at all: %s", cogMessage.Status)
 				continue
 			}
 
 			// Regardless of the status, we always send over websocket so user knows what's up
 			// Send message to user
 			resp := responses.WebsocketStatusUpdateResponse{
-				Status: webhookMessage.Status,
-				Id:     webhookMessage.Input.Id,
+				Status: cogMessage.Status,
+				Id:     cogMessage.Input.Id,
+				Error:  cogErr,
 			}
-			if webhookMessage.Status == requests.WebhookSucceeded {
+			if cogMessage.Status == responses.CogSucceeded {
 				resp.Outputs = outputs
 			}
 			// Marshal

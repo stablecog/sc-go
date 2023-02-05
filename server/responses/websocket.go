@@ -2,11 +2,11 @@ package responses
 
 import (
 	"github.com/stablecog/go-apps/database/ent"
-	"github.com/stablecog/go-apps/server/requests"
 )
 
 type WebsocketStatusUpdateResponse struct {
-	Status  requests.WebhookStatus  `json:"status"`
+	Status  CogTaskStatus           `json:"status"`
 	Id      string                  `json:"id"`
+	Error   string                  `json:"error"`
 	Outputs []*ent.GenerationOutput `json:"outputs,omitempty"`
 }
