@@ -272,9 +272,10 @@ func main() {
 			// Regardless of the status, we always send over websocket so user knows what's up
 			// Send message to user
 			resp := responses.WebsocketStatusUpdateResponse{
-				Status: cogMessage.Status,
-				Id:     cogMessage.Input.Id,
-				Error:  cogErr,
+				Status:    cogMessage.Status,
+				Id:        cogMessage.Input.Id,
+				NSFWCount: cogMessage.NSFWCount,
+				Error:     cogErr,
 			}
 			if cogMessage.Status == responses.CogSucceeded {
 				resp.Outputs = outputs
