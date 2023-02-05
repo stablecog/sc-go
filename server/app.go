@@ -203,13 +203,6 @@ func main() {
 			})
 		})
 
-		// Webhook
-		r.Route("/queue", func(r chi.Router) {
-			// ! TODO - remove QUEUE_SECRET after STA-22 is implemented
-			r.Put(fmt.Sprintf("/upload/%s/*", utils.GetEnv("QUEUE_SECRET", "")), hc.HandleUploadFile)
-			r.Post(fmt.Sprintf("/webhook/%s", utils.GetEnv("QUEUE_SECRET", "")), hc.HandleCogWebhook)
-		})
-
 		// Websocket
 		r.Route("/ws", func(r chi.Router) {
 			r.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
@@ -254,7 +247,7 @@ func main() {
 			} else if webhookMessage.Status == requests.WebhookFailed {
 				go repo.SetGenerationFailed(webhookMessage.Input.Id, webhookMessage.Error)
 			} else if webhookMessage.Status == requests.WebhookSucceeded {
-				outputs, err = repo.SetGenerationSucceeded(webhookMessage.Input.Id, webhookMessage.Output)
+				outputs, err = repo.SetGenerationSucceeded(webhookMessage.Input.Id, webhookMessage.Data.Outputs)
 				if err != nil {
 					klog.Errorf("--- Error setting generation succeeded for ID %s: %v", webhookMessage.Input.Id, err)
 					continue

@@ -16,10 +16,16 @@ type WebhookRequestInput struct {
 	Height string `json:"height"`
 }
 
+// Msg from cog to redis
+type WebhookRequestData struct {
+	Outputs   []string `json:"outputs"`
+	NSFWCount int      `json:"nsfw_count"`
+}
+
 type WebhookRequest struct {
 	Webhook string              `json:"webhook"`
 	Input   WebhookRequestInput `json:"input"`
 	Status  WebhookStatus       `json:"status"`
 	Error   string              `json:"error"`
-	Output  []string            `json:"output"`
+	Data    WebhookRequestData  `json:"data"`
 }
