@@ -29,7 +29,7 @@ type BaseCogGenerateRequest struct {
 	NegativePrompt       string `json:"negative_prompt,omitempty"`
 	Width                string `json:"width"`
 	Height               string `json:"height"`
-	OutputImageExt       string `json:"output_image_extension"`
+	OutputImageExtension string `json:"output_image_extension"`
 	NumInferenceSteps    string `json:"num_inference_steps"`
 	GuidanceScale        string `json:"guidance_scale"`
 	Model                string `json:"model"`
