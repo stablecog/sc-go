@@ -7,9 +7,6 @@ WORKDIR /app
 # Copy the entire project to the container
 COPY . .
 
-# Install the dependencies
-RUN go get -d -v ./...
-
 # Build the go-chi application
 RUN go build -o main .
 
