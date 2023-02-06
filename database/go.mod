@@ -3,7 +3,10 @@ module github.com/stablecog/go-apps/database
 go 1.19
 
 require (
+	github.com/fergusstrange/embedded-postgres v1.20.0
 	github.com/go-redis/redis/v8 v8.11.5
+	github.com/stablecog/go-apps/server v0.0.0-20230206133029-3071ac72f0b1
+	github.com/stablecog/go-apps/shared v0.0.0-20230206133029-3071ac72f0b1
 	github.com/stablecog/go-apps/utils v0.0.0-20230118153414-2fd508cf8aec
 	github.com/stretchr/testify v1.8.1
 	k8s.io/klog/v2 v2.80.1
@@ -24,19 +27,22 @@ require (
 	github.com/jackc/pgtype v1.12.0 // indirect
 	github.com/josharian/intern v1.0.0 // indirect
 	github.com/klauspost/compress v1.15.6 // indirect
+	github.com/lib/pq v1.10.7 // indirect
 	github.com/mailru/easyjson v0.7.7 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/tomnomnom/linkheader v0.0.0-20180905144013-02ca5825eb80 // indirect
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
 	github.com/valyala/fasthttp v1.37.1-0.20220607072126-8a320890c08d // indirect
+	github.com/xi2/xz v0.0.0-20171230120015-48954b6210f8 // indirect
 	github.com/yuin/gopher-lua v0.0.0-20220504180219-658193537a64 // indirect
 	golang.org/x/crypto v0.0.0-20220722155217-630584e8d5aa // indirect
+	golang.org/x/exp v0.0.0-20230203172020-98cc5a0785f9 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
 
 require (
-	ariga.io/atlas v0.8.4-0.20221212165942-e53dd27a603d // indirect
-	entgo.io/ent v0.11.5
+	ariga.io/atlas v0.9.1-0.20230119123307-a3ab6808892b // indirect
+	entgo.io/ent v0.11.6
 	github.com/agext/levenshtein v1.2.1 // indirect
 	github.com/alicebob/miniredis/v2 v2.30.0
 	github.com/apparentlymart/go-textseg/v13 v13.0.0 // indirect
@@ -47,7 +53,6 @@ require (
 	github.com/google/uuid v1.3.0
 	github.com/hashicorp/hcl/v2 v2.13.0 // indirect
 	github.com/jackc/pgx/v4 v4.17.2
-	github.com/mattn/go-sqlite3 v1.14.16
 	github.com/meilisearch/meilisearch-go v0.22.0
 	github.com/mitchellh/go-wordwrap v0.0.0-20150314170334-ad45545899c7 // indirect
 	github.com/supabase-community/gotrue-go v1.0.1
