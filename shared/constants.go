@@ -33,7 +33,9 @@ const (
 )
 
 // Default image extension for generate
-const DEFAULT_GENERATE_OUTPUT_EXTENSION = WEBP
+const DEFAULT_GENERATE_OUTPUT_EXTENSION = JPEG
+const DEFAULT_GENERATE_NUM_OUTPUTS = 4
+const DEFAULT_GENERATE_OUTPUT_QUALITY = 85
 
 // Allowed image extensions for upload
 var ALLOWS_IMAGE_EXTENSIONS_UPLOAD = []ImageExtension{WEBP, JPEG, PNG}

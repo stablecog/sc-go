@@ -68,13 +68,14 @@ func (c *RestAPI) HandleCreateGeneration(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
+	if generateReq.NumOutputs == 0 {
+		generateReq.NumOutputs = shared.DEFAULT_GENERATE_NUM_OUTPUTS
+	}
 	if generateReq.NumOutputs > shared.MAX_GENERATE_NUM_OUTPUTS {
 		klog.Infof("Number of outputs can't be more than %d", shared.MAX_GENERATE_NUM_OUTPUTS)
 		responses.ErrBadRequest(w, r, fmt.Sprintf("Number of outputs can't be more than %d", shared.MAX_GENERATE_NUM_OUTPUTS))
 		return
-	}
-
-	if generateReq.NumOutputs < shared.MIN_GENERATE_NUM_OUTPUTS {
+	} else if generateReq.NumOutputs < shared.MIN_GENERATE_NUM_OUTPUTS {
 		klog.Infof("Number of outputs can't be less than %d", shared.MIN_GENERATE_NUM_OUTPUTS)
 		responses.ErrBadRequest(w, r, fmt.Sprintf("Number of outputs can't be less than %d", shared.MIN_GENERATE_NUM_OUTPUTS))
 		return
@@ -202,6 +203,7 @@ func (c *RestAPI) HandleCreateGeneration(w http.ResponseWriter, r *http.Request)
 			Seed:                 fmt.Sprint(generateReq.Seed),
 			NumOutputs:           fmt.Sprint(generateReq.NumOutputs),
 			OutputImageExtension: string(shared.DEFAULT_GENERATE_OUTPUT_EXTENSION),
+			OutputImageQuality:   fmt.Sprint(shared.DEFAULT_GENERATE_OUTPUT_QUALITY),
 			ProcessType:          string(shared.DEFAULT_PROCESS_TYPE),
 		},
 	}

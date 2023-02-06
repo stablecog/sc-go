@@ -30,6 +30,7 @@ type BaseCogGenerateRequest struct {
 	Width                string `json:"width"`
 	Height               string `json:"height"`
 	OutputImageExtension string `json:"output_image_extension"`
+	OutputImageQuality   string `json:"output_image_quality"`
 	NumInferenceSteps    string `json:"num_inference_steps"`
 	GuidanceScale        string `json:"guidance_scale"`
 	Model                string `json:"model"`
