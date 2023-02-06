@@ -202,6 +202,7 @@ func (c *RestAPI) HandleCreateGeneration(w http.ResponseWriter, r *http.Request)
 			Seed:                 fmt.Sprint(generateReq.Seed),
 			NumOutputs:           fmt.Sprint(generateReq.NumOutputs),
 			OutputImageExtension: string(shared.DEFAULT_GENERATE_OUTPUT_EXTENSION),
+			ProcessType:          string(shared.DEFAULT_PROCESS_TYPE),
 		},
 	}
 

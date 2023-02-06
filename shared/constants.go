@@ -37,3 +37,18 @@ const DEFAULT_GENERATE_OUTPUT_EXTENSION = WEBP
 
 // Allowed image extensions for upload
 var ALLOWS_IMAGE_EXTENSIONS_UPLOAD = []ImageExtension{WEBP, JPEG, PNG}
+
+// Allowed process type
+type ProcessType string
+
+const (
+	GENERATE             ProcessType = "generate"
+	UPSCALE              ProcessType = "upscale"
+	GENERATE_AND_UPSCALE ProcessType = "generate_and_upscale"
+)
+
+// Default image extension for generate
+const DEFAULT_PROCESS_TYPE = GENERATE_AND_UPSCALE
+
+// Allowed image extensions for upload
+var ALLOWED_PROCESS_TYPES = []ProcessType{GENERATE, UPSCALE, GENERATE_AND_UPSCALE}

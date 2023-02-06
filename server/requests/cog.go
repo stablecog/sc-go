@@ -39,6 +39,7 @@ type BaseCogGenerateRequest struct {
 	Mask                 string `json:"mask,omitempty"`
 	Seed                 string `json:"seed"`
 	NumOutputs           string `json:"num_outputs"`
+	ProcessType          string `json:"process_type"`
 	PromptFlores         string `json:"prompt_flores_200_code,omitempty"`
 	NegativePromptFlores string `json:"negative_prompt_flores_200_code,omitempty"`
 }
