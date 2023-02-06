@@ -3,7 +3,6 @@ package rest
 import (
 	"net/http"
 
-	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/google/uuid"
 	"github.com/stablecog/go-apps/database"
 	"github.com/stablecog/go-apps/database/repository"
@@ -15,8 +14,6 @@ import (
 type RestAPI struct {
 	Repo                       *repository.Repository
 	Redis                      *database.RedisWrapper
-	S3Client                   *s3.Client
-	S3PresignClient            *s3.PresignClient
 	CogRequestWebsocketConnMap *shared.SyncMap[string]
 	Hub                        *websocket.Hub
 }
