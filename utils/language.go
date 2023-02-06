@@ -11,7 +11,6 @@ import (
 	"github.com/stablecog/go-apps/utils/color"
 )
 
-var LanguageDetector = lingua.NewLanguageDetectorBuilder().FromAllLanguages().Build()
 var LANG_TO_FLORES = map[string]string{
 	"AFRIKAANS":   "afr_Latn",
 	"ALBANIAN":    "als_Latn",
@@ -93,15 +92,26 @@ const targetLangAcceptableScore float64 = 0.2
 const targetLangMinDif float64 = 0.01
 const maxTextLength = 150
 
-func GetPromptFloresCodes(prompt string, negativePrompt string) (string, string) {
+type LanguageDetector struct {
+	Detector lingua.LanguageDetector
+}
+
+func NewLanguageDetector() *LanguageDetector {
+	lingua := lingua.NewLanguageDetectorBuilder().FromAllLanguages().Build()
+	return &LanguageDetector{
+		Detector: lingua,
+	}
+}
+
+func (l *LanguageDetector) GetPromptFloresCodes(prompt string, negativePrompt string) (string, string) {
 	s := time.Now()
-	promptFlores := GetFloresCode(prompt)
-	negativePromptFlores := GetFloresCode(negativePrompt)
+	promptFlores := l.GetFloresCode(prompt)
+	negativePromptFlores := l.GetFloresCode(negativePrompt)
 	log.Printf("-- GetPromptFloresCodes took: %v - %s - %s --", color.Green(time.Since(s).Milliseconds(), "ms"), promptFlores, negativePromptFlores)
 	return promptFlores, negativePromptFlores
 }
 
-func GetFloresCode(text string) string {
+func (l *LanguageDetector) GetFloresCode(text string) string {
 	if text == "" {
 		return targetLangFlores
 	}
@@ -110,7 +120,7 @@ func GetFloresCode(text string) string {
 		text = text[:maxTextLength]
 	}
 
-	confidenceValues := LanguageDetector.ComputeLanguageConfidenceValues(text)
+	confidenceValues := l.Detector.ComputeLanguageConfidenceValues(text)
 	if len(confidenceValues) < 1 {
 		return targetLangFlores
 	}

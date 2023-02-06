@@ -9,6 +9,7 @@ import (
 	"github.com/stablecog/go-apps/server/api/websocket"
 	"github.com/stablecog/go-apps/server/responses"
 	"github.com/stablecog/go-apps/shared"
+	"github.com/stablecog/go-apps/utils"
 )
 
 type RestAPI struct {
@@ -16,6 +17,7 @@ type RestAPI struct {
 	Redis                      *database.RedisWrapper
 	CogRequestWebsocketConnMap *shared.SyncMap[string]
 	Hub                        *websocket.Hub
+	LanguageDetector           *utils.LanguageDetector
 }
 
 func (c *RestAPI) GetUserIDIfAuthenticated(w http.ResponseWriter, r *http.Request) *uuid.UUID {

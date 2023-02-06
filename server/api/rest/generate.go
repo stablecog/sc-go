@@ -179,7 +179,7 @@ func (c *RestAPI) HandleCreateGeneration(w http.ResponseWriter, r *http.Request)
 	fmt.Printf("--- Create generation took: %s\n", time.Now().Sub(start))
 
 	// Get language codes
-	promptFlores, negativePromptFlores := utils.GetPromptFloresCodes(generateReq.Prompt, generateReq.NegativePrompt)
+	promptFlores, negativePromptFlores := c.LanguageDetector.GetPromptFloresCodes(generateReq.Prompt, generateReq.NegativePrompt)
 	// Generate a unique request ID for the cog
 	requestId := g.ID.String()
 

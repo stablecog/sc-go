@@ -138,6 +138,7 @@ func main() {
 		Redis:                      redis,
 		CogRequestWebsocketConnMap: cogRequestWebsocketConnMap,
 		Hub:                        hub,
+		LanguageDetector:           utils.NewLanguageDetector(),
 	}
 
 	// Create middleware
