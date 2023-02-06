@@ -109,9 +109,6 @@ func main() {
 		MaxAge:           300, // Maximum value not ignored by any of major browsers
 	}))
 
-	// Log middleware
-	app.Use(chimiddleware.Logger)
-
 	// Get models, schedulers and put in cache
 	klog.Infof("📦 Updating cache...")
 	err = repo.UpdateCache()
@@ -176,9 +173,17 @@ func main() {
 	app.Route("/v1", func(r chi.Router) {
 		r.Get("/health", hc.HandleHealth)
 
+		// Websocket
+		r.Route("/ws", func(r chi.Router) {
+			r.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+				websocket.ServeWS(hub, w, r)
+			})
+		})
+
 		// Routes that require authentication
 		r.Route("/user", func(r chi.Router) {
 			r.Use(mw.AuthMiddleware)
+			r.Use(chimiddleware.Logger)
 			r.Route("/generation", func(r chi.Router) {
 				r.Post("/create", hc.HandleCreateGeneration)
 				r.Get("/query", hc.HandleQueryGenerations)
@@ -193,19 +198,14 @@ func main() {
 			r.Route("/gallery", func(r chi.Router) {
 				r.Use(mw.AuthMiddleware)
 				r.Use(mw.AdminMiddleware)
+				r.Use(chimiddleware.Logger)
 				r.Post("/review", hc.HandleReviewGallerySubmission)
 			})
 			r.Route("/generation", func(r chi.Router) {
 				r.Use(mw.AuthMiddleware)
 				r.Use(mw.SuperAdminMiddleware)
+				r.Use(chimiddleware.Logger)
 				r.Delete("/delete", hc.HandleDeleteGeneration)
-			})
-		})
-
-		// Websocket
-		r.Route("/ws", func(r chi.Router) {
-			r.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-				websocket.ServeWS(hub, w, r)
 			})
 		})
 	})
@@ -272,9 +272,10 @@ func main() {
 			// Regardless of the status, we always send over websocket so user knows what's up
 			// Send message to user
 			resp := responses.WebsocketStatusUpdateResponse{
-				Status: cogMessage.Status,
-				Id:     cogMessage.Input.Id,
-				Error:  cogErr,
+				Status:    cogMessage.Status,
+				Id:        cogMessage.Input.Id,
+				NSFWCount: cogMessage.NSFWCount,
+				Error:     cogErr,
 			}
 			if cogMessage.Status == responses.CogSucceeded {
 				resp.Outputs = outputs
