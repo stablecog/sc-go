@@ -3,10 +3,12 @@ package utils
 import (
 	"encoding/base64"
 	"net/http"
+	"strconv"
 	"strings"
 	"testing"
 
 	"github.com/jarcoal/httpmock"
+	"github.com/stablecog/go-apps/shared"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -18,6 +20,51 @@ const TestPNG = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABAQMAAAAl2
 
 // A 1x1 WebP image
 const TestWebP = "data:image/webp;base64,UklGRkAAAABXRUJQVlA4WAoAAAAQAAAAAAAAAAAAQUxQSAIAAAAAAFZQOCAYAAAAMAEAnQEqAQABAAIANCWkAANwAP77/VAA"
+
+func TestGetImageSizeFromUrl(t *testing.T) {
+	httpmock.Activate()
+	defer httpmock.DeactivateAndReset()
+	httpmock.RegisterResponder("HEAD", "http://localhost:123456/image.jpeg",
+		func(req *http.Request) (*http.Response, error) {
+			resp := httpmock.NewStringResponse(200, "OK")
+			resp.Header.Add("Content-Length", "43")
+			return resp, nil
+		},
+	)
+
+	bytes, err := GetImageSizeFromUrl("http://localhost:123456/image.jpeg")
+	assert.Nil(t, err)
+	assert.Equal(t, int64(43), bytes)
+}
+
+func TestGetImageWidthHeightFromUrlFailsIfTooLarge(t *testing.T) {
+	httpmock.Activate()
+	defer httpmock.DeactivateAndReset()
+	httpmock.RegisterResponder("HEAD", "http://localhost:123456/image.jpeg",
+		func(req *http.Request) (*http.Response, error) {
+			resp := httpmock.NewStringResponse(200, "OK")
+			resp.Header.Add("Content-Length", strconv.Itoa(shared.MAX_UPSCALE_IMAGE_SIZE+1))
+			return resp, nil
+		},
+	)
+	httpmock.RegisterResponder("GET", "http://localhost:123456/image.jpeg",
+		func(req *http.Request) (*http.Response, error) {
+			i := strings.Index(TestJPEG, ",")
+			decoded, err := base64.StdEncoding.DecodeString(TestJPEG[i+1:])
+			if err != nil {
+				return nil, err
+			}
+
+			resp := httpmock.NewBytesResponse(200, decoded)
+			resp.Header.Add("Content-Type", "image/jpeg")
+			return resp, nil
+		},
+	)
+
+	_, _, err := GetImageWidthHeightFromUrl("http://localhost:123456/image.jpeg", shared.MAX_UPSCALE_IMAGE_SIZE)
+	assert.NotNil(t, err)
+	assert.Equal(t, "Image too large", err.Error())
+}
 
 func TestGetImageWidthHeightFromUrlJPEG(t *testing.T) {
 	httpmock.Activate()
@@ -36,7 +83,7 @@ func TestGetImageWidthHeightFromUrlJPEG(t *testing.T) {
 		},
 	)
 
-	width, height, err := GetImageWidthHeightFromUrl("http://localhost:123456/image.jpeg")
+	width, height, err := GetImageWidthHeightFromUrl("http://localhost:123456/image.jpeg", shared.MAX_UPSCALE_IMAGE_SIZE)
 	assert.Nil(t, err)
 	assert.Equal(t, int32(1), width)
 	assert.Equal(t, int32(1), height)
@@ -59,7 +106,7 @@ func TestGetImageWidthHeightFromUrlPNG(t *testing.T) {
 		},
 	)
 
-	width, height, err := GetImageWidthHeightFromUrl("http://localhost:123456/image.png")
+	width, height, err := GetImageWidthHeightFromUrl("http://localhost:123456/image.png", shared.MAX_UPSCALE_IMAGE_SIZE)
 	assert.Nil(t, err)
 	assert.Equal(t, int32(1), width)
 	assert.Equal(t, int32(1), height)
@@ -82,7 +129,7 @@ func TestGetImageWidthHeightFromUrlWEBP(t *testing.T) {
 		},
 	)
 
-	width, height, err := GetImageWidthHeightFromUrl("http://localhost:123456/image.webp")
+	width, height, err := GetImageWidthHeightFromUrl("http://localhost:123456/image.webp", shared.MAX_UPSCALE_IMAGE_SIZE)
 	assert.Nil(t, err)
 	assert.Equal(t, int32(1), width)
 	assert.Equal(t, int32(1), height)

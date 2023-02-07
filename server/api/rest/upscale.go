@@ -107,7 +107,7 @@ func (c *RestAPI) HandleUpscale(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		imageUrl = output.ImageURL
-		width, height, err = utils.GetImageWidthHeightFromUrl(imageUrl)
+		width, height, err = utils.GetImageWidthHeightFromUrl(imageUrl, shared.MAX_UPSCALE_IMAGE_SIZE)
 		if err != nil {
 			responses.ErrBadRequest(w, r, "Unable to retrieve width/height for upscale")
 			return
