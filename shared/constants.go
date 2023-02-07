@@ -33,7 +33,7 @@ const (
 )
 
 // Default image extension for generate
-const DEFAULT_GENERATE_OUTPUT_EXTENSION = WEBP
+const DEFAULT_GENERATE_OUTPUT_EXTENSION = JPEG
 const DEFAULT_GENERATE_NUM_OUTPUTS = 4
 const DEFAULT_GENERATE_OUTPUT_QUALITY = 85
 
@@ -50,7 +50,7 @@ const (
 )
 
 // Default image extension for generate
-const DEFAULT_PROCESS_TYPE = GENERATE_AND_UPSCALE
+const DEFAULT_PROCESS_TYPE = GENERATE
 
 // Allowed image extensions for upload
 var ALLOWED_PROCESS_TYPES = []ProcessType{GENERATE, UPSCALE, GENERATE_AND_UPSCALE}
