@@ -23,15 +23,16 @@ func (Upscale) Fields() []ent.Field {
 		field.Int32("width"),
 		field.Int32("height"),
 		field.Int32("scale"),
-		field.Int32("duration_ms"),
 		field.Text("country_code"),
-		field.Enum("status").Values("started", "succeeded", "failed"),
+		field.Enum("status").Values("queued", "started", "succeeded", "failed"),
 		field.Text("failure_reason").Optional().Nillable(),
 		// ! Relationships / many-to-one
 		field.UUID("user_id", uuid.UUID{}),
 		field.UUID("device_info_id", uuid.UUID{}),
 		field.UUID("model_id", uuid.UUID{}),
 		// ! End relationships
+		field.Time("started_at").Optional().Nillable(),
+		field.Time("completed_at").Optional().Nillable(),
 		field.Time("created_at").Default(time.Now).Immutable(),
 		field.Time("updated_at").Default(time.Now).UpdateDefault(time.Now),
 	}

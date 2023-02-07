@@ -43,12 +43,6 @@ func (uc *UpscaleCreate) SetScale(i int32) *UpscaleCreate {
 	return uc
 }
 
-// SetDurationMs sets the "duration_ms" field.
-func (uc *UpscaleCreate) SetDurationMs(i int32) *UpscaleCreate {
-	uc.mutation.SetDurationMs(i)
-	return uc
-}
-
 // SetCountryCode sets the "country_code" field.
 func (uc *UpscaleCreate) SetCountryCode(s string) *UpscaleCreate {
 	uc.mutation.SetCountryCode(s)
@@ -90,6 +84,34 @@ func (uc *UpscaleCreate) SetDeviceInfoID(u uuid.UUID) *UpscaleCreate {
 // SetModelID sets the "model_id" field.
 func (uc *UpscaleCreate) SetModelID(u uuid.UUID) *UpscaleCreate {
 	uc.mutation.SetModelID(u)
+	return uc
+}
+
+// SetStartedAt sets the "started_at" field.
+func (uc *UpscaleCreate) SetStartedAt(t time.Time) *UpscaleCreate {
+	uc.mutation.SetStartedAt(t)
+	return uc
+}
+
+// SetNillableStartedAt sets the "started_at" field if the given value is not nil.
+func (uc *UpscaleCreate) SetNillableStartedAt(t *time.Time) *UpscaleCreate {
+	if t != nil {
+		uc.SetStartedAt(*t)
+	}
+	return uc
+}
+
+// SetCompletedAt sets the "completed_at" field.
+func (uc *UpscaleCreate) SetCompletedAt(t time.Time) *UpscaleCreate {
+	uc.mutation.SetCompletedAt(t)
+	return uc
+}
+
+// SetNillableCompletedAt sets the "completed_at" field if the given value is not nil.
+func (uc *UpscaleCreate) SetNillableCompletedAt(t *time.Time) *UpscaleCreate {
+	if t != nil {
+		uc.SetCompletedAt(*t)
+	}
 	return uc
 }
 
@@ -231,9 +253,6 @@ func (uc *UpscaleCreate) check() error {
 	if _, ok := uc.mutation.Scale(); !ok {
 		return &ValidationError{Name: "scale", err: errors.New(`ent: missing required field "Upscale.scale"`)}
 	}
-	if _, ok := uc.mutation.DurationMs(); !ok {
-		return &ValidationError{Name: "duration_ms", err: errors.New(`ent: missing required field "Upscale.duration_ms"`)}
-	}
 	if _, ok := uc.mutation.CountryCode(); !ok {
 		return &ValidationError{Name: "country_code", err: errors.New(`ent: missing required field "Upscale.country_code"`)}
 	}
@@ -322,10 +341,6 @@ func (uc *UpscaleCreate) createSpec() (*Upscale, *sqlgraph.CreateSpec) {
 		_spec.SetField(upscale.FieldScale, field.TypeInt32, value)
 		_node.Scale = value
 	}
-	if value, ok := uc.mutation.DurationMs(); ok {
-		_spec.SetField(upscale.FieldDurationMs, field.TypeInt32, value)
-		_node.DurationMs = value
-	}
 	if value, ok := uc.mutation.CountryCode(); ok {
 		_spec.SetField(upscale.FieldCountryCode, field.TypeString, value)
 		_node.CountryCode = value
@@ -337,6 +352,14 @@ func (uc *UpscaleCreate) createSpec() (*Upscale, *sqlgraph.CreateSpec) {
 	if value, ok := uc.mutation.FailureReason(); ok {
 		_spec.SetField(upscale.FieldFailureReason, field.TypeString, value)
 		_node.FailureReason = &value
+	}
+	if value, ok := uc.mutation.StartedAt(); ok {
+		_spec.SetField(upscale.FieldStartedAt, field.TypeTime, value)
+		_node.StartedAt = &value
+	}
+	if value, ok := uc.mutation.CompletedAt(); ok {
+		_spec.SetField(upscale.FieldCompletedAt, field.TypeTime, value)
+		_node.CompletedAt = &value
 	}
 	if value, ok := uc.mutation.CreatedAt(); ok {
 		_spec.SetField(upscale.FieldCreatedAt, field.TypeTime, value)

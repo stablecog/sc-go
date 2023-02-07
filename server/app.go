@@ -166,6 +166,9 @@ func main() {
 				r.Post("/create", hc.HandleCreateGeneration)
 				r.Get("/query", hc.HandleQueryGenerations)
 			})
+			r.Route("/upscale", func(r chi.Router) {
+				r.Post("/create", hc.HandleUpscale)
+			})
 			r.Route("/gallery", func(r chi.Router) {
 				r.Post("/submit", hc.HandleSubmitGenerationToGallery)
 			})
@@ -189,12 +192,12 @@ func main() {
 	})
 
 	// Subscribe to webhook events
-	pubsub := redis.Client.Subscribe(ctx, shared.COG_REDIS_WEBHOOK_QUEUE_CHANNEL)
+	pubsub := redis.Client.Subscribe(ctx, shared.COG_REDIS_GENERATE_EVENT_CHANNEL)
 	defer pubsub.Close()
 
 	// Listen for messages
 	go func() {
-		klog.Infof("Listening for webhook messages on channel: %s", shared.COG_REDIS_WEBHOOK_QUEUE_CHANNEL)
+		klog.Infof("Listening for webhook messages on channel: %s", shared.COG_REDIS_GENERATE_EVENT_CHANNEL)
 		for msg := range pubsub.Channel() {
 			klog.Infof("Received webhook message: %s", msg.Payload)
 			var cogMessage responses.CogStatusUpdate

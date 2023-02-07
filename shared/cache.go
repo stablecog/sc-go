@@ -17,6 +17,7 @@ type Cache struct {
 	FreeHeights           []int32
 	FreeInterferenceSteps []int32
 	GenerateModels        []*ent.GenerationModel
+	UpscaleModels         []*ent.UpscaleModel
 	Schedulers            []*ent.Scheduler
 }
 
@@ -49,6 +50,12 @@ func (f *Cache) UpdateGenerationModels(models []*ent.GenerationModel) {
 	f.GenerateModels = models
 }
 
+func (f *Cache) UpdateUpscaleModels(models []*ent.UpscaleModel) {
+	lock.Lock()
+	defer lock.Unlock()
+	f.UpscaleModels = models
+}
+
 func (f *Cache) UpdateSchedulers(schedulers []*ent.Scheduler) {
 	lock.Lock()
 	defer lock.Unlock()
@@ -57,6 +64,15 @@ func (f *Cache) UpdateSchedulers(schedulers []*ent.Scheduler) {
 
 func (f *Cache) IsValidGenerationModelID(id uuid.UUID) bool {
 	for _, model := range f.GenerateModels {
+		if model.ID == id {
+			return true
+		}
+	}
+	return false
+}
+
+func (f *Cache) IsValidUpscaleModelID(id uuid.UUID) bool {
+	for _, model := range f.UpscaleModels {
 		if model.ID == id {
 			return true
 		}
@@ -105,6 +121,15 @@ func (f *Cache) IsNumInterferenceStepsAvailableForFree(width int32) bool {
 
 func (f *Cache) GetGenerationModelNameFromID(id uuid.UUID) string {
 	for _, model := range f.GenerateModels {
+		if model.ID == id {
+			return model.Name
+		}
+	}
+	return ""
+}
+
+func (f *Cache) GetUpscaleModelNameFromID(id uuid.UUID) string {
+	for _, model := range f.UpscaleModels {
 		if model.ID == id {
 			return model.Name
 		}

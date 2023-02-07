@@ -13,3 +13,12 @@ func TestIsSha256Hash(t *testing.T) {
 	// Not 64 chars
 	assert.False(t, IsSha256Hash(""))
 }
+
+func TestIsValidHTTPUrl(t *testing.T) {
+	assert.True(t, IsValidHTTPURL("https://google.com"))
+	assert.True(t, IsValidHTTPURL("http://google.com"))
+	assert.False(t, IsValidHTTPURL("ftp://google.com"))
+	assert.False(t, IsValidHTTPURL("google.com"))
+	assert.False(t, IsValidHTTPURL("google"))
+	assert.False(t, IsValidHTTPURL(""))
+}

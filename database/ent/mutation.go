@@ -7171,11 +7171,11 @@ type UpscaleMutation struct {
 	addheight              *int32
 	scale                  *int32
 	addscale               *int32
-	duration_ms            *int32
-	addduration_ms         *int32
 	country_code           *string
 	status                 *upscale.Status
 	failure_reason         *string
+	started_at             *time.Time
+	completed_at           *time.Time
 	created_at             *time.Time
 	updated_at             *time.Time
 	clearedFields          map[string]struct{}
@@ -7465,62 +7465,6 @@ func (m *UpscaleMutation) ResetScale() {
 	m.addscale = nil
 }
 
-// SetDurationMs sets the "duration_ms" field.
-func (m *UpscaleMutation) SetDurationMs(i int32) {
-	m.duration_ms = &i
-	m.addduration_ms = nil
-}
-
-// DurationMs returns the value of the "duration_ms" field in the mutation.
-func (m *UpscaleMutation) DurationMs() (r int32, exists bool) {
-	v := m.duration_ms
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldDurationMs returns the old "duration_ms" field's value of the Upscale entity.
-// If the Upscale object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *UpscaleMutation) OldDurationMs(ctx context.Context) (v int32, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldDurationMs is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldDurationMs requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldDurationMs: %w", err)
-	}
-	return oldValue.DurationMs, nil
-}
-
-// AddDurationMs adds i to the "duration_ms" field.
-func (m *UpscaleMutation) AddDurationMs(i int32) {
-	if m.addduration_ms != nil {
-		*m.addduration_ms += i
-	} else {
-		m.addduration_ms = &i
-	}
-}
-
-// AddedDurationMs returns the value that was added to the "duration_ms" field in this mutation.
-func (m *UpscaleMutation) AddedDurationMs() (r int32, exists bool) {
-	v := m.addduration_ms
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// ResetDurationMs resets all changes to the "duration_ms" field.
-func (m *UpscaleMutation) ResetDurationMs() {
-	m.duration_ms = nil
-	m.addduration_ms = nil
-}
-
 // SetCountryCode sets the "country_code" field.
 func (m *UpscaleMutation) SetCountryCode(s string) {
 	m.country_code = &s
@@ -7748,6 +7692,104 @@ func (m *UpscaleMutation) OldModelID(ctx context.Context) (v uuid.UUID, err erro
 // ResetModelID resets all changes to the "model_id" field.
 func (m *UpscaleMutation) ResetModelID() {
 	m.upscale_models = nil
+}
+
+// SetStartedAt sets the "started_at" field.
+func (m *UpscaleMutation) SetStartedAt(t time.Time) {
+	m.started_at = &t
+}
+
+// StartedAt returns the value of the "started_at" field in the mutation.
+func (m *UpscaleMutation) StartedAt() (r time.Time, exists bool) {
+	v := m.started_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldStartedAt returns the old "started_at" field's value of the Upscale entity.
+// If the Upscale object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UpscaleMutation) OldStartedAt(ctx context.Context) (v *time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldStartedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldStartedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldStartedAt: %w", err)
+	}
+	return oldValue.StartedAt, nil
+}
+
+// ClearStartedAt clears the value of the "started_at" field.
+func (m *UpscaleMutation) ClearStartedAt() {
+	m.started_at = nil
+	m.clearedFields[upscale.FieldStartedAt] = struct{}{}
+}
+
+// StartedAtCleared returns if the "started_at" field was cleared in this mutation.
+func (m *UpscaleMutation) StartedAtCleared() bool {
+	_, ok := m.clearedFields[upscale.FieldStartedAt]
+	return ok
+}
+
+// ResetStartedAt resets all changes to the "started_at" field.
+func (m *UpscaleMutation) ResetStartedAt() {
+	m.started_at = nil
+	delete(m.clearedFields, upscale.FieldStartedAt)
+}
+
+// SetCompletedAt sets the "completed_at" field.
+func (m *UpscaleMutation) SetCompletedAt(t time.Time) {
+	m.completed_at = &t
+}
+
+// CompletedAt returns the value of the "completed_at" field in the mutation.
+func (m *UpscaleMutation) CompletedAt() (r time.Time, exists bool) {
+	v := m.completed_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCompletedAt returns the old "completed_at" field's value of the Upscale entity.
+// If the Upscale object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UpscaleMutation) OldCompletedAt(ctx context.Context) (v *time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCompletedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCompletedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCompletedAt: %w", err)
+	}
+	return oldValue.CompletedAt, nil
+}
+
+// ClearCompletedAt clears the value of the "completed_at" field.
+func (m *UpscaleMutation) ClearCompletedAt() {
+	m.completed_at = nil
+	m.clearedFields[upscale.FieldCompletedAt] = struct{}{}
+}
+
+// CompletedAtCleared returns if the "completed_at" field was cleared in this mutation.
+func (m *UpscaleMutation) CompletedAtCleared() bool {
+	_, ok := m.clearedFields[upscale.FieldCompletedAt]
+	return ok
+}
+
+// ResetCompletedAt resets all changes to the "completed_at" field.
+func (m *UpscaleMutation) ResetCompletedAt() {
+	m.completed_at = nil
+	delete(m.clearedFields, upscale.FieldCompletedAt)
 }
 
 // SetCreatedAt sets the "created_at" field.
@@ -8001,7 +8043,7 @@ func (m *UpscaleMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *UpscaleMutation) Fields() []string {
-	fields := make([]string, 0, 12)
+	fields := make([]string, 0, 13)
 	if m.width != nil {
 		fields = append(fields, upscale.FieldWidth)
 	}
@@ -8010,9 +8052,6 @@ func (m *UpscaleMutation) Fields() []string {
 	}
 	if m.scale != nil {
 		fields = append(fields, upscale.FieldScale)
-	}
-	if m.duration_ms != nil {
-		fields = append(fields, upscale.FieldDurationMs)
 	}
 	if m.country_code != nil {
 		fields = append(fields, upscale.FieldCountryCode)
@@ -8031,6 +8070,12 @@ func (m *UpscaleMutation) Fields() []string {
 	}
 	if m.upscale_models != nil {
 		fields = append(fields, upscale.FieldModelID)
+	}
+	if m.started_at != nil {
+		fields = append(fields, upscale.FieldStartedAt)
+	}
+	if m.completed_at != nil {
+		fields = append(fields, upscale.FieldCompletedAt)
 	}
 	if m.created_at != nil {
 		fields = append(fields, upscale.FieldCreatedAt)
@@ -8052,8 +8097,6 @@ func (m *UpscaleMutation) Field(name string) (ent.Value, bool) {
 		return m.Height()
 	case upscale.FieldScale:
 		return m.Scale()
-	case upscale.FieldDurationMs:
-		return m.DurationMs()
 	case upscale.FieldCountryCode:
 		return m.CountryCode()
 	case upscale.FieldStatus:
@@ -8066,6 +8109,10 @@ func (m *UpscaleMutation) Field(name string) (ent.Value, bool) {
 		return m.DeviceInfoID()
 	case upscale.FieldModelID:
 		return m.ModelID()
+	case upscale.FieldStartedAt:
+		return m.StartedAt()
+	case upscale.FieldCompletedAt:
+		return m.CompletedAt()
 	case upscale.FieldCreatedAt:
 		return m.CreatedAt()
 	case upscale.FieldUpdatedAt:
@@ -8085,8 +8132,6 @@ func (m *UpscaleMutation) OldField(ctx context.Context, name string) (ent.Value,
 		return m.OldHeight(ctx)
 	case upscale.FieldScale:
 		return m.OldScale(ctx)
-	case upscale.FieldDurationMs:
-		return m.OldDurationMs(ctx)
 	case upscale.FieldCountryCode:
 		return m.OldCountryCode(ctx)
 	case upscale.FieldStatus:
@@ -8099,6 +8144,10 @@ func (m *UpscaleMutation) OldField(ctx context.Context, name string) (ent.Value,
 		return m.OldDeviceInfoID(ctx)
 	case upscale.FieldModelID:
 		return m.OldModelID(ctx)
+	case upscale.FieldStartedAt:
+		return m.OldStartedAt(ctx)
+	case upscale.FieldCompletedAt:
+		return m.OldCompletedAt(ctx)
 	case upscale.FieldCreatedAt:
 		return m.OldCreatedAt(ctx)
 	case upscale.FieldUpdatedAt:
@@ -8132,13 +8181,6 @@ func (m *UpscaleMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetScale(v)
-		return nil
-	case upscale.FieldDurationMs:
-		v, ok := value.(int32)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetDurationMs(v)
 		return nil
 	case upscale.FieldCountryCode:
 		v, ok := value.(string)
@@ -8182,6 +8224,20 @@ func (m *UpscaleMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetModelID(v)
 		return nil
+	case upscale.FieldStartedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetStartedAt(v)
+		return nil
+	case upscale.FieldCompletedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCompletedAt(v)
+		return nil
 	case upscale.FieldCreatedAt:
 		v, ok := value.(time.Time)
 		if !ok {
@@ -8213,9 +8269,6 @@ func (m *UpscaleMutation) AddedFields() []string {
 	if m.addscale != nil {
 		fields = append(fields, upscale.FieldScale)
 	}
-	if m.addduration_ms != nil {
-		fields = append(fields, upscale.FieldDurationMs)
-	}
 	return fields
 }
 
@@ -8230,8 +8283,6 @@ func (m *UpscaleMutation) AddedField(name string) (ent.Value, bool) {
 		return m.AddedHeight()
 	case upscale.FieldScale:
 		return m.AddedScale()
-	case upscale.FieldDurationMs:
-		return m.AddedDurationMs()
 	}
 	return nil, false
 }
@@ -8262,13 +8313,6 @@ func (m *UpscaleMutation) AddField(name string, value ent.Value) error {
 		}
 		m.AddScale(v)
 		return nil
-	case upscale.FieldDurationMs:
-		v, ok := value.(int32)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.AddDurationMs(v)
-		return nil
 	}
 	return fmt.Errorf("unknown Upscale numeric field %s", name)
 }
@@ -8279,6 +8323,12 @@ func (m *UpscaleMutation) ClearedFields() []string {
 	var fields []string
 	if m.FieldCleared(upscale.FieldFailureReason) {
 		fields = append(fields, upscale.FieldFailureReason)
+	}
+	if m.FieldCleared(upscale.FieldStartedAt) {
+		fields = append(fields, upscale.FieldStartedAt)
+	}
+	if m.FieldCleared(upscale.FieldCompletedAt) {
+		fields = append(fields, upscale.FieldCompletedAt)
 	}
 	return fields
 }
@@ -8297,6 +8347,12 @@ func (m *UpscaleMutation) ClearField(name string) error {
 	case upscale.FieldFailureReason:
 		m.ClearFailureReason()
 		return nil
+	case upscale.FieldStartedAt:
+		m.ClearStartedAt()
+		return nil
+	case upscale.FieldCompletedAt:
+		m.ClearCompletedAt()
+		return nil
 	}
 	return fmt.Errorf("unknown Upscale nullable field %s", name)
 }
@@ -8313,9 +8369,6 @@ func (m *UpscaleMutation) ResetField(name string) error {
 		return nil
 	case upscale.FieldScale:
 		m.ResetScale()
-		return nil
-	case upscale.FieldDurationMs:
-		m.ResetDurationMs()
 		return nil
 	case upscale.FieldCountryCode:
 		m.ResetCountryCode()
@@ -8334,6 +8387,12 @@ func (m *UpscaleMutation) ResetField(name string) error {
 		return nil
 	case upscale.FieldModelID:
 		m.ResetModelID()
+		return nil
+	case upscale.FieldStartedAt:
+		m.ResetStartedAt()
+		return nil
+	case upscale.FieldCompletedAt:
+		m.ResetCompletedAt()
 		return nil
 	case upscale.FieldCreatedAt:
 		m.ResetCreatedAt()

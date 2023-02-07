@@ -180,13 +180,13 @@ func (c *RestAPI) HandleCreateGeneration(w http.ResponseWriter, r *http.Request)
 
 	// Get language codes
 	promptFlores, negativePromptFlores := c.LanguageDetector.GetPromptFloresCodes(generateReq.Prompt, generateReq.NegativePrompt)
-	// Generate a unique request ID for the cog
+	// Request Id matches generation ID
 	requestId := g.ID.String()
 
 	cogReqBody := requests.CogGenerateQueueRequest{
 		BaseCogRequestQueue: requests.BaseCogRequestQueue{
 			WebhookEventsFilter: []requests.WebhookEventFilterOption{requests.WebhookEventFilterStart, requests.WebhookEventFilterStart},
-			RedisPubsubKey:      shared.COG_REDIS_WEBHOOK_QUEUE_CHANNEL,
+			RedisPubsubKey:      shared.COG_REDIS_GENERATE_EVENT_CHANNEL,
 		},
 		Input: requests.BaseCogGenerateRequest{
 			ID:                   requestId,

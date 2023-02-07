@@ -26,8 +26,6 @@ type Upscale struct {
 	Height int32 `json:"height,omitempty"`
 	// Scale holds the value of the "scale" field.
 	Scale int32 `json:"scale,omitempty"`
-	// DurationMs holds the value of the "duration_ms" field.
-	DurationMs int32 `json:"duration_ms,omitempty"`
 	// CountryCode holds the value of the "country_code" field.
 	CountryCode string `json:"country_code,omitempty"`
 	// Status holds the value of the "status" field.
@@ -40,6 +38,10 @@ type Upscale struct {
 	DeviceInfoID uuid.UUID `json:"device_info_id,omitempty"`
 	// ModelID holds the value of the "model_id" field.
 	ModelID uuid.UUID `json:"model_id,omitempty"`
+	// StartedAt holds the value of the "started_at" field.
+	StartedAt *time.Time `json:"started_at,omitempty"`
+	// CompletedAt holds the value of the "completed_at" field.
+	CompletedAt *time.Time `json:"completed_at,omitempty"`
 	// CreatedAt holds the value of the "created_at" field.
 	CreatedAt time.Time `json:"created_at,omitempty"`
 	// UpdatedAt holds the value of the "updated_at" field.
@@ -117,11 +119,11 @@ func (*Upscale) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case upscale.FieldWidth, upscale.FieldHeight, upscale.FieldScale, upscale.FieldDurationMs:
+		case upscale.FieldWidth, upscale.FieldHeight, upscale.FieldScale:
 			values[i] = new(sql.NullInt64)
 		case upscale.FieldCountryCode, upscale.FieldStatus, upscale.FieldFailureReason:
 			values[i] = new(sql.NullString)
-		case upscale.FieldCreatedAt, upscale.FieldUpdatedAt:
+		case upscale.FieldStartedAt, upscale.FieldCompletedAt, upscale.FieldCreatedAt, upscale.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
 		case upscale.FieldID, upscale.FieldUserID, upscale.FieldDeviceInfoID, upscale.FieldModelID:
 			values[i] = new(uuid.UUID)
@@ -164,12 +166,6 @@ func (u *Upscale) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				u.Scale = int32(value.Int64)
 			}
-		case upscale.FieldDurationMs:
-			if value, ok := values[i].(*sql.NullInt64); !ok {
-				return fmt.Errorf("unexpected type %T for field duration_ms", values[i])
-			} else if value.Valid {
-				u.DurationMs = int32(value.Int64)
-			}
 		case upscale.FieldCountryCode:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field country_code", values[i])
@@ -206,6 +202,20 @@ func (u *Upscale) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field model_id", values[i])
 			} else if value != nil {
 				u.ModelID = *value
+			}
+		case upscale.FieldStartedAt:
+			if value, ok := values[i].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field started_at", values[i])
+			} else if value.Valid {
+				u.StartedAt = new(time.Time)
+				*u.StartedAt = value.Time
+			}
+		case upscale.FieldCompletedAt:
+			if value, ok := values[i].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field completed_at", values[i])
+			} else if value.Valid {
+				u.CompletedAt = new(time.Time)
+				*u.CompletedAt = value.Time
 			}
 		case upscale.FieldCreatedAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
@@ -276,9 +286,6 @@ func (u *Upscale) String() string {
 	builder.WriteString("scale=")
 	builder.WriteString(fmt.Sprintf("%v", u.Scale))
 	builder.WriteString(", ")
-	builder.WriteString("duration_ms=")
-	builder.WriteString(fmt.Sprintf("%v", u.DurationMs))
-	builder.WriteString(", ")
 	builder.WriteString("country_code=")
 	builder.WriteString(u.CountryCode)
 	builder.WriteString(", ")
@@ -298,6 +305,16 @@ func (u *Upscale) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("model_id=")
 	builder.WriteString(fmt.Sprintf("%v", u.ModelID))
+	builder.WriteString(", ")
+	if v := u.StartedAt; v != nil {
+		builder.WriteString("started_at=")
+		builder.WriteString(v.Format(time.ANSIC))
+	}
+	builder.WriteString(", ")
+	if v := u.CompletedAt; v != nil {
+		builder.WriteString("completed_at=")
+		builder.WriteString(v.Format(time.ANSIC))
+	}
 	builder.WriteString(", ")
 	builder.WriteString("created_at=")
 	builder.WriteString(u.CreatedAt.Format(time.ANSIC))
