@@ -56,4 +56,5 @@ const DEFAULT_PROCESS_TYPE = GENERATE_AND_UPSCALE
 var ALLOWED_PROCESS_TYPES = []ProcessType{GENERATE, UPSCALE, GENERATE_AND_UPSCALE}
 
 // Maximum size of a custom image sent to upscale
+// 10MB
 const MAX_UPSCALE_IMAGE_SIZE = 1024 * 1024 * 10

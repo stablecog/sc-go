@@ -68,16 +68,12 @@ func (c *RestAPI) HandleCreateGeneration(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	if generateReq.NumOutputs == 0 {
+	if generateReq.NumOutputs < 0 {
 		generateReq.NumOutputs = shared.DEFAULT_GENERATE_NUM_OUTPUTS
 	}
 	if generateReq.NumOutputs > shared.MAX_GENERATE_NUM_OUTPUTS {
 		klog.Infof("Number of outputs can't be more than %d", shared.MAX_GENERATE_NUM_OUTPUTS)
 		responses.ErrBadRequest(w, r, fmt.Sprintf("Number of outputs can't be more than %d", shared.MAX_GENERATE_NUM_OUTPUTS))
-		return
-	} else if generateReq.NumOutputs < shared.MIN_GENERATE_NUM_OUTPUTS {
-		klog.Infof("Number of outputs can't be less than %d", shared.MIN_GENERATE_NUM_OUTPUTS)
-		responses.ErrBadRequest(w, r, fmt.Sprintf("Number of outputs can't be less than %d", shared.MIN_GENERATE_NUM_OUTPUTS))
 		return
 	}
 

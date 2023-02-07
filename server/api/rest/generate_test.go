@@ -92,7 +92,8 @@ func TestGenerateEnforcesNumOutputsChange(t *testing.T) {
 		WebsocketId: MockWSId,
 		Height:      shared.MAX_GENERATE_HEIGHT,
 		Width:       shared.MAX_GENERATE_WIDTH,
-		NumOutputs:  shared.MIN_GENERATE_NUM_OUTPUTS - 1,
+		// Minimum is not enforced since it should default to 1
+		NumOutputs: -1,
 	}
 	body, _ := json.Marshal(reqBody)
 	w := httptest.NewRecorder()
@@ -111,7 +112,7 @@ func TestGenerateEnforcesNumOutputsChange(t *testing.T) {
 	respBody, _ := io.ReadAll(resp.Body)
 	json.Unmarshal(respBody, &respJson)
 
-	assert.Equal(t, fmt.Sprintf("Number of outputs can't be less than %d", shared.MIN_GENERATE_NUM_OUTPUTS), respJson["error"])
+	assert.Equal(t, "Invalid model ID", respJson["error"])
 
 	// ! Max
 	reqBody = requests.GenerateRequestBody{

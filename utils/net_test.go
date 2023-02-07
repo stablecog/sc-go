@@ -69,6 +69,13 @@ func TestGetImageWidthHeightFromUrlFailsIfTooLarge(t *testing.T) {
 func TestGetImageWidthHeightFromUrlJPEG(t *testing.T) {
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
+	httpmock.RegisterResponder("HEAD", "http://localhost:123456/image.jpeg",
+		func(req *http.Request) (*http.Response, error) {
+			resp := httpmock.NewStringResponse(200, "OK")
+			resp.Header.Add("Content-Length", "43")
+			return resp, nil
+		},
+	)
 	httpmock.RegisterResponder("GET", "http://localhost:123456/image.jpeg",
 		func(req *http.Request) (*http.Response, error) {
 			i := strings.Index(TestJPEG, ",")
@@ -92,6 +99,13 @@ func TestGetImageWidthHeightFromUrlJPEG(t *testing.T) {
 func TestGetImageWidthHeightFromUrlPNG(t *testing.T) {
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
+	httpmock.RegisterResponder("HEAD", "http://localhost:123456/image.png",
+		func(req *http.Request) (*http.Response, error) {
+			resp := httpmock.NewStringResponse(200, "OK")
+			resp.Header.Add("Content-Length", "43")
+			return resp, nil
+		},
+	)
 	httpmock.RegisterResponder("GET", "http://localhost:123456/image.png",
 		func(req *http.Request) (*http.Response, error) {
 			i := strings.Index(TestPNG, ",")
@@ -115,6 +129,13 @@ func TestGetImageWidthHeightFromUrlPNG(t *testing.T) {
 func TestGetImageWidthHeightFromUrlWEBP(t *testing.T) {
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
+	httpmock.RegisterResponder("HEAD", "http://localhost:123456/image.webp",
+		func(req *http.Request) (*http.Response, error) {
+			resp := httpmock.NewStringResponse(200, "OK")
+			resp.Header.Add("Content-Length", "43")
+			return resp, nil
+		},
+	)
 	httpmock.RegisterResponder("GET", "http://localhost:123456/image.webp",
 		func(req *http.Request) (*http.Response, error) {
 			i := strings.Index(TestWebP, ",")
