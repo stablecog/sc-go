@@ -1,10 +1,12 @@
 package utils
 
 import (
+	"bufio"
 	"fmt"
 	"image"
 	"image/jpeg"
 	"image/png"
+	"io"
 	"math"
 	"net/http"
 	"strconv"
@@ -50,6 +52,10 @@ func GetImageWidthHeightFromUrl(imageUrl string, maxSizeBytes int64) (width, hei
 	}
 	defer response.Body.Close()
 
+	// Limit large files
+	buffer := bufio.NewReader(response.Body)
+	limitReader := io.LimitReader(buffer, maxSizeBytes)
+
 	if response.StatusCode != http.StatusOK {
 		return 0, 0, fmt.Errorf("Received non 200 response code %d", response.StatusCode)
 	}
@@ -60,17 +66,17 @@ func GetImageWidthHeightFromUrl(imageUrl string, maxSizeBytes int64) (width, hei
 
 	switch contentType {
 	case "image/jpeg":
-		im, err = jpeg.DecodeConfig(response.Body)
+		im, err = jpeg.DecodeConfig(limitReader)
 		if err != nil {
 			return 0, 0, err
 		}
 	case "image/png":
-		im, err = png.DecodeConfig(response.Body)
+		im, err = png.DecodeConfig(limitReader)
 		if err != nil {
 			return 0, 0, err
 		}
 	case "image/webp":
-		im, err = webp.DecodeConfig(response.Body)
+		im, err = webp.DecodeConfig(limitReader)
 		if err != nil {
 			return 0, 0, err
 		}

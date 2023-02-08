@@ -66,6 +66,40 @@ func TestGetImageWidthHeightFromUrlFailsIfTooLarge(t *testing.T) {
 	assert.Equal(t, "Image too large", err.Error())
 }
 
+// Test when somebody does something nasty with content-length header
+func TestGetImageWidthHeightFromUrlJPEGSpoofContentLength(t *testing.T) {
+	httpmock.Activate()
+	defer httpmock.DeactivateAndReset()
+	httpmock.RegisterResponder("HEAD", "http://localhost:123456/image.jpeg",
+		func(req *http.Request) (*http.Response, error) {
+			resp := httpmock.NewStringResponse(200, "OK")
+			// Content-Length header is 1 byte
+			resp.Header.Add("Content-Length", "1")
+			return resp, nil
+		},
+	)
+	httpmock.RegisterResponder("GET", "http://localhost:123456/image.jpeg",
+		func(req *http.Request) (*http.Response, error) {
+			i := strings.Index(TestJPEG, ",")
+			decoded, err := base64.StdEncoding.DecodeString(TestJPEG[i+1:])
+			if err != nil {
+				return nil, err
+			}
+
+			resp := httpmock.NewBytesResponse(200, decoded)
+			resp.Header.Add("Content-Type", "image/jpeg")
+			return resp, nil
+		},
+	)
+
+	// Content-Length Tells us 1 byte
+	// We don't want more than 2 bytes (that should be ok)
+	// This should still fail since the actual body is more than 2 byte
+	_, _, err := GetImageWidthHeightFromUrl("http://localhost:123456/image.jpeg", 2)
+	assert.NotNil(t, err)
+	assert.Equal(t, "unexpected EOF", err.Error())
+}
+
 func TestGetImageWidthHeightFromUrlJPEG(t *testing.T) {
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
