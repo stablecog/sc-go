@@ -53,8 +53,7 @@ type BaseCogUpscaleRequest struct {
 	ID                 string `json:"id"`
 	GenerationOutputID string `json:"generation_output_id,omitempty"`
 	// These fields actually go to the cog
-	Image       string `json:"image_u"`
-	Task        string `json:"task_u,omitempty"`
+	Image       string `json:"image_to_upscale"`
 	ProcessType string `json:"process_type"`
 }
 
