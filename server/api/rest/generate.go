@@ -200,7 +200,7 @@ func (c *RestAPI) HandleCreateGeneration(w http.ResponseWriter, r *http.Request)
 			NumOutputs:           fmt.Sprint(generateReq.NumOutputs),
 			OutputImageExtension: string(shared.DEFAULT_GENERATE_OUTPUT_EXTENSION),
 			OutputImageQuality:   fmt.Sprint(shared.DEFAULT_GENERATE_OUTPUT_QUALITY),
-			ProcessType:          string(shared.DEFAULT_PROCESS_TYPE),
+			ProcessType:          generateReq.ProcessType,
 		},
 	}
 

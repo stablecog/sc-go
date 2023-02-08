@@ -22,6 +22,7 @@ type GenerateRequestBody struct {
 	NumOutputs            int       `json:"num_outputs,omitempty"`
 	WebsocketId           string    `json:"websocket_id"`
 	ShouldSubmitToGallery bool      `json:"should_submit_to_gallery"`
+	ProcessType           string    `json:"process_type"`
 }
 
 // Request for initiationg an upscale
