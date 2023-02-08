@@ -198,7 +198,7 @@ func (c *RestAPI) HandleCreateGeneration(w http.ResponseWriter, r *http.Request)
 			Scheduler:            schedulerName,
 			Seed:                 fmt.Sprint(generateReq.Seed),
 			NumOutputs:           fmt.Sprint(generateReq.NumOutputs),
-			OutputImageExtension: string(shared.DEFAULT_GENERATE_OUTPUT_EXTENSION),
+			OutputImageExtension: generateReq.OutputImageExtension,
 			OutputImageQuality:   fmt.Sprint(shared.DEFAULT_GENERATE_OUTPUT_QUALITY),
 			ProcessType:          generateReq.ProcessType,
 		},
