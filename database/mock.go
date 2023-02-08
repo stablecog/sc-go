@@ -23,6 +23,9 @@ const MOCK_GENERATION_MODEL_ID_PRO = "b972a2b8-f39e-4ee3-a670-05e3acdd821d"
 const MOCK_SCHEDULER_ID_FREE = "b4dff6e9-91a7-449b-b1a7-c25000e3ccd0"
 const MOCK_SCHEDULER_ID_PRO = "b4dff6e9-91a7-449b-b1a7-c25000e3ccd1"
 
+// Mock upscale
+const MOCK_UPSCALE_MODEL_ID = "b972a2b8-f39e-4ee3-a670-05e3acdd821e"
+
 // Just creates some mock data for our tests
 func CreateMockData(ctx context.Context, db *ent.Client, repo *repository.Repository) error {
 	// Create sub tiers
@@ -82,6 +85,12 @@ func CreateMockData(ctx context.Context, db *ent.Client, repo *repository.Reposi
 	}
 	// Create a generation model for the pro user
 	_, err = db.GenerationModel.Create().SetID(uuid.MustParse(MOCK_GENERATION_MODEL_ID_PRO)).SetName("mockpromodel").SetIsFree(false).Save(ctx)
+	if err != nil {
+		return err
+	}
+
+	// ! Mock upscale models
+	_, err = db.UpscaleModel.Create().SetID(uuid.MustParse(MOCK_UPSCALE_MODEL_ID)).SetName("mockupscalemodel").SetIsFree(true).Save(ctx)
 	if err != nil {
 		return err
 	}

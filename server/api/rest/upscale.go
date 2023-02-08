@@ -32,6 +32,11 @@ func (c *RestAPI) HandleUpscale(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Validation
+	if !utils.IsSha256Hash(upscaleReq.WebsocketId) || c.Hub.GetClientByUid(upscaleReq.WebsocketId) == nil {
+		responses.ErrBadRequest(w, r, "Invalid websocket ID")
+		return
+	}
+
 	if upscaleReq.Type != requests.UpscaleRequestTypeImage && upscaleReq.Type != requests.UpscaleRequestTypeOutput {
 		responses.ErrBadRequest(w, r, fmt.Sprintf("Invalid upscale type, should be %s or %s", requests.UpscaleRequestTypeImage, requests.UpscaleRequestTypeOutput))
 		return
@@ -52,11 +57,6 @@ func (c *RestAPI) HandleUpscale(w http.ResponseWriter, r *http.Request) {
 	if !shared.GetCache().IsValidUpscaleModelID(upscaleReq.ModelId) {
 		klog.Infof("Invalid model ID: %s", upscaleReq.ModelId)
 		responses.ErrBadRequest(w, r, "Invalid model ID")
-		return
-	}
-
-	if !utils.IsSha256Hash(upscaleReq.WebsocketId) || c.Hub.GetClientByUid(upscaleReq.WebsocketId) == nil {
-		responses.ErrBadRequest(w, r, "Invalid websocket ID")
 		return
 	}
 
@@ -90,8 +90,20 @@ func (c *RestAPI) HandleUpscale(w http.ResponseWriter, r *http.Request) {
 	var width int32
 	var height int32
 
+	// Image Type
 	imageUrl := upscaleReq.Input
+	if upscaleReq.Type == requests.UpscaleRequestTypeImage {
+		width, height, err = utils.GetImageWidthHeightFromUrl(imageUrl, shared.MAX_UPSCALE_IMAGE_SIZE)
+		if err != nil {
+			responses.ErrBadRequest(w, r, "Unable to retrieve width/height for upscale")
+			return
+		}
+	}
+
+	// Output Type
+	var outputIDStr string
 	if upscaleReq.Type == requests.UpscaleRequestTypeOutput {
+		outputIDStr = outputID.String()
 		output, err := c.Repo.GetGenerationOutputForUser(outputID, *userID)
 		if err != nil {
 			if ent.IsNotFound(err) {
@@ -107,16 +119,6 @@ func (c *RestAPI) HandleUpscale(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		imageUrl = output.ImageURL
-		width, height, err = utils.GetImageWidthHeightFromUrl(imageUrl, shared.MAX_UPSCALE_IMAGE_SIZE)
-		if err != nil {
-			responses.ErrBadRequest(w, r, "Unable to retrieve width/height for upscale")
-			return
-		}
-	}
-
-	var outputIDStr string
-	if upscaleReq.Type == requests.UpscaleRequestTypeOutput {
-		outputIDStr = outputID.String()
 		// Get width/height of generation
 		width, height, err = c.Repo.GetGenerationOutputWidthHeight(outputID)
 		if err != nil {
@@ -158,7 +160,7 @@ func (c *RestAPI) HandleUpscale(w http.ResponseWriter, r *http.Request) {
 		},
 	}
 
-	err = c.Redis.EnqueueCogGenerateRequest(r.Context(), cogReqBody)
+	err = c.Redis.EnqueueCogRequest(r.Context(), cogReqBody)
 	if err != nil {
 		klog.Errorf("Failed to write request %s to queue: %v", requestId, err)
 		responses.ErrInternalServerError(w, r, "Failed to queue upscale request")
@@ -169,7 +171,7 @@ func (c *RestAPI) HandleUpscale(w http.ResponseWriter, r *http.Request) {
 	c.CogRequestWebsocketConnMap.Put(requestId, upscaleReq.WebsocketId)
 
 	render.Status(r, http.StatusOK)
-	render.JSON(w, r, &responses.GenerateResponse{
+	render.JSON(w, r, &responses.QueuedResponse{
 		ID: requestId,
 	})
 }

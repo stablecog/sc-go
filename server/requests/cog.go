@@ -64,11 +64,15 @@ type CogGenerateQueueRequest struct {
 	Input BaseCogGenerateRequest `json:"input"`
 }
 
+func (i CogGenerateQueueRequest) MarshalBinary() (data []byte, err error) {
+	return json.Marshal(i)
+}
+
 type CogUpscaleQueueRequest struct {
 	BaseCogRequestQueue
 	Input BaseCogUpscaleRequest `json:"input"`
 }
 
-func (i CogGenerateQueueRequest) MarshalBinary() (data []byte, err error) {
+func (i CogUpscaleQueueRequest) MarshalBinary() (data []byte, err error) {
 	return json.Marshal(i)
 }

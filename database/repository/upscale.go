@@ -7,6 +7,7 @@ import (
 	"github.com/stablecog/go-apps/database/ent"
 	"github.com/stablecog/go-apps/database/ent/upscale"
 	"github.com/stablecog/go-apps/server/requests"
+	"github.com/stablecog/go-apps/shared"
 	"k8s.io/klog/v2"
 )
 
@@ -30,6 +31,7 @@ func (r *Repository) CreateUpscale(userID uuid.UUID, width, height int32, device
 		SetModelID(req.ModelId).
 		SetDeviceInfoID(deviceInfoId).
 		SetCountryCode(countryCode).
+		SetScale(shared.DEFAULT_UPSCALE_SCALE).
 		SetUserID(userID).Save(r.Ctx)
 }
 
