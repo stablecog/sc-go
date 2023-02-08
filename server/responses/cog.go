@@ -12,11 +12,12 @@ const (
 
 // Should mirror the initial request we made to the cog
 type CogInput struct {
-	Id     string `json:"id"`
-	Prompt string `json:"prompt"`
-	Model  string `json:"model"`
-	Width  string `json:"width"`
-	Height string `json:"height"`
+	Id                 string `json:"id"`
+	Prompt             string `json:"prompt"`
+	Model              string `json:"model"`
+	Width              string `json:"width"`
+	Height             string `json:"height"`
+	GenerationOutputID string `json:"generation_output_id,omitempty"`
 }
 
 // Msg from cog to redis

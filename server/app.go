@@ -47,7 +47,7 @@ func main() {
 
 	// Setup sql
 	klog.Infoln("🏡 Connecting to database...")
-	dbconn, err := database.GetSqlDbConn()
+	dbconn, err := database.GetSqlDbConn(false)
 	if err != nil {
 		klog.Fatalf("Failed to connect to database: %v", err)
 		os.Exit(1)
@@ -166,6 +166,9 @@ func main() {
 				r.Post("/create", hc.HandleCreateGeneration)
 				r.Get("/query", hc.HandleQueryGenerations)
 			})
+			r.Route("/upscale", func(r chi.Router) {
+				r.Post("/create", hc.HandleUpscale)
+			})
 			r.Route("/gallery", func(r chi.Router) {
 				r.Post("/submit", hc.HandleSubmitGenerationToGallery)
 			})
@@ -188,14 +191,17 @@ func main() {
 		})
 	})
 
-	// Subscribe to webhook events
-	pubsub := redis.Client.Subscribe(ctx, shared.COG_REDIS_WEBHOOK_QUEUE_CHANNEL)
-	defer pubsub.Close()
+	// Subscribe to cog events for generations
+	pubsubGenerate := redis.Client.Subscribe(ctx, shared.COG_REDIS_GENERATE_EVENT_CHANNEL)
+	defer pubsubGenerate.Close()
+	pubsubUpscale := redis.Client.Subscribe(ctx, shared.COG_REDIS_UPSCALE_EVENT_CHANNEL)
+	defer pubsubUpscale.Close()
 
 	// Listen for messages
+	// ! TODO - move the bulk of this logic somewhere else
 	go func() {
-		klog.Infof("Listening for webhook messages on channel: %s", shared.COG_REDIS_WEBHOOK_QUEUE_CHANNEL)
-		for msg := range pubsub.Channel() {
+		klog.Infof("Listening for webhook messages on channel: %s", shared.COG_REDIS_GENERATE_EVENT_CHANNEL)
+		for msg := range pubsubGenerate.Channel() {
 			klog.Infof("Received webhook message: %s", msg.Payload)
 			var cogMessage responses.CogStatusUpdate
 			err := json.Unmarshal([]byte(msg.Payload), &cogMessage)
@@ -255,8 +261,95 @@ func main() {
 				NSFWCount: cogMessage.NSFWCount,
 				Error:     cogErr,
 			}
+
 			if cogMessage.Status == responses.CogSucceeded {
-				resp.Outputs = outputs
+				generateOutputs := make([]responses.WebhookStatusUpdateOutputs, len(outputs))
+				for i, output := range outputs {
+					generateOutputs[i] = responses.WebhookStatusUpdateOutputs{
+						ID:               output.ID,
+						ImageUrl:         output.ImageURL,
+						UpscaledImageUrl: output.UpscaledImageURL,
+						GalleryStatus:    output.GalleryStatus,
+					}
+				}
+				resp.Outputs = generateOutputs
+			}
+			// Marshal
+			respBytes, err := json.Marshal(resp)
+			if err != nil {
+				klog.Errorf("--- Error marshalling websocket started response: %v", err)
+				continue
+			}
+			hub.BroadcastToClientsWithUid(websocketIdStr, respBytes)
+		}
+	}()
+
+	// Upscale
+	go func() {
+		klog.Infof("Listening for webhook messages on channel: %s", shared.COG_REDIS_UPSCALE_EVENT_CHANNEL)
+		for msg := range pubsubUpscale.Channel() {
+			klog.Infof("Received webhook message: %s", msg.Payload)
+			var cogMessage responses.CogStatusUpdate
+			err := json.Unmarshal([]byte(msg.Payload), &cogMessage)
+			if err != nil {
+				klog.Errorf("--- Error unmarshalling webhook message: %v", err)
+				continue
+			}
+
+			// See if this request belongs to our instance
+			websocketIdStr := cogRequestWebsocketConnMap.Get(cogMessage.Input.Id)
+			if websocketIdStr == "" {
+				continue
+			}
+			// Ensure is valid
+			if !utils.IsSha256Hash(websocketIdStr) {
+				// Not sure how we get here, we never should
+				klog.Errorf("--- Invalid websocket id: %s", websocketIdStr)
+				continue
+			}
+
+			// Processing, update this upscale as started in database
+			var output *ent.UpscaleOutput
+			var cogErr string
+			if cogMessage.Status == responses.CogProcessing {
+				// In goroutine since we want them to know it started asap
+				go repo.SetUpscaleStarted(cogMessage.Input.Id)
+			} else if cogMessage.Status == responses.CogFailed {
+				repo.SetUpscaleFailed(cogMessage.Input.Id, cogMessage.Error)
+				cogErr = cogMessage.Error
+			} else if cogMessage.Status == responses.CogSucceeded {
+				if len(cogMessage.Outputs) == 0 {
+					cogErr = "No outputs"
+					repo.SetUpscaleFailed(cogMessage.Input.Id, cogErr)
+					cogMessage.Status = responses.CogFailed
+				} else {
+					output, err = repo.SetUpscaleSucceeded(cogMessage.Input.Id, cogMessage.Input.GenerationOutputID, cogMessage.Outputs[0])
+					if err != nil {
+						klog.Errorf("--- Error setting upscale succeeded for ID %s: %v", cogMessage.Input.Id, err)
+						continue
+					}
+				}
+
+			} else {
+				klog.Warningf("--- Unknown webhook status, not sure how to proceed so not proceeding at all: %s", cogMessage.Status)
+				continue
+			}
+
+			// Regardless of the status, we always send over websocket so user knows what's up
+			// Send message to user
+			resp := responses.WebsocketStatusUpdateResponse{
+				Status:    cogMessage.Status,
+				Id:        cogMessage.Input.Id,
+				NSFWCount: cogMessage.NSFWCount,
+				Error:     cogErr,
+			}
+			if cogMessage.Status == responses.CogSucceeded {
+				resp.Outputs = []responses.WebhookStatusUpdateOutputs{
+					{
+						ID:       output.ID,
+						ImageUrl: output.ImageURL,
+					},
+				}
 			}
 			// Marshal
 			respBytes, err := json.Marshal(resp)

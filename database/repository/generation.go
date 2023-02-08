@@ -26,6 +26,20 @@ func (r *Repository) GetGenerationOutput(id uuid.UUID) (*ent.GenerationOutput, e
 	return r.DB.GenerationOutput.Query().Where(generationoutput.IDEQ(id)).First(r.Ctx)
 }
 
+// Get generation output for user
+func (r *Repository) GetGenerationOutputForUser(id uuid.UUID, userID uuid.UUID) (*ent.GenerationOutput, error) {
+	return r.DB.Generation.Query().Where(generation.UserIDEQ(userID)).QueryGenerationOutputs().Where(generationoutput.IDEQ(id)).First(r.Ctx)
+}
+
+// Get width/height for generation output
+func (r *Repository) GetGenerationOutputWidthHeight(outputID uuid.UUID) (width, height int32, err error) {
+	gen, err := r.DB.GenerationOutput.Query().Where(generationoutput.IDEQ(outputID)).QueryGenerations().Select(generation.FieldWidth, generation.FieldHeight).First(r.Ctx)
+	if err != nil {
+		return 0, 0, err
+	}
+	return gen.Width, gen.Height, nil
+}
+
 // CreateGeneration creates the initial generation in the database
 // Takes in a userID (creator),  device info, countryCode, and a request body
 func (r *Repository) CreateGeneration(userID uuid.UUID, deviceType, deviceOs, deviceBrowser, countryCode string, req requests.GenerateRequestBody) (*ent.Generation, error) {
@@ -219,9 +233,10 @@ func (r *Repository) GetUserGenerations(userID uuid.UUID, per_page int, offset *
 		for _, output := range outputs {
 			if gen.ID == output.GenerationID {
 				res[i].Outputs = append(res[i].Outputs, UserGenerationOutputResult{
-					ID:            output.ID,
-					ImageUrl:      output.ImageURL,
-					GalleryStatus: output.GalleryStatus,
+					ID:               output.ID,
+					ImageUrl:         output.ImageURL,
+					UpscaledImageUrl: output.UpscaledImageURL,
+					GalleryStatus:    output.GalleryStatus,
 				})
 			}
 		}
@@ -231,9 +246,10 @@ func (r *Repository) GetUserGenerations(userID uuid.UUID, per_page int, offset *
 }
 
 type UserGenerationOutputResult struct {
-	ID            uuid.UUID                      `json:"id"`
-	ImageUrl      string                         `json:"image_url"`
-	GalleryStatus generationoutput.GalleryStatus `json:"gallery_status"`
+	ID               uuid.UUID                      `json:"id"`
+	ImageUrl         string                         `json:"image_url"`
+	UpscaledImageUrl *string                        `json:"upscaled_image_url,omitempty"`
+	GalleryStatus    generationoutput.GalleryStatus `json:"gallery_status"`
 }
 
 type UserGenerationQueryResult struct {

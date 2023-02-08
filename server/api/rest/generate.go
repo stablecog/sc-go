@@ -68,16 +68,12 @@ func (c *RestAPI) HandleCreateGeneration(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	if generateReq.NumOutputs == 0 {
+	if generateReq.NumOutputs < 0 {
 		generateReq.NumOutputs = shared.DEFAULT_GENERATE_NUM_OUTPUTS
 	}
 	if generateReq.NumOutputs > shared.MAX_GENERATE_NUM_OUTPUTS {
 		klog.Infof("Number of outputs can't be more than %d", shared.MAX_GENERATE_NUM_OUTPUTS)
 		responses.ErrBadRequest(w, r, fmt.Sprintf("Number of outputs can't be more than %d", shared.MAX_GENERATE_NUM_OUTPUTS))
-		return
-	} else if generateReq.NumOutputs < shared.MIN_GENERATE_NUM_OUTPUTS {
-		klog.Infof("Number of outputs can't be less than %d", shared.MIN_GENERATE_NUM_OUTPUTS)
-		responses.ErrBadRequest(w, r, fmt.Sprintf("Number of outputs can't be less than %d", shared.MIN_GENERATE_NUM_OUTPUTS))
 		return
 	}
 
@@ -180,13 +176,13 @@ func (c *RestAPI) HandleCreateGeneration(w http.ResponseWriter, r *http.Request)
 
 	// Get language codes
 	promptFlores, negativePromptFlores := c.LanguageDetector.GetPromptFloresCodes(generateReq.Prompt, generateReq.NegativePrompt)
-	// Generate a unique request ID for the cog
+	// Request Id matches generation ID
 	requestId := g.ID.String()
 
 	cogReqBody := requests.CogGenerateQueueRequest{
 		BaseCogRequestQueue: requests.BaseCogRequestQueue{
 			WebhookEventsFilter: []requests.WebhookEventFilterOption{requests.WebhookEventFilterStart, requests.WebhookEventFilterStart},
-			RedisPubsubKey:      shared.COG_REDIS_WEBHOOK_QUEUE_CHANNEL,
+			RedisPubsubKey:      shared.COG_REDIS_GENERATE_EVENT_CHANNEL,
 		},
 		Input: requests.BaseCogGenerateRequest{
 			ID:                   requestId,

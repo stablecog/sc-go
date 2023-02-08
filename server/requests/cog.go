@@ -45,10 +45,28 @@ type BaseCogGenerateRequest struct {
 	NegativePromptFlores string `json:"negative_prompt_flores_200_code,omitempty"`
 }
 
-// Redis queue request
+// ! Upscale
+
+// Base request
+type BaseCogUpscaleRequest struct {
+	// These are irrelevant to the cog, just used in our return messages
+	ID                 string `json:"id"`
+	GenerationOutputID string `json:"generation_output_id,omitempty"`
+	// These fields actually go to the cog
+	Image       string `json:"image_u"`
+	Task        string `json:"task_u,omitempty"`
+	ProcessType string `json:"process_type"`
+}
+
+// Redis queue requests
 type CogGenerateQueueRequest struct {
 	BaseCogRequestQueue
 	Input BaseCogGenerateRequest `json:"input"`
+}
+
+type CogUpscaleQueueRequest struct {
+	BaseCogRequestQueue
+	Input BaseCogUpscaleRequest `json:"input"`
 }
 
 func (i CogGenerateQueueRequest) MarshalBinary() (data []byte, err error) {

@@ -26,9 +26,17 @@ func TestGetSqlDbConnPostgres(t *testing.T) {
 		os.Setenv("POSTGRES_HOST", postgresHost)
 	}()
 
-	conn, err := GetSqlDbConn()
+	conn, err := GetSqlDbConn(false)
 	assert.Nil(t, err)
 
 	assert.Equal(t, "postgres://user:password@127.0.0.1:5432/pippin", conn.DSN())
 	assert.Equal(t, "pgx", conn.Dialect())
+}
+
+func TestGetSqlDbConnMock(t *testing.T) {
+	conn, err := GetSqlDbConn(true)
+	assert.Nil(t, err)
+
+	assert.Equal(t, "file:testing?cache=shared&mode=memory&_fk=1", conn.DSN())
+	assert.Equal(t, "sqlite3", conn.Dialect())
 }

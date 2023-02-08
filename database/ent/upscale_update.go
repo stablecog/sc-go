@@ -73,19 +73,6 @@ func (uu *UpscaleUpdate) AddScale(i int32) *UpscaleUpdate {
 	return uu
 }
 
-// SetDurationMs sets the "duration_ms" field.
-func (uu *UpscaleUpdate) SetDurationMs(i int32) *UpscaleUpdate {
-	uu.mutation.ResetDurationMs()
-	uu.mutation.SetDurationMs(i)
-	return uu
-}
-
-// AddDurationMs adds i to the "duration_ms" field.
-func (uu *UpscaleUpdate) AddDurationMs(i int32) *UpscaleUpdate {
-	uu.mutation.AddDurationMs(i)
-	return uu
-}
-
 // SetCountryCode sets the "country_code" field.
 func (uu *UpscaleUpdate) SetCountryCode(s string) *UpscaleUpdate {
 	uu.mutation.SetCountryCode(s)
@@ -133,6 +120,46 @@ func (uu *UpscaleUpdate) SetDeviceInfoID(u uuid.UUID) *UpscaleUpdate {
 // SetModelID sets the "model_id" field.
 func (uu *UpscaleUpdate) SetModelID(u uuid.UUID) *UpscaleUpdate {
 	uu.mutation.SetModelID(u)
+	return uu
+}
+
+// SetStartedAt sets the "started_at" field.
+func (uu *UpscaleUpdate) SetStartedAt(t time.Time) *UpscaleUpdate {
+	uu.mutation.SetStartedAt(t)
+	return uu
+}
+
+// SetNillableStartedAt sets the "started_at" field if the given value is not nil.
+func (uu *UpscaleUpdate) SetNillableStartedAt(t *time.Time) *UpscaleUpdate {
+	if t != nil {
+		uu.SetStartedAt(*t)
+	}
+	return uu
+}
+
+// ClearStartedAt clears the value of the "started_at" field.
+func (uu *UpscaleUpdate) ClearStartedAt() *UpscaleUpdate {
+	uu.mutation.ClearStartedAt()
+	return uu
+}
+
+// SetCompletedAt sets the "completed_at" field.
+func (uu *UpscaleUpdate) SetCompletedAt(t time.Time) *UpscaleUpdate {
+	uu.mutation.SetCompletedAt(t)
+	return uu
+}
+
+// SetNillableCompletedAt sets the "completed_at" field if the given value is not nil.
+func (uu *UpscaleUpdate) SetNillableCompletedAt(t *time.Time) *UpscaleUpdate {
+	if t != nil {
+		uu.SetCompletedAt(*t)
+	}
+	return uu
+}
+
+// ClearCompletedAt clears the value of the "completed_at" field.
+func (uu *UpscaleUpdate) ClearCompletedAt() *UpscaleUpdate {
+	uu.mutation.ClearCompletedAt()
 	return uu
 }
 
@@ -322,12 +349,6 @@ func (uu *UpscaleUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if value, ok := uu.mutation.AddedScale(); ok {
 		_spec.AddField(upscale.FieldScale, field.TypeInt32, value)
 	}
-	if value, ok := uu.mutation.DurationMs(); ok {
-		_spec.SetField(upscale.FieldDurationMs, field.TypeInt32, value)
-	}
-	if value, ok := uu.mutation.AddedDurationMs(); ok {
-		_spec.AddField(upscale.FieldDurationMs, field.TypeInt32, value)
-	}
 	if value, ok := uu.mutation.CountryCode(); ok {
 		_spec.SetField(upscale.FieldCountryCode, field.TypeString, value)
 	}
@@ -339,6 +360,18 @@ func (uu *UpscaleUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if uu.mutation.FailureReasonCleared() {
 		_spec.ClearField(upscale.FieldFailureReason, field.TypeString)
+	}
+	if value, ok := uu.mutation.StartedAt(); ok {
+		_spec.SetField(upscale.FieldStartedAt, field.TypeTime, value)
+	}
+	if uu.mutation.StartedAtCleared() {
+		_spec.ClearField(upscale.FieldStartedAt, field.TypeTime)
+	}
+	if value, ok := uu.mutation.CompletedAt(); ok {
+		_spec.SetField(upscale.FieldCompletedAt, field.TypeTime, value)
+	}
+	if uu.mutation.CompletedAtCleared() {
+		_spec.ClearField(upscale.FieldCompletedAt, field.TypeTime)
 	}
 	if value, ok := uu.mutation.UpdatedAt(); ok {
 		_spec.SetField(upscale.FieldUpdatedAt, field.TypeTime, value)
@@ -563,19 +596,6 @@ func (uuo *UpscaleUpdateOne) AddScale(i int32) *UpscaleUpdateOne {
 	return uuo
 }
 
-// SetDurationMs sets the "duration_ms" field.
-func (uuo *UpscaleUpdateOne) SetDurationMs(i int32) *UpscaleUpdateOne {
-	uuo.mutation.ResetDurationMs()
-	uuo.mutation.SetDurationMs(i)
-	return uuo
-}
-
-// AddDurationMs adds i to the "duration_ms" field.
-func (uuo *UpscaleUpdateOne) AddDurationMs(i int32) *UpscaleUpdateOne {
-	uuo.mutation.AddDurationMs(i)
-	return uuo
-}
-
 // SetCountryCode sets the "country_code" field.
 func (uuo *UpscaleUpdateOne) SetCountryCode(s string) *UpscaleUpdateOne {
 	uuo.mutation.SetCountryCode(s)
@@ -623,6 +643,46 @@ func (uuo *UpscaleUpdateOne) SetDeviceInfoID(u uuid.UUID) *UpscaleUpdateOne {
 // SetModelID sets the "model_id" field.
 func (uuo *UpscaleUpdateOne) SetModelID(u uuid.UUID) *UpscaleUpdateOne {
 	uuo.mutation.SetModelID(u)
+	return uuo
+}
+
+// SetStartedAt sets the "started_at" field.
+func (uuo *UpscaleUpdateOne) SetStartedAt(t time.Time) *UpscaleUpdateOne {
+	uuo.mutation.SetStartedAt(t)
+	return uuo
+}
+
+// SetNillableStartedAt sets the "started_at" field if the given value is not nil.
+func (uuo *UpscaleUpdateOne) SetNillableStartedAt(t *time.Time) *UpscaleUpdateOne {
+	if t != nil {
+		uuo.SetStartedAt(*t)
+	}
+	return uuo
+}
+
+// ClearStartedAt clears the value of the "started_at" field.
+func (uuo *UpscaleUpdateOne) ClearStartedAt() *UpscaleUpdateOne {
+	uuo.mutation.ClearStartedAt()
+	return uuo
+}
+
+// SetCompletedAt sets the "completed_at" field.
+func (uuo *UpscaleUpdateOne) SetCompletedAt(t time.Time) *UpscaleUpdateOne {
+	uuo.mutation.SetCompletedAt(t)
+	return uuo
+}
+
+// SetNillableCompletedAt sets the "completed_at" field if the given value is not nil.
+func (uuo *UpscaleUpdateOne) SetNillableCompletedAt(t *time.Time) *UpscaleUpdateOne {
+	if t != nil {
+		uuo.SetCompletedAt(*t)
+	}
+	return uuo
+}
+
+// ClearCompletedAt clears the value of the "completed_at" field.
+func (uuo *UpscaleUpdateOne) ClearCompletedAt() *UpscaleUpdateOne {
+	uuo.mutation.ClearCompletedAt()
 	return uuo
 }
 
@@ -836,12 +896,6 @@ func (uuo *UpscaleUpdateOne) sqlSave(ctx context.Context) (_node *Upscale, err e
 	if value, ok := uuo.mutation.AddedScale(); ok {
 		_spec.AddField(upscale.FieldScale, field.TypeInt32, value)
 	}
-	if value, ok := uuo.mutation.DurationMs(); ok {
-		_spec.SetField(upscale.FieldDurationMs, field.TypeInt32, value)
-	}
-	if value, ok := uuo.mutation.AddedDurationMs(); ok {
-		_spec.AddField(upscale.FieldDurationMs, field.TypeInt32, value)
-	}
 	if value, ok := uuo.mutation.CountryCode(); ok {
 		_spec.SetField(upscale.FieldCountryCode, field.TypeString, value)
 	}
@@ -853,6 +907,18 @@ func (uuo *UpscaleUpdateOne) sqlSave(ctx context.Context) (_node *Upscale, err e
 	}
 	if uuo.mutation.FailureReasonCleared() {
 		_spec.ClearField(upscale.FieldFailureReason, field.TypeString)
+	}
+	if value, ok := uuo.mutation.StartedAt(); ok {
+		_spec.SetField(upscale.FieldStartedAt, field.TypeTime, value)
+	}
+	if uuo.mutation.StartedAtCleared() {
+		_spec.ClearField(upscale.FieldStartedAt, field.TypeTime)
+	}
+	if value, ok := uuo.mutation.CompletedAt(); ok {
+		_spec.SetField(upscale.FieldCompletedAt, field.TypeTime, value)
+	}
+	if uuo.mutation.CompletedAtCleared() {
+		_spec.ClearField(upscale.FieldCompletedAt, field.TypeTime)
 	}
 	if value, ok := uuo.mutation.UpdatedAt(); ok {
 		_spec.SetField(upscale.FieldUpdatedAt, field.TypeTime, value)

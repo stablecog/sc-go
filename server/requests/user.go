@@ -23,3 +23,19 @@ type GenerateRequestBody struct {
 	WebsocketId           string    `json:"websocket_id"`
 	ShouldSubmitToGallery bool      `json:"should_submit_to_gallery"`
 }
+
+// Request for initiationg an upscale
+type UpscaleRequestType string
+
+const (
+	UpscaleRequestTypeImage  UpscaleRequestType = "from_image"
+	UpscaleRequestTypeOutput UpscaleRequestType = "from_output"
+)
+
+// Can be initiated with either an image_url or a generation_output_id
+type UpscaleRequestBody struct {
+	Type        UpscaleRequestType `json:"type"`
+	Input       string             `json:"input"`
+	ModelId     uuid.UUID          `json:"model_id"`
+	WebsocketId string             `json:"websocket_id"`
+}

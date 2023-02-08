@@ -13,6 +13,14 @@ func (r *Repository) UpdateCache() error {
 		return err
 	}
 	shared.GetCache().UpdateGenerationModels(generationModels)
+
+	upscaleModels, err := r.GetAllUpscaleModels()
+	if err != nil {
+		klog.Fatalf("Failed to get upscale_models: %v", err)
+		return err
+	}
+	shared.GetCache().UpdateUpscaleModels(upscaleModels)
+
 	schedulers, err := r.GetAllSchedulers()
 	if err != nil {
 		klog.Fatalf("Failed to get schedulers: %v", err)

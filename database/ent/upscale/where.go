@@ -71,11 +71,6 @@ func Scale(v int32) predicate.Upscale {
 	return predicate.Upscale(sql.FieldEQ(FieldScale, v))
 }
 
-// DurationMs applies equality check predicate on the "duration_ms" field. It's identical to DurationMsEQ.
-func DurationMs(v int32) predicate.Upscale {
-	return predicate.Upscale(sql.FieldEQ(FieldDurationMs, v))
-}
-
 // CountryCode applies equality check predicate on the "country_code" field. It's identical to CountryCodeEQ.
 func CountryCode(v string) predicate.Upscale {
 	return predicate.Upscale(sql.FieldEQ(FieldCountryCode, v))
@@ -99,6 +94,16 @@ func DeviceInfoID(v uuid.UUID) predicate.Upscale {
 // ModelID applies equality check predicate on the "model_id" field. It's identical to ModelIDEQ.
 func ModelID(v uuid.UUID) predicate.Upscale {
 	return predicate.Upscale(sql.FieldEQ(FieldModelID, v))
+}
+
+// StartedAt applies equality check predicate on the "started_at" field. It's identical to StartedAtEQ.
+func StartedAt(v time.Time) predicate.Upscale {
+	return predicate.Upscale(sql.FieldEQ(FieldStartedAt, v))
+}
+
+// CompletedAt applies equality check predicate on the "completed_at" field. It's identical to CompletedAtEQ.
+func CompletedAt(v time.Time) predicate.Upscale {
+	return predicate.Upscale(sql.FieldEQ(FieldCompletedAt, v))
 }
 
 // CreatedAt applies equality check predicate on the "created_at" field. It's identical to CreatedAtEQ.
@@ -229,46 +234,6 @@ func ScaleLT(v int32) predicate.Upscale {
 // ScaleLTE applies the LTE predicate on the "scale" field.
 func ScaleLTE(v int32) predicate.Upscale {
 	return predicate.Upscale(sql.FieldLTE(FieldScale, v))
-}
-
-// DurationMsEQ applies the EQ predicate on the "duration_ms" field.
-func DurationMsEQ(v int32) predicate.Upscale {
-	return predicate.Upscale(sql.FieldEQ(FieldDurationMs, v))
-}
-
-// DurationMsNEQ applies the NEQ predicate on the "duration_ms" field.
-func DurationMsNEQ(v int32) predicate.Upscale {
-	return predicate.Upscale(sql.FieldNEQ(FieldDurationMs, v))
-}
-
-// DurationMsIn applies the In predicate on the "duration_ms" field.
-func DurationMsIn(vs ...int32) predicate.Upscale {
-	return predicate.Upscale(sql.FieldIn(FieldDurationMs, vs...))
-}
-
-// DurationMsNotIn applies the NotIn predicate on the "duration_ms" field.
-func DurationMsNotIn(vs ...int32) predicate.Upscale {
-	return predicate.Upscale(sql.FieldNotIn(FieldDurationMs, vs...))
-}
-
-// DurationMsGT applies the GT predicate on the "duration_ms" field.
-func DurationMsGT(v int32) predicate.Upscale {
-	return predicate.Upscale(sql.FieldGT(FieldDurationMs, v))
-}
-
-// DurationMsGTE applies the GTE predicate on the "duration_ms" field.
-func DurationMsGTE(v int32) predicate.Upscale {
-	return predicate.Upscale(sql.FieldGTE(FieldDurationMs, v))
-}
-
-// DurationMsLT applies the LT predicate on the "duration_ms" field.
-func DurationMsLT(v int32) predicate.Upscale {
-	return predicate.Upscale(sql.FieldLT(FieldDurationMs, v))
-}
-
-// DurationMsLTE applies the LTE predicate on the "duration_ms" field.
-func DurationMsLTE(v int32) predicate.Upscale {
-	return predicate.Upscale(sql.FieldLTE(FieldDurationMs, v))
 }
 
 // CountryCodeEQ applies the EQ predicate on the "country_code" field.
@@ -489,6 +454,106 @@ func ModelIDIn(vs ...uuid.UUID) predicate.Upscale {
 // ModelIDNotIn applies the NotIn predicate on the "model_id" field.
 func ModelIDNotIn(vs ...uuid.UUID) predicate.Upscale {
 	return predicate.Upscale(sql.FieldNotIn(FieldModelID, vs...))
+}
+
+// StartedAtEQ applies the EQ predicate on the "started_at" field.
+func StartedAtEQ(v time.Time) predicate.Upscale {
+	return predicate.Upscale(sql.FieldEQ(FieldStartedAt, v))
+}
+
+// StartedAtNEQ applies the NEQ predicate on the "started_at" field.
+func StartedAtNEQ(v time.Time) predicate.Upscale {
+	return predicate.Upscale(sql.FieldNEQ(FieldStartedAt, v))
+}
+
+// StartedAtIn applies the In predicate on the "started_at" field.
+func StartedAtIn(vs ...time.Time) predicate.Upscale {
+	return predicate.Upscale(sql.FieldIn(FieldStartedAt, vs...))
+}
+
+// StartedAtNotIn applies the NotIn predicate on the "started_at" field.
+func StartedAtNotIn(vs ...time.Time) predicate.Upscale {
+	return predicate.Upscale(sql.FieldNotIn(FieldStartedAt, vs...))
+}
+
+// StartedAtGT applies the GT predicate on the "started_at" field.
+func StartedAtGT(v time.Time) predicate.Upscale {
+	return predicate.Upscale(sql.FieldGT(FieldStartedAt, v))
+}
+
+// StartedAtGTE applies the GTE predicate on the "started_at" field.
+func StartedAtGTE(v time.Time) predicate.Upscale {
+	return predicate.Upscale(sql.FieldGTE(FieldStartedAt, v))
+}
+
+// StartedAtLT applies the LT predicate on the "started_at" field.
+func StartedAtLT(v time.Time) predicate.Upscale {
+	return predicate.Upscale(sql.FieldLT(FieldStartedAt, v))
+}
+
+// StartedAtLTE applies the LTE predicate on the "started_at" field.
+func StartedAtLTE(v time.Time) predicate.Upscale {
+	return predicate.Upscale(sql.FieldLTE(FieldStartedAt, v))
+}
+
+// StartedAtIsNil applies the IsNil predicate on the "started_at" field.
+func StartedAtIsNil() predicate.Upscale {
+	return predicate.Upscale(sql.FieldIsNull(FieldStartedAt))
+}
+
+// StartedAtNotNil applies the NotNil predicate on the "started_at" field.
+func StartedAtNotNil() predicate.Upscale {
+	return predicate.Upscale(sql.FieldNotNull(FieldStartedAt))
+}
+
+// CompletedAtEQ applies the EQ predicate on the "completed_at" field.
+func CompletedAtEQ(v time.Time) predicate.Upscale {
+	return predicate.Upscale(sql.FieldEQ(FieldCompletedAt, v))
+}
+
+// CompletedAtNEQ applies the NEQ predicate on the "completed_at" field.
+func CompletedAtNEQ(v time.Time) predicate.Upscale {
+	return predicate.Upscale(sql.FieldNEQ(FieldCompletedAt, v))
+}
+
+// CompletedAtIn applies the In predicate on the "completed_at" field.
+func CompletedAtIn(vs ...time.Time) predicate.Upscale {
+	return predicate.Upscale(sql.FieldIn(FieldCompletedAt, vs...))
+}
+
+// CompletedAtNotIn applies the NotIn predicate on the "completed_at" field.
+func CompletedAtNotIn(vs ...time.Time) predicate.Upscale {
+	return predicate.Upscale(sql.FieldNotIn(FieldCompletedAt, vs...))
+}
+
+// CompletedAtGT applies the GT predicate on the "completed_at" field.
+func CompletedAtGT(v time.Time) predicate.Upscale {
+	return predicate.Upscale(sql.FieldGT(FieldCompletedAt, v))
+}
+
+// CompletedAtGTE applies the GTE predicate on the "completed_at" field.
+func CompletedAtGTE(v time.Time) predicate.Upscale {
+	return predicate.Upscale(sql.FieldGTE(FieldCompletedAt, v))
+}
+
+// CompletedAtLT applies the LT predicate on the "completed_at" field.
+func CompletedAtLT(v time.Time) predicate.Upscale {
+	return predicate.Upscale(sql.FieldLT(FieldCompletedAt, v))
+}
+
+// CompletedAtLTE applies the LTE predicate on the "completed_at" field.
+func CompletedAtLTE(v time.Time) predicate.Upscale {
+	return predicate.Upscale(sql.FieldLTE(FieldCompletedAt, v))
+}
+
+// CompletedAtIsNil applies the IsNil predicate on the "completed_at" field.
+func CompletedAtIsNil() predicate.Upscale {
+	return predicate.Upscale(sql.FieldIsNull(FieldCompletedAt))
+}
+
+// CompletedAtNotNil applies the NotNil predicate on the "completed_at" field.
+func CompletedAtNotNil() predicate.Upscale {
+	return predicate.Upscale(sql.FieldNotNull(FieldCompletedAt))
 }
 
 // CreatedAtEQ applies the EQ predicate on the "created_at" field.

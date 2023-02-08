@@ -39,6 +39,18 @@ func TestUpdateGenerateModels(t *testing.T) {
 	assert.Equal(t, "test", fc.GenerateModels[0].Name)
 }
 
+func TestUpdateUpscaleModels(t *testing.T) {
+	resetCache()
+	fc := GetCache()
+	assert.Len(t, fc.UpscaleModels, 0)
+	models := []*ent.UpscaleModel{
+		{Name: "test"},
+	}
+	fc.UpdateUpscaleModels(models)
+	assert.Equal(t, 1, len(fc.UpscaleModels))
+	assert.Equal(t, "test", fc.UpscaleModels[0].Name)
+}
+
 func TestUpdateSchedulers(t *testing.T) {
 	resetCache()
 	fc := GetCache()
@@ -64,6 +76,21 @@ func TestIsValidGenerationModelID(t *testing.T) {
 	// Assert nil err
 	assert.True(t, fc.IsValidGenerationModelID(uid))
 }
+
+func TestIsValidUpscaleModelID(t *testing.T) {
+	resetCache()
+	fc := GetCache()
+	// Predictable uuid
+	uid := uuid.MustParse("00000000-0000-0000-0000-000000000000")
+	assert.False(t, fc.IsValidUpscaleModelID(uid))
+	// Add to models
+	fc.UpdateUpscaleModels([]*ent.UpscaleModel{
+		{ID: uid},
+	})
+	// Assert nil err
+	assert.True(t, fc.IsValidUpscaleModelID(uid))
+}
+
 func TestIsValidSchedulerID(t *testing.T) {
 	resetCache()
 	fc := GetCache()
@@ -152,6 +179,21 @@ func TestGetGenerationModelNameFromID(t *testing.T) {
 	assert.Equal(t, "test", fc.GetGenerationModelNameFromID(uid))
 	// Assert empty if not found
 	assert.Equal(t, "", fc.GetGenerationModelNameFromID(uuid.MustParse("00000000-0000-0000-0000-000000000001")))
+}
+
+func TestGetUpscaleModelNameFromID(t *testing.T) {
+	resetCache()
+	fc := GetCache()
+	// Predictable uuid
+	uid := uuid.MustParse("00000000-0000-0000-0000-000000000000")
+	// Add to models
+	fc.UpdateUpscaleModels([]*ent.UpscaleModel{
+		{ID: uid, Name: "test"},
+	})
+	// Assert
+	assert.Equal(t, "test", fc.GetUpscaleModelNameFromID(uid))
+	// Assert empty if not found
+	assert.Equal(t, "", fc.GetUpscaleModelNameFromID(uuid.MustParse("00000000-0000-0000-0000-000000000001")))
 }
 
 func TestGetSchedulerNameFromID(t *testing.T) {

@@ -20,8 +20,6 @@ const (
 	FieldHeight = "height"
 	// FieldScale holds the string denoting the scale field in the database.
 	FieldScale = "scale"
-	// FieldDurationMs holds the string denoting the duration_ms field in the database.
-	FieldDurationMs = "duration_ms"
 	// FieldCountryCode holds the string denoting the country_code field in the database.
 	FieldCountryCode = "country_code"
 	// FieldStatus holds the string denoting the status field in the database.
@@ -34,6 +32,10 @@ const (
 	FieldDeviceInfoID = "device_info_id"
 	// FieldModelID holds the string denoting the model_id field in the database.
 	FieldModelID = "model_id"
+	// FieldStartedAt holds the string denoting the started_at field in the database.
+	FieldStartedAt = "started_at"
+	// FieldCompletedAt holds the string denoting the completed_at field in the database.
+	FieldCompletedAt = "completed_at"
 	// FieldCreatedAt holds the string denoting the created_at field in the database.
 	FieldCreatedAt = "created_at"
 	// FieldUpdatedAt holds the string denoting the updated_at field in the database.
@@ -84,13 +86,14 @@ var Columns = []string{
 	FieldWidth,
 	FieldHeight,
 	FieldScale,
-	FieldDurationMs,
 	FieldCountryCode,
 	FieldStatus,
 	FieldFailureReason,
 	FieldUserID,
 	FieldDeviceInfoID,
 	FieldModelID,
+	FieldStartedAt,
+	FieldCompletedAt,
 	FieldCreatedAt,
 	FieldUpdatedAt,
 }
@@ -121,6 +124,7 @@ type Status string
 
 // Status values.
 const (
+	StatusQueued    Status = "queued"
 	StatusStarted   Status = "started"
 	StatusSucceeded Status = "succeeded"
 	StatusFailed    Status = "failed"
@@ -133,7 +137,7 @@ func (s Status) String() string {
 // StatusValidator is a validator for the "status" field enum values. It is called by the builders before save.
 func StatusValidator(s Status) error {
 	switch s {
-	case StatusStarted, StatusSucceeded, StatusFailed:
+	case StatusQueued, StatusStarted, StatusSucceeded, StatusFailed:
 		return nil
 	default:
 		return fmt.Errorf("upscale: invalid enum value for status field: %q", s)

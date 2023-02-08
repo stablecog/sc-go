@@ -81,3 +81,36 @@ func (r *Repository) GetOrCreateDeviceInfoAndPrompts(promptText, negativePromptT
 	}
 	return dbPrompt.ID, &dbNegativePrompt.ID, dbDeviceInfo.ID, nil
 }
+
+// Get a device_info ID given inputs
+func (r *Repository) GetOrCreateDeviceInfo(deviceType, deviceOs, deviceBrowser string) (deviceInfoId uuid.UUID, err error) {
+	// Start tx
+	tx, err := r.DB.Tx(r.Ctx)
+	if err != nil {
+		return uuid.UUID{}, err
+	}
+
+	// Check if device info combo exists
+	var dbDeviceInfo *ent.DeviceInfo
+	dbDeviceInfo, err = tx.DeviceInfo.Query().Where(deviceinfo.Type(deviceType), deviceinfo.Os(deviceOs), deviceinfo.Browser(deviceBrowser)).Only(r.Ctx)
+	if err != nil {
+		if ent.IsNotFound(err) {
+			// Create device info
+			dbDeviceInfo, err = tx.DeviceInfo.Create().SetType(deviceType).SetOs(deviceOs).SetBrowser(deviceBrowser).Save(r.Ctx)
+			if err != nil {
+				tx.Rollback()
+				return uuid.UUID{}, err
+			}
+		} else {
+			tx.Rollback()
+			return uuid.UUID{}, err
+		}
+	}
+
+	err = tx.Commit()
+	if err != nil {
+		return uuid.UUID{}, err
+	}
+
+	return dbDeviceInfo.ID, nil
+}

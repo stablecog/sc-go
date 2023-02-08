@@ -16,11 +16,11 @@ const MAX_PROMPT_LENGTH = 500
 // The name of the redis stream used to enqueue cog requests
 const COG_REDIS_QUEUE = "input_queue"
 
-// This is the name of the channel in redis, that is used to broadcast webhook events
-// We use this, because we may have multiple replicas of our service, and we want to
-// broadcast these events to all of them to make sure the consumer that cares about
-// the message gets it
-const COG_REDIS_WEBHOOK_QUEUE_CHANNEL = "queue:webhook"
+// This is the redis channel that the cog publishes to for generate events
+const COG_REDIS_GENERATE_EVENT_CHANNEL = "queue:generate_event"
+
+// Same for upscale
+const COG_REDIS_UPSCALE_EVENT_CHANNEL = "queue:upscale_event"
 
 // Allowed image extensions used by various APIs
 type ImageExtension string
@@ -54,3 +54,7 @@ const DEFAULT_PROCESS_TYPE = GENERATE
 
 // Allowed image extensions for upload
 var ALLOWED_PROCESS_TYPES = []ProcessType{GENERATE, UPSCALE, GENERATE_AND_UPSCALE}
+
+// Maximum size of a custom image sent to upscale
+// 10MB
+const MAX_UPSCALE_IMAGE_SIZE = 1024 * 1024 * 10

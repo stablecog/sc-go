@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 
+	"entgo.io/ent/dialect"
 	"github.com/stablecog/go-apps/utils"
 	"k8s.io/klog/v2"
 )
@@ -29,8 +30,24 @@ func (c *PostgresConn) Dialect() string {
 	return "pgx"
 }
 
+type SqliteConn struct {
+	FileName string
+	Mode     string
+}
+
+func (c *SqliteConn) DSN() string {
+	return fmt.Sprintf("file:%s?cache=shared&mode=%s&_fk=1", c.FileName, c.Mode)
+}
+
+func (c *SqliteConn) Dialect() string {
+	return dialect.SQLite
+}
+
 // Gets the DB connection information based on environment variables
-func GetSqlDbConn() (SqlDBConn, error) {
+func GetSqlDbConn(mock bool) (SqlDBConn, error) {
+	if mock {
+		return &SqliteConn{FileName: "testing", Mode: "memory"}, nil
+	}
 	// Use postgres
 	postgresDb := utils.GetEnv("POSTGRES_DB", "")
 	postgresUser := utils.GetEnv("POSTGRES_USER", "")
