@@ -54,7 +54,7 @@ func NewRedis(ctx context.Context) (*RedisWrapper, error) {
 }
 
 // Enqueues a request for the cog
-func (r *RedisWrapper) EnqueueCogGenerateRequest(ctx context.Context, request interface{}) error {
+func (r *RedisWrapper) EnqueueCogRequest(ctx context.Context, request interface{}) error {
 	_, err := r.Client.XAdd(ctx, &redis.XAddArgs{
 		Stream: shared.COG_REDIS_QUEUE,
 		ID:     "*", // Asterisk auto-generates an ID for the item on the stream

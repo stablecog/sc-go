@@ -205,7 +205,7 @@ func (c *RestAPI) HandleCreateGeneration(w http.ResponseWriter, r *http.Request)
 	}
 
 	start = time.Now()
-	err = c.Redis.EnqueueCogGenerateRequest(r.Context(), cogReqBody)
+	err = c.Redis.EnqueueCogRequest(r.Context(), cogReqBody)
 	if err != nil {
 		klog.Errorf("Failed to write request %s to queue: %v", requestId, err)
 		responses.ErrInternalServerError(w, r, "Failed to queue generate request")
@@ -219,7 +219,7 @@ func (c *RestAPI) HandleCreateGeneration(w http.ResponseWriter, r *http.Request)
 	fmt.Printf("--- Put request in map took: %s\n", time.Now().Sub(start))
 
 	render.Status(r, http.StatusOK)
-	render.JSON(w, r, &responses.GenerateResponse{
+	render.JSON(w, r, &responses.QueuedResponse{
 		ID: requestId,
 	})
 }

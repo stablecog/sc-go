@@ -412,7 +412,7 @@ func TestGenerateValidRequest(t *testing.T) {
 	resp := w.Result()
 	defer resp.Body.Close()
 	assert.Equal(t, 200, resp.StatusCode)
-	var generateResp responses.GenerateResponse
+	var generateResp responses.QueuedResponse
 	respBody, _ := io.ReadAll(resp.Body)
 	json.Unmarshal(respBody, &generateResp)
 
