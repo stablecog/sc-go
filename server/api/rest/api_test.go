@@ -9,7 +9,6 @@ import (
 	"github.com/stablecog/go-apps/database"
 	"github.com/stablecog/go-apps/database/repository"
 	"github.com/stablecog/go-apps/server/api/sse"
-	"github.com/stablecog/go-apps/shared"
 	"github.com/stablecog/go-apps/utils"
 	"k8s.io/klog/v2"
 )
@@ -37,18 +36,30 @@ func testMainWrapper(m *testing.M) int {
 		os.Exit(1)
 	}
 
+	// Redis setup
+	os.Setenv("MOCK_REDIS", "true")
+	defer os.Unsetenv("MOCK_REDIS")
+
+	redis, err := database.NewRedis(ctx)
+	if err != nil {
+		klog.Fatalf("Error connecting to redis: %v", err)
+		os.Exit(1)
+	}
+
 	//Create schema
 	if err := entClient.Schema.Create(ctx); err != nil {
 		klog.Fatalf("Failed to run migrations: %v", err)
 		os.Exit(1)
 	}
+
 	repo := &repository.Repository{
-		DB:  entClient,
-		Ctx: ctx,
+		DB:    entClient,
+		Redis: redis,
+		Ctx:   ctx,
 	}
 
 	// Mock data
-	if err := database.CreateMockData(ctx, entClient, repo); err != nil {
+	if err := repo.CreateMockData(ctx, entClient); err != nil {
 		klog.Fatalf("Failed to create mock data: %v", err)
 		os.Exit(1)
 	}
@@ -59,20 +70,8 @@ func testMainWrapper(m *testing.M) int {
 		os.Exit(1)
 	}
 
-	os.Setenv("MOCK_REDIS", "true")
-	defer os.Unsetenv("MOCK_REDIS")
-
-	redis, err := database.NewRedis(ctx)
-	if err != nil {
-		klog.Fatalf("Error connecting to redis: %v", err)
-		os.Exit(1)
-	}
-
-	// Dependencies
-	syncMap := shared.NewSyncMap[string]()
-
 	// Setup fake sse hub
-	hub := sse.NewHub(syncMap, repo)
+	hub := sse.NewHub(redis, repo)
 	go hub.Run()
 	// Add user to hub
 	hub.Register <- &sse.Client{
@@ -81,11 +80,10 @@ func testMainWrapper(m *testing.M) int {
 
 	// Setup controller
 	MockController = &RestAPI{
-		Repo:                 repo,
-		Redis:                redis,
-		Hub:                  hub,
-		CogRequestSSEConnMap: syncMap,
-		LanguageDetector:     utils.NewLanguageDetector(),
+		Repo:             repo,
+		Redis:            redis,
+		Hub:              hub,
+		LanguageDetector: utils.NewLanguageDetector(),
 	}
 
 	return m.Run()

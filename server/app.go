@@ -76,8 +76,9 @@ func main() {
 
 	// Create repository (database access)
 	repo := &repository.Repository{
-		DB:  entClient,
-		Ctx: ctx,
+		DB:    entClient,
+		Redis: redis,
+		Ctx:   ctx,
 	}
 
 	if *loadTiers {
@@ -123,22 +124,16 @@ func main() {
 	// Start cron scheduler
 	s.StartAsync()
 
-	// Create a thread-safe HashMap to store in-flight cog requests
-	// We use this to track requests that are in queue, and coordinate responses
-	// To appropriate users over SSE
-	cogRequestSSEConnMap := shared.NewSyncMap[string]()
-
 	// Create SSE hub
-	sseHub := sse.NewHub(cogRequestSSEConnMap, repo)
+	sseHub := sse.NewHub(redis, repo)
 	go sseHub.Run()
 
 	// Create controller
 	hc := rest.RestAPI{
-		Repo:                 repo,
-		Redis:                redis,
-		CogRequestSSEConnMap: cogRequestSSEConnMap,
-		Hub:                  sseHub,
-		LanguageDetector:     utils.NewLanguageDetector(),
+		Repo:             repo,
+		Redis:            redis,
+		Hub:              sseHub,
+		LanguageDetector: utils.NewLanguageDetector(),
 	}
 
 	// Create middleware
@@ -191,15 +186,18 @@ func main() {
 		})
 	})
 
-	// Subscribe to cog events, status updates from our requests
+	// This redis subscription has the following purpose:
+	// - We receive events from the cog (e.g. started/succeeded/failed)
+	// - We update the database with the new status
+	// - Our repository will broadcast to another redis channel, the SSE one
 	pubsub := redis.Client.Subscribe(ctx, shared.COG_REDIS_EVENT_CHANNEL)
 	defer pubsub.Close()
 
-	// Listen for messages
+	// Process messages from cog
 	go func() {
 		klog.Infof("Listening for cog messages on channel: %s", shared.COG_REDIS_EVENT_CHANNEL)
 		for msg := range pubsub.Channel() {
-			klog.Infof("Received event message: %s", msg.Payload)
+			klog.Infof("Received %s message: %s", shared.COG_REDIS_EVENT_CHANNEL, msg.Payload)
 			var cogMessage responses.CogStatusUpdate
 			err := json.Unmarshal([]byte(msg.Payload), &cogMessage)
 			if err != nil {
@@ -207,8 +205,34 @@ func main() {
 				continue
 			}
 
-			// The hub will decide what to do with this message
-			sseHub.BroadcastWorkerMessageToClient(cogMessage)
+			// Process in database
+			repo.ProcessCogMessage(cogMessage)
+		}
+	}()
+
+	// This redis subscription has the following purpose:
+	// After we are done processing a cog message, we want to broadcast it to
+	// our subscribed SSE clients matching that stream ID
+	// the purpose of this instead of just directly sending the message to the SSE is that
+	// our service can scale, and we may have many instances running and we care about SSE connections
+	// on all of them.
+	pubsubSSEMessages := redis.Client.Subscribe(ctx, shared.REDIS_SSE_BROADCAST_CHANNEL)
+	defer pubsubSSEMessages.Close()
+
+	// Start SSE redis subscription
+	go func() {
+		klog.Infof("Listening for cog messages on channel: %s", shared.REDIS_SSE_BROADCAST_CHANNEL)
+		for msg := range pubsubSSEMessages.Channel() {
+			klog.Infof("Received %s message: %s", shared.REDIS_SSE_BROADCAST_CHANNEL, msg.Payload)
+			var sseMessage responses.SSEStatusUpdateResponse
+			err := json.Unmarshal([]byte(msg.Payload), &sseMessage)
+			if err != nil {
+				klog.Errorf("--- Error unmarshalling sse message: %v", err)
+				continue
+			}
+
+			// The hub will broadcast this to our clients if it's supposed to
+			sseHub.BroadcastStatusUpdate(sseMessage)
 		}
 	}()
 

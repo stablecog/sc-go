@@ -40,7 +40,7 @@ func (c *RestAPI) HandleCreateGeneration(w http.ResponseWriter, r *http.Request)
 
 	// Make sure the stream ID is valid
 	start = time.Now()
-	if !utils.IsSha256Hash(generateReq.StreamID) || c.Hub.GetClientByUid(generateReq.StreamID) == nil {
+	if !utils.IsSha256Hash(generateReq.StreamID) {
 		responses.ErrBadRequest(w, r, "Invalid stream ID")
 		return
 	}
@@ -213,7 +213,7 @@ func (c *RestAPI) HandleCreateGeneration(w http.ResponseWriter, r *http.Request)
 
 	// Track the request in our internal map
 	start = time.Now()
-	c.CogRequestSSEConnMap.Put(requestId, generateReq.StreamID)
+	c.Redis.SetCogRequestStreamID(r.Context(), requestId, generateReq.StreamID)
 	fmt.Printf("--- Put request in map took: %s\n", time.Now().Sub(start))
 
 	render.Status(r, http.StatusOK)

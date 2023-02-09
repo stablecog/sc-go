@@ -15,6 +15,7 @@ type WebhookStatusUpdateOutputs struct {
 type SSEStatusUpdateResponse struct {
 	Status    CogTaskStatus                `json:"status"`
 	Id        string                       `json:"id"`
+	StreamId  string                       `json:"stream_id"`
 	Error     string                       `json:"error,omitempty"`
 	NSFWCount int                          `json:"nsfw_count,omitempty"`
 	Outputs   []WebhookStatusUpdateOutputs `json:"outputs,omitempty"`

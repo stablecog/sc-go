@@ -19,6 +19,9 @@ const COG_REDIS_QUEUE = "input_queue"
 // This is the redis channel that the cog publishes to for events
 const COG_REDIS_EVENT_CHANNEL = "queue:event_channel"
 
+// This redis channel our servers publish to when we want to broadcast SSE events to clients
+const REDIS_SSE_BROADCAST_CHANNEL = "sse:broadcast_channel"
+
 // Allowed image extensions used by various APIs
 type ImageExtension string
 

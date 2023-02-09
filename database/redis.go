@@ -2,6 +2,7 @@ package database
 
 import (
 	"context"
+	"time"
 
 	"github.com/alicebob/miniredis/v2"
 	"github.com/go-redis/redis/v8"
@@ -61,4 +62,20 @@ func (r *RedisWrapper) EnqueueCogRequest(ctx context.Context, request interface{
 		Values: []interface{}{"value", request},
 	}).Result()
 	return err
+}
+
+// Keep track of request ID to cog, with stream ID of the client
+func (r *RedisWrapper) SetCogRequestStreamID(ctx context.Context, requestID string, streamID string) error {
+	_, err := r.Client.Set(ctx, requestID, streamID, 1*time.Hour).Result()
+	return err
+}
+
+// Get the stream ID of the client for a given request ID
+func (r *RedisWrapper) GetCogRequestStreamID(ctx context.Context, requestID string) (string, error) {
+	return r.Client.Get(ctx, requestID).Result()
+}
+
+// Delete the stream ID of the client for a given request ID
+func (r *RedisWrapper) DeleteCogRequestStreamID(ctx context.Context, requestID string) (int64, error) {
+	return r.Client.Del(ctx, requestID).Result()
 }

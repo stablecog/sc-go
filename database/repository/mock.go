@@ -1,4 +1,4 @@
-package database
+package repository
 
 import (
 	"context"
@@ -8,7 +8,6 @@ import (
 	"github.com/stablecog/go-apps/database/ent"
 	"github.com/stablecog/go-apps/database/ent/subscriptiontier"
 	"github.com/stablecog/go-apps/database/ent/userrole"
-	"github.com/stablecog/go-apps/database/repository"
 	"github.com/stablecog/go-apps/server/requests"
 )
 
@@ -27,7 +26,7 @@ const MOCK_SCHEDULER_ID_PRO = "b4dff6e9-91a7-449b-b1a7-c25000e3ccd1"
 const MOCK_UPSCALE_MODEL_ID = "b972a2b8-f39e-4ee3-a670-05e3acdd821e"
 
 // Just creates some mock data for our tests
-func CreateMockData(ctx context.Context, db *ent.Client, repo *repository.Repository) error {
+func (repo *Repository) CreateMockData(ctx context.Context, db *ent.Client) error {
 	// Create sub tiers
 	err := repo.CreateSubscriptionTiers()
 	if err != nil {
@@ -200,7 +199,7 @@ func CreateMockData(ctx context.Context, db *ent.Client, repo *repository.Reposi
 	return nil
 }
 
-func CreateMockGenerationForDeletion(ctx context.Context, repo *repository.Repository) (*ent.Generation, error) {
+func (repo *Repository) CreateMockGenerationForDeletion(ctx context.Context) (*ent.Generation, error) {
 	gen, err := repo.CreateGeneration(uuid.MustParse(MOCK_ADMIN_UUID), "browser", "macos", "chrome", "DE", requests.GenerateRequestBody{
 		Prompt:         "to_delete",
 		Width:          512,

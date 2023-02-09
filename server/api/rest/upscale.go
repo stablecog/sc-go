@@ -32,7 +32,7 @@ func (c *RestAPI) HandleUpscale(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Validation
-	if !utils.IsSha256Hash(upscaleReq.StreamID) || c.Hub.GetClientByUid(upscaleReq.StreamID) == nil {
+	if !utils.IsSha256Hash(upscaleReq.StreamID) {
 		responses.ErrBadRequest(w, r, "Invalid stream ID")
 		return
 	}
@@ -166,7 +166,7 @@ func (c *RestAPI) HandleUpscale(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Track the request in our internal map
-	c.CogRequestSSEConnMap.Put(requestId, upscaleReq.StreamID)
+	c.Redis.SetCogRequestStreamID(r.Context(), requestId, upscaleReq.StreamID)
 
 	render.Status(r, http.StatusOK)
 	render.JSON(w, r, &responses.QueuedResponse{

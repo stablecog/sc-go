@@ -3,8 +3,8 @@ package sse
 import (
 	"sync"
 
+	"github.com/stablecog/go-apps/database"
 	"github.com/stablecog/go-apps/database/repository"
-	"github.com/stablecog/go-apps/shared"
 )
 
 type Hub struct {
@@ -20,11 +20,9 @@ type Hub struct {
 	// Client connections registry
 	clients map[*Client]bool
 
-	// Maps connections (Stream ID) to Rest requests (i.e. generate/upscale)
-	CogRequestSSEConnMap *shared.SyncMap[string]
-
-	// Repository for database access
-	Repo *repository.Repository
+	// Database access
+	Repo  *repository.Repository
+	Redis *database.RedisWrapper
 
 	// We need a mutex to protect the clients map
 	mu sync.Mutex
@@ -57,14 +55,14 @@ func (h *Hub) GetClientByUid(uid string) *Client {
 	return nil
 }
 
-func NewHub(sseConMapp *shared.SyncMap[string], repo *repository.Repository) *Hub {
+func NewHub(redis *database.RedisWrapper, repo *repository.Repository) *Hub {
 	return &Hub{
-		Broadcast:            make(chan []byte),
-		Register:             make(chan *Client),
-		Unregister:           make(chan *Client),
-		clients:              make(map[*Client]bool),
-		CogRequestSSEConnMap: sseConMapp,
-		Repo:                 repo,
+		Broadcast:  make(chan []byte),
+		Register:   make(chan *Client),
+		Unregister: make(chan *Client),
+		clients:    make(map[*Client]bool),
+		Repo:       repo,
+		Redis:      redis,
 	}
 }
 

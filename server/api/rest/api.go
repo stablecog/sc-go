@@ -8,16 +8,14 @@ import (
 	"github.com/stablecog/go-apps/database/repository"
 	"github.com/stablecog/go-apps/server/api/sse"
 	"github.com/stablecog/go-apps/server/responses"
-	"github.com/stablecog/go-apps/shared"
 	"github.com/stablecog/go-apps/utils"
 )
 
 type RestAPI struct {
-	Repo                 *repository.Repository
-	Redis                *database.RedisWrapper
-	CogRequestSSEConnMap *shared.SyncMap[string]
-	Hub                  *sse.Hub
-	LanguageDetector     *utils.LanguageDetector
+	Repo             *repository.Repository
+	Redis            *database.RedisWrapper
+	Hub              *sse.Hub
+	LanguageDetector *utils.LanguageDetector
 }
 
 func (c *RestAPI) GetUserIDIfAuthenticated(w http.ResponseWriter, r *http.Request) *uuid.UUID {

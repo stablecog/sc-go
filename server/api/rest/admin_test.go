@@ -9,9 +9,9 @@ import (
 	"testing"
 
 	"github.com/google/uuid"
-	"github.com/stablecog/go-apps/database"
 	"github.com/stablecog/go-apps/database/ent"
 	"github.com/stablecog/go-apps/database/ent/generationoutput"
+	"github.com/stablecog/go-apps/database/repository"
 	"github.com/stablecog/go-apps/server/requests"
 	"github.com/stablecog/go-apps/server/responses"
 	"github.com/stretchr/testify/assert"
@@ -20,7 +20,7 @@ import (
 func TestHandleReviewGallerySubmission(t *testing.T) {
 	// ! Can approve generation
 	// Retrieve generations
-	generations, err := MockController.Repo.GetUserGenerations(uuid.MustParse(database.MOCK_ADMIN_UUID), 50, nil)
+	generations, err := MockController.Repo.GetUserGenerations(uuid.MustParse(repository.MOCK_ADMIN_UUID), 50, nil)
 	assert.Nil(t, err)
 	var targetGUid uuid.UUID
 	// Find generation with outputs
@@ -42,7 +42,7 @@ func TestHandleReviewGallerySubmission(t *testing.T) {
 	req.Header.Set("Content-Type", "application/json")
 
 	// Setup context
-	ctx := context.WithValue(req.Context(), "user_id", database.MOCK_ADMIN_UUID)
+	ctx := context.WithValue(req.Context(), "user_id", repository.MOCK_ADMIN_UUID)
 
 	MockController.HandleReviewGallerySubmission(w, req.WithContext(ctx))
 	resp := w.Result()
@@ -69,7 +69,7 @@ func TestHandleReviewGallerySubmission(t *testing.T) {
 	req.Header.Set("Content-Type", "application/json")
 
 	// Setup context
-	ctx = context.WithValue(req.Context(), "user_id", database.MOCK_ADMIN_UUID)
+	ctx = context.WithValue(req.Context(), "user_id", repository.MOCK_ADMIN_UUID)
 
 	MockController.HandleReviewGallerySubmission(w, req.WithContext(ctx))
 	resp = w.Result()
@@ -87,7 +87,7 @@ func TestHandleReviewGallerySubmission(t *testing.T) {
 func TestHandleDeleteGeneration(t *testing.T) {
 	ctx := context.Background()
 	// Create mock generation
-	targetG, err := database.CreateMockGenerationForDeletion(ctx, MockController.Repo)
+	targetG, err := MockController.Repo.CreateMockGenerationForDeletion(ctx)
 	targetGUid := targetG.ID
 
 	// ! Can delete generation
@@ -101,7 +101,7 @@ func TestHandleDeleteGeneration(t *testing.T) {
 	req.Header.Set("Content-Type", "application/json")
 
 	// Setup context
-	ctx = context.WithValue(req.Context(), "user_id", database.MOCK_ADMIN_UUID)
+	ctx = context.WithValue(req.Context(), "user_id", repository.MOCK_ADMIN_UUID)
 
 	MockController.HandleDeleteGeneration(w, req.WithContext(ctx))
 	resp := w.Result()

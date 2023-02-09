@@ -10,8 +10,8 @@ import (
 	"testing"
 
 	"github.com/google/uuid"
-	"github.com/stablecog/go-apps/database"
 	"github.com/stablecog/go-apps/database/ent/generationoutput"
+	"github.com/stablecog/go-apps/database/repository"
 	"github.com/stablecog/go-apps/server/requests"
 	"github.com/stablecog/go-apps/server/responses"
 	"github.com/stablecog/go-apps/shared"
@@ -74,7 +74,7 @@ func TestGenerateFailsWithInvalidStreamID(t *testing.T) {
 	req.Header.Set("Content-Type", "application/json")
 
 	// Setup context
-	ctx := context.WithValue(req.Context(), "user_id", database.MOCK_ADMIN_UUID)
+	ctx := context.WithValue(req.Context(), "user_id", repository.MOCK_ADMIN_UUID)
 
 	MockController.HandleCreateGeneration(w, req.WithContext(ctx))
 	resp := w.Result()
@@ -102,7 +102,7 @@ func TestGenerateEnforcesNumOutputsChange(t *testing.T) {
 	req.Header.Set("Content-Type", "application/json")
 
 	// Setup context
-	ctx := context.WithValue(req.Context(), "user_id", database.MOCK_ADMIN_UUID)
+	ctx := context.WithValue(req.Context(), "user_id", repository.MOCK_ADMIN_UUID)
 
 	MockController.HandleCreateGeneration(w, req.WithContext(ctx))
 	resp := w.Result()
@@ -128,7 +128,7 @@ func TestGenerateEnforcesNumOutputsChange(t *testing.T) {
 	req.Header.Set("Content-Type", "application/json")
 
 	// Setup context
-	ctx = context.WithValue(req.Context(), "user_id", database.MOCK_ADMIN_UUID)
+	ctx = context.WithValue(req.Context(), "user_id", repository.MOCK_ADMIN_UUID)
 
 	MockController.HandleCreateGeneration(w, req.WithContext(ctx))
 	resp = w.Result()
@@ -153,7 +153,7 @@ func TestGenerateEnforcesMaxWidthMaxHeight(t *testing.T) {
 	req.Header.Set("Content-Type", "application/json")
 
 	// Setup context
-	ctx := context.WithValue(req.Context(), "user_id", database.MOCK_ADMIN_UUID)
+	ctx := context.WithValue(req.Context(), "user_id", repository.MOCK_ADMIN_UUID)
 
 	MockController.HandleCreateGeneration(w, req.WithContext(ctx))
 	resp := w.Result()
@@ -178,7 +178,7 @@ func TestGenerateEnforcesMaxWidthMaxHeight(t *testing.T) {
 	req.Header.Set("Content-Type", "application/json")
 
 	// Setup context
-	ctx = context.WithValue(req.Context(), "user_id", database.MOCK_ADMIN_UUID)
+	ctx = context.WithValue(req.Context(), "user_id", repository.MOCK_ADMIN_UUID)
 
 	MockController.HandleCreateGeneration(w, req.WithContext(ctx))
 	resp = w.Result()
@@ -197,7 +197,7 @@ func TestGenerateRejectsInvalidModelOrScheduler(t *testing.T) {
 		Height:      shared.MAX_GENERATE_HEIGHT,
 		Width:       shared.MAX_GENERATE_WIDTH,
 		SchedulerId: uuid.MustParse("00000000-0000-0000-0000-000000000000"),
-		ModelId:     uuid.MustParse(database.MOCK_GENERATION_MODEL_ID_FREE),
+		ModelId:     uuid.MustParse(repository.MOCK_GENERATION_MODEL_ID_FREE),
 		NumOutputs:  1,
 	}
 	body, _ := json.Marshal(reqBody)
@@ -207,7 +207,7 @@ func TestGenerateRejectsInvalidModelOrScheduler(t *testing.T) {
 	req.Header.Set("Content-Type", "application/json")
 
 	// Setup context
-	ctx := context.WithValue(req.Context(), "user_id", database.MOCK_ADMIN_UUID)
+	ctx := context.WithValue(req.Context(), "user_id", repository.MOCK_ADMIN_UUID)
 
 	MockController.HandleCreateGeneration(w, req.WithContext(ctx))
 	resp := w.Result()
@@ -224,7 +224,7 @@ func TestGenerateRejectsInvalidModelOrScheduler(t *testing.T) {
 		StreamID:    MockSSEId,
 		Height:      shared.MAX_GENERATE_HEIGHT,
 		Width:       shared.MAX_GENERATE_WIDTH,
-		SchedulerId: uuid.MustParse(database.MOCK_SCHEDULER_ID_FREE),
+		SchedulerId: uuid.MustParse(repository.MOCK_SCHEDULER_ID_FREE),
 		ModelId:     uuid.MustParse("00000000-0000-0000-0000-000000000000"),
 		NumOutputs:  1,
 	}
@@ -235,7 +235,7 @@ func TestGenerateRejectsInvalidModelOrScheduler(t *testing.T) {
 	req.Header.Set("Content-Type", "application/json")
 
 	// Setup context
-	ctx = context.WithValue(req.Context(), "user_id", database.MOCK_ADMIN_UUID)
+	ctx = context.WithValue(req.Context(), "user_id", repository.MOCK_ADMIN_UUID)
 
 	MockController.HandleCreateGeneration(w, req.WithContext(ctx))
 	resp = w.Result()
@@ -254,8 +254,8 @@ func TestGenerateProRestrictions(t *testing.T) {
 		StreamID:    MockSSEId,
 		Height:      shared.MAX_GENERATE_HEIGHT,
 		Width:       shared.MAX_GENERATE_WIDTH,
-		SchedulerId: uuid.MustParse(database.MOCK_SCHEDULER_ID_FREE),
-		ModelId:     uuid.MustParse(database.MOCK_GENERATION_MODEL_ID_PRO),
+		SchedulerId: uuid.MustParse(repository.MOCK_SCHEDULER_ID_FREE),
+		ModelId:     uuid.MustParse(repository.MOCK_GENERATION_MODEL_ID_PRO),
 		NumOutputs:  1,
 	}
 	body, _ := json.Marshal(reqBody)
@@ -265,7 +265,7 @@ func TestGenerateProRestrictions(t *testing.T) {
 	req.Header.Set("Content-Type", "application/json")
 
 	// Setup context
-	ctx := context.WithValue(req.Context(), "user_id", database.MOCK_FREE_UUID)
+	ctx := context.WithValue(req.Context(), "user_id", repository.MOCK_FREE_UUID)
 
 	MockController.HandleCreateGeneration(w, req.WithContext(ctx))
 	resp := w.Result()
@@ -282,8 +282,8 @@ func TestGenerateProRestrictions(t *testing.T) {
 		StreamID:    MockSSEId,
 		Height:      shared.MAX_GENERATE_HEIGHT,
 		Width:       shared.MAX_GENERATE_WIDTH,
-		SchedulerId: uuid.MustParse(database.MOCK_SCHEDULER_ID_PRO),
-		ModelId:     uuid.MustParse(database.MOCK_GENERATION_MODEL_ID_FREE),
+		SchedulerId: uuid.MustParse(repository.MOCK_SCHEDULER_ID_PRO),
+		ModelId:     uuid.MustParse(repository.MOCK_GENERATION_MODEL_ID_FREE),
 		NumOutputs:  1,
 	}
 	body, _ = json.Marshal(reqBody)
@@ -293,7 +293,7 @@ func TestGenerateProRestrictions(t *testing.T) {
 	req.Header.Set("Content-Type", "application/json")
 
 	// Setup context
-	ctx = context.WithValue(req.Context(), "user_id", database.MOCK_FREE_UUID)
+	ctx = context.WithValue(req.Context(), "user_id", repository.MOCK_FREE_UUID)
 
 	MockController.HandleCreateGeneration(w, req.WithContext(ctx))
 	resp = w.Result()
@@ -309,8 +309,8 @@ func TestGenerateProRestrictions(t *testing.T) {
 		StreamID:    MockSSEId,
 		Height:      shared.MAX_GENERATE_HEIGHT_FREE + 1,
 		Width:       shared.MAX_GENERATE_WIDTH,
-		SchedulerId: uuid.MustParse(database.MOCK_SCHEDULER_ID_FREE),
-		ModelId:     uuid.MustParse(database.MOCK_GENERATION_MODEL_ID_FREE),
+		SchedulerId: uuid.MustParse(repository.MOCK_SCHEDULER_ID_FREE),
+		ModelId:     uuid.MustParse(repository.MOCK_GENERATION_MODEL_ID_FREE),
 		NumOutputs:  1,
 	}
 	body, _ = json.Marshal(reqBody)
@@ -320,7 +320,7 @@ func TestGenerateProRestrictions(t *testing.T) {
 	req.Header.Set("Content-Type", "application/json")
 
 	// Setup context
-	ctx = context.WithValue(req.Context(), "user_id", database.MOCK_FREE_UUID)
+	ctx = context.WithValue(req.Context(), "user_id", repository.MOCK_FREE_UUID)
 
 	MockController.HandleCreateGeneration(w, req.WithContext(ctx))
 	resp = w.Result()
@@ -336,8 +336,8 @@ func TestGenerateProRestrictions(t *testing.T) {
 		StreamID:    MockSSEId,
 		Height:      shared.MAX_GENERATE_HEIGHT_FREE,
 		Width:       shared.MAX_GENERATE_WIDTH_FREE + 1,
-		SchedulerId: uuid.MustParse(database.MOCK_SCHEDULER_ID_FREE),
-		ModelId:     uuid.MustParse(database.MOCK_GENERATION_MODEL_ID_FREE),
+		SchedulerId: uuid.MustParse(repository.MOCK_SCHEDULER_ID_FREE),
+		ModelId:     uuid.MustParse(repository.MOCK_GENERATION_MODEL_ID_FREE),
 		NumOutputs:  1,
 	}
 	body, _ = json.Marshal(reqBody)
@@ -347,7 +347,7 @@ func TestGenerateProRestrictions(t *testing.T) {
 	req.Header.Set("Content-Type", "application/json")
 
 	// Setup context
-	ctx = context.WithValue(req.Context(), "user_id", database.MOCK_FREE_UUID)
+	ctx = context.WithValue(req.Context(), "user_id", repository.MOCK_FREE_UUID)
 
 	MockController.HandleCreateGeneration(w, req.WithContext(ctx))
 	resp = w.Result()
@@ -364,8 +364,8 @@ func TestGenerateProRestrictions(t *testing.T) {
 		Height:         shared.MAX_GENERATE_HEIGHT_FREE,
 		Width:          shared.MAX_GENERATE_WIDTH_FREE,
 		InferenceSteps: shared.MAX_GENERATE_INTERFERENCE_STEPS_FREE + 1,
-		SchedulerId:    uuid.MustParse(database.MOCK_SCHEDULER_ID_FREE),
-		ModelId:        uuid.MustParse(database.MOCK_GENERATION_MODEL_ID_FREE),
+		SchedulerId:    uuid.MustParse(repository.MOCK_SCHEDULER_ID_FREE),
+		ModelId:        uuid.MustParse(repository.MOCK_GENERATION_MODEL_ID_FREE),
 		NumOutputs:     1,
 	}
 	body, _ = json.Marshal(reqBody)
@@ -375,7 +375,7 @@ func TestGenerateProRestrictions(t *testing.T) {
 	req.Header.Set("Content-Type", "application/json")
 
 	// Setup context
-	ctx = context.WithValue(req.Context(), "user_id", database.MOCK_FREE_UUID)
+	ctx = context.WithValue(req.Context(), "user_id", repository.MOCK_FREE_UUID)
 
 	MockController.HandleCreateGeneration(w, req.WithContext(ctx))
 	resp = w.Result()
@@ -393,8 +393,8 @@ func TestGenerateValidRequest(t *testing.T) {
 		StreamID:       MockSSEId,
 		Height:         shared.MAX_GENERATE_HEIGHT,
 		Width:          shared.MAX_GENERATE_WIDTH,
-		SchedulerId:    uuid.MustParse(database.MOCK_SCHEDULER_ID_FREE),
-		ModelId:        uuid.MustParse(database.MOCK_GENERATION_MODEL_ID_PRO),
+		SchedulerId:    uuid.MustParse(repository.MOCK_SCHEDULER_ID_FREE),
+		ModelId:        uuid.MustParse(repository.MOCK_GENERATION_MODEL_ID_PRO),
 		NumOutputs:     1,
 		InferenceSteps: shared.MAX_GENERATE_INTERFERENCE_STEPS_FREE + 1,
 		Prompt:         "A portrait of a cat by Van Gogh",
@@ -406,7 +406,7 @@ func TestGenerateValidRequest(t *testing.T) {
 	req.Header.Set("Content-Type", "application/json")
 
 	// Setup context
-	ctx := context.WithValue(req.Context(), "user_id", database.MOCK_PRO_UUID)
+	ctx := context.WithValue(req.Context(), "user_id", repository.MOCK_PRO_UUID)
 
 	MockController.HandleCreateGeneration(w, req.WithContext(ctx))
 	resp := w.Result()
@@ -421,7 +421,8 @@ func TestGenerateValidRequest(t *testing.T) {
 	assert.Nil(t, err)
 
 	// make sure we have this ID on our map
-	assert.Equal(t, MockSSEId, MockController.CogRequestSSEConnMap.Get(generateResp.ID))
+	streamid, _ := MockController.Redis.GetCogRequestStreamID(ctx, generateResp.ID)
+	assert.Equal(t, MockSSEId, streamid)
 }
 
 func TestSubmitGenerationToGallery(t *testing.T) {
@@ -436,7 +437,7 @@ func TestSubmitGenerationToGallery(t *testing.T) {
 	req.Header.Set("Content-Type", "application/json")
 
 	// Setup context
-	ctx := context.WithValue(req.Context(), "user_id", database.MOCK_PRO_UUID)
+	ctx := context.WithValue(req.Context(), "user_id", repository.MOCK_PRO_UUID)
 
 	MockController.HandleSubmitGenerationToGallery(w, req.WithContext(ctx))
 	resp := w.Result()
@@ -450,7 +451,7 @@ func TestSubmitGenerationToGallery(t *testing.T) {
 
 	// ! Generation that does exist
 	// Retrieve generation
-	generations, err := MockController.Repo.GetUserGenerations(uuid.MustParse(database.MOCK_ADMIN_UUID), 50, nil)
+	generations, err := MockController.Repo.GetUserGenerations(uuid.MustParse(repository.MOCK_ADMIN_UUID), 50, nil)
 	assert.Nil(t, err)
 	assert.NotEmpty(t, generations)
 	var idx int
@@ -479,7 +480,7 @@ func TestSubmitGenerationToGallery(t *testing.T) {
 	req.Header.Set("Content-Type", "application/json")
 
 	// Setup context
-	ctx = context.WithValue(req.Context(), "user_id", database.MOCK_ADMIN_UUID)
+	ctx = context.WithValue(req.Context(), "user_id", repository.MOCK_ADMIN_UUID)
 
 	MockController.HandleSubmitGenerationToGallery(w, req.WithContext(ctx))
 	resp = w.Result()
@@ -490,14 +491,14 @@ func TestSubmitGenerationToGallery(t *testing.T) {
 	assert.Equal(t, 1, submitResp.Submitted)
 
 	// Make sure updated in DB
-	generations, err = MockController.Repo.GetUserGenerations(uuid.MustParse(database.MOCK_ADMIN_UUID), 50, nil)
+	generations, err = MockController.Repo.GetUserGenerations(uuid.MustParse(repository.MOCK_ADMIN_UUID), 50, nil)
 	assert.Nil(t, err)
 	assert.NotEmpty(t, generations)
 	assert.Equal(t, generationoutput.GalleryStatusSubmitted, generations[idx].Outputs[0].GalleryStatus)
 
 	// ! Generation that is already submitted
 	// Retrieve generation
-	generations, err = MockController.Repo.GetUserGenerations(uuid.MustParse(database.MOCK_ADMIN_UUID), 50, nil)
+	generations, err = MockController.Repo.GetUserGenerations(uuid.MustParse(repository.MOCK_ADMIN_UUID), 50, nil)
 	assert.Nil(t, err)
 	assert.NotEmpty(t, generations)
 	assert.Equal(t, generationoutput.GalleryStatusSubmitted, generations[idx].Outputs[outputIdx].GalleryStatus)
@@ -512,7 +513,7 @@ func TestSubmitGenerationToGallery(t *testing.T) {
 	req.Header.Set("Content-Type", "application/json")
 
 	// Setup context
-	ctx = context.WithValue(req.Context(), "user_id", database.MOCK_ADMIN_UUID)
+	ctx = context.WithValue(req.Context(), "user_id", repository.MOCK_ADMIN_UUID)
 
 	MockController.HandleSubmitGenerationToGallery(w, req.WithContext(ctx))
 	resp = w.Result()

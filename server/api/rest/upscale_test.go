@@ -13,8 +13,8 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/jarcoal/httpmock"
-	"github.com/stablecog/go-apps/database"
 	"github.com/stablecog/go-apps/database/ent/generation"
+	"github.com/stablecog/go-apps/database/repository"
 	"github.com/stablecog/go-apps/server/requests"
 	"github.com/stablecog/go-apps/server/responses"
 	"github.com/stretchr/testify/assert"
@@ -76,7 +76,7 @@ func TestUpscaleFailsWithInvalidStreamID(t *testing.T) {
 	req.Header.Set("Content-Type", "application/json")
 
 	// Setup context
-	ctx := context.WithValue(req.Context(), "user_id", database.MOCK_ADMIN_UUID)
+	ctx := context.WithValue(req.Context(), "user_id", repository.MOCK_ADMIN_UUID)
 
 	MockController.HandleUpscale(w, req.WithContext(ctx))
 	resp := w.Result()
@@ -101,7 +101,7 @@ func TestUpscaleEnforcesType(t *testing.T) {
 	req.Header.Set("Content-Type", "application/json")
 
 	// Setup context
-	ctx := context.WithValue(req.Context(), "user_id", database.MOCK_ADMIN_UUID)
+	ctx := context.WithValue(req.Context(), "user_id", repository.MOCK_ADMIN_UUID)
 
 	MockController.HandleUpscale(w, req.WithContext(ctx))
 	resp := w.Result()
@@ -127,7 +127,7 @@ func TestUpscaleErrorsBadURL(t *testing.T) {
 	req.Header.Set("Content-Type", "application/json")
 
 	// Setup context
-	ctx := context.WithValue(req.Context(), "user_id", database.MOCK_ADMIN_UUID)
+	ctx := context.WithValue(req.Context(), "user_id", repository.MOCK_ADMIN_UUID)
 
 	MockController.HandleUpscale(w, req.WithContext(ctx))
 	resp := w.Result()
@@ -153,7 +153,7 @@ func TestUpscaleErrorsBadOutputID(t *testing.T) {
 	req.Header.Set("Content-Type", "application/json")
 
 	// Setup context
-	ctx := context.WithValue(req.Context(), "user_id", database.MOCK_ADMIN_UUID)
+	ctx := context.WithValue(req.Context(), "user_id", repository.MOCK_ADMIN_UUID)
 
 	MockController.HandleUpscale(w, req.WithContext(ctx))
 	resp := w.Result()
@@ -181,7 +181,7 @@ func TestUpscaleRejectsInvalidModel(t *testing.T) {
 	req.Header.Set("Content-Type", "application/json")
 
 	// Setup context
-	ctx := context.WithValue(req.Context(), "user_id", database.MOCK_ADMIN_UUID)
+	ctx := context.WithValue(req.Context(), "user_id", repository.MOCK_ADMIN_UUID)
 
 	MockController.HandleUpscale(w, req.WithContext(ctx))
 	resp := w.Result()
@@ -199,7 +199,7 @@ func TestUpscaleProOnly(t *testing.T) {
 		StreamID: MockSSEId,
 		Type:     requests.UpscaleRequestTypeImage,
 		Input:    "https://example.com/image.png",
-		ModelId:  uuid.MustParse(database.MOCK_UPSCALE_MODEL_ID),
+		ModelId:  uuid.MustParse(repository.MOCK_UPSCALE_MODEL_ID),
 	}
 	body, _ := json.Marshal(reqBody)
 	w := httptest.NewRecorder()
@@ -208,7 +208,7 @@ func TestUpscaleProOnly(t *testing.T) {
 	req.Header.Set("Content-Type", "application/json")
 
 	// Setup context
-	ctx := context.WithValue(req.Context(), "user_id", database.MOCK_FREE_UUID)
+	ctx := context.WithValue(req.Context(), "user_id", repository.MOCK_FREE_UUID)
 
 	MockController.HandleUpscale(w, req.WithContext(ctx))
 	resp := w.Result()
@@ -250,7 +250,7 @@ func TestUpscaleFromURL(t *testing.T) {
 		StreamID: MockSSEId,
 		Type:     requests.UpscaleRequestTypeImage,
 		Input:    "https://example.com/image.png",
-		ModelId:  uuid.MustParse(database.MOCK_UPSCALE_MODEL_ID),
+		ModelId:  uuid.MustParse(repository.MOCK_UPSCALE_MODEL_ID),
 	}
 	body, _ := json.Marshal(reqBody)
 	w := httptest.NewRecorder()
@@ -259,7 +259,7 @@ func TestUpscaleFromURL(t *testing.T) {
 	req.Header.Set("Content-Type", "application/json")
 
 	// Setup context
-	ctx := context.WithValue(req.Context(), "user_id", database.MOCK_ADMIN_UUID)
+	ctx := context.WithValue(req.Context(), "user_id", repository.MOCK_ADMIN_UUID)
 
 	MockController.HandleUpscale(w, req.WithContext(ctx))
 	resp := w.Result()
@@ -274,19 +274,20 @@ func TestUpscaleFromURL(t *testing.T) {
 	assert.Nil(t, err)
 
 	// make sure we have this ID on our map
-	assert.Equal(t, MockSSEId, MockController.CogRequestSSEConnMap.Get(upscaleResp.ID))
+	streamid, _ := MockController.Redis.GetCogRequestStreamID(ctx, upscaleResp.ID)
+	assert.Equal(t, MockSSEId, streamid)
 }
 
 func TestUpscaleFromOutput(t *testing.T) {
 	// Get an output
-	output, err := MockController.Repo.DB.Generation.Query().Where(generation.UserIDEQ(uuid.MustParse(database.MOCK_ADMIN_UUID))).QueryGenerationOutputs().First(context.Background())
+	output, err := MockController.Repo.DB.Generation.Query().Where(generation.UserIDEQ(uuid.MustParse(repository.MOCK_ADMIN_UUID))).QueryGenerationOutputs().First(context.Background())
 	assert.Nil(t, err)
 
 	reqBody := requests.UpscaleRequestBody{
 		StreamID: MockSSEId,
 		Type:     requests.UpscaleRequestTypeOutput,
 		Input:    output.ID.String(),
-		ModelId:  uuid.MustParse(database.MOCK_UPSCALE_MODEL_ID),
+		ModelId:  uuid.MustParse(repository.MOCK_UPSCALE_MODEL_ID),
 	}
 	body, _ := json.Marshal(reqBody)
 	w := httptest.NewRecorder()
@@ -295,7 +296,7 @@ func TestUpscaleFromOutput(t *testing.T) {
 	req.Header.Set("Content-Type", "application/json")
 
 	// Setup context
-	ctx := context.WithValue(req.Context(), "user_id", database.MOCK_ADMIN_UUID)
+	ctx := context.WithValue(req.Context(), "user_id", repository.MOCK_ADMIN_UUID)
 
 	MockController.HandleUpscale(w, req.WithContext(ctx))
 	resp := w.Result()
@@ -310,5 +311,6 @@ func TestUpscaleFromOutput(t *testing.T) {
 	assert.Nil(t, err)
 
 	// make sure we have this ID on our map
-	assert.Equal(t, MockSSEId, MockController.CogRequestSSEConnMap.Get(upscaleResp.ID))
+	streamid, _ := MockController.Redis.GetCogRequestStreamID(ctx, upscaleResp.ID)
+	assert.Equal(t, MockSSEId, streamid)
 }
