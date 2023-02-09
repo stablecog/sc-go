@@ -1,7 +1,10 @@
 // * Requests initiated by logged in users
 package requests
 
-import "github.com/google/uuid"
+import (
+	"github.com/google/uuid"
+	"github.com/stablecog/go-apps/shared"
+)
 
 // Request for submitting outputs to gallery
 type GenerateSubmitToGalleryRequestBody struct {
@@ -10,20 +13,20 @@ type GenerateSubmitToGalleryRequestBody struct {
 
 // Request for creating a new generation
 type GenerateRequestBody struct {
-	Prompt                string    `json:"prompt"`
-	NegativePrompt        string    `json:"negative_prompt,omitempty"`
-	Width                 int32     `json:"width"`
-	Height                int32     `json:"height"`
-	InferenceSteps        int32     `json:"inference_steps"`
-	GuidanceScale         float32   `json:"guidance_scale"`
-	ModelId               uuid.UUID `json:"model_id"`
-	SchedulerId           uuid.UUID `json:"scheduler_id"`
-	Seed                  int       `json:"seed"`
-	NumOutputs            int       `json:"num_outputs,omitempty"`
-	StreamID              string    `json:"stream_id"` // Corresponds to SSE stream
-	ShouldSubmitToGallery bool      `json:"should_submit_to_gallery"`
-	ProcessType           string    `json:"process_type"`
-	OutputImageExtension  string    `json:"output_image_extension"`
+	Prompt                string             `json:"prompt"`
+	NegativePrompt        string             `json:"negative_prompt,omitempty"`
+	Width                 int32              `json:"width"`
+	Height                int32              `json:"height"`
+	InferenceSteps        int32              `json:"inference_steps"`
+	GuidanceScale         float32            `json:"guidance_scale"`
+	ModelId               uuid.UUID          `json:"model_id"`
+	SchedulerId           uuid.UUID          `json:"scheduler_id"`
+	Seed                  int                `json:"seed"`
+	NumOutputs            int                `json:"num_outputs,omitempty"`
+	StreamID              string             `json:"stream_id"` // Corresponds to SSE stream
+	ShouldSubmitToGallery bool               `json:"should_submit_to_gallery"`
+	ProcessType           shared.ProcessType `json:"process_type"`
+	OutputImageExtension  string             `json:"output_image_extension"`
 }
 
 // Request for initiationg an upscale

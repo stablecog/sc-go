@@ -5,19 +5,20 @@ import (
 
 	"github.com/stablecog/go-apps/database/ent"
 	"github.com/stablecog/go-apps/server/responses"
+	"github.com/stablecog/go-apps/shared"
 	"github.com/stablecog/go-apps/utils"
 	"k8s.io/klog/v2"
 )
 
-// TODO - we can de-dupe a lot of this logic
-
-// Broadcasts an upscale message from sc-worker to relevant client
-func (h *Hub) BroadcastUpscaleMessage(msg responses.CogStatusUpdate) {
+// Broadcasts message from sc-worker to client(s) SSE stream(s)
+func (h *Hub) BroadcastWorkerMessageToClient(msg responses.CogStatusUpdate) {
 	// See if this request belongs to our instance
-	streamIdStr := h.CogRequestSSEConnMap.Get(msg.Input.Id)
+	// We may be scaled, and the request may have been created by another instance - so if we don't have it here we ignore it
+	streamIdStr := h.CogRequestSSEConnMap.Get(msg.Input.ID)
 	if streamIdStr == "" {
 		return
 	}
+
 	// Ensure is valid
 	if !utils.IsSha256Hash(streamIdStr) {
 		// Not sure how we get here, we never should
@@ -25,25 +26,50 @@ func (h *Hub) BroadcastUpscaleMessage(msg responses.CogStatusUpdate) {
 		return
 	}
 
-	// Processing, update this upscale as started in database
-	var output *ent.UpscaleOutput
+	// Get process type
+	if msg.Input.ProcessType != shared.GENERATE && msg.Input.ProcessType != shared.UPSCALE && msg.Input.ProcessType != shared.GENERATE_AND_UPSCALE {
+		klog.Errorf("--- Invalid process type from cog, can't handle message: %s", msg.Input.ProcessType)
+		return
+	}
+
+	var upscaleOutput *ent.UpscaleOutput
+	var generationOutputs []*ent.GenerationOutput
 	var cogErr string
 	var err error
+
+	// Handle started/failed/succeeded message types
 	if msg.Status == responses.CogProcessing {
 		// In goroutine since we want them to know it started asap
-		go h.Repo.SetUpscaleStarted(msg.Input.Id)
+		if msg.Input.ProcessType == shared.UPSCALE {
+			go h.Repo.SetUpscaleStarted(msg.Input.ID)
+		} else {
+			go h.Repo.SetGenerationStarted(msg.Input.ID)
+		}
 	} else if msg.Status == responses.CogFailed {
-		h.Repo.SetUpscaleFailed(msg.Input.Id, msg.Error)
+		if msg.Input.ProcessType == shared.UPSCALE {
+			h.Repo.SetUpscaleFailed(msg.Input.ID, msg.Error)
+		} else {
+			h.Repo.SetGenerationFailed(msg.Input.ID, msg.Error)
+		}
 		cogErr = msg.Error
 	} else if msg.Status == responses.CogSucceeded {
 		if len(msg.Outputs) == 0 {
 			cogErr = "No outputs"
-			h.Repo.SetUpscaleFailed(msg.Input.Id, cogErr)
+			if msg.Input.ProcessType == shared.UPSCALE {
+				h.Repo.SetUpscaleFailed(msg.Input.ID, cogErr)
+			} else {
+				h.Repo.SetGenerationFailed(msg.Input.ID, cogErr)
+			}
 			msg.Status = responses.CogFailed
 		} else {
-			output, err = h.Repo.SetUpscaleSucceeded(msg.Input.Id, msg.Input.GenerationOutputID, msg.Outputs[0])
+			if msg.Input.ProcessType == shared.UPSCALE {
+				// ! Currently we are only assuming 1 output per upscale request
+				upscaleOutput, err = h.Repo.SetUpscaleSucceeded(msg.Input.ID, msg.Input.GenerationOutputID, msg.Outputs[0])
+			} else {
+				generationOutputs, err = h.Repo.SetGenerationSucceeded(msg.Input.ID, msg.Outputs)
+			}
 			if err != nil {
-				klog.Errorf("--- Error setting upscale succeeded for ID %s: %v", msg.Input.Id, err)
+				klog.Errorf("--- Error setting %s succeeded for ID %s: %v", msg.Input.ProcessType, msg.Input.ID, err)
 				return
 			}
 		}
@@ -57,85 +83,22 @@ func (h *Hub) BroadcastUpscaleMessage(msg responses.CogStatusUpdate) {
 	// Send message to user
 	resp := responses.SSEStatusUpdateResponse{
 		Status:    msg.Status,
-		Id:        msg.Input.Id,
+		Id:        msg.Input.ID,
 		NSFWCount: msg.NSFWCount,
 		Error:     cogErr,
 	}
-	if msg.Status == responses.CogSucceeded {
+	// Upscale
+	if msg.Status == responses.CogSucceeded && msg.Input.ProcessType == shared.UPSCALE {
 		resp.Outputs = []responses.WebhookStatusUpdateOutputs{
 			{
-				ID:       output.ID,
-				ImageUrl: output.ImageURL,
+				ID:       upscaleOutput.ID,
+				ImageUrl: upscaleOutput.ImageURL,
 			},
 		}
-	}
-	// Marshal
-	respBytes, err := json.Marshal(resp)
-	if err != nil {
-		klog.Errorf("--- Error marshalling sse started response: %v", err)
-		return
-	}
-	h.BroadcastToClientsWithUid(streamIdStr, respBytes)
-}
-
-// Broadcast a generate message from sc-worker to relevant client
-func (h *Hub) BroadcastGenerateMessage(msg responses.CogStatusUpdate) {
-	// See if this request belongs to our instance
-	streamIdStr := h.CogRequestSSEConnMap.Get(msg.Input.Id)
-	if streamIdStr == "" {
-		return
-	}
-	// Ensure is valid
-	if !utils.IsSha256Hash(streamIdStr) {
-		// Not sure how we get here, we never should
-		klog.Errorf("--- Invalid sse stream id: %s", streamIdStr)
-		return
-	}
-
-	// Processing, update this generation as started in database
-	var outputs []*ent.GenerationOutput
-	var cogErr string
-	var err error
-	if msg.Status == responses.CogProcessing {
-		// In goroutine since we want them to know it started asap
-		go h.Repo.SetGenerationStarted(msg.Input.Id)
-	} else if msg.Status == responses.CogFailed {
-		h.Repo.SetGenerationFailed(msg.Input.Id, msg.Error)
-		cogErr = msg.Error
 	} else if msg.Status == responses.CogSucceeded {
-		// NSFW counts as failure
-		if len(msg.Outputs) == 0 && msg.NSFWCount > 0 {
-			cogErr = "NSFW"
-			h.Repo.SetGenerationFailed(msg.Input.Id, cogErr)
-			msg.Status = responses.CogFailed
-		} else if len(msg.Outputs) == 0 && msg.NSFWCount == 0 {
-			cogErr = "No outputs"
-			h.Repo.SetGenerationFailed(msg.Input.Id, cogErr)
-			msg.Status = responses.CogFailed
-		} else {
-			outputs, err = h.Repo.SetGenerationSucceeded(msg.Input.Id, msg.Outputs)
-			if err != nil {
-				klog.Errorf("--- Error setting generation succeeded for ID %s: %v", msg.Input.Id, err)
-				return
-			}
-		}
-	} else {
-		klog.Warningf("--- Unknown webhook status, not sure how to proceed so not proceeding at all: %s", msg.Status)
-		return
-	}
-
-	// Regardless of the status, we always send over SSE so user knows what's up
-	// Send message to user
-	resp := responses.SSEStatusUpdateResponse{
-		Status:    msg.Status,
-		Id:        msg.Input.Id,
-		NSFWCount: msg.NSFWCount,
-		Error:     cogErr,
-	}
-
-	if msg.Status == responses.CogSucceeded {
-		generateOutputs := make([]responses.WebhookStatusUpdateOutputs, len(outputs))
-		for i, output := range outputs {
+		// Generate or generate and upscale
+		generateOutputs := make([]responses.WebhookStatusUpdateOutputs, len(generationOutputs))
+		for i, output := range generationOutputs {
 			generateOutputs[i] = responses.WebhookStatusUpdateOutputs{
 				ID:               output.ID,
 				ImageUrl:         output.ImageURL,
@@ -148,8 +111,10 @@ func (h *Hub) BroadcastGenerateMessage(msg responses.CogStatusUpdate) {
 	// Marshal
 	respBytes, err := json.Marshal(resp)
 	if err != nil {
-		klog.Errorf("--- Error marshalling sse started response: %v", err)
+		klog.Errorf("--- Error marshalling sse response: %v", err)
 		return
 	}
+
+	// Broadcast to all clients subcribed to this stream
 	h.BroadcastToClientsWithUid(streamIdStr, respBytes)
 }

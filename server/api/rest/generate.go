@@ -179,12 +179,10 @@ func (c *RestAPI) HandleCreateGeneration(w http.ResponseWriter, r *http.Request)
 	// Request Id matches generation ID
 	requestId := g.ID.String()
 
-	cogReqBody := requests.CogGenerateQueueRequest{
-		BaseCogRequestQueue: requests.BaseCogRequestQueue{
-			WebhookEventsFilter: []requests.WebhookEventFilterOption{requests.WebhookEventFilterStart, requests.WebhookEventFilterStart},
-			RedisPubsubKey:      shared.COG_REDIS_GENERATE_EVENT_CHANNEL,
-		},
-		Input: requests.BaseCogGenerateRequest{
+	cogReqBody := requests.CogQueueRequest{
+		WebhookEventsFilter: []requests.WebhookEventFilterOption{requests.WebhookEventFilterStart, requests.WebhookEventFilterStart},
+		RedisPubsubKey:      shared.COG_REDIS_EVENT_CHANNEL,
+		Input: requests.BaseCogRequest{
 			ID:                   requestId,
 			Prompt:               generateReq.Prompt,
 			NegativePrompt:       generateReq.NegativePrompt,

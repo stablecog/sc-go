@@ -16,11 +16,8 @@ const MAX_PROMPT_LENGTH = 500
 // The name of the redis stream used to enqueue cog requests
 const COG_REDIS_QUEUE = "input_queue"
 
-// This is the redis channel that the cog publishes to for generate events
-const COG_REDIS_GENERATE_EVENT_CHANNEL = "queue:generate_event"
-
-// Same for upscale
-const COG_REDIS_UPSCALE_EVENT_CHANNEL = "queue:upscale_event"
+// This is the redis channel that the cog publishes to for events
+const COG_REDIS_EVENT_CHANNEL = "queue:event_channel"
 
 // Allowed image extensions used by various APIs
 type ImageExtension string

@@ -191,17 +191,15 @@ func main() {
 		})
 	})
 
-	// Subscribe to cog events for generations
-	pubsubGenerate := redis.Client.Subscribe(ctx, shared.COG_REDIS_GENERATE_EVENT_CHANNEL)
-	defer pubsubGenerate.Close()
-	pubsubUpscale := redis.Client.Subscribe(ctx, shared.COG_REDIS_UPSCALE_EVENT_CHANNEL)
-	defer pubsubUpscale.Close()
+	// Subscribe to cog events, status updates from our requests
+	pubsub := redis.Client.Subscribe(ctx, shared.COG_REDIS_EVENT_CHANNEL)
+	defer pubsub.Close()
 
 	// Listen for messages
 	go func() {
-		klog.Infof("Listening for webhook messages on channel: %s", shared.COG_REDIS_GENERATE_EVENT_CHANNEL)
-		for msg := range pubsubGenerate.Channel() {
-			klog.Infof("Received webhook message: %s", msg.Payload)
+		klog.Infof("Listening for cog messages on channel: %s", shared.COG_REDIS_EVENT_CHANNEL)
+		for msg := range pubsub.Channel() {
+			klog.Infof("Received event message: %s", msg.Payload)
 			var cogMessage responses.CogStatusUpdate
 			err := json.Unmarshal([]byte(msg.Payload), &cogMessage)
 			if err != nil {
@@ -209,23 +207,8 @@ func main() {
 				continue
 			}
 
-			sseHub.BroadcastGenerateMessage(cogMessage)
-		}
-	}()
-
-	// Upscale message from worker
-	go func() {
-		klog.Infof("Listening for webhook messages on channel: %s", shared.COG_REDIS_UPSCALE_EVENT_CHANNEL)
-		for msg := range pubsubUpscale.Channel() {
-			klog.Infof("Received webhook message: %s", msg.Payload)
-			var cogMessage responses.CogStatusUpdate
-			err := json.Unmarshal([]byte(msg.Payload), &cogMessage)
-			if err != nil {
-				klog.Errorf("--- Error unmarshalling webhook message: %v", err)
-				continue
-			}
-
-			sseHub.BroadcastUpscaleMessage(cogMessage)
+			// The hub will decide what to do with this message
+			sseHub.BroadcastWorkerMessageToClient(cogMessage)
 		}
 	}()
 

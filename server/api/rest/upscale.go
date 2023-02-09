@@ -147,16 +147,14 @@ func (c *RestAPI) HandleUpscale(w http.ResponseWriter, r *http.Request) {
 	requestId := upscale.ID.String()
 
 	// Send to the cog
-	cogReqBody := requests.CogUpscaleQueueRequest{
-		BaseCogRequestQueue: requests.BaseCogRequestQueue{
-			WebhookEventsFilter: []requests.WebhookEventFilterOption{requests.WebhookEventFilterStart, requests.WebhookEventFilterStart},
-			RedisPubsubKey:      shared.COG_REDIS_UPSCALE_EVENT_CHANNEL,
-		},
-		Input: requests.BaseCogUpscaleRequest{
+	cogReqBody := requests.CogQueueRequest{
+		WebhookEventsFilter: []requests.WebhookEventFilterOption{requests.WebhookEventFilterStart, requests.WebhookEventFilterStart},
+		RedisPubsubKey:      shared.COG_REDIS_EVENT_CHANNEL,
+		Input: requests.BaseCogRequest{
 			ID:                 requestId,
 			GenerationOutputID: outputIDStr,
 			Image:              imageUrl,
-			ProcessType:        string(shared.UPSCALE),
+			ProcessType:        shared.UPSCALE,
 		},
 	}
 
