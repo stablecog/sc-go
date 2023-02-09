@@ -74,13 +74,6 @@ func (r *Repository) ProcessCogMessage(msg responses.CogStatusUpdate) {
 		return
 	}
 
-	// // If this stream doesn't belong to us, still process it but don't broadcast
-	// shouldBroadcast := true
-	// if h.GetClientByUid(streamIdStr) == nil {
-	// 	// They aren't connected, but
-	// 	shouldBroadcast = false
-	// }
-
 	// We delete this, if our delete is successful then that means we are the ones responsible for processing it
 	deleted, err := r.Redis.DeleteCogRequestStreamID(r.Redis.Client.Context(), msg.Input.ID)
 	if err != nil {
