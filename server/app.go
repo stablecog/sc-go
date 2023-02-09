@@ -15,7 +15,6 @@ import (
 	"github.com/go-co-op/gocron"
 	"github.com/joho/godotenv"
 	"github.com/stablecog/go-apps/database"
-	"github.com/stablecog/go-apps/database/ent"
 	"github.com/stablecog/go-apps/database/repository"
 	"github.com/stablecog/go-apps/server/api/rest"
 	"github.com/stablecog/go-apps/server/api/sse"
@@ -130,7 +129,7 @@ func main() {
 	cogRequestSSEConnMap := shared.NewSyncMap[string]()
 
 	// Create SSE hub
-	sseHub := sse.NewHub()
+	sseHub := sse.NewHub(cogRequestSSEConnMap, repo)
 	go sseHub.Run()
 
 	// Create controller
@@ -199,7 +198,6 @@ func main() {
 	defer pubsubUpscale.Close()
 
 	// Listen for messages
-	// ! TODO - move the bulk of this logic somewhere else
 	go func() {
 		klog.Infof("Listening for webhook messages on channel: %s", shared.COG_REDIS_GENERATE_EVENT_CHANNEL)
 		for msg := range pubsubGenerate.Channel() {
@@ -211,81 +209,11 @@ func main() {
 				continue
 			}
 
-			// See if this request belongs to our instance
-			streamIdStr := cogRequestSSEConnMap.Get(cogMessage.Input.Id)
-			if streamIdStr == "" {
-				continue
-			}
-			// Ensure is valid
-			if !utils.IsSha256Hash(streamIdStr) {
-				// Not sure how we get here, we never should
-				klog.Errorf("--- Invalid sse stream id: %s", streamIdStr)
-				continue
-			}
-
-			// Processing, update this generation as started in database
-			var outputs []*ent.GenerationOutput
-			var cogErr string
-			if cogMessage.Status == responses.CogProcessing {
-				// In goroutine since we want them to know it started asap
-				go repo.SetGenerationStarted(cogMessage.Input.Id)
-			} else if cogMessage.Status == responses.CogFailed {
-				repo.SetGenerationFailed(cogMessage.Input.Id, cogMessage.Error)
-				cogErr = cogMessage.Error
-			} else if cogMessage.Status == responses.CogSucceeded {
-				// NSFW counts as failure
-				if len(cogMessage.Outputs) == 0 && cogMessage.NSFWCount > 0 {
-					cogErr = "NSFW"
-					repo.SetGenerationFailed(cogMessage.Input.Id, cogErr)
-					cogMessage.Status = responses.CogFailed
-				} else if len(cogMessage.Outputs) == 0 && cogMessage.NSFWCount == 0 {
-					cogErr = "No outputs"
-					repo.SetGenerationFailed(cogMessage.Input.Id, cogErr)
-					cogMessage.Status = responses.CogFailed
-				} else {
-					outputs, err = repo.SetGenerationSucceeded(cogMessage.Input.Id, cogMessage.Outputs)
-					if err != nil {
-						klog.Errorf("--- Error setting generation succeeded for ID %s: %v", cogMessage.Input.Id, err)
-						continue
-					}
-				}
-			} else {
-				klog.Warningf("--- Unknown webhook status, not sure how to proceed so not proceeding at all: %s", cogMessage.Status)
-				continue
-			}
-
-			// Regardless of the status, we always send over SSE so user knows what's up
-			// Send message to user
-			resp := responses.SSEStatusUpdateResponse{
-				Status:    cogMessage.Status,
-				Id:        cogMessage.Input.Id,
-				NSFWCount: cogMessage.NSFWCount,
-				Error:     cogErr,
-			}
-
-			if cogMessage.Status == responses.CogSucceeded {
-				generateOutputs := make([]responses.WebhookStatusUpdateOutputs, len(outputs))
-				for i, output := range outputs {
-					generateOutputs[i] = responses.WebhookStatusUpdateOutputs{
-						ID:               output.ID,
-						ImageUrl:         output.ImageURL,
-						UpscaledImageUrl: output.UpscaledImageURL,
-						GalleryStatus:    output.GalleryStatus,
-					}
-				}
-				resp.Outputs = generateOutputs
-			}
-			// Marshal
-			respBytes, err := json.Marshal(resp)
-			if err != nil {
-				klog.Errorf("--- Error marshalling sse started response: %v", err)
-				continue
-			}
-			sseHub.BroadcastToClientsWithUid(streamIdStr, respBytes)
+			sseHub.BroadcastGenerateMessage(cogMessage)
 		}
 	}()
 
-	// Upscale
+	// Upscale message from worker
 	go func() {
 		klog.Infof("Listening for webhook messages on channel: %s", shared.COG_REDIS_UPSCALE_EVENT_CHANNEL)
 		for msg := range pubsubUpscale.Channel() {
@@ -297,68 +225,7 @@ func main() {
 				continue
 			}
 
-			// See if this request belongs to our instance
-			streamIdStr := cogRequestSSEConnMap.Get(cogMessage.Input.Id)
-			if streamIdStr == "" {
-				continue
-			}
-			// Ensure is valid
-			if !utils.IsSha256Hash(streamIdStr) {
-				// Not sure how we get here, we never should
-				klog.Errorf("--- Invalid SSE stream id: %s", streamIdStr)
-				continue
-			}
-
-			// Processing, update this upscale as started in database
-			var output *ent.UpscaleOutput
-			var cogErr string
-			if cogMessage.Status == responses.CogProcessing {
-				// In goroutine since we want them to know it started asap
-				go repo.SetUpscaleStarted(cogMessage.Input.Id)
-			} else if cogMessage.Status == responses.CogFailed {
-				repo.SetUpscaleFailed(cogMessage.Input.Id, cogMessage.Error)
-				cogErr = cogMessage.Error
-			} else if cogMessage.Status == responses.CogSucceeded {
-				if len(cogMessage.Outputs) == 0 {
-					cogErr = "No outputs"
-					repo.SetUpscaleFailed(cogMessage.Input.Id, cogErr)
-					cogMessage.Status = responses.CogFailed
-				} else {
-					output, err = repo.SetUpscaleSucceeded(cogMessage.Input.Id, cogMessage.Input.GenerationOutputID, cogMessage.Outputs[0])
-					if err != nil {
-						klog.Errorf("--- Error setting upscale succeeded for ID %s: %v", cogMessage.Input.Id, err)
-						continue
-					}
-				}
-
-			} else {
-				klog.Warningf("--- Unknown webhook status, not sure how to proceed so not proceeding at all: %s", cogMessage.Status)
-				continue
-			}
-
-			// Regardless of the status, we always send over sse so user knows what's up
-			// Send message to user
-			resp := responses.SSEStatusUpdateResponse{
-				Status:    cogMessage.Status,
-				Id:        cogMessage.Input.Id,
-				NSFWCount: cogMessage.NSFWCount,
-				Error:     cogErr,
-			}
-			if cogMessage.Status == responses.CogSucceeded {
-				resp.Outputs = []responses.WebhookStatusUpdateOutputs{
-					{
-						ID:       output.ID,
-						ImageUrl: output.ImageURL,
-					},
-				}
-			}
-			// Marshal
-			respBytes, err := json.Marshal(resp)
-			if err != nil {
-				klog.Errorf("--- Error marshalling sse started response: %v", err)
-				continue
-			}
-			sseHub.BroadcastToClientsWithUid(streamIdStr, respBytes)
+			sseHub.BroadcastUpscaleMessage(cogMessage)
 		}
 	}()
 

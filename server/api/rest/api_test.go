@@ -68,8 +68,11 @@ func testMainWrapper(m *testing.M) int {
 		os.Exit(1)
 	}
 
+	// Dependencies
+	syncMap := shared.NewSyncMap[string]()
+
 	// Setup fake sse hub
-	hub := sse.NewHub()
+	hub := sse.NewHub(syncMap, repo)
 	go hub.Run()
 	// Add user to hub
 	hub.Register <- &sse.Client{
@@ -81,7 +84,7 @@ func testMainWrapper(m *testing.M) int {
 		Repo:                 repo,
 		Redis:                redis,
 		Hub:                  hub,
-		CogRequestSSEConnMap: shared.NewSyncMap[string](),
+		CogRequestSSEConnMap: syncMap,
 		LanguageDetector:     utils.NewLanguageDetector(),
 	}
 
