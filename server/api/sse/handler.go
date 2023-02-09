@@ -13,8 +13,8 @@ import (
 func (h *Hub) ServeSSE(w http.ResponseWriter, r *http.Request) {
 	// Retrieve id from query parameters
 	query := r.URL.Query()
-	// They always connect with query param ?stream
-	streamID := strings.ToLower(query.Get("stream"))
+	// They always connect with query param ?stream_id
+	streamID := strings.ToLower(query.Get("stream_id"))
 	if !utils.IsSha256Hash(streamID) {
 		responses.ErrBadRequest(w, r, "Invalid ID")
 		return
