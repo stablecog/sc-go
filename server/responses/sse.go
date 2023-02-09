@@ -12,7 +12,7 @@ type WebhookStatusUpdateOutputs struct {
 	GalleryStatus    generationoutput.GalleryStatus `json:"gallery_status,omitempty"`
 }
 
-type WebsocketStatusUpdateResponse struct {
+type SSEStatusUpdateResponse struct {
 	Status    CogTaskStatus                `json:"status"`
 	Id        string                       `json:"id"`
 	Error     string                       `json:"error,omitempty"`

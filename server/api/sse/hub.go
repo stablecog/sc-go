@@ -1,37 +1,24 @@
-package websocket
+package sse
 
 import (
 	"sync"
 )
 
-// Hub maintains the set of active clients and broadcasts messages to the
-// clients.
 type Hub struct {
-	// Registered clients.
-	clients map[*Client]bool
-
-	// Inbound messages from the clients.
+	// Events are pushed to this channel by the main events-gathering routine
 	Broadcast chan []byte
 
-	// Register requests from the clients.
+	// Clients connecting
 	Register chan *Client
 
-	// Unregister requests from clients.
+	// Clients disconnecting
 	Unregister chan *Client
+
+	// Client connections registry
+	clients map[*Client]bool
 
 	// We need a mutex to protect the clients map
 	mu sync.Mutex
-}
-
-func (h *Hub) GetClientByUid(uid string) *Client {
-	h.mu.Lock()
-	defer h.mu.Unlock()
-	for client := range h.clients {
-		if client.Uid == uid {
-			return client
-		}
-	}
-	return nil
 }
 
 // Braodcast a message to all clients that match the given uid
@@ -48,6 +35,17 @@ func (h *Hub) BroadcastToClientsWithUid(uid string, message []byte) {
 			}
 		}
 	}
+}
+
+func (h *Hub) GetClientByUid(uid string) *Client {
+	h.mu.Lock()
+	defer h.mu.Unlock()
+	for client := range h.clients {
+		if client.Uid == uid {
+			return client
+		}
+	}
+	return nil
 }
 
 func NewHub() *Hub {
@@ -77,7 +75,6 @@ func (h *Hub) Run() {
 					close(client.Send)
 				}
 			}()
-		// Broadcast messages to all clients
 		case message := <-h.Broadcast:
 			func() {
 				h.mu.Lock()
@@ -93,4 +90,5 @@ func (h *Hub) Run() {
 			}()
 		}
 	}
+
 }

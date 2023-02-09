@@ -38,13 +38,13 @@ func (c *RestAPI) HandleCreateGeneration(w http.ResponseWriter, r *http.Request)
 	}
 	fmt.Printf("--- ParseRequestBody took: %s\n", time.Now().Sub(start))
 
-	// Make sure the websocket ID is valid
+	// Make sure the stream ID is valid
 	start = time.Now()
-	if !utils.IsSha256Hash(generateReq.WebsocketId) || c.Hub.GetClientByUid(generateReq.WebsocketId) == nil {
-		responses.ErrBadRequest(w, r, "Invalid websocket ID")
+	if !utils.IsSha256Hash(generateReq.StreamID) || c.Hub.GetClientByUid(generateReq.StreamID) == nil {
+		responses.ErrBadRequest(w, r, "Invalid stream ID")
 		return
 	}
-	fmt.Printf("--- Validate websocket ID took: %s\n", time.Now().Sub(start))
+	fmt.Printf("--- Validate stream ID took: %s\n", time.Now().Sub(start))
 
 	// Validate request body
 	if generateReq.Height > shared.MAX_GENERATE_HEIGHT {
@@ -215,7 +215,7 @@ func (c *RestAPI) HandleCreateGeneration(w http.ResponseWriter, r *http.Request)
 
 	// Track the request in our internal map
 	start = time.Now()
-	c.CogRequestWebsocketConnMap.Put(requestId, generateReq.WebsocketId)
+	c.CogRequestSSEConnMap.Put(requestId, generateReq.StreamID)
 	fmt.Printf("--- Put request in map took: %s\n", time.Now().Sub(start))
 
 	render.Status(r, http.StatusOK)

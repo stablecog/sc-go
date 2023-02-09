@@ -8,14 +8,14 @@ import (
 
 	"github.com/stablecog/go-apps/database"
 	"github.com/stablecog/go-apps/database/repository"
-	"github.com/stablecog/go-apps/server/api/websocket"
+	"github.com/stablecog/go-apps/server/api/sse"
 	"github.com/stablecog/go-apps/shared"
 	"github.com/stablecog/go-apps/utils"
 	"k8s.io/klog/v2"
 )
 
-// A valid websocket ID that will be acceptable by APIs
-const MockWSId = "e08abf9698f7d27e634de0d36cc974a0d908ec41c0a7e5e5738d2431f9a700e3"
+// A valid sse stream ID that will be acceptable by APIs
+const MockSSEId = "e08abf9698f7d27e634de0d36cc974a0d908ec41c0a7e5e5738d2431f9a700e3"
 
 var MockController *RestAPI
 
@@ -68,21 +68,21 @@ func testMainWrapper(m *testing.M) int {
 		os.Exit(1)
 	}
 
-	// Setup fake websocket hub
-	hub := websocket.NewHub()
+	// Setup fake sse hub
+	hub := sse.NewHub()
 	go hub.Run()
 	// Add user to hub
-	hub.Register <- &websocket.Client{
-		Uid: MockWSId,
+	hub.Register <- &sse.Client{
+		Uid: MockSSEId,
 	}
 
 	// Setup controller
 	MockController = &RestAPI{
-		Repo:                       repo,
-		Redis:                      redis,
-		Hub:                        hub,
-		CogRequestWebsocketConnMap: shared.NewSyncMap[string](),
-		LanguageDetector:           utils.NewLanguageDetector(),
+		Repo:                 repo,
+		Redis:                redis,
+		Hub:                  hub,
+		CogRequestSSEConnMap: shared.NewSyncMap[string](),
+		LanguageDetector:     utils.NewLanguageDetector(),
 	}
 
 	return m.Run()

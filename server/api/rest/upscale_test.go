@@ -65,9 +65,9 @@ func TestUpscaleUnauthorizedIfUserIdNotUuid(t *testing.T) {
 	assert.Equal(t, "Unauthorized", respJson["error"])
 }
 
-func TestUpscaleFailsWithInvalidWebsocketID(t *testing.T) {
+func TestUpscaleFailsWithInvalidStreamID(t *testing.T) {
 	reqBody := requests.UpscaleRequestBody{
-		WebsocketId: "invalid",
+		StreamID: "invalid",
 	}
 	body, _ := json.Marshal(reqBody)
 	w := httptest.NewRecorder()
@@ -86,13 +86,13 @@ func TestUpscaleFailsWithInvalidWebsocketID(t *testing.T) {
 	respBody, _ := io.ReadAll(resp.Body)
 	json.Unmarshal(respBody, &respJson)
 
-	assert.Equal(t, "Invalid websocket ID", respJson["error"])
+	assert.Equal(t, "Invalid stream ID", respJson["error"])
 }
 
 func TestUpscaleEnforcesType(t *testing.T) {
 	reqBody := requests.UpscaleRequestBody{
-		WebsocketId: MockWSId,
-		Type:        "invalid",
+		StreamID: MockSSEId,
+		Type:     "invalid",
 	}
 	body, _ := json.Marshal(reqBody)
 	w := httptest.NewRecorder()
@@ -116,9 +116,9 @@ func TestUpscaleEnforcesType(t *testing.T) {
 
 func TestUpscaleErrorsBadURL(t *testing.T) {
 	reqBody := requests.UpscaleRequestBody{
-		WebsocketId: MockWSId,
-		Type:        requests.UpscaleRequestTypeImage,
-		Input:       "not-a-url",
+		StreamID: MockSSEId,
+		Type:     requests.UpscaleRequestTypeImage,
+		Input:    "not-a-url",
 	}
 	body, _ := json.Marshal(reqBody)
 	w := httptest.NewRecorder()
@@ -142,9 +142,9 @@ func TestUpscaleErrorsBadURL(t *testing.T) {
 
 func TestUpscaleErrorsBadOutputID(t *testing.T) {
 	reqBody := requests.UpscaleRequestBody{
-		WebsocketId: MockWSId,
-		Type:        requests.UpscaleRequestTypeOutput,
-		Input:       "not-a-uuid",
+		StreamID: MockSSEId,
+		Type:     requests.UpscaleRequestTypeOutput,
+		Input:    "not-a-uuid",
 	}
 	body, _ := json.Marshal(reqBody)
 	w := httptest.NewRecorder()
@@ -169,10 +169,10 @@ func TestUpscaleErrorsBadOutputID(t *testing.T) {
 func TestUpscaleRejectsInvalidModel(t *testing.T) {
 	// ! Invalid model ID
 	reqBody := requests.UpscaleRequestBody{
-		WebsocketId: MockWSId,
-		Type:        requests.UpscaleRequestTypeImage,
-		Input:       "https://example.com/image.png",
-		ModelId:     uuid.MustParse("00000000-0000-0000-0000-000000000000"),
+		StreamID: MockSSEId,
+		Type:     requests.UpscaleRequestTypeImage,
+		Input:    "https://example.com/image.png",
+		ModelId:  uuid.MustParse("00000000-0000-0000-0000-000000000000"),
 	}
 	body, _ := json.Marshal(reqBody)
 	w := httptest.NewRecorder()
@@ -196,10 +196,10 @@ func TestUpscaleRejectsInvalidModel(t *testing.T) {
 
 func TestUpscaleProOnly(t *testing.T) {
 	reqBody := requests.UpscaleRequestBody{
-		WebsocketId: MockWSId,
-		Type:        requests.UpscaleRequestTypeImage,
-		Input:       "https://example.com/image.png",
-		ModelId:     uuid.MustParse(database.MOCK_UPSCALE_MODEL_ID),
+		StreamID: MockSSEId,
+		Type:     requests.UpscaleRequestTypeImage,
+		Input:    "https://example.com/image.png",
+		ModelId:  uuid.MustParse(database.MOCK_UPSCALE_MODEL_ID),
 	}
 	body, _ := json.Marshal(reqBody)
 	w := httptest.NewRecorder()
@@ -247,10 +247,10 @@ func TestUpscaleFromURL(t *testing.T) {
 	)
 
 	reqBody := requests.UpscaleRequestBody{
-		WebsocketId: MockWSId,
-		Type:        requests.UpscaleRequestTypeImage,
-		Input:       "https://example.com/image.png",
-		ModelId:     uuid.MustParse(database.MOCK_UPSCALE_MODEL_ID),
+		StreamID: MockSSEId,
+		Type:     requests.UpscaleRequestTypeImage,
+		Input:    "https://example.com/image.png",
+		ModelId:  uuid.MustParse(database.MOCK_UPSCALE_MODEL_ID),
 	}
 	body, _ := json.Marshal(reqBody)
 	w := httptest.NewRecorder()
@@ -274,7 +274,7 @@ func TestUpscaleFromURL(t *testing.T) {
 	assert.Nil(t, err)
 
 	// make sure we have this ID on our map
-	assert.Equal(t, MockWSId, MockController.CogRequestWebsocketConnMap.Get(upscaleResp.ID))
+	assert.Equal(t, MockSSEId, MockController.CogRequestSSEConnMap.Get(upscaleResp.ID))
 }
 
 func TestUpscaleFromOutput(t *testing.T) {
@@ -283,10 +283,10 @@ func TestUpscaleFromOutput(t *testing.T) {
 	assert.Nil(t, err)
 
 	reqBody := requests.UpscaleRequestBody{
-		WebsocketId: MockWSId,
-		Type:        requests.UpscaleRequestTypeOutput,
-		Input:       output.ID.String(),
-		ModelId:     uuid.MustParse(database.MOCK_UPSCALE_MODEL_ID),
+		StreamID: MockSSEId,
+		Type:     requests.UpscaleRequestTypeOutput,
+		Input:    output.ID.String(),
+		ModelId:  uuid.MustParse(database.MOCK_UPSCALE_MODEL_ID),
 	}
 	body, _ := json.Marshal(reqBody)
 	w := httptest.NewRecorder()
@@ -310,5 +310,5 @@ func TestUpscaleFromOutput(t *testing.T) {
 	assert.Nil(t, err)
 
 	// make sure we have this ID on our map
-	assert.Equal(t, MockWSId, MockController.CogRequestWebsocketConnMap.Get(upscaleResp.ID))
+	assert.Equal(t, MockSSEId, MockController.CogRequestSSEConnMap.Get(upscaleResp.ID))
 }

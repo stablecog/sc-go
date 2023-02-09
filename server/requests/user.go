@@ -20,7 +20,7 @@ type GenerateRequestBody struct {
 	SchedulerId           uuid.UUID `json:"scheduler_id"`
 	Seed                  int       `json:"seed"`
 	NumOutputs            int       `json:"num_outputs,omitempty"`
-	WebsocketId           string    `json:"websocket_id"`
+	StreamID              string    `json:"stream_id"` // Corresponds to SSE stream
 	ShouldSubmitToGallery bool      `json:"should_submit_to_gallery"`
 	ProcessType           string    `json:"process_type"`
 	OutputImageExtension  string    `json:"output_image_extension"`
@@ -36,8 +36,8 @@ const (
 
 // Can be initiated with either an image_url or a generation_output_id
 type UpscaleRequestBody struct {
-	Type        UpscaleRequestType `json:"type"`
-	Input       string             `json:"input"`
-	ModelId     uuid.UUID          `json:"model_id"`
-	WebsocketId string             `json:"websocket_id"`
+	Type     UpscaleRequestType `json:"type"`
+	Input    string             `json:"input"`
+	ModelId  uuid.UUID          `json:"model_id"`
+	StreamID string             `json:"stream_id"`
 }

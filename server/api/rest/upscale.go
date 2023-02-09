@@ -32,8 +32,8 @@ func (c *RestAPI) HandleUpscale(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Validation
-	if !utils.IsSha256Hash(upscaleReq.WebsocketId) || c.Hub.GetClientByUid(upscaleReq.WebsocketId) == nil {
-		responses.ErrBadRequest(w, r, "Invalid websocket ID")
+	if !utils.IsSha256Hash(upscaleReq.StreamID) || c.Hub.GetClientByUid(upscaleReq.StreamID) == nil {
+		responses.ErrBadRequest(w, r, "Invalid stream ID")
 		return
 	}
 
@@ -168,7 +168,7 @@ func (c *RestAPI) HandleUpscale(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Track the request in our internal map
-	c.CogRequestWebsocketConnMap.Put(requestId, upscaleReq.WebsocketId)
+	c.CogRequestSSEConnMap.Put(requestId, upscaleReq.StreamID)
 
 	render.Status(r, http.StatusOK)
 	render.JSON(w, r, &responses.QueuedResponse{

@@ -18,7 +18,7 @@ import (
 	"github.com/stablecog/go-apps/database/ent"
 	"github.com/stablecog/go-apps/database/repository"
 	"github.com/stablecog/go-apps/server/api/rest"
-	"github.com/stablecog/go-apps/server/api/websocket"
+	"github.com/stablecog/go-apps/server/api/sse"
 	"github.com/stablecog/go-apps/server/middleware"
 	"github.com/stablecog/go-apps/server/responses"
 	"github.com/stablecog/go-apps/shared"
@@ -96,7 +96,7 @@ func main() {
 	// Cors middleware
 	app.Use(cors.Handler(cors.Options{
 		// AllowedOrigins:   []string{"https://foo.com"}, // Use this to allow specific origin hosts
-		AllowedOrigins: []string{"http://localhost:3000", "http://localhost:5173"},
+		AllowedOrigins: []string{"http://localhost:3000", "http://localhost:5173", "http://localhost:8000"},
 		// AllowOriginFunc:  func(r *http.Request, origin string) bool { return true },
 		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
 		AllowedHeaders:   []string{"*"},
@@ -121,24 +121,25 @@ func main() {
 			klog.Errorf("Error updating cache: %v", err)
 		}
 	})
+	// Start cron scheduler
 	s.StartAsync()
 
 	// Create a thread-safe HashMap to store in-flight cog requests
 	// We use this to track requests that are in queue, and coordinate responses
-	// To appropriate users over websocket
-	cogRequestWebsocketConnMap := shared.NewSyncMap[string]()
+	// To appropriate users over SSE
+	cogRequestSSEConnMap := shared.NewSyncMap[string]()
 
-	// Create and start websocket hub
-	hub := websocket.NewHub()
-	go hub.Run()
+	// Create SSE hub
+	sseHub := sse.NewHub()
+	go sseHub.Run()
 
 	// Create controller
 	hc := rest.RestAPI{
-		Repo:                       repo,
-		Redis:                      redis,
-		CogRequestWebsocketConnMap: cogRequestWebsocketConnMap,
-		Hub:                        hub,
-		LanguageDetector:           utils.NewLanguageDetector(),
+		Repo:                 repo,
+		Redis:                redis,
+		CogRequestSSEConnMap: cogRequestSSEConnMap,
+		Hub:                  sseHub,
+		LanguageDetector:     utils.NewLanguageDetector(),
 	}
 
 	// Create middleware
@@ -151,10 +152,10 @@ func main() {
 	app.Route("/v1", func(r chi.Router) {
 		r.Get("/health", hc.HandleHealth)
 
-		// Websocket
-		r.Route("/ws", func(r chi.Router) {
+		// SSE
+		r.Route("/sse", func(r chi.Router) {
 			r.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-				websocket.ServeWS(hub, w, r)
+				sseHub.ServeSSE(w, r)
 			})
 		})
 
@@ -211,14 +212,14 @@ func main() {
 			}
 
 			// See if this request belongs to our instance
-			websocketIdStr := cogRequestWebsocketConnMap.Get(cogMessage.Input.Id)
-			if websocketIdStr == "" {
+			streamIdStr := cogRequestSSEConnMap.Get(cogMessage.Input.Id)
+			if streamIdStr == "" {
 				continue
 			}
 			// Ensure is valid
-			if !utils.IsSha256Hash(websocketIdStr) {
+			if !utils.IsSha256Hash(streamIdStr) {
 				// Not sure how we get here, we never should
-				klog.Errorf("--- Invalid websocket id: %s", websocketIdStr)
+				klog.Errorf("--- Invalid sse stream id: %s", streamIdStr)
 				continue
 			}
 
@@ -253,9 +254,9 @@ func main() {
 				continue
 			}
 
-			// Regardless of the status, we always send over websocket so user knows what's up
+			// Regardless of the status, we always send over SSE so user knows what's up
 			// Send message to user
-			resp := responses.WebsocketStatusUpdateResponse{
+			resp := responses.SSEStatusUpdateResponse{
 				Status:    cogMessage.Status,
 				Id:        cogMessage.Input.Id,
 				NSFWCount: cogMessage.NSFWCount,
@@ -277,10 +278,10 @@ func main() {
 			// Marshal
 			respBytes, err := json.Marshal(resp)
 			if err != nil {
-				klog.Errorf("--- Error marshalling websocket started response: %v", err)
+				klog.Errorf("--- Error marshalling sse started response: %v", err)
 				continue
 			}
-			hub.BroadcastToClientsWithUid(websocketIdStr, respBytes)
+			sseHub.BroadcastToClientsWithUid(streamIdStr, respBytes)
 		}
 	}()
 
@@ -297,14 +298,14 @@ func main() {
 			}
 
 			// See if this request belongs to our instance
-			websocketIdStr := cogRequestWebsocketConnMap.Get(cogMessage.Input.Id)
-			if websocketIdStr == "" {
+			streamIdStr := cogRequestSSEConnMap.Get(cogMessage.Input.Id)
+			if streamIdStr == "" {
 				continue
 			}
 			// Ensure is valid
-			if !utils.IsSha256Hash(websocketIdStr) {
+			if !utils.IsSha256Hash(streamIdStr) {
 				// Not sure how we get here, we never should
-				klog.Errorf("--- Invalid websocket id: %s", websocketIdStr)
+				klog.Errorf("--- Invalid SSE stream id: %s", streamIdStr)
 				continue
 			}
 
@@ -335,9 +336,9 @@ func main() {
 				continue
 			}
 
-			// Regardless of the status, we always send over websocket so user knows what's up
+			// Regardless of the status, we always send over sse so user knows what's up
 			// Send message to user
-			resp := responses.WebsocketStatusUpdateResponse{
+			resp := responses.SSEStatusUpdateResponse{
 				Status:    cogMessage.Status,
 				Id:        cogMessage.Input.Id,
 				NSFWCount: cogMessage.NSFWCount,
@@ -354,10 +355,10 @@ func main() {
 			// Marshal
 			respBytes, err := json.Marshal(resp)
 			if err != nil {
-				klog.Errorf("--- Error marshalling websocket started response: %v", err)
+				klog.Errorf("--- Error marshalling sse started response: %v", err)
 				continue
 			}
-			hub.BroadcastToClientsWithUid(websocketIdStr, respBytes)
+			sseHub.BroadcastToClientsWithUid(streamIdStr, respBytes)
 		}
 	}()
 

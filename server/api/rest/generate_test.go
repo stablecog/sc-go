@@ -63,9 +63,9 @@ func TestGenerateUnauthorizedIfUserIdNotUuid(t *testing.T) {
 	assert.Equal(t, "Unauthorized", respJson["error"])
 }
 
-func TestGenerateFailsWithInvalidWebsocketID(t *testing.T) {
+func TestGenerateFailsWithInvalidStreamID(t *testing.T) {
 	reqBody := requests.GenerateRequestBody{
-		WebsocketId: "invalid",
+		StreamID: "invalid",
 	}
 	body, _ := json.Marshal(reqBody)
 	w := httptest.NewRecorder()
@@ -84,14 +84,14 @@ func TestGenerateFailsWithInvalidWebsocketID(t *testing.T) {
 	respBody, _ := io.ReadAll(resp.Body)
 	json.Unmarshal(respBody, &respJson)
 
-	assert.Equal(t, "Invalid websocket ID", respJson["error"])
+	assert.Equal(t, "Invalid stream ID", respJson["error"])
 }
 
 func TestGenerateEnforcesNumOutputsChange(t *testing.T) {
 	reqBody := requests.GenerateRequestBody{
-		WebsocketId: MockWSId,
-		Height:      shared.MAX_GENERATE_HEIGHT,
-		Width:       shared.MAX_GENERATE_WIDTH,
+		StreamID: MockSSEId,
+		Height:   shared.MAX_GENERATE_HEIGHT,
+		Width:    shared.MAX_GENERATE_WIDTH,
 		// Minimum is not enforced since it should default to 1
 		NumOutputs: -1,
 	}
@@ -116,10 +116,10 @@ func TestGenerateEnforcesNumOutputsChange(t *testing.T) {
 
 	// ! Max
 	reqBody = requests.GenerateRequestBody{
-		WebsocketId: MockWSId,
-		Height:      shared.MAX_GENERATE_HEIGHT,
-		Width:       shared.MAX_GENERATE_WIDTH,
-		NumOutputs:  shared.MAX_GENERATE_NUM_OUTPUTS + 1,
+		StreamID:   MockSSEId,
+		Height:     shared.MAX_GENERATE_HEIGHT,
+		Width:      shared.MAX_GENERATE_WIDTH,
+		NumOutputs: shared.MAX_GENERATE_NUM_OUTPUTS + 1,
 	}
 	body, _ = json.Marshal(reqBody)
 	w = httptest.NewRecorder()
@@ -142,9 +142,9 @@ func TestGenerateEnforcesNumOutputsChange(t *testing.T) {
 
 func TestGenerateEnforcesMaxWidthMaxHeight(t *testing.T) {
 	reqBody := requests.GenerateRequestBody{
-		WebsocketId: MockWSId,
-		Height:      shared.MAX_GENERATE_HEIGHT + 1,
-		Width:       shared.MAX_GENERATE_WIDTH,
+		StreamID: MockSSEId,
+		Height:   shared.MAX_GENERATE_HEIGHT + 1,
+		Width:    shared.MAX_GENERATE_WIDTH,
 	}
 	body, _ := json.Marshal(reqBody)
 	w := httptest.NewRecorder()
@@ -167,9 +167,9 @@ func TestGenerateEnforcesMaxWidthMaxHeight(t *testing.T) {
 
 	// ! Width
 	reqBody = requests.GenerateRequestBody{
-		WebsocketId: MockWSId,
-		Height:      shared.MAX_GENERATE_HEIGHT,
-		Width:       shared.MAX_GENERATE_WIDTH + 1,
+		StreamID: MockSSEId,
+		Height:   shared.MAX_GENERATE_HEIGHT,
+		Width:    shared.MAX_GENERATE_WIDTH + 1,
 	}
 	body, _ = json.Marshal(reqBody)
 	w = httptest.NewRecorder()
@@ -193,7 +193,7 @@ func TestGenerateEnforcesMaxWidthMaxHeight(t *testing.T) {
 func TestGenerateRejectsInvalidModelOrScheduler(t *testing.T) {
 	// ! Invalid scheduler ID
 	reqBody := requests.GenerateRequestBody{
-		WebsocketId: MockWSId,
+		StreamID:    MockSSEId,
 		Height:      shared.MAX_GENERATE_HEIGHT,
 		Width:       shared.MAX_GENERATE_WIDTH,
 		SchedulerId: uuid.MustParse("00000000-0000-0000-0000-000000000000"),
@@ -221,7 +221,7 @@ func TestGenerateRejectsInvalidModelOrScheduler(t *testing.T) {
 
 	// ! Invalid model ID
 	reqBody = requests.GenerateRequestBody{
-		WebsocketId: MockWSId,
+		StreamID:    MockSSEId,
 		Height:      shared.MAX_GENERATE_HEIGHT,
 		Width:       shared.MAX_GENERATE_WIDTH,
 		SchedulerId: uuid.MustParse(database.MOCK_SCHEDULER_ID_FREE),
@@ -251,7 +251,7 @@ func TestGenerateRejectsInvalidModelOrScheduler(t *testing.T) {
 func TestGenerateProRestrictions(t *testing.T) {
 	// ! PRO only model
 	reqBody := requests.GenerateRequestBody{
-		WebsocketId: MockWSId,
+		StreamID:    MockSSEId,
 		Height:      shared.MAX_GENERATE_HEIGHT,
 		Width:       shared.MAX_GENERATE_WIDTH,
 		SchedulerId: uuid.MustParse(database.MOCK_SCHEDULER_ID_FREE),
@@ -279,7 +279,7 @@ func TestGenerateProRestrictions(t *testing.T) {
 
 	// ! PRO only scheduler
 	reqBody = requests.GenerateRequestBody{
-		WebsocketId: MockWSId,
+		StreamID:    MockSSEId,
 		Height:      shared.MAX_GENERATE_HEIGHT,
 		Width:       shared.MAX_GENERATE_WIDTH,
 		SchedulerId: uuid.MustParse(database.MOCK_SCHEDULER_ID_PRO),
@@ -306,7 +306,7 @@ func TestGenerateProRestrictions(t *testing.T) {
 
 	// ! PRO only height
 	reqBody = requests.GenerateRequestBody{
-		WebsocketId: MockWSId,
+		StreamID:    MockSSEId,
 		Height:      shared.MAX_GENERATE_HEIGHT_FREE + 1,
 		Width:       shared.MAX_GENERATE_WIDTH,
 		SchedulerId: uuid.MustParse(database.MOCK_SCHEDULER_ID_FREE),
@@ -333,7 +333,7 @@ func TestGenerateProRestrictions(t *testing.T) {
 
 	// ! PRO only width
 	reqBody = requests.GenerateRequestBody{
-		WebsocketId: MockWSId,
+		StreamID:    MockSSEId,
 		Height:      shared.MAX_GENERATE_HEIGHT_FREE,
 		Width:       shared.MAX_GENERATE_WIDTH_FREE + 1,
 		SchedulerId: uuid.MustParse(database.MOCK_SCHEDULER_ID_FREE),
@@ -360,7 +360,7 @@ func TestGenerateProRestrictions(t *testing.T) {
 
 	// ! PRO only interference steps
 	reqBody = requests.GenerateRequestBody{
-		WebsocketId:    MockWSId,
+		StreamID:       MockSSEId,
 		Height:         shared.MAX_GENERATE_HEIGHT_FREE,
 		Width:          shared.MAX_GENERATE_WIDTH_FREE,
 		InferenceSteps: shared.MAX_GENERATE_INTERFERENCE_STEPS_FREE + 1,
@@ -390,7 +390,7 @@ func TestGenerateProRestrictions(t *testing.T) {
 func TestGenerateValidRequest(t *testing.T) {
 	// ! Perfectly valid request
 	reqBody := requests.GenerateRequestBody{
-		WebsocketId:    MockWSId,
+		StreamID:       MockSSEId,
 		Height:         shared.MAX_GENERATE_HEIGHT,
 		Width:          shared.MAX_GENERATE_WIDTH,
 		SchedulerId:    uuid.MustParse(database.MOCK_SCHEDULER_ID_FREE),
@@ -421,7 +421,7 @@ func TestGenerateValidRequest(t *testing.T) {
 	assert.Nil(t, err)
 
 	// make sure we have this ID on our map
-	assert.Equal(t, MockWSId, MockController.CogRequestWebsocketConnMap.Get(generateResp.ID))
+	assert.Equal(t, MockSSEId, MockController.CogRequestSSEConnMap.Get(generateResp.ID))
 }
 
 func TestSubmitGenerationToGallery(t *testing.T) {
