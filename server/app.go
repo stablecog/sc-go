@@ -22,6 +22,7 @@ import (
 	"github.com/stablecog/go-apps/server/responses"
 	"github.com/stablecog/go-apps/shared"
 	"github.com/stablecog/go-apps/utils"
+	stripe "github.com/stripe/stripe-go/client"
 	"k8s.io/klog/v2"
 )
 
@@ -128,11 +129,15 @@ func main() {
 	sseHub := sse.NewHub(redis, repo)
 	go sseHub.Run()
 
+	// Create stripe client
+	stripeClient := stripe.New(utils.GetEnv("STRIPE_SECRET_KEY", ""), nil)
+
 	// Create controller
 	hc := rest.RestAPI{
-		Repo:  repo,
-		Redis: redis,
-		Hub:   sseHub,
+		Repo:         repo,
+		Redis:        redis,
+		Hub:          sseHub,
+		StripeClient: stripeClient,
 	}
 
 	// Create middleware
@@ -150,6 +155,11 @@ func main() {
 			r.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 				sseHub.ServeSSE(w, r)
 			})
+		})
+
+		// Stripe
+		r.Route("/stripe", func(r chi.Router) {
+			r.Post("/webhook", hc.HandleStripeWebhook)
 		})
 
 		// Routes that require authentication

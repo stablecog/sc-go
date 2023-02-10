@@ -69,6 +69,7 @@ func (r *RedisWrapper) EnqueueCogRequest(ctx context.Context, request interface{
 func (r *RedisWrapper) SetCogRequestStreamID(ctx context.Context, requestID string, streamID string) error {
 	// We set 2 keys since we expect 2 responses from the cog, started and failed/succeeded
 	// These keys are basically used to make sure only 1 instance of the cog takes these requests
+	// TODO: We should probably use a queue to get responses from the cog, or go back to webhook
 	_, err := r.Client.Set(ctx, fmt.Sprintf("first:%s", requestID), streamID, 1*time.Hour).Result()
 	if err != nil {
 		return err

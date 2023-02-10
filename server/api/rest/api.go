@@ -8,12 +8,14 @@ import (
 	"github.com/stablecog/go-apps/database/repository"
 	"github.com/stablecog/go-apps/server/api/sse"
 	"github.com/stablecog/go-apps/server/responses"
+	stripe "github.com/stripe/stripe-go/client"
 )
 
 type RestAPI struct {
-	Repo  *repository.Repository
-	Redis *database.RedisWrapper
-	Hub   *sse.Hub
+	Repo         *repository.Repository
+	Redis        *database.RedisWrapper
+	Hub          *sse.Hub
+	StripeClient *stripe.API
 }
 
 func (c *RestAPI) GetUserIDIfAuthenticated(w http.ResponseWriter, r *http.Request) *uuid.UUID {
