@@ -2,6 +2,7 @@ package database
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/alicebob/miniredis/v2"
@@ -66,7 +67,13 @@ func (r *RedisWrapper) EnqueueCogRequest(ctx context.Context, request interface{
 
 // Keep track of request ID to cog, with stream ID of the client
 func (r *RedisWrapper) SetCogRequestStreamID(ctx context.Context, requestID string, streamID string) error {
-	_, err := r.Client.Set(ctx, requestID, streamID, 1*time.Hour).Result()
+	// We set 2 keys since we expect 2 responses from the cog, started and failed/succeeded
+	// These keys are basically used to make sure only 1 instance of the cog takes these requests
+	_, err := r.Client.Set(ctx, fmt.Sprintf("first:%s", requestID), streamID, 1*time.Hour).Result()
+	if err != nil {
+		return err
+	}
+	_, err = r.Client.Set(ctx, fmt.Sprintf("second:%s", requestID), streamID, 1*time.Hour).Result()
 	return err
 }
 

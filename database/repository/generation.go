@@ -74,7 +74,7 @@ func (r *Repository) SetGenerationStarted(generationID string) error {
 		klog.Errorf("Error parsing generation id in SetGenerationStarted %s: %v", generationID, err)
 		return err
 	}
-	_, err = r.DB.Generation.UpdateOneID(uid).SetStatus(generation.StatusStarted).SetStartedAt(time.Now()).Save(r.Ctx)
+	_, err = r.DB.Generation.Update().Where(generation.IDEQ(uid), generation.StatusEQ(generation.StatusQueued)).SetStatus(generation.StatusStarted).SetStartedAt(time.Now()).Save(r.Ctx)
 	if err != nil {
 		// Log error here since this might be happening in a goroutine
 		klog.Errorf("Error setting generation started %s: %v", generationID, err)

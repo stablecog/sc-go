@@ -274,7 +274,7 @@ func TestUpscaleFromURL(t *testing.T) {
 	assert.Nil(t, err)
 
 	// make sure we have this ID on our map
-	streamid, _ := MockController.Redis.GetCogRequestStreamID(ctx, upscaleResp.ID)
+	streamid, _ := MockController.Redis.GetCogRequestStreamID(ctx, "first:"+upscaleResp.ID)
 	assert.Equal(t, MockSSEId, streamid)
 }
 
@@ -311,6 +311,6 @@ func TestUpscaleFromOutput(t *testing.T) {
 	assert.Nil(t, err)
 
 	// make sure we have this ID on our map
-	streamid, _ := MockController.Redis.GetCogRequestStreamID(ctx, upscaleResp.ID)
+	streamid, _ := MockController.Redis.GetCogRequestStreamID(ctx, "first:"+upscaleResp.ID)
 	assert.Equal(t, MockSSEId, streamid)
 }

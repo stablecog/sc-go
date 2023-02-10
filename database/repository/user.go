@@ -3,6 +3,7 @@ package repository
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 
 	"github.com/go-redis/redis/v8"
 	"github.com/google/uuid"
@@ -63,8 +64,12 @@ func (r *Repository) GetRoles(userID uuid.UUID) ([]userrole.RoleName, error) {
 
 // Process a cog message into database
 func (r *Repository) ProcessCogMessage(msg responses.CogStatusUpdate) {
+	redisKey := fmt.Sprintf("first:%s", msg.Input.ID)
+	if msg.Status != responses.CogProcessing {
+		redisKey = fmt.Sprintf("second:%s", msg.Input.ID)
+	}
 	// Since we sync with other instances, we get the stream ID from redis
-	streamIdStr, err := r.Redis.GetCogRequestStreamID(r.Redis.Client.Context(), msg.Input.ID)
+	streamIdStr, err := r.Redis.GetCogRequestStreamID(r.Redis.Client.Context(), redisKey)
 	if err != nil {
 		if errors.Is(err, redis.Nil) {
 			// Probably means another instance picked this up
@@ -75,13 +80,13 @@ func (r *Repository) ProcessCogMessage(msg responses.CogStatusUpdate) {
 	}
 
 	// We delete this, if our delete is successful then that means we are the ones responsible for processing it
-	deleted, err := r.Redis.DeleteCogRequestStreamID(r.Redis.Client.Context(), msg.Input.ID)
+	deleted, err := r.Redis.DeleteCogRequestStreamID(r.Redis.Client.Context(), redisKey)
 	if err != nil {
 		klog.Errorf("--- Error deleting stream ID from redis: %v", err)
 		return
 	}
 	if deleted == 0 {
-		// Means anotehr instance already deleted it probably and handled it
+		// Means another instance already deleted it probably and handled it
 		return
 	}
 
