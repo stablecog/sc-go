@@ -174,8 +174,6 @@ func (c *RestAPI) HandleCreateGeneration(w http.ResponseWriter, r *http.Request)
 	}
 	fmt.Printf("--- Create generation took: %s\n", time.Now().Sub(start))
 
-	// Get language codes
-	promptFlores, negativePromptFlores := c.LanguageDetector.GetPromptFloresCodes(generateReq.Prompt, generateReq.NegativePrompt)
 	// Request Id matches generation ID
 	requestId := g.ID.String()
 
@@ -186,8 +184,6 @@ func (c *RestAPI) HandleCreateGeneration(w http.ResponseWriter, r *http.Request)
 			ID:                   requestId,
 			Prompt:               generateReq.Prompt,
 			NegativePrompt:       generateReq.NegativePrompt,
-			PromptFlores:         promptFlores,
-			NegativePromptFlores: negativePromptFlores,
 			Width:                fmt.Sprint(generateReq.Width),
 			Height:               fmt.Sprint(generateReq.Height),
 			NumInferenceSteps:    fmt.Sprint(generateReq.InferenceSteps),

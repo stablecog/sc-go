@@ -19,13 +19,11 @@ require (
 	github.com/google/uuid v1.3.0 // indirect
 	github.com/hashicorp/hcl/v2 v2.13.0 // indirect
 	github.com/mitchellh/go-wordwrap v0.0.0-20150314170334-ad45545899c7 // indirect
-	github.com/shopspring/decimal v1.3.1 // indirect
 	github.com/stablecog/go-apps/database v0.0.0-20230206133029-3071ac72f0b1 // indirect
 	github.com/zclconf/go-cty v1.8.0 // indirect
 	golang.org/x/exp v0.0.0-20221106115401-f9659909a136 // indirect
 	golang.org/x/mod v0.7.0 // indirect
 	golang.org/x/text v0.6.0 // indirect
-	google.golang.org/protobuf v1.28.1 // indirect
 )
 
 require (
@@ -33,7 +31,6 @@ require (
 	github.com/jarcoal/httpmock v1.3.0
 	github.com/mattn/go-colorable v0.1.9 // indirect
 	github.com/mattn/go-isatty v0.0.14 // indirect
-	github.com/pemistahl/lingua-go v1.3.1
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	golang.org/x/image v0.3.0
 	golang.org/x/sys v0.2.0 // indirect

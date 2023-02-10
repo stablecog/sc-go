@@ -130,10 +130,9 @@ func main() {
 
 	// Create controller
 	hc := rest.RestAPI{
-		Repo:             repo,
-		Redis:            redis,
-		Hub:              sseHub,
-		LanguageDetector: utils.NewLanguageDetector(),
+		Repo:  repo,
+		Redis: redis,
+		Hub:   sseHub,
 	}
 
 	// Create middleware

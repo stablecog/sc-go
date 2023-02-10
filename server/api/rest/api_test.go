@@ -80,10 +80,9 @@ func testMainWrapper(m *testing.M) int {
 
 	// Setup controller
 	MockController = &RestAPI{
-		Repo:             repo,
-		Redis:            redis,
-		Hub:              hub,
-		LanguageDetector: utils.NewLanguageDetector(),
+		Repo:  repo,
+		Redis: redis,
+		Hub:   hub,
 	}
 
 	return m.Run()
