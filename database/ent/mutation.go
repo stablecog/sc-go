@@ -2349,8 +2349,8 @@ type GenerationMutation struct {
 	clearednegative_prompt    bool
 	generation_model          *uuid.UUID
 	clearedgeneration_model   bool
-	users                     *uuid.UUID
-	clearedusers              bool
+	user                      *uuid.UUID
+	cleareduser               bool
 	generation_outputs        map[uuid.UUID]struct{}
 	removedgeneration_outputs map[uuid.UUID]struct{}
 	clearedgeneration_outputs bool
@@ -3108,12 +3108,12 @@ func (m *GenerationMutation) ResetSchedulerID() {
 
 // SetUserID sets the "user_id" field.
 func (m *GenerationMutation) SetUserID(u uuid.UUID) {
-	m.users = &u
+	m.user = &u
 }
 
 // UserID returns the value of the "user_id" field in the mutation.
 func (m *GenerationMutation) UserID() (r uuid.UUID, exists bool) {
-	v := m.users
+	v := m.user
 	if v == nil {
 		return
 	}
@@ -3139,7 +3139,7 @@ func (m *GenerationMutation) OldUserID(ctx context.Context) (v uuid.UUID, err er
 
 // ResetUserID resets all changes to the "user_id" field.
 func (m *GenerationMutation) ResetUserID() {
-	m.users = nil
+	m.user = nil
 }
 
 // SetDeviceInfoID sets the "device_info_id" field.
@@ -3491,43 +3491,30 @@ func (m *GenerationMutation) ResetGenerationModel() {
 	m.clearedgeneration_model = false
 }
 
-// SetUsersID sets the "users" edge to the User entity by id.
-func (m *GenerationMutation) SetUsersID(id uuid.UUID) {
-	m.users = &id
+// ClearUser clears the "user" edge to the User entity.
+func (m *GenerationMutation) ClearUser() {
+	m.cleareduser = true
 }
 
-// ClearUsers clears the "users" edge to the User entity.
-func (m *GenerationMutation) ClearUsers() {
-	m.clearedusers = true
+// UserCleared reports if the "user" edge to the User entity was cleared.
+func (m *GenerationMutation) UserCleared() bool {
+	return m.cleareduser
 }
 
-// UsersCleared reports if the "users" edge to the User entity was cleared.
-func (m *GenerationMutation) UsersCleared() bool {
-	return m.clearedusers
-}
-
-// UsersID returns the "users" edge ID in the mutation.
-func (m *GenerationMutation) UsersID() (id uuid.UUID, exists bool) {
-	if m.users != nil {
-		return *m.users, true
-	}
-	return
-}
-
-// UsersIDs returns the "users" edge IDs in the mutation.
+// UserIDs returns the "user" edge IDs in the mutation.
 // Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
-// UsersID instead. It exists only for internal usage by the builders.
-func (m *GenerationMutation) UsersIDs() (ids []uuid.UUID) {
-	if id := m.users; id != nil {
+// UserID instead. It exists only for internal usage by the builders.
+func (m *GenerationMutation) UserIDs() (ids []uuid.UUID) {
+	if id := m.user; id != nil {
 		ids = append(ids, *id)
 	}
 	return
 }
 
-// ResetUsers resets all changes to the "users" edge.
-func (m *GenerationMutation) ResetUsers() {
-	m.users = nil
-	m.clearedusers = false
+// ResetUser resets all changes to the "user" edge.
+func (m *GenerationMutation) ResetUser() {
+	m.user = nil
+	m.cleareduser = false
 }
 
 // AddGenerationOutputIDs adds the "generation_outputs" edge to the GenerationOutput entity by ids.
@@ -3661,7 +3648,7 @@ func (m *GenerationMutation) Fields() []string {
 	if m.scheduler != nil {
 		fields = append(fields, generation.FieldSchedulerID)
 	}
-	if m.users != nil {
+	if m.user != nil {
 		fields = append(fields, generation.FieldUserID)
 	}
 	if m.device_info != nil {
@@ -4152,8 +4139,8 @@ func (m *GenerationMutation) AddedEdges() []string {
 	if m.generation_model != nil {
 		edges = append(edges, generation.EdgeGenerationModel)
 	}
-	if m.users != nil {
-		edges = append(edges, generation.EdgeUsers)
+	if m.user != nil {
+		edges = append(edges, generation.EdgeUser)
 	}
 	if m.generation_outputs != nil {
 		edges = append(edges, generation.EdgeGenerationOutputs)
@@ -4185,8 +4172,8 @@ func (m *GenerationMutation) AddedIDs(name string) []ent.Value {
 		if id := m.generation_model; id != nil {
 			return []ent.Value{*id}
 		}
-	case generation.EdgeUsers:
-		if id := m.users; id != nil {
+	case generation.EdgeUser:
+		if id := m.user; id != nil {
 			return []ent.Value{*id}
 		}
 	case generation.EdgeGenerationOutputs:
@@ -4240,8 +4227,8 @@ func (m *GenerationMutation) ClearedEdges() []string {
 	if m.clearedgeneration_model {
 		edges = append(edges, generation.EdgeGenerationModel)
 	}
-	if m.clearedusers {
-		edges = append(edges, generation.EdgeUsers)
+	if m.cleareduser {
+		edges = append(edges, generation.EdgeUser)
 	}
 	if m.clearedgeneration_outputs {
 		edges = append(edges, generation.EdgeGenerationOutputs)
@@ -4263,8 +4250,8 @@ func (m *GenerationMutation) EdgeCleared(name string) bool {
 		return m.clearednegative_prompt
 	case generation.EdgeGenerationModel:
 		return m.clearedgeneration_model
-	case generation.EdgeUsers:
-		return m.clearedusers
+	case generation.EdgeUser:
+		return m.cleareduser
 	case generation.EdgeGenerationOutputs:
 		return m.clearedgeneration_outputs
 	}
@@ -4290,8 +4277,8 @@ func (m *GenerationMutation) ClearEdge(name string) error {
 	case generation.EdgeGenerationModel:
 		m.ClearGenerationModel()
 		return nil
-	case generation.EdgeUsers:
-		m.ClearUsers()
+	case generation.EdgeUser:
+		m.ClearUser()
 		return nil
 	}
 	return fmt.Errorf("unknown Generation unique edge %s", name)
@@ -4316,8 +4303,8 @@ func (m *GenerationMutation) ResetEdge(name string) error {
 	case generation.EdgeGenerationModel:
 		m.ResetGenerationModel()
 		return nil
-	case generation.EdgeUsers:
-		m.ResetUsers()
+	case generation.EdgeUser:
+		m.ResetUser()
 		return nil
 	case generation.EdgeGenerationOutputs:
 		m.ResetGenerationOutputs()

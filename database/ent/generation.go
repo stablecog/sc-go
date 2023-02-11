@@ -80,8 +80,8 @@ type GenerationEdges struct {
 	NegativePrompt *NegativePrompt `json:"negative_prompt,omitempty"`
 	// GenerationModel holds the value of the generation_model edge.
 	GenerationModel *GenerationModel `json:"generation_model,omitempty"`
-	// Users holds the value of the users edge.
-	Users *User `json:"users,omitempty"`
+	// User holds the value of the user edge.
+	User *User `json:"user,omitempty"`
 	// GenerationOutputs holds the value of the generation_outputs edge.
 	GenerationOutputs []*GenerationOutput `json:"generation_outputs,omitempty"`
 	// loadedTypes holds the information for reporting if a
@@ -154,17 +154,17 @@ func (e GenerationEdges) GenerationModelOrErr() (*GenerationModel, error) {
 	return nil, &NotLoadedError{edge: "generation_model"}
 }
 
-// UsersOrErr returns the Users value or an error if the edge
+// UserOrErr returns the User value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
-func (e GenerationEdges) UsersOrErr() (*User, error) {
+func (e GenerationEdges) UserOrErr() (*User, error) {
 	if e.loadedTypes[5] {
-		if e.Users == nil {
+		if e.User == nil {
 			// Edge was loaded but was not found.
 			return nil, &NotFoundError{label: user.Label}
 		}
-		return e.Users, nil
+		return e.User, nil
 	}
-	return nil, &NotLoadedError{edge: "users"}
+	return nil, &NotLoadedError{edge: "user"}
 }
 
 // GenerationOutputsOrErr returns the GenerationOutputs value or an error if the edge
@@ -371,9 +371,9 @@ func (ge *Generation) QueryGenerationModel() *GenerationModelQuery {
 	return NewGenerationClient(ge.config).QueryGenerationModel(ge)
 }
 
-// QueryUsers queries the "users" edge of the Generation entity.
-func (ge *Generation) QueryUsers() *UserQuery {
-	return NewGenerationClient(ge.config).QueryUsers(ge)
+// QueryUser queries the "user" edge of the Generation entity.
+func (ge *Generation) QueryUser() *UserQuery {
+	return NewGenerationClient(ge.config).QueryUser(ge)
 }
 
 // QueryGenerationOutputs queries the "generation_outputs" edge of the Generation entity.

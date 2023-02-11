@@ -4,10 +4,14 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"strconv"
 
 	"github.com/go-redis/redis/v8"
 	"github.com/google/uuid"
 	"github.com/stablecog/go-apps/database/ent"
+	"github.com/stablecog/go-apps/database/ent/generation"
+	"github.com/stablecog/go-apps/database/ent/upscale"
+	"github.com/stablecog/go-apps/database/ent/user"
 	"github.com/stablecog/go-apps/database/ent/userrole"
 	"github.com/stablecog/go-apps/server/responses"
 	"github.com/stablecog/go-apps/shared"
@@ -90,6 +94,12 @@ func (r *Repository) ProcessCogMessage(msg responses.CogStatusUpdate) {
 	var generationOutputs []*ent.GenerationOutput
 	var cogErr string
 
+	inputUuid, err := uuid.Parse(msg.Input.ID)
+	if err != nil {
+		klog.Errorf("--- Error parsing input ID, not a UUID: %v", err)
+		return
+	}
+
 	// Handle started/failed/succeeded message types
 	if msg.Status == responses.CogProcessing {
 		// In goroutine since we want them to know it started asap
@@ -99,10 +109,46 @@ func (r *Repository) ProcessCogMessage(msg responses.CogStatusUpdate) {
 			go r.SetGenerationStarted(msg.Input.ID)
 		}
 	} else if msg.Status == responses.CogFailed {
+		// ! Failures for reasons other than NSFW,
+		// ! We need to refund the credits
+		// TODO - we need to handle what to do if the refund fails for whatever reason
+		var userId uuid.UUID
 		if msg.Input.ProcessType == shared.UPSCALE {
 			r.SetUpscaleFailed(msg.Input.ID, msg.Error)
+			user, err := r.DB.Upscale.Query().Where(upscale.IDEQ(inputUuid)).QueryUser().Select(user.FieldID).First(r.Ctx)
+			if err != nil {
+				klog.Errorf("--- Error getting user ID from upscale: %v", err)
+				return
+			}
+			userId = user.ID
+			// Upscale is always 1 credit
+			success, err := r.RefundCreditsToUser(userId, 1)
+			if err != nil || !success {
+				klog.Errorf("--- Error refunding credits to user %s for upscale %s: %v", userId.String(), msg.Input.ID, err)
+				return
+			}
 		} else {
 			r.SetGenerationFailed(msg.Input.ID, msg.Error)
+			user, err := r.DB.Generation.Query().Where(generation.IDEQ(inputUuid)).QueryUser().Select(user.FieldID).First(r.Ctx)
+			if err != nil {
+				klog.Errorf("--- Error getting user ID from upscale: %v", err)
+				return
+			}
+			userId = user.ID
+			// Generation credits is num_outputs
+			numOutputs, err := strconv.Atoi(msg.Input.NumOutputs)
+			if err != nil {
+				klog.Errorf("--- Error parsing num outputs: %v", err)
+				return
+			}
+			// Do not refund credits if all outputs are nsfw
+			if msg.NSFWCount == numOutputs {
+				success, err := r.RefundCreditsToUser(userId, int32(numOutputs)-int32(msg.NSFWCount))
+				if err != nil || !success {
+					klog.Errorf("--- Error refunding credits to user %s for generation %s: %v", userId.String(), msg.Input.ID, err)
+					return
+				}
+			}
 		}
 		cogErr = msg.Error
 	} else if msg.Status == responses.CogSucceeded {

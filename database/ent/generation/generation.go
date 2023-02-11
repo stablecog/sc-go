@@ -64,8 +64,8 @@ const (
 	EdgeNegativePrompt = "negative_prompt"
 	// EdgeGenerationModel holds the string denoting the generation_model edge name in mutations.
 	EdgeGenerationModel = "generation_model"
-	// EdgeUsers holds the string denoting the users edge name in mutations.
-	EdgeUsers = "users"
+	// EdgeUser holds the string denoting the user edge name in mutations.
+	EdgeUser = "user"
 	// EdgeGenerationOutputs holds the string denoting the generation_outputs edge name in mutations.
 	EdgeGenerationOutputs = "generation_outputs"
 	// Table holds the table name of the generation in the database.
@@ -105,13 +105,13 @@ const (
 	GenerationModelInverseTable = "generation_models"
 	// GenerationModelColumn is the table column denoting the generation_model relation/edge.
 	GenerationModelColumn = "model_id"
-	// UsersTable is the table that holds the users relation/edge.
-	UsersTable = "generations"
-	// UsersInverseTable is the table name for the User entity.
+	// UserTable is the table that holds the user relation/edge.
+	UserTable = "generations"
+	// UserInverseTable is the table name for the User entity.
 	// It exists in this package in order to avoid circular dependency with the "user" package.
-	UsersInverseTable = "users"
-	// UsersColumn is the table column denoting the users relation/edge.
-	UsersColumn = "user_id"
+	UserInverseTable = "users"
+	// UserColumn is the table column denoting the user relation/edge.
+	UserColumn = "user_id"
 	// GenerationOutputsTable is the table that holds the generation_outputs relation/edge.
 	GenerationOutputsTable = "generation_outputs"
 	// GenerationOutputsInverseTable is the table name for the GenerationOutput entity.

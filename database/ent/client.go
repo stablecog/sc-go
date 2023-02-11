@@ -877,15 +877,15 @@ func (c *GenerationClient) QueryGenerationModel(ge *Generation) *GenerationModel
 	return query
 }
 
-// QueryUsers queries the users edge of a Generation.
-func (c *GenerationClient) QueryUsers(ge *Generation) *UserQuery {
+// QueryUser queries the user edge of a Generation.
+func (c *GenerationClient) QueryUser(ge *Generation) *UserQuery {
 	query := (&UserClient{config: c.config}).Query()
 	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := ge.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(generation.Table, generation.FieldID, id),
 			sqlgraph.To(user.Table, user.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, generation.UsersTable, generation.UsersColumn),
+			sqlgraph.Edge(sqlgraph.M2O, true, generation.UserTable, generation.UserColumn),
 		)
 		fromV = sqlgraph.Neighbors(ge.driver.Dialect(), step)
 		return fromV, nil

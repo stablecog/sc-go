@@ -257,15 +257,9 @@ func (gc *GenerationCreate) SetGenerationModel(g *GenerationModel) *GenerationCr
 	return gc.SetGenerationModelID(g.ID)
 }
 
-// SetUsersID sets the "users" edge to the User entity by ID.
-func (gc *GenerationCreate) SetUsersID(id uuid.UUID) *GenerationCreate {
-	gc.mutation.SetUsersID(id)
-	return gc
-}
-
-// SetUsers sets the "users" edge to the User entity.
-func (gc *GenerationCreate) SetUsers(u *User) *GenerationCreate {
-	return gc.SetUsersID(u.ID)
+// SetUser sets the "user" edge to the User entity.
+func (gc *GenerationCreate) SetUser(u *User) *GenerationCreate {
+	return gc.SetUserID(u.ID)
 }
 
 // AddGenerationOutputIDs adds the "generation_outputs" edge to the GenerationOutput entity by IDs.
@@ -400,8 +394,8 @@ func (gc *GenerationCreate) check() error {
 	if _, ok := gc.mutation.GenerationModelID(); !ok {
 		return &ValidationError{Name: "generation_model", err: errors.New(`ent: missing required edge "Generation.generation_model"`)}
 	}
-	if _, ok := gc.mutation.UsersID(); !ok {
-		return &ValidationError{Name: "users", err: errors.New(`ent: missing required edge "Generation.users"`)}
+	if _, ok := gc.mutation.UserID(); !ok {
+		return &ValidationError{Name: "user", err: errors.New(`ent: missing required edge "Generation.user"`)}
 	}
 	return nil
 }
@@ -600,12 +594,12 @@ func (gc *GenerationCreate) createSpec() (*Generation, *sqlgraph.CreateSpec) {
 		_node.ModelID = nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if nodes := gc.mutation.UsersIDs(); len(nodes) > 0 {
+	if nodes := gc.mutation.UserIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
-			Table:   generation.UsersTable,
-			Columns: []string{generation.UsersColumn},
+			Table:   generation.UserTable,
+			Columns: []string{generation.UserColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{

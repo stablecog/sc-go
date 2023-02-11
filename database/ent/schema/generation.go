@@ -78,7 +78,7 @@ func (Generation) Edges() []ent.Edge {
 			Required().
 			Unique(),
 		// M2O with users
-		edge.From("users", User.Type).
+		edge.From("user", User.Type).
 			Ref("generations").
 			Field("user_id").
 			Required().

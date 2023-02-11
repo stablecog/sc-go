@@ -35,7 +35,7 @@ type GenerationQuery struct {
 	withPrompt            *PromptQuery
 	withNegativePrompt    *NegativePromptQuery
 	withGenerationModel   *GenerationModelQuery
-	withUsers             *UserQuery
+	withUser              *UserQuery
 	withGenerationOutputs *GenerationOutputQuery
 	modifiers             []func(*sql.Selector)
 	// intermediate query (i.e. traversal path).
@@ -184,8 +184,8 @@ func (gq *GenerationQuery) QueryGenerationModel() *GenerationModelQuery {
 	return query
 }
 
-// QueryUsers chains the current query on the "users" edge.
-func (gq *GenerationQuery) QueryUsers() *UserQuery {
+// QueryUser chains the current query on the "user" edge.
+func (gq *GenerationQuery) QueryUser() *UserQuery {
 	query := (&UserClient{config: gq.config}).Query()
 	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
 		if err := gq.prepareQuery(ctx); err != nil {
@@ -198,7 +198,7 @@ func (gq *GenerationQuery) QueryUsers() *UserQuery {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(generation.Table, generation.FieldID, selector),
 			sqlgraph.To(user.Table, user.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, generation.UsersTable, generation.UsersColumn),
+			sqlgraph.Edge(sqlgraph.M2O, true, generation.UserTable, generation.UserColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(gq.driver.Dialect(), step)
 		return fromU, nil
@@ -423,7 +423,7 @@ func (gq *GenerationQuery) Clone() *GenerationQuery {
 		withPrompt:            gq.withPrompt.Clone(),
 		withNegativePrompt:    gq.withNegativePrompt.Clone(),
 		withGenerationModel:   gq.withGenerationModel.Clone(),
-		withUsers:             gq.withUsers.Clone(),
+		withUser:              gq.withUser.Clone(),
 		withGenerationOutputs: gq.withGenerationOutputs.Clone(),
 		// clone intermediate query.
 		sql:  gq.sql.Clone(),
@@ -486,14 +486,14 @@ func (gq *GenerationQuery) WithGenerationModel(opts ...func(*GenerationModelQuer
 	return gq
 }
 
-// WithUsers tells the query-builder to eager-load the nodes that are connected to
-// the "users" edge. The optional arguments are used to configure the query builder of the edge.
-func (gq *GenerationQuery) WithUsers(opts ...func(*UserQuery)) *GenerationQuery {
+// WithUser tells the query-builder to eager-load the nodes that are connected to
+// the "user" edge. The optional arguments are used to configure the query builder of the edge.
+func (gq *GenerationQuery) WithUser(opts ...func(*UserQuery)) *GenerationQuery {
 	query := (&UserClient{config: gq.config}).Query()
 	for _, opt := range opts {
 		opt(query)
 	}
-	gq.withUsers = query
+	gq.withUser = query
 	return gq
 }
 
@@ -592,7 +592,7 @@ func (gq *GenerationQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*G
 			gq.withPrompt != nil,
 			gq.withNegativePrompt != nil,
 			gq.withGenerationModel != nil,
-			gq.withUsers != nil,
+			gq.withUser != nil,
 			gq.withGenerationOutputs != nil,
 		}
 	)
@@ -647,9 +647,9 @@ func (gq *GenerationQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*G
 			return nil, err
 		}
 	}
-	if query := gq.withUsers; query != nil {
-		if err := gq.loadUsers(ctx, query, nodes, nil,
-			func(n *Generation, e *User) { n.Edges.Users = e }); err != nil {
+	if query := gq.withUser; query != nil {
+		if err := gq.loadUser(ctx, query, nodes, nil,
+			func(n *Generation, e *User) { n.Edges.User = e }); err != nil {
 			return nil, err
 		}
 	}
@@ -813,7 +813,7 @@ func (gq *GenerationQuery) loadGenerationModel(ctx context.Context, query *Gener
 	}
 	return nil
 }
-func (gq *GenerationQuery) loadUsers(ctx context.Context, query *UserQuery, nodes []*Generation, init func(*Generation), assign func(*Generation, *User)) error {
+func (gq *GenerationQuery) loadUser(ctx context.Context, query *UserQuery, nodes []*Generation, init func(*Generation), assign func(*Generation, *User)) error {
 	ids := make([]uuid.UUID, 0, len(nodes))
 	nodeids := make(map[uuid.UUID][]*Generation)
 	for i := range nodes {

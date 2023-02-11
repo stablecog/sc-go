@@ -295,15 +295,9 @@ func (gu *GenerationUpdate) SetGenerationModel(g *GenerationModel) *GenerationUp
 	return gu.SetGenerationModelID(g.ID)
 }
 
-// SetUsersID sets the "users" edge to the User entity by ID.
-func (gu *GenerationUpdate) SetUsersID(id uuid.UUID) *GenerationUpdate {
-	gu.mutation.SetUsersID(id)
-	return gu
-}
-
-// SetUsers sets the "users" edge to the User entity.
-func (gu *GenerationUpdate) SetUsers(u *User) *GenerationUpdate {
-	return gu.SetUsersID(u.ID)
+// SetUser sets the "user" edge to the User entity.
+func (gu *GenerationUpdate) SetUser(u *User) *GenerationUpdate {
+	return gu.SetUserID(u.ID)
 }
 
 // AddGenerationOutputIDs adds the "generation_outputs" edge to the GenerationOutput entity by IDs.
@@ -356,9 +350,9 @@ func (gu *GenerationUpdate) ClearGenerationModel() *GenerationUpdate {
 	return gu
 }
 
-// ClearUsers clears the "users" edge to the User entity.
-func (gu *GenerationUpdate) ClearUsers() *GenerationUpdate {
-	gu.mutation.ClearUsers()
+// ClearUser clears the "user" edge to the User entity.
+func (gu *GenerationUpdate) ClearUser() *GenerationUpdate {
+	gu.mutation.ClearUser()
 	return gu
 }
 
@@ -438,8 +432,8 @@ func (gu *GenerationUpdate) check() error {
 	if _, ok := gu.mutation.GenerationModelID(); gu.mutation.GenerationModelCleared() && !ok {
 		return errors.New(`ent: clearing a required unique edge "Generation.generation_model"`)
 	}
-	if _, ok := gu.mutation.UsersID(); gu.mutation.UsersCleared() && !ok {
-		return errors.New(`ent: clearing a required unique edge "Generation.users"`)
+	if _, ok := gu.mutation.UserID(); gu.mutation.UserCleared() && !ok {
+		return errors.New(`ent: clearing a required unique edge "Generation.user"`)
 	}
 	return nil
 }
@@ -712,12 +706,12 @@ func (gu *GenerationUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if gu.mutation.UsersCleared() {
+	if gu.mutation.UserCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
-			Table:   generation.UsersTable,
-			Columns: []string{generation.UsersColumn},
+			Table:   generation.UserTable,
+			Columns: []string{generation.UserColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
@@ -728,12 +722,12 @@ func (gu *GenerationUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := gu.mutation.UsersIDs(); len(nodes) > 0 {
+	if nodes := gu.mutation.UserIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
-			Table:   generation.UsersTable,
-			Columns: []string{generation.UsersColumn},
+			Table:   generation.UserTable,
+			Columns: []string{generation.UserColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
@@ -1081,15 +1075,9 @@ func (guo *GenerationUpdateOne) SetGenerationModel(g *GenerationModel) *Generati
 	return guo.SetGenerationModelID(g.ID)
 }
 
-// SetUsersID sets the "users" edge to the User entity by ID.
-func (guo *GenerationUpdateOne) SetUsersID(id uuid.UUID) *GenerationUpdateOne {
-	guo.mutation.SetUsersID(id)
-	return guo
-}
-
-// SetUsers sets the "users" edge to the User entity.
-func (guo *GenerationUpdateOne) SetUsers(u *User) *GenerationUpdateOne {
-	return guo.SetUsersID(u.ID)
+// SetUser sets the "user" edge to the User entity.
+func (guo *GenerationUpdateOne) SetUser(u *User) *GenerationUpdateOne {
+	return guo.SetUserID(u.ID)
 }
 
 // AddGenerationOutputIDs adds the "generation_outputs" edge to the GenerationOutput entity by IDs.
@@ -1142,9 +1130,9 @@ func (guo *GenerationUpdateOne) ClearGenerationModel() *GenerationUpdateOne {
 	return guo
 }
 
-// ClearUsers clears the "users" edge to the User entity.
-func (guo *GenerationUpdateOne) ClearUsers() *GenerationUpdateOne {
-	guo.mutation.ClearUsers()
+// ClearUser clears the "user" edge to the User entity.
+func (guo *GenerationUpdateOne) ClearUser() *GenerationUpdateOne {
+	guo.mutation.ClearUser()
 	return guo
 }
 
@@ -1231,8 +1219,8 @@ func (guo *GenerationUpdateOne) check() error {
 	if _, ok := guo.mutation.GenerationModelID(); guo.mutation.GenerationModelCleared() && !ok {
 		return errors.New(`ent: clearing a required unique edge "Generation.generation_model"`)
 	}
-	if _, ok := guo.mutation.UsersID(); guo.mutation.UsersCleared() && !ok {
-		return errors.New(`ent: clearing a required unique edge "Generation.users"`)
+	if _, ok := guo.mutation.UserID(); guo.mutation.UserCleared() && !ok {
+		return errors.New(`ent: clearing a required unique edge "Generation.user"`)
 	}
 	return nil
 }
@@ -1522,12 +1510,12 @@ func (guo *GenerationUpdateOne) sqlSave(ctx context.Context) (_node *Generation,
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if guo.mutation.UsersCleared() {
+	if guo.mutation.UserCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
-			Table:   generation.UsersTable,
-			Columns: []string{generation.UsersColumn},
+			Table:   generation.UserTable,
+			Columns: []string{generation.UserColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
@@ -1538,12 +1526,12 @@ func (guo *GenerationUpdateOne) sqlSave(ctx context.Context) (_node *Generation,
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := guo.mutation.UsersIDs(); len(nodes) > 0 {
+	if nodes := guo.mutation.UserIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
-			Table:   generation.UsersTable,
-			Columns: []string{generation.UsersColumn},
+			Table:   generation.UserTable,
+			Columns: []string{generation.UserColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
