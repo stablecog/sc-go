@@ -24,6 +24,18 @@ const MOCK_UPSCALE_MODEL_ID = "b972a2b8-f39e-4ee3-a670-05e3acdd821e"
 
 // Just creates some mock data for our tests
 func (repo *Repository) CreateMockData(ctx context.Context) error {
+	// Drop all data
+	repo.DB.User.Delete().ExecX(ctx)
+	repo.DB.UserRole.Delete().ExecX(ctx)
+	repo.DB.Credit.Delete().ExecX(ctx)
+	repo.DB.CreditType.Delete().ExecX(ctx)
+	repo.DB.GenerationModel.Delete().ExecX(ctx)
+	repo.DB.Scheduler.Delete().ExecX(ctx)
+	repo.DB.UpscaleModel.Delete().ExecX(ctx)
+	repo.DB.Generation.Delete().ExecX(ctx)
+	repo.DB.GenerationOutput.Delete().ExecX(ctx)
+	repo.DB.Upscale.Delete().ExecX(ctx)
+
 	// Create a credit type
 	creditType, err := repo.CreateCreditType("mock", 100, nil, nil)
 	if err != nil {
