@@ -155,8 +155,9 @@ func (r *Repository) SetGenerationSucceeded(generationID string, outputs []strin
 // Get user generations from the database using page options
 // Offset actually represents created_at, we paginate using this for performance reasons
 // If present, we will get results after the offset (anything before, represents previous pages)
-// ! TODO - this is currently two queries, 1 for outputs, 1 for everything else - figure out how to make it only 1
+// TODO - this is currently two queries, 1 for outputs, 1 for everything else - figure out how to make it only 1
 // ! using ent .With... doesn't use joins, so we construct our own query to make it more efficient
+// TODO - Define indexes for this query
 func (r *Repository) GetUserGenerations(userID uuid.UUID, per_page int, offset *time.Time) ([]UserGenerationQueryResult, error) {
 	// Base fields to select in our query
 	selectFields := []string{

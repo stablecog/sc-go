@@ -36,7 +36,7 @@ func (r *Repository) AddCreditsIfEligible(creditType *ent.CreditType, userID uui
 
 // Deduct credits from user, starting with credits that expire soonest. Return true if deduction was successful
 func (r *Repository) DeductCreditsFromUser(userID uuid.UUID, amount int32) (success bool, err error) {
-	rowsAffected, err := r.DB.Debug().Credit.Update().
+	rowsAffected, err := r.DB.Credit.Update().
 		Where(func(s *sql.Selector) {
 			t := sql.Table(credit.Table)
 			s.Where(
@@ -62,7 +62,7 @@ func (r *Repository) DeductCreditsFromUser(userID uuid.UUID, amount int32) (succ
 
 // Refund credits for user, starting with credits that expire soonest. Return true if refund was successful
 func (r *Repository) RefundCreditsToUser(userID uuid.UUID, amount int32) (success bool, err error) {
-	rowsAffected, err := r.DB.Debug().Credit.Update().
+	rowsAffected, err := r.DB.Credit.Update().
 		Where(func(s *sql.Selector) {
 			t := sql.Table(credit.Table)
 			s.Where(

@@ -38,6 +38,13 @@ var (
 				OnDelete:   schema.Cascade,
 			},
 		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "credit_expires_at_user_id_remaining_amount",
+				Unique:  false,
+				Columns: []*schema.Column{CreditsColumns[2], CreditsColumns[6], CreditsColumns[1]},
+			},
+		},
 	}
 	// CreditTypesColumns holds the columns for the "credit_types" table.
 	CreditTypesColumns = []*schema.Column{
@@ -137,6 +144,18 @@ var (
 				OnDelete:   schema.Cascade,
 			},
 		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "generation_user_id",
+				Unique:  false,
+				Columns: []*schema.Column{GenerationsColumns[20]},
+			},
+			{
+				Name:    "generation_created_at",
+				Unique:  false,
+				Columns: []*schema.Column{GenerationsColumns[13]},
+			},
+		},
 	}
 	// GenerationModelsColumns holds the columns for the "generation_models" table.
 	GenerationModelsColumns = []*schema.Column{
@@ -172,6 +191,13 @@ var (
 				Columns:    []*schema.Column{GenerationOutputsColumns[6]},
 				RefColumns: []*schema.Column{GenerationsColumns[0]},
 				OnDelete:   schema.Cascade,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "generationoutput_id_gallery_status",
+				Unique:  false,
+				Columns: []*schema.Column{GenerationOutputsColumns[0], GenerationOutputsColumns[3]},
 			},
 		},
 	}

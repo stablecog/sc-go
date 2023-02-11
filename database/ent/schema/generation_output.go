@@ -8,6 +8,7 @@ import (
 	"entgo.io/ent/schema"
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
+	"entgo.io/ent/schema/index"
 	"github.com/google/uuid"
 )
 
@@ -47,5 +48,12 @@ func (GenerationOutput) Edges() []ent.Edge {
 func (GenerationOutput) Annotations() []schema.Annotation {
 	return []schema.Annotation{
 		entsql.Annotation{Table: "generation_outputs"},
+	}
+}
+
+// Indexes of the GenerationOutput.
+func (GenerationOutput) Indexes() []ent.Index {
+	return []ent.Index{
+		index.Fields("id", "gallery_status"),
 	}
 }

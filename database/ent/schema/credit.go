@@ -8,6 +8,7 @@ import (
 	"entgo.io/ent/schema"
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
+	"entgo.io/ent/schema/index"
 	"github.com/google/uuid"
 )
 
@@ -53,5 +54,12 @@ func (Credit) Edges() []ent.Edge {
 func (Credit) Annotations() []schema.Annotation {
 	return []schema.Annotation{
 		entsql.Annotation{Table: "credits"},
+	}
+}
+
+// Indexes of the Credit.
+func (Credit) Indexes() []ent.Index {
+	return []ent.Index{
+		index.Fields("expires_at", "user_id", "remaining_amount"),
 	}
 }
