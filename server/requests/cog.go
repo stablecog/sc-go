@@ -19,8 +19,9 @@ const (
 // Base request data cog used to process request
 type BaseCogRequest struct {
 	// These fields are irrelevant to cog, just used to identify the request when it comes back
-	ID                 string `json:"id"`
-	GenerationOutputID string `json:"generation_output_id,omitempty"` // Specific to upscale requests
+	ID                 string      `json:"id"`
+	GenerationOutputID string      `json:"generation_output_id,omitempty"` // Specific to upscale requests
+	LivePageData       interface{} `json:"live_page_data"`
 	// Generate specific
 	UploadPathPrefix     string             `json:"upload_path_prefix,omitempty"`
 	Prompt               string             `json:"prompt,omitempty"`

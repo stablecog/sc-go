@@ -27,7 +27,7 @@ func (h *Hub) BroadcastStatusUpdate(msg responses.SSEStatusUpdateResponse) {
 }
 
 // Broadcast a message for the live page
-func (h *Hub) BroadcastLivePageQueued(req responses.LivePageMessage) {
+func (h *Hub) BroadcastLivePageMessage(req responses.LivePageMessage) {
 	bytes, err := json.Marshal(req)
 	if err != nil {
 		klog.Errorf("Error marshalling live page message: %v", err)

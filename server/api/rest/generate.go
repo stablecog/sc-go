@@ -158,11 +158,23 @@ func (c *RestAPI) HandleCreateGeneration(w http.ResponseWriter, r *http.Request)
 	// Request Id matches generation ID
 	requestId := g.ID.String()
 
+	// For live page update
+	livePageMsg := responses.LivePageMessage{
+		Type:        responses.LivePageMessageGeneration,
+		ID:          utils.Sha256(requestId),
+		CountryCode: countryCode,
+		Status:      responses.LivePageQueued,
+		Width:       generateReq.Width,
+		Height:      generateReq.Height,
+		CreatedAt:   g.CreatedAt,
+	}
+
 	cogReqBody := requests.CogQueueRequest{
 		WebhookEventsFilter: []requests.WebhookEventFilterOption{requests.WebhookEventFilterStart, requests.WebhookEventFilterStart},
 		RedisPubsubKey:      shared.COG_REDIS_EVENT_CHANNEL,
 		Input: requests.BaseCogRequest{
 			ID:                   requestId,
+			LivePageData:         livePageMsg,
 			Prompt:               generateReq.Prompt,
 			NegativePrompt:       generateReq.NegativePrompt,
 			Width:                fmt.Sprint(generateReq.Width),
@@ -195,17 +207,8 @@ func (c *RestAPI) HandleCreateGeneration(w http.ResponseWriter, r *http.Request)
 	c.Redis.SetCogRequestStreamID(r.Context(), requestId, generateReq.StreamID)
 	fmt.Printf("--- Put request in map took: %s\n", time.Now().Sub(start))
 
-	// Deal with live page update
-	livePageMsg := responses.LivePageMessage{
-		Type:        responses.LivePageMessageGeneration,
-		ID:          utils.Sha256(requestId),
-		CountryCode: countryCode,
-		Status:      responses.LivePageQueued,
-		Width:       generateReq.Width,
-		Height:      generateReq.Height,
-		CreatedAt:   g.CreatedAt,
-	}
-	go c.Hub.BroadcastLivePageQueued(livePageMsg)
+	// Send live page update
+	go c.Hub.BroadcastLivePageMessage(livePageMsg)
 
 	render.Status(r, http.StatusOK)
 	render.JSON(w, r, &responses.QueuedResponse{

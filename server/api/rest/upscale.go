@@ -148,12 +148,24 @@ func (c *RestAPI) HandleUpscale(w http.ResponseWriter, r *http.Request) {
 	// Request ID matches upscale ID
 	requestId := upscale.ID.String()
 
+	// For live page update
+	livePageMsg := responses.LivePageMessage{
+		Type:        responses.LivePageMessageUpscale,
+		ID:          utils.Sha256(requestId),
+		CountryCode: countryCode,
+		Status:      responses.LivePageQueued,
+		Width:       width,
+		Height:      height,
+		CreatedAt:   upscale.CreatedAt,
+	}
+
 	// Send to the cog
 	cogReqBody := requests.CogQueueRequest{
 		WebhookEventsFilter: []requests.WebhookEventFilterOption{requests.WebhookEventFilterStart, requests.WebhookEventFilterStart},
 		RedisPubsubKey:      shared.COG_REDIS_EVENT_CHANNEL,
 		Input: requests.BaseCogRequest{
 			ID:                 requestId,
+			LivePageData:       livePageMsg,
 			GenerationOutputID: outputIDStr,
 			Image:              imageUrl,
 			ProcessType:        shared.UPSCALE,
@@ -170,6 +182,9 @@ func (c *RestAPI) HandleUpscale(w http.ResponseWriter, r *http.Request) {
 
 	// Track the request in our internal map
 	c.Redis.SetCogRequestStreamID(r.Context(), requestId, upscaleReq.StreamID)
+
+	// Deal with live page update
+	go c.Hub.BroadcastLivePageMessage(livePageMsg)
 
 	render.Status(r, http.StatusOK)
 	render.JSON(w, r, &responses.QueuedResponse{

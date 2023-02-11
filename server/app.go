@@ -206,6 +206,38 @@ func main() {
 				continue
 			}
 
+			// Process live page message
+			go func() {
+				// Live page update
+				livePageMsg, ok := cogMessage.Input.LivePageData.(responses.LivePageMessage)
+				var status responses.LivePageStatus
+				switch cogMessage.Status {
+				case responses.CogProcessing:
+					status = responses.LivePageProcessing
+				case responses.CogSucceeded:
+					status = responses.LivePageSucceeded
+				case responses.CogFailed:
+					status = responses.LivePageFailed
+				default:
+					klog.Errorf("Unknown cog status in live page message parsing: %s", cogMessage.Status)
+					return
+				}
+				if !ok {
+					klog.Errorf("Live page message not found in cog message or unable to parse")
+					return
+				}
+
+				livePageMsg.Status = status
+				if cogMessage.Status == responses.CogProcessing {
+					livePageMsg.StartedAt = time.Now()
+				}
+				if cogMessage.Status == responses.CogSucceeded || cogMessage.Status == responses.CogFailed {
+					livePageMsg.CompletedAt = time.Now()
+				}
+				sseHub.BroadcastLivePageMessage(livePageMsg)
+
+			}()
+
 			// Process in database
 			repo.ProcessCogMessage(cogMessage)
 		}
