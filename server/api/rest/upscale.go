@@ -33,7 +33,7 @@ func (c *RestAPI) HandleUpscale(w http.ResponseWriter, r *http.Request) {
 
 	// Validation
 	if !utils.IsSha256Hash(upscaleReq.StreamID) {
-		responses.ErrBadRequest(w, r, "Invalid stream ID")
+		responses.ErrInvalidStreamID(w, r)
 		return
 	}
 
@@ -44,19 +44,19 @@ func (c *RestAPI) HandleUpscale(w http.ResponseWriter, r *http.Request) {
 
 	var outputID uuid.UUID
 	if upscaleReq.Type == requests.UpscaleRequestTypeImage && !utils.IsValidHTTPURL(upscaleReq.Input) {
-		responses.ErrBadRequest(w, r, "Invalid image URL")
+		responses.ErrBadRequest(w, r, "invalid_image_url")
 		return
 	} else if upscaleReq.Type == requests.UpscaleRequestTypeOutput {
 		outputID, err = uuid.Parse(upscaleReq.Input)
 		if err != nil {
-			responses.ErrBadRequest(w, r, "Invalid output ID")
+			responses.ErrBadRequest(w, r, "invalid_output_id")
 			return
 		}
 	}
 
 	if !shared.GetCache().IsValidUpscaleModelID(upscaleReq.ModelId) {
-		klog.Infof("Invalid model ID: %s", upscaleReq.ModelId)
-		responses.ErrBadRequest(w, r, "Invalid model ID")
+		klog.Infof("invalid_model_id: %s", upscaleReq.ModelId)
+		responses.ErrBadRequest(w, r, "invalid_model_id")
 		return
 	}
 
@@ -82,7 +82,7 @@ func (c *RestAPI) HandleUpscale(w http.ResponseWriter, r *http.Request) {
 	if upscaleReq.Type == requests.UpscaleRequestTypeImage {
 		width, height, err = utils.GetImageWidthHeightFromUrl(imageUrl, shared.MAX_UPSCALE_IMAGE_SIZE)
 		if err != nil {
-			responses.ErrBadRequest(w, r, "Unable to retrieve width/height for upscale")
+			responses.ErrBadRequest(w, r, "image_url_width_height_error")
 			return
 		}
 	}
@@ -94,7 +94,7 @@ func (c *RestAPI) HandleUpscale(w http.ResponseWriter, r *http.Request) {
 		output, err := c.Repo.GetGenerationOutputForUser(outputID, *userID)
 		if err != nil {
 			if ent.IsNotFound(err) {
-				responses.ErrBadRequest(w, r, "Output not found")
+				responses.ErrBadRequest(w, r, "output_not_found")
 				return
 			}
 			klog.Errorf("Error getting output: %v", err)
@@ -102,7 +102,7 @@ func (c *RestAPI) HandleUpscale(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		if output.UpscaledImageURL != nil {
-			responses.ErrBadRequest(w, r, "Image already upscaled")
+			responses.ErrBadRequest(w, r, "image_already_upscaled")
 			return
 		}
 		imageUrl = output.ImageURL
@@ -123,7 +123,7 @@ func (c *RestAPI) HandleUpscale(w http.ResponseWriter, r *http.Request) {
 		responses.ErrInternalServerError(w, r, "Error deducting credits from user")
 		return
 	} else if !deducted {
-		responses.ErrBadRequest(w, r, "Not enough credits to upscale, need 1")
+		responses.ErrInsufficientCredits(w, r)
 		return
 	}
 

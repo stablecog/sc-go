@@ -25,3 +25,13 @@ func (h *Hub) BroadcastStatusUpdate(msg responses.SSEStatusUpdateResponse) {
 	// Broadcast to all clients subcribed to this stream
 	h.BroadcastToClientsWithUid(msg.StreamId, respBytes)
 }
+
+// Broadcast a message for the live page
+func (h *Hub) BroadcastLivePageQueued(req responses.LivePageMessage) {
+	bytes, err := json.Marshal(req)
+	if err != nil {
+		klog.Errorf("Error marshalling live page message: %v", err)
+		return
+	}
+	h.Broadcast <- bytes
+}

@@ -84,7 +84,7 @@ func TestGenerateFailsWithInvalidStreamID(t *testing.T) {
 	respBody, _ := io.ReadAll(resp.Body)
 	json.Unmarshal(respBody, &respJson)
 
-	assert.Equal(t, "Invalid stream ID", respJson["error"])
+	assert.Equal(t, "invalid_stream_id", respJson["error"])
 }
 
 func TestGenerateEnforcesNumOutputsChange(t *testing.T) {
@@ -112,7 +112,7 @@ func TestGenerateEnforcesNumOutputsChange(t *testing.T) {
 	respBody, _ := io.ReadAll(resp.Body)
 	json.Unmarshal(respBody, &respJson)
 
-	assert.Equal(t, "Invalid model ID", respJson["error"])
+	assert.Equal(t, "invalid_model_id", respJson["error"])
 
 	// ! Max
 	reqBody = requests.GenerateRequestBody{
@@ -191,7 +191,7 @@ func TestGenerateEnforcesMaxWidthMaxHeight(t *testing.T) {
 }
 
 func TestGenerateRejectsInvalidModelOrScheduler(t *testing.T) {
-	// ! Invalid scheduler ID
+	// ! invalid_scheduler_id
 	reqBody := requests.GenerateRequestBody{
 		StreamID:    MockSSEId,
 		Height:      shared.MAX_GENERATE_HEIGHT,
@@ -217,9 +217,9 @@ func TestGenerateRejectsInvalidModelOrScheduler(t *testing.T) {
 	respBody, _ := io.ReadAll(resp.Body)
 	json.Unmarshal(respBody, &respJson)
 
-	assert.Equal(t, "Invalid scheduler ID", respJson["error"])
+	assert.Equal(t, "invalid_scheduler_id", respJson["error"])
 
-	// ! Invalid model ID
+	// ! invalid_model_id
 	reqBody = requests.GenerateRequestBody{
 		StreamID:    MockSSEId,
 		Height:      shared.MAX_GENERATE_HEIGHT,
@@ -244,7 +244,7 @@ func TestGenerateRejectsInvalidModelOrScheduler(t *testing.T) {
 	respBody, _ = io.ReadAll(resp.Body)
 	json.Unmarshal(respBody, &respJson)
 
-	assert.Equal(t, "Invalid model ID", respJson["error"])
+	assert.Equal(t, "invalid_model_id", respJson["error"])
 }
 
 func TestGenerateNoCredits(t *testing.T) {
@@ -275,7 +275,7 @@ func TestGenerateNoCredits(t *testing.T) {
 	var errResp map[string]interface{}
 	respBody, _ := io.ReadAll(resp.Body)
 	json.Unmarshal(respBody, &errResp)
-	assert.Equal(t, "Not enough credits to generate, need 1", errResp["error"])
+	assert.Equal(t, "insufficient_credits", errResp["error"])
 }
 
 func TestGenerateValidRequest(t *testing.T) {

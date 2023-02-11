@@ -86,7 +86,7 @@ func TestUpscaleFailsWithInvalidStreamID(t *testing.T) {
 	respBody, _ := io.ReadAll(resp.Body)
 	json.Unmarshal(respBody, &respJson)
 
-	assert.Equal(t, "Invalid stream ID", respJson["error"])
+	assert.Equal(t, "invalid_stream_id", respJson["error"])
 }
 
 func TestUpscaleEnforcesType(t *testing.T) {
@@ -137,7 +137,7 @@ func TestUpscaleErrorsBadURL(t *testing.T) {
 	respBody, _ := io.ReadAll(resp.Body)
 	json.Unmarshal(respBody, &respJson)
 
-	assert.Equal(t, "Invalid image URL", respJson["error"])
+	assert.Equal(t, "invalid_image_url", respJson["error"])
 }
 
 func TestUpscaleErrorsBadOutputID(t *testing.T) {
@@ -163,11 +163,11 @@ func TestUpscaleErrorsBadOutputID(t *testing.T) {
 	respBody, _ := io.ReadAll(resp.Body)
 	json.Unmarshal(respBody, &respJson)
 
-	assert.Equal(t, "Invalid output ID", respJson["error"])
+	assert.Equal(t, "invalid_output_id", respJson["error"])
 }
 
 func TestUpscaleRejectsInvalidModel(t *testing.T) {
-	// ! Invalid model ID
+	// ! invalid_model_id
 	reqBody := requests.UpscaleRequestBody{
 		StreamID: MockSSEId,
 		Type:     requests.UpscaleRequestTypeImage,
@@ -191,7 +191,7 @@ func TestUpscaleRejectsInvalidModel(t *testing.T) {
 	respBody, _ := io.ReadAll(resp.Body)
 	json.Unmarshal(respBody, &respJson)
 
-	assert.Equal(t, "Invalid model ID", respJson["error"])
+	assert.Equal(t, "invalid_model_id", respJson["error"])
 }
 
 func TestUpscaleFailsIfNoCredits(t *testing.T) {
@@ -242,7 +242,7 @@ func TestUpscaleFailsIfNoCredits(t *testing.T) {
 	respBody, _ := io.ReadAll(resp.Body)
 	json.Unmarshal(respBody, &respJson)
 
-	assert.Equal(t, "Not enough credits to upscale, need 1", respJson["error"])
+	assert.Equal(t, "insufficient_credits", respJson["error"])
 }
 
 func TestUpscaleFromURL(t *testing.T) {

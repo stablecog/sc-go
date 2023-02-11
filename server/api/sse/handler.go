@@ -9,13 +9,16 @@ import (
 	"github.com/stablecog/go-apps/utils"
 )
 
+// Special stream ID for live page
+const LIVE_STREAM_ID = "live"
+
 // Handles client connections to SSE service
 func (h *Hub) ServeSSE(w http.ResponseWriter, r *http.Request) {
 	// Retrieve id from query parameters
 	query := r.URL.Query()
 	// They always connect with query param ?stream_id
 	streamID := strings.ToLower(query.Get("stream_id"))
-	if !utils.IsSha256Hash(streamID) {
+	if !utils.IsSha256Hash(streamID) && streamID != LIVE_STREAM_ID {
 		responses.ErrBadRequest(w, r, "Invalid ID")
 		return
 	}

@@ -75,7 +75,8 @@ func testMainWrapper(m *testing.M) int {
 	go hub.Run()
 	// Add user to hub
 	hub.Register <- &sse.Client{
-		Uid: MockSSEId,
+		Uid:  MockSSEId,
+		Send: make(chan []byte, 256),
 	}
 
 	// Setup controller

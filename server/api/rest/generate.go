@@ -41,7 +41,7 @@ func (c *RestAPI) HandleCreateGeneration(w http.ResponseWriter, r *http.Request)
 	// Make sure the stream ID is valid
 	start = time.Now()
 	if !utils.IsSha256Hash(generateReq.StreamID) {
-		responses.ErrBadRequest(w, r, "Invalid stream ID")
+		responses.ErrInvalidStreamID(w, r)
 		return
 	}
 	fmt.Printf("--- Validate stream ID took: %s\n", time.Now().Sub(start))
@@ -80,14 +80,14 @@ func (c *RestAPI) HandleCreateGeneration(w http.ResponseWriter, r *http.Request)
 	// Validate model and scheduler IDs in request are valid
 	start = time.Now()
 	if !shared.GetCache().IsValidGenerationModelID(generateReq.ModelId) {
-		klog.Infof("Invalid model ID: %s", generateReq.ModelId)
-		responses.ErrBadRequest(w, r, "Invalid model ID")
+		klog.Infof("invalid_model_id: %s", generateReq.ModelId)
+		responses.ErrBadRequest(w, r, "invalid_model_id")
 		return
 	}
 
 	if !shared.GetCache().IsValidShedulerID(generateReq.SchedulerId) {
-		klog.Infof("Invalid scheduler ID: %s", generateReq.SchedulerId)
-		responses.ErrBadRequest(w, r, "Invalid scheduler ID")
+		klog.Infof("invalid_scheduler_id: %s", generateReq.SchedulerId)
+		responses.ErrBadRequest(w, r, "invalid_scheduler_id")
 		return
 	}
 	fmt.Printf("--- Checking model and scheduler IDs took: %s\n", time.Now().Sub(start))
@@ -132,7 +132,7 @@ func (c *RestAPI) HandleCreateGeneration(w http.ResponseWriter, r *http.Request)
 		responses.ErrInternalServerError(w, r, "Error deducting credits from user")
 		return
 	} else if !deducted {
-		responses.ErrBadRequest(w, r, fmt.Sprintf("Not enough credits to generate, need %d", generateReq.NumOutputs))
+		responses.ErrInsufficientCredits(w, r)
 		return
 	}
 	fmt.Printf("--- Deduct credits took took: %s\n", time.Now().Sub(start))
@@ -194,6 +194,18 @@ func (c *RestAPI) HandleCreateGeneration(w http.ResponseWriter, r *http.Request)
 	start = time.Now()
 	c.Redis.SetCogRequestStreamID(r.Context(), requestId, generateReq.StreamID)
 	fmt.Printf("--- Put request in map took: %s\n", time.Now().Sub(start))
+
+	// Deal with live page update
+	livePageMsg := responses.LivePageMessage{
+		Type:        responses.LivePageMessageGeneration,
+		ID:          utils.Sha256(requestId),
+		CountryCode: countryCode,
+		Status:      responses.LivePageQueued,
+		Width:       generateReq.Width,
+		Height:      generateReq.Height,
+		CreatedAt:   g.CreatedAt,
+	}
+	go c.Hub.BroadcastLivePageQueued(livePageMsg)
 
 	render.Status(r, http.StatusOK)
 	render.JSON(w, r, &responses.QueuedResponse{
