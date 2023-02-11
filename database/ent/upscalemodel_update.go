@@ -31,23 +31,9 @@ func (umu *UpscaleModelUpdate) Where(ps ...predicate.UpscaleModel) *UpscaleModel
 	return umu
 }
 
-// SetName sets the "name" field.
-func (umu *UpscaleModelUpdate) SetName(s string) *UpscaleModelUpdate {
-	umu.mutation.SetName(s)
-	return umu
-}
-
-// SetIsFree sets the "is_free" field.
-func (umu *UpscaleModelUpdate) SetIsFree(b bool) *UpscaleModelUpdate {
-	umu.mutation.SetIsFree(b)
-	return umu
-}
-
-// SetNillableIsFree sets the "is_free" field if the given value is not nil.
-func (umu *UpscaleModelUpdate) SetNillableIsFree(b *bool) *UpscaleModelUpdate {
-	if b != nil {
-		umu.SetIsFree(*b)
-	}
+// SetNameInWorker sets the "name_in_worker" field.
+func (umu *UpscaleModelUpdate) SetNameInWorker(s string) *UpscaleModelUpdate {
+	umu.mutation.SetNameInWorker(s)
 	return umu
 }
 
@@ -158,11 +144,8 @@ func (umu *UpscaleModelUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			}
 		}
 	}
-	if value, ok := umu.mutation.Name(); ok {
-		_spec.SetField(upscalemodel.FieldName, field.TypeString, value)
-	}
-	if value, ok := umu.mutation.IsFree(); ok {
-		_spec.SetField(upscalemodel.FieldIsFree, field.TypeBool, value)
+	if value, ok := umu.mutation.NameInWorker(); ok {
+		_spec.SetField(upscalemodel.FieldNameInWorker, field.TypeString, value)
 	}
 	if value, ok := umu.mutation.UpdatedAt(); ok {
 		_spec.SetField(upscalemodel.FieldUpdatedAt, field.TypeTime, value)
@@ -243,23 +226,9 @@ type UpscaleModelUpdateOne struct {
 	modifiers []func(*sql.UpdateBuilder)
 }
 
-// SetName sets the "name" field.
-func (umuo *UpscaleModelUpdateOne) SetName(s string) *UpscaleModelUpdateOne {
-	umuo.mutation.SetName(s)
-	return umuo
-}
-
-// SetIsFree sets the "is_free" field.
-func (umuo *UpscaleModelUpdateOne) SetIsFree(b bool) *UpscaleModelUpdateOne {
-	umuo.mutation.SetIsFree(b)
-	return umuo
-}
-
-// SetNillableIsFree sets the "is_free" field if the given value is not nil.
-func (umuo *UpscaleModelUpdateOne) SetNillableIsFree(b *bool) *UpscaleModelUpdateOne {
-	if b != nil {
-		umuo.SetIsFree(*b)
-	}
+// SetNameInWorker sets the "name_in_worker" field.
+func (umuo *UpscaleModelUpdateOne) SetNameInWorker(s string) *UpscaleModelUpdateOne {
+	umuo.mutation.SetNameInWorker(s)
 	return umuo
 }
 
@@ -394,11 +363,8 @@ func (umuo *UpscaleModelUpdateOne) sqlSave(ctx context.Context) (_node *UpscaleM
 			}
 		}
 	}
-	if value, ok := umuo.mutation.Name(); ok {
-		_spec.SetField(upscalemodel.FieldName, field.TypeString, value)
-	}
-	if value, ok := umuo.mutation.IsFree(); ok {
-		_spec.SetField(upscalemodel.FieldIsFree, field.TypeBool, value)
+	if value, ok := umuo.mutation.NameInWorker(); ok {
+		_spec.SetField(upscalemodel.FieldNameInWorker, field.TypeString, value)
 	}
 	if value, ok := umuo.mutation.UpdatedAt(); ok {
 		_spec.SetField(upscalemodel.FieldUpdatedAt, field.TypeTime, value)

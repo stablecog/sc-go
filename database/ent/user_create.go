@@ -11,8 +11,8 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
+	"github.com/stablecog/go-apps/database/ent/credit"
 	"github.com/stablecog/go-apps/database/ent/generation"
-	"github.com/stablecog/go-apps/database/ent/subscription"
 	"github.com/stablecog/go-apps/database/ent/upscale"
 	"github.com/stablecog/go-apps/database/ent/user"
 	"github.com/stablecog/go-apps/database/ent/userrole"
@@ -146,23 +146,19 @@ func (uc *UserCreate) AddUpscales(u ...*Upscale) *UserCreate {
 	return uc.AddUpscaleIDs(ids...)
 }
 
-// SetSubscriptionsID sets the "subscriptions" edge to the Subscription entity by ID.
-func (uc *UserCreate) SetSubscriptionsID(id uuid.UUID) *UserCreate {
-	uc.mutation.SetSubscriptionsID(id)
+// AddCreditIDs adds the "credits" edge to the Credit entity by IDs.
+func (uc *UserCreate) AddCreditIDs(ids ...uuid.UUID) *UserCreate {
+	uc.mutation.AddCreditIDs(ids...)
 	return uc
 }
 
-// SetNillableSubscriptionsID sets the "subscriptions" edge to the Subscription entity by ID if the given value is not nil.
-func (uc *UserCreate) SetNillableSubscriptionsID(id *uuid.UUID) *UserCreate {
-	if id != nil {
-		uc = uc.SetSubscriptionsID(*id)
+// AddCredits adds the "credits" edges to the Credit entity.
+func (uc *UserCreate) AddCredits(c ...*Credit) *UserCreate {
+	ids := make([]uuid.UUID, len(c))
+	for i := range c {
+		ids[i] = c[i].ID
 	}
-	return uc
-}
-
-// SetSubscriptions sets the "subscriptions" edge to the Subscription entity.
-func (uc *UserCreate) SetSubscriptions(s *Subscription) *UserCreate {
-	return uc.SetSubscriptionsID(s.ID)
+	return uc.AddCreditIDs(ids...)
 }
 
 // Mutation returns the UserMutation object of the builder.
@@ -343,17 +339,17 @@ func (uc *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if nodes := uc.mutation.SubscriptionsIDs(); len(nodes) > 0 {
+	if nodes := uc.mutation.CreditsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2O,
+			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   user.SubscriptionsTable,
-			Columns: []string{user.SubscriptionsColumn},
+			Table:   user.CreditsTable,
+			Columns: []string{user.CreditsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeUUID,
-					Column: subscription.FieldID,
+					Column: credit.FieldID,
 				},
 			},
 		}

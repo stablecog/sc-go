@@ -46,9 +46,11 @@ func (User) Edges() []ent.Edge {
 			Annotations(entsql.Annotation{
 				OnDelete: entsql.Cascade,
 			}),
-		// O2O with subscriptions
-		edge.To("subscriptions", Subscription.Type).
-			Unique(),
+		// O2M with credits
+		edge.To("credits", Credit.Type).
+			Annotations(entsql.Annotation{
+				OnDelete: entsql.Cascade,
+			}),
 	}
 }
 

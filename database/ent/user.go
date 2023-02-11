@@ -9,7 +9,6 @@ import (
 
 	"entgo.io/ent/dialect/sql"
 	"github.com/google/uuid"
-	"github.com/stablecog/go-apps/database/ent/subscription"
 	"github.com/stablecog/go-apps/database/ent/user"
 )
 
@@ -41,8 +40,8 @@ type UserEdges struct {
 	Generations []*Generation `json:"generations,omitempty"`
 	// Upscales holds the value of the upscales edge.
 	Upscales []*Upscale `json:"upscales,omitempty"`
-	// Subscriptions holds the value of the subscriptions edge.
-	Subscriptions *Subscription `json:"subscriptions,omitempty"`
+	// Credits holds the value of the credits edge.
+	Credits []*Credit `json:"credits,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
 	loadedTypes [4]bool
@@ -75,17 +74,13 @@ func (e UserEdges) UpscalesOrErr() ([]*Upscale, error) {
 	return nil, &NotLoadedError{edge: "upscales"}
 }
 
-// SubscriptionsOrErr returns the Subscriptions value or an error if the edge
-// was not loaded in eager-loading, or loaded but was not found.
-func (e UserEdges) SubscriptionsOrErr() (*Subscription, error) {
+// CreditsOrErr returns the Credits value or an error if the edge
+// was not loaded in eager-loading.
+func (e UserEdges) CreditsOrErr() ([]*Credit, error) {
 	if e.loadedTypes[3] {
-		if e.Subscriptions == nil {
-			// Edge was loaded but was not found.
-			return nil, &NotFoundError{label: subscription.Label}
-		}
-		return e.Subscriptions, nil
+		return e.Credits, nil
 	}
-	return nil, &NotLoadedError{edge: "subscriptions"}
+	return nil, &NotLoadedError{edge: "credits"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -172,9 +167,9 @@ func (u *User) QueryUpscales() *UpscaleQuery {
 	return NewUserClient(u.config).QueryUpscales(u)
 }
 
-// QuerySubscriptions queries the "subscriptions" edge of the User entity.
-func (u *User) QuerySubscriptions() *SubscriptionQuery {
-	return NewUserClient(u.config).QuerySubscriptions(u)
+// QueryCredits queries the "credits" edge of the User entity.
+func (u *User) QueryCredits() *CreditQuery {
+	return NewUserClient(u.config).QueryCredits(u)
 }
 
 // Update returns a builder for updating this User.

@@ -200,12 +200,12 @@ func (r *Repository) GetUserGenerations(userID uuid.UUID, per_page int, offset *
 			s.C(generation.FieldID), got.C(generationoutput.FieldGenerationID),
 		).LeftJoin(mt).On(
 			s.C(generation.FieldModelID), mt.C(generationmodel.FieldID),
-		).AppendSelect(sql.As(npt.C(negativeprompt.FieldText), "negative_prompt_text"), sql.As(pt.C(prompt.FieldText), "prompt_text"), sql.As(st.C(scheduler.FieldName), "scheduler_name"), sql.As(mt.C(generationmodel.FieldName), "model_name")).
+		).AppendSelect(sql.As(npt.C(negativeprompt.FieldText), "negative_prompt_text"), sql.As(pt.C(prompt.FieldText), "prompt_text"), sql.As(st.C(scheduler.FieldNameInWorker), "scheduler_name"), sql.As(mt.C(generationmodel.FieldNameInWorker), "model_name")).
 			GroupBy(s.C(generation.FieldID)).
 			GroupBy(npt.C(negativeprompt.FieldText)).
 			GroupBy(pt.C(prompt.FieldText)).
-			GroupBy(st.C(scheduler.FieldName)).
-			GroupBy(mt.C(generationmodel.FieldName))
+			GroupBy(st.C(scheduler.FieldNameInWorker)).
+			GroupBy(mt.C(generationmodel.FieldNameInWorker))
 	}).Scan(r.Ctx, &res)
 
 	if err != nil {

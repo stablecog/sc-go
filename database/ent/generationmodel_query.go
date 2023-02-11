@@ -298,12 +298,12 @@ func (gmq *GenerationModelQuery) WithGenerations(opts ...func(*GenerationQuery))
 // Example:
 //
 //	var v []struct {
-//		Name string `json:"name,omitempty"`
+//		NameInWorker string `json:"name_in_worker,omitempty"`
 //		Count int `json:"count,omitempty"`
 //	}
 //
 //	client.GenerationModel.Query().
-//		GroupBy(generationmodel.FieldName).
+//		GroupBy(generationmodel.FieldNameInWorker).
 //		Aggregate(ent.Count()).
 //		Scan(ctx, &v)
 func (gmq *GenerationModelQuery) GroupBy(field string, fields ...string) *GenerationModelGroupBy {
@@ -321,11 +321,11 @@ func (gmq *GenerationModelQuery) GroupBy(field string, fields ...string) *Genera
 // Example:
 //
 //	var v []struct {
-//		Name string `json:"name,omitempty"`
+//		NameInWorker string `json:"name_in_worker,omitempty"`
 //	}
 //
 //	client.GenerationModel.Query().
-//		Select(generationmodel.FieldName).
+//		Select(generationmodel.FieldNameInWorker).
 //		Scan(ctx, &v)
 func (gmq *GenerationModelQuery) Select(fields ...string) *GenerationModelSelect {
 	gmq.ctx.Fields = append(gmq.ctx.Fields, fields...)

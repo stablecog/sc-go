@@ -29,8 +29,8 @@ const (
 	EdgeGenerations = "generations"
 	// EdgeUpscales holds the string denoting the upscales edge name in mutations.
 	EdgeUpscales = "upscales"
-	// EdgeSubscriptions holds the string denoting the subscriptions edge name in mutations.
-	EdgeSubscriptions = "subscriptions"
+	// EdgeCredits holds the string denoting the credits edge name in mutations.
+	EdgeCredits = "credits"
 	// Table holds the table name of the user in the database.
 	Table = "users"
 	// UserRolesTable is the table that holds the user_roles relation/edge.
@@ -54,13 +54,13 @@ const (
 	UpscalesInverseTable = "upscales"
 	// UpscalesColumn is the table column denoting the upscales relation/edge.
 	UpscalesColumn = "user_id"
-	// SubscriptionsTable is the table that holds the subscriptions relation/edge.
-	SubscriptionsTable = "subscriptions"
-	// SubscriptionsInverseTable is the table name for the Subscription entity.
-	// It exists in this package in order to avoid circular dependency with the "subscription" package.
-	SubscriptionsInverseTable = "subscriptions"
-	// SubscriptionsColumn is the table column denoting the subscriptions relation/edge.
-	SubscriptionsColumn = "user_id"
+	// CreditsTable is the table that holds the credits relation/edge.
+	CreditsTable = "credits"
+	// CreditsInverseTable is the table name for the Credit entity.
+	// It exists in this package in order to avoid circular dependency with the "credit" package.
+	CreditsInverseTable = "credits"
+	// CreditsColumn is the table column denoting the credits relation/edge.
+	CreditsColumn = "user_id"
 )
 
 // Columns holds all SQL columns for user fields.

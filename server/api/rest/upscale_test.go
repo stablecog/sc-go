@@ -194,7 +194,7 @@ func TestUpscaleRejectsInvalidModel(t *testing.T) {
 	assert.Equal(t, "Invalid model ID", respJson["error"])
 }
 
-func TestUpscaleProOnly(t *testing.T) {
+func TestUpscaleFailsIfNoCredits(t *testing.T) {
 	reqBody := requests.UpscaleRequestBody{
 		StreamID: MockSSEId,
 		Type:     requests.UpscaleRequestTypeImage,
@@ -208,7 +208,7 @@ func TestUpscaleProOnly(t *testing.T) {
 	req.Header.Set("Content-Type", "application/json")
 
 	// Setup context
-	ctx := context.WithValue(req.Context(), "user_id", repository.MOCK_FREE_UUID)
+	ctx := context.WithValue(req.Context(), "user_id", repository.MOCK_NO_CREDITS_UUID)
 
 	MockController.HandleUpscale(w, req.WithContext(ctx))
 	resp := w.Result()
@@ -218,7 +218,7 @@ func TestUpscaleProOnly(t *testing.T) {
 	respBody, _ := io.ReadAll(resp.Body)
 	json.Unmarshal(respBody, &respJson)
 
-	assert.Equal(t, "Upscale feature isn't available on the free plan :(", respJson["error"])
+	assert.Equal(t, "Not enough credits to upscale, need 1", respJson["error"])
 }
 
 func TestUpscaleFromURL(t *testing.T) {

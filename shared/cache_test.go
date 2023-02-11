@@ -32,11 +32,11 @@ func TestUpdateGenerateModels(t *testing.T) {
 	fc := GetCache()
 	assert.Len(t, fc.GenerateModels, 0)
 	models := []*ent.GenerationModel{
-		{Name: "test"},
+		{NameInWorker: "test"},
 	}
 	fc.UpdateGenerationModels(models)
 	assert.Equal(t, 1, len(fc.GenerateModels))
-	assert.Equal(t, "test", fc.GenerateModels[0].Name)
+	assert.Equal(t, "test", fc.GenerateModels[0].NameInWorker)
 }
 
 func TestUpdateUpscaleModels(t *testing.T) {
@@ -44,11 +44,11 @@ func TestUpdateUpscaleModels(t *testing.T) {
 	fc := GetCache()
 	assert.Len(t, fc.UpscaleModels, 0)
 	models := []*ent.UpscaleModel{
-		{Name: "test"},
+		{NameInWorker: "test"},
 	}
 	fc.UpdateUpscaleModels(models)
 	assert.Equal(t, 1, len(fc.UpscaleModels))
-	assert.Equal(t, "test", fc.UpscaleModels[0].Name)
+	assert.Equal(t, "test", fc.UpscaleModels[0].NameInWorker)
 }
 
 func TestUpdateSchedulers(t *testing.T) {
@@ -56,11 +56,11 @@ func TestUpdateSchedulers(t *testing.T) {
 	fc := GetCache()
 	assert.Len(t, fc.Schedulers, 0)
 	schedulrs := []*ent.Scheduler{
-		{Name: "test"},
+		{NameInWorker: "test"},
 	}
 	fc.UpdateSchedulers(schedulrs)
 	assert.Equal(t, 1, len(fc.Schedulers))
-	assert.Equal(t, "test", fc.Schedulers[0].Name)
+	assert.Equal(t, "test", fc.Schedulers[0].NameInWorker)
 }
 
 func TestIsValidGenerationModelID(t *testing.T) {
@@ -105,46 +105,6 @@ func TestIsValidSchedulerID(t *testing.T) {
 	assert.True(t, fc.IsValidShedulerID(uid))
 }
 
-func TestIsGenerationModelAvailableForFree(t *testing.T) {
-	resetCache()
-	fc := GetCache()
-	// Predictable uuid
-	uid := uuid.MustParse("00000000-0000-0000-0000-000000000000")
-	assert.False(t, fc.IsGenerationModelAvailableForFree(uid))
-	// Add to models
-	fc.UpdateGenerationModels([]*ent.GenerationModel{
-		{ID: uid, IsFree: false},
-	})
-	// Assert not available
-	assert.False(t, fc.IsGenerationModelAvailableForFree(uid))
-	// Update to free
-	fc.UpdateGenerationModels([]*ent.GenerationModel{
-		{ID: uid, IsFree: true},
-	})
-	// Assert available
-	assert.True(t, fc.IsGenerationModelAvailableForFree(uid))
-}
-
-func TestIsSchedulerAvailableForFree(t *testing.T) {
-	resetCache()
-	fc := GetCache()
-	// Predictable uuid
-	uid := uuid.MustParse("00000000-0000-0000-0000-000000000000")
-	assert.False(t, fc.IsSchedulerAvailableForFree(uid))
-	// Add to models
-	fc.UpdateSchedulers([]*ent.Scheduler{
-		{ID: uid, IsFree: false},
-	})
-	// Assert not available
-	assert.False(t, fc.IsSchedulerAvailableForFree(uid))
-	// Update to free
-	fc.UpdateSchedulers([]*ent.Scheduler{
-		{ID: uid, IsFree: true},
-	})
-	// Assert available
-	assert.True(t, fc.IsSchedulerAvailableForFree(uid))
-}
-
 func TestIsWidthAvailableForFree(t *testing.T) {
 	resetCache()
 	fc := GetCache()
@@ -173,7 +133,7 @@ func TestGetGenerationModelNameFromID(t *testing.T) {
 	uid := uuid.MustParse("00000000-0000-0000-0000-000000000000")
 	// Add to models
 	fc.UpdateGenerationModels([]*ent.GenerationModel{
-		{ID: uid, Name: "test"},
+		{ID: uid, NameInWorker: "test"},
 	})
 	// Assert
 	assert.Equal(t, "test", fc.GetGenerationModelNameFromID(uid))
@@ -188,7 +148,7 @@ func TestGetUpscaleModelNameFromID(t *testing.T) {
 	uid := uuid.MustParse("00000000-0000-0000-0000-000000000000")
 	// Add to models
 	fc.UpdateUpscaleModels([]*ent.UpscaleModel{
-		{ID: uid, Name: "test"},
+		{ID: uid, NameInWorker: "test"},
 	})
 	// Assert
 	assert.Equal(t, "test", fc.GetUpscaleModelNameFromID(uid))
@@ -203,7 +163,7 @@ func TestGetSchedulerNameFromID(t *testing.T) {
 	uid := uuid.MustParse("00000000-0000-0000-0000-000000000000")
 	// Add to models
 	fc.UpdateSchedulers([]*ent.Scheduler{
-		{ID: uid, Name: "test"},
+		{ID: uid, NameInWorker: "test"},
 	})
 	// Assert
 	assert.Equal(t, "test", fc.GetSchedulerNameFromID(uid))

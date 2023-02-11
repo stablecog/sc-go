@@ -37,7 +37,6 @@ func main() {
 	klog.InitFlags(nil)
 	flag.Set("logtostderr", "true")
 	flag.Set("stderrthreshold", "INFO")
-	loadTiers := flag.Bool("loadTiers", false, "Load subscription tiers into database")
 	flag.Set("v", "3")
 
 	flag.Parse()
@@ -80,16 +79,6 @@ func main() {
 		DB:    entClient,
 		Redis: redis,
 		Ctx:   ctx,
-	}
-
-	if *loadTiers {
-		klog.Infoln("📦 Loading subscription tiers...")
-		err = repo.CreateSubscriptionTiers()
-		if err != nil {
-			klog.Fatalf("Error loading subscription tiers: %v", err)
-			os.Exit(1)
-		}
-		os.Exit(0)
 	}
 
 	app := chi.NewRouter()

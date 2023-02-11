@@ -197,7 +197,7 @@ func TestGenerateRejectsInvalidModelOrScheduler(t *testing.T) {
 		Height:      shared.MAX_GENERATE_HEIGHT,
 		Width:       shared.MAX_GENERATE_WIDTH,
 		SchedulerId: uuid.MustParse("00000000-0000-0000-0000-000000000000"),
-		ModelId:     uuid.MustParse(repository.MOCK_GENERATION_MODEL_ID_FREE),
+		ModelId:     uuid.MustParse(repository.MOCK_GENERATION_MODEL_ID),
 		NumOutputs:  1,
 	}
 	body, _ := json.Marshal(reqBody)
@@ -224,7 +224,7 @@ func TestGenerateRejectsInvalidModelOrScheduler(t *testing.T) {
 		StreamID:    MockSSEId,
 		Height:      shared.MAX_GENERATE_HEIGHT,
 		Width:       shared.MAX_GENERATE_WIDTH,
-		SchedulerId: uuid.MustParse(repository.MOCK_SCHEDULER_ID_FREE),
+		SchedulerId: uuid.MustParse(repository.MOCK_SCHEDULER_ID),
 		ModelId:     uuid.MustParse("00000000-0000-0000-0000-000000000000"),
 		NumOutputs:  1,
 	}
@@ -247,154 +247,14 @@ func TestGenerateRejectsInvalidModelOrScheduler(t *testing.T) {
 	assert.Equal(t, "Invalid model ID", respJson["error"])
 }
 
-// Test all of the restrictons for free users
-func TestGenerateProRestrictions(t *testing.T) {
-	// ! PRO only model
-	reqBody := requests.GenerateRequestBody{
-		StreamID:    MockSSEId,
-		Height:      shared.MAX_GENERATE_HEIGHT,
-		Width:       shared.MAX_GENERATE_WIDTH,
-		SchedulerId: uuid.MustParse(repository.MOCK_SCHEDULER_ID_FREE),
-		ModelId:     uuid.MustParse(repository.MOCK_GENERATION_MODEL_ID_PRO),
-		NumOutputs:  1,
-	}
-	body, _ := json.Marshal(reqBody)
-	w := httptest.NewRecorder()
-	// Build request
-	req := httptest.NewRequest("POST", "/", bytes.NewReader(body))
-	req.Header.Set("Content-Type", "application/json")
-
-	// Setup context
-	ctx := context.WithValue(req.Context(), "user_id", repository.MOCK_FREE_UUID)
-
-	MockController.HandleCreateGeneration(w, req.WithContext(ctx))
-	resp := w.Result()
-	defer resp.Body.Close()
-	assert.Equal(t, 400, resp.StatusCode)
-	var respJson map[string]interface{}
-	respBody, _ := io.ReadAll(resp.Body)
-	json.Unmarshal(respBody, &respJson)
-
-	assert.Equal(t, "That model is not available on the free plan :(", respJson["error"])
-
-	// ! PRO only scheduler
-	reqBody = requests.GenerateRequestBody{
-		StreamID:    MockSSEId,
-		Height:      shared.MAX_GENERATE_HEIGHT,
-		Width:       shared.MAX_GENERATE_WIDTH,
-		SchedulerId: uuid.MustParse(repository.MOCK_SCHEDULER_ID_PRO),
-		ModelId:     uuid.MustParse(repository.MOCK_GENERATION_MODEL_ID_FREE),
-		NumOutputs:  1,
-	}
-	body, _ = json.Marshal(reqBody)
-	w = httptest.NewRecorder()
-	// Build request
-	req = httptest.NewRequest("POST", "/", bytes.NewReader(body))
-	req.Header.Set("Content-Type", "application/json")
-
-	// Setup context
-	ctx = context.WithValue(req.Context(), "user_id", repository.MOCK_FREE_UUID)
-
-	MockController.HandleCreateGeneration(w, req.WithContext(ctx))
-	resp = w.Result()
-	defer resp.Body.Close()
-	assert.Equal(t, 400, resp.StatusCode)
-	respBody, _ = io.ReadAll(resp.Body)
-	json.Unmarshal(respBody, &respJson)
-
-	assert.Equal(t, "That scheduler is not available on the free plan :(", respJson["error"])
-
-	// ! PRO only height
-	reqBody = requests.GenerateRequestBody{
-		StreamID:    MockSSEId,
-		Height:      shared.MAX_GENERATE_HEIGHT_FREE + 1,
-		Width:       shared.MAX_GENERATE_WIDTH,
-		SchedulerId: uuid.MustParse(repository.MOCK_SCHEDULER_ID_FREE),
-		ModelId:     uuid.MustParse(repository.MOCK_GENERATION_MODEL_ID_FREE),
-		NumOutputs:  1,
-	}
-	body, _ = json.Marshal(reqBody)
-	w = httptest.NewRecorder()
-	// Build request
-	req = httptest.NewRequest("POST", "/", bytes.NewReader(body))
-	req.Header.Set("Content-Type", "application/json")
-
-	// Setup context
-	ctx = context.WithValue(req.Context(), "user_id", repository.MOCK_FREE_UUID)
-
-	MockController.HandleCreateGeneration(w, req.WithContext(ctx))
-	resp = w.Result()
-	defer resp.Body.Close()
-	assert.Equal(t, 400, resp.StatusCode)
-	respBody, _ = io.ReadAll(resp.Body)
-	json.Unmarshal(respBody, &respJson)
-
-	assert.Equal(t, "That generation height is not available on the free plan :(", respJson["error"])
-
-	// ! PRO only width
-	reqBody = requests.GenerateRequestBody{
-		StreamID:    MockSSEId,
-		Height:      shared.MAX_GENERATE_HEIGHT_FREE,
-		Width:       shared.MAX_GENERATE_WIDTH_FREE + 1,
-		SchedulerId: uuid.MustParse(repository.MOCK_SCHEDULER_ID_FREE),
-		ModelId:     uuid.MustParse(repository.MOCK_GENERATION_MODEL_ID_FREE),
-		NumOutputs:  1,
-	}
-	body, _ = json.Marshal(reqBody)
-	w = httptest.NewRecorder()
-	// Build request
-	req = httptest.NewRequest("POST", "/", bytes.NewReader(body))
-	req.Header.Set("Content-Type", "application/json")
-
-	// Setup context
-	ctx = context.WithValue(req.Context(), "user_id", repository.MOCK_FREE_UUID)
-
-	MockController.HandleCreateGeneration(w, req.WithContext(ctx))
-	resp = w.Result()
-	defer resp.Body.Close()
-	assert.Equal(t, 400, resp.StatusCode)
-	respBody, _ = io.ReadAll(resp.Body)
-	json.Unmarshal(respBody, &respJson)
-
-	assert.Equal(t, "That generation width is not available on the free plan :(", respJson["error"])
-
-	// ! PRO only interference steps
-	reqBody = requests.GenerateRequestBody{
-		StreamID:       MockSSEId,
-		Height:         shared.MAX_GENERATE_HEIGHT_FREE,
-		Width:          shared.MAX_GENERATE_WIDTH_FREE,
-		InferenceSteps: shared.MAX_GENERATE_INTERFERENCE_STEPS_FREE + 1,
-		SchedulerId:    uuid.MustParse(repository.MOCK_SCHEDULER_ID_FREE),
-		ModelId:        uuid.MustParse(repository.MOCK_GENERATION_MODEL_ID_FREE),
-		NumOutputs:     1,
-	}
-	body, _ = json.Marshal(reqBody)
-	w = httptest.NewRecorder()
-	// Build request
-	req = httptest.NewRequest("POST", "/", bytes.NewReader(body))
-	req.Header.Set("Content-Type", "application/json")
-
-	// Setup context
-	ctx = context.WithValue(req.Context(), "user_id", repository.MOCK_FREE_UUID)
-
-	MockController.HandleCreateGeneration(w, req.WithContext(ctx))
-	resp = w.Result()
-	defer resp.Body.Close()
-	assert.Equal(t, 400, resp.StatusCode)
-	respBody, _ = io.ReadAll(resp.Body)
-	json.Unmarshal(respBody, &respJson)
-
-	assert.Equal(t, "That number of inference steps is not available on the free plan :(", respJson["error"])
-}
-
-func TestGenerateValidRequest(t *testing.T) {
+func TestGenerateNoCredits(t *testing.T) {
 	// ! Perfectly valid request
 	reqBody := requests.GenerateRequestBody{
 		StreamID:       MockSSEId,
 		Height:         shared.MAX_GENERATE_HEIGHT,
 		Width:          shared.MAX_GENERATE_WIDTH,
-		SchedulerId:    uuid.MustParse(repository.MOCK_SCHEDULER_ID_FREE),
-		ModelId:        uuid.MustParse(repository.MOCK_GENERATION_MODEL_ID_PRO),
+		SchedulerId:    uuid.MustParse(repository.MOCK_SCHEDULER_ID),
+		ModelId:        uuid.MustParse(repository.MOCK_GENERATION_MODEL_ID),
 		NumOutputs:     1,
 		InferenceSteps: shared.MAX_GENERATE_INTERFERENCE_STEPS_FREE + 1,
 		Prompt:         "A portrait of a cat by Van Gogh",
@@ -406,7 +266,38 @@ func TestGenerateValidRequest(t *testing.T) {
 	req.Header.Set("Content-Type", "application/json")
 
 	// Setup context
-	ctx := context.WithValue(req.Context(), "user_id", repository.MOCK_PRO_UUID)
+	ctx := context.WithValue(req.Context(), "user_id", repository.MOCK_NO_CREDITS_UUID)
+
+	MockController.HandleCreateGeneration(w, req.WithContext(ctx))
+	resp := w.Result()
+	defer resp.Body.Close()
+	assert.Equal(t, 400, resp.StatusCode)
+	var errResp map[string]interface{}
+	respBody, _ := io.ReadAll(resp.Body)
+	json.Unmarshal(respBody, &errResp)
+	assert.Equal(t, "Not enough credits to generate, need 1", errResp["error"])
+}
+
+func TestGenerateValidRequest(t *testing.T) {
+	// ! Perfectly valid request
+	reqBody := requests.GenerateRequestBody{
+		StreamID:       MockSSEId,
+		Height:         shared.MAX_GENERATE_HEIGHT,
+		Width:          shared.MAX_GENERATE_WIDTH,
+		SchedulerId:    uuid.MustParse(repository.MOCK_SCHEDULER_ID),
+		ModelId:        uuid.MustParse(repository.MOCK_GENERATION_MODEL_ID),
+		NumOutputs:     1,
+		InferenceSteps: shared.MAX_GENERATE_INTERFERENCE_STEPS_FREE + 1,
+		Prompt:         "A portrait of a cat by Van Gogh",
+	}
+	body, _ := json.Marshal(reqBody)
+	w := httptest.NewRecorder()
+	// Build request
+	req := httptest.NewRequest("POST", "/", bytes.NewReader(body))
+	req.Header.Set("Content-Type", "application/json")
+
+	// Setup context
+	ctx := context.WithValue(req.Context(), "user_id", repository.MOCK_NORMAL_UUID)
 
 	MockController.HandleCreateGeneration(w, req.WithContext(ctx))
 	resp := w.Result()
@@ -437,7 +328,7 @@ func TestSubmitGenerationToGallery(t *testing.T) {
 	req.Header.Set("Content-Type", "application/json")
 
 	// Setup context
-	ctx := context.WithValue(req.Context(), "user_id", repository.MOCK_PRO_UUID)
+	ctx := context.WithValue(req.Context(), "user_id", repository.MOCK_NORMAL_UUID)
 
 	MockController.HandleSubmitGenerationToGallery(w, req.WithContext(ctx))
 	resp := w.Result()

@@ -22,23 +22,9 @@ type UpscaleModelCreate struct {
 	hooks    []Hook
 }
 
-// SetName sets the "name" field.
-func (umc *UpscaleModelCreate) SetName(s string) *UpscaleModelCreate {
-	umc.mutation.SetName(s)
-	return umc
-}
-
-// SetIsFree sets the "is_free" field.
-func (umc *UpscaleModelCreate) SetIsFree(b bool) *UpscaleModelCreate {
-	umc.mutation.SetIsFree(b)
-	return umc
-}
-
-// SetNillableIsFree sets the "is_free" field if the given value is not nil.
-func (umc *UpscaleModelCreate) SetNillableIsFree(b *bool) *UpscaleModelCreate {
-	if b != nil {
-		umc.SetIsFree(*b)
-	}
+// SetNameInWorker sets the "name_in_worker" field.
+func (umc *UpscaleModelCreate) SetNameInWorker(s string) *UpscaleModelCreate {
+	umc.mutation.SetNameInWorker(s)
 	return umc
 }
 
@@ -134,10 +120,6 @@ func (umc *UpscaleModelCreate) ExecX(ctx context.Context) {
 
 // defaults sets the default values of the builder before save.
 func (umc *UpscaleModelCreate) defaults() {
-	if _, ok := umc.mutation.IsFree(); !ok {
-		v := upscalemodel.DefaultIsFree
-		umc.mutation.SetIsFree(v)
-	}
 	if _, ok := umc.mutation.CreatedAt(); !ok {
 		v := upscalemodel.DefaultCreatedAt()
 		umc.mutation.SetCreatedAt(v)
@@ -154,11 +136,8 @@ func (umc *UpscaleModelCreate) defaults() {
 
 // check runs all checks and user-defined validators on the builder.
 func (umc *UpscaleModelCreate) check() error {
-	if _, ok := umc.mutation.Name(); !ok {
-		return &ValidationError{Name: "name", err: errors.New(`ent: missing required field "UpscaleModel.name"`)}
-	}
-	if _, ok := umc.mutation.IsFree(); !ok {
-		return &ValidationError{Name: "is_free", err: errors.New(`ent: missing required field "UpscaleModel.is_free"`)}
+	if _, ok := umc.mutation.NameInWorker(); !ok {
+		return &ValidationError{Name: "name_in_worker", err: errors.New(`ent: missing required field "UpscaleModel.name_in_worker"`)}
 	}
 	if _, ok := umc.mutation.CreatedAt(); !ok {
 		return &ValidationError{Name: "created_at", err: errors.New(`ent: missing required field "UpscaleModel.created_at"`)}
@@ -207,13 +186,9 @@ func (umc *UpscaleModelCreate) createSpec() (*UpscaleModel, *sqlgraph.CreateSpec
 		_node.ID = id
 		_spec.ID.Value = &id
 	}
-	if value, ok := umc.mutation.Name(); ok {
-		_spec.SetField(upscalemodel.FieldName, field.TypeString, value)
-		_node.Name = value
-	}
-	if value, ok := umc.mutation.IsFree(); ok {
-		_spec.SetField(upscalemodel.FieldIsFree, field.TypeBool, value)
-		_node.IsFree = value
+	if value, ok := umc.mutation.NameInWorker(); ok {
+		_spec.SetField(upscalemodel.FieldNameInWorker, field.TypeString, value)
+		_node.NameInWorker = value
 	}
 	if value, ok := umc.mutation.CreatedAt(); ok {
 		_spec.SetField(upscalemodel.FieldCreatedAt, field.TypeTime, value)

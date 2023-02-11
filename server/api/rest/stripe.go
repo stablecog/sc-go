@@ -34,17 +34,27 @@ func (c *RestAPI) HandleStripeWebhook(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// We can parse the object as a subscription since that's the only thing we care about
+	subscription, err := stripeObjectMapToSubscription(event.Data.Object)
+	if err != nil || subscription == nil {
+		klog.Errorf("Unable parsing stripe subscription object: %v", err)
+		render.Status(r, http.StatusServiceUnavailable)
+		return
+	}
+
+	if subscription.Plan == nil && subscription.Plan.Product == nil {
+		klog.Errorf("Stripe plan or subscription is nil %s", subscription.ID)
+		render.Status(r, http.StatusServiceUnavailable)
+		return
+	}
+
 	switch event.Type {
-	case "customer.subscription.created", "customer.subscription.deleted", "customer.subscription.updated":
-		subscription, err := stripeObjectMapToSubscription(event.Data.Object)
-		if err != nil {
-			klog.Errorf("Unable parsing stripe subscription object: %v", err)
-			render.Status(r, http.StatusServiceUnavailable)
-			return
-		}
-		klog.Infof("Stripe subscription event: %s", event.Type)
-		klog.Infof("Stripe subscription: %v", subscription)
-		klog.Infoln(subscription.Customer.ID)
+	case "customer.subscription.created":
+		klog.Infof("CREATED %s", subscription.Customer.ID)
+	case "customer.subscription.deleted":
+		klog.Infof("DELETED %s", subscription.Customer.ID)
+	case "customer.subscription.updated":
+		klog.Infof("UPDATED %s", subscription.Customer.ID)
 	}
 
 }

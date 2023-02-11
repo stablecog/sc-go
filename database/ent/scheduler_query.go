@@ -298,12 +298,12 @@ func (sq *SchedulerQuery) WithGenerations(opts ...func(*GenerationQuery)) *Sched
 // Example:
 //
 //	var v []struct {
-//		Name string `json:"name,omitempty"`
+//		NameInWorker string `json:"name_in_worker,omitempty"`
 //		Count int `json:"count,omitempty"`
 //	}
 //
 //	client.Scheduler.Query().
-//		GroupBy(scheduler.FieldName).
+//		GroupBy(scheduler.FieldNameInWorker).
 //		Aggregate(ent.Count()).
 //		Scan(ctx, &v)
 func (sq *SchedulerQuery) GroupBy(field string, fields ...string) *SchedulerGroupBy {
@@ -321,11 +321,11 @@ func (sq *SchedulerQuery) GroupBy(field string, fields ...string) *SchedulerGrou
 // Example:
 //
 //	var v []struct {
-//		Name string `json:"name,omitempty"`
+//		NameInWorker string `json:"name_in_worker,omitempty"`
 //	}
 //
 //	client.Scheduler.Query().
-//		Select(scheduler.FieldName).
+//		Select(scheduler.FieldNameInWorker).
 //		Scan(ctx, &v)
 func (sq *SchedulerQuery) Select(fields ...string) *SchedulerSelect {
 	sq.ctx.Fields = append(sq.ctx.Fields, fields...)

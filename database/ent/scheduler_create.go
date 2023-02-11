@@ -22,23 +22,9 @@ type SchedulerCreate struct {
 	hooks    []Hook
 }
 
-// SetName sets the "name" field.
-func (sc *SchedulerCreate) SetName(s string) *SchedulerCreate {
-	sc.mutation.SetName(s)
-	return sc
-}
-
-// SetIsFree sets the "is_free" field.
-func (sc *SchedulerCreate) SetIsFree(b bool) *SchedulerCreate {
-	sc.mutation.SetIsFree(b)
-	return sc
-}
-
-// SetNillableIsFree sets the "is_free" field if the given value is not nil.
-func (sc *SchedulerCreate) SetNillableIsFree(b *bool) *SchedulerCreate {
-	if b != nil {
-		sc.SetIsFree(*b)
-	}
+// SetNameInWorker sets the "name_in_worker" field.
+func (sc *SchedulerCreate) SetNameInWorker(s string) *SchedulerCreate {
+	sc.mutation.SetNameInWorker(s)
 	return sc
 }
 
@@ -134,10 +120,6 @@ func (sc *SchedulerCreate) ExecX(ctx context.Context) {
 
 // defaults sets the default values of the builder before save.
 func (sc *SchedulerCreate) defaults() {
-	if _, ok := sc.mutation.IsFree(); !ok {
-		v := scheduler.DefaultIsFree
-		sc.mutation.SetIsFree(v)
-	}
 	if _, ok := sc.mutation.CreatedAt(); !ok {
 		v := scheduler.DefaultCreatedAt()
 		sc.mutation.SetCreatedAt(v)
@@ -154,11 +136,8 @@ func (sc *SchedulerCreate) defaults() {
 
 // check runs all checks and user-defined validators on the builder.
 func (sc *SchedulerCreate) check() error {
-	if _, ok := sc.mutation.Name(); !ok {
-		return &ValidationError{Name: "name", err: errors.New(`ent: missing required field "Scheduler.name"`)}
-	}
-	if _, ok := sc.mutation.IsFree(); !ok {
-		return &ValidationError{Name: "is_free", err: errors.New(`ent: missing required field "Scheduler.is_free"`)}
+	if _, ok := sc.mutation.NameInWorker(); !ok {
+		return &ValidationError{Name: "name_in_worker", err: errors.New(`ent: missing required field "Scheduler.name_in_worker"`)}
 	}
 	if _, ok := sc.mutation.CreatedAt(); !ok {
 		return &ValidationError{Name: "created_at", err: errors.New(`ent: missing required field "Scheduler.created_at"`)}
@@ -207,13 +186,9 @@ func (sc *SchedulerCreate) createSpec() (*Scheduler, *sqlgraph.CreateSpec) {
 		_node.ID = id
 		_spec.ID.Value = &id
 	}
-	if value, ok := sc.mutation.Name(); ok {
-		_spec.SetField(scheduler.FieldName, field.TypeString, value)
-		_node.Name = value
-	}
-	if value, ok := sc.mutation.IsFree(); ok {
-		_spec.SetField(scheduler.FieldIsFree, field.TypeBool, value)
-		_node.IsFree = value
+	if value, ok := sc.mutation.NameInWorker(); ok {
+		_spec.SetField(scheduler.FieldNameInWorker, field.TypeString, value)
+		_node.NameInWorker = value
 	}
 	if value, ok := sc.mutation.CreatedAt(); ok {
 		_spec.SetField(scheduler.FieldCreatedAt, field.TypeTime, value)

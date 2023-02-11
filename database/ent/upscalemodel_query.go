@@ -298,12 +298,12 @@ func (umq *UpscaleModelQuery) WithUpscales(opts ...func(*UpscaleQuery)) *Upscale
 // Example:
 //
 //	var v []struct {
-//		Name string `json:"name,omitempty"`
+//		NameInWorker string `json:"name_in_worker,omitempty"`
 //		Count int `json:"count,omitempty"`
 //	}
 //
 //	client.UpscaleModel.Query().
-//		GroupBy(upscalemodel.FieldName).
+//		GroupBy(upscalemodel.FieldNameInWorker).
 //		Aggregate(ent.Count()).
 //		Scan(ctx, &v)
 func (umq *UpscaleModelQuery) GroupBy(field string, fields ...string) *UpscaleModelGroupBy {
@@ -321,11 +321,11 @@ func (umq *UpscaleModelQuery) GroupBy(field string, fields ...string) *UpscaleMo
 // Example:
 //
 //	var v []struct {
-//		Name string `json:"name,omitempty"`
+//		NameInWorker string `json:"name_in_worker,omitempty"`
 //	}
 //
 //	client.UpscaleModel.Query().
-//		Select(upscalemodel.FieldName).
+//		Select(upscalemodel.FieldNameInWorker).
 //		Scan(ctx, &v)
 func (umq *UpscaleModelQuery) Select(fields ...string) *UpscaleModelSelect {
 	umq.ctx.Fields = append(umq.ctx.Fields, fields...)

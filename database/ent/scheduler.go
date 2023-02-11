@@ -17,10 +17,8 @@ type Scheduler struct {
 	config `json:"-"`
 	// ID of the ent.
 	ID uuid.UUID `json:"id,omitempty"`
-	// Name holds the value of the "name" field.
-	Name string `json:"name,omitempty"`
-	// IsFree holds the value of the "is_free" field.
-	IsFree bool `json:"is_free,omitempty"`
+	// NameInWorker holds the value of the "name_in_worker" field.
+	NameInWorker string `json:"name_in_worker,omitempty"`
 	// CreatedAt holds the value of the "created_at" field.
 	CreatedAt time.Time `json:"created_at,omitempty"`
 	// UpdatedAt holds the value of the "updated_at" field.
@@ -53,9 +51,7 @@ func (*Scheduler) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case scheduler.FieldIsFree:
-			values[i] = new(sql.NullBool)
-		case scheduler.FieldName:
+		case scheduler.FieldNameInWorker:
 			values[i] = new(sql.NullString)
 		case scheduler.FieldCreatedAt, scheduler.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
@@ -82,17 +78,11 @@ func (s *Scheduler) assignValues(columns []string, values []any) error {
 			} else if value != nil {
 				s.ID = *value
 			}
-		case scheduler.FieldName:
+		case scheduler.FieldNameInWorker:
 			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field name", values[i])
+				return fmt.Errorf("unexpected type %T for field name_in_worker", values[i])
 			} else if value.Valid {
-				s.Name = value.String
-			}
-		case scheduler.FieldIsFree:
-			if value, ok := values[i].(*sql.NullBool); !ok {
-				return fmt.Errorf("unexpected type %T for field is_free", values[i])
-			} else if value.Valid {
-				s.IsFree = value.Bool
+				s.NameInWorker = value.String
 			}
 		case scheduler.FieldCreatedAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
@@ -139,11 +129,8 @@ func (s *Scheduler) String() string {
 	var builder strings.Builder
 	builder.WriteString("Scheduler(")
 	builder.WriteString(fmt.Sprintf("id=%v, ", s.ID))
-	builder.WriteString("name=")
-	builder.WriteString(s.Name)
-	builder.WriteString(", ")
-	builder.WriteString("is_free=")
-	builder.WriteString(fmt.Sprintf("%v", s.IsFree))
+	builder.WriteString("name_in_worker=")
+	builder.WriteString(s.NameInWorker)
 	builder.WriteString(", ")
 	builder.WriteString("created_at=")
 	builder.WriteString(s.CreatedAt.Format(time.ANSIC))

@@ -6,6 +6,8 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/stablecog/go-apps/database/ent/credit"
+	"github.com/stablecog/go-apps/database/ent/credittype"
 	"github.com/stablecog/go-apps/database/ent/deviceinfo"
 	"github.com/stablecog/go-apps/database/ent/generation"
 	"github.com/stablecog/go-apps/database/ent/generationmodel"
@@ -14,8 +16,6 @@ import (
 	"github.com/stablecog/go-apps/database/ent/prompt"
 	"github.com/stablecog/go-apps/database/ent/scheduler"
 	"github.com/stablecog/go-apps/database/ent/schema"
-	"github.com/stablecog/go-apps/database/ent/subscription"
-	"github.com/stablecog/go-apps/database/ent/subscriptiontier"
 	"github.com/stablecog/go-apps/database/ent/upscale"
 	"github.com/stablecog/go-apps/database/ent/upscalemodel"
 	"github.com/stablecog/go-apps/database/ent/upscaleoutput"
@@ -27,6 +27,38 @@ import (
 // (default values, validators, hooks and policies) and stitches it
 // to their package variables.
 func init() {
+	creditFields := schema.Credit{}.Fields()
+	_ = creditFields
+	// creditDescCreatedAt is the schema descriptor for created_at field.
+	creditDescCreatedAt := creditFields[5].Descriptor()
+	// credit.DefaultCreatedAt holds the default value on creation for the created_at field.
+	credit.DefaultCreatedAt = creditDescCreatedAt.Default.(func() time.Time)
+	// creditDescUpdatedAt is the schema descriptor for updated_at field.
+	creditDescUpdatedAt := creditFields[6].Descriptor()
+	// credit.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	credit.DefaultUpdatedAt = creditDescUpdatedAt.Default.(func() time.Time)
+	// credit.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	credit.UpdateDefaultUpdatedAt = creditDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// creditDescID is the schema descriptor for id field.
+	creditDescID := creditFields[0].Descriptor()
+	// credit.DefaultID holds the default value on creation for the id field.
+	credit.DefaultID = creditDescID.Default.(func() uuid.UUID)
+	credittypeFields := schema.CreditType{}.Fields()
+	_ = credittypeFields
+	// credittypeDescCreatedAt is the schema descriptor for created_at field.
+	credittypeDescCreatedAt := credittypeFields[5].Descriptor()
+	// credittype.DefaultCreatedAt holds the default value on creation for the created_at field.
+	credittype.DefaultCreatedAt = credittypeDescCreatedAt.Default.(func() time.Time)
+	// credittypeDescUpdatedAt is the schema descriptor for updated_at field.
+	credittypeDescUpdatedAt := credittypeFields[6].Descriptor()
+	// credittype.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	credittype.DefaultUpdatedAt = credittypeDescUpdatedAt.Default.(func() time.Time)
+	// credittype.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	credittype.UpdateDefaultUpdatedAt = credittypeDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// credittypeDescID is the schema descriptor for id field.
+	credittypeDescID := credittypeFields[0].Descriptor()
+	// credittype.DefaultID holds the default value on creation for the id field.
+	credittype.DefaultID = credittypeDescID.Default.(func() uuid.UUID)
 	deviceinfoFields := schema.DeviceInfo{}.Fields()
 	_ = deviceinfoFields
 	// deviceinfoDescCreatedAt is the schema descriptor for created_at field.
@@ -65,16 +97,12 @@ func init() {
 	generation.DefaultID = generationDescID.Default.(func() uuid.UUID)
 	generationmodelFields := schema.GenerationModel{}.Fields()
 	_ = generationmodelFields
-	// generationmodelDescIsFree is the schema descriptor for is_free field.
-	generationmodelDescIsFree := generationmodelFields[2].Descriptor()
-	// generationmodel.DefaultIsFree holds the default value on creation for the is_free field.
-	generationmodel.DefaultIsFree = generationmodelDescIsFree.Default.(bool)
 	// generationmodelDescCreatedAt is the schema descriptor for created_at field.
-	generationmodelDescCreatedAt := generationmodelFields[3].Descriptor()
+	generationmodelDescCreatedAt := generationmodelFields[2].Descriptor()
 	// generationmodel.DefaultCreatedAt holds the default value on creation for the created_at field.
 	generationmodel.DefaultCreatedAt = generationmodelDescCreatedAt.Default.(func() time.Time)
 	// generationmodelDescUpdatedAt is the schema descriptor for updated_at field.
-	generationmodelDescUpdatedAt := generationmodelFields[4].Descriptor()
+	generationmodelDescUpdatedAt := generationmodelFields[3].Descriptor()
 	// generationmodel.DefaultUpdatedAt holds the default value on creation for the updated_at field.
 	generationmodel.DefaultUpdatedAt = generationmodelDescUpdatedAt.Default.(func() time.Time)
 	// generationmodel.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
@@ -133,16 +161,12 @@ func init() {
 	prompt.DefaultID = promptDescID.Default.(func() uuid.UUID)
 	schedulerFields := schema.Scheduler{}.Fields()
 	_ = schedulerFields
-	// schedulerDescIsFree is the schema descriptor for is_free field.
-	schedulerDescIsFree := schedulerFields[2].Descriptor()
-	// scheduler.DefaultIsFree holds the default value on creation for the is_free field.
-	scheduler.DefaultIsFree = schedulerDescIsFree.Default.(bool)
 	// schedulerDescCreatedAt is the schema descriptor for created_at field.
-	schedulerDescCreatedAt := schedulerFields[3].Descriptor()
+	schedulerDescCreatedAt := schedulerFields[2].Descriptor()
 	// scheduler.DefaultCreatedAt holds the default value on creation for the created_at field.
 	scheduler.DefaultCreatedAt = schedulerDescCreatedAt.Default.(func() time.Time)
 	// schedulerDescUpdatedAt is the schema descriptor for updated_at field.
-	schedulerDescUpdatedAt := schedulerFields[4].Descriptor()
+	schedulerDescUpdatedAt := schedulerFields[3].Descriptor()
 	// scheduler.DefaultUpdatedAt holds the default value on creation for the updated_at field.
 	scheduler.DefaultUpdatedAt = schedulerDescUpdatedAt.Default.(func() time.Time)
 	// scheduler.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
@@ -151,38 +175,6 @@ func init() {
 	schedulerDescID := schedulerFields[0].Descriptor()
 	// scheduler.DefaultID holds the default value on creation for the id field.
 	scheduler.DefaultID = schedulerDescID.Default.(func() uuid.UUID)
-	subscriptionFields := schema.Subscription{}.Fields()
-	_ = subscriptionFields
-	// subscriptionDescCreatedAt is the schema descriptor for created_at field.
-	subscriptionDescCreatedAt := subscriptionFields[6].Descriptor()
-	// subscription.DefaultCreatedAt holds the default value on creation for the created_at field.
-	subscription.DefaultCreatedAt = subscriptionDescCreatedAt.Default.(func() time.Time)
-	// subscriptionDescUpdatedAt is the schema descriptor for updated_at field.
-	subscriptionDescUpdatedAt := subscriptionFields[7].Descriptor()
-	// subscription.DefaultUpdatedAt holds the default value on creation for the updated_at field.
-	subscription.DefaultUpdatedAt = subscriptionDescUpdatedAt.Default.(func() time.Time)
-	// subscription.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
-	subscription.UpdateDefaultUpdatedAt = subscriptionDescUpdatedAt.UpdateDefault.(func() time.Time)
-	// subscriptionDescID is the schema descriptor for id field.
-	subscriptionDescID := subscriptionFields[0].Descriptor()
-	// subscription.DefaultID holds the default value on creation for the id field.
-	subscription.DefaultID = subscriptionDescID.Default.(func() uuid.UUID)
-	subscriptiontierFields := schema.SubscriptionTier{}.Fields()
-	_ = subscriptiontierFields
-	// subscriptiontierDescCreatedAt is the schema descriptor for created_at field.
-	subscriptiontierDescCreatedAt := subscriptiontierFields[3].Descriptor()
-	// subscriptiontier.DefaultCreatedAt holds the default value on creation for the created_at field.
-	subscriptiontier.DefaultCreatedAt = subscriptiontierDescCreatedAt.Default.(func() time.Time)
-	// subscriptiontierDescUpdatedAt is the schema descriptor for updated_at field.
-	subscriptiontierDescUpdatedAt := subscriptiontierFields[4].Descriptor()
-	// subscriptiontier.DefaultUpdatedAt holds the default value on creation for the updated_at field.
-	subscriptiontier.DefaultUpdatedAt = subscriptiontierDescUpdatedAt.Default.(func() time.Time)
-	// subscriptiontier.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
-	subscriptiontier.UpdateDefaultUpdatedAt = subscriptiontierDescUpdatedAt.UpdateDefault.(func() time.Time)
-	// subscriptiontierDescID is the schema descriptor for id field.
-	subscriptiontierDescID := subscriptiontierFields[0].Descriptor()
-	// subscriptiontier.DefaultID holds the default value on creation for the id field.
-	subscriptiontier.DefaultID = subscriptiontierDescID.Default.(func() uuid.UUID)
 	upscaleFields := schema.Upscale{}.Fields()
 	_ = upscaleFields
 	// upscaleDescCreatedAt is the schema descriptor for created_at field.
@@ -201,16 +193,12 @@ func init() {
 	upscale.DefaultID = upscaleDescID.Default.(func() uuid.UUID)
 	upscalemodelFields := schema.UpscaleModel{}.Fields()
 	_ = upscalemodelFields
-	// upscalemodelDescIsFree is the schema descriptor for is_free field.
-	upscalemodelDescIsFree := upscalemodelFields[2].Descriptor()
-	// upscalemodel.DefaultIsFree holds the default value on creation for the is_free field.
-	upscalemodel.DefaultIsFree = upscalemodelDescIsFree.Default.(bool)
 	// upscalemodelDescCreatedAt is the schema descriptor for created_at field.
-	upscalemodelDescCreatedAt := upscalemodelFields[3].Descriptor()
+	upscalemodelDescCreatedAt := upscalemodelFields[2].Descriptor()
 	// upscalemodel.DefaultCreatedAt holds the default value on creation for the created_at field.
 	upscalemodel.DefaultCreatedAt = upscalemodelDescCreatedAt.Default.(func() time.Time)
 	// upscalemodelDescUpdatedAt is the schema descriptor for updated_at field.
-	upscalemodelDescUpdatedAt := upscalemodelFields[4].Descriptor()
+	upscalemodelDescUpdatedAt := upscalemodelFields[3].Descriptor()
 	// upscalemodel.DefaultUpdatedAt holds the default value on creation for the updated_at field.
 	upscalemodel.DefaultUpdatedAt = upscalemodelDescUpdatedAt.Default.(func() time.Time)
 	// upscalemodel.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.

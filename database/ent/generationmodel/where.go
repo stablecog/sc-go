@@ -56,14 +56,9 @@ func IDLTE(id uuid.UUID) predicate.GenerationModel {
 	return predicate.GenerationModel(sql.FieldLTE(FieldID, id))
 }
 
-// Name applies equality check predicate on the "name" field. It's identical to NameEQ.
-func Name(v string) predicate.GenerationModel {
-	return predicate.GenerationModel(sql.FieldEQ(FieldName, v))
-}
-
-// IsFree applies equality check predicate on the "is_free" field. It's identical to IsFreeEQ.
-func IsFree(v bool) predicate.GenerationModel {
-	return predicate.GenerationModel(sql.FieldEQ(FieldIsFree, v))
+// NameInWorker applies equality check predicate on the "name_in_worker" field. It's identical to NameInWorkerEQ.
+func NameInWorker(v string) predicate.GenerationModel {
+	return predicate.GenerationModel(sql.FieldEQ(FieldNameInWorker, v))
 }
 
 // CreatedAt applies equality check predicate on the "created_at" field. It's identical to CreatedAtEQ.
@@ -76,79 +71,69 @@ func UpdatedAt(v time.Time) predicate.GenerationModel {
 	return predicate.GenerationModel(sql.FieldEQ(FieldUpdatedAt, v))
 }
 
-// NameEQ applies the EQ predicate on the "name" field.
-func NameEQ(v string) predicate.GenerationModel {
-	return predicate.GenerationModel(sql.FieldEQ(FieldName, v))
+// NameInWorkerEQ applies the EQ predicate on the "name_in_worker" field.
+func NameInWorkerEQ(v string) predicate.GenerationModel {
+	return predicate.GenerationModel(sql.FieldEQ(FieldNameInWorker, v))
 }
 
-// NameNEQ applies the NEQ predicate on the "name" field.
-func NameNEQ(v string) predicate.GenerationModel {
-	return predicate.GenerationModel(sql.FieldNEQ(FieldName, v))
+// NameInWorkerNEQ applies the NEQ predicate on the "name_in_worker" field.
+func NameInWorkerNEQ(v string) predicate.GenerationModel {
+	return predicate.GenerationModel(sql.FieldNEQ(FieldNameInWorker, v))
 }
 
-// NameIn applies the In predicate on the "name" field.
-func NameIn(vs ...string) predicate.GenerationModel {
-	return predicate.GenerationModel(sql.FieldIn(FieldName, vs...))
+// NameInWorkerIn applies the In predicate on the "name_in_worker" field.
+func NameInWorkerIn(vs ...string) predicate.GenerationModel {
+	return predicate.GenerationModel(sql.FieldIn(FieldNameInWorker, vs...))
 }
 
-// NameNotIn applies the NotIn predicate on the "name" field.
-func NameNotIn(vs ...string) predicate.GenerationModel {
-	return predicate.GenerationModel(sql.FieldNotIn(FieldName, vs...))
+// NameInWorkerNotIn applies the NotIn predicate on the "name_in_worker" field.
+func NameInWorkerNotIn(vs ...string) predicate.GenerationModel {
+	return predicate.GenerationModel(sql.FieldNotIn(FieldNameInWorker, vs...))
 }
 
-// NameGT applies the GT predicate on the "name" field.
-func NameGT(v string) predicate.GenerationModel {
-	return predicate.GenerationModel(sql.FieldGT(FieldName, v))
+// NameInWorkerGT applies the GT predicate on the "name_in_worker" field.
+func NameInWorkerGT(v string) predicate.GenerationModel {
+	return predicate.GenerationModel(sql.FieldGT(FieldNameInWorker, v))
 }
 
-// NameGTE applies the GTE predicate on the "name" field.
-func NameGTE(v string) predicate.GenerationModel {
-	return predicate.GenerationModel(sql.FieldGTE(FieldName, v))
+// NameInWorkerGTE applies the GTE predicate on the "name_in_worker" field.
+func NameInWorkerGTE(v string) predicate.GenerationModel {
+	return predicate.GenerationModel(sql.FieldGTE(FieldNameInWorker, v))
 }
 
-// NameLT applies the LT predicate on the "name" field.
-func NameLT(v string) predicate.GenerationModel {
-	return predicate.GenerationModel(sql.FieldLT(FieldName, v))
+// NameInWorkerLT applies the LT predicate on the "name_in_worker" field.
+func NameInWorkerLT(v string) predicate.GenerationModel {
+	return predicate.GenerationModel(sql.FieldLT(FieldNameInWorker, v))
 }
 
-// NameLTE applies the LTE predicate on the "name" field.
-func NameLTE(v string) predicate.GenerationModel {
-	return predicate.GenerationModel(sql.FieldLTE(FieldName, v))
+// NameInWorkerLTE applies the LTE predicate on the "name_in_worker" field.
+func NameInWorkerLTE(v string) predicate.GenerationModel {
+	return predicate.GenerationModel(sql.FieldLTE(FieldNameInWorker, v))
 }
 
-// NameContains applies the Contains predicate on the "name" field.
-func NameContains(v string) predicate.GenerationModel {
-	return predicate.GenerationModel(sql.FieldContains(FieldName, v))
+// NameInWorkerContains applies the Contains predicate on the "name_in_worker" field.
+func NameInWorkerContains(v string) predicate.GenerationModel {
+	return predicate.GenerationModel(sql.FieldContains(FieldNameInWorker, v))
 }
 
-// NameHasPrefix applies the HasPrefix predicate on the "name" field.
-func NameHasPrefix(v string) predicate.GenerationModel {
-	return predicate.GenerationModel(sql.FieldHasPrefix(FieldName, v))
+// NameInWorkerHasPrefix applies the HasPrefix predicate on the "name_in_worker" field.
+func NameInWorkerHasPrefix(v string) predicate.GenerationModel {
+	return predicate.GenerationModel(sql.FieldHasPrefix(FieldNameInWorker, v))
 }
 
-// NameHasSuffix applies the HasSuffix predicate on the "name" field.
-func NameHasSuffix(v string) predicate.GenerationModel {
-	return predicate.GenerationModel(sql.FieldHasSuffix(FieldName, v))
+// NameInWorkerHasSuffix applies the HasSuffix predicate on the "name_in_worker" field.
+func NameInWorkerHasSuffix(v string) predicate.GenerationModel {
+	return predicate.GenerationModel(sql.FieldHasSuffix(FieldNameInWorker, v))
 }
 
-// NameEqualFold applies the EqualFold predicate on the "name" field.
-func NameEqualFold(v string) predicate.GenerationModel {
-	return predicate.GenerationModel(sql.FieldEqualFold(FieldName, v))
+// NameInWorkerEqualFold applies the EqualFold predicate on the "name_in_worker" field.
+func NameInWorkerEqualFold(v string) predicate.GenerationModel {
+	return predicate.GenerationModel(sql.FieldEqualFold(FieldNameInWorker, v))
 }
 
-// NameContainsFold applies the ContainsFold predicate on the "name" field.
-func NameContainsFold(v string) predicate.GenerationModel {
-	return predicate.GenerationModel(sql.FieldContainsFold(FieldName, v))
-}
-
-// IsFreeEQ applies the EQ predicate on the "is_free" field.
-func IsFreeEQ(v bool) predicate.GenerationModel {
-	return predicate.GenerationModel(sql.FieldEQ(FieldIsFree, v))
-}
-
-// IsFreeNEQ applies the NEQ predicate on the "is_free" field.
-func IsFreeNEQ(v bool) predicate.GenerationModel {
-	return predicate.GenerationModel(sql.FieldNEQ(FieldIsFree, v))
+// NameInWorkerContainsFold applies the ContainsFold predicate on the "name_in_worker" field.
+func NameInWorkerContainsFold(v string) predicate.GenerationModel {
+	return predicate.GenerationModel(sql.FieldContainsFold(FieldNameInWorker, v))
 }
 
 // CreatedAtEQ applies the EQ predicate on the "created_at" field.

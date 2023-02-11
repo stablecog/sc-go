@@ -72,16 +72,14 @@ func (c *RestAPI) HandleUpscale(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Pro user check
-	isProUser, err := c.Repo.IsProUser(*userID)
+	// Charge credits
+	deducted, err := c.Repo.DeductCreditsFromUser(*userID, 1)
 	if err != nil {
-		klog.Errorf("Error checking if user is pro: %v", err)
-		responses.ErrInternalServerError(w, r, "Error retrieving user")
+		klog.Errorf("Error deducting credits: %v", err)
+		responses.ErrInternalServerError(w, r, "Error deducting credits from user")
 		return
-	}
-
-	if !isProUser {
-		responses.ErrBadRequest(w, r, "Upscale feature isn't available on the free plan :(")
+	} else if !deducted {
+		responses.ErrBadRequest(w, r, "Not enough credits to upscale, need 1")
 		return
 	}
 

@@ -20,8 +20,7 @@ type GenerationModel struct {
 func (GenerationModel) Fields() []ent.Field {
 	return []ent.Field{
 		field.UUID("id", uuid.UUID{}).Default(uuid.New),
-		field.Text("name"),
-		field.Bool("is_free").Default(false),
+		field.Text("name_in_worker"),
 		field.Time("created_at").Default(time.Now).Immutable(),
 		field.Time("updated_at").Default(time.Now).UpdateDefault(time.Now),
 	}

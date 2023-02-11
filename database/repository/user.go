@@ -8,29 +8,12 @@ import (
 	"github.com/go-redis/redis/v8"
 	"github.com/google/uuid"
 	"github.com/stablecog/go-apps/database/ent"
-	"github.com/stablecog/go-apps/database/ent/subscription"
 	"github.com/stablecog/go-apps/database/ent/userrole"
 	"github.com/stablecog/go-apps/server/responses"
 	"github.com/stablecog/go-apps/shared"
 	"github.com/stablecog/go-apps/utils"
 	"k8s.io/klog/v2"
 )
-
-// ! This will eventually be deprecated to simply deduct credits
-func (r *Repository) IsProUser(userID uuid.UUID) (bool, error) {
-	subTier, err := r.DB.Subscription.Query().Where(subscription.UserIDEQ(userID)).QuerySubscriptionTier().First(r.Ctx)
-	if err != nil {
-		return false, err
-	}
-
-	isPro := subTier.Name == "pro"
-	if isPro {
-		return isPro, nil
-	}
-
-	isAdmin, _ := r.IsSuperAdmin(userID)
-	return isAdmin, nil
-}
 
 func (r *Repository) IsSuperAdmin(userID uuid.UUID) (bool, error) {
 	// Check for admin

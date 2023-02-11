@@ -11,6 +11,8 @@ import (
 	"github.com/google/uuid"
 	"github.com/stablecog/go-apps/database/ent/migrate"
 
+	"github.com/stablecog/go-apps/database/ent/credit"
+	"github.com/stablecog/go-apps/database/ent/credittype"
 	"github.com/stablecog/go-apps/database/ent/deviceinfo"
 	"github.com/stablecog/go-apps/database/ent/generation"
 	"github.com/stablecog/go-apps/database/ent/generationmodel"
@@ -18,8 +20,6 @@ import (
 	"github.com/stablecog/go-apps/database/ent/negativeprompt"
 	"github.com/stablecog/go-apps/database/ent/prompt"
 	"github.com/stablecog/go-apps/database/ent/scheduler"
-	"github.com/stablecog/go-apps/database/ent/subscription"
-	"github.com/stablecog/go-apps/database/ent/subscriptiontier"
 	"github.com/stablecog/go-apps/database/ent/upscale"
 	"github.com/stablecog/go-apps/database/ent/upscalemodel"
 	"github.com/stablecog/go-apps/database/ent/upscaleoutput"
@@ -36,6 +36,10 @@ type Client struct {
 	config
 	// Schema is the client for creating, migrating and dropping schema.
 	Schema *migrate.Schema
+	// Credit is the client for interacting with the Credit builders.
+	Credit *CreditClient
+	// CreditType is the client for interacting with the CreditType builders.
+	CreditType *CreditTypeClient
 	// DeviceInfo is the client for interacting with the DeviceInfo builders.
 	DeviceInfo *DeviceInfoClient
 	// Generation is the client for interacting with the Generation builders.
@@ -50,10 +54,6 @@ type Client struct {
 	Prompt *PromptClient
 	// Scheduler is the client for interacting with the Scheduler builders.
 	Scheduler *SchedulerClient
-	// Subscription is the client for interacting with the Subscription builders.
-	Subscription *SubscriptionClient
-	// SubscriptionTier is the client for interacting with the SubscriptionTier builders.
-	SubscriptionTier *SubscriptionTierClient
 	// Upscale is the client for interacting with the Upscale builders.
 	Upscale *UpscaleClient
 	// UpscaleModel is the client for interacting with the UpscaleModel builders.
@@ -77,6 +77,8 @@ func NewClient(opts ...Option) *Client {
 
 func (c *Client) init() {
 	c.Schema = migrate.NewSchema(c.driver)
+	c.Credit = NewCreditClient(c.config)
+	c.CreditType = NewCreditTypeClient(c.config)
 	c.DeviceInfo = NewDeviceInfoClient(c.config)
 	c.Generation = NewGenerationClient(c.config)
 	c.GenerationModel = NewGenerationModelClient(c.config)
@@ -84,8 +86,6 @@ func (c *Client) init() {
 	c.NegativePrompt = NewNegativePromptClient(c.config)
 	c.Prompt = NewPromptClient(c.config)
 	c.Scheduler = NewSchedulerClient(c.config)
-	c.Subscription = NewSubscriptionClient(c.config)
-	c.SubscriptionTier = NewSubscriptionTierClient(c.config)
 	c.Upscale = NewUpscaleClient(c.config)
 	c.UpscaleModel = NewUpscaleModelClient(c.config)
 	c.UpscaleOutput = NewUpscaleOutputClient(c.config)
@@ -124,6 +124,8 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 	return &Tx{
 		ctx:              ctx,
 		config:           cfg,
+		Credit:           NewCreditClient(cfg),
+		CreditType:       NewCreditTypeClient(cfg),
 		DeviceInfo:       NewDeviceInfoClient(cfg),
 		Generation:       NewGenerationClient(cfg),
 		GenerationModel:  NewGenerationModelClient(cfg),
@@ -131,8 +133,6 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		NegativePrompt:   NewNegativePromptClient(cfg),
 		Prompt:           NewPromptClient(cfg),
 		Scheduler:        NewSchedulerClient(cfg),
-		Subscription:     NewSubscriptionClient(cfg),
-		SubscriptionTier: NewSubscriptionTierClient(cfg),
 		Upscale:          NewUpscaleClient(cfg),
 		UpscaleModel:     NewUpscaleModelClient(cfg),
 		UpscaleOutput:    NewUpscaleOutputClient(cfg),
@@ -157,6 +157,8 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 	return &Tx{
 		ctx:              ctx,
 		config:           cfg,
+		Credit:           NewCreditClient(cfg),
+		CreditType:       NewCreditTypeClient(cfg),
 		DeviceInfo:       NewDeviceInfoClient(cfg),
 		Generation:       NewGenerationClient(cfg),
 		GenerationModel:  NewGenerationModelClient(cfg),
@@ -164,8 +166,6 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		NegativePrompt:   NewNegativePromptClient(cfg),
 		Prompt:           NewPromptClient(cfg),
 		Scheduler:        NewSchedulerClient(cfg),
-		Subscription:     NewSubscriptionClient(cfg),
-		SubscriptionTier: NewSubscriptionTierClient(cfg),
 		Upscale:          NewUpscaleClient(cfg),
 		UpscaleModel:     NewUpscaleModelClient(cfg),
 		UpscaleOutput:    NewUpscaleOutputClient(cfg),
@@ -177,7 +177,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 // Debug returns a new debug-client. It's used to get verbose logging on specific operations.
 //
 //	client.Debug().
-//		DeviceInfo.
+//		Credit.
 //		Query().
 //		Count(ctx)
 func (c *Client) Debug() *Client {
@@ -199,6 +199,8 @@ func (c *Client) Close() error {
 // Use adds the mutation hooks to all the entity clients.
 // In order to add hooks to a specific client, call: `client.Node.Use(...)`.
 func (c *Client) Use(hooks ...Hook) {
+	c.Credit.Use(hooks...)
+	c.CreditType.Use(hooks...)
 	c.DeviceInfo.Use(hooks...)
 	c.Generation.Use(hooks...)
 	c.GenerationModel.Use(hooks...)
@@ -206,8 +208,6 @@ func (c *Client) Use(hooks ...Hook) {
 	c.NegativePrompt.Use(hooks...)
 	c.Prompt.Use(hooks...)
 	c.Scheduler.Use(hooks...)
-	c.Subscription.Use(hooks...)
-	c.SubscriptionTier.Use(hooks...)
 	c.Upscale.Use(hooks...)
 	c.UpscaleModel.Use(hooks...)
 	c.UpscaleOutput.Use(hooks...)
@@ -218,6 +218,8 @@ func (c *Client) Use(hooks ...Hook) {
 // Intercept adds the query interceptors to all the entity clients.
 // In order to add interceptors to a specific client, call: `client.Node.Intercept(...)`.
 func (c *Client) Intercept(interceptors ...Interceptor) {
+	c.Credit.Intercept(interceptors...)
+	c.CreditType.Intercept(interceptors...)
 	c.DeviceInfo.Intercept(interceptors...)
 	c.Generation.Intercept(interceptors...)
 	c.GenerationModel.Intercept(interceptors...)
@@ -225,8 +227,6 @@ func (c *Client) Intercept(interceptors ...Interceptor) {
 	c.NegativePrompt.Intercept(interceptors...)
 	c.Prompt.Intercept(interceptors...)
 	c.Scheduler.Intercept(interceptors...)
-	c.Subscription.Intercept(interceptors...)
-	c.SubscriptionTier.Intercept(interceptors...)
 	c.Upscale.Intercept(interceptors...)
 	c.UpscaleModel.Intercept(interceptors...)
 	c.UpscaleOutput.Intercept(interceptors...)
@@ -237,6 +237,10 @@ func (c *Client) Intercept(interceptors ...Interceptor) {
 // Mutate implements the ent.Mutator interface.
 func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 	switch m := m.(type) {
+	case *CreditMutation:
+		return c.Credit.mutate(ctx, m)
+	case *CreditTypeMutation:
+		return c.CreditType.mutate(ctx, m)
 	case *DeviceInfoMutation:
 		return c.DeviceInfo.mutate(ctx, m)
 	case *GenerationMutation:
@@ -251,10 +255,6 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.Prompt.mutate(ctx, m)
 	case *SchedulerMutation:
 		return c.Scheduler.mutate(ctx, m)
-	case *SubscriptionMutation:
-		return c.Subscription.mutate(ctx, m)
-	case *SubscriptionTierMutation:
-		return c.SubscriptionTier.mutate(ctx, m)
 	case *UpscaleMutation:
 		return c.Upscale.mutate(ctx, m)
 	case *UpscaleModelMutation:
@@ -267,6 +267,290 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.UserRole.mutate(ctx, m)
 	default:
 		return nil, fmt.Errorf("ent: unknown mutation type %T", m)
+	}
+}
+
+// CreditClient is a client for the Credit schema.
+type CreditClient struct {
+	config
+}
+
+// NewCreditClient returns a client for the Credit from the given config.
+func NewCreditClient(c config) *CreditClient {
+	return &CreditClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `credit.Hooks(f(g(h())))`.
+func (c *CreditClient) Use(hooks ...Hook) {
+	c.hooks.Credit = append(c.hooks.Credit, hooks...)
+}
+
+// Use adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `credit.Intercept(f(g(h())))`.
+func (c *CreditClient) Intercept(interceptors ...Interceptor) {
+	c.inters.Credit = append(c.inters.Credit, interceptors...)
+}
+
+// Create returns a builder for creating a Credit entity.
+func (c *CreditClient) Create() *CreditCreate {
+	mutation := newCreditMutation(c.config, OpCreate)
+	return &CreditCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of Credit entities.
+func (c *CreditClient) CreateBulk(builders ...*CreditCreate) *CreditCreateBulk {
+	return &CreditCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for Credit.
+func (c *CreditClient) Update() *CreditUpdate {
+	mutation := newCreditMutation(c.config, OpUpdate)
+	return &CreditUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *CreditClient) UpdateOne(cr *Credit) *CreditUpdateOne {
+	mutation := newCreditMutation(c.config, OpUpdateOne, withCredit(cr))
+	return &CreditUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *CreditClient) UpdateOneID(id uuid.UUID) *CreditUpdateOne {
+	mutation := newCreditMutation(c.config, OpUpdateOne, withCreditID(id))
+	return &CreditUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for Credit.
+func (c *CreditClient) Delete() *CreditDelete {
+	mutation := newCreditMutation(c.config, OpDelete)
+	return &CreditDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *CreditClient) DeleteOne(cr *Credit) *CreditDeleteOne {
+	return c.DeleteOneID(cr.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *CreditClient) DeleteOneID(id uuid.UUID) *CreditDeleteOne {
+	builder := c.Delete().Where(credit.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &CreditDeleteOne{builder}
+}
+
+// Query returns a query builder for Credit.
+func (c *CreditClient) Query() *CreditQuery {
+	return &CreditQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeCredit},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a Credit entity by its id.
+func (c *CreditClient) Get(ctx context.Context, id uuid.UUID) (*Credit, error) {
+	return c.Query().Where(credit.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *CreditClient) GetX(ctx context.Context, id uuid.UUID) *Credit {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryUsers queries the users edge of a Credit.
+func (c *CreditClient) QueryUsers(cr *Credit) *UserQuery {
+	query := (&UserClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := cr.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(credit.Table, credit.FieldID, id),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, credit.UsersTable, credit.UsersColumn),
+		)
+		fromV = sqlgraph.Neighbors(cr.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryCreditTypes queries the credit_types edge of a Credit.
+func (c *CreditClient) QueryCreditTypes(cr *Credit) *CreditTypeQuery {
+	query := (&CreditTypeClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := cr.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(credit.Table, credit.FieldID, id),
+			sqlgraph.To(credittype.Table, credittype.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, credit.CreditTypesTable, credit.CreditTypesColumn),
+		)
+		fromV = sqlgraph.Neighbors(cr.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *CreditClient) Hooks() []Hook {
+	return c.hooks.Credit
+}
+
+// Interceptors returns the client interceptors.
+func (c *CreditClient) Interceptors() []Interceptor {
+	return c.inters.Credit
+}
+
+func (c *CreditClient) mutate(ctx context.Context, m *CreditMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&CreditCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&CreditUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&CreditUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&CreditDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown Credit mutation op: %q", m.Op())
+	}
+}
+
+// CreditTypeClient is a client for the CreditType schema.
+type CreditTypeClient struct {
+	config
+}
+
+// NewCreditTypeClient returns a client for the CreditType from the given config.
+func NewCreditTypeClient(c config) *CreditTypeClient {
+	return &CreditTypeClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `credittype.Hooks(f(g(h())))`.
+func (c *CreditTypeClient) Use(hooks ...Hook) {
+	c.hooks.CreditType = append(c.hooks.CreditType, hooks...)
+}
+
+// Use adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `credittype.Intercept(f(g(h())))`.
+func (c *CreditTypeClient) Intercept(interceptors ...Interceptor) {
+	c.inters.CreditType = append(c.inters.CreditType, interceptors...)
+}
+
+// Create returns a builder for creating a CreditType entity.
+func (c *CreditTypeClient) Create() *CreditTypeCreate {
+	mutation := newCreditTypeMutation(c.config, OpCreate)
+	return &CreditTypeCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of CreditType entities.
+func (c *CreditTypeClient) CreateBulk(builders ...*CreditTypeCreate) *CreditTypeCreateBulk {
+	return &CreditTypeCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for CreditType.
+func (c *CreditTypeClient) Update() *CreditTypeUpdate {
+	mutation := newCreditTypeMutation(c.config, OpUpdate)
+	return &CreditTypeUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *CreditTypeClient) UpdateOne(ct *CreditType) *CreditTypeUpdateOne {
+	mutation := newCreditTypeMutation(c.config, OpUpdateOne, withCreditType(ct))
+	return &CreditTypeUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *CreditTypeClient) UpdateOneID(id uuid.UUID) *CreditTypeUpdateOne {
+	mutation := newCreditTypeMutation(c.config, OpUpdateOne, withCreditTypeID(id))
+	return &CreditTypeUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for CreditType.
+func (c *CreditTypeClient) Delete() *CreditTypeDelete {
+	mutation := newCreditTypeMutation(c.config, OpDelete)
+	return &CreditTypeDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *CreditTypeClient) DeleteOne(ct *CreditType) *CreditTypeDeleteOne {
+	return c.DeleteOneID(ct.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *CreditTypeClient) DeleteOneID(id uuid.UUID) *CreditTypeDeleteOne {
+	builder := c.Delete().Where(credittype.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &CreditTypeDeleteOne{builder}
+}
+
+// Query returns a query builder for CreditType.
+func (c *CreditTypeClient) Query() *CreditTypeQuery {
+	return &CreditTypeQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeCreditType},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a CreditType entity by its id.
+func (c *CreditTypeClient) Get(ctx context.Context, id uuid.UUID) (*CreditType, error) {
+	return c.Query().Where(credittype.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *CreditTypeClient) GetX(ctx context.Context, id uuid.UUID) *CreditType {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryCredits queries the credits edge of a CreditType.
+func (c *CreditTypeClient) QueryCredits(ct *CreditType) *CreditQuery {
+	query := (&CreditClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := ct.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(credittype.Table, credittype.FieldID, id),
+			sqlgraph.To(credit.Table, credit.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, credittype.CreditsTable, credittype.CreditsColumn),
+		)
+		fromV = sqlgraph.Neighbors(ct.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *CreditTypeClient) Hooks() []Hook {
+	return c.hooks.CreditType
+}
+
+// Interceptors returns the client interceptors.
+func (c *CreditTypeClient) Interceptors() []Interceptor {
+	return c.inters.CreditType
+}
+
+func (c *CreditTypeClient) mutate(ctx context.Context, m *CreditTypeMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&CreditTypeCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&CreditTypeUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&CreditTypeUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&CreditTypeDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown CreditType mutation op: %q", m.Op())
 	}
 }
 
@@ -1320,290 +1604,6 @@ func (c *SchedulerClient) mutate(ctx context.Context, m *SchedulerMutation) (Val
 	}
 }
 
-// SubscriptionClient is a client for the Subscription schema.
-type SubscriptionClient struct {
-	config
-}
-
-// NewSubscriptionClient returns a client for the Subscription from the given config.
-func NewSubscriptionClient(c config) *SubscriptionClient {
-	return &SubscriptionClient{config: c}
-}
-
-// Use adds a list of mutation hooks to the hooks stack.
-// A call to `Use(f, g, h)` equals to `subscription.Hooks(f(g(h())))`.
-func (c *SubscriptionClient) Use(hooks ...Hook) {
-	c.hooks.Subscription = append(c.hooks.Subscription, hooks...)
-}
-
-// Use adds a list of query interceptors to the interceptors stack.
-// A call to `Intercept(f, g, h)` equals to `subscription.Intercept(f(g(h())))`.
-func (c *SubscriptionClient) Intercept(interceptors ...Interceptor) {
-	c.inters.Subscription = append(c.inters.Subscription, interceptors...)
-}
-
-// Create returns a builder for creating a Subscription entity.
-func (c *SubscriptionClient) Create() *SubscriptionCreate {
-	mutation := newSubscriptionMutation(c.config, OpCreate)
-	return &SubscriptionCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// CreateBulk returns a builder for creating a bulk of Subscription entities.
-func (c *SubscriptionClient) CreateBulk(builders ...*SubscriptionCreate) *SubscriptionCreateBulk {
-	return &SubscriptionCreateBulk{config: c.config, builders: builders}
-}
-
-// Update returns an update builder for Subscription.
-func (c *SubscriptionClient) Update() *SubscriptionUpdate {
-	mutation := newSubscriptionMutation(c.config, OpUpdate)
-	return &SubscriptionUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// UpdateOne returns an update builder for the given entity.
-func (c *SubscriptionClient) UpdateOne(s *Subscription) *SubscriptionUpdateOne {
-	mutation := newSubscriptionMutation(c.config, OpUpdateOne, withSubscription(s))
-	return &SubscriptionUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// UpdateOneID returns an update builder for the given id.
-func (c *SubscriptionClient) UpdateOneID(id uuid.UUID) *SubscriptionUpdateOne {
-	mutation := newSubscriptionMutation(c.config, OpUpdateOne, withSubscriptionID(id))
-	return &SubscriptionUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// Delete returns a delete builder for Subscription.
-func (c *SubscriptionClient) Delete() *SubscriptionDelete {
-	mutation := newSubscriptionMutation(c.config, OpDelete)
-	return &SubscriptionDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// DeleteOne returns a builder for deleting the given entity.
-func (c *SubscriptionClient) DeleteOne(s *Subscription) *SubscriptionDeleteOne {
-	return c.DeleteOneID(s.ID)
-}
-
-// DeleteOneID returns a builder for deleting the given entity by its id.
-func (c *SubscriptionClient) DeleteOneID(id uuid.UUID) *SubscriptionDeleteOne {
-	builder := c.Delete().Where(subscription.ID(id))
-	builder.mutation.id = &id
-	builder.mutation.op = OpDeleteOne
-	return &SubscriptionDeleteOne{builder}
-}
-
-// Query returns a query builder for Subscription.
-func (c *SubscriptionClient) Query() *SubscriptionQuery {
-	return &SubscriptionQuery{
-		config: c.config,
-		ctx:    &QueryContext{Type: TypeSubscription},
-		inters: c.Interceptors(),
-	}
-}
-
-// Get returns a Subscription entity by its id.
-func (c *SubscriptionClient) Get(ctx context.Context, id uuid.UUID) (*Subscription, error) {
-	return c.Query().Where(subscription.ID(id)).Only(ctx)
-}
-
-// GetX is like Get, but panics if an error occurs.
-func (c *SubscriptionClient) GetX(ctx context.Context, id uuid.UUID) *Subscription {
-	obj, err := c.Get(ctx, id)
-	if err != nil {
-		panic(err)
-	}
-	return obj
-}
-
-// QueryUser queries the user edge of a Subscription.
-func (c *SubscriptionClient) QueryUser(s *Subscription) *UserQuery {
-	query := (&UserClient{config: c.config}).Query()
-	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
-		id := s.ID
-		step := sqlgraph.NewStep(
-			sqlgraph.From(subscription.Table, subscription.FieldID, id),
-			sqlgraph.To(user.Table, user.FieldID),
-			sqlgraph.Edge(sqlgraph.O2O, true, subscription.UserTable, subscription.UserColumn),
-		)
-		fromV = sqlgraph.Neighbors(s.driver.Dialect(), step)
-		return fromV, nil
-	}
-	return query
-}
-
-// QuerySubscriptionTier queries the subscription_tier edge of a Subscription.
-func (c *SubscriptionClient) QuerySubscriptionTier(s *Subscription) *SubscriptionTierQuery {
-	query := (&SubscriptionTierClient{config: c.config}).Query()
-	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
-		id := s.ID
-		step := sqlgraph.NewStep(
-			sqlgraph.From(subscription.Table, subscription.FieldID, id),
-			sqlgraph.To(subscriptiontier.Table, subscriptiontier.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, subscription.SubscriptionTierTable, subscription.SubscriptionTierColumn),
-		)
-		fromV = sqlgraph.Neighbors(s.driver.Dialect(), step)
-		return fromV, nil
-	}
-	return query
-}
-
-// Hooks returns the client hooks.
-func (c *SubscriptionClient) Hooks() []Hook {
-	return c.hooks.Subscription
-}
-
-// Interceptors returns the client interceptors.
-func (c *SubscriptionClient) Interceptors() []Interceptor {
-	return c.inters.Subscription
-}
-
-func (c *SubscriptionClient) mutate(ctx context.Context, m *SubscriptionMutation) (Value, error) {
-	switch m.Op() {
-	case OpCreate:
-		return (&SubscriptionCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
-	case OpUpdate:
-		return (&SubscriptionUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
-	case OpUpdateOne:
-		return (&SubscriptionUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
-	case OpDelete, OpDeleteOne:
-		return (&SubscriptionDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
-	default:
-		return nil, fmt.Errorf("ent: unknown Subscription mutation op: %q", m.Op())
-	}
-}
-
-// SubscriptionTierClient is a client for the SubscriptionTier schema.
-type SubscriptionTierClient struct {
-	config
-}
-
-// NewSubscriptionTierClient returns a client for the SubscriptionTier from the given config.
-func NewSubscriptionTierClient(c config) *SubscriptionTierClient {
-	return &SubscriptionTierClient{config: c}
-}
-
-// Use adds a list of mutation hooks to the hooks stack.
-// A call to `Use(f, g, h)` equals to `subscriptiontier.Hooks(f(g(h())))`.
-func (c *SubscriptionTierClient) Use(hooks ...Hook) {
-	c.hooks.SubscriptionTier = append(c.hooks.SubscriptionTier, hooks...)
-}
-
-// Use adds a list of query interceptors to the interceptors stack.
-// A call to `Intercept(f, g, h)` equals to `subscriptiontier.Intercept(f(g(h())))`.
-func (c *SubscriptionTierClient) Intercept(interceptors ...Interceptor) {
-	c.inters.SubscriptionTier = append(c.inters.SubscriptionTier, interceptors...)
-}
-
-// Create returns a builder for creating a SubscriptionTier entity.
-func (c *SubscriptionTierClient) Create() *SubscriptionTierCreate {
-	mutation := newSubscriptionTierMutation(c.config, OpCreate)
-	return &SubscriptionTierCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// CreateBulk returns a builder for creating a bulk of SubscriptionTier entities.
-func (c *SubscriptionTierClient) CreateBulk(builders ...*SubscriptionTierCreate) *SubscriptionTierCreateBulk {
-	return &SubscriptionTierCreateBulk{config: c.config, builders: builders}
-}
-
-// Update returns an update builder for SubscriptionTier.
-func (c *SubscriptionTierClient) Update() *SubscriptionTierUpdate {
-	mutation := newSubscriptionTierMutation(c.config, OpUpdate)
-	return &SubscriptionTierUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// UpdateOne returns an update builder for the given entity.
-func (c *SubscriptionTierClient) UpdateOne(st *SubscriptionTier) *SubscriptionTierUpdateOne {
-	mutation := newSubscriptionTierMutation(c.config, OpUpdateOne, withSubscriptionTier(st))
-	return &SubscriptionTierUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// UpdateOneID returns an update builder for the given id.
-func (c *SubscriptionTierClient) UpdateOneID(id uuid.UUID) *SubscriptionTierUpdateOne {
-	mutation := newSubscriptionTierMutation(c.config, OpUpdateOne, withSubscriptionTierID(id))
-	return &SubscriptionTierUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// Delete returns a delete builder for SubscriptionTier.
-func (c *SubscriptionTierClient) Delete() *SubscriptionTierDelete {
-	mutation := newSubscriptionTierMutation(c.config, OpDelete)
-	return &SubscriptionTierDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// DeleteOne returns a builder for deleting the given entity.
-func (c *SubscriptionTierClient) DeleteOne(st *SubscriptionTier) *SubscriptionTierDeleteOne {
-	return c.DeleteOneID(st.ID)
-}
-
-// DeleteOneID returns a builder for deleting the given entity by its id.
-func (c *SubscriptionTierClient) DeleteOneID(id uuid.UUID) *SubscriptionTierDeleteOne {
-	builder := c.Delete().Where(subscriptiontier.ID(id))
-	builder.mutation.id = &id
-	builder.mutation.op = OpDeleteOne
-	return &SubscriptionTierDeleteOne{builder}
-}
-
-// Query returns a query builder for SubscriptionTier.
-func (c *SubscriptionTierClient) Query() *SubscriptionTierQuery {
-	return &SubscriptionTierQuery{
-		config: c.config,
-		ctx:    &QueryContext{Type: TypeSubscriptionTier},
-		inters: c.Interceptors(),
-	}
-}
-
-// Get returns a SubscriptionTier entity by its id.
-func (c *SubscriptionTierClient) Get(ctx context.Context, id uuid.UUID) (*SubscriptionTier, error) {
-	return c.Query().Where(subscriptiontier.ID(id)).Only(ctx)
-}
-
-// GetX is like Get, but panics if an error occurs.
-func (c *SubscriptionTierClient) GetX(ctx context.Context, id uuid.UUID) *SubscriptionTier {
-	obj, err := c.Get(ctx, id)
-	if err != nil {
-		panic(err)
-	}
-	return obj
-}
-
-// QuerySubscriptions queries the subscriptions edge of a SubscriptionTier.
-func (c *SubscriptionTierClient) QuerySubscriptions(st *SubscriptionTier) *SubscriptionQuery {
-	query := (&SubscriptionClient{config: c.config}).Query()
-	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
-		id := st.ID
-		step := sqlgraph.NewStep(
-			sqlgraph.From(subscriptiontier.Table, subscriptiontier.FieldID, id),
-			sqlgraph.To(subscription.Table, subscription.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, subscriptiontier.SubscriptionsTable, subscriptiontier.SubscriptionsColumn),
-		)
-		fromV = sqlgraph.Neighbors(st.driver.Dialect(), step)
-		return fromV, nil
-	}
-	return query
-}
-
-// Hooks returns the client hooks.
-func (c *SubscriptionTierClient) Hooks() []Hook {
-	return c.hooks.SubscriptionTier
-}
-
-// Interceptors returns the client interceptors.
-func (c *SubscriptionTierClient) Interceptors() []Interceptor {
-	return c.inters.SubscriptionTier
-}
-
-func (c *SubscriptionTierClient) mutate(ctx context.Context, m *SubscriptionTierMutation) (Value, error) {
-	switch m.Op() {
-	case OpCreate:
-		return (&SubscriptionTierCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
-	case OpUpdate:
-		return (&SubscriptionTierUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
-	case OpUpdateOne:
-		return (&SubscriptionTierUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
-	case OpDelete, OpDeleteOne:
-		return (&SubscriptionTierDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
-	default:
-		return nil, fmt.Errorf("ent: unknown SubscriptionTier mutation op: %q", m.Op())
-	}
-}
-
 // UpscaleClient is a client for the Upscale schema.
 type UpscaleClient struct {
 	config
@@ -2195,15 +2195,15 @@ func (c *UserClient) QueryUpscales(u *User) *UpscaleQuery {
 	return query
 }
 
-// QuerySubscriptions queries the subscriptions edge of a User.
-func (c *UserClient) QuerySubscriptions(u *User) *SubscriptionQuery {
-	query := (&SubscriptionClient{config: c.config}).Query()
+// QueryCredits queries the credits edge of a User.
+func (c *UserClient) QueryCredits(u *User) *CreditQuery {
+	query := (&CreditClient{config: c.config}).Query()
 	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := u.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(user.Table, user.FieldID, id),
-			sqlgraph.To(subscription.Table, subscription.FieldID),
-			sqlgraph.Edge(sqlgraph.O2O, false, user.SubscriptionsTable, user.SubscriptionsColumn),
+			sqlgraph.To(credit.Table, credit.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.CreditsTable, user.CreditsColumn),
 		)
 		fromV = sqlgraph.Neighbors(u.driver.Dialect(), step)
 		return fromV, nil

@@ -12,9 +12,9 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
+	"github.com/stablecog/go-apps/database/ent/credit"
 	"github.com/stablecog/go-apps/database/ent/generation"
 	"github.com/stablecog/go-apps/database/ent/predicate"
-	"github.com/stablecog/go-apps/database/ent/subscription"
 	"github.com/stablecog/go-apps/database/ent/upscale"
 	"github.com/stablecog/go-apps/database/ent/user"
 	"github.com/stablecog/go-apps/database/ent/userrole"
@@ -23,15 +23,15 @@ import (
 // UserQuery is the builder for querying User entities.
 type UserQuery struct {
 	config
-	ctx               *QueryContext
-	order             []OrderFunc
-	inters            []Interceptor
-	predicates        []predicate.User
-	withUserRoles     *UserRoleQuery
-	withGenerations   *GenerationQuery
-	withUpscales      *UpscaleQuery
-	withSubscriptions *SubscriptionQuery
-	modifiers         []func(*sql.Selector)
+	ctx             *QueryContext
+	order           []OrderFunc
+	inters          []Interceptor
+	predicates      []predicate.User
+	withUserRoles   *UserRoleQuery
+	withGenerations *GenerationQuery
+	withUpscales    *UpscaleQuery
+	withCredits     *CreditQuery
+	modifiers       []func(*sql.Selector)
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -134,9 +134,9 @@ func (uq *UserQuery) QueryUpscales() *UpscaleQuery {
 	return query
 }
 
-// QuerySubscriptions chains the current query on the "subscriptions" edge.
-func (uq *UserQuery) QuerySubscriptions() *SubscriptionQuery {
-	query := (&SubscriptionClient{config: uq.config}).Query()
+// QueryCredits chains the current query on the "credits" edge.
+func (uq *UserQuery) QueryCredits() *CreditQuery {
+	query := (&CreditClient{config: uq.config}).Query()
 	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
 		if err := uq.prepareQuery(ctx); err != nil {
 			return nil, err
@@ -147,8 +147,8 @@ func (uq *UserQuery) QuerySubscriptions() *SubscriptionQuery {
 		}
 		step := sqlgraph.NewStep(
 			sqlgraph.From(user.Table, user.FieldID, selector),
-			sqlgraph.To(subscription.Table, subscription.FieldID),
-			sqlgraph.Edge(sqlgraph.O2O, false, user.SubscriptionsTable, user.SubscriptionsColumn),
+			sqlgraph.To(credit.Table, credit.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.CreditsTable, user.CreditsColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(uq.driver.Dialect(), step)
 		return fromU, nil
@@ -341,15 +341,15 @@ func (uq *UserQuery) Clone() *UserQuery {
 		return nil
 	}
 	return &UserQuery{
-		config:            uq.config,
-		ctx:               uq.ctx.Clone(),
-		order:             append([]OrderFunc{}, uq.order...),
-		inters:            append([]Interceptor{}, uq.inters...),
-		predicates:        append([]predicate.User{}, uq.predicates...),
-		withUserRoles:     uq.withUserRoles.Clone(),
-		withGenerations:   uq.withGenerations.Clone(),
-		withUpscales:      uq.withUpscales.Clone(),
-		withSubscriptions: uq.withSubscriptions.Clone(),
+		config:          uq.config,
+		ctx:             uq.ctx.Clone(),
+		order:           append([]OrderFunc{}, uq.order...),
+		inters:          append([]Interceptor{}, uq.inters...),
+		predicates:      append([]predicate.User{}, uq.predicates...),
+		withUserRoles:   uq.withUserRoles.Clone(),
+		withGenerations: uq.withGenerations.Clone(),
+		withUpscales:    uq.withUpscales.Clone(),
+		withCredits:     uq.withCredits.Clone(),
 		// clone intermediate query.
 		sql:  uq.sql.Clone(),
 		path: uq.path,
@@ -389,14 +389,14 @@ func (uq *UserQuery) WithUpscales(opts ...func(*UpscaleQuery)) *UserQuery {
 	return uq
 }
 
-// WithSubscriptions tells the query-builder to eager-load the nodes that are connected to
-// the "subscriptions" edge. The optional arguments are used to configure the query builder of the edge.
-func (uq *UserQuery) WithSubscriptions(opts ...func(*SubscriptionQuery)) *UserQuery {
-	query := (&SubscriptionClient{config: uq.config}).Query()
+// WithCredits tells the query-builder to eager-load the nodes that are connected to
+// the "credits" edge. The optional arguments are used to configure the query builder of the edge.
+func (uq *UserQuery) WithCredits(opts ...func(*CreditQuery)) *UserQuery {
+	query := (&CreditClient{config: uq.config}).Query()
 	for _, opt := range opts {
 		opt(query)
 	}
-	uq.withSubscriptions = query
+	uq.withCredits = query
 	return uq
 }
 
@@ -482,7 +482,7 @@ func (uq *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 			uq.withUserRoles != nil,
 			uq.withGenerations != nil,
 			uq.withUpscales != nil,
-			uq.withSubscriptions != nil,
+			uq.withCredits != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -527,9 +527,10 @@ func (uq *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 			return nil, err
 		}
 	}
-	if query := uq.withSubscriptions; query != nil {
-		if err := uq.loadSubscriptions(ctx, query, nodes, nil,
-			func(n *User, e *Subscription) { n.Edges.Subscriptions = e }); err != nil {
+	if query := uq.withCredits; query != nil {
+		if err := uq.loadCredits(ctx, query, nodes,
+			func(n *User) { n.Edges.Credits = []*Credit{} },
+			func(n *User, e *Credit) { n.Edges.Credits = append(n.Edges.Credits, e) }); err != nil {
 			return nil, err
 		}
 	}
@@ -617,15 +618,18 @@ func (uq *UserQuery) loadUpscales(ctx context.Context, query *UpscaleQuery, node
 	}
 	return nil
 }
-func (uq *UserQuery) loadSubscriptions(ctx context.Context, query *SubscriptionQuery, nodes []*User, init func(*User), assign func(*User, *Subscription)) error {
+func (uq *UserQuery) loadCredits(ctx context.Context, query *CreditQuery, nodes []*User, init func(*User), assign func(*User, *Credit)) error {
 	fks := make([]driver.Value, 0, len(nodes))
 	nodeids := make(map[uuid.UUID]*User)
 	for i := range nodes {
 		fks = append(fks, nodes[i].ID)
 		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
 	}
-	query.Where(predicate.Subscription(func(s *sql.Selector) {
-		s.Where(sql.InValues(user.SubscriptionsColumn, fks...))
+	query.Where(predicate.Credit(func(s *sql.Selector) {
+		s.Where(sql.InValues(user.CreditsColumn, fks...))
 	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {

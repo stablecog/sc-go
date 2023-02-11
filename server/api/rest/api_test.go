@@ -59,7 +59,7 @@ func testMainWrapper(m *testing.M) int {
 	}
 
 	// Mock data
-	if err := repo.CreateMockData(ctx, entClient); err != nil {
+	if err := repo.CreateMockData(ctx); err != nil {
 		klog.Fatalf("Failed to create mock data: %v", err)
 		os.Exit(1)
 	}

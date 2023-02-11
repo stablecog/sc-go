@@ -9,6 +9,30 @@ import (
 	"github.com/stablecog/go-apps/database/ent"
 )
 
+// The CreditFunc type is an adapter to allow the use of ordinary
+// function as Credit mutator.
+type CreditFunc func(context.Context, *ent.CreditMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f CreditFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.CreditMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.CreditMutation", m)
+}
+
+// The CreditTypeFunc type is an adapter to allow the use of ordinary
+// function as CreditType mutator.
+type CreditTypeFunc func(context.Context, *ent.CreditTypeMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f CreditTypeFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.CreditTypeMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.CreditTypeMutation", m)
+}
+
 // The DeviceInfoFunc type is an adapter to allow the use of ordinary
 // function as DeviceInfo mutator.
 type DeviceInfoFunc func(context.Context, *ent.DeviceInfoMutation) (ent.Value, error)
@@ -91,30 +115,6 @@ func (f SchedulerFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, e
 		return f(ctx, mv)
 	}
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.SchedulerMutation", m)
-}
-
-// The SubscriptionFunc type is an adapter to allow the use of ordinary
-// function as Subscription mutator.
-type SubscriptionFunc func(context.Context, *ent.SubscriptionMutation) (ent.Value, error)
-
-// Mutate calls f(ctx, m).
-func (f SubscriptionFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
-	if mv, ok := m.(*ent.SubscriptionMutation); ok {
-		return f(ctx, mv)
-	}
-	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.SubscriptionMutation", m)
-}
-
-// The SubscriptionTierFunc type is an adapter to allow the use of ordinary
-// function as SubscriptionTier mutator.
-type SubscriptionTierFunc func(context.Context, *ent.SubscriptionTierMutation) (ent.Value, error)
-
-// Mutate calls f(ctx, m).
-func (f SubscriptionTierFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
-	if mv, ok := m.(*ent.SubscriptionTierMutation); ok {
-		return f(ctx, mv)
-	}
-	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.SubscriptionTierMutation", m)
 }
 
 // The UpscaleFunc type is an adapter to allow the use of ordinary

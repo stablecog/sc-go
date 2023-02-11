@@ -31,6 +31,8 @@ type config struct {
 // hooks and interceptors per client, for fast access.
 type (
 	hooks struct {
+		Credit           []ent.Hook
+		CreditType       []ent.Hook
 		DeviceInfo       []ent.Hook
 		Generation       []ent.Hook
 		GenerationModel  []ent.Hook
@@ -38,8 +40,6 @@ type (
 		NegativePrompt   []ent.Hook
 		Prompt           []ent.Hook
 		Scheduler        []ent.Hook
-		Subscription     []ent.Hook
-		SubscriptionTier []ent.Hook
 		Upscale          []ent.Hook
 		UpscaleModel     []ent.Hook
 		UpscaleOutput    []ent.Hook
@@ -47,6 +47,8 @@ type (
 		UserRole         []ent.Hook
 	}
 	inters struct {
+		Credit           []ent.Interceptor
+		CreditType       []ent.Interceptor
 		DeviceInfo       []ent.Interceptor
 		Generation       []ent.Interceptor
 		GenerationModel  []ent.Interceptor
@@ -54,8 +56,6 @@ type (
 		NegativePrompt   []ent.Interceptor
 		Prompt           []ent.Interceptor
 		Scheduler        []ent.Interceptor
-		Subscription     []ent.Interceptor
-		SubscriptionTier []ent.Interceptor
 		Upscale          []ent.Interceptor
 		UpscaleModel     []ent.Interceptor
 		UpscaleOutput    []ent.Interceptor

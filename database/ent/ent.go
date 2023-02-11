@@ -11,6 +11,8 @@ import (
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
+	"github.com/stablecog/go-apps/database/ent/credit"
+	"github.com/stablecog/go-apps/database/ent/credittype"
 	"github.com/stablecog/go-apps/database/ent/deviceinfo"
 	"github.com/stablecog/go-apps/database/ent/generation"
 	"github.com/stablecog/go-apps/database/ent/generationmodel"
@@ -18,8 +20,6 @@ import (
 	"github.com/stablecog/go-apps/database/ent/negativeprompt"
 	"github.com/stablecog/go-apps/database/ent/prompt"
 	"github.com/stablecog/go-apps/database/ent/scheduler"
-	"github.com/stablecog/go-apps/database/ent/subscription"
-	"github.com/stablecog/go-apps/database/ent/subscriptiontier"
 	"github.com/stablecog/go-apps/database/ent/upscale"
 	"github.com/stablecog/go-apps/database/ent/upscalemodel"
 	"github.com/stablecog/go-apps/database/ent/upscaleoutput"
@@ -52,6 +52,8 @@ type OrderFunc func(*sql.Selector)
 // columnChecker returns a function indicates if the column exists in the given column.
 func columnChecker(table string) func(string) error {
 	checks := map[string]func(string) bool{
+		credit.Table:           credit.ValidColumn,
+		credittype.Table:       credittype.ValidColumn,
 		deviceinfo.Table:       deviceinfo.ValidColumn,
 		generation.Table:       generation.ValidColumn,
 		generationmodel.Table:  generationmodel.ValidColumn,
@@ -59,8 +61,6 @@ func columnChecker(table string) func(string) error {
 		negativeprompt.Table:   negativeprompt.ValidColumn,
 		prompt.Table:           prompt.ValidColumn,
 		scheduler.Table:        scheduler.ValidColumn,
-		subscription.Table:     subscription.ValidColumn,
-		subscriptiontier.Table: subscriptiontier.ValidColumn,
 		upscale.Table:          upscale.ValidColumn,
 		upscalemodel.Table:     upscalemodel.ValidColumn,
 		upscaleoutput.Table:    upscaleoutput.ValidColumn,

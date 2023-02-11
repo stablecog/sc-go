@@ -432,24 +432,24 @@ func HasUpscalesWith(preds ...predicate.Upscale) predicate.User {
 	})
 }
 
-// HasSubscriptions applies the HasEdge predicate on the "subscriptions" edge.
-func HasSubscriptions() predicate.User {
+// HasCredits applies the HasEdge predicate on the "credits" edge.
+func HasCredits() predicate.User {
 	return predicate.User(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.Edge(sqlgraph.O2O, false, SubscriptionsTable, SubscriptionsColumn),
+			sqlgraph.Edge(sqlgraph.O2M, false, CreditsTable, CreditsColumn),
 		)
 		sqlgraph.HasNeighbors(s, step)
 	})
 }
 
-// HasSubscriptionsWith applies the HasEdge predicate on the "subscriptions" edge with a given conditions (other predicates).
-func HasSubscriptionsWith(preds ...predicate.Subscription) predicate.User {
+// HasCreditsWith applies the HasEdge predicate on the "credits" edge with a given conditions (other predicates).
+func HasCreditsWith(preds ...predicate.Credit) predicate.User {
 	return predicate.User(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(SubscriptionsInverseTable, FieldID),
-			sqlgraph.Edge(sqlgraph.O2O, false, SubscriptionsTable, SubscriptionsColumn),
+			sqlgraph.To(CreditsInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, CreditsTable, CreditsColumn),
 		)
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {

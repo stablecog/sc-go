@@ -22,23 +22,9 @@ type GenerationModelCreate struct {
 	hooks    []Hook
 }
 
-// SetName sets the "name" field.
-func (gmc *GenerationModelCreate) SetName(s string) *GenerationModelCreate {
-	gmc.mutation.SetName(s)
-	return gmc
-}
-
-// SetIsFree sets the "is_free" field.
-func (gmc *GenerationModelCreate) SetIsFree(b bool) *GenerationModelCreate {
-	gmc.mutation.SetIsFree(b)
-	return gmc
-}
-
-// SetNillableIsFree sets the "is_free" field if the given value is not nil.
-func (gmc *GenerationModelCreate) SetNillableIsFree(b *bool) *GenerationModelCreate {
-	if b != nil {
-		gmc.SetIsFree(*b)
-	}
+// SetNameInWorker sets the "name_in_worker" field.
+func (gmc *GenerationModelCreate) SetNameInWorker(s string) *GenerationModelCreate {
+	gmc.mutation.SetNameInWorker(s)
 	return gmc
 }
 
@@ -134,10 +120,6 @@ func (gmc *GenerationModelCreate) ExecX(ctx context.Context) {
 
 // defaults sets the default values of the builder before save.
 func (gmc *GenerationModelCreate) defaults() {
-	if _, ok := gmc.mutation.IsFree(); !ok {
-		v := generationmodel.DefaultIsFree
-		gmc.mutation.SetIsFree(v)
-	}
 	if _, ok := gmc.mutation.CreatedAt(); !ok {
 		v := generationmodel.DefaultCreatedAt()
 		gmc.mutation.SetCreatedAt(v)
@@ -154,11 +136,8 @@ func (gmc *GenerationModelCreate) defaults() {
 
 // check runs all checks and user-defined validators on the builder.
 func (gmc *GenerationModelCreate) check() error {
-	if _, ok := gmc.mutation.Name(); !ok {
-		return &ValidationError{Name: "name", err: errors.New(`ent: missing required field "GenerationModel.name"`)}
-	}
-	if _, ok := gmc.mutation.IsFree(); !ok {
-		return &ValidationError{Name: "is_free", err: errors.New(`ent: missing required field "GenerationModel.is_free"`)}
+	if _, ok := gmc.mutation.NameInWorker(); !ok {
+		return &ValidationError{Name: "name_in_worker", err: errors.New(`ent: missing required field "GenerationModel.name_in_worker"`)}
 	}
 	if _, ok := gmc.mutation.CreatedAt(); !ok {
 		return &ValidationError{Name: "created_at", err: errors.New(`ent: missing required field "GenerationModel.created_at"`)}
@@ -207,13 +186,9 @@ func (gmc *GenerationModelCreate) createSpec() (*GenerationModel, *sqlgraph.Crea
 		_node.ID = id
 		_spec.ID.Value = &id
 	}
-	if value, ok := gmc.mutation.Name(); ok {
-		_spec.SetField(generationmodel.FieldName, field.TypeString, value)
-		_node.Name = value
-	}
-	if value, ok := gmc.mutation.IsFree(); ok {
-		_spec.SetField(generationmodel.FieldIsFree, field.TypeBool, value)
-		_node.IsFree = value
+	if value, ok := gmc.mutation.NameInWorker(); ok {
+		_spec.SetField(generationmodel.FieldNameInWorker, field.TypeString, value)
+		_node.NameInWorker = value
 	}
 	if value, ok := gmc.mutation.CreatedAt(); ok {
 		_spec.SetField(generationmodel.FieldCreatedAt, field.TypeTime, value)

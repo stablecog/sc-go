@@ -9,6 +9,52 @@ import (
 )
 
 var (
+	// CreditsColumns holds the columns for the "credits" table.
+	CreditsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID},
+		{Name: "remaining_amount", Type: field.TypeInt32},
+		{Name: "expires_at", Type: field.TypeTime},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "credit_type_id", Type: field.TypeUUID},
+		{Name: "user_id", Type: field.TypeUUID},
+	}
+	// CreditsTable holds the schema information for the "credits" table.
+	CreditsTable = &schema.Table{
+		Name:       "credits",
+		Columns:    CreditsColumns,
+		PrimaryKey: []*schema.Column{CreditsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "credits_credit_types_credits",
+				Columns:    []*schema.Column{CreditsColumns[5]},
+				RefColumns: []*schema.Column{CreditTypesColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+			{
+				Symbol:     "credits_users_credits",
+				Columns:    []*schema.Column{CreditsColumns[6]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+		},
+	}
+	// CreditTypesColumns holds the columns for the "credit_types" table.
+	CreditTypesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID},
+		{Name: "name", Type: field.TypeString, Unique: true, Size: 2147483647},
+		{Name: "description", Type: field.TypeString, Nullable: true, Size: 2147483647},
+		{Name: "amount", Type: field.TypeInt32},
+		{Name: "stripe_product_id", Type: field.TypeString, Nullable: true, Size: 2147483647},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+	}
+	// CreditTypesTable holds the schema information for the "credit_types" table.
+	CreditTypesTable = &schema.Table{
+		Name:       "credit_types",
+		Columns:    CreditTypesColumns,
+		PrimaryKey: []*schema.Column{CreditTypesColumns[0]},
+	}
 	// DeviceInfoColumns holds the columns for the "device_info" table.
 	DeviceInfoColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID},
@@ -95,8 +141,7 @@ var (
 	// GenerationModelsColumns holds the columns for the "generation_models" table.
 	GenerationModelsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID},
-		{Name: "name", Type: field.TypeString, Size: 2147483647},
-		{Name: "is_free", Type: field.TypeBool, Default: false},
+		{Name: "name_in_worker", Type: field.TypeString, Size: 2147483647},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},
 	}
@@ -159,8 +204,7 @@ var (
 	// SchedulersColumns holds the columns for the "schedulers" table.
 	SchedulersColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID},
-		{Name: "name", Type: field.TypeString, Size: 2147483647},
-		{Name: "is_free", Type: field.TypeBool, Default: false},
+		{Name: "name_in_worker", Type: field.TypeString, Size: 2147483647},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},
 	}
@@ -169,51 +213,6 @@ var (
 		Name:       "schedulers",
 		Columns:    SchedulersColumns,
 		PrimaryKey: []*schema.Column{SchedulersColumns[0]},
-	}
-	// SubscriptionsColumns holds the columns for the "subscriptions" table.
-	SubscriptionsColumns = []*schema.Column{
-		{Name: "id", Type: field.TypeUUID},
-		{Name: "paid_started_at", Type: field.TypeTime, Nullable: true},
-		{Name: "paid_cancelled_at", Type: field.TypeTime, Nullable: true},
-		{Name: "paid_expires_at", Type: field.TypeTime, Nullable: true},
-		{Name: "created_at", Type: field.TypeTime},
-		{Name: "updated_at", Type: field.TypeTime},
-		{Name: "subscription_tier_id", Type: field.TypeUUID},
-		{Name: "user_id", Type: field.TypeUUID, Unique: true},
-	}
-	// SubscriptionsTable holds the schema information for the "subscriptions" table.
-	SubscriptionsTable = &schema.Table{
-		Name:       "subscriptions",
-		Columns:    SubscriptionsColumns,
-		PrimaryKey: []*schema.Column{SubscriptionsColumns[0]},
-		ForeignKeys: []*schema.ForeignKey{
-			{
-				Symbol:     "subscriptions_subscription_tiers_subscriptions",
-				Columns:    []*schema.Column{SubscriptionsColumns[6]},
-				RefColumns: []*schema.Column{SubscriptionTiersColumns[0]},
-				OnDelete:   schema.Cascade,
-			},
-			{
-				Symbol:     "subscriptions_users_subscriptions",
-				Columns:    []*schema.Column{SubscriptionsColumns[7]},
-				RefColumns: []*schema.Column{UsersColumns[0]},
-				OnDelete:   schema.NoAction,
-			},
-		},
-	}
-	// SubscriptionTiersColumns holds the columns for the "subscription_tiers" table.
-	SubscriptionTiersColumns = []*schema.Column{
-		{Name: "id", Type: field.TypeUUID},
-		{Name: "name", Type: field.TypeString, Unique: true},
-		{Name: "base_credits", Type: field.TypeInt32},
-		{Name: "created_at", Type: field.TypeTime},
-		{Name: "updated_at", Type: field.TypeTime},
-	}
-	// SubscriptionTiersTable holds the schema information for the "subscription_tiers" table.
-	SubscriptionTiersTable = &schema.Table{
-		Name:       "subscription_tiers",
-		Columns:    SubscriptionTiersColumns,
-		PrimaryKey: []*schema.Column{SubscriptionTiersColumns[0]},
 	}
 	// UpscalesColumns holds the columns for the "upscales" table.
 	UpscalesColumns = []*schema.Column{
@@ -261,8 +260,7 @@ var (
 	// UpscaleModelsColumns holds the columns for the "upscale_models" table.
 	UpscaleModelsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID},
-		{Name: "name", Type: field.TypeString, Size: 2147483647},
-		{Name: "is_free", Type: field.TypeBool, Default: false},
+		{Name: "name_in_worker", Type: field.TypeString, Size: 2147483647},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},
 	}
@@ -333,6 +331,8 @@ var (
 	}
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
+		CreditsTable,
+		CreditTypesTable,
 		DeviceInfoTable,
 		GenerationsTable,
 		GenerationModelsTable,
@@ -340,8 +340,6 @@ var (
 		NegativePromptsTable,
 		PromptsTable,
 		SchedulersTable,
-		SubscriptionsTable,
-		SubscriptionTiersTable,
 		UpscalesTable,
 		UpscaleModelsTable,
 		UpscaleOutputsTable,
@@ -351,6 +349,14 @@ var (
 )
 
 func init() {
+	CreditsTable.ForeignKeys[0].RefTable = CreditTypesTable
+	CreditsTable.ForeignKeys[1].RefTable = UsersTable
+	CreditsTable.Annotation = &entsql.Annotation{
+		Table: "credits",
+	}
+	CreditTypesTable.Annotation = &entsql.Annotation{
+		Table: "credit_types",
+	}
 	DeviceInfoTable.Annotation = &entsql.Annotation{
 		Table: "device_info",
 	}
@@ -378,14 +384,6 @@ func init() {
 	}
 	SchedulersTable.Annotation = &entsql.Annotation{
 		Table: "schedulers",
-	}
-	SubscriptionsTable.ForeignKeys[0].RefTable = SubscriptionTiersTable
-	SubscriptionsTable.ForeignKeys[1].RefTable = UsersTable
-	SubscriptionsTable.Annotation = &entsql.Annotation{
-		Table: "subscriptions",
-	}
-	SubscriptionTiersTable.Annotation = &entsql.Annotation{
-		Table: "subscription_tiers",
 	}
 	UpscalesTable.ForeignKeys[0].RefTable = DeviceInfoTable
 	UpscalesTable.ForeignKeys[1].RefTable = UpscaleModelsTable

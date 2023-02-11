@@ -12,9 +12,9 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
+	"github.com/stablecog/go-apps/database/ent/credit"
 	"github.com/stablecog/go-apps/database/ent/generation"
 	"github.com/stablecog/go-apps/database/ent/predicate"
-	"github.com/stablecog/go-apps/database/ent/subscription"
 	"github.com/stablecog/go-apps/database/ent/upscale"
 	"github.com/stablecog/go-apps/database/ent/user"
 	"github.com/stablecog/go-apps/database/ent/userrole"
@@ -131,23 +131,19 @@ func (uu *UserUpdate) AddUpscales(u ...*Upscale) *UserUpdate {
 	return uu.AddUpscaleIDs(ids...)
 }
 
-// SetSubscriptionsID sets the "subscriptions" edge to the Subscription entity by ID.
-func (uu *UserUpdate) SetSubscriptionsID(id uuid.UUID) *UserUpdate {
-	uu.mutation.SetSubscriptionsID(id)
+// AddCreditIDs adds the "credits" edge to the Credit entity by IDs.
+func (uu *UserUpdate) AddCreditIDs(ids ...uuid.UUID) *UserUpdate {
+	uu.mutation.AddCreditIDs(ids...)
 	return uu
 }
 
-// SetNillableSubscriptionsID sets the "subscriptions" edge to the Subscription entity by ID if the given value is not nil.
-func (uu *UserUpdate) SetNillableSubscriptionsID(id *uuid.UUID) *UserUpdate {
-	if id != nil {
-		uu = uu.SetSubscriptionsID(*id)
+// AddCredits adds the "credits" edges to the Credit entity.
+func (uu *UserUpdate) AddCredits(c ...*Credit) *UserUpdate {
+	ids := make([]uuid.UUID, len(c))
+	for i := range c {
+		ids[i] = c[i].ID
 	}
-	return uu
-}
-
-// SetSubscriptions sets the "subscriptions" edge to the Subscription entity.
-func (uu *UserUpdate) SetSubscriptions(s *Subscription) *UserUpdate {
-	return uu.SetSubscriptionsID(s.ID)
+	return uu.AddCreditIDs(ids...)
 }
 
 // Mutation returns the UserMutation object of the builder.
@@ -218,10 +214,25 @@ func (uu *UserUpdate) RemoveUpscales(u ...*Upscale) *UserUpdate {
 	return uu.RemoveUpscaleIDs(ids...)
 }
 
-// ClearSubscriptions clears the "subscriptions" edge to the Subscription entity.
-func (uu *UserUpdate) ClearSubscriptions() *UserUpdate {
-	uu.mutation.ClearSubscriptions()
+// ClearCredits clears all "credits" edges to the Credit entity.
+func (uu *UserUpdate) ClearCredits() *UserUpdate {
+	uu.mutation.ClearCredits()
 	return uu
+}
+
+// RemoveCreditIDs removes the "credits" edge to Credit entities by IDs.
+func (uu *UserUpdate) RemoveCreditIDs(ids ...uuid.UUID) *UserUpdate {
+	uu.mutation.RemoveCreditIDs(ids...)
+	return uu
+}
+
+// RemoveCredits removes "credits" edges to Credit entities.
+func (uu *UserUpdate) RemoveCredits(c ...*Credit) *UserUpdate {
+	ids := make([]uuid.UUID, len(c))
+	for i := range c {
+		ids[i] = c[i].ID
+	}
+	return uu.RemoveCreditIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -464,33 +475,52 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if uu.mutation.SubscriptionsCleared() {
+	if uu.mutation.CreditsCleared() {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2O,
+			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   user.SubscriptionsTable,
-			Columns: []string{user.SubscriptionsColumn},
+			Table:   user.CreditsTable,
+			Columns: []string{user.CreditsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeUUID,
-					Column: subscription.FieldID,
+					Column: credit.FieldID,
 				},
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := uu.mutation.SubscriptionsIDs(); len(nodes) > 0 {
+	if nodes := uu.mutation.RemovedCreditsIDs(); len(nodes) > 0 && !uu.mutation.CreditsCleared() {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2O,
+			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   user.SubscriptionsTable,
-			Columns: []string{user.SubscriptionsColumn},
+			Table:   user.CreditsTable,
+			Columns: []string{user.CreditsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeUUID,
-					Column: subscription.FieldID,
+					Column: credit.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uu.mutation.CreditsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.CreditsTable,
+			Columns: []string{user.CreditsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: credit.FieldID,
 				},
 			},
 		}
@@ -618,23 +648,19 @@ func (uuo *UserUpdateOne) AddUpscales(u ...*Upscale) *UserUpdateOne {
 	return uuo.AddUpscaleIDs(ids...)
 }
 
-// SetSubscriptionsID sets the "subscriptions" edge to the Subscription entity by ID.
-func (uuo *UserUpdateOne) SetSubscriptionsID(id uuid.UUID) *UserUpdateOne {
-	uuo.mutation.SetSubscriptionsID(id)
+// AddCreditIDs adds the "credits" edge to the Credit entity by IDs.
+func (uuo *UserUpdateOne) AddCreditIDs(ids ...uuid.UUID) *UserUpdateOne {
+	uuo.mutation.AddCreditIDs(ids...)
 	return uuo
 }
 
-// SetNillableSubscriptionsID sets the "subscriptions" edge to the Subscription entity by ID if the given value is not nil.
-func (uuo *UserUpdateOne) SetNillableSubscriptionsID(id *uuid.UUID) *UserUpdateOne {
-	if id != nil {
-		uuo = uuo.SetSubscriptionsID(*id)
+// AddCredits adds the "credits" edges to the Credit entity.
+func (uuo *UserUpdateOne) AddCredits(c ...*Credit) *UserUpdateOne {
+	ids := make([]uuid.UUID, len(c))
+	for i := range c {
+		ids[i] = c[i].ID
 	}
-	return uuo
-}
-
-// SetSubscriptions sets the "subscriptions" edge to the Subscription entity.
-func (uuo *UserUpdateOne) SetSubscriptions(s *Subscription) *UserUpdateOne {
-	return uuo.SetSubscriptionsID(s.ID)
+	return uuo.AddCreditIDs(ids...)
 }
 
 // Mutation returns the UserMutation object of the builder.
@@ -705,10 +731,25 @@ func (uuo *UserUpdateOne) RemoveUpscales(u ...*Upscale) *UserUpdateOne {
 	return uuo.RemoveUpscaleIDs(ids...)
 }
 
-// ClearSubscriptions clears the "subscriptions" edge to the Subscription entity.
-func (uuo *UserUpdateOne) ClearSubscriptions() *UserUpdateOne {
-	uuo.mutation.ClearSubscriptions()
+// ClearCredits clears all "credits" edges to the Credit entity.
+func (uuo *UserUpdateOne) ClearCredits() *UserUpdateOne {
+	uuo.mutation.ClearCredits()
 	return uuo
+}
+
+// RemoveCreditIDs removes the "credits" edge to Credit entities by IDs.
+func (uuo *UserUpdateOne) RemoveCreditIDs(ids ...uuid.UUID) *UserUpdateOne {
+	uuo.mutation.RemoveCreditIDs(ids...)
+	return uuo
+}
+
+// RemoveCredits removes "credits" edges to Credit entities.
+func (uuo *UserUpdateOne) RemoveCredits(c ...*Credit) *UserUpdateOne {
+	ids := make([]uuid.UUID, len(c))
+	for i := range c {
+		ids[i] = c[i].ID
+	}
+	return uuo.RemoveCreditIDs(ids...)
 }
 
 // Select allows selecting one or more fields (columns) of the returned entity.
@@ -975,33 +1016,52 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if uuo.mutation.SubscriptionsCleared() {
+	if uuo.mutation.CreditsCleared() {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2O,
+			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   user.SubscriptionsTable,
-			Columns: []string{user.SubscriptionsColumn},
+			Table:   user.CreditsTable,
+			Columns: []string{user.CreditsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeUUID,
-					Column: subscription.FieldID,
+					Column: credit.FieldID,
 				},
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := uuo.mutation.SubscriptionsIDs(); len(nodes) > 0 {
+	if nodes := uuo.mutation.RemovedCreditsIDs(); len(nodes) > 0 && !uuo.mutation.CreditsCleared() {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2O,
+			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   user.SubscriptionsTable,
-			Columns: []string{user.SubscriptionsColumn},
+			Table:   user.CreditsTable,
+			Columns: []string{user.CreditsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeUUID,
-					Column: subscription.FieldID,
+					Column: credit.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uuo.mutation.CreditsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.CreditsTable,
+			Columns: []string{user.CreditsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: credit.FieldID,
 				},
 			},
 		}

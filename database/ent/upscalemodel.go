@@ -17,10 +17,8 @@ type UpscaleModel struct {
 	config `json:"-"`
 	// ID of the ent.
 	ID uuid.UUID `json:"id,omitempty"`
-	// Name holds the value of the "name" field.
-	Name string `json:"name,omitempty"`
-	// IsFree holds the value of the "is_free" field.
-	IsFree bool `json:"is_free,omitempty"`
+	// NameInWorker holds the value of the "name_in_worker" field.
+	NameInWorker string `json:"name_in_worker,omitempty"`
 	// CreatedAt holds the value of the "created_at" field.
 	CreatedAt time.Time `json:"created_at,omitempty"`
 	// UpdatedAt holds the value of the "updated_at" field.
@@ -53,9 +51,7 @@ func (*UpscaleModel) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case upscalemodel.FieldIsFree:
-			values[i] = new(sql.NullBool)
-		case upscalemodel.FieldName:
+		case upscalemodel.FieldNameInWorker:
 			values[i] = new(sql.NullString)
 		case upscalemodel.FieldCreatedAt, upscalemodel.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
@@ -82,17 +78,11 @@ func (um *UpscaleModel) assignValues(columns []string, values []any) error {
 			} else if value != nil {
 				um.ID = *value
 			}
-		case upscalemodel.FieldName:
+		case upscalemodel.FieldNameInWorker:
 			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field name", values[i])
+				return fmt.Errorf("unexpected type %T for field name_in_worker", values[i])
 			} else if value.Valid {
-				um.Name = value.String
-			}
-		case upscalemodel.FieldIsFree:
-			if value, ok := values[i].(*sql.NullBool); !ok {
-				return fmt.Errorf("unexpected type %T for field is_free", values[i])
-			} else if value.Valid {
-				um.IsFree = value.Bool
+				um.NameInWorker = value.String
 			}
 		case upscalemodel.FieldCreatedAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
@@ -139,11 +129,8 @@ func (um *UpscaleModel) String() string {
 	var builder strings.Builder
 	builder.WriteString("UpscaleModel(")
 	builder.WriteString(fmt.Sprintf("id=%v, ", um.ID))
-	builder.WriteString("name=")
-	builder.WriteString(um.Name)
-	builder.WriteString(", ")
-	builder.WriteString("is_free=")
-	builder.WriteString(fmt.Sprintf("%v", um.IsFree))
+	builder.WriteString("name_in_worker=")
+	builder.WriteString(um.NameInWorker)
 	builder.WriteString(", ")
 	builder.WriteString("created_at=")
 	builder.WriteString(um.CreatedAt.Format(time.ANSIC))

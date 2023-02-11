@@ -105,41 +105,17 @@ func (c *RestAPI) HandleCreateGeneration(w http.ResponseWriter, r *http.Request)
 	fmt.Printf("--- Parse request headers took: %s\n", time.Now().Sub(start))
 
 	start = time.Now()
-	isProUser, err := c.Repo.IsProUser(*userID)
+	// Deduct credits from user
+	deducted, err := c.Repo.DeductCreditsFromUser(*userID, int32(generateReq.NumOutputs))
 	if err != nil {
-		klog.Errorf("Error checking if user is pro: %v", err)
-		responses.ErrInternalServerError(w, r, "Error retrieving user")
+		klog.Errorf("Error deducting credits: %v", err)
+		responses.ErrInternalServerError(w, r, "Error deducting credits from user")
+		return
+	} else if !deducted {
+		responses.ErrBadRequest(w, r, fmt.Sprintf("Not enough credits to generate, need %d", generateReq.NumOutputs))
 		return
 	}
-	fmt.Printf("--- Check if user is pro took: %s\n", time.Now().Sub(start))
-
-	// If not pro user, they are restricted from some features
-	start = time.Now()
-	if !isProUser {
-		if !shared.GetCache().IsGenerationModelAvailableForFree(generateReq.ModelId) {
-			responses.ErrBadRequest(w, r, "That model is not available on the free plan :(")
-			return
-		}
-		if !shared.GetCache().IsSchedulerAvailableForFree(generateReq.SchedulerId) {
-			responses.ErrBadRequest(w, r, "That scheduler is not available on the free plan :(")
-			return
-		}
-		if !shared.GetCache().IsHeightAvailableForFree(generateReq.Height) {
-			responses.ErrBadRequest(w, r, "That generation height is not available on the free plan :(")
-			return
-		}
-		if !shared.GetCache().IsWidthAvailableForFree(generateReq.Width) {
-			responses.ErrBadRequest(w, r, "That generation width is not available on the free plan :(")
-			return
-		}
-		if !shared.GetCache().IsNumInterferenceStepsAvailableForFree(generateReq.InferenceSteps) {
-			responses.ErrBadRequest(w, r, "That number of inference steps is not available on the free plan :(")
-			return
-		}
-	}
-	fmt.Printf("--- Check pro features: %s\n", time.Now().Sub(start))
-
-	// ! TODO - rate limit free
+	fmt.Printf("--- Deduct credits took took: %s\n", time.Now().Sub(start))
 
 	// ! TODO - parallel generation toggle
 

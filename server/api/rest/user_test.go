@@ -21,7 +21,7 @@ func TestHandleQueryGenerationsDontExist(t *testing.T) {
 	req := httptest.NewRequest("GET", "/gens", nil)
 	req.Header.Set("Content-Type", "application/json")
 
-	ctx := context.WithValue(req.Context(), "user_id", repository.MOCK_FREE_UUID)
+	ctx := context.WithValue(req.Context(), "user_id", repository.MOCK_NO_CREDITS_UUID)
 
 	MockController.HandleQueryGenerations(w, req.WithContext(ctx))
 	resp := w.Result()
@@ -218,7 +218,7 @@ func TestHandleQueryGenerationsBadPerPage(t *testing.T) {
 	req := httptest.NewRequest("GET", "/gens?per_page=HelloWorld", nil)
 	req.Header.Set("Content-Type", "application/json")
 
-	ctx := context.WithValue(req.Context(), "user_id", repository.MOCK_FREE_UUID)
+	ctx := context.WithValue(req.Context(), "user_id", repository.MOCK_NORMAL_UUID)
 
 	MockController.HandleQueryGenerations(w, req.WithContext(ctx))
 	resp := w.Result()
@@ -236,7 +236,7 @@ func TestHandleQueryGenerationsBadPerPage(t *testing.T) {
 	req = httptest.NewRequest("GET", "/gens?per_page=-1", nil)
 	req.Header.Set("Content-Type", "application/json")
 
-	ctx = context.WithValue(req.Context(), "user_id", repository.MOCK_FREE_UUID)
+	ctx = context.WithValue(req.Context(), "user_id", repository.MOCK_NORMAL_UUID)
 
 	MockController.HandleQueryGenerations(w, req.WithContext(ctx))
 	resp = w.Result()
@@ -252,7 +252,7 @@ func TestHandleQueryGenerationsBadPerPage(t *testing.T) {
 	req = httptest.NewRequest("GET", "/gens?per_page=101", nil)
 	req.Header.Set("Content-Type", "application/json")
 
-	ctx = context.WithValue(req.Context(), "user_id", repository.MOCK_FREE_UUID)
+	ctx = context.WithValue(req.Context(), "user_id", repository.MOCK_NORMAL_UUID)
 
 	MockController.HandleQueryGenerations(w, req.WithContext(ctx))
 	resp = w.Result()
@@ -270,7 +270,7 @@ func TestHandleQueryGenerationsBadOffset(t *testing.T) {
 	req := httptest.NewRequest("GET", "/gens?offset=HelloWorld", nil)
 	req.Header.Set("Content-Type", "application/json")
 
-	ctx := context.WithValue(req.Context(), "user_id", repository.MOCK_FREE_UUID)
+	ctx := context.WithValue(req.Context(), "user_id", repository.MOCK_NORMAL_UUID)
 
 	MockController.HandleQueryGenerations(w, req.WithContext(ctx))
 	resp := w.Result()

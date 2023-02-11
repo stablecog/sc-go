@@ -31,23 +31,9 @@ func (gmu *GenerationModelUpdate) Where(ps ...predicate.GenerationModel) *Genera
 	return gmu
 }
 
-// SetName sets the "name" field.
-func (gmu *GenerationModelUpdate) SetName(s string) *GenerationModelUpdate {
-	gmu.mutation.SetName(s)
-	return gmu
-}
-
-// SetIsFree sets the "is_free" field.
-func (gmu *GenerationModelUpdate) SetIsFree(b bool) *GenerationModelUpdate {
-	gmu.mutation.SetIsFree(b)
-	return gmu
-}
-
-// SetNillableIsFree sets the "is_free" field if the given value is not nil.
-func (gmu *GenerationModelUpdate) SetNillableIsFree(b *bool) *GenerationModelUpdate {
-	if b != nil {
-		gmu.SetIsFree(*b)
-	}
+// SetNameInWorker sets the "name_in_worker" field.
+func (gmu *GenerationModelUpdate) SetNameInWorker(s string) *GenerationModelUpdate {
+	gmu.mutation.SetNameInWorker(s)
 	return gmu
 }
 
@@ -158,11 +144,8 @@ func (gmu *GenerationModelUpdate) sqlSave(ctx context.Context) (n int, err error
 			}
 		}
 	}
-	if value, ok := gmu.mutation.Name(); ok {
-		_spec.SetField(generationmodel.FieldName, field.TypeString, value)
-	}
-	if value, ok := gmu.mutation.IsFree(); ok {
-		_spec.SetField(generationmodel.FieldIsFree, field.TypeBool, value)
+	if value, ok := gmu.mutation.NameInWorker(); ok {
+		_spec.SetField(generationmodel.FieldNameInWorker, field.TypeString, value)
 	}
 	if value, ok := gmu.mutation.UpdatedAt(); ok {
 		_spec.SetField(generationmodel.FieldUpdatedAt, field.TypeTime, value)
@@ -243,23 +226,9 @@ type GenerationModelUpdateOne struct {
 	modifiers []func(*sql.UpdateBuilder)
 }
 
-// SetName sets the "name" field.
-func (gmuo *GenerationModelUpdateOne) SetName(s string) *GenerationModelUpdateOne {
-	gmuo.mutation.SetName(s)
-	return gmuo
-}
-
-// SetIsFree sets the "is_free" field.
-func (gmuo *GenerationModelUpdateOne) SetIsFree(b bool) *GenerationModelUpdateOne {
-	gmuo.mutation.SetIsFree(b)
-	return gmuo
-}
-
-// SetNillableIsFree sets the "is_free" field if the given value is not nil.
-func (gmuo *GenerationModelUpdateOne) SetNillableIsFree(b *bool) *GenerationModelUpdateOne {
-	if b != nil {
-		gmuo.SetIsFree(*b)
-	}
+// SetNameInWorker sets the "name_in_worker" field.
+func (gmuo *GenerationModelUpdateOne) SetNameInWorker(s string) *GenerationModelUpdateOne {
+	gmuo.mutation.SetNameInWorker(s)
 	return gmuo
 }
 
@@ -394,11 +363,8 @@ func (gmuo *GenerationModelUpdateOne) sqlSave(ctx context.Context) (_node *Gener
 			}
 		}
 	}
-	if value, ok := gmuo.mutation.Name(); ok {
-		_spec.SetField(generationmodel.FieldName, field.TypeString, value)
-	}
-	if value, ok := gmuo.mutation.IsFree(); ok {
-		_spec.SetField(generationmodel.FieldIsFree, field.TypeBool, value)
+	if value, ok := gmuo.mutation.NameInWorker(); ok {
+		_spec.SetField(generationmodel.FieldNameInWorker, field.TypeString, value)
 	}
 	if value, ok := gmuo.mutation.UpdatedAt(); ok {
 		_spec.SetField(generationmodel.FieldUpdatedAt, field.TypeTime, value)

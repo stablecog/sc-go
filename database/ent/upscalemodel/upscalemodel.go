@@ -13,10 +13,8 @@ const (
 	Label = "upscale_model"
 	// FieldID holds the string denoting the id field in the database.
 	FieldID = "id"
-	// FieldName holds the string denoting the name field in the database.
-	FieldName = "name"
-	// FieldIsFree holds the string denoting the is_free field in the database.
-	FieldIsFree = "is_free"
+	// FieldNameInWorker holds the string denoting the name_in_worker field in the database.
+	FieldNameInWorker = "name_in_worker"
 	// FieldCreatedAt holds the string denoting the created_at field in the database.
 	FieldCreatedAt = "created_at"
 	// FieldUpdatedAt holds the string denoting the updated_at field in the database.
@@ -37,8 +35,7 @@ const (
 // Columns holds all SQL columns for upscalemodel fields.
 var Columns = []string{
 	FieldID,
-	FieldName,
-	FieldIsFree,
+	FieldNameInWorker,
 	FieldCreatedAt,
 	FieldUpdatedAt,
 }
@@ -54,8 +51,6 @@ func ValidColumn(column string) bool {
 }
 
 var (
-	// DefaultIsFree holds the default value on creation for the "is_free" field.
-	DefaultIsFree bool
 	// DefaultCreatedAt holds the default value on creation for the "created_at" field.
 	DefaultCreatedAt func() time.Time
 	// DefaultUpdatedAt holds the default value on creation for the "updated_at" field.

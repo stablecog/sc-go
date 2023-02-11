@@ -88,25 +88,6 @@ func (f *Cache) IsValidShedulerID(id uuid.UUID) bool {
 	}
 	return false
 }
-
-func (f *Cache) IsGenerationModelAvailableForFree(id uuid.UUID) bool {
-	for _, model := range f.GenerateModels {
-		if model.ID == id && model.IsFree {
-			return true
-		}
-	}
-	return false
-}
-
-func (f *Cache) IsSchedulerAvailableForFree(id uuid.UUID) bool {
-	for _, scheduler := range f.Schedulers {
-		if scheduler.ID == id && scheduler.IsFree {
-			return true
-		}
-	}
-	return false
-}
-
 func (f *Cache) IsWidthAvailableForFree(width int32) bool {
 	return slices.Contains(f.FreeWidths, width)
 }
@@ -122,7 +103,7 @@ func (f *Cache) IsNumInterferenceStepsAvailableForFree(width int32) bool {
 func (f *Cache) GetGenerationModelNameFromID(id uuid.UUID) string {
 	for _, model := range f.GenerateModels {
 		if model.ID == id {
-			return model.Name
+			return model.NameInWorker
 		}
 	}
 	return ""
@@ -131,7 +112,7 @@ func (f *Cache) GetGenerationModelNameFromID(id uuid.UUID) string {
 func (f *Cache) GetUpscaleModelNameFromID(id uuid.UUID) string {
 	for _, model := range f.UpscaleModels {
 		if model.ID == id {
-			return model.Name
+			return model.NameInWorker
 		}
 	}
 	return ""
@@ -140,7 +121,7 @@ func (f *Cache) GetUpscaleModelNameFromID(id uuid.UUID) string {
 func (f *Cache) GetSchedulerNameFromID(id uuid.UUID) string {
 	for _, scheduler := range f.Schedulers {
 		if scheduler.ID == id {
-			return scheduler.Name
+			return scheduler.NameInWorker
 		}
 	}
 	return ""

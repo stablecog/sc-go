@@ -14,6 +14,10 @@ import (
 // Tx is a transactional client that is created by calling Client.Tx().
 type Tx struct {
 	config
+	// Credit is the client for interacting with the Credit builders.
+	Credit *CreditClient
+	// CreditType is the client for interacting with the CreditType builders.
+	CreditType *CreditTypeClient
 	// DeviceInfo is the client for interacting with the DeviceInfo builders.
 	DeviceInfo *DeviceInfoClient
 	// Generation is the client for interacting with the Generation builders.
@@ -28,10 +32,6 @@ type Tx struct {
 	Prompt *PromptClient
 	// Scheduler is the client for interacting with the Scheduler builders.
 	Scheduler *SchedulerClient
-	// Subscription is the client for interacting with the Subscription builders.
-	Subscription *SubscriptionClient
-	// SubscriptionTier is the client for interacting with the SubscriptionTier builders.
-	SubscriptionTier *SubscriptionTierClient
 	// Upscale is the client for interacting with the Upscale builders.
 	Upscale *UpscaleClient
 	// UpscaleModel is the client for interacting with the UpscaleModel builders.
@@ -173,6 +173,8 @@ func (tx *Tx) Client() *Client {
 }
 
 func (tx *Tx) init() {
+	tx.Credit = NewCreditClient(tx.config)
+	tx.CreditType = NewCreditTypeClient(tx.config)
 	tx.DeviceInfo = NewDeviceInfoClient(tx.config)
 	tx.Generation = NewGenerationClient(tx.config)
 	tx.GenerationModel = NewGenerationModelClient(tx.config)
@@ -180,8 +182,6 @@ func (tx *Tx) init() {
 	tx.NegativePrompt = NewNegativePromptClient(tx.config)
 	tx.Prompt = NewPromptClient(tx.config)
 	tx.Scheduler = NewSchedulerClient(tx.config)
-	tx.Subscription = NewSubscriptionClient(tx.config)
-	tx.SubscriptionTier = NewSubscriptionTierClient(tx.config)
 	tx.Upscale = NewUpscaleClient(tx.config)
 	tx.UpscaleModel = NewUpscaleModelClient(tx.config)
 	tx.UpscaleOutput = NewUpscaleOutputClient(tx.config)
@@ -196,7 +196,7 @@ func (tx *Tx) init() {
 // of them in order to commit or rollback the transaction.
 //
 // If a closed transaction is embedded in one of the generated entities, and the entity
-// applies a query, for example: DeviceInfo.QueryXXX(), the query will be executed
+// applies a query, for example: Credit.QueryXXX(), the query will be executed
 // through the driver which created this transaction.
 //
 // Note that txDriver is not goroutine safe.

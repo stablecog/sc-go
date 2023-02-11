@@ -6,6 +6,12 @@ import (
 	"entgo.io/ent/dialect/sql"
 )
 
+// Credit is the predicate function for credit builders.
+type Credit func(*sql.Selector)
+
+// CreditType is the predicate function for credittype builders.
+type CreditType func(*sql.Selector)
+
 // DeviceInfo is the predicate function for deviceinfo builders.
 type DeviceInfo func(*sql.Selector)
 
@@ -26,12 +32,6 @@ type Prompt func(*sql.Selector)
 
 // Scheduler is the predicate function for scheduler builders.
 type Scheduler func(*sql.Selector)
-
-// Subscription is the predicate function for subscription builders.
-type Subscription func(*sql.Selector)
-
-// SubscriptionTier is the predicate function for subscriptiontier builders.
-type SubscriptionTier func(*sql.Selector)
 
 // Upscale is the predicate function for upscale builders.
 type Upscale func(*sql.Selector)
