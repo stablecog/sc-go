@@ -72,17 +72,6 @@ func (c *RestAPI) HandleUpscale(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Charge credits
-	deducted, err := c.Repo.DeductCreditsFromUser(*userID, 1)
-	if err != nil {
-		klog.Errorf("Error deducting credits: %v", err)
-		responses.ErrInternalServerError(w, r, "Error deducting credits from user")
-		return
-	} else if !deducted {
-		responses.ErrBadRequest(w, r, "Not enough credits to upscale, need 1")
-		return
-	}
-
 	// Initiate upscale
 	// We need to get width/height, from our database if output otherwise from the external image
 	var width int32
@@ -125,6 +114,19 @@ func (c *RestAPI) HandleUpscale(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	// TODO - charge credits should be done in a transaction
+
+	// Charge credits
+	deducted, err := c.Repo.DeductCreditsFromUser(*userID, 1)
+	if err != nil {
+		klog.Errorf("Error deducting credits: %v", err)
+		responses.ErrInternalServerError(w, r, "Error deducting credits from user")
+		return
+	} else if !deducted {
+		responses.ErrBadRequest(w, r, "Not enough credits to upscale, need 1")
+		return
+	}
+
 	// Create upscale
 	upscale, err := c.Repo.CreateUpscale(
 		*userID,
@@ -138,6 +140,8 @@ func (c *RestAPI) HandleUpscale(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		klog.Errorf("Error creating upscale: %v", err)
 		responses.ErrInternalServerError(w, r, "Error creating upscale")
+		// TODO - won't be necessary when in a transaction
+		c.Repo.RefundCreditsToUser(*userID, 1)
 		return
 	}
 
@@ -160,6 +164,8 @@ func (c *RestAPI) HandleUpscale(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		klog.Errorf("Failed to write request %s to queue: %v", requestId, err)
 		responses.ErrInternalServerError(w, r, "Failed to queue upscale request")
+		// TODO - won't be necessary when in a transaction
+		c.Repo.RefundCreditsToUser(*userID, 1)
 		return
 	}
 

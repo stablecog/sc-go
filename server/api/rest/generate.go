@@ -106,18 +106,6 @@ func (c *RestAPI) HandleCreateGeneration(w http.ResponseWriter, r *http.Request)
 
 	start = time.Now()
 
-	// Deduct credits from user
-	deducted, err := c.Repo.DeductCreditsFromUser(*userID, int32(generateReq.NumOutputs))
-	if err != nil {
-		klog.Errorf("Error deducting credits: %v", err)
-		responses.ErrInternalServerError(w, r, "Error deducting credits from user")
-		return
-	} else if !deducted {
-		responses.ErrBadRequest(w, r, fmt.Sprintf("Not enough credits to generate, need %d", generateReq.NumOutputs))
-		return
-	}
-	fmt.Printf("--- Deduct credits took took: %s\n", time.Now().Sub(start))
-
 	// ! TODO - parallel generation toggle
 
 	// Get model and scheduler name for cog
@@ -135,6 +123,20 @@ func (c *RestAPI) HandleCreateGeneration(w http.ResponseWriter, r *http.Request)
 	generateReq.NegativePrompt = utils.FormatPrompt(generateReq.NegativePrompt)
 	fmt.Printf("--- Format prompts took: %s\n", time.Now().Sub(start))
 
+	// TODO - work the following into a single transaction with create generation
+
+	// Deduct credits from user
+	deducted, err := c.Repo.DeductCreditsFromUser(*userID, int32(generateReq.NumOutputs))
+	if err != nil {
+		klog.Errorf("Error deducting credits: %v", err)
+		responses.ErrInternalServerError(w, r, "Error deducting credits from user")
+		return
+	} else if !deducted {
+		responses.ErrBadRequest(w, r, fmt.Sprintf("Not enough credits to generate, need %d", generateReq.NumOutputs))
+		return
+	}
+	fmt.Printf("--- Deduct credits took took: %s\n", time.Now().Sub(start))
+
 	// Create generation
 	start = time.Now()
 	g, err := c.Repo.CreateGeneration(
@@ -147,6 +149,8 @@ func (c *RestAPI) HandleCreateGeneration(w http.ResponseWriter, r *http.Request)
 	if err != nil {
 		klog.Errorf("Error creating generation: %v", err)
 		responses.ErrInternalServerError(w, r, "Error creating generation")
+		// TODO - refunding won't be necessary when we do a single transaction
+		c.Repo.RefundCreditsToUser(*userID, int32(generateReq.NumOutputs))
 		return
 	}
 	fmt.Printf("--- Create generation took: %s\n", time.Now().Sub(start))
@@ -180,6 +184,8 @@ func (c *RestAPI) HandleCreateGeneration(w http.ResponseWriter, r *http.Request)
 	if err != nil {
 		klog.Errorf("Failed to write request %s to queue: %v", requestId, err)
 		responses.ErrInternalServerError(w, r, "Failed to queue generate request")
+		// TODO - refunding won't be necessary when we do a single transaction
+		c.Repo.RefundCreditsToUser(*userID, int32(generateReq.NumOutputs))
 		return
 	}
 	fmt.Printf("--- Enqueue cog request took: %s\n", time.Now().Sub(start))
