@@ -52,6 +52,26 @@ func (gc *GenerationCreate) SetGuidanceScale(f float32) *GenerationCreate {
 	return gc
 }
 
+// SetNumOutputs sets the "num_outputs" field.
+func (gc *GenerationCreate) SetNumOutputs(i int32) *GenerationCreate {
+	gc.mutation.SetNumOutputs(i)
+	return gc
+}
+
+// SetNsfwCount sets the "nsfw_count" field.
+func (gc *GenerationCreate) SetNsfwCount(i int32) *GenerationCreate {
+	gc.mutation.SetNsfwCount(i)
+	return gc
+}
+
+// SetNillableNsfwCount sets the "nsfw_count" field if the given value is not nil.
+func (gc *GenerationCreate) SetNillableNsfwCount(i *int32) *GenerationCreate {
+	if i != nil {
+		gc.SetNsfwCount(*i)
+	}
+	return gc
+}
+
 // SetSeed sets the "seed" field.
 func (gc *GenerationCreate) SetSeed(i int) *GenerationCreate {
 	gc.mutation.SetSeed(i)
@@ -312,6 +332,10 @@ func (gc *GenerationCreate) ExecX(ctx context.Context) {
 
 // defaults sets the default values of the builder before save.
 func (gc *GenerationCreate) defaults() {
+	if _, ok := gc.mutation.NsfwCount(); !ok {
+		v := generation.DefaultNsfwCount
+		gc.mutation.SetNsfwCount(v)
+	}
 	if _, ok := gc.mutation.ShouldSubmitToGallery(); !ok {
 		v := generation.DefaultShouldSubmitToGallery
 		gc.mutation.SetShouldSubmitToGallery(v)
@@ -343,6 +367,12 @@ func (gc *GenerationCreate) check() error {
 	}
 	if _, ok := gc.mutation.GuidanceScale(); !ok {
 		return &ValidationError{Name: "guidance_scale", err: errors.New(`ent: missing required field "Generation.guidance_scale"`)}
+	}
+	if _, ok := gc.mutation.NumOutputs(); !ok {
+		return &ValidationError{Name: "num_outputs", err: errors.New(`ent: missing required field "Generation.num_outputs"`)}
+	}
+	if _, ok := gc.mutation.NsfwCount(); !ok {
+		return &ValidationError{Name: "nsfw_count", err: errors.New(`ent: missing required field "Generation.nsfw_count"`)}
 	}
 	if _, ok := gc.mutation.Seed(); !ok {
 		return &ValidationError{Name: "seed", err: errors.New(`ent: missing required field "Generation.seed"`)}
@@ -453,6 +483,14 @@ func (gc *GenerationCreate) createSpec() (*Generation, *sqlgraph.CreateSpec) {
 	if value, ok := gc.mutation.GuidanceScale(); ok {
 		_spec.SetField(generation.FieldGuidanceScale, field.TypeFloat32, value)
 		_node.GuidanceScale = value
+	}
+	if value, ok := gc.mutation.NumOutputs(); ok {
+		_spec.SetField(generation.FieldNumOutputs, field.TypeInt32, value)
+		_node.NumOutputs = value
+	}
+	if value, ok := gc.mutation.NsfwCount(); ok {
+		_spec.SetField(generation.FieldNsfwCount, field.TypeInt32, value)
+		_node.NsfwCount = value
 	}
 	if value, ok := gc.mutation.Seed(); ok {
 		_spec.SetField(generation.FieldSeed, field.TypeInt, value)

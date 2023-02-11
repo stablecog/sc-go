@@ -2327,6 +2327,10 @@ type GenerationMutation struct {
 	addinference_steps        *int32
 	guidance_scale            *float32
 	addguidance_scale         *float32
+	num_outputs               *int32
+	addnum_outputs            *int32
+	nsfw_count                *int32
+	addnsfw_count             *int32
 	seed                      *int
 	addseed                   *int
 	status                    *generation.Status
@@ -2685,6 +2689,118 @@ func (m *GenerationMutation) AddedGuidanceScale() (r float32, exists bool) {
 func (m *GenerationMutation) ResetGuidanceScale() {
 	m.guidance_scale = nil
 	m.addguidance_scale = nil
+}
+
+// SetNumOutputs sets the "num_outputs" field.
+func (m *GenerationMutation) SetNumOutputs(i int32) {
+	m.num_outputs = &i
+	m.addnum_outputs = nil
+}
+
+// NumOutputs returns the value of the "num_outputs" field in the mutation.
+func (m *GenerationMutation) NumOutputs() (r int32, exists bool) {
+	v := m.num_outputs
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldNumOutputs returns the old "num_outputs" field's value of the Generation entity.
+// If the Generation object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *GenerationMutation) OldNumOutputs(ctx context.Context) (v int32, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldNumOutputs is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldNumOutputs requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldNumOutputs: %w", err)
+	}
+	return oldValue.NumOutputs, nil
+}
+
+// AddNumOutputs adds i to the "num_outputs" field.
+func (m *GenerationMutation) AddNumOutputs(i int32) {
+	if m.addnum_outputs != nil {
+		*m.addnum_outputs += i
+	} else {
+		m.addnum_outputs = &i
+	}
+}
+
+// AddedNumOutputs returns the value that was added to the "num_outputs" field in this mutation.
+func (m *GenerationMutation) AddedNumOutputs() (r int32, exists bool) {
+	v := m.addnum_outputs
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetNumOutputs resets all changes to the "num_outputs" field.
+func (m *GenerationMutation) ResetNumOutputs() {
+	m.num_outputs = nil
+	m.addnum_outputs = nil
+}
+
+// SetNsfwCount sets the "nsfw_count" field.
+func (m *GenerationMutation) SetNsfwCount(i int32) {
+	m.nsfw_count = &i
+	m.addnsfw_count = nil
+}
+
+// NsfwCount returns the value of the "nsfw_count" field in the mutation.
+func (m *GenerationMutation) NsfwCount() (r int32, exists bool) {
+	v := m.nsfw_count
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldNsfwCount returns the old "nsfw_count" field's value of the Generation entity.
+// If the Generation object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *GenerationMutation) OldNsfwCount(ctx context.Context) (v int32, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldNsfwCount is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldNsfwCount requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldNsfwCount: %w", err)
+	}
+	return oldValue.NsfwCount, nil
+}
+
+// AddNsfwCount adds i to the "nsfw_count" field.
+func (m *GenerationMutation) AddNsfwCount(i int32) {
+	if m.addnsfw_count != nil {
+		*m.addnsfw_count += i
+	} else {
+		m.addnsfw_count = &i
+	}
+}
+
+// AddedNsfwCount returns the value that was added to the "nsfw_count" field in this mutation.
+func (m *GenerationMutation) AddedNsfwCount() (r int32, exists bool) {
+	v := m.addnsfw_count
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetNsfwCount resets all changes to the "nsfw_count" field.
+func (m *GenerationMutation) ResetNsfwCount() {
+	m.nsfw_count = nil
+	m.addnsfw_count = nil
 }
 
 // SetSeed sets the "seed" field.
@@ -3605,7 +3721,7 @@ func (m *GenerationMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *GenerationMutation) Fields() []string {
-	fields := make([]string, 0, 20)
+	fields := make([]string, 0, 22)
 	if m.width != nil {
 		fields = append(fields, generation.FieldWidth)
 	}
@@ -3617,6 +3733,12 @@ func (m *GenerationMutation) Fields() []string {
 	}
 	if m.guidance_scale != nil {
 		fields = append(fields, generation.FieldGuidanceScale)
+	}
+	if m.num_outputs != nil {
+		fields = append(fields, generation.FieldNumOutputs)
+	}
+	if m.nsfw_count != nil {
+		fields = append(fields, generation.FieldNsfwCount)
 	}
 	if m.seed != nil {
 		fields = append(fields, generation.FieldSeed)
@@ -3682,6 +3804,10 @@ func (m *GenerationMutation) Field(name string) (ent.Value, bool) {
 		return m.InferenceSteps()
 	case generation.FieldGuidanceScale:
 		return m.GuidanceScale()
+	case generation.FieldNumOutputs:
+		return m.NumOutputs()
+	case generation.FieldNsfwCount:
+		return m.NsfwCount()
 	case generation.FieldSeed:
 		return m.Seed()
 	case generation.FieldStatus:
@@ -3731,6 +3857,10 @@ func (m *GenerationMutation) OldField(ctx context.Context, name string) (ent.Val
 		return m.OldInferenceSteps(ctx)
 	case generation.FieldGuidanceScale:
 		return m.OldGuidanceScale(ctx)
+	case generation.FieldNumOutputs:
+		return m.OldNumOutputs(ctx)
+	case generation.FieldNsfwCount:
+		return m.OldNsfwCount(ctx)
 	case generation.FieldSeed:
 		return m.OldSeed(ctx)
 	case generation.FieldStatus:
@@ -3799,6 +3929,20 @@ func (m *GenerationMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetGuidanceScale(v)
+		return nil
+	case generation.FieldNumOutputs:
+		v, ok := value.(int32)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetNumOutputs(v)
+		return nil
+	case generation.FieldNsfwCount:
+		v, ok := value.(int32)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetNsfwCount(v)
 		return nil
 	case generation.FieldSeed:
 		v, ok := value.(int)
@@ -3932,6 +4076,12 @@ func (m *GenerationMutation) AddedFields() []string {
 	if m.addguidance_scale != nil {
 		fields = append(fields, generation.FieldGuidanceScale)
 	}
+	if m.addnum_outputs != nil {
+		fields = append(fields, generation.FieldNumOutputs)
+	}
+	if m.addnsfw_count != nil {
+		fields = append(fields, generation.FieldNsfwCount)
+	}
 	if m.addseed != nil {
 		fields = append(fields, generation.FieldSeed)
 	}
@@ -3951,6 +4101,10 @@ func (m *GenerationMutation) AddedField(name string) (ent.Value, bool) {
 		return m.AddedInferenceSteps()
 	case generation.FieldGuidanceScale:
 		return m.AddedGuidanceScale()
+	case generation.FieldNumOutputs:
+		return m.AddedNumOutputs()
+	case generation.FieldNsfwCount:
+		return m.AddedNsfwCount()
 	case generation.FieldSeed:
 		return m.AddedSeed()
 	}
@@ -3989,6 +4143,20 @@ func (m *GenerationMutation) AddField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.AddGuidanceScale(v)
+		return nil
+	case generation.FieldNumOutputs:
+		v, ok := value.(int32)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddNumOutputs(v)
+		return nil
+	case generation.FieldNsfwCount:
+		v, ok := value.(int32)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddNsfwCount(v)
 		return nil
 	case generation.FieldSeed:
 		v, ok := value.(int)
@@ -4068,6 +4236,12 @@ func (m *GenerationMutation) ResetField(name string) error {
 		return nil
 	case generation.FieldGuidanceScale:
 		m.ResetGuidanceScale()
+		return nil
+	case generation.FieldNumOutputs:
+		m.ResetNumOutputs()
+		return nil
+	case generation.FieldNsfwCount:
+		m.ResetNsfwCount()
 		return nil
 	case generation.FieldSeed:
 		m.ResetSeed()

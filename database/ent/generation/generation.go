@@ -22,6 +22,10 @@ const (
 	FieldInferenceSteps = "inference_steps"
 	// FieldGuidanceScale holds the string denoting the guidance_scale field in the database.
 	FieldGuidanceScale = "guidance_scale"
+	// FieldNumOutputs holds the string denoting the num_outputs field in the database.
+	FieldNumOutputs = "num_outputs"
+	// FieldNsfwCount holds the string denoting the nsfw_count field in the database.
+	FieldNsfwCount = "nsfw_count"
 	// FieldSeed holds the string denoting the seed field in the database.
 	FieldSeed = "seed"
 	// FieldStatus holds the string denoting the status field in the database.
@@ -128,6 +132,8 @@ var Columns = []string{
 	FieldHeight,
 	FieldInferenceSteps,
 	FieldGuidanceScale,
+	FieldNumOutputs,
+	FieldNsfwCount,
 	FieldSeed,
 	FieldStatus,
 	FieldFailureReason,
@@ -157,6 +163,8 @@ func ValidColumn(column string) bool {
 }
 
 var (
+	// DefaultNsfwCount holds the default value on creation for the "nsfw_count" field.
+	DefaultNsfwCount int32
 	// DefaultShouldSubmitToGallery holds the default value on creation for the "should_submit_to_gallery" field.
 	DefaultShouldSubmitToGallery bool
 	// DefaultCreatedAt holds the default value on creation for the "created_at" field.

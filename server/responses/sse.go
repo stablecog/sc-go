@@ -17,6 +17,6 @@ type SSEStatusUpdateResponse struct {
 	Id        string                       `json:"id"`
 	StreamId  string                       `json:"stream_id"`
 	Error     string                       `json:"error,omitempty"`
-	NSFWCount int                          `json:"nsfw_count,omitempty"`
+	NSFWCount int32                        `json:"nsfw_count,omitempty"`
 	Outputs   []WebhookStatusUpdateOutputs `json:"outputs,omitempty"`
 }

@@ -25,6 +25,8 @@ func (Generation) Fields() []ent.Field {
 		field.Int32("height"),
 		field.Int32("inference_steps"),
 		field.Float32("guidance_scale"),
+		field.Int32("num_outputs"),
+		field.Int32("nsfw_count").Default(0),
 		field.Int("seed"),
 		field.Enum("status").Values("queued", "started", "succeeded", "failed"),
 		field.Text("failure_reason").Optional().Nillable(),

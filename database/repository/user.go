@@ -128,7 +128,7 @@ func (r *Repository) ProcessCogMessage(msg responses.CogStatusUpdate) {
 				return
 			}
 		} else {
-			r.SetGenerationFailed(msg.Input.ID, msg.Error)
+			r.SetGenerationFailed(msg.Input.ID, msg.Error, msg.NSFWCount)
 			user, err := r.DB.Generation.Query().Where(generation.IDEQ(inputUuid)).QueryUser().Select(user.FieldID).First(r.Ctx)
 			if err != nil {
 				klog.Errorf("--- Error getting user ID from upscale: %v", err)
@@ -141,23 +141,26 @@ func (r *Repository) ProcessCogMessage(msg responses.CogStatusUpdate) {
 				klog.Errorf("--- Error parsing num outputs: %v", err)
 				return
 			}
-			// Do not refund credits if all outputs are nsfw
-			if msg.NSFWCount == numOutputs {
-				success, err := r.RefundCreditsToUser(userId, int32(numOutputs)-int32(msg.NSFWCount))
-				if err != nil || !success {
-					klog.Errorf("--- Error refunding credits to user %s for generation %s: %v", userId.String(), msg.Input.ID, err)
-					return
-				}
+			success, err := r.RefundCreditsToUser(userId, int32(numOutputs))
+			if err != nil || !success {
+				klog.Errorf("--- Error refunding credits to user %s for generation %s: %v", userId.String(), msg.Input.ID, err)
+				return
 			}
 		}
 		cogErr = msg.Error
 	} else if msg.Status == responses.CogSucceeded {
 		if len(msg.Outputs) == 0 {
-			cogErr = "No outputs"
+			// NSFW comes back as a success, but with no outputs and nsfw count
+			if msg.NSFWCount > 0 {
+				cogErr = "NSFW"
+			} else {
+				cogErr = "No outputs"
+				// TODO - this should probably be refunded if it ever happens
+			}
 			if msg.Input.ProcessType == shared.UPSCALE {
 				r.SetUpscaleFailed(msg.Input.ID, cogErr)
 			} else {
-				r.SetGenerationFailed(msg.Input.ID, cogErr)
+				r.SetGenerationFailed(msg.Input.ID, cogErr, msg.NSFWCount)
 			}
 			msg.Status = responses.CogFailed
 		} else {
@@ -165,7 +168,7 @@ func (r *Repository) ProcessCogMessage(msg responses.CogStatusUpdate) {
 				// ! Currently we are only assuming 1 output per upscale request
 				upscaleOutput, err = r.SetUpscaleSucceeded(msg.Input.ID, msg.Input.GenerationOutputID, msg.Outputs[0])
 			} else {
-				generationOutputs, err = r.SetGenerationSucceeded(msg.Input.ID, msg.Outputs)
+				generationOutputs, err = r.SetGenerationSucceeded(msg.Input.ID, msg.Outputs, msg.NSFWCount)
 			}
 			if err != nil {
 				klog.Errorf("--- Error setting %s succeeded for ID %s: %v", msg.Input.ProcessType, msg.Input.ID, err)

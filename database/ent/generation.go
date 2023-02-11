@@ -31,6 +31,10 @@ type Generation struct {
 	InferenceSteps int32 `json:"inference_steps,omitempty"`
 	// GuidanceScale holds the value of the "guidance_scale" field.
 	GuidanceScale float32 `json:"guidance_scale,omitempty"`
+	// NumOutputs holds the value of the "num_outputs" field.
+	NumOutputs int32 `json:"num_outputs,omitempty"`
+	// NsfwCount holds the value of the "nsfw_count" field.
+	NsfwCount int32 `json:"nsfw_count,omitempty"`
 	// Seed holds the value of the "seed" field.
 	Seed int `json:"seed,omitempty"`
 	// Status holds the value of the "status" field.
@@ -187,7 +191,7 @@ func (*Generation) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullBool)
 		case generation.FieldGuidanceScale:
 			values[i] = new(sql.NullFloat64)
-		case generation.FieldWidth, generation.FieldHeight, generation.FieldInferenceSteps, generation.FieldSeed:
+		case generation.FieldWidth, generation.FieldHeight, generation.FieldInferenceSteps, generation.FieldNumOutputs, generation.FieldNsfwCount, generation.FieldSeed:
 			values[i] = new(sql.NullInt64)
 		case generation.FieldStatus, generation.FieldFailureReason, generation.FieldCountryCode, generation.FieldInitImageURL:
 			values[i] = new(sql.NullString)
@@ -239,6 +243,18 @@ func (ge *Generation) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field guidance_scale", values[i])
 			} else if value.Valid {
 				ge.GuidanceScale = float32(value.Float64)
+			}
+		case generation.FieldNumOutputs:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field num_outputs", values[i])
+			} else if value.Valid {
+				ge.NumOutputs = int32(value.Int64)
+			}
+		case generation.FieldNsfwCount:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field nsfw_count", values[i])
+			} else if value.Valid {
+				ge.NsfwCount = int32(value.Int64)
 			}
 		case generation.FieldSeed:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
@@ -415,6 +431,12 @@ func (ge *Generation) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("guidance_scale=")
 	builder.WriteString(fmt.Sprintf("%v", ge.GuidanceScale))
+	builder.WriteString(", ")
+	builder.WriteString("num_outputs=")
+	builder.WriteString(fmt.Sprintf("%v", ge.NumOutputs))
+	builder.WriteString(", ")
+	builder.WriteString("nsfw_count=")
+	builder.WriteString(fmt.Sprintf("%v", ge.NsfwCount))
 	builder.WriteString(", ")
 	builder.WriteString("seed=")
 	builder.WriteString(fmt.Sprintf("%v", ge.Seed))

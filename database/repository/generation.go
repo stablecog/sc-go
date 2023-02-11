@@ -61,7 +61,8 @@ func (r *Repository) CreateGeneration(userID uuid.UUID, deviceType, deviceOs, de
 		SetDeviceInfoID(deviceInfoId).
 		SetCountryCode(countryCode).
 		SetUserID(userID).
-		SetShouldSubmitToGallery(req.ShouldSubmitToGallery)
+		SetShouldSubmitToGallery(req.ShouldSubmitToGallery).
+		SetNumOutputs(req.NumOutputs)
 	if negativePromptId != nil {
 		insert.SetNegativePromptID(*negativePromptId)
 	}
@@ -82,23 +83,23 @@ func (r *Repository) SetGenerationStarted(generationID string) error {
 	return err
 }
 
-func (r *Repository) SetGenerationFailed(generationID string, reason string) error {
+func (r *Repository) SetGenerationFailed(generationID string, reason string, nsfwCount int32) error {
 	uid, err := uuid.Parse(generationID)
 	if err != nil {
 		klog.Errorf("Error parsing generation id in SetGenerationFailed %s: %v", generationID, err)
 		return err
 	}
-	_, err = r.DB.Generation.UpdateOneID(uid).SetStatus(generation.StatusFailed).SetFailureReason(reason).Save(r.Ctx)
+	_, err = r.DB.Generation.UpdateOneID(uid).SetStatus(generation.StatusFailed).SetFailureReason(reason).SetNsfwCount(nsfwCount).Save(r.Ctx)
 	if err != nil {
 		klog.Errorf("Error setting generation failed %s: %v", generationID, err)
 	}
 	return err
 }
 
-func (r *Repository) SetGenerationSucceeded(generationID string, outputs []string) ([]*ent.GenerationOutput, error) {
+func (r *Repository) SetGenerationSucceeded(generationID string, outputs []string, nsfwCount int32) ([]*ent.GenerationOutput, error) {
 	uid, err := uuid.Parse(generationID)
 	if err != nil {
-		klog.Errorf("Error parsing generation id in SetGenerationFailed %s: %v", generationID, err)
+		klog.Errorf("Error parsing generation id in SetGenerationSucceeded %s: %v", generationID, err)
 		return nil, err
 	}
 	// Start a transaction
@@ -117,7 +118,7 @@ func (r *Repository) SetGenerationSucceeded(generationID string, outputs []strin
 	}
 
 	// Update the generation
-	_, err = tx.Generation.UpdateOneID(uid).SetStatus(generation.StatusSucceeded).SetCompletedAt(time.Now()).Save(r.Ctx)
+	_, err = tx.Generation.UpdateOneID(uid).SetStatus(generation.StatusSucceeded).SetCompletedAt(time.Now()).SetNsfwCount(nsfwCount).Save(r.Ctx)
 	if err != nil {
 		tx.Rollback()
 		klog.Errorf("Error setting generation succeeded %s: %v", generationID, err)

@@ -84,6 +84,8 @@ var (
 		{Name: "height", Type: field.TypeInt32},
 		{Name: "inference_steps", Type: field.TypeInt32},
 		{Name: "guidance_scale", Type: field.TypeFloat32},
+		{Name: "num_outputs", Type: field.TypeInt32},
+		{Name: "nsfw_count", Type: field.TypeInt32, Default: 0},
 		{Name: "seed", Type: field.TypeInt},
 		{Name: "status", Type: field.TypeEnum, Enums: []string{"queued", "started", "succeeded", "failed"}},
 		{Name: "failure_reason", Type: field.TypeString, Nullable: true, Size: 2147483647},
@@ -109,37 +111,37 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "generations_device_info_generations",
-				Columns:    []*schema.Column{GenerationsColumns[15]},
+				Columns:    []*schema.Column{GenerationsColumns[17]},
 				RefColumns: []*schema.Column{DeviceInfoColumns[0]},
 				OnDelete:   schema.Cascade,
 			},
 			{
 				Symbol:     "generations_generation_models_generations",
-				Columns:    []*schema.Column{GenerationsColumns[16]},
+				Columns:    []*schema.Column{GenerationsColumns[18]},
 				RefColumns: []*schema.Column{GenerationModelsColumns[0]},
 				OnDelete:   schema.Cascade,
 			},
 			{
 				Symbol:     "generations_negative_prompts_generations",
-				Columns:    []*schema.Column{GenerationsColumns[17]},
+				Columns:    []*schema.Column{GenerationsColumns[19]},
 				RefColumns: []*schema.Column{NegativePromptsColumns[0]},
 				OnDelete:   schema.Cascade,
 			},
 			{
 				Symbol:     "generations_prompts_generations",
-				Columns:    []*schema.Column{GenerationsColumns[18]},
+				Columns:    []*schema.Column{GenerationsColumns[20]},
 				RefColumns: []*schema.Column{PromptsColumns[0]},
 				OnDelete:   schema.Cascade,
 			},
 			{
 				Symbol:     "generations_schedulers_generations",
-				Columns:    []*schema.Column{GenerationsColumns[19]},
+				Columns:    []*schema.Column{GenerationsColumns[21]},
 				RefColumns: []*schema.Column{SchedulersColumns[0]},
 				OnDelete:   schema.Cascade,
 			},
 			{
 				Symbol:     "generations_users_generations",
-				Columns:    []*schema.Column{GenerationsColumns[20]},
+				Columns:    []*schema.Column{GenerationsColumns[22]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.Cascade,
 			},
@@ -148,12 +150,12 @@ var (
 			{
 				Name:    "generation_user_id",
 				Unique:  false,
-				Columns: []*schema.Column{GenerationsColumns[20]},
+				Columns: []*schema.Column{GenerationsColumns[22]},
 			},
 			{
 				Name:    "generation_created_at",
 				Unique:  false,
-				Columns: []*schema.Column{GenerationsColumns[13]},
+				Columns: []*schema.Column{GenerationsColumns[15]},
 			},
 		},
 	}

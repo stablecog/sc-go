@@ -76,6 +76,16 @@ func GuidanceScale(v float32) predicate.Generation {
 	return predicate.Generation(sql.FieldEQ(FieldGuidanceScale, v))
 }
 
+// NumOutputs applies equality check predicate on the "num_outputs" field. It's identical to NumOutputsEQ.
+func NumOutputs(v int32) predicate.Generation {
+	return predicate.Generation(sql.FieldEQ(FieldNumOutputs, v))
+}
+
+// NsfwCount applies equality check predicate on the "nsfw_count" field. It's identical to NsfwCountEQ.
+func NsfwCount(v int32) predicate.Generation {
+	return predicate.Generation(sql.FieldEQ(FieldNsfwCount, v))
+}
+
 // Seed applies equality check predicate on the "seed" field. It's identical to SeedEQ.
 func Seed(v int) predicate.Generation {
 	return predicate.Generation(sql.FieldEQ(FieldSeed, v))
@@ -309,6 +319,86 @@ func GuidanceScaleLT(v float32) predicate.Generation {
 // GuidanceScaleLTE applies the LTE predicate on the "guidance_scale" field.
 func GuidanceScaleLTE(v float32) predicate.Generation {
 	return predicate.Generation(sql.FieldLTE(FieldGuidanceScale, v))
+}
+
+// NumOutputsEQ applies the EQ predicate on the "num_outputs" field.
+func NumOutputsEQ(v int32) predicate.Generation {
+	return predicate.Generation(sql.FieldEQ(FieldNumOutputs, v))
+}
+
+// NumOutputsNEQ applies the NEQ predicate on the "num_outputs" field.
+func NumOutputsNEQ(v int32) predicate.Generation {
+	return predicate.Generation(sql.FieldNEQ(FieldNumOutputs, v))
+}
+
+// NumOutputsIn applies the In predicate on the "num_outputs" field.
+func NumOutputsIn(vs ...int32) predicate.Generation {
+	return predicate.Generation(sql.FieldIn(FieldNumOutputs, vs...))
+}
+
+// NumOutputsNotIn applies the NotIn predicate on the "num_outputs" field.
+func NumOutputsNotIn(vs ...int32) predicate.Generation {
+	return predicate.Generation(sql.FieldNotIn(FieldNumOutputs, vs...))
+}
+
+// NumOutputsGT applies the GT predicate on the "num_outputs" field.
+func NumOutputsGT(v int32) predicate.Generation {
+	return predicate.Generation(sql.FieldGT(FieldNumOutputs, v))
+}
+
+// NumOutputsGTE applies the GTE predicate on the "num_outputs" field.
+func NumOutputsGTE(v int32) predicate.Generation {
+	return predicate.Generation(sql.FieldGTE(FieldNumOutputs, v))
+}
+
+// NumOutputsLT applies the LT predicate on the "num_outputs" field.
+func NumOutputsLT(v int32) predicate.Generation {
+	return predicate.Generation(sql.FieldLT(FieldNumOutputs, v))
+}
+
+// NumOutputsLTE applies the LTE predicate on the "num_outputs" field.
+func NumOutputsLTE(v int32) predicate.Generation {
+	return predicate.Generation(sql.FieldLTE(FieldNumOutputs, v))
+}
+
+// NsfwCountEQ applies the EQ predicate on the "nsfw_count" field.
+func NsfwCountEQ(v int32) predicate.Generation {
+	return predicate.Generation(sql.FieldEQ(FieldNsfwCount, v))
+}
+
+// NsfwCountNEQ applies the NEQ predicate on the "nsfw_count" field.
+func NsfwCountNEQ(v int32) predicate.Generation {
+	return predicate.Generation(sql.FieldNEQ(FieldNsfwCount, v))
+}
+
+// NsfwCountIn applies the In predicate on the "nsfw_count" field.
+func NsfwCountIn(vs ...int32) predicate.Generation {
+	return predicate.Generation(sql.FieldIn(FieldNsfwCount, vs...))
+}
+
+// NsfwCountNotIn applies the NotIn predicate on the "nsfw_count" field.
+func NsfwCountNotIn(vs ...int32) predicate.Generation {
+	return predicate.Generation(sql.FieldNotIn(FieldNsfwCount, vs...))
+}
+
+// NsfwCountGT applies the GT predicate on the "nsfw_count" field.
+func NsfwCountGT(v int32) predicate.Generation {
+	return predicate.Generation(sql.FieldGT(FieldNsfwCount, v))
+}
+
+// NsfwCountGTE applies the GTE predicate on the "nsfw_count" field.
+func NsfwCountGTE(v int32) predicate.Generation {
+	return predicate.Generation(sql.FieldGTE(FieldNsfwCount, v))
+}
+
+// NsfwCountLT applies the LT predicate on the "nsfw_count" field.
+func NsfwCountLT(v int32) predicate.Generation {
+	return predicate.Generation(sql.FieldLT(FieldNsfwCount, v))
+}
+
+// NsfwCountLTE applies the LTE predicate on the "nsfw_count" field.
+func NsfwCountLTE(v int32) predicate.Generation {
+	return predicate.Generation(sql.FieldLTE(FieldNsfwCount, v))
 }
 
 // SeedEQ applies the EQ predicate on the "seed" field.

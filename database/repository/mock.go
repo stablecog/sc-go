@@ -131,7 +131,7 @@ func (repo *Repository) CreateMockData(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	_, err = repo.SetGenerationSucceeded(gen.ID.String(), []string{"output_1", "output_2", "output_3"})
+	_, err = repo.SetGenerationSucceeded(gen.ID.String(), []string{"output_1", "output_2", "output_3"}, 0)
 	if err != nil {
 		return err
 	}
@@ -146,6 +146,7 @@ func (repo *Repository) CreateMockData(ctx context.Context) error {
 		ModelId:        uuid.MustParse(MOCK_GENERATION_MODEL_ID),
 		SchedulerId:    uuid.MustParse(MOCK_SCHEDULER_ID),
 		Seed:           1234,
+		NumOutputs:     1,
 	})
 	if err != nil {
 		return err
@@ -154,7 +155,7 @@ func (repo *Repository) CreateMockData(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	_, err = repo.SetGenerationSucceeded(gen.ID.String(), []string{"output_4", "output_5", "output_6"})
+	_, err = repo.SetGenerationSucceeded(gen.ID.String(), []string{"output_4", "output_5", "output_6"}, 0)
 	if err != nil {
 		return err
 	}
@@ -169,6 +170,7 @@ func (repo *Repository) CreateMockData(ctx context.Context) error {
 		ModelId:        uuid.MustParse(MOCK_GENERATION_MODEL_ID),
 		SchedulerId:    uuid.MustParse(MOCK_SCHEDULER_ID),
 		Seed:           1234,
+		NumOutputs:     1,
 	})
 	if err != nil {
 		return err
@@ -177,7 +179,7 @@ func (repo *Repository) CreateMockData(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	err = repo.SetGenerationFailed(gen.ID.String(), "Failed to generate")
+	err = repo.SetGenerationFailed(gen.ID.String(), "Failed to generate", 0)
 	if err != nil {
 		return err
 	}
@@ -192,6 +194,7 @@ func (repo *Repository) CreateMockData(ctx context.Context) error {
 		ModelId:        uuid.MustParse(MOCK_GENERATION_MODEL_ID),
 		SchedulerId:    uuid.MustParse(MOCK_SCHEDULER_ID),
 		Seed:           1234,
+		NumOutputs:     1,
 	})
 	if err != nil {
 		return err
@@ -214,6 +217,7 @@ func (repo *Repository) CreateMockGenerationForDeletion(ctx context.Context) (*e
 		ModelId:        uuid.MustParse(MOCK_GENERATION_MODEL_ID),
 		SchedulerId:    uuid.MustParse(MOCK_SCHEDULER_ID),
 		Seed:           1234,
+		NumOutputs:     1,
 	})
 	if err != nil {
 		return nil, err
@@ -222,7 +226,7 @@ func (repo *Repository) CreateMockGenerationForDeletion(ctx context.Context) (*e
 	if err != nil {
 		return nil, err
 	}
-	_, err = repo.SetGenerationSucceeded(gen.ID.String(), []string{"output_4", "output_5", "output_6"})
+	_, err = repo.SetGenerationSucceeded(gen.ID.String(), []string{"output_4", "output_5", "output_6"}, 0)
 	if err != nil {
 		return nil, err
 	}

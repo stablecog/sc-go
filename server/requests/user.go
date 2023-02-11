@@ -22,7 +22,7 @@ type GenerateRequestBody struct {
 	ModelId               uuid.UUID          `json:"model_id"`
 	SchedulerId           uuid.UUID          `json:"scheduler_id"`
 	Seed                  int                `json:"seed"`
-	NumOutputs            int                `json:"num_outputs,omitempty"`
+	NumOutputs            int32              `json:"num_outputs,omitempty"`
 	StreamID              string             `json:"stream_id"` // Corresponds to SSE stream
 	ShouldSubmitToGallery bool               `json:"should_submit_to_gallery"`
 	ProcessType           shared.ProcessType `json:"process_type"`

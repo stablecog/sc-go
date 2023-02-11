@@ -89,6 +89,40 @@ func (gu *GenerationUpdate) AddGuidanceScale(f float32) *GenerationUpdate {
 	return gu
 }
 
+// SetNumOutputs sets the "num_outputs" field.
+func (gu *GenerationUpdate) SetNumOutputs(i int32) *GenerationUpdate {
+	gu.mutation.ResetNumOutputs()
+	gu.mutation.SetNumOutputs(i)
+	return gu
+}
+
+// AddNumOutputs adds i to the "num_outputs" field.
+func (gu *GenerationUpdate) AddNumOutputs(i int32) *GenerationUpdate {
+	gu.mutation.AddNumOutputs(i)
+	return gu
+}
+
+// SetNsfwCount sets the "nsfw_count" field.
+func (gu *GenerationUpdate) SetNsfwCount(i int32) *GenerationUpdate {
+	gu.mutation.ResetNsfwCount()
+	gu.mutation.SetNsfwCount(i)
+	return gu
+}
+
+// SetNillableNsfwCount sets the "nsfw_count" field if the given value is not nil.
+func (gu *GenerationUpdate) SetNillableNsfwCount(i *int32) *GenerationUpdate {
+	if i != nil {
+		gu.SetNsfwCount(*i)
+	}
+	return gu
+}
+
+// AddNsfwCount adds i to the "nsfw_count" field.
+func (gu *GenerationUpdate) AddNsfwCount(i int32) *GenerationUpdate {
+	gu.mutation.AddNsfwCount(i)
+	return gu
+}
+
 // SetSeed sets the "seed" field.
 func (gu *GenerationUpdate) SetSeed(i int) *GenerationUpdate {
 	gu.mutation.ResetSeed()
@@ -489,6 +523,18 @@ func (gu *GenerationUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if value, ok := gu.mutation.AddedGuidanceScale(); ok {
 		_spec.AddField(generation.FieldGuidanceScale, field.TypeFloat32, value)
 	}
+	if value, ok := gu.mutation.NumOutputs(); ok {
+		_spec.SetField(generation.FieldNumOutputs, field.TypeInt32, value)
+	}
+	if value, ok := gu.mutation.AddedNumOutputs(); ok {
+		_spec.AddField(generation.FieldNumOutputs, field.TypeInt32, value)
+	}
+	if value, ok := gu.mutation.NsfwCount(); ok {
+		_spec.SetField(generation.FieldNsfwCount, field.TypeInt32, value)
+	}
+	if value, ok := gu.mutation.AddedNsfwCount(); ok {
+		_spec.AddField(generation.FieldNsfwCount, field.TypeInt32, value)
+	}
 	if value, ok := gu.mutation.Seed(); ok {
 		_spec.SetField(generation.FieldSeed, field.TypeInt, value)
 	}
@@ -866,6 +912,40 @@ func (guo *GenerationUpdateOne) SetGuidanceScale(f float32) *GenerationUpdateOne
 // AddGuidanceScale adds f to the "guidance_scale" field.
 func (guo *GenerationUpdateOne) AddGuidanceScale(f float32) *GenerationUpdateOne {
 	guo.mutation.AddGuidanceScale(f)
+	return guo
+}
+
+// SetNumOutputs sets the "num_outputs" field.
+func (guo *GenerationUpdateOne) SetNumOutputs(i int32) *GenerationUpdateOne {
+	guo.mutation.ResetNumOutputs()
+	guo.mutation.SetNumOutputs(i)
+	return guo
+}
+
+// AddNumOutputs adds i to the "num_outputs" field.
+func (guo *GenerationUpdateOne) AddNumOutputs(i int32) *GenerationUpdateOne {
+	guo.mutation.AddNumOutputs(i)
+	return guo
+}
+
+// SetNsfwCount sets the "nsfw_count" field.
+func (guo *GenerationUpdateOne) SetNsfwCount(i int32) *GenerationUpdateOne {
+	guo.mutation.ResetNsfwCount()
+	guo.mutation.SetNsfwCount(i)
+	return guo
+}
+
+// SetNillableNsfwCount sets the "nsfw_count" field if the given value is not nil.
+func (guo *GenerationUpdateOne) SetNillableNsfwCount(i *int32) *GenerationUpdateOne {
+	if i != nil {
+		guo.SetNsfwCount(*i)
+	}
+	return guo
+}
+
+// AddNsfwCount adds i to the "nsfw_count" field.
+func (guo *GenerationUpdateOne) AddNsfwCount(i int32) *GenerationUpdateOne {
+	guo.mutation.AddNsfwCount(i)
 	return guo
 }
 
@@ -1292,6 +1372,18 @@ func (guo *GenerationUpdateOne) sqlSave(ctx context.Context) (_node *Generation,
 	}
 	if value, ok := guo.mutation.AddedGuidanceScale(); ok {
 		_spec.AddField(generation.FieldGuidanceScale, field.TypeFloat32, value)
+	}
+	if value, ok := guo.mutation.NumOutputs(); ok {
+		_spec.SetField(generation.FieldNumOutputs, field.TypeInt32, value)
+	}
+	if value, ok := guo.mutation.AddedNumOutputs(); ok {
+		_spec.AddField(generation.FieldNumOutputs, field.TypeInt32, value)
+	}
+	if value, ok := guo.mutation.NsfwCount(); ok {
+		_spec.SetField(generation.FieldNsfwCount, field.TypeInt32, value)
+	}
+	if value, ok := guo.mutation.AddedNsfwCount(); ok {
+		_spec.AddField(generation.FieldNsfwCount, field.TypeInt32, value)
 	}
 	if value, ok := guo.mutation.Seed(); ok {
 		_spec.SetField(generation.FieldSeed, field.TypeInt, value)
