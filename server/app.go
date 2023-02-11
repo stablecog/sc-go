@@ -165,6 +165,9 @@ func main() {
 			r.Route("/gallery", func(r chi.Router) {
 				r.Post("/submit", hc.HandleSubmitGenerationToGallery)
 			})
+			r.Route("/credits", func(r chi.Router) {
+				r.Get("/query", hc.HandleQueryCredits)
+			})
 		})
 
 		// Admin only routes

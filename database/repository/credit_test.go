@@ -10,6 +10,20 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+func TestCreditsForUser(t *testing.T) {
+	// Create more credits
+	creditType := MockRepo.DB.CreditType.Query().FirstX(MockRepo.Ctx)
+	_, err := MockRepo.DB.Credit.Create().SetCreditTypeID(creditType.ID).SetUserID(uuid.MustParse(MOCK_ADMIN_UUID)).SetRemainingAmount(1234).SetExpiresAt(time.Now().AddDate(1000, 0, 0)).Save(MockRepo.Ctx)
+	assert.Nil(t, err)
+
+	// Get credits
+	credits, err := MockRepo.GetCreditsForUser(uuid.MustParse(MOCK_ADMIN_UUID))
+	assert.Nil(t, err)
+	assert.Equal(t, 2, len(credits))
+	assert.Equal(t, int32(100), credits[0].RemainingAmount)
+	assert.Equal(t, int32(1234), credits[1].RemainingAmount)
+}
+
 func TestDeductCreditsFromUser(t *testing.T) {
 	// User should have 100 credits
 	success, err := MockRepo.DeductCreditsFromUser(uuid.MustParse(MOCK_NORMAL_UUID), 50)

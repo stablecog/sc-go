@@ -70,3 +70,58 @@ func (c *RestAPI) HandleQueryGenerations(w http.ResponseWriter, r *http.Request)
 	render.JSON(w, r, generations)
 	render.Status(r, http.StatusOK)
 }
+
+// HTTP Get - credits for user
+func (c *RestAPI) HandleQueryCredits(w http.ResponseWriter, r *http.Request) {
+	// See if authenticated
+	userIDStr, authenticated := r.Context().Value("user_id").(string)
+	// This should always be true because of the auth middleware, but check it anyway
+	if !authenticated || userIDStr == "" {
+		responses.ErrUnauthorized(w, r)
+		return
+	}
+	// Parse to UUID
+	userId, err := uuid.Parse(userIDStr)
+	if err != nil {
+		responses.ErrUnauthorized(w, r)
+		return
+	}
+
+	// Get credits
+	credits, err := c.Repo.GetCreditsForUser(userId)
+	if err != nil {
+		klog.Errorf("Error getting credits for user: %s", err)
+		responses.ErrInternalServerError(w, r, "Error getting credits")
+		return
+	}
+
+	// Format as a nicer response
+	var totalRemaining int32
+	for _, credit := range credits {
+		totalRemaining += credit.RemainingAmount
+	}
+
+	creditsFormatted := make([]responses.Credit, len(credits))
+	for i, credit := range credits {
+		creditsFormatted[i] = responses.Credit{
+			ID:              credit.ID,
+			RemainingAmount: credit.RemainingAmount,
+			ExpiresAt:       credit.ExpiresAt,
+			Type: responses.CreditType{
+				ID:          credit.CreditTypeID,
+				Name:        credit.CreditTypeName,
+				Description: credit.CreditTypeDescription,
+				Amount:      credit.CreditTypeAmount,
+			},
+		}
+	}
+
+	creditsResponse := responses.UserCreditsResponse{
+		TotalRemainingCredits: totalRemaining,
+		Credits:               creditsFormatted,
+	}
+
+	// Return credits
+	render.JSON(w, r, creditsResponse)
+	render.Status(r, http.StatusOK)
+}

@@ -105,6 +105,7 @@ func (c *RestAPI) HandleCreateGeneration(w http.ResponseWriter, r *http.Request)
 	fmt.Printf("--- Parse request headers took: %s\n", time.Now().Sub(start))
 
 	start = time.Now()
+
 	// Deduct credits from user
 	deducted, err := c.Repo.DeductCreditsFromUser(*userID, int32(generateReq.NumOutputs))
 	if err != nil {

@@ -14,6 +14,7 @@ import (
 const MOCK_ADMIN_UUID = "00000000-0000-0000-0000-000000000000"
 const MOCK_NORMAL_UUID = "00000000-0000-0000-0000-000000000001"
 const MOCK_NO_CREDITS_UUID = "00000000-0000-0000-0000-000000000002"
+const MOCK_ALT_UUID = "00000000-0000-0000-0000-000000000003"
 
 // Mock generation model IDs and scheduler IDs
 const MOCK_GENERATION_MODEL_ID = "b972a2b8-f39e-4ee3-a670-05e3acdd821c"
@@ -64,6 +65,23 @@ func (repo *Repository) CreateMockData(ctx context.Context) error {
 	}
 	// Give user credits
 	_, err = repo.AddCreditsIfEligible(creditType, u.ID)
+	if err != nil {
+		return err
+	}
+	// Give user more credits
+
+	// Create another non-admin user
+	u, err = repo.DB.User.Create().SetEmail("mockaltuser@stablecog.com").SetID(uuid.MustParse(MOCK_ALT_UUID)).SetConfirmedAt(time.Now()).Save(ctx)
+	if err != nil {
+		return err
+	}
+	// Give user credits
+	_, err = repo.AddCreditsIfEligible(creditType, u.ID)
+	if err != nil {
+		return err
+	}
+	// Give user more credits
+	_, err = repo.DB.Credit.Create().SetCreditTypeID(creditType.ID).SetUserID(u.ID).SetRemainingAmount(1234).SetExpiresAt(time.Now().AddDate(1000, 0, 0)).Save(ctx)
 	if err != nil {
 		return err
 	}

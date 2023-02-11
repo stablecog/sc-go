@@ -10,6 +10,7 @@ import (
 
 	"github.com/stablecog/go-apps/database/ent/generation"
 	"github.com/stablecog/go-apps/database/repository"
+	"github.com/stablecog/go-apps/server/responses"
 	"github.com/stablecog/go-apps/utils"
 	"github.com/stretchr/testify/assert"
 )
@@ -281,4 +282,50 @@ func TestHandleQueryGenerationsBadOffset(t *testing.T) {
 	json.Unmarshal(respBody, &errorResp)
 
 	assert.Equal(t, "offset must be a valid iso time string", errorResp["error"])
+}
+
+// Credits
+
+func TestHandleQueryCreditsEmpty(t *testing.T) {
+	w := httptest.NewRecorder()
+	// Build request
+	req := httptest.NewRequest("GET", "/gens", nil)
+	req.Header.Set("Content-Type", "application/json")
+
+	ctx := context.WithValue(req.Context(), "user_id", repository.MOCK_NO_CREDITS_UUID)
+
+	MockController.HandleQueryCredits(w, req.WithContext(ctx))
+	resp := w.Result()
+	defer resp.Body.Close()
+	assert.Equal(t, 200, resp.StatusCode)
+	var creditResp responses.UserCreditsResponse
+	respBody, _ := io.ReadAll(resp.Body)
+	json.Unmarshal(respBody, &creditResp)
+
+	assert.Equal(t, int32(0), creditResp.TotalRemainingCredits)
+	assert.Len(t, creditResp.Credits, 0)
+}
+
+func TestHandleQueryCredits(t *testing.T) {
+	w := httptest.NewRecorder()
+	// Build request
+	req := httptest.NewRequest("GET", "/gens", nil)
+	req.Header.Set("Content-Type", "application/json")
+
+	ctx := context.WithValue(req.Context(), "user_id", repository.MOCK_ALT_UUID)
+
+	MockController.HandleQueryCredits(w, req.WithContext(ctx))
+	resp := w.Result()
+	defer resp.Body.Close()
+	assert.Equal(t, 200, resp.StatusCode)
+	var creditResp responses.UserCreditsResponse
+	respBody, _ := io.ReadAll(resp.Body)
+	json.Unmarshal(respBody, &creditResp)
+
+	assert.Equal(t, int32(1334), creditResp.TotalRemainingCredits)
+	assert.Len(t, creditResp.Credits, 2)
+	assert.Equal(t, int32(100), creditResp.Credits[0].RemainingAmount)
+	assert.Equal(t, "mock", creditResp.Credits[0].Type.Name)
+	assert.Equal(t, int32(1234), creditResp.Credits[1].RemainingAmount)
+	assert.Equal(t, "mock", creditResp.Credits[1].Type.Name)
 }
