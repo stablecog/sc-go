@@ -164,7 +164,6 @@ func (c *RestAPI) HandleUpscale(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		klog.Errorf("Failed to write request %s to queue: %v", requestId, err)
 		responses.ErrInternalServerError(w, r, "Failed to queue upscale request")
-		// TODO - won't be necessary when in a transaction
 		c.Repo.RefundCreditsToUser(*userID, 1)
 		return
 	}

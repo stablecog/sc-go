@@ -195,6 +195,30 @@ func TestUpscaleRejectsInvalidModel(t *testing.T) {
 }
 
 func TestUpscaleFailsIfNoCredits(t *testing.T) {
+	httpmock.Activate()
+	defer httpmock.DeactivateAndReset()
+	httpmock.RegisterResponder("HEAD", "https://example.com/image.png",
+		func(req *http.Request) (*http.Response, error) {
+			resp := httpmock.NewStringResponse(200, "OK")
+			resp.Header.Add("Content-Length", "40")
+			return resp, nil
+		},
+	)
+	httpmock.RegisterResponder("GET", "https://example.com/image.png",
+		func(req *http.Request) (*http.Response, error) {
+			const TestPNG = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABAQMAAAAl21bKAAAAA1BMVEUAAACnej3aAAAAAXRSTlMAQObYZgAAAApJREFUCNdjYAAAAAIAAeIhvDMAAAAASUVORK5CYII="
+			i := strings.Index(TestPNG, ",")
+			decoded, err := base64.StdEncoding.DecodeString(TestPNG[i+1:])
+			if err != nil {
+				return nil, err
+			}
+
+			resp := httpmock.NewBytesResponse(200, decoded)
+			resp.Header.Add("Content-Type", "image/png")
+			return resp, nil
+		},
+	)
+
 	reqBody := requests.UpscaleRequestBody{
 		StreamID: MockSSEId,
 		Type:     requests.UpscaleRequestTypeImage,
