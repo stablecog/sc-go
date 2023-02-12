@@ -4,7 +4,6 @@ go 1.19
 
 require (
 	github.com/google/uuid v1.3.0
-	github.com/stablecog/sc-go/database v0.0.0-20230206133029-3071ac72f0b1
 	github.com/stretchr/testify v1.8.1
 	golang.org/x/exp v0.0.0-20230203172020-98cc5a0785f9
 )
