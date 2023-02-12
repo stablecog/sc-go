@@ -1,4 +1,4 @@
-# stablecog/go-apps/cron
+# stablecog/sc-go/cron
 
 This hosts various cron jobs intended to run as a standalone application.
 

@@ -9,8 +9,8 @@ import (
 
 	"entgo.io/ent/dialect/sql"
 	"github.com/google/uuid"
-	"github.com/stablecog/go-apps/database/ent/user"
-	"github.com/stablecog/go-apps/database/ent/userrole"
+	"github.com/stablecog/sc-go/database/ent/user"
+	"github.com/stablecog/sc-go/database/ent/userrole"
 )
 
 // UserRole is the model entity for the UserRole schema.

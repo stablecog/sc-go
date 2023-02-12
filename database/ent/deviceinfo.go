@@ -9,7 +9,7 @@ import (
 
 	"entgo.io/ent/dialect/sql"
 	"github.com/google/uuid"
-	"github.com/stablecog/go-apps/database/ent/deviceinfo"
+	"github.com/stablecog/sc-go/database/ent/deviceinfo"
 )
 
 // DeviceInfo is the model entity for the DeviceInfo schema.

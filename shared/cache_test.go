@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	"github.com/google/uuid"
-	"github.com/stablecog/go-apps/database/ent"
+	"github.com/stablecog/sc-go/database/ent"
 	"github.com/stretchr/testify/assert"
 )
 

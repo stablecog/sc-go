@@ -5,7 +5,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/stablecog/go-apps/utils/color"
+	"github.com/stablecog/sc-go/utils/color"
 	"k8s.io/klog/v2"
 )
 

@@ -1,6 +1,6 @@
 package responses
 
-import "github.com/stablecog/go-apps/server/requests"
+import "github.com/stablecog/sc-go/server/requests"
 
 // Messages sent from the cog to our application
 

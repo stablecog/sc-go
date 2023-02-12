@@ -4,7 +4,7 @@ package requests
 import (
 	"encoding/json"
 
-	"github.com/stablecog/go-apps/shared"
+	"github.com/stablecog/sc-go/shared"
 )
 
 // Filters specify what events we want the cog to send to our webhook

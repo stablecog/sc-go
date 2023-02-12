@@ -2,7 +2,7 @@ package database
 
 import (
 	"github.com/meilisearch/meilisearch-go"
-	"github.com/stablecog/go-apps/utils"
+	"github.com/stablecog/sc-go/utils"
 )
 
 func NewMeiliSearchClient() *meilisearch.Client {

@@ -8,8 +8,8 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
-	"github.com/stablecog/go-apps/database/ent/predicate"
-	"github.com/stablecog/go-apps/database/ent/prompt"
+	"github.com/stablecog/sc-go/database/ent/predicate"
+	"github.com/stablecog/sc-go/database/ent/prompt"
 )
 
 // PromptDelete is the builder for deleting a Prompt entity.

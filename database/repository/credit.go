@@ -6,9 +6,9 @@ import (
 
 	"entgo.io/ent/dialect/sql"
 	"github.com/google/uuid"
-	"github.com/stablecog/go-apps/database/ent"
-	"github.com/stablecog/go-apps/database/ent/credit"
-	"github.com/stablecog/go-apps/database/ent/credittype"
+	"github.com/stablecog/sc-go/database/ent"
+	"github.com/stablecog/sc-go/database/ent/credit"
+	"github.com/stablecog/sc-go/database/ent/credittype"
 )
 
 // Add credits of creditType to user if they do not have any un-expired credits of this type

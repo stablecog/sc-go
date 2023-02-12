@@ -12,9 +12,9 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
-	"github.com/stablecog/go-apps/database/ent/generation"
-	"github.com/stablecog/go-apps/database/ent/generationmodel"
-	"github.com/stablecog/go-apps/database/ent/predicate"
+	"github.com/stablecog/sc-go/database/ent/generation"
+	"github.com/stablecog/sc-go/database/ent/generationmodel"
+	"github.com/stablecog/sc-go/database/ent/predicate"
 )
 
 // GenerationModelUpdate is the builder for updating GenerationModel entities.

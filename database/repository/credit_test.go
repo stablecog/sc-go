@@ -5,8 +5,8 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/stablecog/go-apps/database/ent"
-	"github.com/stablecog/go-apps/database/ent/credit"
+	"github.com/stablecog/sc-go/database/ent"
+	"github.com/stablecog/sc-go/database/ent/credit"
 	"github.com/stretchr/testify/assert"
 )
 

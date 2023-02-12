@@ -10,10 +10,10 @@ import (
 	"time"
 
 	"github.com/go-chi/render"
-	"github.com/stablecog/go-apps/server/requests"
-	"github.com/stablecog/go-apps/server/responses"
-	"github.com/stablecog/go-apps/shared"
-	"github.com/stablecog/go-apps/utils"
+	"github.com/stablecog/sc-go/server/requests"
+	"github.com/stablecog/sc-go/server/responses"
+	"github.com/stablecog/sc-go/shared"
+	"github.com/stablecog/sc-go/utils"
 	"k8s.io/klog/v2"
 )
 

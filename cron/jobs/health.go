@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/stablecog/go-apps/database/ent"
-	dbgeneration "github.com/stablecog/go-apps/database/ent/generation"
+	"github.com/stablecog/sc-go/database/ent"
+	dbgeneration "github.com/stablecog/sc-go/database/ent/generation"
 )
 
 // General redis key prefix

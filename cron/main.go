@@ -10,9 +10,9 @@ import (
 
 	"github.com/go-co-op/gocron"
 	"github.com/joho/godotenv"
-	"github.com/stablecog/go-apps/cron/jobs"
-	"github.com/stablecog/go-apps/cron/utils"
-	"github.com/stablecog/go-apps/database"
+	"github.com/stablecog/sc-go/cron/jobs"
+	"github.com/stablecog/sc-go/cron/utils"
+	"github.com/stablecog/sc-go/database"
 	"k8s.io/klog/v2"
 )
 

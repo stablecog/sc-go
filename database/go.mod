@@ -1,12 +1,12 @@
-module github.com/stablecog/go-apps/database
+module github.com/stablecog/sc-go/database
 
 go 1.19
 
 require (
 	github.com/go-redis/redis/v8 v8.11.5
-	github.com/stablecog/go-apps/server v0.0.0-20230206133029-3071ac72f0b1
-	github.com/stablecog/go-apps/shared v0.0.0-20230206133029-3071ac72f0b1
-	github.com/stablecog/go-apps/utils v0.0.0-20230118153414-2fd508cf8aec
+	github.com/stablecog/sc-go/server v0.0.0-20230206133029-3071ac72f0b1
+	github.com/stablecog/sc-go/shared v0.0.0-20230206133029-3071ac72f0b1
+	github.com/stablecog/sc-go/utils v0.0.0-20230118153414-2fd508cf8aec
 	github.com/stretchr/testify v1.8.1
 	k8s.io/klog/v2 v2.80.1
 )

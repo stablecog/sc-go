@@ -1,9 +1,9 @@
 package repository
 
 import (
-	"github.com/stablecog/go-apps/database/ent"
-	"github.com/stablecog/go-apps/database/ent/generationmodel"
-	"github.com/stablecog/go-apps/database/ent/upscalemodel"
+	"github.com/stablecog/sc-go/database/ent"
+	"github.com/stablecog/sc-go/database/ent/generationmodel"
+	"github.com/stablecog/sc-go/database/ent/upscalemodel"
 )
 
 func (r *Repository) GetAllGenerationModels() ([]*ent.GenerationModel, error) {

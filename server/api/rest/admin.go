@@ -7,9 +7,9 @@ import (
 	"net/http"
 
 	"github.com/go-chi/render"
-	"github.com/stablecog/go-apps/database/ent"
-	"github.com/stablecog/go-apps/server/requests"
-	"github.com/stablecog/go-apps/server/responses"
+	"github.com/stablecog/sc-go/database/ent"
+	"github.com/stablecog/sc-go/server/requests"
+	"github.com/stablecog/sc-go/server/responses"
 )
 
 // Admin-related routes, these must be behind admin middleware and auth middleware

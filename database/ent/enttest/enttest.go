@@ -5,12 +5,12 @@ package enttest
 import (
 	"context"
 
-	"github.com/stablecog/go-apps/database/ent"
+	"github.com/stablecog/sc-go/database/ent"
 	// required by schema hooks.
-	_ "github.com/stablecog/go-apps/database/ent/runtime"
+	_ "github.com/stablecog/sc-go/database/ent/runtime"
 
 	"entgo.io/ent/dialect/sql/schema"
-	"github.com/stablecog/go-apps/database/ent/migrate"
+	"github.com/stablecog/sc-go/database/ent/migrate"
 )
 
 type (

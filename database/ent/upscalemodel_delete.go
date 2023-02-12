@@ -8,8 +8,8 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
-	"github.com/stablecog/go-apps/database/ent/predicate"
-	"github.com/stablecog/go-apps/database/ent/upscalemodel"
+	"github.com/stablecog/sc-go/database/ent/predicate"
+	"github.com/stablecog/sc-go/database/ent/upscalemodel"
 )
 
 // UpscaleModelDelete is the builder for deleting a UpscaleModel entity.

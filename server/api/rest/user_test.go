@@ -8,10 +8,10 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/stablecog/go-apps/database/ent/generation"
-	"github.com/stablecog/go-apps/database/repository"
-	"github.com/stablecog/go-apps/server/responses"
-	"github.com/stablecog/go-apps/utils"
+	"github.com/stablecog/sc-go/database/ent/generation"
+	"github.com/stablecog/sc-go/database/repository"
+	"github.com/stablecog/sc-go/server/responses"
+	"github.com/stablecog/sc-go/utils"
 	"github.com/stretchr/testify/assert"
 )
 

@@ -3,8 +3,8 @@ package sse
 import (
 	"sync"
 
-	"github.com/stablecog/go-apps/database"
-	"github.com/stablecog/go-apps/database/repository"
+	"github.com/stablecog/sc-go/database"
+	"github.com/stablecog/sc-go/database/repository"
 )
 
 type Hub struct {

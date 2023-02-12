@@ -1,8 +1,8 @@
 package repository
 
 import (
-	"github.com/stablecog/go-apps/database/ent"
-	"github.com/stablecog/go-apps/database/ent/scheduler"
+	"github.com/stablecog/sc-go/database/ent"
+	"github.com/stablecog/sc-go/database/ent/scheduler"
 )
 
 func (r *Repository) GetAllSchedulers() ([]*ent.Scheduler, error) {

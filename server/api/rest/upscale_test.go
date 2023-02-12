@@ -13,10 +13,10 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/jarcoal/httpmock"
-	"github.com/stablecog/go-apps/database/ent/generation"
-	"github.com/stablecog/go-apps/database/repository"
-	"github.com/stablecog/go-apps/server/requests"
-	"github.com/stablecog/go-apps/server/responses"
+	"github.com/stablecog/sc-go/database/ent/generation"
+	"github.com/stablecog/sc-go/database/repository"
+	"github.com/stablecog/sc-go/server/requests"
+	"github.com/stablecog/sc-go/server/responses"
 	"github.com/stretchr/testify/assert"
 )
 

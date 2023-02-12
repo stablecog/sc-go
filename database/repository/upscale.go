@@ -4,10 +4,10 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/stablecog/go-apps/database/ent"
-	"github.com/stablecog/go-apps/database/ent/upscale"
-	"github.com/stablecog/go-apps/server/requests"
-	"github.com/stablecog/go-apps/shared"
+	"github.com/stablecog/sc-go/database/ent"
+	"github.com/stablecog/sc-go/database/ent/upscale"
+	"github.com/stablecog/sc-go/server/requests"
+	"github.com/stablecog/sc-go/shared"
 	"k8s.io/klog/v2"
 )
 

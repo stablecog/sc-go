@@ -11,9 +11,9 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
-	"github.com/stablecog/go-apps/database/ent/predicate"
-	"github.com/stablecog/go-apps/database/ent/user"
-	"github.com/stablecog/go-apps/database/ent/userrole"
+	"github.com/stablecog/sc-go/database/ent/predicate"
+	"github.com/stablecog/sc-go/database/ent/user"
+	"github.com/stablecog/sc-go/database/ent/userrole"
 )
 
 // UserRoleQuery is the builder for querying UserRole entities.

@@ -1,11 +1,11 @@
-module github.com/stablecog/go-apps/utils
+module github.com/stablecog/sc-go/utils
 
 go 1.19
 
 require (
 	github.com/fatih/color v1.13.0
 	github.com/mileusna/useragent v1.2.1
-	github.com/stablecog/go-apps/shared v0.0.0-20230206133029-3071ac72f0b1
+	github.com/stablecog/sc-go/shared v0.0.0-20230206133029-3071ac72f0b1
 	github.com/stretchr/testify v1.8.1
 )
 
@@ -19,7 +19,7 @@ require (
 	github.com/google/uuid v1.3.0 // indirect
 	github.com/hashicorp/hcl/v2 v2.13.0 // indirect
 	github.com/mitchellh/go-wordwrap v0.0.0-20150314170334-ad45545899c7 // indirect
-	github.com/stablecog/go-apps/database v0.0.0-20230206133029-3071ac72f0b1 // indirect
+	github.com/stablecog/sc-go/database v0.0.0-20230206133029-3071ac72f0b1 // indirect
 	github.com/zclconf/go-cty v1.8.0 // indirect
 	golang.org/x/exp v0.0.0-20221106115401-f9659909a136 // indirect
 	golang.org/x/mod v0.7.0 // indirect

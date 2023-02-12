@@ -2,10 +2,10 @@ package repository
 
 import (
 	"github.com/google/uuid"
-	"github.com/stablecog/go-apps/database/ent"
-	"github.com/stablecog/go-apps/database/ent/deviceinfo"
-	"github.com/stablecog/go-apps/database/ent/negativeprompt"
-	"github.com/stablecog/go-apps/database/ent/prompt"
+	"github.com/stablecog/sc-go/database/ent"
+	"github.com/stablecog/sc-go/database/ent/deviceinfo"
+	"github.com/stablecog/sc-go/database/ent/negativeprompt"
+	"github.com/stablecog/sc-go/database/ent/prompt"
 )
 
 // ! Temporary repo methods since these should go away

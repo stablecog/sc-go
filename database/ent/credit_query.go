@@ -11,10 +11,10 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
-	"github.com/stablecog/go-apps/database/ent/credit"
-	"github.com/stablecog/go-apps/database/ent/credittype"
-	"github.com/stablecog/go-apps/database/ent/predicate"
-	"github.com/stablecog/go-apps/database/ent/user"
+	"github.com/stablecog/sc-go/database/ent/credit"
+	"github.com/stablecog/sc-go/database/ent/credittype"
+	"github.com/stablecog/sc-go/database/ent/predicate"
+	"github.com/stablecog/sc-go/database/ent/user"
 )
 
 // CreditQuery is the builder for querying Credit entities.

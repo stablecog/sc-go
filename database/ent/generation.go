@@ -9,13 +9,13 @@ import (
 
 	"entgo.io/ent/dialect/sql"
 	"github.com/google/uuid"
-	"github.com/stablecog/go-apps/database/ent/deviceinfo"
-	"github.com/stablecog/go-apps/database/ent/generation"
-	"github.com/stablecog/go-apps/database/ent/generationmodel"
-	"github.com/stablecog/go-apps/database/ent/negativeprompt"
-	"github.com/stablecog/go-apps/database/ent/prompt"
-	"github.com/stablecog/go-apps/database/ent/scheduler"
-	"github.com/stablecog/go-apps/database/ent/user"
+	"github.com/stablecog/sc-go/database/ent/deviceinfo"
+	"github.com/stablecog/sc-go/database/ent/generation"
+	"github.com/stablecog/sc-go/database/ent/generationmodel"
+	"github.com/stablecog/sc-go/database/ent/negativeprompt"
+	"github.com/stablecog/sc-go/database/ent/prompt"
+	"github.com/stablecog/sc-go/database/ent/scheduler"
+	"github.com/stablecog/sc-go/database/ent/user"
 )
 
 // Generation is the model entity for the Generation schema.

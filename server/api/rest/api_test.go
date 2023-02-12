@@ -6,10 +6,10 @@ import (
 	"os"
 	"testing"
 
-	"github.com/stablecog/go-apps/database"
-	"github.com/stablecog/go-apps/database/repository"
-	"github.com/stablecog/go-apps/server/api/sse"
-	"github.com/stablecog/go-apps/utils"
+	"github.com/stablecog/sc-go/database"
+	"github.com/stablecog/sc-go/database/repository"
+	"github.com/stablecog/sc-go/server/api/sse"
+	"github.com/stablecog/sc-go/utils"
 	"k8s.io/klog/v2"
 )
 

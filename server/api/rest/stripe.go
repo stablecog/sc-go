@@ -6,7 +6,7 @@ import (
 	"net/http"
 
 	"github.com/go-chi/render"
-	"github.com/stablecog/go-apps/utils"
+	"github.com/stablecog/sc-go/utils"
 	"github.com/stripe/stripe-go"
 	"github.com/stripe/stripe-go/webhook"
 	"k8s.io/klog/v2"

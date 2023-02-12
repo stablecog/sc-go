@@ -9,9 +9,9 @@ import (
 	"time"
 
 	"github.com/go-redis/redis/v8"
-	"github.com/stablecog/go-apps/cron/models"
-	"github.com/stablecog/go-apps/database/ent"
-	"github.com/stablecog/go-apps/utils"
+	"github.com/stablecog/sc-go/cron/models"
+	"github.com/stablecog/sc-go/database/ent"
+	"github.com/stablecog/sc-go/utils"
 	"k8s.io/klog/v2"
 )
 

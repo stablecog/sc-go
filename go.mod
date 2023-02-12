@@ -1,3 +1,3 @@
-module github.com/stablecog/go-apps
+module github.com/stablecog/sc-go
 
 go 1.19

@@ -9,8 +9,8 @@ import (
 
 	"entgo.io/ent/dialect/sql"
 	"github.com/google/uuid"
-	"github.com/stablecog/go-apps/database/ent/generation"
-	"github.com/stablecog/go-apps/database/ent/generationoutput"
+	"github.com/stablecog/sc-go/database/ent/generation"
+	"github.com/stablecog/sc-go/database/ent/generationoutput"
 )
 
 // GenerationOutput is the model entity for the GenerationOutput schema.

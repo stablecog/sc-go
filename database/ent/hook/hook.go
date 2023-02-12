@@ -6,7 +6,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/stablecog/go-apps/database/ent"
+	"github.com/stablecog/sc-go/database/ent"
 )
 
 // The CreditFunc type is an adapter to allow the use of ordinary

@@ -5,7 +5,7 @@ import (
 	"os"
 
 	"entgo.io/ent/dialect"
-	"github.com/stablecog/go-apps/utils"
+	"github.com/stablecog/sc-go/utils"
 	"k8s.io/klog/v2"
 )
 

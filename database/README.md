@@ -1,4 +1,4 @@
-# stablecog/go-apps/database
+# stablecog/sc-go/database
 
 This hosts database-related items including Postgres, Redis,  Supabase, and Meili.
 

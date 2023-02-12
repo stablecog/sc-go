@@ -4,7 +4,7 @@ import (
 	"errors"
 	"log"
 
-	"github.com/stablecog/go-apps/utils"
+	"github.com/stablecog/sc-go/utils"
 	"github.com/supabase-community/gotrue-go"
 )
 

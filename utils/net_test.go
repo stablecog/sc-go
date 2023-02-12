@@ -8,7 +8,7 @@ import (
 	"testing"
 
 	"github.com/jarcoal/httpmock"
-	"github.com/stablecog/go-apps/shared"
+	"github.com/stablecog/sc-go/shared"
 	"github.com/stretchr/testify/assert"
 )
 

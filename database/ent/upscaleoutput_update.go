@@ -12,9 +12,9 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
-	"github.com/stablecog/go-apps/database/ent/predicate"
-	"github.com/stablecog/go-apps/database/ent/upscale"
-	"github.com/stablecog/go-apps/database/ent/upscaleoutput"
+	"github.com/stablecog/sc-go/database/ent/predicate"
+	"github.com/stablecog/sc-go/database/ent/upscale"
+	"github.com/stablecog/sc-go/database/ent/upscaleoutput"
 )
 
 // UpscaleOutputUpdate is the builder for updating UpscaleOutput entities.

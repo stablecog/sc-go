@@ -4,10 +4,10 @@ import (
 	"net/http"
 
 	"github.com/google/uuid"
-	"github.com/stablecog/go-apps/database"
-	"github.com/stablecog/go-apps/database/repository"
-	"github.com/stablecog/go-apps/server/api/sse"
-	"github.com/stablecog/go-apps/server/responses"
+	"github.com/stablecog/sc-go/database"
+	"github.com/stablecog/sc-go/database/repository"
+	"github.com/stablecog/sc-go/server/api/sse"
+	"github.com/stablecog/sc-go/server/responses"
 	stripe "github.com/stripe/stripe-go/client"
 )
 

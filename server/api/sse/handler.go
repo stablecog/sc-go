@@ -5,8 +5,8 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/stablecog/go-apps/server/responses"
-	"github.com/stablecog/go-apps/utils"
+	"github.com/stablecog/sc-go/server/responses"
+	"github.com/stablecog/sc-go/utils"
 )
 
 // Special stream ID for live page

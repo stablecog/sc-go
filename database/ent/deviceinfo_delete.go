@@ -8,8 +8,8 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
-	"github.com/stablecog/go-apps/database/ent/deviceinfo"
-	"github.com/stablecog/go-apps/database/ent/predicate"
+	"github.com/stablecog/sc-go/database/ent/deviceinfo"
+	"github.com/stablecog/sc-go/database/ent/predicate"
 )
 
 // DeviceInfoDelete is the builder for deleting a DeviceInfo entity.

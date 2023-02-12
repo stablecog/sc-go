@@ -11,8 +11,8 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
-	"github.com/stablecog/go-apps/database/ent/user"
-	"github.com/stablecog/go-apps/database/ent/userrole"
+	"github.com/stablecog/sc-go/database/ent/user"
+	"github.com/stablecog/sc-go/database/ent/userrole"
 )
 
 // UserRoleCreate is the builder for creating a UserRole entity.

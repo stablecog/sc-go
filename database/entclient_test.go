@@ -3,7 +3,7 @@ package database
 import (
 	"testing"
 
-	"github.com/stablecog/go-apps/utils"
+	"github.com/stablecog/sc-go/utils"
 	"github.com/stretchr/testify/assert"
 )
 

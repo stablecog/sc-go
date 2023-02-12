@@ -11,9 +11,9 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
-	"github.com/stablecog/go-apps/database/ent/credit"
-	"github.com/stablecog/go-apps/database/ent/credittype"
-	"github.com/stablecog/go-apps/database/ent/user"
+	"github.com/stablecog/sc-go/database/ent/credit"
+	"github.com/stablecog/sc-go/database/ent/credittype"
+	"github.com/stablecog/sc-go/database/ent/user"
 )
 
 // CreditCreate is the builder for creating a Credit entity.

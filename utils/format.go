@@ -3,7 +3,7 @@ package utils
 import (
 	"strings"
 
-	"github.com/stablecog/go-apps/shared"
+	"github.com/stablecog/sc-go/shared"
 )
 
 // RemoveRedundantSpaces removes all redundant spaces from a string

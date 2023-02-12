@@ -3,7 +3,7 @@ package repository
 import (
 	"context"
 
-	"github.com/stablecog/go-apps/database/ent"
+	"github.com/stablecog/sc-go/database/ent"
 )
 
 // Wrapper for *ent.Tx

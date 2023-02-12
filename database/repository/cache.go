@@ -1,7 +1,7 @@
 package repository
 
 import (
-	"github.com/stablecog/go-apps/shared"
+	"github.com/stablecog/sc-go/shared"
 	"k8s.io/klog/v2"
 )
 

@@ -8,8 +8,8 @@ import (
 
 	"github.com/go-chi/render"
 	"github.com/google/uuid"
-	"github.com/stablecog/go-apps/server/responses"
-	"github.com/stablecog/go-apps/utils"
+	"github.com/stablecog/sc-go/server/responses"
+	"github.com/stablecog/sc-go/utils"
 	"k8s.io/klog/v2"
 )
 

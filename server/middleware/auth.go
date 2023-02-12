@@ -8,8 +8,8 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/stablecog/go-apps/database/ent/userrole"
-	"github.com/stablecog/go-apps/server/responses"
+	"github.com/stablecog/sc-go/database/ent/userrole"
+	"github.com/stablecog/sc-go/server/responses"
 )
 
 // Enforces authorization

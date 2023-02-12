@@ -3,7 +3,7 @@ package utils
 import (
 	"testing"
 
-	"github.com/stablecog/go-apps/shared"
+	"github.com/stablecog/sc-go/shared"
 	"github.com/stretchr/testify/assert"
 )
 

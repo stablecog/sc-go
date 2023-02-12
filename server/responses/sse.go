@@ -2,7 +2,7 @@ package responses
 
 import (
 	"github.com/google/uuid"
-	"github.com/stablecog/go-apps/database/ent/generationoutput"
+	"github.com/stablecog/sc-go/database/ent/generationoutput"
 )
 
 type WebhookStatusUpdateOutputs struct {

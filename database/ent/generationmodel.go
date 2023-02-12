@@ -9,7 +9,7 @@ import (
 
 	"entgo.io/ent/dialect/sql"
 	"github.com/google/uuid"
-	"github.com/stablecog/go-apps/database/ent/generationmodel"
+	"github.com/stablecog/sc-go/database/ent/generationmodel"
 )
 
 // GenerationModel is the model entity for the GenerationModel schema.

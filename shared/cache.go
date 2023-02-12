@@ -4,7 +4,7 @@ import (
 	"sync"
 
 	"github.com/google/uuid"
-	"github.com/stablecog/go-apps/database/ent"
+	"github.com/stablecog/sc-go/database/ent"
 	"golang.org/x/exp/slices"
 )
 

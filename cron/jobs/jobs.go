@@ -4,9 +4,9 @@ import (
 	"context"
 
 	"github.com/meilisearch/meilisearch-go"
-	"github.com/stablecog/go-apps/cron/utils"
-	"github.com/stablecog/go-apps/database"
-	"github.com/stablecog/go-apps/database/ent"
+	"github.com/stablecog/sc-go/cron/utils"
+	"github.com/stablecog/sc-go/database"
+	"github.com/stablecog/sc-go/database/ent"
 )
 
 type JobRunner struct {

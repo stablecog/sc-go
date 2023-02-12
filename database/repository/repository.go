@@ -3,8 +3,8 @@ package repository
 import (
 	"context"
 
-	"github.com/stablecog/go-apps/database"
-	"github.com/stablecog/go-apps/database/ent"
+	"github.com/stablecog/sc-go/database"
+	"github.com/stablecog/sc-go/database/ent"
 )
 
 // Repository is a package that contains all the database access functions

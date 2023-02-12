@@ -3,7 +3,7 @@ package requests
 
 import (
 	"github.com/google/uuid"
-	"github.com/stablecog/go-apps/shared"
+	"github.com/stablecog/sc-go/shared"
 )
 
 // Request for submitting outputs to gallery
