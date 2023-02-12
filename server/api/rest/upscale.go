@@ -114,84 +114,82 @@ func (c *RestAPI) HandleUpscale(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	// Start a DB transaction
-	tx, err := c.Repo.DB.Tx(r.Context())
-	if err != nil {
-		klog.Errorf("Error starting DB transaction: %v", err)
-		responses.ErrInternalServerError(w, r, "Error creating generation")
-	}
-
-	// Charge credits
-	deducted, err := c.Repo.DeductCreditsFromUser(*userID, 1, tx)
-	if err != nil {
-		klog.Errorf("Error deducting credits: %v", err)
-		responses.ErrInternalServerError(w, r, "Error deducting credits from user")
-		tx.Rollback()
-		return
-	} else if !deducted {
-		responses.ErrInsufficientCredits(w, r)
-		tx.Rollback()
-		return
-	}
-
-	// Create upscale
-	upscale, err := c.Repo.CreateUpscale(
-		*userID,
-		width,
-		height,
-		string(deviceInfo.DeviceType),
-		deviceInfo.DeviceOs,
-		deviceInfo.DeviceBrowser,
-		countryCode,
-		upscaleReq,
-		tx)
-	if err != nil {
-		klog.Errorf("Error creating upscale: %v", err)
-		responses.ErrInternalServerError(w, r, "Error creating upscale")
-		tx.Rollback()
-		return
-	}
-
-	// Request ID matches upscale ID
-	requestId := upscale.ID.String()
-
 	// For live page update
-	livePageMsg := responses.LivePageMessage{
-		Type:        responses.LivePageMessageUpscale,
-		ID:          utils.Sha256(requestId),
-		CountryCode: countryCode,
-		Status:      responses.LivePageQueued,
-		Width:       width,
-		Height:      height,
-		CreatedAt:   upscale.CreatedAt,
-	}
+	var livePageMsg responses.LivePageMessage
+	// For keeping track of this request as it gets sent to the worker
+	var requestId string
 
-	// Send to the cog
-	cogReqBody := requests.CogQueueRequest{
-		WebhookEventsFilter: []requests.WebhookEventFilterOption{requests.WebhookEventFilterStart, requests.WebhookEventFilterStart},
-		RedisPubsubKey:      shared.COG_REDIS_EVENT_CHANNEL,
-		Input: requests.BaseCogRequest{
-			ID:                 requestId,
-			LivePageData:       livePageMsg,
-			GenerationOutputID: outputIDStr,
-			Image:              imageUrl,
-			ProcessType:        shared.UPSCALE,
-		},
-	}
+	// Wrap everything in a DB transaction
+	// We do this since we want our credit deduction to be atomic with the whole process
+	if err := c.Repo.WithTx(func(tx *ent.Tx) error {
+		// Bind transaction to client
+		DB := tx.Client()
 
-	err = c.Redis.EnqueueCogRequest(r.Context(), cogReqBody)
-	if err != nil {
-		klog.Errorf("Failed to write request %s to queue: %v", requestId, err)
-		responses.ErrInternalServerError(w, r, "Failed to queue upscale request")
-		tx.Rollback()
-		return
-	}
+		// Charge credits
+		deducted, err := c.Repo.DeductCreditsFromUser(*userID, 1, DB)
+		if err != nil {
+			klog.Errorf("Error deducting credits: %v", err)
+			responses.ErrInternalServerError(w, r, "Error deducting credits from user")
+			return err
+		} else if !deducted {
+			responses.ErrInsufficientCredits(w, r)
+			return responses.InsufficientCreditsErr
+		}
 
-	// Commit DB transaction
-	err = tx.Commit()
-	if err != nil {
-		klog.Errorf("Error committing DB transaction: %v", err)
-		responses.ErrInternalServerError(w, r, "Error committing DB transaction")
+		// Create upscale
+		upscale, err := c.Repo.CreateUpscale(
+			*userID,
+			width,
+			height,
+			string(deviceInfo.DeviceType),
+			deviceInfo.DeviceOs,
+			deviceInfo.DeviceBrowser,
+			countryCode,
+			upscaleReq,
+			DB)
+		if err != nil {
+			klog.Errorf("Error creating upscale: %v", err)
+			responses.ErrInternalServerError(w, r, "Error creating upscale")
+			return err
+		}
+
+		// Request ID matches upscale ID
+		requestId = upscale.ID.String()
+
+		// For live page update
+		livePageMsg = responses.LivePageMessage{
+			Type:        responses.LivePageMessageUpscale,
+			ID:          utils.Sha256(requestId),
+			CountryCode: countryCode,
+			Status:      responses.LivePageQueued,
+			Width:       width,
+			Height:      height,
+			CreatedAt:   upscale.CreatedAt,
+		}
+
+		// Send to the cog
+		cogReqBody := requests.CogQueueRequest{
+			WebhookEventsFilter: []requests.WebhookEventFilterOption{requests.WebhookEventFilterStart, requests.WebhookEventFilterStart},
+			RedisPubsubKey:      shared.COG_REDIS_EVENT_CHANNEL,
+			Input: requests.BaseCogRequest{
+				ID:                 requestId,
+				LivePageData:       livePageMsg,
+				GenerationOutputID: outputIDStr,
+				Image:              imageUrl,
+				ProcessType:        shared.UPSCALE,
+			},
+		}
+
+		err = c.Redis.EnqueueCogRequest(r.Context(), cogReqBody)
+		if err != nil {
+			klog.Errorf("Failed to write request %s to queue: %v", requestId, err)
+			responses.ErrInternalServerError(w, r, "Failed to queue upscale request")
+			return err
+		}
+
+		return nil
+	}); err != nil {
+		klog.Errorf("Error with transaction: %v", err)
 		return
 	}
 

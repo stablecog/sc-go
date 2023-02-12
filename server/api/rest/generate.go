@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/go-chi/render"
+	"github.com/stablecog/sc-go/database/ent"
 	"github.com/stablecog/sc-go/server/requests"
 	"github.com/stablecog/sc-go/server/responses"
 	"github.com/stablecog/sc-go/shared"
@@ -123,96 +124,92 @@ func (c *RestAPI) HandleCreateGeneration(w http.ResponseWriter, r *http.Request)
 	generateReq.NegativePrompt = utils.FormatPrompt(generateReq.NegativePrompt)
 	fmt.Printf("--- Format prompts took: %s\n", time.Now().Sub(start))
 
-	// Start a DB transaction
-	tx, err := c.Repo.DB.Tx(r.Context())
-	if err != nil {
-		klog.Errorf("Error starting DB transaction: %v", err)
-		responses.ErrInternalServerError(w, r, "Error creating generation")
-	}
-
-	// Deduct credits from user
-	deducted, err := c.Repo.DeductCreditsFromUser(*userID, int32(generateReq.NumOutputs), tx)
-	if err != nil {
-		klog.Errorf("Error deducting credits: %v", err)
-		responses.ErrInternalServerError(w, r, "Error deducting credits from user")
-		tx.Rollback()
-		return
-	} else if !deducted {
-		responses.ErrInsufficientCredits(w, r)
-		tx.Rollback()
-		return
-	}
-	fmt.Printf("--- Deduct credits took took: %s\n", time.Now().Sub(start))
-
-	// Create generation
-	start = time.Now()
-	g, err := c.Repo.CreateGeneration(
-		*userID,
-		string(deviceInfo.DeviceType),
-		deviceInfo.DeviceOs,
-		deviceInfo.DeviceBrowser,
-		countryCode,
-		generateReq,
-		tx)
-	if err != nil {
-		klog.Errorf("Error creating generation: %v", err)
-		responses.ErrInternalServerError(w, r, "Error creating generation")
-		tx.Rollback()
-		return
-	}
-	fmt.Printf("--- Create generation took: %s\n", time.Now().Sub(start))
-
-	// Request Id matches generation ID
-	requestId := g.ID.String()
-
 	// For live page update
-	livePageMsg := responses.LivePageMessage{
-		Type:        responses.LivePageMessageGeneration,
-		ID:          utils.Sha256(requestId),
-		CountryCode: countryCode,
-		Status:      responses.LivePageQueued,
-		Width:       generateReq.Width,
-		Height:      generateReq.Height,
-		CreatedAt:   g.CreatedAt,
-	}
+	var livePageMsg responses.LivePageMessage
+	// For keeping track of this request as it gets sent to the worker
+	var requestId string
 
-	cogReqBody := requests.CogQueueRequest{
-		WebhookEventsFilter: []requests.WebhookEventFilterOption{requests.WebhookEventFilterStart, requests.WebhookEventFilterStart},
-		RedisPubsubKey:      shared.COG_REDIS_EVENT_CHANNEL,
-		Input: requests.BaseCogRequest{
-			ID:                   requestId,
-			LivePageData:         livePageMsg,
-			Prompt:               generateReq.Prompt,
-			NegativePrompt:       generateReq.NegativePrompt,
-			Width:                fmt.Sprint(generateReq.Width),
-			Height:               fmt.Sprint(generateReq.Height),
-			NumInferenceSteps:    fmt.Sprint(generateReq.InferenceSteps),
-			GuidanceScale:        fmt.Sprint(generateReq.GuidanceScale),
-			Model:                modelName,
-			Scheduler:            schedulerName,
-			Seed:                 fmt.Sprint(generateReq.Seed),
-			NumOutputs:           fmt.Sprint(generateReq.NumOutputs),
-			OutputImageExtension: generateReq.OutputImageExtension,
-			OutputImageQuality:   fmt.Sprint(shared.DEFAULT_GENERATE_OUTPUT_QUALITY),
-			ProcessType:          generateReq.ProcessType,
-		},
-	}
+	// Wrap everything in a DB transaction
+	// We do this since we want our credit deduction to be atomic with the whole process
+	if err := c.Repo.WithTx(func(tx *ent.Tx) error {
+		// Bind a client to the transaction
+		DB := tx.Client()
+		// Deduct credits from user
+		deducted, err := c.Repo.DeductCreditsFromUser(*userID, int32(generateReq.NumOutputs), DB)
+		if err != nil {
+			klog.Errorf("Error deducting credits: %v", err)
+			responses.ErrInternalServerError(w, r, "Error deducting credits from user")
+			return err
+		} else if !deducted {
+			responses.ErrInsufficientCredits(w, r)
+			return responses.InsufficientCreditsErr
+		}
+		fmt.Printf("--- Deduct credits took took: %s\n", time.Now().Sub(start))
 
-	start = time.Now()
-	err = c.Redis.EnqueueCogRequest(r.Context(), cogReqBody)
-	if err != nil {
-		klog.Errorf("Failed to write request %s to queue: %v", requestId, err)
-		responses.ErrInternalServerError(w, r, "Failed to queue generate request")
-		tx.Rollback()
-		return
-	}
-	fmt.Printf("--- Enqueue cog request took: %s\n", time.Now().Sub(start))
+		// Create generation
+		start = time.Now()
+		g, err := c.Repo.CreateGeneration(
+			*userID,
+			string(deviceInfo.DeviceType),
+			deviceInfo.DeviceOs,
+			deviceInfo.DeviceBrowser,
+			countryCode,
+			generateReq,
+			DB)
+		if err != nil {
+			klog.Errorf("Error creating generation: %v", err)
+			responses.ErrInternalServerError(w, r, "Error creating generation")
+			return err
+		}
+		fmt.Printf("--- Create generation took: %s\n", time.Now().Sub(start))
 
-	err = tx.Commit()
-	if err != nil {
-		klog.Errorf("Error committing DB transaction: %v", err)
-		responses.ErrInternalServerError(w, r, "Error creating generation")
-		tx.Rollback()
+		// Request Id matches generation ID
+		requestId = g.ID.String()
+
+		// For live page update
+		livePageMsg = responses.LivePageMessage{
+			Type:        responses.LivePageMessageGeneration,
+			ID:          utils.Sha256(requestId),
+			CountryCode: countryCode,
+			Status:      responses.LivePageQueued,
+			Width:       generateReq.Width,
+			Height:      generateReq.Height,
+			CreatedAt:   g.CreatedAt,
+		}
+
+		cogReqBody := requests.CogQueueRequest{
+			WebhookEventsFilter: []requests.WebhookEventFilterOption{requests.WebhookEventFilterStart, requests.WebhookEventFilterStart},
+			RedisPubsubKey:      shared.COG_REDIS_EVENT_CHANNEL,
+			Input: requests.BaseCogRequest{
+				ID:                   requestId,
+				LivePageData:         livePageMsg,
+				Prompt:               generateReq.Prompt,
+				NegativePrompt:       generateReq.NegativePrompt,
+				Width:                fmt.Sprint(generateReq.Width),
+				Height:               fmt.Sprint(generateReq.Height),
+				NumInferenceSteps:    fmt.Sprint(generateReq.InferenceSteps),
+				GuidanceScale:        fmt.Sprint(generateReq.GuidanceScale),
+				Model:                modelName,
+				Scheduler:            schedulerName,
+				Seed:                 fmt.Sprint(generateReq.Seed),
+				NumOutputs:           fmt.Sprint(generateReq.NumOutputs),
+				OutputImageExtension: generateReq.OutputImageExtension,
+				OutputImageQuality:   fmt.Sprint(shared.DEFAULT_GENERATE_OUTPUT_QUALITY),
+				ProcessType:          generateReq.ProcessType,
+			},
+		}
+
+		start = time.Now()
+		err = c.Redis.EnqueueCogRequest(r.Context(), cogReqBody)
+		if err != nil {
+			klog.Errorf("Failed to write request %s to queue: %v", requestId, err)
+			responses.ErrInternalServerError(w, r, "Failed to queue generate request")
+			return err
+		}
+		fmt.Printf("--- Enqueue cog request took: %s\n", time.Now().Sub(start))
+		return nil
+	}); err != nil {
+		klog.Errorf("Error in transaction: %v", err)
 		return
 	}
 

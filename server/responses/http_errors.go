@@ -1,6 +1,7 @@
 package responses
 
 import (
+	"errors"
 	"net/http"
 
 	"github.com/go-chi/render"
@@ -31,6 +32,8 @@ func ErrUnauthorized(w http.ResponseWriter, r *http.Request) {
 var InsufficientCredits = ErrorResponse{
 	Error: "insufficient_credits",
 }
+
+var InsufficientCreditsErr = errors.New(InsufficientCredits.Error)
 
 func ErrInsufficientCredits(w http.ResponseWriter, r *http.Request) {
 	render.Status(r, http.StatusBadRequest)
