@@ -32,3 +32,7 @@ func ParseIsoTime(isoTime string) (time.Time, error) {
 func TimeToIsoString(ts time.Time) string {
 	return ts.Format(time.RFC3339Nano)
 }
+
+func SecondsSinceEpochToTime(seconds int64) time.Time {
+	return time.Unix(seconds, 0)
+}

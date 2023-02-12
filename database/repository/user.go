@@ -19,6 +19,17 @@ import (
 	"k8s.io/klog/v2"
 )
 
+func (r *Repository) GetUserByStripeCustomerId(customerId string) (*ent.User, error) {
+	user, err := r.DB.User.Query().Where(user.StripeCustomerIDEQ(customerId)).Only(r.Ctx)
+	if err != nil && ent.IsNotFound(err) {
+		return nil, nil
+	} else if err != nil {
+		klog.Errorf("Error getting user by stripe customer ID: %v", err)
+		return nil, err
+	}
+	return user, nil
+}
+
 func (r *Repository) IsSuperAdmin(userID uuid.UUID) (bool, error) {
 	// Check for admin
 	roles, err := r.GetRoles(userID)

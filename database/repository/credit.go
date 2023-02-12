@@ -12,12 +12,12 @@ import (
 )
 
 // Add credits of creditType to user if they do not have any un-expired credits of this type
-func (r *Repository) AddCreditsIfEligible(creditType *ent.CreditType, userID uuid.UUID) (added bool, err error) {
+func (r *Repository) AddCreditsIfEligible(creditType *ent.CreditType, userID uuid.UUID, expiresAt time.Time) (added bool, err error) {
 	if creditType == nil {
 		return false, errors.New("creditType cannot be nil")
 	}
 	// See if user has any credits of this type
-	credits, err := r.DB.Credit.Query().Where(credit.UserID(userID), credit.CreditTypeID(creditType.ID), credit.ExpiresAtGT(time.Now())).First(r.Ctx)
+	credits, err := r.DB.Credit.Query().Where(credit.UserID(userID), credit.CreditTypeID(creditType.ID), credit.ExpiresAtEQ(expiresAt)).First(r.Ctx)
 	if err != nil && !ent.IsNotFound(err) {
 		return false, err
 	}
@@ -28,7 +28,7 @@ func (r *Repository) AddCreditsIfEligible(creditType *ent.CreditType, userID uui
 	}
 
 	// Add credits
-	_, err = r.DB.Credit.Create().SetCreditTypeID(creditType.ID).SetUserID(userID).SetRemainingAmount(creditType.Amount).SetExpiresAt(time.Now().AddDate(0, 0, 30)).Save(r.Ctx)
+	_, err = r.DB.Credit.Create().SetCreditTypeID(creditType.ID).SetUserID(userID).SetRemainingAmount(creditType.Amount).SetExpiresAt(expiresAt).Save(r.Ctx)
 	if err != nil {
 		return false, err
 	}

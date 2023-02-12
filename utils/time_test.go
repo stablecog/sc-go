@@ -43,3 +43,14 @@ func TestTimeToIsoTime(t *testing.T) {
 	ts := time.Date(2023, time.January, 27, 14, 45, 59, 42046464, time.UTC)
 	assert.Equal(t, "2023-01-27T14:45:59.042046464Z", TimeToIsoString(ts))
 }
+
+func TestSecondsSinceEpochToTime(t *testing.T) {
+	s := 1678470517
+	asTime := SecondsSinceEpochToTime(int64(s))
+	assert.Equal(t, 2023, asTime.Year())
+	assert.Equal(t, time.March, asTime.Month())
+	assert.Equal(t, 10, asTime.Day())
+	assert.Equal(t, 17, asTime.Hour())
+	assert.Equal(t, 48, asTime.Minute())
+	assert.Equal(t, 37, asTime.Second())
+}
