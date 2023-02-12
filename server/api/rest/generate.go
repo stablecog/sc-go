@@ -18,6 +18,10 @@ import (
 	"k8s.io/klog/v2"
 )
 
+// ! TODO - we need some type of timeout functionality
+// ! If we don't get a response from cog within a certain amount of time, we should update generation as failed
+// ! and refund user credits
+
 // POST generate endpoint
 // Adds generate to queue, if authenticated, returns the ID of the generation
 func (c *RestAPI) HandleCreateGeneration(w http.ResponseWriter, r *http.Request) {
