@@ -4,13 +4,14 @@ go 1.19
 
 require (
 	github.com/google/uuid v1.3.0
+	github.com/stablecog/sc-go/database v0.0.0-20230212171313-d3dc468134f0
 	github.com/stretchr/testify v1.8.1
-	golang.org/x/exp v0.0.0-20230203172020-98cc5a0785f9
+	golang.org/x/exp v0.0.0-20230206171751-46f607a40771
 )
 
 require (
-	ariga.io/atlas v0.8.4-0.20221212165942-e53dd27a603d // indirect
-	entgo.io/ent v0.11.5 // indirect
+	ariga.io/atlas v0.9.1-0.20230119123307-a3ab6808892b // indirect
+	entgo.io/ent v0.11.6 // indirect
 	github.com/agext/levenshtein v1.2.1 // indirect
 	github.com/apparentlymart/go-textseg/v13 v13.0.0 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
