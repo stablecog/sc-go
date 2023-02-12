@@ -60,8 +60,14 @@ type UserCreditsQueryResult struct {
 }
 
 // Deduct credits from user, starting with credits that expire soonest. Return true if deduction was successful
-func (r *Repository) DeductCreditsFromUser(userID uuid.UUID, amount int32) (success bool, err error) {
-	rowsAffected, err := r.DB.Credit.Update().
+func (r *Repository) DeductCreditsFromUser(userID uuid.UUID, amount int32, tx *ent.Tx) (success bool, err error) {
+	dbTx := &DBTransaction{TX: tx, DB: r.DB}
+	err = dbTx.Start(r.Ctx)
+	if err != nil {
+		return false, err
+	}
+
+	rowsAffected, err := dbTx.TX.Credit.Update().
 		Where(func(s *sql.Selector) {
 			t := sql.Table(credit.Table)
 			s.Where(
@@ -79,6 +85,11 @@ func (r *Repository) DeductCreditsFromUser(userID uuid.UUID, amount int32) (succ
 				),
 			)
 		}).AddRemainingAmount(-1 * amount).Save(r.Ctx)
+	if err != nil {
+		dbTx.Rollback()
+		return false, err
+	}
+	err = dbTx.Commit()
 	if err != nil {
 		return false, err
 	}

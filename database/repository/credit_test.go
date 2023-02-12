@@ -26,7 +26,7 @@ func TestCreditsForUser(t *testing.T) {
 
 func TestDeductCreditsFromUser(t *testing.T) {
 	// User should have 100 credits
-	success, err := MockRepo.DeductCreditsFromUser(uuid.MustParse(MOCK_NORMAL_UUID), 50)
+	success, err := MockRepo.DeductCreditsFromUser(uuid.MustParse(MOCK_NORMAL_UUID), 50, nil)
 	assert.Nil(t, err)
 	assert.Equal(t, true, success)
 
@@ -40,7 +40,7 @@ func TestDeductCreditsFromUser(t *testing.T) {
 	assert.Nil(t, err)
 
 	// Deduct 50 credits
-	success, err = MockRepo.DeductCreditsFromUser(uuid.MustParse(MOCK_NORMAL_UUID), 50)
+	success, err = MockRepo.DeductCreditsFromUser(uuid.MustParse(MOCK_NORMAL_UUID), 50, nil)
 	assert.Nil(t, err)
 	assert.Equal(t, true, success)
 
@@ -50,7 +50,7 @@ func TestDeductCreditsFromUser(t *testing.T) {
 	assert.Equal(t, int32(0), credits[1].RemainingAmount)
 
 	// Take again to ensure we get the next expiring credits
-	success, err = MockRepo.DeductCreditsFromUser(uuid.MustParse(MOCK_NORMAL_UUID), 50)
+	success, err = MockRepo.DeductCreditsFromUser(uuid.MustParse(MOCK_NORMAL_UUID), 50, nil)
 	assert.Nil(t, err)
 	assert.Equal(t, true, success)
 
@@ -66,7 +66,7 @@ func TestDeductCreditsFromUser(t *testing.T) {
 	_, err = MockRepo.DB.Credit.Create().SetCreditTypeID(creditType.ID).SetUserID(uuid.MustParse(MOCK_NORMAL_UUID)).SetRemainingAmount(1234).SetExpiresAt(time.Now().AddDate(-1, 0, 0)).Save(MockRepo.Ctx)
 
 	// Try to deduct
-	success, err = MockRepo.DeductCreditsFromUser(uuid.MustParse(MOCK_NORMAL_UUID), 50)
+	success, err = MockRepo.DeductCreditsFromUser(uuid.MustParse(MOCK_NORMAL_UUID), 50, nil)
 	assert.Nil(t, err)
 	assert.Equal(t, false, success)
 }
@@ -80,7 +80,7 @@ func TestRefundCreditsToUser(t *testing.T) {
 	_, err = MockRepo.DB.Credit.Create().SetCreditTypeID(creditType.ID).SetUserID(uuid.MustParse(MOCK_NORMAL_UUID)).SetRemainingAmount(1234).SetExpiresAt(time.Now().AddDate(1, 0, 0)).Save(MockRepo.Ctx)
 
 	// Deduct
-	success, err := MockRepo.DeductCreditsFromUser(uuid.MustParse(MOCK_NORMAL_UUID), 50)
+	success, err := MockRepo.DeductCreditsFromUser(uuid.MustParse(MOCK_NORMAL_UUID), 50, nil)
 	assert.Nil(t, err)
 	assert.Equal(t, true, success)
 

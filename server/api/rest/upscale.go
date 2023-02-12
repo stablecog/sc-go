@@ -114,16 +114,23 @@ func (c *RestAPI) HandleUpscale(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	// TODO - charge credits should be done in a transaction
+	// Start a DB transaction
+	tx, err := c.Repo.DB.Tx(r.Context())
+	if err != nil {
+		klog.Errorf("Error starting DB transaction: %v", err)
+		responses.ErrInternalServerError(w, r, "Error creating generation")
+	}
 
 	// Charge credits
-	deducted, err := c.Repo.DeductCreditsFromUser(*userID, 1)
+	deducted, err := c.Repo.DeductCreditsFromUser(*userID, 1, tx)
 	if err != nil {
 		klog.Errorf("Error deducting credits: %v", err)
 		responses.ErrInternalServerError(w, r, "Error deducting credits from user")
+		tx.Rollback()
 		return
 	} else if !deducted {
 		responses.ErrInsufficientCredits(w, r)
+		tx.Rollback()
 		return
 	}
 
@@ -136,12 +143,12 @@ func (c *RestAPI) HandleUpscale(w http.ResponseWriter, r *http.Request) {
 		deviceInfo.DeviceOs,
 		deviceInfo.DeviceBrowser,
 		countryCode,
-		upscaleReq)
+		upscaleReq,
+		tx)
 	if err != nil {
 		klog.Errorf("Error creating upscale: %v", err)
 		responses.ErrInternalServerError(w, r, "Error creating upscale")
-		// TODO - won't be necessary when in a transaction
-		c.Repo.RefundCreditsToUser(*userID, 1)
+		tx.Rollback()
 		return
 	}
 
@@ -176,7 +183,15 @@ func (c *RestAPI) HandleUpscale(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		klog.Errorf("Failed to write request %s to queue: %v", requestId, err)
 		responses.ErrInternalServerError(w, r, "Failed to queue upscale request")
-		c.Repo.RefundCreditsToUser(*userID, 1)
+		tx.Rollback()
+		return
+	}
+
+	// Commit DB transaction
+	err = tx.Commit()
+	if err != nil {
+		klog.Errorf("Error committing DB transaction: %v", err)
+		responses.ErrInternalServerError(w, r, "Error committing DB transaction")
 		return
 	}
 

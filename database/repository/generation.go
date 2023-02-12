@@ -42,13 +42,19 @@ func (r *Repository) GetGenerationOutputWidthHeight(outputID uuid.UUID) (width, 
 
 // CreateGeneration creates the initial generation in the database
 // Takes in a userID (creator),  device info, countryCode, and a request body
-func (r *Repository) CreateGeneration(userID uuid.UUID, deviceType, deviceOs, deviceBrowser, countryCode string, req requests.GenerateRequestBody) (*ent.Generation, error) {
-	// Get prompt, negative prompt, device info
-	promptId, negativePromptId, deviceInfoId, err := r.GetOrCreateDeviceInfoAndPrompts(req.Prompt, req.NegativePrompt, deviceType, deviceOs, deviceBrowser)
+func (r *Repository) CreateGeneration(userID uuid.UUID, deviceType, deviceOs, deviceBrowser, countryCode string, req requests.GenerateRequestBody, tx *ent.Tx) (*ent.Generation, error) {
+	dbTx := &DBTransaction{TX: tx, DB: r.DB}
+	err := dbTx.Start(r.Ctx)
 	if err != nil {
 		return nil, err
 	}
-	insert := r.DB.Generation.Create().
+	// Get prompt, negative prompt, device info
+	promptId, negativePromptId, deviceInfoId, err := r.GetOrCreateDeviceInfoAndPrompts(req.Prompt, req.NegativePrompt, deviceType, deviceOs, deviceBrowser, dbTx.TX)
+	if err != nil {
+		dbTx.Rollback()
+		return nil, err
+	}
+	insert := dbTx.TX.Generation.Create().
 		SetStatus(generation.StatusQueued).
 		SetWidth(req.Width).
 		SetHeight(req.Height).
@@ -66,7 +72,16 @@ func (r *Repository) CreateGeneration(userID uuid.UUID, deviceType, deviceOs, de
 	if negativePromptId != nil {
 		insert.SetNegativePromptID(*negativePromptId)
 	}
-	return insert.Save(r.Ctx)
+	g, err := insert.Save(r.Ctx)
+	if err != nil {
+		dbTx.Rollback()
+		return nil, err
+	}
+	err = dbTx.Commit()
+	if err != nil {
+		return nil, err
+	}
+	return g, nil
 }
 
 func (r *Repository) SetGenerationStarted(generationID string) error {

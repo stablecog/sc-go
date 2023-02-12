@@ -123,16 +123,23 @@ func (c *RestAPI) HandleCreateGeneration(w http.ResponseWriter, r *http.Request)
 	generateReq.NegativePrompt = utils.FormatPrompt(generateReq.NegativePrompt)
 	fmt.Printf("--- Format prompts took: %s\n", time.Now().Sub(start))
 
-	// TODO - work the following into a single transaction with create generation
+	// Start a DB transaction
+	tx, err := c.Repo.DB.Tx(r.Context())
+	if err != nil {
+		klog.Errorf("Error starting DB transaction: %v", err)
+		responses.ErrInternalServerError(w, r, "Error creating generation")
+	}
 
 	// Deduct credits from user
-	deducted, err := c.Repo.DeductCreditsFromUser(*userID, int32(generateReq.NumOutputs))
+	deducted, err := c.Repo.DeductCreditsFromUser(*userID, int32(generateReq.NumOutputs), tx)
 	if err != nil {
 		klog.Errorf("Error deducting credits: %v", err)
 		responses.ErrInternalServerError(w, r, "Error deducting credits from user")
+		tx.Rollback()
 		return
 	} else if !deducted {
 		responses.ErrInsufficientCredits(w, r)
+		tx.Rollback()
 		return
 	}
 	fmt.Printf("--- Deduct credits took took: %s\n", time.Now().Sub(start))
@@ -145,12 +152,12 @@ func (c *RestAPI) HandleCreateGeneration(w http.ResponseWriter, r *http.Request)
 		deviceInfo.DeviceOs,
 		deviceInfo.DeviceBrowser,
 		countryCode,
-		generateReq)
+		generateReq,
+		tx)
 	if err != nil {
 		klog.Errorf("Error creating generation: %v", err)
 		responses.ErrInternalServerError(w, r, "Error creating generation")
-		// TODO - refunding won't be necessary when we do a single transaction
-		c.Repo.RefundCreditsToUser(*userID, int32(generateReq.NumOutputs))
+		tx.Rollback()
 		return
 	}
 	fmt.Printf("--- Create generation took: %s\n", time.Now().Sub(start))
@@ -196,11 +203,18 @@ func (c *RestAPI) HandleCreateGeneration(w http.ResponseWriter, r *http.Request)
 	if err != nil {
 		klog.Errorf("Failed to write request %s to queue: %v", requestId, err)
 		responses.ErrInternalServerError(w, r, "Failed to queue generate request")
-		// TODO - refunding won't be necessary when we do a single transaction
-		c.Repo.RefundCreditsToUser(*userID, int32(generateReq.NumOutputs))
+		tx.Rollback()
 		return
 	}
 	fmt.Printf("--- Enqueue cog request took: %s\n", time.Now().Sub(start))
+
+	err = tx.Commit()
+	if err != nil {
+		klog.Errorf("Error committing DB transaction: %v", err)
+		responses.ErrInternalServerError(w, r, "Error creating generation")
+		tx.Rollback()
+		return
+	}
 
 	// Track the request in our internal map
 	start = time.Now()

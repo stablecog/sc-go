@@ -123,7 +123,7 @@ func (repo *Repository) CreateMockData(ctx context.Context) error {
 		ModelId:        uuid.MustParse(MOCK_GENERATION_MODEL_ID),
 		SchedulerId:    uuid.MustParse(MOCK_SCHEDULER_ID),
 		Seed:           1234,
-	})
+	}, nil)
 	if err != nil {
 		return err
 	}
@@ -147,7 +147,7 @@ func (repo *Repository) CreateMockData(ctx context.Context) error {
 		SchedulerId:    uuid.MustParse(MOCK_SCHEDULER_ID),
 		Seed:           1234,
 		NumOutputs:     1,
-	})
+	}, nil)
 	if err != nil {
 		return err
 	}
@@ -171,7 +171,7 @@ func (repo *Repository) CreateMockData(ctx context.Context) error {
 		SchedulerId:    uuid.MustParse(MOCK_SCHEDULER_ID),
 		Seed:           1234,
 		NumOutputs:     1,
-	})
+	}, nil)
 	if err != nil {
 		return err
 	}
@@ -195,7 +195,7 @@ func (repo *Repository) CreateMockData(ctx context.Context) error {
 		SchedulerId:    uuid.MustParse(MOCK_SCHEDULER_ID),
 		Seed:           1234,
 		NumOutputs:     1,
-	})
+	}, nil)
 	if err != nil {
 		return err
 	}
@@ -218,7 +218,7 @@ func (repo *Repository) CreateMockGenerationForDeletion(ctx context.Context) (*e
 		SchedulerId:    uuid.MustParse(MOCK_SCHEDULER_ID),
 		Seed:           1234,
 		NumOutputs:     1,
-	})
+	}, nil)
 	if err != nil {
 		return nil, err
 	}

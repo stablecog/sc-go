@@ -18,13 +18,19 @@ func (r *Repository) GetUpscale(id uuid.UUID) (*ent.Upscale, error) {
 
 // CreateUpscale creates the initial generation in the database
 // Takes in a userID (creator),  device info, countryCode, and a request body
-func (r *Repository) CreateUpscale(userID uuid.UUID, width, height int32, deviceType, deviceOs, deviceBrowser, countryCode string, req requests.UpscaleRequestBody) (*ent.Upscale, error) {
-	// Get prompt, negative prompt, device info
-	deviceInfoId, err := r.GetOrCreateDeviceInfo(deviceType, deviceOs, deviceBrowser)
+func (r *Repository) CreateUpscale(userID uuid.UUID, width, height int32, deviceType, deviceOs, deviceBrowser, countryCode string, req requests.UpscaleRequestBody, tx *ent.Tx) (*ent.Upscale, error) {
+	dbTx := &DBTransaction{TX: tx, DB: r.DB}
+	err := dbTx.Start(r.Ctx)
 	if err != nil {
 		return nil, err
 	}
-	return r.DB.Upscale.Create().
+	// Get prompt, negative prompt, device info
+	deviceInfoId, err := r.GetOrCreateDeviceInfo(deviceType, deviceOs, deviceBrowser, dbTx.TX)
+	if err != nil {
+		dbTx.Rollback()
+		return nil, err
+	}
+	u, err := dbTx.TX.Upscale.Create().
 		SetStatus(upscale.StatusQueued).
 		SetWidth(width).
 		SetHeight(height).
@@ -33,6 +39,15 @@ func (r *Repository) CreateUpscale(userID uuid.UUID, width, height int32, device
 		SetCountryCode(countryCode).
 		SetScale(shared.DEFAULT_UPSCALE_SCALE).
 		SetUserID(userID).Save(r.Ctx)
+	if err != nil {
+		dbTx.Rollback()
+		return nil, err
+	}
+	err = dbTx.Commit()
+	if err != nil {
+		return nil, err
+	}
+	return u, nil
 }
 
 func (r *Repository) SetUpscaleStarted(upscaleID string) error {
