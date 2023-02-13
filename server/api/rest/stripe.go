@@ -4,12 +4,16 @@ import (
 	"encoding/json"
 	"io"
 	"net/http"
+	"time"
 
 	"github.com/go-chi/render"
 	"github.com/stablecog/sc-go/utils"
 	"github.com/stripe/stripe-go/webhook"
 	"k8s.io/klog/v2"
 )
+
+// Expiration date for manual invoices (non-recurring)
+const EXPIRES_MANUAL_INVOICE = "2100-01-01T05:00:00.000Z"
 
 // invoice.payment_succeeded
 func (c *RestAPI) HandleStripeWebhook(w http.ResponseWriter, r *http.Request) {
@@ -39,8 +43,8 @@ func (c *RestAPI) HandleStripeWebhook(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// We only care about renewal (cycle) and create
-	if invoice.BillingReason != InvoiceBillingReasonSubscriptionCycle && invoice.BillingReason != InvoiceBillingReasonSubscriptionCreate {
+	// We only care about renewal (cycle), create, and manual
+	if invoice.BillingReason != InvoiceBillingReasonSubscriptionCycle && invoice.BillingReason != InvoiceBillingReasonSubscriptionCreate && invoice.BillingReason != InvoiceBillingReasonManual {
 		render.Status(r, http.StatusOK)
 		return
 	}
@@ -52,8 +56,25 @@ func (c *RestAPI) HandleStripeWebhook(w http.ResponseWriter, r *http.Request) {
 	}
 
 	for _, line := range invoice.Lines.Data {
-		if line.Plan == nil {
+		var product string
+		if line.Plan == nil && invoice.BillingReason != InvoiceBillingReasonManual {
 			klog.Errorf("Stripe plan is nil in line item %s", line.ID)
+			render.Status(r, http.StatusServiceUnavailable)
+		}
+
+		if line.Price == nil && invoice.BillingReason == InvoiceBillingReasonManual {
+			klog.Errorf("Stripe price is nil in line item %s", line.ID)
+			render.Status(r, http.StatusServiceUnavailable)
+		}
+
+		if invoice.BillingReason == InvoiceBillingReasonManual {
+			product = line.Price.Product
+		} else {
+			product = line.Plan.Product
+		}
+
+		if product == "" {
+			klog.Errorf("Stripe product is nil in line item %s", line.ID)
 			render.Status(r, http.StatusServiceUnavailable)
 		}
 
@@ -70,7 +91,7 @@ func (c *RestAPI) HandleStripeWebhook(w http.ResponseWriter, r *http.Request) {
 		}
 
 		// Get the credit type for this plan
-		creditType, err := c.Repo.GetCreditTypeByStripeProductID(line.Plan.Product)
+		creditType, err := c.Repo.GetCreditTypeByStripeProductID(product)
 		if err != nil {
 			klog.Errorf("Unable getting credit type from stripe product id: %v", err)
 			render.Status(r, http.StatusServiceUnavailable)
@@ -81,7 +102,18 @@ func (c *RestAPI) HandleStripeWebhook(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		expiresAt := utils.SecondsSinceEpochToTime(line.Period.End)
+		var expiresAt time.Time
+
+		if invoice.BillingReason == InvoiceBillingReasonManual {
+			expiresAt, err = utils.ParseIsoTime(EXPIRES_MANUAL_INVOICE)
+			if err != nil {
+				klog.Errorf("Unable parsing manual invoice expiration date: %v", err)
+				render.Status(r, http.StatusServiceUnavailable)
+				return
+			}
+		} else {
+			expiresAt = utils.SecondsSinceEpochToTime(line.Period.End)
+		}
 
 		// Update user credit
 		_, err = c.Repo.AddCreditsIfEligible(creditType, user.ID, expiresAt)
@@ -143,12 +175,17 @@ type Plan struct {
 	Product string `json:"product"`
 }
 
+type Price struct {
+	Product string `json:"product"`
+}
+
 // InvoiceLine is the resource representing a Stripe invoice line item.
 // For more details see https://stripe.com/docs/api#invoice_line_item_object.
 type InvoiceLine struct {
 	ID     string  `json:"id"`
 	Period *Period `json:"period"`
 	Plan   *Plan   `json:"plan"`
+	Price  *Price  `json:"price"`
 }
 
 type InvoiceLineList struct {
