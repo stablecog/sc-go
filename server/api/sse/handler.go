@@ -16,8 +16,8 @@ const LIVE_STREAM_ID = "live"
 func (h *Hub) ServeSSE(w http.ResponseWriter, r *http.Request) {
 	// Retrieve id from query parameters
 	query := r.URL.Query()
-	// They always connect with query param ?stream_id
-	streamID := strings.ToLower(query.Get("stream_id"))
+	// They always connect with query param ?id
+	streamID := strings.ToLower(query.Get("id"))
 	if !utils.IsSha256Hash(streamID) && streamID != LIVE_STREAM_ID {
 		responses.ErrBadRequest(w, r, "Invalid ID")
 		return

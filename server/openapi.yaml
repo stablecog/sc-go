@@ -222,7 +222,7 @@ paths:
     get:
       description: SSE endpoint for subscriptions
       parameters:
-        - name: stream_id
+        - name: id
           in: query
           schema:
             type: string
