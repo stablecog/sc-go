@@ -31,11 +31,14 @@ func (c *RestAPI) HandleStripeWebhook(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	render.Status(r, http.StatusInternalServerError)
+	return
+
 	// We can parse the object as an invoice since that's the only thing we care about
 	invoice, err := stripeObjectMapToInvoiceObject(event.Data.Object)
 	if err != nil || invoice == nil {
 		klog.Errorf("Unable parsing stripe invoice object: %v", err)
-		render.Status(r, http.StatusServiceUnavailable)
+		render.Status(r, http.StatusInternalServerError)
 		return
 	}
 
@@ -47,7 +50,7 @@ func (c *RestAPI) HandleStripeWebhook(w http.ResponseWriter, r *http.Request) {
 
 	if invoice.Lines == nil {
 		klog.Errorf("Stripe invoice lines is nil %s", invoice.ID)
-		render.Status(r, http.StatusServiceUnavailable)
+		render.Status(r, http.StatusInternalServerError)
 		return
 	}
 
@@ -55,12 +58,12 @@ func (c *RestAPI) HandleStripeWebhook(w http.ResponseWriter, r *http.Request) {
 		var product string
 		if line.Plan == nil && invoice.BillingReason != InvoiceBillingReasonManual {
 			klog.Errorf("Stripe plan is nil in line item %s", line.ID)
-			render.Status(r, http.StatusServiceUnavailable)
+			render.Status(r, http.StatusInternalServerError)
 		}
 
 		if line.Price == nil && invoice.BillingReason == InvoiceBillingReasonManual {
 			klog.Errorf("Stripe price is nil in line item %s", line.ID)
-			render.Status(r, http.StatusServiceUnavailable)
+			render.Status(r, http.StatusInternalServerError)
 		}
 
 		if invoice.BillingReason == InvoiceBillingReasonManual {
@@ -71,18 +74,18 @@ func (c *RestAPI) HandleStripeWebhook(w http.ResponseWriter, r *http.Request) {
 
 		if product == "" {
 			klog.Errorf("Stripe product is nil in line item %s", line.ID)
-			render.Status(r, http.StatusServiceUnavailable)
+			render.Status(r, http.StatusInternalServerError)
 		}
 
 		// Get user from customer ID
 		user, err := c.Repo.GetUserByStripeCustomerId(invoice.Customer)
 		if err != nil {
 			klog.Errorf("Unable getting user from stripe customer id: %v", err)
-			render.Status(r, http.StatusServiceUnavailable)
+			render.Status(r, http.StatusInternalServerError)
 			return
 		} else if user == nil {
 			klog.Errorf("User does not exist with stripe customer id: %s", invoice.Customer)
-			render.Status(r, http.StatusServiceUnavailable)
+			render.Status(r, http.StatusInternalServerError)
 			return
 		}
 
@@ -90,11 +93,11 @@ func (c *RestAPI) HandleStripeWebhook(w http.ResponseWriter, r *http.Request) {
 		creditType, err := c.Repo.GetCreditTypeByStripeProductID(product)
 		if err != nil {
 			klog.Errorf("Unable getting credit type from stripe product id: %v", err)
-			render.Status(r, http.StatusServiceUnavailable)
+			render.Status(r, http.StatusInternalServerError)
 			return
 		} else if creditType == nil {
 			klog.Errorf("Credit type does not exist with stripe product id: %s", line.Plan.Product)
-			render.Status(r, http.StatusServiceUnavailable)
+			render.Status(r, http.StatusInternalServerError)
 			return
 		}
 
@@ -103,7 +106,7 @@ func (c *RestAPI) HandleStripeWebhook(w http.ResponseWriter, r *http.Request) {
 			_, err = c.Repo.AddAdhocCreditsIfEligible(creditType, user.ID, line.ID)
 			if err != nil {
 				klog.Errorf("Unable adding credits to user %s: %v", user.ID.String(), err)
-				render.Status(r, http.StatusServiceUnavailable)
+				render.Status(r, http.StatusInternalServerError)
 				return
 			}
 		} else {
@@ -112,7 +115,7 @@ func (c *RestAPI) HandleStripeWebhook(w http.ResponseWriter, r *http.Request) {
 			_, err = c.Repo.AddCreditsIfEligible(creditType, user.ID, expiresAt)
 			if err != nil {
 				klog.Errorf("Unable adding credits to user %s: %v", user.ID.String(), err)
-				render.Status(r, http.StatusServiceUnavailable)
+				render.Status(r, http.StatusInternalServerError)
 				return
 			}
 		}
