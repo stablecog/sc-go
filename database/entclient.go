@@ -3,6 +3,7 @@ package database
 import (
 	"database/sql"
 
+	"ariga.io/sqlcomment"
 	"entgo.io/ent/dialect"
 	entsql "entgo.io/ent/dialect/sql"
 	_ "github.com/jackc/pgx/v4/stdlib"
@@ -21,6 +22,13 @@ func NewEntClient(connInfo SqlDBConn) (*ent.Client, error) {
 	if entDialect == "pgx" {
 		entDialect = dialect.Postgres
 	}
-	drv := entsql.OpenDB(entDialect, db)
-	return ent.NewClient(ent.Driver(drv)), nil
+	driver := entsql.OpenDB(entDialect, db)
+	sqlcommentDrv := sqlcomment.NewDriver(driver,
+		sqlcomment.WithDriverVerTag(),
+		sqlcomment.WithTags(sqlcomment.Tags{
+			sqlcomment.KeyApplication: "stablecog",
+		}),
+	)
+
+	return ent.NewClient(ent.Driver(sqlcommentDrv)), nil
 }

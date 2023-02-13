@@ -4,9 +4,6 @@ go 1.19
 
 require (
 	github.com/go-redis/redis/v8 v8.11.5
-	github.com/stablecog/sc-go/server v0.0.0-20230212171313-d3dc468134f0
-	github.com/stablecog/sc-go/shared v0.0.0-20230212171313-d3dc468134f0
-	github.com/stablecog/sc-go/utils v0.0.0-20230212171313-d3dc468134f0
 	github.com/stretchr/testify v1.8.1
 	k8s.io/klog/v2 v2.80.1
 )
@@ -19,6 +16,7 @@ require (
 	github.com/go-chi/render v1.0.2 // indirect
 	github.com/go-logr/logr v1.2.0 // indirect
 	github.com/golang-jwt/jwt/v4 v4.4.2 // indirect
+	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
 	github.com/jackc/chunkreader/v2 v2.0.1 // indirect
 	github.com/jackc/pgconn v1.13.0 // indirect
 	github.com/jackc/pgio v1.0.0 // indirect
@@ -35,14 +33,17 @@ require (
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
 	github.com/valyala/fasthttp v1.37.1-0.20220607072126-8a320890c08d // indirect
 	github.com/yuin/gopher-lua v0.0.0-20220504180219-658193537a64 // indirect
+	go.opencensus.io v0.24.0 // indirect
+	go.opentelemetry.io/otel v1.0.1 // indirect
+	go.opentelemetry.io/otel/trace v1.0.1 // indirect
 	golang.org/x/crypto v0.0.0-20220722155217-630584e8d5aa // indirect
-	golang.org/x/exp v0.0.0-20230206171751-46f607a40771 // indirect
 	golang.org/x/image v0.3.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
 
 require (
 	ariga.io/atlas v0.9.1-0.20230119123307-a3ab6808892b // indirect
+	ariga.io/sqlcomment v0.1.0
 	entgo.io/ent v0.11.6
 	github.com/agext/levenshtein v1.2.1 // indirect
 	github.com/alicebob/miniredis/v2 v2.30.0
