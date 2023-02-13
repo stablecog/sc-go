@@ -11,6 +11,9 @@ import (
 	"github.com/stablecog/sc-go/database/ent/credittype"
 )
 
+// Expiration date for manual invoices (non-recurring)
+var EXPIRES_MANUAL_INVOICE = time.Date(2100, 1, 1, 5, 0, 0, 0, time.UTC)
+
 // Add credits of creditType to user if they do not have any un-expired credits of this type
 func (r *Repository) AddCreditsIfEligible(creditType *ent.CreditType, userID uuid.UUID, expiresAt time.Time) (added bool, err error) {
 	if creditType == nil {
@@ -29,6 +32,30 @@ func (r *Repository) AddCreditsIfEligible(creditType *ent.CreditType, userID uui
 
 	// Add credits
 	_, err = r.DB.Credit.Create().SetCreditTypeID(creditType.ID).SetUserID(userID).SetRemainingAmount(creditType.Amount).SetExpiresAt(expiresAt).Save(r.Ctx)
+	if err != nil {
+		return false, err
+	}
+	return true, nil
+}
+
+// Adds credits of creditType to user if they do not already have any belonging to stripe invoice line item
+func (r *Repository) AddAdhocCreditsIfEligible(creditType *ent.CreditType, userID uuid.UUID, lineItemID string) (added bool, err error) {
+	if creditType == nil {
+		return false, errors.New("creditType cannot be nil")
+	}
+	// See if user has any credits of this type
+	credits, err := r.DB.Credit.Query().Where(credit.UserID(userID), credit.CreditTypeID(creditType.ID), credit.StripeLineItemIDEQ(lineItemID)).First(r.Ctx)
+	if err != nil && !ent.IsNotFound(err) {
+		return false, err
+	}
+
+	if credits != nil {
+		// User already has credits of this type
+		return false, nil
+	}
+
+	// Add credits
+	_, err = r.DB.Credit.Create().SetCreditTypeID(creditType.ID).SetUserID(userID).SetRemainingAmount(creditType.Amount).SetStripeLineItemID(lineItemID).SetExpiresAt(EXPIRES_MANUAL_INVOICE).Save(r.Ctx)
 	if err != nil {
 		return false, err
 	}

@@ -35,6 +35,20 @@ func (cc *CreditCreate) SetExpiresAt(t time.Time) *CreditCreate {
 	return cc
 }
 
+// SetStripeLineItemID sets the "stripe_line_item_id" field.
+func (cc *CreditCreate) SetStripeLineItemID(s string) *CreditCreate {
+	cc.mutation.SetStripeLineItemID(s)
+	return cc
+}
+
+// SetNillableStripeLineItemID sets the "stripe_line_item_id" field if the given value is not nil.
+func (cc *CreditCreate) SetNillableStripeLineItemID(s *string) *CreditCreate {
+	if s != nil {
+		cc.SetStripeLineItemID(*s)
+	}
+	return cc
+}
+
 // SetUserID sets the "user_id" field.
 func (cc *CreditCreate) SetUserID(u uuid.UUID) *CreditCreate {
 	cc.mutation.SetUserID(u)
@@ -234,6 +248,10 @@ func (cc *CreditCreate) createSpec() (*Credit, *sqlgraph.CreateSpec) {
 	if value, ok := cc.mutation.ExpiresAt(); ok {
 		_spec.SetField(credit.FieldExpiresAt, field.TypeTime, value)
 		_node.ExpiresAt = value
+	}
+	if value, ok := cc.mutation.StripeLineItemID(); ok {
+		_spec.SetField(credit.FieldStripeLineItemID, field.TypeString, value)
+		_node.StripeLineItemID = &value
 	}
 	if value, ok := cc.mutation.CreatedAt(); ok {
 		_spec.SetField(credit.FieldCreatedAt, field.TypeTime, value)

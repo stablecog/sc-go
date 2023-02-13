@@ -66,6 +66,11 @@ func ExpiresAt(v time.Time) predicate.Credit {
 	return predicate.Credit(sql.FieldEQ(FieldExpiresAt, v))
 }
 
+// StripeLineItemID applies equality check predicate on the "stripe_line_item_id" field. It's identical to StripeLineItemIDEQ.
+func StripeLineItemID(v string) predicate.Credit {
+	return predicate.Credit(sql.FieldEQ(FieldStripeLineItemID, v))
+}
+
 // UserID applies equality check predicate on the "user_id" field. It's identical to UserIDEQ.
 func UserID(v uuid.UUID) predicate.Credit {
 	return predicate.Credit(sql.FieldEQ(FieldUserID, v))
@@ -164,6 +169,81 @@ func ExpiresAtLT(v time.Time) predicate.Credit {
 // ExpiresAtLTE applies the LTE predicate on the "expires_at" field.
 func ExpiresAtLTE(v time.Time) predicate.Credit {
 	return predicate.Credit(sql.FieldLTE(FieldExpiresAt, v))
+}
+
+// StripeLineItemIDEQ applies the EQ predicate on the "stripe_line_item_id" field.
+func StripeLineItemIDEQ(v string) predicate.Credit {
+	return predicate.Credit(sql.FieldEQ(FieldStripeLineItemID, v))
+}
+
+// StripeLineItemIDNEQ applies the NEQ predicate on the "stripe_line_item_id" field.
+func StripeLineItemIDNEQ(v string) predicate.Credit {
+	return predicate.Credit(sql.FieldNEQ(FieldStripeLineItemID, v))
+}
+
+// StripeLineItemIDIn applies the In predicate on the "stripe_line_item_id" field.
+func StripeLineItemIDIn(vs ...string) predicate.Credit {
+	return predicate.Credit(sql.FieldIn(FieldStripeLineItemID, vs...))
+}
+
+// StripeLineItemIDNotIn applies the NotIn predicate on the "stripe_line_item_id" field.
+func StripeLineItemIDNotIn(vs ...string) predicate.Credit {
+	return predicate.Credit(sql.FieldNotIn(FieldStripeLineItemID, vs...))
+}
+
+// StripeLineItemIDGT applies the GT predicate on the "stripe_line_item_id" field.
+func StripeLineItemIDGT(v string) predicate.Credit {
+	return predicate.Credit(sql.FieldGT(FieldStripeLineItemID, v))
+}
+
+// StripeLineItemIDGTE applies the GTE predicate on the "stripe_line_item_id" field.
+func StripeLineItemIDGTE(v string) predicate.Credit {
+	return predicate.Credit(sql.FieldGTE(FieldStripeLineItemID, v))
+}
+
+// StripeLineItemIDLT applies the LT predicate on the "stripe_line_item_id" field.
+func StripeLineItemIDLT(v string) predicate.Credit {
+	return predicate.Credit(sql.FieldLT(FieldStripeLineItemID, v))
+}
+
+// StripeLineItemIDLTE applies the LTE predicate on the "stripe_line_item_id" field.
+func StripeLineItemIDLTE(v string) predicate.Credit {
+	return predicate.Credit(sql.FieldLTE(FieldStripeLineItemID, v))
+}
+
+// StripeLineItemIDContains applies the Contains predicate on the "stripe_line_item_id" field.
+func StripeLineItemIDContains(v string) predicate.Credit {
+	return predicate.Credit(sql.FieldContains(FieldStripeLineItemID, v))
+}
+
+// StripeLineItemIDHasPrefix applies the HasPrefix predicate on the "stripe_line_item_id" field.
+func StripeLineItemIDHasPrefix(v string) predicate.Credit {
+	return predicate.Credit(sql.FieldHasPrefix(FieldStripeLineItemID, v))
+}
+
+// StripeLineItemIDHasSuffix applies the HasSuffix predicate on the "stripe_line_item_id" field.
+func StripeLineItemIDHasSuffix(v string) predicate.Credit {
+	return predicate.Credit(sql.FieldHasSuffix(FieldStripeLineItemID, v))
+}
+
+// StripeLineItemIDIsNil applies the IsNil predicate on the "stripe_line_item_id" field.
+func StripeLineItemIDIsNil() predicate.Credit {
+	return predicate.Credit(sql.FieldIsNull(FieldStripeLineItemID))
+}
+
+// StripeLineItemIDNotNil applies the NotNil predicate on the "stripe_line_item_id" field.
+func StripeLineItemIDNotNil() predicate.Credit {
+	return predicate.Credit(sql.FieldNotNull(FieldStripeLineItemID))
+}
+
+// StripeLineItemIDEqualFold applies the EqualFold predicate on the "stripe_line_item_id" field.
+func StripeLineItemIDEqualFold(v string) predicate.Credit {
+	return predicate.Credit(sql.FieldEqualFold(FieldStripeLineItemID, v))
+}
+
+// StripeLineItemIDContainsFold applies the ContainsFold predicate on the "stripe_line_item_id" field.
+func StripeLineItemIDContainsFold(v string) predicate.Credit {
+	return predicate.Credit(sql.FieldContainsFold(FieldStripeLineItemID, v))
 }
 
 // UserIDEQ applies the EQ predicate on the "user_id" field.

@@ -23,6 +23,8 @@ type Credit struct {
 	RemainingAmount int32 `json:"remaining_amount,omitempty"`
 	// ExpiresAt holds the value of the "expires_at" field.
 	ExpiresAt time.Time `json:"expires_at,omitempty"`
+	// StripeLineItemID holds the value of the "stripe_line_item_id" field.
+	StripeLineItemID *string `json:"stripe_line_item_id,omitempty"`
 	// UserID holds the value of the "user_id" field.
 	UserID uuid.UUID `json:"user_id,omitempty"`
 	// CreditTypeID holds the value of the "credit_type_id" field.
@@ -80,6 +82,8 @@ func (*Credit) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case credit.FieldRemainingAmount:
 			values[i] = new(sql.NullInt64)
+		case credit.FieldStripeLineItemID:
+			values[i] = new(sql.NullString)
 		case credit.FieldExpiresAt, credit.FieldCreatedAt, credit.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
 		case credit.FieldID, credit.FieldUserID, credit.FieldCreditTypeID:
@@ -116,6 +120,13 @@ func (c *Credit) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field expires_at", values[i])
 			} else if value.Valid {
 				c.ExpiresAt = value.Time
+			}
+		case credit.FieldStripeLineItemID:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field stripe_line_item_id", values[i])
+			} else if value.Valid {
+				c.StripeLineItemID = new(string)
+				*c.StripeLineItemID = value.String
 			}
 		case credit.FieldUserID:
 			if value, ok := values[i].(*uuid.UUID); !ok {
@@ -184,6 +195,11 @@ func (c *Credit) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("expires_at=")
 	builder.WriteString(c.ExpiresAt.Format(time.ANSIC))
+	builder.WriteString(", ")
+	if v := c.StripeLineItemID; v != nil {
+		builder.WriteString("stripe_line_item_id=")
+		builder.WriteString(*v)
+	}
 	builder.WriteString(", ")
 	builder.WriteString("user_id=")
 	builder.WriteString(fmt.Sprintf("%v", c.UserID))

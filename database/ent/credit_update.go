@@ -45,6 +45,26 @@ func (cu *CreditUpdate) AddRemainingAmount(i int32) *CreditUpdate {
 	return cu
 }
 
+// SetStripeLineItemID sets the "stripe_line_item_id" field.
+func (cu *CreditUpdate) SetStripeLineItemID(s string) *CreditUpdate {
+	cu.mutation.SetStripeLineItemID(s)
+	return cu
+}
+
+// SetNillableStripeLineItemID sets the "stripe_line_item_id" field if the given value is not nil.
+func (cu *CreditUpdate) SetNillableStripeLineItemID(s *string) *CreditUpdate {
+	if s != nil {
+		cu.SetStripeLineItemID(*s)
+	}
+	return cu
+}
+
+// ClearStripeLineItemID clears the value of the "stripe_line_item_id" field.
+func (cu *CreditUpdate) ClearStripeLineItemID() *CreditUpdate {
+	cu.mutation.ClearStripeLineItemID()
+	return cu
+}
+
 // SetUserID sets the "user_id" field.
 func (cu *CreditUpdate) SetUserID(u uuid.UUID) *CreditUpdate {
 	cu.mutation.SetUserID(u)
@@ -182,6 +202,12 @@ func (cu *CreditUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if value, ok := cu.mutation.AddedRemainingAmount(); ok {
 		_spec.AddField(credit.FieldRemainingAmount, field.TypeInt32, value)
 	}
+	if value, ok := cu.mutation.StripeLineItemID(); ok {
+		_spec.SetField(credit.FieldStripeLineItemID, field.TypeString, value)
+	}
+	if cu.mutation.StripeLineItemIDCleared() {
+		_spec.ClearField(credit.FieldStripeLineItemID, field.TypeString)
+	}
 	if value, ok := cu.mutation.UpdatedAt(); ok {
 		_spec.SetField(credit.FieldUpdatedAt, field.TypeTime, value)
 	}
@@ -287,6 +313,26 @@ func (cuo *CreditUpdateOne) SetRemainingAmount(i int32) *CreditUpdateOne {
 // AddRemainingAmount adds i to the "remaining_amount" field.
 func (cuo *CreditUpdateOne) AddRemainingAmount(i int32) *CreditUpdateOne {
 	cuo.mutation.AddRemainingAmount(i)
+	return cuo
+}
+
+// SetStripeLineItemID sets the "stripe_line_item_id" field.
+func (cuo *CreditUpdateOne) SetStripeLineItemID(s string) *CreditUpdateOne {
+	cuo.mutation.SetStripeLineItemID(s)
+	return cuo
+}
+
+// SetNillableStripeLineItemID sets the "stripe_line_item_id" field if the given value is not nil.
+func (cuo *CreditUpdateOne) SetNillableStripeLineItemID(s *string) *CreditUpdateOne {
+	if s != nil {
+		cuo.SetStripeLineItemID(*s)
+	}
+	return cuo
+}
+
+// ClearStripeLineItemID clears the value of the "stripe_line_item_id" field.
+func (cuo *CreditUpdateOne) ClearStripeLineItemID() *CreditUpdateOne {
+	cuo.mutation.ClearStripeLineItemID()
 	return cuo
 }
 
@@ -450,6 +496,12 @@ func (cuo *CreditUpdateOne) sqlSave(ctx context.Context) (_node *Credit, err err
 	}
 	if value, ok := cuo.mutation.AddedRemainingAmount(); ok {
 		_spec.AddField(credit.FieldRemainingAmount, field.TypeInt32, value)
+	}
+	if value, ok := cuo.mutation.StripeLineItemID(); ok {
+		_spec.SetField(credit.FieldStripeLineItemID, field.TypeString, value)
+	}
+	if cuo.mutation.StripeLineItemIDCleared() {
+		_spec.ClearField(credit.FieldStripeLineItemID, field.TypeString)
 	}
 	if value, ok := cuo.mutation.UpdatedAt(); ok {
 		_spec.SetField(credit.FieldUpdatedAt, field.TypeTime, value)

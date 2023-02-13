@@ -64,6 +64,7 @@ type CreditMutation struct {
 	remaining_amount    *int32
 	addremaining_amount *int32
 	expires_at          *time.Time
+	stripe_line_item_id *string
 	created_at          *time.Time
 	updated_at          *time.Time
 	clearedFields       map[string]struct{}
@@ -270,6 +271,55 @@ func (m *CreditMutation) OldExpiresAt(ctx context.Context) (v time.Time, err err
 // ResetExpiresAt resets all changes to the "expires_at" field.
 func (m *CreditMutation) ResetExpiresAt() {
 	m.expires_at = nil
+}
+
+// SetStripeLineItemID sets the "stripe_line_item_id" field.
+func (m *CreditMutation) SetStripeLineItemID(s string) {
+	m.stripe_line_item_id = &s
+}
+
+// StripeLineItemID returns the value of the "stripe_line_item_id" field in the mutation.
+func (m *CreditMutation) StripeLineItemID() (r string, exists bool) {
+	v := m.stripe_line_item_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldStripeLineItemID returns the old "stripe_line_item_id" field's value of the Credit entity.
+// If the Credit object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CreditMutation) OldStripeLineItemID(ctx context.Context) (v *string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldStripeLineItemID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldStripeLineItemID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldStripeLineItemID: %w", err)
+	}
+	return oldValue.StripeLineItemID, nil
+}
+
+// ClearStripeLineItemID clears the value of the "stripe_line_item_id" field.
+func (m *CreditMutation) ClearStripeLineItemID() {
+	m.stripe_line_item_id = nil
+	m.clearedFields[credit.FieldStripeLineItemID] = struct{}{}
+}
+
+// StripeLineItemIDCleared returns if the "stripe_line_item_id" field was cleared in this mutation.
+func (m *CreditMutation) StripeLineItemIDCleared() bool {
+	_, ok := m.clearedFields[credit.FieldStripeLineItemID]
+	return ok
+}
+
+// ResetStripeLineItemID resets all changes to the "stripe_line_item_id" field.
+func (m *CreditMutation) ResetStripeLineItemID() {
+	m.stripe_line_item_id = nil
+	delete(m.clearedFields, credit.FieldStripeLineItemID)
 }
 
 // SetUserID sets the "user_id" field.
@@ -528,12 +578,15 @@ func (m *CreditMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *CreditMutation) Fields() []string {
-	fields := make([]string, 0, 6)
+	fields := make([]string, 0, 7)
 	if m.remaining_amount != nil {
 		fields = append(fields, credit.FieldRemainingAmount)
 	}
 	if m.expires_at != nil {
 		fields = append(fields, credit.FieldExpiresAt)
+	}
+	if m.stripe_line_item_id != nil {
+		fields = append(fields, credit.FieldStripeLineItemID)
 	}
 	if m.users != nil {
 		fields = append(fields, credit.FieldUserID)
@@ -559,6 +612,8 @@ func (m *CreditMutation) Field(name string) (ent.Value, bool) {
 		return m.RemainingAmount()
 	case credit.FieldExpiresAt:
 		return m.ExpiresAt()
+	case credit.FieldStripeLineItemID:
+		return m.StripeLineItemID()
 	case credit.FieldUserID:
 		return m.UserID()
 	case credit.FieldCreditTypeID:
@@ -580,6 +635,8 @@ func (m *CreditMutation) OldField(ctx context.Context, name string) (ent.Value, 
 		return m.OldRemainingAmount(ctx)
 	case credit.FieldExpiresAt:
 		return m.OldExpiresAt(ctx)
+	case credit.FieldStripeLineItemID:
+		return m.OldStripeLineItemID(ctx)
 	case credit.FieldUserID:
 		return m.OldUserID(ctx)
 	case credit.FieldCreditTypeID:
@@ -610,6 +667,13 @@ func (m *CreditMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetExpiresAt(v)
+		return nil
+	case credit.FieldStripeLineItemID:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetStripeLineItemID(v)
 		return nil
 	case credit.FieldUserID:
 		v, ok := value.(uuid.UUID)
@@ -683,7 +747,11 @@ func (m *CreditMutation) AddField(name string, value ent.Value) error {
 // ClearedFields returns all nullable fields that were cleared during this
 // mutation.
 func (m *CreditMutation) ClearedFields() []string {
-	return nil
+	var fields []string
+	if m.FieldCleared(credit.FieldStripeLineItemID) {
+		fields = append(fields, credit.FieldStripeLineItemID)
+	}
+	return fields
 }
 
 // FieldCleared returns a boolean indicating if a field with the given name was
@@ -696,6 +764,11 @@ func (m *CreditMutation) FieldCleared(name string) bool {
 // ClearField clears the value of the field with the given name. It returns an
 // error if the field is not defined in the schema.
 func (m *CreditMutation) ClearField(name string) error {
+	switch name {
+	case credit.FieldStripeLineItemID:
+		m.ClearStripeLineItemID()
+		return nil
+	}
 	return fmt.Errorf("unknown Credit nullable field %s", name)
 }
 
@@ -708,6 +781,9 @@ func (m *CreditMutation) ResetField(name string) error {
 		return nil
 	case credit.FieldExpiresAt:
 		m.ResetExpiresAt()
+		return nil
+	case credit.FieldStripeLineItemID:
+		m.ResetStripeLineItemID()
 		return nil
 	case credit.FieldUserID:
 		m.ResetUserID()

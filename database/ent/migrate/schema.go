@@ -14,6 +14,7 @@ var (
 		{Name: "id", Type: field.TypeUUID},
 		{Name: "remaining_amount", Type: field.TypeInt32},
 		{Name: "expires_at", Type: field.TypeTime},
+		{Name: "stripe_line_item_id", Type: field.TypeString, Nullable: true},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},
 		{Name: "credit_type_id", Type: field.TypeUUID},
@@ -27,13 +28,13 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "credits_credit_types_credits",
-				Columns:    []*schema.Column{CreditsColumns[5]},
+				Columns:    []*schema.Column{CreditsColumns[6]},
 				RefColumns: []*schema.Column{CreditTypesColumns[0]},
 				OnDelete:   schema.Cascade,
 			},
 			{
 				Symbol:     "credits_users_credits",
-				Columns:    []*schema.Column{CreditsColumns[6]},
+				Columns:    []*schema.Column{CreditsColumns[7]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.Cascade,
 			},
@@ -42,7 +43,7 @@ var (
 			{
 				Name:    "credit_expires_at_user_id_remaining_amount",
 				Unique:  false,
-				Columns: []*schema.Column{CreditsColumns[2], CreditsColumns[6], CreditsColumns[1]},
+				Columns: []*schema.Column{CreditsColumns[2], CreditsColumns[7], CreditsColumns[1]},
 			},
 		},
 	}

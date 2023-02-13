@@ -4,16 +4,12 @@ import (
 	"encoding/json"
 	"io"
 	"net/http"
-	"time"
 
 	"github.com/go-chi/render"
 	"github.com/stablecog/sc-go/utils"
 	"github.com/stripe/stripe-go/webhook"
 	"k8s.io/klog/v2"
 )
-
-// Expiration date for manual invoices (non-recurring)
-const EXPIRES_MANUAL_INVOICE = "2100-01-01T05:00:00.000Z"
 
 // invoice.payment_succeeded
 func (c *RestAPI) HandleStripeWebhook(w http.ResponseWriter, r *http.Request) {
@@ -102,25 +98,23 @@ func (c *RestAPI) HandleStripeWebhook(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		var expiresAt time.Time
-
 		if invoice.BillingReason == InvoiceBillingReasonManual {
-			expiresAt, err = utils.ParseIsoTime(EXPIRES_MANUAL_INVOICE)
+			// Ad-hoc credit add
+			_, err = c.Repo.AddAdhocCreditsIfEligible(creditType, user.ID, line.ID)
 			if err != nil {
-				klog.Errorf("Unable parsing manual invoice expiration date: %v", err)
+				klog.Errorf("Unable adding credits to user %s: %v", user.ID.String(), err)
 				render.Status(r, http.StatusServiceUnavailable)
 				return
 			}
 		} else {
-			expiresAt = utils.SecondsSinceEpochToTime(line.Period.End)
-		}
-
-		// Update user credit
-		_, err = c.Repo.AddCreditsIfEligible(creditType, user.ID, expiresAt)
-		if err != nil {
-			klog.Errorf("Unable adding credits to user %s: %v", user.ID.String(), err)
-			render.Status(r, http.StatusServiceUnavailable)
-			return
+			expiresAt := utils.SecondsSinceEpochToTime(line.Period.End)
+			// Update user credit
+			_, err = c.Repo.AddCreditsIfEligible(creditType, user.ID, expiresAt)
+			if err != nil {
+				klog.Errorf("Unable adding credits to user %s: %v", user.ID.String(), err)
+				render.Status(r, http.StatusServiceUnavailable)
+				return
+			}
 		}
 	}
 

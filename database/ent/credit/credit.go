@@ -17,6 +17,8 @@ const (
 	FieldRemainingAmount = "remaining_amount"
 	// FieldExpiresAt holds the string denoting the expires_at field in the database.
 	FieldExpiresAt = "expires_at"
+	// FieldStripeLineItemID holds the string denoting the stripe_line_item_id field in the database.
+	FieldStripeLineItemID = "stripe_line_item_id"
 	// FieldUserID holds the string denoting the user_id field in the database.
 	FieldUserID = "user_id"
 	// FieldCreditTypeID holds the string denoting the credit_type_id field in the database.
@@ -52,6 +54,7 @@ var Columns = []string{
 	FieldID,
 	FieldRemainingAmount,
 	FieldExpiresAt,
+	FieldStripeLineItemID,
 	FieldUserID,
 	FieldCreditTypeID,
 	FieldCreatedAt,

@@ -30,11 +30,11 @@ func init() {
 	creditFields := schema.Credit{}.Fields()
 	_ = creditFields
 	// creditDescCreatedAt is the schema descriptor for created_at field.
-	creditDescCreatedAt := creditFields[5].Descriptor()
+	creditDescCreatedAt := creditFields[6].Descriptor()
 	// credit.DefaultCreatedAt holds the default value on creation for the created_at field.
 	credit.DefaultCreatedAt = creditDescCreatedAt.Default.(func() time.Time)
 	// creditDescUpdatedAt is the schema descriptor for updated_at field.
-	creditDescUpdatedAt := creditFields[6].Descriptor()
+	creditDescUpdatedAt := creditFields[7].Descriptor()
 	// credit.DefaultUpdatedAt holds the default value on creation for the updated_at field.
 	credit.DefaultUpdatedAt = creditDescUpdatedAt.Default.(func() time.Time)
 	// credit.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
