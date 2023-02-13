@@ -32,9 +32,6 @@ func (c *RestAPI) HandleStripeWebhook(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	responses.ErrInternalServerError(w, r, "stripe webhook not implemented yet")
-	return
-
 	// We can parse the object as an invoice since that's the only thing we care about
 	invoice, err := stripeObjectMapToInvoiceObject(event.Data.Object)
 	if err != nil || invoice == nil {
