@@ -231,13 +231,13 @@ paths:
       responses:
         "200":
           description: On successful connection
-        x-event-worker-status-update:
+        "201":
           description: Status update from worker to UI for generation/upscale created by user
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/WorkerStatusUpdate"
-        x-event-live-page-update:
+        "202":
           description: Update for live page
           content:
             application/json:
@@ -255,7 +255,7 @@ components:
       properties:
         error:
           type: string
-          format: insufficient_credits/json_parse_error/invalid_stream_id/invalid_model_id/invalid_scheduler_id/invalid_image_url/invalid_output_id/image_url_width_height_error/output_not_found/image_already_upscaled
+          format: insufficient_credits, json_parse_error, invalid_stream_id, invalid_model_id, invalid_scheduler_id, invalid_image_url, invalid_output_id, image_url_width_height_error, output_not_found, image_already_upscaled
     ErrorResponse401:
       type: object
       properties:
@@ -468,7 +468,7 @@ components:
       properties:
         action:
           type: string
-          format: approve/reject
+          format: approve, reject
         generation_output_ids:
           type: array
           items:
@@ -485,7 +485,7 @@ components:
       properties:
         status:
           type: string
-          format: succeeded/failed/processing
+          format: succeeded, failed, processing
         id:
           type: string
           format: uuidv4
@@ -504,14 +504,14 @@ components:
       properties:
         type:
           type: string
-          format: live_generation/live_upscale
+          format: live_generation, live_upscale
         id:
           type: string
         country_code:
           type: string
         status:
           type: string
-          format: queued/succeeded/failed/processing
+          format: queued, succeeded, failed, processing
         width:
           type: integer
           format: int32
