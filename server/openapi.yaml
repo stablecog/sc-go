@@ -1,0 +1,560 @@
+openapi: 3.1.0
+info:
+  title: Stablecog API
+  description: API Specification for stablecog
+  version: "2"
+servers:
+  - url: http://localhost:13337
+paths:
+  /v1/health:
+    get:
+      description: API ready endpoint
+      responses:
+        "200":
+          description: Success code when server is ready to accept requests
+      servers:
+        - url: http://localhost:13337
+    servers:
+      - url: http://localhost:13337
+  /v1/user/generation:
+    post:
+      description: Create a new generation
+      security:
+        - supabase: []
+      requestBody:
+        description: JSON object with generation options
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/GenerationCreateInput"
+      responses:
+        "200":
+          description: JSON object with ID to track request via SSE stream
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CreateResponse"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse400"
+        "401":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse401"
+    get:
+      description: Query the requesting user's generations
+      security:
+        - supabase: []
+      parameters:
+        - name: per_page
+          in: query
+          schema:
+            type: string
+          example: "50"
+        - name: offset
+          in: query
+          schema:
+            type: string
+          example: 2023-02-13T15%3A16%3A43.328Z
+      responses:
+        "200":
+          description: JSON object with generations and outputs
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GenerationQueryResponse"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse400"
+        "401":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse401"
+      servers:
+        - url: http://localhost:13337
+    servers:
+      - url: http://localhost:13337
+  /v1/user/upscale:
+    post:
+      description: Create a new upscale
+      security:
+        - supabase: []
+      requestBody:
+        description: JSON object with upscale options
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpscaleCreateInput"
+      responses:
+        "200":
+          description: JSON object with ID to track request via SSE stream
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CreateResponse"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse400"
+        "401":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse401"
+      servers:
+        - url: http://localhost:13337
+    servers:
+      - url: http://localhost:13337
+  /v1/user/credits:
+    get:
+      description: Query user's credit information
+      security:
+        - supabase: []
+      responses:
+        "200":
+          description: JSON object with detailed credit information
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CreditResponse"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse400"
+        "401":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse401"
+      servers:
+        - url: http://localhost:13337
+    servers:
+      - url: http://localhost:13337
+  /v1/user/gallery:
+    put:
+      description: Submit generations to gallery
+      requestBody:
+        description: JSON Object with generation output IDs to submit
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SubmitGalleryRequest"
+      responses:
+        "200":
+          description: JSON Object indicating how many items were submitted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SubmittedResponse"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse400"
+        "401":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse401"
+      servers:
+        - url: http://localhost:13337
+    servers:
+      - url: http://localhost:13337
+  /v1/admin/generation:
+    delete:
+      description: Delete generations with given IDs
+      security:
+        - supabase: []
+      requestBody:
+        description: JSON Object with generation IDs to delete
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/GenerationDeleteRequest"
+      responses:
+        "200":
+          description: Number of generations deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DeletedResponse"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse400"
+        "401":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse401"
+      servers:
+        - url: http://localhost:13337
+    servers:
+      - url: http://localhost:13337
+  /v1/admin/gallery:
+    put:
+      description: Review gallery submissions.
+      security:
+        - supabase: []
+      requestBody:
+        description: JSON Object with review action and output IDs
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/GalleryReviewRequest"
+      responses:
+        "200":
+          description: Number of items approved/rejected
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UpdatedResponse"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse400"
+        "401":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse401"
+      servers:
+        - url: http://localhost:13337
+    servers:
+      - url: http://localhost:13337
+  /v1/sse:
+    get:
+      description: SSE endpoint for subscriptions
+      parameters:
+        - name: stream_id
+          in: query
+          schema:
+            type: string
+            format: 64_char_hex/live
+          example: live
+      responses:
+        "200":
+          description: On successful connection
+        x-event-worker-status-update:
+          description: Status update from worker to UI for generation/upscale created by user
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WorkerStatusUpdate"
+        x-event-live-page-update:
+          description: Update for live page
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LivePageUpdate"
+      servers:
+        - url: http://localhost:13337
+    servers:
+      - url: http://localhost:13337
+components:
+  securitySchemes:
+    supabase:
+      type: oauth2
+      flows:
+        implicit:
+          authorizationUrl: https://<project_id>.supabase.co/auth/v1
+          scopes:
+            scope_name: repo
+  schemas:
+    ErrorResponse400:
+      type: object
+      properties:
+        error:
+          type: string
+          format: insufficient_creidts/json_parse_error/invalid_stream_id/invalid_model_id/invalid_scheduler_id/invalid_image_url/invalid_output_id/image_url_width_height_error/output_not_found/image_already_upscaled
+    ErrorResponse401:
+      type: object
+      properties:
+        error:
+          type: string
+          format: unauthorized
+    GenerationCreateInput:
+      type: object
+      required:
+        [
+          "prompt",
+          "width",
+          "height",
+          "inference_steps",
+          "guidance_scale",
+          "model_id",
+          "scheduler_id",
+          "stream_id",
+        ]
+      properties:
+        prompt:
+          type: string
+        negative_prompt:
+          type: string
+        width:
+          type: integer
+          format: int32
+        height:
+          type: integer
+          format: int32
+        inference_steps:
+          type: integer
+          format: int32
+        guidance_scale:
+          type: number
+          format: float32
+        model_id:
+          type: string
+          format: uuidv4
+        scheduler_id:
+          type: string
+          format: uuidv4
+        seed:
+          type: integer
+          format: int64
+        stream_id:
+          type: string
+          format: 64_char_hex_string
+        should_submit_to_gallery:
+          type: boolean
+          default: false
+        num_outputs:
+          type: integer
+          format: int32
+          default: 1
+      description: Input for creating generation
+    UpscaleCreateInput:
+      type: object
+      required: ["type", "input", "model_id", "stream_id"]
+      properties:
+        type:
+          type: string
+          format: from_image/from_output
+        input:
+          type: string
+          format: URL if from_image, uuidv4 if from_output
+        model_id:
+          type: string
+          format: uuidv4
+        stream_id:
+          type: string
+          format: 64_char_hex_string
+      description: Input for creating upscale
+    CreateResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuidv4
+      description: Response after creating a generation or upscale
+    GenerationQueryResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuidv4
+        width:
+          type: integer
+          format: int32
+        height:
+          type: integer
+          format: int32
+        inference_steps:
+          type: integer
+          format: int32
+        guidance_scale:
+          type: number
+          format: float32
+        prompt:
+          type: string
+        negative_prompt:
+          type: string
+          format: optional
+        model:
+          type: string
+        scheduler:
+          type: string
+        seed:
+          type: integer
+        created_at:
+          type: string
+          format: isoTimeString
+        started_at:
+          type: string
+          format: isoTimeString,optional
+        completed_at:
+          type: string
+          format: isoTimeString,optional
+        outputs:
+          type: array
+          items:
+            $ref: "#/components/schemas/GenerationOutput"
+      description: Response after querying generations.
+    GenerationOutput:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuidv4
+        image_url:
+          type: string
+        upscaled_image_url:
+          type: string
+          format: optional
+        gallery_status:
+          type: string
+          format: not_submitted/submitted/accepted/rejected
+      description: An output of a generation
+    CreditResponse:
+      type: object
+      properties:
+        total_remaining_credits:
+          type: integer
+          format: int32
+        credits:
+          type: array
+          items:
+            $ref: "#/components/schemas/Credit"
+      description: Detailed response from credit API
+    CreditType:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuidv4
+        name:
+          type: string
+        description:
+          type: string
+          format: optional
+        amount:
+          type: integer
+          format: int32
+      description: Details about the type of credit.
+    Credit:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuidv4
+        remaining_amount:
+          type: integer
+          format: int32
+        expires_at:
+          type: string
+          format: isoTimeString
+        type:
+          $ref: "#/components/schemas/CreditType"
+      description: Details about credits for user
+    SubmitGalleryRequest:
+      type: object
+      properties:
+        generation_output_ids:
+          type: array
+          items:
+            type: string
+            format: uuidv4
+    SubmittedResponse:
+      type: object
+      properties:
+        submitted:
+          type: integer
+      description: The number of items successfully submitted to gallery
+    GenerationDeleteRequest:
+      type: object
+      properties:
+        generation_ids:
+          type: array
+          items:
+            type: string
+            format: uuidv4
+    DeletedResponse:
+      type: object
+      properties:
+        deleted:
+          type: integer
+      description: The number of items successfully deleted
+    GalleryReviewRequest:
+      type: object
+      properties:
+        action:
+          type: string
+          format: approve/reject
+        generation_output_ids:
+          type: array
+          items:
+            type: string
+            format: uuidv4
+    UpdatedResponse:
+      type: object
+      properties:
+        updated:
+          type: integer
+      description: The number of items successfully updated
+    WorkerStatusUpdate:
+      type: object
+      properties:
+        status:
+          type: string
+          format: succeeded/failed/processing
+        id:
+          type: string
+          format: uuidv4
+        outputs:
+          type: array
+          items:
+            $ref: "#/components/schemas/GenerationOutput"
+      description: Status updates delivered from worker to UI via SSE
+    LivePageUpdate:
+      type: object
+      properties:
+        type:
+          type: string
+          format: live_generation/live_upscale
+        id:
+          type: string
+        country_code:
+          type: string
+        status:
+          type: string
+          format: queued/succeeded/failed/processing
+        width:
+          type: integer
+          format: int32
+        height:
+          type: integer
+          format: int32
+        created_at:
+          type: string
+          format: isoTimeStr
+        started_at:
+          type: string
+          format: isoTimeStr
+        completed_at:
+          type: string
+          format: isoTimeStr
+      description: Status updates delivered for live activity page

@@ -155,19 +155,12 @@ func main() {
 		r.Route("/user", func(r chi.Router) {
 			r.Use(mw.AuthMiddleware)
 			r.Use(chimiddleware.Logger)
-			r.Route("/generation", func(r chi.Router) {
-				r.Post("/create", hc.HandleCreateGeneration)
-				r.Get("/query", hc.HandleQueryGenerations)
-			})
-			r.Route("/upscale", func(r chi.Router) {
-				r.Post("/create", hc.HandleUpscale)
-			})
-			r.Route("/gallery", func(r chi.Router) {
-				r.Post("/submit", hc.HandleSubmitGenerationToGallery)
-			})
-			r.Route("/credits", func(r chi.Router) {
-				r.Get("/query", hc.HandleQueryCredits)
-			})
+			r.Post("/generation", hc.HandleCreateGeneration)
+			r.Get("/generation", hc.HandleQueryGenerations)
+
+			r.Post("/upscale", hc.HandleUpscale)
+
+			r.Get("/credits", hc.HandleQueryCredits)
 		})
 
 		// Admin only routes
@@ -176,13 +169,13 @@ func main() {
 				r.Use(mw.AuthMiddleware)
 				r.Use(mw.AdminMiddleware)
 				r.Use(chimiddleware.Logger)
-				r.Post("/review", hc.HandleReviewGallerySubmission)
+				r.Put("/", hc.HandleReviewGallerySubmission)
 			})
 			r.Route("/generation", func(r chi.Router) {
 				r.Use(mw.AuthMiddleware)
 				r.Use(mw.SuperAdminMiddleware)
 				r.Use(chimiddleware.Logger)
-				r.Delete("/delete", hc.HandleDeleteGeneration)
+				r.Delete("/", hc.HandleDeleteGeneration)
 			})
 		})
 	})
