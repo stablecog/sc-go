@@ -118,16 +118,16 @@ func (gc *GenerationCreate) SetNillableInitImageURL(s *string) *GenerationCreate
 	return gc
 }
 
-// SetShouldSubmitToGallery sets the "should_submit_to_gallery" field.
-func (gc *GenerationCreate) SetShouldSubmitToGallery(b bool) *GenerationCreate {
-	gc.mutation.SetShouldSubmitToGallery(b)
+// SetSubmitToGallery sets the "submit_to_gallery" field.
+func (gc *GenerationCreate) SetSubmitToGallery(b bool) *GenerationCreate {
+	gc.mutation.SetSubmitToGallery(b)
 	return gc
 }
 
-// SetNillableShouldSubmitToGallery sets the "should_submit_to_gallery" field if the given value is not nil.
-func (gc *GenerationCreate) SetNillableShouldSubmitToGallery(b *bool) *GenerationCreate {
+// SetNillableSubmitToGallery sets the "submit_to_gallery" field if the given value is not nil.
+func (gc *GenerationCreate) SetNillableSubmitToGallery(b *bool) *GenerationCreate {
 	if b != nil {
-		gc.SetShouldSubmitToGallery(*b)
+		gc.SetSubmitToGallery(*b)
 	}
 	return gc
 }
@@ -336,9 +336,9 @@ func (gc *GenerationCreate) defaults() {
 		v := generation.DefaultNsfwCount
 		gc.mutation.SetNsfwCount(v)
 	}
-	if _, ok := gc.mutation.ShouldSubmitToGallery(); !ok {
-		v := generation.DefaultShouldSubmitToGallery
-		gc.mutation.SetShouldSubmitToGallery(v)
+	if _, ok := gc.mutation.SubmitToGallery(); !ok {
+		v := generation.DefaultSubmitToGallery
+		gc.mutation.SetSubmitToGallery(v)
 	}
 	if _, ok := gc.mutation.CreatedAt(); !ok {
 		v := generation.DefaultCreatedAt()
@@ -388,8 +388,8 @@ func (gc *GenerationCreate) check() error {
 	if _, ok := gc.mutation.CountryCode(); !ok {
 		return &ValidationError{Name: "country_code", err: errors.New(`ent: missing required field "Generation.country_code"`)}
 	}
-	if _, ok := gc.mutation.ShouldSubmitToGallery(); !ok {
-		return &ValidationError{Name: "should_submit_to_gallery", err: errors.New(`ent: missing required field "Generation.should_submit_to_gallery"`)}
+	if _, ok := gc.mutation.SubmitToGallery(); !ok {
+		return &ValidationError{Name: "submit_to_gallery", err: errors.New(`ent: missing required field "Generation.submit_to_gallery"`)}
 	}
 	if _, ok := gc.mutation.PromptID(); !ok {
 		return &ValidationError{Name: "prompt_id", err: errors.New(`ent: missing required field "Generation.prompt_id"`)}
@@ -512,9 +512,9 @@ func (gc *GenerationCreate) createSpec() (*Generation, *sqlgraph.CreateSpec) {
 		_spec.SetField(generation.FieldInitImageURL, field.TypeString, value)
 		_node.InitImageURL = &value
 	}
-	if value, ok := gc.mutation.ShouldSubmitToGallery(); ok {
-		_spec.SetField(generation.FieldShouldSubmitToGallery, field.TypeBool, value)
-		_node.ShouldSubmitToGallery = value
+	if value, ok := gc.mutation.SubmitToGallery(); ok {
+		_spec.SetField(generation.FieldSubmitToGallery, field.TypeBool, value)
+		_node.SubmitToGallery = value
 	}
 	if value, ok := gc.mutation.StartedAt(); ok {
 		_spec.SetField(generation.FieldStartedAt, field.TypeTime, value)

@@ -64,7 +64,7 @@ func (r *Repository) CreateGeneration(userID uuid.UUID, deviceType, deviceOs, de
 		SetDeviceInfoID(deviceInfoId).
 		SetCountryCode(countryCode).
 		SetUserID(userID).
-		SetShouldSubmitToGallery(req.ShouldSubmitToGallery).
+		SetSubmitToGallery(req.SubmitToGallery).
 		SetNumOutputs(req.NumOutputs)
 	if negativePromptId != nil {
 		insert.SetNegativePromptID(*negativePromptId)
@@ -130,7 +130,7 @@ func (r *Repository) SetGenerationSucceeded(generationID string, outputs []strin
 
 	// If this generation was created with "submit_to_gallery", then submit all outputs to gallery
 	var galleryStatus generationoutput.GalleryStatus
-	if g.ShouldSubmitToGallery {
+	if g.SubmitToGallery {
 		galleryStatus = generationoutput.GalleryStatusSubmitted
 	} else {
 		galleryStatus = generationoutput.GalleryStatusNotSubmitted

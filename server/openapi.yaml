@@ -307,7 +307,7 @@ components:
         stream_id:
           type: string
           format: 64_char_hex_string
-        should_submit_to_gallery:
+        submit_to_gallery:
           type: boolean
           default: false
         num_outputs:

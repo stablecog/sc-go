@@ -188,16 +188,16 @@ func (gu *GenerationUpdate) ClearInitImageURL() *GenerationUpdate {
 	return gu
 }
 
-// SetShouldSubmitToGallery sets the "should_submit_to_gallery" field.
-func (gu *GenerationUpdate) SetShouldSubmitToGallery(b bool) *GenerationUpdate {
-	gu.mutation.SetShouldSubmitToGallery(b)
+// SetSubmitToGallery sets the "submit_to_gallery" field.
+func (gu *GenerationUpdate) SetSubmitToGallery(b bool) *GenerationUpdate {
+	gu.mutation.SetSubmitToGallery(b)
 	return gu
 }
 
-// SetNillableShouldSubmitToGallery sets the "should_submit_to_gallery" field if the given value is not nil.
-func (gu *GenerationUpdate) SetNillableShouldSubmitToGallery(b *bool) *GenerationUpdate {
+// SetNillableSubmitToGallery sets the "submit_to_gallery" field if the given value is not nil.
+func (gu *GenerationUpdate) SetNillableSubmitToGallery(b *bool) *GenerationUpdate {
 	if b != nil {
-		gu.SetShouldSubmitToGallery(*b)
+		gu.SetSubmitToGallery(*b)
 	}
 	return gu
 }
@@ -559,8 +559,8 @@ func (gu *GenerationUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if gu.mutation.InitImageURLCleared() {
 		_spec.ClearField(generation.FieldInitImageURL, field.TypeString)
 	}
-	if value, ok := gu.mutation.ShouldSubmitToGallery(); ok {
-		_spec.SetField(generation.FieldShouldSubmitToGallery, field.TypeBool, value)
+	if value, ok := gu.mutation.SubmitToGallery(); ok {
+		_spec.SetField(generation.FieldSubmitToGallery, field.TypeBool, value)
 	}
 	if value, ok := gu.mutation.StartedAt(); ok {
 		_spec.SetField(generation.FieldStartedAt, field.TypeTime, value)
@@ -1014,16 +1014,16 @@ func (guo *GenerationUpdateOne) ClearInitImageURL() *GenerationUpdateOne {
 	return guo
 }
 
-// SetShouldSubmitToGallery sets the "should_submit_to_gallery" field.
-func (guo *GenerationUpdateOne) SetShouldSubmitToGallery(b bool) *GenerationUpdateOne {
-	guo.mutation.SetShouldSubmitToGallery(b)
+// SetSubmitToGallery sets the "submit_to_gallery" field.
+func (guo *GenerationUpdateOne) SetSubmitToGallery(b bool) *GenerationUpdateOne {
+	guo.mutation.SetSubmitToGallery(b)
 	return guo
 }
 
-// SetNillableShouldSubmitToGallery sets the "should_submit_to_gallery" field if the given value is not nil.
-func (guo *GenerationUpdateOne) SetNillableShouldSubmitToGallery(b *bool) *GenerationUpdateOne {
+// SetNillableSubmitToGallery sets the "submit_to_gallery" field if the given value is not nil.
+func (guo *GenerationUpdateOne) SetNillableSubmitToGallery(b *bool) *GenerationUpdateOne {
 	if b != nil {
-		guo.SetShouldSubmitToGallery(*b)
+		guo.SetSubmitToGallery(*b)
 	}
 	return guo
 }
@@ -1409,8 +1409,8 @@ func (guo *GenerationUpdateOne) sqlSave(ctx context.Context) (_node *Generation,
 	if guo.mutation.InitImageURLCleared() {
 		_spec.ClearField(generation.FieldInitImageURL, field.TypeString)
 	}
-	if value, ok := guo.mutation.ShouldSubmitToGallery(); ok {
-		_spec.SetField(generation.FieldShouldSubmitToGallery, field.TypeBool, value)
+	if value, ok := guo.mutation.SubmitToGallery(); ok {
+		_spec.SetField(generation.FieldSubmitToGallery, field.TypeBool, value)
 	}
 	if value, ok := guo.mutation.StartedAt(); ok {
 		_spec.SetField(generation.FieldStartedAt, field.TypeTime, value)

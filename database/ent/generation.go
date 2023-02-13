@@ -45,8 +45,8 @@ type Generation struct {
 	CountryCode string `json:"country_code,omitempty"`
 	// InitImageURL holds the value of the "init_image_url" field.
 	InitImageURL *string `json:"init_image_url,omitempty"`
-	// ShouldSubmitToGallery holds the value of the "should_submit_to_gallery" field.
-	ShouldSubmitToGallery bool `json:"should_submit_to_gallery,omitempty"`
+	// SubmitToGallery holds the value of the "submit_to_gallery" field.
+	SubmitToGallery bool `json:"submit_to_gallery,omitempty"`
 	// PromptID holds the value of the "prompt_id" field.
 	PromptID uuid.UUID `json:"prompt_id,omitempty"`
 	// NegativePromptID holds the value of the "negative_prompt_id" field.
@@ -187,7 +187,7 @@ func (*Generation) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case generation.FieldNegativePromptID:
 			values[i] = &sql.NullScanner{S: new(uuid.UUID)}
-		case generation.FieldShouldSubmitToGallery:
+		case generation.FieldSubmitToGallery:
 			values[i] = new(sql.NullBool)
 		case generation.FieldGuidanceScale:
 			values[i] = new(sql.NullFloat64)
@@ -288,11 +288,11 @@ func (ge *Generation) assignValues(columns []string, values []any) error {
 				ge.InitImageURL = new(string)
 				*ge.InitImageURL = value.String
 			}
-		case generation.FieldShouldSubmitToGallery:
+		case generation.FieldSubmitToGallery:
 			if value, ok := values[i].(*sql.NullBool); !ok {
-				return fmt.Errorf("unexpected type %T for field should_submit_to_gallery", values[i])
+				return fmt.Errorf("unexpected type %T for field submit_to_gallery", values[i])
 			} else if value.Valid {
-				ge.ShouldSubmitToGallery = value.Bool
+				ge.SubmitToGallery = value.Bool
 			}
 		case generation.FieldPromptID:
 			if value, ok := values[i].(*uuid.UUID); !ok {
@@ -457,8 +457,8 @@ func (ge *Generation) String() string {
 		builder.WriteString(*v)
 	}
 	builder.WriteString(", ")
-	builder.WriteString("should_submit_to_gallery=")
-	builder.WriteString(fmt.Sprintf("%v", ge.ShouldSubmitToGallery))
+	builder.WriteString("submit_to_gallery=")
+	builder.WriteString(fmt.Sprintf("%v", ge.SubmitToGallery))
 	builder.WriteString(", ")
 	builder.WriteString("prompt_id=")
 	builder.WriteString(fmt.Sprintf("%v", ge.PromptID))

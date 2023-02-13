@@ -36,8 +36,8 @@ const (
 	FieldCountryCode = "country_code"
 	// FieldInitImageURL holds the string denoting the init_image_url field in the database.
 	FieldInitImageURL = "init_image_url"
-	// FieldShouldSubmitToGallery holds the string denoting the should_submit_to_gallery field in the database.
-	FieldShouldSubmitToGallery = "should_submit_to_gallery"
+	// FieldSubmitToGallery holds the string denoting the submit_to_gallery field in the database.
+	FieldSubmitToGallery = "submit_to_gallery"
 	// FieldPromptID holds the string denoting the prompt_id field in the database.
 	FieldPromptID = "prompt_id"
 	// FieldNegativePromptID holds the string denoting the negative_prompt_id field in the database.
@@ -139,7 +139,7 @@ var Columns = []string{
 	FieldFailureReason,
 	FieldCountryCode,
 	FieldInitImageURL,
-	FieldShouldSubmitToGallery,
+	FieldSubmitToGallery,
 	FieldPromptID,
 	FieldNegativePromptID,
 	FieldModelID,
@@ -165,8 +165,8 @@ func ValidColumn(column string) bool {
 var (
 	// DefaultNsfwCount holds the default value on creation for the "nsfw_count" field.
 	DefaultNsfwCount int32
-	// DefaultShouldSubmitToGallery holds the default value on creation for the "should_submit_to_gallery" field.
-	DefaultShouldSubmitToGallery bool
+	// DefaultSubmitToGallery holds the default value on creation for the "submit_to_gallery" field.
+	DefaultSubmitToGallery bool
 	// DefaultCreatedAt holds the default value on creation for the "created_at" field.
 	DefaultCreatedAt func() time.Time
 	// DefaultUpdatedAt holds the default value on creation for the "updated_at" field.

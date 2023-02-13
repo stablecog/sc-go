@@ -91,7 +91,7 @@ var (
 		{Name: "failure_reason", Type: field.TypeString, Nullable: true, Size: 2147483647},
 		{Name: "country_code", Type: field.TypeString, Size: 2147483647},
 		{Name: "init_image_url", Type: field.TypeString, Nullable: true, Size: 2147483647},
-		{Name: "should_submit_to_gallery", Type: field.TypeBool, Default: false},
+		{Name: "submit_to_gallery", Type: field.TypeBool, Default: false},
 		{Name: "started_at", Type: field.TypeTime, Nullable: true},
 		{Name: "completed_at", Type: field.TypeTime, Nullable: true},
 		{Name: "created_at", Type: field.TypeTime},

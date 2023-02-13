@@ -106,9 +106,9 @@ func InitImageURL(v string) predicate.Generation {
 	return predicate.Generation(sql.FieldEQ(FieldInitImageURL, v))
 }
 
-// ShouldSubmitToGallery applies equality check predicate on the "should_submit_to_gallery" field. It's identical to ShouldSubmitToGalleryEQ.
-func ShouldSubmitToGallery(v bool) predicate.Generation {
-	return predicate.Generation(sql.FieldEQ(FieldShouldSubmitToGallery, v))
+// SubmitToGallery applies equality check predicate on the "submit_to_gallery" field. It's identical to SubmitToGalleryEQ.
+func SubmitToGallery(v bool) predicate.Generation {
+	return predicate.Generation(sql.FieldEQ(FieldSubmitToGallery, v))
 }
 
 // PromptID applies equality check predicate on the "prompt_id" field. It's identical to PromptIDEQ.
@@ -676,14 +676,14 @@ func InitImageURLContainsFold(v string) predicate.Generation {
 	return predicate.Generation(sql.FieldContainsFold(FieldInitImageURL, v))
 }
 
-// ShouldSubmitToGalleryEQ applies the EQ predicate on the "should_submit_to_gallery" field.
-func ShouldSubmitToGalleryEQ(v bool) predicate.Generation {
-	return predicate.Generation(sql.FieldEQ(FieldShouldSubmitToGallery, v))
+// SubmitToGalleryEQ applies the EQ predicate on the "submit_to_gallery" field.
+func SubmitToGalleryEQ(v bool) predicate.Generation {
+	return predicate.Generation(sql.FieldEQ(FieldSubmitToGallery, v))
 }
 
-// ShouldSubmitToGalleryNEQ applies the NEQ predicate on the "should_submit_to_gallery" field.
-func ShouldSubmitToGalleryNEQ(v bool) predicate.Generation {
-	return predicate.Generation(sql.FieldNEQ(FieldShouldSubmitToGallery, v))
+// SubmitToGalleryNEQ applies the NEQ predicate on the "submit_to_gallery" field.
+func SubmitToGalleryNEQ(v bool) predicate.Generation {
+	return predicate.Generation(sql.FieldNEQ(FieldSubmitToGallery, v))
 }
 
 // PromptIDEQ applies the EQ predicate on the "prompt_id" field.

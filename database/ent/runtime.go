@@ -81,10 +81,10 @@ func init() {
 	generationDescNsfwCount := generationFields[6].Descriptor()
 	// generation.DefaultNsfwCount holds the default value on creation for the nsfw_count field.
 	generation.DefaultNsfwCount = generationDescNsfwCount.Default.(int32)
-	// generationDescShouldSubmitToGallery is the schema descriptor for should_submit_to_gallery field.
-	generationDescShouldSubmitToGallery := generationFields[12].Descriptor()
-	// generation.DefaultShouldSubmitToGallery holds the default value on creation for the should_submit_to_gallery field.
-	generation.DefaultShouldSubmitToGallery = generationDescShouldSubmitToGallery.Default.(bool)
+	// generationDescSubmitToGallery is the schema descriptor for submit_to_gallery field.
+	generationDescSubmitToGallery := generationFields[12].Descriptor()
+	// generation.DefaultSubmitToGallery holds the default value on creation for the submit_to_gallery field.
+	generation.DefaultSubmitToGallery = generationDescSubmitToGallery.Default.(bool)
 	// generationDescCreatedAt is the schema descriptor for created_at field.
 	generationDescCreatedAt := generationFields[21].Descriptor()
 	// generation.DefaultCreatedAt holds the default value on creation for the created_at field.

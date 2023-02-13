@@ -2337,7 +2337,7 @@ type GenerationMutation struct {
 	failure_reason            *string
 	country_code              *string
 	init_image_url            *string
-	should_submit_to_gallery  *bool
+	submit_to_gallery         *bool
 	started_at                *time.Time
 	completed_at              *time.Time
 	created_at                *time.Time
@@ -3029,40 +3029,40 @@ func (m *GenerationMutation) ResetInitImageURL() {
 	delete(m.clearedFields, generation.FieldInitImageURL)
 }
 
-// SetShouldSubmitToGallery sets the "should_submit_to_gallery" field.
-func (m *GenerationMutation) SetShouldSubmitToGallery(b bool) {
-	m.should_submit_to_gallery = &b
+// SetSubmitToGallery sets the "submit_to_gallery" field.
+func (m *GenerationMutation) SetSubmitToGallery(b bool) {
+	m.submit_to_gallery = &b
 }
 
-// ShouldSubmitToGallery returns the value of the "should_submit_to_gallery" field in the mutation.
-func (m *GenerationMutation) ShouldSubmitToGallery() (r bool, exists bool) {
-	v := m.should_submit_to_gallery
+// SubmitToGallery returns the value of the "submit_to_gallery" field in the mutation.
+func (m *GenerationMutation) SubmitToGallery() (r bool, exists bool) {
+	v := m.submit_to_gallery
 	if v == nil {
 		return
 	}
 	return *v, true
 }
 
-// OldShouldSubmitToGallery returns the old "should_submit_to_gallery" field's value of the Generation entity.
+// OldSubmitToGallery returns the old "submit_to_gallery" field's value of the Generation entity.
 // If the Generation object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *GenerationMutation) OldShouldSubmitToGallery(ctx context.Context) (v bool, err error) {
+func (m *GenerationMutation) OldSubmitToGallery(ctx context.Context) (v bool, err error) {
 	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldShouldSubmitToGallery is only allowed on UpdateOne operations")
+		return v, errors.New("OldSubmitToGallery is only allowed on UpdateOne operations")
 	}
 	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldShouldSubmitToGallery requires an ID field in the mutation")
+		return v, errors.New("OldSubmitToGallery requires an ID field in the mutation")
 	}
 	oldValue, err := m.oldValue(ctx)
 	if err != nil {
-		return v, fmt.Errorf("querying old value for OldShouldSubmitToGallery: %w", err)
+		return v, fmt.Errorf("querying old value for OldSubmitToGallery: %w", err)
 	}
-	return oldValue.ShouldSubmitToGallery, nil
+	return oldValue.SubmitToGallery, nil
 }
 
-// ResetShouldSubmitToGallery resets all changes to the "should_submit_to_gallery" field.
-func (m *GenerationMutation) ResetShouldSubmitToGallery() {
-	m.should_submit_to_gallery = nil
+// ResetSubmitToGallery resets all changes to the "submit_to_gallery" field.
+func (m *GenerationMutation) ResetSubmitToGallery() {
+	m.submit_to_gallery = nil
 }
 
 // SetPromptID sets the "prompt_id" field.
@@ -3755,8 +3755,8 @@ func (m *GenerationMutation) Fields() []string {
 	if m.init_image_url != nil {
 		fields = append(fields, generation.FieldInitImageURL)
 	}
-	if m.should_submit_to_gallery != nil {
-		fields = append(fields, generation.FieldShouldSubmitToGallery)
+	if m.submit_to_gallery != nil {
+		fields = append(fields, generation.FieldSubmitToGallery)
 	}
 	if m.prompt != nil {
 		fields = append(fields, generation.FieldPromptID)
@@ -3818,8 +3818,8 @@ func (m *GenerationMutation) Field(name string) (ent.Value, bool) {
 		return m.CountryCode()
 	case generation.FieldInitImageURL:
 		return m.InitImageURL()
-	case generation.FieldShouldSubmitToGallery:
-		return m.ShouldSubmitToGallery()
+	case generation.FieldSubmitToGallery:
+		return m.SubmitToGallery()
 	case generation.FieldPromptID:
 		return m.PromptID()
 	case generation.FieldNegativePromptID:
@@ -3871,8 +3871,8 @@ func (m *GenerationMutation) OldField(ctx context.Context, name string) (ent.Val
 		return m.OldCountryCode(ctx)
 	case generation.FieldInitImageURL:
 		return m.OldInitImageURL(ctx)
-	case generation.FieldShouldSubmitToGallery:
-		return m.OldShouldSubmitToGallery(ctx)
+	case generation.FieldSubmitToGallery:
+		return m.OldSubmitToGallery(ctx)
 	case generation.FieldPromptID:
 		return m.OldPromptID(ctx)
 	case generation.FieldNegativePromptID:
@@ -3979,12 +3979,12 @@ func (m *GenerationMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetInitImageURL(v)
 		return nil
-	case generation.FieldShouldSubmitToGallery:
+	case generation.FieldSubmitToGallery:
 		v, ok := value.(bool)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
-		m.SetShouldSubmitToGallery(v)
+		m.SetSubmitToGallery(v)
 		return nil
 	case generation.FieldPromptID:
 		v, ok := value.(uuid.UUID)
@@ -4258,8 +4258,8 @@ func (m *GenerationMutation) ResetField(name string) error {
 	case generation.FieldInitImageURL:
 		m.ResetInitImageURL()
 		return nil
-	case generation.FieldShouldSubmitToGallery:
-		m.ResetShouldSubmitToGallery()
+	case generation.FieldSubmitToGallery:
+		m.ResetSubmitToGallery()
 		return nil
 	case generation.FieldPromptID:
 		m.ResetPromptID()
