@@ -246,19 +246,16 @@ paths:
 components:
   securitySchemes:
     supabase:
-      type: oauth2
-      flows:
-        implicit:
-          authorizationUrl: https://<project_id>.supabase.co/auth/v1
-          scopes:
-            scope_name: repo
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
   schemas:
     ErrorResponse400:
       type: object
       properties:
         error:
           type: string
-          format: insufficient_creidts/json_parse_error/invalid_stream_id/invalid_model_id/invalid_scheduler_id/invalid_image_url/invalid_output_id/image_url_width_height_error/output_not_found/image_already_upscaled
+          format: insufficient_credits/json_parse_error/invalid_stream_id/invalid_model_id/invalid_scheduler_id/invalid_image_url/invalid_output_id/image_url_width_height_error/output_not_found/image_already_upscaled
     ErrorResponse401:
       type: object
       properties:
