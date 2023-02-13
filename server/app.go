@@ -23,6 +23,8 @@ import (
 	"github.com/stablecog/sc-go/shared"
 	"github.com/stablecog/sc-go/utils"
 	stripe "github.com/stripe/stripe-go/client"
+	"golang.org/x/net/http2"
+	"golang.org/x/net/http2/h2c"
 	"k8s.io/klog/v2"
 )
 
@@ -265,5 +267,11 @@ func main() {
 	// Start server
 	port := utils.GetEnv("PORT", "13337")
 	klog.Infof("Starting server on port %s", port)
-	klog.Infoln(http.ListenAndServe(fmt.Sprintf(":%s", port), app))
+
+	h2s := &http2.Server{}
+	srv := &http.Server{
+		Addr:    fmt.Sprintf(":%s", port),
+		Handler: h2c.NewHandler(app, h2s),
+	}
+	klog.Infoln(srv.ListenAndServe())
 }
