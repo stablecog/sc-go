@@ -1,7 +1,7 @@
 package utils
 
 import (
-	"fmt"
+	"net/url"
 	"os"
 )
 
@@ -17,26 +17,20 @@ func GetDefaultServerUrl() string {
 	return GetEnv("PUBLIC_DEFAULT_SERVER_URL", "")
 }
 
-type S3Data struct {
-	BucketPublic                   string
-	BucketPrivate                  string
-	BucketPrivateOutputQueueFolder string
-	Hostname                       string
-	PrivateUrl                     string
-	AccountId                      string
-	AccessKeyId                    string
-	SecretKey                      string
-}
+func ParseS3UrlToURL(s3UrlStr string) (string, error) {
+	baseUrl := EnsureTrailingSlash(GetEnv("BUCKET_BASE_URL", "https://b.stablecog.com/"))
 
-func GetS3Data() S3Data {
-	return S3Data{
-		BucketPublic:                   "stablecog",
-		BucketPrivate:                  "stablecog-private",
-		BucketPrivateOutputQueueFolder: "queue/output",
-		Hostname:                       fmt.Sprintf("%s.r2.cloudflarestorage.com", os.Getenv("CLOUDFLARE_ACCOUNT_ID")),
-		PrivateUrl:                     os.Getenv("R2_PRIVATE_URL"),
-		AccountId:                      os.Getenv("CLOUDFLARE_ACCOUNT_ID"),
-		AccessKeyId:                    os.Getenv("R2_ACCESS_KEY_ID"),
-		SecretKey:                      os.Getenv("R2_SECRET_ACCESS_KEY"),
+	s3Url, err := url.Parse(s3UrlStr)
+	if err != nil {
+		return s3UrlStr, err
 	}
+
+	if s3Url.Scheme != "s3" {
+		return s3UrlStr, nil
+	}
+
+	// Remove leading slash from path
+	s3Url.Path = s3Url.Path[1:]
+
+	return baseUrl + s3Url.Path, nil
 }

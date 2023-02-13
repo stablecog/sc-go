@@ -27,3 +27,11 @@ func FormatPrompt(s string) string {
 	}
 	return cleanStr
 }
+
+// Ensure trailing slash in string
+func EnsureTrailingSlash(s string) string {
+	if s[len(s)-1] != '/' {
+		return s + "/"
+	}
+	return s
+}

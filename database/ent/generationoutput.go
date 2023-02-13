@@ -18,10 +18,10 @@ type GenerationOutput struct {
 	config `json:"-"`
 	// ID of the ent.
 	ID uuid.UUID `json:"id,omitempty"`
-	// ImageURL holds the value of the "image_url" field.
-	ImageURL string `json:"image_url,omitempty"`
-	// UpscaledImageURL holds the value of the "upscaled_image_url" field.
-	UpscaledImageURL *string `json:"upscaled_image_url,omitempty"`
+	// ImagePath holds the value of the "image_path" field.
+	ImagePath string `json:"image_path,omitempty"`
+	// UpscaledImagePath holds the value of the "upscaled_image_path" field.
+	UpscaledImagePath *string `json:"upscaled_image_path,omitempty"`
 	// GalleryStatus holds the value of the "gallery_status" field.
 	GalleryStatus generationoutput.GalleryStatus `json:"gallery_status,omitempty"`
 	// GenerationID holds the value of the "generation_id" field.
@@ -62,7 +62,7 @@ func (*GenerationOutput) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case generationoutput.FieldImageURL, generationoutput.FieldUpscaledImageURL, generationoutput.FieldGalleryStatus:
+		case generationoutput.FieldImagePath, generationoutput.FieldUpscaledImagePath, generationoutput.FieldGalleryStatus:
 			values[i] = new(sql.NullString)
 		case generationoutput.FieldCreatedAt, generationoutput.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
@@ -89,18 +89,18 @@ func (_go *GenerationOutput) assignValues(columns []string, values []any) error 
 			} else if value != nil {
 				_go.ID = *value
 			}
-		case generationoutput.FieldImageURL:
+		case generationoutput.FieldImagePath:
 			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field image_url", values[i])
+				return fmt.Errorf("unexpected type %T for field image_path", values[i])
 			} else if value.Valid {
-				_go.ImageURL = value.String
+				_go.ImagePath = value.String
 			}
-		case generationoutput.FieldUpscaledImageURL:
+		case generationoutput.FieldUpscaledImagePath:
 			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field upscaled_image_url", values[i])
+				return fmt.Errorf("unexpected type %T for field upscaled_image_path", values[i])
 			} else if value.Valid {
-				_go.UpscaledImageURL = new(string)
-				*_go.UpscaledImageURL = value.String
+				_go.UpscaledImagePath = new(string)
+				*_go.UpscaledImagePath = value.String
 			}
 		case generationoutput.FieldGalleryStatus:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -159,11 +159,11 @@ func (_go *GenerationOutput) String() string {
 	var builder strings.Builder
 	builder.WriteString("GenerationOutput(")
 	builder.WriteString(fmt.Sprintf("id=%v, ", _go.ID))
-	builder.WriteString("image_url=")
-	builder.WriteString(_go.ImageURL)
+	builder.WriteString("image_path=")
+	builder.WriteString(_go.ImagePath)
 	builder.WriteString(", ")
-	if v := _go.UpscaledImageURL; v != nil {
-		builder.WriteString("upscaled_image_url=")
+	if v := _go.UpscaledImagePath; v != nil {
+		builder.WriteString("upscaled_image_path=")
 		builder.WriteString(*v)
 	}
 	builder.WriteString(", ")

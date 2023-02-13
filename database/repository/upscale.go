@@ -104,7 +104,7 @@ func (r *Repository) SetUpscaleSucceeded(upscaleID, generationOutputID, output s
 	}
 
 	// Set upscale output
-	upscaleOutput, err := tx.UpscaleOutput.Create().SetImageURL(output).SetUpscaleID(uid).Save(r.Ctx)
+	upscaleOutput, err := tx.UpscaleOutput.Create().SetImagePath(output).SetUpscaleID(uid).Save(r.Ctx)
 	if err != nil {
 		tx.Rollback()
 		klog.Errorf("Error inserting upscale output %s: %v", upscaleID, err)
@@ -113,7 +113,7 @@ func (r *Repository) SetUpscaleSucceeded(upscaleID, generationOutputID, output s
 
 	// If necessary add to generation output
 	if hasGenerationOutput {
-		_, err = tx.GenerationOutput.UpdateOneID(outputId).SetUpscaledImageURL(output).Save(r.Ctx)
+		_, err = tx.GenerationOutput.UpdateOneID(outputId).SetUpscaledImagePath(output).Save(r.Ctx)
 		if err != nil {
 			tx.Rollback()
 			klog.Errorf("Error setting upscaled_image_url %s: %v", upscaleID, err)

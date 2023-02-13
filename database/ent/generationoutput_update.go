@@ -31,29 +31,29 @@ func (gou *GenerationOutputUpdate) Where(ps ...predicate.GenerationOutput) *Gene
 	return gou
 }
 
-// SetImageURL sets the "image_url" field.
-func (gou *GenerationOutputUpdate) SetImageURL(s string) *GenerationOutputUpdate {
-	gou.mutation.SetImageURL(s)
+// SetImagePath sets the "image_path" field.
+func (gou *GenerationOutputUpdate) SetImagePath(s string) *GenerationOutputUpdate {
+	gou.mutation.SetImagePath(s)
 	return gou
 }
 
-// SetUpscaledImageURL sets the "upscaled_image_url" field.
-func (gou *GenerationOutputUpdate) SetUpscaledImageURL(s string) *GenerationOutputUpdate {
-	gou.mutation.SetUpscaledImageURL(s)
+// SetUpscaledImagePath sets the "upscaled_image_path" field.
+func (gou *GenerationOutputUpdate) SetUpscaledImagePath(s string) *GenerationOutputUpdate {
+	gou.mutation.SetUpscaledImagePath(s)
 	return gou
 }
 
-// SetNillableUpscaledImageURL sets the "upscaled_image_url" field if the given value is not nil.
-func (gou *GenerationOutputUpdate) SetNillableUpscaledImageURL(s *string) *GenerationOutputUpdate {
+// SetNillableUpscaledImagePath sets the "upscaled_image_path" field if the given value is not nil.
+func (gou *GenerationOutputUpdate) SetNillableUpscaledImagePath(s *string) *GenerationOutputUpdate {
 	if s != nil {
-		gou.SetUpscaledImageURL(*s)
+		gou.SetUpscaledImagePath(*s)
 	}
 	return gou
 }
 
-// ClearUpscaledImageURL clears the value of the "upscaled_image_url" field.
-func (gou *GenerationOutputUpdate) ClearUpscaledImageURL() *GenerationOutputUpdate {
-	gou.mutation.ClearUpscaledImageURL()
+// ClearUpscaledImagePath clears the value of the "upscaled_image_path" field.
+func (gou *GenerationOutputUpdate) ClearUpscaledImagePath() *GenerationOutputUpdate {
+	gou.mutation.ClearUpscaledImagePath()
 	return gou
 }
 
@@ -181,14 +181,14 @@ func (gou *GenerationOutputUpdate) sqlSave(ctx context.Context) (n int, err erro
 			}
 		}
 	}
-	if value, ok := gou.mutation.ImageURL(); ok {
-		_spec.SetField(generationoutput.FieldImageURL, field.TypeString, value)
+	if value, ok := gou.mutation.ImagePath(); ok {
+		_spec.SetField(generationoutput.FieldImagePath, field.TypeString, value)
 	}
-	if value, ok := gou.mutation.UpscaledImageURL(); ok {
-		_spec.SetField(generationoutput.FieldUpscaledImageURL, field.TypeString, value)
+	if value, ok := gou.mutation.UpscaledImagePath(); ok {
+		_spec.SetField(generationoutput.FieldUpscaledImagePath, field.TypeString, value)
 	}
-	if gou.mutation.UpscaledImageURLCleared() {
-		_spec.ClearField(generationoutput.FieldUpscaledImageURL, field.TypeString)
+	if gou.mutation.UpscaledImagePathCleared() {
+		_spec.ClearField(generationoutput.FieldUpscaledImagePath, field.TypeString)
 	}
 	if value, ok := gou.mutation.GalleryStatus(); ok {
 		_spec.SetField(generationoutput.FieldGalleryStatus, field.TypeEnum, value)
@@ -253,29 +253,29 @@ type GenerationOutputUpdateOne struct {
 	modifiers []func(*sql.UpdateBuilder)
 }
 
-// SetImageURL sets the "image_url" field.
-func (gouo *GenerationOutputUpdateOne) SetImageURL(s string) *GenerationOutputUpdateOne {
-	gouo.mutation.SetImageURL(s)
+// SetImagePath sets the "image_path" field.
+func (gouo *GenerationOutputUpdateOne) SetImagePath(s string) *GenerationOutputUpdateOne {
+	gouo.mutation.SetImagePath(s)
 	return gouo
 }
 
-// SetUpscaledImageURL sets the "upscaled_image_url" field.
-func (gouo *GenerationOutputUpdateOne) SetUpscaledImageURL(s string) *GenerationOutputUpdateOne {
-	gouo.mutation.SetUpscaledImageURL(s)
+// SetUpscaledImagePath sets the "upscaled_image_path" field.
+func (gouo *GenerationOutputUpdateOne) SetUpscaledImagePath(s string) *GenerationOutputUpdateOne {
+	gouo.mutation.SetUpscaledImagePath(s)
 	return gouo
 }
 
-// SetNillableUpscaledImageURL sets the "upscaled_image_url" field if the given value is not nil.
-func (gouo *GenerationOutputUpdateOne) SetNillableUpscaledImageURL(s *string) *GenerationOutputUpdateOne {
+// SetNillableUpscaledImagePath sets the "upscaled_image_path" field if the given value is not nil.
+func (gouo *GenerationOutputUpdateOne) SetNillableUpscaledImagePath(s *string) *GenerationOutputUpdateOne {
 	if s != nil {
-		gouo.SetUpscaledImageURL(*s)
+		gouo.SetUpscaledImagePath(*s)
 	}
 	return gouo
 }
 
-// ClearUpscaledImageURL clears the value of the "upscaled_image_url" field.
-func (gouo *GenerationOutputUpdateOne) ClearUpscaledImageURL() *GenerationOutputUpdateOne {
-	gouo.mutation.ClearUpscaledImageURL()
+// ClearUpscaledImagePath clears the value of the "upscaled_image_path" field.
+func (gouo *GenerationOutputUpdateOne) ClearUpscaledImagePath() *GenerationOutputUpdateOne {
+	gouo.mutation.ClearUpscaledImagePath()
 	return gouo
 }
 
@@ -427,14 +427,14 @@ func (gouo *GenerationOutputUpdateOne) sqlSave(ctx context.Context) (_node *Gene
 			}
 		}
 	}
-	if value, ok := gouo.mutation.ImageURL(); ok {
-		_spec.SetField(generationoutput.FieldImageURL, field.TypeString, value)
+	if value, ok := gouo.mutation.ImagePath(); ok {
+		_spec.SetField(generationoutput.FieldImagePath, field.TypeString, value)
 	}
-	if value, ok := gouo.mutation.UpscaledImageURL(); ok {
-		_spec.SetField(generationoutput.FieldUpscaledImageURL, field.TypeString, value)
+	if value, ok := gouo.mutation.UpscaledImagePath(); ok {
+		_spec.SetField(generationoutput.FieldUpscaledImagePath, field.TypeString, value)
 	}
-	if gouo.mutation.UpscaledImageURLCleared() {
-		_spec.ClearField(generationoutput.FieldUpscaledImageURL, field.TypeString)
+	if gouo.mutation.UpscaledImagePathCleared() {
+		_spec.ClearField(generationoutput.FieldUpscaledImagePath, field.TypeString)
 	}
 	if value, ok := gouo.mutation.GalleryStatus(); ok {
 		_spec.SetField(generationoutput.FieldGalleryStatus, field.TypeEnum, value)

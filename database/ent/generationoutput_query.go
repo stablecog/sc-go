@@ -297,12 +297,12 @@ func (goq *GenerationOutputQuery) WithGenerations(opts ...func(*GenerationQuery)
 // Example:
 //
 //	var v []struct {
-//		ImageURL string `json:"image_url,omitempty"`
+//		ImagePath string `json:"image_path,omitempty"`
 //		Count int `json:"count,omitempty"`
 //	}
 //
 //	client.GenerationOutput.Query().
-//		GroupBy(generationoutput.FieldImageURL).
+//		GroupBy(generationoutput.FieldImagePath).
 //		Aggregate(ent.Count()).
 //		Scan(ctx, &v)
 func (goq *GenerationOutputQuery) GroupBy(field string, fields ...string) *GenerationOutputGroupBy {
@@ -320,11 +320,11 @@ func (goq *GenerationOutputQuery) GroupBy(field string, fields ...string) *Gener
 // Example:
 //
 //	var v []struct {
-//		ImageURL string `json:"image_url,omitempty"`
+//		ImagePath string `json:"image_path,omitempty"`
 //	}
 //
 //	client.GenerationOutput.Query().
-//		Select(generationoutput.FieldImageURL).
+//		Select(generationoutput.FieldImagePath).
 //		Scan(ctx, &v)
 func (goq *GenerationOutputQuery) Select(fields ...string) *GenerationOutputSelect {
 	goq.ctx.Fields = append(goq.ctx.Fields, fields...)

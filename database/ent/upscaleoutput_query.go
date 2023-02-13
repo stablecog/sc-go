@@ -297,12 +297,12 @@ func (uoq *UpscaleOutputQuery) WithUpscales(opts ...func(*UpscaleQuery)) *Upscal
 // Example:
 //
 //	var v []struct {
-//		ImageURL string `json:"image_url,omitempty"`
+//		ImagePath string `json:"image_path,omitempty"`
 //		Count int `json:"count,omitempty"`
 //	}
 //
 //	client.UpscaleOutput.Query().
-//		GroupBy(upscaleoutput.FieldImageURL).
+//		GroupBy(upscaleoutput.FieldImagePath).
 //		Aggregate(ent.Count()).
 //		Scan(ctx, &v)
 func (uoq *UpscaleOutputQuery) GroupBy(field string, fields ...string) *UpscaleOutputGroupBy {
@@ -320,11 +320,11 @@ func (uoq *UpscaleOutputQuery) GroupBy(field string, fields ...string) *UpscaleO
 // Example:
 //
 //	var v []struct {
-//		ImageURL string `json:"image_url,omitempty"`
+//		ImagePath string `json:"image_path,omitempty"`
 //	}
 //
 //	client.UpscaleOutput.Query().
-//		Select(upscaleoutput.FieldImageURL).
+//		Select(upscaleoutput.FieldImagePath).
 //		Scan(ctx, &v)
 func (uoq *UpscaleOutputQuery) Select(fields ...string) *UpscaleOutputSelect {
 	uoq.ctx.Fields = append(uoq.ctx.Fields, fields...)

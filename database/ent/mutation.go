@@ -5099,20 +5099,20 @@ func (m *GenerationModelMutation) ResetEdge(name string) error {
 // GenerationOutputMutation represents an operation that mutates the GenerationOutput nodes in the graph.
 type GenerationOutputMutation struct {
 	config
-	op                 Op
-	typ                string
-	id                 *uuid.UUID
-	image_url          *string
-	upscaled_image_url *string
-	gallery_status     *generationoutput.GalleryStatus
-	created_at         *time.Time
-	updated_at         *time.Time
-	clearedFields      map[string]struct{}
-	generations        *uuid.UUID
-	clearedgenerations bool
-	done               bool
-	oldValue           func(context.Context) (*GenerationOutput, error)
-	predicates         []predicate.GenerationOutput
+	op                  Op
+	typ                 string
+	id                  *uuid.UUID
+	image_path          *string
+	upscaled_image_path *string
+	gallery_status      *generationoutput.GalleryStatus
+	created_at          *time.Time
+	updated_at          *time.Time
+	clearedFields       map[string]struct{}
+	generations         *uuid.UUID
+	clearedgenerations  bool
+	done                bool
+	oldValue            func(context.Context) (*GenerationOutput, error)
+	predicates          []predicate.GenerationOutput
 }
 
 var _ ent.Mutation = (*GenerationOutputMutation)(nil)
@@ -5219,89 +5219,89 @@ func (m *GenerationOutputMutation) IDs(ctx context.Context) ([]uuid.UUID, error)
 	}
 }
 
-// SetImageURL sets the "image_url" field.
-func (m *GenerationOutputMutation) SetImageURL(s string) {
-	m.image_url = &s
+// SetImagePath sets the "image_path" field.
+func (m *GenerationOutputMutation) SetImagePath(s string) {
+	m.image_path = &s
 }
 
-// ImageURL returns the value of the "image_url" field in the mutation.
-func (m *GenerationOutputMutation) ImageURL() (r string, exists bool) {
-	v := m.image_url
+// ImagePath returns the value of the "image_path" field in the mutation.
+func (m *GenerationOutputMutation) ImagePath() (r string, exists bool) {
+	v := m.image_path
 	if v == nil {
 		return
 	}
 	return *v, true
 }
 
-// OldImageURL returns the old "image_url" field's value of the GenerationOutput entity.
+// OldImagePath returns the old "image_path" field's value of the GenerationOutput entity.
 // If the GenerationOutput object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *GenerationOutputMutation) OldImageURL(ctx context.Context) (v string, err error) {
+func (m *GenerationOutputMutation) OldImagePath(ctx context.Context) (v string, err error) {
 	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldImageURL is only allowed on UpdateOne operations")
+		return v, errors.New("OldImagePath is only allowed on UpdateOne operations")
 	}
 	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldImageURL requires an ID field in the mutation")
+		return v, errors.New("OldImagePath requires an ID field in the mutation")
 	}
 	oldValue, err := m.oldValue(ctx)
 	if err != nil {
-		return v, fmt.Errorf("querying old value for OldImageURL: %w", err)
+		return v, fmt.Errorf("querying old value for OldImagePath: %w", err)
 	}
-	return oldValue.ImageURL, nil
+	return oldValue.ImagePath, nil
 }
 
-// ResetImageURL resets all changes to the "image_url" field.
-func (m *GenerationOutputMutation) ResetImageURL() {
-	m.image_url = nil
+// ResetImagePath resets all changes to the "image_path" field.
+func (m *GenerationOutputMutation) ResetImagePath() {
+	m.image_path = nil
 }
 
-// SetUpscaledImageURL sets the "upscaled_image_url" field.
-func (m *GenerationOutputMutation) SetUpscaledImageURL(s string) {
-	m.upscaled_image_url = &s
+// SetUpscaledImagePath sets the "upscaled_image_path" field.
+func (m *GenerationOutputMutation) SetUpscaledImagePath(s string) {
+	m.upscaled_image_path = &s
 }
 
-// UpscaledImageURL returns the value of the "upscaled_image_url" field in the mutation.
-func (m *GenerationOutputMutation) UpscaledImageURL() (r string, exists bool) {
-	v := m.upscaled_image_url
+// UpscaledImagePath returns the value of the "upscaled_image_path" field in the mutation.
+func (m *GenerationOutputMutation) UpscaledImagePath() (r string, exists bool) {
+	v := m.upscaled_image_path
 	if v == nil {
 		return
 	}
 	return *v, true
 }
 
-// OldUpscaledImageURL returns the old "upscaled_image_url" field's value of the GenerationOutput entity.
+// OldUpscaledImagePath returns the old "upscaled_image_path" field's value of the GenerationOutput entity.
 // If the GenerationOutput object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *GenerationOutputMutation) OldUpscaledImageURL(ctx context.Context) (v *string, err error) {
+func (m *GenerationOutputMutation) OldUpscaledImagePath(ctx context.Context) (v *string, err error) {
 	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldUpscaledImageURL is only allowed on UpdateOne operations")
+		return v, errors.New("OldUpscaledImagePath is only allowed on UpdateOne operations")
 	}
 	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldUpscaledImageURL requires an ID field in the mutation")
+		return v, errors.New("OldUpscaledImagePath requires an ID field in the mutation")
 	}
 	oldValue, err := m.oldValue(ctx)
 	if err != nil {
-		return v, fmt.Errorf("querying old value for OldUpscaledImageURL: %w", err)
+		return v, fmt.Errorf("querying old value for OldUpscaledImagePath: %w", err)
 	}
-	return oldValue.UpscaledImageURL, nil
+	return oldValue.UpscaledImagePath, nil
 }
 
-// ClearUpscaledImageURL clears the value of the "upscaled_image_url" field.
-func (m *GenerationOutputMutation) ClearUpscaledImageURL() {
-	m.upscaled_image_url = nil
-	m.clearedFields[generationoutput.FieldUpscaledImageURL] = struct{}{}
+// ClearUpscaledImagePath clears the value of the "upscaled_image_path" field.
+func (m *GenerationOutputMutation) ClearUpscaledImagePath() {
+	m.upscaled_image_path = nil
+	m.clearedFields[generationoutput.FieldUpscaledImagePath] = struct{}{}
 }
 
-// UpscaledImageURLCleared returns if the "upscaled_image_url" field was cleared in this mutation.
-func (m *GenerationOutputMutation) UpscaledImageURLCleared() bool {
-	_, ok := m.clearedFields[generationoutput.FieldUpscaledImageURL]
+// UpscaledImagePathCleared returns if the "upscaled_image_path" field was cleared in this mutation.
+func (m *GenerationOutputMutation) UpscaledImagePathCleared() bool {
+	_, ok := m.clearedFields[generationoutput.FieldUpscaledImagePath]
 	return ok
 }
 
-// ResetUpscaledImageURL resets all changes to the "upscaled_image_url" field.
-func (m *GenerationOutputMutation) ResetUpscaledImageURL() {
-	m.upscaled_image_url = nil
-	delete(m.clearedFields, generationoutput.FieldUpscaledImageURL)
+// ResetUpscaledImagePath resets all changes to the "upscaled_image_path" field.
+func (m *GenerationOutputMutation) ResetUpscaledImagePath() {
+	m.upscaled_image_path = nil
+	delete(m.clearedFields, generationoutput.FieldUpscaledImagePath)
 }
 
 // SetGalleryStatus sets the "gallery_status" field.
@@ -5522,11 +5522,11 @@ func (m *GenerationOutputMutation) Type() string {
 // AddedFields().
 func (m *GenerationOutputMutation) Fields() []string {
 	fields := make([]string, 0, 6)
-	if m.image_url != nil {
-		fields = append(fields, generationoutput.FieldImageURL)
+	if m.image_path != nil {
+		fields = append(fields, generationoutput.FieldImagePath)
 	}
-	if m.upscaled_image_url != nil {
-		fields = append(fields, generationoutput.FieldUpscaledImageURL)
+	if m.upscaled_image_path != nil {
+		fields = append(fields, generationoutput.FieldUpscaledImagePath)
 	}
 	if m.gallery_status != nil {
 		fields = append(fields, generationoutput.FieldGalleryStatus)
@@ -5548,10 +5548,10 @@ func (m *GenerationOutputMutation) Fields() []string {
 // schema.
 func (m *GenerationOutputMutation) Field(name string) (ent.Value, bool) {
 	switch name {
-	case generationoutput.FieldImageURL:
-		return m.ImageURL()
-	case generationoutput.FieldUpscaledImageURL:
-		return m.UpscaledImageURL()
+	case generationoutput.FieldImagePath:
+		return m.ImagePath()
+	case generationoutput.FieldUpscaledImagePath:
+		return m.UpscaledImagePath()
 	case generationoutput.FieldGalleryStatus:
 		return m.GalleryStatus()
 	case generationoutput.FieldGenerationID:
@@ -5569,10 +5569,10 @@ func (m *GenerationOutputMutation) Field(name string) (ent.Value, bool) {
 // database failed.
 func (m *GenerationOutputMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
 	switch name {
-	case generationoutput.FieldImageURL:
-		return m.OldImageURL(ctx)
-	case generationoutput.FieldUpscaledImageURL:
-		return m.OldUpscaledImageURL(ctx)
+	case generationoutput.FieldImagePath:
+		return m.OldImagePath(ctx)
+	case generationoutput.FieldUpscaledImagePath:
+		return m.OldUpscaledImagePath(ctx)
 	case generationoutput.FieldGalleryStatus:
 		return m.OldGalleryStatus(ctx)
 	case generationoutput.FieldGenerationID:
@@ -5590,19 +5590,19 @@ func (m *GenerationOutputMutation) OldField(ctx context.Context, name string) (e
 // type.
 func (m *GenerationOutputMutation) SetField(name string, value ent.Value) error {
 	switch name {
-	case generationoutput.FieldImageURL:
+	case generationoutput.FieldImagePath:
 		v, ok := value.(string)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
-		m.SetImageURL(v)
+		m.SetImagePath(v)
 		return nil
-	case generationoutput.FieldUpscaledImageURL:
+	case generationoutput.FieldUpscaledImagePath:
 		v, ok := value.(string)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
-		m.SetUpscaledImageURL(v)
+		m.SetUpscaledImagePath(v)
 		return nil
 	case generationoutput.FieldGalleryStatus:
 		v, ok := value.(generationoutput.GalleryStatus)
@@ -5662,8 +5662,8 @@ func (m *GenerationOutputMutation) AddField(name string, value ent.Value) error 
 // mutation.
 func (m *GenerationOutputMutation) ClearedFields() []string {
 	var fields []string
-	if m.FieldCleared(generationoutput.FieldUpscaledImageURL) {
-		fields = append(fields, generationoutput.FieldUpscaledImageURL)
+	if m.FieldCleared(generationoutput.FieldUpscaledImagePath) {
+		fields = append(fields, generationoutput.FieldUpscaledImagePath)
 	}
 	return fields
 }
@@ -5679,8 +5679,8 @@ func (m *GenerationOutputMutation) FieldCleared(name string) bool {
 // error if the field is not defined in the schema.
 func (m *GenerationOutputMutation) ClearField(name string) error {
 	switch name {
-	case generationoutput.FieldUpscaledImageURL:
-		m.ClearUpscaledImageURL()
+	case generationoutput.FieldUpscaledImagePath:
+		m.ClearUpscaledImagePath()
 		return nil
 	}
 	return fmt.Errorf("unknown GenerationOutput nullable field %s", name)
@@ -5690,11 +5690,11 @@ func (m *GenerationOutputMutation) ClearField(name string) error {
 // It returns an error if the field is not defined in the schema.
 func (m *GenerationOutputMutation) ResetField(name string) error {
 	switch name {
-	case generationoutput.FieldImageURL:
-		m.ResetImageURL()
+	case generationoutput.FieldImagePath:
+		m.ResetImagePath()
 		return nil
-	case generationoutput.FieldUpscaledImageURL:
-		m.ResetUpscaledImageURL()
+	case generationoutput.FieldUpscaledImagePath:
+		m.ResetUpscaledImagePath()
 		return nil
 	case generationoutput.FieldGalleryStatus:
 		m.ResetGalleryStatus()
@@ -9307,7 +9307,7 @@ type UpscaleOutputMutation struct {
 	op              Op
 	typ             string
 	id              *uuid.UUID
-	image_url       *string
+	image_path      *string
 	created_at      *time.Time
 	updated_at      *time.Time
 	clearedFields   map[string]struct{}
@@ -9422,40 +9422,40 @@ func (m *UpscaleOutputMutation) IDs(ctx context.Context) ([]uuid.UUID, error) {
 	}
 }
 
-// SetImageURL sets the "image_url" field.
-func (m *UpscaleOutputMutation) SetImageURL(s string) {
-	m.image_url = &s
+// SetImagePath sets the "image_path" field.
+func (m *UpscaleOutputMutation) SetImagePath(s string) {
+	m.image_path = &s
 }
 
-// ImageURL returns the value of the "image_url" field in the mutation.
-func (m *UpscaleOutputMutation) ImageURL() (r string, exists bool) {
-	v := m.image_url
+// ImagePath returns the value of the "image_path" field in the mutation.
+func (m *UpscaleOutputMutation) ImagePath() (r string, exists bool) {
+	v := m.image_path
 	if v == nil {
 		return
 	}
 	return *v, true
 }
 
-// OldImageURL returns the old "image_url" field's value of the UpscaleOutput entity.
+// OldImagePath returns the old "image_path" field's value of the UpscaleOutput entity.
 // If the UpscaleOutput object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *UpscaleOutputMutation) OldImageURL(ctx context.Context) (v string, err error) {
+func (m *UpscaleOutputMutation) OldImagePath(ctx context.Context) (v string, err error) {
 	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldImageURL is only allowed on UpdateOne operations")
+		return v, errors.New("OldImagePath is only allowed on UpdateOne operations")
 	}
 	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldImageURL requires an ID field in the mutation")
+		return v, errors.New("OldImagePath requires an ID field in the mutation")
 	}
 	oldValue, err := m.oldValue(ctx)
 	if err != nil {
-		return v, fmt.Errorf("querying old value for OldImageURL: %w", err)
+		return v, fmt.Errorf("querying old value for OldImagePath: %w", err)
 	}
-	return oldValue.ImageURL, nil
+	return oldValue.ImagePath, nil
 }
 
-// ResetImageURL resets all changes to the "image_url" field.
-func (m *UpscaleOutputMutation) ResetImageURL() {
-	m.image_url = nil
+// ResetImagePath resets all changes to the "image_path" field.
+func (m *UpscaleOutputMutation) ResetImagePath() {
+	m.image_path = nil
 }
 
 // SetUpscaleID sets the "upscale_id" field.
@@ -9640,8 +9640,8 @@ func (m *UpscaleOutputMutation) Type() string {
 // AddedFields().
 func (m *UpscaleOutputMutation) Fields() []string {
 	fields := make([]string, 0, 4)
-	if m.image_url != nil {
-		fields = append(fields, upscaleoutput.FieldImageURL)
+	if m.image_path != nil {
+		fields = append(fields, upscaleoutput.FieldImagePath)
 	}
 	if m.upscales != nil {
 		fields = append(fields, upscaleoutput.FieldUpscaleID)
@@ -9660,8 +9660,8 @@ func (m *UpscaleOutputMutation) Fields() []string {
 // schema.
 func (m *UpscaleOutputMutation) Field(name string) (ent.Value, bool) {
 	switch name {
-	case upscaleoutput.FieldImageURL:
-		return m.ImageURL()
+	case upscaleoutput.FieldImagePath:
+		return m.ImagePath()
 	case upscaleoutput.FieldUpscaleID:
 		return m.UpscaleID()
 	case upscaleoutput.FieldCreatedAt:
@@ -9677,8 +9677,8 @@ func (m *UpscaleOutputMutation) Field(name string) (ent.Value, bool) {
 // database failed.
 func (m *UpscaleOutputMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
 	switch name {
-	case upscaleoutput.FieldImageURL:
-		return m.OldImageURL(ctx)
+	case upscaleoutput.FieldImagePath:
+		return m.OldImagePath(ctx)
 	case upscaleoutput.FieldUpscaleID:
 		return m.OldUpscaleID(ctx)
 	case upscaleoutput.FieldCreatedAt:
@@ -9694,12 +9694,12 @@ func (m *UpscaleOutputMutation) OldField(ctx context.Context, name string) (ent.
 // type.
 func (m *UpscaleOutputMutation) SetField(name string, value ent.Value) error {
 	switch name {
-	case upscaleoutput.FieldImageURL:
+	case upscaleoutput.FieldImagePath:
 		v, ok := value.(string)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
-		m.SetImageURL(v)
+		m.SetImagePath(v)
 		return nil
 	case upscaleoutput.FieldUpscaleID:
 		v, ok := value.(uuid.UUID)
@@ -9771,8 +9771,8 @@ func (m *UpscaleOutputMutation) ClearField(name string) error {
 // It returns an error if the field is not defined in the schema.
 func (m *UpscaleOutputMutation) ResetField(name string) error {
 	switch name {
-	case upscaleoutput.FieldImageURL:
-		m.ResetImageURL()
+	case upscaleoutput.FieldImagePath:
+		m.ResetImagePath()
 		return nil
 	case upscaleoutput.FieldUpscaleID:
 		m.ResetUpscaleID()

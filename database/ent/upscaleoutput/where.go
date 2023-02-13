@@ -56,9 +56,9 @@ func IDLTE(id uuid.UUID) predicate.UpscaleOutput {
 	return predicate.UpscaleOutput(sql.FieldLTE(FieldID, id))
 }
 
-// ImageURL applies equality check predicate on the "image_url" field. It's identical to ImageURLEQ.
-func ImageURL(v string) predicate.UpscaleOutput {
-	return predicate.UpscaleOutput(sql.FieldEQ(FieldImageURL, v))
+// ImagePath applies equality check predicate on the "image_path" field. It's identical to ImagePathEQ.
+func ImagePath(v string) predicate.UpscaleOutput {
+	return predicate.UpscaleOutput(sql.FieldEQ(FieldImagePath, v))
 }
 
 // UpscaleID applies equality check predicate on the "upscale_id" field. It's identical to UpscaleIDEQ.
@@ -76,69 +76,69 @@ func UpdatedAt(v time.Time) predicate.UpscaleOutput {
 	return predicate.UpscaleOutput(sql.FieldEQ(FieldUpdatedAt, v))
 }
 
-// ImageURLEQ applies the EQ predicate on the "image_url" field.
-func ImageURLEQ(v string) predicate.UpscaleOutput {
-	return predicate.UpscaleOutput(sql.FieldEQ(FieldImageURL, v))
+// ImagePathEQ applies the EQ predicate on the "image_path" field.
+func ImagePathEQ(v string) predicate.UpscaleOutput {
+	return predicate.UpscaleOutput(sql.FieldEQ(FieldImagePath, v))
 }
 
-// ImageURLNEQ applies the NEQ predicate on the "image_url" field.
-func ImageURLNEQ(v string) predicate.UpscaleOutput {
-	return predicate.UpscaleOutput(sql.FieldNEQ(FieldImageURL, v))
+// ImagePathNEQ applies the NEQ predicate on the "image_path" field.
+func ImagePathNEQ(v string) predicate.UpscaleOutput {
+	return predicate.UpscaleOutput(sql.FieldNEQ(FieldImagePath, v))
 }
 
-// ImageURLIn applies the In predicate on the "image_url" field.
-func ImageURLIn(vs ...string) predicate.UpscaleOutput {
-	return predicate.UpscaleOutput(sql.FieldIn(FieldImageURL, vs...))
+// ImagePathIn applies the In predicate on the "image_path" field.
+func ImagePathIn(vs ...string) predicate.UpscaleOutput {
+	return predicate.UpscaleOutput(sql.FieldIn(FieldImagePath, vs...))
 }
 
-// ImageURLNotIn applies the NotIn predicate on the "image_url" field.
-func ImageURLNotIn(vs ...string) predicate.UpscaleOutput {
-	return predicate.UpscaleOutput(sql.FieldNotIn(FieldImageURL, vs...))
+// ImagePathNotIn applies the NotIn predicate on the "image_path" field.
+func ImagePathNotIn(vs ...string) predicate.UpscaleOutput {
+	return predicate.UpscaleOutput(sql.FieldNotIn(FieldImagePath, vs...))
 }
 
-// ImageURLGT applies the GT predicate on the "image_url" field.
-func ImageURLGT(v string) predicate.UpscaleOutput {
-	return predicate.UpscaleOutput(sql.FieldGT(FieldImageURL, v))
+// ImagePathGT applies the GT predicate on the "image_path" field.
+func ImagePathGT(v string) predicate.UpscaleOutput {
+	return predicate.UpscaleOutput(sql.FieldGT(FieldImagePath, v))
 }
 
-// ImageURLGTE applies the GTE predicate on the "image_url" field.
-func ImageURLGTE(v string) predicate.UpscaleOutput {
-	return predicate.UpscaleOutput(sql.FieldGTE(FieldImageURL, v))
+// ImagePathGTE applies the GTE predicate on the "image_path" field.
+func ImagePathGTE(v string) predicate.UpscaleOutput {
+	return predicate.UpscaleOutput(sql.FieldGTE(FieldImagePath, v))
 }
 
-// ImageURLLT applies the LT predicate on the "image_url" field.
-func ImageURLLT(v string) predicate.UpscaleOutput {
-	return predicate.UpscaleOutput(sql.FieldLT(FieldImageURL, v))
+// ImagePathLT applies the LT predicate on the "image_path" field.
+func ImagePathLT(v string) predicate.UpscaleOutput {
+	return predicate.UpscaleOutput(sql.FieldLT(FieldImagePath, v))
 }
 
-// ImageURLLTE applies the LTE predicate on the "image_url" field.
-func ImageURLLTE(v string) predicate.UpscaleOutput {
-	return predicate.UpscaleOutput(sql.FieldLTE(FieldImageURL, v))
+// ImagePathLTE applies the LTE predicate on the "image_path" field.
+func ImagePathLTE(v string) predicate.UpscaleOutput {
+	return predicate.UpscaleOutput(sql.FieldLTE(FieldImagePath, v))
 }
 
-// ImageURLContains applies the Contains predicate on the "image_url" field.
-func ImageURLContains(v string) predicate.UpscaleOutput {
-	return predicate.UpscaleOutput(sql.FieldContains(FieldImageURL, v))
+// ImagePathContains applies the Contains predicate on the "image_path" field.
+func ImagePathContains(v string) predicate.UpscaleOutput {
+	return predicate.UpscaleOutput(sql.FieldContains(FieldImagePath, v))
 }
 
-// ImageURLHasPrefix applies the HasPrefix predicate on the "image_url" field.
-func ImageURLHasPrefix(v string) predicate.UpscaleOutput {
-	return predicate.UpscaleOutput(sql.FieldHasPrefix(FieldImageURL, v))
+// ImagePathHasPrefix applies the HasPrefix predicate on the "image_path" field.
+func ImagePathHasPrefix(v string) predicate.UpscaleOutput {
+	return predicate.UpscaleOutput(sql.FieldHasPrefix(FieldImagePath, v))
 }
 
-// ImageURLHasSuffix applies the HasSuffix predicate on the "image_url" field.
-func ImageURLHasSuffix(v string) predicate.UpscaleOutput {
-	return predicate.UpscaleOutput(sql.FieldHasSuffix(FieldImageURL, v))
+// ImagePathHasSuffix applies the HasSuffix predicate on the "image_path" field.
+func ImagePathHasSuffix(v string) predicate.UpscaleOutput {
+	return predicate.UpscaleOutput(sql.FieldHasSuffix(FieldImagePath, v))
 }
 
-// ImageURLEqualFold applies the EqualFold predicate on the "image_url" field.
-func ImageURLEqualFold(v string) predicate.UpscaleOutput {
-	return predicate.UpscaleOutput(sql.FieldEqualFold(FieldImageURL, v))
+// ImagePathEqualFold applies the EqualFold predicate on the "image_path" field.
+func ImagePathEqualFold(v string) predicate.UpscaleOutput {
+	return predicate.UpscaleOutput(sql.FieldEqualFold(FieldImagePath, v))
 }
 
-// ImageURLContainsFold applies the ContainsFold predicate on the "image_url" field.
-func ImageURLContainsFold(v string) predicate.UpscaleOutput {
-	return predicate.UpscaleOutput(sql.FieldContainsFold(FieldImageURL, v))
+// ImagePathContainsFold applies the ContainsFold predicate on the "image_path" field.
+func ImagePathContainsFold(v string) predicate.UpscaleOutput {
+	return predicate.UpscaleOutput(sql.FieldContainsFold(FieldImagePath, v))
 }
 
 // UpscaleIDEQ applies the EQ predicate on the "upscale_id" field.

@@ -22,9 +22,9 @@ type UpscaleOutputCreate struct {
 	hooks    []Hook
 }
 
-// SetImageURL sets the "image_url" field.
-func (uoc *UpscaleOutputCreate) SetImageURL(s string) *UpscaleOutputCreate {
-	uoc.mutation.SetImageURL(s)
+// SetImagePath sets the "image_path" field.
+func (uoc *UpscaleOutputCreate) SetImagePath(s string) *UpscaleOutputCreate {
+	uoc.mutation.SetImagePath(s)
 	return uoc
 }
 
@@ -138,8 +138,8 @@ func (uoc *UpscaleOutputCreate) defaults() {
 
 // check runs all checks and user-defined validators on the builder.
 func (uoc *UpscaleOutputCreate) check() error {
-	if _, ok := uoc.mutation.ImageURL(); !ok {
-		return &ValidationError{Name: "image_url", err: errors.New(`ent: missing required field "UpscaleOutput.image_url"`)}
+	if _, ok := uoc.mutation.ImagePath(); !ok {
+		return &ValidationError{Name: "image_path", err: errors.New(`ent: missing required field "UpscaleOutput.image_path"`)}
 	}
 	if _, ok := uoc.mutation.UpscaleID(); !ok {
 		return &ValidationError{Name: "upscale_id", err: errors.New(`ent: missing required field "UpscaleOutput.upscale_id"`)}
@@ -194,9 +194,9 @@ func (uoc *UpscaleOutputCreate) createSpec() (*UpscaleOutput, *sqlgraph.CreateSp
 		_node.ID = id
 		_spec.ID.Value = &id
 	}
-	if value, ok := uoc.mutation.ImageURL(); ok {
-		_spec.SetField(upscaleoutput.FieldImageURL, field.TypeString, value)
-		_node.ImageURL = value
+	if value, ok := uoc.mutation.ImagePath(); ok {
+		_spec.SetField(upscaleoutput.FieldImagePath, field.TypeString, value)
+		_node.ImagePath = value
 	}
 	if value, ok := uoc.mutation.CreatedAt(); ok {
 		_spec.SetField(upscaleoutput.FieldCreatedAt, field.TypeTime, value)

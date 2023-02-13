@@ -13,8 +13,8 @@ const (
 	Label = "upscale_output"
 	// FieldID holds the string denoting the id field in the database.
 	FieldID = "id"
-	// FieldImageURL holds the string denoting the image_url field in the database.
-	FieldImageURL = "image_url"
+	// FieldImagePath holds the string denoting the image_path field in the database.
+	FieldImagePath = "image_path"
 	// FieldUpscaleID holds the string denoting the upscale_id field in the database.
 	FieldUpscaleID = "upscale_id"
 	// FieldCreatedAt holds the string denoting the created_at field in the database.
@@ -37,7 +37,7 @@ const (
 // Columns holds all SQL columns for upscaleoutput fields.
 var Columns = []string{
 	FieldID,
-	FieldImageURL,
+	FieldImagePath,
 	FieldUpscaleID,
 	FieldCreatedAt,
 	FieldUpdatedAt,

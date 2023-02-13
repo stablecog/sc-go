@@ -18,8 +18,8 @@ type UpscaleOutput struct {
 	config `json:"-"`
 	// ID of the ent.
 	ID uuid.UUID `json:"id,omitempty"`
-	// ImageURL holds the value of the "image_url" field.
-	ImageURL string `json:"image_url,omitempty"`
+	// ImagePath holds the value of the "image_path" field.
+	ImagePath string `json:"image_path,omitempty"`
 	// UpscaleID holds the value of the "upscale_id" field.
 	UpscaleID uuid.UUID `json:"upscale_id,omitempty"`
 	// CreatedAt holds the value of the "created_at" field.
@@ -58,7 +58,7 @@ func (*UpscaleOutput) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case upscaleoutput.FieldImageURL:
+		case upscaleoutput.FieldImagePath:
 			values[i] = new(sql.NullString)
 		case upscaleoutput.FieldCreatedAt, upscaleoutput.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
@@ -85,11 +85,11 @@ func (uo *UpscaleOutput) assignValues(columns []string, values []any) error {
 			} else if value != nil {
 				uo.ID = *value
 			}
-		case upscaleoutput.FieldImageURL:
+		case upscaleoutput.FieldImagePath:
 			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field image_url", values[i])
+				return fmt.Errorf("unexpected type %T for field image_path", values[i])
 			} else if value.Valid {
-				uo.ImageURL = value.String
+				uo.ImagePath = value.String
 			}
 		case upscaleoutput.FieldUpscaleID:
 			if value, ok := values[i].(*uuid.UUID); !ok {
@@ -142,8 +142,8 @@ func (uo *UpscaleOutput) String() string {
 	var builder strings.Builder
 	builder.WriteString("UpscaleOutput(")
 	builder.WriteString(fmt.Sprintf("id=%v, ", uo.ID))
-	builder.WriteString("image_url=")
-	builder.WriteString(uo.ImageURL)
+	builder.WriteString("image_path=")
+	builder.WriteString(uo.ImagePath)
 	builder.WriteString(", ")
 	builder.WriteString("upscale_id=")
 	builder.WriteString(fmt.Sprintf("%v", uo.UpscaleID))

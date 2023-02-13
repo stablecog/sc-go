@@ -20,7 +20,7 @@ type UpscaleOutput struct {
 func (UpscaleOutput) Fields() []ent.Field {
 	return []ent.Field{
 		field.UUID("id", uuid.UUID{}).Default(uuid.New),
-		field.Text("image_url"),
+		field.Text("image_path"),
 		// ! Relationships / many-to-one
 		field.UUID("upscale_id", uuid.UUID{}),
 		// ! End relationships

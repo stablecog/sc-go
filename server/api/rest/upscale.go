@@ -105,11 +105,11 @@ func (c *RestAPI) HandleUpscale(w http.ResponseWriter, r *http.Request) {
 			responses.ErrInternalServerError(w, r, "Error getting output")
 			return
 		}
-		if output.UpscaledImageURL != nil {
+		if output.UpscaledImagePath != nil {
 			responses.ErrBadRequest(w, r, "image_already_upscaled")
 			return
 		}
-		imageUrl = output.ImageURL
+		imageUrl = output.ImagePath
 		// Get width/height of generation
 		width, height, err = c.Repo.GetGenerationOutputWidthHeight(outputID)
 		if err != nil {

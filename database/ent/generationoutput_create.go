@@ -22,22 +22,22 @@ type GenerationOutputCreate struct {
 	hooks    []Hook
 }
 
-// SetImageURL sets the "image_url" field.
-func (goc *GenerationOutputCreate) SetImageURL(s string) *GenerationOutputCreate {
-	goc.mutation.SetImageURL(s)
+// SetImagePath sets the "image_path" field.
+func (goc *GenerationOutputCreate) SetImagePath(s string) *GenerationOutputCreate {
+	goc.mutation.SetImagePath(s)
 	return goc
 }
 
-// SetUpscaledImageURL sets the "upscaled_image_url" field.
-func (goc *GenerationOutputCreate) SetUpscaledImageURL(s string) *GenerationOutputCreate {
-	goc.mutation.SetUpscaledImageURL(s)
+// SetUpscaledImagePath sets the "upscaled_image_path" field.
+func (goc *GenerationOutputCreate) SetUpscaledImagePath(s string) *GenerationOutputCreate {
+	goc.mutation.SetUpscaledImagePath(s)
 	return goc
 }
 
-// SetNillableUpscaledImageURL sets the "upscaled_image_url" field if the given value is not nil.
-func (goc *GenerationOutputCreate) SetNillableUpscaledImageURL(s *string) *GenerationOutputCreate {
+// SetNillableUpscaledImagePath sets the "upscaled_image_path" field if the given value is not nil.
+func (goc *GenerationOutputCreate) SetNillableUpscaledImagePath(s *string) *GenerationOutputCreate {
 	if s != nil {
-		goc.SetUpscaledImageURL(*s)
+		goc.SetUpscaledImagePath(*s)
 	}
 	return goc
 }
@@ -170,8 +170,8 @@ func (goc *GenerationOutputCreate) defaults() {
 
 // check runs all checks and user-defined validators on the builder.
 func (goc *GenerationOutputCreate) check() error {
-	if _, ok := goc.mutation.ImageURL(); !ok {
-		return &ValidationError{Name: "image_url", err: errors.New(`ent: missing required field "GenerationOutput.image_url"`)}
+	if _, ok := goc.mutation.ImagePath(); !ok {
+		return &ValidationError{Name: "image_path", err: errors.New(`ent: missing required field "GenerationOutput.image_path"`)}
 	}
 	if _, ok := goc.mutation.GalleryStatus(); !ok {
 		return &ValidationError{Name: "gallery_status", err: errors.New(`ent: missing required field "GenerationOutput.gallery_status"`)}
@@ -234,13 +234,13 @@ func (goc *GenerationOutputCreate) createSpec() (*GenerationOutput, *sqlgraph.Cr
 		_node.ID = id
 		_spec.ID.Value = &id
 	}
-	if value, ok := goc.mutation.ImageURL(); ok {
-		_spec.SetField(generationoutput.FieldImageURL, field.TypeString, value)
-		_node.ImageURL = value
+	if value, ok := goc.mutation.ImagePath(); ok {
+		_spec.SetField(generationoutput.FieldImagePath, field.TypeString, value)
+		_node.ImagePath = value
 	}
-	if value, ok := goc.mutation.UpscaledImageURL(); ok {
-		_spec.SetField(generationoutput.FieldUpscaledImageURL, field.TypeString, value)
-		_node.UpscaledImageURL = &value
+	if value, ok := goc.mutation.UpscaledImagePath(); ok {
+		_spec.SetField(generationoutput.FieldUpscaledImagePath, field.TypeString, value)
+		_node.UpscaledImagePath = &value
 	}
 	if value, ok := goc.mutation.GalleryStatus(); ok {
 		_spec.SetField(generationoutput.FieldGalleryStatus, field.TypeEnum, value)

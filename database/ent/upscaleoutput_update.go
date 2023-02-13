@@ -31,9 +31,9 @@ func (uou *UpscaleOutputUpdate) Where(ps ...predicate.UpscaleOutput) *UpscaleOut
 	return uou
 }
 
-// SetImageURL sets the "image_url" field.
-func (uou *UpscaleOutputUpdate) SetImageURL(s string) *UpscaleOutputUpdate {
-	uou.mutation.SetImageURL(s)
+// SetImagePath sets the "image_path" field.
+func (uou *UpscaleOutputUpdate) SetImagePath(s string) *UpscaleOutputUpdate {
+	uou.mutation.SetImagePath(s)
 	return uou
 }
 
@@ -142,8 +142,8 @@ func (uou *UpscaleOutputUpdate) sqlSave(ctx context.Context) (n int, err error) 
 			}
 		}
 	}
-	if value, ok := uou.mutation.ImageURL(); ok {
-		_spec.SetField(upscaleoutput.FieldImageURL, field.TypeString, value)
+	if value, ok := uou.mutation.ImagePath(); ok {
+		_spec.SetField(upscaleoutput.FieldImagePath, field.TypeString, value)
 	}
 	if value, ok := uou.mutation.UpdatedAt(); ok {
 		_spec.SetField(upscaleoutput.FieldUpdatedAt, field.TypeTime, value)
@@ -205,9 +205,9 @@ type UpscaleOutputUpdateOne struct {
 	modifiers []func(*sql.UpdateBuilder)
 }
 
-// SetImageURL sets the "image_url" field.
-func (uouo *UpscaleOutputUpdateOne) SetImageURL(s string) *UpscaleOutputUpdateOne {
-	uouo.mutation.SetImageURL(s)
+// SetImagePath sets the "image_path" field.
+func (uouo *UpscaleOutputUpdateOne) SetImagePath(s string) *UpscaleOutputUpdateOne {
+	uouo.mutation.SetImagePath(s)
 	return uouo
 }
 
@@ -340,8 +340,8 @@ func (uouo *UpscaleOutputUpdateOne) sqlSave(ctx context.Context) (_node *Upscale
 			}
 		}
 	}
-	if value, ok := uouo.mutation.ImageURL(); ok {
-		_spec.SetField(upscaleoutput.FieldImageURL, field.TypeString, value)
+	if value, ok := uouo.mutation.ImagePath(); ok {
+		_spec.SetField(upscaleoutput.FieldImagePath, field.TypeString, value)
 	}
 	if value, ok := uouo.mutation.UpdatedAt(); ok {
 		_spec.SetField(upscaleoutput.FieldUpdatedAt, field.TypeTime, value)

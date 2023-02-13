@@ -28,3 +28,8 @@ func TestFormatPrompt(t *testing.T) {
 	assert.Equal(t, shared.MAX_PROMPT_LENGTH+1, len(longStr))
 	assert.Equal(t, shared.MAX_PROMPT_LENGTH, len(FormatPrompt(longStr)))
 }
+
+func TestEnsureTrailingSlash(t *testing.T) {
+	assert.Equal(t, "hello/", EnsureTrailingSlash("hello"))
+	assert.Equal(t, "hello/", EnsureTrailingSlash("hello/"))
+}

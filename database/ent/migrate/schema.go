@@ -176,8 +176,8 @@ var (
 	// GenerationOutputsColumns holds the columns for the "generation_outputs" table.
 	GenerationOutputsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID},
-		{Name: "image_url", Type: field.TypeString, Size: 2147483647},
-		{Name: "upscaled_image_url", Type: field.TypeString, Nullable: true, Size: 2147483647},
+		{Name: "image_path", Type: field.TypeString, Size: 2147483647},
+		{Name: "upscaled_image_path", Type: field.TypeString, Nullable: true, Size: 2147483647},
 		{Name: "gallery_status", Type: field.TypeEnum, Enums: []string{"not_submitted", "submitted", "accepted", "rejected"}, Default: "not_submitted"},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},
@@ -302,7 +302,7 @@ var (
 	// UpscaleOutputsColumns holds the columns for the "upscale_outputs" table.
 	UpscaleOutputsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID},
-		{Name: "image_url", Type: field.TypeString, Size: 2147483647},
+		{Name: "image_path", Type: field.TypeString, Size: 2147483647},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},
 		{Name: "upscale_id", Type: field.TypeUUID},

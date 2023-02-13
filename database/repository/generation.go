@@ -13,6 +13,7 @@ import (
 	"github.com/stablecog/sc-go/database/ent/prompt"
 	"github.com/stablecog/sc-go/database/ent/scheduler"
 	"github.com/stablecog/sc-go/server/requests"
+	"github.com/stablecog/sc-go/utils"
 	"k8s.io/klog/v2"
 )
 
@@ -139,7 +140,7 @@ func (r *Repository) SetGenerationSucceeded(generationID string, outputs []strin
 	// Insert all generation outputs
 	var outputRet []*ent.GenerationOutput
 	for _, output := range outputs {
-		gOutput, err := tx.GenerationOutput.Create().SetGenerationID(uid).SetImageURL(output).SetGalleryStatus(galleryStatus).Save(r.Ctx)
+		gOutput, err := tx.GenerationOutput.Create().SetGenerationID(uid).SetImagePath(output).SetGalleryStatus(galleryStatus).Save(r.Ctx)
 		if err != nil {
 			tx.Rollback()
 			klog.Errorf("Error inserting generation output %s: %v", generationID, err)
@@ -237,10 +238,24 @@ func (r *Repository) GetUserGenerations(userID uuid.UUID, per_page int, offset *
 	for i, gen := range res {
 		for _, output := range outputs {
 			if gen.ID == output.GenerationID {
+				// Parse S3 URLs to usable URLs
+				imageUrl, err := utils.ParseS3UrlToURL(output.ImagePath)
+				if err != nil {
+					klog.Errorf("Error parsing image url %s: %v", output.ImagePath, err)
+					imageUrl = output.ImagePath
+				}
+				var upscaledImageUrl string
+				if output.UpscaledImagePath != nil {
+					upscaledImageUrl, err = utils.ParseS3UrlToURL(*output.UpscaledImagePath)
+					if err != nil {
+						klog.Errorf("Error parsing upscaled image url %s: %v", *output.UpscaledImagePath, err)
+						upscaledImageUrl = *output.UpscaledImagePath
+					}
+				}
 				res[i].Outputs = append(res[i].Outputs, UserGenerationOutputResult{
 					ID:               output.ID,
-					ImageUrl:         output.ImageURL,
-					UpscaledImageUrl: output.UpscaledImageURL,
+					ImageUrl:         imageUrl,
+					UpscaledImageUrl: &upscaledImageUrl,
 					GalleryStatus:    output.GalleryStatus,
 				})
 			}

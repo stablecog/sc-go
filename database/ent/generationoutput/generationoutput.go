@@ -14,10 +14,10 @@ const (
 	Label = "generation_output"
 	// FieldID holds the string denoting the id field in the database.
 	FieldID = "id"
-	// FieldImageURL holds the string denoting the image_url field in the database.
-	FieldImageURL = "image_url"
-	// FieldUpscaledImageURL holds the string denoting the upscaled_image_url field in the database.
-	FieldUpscaledImageURL = "upscaled_image_url"
+	// FieldImagePath holds the string denoting the image_path field in the database.
+	FieldImagePath = "image_path"
+	// FieldUpscaledImagePath holds the string denoting the upscaled_image_path field in the database.
+	FieldUpscaledImagePath = "upscaled_image_path"
 	// FieldGalleryStatus holds the string denoting the gallery_status field in the database.
 	FieldGalleryStatus = "gallery_status"
 	// FieldGenerationID holds the string denoting the generation_id field in the database.
@@ -42,8 +42,8 @@ const (
 // Columns holds all SQL columns for generationoutput fields.
 var Columns = []string{
 	FieldID,
-	FieldImageURL,
-	FieldUpscaledImageURL,
+	FieldImagePath,
+	FieldUpscaledImagePath,
 	FieldGalleryStatus,
 	FieldGenerationID,
 	FieldCreatedAt,

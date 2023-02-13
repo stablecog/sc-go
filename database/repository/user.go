@@ -203,20 +203,39 @@ func (r *Repository) ProcessCogMessage(msg responses.CogStatusUpdate) {
 	}
 	// Upscale
 	if msg.Status == responses.CogSucceeded && msg.Input.ProcessType == shared.UPSCALE {
+		imageUrl, err := utils.ParseS3UrlToURL(upscaleOutput.ImagePath)
+		if err != nil {
+			klog.Errorf("--- Error parsing s3 url to url: %v", err)
+			imageUrl = upscaleOutput.ImagePath
+		}
 		resp.Outputs = []responses.WebhookStatusUpdateOutputs{
 			{
 				ID:       upscaleOutput.ID,
-				ImageUrl: upscaleOutput.ImageURL,
+				ImageUrl: imageUrl,
 			},
 		}
 	} else if msg.Status == responses.CogSucceeded {
 		// Generate or generate and upscale
 		generateOutputs := make([]responses.WebhookStatusUpdateOutputs, len(generationOutputs))
 		for i, output := range generationOutputs {
+			// Parse S3 URLs to usable URLs
+			imageUrl, err := utils.ParseS3UrlToURL(output.ImagePath)
+			if err != nil {
+				klog.Errorf("Error parsing image url %s: %v", output.ImagePath, err)
+				imageUrl = output.ImagePath
+			}
+			var upscaledImageUrl string
+			if output.UpscaledImagePath != nil {
+				upscaledImageUrl, err = utils.ParseS3UrlToURL(*output.UpscaledImagePath)
+				if err != nil {
+					klog.Errorf("Error parsing upscaled image url %s: %v", *output.UpscaledImagePath, err)
+					upscaledImageUrl = *output.UpscaledImagePath
+				}
+			}
 			generateOutputs[i] = responses.WebhookStatusUpdateOutputs{
 				ID:               output.ID,
-				ImageUrl:         output.ImageURL,
-				UpscaledImageUrl: output.UpscaledImageURL,
+				ImageUrl:         imageUrl,
+				UpscaledImageUrl: &upscaledImageUrl,
 				GalleryStatus:    output.GalleryStatus,
 			}
 		}

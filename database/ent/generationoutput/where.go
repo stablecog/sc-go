@@ -56,14 +56,14 @@ func IDLTE(id uuid.UUID) predicate.GenerationOutput {
 	return predicate.GenerationOutput(sql.FieldLTE(FieldID, id))
 }
 
-// ImageURL applies equality check predicate on the "image_url" field. It's identical to ImageURLEQ.
-func ImageURL(v string) predicate.GenerationOutput {
-	return predicate.GenerationOutput(sql.FieldEQ(FieldImageURL, v))
+// ImagePath applies equality check predicate on the "image_path" field. It's identical to ImagePathEQ.
+func ImagePath(v string) predicate.GenerationOutput {
+	return predicate.GenerationOutput(sql.FieldEQ(FieldImagePath, v))
 }
 
-// UpscaledImageURL applies equality check predicate on the "upscaled_image_url" field. It's identical to UpscaledImageURLEQ.
-func UpscaledImageURL(v string) predicate.GenerationOutput {
-	return predicate.GenerationOutput(sql.FieldEQ(FieldUpscaledImageURL, v))
+// UpscaledImagePath applies equality check predicate on the "upscaled_image_path" field. It's identical to UpscaledImagePathEQ.
+func UpscaledImagePath(v string) predicate.GenerationOutput {
+	return predicate.GenerationOutput(sql.FieldEQ(FieldUpscaledImagePath, v))
 }
 
 // GenerationID applies equality check predicate on the "generation_id" field. It's identical to GenerationIDEQ.
@@ -81,144 +81,144 @@ func UpdatedAt(v time.Time) predicate.GenerationOutput {
 	return predicate.GenerationOutput(sql.FieldEQ(FieldUpdatedAt, v))
 }
 
-// ImageURLEQ applies the EQ predicate on the "image_url" field.
-func ImageURLEQ(v string) predicate.GenerationOutput {
-	return predicate.GenerationOutput(sql.FieldEQ(FieldImageURL, v))
+// ImagePathEQ applies the EQ predicate on the "image_path" field.
+func ImagePathEQ(v string) predicate.GenerationOutput {
+	return predicate.GenerationOutput(sql.FieldEQ(FieldImagePath, v))
 }
 
-// ImageURLNEQ applies the NEQ predicate on the "image_url" field.
-func ImageURLNEQ(v string) predicate.GenerationOutput {
-	return predicate.GenerationOutput(sql.FieldNEQ(FieldImageURL, v))
+// ImagePathNEQ applies the NEQ predicate on the "image_path" field.
+func ImagePathNEQ(v string) predicate.GenerationOutput {
+	return predicate.GenerationOutput(sql.FieldNEQ(FieldImagePath, v))
 }
 
-// ImageURLIn applies the In predicate on the "image_url" field.
-func ImageURLIn(vs ...string) predicate.GenerationOutput {
-	return predicate.GenerationOutput(sql.FieldIn(FieldImageURL, vs...))
+// ImagePathIn applies the In predicate on the "image_path" field.
+func ImagePathIn(vs ...string) predicate.GenerationOutput {
+	return predicate.GenerationOutput(sql.FieldIn(FieldImagePath, vs...))
 }
 
-// ImageURLNotIn applies the NotIn predicate on the "image_url" field.
-func ImageURLNotIn(vs ...string) predicate.GenerationOutput {
-	return predicate.GenerationOutput(sql.FieldNotIn(FieldImageURL, vs...))
+// ImagePathNotIn applies the NotIn predicate on the "image_path" field.
+func ImagePathNotIn(vs ...string) predicate.GenerationOutput {
+	return predicate.GenerationOutput(sql.FieldNotIn(FieldImagePath, vs...))
 }
 
-// ImageURLGT applies the GT predicate on the "image_url" field.
-func ImageURLGT(v string) predicate.GenerationOutput {
-	return predicate.GenerationOutput(sql.FieldGT(FieldImageURL, v))
+// ImagePathGT applies the GT predicate on the "image_path" field.
+func ImagePathGT(v string) predicate.GenerationOutput {
+	return predicate.GenerationOutput(sql.FieldGT(FieldImagePath, v))
 }
 
-// ImageURLGTE applies the GTE predicate on the "image_url" field.
-func ImageURLGTE(v string) predicate.GenerationOutput {
-	return predicate.GenerationOutput(sql.FieldGTE(FieldImageURL, v))
+// ImagePathGTE applies the GTE predicate on the "image_path" field.
+func ImagePathGTE(v string) predicate.GenerationOutput {
+	return predicate.GenerationOutput(sql.FieldGTE(FieldImagePath, v))
 }
 
-// ImageURLLT applies the LT predicate on the "image_url" field.
-func ImageURLLT(v string) predicate.GenerationOutput {
-	return predicate.GenerationOutput(sql.FieldLT(FieldImageURL, v))
+// ImagePathLT applies the LT predicate on the "image_path" field.
+func ImagePathLT(v string) predicate.GenerationOutput {
+	return predicate.GenerationOutput(sql.FieldLT(FieldImagePath, v))
 }
 
-// ImageURLLTE applies the LTE predicate on the "image_url" field.
-func ImageURLLTE(v string) predicate.GenerationOutput {
-	return predicate.GenerationOutput(sql.FieldLTE(FieldImageURL, v))
+// ImagePathLTE applies the LTE predicate on the "image_path" field.
+func ImagePathLTE(v string) predicate.GenerationOutput {
+	return predicate.GenerationOutput(sql.FieldLTE(FieldImagePath, v))
 }
 
-// ImageURLContains applies the Contains predicate on the "image_url" field.
-func ImageURLContains(v string) predicate.GenerationOutput {
-	return predicate.GenerationOutput(sql.FieldContains(FieldImageURL, v))
+// ImagePathContains applies the Contains predicate on the "image_path" field.
+func ImagePathContains(v string) predicate.GenerationOutput {
+	return predicate.GenerationOutput(sql.FieldContains(FieldImagePath, v))
 }
 
-// ImageURLHasPrefix applies the HasPrefix predicate on the "image_url" field.
-func ImageURLHasPrefix(v string) predicate.GenerationOutput {
-	return predicate.GenerationOutput(sql.FieldHasPrefix(FieldImageURL, v))
+// ImagePathHasPrefix applies the HasPrefix predicate on the "image_path" field.
+func ImagePathHasPrefix(v string) predicate.GenerationOutput {
+	return predicate.GenerationOutput(sql.FieldHasPrefix(FieldImagePath, v))
 }
 
-// ImageURLHasSuffix applies the HasSuffix predicate on the "image_url" field.
-func ImageURLHasSuffix(v string) predicate.GenerationOutput {
-	return predicate.GenerationOutput(sql.FieldHasSuffix(FieldImageURL, v))
+// ImagePathHasSuffix applies the HasSuffix predicate on the "image_path" field.
+func ImagePathHasSuffix(v string) predicate.GenerationOutput {
+	return predicate.GenerationOutput(sql.FieldHasSuffix(FieldImagePath, v))
 }
 
-// ImageURLEqualFold applies the EqualFold predicate on the "image_url" field.
-func ImageURLEqualFold(v string) predicate.GenerationOutput {
-	return predicate.GenerationOutput(sql.FieldEqualFold(FieldImageURL, v))
+// ImagePathEqualFold applies the EqualFold predicate on the "image_path" field.
+func ImagePathEqualFold(v string) predicate.GenerationOutput {
+	return predicate.GenerationOutput(sql.FieldEqualFold(FieldImagePath, v))
 }
 
-// ImageURLContainsFold applies the ContainsFold predicate on the "image_url" field.
-func ImageURLContainsFold(v string) predicate.GenerationOutput {
-	return predicate.GenerationOutput(sql.FieldContainsFold(FieldImageURL, v))
+// ImagePathContainsFold applies the ContainsFold predicate on the "image_path" field.
+func ImagePathContainsFold(v string) predicate.GenerationOutput {
+	return predicate.GenerationOutput(sql.FieldContainsFold(FieldImagePath, v))
 }
 
-// UpscaledImageURLEQ applies the EQ predicate on the "upscaled_image_url" field.
-func UpscaledImageURLEQ(v string) predicate.GenerationOutput {
-	return predicate.GenerationOutput(sql.FieldEQ(FieldUpscaledImageURL, v))
+// UpscaledImagePathEQ applies the EQ predicate on the "upscaled_image_path" field.
+func UpscaledImagePathEQ(v string) predicate.GenerationOutput {
+	return predicate.GenerationOutput(sql.FieldEQ(FieldUpscaledImagePath, v))
 }
 
-// UpscaledImageURLNEQ applies the NEQ predicate on the "upscaled_image_url" field.
-func UpscaledImageURLNEQ(v string) predicate.GenerationOutput {
-	return predicate.GenerationOutput(sql.FieldNEQ(FieldUpscaledImageURL, v))
+// UpscaledImagePathNEQ applies the NEQ predicate on the "upscaled_image_path" field.
+func UpscaledImagePathNEQ(v string) predicate.GenerationOutput {
+	return predicate.GenerationOutput(sql.FieldNEQ(FieldUpscaledImagePath, v))
 }
 
-// UpscaledImageURLIn applies the In predicate on the "upscaled_image_url" field.
-func UpscaledImageURLIn(vs ...string) predicate.GenerationOutput {
-	return predicate.GenerationOutput(sql.FieldIn(FieldUpscaledImageURL, vs...))
+// UpscaledImagePathIn applies the In predicate on the "upscaled_image_path" field.
+func UpscaledImagePathIn(vs ...string) predicate.GenerationOutput {
+	return predicate.GenerationOutput(sql.FieldIn(FieldUpscaledImagePath, vs...))
 }
 
-// UpscaledImageURLNotIn applies the NotIn predicate on the "upscaled_image_url" field.
-func UpscaledImageURLNotIn(vs ...string) predicate.GenerationOutput {
-	return predicate.GenerationOutput(sql.FieldNotIn(FieldUpscaledImageURL, vs...))
+// UpscaledImagePathNotIn applies the NotIn predicate on the "upscaled_image_path" field.
+func UpscaledImagePathNotIn(vs ...string) predicate.GenerationOutput {
+	return predicate.GenerationOutput(sql.FieldNotIn(FieldUpscaledImagePath, vs...))
 }
 
-// UpscaledImageURLGT applies the GT predicate on the "upscaled_image_url" field.
-func UpscaledImageURLGT(v string) predicate.GenerationOutput {
-	return predicate.GenerationOutput(sql.FieldGT(FieldUpscaledImageURL, v))
+// UpscaledImagePathGT applies the GT predicate on the "upscaled_image_path" field.
+func UpscaledImagePathGT(v string) predicate.GenerationOutput {
+	return predicate.GenerationOutput(sql.FieldGT(FieldUpscaledImagePath, v))
 }
 
-// UpscaledImageURLGTE applies the GTE predicate on the "upscaled_image_url" field.
-func UpscaledImageURLGTE(v string) predicate.GenerationOutput {
-	return predicate.GenerationOutput(sql.FieldGTE(FieldUpscaledImageURL, v))
+// UpscaledImagePathGTE applies the GTE predicate on the "upscaled_image_path" field.
+func UpscaledImagePathGTE(v string) predicate.GenerationOutput {
+	return predicate.GenerationOutput(sql.FieldGTE(FieldUpscaledImagePath, v))
 }
 
-// UpscaledImageURLLT applies the LT predicate on the "upscaled_image_url" field.
-func UpscaledImageURLLT(v string) predicate.GenerationOutput {
-	return predicate.GenerationOutput(sql.FieldLT(FieldUpscaledImageURL, v))
+// UpscaledImagePathLT applies the LT predicate on the "upscaled_image_path" field.
+func UpscaledImagePathLT(v string) predicate.GenerationOutput {
+	return predicate.GenerationOutput(sql.FieldLT(FieldUpscaledImagePath, v))
 }
 
-// UpscaledImageURLLTE applies the LTE predicate on the "upscaled_image_url" field.
-func UpscaledImageURLLTE(v string) predicate.GenerationOutput {
-	return predicate.GenerationOutput(sql.FieldLTE(FieldUpscaledImageURL, v))
+// UpscaledImagePathLTE applies the LTE predicate on the "upscaled_image_path" field.
+func UpscaledImagePathLTE(v string) predicate.GenerationOutput {
+	return predicate.GenerationOutput(sql.FieldLTE(FieldUpscaledImagePath, v))
 }
 
-// UpscaledImageURLContains applies the Contains predicate on the "upscaled_image_url" field.
-func UpscaledImageURLContains(v string) predicate.GenerationOutput {
-	return predicate.GenerationOutput(sql.FieldContains(FieldUpscaledImageURL, v))
+// UpscaledImagePathContains applies the Contains predicate on the "upscaled_image_path" field.
+func UpscaledImagePathContains(v string) predicate.GenerationOutput {
+	return predicate.GenerationOutput(sql.FieldContains(FieldUpscaledImagePath, v))
 }
 
-// UpscaledImageURLHasPrefix applies the HasPrefix predicate on the "upscaled_image_url" field.
-func UpscaledImageURLHasPrefix(v string) predicate.GenerationOutput {
-	return predicate.GenerationOutput(sql.FieldHasPrefix(FieldUpscaledImageURL, v))
+// UpscaledImagePathHasPrefix applies the HasPrefix predicate on the "upscaled_image_path" field.
+func UpscaledImagePathHasPrefix(v string) predicate.GenerationOutput {
+	return predicate.GenerationOutput(sql.FieldHasPrefix(FieldUpscaledImagePath, v))
 }
 
-// UpscaledImageURLHasSuffix applies the HasSuffix predicate on the "upscaled_image_url" field.
-func UpscaledImageURLHasSuffix(v string) predicate.GenerationOutput {
-	return predicate.GenerationOutput(sql.FieldHasSuffix(FieldUpscaledImageURL, v))
+// UpscaledImagePathHasSuffix applies the HasSuffix predicate on the "upscaled_image_path" field.
+func UpscaledImagePathHasSuffix(v string) predicate.GenerationOutput {
+	return predicate.GenerationOutput(sql.FieldHasSuffix(FieldUpscaledImagePath, v))
 }
 
-// UpscaledImageURLIsNil applies the IsNil predicate on the "upscaled_image_url" field.
-func UpscaledImageURLIsNil() predicate.GenerationOutput {
-	return predicate.GenerationOutput(sql.FieldIsNull(FieldUpscaledImageURL))
+// UpscaledImagePathIsNil applies the IsNil predicate on the "upscaled_image_path" field.
+func UpscaledImagePathIsNil() predicate.GenerationOutput {
+	return predicate.GenerationOutput(sql.FieldIsNull(FieldUpscaledImagePath))
 }
 
-// UpscaledImageURLNotNil applies the NotNil predicate on the "upscaled_image_url" field.
-func UpscaledImageURLNotNil() predicate.GenerationOutput {
-	return predicate.GenerationOutput(sql.FieldNotNull(FieldUpscaledImageURL))
+// UpscaledImagePathNotNil applies the NotNil predicate on the "upscaled_image_path" field.
+func UpscaledImagePathNotNil() predicate.GenerationOutput {
+	return predicate.GenerationOutput(sql.FieldNotNull(FieldUpscaledImagePath))
 }
 
-// UpscaledImageURLEqualFold applies the EqualFold predicate on the "upscaled_image_url" field.
-func UpscaledImageURLEqualFold(v string) predicate.GenerationOutput {
-	return predicate.GenerationOutput(sql.FieldEqualFold(FieldUpscaledImageURL, v))
+// UpscaledImagePathEqualFold applies the EqualFold predicate on the "upscaled_image_path" field.
+func UpscaledImagePathEqualFold(v string) predicate.GenerationOutput {
+	return predicate.GenerationOutput(sql.FieldEqualFold(FieldUpscaledImagePath, v))
 }
 
-// UpscaledImageURLContainsFold applies the ContainsFold predicate on the "upscaled_image_url" field.
-func UpscaledImageURLContainsFold(v string) predicate.GenerationOutput {
-	return predicate.GenerationOutput(sql.FieldContainsFold(FieldUpscaledImageURL, v))
+// UpscaledImagePathContainsFold applies the ContainsFold predicate on the "upscaled_image_path" field.
+func UpscaledImagePathContainsFold(v string) predicate.GenerationOutput {
+	return predicate.GenerationOutput(sql.FieldContainsFold(FieldUpscaledImagePath, v))
 }
 
 // GalleryStatusEQ applies the EQ predicate on the "gallery_status" field.
