@@ -489,6 +489,11 @@ components:
         id:
           type: string
           format: uuidv4
+        nsfw_count:
+          type: integer
+        error:
+          type: string
+          format: NSFW,<any>,optional
         outputs:
           type: array
           items:
