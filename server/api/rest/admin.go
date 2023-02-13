@@ -51,8 +51,8 @@ func (c *RestAPI) HandleReviewGallerySubmission(w http.ResponseWriter, r *http.R
 	res := responses.AdminGalleryResponseBody{
 		Updated: updateCount,
 	}
-	render.JSON(w, r, res)
 	render.Status(r, http.StatusOK)
+	render.JSON(w, r, res)
 }
 
 // HTTP DELETE - admin delete generation
@@ -81,6 +81,6 @@ func (c *RestAPI) HandleDeleteGeneration(w http.ResponseWriter, r *http.Request)
 	res := responses.AdminDeleteResponseBody{
 		Deleted: count,
 	}
-	render.JSON(w, r, res)
 	render.Status(r, http.StatusOK)
+	render.JSON(w, r, res)
 }

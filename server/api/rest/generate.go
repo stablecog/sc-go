@@ -257,6 +257,6 @@ func (c *RestAPI) HandleSubmitGenerationToGallery(w http.ResponseWriter, r *http
 		Submitted: submitted,
 	}
 
-	render.JSON(w, r, res)
 	render.Status(r, http.StatusOK)
+	render.JSON(w, r, res)
 }

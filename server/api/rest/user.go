@@ -67,8 +67,8 @@ func (c *RestAPI) HandleQueryGenerations(w http.ResponseWriter, r *http.Request)
 	}
 
 	// Return generations
-	render.JSON(w, r, generations)
 	render.Status(r, http.StatusOK)
+	render.JSON(w, r, generations)
 }
 
 // HTTP Get - credits for user
@@ -122,6 +122,6 @@ func (c *RestAPI) HandleQueryCredits(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Return credits
-	render.JSON(w, r, creditsResponse)
 	render.Status(r, http.StatusOK)
+	render.JSON(w, r, creditsResponse)
 }
