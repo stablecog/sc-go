@@ -12,10 +12,6 @@ paths:
       responses:
         "200":
           description: Success code when server is ready to accept requests
-      servers:
-        - url: http://localhost:13337
-    servers:
-      - url: http://localhost:13337
   /v1/user/generation:
     post:
       description: Create a new generation
@@ -80,10 +76,6 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse401"
-      servers:
-        - url: http://localhost:13337
-    servers:
-      - url: http://localhost:13337
   /v1/user/upscale:
     post:
       description: Create a new upscale
@@ -114,10 +106,6 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse401"
-      servers:
-        - url: http://localhost:13337
-    servers:
-      - url: http://localhost:13337
   /v1/user/credits:
     get:
       description: Query user's credit information
@@ -142,10 +130,6 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse401"
-      servers:
-        - url: http://localhost:13337
-    servers:
-      - url: http://localhost:13337
   /v1/user/gallery:
     put:
       description: Submit generations to gallery
@@ -174,10 +158,6 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse401"
-      servers:
-        - url: http://localhost:13337
-    servers:
-      - url: http://localhost:13337
   /v1/admin/generation:
     delete:
       description: Delete generations with given IDs
@@ -208,10 +188,6 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse401"
-      servers:
-        - url: http://localhost:13337
-    servers:
-      - url: http://localhost:13337
   /v1/admin/gallery:
     put:
       description: Review gallery submissions.
@@ -242,10 +218,6 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse401"
-      servers:
-        - url: http://localhost:13337
-    servers:
-      - url: http://localhost:13337
   /v1/sse:
     get:
       description: SSE endpoint for subscriptions
@@ -271,10 +243,6 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/LivePageUpdate"
-      servers:
-        - url: http://localhost:13337
-    servers:
-      - url: http://localhost:13337
 components:
   securitySchemes:
     supabase:
