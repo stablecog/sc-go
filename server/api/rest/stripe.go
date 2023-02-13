@@ -95,7 +95,11 @@ func (c *RestAPI) HandleStripeWebhook(w http.ResponseWriter, r *http.Request) {
 	_, err = c.Repo.AddCreditsIfEligible(creditType, user.ID, expiresAt)
 	if err != nil {
 		klog.Errorf("Unable adding credits to user %s: %v", user.ID.String(), err)
+		render.Status(r, http.StatusServiceUnavailable)
+		return
 	}
+
+	render.Status(r, http.StatusOK)
 }
 
 // Parse generic object into stripe invoice struct
