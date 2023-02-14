@@ -342,13 +342,13 @@ func TestSubmitGenerationToGallery(t *testing.T) {
 
 	// ! Generation that does exist
 	// Retrieve generation
-	generations, err := MockController.Repo.GetUserGenerations(uuid.MustParse(repository.MOCK_ADMIN_UUID), 50, nil)
+	meta, err := MockController.Repo.GetUserGenerations(uuid.MustParse(repository.MOCK_ADMIN_UUID), 50, nil)
 	assert.Nil(t, err)
-	assert.NotEmpty(t, generations)
+	assert.NotEmpty(t, meta.Generations)
 	var idx int
 	var outputIdx int
 	// Find generation that is not submitted
-	for i, generation := range generations {
+	for i, generation := range meta.Generations {
 		if len(generation.Outputs) > 0 {
 			for oidx, output := range generation.Outputs {
 				if output.GalleryStatus == generationoutput.GalleryStatusNotSubmitted {
@@ -359,10 +359,10 @@ func TestSubmitGenerationToGallery(t *testing.T) {
 			}
 		}
 	}
-	assert.Equal(t, generationoutput.GalleryStatusNotSubmitted, generations[idx].Outputs[outputIdx].GalleryStatus)
+	assert.Equal(t, generationoutput.GalleryStatusNotSubmitted, meta.Generations[idx].Outputs[outputIdx].GalleryStatus)
 
 	reqBody = requests.GenerateSubmitToGalleryRequestBody{
-		GenerationOutputIDs: []uuid.UUID{generations[idx].Outputs[outputIdx].ID},
+		GenerationOutputIDs: []uuid.UUID{meta.Generations[idx].Outputs[outputIdx].ID},
 	}
 	body, _ = json.Marshal(reqBody)
 	w = httptest.NewRecorder()
@@ -382,20 +382,20 @@ func TestSubmitGenerationToGallery(t *testing.T) {
 	assert.Equal(t, 1, submitResp.Submitted)
 
 	// Make sure updated in DB
-	generations, err = MockController.Repo.GetUserGenerations(uuid.MustParse(repository.MOCK_ADMIN_UUID), 50, nil)
+	meta, err = MockController.Repo.GetUserGenerations(uuid.MustParse(repository.MOCK_ADMIN_UUID), 50, nil)
 	assert.Nil(t, err)
-	assert.NotEmpty(t, generations)
-	assert.Equal(t, generationoutput.GalleryStatusSubmitted, generations[idx].Outputs[0].GalleryStatus)
+	assert.NotEmpty(t, meta.Generations)
+	assert.Equal(t, generationoutput.GalleryStatusSubmitted, meta.Generations[idx].Outputs[0].GalleryStatus)
 
 	// ! Generation that is already submitted
 	// Retrieve generation
-	generations, err = MockController.Repo.GetUserGenerations(uuid.MustParse(repository.MOCK_ADMIN_UUID), 50, nil)
+	meta, err = MockController.Repo.GetUserGenerations(uuid.MustParse(repository.MOCK_ADMIN_UUID), 50, nil)
 	assert.Nil(t, err)
-	assert.NotEmpty(t, generations)
-	assert.Equal(t, generationoutput.GalleryStatusSubmitted, generations[idx].Outputs[outputIdx].GalleryStatus)
+	assert.NotEmpty(t, meta.Generations)
+	assert.Equal(t, generationoutput.GalleryStatusSubmitted, meta.Generations[idx].Outputs[outputIdx].GalleryStatus)
 
 	reqBody = requests.GenerateSubmitToGalleryRequestBody{
-		GenerationOutputIDs: []uuid.UUID{generations[idx].Outputs[outputIdx].ID},
+		GenerationOutputIDs: []uuid.UUID{meta.Generations[idx].Outputs[outputIdx].ID},
 	}
 	body, _ = json.Marshal(reqBody)
 	w = httptest.NewRecorder()

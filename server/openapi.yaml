@@ -63,7 +63,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/GenerationQueryResponse"
+                $ref: "#/components/schemas/GenerationQueryMeta"
         "400":
           description: Bad request
           content:
@@ -336,6 +336,16 @@ components:
           type: string
           format: uuidv4
       description: Response after creating a generation or upscale
+    GenerationQueryMeta:
+      type: object
+      properties:
+        total:
+          type: integer
+          format: int32, only if offset not includes
+        generations:
+          type: array
+          items:
+            $ref: "#/components/schemas/GenerationQueryResponse"
     GenerationQueryResponse:
       type: object
       properties:
