@@ -8,6 +8,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/google/uuid"
 	"github.com/stablecog/sc-go/database/ent/generation"
 	"github.com/stablecog/sc-go/database/repository"
 	"github.com/stablecog/sc-go/server/responses"
@@ -61,10 +62,10 @@ func TestHandleQueryGenerationsDefaultParams(t *testing.T) {
 	assert.Empty(t, genResponse[0].NegativePrompt)
 	assert.Equal(t, int32(30), genResponse[0].InferenceSteps)
 	assert.Equal(t, float32(1.0), genResponse[0].GuidanceScale)
+	assert.Equal(t, uuid.MustParse(repository.MOCK_GENERATION_MODEL_ID), genResponse[0].ModelID)
+	assert.Equal(t, uuid.MustParse(repository.MOCK_SCHEDULER_ID), genResponse[0].SchedulerID)
 	assert.Equal(t, int32(512), genResponse[0].Width)
 	assert.Equal(t, int32(512), genResponse[0].Height)
-	assert.Equal(t, "mockfreemodel", genResponse[0].Model)
-	assert.Equal(t, "mockfreescheduler", genResponse[0].Scheduler)
 	assert.Len(t, genResponse[0].Outputs, 0)
 	assert.Equal(t, 1234, genResponse[0].Seed)
 
@@ -75,10 +76,10 @@ func TestHandleQueryGenerationsDefaultParams(t *testing.T) {
 	assert.Empty(t, genResponse[1].NegativePrompt)
 	assert.Equal(t, int32(30), genResponse[1].InferenceSteps)
 	assert.Equal(t, float32(1.0), genResponse[1].GuidanceScale)
+	assert.Equal(t, uuid.MustParse(repository.MOCK_GENERATION_MODEL_ID), genResponse[1].ModelID)
+	assert.Equal(t, uuid.MustParse(repository.MOCK_SCHEDULER_ID), genResponse[1].SchedulerID)
 	assert.Equal(t, int32(512), genResponse[1].Width)
 	assert.Equal(t, int32(512), genResponse[1].Height)
-	assert.Equal(t, "mockfreemodel", genResponse[1].Model)
-	assert.Equal(t, "mockfreescheduler", genResponse[1].Scheduler)
 	assert.Len(t, genResponse[1].Outputs, 0)
 	assert.Equal(t, 1234, genResponse[1].Seed)
 
@@ -89,10 +90,10 @@ func TestHandleQueryGenerationsDefaultParams(t *testing.T) {
 	assert.Empty(t, genResponse[2].NegativePrompt)
 	assert.Equal(t, int32(30), genResponse[2].InferenceSteps)
 	assert.Equal(t, float32(1.0), genResponse[2].GuidanceScale)
+	assert.Equal(t, uuid.MustParse(repository.MOCK_GENERATION_MODEL_ID), genResponse[2].ModelID)
+	assert.Equal(t, uuid.MustParse(repository.MOCK_SCHEDULER_ID), genResponse[2].SchedulerID)
 	assert.Equal(t, int32(512), genResponse[2].Width)
 	assert.Equal(t, int32(512), genResponse[2].Height)
-	assert.Equal(t, "mockfreemodel", genResponse[2].Model)
-	assert.Equal(t, "mockfreescheduler", genResponse[2].Scheduler)
 	assert.Len(t, genResponse[2].Outputs, 3)
 	assert.Equal(t, 1234, genResponse[2].Seed)
 
@@ -103,10 +104,10 @@ func TestHandleQueryGenerationsDefaultParams(t *testing.T) {
 	assert.Equal(t, "This is a negative prompt", genResponse[3].NegativePrompt)
 	assert.Equal(t, int32(30), genResponse[3].InferenceSteps)
 	assert.Equal(t, float32(1.0), genResponse[3].GuidanceScale)
+	assert.Equal(t, uuid.MustParse(repository.MOCK_GENERATION_MODEL_ID), genResponse[3].ModelID)
+	assert.Equal(t, uuid.MustParse(repository.MOCK_SCHEDULER_ID), genResponse[3].SchedulerID)
 	assert.Equal(t, int32(512), genResponse[3].Width)
 	assert.Equal(t, int32(512), genResponse[3].Height)
-	assert.Equal(t, "mockfreemodel", genResponse[3].Model)
-	assert.Equal(t, "mockfreescheduler", genResponse[3].Scheduler)
 	assert.Len(t, genResponse[3].Outputs, 3)
 	assert.Equal(t, 1234, genResponse[3].Seed)
 }
@@ -137,10 +138,10 @@ func TestHandleQueryGenerationsOffset(t *testing.T) {
 	assert.Empty(t, genResponse[0].NegativePrompt)
 	assert.Equal(t, int32(30), genResponse[0].InferenceSteps)
 	assert.Equal(t, float32(1.0), genResponse[0].GuidanceScale)
+	assert.Equal(t, uuid.MustParse(repository.MOCK_GENERATION_MODEL_ID), genResponse[0].ModelID)
+	assert.Equal(t, uuid.MustParse(repository.MOCK_SCHEDULER_ID), genResponse[0].SchedulerID)
 	assert.Equal(t, int32(512), genResponse[0].Width)
 	assert.Equal(t, int32(512), genResponse[0].Height)
-	assert.Equal(t, "mockfreemodel", genResponse[0].Model)
-	assert.Equal(t, "mockfreescheduler", genResponse[0].Scheduler)
 	assert.Len(t, genResponse[0].Outputs, 0)
 	assert.Equal(t, 1234, genResponse[0].Seed)
 
@@ -187,10 +188,10 @@ func TestHandleQueryGenerationsPerPage(t *testing.T) {
 	assert.Empty(t, genResponse[0].NegativePrompt)
 	assert.Equal(t, int32(30), genResponse[0].InferenceSteps)
 	assert.Equal(t, float32(1.0), genResponse[0].GuidanceScale)
+	assert.Equal(t, uuid.MustParse(repository.MOCK_GENERATION_MODEL_ID), genResponse[0].ModelID)
+	assert.Equal(t, uuid.MustParse(repository.MOCK_SCHEDULER_ID), genResponse[0].SchedulerID)
 	assert.Equal(t, int32(512), genResponse[0].Width)
 	assert.Equal(t, int32(512), genResponse[0].Height)
-	assert.Equal(t, "mockfreemodel", genResponse[0].Model)
-	assert.Equal(t, "mockfreescheduler", genResponse[0].Scheduler)
 	assert.Len(t, genResponse[0].Outputs, 0)
 	assert.Equal(t, 1234, genResponse[0].Seed)
 }

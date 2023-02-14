@@ -7,11 +7,9 @@ import (
 	"github.com/google/uuid"
 	"github.com/stablecog/sc-go/database/ent"
 	"github.com/stablecog/sc-go/database/ent/generation"
-	"github.com/stablecog/sc-go/database/ent/generationmodel"
 	"github.com/stablecog/sc-go/database/ent/generationoutput"
 	"github.com/stablecog/sc-go/database/ent/negativeprompt"
 	"github.com/stablecog/sc-go/database/ent/prompt"
-	"github.com/stablecog/sc-go/database/ent/scheduler"
 	"github.com/stablecog/sc-go/server/requests"
 	"github.com/stablecog/sc-go/utils"
 	"k8s.io/klog/v2"
@@ -173,6 +171,8 @@ func (r *Repository) GetUserGenerations(userID uuid.UUID, per_page int, offset *
 		generation.FieldSeed,
 		generation.FieldStatus,
 		generation.FieldGuidanceScale,
+		generation.FieldSchedulerID,
+		generation.FieldModelID,
 		generation.FieldCreatedAt,
 		generation.FieldStartedAt,
 		generation.FieldCompletedAt,
@@ -193,25 +193,17 @@ func (r *Repository) GetUserGenerations(userID uuid.UUID, per_page int, offset *
 	err := query.Modify(func(s *sql.Selector) {
 		npt := sql.Table(negativeprompt.Table)
 		pt := sql.Table(prompt.Table)
-		st := sql.Table(scheduler.Table)
 		got := sql.Table(generationoutput.Table)
-		mt := sql.Table(generationmodel.Table)
 		s.LeftJoin(npt).On(
 			s.C(generation.FieldNegativePromptID), npt.C(negativeprompt.FieldID),
 		).LeftJoin(pt).On(
 			s.C(generation.FieldPromptID), pt.C(prompt.FieldID),
-		).LeftJoin(st).On(
-			s.C(generation.FieldSchedulerID), st.C(scheduler.FieldID),
 		).LeftJoin(got).On(
 			s.C(generation.FieldID), got.C(generationoutput.FieldGenerationID),
-		).LeftJoin(mt).On(
-			s.C(generation.FieldModelID), mt.C(generationmodel.FieldID),
-		).AppendSelect(sql.As(npt.C(negativeprompt.FieldText), "negative_prompt_text"), sql.As(pt.C(prompt.FieldText), "prompt_text"), sql.As(st.C(scheduler.FieldNameInWorker), "scheduler_name"), sql.As(mt.C(generationmodel.FieldNameInWorker), "model_name")).
+		).AppendSelect(sql.As(npt.C(negativeprompt.FieldText), "negative_prompt_text"), sql.As(pt.C(prompt.FieldText), "prompt_text")).
 			GroupBy(s.C(generation.FieldID)).
 			GroupBy(npt.C(negativeprompt.FieldText)).
-			GroupBy(pt.C(prompt.FieldText)).
-			GroupBy(st.C(scheduler.FieldNameInWorker)).
-			GroupBy(mt.C(generationmodel.FieldNameInWorker))
+			GroupBy(pt.C(prompt.FieldText))
 	}).Scan(r.Ctx, &res)
 
 	if err != nil {
@@ -280,12 +272,12 @@ type UserGenerationQueryResult struct {
 	Seed           int                          `json:"seed" sql:"seed"`
 	Status         string                       `json:"status" sql:"status"`
 	GuidanceScale  float32                      `json:"guidance_scale" sql:"guidance_scale"`
+	SchedulerID    uuid.UUID                    `json:"scheduler_id" sql:"scheduler_id"`
+	ModelID        uuid.UUID                    `json:"model_id" sql:"model_id"`
 	CreatedAt      time.Time                    `json:"created_at" sql:"created_at"`
 	StartedAt      *time.Time                   `json:"started_at,omitempty" sql:"started_at"`
 	CompletedAt    *time.Time                   `json:"completed_at,omitempty" sql:"completed_at"`
 	NegativePrompt string                       `json:"negative_prompt" sql:"negative_prompt_text"`
 	Prompt         string                       `json:"prompt" sql:"prompt_text"`
-	Scheduler      string                       `json:"scheduler" sql:"scheduler_name"`
-	Model          string                       `json:"model" sql:"model_name"`
 	Outputs        []UserGenerationOutputResult `json:"outputs"`
 }

@@ -354,15 +354,17 @@ components:
         guidance_scale:
           type: number
           format: float32
+        model_id:
+          type: string
+          format: uuidv4
+        scheduler_id:
+          type: string
+          format: uuidv4
         prompt:
           type: string
         negative_prompt:
           type: string
           format: optional
-        model:
-          type: string
-        scheduler:
-          type: string
         seed:
           type: integer
         created_at:
