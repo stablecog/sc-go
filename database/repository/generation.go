@@ -259,7 +259,7 @@ func (r *Repository) GetUserGenerations(userID uuid.UUID, per_page int, offset *
 				gQueryResult[i].Outputs = append(gQueryResult[i].Outputs, UserGenerationOutputResult{
 					ID:               output.ID,
 					ImageUrl:         imageUrl,
-					UpscaledImageUrl: &upscaledImageUrl,
+					UpscaledImageUrl: upscaledImageUrl,
 					GalleryStatus:    output.GalleryStatus,
 				})
 			}
@@ -290,7 +290,7 @@ type UserGenerationQueryMeta struct {
 type UserGenerationOutputResult struct {
 	ID               uuid.UUID                      `json:"id"`
 	ImageUrl         string                         `json:"image_url"`
-	UpscaledImageUrl *string                        `json:"upscaled_image_url,omitempty"`
+	UpscaledImageUrl string                         `json:"upscaled_image_url,omitempty"`
 	GalleryStatus    generationoutput.GalleryStatus `json:"gallery_status"`
 }
 
