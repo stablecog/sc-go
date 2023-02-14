@@ -33,5 +33,5 @@ func (h *Hub) BroadcastLivePageMessage(req responses.LivePageMessage) {
 		klog.Errorf("Error marshalling live page message: %v", err)
 		return
 	}
-	h.Broadcast <- bytes
+	h.BroadcastToClientsWithUid("live", bytes)
 }
