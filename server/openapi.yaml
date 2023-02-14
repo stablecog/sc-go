@@ -8,13 +8,13 @@ servers:
 paths:
   /v1/health:
     get:
-      description: API ready endpoint
+      description: Server Health
       responses:
         "200":
           description: Success code when server is ready to accept requests
   /v1/user/generation:
     post:
-      description: Create a new generation
+      description: "Generation: Create"
       security:
         - supabase: []
       requestBody:
@@ -43,7 +43,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorResponse401"
     get:
-      description: Query the requesting user's generations
+      description: "Generation: List (User-only)"
       security:
         - supabase: []
       parameters:
@@ -76,9 +76,39 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse401"
+  /v1/admin/generation:
+    delete:
+      description: "Generation: Delete (Admin)"
+      security:
+        - supabase: []
+      requestBody:
+        description: JSON Object with generation IDs to delete
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/GenerationDeleteRequest"
+      responses:
+        "200":
+          description: Number of generations deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DeletedResponse"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse400"
+        "401":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse401"
   /v1/user/upscale:
     post:
-      description: Create a new upscale
+      description: "Upscale: Create"
       security:
         - supabase: []
       requestBody:
@@ -108,7 +138,7 @@ paths:
                 $ref: "#/components/schemas/ErrorResponse401"
   /v1/user/credits:
     get:
-      description: Query user's credit information
+      description: "Credits: Query (User-only)"
       security:
         - supabase: []
       responses:
@@ -132,7 +162,7 @@ paths:
                 $ref: "#/components/schemas/ErrorResponse401"
   /v1/user/gallery:
     put:
-      description: Submit generations to gallery
+      description: "Gallery: Submit (User-only)"
       requestBody:
         description: JSON Object with generation output IDs to submit
         content:
@@ -158,39 +188,9 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse401"
-  /v1/admin/generation:
-    delete:
-      description: Delete generations with given IDs
-      security:
-        - supabase: []
-      requestBody:
-        description: JSON Object with generation IDs to delete
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/GenerationDeleteRequest"
-      responses:
-        "200":
-          description: Number of generations deleted
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/DeletedResponse"
-        "400":
-          description: Bad request
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse400"
-        "401":
-          description: Bad request
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse401"
   /v1/admin/gallery:
     put:
-      description: Review gallery submissions.
+      description: "Gallery: Approve/Reject (Admin)"
       security:
         - supabase: []
       requestBody:
@@ -220,7 +220,7 @@ paths:
                 $ref: "#/components/schemas/ErrorResponse401"
   /v1/sse:
     get:
-      description: SSE endpoint for subscriptions
+      description: "SSE: Subscribe"
       parameters:
         - name: id
           in: query
