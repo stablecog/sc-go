@@ -235,7 +235,7 @@ func (r *Repository) ProcessCogMessage(msg responses.CogStatusUpdate) {
 			generateOutputs[i] = responses.WebhookStatusUpdateOutputs{
 				ID:               output.ID,
 				ImageUrl:         imageUrl,
-				UpscaledImageUrl: &upscaledImageUrl,
+				UpscaledImageUrl: upscaledImageUrl,
 				GalleryStatus:    output.GalleryStatus,
 			}
 		}
