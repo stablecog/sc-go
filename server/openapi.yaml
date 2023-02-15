@@ -51,12 +51,125 @@ paths:
           in: query
           schema:
             type: string
+            format: optional, default:50
           example: "50"
         - name: cursor
           in: query
           schema:
             type: string
+            format: optional
           example: 2023-02-13T15%3A16%3A43.328Z
+        - name: min_width
+          in: query
+          schema:
+            type: integer
+            format: optional
+          example: 512
+        - name: max_width
+          in: query
+          schema:
+            type: integer
+            format: optional
+        - name: min_height
+          in: query
+          schema:
+            type: integer
+            format: optional
+          example: 512
+        - name: max_height
+          in: query
+          schema:
+            type: integer
+            format: optional
+        - name: min_inference_steps
+          in: query
+          schema:
+            type: integer
+            format: optional
+          example: 30
+        - name: max_inference_steps
+          in: query
+          schema:
+            type: integer
+            format: optional
+          example: 30
+        - name: min_guidance_scale
+          in: query
+          schema:
+            type: number
+            format: float32, optional
+          example: 3.0
+        - name: max_guidance_scale
+          in: query
+          schema:
+            type: number
+            format: float32, optional
+          example: 3
+        - name: widths
+          in: query
+          schema:
+            type: array
+            format: comma-separated, optional
+            items:
+              type: integer
+              format: int32
+          example: 512,768
+        - name: heights
+          in: query
+          schema:
+            type: array
+            format: comma-separated, optional
+            items:
+              type: integer
+              format: int32
+          example: 512,768
+        - name: inference_steps
+          in: query
+          schema:
+            type: array
+            format: comma-separated, optional
+            items:
+              type: integer
+              format: int32
+          example: 30,50
+        - name: guidance_scales
+          in: query
+          schema:
+            type: array
+            format: comma-separated, optional
+            items:
+              type: number
+              format: float32
+        - name: scheduler_ids
+          in: query
+          schema:
+            type: array
+            format: comma-separated, optional
+            items:
+              type: string
+              format: uuidv4
+          example: e07ad712-41ad-4ff7-8727-faf0d91e4c4e,c09aaf4d-2d78-4281-89aa-88d5d0a5d70b
+        - name: model_ids
+          in: query
+          schema:
+            type: array
+            format: comma-separated, optional
+            items:
+              type: string
+              format: uuidv4
+          example: e07ad712-41ad-4ff7-8727-faf0d91e4c4e,c09aaf4d-2d78-4281-89aa-88d5d0a5d70b
+        - name: succeeded_only
+          in: query
+          description: Only include successful generations
+          schema:
+            type: boolean
+            format: "optional, default: false"
+        - name: order
+          in: query
+          schema:
+            type: string
+            format: "optional, asc/desc, default: desc"
+          example: 3
       responses:
         "200":
           description: JSON object with generations and outputs

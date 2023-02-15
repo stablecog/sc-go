@@ -342,7 +342,7 @@ func TestSubmitGenerationToGallery(t *testing.T) {
 
 	// ! Generation that does exist
 	// Retrieve generation
-	meta, err := MockController.Repo.GetUserGenerations(uuid.MustParse(repository.MOCK_ADMIN_UUID), 50, nil)
+	meta, err := MockController.Repo.GetUserGenerations(uuid.MustParse(repository.MOCK_ADMIN_UUID), 50, nil, nil)
 	assert.Nil(t, err)
 	assert.NotEmpty(t, meta.Generations)
 	var idx int
@@ -382,14 +382,14 @@ func TestSubmitGenerationToGallery(t *testing.T) {
 	assert.Equal(t, 1, submitResp.Submitted)
 
 	// Make sure updated in DB
-	meta, err = MockController.Repo.GetUserGenerations(uuid.MustParse(repository.MOCK_ADMIN_UUID), 50, nil)
+	meta, err = MockController.Repo.GetUserGenerations(uuid.MustParse(repository.MOCK_ADMIN_UUID), 50, nil, nil)
 	assert.Nil(t, err)
 	assert.NotEmpty(t, meta.Generations)
 	assert.Equal(t, generationoutput.GalleryStatusSubmitted, meta.Generations[idx].Outputs[0].GalleryStatus)
 
 	// ! Generation that is already submitted
 	// Retrieve generation
-	meta, err = MockController.Repo.GetUserGenerations(uuid.MustParse(repository.MOCK_ADMIN_UUID), 50, nil)
+	meta, err = MockController.Repo.GetUserGenerations(uuid.MustParse(repository.MOCK_ADMIN_UUID), 50, nil, nil)
 	assert.Nil(t, err)
 	assert.NotEmpty(t, meta.Generations)
 	assert.Equal(t, generationoutput.GalleryStatusSubmitted, meta.Generations[idx].Outputs[outputIdx].GalleryStatus)

@@ -165,7 +165,7 @@ func (r *Repository) GetUserGenerationsCount(userID uuid.UUID) (int, error) {
 // TODO - this is currently two queries, 1 for outputs, 1 for everything else - figure out how to make it only 1
 // ! using ent .With... doesn't use joins, so we construct our own query to make it more efficient
 // TODO - Define indexes for this query
-func (r *Repository) GetUserGenerations(userID uuid.UUID, per_page int, cursor *time.Time) (*UserGenerationQueryMeta, error) {
+func (r *Repository) GetUserGenerations(userID uuid.UUID, per_page int, cursor *time.Time, filters *requests.UserGenerationFilters) (*UserGenerationQueryMeta, error) {
 	// Base fields to select in our query
 	selectFields := []string{
 		generation.FieldID,
@@ -183,15 +183,125 @@ func (r *Repository) GetUserGenerations(userID uuid.UUID, per_page int, cursor *
 	}
 	var query *ent.GenerationQuery
 	var gQueryResult []UserGenerationQueryResult
+
+	// Parse status from query
+	status := []generation.Status{}
+	if filters != nil && filters.SucceededOnly {
+		status = append(status, generation.StatusSucceeded)
+	} else {
+		status = append(status, generation.StatusSucceeded, generation.StatusFailed, generation.StatusQueued, generation.StatusStarted)
+	}
+
 	if cursor != nil {
 		query = r.DB.Generation.Query().Select(selectFields...).
-			Where(generation.UserID(userID), generation.CreatedAtLT(*cursor))
+			Where(generation.UserID(userID), generation.CreatedAtLT(*cursor), generation.StatusIn(status...))
 	} else {
 		query = r.DB.Generation.Query().Select(selectFields...).
-			Where(generation.UserID(userID))
+			Where(generation.UserID(userID), generation.StatusIn(status...))
 	}
-	query = query.Order(ent.Desc(generation.FieldCreatedAt)).
-		Limit(per_page + 1)
+
+	if filters != nil {
+		// Apply filters
+		if len(filters.ModelIDs) > 0 {
+			query = query.Where(generation.ModelIDIn(filters.ModelIDs...))
+		}
+		if len(filters.SchedulerIDs) > 0 {
+			query = query.Where(generation.SchedulerIDIn(filters.SchedulerIDs...))
+		}
+		// Apply OR if both are present
+		// Confusing, but example of what we want to do:
+		// If min_width=100, max_width=200, widths=[300,400]
+		// We want to query like; WHERE (width >= 100 AND width <= 200) OR width IN (300,400)
+		if (filters.MinWidth != 0 || filters.MaxWidth != 0) && len(filters.Widths) > 0 {
+			if filters.MinWidth != 0 && filters.MaxWidth != 0 {
+				query = query.Where(generation.Or(generation.And(generation.WidthGTE(filters.MinWidth), generation.WidthLTE(filters.MaxWidth)), generation.WidthIn(filters.Widths...)))
+			} else if filters.MinWidth != 0 {
+				query = query.Where(generation.Or(generation.WidthGTE(filters.MinWidth), generation.WidthIn(filters.Widths...)))
+			} else {
+				query = query.Where(generation.Or(generation.WidthLTE(filters.MaxWidth), generation.WidthIn(filters.Widths...)))
+			}
+		} else {
+			if filters.MinWidth != 0 {
+				query = query.Where(generation.WidthGTE(filters.MinWidth))
+			}
+			if filters.MaxWidth != 0 {
+				query = query.Where(generation.WidthLTE(filters.MaxWidth))
+			}
+			if len(filters.Widths) > 0 {
+				query = query.Where(generation.WidthIn(filters.Widths...))
+			}
+		}
+
+		// Height
+		if (filters.MinHeight != 0 || filters.MaxHeight != 0) && len(filters.Heights) > 0 {
+			if filters.MinHeight != 0 && filters.MaxHeight != 0 {
+				query = query.Where(generation.Or(generation.And(generation.HeightGTE(filters.MinHeight), generation.HeightLTE(filters.MaxHeight)), generation.HeightIn(filters.Heights...)))
+			} else if filters.MinHeight != 0 {
+				query = query.Where(generation.Or(generation.HeightGTE(filters.MinHeight), generation.HeightIn(filters.Heights...)))
+			} else {
+				query = query.Where(generation.Or(generation.HeightLTE(filters.MaxHeight), generation.HeightIn(filters.Heights...)))
+			}
+		} else {
+			if len(filters.Heights) > 0 {
+				query = query.Where(generation.HeightIn(filters.Heights...))
+			}
+			if filters.MaxHeight != 0 {
+				query = query.Where(generation.HeightLTE(filters.MaxHeight))
+			}
+			if filters.MinHeight != 0 {
+				query = query.Where(generation.HeightGTE(filters.MinHeight))
+			}
+		}
+
+		// Inference steps
+		if (filters.MinInferenceSteps != 0 || filters.MaxInferenceSteps != 0) && len(filters.InferenceSteps) > 0 {
+			if filters.MinInferenceSteps != 0 && filters.MaxInferenceSteps != 0 {
+				query = query.Where(generation.Or(generation.And(generation.InferenceStepsGTE(filters.MinInferenceSteps), generation.InferenceStepsLTE(filters.MaxInferenceSteps)), generation.InferenceStepsIn(filters.InferenceSteps...)))
+			} else if filters.MinInferenceSteps != 0 {
+				query = query.Where(generation.Or(generation.InferenceStepsGTE(filters.MinInferenceSteps), generation.InferenceStepsIn(filters.InferenceSteps...)))
+			} else {
+				query = query.Where(generation.Or(generation.InferenceStepsLTE(filters.MaxInferenceSteps), generation.InferenceStepsIn(filters.InferenceSteps...)))
+			}
+		} else {
+			if len(filters.InferenceSteps) > 0 {
+				query = query.Where(generation.InferenceStepsIn(filters.InferenceSteps...))
+			}
+			if filters.MaxInferenceSteps != 0 {
+				query = query.Where(generation.InferenceStepsLTE(filters.MaxInferenceSteps))
+			}
+			if filters.MinInferenceSteps != 0 {
+				query = query.Where(generation.InferenceStepsGTE(filters.MinInferenceSteps))
+			}
+		}
+
+		// Guidance Scales
+		if (filters.MinGuidanceScale != 0 || filters.MaxGuidanceScale != 0) && len(filters.GuidanceScales) > 0 {
+			if filters.MinGuidanceScale != 0 && filters.MaxGuidanceScale != 0 {
+				query = query.Where(generation.Or(generation.And(generation.GuidanceScaleGTE(filters.MinGuidanceScale), generation.GuidanceScaleLTE(filters.MaxGuidanceScale)), generation.GuidanceScaleIn(filters.GuidanceScales...)))
+			} else if filters.MinGuidanceScale != 0 {
+				query = query.Where(generation.Or(generation.GuidanceScaleGTE(filters.MinGuidanceScale), generation.GuidanceScaleIn(filters.GuidanceScales...)))
+			} else {
+				query = query.Where(generation.Or(generation.GuidanceScaleLTE(filters.MaxGuidanceScale), generation.GuidanceScaleIn(filters.GuidanceScales...)))
+			}
+		} else {
+			if len(filters.GuidanceScales) > 0 {
+				query = query.Where(generation.GuidanceScaleIn(filters.GuidanceScales...))
+			}
+			if filters.MaxGuidanceScale != 0 {
+				query = query.Where(generation.GuidanceScaleLTE(filters.MaxGuidanceScale))
+			}
+			if filters.MinGuidanceScale != 0 {
+				query = query.Where(generation.GuidanceScaleGTE(filters.MinGuidanceScale))
+			}
+		}
+	}
+
+	if filters == nil || (filters != nil && filters.Order == requests.UserGenerationQueryOrderDescending) {
+		query = query.Order(ent.Desc(generation.FieldCreatedAt)).
+			Limit(per_page + 1)
+	} else {
+		query = query.Order(ent.Asc(generation.FieldCreatedAt)).Limit(per_page + 1)
+	}
 
 	// Join other data
 	err := query.Modify(func(s *sql.Selector) {

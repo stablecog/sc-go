@@ -20,7 +20,7 @@ import (
 func TestHandleReviewGallerySubmission(t *testing.T) {
 	// ! Can approve generation
 	// Retrieve generations
-	meta, err := MockController.Repo.GetUserGenerations(uuid.MustParse(repository.MOCK_ADMIN_UUID), 50, nil)
+	meta, err := MockController.Repo.GetUserGenerations(uuid.MustParse(repository.MOCK_ADMIN_UUID), 50, nil, nil)
 	assert.Nil(t, err)
 	var targetGUid uuid.UUID
 	// Find generation with outputs
