@@ -144,6 +144,12 @@ paths:
             type: string
             format: "optional, asc/desc, default: desc"
           example: 3
+        - name: upscaled
+          in: query
+          schema:
+            type: string
+            format: "optional, any/only/not, default: any"
+          example: not (return not upscaled only)
       responses:
         "200":
           description: JSON object with generations and outputs

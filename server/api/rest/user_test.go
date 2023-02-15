@@ -410,7 +410,7 @@ func TestHandleQueryCredits(t *testing.T) {
 
 // Parse query filters from url params
 func TestParseQueryGenerationFilters(t *testing.T) {
-	urlStr := "/gens?per_page=1&cursor=2021-01-01T00:00:00Z&min_width=1&max_width=5&min_height=6&max_height=7&max_inference_steps=3&min_inference_steps=2&max_guidance_scale=4&min_guidance_scale=2&widths=512,768&heights=512&inference_steps=30&guidance_scales=5&scheduler_ids=e07ad712-41ad-4ff7-8727-faf0d91e4c4e,c09aaf4d-2d78-4281-89aa-88d5d0a5d70b&model_ids=49d75ae2-5407-40d9-8c02-0c44ba08f358&succeeded_only=true"
+	urlStr := "/gens?per_page=1&cursor=2021-01-01T00:00:00Z&min_width=1&max_width=5&min_height=6&max_height=7&max_inference_steps=3&min_inference_steps=2&max_guidance_scale=4&min_guidance_scale=2&widths=512,768&heights=512&inference_steps=30&guidance_scales=5&scheduler_ids=e07ad712-41ad-4ff7-8727-faf0d91e4c4e,c09aaf4d-2d78-4281-89aa-88d5d0a5d70b&model_ids=49d75ae2-5407-40d9-8c02-0c44ba08f358&succeeded_only=true&upscaled=only"
 	// Get url.Values from string
 	values, err := url.ParseQuery(urlStr)
 	assert.Nil(t, err)
@@ -432,6 +432,7 @@ func TestParseQueryGenerationFilters(t *testing.T) {
 	assert.Equal(t, []uuid.UUID{uuid.MustParse("e07ad712-41ad-4ff7-8727-faf0d91e4c4e"), uuid.MustParse("c09aaf4d-2d78-4281-89aa-88d5d0a5d70b")}, filters.SchedulerIDs)
 	assert.Equal(t, []uuid.UUID{uuid.MustParse("49d75ae2-5407-40d9-8c02-0c44ba08f358")}, filters.ModelIDs)
 	assert.Equal(t, true, filters.SucceededOnly)
+	assert.Equal(t, requests.UserGenerationQueryUpscaleStatusOnly, filters.UpscaleStatus)
 	// Default descending
 	assert.Equal(t, requests.UserGenerationQueryOrderDescending, filters.Order)
 }
@@ -444,5 +445,5 @@ func TestParseQueryGenerationFilterError(t *testing.T) {
 	// Parse filters
 	_, err = ParseQueryGenerationFilters(values)
 	assert.NotNil(t, err)
-	assert.Equal(t, "invalid order: invalid expected 'asc' or 'desc'", err.Error())
+	assert.Equal(t, "invalid order: 'invalid' expected 'asc' or 'desc'", err.Error())
 }

@@ -354,18 +354,34 @@ func ParseQueryGenerationFilters(rawQuery url.Values) (*requests.UserGenerationF
 		}
 		// Order
 		if key == "order" {
-			if strings.ToLower(value[0]) == "asc" {
+			if strings.ToLower(value[0]) == string(requests.UserGenerationQueryOrderAscending) {
 				filters.Order = requests.UserGenerationQueryOrderAscending
-			} else if strings.ToLower(value[0]) == "desc" {
+			} else if strings.ToLower(value[0]) == string(requests.UserGenerationQueryOrderDescending) {
 				filters.Order = requests.UserGenerationQueryOrderDescending
 			} else {
-				return nil, fmt.Errorf("invalid order: %s expected 'asc' or 'desc'", value[0])
+				return nil, fmt.Errorf("invalid order: '%s' expected '%s' or '%s'", value[0], requests.UserGenerationQueryOrderAscending, requests.UserGenerationQueryOrderDescending)
+			}
+		}
+		// Upscale status
+		if key == "upscaled" {
+			if strings.ToLower(value[0]) == string(requests.UserGenerationQueryUpscaleStatusAny) {
+				filters.UpscaleStatus = requests.UserGenerationQueryUpscaleStatusAny
+			} else if strings.ToLower(value[0]) == string(requests.UserGenerationQueryUpscaleStatusNot) {
+				filters.UpscaleStatus = requests.UserGenerationQueryUpscaleStatusNot
+			} else if strings.ToLower(value[0]) == string(requests.UserGenerationQueryUpscaleStatusOnly) {
+				filters.UpscaleStatus = requests.UserGenerationQueryUpscaleStatusOnly
+			} else {
+				return nil, fmt.Errorf("invalid upscaled: '%s' expected '%s', '%s', or '%s'", value[0], requests.UserGenerationQueryUpscaleStatusAny, requests.UserGenerationQueryUpscaleStatusNot, requests.UserGenerationQueryUpscaleStatusOnly)
 			}
 		}
 	}
 	// Descending default
 	if filters.Order == "" {
 		filters.Order = requests.UserGenerationQueryOrderDescending
+	}
+	// Upscale status any default
+	if filters.UpscaleStatus == "" {
+		filters.UpscaleStatus = requests.UserGenerationQueryUpscaleStatusAny
 	}
 	return filters, nil
 }

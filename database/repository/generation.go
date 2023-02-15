@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"database/sql/driver"
 	"time"
 
 	"entgo.io/ent/dialect/sql"
@@ -155,6 +156,7 @@ func (r *Repository) SetGenerationSucceeded(generationID string, outputs []strin
 	return outputRet, nil
 }
 
+// Apply all filters to root ent query
 func (r *Repository) ApplyUserGenerationsFilters(query *ent.GenerationQuery, filters *requests.UserGenerationFilters) *ent.GenerationQuery {
 	resQuery := query
 	if filters != nil {
@@ -268,7 +270,26 @@ func (r *Repository) GetUserGenerationCountWithFilters(userID uuid.UUID, filters
 	}
 
 	query = r.DB.Generation.Query().
-		Where(generation.UserID(userID), generation.StatusIn(status...))
+		Where(func(s *sql.Selector) {
+			t := sql.Table(generation.Table)
+			got := sql.Table(generationoutput.Table)
+			statusValues := make([]driver.Value, 0, len(status))
+			for _, v := range status {
+				statusValues = append(statusValues, v)
+			}
+			predicates := []*sql.Predicate{
+				sql.EQ(t.C(generation.FieldUserID), userID),
+				sql.InValues(t.C(generation.FieldStatus), statusValues...),
+			}
+			// Also filter if necessary
+			if filters != nil && filters.UpscaleStatus == requests.UserGenerationQueryUpscaleStatusNot {
+				predicates = append(predicates, sql.IsNull(got.C(generationoutput.FieldUpscaledImagePath)))
+			} else if filters != nil && filters.UpscaleStatus == requests.UserGenerationQueryUpscaleStatusOnly {
+				predicates = append(predicates, sql.NotNull(got.C(generationoutput.FieldUpscaledImagePath)))
+			}
+			// Apply
+			s.Where(sql.And(predicates...))
+		})
 
 	// Apply filters
 	query = r.ApplyUserGenerationsFilters(query, filters)
@@ -330,13 +351,30 @@ func (r *Repository) GetUserGenerations(userID uuid.UUID, per_page int, cursor *
 		status = append(status, generation.StatusSucceeded, generation.StatusFailed, generation.StatusQueued, generation.StatusStarted)
 	}
 
-	if cursor != nil {
-		query = r.DB.Generation.Query().Select(selectFields...).
-			Where(generation.UserID(userID), generation.CreatedAtLT(*cursor), generation.StatusIn(status...))
-	} else {
-		query = r.DB.Generation.Query().Select(selectFields...).
-			Where(generation.UserID(userID), generation.StatusIn(status...))
-	}
+	query = r.DB.Generation.Query().Select(selectFields...).Where(func(s *sql.Selector) {
+		t := sql.Table(generation.Table)
+		got := sql.Table(generationoutput.Table)
+		statusValues := make([]driver.Value, 0, len(status))
+		for _, v := range status {
+			statusValues = append(statusValues, v)
+		}
+		predicates := []*sql.Predicate{
+			sql.EQ(t.C(generation.FieldUserID), userID),
+			sql.InValues(t.C(generation.FieldStatus), statusValues...),
+		}
+		// Apply cursor if necessary
+		if cursor != nil {
+			predicates = append(predicates, sql.LT(t.C(generation.FieldCreatedAt), *cursor))
+		}
+		// Also filter if necessary
+		if filters != nil && filters.UpscaleStatus == requests.UserGenerationQueryUpscaleStatusNot {
+			predicates = append(predicates, sql.IsNull(got.C(generationoutput.FieldUpscaledImagePath)))
+		} else if filters != nil && filters.UpscaleStatus == requests.UserGenerationQueryUpscaleStatusOnly {
+			predicates = append(predicates, sql.NotNull(got.C(generationoutput.FieldUpscaledImagePath)))
+		}
+		// Apply
+		s.Where(sql.And(predicates...))
+	})
 
 	// Apply filters
 	query = r.ApplyUserGenerationsFilters(query, filters)
@@ -356,8 +394,7 @@ func (r *Repository) GetUserGenerations(userID uuid.UUID, per_page int, cursor *
 			s.C(generation.FieldPromptID), pt.C(prompt.FieldID),
 		).LeftJoin(got).On(
 			s.C(generation.FieldID), got.C(generationoutput.FieldGenerationID),
-		).AppendSelect(sql.As(npt.C(negativeprompt.FieldText), "negative_prompt_text"), sql.As(pt.C(prompt.FieldText), "prompt_text"), sql.As(got.C(generationoutput.FieldID), "output_id"), sql.As(got.C(generationoutput.FieldGalleryStatus), "output_gallery_status"), sql.As(got.C(generationoutput.FieldImagePath), "output_image_url"), sql.As(got.C(generationoutput.FieldUpscaledImagePath), "output_upscaled_image_url")).
-			GroupBy(s.C(generation.FieldID)).
+		).AppendSelect(sql.As(npt.C(negativeprompt.FieldText), "negative_prompt_text"), sql.As(pt.C(prompt.FieldText), "prompt_text"), sql.As(got.C(generationoutput.FieldID), "output_id"), sql.As(got.C(generationoutput.FieldGalleryStatus), "output_gallery_status"), sql.As(got.C(generationoutput.FieldImagePath), "output_image_url"), sql.As(got.C(generationoutput.FieldUpscaledImagePath), "output_upscaled_image_url")).GroupBy(s.C(generation.FieldID)).
 			GroupBy(npt.C(negativeprompt.FieldText)).
 			GroupBy(pt.C(prompt.FieldText)).
 			GroupBy(got.C(generationoutput.FieldID)).
