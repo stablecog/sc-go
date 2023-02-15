@@ -515,13 +515,13 @@ components:
         output_id:
           type: string
           format: uuidv4,optional
-        output_image_url:
+        image_url:
           type: string
           format: optional
-        output_upscaled_image_url:
+        upscaled_image_url:
           type: string
           format: optional
-        output_gallery_status:
+        gallery_status:
           type: string
           format: not_submitted/submitted/accepted/rejected, optional
       description: Response after querying generations.

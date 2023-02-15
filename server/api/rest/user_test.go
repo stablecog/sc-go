@@ -151,7 +151,7 @@ func TestHandleQueryGenerationsDefaultParams(t *testing.T) {
 func TestHandleQueryGenerationsCursor(t *testing.T) {
 	w := httptest.NewRecorder()
 	// Build request
-	req := httptest.NewRequest("GET", "/gens", nil)
+	req := httptest.NewRequest("GET", "/gens?upscaled=not", nil)
 	req.Header.Set("Content-Type", "application/json")
 
 	ctx := context.WithValue(req.Context(), "user_id", repository.MOCK_ADMIN_UUID)
