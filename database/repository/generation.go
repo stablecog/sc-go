@@ -117,7 +117,6 @@ func (r *Repository) SetGenerationSucceeded(generationID string, outputs []strin
 		// Retrieve the generation
 		g, err := r.GetGeneration(uid)
 		if err != nil {
-			tx.Rollback()
 			klog.Errorf("Error retrieving generation %s: %v", generationID, err)
 			return err
 		}
@@ -125,7 +124,6 @@ func (r *Repository) SetGenerationSucceeded(generationID string, outputs []strin
 		// Update the generation
 		_, err = tx.Generation.UpdateOneID(uid).SetStatus(generation.StatusSucceeded).SetCompletedAt(time.Now()).SetNsfwCount(nsfwCount).Save(r.Ctx)
 		if err != nil {
-			tx.Rollback()
 			klog.Errorf("Error setting generation succeeded %s: %v", generationID, err)
 			return err
 		}
@@ -142,7 +140,6 @@ func (r *Repository) SetGenerationSucceeded(generationID string, outputs []strin
 		for _, output := range outputs {
 			gOutput, err := tx.GenerationOutput.Create().SetGenerationID(uid).SetImagePath(output).SetGalleryStatus(galleryStatus).Save(r.Ctx)
 			if err != nil {
-				tx.Rollback()
 				klog.Errorf("Error inserting generation output %s: %v", generationID, err)
 				return err
 			}

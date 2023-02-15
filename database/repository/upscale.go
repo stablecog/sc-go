@@ -80,52 +80,45 @@ func (r *Repository) SetUpscaleSucceeded(upscaleID, generationOutputID, output s
 		hasGenerationOutput = false
 	}
 
+	var upscaleOutput *ent.UpscaleOutput
+
 	// Start a transaction
-	tx, err := r.DB.Tx(r.Ctx)
-	if err != nil {
-		klog.Errorf("Error starting transaction in SetUpscaleSucceeded %s: %v", upscaleID, err)
-		return nil, err
-	}
-
-	// Retrieve the upscale
-	u, err := r.GetUpscale(uid)
-	if err != nil {
-		tx.Rollback()
-		klog.Errorf("Error retrieving upscale %s: %v", upscaleID, err)
-		return nil, err
-	}
-
-	// Update the upscale
-	_, err = tx.Upscale.UpdateOneID(u.ID).SetStatus(upscale.StatusSucceeded).SetCompletedAt(time.Now()).Save(r.Ctx)
-	if err != nil {
-		tx.Rollback()
-		klog.Errorf("Error setting upscale succeeded %s: %v", upscaleID, err)
-		return nil, err
-	}
-
-	// Set upscale output
-	upscaleOutput, err := tx.UpscaleOutput.Create().SetImagePath(output).SetUpscaleID(uid).Save(r.Ctx)
-	if err != nil {
-		tx.Rollback()
-		klog.Errorf("Error inserting upscale output %s: %v", upscaleID, err)
-		return nil, err
-	}
-
-	// If necessary add to generation output
-	if hasGenerationOutput {
-		_, err = tx.GenerationOutput.UpdateOneID(outputId).SetUpscaledImagePath(output).Save(r.Ctx)
+	if err := r.WithTx(func(tx *ent.Tx) error {
+		// Retrieve the upscale
+		u, err := r.GetUpscale(uid)
 		if err != nil {
-			tx.Rollback()
-			klog.Errorf("Error setting upscaled_image_url %s: %v", upscaleID, err)
-			return nil, err
+			klog.Errorf("Error retrieving upscale %s: %v", upscaleID, err)
+			return err
 		}
-	}
 
-	// Commit the transaction
-	err = tx.Commit()
-	if err != nil {
-		klog.Errorf("Error committing transaction in SetUpscaleSucceeded %s: %v", upscaleID, err)
+		// Update the upscale
+		_, err = tx.Upscale.UpdateOneID(u.ID).SetStatus(upscale.StatusSucceeded).SetCompletedAt(time.Now()).Save(r.Ctx)
+		if err != nil {
+			klog.Errorf("Error setting upscale succeeded %s: %v", upscaleID, err)
+			return err
+		}
+
+		// Set upscale output
+		upscaleOutput, err = tx.UpscaleOutput.Create().SetImagePath(output).SetUpscaleID(uid).Save(r.Ctx)
+		if err != nil {
+			klog.Errorf("Error inserting upscale output %s: %v", upscaleID, err)
+			return err
+		}
+
+		// If necessary add to generation output
+		if hasGenerationOutput {
+			_, err = tx.GenerationOutput.UpdateOneID(outputId).SetUpscaledImagePath(output).Save(r.Ctx)
+			if err != nil {
+				klog.Errorf("Error setting upscaled_image_url %s: %v", upscaleID, err)
+				return err
+			}
+		}
+
+		return nil
+	}); err != nil {
+		klog.Errorf("Error in SetUpscaleSucceeded %s: %v", upscaleID, err)
 		return nil, err
 	}
+
 	return upscaleOutput, nil
 }
