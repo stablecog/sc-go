@@ -2,6 +2,8 @@
 package requests
 
 import (
+	"time"
+
 	"github.com/google/uuid"
 	"github.com/stablecog/sc-go/shared"
 )
@@ -82,4 +84,6 @@ type UserGenerationFilters struct {
 	SucceededOnly     bool                             `json:"succeeded_only"`
 	UpscaleStatus     UserGenerationQueryUpscaleStatus `json:"upscale_status"`
 	Order             UserGenerationQueryOrder         `json:"order"`
+	StartDt           *time.Time                       `json:"start_dt"`
+	EndDt             *time.Time                       `json:"end_dt"`
 }

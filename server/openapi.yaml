@@ -524,6 +524,12 @@ components:
         gallery_status:
           type: string
           format: not_submitted/submitted/accepted/rejected, optional
+        start_dt:
+          type: string
+          format: isoTimeString, optional
+        end_dt:
+          type: string
+          format: isoTimeString, optional
       description: Response after querying generations.
     GenerationOutput:
       type: object

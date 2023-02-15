@@ -374,6 +374,21 @@ func ParseQueryGenerationFilters(rawQuery url.Values) (*requests.UserGenerationF
 				return nil, fmt.Errorf("invalid upscaled: '%s' expected '%s', '%s', or '%s'", value[0], requests.UserGenerationQueryUpscaleStatusAny, requests.UserGenerationQueryUpscaleStatusNot, requests.UserGenerationQueryUpscaleStatusOnly)
 			}
 		}
+		// Start and end date
+		if key == "start_dt" {
+			startDt, err := utils.ParseIsoTime(value[0])
+			if err != nil {
+				return nil, fmt.Errorf("invalid start_dt: %s", value[0])
+			}
+			filters.StartDt = &startDt
+		}
+		if key == "end_dt" {
+			endDt, err := utils.ParseIsoTime(value[0])
+			if err != nil {
+				return nil, fmt.Errorf("invalid end_dt: %s", value[0])
+			}
+			filters.EndDt = &endDt
+		}
 	}
 	// Descending default
 	if filters.Order == "" {

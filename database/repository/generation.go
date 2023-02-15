@@ -1,7 +1,6 @@
 package repository
 
 import (
-	"database/sql/driver"
 	"time"
 
 	"entgo.io/ent/dialect/sql"
@@ -253,6 +252,27 @@ func (r *Repository) ApplyUserGenerationsFilters(query *ent.GenerationQuery, fil
 				resQuery = resQuery.Where(generation.GuidanceScaleGTE(filters.MinGuidanceScale))
 			}
 		}
+
+		// Upscaled
+		if filters.UpscaleStatus == requests.UserGenerationQueryUpscaleStatusNot {
+			resQuery = resQuery.Where(func(s *sql.Selector) {
+				s.Where(sql.IsNull("upscaled_image_path"))
+			})
+		} else if filters.UpscaleStatus == requests.UserGenerationQueryUpscaleStatusOnly {
+			resQuery = resQuery.Where(func(s *sql.Selector) {
+				s.Where(sql.NotNull("upscaled_image_path"))
+			})
+		}
+
+		// Start dt
+		if filters.StartDt != nil {
+			resQuery = resQuery.Where(generation.CreatedAtGTE(*filters.StartDt))
+		}
+
+		// End dt
+		if filters.EndDt != nil {
+			resQuery = resQuery.Where(generation.CreatedAtLTE(*filters.EndDt))
+		}
 	}
 	return resQuery
 }
@@ -270,25 +290,7 @@ func (r *Repository) GetUserGenerationCountWithFilters(userID uuid.UUID, filters
 	}
 
 	query = r.DB.Generation.Query().
-		Where(func(s *sql.Selector) {
-			t := sql.Table(generation.Table)
-			statusValues := make([]driver.Value, 0, len(status))
-			for _, v := range status {
-				statusValues = append(statusValues, v)
-			}
-			predicates := []*sql.Predicate{
-				sql.EQ(t.C(generation.FieldUserID), userID),
-				sql.InValues(t.C(generation.FieldStatus), statusValues...),
-			}
-			// Also filter if necessary
-			if filters != nil && filters.UpscaleStatus == requests.UserGenerationQueryUpscaleStatusNot {
-				predicates = append(predicates, sql.IsNull("upscaled_image_path"))
-			} else if filters != nil && filters.UpscaleStatus == requests.UserGenerationQueryUpscaleStatusOnly {
-				predicates = append(predicates, sql.NotNull("upscaled_image_path"))
-			}
-			// Apply
-			s.Where(sql.And(predicates...))
-		})
+		Where(generation.UserID(userID), generation.StatusIn(status...))
 
 	// Apply filters
 	query = r.ApplyUserGenerationsFilters(query, filters)
@@ -350,29 +352,13 @@ func (r *Repository) GetUserGenerations(userID uuid.UUID, per_page int, cursor *
 		status = append(status, generation.StatusSucceeded, generation.StatusFailed, generation.StatusQueued, generation.StatusStarted)
 	}
 
-	query = r.DB.Generation.Query().Select(selectFields...).Where(func(s *sql.Selector) {
-		t := sql.Table(generation.Table)
-		statusValues := make([]driver.Value, 0, len(status))
-		for _, v := range status {
-			statusValues = append(statusValues, v)
-		}
-		predicates := []*sql.Predicate{
-			sql.EQ(t.C(generation.FieldUserID), userID),
-			sql.InValues(t.C(generation.FieldStatus), statusValues...),
-		}
-		// Apply cursor if necessary
-		if cursor != nil {
-			predicates = append(predicates, sql.LT(t.C(generation.FieldCreatedAt), *cursor))
-		}
-		// Also filter if necessary
-		if filters != nil && filters.UpscaleStatus == requests.UserGenerationQueryUpscaleStatusNot {
-			predicates = append(predicates, sql.IsNull("upscaled_image_path"))
-		} else if filters != nil && filters.UpscaleStatus == requests.UserGenerationQueryUpscaleStatusOnly {
-			predicates = append(predicates, sql.NotNull("upscaled_image_path"))
-		}
-		// Apply
-		s.Where(sql.And(predicates...))
-	})
+	if cursor != nil {
+		query = r.DB.Generation.Query().Select(selectFields...).
+			Where(generation.UserID(userID), generation.CreatedAtLT(*cursor), generation.StatusIn(status...))
+	} else {
+		query = r.DB.Generation.Query().Select(selectFields...).
+			Where(generation.UserID(userID), generation.StatusIn(status...))
+	}
 
 	// Apply filters
 	query = r.ApplyUserGenerationsFilters(query, filters)
