@@ -160,12 +160,12 @@ func (r *Repository) GetUserGenerationsCount(userID uuid.UUID) (int, error) {
 }
 
 // Get user generations from the database using page options
-// Offset actually represents created_at, we paginate using this for performance reasons
-// If present, we will get results after the offset (anything before, represents previous pages)
+// Cursot actually represents created_at, we paginate using this for performance reasons
+// If present, we will get results after the cursor (anything before, represents previous pages)
 // TODO - this is currently two queries, 1 for outputs, 1 for everything else - figure out how to make it only 1
 // ! using ent .With... doesn't use joins, so we construct our own query to make it more efficient
 // TODO - Define indexes for this query
-func (r *Repository) GetUserGenerations(userID uuid.UUID, per_page int, offset *time.Time) (*UserGenerationQueryMeta, error) {
+func (r *Repository) GetUserGenerations(userID uuid.UUID, per_page int, cursor *time.Time) (*UserGenerationQueryMeta, error) {
 	// Base fields to select in our query
 	selectFields := []string{
 		generation.FieldID,
@@ -183,15 +183,15 @@ func (r *Repository) GetUserGenerations(userID uuid.UUID, per_page int, offset *
 	}
 	var query *ent.GenerationQuery
 	var gQueryResult []UserGenerationQueryResult
-	if offset != nil {
+	if cursor != nil {
 		query = r.DB.Generation.Query().Select(selectFields...).
-			Where(generation.UserID(userID), generation.CreatedAtLT(*offset))
+			Where(generation.UserID(userID), generation.CreatedAtLT(*cursor))
 	} else {
 		query = r.DB.Generation.Query().Select(selectFields...).
 			Where(generation.UserID(userID))
 	}
 	query = query.Order(ent.Desc(generation.FieldCreatedAt)).
-		Limit(per_page)
+		Limit(per_page + 1)
 
 	// Join other data
 	err := query.Modify(func(s *sql.Selector) {
@@ -219,8 +219,8 @@ func (r *Repository) GetUserGenerations(userID uuid.UUID, per_page int, offset *
 		meta := &UserGenerationQueryMeta{
 			Generations: []UserGenerationQueryResult{},
 		}
-		// Only give total if we have no offset
-		if offset == nil {
+		// Only give total if we have no cursor
+		if cursor == nil {
 			zero := 0
 			meta.Total = &zero
 		}
@@ -236,6 +236,13 @@ func (r *Repository) GetUserGenerations(userID uuid.UUID, per_page int, offset *
 	if err != nil {
 		klog.Errorf("Error getting generation outputs: %v", err)
 		return nil, err
+	}
+
+	meta := &UserGenerationQueryMeta{}
+	if len(gQueryResult) > per_page {
+		// Remove last item
+		gQueryResult = gQueryResult[:len(gQueryResult)-1]
+		meta.Next = &gQueryResult[len(gQueryResult)-1].CreatedAt
 	}
 
 	// Append outputs to response matching generation ID
@@ -266,11 +273,9 @@ func (r *Repository) GetUserGenerations(userID uuid.UUID, per_page int, offset *
 		}
 	}
 
-	meta := &UserGenerationQueryMeta{
-		Generations: gQueryResult,
-	}
+	meta.Generations = gQueryResult
 
-	if offset == nil {
+	if cursor == nil {
 		total, err := r.GetUserGenerationsCount(userID)
 		if err != nil {
 			klog.Errorf("Error getting user generation count: %v", err)
@@ -285,6 +290,7 @@ func (r *Repository) GetUserGenerations(userID uuid.UUID, per_page int, offset *
 type UserGenerationQueryMeta struct {
 	Total       *int                        `json:"total_count,omitempty"`
 	Generations []UserGenerationQueryResult `json:"generations"`
+	Next        *time.Time                  `json:"next,omitempty"`
 }
 
 type UserGenerationOutputResult struct {

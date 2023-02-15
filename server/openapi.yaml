@@ -52,7 +52,7 @@ paths:
           schema:
             type: string
           example: "50"
-        - name: offset
+        - name: cursor
           in: query
           schema:
             type: string
@@ -342,6 +342,9 @@ components:
         total:
           type: integer
           format: int32, only if offset not includes
+        next:
+          type: string
+          format: isoTimeString
         generations:
           type: array
           items:
@@ -532,11 +535,11 @@ components:
           format: int32
         created_at:
           type: string
-          format: isoTimeStr
+          format: isoTimeString
         started_at:
           type: string
-          format: isoTimeStr
+          format: isoTimeString
         completed_at:
           type: string
-          format: isoTimeStr
+          format: isoTimeString
       description: Status updates delivered for live activity page

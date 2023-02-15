@@ -19,7 +19,7 @@ const MAX_PER_PAGE = 100
 // HTTP Get - generations for user
 // Takes query paramers for pagination
 // per_page: number of generations to return
-// offset: offset for pagination, it is an iso time string in UTC
+// cursor: cursor for pagination, it is an iso time string in UTC
 func (c *RestAPI) HandleQueryGenerations(w http.ResponseWriter, r *http.Request) {
 	// See if authenticated
 	userIDStr, authenticated := r.Context().Value("user_id").(string)
@@ -48,18 +48,18 @@ func (c *RestAPI) HandleQueryGenerations(w http.ResponseWriter, r *http.Request)
 		}
 	}
 
-	var offset *time.Time
-	if offsetStr := r.URL.Query().Get("offset"); offsetStr != "" {
-		offsetTime, err := utils.ParseIsoTime(offsetStr)
+	var cursor *time.Time
+	if cursorStr := r.URL.Query().Get("cursor"); cursorStr != "" {
+		cursorTime, err := utils.ParseIsoTime(cursorStr)
 		if err != nil {
-			responses.ErrBadRequest(w, r, "offset must be a valid iso time string")
+			responses.ErrBadRequest(w, r, "cursor must be a valid iso time string")
 			return
 		}
-		offset = &offsetTime
+		cursor = &cursorTime
 	}
 
 	// Get generaions
-	generations, err := c.Repo.GetUserGenerations(userId, perPage, offset)
+	generations, err := c.Repo.GetUserGenerations(userId, perPage, cursor)
 	if err != nil {
 		klog.Errorf("Error getting generations for user: %s", err)
 		responses.ErrInternalServerError(w, r, "Error getting generations")

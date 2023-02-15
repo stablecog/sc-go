@@ -35,6 +35,7 @@ func TestHandleQueryGenerationsDontExist(t *testing.T) {
 
 	assert.Len(t, genResponse.Generations, 0)
 	assert.Equal(t, 0, *genResponse.Total)
+	assert.Nil(t, genResponse.Next)
 }
 
 func TestHandleQueryGenerationsDefaultParams(t *testing.T) {
@@ -55,6 +56,7 @@ func TestHandleQueryGenerationsDefaultParams(t *testing.T) {
 
 	assert.Equal(t, 4, *genResponse.Total)
 	assert.Len(t, genResponse.Generations, 4)
+	assert.Nil(t, genResponse.Next)
 
 	// They should be in order of how we mocked them (descending)
 	assert.Equal(t, "This is a prompt 4", genResponse.Generations[0].Prompt)
@@ -114,7 +116,7 @@ func TestHandleQueryGenerationsDefaultParams(t *testing.T) {
 	assert.Equal(t, 1234, genResponse.Generations[3].Seed)
 }
 
-func TestHandleQueryGenerationsOffset(t *testing.T) {
+func TestHandleQueryGenerationsCursor(t *testing.T) {
 	w := httptest.NewRecorder()
 	// Build request
 	req := httptest.NewRequest("GET", "/gens", nil)
@@ -131,6 +133,7 @@ func TestHandleQueryGenerationsOffset(t *testing.T) {
 	json.Unmarshal(respBody, &genResponse)
 
 	assert.Len(t, genResponse.Generations, 4)
+	assert.Nil(t, genResponse.Next)
 
 	// Get tiemstamp of first item so we can exclude it in "second page"
 	assert.Equal(t, "This is a prompt 4", genResponse.Generations[0].Prompt)
@@ -147,9 +150,9 @@ func TestHandleQueryGenerationsOffset(t *testing.T) {
 	assert.Len(t, genResponse.Generations[0].Outputs, 0)
 	assert.Equal(t, 1234, genResponse.Generations[0].Seed)
 
-	// With offset off most recent item, we should get 3 items
+	// With cursor off most recent item, we should get 3 items
 	w = httptest.NewRecorder()
-	req = httptest.NewRequest("GET", fmt.Sprintf("/gens?offset=%s", utils.TimeToIsoString(genResponse.Generations[0].CreatedAt)), nil)
+	req = httptest.NewRequest("GET", fmt.Sprintf("/gens?cursor=%s", utils.TimeToIsoString(genResponse.Generations[0].CreatedAt)), nil)
 	req.Header.Set("Content-Type", "application/json")
 
 	ctx = context.WithValue(req.Context(), "user_id", repository.MOCK_ADMIN_UUID)
@@ -182,6 +185,7 @@ func TestHandleQueryGenerationsPerPage(t *testing.T) {
 	json.Unmarshal(respBody, &genResponse)
 
 	assert.Len(t, genResponse.Generations, 1)
+	assert.Equal(t, *genResponse.Next, genResponse.Generations[0].CreatedAt)
 
 	assert.Equal(t, "This is a prompt 4", genResponse.Generations[0].Prompt)
 	assert.Equal(t, string(generation.StatusStarted), genResponse.Generations[0].Status)
@@ -268,10 +272,10 @@ func TestHandleQueryGenerationsBadPerPage(t *testing.T) {
 	assert.Equal(t, "per_page must be between 1 and 100", errorResp["error"])
 }
 
-func TestHandleQueryGenerationsBadOffset(t *testing.T) {
+func TestHandleQueryGenerationsBadCursor(t *testing.T) {
 	w := httptest.NewRecorder()
 	// Build request
-	req := httptest.NewRequest("GET", "/gens?offset=HelloWorld", nil)
+	req := httptest.NewRequest("GET", "/gens?cursor=HelloWorld", nil)
 	req.Header.Set("Content-Type", "application/json")
 
 	ctx := context.WithValue(req.Context(), "user_id", repository.MOCK_NORMAL_UUID)
@@ -284,7 +288,7 @@ func TestHandleQueryGenerationsBadOffset(t *testing.T) {
 	respBody, _ := io.ReadAll(resp.Body)
 	json.Unmarshal(respBody, &errorResp)
 
-	assert.Equal(t, "offset must be a valid iso time string", errorResp["error"])
+	assert.Equal(t, "cursor must be a valid iso time string", errorResp["error"])
 }
 
 // Credits
