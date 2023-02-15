@@ -303,7 +303,6 @@ type UserGenCount struct {
 // Cursor actually represents created_at, we paginate using this for performance reasons
 // If present, we will get results after the cursor (anything before, represents previous pages)
 // ! using ent .With... doesn't use joins, so we construct our own query to make it more efficient
-// TODO - Define indexes for this query
 func (r *Repository) GetUserGenerations(userID uuid.UUID, per_page int, cursor *time.Time, filters *requests.UserGenerationFilters) (*UserGenerationQueryMeta, error) {
 	// Base fields to select in our query
 	selectFields := []string{

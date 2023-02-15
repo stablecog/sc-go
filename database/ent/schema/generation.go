@@ -104,7 +104,8 @@ func (Generation) Annotations() []schema.Annotation {
 // Indexes of the Generation.
 func (Generation) Indexes() []ent.Index {
 	return []ent.Index{
-		index.Fields("user_id"),
+		index.Fields("user_id", "created_at"),
+		index.Fields("user_id", "status", "created_at"),
 		index.Fields("created_at"),
 	}
 }

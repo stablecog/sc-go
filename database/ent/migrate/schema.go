@@ -149,9 +149,14 @@ var (
 		},
 		Indexes: []*schema.Index{
 			{
-				Name:    "generation_user_id",
+				Name:    "generation_user_id_created_at",
 				Unique:  false,
-				Columns: []*schema.Column{GenerationsColumns[22]},
+				Columns: []*schema.Column{GenerationsColumns[22], GenerationsColumns[15]},
+			},
+			{
+				Name:    "generation_user_id_status_created_at",
+				Unique:  false,
+				Columns: []*schema.Column{GenerationsColumns[22], GenerationsColumns[8], GenerationsColumns[15]},
 			},
 			{
 				Name:    "generation_created_at",
