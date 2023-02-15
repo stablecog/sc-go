@@ -533,6 +533,10 @@ components:
             completed_at:
               type: string
               format: isoTimeString,optional
+            outputs:
+              type: array
+              items:
+                $ref: "#/components/schemas/GenerationOutput"
       description: Response after querying generations.
     GenerationOutput:
       type: object

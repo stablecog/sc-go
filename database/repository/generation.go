@@ -11,6 +11,7 @@ import (
 	"github.com/stablecog/sc-go/database/ent/negativeprompt"
 	"github.com/stablecog/sc-go/database/ent/prompt"
 	"github.com/stablecog/sc-go/server/requests"
+	"github.com/stablecog/sc-go/server/responses"
 	"github.com/stablecog/sc-go/utils"
 	"k8s.io/klog/v2"
 )
@@ -418,16 +419,20 @@ func (r *Repository) GetUserGenerations(userID uuid.UUID, per_page int, cursor *
 	}
 
 	// Format to UserGenerationQueryResultFormatted
+	generationOutputMap := make(map[uuid.UUID][]responses.GenerationOutputResponse)
 	for _, g := range gQueryResult {
 		if g.OutputID == nil {
 			klog.Warningf("Output ID is nil for generation, cannot include in result %v", g.ID)
 			continue
 		}
-		output := UserGenerationQueryResultFormatted{
+		gOutput := responses.GenerationOutputResponse{
 			ID:               *g.OutputID,
 			ImageUrl:         g.ImageUrl,
 			UpscaledImageUrl: g.UpscaledImageUrl,
 			GalleryStatus:    g.GalleryStatus,
+		}
+		output := UserGenerationQueryResultFormatted{
+			GenerationOutputResponse: gOutput,
 			Generation: UserGenerationQueryData{
 				ID:             g.ID,
 				Height:         g.Height,
@@ -445,7 +450,12 @@ func (r *Repository) GetUserGenerations(userID uuid.UUID, per_page int, cursor *
 				Prompt:         g.Prompt,
 			},
 		}
+		generationOutputMap[g.ID] = append(generationOutputMap[g.ID], gOutput)
 		meta.Outputs = append(meta.Outputs, output)
+	}
+	// Now loop through and add outputs to each generation
+	for i, g := range meta.Outputs {
+		meta.Outputs[i].Generation.Outputs = generationOutputMap[g.Generation.ID]
 	}
 
 	if cursor == nil {
@@ -467,20 +477,21 @@ type UserGenerationQueryMeta struct {
 }
 
 type UserGenerationQueryData struct {
-	ID             uuid.UUID  `json:"id" sql:"id"`
-	Height         int32      `json:"height" sql:"height"`
-	Width          int32      `json:"width" sql:"width"`
-	InferenceSteps int32      `json:"inference_steps" sql:"inference_steps"`
-	Seed           int        `json:"seed" sql:"seed"`
-	Status         string     `json:"status" sql:"status"`
-	GuidanceScale  float32    `json:"guidance_scale" sql:"guidance_scale"`
-	SchedulerID    uuid.UUID  `json:"scheduler_id" sql:"scheduler_id"`
-	ModelID        uuid.UUID  `json:"model_id" sql:"model_id"`
-	CreatedAt      time.Time  `json:"created_at" sql:"created_at"`
-	StartedAt      *time.Time `json:"started_at,omitempty" sql:"started_at"`
-	CompletedAt    *time.Time `json:"completed_at,omitempty" sql:"completed_at"`
-	NegativePrompt string     `json:"negative_prompt" sql:"negative_prompt_text"`
-	Prompt         string     `json:"prompt" sql:"prompt_text"`
+	ID             uuid.UUID                            `json:"id" sql:"id"`
+	Height         int32                                `json:"height" sql:"height"`
+	Width          int32                                `json:"width" sql:"width"`
+	InferenceSteps int32                                `json:"inference_steps" sql:"inference_steps"`
+	Seed           int                                  `json:"seed" sql:"seed"`
+	Status         string                               `json:"status" sql:"status"`
+	GuidanceScale  float32                              `json:"guidance_scale" sql:"guidance_scale"`
+	SchedulerID    uuid.UUID                            `json:"scheduler_id" sql:"scheduler_id"`
+	ModelID        uuid.UUID                            `json:"model_id" sql:"model_id"`
+	CreatedAt      time.Time                            `json:"created_at" sql:"created_at"`
+	StartedAt      *time.Time                           `json:"started_at,omitempty" sql:"started_at"`
+	CompletedAt    *time.Time                           `json:"completed_at,omitempty" sql:"completed_at"`
+	NegativePrompt string                               `json:"negative_prompt" sql:"negative_prompt_text"`
+	Prompt         string                               `json:"prompt" sql:"prompt_text"`
+	Outputs        []responses.GenerationOutputResponse `json:"outputs"`
 }
 
 type UserGenerationQueryResult struct {
@@ -492,9 +503,6 @@ type UserGenerationQueryResult struct {
 }
 
 type UserGenerationQueryResultFormatted struct {
-	ID               uuid.UUID                      `json:"id"`
-	ImageUrl         string                         `json:"image_url"`
-	UpscaledImageUrl string                         `json:"upscaled_image_url"`
-	GalleryStatus    generationoutput.GalleryStatus `json:"gallery_status"`
-	Generation       UserGenerationQueryData        `json:"generation"`
+	responses.GenerationOutputResponse
+	Generation UserGenerationQueryData `json:"generation"`
 }

@@ -75,6 +75,10 @@ func TestHandleQueryGenerationsDefaultParams(t *testing.T) {
 	assert.Equal(t, int32(512), genResponse.Outputs[0].Generation.Height)
 	assert.Equal(t, "output_6", genResponse.Outputs[0].ImageUrl)
 	assert.Equal(t, 1234, genResponse.Outputs[0].Generation.Seed)
+	assert.Len(t, genResponse.Outputs[0].Generation.Outputs, 3)
+	assert.Equal(t, "output_6", genResponse.Outputs[0].Generation.Outputs[0].ImageUrl)
+	assert.Equal(t, "output_5", genResponse.Outputs[0].Generation.Outputs[1].ImageUrl)
+	assert.Equal(t, "output_4", genResponse.Outputs[0].Generation.Outputs[2].ImageUrl)
 
 	assert.Equal(t, "This is a prompt 2", genResponse.Outputs[1].Generation.Prompt)
 	assert.Equal(t, string(generation.StatusSucceeded), genResponse.Outputs[1].Generation.Status)
