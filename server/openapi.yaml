@@ -132,12 +132,6 @@ paths:
               type: string
               format: uuidv4
           example: e07ad712-41ad-4ff7-8727-faf0d91e4c4e,c09aaf4d-2d78-4281-89aa-88d5d0a5d70b
-        - name: succeeded_only
-          in: query
-          description: Only include successful generations
-          schema:
-            type: boolean
-            format: "optional, default: false"
         - name: order
           in: query
           schema:
@@ -150,6 +144,18 @@ paths:
             type: string
             format: "optional, any/only/not, default: any"
           example: not (return not upscaled only)
+        - name: start_dt
+          in: query
+          schema:
+            type: string
+            format: "optional, isoTimeString"
+          example: 2023-02-15T22:41:39.841Z
+        - name: end_dt
+          in: query
+          schema:
+            type: string
+            format: "optional, isoTimeString"
+          example: 2023-02-15T22:41:39.841Z
       responses:
         "200":
           description: JSON object with generations and outputs
@@ -468,7 +474,7 @@ components:
         next:
           type: string
           format: isoTimeString
-        generations:
+        outputs:
           type: array
           items:
             $ref: "#/components/schemas/GenerationQueryResponse"
@@ -478,43 +484,6 @@ components:
         id:
           type: string
           format: uuidv4
-        width:
-          type: integer
-          format: int32
-        height:
-          type: integer
-          format: int32
-        inference_steps:
-          type: integer
-          format: int32
-        guidance_scale:
-          type: number
-          format: float32
-        model_id:
-          type: string
-          format: uuidv4
-        scheduler_id:
-          type: string
-          format: uuidv4
-        prompt:
-          type: string
-        negative_prompt:
-          type: string
-          format: optional
-        seed:
-          type: integer
-        created_at:
-          type: string
-          format: isoTimeString
-        started_at:
-          type: string
-          format: isoTimeString,optional
-        completed_at:
-          type: string
-          format: isoTimeString,optional
-        output_id:
-          type: string
-          format: uuidv4,optional
         image_url:
           type: string
           format: optional
@@ -524,12 +493,46 @@ components:
         gallery_status:
           type: string
           format: not_submitted/submitted/accepted/rejected, optional
-        start_dt:
-          type: string
-          format: isoTimeString, optional
-        end_dt:
-          type: string
-          format: isoTimeString, optional
+        generation:
+          type: object
+          properties:
+            id:
+              type: string
+              format: uuidv4
+            width:
+              type: integer
+              format: int32
+            height:
+              type: integer
+              format: int32
+            inference_steps:
+              type: integer
+              format: int32
+            guidance_scale:
+              type: number
+              format: float32
+            model_id:
+              type: string
+              format: uuidv4
+            scheduler_id:
+              type: string
+              format: uuidv4
+            prompt:
+              type: string
+            negative_prompt:
+              type: string
+              format: optional
+            seed:
+              type: integer
+            created_at:
+              type: string
+              format: isoTimeString
+            started_at:
+              type: string
+              format: isoTimeString,optional
+            completed_at:
+              type: string
+              format: isoTimeString,optional
       description: Response after querying generations.
     GenerationOutput:
       type: object

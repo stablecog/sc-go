@@ -81,7 +81,6 @@ type UserGenerationFilters struct {
 	MaxGuidanceScale  float32                          `json:"max_guidance_scale"`
 	MinGuidanceScale  float32                          `json:"min_guidance_scale"`
 	GuidanceScales    []float32                        `json:"guidance_scales"`
-	SucceededOnly     bool                             `json:"succeeded_only"`
 	UpscaleStatus     UserGenerationQueryUpscaleStatus `json:"upscale_status"`
 	Order             UserGenerationQueryOrder         `json:"order"`
 	StartDt           *time.Time                       `json:"start_dt"`

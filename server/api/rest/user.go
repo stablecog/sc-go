@@ -344,14 +344,7 @@ func ParseQueryGenerationFilters(rawQuery url.Values) (*requests.UserGenerationF
 				filters.GuidanceScales = []float32{float32(parsed)}
 			}
 		}
-		// Succeeded only
-		if key == "succeeded_only" {
-			succeededOnly, err := strconv.ParseBool(value[0])
-			if err != nil {
-				return nil, fmt.Errorf("invalid succeeded only: %s", value[0])
-			}
-			filters.SucceededOnly = succeededOnly
-		}
+
 		// Order
 		if key == "order" {
 			if strings.ToLower(value[0]) == string(requests.UserGenerationQueryOrderAscending) {
