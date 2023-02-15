@@ -104,65 +104,207 @@ func (r *Repository) SetGenerationSucceeded(generationID string, outputs []strin
 		klog.Errorf("Error parsing generation id in SetGenerationSucceeded %s: %v", generationID, err)
 		return nil, err
 	}
-	// Start a transaction
-	tx, err := r.DB.Tx(r.Ctx)
-	if err != nil {
+
+	var outputRet []*ent.GenerationOutput
+
+	// Wrap in transaction
+	if err := r.WithTx(func(tx *ent.Tx) error {
+		if err != nil {
+			klog.Errorf("Error starting transaction in SetGenerationSucceeded %s: %v", generationID, err)
+			return err
+		}
+
+		// Retrieve the generation
+		g, err := r.GetGeneration(uid)
+		if err != nil {
+			tx.Rollback()
+			klog.Errorf("Error retrieving generation %s: %v", generationID, err)
+			return err
+		}
+
+		// Update the generation
+		_, err = tx.Generation.UpdateOneID(uid).SetStatus(generation.StatusSucceeded).SetCompletedAt(time.Now()).SetNsfwCount(nsfwCount).Save(r.Ctx)
+		if err != nil {
+			tx.Rollback()
+			klog.Errorf("Error setting generation succeeded %s: %v", generationID, err)
+			return err
+		}
+
+		// If this generation was created with "submit_to_gallery", then submit all outputs to gallery
+		var galleryStatus generationoutput.GalleryStatus
+		if g.SubmitToGallery {
+			galleryStatus = generationoutput.GalleryStatusSubmitted
+		} else {
+			galleryStatus = generationoutput.GalleryStatusNotSubmitted
+		}
+
+		// Insert all generation outputs
+		for _, output := range outputs {
+			gOutput, err := tx.GenerationOutput.Create().SetGenerationID(uid).SetImagePath(output).SetGalleryStatus(galleryStatus).Save(r.Ctx)
+			if err != nil {
+				tx.Rollback()
+				klog.Errorf("Error inserting generation output %s: %v", generationID, err)
+				return err
+			}
+			outputRet = append(outputRet, gOutput)
+		}
+
+		return nil
+	}); err != nil {
 		klog.Errorf("Error starting transaction in SetGenerationSucceeded %s: %v", generationID, err)
 		return nil, err
 	}
 
-	// Retrieve the generation
-	g, err := r.GetGeneration(uid)
-	if err != nil {
-		tx.Rollback()
-		klog.Errorf("Error retrieving generation %s: %v", generationID, err)
-		return nil, err
-	}
-
-	// Update the generation
-	_, err = tx.Generation.UpdateOneID(uid).SetStatus(generation.StatusSucceeded).SetCompletedAt(time.Now()).SetNsfwCount(nsfwCount).Save(r.Ctx)
-	if err != nil {
-		tx.Rollback()
-		klog.Errorf("Error setting generation succeeded %s: %v", generationID, err)
-		return nil, err
-	}
-
-	// If this generation was created with "submit_to_gallery", then submit all outputs to gallery
-	var galleryStatus generationoutput.GalleryStatus
-	if g.SubmitToGallery {
-		galleryStatus = generationoutput.GalleryStatusSubmitted
-	} else {
-		galleryStatus = generationoutput.GalleryStatusNotSubmitted
-	}
-
-	// Insert all generation outputs
-	var outputRet []*ent.GenerationOutput
-	for _, output := range outputs {
-		gOutput, err := tx.GenerationOutput.Create().SetGenerationID(uid).SetImagePath(output).SetGalleryStatus(galleryStatus).Save(r.Ctx)
-		if err != nil {
-			tx.Rollback()
-			klog.Errorf("Error inserting generation output %s: %v", generationID, err)
-			return nil, err
-		}
-		outputRet = append(outputRet, gOutput)
-	}
-	// Commit the transaction
-	err = tx.Commit()
-	if err != nil {
-		klog.Errorf("Error committing transaction in SetGenerationSucceeded %s: %v", generationID, err)
-		return nil, err
-	}
 	return outputRet, nil
 }
 
-func (r *Repository) GetUserGenerationsCount(userID uuid.UUID) (int, error) {
-	return r.DB.Generation.Query().Where(generation.UserIDEQ(userID)).Count(r.Ctx)
+func (r *Repository) ApplyUserGenerationsFilters(query *ent.GenerationQuery, filters *requests.UserGenerationFilters) *ent.GenerationQuery {
+	resQuery := query
+	if filters != nil {
+		// Apply filters
+		if len(filters.ModelIDs) > 0 {
+			resQuery = resQuery.Where(generation.ModelIDIn(filters.ModelIDs...))
+		}
+		if len(filters.SchedulerIDs) > 0 {
+			resQuery = resQuery.Where(generation.SchedulerIDIn(filters.SchedulerIDs...))
+		}
+		// Apply OR if both are present
+		// Confusing, but example of what we want to do:
+		// If min_width=100, max_width=200, widths=[300,400]
+		// We want to query like; WHERE (width >= 100 AND width <= 200) OR width IN (300,400)
+		if (filters.MinWidth != 0 || filters.MaxWidth != 0) && len(filters.Widths) > 0 {
+			if filters.MinWidth != 0 && filters.MaxWidth != 0 {
+				resQuery = resQuery.Where(generation.Or(generation.And(generation.WidthGTE(filters.MinWidth), generation.WidthLTE(filters.MaxWidth)), generation.WidthIn(filters.Widths...)))
+			} else if filters.MinWidth != 0 {
+				resQuery = resQuery.Where(generation.Or(generation.WidthGTE(filters.MinWidth), generation.WidthIn(filters.Widths...)))
+			} else {
+				resQuery = resQuery.Where(generation.Or(generation.WidthLTE(filters.MaxWidth), generation.WidthIn(filters.Widths...)))
+			}
+		} else {
+			if filters.MinWidth != 0 {
+				resQuery = resQuery.Where(generation.WidthGTE(filters.MinWidth))
+			}
+			if filters.MaxWidth != 0 {
+				resQuery = resQuery.Where(generation.WidthLTE(filters.MaxWidth))
+			}
+			if len(filters.Widths) > 0 {
+				resQuery = resQuery.Where(generation.WidthIn(filters.Widths...))
+			}
+		}
+
+		// Height
+		if (filters.MinHeight != 0 || filters.MaxHeight != 0) && len(filters.Heights) > 0 {
+			if filters.MinHeight != 0 && filters.MaxHeight != 0 {
+				resQuery = resQuery.Where(generation.Or(generation.And(generation.HeightGTE(filters.MinHeight), generation.HeightLTE(filters.MaxHeight)), generation.HeightIn(filters.Heights...)))
+			} else if filters.MinHeight != 0 {
+				resQuery = resQuery.Where(generation.Or(generation.HeightGTE(filters.MinHeight), generation.HeightIn(filters.Heights...)))
+			} else {
+				resQuery = resQuery.Where(generation.Or(generation.HeightLTE(filters.MaxHeight), generation.HeightIn(filters.Heights...)))
+			}
+		} else {
+			if len(filters.Heights) > 0 {
+				resQuery = resQuery.Where(generation.HeightIn(filters.Heights...))
+			}
+			if filters.MaxHeight != 0 {
+				resQuery = resQuery.Where(generation.HeightLTE(filters.MaxHeight))
+			}
+			if filters.MinHeight != 0 {
+				resQuery = resQuery.Where(generation.HeightGTE(filters.MinHeight))
+			}
+		}
+
+		// Inference steps
+		if (filters.MinInferenceSteps != 0 || filters.MaxInferenceSteps != 0) && len(filters.InferenceSteps) > 0 {
+			if filters.MinInferenceSteps != 0 && filters.MaxInferenceSteps != 0 {
+				resQuery = resQuery.Where(generation.Or(generation.And(generation.InferenceStepsGTE(filters.MinInferenceSteps), generation.InferenceStepsLTE(filters.MaxInferenceSteps)), generation.InferenceStepsIn(filters.InferenceSteps...)))
+			} else if filters.MinInferenceSteps != 0 {
+				resQuery = resQuery.Where(generation.Or(generation.InferenceStepsGTE(filters.MinInferenceSteps), generation.InferenceStepsIn(filters.InferenceSteps...)))
+			} else {
+				resQuery = resQuery.Where(generation.Or(generation.InferenceStepsLTE(filters.MaxInferenceSteps), generation.InferenceStepsIn(filters.InferenceSteps...)))
+			}
+		} else {
+			if len(filters.InferenceSteps) > 0 {
+				resQuery = resQuery.Where(generation.InferenceStepsIn(filters.InferenceSteps...))
+			}
+			if filters.MaxInferenceSteps != 0 {
+				resQuery = resQuery.Where(generation.InferenceStepsLTE(filters.MaxInferenceSteps))
+			}
+			if filters.MinInferenceSteps != 0 {
+				resQuery = resQuery.Where(generation.InferenceStepsGTE(filters.MinInferenceSteps))
+			}
+		}
+
+		// Guidance Scales
+		if (filters.MinGuidanceScale != 0 || filters.MaxGuidanceScale != 0) && len(filters.GuidanceScales) > 0 {
+			if filters.MinGuidanceScale != 0 && filters.MaxGuidanceScale != 0 {
+				resQuery = resQuery.Where(generation.Or(generation.And(generation.GuidanceScaleGTE(filters.MinGuidanceScale), generation.GuidanceScaleLTE(filters.MaxGuidanceScale)), generation.GuidanceScaleIn(filters.GuidanceScales...)))
+			} else if filters.MinGuidanceScale != 0 {
+				resQuery = resQuery.Where(generation.Or(generation.GuidanceScaleGTE(filters.MinGuidanceScale), generation.GuidanceScaleIn(filters.GuidanceScales...)))
+			} else {
+				resQuery = resQuery.Where(generation.Or(generation.GuidanceScaleLTE(filters.MaxGuidanceScale), generation.GuidanceScaleIn(filters.GuidanceScales...)))
+			}
+		} else {
+			if len(filters.GuidanceScales) > 0 {
+				resQuery = resQuery.Where(generation.GuidanceScaleIn(filters.GuidanceScales...))
+			}
+			if filters.MaxGuidanceScale != 0 {
+				resQuery = resQuery.Where(generation.GuidanceScaleLTE(filters.MaxGuidanceScale))
+			}
+			if filters.MinGuidanceScale != 0 {
+				resQuery = resQuery.Where(generation.GuidanceScaleGTE(filters.MinGuidanceScale))
+			}
+		}
+	}
+	return resQuery
+}
+
+// Gets the count of generations with outputs user has with filters
+func (r *Repository) GetUserGenerationCountWithFilters(userID uuid.UUID, filters *requests.UserGenerationFilters) (int, error) {
+	var query *ent.GenerationQuery
+
+	// Parse status from query
+	status := []generation.Status{}
+	if filters != nil && filters.SucceededOnly {
+		status = append(status, generation.StatusSucceeded)
+	} else {
+		status = append(status, generation.StatusSucceeded, generation.StatusFailed, generation.StatusQueued, generation.StatusStarted)
+	}
+
+	query = r.DB.Generation.Query().
+		Where(generation.UserID(userID), generation.StatusIn(status...))
+
+	// Apply filters
+	query = r.ApplyUserGenerationsFilters(query, filters)
+
+	// Join other data
+	var res []UserGenCount
+	err := query.Modify(func(s *sql.Selector) {
+		npt := sql.Table(negativeprompt.Table)
+		pt := sql.Table(prompt.Table)
+		got := sql.Table(generationoutput.Table)
+		s.LeftJoin(npt).On(
+			s.C(generation.FieldNegativePromptID), npt.C(negativeprompt.FieldID),
+		).LeftJoin(pt).On(
+			s.C(generation.FieldPromptID), pt.C(prompt.FieldID),
+		).LeftJoin(got).On(
+			s.C(generation.FieldID), got.C(generationoutput.FieldGenerationID),
+		).Select(sql.As(sql.Count("*"), "total"))
+	}).Scan(r.Ctx, &res)
+	if err != nil {
+		return 0, err
+	} else if len(res) == 0 {
+		return 0, nil
+	}
+	return res[0].Total, nil
+}
+
+type UserGenCount struct {
+	Total int `json:"total" sql:"total"`
 }
 
 // Get user generations from the database using page options
-// Cursot actually represents created_at, we paginate using this for performance reasons
+// Cursor actually represents created_at, we paginate using this for performance reasons
 // If present, we will get results after the cursor (anything before, represents previous pages)
-// TODO - this is currently two queries, 1 for outputs, 1 for everything else - figure out how to make it only 1
 // ! using ent .With... doesn't use joins, so we construct our own query to make it more efficient
 // TODO - Define indexes for this query
 func (r *Repository) GetUserGenerations(userID uuid.UUID, per_page int, cursor *time.Time, filters *requests.UserGenerationFilters) (*UserGenerationQueryMeta, error) {
@@ -200,111 +342,15 @@ func (r *Repository) GetUserGenerations(userID uuid.UUID, per_page int, cursor *
 			Where(generation.UserID(userID), generation.StatusIn(status...))
 	}
 
-	if filters != nil {
-		// Apply filters
-		if len(filters.ModelIDs) > 0 {
-			query = query.Where(generation.ModelIDIn(filters.ModelIDs...))
-		}
-		if len(filters.SchedulerIDs) > 0 {
-			query = query.Where(generation.SchedulerIDIn(filters.SchedulerIDs...))
-		}
-		// Apply OR if both are present
-		// Confusing, but example of what we want to do:
-		// If min_width=100, max_width=200, widths=[300,400]
-		// We want to query like; WHERE (width >= 100 AND width <= 200) OR width IN (300,400)
-		if (filters.MinWidth != 0 || filters.MaxWidth != 0) && len(filters.Widths) > 0 {
-			if filters.MinWidth != 0 && filters.MaxWidth != 0 {
-				query = query.Where(generation.Or(generation.And(generation.WidthGTE(filters.MinWidth), generation.WidthLTE(filters.MaxWidth)), generation.WidthIn(filters.Widths...)))
-			} else if filters.MinWidth != 0 {
-				query = query.Where(generation.Or(generation.WidthGTE(filters.MinWidth), generation.WidthIn(filters.Widths...)))
-			} else {
-				query = query.Where(generation.Or(generation.WidthLTE(filters.MaxWidth), generation.WidthIn(filters.Widths...)))
-			}
-		} else {
-			if filters.MinWidth != 0 {
-				query = query.Where(generation.WidthGTE(filters.MinWidth))
-			}
-			if filters.MaxWidth != 0 {
-				query = query.Where(generation.WidthLTE(filters.MaxWidth))
-			}
-			if len(filters.Widths) > 0 {
-				query = query.Where(generation.WidthIn(filters.Widths...))
-			}
-		}
+	// Apply filters
+	query = r.ApplyUserGenerationsFilters(query, filters)
 
-		// Height
-		if (filters.MinHeight != 0 || filters.MaxHeight != 0) && len(filters.Heights) > 0 {
-			if filters.MinHeight != 0 && filters.MaxHeight != 0 {
-				query = query.Where(generation.Or(generation.And(generation.HeightGTE(filters.MinHeight), generation.HeightLTE(filters.MaxHeight)), generation.HeightIn(filters.Heights...)))
-			} else if filters.MinHeight != 0 {
-				query = query.Where(generation.Or(generation.HeightGTE(filters.MinHeight), generation.HeightIn(filters.Heights...)))
-			} else {
-				query = query.Where(generation.Or(generation.HeightLTE(filters.MaxHeight), generation.HeightIn(filters.Heights...)))
-			}
-		} else {
-			if len(filters.Heights) > 0 {
-				query = query.Where(generation.HeightIn(filters.Heights...))
-			}
-			if filters.MaxHeight != 0 {
-				query = query.Where(generation.HeightLTE(filters.MaxHeight))
-			}
-			if filters.MinHeight != 0 {
-				query = query.Where(generation.HeightGTE(filters.MinHeight))
-			}
-		}
-
-		// Inference steps
-		if (filters.MinInferenceSteps != 0 || filters.MaxInferenceSteps != 0) && len(filters.InferenceSteps) > 0 {
-			if filters.MinInferenceSteps != 0 && filters.MaxInferenceSteps != 0 {
-				query = query.Where(generation.Or(generation.And(generation.InferenceStepsGTE(filters.MinInferenceSteps), generation.InferenceStepsLTE(filters.MaxInferenceSteps)), generation.InferenceStepsIn(filters.InferenceSteps...)))
-			} else if filters.MinInferenceSteps != 0 {
-				query = query.Where(generation.Or(generation.InferenceStepsGTE(filters.MinInferenceSteps), generation.InferenceStepsIn(filters.InferenceSteps...)))
-			} else {
-				query = query.Where(generation.Or(generation.InferenceStepsLTE(filters.MaxInferenceSteps), generation.InferenceStepsIn(filters.InferenceSteps...)))
-			}
-		} else {
-			if len(filters.InferenceSteps) > 0 {
-				query = query.Where(generation.InferenceStepsIn(filters.InferenceSteps...))
-			}
-			if filters.MaxInferenceSteps != 0 {
-				query = query.Where(generation.InferenceStepsLTE(filters.MaxInferenceSteps))
-			}
-			if filters.MinInferenceSteps != 0 {
-				query = query.Where(generation.InferenceStepsGTE(filters.MinInferenceSteps))
-			}
-		}
-
-		// Guidance Scales
-		if (filters.MinGuidanceScale != 0 || filters.MaxGuidanceScale != 0) && len(filters.GuidanceScales) > 0 {
-			if filters.MinGuidanceScale != 0 && filters.MaxGuidanceScale != 0 {
-				query = query.Where(generation.Or(generation.And(generation.GuidanceScaleGTE(filters.MinGuidanceScale), generation.GuidanceScaleLTE(filters.MaxGuidanceScale)), generation.GuidanceScaleIn(filters.GuidanceScales...)))
-			} else if filters.MinGuidanceScale != 0 {
-				query = query.Where(generation.Or(generation.GuidanceScaleGTE(filters.MinGuidanceScale), generation.GuidanceScaleIn(filters.GuidanceScales...)))
-			} else {
-				query = query.Where(generation.Or(generation.GuidanceScaleLTE(filters.MaxGuidanceScale), generation.GuidanceScaleIn(filters.GuidanceScales...)))
-			}
-		} else {
-			if len(filters.GuidanceScales) > 0 {
-				query = query.Where(generation.GuidanceScaleIn(filters.GuidanceScales...))
-			}
-			if filters.MaxGuidanceScale != 0 {
-				query = query.Where(generation.GuidanceScaleLTE(filters.MaxGuidanceScale))
-			}
-			if filters.MinGuidanceScale != 0 {
-				query = query.Where(generation.GuidanceScaleGTE(filters.MinGuidanceScale))
-			}
-		}
-	}
-
-	if filters == nil || (filters != nil && filters.Order == requests.UserGenerationQueryOrderDescending) {
-		query = query.Order(ent.Desc(generation.FieldCreatedAt)).
-			Limit(per_page + 1)
-	} else {
-		query = query.Order(ent.Asc(generation.FieldCreatedAt)).Limit(per_page + 1)
-	}
+	// Limits is + 1 so we can check if there are more pages
+	query = query.Limit(per_page + 1)
 
 	// Join other data
 	err := query.Modify(func(s *sql.Selector) {
+		gt := sql.Table(generation.Table)
 		npt := sql.Table(negativeprompt.Table)
 		pt := sql.Table(prompt.Table)
 		got := sql.Table(generationoutput.Table)
@@ -314,10 +360,20 @@ func (r *Repository) GetUserGenerations(userID uuid.UUID, per_page int, cursor *
 			s.C(generation.FieldPromptID), pt.C(prompt.FieldID),
 		).LeftJoin(got).On(
 			s.C(generation.FieldID), got.C(generationoutput.FieldGenerationID),
-		).AppendSelect(sql.As(npt.C(negativeprompt.FieldText), "negative_prompt_text"), sql.As(pt.C(prompt.FieldText), "prompt_text")).
+		).AppendSelect(sql.As(npt.C(negativeprompt.FieldText), "negative_prompt_text"), sql.As(pt.C(prompt.FieldText), "prompt_text"), sql.As(got.C(generationoutput.FieldID), "output_id"), sql.As(got.C(generationoutput.FieldGalleryStatus), "output_gallery_status"), sql.As(got.C(generationoutput.FieldImagePath), "output_image_url"), sql.As(got.C(generationoutput.FieldUpscaledImagePath), "output_upscaled_image_url")).
 			GroupBy(s.C(generation.FieldID)).
 			GroupBy(npt.C(negativeprompt.FieldText)).
-			GroupBy(pt.C(prompt.FieldText))
+			GroupBy(pt.C(prompt.FieldText)).
+			GroupBy(got.C(generationoutput.FieldID)).
+			GroupBy(got.C(generationoutput.FieldGalleryStatus)).
+			GroupBy(got.C(generationoutput.FieldImagePath)).
+			GroupBy(got.C(generationoutput.FieldUpscaledImagePath))
+		// Order by generation, then output
+		if filters == nil || (filters != nil && filters.Order == requests.UserGenerationQueryOrderDescending) {
+			s.OrderBy(sql.Desc(gt.C(generation.FieldCreatedAt)), sql.Desc(got.C(generationoutput.FieldCreatedAt)))
+		} else {
+			s.OrderBy(sql.Asc(gt.C(generation.FieldCreatedAt)), sql.Asc(got.C(generationoutput.FieldCreatedAt)))
+		}
 	}).Scan(r.Ctx, &gQueryResult)
 
 	if err != nil {
@@ -327,7 +383,7 @@ func (r *Repository) GetUserGenerations(userID uuid.UUID, per_page int, cursor *
 
 	if len(gQueryResult) == 0 {
 		meta := &UserGenerationQueryMeta{
-			Generations: []UserGenerationQueryResult{},
+			Outputs: []UserGenerationQueryResult{},
 		}
 		// Only give total if we have no cursor
 		if cursor == nil {
@@ -337,17 +393,6 @@ func (r *Repository) GetUserGenerations(userID uuid.UUID, per_page int, cursor *
 		return meta, nil
 	}
 
-	// We want all IDs of the generations, then get their outputs, then append them to our resulting array
-	var generationIDs []uuid.UUID
-	for _, gen := range gQueryResult {
-		generationIDs = append(generationIDs, gen.ID)
-	}
-	outputs, err := r.DB.GenerationOutput.Query().Where(generationoutput.GenerationIDIn(generationIDs...)).All(r.Ctx)
-	if err != nil {
-		klog.Errorf("Error getting generation outputs: %v", err)
-		return nil, err
-	}
-
 	meta := &UserGenerationQueryMeta{}
 	if len(gQueryResult) > per_page {
 		// Remove last item
@@ -355,38 +400,28 @@ func (r *Repository) GetUserGenerations(userID uuid.UUID, per_page int, cursor *
 		meta.Next = &gQueryResult[len(gQueryResult)-1].CreatedAt
 	}
 
-	// Append outputs to response matching generation ID
-	for i, gen := range gQueryResult {
-		for _, output := range outputs {
-			if gen.ID == output.GenerationID {
-				// Parse S3 URLs to usable URLs
-				imageUrl, err := utils.ParseS3UrlToURL(output.ImagePath)
-				if err != nil {
-					klog.Errorf("Error parsing image url %s: %v", output.ImagePath, err)
-					imageUrl = output.ImagePath
-				}
-				var upscaledImageUrl string
-				if output.UpscaledImagePath != nil {
-					upscaledImageUrl, err = utils.ParseS3UrlToURL(*output.UpscaledImagePath)
-					if err != nil {
-						klog.Errorf("Error parsing upscaled image url %s: %v", *output.UpscaledImagePath, err)
-						upscaledImageUrl = *output.UpscaledImagePath
-					}
-				}
-				gQueryResult[i].Outputs = append(gQueryResult[i].Outputs, UserGenerationOutputResult{
-					ID:               output.ID,
-					ImageUrl:         imageUrl,
-					UpscaledImageUrl: upscaledImageUrl,
-					GalleryStatus:    output.GalleryStatus,
-				})
+	// Get real image URLs for each
+	for i, g := range gQueryResult {
+		if g.ImageUrl != "" {
+			parsed, err := utils.ParseS3UrlToURL(g.ImageUrl)
+			if err != nil {
+				parsed = g.ImageUrl
 			}
+			gQueryResult[i].ImageUrl = parsed
+		}
+		if g.UpscaledImageUrl != "" {
+			parsed, err := utils.ParseS3UrlToURL(g.UpscaledImageUrl)
+			if err != nil {
+				parsed = g.UpscaledImageUrl
+			}
+			gQueryResult[i].UpscaledImageUrl = parsed
 		}
 	}
 
-	meta.Generations = gQueryResult
+	meta.Outputs = gQueryResult
 
 	if cursor == nil {
-		total, err := r.GetUserGenerationsCount(userID)
+		total, err := r.GetUserGenerationCountWithFilters(userID, filters)
 		if err != nil {
 			klog.Errorf("Error getting user generation count: %v", err)
 			return nil, err
@@ -398,32 +433,28 @@ func (r *Repository) GetUserGenerations(userID uuid.UUID, per_page int, cursor *
 }
 
 type UserGenerationQueryMeta struct {
-	Total       *int                        `json:"total_count,omitempty"`
-	Generations []UserGenerationQueryResult `json:"generations"`
-	Next        *time.Time                  `json:"next,omitempty"`
-}
-
-type UserGenerationOutputResult struct {
-	ID               uuid.UUID                      `json:"id"`
-	ImageUrl         string                         `json:"image_url"`
-	UpscaledImageUrl string                         `json:"upscaled_image_url,omitempty"`
-	GalleryStatus    generationoutput.GalleryStatus `json:"gallery_status"`
+	Total   *int                        `json:"total_count,omitempty"`
+	Outputs []UserGenerationQueryResult `json:"outputs"`
+	Next    *time.Time                  `json:"next,omitempty"`
 }
 
 type UserGenerationQueryResult struct {
-	ID             uuid.UUID                    `json:"id" sql:"id"`
-	Height         int32                        `json:"height" sql:"height"`
-	Width          int32                        `json:"width" sql:"width"`
-	InferenceSteps int32                        `json:"inference_steps" sql:"inference_steps"`
-	Seed           int                          `json:"seed" sql:"seed"`
-	Status         string                       `json:"status" sql:"status"`
-	GuidanceScale  float32                      `json:"guidance_scale" sql:"guidance_scale"`
-	SchedulerID    uuid.UUID                    `json:"scheduler_id" sql:"scheduler_id"`
-	ModelID        uuid.UUID                    `json:"model_id" sql:"model_id"`
-	CreatedAt      time.Time                    `json:"created_at" sql:"created_at"`
-	StartedAt      *time.Time                   `json:"started_at,omitempty" sql:"started_at"`
-	CompletedAt    *time.Time                   `json:"completed_at,omitempty" sql:"completed_at"`
-	NegativePrompt string                       `json:"negative_prompt" sql:"negative_prompt_text"`
-	Prompt         string                       `json:"prompt" sql:"prompt_text"`
-	Outputs        []UserGenerationOutputResult `json:"outputs"`
+	ID               uuid.UUID                      `json:"id" sql:"id"`
+	Height           int32                          `json:"height" sql:"height"`
+	Width            int32                          `json:"width" sql:"width"`
+	InferenceSteps   int32                          `json:"inference_steps" sql:"inference_steps"`
+	Seed             int                            `json:"seed" sql:"seed"`
+	Status           string                         `json:"status" sql:"status"`
+	GuidanceScale    float32                        `json:"guidance_scale" sql:"guidance_scale"`
+	SchedulerID      uuid.UUID                      `json:"scheduler_id" sql:"scheduler_id"`
+	ModelID          uuid.UUID                      `json:"model_id" sql:"model_id"`
+	CreatedAt        time.Time                      `json:"created_at" sql:"created_at"`
+	StartedAt        *time.Time                     `json:"started_at,omitempty" sql:"started_at"`
+	CompletedAt      *time.Time                     `json:"completed_at,omitempty" sql:"completed_at"`
+	NegativePrompt   string                         `json:"negative_prompt" sql:"negative_prompt_text"`
+	Prompt           string                         `json:"prompt" sql:"prompt_text"`
+	OutputID         *uuid.UUID                     `json:"output_id,omitempty" sql:"output_id"`
+	ImageUrl         string                         `json:"output_image_url,omitempty" sql:"output_image_url"`
+	UpscaledImageUrl string                         `json:"output_upscaled_image_url,omitempty" sql:"output_upscaled_image_url"`
+	GalleryStatus    generationoutput.GalleryStatus `json:"output_gallery_status,omitempty" sql:"output_gallery_status"`
 }

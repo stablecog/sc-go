@@ -12,38 +12,9 @@ paths:
       responses:
         "200":
           description: Success code when server is ready to accept requests
-  /v1/user/generation:
-    post:
-      description: "Generation: Create"
-      security:
-        - supabase: []
-      requestBody:
-        description: JSON object with generation options
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/GenerationCreateInput"
-      responses:
-        "200":
-          description: JSON object with ID to track request via SSE stream
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/CreateResponse"
-        "400":
-          description: Bad request
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse400"
-        "401":
-          description: Bad request
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse401"
+  /v1/user/outputs:
     get:
-      description: "Generation: List (User-only)"
+      description: "Generation: Query with Outputs (User-only)"
       security:
         - supabase: []
       parameters:
@@ -70,6 +41,7 @@ paths:
           schema:
             type: integer
             format: optional
+          example: 512
         - name: min_height
           in: query
           schema:
@@ -81,6 +53,7 @@ paths:
           schema:
             type: integer
             format: optional
+          example: 512
         - name: min_inference_steps
           in: query
           schema:
@@ -140,6 +113,7 @@ paths:
             items:
               type: number
               format: float32
+          example: 1,2.0
         - name: scheduler_ids
           in: query
           schema:
@@ -177,6 +151,36 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/GenerationQueryMeta"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse400"
+        "401":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse401"
+  /v1/user/generation:
+    post:
+      description: "Generation: Create"
+      security:
+        - supabase: []
+      requestBody:
+        description: JSON object with generation options
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/GenerationCreateInput"
+      responses:
+        "200":
+          description: JSON object with ID to track request via SSE stream
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CreateResponse"
         "400":
           description: Bad request
           content:
@@ -502,10 +506,18 @@ components:
         completed_at:
           type: string
           format: isoTimeString,optional
-        outputs:
-          type: array
-          items:
-            $ref: "#/components/schemas/GenerationOutput"
+        output_id:
+          type: string
+          format: uuidv4,optional
+        output_image_url:
+          type: string
+          format: optional
+        output_upscaled_image_url:
+          type: string
+          format: optional
+        output_gallery_status:
+          type: string
+          format: not_submitted/submitted/accepted/rejected, optional
       description: Response after querying generations.
     GenerationOutput:
       type: object

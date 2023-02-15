@@ -158,7 +158,7 @@ func main() {
 			r.Use(mw.AuthMiddleware)
 			r.Use(chimiddleware.Logger)
 			r.Post("/generation", hc.HandleCreateGeneration)
-			r.Get("/generation", hc.HandleQueryGenerations)
+			r.Get("/outputs", hc.HandleQueryGenerations)
 
 			r.Post("/upscale", hc.HandleUpscale)
 

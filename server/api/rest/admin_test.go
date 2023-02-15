@@ -19,17 +19,11 @@ import (
 
 func TestHandleReviewGallerySubmission(t *testing.T) {
 	// ! Can approve generation
-	// Retrieve generations
-	meta, err := MockController.Repo.GetUserGenerations(uuid.MustParse(repository.MOCK_ADMIN_UUID), 50, nil, nil)
-	assert.Nil(t, err)
 	var targetGUid uuid.UUID
-	// Find generation with outputs
-	for _, g := range meta.Generations {
-		if len(g.Outputs) > 0 {
-			targetGUid = g.Outputs[0].ID
-			break
-		}
-	}
+	// Find goutput not approved
+	goutput, err := MockController.Repo.DB.GenerationOutput.Query().Where(generationoutput.GalleryStatusNEQ(generationoutput.GalleryStatusAccepted)).First(MockController.Repo.Ctx)
+	assert.Nil(t, err)
+	targetGUid = goutput.ID
 
 	reqBody := requests.AdminGalleryRequestBody{
 		Action:              requests.AdminGalleryActionApprove,

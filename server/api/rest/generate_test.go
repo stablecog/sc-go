@@ -10,6 +10,7 @@ import (
 	"testing"
 
 	"github.com/google/uuid"
+	"github.com/stablecog/sc-go/database/ent/generation"
 	"github.com/stablecog/sc-go/database/ent/generationoutput"
 	"github.com/stablecog/sc-go/database/repository"
 	"github.com/stablecog/sc-go/server/requests"
@@ -341,28 +342,13 @@ func TestSubmitGenerationToGallery(t *testing.T) {
 	assert.Equal(t, 0, submitResp.Submitted)
 
 	// ! Generation that does exist
-	// Retrieve generation
-	meta, err := MockController.Repo.GetUserGenerations(uuid.MustParse(repository.MOCK_ADMIN_UUID), 50, nil, nil)
+	// Retrieve generation output for user that is not submitted
+	// Find goutput not approved
+	goutput, err := MockController.Repo.DB.Generation.Query().Where(generation.UserIDEQ(uuid.MustParse(repository.MOCK_ADMIN_UUID))).QueryGenerationOutputs().Where(generationoutput.GalleryStatusEQ(generationoutput.GalleryStatusNotSubmitted)).First(MockController.Repo.Ctx)
 	assert.Nil(t, err)
-	assert.NotEmpty(t, meta.Generations)
-	var idx int
-	var outputIdx int
-	// Find generation that is not submitted
-	for i, generation := range meta.Generations {
-		if len(generation.Outputs) > 0 {
-			for oidx, output := range generation.Outputs {
-				if output.GalleryStatus == generationoutput.GalleryStatusNotSubmitted {
-					idx = i
-					outputIdx = oidx
-					break
-				}
-			}
-		}
-	}
-	assert.Equal(t, generationoutput.GalleryStatusNotSubmitted, meta.Generations[idx].Outputs[outputIdx].GalleryStatus)
 
 	reqBody = requests.GenerateSubmitToGalleryRequestBody{
-		GenerationOutputIDs: []uuid.UUID{meta.Generations[idx].Outputs[outputIdx].ID},
+		GenerationOutputIDs: []uuid.UUID{goutput.ID},
 	}
 	body, _ = json.Marshal(reqBody)
 	w = httptest.NewRecorder()
@@ -382,20 +368,13 @@ func TestSubmitGenerationToGallery(t *testing.T) {
 	assert.Equal(t, 1, submitResp.Submitted)
 
 	// Make sure updated in DB
-	meta, err = MockController.Repo.GetUserGenerations(uuid.MustParse(repository.MOCK_ADMIN_UUID), 50, nil, nil)
+	goutput, err = MockController.Repo.DB.GenerationOutput.Query().Where(generationoutput.IDEQ(goutput.ID)).First(MockController.Repo.Ctx)
 	assert.Nil(t, err)
-	assert.NotEmpty(t, meta.Generations)
-	assert.Equal(t, generationoutput.GalleryStatusSubmitted, meta.Generations[idx].Outputs[0].GalleryStatus)
+	assert.Equal(t, generationoutput.GalleryStatusSubmitted, goutput.GalleryStatus)
 
 	// ! Generation that is already submitted
-	// Retrieve generation
-	meta, err = MockController.Repo.GetUserGenerations(uuid.MustParse(repository.MOCK_ADMIN_UUID), 50, nil, nil)
-	assert.Nil(t, err)
-	assert.NotEmpty(t, meta.Generations)
-	assert.Equal(t, generationoutput.GalleryStatusSubmitted, meta.Generations[idx].Outputs[outputIdx].GalleryStatus)
-
 	reqBody = requests.GenerateSubmitToGalleryRequestBody{
-		GenerationOutputIDs: []uuid.UUID{meta.Generations[idx].Outputs[outputIdx].ID},
+		GenerationOutputIDs: []uuid.UUID{goutput.ID},
 	}
 	body, _ = json.Marshal(reqBody)
 	w = httptest.NewRecorder()
