@@ -182,13 +182,15 @@ func (c *RestAPI) HandleUpscale(w http.ResponseWriter, r *http.Request) {
 			WebhookEventsFilter: []requests.WebhookEventFilterOption{requests.WebhookEventFilterStart, requests.WebhookEventFilterStart},
 			RedisPubsubKey:      shared.COG_REDIS_EVENT_CHANNEL,
 			Input: requests.BaseCogRequest{
-				ID:                 requestId,
-				LivePageData:       livePageMsg,
-				GenerationOutputID: outputIDStr,
-				Image:              imageUrl,
-				ProcessType:        shared.UPSCALE,
-				Width:              fmt.Sprint(width),
-				Height:             fmt.Sprint(height),
+				ID:                   requestId,
+				LivePageData:         livePageMsg,
+				GenerationOutputID:   outputIDStr,
+				Image:                imageUrl,
+				ProcessType:          shared.UPSCALE,
+				Width:                fmt.Sprint(width),
+				Height:               fmt.Sprint(height),
+				OutputImageExtension: string(shared.DEFAULT_UPSCALE_OUTPUT_EXTENSION),
+				OutputImageQuality:   fmt.Sprint(shared.DEFAULT_UPSCALE_OUTPUT_QUALITY),
 			},
 		}
 
