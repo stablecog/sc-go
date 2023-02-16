@@ -24,6 +24,7 @@ const MAX_PER_PAGE = 100
 
 // HTTP Get - user info
 func (c *RestAPI) HandleGetUser(w http.ResponseWriter, r *http.Request) {
+	// Stripe info get
 }
 
 // HTTP Get - generations for user
