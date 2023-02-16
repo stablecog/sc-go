@@ -142,6 +142,8 @@ func main() {
 	app.Route("/v1", func(r chi.Router) {
 		r.Get("/health", hc.HandleHealth)
 
+		// r.Get("/userget", hc.HandleGetUser)
+
 		// SSE
 		r.Route("/sse", func(r chi.Router) {
 			r.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
@@ -233,14 +235,14 @@ func main() {
 				}
 
 				livePageMsg.Status = status
+				now := time.Now()
 				if cogMessage.Status == responses.CogProcessing {
-					livePageMsg.StartedAt = time.Now()
+					livePageMsg.StartedAt = &now
 				}
 				if cogMessage.Status == responses.CogSucceeded || cogMessage.Status == responses.CogFailed {
-					livePageMsg.CompletedAt = time.Now()
+					livePageMsg.CompletedAt = &now
 				}
 				sseHub.BroadcastLivePageMessage(livePageMsg)
-
 			}()
 
 			// Process in database

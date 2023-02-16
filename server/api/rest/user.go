@@ -24,7 +24,33 @@ const MAX_PER_PAGE = 100
 
 // HTTP Get - user info
 func (c *RestAPI) HandleGetUser(w http.ResponseWriter, r *http.Request) {
-	// Stripe info get
+	// customer, err := c.StripeClient.Customers.Get("", nil)
+	// customerNotFound := false
+	// stripeHadError := false
+	// if err != nil {
+	// 	// Try to decode error as map
+	// 	var stripeErr map[string]interface{}
+	// 	marshalErr := json.Unmarshal([]byte(err.Error()), &stripeErr)
+	// 	if marshalErr == nil {
+	// 		status, ok := stripeErr["status"]
+	// 		if ok && status == 404 {
+	// 			customerNotFound = true
+	// 		} else {
+	// 			klog.Errorf("Error getting customer from stripe: %v", err)
+	// 			stripeHadError = true
+	// 		}
+	// 	} else {
+	// 		klog.Errorf("Error getting customer from stripe, unknown error: %v", err)
+	// 		stripeHadError = true
+	// 	}
+	// }
+	// res := map[string]interface{}{
+	// 	"customer":         customer,
+	// 	"customerNotFound": customerNotFound,
+	// 	"stripeHadError":   stripeHadError,
+	// }
+	// render.Status(r, http.StatusOK)
+	// render.JSON(w, r, res)
 }
 
 // HTTP Get - generations for user

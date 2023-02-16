@@ -738,10 +738,10 @@ components:
           format: isoTimeString
         started_at:
           type: string
-          format: isoTimeString
+          format: isoTimeString, optional
         completed_at:
           type: string
-          format: isoTimeString
+          format: isoTimeString, optional
       description: Status updates delivered for live activity page
     UserSummaryResponse:
       type: object

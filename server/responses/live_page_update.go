@@ -26,6 +26,6 @@ type LivePageMessage struct {
 	Width       int32               `json:"width"`
 	Height      int32               `json:"height"`
 	CreatedAt   time.Time           `json:"created_at"`
-	StartedAt   time.Time           `json:"started_at"`
-	CompletedAt time.Time           `json:"completed_at"`
+	StartedAt   *time.Time          `json:"started_at,omitempty"`
+	CompletedAt *time.Time          `json:"completed_at,omitempty"`
 }
