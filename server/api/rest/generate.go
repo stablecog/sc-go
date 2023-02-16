@@ -229,8 +229,9 @@ func (c *RestAPI) HandleCreateGeneration(w http.ResponseWriter, r *http.Request)
 		time.Sleep(shared.REQUEST_COG_TIMEOUT)
 		// this will trigger timeout if it hasnt been finished
 		c.Repo.FailCogMessageDueToTimeoutIfTimedOut(responses.CogStatusUpdate{
-			Input: cogReqBody.Input,
-			Error: "TIMEOUT",
+			Input:  cogReqBody.Input,
+			Error:  "TIMEOUT",
+			Status: responses.CogFailed,
 		})
 	}()
 
