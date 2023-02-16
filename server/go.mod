@@ -15,6 +15,7 @@ require (
 	github.com/stablecog/sc-go/utils v0.0.0-20230212170818-597693f5be69
 	github.com/stretchr/testify v1.8.1
 	github.com/stripe/stripe-go v70.15.0+incompatible
+	golang.org/x/net v0.0.0-20220722155237-a158d28d115b
 	k8s.io/klog/v2 v2.80.1
 )
 
@@ -23,7 +24,6 @@ require (
 	entgo.io/ent v0.11.6 // indirect
 	github.com/agext/levenshtein v1.2.1 // indirect
 	github.com/alicebob/gopher-json v0.0.0-20200520072559-a9ecdc9d1d3a // indirect
-	github.com/alicebob/miniredis/v2 v2.30.0 // indirect
 	github.com/andybalholm/brotli v1.0.4 // indirect
 	github.com/apparentlymart/go-textseg/v13 v13.0.0 // indirect
 	github.com/cespare/xxhash/v2 v2.1.2 // indirect
@@ -61,6 +61,7 @@ require (
 
 require (
 	github.com/ajg/form v1.5.1 // indirect
+	github.com/alicebob/miniredis/v2 v2.30.0 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/go-logr/logr v1.2.0 // indirect
 	github.com/mattn/go-sqlite3 v1.14.16 // indirect

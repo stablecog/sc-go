@@ -6,6 +6,9 @@ import (
 	"os"
 	"testing"
 
+	"github.com/google/uuid"
+	"github.com/stablecog/sc-go/server/requests"
+	"github.com/stablecog/sc-go/shared"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -79,4 +82,41 @@ func TestPingErrorIfCantConnect(t *testing.T) {
 	_, err := NewRedis(context.TODO())
 	assert.NotNil(t, err)
 	assert.Equal(t, "Error pinging Redis: dial tcp: lookup notarealredishost", logs[0][:len("Error pinging Redis: dial tcp: lookup notarealredishost")])
+}
+
+func TestGetPendingGenerationAndUpscaleIDs(t *testing.T) {
+	// Create redis
+	os.Setenv("MOCK_REDIS", "true")
+	defer os.Unsetenv("MOCK_REDIS")
+	redis, err := NewRedis(context.TODO())
+	assert.Nil(t, err)
+	// MKStream
+	redis.Client.XGroupCreateMkStream(redis.Client.Context(), shared.COG_REDIS_QUEUE, shared.COG_REDIS_QUEUE, "0-0").Err()
+
+	// Enqueue a few requests
+	assert.Nil(t, redis.EnqueueCogRequest(redis.Client.Context(), requests.CogQueueRequest{
+		Input: requests.BaseCogRequest{
+			ID:          uuid.MustParse("00000000-0000-0000-0000-000000000001").String(),
+			ProcessType: shared.UPSCALE,
+		},
+	}))
+
+	assert.Nil(t, redis.EnqueueCogRequest(redis.Client.Context(), requests.CogQueueRequest{
+		Input: requests.BaseCogRequest{
+			ID:          uuid.MustParse("00000000-0000-0000-0000-000000000002").String(),
+			ProcessType: shared.GENERATE,
+		},
+	}))
+
+	assert.Nil(t, redis.EnqueueCogRequest(redis.Client.Context(), requests.CogQueueRequest{
+		Input: requests.BaseCogRequest{
+			ID:          uuid.MustParse("00000000-0000-0000-0000-000000000032").String(),
+			ProcessType: shared.GENERATE_AND_UPSCALE,
+		},
+	}))
+
+	pendingGenerationIDs, pendingUpscaleIDs, err := redis.GetPendingGenerationAndUpscaleIDs(0)
+	assert.Nil(t, err)
+	assert.Len(t, pendingGenerationIDs, 2)
+	assert.Len(t, pendingUpscaleIDs, 1)
 }

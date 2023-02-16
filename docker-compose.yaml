@@ -1,5 +1,11 @@
 version: '3.9'
 services:
+  redis:
+    container_name: pippin_redis
+    image: redis:6-alpine
+    restart: unless-stopped
+    networks: [ 'app-network' ]
+
   db:
     container_name: stablecog_go_postgres
     image: postgres:14
@@ -24,6 +30,7 @@ services:
     environment:
       - GOPRIVATE=github.com/stablecog
       - PORT=13337
+      - REDIS_CONNECTION_STRING=redis://redis:6379
     ports:
       - '127.0.0.1:13337:13337'
     volumes:

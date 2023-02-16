@@ -2,11 +2,14 @@ package database
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"time"
 
 	"github.com/alicebob/miniredis/v2"
 	"github.com/go-redis/redis/v8"
+	"github.com/google/uuid"
+	"github.com/stablecog/sc-go/server/requests"
 	"github.com/stablecog/sc-go/shared"
 	"github.com/stablecog/sc-go/utils"
 	"k8s.io/klog/v2"
@@ -63,6 +66,71 @@ func (r *RedisWrapper) EnqueueCogRequest(ctx context.Context, request interface{
 		Values: []interface{}{"value", request},
 	}).Result()
 	return err
+}
+
+// Get pending request IDs on queue that are stale
+// olderThan will be subtracted from the current time to return requests older than that
+func (r *RedisWrapper) GetPendingGenerationAndUpscaleIDs(olderThan time.Duration) (generationOutputIDs, upscaleOutputIDs []PendingCogRequestRedis, err error) {
+	// Get current time in MS since epoch, minus endAt
+	to := time.Now().UnixNano()/int64(time.Millisecond) - int64(olderThan/time.Millisecond)
+	// Get from the redis stream COG_REDIS_QUEUE, we want to read them without deleting them
+	messages, err := r.Client.XRange(r.Client.Context(), shared.COG_REDIS_QUEUE, "0-0", fmt.Sprintf("%d", to)).Result()
+	if err != nil {
+		klog.Errorf("Error getting pending generation and upscale IDs: %v", err)
+		return nil, nil, err
+	}
+
+	generationOutputIDs = make([]PendingCogRequestRedis, 0)
+	upscaleOutputIDs = make([]PendingCogRequestRedis, 0)
+
+	for _, message := range messages {
+		// Get the request ID from the message
+		input, ok := message.Values["value"].(string)
+		if input == "" || !ok {
+			klog.Errorf("Error getting value from message: %v", message)
+			continue
+		}
+		// Deserialize
+		var request requests.CogQueueRequest
+		err = json.Unmarshal([]byte(input), &request)
+		if err != nil {
+			klog.Errorf("Error deserializing input: %v", err)
+			continue
+		}
+
+		if request.Input.ProcessType == shared.UPSCALE {
+			parsed, err := uuid.Parse(request.Input.ID)
+			if err != nil {
+				klog.Errorf("Error parsing upscale output ID: %v", err)
+				continue
+			}
+			upscaleOutputIDs = append(upscaleOutputIDs, PendingCogRequestRedis{
+				RedisMsgid: message.ID,
+				Type:       request.Input.ProcessType,
+				ID:         parsed,
+			})
+		}
+		if request.Input.ProcessType == shared.GENERATE || request.Input.ProcessType == shared.GENERATE_AND_UPSCALE {
+			parsed, err := uuid.Parse(request.Input.ID)
+			if err != nil {
+				klog.Errorf("Error parsing generation output ID: %v", err)
+				continue
+			}
+			generationOutputIDs = append(generationOutputIDs, PendingCogRequestRedis{
+				RedisMsgid: message.ID,
+				Type:       request.Input.ProcessType,
+				ID:         parsed,
+			})
+		}
+	}
+
+	return generationOutputIDs, upscaleOutputIDs, nil
+}
+
+type PendingCogRequestRedis struct {
+	RedisMsgid string
+	Type       shared.ProcessType
+	ID         uuid.UUID
 }
 
 // Keep track of request ID to cog, with stream ID of the client
