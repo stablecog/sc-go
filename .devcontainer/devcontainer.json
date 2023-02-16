@@ -30,7 +30,8 @@
 				"streetsidesoftware.code-spell-checker",
 				"Gruntfuggly.todo-tree",
 				"golang.go",
-				"aaron-bond.better-comments"
+				"aaron-bond.better-comments",
+				"42Crunch.vscode-openapi"
 			]
 		}
 	}

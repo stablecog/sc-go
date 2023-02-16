@@ -168,11 +168,12 @@ func (r *Repository) FailCogMessageDueToTimeoutIfTimedOut(msg responses.CogStatu
 	// Regardless of the status, we always send over sse so user knows what's up
 	// Send message to user
 	resp := responses.SSEStatusUpdateResponse{
-		Status:    msg.Status,
-		Id:        msg.Input.ID,
-		StreamId:  streamIdStr,
-		NSFWCount: msg.NSFWCount,
-		Error:     msg.Error,
+		Status:      msg.Status,
+		Id:          msg.Input.ID,
+		StreamId:    streamIdStr,
+		NSFWCount:   msg.NSFWCount,
+		Error:       msg.Error,
+		ProcessType: msg.Input.ProcessType,
 	}
 
 	// Marshal
@@ -372,11 +373,12 @@ func (r *Repository) ProcessCogMessage(msg responses.CogStatusUpdate) {
 	// Regardless of the status, we always send over sse so user knows what's up
 	// Send message to user
 	resp := responses.SSEStatusUpdateResponse{
-		Status:    msg.Status,
-		Id:        msg.Input.ID,
-		StreamId:  streamIdStr,
-		NSFWCount: msg.NSFWCount,
-		Error:     cogErr,
+		Status:      msg.Status,
+		Id:          msg.Input.ID,
+		StreamId:    streamIdStr,
+		NSFWCount:   msg.NSFWCount,
+		Error:       cogErr,
+		ProcessType: msg.Input.ProcessType,
 	}
 	// Upscale
 	if msg.Status == responses.CogSucceeded && msg.Input.ProcessType == shared.UPSCALE {

@@ -701,6 +701,9 @@ components:
         id:
           type: string
           format: uuidv4
+        process_type:
+          type: string
+          format: generate/upscale/generate_and_upscale
         nsfw_count:
           type: integer
         error:
