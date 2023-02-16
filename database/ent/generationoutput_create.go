@@ -62,6 +62,20 @@ func (goc *GenerationOutputCreate) SetGenerationID(u uuid.UUID) *GenerationOutpu
 	return goc
 }
 
+// SetDeletedAt sets the "deleted_at" field.
+func (goc *GenerationOutputCreate) SetDeletedAt(t time.Time) *GenerationOutputCreate {
+	goc.mutation.SetDeletedAt(t)
+	return goc
+}
+
+// SetNillableDeletedAt sets the "deleted_at" field if the given value is not nil.
+func (goc *GenerationOutputCreate) SetNillableDeletedAt(t *time.Time) *GenerationOutputCreate {
+	if t != nil {
+		goc.SetDeletedAt(*t)
+	}
+	return goc
+}
+
 // SetCreatedAt sets the "created_at" field.
 func (goc *GenerationOutputCreate) SetCreatedAt(t time.Time) *GenerationOutputCreate {
 	goc.mutation.SetCreatedAt(t)
@@ -245,6 +259,10 @@ func (goc *GenerationOutputCreate) createSpec() (*GenerationOutput, *sqlgraph.Cr
 	if value, ok := goc.mutation.GalleryStatus(); ok {
 		_spec.SetField(generationoutput.FieldGalleryStatus, field.TypeEnum, value)
 		_node.GalleryStatus = value
+	}
+	if value, ok := goc.mutation.DeletedAt(); ok {
+		_spec.SetField(generationoutput.FieldDeletedAt, field.TypeTime, value)
+		_node.DeletedAt = &value
 	}
 	if value, ok := goc.mutation.CreatedAt(); ok {
 		_spec.SetField(generationoutput.FieldCreatedAt, field.TypeTime, value)

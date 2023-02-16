@@ -34,6 +34,20 @@ func (uoc *UpscaleOutputCreate) SetUpscaleID(u uuid.UUID) *UpscaleOutputCreate {
 	return uoc
 }
 
+// SetDeletedAt sets the "deleted_at" field.
+func (uoc *UpscaleOutputCreate) SetDeletedAt(t time.Time) *UpscaleOutputCreate {
+	uoc.mutation.SetDeletedAt(t)
+	return uoc
+}
+
+// SetNillableDeletedAt sets the "deleted_at" field if the given value is not nil.
+func (uoc *UpscaleOutputCreate) SetNillableDeletedAt(t *time.Time) *UpscaleOutputCreate {
+	if t != nil {
+		uoc.SetDeletedAt(*t)
+	}
+	return uoc
+}
+
 // SetCreatedAt sets the "created_at" field.
 func (uoc *UpscaleOutputCreate) SetCreatedAt(t time.Time) *UpscaleOutputCreate {
 	uoc.mutation.SetCreatedAt(t)
@@ -197,6 +211,10 @@ func (uoc *UpscaleOutputCreate) createSpec() (*UpscaleOutput, *sqlgraph.CreateSp
 	if value, ok := uoc.mutation.ImagePath(); ok {
 		_spec.SetField(upscaleoutput.FieldImagePath, field.TypeString, value)
 		_node.ImagePath = value
+	}
+	if value, ok := uoc.mutation.DeletedAt(); ok {
+		_spec.SetField(upscaleoutput.FieldDeletedAt, field.TypeTime, value)
+		_node.DeletedAt = &value
 	}
 	if value, ok := uoc.mutation.CreatedAt(); ok {
 		_spec.SetField(upscaleoutput.FieldCreatedAt, field.TypeTime, value)

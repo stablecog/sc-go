@@ -43,6 +43,26 @@ func (uou *UpscaleOutputUpdate) SetUpscaleID(u uuid.UUID) *UpscaleOutputUpdate {
 	return uou
 }
 
+// SetDeletedAt sets the "deleted_at" field.
+func (uou *UpscaleOutputUpdate) SetDeletedAt(t time.Time) *UpscaleOutputUpdate {
+	uou.mutation.SetDeletedAt(t)
+	return uou
+}
+
+// SetNillableDeletedAt sets the "deleted_at" field if the given value is not nil.
+func (uou *UpscaleOutputUpdate) SetNillableDeletedAt(t *time.Time) *UpscaleOutputUpdate {
+	if t != nil {
+		uou.SetDeletedAt(*t)
+	}
+	return uou
+}
+
+// ClearDeletedAt clears the value of the "deleted_at" field.
+func (uou *UpscaleOutputUpdate) ClearDeletedAt() *UpscaleOutputUpdate {
+	uou.mutation.ClearDeletedAt()
+	return uou
+}
+
 // SetUpdatedAt sets the "updated_at" field.
 func (uou *UpscaleOutputUpdate) SetUpdatedAt(t time.Time) *UpscaleOutputUpdate {
 	uou.mutation.SetUpdatedAt(t)
@@ -145,6 +165,12 @@ func (uou *UpscaleOutputUpdate) sqlSave(ctx context.Context) (n int, err error) 
 	if value, ok := uou.mutation.ImagePath(); ok {
 		_spec.SetField(upscaleoutput.FieldImagePath, field.TypeString, value)
 	}
+	if value, ok := uou.mutation.DeletedAt(); ok {
+		_spec.SetField(upscaleoutput.FieldDeletedAt, field.TypeTime, value)
+	}
+	if uou.mutation.DeletedAtCleared() {
+		_spec.ClearField(upscaleoutput.FieldDeletedAt, field.TypeTime)
+	}
 	if value, ok := uou.mutation.UpdatedAt(); ok {
 		_spec.SetField(upscaleoutput.FieldUpdatedAt, field.TypeTime, value)
 	}
@@ -214,6 +240,26 @@ func (uouo *UpscaleOutputUpdateOne) SetImagePath(s string) *UpscaleOutputUpdateO
 // SetUpscaleID sets the "upscale_id" field.
 func (uouo *UpscaleOutputUpdateOne) SetUpscaleID(u uuid.UUID) *UpscaleOutputUpdateOne {
 	uouo.mutation.SetUpscaleID(u)
+	return uouo
+}
+
+// SetDeletedAt sets the "deleted_at" field.
+func (uouo *UpscaleOutputUpdateOne) SetDeletedAt(t time.Time) *UpscaleOutputUpdateOne {
+	uouo.mutation.SetDeletedAt(t)
+	return uouo
+}
+
+// SetNillableDeletedAt sets the "deleted_at" field if the given value is not nil.
+func (uouo *UpscaleOutputUpdateOne) SetNillableDeletedAt(t *time.Time) *UpscaleOutputUpdateOne {
+	if t != nil {
+		uouo.SetDeletedAt(*t)
+	}
+	return uouo
+}
+
+// ClearDeletedAt clears the value of the "deleted_at" field.
+func (uouo *UpscaleOutputUpdateOne) ClearDeletedAt() *UpscaleOutputUpdateOne {
+	uouo.mutation.ClearDeletedAt()
 	return uouo
 }
 
@@ -342,6 +388,12 @@ func (uouo *UpscaleOutputUpdateOne) sqlSave(ctx context.Context) (_node *Upscale
 	}
 	if value, ok := uouo.mutation.ImagePath(); ok {
 		_spec.SetField(upscaleoutput.FieldImagePath, field.TypeString, value)
+	}
+	if value, ok := uouo.mutation.DeletedAt(); ok {
+		_spec.SetField(upscaleoutput.FieldDeletedAt, field.TypeTime, value)
+	}
+	if uouo.mutation.DeletedAtCleared() {
+		_spec.ClearField(upscaleoutput.FieldDeletedAt, field.TypeTime)
 	}
 	if value, ok := uouo.mutation.UpdatedAt(); ok {
 		_spec.SetField(upscaleoutput.FieldUpdatedAt, field.TypeTime, value)

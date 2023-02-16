@@ -159,6 +159,11 @@ var (
 				Columns: []*schema.Column{GenerationsColumns[22], GenerationsColumns[8], GenerationsColumns[15]},
 			},
 			{
+				Name:    "generation_user_id_status",
+				Unique:  false,
+				Columns: []*schema.Column{GenerationsColumns[22], GenerationsColumns[8]},
+			},
+			{
 				Name:    "generation_created_at",
 				Unique:  false,
 				Columns: []*schema.Column{GenerationsColumns[15]},
@@ -184,6 +189,7 @@ var (
 		{Name: "image_path", Type: field.TypeString, Size: 2147483647},
 		{Name: "upscaled_image_path", Type: field.TypeString, Nullable: true, Size: 2147483647},
 		{Name: "gallery_status", Type: field.TypeEnum, Enums: []string{"not_submitted", "submitted", "accepted", "rejected"}, Default: "not_submitted"},
+		{Name: "deleted_at", Type: field.TypeTime, Nullable: true},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},
 		{Name: "generation_id", Type: field.TypeUUID},
@@ -196,7 +202,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "generation_outputs_generations_generation_outputs",
-				Columns:    []*schema.Column{GenerationOutputsColumns[6]},
+				Columns:    []*schema.Column{GenerationOutputsColumns[7]},
 				RefColumns: []*schema.Column{GenerationsColumns[0]},
 				OnDelete:   schema.Cascade,
 			},
@@ -308,6 +314,7 @@ var (
 	UpscaleOutputsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID},
 		{Name: "image_path", Type: field.TypeString, Size: 2147483647},
+		{Name: "deleted_at", Type: field.TypeTime, Nullable: true},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},
 		{Name: "upscale_id", Type: field.TypeUUID},
@@ -320,7 +327,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "upscale_outputs_upscales_upscale_outputs",
-				Columns:    []*schema.Column{UpscaleOutputsColumns[4]},
+				Columns:    []*schema.Column{UpscaleOutputsColumns[5]},
 				RefColumns: []*schema.Column{UpscalesColumns[0]},
 				OnDelete:   schema.Cascade,
 			},

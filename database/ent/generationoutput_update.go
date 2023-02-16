@@ -77,6 +77,26 @@ func (gou *GenerationOutputUpdate) SetGenerationID(u uuid.UUID) *GenerationOutpu
 	return gou
 }
 
+// SetDeletedAt sets the "deleted_at" field.
+func (gou *GenerationOutputUpdate) SetDeletedAt(t time.Time) *GenerationOutputUpdate {
+	gou.mutation.SetDeletedAt(t)
+	return gou
+}
+
+// SetNillableDeletedAt sets the "deleted_at" field if the given value is not nil.
+func (gou *GenerationOutputUpdate) SetNillableDeletedAt(t *time.Time) *GenerationOutputUpdate {
+	if t != nil {
+		gou.SetDeletedAt(*t)
+	}
+	return gou
+}
+
+// ClearDeletedAt clears the value of the "deleted_at" field.
+func (gou *GenerationOutputUpdate) ClearDeletedAt() *GenerationOutputUpdate {
+	gou.mutation.ClearDeletedAt()
+	return gou
+}
+
 // SetUpdatedAt sets the "updated_at" field.
 func (gou *GenerationOutputUpdate) SetUpdatedAt(t time.Time) *GenerationOutputUpdate {
 	gou.mutation.SetUpdatedAt(t)
@@ -193,6 +213,12 @@ func (gou *GenerationOutputUpdate) sqlSave(ctx context.Context) (n int, err erro
 	if value, ok := gou.mutation.GalleryStatus(); ok {
 		_spec.SetField(generationoutput.FieldGalleryStatus, field.TypeEnum, value)
 	}
+	if value, ok := gou.mutation.DeletedAt(); ok {
+		_spec.SetField(generationoutput.FieldDeletedAt, field.TypeTime, value)
+	}
+	if gou.mutation.DeletedAtCleared() {
+		_spec.ClearField(generationoutput.FieldDeletedAt, field.TypeTime)
+	}
 	if value, ok := gou.mutation.UpdatedAt(); ok {
 		_spec.SetField(generationoutput.FieldUpdatedAt, field.TypeTime, value)
 	}
@@ -296,6 +322,26 @@ func (gouo *GenerationOutputUpdateOne) SetNillableGalleryStatus(gs *generationou
 // SetGenerationID sets the "generation_id" field.
 func (gouo *GenerationOutputUpdateOne) SetGenerationID(u uuid.UUID) *GenerationOutputUpdateOne {
 	gouo.mutation.SetGenerationID(u)
+	return gouo
+}
+
+// SetDeletedAt sets the "deleted_at" field.
+func (gouo *GenerationOutputUpdateOne) SetDeletedAt(t time.Time) *GenerationOutputUpdateOne {
+	gouo.mutation.SetDeletedAt(t)
+	return gouo
+}
+
+// SetNillableDeletedAt sets the "deleted_at" field if the given value is not nil.
+func (gouo *GenerationOutputUpdateOne) SetNillableDeletedAt(t *time.Time) *GenerationOutputUpdateOne {
+	if t != nil {
+		gouo.SetDeletedAt(*t)
+	}
+	return gouo
+}
+
+// ClearDeletedAt clears the value of the "deleted_at" field.
+func (gouo *GenerationOutputUpdateOne) ClearDeletedAt() *GenerationOutputUpdateOne {
+	gouo.mutation.ClearDeletedAt()
 	return gouo
 }
 
@@ -438,6 +484,12 @@ func (gouo *GenerationOutputUpdateOne) sqlSave(ctx context.Context) (_node *Gene
 	}
 	if value, ok := gouo.mutation.GalleryStatus(); ok {
 		_spec.SetField(generationoutput.FieldGalleryStatus, field.TypeEnum, value)
+	}
+	if value, ok := gouo.mutation.DeletedAt(); ok {
+		_spec.SetField(generationoutput.FieldDeletedAt, field.TypeTime, value)
+	}
+	if gouo.mutation.DeletedAtCleared() {
+		_spec.ClearField(generationoutput.FieldDeletedAt, field.TypeTime)
 	}
 	if value, ok := gouo.mutation.UpdatedAt(); ok {
 		_spec.SetField(generationoutput.FieldUpdatedAt, field.TypeTime, value)

@@ -1,6 +1,7 @@
 package rest
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -423,4 +424,67 @@ func TestParseQueryGenerationFilterError(t *testing.T) {
 	_, err = ParseQueryGenerationFilters(values)
 	assert.NotNil(t, err)
 	assert.Equal(t, "invalid order: 'invalid' expected 'asc' or 'desc'", err.Error())
+}
+
+func TestHandleDeleteGenerationForUser(t *testing.T) {
+	ctx := context.Background()
+	// Create mock generation
+	targetG, err := MockController.Repo.CreateMockGenerationForDeletion(ctx)
+	// Create generation output
+	targetGOutput, err := MockController.Repo.DB.GenerationOutput.Create().SetGenerationID(targetG.ID).SetImagePath("s3://hello/world.png").Save(ctx)
+	assert.Nil(t, err)
+	assert.Nil(t, targetGOutput.DeletedAt)
+
+	// ! Can not delete generation unless it belongs to user
+	reqBody := requests.GenerationDeleteRequest{
+		GenerationOutputIDs: []uuid.UUID{targetGOutput.ID},
+	}
+	body, _ := json.Marshal(reqBody)
+	w := httptest.NewRecorder()
+	// Build request
+	req := httptest.NewRequest("DELETE", "/", bytes.NewReader(body))
+	req.Header.Set("Content-Type", "application/json")
+
+	// Setup context
+	ctx = context.WithValue(req.Context(), "user_id", repository.MOCK_NORMAL_UUID)
+
+	MockController.HandleDeleteGenerationOutputForUser(w, req.WithContext(ctx))
+	resp := w.Result()
+	defer resp.Body.Close()
+	assert.Equal(t, 200, resp.StatusCode)
+	var deleteResp responses.DeletedResponse
+	respBody, _ := io.ReadAll(resp.Body)
+	json.Unmarshal(respBody, &deleteResp)
+	assert.Equal(t, 0, deleteResp.Deleted)
+
+	deletedGOutput, err := MockController.Repo.GetGenerationOutput(targetGOutput.ID)
+	assert.Nil(t, err)
+	assert.Nil(t, deletedGOutput.DeletedAt)
+
+	// ! Can delete generation if it belongs to user
+	// Build request
+	w = httptest.NewRecorder()
+	req = httptest.NewRequest("DELETE", "/", bytes.NewReader(body))
+	req.Header.Set("Content-Type", "application/json")
+
+	// Setup context
+	ctx = context.WithValue(req.Context(), "user_id", repository.MOCK_ADMIN_UUID)
+
+	MockController.HandleDeleteGenerationOutputForUser(w, req.WithContext(ctx))
+	resp = w.Result()
+	defer resp.Body.Close()
+	assert.Equal(t, 200, resp.StatusCode)
+	respBody, _ = io.ReadAll(resp.Body)
+	json.Unmarshal(respBody, &deleteResp)
+	assert.Equal(t, 1, deleteResp.Deleted)
+
+	deletedGOutput, err = MockController.Repo.GetGenerationOutput(targetGOutput.ID)
+	assert.Nil(t, err)
+	assert.NotNil(t, deletedGOutput.DeletedAt)
+
+	// Cleanup
+	err = MockController.Repo.DB.GenerationOutput.DeleteOne(deletedGOutput).Exec(ctx)
+	assert.Nil(t, err)
+	err = MockController.Repo.DB.Generation.DeleteOne(targetG).Exec(ctx)
+	assert.Nil(t, err)
 }

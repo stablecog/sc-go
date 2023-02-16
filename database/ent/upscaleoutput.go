@@ -22,6 +22,8 @@ type UpscaleOutput struct {
 	ImagePath string `json:"image_path,omitempty"`
 	// UpscaleID holds the value of the "upscale_id" field.
 	UpscaleID uuid.UUID `json:"upscale_id,omitempty"`
+	// DeletedAt holds the value of the "deleted_at" field.
+	DeletedAt *time.Time `json:"deleted_at,omitempty"`
 	// CreatedAt holds the value of the "created_at" field.
 	CreatedAt time.Time `json:"created_at,omitempty"`
 	// UpdatedAt holds the value of the "updated_at" field.
@@ -60,7 +62,7 @@ func (*UpscaleOutput) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case upscaleoutput.FieldImagePath:
 			values[i] = new(sql.NullString)
-		case upscaleoutput.FieldCreatedAt, upscaleoutput.FieldUpdatedAt:
+		case upscaleoutput.FieldDeletedAt, upscaleoutput.FieldCreatedAt, upscaleoutput.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
 		case upscaleoutput.FieldID, upscaleoutput.FieldUpscaleID:
 			values[i] = new(uuid.UUID)
@@ -96,6 +98,13 @@ func (uo *UpscaleOutput) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field upscale_id", values[i])
 			} else if value != nil {
 				uo.UpscaleID = *value
+			}
+		case upscaleoutput.FieldDeletedAt:
+			if value, ok := values[i].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field deleted_at", values[i])
+			} else if value.Valid {
+				uo.DeletedAt = new(time.Time)
+				*uo.DeletedAt = value.Time
 			}
 		case upscaleoutput.FieldCreatedAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
@@ -147,6 +156,11 @@ func (uo *UpscaleOutput) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("upscale_id=")
 	builder.WriteString(fmt.Sprintf("%v", uo.UpscaleID))
+	builder.WriteString(", ")
+	if v := uo.DeletedAt; v != nil {
+		builder.WriteString("deleted_at=")
+		builder.WriteString(v.Format(time.ANSIC))
+	}
 	builder.WriteString(", ")
 	builder.WriteString("created_at=")
 	builder.WriteString(uo.CreatedAt.Format(time.ANSIC))

@@ -205,20 +205,49 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse401"
-  /v1/admin/generation:
     delete:
-      description: "Generation: Delete (Admin)"
+      description: "Generation: Mark for Delete (User)"
       security:
         - supabase: []
       requestBody:
-        description: JSON Object with generation IDs to delete
+        description: JSON Object with generation output IDs to delete
         content:
           application/json:
             schema:
               $ref: "#/components/schemas/GenerationDeleteRequest"
       responses:
         "200":
-          description: Number of generations deleted
+          description: Number of generations marked for deletion
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DeletedResponse"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse400"
+        "401":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse401"
+  /v1/admin/generation:
+    delete:
+      description: "Generation: Mark for Delete (Admin)"
+      security:
+        - supabase: []
+      requestBody:
+        description: JSON Object with generation output IDs to delete
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/GenerationDeleteRequest"
+      responses:
+        "200":
+          description: Number of generations marked for deletion
           content:
             application/json:
               schema:
@@ -611,7 +640,7 @@ components:
     GenerationDeleteRequest:
       type: object
       properties:
-        generation_ids:
+        generation_output_ids:
           type: array
           items:
             type: string

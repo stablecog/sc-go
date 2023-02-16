@@ -1,7 +1,9 @@
 package rest
 
 import (
+	"encoding/json"
 	"fmt"
+	"io"
 	"math"
 	"net/http"
 	"net/url"
@@ -392,4 +394,34 @@ func ParseQueryGenerationFilters(rawQuery url.Values) (*requests.UserGenerationF
 		filters.UpscaleStatus = requests.UserGenerationQueryUpscaleStatusAny
 	}
 	return filters, nil
+}
+
+// HTTP DELETE - admin delete generation
+func (c *RestAPI) HandleDeleteGenerationOutputForUser(w http.ResponseWriter, r *http.Request) {
+	// Get user id (of admin)
+	userID := c.GetUserIDIfAuthenticated(w, r)
+	if userID == nil {
+		return
+	}
+
+	// Parse request body
+	reqBody, _ := io.ReadAll(r.Body)
+	var deleteReq requests.GenerationDeleteRequest
+	err := json.Unmarshal(reqBody, &deleteReq)
+	if err != nil {
+		responses.ErrUnableToParseJson(w, r)
+		return
+	}
+
+	count, err := c.Repo.MarkGenerationOutputsForDeletionForUser(deleteReq.GenerationOutputIDs, *userID)
+	if err != nil {
+		responses.ErrInternalServerError(w, r, err.Error())
+		return
+	}
+
+	res := responses.DeletedResponse{
+		Deleted: count,
+	}
+	render.Status(r, http.StatusOK)
+	render.JSON(w, r, res)
 }

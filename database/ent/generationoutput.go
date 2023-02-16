@@ -26,6 +26,8 @@ type GenerationOutput struct {
 	GalleryStatus generationoutput.GalleryStatus `json:"gallery_status,omitempty"`
 	// GenerationID holds the value of the "generation_id" field.
 	GenerationID uuid.UUID `json:"generation_id,omitempty"`
+	// DeletedAt holds the value of the "deleted_at" field.
+	DeletedAt *time.Time `json:"deleted_at,omitempty"`
 	// CreatedAt holds the value of the "created_at" field.
 	CreatedAt time.Time `json:"created_at,omitempty"`
 	// UpdatedAt holds the value of the "updated_at" field.
@@ -64,7 +66,7 @@ func (*GenerationOutput) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case generationoutput.FieldImagePath, generationoutput.FieldUpscaledImagePath, generationoutput.FieldGalleryStatus:
 			values[i] = new(sql.NullString)
-		case generationoutput.FieldCreatedAt, generationoutput.FieldUpdatedAt:
+		case generationoutput.FieldDeletedAt, generationoutput.FieldCreatedAt, generationoutput.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
 		case generationoutput.FieldID, generationoutput.FieldGenerationID:
 			values[i] = new(uuid.UUID)
@@ -113,6 +115,13 @@ func (_go *GenerationOutput) assignValues(columns []string, values []any) error 
 				return fmt.Errorf("unexpected type %T for field generation_id", values[i])
 			} else if value != nil {
 				_go.GenerationID = *value
+			}
+		case generationoutput.FieldDeletedAt:
+			if value, ok := values[i].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field deleted_at", values[i])
+			} else if value.Valid {
+				_go.DeletedAt = new(time.Time)
+				*_go.DeletedAt = value.Time
 			}
 		case generationoutput.FieldCreatedAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
@@ -172,6 +181,11 @@ func (_go *GenerationOutput) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("generation_id=")
 	builder.WriteString(fmt.Sprintf("%v", _go.GenerationID))
+	builder.WriteString(", ")
+	if v := _go.DeletedAt; v != nil {
+		builder.WriteString("deleted_at=")
+		builder.WriteString(v.Format(time.ANSIC))
+	}
 	builder.WriteString(", ")
 	builder.WriteString("created_at=")
 	builder.WriteString(_go.CreatedAt.Format(time.ANSIC))

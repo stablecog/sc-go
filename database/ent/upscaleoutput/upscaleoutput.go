@@ -17,6 +17,8 @@ const (
 	FieldImagePath = "image_path"
 	// FieldUpscaleID holds the string denoting the upscale_id field in the database.
 	FieldUpscaleID = "upscale_id"
+	// FieldDeletedAt holds the string denoting the deleted_at field in the database.
+	FieldDeletedAt = "deleted_at"
 	// FieldCreatedAt holds the string denoting the created_at field in the database.
 	FieldCreatedAt = "created_at"
 	// FieldUpdatedAt holds the string denoting the updated_at field in the database.
@@ -39,6 +41,7 @@ var Columns = []string{
 	FieldID,
 	FieldImagePath,
 	FieldUpscaleID,
+	FieldDeletedAt,
 	FieldCreatedAt,
 	FieldUpdatedAt,
 }

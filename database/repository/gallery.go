@@ -51,12 +51,3 @@ func (r *Repository) ApproveOrRejectGenerationOutputs(outputIDs []uuid.UUID, app
 	}
 	return updated, nil
 }
-
-// Delete a generation
-func (r *Repository) DeleteGenerations(generationIDs []uuid.UUID) (int, error) {
-	deleted, err := r.DB.Generation.Delete().Where(generation.IDIn(generationIDs...)).Exec(r.Ctx)
-	if err != nil {
-		return 0, err
-	}
-	return deleted, nil
-}

@@ -9,7 +9,6 @@ import (
 	"testing"
 
 	"github.com/google/uuid"
-	"github.com/stablecog/sc-go/database/ent"
 	"github.com/stablecog/sc-go/database/ent/generationoutput"
 	"github.com/stablecog/sc-go/database/repository"
 	"github.com/stablecog/sc-go/server/requests"
@@ -42,7 +41,7 @@ func TestHandleReviewGallerySubmission(t *testing.T) {
 	resp := w.Result()
 	defer resp.Body.Close()
 	assert.Equal(t, 200, resp.StatusCode)
-	var reviewResp responses.AdminGalleryResponseBody
+	var reviewResp responses.UpdatedResponse
 	respBody, _ := io.ReadAll(resp.Body)
 	json.Unmarshal(respBody, &reviewResp)
 	assert.Equal(t, 1, reviewResp.Updated)
@@ -82,11 +81,14 @@ func TestHandleDeleteGeneration(t *testing.T) {
 	ctx := context.Background()
 	// Create mock generation
 	targetG, err := MockController.Repo.CreateMockGenerationForDeletion(ctx)
-	targetGUid := targetG.ID
+	// Create generation output
+	targetGOutput, err := MockController.Repo.DB.GenerationOutput.Create().SetGenerationID(targetG.ID).SetImagePath("s3://hello/world.png").Save(ctx)
+	assert.Nil(t, err)
+	assert.Nil(t, targetGOutput.DeletedAt)
 
 	// ! Can delete generation
-	reqBody := requests.AdminGenerationDeleteRequest{
-		GenerationIDs: []uuid.UUID{targetGUid},
+	reqBody := requests.GenerationDeleteRequest{
+		GenerationOutputIDs: []uuid.UUID{targetGOutput.ID},
 	}
 	body, _ := json.Marshal(reqBody)
 	w := httptest.NewRecorder()
@@ -97,16 +99,22 @@ func TestHandleDeleteGeneration(t *testing.T) {
 	// Setup context
 	ctx = context.WithValue(req.Context(), "user_id", repository.MOCK_ADMIN_UUID)
 
-	MockController.HandleDeleteGeneration(w, req.WithContext(ctx))
+	MockController.HandleDeleteGenerationOutput(w, req.WithContext(ctx))
 	resp := w.Result()
 	defer resp.Body.Close()
 	assert.Equal(t, 200, resp.StatusCode)
-	var deleteResp responses.AdminDeleteResponseBody
+	var deleteResp responses.DeletedResponse
 	respBody, _ := io.ReadAll(resp.Body)
 	json.Unmarshal(respBody, &deleteResp)
 	assert.Equal(t, 1, deleteResp.Deleted)
 
-	_, err = MockController.Repo.GetGeneration(targetGUid)
-	assert.NotNil(t, err)
-	assert.True(t, ent.IsNotFound(err))
+	deletedGOutput, err := MockController.Repo.GetGenerationOutput(targetGOutput.ID)
+	assert.Nil(t, err)
+	assert.NotNil(t, deletedGOutput.DeletedAt)
+
+	// Cleanup
+	err = MockController.Repo.DB.GenerationOutput.DeleteOne(deletedGOutput).Exec(ctx)
+	assert.Nil(t, err)
+	err = MockController.Repo.DB.Generation.DeleteOne(targetG).Exec(ctx)
+	assert.Nil(t, err)
 }

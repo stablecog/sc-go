@@ -48,7 +48,7 @@ func (c *RestAPI) HandleReviewGallerySubmission(w http.ResponseWriter, r *http.R
 		return
 	}
 
-	res := responses.AdminGalleryResponseBody{
+	res := responses.UpdatedResponse{
 		Updated: updateCount,
 	}
 	render.Status(r, http.StatusOK)
@@ -56,7 +56,7 @@ func (c *RestAPI) HandleReviewGallerySubmission(w http.ResponseWriter, r *http.R
 }
 
 // HTTP DELETE - admin delete generation
-func (c *RestAPI) HandleDeleteGeneration(w http.ResponseWriter, r *http.Request) {
+func (c *RestAPI) HandleDeleteGenerationOutput(w http.ResponseWriter, r *http.Request) {
 	// Get user id (of admin)
 	userID := c.GetUserIDIfAuthenticated(w, r)
 	if userID == nil {
@@ -65,20 +65,20 @@ func (c *RestAPI) HandleDeleteGeneration(w http.ResponseWriter, r *http.Request)
 
 	// Parse request body
 	reqBody, _ := io.ReadAll(r.Body)
-	var adminDeleteReq requests.AdminGenerationDeleteRequest
-	err := json.Unmarshal(reqBody, &adminDeleteReq)
+	var deleteReq requests.GenerationDeleteRequest
+	err := json.Unmarshal(reqBody, &deleteReq)
 	if err != nil {
 		responses.ErrUnableToParseJson(w, r)
 		return
 	}
 
-	count, err := c.Repo.DeleteGenerations(adminDeleteReq.GenerationIDs)
+	count, err := c.Repo.MarkGenerationOutputsForDeletion(deleteReq.GenerationOutputIDs)
 	if err != nil {
 		responses.ErrInternalServerError(w, r, err.Error())
 		return
 	}
 
-	res := responses.AdminDeleteResponseBody{
+	res := responses.DeletedResponse{
 		Deleted: count,
 	}
 	render.Status(r, http.StatusOK)

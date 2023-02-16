@@ -5105,6 +5105,7 @@ type GenerationOutputMutation struct {
 	image_path          *string
 	upscaled_image_path *string
 	gallery_status      *generationoutput.GalleryStatus
+	deleted_at          *time.Time
 	created_at          *time.Time
 	updated_at          *time.Time
 	clearedFields       map[string]struct{}
@@ -5376,6 +5377,55 @@ func (m *GenerationOutputMutation) ResetGenerationID() {
 	m.generations = nil
 }
 
+// SetDeletedAt sets the "deleted_at" field.
+func (m *GenerationOutputMutation) SetDeletedAt(t time.Time) {
+	m.deleted_at = &t
+}
+
+// DeletedAt returns the value of the "deleted_at" field in the mutation.
+func (m *GenerationOutputMutation) DeletedAt() (r time.Time, exists bool) {
+	v := m.deleted_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDeletedAt returns the old "deleted_at" field's value of the GenerationOutput entity.
+// If the GenerationOutput object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *GenerationOutputMutation) OldDeletedAt(ctx context.Context) (v *time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDeletedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDeletedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDeletedAt: %w", err)
+	}
+	return oldValue.DeletedAt, nil
+}
+
+// ClearDeletedAt clears the value of the "deleted_at" field.
+func (m *GenerationOutputMutation) ClearDeletedAt() {
+	m.deleted_at = nil
+	m.clearedFields[generationoutput.FieldDeletedAt] = struct{}{}
+}
+
+// DeletedAtCleared returns if the "deleted_at" field was cleared in this mutation.
+func (m *GenerationOutputMutation) DeletedAtCleared() bool {
+	_, ok := m.clearedFields[generationoutput.FieldDeletedAt]
+	return ok
+}
+
+// ResetDeletedAt resets all changes to the "deleted_at" field.
+func (m *GenerationOutputMutation) ResetDeletedAt() {
+	m.deleted_at = nil
+	delete(m.clearedFields, generationoutput.FieldDeletedAt)
+}
+
 // SetCreatedAt sets the "created_at" field.
 func (m *GenerationOutputMutation) SetCreatedAt(t time.Time) {
 	m.created_at = &t
@@ -5521,7 +5571,7 @@ func (m *GenerationOutputMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *GenerationOutputMutation) Fields() []string {
-	fields := make([]string, 0, 6)
+	fields := make([]string, 0, 7)
 	if m.image_path != nil {
 		fields = append(fields, generationoutput.FieldImagePath)
 	}
@@ -5533,6 +5583,9 @@ func (m *GenerationOutputMutation) Fields() []string {
 	}
 	if m.generations != nil {
 		fields = append(fields, generationoutput.FieldGenerationID)
+	}
+	if m.deleted_at != nil {
+		fields = append(fields, generationoutput.FieldDeletedAt)
 	}
 	if m.created_at != nil {
 		fields = append(fields, generationoutput.FieldCreatedAt)
@@ -5556,6 +5609,8 @@ func (m *GenerationOutputMutation) Field(name string) (ent.Value, bool) {
 		return m.GalleryStatus()
 	case generationoutput.FieldGenerationID:
 		return m.GenerationID()
+	case generationoutput.FieldDeletedAt:
+		return m.DeletedAt()
 	case generationoutput.FieldCreatedAt:
 		return m.CreatedAt()
 	case generationoutput.FieldUpdatedAt:
@@ -5577,6 +5632,8 @@ func (m *GenerationOutputMutation) OldField(ctx context.Context, name string) (e
 		return m.OldGalleryStatus(ctx)
 	case generationoutput.FieldGenerationID:
 		return m.OldGenerationID(ctx)
+	case generationoutput.FieldDeletedAt:
+		return m.OldDeletedAt(ctx)
 	case generationoutput.FieldCreatedAt:
 		return m.OldCreatedAt(ctx)
 	case generationoutput.FieldUpdatedAt:
@@ -5617,6 +5674,13 @@ func (m *GenerationOutputMutation) SetField(name string, value ent.Value) error 
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetGenerationID(v)
+		return nil
+	case generationoutput.FieldDeletedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDeletedAt(v)
 		return nil
 	case generationoutput.FieldCreatedAt:
 		v, ok := value.(time.Time)
@@ -5665,6 +5729,9 @@ func (m *GenerationOutputMutation) ClearedFields() []string {
 	if m.FieldCleared(generationoutput.FieldUpscaledImagePath) {
 		fields = append(fields, generationoutput.FieldUpscaledImagePath)
 	}
+	if m.FieldCleared(generationoutput.FieldDeletedAt) {
+		fields = append(fields, generationoutput.FieldDeletedAt)
+	}
 	return fields
 }
 
@@ -5681,6 +5748,9 @@ func (m *GenerationOutputMutation) ClearField(name string) error {
 	switch name {
 	case generationoutput.FieldUpscaledImagePath:
 		m.ClearUpscaledImagePath()
+		return nil
+	case generationoutput.FieldDeletedAt:
+		m.ClearDeletedAt()
 		return nil
 	}
 	return fmt.Errorf("unknown GenerationOutput nullable field %s", name)
@@ -5701,6 +5771,9 @@ func (m *GenerationOutputMutation) ResetField(name string) error {
 		return nil
 	case generationoutput.FieldGenerationID:
 		m.ResetGenerationID()
+		return nil
+	case generationoutput.FieldDeletedAt:
+		m.ResetDeletedAt()
 		return nil
 	case generationoutput.FieldCreatedAt:
 		m.ResetCreatedAt()
@@ -9308,6 +9381,7 @@ type UpscaleOutputMutation struct {
 	typ             string
 	id              *uuid.UUID
 	image_path      *string
+	deleted_at      *time.Time
 	created_at      *time.Time
 	updated_at      *time.Time
 	clearedFields   map[string]struct{}
@@ -9494,6 +9568,55 @@ func (m *UpscaleOutputMutation) ResetUpscaleID() {
 	m.upscales = nil
 }
 
+// SetDeletedAt sets the "deleted_at" field.
+func (m *UpscaleOutputMutation) SetDeletedAt(t time.Time) {
+	m.deleted_at = &t
+}
+
+// DeletedAt returns the value of the "deleted_at" field in the mutation.
+func (m *UpscaleOutputMutation) DeletedAt() (r time.Time, exists bool) {
+	v := m.deleted_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDeletedAt returns the old "deleted_at" field's value of the UpscaleOutput entity.
+// If the UpscaleOutput object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UpscaleOutputMutation) OldDeletedAt(ctx context.Context) (v *time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDeletedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDeletedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDeletedAt: %w", err)
+	}
+	return oldValue.DeletedAt, nil
+}
+
+// ClearDeletedAt clears the value of the "deleted_at" field.
+func (m *UpscaleOutputMutation) ClearDeletedAt() {
+	m.deleted_at = nil
+	m.clearedFields[upscaleoutput.FieldDeletedAt] = struct{}{}
+}
+
+// DeletedAtCleared returns if the "deleted_at" field was cleared in this mutation.
+func (m *UpscaleOutputMutation) DeletedAtCleared() bool {
+	_, ok := m.clearedFields[upscaleoutput.FieldDeletedAt]
+	return ok
+}
+
+// ResetDeletedAt resets all changes to the "deleted_at" field.
+func (m *UpscaleOutputMutation) ResetDeletedAt() {
+	m.deleted_at = nil
+	delete(m.clearedFields, upscaleoutput.FieldDeletedAt)
+}
+
 // SetCreatedAt sets the "created_at" field.
 func (m *UpscaleOutputMutation) SetCreatedAt(t time.Time) {
 	m.created_at = &t
@@ -9639,12 +9762,15 @@ func (m *UpscaleOutputMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *UpscaleOutputMutation) Fields() []string {
-	fields := make([]string, 0, 4)
+	fields := make([]string, 0, 5)
 	if m.image_path != nil {
 		fields = append(fields, upscaleoutput.FieldImagePath)
 	}
 	if m.upscales != nil {
 		fields = append(fields, upscaleoutput.FieldUpscaleID)
+	}
+	if m.deleted_at != nil {
+		fields = append(fields, upscaleoutput.FieldDeletedAt)
 	}
 	if m.created_at != nil {
 		fields = append(fields, upscaleoutput.FieldCreatedAt)
@@ -9664,6 +9790,8 @@ func (m *UpscaleOutputMutation) Field(name string) (ent.Value, bool) {
 		return m.ImagePath()
 	case upscaleoutput.FieldUpscaleID:
 		return m.UpscaleID()
+	case upscaleoutput.FieldDeletedAt:
+		return m.DeletedAt()
 	case upscaleoutput.FieldCreatedAt:
 		return m.CreatedAt()
 	case upscaleoutput.FieldUpdatedAt:
@@ -9681,6 +9809,8 @@ func (m *UpscaleOutputMutation) OldField(ctx context.Context, name string) (ent.
 		return m.OldImagePath(ctx)
 	case upscaleoutput.FieldUpscaleID:
 		return m.OldUpscaleID(ctx)
+	case upscaleoutput.FieldDeletedAt:
+		return m.OldDeletedAt(ctx)
 	case upscaleoutput.FieldCreatedAt:
 		return m.OldCreatedAt(ctx)
 	case upscaleoutput.FieldUpdatedAt:
@@ -9707,6 +9837,13 @@ func (m *UpscaleOutputMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetUpscaleID(v)
+		return nil
+	case upscaleoutput.FieldDeletedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDeletedAt(v)
 		return nil
 	case upscaleoutput.FieldCreatedAt:
 		v, ok := value.(time.Time)
@@ -9751,7 +9888,11 @@ func (m *UpscaleOutputMutation) AddField(name string, value ent.Value) error {
 // ClearedFields returns all nullable fields that were cleared during this
 // mutation.
 func (m *UpscaleOutputMutation) ClearedFields() []string {
-	return nil
+	var fields []string
+	if m.FieldCleared(upscaleoutput.FieldDeletedAt) {
+		fields = append(fields, upscaleoutput.FieldDeletedAt)
+	}
+	return fields
 }
 
 // FieldCleared returns a boolean indicating if a field with the given name was
@@ -9764,6 +9905,11 @@ func (m *UpscaleOutputMutation) FieldCleared(name string) bool {
 // ClearField clears the value of the field with the given name. It returns an
 // error if the field is not defined in the schema.
 func (m *UpscaleOutputMutation) ClearField(name string) error {
+	switch name {
+	case upscaleoutput.FieldDeletedAt:
+		m.ClearDeletedAt()
+		return nil
+	}
 	return fmt.Errorf("unknown UpscaleOutput nullable field %s", name)
 }
 
@@ -9776,6 +9922,9 @@ func (m *UpscaleOutputMutation) ResetField(name string) error {
 		return nil
 	case upscaleoutput.FieldUpscaleID:
 		m.ResetUpscaleID()
+		return nil
+	case upscaleoutput.FieldDeletedAt:
+		m.ResetDeletedAt()
 		return nil
 	case upscaleoutput.FieldCreatedAt:
 		m.ResetCreatedAt()

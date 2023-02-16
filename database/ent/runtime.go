@@ -118,11 +118,11 @@ func init() {
 	generationoutputFields := schema.GenerationOutput{}.Fields()
 	_ = generationoutputFields
 	// generationoutputDescCreatedAt is the schema descriptor for created_at field.
-	generationoutputDescCreatedAt := generationoutputFields[5].Descriptor()
+	generationoutputDescCreatedAt := generationoutputFields[6].Descriptor()
 	// generationoutput.DefaultCreatedAt holds the default value on creation for the created_at field.
 	generationoutput.DefaultCreatedAt = generationoutputDescCreatedAt.Default.(func() time.Time)
 	// generationoutputDescUpdatedAt is the schema descriptor for updated_at field.
-	generationoutputDescUpdatedAt := generationoutputFields[6].Descriptor()
+	generationoutputDescUpdatedAt := generationoutputFields[7].Descriptor()
 	// generationoutput.DefaultUpdatedAt holds the default value on creation for the updated_at field.
 	generationoutput.DefaultUpdatedAt = generationoutputDescUpdatedAt.Default.(func() time.Time)
 	// generationoutput.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
@@ -214,11 +214,11 @@ func init() {
 	upscaleoutputFields := schema.UpscaleOutput{}.Fields()
 	_ = upscaleoutputFields
 	// upscaleoutputDescCreatedAt is the schema descriptor for created_at field.
-	upscaleoutputDescCreatedAt := upscaleoutputFields[3].Descriptor()
+	upscaleoutputDescCreatedAt := upscaleoutputFields[4].Descriptor()
 	// upscaleoutput.DefaultCreatedAt holds the default value on creation for the created_at field.
 	upscaleoutput.DefaultCreatedAt = upscaleoutputDescCreatedAt.Default.(func() time.Time)
 	// upscaleoutputDescUpdatedAt is the schema descriptor for updated_at field.
-	upscaleoutputDescUpdatedAt := upscaleoutputFields[4].Descriptor()
+	upscaleoutputDescUpdatedAt := upscaleoutputFields[5].Descriptor()
 	// upscaleoutput.DefaultUpdatedAt holds the default value on creation for the updated_at field.
 	upscaleoutput.DefaultUpdatedAt = upscaleoutputDescUpdatedAt.Default.(func() time.Time)
 	// upscaleoutput.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.

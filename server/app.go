@@ -157,11 +157,19 @@ func main() {
 		r.Route("/user", func(r chi.Router) {
 			r.Use(mw.AuthMiddleware)
 			r.Use(chimiddleware.Logger)
+
+			// Create Generation
 			r.Post("/generation", hc.HandleCreateGeneration)
+			// Mark generation for deletion
+			r.Delete("/generation", hc.HandleDeleteGenerationOutputForUser)
+
+			// Query Generation (outputs + generations)
 			r.Get("/outputs", hc.HandleQueryGenerations)
 
+			// Create upscale
 			r.Post("/upscale", hc.HandleUpscale)
 
+			// Query credits
 			r.Get("/credits", hc.HandleQueryCredits)
 		})
 
@@ -177,7 +185,7 @@ func main() {
 				r.Use(mw.AuthMiddleware)
 				r.Use(mw.SuperAdminMiddleware)
 				r.Use(chimiddleware.Logger)
-				r.Delete("/", hc.HandleDeleteGeneration)
+				r.Delete("/", hc.HandleDeleteGenerationOutput)
 			})
 		})
 	})

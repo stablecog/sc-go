@@ -285,6 +285,11 @@ func (r *Repository) GetUserGenerationCountWithFilters(userID uuid.UUID, filters
 	query = r.DB.Generation.Query().
 		Where(generation.UserID(userID), generation.StatusEQ(generation.StatusSucceeded))
 
+	// Exclude deleted at always
+	query = query.Where(func(s *sql.Selector) {
+		s.Where(sql.IsNull("deleted_at"))
+	})
+
 	// Apply filters
 	query = r.ApplyUserGenerationsFilters(query, filters)
 
@@ -343,6 +348,11 @@ func (r *Repository) GetUserGenerations(userID uuid.UUID, per_page int, cursor *
 		query = query.Where(generation.CreatedAtLT(*cursor))
 	}
 
+	// Exclude deleted at always
+	query = query.Where(func(s *sql.Selector) {
+		s.Where(sql.IsNull("deleted_at"))
+	})
+
 	// Apply filters
 	query = r.ApplyUserGenerationsFilters(query, filters)
 
@@ -361,7 +371,8 @@ func (r *Repository) GetUserGenerations(userID uuid.UUID, per_page int, cursor *
 			s.C(generation.FieldPromptID), pt.C(prompt.FieldID),
 		).LeftJoin(got).On(
 			s.C(generation.FieldID), got.C(generationoutput.FieldGenerationID),
-		).AppendSelect(sql.As(npt.C(negativeprompt.FieldText), "negative_prompt_text"), sql.As(pt.C(prompt.FieldText), "prompt_text"), sql.As(got.C(generationoutput.FieldID), "output_id"), sql.As(got.C(generationoutput.FieldGalleryStatus), "output_gallery_status"), sql.As(got.C(generationoutput.FieldImagePath), "image_path"), sql.As(got.C(generationoutput.FieldUpscaledImagePath), "upscaled_image_path")).GroupBy(s.C(generation.FieldID)).
+		).AppendSelect(sql.As(npt.C(negativeprompt.FieldText), "negative_prompt_text"), sql.As(pt.C(prompt.FieldText), "prompt_text"), sql.As(got.C(generationoutput.FieldID), "output_id"), sql.As(got.C(generationoutput.FieldGalleryStatus), "output_gallery_status"), sql.As(got.C(generationoutput.FieldImagePath), "image_path"), sql.As(got.C(generationoutput.FieldUpscaledImagePath), "upscaled_image_path"), sql.As(got.C(generationoutput.FieldDeletedAt), "deleted_at")).
+			GroupBy(s.C(generation.FieldID)).
 			GroupBy(npt.C(negativeprompt.FieldText)).
 			GroupBy(pt.C(prompt.FieldText)).
 			GroupBy(got.C(generationoutput.FieldID)).
@@ -499,6 +510,7 @@ type UserGenerationQueryResult struct {
 	ImageUrl         string                         `json:"image_url,omitempty" sql:"image_path"`
 	UpscaledImageUrl string                         `json:"upscaled_image_url,omitempty" sql:"upscaled_image_path"`
 	GalleryStatus    generationoutput.GalleryStatus `json:"gallery_status,omitempty" sql:"output_gallery_status"`
+	DeletedAt        *time.Time                     `json:"deleted_at,omitempty" sql:"deleted_at"`
 	UserGenerationQueryData
 }
 
