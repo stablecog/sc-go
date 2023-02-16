@@ -86,13 +86,17 @@ func (r *Repository) SetGenerationStarted(generationID string) error {
 	return err
 }
 
-func (r *Repository) SetGenerationFailed(generationID string, reason string, nsfwCount int32) error {
+func (r *Repository) SetGenerationFailed(generationID string, reason string, nsfwCount int32, db *ent.Client) error {
+	if db == nil {
+		db = r.DB
+	}
+
 	uid, err := uuid.Parse(generationID)
 	if err != nil {
 		klog.Errorf("Error parsing generation id in SetGenerationFailed %s: %v", generationID, err)
 		return err
 	}
-	_, err = r.DB.Generation.UpdateOneID(uid).SetStatus(generation.StatusFailed).SetFailureReason(reason).SetNsfwCount(nsfwCount).Save(r.Ctx)
+	_, err = db.Generation.UpdateOneID(uid).SetStatus(generation.StatusFailed).SetFailureReason(reason).SetNsfwCount(nsfwCount).Save(r.Ctx)
 	if err != nil {
 		klog.Errorf("Error setting generation failed %s: %v", generationID, err)
 	}

@@ -88,7 +88,7 @@ func TestRefundCreditsToUser(t *testing.T) {
 	assert.Equal(t, int32(1234-50), credits.RemainingAmount)
 
 	// Refund
-	success, err = MockRepo.RefundCreditsToUser(uuid.MustParse(MOCK_NORMAL_UUID), 50)
+	success, err = MockRepo.RefundCreditsToUser(uuid.MustParse(MOCK_NORMAL_UUID), 50, nil)
 	assert.Nil(t, err)
 	assert.Equal(t, true, success)
 

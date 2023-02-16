@@ -116,8 +116,11 @@ func (r *Repository) DeductCreditsFromUser(userID uuid.UUID, amount int32, DB *e
 }
 
 // Refund credits for user, starting with credits that expire soonest. Return true if refund was successful
-func (r *Repository) RefundCreditsToUser(userID uuid.UUID, amount int32) (success bool, err error) {
-	rowsAffected, err := r.DB.Credit.Update().
+func (r *Repository) RefundCreditsToUser(userID uuid.UUID, amount int32, db *ent.Client) (success bool, err error) {
+	if db == nil {
+		db = r.DB
+	}
+	rowsAffected, err := db.Credit.Update().
 		Where(func(s *sql.Selector) {
 			t := sql.Table(credit.Table)
 			s.Where(

@@ -179,7 +179,7 @@ func (repo *Repository) CreateMockData(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	err = repo.SetGenerationFailed(gen.ID.String(), "Failed to generate", 0)
+	err = repo.SetGenerationFailed(gen.ID.String(), "Failed to generate", 0, nil)
 	if err != nil {
 		return err
 	}

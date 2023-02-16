@@ -1,5 +1,11 @@
 package shared
 
+import "time"
+
+// After this period, a request will timeout and a user will be refunded
+// But the generation/upscale may still go through, if it takes longer than this
+const REQUEST_COG_TIMEOUT = 60 * time.Second
+
 // Generation related
 const MAX_GENERATE_WIDTH = 768
 const MAX_GENERATE_HEIGHT = 768

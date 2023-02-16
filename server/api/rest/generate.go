@@ -18,10 +18,6 @@ import (
 	"k8s.io/klog/v2"
 )
 
-// ! TODO - we need some type of timeout functionality
-// ! If we don't get a response from cog within a certain amount of time, we should update generation as failed
-// ! and refund user credits
-
 // POST generate endpoint
 // Adds generate to queue, if authenticated, returns the ID of the generation
 func (c *RestAPI) HandleCreateGeneration(w http.ResponseWriter, r *http.Request) {
@@ -132,6 +128,8 @@ func (c *RestAPI) HandleCreateGeneration(w http.ResponseWriter, r *http.Request)
 	var livePageMsg responses.LivePageMessage
 	// For keeping track of this request as it gets sent to the worker
 	var requestId string
+	// Cog request
+	var cogReqBody requests.CogQueueRequest
 
 	// Wrap everything in a DB transaction
 	// We do this since we want our credit deduction to be atomic with the whole process
@@ -181,7 +179,7 @@ func (c *RestAPI) HandleCreateGeneration(w http.ResponseWriter, r *http.Request)
 			CreatedAt:   g.CreatedAt,
 		}
 
-		cogReqBody := requests.CogQueueRequest{
+		cogReqBody = requests.CogQueueRequest{
 			WebhookEventsFilter: []requests.WebhookEventFilterOption{requests.WebhookEventFilterStart, requests.WebhookEventFilterStart},
 			RedisPubsubKey:      shared.COG_REDIS_EVENT_CHANNEL,
 			Input: requests.BaseCogRequest{
@@ -224,6 +222,17 @@ func (c *RestAPI) HandleCreateGeneration(w http.ResponseWriter, r *http.Request)
 
 	// Send live page update
 	go c.Hub.BroadcastLivePageMessage(livePageMsg)
+
+	// Start the timeout timer
+	go func() {
+		// sleep
+		time.Sleep(shared.REQUEST_COG_TIMEOUT)
+		// this will trigger timeout if it hasnt been finished
+		c.Repo.FailCogMessageDueToTimeoutIfTimedOut(responses.CogStatusUpdate{
+			Input: cogReqBody.Input,
+			Error: "TIMEOUT",
+		})
+	}()
 
 	render.Status(r, http.StatusOK)
 	render.JSON(w, r, &responses.QueuedResponse{

@@ -52,13 +52,17 @@ func (r *Repository) SetUpscaleStarted(upscaleID string) error {
 	return err
 }
 
-func (r *Repository) SetUpscaleFailed(upscaleID string, reason string) error {
+func (r *Repository) SetUpscaleFailed(upscaleID string, reason string, db *ent.Client) error {
+	if db == nil {
+		db = r.DB
+	}
+
 	uid, err := uuid.Parse(upscaleID)
 	if err != nil {
 		klog.Errorf("Error parsing generation id in SetUpscaleFailed %s: %v", upscaleID, err)
 		return err
 	}
-	_, err = r.DB.Upscale.UpdateOneID(uid).SetStatus(upscale.StatusFailed).SetFailureReason(reason).Save(r.Ctx)
+	_, err = db.Upscale.UpdateOneID(uid).SetStatus(upscale.StatusFailed).SetFailureReason(reason).Save(r.Ctx)
 	if err != nil {
 		klog.Errorf("Error setting upscale failed %s: %v", upscaleID, err)
 	}

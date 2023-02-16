@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"time"
 
 	"github.com/go-chi/render"
 	"github.com/google/uuid"
@@ -15,10 +16,6 @@ import (
 	"github.com/stablecog/sc-go/utils"
 	"k8s.io/klog/v2"
 )
-
-// ! TODO - we need some type of timeout functionality
-// ! If we don't get a response from cog within a certain amount of time, we should update generation as failed
-// ! and refund user credits
 
 func (c *RestAPI) HandleUpscale(w http.ResponseWriter, r *http.Request) {
 	userID := c.GetUserIDIfAuthenticated(w, r)
@@ -110,6 +107,13 @@ func (c *RestAPI) HandleUpscale(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		imageUrl = output.ImagePath
+		s3Parsed, err := utils.ParseS3UrlToURL(imageUrl)
+		if err != nil {
+			klog.Warningf("Error parsing s3 url from output: %v", err)
+		} else {
+			imageUrl = s3Parsed
+		}
+
 		// Get width/height of generation
 		width, height, err = c.Repo.GetGenerationOutputWidthHeight(outputID)
 		if err != nil {
@@ -122,6 +126,8 @@ func (c *RestAPI) HandleUpscale(w http.ResponseWriter, r *http.Request) {
 	var livePageMsg responses.LivePageMessage
 	// For keeping track of this request as it gets sent to the worker
 	var requestId string
+	// The cog request body
+	var cogReqBody requests.CogQueueRequest
 
 	// Wrap everything in a DB transaction
 	// We do this since we want our credit deduction to be atomic with the whole process
@@ -172,7 +178,7 @@ func (c *RestAPI) HandleUpscale(w http.ResponseWriter, r *http.Request) {
 		}
 
 		// Send to the cog
-		cogReqBody := requests.CogQueueRequest{
+		cogReqBody = requests.CogQueueRequest{
 			WebhookEventsFilter: []requests.WebhookEventFilterOption{requests.WebhookEventFilterStart, requests.WebhookEventFilterStart},
 			RedisPubsubKey:      shared.COG_REDIS_EVENT_CHANNEL,
 			Input: requests.BaseCogRequest{
@@ -204,6 +210,17 @@ func (c *RestAPI) HandleUpscale(w http.ResponseWriter, r *http.Request) {
 
 	// Deal with live page update
 	go c.Hub.BroadcastLivePageMessage(livePageMsg)
+
+	// Start the timeout timer
+	go func() {
+		// sleep
+		time.Sleep(shared.REQUEST_COG_TIMEOUT)
+		// this will trigger timeout if it hasnt been finished
+		c.Repo.FailCogMessageDueToTimeoutIfTimedOut(responses.CogStatusUpdate{
+			Input: cogReqBody.Input,
+			Error: "TIMEOUT",
+		})
+	}()
 
 	render.Status(r, http.StatusOK)
 	render.JSON(w, r, &responses.QueuedResponse{
