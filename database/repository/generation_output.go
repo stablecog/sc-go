@@ -4,14 +4,28 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/stablecog/sc-go/database/ent"
 	"github.com/stablecog/sc-go/database/ent/generation"
 	"github.com/stablecog/sc-go/database/ent/generationoutput"
 )
 
 // Marks generations for deletions by setting deleted_at
 func (r *Repository) MarkGenerationOutputsForDeletion(generationOutputIDs []uuid.UUID) (int, error) {
-	deleted, err := r.DB.GenerationOutput.Update().Where(generationoutput.IDIn(generationOutputIDs...)).SetDeletedAt(time.Now()).Save(r.Ctx)
-	if err != nil {
+	var deleted int
+	var err error
+	// Start transaction
+	if err := r.WithTx(func(tx *ent.Tx) error {
+		db := tx.Client()
+		deleted, err = db.GenerationOutput.Update().Where(generationoutput.IDIn(generationOutputIDs...)).SetDeletedAt(time.Now()).Save(r.Ctx)
+		if err != nil {
+			return err
+		}
+		_, err := r.MarkUpscaleOutputForDeletionBasedOnGenerationOutputIDs(generationOutputIDs, db)
+		if err != nil {
+			return err
+		}
+		return nil
+	}); err != nil {
 		return 0, err
 	}
 	return deleted, nil

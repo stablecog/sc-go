@@ -82,9 +82,13 @@ func TestHandleDeleteGeneration(t *testing.T) {
 	// Create mock generation
 	targetG, err := MockController.Repo.CreateMockGenerationForDeletion(ctx)
 	// Create generation output
-	targetGOutput, err := MockController.Repo.DB.GenerationOutput.Create().SetGenerationID(targetG.ID).SetImagePath("s3://hello/world.png").Save(ctx)
+	targetGOutput, err := MockController.Repo.DB.GenerationOutput.Create().SetGenerationID(targetG.ID).SetImagePath("s3://hello/world.png").SetUpscaledImagePath("s3://hello/upscaled.png").Save(ctx)
 	assert.Nil(t, err)
 	assert.Nil(t, targetGOutput.DeletedAt)
+	// Create upscale output
+	targetUpscale, err := MockController.Repo.CreateMockUpscaleForDeletion(ctx)
+	targetUpscaleOutput, err := MockController.Repo.DB.UpscaleOutput.Create().SetImagePath("s3://hello/upscaled.png").SetUpscaleID(targetUpscale.ID).Save(ctx)
+	assert.Nil(t, err)
 
 	// ! Can delete generation
 	reqBody := requests.GenerationDeleteRequest{
@@ -112,9 +116,17 @@ func TestHandleDeleteGeneration(t *testing.T) {
 	assert.Nil(t, err)
 	assert.NotNil(t, deletedGOutput.DeletedAt)
 
+	upscaledOutput, err := MockController.Repo.GetUpscaleOutputWithPath(targetUpscaleOutput.ImagePath)
+	assert.Nil(t, err)
+	assert.NotNil(t, upscaledOutput.DeletedAt)
+
 	// Cleanup
 	err = MockController.Repo.DB.GenerationOutput.DeleteOne(deletedGOutput).Exec(ctx)
 	assert.Nil(t, err)
 	err = MockController.Repo.DB.Generation.DeleteOne(targetG).Exec(ctx)
+	assert.Nil(t, err)
+	err = MockController.Repo.DB.UpscaleOutput.DeleteOne(upscaledOutput).Exec(ctx)
+	assert.Nil(t, err)
+	err = MockController.Repo.DB.Upscale.DeleteOne(targetUpscale).Exec(ctx)
 	assert.Nil(t, err)
 }
