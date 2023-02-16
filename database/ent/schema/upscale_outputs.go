@@ -8,6 +8,7 @@ import (
 	"entgo.io/ent/schema"
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
+	"entgo.io/ent/schema/index"
 	"github.com/google/uuid"
 )
 
@@ -46,5 +47,12 @@ func (UpscaleOutput) Edges() []ent.Edge {
 func (UpscaleOutput) Annotations() []schema.Annotation {
 	return []schema.Annotation{
 		entsql.Annotation{Table: "upscale_outputs"},
+	}
+}
+
+// Indexes of the UpscaleOutput.
+func (UpscaleOutput) Indexes() []ent.Index {
+	return []ent.Index{
+		index.Fields("image_path"),
 	}
 }

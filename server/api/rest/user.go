@@ -22,6 +22,10 @@ import (
 const DEFAULT_PER_PAGE = 50
 const MAX_PER_PAGE = 100
 
+// HTTP Get - user info
+func (c *RestAPI) HandleGetUser(w http.ResponseWriter, r *http.Request) {
+}
+
 // HTTP Get - generations for user
 // Takes query paramers for pagination
 // per_page: number of generations to return

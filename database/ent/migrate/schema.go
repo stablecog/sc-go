@@ -332,6 +332,13 @@ var (
 				OnDelete:   schema.Cascade,
 			},
 		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "upscaleoutput_image_path",
+				Unique:  false,
+				Columns: []*schema.Column{UpscaleOutputsColumns[1]},
+			},
+		},
 	}
 	// UsersColumns holds the columns for the "users" table.
 	UsersColumns = []*schema.Column{
