@@ -135,6 +135,7 @@ func main() {
 	mw := middleware.Middleware{
 		SupabaseAuth: database.NewSupabaseAuth(),
 		Repo:         repo,
+		Redis:        redis,
 	}
 
 	// Routes
@@ -157,6 +158,7 @@ func main() {
 		r.Route("/user", func(r chi.Router) {
 			r.Use(mw.AuthMiddleware)
 			r.Use(chimiddleware.Logger)
+			r.Use(mw.RateLimit())
 
 			// Create Generation
 			r.Post("/generation", hc.HandleCreateGeneration)

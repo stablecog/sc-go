@@ -46,6 +46,20 @@ func (r *Repository) IsSuperAdmin(userID uuid.UUID) (bool, error) {
 	return false, nil
 }
 
+func (r *Repository) GetSuperAdminUserIDs() ([]uuid.UUID, error) {
+	// Query all super  admins
+	admins, err := r.DB.UserRole.Query().Select(userrole.FieldUserID).Where(userrole.RoleNameEQ(userrole.RoleNameSUPER_ADMIN)).All(r.Ctx)
+	if err != nil {
+		klog.Errorf("Error getting user roles: %v", err)
+		return nil, err
+	}
+	var adminIDs []uuid.UUID
+	for _, admin := range admins {
+		adminIDs = append(adminIDs, admin.UserID)
+	}
+	return adminIDs, nil
+}
+
 func (r *Repository) GetRoles(userID uuid.UUID) ([]userrole.RoleName, error) {
 	roles, err := r.DB.UserRole.Query().Where(userrole.UserIDEQ(userID)).All(r.Ctx)
 	if err != nil {

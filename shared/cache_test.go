@@ -8,13 +8,6 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestNewCache(t *testing.T) {
-	fc := newCache()
-	assert.Equal(t, int32(512), fc.FreeWidths[0])
-	assert.Equal(t, int32(512), fc.FreeHeights[0])
-	assert.Equal(t, int32(30), fc.FreeInterferenceSteps[0])
-}
-
 func resetCache() {
 	singleCache = newCache()
 }
@@ -22,9 +15,9 @@ func resetCache() {
 func TestGetCacheReturnsSameInstance(t *testing.T) {
 	resetCache()
 	fc1 := GetCache()
-	fc1.FreeHeights[0] = 1024
+	fc1.AdminIDs = []uuid.UUID{uuid.New()}
 	fc2 := GetCache()
-	assert.Equal(t, int32(1024), fc2.FreeHeights[0])
+	assert.Len(t, fc2.AdminIDs, 1)
 }
 
 func TestUpdateGenerateModels(t *testing.T) {
@@ -105,27 +98,6 @@ func TestIsValidSchedulerID(t *testing.T) {
 	assert.True(t, fc.IsValidShedulerID(uid))
 }
 
-func TestIsWidthAvailableForFree(t *testing.T) {
-	resetCache()
-	fc := GetCache()
-	assert.False(t, fc.IsWidthAvailableForFree(1024))
-	assert.True(t, fc.IsWidthAvailableForFree(512))
-}
-
-func TestIsHeightAvailableForFree(t *testing.T) {
-	resetCache()
-	fc := GetCache()
-	assert.False(t, fc.IsHeightAvailableForFree(1024))
-	assert.True(t, fc.IsHeightAvailableForFree(512))
-}
-
-func TestIsNumInterferenceStepsAvailableForFree(t *testing.T) {
-	resetCache()
-	fc := GetCache()
-	assert.False(t, fc.IsNumInterferenceStepsAvailableForFree(31))
-	assert.True(t, fc.IsNumInterferenceStepsAvailableForFree(30))
-}
-
 func TestGetGenerationModelNameFromID(t *testing.T) {
 	resetCache()
 	fc := GetCache()
@@ -169,4 +141,17 @@ func TestGetSchedulerNameFromID(t *testing.T) {
 	assert.Equal(t, "test", fc.GetSchedulerNameFromID(uid))
 	// Assert empty if not found
 	assert.Equal(t, "", fc.GetSchedulerNameFromID(uuid.MustParse("00000000-0000-0000-0000-000000000001")))
+}
+
+func TestIsAdmin(t *testing.T) {
+	resetCache()
+	fc := GetCache()
+	// Predictable uuid
+	uid := uuid.MustParse("00000000-0000-0000-0000-000000000000")
+	// Assert not admin
+	assert.False(t, fc.IsAdmin(uid))
+	// Add to models
+	fc.SetAdminUUIDs([]uuid.UUID{uid})
+	// Assert
+	assert.True(t, fc.IsAdmin(uid))
 }

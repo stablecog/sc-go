@@ -5,7 +5,6 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/stablecog/sc-go/database/ent"
-	"golang.org/x/exp/slices"
 )
 
 // A singleton that caches the features available to free users
@@ -13,12 +12,10 @@ import (
 
 type Cache struct {
 	// Models and options available to free users
-	FreeWidths            []int32
-	FreeHeights           []int32
-	FreeInterferenceSteps []int32
-	GenerateModels        []*ent.GenerationModel
-	UpscaleModels         []*ent.UpscaleModel
-	Schedulers            []*ent.Scheduler
+	GenerateModels []*ent.GenerationModel
+	UpscaleModels  []*ent.UpscaleModel
+	Schedulers     []*ent.Scheduler
+	AdminIDs       []uuid.UUID
 }
 
 var lock = &sync.Mutex{}
@@ -26,11 +23,7 @@ var lock = &sync.Mutex{}
 var singleCache *Cache
 
 func newCache() *Cache {
-	return &Cache{
-		FreeWidths:            []int32{MAX_GENERATE_WIDTH_FREE},
-		FreeHeights:           []int32{MAX_GENERATE_HEIGHT_FREE},
-		FreeInterferenceSteps: []int32{MAX_GENERATE_INTERFERENCE_STEPS_FREE},
-	}
+	return &Cache{}
 }
 
 func GetCache() *Cache {
@@ -88,17 +81,6 @@ func (f *Cache) IsValidShedulerID(id uuid.UUID) bool {
 	}
 	return false
 }
-func (f *Cache) IsWidthAvailableForFree(width int32) bool {
-	return slices.Contains(f.FreeWidths, width)
-}
-
-func (f *Cache) IsHeightAvailableForFree(width int32) bool {
-	return slices.Contains(f.FreeHeights, width)
-}
-
-func (f *Cache) IsNumInterferenceStepsAvailableForFree(width int32) bool {
-	return slices.Contains(f.FreeInterferenceSteps, width)
-}
 
 func (f *Cache) GetGenerationModelNameFromID(id uuid.UUID) string {
 	for _, model := range f.GenerateModels {
@@ -125,4 +107,19 @@ func (f *Cache) GetSchedulerNameFromID(id uuid.UUID) string {
 		}
 	}
 	return ""
+}
+
+func (f *Cache) IsAdmin(id uuid.UUID) bool {
+	for _, adminID := range f.AdminIDs {
+		if adminID == id {
+			return true
+		}
+	}
+	return false
+}
+
+func (f *Cache) SetAdminUUIDs(ids []uuid.UUID) {
+	lock.Lock()
+	defer lock.Unlock()
+	f.AdminIDs = ids
 }

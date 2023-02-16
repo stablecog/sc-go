@@ -27,5 +27,12 @@ func (r *Repository) UpdateCache() error {
 		return err
 	}
 	shared.GetCache().UpdateSchedulers(schedulers)
+
+	admins, err := r.GetSuperAdminUserIDs()
+	if err != nil {
+		klog.Fatalf("Failed to get super admins: %v", err)
+		return err
+	}
+	shared.GetCache().SetAdminUUIDs(admins)
 	return nil
 }
