@@ -181,6 +181,8 @@ func (c *RestAPI) HandleUpscale(w http.ResponseWriter, r *http.Request) {
 				GenerationOutputID: outputIDStr,
 				Image:              imageUrl,
 				ProcessType:        shared.UPSCALE,
+				Width:              fmt.Sprint(width),
+				Height:             fmt.Sprint(height),
 			},
 		}
 
