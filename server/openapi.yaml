@@ -717,9 +717,9 @@ components:
     LivePageUpdate:
       type: object
       properties:
-        type:
+        process_type:
           type: string
-          format: live_generation, live_upscale
+          format: generate, generate_and_upscale, upscale
         id:
           type: string
         country_code:

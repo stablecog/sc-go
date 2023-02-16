@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 
 	"github.com/stablecog/sc-go/server/responses"
+	"github.com/stablecog/sc-go/shared"
 	"k8s.io/klog/v2"
 )
 
@@ -27,7 +28,7 @@ func (h *Hub) BroadcastStatusUpdate(msg responses.SSEStatusUpdateResponse) {
 }
 
 // Broadcast a message for the live page
-func (h *Hub) BroadcastLivePageMessage(req responses.LivePageMessage) {
+func (h *Hub) BroadcastLivePageMessage(req shared.LivePageMessage) {
 	bytes, err := json.Marshal(req)
 	if err != nil {
 		klog.Errorf("Error marshalling live page message: %v", err)

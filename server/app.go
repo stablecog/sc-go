@@ -216,21 +216,17 @@ func main() {
 			// Process live page message
 			go func() {
 				// Live page update
-				livePageMsg, ok := cogMessage.Input.LivePageData.(responses.LivePageMessage)
-				var status responses.LivePageStatus
+				livePageMsg := cogMessage.Input.LivePageData
+				var status shared.LivePageStatus
 				switch cogMessage.Status {
 				case responses.CogProcessing:
-					status = responses.LivePageProcessing
+					status = shared.LivePageProcessing
 				case responses.CogSucceeded:
-					status = responses.LivePageSucceeded
+					status = shared.LivePageSucceeded
 				case responses.CogFailed:
-					status = responses.LivePageFailed
+					status = shared.LivePageFailed
 				default:
 					klog.Errorf("Unknown cog status in live page message parsing: %s", cogMessage.Status)
-					return
-				}
-				if !ok {
-					klog.Errorf("Live page message not found in cog message or unable to parse")
 					return
 				}
 

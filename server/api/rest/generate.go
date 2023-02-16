@@ -125,7 +125,7 @@ func (c *RestAPI) HandleCreateGeneration(w http.ResponseWriter, r *http.Request)
 	fmt.Printf("--- Format prompts took: %s\n", time.Now().Sub(start))
 
 	// For live page update
-	var livePageMsg responses.LivePageMessage
+	var livePageMsg shared.LivePageMessage
 	// For keeping track of this request as it gets sent to the worker
 	var requestId string
 	// Cog request
@@ -169,11 +169,11 @@ func (c *RestAPI) HandleCreateGeneration(w http.ResponseWriter, r *http.Request)
 		requestId = g.ID.String()
 
 		// For live page update
-		livePageMsg = responses.LivePageMessage{
-			Type:        responses.LivePageMessageGeneration,
+		livePageMsg = shared.LivePageMessage{
+			ProcessType: generateReq.ProcessType,
 			ID:          utils.Sha256(requestId),
 			CountryCode: countryCode,
-			Status:      responses.LivePageQueued,
+			Status:      shared.LivePageQueued,
 			Width:       generateReq.Width,
 			Height:      generateReq.Height,
 			CreatedAt:   g.CreatedAt,
