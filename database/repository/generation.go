@@ -96,7 +96,7 @@ func (r *Repository) SetGenerationFailed(generationID string, reason string, nsf
 		klog.Errorf("Error parsing generation id in SetGenerationFailed %s: %v", generationID, err)
 		return err
 	}
-	_, err = db.Generation.UpdateOneID(uid).SetStatus(generation.StatusFailed).SetFailureReason(reason).SetNsfwCount(nsfwCount).Save(r.Ctx)
+	_, err = db.Generation.UpdateOneID(uid).SetStatus(generation.StatusFailed).SetFailureReason(reason).SetNsfwCount(nsfwCount).SetCompletedAt(time.Now()).Save(r.Ctx)
 	if err != nil {
 		klog.Errorf("Error setting generation failed %s: %v", generationID, err)
 	}

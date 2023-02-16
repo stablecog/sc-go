@@ -62,7 +62,7 @@ func (r *Repository) SetUpscaleFailed(upscaleID string, reason string, db *ent.C
 		klog.Errorf("Error parsing generation id in SetUpscaleFailed %s: %v", upscaleID, err)
 		return err
 	}
-	_, err = db.Upscale.UpdateOneID(uid).SetStatus(upscale.StatusFailed).SetFailureReason(reason).Save(r.Ctx)
+	_, err = db.Upscale.UpdateOneID(uid).SetStatus(upscale.StatusFailed).SetFailureReason(reason).SetCompletedAt(time.Now()).Save(r.Ctx)
 	if err != nil {
 		klog.Errorf("Error setting upscale failed %s: %v", upscaleID, err)
 	}
