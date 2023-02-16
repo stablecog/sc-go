@@ -12,6 +12,30 @@ paths:
       responses:
         "200":
           description: Success code when server is ready to accept requests
+  /v1/user/summary:
+    get:
+      description: "Summary: Retrieve User Data"
+      security:
+        - supabase: []
+      responses:
+        "200":
+          description: JSON object with general info about the requesting user
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserSummaryResponse"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse400"
+        "401":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse401"
   /v1/user/outputs:
     get:
       description: "Generation: Query with Outputs (User-only)"
@@ -716,3 +740,10 @@ components:
           type: string
           format: isoTimeString
       description: Status updates delivered for live activity page
+    UserSummaryResponse:
+      type: object
+      properties:
+        total_remaining_credits:
+          type: integer
+          format: int32
+      description: Summary of user data
