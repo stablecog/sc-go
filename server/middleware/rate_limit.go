@@ -18,8 +18,10 @@ import (
 // @requestLimit: The number of requests they can make
 // @windowLength: In this time window
 func (m *Middleware) RateLimit(requestLimit int, windowLength time.Duration) func(next http.Handler) http.Handler {
+	// ! For some reason, it seems like we get half of what we set with chi httprate middleware
+	// ! so we set requestLimit * 2 instead of requestLimit, which gives us what we actually want.
 	return httprate.Limit(
-		requestLimit,
+		requestLimit*2,
 		windowLength,
 		httprate.WithKeyFuncs(func(r *http.Request) (string, error) {
 			// Get user id from context
