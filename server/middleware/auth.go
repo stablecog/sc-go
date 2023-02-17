@@ -12,83 +12,71 @@ import (
 	"github.com/stablecog/sc-go/server/responses"
 )
 
-// Enforces authorization
-func (m *Middleware) AuthMiddleware(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		authHeader := strings.Split(r.Header.Get("Authorization"), "Bearer ")
-		if len(authHeader) != 2 {
-			responses.ErrUnauthorized(w, r)
-			return
-		}
-		// Check supabase to see if it's all good
-		start := time.Now()
-		userId, err := m.SupabaseAuth.GetSupabaseUserIdFromAccessToken(authHeader[1])
-		if err != nil {
-			responses.ErrUnauthorized(w, r)
-			return
-		}
-		fmt.Printf("--- Get supabase user_id took: %s\n", time.Now().Sub(start))
-		// Set the user ID in the context
-		ctx := context.WithValue(r.Context(), "user_id", userId)
-		next.ServeHTTP(w, r.WithContext(ctx))
-	})
-}
+type AuthLevel int
 
-// Enforces super_admin or gallery_admin
-// MUST be called after AuthMiddleware
-func (m *Middleware) AdminMiddleware(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		userIdStr, ok := r.Context().Value("user_id").(string)
-		if !ok {
-			responses.ErrUnauthorized(w, r)
-			return
-		}
-		userID, err := uuid.Parse(userIdStr)
-		if err != nil {
-			responses.ErrUnauthorized(w, r)
-			return
-		}
+const (
+	AuthLevelAny AuthLevel = iota
+	AuthLevelGalleryAdmin
+	AuthLevelSuperAdmin
+)
 
-		roles, err := m.Repo.GetRoles(userID)
-		if err != nil {
-			responses.ErrUnauthorized(w, r)
-			return
-		}
-
-		for _, role := range roles {
-			if role == userrole.RoleNameSUPER_ADMIN || role == userrole.RoleNameGALLERY_ADMIN {
-				next.ServeHTTP(w, r)
+// Enforces authorization at specific level
+func (m *Middleware) AuthMiddleware(level AuthLevel) func(next http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			authHeader := strings.Split(r.Header.Get("Authorization"), "Bearer ")
+			if len(authHeader) != 2 {
+				responses.ErrUnauthorized(w, r)
 				return
 			}
-		}
+			// Check supabase to see if it's all good
+			start := time.Now()
+			userId, err := m.SupabaseAuth.GetSupabaseUserIdFromAccessToken(authHeader[1])
+			if err != nil {
+				responses.ErrUnauthorized(w, r)
+				return
+			}
+			fmt.Printf("--- Get supabase user_id took: %s\n", time.Now().Sub(start))
 
-		responses.ErrUnauthorized(w, r)
-		return
-	})
-}
+			// Set the user ID in the context
+			ctx := context.WithValue(r.Context(), "user_id", userId)
 
-// Enforces super_admin
-// MUST be called after AuthMiddleware
-func (m *Middleware) SuperAdminMiddleware(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		userIdStr, ok := r.Context().Value("user_id").(string)
-		if !ok {
-			responses.ErrUnauthorized(w, r)
-			return
-		}
-		userID, err := uuid.Parse(userIdStr)
-		if err != nil {
-			responses.ErrUnauthorized(w, r)
-			return
-		}
+			userIDParsed, err := uuid.Parse(userId)
+			if err != nil {
+				responses.ErrUnauthorized(w, r)
+				return
+			}
 
-		superAdmin, err := m.Repo.IsSuperAdmin(userID)
-		if err != nil || !superAdmin {
-			responses.ErrUnauthorized(w, r)
-			return
-		}
+			// They do have an appropriate auth token
+			authorized := true
 
-		next.ServeHTTP(w, r)
-		return
-	})
+			// If level is more than any, check if they have the appropriate role
+			if level == AuthLevelGalleryAdmin || level == AuthLevelSuperAdmin {
+				authorized = false
+				roles, err := m.Repo.GetRoles(userIDParsed)
+				if err != nil {
+					responses.ErrUnauthorized(w, r)
+					return
+				}
+				for _, role := range roles {
+					// Super admin always authorized
+					if role == userrole.RoleNameSUPER_ADMIN {
+						authorized = true
+						break
+					} else if role == userrole.RoleNameGALLERY_ADMIN && level == AuthLevelGalleryAdmin {
+						// Gallery admin only authorized if we're checking for gallery admin
+						authorized = true
+						break
+					}
+				}
+			}
+
+			if !authorized {
+				responses.ErrUnauthorized(w, r)
+				return
+			}
+
+			next.ServeHTTP(w, r.WithContext(ctx))
+		})
+	}
 }

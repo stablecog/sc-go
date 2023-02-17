@@ -167,7 +167,7 @@ func main() {
 
 		// Routes that require authentication
 		r.Route("/user", func(r chi.Router) {
-			r.Use(mw.AuthMiddleware)
+			r.Use(mw.AuthMiddleware(middleware.AuthLevelAny))
 			r.Use(chimiddleware.Logger)
 			// 10 requests per second
 			r.Use(mw.RateLimit(10, 1*time.Second))
@@ -190,14 +190,12 @@ func main() {
 		// Admin only routes
 		r.Route("/admin", func(r chi.Router) {
 			r.Route("/gallery", func(r chi.Router) {
-				r.Use(mw.AuthMiddleware)
-				r.Use(mw.AdminMiddleware)
+				r.Use(mw.AuthMiddleware(middleware.AuthLevelGalleryAdmin))
 				r.Use(chimiddleware.Logger)
 				r.Put("/", hc.HandleReviewGallerySubmission)
 			})
 			r.Route("/generation", func(r chi.Router) {
-				r.Use(mw.AuthMiddleware)
-				r.Use(mw.SuperAdminMiddleware)
+				r.Use(mw.AuthMiddleware(middleware.AuthLevelSuperAdmin))
 				r.Use(chimiddleware.Logger)
 				r.Delete("/", hc.HandleDeleteGenerationOutput)
 			})
