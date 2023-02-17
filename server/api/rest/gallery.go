@@ -85,6 +85,7 @@ func (c *RestAPI) HandleQueryGallery(w http.ResponseWriter, r *http.Request) {
 	// We don't want to leak primary keys, so set to nil
 	for i := range generationGs {
 		generationGs[i].ID = nil
+		generationGs[i].UserID = nil
 	}
 
 	// We want to parse S3 URLs

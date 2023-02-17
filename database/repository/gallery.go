@@ -89,7 +89,7 @@ func (r *Repository) RetrieveGalleryData(limit int, updatedAtGT *time.Time) ([]G
 			).AppendSelect(sql.As(g.C(generation.FieldWidth), "generation_width"), sql.As(g.C(generation.FieldHeight), "generation_height"),
 				sql.As(g.C(generation.FieldInferenceSteps), "generation_inference_steps"), sql.As(g.C(generation.FieldGuidanceScale), "generation_guidance_scale"),
 				sql.As(g.C(generation.FieldSeed), "generation_seed"), sql.As(mt.C(generationmodel.FieldID), "model_id"), sql.As(st.C(scheduler.FieldID), "scheduler_id"),
-				sql.As(pt.C(prompt.FieldText), "prompt_text"), sql.As(npt.C(negativeprompt.FieldText), "negative_prompt_text"))
+				sql.As(pt.C(prompt.FieldText), "prompt_text"), sql.As(npt.C(negativeprompt.FieldText), "negative_prompt_text"), sql.As(g.C(generation.FieldUserID), "user_id"))
 			s.OrderBy(sql.Desc(s.C(generationoutput.FieldCreatedAt)), sql.Desc(g.C(generation.FieldCreatedAt)))
 		}).Scan(r.Ctx, &res)
 	return res, err
@@ -112,4 +112,5 @@ type GalleryData struct {
 	SchedulerID        uuid.UUID  `json:"scheduler_id" sql:"scheduler_id"`
 	PromptText         string     `json:"prompt_text" sql:"prompt_text"`
 	NegativePromptText string     `json:"negative_prompt_text,omitempty" sql:"negative_prompt_text"`
+	UserID             *uuid.UUID `json:"user_id,omitempty" sql:"user_id"`
 }
