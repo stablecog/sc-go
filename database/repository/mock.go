@@ -138,15 +138,16 @@ func (repo *Repository) CreateMockData(ctx context.Context) error {
 
 	// Without negative prompt, also success
 	gen, err = repo.CreateGeneration(uuid.MustParse(MOCK_ADMIN_UUID), "browser", "macos", "chrome", "DE", requests.GenerateRequestBody{
-		Prompt:         "This is a prompt 2",
-		Width:          512,
-		Height:         512,
-		InferenceSteps: 30,
-		GuidanceScale:  1.0,
-		ModelId:        uuid.MustParse(MOCK_GENERATION_MODEL_ID),
-		SchedulerId:    uuid.MustParse(MOCK_SCHEDULER_ID),
-		Seed:           1234,
-		NumOutputs:     1,
+		Prompt:          "This is a prompt 2",
+		Width:           512,
+		Height:          512,
+		InferenceSteps:  30,
+		GuidanceScale:   1.0,
+		ModelId:         uuid.MustParse(MOCK_GENERATION_MODEL_ID),
+		SchedulerId:     uuid.MustParse(MOCK_SCHEDULER_ID),
+		Seed:            1234,
+		NumOutputs:      1,
+		SubmitToGallery: true,
 	}, nil)
 	if err != nil {
 		return err

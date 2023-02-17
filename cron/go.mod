@@ -4,9 +4,7 @@ go 1.19
 
 require (
 	github.com/go-redis/redis/v8 v8.11.5
-	github.com/meilisearch/meilisearch-go v0.23.0
-	github.com/stablecog/sc-go/database v0.0.0-20230212171313-d3dc468134f0
-	github.com/stablecog/sc-go/utils v0.0.0-20230212171313-d3dc468134f0
+	github.com/meilisearch/meilisearch-go v0.22.0
 	k8s.io/klog/v2 v2.80.1
 )
 
@@ -24,12 +22,10 @@ require (
 	github.com/mileusna/useragent v1.2.1 // indirect
 	github.com/onsi/gomega v1.24.1 // indirect
 	github.com/robfig/cron/v3 v3.0.1 // indirect
-	github.com/stablecog/sc-go/shared v0.0.0-20230212171313-d3dc468134f0 // indirect
 	github.com/supabase-community/gotrue-go v1.0.1 // indirect
 	github.com/tomnomnom/linkheader v0.0.0-20180905144013-02ca5825eb80 // indirect
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
 	github.com/valyala/fasthttp v1.37.1-0.20220607072126-8a320890c08d // indirect
-	golang.org/x/exp v0.0.0-20230206171751-46f607a40771 // indirect
 	golang.org/x/image v0.3.0 // indirect
 	golang.org/x/sync v0.1.0 // indirect
 	golang.org/x/sys v0.2.0 // indirect

@@ -11,8 +11,8 @@ import (
 	"github.com/go-co-op/gocron"
 	"github.com/joho/godotenv"
 	"github.com/stablecog/sc-go/cron/jobs"
-	"github.com/stablecog/sc-go/cron/utils"
 	"github.com/stablecog/sc-go/database"
+	"github.com/stablecog/sc-go/database/repository"
 	"k8s.io/klog/v2"
 )
 
@@ -69,13 +69,20 @@ func main() {
 	}
 	defer entClient.Close()
 
+	// Create repostiory
+	// Create repository (database access)
+	repo := &repository.Repository{
+		DB:    entClient,
+		Redis: redis,
+		Ctx:   ctx,
+	}
+
 	// Create a job runner
 	jobRunner := jobs.JobRunner{
-		Ctx:     ctx,
-		Db:      entClient,
-		Redis:   redis,
-		Discord: utils.NewDiscordHealthTracker(ctx, redis.Client),
-		Meili:   database.NewMeiliSearchClient(),
+		Repo:  repo,
+		Redis: redis,
+		Ctx:   ctx,
+		Meili: database.NewMeiliSearchClient(),
 	}
 
 	if *healthCheck {
@@ -108,8 +115,7 @@ func main() {
 	if *allJobs {
 		klog.Infoln("🏡 Starting all jobs...")
 		s := gocron.NewScheduler(time.UTC)
-		s.Every(15).Seconds().Do(jobRunner.CheckHealth)
-		s.Every(10).Seconds().Do(jobRunner.GetAndSetStats)
+		s.Every(60).Seconds().Do(jobRunner.SyncMeili())
 		s.StartBlocking()
 		os.Exit(0)
 	}

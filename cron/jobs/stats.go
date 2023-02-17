@@ -1,7 +1,6 @@
 package jobs
 
 import (
-	"fmt"
 	"sync"
 	"time"
 
@@ -51,24 +50,5 @@ func (j *JobRunner) GetAndSetStats() error {
 func (j *JobRunner) GetAndSetStatFromPostgresToRedis(
 	statsName string,
 ) error {
-	rKey := fmt.Sprintf("%s:%s", redisStatsPrefix, statsName)
-	res, err := j.Db.QueryContext(j.Ctx, fmt.Sprintf("select %s()", statsName))
-	if err != nil {
-		return err
-	}
-	defer res.Close()
-	res.Next()
-	var data int64
-	err = res.Scan(&data)
-	if err != nil {
-		return err
-	}
-
-	errSet := j.Redis.Client.Set(j.Ctx, rKey, data, 0).Err()
-	if errSet != nil {
-		klog.Errorf("Redis - Error setting '%s': %v", rKey, err)
-		return errSet
-	}
-	klog.Infof("Redis - Set '%s' to '%d' in Redis", rKey, data)
 	return nil
 }

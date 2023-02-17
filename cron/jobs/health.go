@@ -3,9 +3,6 @@ package jobs
 import (
 	"fmt"
 	"time"
-
-	"github.com/stablecog/sc-go/database/ent"
-	dbgeneration "github.com/stablecog/sc-go/database/ent/generation"
 )
 
 // General redis key prefix
@@ -18,15 +15,6 @@ const maxGenerationDuration = 2 * time.Minute
 const rTTL = 2 * time.Hour
 
 var lastGenerationKey = fmt.Sprintf("%s:last_generation", redisHealthKeyPrefix)
-
-// Query last generations from database
-func (j *JobRunner) GetLastGenerations(limit int) ([]*ent.Generation, error) {
-	return j.Db.Generation.Query().
-		Select(dbgeneration.FieldStatus, dbgeneration.FieldCreatedAt, dbgeneration.FieldFailureReason).
-		Order(ent.Desc(dbgeneration.FieldCreatedAt)).
-		Limit(limit).
-		All(j.Ctx)
-}
 
 // CheckHealth cron job
 func (j *JobRunner) CheckHealth() error {
