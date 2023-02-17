@@ -129,6 +129,7 @@ func main() {
 		Redis:        redis,
 		Hub:          sseHub,
 		StripeClient: stripeClient,
+		Meili:        database.NewMeiliSearchClient(),
 	}
 
 	// Create middleware
@@ -155,6 +156,9 @@ func main() {
 		r.Route("/stripe", func(r chi.Router) {
 			r.Post("/webhook", hc.HandleStripeWebhook)
 		})
+
+		// Gallery search
+		r.Get("/gallery", hc.HandleQueryGallery)
 
 		// Routes that require authentication
 		r.Route("/user", func(r chi.Router) {

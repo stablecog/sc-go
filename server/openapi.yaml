@@ -12,6 +12,47 @@ paths:
       responses:
         "200":
           description: Success code when server is ready to accept requests
+  /v1/gallery:
+    get:
+      description: "Gallery: Search"
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            format: optional, default:50
+          example: 1
+        - name: next
+          in: query
+          schema:
+            type: integer
+            format: optional
+          example: 2
+        - name: search
+          in: query
+          schema:
+            type: string
+            format: optional
+          example: A portrait of a cat by Van Gogh
+      responses:
+        "200":
+          description: JSON object with gallery hits and metadata
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GalleryResponse"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse400"
+        "401":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse401"
   /v1/user/summary:
     get:
       description: "Summary: Retrieve User Data"
@@ -750,3 +791,52 @@ components:
           type: integer
           format: int32
       description: Summary of user data
+    GalleryResponse:
+      type: object
+      properties:
+        page:
+          type: integer
+        next:
+          type: integer
+        hits:
+          type: array
+          items:
+            type: object
+            properties:
+              image_url:
+                type: string
+                format: URL
+              upscaled_image_url:
+                type: string
+                format: URL, optional
+              width:
+                type: integer
+                format: int32
+              height:
+                type: integer
+                format: int32
+              inference_steps:
+                type: integer
+                format: int32
+              guidance_scale:
+                type: number
+                format: float32
+              seed:
+                type: integer
+              model_id:
+                type: string
+                format: uuidv4
+              scheduler_id:
+                type: string
+                format: uuidv4
+              prompt_text:
+                type: string
+              negative_prompt_text:
+                type: string
+                format: optional
+              created_at:
+                type: string
+                format: isoTimeString
+              updated_at:
+                type: string
+                format: isoTimeString

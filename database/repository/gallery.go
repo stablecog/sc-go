@@ -96,18 +96,20 @@ func (r *Repository) RetrieveGalleryData(limit int, updatedAtGT *time.Time) ([]G
 }
 
 type GalleryData struct {
-	ID                 uuid.UUID `json:"id" sql:"id"`
-	ImagePath          string    `json:"image_path" sql:"image_path"`
-	UpscaledImagePath  string    `json:"upscaled_image_path" sql:"upscaled_image_path"`
-	CreatedAt          time.Time `json:"created_at" sql:"created_at"`
-	UpdatedAt          time.Time `json:"updated_at" sql:"updated_at"`
-	Width              int32     `json:"width" sql:"generation_width"`
-	Height             int32     `json:"height" sql:"generation_height"`
-	InferenceSteps     int32     `json:"inference_steps" sql:"generation_inference_steps"`
-	GuidanceScale      float32   `json:"guidance_scale" sql:"generation_guidance_scale"`
-	Seed               int       `json:"seed" sql:"generation_seed"`
-	ModelID            uuid.UUID `json:"model_id" sql:"model_id"`
-	SchedulerID        uuid.UUID `json:"scheduler_id" sql:"scheduler_id"`
-	PromptText         string    `json:"prompt_text" sql:"prompt_text"`
-	NegativePromptText string    `json:"negative_prompt_text,omitempty" sql:"negative_prompt_text"`
+	ID                 *uuid.UUID `json:"id,omitempty" sql:"id"`
+	ImagePath          string     `json:"image_path,omitempty" sql:"image_path"`
+	UpscaledImagePath  string     `json:"upscaled_image_path,omitempty" sql:"upscaled_image_path"`
+	ImageURL           string     `json:"image_url"`
+	UpscaledImageURL   string     `json:"upscaled_image_url,omitempty"`
+	CreatedAt          time.Time  `json:"created_at" sql:"created_at"`
+	UpdatedAt          time.Time  `json:"updated_at" sql:"updated_at"`
+	Width              int32      `json:"width" sql:"generation_width"`
+	Height             int32      `json:"height" sql:"generation_height"`
+	InferenceSteps     int32      `json:"inference_steps" sql:"generation_inference_steps"`
+	GuidanceScale      float32    `json:"guidance_scale" sql:"generation_guidance_scale"`
+	Seed               int        `json:"seed" sql:"generation_seed"`
+	ModelID            uuid.UUID  `json:"model_id" sql:"model_id"`
+	SchedulerID        uuid.UUID  `json:"scheduler_id" sql:"scheduler_id"`
+	PromptText         string     `json:"prompt_text" sql:"prompt_text"`
+	NegativePromptText string     `json:"negative_prompt_text,omitempty" sql:"negative_prompt_text"`
 }

@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/google/uuid"
+	"github.com/meilisearch/meilisearch-go"
 	"github.com/stablecog/sc-go/database"
 	"github.com/stablecog/sc-go/database/repository"
 	"github.com/stablecog/sc-go/server/api/sse"
@@ -16,6 +17,7 @@ type RestAPI struct {
 	Redis        *database.RedisWrapper
 	Hub          *sse.Hub
 	StripeClient *stripe.API
+	Meili        *meilisearch.Client
 }
 
 func (c *RestAPI) GetUserIDIfAuthenticated(w http.ResponseWriter, r *http.Request) *uuid.UUID {
