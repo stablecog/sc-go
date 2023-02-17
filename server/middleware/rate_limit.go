@@ -14,10 +14,13 @@ import (
 	"github.com/stablecog/sc-go/utils"
 )
 
-func (m *Middleware) RateLimit() func(next http.Handler) http.Handler {
+// Rate limit middleware
+// @requestLimit: The number of requests they can make
+// @windowLength: In this time window
+func (m *Middleware) RateLimit(requestLimit int, windowLength time.Duration) func(next http.Handler) http.Handler {
 	return httprate.Limit(
-		10,             // <-- The number of requests they can make
-		10*time.Second, // <-- In this time window
+		requestLimit,
+		windowLength,
 		httprate.WithKeyFuncs(func(r *http.Request) (string, error) {
 			// Get user id from context
 			userId, ok := r.Context().Value("user_id").(string)

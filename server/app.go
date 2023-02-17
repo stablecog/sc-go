@@ -160,7 +160,8 @@ func main() {
 		// Gallery search
 		r.Route("/gallery", func(r chi.Router) {
 			r.Use(chimiddleware.Logger)
-			r.Use(mw.RateLimit())
+			// 20 requests per second
+			r.Use(mw.RateLimit(20, 1*time.Second))
 			r.Get("/", hc.HandleQueryGallery)
 		})
 
@@ -168,7 +169,8 @@ func main() {
 		r.Route("/user", func(r chi.Router) {
 			r.Use(mw.AuthMiddleware)
 			r.Use(chimiddleware.Logger)
-			r.Use(mw.RateLimit())
+			// 10 requests per second
+			r.Use(mw.RateLimit(10, 1*time.Second))
 
 			// Create Generation
 			r.Post("/generation", hc.HandleCreateGeneration)
