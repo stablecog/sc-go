@@ -158,7 +158,11 @@ func main() {
 		})
 
 		// Gallery search
-		r.Get("/gallery", hc.HandleQueryGallery)
+		r.Route("/gallery", func(r chi.Router) {
+			r.Use(chimiddleware.Logger)
+			r.Use(mw.RateLimit())
+			r.Get("/", hc.HandleQueryGallery)
+		})
 
 		// Routes that require authentication
 		r.Route("/user", func(r chi.Router) {
