@@ -19,7 +19,7 @@ import (
 	"github.com/stablecog/sc-go/server/api/rest"
 	"github.com/stablecog/sc-go/server/api/sse"
 	"github.com/stablecog/sc-go/server/middleware"
-	"github.com/stablecog/sc-go/server/responses"
+	"github.com/stablecog/sc-go/server/requests"
 	"github.com/stablecog/sc-go/shared"
 	"github.com/stablecog/sc-go/utils"
 	stripe "github.com/stripe/stripe-go/client"
@@ -214,7 +214,7 @@ func main() {
 		klog.Infof("Listening for cog messages on channel: %s", shared.COG_REDIS_EVENT_CHANNEL)
 		for msg := range pubsub.Channel() {
 			klog.Infof("Received %s message: %s", shared.COG_REDIS_EVENT_CHANNEL, msg.Payload)
-			var cogMessage responses.CogStatusUpdate
+			var cogMessage requests.CogRedisMessage
 			err := json.Unmarshal([]byte(msg.Payload), &cogMessage)
 			if err != nil {
 				klog.Errorf("--- Error unmarshalling webhook message: %v", err)
@@ -227,11 +227,11 @@ func main() {
 				livePageMsg := cogMessage.Input.LivePageData
 				var status shared.LivePageStatus
 				switch cogMessage.Status {
-				case responses.CogProcessing:
+				case requests.CogProcessing:
 					status = shared.LivePageProcessing
-				case responses.CogSucceeded:
+				case requests.CogSucceeded:
 					status = shared.LivePageSucceeded
-				case responses.CogFailed:
+				case requests.CogFailed:
 					status = shared.LivePageFailed
 				default:
 					klog.Errorf("Unknown cog status in live page message parsing: %s", cogMessage.Status)
@@ -240,10 +240,10 @@ func main() {
 
 				livePageMsg.Status = status
 				now := time.Now()
-				if cogMessage.Status == responses.CogProcessing {
+				if cogMessage.Status == requests.CogProcessing {
 					livePageMsg.StartedAt = &now
 				}
-				if cogMessage.Status == responses.CogSucceeded || cogMessage.Status == responses.CogFailed {
+				if cogMessage.Status == requests.CogSucceeded || cogMessage.Status == requests.CogFailed {
 					livePageMsg.CompletedAt = &now
 				}
 				sseHub.BroadcastLivePageMessage(livePageMsg)
@@ -268,7 +268,7 @@ func main() {
 		klog.Infof("Listening for cog messages on channel: %s", shared.REDIS_SSE_BROADCAST_CHANNEL)
 		for msg := range pubsubSSEMessages.Channel() {
 			klog.Infof("Received %s message: %s", shared.REDIS_SSE_BROADCAST_CHANNEL, msg.Payload)
-			var sseMessage responses.SSEStatusUpdateResponse
+			var sseMessage repository.TaskStatusUpdateResponse
 			err := json.Unmarshal([]byte(msg.Payload), &sseMessage)
 			if err != nil {
 				klog.Errorf("--- Error unmarshalling sse message: %v", err)

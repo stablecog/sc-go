@@ -1,4 +1,3 @@
-// * Responses from user-initiated endpoints
 package responses
 
 import (
@@ -6,16 +5,6 @@ import (
 
 	"github.com/google/uuid"
 )
-
-// API generate simply returns a UUID to track the request to our compute while its in flight
-type QueuedResponse struct {
-	ID string `json:"id"`
-}
-
-// Response for submitting to gallery
-type GenerateSubmitToGalleryResponse struct {
-	Submitted int `json:"submitted"`
-}
 
 // Response for retrieving user credits
 type CreditType struct {
@@ -32,7 +21,7 @@ type Credit struct {
 	Type            CreditType `json:"type"`
 }
 
-type UserCreditsResponse struct {
+type QueryCreditsResponse struct {
 	TotalRemainingCredits int32    `json:"total_remaining_credits"`
 	Credits               []Credit `json:"credits"`
 }

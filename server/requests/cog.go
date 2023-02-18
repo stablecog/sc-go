@@ -1,4 +1,3 @@
-// * Requests that go from our application to the cog
 package requests
 
 import (
@@ -7,18 +6,20 @@ import (
 	"github.com/stablecog/sc-go/shared"
 )
 
-// Filters specify what events we want the cog to send to our webhook
-type WebhookEventFilterOption string
+// ! From our application to sc-worker
+
+// Filters specify what events we want sc-worker to send to our webhook
+type CogEventFilter string
 
 const (
-	WebhookEventFilterStart     WebhookEventFilterOption = "start"
-	WebhookEventFilterOutput    WebhookEventFilterOption = "output"
-	WebhookEventFilterCompleted WebhookEventFilterOption = "completed"
+	CogEventFilterStart     CogEventFilter = "start"
+	CogEventFilterOutput    CogEventFilter = "output"
+	CogEventFilterCompleted CogEventFilter = "completed"
 )
 
-// Base request data cog used to process request
+// Base request data sc-worker uses to process request
 type BaseCogRequest struct {
-	// These fields are irrelevant to cog, just used to identify the request when it comes back
+	// These fields are irrelevant to sc-worker, just used to identify the request when it comes back
 	ID                 string                 `json:"id"`
 	GenerationOutputID string                 `json:"generation_output_id,omitempty"` // Specific to upscale requests
 	LivePageData       shared.LivePageMessage `json:"live_page_data"`
@@ -48,11 +49,31 @@ type BaseCogRequest struct {
 
 // Data type is what we actually send to the cog, includes some additional metadata beyond BaseCogRequest
 type CogQueueRequest struct {
-	RedisPubsubKey      string                     `json:"redis_pubsub_key,omitempty"`
-	WebhookEventsFilter []WebhookEventFilterOption `json:"webhook_events_filter"`
-	Input               BaseCogRequest             `json:"input"`
+	RedisPubsubKey      string           `json:"redis_pubsub_key,omitempty"`
+	WebhookEventsFilter []CogEventFilter `json:"webhook_events_filter"`
+	Input               BaseCogRequest   `json:"input"`
 }
 
 func (i CogQueueRequest) MarshalBinary() (data []byte, err error) {
 	return json.Marshal(i)
+}
+
+// ! From sc-worker to our application
+
+type CogTaskStatus string
+
+const (
+	CogSucceeded  CogTaskStatus = "succeeded"
+	CogFailed     CogTaskStatus = "failed"
+	CogProcessing CogTaskStatus = "processing"
+)
+
+// Msg from sc-worker to redis channel
+type CogRedisMessage struct {
+	Webhook   string         `json:"webhook"`
+	Input     BaseCogRequest `json:"input"`
+	Status    CogTaskStatus  `json:"status"`
+	Error     string         `json:"error"`
+	Outputs   []string       `json:"outputs"`
+	NSFWCount int32          `json:"nsfw_count"`
 }

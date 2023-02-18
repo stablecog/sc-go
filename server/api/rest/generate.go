@@ -116,7 +116,7 @@ func (c *RestAPI) HandleCreateGeneration(w http.ResponseWriter, r *http.Request)
 		}
 
 		cogReqBody = requests.CogQueueRequest{
-			WebhookEventsFilter: []requests.WebhookEventFilterOption{requests.WebhookEventFilterStart, requests.WebhookEventFilterStart},
+			WebhookEventsFilter: []requests.CogEventFilter{requests.CogEventFilterStart, requests.CogEventFilterStart},
 			RedisPubsubKey:      shared.COG_REDIS_EVENT_CHANNEL,
 			Input: requests.BaseCogRequest{
 				ID:                   requestId,
@@ -164,15 +164,15 @@ func (c *RestAPI) HandleCreateGeneration(w http.ResponseWriter, r *http.Request)
 		// sleep
 		time.Sleep(shared.REQUEST_COG_TIMEOUT)
 		// this will trigger timeout if it hasnt been finished
-		c.Repo.FailCogMessageDueToTimeoutIfTimedOut(responses.CogStatusUpdate{
+		c.Repo.FailCogMessageDueToTimeoutIfTimedOut(requests.CogRedisMessage{
 			Input:  cogReqBody.Input,
 			Error:  "TIMEOUT",
-			Status: responses.CogFailed,
+			Status: requests.CogFailed,
 		})
 	}()
 
 	render.Status(r, http.StatusOK)
-	render.JSON(w, r, &responses.QueuedResponse{
+	render.JSON(w, r, &responses.TaskQueuedResponse{
 		ID: requestId,
 	})
 }
@@ -186,7 +186,7 @@ func (c *RestAPI) HandleSubmitGenerationToGallery(w http.ResponseWriter, r *http
 
 	// Parse request body
 	reqBody, _ := io.ReadAll(r.Body)
-	var submitToGalleryReq requests.GenerateSubmitToGalleryRequestBody
+	var submitToGalleryReq requests.SubmitGalleryRequest
 	err := json.Unmarshal(reqBody, &submitToGalleryReq)
 	if err != nil {
 		responses.ErrUnableToParseJson(w, r)
@@ -199,7 +199,7 @@ func (c *RestAPI) HandleSubmitGenerationToGallery(w http.ResponseWriter, r *http
 		return
 	}
 
-	res := responses.GenerateSubmitToGalleryResponse{
+	res := responses.SubmitGalleryResponse{
 		Submitted: submitted,
 	}
 

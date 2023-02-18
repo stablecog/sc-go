@@ -24,7 +24,7 @@ func (c *RestAPI) HandleReviewGallerySubmission(w http.ResponseWriter, r *http.R
 
 	// Parse request body
 	reqBody, _ := io.ReadAll(r.Body)
-	var adminGalleryReq requests.AdminGalleryRequestBody
+	var adminGalleryReq requests.ReviewGalleryRequest
 	err := json.Unmarshal(reqBody, &adminGalleryReq)
 	if err != nil {
 		responses.ErrUnableToParseJson(w, r)
@@ -33,8 +33,8 @@ func (c *RestAPI) HandleReviewGallerySubmission(w http.ResponseWriter, r *http.R
 
 	var updateCount int
 	switch adminGalleryReq.Action {
-	case requests.AdminGalleryActionApprove, requests.AdminGalleryActionReject:
-		updateCount, err = c.Repo.ApproveOrRejectGenerationOutputs(adminGalleryReq.GenerationOutputIDs, adminGalleryReq.Action == requests.AdminGalleryActionApprove)
+	case requests.GalleryApproveAction, requests.GalleryRejectAction:
+		updateCount, err = c.Repo.ApproveOrRejectGenerationOutputs(adminGalleryReq.GenerationOutputIDs, adminGalleryReq.Action == requests.GalleryApproveAction)
 		if err != nil {
 			if ent.IsNotFound(err) {
 				responses.ErrBadRequest(w, r, "Generation not found")
@@ -65,7 +65,7 @@ func (c *RestAPI) HandleDeleteGenerationOutput(w http.ResponseWriter, r *http.Re
 
 	// Parse request body
 	reqBody, _ := io.ReadAll(r.Body)
-	var deleteReq requests.GenerationDeleteRequest
+	var deleteReq requests.DeleteGenerationRequest
 	err := json.Unmarshal(reqBody, &deleteReq)
 	if err != nil {
 		responses.ErrUnableToParseJson(w, r)

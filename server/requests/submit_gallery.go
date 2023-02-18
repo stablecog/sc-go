@@ -2,6 +2,7 @@ package requests
 
 import "github.com/google/uuid"
 
-type GenerationDeleteRequest struct {
+// Request for submitting outputs to gallery
+type SubmitGalleryRequest struct {
 	GenerationOutputIDs []uuid.UUID `json:"generation_output_ids"`
 }

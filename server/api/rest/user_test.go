@@ -33,7 +33,7 @@ func TestHandleQueryGenerationsDontExist(t *testing.T) {
 	resp := w.Result()
 	defer resp.Body.Close()
 	assert.Equal(t, 200, resp.StatusCode)
-	var genResponse repository.UserGenerationQueryMeta
+	var genResponse repository.GenerationQueryWithOutputsMeta
 	respBody, _ := io.ReadAll(resp.Body)
 	json.Unmarshal(respBody, &genResponse)
 
@@ -54,7 +54,7 @@ func TestHandleQueryGenerationsDefaultParams(t *testing.T) {
 	resp := w.Result()
 	defer resp.Body.Close()
 	assert.Equal(t, 200, resp.StatusCode)
-	var genResponse repository.UserGenerationQueryMeta
+	var genResponse repository.GenerationQueryWithOutputsMeta
 	respBody, _ := io.ReadAll(resp.Body)
 	json.Unmarshal(respBody, &genResponse)
 
@@ -136,7 +136,7 @@ func TestHandleQueryGenerationsCursor(t *testing.T) {
 	resp := w.Result()
 	defer resp.Body.Close()
 	assert.Equal(t, 200, resp.StatusCode)
-	var genResponse repository.UserGenerationQueryMeta
+	var genResponse repository.GenerationQueryWithOutputsMeta
 	respBody, _ := io.ReadAll(resp.Body)
 	json.Unmarshal(respBody, &genResponse)
 
@@ -169,7 +169,7 @@ func TestHandleQueryGenerationsCursor(t *testing.T) {
 	defer resp.Body.Close()
 	assert.Equal(t, 200, resp.StatusCode)
 	respBody, _ = io.ReadAll(resp.Body)
-	genResponse = repository.UserGenerationQueryMeta{}
+	genResponse = repository.GenerationQueryWithOutputsMeta{}
 	json.Unmarshal(respBody, &genResponse)
 
 	assert.Nil(t, genResponse.Total)
@@ -190,7 +190,7 @@ func TestHandleQueryGenerationsPerPage(t *testing.T) {
 	resp := w.Result()
 	defer resp.Body.Close()
 	assert.Equal(t, 200, resp.StatusCode)
-	var genResponse repository.UserGenerationQueryMeta
+	var genResponse repository.GenerationQueryWithOutputsMeta
 	respBody, _ := io.ReadAll(resp.Body)
 	json.Unmarshal(respBody, &genResponse)
 
@@ -225,7 +225,7 @@ func TestHandleQueryGenerationsFilters(t *testing.T) {
 	resp := w.Result()
 	defer resp.Body.Close()
 	assert.Equal(t, 200, resp.StatusCode)
-	var genResponse repository.UserGenerationQueryMeta
+	var genResponse repository.GenerationQueryWithOutputsMeta
 	respBody, _ := io.ReadAll(resp.Body)
 	json.Unmarshal(respBody, &genResponse)
 
@@ -353,7 +353,7 @@ func TestHandleQueryCreditsEmpty(t *testing.T) {
 	resp := w.Result()
 	defer resp.Body.Close()
 	assert.Equal(t, 200, resp.StatusCode)
-	var creditResp responses.UserCreditsResponse
+	var creditResp responses.QueryCreditsResponse
 	respBody, _ := io.ReadAll(resp.Body)
 	json.Unmarshal(respBody, &creditResp)
 
@@ -373,7 +373,7 @@ func TestHandleQueryCredits(t *testing.T) {
 	resp := w.Result()
 	defer resp.Body.Close()
 	assert.Equal(t, 200, resp.StatusCode)
-	var creditResp responses.UserCreditsResponse
+	var creditResp responses.QueryCreditsResponse
 	respBody, _ := io.ReadAll(resp.Body)
 	json.Unmarshal(respBody, &creditResp)
 
@@ -408,11 +408,11 @@ func TestParseQueryGenerationFilters(t *testing.T) {
 	assert.Equal(t, []float32{5}, filters.GuidanceScales)
 	assert.Equal(t, []uuid.UUID{uuid.MustParse("e07ad712-41ad-4ff7-8727-faf0d91e4c4e"), uuid.MustParse("c09aaf4d-2d78-4281-89aa-88d5d0a5d70b")}, filters.SchedulerIDs)
 	assert.Equal(t, []uuid.UUID{uuid.MustParse("49d75ae2-5407-40d9-8c02-0c44ba08f358")}, filters.ModelIDs)
-	assert.Equal(t, requests.UserGenerationQueryUpscaleStatusOnly, filters.UpscaleStatus)
+	assert.Equal(t, requests.UpscaleStatusOnly, filters.UpscaleStatus)
 	assert.NotNil(t, filters.StartDt)
 	assert.Equal(t, time.Date(2021, 1, 1, 0, 0, 0, 0, time.UTC), *filters.StartDt)
 	// Default descending
-	assert.Equal(t, requests.UserGenerationQueryOrderDescending, filters.Order)
+	assert.Equal(t, requests.SortOrderDescending, filters.Order)
 }
 
 func TestParseQueryGenerationFilterError(t *testing.T) {
@@ -436,7 +436,7 @@ func TestHandleDeleteGenerationForUser(t *testing.T) {
 	assert.Nil(t, targetGOutput.DeletedAt)
 
 	// ! Can not delete generation unless it belongs to user
-	reqBody := requests.GenerationDeleteRequest{
+	reqBody := requests.DeleteGenerationRequest{
 		GenerationOutputIDs: []uuid.UUID{targetGOutput.ID},
 	}
 	body, _ := json.Marshal(reqBody)

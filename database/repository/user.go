@@ -13,7 +13,7 @@ import (
 	"github.com/stablecog/sc-go/database/ent/upscale"
 	"github.com/stablecog/sc-go/database/ent/user"
 	"github.com/stablecog/sc-go/database/ent/userrole"
-	"github.com/stablecog/sc-go/server/responses"
+	"github.com/stablecog/sc-go/server/requests"
 	"github.com/stablecog/sc-go/shared"
 	"github.com/stablecog/sc-go/utils"
 	"k8s.io/klog/v2"
@@ -75,7 +75,7 @@ func (r *Repository) GetRoles(userID uuid.UUID) ([]userrole.RoleName, error) {
 }
 
 // Consider a generation/upscale a failure due to timeout
-func (r *Repository) FailCogMessageDueToTimeoutIfTimedOut(msg responses.CogStatusUpdate) {
+func (r *Repository) FailCogMessageDueToTimeoutIfTimedOut(msg requests.CogRedisMessage) {
 	redisKey := fmt.Sprintf("second:%s", msg.Input.ID)
 	// Since we sync with other instances, we get the stream ID from redis
 	streamIdStr, err := r.Redis.GetCogRequestStreamID(r.Redis.Client.Context(), redisKey)
@@ -167,7 +167,7 @@ func (r *Repository) FailCogMessageDueToTimeoutIfTimedOut(msg responses.CogStatu
 
 	// Regardless of the status, we always send over sse so user knows what's up
 	// Send message to user
-	resp := responses.SSEStatusUpdateResponse{
+	resp := TaskStatusUpdateResponse{
 		Status:      msg.Status,
 		Id:          msg.Input.ID,
 		StreamId:    streamIdStr,
@@ -188,9 +188,9 @@ func (r *Repository) FailCogMessageDueToTimeoutIfTimedOut(msg responses.CogStatu
 }
 
 // Process a cog message into database
-func (r *Repository) ProcessCogMessage(msg responses.CogStatusUpdate) {
+func (r *Repository) ProcessCogMessage(msg requests.CogRedisMessage) {
 	redisKey := fmt.Sprintf("first:%s", msg.Input.ID)
-	if msg.Status != responses.CogProcessing {
+	if msg.Status != requests.CogProcessing {
 		redisKey = fmt.Sprintf("second:%s", msg.Input.ID)
 	}
 	// Since we sync with other instances, we get the stream ID from redis
@@ -239,14 +239,14 @@ func (r *Repository) ProcessCogMessage(msg responses.CogStatusUpdate) {
 	}
 
 	// Handle started/failed/succeeded message types
-	if msg.Status == responses.CogProcessing {
+	if msg.Status == requests.CogProcessing {
 		// In goroutine since we want them to know it started asap
 		if msg.Input.ProcessType == shared.UPSCALE {
 			go r.SetUpscaleStarted(msg.Input.ID)
 		} else {
 			go r.SetGenerationStarted(msg.Input.ID)
 		}
-	} else if msg.Status == responses.CogFailed {
+	} else if msg.Status == requests.CogFailed {
 		// ! Failures for reasons other than NSFW,
 		// ! We need to refund the credits
 		if err := r.WithTx(func(tx *ent.Tx) error {
@@ -292,7 +292,7 @@ func (r *Repository) ProcessCogMessage(msg responses.CogStatusUpdate) {
 			klog.Errorf("--- Error with transaction in cog message process: %v", err)
 			return
 		}
-	} else if msg.Status == responses.CogSucceeded {
+	} else if msg.Status == requests.CogSucceeded {
 		if len(msg.Outputs) == 0 {
 			if err := r.WithTx(func(tx *ent.Tx) error {
 				db := tx.Client()
@@ -346,7 +346,7 @@ func (r *Repository) ProcessCogMessage(msg responses.CogStatusUpdate) {
 						}
 					}
 				}
-				msg.Status = responses.CogFailed
+				msg.Status = requests.CogFailed
 				return nil
 			}); err != nil {
 				klog.Errorf("--- Error with transaction in cog message process: %v", err)
@@ -372,7 +372,7 @@ func (r *Repository) ProcessCogMessage(msg responses.CogStatusUpdate) {
 
 	// Regardless of the status, we always send over sse so user knows what's up
 	// Send message to user
-	resp := responses.SSEStatusUpdateResponse{
+	resp := TaskStatusUpdateResponse{
 		Status:      msg.Status,
 		Id:          msg.Input.ID,
 		StreamId:    streamIdStr,
@@ -381,21 +381,21 @@ func (r *Repository) ProcessCogMessage(msg responses.CogStatusUpdate) {
 		ProcessType: msg.Input.ProcessType,
 	}
 	// Upscale
-	if msg.Status == responses.CogSucceeded && msg.Input.ProcessType == shared.UPSCALE {
+	if msg.Status == requests.CogSucceeded && msg.Input.ProcessType == shared.UPSCALE {
 		imageUrl, err := utils.ParseS3UrlToURL(upscaleOutput.ImagePath)
 		if err != nil {
 			klog.Errorf("--- Error parsing s3 url to url: %v", err)
 			imageUrl = upscaleOutput.ImagePath
 		}
-		resp.Outputs = []responses.GenerationOutputResponse{
+		resp.Outputs = []GenerationOutput{
 			{
 				ID:       upscaleOutput.ID,
 				ImageUrl: imageUrl,
 			},
 		}
-	} else if msg.Status == responses.CogSucceeded {
+	} else if msg.Status == requests.CogSucceeded {
 		// Generate or generate and upscale
-		generateOutputs := make([]responses.GenerationOutputResponse, len(generationOutputs))
+		generateOutputs := make([]GenerationOutput, len(generationOutputs))
 		for i, output := range generationOutputs {
 			// Parse S3 URLs to usable URLs
 			imageUrl, err := utils.ParseS3UrlToURL(output.ImagePath)
@@ -411,7 +411,7 @@ func (r *Repository) ProcessCogMessage(msg responses.CogStatusUpdate) {
 					upscaledImageUrl = *output.UpscaledImagePath
 				}
 			}
-			generateOutputs[i] = responses.GenerationOutputResponse{
+			generateOutputs[i] = GenerationOutput{
 				ID:               output.ID,
 				ImageUrl:         imageUrl,
 				UpscaledImageUrl: upscaledImageUrl,

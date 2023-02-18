@@ -156,7 +156,7 @@ func (c *RestAPI) HandleUpscale(w http.ResponseWriter, r *http.Request) {
 
 		// Send to the cog
 		cogReqBody = requests.CogQueueRequest{
-			WebhookEventsFilter: []requests.WebhookEventFilterOption{requests.WebhookEventFilterStart, requests.WebhookEventFilterStart},
+			WebhookEventsFilter: []requests.CogEventFilter{requests.CogEventFilterStart, requests.CogEventFilterStart},
 			RedisPubsubKey:      shared.COG_REDIS_EVENT_CHANNEL,
 			Input: requests.BaseCogRequest{
 				ID:                   requestId,
@@ -195,15 +195,15 @@ func (c *RestAPI) HandleUpscale(w http.ResponseWriter, r *http.Request) {
 		// sleep
 		time.Sleep(shared.REQUEST_COG_TIMEOUT)
 		// this will trigger timeout if it hasnt been finished
-		c.Repo.FailCogMessageDueToTimeoutIfTimedOut(responses.CogStatusUpdate{
+		c.Repo.FailCogMessageDueToTimeoutIfTimedOut(requests.CogRedisMessage{
 			Input:  cogReqBody.Input,
 			Error:  "TIMEOUT",
-			Status: responses.CogFailed,
+			Status: requests.CogFailed,
 		})
 	}()
 
 	render.Status(r, http.StatusOK)
-	render.JSON(w, r, &responses.QueuedResponse{
+	render.JSON(w, r, &responses.TaskQueuedResponse{
 		ID: requestId,
 	})
 }

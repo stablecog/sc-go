@@ -58,7 +58,7 @@ func NewRedis(ctx context.Context) (*RedisWrapper, error) {
 	}, nil
 }
 
-// Enqueues a request for the cog
+// Enqueues a request to sc-worker
 func (r *RedisWrapper) EnqueueCogRequest(ctx context.Context, request interface{}) error {
 	_, err := r.Client.XAdd(ctx, &redis.XAddArgs{
 		Stream: shared.COG_REDIS_QUEUE,

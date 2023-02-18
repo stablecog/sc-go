@@ -24,8 +24,8 @@ func TestHandleReviewGallerySubmission(t *testing.T) {
 	assert.Nil(t, err)
 	targetGUid = goutput.ID
 
-	reqBody := requests.AdminGalleryRequestBody{
-		Action:              requests.AdminGalleryActionApprove,
+	reqBody := requests.ReviewGalleryRequest{
+		Action:              requests.GalleryApproveAction,
 		GenerationOutputIDs: []uuid.UUID{targetGUid},
 	}
 	body, _ := json.Marshal(reqBody)
@@ -51,8 +51,8 @@ func TestHandleReviewGallerySubmission(t *testing.T) {
 	assert.Equal(t, generationoutput.GalleryStatusAccepted, g.GalleryStatus)
 
 	// ! Can reject generation
-	reqBody = requests.AdminGalleryRequestBody{
-		Action:              requests.AdminGalleryActionReject,
+	reqBody = requests.ReviewGalleryRequest{
+		Action:              requests.GalleryRejectAction,
 		GenerationOutputIDs: []uuid.UUID{targetGUid},
 	}
 	body, _ = json.Marshal(reqBody)
@@ -91,7 +91,7 @@ func TestHandleDeleteGeneration(t *testing.T) {
 	assert.Nil(t, err)
 
 	// ! Can delete generation
-	reqBody := requests.GenerationDeleteRequest{
+	reqBody := requests.DeleteGenerationRequest{
 		GenerationOutputIDs: []uuid.UUID{targetGOutput.ID},
 	}
 	body, _ := json.Marshal(reqBody)

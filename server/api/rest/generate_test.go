@@ -304,7 +304,7 @@ func TestGenerateValidRequest(t *testing.T) {
 	resp := w.Result()
 	defer resp.Body.Close()
 	assert.Equal(t, 200, resp.StatusCode)
-	var generateResp responses.QueuedResponse
+	var generateResp responses.TaskQueuedResponse
 	respBody, _ := io.ReadAll(resp.Body)
 	json.Unmarshal(respBody, &generateResp)
 
@@ -319,7 +319,7 @@ func TestGenerateValidRequest(t *testing.T) {
 
 func TestSubmitGenerationToGallery(t *testing.T) {
 	// ! Generation that doesnt exist
-	reqBody := requests.GenerateSubmitToGalleryRequestBody{
+	reqBody := requests.SubmitGalleryRequest{
 		GenerationOutputIDs: []uuid.UUID{uuid.New()},
 	}
 	body, _ := json.Marshal(reqBody)
@@ -335,7 +335,7 @@ func TestSubmitGenerationToGallery(t *testing.T) {
 	resp := w.Result()
 	defer resp.Body.Close()
 	assert.Equal(t, 200, resp.StatusCode)
-	var submitResp responses.GenerateSubmitToGalleryResponse
+	var submitResp responses.SubmitGalleryResponse
 	respBody, _ := io.ReadAll(resp.Body)
 	json.Unmarshal(respBody, &submitResp)
 
@@ -347,7 +347,7 @@ func TestSubmitGenerationToGallery(t *testing.T) {
 	goutput, err := MockController.Repo.DB.Generation.Query().Where(generation.UserIDEQ(uuid.MustParse(repository.MOCK_ADMIN_UUID))).QueryGenerationOutputs().Where(generationoutput.GalleryStatusEQ(generationoutput.GalleryStatusNotSubmitted)).First(MockController.Repo.Ctx)
 	assert.Nil(t, err)
 
-	reqBody = requests.GenerateSubmitToGalleryRequestBody{
+	reqBody = requests.SubmitGalleryRequest{
 		GenerationOutputIDs: []uuid.UUID{goutput.ID},
 	}
 	body, _ = json.Marshal(reqBody)
@@ -373,7 +373,7 @@ func TestSubmitGenerationToGallery(t *testing.T) {
 	assert.Equal(t, generationoutput.GalleryStatusSubmitted, goutput.GalleryStatus)
 
 	// ! Generation that is already submitted
-	reqBody = requests.GenerateSubmitToGalleryRequestBody{
+	reqBody = requests.SubmitGalleryRequest{
 		GenerationOutputIDs: []uuid.UUID{goutput.ID},
 	}
 	body, _ = json.Marshal(reqBody)

@@ -19,7 +19,7 @@ const MIN_GENERATE_NUM_OUTPUTS = 1
 // Prompt related
 const MAX_PROMPT_LENGTH = 500
 
-// The name of the redis stream used to enqueue cog requests
+// The name of the redis stream used to enqueue worker requests
 const COG_REDIS_QUEUE = "input_queue"
 
 // This is the redis channel that the cog publishes to for events

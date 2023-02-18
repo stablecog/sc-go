@@ -11,7 +11,6 @@ import (
 	"github.com/stablecog/sc-go/database/ent/negativeprompt"
 	"github.com/stablecog/sc-go/database/ent/prompt"
 	"github.com/stablecog/sc-go/server/requests"
-	"github.com/stablecog/sc-go/server/responses"
 	"github.com/stablecog/sc-go/utils"
 	"k8s.io/klog/v2"
 )
@@ -161,7 +160,7 @@ func (r *Repository) SetGenerationSucceeded(generationID string, outputs []strin
 }
 
 // Apply all filters to root ent query
-func (r *Repository) ApplyUserGenerationsFilters(query *ent.GenerationQuery, filters *requests.UserGenerationFilters) *ent.GenerationQuery {
+func (r *Repository) ApplyUserGenerationsFilters(query *ent.GenerationQuery, filters *requests.QueryGenerationFilters) *ent.GenerationQuery {
 	resQuery := query
 	if filters != nil {
 		// Apply filters
@@ -259,11 +258,11 @@ func (r *Repository) ApplyUserGenerationsFilters(query *ent.GenerationQuery, fil
 		}
 
 		// Upscaled
-		if filters.UpscaleStatus == requests.UserGenerationQueryUpscaleStatusNot {
+		if filters.UpscaleStatus == requests.UpscaleStatusNot {
 			resQuery = resQuery.Where(func(s *sql.Selector) {
 				s.Where(sql.IsNull("upscaled_image_path"))
 			})
-		} else if filters.UpscaleStatus == requests.UserGenerationQueryUpscaleStatusOnly {
+		} else if filters.UpscaleStatus == requests.UpscaleStatusOnly {
 			resQuery = resQuery.Where(func(s *sql.Selector) {
 				s.Where(sql.NotNull("upscaled_image_path"))
 			})
@@ -283,7 +282,7 @@ func (r *Repository) ApplyUserGenerationsFilters(query *ent.GenerationQuery, fil
 }
 
 // Gets the count of generations with outputs user has with filters
-func (r *Repository) GetUserGenerationCountWithFilters(userID uuid.UUID, filters *requests.UserGenerationFilters) (int, error) {
+func (r *Repository) GetUserGenerationCountWithFilters(userID uuid.UUID, filters *requests.QueryGenerationFilters) (int, error) {
 	var query *ent.GenerationQuery
 
 	query = r.DB.Generation.Query().
@@ -327,7 +326,7 @@ type UserGenCount struct {
 // Cursor actually represents created_at, we paginate using this for performance reasons
 // If present, we will get results after the cursor (anything before, represents previous pages)
 // ! using ent .With... doesn't use joins, so we construct our own query to make it more efficient
-func (r *Repository) GetUserGenerations(userID uuid.UUID, per_page int, cursor *time.Time, filters *requests.UserGenerationFilters) (*UserGenerationQueryMeta, error) {
+func (r *Repository) GetUserGenerations(userID uuid.UUID, per_page int, cursor *time.Time, filters *requests.QueryGenerationFilters) (*GenerationQueryWithOutputsMeta, error) {
 	// Base fields to select in our query
 	selectFields := []string{
 		generation.FieldID,
@@ -344,7 +343,7 @@ func (r *Repository) GetUserGenerations(userID uuid.UUID, per_page int, cursor *
 		generation.FieldCompletedAt,
 	}
 	var query *ent.GenerationQuery
-	var gQueryResult []UserGenerationQueryResult
+	var gQueryResult []GenerationQueryWithOutputsResult
 
 	query = r.DB.Generation.Query().Select(selectFields...).
 		Where(generation.UserID(userID), generation.StatusEQ(generation.StatusSucceeded))
@@ -384,7 +383,7 @@ func (r *Repository) GetUserGenerations(userID uuid.UUID, per_page int, cursor *
 			GroupBy(got.C(generationoutput.FieldImagePath)).
 			GroupBy(got.C(generationoutput.FieldUpscaledImagePath))
 		// Order by generation, then output
-		if filters == nil || (filters != nil && filters.Order == requests.UserGenerationQueryOrderDescending) {
+		if filters == nil || (filters != nil && filters.Order == requests.SortOrderDescending) {
 			s.OrderBy(sql.Desc(gt.C(generation.FieldCreatedAt)), sql.Desc(got.C(generationoutput.FieldCreatedAt)))
 		} else {
 			s.OrderBy(sql.Asc(gt.C(generation.FieldCreatedAt)), sql.Asc(got.C(generationoutput.FieldCreatedAt)))
@@ -397,8 +396,8 @@ func (r *Repository) GetUserGenerations(userID uuid.UUID, per_page int, cursor *
 	}
 
 	if len(gQueryResult) == 0 {
-		meta := &UserGenerationQueryMeta{
-			Outputs: []UserGenerationQueryResultFormatted{},
+		meta := &GenerationQueryWithOutputsMeta{
+			Outputs: []GenerationQueryWithOutputsResultFormatted{},
 		}
 		// Only give total if we have no cursor
 		if cursor == nil {
@@ -408,7 +407,7 @@ func (r *Repository) GetUserGenerations(userID uuid.UUID, per_page int, cursor *
 		return meta, nil
 	}
 
-	meta := &UserGenerationQueryMeta{}
+	meta := &GenerationQueryWithOutputsMeta{}
 	if len(gQueryResult) > per_page {
 		// Remove last item
 		gQueryResult = gQueryResult[:len(gQueryResult)-1]
@@ -433,22 +432,22 @@ func (r *Repository) GetUserGenerations(userID uuid.UUID, per_page int, cursor *
 		}
 	}
 
-	// Format to UserGenerationQueryResultFormatted
-	generationOutputMap := make(map[uuid.UUID][]responses.GenerationOutputResponse)
+	// Format to GenerationQueryWithOutputsResultFormatted
+	generationOutputMap := make(map[uuid.UUID][]GenerationOutput)
 	for _, g := range gQueryResult {
 		if g.OutputID == nil {
 			klog.Warningf("Output ID is nil for generation, cannot include in result %v", g.ID)
 			continue
 		}
-		gOutput := responses.GenerationOutputResponse{
+		gOutput := GenerationOutput{
 			ID:               *g.OutputID,
 			ImageUrl:         g.ImageUrl,
 			UpscaledImageUrl: g.UpscaledImageUrl,
 			GalleryStatus:    g.GalleryStatus,
 		}
-		output := UserGenerationQueryResultFormatted{
-			GenerationOutputResponse: gOutput,
-			Generation: UserGenerationQueryData{
+		output := GenerationQueryWithOutputsResultFormatted{
+			GenerationOutput: gOutput,
+			Generation: GenerationQueryWithOutputsData{
 				ID:             g.ID,
 				Height:         g.Height,
 				Width:          g.Width,
@@ -483,42 +482,4 @@ func (r *Repository) GetUserGenerations(userID uuid.UUID, per_page int, cursor *
 	}
 
 	return meta, err
-}
-
-type UserGenerationQueryMeta struct {
-	Total   *int                                 `json:"total_count,omitempty"`
-	Outputs []UserGenerationQueryResultFormatted `json:"outputs"`
-	Next    *time.Time                           `json:"next,omitempty"`
-}
-
-type UserGenerationQueryData struct {
-	ID             uuid.UUID                            `json:"id" sql:"id"`
-	Height         int32                                `json:"height" sql:"height"`
-	Width          int32                                `json:"width" sql:"width"`
-	InferenceSteps int32                                `json:"inference_steps" sql:"inference_steps"`
-	Seed           int                                  `json:"seed" sql:"seed"`
-	Status         string                               `json:"status" sql:"status"`
-	GuidanceScale  float32                              `json:"guidance_scale" sql:"guidance_scale"`
-	SchedulerID    uuid.UUID                            `json:"scheduler_id" sql:"scheduler_id"`
-	ModelID        uuid.UUID                            `json:"model_id" sql:"model_id"`
-	CreatedAt      time.Time                            `json:"created_at" sql:"created_at"`
-	StartedAt      *time.Time                           `json:"started_at,omitempty" sql:"started_at"`
-	CompletedAt    *time.Time                           `json:"completed_at,omitempty" sql:"completed_at"`
-	NegativePrompt string                               `json:"negative_prompt" sql:"negative_prompt_text"`
-	Prompt         string                               `json:"prompt" sql:"prompt_text"`
-	Outputs        []responses.GenerationOutputResponse `json:"outputs"`
-}
-
-type UserGenerationQueryResult struct {
-	OutputID         *uuid.UUID                     `json:"output_id,omitempty" sql:"output_id"`
-	ImageUrl         string                         `json:"image_url,omitempty" sql:"image_path"`
-	UpscaledImageUrl string                         `json:"upscaled_image_url,omitempty" sql:"upscaled_image_path"`
-	GalleryStatus    generationoutput.GalleryStatus `json:"gallery_status,omitempty" sql:"output_gallery_status"`
-	DeletedAt        *time.Time                     `json:"deleted_at,omitempty" sql:"deleted_at"`
-	UserGenerationQueryData
-}
-
-type UserGenerationQueryResultFormatted struct {
-	responses.GenerationOutputResponse
-	Generation UserGenerationQueryData `json:"generation"`
 }

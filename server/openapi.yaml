@@ -227,7 +227,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/GenerationQueryMeta"
+                $ref: "#/components/schemas/GenerationQueryWithOutputsMeta"
         "400":
           description: Bad request
           content:
@@ -279,7 +279,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/GenerationDeleteRequest"
+              $ref: "#/components/schemas/DeleteGenerationRequest"
       responses:
         "200":
           description: Number of generations marked for deletion
@@ -309,7 +309,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/GenerationDeleteRequest"
+              $ref: "#/components/schemas/DeleteGenerationRequest"
       responses:
         "200":
           description: Number of generations marked for deletion
@@ -421,7 +421,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/GalleryReviewRequest"
+              $ref: "#/components/schemas/ReviewGalleryRequest"
       responses:
         "200":
           description: Number of items approved/rejected
@@ -559,7 +559,7 @@ components:
           type: string
           format: uuidv4
       description: Response after creating a generation or upscale
-    GenerationQueryMeta:
+    GenerationQueryWithOutputsMeta:
       type: object
       properties:
         total:
@@ -702,7 +702,7 @@ components:
         submitted:
           type: integer
       description: The number of items successfully submitted to gallery
-    GenerationDeleteRequest:
+    DeleteGenerationRequest:
       type: object
       properties:
         generation_output_ids:
@@ -716,7 +716,7 @@ components:
         deleted:
           type: integer
       description: The number of items successfully deleted
-    GalleryReviewRequest:
+    ReviewGalleryRequest:
       type: object
       properties:
         action:

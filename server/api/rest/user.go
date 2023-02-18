@@ -159,7 +159,7 @@ func (c *RestAPI) HandleQueryCredits(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	creditsResponse := responses.UserCreditsResponse{
+	creditsResponse := responses.QueryCreditsResponse{
 		TotalRemainingCredits: totalRemaining,
 		Credits:               creditsFormatted,
 	}
@@ -170,8 +170,8 @@ func (c *RestAPI) HandleQueryCredits(w http.ResponseWriter, r *http.Request) {
 }
 
 // Parse filters from query parameters
-func ParseQueryGenerationFilters(rawQuery url.Values) (*requests.UserGenerationFilters, error) {
-	filters := &requests.UserGenerationFilters{}
+func ParseQueryGenerationFilters(rawQuery url.Values) (*requests.QueryGenerationFilters, error) {
+	filters := &requests.QueryGenerationFilters{}
 	for key, value := range rawQuery {
 		// model_ids
 		if key == "model_ids" {
@@ -380,24 +380,24 @@ func ParseQueryGenerationFilters(rawQuery url.Values) (*requests.UserGenerationF
 
 		// Order
 		if key == "order" {
-			if strings.ToLower(value[0]) == string(requests.UserGenerationQueryOrderAscending) {
-				filters.Order = requests.UserGenerationQueryOrderAscending
-			} else if strings.ToLower(value[0]) == string(requests.UserGenerationQueryOrderDescending) {
-				filters.Order = requests.UserGenerationQueryOrderDescending
+			if strings.ToLower(value[0]) == string(requests.SortOrderAscending) {
+				filters.Order = requests.SortOrderAscending
+			} else if strings.ToLower(value[0]) == string(requests.SortOrderDescending) {
+				filters.Order = requests.SortOrderDescending
 			} else {
-				return nil, fmt.Errorf("invalid order: '%s' expected '%s' or '%s'", value[0], requests.UserGenerationQueryOrderAscending, requests.UserGenerationQueryOrderDescending)
+				return nil, fmt.Errorf("invalid order: '%s' expected '%s' or '%s'", value[0], requests.SortOrderAscending, requests.SortOrderDescending)
 			}
 		}
 		// Upscale status
 		if key == "upscaled" {
-			if strings.ToLower(value[0]) == string(requests.UserGenerationQueryUpscaleStatusAny) {
-				filters.UpscaleStatus = requests.UserGenerationQueryUpscaleStatusAny
-			} else if strings.ToLower(value[0]) == string(requests.UserGenerationQueryUpscaleStatusNot) {
-				filters.UpscaleStatus = requests.UserGenerationQueryUpscaleStatusNot
-			} else if strings.ToLower(value[0]) == string(requests.UserGenerationQueryUpscaleStatusOnly) {
-				filters.UpscaleStatus = requests.UserGenerationQueryUpscaleStatusOnly
+			if strings.ToLower(value[0]) == string(requests.UpscaleStatusAny) {
+				filters.UpscaleStatus = requests.UpscaleStatusAny
+			} else if strings.ToLower(value[0]) == string(requests.UpscaleStatusNot) {
+				filters.UpscaleStatus = requests.UpscaleStatusNot
+			} else if strings.ToLower(value[0]) == string(requests.UpscaleStatusOnly) {
+				filters.UpscaleStatus = requests.UpscaleStatusOnly
 			} else {
-				return nil, fmt.Errorf("invalid upscaled: '%s' expected '%s', '%s', or '%s'", value[0], requests.UserGenerationQueryUpscaleStatusAny, requests.UserGenerationQueryUpscaleStatusNot, requests.UserGenerationQueryUpscaleStatusOnly)
+				return nil, fmt.Errorf("invalid upscaled: '%s' expected '%s', '%s', or '%s'", value[0], requests.UpscaleStatusAny, requests.UpscaleStatusNot, requests.UpscaleStatusOnly)
 			}
 		}
 		// Start and end date
@@ -418,11 +418,11 @@ func ParseQueryGenerationFilters(rawQuery url.Values) (*requests.UserGenerationF
 	}
 	// Descending default
 	if filters.Order == "" {
-		filters.Order = requests.UserGenerationQueryOrderDescending
+		filters.Order = requests.SortOrderDescending
 	}
 	// Upscale status any default
 	if filters.UpscaleStatus == "" {
-		filters.UpscaleStatus = requests.UserGenerationQueryUpscaleStatusAny
+		filters.UpscaleStatus = requests.UpscaleStatusAny
 	}
 	return filters, nil
 }
@@ -437,7 +437,7 @@ func (c *RestAPI) HandleDeleteGenerationOutputForUser(w http.ResponseWriter, r *
 
 	// Parse request body
 	reqBody, _ := io.ReadAll(r.Body)
-	var deleteReq requests.GenerationDeleteRequest
+	var deleteReq requests.DeleteGenerationRequest
 	err := json.Unmarshal(reqBody, &deleteReq)
 	if err != nil {
 		responses.ErrUnableToParseJson(w, r)
