@@ -42,7 +42,7 @@ func (r *Repository) GetGenerationOutputWidthHeight(outputID uuid.UUID) (width, 
 
 // CreateGeneration creates the initial generation in the database
 // Takes in a userID (creator),  device info, countryCode, and a request body
-func (r *Repository) CreateGeneration(userID uuid.UUID, deviceType, deviceOs, deviceBrowser, countryCode string, req requests.GenerateRequestBody, DB *ent.Client) (*ent.Generation, error) {
+func (r *Repository) CreateGeneration(userID uuid.UUID, deviceType, deviceOs, deviceBrowser, countryCode string, req requests.CreateGenerationRequest, DB *ent.Client) (*ent.Generation, error) {
 	if DB == nil {
 		DB = r.DB
 	}

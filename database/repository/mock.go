@@ -113,7 +113,7 @@ func (repo *Repository) CreateMockData(ctx context.Context) error {
 
 	// ! Mock some generations
 	// With negative prompt, success, and outpts
-	gen, err := repo.CreateGeneration(uuid.MustParse(MOCK_ADMIN_UUID), "browser", "macos", "chrome", "DE", requests.GenerateRequestBody{
+	gen, err := repo.CreateGeneration(uuid.MustParse(MOCK_ADMIN_UUID), "browser", "macos", "chrome", "DE", requests.CreateGenerationRequest{
 		Prompt:         "This is a prompt",
 		NegativePrompt: "This is a negative prompt",
 		Width:          512,
@@ -137,7 +137,7 @@ func (repo *Repository) CreateMockData(ctx context.Context) error {
 	}
 
 	// Without negative prompt, also success
-	gen, err = repo.CreateGeneration(uuid.MustParse(MOCK_ADMIN_UUID), "browser", "macos", "chrome", "DE", requests.GenerateRequestBody{
+	gen, err = repo.CreateGeneration(uuid.MustParse(MOCK_ADMIN_UUID), "browser", "macos", "chrome", "DE", requests.CreateGenerationRequest{
 		Prompt:          "This is a prompt 2",
 		Width:           512,
 		Height:          512,
@@ -162,7 +162,7 @@ func (repo *Repository) CreateMockData(ctx context.Context) error {
 	}
 
 	// Failure
-	gen, err = repo.CreateGeneration(uuid.MustParse(MOCK_ADMIN_UUID), "browser", "macos", "chrome", "DE", requests.GenerateRequestBody{
+	gen, err = repo.CreateGeneration(uuid.MustParse(MOCK_ADMIN_UUID), "browser", "macos", "chrome", "DE", requests.CreateGenerationRequest{
 		Prompt:         "This is a prompt 3",
 		Width:          512,
 		Height:         512,
@@ -186,7 +186,7 @@ func (repo *Repository) CreateMockData(ctx context.Context) error {
 	}
 
 	// In progress
-	gen, err = repo.CreateGeneration(uuid.MustParse(MOCK_ADMIN_UUID), "browser", "macos", "chrome", "DE", requests.GenerateRequestBody{
+	gen, err = repo.CreateGeneration(uuid.MustParse(MOCK_ADMIN_UUID), "browser", "macos", "chrome", "DE", requests.CreateGenerationRequest{
 		Prompt:         "This is a prompt 4",
 		Width:          512,
 		Height:         512,
@@ -209,7 +209,7 @@ func (repo *Repository) CreateMockData(ctx context.Context) error {
 }
 
 func (repo *Repository) CreateMockGenerationForDeletion(ctx context.Context) (*ent.Generation, error) {
-	gen, err := repo.CreateGeneration(uuid.MustParse(MOCK_ADMIN_UUID), "browser", "macos", "chrome", "DE", requests.GenerateRequestBody{
+	gen, err := repo.CreateGeneration(uuid.MustParse(MOCK_ADMIN_UUID), "browser", "macos", "chrome", "DE", requests.CreateGenerationRequest{
 		Prompt:         "to_delete",
 		Width:          512,
 		Height:         512,
@@ -236,7 +236,7 @@ func (repo *Repository) CreateMockGenerationForDeletion(ctx context.Context) (*e
 }
 
 func (repo *Repository) CreateMockUpscaleForDeletion(ctx context.Context) (*ent.Upscale, error) {
-	up, err := repo.CreateUpscale(uuid.MustParse(MOCK_ADMIN_UUID), 512, 512, "browser", "macos", "chrome", "DE", requests.UpscaleRequestBody{
+	up, err := repo.CreateUpscale(uuid.MustParse(MOCK_ADMIN_UUID), 512, 512, "browser", "macos", "chrome", "DE", requests.CreateUpscaleRequest{
 		Type:    requests.UpscaleRequestTypeOutput,
 		ModelId: uuid.MustParse(MOCK_UPSCALE_MODEL_ID),
 		Input:   uuid.NewString(),
