@@ -43,6 +43,14 @@ func (t *CreateGenerationRequest) Validate() error {
 		return fmt.Errorf("Width is too large, max is: %d", shared.MAX_GENERATE_WIDTH)
 	}
 
+	if t.GuidanceScale < shared.MIN_GUIDANCE_SCALE {
+		return fmt.Errorf("Guidance scale is too small, min is: %f", shared.MIN_GUIDANCE_SCALE)
+	}
+
+	if t.GuidanceScale > shared.MAX_GUIDANCE_SCALE {
+		return fmt.Errorf("Guidance scale is too large, max is: %f", shared.MAX_GUIDANCE_SCALE)
+	}
+
 	if t.Width*t.Height*t.InferenceSteps >= shared.MAX_PRO_PIXEL_STEPS {
 		return fmt.Errorf("Pick fewer inference steps or smaller dimensions: %d - %d - %d",
 			t.Width,
