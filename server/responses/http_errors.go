@@ -40,15 +40,6 @@ func ErrInsufficientCredits(w http.ResponseWriter, r *http.Request) {
 	render.JSON(w, r, &InsufficientCredits)
 }
 
-var InvalidStreamIDErr = ErrorResponse{
-	Error: "invalid_stream_id",
-}
-
-func ErrInvalidStreamID(w http.ResponseWriter, r *http.Request) {
-	render.Status(r, http.StatusBadRequest)
-	render.JSON(w, r, &InvalidStreamIDErr)
-}
-
 func ErrBadRequest(w http.ResponseWriter, r *http.Request, errorText string) {
 	render.Status(r, http.StatusBadRequest)
 	render.JSON(w, r, &ErrorResponse{

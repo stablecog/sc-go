@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/go-chi/render"
-	"github.com/google/uuid"
 	"github.com/stablecog/sc-go/database/ent"
 	"github.com/stablecog/sc-go/server/requests"
 	"github.com/stablecog/sc-go/server/responses"
@@ -25,7 +24,7 @@ func (c *RestAPI) HandleUpscale(w http.ResponseWriter, r *http.Request) {
 
 	// Parse request body
 	reqBody, _ := io.ReadAll(r.Body)
-	var upscaleReq requests.UpscaleRequestBody
+	var upscaleReq requests.CreateUpscaleRequest
 	err := json.Unmarshal(reqBody, &upscaleReq)
 	if err != nil {
 		responses.ErrUnableToParseJson(w, r)
@@ -33,31 +32,9 @@ func (c *RestAPI) HandleUpscale(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Validation
-	if !utils.IsSha256Hash(upscaleReq.StreamID) {
-		responses.ErrInvalidStreamID(w, r)
-		return
-	}
-
-	if upscaleReq.Type != requests.UpscaleRequestTypeImage && upscaleReq.Type != requests.UpscaleRequestTypeOutput {
-		responses.ErrBadRequest(w, r, fmt.Sprintf("Invalid upscale type, should be %s or %s", requests.UpscaleRequestTypeImage, requests.UpscaleRequestTypeOutput))
-		return
-	}
-
-	var outputID uuid.UUID
-	if upscaleReq.Type == requests.UpscaleRequestTypeImage && !utils.IsValidHTTPURL(upscaleReq.Input) {
-		responses.ErrBadRequest(w, r, "invalid_image_url")
-		return
-	} else if upscaleReq.Type == requests.UpscaleRequestTypeOutput {
-		outputID, err = uuid.Parse(upscaleReq.Input)
-		if err != nil {
-			responses.ErrBadRequest(w, r, "invalid_output_id")
-			return
-		}
-	}
-
-	if !shared.GetCache().IsValidUpscaleModelID(upscaleReq.ModelId) {
-		klog.Infof("invalid_model_id: %s", upscaleReq.ModelId)
-		responses.ErrBadRequest(w, r, "invalid_model_id")
+	err = upscaleReq.Validate()
+	if err != nil {
+		responses.ErrBadRequest(w, r, err.Error())
 		return
 	}
 
@@ -91,8 +68,8 @@ func (c *RestAPI) HandleUpscale(w http.ResponseWriter, r *http.Request) {
 	// Output Type
 	var outputIDStr string
 	if upscaleReq.Type == requests.UpscaleRequestTypeOutput {
-		outputIDStr = outputID.String()
-		output, err := c.Repo.GetGenerationOutputForUser(outputID, *userID)
+		outputIDStr = upscaleReq.OutputID.String()
+		output, err := c.Repo.GetGenerationOutputForUser(upscaleReq.OutputID, *userID)
 		if err != nil {
 			if ent.IsNotFound(err) {
 				responses.ErrBadRequest(w, r, "output_not_found")
@@ -115,7 +92,7 @@ func (c *RestAPI) HandleUpscale(w http.ResponseWriter, r *http.Request) {
 		}
 
 		// Get width/height of generation
-		width, height, err = c.Repo.GetGenerationOutputWidthHeight(outputID)
+		width, height, err = c.Repo.GetGenerationOutputWidthHeight(upscaleReq.OutputID)
 		if err != nil {
 			responses.ErrBadRequest(w, r, "Unable to retrieve width/height for upscale")
 			return

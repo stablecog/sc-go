@@ -65,7 +65,7 @@ func TestGenerateUnauthorizedIfUserIdNotUuid(t *testing.T) {
 }
 
 func TestGenerateFailsWithInvalidStreamID(t *testing.T) {
-	reqBody := requests.GenerateRequestBody{
+	reqBody := requests.CreateGenerationRequest{
 		StreamID: "invalid",
 	}
 	body, _ := json.Marshal(reqBody)
@@ -89,7 +89,7 @@ func TestGenerateFailsWithInvalidStreamID(t *testing.T) {
 }
 
 func TestGenerateEnforcesNumOutputsChange(t *testing.T) {
-	reqBody := requests.GenerateRequestBody{
+	reqBody := requests.CreateGenerationRequest{
 		StreamID: MockSSEId,
 		Height:   shared.MAX_GENERATE_HEIGHT,
 		Width:    shared.MAX_GENERATE_WIDTH,
@@ -116,7 +116,7 @@ func TestGenerateEnforcesNumOutputsChange(t *testing.T) {
 	assert.Equal(t, "invalid_model_id", respJson["error"])
 
 	// ! Max
-	reqBody = requests.GenerateRequestBody{
+	reqBody = requests.CreateGenerationRequest{
 		StreamID:   MockSSEId,
 		Height:     shared.MAX_GENERATE_HEIGHT,
 		Width:      shared.MAX_GENERATE_WIDTH,
@@ -142,7 +142,7 @@ func TestGenerateEnforcesNumOutputsChange(t *testing.T) {
 }
 
 func TestGenerateEnforcesMaxWidthMaxHeight(t *testing.T) {
-	reqBody := requests.GenerateRequestBody{
+	reqBody := requests.CreateGenerationRequest{
 		StreamID: MockSSEId,
 		Height:   shared.MAX_GENERATE_HEIGHT + 1,
 		Width:    shared.MAX_GENERATE_WIDTH,
@@ -167,7 +167,7 @@ func TestGenerateEnforcesMaxWidthMaxHeight(t *testing.T) {
 	assert.Equal(t, fmt.Sprintf("Height is too large, max is: %d", shared.MAX_GENERATE_HEIGHT), respJson["error"])
 
 	// ! Width
-	reqBody = requests.GenerateRequestBody{
+	reqBody = requests.CreateGenerationRequest{
 		StreamID: MockSSEId,
 		Height:   shared.MAX_GENERATE_HEIGHT,
 		Width:    shared.MAX_GENERATE_WIDTH + 1,
@@ -193,7 +193,7 @@ func TestGenerateEnforcesMaxWidthMaxHeight(t *testing.T) {
 
 func TestGenerateRejectsInvalidModelOrScheduler(t *testing.T) {
 	// ! invalid_scheduler_id
-	reqBody := requests.GenerateRequestBody{
+	reqBody := requests.CreateGenerationRequest{
 		StreamID:    MockSSEId,
 		Height:      shared.MAX_GENERATE_HEIGHT,
 		Width:       shared.MAX_GENERATE_WIDTH,
@@ -221,7 +221,7 @@ func TestGenerateRejectsInvalidModelOrScheduler(t *testing.T) {
 	assert.Equal(t, "invalid_scheduler_id", respJson["error"])
 
 	// ! invalid_model_id
-	reqBody = requests.GenerateRequestBody{
+	reqBody = requests.CreateGenerationRequest{
 		StreamID:    MockSSEId,
 		Height:      shared.MAX_GENERATE_HEIGHT,
 		Width:       shared.MAX_GENERATE_WIDTH,
@@ -250,7 +250,7 @@ func TestGenerateRejectsInvalidModelOrScheduler(t *testing.T) {
 
 func TestGenerateNoCredits(t *testing.T) {
 	// ! Perfectly valid request
-	reqBody := requests.GenerateRequestBody{
+	reqBody := requests.CreateGenerationRequest{
 		StreamID:       MockSSEId,
 		Height:         shared.MAX_GENERATE_HEIGHT,
 		Width:          shared.MAX_GENERATE_WIDTH,
@@ -281,7 +281,7 @@ func TestGenerateNoCredits(t *testing.T) {
 
 func TestGenerateValidRequest(t *testing.T) {
 	// ! Perfectly valid request
-	reqBody := requests.GenerateRequestBody{
+	reqBody := requests.CreateGenerationRequest{
 		StreamID:       MockSSEId,
 		Height:         shared.MAX_GENERATE_HEIGHT,
 		Width:          shared.MAX_GENERATE_WIDTH,

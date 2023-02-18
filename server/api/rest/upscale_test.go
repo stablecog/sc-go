@@ -66,7 +66,7 @@ func TestUpscaleUnauthorizedIfUserIdNotUuid(t *testing.T) {
 }
 
 func TestUpscaleFailsWithInvalidStreamID(t *testing.T) {
-	reqBody := requests.UpscaleRequestBody{
+	reqBody := requests.CreateUpscaleRequest{
 		StreamID: "invalid",
 	}
 	body, _ := json.Marshal(reqBody)
@@ -90,7 +90,7 @@ func TestUpscaleFailsWithInvalidStreamID(t *testing.T) {
 }
 
 func TestUpscaleEnforcesType(t *testing.T) {
-	reqBody := requests.UpscaleRequestBody{
+	reqBody := requests.CreateUpscaleRequest{
 		StreamID: MockSSEId,
 		Type:     "invalid",
 	}
@@ -115,7 +115,7 @@ func TestUpscaleEnforcesType(t *testing.T) {
 }
 
 func TestUpscaleErrorsBadURL(t *testing.T) {
-	reqBody := requests.UpscaleRequestBody{
+	reqBody := requests.CreateUpscaleRequest{
 		StreamID: MockSSEId,
 		Type:     requests.UpscaleRequestTypeImage,
 		Input:    "not-a-url",
@@ -141,7 +141,7 @@ func TestUpscaleErrorsBadURL(t *testing.T) {
 }
 
 func TestUpscaleErrorsBadOutputID(t *testing.T) {
-	reqBody := requests.UpscaleRequestBody{
+	reqBody := requests.CreateUpscaleRequest{
 		StreamID: MockSSEId,
 		Type:     requests.UpscaleRequestTypeOutput,
 		Input:    "not-a-uuid",
@@ -168,7 +168,7 @@ func TestUpscaleErrorsBadOutputID(t *testing.T) {
 
 func TestUpscaleRejectsInvalidModel(t *testing.T) {
 	// ! invalid_model_id
-	reqBody := requests.UpscaleRequestBody{
+	reqBody := requests.CreateUpscaleRequest{
 		StreamID: MockSSEId,
 		Type:     requests.UpscaleRequestTypeImage,
 		Input:    "https://example.com/image.png",
@@ -219,7 +219,7 @@ func TestUpscaleFailsIfNoCredits(t *testing.T) {
 		},
 	)
 
-	reqBody := requests.UpscaleRequestBody{
+	reqBody := requests.CreateUpscaleRequest{
 		StreamID: MockSSEId,
 		Type:     requests.UpscaleRequestTypeImage,
 		Input:    "https://example.com/image.png",
@@ -270,7 +270,7 @@ func TestUpscaleFromURL(t *testing.T) {
 		},
 	)
 
-	reqBody := requests.UpscaleRequestBody{
+	reqBody := requests.CreateUpscaleRequest{
 		StreamID: MockSSEId,
 		Type:     requests.UpscaleRequestTypeImage,
 		Input:    "https://example.com/image.png",
@@ -307,7 +307,7 @@ func TestUpscaleFromOutput(t *testing.T) {
 	output, err := MockController.Repo.DB.Generation.Query().Where(generation.UserIDEQ(uuid.MustParse(repository.MOCK_ADMIN_UUID))).QueryGenerationOutputs().First(context.Background())
 	assert.Nil(t, err)
 
-	reqBody := requests.UpscaleRequestBody{
+	reqBody := requests.CreateUpscaleRequest{
 		StreamID: MockSSEId,
 		Type:     requests.UpscaleRequestTypeOutput,
 		Input:    output.ID.String(),

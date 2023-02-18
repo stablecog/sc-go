@@ -4,8 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"math"
-	"math/rand"
 	"net/http"
 	"time"
 
@@ -21,91 +19,30 @@ import (
 // POST generate endpoint
 // Adds generate to queue, if authenticated, returns the ID of the generation
 func (c *RestAPI) HandleCreateGeneration(w http.ResponseWriter, r *http.Request) {
-	start := time.Now()
 	userID := c.GetUserIDIfAuthenticated(w, r)
 	if userID == nil {
 		return
 	}
-	fmt.Printf("--- GetUserIDIFAuthenticated took: %s\n", time.Now().Sub(start))
 
 	// Parse request body
-	start = time.Now()
 	reqBody, _ := io.ReadAll(r.Body)
-	var generateReq requests.GenerateRequestBody
+	var generateReq requests.CreateGenerationRequest
 	err := json.Unmarshal(reqBody, &generateReq)
 	if err != nil {
 		responses.ErrUnableToParseJson(w, r)
 		return
 	}
-	fmt.Printf("--- ParseRequestBody took: %s\n", time.Now().Sub(start))
 
-	// Make sure the stream ID is valid
-	start = time.Now()
-	if !utils.IsSha256Hash(generateReq.StreamID) {
-		responses.ErrInvalidStreamID(w, r)
+	// Validation
+	err = generateReq.Validate()
+	if err != nil {
+		responses.ErrBadRequest(w, r, err.Error())
 		return
-	}
-	fmt.Printf("--- Validate stream ID took: %s\n", time.Now().Sub(start))
-
-	// Validate request body
-	if generateReq.Height > shared.MAX_GENERATE_HEIGHT {
-		responses.ErrBadRequest(w, r, fmt.Sprintf("Height is too large, max is: %d", shared.MAX_GENERATE_HEIGHT))
-		return
-	}
-
-	if generateReq.Width > shared.MAX_GENERATE_WIDTH {
-		responses.ErrBadRequest(w, r, fmt.Sprintf("Width is too large, max is: %d", shared.MAX_GENERATE_WIDTH))
-		return
-	}
-
-	if generateReq.Width*generateReq.Height*generateReq.InferenceSteps >= shared.MAX_PRO_PIXEL_STEPS {
-		klog.Infof(
-			"Pick fewer inference steps or smaller dimensions: %d - %d - %d",
-			generateReq.Width,
-			generateReq.Height,
-			generateReq.InferenceSteps,
-		)
-		responses.ErrBadRequest(w, r, "Pick fewer inference steps or smaller dimensions")
-		return
-	}
-
-	if generateReq.NumOutputs < 0 {
-		generateReq.NumOutputs = shared.DEFAULT_GENERATE_NUM_OUTPUTS
-	}
-	if generateReq.NumOutputs > shared.MAX_GENERATE_NUM_OUTPUTS {
-		klog.Infof("Number of outputs can't be more than %d", shared.MAX_GENERATE_NUM_OUTPUTS)
-		responses.ErrBadRequest(w, r, fmt.Sprintf("Number of outputs can't be more than %d", shared.MAX_GENERATE_NUM_OUTPUTS))
-		return
-	}
-
-	// Validate model and scheduler IDs in request are valid
-	start = time.Now()
-	if !shared.GetCache().IsValidGenerationModelID(generateReq.ModelId) {
-		klog.Infof("invalid_model_id: %s", generateReq.ModelId)
-		responses.ErrBadRequest(w, r, "invalid_model_id")
-		return
-	}
-
-	if !shared.GetCache().IsValidShedulerID(generateReq.SchedulerId) {
-		klog.Infof("invalid_scheduler_id: %s", generateReq.SchedulerId)
-		responses.ErrBadRequest(w, r, "invalid_scheduler_id")
-		return
-	}
-	fmt.Printf("--- Checking model and scheduler IDs took: %s\n", time.Now().Sub(start))
-
-	// Generate seed if not provided
-	if generateReq.Seed < 0 {
-		rand.Seed(time.Now().Unix())
-		generateReq.Seed = rand.Intn(math.MaxInt32)
 	}
 
 	// Parse request headers
-	start = time.Now()
 	countryCode := utils.GetCountryCode(r)
 	deviceInfo := utils.GetClientDeviceInfo(r)
-	fmt.Printf("--- Parse request headers took: %s\n", time.Now().Sub(start))
-
-	start = time.Now()
 
 	// ! TODO - parallel generation toggle
 
@@ -119,10 +56,8 @@ func (c *RestAPI) HandleCreateGeneration(w http.ResponseWriter, r *http.Request)
 	}
 
 	// Format prompts
-	start = time.Now()
 	generateReq.Prompt = utils.FormatPrompt(generateReq.Prompt)
 	generateReq.NegativePrompt = utils.FormatPrompt(generateReq.NegativePrompt)
-	fmt.Printf("--- Format prompts took: %s\n", time.Now().Sub(start))
 
 	// For live page update
 	var livePageMsg shared.LivePageMessage
@@ -137,6 +72,7 @@ func (c *RestAPI) HandleCreateGeneration(w http.ResponseWriter, r *http.Request)
 		// Bind a client to the transaction
 		DB := tx.Client()
 		// Deduct credits from user
+		start := time.Now()
 		deducted, err := c.Repo.DeductCreditsFromUser(*userID, int32(generateReq.NumOutputs), DB)
 		if err != nil {
 			klog.Errorf("Error deducting credits: %v", err)
@@ -216,7 +152,7 @@ func (c *RestAPI) HandleCreateGeneration(w http.ResponseWriter, r *http.Request)
 	}
 
 	// Track the request in our internal map
-	start = time.Now()
+	start := time.Now()
 	c.Redis.SetCogRequestStreamID(r.Context(), requestId, generateReq.StreamID)
 	fmt.Printf("--- Put request in map took: %s\n", time.Now().Sub(start))
 
