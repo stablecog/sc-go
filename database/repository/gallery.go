@@ -96,7 +96,7 @@ func (r *Repository) RetrieveGalleryData(limit int, updatedAtGT *time.Time) ([]G
 }
 
 type GalleryData struct {
-	ID                 *uuid.UUID `json:"id,omitempty" sql:"id"`
+	ID                 uuid.UUID  `json:"id,omitempty" sql:"id"`
 	ImagePath          string     `json:"image_path,omitempty" sql:"image_path"`
 	UpscaledImagePath  string     `json:"upscaled_image_path,omitempty" sql:"upscaled_image_path"`
 	ImageURL           string     `json:"image_url"`
