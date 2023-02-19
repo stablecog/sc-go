@@ -128,8 +128,9 @@ func (c *RestAPI) HandleQueryGenerations(w http.ResponseWriter, r *http.Request)
 
 	// Validate query parameters
 	perPage := DEFAULT_PER_PAGE
+	var err error
 	if perPageStr := r.URL.Query().Get("per_page"); perPageStr != "" {
-		perPage, err := strconv.Atoi(perPageStr)
+		perPage, err = strconv.Atoi(perPageStr)
 		if err != nil {
 			responses.ErrBadRequest(w, r, "per_page must be an integer")
 			return
