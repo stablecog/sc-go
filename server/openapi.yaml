@@ -53,9 +53,9 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse401"
-  /v1/user/summary:
+  /v1/user:
     get:
-      description: "Summary: Retrieve User Data"
+      description: "User: Retrieve Summary of User Data"
       security:
         - supabase: []
       responses:
@@ -790,6 +790,18 @@ components:
         total_remaining_credits:
           type: integer
           format: int32
+        product:
+          type: string
+          format: stripe product ID, or empty if none
+        cancels_at:
+          type: string
+          format: isoTimeString, optional, only if cancel scheduled
+        stripe_had_error:
+          type: boolean
+          format: If stripe API returned an unknown error code
+        customer_not_found:
+          type: boolean
+          format: If customer ID does not exist in stripe
       description: Summary of user data
     GalleryResponse:
       type: object

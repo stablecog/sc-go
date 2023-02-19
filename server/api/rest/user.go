@@ -24,33 +24,96 @@ const MAX_PER_PAGE = 100
 
 // HTTP Get - user info
 func (c *RestAPI) HandleGetUser(w http.ResponseWriter, r *http.Request) {
-	// customer, err := c.StripeClient.Customers.Get("", nil)
-	// customerNotFound := false
-	// stripeHadError := false
-	// if err != nil {
-	// 	// Try to decode error as map
-	// 	var stripeErr map[string]interface{}
-	// 	marshalErr := json.Unmarshal([]byte(err.Error()), &stripeErr)
-	// 	if marshalErr == nil {
-	// 		status, ok := stripeErr["status"]
-	// 		if ok && status == 404 {
-	// 			customerNotFound = true
-	// 		} else {
-	// 			klog.Errorf("Error getting customer from stripe: %v", err)
-	// 			stripeHadError = true
-	// 		}
-	// 	} else {
-	// 		klog.Errorf("Error getting customer from stripe, unknown error: %v", err)
-	// 		stripeHadError = true
-	// 	}
-	// }
-	// res := map[string]interface{}{
-	// 	"customer":         customer,
-	// 	"customerNotFound": customerNotFound,
-	// 	"stripeHadError":   stripeHadError,
-	// }
-	// render.Status(r, http.StatusOK)
-	// render.JSON(w, r, res)
+	userID := c.GetUserIDIfAuthenticated(w, r)
+	if userID == nil {
+		return
+	}
+
+	// Get customer ID for user
+	user, err := c.Repo.GetUser(*userID)
+	if err != nil {
+		klog.Errorf("Error getting user: %v", err)
+		responses.ErrInternalServerError(w, r, "An unknown error has occured")
+		return
+	} else if user == nil {
+		responses.ErrBadRequest(w, r, "User not found")
+		return
+	} else if user.StripeCustomerID == nil {
+		klog.Errorf("Error getting user, stripe customer ID is nil for %s", *userID)
+		responses.ErrInternalServerError(w, r, "An unknown error has occured")
+		return
+	}
+
+	// Get total credits
+	credits, err := c.Repo.GetCreditsForUser(*userID)
+	if err != nil {
+		klog.Errorf("Error getting credits for user: %v", err)
+		responses.ErrInternalServerError(w, r, "An unknown error has occured")
+		return
+	}
+
+	var totalRemaining int32
+	for _, credit := range credits {
+		totalRemaining += credit.RemainingAmount
+	}
+
+	customer, err := c.StripeClient.Customers.Get(*user.StripeCustomerID, nil)
+	customerNotFound := false
+	stripeHadError := false
+	if err != nil {
+		// Try to decode error as map
+		var stripeErr map[string]interface{}
+		marshalErr := json.Unmarshal([]byte(err.Error()), &stripeErr)
+		if marshalErr == nil {
+			status, ok := stripeErr["status"]
+			if ok && status == 404 {
+				customerNotFound = true
+			} else {
+				klog.Errorf("Error getting customer from stripe: %v", err)
+				stripeHadError = true
+			}
+		} else {
+			klog.Errorf("Error getting customer from stripe, unknown error: %v", err)
+			stripeHadError = true
+		}
+	} else if customer == nil || customer.Subscriptions == nil || customer.Subscriptions.Data == nil {
+		customerNotFound = true
+	}
+
+	// Get current time in ms since epoch
+	now := time.Now().UnixNano() / int64(time.Second)
+	var highestProduct string
+	var cancelsAt *time.Time
+	if !customerNotFound && !stripeHadError {
+		// Find highest subscription tier
+		for _, subscription := range customer.Subscriptions.Data {
+			if subscription.Plan == nil || subscription.Plan.Product == nil {
+				continue
+			}
+
+			// Not expired or cancelled
+			if now > subscription.CurrentPeriodEnd || subscription.CanceledAt > subscription.CurrentPeriodEnd {
+				continue
+			}
+			highestProduct = subscription.Plan.Product.ID
+			// If not scheduled to be cancelled, we are done
+			if subscription.CancelAt == 0 {
+				cancelsAt = nil
+				break
+			}
+			cancelsAsTime := utils.SecondsSinceEpochToTime(subscription.CancelAt)
+			cancelsAt = &cancelsAsTime
+		}
+	}
+
+	render.Status(r, http.StatusOK)
+	render.JSON(w, r, responses.GetUserResponse{
+		TotalRemainingCredits: totalRemaining,
+		Product:               highestProduct,
+		CancelsAt:             cancelsAt,
+		StripeHadError:        stripeHadError,
+		CustomerNotFound:      customerNotFound,
+	})
 }
 
 // HTTP Get - generations for user
@@ -58,24 +121,15 @@ func (c *RestAPI) HandleGetUser(w http.ResponseWriter, r *http.Request) {
 // per_page: number of generations to return
 // cursor: cursor for pagination, it is an iso time string in UTC
 func (c *RestAPI) HandleQueryGenerations(w http.ResponseWriter, r *http.Request) {
-	// See if authenticated
-	userIDStr, authenticated := r.Context().Value("user_id").(string)
-	// This should always be true because of the auth middleware, but check it anyway
-	if !authenticated || userIDStr == "" {
-		responses.ErrUnauthorized(w, r)
-		return
-	}
-	// Parse to UUID
-	userId, err := uuid.Parse(userIDStr)
-	if err != nil {
-		responses.ErrUnauthorized(w, r)
+	userID := c.GetUserIDIfAuthenticated(w, r)
+	if userID == nil {
 		return
 	}
 
 	// Validate query parameters
 	perPage := DEFAULT_PER_PAGE
 	if perPageStr := r.URL.Query().Get("per_page"); perPageStr != "" {
-		perPage, err = strconv.Atoi(perPageStr)
+		perPage, err := strconv.Atoi(perPageStr)
 		if err != nil {
 			responses.ErrBadRequest(w, r, "per_page must be an integer")
 			return
@@ -102,7 +156,7 @@ func (c *RestAPI) HandleQueryGenerations(w http.ResponseWriter, r *http.Request)
 	}
 
 	// Get generaions
-	generations, err := c.Repo.GetUserGenerations(userId, perPage, cursor, filters)
+	generations, err := c.Repo.GetUserGenerations(*userID, perPage, cursor, filters)
 	if err != nil {
 		klog.Errorf("Error getting generations for user: %s", err)
 		responses.ErrInternalServerError(w, r, "Error getting generations")

@@ -143,8 +143,6 @@ func main() {
 	app.Route("/v1", func(r chi.Router) {
 		r.Get("/health", hc.HandleHealth)
 
-		// r.Get("/userget", hc.HandleGetUser)
-
 		// SSE
 		r.Route("/sse", func(r chi.Router) {
 			r.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
@@ -171,6 +169,9 @@ func main() {
 			r.Use(chimiddleware.Logger)
 			// 10 requests per second
 			r.Use(mw.RateLimit(10, 1*time.Second))
+
+			// Get user summary
+			r.Get("/", hc.HandleGetUser)
 
 			// Create Generation
 			r.Post("/generation", hc.HandleCreateGeneration)

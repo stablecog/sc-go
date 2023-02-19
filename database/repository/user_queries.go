@@ -8,6 +8,14 @@ import (
 	"k8s.io/klog/v2"
 )
 
+func (r *Repository) GetUser(id uuid.UUID) (*ent.User, error) {
+	user, err := r.DB.User.Query().Where(user.IDEQ(id)).Only(r.Ctx)
+	if err != nil && ent.IsNotFound(err) {
+		return nil, nil
+	}
+	return user, err
+}
+
 func (r *Repository) GetUserByStripeCustomerId(customerId string) (*ent.User, error) {
 	user, err := r.DB.User.Query().Where(user.StripeCustomerIDEQ(customerId)).Only(r.Ctx)
 	if err != nil && ent.IsNotFound(err) {
