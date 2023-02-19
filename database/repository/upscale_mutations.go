@@ -11,11 +11,6 @@ import (
 	"k8s.io/klog/v2"
 )
 
-// Get upscale by ID
-func (r *Repository) GetUpscale(id uuid.UUID) (*ent.Upscale, error) {
-	return r.DB.Upscale.Query().Where(upscale.IDEQ(id)).First(r.Ctx)
-}
-
 // CreateUpscale creates the initial generation in the database
 // Takes in a userID (creator),  device info, countryCode, and a request body
 func (r *Repository) CreateUpscale(userID uuid.UUID, width, height int32, deviceType, deviceOs, deviceBrowser, countryCode string, req requests.CreateUpscaleRequest, DB *ent.Client) (*ent.Upscale, error) {

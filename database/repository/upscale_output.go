@@ -61,7 +61,3 @@ func (r *Repository) MarkUpscaleOutputForDeletionBasedOnGenerationOutputIDs(gene
 	// Mark upscale outputs for deletion
 	return DB.UpscaleOutput.Update().Where(upscaleoutput.ImagePathIn(paths...)).SetDeletedAt(time.Now()).Save(r.Ctx)
 }
-
-func (r *Repository) GetUpscaleOutputWithPath(path string) (*ent.UpscaleOutput, error) {
-	return r.DB.UpscaleOutput.Query().Where(upscaleoutput.ImagePathEQ(path)).Only(r.Ctx)
-}

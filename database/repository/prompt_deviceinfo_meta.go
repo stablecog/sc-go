@@ -8,9 +8,7 @@ import (
 	"github.com/stablecog/sc-go/database/ent/prompt"
 )
 
-// ! Temporary repo methods since these should go away
-
-// ! TODO - move this to a postgres stored procedure
+// Create device info and prompts if they don't exist, otherwise get existing
 func (r *Repository) GetOrCreateDeviceInfoAndPrompts(promptText, negativePromptText, deviceType, deviceOs, deviceBrowser string, DB *ent.Client) (promptId uuid.UUID, negativePromptId *uuid.UUID, deviceInfoId uuid.UUID, err error) {
 	if DB == nil {
 		DB = r.DB
