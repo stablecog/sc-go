@@ -42,6 +42,37 @@ func (r *Repository) AddCreditsIfEligible(creditType *ent.CreditType, userID uui
 	return true, nil
 }
 
+// Replenish free credits if eligible
+func (r *Repository) ReplenishFreeCreditsIfEligible(userID uuid.UUID, expiresAt time.Time, DB *ent.Client) (added bool, err error) {
+	if DB == nil {
+		DB = r.DB
+	}
+
+	creditType, err := r.GetFreeCreditType()
+	if err != nil {
+		return false, err
+	}
+
+	// See if user has any credits of this type
+	// ExpiresAt must be greater than or equal to the current time
+	credits, err := DB.Credit.Query().Where(credit.UserID(userID), credit.CreditTypeID(creditType.ID), credit.ExpiresAtGTE(expiresAt)).Order(ent.Desc(credit.FieldExpiresAt)).First(r.Ctx)
+	if err != nil && !ent.IsNotFound(err) {
+		return false, err
+	}
+
+	if credits != nil {
+		// User already has credits of this type
+		return false, nil
+	}
+
+	// Add credits
+	_, err = DB.Credit.Create().SetCreditTypeID(creditType.ID).SetUserID(userID).SetRemainingAmount(creditType.Amount).SetExpiresAt(expiresAt).Save(r.Ctx)
+	if err != nil {
+		return false, err
+	}
+	return true, nil
+}
+
 // Adds credits of creditType to user if they do not already have any belonging to stripe invoice line item
 func (r *Repository) AddAdhocCreditsIfEligible(creditType *ent.CreditType, userID uuid.UUID, lineItemID string) (added bool, err error) {
 	if creditType == nil {

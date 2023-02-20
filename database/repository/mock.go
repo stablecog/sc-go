@@ -8,6 +8,7 @@ import (
 	"github.com/stablecog/sc-go/database/ent"
 	"github.com/stablecog/sc-go/database/ent/userrole"
 	"github.com/stablecog/sc-go/server/requests"
+	"github.com/stablecog/sc-go/shared"
 )
 
 // Mock user IDs
@@ -42,7 +43,7 @@ func (repo *Repository) CreateMockData(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	creditType, err = repo.CreateCreditType("free", 50, nil, nil)
+	_, err = repo.CreateCreditType(shared.CREDIT_TYPE_FREE, 50, nil, nil)
 	if err != nil {
 		return err
 	}

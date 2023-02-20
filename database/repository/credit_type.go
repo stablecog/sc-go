@@ -3,6 +3,7 @@ package repository
 import (
 	"github.com/stablecog/sc-go/database/ent"
 	"github.com/stablecog/sc-go/database/ent/credittype"
+	"github.com/stablecog/sc-go/shared"
 )
 
 func (r *Repository) CreateCreditType(name string, amount int32, description *string, stripeProductID *string) (*ent.CreditType, error) {
@@ -27,7 +28,7 @@ func (r *Repository) GetCreditTypeByStripeProductID(stripeProductID string) (*en
 }
 
 func (r *Repository) GetFreeCreditType() (*ent.CreditType, error) {
-	creditType, err := r.DB.CreditType.Query().Where(credittype.NameEQ("free")).Only(r.Ctx)
+	creditType, err := r.DB.CreditType.Query().Where(credittype.NameEQ(shared.CREDIT_TYPE_FREE)).Only(r.Ctx)
 	if err != nil && ent.IsNotFound(err) {
 		return nil, nil
 	} else if err != nil {
