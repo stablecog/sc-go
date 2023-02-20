@@ -21,8 +21,6 @@ const (
 	FieldCreatedAt = "created_at"
 	// FieldUpdatedAt holds the string denoting the updated_at field in the database.
 	FieldUpdatedAt = "updated_at"
-	// FieldConfirmedAt holds the string denoting the confirmed_at field in the database.
-	FieldConfirmedAt = "confirmed_at"
 	// EdgeUserRoles holds the string denoting the user_roles edge name in mutations.
 	EdgeUserRoles = "user_roles"
 	// EdgeGenerations holds the string denoting the generations edge name in mutations.
@@ -70,7 +68,6 @@ var Columns = []string{
 	FieldStripeCustomerID,
 	FieldCreatedAt,
 	FieldUpdatedAt,
-	FieldConfirmedAt,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).

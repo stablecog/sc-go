@@ -20,19 +20,26 @@ type RestAPI struct {
 	Meili        *meilisearch.Client
 }
 
-func (c *RestAPI) GetUserIDIfAuthenticated(w http.ResponseWriter, r *http.Request) *uuid.UUID {
+func (c *RestAPI) GetUserIDAndEmailIfAuthenticated(w http.ResponseWriter, r *http.Request) (id *uuid.UUID, email string) {
 	// See if authenticated
 	userIDStr, authenticated := r.Context().Value("user_id").(string)
 	// This should always be true because of the auth middleware, but check it anyway
 	if !authenticated || userIDStr == "" {
 		responses.ErrUnauthorized(w, r)
-		return nil
+		return nil, ""
 	}
 	// Ensure valid uuid
 	userID, err := uuid.Parse(userIDStr)
 	if err != nil {
 		responses.ErrUnauthorized(w, r)
-		return nil
+		return nil, ""
 	}
-	return &userID
+
+	// Get email
+	email, ok := r.Context().Value("user_email").(string)
+	if !ok {
+		responses.ErrUnauthorized(w, r)
+		return nil, ""
+	}
+	return &userID, email
 }

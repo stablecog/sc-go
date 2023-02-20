@@ -25,3 +25,13 @@ func (r *Repository) GetCreditTypeByStripeProductID(stripeProductID string) (*en
 	}
 	return creditType, nil
 }
+
+func (r *Repository) GetFreeCreditType() (*ent.CreditType, error) {
+	creditType, err := r.DB.CreditType.Query().Where(credittype.NameEQ("free")).Only(r.Ctx)
+	if err != nil && ent.IsNotFound(err) {
+		return nil, nil
+	} else if err != nil {
+		return nil, err
+	}
+	return creditType, nil
+}

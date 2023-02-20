@@ -21,10 +21,9 @@ func (User) Fields() []ent.Field {
 	return []ent.Field{
 		field.UUID("id", uuid.UUID{}).Default(uuid.New),
 		field.Text("email"),
-		field.Text("stripe_customer_id").Optional().Nillable(),
+		field.Text("stripe_customer_id").Unique(),
 		field.Time("created_at").Default(time.Now).Immutable(),
 		field.Time("updated_at").Default(time.Now).UpdateDefault(time.Now),
-		field.Time("confirmed_at").Optional().Nillable(),
 	}
 }
 

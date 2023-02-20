@@ -17,7 +17,7 @@ import (
 )
 
 func (c *RestAPI) HandleUpscale(w http.ResponseWriter, r *http.Request) {
-	userID := c.GetUserIDIfAuthenticated(w, r)
+	userID, _ := c.GetUserIDAndEmailIfAuthenticated(w, r)
 	if userID == nil {
 		return
 	}

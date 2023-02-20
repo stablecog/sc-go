@@ -17,7 +17,7 @@ import (
 // HTTP POST - admin approve/reject image in gallery
 func (c *RestAPI) HandleReviewGallerySubmission(w http.ResponseWriter, r *http.Request) {
 	// Get user id (of admin)
-	userID := c.GetUserIDIfAuthenticated(w, r)
+	userID, _ := c.GetUserIDAndEmailIfAuthenticated(w, r)
 	if userID == nil {
 		return
 	}
@@ -58,7 +58,7 @@ func (c *RestAPI) HandleReviewGallerySubmission(w http.ResponseWriter, r *http.R
 // HTTP DELETE - admin delete generation
 func (c *RestAPI) HandleDeleteGenerationOutput(w http.ResponseWriter, r *http.Request) {
 	// Get user id (of admin)
-	userID := c.GetUserIDIfAuthenticated(w, r)
+	userID, _ := c.GetUserIDAndEmailIfAuthenticated(w, r)
 	if userID == nil {
 		return
 	}

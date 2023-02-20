@@ -28,6 +28,7 @@ func TestHandleQueryGenerationsDontExist(t *testing.T) {
 	req.Header.Set("Content-Type", "application/json")
 
 	ctx := context.WithValue(req.Context(), "user_id", repository.MOCK_NO_CREDITS_UUID)
+	ctx = context.WithValue(ctx, "user_email", repository.MOCK_ADMIN_UUID)
 
 	MockController.HandleQueryGenerations(w, req.WithContext(ctx))
 	resp := w.Result()
@@ -49,6 +50,7 @@ func TestHandleQueryGenerationsDefaultParams(t *testing.T) {
 	req.Header.Set("Content-Type", "application/json")
 
 	ctx := context.WithValue(req.Context(), "user_id", repository.MOCK_ADMIN_UUID)
+	ctx = context.WithValue(ctx, "user_email", repository.MOCK_ADMIN_UUID)
 
 	MockController.HandleQueryGenerations(w, req.WithContext(ctx))
 	resp := w.Result()
@@ -131,6 +133,7 @@ func TestHandleQueryGenerationsCursor(t *testing.T) {
 	req.Header.Set("Content-Type", "application/json")
 
 	ctx := context.WithValue(req.Context(), "user_id", repository.MOCK_ADMIN_UUID)
+	ctx = context.WithValue(ctx, "user_email", repository.MOCK_ADMIN_UUID)
 
 	MockController.HandleQueryGenerations(w, req.WithContext(ctx))
 	resp := w.Result()
@@ -164,6 +167,8 @@ func TestHandleQueryGenerationsCursor(t *testing.T) {
 	req.Header.Set("Content-Type", "application/json")
 
 	ctx = context.WithValue(req.Context(), "user_id", repository.MOCK_ADMIN_UUID)
+	ctx = context.WithValue(ctx, "user_email", repository.MOCK_ADMIN_UUID)
+
 	MockController.HandleQueryGenerations(w, req.WithContext(ctx))
 	resp = w.Result()
 	defer resp.Body.Close()
@@ -185,6 +190,7 @@ func TestHandleQueryGenerationsPerPage(t *testing.T) {
 	req.Header.Set("Content-Type", "application/json")
 
 	ctx := context.WithValue(req.Context(), "user_id", repository.MOCK_ADMIN_UUID)
+	ctx = context.WithValue(ctx, "user_email", repository.MOCK_ADMIN_UUID)
 
 	MockController.HandleQueryGenerations(w, req.WithContext(ctx))
 	resp := w.Result()
@@ -220,6 +226,7 @@ func TestHandleQueryGenerationsFilters(t *testing.T) {
 	req.Header.Set("Content-Type", "application/json")
 
 	ctx := context.WithValue(req.Context(), "user_id", repository.MOCK_ADMIN_UUID)
+	ctx = context.WithValue(ctx, "user_email", repository.MOCK_ADMIN_UUID)
 
 	MockController.HandleQueryGenerations(w, req.WithContext(ctx))
 	resp := w.Result()
@@ -275,6 +282,7 @@ func TestHandleQueryGenerationsBadPerPage(t *testing.T) {
 	req.Header.Set("Content-Type", "application/json")
 
 	ctx := context.WithValue(req.Context(), "user_id", repository.MOCK_NORMAL_UUID)
+	ctx = context.WithValue(ctx, "user_email", repository.MOCK_ADMIN_UUID)
 
 	MockController.HandleQueryGenerations(w, req.WithContext(ctx))
 	resp := w.Result()
@@ -293,6 +301,7 @@ func TestHandleQueryGenerationsBadPerPage(t *testing.T) {
 	req.Header.Set("Content-Type", "application/json")
 
 	ctx = context.WithValue(req.Context(), "user_id", repository.MOCK_NORMAL_UUID)
+	ctx = context.WithValue(ctx, "user_email", repository.MOCK_ADMIN_UUID)
 
 	MockController.HandleQueryGenerations(w, req.WithContext(ctx))
 	resp = w.Result()
@@ -309,6 +318,7 @@ func TestHandleQueryGenerationsBadPerPage(t *testing.T) {
 	req.Header.Set("Content-Type", "application/json")
 
 	ctx = context.WithValue(req.Context(), "user_id", repository.MOCK_NORMAL_UUID)
+	ctx = context.WithValue(ctx, "user_email", repository.MOCK_ADMIN_UUID)
 
 	MockController.HandleQueryGenerations(w, req.WithContext(ctx))
 	resp = w.Result()
@@ -327,6 +337,7 @@ func TestHandleQueryGenerationsBadCursor(t *testing.T) {
 	req.Header.Set("Content-Type", "application/json")
 
 	ctx := context.WithValue(req.Context(), "user_id", repository.MOCK_NORMAL_UUID)
+	ctx = context.WithValue(ctx, "user_email", repository.MOCK_ADMIN_UUID)
 
 	MockController.HandleQueryGenerations(w, req.WithContext(ctx))
 	resp := w.Result()
@@ -348,6 +359,7 @@ func TestHandleQueryCreditsEmpty(t *testing.T) {
 	req.Header.Set("Content-Type", "application/json")
 
 	ctx := context.WithValue(req.Context(), "user_id", repository.MOCK_NO_CREDITS_UUID)
+	ctx = context.WithValue(ctx, "user_email", repository.MOCK_ADMIN_UUID)
 
 	MockController.HandleQueryCredits(w, req.WithContext(ctx))
 	resp := w.Result()
@@ -368,6 +380,7 @@ func TestHandleQueryCredits(t *testing.T) {
 	req.Header.Set("Content-Type", "application/json")
 
 	ctx := context.WithValue(req.Context(), "user_id", repository.MOCK_ALT_UUID)
+	ctx = context.WithValue(ctx, "user_email", repository.MOCK_ADMIN_UUID)
 
 	MockController.HandleQueryCredits(w, req.WithContext(ctx))
 	resp := w.Result()
@@ -447,6 +460,7 @@ func TestHandleDeleteGenerationForUser(t *testing.T) {
 
 	// Setup context
 	ctx = context.WithValue(req.Context(), "user_id", repository.MOCK_NORMAL_UUID)
+	ctx = context.WithValue(ctx, "user_email", repository.MOCK_ADMIN_UUID)
 
 	MockController.HandleDeleteGenerationOutputForUser(w, req.WithContext(ctx))
 	resp := w.Result()
@@ -469,6 +483,7 @@ func TestHandleDeleteGenerationForUser(t *testing.T) {
 
 	// Setup context
 	ctx = context.WithValue(req.Context(), "user_id", repository.MOCK_ADMIN_UUID)
+	ctx = context.WithValue(ctx, "user_email", repository.MOCK_ADMIN_UUID)
 
 	MockController.HandleDeleteGenerationOutputForUser(w, req.WithContext(ctx))
 	resp = w.Result()

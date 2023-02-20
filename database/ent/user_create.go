@@ -37,14 +37,6 @@ func (uc *UserCreate) SetStripeCustomerID(s string) *UserCreate {
 	return uc
 }
 
-// SetNillableStripeCustomerID sets the "stripe_customer_id" field if the given value is not nil.
-func (uc *UserCreate) SetNillableStripeCustomerID(s *string) *UserCreate {
-	if s != nil {
-		uc.SetStripeCustomerID(*s)
-	}
-	return uc
-}
-
 // SetCreatedAt sets the "created_at" field.
 func (uc *UserCreate) SetCreatedAt(t time.Time) *UserCreate {
 	uc.mutation.SetCreatedAt(t)
@@ -69,20 +61,6 @@ func (uc *UserCreate) SetUpdatedAt(t time.Time) *UserCreate {
 func (uc *UserCreate) SetNillableUpdatedAt(t *time.Time) *UserCreate {
 	if t != nil {
 		uc.SetUpdatedAt(*t)
-	}
-	return uc
-}
-
-// SetConfirmedAt sets the "confirmed_at" field.
-func (uc *UserCreate) SetConfirmedAt(t time.Time) *UserCreate {
-	uc.mutation.SetConfirmedAt(t)
-	return uc
-}
-
-// SetNillableConfirmedAt sets the "confirmed_at" field if the given value is not nil.
-func (uc *UserCreate) SetNillableConfirmedAt(t *time.Time) *UserCreate {
-	if t != nil {
-		uc.SetConfirmedAt(*t)
 	}
 	return uc
 }
@@ -215,6 +193,9 @@ func (uc *UserCreate) check() error {
 	if _, ok := uc.mutation.Email(); !ok {
 		return &ValidationError{Name: "email", err: errors.New(`ent: missing required field "User.email"`)}
 	}
+	if _, ok := uc.mutation.StripeCustomerID(); !ok {
+		return &ValidationError{Name: "stripe_customer_id", err: errors.New(`ent: missing required field "User.stripe_customer_id"`)}
+	}
 	if _, ok := uc.mutation.CreatedAt(); !ok {
 		return &ValidationError{Name: "created_at", err: errors.New(`ent: missing required field "User.created_at"`)}
 	}
@@ -268,7 +249,7 @@ func (uc *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 	}
 	if value, ok := uc.mutation.StripeCustomerID(); ok {
 		_spec.SetField(user.FieldStripeCustomerID, field.TypeString, value)
-		_node.StripeCustomerID = &value
+		_node.StripeCustomerID = value
 	}
 	if value, ok := uc.mutation.CreatedAt(); ok {
 		_spec.SetField(user.FieldCreatedAt, field.TypeTime, value)
@@ -277,10 +258,6 @@ func (uc *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 	if value, ok := uc.mutation.UpdatedAt(); ok {
 		_spec.SetField(user.FieldUpdatedAt, field.TypeTime, value)
 		_node.UpdatedAt = value
-	}
-	if value, ok := uc.mutation.ConfirmedAt(); ok {
-		_spec.SetField(user.FieldConfirmedAt, field.TypeTime, value)
-		_node.ConfirmedAt = &value
 	}
 	if nodes := uc.mutation.UserRolesIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{

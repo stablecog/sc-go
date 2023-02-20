@@ -36,6 +36,7 @@ func TestHandleReviewGallerySubmission(t *testing.T) {
 
 	// Setup context
 	ctx := context.WithValue(req.Context(), "user_id", repository.MOCK_ADMIN_UUID)
+	ctx = context.WithValue(ctx, "user_email", repository.MOCK_ADMIN_UUID)
 
 	MockController.HandleReviewGallerySubmission(w, req.WithContext(ctx))
 	resp := w.Result()
@@ -63,6 +64,7 @@ func TestHandleReviewGallerySubmission(t *testing.T) {
 
 	// Setup context
 	ctx = context.WithValue(req.Context(), "user_id", repository.MOCK_ADMIN_UUID)
+	ctx = context.WithValue(ctx, "user_email", repository.MOCK_ADMIN_UUID)
 
 	MockController.HandleReviewGallerySubmission(w, req.WithContext(ctx))
 	resp = w.Result()
@@ -102,6 +104,7 @@ func TestHandleDeleteGeneration(t *testing.T) {
 
 	// Setup context
 	ctx = context.WithValue(req.Context(), "user_id", repository.MOCK_ADMIN_UUID)
+	ctx = context.WithValue(ctx, "user_email", repository.MOCK_ADMIN_UUID)
 
 	MockController.HandleDeleteGenerationOutput(w, req.WithContext(ctx))
 	resp := w.Result()

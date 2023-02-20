@@ -13,9 +13,11 @@ import (
 
 	"github.com/go-chi/render"
 	"github.com/google/uuid"
+	"github.com/stablecog/sc-go/database/ent"
 	"github.com/stablecog/sc-go/server/requests"
 	"github.com/stablecog/sc-go/server/responses"
 	"github.com/stablecog/sc-go/utils"
+	"github.com/stripe/stripe-go"
 	"k8s.io/klog/v2"
 )
 
@@ -24,8 +26,8 @@ const MAX_PER_PAGE = 100
 
 // HTTP Get - user info
 func (c *RestAPI) HandleGetUser(w http.ResponseWriter, r *http.Request) {
-	userID := c.GetUserIDIfAuthenticated(w, r)
-	if userID == nil {
+	userID, email := c.GetUserIDAndEmailIfAuthenticated(w, r)
+	if userID == nil || email == "" {
 		return
 	}
 
@@ -36,12 +38,62 @@ func (c *RestAPI) HandleGetUser(w http.ResponseWriter, r *http.Request) {
 		responses.ErrInternalServerError(w, r, "An unknown error has occured")
 		return
 	} else if user == nil {
-		responses.ErrBadRequest(w, r, "User not found")
-		return
-	} else if user.StripeCustomerID == nil {
-		klog.Errorf("Error getting user, stripe customer ID is nil for %s", *userID)
-		responses.ErrInternalServerError(w, r, "An unknown error has occured")
-		return
+		// Handle create user flow
+		freeCreditType, err := c.Repo.GetFreeCreditType()
+		if err != nil {
+			klog.Errorf("Error getting free credit type: %v", err)
+			responses.ErrInternalServerError(w, r, "An unknown error has occured")
+			return
+		}
+		if freeCreditType == nil {
+			klog.Errorf("Server misconfiguration: a credit_type with the name 'free' must exist")
+			responses.ErrInternalServerError(w, r, "An unknown error has occured")
+			return
+		}
+
+		var customer *stripe.Customer
+		if err := c.Repo.WithTx(func(tx *ent.Tx) error {
+			client := tx.Client()
+
+			customer, err = c.StripeClient.Customers.New(&stripe.CustomerParams{
+				Email: stripe.String(email),
+				Params: stripe.Params{
+					Metadata: map[string]string{
+						"supabase_id": (*userID).String(),
+					},
+				},
+			})
+			if err != nil {
+				klog.Errorf("Error creating stripe customer: %v", err)
+				return err
+			}
+
+			u, err := c.Repo.CreateUser(*userID, email, customer.ID, client)
+			if err != nil {
+				klog.Errorf("Error creating user: %v", err)
+				return err
+			}
+
+			// Add free credits
+			_, err = c.Repo.AddCreditsIfEligible(freeCreditType, u.ID, time.Now().AddDate(0, 0, 30), client)
+			if err != nil {
+				klog.Errorf("Error adding free credits: %v", err)
+				return err
+			}
+
+			return nil
+		}); err != nil {
+			klog.Errorf("Error creating user: %v", err)
+			responses.ErrInternalServerError(w, r, "An unknown error has occured")
+			// Delete stripe customer
+			if customer != nil {
+				_, err := c.StripeClient.Customers.Del(customer.ID, nil)
+				if err != nil {
+					klog.Errorf("Error deleting stripe customer: %v", err)
+				}
+			}
+			return
+		}
 	}
 
 	// Get total credits
@@ -57,7 +109,7 @@ func (c *RestAPI) HandleGetUser(w http.ResponseWriter, r *http.Request) {
 		totalRemaining += credit.RemainingAmount
 	}
 
-	customer, err := c.StripeClient.Customers.Get(*user.StripeCustomerID, nil)
+	customer, err := c.StripeClient.Customers.Get(user.StripeCustomerID, nil)
 	customerNotFound := false
 	stripeHadError := false
 	if err != nil {
@@ -121,7 +173,7 @@ func (c *RestAPI) HandleGetUser(w http.ResponseWriter, r *http.Request) {
 // per_page: number of generations to return
 // cursor: cursor for pagination, it is an iso time string in UTC
 func (c *RestAPI) HandleQueryGenerations(w http.ResponseWriter, r *http.Request) {
-	userID := c.GetUserIDIfAuthenticated(w, r)
+	userID, _ := c.GetUserIDAndEmailIfAuthenticated(w, r)
 	if userID == nil {
 		return
 	}
@@ -485,7 +537,7 @@ func ParseQueryGenerationFilters(rawQuery url.Values) (*requests.QueryGeneration
 // HTTP DELETE - admin delete generation
 func (c *RestAPI) HandleDeleteGenerationOutputForUser(w http.ResponseWriter, r *http.Request) {
 	// Get user id (of admin)
-	userID := c.GetUserIDIfAuthenticated(w, r)
+	userID, _ := c.GetUserIDAndEmailIfAuthenticated(w, r)
 	if userID == nil {
 		return
 	}

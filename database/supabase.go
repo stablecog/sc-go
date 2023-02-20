@@ -20,21 +20,21 @@ func NewSupabaseAuth() *SupabaseAuth {
 	return &SupabaseAuth{client: client}
 }
 
-func (s *SupabaseAuth) GetSupabaseUserIdFromAccessToken(accessToken string) (string, error) {
+func (s *SupabaseAuth) GetSupabaseUserIdFromAccessToken(accessToken string) (id, email string, err error) {
 	if accessToken == "" {
-		return "", SupabaseAuthUnauthorized
+		return "", "", SupabaseAuthUnauthorized
 	}
 
 	user, err := s.client.WithToken(accessToken).GetUser()
 	if err != nil {
 		log.Printf("Error getting user from Supabase: %v", err)
-		return "", err
+		return "", "", err
 	}
 
 	if user == nil {
 		log.Printf("User not found in Supabase")
-		return "", SupabaseAuthUnauthorized
+		return "", "", SupabaseAuthUnauthorized
 	}
 
-	return user.ID.String(), nil
+	return user.ID.String(), user.Email, nil
 }

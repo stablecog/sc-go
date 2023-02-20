@@ -76,11 +76,6 @@ func UpdatedAt(v time.Time) predicate.User {
 	return predicate.User(sql.FieldEQ(FieldUpdatedAt, v))
 }
 
-// ConfirmedAt applies equality check predicate on the "confirmed_at" field. It's identical to ConfirmedAtEQ.
-func ConfirmedAt(v time.Time) predicate.User {
-	return predicate.User(sql.FieldEQ(FieldConfirmedAt, v))
-}
-
 // EmailEQ applies the EQ predicate on the "email" field.
 func EmailEQ(v string) predicate.User {
 	return predicate.User(sql.FieldEQ(FieldEmail, v))
@@ -201,16 +196,6 @@ func StripeCustomerIDHasSuffix(v string) predicate.User {
 	return predicate.User(sql.FieldHasSuffix(FieldStripeCustomerID, v))
 }
 
-// StripeCustomerIDIsNil applies the IsNil predicate on the "stripe_customer_id" field.
-func StripeCustomerIDIsNil() predicate.User {
-	return predicate.User(sql.FieldIsNull(FieldStripeCustomerID))
-}
-
-// StripeCustomerIDNotNil applies the NotNil predicate on the "stripe_customer_id" field.
-func StripeCustomerIDNotNil() predicate.User {
-	return predicate.User(sql.FieldNotNull(FieldStripeCustomerID))
-}
-
 // StripeCustomerIDEqualFold applies the EqualFold predicate on the "stripe_customer_id" field.
 func StripeCustomerIDEqualFold(v string) predicate.User {
 	return predicate.User(sql.FieldEqualFold(FieldStripeCustomerID, v))
@@ -299,56 +284,6 @@ func UpdatedAtLT(v time.Time) predicate.User {
 // UpdatedAtLTE applies the LTE predicate on the "updated_at" field.
 func UpdatedAtLTE(v time.Time) predicate.User {
 	return predicate.User(sql.FieldLTE(FieldUpdatedAt, v))
-}
-
-// ConfirmedAtEQ applies the EQ predicate on the "confirmed_at" field.
-func ConfirmedAtEQ(v time.Time) predicate.User {
-	return predicate.User(sql.FieldEQ(FieldConfirmedAt, v))
-}
-
-// ConfirmedAtNEQ applies the NEQ predicate on the "confirmed_at" field.
-func ConfirmedAtNEQ(v time.Time) predicate.User {
-	return predicate.User(sql.FieldNEQ(FieldConfirmedAt, v))
-}
-
-// ConfirmedAtIn applies the In predicate on the "confirmed_at" field.
-func ConfirmedAtIn(vs ...time.Time) predicate.User {
-	return predicate.User(sql.FieldIn(FieldConfirmedAt, vs...))
-}
-
-// ConfirmedAtNotIn applies the NotIn predicate on the "confirmed_at" field.
-func ConfirmedAtNotIn(vs ...time.Time) predicate.User {
-	return predicate.User(sql.FieldNotIn(FieldConfirmedAt, vs...))
-}
-
-// ConfirmedAtGT applies the GT predicate on the "confirmed_at" field.
-func ConfirmedAtGT(v time.Time) predicate.User {
-	return predicate.User(sql.FieldGT(FieldConfirmedAt, v))
-}
-
-// ConfirmedAtGTE applies the GTE predicate on the "confirmed_at" field.
-func ConfirmedAtGTE(v time.Time) predicate.User {
-	return predicate.User(sql.FieldGTE(FieldConfirmedAt, v))
-}
-
-// ConfirmedAtLT applies the LT predicate on the "confirmed_at" field.
-func ConfirmedAtLT(v time.Time) predicate.User {
-	return predicate.User(sql.FieldLT(FieldConfirmedAt, v))
-}
-
-// ConfirmedAtLTE applies the LTE predicate on the "confirmed_at" field.
-func ConfirmedAtLTE(v time.Time) predicate.User {
-	return predicate.User(sql.FieldLTE(FieldConfirmedAt, v))
-}
-
-// ConfirmedAtIsNil applies the IsNil predicate on the "confirmed_at" field.
-func ConfirmedAtIsNil() predicate.User {
-	return predicate.User(sql.FieldIsNull(FieldConfirmedAt))
-}
-
-// ConfirmedAtNotNil applies the NotNil predicate on the "confirmed_at" field.
-func ConfirmedAtNotNil() predicate.User {
-	return predicate.User(sql.FieldNotNull(FieldConfirmedAt))
 }
 
 // HasUserRoles applies the HasEdge predicate on the "user_roles" edge.

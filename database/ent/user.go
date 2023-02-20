@@ -20,13 +20,11 @@ type User struct {
 	// Email holds the value of the "email" field.
 	Email string `json:"email,omitempty"`
 	// StripeCustomerID holds the value of the "stripe_customer_id" field.
-	StripeCustomerID *string `json:"stripe_customer_id,omitempty"`
+	StripeCustomerID string `json:"stripe_customer_id,omitempty"`
 	// CreatedAt holds the value of the "created_at" field.
 	CreatedAt time.Time `json:"created_at,omitempty"`
 	// UpdatedAt holds the value of the "updated_at" field.
 	UpdatedAt time.Time `json:"updated_at,omitempty"`
-	// ConfirmedAt holds the value of the "confirmed_at" field.
-	ConfirmedAt *time.Time `json:"confirmed_at,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the UserQuery when eager-loading is set.
 	Edges UserEdges `json:"edges"`
@@ -90,7 +88,7 @@ func (*User) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case user.FieldEmail, user.FieldStripeCustomerID:
 			values[i] = new(sql.NullString)
-		case user.FieldCreatedAt, user.FieldUpdatedAt, user.FieldConfirmedAt:
+		case user.FieldCreatedAt, user.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
 		case user.FieldID:
 			values[i] = new(uuid.UUID)
@@ -125,8 +123,7 @@ func (u *User) assignValues(columns []string, values []any) error {
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field stripe_customer_id", values[i])
 			} else if value.Valid {
-				u.StripeCustomerID = new(string)
-				*u.StripeCustomerID = value.String
+				u.StripeCustomerID = value.String
 			}
 		case user.FieldCreatedAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
@@ -139,13 +136,6 @@ func (u *User) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field updated_at", values[i])
 			} else if value.Valid {
 				u.UpdatedAt = value.Time
-			}
-		case user.FieldConfirmedAt:
-			if value, ok := values[i].(*sql.NullTime); !ok {
-				return fmt.Errorf("unexpected type %T for field confirmed_at", values[i])
-			} else if value.Valid {
-				u.ConfirmedAt = new(time.Time)
-				*u.ConfirmedAt = value.Time
 			}
 		}
 	}
@@ -198,21 +188,14 @@ func (u *User) String() string {
 	builder.WriteString("email=")
 	builder.WriteString(u.Email)
 	builder.WriteString(", ")
-	if v := u.StripeCustomerID; v != nil {
-		builder.WriteString("stripe_customer_id=")
-		builder.WriteString(*v)
-	}
+	builder.WriteString("stripe_customer_id=")
+	builder.WriteString(u.StripeCustomerID)
 	builder.WriteString(", ")
 	builder.WriteString("created_at=")
 	builder.WriteString(u.CreatedAt.Format(time.ANSIC))
 	builder.WriteString(", ")
 	builder.WriteString("updated_at=")
 	builder.WriteString(u.UpdatedAt.Format(time.ANSIC))
-	builder.WriteString(", ")
-	if v := u.ConfirmedAt; v != nil {
-		builder.WriteString("confirmed_at=")
-		builder.WriteString(v.Format(time.ANSIC))
-	}
 	builder.WriteByte(')')
 	return builder.String()
 }

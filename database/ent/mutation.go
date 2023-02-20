@@ -10270,7 +10270,6 @@ type UserMutation struct {
 	stripe_customer_id *string
 	created_at         *time.Time
 	updated_at         *time.Time
-	confirmed_at       *time.Time
 	clearedFields      map[string]struct{}
 	user_roles         map[uuid.UUID]struct{}
 	removeduser_roles  map[uuid.UUID]struct{}
@@ -10446,7 +10445,7 @@ func (m *UserMutation) StripeCustomerID() (r string, exists bool) {
 // OldStripeCustomerID returns the old "stripe_customer_id" field's value of the User entity.
 // If the User object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *UserMutation) OldStripeCustomerID(ctx context.Context) (v *string, err error) {
+func (m *UserMutation) OldStripeCustomerID(ctx context.Context) (v string, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldStripeCustomerID is only allowed on UpdateOne operations")
 	}
@@ -10460,22 +10459,9 @@ func (m *UserMutation) OldStripeCustomerID(ctx context.Context) (v *string, err 
 	return oldValue.StripeCustomerID, nil
 }
 
-// ClearStripeCustomerID clears the value of the "stripe_customer_id" field.
-func (m *UserMutation) ClearStripeCustomerID() {
-	m.stripe_customer_id = nil
-	m.clearedFields[user.FieldStripeCustomerID] = struct{}{}
-}
-
-// StripeCustomerIDCleared returns if the "stripe_customer_id" field was cleared in this mutation.
-func (m *UserMutation) StripeCustomerIDCleared() bool {
-	_, ok := m.clearedFields[user.FieldStripeCustomerID]
-	return ok
-}
-
 // ResetStripeCustomerID resets all changes to the "stripe_customer_id" field.
 func (m *UserMutation) ResetStripeCustomerID() {
 	m.stripe_customer_id = nil
-	delete(m.clearedFields, user.FieldStripeCustomerID)
 }
 
 // SetCreatedAt sets the "created_at" field.
@@ -10548,55 +10534,6 @@ func (m *UserMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error
 // ResetUpdatedAt resets all changes to the "updated_at" field.
 func (m *UserMutation) ResetUpdatedAt() {
 	m.updated_at = nil
-}
-
-// SetConfirmedAt sets the "confirmed_at" field.
-func (m *UserMutation) SetConfirmedAt(t time.Time) {
-	m.confirmed_at = &t
-}
-
-// ConfirmedAt returns the value of the "confirmed_at" field in the mutation.
-func (m *UserMutation) ConfirmedAt() (r time.Time, exists bool) {
-	v := m.confirmed_at
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldConfirmedAt returns the old "confirmed_at" field's value of the User entity.
-// If the User object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *UserMutation) OldConfirmedAt(ctx context.Context) (v *time.Time, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldConfirmedAt is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldConfirmedAt requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldConfirmedAt: %w", err)
-	}
-	return oldValue.ConfirmedAt, nil
-}
-
-// ClearConfirmedAt clears the value of the "confirmed_at" field.
-func (m *UserMutation) ClearConfirmedAt() {
-	m.confirmed_at = nil
-	m.clearedFields[user.FieldConfirmedAt] = struct{}{}
-}
-
-// ConfirmedAtCleared returns if the "confirmed_at" field was cleared in this mutation.
-func (m *UserMutation) ConfirmedAtCleared() bool {
-	_, ok := m.clearedFields[user.FieldConfirmedAt]
-	return ok
-}
-
-// ResetConfirmedAt resets all changes to the "confirmed_at" field.
-func (m *UserMutation) ResetConfirmedAt() {
-	m.confirmed_at = nil
-	delete(m.clearedFields, user.FieldConfirmedAt)
 }
 
 // AddUserRoleIDs adds the "user_roles" edge to the UserRole entity by ids.
@@ -10849,7 +10786,7 @@ func (m *UserMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *UserMutation) Fields() []string {
-	fields := make([]string, 0, 5)
+	fields := make([]string, 0, 4)
 	if m.email != nil {
 		fields = append(fields, user.FieldEmail)
 	}
@@ -10861,9 +10798,6 @@ func (m *UserMutation) Fields() []string {
 	}
 	if m.updated_at != nil {
 		fields = append(fields, user.FieldUpdatedAt)
-	}
-	if m.confirmed_at != nil {
-		fields = append(fields, user.FieldConfirmedAt)
 	}
 	return fields
 }
@@ -10881,8 +10815,6 @@ func (m *UserMutation) Field(name string) (ent.Value, bool) {
 		return m.CreatedAt()
 	case user.FieldUpdatedAt:
 		return m.UpdatedAt()
-	case user.FieldConfirmedAt:
-		return m.ConfirmedAt()
 	}
 	return nil, false
 }
@@ -10900,8 +10832,6 @@ func (m *UserMutation) OldField(ctx context.Context, name string) (ent.Value, er
 		return m.OldCreatedAt(ctx)
 	case user.FieldUpdatedAt:
 		return m.OldUpdatedAt(ctx)
-	case user.FieldConfirmedAt:
-		return m.OldConfirmedAt(ctx)
 	}
 	return nil, fmt.Errorf("unknown User field %s", name)
 }
@@ -10939,13 +10869,6 @@ func (m *UserMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetUpdatedAt(v)
 		return nil
-	case user.FieldConfirmedAt:
-		v, ok := value.(time.Time)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetConfirmedAt(v)
-		return nil
 	}
 	return fmt.Errorf("unknown User field %s", name)
 }
@@ -10975,14 +10898,7 @@ func (m *UserMutation) AddField(name string, value ent.Value) error {
 // ClearedFields returns all nullable fields that were cleared during this
 // mutation.
 func (m *UserMutation) ClearedFields() []string {
-	var fields []string
-	if m.FieldCleared(user.FieldStripeCustomerID) {
-		fields = append(fields, user.FieldStripeCustomerID)
-	}
-	if m.FieldCleared(user.FieldConfirmedAt) {
-		fields = append(fields, user.FieldConfirmedAt)
-	}
-	return fields
+	return nil
 }
 
 // FieldCleared returns a boolean indicating if a field with the given name was
@@ -10995,14 +10911,6 @@ func (m *UserMutation) FieldCleared(name string) bool {
 // ClearField clears the value of the field with the given name. It returns an
 // error if the field is not defined in the schema.
 func (m *UserMutation) ClearField(name string) error {
-	switch name {
-	case user.FieldStripeCustomerID:
-		m.ClearStripeCustomerID()
-		return nil
-	case user.FieldConfirmedAt:
-		m.ClearConfirmedAt()
-		return nil
-	}
 	return fmt.Errorf("unknown User nullable field %s", name)
 }
 
@@ -11021,9 +10929,6 @@ func (m *UserMutation) ResetField(name string) error {
 		return nil
 	case user.FieldUpdatedAt:
 		m.ResetUpdatedAt()
-		return nil
-	case user.FieldConfirmedAt:
-		m.ResetConfirmedAt()
 		return nil
 	}
 	return fmt.Errorf("unknown User field %s", name)

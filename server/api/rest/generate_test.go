@@ -52,6 +52,7 @@ func TestGenerateUnauthorizedIfUserIdNotUuid(t *testing.T) {
 
 	// Setup context
 	ctx := context.WithValue(req.Context(), "user_id", "not-uuid")
+	ctx = context.WithValue(ctx, "user_email", repository.MOCK_ADMIN_UUID)
 
 	MockController.HandleCreateGeneration(w, req.WithContext(ctx))
 	resp := w.Result()
@@ -76,6 +77,7 @@ func TestGenerateFailsWithInvalidStreamID(t *testing.T) {
 
 	// Setup context
 	ctx := context.WithValue(req.Context(), "user_id", repository.MOCK_ADMIN_UUID)
+	ctx = context.WithValue(ctx, "user_email", repository.MOCK_ADMIN_UUID)
 
 	MockController.HandleCreateGeneration(w, req.WithContext(ctx))
 	resp := w.Result()
@@ -105,6 +107,7 @@ func TestGenerateEnforcesNumOutputsChange(t *testing.T) {
 
 	// Setup context
 	ctx := context.WithValue(req.Context(), "user_id", repository.MOCK_ADMIN_UUID)
+	ctx = context.WithValue(ctx, "user_email", repository.MOCK_ADMIN_UUID)
 
 	MockController.HandleCreateGeneration(w, req.WithContext(ctx))
 	resp := w.Result()
@@ -132,6 +135,7 @@ func TestGenerateEnforcesNumOutputsChange(t *testing.T) {
 
 	// Setup context
 	ctx = context.WithValue(req.Context(), "user_id", repository.MOCK_ADMIN_UUID)
+	ctx = context.WithValue(ctx, "user_email", repository.MOCK_ADMIN_UUID)
 
 	MockController.HandleCreateGeneration(w, req.WithContext(ctx))
 	resp = w.Result()
@@ -158,6 +162,7 @@ func TestGenerateEnforcesMaxWidthMaxHeight(t *testing.T) {
 
 	// Setup context
 	ctx := context.WithValue(req.Context(), "user_id", repository.MOCK_ADMIN_UUID)
+	ctx = context.WithValue(ctx, "user_email", repository.MOCK_ADMIN_UUID)
 
 	MockController.HandleCreateGeneration(w, req.WithContext(ctx))
 	resp := w.Result()
@@ -183,6 +188,7 @@ func TestGenerateEnforcesMaxWidthMaxHeight(t *testing.T) {
 
 	// Setup context
 	ctx = context.WithValue(req.Context(), "user_id", repository.MOCK_ADMIN_UUID)
+	ctx = context.WithValue(ctx, "user_email", repository.MOCK_ADMIN_UUID)
 
 	MockController.HandleCreateGeneration(w, req.WithContext(ctx))
 	resp = w.Result()
@@ -213,6 +219,7 @@ func TestGenerateRejectsInvalidModelOrScheduler(t *testing.T) {
 
 	// Setup context
 	ctx := context.WithValue(req.Context(), "user_id", repository.MOCK_ADMIN_UUID)
+	ctx = context.WithValue(ctx, "user_email", repository.MOCK_ADMIN_UUID)
 
 	MockController.HandleCreateGeneration(w, req.WithContext(ctx))
 	resp := w.Result()
@@ -242,6 +249,7 @@ func TestGenerateRejectsInvalidModelOrScheduler(t *testing.T) {
 
 	// Setup context
 	ctx = context.WithValue(req.Context(), "user_id", repository.MOCK_ADMIN_UUID)
+	ctx = context.WithValue(ctx, "user_email", repository.MOCK_ADMIN_UUID)
 
 	MockController.HandleCreateGeneration(w, req.WithContext(ctx))
 	resp = w.Result()
@@ -274,6 +282,7 @@ func TestGenerateNoCredits(t *testing.T) {
 
 	// Setup context
 	ctx := context.WithValue(req.Context(), "user_id", repository.MOCK_NO_CREDITS_UUID)
+	ctx = context.WithValue(ctx, "user_email", repository.MOCK_ADMIN_UUID)
 
 	MockController.HandleCreateGeneration(w, req.WithContext(ctx))
 	resp := w.Result()
@@ -306,6 +315,7 @@ func TestGenerateValidRequest(t *testing.T) {
 
 	// Setup context
 	ctx := context.WithValue(req.Context(), "user_id", repository.MOCK_NORMAL_UUID)
+	ctx = context.WithValue(ctx, "user_email", repository.MOCK_ADMIN_UUID)
 
 	MockController.HandleCreateGeneration(w, req.WithContext(ctx))
 	resp := w.Result()
@@ -337,6 +347,7 @@ func TestSubmitGenerationToGallery(t *testing.T) {
 
 	// Setup context
 	ctx := context.WithValue(req.Context(), "user_id", repository.MOCK_NORMAL_UUID)
+	ctx = context.WithValue(ctx, "user_email", repository.MOCK_ADMIN_UUID)
 
 	MockController.HandleSubmitGenerationToGallery(w, req.WithContext(ctx))
 	resp := w.Result()
@@ -365,6 +376,7 @@ func TestSubmitGenerationToGallery(t *testing.T) {
 
 	// Setup context
 	ctx = context.WithValue(req.Context(), "user_id", repository.MOCK_ADMIN_UUID)
+	ctx = context.WithValue(ctx, "user_email", repository.MOCK_ADMIN_UUID)
 
 	MockController.HandleSubmitGenerationToGallery(w, req.WithContext(ctx))
 	resp = w.Result()
@@ -391,6 +403,7 @@ func TestSubmitGenerationToGallery(t *testing.T) {
 
 	// Setup context
 	ctx = context.WithValue(req.Context(), "user_id", repository.MOCK_ADMIN_UUID)
+	ctx = context.WithValue(ctx, "user_email", repository.MOCK_ADMIN_UUID)
 
 	MockController.HandleSubmitGenerationToGallery(w, req.WithContext(ctx))
 	resp = w.Result()

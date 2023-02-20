@@ -53,6 +53,7 @@ func TestUpscaleUnauthorizedIfUserIdNotUuid(t *testing.T) {
 
 	// Setup context
 	ctx := context.WithValue(req.Context(), "user_id", "not-uuid")
+	ctx = context.WithValue(ctx, "user_email", repository.MOCK_ADMIN_UUID)
 
 	MockController.HandleUpscale(w, req.WithContext(ctx))
 	resp := w.Result()
@@ -77,6 +78,7 @@ func TestUpscaleFailsWithInvalidStreamID(t *testing.T) {
 
 	// Setup context
 	ctx := context.WithValue(req.Context(), "user_id", repository.MOCK_ADMIN_UUID)
+	ctx = context.WithValue(ctx, "user_email", repository.MOCK_ADMIN_UUID)
 
 	MockController.HandleUpscale(w, req.WithContext(ctx))
 	resp := w.Result()
@@ -102,6 +104,7 @@ func TestUpscaleEnforcesType(t *testing.T) {
 
 	// Setup context
 	ctx := context.WithValue(req.Context(), "user_id", repository.MOCK_ADMIN_UUID)
+	ctx = context.WithValue(ctx, "user_email", repository.MOCK_ADMIN_UUID)
 
 	MockController.HandleUpscale(w, req.WithContext(ctx))
 	resp := w.Result()
@@ -128,6 +131,7 @@ func TestUpscaleErrorsBadURL(t *testing.T) {
 
 	// Setup context
 	ctx := context.WithValue(req.Context(), "user_id", repository.MOCK_ADMIN_UUID)
+	ctx = context.WithValue(ctx, "user_email", repository.MOCK_ADMIN_UUID)
 
 	MockController.HandleUpscale(w, req.WithContext(ctx))
 	resp := w.Result()
@@ -154,6 +158,7 @@ func TestUpscaleErrorsBadOutputID(t *testing.T) {
 
 	// Setup context
 	ctx := context.WithValue(req.Context(), "user_id", repository.MOCK_ADMIN_UUID)
+	ctx = context.WithValue(ctx, "user_email", repository.MOCK_ADMIN_UUID)
 
 	MockController.HandleUpscale(w, req.WithContext(ctx))
 	resp := w.Result()
@@ -182,6 +187,7 @@ func TestUpscaleRejectsInvalidModel(t *testing.T) {
 
 	// Setup context
 	ctx := context.WithValue(req.Context(), "user_id", repository.MOCK_ADMIN_UUID)
+	ctx = context.WithValue(ctx, "user_email", repository.MOCK_ADMIN_UUID)
 
 	MockController.HandleUpscale(w, req.WithContext(ctx))
 	resp := w.Result()
@@ -233,6 +239,7 @@ func TestUpscaleFailsIfNoCredits(t *testing.T) {
 
 	// Setup context
 	ctx := context.WithValue(req.Context(), "user_id", repository.MOCK_NO_CREDITS_UUID)
+	ctx = context.WithValue(ctx, "user_email", repository.MOCK_ADMIN_UUID)
 
 	MockController.HandleUpscale(w, req.WithContext(ctx))
 	resp := w.Result()
@@ -284,6 +291,7 @@ func TestUpscaleFromURL(t *testing.T) {
 
 	// Setup context
 	ctx := context.WithValue(req.Context(), "user_id", repository.MOCK_ADMIN_UUID)
+	ctx = context.WithValue(ctx, "user_email", repository.MOCK_ADMIN_UUID)
 
 	MockController.HandleUpscale(w, req.WithContext(ctx))
 	resp := w.Result()
@@ -321,6 +329,7 @@ func TestUpscaleFromOutput(t *testing.T) {
 
 	// Setup context
 	ctx := context.WithValue(req.Context(), "user_id", repository.MOCK_ADMIN_UUID)
+	ctx = context.WithValue(ctx, "user_email", repository.MOCK_ADMIN_UUID)
 
 	MockController.HandleUpscale(w, req.WithContext(ctx))
 	resp := w.Result()

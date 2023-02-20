@@ -19,7 +19,7 @@ import (
 // POST generate endpoint
 // Adds generate to queue, if authenticated, returns the ID of the generation
 func (c *RestAPI) HandleCreateGeneration(w http.ResponseWriter, r *http.Request) {
-	userID := c.GetUserIDIfAuthenticated(w, r)
+	userID, _ := c.GetUserIDAndEmailIfAuthenticated(w, r)
 	if userID == nil {
 		return
 	}
@@ -179,7 +179,7 @@ func (c *RestAPI) HandleCreateGeneration(w http.ResponseWriter, r *http.Request)
 
 // HTTP POST submit a generation to gallery
 func (c *RestAPI) HandleSubmitGenerationToGallery(w http.ResponseWriter, r *http.Request) {
-	userID := c.GetUserIDIfAuthenticated(w, r)
+	userID, _ := c.GetUserIDAndEmailIfAuthenticated(w, r)
 	if userID == nil {
 		return
 	}
