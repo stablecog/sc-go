@@ -41,6 +41,9 @@ func main() {
 	flag.Set("stderrthreshold", "INFO")
 	flag.Set("v", "3")
 
+	// Custom flags
+	createMockData := flag.Bool("load-mock-data", false, "Create test data in database")
+
 	flag.Parse()
 
 	// Setup database
@@ -81,6 +84,16 @@ func main() {
 		DB:    entClient,
 		Redis: redis,
 		Ctx:   ctx,
+	}
+
+	if *createMockData {
+		klog.Infoln("🏡 Creating mock data...")
+		err = repo.CreateMockData(ctx)
+		if err != nil {
+			klog.Fatalf("Failed to create mock data: %v", err)
+			os.Exit(1)
+		}
+		os.Exit(0)
 	}
 
 	app := chi.NewRouter()
