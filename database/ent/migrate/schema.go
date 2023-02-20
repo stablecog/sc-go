@@ -314,9 +314,11 @@ var (
 	UpscaleOutputsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID},
 		{Name: "image_path", Type: field.TypeString, Size: 2147483647},
+		{Name: "input_image_url", Type: field.TypeString, Nullable: true, Size: 2147483647},
 		{Name: "deleted_at", Type: field.TypeTime, Nullable: true},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "generation_output_id", Type: field.TypeUUID, Unique: true, Nullable: true},
 		{Name: "upscale_id", Type: field.TypeUUID},
 	}
 	// UpscaleOutputsTable holds the schema information for the "upscale_outputs" table.
@@ -326,8 +328,14 @@ var (
 		PrimaryKey: []*schema.Column{UpscaleOutputsColumns[0]},
 		ForeignKeys: []*schema.ForeignKey{
 			{
+				Symbol:     "upscale_outputs_generation_outputs_upscale_outputs",
+				Columns:    []*schema.Column{UpscaleOutputsColumns[6]},
+				RefColumns: []*schema.Column{GenerationOutputsColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+			{
 				Symbol:     "upscale_outputs_upscales_upscale_outputs",
-				Columns:    []*schema.Column{UpscaleOutputsColumns[5]},
+				Columns:    []*schema.Column{UpscaleOutputsColumns[7]},
 				RefColumns: []*schema.Column{UpscalesColumns[0]},
 				OnDelete:   schema.Cascade,
 			},
@@ -442,7 +450,8 @@ func init() {
 	UpscaleModelsTable.Annotation = &entsql.Annotation{
 		Table: "upscale_models",
 	}
-	UpscaleOutputsTable.ForeignKeys[0].RefTable = UpscalesTable
+	UpscaleOutputsTable.ForeignKeys[0].RefTable = GenerationOutputsTable
+	UpscaleOutputsTable.ForeignKeys[1].RefTable = UpscalesTable
 	UpscaleOutputsTable.Annotation = &entsql.Annotation{
 		Table: "upscale_outputs",
 	}

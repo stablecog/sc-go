@@ -22,8 +22,11 @@ func (UpscaleOutput) Fields() []ent.Field {
 	return []ent.Field{
 		field.UUID("id", uuid.UUID{}).Default(uuid.New),
 		field.Text("image_path"),
+		field.Text("input_image_url").Optional().Nillable(),
 		// ! Relationships / many-to-one
 		field.UUID("upscale_id", uuid.UUID{}),
+		// ! one-to-one
+		field.UUID("generation_output_id", uuid.UUID{}).Optional().Nillable(),
 		// ! End relationships
 		field.Time("deleted_at").Optional().Nillable(),
 		field.Time("created_at").Default(time.Now).Immutable(),
@@ -39,6 +42,11 @@ func (UpscaleOutput) Edges() []ent.Edge {
 			Ref("upscale_outputs").
 			Field("upscale_id").
 			Required().
+			Unique(),
+		// O2O with generation_outputs
+		edge.From("generation_output", GenerationOutput.Type).
+			Ref("upscale_outputs").
+			Field("generation_output_id").
 			Unique(),
 	}
 }

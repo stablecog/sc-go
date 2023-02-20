@@ -61,9 +61,19 @@ func ImagePath(v string) predicate.UpscaleOutput {
 	return predicate.UpscaleOutput(sql.FieldEQ(FieldImagePath, v))
 }
 
+// InputImageURL applies equality check predicate on the "input_image_url" field. It's identical to InputImageURLEQ.
+func InputImageURL(v string) predicate.UpscaleOutput {
+	return predicate.UpscaleOutput(sql.FieldEQ(FieldInputImageURL, v))
+}
+
 // UpscaleID applies equality check predicate on the "upscale_id" field. It's identical to UpscaleIDEQ.
 func UpscaleID(v uuid.UUID) predicate.UpscaleOutput {
 	return predicate.UpscaleOutput(sql.FieldEQ(FieldUpscaleID, v))
+}
+
+// GenerationOutputID applies equality check predicate on the "generation_output_id" field. It's identical to GenerationOutputIDEQ.
+func GenerationOutputID(v uuid.UUID) predicate.UpscaleOutput {
+	return predicate.UpscaleOutput(sql.FieldEQ(FieldGenerationOutputID, v))
 }
 
 // DeletedAt applies equality check predicate on the "deleted_at" field. It's identical to DeletedAtEQ.
@@ -146,6 +156,81 @@ func ImagePathContainsFold(v string) predicate.UpscaleOutput {
 	return predicate.UpscaleOutput(sql.FieldContainsFold(FieldImagePath, v))
 }
 
+// InputImageURLEQ applies the EQ predicate on the "input_image_url" field.
+func InputImageURLEQ(v string) predicate.UpscaleOutput {
+	return predicate.UpscaleOutput(sql.FieldEQ(FieldInputImageURL, v))
+}
+
+// InputImageURLNEQ applies the NEQ predicate on the "input_image_url" field.
+func InputImageURLNEQ(v string) predicate.UpscaleOutput {
+	return predicate.UpscaleOutput(sql.FieldNEQ(FieldInputImageURL, v))
+}
+
+// InputImageURLIn applies the In predicate on the "input_image_url" field.
+func InputImageURLIn(vs ...string) predicate.UpscaleOutput {
+	return predicate.UpscaleOutput(sql.FieldIn(FieldInputImageURL, vs...))
+}
+
+// InputImageURLNotIn applies the NotIn predicate on the "input_image_url" field.
+func InputImageURLNotIn(vs ...string) predicate.UpscaleOutput {
+	return predicate.UpscaleOutput(sql.FieldNotIn(FieldInputImageURL, vs...))
+}
+
+// InputImageURLGT applies the GT predicate on the "input_image_url" field.
+func InputImageURLGT(v string) predicate.UpscaleOutput {
+	return predicate.UpscaleOutput(sql.FieldGT(FieldInputImageURL, v))
+}
+
+// InputImageURLGTE applies the GTE predicate on the "input_image_url" field.
+func InputImageURLGTE(v string) predicate.UpscaleOutput {
+	return predicate.UpscaleOutput(sql.FieldGTE(FieldInputImageURL, v))
+}
+
+// InputImageURLLT applies the LT predicate on the "input_image_url" field.
+func InputImageURLLT(v string) predicate.UpscaleOutput {
+	return predicate.UpscaleOutput(sql.FieldLT(FieldInputImageURL, v))
+}
+
+// InputImageURLLTE applies the LTE predicate on the "input_image_url" field.
+func InputImageURLLTE(v string) predicate.UpscaleOutput {
+	return predicate.UpscaleOutput(sql.FieldLTE(FieldInputImageURL, v))
+}
+
+// InputImageURLContains applies the Contains predicate on the "input_image_url" field.
+func InputImageURLContains(v string) predicate.UpscaleOutput {
+	return predicate.UpscaleOutput(sql.FieldContains(FieldInputImageURL, v))
+}
+
+// InputImageURLHasPrefix applies the HasPrefix predicate on the "input_image_url" field.
+func InputImageURLHasPrefix(v string) predicate.UpscaleOutput {
+	return predicate.UpscaleOutput(sql.FieldHasPrefix(FieldInputImageURL, v))
+}
+
+// InputImageURLHasSuffix applies the HasSuffix predicate on the "input_image_url" field.
+func InputImageURLHasSuffix(v string) predicate.UpscaleOutput {
+	return predicate.UpscaleOutput(sql.FieldHasSuffix(FieldInputImageURL, v))
+}
+
+// InputImageURLIsNil applies the IsNil predicate on the "input_image_url" field.
+func InputImageURLIsNil() predicate.UpscaleOutput {
+	return predicate.UpscaleOutput(sql.FieldIsNull(FieldInputImageURL))
+}
+
+// InputImageURLNotNil applies the NotNil predicate on the "input_image_url" field.
+func InputImageURLNotNil() predicate.UpscaleOutput {
+	return predicate.UpscaleOutput(sql.FieldNotNull(FieldInputImageURL))
+}
+
+// InputImageURLEqualFold applies the EqualFold predicate on the "input_image_url" field.
+func InputImageURLEqualFold(v string) predicate.UpscaleOutput {
+	return predicate.UpscaleOutput(sql.FieldEqualFold(FieldInputImageURL, v))
+}
+
+// InputImageURLContainsFold applies the ContainsFold predicate on the "input_image_url" field.
+func InputImageURLContainsFold(v string) predicate.UpscaleOutput {
+	return predicate.UpscaleOutput(sql.FieldContainsFold(FieldInputImageURL, v))
+}
+
 // UpscaleIDEQ applies the EQ predicate on the "upscale_id" field.
 func UpscaleIDEQ(v uuid.UUID) predicate.UpscaleOutput {
 	return predicate.UpscaleOutput(sql.FieldEQ(FieldUpscaleID, v))
@@ -164,6 +249,36 @@ func UpscaleIDIn(vs ...uuid.UUID) predicate.UpscaleOutput {
 // UpscaleIDNotIn applies the NotIn predicate on the "upscale_id" field.
 func UpscaleIDNotIn(vs ...uuid.UUID) predicate.UpscaleOutput {
 	return predicate.UpscaleOutput(sql.FieldNotIn(FieldUpscaleID, vs...))
+}
+
+// GenerationOutputIDEQ applies the EQ predicate on the "generation_output_id" field.
+func GenerationOutputIDEQ(v uuid.UUID) predicate.UpscaleOutput {
+	return predicate.UpscaleOutput(sql.FieldEQ(FieldGenerationOutputID, v))
+}
+
+// GenerationOutputIDNEQ applies the NEQ predicate on the "generation_output_id" field.
+func GenerationOutputIDNEQ(v uuid.UUID) predicate.UpscaleOutput {
+	return predicate.UpscaleOutput(sql.FieldNEQ(FieldGenerationOutputID, v))
+}
+
+// GenerationOutputIDIn applies the In predicate on the "generation_output_id" field.
+func GenerationOutputIDIn(vs ...uuid.UUID) predicate.UpscaleOutput {
+	return predicate.UpscaleOutput(sql.FieldIn(FieldGenerationOutputID, vs...))
+}
+
+// GenerationOutputIDNotIn applies the NotIn predicate on the "generation_output_id" field.
+func GenerationOutputIDNotIn(vs ...uuid.UUID) predicate.UpscaleOutput {
+	return predicate.UpscaleOutput(sql.FieldNotIn(FieldGenerationOutputID, vs...))
+}
+
+// GenerationOutputIDIsNil applies the IsNil predicate on the "generation_output_id" field.
+func GenerationOutputIDIsNil() predicate.UpscaleOutput {
+	return predicate.UpscaleOutput(sql.FieldIsNull(FieldGenerationOutputID))
+}
+
+// GenerationOutputIDNotNil applies the NotNil predicate on the "generation_output_id" field.
+func GenerationOutputIDNotNil() predicate.UpscaleOutput {
+	return predicate.UpscaleOutput(sql.FieldNotNull(FieldGenerationOutputID))
 }
 
 // DeletedAtEQ applies the EQ predicate on the "deleted_at" field.
@@ -314,6 +429,33 @@ func HasUpscalesWith(preds ...predicate.Upscale) predicate.UpscaleOutput {
 			sqlgraph.From(Table, FieldID),
 			sqlgraph.To(UpscalesInverseTable, FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, true, UpscalesTable, UpscalesColumn),
+		)
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasGenerationOutput applies the HasEdge predicate on the "generation_output" edge.
+func HasGenerationOutput() predicate.UpscaleOutput {
+	return predicate.UpscaleOutput(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2O, true, GenerationOutputTable, GenerationOutputColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasGenerationOutputWith applies the HasEdge predicate on the "generation_output" edge with a given conditions (other predicates).
+func HasGenerationOutputWith(preds ...predicate.GenerationOutput) predicate.UpscaleOutput {
+	return predicate.UpscaleOutput(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(GenerationOutputInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.O2O, true, GenerationOutputTable, GenerationOutputColumn),
 		)
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {

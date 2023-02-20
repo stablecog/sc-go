@@ -214,11 +214,11 @@ func init() {
 	upscaleoutputFields := schema.UpscaleOutput{}.Fields()
 	_ = upscaleoutputFields
 	// upscaleoutputDescCreatedAt is the schema descriptor for created_at field.
-	upscaleoutputDescCreatedAt := upscaleoutputFields[4].Descriptor()
+	upscaleoutputDescCreatedAt := upscaleoutputFields[6].Descriptor()
 	// upscaleoutput.DefaultCreatedAt holds the default value on creation for the created_at field.
 	upscaleoutput.DefaultCreatedAt = upscaleoutputDescCreatedAt.Default.(func() time.Time)
 	// upscaleoutputDescUpdatedAt is the schema descriptor for updated_at field.
-	upscaleoutputDescUpdatedAt := upscaleoutputFields[5].Descriptor()
+	upscaleoutputDescUpdatedAt := upscaleoutputFields[7].Descriptor()
 	// upscaleoutput.DefaultUpdatedAt holds the default value on creation for the updated_at field.
 	upscaleoutput.DefaultUpdatedAt = upscaleoutputDescUpdatedAt.Default.(func() time.Time)
 	// upscaleoutput.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.

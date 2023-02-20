@@ -5099,21 +5099,23 @@ func (m *GenerationModelMutation) ResetEdge(name string) error {
 // GenerationOutputMutation represents an operation that mutates the GenerationOutput nodes in the graph.
 type GenerationOutputMutation struct {
 	config
-	op                  Op
-	typ                 string
-	id                  *uuid.UUID
-	image_path          *string
-	upscaled_image_path *string
-	gallery_status      *generationoutput.GalleryStatus
-	deleted_at          *time.Time
-	created_at          *time.Time
-	updated_at          *time.Time
-	clearedFields       map[string]struct{}
-	generations         *uuid.UUID
-	clearedgenerations  bool
-	done                bool
-	oldValue            func(context.Context) (*GenerationOutput, error)
-	predicates          []predicate.GenerationOutput
+	op                     Op
+	typ                    string
+	id                     *uuid.UUID
+	image_path             *string
+	upscaled_image_path    *string
+	gallery_status         *generationoutput.GalleryStatus
+	deleted_at             *time.Time
+	created_at             *time.Time
+	updated_at             *time.Time
+	clearedFields          map[string]struct{}
+	generations            *uuid.UUID
+	clearedgenerations     bool
+	upscale_outputs        *uuid.UUID
+	clearedupscale_outputs bool
+	done                   bool
+	oldValue               func(context.Context) (*GenerationOutput, error)
+	predicates             []predicate.GenerationOutput
 }
 
 var _ ent.Mutation = (*GenerationOutputMutation)(nil)
@@ -5537,6 +5539,45 @@ func (m *GenerationOutputMutation) ResetGenerations() {
 	m.clearedgenerations = false
 }
 
+// SetUpscaleOutputsID sets the "upscale_outputs" edge to the UpscaleOutput entity by id.
+func (m *GenerationOutputMutation) SetUpscaleOutputsID(id uuid.UUID) {
+	m.upscale_outputs = &id
+}
+
+// ClearUpscaleOutputs clears the "upscale_outputs" edge to the UpscaleOutput entity.
+func (m *GenerationOutputMutation) ClearUpscaleOutputs() {
+	m.clearedupscale_outputs = true
+}
+
+// UpscaleOutputsCleared reports if the "upscale_outputs" edge to the UpscaleOutput entity was cleared.
+func (m *GenerationOutputMutation) UpscaleOutputsCleared() bool {
+	return m.clearedupscale_outputs
+}
+
+// UpscaleOutputsID returns the "upscale_outputs" edge ID in the mutation.
+func (m *GenerationOutputMutation) UpscaleOutputsID() (id uuid.UUID, exists bool) {
+	if m.upscale_outputs != nil {
+		return *m.upscale_outputs, true
+	}
+	return
+}
+
+// UpscaleOutputsIDs returns the "upscale_outputs" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// UpscaleOutputsID instead. It exists only for internal usage by the builders.
+func (m *GenerationOutputMutation) UpscaleOutputsIDs() (ids []uuid.UUID) {
+	if id := m.upscale_outputs; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetUpscaleOutputs resets all changes to the "upscale_outputs" edge.
+func (m *GenerationOutputMutation) ResetUpscaleOutputs() {
+	m.upscale_outputs = nil
+	m.clearedupscale_outputs = false
+}
+
 // Where appends a list predicates to the GenerationOutputMutation builder.
 func (m *GenerationOutputMutation) Where(ps ...predicate.GenerationOutput) {
 	m.predicates = append(m.predicates, ps...)
@@ -5787,9 +5828,12 @@ func (m *GenerationOutputMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *GenerationOutputMutation) AddedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
 	if m.generations != nil {
 		edges = append(edges, generationoutput.EdgeGenerations)
+	}
+	if m.upscale_outputs != nil {
+		edges = append(edges, generationoutput.EdgeUpscaleOutputs)
 	}
 	return edges
 }
@@ -5802,13 +5846,17 @@ func (m *GenerationOutputMutation) AddedIDs(name string) []ent.Value {
 		if id := m.generations; id != nil {
 			return []ent.Value{*id}
 		}
+	case generationoutput.EdgeUpscaleOutputs:
+		if id := m.upscale_outputs; id != nil {
+			return []ent.Value{*id}
+		}
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *GenerationOutputMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
 	return edges
 }
 
@@ -5820,9 +5868,12 @@ func (m *GenerationOutputMutation) RemovedIDs(name string) []ent.Value {
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *GenerationOutputMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
 	if m.clearedgenerations {
 		edges = append(edges, generationoutput.EdgeGenerations)
+	}
+	if m.clearedupscale_outputs {
+		edges = append(edges, generationoutput.EdgeUpscaleOutputs)
 	}
 	return edges
 }
@@ -5833,6 +5884,8 @@ func (m *GenerationOutputMutation) EdgeCleared(name string) bool {
 	switch name {
 	case generationoutput.EdgeGenerations:
 		return m.clearedgenerations
+	case generationoutput.EdgeUpscaleOutputs:
+		return m.clearedupscale_outputs
 	}
 	return false
 }
@@ -5844,6 +5897,9 @@ func (m *GenerationOutputMutation) ClearEdge(name string) error {
 	case generationoutput.EdgeGenerations:
 		m.ClearGenerations()
 		return nil
+	case generationoutput.EdgeUpscaleOutputs:
+		m.ClearUpscaleOutputs()
+		return nil
 	}
 	return fmt.Errorf("unknown GenerationOutput unique edge %s", name)
 }
@@ -5854,6 +5910,9 @@ func (m *GenerationOutputMutation) ResetEdge(name string) error {
 	switch name {
 	case generationoutput.EdgeGenerations:
 		m.ResetGenerations()
+		return nil
+	case generationoutput.EdgeUpscaleOutputs:
+		m.ResetUpscaleOutputs()
 		return nil
 	}
 	return fmt.Errorf("unknown GenerationOutput edge %s", name)
@@ -9377,19 +9436,22 @@ func (m *UpscaleModelMutation) ResetEdge(name string) error {
 // UpscaleOutputMutation represents an operation that mutates the UpscaleOutput nodes in the graph.
 type UpscaleOutputMutation struct {
 	config
-	op              Op
-	typ             string
-	id              *uuid.UUID
-	image_path      *string
-	deleted_at      *time.Time
-	created_at      *time.Time
-	updated_at      *time.Time
-	clearedFields   map[string]struct{}
-	upscales        *uuid.UUID
-	clearedupscales bool
-	done            bool
-	oldValue        func(context.Context) (*UpscaleOutput, error)
-	predicates      []predicate.UpscaleOutput
+	op                       Op
+	typ                      string
+	id                       *uuid.UUID
+	image_path               *string
+	input_image_url          *string
+	deleted_at               *time.Time
+	created_at               *time.Time
+	updated_at               *time.Time
+	clearedFields            map[string]struct{}
+	upscales                 *uuid.UUID
+	clearedupscales          bool
+	generation_output        *uuid.UUID
+	clearedgeneration_output bool
+	done                     bool
+	oldValue                 func(context.Context) (*UpscaleOutput, error)
+	predicates               []predicate.UpscaleOutput
 }
 
 var _ ent.Mutation = (*UpscaleOutputMutation)(nil)
@@ -9532,6 +9594,55 @@ func (m *UpscaleOutputMutation) ResetImagePath() {
 	m.image_path = nil
 }
 
+// SetInputImageURL sets the "input_image_url" field.
+func (m *UpscaleOutputMutation) SetInputImageURL(s string) {
+	m.input_image_url = &s
+}
+
+// InputImageURL returns the value of the "input_image_url" field in the mutation.
+func (m *UpscaleOutputMutation) InputImageURL() (r string, exists bool) {
+	v := m.input_image_url
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldInputImageURL returns the old "input_image_url" field's value of the UpscaleOutput entity.
+// If the UpscaleOutput object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UpscaleOutputMutation) OldInputImageURL(ctx context.Context) (v *string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldInputImageURL is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldInputImageURL requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldInputImageURL: %w", err)
+	}
+	return oldValue.InputImageURL, nil
+}
+
+// ClearInputImageURL clears the value of the "input_image_url" field.
+func (m *UpscaleOutputMutation) ClearInputImageURL() {
+	m.input_image_url = nil
+	m.clearedFields[upscaleoutput.FieldInputImageURL] = struct{}{}
+}
+
+// InputImageURLCleared returns if the "input_image_url" field was cleared in this mutation.
+func (m *UpscaleOutputMutation) InputImageURLCleared() bool {
+	_, ok := m.clearedFields[upscaleoutput.FieldInputImageURL]
+	return ok
+}
+
+// ResetInputImageURL resets all changes to the "input_image_url" field.
+func (m *UpscaleOutputMutation) ResetInputImageURL() {
+	m.input_image_url = nil
+	delete(m.clearedFields, upscaleoutput.FieldInputImageURL)
+}
+
 // SetUpscaleID sets the "upscale_id" field.
 func (m *UpscaleOutputMutation) SetUpscaleID(u uuid.UUID) {
 	m.upscales = &u
@@ -9566,6 +9677,55 @@ func (m *UpscaleOutputMutation) OldUpscaleID(ctx context.Context) (v uuid.UUID, 
 // ResetUpscaleID resets all changes to the "upscale_id" field.
 func (m *UpscaleOutputMutation) ResetUpscaleID() {
 	m.upscales = nil
+}
+
+// SetGenerationOutputID sets the "generation_output_id" field.
+func (m *UpscaleOutputMutation) SetGenerationOutputID(u uuid.UUID) {
+	m.generation_output = &u
+}
+
+// GenerationOutputID returns the value of the "generation_output_id" field in the mutation.
+func (m *UpscaleOutputMutation) GenerationOutputID() (r uuid.UUID, exists bool) {
+	v := m.generation_output
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldGenerationOutputID returns the old "generation_output_id" field's value of the UpscaleOutput entity.
+// If the UpscaleOutput object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UpscaleOutputMutation) OldGenerationOutputID(ctx context.Context) (v *uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldGenerationOutputID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldGenerationOutputID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldGenerationOutputID: %w", err)
+	}
+	return oldValue.GenerationOutputID, nil
+}
+
+// ClearGenerationOutputID clears the value of the "generation_output_id" field.
+func (m *UpscaleOutputMutation) ClearGenerationOutputID() {
+	m.generation_output = nil
+	m.clearedFields[upscaleoutput.FieldGenerationOutputID] = struct{}{}
+}
+
+// GenerationOutputIDCleared returns if the "generation_output_id" field was cleared in this mutation.
+func (m *UpscaleOutputMutation) GenerationOutputIDCleared() bool {
+	_, ok := m.clearedFields[upscaleoutput.FieldGenerationOutputID]
+	return ok
+}
+
+// ResetGenerationOutputID resets all changes to the "generation_output_id" field.
+func (m *UpscaleOutputMutation) ResetGenerationOutputID() {
+	m.generation_output = nil
+	delete(m.clearedFields, upscaleoutput.FieldGenerationOutputID)
 }
 
 // SetDeletedAt sets the "deleted_at" field.
@@ -9728,6 +9888,32 @@ func (m *UpscaleOutputMutation) ResetUpscales() {
 	m.clearedupscales = false
 }
 
+// ClearGenerationOutput clears the "generation_output" edge to the GenerationOutput entity.
+func (m *UpscaleOutputMutation) ClearGenerationOutput() {
+	m.clearedgeneration_output = true
+}
+
+// GenerationOutputCleared reports if the "generation_output" edge to the GenerationOutput entity was cleared.
+func (m *UpscaleOutputMutation) GenerationOutputCleared() bool {
+	return m.GenerationOutputIDCleared() || m.clearedgeneration_output
+}
+
+// GenerationOutputIDs returns the "generation_output" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// GenerationOutputID instead. It exists only for internal usage by the builders.
+func (m *UpscaleOutputMutation) GenerationOutputIDs() (ids []uuid.UUID) {
+	if id := m.generation_output; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetGenerationOutput resets all changes to the "generation_output" edge.
+func (m *UpscaleOutputMutation) ResetGenerationOutput() {
+	m.generation_output = nil
+	m.clearedgeneration_output = false
+}
+
 // Where appends a list predicates to the UpscaleOutputMutation builder.
 func (m *UpscaleOutputMutation) Where(ps ...predicate.UpscaleOutput) {
 	m.predicates = append(m.predicates, ps...)
@@ -9762,12 +9948,18 @@ func (m *UpscaleOutputMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *UpscaleOutputMutation) Fields() []string {
-	fields := make([]string, 0, 5)
+	fields := make([]string, 0, 7)
 	if m.image_path != nil {
 		fields = append(fields, upscaleoutput.FieldImagePath)
 	}
+	if m.input_image_url != nil {
+		fields = append(fields, upscaleoutput.FieldInputImageURL)
+	}
 	if m.upscales != nil {
 		fields = append(fields, upscaleoutput.FieldUpscaleID)
+	}
+	if m.generation_output != nil {
+		fields = append(fields, upscaleoutput.FieldGenerationOutputID)
 	}
 	if m.deleted_at != nil {
 		fields = append(fields, upscaleoutput.FieldDeletedAt)
@@ -9788,8 +9980,12 @@ func (m *UpscaleOutputMutation) Field(name string) (ent.Value, bool) {
 	switch name {
 	case upscaleoutput.FieldImagePath:
 		return m.ImagePath()
+	case upscaleoutput.FieldInputImageURL:
+		return m.InputImageURL()
 	case upscaleoutput.FieldUpscaleID:
 		return m.UpscaleID()
+	case upscaleoutput.FieldGenerationOutputID:
+		return m.GenerationOutputID()
 	case upscaleoutput.FieldDeletedAt:
 		return m.DeletedAt()
 	case upscaleoutput.FieldCreatedAt:
@@ -9807,8 +10003,12 @@ func (m *UpscaleOutputMutation) OldField(ctx context.Context, name string) (ent.
 	switch name {
 	case upscaleoutput.FieldImagePath:
 		return m.OldImagePath(ctx)
+	case upscaleoutput.FieldInputImageURL:
+		return m.OldInputImageURL(ctx)
 	case upscaleoutput.FieldUpscaleID:
 		return m.OldUpscaleID(ctx)
+	case upscaleoutput.FieldGenerationOutputID:
+		return m.OldGenerationOutputID(ctx)
 	case upscaleoutput.FieldDeletedAt:
 		return m.OldDeletedAt(ctx)
 	case upscaleoutput.FieldCreatedAt:
@@ -9831,12 +10031,26 @@ func (m *UpscaleOutputMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetImagePath(v)
 		return nil
+	case upscaleoutput.FieldInputImageURL:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetInputImageURL(v)
+		return nil
 	case upscaleoutput.FieldUpscaleID:
 		v, ok := value.(uuid.UUID)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetUpscaleID(v)
+		return nil
+	case upscaleoutput.FieldGenerationOutputID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetGenerationOutputID(v)
 		return nil
 	case upscaleoutput.FieldDeletedAt:
 		v, ok := value.(time.Time)
@@ -9889,6 +10103,12 @@ func (m *UpscaleOutputMutation) AddField(name string, value ent.Value) error {
 // mutation.
 func (m *UpscaleOutputMutation) ClearedFields() []string {
 	var fields []string
+	if m.FieldCleared(upscaleoutput.FieldInputImageURL) {
+		fields = append(fields, upscaleoutput.FieldInputImageURL)
+	}
+	if m.FieldCleared(upscaleoutput.FieldGenerationOutputID) {
+		fields = append(fields, upscaleoutput.FieldGenerationOutputID)
+	}
 	if m.FieldCleared(upscaleoutput.FieldDeletedAt) {
 		fields = append(fields, upscaleoutput.FieldDeletedAt)
 	}
@@ -9906,6 +10126,12 @@ func (m *UpscaleOutputMutation) FieldCleared(name string) bool {
 // error if the field is not defined in the schema.
 func (m *UpscaleOutputMutation) ClearField(name string) error {
 	switch name {
+	case upscaleoutput.FieldInputImageURL:
+		m.ClearInputImageURL()
+		return nil
+	case upscaleoutput.FieldGenerationOutputID:
+		m.ClearGenerationOutputID()
+		return nil
 	case upscaleoutput.FieldDeletedAt:
 		m.ClearDeletedAt()
 		return nil
@@ -9920,8 +10146,14 @@ func (m *UpscaleOutputMutation) ResetField(name string) error {
 	case upscaleoutput.FieldImagePath:
 		m.ResetImagePath()
 		return nil
+	case upscaleoutput.FieldInputImageURL:
+		m.ResetInputImageURL()
+		return nil
 	case upscaleoutput.FieldUpscaleID:
 		m.ResetUpscaleID()
+		return nil
+	case upscaleoutput.FieldGenerationOutputID:
+		m.ResetGenerationOutputID()
 		return nil
 	case upscaleoutput.FieldDeletedAt:
 		m.ResetDeletedAt()
@@ -9938,9 +10170,12 @@ func (m *UpscaleOutputMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *UpscaleOutputMutation) AddedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
 	if m.upscales != nil {
 		edges = append(edges, upscaleoutput.EdgeUpscales)
+	}
+	if m.generation_output != nil {
+		edges = append(edges, upscaleoutput.EdgeGenerationOutput)
 	}
 	return edges
 }
@@ -9953,13 +10188,17 @@ func (m *UpscaleOutputMutation) AddedIDs(name string) []ent.Value {
 		if id := m.upscales; id != nil {
 			return []ent.Value{*id}
 		}
+	case upscaleoutput.EdgeGenerationOutput:
+		if id := m.generation_output; id != nil {
+			return []ent.Value{*id}
+		}
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *UpscaleOutputMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
 	return edges
 }
 
@@ -9971,9 +10210,12 @@ func (m *UpscaleOutputMutation) RemovedIDs(name string) []ent.Value {
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *UpscaleOutputMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
 	if m.clearedupscales {
 		edges = append(edges, upscaleoutput.EdgeUpscales)
+	}
+	if m.clearedgeneration_output {
+		edges = append(edges, upscaleoutput.EdgeGenerationOutput)
 	}
 	return edges
 }
@@ -9984,6 +10226,8 @@ func (m *UpscaleOutputMutation) EdgeCleared(name string) bool {
 	switch name {
 	case upscaleoutput.EdgeUpscales:
 		return m.clearedupscales
+	case upscaleoutput.EdgeGenerationOutput:
+		return m.clearedgeneration_output
 	}
 	return false
 }
@@ -9995,6 +10239,9 @@ func (m *UpscaleOutputMutation) ClearEdge(name string) error {
 	case upscaleoutput.EdgeUpscales:
 		m.ClearUpscales()
 		return nil
+	case upscaleoutput.EdgeGenerationOutput:
+		m.ClearGenerationOutput()
+		return nil
 	}
 	return fmt.Errorf("unknown UpscaleOutput unique edge %s", name)
 }
@@ -10005,6 +10252,9 @@ func (m *UpscaleOutputMutation) ResetEdge(name string) error {
 	switch name {
 	case upscaleoutput.EdgeUpscales:
 		m.ResetUpscales()
+		return nil
+	case upscaleoutput.EdgeGenerationOutput:
+		m.ResetGenerationOutput()
 		return nil
 	}
 	return fmt.Errorf("unknown UpscaleOutput edge %s", name)

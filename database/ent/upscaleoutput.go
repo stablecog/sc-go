@@ -9,6 +9,7 @@ import (
 
 	"entgo.io/ent/dialect/sql"
 	"github.com/google/uuid"
+	"github.com/stablecog/sc-go/database/ent/generationoutput"
 	"github.com/stablecog/sc-go/database/ent/upscale"
 	"github.com/stablecog/sc-go/database/ent/upscaleoutput"
 )
@@ -20,8 +21,12 @@ type UpscaleOutput struct {
 	ID uuid.UUID `json:"id,omitempty"`
 	// ImagePath holds the value of the "image_path" field.
 	ImagePath string `json:"image_path,omitempty"`
+	// InputImageURL holds the value of the "input_image_url" field.
+	InputImageURL *string `json:"input_image_url,omitempty"`
 	// UpscaleID holds the value of the "upscale_id" field.
 	UpscaleID uuid.UUID `json:"upscale_id,omitempty"`
+	// GenerationOutputID holds the value of the "generation_output_id" field.
+	GenerationOutputID *uuid.UUID `json:"generation_output_id,omitempty"`
 	// DeletedAt holds the value of the "deleted_at" field.
 	DeletedAt *time.Time `json:"deleted_at,omitempty"`
 	// CreatedAt holds the value of the "created_at" field.
@@ -37,9 +42,11 @@ type UpscaleOutput struct {
 type UpscaleOutputEdges struct {
 	// Upscales holds the value of the upscales edge.
 	Upscales *Upscale `json:"upscales,omitempty"`
+	// GenerationOutput holds the value of the generation_output edge.
+	GenerationOutput *GenerationOutput `json:"generation_output,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [1]bool
+	loadedTypes [2]bool
 }
 
 // UpscalesOrErr returns the Upscales value or an error if the edge
@@ -55,12 +62,27 @@ func (e UpscaleOutputEdges) UpscalesOrErr() (*Upscale, error) {
 	return nil, &NotLoadedError{edge: "upscales"}
 }
 
+// GenerationOutputOrErr returns the GenerationOutput value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e UpscaleOutputEdges) GenerationOutputOrErr() (*GenerationOutput, error) {
+	if e.loadedTypes[1] {
+		if e.GenerationOutput == nil {
+			// Edge was loaded but was not found.
+			return nil, &NotFoundError{label: generationoutput.Label}
+		}
+		return e.GenerationOutput, nil
+	}
+	return nil, &NotLoadedError{edge: "generation_output"}
+}
+
 // scanValues returns the types for scanning values from sql.Rows.
 func (*UpscaleOutput) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case upscaleoutput.FieldImagePath:
+		case upscaleoutput.FieldGenerationOutputID:
+			values[i] = &sql.NullScanner{S: new(uuid.UUID)}
+		case upscaleoutput.FieldImagePath, upscaleoutput.FieldInputImageURL:
 			values[i] = new(sql.NullString)
 		case upscaleoutput.FieldDeletedAt, upscaleoutput.FieldCreatedAt, upscaleoutput.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
@@ -93,11 +115,25 @@ func (uo *UpscaleOutput) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				uo.ImagePath = value.String
 			}
+		case upscaleoutput.FieldInputImageURL:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field input_image_url", values[i])
+			} else if value.Valid {
+				uo.InputImageURL = new(string)
+				*uo.InputImageURL = value.String
+			}
 		case upscaleoutput.FieldUpscaleID:
 			if value, ok := values[i].(*uuid.UUID); !ok {
 				return fmt.Errorf("unexpected type %T for field upscale_id", values[i])
 			} else if value != nil {
 				uo.UpscaleID = *value
+			}
+		case upscaleoutput.FieldGenerationOutputID:
+			if value, ok := values[i].(*sql.NullScanner); !ok {
+				return fmt.Errorf("unexpected type %T for field generation_output_id", values[i])
+			} else if value.Valid {
+				uo.GenerationOutputID = new(uuid.UUID)
+				*uo.GenerationOutputID = *value.S.(*uuid.UUID)
 			}
 		case upscaleoutput.FieldDeletedAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
@@ -128,6 +164,11 @@ func (uo *UpscaleOutput) QueryUpscales() *UpscaleQuery {
 	return NewUpscaleOutputClient(uo.config).QueryUpscales(uo)
 }
 
+// QueryGenerationOutput queries the "generation_output" edge of the UpscaleOutput entity.
+func (uo *UpscaleOutput) QueryGenerationOutput() *GenerationOutputQuery {
+	return NewUpscaleOutputClient(uo.config).QueryGenerationOutput(uo)
+}
+
 // Update returns a builder for updating this UpscaleOutput.
 // Note that you need to call UpscaleOutput.Unwrap() before calling this method if this UpscaleOutput
 // was returned from a transaction, and the transaction was committed or rolled back.
@@ -154,8 +195,18 @@ func (uo *UpscaleOutput) String() string {
 	builder.WriteString("image_path=")
 	builder.WriteString(uo.ImagePath)
 	builder.WriteString(", ")
+	if v := uo.InputImageURL; v != nil {
+		builder.WriteString("input_image_url=")
+		builder.WriteString(*v)
+	}
+	builder.WriteString(", ")
 	builder.WriteString("upscale_id=")
 	builder.WriteString(fmt.Sprintf("%v", uo.UpscaleID))
+	builder.WriteString(", ")
+	if v := uo.GenerationOutputID; v != nil {
+		builder.WriteString("generation_output_id=")
+		builder.WriteString(fmt.Sprintf("%v", *v))
+	}
 	builder.WriteString(", ")
 	if v := uo.DeletedAt; v != nil {
 		builder.WriteString("deleted_at=")

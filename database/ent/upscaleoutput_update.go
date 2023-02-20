@@ -12,6 +12,7 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
+	"github.com/stablecog/sc-go/database/ent/generationoutput"
 	"github.com/stablecog/sc-go/database/ent/predicate"
 	"github.com/stablecog/sc-go/database/ent/upscale"
 	"github.com/stablecog/sc-go/database/ent/upscaleoutput"
@@ -37,9 +38,49 @@ func (uou *UpscaleOutputUpdate) SetImagePath(s string) *UpscaleOutputUpdate {
 	return uou
 }
 
+// SetInputImageURL sets the "input_image_url" field.
+func (uou *UpscaleOutputUpdate) SetInputImageURL(s string) *UpscaleOutputUpdate {
+	uou.mutation.SetInputImageURL(s)
+	return uou
+}
+
+// SetNillableInputImageURL sets the "input_image_url" field if the given value is not nil.
+func (uou *UpscaleOutputUpdate) SetNillableInputImageURL(s *string) *UpscaleOutputUpdate {
+	if s != nil {
+		uou.SetInputImageURL(*s)
+	}
+	return uou
+}
+
+// ClearInputImageURL clears the value of the "input_image_url" field.
+func (uou *UpscaleOutputUpdate) ClearInputImageURL() *UpscaleOutputUpdate {
+	uou.mutation.ClearInputImageURL()
+	return uou
+}
+
 // SetUpscaleID sets the "upscale_id" field.
 func (uou *UpscaleOutputUpdate) SetUpscaleID(u uuid.UUID) *UpscaleOutputUpdate {
 	uou.mutation.SetUpscaleID(u)
+	return uou
+}
+
+// SetGenerationOutputID sets the "generation_output_id" field.
+func (uou *UpscaleOutputUpdate) SetGenerationOutputID(u uuid.UUID) *UpscaleOutputUpdate {
+	uou.mutation.SetGenerationOutputID(u)
+	return uou
+}
+
+// SetNillableGenerationOutputID sets the "generation_output_id" field if the given value is not nil.
+func (uou *UpscaleOutputUpdate) SetNillableGenerationOutputID(u *uuid.UUID) *UpscaleOutputUpdate {
+	if u != nil {
+		uou.SetGenerationOutputID(*u)
+	}
+	return uou
+}
+
+// ClearGenerationOutputID clears the value of the "generation_output_id" field.
+func (uou *UpscaleOutputUpdate) ClearGenerationOutputID() *UpscaleOutputUpdate {
+	uou.mutation.ClearGenerationOutputID()
 	return uou
 }
 
@@ -80,6 +121,11 @@ func (uou *UpscaleOutputUpdate) SetUpscales(u *Upscale) *UpscaleOutputUpdate {
 	return uou.SetUpscalesID(u.ID)
 }
 
+// SetGenerationOutput sets the "generation_output" edge to the GenerationOutput entity.
+func (uou *UpscaleOutputUpdate) SetGenerationOutput(g *GenerationOutput) *UpscaleOutputUpdate {
+	return uou.SetGenerationOutputID(g.ID)
+}
+
 // Mutation returns the UpscaleOutputMutation object of the builder.
 func (uou *UpscaleOutputUpdate) Mutation() *UpscaleOutputMutation {
 	return uou.mutation
@@ -88,6 +134,12 @@ func (uou *UpscaleOutputUpdate) Mutation() *UpscaleOutputMutation {
 // ClearUpscales clears the "upscales" edge to the Upscale entity.
 func (uou *UpscaleOutputUpdate) ClearUpscales() *UpscaleOutputUpdate {
 	uou.mutation.ClearUpscales()
+	return uou
+}
+
+// ClearGenerationOutput clears the "generation_output" edge to the GenerationOutput entity.
+func (uou *UpscaleOutputUpdate) ClearGenerationOutput() *UpscaleOutputUpdate {
+	uou.mutation.ClearGenerationOutput()
 	return uou
 }
 
@@ -165,6 +217,12 @@ func (uou *UpscaleOutputUpdate) sqlSave(ctx context.Context) (n int, err error) 
 	if value, ok := uou.mutation.ImagePath(); ok {
 		_spec.SetField(upscaleoutput.FieldImagePath, field.TypeString, value)
 	}
+	if value, ok := uou.mutation.InputImageURL(); ok {
+		_spec.SetField(upscaleoutput.FieldInputImageURL, field.TypeString, value)
+	}
+	if uou.mutation.InputImageURLCleared() {
+		_spec.ClearField(upscaleoutput.FieldInputImageURL, field.TypeString)
+	}
 	if value, ok := uou.mutation.DeletedAt(); ok {
 		_spec.SetField(upscaleoutput.FieldDeletedAt, field.TypeTime, value)
 	}
@@ -209,6 +267,41 @@ func (uou *UpscaleOutputUpdate) sqlSave(ctx context.Context) (n int, err error) 
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if uou.mutation.GenerationOutputCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: true,
+			Table:   upscaleoutput.GenerationOutputTable,
+			Columns: []string{upscaleoutput.GenerationOutputColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: generationoutput.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uou.mutation.GenerationOutputIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: true,
+			Table:   upscaleoutput.GenerationOutputTable,
+			Columns: []string{upscaleoutput.GenerationOutputColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: generationoutput.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	_spec.AddModifiers(uou.modifiers...)
 	if n, err = sqlgraph.UpdateNodes(ctx, uou.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
@@ -237,9 +330,49 @@ func (uouo *UpscaleOutputUpdateOne) SetImagePath(s string) *UpscaleOutputUpdateO
 	return uouo
 }
 
+// SetInputImageURL sets the "input_image_url" field.
+func (uouo *UpscaleOutputUpdateOne) SetInputImageURL(s string) *UpscaleOutputUpdateOne {
+	uouo.mutation.SetInputImageURL(s)
+	return uouo
+}
+
+// SetNillableInputImageURL sets the "input_image_url" field if the given value is not nil.
+func (uouo *UpscaleOutputUpdateOne) SetNillableInputImageURL(s *string) *UpscaleOutputUpdateOne {
+	if s != nil {
+		uouo.SetInputImageURL(*s)
+	}
+	return uouo
+}
+
+// ClearInputImageURL clears the value of the "input_image_url" field.
+func (uouo *UpscaleOutputUpdateOne) ClearInputImageURL() *UpscaleOutputUpdateOne {
+	uouo.mutation.ClearInputImageURL()
+	return uouo
+}
+
 // SetUpscaleID sets the "upscale_id" field.
 func (uouo *UpscaleOutputUpdateOne) SetUpscaleID(u uuid.UUID) *UpscaleOutputUpdateOne {
 	uouo.mutation.SetUpscaleID(u)
+	return uouo
+}
+
+// SetGenerationOutputID sets the "generation_output_id" field.
+func (uouo *UpscaleOutputUpdateOne) SetGenerationOutputID(u uuid.UUID) *UpscaleOutputUpdateOne {
+	uouo.mutation.SetGenerationOutputID(u)
+	return uouo
+}
+
+// SetNillableGenerationOutputID sets the "generation_output_id" field if the given value is not nil.
+func (uouo *UpscaleOutputUpdateOne) SetNillableGenerationOutputID(u *uuid.UUID) *UpscaleOutputUpdateOne {
+	if u != nil {
+		uouo.SetGenerationOutputID(*u)
+	}
+	return uouo
+}
+
+// ClearGenerationOutputID clears the value of the "generation_output_id" field.
+func (uouo *UpscaleOutputUpdateOne) ClearGenerationOutputID() *UpscaleOutputUpdateOne {
+	uouo.mutation.ClearGenerationOutputID()
 	return uouo
 }
 
@@ -280,6 +413,11 @@ func (uouo *UpscaleOutputUpdateOne) SetUpscales(u *Upscale) *UpscaleOutputUpdate
 	return uouo.SetUpscalesID(u.ID)
 }
 
+// SetGenerationOutput sets the "generation_output" edge to the GenerationOutput entity.
+func (uouo *UpscaleOutputUpdateOne) SetGenerationOutput(g *GenerationOutput) *UpscaleOutputUpdateOne {
+	return uouo.SetGenerationOutputID(g.ID)
+}
+
 // Mutation returns the UpscaleOutputMutation object of the builder.
 func (uouo *UpscaleOutputUpdateOne) Mutation() *UpscaleOutputMutation {
 	return uouo.mutation
@@ -288,6 +426,12 @@ func (uouo *UpscaleOutputUpdateOne) Mutation() *UpscaleOutputMutation {
 // ClearUpscales clears the "upscales" edge to the Upscale entity.
 func (uouo *UpscaleOutputUpdateOne) ClearUpscales() *UpscaleOutputUpdateOne {
 	uouo.mutation.ClearUpscales()
+	return uouo
+}
+
+// ClearGenerationOutput clears the "generation_output" edge to the GenerationOutput entity.
+func (uouo *UpscaleOutputUpdateOne) ClearGenerationOutput() *UpscaleOutputUpdateOne {
+	uouo.mutation.ClearGenerationOutput()
 	return uouo
 }
 
@@ -389,6 +533,12 @@ func (uouo *UpscaleOutputUpdateOne) sqlSave(ctx context.Context) (_node *Upscale
 	if value, ok := uouo.mutation.ImagePath(); ok {
 		_spec.SetField(upscaleoutput.FieldImagePath, field.TypeString, value)
 	}
+	if value, ok := uouo.mutation.InputImageURL(); ok {
+		_spec.SetField(upscaleoutput.FieldInputImageURL, field.TypeString, value)
+	}
+	if uouo.mutation.InputImageURLCleared() {
+		_spec.ClearField(upscaleoutput.FieldInputImageURL, field.TypeString)
+	}
 	if value, ok := uouo.mutation.DeletedAt(); ok {
 		_spec.SetField(upscaleoutput.FieldDeletedAt, field.TypeTime, value)
 	}
@@ -425,6 +575,41 @@ func (uouo *UpscaleOutputUpdateOne) sqlSave(ctx context.Context) (_node *Upscale
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeUUID,
 					Column: upscale.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if uouo.mutation.GenerationOutputCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: true,
+			Table:   upscaleoutput.GenerationOutputTable,
+			Columns: []string{upscaleoutput.GenerationOutputColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: generationoutput.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uouo.mutation.GenerationOutputIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: true,
+			Table:   upscaleoutput.GenerationOutputTable,
+			Columns: []string{upscaleoutput.GenerationOutputColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: generationoutput.FieldID,
 				},
 			},
 		}

@@ -42,6 +42,8 @@ func (GenerationOutput) Edges() []ent.Edge {
 			Field("generation_id").
 			Required().
 			Unique(),
+		// O2O with upscale_outputs
+		edge.To("upscale_outputs", UpscaleOutput.Type).Unique(),
 	}
 }
 

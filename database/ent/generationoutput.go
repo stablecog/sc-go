@@ -11,6 +11,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/stablecog/sc-go/database/ent/generation"
 	"github.com/stablecog/sc-go/database/ent/generationoutput"
+	"github.com/stablecog/sc-go/database/ent/upscaleoutput"
 )
 
 // GenerationOutput is the model entity for the GenerationOutput schema.
@@ -41,9 +42,11 @@ type GenerationOutput struct {
 type GenerationOutputEdges struct {
 	// Generations holds the value of the generations edge.
 	Generations *Generation `json:"generations,omitempty"`
+	// UpscaleOutputs holds the value of the upscale_outputs edge.
+	UpscaleOutputs *UpscaleOutput `json:"upscale_outputs,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [1]bool
+	loadedTypes [2]bool
 }
 
 // GenerationsOrErr returns the Generations value or an error if the edge
@@ -57,6 +60,19 @@ func (e GenerationOutputEdges) GenerationsOrErr() (*Generation, error) {
 		return e.Generations, nil
 	}
 	return nil, &NotLoadedError{edge: "generations"}
+}
+
+// UpscaleOutputsOrErr returns the UpscaleOutputs value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e GenerationOutputEdges) UpscaleOutputsOrErr() (*UpscaleOutput, error) {
+	if e.loadedTypes[1] {
+		if e.UpscaleOutputs == nil {
+			// Edge was loaded but was not found.
+			return nil, &NotFoundError{label: upscaleoutput.Label}
+		}
+		return e.UpscaleOutputs, nil
+	}
+	return nil, &NotLoadedError{edge: "upscale_outputs"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -143,6 +159,11 @@ func (_go *GenerationOutput) assignValues(columns []string, values []any) error 
 // QueryGenerations queries the "generations" edge of the GenerationOutput entity.
 func (_go *GenerationOutput) QueryGenerations() *GenerationQuery {
 	return NewGenerationOutputClient(_go.config).QueryGenerations(_go)
+}
+
+// QueryUpscaleOutputs queries the "upscale_outputs" edge of the GenerationOutput entity.
+func (_go *GenerationOutput) QueryUpscaleOutputs() *UpscaleOutputQuery {
+	return NewGenerationOutputClient(_go.config).QueryUpscaleOutputs(_go)
 }
 
 // Update returns a builder for updating this GenerationOutput.

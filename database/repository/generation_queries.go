@@ -313,20 +313,20 @@ func (r *Repository) GetUserGenerations(userID uuid.UUID, per_page int, cursor *
 	}
 
 	// Format to GenerationQueryWithOutputsResultFormatted
-	generationOutputMap := make(map[uuid.UUID][]GenerationOutput)
+	generationOutputMap := make(map[uuid.UUID][]GenerationUpscaleOutput)
 	for _, g := range gQueryResult {
 		if g.OutputID == nil {
 			klog.Warningf("Output ID is nil for generation, cannot include in result %v", g.ID)
 			continue
 		}
-		gOutput := GenerationOutput{
+		gOutput := GenerationUpscaleOutput{
 			ID:               *g.OutputID,
 			ImageUrl:         g.ImageUrl,
 			UpscaledImageUrl: g.UpscaledImageUrl,
 			GalleryStatus:    g.GalleryStatus,
 		}
 		output := GenerationQueryWithOutputsResultFormatted{
-			GenerationOutput: gOutput,
+			GenerationUpscaleOutput: gOutput,
 			Generation: GenerationQueryWithOutputsData{
 				ID:             g.ID,
 				Height:         g.Height,
@@ -364,11 +364,13 @@ func (r *Repository) GetUserGenerations(userID uuid.UUID, per_page int, cursor *
 	return meta, err
 }
 
-type GenerationOutput struct {
+type GenerationUpscaleOutput struct {
 	ID               uuid.UUID                      `json:"id"`
 	ImageUrl         string                         `json:"image_url"`
 	UpscaledImageUrl string                         `json:"upscaled_image_url,omitempty"`
 	GalleryStatus    generationoutput.GalleryStatus `json:"gallery_status,omitempty"`
+	InputImageUrl    string                         `json:"input_image_url,omitempty"`
+	OutputID         *uuid.UUID                     `json:"output_id,omitempty"`
 }
 
 // Paginated meta for querying generations
@@ -379,21 +381,21 @@ type GenerationQueryWithOutputsMeta struct {
 }
 
 type GenerationQueryWithOutputsData struct {
-	ID             uuid.UUID          `json:"id" sql:"id"`
-	Height         int32              `json:"height" sql:"height"`
-	Width          int32              `json:"width" sql:"width"`
-	InferenceSteps int32              `json:"inference_steps" sql:"inference_steps"`
-	Seed           int                `json:"seed" sql:"seed"`
-	Status         string             `json:"status" sql:"status"`
-	GuidanceScale  float32            `json:"guidance_scale" sql:"guidance_scale"`
-	SchedulerID    uuid.UUID          `json:"scheduler_id" sql:"scheduler_id"`
-	ModelID        uuid.UUID          `json:"model_id" sql:"model_id"`
-	CreatedAt      time.Time          `json:"created_at" sql:"created_at"`
-	StartedAt      *time.Time         `json:"started_at,omitempty" sql:"started_at"`
-	CompletedAt    *time.Time         `json:"completed_at,omitempty" sql:"completed_at"`
-	NegativePrompt string             `json:"negative_prompt" sql:"negative_prompt_text"`
-	Prompt         string             `json:"prompt" sql:"prompt_text"`
-	Outputs        []GenerationOutput `json:"outputs"`
+	ID             uuid.UUID                 `json:"id" sql:"id"`
+	Height         int32                     `json:"height" sql:"height"`
+	Width          int32                     `json:"width" sql:"width"`
+	InferenceSteps int32                     `json:"inference_steps" sql:"inference_steps"`
+	Seed           int                       `json:"seed" sql:"seed"`
+	Status         string                    `json:"status" sql:"status"`
+	GuidanceScale  float32                   `json:"guidance_scale" sql:"guidance_scale"`
+	SchedulerID    uuid.UUID                 `json:"scheduler_id" sql:"scheduler_id"`
+	ModelID        uuid.UUID                 `json:"model_id" sql:"model_id"`
+	CreatedAt      time.Time                 `json:"created_at" sql:"created_at"`
+	StartedAt      *time.Time                `json:"started_at,omitempty" sql:"started_at"`
+	CompletedAt    *time.Time                `json:"completed_at,omitempty" sql:"completed_at"`
+	NegativePrompt string                    `json:"negative_prompt" sql:"negative_prompt_text"`
+	Prompt         string                    `json:"prompt" sql:"prompt_text"`
+	Outputs        []GenerationUpscaleOutput `json:"outputs"`
 }
 
 type GenerationQueryWithOutputsResult struct {
@@ -406,6 +408,6 @@ type GenerationQueryWithOutputsResult struct {
 }
 
 type GenerationQueryWithOutputsResultFormatted struct {
-	GenerationOutput
+	GenerationUpscaleOutput
 	Generation GenerationQueryWithOutputsData `json:"generation"`
 }

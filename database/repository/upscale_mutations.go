@@ -65,7 +65,7 @@ func (r *Repository) SetUpscaleFailed(upscaleID string, reason string, db *ent.C
 }
 
 // ! Currently supports 1 output
-func (r *Repository) SetUpscaleSucceeded(upscaleID, generationOutputID, output string) (*ent.UpscaleOutput, error) {
+func (r *Repository) SetUpscaleSucceeded(upscaleID, generationOutputID, inputImageUrl, output string) (*ent.UpscaleOutput, error) {
 	uid, err := uuid.Parse(upscaleID)
 	if err != nil {
 		klog.Errorf("Error parsing generation id in SetUpscaleSucceeded %s: %v", upscaleID, err)
@@ -98,7 +98,11 @@ func (r *Repository) SetUpscaleSucceeded(upscaleID, generationOutputID, output s
 		}
 
 		// Set upscale output
-		upscaleOutput, err = tx.UpscaleOutput.Create().SetImagePath(output).SetUpscaleID(uid).Save(r.Ctx)
+		uOutput := tx.UpscaleOutput.Create().SetImagePath(output).SetInputImageURL(inputImageUrl).SetUpscaleID(uid)
+		if hasGenerationOutput {
+			uOutput.SetGenerationOutputID(outputId)
+		}
+		upscaleOutput, err = uOutput.Save(r.Ctx)
 		if err != nil {
 			klog.Errorf("Error inserting upscale output %s: %v", upscaleID, err)
 			return err

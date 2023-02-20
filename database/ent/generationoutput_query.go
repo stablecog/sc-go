@@ -4,6 +4,7 @@ package ent
 
 import (
 	"context"
+	"database/sql/driver"
 	"fmt"
 	"math"
 
@@ -14,17 +15,19 @@ import (
 	"github.com/stablecog/sc-go/database/ent/generation"
 	"github.com/stablecog/sc-go/database/ent/generationoutput"
 	"github.com/stablecog/sc-go/database/ent/predicate"
+	"github.com/stablecog/sc-go/database/ent/upscaleoutput"
 )
 
 // GenerationOutputQuery is the builder for querying GenerationOutput entities.
 type GenerationOutputQuery struct {
 	config
-	ctx             *QueryContext
-	order           []OrderFunc
-	inters          []Interceptor
-	predicates      []predicate.GenerationOutput
-	withGenerations *GenerationQuery
-	modifiers       []func(*sql.Selector)
+	ctx                *QueryContext
+	order              []OrderFunc
+	inters             []Interceptor
+	predicates         []predicate.GenerationOutput
+	withGenerations    *GenerationQuery
+	withUpscaleOutputs *UpscaleOutputQuery
+	modifiers          []func(*sql.Selector)
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -76,6 +79,28 @@ func (goq *GenerationOutputQuery) QueryGenerations() *GenerationQuery {
 			sqlgraph.From(generationoutput.Table, generationoutput.FieldID, selector),
 			sqlgraph.To(generation.Table, generation.FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, true, generationoutput.GenerationsTable, generationoutput.GenerationsColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(goq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryUpscaleOutputs chains the current query on the "upscale_outputs" edge.
+func (goq *GenerationOutputQuery) QueryUpscaleOutputs() *UpscaleOutputQuery {
+	query := (&UpscaleOutputClient{config: goq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := goq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := goq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(generationoutput.Table, generationoutput.FieldID, selector),
+			sqlgraph.To(upscaleoutput.Table, upscaleoutput.FieldID),
+			sqlgraph.Edge(sqlgraph.O2O, false, generationoutput.UpscaleOutputsTable, generationoutput.UpscaleOutputsColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(goq.driver.Dialect(), step)
 		return fromU, nil
@@ -268,12 +293,13 @@ func (goq *GenerationOutputQuery) Clone() *GenerationOutputQuery {
 		return nil
 	}
 	return &GenerationOutputQuery{
-		config:          goq.config,
-		ctx:             goq.ctx.Clone(),
-		order:           append([]OrderFunc{}, goq.order...),
-		inters:          append([]Interceptor{}, goq.inters...),
-		predicates:      append([]predicate.GenerationOutput{}, goq.predicates...),
-		withGenerations: goq.withGenerations.Clone(),
+		config:             goq.config,
+		ctx:                goq.ctx.Clone(),
+		order:              append([]OrderFunc{}, goq.order...),
+		inters:             append([]Interceptor{}, goq.inters...),
+		predicates:         append([]predicate.GenerationOutput{}, goq.predicates...),
+		withGenerations:    goq.withGenerations.Clone(),
+		withUpscaleOutputs: goq.withUpscaleOutputs.Clone(),
 		// clone intermediate query.
 		sql:  goq.sql.Clone(),
 		path: goq.path,
@@ -288,6 +314,17 @@ func (goq *GenerationOutputQuery) WithGenerations(opts ...func(*GenerationQuery)
 		opt(query)
 	}
 	goq.withGenerations = query
+	return goq
+}
+
+// WithUpscaleOutputs tells the query-builder to eager-load the nodes that are connected to
+// the "upscale_outputs" edge. The optional arguments are used to configure the query builder of the edge.
+func (goq *GenerationOutputQuery) WithUpscaleOutputs(opts ...func(*UpscaleOutputQuery)) *GenerationOutputQuery {
+	query := (&UpscaleOutputClient{config: goq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	goq.withUpscaleOutputs = query
 	return goq
 }
 
@@ -369,8 +406,9 @@ func (goq *GenerationOutputQuery) sqlAll(ctx context.Context, hooks ...queryHook
 	var (
 		nodes       = []*GenerationOutput{}
 		_spec       = goq.querySpec()
-		loadedTypes = [1]bool{
+		loadedTypes = [2]bool{
 			goq.withGenerations != nil,
+			goq.withUpscaleOutputs != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -397,6 +435,12 @@ func (goq *GenerationOutputQuery) sqlAll(ctx context.Context, hooks ...queryHook
 	if query := goq.withGenerations; query != nil {
 		if err := goq.loadGenerations(ctx, query, nodes, nil,
 			func(n *GenerationOutput, e *Generation) { n.Edges.Generations = e }); err != nil {
+			return nil, err
+		}
+	}
+	if query := goq.withUpscaleOutputs; query != nil {
+		if err := goq.loadUpscaleOutputs(ctx, query, nodes, nil,
+			func(n *GenerationOutput, e *UpscaleOutput) { n.Edges.UpscaleOutputs = e }); err != nil {
 			return nil, err
 		}
 	}
@@ -429,6 +473,33 @@ func (goq *GenerationOutputQuery) loadGenerations(ctx context.Context, query *Ge
 		for i := range nodes {
 			assign(nodes[i], n)
 		}
+	}
+	return nil
+}
+func (goq *GenerationOutputQuery) loadUpscaleOutputs(ctx context.Context, query *UpscaleOutputQuery, nodes []*GenerationOutput, init func(*GenerationOutput), assign func(*GenerationOutput, *UpscaleOutput)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*GenerationOutput)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+	}
+	query.Where(predicate.UpscaleOutput(func(s *sql.Selector) {
+		s.Where(sql.InValues(generationoutput.UpscaleOutputsColumn, fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.GenerationOutputID
+		if fk == nil {
+			return fmt.Errorf(`foreign-key "generation_output_id" is nil for node %v`, n.ID)
+		}
+		node, ok := nodeids[*fk]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "generation_output_id" returned %v for node %v`, *fk, n.ID)
+		}
+		assign(node, n)
 	}
 	return nil
 }

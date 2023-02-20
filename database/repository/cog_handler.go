@@ -300,7 +300,7 @@ func (r *Repository) ProcessCogMessage(msg requests.CogRedisMessage) {
 		} else {
 			if msg.Input.ProcessType == shared.UPSCALE {
 				// ! Currently we are only assuming 1 output per upscale request
-				upscaleOutput, err = r.SetUpscaleSucceeded(msg.Input.ID, msg.Input.GenerationOutputID, msg.Outputs[0])
+				upscaleOutput, err = r.SetUpscaleSucceeded(msg.Input.ID, msg.Input.GenerationOutputID, msg.Input.Image, msg.Outputs[0])
 			} else {
 				generationOutputs, err = r.SetGenerationSucceeded(msg.Input.ID, msg.Outputs, msg.NSFWCount)
 			}
@@ -332,15 +332,20 @@ func (r *Repository) ProcessCogMessage(msg requests.CogRedisMessage) {
 			klog.Errorf("--- Error parsing s3 url to url: %v", err)
 			imageUrl = upscaleOutput.ImagePath
 		}
-		resp.Outputs = []GenerationOutput{
+		resp.Outputs = []GenerationUpscaleOutput{
 			{
-				ID:       upscaleOutput.ID,
-				ImageUrl: imageUrl,
+				ID:            upscaleOutput.ID,
+				ImageUrl:      imageUrl,
+				InputImageUrl: msg.Input.Image,
 			},
+		}
+		outputId, err := uuid.Parse(msg.Input.GenerationOutputID)
+		if err == nil {
+			resp.Outputs[0].OutputID = &outputId
 		}
 	} else if msg.Status == requests.CogSucceeded {
 		// Generate or generate and upscale
-		generateOutputs := make([]GenerationOutput, len(generationOutputs))
+		generateOutputs := make([]GenerationUpscaleOutput, len(generationOutputs))
 		for i, output := range generationOutputs {
 			// Parse S3 URLs to usable URLs
 			imageUrl, err := utils.ParseS3UrlToURL(output.ImagePath)
@@ -356,7 +361,7 @@ func (r *Repository) ProcessCogMessage(msg requests.CogRedisMessage) {
 					upscaledImageUrl = *output.UpscaledImagePath
 				}
 			}
-			generateOutputs[i] = GenerationOutput{
+			generateOutputs[i] = GenerationUpscaleOutput{
 				ID:               output.ID,
 				ImageUrl:         imageUrl,
 				UpscaledImageUrl: upscaledImageUrl,

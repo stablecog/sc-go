@@ -15,6 +15,7 @@ import (
 	"github.com/stablecog/sc-go/database/ent/generation"
 	"github.com/stablecog/sc-go/database/ent/generationoutput"
 	"github.com/stablecog/sc-go/database/ent/predicate"
+	"github.com/stablecog/sc-go/database/ent/upscaleoutput"
 )
 
 // GenerationOutputUpdate is the builder for updating GenerationOutput entities.
@@ -114,6 +115,25 @@ func (gou *GenerationOutputUpdate) SetGenerations(g *Generation) *GenerationOutp
 	return gou.SetGenerationsID(g.ID)
 }
 
+// SetUpscaleOutputsID sets the "upscale_outputs" edge to the UpscaleOutput entity by ID.
+func (gou *GenerationOutputUpdate) SetUpscaleOutputsID(id uuid.UUID) *GenerationOutputUpdate {
+	gou.mutation.SetUpscaleOutputsID(id)
+	return gou
+}
+
+// SetNillableUpscaleOutputsID sets the "upscale_outputs" edge to the UpscaleOutput entity by ID if the given value is not nil.
+func (gou *GenerationOutputUpdate) SetNillableUpscaleOutputsID(id *uuid.UUID) *GenerationOutputUpdate {
+	if id != nil {
+		gou = gou.SetUpscaleOutputsID(*id)
+	}
+	return gou
+}
+
+// SetUpscaleOutputs sets the "upscale_outputs" edge to the UpscaleOutput entity.
+func (gou *GenerationOutputUpdate) SetUpscaleOutputs(u *UpscaleOutput) *GenerationOutputUpdate {
+	return gou.SetUpscaleOutputsID(u.ID)
+}
+
 // Mutation returns the GenerationOutputMutation object of the builder.
 func (gou *GenerationOutputUpdate) Mutation() *GenerationOutputMutation {
 	return gou.mutation
@@ -122,6 +142,12 @@ func (gou *GenerationOutputUpdate) Mutation() *GenerationOutputMutation {
 // ClearGenerations clears the "generations" edge to the Generation entity.
 func (gou *GenerationOutputUpdate) ClearGenerations() *GenerationOutputUpdate {
 	gou.mutation.ClearGenerations()
+	return gou
+}
+
+// ClearUpscaleOutputs clears the "upscale_outputs" edge to the UpscaleOutput entity.
+func (gou *GenerationOutputUpdate) ClearUpscaleOutputs() *GenerationOutputUpdate {
+	gou.mutation.ClearUpscaleOutputs()
 	return gou
 }
 
@@ -257,6 +283,41 @@ func (gou *GenerationOutputUpdate) sqlSave(ctx context.Context) (n int, err erro
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if gou.mutation.UpscaleOutputsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: false,
+			Table:   generationoutput.UpscaleOutputsTable,
+			Columns: []string{generationoutput.UpscaleOutputsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: upscaleoutput.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := gou.mutation.UpscaleOutputsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: false,
+			Table:   generationoutput.UpscaleOutputsTable,
+			Columns: []string{generationoutput.UpscaleOutputsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: upscaleoutput.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	_spec.AddModifiers(gou.modifiers...)
 	if n, err = sqlgraph.UpdateNodes(ctx, gou.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
@@ -362,6 +423,25 @@ func (gouo *GenerationOutputUpdateOne) SetGenerations(g *Generation) *Generation
 	return gouo.SetGenerationsID(g.ID)
 }
 
+// SetUpscaleOutputsID sets the "upscale_outputs" edge to the UpscaleOutput entity by ID.
+func (gouo *GenerationOutputUpdateOne) SetUpscaleOutputsID(id uuid.UUID) *GenerationOutputUpdateOne {
+	gouo.mutation.SetUpscaleOutputsID(id)
+	return gouo
+}
+
+// SetNillableUpscaleOutputsID sets the "upscale_outputs" edge to the UpscaleOutput entity by ID if the given value is not nil.
+func (gouo *GenerationOutputUpdateOne) SetNillableUpscaleOutputsID(id *uuid.UUID) *GenerationOutputUpdateOne {
+	if id != nil {
+		gouo = gouo.SetUpscaleOutputsID(*id)
+	}
+	return gouo
+}
+
+// SetUpscaleOutputs sets the "upscale_outputs" edge to the UpscaleOutput entity.
+func (gouo *GenerationOutputUpdateOne) SetUpscaleOutputs(u *UpscaleOutput) *GenerationOutputUpdateOne {
+	return gouo.SetUpscaleOutputsID(u.ID)
+}
+
 // Mutation returns the GenerationOutputMutation object of the builder.
 func (gouo *GenerationOutputUpdateOne) Mutation() *GenerationOutputMutation {
 	return gouo.mutation
@@ -370,6 +450,12 @@ func (gouo *GenerationOutputUpdateOne) Mutation() *GenerationOutputMutation {
 // ClearGenerations clears the "generations" edge to the Generation entity.
 func (gouo *GenerationOutputUpdateOne) ClearGenerations() *GenerationOutputUpdateOne {
 	gouo.mutation.ClearGenerations()
+	return gouo
+}
+
+// ClearUpscaleOutputs clears the "upscale_outputs" edge to the UpscaleOutput entity.
+func (gouo *GenerationOutputUpdateOne) ClearUpscaleOutputs() *GenerationOutputUpdateOne {
+	gouo.mutation.ClearUpscaleOutputs()
 	return gouo
 }
 
@@ -521,6 +607,41 @@ func (gouo *GenerationOutputUpdateOne) sqlSave(ctx context.Context) (_node *Gene
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeUUID,
 					Column: generation.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if gouo.mutation.UpscaleOutputsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: false,
+			Table:   generationoutput.UpscaleOutputsTable,
+			Columns: []string{generationoutput.UpscaleOutputsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: upscaleoutput.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := gouo.mutation.UpscaleOutputsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: false,
+			Table:   generationoutput.UpscaleOutputsTable,
+			Columns: []string{generationoutput.UpscaleOutputsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: upscaleoutput.FieldID,
 				},
 			},
 		}

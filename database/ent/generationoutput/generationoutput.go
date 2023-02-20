@@ -30,6 +30,8 @@ const (
 	FieldUpdatedAt = "updated_at"
 	// EdgeGenerations holds the string denoting the generations edge name in mutations.
 	EdgeGenerations = "generations"
+	// EdgeUpscaleOutputs holds the string denoting the upscale_outputs edge name in mutations.
+	EdgeUpscaleOutputs = "upscale_outputs"
 	// Table holds the table name of the generationoutput in the database.
 	Table = "generation_outputs"
 	// GenerationsTable is the table that holds the generations relation/edge.
@@ -39,6 +41,13 @@ const (
 	GenerationsInverseTable = "generations"
 	// GenerationsColumn is the table column denoting the generations relation/edge.
 	GenerationsColumn = "generation_id"
+	// UpscaleOutputsTable is the table that holds the upscale_outputs relation/edge.
+	UpscaleOutputsTable = "upscale_outputs"
+	// UpscaleOutputsInverseTable is the table name for the UpscaleOutput entity.
+	// It exists in this package in order to avoid circular dependency with the "upscaleoutput" package.
+	UpscaleOutputsInverseTable = "upscale_outputs"
+	// UpscaleOutputsColumn is the table column denoting the upscale_outputs relation/edge.
+	UpscaleOutputsColumn = "generation_output_id"
 )
 
 // Columns holds all SQL columns for generationoutput fields.

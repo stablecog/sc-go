@@ -11,6 +11,7 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
+	"github.com/stablecog/sc-go/database/ent/generationoutput"
 	"github.com/stablecog/sc-go/database/ent/predicate"
 	"github.com/stablecog/sc-go/database/ent/upscale"
 	"github.com/stablecog/sc-go/database/ent/upscaleoutput"
@@ -19,12 +20,13 @@ import (
 // UpscaleOutputQuery is the builder for querying UpscaleOutput entities.
 type UpscaleOutputQuery struct {
 	config
-	ctx          *QueryContext
-	order        []OrderFunc
-	inters       []Interceptor
-	predicates   []predicate.UpscaleOutput
-	withUpscales *UpscaleQuery
-	modifiers    []func(*sql.Selector)
+	ctx                  *QueryContext
+	order                []OrderFunc
+	inters               []Interceptor
+	predicates           []predicate.UpscaleOutput
+	withUpscales         *UpscaleQuery
+	withGenerationOutput *GenerationOutputQuery
+	modifiers            []func(*sql.Selector)
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -76,6 +78,28 @@ func (uoq *UpscaleOutputQuery) QueryUpscales() *UpscaleQuery {
 			sqlgraph.From(upscaleoutput.Table, upscaleoutput.FieldID, selector),
 			sqlgraph.To(upscale.Table, upscale.FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, true, upscaleoutput.UpscalesTable, upscaleoutput.UpscalesColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(uoq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryGenerationOutput chains the current query on the "generation_output" edge.
+func (uoq *UpscaleOutputQuery) QueryGenerationOutput() *GenerationOutputQuery {
+	query := (&GenerationOutputClient{config: uoq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := uoq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := uoq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(upscaleoutput.Table, upscaleoutput.FieldID, selector),
+			sqlgraph.To(generationoutput.Table, generationoutput.FieldID),
+			sqlgraph.Edge(sqlgraph.O2O, true, upscaleoutput.GenerationOutputTable, upscaleoutput.GenerationOutputColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(uoq.driver.Dialect(), step)
 		return fromU, nil
@@ -268,12 +292,13 @@ func (uoq *UpscaleOutputQuery) Clone() *UpscaleOutputQuery {
 		return nil
 	}
 	return &UpscaleOutputQuery{
-		config:       uoq.config,
-		ctx:          uoq.ctx.Clone(),
-		order:        append([]OrderFunc{}, uoq.order...),
-		inters:       append([]Interceptor{}, uoq.inters...),
-		predicates:   append([]predicate.UpscaleOutput{}, uoq.predicates...),
-		withUpscales: uoq.withUpscales.Clone(),
+		config:               uoq.config,
+		ctx:                  uoq.ctx.Clone(),
+		order:                append([]OrderFunc{}, uoq.order...),
+		inters:               append([]Interceptor{}, uoq.inters...),
+		predicates:           append([]predicate.UpscaleOutput{}, uoq.predicates...),
+		withUpscales:         uoq.withUpscales.Clone(),
+		withGenerationOutput: uoq.withGenerationOutput.Clone(),
 		// clone intermediate query.
 		sql:  uoq.sql.Clone(),
 		path: uoq.path,
@@ -288,6 +313,17 @@ func (uoq *UpscaleOutputQuery) WithUpscales(opts ...func(*UpscaleQuery)) *Upscal
 		opt(query)
 	}
 	uoq.withUpscales = query
+	return uoq
+}
+
+// WithGenerationOutput tells the query-builder to eager-load the nodes that are connected to
+// the "generation_output" edge. The optional arguments are used to configure the query builder of the edge.
+func (uoq *UpscaleOutputQuery) WithGenerationOutput(opts ...func(*GenerationOutputQuery)) *UpscaleOutputQuery {
+	query := (&GenerationOutputClient{config: uoq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	uoq.withGenerationOutput = query
 	return uoq
 }
 
@@ -369,8 +405,9 @@ func (uoq *UpscaleOutputQuery) sqlAll(ctx context.Context, hooks ...queryHook) (
 	var (
 		nodes       = []*UpscaleOutput{}
 		_spec       = uoq.querySpec()
-		loadedTypes = [1]bool{
+		loadedTypes = [2]bool{
 			uoq.withUpscales != nil,
+			uoq.withGenerationOutput != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -400,6 +437,12 @@ func (uoq *UpscaleOutputQuery) sqlAll(ctx context.Context, hooks ...queryHook) (
 			return nil, err
 		}
 	}
+	if query := uoq.withGenerationOutput; query != nil {
+		if err := uoq.loadGenerationOutput(ctx, query, nodes, nil,
+			func(n *UpscaleOutput, e *GenerationOutput) { n.Edges.GenerationOutput = e }); err != nil {
+			return nil, err
+		}
+	}
 	return nodes, nil
 }
 
@@ -425,6 +468,38 @@ func (uoq *UpscaleOutputQuery) loadUpscales(ctx context.Context, query *UpscaleQ
 		nodes, ok := nodeids[n.ID]
 		if !ok {
 			return fmt.Errorf(`unexpected foreign-key "upscale_id" returned %v`, n.ID)
+		}
+		for i := range nodes {
+			assign(nodes[i], n)
+		}
+	}
+	return nil
+}
+func (uoq *UpscaleOutputQuery) loadGenerationOutput(ctx context.Context, query *GenerationOutputQuery, nodes []*UpscaleOutput, init func(*UpscaleOutput), assign func(*UpscaleOutput, *GenerationOutput)) error {
+	ids := make([]uuid.UUID, 0, len(nodes))
+	nodeids := make(map[uuid.UUID][]*UpscaleOutput)
+	for i := range nodes {
+		if nodes[i].GenerationOutputID == nil {
+			continue
+		}
+		fk := *nodes[i].GenerationOutputID
+		if _, ok := nodeids[fk]; !ok {
+			ids = append(ids, fk)
+		}
+		nodeids[fk] = append(nodeids[fk], nodes[i])
+	}
+	if len(ids) == 0 {
+		return nil
+	}
+	query.Where(generationoutput.IDIn(ids...))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nodeids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "generation_output_id" returned %v`, n.ID)
 		}
 		for i := range nodes {
 			assign(nodes[i], n)

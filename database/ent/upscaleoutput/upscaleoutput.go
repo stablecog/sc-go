@@ -15,8 +15,12 @@ const (
 	FieldID = "id"
 	// FieldImagePath holds the string denoting the image_path field in the database.
 	FieldImagePath = "image_path"
+	// FieldInputImageURL holds the string denoting the input_image_url field in the database.
+	FieldInputImageURL = "input_image_url"
 	// FieldUpscaleID holds the string denoting the upscale_id field in the database.
 	FieldUpscaleID = "upscale_id"
+	// FieldGenerationOutputID holds the string denoting the generation_output_id field in the database.
+	FieldGenerationOutputID = "generation_output_id"
 	// FieldDeletedAt holds the string denoting the deleted_at field in the database.
 	FieldDeletedAt = "deleted_at"
 	// FieldCreatedAt holds the string denoting the created_at field in the database.
@@ -25,6 +29,8 @@ const (
 	FieldUpdatedAt = "updated_at"
 	// EdgeUpscales holds the string denoting the upscales edge name in mutations.
 	EdgeUpscales = "upscales"
+	// EdgeGenerationOutput holds the string denoting the generation_output edge name in mutations.
+	EdgeGenerationOutput = "generation_output"
 	// Table holds the table name of the upscaleoutput in the database.
 	Table = "upscale_outputs"
 	// UpscalesTable is the table that holds the upscales relation/edge.
@@ -34,13 +40,22 @@ const (
 	UpscalesInverseTable = "upscales"
 	// UpscalesColumn is the table column denoting the upscales relation/edge.
 	UpscalesColumn = "upscale_id"
+	// GenerationOutputTable is the table that holds the generation_output relation/edge.
+	GenerationOutputTable = "upscale_outputs"
+	// GenerationOutputInverseTable is the table name for the GenerationOutput entity.
+	// It exists in this package in order to avoid circular dependency with the "generationoutput" package.
+	GenerationOutputInverseTable = "generation_outputs"
+	// GenerationOutputColumn is the table column denoting the generation_output relation/edge.
+	GenerationOutputColumn = "generation_output_id"
 )
 
 // Columns holds all SQL columns for upscaleoutput fields.
 var Columns = []string{
 	FieldID,
 	FieldImagePath,
+	FieldInputImageURL,
 	FieldUpscaleID,
+	FieldGenerationOutputID,
 	FieldDeletedAt,
 	FieldCreatedAt,
 	FieldUpdatedAt,

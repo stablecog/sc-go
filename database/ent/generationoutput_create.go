@@ -13,6 +13,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/stablecog/sc-go/database/ent/generation"
 	"github.com/stablecog/sc-go/database/ent/generationoutput"
+	"github.com/stablecog/sc-go/database/ent/upscaleoutput"
 )
 
 // GenerationOutputCreate is the builder for creating a GenerationOutput entity.
@@ -127,6 +128,25 @@ func (goc *GenerationOutputCreate) SetGenerationsID(id uuid.UUID) *GenerationOut
 // SetGenerations sets the "generations" edge to the Generation entity.
 func (goc *GenerationOutputCreate) SetGenerations(g *Generation) *GenerationOutputCreate {
 	return goc.SetGenerationsID(g.ID)
+}
+
+// SetUpscaleOutputsID sets the "upscale_outputs" edge to the UpscaleOutput entity by ID.
+func (goc *GenerationOutputCreate) SetUpscaleOutputsID(id uuid.UUID) *GenerationOutputCreate {
+	goc.mutation.SetUpscaleOutputsID(id)
+	return goc
+}
+
+// SetNillableUpscaleOutputsID sets the "upscale_outputs" edge to the UpscaleOutput entity by ID if the given value is not nil.
+func (goc *GenerationOutputCreate) SetNillableUpscaleOutputsID(id *uuid.UUID) *GenerationOutputCreate {
+	if id != nil {
+		goc = goc.SetUpscaleOutputsID(*id)
+	}
+	return goc
+}
+
+// SetUpscaleOutputs sets the "upscale_outputs" edge to the UpscaleOutput entity.
+func (goc *GenerationOutputCreate) SetUpscaleOutputs(u *UpscaleOutput) *GenerationOutputCreate {
+	return goc.SetUpscaleOutputsID(u.ID)
 }
 
 // Mutation returns the GenerationOutputMutation object of the builder.
@@ -290,6 +310,25 @@ func (goc *GenerationOutputCreate) createSpec() (*GenerationOutput, *sqlgraph.Cr
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_node.GenerationID = nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := goc.mutation.UpscaleOutputsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: false,
+			Table:   generationoutput.UpscaleOutputsTable,
+			Columns: []string{generationoutput.UpscaleOutputsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: upscaleoutput.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec

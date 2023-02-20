@@ -423,6 +423,33 @@ func HasGenerationsWith(preds ...predicate.Generation) predicate.GenerationOutpu
 	})
 }
 
+// HasUpscaleOutputs applies the HasEdge predicate on the "upscale_outputs" edge.
+func HasUpscaleOutputs() predicate.GenerationOutput {
+	return predicate.GenerationOutput(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2O, false, UpscaleOutputsTable, UpscaleOutputsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasUpscaleOutputsWith applies the HasEdge predicate on the "upscale_outputs" edge with a given conditions (other predicates).
+func HasUpscaleOutputsWith(preds ...predicate.UpscaleOutput) predicate.GenerationOutput {
+	return predicate.GenerationOutput(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(UpscaleOutputsInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.O2O, false, UpscaleOutputsTable, UpscaleOutputsColumn),
+		)
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // And groups predicates with the AND operator between them.
 func And(predicates ...predicate.GenerationOutput) predicate.GenerationOutput {
 	return predicate.GenerationOutput(func(s *sql.Selector) {

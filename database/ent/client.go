@@ -1177,6 +1177,22 @@ func (c *GenerationOutputClient) QueryGenerations(_go *GenerationOutput) *Genera
 	return query
 }
 
+// QueryUpscaleOutputs queries the upscale_outputs edge of a GenerationOutput.
+func (c *GenerationOutputClient) QueryUpscaleOutputs(_go *GenerationOutput) *UpscaleOutputQuery {
+	query := (&UpscaleOutputClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _go.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(generationoutput.Table, generationoutput.FieldID, id),
+			sqlgraph.To(upscaleoutput.Table, upscaleoutput.FieldID),
+			sqlgraph.Edge(sqlgraph.O2O, false, generationoutput.UpscaleOutputsTable, generationoutput.UpscaleOutputsColumn),
+		)
+		fromV = sqlgraph.Neighbors(_go.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *GenerationOutputClient) Hooks() []Hook {
 	return c.hooks.GenerationOutput
@@ -2022,6 +2038,22 @@ func (c *UpscaleOutputClient) QueryUpscales(uo *UpscaleOutput) *UpscaleQuery {
 			sqlgraph.From(upscaleoutput.Table, upscaleoutput.FieldID, id),
 			sqlgraph.To(upscale.Table, upscale.FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, true, upscaleoutput.UpscalesTable, upscaleoutput.UpscalesColumn),
+		)
+		fromV = sqlgraph.Neighbors(uo.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryGenerationOutput queries the generation_output edge of a UpscaleOutput.
+func (c *UpscaleOutputClient) QueryGenerationOutput(uo *UpscaleOutput) *GenerationOutputQuery {
+	query := (&GenerationOutputClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := uo.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(upscaleoutput.Table, upscaleoutput.FieldID, id),
+			sqlgraph.To(generationoutput.Table, generationoutput.FieldID),
+			sqlgraph.Edge(sqlgraph.O2O, true, upscaleoutput.GenerationOutputTable, upscaleoutput.GenerationOutputColumn),
 		)
 		fromV = sqlgraph.Neighbors(uo.driver.Dialect(), step)
 		return fromV, nil
