@@ -36,5 +36,10 @@ func (s *SupabaseAuth) GetSupabaseUserIdFromAccessToken(accessToken string) (id,
 		return "", "", SupabaseAuthUnauthorized
 	}
 
+	if user.EmailConfirmedAt == nil {
+		log.Printf("User not confirmed in Supabase")
+		return "", "", SupabaseAuthUnauthorized
+	}
+
 	return user.ID.String(), user.Email, nil
 }
