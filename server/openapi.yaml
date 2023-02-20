@@ -646,6 +646,12 @@ components:
         gallery_status:
           type: string
           format: not_submitted/submitted/accepted/rejected
+        output_id:
+          type: string
+          format: uuidv4, optional, if upscale from_output
+        input_image_url:
+          type: string
+          format: optional, if upscale
       description: An output of a generation
     CreditResponse:
       type: object
