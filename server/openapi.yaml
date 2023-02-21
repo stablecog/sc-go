@@ -911,7 +911,11 @@ components:
           type: string
         status:
           type: string
-          format: queued, succeeded, failed, processing
+          format: queued, succeeded, failed, processing, nsfw
+        target_num_outputs:
+          type: integer
+        actual_num_outputs:
+          type: integer
         width:
           type: integer
           format: int32

@@ -85,6 +85,7 @@ func (r *Repository) QueryUsersCount() (totalCount int, countByCreditName map[st
 	}
 
 	// Get count of users with credits grouped by credit_type
+	// ! TODO - it would be better to have SQL do the aggregations for this data
 	var rawResult []UserCreditGroupByType
 	err = r.DB.Credit.Query().Where(credit.ExpiresAtGT(time.Now())).
 		Modify(func(s *sql.Selector) {

@@ -253,26 +253,23 @@ func main() {
 			go func() {
 				// Live page update
 				livePageMsg := cogMessage.Input.LivePageData
-				var status shared.LivePageStatus
-				switch cogMessage.Status {
-				case requests.CogProcessing:
-					status = shared.LivePageProcessing
-				case requests.CogSucceeded:
-					status = shared.LivePageSucceeded
-				case requests.CogFailed:
-					status = shared.LivePageFailed
-				default:
-					klog.Errorf("Unknown cog status in live page message parsing: %s", cogMessage.Status)
-					return
+				if cogMessage.Status == requests.CogProcessing {
+					livePageMsg.Status = shared.LivePageProcessing
+				} else if cogMessage.Status == requests.CogSucceeded && len(cogMessage.Outputs) > 0 {
+					livePageMsg.Status = shared.LivePageSucceeded
+				} else if cogMessage.Status == requests.CogSucceeded && cogMessage.NSFWCount > 0 {
+					livePageMsg.Status = shared.LivePageNSFW
+				} else {
+					livePageMsg.Status = shared.LivePageFailed
 				}
 
-				livePageMsg.Status = status
 				now := time.Now()
 				if cogMessage.Status == requests.CogProcessing {
 					livePageMsg.StartedAt = &now
 				}
 				if cogMessage.Status == requests.CogSucceeded || cogMessage.Status == requests.CogFailed {
 					livePageMsg.CompletedAt = &now
+					livePageMsg.ActualNumOutputs = len(cogMessage.Outputs)
 				}
 				sseHub.BroadcastLivePageMessage(livePageMsg)
 			}()

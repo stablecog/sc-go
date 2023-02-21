@@ -106,14 +106,14 @@ func (c *RestAPI) HandleCreateGeneration(w http.ResponseWriter, r *http.Request)
 
 		// For live page update
 		livePageMsg = shared.LivePageMessage{
-			ProcessType: generateReq.ProcessType,
-			ID:          utils.Sha256(requestId),
-			CountryCode: countryCode,
-			Status:      shared.LivePageQueued,
-			NumOutputs:  generateReq.NumOutputs,
-			Width:       generateReq.Width,
-			Height:      generateReq.Height,
-			CreatedAt:   g.CreatedAt,
+			ProcessType:      generateReq.ProcessType,
+			ID:               utils.Sha256(requestId),
+			CountryCode:      countryCode,
+			Status:           shared.LivePageQueued,
+			TargetNumOutputs: generateReq.NumOutputs,
+			Width:            generateReq.Width,
+			Height:           generateReq.Height,
+			CreatedAt:        g.CreatedAt,
 		}
 
 		cogReqBody = requests.CogQueueRequest{

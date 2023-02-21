@@ -244,7 +244,7 @@ func (r *Repository) ProcessCogMessage(msg requests.CogRedisMessage) {
 				// NSFW comes back as a success, but with no outputs and nsfw count
 				processRefund := false
 				if msg.NSFWCount > 0 {
-					cogErr = "NSFW"
+					cogErr = shared.NSFW_ERROR
 				} else {
 					cogErr = "No outputs"
 					processRefund = true

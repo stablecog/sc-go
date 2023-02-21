@@ -45,7 +45,7 @@ require (
 	github.com/josharian/intern v1.0.0 // indirect
 	github.com/klauspost/compress v1.15.6 // indirect
 	github.com/mailru/easyjson v0.7.7 // indirect
-	github.com/meilisearch/meilisearch-go v0.22.0 // indirect
+	github.com/meilisearch/meilisearch-go v0.22.0
 	github.com/mitchellh/go-wordwrap v0.0.0-20150314170334-ad45545899c7 // indirect
 	github.com/robfig/cron/v3 v3.0.1 // indirect
 	github.com/supabase-community/gotrue-go v1.0.1 // indirect

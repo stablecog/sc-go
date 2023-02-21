@@ -139,14 +139,14 @@ func (c *RestAPI) HandleUpscale(w http.ResponseWriter, r *http.Request) {
 
 		// For live page update
 		livePageMsg = shared.LivePageMessage{
-			ProcessType: shared.UPSCALE,
-			ID:          utils.Sha256(requestId),
-			CountryCode: countryCode,
-			Status:      shared.LivePageQueued,
-			NumOutputs:  1,
-			Width:       width,
-			Height:      height,
-			CreatedAt:   upscale.CreatedAt,
+			ProcessType:      shared.UPSCALE,
+			ID:               utils.Sha256(requestId),
+			CountryCode:      countryCode,
+			Status:           shared.LivePageQueued,
+			TargetNumOutputs: 1,
+			Width:            width,
+			Height:           height,
+			CreatedAt:        upscale.CreatedAt,
 		}
 
 		// Send to the cog
