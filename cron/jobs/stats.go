@@ -33,7 +33,7 @@ func (j *JobRunner) GetAndSetStats() error {
 			return
 		}
 		results <- map[string]int{
-			"upscale_count": count,
+			"upscale_output_count": count,
 		}
 	}()
 	wg.Add(1)
@@ -45,7 +45,7 @@ func (j *JobRunner) GetAndSetStats() error {
 			return
 		}
 		results <- map[string]int{
-			"generation_count": count,
+			"generation_output_count": count,
 		}
 	}()
 
@@ -62,26 +62,26 @@ func (j *JobRunner) GetAndSetStats() error {
 		}
 	}
 
-	var generationCount, upscaleCount int
+	var generationOutputCount, upscaleOutputCount int
 	for result := range results {
-		resStat, ok := result["generation_count"]
+		resStat, ok := result["generation_output_count"]
 		if ok {
-			generationCount = resStat
+			generationOutputCount = resStat
 		}
-		resStat, ok = result["upscale_count"]
+		resStat, ok = result["upscale_output_count"]
 		if ok {
-			upscaleCount = resStat
+			upscaleOutputCount = resStat
 		}
 	}
 
-	err := j.Redis.SetGenerateUpscaleCount(generationCount, upscaleCount)
+	err := j.Redis.SetGenerateUpscaleOutputCount(generationOutputCount, upscaleOutputCount)
 	if err != nil {
 		return err
 	}
 
 	end := time.Now()
-	klog.Infof("--- upscales: %s", color.Green(upscaleCount))
-	klog.Infof("--- generations: %s", color.Green(generationCount))
+	klog.Infof("--- upscales: %s", color.Green(upscaleOutputCount))
+	klog.Infof("--- generations: %s", color.Green(generationOutputCount))
 	klog.Infof("--- Got stats in: %s", color.Green(end.Sub(start).Milliseconds(), "ms"))
 	return nil
 }

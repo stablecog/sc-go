@@ -23,9 +23,9 @@ paths:
               schema:
                 type: object
                 properties:
-                  upscale_count:
+                  upscale_output_count:
                     type: integer
-                  generation_count:
+                  generation_output_count:
                     type: integer
   /v1/gallery:
     get:

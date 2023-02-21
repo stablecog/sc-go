@@ -56,10 +56,10 @@ func NewRedis(ctx context.Context) (*RedisWrapper, error) {
 }
 
 // Set generate and upscale count stats
-func (r *RedisWrapper) SetGenerateUpscaleCount(generateCount, upscaleCount int) error {
+func (r *RedisWrapper) SetGenerateUpscaleOutputCount(generationOutputCount, upscaleOutputCount int) error {
 	stats := RedisStats{
-		GenerateCount: generateCount,
-		UpscaleCount:  upscaleCount,
+		GenerationOutputCount: generationOutputCount,
+		UpscaleOutputCount:    upscaleOutputCount,
 	}
 	statsJSON, err := json.Marshal(stats)
 	if err != nil {
@@ -82,8 +82,8 @@ func (r *RedisWrapper) GetGenerateUpscaleCount() (stats *RedisStats, err error) 
 }
 
 type RedisStats struct {
-	GenerateCount int `json:"generate_count"`
-	UpscaleCount  int `json:"upscale_count"`
+	GenerationOutputCount int `json:"generation_output_count"`
+	UpscaleOutputCount    int `json:"upscale_output_count"`
 }
 
 // Enqueues a request to sc-worker
