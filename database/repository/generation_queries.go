@@ -399,7 +399,7 @@ type GenerationQueryWithOutputsData struct {
 	CreatedAt      time.Time                 `json:"created_at" sql:"created_at"`
 	StartedAt      *time.Time                `json:"started_at,omitempty" sql:"started_at"`
 	CompletedAt    *time.Time                `json:"completed_at,omitempty" sql:"completed_at"`
-	NegativePrompt string                    `json:"negative_prompt" sql:"negative_prompt_text"`
+	NegativePrompt string                    `json:"negative_prompt,omitempty" sql:"negative_prompt_text"`
 	Prompt         string                    `json:"prompt" sql:"prompt_text"`
 	Outputs        []GenerationUpscaleOutput `json:"outputs"`
 }

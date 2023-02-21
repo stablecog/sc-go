@@ -116,7 +116,12 @@ func (r *Repository) SetUpscaleSucceeded(upscaleID, generationOutputID, inputIma
 
 		// If necessary add to generation output
 		if hasGenerationOutput {
-			_, err = tx.GenerationOutput.UpdateOneID(outputId).SetUpscaledImagePath(output).Save(r.Ctx)
+			parsedS3, err := utils.GetPathFromS3URL(output)
+			if err != nil {
+				klog.Errorf("Error parsing s3 url %s: %v", output, err)
+				parsedS3 = output
+			}
+			_, err = tx.GenerationOutput.UpdateOneID(outputId).SetUpscaledImagePath(parsedS3).Save(r.Ctx)
 			if err != nil {
 				klog.Errorf("Error setting upscaled_image_url %s: %v", upscaleID, err)
 				return err
