@@ -169,7 +169,12 @@ func main() {
 		})
 
 		// Stats
-		r.Get("/stats", hc.HandleGetStats)
+		r.Route("/stats", func(r chi.Router) {
+			r.Use(chimiddleware.Logger)
+			// 10 requests per second
+			r.Use(mw.RateLimit(10, 1*time.Second))
+			r.Get("/", hc.HandleGetStats)
+		})
 
 		// Gallery search
 		r.Route("/gallery", func(r chi.Router) {
