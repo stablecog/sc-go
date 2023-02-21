@@ -8,47 +8,80 @@ import (
 	"k8s.io/klog/v2"
 )
 
-const redisStatsPrefix = "stats"
+func (j *JobRunner) GetUpscaleOutputCount() (int, error) {
+	return j.Repo.DB.UpscaleOutput.Query().Count(j.Ctx)
+}
+
+func (j *JobRunner) GetGenerationOutputCount() (int, error) {
+	return j.Repo.DB.GenerationOutput.Query().Count(j.Ctx)
+}
 
 func (j *JobRunner) GetAndSetStats() error {
 	start := time.Now()
 	klog.Infof("Getting stats...")
 
-	// Stats methods, they map to SQL functions and redis keys
-	stats := []string{
-		"generation_count",
-		"upscale_count",
-	}
+	results := make(chan map[string]int, 2)
+	errors := make(chan error, 2)
 
 	var wg sync.WaitGroup
-	errors := []error{}
-	wg.Add(len(stats))
-	for _, value := range stats {
-		go func(value string) {
-			defer wg.Done()
-			err := j.GetAndSetStatFromPostgresToRedis(
-				value,
-			)
-			if err != nil {
-				errors = append(errors, err)
-			}
-		}(value)
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		count, err := j.GetUpscaleOutputCount()
+		if err != nil {
+			errors <- err
+			return
+		}
+		results <- map[string]int{
+			"upscale_count": count,
+		}
+	}()
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		count, err := j.GetGenerationOutputCount()
+		if err != nil {
+			errors <- err
+			return
+		}
+		results <- map[string]int{
+			"generation_count": count,
+		}
+	}()
+
+	// Wait all jobs and close channels
+	go func() {
+		wg.Wait()
+		close(results)
+		close(errors)
+	}()
+
+	for err := range errors {
+		if err != nil {
+			return err
+		}
 	}
-	wg.Wait()
 
-	if len(errors) > 0 {
-		klog.Errorf("Error getting stats: %v", errors[0])
-		return errors[0]
+	var generationCount, upscaleCount int
+	for result := range results {
+		resStat, ok := result["generation_count"]
+		if ok {
+			generationCount = resStat
+		}
+		resStat, ok = result["upscale_count"]
+		if ok {
+			upscaleCount = resStat
+		}
+	}
 
+	err := j.Redis.SetGenerateUpscaleCount(generationCount, upscaleCount)
+	if err != nil {
+		return err
 	}
 
 	end := time.Now()
-	klog.Infof("Got stats in: %s", color.Green(end.Sub(start).Milliseconds(), "ms"))
-	return nil
-}
-
-func (j *JobRunner) GetAndSetStatFromPostgresToRedis(
-	statsName string,
-) error {
+	klog.Infof("--- upscales: %s", color.Green(upscaleCount))
+	klog.Infof("--- generations: %s", color.Green(generationCount))
+	klog.Infof("--- Got stats in: %s", color.Green(end.Sub(start).Milliseconds(), "ms"))
 	return nil
 }

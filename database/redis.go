@@ -55,6 +55,37 @@ func NewRedis(ctx context.Context) (*RedisWrapper, error) {
 	}, nil
 }
 
+// Set generate and upscale count stats
+func (r *RedisWrapper) SetGenerateUpscaleCount(generateCount, upscaleCount int) error {
+	stats := RedisStats{
+		GenerateCount: generateCount,
+		UpscaleCount:  upscaleCount,
+	}
+	statsJSON, err := json.Marshal(stats)
+	if err != nil {
+		return err
+	}
+	return r.Client.Set(context.Background(), "stats", statsJSON, 0).Err()
+}
+
+// Get generate and upscale count stats
+func (r *RedisWrapper) GetGenerateUpscaleCount() (stats *RedisStats, err error) {
+	statsJSON, err := r.Client.Get(context.Background(), "stats").Result()
+	if err != nil {
+		return nil, err
+	}
+	err = json.Unmarshal([]byte(statsJSON), &stats)
+	if err != nil {
+		return nil, err
+	}
+	return stats, nil
+}
+
+type RedisStats struct {
+	GenerateCount int `json:"generate_count"`
+	UpscaleCount  int `json:"upscale_count"`
+}
+
 // Enqueues a request to sc-worker
 func (r *RedisWrapper) EnqueueCogRequest(ctx context.Context, request interface{}) error {
 	_, err := r.Client.XAdd(ctx, &redis.XAddArgs{

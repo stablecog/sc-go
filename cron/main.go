@@ -116,6 +116,7 @@ func main() {
 		klog.Infoln("🏡 Starting all jobs...")
 		s := gocron.NewScheduler(time.UTC)
 		s.Every(60).Seconds().Do(jobRunner.SyncMeili)
+		s.Every(60).Seconds().Do(jobRunner.GetAndSetStats)
 		s.StartBlocking()
 		os.Exit(0)
 	}
