@@ -90,9 +90,8 @@ func (r *Repository) QueryUsersCount() (totalCount int, countByCreditName map[st
 		Modify(func(s *sql.Selector) {
 			ct := sql.Table(credittype.Table)
 			s.Join(ct).On(ct.C(credittype.FieldID), s.C(credit.FieldCreditTypeID)).
-				Select(sql.As(ct.C(credittype.FieldName), "credit_name"), sql.As(s.C(credit.FieldUserID), "user_id"),
-					sql.As(ct.C(credittype.FieldStripeProductID), "stripe_product_id")).
-				GroupBy(s.C(credit.FieldUserID))
+				Select(sql.As(ct.C(credittype.FieldName), "credit_name"), sql.As(s.C(credit.FieldUserID), "user_id")).
+				GroupBy(s.C(credit.FieldUserID), "credit_name")
 		}).Scan(r.Ctx, &rawResult)
 	if err != nil {
 		klog.Errorf("Error querying users count: %v", err)
@@ -112,9 +111,8 @@ func (r *Repository) QueryUsersCount() (totalCount int, countByCreditName map[st
 }
 
 type UserCreditGroupByType struct {
-	CreditName      string    `json:"credit_name" sql:"credit_name"`
-	UserID          uuid.UUID `json:"user_id" sql:"user_id"`
-	StripeProductID string    `json:"stripe_product_id" sql:"stripe_product_id"`
+	CreditName string    `json:"credit_name" sql:"credit_name"`
+	UserID     uuid.UUID `json:"user_id" sql:"user_id"`
 }
 
 // Query all users with filters
