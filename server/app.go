@@ -270,6 +270,7 @@ func main() {
 				if cogMessage.Status == requests.CogSucceeded || cogMessage.Status == requests.CogFailed {
 					livePageMsg.CompletedAt = &now
 					livePageMsg.ActualNumOutputs = len(cogMessage.Outputs)
+					livePageMsg.NSFWCount = cogMessage.NSFWCount
 				}
 				sseHub.BroadcastLivePageMessage(livePageMsg)
 			}()

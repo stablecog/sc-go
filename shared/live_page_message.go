@@ -23,6 +23,7 @@ type LivePageMessage struct {
 	Height           int32          `json:"height"`
 	TargetNumOutputs int32          `json:"target_num_outputs"`
 	ActualNumOutputs int            `json:"actual_num_outputs"`
+	NSFWCount        int32          `json:"nsfw_count"`
 	CreatedAt        time.Time      `json:"created_at"`
 	StartedAt        *time.Time     `json:"started_at,omitempty"`
 	CompletedAt      *time.Time     `json:"completed_at,omitempty"`
