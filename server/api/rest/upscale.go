@@ -143,6 +143,7 @@ func (c *RestAPI) HandleUpscale(w http.ResponseWriter, r *http.Request) {
 			ID:          utils.Sha256(requestId),
 			CountryCode: countryCode,
 			Status:      shared.LivePageQueued,
+			NumOutputs:  1,
 			Width:       width,
 			Height:      height,
 			CreatedAt:   upscale.CreatedAt,

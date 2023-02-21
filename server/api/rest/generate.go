@@ -110,6 +110,7 @@ func (c *RestAPI) HandleCreateGeneration(w http.ResponseWriter, r *http.Request)
 			ID:          utils.Sha256(requestId),
 			CountryCode: countryCode,
 			Status:      shared.LivePageQueued,
+			NumOutputs:  generateReq.NumOutputs,
 			Width:       generateReq.Width,
 			Height:      generateReq.Height,
 			CreatedAt:   g.CreatedAt,
