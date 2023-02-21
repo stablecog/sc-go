@@ -245,6 +245,9 @@ func TestHandleQueryUsersDefaultParams(t *testing.T) {
 	assert.Len(t, usersResponse.Users, 4)
 	assert.Nil(t, usersResponse.Next)
 
+	assert.Len(t, usersResponse.TotalByCreditName, 1)
+	assert.Equal(t, 3, usersResponse.TotalByCreditName["mock"])
+
 	assert.Equal(t, uuid.MustParse(repository.MOCK_NO_CREDITS_UUID), usersResponse.Users[0].ID)
 	assert.Equal(t, "mocknocredituser@stablecog.com", usersResponse.Users[0].Email)
 	assert.Equal(t, "4", usersResponse.Users[0].StripeCustomerID)

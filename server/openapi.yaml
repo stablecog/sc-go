@@ -1002,6 +1002,11 @@ components:
         total:
           type: integer
           format: int32, every registered user, only if offset not included
+        total_count_by_name:
+          type: object
+          additionalProperties:
+            type: integer
+          description: "key/value like 'credit_type_name: amount'"
         next:
           type: string
           format: isoTimeString

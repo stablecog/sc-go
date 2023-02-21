@@ -3,9 +3,11 @@ package repository
 import (
 	"time"
 
+	"entgo.io/ent/dialect/sql"
 	"github.com/google/uuid"
 	"github.com/stablecog/sc-go/database/ent"
 	"github.com/stablecog/sc-go/database/ent/credit"
+	"github.com/stablecog/sc-go/database/ent/credittype"
 	"github.com/stablecog/sc-go/database/ent/user"
 	"github.com/stablecog/sc-go/database/ent/userrole"
 	"k8s.io/klog/v2"
@@ -75,14 +77,45 @@ func (r *Repository) GetRoles(userID uuid.UUID) ([]userrole.RoleName, error) {
 }
 
 // Get count for QueryUsers
-func (r *Repository) QueryUsersCount() (int, error) {
+func (r *Repository) QueryUsersCount() (totalCount int, countByCreditName map[string]int, err error) {
 	count, err := r.DB.User.Query().Count(r.Ctx)
 	if err != nil {
 		klog.Errorf("Error querying users count: %v", err)
-		return 0, err
+		return 0, nil, err
 	}
 
-	return count, nil
+	// Get count of users with credits grouped by credit_type
+	var rawResult []UserCreditGroupByType
+	err = r.DB.Credit.Query().Select(credit.FieldID).Where(credit.ExpiresAtGT(time.Now())).
+		Modify(func(s *sql.Selector) {
+			ct := sql.Table(credittype.Table)
+			s.Join(ct).On(ct.C(credittype.FieldID), s.C(credit.FieldCreditTypeID)).
+				AppendSelect(sql.As(ct.C(credittype.FieldName), "credit_name"), sql.As(s.C(credit.FieldUserID), "user_id"),
+					sql.As(ct.C(credittype.FieldStripeProductID), "stripe_product_id")).
+				GroupBy(s.C(credit.FieldUserID))
+		}).Scan(r.Ctx, &rawResult)
+	if err != nil {
+		klog.Errorf("Error querying users count: %v", err)
+		return 0, nil, err
+	}
+
+	userCreditCountMap := make(map[string]int)
+	for _, result := range rawResult {
+		if _, ok := userCreditCountMap[result.CreditName]; !ok {
+			userCreditCountMap[result.CreditName] = 1
+			continue
+		}
+		userCreditCountMap[result.CreditName]++
+	}
+
+	return count, userCreditCountMap, nil
+}
+
+type UserCreditGroupByType struct {
+	ID              uuid.UUID `json:"id" sql:"id"`
+	CreditName      string    `json:"credit_name" sql:"credit_name"`
+	UserID          uuid.UUID `json:"user_id" sql:"user_id"`
+	StripeProductID string    `json:"stripe_product_id" sql:"stripe_product_id"`
 }
 
 // Query all users with filters
@@ -128,12 +161,13 @@ func (r *Repository) QueryUsers(per_page int, cursor *time.Time) (*UserQueryMeta
 		Next: next,
 	}
 	if cursor == nil {
-		total, err := r.QueryUsersCount()
+		total, totalByType, err := r.QueryUsersCount()
 		if err != nil {
 			klog.Errorf("Error querying users count: %v", err)
 			return nil, err
 		}
 		meta.Total = &total
+		meta.TotalByCreditName = totalByType
 	}
 
 	for _, user := range res {
@@ -162,9 +196,10 @@ func (r *Repository) QueryUsers(per_page int, cursor *time.Time) (*UserQueryMeta
 
 // Paginated meta for querying generations
 type UserQueryMeta struct {
-	Total *int              `json:"total_count,omitempty"`
-	Next  *time.Time        `json:"next,omitempty"`
-	Users []UserQueryResult `json:"users"`
+	Total             *int              `json:"total_count,omitempty"`
+	TotalByCreditName map[string]int    `json:"total_count_by_name,omitempty"`
+	Next              *time.Time        `json:"next,omitempty"`
+	Users             []UserQueryResult `json:"users"`
 }
 
 type UserQueryCreditType struct {
