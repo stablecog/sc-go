@@ -11,7 +11,6 @@ const (
 	LivePageProcessing LivePageStatus = "processing"
 	LivePageSucceeded  LivePageStatus = "succeeded"
 	LivePageFailed     LivePageStatus = "failed"
-	LivePageNSFW       LivePageStatus = "nsfw"
 )
 
 type LivePageMessage struct {
@@ -19,6 +18,7 @@ type LivePageMessage struct {
 	ID               string         `json:"id"`
 	CountryCode      string         `json:"country_code"`
 	Status           LivePageStatus `json:"status"`
+	FailureReason    string         `json:"failure_reason,omitempty"`
 	Width            int32          `json:"width"`
 	Height           int32          `json:"height"`
 	TargetNumOutputs int32          `json:"target_num_outputs"`

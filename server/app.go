@@ -258,7 +258,8 @@ func main() {
 				} else if cogMessage.Status == requests.CogSucceeded && len(cogMessage.Outputs) > 0 {
 					livePageMsg.Status = shared.LivePageSucceeded
 				} else if cogMessage.Status == requests.CogSucceeded && cogMessage.NSFWCount > 0 {
-					livePageMsg.Status = shared.LivePageNSFW
+					livePageMsg.Status = shared.LivePageFailed
+					livePageMsg.FailureReason = shared.NSFW_ERROR
 				} else {
 					livePageMsg.Status = shared.LivePageFailed
 				}

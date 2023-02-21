@@ -911,10 +911,15 @@ components:
           type: string
         status:
           type: string
-          format: queued, succeeded, failed, processing, nsfw
+          format: queued, succeeded, failed, processing
+        failure_reason:
+          type: string
+          format: NSFW
         target_num_outputs:
           type: integer
         actual_num_outputs:
+          type: integer
+        nsfw_count:
           type: integer
         width:
           type: integer
