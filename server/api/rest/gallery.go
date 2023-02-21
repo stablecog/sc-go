@@ -89,7 +89,7 @@ func (c *RestAPI) HandleQueryGallery(w http.ResponseWriter, r *http.Request) {
 
 	// We want to parse S3 URLs
 	for i := range generationGs {
-		imageUrl, err := utils.ParseS3UrlToURL(generationGs[i].ImagePath)
+		imageUrl := utils.GetURLFromImagePath(generationGs[i].ImagePath)
 		if err != nil {
 			klog.Errorf("Error parsing S3 URL: %v", err)
 			imageUrl = generationGs[i].ImagePath
@@ -97,11 +97,7 @@ func (c *RestAPI) HandleQueryGallery(w http.ResponseWriter, r *http.Request) {
 		generationGs[i].ImageURL = imageUrl
 		generationGs[i].ImagePath = ""
 		if generationGs[i].UpscaledImagePath != "" {
-			imageUrl, err := utils.ParseS3UrlToURL(generationGs[i].UpscaledImagePath)
-			if err != nil {
-				klog.Errorf("Error parsing S3 URL: %v", err)
-				imageUrl = generationGs[i].UpscaledImagePath
-			}
+			imageUrl := utils.GetURLFromImagePath(generationGs[i].UpscaledImagePath)
 			generationGs[i].UpscaledImageURL = imageUrl
 			generationGs[i].UpscaledImagePath = ""
 		}

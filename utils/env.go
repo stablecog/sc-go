@@ -17,9 +17,7 @@ func GetDefaultServerUrl() string {
 	return GetEnv("PUBLIC_DEFAULT_SERVER_URL", "")
 }
 
-func ParseS3UrlToURL(s3UrlStr string) (string, error) {
-	baseUrl := EnsureTrailingSlash(GetEnv("BUCKET_BASE_URL", "https://b.stablecog.com/"))
-
+func GetPathFromS3URL(s3UrlStr string) (string, error) {
 	s3Url, err := url.Parse(s3UrlStr)
 	if err != nil {
 		return s3UrlStr, err
@@ -32,5 +30,11 @@ func ParseS3UrlToURL(s3UrlStr string) (string, error) {
 	// Remove leading slash from path
 	s3Url.Path = s3Url.Path[1:]
 
-	return baseUrl + s3Url.Path, nil
+	return s3Url.Path, nil
+}
+
+func GetURLFromImagePath(s3UrlStr string) string {
+	baseUrl := EnsureTrailingSlash(GetEnv("BUCKET_BASE_URL", "https://b.stablecog.com/"))
+
+	return baseUrl + s3UrlStr
 }

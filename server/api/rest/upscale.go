@@ -83,13 +83,7 @@ func (c *RestAPI) HandleUpscale(w http.ResponseWriter, r *http.Request) {
 			responses.ErrBadRequest(w, r, "image_already_upscaled")
 			return
 		}
-		imageUrl = output.ImagePath
-		s3Parsed, err := utils.ParseS3UrlToURL(imageUrl)
-		if err != nil {
-			klog.Warningf("Error parsing s3 url from output: %v", err)
-		} else {
-			imageUrl = s3Parsed
-		}
+		imageUrl = utils.GetURLFromImagePath(output.ImagePath)
 
 		// Get width/height of generation
 		width, height, err = c.Repo.GetGenerationOutputWidthHeight(upscaleReq.OutputID)

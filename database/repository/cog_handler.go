@@ -327,11 +327,7 @@ func (r *Repository) ProcessCogMessage(msg requests.CogRedisMessage) {
 	}
 	// Upscale
 	if msg.Status == requests.CogSucceeded && msg.Input.ProcessType == shared.UPSCALE {
-		imageUrl, err := utils.ParseS3UrlToURL(upscaleOutput.ImagePath)
-		if err != nil {
-			klog.Errorf("--- Error parsing s3 url to url: %v", err)
-			imageUrl = upscaleOutput.ImagePath
-		}
+		imageUrl := utils.GetURLFromImagePath(upscaleOutput.ImagePath)
 		resp.Outputs = []GenerationUpscaleOutput{
 			{
 				ID:            upscaleOutput.ID,
@@ -348,18 +344,10 @@ func (r *Repository) ProcessCogMessage(msg requests.CogRedisMessage) {
 		generateOutputs := make([]GenerationUpscaleOutput, len(generationOutputs))
 		for i, output := range generationOutputs {
 			// Parse S3 URLs to usable URLs
-			imageUrl, err := utils.ParseS3UrlToURL(output.ImagePath)
-			if err != nil {
-				klog.Errorf("Error parsing image url %s: %v", output.ImagePath, err)
-				imageUrl = output.ImagePath
-			}
+			imageUrl := utils.GetURLFromImagePath(output.ImagePath)
 			var upscaledImageUrl string
 			if output.UpscaledImagePath != nil {
-				upscaledImageUrl, err = utils.ParseS3UrlToURL(*output.UpscaledImagePath)
-				if err != nil {
-					klog.Errorf("Error parsing upscaled image url %s: %v", *output.UpscaledImagePath, err)
-					upscaledImageUrl = *output.UpscaledImagePath
-				}
+				upscaledImageUrl = utils.GetURLFromImagePath(*output.UpscaledImagePath)
 			}
 			generateOutputs[i] = GenerationUpscaleOutput{
 				ID:               output.ID,

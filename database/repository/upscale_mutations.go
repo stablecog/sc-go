@@ -8,6 +8,7 @@ import (
 	"github.com/stablecog/sc-go/database/ent/upscale"
 	"github.com/stablecog/sc-go/server/requests"
 	"github.com/stablecog/sc-go/shared"
+	"github.com/stablecog/sc-go/utils"
 	"k8s.io/klog/v2"
 )
 
@@ -98,7 +99,12 @@ func (r *Repository) SetUpscaleSucceeded(upscaleID, generationOutputID, inputIma
 		}
 
 		// Set upscale output
-		uOutput := tx.UpscaleOutput.Create().SetImagePath(output).SetInputImageURL(inputImageUrl).SetUpscaleID(uid)
+		parsedS3, err := utils.GetPathFromS3URL(output)
+		if err != nil {
+			klog.Errorf("Error parsing s3 url %s: %v", output, err)
+			parsedS3 = output
+		}
+		uOutput := tx.UpscaleOutput.Create().SetImagePath(parsedS3).SetInputImageURL(inputImageUrl).SetUpscaleID(uid)
 		if hasGenerationOutput {
 			uOutput.SetGenerationOutputID(outputId)
 		}

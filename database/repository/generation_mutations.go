@@ -8,6 +8,7 @@ import (
 	"github.com/stablecog/sc-go/database/ent/generation"
 	"github.com/stablecog/sc-go/database/ent/generationoutput"
 	"github.com/stablecog/sc-go/server/requests"
+	"github.com/stablecog/sc-go/utils"
 	"k8s.io/klog/v2"
 )
 
@@ -114,7 +115,12 @@ func (r *Repository) SetGenerationSucceeded(generationID string, outputs []strin
 
 		// Insert all generation outputs
 		for _, output := range outputs {
-			gOutput, err := tx.GenerationOutput.Create().SetGenerationID(uid).SetImagePath(output).SetGalleryStatus(galleryStatus).Save(r.Ctx)
+			parsedS3, err := utils.GetPathFromS3URL(output)
+			if err != nil {
+				klog.Errorf("Error parsing s3 url %s: %v", output, err)
+				parsedS3 = output
+			}
+			gOutput, err := tx.GenerationOutput.Create().SetGenerationID(uid).SetImagePath(parsedS3).SetGalleryStatus(galleryStatus).Save(r.Ctx)
 			if err != nil {
 				klog.Errorf("Error inserting generation output %s: %v", generationID, err)
 				return err

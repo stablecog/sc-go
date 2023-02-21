@@ -8,6 +8,7 @@ import (
 	"io"
 	"net/http/httptest"
 	"net/url"
+	"os"
 	"testing"
 	"time"
 
@@ -44,6 +45,9 @@ func TestHandleQueryGenerationsDontExist(t *testing.T) {
 }
 
 func TestHandleQueryGenerationsDefaultParams(t *testing.T) {
+	os.Setenv("BUCKET_BASE_URL", "http://test.com/")
+	defer os.Unsetenv("BUCKET_BASE_URL")
+
 	w := httptest.NewRecorder()
 	// Build request
 	req := httptest.NewRequest("GET", "/gens", nil)
@@ -76,12 +80,12 @@ func TestHandleQueryGenerationsDefaultParams(t *testing.T) {
 	assert.Equal(t, uuid.MustParse(repository.MOCK_SCHEDULER_ID), genResponse.Outputs[0].Generation.SchedulerID)
 	assert.Equal(t, int32(512), genResponse.Outputs[0].Generation.Width)
 	assert.Equal(t, int32(512), genResponse.Outputs[0].Generation.Height)
-	assert.Equal(t, "output_6", genResponse.Outputs[0].ImageUrl)
+	assert.Equal(t, "http://test.com/output_6", genResponse.Outputs[0].ImageUrl)
 	assert.Equal(t, 1234, genResponse.Outputs[0].Generation.Seed)
 	assert.Len(t, genResponse.Outputs[0].Generation.Outputs, 3)
-	assert.Equal(t, "output_6", genResponse.Outputs[0].Generation.Outputs[0].ImageUrl)
-	assert.Equal(t, "output_5", genResponse.Outputs[0].Generation.Outputs[1].ImageUrl)
-	assert.Equal(t, "output_4", genResponse.Outputs[0].Generation.Outputs[2].ImageUrl)
+	assert.Equal(t, "http://test.com/output_6", genResponse.Outputs[0].Generation.Outputs[0].ImageUrl)
+	assert.Equal(t, "http://test.com/output_5", genResponse.Outputs[0].Generation.Outputs[1].ImageUrl)
+	assert.Equal(t, "http://test.com/output_4", genResponse.Outputs[0].Generation.Outputs[2].ImageUrl)
 
 	assert.Equal(t, "This is a prompt 2", genResponse.Outputs[1].Generation.Prompt)
 	assert.Equal(t, string(generation.StatusSucceeded), genResponse.Outputs[1].Generation.Status)
@@ -94,7 +98,7 @@ func TestHandleQueryGenerationsDefaultParams(t *testing.T) {
 	assert.Equal(t, uuid.MustParse(repository.MOCK_SCHEDULER_ID), genResponse.Outputs[1].Generation.SchedulerID)
 	assert.Equal(t, int32(512), genResponse.Outputs[1].Generation.Width)
 	assert.Equal(t, int32(512), genResponse.Outputs[1].Generation.Height)
-	assert.Equal(t, "output_5", genResponse.Outputs[1].ImageUrl)
+	assert.Equal(t, "http://test.com/output_5", genResponse.Outputs[1].ImageUrl)
 	assert.Equal(t, 1234, genResponse.Outputs[1].Generation.Seed)
 
 	assert.Equal(t, "This is a prompt 2", genResponse.Outputs[2].Generation.Prompt)
@@ -108,7 +112,7 @@ func TestHandleQueryGenerationsDefaultParams(t *testing.T) {
 	assert.Equal(t, uuid.MustParse(repository.MOCK_SCHEDULER_ID), genResponse.Outputs[2].Generation.SchedulerID)
 	assert.Equal(t, int32(512), genResponse.Outputs[2].Generation.Width)
 	assert.Equal(t, int32(512), genResponse.Outputs[2].Generation.Height)
-	assert.Equal(t, "output_4", genResponse.Outputs[2].ImageUrl)
+	assert.Equal(t, "http://test.com/output_4", genResponse.Outputs[2].ImageUrl)
 	assert.Equal(t, 1234, genResponse.Outputs[2].Generation.Seed)
 
 	assert.Equal(t, "This is a prompt", genResponse.Outputs[3].Generation.Prompt)
@@ -122,11 +126,14 @@ func TestHandleQueryGenerationsDefaultParams(t *testing.T) {
 	assert.Equal(t, uuid.MustParse(repository.MOCK_SCHEDULER_ID), genResponse.Outputs[3].Generation.SchedulerID)
 	assert.Equal(t, int32(512), genResponse.Outputs[3].Generation.Width)
 	assert.Equal(t, int32(512), genResponse.Outputs[3].Generation.Height)
-	assert.Equal(t, "output_3", genResponse.Outputs[3].ImageUrl)
+	assert.Equal(t, "http://test.com/output_3", genResponse.Outputs[3].ImageUrl)
 	assert.Equal(t, 1234, genResponse.Outputs[3].Generation.Seed)
 }
 
 func TestHandleQueryGenerationsCursor(t *testing.T) {
+	os.Setenv("BUCKET_BASE_URL", "http://test.com/")
+	defer os.Unsetenv("BUCKET_BASE_URL")
+
 	w := httptest.NewRecorder()
 	// Build request
 	req := httptest.NewRequest("GET", "/gens?upscaled=not", nil)
@@ -158,7 +165,7 @@ func TestHandleQueryGenerationsCursor(t *testing.T) {
 	assert.Equal(t, uuid.MustParse(repository.MOCK_SCHEDULER_ID), genResponse.Outputs[0].Generation.SchedulerID)
 	assert.Equal(t, int32(512), genResponse.Outputs[0].Generation.Width)
 	assert.Equal(t, int32(512), genResponse.Outputs[0].Generation.Height)
-	assert.Equal(t, "output_6", genResponse.Outputs[0].ImageUrl)
+	assert.Equal(t, "http://test.com/output_6", genResponse.Outputs[0].ImageUrl)
 	assert.Equal(t, 1234, genResponse.Outputs[0].Generation.Seed)
 
 	// With cursor off most recent item, we should get next items
@@ -184,6 +191,8 @@ func TestHandleQueryGenerationsCursor(t *testing.T) {
 
 // Test per page param
 func TestHandleQueryGenerationsPerPage(t *testing.T) {
+	os.Setenv("BUCKET_BASE_URL", "http://test.com/")
+	defer os.Unsetenv("BUCKET_BASE_URL")
 	w := httptest.NewRecorder()
 	// Build request
 	req := httptest.NewRequest("GET", "/gens?per_page=1", nil)
@@ -214,12 +223,15 @@ func TestHandleQueryGenerationsPerPage(t *testing.T) {
 	assert.Equal(t, uuid.MustParse(repository.MOCK_SCHEDULER_ID), genResponse.Outputs[0].Generation.SchedulerID)
 	assert.Equal(t, int32(512), genResponse.Outputs[0].Generation.Width)
 	assert.Equal(t, int32(512), genResponse.Outputs[0].Generation.Height)
-	assert.Equal(t, "output_6", genResponse.Outputs[0].ImageUrl)
+	assert.Equal(t, "http://test.com/output_6", genResponse.Outputs[0].ImageUrl)
 	assert.Equal(t, 1234, genResponse.Outputs[0].Generation.Seed)
 }
 
 // Test some filter params
 func TestHandleQueryGenerationsFilters(t *testing.T) {
+	os.Setenv("BUCKET_BASE_URL", "http://test.com/")
+	defer os.Unsetenv("BUCKET_BASE_URL")
+
 	w := httptest.NewRecorder()
 	// Build request
 	req := httptest.NewRequest("GET", "/gens?inference_steps=11&min_guidance_scale=2", nil)
@@ -250,10 +262,10 @@ func TestHandleQueryGenerationsFilters(t *testing.T) {
 	assert.Equal(t, uuid.MustParse(repository.MOCK_SCHEDULER_ID), genResponse.Outputs[0].Generation.SchedulerID)
 	assert.Equal(t, int32(512), genResponse.Outputs[0].Generation.Width)
 	assert.Equal(t, int32(512), genResponse.Outputs[0].Generation.Height)
-	assert.Equal(t, "output_3", genResponse.Outputs[0].ImageUrl)
+	assert.Equal(t, "http://test.com/output_3", genResponse.Outputs[0].ImageUrl)
 	assert.Equal(t, 1234, genResponse.Outputs[0].Generation.Seed)
-	assert.Equal(t, "output_2", genResponse.Outputs[1].ImageUrl)
-	assert.Equal(t, "output_1", genResponse.Outputs[2].ImageUrl)
+	assert.Equal(t, "http://test.com/output_2", genResponse.Outputs[1].ImageUrl)
+	assert.Equal(t, "http://test.com/output_1", genResponse.Outputs[2].ImageUrl)
 
 }
 

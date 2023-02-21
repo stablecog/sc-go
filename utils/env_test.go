@@ -23,12 +23,16 @@ func TestGetDefaultServerUrl(t *testing.T) {
 	assert.NotEqual(t, "testgetdefaultserverurl", GetDefaultServerUrl())
 }
 
-func TestParseS3UrlToURL(t *testing.T) {
+func TestGetPathFromS3URL(t *testing.T) {
+	path := "s3://stablecog/cc70edec-b6ff-42c5-8726-957bbd8fc212.jpeg"
+	parsed, err := GetPathFromS3URL(path)
+	assert.Nil(t, err)
+	assert.Equal(t, "cc70edec-b6ff-42c5-8726-957bbd8fc212.jpeg", parsed)
+}
+
+func TestGetURLFromImagePath(t *testing.T) {
 	os.Setenv("BUCKET_BASE_URL", "http://test.com/")
 	defer os.Unsetenv("BUCKET_BASE_URL")
 
-	path := "s3://stablecog/cc70edec-b6ff-42c5-8726-957bbd8fc212.jpeg"
-	parsed, err := ParseS3UrlToURL(path)
-	assert.Nil(t, err)
-	assert.Equal(t, "http://test.com/cc70edec-b6ff-42c5-8726-957bbd8fc212.jpeg", parsed)
+	assert.Equal(t, "http://test.com/cc70edec-b6ff-42c5-8726-957bbd8fc212.jpeg", GetURLFromImagePath("cc70edec-b6ff-42c5-8726-957bbd8fc212.jpeg"))
 }

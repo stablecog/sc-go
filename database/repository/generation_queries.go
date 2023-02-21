@@ -297,17 +297,11 @@ func (r *Repository) GetUserGenerations(userID uuid.UUID, per_page int, cursor *
 	// Get real image URLs for each
 	for i, g := range gQueryResult {
 		if g.ImageUrl != "" {
-			parsed, err := utils.ParseS3UrlToURL(g.ImageUrl)
-			if err != nil {
-				parsed = g.ImageUrl
-			}
+			parsed := utils.GetURLFromImagePath(g.ImageUrl)
 			gQueryResult[i].ImageUrl = parsed
 		}
 		if g.UpscaledImageUrl != "" {
-			parsed, err := utils.ParseS3UrlToURL(g.UpscaledImageUrl)
-			if err != nil {
-				parsed = g.UpscaledImageUrl
-			}
+			parsed := utils.GetURLFromImagePath(g.UpscaledImageUrl)
 			gQueryResult[i].UpscaledImageUrl = parsed
 		}
 	}
