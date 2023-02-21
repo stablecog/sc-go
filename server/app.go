@@ -168,6 +168,9 @@ func main() {
 			r.Post("/webhook", hc.HandleStripeWebhook)
 		})
 
+		// Stats
+		r.Get("/stats", hc.HandleGetStats)
+
 		// Gallery search
 		r.Route("/gallery", func(r chi.Router) {
 			r.Use(chimiddleware.Logger)

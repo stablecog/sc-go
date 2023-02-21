@@ -12,6 +12,21 @@ paths:
       responses:
         "200":
           description: Success code when server is ready to accept requests
+  /v1/stats:
+    get:
+      description: "Stats"
+      responses:
+        "200":
+          description: JSON object with gallery hits and metadata
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  upscale_count:
+                    type: integer
+                  generation_count:
+                    type: integer
   /v1/gallery:
     get:
       description: "Gallery: Search"
