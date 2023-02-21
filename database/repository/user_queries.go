@@ -86,11 +86,11 @@ func (r *Repository) QueryUsersCount() (totalCount int, countByCreditName map[st
 
 	// Get count of users with credits grouped by credit_type
 	var rawResult []UserCreditGroupByType
-	err = r.DB.Credit.Query().Select(credit.FieldID).Where(credit.ExpiresAtGT(time.Now())).
+	err = r.DB.Credit.Query().Where(credit.ExpiresAtGT(time.Now())).
 		Modify(func(s *sql.Selector) {
 			ct := sql.Table(credittype.Table)
 			s.Join(ct).On(ct.C(credittype.FieldID), s.C(credit.FieldCreditTypeID)).
-				AppendSelect(sql.As(ct.C(credittype.FieldName), "credit_name"), sql.As(s.C(credit.FieldUserID), "user_id"),
+				Select(sql.As(ct.C(credittype.FieldName), "credit_name"), sql.As(s.C(credit.FieldUserID), "user_id"),
 					sql.As(ct.C(credittype.FieldStripeProductID), "stripe_product_id")).
 				GroupBy(s.C(credit.FieldUserID))
 		}).Scan(r.Ctx, &rawResult)
@@ -112,7 +112,6 @@ func (r *Repository) QueryUsersCount() (totalCount int, countByCreditName map[st
 }
 
 type UserCreditGroupByType struct {
-	ID              uuid.UUID `json:"id" sql:"id"`
 	CreditName      string    `json:"credit_name" sql:"credit_name"`
 	UserID          uuid.UUID `json:"user_id" sql:"user_id"`
 	StripeProductID string    `json:"stripe_product_id" sql:"stripe_product_id"`
