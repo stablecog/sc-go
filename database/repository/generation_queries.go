@@ -148,6 +148,12 @@ func (r *Repository) ApplyUserGenerationsFilters(query *ent.GenerationQuery, fil
 			})
 		}
 
+		if len(filters.GalleryStatus) > 0 {
+			resQuery = resQuery.Where(func(s *sql.Selector) {
+				s.Where(sql.In("output_gallery_status", filters.GalleryStatus))
+			})
+		}
+
 		// Start dt
 		if filters.StartDt != nil {
 			resQuery = resQuery.Where(generation.CreatedAtGTE(*filters.StartDt))
@@ -162,11 +168,14 @@ func (r *Repository) ApplyUserGenerationsFilters(query *ent.GenerationQuery, fil
 }
 
 // Gets the count of generations with outputs user has with filters
-func (r *Repository) GetUserGenerationCountWithFilters(userID uuid.UUID, filters *requests.QueryGenerationFilters) (int, error) {
+func (r *Repository) GetGenerationCount(filters *requests.QueryGenerationFilters) (int, error) {
 	var query *ent.GenerationQuery
 
 	query = r.DB.Generation.Query().
-		Where(generation.UserID(userID), generation.StatusEQ(generation.StatusSucceeded))
+		Where(generation.StatusEQ(generation.StatusSucceeded))
+	if filters.UserID != nil {
+		query = query.Where(generation.UserID(*filters.UserID))
+	}
 
 	// Exclude deleted at always
 	query = query.Where(func(s *sql.Selector) {
@@ -206,7 +215,7 @@ type UserGenCount struct {
 // Cursor actually represents created_at, we paginate using this for performance reasons
 // If present, we will get results after the cursor (anything before, represents previous pages)
 // ! using ent .With... doesn't use joins, so we construct our own query to make it more efficient
-func (r *Repository) GetUserGenerations(userID uuid.UUID, per_page int, cursor *time.Time, filters *requests.QueryGenerationFilters) (*GenerationQueryWithOutputsMeta, error) {
+func (r *Repository) QueryGenerations(per_page int, cursor *time.Time, filters *requests.QueryGenerationFilters) (*GenerationQueryWithOutputsMeta, error) {
 	// Base fields to select in our query
 	selectFields := []string{
 		generation.FieldID,
@@ -226,7 +235,10 @@ func (r *Repository) GetUserGenerations(userID uuid.UUID, per_page int, cursor *
 	var gQueryResult []GenerationQueryWithOutputsResult
 
 	query = r.DB.Generation.Query().Select(selectFields...).
-		Where(generation.UserID(userID), generation.StatusEQ(generation.StatusSucceeded))
+		Where(generation.StatusEQ(generation.StatusSucceeded))
+	if filters.UserID != nil {
+		query = query.Where(generation.UserID(*filters.UserID))
+	}
 	if cursor != nil {
 		query = query.Where(generation.CreatedAtLT(*cursor))
 	}
@@ -347,7 +359,7 @@ func (r *Repository) GetUserGenerations(userID uuid.UUID, per_page int, cursor *
 	}
 
 	if cursor == nil {
-		total, err := r.GetUserGenerationCountWithFilters(userID, filters)
+		total, err := r.GetGenerationCount(filters)
 		if err != nil {
 			klog.Errorf("Error getting user generation count: %v", err)
 			return nil, err

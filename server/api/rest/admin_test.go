@@ -6,9 +6,11 @@ import (
 	"encoding/json"
 	"io"
 	"net/http/httptest"
+	"os"
 	"testing"
 
 	"github.com/google/uuid"
+	"github.com/stablecog/sc-go/database/ent/generation"
 	"github.com/stablecog/sc-go/database/ent/generationoutput"
 	"github.com/stablecog/sc-go/database/repository"
 	"github.com/stablecog/sc-go/server/requests"
@@ -132,4 +134,90 @@ func TestHandleDeleteGeneration(t *testing.T) {
 	assert.Nil(t, err)
 	err = MockController.Repo.DB.Upscale.DeleteOne(targetUpscale).Exec(ctx)
 	assert.Nil(t, err)
+}
+
+func TestHandleQueryGenerationsForAdminDefaultParams(t *testing.T) {
+	os.Setenv("BUCKET_BASE_URL", "http://test.com/")
+	defer os.Unsetenv("BUCKET_BASE_URL")
+
+	w := httptest.NewRecorder()
+	// Build request
+	req := httptest.NewRequest("GET", "/gens", nil)
+	req.Header.Set("Content-Type", "application/json")
+
+	ctx := context.WithValue(req.Context(), "user_id", repository.MOCK_ADMIN_UUID)
+	ctx = context.WithValue(ctx, "user_email", repository.MOCK_ADMIN_UUID)
+
+	MockController.HandleQueryGenerationsForAdmin(w, req.WithContext(ctx))
+	resp := w.Result()
+	defer resp.Body.Close()
+	assert.Equal(t, 200, resp.StatusCode)
+	var genResponse repository.GenerationQueryWithOutputsMeta
+	respBody, _ := io.ReadAll(resp.Body)
+	json.Unmarshal(respBody, &genResponse)
+
+	assert.Equal(t, 6, *genResponse.Total)
+	assert.Len(t, genResponse.Outputs, 6)
+	assert.Nil(t, genResponse.Next)
+
+	// They should be in order of how we mocked them (descending)
+	assert.Equal(t, "This is a prompt 2", genResponse.Outputs[0].Generation.Prompt)
+	assert.Equal(t, string(generation.StatusSucceeded), genResponse.Outputs[0].Generation.Status)
+	assert.NotNil(t, genResponse.Outputs[0].Generation.StartedAt)
+	assert.NotNil(t, genResponse.Outputs[0].Generation.CompletedAt)
+	assert.Empty(t, genResponse.Outputs[0].Generation.NegativePrompt)
+	assert.Equal(t, int32(30), genResponse.Outputs[0].Generation.InferenceSteps)
+	assert.Equal(t, float32(1.0), genResponse.Outputs[0].Generation.GuidanceScale)
+	assert.Equal(t, uuid.MustParse(repository.MOCK_GENERATION_MODEL_ID), genResponse.Outputs[0].Generation.ModelID)
+	assert.Equal(t, uuid.MustParse(repository.MOCK_SCHEDULER_ID), genResponse.Outputs[0].Generation.SchedulerID)
+	assert.Equal(t, int32(512), genResponse.Outputs[0].Generation.Width)
+	assert.Equal(t, int32(512), genResponse.Outputs[0].Generation.Height)
+	assert.Equal(t, "http://test.com/output_6", genResponse.Outputs[0].ImageUrl)
+	assert.Equal(t, 1234, genResponse.Outputs[0].Generation.Seed)
+	assert.Len(t, genResponse.Outputs[0].Generation.Outputs, 3)
+	assert.Equal(t, "http://test.com/output_6", genResponse.Outputs[0].Generation.Outputs[0].ImageUrl)
+	assert.Equal(t, "http://test.com/output_5", genResponse.Outputs[0].Generation.Outputs[1].ImageUrl)
+	assert.Equal(t, "http://test.com/output_4", genResponse.Outputs[0].Generation.Outputs[2].ImageUrl)
+
+	assert.Equal(t, "This is a prompt 2", genResponse.Outputs[1].Generation.Prompt)
+	assert.Equal(t, string(generation.StatusSucceeded), genResponse.Outputs[1].Generation.Status)
+	assert.NotNil(t, genResponse.Outputs[1].Generation.StartedAt)
+	assert.NotNil(t, genResponse.Outputs[1].Generation.CompletedAt)
+	assert.Empty(t, genResponse.Outputs[1].Generation.NegativePrompt)
+	assert.Equal(t, int32(30), genResponse.Outputs[1].Generation.InferenceSteps)
+	assert.Equal(t, float32(1.0), genResponse.Outputs[1].Generation.GuidanceScale)
+	assert.Equal(t, uuid.MustParse(repository.MOCK_GENERATION_MODEL_ID), genResponse.Outputs[1].Generation.ModelID)
+	assert.Equal(t, uuid.MustParse(repository.MOCK_SCHEDULER_ID), genResponse.Outputs[1].Generation.SchedulerID)
+	assert.Equal(t, int32(512), genResponse.Outputs[1].Generation.Width)
+	assert.Equal(t, int32(512), genResponse.Outputs[1].Generation.Height)
+	assert.Equal(t, "http://test.com/output_5", genResponse.Outputs[1].ImageUrl)
+	assert.Equal(t, 1234, genResponse.Outputs[1].Generation.Seed)
+
+	assert.Equal(t, "This is a prompt 2", genResponse.Outputs[2].Generation.Prompt)
+	assert.Equal(t, string(generation.StatusSucceeded), genResponse.Outputs[2].Generation.Status)
+	assert.NotNil(t, genResponse.Outputs[2].Generation.StartedAt)
+	assert.NotNil(t, genResponse.Outputs[2].Generation.CompletedAt)
+	assert.Empty(t, genResponse.Outputs[2].Generation.NegativePrompt)
+	assert.Equal(t, int32(30), genResponse.Outputs[2].Generation.InferenceSteps)
+	assert.Equal(t, float32(1.0), genResponse.Outputs[2].Generation.GuidanceScale)
+	assert.Equal(t, uuid.MustParse(repository.MOCK_GENERATION_MODEL_ID), genResponse.Outputs[2].Generation.ModelID)
+	assert.Equal(t, uuid.MustParse(repository.MOCK_SCHEDULER_ID), genResponse.Outputs[2].Generation.SchedulerID)
+	assert.Equal(t, int32(512), genResponse.Outputs[2].Generation.Width)
+	assert.Equal(t, int32(512), genResponse.Outputs[2].Generation.Height)
+	assert.Equal(t, "http://test.com/output_4", genResponse.Outputs[2].ImageUrl)
+	assert.Equal(t, 1234, genResponse.Outputs[2].Generation.Seed)
+
+	assert.Equal(t, "This is a prompt", genResponse.Outputs[3].Generation.Prompt)
+	assert.Equal(t, string(generation.StatusSucceeded), genResponse.Outputs[3].Generation.Status)
+	assert.NotNil(t, genResponse.Outputs[3].Generation.StartedAt)
+	assert.NotNil(t, genResponse.Outputs[3].Generation.CompletedAt)
+	assert.Equal(t, "This is a negative prompt", genResponse.Outputs[3].Generation.NegativePrompt)
+	assert.Equal(t, int32(11), genResponse.Outputs[3].Generation.InferenceSteps)
+	assert.Equal(t, float32(2.0), genResponse.Outputs[3].Generation.GuidanceScale)
+	assert.Equal(t, uuid.MustParse(repository.MOCK_GENERATION_MODEL_ID), genResponse.Outputs[3].Generation.ModelID)
+	assert.Equal(t, uuid.MustParse(repository.MOCK_SCHEDULER_ID), genResponse.Outputs[3].Generation.SchedulerID)
+	assert.Equal(t, int32(512), genResponse.Outputs[3].Generation.Width)
+	assert.Equal(t, int32(512), genResponse.Outputs[3].Generation.Height)
+	assert.Equal(t, "http://test.com/output_3", genResponse.Outputs[3].ImageUrl)
+	assert.Equal(t, 1234, genResponse.Outputs[3].Generation.Seed)
 }

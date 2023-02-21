@@ -77,150 +77,108 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse401"
+  /v1/admin/outputs:
+    delete:
+      description: "Generation Output: Mark for Delete (Admin)"
+      security:
+        - supabase: []
+      requestBody:
+        description: JSON Object with generation output IDs to delete
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DeleteGenerationRequest"
+      responses:
+        "200":
+          description: Number of generations marked for deletion
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DeletedResponse"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse400"
+        "401":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse401"
+    get:
+      description: "Generation: Query with Outputs (Admin-only)"
+      security:
+        - supabase: []
+      parameters:
+        - $ref: "#/components/parameters/perPageParam"
+        - $ref: "#/components/parameters/cursorParam"
+        - $ref: "#/components/parameters/minWidthParam"
+        - $ref: "#/components/parameters/maxWidthParam"
+        - $ref: "#/components/parameters/minHeightParam"
+        - $ref: "#/components/parameters/maxHeightParam"
+        - $ref: "#/components/parameters/minInferenceStepsParam"
+        - $ref: "#/components/parameters/maxInferenceStepsParam"
+        - $ref: "#/components/parameters/minGuidanceScaleParam"
+        - $ref: "#/components/parameters/maxGuidanceScaleParam"
+        - $ref: "#/components/parameters/widthsParam"
+        - $ref: "#/components/parameters/heightsParam"
+        - $ref: "#/components/parameters/inferenceStepsParam"
+        - $ref: "#/components/parameters/guidanceScalesParam"
+        - $ref: "#/components/parameters/schedulerIdsParam"
+        - $ref: "#/components/parameters/modelIdsParam"
+        - $ref: "#/components/parameters/orderParam"
+        - $ref: "#/components/parameters/upscaledParam"
+        - $ref: "#/components/parameters/galleryStatusParam"
+        - $ref: "#/components/parameters/startDtParam"
+        - $ref: "#/components/parameters/endDtParam"
+      responses:
+        "200":
+          description: JSON object with generations and outputs
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GenerationQueryWithOutputsMeta"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse400"
+        "401":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse401"
   /v1/user/outputs:
     get:
       description: "Generation: Query with Outputs (User-only)"
       security:
         - supabase: []
       parameters:
-        - name: per_page
-          in: query
-          schema:
-            type: string
-            format: optional, default:50
-          example: "50"
-        - name: cursor
-          in: query
-          schema:
-            type: string
-            format: optional
-          example: 2023-02-13T15%3A16%3A43.328Z
-        - name: min_width
-          in: query
-          schema:
-            type: integer
-            format: optional
-          example: 512
-        - name: max_width
-          in: query
-          schema:
-            type: integer
-            format: optional
-          example: 512
-        - name: min_height
-          in: query
-          schema:
-            type: integer
-            format: optional
-          example: 512
-        - name: max_height
-          in: query
-          schema:
-            type: integer
-            format: optional
-          example: 512
-        - name: min_inference_steps
-          in: query
-          schema:
-            type: integer
-            format: optional
-          example: 30
-        - name: max_inference_steps
-          in: query
-          schema:
-            type: integer
-            format: optional
-          example: 30
-        - name: min_guidance_scale
-          in: query
-          schema:
-            type: number
-            format: float32, optional
-          example: 3.0
-        - name: max_guidance_scale
-          in: query
-          schema:
-            type: number
-            format: float32, optional
-          example: 3
-        - name: widths
-          in: query
-          schema:
-            type: array
-            format: comma-separated, optional
-            items:
-              type: integer
-              format: int32
-          example: 512,768
-        - name: heights
-          in: query
-          schema:
-            type: array
-            format: comma-separated, optional
-            items:
-              type: integer
-              format: int32
-          example: 512,768
-        - name: inference_steps
-          in: query
-          schema:
-            type: array
-            format: comma-separated, optional
-            items:
-              type: integer
-              format: int32
-          example: 30,50
-        - name: guidance_scales
-          in: query
-          schema:
-            type: array
-            format: comma-separated, optional
-            items:
-              type: number
-              format: float32
-          example: 1,2.0
-        - name: scheduler_ids
-          in: query
-          schema:
-            type: array
-            format: comma-separated, optional
-            items:
-              type: string
-              format: uuidv4
-          example: e07ad712-41ad-4ff7-8727-faf0d91e4c4e,c09aaf4d-2d78-4281-89aa-88d5d0a5d70b
-        - name: model_ids
-          in: query
-          schema:
-            type: array
-            format: comma-separated, optional
-            items:
-              type: string
-              format: uuidv4
-          example: e07ad712-41ad-4ff7-8727-faf0d91e4c4e,c09aaf4d-2d78-4281-89aa-88d5d0a5d70b
-        - name: order
-          in: query
-          schema:
-            type: string
-            format: "optional, asc/desc, default: desc"
-          example: 3
-        - name: upscaled
-          in: query
-          schema:
-            type: string
-            format: "optional, any/only/not, default: any"
-          example: not (return not upscaled only)
-        - name: start_dt
-          in: query
-          schema:
-            type: string
-            format: "optional, isoTimeString"
-          example: 2023-02-15T22:41:39.841Z
-        - name: end_dt
-          in: query
-          schema:
-            type: string
-            format: "optional, isoTimeString"
-          example: 2023-02-15T22:41:39.841Z
+        - $ref: "#/components/parameters/perPageParam"
+        - $ref: "#/components/parameters/cursorParam"
+        - $ref: "#/components/parameters/minWidthParam"
+        - $ref: "#/components/parameters/maxWidthParam"
+        - $ref: "#/components/parameters/minHeightParam"
+        - $ref: "#/components/parameters/maxHeightParam"
+        - $ref: "#/components/parameters/minInferenceStepsParam"
+        - $ref: "#/components/parameters/maxInferenceStepsParam"
+        - $ref: "#/components/parameters/minGuidanceScaleParam"
+        - $ref: "#/components/parameters/maxGuidanceScaleParam"
+        - $ref: "#/components/parameters/widthsParam"
+        - $ref: "#/components/parameters/heightsParam"
+        - $ref: "#/components/parameters/inferenceStepsParam"
+        - $ref: "#/components/parameters/guidanceScalesParam"
+        - $ref: "#/components/parameters/schedulerIdsParam"
+        - $ref: "#/components/parameters/modelIdsParam"
+        - $ref: "#/components/parameters/orderParam"
+        - $ref: "#/components/parameters/upscaledParam"
+        - $ref: "#/components/parameters/galleryStatusParam"
+        - $ref: "#/components/parameters/startDtParam"
+        - $ref: "#/components/parameters/endDtParam"
       responses:
         "200":
           description: JSON object with generations and outputs
@@ -272,36 +230,6 @@ paths:
                 $ref: "#/components/schemas/ErrorResponse401"
     delete:
       description: "Generation: Mark for Delete (User)"
-      security:
-        - supabase: []
-      requestBody:
-        description: JSON Object with generation output IDs to delete
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/DeleteGenerationRequest"
-      responses:
-        "200":
-          description: Number of generations marked for deletion
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/DeletedResponse"
-        "400":
-          description: Bad request
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse400"
-        "401":
-          description: Bad request
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse401"
-  /v1/admin/generation:
-    delete:
-      description: "Generation: Mark for Delete (Admin)"
       security:
         - supabase: []
       requestBody:
@@ -472,6 +400,174 @@ components:
       type: http
       scheme: bearer
       bearerFormat: JWT
+  parameters:
+    perPageParam:
+      name: per_page
+      in: query
+      schema:
+        type: string
+        format: optional, default:50
+      example: "50"
+    cursorParam:
+      name: cursor
+      in: query
+      schema:
+        type: string
+        format: optional
+      example: 2023-02-13T15%3A16%3A43.328Z
+    minWidthParam:
+      name: min_width
+      in: query
+      schema:
+        type: integer
+        format: optional
+      example: 512
+    maxWidthParam:
+      name: max_width
+      in: query
+      schema:
+        type: integer
+        format: optional
+      example: 512
+    minHeightParam:
+      name: min_height
+      in: query
+      schema:
+        type: integer
+        format: optional
+      example: 512
+    maxHeightParam:
+      name: max_height
+      in: query
+      schema:
+        type: integer
+        format: optional
+      example: 512
+    minInferenceStepsParam:
+      name: min_inference_steps
+      in: query
+      schema:
+        type: integer
+        format: optional
+      example: 30
+    maxInferenceStepsParam:
+      name: max_inference_steps
+      in: query
+      schema:
+        type: integer
+        format: optional
+      example: 30
+    minGuidanceScaleParam:
+      name: min_guidance_scale
+      in: query
+      schema:
+        type: number
+        format: float32, optional
+      example: 3.0
+    maxGuidanceScaleParam:
+      name: max_guidance_scale
+      in: query
+      schema:
+        type: number
+        format: float32, optional
+      example: 3
+    widthsParam:
+      name: widths
+      in: query
+      schema:
+        type: array
+        format: comma-separated, optional
+        items:
+          type: integer
+          format: int32
+      example: 512,768
+    heightsParam:
+      name: heights
+      in: query
+      schema:
+        type: array
+        format: comma-separated, optional
+        items:
+          type: integer
+          format: int32
+      example: 512,768
+    inferenceStepsParam:
+      name: inference_steps
+      in: query
+      schema:
+        type: array
+        format: comma-separated, optional
+        items:
+          type: integer
+          format: int32
+      example: 30,50
+    guidanceScalesParam:
+      name: guidance_scales
+      in: query
+      schema:
+        type: array
+        format: comma-separated, optional
+        items:
+          type: number
+          format: float32
+      example: 1,2.0
+    schedulerIdsParam:
+      name: scheduler_ids
+      in: query
+      schema:
+        type: array
+        format: comma-separated, optional
+        items:
+          type: string
+          format: uuidv4
+      example: e07ad712-41ad-4ff7-8727-faf0d91e4c4e,c09aaf4d-2d78-4281-89aa-88d5d0a5d70b
+    modelIdsParam:
+      name: model_ids
+      in: query
+      schema:
+        type: array
+        format: comma-separated, optional
+        items:
+          type: string
+          format: uuidv4
+      example: e07ad712-41ad-4ff7-8727-faf0d91e4c4e,c09aaf4d-2d78-4281-89aa-88d5d0a5d70b
+    orderParam:
+      name: order
+      in: query
+      schema:
+        type: string
+        format: "optional, asc/desc, default: desc"
+      example: 3
+    upscaledParam:
+      name: upscaled
+      in: query
+      schema:
+        type: string
+        format: "optional, any/only/not, default: any"
+      example: not (return not upscaled only)
+    galleryStatusParam:
+      name: gallery_status
+      in: query
+      schema:
+        type: array
+        format: comma-separated, optional, default all items
+        items:
+          type: string
+          format: not_submitted, submitted, accepted, rejected
+    startDtParam:
+      name: start_dt
+      in: query
+      schema:
+        type: string
+        format: "optional, isoTimeString"
+      example: 2023-02-15T22:41:39.841Z
+    endDtParam:
+      name: end_dt
+      in: query
+      schema:
+        type: string
+        format: "optional, isoTimeString"
+      example: 2023-02-15T22:41:39.841Z
   schemas:
     ErrorResponse400:
       type: object
