@@ -114,15 +114,9 @@ func (cc *CreditCreate) SetUsers(u *User) *CreditCreate {
 	return cc.SetUsersID(u.ID)
 }
 
-// SetCreditTypesID sets the "credit_types" edge to the CreditType entity by ID.
-func (cc *CreditCreate) SetCreditTypesID(id uuid.UUID) *CreditCreate {
-	cc.mutation.SetCreditTypesID(id)
-	return cc
-}
-
-// SetCreditTypes sets the "credit_types" edge to the CreditType entity.
-func (cc *CreditCreate) SetCreditTypes(c *CreditType) *CreditCreate {
-	return cc.SetCreditTypesID(c.ID)
+// SetCreditType sets the "credit_type" edge to the CreditType entity.
+func (cc *CreditCreate) SetCreditType(c *CreditType) *CreditCreate {
+	return cc.SetCreditTypeID(c.ID)
 }
 
 // Mutation returns the CreditMutation object of the builder.
@@ -197,8 +191,8 @@ func (cc *CreditCreate) check() error {
 	if _, ok := cc.mutation.UsersID(); !ok {
 		return &ValidationError{Name: "users", err: errors.New(`ent: missing required edge "Credit.users"`)}
 	}
-	if _, ok := cc.mutation.CreditTypesID(); !ok {
-		return &ValidationError{Name: "credit_types", err: errors.New(`ent: missing required edge "Credit.credit_types"`)}
+	if _, ok := cc.mutation.CreditTypeID(); !ok {
+		return &ValidationError{Name: "credit_type", err: errors.New(`ent: missing required edge "Credit.credit_type"`)}
 	}
 	return nil
 }
@@ -281,12 +275,12 @@ func (cc *CreditCreate) createSpec() (*Credit, *sqlgraph.CreateSpec) {
 		_node.UserID = nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if nodes := cc.mutation.CreditTypesIDs(); len(nodes) > 0 {
+	if nodes := cc.mutation.CreditTypeIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
-			Table:   credit.CreditTypesTable,
-			Columns: []string{credit.CreditTypesColumn},
+			Table:   credit.CreditTypeTable,
+			Columns: []string{credit.CreditTypeColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{

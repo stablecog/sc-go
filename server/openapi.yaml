@@ -77,6 +77,33 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse401"
+  /v1/admin/users:
+    get:
+      description: "User: Paginated Result (Admin-only)"
+      security:
+        - supabase: []
+      parameters:
+        - $ref: "#/components/parameters/perPageParam"
+        - $ref: "#/components/parameters/cursorParam"
+      responses:
+        "200":
+          description: JSON object with users and credits
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserQueryMeta"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse400"
+        "401":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse401"
   /v1/admin/outputs:
     delete:
       description: "Generation Output: Mark for Delete (Admin)"
@@ -954,3 +981,45 @@ components:
               updated_at:
                 type: string
                 format: isoTimeString
+    UserQueryMeta:
+      type: object
+      properties:
+        total:
+          type: integer
+          format: int32, every registered user, only if offset not included
+        next:
+          type: string
+          format: isoTimeString
+        users:
+          type: array
+          items:
+            $ref: "#/components/schemas/UserQueryResponse"
+    UserQueryResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuidv4
+        email:
+          type: string
+        stripe_customer_id:
+          type: string
+        created_at:
+          type: string
+          format: isoTimeString
+        credits:
+          type: object
+          properties:
+            remaining_amount:
+              type: integer
+              format: int32
+            expires_at:
+              type: string
+              format: isoTimeString
+            credit_type:
+              type: object
+              properties:
+                name:
+                  type: string
+                stripe_product_id:
+                  type: string

@@ -379,15 +379,15 @@ func (c *CreditClient) QueryUsers(cr *Credit) *UserQuery {
 	return query
 }
 
-// QueryCreditTypes queries the credit_types edge of a Credit.
-func (c *CreditClient) QueryCreditTypes(cr *Credit) *CreditTypeQuery {
+// QueryCreditType queries the credit_type edge of a Credit.
+func (c *CreditClient) QueryCreditType(cr *Credit) *CreditTypeQuery {
 	query := (&CreditTypeClient{config: c.config}).Query()
 	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := cr.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(credit.Table, credit.FieldID, id),
 			sqlgraph.To(credittype.Table, credittype.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, credit.CreditTypesTable, credit.CreditTypesColumn),
+			sqlgraph.Edge(sqlgraph.M2O, true, credit.CreditTypeTable, credit.CreditTypeColumn),
 		)
 		fromV = sqlgraph.Neighbors(cr.driver.Dialect(), step)
 		return fromV, nil

@@ -1,8 +1,11 @@
 package repository
 
 import (
+	"time"
+
 	"github.com/google/uuid"
 	"github.com/stablecog/sc-go/database/ent"
+	"github.com/stablecog/sc-go/database/ent/credit"
 	"github.com/stablecog/sc-go/database/ent/user"
 	"github.com/stablecog/sc-go/database/ent/userrole"
 	"k8s.io/klog/v2"
@@ -69,4 +72,116 @@ func (r *Repository) GetRoles(userID uuid.UUID) ([]userrole.RoleName, error) {
 	}
 
 	return roleNames, nil
+}
+
+// Get count for QueryUsers
+func (r *Repository) QueryUsersCount() (int, error) {
+	count, err := r.DB.User.Query().Count(r.Ctx)
+	if err != nil {
+		klog.Errorf("Error querying users count: %v", err)
+		return 0, err
+	}
+
+	return count, nil
+}
+
+// Query all users with filters
+// per_page is how many rows to return
+// cursor is created_at on users, will return items with created_at less than cursor
+func (r *Repository) QueryUsers(per_page int, cursor *time.Time) (*UserQueryMeta, error) {
+	selectFields := []string{
+		user.FieldID,
+		user.FieldEmail,
+		user.FieldStripeCustomerID,
+		user.FieldCreatedAt,
+	}
+
+	var query *ent.UserQuery
+
+	query = r.DB.User.Query().Select(selectFields...).Order(ent.Desc(user.FieldCreatedAt))
+	if cursor != nil {
+		query = query.Where(user.CreatedAtLT(*cursor))
+	}
+
+	query = query.Limit(per_page + 1)
+
+	// Include non-expired credits and type
+	query.WithCredits(func(s *ent.CreditQuery) {
+		s.Where(credit.ExpiresAtGT(time.Now())).WithCreditType().Order(ent.Asc(credit.FieldExpiresAt))
+	})
+
+	res, err := query.All(r.Ctx)
+	if err != nil {
+		klog.Errorf("Error querying users: %v", err)
+		return nil, err
+	}
+
+	// Check if there is a next page
+	var next *time.Time
+	if len(res) > per_page {
+		next = &res[per_page-1].CreatedAt
+		res = res[:per_page]
+	}
+
+	// Build meta
+	meta := &UserQueryMeta{
+		Next: next,
+	}
+	if cursor == nil {
+		total, err := r.QueryUsersCount()
+		if err != nil {
+			klog.Errorf("Error querying users count: %v", err)
+			return nil, err
+		}
+		meta.Total = &total
+	}
+
+	for _, user := range res {
+		formatted := UserQueryResult{
+			ID:               user.ID,
+			Email:            user.Email,
+			StripeCustomerID: user.StripeCustomerID,
+			CreatedAt:        user.CreatedAt,
+		}
+		for _, credit := range user.Edges.Credits {
+			creditType := UserQueryCreditType{Name: credit.Edges.CreditType.Name}
+			if credit.Edges.CreditType.StripeProductID != nil {
+				creditType.StripeProductId = *credit.Edges.CreditType.StripeProductID
+			}
+			formatted.Credits = append(formatted.Credits, UserQueryCredits{
+				RemainingAmount: credit.RemainingAmount,
+				ExpiresAt:       credit.ExpiresAt,
+				CreditType:      creditType,
+			})
+		}
+		meta.Users = append(meta.Users, formatted)
+	}
+
+	return meta, nil
+}
+
+// Paginated meta for querying generations
+type UserQueryMeta struct {
+	Total *int              `json:"total_count,omitempty"`
+	Next  *time.Time        `json:"next,omitempty"`
+	Users []UserQueryResult `json:"users"`
+}
+
+type UserQueryCreditType struct {
+	Name            string `json:"name"`
+	StripeProductId string `json:"stripe_product_id,omitempty"`
+}
+
+type UserQueryCredits struct {
+	RemainingAmount int32 `json:"remaining_amount"`
+	ExpiresAt       time.Time
+	CreditType      UserQueryCreditType `json:"credit_type"`
+}
+
+type UserQueryResult struct {
+	ID               uuid.UUID `json:"id"`
+	Email            string    `json:"email"`
+	StripeCustomerID string    `json:"stripe_customer_id"`
+	CreatedAt        time.Time `json:"created_at"`
+	Credits          []UserQueryCredits
 }

@@ -214,6 +214,11 @@ func main() {
 				r.Delete("/", hc.HandleDeleteGenerationOutput)
 				r.Get("/", hc.HandleQueryGenerationsForAdmin)
 			})
+			r.Route("/users", func(r chi.Router) {
+				r.Use(mw.AuthMiddleware(middleware.AuthLevelSuperAdmin))
+				r.Use(chimiddleware.Logger)
+				r.Get("/", hc.HandleQueryUsers)
+			})
 		})
 	})
 

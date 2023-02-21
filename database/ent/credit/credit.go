@@ -29,8 +29,8 @@ const (
 	FieldUpdatedAt = "updated_at"
 	// EdgeUsers holds the string denoting the users edge name in mutations.
 	EdgeUsers = "users"
-	// EdgeCreditTypes holds the string denoting the credit_types edge name in mutations.
-	EdgeCreditTypes = "credit_types"
+	// EdgeCreditType holds the string denoting the credit_type edge name in mutations.
+	EdgeCreditType = "credit_type"
 	// Table holds the table name of the credit in the database.
 	Table = "credits"
 	// UsersTable is the table that holds the users relation/edge.
@@ -40,13 +40,13 @@ const (
 	UsersInverseTable = "users"
 	// UsersColumn is the table column denoting the users relation/edge.
 	UsersColumn = "user_id"
-	// CreditTypesTable is the table that holds the credit_types relation/edge.
-	CreditTypesTable = "credits"
-	// CreditTypesInverseTable is the table name for the CreditType entity.
+	// CreditTypeTable is the table that holds the credit_type relation/edge.
+	CreditTypeTable = "credits"
+	// CreditTypeInverseTable is the table name for the CreditType entity.
 	// It exists in this package in order to avoid circular dependency with the "credittype" package.
-	CreditTypesInverseTable = "credit_types"
-	// CreditTypesColumn is the table column denoting the credit_types relation/edge.
-	CreditTypesColumn = "credit_type_id"
+	CreditTypeInverseTable = "credit_types"
+	// CreditTypeColumn is the table column denoting the credit_type relation/edge.
+	CreditTypeColumn = "credit_type_id"
 )
 
 // Columns holds all SQL columns for credit fields.

@@ -393,24 +393,24 @@ func HasUsersWith(preds ...predicate.User) predicate.Credit {
 	})
 }
 
-// HasCreditTypes applies the HasEdge predicate on the "credit_types" edge.
-func HasCreditTypes() predicate.Credit {
+// HasCreditType applies the HasEdge predicate on the "credit_type" edge.
+func HasCreditType() predicate.Credit {
 	return predicate.Credit(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, CreditTypesTable, CreditTypesColumn),
+			sqlgraph.Edge(sqlgraph.M2O, true, CreditTypeTable, CreditTypeColumn),
 		)
 		sqlgraph.HasNeighbors(s, step)
 	})
 }
 
-// HasCreditTypesWith applies the HasEdge predicate on the "credit_types" edge with a given conditions (other predicates).
-func HasCreditTypesWith(preds ...predicate.CreditType) predicate.Credit {
+// HasCreditTypeWith applies the HasEdge predicate on the "credit_type" edge with a given conditions (other predicates).
+func HasCreditTypeWith(preds ...predicate.CreditType) predicate.Credit {
 	return predicate.Credit(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(CreditTypesInverseTable, FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, CreditTypesTable, CreditTypesColumn),
+			sqlgraph.To(CreditTypeInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, CreditTypeTable, CreditTypeColumn),
 		)
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {

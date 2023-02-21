@@ -20,13 +20,13 @@ import (
 // CreditQuery is the builder for querying Credit entities.
 type CreditQuery struct {
 	config
-	ctx             *QueryContext
-	order           []OrderFunc
-	inters          []Interceptor
-	predicates      []predicate.Credit
-	withUsers       *UserQuery
-	withCreditTypes *CreditTypeQuery
-	modifiers       []func(*sql.Selector)
+	ctx            *QueryContext
+	order          []OrderFunc
+	inters         []Interceptor
+	predicates     []predicate.Credit
+	withUsers      *UserQuery
+	withCreditType *CreditTypeQuery
+	modifiers      []func(*sql.Selector)
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -85,8 +85,8 @@ func (cq *CreditQuery) QueryUsers() *UserQuery {
 	return query
 }
 
-// QueryCreditTypes chains the current query on the "credit_types" edge.
-func (cq *CreditQuery) QueryCreditTypes() *CreditTypeQuery {
+// QueryCreditType chains the current query on the "credit_type" edge.
+func (cq *CreditQuery) QueryCreditType() *CreditTypeQuery {
 	query := (&CreditTypeClient{config: cq.config}).Query()
 	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
 		if err := cq.prepareQuery(ctx); err != nil {
@@ -99,7 +99,7 @@ func (cq *CreditQuery) QueryCreditTypes() *CreditTypeQuery {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(credit.Table, credit.FieldID, selector),
 			sqlgraph.To(credittype.Table, credittype.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, credit.CreditTypesTable, credit.CreditTypesColumn),
+			sqlgraph.Edge(sqlgraph.M2O, true, credit.CreditTypeTable, credit.CreditTypeColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(cq.driver.Dialect(), step)
 		return fromU, nil
@@ -292,13 +292,13 @@ func (cq *CreditQuery) Clone() *CreditQuery {
 		return nil
 	}
 	return &CreditQuery{
-		config:          cq.config,
-		ctx:             cq.ctx.Clone(),
-		order:           append([]OrderFunc{}, cq.order...),
-		inters:          append([]Interceptor{}, cq.inters...),
-		predicates:      append([]predicate.Credit{}, cq.predicates...),
-		withUsers:       cq.withUsers.Clone(),
-		withCreditTypes: cq.withCreditTypes.Clone(),
+		config:         cq.config,
+		ctx:            cq.ctx.Clone(),
+		order:          append([]OrderFunc{}, cq.order...),
+		inters:         append([]Interceptor{}, cq.inters...),
+		predicates:     append([]predicate.Credit{}, cq.predicates...),
+		withUsers:      cq.withUsers.Clone(),
+		withCreditType: cq.withCreditType.Clone(),
 		// clone intermediate query.
 		sql:  cq.sql.Clone(),
 		path: cq.path,
@@ -316,14 +316,14 @@ func (cq *CreditQuery) WithUsers(opts ...func(*UserQuery)) *CreditQuery {
 	return cq
 }
 
-// WithCreditTypes tells the query-builder to eager-load the nodes that are connected to
-// the "credit_types" edge. The optional arguments are used to configure the query builder of the edge.
-func (cq *CreditQuery) WithCreditTypes(opts ...func(*CreditTypeQuery)) *CreditQuery {
+// WithCreditType tells the query-builder to eager-load the nodes that are connected to
+// the "credit_type" edge. The optional arguments are used to configure the query builder of the edge.
+func (cq *CreditQuery) WithCreditType(opts ...func(*CreditTypeQuery)) *CreditQuery {
 	query := (&CreditTypeClient{config: cq.config}).Query()
 	for _, opt := range opts {
 		opt(query)
 	}
-	cq.withCreditTypes = query
+	cq.withCreditType = query
 	return cq
 }
 
@@ -407,7 +407,7 @@ func (cq *CreditQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Credi
 		_spec       = cq.querySpec()
 		loadedTypes = [2]bool{
 			cq.withUsers != nil,
-			cq.withCreditTypes != nil,
+			cq.withCreditType != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -437,9 +437,9 @@ func (cq *CreditQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Credi
 			return nil, err
 		}
 	}
-	if query := cq.withCreditTypes; query != nil {
-		if err := cq.loadCreditTypes(ctx, query, nodes, nil,
-			func(n *Credit, e *CreditType) { n.Edges.CreditTypes = e }); err != nil {
+	if query := cq.withCreditType; query != nil {
+		if err := cq.loadCreditType(ctx, query, nodes, nil,
+			func(n *Credit, e *CreditType) { n.Edges.CreditType = e }); err != nil {
 			return nil, err
 		}
 	}
@@ -475,7 +475,7 @@ func (cq *CreditQuery) loadUsers(ctx context.Context, query *UserQuery, nodes []
 	}
 	return nil
 }
-func (cq *CreditQuery) loadCreditTypes(ctx context.Context, query *CreditTypeQuery, nodes []*Credit, init func(*Credit), assign func(*Credit, *CreditType)) error {
+func (cq *CreditQuery) loadCreditType(ctx context.Context, query *CreditTypeQuery, nodes []*Credit, init func(*Credit), assign func(*Credit, *CreditType)) error {
 	ids := make([]uuid.UUID, 0, len(nodes))
 	nodeids := make(map[uuid.UUID][]*Credit)
 	for i := range nodes {

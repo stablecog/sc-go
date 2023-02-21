@@ -70,8 +70,8 @@ type CreditMutation struct {
 	clearedFields       map[string]struct{}
 	users               *uuid.UUID
 	clearedusers        bool
-	credit_types        *uuid.UUID
-	clearedcredit_types bool
+	credit_type         *uuid.UUID
+	clearedcredit_type  bool
 	done                bool
 	oldValue            func(context.Context) (*Credit, error)
 	predicates          []predicate.Credit
@@ -360,12 +360,12 @@ func (m *CreditMutation) ResetUserID() {
 
 // SetCreditTypeID sets the "credit_type_id" field.
 func (m *CreditMutation) SetCreditTypeID(u uuid.UUID) {
-	m.credit_types = &u
+	m.credit_type = &u
 }
 
 // CreditTypeID returns the value of the "credit_type_id" field in the mutation.
 func (m *CreditMutation) CreditTypeID() (r uuid.UUID, exists bool) {
-	v := m.credit_types
+	v := m.credit_type
 	if v == nil {
 		return
 	}
@@ -391,7 +391,7 @@ func (m *CreditMutation) OldCreditTypeID(ctx context.Context) (v uuid.UUID, err 
 
 // ResetCreditTypeID resets all changes to the "credit_type_id" field.
 func (m *CreditMutation) ResetCreditTypeID() {
-	m.credit_types = nil
+	m.credit_type = nil
 }
 
 // SetCreatedAt sets the "created_at" field.
@@ -505,43 +505,30 @@ func (m *CreditMutation) ResetUsers() {
 	m.clearedusers = false
 }
 
-// SetCreditTypesID sets the "credit_types" edge to the CreditType entity by id.
-func (m *CreditMutation) SetCreditTypesID(id uuid.UUID) {
-	m.credit_types = &id
+// ClearCreditType clears the "credit_type" edge to the CreditType entity.
+func (m *CreditMutation) ClearCreditType() {
+	m.clearedcredit_type = true
 }
 
-// ClearCreditTypes clears the "credit_types" edge to the CreditType entity.
-func (m *CreditMutation) ClearCreditTypes() {
-	m.clearedcredit_types = true
+// CreditTypeCleared reports if the "credit_type" edge to the CreditType entity was cleared.
+func (m *CreditMutation) CreditTypeCleared() bool {
+	return m.clearedcredit_type
 }
 
-// CreditTypesCleared reports if the "credit_types" edge to the CreditType entity was cleared.
-func (m *CreditMutation) CreditTypesCleared() bool {
-	return m.clearedcredit_types
-}
-
-// CreditTypesID returns the "credit_types" edge ID in the mutation.
-func (m *CreditMutation) CreditTypesID() (id uuid.UUID, exists bool) {
-	if m.credit_types != nil {
-		return *m.credit_types, true
-	}
-	return
-}
-
-// CreditTypesIDs returns the "credit_types" edge IDs in the mutation.
+// CreditTypeIDs returns the "credit_type" edge IDs in the mutation.
 // Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
-// CreditTypesID instead. It exists only for internal usage by the builders.
-func (m *CreditMutation) CreditTypesIDs() (ids []uuid.UUID) {
-	if id := m.credit_types; id != nil {
+// CreditTypeID instead. It exists only for internal usage by the builders.
+func (m *CreditMutation) CreditTypeIDs() (ids []uuid.UUID) {
+	if id := m.credit_type; id != nil {
 		ids = append(ids, *id)
 	}
 	return
 }
 
-// ResetCreditTypes resets all changes to the "credit_types" edge.
-func (m *CreditMutation) ResetCreditTypes() {
-	m.credit_types = nil
-	m.clearedcredit_types = false
+// ResetCreditType resets all changes to the "credit_type" edge.
+func (m *CreditMutation) ResetCreditType() {
+	m.credit_type = nil
+	m.clearedcredit_type = false
 }
 
 // Where appends a list predicates to the CreditMutation builder.
@@ -591,7 +578,7 @@ func (m *CreditMutation) Fields() []string {
 	if m.users != nil {
 		fields = append(fields, credit.FieldUserID)
 	}
-	if m.credit_types != nil {
+	if m.credit_type != nil {
 		fields = append(fields, credit.FieldCreditTypeID)
 	}
 	if m.created_at != nil {
@@ -807,8 +794,8 @@ func (m *CreditMutation) AddedEdges() []string {
 	if m.users != nil {
 		edges = append(edges, credit.EdgeUsers)
 	}
-	if m.credit_types != nil {
-		edges = append(edges, credit.EdgeCreditTypes)
+	if m.credit_type != nil {
+		edges = append(edges, credit.EdgeCreditType)
 	}
 	return edges
 }
@@ -821,8 +808,8 @@ func (m *CreditMutation) AddedIDs(name string) []ent.Value {
 		if id := m.users; id != nil {
 			return []ent.Value{*id}
 		}
-	case credit.EdgeCreditTypes:
-		if id := m.credit_types; id != nil {
+	case credit.EdgeCreditType:
+		if id := m.credit_type; id != nil {
 			return []ent.Value{*id}
 		}
 	}
@@ -847,8 +834,8 @@ func (m *CreditMutation) ClearedEdges() []string {
 	if m.clearedusers {
 		edges = append(edges, credit.EdgeUsers)
 	}
-	if m.clearedcredit_types {
-		edges = append(edges, credit.EdgeCreditTypes)
+	if m.clearedcredit_type {
+		edges = append(edges, credit.EdgeCreditType)
 	}
 	return edges
 }
@@ -859,8 +846,8 @@ func (m *CreditMutation) EdgeCleared(name string) bool {
 	switch name {
 	case credit.EdgeUsers:
 		return m.clearedusers
-	case credit.EdgeCreditTypes:
-		return m.clearedcredit_types
+	case credit.EdgeCreditType:
+		return m.clearedcredit_type
 	}
 	return false
 }
@@ -872,8 +859,8 @@ func (m *CreditMutation) ClearEdge(name string) error {
 	case credit.EdgeUsers:
 		m.ClearUsers()
 		return nil
-	case credit.EdgeCreditTypes:
-		m.ClearCreditTypes()
+	case credit.EdgeCreditType:
+		m.ClearCreditType()
 		return nil
 	}
 	return fmt.Errorf("unknown Credit unique edge %s", name)
@@ -886,8 +873,8 @@ func (m *CreditMutation) ResetEdge(name string) error {
 	case credit.EdgeUsers:
 		m.ResetUsers()
 		return nil
-	case credit.EdgeCreditTypes:
-		m.ResetCreditTypes()
+	case credit.EdgeCreditType:
+		m.ResetCreditType()
 		return nil
 	}
 	return fmt.Errorf("unknown Credit edge %s", name)

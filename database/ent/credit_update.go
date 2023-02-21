@@ -94,15 +94,9 @@ func (cu *CreditUpdate) SetUsers(u *User) *CreditUpdate {
 	return cu.SetUsersID(u.ID)
 }
 
-// SetCreditTypesID sets the "credit_types" edge to the CreditType entity by ID.
-func (cu *CreditUpdate) SetCreditTypesID(id uuid.UUID) *CreditUpdate {
-	cu.mutation.SetCreditTypesID(id)
-	return cu
-}
-
-// SetCreditTypes sets the "credit_types" edge to the CreditType entity.
-func (cu *CreditUpdate) SetCreditTypes(c *CreditType) *CreditUpdate {
-	return cu.SetCreditTypesID(c.ID)
+// SetCreditType sets the "credit_type" edge to the CreditType entity.
+func (cu *CreditUpdate) SetCreditType(c *CreditType) *CreditUpdate {
+	return cu.SetCreditTypeID(c.ID)
 }
 
 // Mutation returns the CreditMutation object of the builder.
@@ -116,9 +110,9 @@ func (cu *CreditUpdate) ClearUsers() *CreditUpdate {
 	return cu
 }
 
-// ClearCreditTypes clears the "credit_types" edge to the CreditType entity.
-func (cu *CreditUpdate) ClearCreditTypes() *CreditUpdate {
-	cu.mutation.ClearCreditTypes()
+// ClearCreditType clears the "credit_type" edge to the CreditType entity.
+func (cu *CreditUpdate) ClearCreditType() *CreditUpdate {
+	cu.mutation.ClearCreditType()
 	return cu
 }
 
@@ -163,8 +157,8 @@ func (cu *CreditUpdate) check() error {
 	if _, ok := cu.mutation.UsersID(); cu.mutation.UsersCleared() && !ok {
 		return errors.New(`ent: clearing a required unique edge "Credit.users"`)
 	}
-	if _, ok := cu.mutation.CreditTypesID(); cu.mutation.CreditTypesCleared() && !ok {
-		return errors.New(`ent: clearing a required unique edge "Credit.credit_types"`)
+	if _, ok := cu.mutation.CreditTypeID(); cu.mutation.CreditTypeCleared() && !ok {
+		return errors.New(`ent: clearing a required unique edge "Credit.credit_type"`)
 	}
 	return nil
 }
@@ -246,12 +240,12 @@ func (cu *CreditUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if cu.mutation.CreditTypesCleared() {
+	if cu.mutation.CreditTypeCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
-			Table:   credit.CreditTypesTable,
-			Columns: []string{credit.CreditTypesColumn},
+			Table:   credit.CreditTypeTable,
+			Columns: []string{credit.CreditTypeColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
@@ -262,12 +256,12 @@ func (cu *CreditUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := cu.mutation.CreditTypesIDs(); len(nodes) > 0 {
+	if nodes := cu.mutation.CreditTypeIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
-			Table:   credit.CreditTypesTable,
-			Columns: []string{credit.CreditTypesColumn},
+			Table:   credit.CreditTypeTable,
+			Columns: []string{credit.CreditTypeColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
@@ -365,15 +359,9 @@ func (cuo *CreditUpdateOne) SetUsers(u *User) *CreditUpdateOne {
 	return cuo.SetUsersID(u.ID)
 }
 
-// SetCreditTypesID sets the "credit_types" edge to the CreditType entity by ID.
-func (cuo *CreditUpdateOne) SetCreditTypesID(id uuid.UUID) *CreditUpdateOne {
-	cuo.mutation.SetCreditTypesID(id)
-	return cuo
-}
-
-// SetCreditTypes sets the "credit_types" edge to the CreditType entity.
-func (cuo *CreditUpdateOne) SetCreditTypes(c *CreditType) *CreditUpdateOne {
-	return cuo.SetCreditTypesID(c.ID)
+// SetCreditType sets the "credit_type" edge to the CreditType entity.
+func (cuo *CreditUpdateOne) SetCreditType(c *CreditType) *CreditUpdateOne {
+	return cuo.SetCreditTypeID(c.ID)
 }
 
 // Mutation returns the CreditMutation object of the builder.
@@ -387,9 +375,9 @@ func (cuo *CreditUpdateOne) ClearUsers() *CreditUpdateOne {
 	return cuo
 }
 
-// ClearCreditTypes clears the "credit_types" edge to the CreditType entity.
-func (cuo *CreditUpdateOne) ClearCreditTypes() *CreditUpdateOne {
-	cuo.mutation.ClearCreditTypes()
+// ClearCreditType clears the "credit_type" edge to the CreditType entity.
+func (cuo *CreditUpdateOne) ClearCreditType() *CreditUpdateOne {
+	cuo.mutation.ClearCreditType()
 	return cuo
 }
 
@@ -441,8 +429,8 @@ func (cuo *CreditUpdateOne) check() error {
 	if _, ok := cuo.mutation.UsersID(); cuo.mutation.UsersCleared() && !ok {
 		return errors.New(`ent: clearing a required unique edge "Credit.users"`)
 	}
-	if _, ok := cuo.mutation.CreditTypesID(); cuo.mutation.CreditTypesCleared() && !ok {
-		return errors.New(`ent: clearing a required unique edge "Credit.credit_types"`)
+	if _, ok := cuo.mutation.CreditTypeID(); cuo.mutation.CreditTypeCleared() && !ok {
+		return errors.New(`ent: clearing a required unique edge "Credit.credit_type"`)
 	}
 	return nil
 }
@@ -541,12 +529,12 @@ func (cuo *CreditUpdateOne) sqlSave(ctx context.Context) (_node *Credit, err err
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if cuo.mutation.CreditTypesCleared() {
+	if cuo.mutation.CreditTypeCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
-			Table:   credit.CreditTypesTable,
-			Columns: []string{credit.CreditTypesColumn},
+			Table:   credit.CreditTypeTable,
+			Columns: []string{credit.CreditTypeColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
@@ -557,12 +545,12 @@ func (cuo *CreditUpdateOne) sqlSave(ctx context.Context) (_node *Credit, err err
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := cuo.mutation.CreditTypesIDs(); len(nodes) > 0 {
+	if nodes := cuo.mutation.CreditTypeIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
-			Table:   credit.CreditTypesTable,
-			Columns: []string{credit.CreditTypesColumn},
+			Table:   credit.CreditTypeTable,
+			Columns: []string{credit.CreditTypeColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{

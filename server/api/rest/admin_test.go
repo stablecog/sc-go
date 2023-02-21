@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http/httptest"
 	"os"
@@ -15,6 +16,7 @@ import (
 	"github.com/stablecog/sc-go/database/repository"
 	"github.com/stablecog/sc-go/server/requests"
 	"github.com/stablecog/sc-go/server/responses"
+	"github.com/stablecog/sc-go/utils"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -220,4 +222,133 @@ func TestHandleQueryGenerationsForAdminDefaultParams(t *testing.T) {
 	assert.Equal(t, int32(512), genResponse.Outputs[3].Generation.Height)
 	assert.Equal(t, "http://test.com/output_3", genResponse.Outputs[3].ImageUrl)
 	assert.Equal(t, 1234, genResponse.Outputs[3].Generation.Seed)
+}
+
+func TestHandleQueryUsersDefaultParams(t *testing.T) {
+	w := httptest.NewRecorder()
+	// Build request
+	req := httptest.NewRequest("GET", "/users", nil)
+	req.Header.Set("Content-Type", "application/json")
+
+	ctx := context.WithValue(req.Context(), "user_id", repository.MOCK_ADMIN_UUID)
+	ctx = context.WithValue(ctx, "user_email", repository.MOCK_ADMIN_UUID)
+
+	MockController.HandleQueryUsers(w, req.WithContext(ctx))
+	resp := w.Result()
+	defer resp.Body.Close()
+	assert.Equal(t, 200, resp.StatusCode)
+	var usersResponse repository.UserQueryMeta
+	respBody, _ := io.ReadAll(resp.Body)
+	json.Unmarshal(respBody, &usersResponse)
+
+	assert.Equal(t, 4, *usersResponse.Total)
+	assert.Len(t, usersResponse.Users, 4)
+	assert.Nil(t, usersResponse.Next)
+
+	assert.Equal(t, uuid.MustParse(repository.MOCK_NO_CREDITS_UUID), usersResponse.Users[0].ID)
+	assert.Equal(t, "mocknocredituser@stablecog.com", usersResponse.Users[0].Email)
+	assert.Equal(t, "4", usersResponse.Users[0].StripeCustomerID)
+	assert.Len(t, usersResponse.Users[0].Credits, 0)
+
+	assert.Equal(t, uuid.MustParse(repository.MOCK_ALT_UUID), usersResponse.Users[1].ID)
+	assert.Equal(t, "mockaltuser@stablecog.com", usersResponse.Users[1].Email)
+	assert.Equal(t, "3", usersResponse.Users[1].StripeCustomerID)
+	assert.Len(t, usersResponse.Users[1].Credits, 2)
+	assert.Equal(t, int32(100), usersResponse.Users[1].Credits[0].RemainingAmount)
+	assert.Equal(t, "mock", usersResponse.Users[1].Credits[0].CreditType.Name)
+	assert.Equal(t, int32(1234), usersResponse.Users[1].Credits[1].RemainingAmount)
+	assert.Equal(t, "mock", usersResponse.Users[1].Credits[1].CreditType.Name)
+
+	assert.Equal(t, uuid.MustParse(repository.MOCK_NORMAL_UUID), usersResponse.Users[2].ID)
+	assert.Equal(t, "mockuser@stablecog.com", usersResponse.Users[2].Email)
+	assert.Equal(t, "2", usersResponse.Users[2].StripeCustomerID)
+	assert.Len(t, usersResponse.Users[2].Credits, 1)
+	assert.Equal(t, int32(100), usersResponse.Users[2].Credits[0].RemainingAmount)
+	assert.Equal(t, "mock", usersResponse.Users[2].Credits[0].CreditType.Name)
+
+	assert.Equal(t, uuid.MustParse(repository.MOCK_ADMIN_UUID), usersResponse.Users[3].ID)
+	assert.Equal(t, "mockadmin@stablecog.com", usersResponse.Users[3].Email)
+	assert.Equal(t, "1", usersResponse.Users[3].StripeCustomerID)
+	assert.Len(t, usersResponse.Users[3].Credits, 1)
+	assert.Equal(t, int32(100), usersResponse.Users[3].Credits[0].RemainingAmount)
+	assert.Equal(t, "mock", usersResponse.Users[3].Credits[0].CreditType.Name)
+}
+
+func TestHandleQueryUsersPerPage(t *testing.T) {
+	w := httptest.NewRecorder()
+	// Build request
+	req := httptest.NewRequest("GET", "/users?per_page=1", nil)
+	req.Header.Set("Content-Type", "application/json")
+
+	ctx := context.WithValue(req.Context(), "user_id", repository.MOCK_ADMIN_UUID)
+	ctx = context.WithValue(ctx, "user_email", repository.MOCK_ADMIN_UUID)
+
+	MockController.HandleQueryUsers(w, req.WithContext(ctx))
+	resp := w.Result()
+	defer resp.Body.Close()
+	assert.Equal(t, 200, resp.StatusCode)
+	var usersResponse repository.UserQueryMeta
+	respBody, _ := io.ReadAll(resp.Body)
+	json.Unmarshal(respBody, &usersResponse)
+
+	assert.Equal(t, 4, *usersResponse.Total)
+	assert.Len(t, usersResponse.Users, 1)
+	assert.NotNil(t, usersResponse.Next)
+
+	assert.Equal(t, uuid.MustParse(repository.MOCK_NO_CREDITS_UUID), usersResponse.Users[0].ID)
+	assert.Equal(t, "mocknocredituser@stablecog.com", usersResponse.Users[0].Email)
+	assert.Equal(t, "4", usersResponse.Users[0].StripeCustomerID)
+	assert.Len(t, usersResponse.Users[0].Credits, 0)
+}
+
+func TestHandleQueryUsersCursor(t *testing.T) {
+	w := httptest.NewRecorder()
+	// Build request
+	req := httptest.NewRequest("GET", "/users?per_page=1", nil)
+	req.Header.Set("Content-Type", "application/json")
+
+	ctx := context.WithValue(req.Context(), "user_id", repository.MOCK_ADMIN_UUID)
+	ctx = context.WithValue(ctx, "user_email", repository.MOCK_ADMIN_UUID)
+
+	MockController.HandleQueryUsers(w, req.WithContext(ctx))
+	resp := w.Result()
+	defer resp.Body.Close()
+	assert.Equal(t, 200, resp.StatusCode)
+	var usersResponse repository.UserQueryMeta
+	respBody, _ := io.ReadAll(resp.Body)
+	json.Unmarshal(respBody, &usersResponse)
+
+	assert.Equal(t, 4, *usersResponse.Total)
+	assert.Len(t, usersResponse.Users, 1)
+	assert.NotNil(t, usersResponse.Next)
+
+	offset := *usersResponse.Next
+
+	w = httptest.NewRecorder()
+	// Build request
+	req = httptest.NewRequest("GET", fmt.Sprintf("/users?per_page=1&cursor=%s", utils.TimeToIsoString(offset)), nil)
+	req.Header.Set("Content-Type", "application/json")
+
+	ctx = context.WithValue(req.Context(), "user_id", repository.MOCK_ADMIN_UUID)
+	ctx = context.WithValue(ctx, "user_email", repository.MOCK_ADMIN_UUID)
+
+	MockController.HandleQueryUsers(w, req.WithContext(ctx))
+	resp = w.Result()
+	defer resp.Body.Close()
+	assert.Equal(t, 200, resp.StatusCode)
+	respBody, _ = io.ReadAll(resp.Body)
+	json.Unmarshal(respBody, &usersResponse)
+
+	assert.Equal(t, 4, *usersResponse.Total)
+	assert.Len(t, usersResponse.Users, 1)
+	assert.NotNil(t, usersResponse.Next)
+
+	assert.Equal(t, uuid.MustParse(repository.MOCK_ALT_UUID), usersResponse.Users[0].ID)
+	assert.Equal(t, "mockaltuser@stablecog.com", usersResponse.Users[0].Email)
+	assert.Equal(t, "3", usersResponse.Users[0].StripeCustomerID)
+	assert.Len(t, usersResponse.Users[0].Credits, 2)
+	assert.Equal(t, int32(100), usersResponse.Users[0].Credits[0].RemainingAmount)
+	assert.Equal(t, "mock", usersResponse.Users[0].Credits[0].CreditType.Name)
+	assert.Equal(t, int32(1234), usersResponse.Users[0].Credits[1].RemainingAmount)
+	assert.Equal(t, "mock", usersResponse.Users[0].Credits[1].CreditType.Name)
 }

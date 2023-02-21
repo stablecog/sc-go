@@ -42,8 +42,8 @@ type Credit struct {
 type CreditEdges struct {
 	// Users holds the value of the users edge.
 	Users *User `json:"users,omitempty"`
-	// CreditTypes holds the value of the credit_types edge.
-	CreditTypes *CreditType `json:"credit_types,omitempty"`
+	// CreditType holds the value of the credit_type edge.
+	CreditType *CreditType `json:"credit_type,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
 	loadedTypes [2]bool
@@ -62,17 +62,17 @@ func (e CreditEdges) UsersOrErr() (*User, error) {
 	return nil, &NotLoadedError{edge: "users"}
 }
 
-// CreditTypesOrErr returns the CreditTypes value or an error if the edge
+// CreditTypeOrErr returns the CreditType value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
-func (e CreditEdges) CreditTypesOrErr() (*CreditType, error) {
+func (e CreditEdges) CreditTypeOrErr() (*CreditType, error) {
 	if e.loadedTypes[1] {
-		if e.CreditTypes == nil {
+		if e.CreditType == nil {
 			// Edge was loaded but was not found.
 			return nil, &NotFoundError{label: credittype.Label}
 		}
-		return e.CreditTypes, nil
+		return e.CreditType, nil
 	}
-	return nil, &NotLoadedError{edge: "credit_types"}
+	return nil, &NotLoadedError{edge: "credit_type"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -162,9 +162,9 @@ func (c *Credit) QueryUsers() *UserQuery {
 	return NewCreditClient(c.config).QueryUsers(c)
 }
 
-// QueryCreditTypes queries the "credit_types" edge of the Credit entity.
-func (c *Credit) QueryCreditTypes() *CreditTypeQuery {
-	return NewCreditClient(c.config).QueryCreditTypes(c)
+// QueryCreditType queries the "credit_type" edge of the Credit entity.
+func (c *Credit) QueryCreditType() *CreditTypeQuery {
+	return NewCreditClient(c.config).QueryCreditType(c)
 }
 
 // Update returns a builder for updating this Credit.

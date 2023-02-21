@@ -43,7 +43,7 @@ func (Credit) Edges() []ent.Edge {
 			Required().
 			Unique(),
 		// M2O with users
-		edge.From("credit_types", CreditType.Type).
+		edge.From("credit_type", CreditType.Type).
 			Ref("credits").
 			Field("credit_type_id").
 			Required().
