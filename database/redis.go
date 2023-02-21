@@ -24,9 +24,6 @@ type RedisWrapper struct {
 
 // Should return render redis url if render is set
 func getRedisURL() string {
-	if utils.GetEnv("RENDER", "") != "" {
-		return utils.GetEnv("REDIS_CONNECTION_STRING_RENDER", "")
-	}
 	return utils.GetEnv("REDIS_CONNECTION_STRING", "")
 }
 

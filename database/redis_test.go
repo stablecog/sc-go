@@ -14,17 +14,11 @@ import (
 
 func TestGetRedisURL(t *testing.T) {
 	// Setup
-	os.Setenv("RENDER", "true")
-	defer os.Unsetenv("RENDER")
-	os.Setenv("REDIS_CONNECTION_STRING_RENDER", "wewantthis")
-	defer os.Unsetenv("REDIS_CONNECTION_STRING_RENDER")
-	os.Setenv("REDIS_CONNECTION_STRING", "weDoNotwantthisIfRenderIsSet")
+	os.Setenv("REDIS_CONNECTION_STRING", "wewantthis")
 	defer os.Unsetenv("REDIS_CONNECTION_STRING")
 
 	// Assert
 	assert.Equal(t, "wewantthis", getRedisURL())
-	os.Unsetenv("RENDER")
-	assert.Equal(t, "weDoNotwantthisIfRenderIsSet", getRedisURL())
 }
 
 func TestMockRedis(t *testing.T) {
