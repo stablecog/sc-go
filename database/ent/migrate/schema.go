@@ -188,7 +188,7 @@ var (
 		{Name: "id", Type: field.TypeUUID},
 		{Name: "image_path", Type: field.TypeString, Size: 2147483647},
 		{Name: "upscaled_image_path", Type: field.TypeString, Nullable: true, Size: 2147483647},
-		{Name: "gallery_status", Type: field.TypeEnum, Enums: []string{"not_submitted", "submitted", "accepted", "rejected"}, Default: "not_submitted"},
+		{Name: "gallery_status", Type: field.TypeEnum, Enums: []string{"not_submitted", "submitted", "approved", "rejected"}, Default: "not_submitted"},
 		{Name: "deleted_at", Type: field.TypeTime, Nullable: true},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},

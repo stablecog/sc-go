@@ -297,8 +297,8 @@ func (filters *QueryGenerationFilters) ParseURLQueryParameters(urlValues url.Val
 				statuses = []string{value[0]}
 			}
 			for _, status := range statuses {
-				if strings.ToLower(status) == string(generationoutput.GalleryStatusAccepted) {
-					filters.GalleryStatus = append(filters.GalleryStatus, generationoutput.GalleryStatusAccepted)
+				if strings.ToLower(status) == string(generationoutput.GalleryStatusApproved) {
+					filters.GalleryStatus = append(filters.GalleryStatus, generationoutput.GalleryStatusApproved)
 				} else if strings.ToLower(status) == string(generationoutput.GalleryStatusRejected) {
 					filters.GalleryStatus = append(filters.GalleryStatus, generationoutput.GalleryStatusRejected)
 				} else if strings.ToLower(status) == string(generationoutput.GalleryStatusSubmitted) {
@@ -306,7 +306,7 @@ func (filters *QueryGenerationFilters) ParseURLQueryParameters(urlValues url.Val
 				} else if strings.ToLower(status) == string(generationoutput.GalleryStatusNotSubmitted) {
 					filters.GalleryStatus = append(filters.GalleryStatus, generationoutput.GalleryStatusNotSubmitted)
 				} else {
-					return fmt.Errorf("invalid gallery_status: '%s' expected '%s', '%s', '%s', or '%s'", value[0], generationoutput.GalleryStatusAccepted, generationoutput.GalleryStatusRejected, generationoutput.GalleryStatusSubmitted, generationoutput.GalleryStatusNotSubmitted)
+					return fmt.Errorf("invalid gallery_status: '%s' expected '%s', '%s', '%s', or '%s'", value[0], generationoutput.GalleryStatusApproved, generationoutput.GalleryStatusRejected, generationoutput.GalleryStatusSubmitted, generationoutput.GalleryStatusNotSubmitted)
 				}
 			}
 		}

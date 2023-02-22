@@ -20,7 +20,7 @@ func (r *Repository) RetrieveGalleryData(limit int, updatedAtGT *time.Time) ([]G
 	}
 	var res []GalleryData
 	query := r.DB.GenerationOutput.Query().Select(generationoutput.FieldID, generationoutput.FieldImagePath, generationoutput.FieldUpscaledImagePath, generationoutput.FieldCreatedAt, generationoutput.FieldUpdatedAt).
-		Where(generationoutput.GalleryStatusEQ(generationoutput.GalleryStatusAccepted))
+		Where(generationoutput.GalleryStatusEQ(generationoutput.GalleryStatusApproved))
 	if updatedAtGT != nil {
 		query = query.Where(generationoutput.UpdatedAtGT(*updatedAtGT))
 	}

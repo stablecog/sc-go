@@ -732,7 +732,7 @@ components:
           format: optional
         gallery_status:
           type: string
-          format: not_submitted/submitted/accepted/rejected, optional
+          format: not_submitted/submitted/approved/rejected, optional
         generation:
           type: object
           properties:
@@ -793,7 +793,7 @@ components:
           format: optional
         gallery_status:
           type: string
-          format: not_submitted/submitted/accepted/rejected
+          format: not_submitted/submitted/approved/rejected
         output_id:
           type: string
           format: uuidv4, optional, if upscale from_output

@@ -28,6 +28,19 @@ CREATE TYPE public.user_role_names_enum AS ENUM (
 ALTER TYPE public.user_role_names_enum OWNER TO postgres;
 
 --
+-- Name: generation_output_gallery_status_enum; Type: TYPE; Schema: public; Owner: postgres
+--
+
+CREATE TYPE public.generation_output_gallery_status_enum AS ENUM (
+    'not_submitted',
+    'submitted',
+    'approved',
+    'rejected'
+);
+
+ALTER TYPE public.generation_output_gallery_status_enum OWNER TO postgres;
+
+--
 -- Name: credit_types; Type: TABLE; Schema: public; Owner: postgres
 --
 
@@ -115,7 +128,7 @@ CREATE TABLE public.generation_outputs (
     image_path text NOT NULL,
     upscaled_image_path text,
     generation_id uuid NOT NULL,
-    gallery_status character varying DEFAULT 'not_submitted'::character varying NOT NULL,
+    gallery_status public.generation_output_gallery_status_enum DEFAULT 'not_submitted'::public.generation_output_gallery_status_enum NOT NULL,
     deleted_at timestamp with time zone,
     created_at timestamp with time zone DEFAULT (now() AT TIME ZONE 'utc'::text) NOT NULL,
     updated_at timestamp with time zone DEFAULT (now() AT TIME ZONE 'utc'::text) NOT NULL

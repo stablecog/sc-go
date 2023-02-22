@@ -24,7 +24,7 @@ func TestHandleReviewGallerySubmission(t *testing.T) {
 	// ! Can approve generation
 	var targetGUid uuid.UUID
 	// Find goutput not approved
-	goutput, err := MockController.Repo.DB.GenerationOutput.Query().Where(generationoutput.GalleryStatusNEQ(generationoutput.GalleryStatusAccepted)).First(MockController.Repo.Ctx)
+	goutput, err := MockController.Repo.DB.GenerationOutput.Query().Where(generationoutput.GalleryStatusNEQ(generationoutput.GalleryStatusApproved)).First(MockController.Repo.Ctx)
 	assert.Nil(t, err)
 	targetGUid = goutput.ID
 
@@ -53,7 +53,7 @@ func TestHandleReviewGallerySubmission(t *testing.T) {
 
 	g, err := MockController.Repo.GetGenerationOutput(targetGUid)
 	assert.Nil(t, err)
-	assert.Equal(t, generationoutput.GalleryStatusAccepted, g.GalleryStatus)
+	assert.Equal(t, generationoutput.GalleryStatusApproved, g.GalleryStatus)
 
 	// ! Can reject generation
 	reqBody = requests.ReviewGalleryRequest{

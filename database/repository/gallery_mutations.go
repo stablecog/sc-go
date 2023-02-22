@@ -26,7 +26,7 @@ func (r *Repository) SubmitGenerationOutputsToGalleryForUser(outputIDs []uuid.UU
 	}
 
 	updated, err := r.DB.GenerationOutput.Update().
-		Where(generationoutput.IDIn(outputIDs...), generationoutput.GalleryStatusNotIn(generationoutput.GalleryStatusAccepted, generationoutput.GalleryStatusRejected, generationoutput.GalleryStatusSubmitted)).
+		Where(generationoutput.IDIn(outputIDs...), generationoutput.GalleryStatusNotIn(generationoutput.GalleryStatusApproved, generationoutput.GalleryStatusRejected, generationoutput.GalleryStatusSubmitted)).
 		SetGalleryStatus(generationoutput.GalleryStatusSubmitted).Save(r.Ctx)
 
 	if err != nil {
@@ -41,7 +41,7 @@ func (r *Repository) SubmitGenerationOutputsToGalleryForUser(outputIDs []uuid.UU
 func (r *Repository) ApproveOrRejectGenerationOutputs(outputIDs []uuid.UUID, approved bool) (int, error) {
 	var status generationoutput.GalleryStatus
 	if approved {
-		status = generationoutput.GalleryStatusAccepted
+		status = generationoutput.GalleryStatusApproved
 	} else {
 		status = generationoutput.GalleryStatusRejected
 	}
