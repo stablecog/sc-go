@@ -996,9 +996,15 @@ components:
                 format: uuidv4
               prompt_text:
                 type: string
+              prompt_id:
+                type: string
+                format: uuidv4
               negative_prompt_text:
                 type: string
                 format: optional
+              negative_prompt_id:
+                type: string
+                format: uuidv4
               created_at:
                 type: string
                 format: isoTimeString
