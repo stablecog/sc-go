@@ -697,6 +697,14 @@ components:
           type: string
           format: uuidv4
       description: Response after creating a generation or upscale
+    PromptType:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuidv4
+        text:
+          type: string
     GenerationQueryWithOutputsMeta:
       type: object
       properties:
@@ -750,9 +758,11 @@ components:
               type: string
               format: uuidv4
             prompt:
-              type: string
+              type: object
+              $ref: "#/components/schemas/PromptType"
             negative_prompt:
-              type: string
+              type: object
+              $ref: "#/components/schemas/PromptType"
               format: optional
             seed:
               type: integer

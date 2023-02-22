@@ -67,11 +67,11 @@ func TestHandleQueryGenerationsDefaultParams(t *testing.T) {
 	assert.Nil(t, genResponse.Next)
 
 	// They should be in order of how we mocked them (descending)
-	assert.Equal(t, "This is a prompt 2", genResponse.Outputs[0].Generation.Prompt)
+	assert.Equal(t, "This is a prompt 2", genResponse.Outputs[0].Generation.Prompt.Text)
 	assert.Equal(t, string(generation.StatusSucceeded), genResponse.Outputs[0].Generation.Status)
 	assert.NotNil(t, genResponse.Outputs[0].Generation.StartedAt)
 	assert.NotNil(t, genResponse.Outputs[0].Generation.CompletedAt)
-	assert.Empty(t, genResponse.Outputs[0].Generation.NegativePrompt)
+	assert.Nil(t, genResponse.Outputs[0].Generation.NegativePrompt)
 	assert.Equal(t, int32(30), genResponse.Outputs[0].Generation.InferenceSteps)
 	assert.Equal(t, float32(1.0), genResponse.Outputs[0].Generation.GuidanceScale)
 	assert.Equal(t, uuid.MustParse(repository.MOCK_GENERATION_MODEL_ID), genResponse.Outputs[0].Generation.ModelID)
@@ -85,11 +85,11 @@ func TestHandleQueryGenerationsDefaultParams(t *testing.T) {
 	assert.Equal(t, "http://test.com/output_5", genResponse.Outputs[0].Generation.Outputs[1].ImageUrl)
 	assert.Equal(t, "http://test.com/output_4", genResponse.Outputs[0].Generation.Outputs[2].ImageUrl)
 
-	assert.Equal(t, "This is a prompt 2", genResponse.Outputs[1].Generation.Prompt)
+	assert.Equal(t, "This is a prompt 2", genResponse.Outputs[1].Generation.Prompt.Text)
 	assert.Equal(t, string(generation.StatusSucceeded), genResponse.Outputs[1].Generation.Status)
 	assert.NotNil(t, genResponse.Outputs[1].Generation.StartedAt)
 	assert.NotNil(t, genResponse.Outputs[1].Generation.CompletedAt)
-	assert.Empty(t, genResponse.Outputs[1].Generation.NegativePrompt)
+	assert.Nil(t, genResponse.Outputs[1].Generation.NegativePrompt)
 	assert.Equal(t, int32(30), genResponse.Outputs[1].Generation.InferenceSteps)
 	assert.Equal(t, float32(1.0), genResponse.Outputs[1].Generation.GuidanceScale)
 	assert.Equal(t, uuid.MustParse(repository.MOCK_GENERATION_MODEL_ID), genResponse.Outputs[1].Generation.ModelID)
@@ -99,11 +99,11 @@ func TestHandleQueryGenerationsDefaultParams(t *testing.T) {
 	assert.Equal(t, "http://test.com/output_5", genResponse.Outputs[1].ImageUrl)
 	assert.Equal(t, 1234, genResponse.Outputs[1].Generation.Seed)
 
-	assert.Equal(t, "This is a prompt 2", genResponse.Outputs[2].Generation.Prompt)
+	assert.Equal(t, "This is a prompt 2", genResponse.Outputs[2].Generation.Prompt.Text)
 	assert.Equal(t, string(generation.StatusSucceeded), genResponse.Outputs[2].Generation.Status)
 	assert.NotNil(t, genResponse.Outputs[2].Generation.StartedAt)
 	assert.NotNil(t, genResponse.Outputs[2].Generation.CompletedAt)
-	assert.Empty(t, genResponse.Outputs[2].Generation.NegativePrompt)
+	assert.Nil(t, genResponse.Outputs[2].Generation.NegativePrompt)
 	assert.Equal(t, int32(30), genResponse.Outputs[2].Generation.InferenceSteps)
 	assert.Equal(t, float32(1.0), genResponse.Outputs[2].Generation.GuidanceScale)
 	assert.Equal(t, uuid.MustParse(repository.MOCK_GENERATION_MODEL_ID), genResponse.Outputs[2].Generation.ModelID)
@@ -113,11 +113,11 @@ func TestHandleQueryGenerationsDefaultParams(t *testing.T) {
 	assert.Equal(t, "http://test.com/output_4", genResponse.Outputs[2].ImageUrl)
 	assert.Equal(t, 1234, genResponse.Outputs[2].Generation.Seed)
 
-	assert.Equal(t, "This is a prompt", genResponse.Outputs[3].Generation.Prompt)
+	assert.Equal(t, "This is a prompt", genResponse.Outputs[3].Generation.Prompt.Text)
 	assert.Equal(t, string(generation.StatusSucceeded), genResponse.Outputs[3].Generation.Status)
 	assert.NotNil(t, genResponse.Outputs[3].Generation.StartedAt)
 	assert.NotNil(t, genResponse.Outputs[3].Generation.CompletedAt)
-	assert.Equal(t, "This is a negative prompt", genResponse.Outputs[3].Generation.NegativePrompt)
+	assert.Equal(t, "This is a negative prompt", genResponse.Outputs[3].Generation.NegativePrompt.Text)
 	assert.Equal(t, int32(11), genResponse.Outputs[3].Generation.InferenceSteps)
 	assert.Equal(t, float32(2.0), genResponse.Outputs[3].Generation.GuidanceScale)
 	assert.Equal(t, uuid.MustParse(repository.MOCK_GENERATION_MODEL_ID), genResponse.Outputs[3].Generation.ModelID)
@@ -152,11 +152,11 @@ func TestHandleQueryGenerationsCursor(t *testing.T) {
 	assert.Nil(t, genResponse.Next)
 
 	// Get tiemstamp of first item so we can exclude it in "second page"
-	assert.Equal(t, "This is a prompt 2", genResponse.Outputs[0].Generation.Prompt)
+	assert.Equal(t, "This is a prompt 2", genResponse.Outputs[0].Generation.Prompt.Text)
 	assert.Equal(t, string(generation.StatusSucceeded), genResponse.Outputs[0].Generation.Status)
 	assert.NotNil(t, genResponse.Outputs[0].Generation.StartedAt)
 	assert.NotNil(t, genResponse.Outputs[0].Generation.CompletedAt)
-	assert.Empty(t, genResponse.Outputs[0].Generation.NegativePrompt)
+	assert.Nil(t, genResponse.Outputs[0].Generation.NegativePrompt)
 	assert.Equal(t, int32(30), genResponse.Outputs[0].Generation.InferenceSteps)
 	assert.Equal(t, float32(1.0), genResponse.Outputs[0].Generation.GuidanceScale)
 	assert.Equal(t, uuid.MustParse(repository.MOCK_GENERATION_MODEL_ID), genResponse.Outputs[0].Generation.ModelID)
@@ -184,7 +184,7 @@ func TestHandleQueryGenerationsCursor(t *testing.T) {
 
 	assert.Nil(t, genResponse.Total)
 	assert.Len(t, genResponse.Outputs, 3)
-	assert.Equal(t, "This is a prompt", genResponse.Outputs[0].Generation.Prompt)
+	assert.Equal(t, "This is a prompt", genResponse.Outputs[0].Generation.Prompt.Text)
 }
 
 // Test per page param
@@ -210,11 +210,11 @@ func TestHandleQueryGenerationsPerPage(t *testing.T) {
 	assert.Len(t, genResponse.Outputs, 1)
 	assert.Equal(t, *genResponse.Next, genResponse.Outputs[0].Generation.CreatedAt)
 
-	assert.Equal(t, "This is a prompt 2", genResponse.Outputs[0].Generation.Prompt)
+	assert.Equal(t, "This is a prompt 2", genResponse.Outputs[0].Generation.Prompt.Text)
 	assert.Equal(t, string(generation.StatusSucceeded), genResponse.Outputs[0].Generation.Status)
 	assert.NotNil(t, genResponse.Outputs[0].Generation.StartedAt)
 	assert.NotNil(t, genResponse.Outputs[0].Generation.CompletedAt)
-	assert.Empty(t, genResponse.Outputs[0].Generation.NegativePrompt)
+	assert.Nil(t, genResponse.Outputs[0].Generation.NegativePrompt)
 	assert.Equal(t, int32(30), genResponse.Outputs[0].Generation.InferenceSteps)
 	assert.Equal(t, float32(1.0), genResponse.Outputs[0].Generation.GuidanceScale)
 	assert.Equal(t, uuid.MustParse(repository.MOCK_GENERATION_MODEL_ID), genResponse.Outputs[0].Generation.ModelID)
@@ -249,11 +249,11 @@ func TestHandleQueryGenerationsFilters(t *testing.T) {
 	assert.Len(t, genResponse.Outputs, 3)
 	assert.Nil(t, genResponse.Next)
 
-	assert.Equal(t, "This is a prompt", genResponse.Outputs[0].Generation.Prompt)
+	assert.Equal(t, "This is a prompt", genResponse.Outputs[0].Generation.Prompt.Text)
 	assert.Equal(t, string(generation.StatusSucceeded), genResponse.Outputs[0].Generation.Status)
 	assert.NotNil(t, genResponse.Outputs[0].Generation.StartedAt)
 	assert.NotNil(t, genResponse.Outputs[0].Generation.CompletedAt)
-	assert.Equal(t, "This is a negative prompt", genResponse.Outputs[0].Generation.NegativePrompt)
+	assert.Equal(t, "This is a negative prompt", genResponse.Outputs[0].Generation.NegativePrompt.Text)
 	assert.Equal(t, int32(11), genResponse.Outputs[0].Generation.InferenceSteps)
 	assert.Equal(t, float32(2.0), genResponse.Outputs[0].Generation.GuidanceScale)
 	assert.Equal(t, uuid.MustParse(repository.MOCK_GENERATION_MODEL_ID), genResponse.Outputs[0].Generation.ModelID)
@@ -264,7 +264,6 @@ func TestHandleQueryGenerationsFilters(t *testing.T) {
 	assert.Equal(t, 1234, genResponse.Outputs[0].Generation.Seed)
 	assert.Equal(t, "http://test.com/output_2", genResponse.Outputs[1].ImageUrl)
 	assert.Equal(t, "http://test.com/output_1", genResponse.Outputs[2].ImageUrl)
-
 }
 
 // ! Error conditions in API

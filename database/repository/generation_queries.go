@@ -227,6 +227,8 @@ func (r *Repository) QueryGenerations(per_page int, cursor *time.Time, filters *
 		generation.FieldGuidanceScale,
 		generation.FieldSchedulerID,
 		generation.FieldModelID,
+		generation.FieldPromptID,
+		generation.FieldNegativePromptID,
 		generation.FieldCreatedAt,
 		generation.FieldStartedAt,
 		generation.FieldCompletedAt,
@@ -267,13 +269,9 @@ func (r *Repository) QueryGenerations(per_page int, cursor *time.Time, filters *
 		).LeftJoin(got).On(
 			s.C(generation.FieldID), got.C(generationoutput.FieldGenerationID),
 		).AppendSelect(sql.As(npt.C(negativeprompt.FieldText), "negative_prompt_text"), sql.As(pt.C(prompt.FieldText), "prompt_text"), sql.As(got.C(generationoutput.FieldID), "output_id"), sql.As(got.C(generationoutput.FieldGalleryStatus), "output_gallery_status"), sql.As(got.C(generationoutput.FieldImagePath), "image_path"), sql.As(got.C(generationoutput.FieldUpscaledImagePath), "upscaled_image_path"), sql.As(got.C(generationoutput.FieldDeletedAt), "deleted_at")).
-			GroupBy(s.C(generation.FieldID)).
-			GroupBy(npt.C(negativeprompt.FieldText)).
-			GroupBy(pt.C(prompt.FieldText)).
-			GroupBy(got.C(generationoutput.FieldID)).
-			GroupBy(got.C(generationoutput.FieldGalleryStatus)).
-			GroupBy(got.C(generationoutput.FieldImagePath)).
-			GroupBy(got.C(generationoutput.FieldUpscaledImagePath))
+			GroupBy(s.C(generation.FieldID), npt.C(negativeprompt.FieldText), pt.C(prompt.FieldText),
+				got.C(generationoutput.FieldID), got.C(generationoutput.FieldGalleryStatus),
+				got.C(generationoutput.FieldImagePath), got.C(generationoutput.FieldUpscaledImagePath))
 		// Order by generation, then output
 		if filters == nil || (filters != nil && filters.Order == requests.SortOrderDescending) {
 			s.OrderBy(sql.Desc(gt.C(generation.FieldCreatedAt)), sql.Desc(got.C(generationoutput.FieldCreatedAt)))
@@ -334,21 +332,31 @@ func (r *Repository) QueryGenerations(per_page int, cursor *time.Time, filters *
 		output := GenerationQueryWithOutputsResultFormatted{
 			GenerationUpscaleOutput: gOutput,
 			Generation: GenerationQueryWithOutputsData{
-				ID:             g.ID,
-				Height:         g.Height,
-				Width:          g.Width,
-				InferenceSteps: g.InferenceSteps,
-				Seed:           g.Seed,
-				Status:         g.Status,
-				GuidanceScale:  g.GuidanceScale,
-				SchedulerID:    g.SchedulerID,
-				ModelID:        g.ModelID,
-				CreatedAt:      g.CreatedAt,
-				StartedAt:      g.StartedAt,
-				CompletedAt:    g.CompletedAt,
-				NegativePrompt: g.NegativePrompt,
-				Prompt:         g.Prompt,
+				ID:               g.ID,
+				Height:           g.Height,
+				Width:            g.Width,
+				InferenceSteps:   g.InferenceSteps,
+				Seed:             g.Seed,
+				Status:           g.Status,
+				GuidanceScale:    g.GuidanceScale,
+				SchedulerID:      g.SchedulerID,
+				ModelID:          g.ModelID,
+				PromptID:         g.PromptID,
+				NegativePromptID: g.NegativePromptID,
+				CreatedAt:        g.CreatedAt,
+				StartedAt:        g.StartedAt,
+				CompletedAt:      g.CompletedAt,
+				Prompt: PromptType{
+					Text: g.PromptText,
+					ID:   *g.PromptID,
+				},
 			},
+		}
+		if g.NegativePromptID != nil {
+			output.Generation.NegativePrompt = &PromptType{
+				Text: g.NegativePromptText,
+				ID:   *g.NegativePromptID,
+			}
 		}
 		generationOutputMap[g.ID] = append(generationOutputMap[g.ID], gOutput)
 		meta.Outputs = append(meta.Outputs, output)
@@ -386,22 +394,31 @@ type GenerationQueryWithOutputsMeta struct {
 	Next    *time.Time                                  `json:"next,omitempty"`
 }
 
+type PromptType struct {
+	ID   uuid.UUID `json:"id"`
+	Text string    `json:"text"`
+}
+
 type GenerationQueryWithOutputsData struct {
-	ID             uuid.UUID                 `json:"id" sql:"id"`
-	Height         int32                     `json:"height" sql:"height"`
-	Width          int32                     `json:"width" sql:"width"`
-	InferenceSteps int32                     `json:"inference_steps" sql:"inference_steps"`
-	Seed           int                       `json:"seed" sql:"seed"`
-	Status         string                    `json:"status" sql:"status"`
-	GuidanceScale  float32                   `json:"guidance_scale" sql:"guidance_scale"`
-	SchedulerID    uuid.UUID                 `json:"scheduler_id" sql:"scheduler_id"`
-	ModelID        uuid.UUID                 `json:"model_id" sql:"model_id"`
-	CreatedAt      time.Time                 `json:"created_at" sql:"created_at"`
-	StartedAt      *time.Time                `json:"started_at,omitempty" sql:"started_at"`
-	CompletedAt    *time.Time                `json:"completed_at,omitempty" sql:"completed_at"`
-	NegativePrompt string                    `json:"negative_prompt,omitempty" sql:"negative_prompt_text"`
-	Prompt         string                    `json:"prompt" sql:"prompt_text"`
-	Outputs        []GenerationUpscaleOutput `json:"outputs"`
+	ID                 uuid.UUID                 `json:"id" sql:"id"`
+	Height             int32                     `json:"height" sql:"height"`
+	Width              int32                     `json:"width" sql:"width"`
+	InferenceSteps     int32                     `json:"inference_steps" sql:"inference_steps"`
+	Seed               int                       `json:"seed" sql:"seed"`
+	Status             string                    `json:"status" sql:"status"`
+	GuidanceScale      float32                   `json:"guidance_scale" sql:"guidance_scale"`
+	SchedulerID        uuid.UUID                 `json:"scheduler_id" sql:"scheduler_id"`
+	ModelID            uuid.UUID                 `json:"model_id" sql:"model_id"`
+	PromptID           *uuid.UUID                `json:"prompt_id,omitempty" sql:"prompt_id"`
+	NegativePromptID   *uuid.UUID                `json:"negative_prompt_id,omitempty" sql:"negative_prompt_id"`
+	CreatedAt          time.Time                 `json:"created_at" sql:"created_at"`
+	StartedAt          *time.Time                `json:"started_at,omitempty" sql:"started_at"`
+	CompletedAt        *time.Time                `json:"completed_at,omitempty" sql:"completed_at"`
+	NegativePromptText string                    `json:"negative_prompt_text,omitempty" sql:"negative_prompt_text"`
+	PromptText         string                    `json:"prompt_text,omitempty" sql:"prompt_text"`
+	Outputs            []GenerationUpscaleOutput `json:"outputs"`
+	Prompt             PromptType                `json:"prompt"`
+	NegativePrompt     *PromptType               `json:"negative_prompt,omitempty"`
 }
 
 type GenerationQueryWithOutputsResult struct {

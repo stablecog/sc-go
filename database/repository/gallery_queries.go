@@ -69,6 +69,6 @@ type GalleryData struct {
 	PromptText         string     `json:"prompt_text" sql:"prompt_text"`
 	PromptID           uuid.UUID  `json:"prompt_id" sql:"prompt_id"`
 	NegativePromptText string     `json:"negative_prompt_text,omitempty" sql:"negative_prompt_text"`
-	NegativePromptID   uuid.UUID  `json:"negative_prompt_id,omitempty" sql:"negative_prompt_id"`
+	NegativePromptID   *uuid.UUID `json:"negative_prompt_id,omitempty" sql:"negative_prompt_id"`
 	UserID             *uuid.UUID `json:"user_id,omitempty" sql:"user_id"`
 }
