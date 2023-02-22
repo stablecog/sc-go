@@ -54,7 +54,7 @@ func (c *RestAPI) GetGenerationGs(page int, batchSize int, search string, filter
 
 func (c *RestAPI) HandleQueryGallery(w http.ResponseWriter, r *http.Request) {
 	// Get query params
-	page, err := strconv.Atoi(r.URL.Query().Get("page"))
+	page, err := strconv.Atoi(r.URL.Query().Get("cursor"))
 	if err != nil || page < 1 {
 		page = 1
 	}
