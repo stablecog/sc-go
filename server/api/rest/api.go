@@ -12,6 +12,10 @@ import (
 	stripe "github.com/stripe/stripe-go/client"
 )
 
+// Shared pagination defaults
+const DEFAULT_PER_PAGE = 50
+const MAX_PER_PAGE = 100
+
 type RestAPI struct {
 	Repo         *repository.Repository
 	Redis        *database.RedisWrapper

@@ -9,6 +9,7 @@ import (
 
 	"github.com/go-chi/render"
 	"github.com/stablecog/sc-go/database/ent"
+	"github.com/stablecog/sc-go/database/repository"
 	"github.com/stablecog/sc-go/server/requests"
 	"github.com/stablecog/sc-go/server/responses"
 	"github.com/stablecog/sc-go/shared"
@@ -182,8 +183,22 @@ func (c *RestAPI) HandleUpscale(w http.ResponseWriter, r *http.Request) {
 	// Track the request in our internal map
 	c.Redis.SetCogRequestStreamID(r.Context(), requestId, upscaleReq.StreamID)
 
-	// Deal with live page update
-	go c.Hub.BroadcastLivePageMessage(livePageMsg)
+	// Send live page update
+	go func() {
+		liveResp := repository.TaskStatusUpdateResponse{
+			ForLivePage:     true,
+			LivePageMessage: livePageMsg,
+		}
+		respBytes, err := json.Marshal(liveResp)
+		if err != nil {
+			klog.Errorf("--- Error marshalling sse live response: %v", err)
+			return
+		}
+		err = c.Redis.Client.Publish(r.Context(), shared.REDIS_SSE_BROADCAST_CHANNEL, respBytes).Err()
+		if err != nil {
+			klog.Errorf("Failed to publish live page update: %v", err)
+		}
+	}()
 
 	// Start the timeout timer
 	go func() {

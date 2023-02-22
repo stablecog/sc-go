@@ -273,7 +273,20 @@ func main() {
 					livePageMsg.ActualNumOutputs = len(cogMessage.Outputs)
 					livePageMsg.NSFWCount = cogMessage.NSFWCount
 				}
-				sseHub.BroadcastLivePageMessage(livePageMsg)
+				// Send live page update
+				liveResp := repository.TaskStatusUpdateResponse{
+					ForLivePage:     true,
+					LivePageMessage: livePageMsg,
+				}
+				respBytes, err := json.Marshal(liveResp)
+				if err != nil {
+					klog.Errorf("--- Error marshalling sse live response: %v", err)
+					return
+				}
+				err = redis.Client.Publish(redis.Client.Context(), shared.REDIS_SSE_BROADCAST_CHANNEL, respBytes).Err()
+				if err != nil {
+					klog.Errorf("Failed to publish live page update: %v", err)
+				}
 			}()
 
 			// Process in database
@@ -299,6 +312,12 @@ func main() {
 			err := json.Unmarshal([]byte(msg.Payload), &sseMessage)
 			if err != nil {
 				klog.Errorf("--- Error unmarshalling sse message: %v", err)
+				continue
+			}
+
+			// Live page separate broadcast stream
+			if sseMessage.ForLivePage {
+				sseHub.BroadcastLivePageMessage(sseMessage.LivePageMessage)
 				continue
 			}
 

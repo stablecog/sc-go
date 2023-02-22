@@ -18,9 +18,6 @@ import (
 	"k8s.io/klog/v2"
 )
 
-const DEFAULT_PER_PAGE = 50
-const MAX_PER_PAGE = 100
-
 // HTTP Get - user info
 func (c *RestAPI) HandleGetUser(w http.ResponseWriter, r *http.Request) {
 	userID, email := c.GetUserIDAndEmailIfAuthenticated(w, r)
