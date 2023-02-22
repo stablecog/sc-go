@@ -5,7 +5,6 @@ import (
 	"math/rand"
 	"net/http"
 	"strconv"
-	"time"
 
 	"github.com/go-chi/render"
 	"github.com/meilisearch/meilisearch-go"
@@ -75,11 +74,20 @@ func (c *RestAPI) HandleQueryGallery(w http.ResponseWriter, r *http.Request) {
 
 	// Shuffle results if no search was specified
 	if search == "" {
-		rand.Seed(time.Now().UnixNano())
-		rand.Shuffle(
-			len(generationGs),
-			func(i, j int) { generationGs[i], generationGs[j] = generationGs[j], generationGs[i] },
-		)
+		// Get seed from query
+		seed := r.URL.Query().Get("seed")
+		if seed != "" {
+			seedInt, err := strconv.Atoi(seed)
+			if err != nil {
+				klog.Errorf("Error parsing seed: %v", err)
+			} else {
+				rand.Seed(int64(seedInt))
+				rand.Shuffle(
+					len(generationGs),
+					func(i, j int) { generationGs[i], generationGs[j] = generationGs[j], generationGs[i] },
+				)
+			}
+		}
 	}
 
 	// We don't want to leak primary keys, so set to nil
