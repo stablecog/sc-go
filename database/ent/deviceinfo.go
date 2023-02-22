@@ -18,11 +18,11 @@ type DeviceInfo struct {
 	// ID of the ent.
 	ID uuid.UUID `json:"id,omitempty"`
 	// Type holds the value of the "type" field.
-	Type string `json:"type,omitempty"`
+	Type *string `json:"type,omitempty"`
 	// Os holds the value of the "os" field.
-	Os string `json:"os,omitempty"`
+	Os *string `json:"os,omitempty"`
 	// Browser holds the value of the "browser" field.
-	Browser string `json:"browser,omitempty"`
+	Browser *string `json:"browser,omitempty"`
 	// CreatedAt holds the value of the "created_at" field.
 	CreatedAt time.Time `json:"created_at,omitempty"`
 	// UpdatedAt holds the value of the "updated_at" field.
@@ -97,19 +97,22 @@ func (di *DeviceInfo) assignValues(columns []string, values []any) error {
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field type", values[i])
 			} else if value.Valid {
-				di.Type = value.String
+				di.Type = new(string)
+				*di.Type = value.String
 			}
 		case deviceinfo.FieldOs:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field os", values[i])
 			} else if value.Valid {
-				di.Os = value.String
+				di.Os = new(string)
+				*di.Os = value.String
 			}
 		case deviceinfo.FieldBrowser:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field browser", values[i])
 			} else if value.Valid {
-				di.Browser = value.String
+				di.Browser = new(string)
+				*di.Browser = value.String
 			}
 		case deviceinfo.FieldCreatedAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
@@ -161,14 +164,20 @@ func (di *DeviceInfo) String() string {
 	var builder strings.Builder
 	builder.WriteString("DeviceInfo(")
 	builder.WriteString(fmt.Sprintf("id=%v, ", di.ID))
-	builder.WriteString("type=")
-	builder.WriteString(di.Type)
+	if v := di.Type; v != nil {
+		builder.WriteString("type=")
+		builder.WriteString(*v)
+	}
 	builder.WriteString(", ")
-	builder.WriteString("os=")
-	builder.WriteString(di.Os)
+	if v := di.Os; v != nil {
+		builder.WriteString("os=")
+		builder.WriteString(*v)
+	}
 	builder.WriteString(", ")
-	builder.WriteString("browser=")
-	builder.WriteString(di.Browser)
+	if v := di.Browser; v != nil {
+		builder.WriteString("browser=")
+		builder.WriteString(*v)
+	}
 	builder.WriteString(", ")
 	builder.WriteString("created_at=")
 	builder.WriteString(di.CreatedAt.Format(time.ANSIC))

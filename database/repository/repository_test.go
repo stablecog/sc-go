@@ -76,7 +76,7 @@ func TestTxWrapper(t *testing.T) {
 		// Query to make sure exists
 		dinfo := DB.DeviceInfo.Query().Where(deviceinfo.Type("rollback"), deviceinfo.Os("rollback"), deviceinfo.Browser("rollback")).FirstX(MockRepo.Ctx)
 		assert.NotNil(t, dinfo)
-		assert.Equal(t, "rollback", dinfo.Type)
+		assert.Equal(t, "rollback", *dinfo.Type)
 
 		// Throw an error to trigger rollback
 		return errors.New("rollback")

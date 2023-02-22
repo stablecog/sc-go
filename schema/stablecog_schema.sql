@@ -89,9 +89,9 @@ ALTER TABLE public.credits OWNER TO postgres;
 
 CREATE TABLE public.device_info (
     id uuid DEFAULT extensions.uuid_generate_v4() NOT NULL,
-    type text NOT NULL,
-    os text NOT NULL,
-    browser text NOT NULL,
+    type text,
+    os text,
+    browser text,
     created_at timestamp with time zone DEFAULT (now() AT TIME ZONE 'utc'::text) NOT NULL,
     updated_at timestamp with time zone DEFAULT (now() AT TIME ZONE 'utc'::text) NOT NULL
 );

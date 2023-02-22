@@ -136,6 +136,16 @@ func TypeHasSuffix(v string) predicate.DeviceInfo {
 	return predicate.DeviceInfo(sql.FieldHasSuffix(FieldType, v))
 }
 
+// TypeIsNil applies the IsNil predicate on the "type" field.
+func TypeIsNil() predicate.DeviceInfo {
+	return predicate.DeviceInfo(sql.FieldIsNull(FieldType))
+}
+
+// TypeNotNil applies the NotNil predicate on the "type" field.
+func TypeNotNil() predicate.DeviceInfo {
+	return predicate.DeviceInfo(sql.FieldNotNull(FieldType))
+}
+
 // TypeEqualFold applies the EqualFold predicate on the "type" field.
 func TypeEqualFold(v string) predicate.DeviceInfo {
 	return predicate.DeviceInfo(sql.FieldEqualFold(FieldType, v))
@@ -201,6 +211,16 @@ func OsHasSuffix(v string) predicate.DeviceInfo {
 	return predicate.DeviceInfo(sql.FieldHasSuffix(FieldOs, v))
 }
 
+// OsIsNil applies the IsNil predicate on the "os" field.
+func OsIsNil() predicate.DeviceInfo {
+	return predicate.DeviceInfo(sql.FieldIsNull(FieldOs))
+}
+
+// OsNotNil applies the NotNil predicate on the "os" field.
+func OsNotNil() predicate.DeviceInfo {
+	return predicate.DeviceInfo(sql.FieldNotNull(FieldOs))
+}
+
 // OsEqualFold applies the EqualFold predicate on the "os" field.
 func OsEqualFold(v string) predicate.DeviceInfo {
 	return predicate.DeviceInfo(sql.FieldEqualFold(FieldOs, v))
@@ -264,6 +284,16 @@ func BrowserHasPrefix(v string) predicate.DeviceInfo {
 // BrowserHasSuffix applies the HasSuffix predicate on the "browser" field.
 func BrowserHasSuffix(v string) predicate.DeviceInfo {
 	return predicate.DeviceInfo(sql.FieldHasSuffix(FieldBrowser, v))
+}
+
+// BrowserIsNil applies the IsNil predicate on the "browser" field.
+func BrowserIsNil() predicate.DeviceInfo {
+	return predicate.DeviceInfo(sql.FieldIsNull(FieldBrowser))
+}
+
+// BrowserNotNil applies the NotNil predicate on the "browser" field.
+func BrowserNotNil() predicate.DeviceInfo {
+	return predicate.DeviceInfo(sql.FieldNotNull(FieldBrowser))
 }
 
 // BrowserEqualFold applies the EqualFold predicate on the "browser" field.

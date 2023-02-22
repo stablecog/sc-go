@@ -20,9 +20,9 @@ type DeviceInfo struct {
 func (DeviceInfo) Fields() []ent.Field {
 	return []ent.Field{
 		field.UUID("id", uuid.UUID{}).Default(uuid.New),
-		field.Text("type"),
-		field.Text("os"),
-		field.Text("browser"),
+		field.Text("type").Optional().Nillable(),
+		field.Text("os").Optional().Nillable(),
+		field.Text("browser").Optional().Nillable(),
 		field.Time("created_at").Default(time.Now).Immutable(),
 		field.Time("updated_at").Default(time.Now).UpdateDefault(time.Now),
 	}

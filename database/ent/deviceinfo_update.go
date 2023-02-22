@@ -38,15 +38,57 @@ func (diu *DeviceInfoUpdate) SetType(s string) *DeviceInfoUpdate {
 	return diu
 }
 
+// SetNillableType sets the "type" field if the given value is not nil.
+func (diu *DeviceInfoUpdate) SetNillableType(s *string) *DeviceInfoUpdate {
+	if s != nil {
+		diu.SetType(*s)
+	}
+	return diu
+}
+
+// ClearType clears the value of the "type" field.
+func (diu *DeviceInfoUpdate) ClearType() *DeviceInfoUpdate {
+	diu.mutation.ClearType()
+	return diu
+}
+
 // SetOs sets the "os" field.
 func (diu *DeviceInfoUpdate) SetOs(s string) *DeviceInfoUpdate {
 	diu.mutation.SetOs(s)
 	return diu
 }
 
+// SetNillableOs sets the "os" field if the given value is not nil.
+func (diu *DeviceInfoUpdate) SetNillableOs(s *string) *DeviceInfoUpdate {
+	if s != nil {
+		diu.SetOs(*s)
+	}
+	return diu
+}
+
+// ClearOs clears the value of the "os" field.
+func (diu *DeviceInfoUpdate) ClearOs() *DeviceInfoUpdate {
+	diu.mutation.ClearOs()
+	return diu
+}
+
 // SetBrowser sets the "browser" field.
 func (diu *DeviceInfoUpdate) SetBrowser(s string) *DeviceInfoUpdate {
 	diu.mutation.SetBrowser(s)
+	return diu
+}
+
+// SetNillableBrowser sets the "browser" field if the given value is not nil.
+func (diu *DeviceInfoUpdate) SetNillableBrowser(s *string) *DeviceInfoUpdate {
+	if s != nil {
+		diu.SetBrowser(*s)
+	}
+	return diu
+}
+
+// ClearBrowser clears the value of the "browser" field.
+func (diu *DeviceInfoUpdate) ClearBrowser() *DeviceInfoUpdate {
+	diu.mutation.ClearBrowser()
 	return diu
 }
 
@@ -196,11 +238,20 @@ func (diu *DeviceInfoUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if value, ok := diu.mutation.GetType(); ok {
 		_spec.SetField(deviceinfo.FieldType, field.TypeString, value)
 	}
+	if diu.mutation.TypeCleared() {
+		_spec.ClearField(deviceinfo.FieldType, field.TypeString)
+	}
 	if value, ok := diu.mutation.Os(); ok {
 		_spec.SetField(deviceinfo.FieldOs, field.TypeString, value)
 	}
+	if diu.mutation.OsCleared() {
+		_spec.ClearField(deviceinfo.FieldOs, field.TypeString)
+	}
 	if value, ok := diu.mutation.Browser(); ok {
 		_spec.SetField(deviceinfo.FieldBrowser, field.TypeString, value)
+	}
+	if diu.mutation.BrowserCleared() {
+		_spec.ClearField(deviceinfo.FieldBrowser, field.TypeString)
 	}
 	if value, ok := diu.mutation.UpdatedAt(); ok {
 		_spec.SetField(deviceinfo.FieldUpdatedAt, field.TypeTime, value)
@@ -341,15 +392,57 @@ func (diuo *DeviceInfoUpdateOne) SetType(s string) *DeviceInfoUpdateOne {
 	return diuo
 }
 
+// SetNillableType sets the "type" field if the given value is not nil.
+func (diuo *DeviceInfoUpdateOne) SetNillableType(s *string) *DeviceInfoUpdateOne {
+	if s != nil {
+		diuo.SetType(*s)
+	}
+	return diuo
+}
+
+// ClearType clears the value of the "type" field.
+func (diuo *DeviceInfoUpdateOne) ClearType() *DeviceInfoUpdateOne {
+	diuo.mutation.ClearType()
+	return diuo
+}
+
 // SetOs sets the "os" field.
 func (diuo *DeviceInfoUpdateOne) SetOs(s string) *DeviceInfoUpdateOne {
 	diuo.mutation.SetOs(s)
 	return diuo
 }
 
+// SetNillableOs sets the "os" field if the given value is not nil.
+func (diuo *DeviceInfoUpdateOne) SetNillableOs(s *string) *DeviceInfoUpdateOne {
+	if s != nil {
+		diuo.SetOs(*s)
+	}
+	return diuo
+}
+
+// ClearOs clears the value of the "os" field.
+func (diuo *DeviceInfoUpdateOne) ClearOs() *DeviceInfoUpdateOne {
+	diuo.mutation.ClearOs()
+	return diuo
+}
+
 // SetBrowser sets the "browser" field.
 func (diuo *DeviceInfoUpdateOne) SetBrowser(s string) *DeviceInfoUpdateOne {
 	diuo.mutation.SetBrowser(s)
+	return diuo
+}
+
+// SetNillableBrowser sets the "browser" field if the given value is not nil.
+func (diuo *DeviceInfoUpdateOne) SetNillableBrowser(s *string) *DeviceInfoUpdateOne {
+	if s != nil {
+		diuo.SetBrowser(*s)
+	}
+	return diuo
+}
+
+// ClearBrowser clears the value of the "browser" field.
+func (diuo *DeviceInfoUpdateOne) ClearBrowser() *DeviceInfoUpdateOne {
+	diuo.mutation.ClearBrowser()
 	return diuo
 }
 
@@ -523,11 +616,20 @@ func (diuo *DeviceInfoUpdateOne) sqlSave(ctx context.Context) (_node *DeviceInfo
 	if value, ok := diuo.mutation.GetType(); ok {
 		_spec.SetField(deviceinfo.FieldType, field.TypeString, value)
 	}
+	if diuo.mutation.TypeCleared() {
+		_spec.ClearField(deviceinfo.FieldType, field.TypeString)
+	}
 	if value, ok := diuo.mutation.Os(); ok {
 		_spec.SetField(deviceinfo.FieldOs, field.TypeString, value)
 	}
+	if diuo.mutation.OsCleared() {
+		_spec.ClearField(deviceinfo.FieldOs, field.TypeString)
+	}
 	if value, ok := diuo.mutation.Browser(); ok {
 		_spec.SetField(deviceinfo.FieldBrowser, field.TypeString, value)
+	}
+	if diuo.mutation.BrowserCleared() {
+		_spec.ClearField(deviceinfo.FieldBrowser, field.TypeString)
 	}
 	if value, ok := diuo.mutation.UpdatedAt(); ok {
 		_spec.SetField(deviceinfo.FieldUpdatedAt, field.TypeTime, value)

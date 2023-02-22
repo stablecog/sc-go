@@ -1796,7 +1796,7 @@ func (m *DeviceInfoMutation) GetType() (r string, exists bool) {
 // OldType returns the old "type" field's value of the DeviceInfo entity.
 // If the DeviceInfo object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *DeviceInfoMutation) OldType(ctx context.Context) (v string, err error) {
+func (m *DeviceInfoMutation) OldType(ctx context.Context) (v *string, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldType is only allowed on UpdateOne operations")
 	}
@@ -1810,9 +1810,22 @@ func (m *DeviceInfoMutation) OldType(ctx context.Context) (v string, err error) 
 	return oldValue.Type, nil
 }
 
+// ClearType clears the value of the "type" field.
+func (m *DeviceInfoMutation) ClearType() {
+	m._type = nil
+	m.clearedFields[deviceinfo.FieldType] = struct{}{}
+}
+
+// TypeCleared returns if the "type" field was cleared in this mutation.
+func (m *DeviceInfoMutation) TypeCleared() bool {
+	_, ok := m.clearedFields[deviceinfo.FieldType]
+	return ok
+}
+
 // ResetType resets all changes to the "type" field.
 func (m *DeviceInfoMutation) ResetType() {
 	m._type = nil
+	delete(m.clearedFields, deviceinfo.FieldType)
 }
 
 // SetOs sets the "os" field.
@@ -1832,7 +1845,7 @@ func (m *DeviceInfoMutation) Os() (r string, exists bool) {
 // OldOs returns the old "os" field's value of the DeviceInfo entity.
 // If the DeviceInfo object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *DeviceInfoMutation) OldOs(ctx context.Context) (v string, err error) {
+func (m *DeviceInfoMutation) OldOs(ctx context.Context) (v *string, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldOs is only allowed on UpdateOne operations")
 	}
@@ -1846,9 +1859,22 @@ func (m *DeviceInfoMutation) OldOs(ctx context.Context) (v string, err error) {
 	return oldValue.Os, nil
 }
 
+// ClearOs clears the value of the "os" field.
+func (m *DeviceInfoMutation) ClearOs() {
+	m.os = nil
+	m.clearedFields[deviceinfo.FieldOs] = struct{}{}
+}
+
+// OsCleared returns if the "os" field was cleared in this mutation.
+func (m *DeviceInfoMutation) OsCleared() bool {
+	_, ok := m.clearedFields[deviceinfo.FieldOs]
+	return ok
+}
+
 // ResetOs resets all changes to the "os" field.
 func (m *DeviceInfoMutation) ResetOs() {
 	m.os = nil
+	delete(m.clearedFields, deviceinfo.FieldOs)
 }
 
 // SetBrowser sets the "browser" field.
@@ -1868,7 +1894,7 @@ func (m *DeviceInfoMutation) Browser() (r string, exists bool) {
 // OldBrowser returns the old "browser" field's value of the DeviceInfo entity.
 // If the DeviceInfo object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *DeviceInfoMutation) OldBrowser(ctx context.Context) (v string, err error) {
+func (m *DeviceInfoMutation) OldBrowser(ctx context.Context) (v *string, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldBrowser is only allowed on UpdateOne operations")
 	}
@@ -1882,9 +1908,22 @@ func (m *DeviceInfoMutation) OldBrowser(ctx context.Context) (v string, err erro
 	return oldValue.Browser, nil
 }
 
+// ClearBrowser clears the value of the "browser" field.
+func (m *DeviceInfoMutation) ClearBrowser() {
+	m.browser = nil
+	m.clearedFields[deviceinfo.FieldBrowser] = struct{}{}
+}
+
+// BrowserCleared returns if the "browser" field was cleared in this mutation.
+func (m *DeviceInfoMutation) BrowserCleared() bool {
+	_, ok := m.clearedFields[deviceinfo.FieldBrowser]
+	return ok
+}
+
 // ResetBrowser resets all changes to the "browser" field.
 func (m *DeviceInfoMutation) ResetBrowser() {
 	m.browser = nil
+	delete(m.clearedFields, deviceinfo.FieldBrowser)
 }
 
 // SetCreatedAt sets the "created_at" field.
@@ -2227,7 +2266,17 @@ func (m *DeviceInfoMutation) AddField(name string, value ent.Value) error {
 // ClearedFields returns all nullable fields that were cleared during this
 // mutation.
 func (m *DeviceInfoMutation) ClearedFields() []string {
-	return nil
+	var fields []string
+	if m.FieldCleared(deviceinfo.FieldType) {
+		fields = append(fields, deviceinfo.FieldType)
+	}
+	if m.FieldCleared(deviceinfo.FieldOs) {
+		fields = append(fields, deviceinfo.FieldOs)
+	}
+	if m.FieldCleared(deviceinfo.FieldBrowser) {
+		fields = append(fields, deviceinfo.FieldBrowser)
+	}
+	return fields
 }
 
 // FieldCleared returns a boolean indicating if a field with the given name was
@@ -2240,6 +2289,17 @@ func (m *DeviceInfoMutation) FieldCleared(name string) bool {
 // ClearField clears the value of the field with the given name. It returns an
 // error if the field is not defined in the schema.
 func (m *DeviceInfoMutation) ClearField(name string) error {
+	switch name {
+	case deviceinfo.FieldType:
+		m.ClearType()
+		return nil
+	case deviceinfo.FieldOs:
+		m.ClearOs()
+		return nil
+	case deviceinfo.FieldBrowser:
+		m.ClearBrowser()
+		return nil
+	}
 	return fmt.Errorf("unknown DeviceInfo nullable field %s", name)
 }
 

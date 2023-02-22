@@ -29,15 +29,39 @@ func (dic *DeviceInfoCreate) SetType(s string) *DeviceInfoCreate {
 	return dic
 }
 
+// SetNillableType sets the "type" field if the given value is not nil.
+func (dic *DeviceInfoCreate) SetNillableType(s *string) *DeviceInfoCreate {
+	if s != nil {
+		dic.SetType(*s)
+	}
+	return dic
+}
+
 // SetOs sets the "os" field.
 func (dic *DeviceInfoCreate) SetOs(s string) *DeviceInfoCreate {
 	dic.mutation.SetOs(s)
 	return dic
 }
 
+// SetNillableOs sets the "os" field if the given value is not nil.
+func (dic *DeviceInfoCreate) SetNillableOs(s *string) *DeviceInfoCreate {
+	if s != nil {
+		dic.SetOs(*s)
+	}
+	return dic
+}
+
 // SetBrowser sets the "browser" field.
 func (dic *DeviceInfoCreate) SetBrowser(s string) *DeviceInfoCreate {
 	dic.mutation.SetBrowser(s)
+	return dic
+}
+
+// SetNillableBrowser sets the "browser" field if the given value is not nil.
+func (dic *DeviceInfoCreate) SetNillableBrowser(s *string) *DeviceInfoCreate {
+	if s != nil {
+		dic.SetBrowser(*s)
+	}
 	return dic
 }
 
@@ -164,15 +188,6 @@ func (dic *DeviceInfoCreate) defaults() {
 
 // check runs all checks and user-defined validators on the builder.
 func (dic *DeviceInfoCreate) check() error {
-	if _, ok := dic.mutation.GetType(); !ok {
-		return &ValidationError{Name: "type", err: errors.New(`ent: missing required field "DeviceInfo.type"`)}
-	}
-	if _, ok := dic.mutation.Os(); !ok {
-		return &ValidationError{Name: "os", err: errors.New(`ent: missing required field "DeviceInfo.os"`)}
-	}
-	if _, ok := dic.mutation.Browser(); !ok {
-		return &ValidationError{Name: "browser", err: errors.New(`ent: missing required field "DeviceInfo.browser"`)}
-	}
 	if _, ok := dic.mutation.CreatedAt(); !ok {
 		return &ValidationError{Name: "created_at", err: errors.New(`ent: missing required field "DeviceInfo.created_at"`)}
 	}
@@ -222,15 +237,15 @@ func (dic *DeviceInfoCreate) createSpec() (*DeviceInfo, *sqlgraph.CreateSpec) {
 	}
 	if value, ok := dic.mutation.GetType(); ok {
 		_spec.SetField(deviceinfo.FieldType, field.TypeString, value)
-		_node.Type = value
+		_node.Type = &value
 	}
 	if value, ok := dic.mutation.Os(); ok {
 		_spec.SetField(deviceinfo.FieldOs, field.TypeString, value)
-		_node.Os = value
+		_node.Os = &value
 	}
 	if value, ok := dic.mutation.Browser(); ok {
 		_spec.SetField(deviceinfo.FieldBrowser, field.TypeString, value)
-		_node.Browser = value
+		_node.Browser = &value
 	}
 	if value, ok := dic.mutation.CreatedAt(); ok {
 		_spec.SetField(deviceinfo.FieldCreatedAt, field.TypeTime, value)
