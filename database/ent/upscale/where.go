@@ -291,6 +291,16 @@ func CountryCodeHasSuffix(v string) predicate.Upscale {
 	return predicate.Upscale(sql.FieldHasSuffix(FieldCountryCode, v))
 }
 
+// CountryCodeIsNil applies the IsNil predicate on the "country_code" field.
+func CountryCodeIsNil() predicate.Upscale {
+	return predicate.Upscale(sql.FieldIsNull(FieldCountryCode))
+}
+
+// CountryCodeNotNil applies the NotNil predicate on the "country_code" field.
+func CountryCodeNotNil() predicate.Upscale {
+	return predicate.Upscale(sql.FieldNotNull(FieldCountryCode))
+}
+
 // CountryCodeEqualFold applies the EqualFold predicate on the "country_code" field.
 func CountryCodeEqualFold(v string) predicate.Upscale {
 	return predicate.Upscale(sql.FieldEqualFold(FieldCountryCode, v))

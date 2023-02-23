@@ -3084,7 +3084,7 @@ func (m *GenerationMutation) CountryCode() (r string, exists bool) {
 // OldCountryCode returns the old "country_code" field's value of the Generation entity.
 // If the Generation object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *GenerationMutation) OldCountryCode(ctx context.Context) (v string, err error) {
+func (m *GenerationMutation) OldCountryCode(ctx context.Context) (v *string, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldCountryCode is only allowed on UpdateOne operations")
 	}
@@ -3098,9 +3098,22 @@ func (m *GenerationMutation) OldCountryCode(ctx context.Context) (v string, err 
 	return oldValue.CountryCode, nil
 }
 
+// ClearCountryCode clears the value of the "country_code" field.
+func (m *GenerationMutation) ClearCountryCode() {
+	m.country_code = nil
+	m.clearedFields[generation.FieldCountryCode] = struct{}{}
+}
+
+// CountryCodeCleared returns if the "country_code" field was cleared in this mutation.
+func (m *GenerationMutation) CountryCodeCleared() bool {
+	_, ok := m.clearedFields[generation.FieldCountryCode]
+	return ok
+}
+
 // ResetCountryCode resets all changes to the "country_code" field.
 func (m *GenerationMutation) ResetCountryCode() {
 	m.country_code = nil
+	delete(m.clearedFields, generation.FieldCountryCode)
 }
 
 // SetInitImageURL sets the "init_image_url" field.
@@ -4299,6 +4312,9 @@ func (m *GenerationMutation) ClearedFields() []string {
 	if m.FieldCleared(generation.FieldFailureReason) {
 		fields = append(fields, generation.FieldFailureReason)
 	}
+	if m.FieldCleared(generation.FieldCountryCode) {
+		fields = append(fields, generation.FieldCountryCode)
+	}
 	if m.FieldCleared(generation.FieldInitImageURL) {
 		fields = append(fields, generation.FieldInitImageURL)
 	}
@@ -4327,6 +4343,9 @@ func (m *GenerationMutation) ClearField(name string) error {
 	switch name {
 	case generation.FieldFailureReason:
 		m.ClearFailureReason()
+		return nil
+	case generation.FieldCountryCode:
+		m.ClearCountryCode()
 		return nil
 	case generation.FieldInitImageURL:
 		m.ClearInitImageURL()
@@ -7887,7 +7906,7 @@ func (m *UpscaleMutation) CountryCode() (r string, exists bool) {
 // OldCountryCode returns the old "country_code" field's value of the Upscale entity.
 // If the Upscale object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *UpscaleMutation) OldCountryCode(ctx context.Context) (v string, err error) {
+func (m *UpscaleMutation) OldCountryCode(ctx context.Context) (v *string, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldCountryCode is only allowed on UpdateOne operations")
 	}
@@ -7901,9 +7920,22 @@ func (m *UpscaleMutation) OldCountryCode(ctx context.Context) (v string, err err
 	return oldValue.CountryCode, nil
 }
 
+// ClearCountryCode clears the value of the "country_code" field.
+func (m *UpscaleMutation) ClearCountryCode() {
+	m.country_code = nil
+	m.clearedFields[upscale.FieldCountryCode] = struct{}{}
+}
+
+// CountryCodeCleared returns if the "country_code" field was cleared in this mutation.
+func (m *UpscaleMutation) CountryCodeCleared() bool {
+	_, ok := m.clearedFields[upscale.FieldCountryCode]
+	return ok
+}
+
 // ResetCountryCode resets all changes to the "country_code" field.
 func (m *UpscaleMutation) ResetCountryCode() {
 	m.country_code = nil
+	delete(m.clearedFields, upscale.FieldCountryCode)
 }
 
 // SetStatus sets the "status" field.
@@ -8726,6 +8758,9 @@ func (m *UpscaleMutation) AddField(name string, value ent.Value) error {
 // mutation.
 func (m *UpscaleMutation) ClearedFields() []string {
 	var fields []string
+	if m.FieldCleared(upscale.FieldCountryCode) {
+		fields = append(fields, upscale.FieldCountryCode)
+	}
 	if m.FieldCleared(upscale.FieldFailureReason) {
 		fields = append(fields, upscale.FieldFailureReason)
 	}
@@ -8749,6 +8784,9 @@ func (m *UpscaleMutation) FieldCleared(name string) bool {
 // error if the field is not defined in the schema.
 func (m *UpscaleMutation) ClearField(name string) error {
 	switch name {
+	case upscale.FieldCountryCode:
+		m.ClearCountryCode()
+		return nil
 	case upscale.FieldFailureReason:
 		m.ClearFailureReason()
 		return nil

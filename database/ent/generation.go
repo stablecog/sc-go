@@ -42,7 +42,7 @@ type Generation struct {
 	// FailureReason holds the value of the "failure_reason" field.
 	FailureReason *string `json:"failure_reason,omitempty"`
 	// CountryCode holds the value of the "country_code" field.
-	CountryCode string `json:"country_code,omitempty"`
+	CountryCode *string `json:"country_code,omitempty"`
 	// InitImageURL holds the value of the "init_image_url" field.
 	InitImageURL *string `json:"init_image_url,omitempty"`
 	// SubmitToGallery holds the value of the "submit_to_gallery" field.
@@ -279,7 +279,8 @@ func (ge *Generation) assignValues(columns []string, values []any) error {
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field country_code", values[i])
 			} else if value.Valid {
-				ge.CountryCode = value.String
+				ge.CountryCode = new(string)
+				*ge.CountryCode = value.String
 			}
 		case generation.FieldInitImageURL:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -449,8 +450,10 @@ func (ge *Generation) String() string {
 		builder.WriteString(*v)
 	}
 	builder.WriteString(", ")
-	builder.WriteString("country_code=")
-	builder.WriteString(ge.CountryCode)
+	if v := ge.CountryCode; v != nil {
+		builder.WriteString("country_code=")
+		builder.WriteString(*v)
+	}
 	builder.WriteString(", ")
 	if v := ge.InitImageURL; v != nil {
 		builder.WriteString("init_image_url=")

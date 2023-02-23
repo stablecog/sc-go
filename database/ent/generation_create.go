@@ -104,6 +104,14 @@ func (gc *GenerationCreate) SetCountryCode(s string) *GenerationCreate {
 	return gc
 }
 
+// SetNillableCountryCode sets the "country_code" field if the given value is not nil.
+func (gc *GenerationCreate) SetNillableCountryCode(s *string) *GenerationCreate {
+	if s != nil {
+		gc.SetCountryCode(*s)
+	}
+	return gc
+}
+
 // SetInitImageURL sets the "init_image_url" field.
 func (gc *GenerationCreate) SetInitImageURL(s string) *GenerationCreate {
 	gc.mutation.SetInitImageURL(s)
@@ -385,9 +393,6 @@ func (gc *GenerationCreate) check() error {
 			return &ValidationError{Name: "status", err: fmt.Errorf(`ent: validator failed for field "Generation.status": %w`, err)}
 		}
 	}
-	if _, ok := gc.mutation.CountryCode(); !ok {
-		return &ValidationError{Name: "country_code", err: errors.New(`ent: missing required field "Generation.country_code"`)}
-	}
 	if _, ok := gc.mutation.SubmitToGallery(); !ok {
 		return &ValidationError{Name: "submit_to_gallery", err: errors.New(`ent: missing required field "Generation.submit_to_gallery"`)}
 	}
@@ -506,7 +511,7 @@ func (gc *GenerationCreate) createSpec() (*Generation, *sqlgraph.CreateSpec) {
 	}
 	if value, ok := gc.mutation.CountryCode(); ok {
 		_spec.SetField(generation.FieldCountryCode, field.TypeString, value)
-		_node.CountryCode = value
+		_node.CountryCode = &value
 	}
 	if value, ok := gc.mutation.InitImageURL(); ok {
 		_spec.SetField(generation.FieldInitImageURL, field.TypeString, value)

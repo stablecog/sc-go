@@ -30,7 +30,7 @@ func (Generation) Fields() []ent.Field {
 		field.Int("seed"),
 		field.Enum("status").Values("queued", "started", "succeeded", "failed"),
 		field.Text("failure_reason").Optional().Nillable(),
-		field.Text("country_code"),
+		field.Text("country_code").Optional().Nillable(),
 		field.Text("init_image_url").Optional().Nillable(),
 		field.Bool("submit_to_gallery").Default(false),
 		// ! Relationships / many-to-one

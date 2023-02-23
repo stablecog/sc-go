@@ -168,6 +168,20 @@ func (gu *GenerationUpdate) SetCountryCode(s string) *GenerationUpdate {
 	return gu
 }
 
+// SetNillableCountryCode sets the "country_code" field if the given value is not nil.
+func (gu *GenerationUpdate) SetNillableCountryCode(s *string) *GenerationUpdate {
+	if s != nil {
+		gu.SetCountryCode(*s)
+	}
+	return gu
+}
+
+// ClearCountryCode clears the value of the "country_code" field.
+func (gu *GenerationUpdate) ClearCountryCode() *GenerationUpdate {
+	gu.mutation.ClearCountryCode()
+	return gu
+}
+
 // SetInitImageURL sets the "init_image_url" field.
 func (gu *GenerationUpdate) SetInitImageURL(s string) *GenerationUpdate {
 	gu.mutation.SetInitImageURL(s)
@@ -552,6 +566,9 @@ func (gu *GenerationUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if value, ok := gu.mutation.CountryCode(); ok {
 		_spec.SetField(generation.FieldCountryCode, field.TypeString, value)
+	}
+	if gu.mutation.CountryCodeCleared() {
+		_spec.ClearField(generation.FieldCountryCode, field.TypeString)
 	}
 	if value, ok := gu.mutation.InitImageURL(); ok {
 		_spec.SetField(generation.FieldInitImageURL, field.TypeString, value)
@@ -994,6 +1011,20 @@ func (guo *GenerationUpdateOne) SetCountryCode(s string) *GenerationUpdateOne {
 	return guo
 }
 
+// SetNillableCountryCode sets the "country_code" field if the given value is not nil.
+func (guo *GenerationUpdateOne) SetNillableCountryCode(s *string) *GenerationUpdateOne {
+	if s != nil {
+		guo.SetCountryCode(*s)
+	}
+	return guo
+}
+
+// ClearCountryCode clears the value of the "country_code" field.
+func (guo *GenerationUpdateOne) ClearCountryCode() *GenerationUpdateOne {
+	guo.mutation.ClearCountryCode()
+	return guo
+}
+
 // SetInitImageURL sets the "init_image_url" field.
 func (guo *GenerationUpdateOne) SetInitImageURL(s string) *GenerationUpdateOne {
 	guo.mutation.SetInitImageURL(s)
@@ -1402,6 +1433,9 @@ func (guo *GenerationUpdateOne) sqlSave(ctx context.Context) (_node *Generation,
 	}
 	if value, ok := guo.mutation.CountryCode(); ok {
 		_spec.SetField(generation.FieldCountryCode, field.TypeString, value)
+	}
+	if guo.mutation.CountryCodeCleared() {
+		_spec.ClearField(generation.FieldCountryCode, field.TypeString)
 	}
 	if value, ok := guo.mutation.InitImageURL(); ok {
 		_spec.SetField(generation.FieldInitImageURL, field.TypeString, value)

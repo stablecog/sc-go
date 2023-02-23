@@ -79,6 +79,20 @@ func (uu *UpscaleUpdate) SetCountryCode(s string) *UpscaleUpdate {
 	return uu
 }
 
+// SetNillableCountryCode sets the "country_code" field if the given value is not nil.
+func (uu *UpscaleUpdate) SetNillableCountryCode(s *string) *UpscaleUpdate {
+	if s != nil {
+		uu.SetCountryCode(*s)
+	}
+	return uu
+}
+
+// ClearCountryCode clears the value of the "country_code" field.
+func (uu *UpscaleUpdate) ClearCountryCode() *UpscaleUpdate {
+	uu.mutation.ClearCountryCode()
+	return uu
+}
+
 // SetStatus sets the "status" field.
 func (uu *UpscaleUpdate) SetStatus(u upscale.Status) *UpscaleUpdate {
 	uu.mutation.SetStatus(u)
@@ -352,6 +366,9 @@ func (uu *UpscaleUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if value, ok := uu.mutation.CountryCode(); ok {
 		_spec.SetField(upscale.FieldCountryCode, field.TypeString, value)
 	}
+	if uu.mutation.CountryCodeCleared() {
+		_spec.ClearField(upscale.FieldCountryCode, field.TypeString)
+	}
 	if value, ok := uu.mutation.Status(); ok {
 		_spec.SetField(upscale.FieldStatus, field.TypeEnum, value)
 	}
@@ -599,6 +616,20 @@ func (uuo *UpscaleUpdateOne) AddScale(i int32) *UpscaleUpdateOne {
 // SetCountryCode sets the "country_code" field.
 func (uuo *UpscaleUpdateOne) SetCountryCode(s string) *UpscaleUpdateOne {
 	uuo.mutation.SetCountryCode(s)
+	return uuo
+}
+
+// SetNillableCountryCode sets the "country_code" field if the given value is not nil.
+func (uuo *UpscaleUpdateOne) SetNillableCountryCode(s *string) *UpscaleUpdateOne {
+	if s != nil {
+		uuo.SetCountryCode(*s)
+	}
+	return uuo
+}
+
+// ClearCountryCode clears the value of the "country_code" field.
+func (uuo *UpscaleUpdateOne) ClearCountryCode() *UpscaleUpdateOne {
+	uuo.mutation.ClearCountryCode()
 	return uuo
 }
 
@@ -898,6 +929,9 @@ func (uuo *UpscaleUpdateOne) sqlSave(ctx context.Context) (_node *Upscale, err e
 	}
 	if value, ok := uuo.mutation.CountryCode(); ok {
 		_spec.SetField(upscale.FieldCountryCode, field.TypeString, value)
+	}
+	if uuo.mutation.CountryCodeCleared() {
+		_spec.ClearField(upscale.FieldCountryCode, field.TypeString)
 	}
 	if value, ok := uuo.mutation.Status(); ok {
 		_spec.SetField(upscale.FieldStatus, field.TypeEnum, value)

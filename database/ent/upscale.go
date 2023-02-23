@@ -27,7 +27,7 @@ type Upscale struct {
 	// Scale holds the value of the "scale" field.
 	Scale int32 `json:"scale,omitempty"`
 	// CountryCode holds the value of the "country_code" field.
-	CountryCode string `json:"country_code,omitempty"`
+	CountryCode *string `json:"country_code,omitempty"`
 	// Status holds the value of the "status" field.
 	Status upscale.Status `json:"status,omitempty"`
 	// FailureReason holds the value of the "failure_reason" field.
@@ -170,7 +170,8 @@ func (u *Upscale) assignValues(columns []string, values []any) error {
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field country_code", values[i])
 			} else if value.Valid {
-				u.CountryCode = value.String
+				u.CountryCode = new(string)
+				*u.CountryCode = value.String
 			}
 		case upscale.FieldStatus:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -286,8 +287,10 @@ func (u *Upscale) String() string {
 	builder.WriteString("scale=")
 	builder.WriteString(fmt.Sprintf("%v", u.Scale))
 	builder.WriteString(", ")
-	builder.WriteString("country_code=")
-	builder.WriteString(u.CountryCode)
+	if v := u.CountryCode; v != nil {
+		builder.WriteString("country_code=")
+		builder.WriteString(*v)
+	}
 	builder.WriteString(", ")
 	builder.WriteString("status=")
 	builder.WriteString(fmt.Sprintf("%v", u.Status))

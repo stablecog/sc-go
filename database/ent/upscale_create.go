@@ -49,6 +49,14 @@ func (uc *UpscaleCreate) SetCountryCode(s string) *UpscaleCreate {
 	return uc
 }
 
+// SetNillableCountryCode sets the "country_code" field if the given value is not nil.
+func (uc *UpscaleCreate) SetNillableCountryCode(s *string) *UpscaleCreate {
+	if s != nil {
+		uc.SetCountryCode(*s)
+	}
+	return uc
+}
+
 // SetStatus sets the "status" field.
 func (uc *UpscaleCreate) SetStatus(u upscale.Status) *UpscaleCreate {
 	uc.mutation.SetStatus(u)
@@ -253,9 +261,6 @@ func (uc *UpscaleCreate) check() error {
 	if _, ok := uc.mutation.Scale(); !ok {
 		return &ValidationError{Name: "scale", err: errors.New(`ent: missing required field "Upscale.scale"`)}
 	}
-	if _, ok := uc.mutation.CountryCode(); !ok {
-		return &ValidationError{Name: "country_code", err: errors.New(`ent: missing required field "Upscale.country_code"`)}
-	}
 	if _, ok := uc.mutation.Status(); !ok {
 		return &ValidationError{Name: "status", err: errors.New(`ent: missing required field "Upscale.status"`)}
 	}
@@ -343,7 +348,7 @@ func (uc *UpscaleCreate) createSpec() (*Upscale, *sqlgraph.CreateSpec) {
 	}
 	if value, ok := uc.mutation.CountryCode(); ok {
 		_spec.SetField(upscale.FieldCountryCode, field.TypeString, value)
-		_node.CountryCode = value
+		_node.CountryCode = &value
 	}
 	if value, ok := uc.mutation.Status(); ok {
 		_spec.SetField(upscale.FieldStatus, field.TypeEnum, value)
