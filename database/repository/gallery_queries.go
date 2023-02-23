@@ -63,7 +63,7 @@ type GalleryData struct {
 	Height             int32      `json:"height" sql:"generation_height"`
 	InferenceSteps     int32      `json:"inference_steps" sql:"generation_inference_steps"`
 	GuidanceScale      float32    `json:"guidance_scale" sql:"generation_guidance_scale"`
-	Seed               int        `json:"seed" sql:"generation_seed"`
+	Seed               int        `json:"seed,omitempty" sql:"generation_seed"`
 	ModelID            uuid.UUID  `json:"model_id" sql:"model_id"`
 	SchedulerID        uuid.UUID  `json:"scheduler_id" sql:"scheduler_id"`
 	PromptText         string     `json:"prompt_text" sql:"prompt_text"`

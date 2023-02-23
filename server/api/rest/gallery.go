@@ -46,6 +46,7 @@ func (c *RestAPI) GetGenerationGs(page int, batchSize int, search string, filter
 			klog.Errorf("Error unmarshalling hit: %v", err)
 			return nil, err
 		}
+		gen.Seed = 0
 		generationGs = append(generationGs, gen)
 	}
 	return generationGs, nil

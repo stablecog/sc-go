@@ -207,7 +207,7 @@ func (c *RestAPI) HandleUpscale(w http.ResponseWriter, r *http.Request) {
 		// this will trigger timeout if it hasnt been finished
 		c.Repo.FailCogMessageDueToTimeoutIfTimedOut(requests.CogRedisMessage{
 			Input:  cogReqBody.Input,
-			Error:  "TIMEOUT",
+			Error:  shared.TIMEOUT_ERROR,
 			Status: requests.CogFailed,
 		})
 	}()

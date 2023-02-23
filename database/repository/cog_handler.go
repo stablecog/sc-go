@@ -59,7 +59,7 @@ func (r *Repository) FailCogMessageDueToTimeoutIfTimedOut(msg requests.CogRedisM
 		return
 	}
 
-	msg.Error = "TIMEOUT"
+	msg.Error = shared.TIMEOUT_ERROR
 
 	inputUuid, err := uuid.Parse(msg.Input.ID)
 	if err != nil {

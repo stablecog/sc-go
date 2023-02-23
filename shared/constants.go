@@ -8,6 +8,9 @@ const CREDIT_TYPE_FREE = "free"
 // NSFW Error
 const NSFW_ERROR = "NSFW"
 
+// Timeout
+const TIMEOUT_ERROR = "TIMEOUT"
+
 // After this period, a request will timeout and a user will be refunded
 // But the generation/upscale may still go through, if it takes longer than this
 const REQUEST_COG_TIMEOUT = 60 * time.Second
