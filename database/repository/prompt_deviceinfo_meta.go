@@ -9,7 +9,7 @@ import (
 )
 
 // Create device info and prompts if they don't exist, otherwise get existing
-func (r *Repository) GetOrCreateDeviceInfoAndPrompts(promptText, negativePromptText, deviceType, deviceOs, deviceBrowser string, DB *ent.Client) (promptId uuid.UUID, negativePromptId *uuid.UUID, deviceInfoId uuid.UUID, err error) {
+func (r *Repository) GetOrCreatePrompts(promptText, negativePromptText string, DB *ent.Client) (promptId *uuid.UUID, negativePromptId *uuid.UUID, err error) {
 	if DB == nil {
 		DB = r.DB
 	}
@@ -21,10 +21,10 @@ func (r *Repository) GetOrCreateDeviceInfoAndPrompts(promptText, negativePromptT
 			// Create prompt
 			dbPrompt, err = DB.Prompt.Create().SetText(promptText).Save(r.Ctx)
 			if err != nil {
-				return promptId, negativePromptId, deviceInfoId, err
+				return promptId, negativePromptId, err
 			}
 		} else {
-			return promptId, negativePromptId, deviceInfoId, err
+			return promptId, negativePromptId, err
 		}
 	}
 
@@ -37,34 +37,22 @@ func (r *Repository) GetOrCreateDeviceInfoAndPrompts(promptText, negativePromptT
 				// Create negative prompt
 				dbNegativePrompt, err = DB.NegativePrompt.Create().SetText(negativePromptText).Save(r.Ctx)
 				if err != nil {
-					return promptId, negativePromptId, deviceInfoId, err
+					return promptId, negativePromptId, err
 				}
 			} else {
-				return promptId, negativePromptId, deviceInfoId, err
+				return promptId, negativePromptId, err
 			}
-		}
-	}
-
-	// Check if device info combo exists
-	var dbDeviceInfo *ent.DeviceInfo
-	dbDeviceInfo, err = DB.DeviceInfo.Query().Where(deviceinfo.Type(deviceType), deviceinfo.Os(deviceOs), deviceinfo.Browser(deviceBrowser)).Only(r.Ctx)
-	if err != nil {
-		if ent.IsNotFound(err) {
-			// Create device info
-			dbDeviceInfo, err = DB.DeviceInfo.Create().SetType(deviceType).SetOs(deviceOs).SetBrowser(deviceBrowser).Save(r.Ctx)
-			if err != nil {
-				return promptId, negativePromptId, deviceInfoId, err
-			}
-		} else {
-			return promptId, negativePromptId, deviceInfoId, err
 		}
 	}
 
 	// Negative prompt is optional so
-	if dbNegativePrompt == nil {
-		return dbPrompt.ID, nil, dbDeviceInfo.ID, nil
+	if dbPrompt != nil {
+		promptId = &dbPrompt.ID
 	}
-	return dbPrompt.ID, &dbNegativePrompt.ID, dbDeviceInfo.ID, nil
+	if dbNegativePrompt != nil {
+		negativePromptId = &dbNegativePrompt.ID
+	}
+	return promptId, negativePromptId, nil
 }
 
 // Get a device_info ID given inputs

@@ -222,6 +222,20 @@ func (gu *GenerationUpdate) SetPromptID(u uuid.UUID) *GenerationUpdate {
 	return gu
 }
 
+// SetNillablePromptID sets the "prompt_id" field if the given value is not nil.
+func (gu *GenerationUpdate) SetNillablePromptID(u *uuid.UUID) *GenerationUpdate {
+	if u != nil {
+		gu.SetPromptID(*u)
+	}
+	return gu
+}
+
+// ClearPromptID clears the value of the "prompt_id" field.
+func (gu *GenerationUpdate) ClearPromptID() *GenerationUpdate {
+	gu.mutation.ClearPromptID()
+	return gu
+}
+
 // SetNegativePromptID sets the "negative_prompt_id" field.
 func (gu *GenerationUpdate) SetNegativePromptID(u uuid.UUID) *GenerationUpdate {
 	gu.mutation.SetNegativePromptID(u)
@@ -473,9 +487,6 @@ func (gu *GenerationUpdate) check() error {
 	}
 	if _, ok := gu.mutation.SchedulerID(); gu.mutation.SchedulerCleared() && !ok {
 		return errors.New(`ent: clearing a required unique edge "Generation.scheduler"`)
-	}
-	if _, ok := gu.mutation.PromptID(); gu.mutation.PromptCleared() && !ok {
-		return errors.New(`ent: clearing a required unique edge "Generation.prompt"`)
 	}
 	if _, ok := gu.mutation.GenerationModelID(); gu.mutation.GenerationModelCleared() && !ok {
 		return errors.New(`ent: clearing a required unique edge "Generation.generation_model"`)
@@ -1065,6 +1076,20 @@ func (guo *GenerationUpdateOne) SetPromptID(u uuid.UUID) *GenerationUpdateOne {
 	return guo
 }
 
+// SetNillablePromptID sets the "prompt_id" field if the given value is not nil.
+func (guo *GenerationUpdateOne) SetNillablePromptID(u *uuid.UUID) *GenerationUpdateOne {
+	if u != nil {
+		guo.SetPromptID(*u)
+	}
+	return guo
+}
+
+// ClearPromptID clears the value of the "prompt_id" field.
+func (guo *GenerationUpdateOne) ClearPromptID() *GenerationUpdateOne {
+	guo.mutation.ClearPromptID()
+	return guo
+}
+
 // SetNegativePromptID sets the "negative_prompt_id" field.
 func (guo *GenerationUpdateOne) SetNegativePromptID(u uuid.UUID) *GenerationUpdateOne {
 	guo.mutation.SetNegativePromptID(u)
@@ -1323,9 +1348,6 @@ func (guo *GenerationUpdateOne) check() error {
 	}
 	if _, ok := guo.mutation.SchedulerID(); guo.mutation.SchedulerCleared() && !ok {
 		return errors.New(`ent: clearing a required unique edge "Generation.scheduler"`)
-	}
-	if _, ok := guo.mutation.PromptID(); guo.mutation.PromptCleared() && !ok {
-		return errors.New(`ent: clearing a required unique edge "Generation.prompt"`)
 	}
 	if _, ok := guo.mutation.GenerationModelID(); guo.mutation.GenerationModelCleared() && !ok {
 		return errors.New(`ent: clearing a required unique edge "Generation.generation_model"`)

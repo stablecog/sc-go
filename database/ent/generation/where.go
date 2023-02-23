@@ -716,6 +716,16 @@ func PromptIDNotIn(vs ...uuid.UUID) predicate.Generation {
 	return predicate.Generation(sql.FieldNotIn(FieldPromptID, vs...))
 }
 
+// PromptIDIsNil applies the IsNil predicate on the "prompt_id" field.
+func PromptIDIsNil() predicate.Generation {
+	return predicate.Generation(sql.FieldIsNull(FieldPromptID))
+}
+
+// PromptIDNotNil applies the NotNil predicate on the "prompt_id" field.
+func PromptIDNotNil() predicate.Generation {
+	return predicate.Generation(sql.FieldNotNull(FieldPromptID))
+}
+
 // NegativePromptIDEQ applies the EQ predicate on the "negative_prompt_id" field.
 func NegativePromptIDEQ(v uuid.UUID) predicate.Generation {
 	return predicate.Generation(sql.FieldEQ(FieldNegativePromptID, v))

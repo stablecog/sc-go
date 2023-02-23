@@ -146,6 +146,14 @@ func (gc *GenerationCreate) SetPromptID(u uuid.UUID) *GenerationCreate {
 	return gc
 }
 
+// SetNillablePromptID sets the "prompt_id" field if the given value is not nil.
+func (gc *GenerationCreate) SetNillablePromptID(u *uuid.UUID) *GenerationCreate {
+	if u != nil {
+		gc.SetPromptID(*u)
+	}
+	return gc
+}
+
 // SetNegativePromptID sets the "negative_prompt_id" field.
 func (gc *GenerationCreate) SetNegativePromptID(u uuid.UUID) *GenerationCreate {
 	gc.mutation.SetNegativePromptID(u)
@@ -396,9 +404,6 @@ func (gc *GenerationCreate) check() error {
 	if _, ok := gc.mutation.SubmitToGallery(); !ok {
 		return &ValidationError{Name: "submit_to_gallery", err: errors.New(`ent: missing required field "Generation.submit_to_gallery"`)}
 	}
-	if _, ok := gc.mutation.PromptID(); !ok {
-		return &ValidationError{Name: "prompt_id", err: errors.New(`ent: missing required field "Generation.prompt_id"`)}
-	}
 	if _, ok := gc.mutation.ModelID(); !ok {
 		return &ValidationError{Name: "model_id", err: errors.New(`ent: missing required field "Generation.model_id"`)}
 	}
@@ -422,9 +427,6 @@ func (gc *GenerationCreate) check() error {
 	}
 	if _, ok := gc.mutation.SchedulerID(); !ok {
 		return &ValidationError{Name: "scheduler", err: errors.New(`ent: missing required edge "Generation.scheduler"`)}
-	}
-	if _, ok := gc.mutation.PromptID(); !ok {
-		return &ValidationError{Name: "prompt", err: errors.New(`ent: missing required edge "Generation.prompt"`)}
 	}
 	if _, ok := gc.mutation.GenerationModelID(); !ok {
 		return &ValidationError{Name: "generation_model", err: errors.New(`ent: missing required edge "Generation.generation_model"`)}
@@ -594,7 +596,7 @@ func (gc *GenerationCreate) createSpec() (*Generation, *sqlgraph.CreateSpec) {
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		_node.PromptID = nodes[0]
+		_node.PromptID = &nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	if nodes := gc.mutation.NegativePromptIDs(); len(nodes) > 0 {

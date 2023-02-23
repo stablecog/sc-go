@@ -3218,7 +3218,7 @@ func (m *GenerationMutation) PromptID() (r uuid.UUID, exists bool) {
 // OldPromptID returns the old "prompt_id" field's value of the Generation entity.
 // If the Generation object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *GenerationMutation) OldPromptID(ctx context.Context) (v uuid.UUID, err error) {
+func (m *GenerationMutation) OldPromptID(ctx context.Context) (v *uuid.UUID, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldPromptID is only allowed on UpdateOne operations")
 	}
@@ -3232,9 +3232,22 @@ func (m *GenerationMutation) OldPromptID(ctx context.Context) (v uuid.UUID, err 
 	return oldValue.PromptID, nil
 }
 
+// ClearPromptID clears the value of the "prompt_id" field.
+func (m *GenerationMutation) ClearPromptID() {
+	m.prompt = nil
+	m.clearedFields[generation.FieldPromptID] = struct{}{}
+}
+
+// PromptIDCleared returns if the "prompt_id" field was cleared in this mutation.
+func (m *GenerationMutation) PromptIDCleared() bool {
+	_, ok := m.clearedFields[generation.FieldPromptID]
+	return ok
+}
+
 // ResetPromptID resets all changes to the "prompt_id" field.
 func (m *GenerationMutation) ResetPromptID() {
 	m.prompt = nil
+	delete(m.clearedFields, generation.FieldPromptID)
 }
 
 // SetNegativePromptID sets the "negative_prompt_id" field.
@@ -3659,7 +3672,7 @@ func (m *GenerationMutation) ClearPrompt() {
 
 // PromptCleared reports if the "prompt" edge to the Prompt entity was cleared.
 func (m *GenerationMutation) PromptCleared() bool {
-	return m.clearedprompt
+	return m.PromptIDCleared() || m.clearedprompt
 }
 
 // PromptIDs returns the "prompt" edge IDs in the mutation.
@@ -4318,6 +4331,9 @@ func (m *GenerationMutation) ClearedFields() []string {
 	if m.FieldCleared(generation.FieldInitImageURL) {
 		fields = append(fields, generation.FieldInitImageURL)
 	}
+	if m.FieldCleared(generation.FieldPromptID) {
+		fields = append(fields, generation.FieldPromptID)
+	}
 	if m.FieldCleared(generation.FieldNegativePromptID) {
 		fields = append(fields, generation.FieldNegativePromptID)
 	}
@@ -4349,6 +4365,9 @@ func (m *GenerationMutation) ClearField(name string) error {
 		return nil
 	case generation.FieldInitImageURL:
 		m.ClearInitImageURL()
+		return nil
+	case generation.FieldPromptID:
+		m.ClearPromptID()
 		return nil
 	case generation.FieldNegativePromptID:
 		m.ClearNegativePromptID()

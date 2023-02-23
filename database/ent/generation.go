@@ -48,7 +48,7 @@ type Generation struct {
 	// SubmitToGallery holds the value of the "submit_to_gallery" field.
 	SubmitToGallery bool `json:"submit_to_gallery,omitempty"`
 	// PromptID holds the value of the "prompt_id" field.
-	PromptID uuid.UUID `json:"prompt_id,omitempty"`
+	PromptID *uuid.UUID `json:"prompt_id,omitempty"`
 	// NegativePromptID holds the value of the "negative_prompt_id" field.
 	NegativePromptID *uuid.UUID `json:"negative_prompt_id,omitempty"`
 	// ModelID holds the value of the "model_id" field.
@@ -185,7 +185,7 @@ func (*Generation) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case generation.FieldNegativePromptID:
+		case generation.FieldPromptID, generation.FieldNegativePromptID:
 			values[i] = &sql.NullScanner{S: new(uuid.UUID)}
 		case generation.FieldSubmitToGallery:
 			values[i] = new(sql.NullBool)
@@ -197,7 +197,7 @@ func (*Generation) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullString)
 		case generation.FieldStartedAt, generation.FieldCompletedAt, generation.FieldCreatedAt, generation.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
-		case generation.FieldID, generation.FieldPromptID, generation.FieldModelID, generation.FieldSchedulerID, generation.FieldUserID, generation.FieldDeviceInfoID:
+		case generation.FieldID, generation.FieldModelID, generation.FieldSchedulerID, generation.FieldUserID, generation.FieldDeviceInfoID:
 			values[i] = new(uuid.UUID)
 		default:
 			return nil, fmt.Errorf("unexpected column %q for type Generation", columns[i])
@@ -296,10 +296,11 @@ func (ge *Generation) assignValues(columns []string, values []any) error {
 				ge.SubmitToGallery = value.Bool
 			}
 		case generation.FieldPromptID:
-			if value, ok := values[i].(*uuid.UUID); !ok {
+			if value, ok := values[i].(*sql.NullScanner); !ok {
 				return fmt.Errorf("unexpected type %T for field prompt_id", values[i])
-			} else if value != nil {
-				ge.PromptID = *value
+			} else if value.Valid {
+				ge.PromptID = new(uuid.UUID)
+				*ge.PromptID = *value.S.(*uuid.UUID)
 			}
 		case generation.FieldNegativePromptID:
 			if value, ok := values[i].(*sql.NullScanner); !ok {
@@ -463,8 +464,10 @@ func (ge *Generation) String() string {
 	builder.WriteString("submit_to_gallery=")
 	builder.WriteString(fmt.Sprintf("%v", ge.SubmitToGallery))
 	builder.WriteString(", ")
-	builder.WriteString("prompt_id=")
-	builder.WriteString(fmt.Sprintf("%v", ge.PromptID))
+	if v := ge.PromptID; v != nil {
+		builder.WriteString("prompt_id=")
+		builder.WriteString(fmt.Sprintf("%v", *v))
+	}
 	builder.WriteString(", ")
 	if v := ge.NegativePromptID; v != nil {
 		builder.WriteString("negative_prompt_id=")

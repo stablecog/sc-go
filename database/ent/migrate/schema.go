@@ -100,7 +100,7 @@ var (
 		{Name: "device_info_id", Type: field.TypeUUID},
 		{Name: "model_id", Type: field.TypeUUID},
 		{Name: "negative_prompt_id", Type: field.TypeUUID, Nullable: true},
-		{Name: "prompt_id", Type: field.TypeUUID},
+		{Name: "prompt_id", Type: field.TypeUUID, Nullable: true},
 		{Name: "scheduler_id", Type: field.TypeUUID},
 		{Name: "user_id", Type: field.TypeUUID},
 	}

@@ -727,7 +727,10 @@ func (gq *GenerationQuery) loadPrompt(ctx context.Context, query *PromptQuery, n
 	ids := make([]uuid.UUID, 0, len(nodes))
 	nodeids := make(map[uuid.UUID][]*Generation)
 	for i := range nodes {
-		fk := nodes[i].PromptID
+		if nodes[i].PromptID == nil {
+			continue
+		}
+		fk := *nodes[i].PromptID
 		if _, ok := nodeids[fk]; !ok {
 			ids = append(ids, fk)
 		}

@@ -19,7 +19,7 @@ func (r *Repository) CreateGeneration(userID uuid.UUID, deviceType, deviceOs, de
 		DB = r.DB
 	}
 	// Get prompt, negative prompt, device info
-	promptId, negativePromptId, deviceInfoId, err := r.GetOrCreateDeviceInfoAndPrompts(req.Prompt, req.NegativePrompt, deviceType, deviceOs, deviceBrowser, DB)
+	deviceInfoId, err := r.GetOrCreateDeviceInfo(deviceType, deviceOs, deviceBrowser, DB)
 	if err != nil {
 		return nil, err
 	}
@@ -32,15 +32,11 @@ func (r *Repository) CreateGeneration(userID uuid.UUID, deviceType, deviceOs, de
 		SetSeed(req.Seed).
 		SetModelID(req.ModelId).
 		SetSchedulerID(req.SchedulerId).
-		SetPromptID(promptId).
 		SetDeviceInfoID(deviceInfoId).
 		SetCountryCode(countryCode).
 		SetUserID(userID).
 		SetSubmitToGallery(req.SubmitToGallery).
 		SetNumOutputs(req.NumOutputs)
-	if negativePromptId != nil {
-		insert.SetNegativePromptID(*negativePromptId)
-	}
 	return insert.Save(r.Ctx)
 }
 
@@ -75,7 +71,7 @@ func (r *Repository) SetGenerationFailed(generationID string, reason string, nsf
 	return err
 }
 
-func (r *Repository) SetGenerationSucceeded(generationID string, outputs []string, nsfwCount int32) ([]*ent.GenerationOutput, error) {
+func (r *Repository) SetGenerationSucceeded(generationID string, prompt string, negativePrompt string, outputs []string, nsfwCount int32) ([]*ent.GenerationOutput, error) {
 	uid, err := uuid.Parse(generationID)
 	if err != nil {
 		klog.Errorf("Error parsing generation id in SetGenerationSucceeded %s: %v", generationID, err)
@@ -90,6 +86,7 @@ func (r *Repository) SetGenerationSucceeded(generationID string, outputs []strin
 			klog.Errorf("Error starting transaction in SetGenerationSucceeded %s: %v", generationID, err)
 			return err
 		}
+		db := tx.Client()
 
 		// Retrieve the generation
 		g, err := r.GetGeneration(uid)
@@ -98,8 +95,22 @@ func (r *Repository) SetGenerationSucceeded(generationID string, outputs []strin
 			return err
 		}
 
+		// Get prompt IDs
+		promptId, negativePromptId, err := r.GetOrCreatePrompts(prompt, negativePrompt, db)
+		if err != nil {
+			klog.Errorf("Error getting or creating prompts %s: %v", generationID, err)
+			return err
+		}
+
 		// Update the generation
-		_, err = tx.Generation.UpdateOneID(uid).SetStatus(generation.StatusSucceeded).SetCompletedAt(time.Now()).SetNsfwCount(nsfwCount).Save(r.Ctx)
+		genUpdate := db.Generation.UpdateOneID(uid).SetStatus(generation.StatusSucceeded).SetCompletedAt(time.Now()).SetNsfwCount(nsfwCount)
+		if promptId != nil {
+			genUpdate.SetPromptID(*promptId)
+		}
+		if negativePromptId != nil {
+			genUpdate.SetNegativePromptID(*negativePromptId)
+		}
+		_, err = genUpdate.Save(r.Ctx)
 		if err != nil {
 			klog.Errorf("Error setting generation succeeded %s: %v", generationID, err)
 			return err
@@ -120,7 +131,7 @@ func (r *Repository) SetGenerationSucceeded(generationID string, outputs []strin
 				klog.Errorf("Error parsing s3 url %s: %v", output, err)
 				parsedS3 = output
 			}
-			gOutput, err := tx.GenerationOutput.Create().SetGenerationID(uid).SetImagePath(parsedS3).SetGalleryStatus(galleryStatus).Save(r.Ctx)
+			gOutput, err := db.GenerationOutput.Create().SetGenerationID(uid).SetImagePath(parsedS3).SetGalleryStatus(galleryStatus).Save(r.Ctx)
 			if err != nil {
 				klog.Errorf("Error inserting generation output %s: %v", generationID, err)
 				return err

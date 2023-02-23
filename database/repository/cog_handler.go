@@ -302,7 +302,7 @@ func (r *Repository) ProcessCogMessage(msg requests.CogRedisMessage) {
 				// ! Currently we are only assuming 1 output per upscale request
 				upscaleOutput, err = r.SetUpscaleSucceeded(msg.Input.ID, msg.Input.GenerationOutputID, msg.Input.Image, msg.Outputs[0])
 			} else {
-				generationOutputs, err = r.SetGenerationSucceeded(msg.Input.ID, msg.Outputs, msg.NSFWCount)
+				generationOutputs, err = r.SetGenerationSucceeded(msg.Input.ID, msg.Input.Prompt, msg.Input.NegativePrompt, msg.Outputs, msg.NSFWCount)
 			}
 			if err != nil {
 				klog.Errorf("--- Error setting %s succeeded for ID %s: %v", msg.Input.ProcessType, msg.Input.ID, err)
