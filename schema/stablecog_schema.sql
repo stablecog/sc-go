@@ -163,7 +163,6 @@ CREATE TABLE public.generations (
     init_image_url text,
     started_at timestamp with time zone,
     completed_at timestamp with time zone,
-    is_submitted_to_gallery boolean DEFAULT false NOT NULL,
     submit_to_gallery boolean DEFAULT false NOT NULL,
     num_outputs integer NOT NULL,
     nsfw_count integer DEFAULT 0 NOT NULL,
