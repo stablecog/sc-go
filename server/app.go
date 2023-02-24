@@ -122,6 +122,9 @@ func main() {
 			if err != nil {
 				klog.Warningf("Error getting credit type: %v", err)
 				continue
+			} else if creditType == nil {
+				klog.Warningf("Credit type doesn't exist with product ID %s", productId)
+				continue
 			}
 
 			// Get user
@@ -139,6 +142,8 @@ func main() {
 				continue
 			}
 		}
+		klog.Infof("Bye bye!")
+		os.Exit(0)
 	}
 
 	app := chi.NewRouter()
