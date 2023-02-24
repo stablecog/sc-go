@@ -20,7 +20,7 @@ services:
       - PGDATA=/var/lib/postgresql/data/dev
     volumes:
       - .data/postgres:/var/lib/postgresql/data:delegated # Delegated indicates the containers view of the volume takes priority
-      - .data/postgres/initdb:/docker-entrypoint-initdb.d/
+      - ./schema/localdev:/docker-entrypoint-initdb.d/
     networks: [ 'app-network' ]
 
   app:

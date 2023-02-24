@@ -1,5 +1,4 @@
-CREATE extension IF NOT EXISTS moddatetime schema extensions;
-CREATE EXTENSION IF NOT EXISTS "uuid-ossp" schema extensions;
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
 --
 -- Name: generate_upscale_status_enum; Type: TYPE; Schema: public; Owner: postgres
@@ -27,10 +26,6 @@ CREATE TYPE public.user_role_names_enum AS ENUM (
 
 ALTER TYPE public.user_role_names_enum OWNER TO postgres;
 
---
--- Name: generation_output_gallery_status_enum; Type: TYPE; Schema: public; Owner: postgres
---
-
 CREATE TYPE public.generation_output_gallery_status_enum AS ENUM (
     'not_submitted',
     'submitted',
@@ -45,7 +40,7 @@ ALTER TYPE public.generation_output_gallery_status_enum OWNER TO postgres;
 --
 
 CREATE TABLE public.credit_types (
-    id uuid DEFAULT extensions.uuid_generate_v4() NOT NULL,
+    id uuid DEFAULT uuid_generate_v4() NOT NULL,
     name text NOT NULL,
     description text,
     amount integer NOT NULL,
@@ -55,10 +50,6 @@ CREATE TABLE public.credit_types (
 );
 
 
-CREATE trigger handle_updated_at before
-UPDATE
-    ON public.credit_types FOR each ROW EXECUTE PROCEDURE moddatetime (updated_at);
-
 ALTER TABLE public.credit_types OWNER TO postgres;
 
 --
@@ -66,20 +57,16 @@ ALTER TABLE public.credit_types OWNER TO postgres;
 --
 
 CREATE TABLE public.credits (
-    id uuid DEFAULT extensions.uuid_generate_v4() NOT NULL,
+    id uuid DEFAULT uuid_generate_v4() NOT NULL,
     remaining_amount integer NOT NULL,
     expires_at timestamp with time zone NOT NULL,
+    created_at timestamp with time zone DEFAULT (now() AT TIME ZONE 'utc'::text) NOT NULL,
+    updated_at timestamp with time zone DEFAULT (now() AT TIME ZONE 'utc'::text) NOT NULL,
     credit_type_id uuid NOT NULL,
     user_id uuid NOT NULL,
-    stripe_line_item_id character varying,
-    created_at timestamp with time zone DEFAULT (now() AT TIME ZONE 'utc'::text) NOT NULL,
-    updated_at timestamp with time zone DEFAULT (now() AT TIME ZONE 'utc'::text) NOT NULL
+    stripe_line_item_id character varying
 );
 
-
-CREATE trigger handle_updated_at before
-UPDATE
-    ON public.credits FOR each ROW EXECUTE PROCEDURE moddatetime (updated_at);
 
 ALTER TABLE public.credits OWNER TO postgres;
 
@@ -88,7 +75,7 @@ ALTER TABLE public.credits OWNER TO postgres;
 --
 
 CREATE TABLE public.device_info (
-    id uuid DEFAULT extensions.uuid_generate_v4() NOT NULL,
+    id uuid DEFAULT uuid_generate_v4() NOT NULL,
     type text,
     os text,
     browser text,
@@ -96,9 +83,6 @@ CREATE TABLE public.device_info (
     updated_at timestamp with time zone DEFAULT (now() AT TIME ZONE 'utc'::text) NOT NULL
 );
 
-CREATE trigger handle_updated_at before
-UPDATE
-    ON public.device_info FOR each ROW EXECUTE PROCEDURE moddatetime (updated_at);
 
 ALTER TABLE public.device_info OWNER TO postgres;
 
@@ -107,15 +91,12 @@ ALTER TABLE public.device_info OWNER TO postgres;
 --
 
 CREATE TABLE public.generation_models (
-    id uuid DEFAULT extensions.uuid_generate_v4() NOT NULL,
+    id uuid DEFAULT uuid_generate_v4() NOT NULL,
     name_in_worker text NOT NULL,
     created_at timestamp with time zone DEFAULT (now() AT TIME ZONE 'utc'::text) NOT NULL,
     updated_at timestamp with time zone DEFAULT (now() AT TIME ZONE 'utc'::text) NOT NULL
 );
 
-CREATE trigger handle_updated_at before
-UPDATE
-    ON public.generation_models FOR each ROW EXECUTE PROCEDURE moddatetime (updated_at);
 
 ALTER TABLE public.generation_models OWNER TO postgres;
 
@@ -134,10 +115,6 @@ CREATE TABLE public.generation_outputs (
     updated_at timestamp with time zone DEFAULT (now() AT TIME ZONE 'utc'::text) NOT NULL
 );
 
-CREATE trigger handle_updated_at before
-UPDATE
-    ON public.generation_outputs FOR each ROW EXECUTE PROCEDURE moddatetime (updated_at);
-
 ALTER TABLE public.generation_outputs OWNER TO postgres;
 
 --
@@ -145,7 +122,7 @@ ALTER TABLE public.generation_outputs OWNER TO postgres;
 --
 
 CREATE TABLE public.generations (
-    id uuid DEFAULT extensions.uuid_generate_v4() NOT NULL,
+    id uuid DEFAULT uuid_generate_v4() NOT NULL,
     width integer NOT NULL,
     height integer NOT NULL,
     inference_steps integer NOT NULL,
@@ -154,6 +131,8 @@ CREATE TABLE public.generations (
     status public.generate_upscale_status_enum NOT NULL,
     failure_reason text,
     country_code text,
+    created_at timestamp with time zone DEFAULT (now() AT TIME ZONE 'utc'::text) NOT NULL,
+    updated_at timestamp with time zone DEFAULT (now() AT TIME ZONE 'utc'::text) NOT NULL,
     device_info_id uuid NOT NULL,
     model_id uuid NOT NULL,
     negative_prompt_id uuid,
@@ -166,14 +145,9 @@ CREATE TABLE public.generations (
     is_submitted_to_gallery boolean DEFAULT false NOT NULL,
     submit_to_gallery boolean DEFAULT false NOT NULL,
     num_outputs integer NOT NULL,
-    nsfw_count integer DEFAULT 0 NOT NULL,
-    created_at timestamp with time zone DEFAULT (now() AT TIME ZONE 'utc'::text) NOT NULL,
-    updated_at timestamp with time zone DEFAULT (now() AT TIME ZONE 'utc'::text) NOT NULL
+    nsfw_count integer DEFAULT 0 NOT NULL
 );
 
-CREATE trigger handle_updated_at before
-UPDATE
-    ON public.generations FOR each ROW EXECUTE PROCEDURE moddatetime (updated_at);
 
 ALTER TABLE public.generations OWNER TO postgres;
 
@@ -182,16 +156,12 @@ ALTER TABLE public.generations OWNER TO postgres;
 --
 
 CREATE TABLE public.negative_prompts (
-    id uuid DEFAULT extensions.uuid_generate_v4() NOT NULL,
+    id uuid DEFAULT uuid_generate_v4() NOT NULL,
     text text NOT NULL,
     created_at timestamp with time zone DEFAULT (now() AT TIME ZONE 'utc'::text) NOT NULL,
     updated_at timestamp with time zone DEFAULT (now() AT TIME ZONE 'utc'::text) NOT NULL
 );
 
-
-CREATE trigger handle_updated_at before
-UPDATE
-    ON public.negative_prompts FOR each ROW EXECUTE PROCEDURE moddatetime (updated_at);
 
 ALTER TABLE public.negative_prompts OWNER TO postgres;
 
@@ -200,15 +170,11 @@ ALTER TABLE public.negative_prompts OWNER TO postgres;
 --
 
 CREATE TABLE public.prompts (
-    id uuid DEFAULT extensions.uuid_generate_v4() NOT NULL,
+    id uuid DEFAULT uuid_generate_v4() NOT NULL,
     text text NOT NULL,
     created_at timestamp with time zone DEFAULT (now() AT TIME ZONE 'utc'::text) NOT NULL,
     updated_at timestamp with time zone DEFAULT (now() AT TIME ZONE 'utc'::text) NOT NULL
 );
-
-CREATE trigger handle_updated_at before
-UPDATE
-    ON public.prompts FOR each ROW EXECUTE PROCEDURE moddatetime (updated_at);
 
 
 ALTER TABLE public.prompts OWNER TO postgres;
@@ -218,15 +184,12 @@ ALTER TABLE public.prompts OWNER TO postgres;
 --
 
 CREATE TABLE public.schedulers (
-    id uuid DEFAULT extensions.uuid_generate_v4() NOT NULL,
+    id uuid DEFAULT uuid_generate_v4() NOT NULL,
     name_in_worker text NOT NULL,
     created_at timestamp with time zone DEFAULT (now() AT TIME ZONE 'utc'::text) NOT NULL,
     updated_at timestamp with time zone DEFAULT (now() AT TIME ZONE 'utc'::text) NOT NULL
 );
 
-CREATE trigger handle_updated_at before
-UPDATE
-    ON public.schedulers FOR each ROW EXECUTE PROCEDURE moddatetime (updated_at);
 
 ALTER TABLE public.schedulers OWNER TO postgres;
 
@@ -235,15 +198,11 @@ ALTER TABLE public.schedulers OWNER TO postgres;
 --
 
 CREATE TABLE public.upscale_models (
-    id uuid DEFAULT extensions.uuid_generate_v4() NOT NULL,
+    id uuid DEFAULT uuid_generate_v4() NOT NULL,
     name_in_worker text NOT NULL,
     created_at timestamp with time zone DEFAULT (now() AT TIME ZONE 'utc'::text) NOT NULL,
     updated_at timestamp with time zone DEFAULT (now() AT TIME ZONE 'utc'::text) NOT NULL
 );
-
-CREATE trigger handle_updated_at before
-UPDATE
-    ON public.upscale_models FOR each ROW EXECUTE PROCEDURE moddatetime (updated_at);
 
 
 ALTER TABLE public.upscale_models OWNER TO postgres;
@@ -253,19 +212,16 @@ ALTER TABLE public.upscale_models OWNER TO postgres;
 --
 
 CREATE TABLE public.upscale_outputs (
-    id uuid DEFAULT extensions.uuid_generate_v4() NOT NULL,
+    id uuid DEFAULT uuid_generate_v4() NOT NULL,
     image_path text NOT NULL,
+    created_at timestamp with time zone DEFAULT (now() AT TIME ZONE 'utc'::text) NOT NULL,
+    updated_at timestamp with time zone DEFAULT (now() AT TIME ZONE 'utc'::text) NOT NULL,
     upscale_id uuid NOT NULL,
     deleted_at timestamp with time zone,
     input_image_url text,
-    generation_output_id uuid,
-    created_at timestamp with time zone DEFAULT (now() AT TIME ZONE 'utc'::text) NOT NULL,
-    updated_at timestamp with time zone DEFAULT (now() AT TIME ZONE 'utc'::text) NOT NULL
+    generation_output_id uuid
 );
 
-CREATE trigger handle_updated_at before
-UPDATE
-    ON public.upscale_outputs FOR each ROW EXECUTE PROCEDURE moddatetime (updated_at);
 
 ALTER TABLE public.upscale_outputs OWNER TO postgres;
 
@@ -274,25 +230,22 @@ ALTER TABLE public.upscale_outputs OWNER TO postgres;
 --
 
 CREATE TABLE public.upscales (
-    id uuid DEFAULT extensions.uuid_generate_v4() NOT NULL,
+    id uuid DEFAULT uuid_generate_v4() NOT NULL,
     width integer NOT NULL,
     height integer NOT NULL,
     scale integer NOT NULL,
     country_code text,
     status public.generate_upscale_status_enum NOT NULL,
     failure_reason text,
+    created_at timestamp with time zone DEFAULT (now() AT TIME ZONE 'utc'::text) NOT NULL,
+    updated_at timestamp with time zone DEFAULT (now() AT TIME ZONE 'utc'::text) NOT NULL,
     device_info_id uuid NOT NULL,
     model_id uuid NOT NULL,
     user_id uuid NOT NULL,
     started_at timestamp with time zone,
-    completed_at timestamp with time zone,
-    created_at timestamp with time zone DEFAULT (now() AT TIME ZONE 'utc'::text) NOT NULL,
-    updated_at timestamp with time zone DEFAULT (now() AT TIME ZONE 'utc'::text) NOT NULL
+    completed_at timestamp with time zone
 );
 
-CREATE trigger handle_updated_at before
-UPDATE
-    ON public.upscales FOR each ROW EXECUTE PROCEDURE moddatetime (updated_at);
 
 ALTER TABLE public.upscales OWNER TO postgres;
 
@@ -301,16 +254,13 @@ ALTER TABLE public.upscales OWNER TO postgres;
 --
 
 CREATE TABLE public.user_roles (
-    id uuid DEFAULT extensions.uuid_generate_v4() NOT NULL,
+    id uuid DEFAULT uuid_generate_v4() NOT NULL,
     role_name public.user_role_names_enum NOT NULL,
-    user_id uuid NOT NULL,
     created_at timestamp with time zone DEFAULT (now() AT TIME ZONE 'utc'::text) NOT NULL,
-    updated_at timestamp with time zone DEFAULT (now() AT TIME ZONE 'utc'::text) NOT NULL
+    updated_at timestamp with time zone DEFAULT (now() AT TIME ZONE 'utc'::text) NOT NULL,
+    user_id uuid NOT NULL
 );
 
-CREATE trigger handle_updated_at before
-UPDATE
-    ON public.user_roles FOR each ROW EXECUTE PROCEDURE moddatetime (updated_at);
 
 ALTER TABLE public.user_roles OWNER TO postgres;
 
@@ -321,14 +271,11 @@ ALTER TABLE public.user_roles OWNER TO postgres;
 CREATE TABLE public.users (
     id uuid NOT NULL,
     email text NOT NULL,
-    stripe_customer_id text NOT NULL,
     created_at timestamp with time zone DEFAULT timezone('utc'::text, now()) NOT NULL,
-    updated_at timestamp with time zone DEFAULT timezone('utc'::text, now()) NOT NULL
+    updated_at timestamp with time zone DEFAULT timezone('utc'::text, now()),
+    stripe_customer_id text NOT NULL
 );
 
-CREATE trigger handle_updated_at before
-UPDATE
-    ON public.users FOR each ROW EXECUTE PROCEDURE moddatetime (updated_at);
 
 ALTER TABLE public.users OWNER TO postgres;
 
@@ -520,7 +467,7 @@ ALTER TABLE ONLY public.credits
 --
 
 ALTER TABLE ONLY public.credits
-    ADD CONSTRAINT credits_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id);
+    ADD CONSTRAINT credits_user_id_fkey FOREIGN KEY (user_id) REFERENCES users(id);
 
 
 --
@@ -576,7 +523,7 @@ ALTER TABLE ONLY public.generations
 --
 
 ALTER TABLE ONLY public.generations
-    ADD CONSTRAINT generations_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id);
+    ADD CONSTRAINT generations_user_id_fkey FOREIGN KEY (user_id) REFERENCES users(id);
 
 
 --
@@ -616,7 +563,7 @@ ALTER TABLE ONLY public.upscales
 --
 
 ALTER TABLE ONLY public.upscales
-    ADD CONSTRAINT upscales_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id);
+    ADD CONSTRAINT upscales_user_id_fkey FOREIGN KEY (user_id) REFERENCES users(id);
 
 
 --
@@ -624,7 +571,7 @@ ALTER TABLE ONLY public.upscales
 --
 
 ALTER TABLE ONLY public.user_roles
-    ADD CONSTRAINT user_roles_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id);
+    ADD CONSTRAINT user_roles_user_id_fkey FOREIGN KEY (user_id) REFERENCES users(id);
 
 
 --
@@ -632,7 +579,7 @@ ALTER TABLE ONLY public.user_roles
 --
 
 ALTER TABLE ONLY public.users
-    ADD CONSTRAINT users_id_fkey FOREIGN KEY (id) REFERENCES auth.users(id);
+    ADD CONSTRAINT users_id_fkey FOREIGN KEY (id) REFERENCES users(id);
 
 
 --
