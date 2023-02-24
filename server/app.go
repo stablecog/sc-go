@@ -22,6 +22,7 @@ import (
 	"github.com/stablecog/sc-go/server/requests"
 	"github.com/stablecog/sc-go/shared"
 	"github.com/stablecog/sc-go/utils"
+	stripeBase "github.com/stripe/stripe-go"
 	stripe "github.com/stripe/stripe-go/client"
 	"golang.org/x/net/http2"
 	"golang.org/x/net/http2/h2c"
@@ -43,6 +44,8 @@ func main() {
 
 	// Custom flags
 	createMockData := flag.Bool("load-mock-data", false, "Create test data in database")
+	// ! TODO - remove after production
+	processCredits := flag.Bool("process-credits", false, "Process stripe subscription credits")
 
 	flag.Parse()
 
@@ -96,6 +99,48 @@ func main() {
 		os.Exit(0)
 	}
 
+	// Create stripe client
+	stripeClient := stripe.New(utils.GetEnv("STRIPE_SECRET_KEY", ""), nil)
+
+	if *processCredits {
+		subList := stripeClient.Subscriptions.List(&stripeBase.SubscriptionListParams{
+			Status: "active",
+		})
+		for subList.Next() {
+			sub := subList.Subscription()
+			if sub == nil {
+				klog.Warningf("Subscription is nil")
+				continue
+			}
+			if sub.Plan == nil || sub.Plan.Product == nil || sub.Customer == nil {
+				klog.Warningf("Plan or product is nil")
+				continue
+			}
+			productId := sub.Plan.Product.ID
+			// Find credit type with this id
+			creditType, err := repo.GetCreditTypeByStripeProductID(productId)
+			if err != nil {
+				klog.Warningf("Error getting credit type: %v", err)
+				continue
+			}
+
+			// Get user
+			user, err := repo.GetUserByStripeCustomerId(sub.Customer.ID)
+			if err != nil {
+				klog.Warningf("Error getting user with ID %s: %v", sub.Customer.ID, err)
+				continue
+			}
+
+			expiresAt := utils.SecondsSinceEpochToTime(sub.CurrentPeriodEnd)
+
+			_, err = repo.AddCreditsIfEligible(creditType, user.ID, expiresAt, nil)
+			if err != nil {
+				klog.Warningf("Error adding credits to user %s: %v", user.ID, err)
+				continue
+			}
+		}
+	}
+
 	app := chi.NewRouter()
 
 	// Cors middleware
@@ -132,9 +177,6 @@ func main() {
 	// Create SSE hub
 	sseHub := sse.NewHub(redis, repo)
 	go sseHub.Run()
-
-	// Create stripe client
-	stripeClient := stripe.New(utils.GetEnv("STRIPE_SECRET_KEY", ""), nil)
 
 	// Create controller
 	hc := rest.RestAPI{
