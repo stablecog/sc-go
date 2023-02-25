@@ -139,7 +139,7 @@ func (c *RestAPI) HandleGetUser(w http.ResponseWriter, r *http.Request) {
 	render.Status(r, http.StatusOK)
 	render.JSON(w, r, responses.GetUserResponse{
 		TotalRemainingCredits: totalRemaining,
-		Product:               highestProduct,
+		ProductID:             highestProduct,
 		CancelsAt:             cancelsAt,
 		StripeHadError:        stripeHadError,
 	})
