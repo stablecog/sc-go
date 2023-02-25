@@ -96,16 +96,11 @@ func (c *RestAPI) HandleGetUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Get total credits
-	credits, err := c.Repo.GetCreditsForUser(*userID)
+	totalRemaining, err := c.Repo.GetNonExpiredCreditTotalForUser(*userID)
 	if err != nil {
 		klog.Errorf("Error getting credits for user: %v", err)
 		responses.ErrInternalServerError(w, r, "An unknown error has occured")
 		return
-	}
-
-	var totalRemaining int32
-	for _, credit := range credits {
-		totalRemaining += credit.RemainingAmount
 	}
 
 	customer, err := c.StripeClient.Customers.Get(user.StripeCustomerID, nil)

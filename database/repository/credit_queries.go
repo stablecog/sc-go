@@ -5,6 +5,7 @@ import (
 
 	"entgo.io/ent/dialect/sql"
 	"github.com/google/uuid"
+	"github.com/stablecog/sc-go/database/ent"
 	"github.com/stablecog/sc-go/database/ent/credit"
 	"github.com/stablecog/sc-go/database/ent/credittype"
 )
@@ -21,6 +22,19 @@ func (r *Repository) GetCreditsForUser(userID uuid.UUID) ([]*UserCreditsQueryRes
 		}).Scan(r.Ctx, &res)
 
 	return res, err
+}
+
+func (r *Repository) GetNonExpiredCreditTotalForUser(userID uuid.UUID) (int, error) {
+	var total []struct {
+		Sum int
+	}
+	err := r.DB.Credit.Query().Where(credit.UserID(userID), credit.ExpiresAtGT(time.Now())).Aggregate(ent.Sum(credit.FieldRemainingAmount)).Scan(r.Ctx, &total)
+	if err != nil {
+		return 0, err
+	} else if len(total) == 0 {
+		return 0, nil
+	}
+	return total[0].Sum, err
 }
 
 type UserCreditsQueryResult struct {
