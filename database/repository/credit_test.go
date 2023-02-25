@@ -104,7 +104,7 @@ func TestGetOrCreateFreeCreditType(t *testing.T) {
 
 func TestGetNonExpiredCreditTotalForUser(t *testing.T) {
 	u := uuid.MustParse(MOCK_ALT_UUID)
-	total, err := MockRepo.GetNonExpiredCreditTotalForUser(u)
+	total, err := MockRepo.GetNonExpiredCreditTotalForUser(u, nil)
 	assert.Nil(t, err)
 	assert.Equal(t, 1334, total)
 }

@@ -703,6 +703,8 @@ components:
         id:
           type: string
           format: uuidv4
+        remaining_credits:
+          type: integer
       description: Response after creating a generation or upscale
     PromptType:
       type: object
@@ -915,6 +917,9 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/GenerationOutput"
+        remaining_credits:
+          type: integer
+          format: optional, only if refunded
       description: Status updates delivered from worker to UI via SSE
     LivePageUpdate:
       type: object

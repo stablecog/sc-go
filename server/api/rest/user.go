@@ -96,7 +96,7 @@ func (c *RestAPI) HandleGetUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Get total credits
-	totalRemaining, err := c.Repo.GetNonExpiredCreditTotalForUser(*userID)
+	totalRemaining, err := c.Repo.GetNonExpiredCreditTotalForUser(*userID, nil)
 	if err != nil {
 		klog.Errorf("Error getting credits for user: %v", err)
 		responses.ErrInternalServerError(w, r, "An unknown error has occured")

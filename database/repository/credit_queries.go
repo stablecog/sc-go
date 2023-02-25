@@ -24,11 +24,14 @@ func (r *Repository) GetCreditsForUser(userID uuid.UUID) ([]*UserCreditsQueryRes
 	return res, err
 }
 
-func (r *Repository) GetNonExpiredCreditTotalForUser(userID uuid.UUID) (int, error) {
+func (r *Repository) GetNonExpiredCreditTotalForUser(userID uuid.UUID, DB *ent.Client) (int, error) {
+	if DB == nil {
+		DB = r.DB
+	}
 	var total []struct {
 		Sum int
 	}
-	err := r.DB.Credit.Query().Where(credit.UserID(userID), credit.ExpiresAtGT(time.Now())).Aggregate(ent.Sum(credit.FieldRemainingAmount)).Scan(r.Ctx, &total)
+	err := DB.Credit.Query().Where(credit.UserID(userID), credit.ExpiresAtGT(time.Now())).Aggregate(ent.Sum(credit.FieldRemainingAmount)).Scan(r.Ctx, &total)
 	if err != nil {
 		return 0, err
 	} else if len(total) == 0 {

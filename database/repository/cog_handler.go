@@ -67,6 +67,9 @@ func (r *Repository) FailCogMessageDueToTimeoutIfTimedOut(msg requests.CogRedisM
 		return
 	}
 
+	// Only set for failures in case of refund
+	var remainingCredits int
+
 	var userId uuid.UUID
 	if err := r.WithTx(func(tx *ent.Tx) error {
 		db := tx.Client()
@@ -104,6 +107,13 @@ func (r *Repository) FailCogMessageDueToTimeoutIfTimedOut(msg requests.CogRedisM
 				return err
 			}
 		}
+
+		remainingCredits, err = r.GetNonExpiredCreditTotalForUser(userId, db)
+		if err != nil {
+			klog.Errorf("Error getting remaining credits: %v", err)
+			return err
+		}
+
 		return nil
 	}); err != nil {
 		klog.Errorf("--- Error in processing timeout failure transaction: %v", err)
@@ -113,12 +123,13 @@ func (r *Repository) FailCogMessageDueToTimeoutIfTimedOut(msg requests.CogRedisM
 	// Regardless of the status, we always send over sse so user knows what's up
 	// Send message to user
 	resp := TaskStatusUpdateResponse{
-		Status:      msg.Status,
-		Id:          msg.Input.ID,
-		StreamId:    streamIdStr,
-		NSFWCount:   msg.NSFWCount,
-		Error:       msg.Error,
-		ProcessType: msg.Input.ProcessType,
+		Status:           msg.Status,
+		Id:               msg.Input.ID,
+		StreamId:         streamIdStr,
+		NSFWCount:        msg.NSFWCount,
+		Error:            msg.Error,
+		ProcessType:      msg.Input.ProcessType,
+		RemainingCredits: remainingCredits,
 	}
 
 	// Marshal
@@ -183,6 +194,9 @@ func (r *Repository) ProcessCogMessage(msg requests.CogRedisMessage) {
 		return
 	}
 
+	// Remaining credits set only for failures
+	var remainingCredits int
+
 	// Handle started/failed/succeeded message types
 	if msg.Status == requests.CogProcessing {
 		// In goroutine since we want them to know it started asap
@@ -231,6 +245,11 @@ func (r *Repository) ProcessCogMessage(msg requests.CogRedisMessage) {
 					return err
 				}
 			}
+			remainingCredits, err = r.GetNonExpiredCreditTotalForUser(userId, db)
+			if err != nil {
+				klog.Errorf("Error getting remaining credits: %v", err)
+				return err
+			}
 			cogErr = msg.Error
 			return nil
 		}); err != nil {
@@ -266,6 +285,11 @@ func (r *Repository) ProcessCogMessage(msg requests.CogRedisMessage) {
 							klog.Errorf("--- Error refunding credits to user %s for upscale %s: %v", user.ID.String(), msg.Input.ID, err)
 							return err
 						}
+						remainingCredits, err = r.GetNonExpiredCreditTotalForUser(user.ID, db)
+						if err != nil {
+							klog.Errorf("Error getting remaining credits: %v", err)
+							return err
+						}
 					}
 				} else {
 					err := r.SetGenerationFailed(msg.Input.ID, cogErr, msg.NSFWCount, db)
@@ -287,6 +311,11 @@ func (r *Repository) ProcessCogMessage(msg requests.CogRedisMessage) {
 						success, err := r.RefundCreditsToUser(user.ID, int32(numOutputs), db)
 						if err != nil || !success {
 							klog.Errorf("--- Error refunding credits to user %s for generation %s: %v", user.ID.String(), msg.Input.ID, err)
+							return err
+						}
+						remainingCredits, err = r.GetNonExpiredCreditTotalForUser(user.ID, db)
+						if err != nil {
+							klog.Errorf("Error getting remaining credits: %v", err)
 							return err
 						}
 					}
@@ -318,12 +347,13 @@ func (r *Repository) ProcessCogMessage(msg requests.CogRedisMessage) {
 	// Regardless of the status, we always send over sse so user knows what's up
 	// Send message to user
 	resp := TaskStatusUpdateResponse{
-		Status:      msg.Status,
-		Id:          msg.Input.ID,
-		StreamId:    streamIdStr,
-		NSFWCount:   msg.NSFWCount,
-		Error:       cogErr,
-		ProcessType: msg.Input.ProcessType,
+		Status:           msg.Status,
+		Id:               msg.Input.ID,
+		StreamId:         streamIdStr,
+		NSFWCount:        msg.NSFWCount,
+		Error:            cogErr,
+		ProcessType:      msg.Input.ProcessType,
+		RemainingCredits: remainingCredits,
 	}
 	// Upscale
 	if msg.Status == requests.CogSucceeded && msg.Input.ProcessType == shared.UPSCALE {

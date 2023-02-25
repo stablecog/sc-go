@@ -100,6 +100,8 @@ func (c *RestAPI) HandleUpscale(w http.ResponseWriter, r *http.Request) {
 	var requestId string
 	// The cog request body
 	var cogReqBody requests.CogQueueRequest
+	// The total remaining credits
+	var remainingCredits int
 
 	// Wrap everything in a DB transaction
 	// We do this since we want our credit deduction to be atomic with the whole process
@@ -116,6 +118,13 @@ func (c *RestAPI) HandleUpscale(w http.ResponseWriter, r *http.Request) {
 		} else if !deducted {
 			responses.ErrInsufficientCredits(w, r)
 			return responses.InsufficientCreditsErr
+		}
+
+		remainingCredits, err = c.Repo.GetNonExpiredCreditTotalForUser(*userID, DB)
+		if err != nil {
+			klog.Errorf("Error getting remaining credits: %v", err)
+			responses.ErrInternalServerError(w, r, "An unknown error has occured")
+			return err
 		}
 
 		// Create upscale
@@ -214,6 +223,7 @@ func (c *RestAPI) HandleUpscale(w http.ResponseWriter, r *http.Request) {
 
 	render.Status(r, http.StatusOK)
 	render.JSON(w, r, &responses.TaskQueuedResponse{
-		ID: requestId,
+		ID:               requestId,
+		RemainingCredits: remainingCredits,
 	})
 }

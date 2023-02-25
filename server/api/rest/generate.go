@@ -67,6 +67,9 @@ func (c *RestAPI) HandleCreateGeneration(w http.ResponseWriter, r *http.Request)
 	// Cog request
 	var cogReqBody requests.CogQueueRequest
 
+	// Credits left after this operation
+	var remainingCredits int
+
 	// Wrap everything in a DB transaction
 	// We do this since we want our credit deduction to be atomic with the whole process
 	if err := c.Repo.WithTx(func(tx *ent.Tx) error {
@@ -84,6 +87,13 @@ func (c *RestAPI) HandleCreateGeneration(w http.ResponseWriter, r *http.Request)
 			return responses.InsufficientCreditsErr
 		}
 		fmt.Printf("--- Deduct credits took took: %s\n", time.Now().Sub(start))
+
+		remainingCredits, err = c.Repo.GetNonExpiredCreditTotalForUser(*userID, DB)
+		if err != nil {
+			klog.Errorf("Error getting remaining credits: %v", err)
+			responses.ErrInternalServerError(w, r, "An unknown error has occured")
+			return err
+		}
 
 		// Create generation
 		start = time.Now()
@@ -189,7 +199,8 @@ func (c *RestAPI) HandleCreateGeneration(w http.ResponseWriter, r *http.Request)
 
 	render.Status(r, http.StatusOK)
 	render.JSON(w, r, &responses.TaskQueuedResponse{
-		ID: requestId,
+		ID:               requestId,
+		RemainingCredits: remainingCredits,
 	})
 }
 
