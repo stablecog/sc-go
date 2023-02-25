@@ -1,15 +1,18 @@
 package sse
 
 import (
-	"sync"
-
 	"github.com/stablecog/sc-go/database"
 	"github.com/stablecog/sc-go/database/repository"
 )
 
+type BroadcastPayload struct {
+	ID      string `json:"id"`
+	Message []byte `json:"message"`
+}
+
 type Hub struct {
 	// Events are pushed to this channel by the main events-gathering routine
-	Broadcast chan []byte
+	Broadcast chan BroadcastPayload
 
 	// Clients connecting
 	Register chan *Client
@@ -23,41 +26,11 @@ type Hub struct {
 	// Database access
 	Repo  *repository.Repository
 	Redis *database.RedisWrapper
-
-	// We need a mutex to protect the clients map
-	mu sync.Mutex
-}
-
-// Braodcast a message to all clients that match the given uid
-func (h *Hub) BroadcastToClientsWithUid(uid string, message []byte) {
-	h.mu.Lock()
-	defer h.mu.Unlock()
-	for client := range h.clients {
-		if client.Uid == uid {
-			select {
-			case client.Send <- message:
-			default:
-				close(client.Send)
-				delete(h.clients, client)
-			}
-		}
-	}
-}
-
-func (h *Hub) GetClientByUid(uid string) *Client {
-	h.mu.Lock()
-	defer h.mu.Unlock()
-	for client := range h.clients {
-		if client.Uid == uid {
-			return client
-		}
-	}
-	return nil
 }
 
 func NewHub(redis *database.RedisWrapper, repo *repository.Repository) *Hub {
 	return &Hub{
-		Broadcast:  make(chan []byte),
+		Broadcast:  make(chan BroadcastPayload, 100),
 		Register:   make(chan *Client),
 		Unregister: make(chan *Client),
 		clients:    make(map[*Client]bool),
@@ -70,33 +43,23 @@ func (h *Hub) Run() {
 	for {
 		select {
 		case client := <-h.Register:
-			func() {
-				h.mu.Lock()
-				defer h.mu.Unlock()
-				h.clients[client] = true
-			}()
+			h.clients[client] = true
 		case client := <-h.Unregister:
-			func() {
-				h.mu.Lock()
-				defer h.mu.Unlock()
-				if _, ok := h.clients[client]; ok {
-					delete(h.clients, client)
-					close(client.Send)
-				}
-			}()
-		case message := <-h.Broadcast:
-			func() {
-				h.mu.Lock()
-				defer h.mu.Unlock()
-				for client := range h.clients {
+			if _, ok := h.clients[client]; ok {
+				delete(h.clients, client)
+				close(client.Send)
+			}
+		case payload := <-h.Broadcast:
+			for client := range h.clients {
+				if client.Uid == payload.ID {
 					select {
-					case client.Send <- message:
+					case client.Send <- payload.Message:
 					default:
 						close(client.Send)
 						delete(h.clients, client)
 					}
 				}
-			}()
+			}
 		}
 	}
 
