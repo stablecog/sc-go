@@ -109,33 +109,17 @@ func (c *RestAPI) HandleGetUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	customer, err := c.StripeClient.Customers.Get(user.StripeCustomerID, nil)
-	customerNotFound := false
 	stripeHadError := false
 	if err != nil {
-		// Try to decode error as map
-		var stripeErr map[string]interface{}
-		marshalErr := json.Unmarshal([]byte(err.Error()), &stripeErr)
-		if marshalErr == nil {
-			status, ok := stripeErr["status"]
-			if ok && status == 404 {
-				customerNotFound = true
-			} else {
-				klog.Errorf("Error getting customer from stripe: %v", err)
-				stripeHadError = true
-			}
-		} else {
-			klog.Errorf("Error getting customer from stripe, unknown error: %v", err)
-			stripeHadError = true
-		}
-	} else if customer == nil || customer.Subscriptions == nil || customer.Subscriptions.Data == nil {
-		customerNotFound = true
+		klog.Errorf("Error getting customer from stripe, unknown error: %v", err)
+		stripeHadError = true
 	}
 
 	// Get current time in ms since epoch
 	now := time.Now().UnixNano() / int64(time.Second)
 	var highestProduct string
 	var cancelsAt *time.Time
-	if !customerNotFound && !stripeHadError {
+	if customer != nil && customer.Subscriptions != nil && customer.Subscriptions.Data == nil {
 		// Find highest subscription tier
 		for _, subscription := range customer.Subscriptions.Data {
 			if subscription.Plan == nil || subscription.Plan.Product == nil {
@@ -163,7 +147,6 @@ func (c *RestAPI) HandleGetUser(w http.ResponseWriter, r *http.Request) {
 		Product:               highestProduct,
 		CancelsAt:             cancelsAt,
 		StripeHadError:        stripeHadError,
-		CustomerNotFound:      customerNotFound,
 	})
 }
 

@@ -969,9 +969,6 @@ components:
         stripe_had_error:
           type: boolean
           format: If stripe API returned an unknown error code
-        customer_not_found:
-          type: boolean
-          format: If customer ID does not exist in stripe
       description: Summary of user data
     GalleryResponse:
       type: object

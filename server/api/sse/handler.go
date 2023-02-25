@@ -11,6 +11,9 @@ import (
 	"k8s.io/klog/v2"
 )
 
+// App version
+const APP_VERSION = "1"
+
 // Special stream ID for live page
 const LIVE_STREAM_ID = "live"
 
@@ -51,7 +54,7 @@ func (h *Hub) ServeSSE(w http.ResponseWriter, r *http.Request) {
 	}()
 
 	// Broadcast app version message
-	version := AppVersionMessage{Version: utils.GetEnv("APP_VERSION", "unknown")}
+	version := AppVersionMessage{Version: APP_VERSION}
 	versionBytes, err := json.Marshal(version)
 	if err != nil {
 		klog.Errorf("Error marshalling app version message: %v", err)
