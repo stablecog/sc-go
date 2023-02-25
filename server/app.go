@@ -255,6 +255,9 @@ func main() {
 
 			// Query credits
 			r.Get("/credits", hc.HandleQueryCredits)
+
+			// Subscription Downgrade
+			r.Post("/subscription/downgrade", hc.HandleSubscriptionDowngrade)
 		})
 
 		// Admin only routes

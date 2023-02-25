@@ -13,7 +13,127 @@ import (
 	"k8s.io/klog/v2"
 )
 
+type StripeDowngradeRequest struct {
+	TargetPriceID string `json:"target_price_id"`
+}
+
+var PriceIDs = map[int]string{
+	// ultimate
+	3: "price_1Mf591ATa0ehBYTA6ggpEEkA",
+	// pro
+	2: "price_1Mf50bATa0ehBYTAPOcfnOjG",
+	// starter
+	1: "price_1Mf56NATa0ehBYTAHkCUablG",
+}
+
+func (c *RestAPI) HandleSubscriptionDowngrade(w http.ResponseWriter, r *http.Request) {
+	userID, _ := c.GetUserIDAndEmailIfAuthenticated(w, r)
+	if userID == nil {
+		return
+	}
+
+	// Parse request body
+	reqBody, _ := io.ReadAll(r.Body)
+	var generateReq StripeDowngradeRequest
+	err := json.Unmarshal(reqBody, &generateReq)
+	if err != nil {
+		responses.ErrUnableToParseJson(w, r)
+		return
+	}
+
+	// Make sure price ID exists in map
+	var targetPriceID string
+	var targetPriceLevel int
+	for level, priceID := range PriceIDs {
+		if priceID == generateReq.TargetPriceID {
+			targetPriceID = priceID
+			targetPriceLevel = level
+			break
+		}
+	}
+	if targetPriceID == "" {
+		responses.ErrBadRequest(w, r, "invalid_price_id")
+		return
+	}
+
+	// Get user
+	user, err := c.Repo.GetUser(*userID)
+	if err != nil {
+		klog.Errorf("Error getting user: %v", err)
+		responses.ErrInternalServerError(w, r, "An unknown error has occured")
+		return
+	}
+
+	// Get subscription
+	customer, err := c.StripeClient.Customers.Get(user.StripeCustomerID, nil)
+
+	if err != nil {
+		klog.Errorf("Error getting customer: %v", err)
+		responses.ErrInternalServerError(w, r, "An unknown error has occured")
+		return
+	}
+
+	if customer.Subscriptions == nil || len(customer.Subscriptions.Data) == 0 || customer.Subscriptions.TotalCount == 0 {
+		responses.ErrBadRequest(w, r, "no_subscription")
+		return
+	}
+
+	var currentPriceID string
+	var currentSubId string
+	for _, sub := range customer.Subscriptions.Data {
+		if sub.Status == stripe.SubscriptionStatusActive && sub.CancelAt == 0 {
+			currentSubId = sub.ID
+			currentPriceID = sub.Plan.ID
+			break
+		}
+	}
+
+	if currentPriceID == "" {
+		responses.ErrBadRequest(w, r, "no_active_subscription")
+		return
+	}
+
+	if currentPriceID == targetPriceID {
+		responses.ErrBadRequest(w, r, "no_downgrade_needed")
+		return
+	}
+
+	// Make sure this is a downgrade
+	for level, priceID := range PriceIDs {
+		if priceID == currentPriceID {
+			if level <= targetPriceLevel {
+				responses.ErrBadRequest(w, r, "no_downgrade_needed")
+				return
+			}
+			break
+		}
+	}
+
+	// Execute subscription update
+	_, err = c.StripeClient.Subscriptions.Update(currentSubId, &stripe.SubscriptionParams{
+		ProrationBehavior: stripe.String("none"),
+		Items: []*stripe.SubscriptionItemsParams{
+			{
+				ID:   stripe.String(currentSubId),
+				Plan: stripe.String(targetPriceID),
+			},
+		},
+	})
+
+	if err != nil {
+		klog.Errorf("Error updating subscription: %v", err)
+		responses.ErrInternalServerError(w, r, "An unknown error has occured")
+		return
+	}
+
+	render.Status(r, http.StatusOK)
+	render.JSON(w, r, map[string]interface{}{
+		"success": true,
+	})
+}
+
 // invoice.payment_succeeded
+// customer.subscription.created
 func (c *RestAPI) HandleStripeWebhook(w http.ResponseWriter, r *http.Request) {
 	// Parse request body
 	reqBody, err := io.ReadAll(r.Body)
@@ -34,6 +154,7 @@ func (c *RestAPI) HandleStripeWebhook(w http.ResponseWriter, r *http.Request) {
 	}
 
 	switch event.Type {
+	// For subscription upgrades, we want to cancel all old subscriptions (schedule to cancel)
 	case "customer.subscription.created":
 		newSub, err := stripeObjectMapToSubscriptionObject(event.Data.Object)
 		if err != nil || newSub == nil {
