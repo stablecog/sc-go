@@ -3,7 +3,7 @@ package shared
 import "time"
 
 // A database entry must exist in credit_types with this name
-const CREDIT_TYPE_FREE = "free"
+const CREDIT_TYPE_FREE = "Free"
 
 // NSFW Error
 const NSFW_ERROR = "NSFW"

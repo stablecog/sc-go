@@ -1,6 +1,9 @@
 package repository
 
 import (
+	"strings"
+
+	"entgo.io/ent/dialect/sql"
 	"github.com/stablecog/sc-go/database/ent"
 	"github.com/stablecog/sc-go/database/ent/credittype"
 	"github.com/stablecog/sc-go/shared"
@@ -28,7 +31,9 @@ func (r *Repository) GetCreditTypeByStripeProductID(stripeProductID string) (*en
 }
 
 func (r *Repository) GetFreeCreditType() (*ent.CreditType, error) {
-	creditType, err := r.DB.CreditType.Query().Where(credittype.NameEQ(shared.CREDIT_TYPE_FREE)).Only(r.Ctx)
+	creditType, err := r.DB.CreditType.Query().Where(func(s *sql.Selector) {
+		s.Where(sql.EQ(sql.Lower(credittype.FieldName), strings.ToLower(shared.CREDIT_TYPE_FREE)))
+	}).Only(r.Ctx)
 	if err != nil && ent.IsNotFound(err) {
 		return nil, nil
 	} else if err != nil {

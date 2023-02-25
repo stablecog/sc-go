@@ -95,3 +95,9 @@ func TestRefundCreditsToUser(t *testing.T) {
 	credits = MockRepo.DB.Credit.Query().Where(credit.UserIDEQ(uuid.MustParse(MOCK_NORMAL_UUID))).Order(ent.Desc(credit.FieldExpiresAt)).FirstX(MockRepo.Ctx)
 	assert.Equal(t, int32(1234), credits.RemainingAmount)
 }
+
+func TestGetFreeCreditType(t *testing.T) {
+	ctype, err := MockRepo.GetFreeCreditType()
+	assert.Nil(t, err)
+	assert.Equal(t, "Free", ctype.Name)
+}
