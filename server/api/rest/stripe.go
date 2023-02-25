@@ -114,7 +114,7 @@ func (c *RestAPI) HandleStripeWebhook(w http.ResponseWriter, r *http.Request) {
 		} else {
 			expiresAt := utils.SecondsSinceEpochToTime(line.Period.End)
 			// Update user credit
-			_, err = c.Repo.AddCreditsIfEligible(creditType, user.ID, expiresAt, nil)
+			_, err = c.Repo.AddCreditsIfEligible(creditType, user.ID, expiresAt, line.ID, nil)
 			if err != nil {
 				klog.Errorf("Unable adding credits to user %s: %v", user.ID.String(), err)
 				responses.ErrInternalServerError(w, r, err.Error())

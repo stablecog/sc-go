@@ -14,7 +14,7 @@ import (
 var EXPIRES_MANUAL_INVOICE = time.Date(2100, 1, 1, 5, 0, 0, 0, time.UTC)
 
 // Add credits of creditType to user if they do not have any un-expired credits of this type
-func (r *Repository) AddCreditsIfEligible(creditType *ent.CreditType, userID uuid.UUID, expiresAt time.Time, DB *ent.Client) (added bool, err error) {
+func (r *Repository) AddCreditsIfEligible(creditType *ent.CreditType, userID uuid.UUID, expiresAt time.Time, lineItemId string, DB *ent.Client) (added bool, err error) {
 	if DB == nil {
 		DB = r.DB
 	}
@@ -24,7 +24,7 @@ func (r *Repository) AddCreditsIfEligible(creditType *ent.CreditType, userID uui
 	}
 
 	// See if user has any credits of this type
-	credits, err := DB.Credit.Query().Where(credit.UserID(userID), credit.CreditTypeID(creditType.ID), credit.ExpiresAtEQ(expiresAt)).First(r.Ctx)
+	credits, err := DB.Credit.Query().Where(credit.UserID(userID), credit.CreditTypeID(creditType.ID), credit.StripeLineItemIDEQ(lineItemId)).First(r.Ctx)
 	if err != nil && !ent.IsNotFound(err) {
 		return false, err
 	}
@@ -35,7 +35,7 @@ func (r *Repository) AddCreditsIfEligible(creditType *ent.CreditType, userID uui
 	}
 
 	// Add credits
-	_, err = DB.Credit.Create().SetCreditTypeID(creditType.ID).SetUserID(userID).SetRemainingAmount(creditType.Amount).SetExpiresAt(expiresAt).Save(r.Ctx)
+	_, err = DB.Credit.Create().SetCreditTypeID(creditType.ID).SetUserID(userID).SetRemainingAmount(creditType.Amount).SetExpiresAt(expiresAt).SetStripeLineItemID(lineItemId).Save(r.Ctx)
 	if err != nil {
 		return false, err
 	}

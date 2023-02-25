@@ -55,7 +55,7 @@ func (repo *Repository) CreateMockData(ctx context.Context) error {
 		return err
 	}
 	// Give user credits
-	_, err = repo.AddCreditsIfEligible(creditType, u.ID, time.Now().AddDate(0, 0, 30), nil)
+	_, err = repo.AddCreditsIfEligible(creditType, u.ID, time.Now().AddDate(0, 0, 30), "", nil)
 	if err != nil {
 		return err
 	}
@@ -65,7 +65,7 @@ func (repo *Repository) CreateMockData(ctx context.Context) error {
 		return err
 	}
 	// Give user credits
-	_, err = repo.AddCreditsIfEligible(creditType, u.ID, time.Now().AddDate(0, 0, 30), nil)
+	_, err = repo.AddCreditsIfEligible(creditType, u.ID, time.Now().AddDate(0, 0, 30), "", nil)
 	if err != nil {
 		return err
 	}
@@ -77,7 +77,7 @@ func (repo *Repository) CreateMockData(ctx context.Context) error {
 		return err
 	}
 	// Give user credits
-	_, err = repo.AddCreditsIfEligible(creditType, u.ID, time.Now().AddDate(0, 0, 30), nil)
+	_, err = repo.AddCreditsIfEligible(creditType, u.ID, time.Now().AddDate(0, 0, 30), "", nil)
 	if err != nil {
 		return err
 	}

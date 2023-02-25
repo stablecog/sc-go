@@ -136,7 +136,8 @@ func main() {
 
 			expiresAt := utils.SecondsSinceEpochToTime(sub.CurrentPeriodEnd)
 
-			_, err = repo.AddCreditsIfEligible(creditType, user.ID, expiresAt, nil)
+			// TODO - get line item ID
+			_, err = repo.AddCreditsIfEligible(creditType, user.ID, expiresAt, "", nil)
 			if err != nil {
 				klog.Warningf("Error adding credits to user %s: %v", user.ID, err)
 				continue

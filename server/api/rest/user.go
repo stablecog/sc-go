@@ -69,7 +69,7 @@ func (c *RestAPI) HandleGetUser(w http.ResponseWriter, r *http.Request) {
 			}
 
 			// Add free credits
-			_, err = c.Repo.AddCreditsIfEligible(freeCreditType, u.ID, time.Now().AddDate(0, 0, 30), client)
+			_, err = c.Repo.ReplenishFreeCreditsIfEligible(u.ID, time.Now().AddDate(0, 0, 30), client)
 			if err != nil {
 				klog.Errorf("Error adding free credits: %v", err)
 				return err
