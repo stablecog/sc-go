@@ -1,12 +1,14 @@
 package sse
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"strings"
 
 	"github.com/stablecog/sc-go/server/responses"
 	"github.com/stablecog/sc-go/utils"
+	"k8s.io/klog/v2"
 )
 
 // Special stream ID for live page
@@ -48,6 +50,16 @@ func (h *Hub) ServeSSE(w http.ResponseWriter, r *http.Request) {
 		h.Unregister <- client
 	}()
 
+	// Broadcast app version message
+	version := AppVersionMessage{Version: utils.GetEnv("APP_VERSION", "unknown")}
+	versionBytes, err := json.Marshal(version)
+	if err != nil {
+		klog.Errorf("Error marshalling app version message: %v", err)
+		http.Error(w, "Error marshalling app version message", http.StatusInternalServerError)
+		return
+	}
+	client.Send <- versionBytes
+
 	// Listen to connection close and un-register client
 	notify := w.(http.CloseNotifier).CloseNotify()
 	for {
@@ -63,4 +75,8 @@ func (h *Hub) ServeSSE(w http.ResponseWriter, r *http.Request) {
 			flusher.Flush()
 		}
 	}
+}
+
+type AppVersionMessage struct {
+	Version string `json:"version"`
 }
