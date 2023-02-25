@@ -424,6 +424,13 @@ paths:
       responses:
         "200":
           description: On successful connection
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  version:
+                    type: string
         "201":
           description: Status update from worker to UI for generation/upscale created by user
           content:
