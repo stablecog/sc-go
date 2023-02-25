@@ -55,7 +55,7 @@ func (r *Repository) ReplenishFreeCreditsIfEligible(userID uuid.UUID, expiresAt 
 
 	// See if user has any credits of this type
 	// ExpiresAt must be greater than or equal to the current time
-	credits, err := DB.Credit.Query().Where(credit.UserID(userID), credit.CreditTypeID(creditType.ID), credit.ExpiresAtGTE(expiresAt)).Order(ent.Desc(credit.FieldExpiresAt)).First(r.Ctx)
+	credits, err := DB.Credit.Query().Where(credit.UserID(userID), credit.CreditTypeID(creditType.ID), credit.ExpiresAtGTE(time.Now())).Order(ent.Desc(credit.FieldExpiresAt)).First(r.Ctx)
 	if err != nil && !ent.IsNotFound(err) {
 		return false, err
 	}
