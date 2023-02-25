@@ -119,7 +119,7 @@ func (c *RestAPI) HandleGetUser(w http.ResponseWriter, r *http.Request) {
 	now := time.Now().UnixNano() / int64(time.Second)
 	var highestProduct string
 	var cancelsAt *time.Time
-	if customer != nil && customer.Subscriptions != nil && customer.Subscriptions.Data == nil {
+	if customer != nil && customer.Subscriptions != nil && customer.Subscriptions.Data != nil {
 		// Find highest subscription tier
 		for _, subscription := range customer.Subscriptions.Data {
 			if subscription.Plan == nil || subscription.Plan.Product == nil {
