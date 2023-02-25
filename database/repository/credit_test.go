@@ -96,8 +96,8 @@ func TestRefundCreditsToUser(t *testing.T) {
 	assert.Equal(t, int32(1234), credits.RemainingAmount)
 }
 
-func TestGetFreeCreditType(t *testing.T) {
-	ctype, err := MockRepo.GetFreeCreditType()
+func TestGetOrCreateFreeCreditType(t *testing.T) {
+	ctype, err := MockRepo.GetOrCreateFreeCreditType()
 	assert.Nil(t, err)
 	assert.Equal(t, "Free", ctype.Name)
 }

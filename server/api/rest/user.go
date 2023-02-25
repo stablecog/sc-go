@@ -33,7 +33,7 @@ func (c *RestAPI) HandleGetUser(w http.ResponseWriter, r *http.Request) {
 		return
 	} else if user == nil {
 		// Handle create user flow
-		freeCreditType, err := c.Repo.GetFreeCreditType()
+		freeCreditType, err := c.Repo.GetOrCreateFreeCreditType()
 		if err != nil {
 			klog.Errorf("Error getting free credit type: %v", err)
 			responses.ErrInternalServerError(w, r, "An unknown error has occured")

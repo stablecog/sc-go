@@ -48,7 +48,7 @@ func (r *Repository) ReplenishFreeCreditsIfEligible(userID uuid.UUID, expiresAt 
 		DB = r.DB
 	}
 
-	creditType, err := r.GetFreeCreditType()
+	creditType, err := r.GetOrCreateFreeCreditType()
 	if err != nil {
 		return false, err
 	}

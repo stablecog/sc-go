@@ -1,13 +1,12 @@
 package repository
 
 import (
-	"strings"
-
-	"entgo.io/ent/dialect/sql"
+	"github.com/google/uuid"
 	"github.com/stablecog/sc-go/database/ent"
 	"github.com/stablecog/sc-go/database/ent/credittype"
-	"github.com/stablecog/sc-go/shared"
 )
+
+const FREE_CREDIT_TYPE_ID = "3b12b23e-478b-4c18-8e34-70b3f0af1ee6"
 
 func (r *Repository) CreateCreditType(name string, amount int32, description *string, stripeProductID *string) (*ent.CreditType, error) {
 	create := r.DB.CreditType.Create().SetName(name).SetAmount(amount)
@@ -30,12 +29,16 @@ func (r *Repository) GetCreditTypeByStripeProductID(stripeProductID string) (*en
 	return creditType, nil
 }
 
-func (r *Repository) GetFreeCreditType() (*ent.CreditType, error) {
-	creditType, err := r.DB.CreditType.Query().Where(func(s *sql.Selector) {
-		s.Where(sql.EQ(sql.Lower(credittype.FieldName), strings.ToLower(shared.CREDIT_TYPE_FREE)))
-	}).Only(r.Ctx)
+func (r *Repository) GetOrCreateFreeCreditType() (*ent.CreditType, error) {
+	freeId := uuid.MustParse(FREE_CREDIT_TYPE_ID)
+	creditType, err := r.DB.CreditType.Query().Where(credittype.IDEQ(freeId)).Only(r.Ctx)
 	if err != nil && ent.IsNotFound(err) {
-		return nil, nil
+		// Create it
+		creditType, err := r.DB.CreditType.Create().SetID(freeId).SetName("Free").SetAmount(50).Save(r.Ctx)
+		if err != nil {
+			return nil, err
+		}
+		return creditType, nil
 	} else if err != nil {
 		return nil, err
 	}

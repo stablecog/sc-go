@@ -8,7 +8,6 @@ import (
 	"github.com/stablecog/sc-go/database/ent"
 	"github.com/stablecog/sc-go/database/ent/userrole"
 	"github.com/stablecog/sc-go/server/requests"
-	"github.com/stablecog/sc-go/shared"
 )
 
 // Mock user IDs
@@ -43,10 +42,7 @@ func (repo *Repository) CreateMockData(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	_, err = repo.CreateCreditType(shared.CREDIT_TYPE_FREE, 50, nil, nil)
-	if err != nil {
-		return err
-	}
+
 	// ! Mock users
 	// Create a user
 	u, err := repo.DB.User.Create().SetEmail("mockadmin@stablecog.com").SetID(uuid.MustParse(MOCK_ADMIN_UUID)).SetStripeCustomerID("1").Save(ctx)
