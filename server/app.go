@@ -378,10 +378,12 @@ func main() {
 
 			// Live page separate broadcast stream
 			if sseMessage.ForLivePage {
-				sseHub.BroadcastLivePageMessage(sseMessage.LivePageMessage)
+				sseHub.BroadcastLivePageMessage(*sseMessage.LivePageMessage)
 				continue
 			}
 
+			// Sanitize
+			sseMessage.LivePageMessage = nil
 			// The hub will broadcast this to our clients if it's supposed to
 			sseHub.BroadcastStatusUpdate(sseMessage)
 		}

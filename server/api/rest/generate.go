@@ -132,7 +132,7 @@ func (c *RestAPI) HandleCreateGeneration(w http.ResponseWriter, r *http.Request)
 			RedisPubsubKey:      shared.COG_REDIS_EVENT_CHANNEL,
 			Input: requests.BaseCogRequest{
 				ID:                   requestId,
-				LivePageData:         livePageMsg,
+				LivePageData:         &livePageMsg,
 				Prompt:               generateReq.Prompt,
 				NegativePrompt:       generateReq.NegativePrompt,
 				Width:                fmt.Sprint(generateReq.Width),
@@ -172,7 +172,7 @@ func (c *RestAPI) HandleCreateGeneration(w http.ResponseWriter, r *http.Request)
 	go func() {
 		liveResp := repository.TaskStatusUpdateResponse{
 			ForLivePage:     true,
-			LivePageMessage: livePageMsg,
+			LivePageMessage: &livePageMsg,
 		}
 		respBytes, err := json.Marshal(liveResp)
 		if err != nil {

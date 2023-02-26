@@ -15,6 +15,6 @@ type TaskStatusUpdateResponse struct {
 	NSFWCount        int32                     `json:"nsfw_count,omitempty"`
 	Outputs          []GenerationUpscaleOutput `json:"outputs,omitempty"`
 	ForLivePage      bool                      `json:"for_live_page,omitempty"`
-	LivePageMessage  shared.LivePageMessage    `json:"live_page_message,omitempty"`
+	LivePageMessage  *shared.LivePageMessage   `json:"live_page_message,omitempty"`
 	RemainingCredits int                       `json:"total_remaining_credits,omitempty"`
 }

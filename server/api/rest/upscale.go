@@ -165,7 +165,7 @@ func (c *RestAPI) HandleUpscale(w http.ResponseWriter, r *http.Request) {
 			RedisPubsubKey:      shared.COG_REDIS_EVENT_CHANNEL,
 			Input: requests.BaseCogRequest{
 				ID:                   requestId,
-				LivePageData:         livePageMsg,
+				LivePageData:         &livePageMsg,
 				GenerationOutputID:   outputIDStr,
 				Image:                imageUrl,
 				ProcessType:          shared.UPSCALE,
@@ -196,7 +196,7 @@ func (c *RestAPI) HandleUpscale(w http.ResponseWriter, r *http.Request) {
 	go func() {
 		liveResp := repository.TaskStatusUpdateResponse{
 			ForLivePage:     true,
-			LivePageMessage: livePageMsg,
+			LivePageMessage: &livePageMsg,
 		}
 		respBytes, err := json.Marshal(liveResp)
 		if err != nil {
