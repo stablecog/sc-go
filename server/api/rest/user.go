@@ -14,7 +14,7 @@ import (
 	"github.com/stablecog/sc-go/server/requests"
 	"github.com/stablecog/sc-go/server/responses"
 	"github.com/stablecog/sc-go/utils"
-	"github.com/stripe/stripe-go"
+	"github.com/stripe/stripe-go/v74"
 	"k8s.io/klog/v2"
 )
 
@@ -117,22 +117,27 @@ func (c *RestAPI) HandleGetUser(w http.ResponseWriter, r *http.Request) {
 	if customer != nil && customer.Subscriptions != nil && customer.Subscriptions.Data != nil {
 		// Find highest subscription tier
 		for _, subscription := range customer.Subscriptions.Data {
-			if subscription.Plan == nil || subscription.Plan.Product == nil {
+			if subscription.Items == nil || subscription.Items.Data == nil {
 				continue
 			}
 
-			// Not expired or cancelled
-			if now > subscription.CurrentPeriodEnd || subscription.CanceledAt > subscription.CurrentPeriodEnd {
-				continue
+			for _, item := range subscription.Items.Data {
+				if item.Price == nil || item.Price.Product == nil {
+					continue
+				}
+				// Not expired or cancelled
+				if now > subscription.CurrentPeriodEnd || subscription.CanceledAt > subscription.CurrentPeriodEnd {
+					continue
+				}
+				highestProduct = item.Price.Product.ID
+				// If not scheduled to be cancelled, we are done
+				if subscription.CancelAt == 0 {
+					cancelsAt = nil
+					break
+				}
+				cancelsAsTime := utils.SecondsSinceEpochToTime(subscription.CancelAt)
+				cancelsAt = &cancelsAsTime
 			}
-			highestProduct = subscription.Plan.Product.ID
-			// If not scheduled to be cancelled, we are done
-			if subscription.CancelAt == 0 {
-				cancelsAt = nil
-				break
-			}
-			cancelsAsTime := utils.SecondsSinceEpochToTime(subscription.CancelAt)
-			cancelsAt = &cancelsAsTime
 		}
 	}
 

@@ -22,8 +22,8 @@ import (
 	"github.com/stablecog/sc-go/server/requests"
 	"github.com/stablecog/sc-go/shared"
 	"github.com/stablecog/sc-go/utils"
-	stripeBase "github.com/stripe/stripe-go"
-	stripe "github.com/stripe/stripe-go/client"
+	stripeBase "github.com/stripe/stripe-go/v74"
+	stripe "github.com/stripe/stripe-go/v74/client"
 	"golang.org/x/net/http2"
 	"golang.org/x/net/http2/h2c"
 	"k8s.io/klog/v2"
@@ -104,7 +104,7 @@ func main() {
 
 	if *processCredits {
 		subList := stripeClient.Subscriptions.List(&stripeBase.SubscriptionListParams{
-			Status: "active",
+			Status: stripeBase.String("active"),
 		})
 		for subList.Next() {
 			sub := subList.Subscription()
@@ -112,11 +112,20 @@ func main() {
 				klog.Warningf("Subscription is nil")
 				continue
 			}
-			if sub.Plan == nil || sub.Plan.Product == nil || sub.Customer == nil {
-				klog.Warningf("Plan or product is nil")
+			if sub.LatestInvoice == nil || sub.LatestInvoice.Lines == nil {
+				klog.Warningf("Latest invoice is nil")
 				continue
 			}
-			productId := sub.Plan.Product.ID
+			// Get product ID
+			var productId string
+			var lineItemId string
+			for _, line := range sub.LatestInvoice.Lines.Data {
+				if line.Plan != nil {
+					productId = line.Plan.Product.ID
+					lineItemId = line.ID
+					break
+				}
+			}
 			// Find credit type with this id
 			creditType, err := repo.GetCreditTypeByStripeProductID(productId)
 			if err != nil {
@@ -136,8 +145,7 @@ func main() {
 
 			expiresAt := utils.SecondsSinceEpochToTime(sub.CurrentPeriodEnd)
 
-			// TODO - get line item ID
-			_, err = repo.AddCreditsIfEligible(creditType, user.ID, expiresAt, "", nil)
+			_, err = repo.AddCreditsIfEligible(creditType, user.ID, expiresAt, lineItemId, nil)
 			if err != nil {
 				klog.Warningf("Error adding credits to user %s: %v", user.ID, err)
 				continue
@@ -258,6 +266,7 @@ func main() {
 
 			// Subscription Downgrade
 			r.Post("/subscription/downgrade", hc.HandleSubscriptionDowngrade)
+			r.Post("/subscription/checkout", hc.HandleCreateCheckoutSession)
 		})
 
 		// Admin only routes

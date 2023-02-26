@@ -8,13 +8,15 @@ import (
 	"github.com/go-chi/render"
 	"github.com/stablecog/sc-go/server/responses"
 	"github.com/stablecog/sc-go/utils"
-	"github.com/stripe/stripe-go"
-	"github.com/stripe/stripe-go/webhook"
+	"github.com/stripe/stripe-go/v74"
+	"github.com/stripe/stripe-go/v74/webhook"
+	"golang.org/x/exp/slices"
 	"k8s.io/klog/v2"
 )
 
-type StripeDowngradeRequest struct {
+type StripeSubscriptionRequest struct {
 	TargetPriceID string `json:"target_price_id"`
+	Currency      string `json:"currency,omitempty"`
 }
 
 var PriceIDs = map[int]string{
@@ -26,7 +28,9 @@ var PriceIDs = map[int]string{
 	1: "price_1Mf56NATa0ehBYTAHkCUablG",
 }
 
-func (c *RestAPI) HandleSubscriptionDowngrade(w http.ResponseWriter, r *http.Request) {
+// For creating a new subscription or upgrading one
+// Rejects, if they have a subscription that is at a higher level than the target priceID
+func (c *RestAPI) HandleCreateCheckoutSession(w http.ResponseWriter, r *http.Request) {
 	userID, _ := c.GetUserIDAndEmailIfAuthenticated(w, r)
 	if userID == nil {
 		return
@@ -34,7 +38,7 @@ func (c *RestAPI) HandleSubscriptionDowngrade(w http.ResponseWriter, r *http.Req
 
 	// Parse request body
 	reqBody, _ := io.ReadAll(r.Body)
-	var generateReq StripeDowngradeRequest
+	var generateReq StripeSubscriptionRequest
 	err := json.Unmarshal(reqBody, &generateReq)
 	if err != nil {
 		responses.ErrUnableToParseJson(w, r)
@@ -73,8 +77,127 @@ func (c *RestAPI) HandleSubscriptionDowngrade(w http.ResponseWriter, r *http.Req
 		return
 	}
 
+	var currentPriceID string
+	if customer.Subscriptions != nil {
+		for _, sub := range customer.Subscriptions.Data {
+			if sub.Status == stripe.SubscriptionStatusActive && sub.CancelAt == 0 {
+				for _, item := range sub.Items.Data {
+					if item.Price.ID == targetPriceID {
+						responses.ErrBadRequest(w, r, "already_subscribed")
+						return
+					}
+					// If price ID is in map it's valid
+					for _, priceID := range PriceIDs {
+						if item.Price.ID == priceID {
+							currentPriceID = item.Price.ID
+							break
+						}
+					}
+				}
+				break
+			}
+		}
+	}
+
+	// If they have a current one, make sure they are upgrading
+	if currentPriceID != "" {
+		var currentPriceLevel int
+		for level, priceID := range PriceIDs {
+			if priceID == currentPriceID {
+				currentPriceLevel = level
+				break
+			}
+		}
+
+		if currentPriceLevel >= targetPriceLevel {
+			responses.ErrBadRequest(w, r, "cannot_downgrade")
+			return
+		}
+	}
+
+	// Create checkout session
+	params := &stripe.CheckoutSessionParams{
+		Customer: stripe.String(user.StripeCustomerID),
+		LineItems: []*stripe.CheckoutSessionLineItemParams{
+			{
+				Price:    stripe.String(targetPriceID),
+				Quantity: stripe.Int64(1),
+			},
+		},
+		Mode:       stripe.String(string(stripe.CheckoutSessionModeSubscription)),
+		SuccessURL: stripe.String(utils.GetPurchaseSucceededURL()),
+		CancelURL:  stripe.String(utils.GetPurcahseCancelledURL()),
+		Currency:   stripe.String(generateReq.Currency),
+	}
+
+	session, err := c.StripeClient.CheckoutSessions.New(params)
+	if err != nil {
+		klog.Errorf("Error creating checkout session: %v", err)
+		responses.ErrInternalServerError(w, r, "An unknown error has occured")
+		return
+	}
+
+	render.Status(r, http.StatusOK)
+	render.JSON(w, r, session)
+}
+
+// HTTP Post - handle stripe subscription downgrade
+// Rejects if they don't have a subscription, or if they are not downgrading
+func (c *RestAPI) HandleSubscriptionDowngrade(w http.ResponseWriter, r *http.Request) {
+	userID, _ := c.GetUserIDAndEmailIfAuthenticated(w, r)
+	if userID == nil {
+		return
+	}
+
+	// Parse request body
+	reqBody, _ := io.ReadAll(r.Body)
+	var generateReq StripeSubscriptionRequest
+	err := json.Unmarshal(reqBody, &generateReq)
+	if err != nil {
+		responses.ErrUnableToParseJson(w, r)
+		return
+	}
+
+	// Validate currency
+	if !slices.Contains([]string{"usd", "eur"}, generateReq.Currency) {
+		responses.ErrBadRequest(w, r, "invalid_currency")
+		return
+	}
+
+	// Make sure price ID exists in map
+	var targetPriceID string
+	var targetPriceLevel int
+	for level, priceID := range PriceIDs {
+		if priceID == generateReq.TargetPriceID {
+			targetPriceID = priceID
+			targetPriceLevel = level
+			break
+		}
+	}
+	if targetPriceID == "" {
+		responses.ErrBadRequest(w, r, "invalid_price_id")
+		return
+	}
+
+	// Get user
+	user, err := c.Repo.GetUser(*userID)
+	if err != nil {
+		klog.Errorf("Error getting user: %v", err)
+		responses.ErrInternalServerError(w, r, "An unknown error has occured")
+		return
+	}
+
+	// Get subscription
+	customer, err := c.StripeClient.Customers.Get(user.StripeCustomerID, nil)
+
+	if err != nil {
+		klog.Errorf("Error getting customer: %v", err)
+		responses.ErrInternalServerError(w, r, "An unknown error has occured")
+		return
+	}
+
 	if customer.Subscriptions == nil || len(customer.Subscriptions.Data) == 0 || customer.Subscriptions.TotalCount == 0 {
-		responses.ErrBadRequest(w, r, "no_subscription")
+		responses.ErrBadRequest(w, r, "no_active_subscription")
 		return
 	}
 
@@ -82,9 +205,17 @@ func (c *RestAPI) HandleSubscriptionDowngrade(w http.ResponseWriter, r *http.Req
 	var currentSubId string
 	for _, sub := range customer.Subscriptions.Data {
 		if sub.Status == stripe.SubscriptionStatusActive && sub.CancelAt == 0 {
-			currentSubId = sub.ID
-			currentPriceID = sub.Plan.ID
-			break
+			for _, item := range sub.Items.Data {
+				// If price ID is in map it's valid
+				for _, priceID := range PriceIDs {
+					if item.Price.ID == priceID {
+						currentPriceID = item.Price.ID
+						currentSubId = sub.ID
+						break
+					}
+				}
+				break
+			}
 		}
 	}
 
@@ -164,7 +295,7 @@ func (c *RestAPI) HandleStripeWebhook(w http.ResponseWriter, r *http.Request) {
 		}
 		// We need to see if they have more than one subscription
 		subIter := c.StripeClient.Subscriptions.List(&stripe.SubscriptionListParams{
-			Customer: newSub.Customer.ID,
+			Customer: stripe.String(newSub.Customer.ID),
 		})
 		for subIter.Next() {
 			sub := subIter.Subscription()

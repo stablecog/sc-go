@@ -9,7 +9,7 @@ import (
 	"github.com/stablecog/sc-go/database/repository"
 	"github.com/stablecog/sc-go/server/api/sse"
 	"github.com/stablecog/sc-go/server/responses"
-	stripe "github.com/stripe/stripe-go/client"
+	stripe "github.com/stripe/stripe-go/v74/client"
 )
 
 // Shared pagination defaults

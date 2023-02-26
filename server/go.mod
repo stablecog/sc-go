@@ -11,9 +11,6 @@ require (
 	github.com/google/uuid v1.3.0
 	github.com/jarcoal/httpmock v1.3.0
 	github.com/joho/godotenv v1.4.0
-	github.com/stablecog/sc-go/database v0.0.0-20230212170818-597693f5be69
-	github.com/stablecog/sc-go/shared v0.0.0-20230212170818-597693f5be69
-	github.com/stablecog/sc-go/utils v0.0.0-20230212170818-597693f5be69
 	github.com/stretchr/testify v1.8.1
 	github.com/stripe/stripe-go v70.15.0+incompatible
 	golang.org/x/net v0.0.0-20220722155237-a158d28d115b
@@ -68,7 +65,7 @@ require (
 	github.com/mattn/go-sqlite3 v1.14.16 // indirect
 	github.com/mileusna/useragent v1.2.1 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
-	golang.org/x/exp v0.0.0-20230206171751-46f607a40771 // indirect
+	github.com/stripe/stripe-go/v74 v74.9.0
 	golang.org/x/image v0.3.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
