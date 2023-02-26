@@ -19,6 +19,10 @@ type StripeSubscriptionRequest struct {
 	Currency      string `json:"currency,omitempty"`
 }
 
+type StripeSessionResponse struct {
+	URL string `json:"url"`
+}
+
 var PriceIDs = map[int]string{
 	// ultimate
 	3: "price_1Mf591ATa0ehBYTA6ggpEEkA",
@@ -60,8 +64,12 @@ func (c *RestAPI) HandleCreatePortalSession(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
+	sessionResponse := StripeSessionResponse{
+		URL: session.URL,
+	}
+
 	render.Status(r, http.StatusOK)
-	render.JSON(w, r, session)
+	render.JSON(w, r, sessionResponse)
 }
 
 // For creating a new subscription or upgrading one
@@ -93,6 +101,12 @@ func (c *RestAPI) HandleCreateCheckoutSession(w http.ResponseWriter, r *http.Req
 	}
 	if targetPriceID == "" {
 		responses.ErrBadRequest(w, r, "invalid_price_id")
+		return
+	}
+
+	// Validate currency
+	if !slices.Contains([]string{"usd", "eur"}, generateReq.Currency) {
+		responses.ErrBadRequest(w, r, "invalid_currency")
 		return
 	}
 
@@ -173,8 +187,12 @@ func (c *RestAPI) HandleCreateCheckoutSession(w http.ResponseWriter, r *http.Req
 		return
 	}
 
+	sessionResponse := StripeSessionResponse{
+		URL: session.URL,
+	}
+
 	render.Status(r, http.StatusOK)
-	render.JSON(w, r, session)
+	render.JSON(w, r, sessionResponse)
 }
 
 // HTTP Post - handle stripe subscription downgrade
@@ -191,12 +209,6 @@ func (c *RestAPI) HandleSubscriptionDowngrade(w http.ResponseWriter, r *http.Req
 	err := json.Unmarshal(reqBody, &generateReq)
 	if err != nil {
 		responses.ErrUnableToParseJson(w, r)
-		return
-	}
-
-	// Validate currency
-	if !slices.Contains([]string{"usd", "eur"}, generateReq.Currency) {
-		responses.ErrBadRequest(w, r, "invalid_currency")
 		return
 	}
 

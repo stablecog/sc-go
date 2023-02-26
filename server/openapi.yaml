@@ -443,6 +443,99 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/LivePageUpdate"
+  /v1/user/subscription/checkout:
+    post:
+      description: "Stripe: checkout new/upgraded subscription"
+      security:
+        - supabase: []
+      requestBody:
+        description: JSON Object with currency and target_price_id
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                currency:
+                  type: string
+                  format: usd, eur
+                target_price_id:
+                  type: string
+                  format: price ID
+      responses:
+        "200":
+          description: URL for new checkout session
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StripeSessionResponse"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    format: invalid_price_id, invalid_currency, already_subscribed, cannot_downgrade,
+        "401":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse401"
+  /v1/user/subscription/downgrade:
+    post:
+      description: "Stripe: downgrade subscription"
+      security:
+        - supabase: []
+      requestBody:
+        description: JSON Object with target_price_id
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                target_price_id:
+                  type: string
+                  format: price ID
+      responses:
+        "200":
+          description: Successfully downgraded subscription (updated in stripe)
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    format: invalid_price_id, no_active_subscription, no_downgrade_needed (level is not lower than current)
+        "401":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse401"
+  /v1/user/subscription/portal:
+    get:
+      description: "Stripe: customer portal"
+      security:
+        - supabase: []
+      responses:
+        "200":
+          description: URL for new portal session
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StripeSessionResponse"
+        "401":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse401"
 components:
   securitySchemes:
     supabase:
@@ -1082,3 +1175,8 @@ components:
                   type: string
                 stripe_product_id:
                   type: string
+    StripeSessionResponse:
+      type: object
+      properties:
+        url:
+          type: string
