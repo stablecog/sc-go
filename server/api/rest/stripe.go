@@ -28,6 +28,42 @@ var PriceIDs = map[int]string{
 	1: "price_1Mf56NATa0ehBYTAHkCUablG",
 }
 
+// For creating customer portal session
+func (c *RestAPI) HandleCreatePortalSession(w http.ResponseWriter, r *http.Request) {
+	userID, _ := c.GetUserIDAndEmailIfAuthenticated(w, r)
+	if userID == nil {
+		return
+	}
+
+	// Get user
+	user, err := c.Repo.GetUser(*userID)
+	if err != nil {
+		klog.Errorf("Error getting user: %v", err)
+		responses.ErrInternalServerError(w, r, "An unknown error has occured")
+		return
+	}
+
+	// customerPortalSession = await stripe.billingPortal.sessions.create({
+	// 	customer: customer.id,
+	// 	return_url: returnUrl
+	// });
+
+	// Create portal session
+	session, err := c.StripeClient.BillingPortalSessions.New(&stripe.BillingPortalSessionParams{
+		Customer:  stripe.String(user.StripeCustomerID),
+		ReturnURL: stripe.String(utils.GetAppURL()),
+	})
+
+	if err != nil {
+		klog.Errorf("Error creating portal session: %v", err)
+		responses.ErrInternalServerError(w, r, "An unknown error has occured")
+		return
+	}
+
+	render.Status(r, http.StatusOK)
+	render.JSON(w, r, session)
+}
+
 // For creating a new subscription or upgrading one
 // Rejects, if they have a subscription that is at a higher level than the target priceID
 func (c *RestAPI) HandleCreateCheckoutSession(w http.ResponseWriter, r *http.Request) {
