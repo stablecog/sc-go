@@ -471,7 +471,10 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/StripeSessionResponse"
+                type: object
+                properties:
+                  checkout_url:
+                    type: string
         "400":
           description: Bad request
           content:
@@ -542,7 +545,10 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/StripeSessionResponse"
+                type: object
+                properties:
+                  customer_portal_url:
+                    type: string
         "401":
           description: Bad request
           content:
@@ -1188,8 +1194,3 @@ components:
                   type: string
                 stripe_product_id:
                   type: string
-    StripeSessionResponse:
-      type: object
-      properties:
-        url:
-          type: string

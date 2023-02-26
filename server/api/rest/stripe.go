@@ -61,7 +61,7 @@ func (c *RestAPI) HandleCreatePortalSession(w http.ResponseWriter, r *http.Reque
 	}
 
 	sessionResponse := responses.StripeSessionResponse{
-		URL: session.URL,
+		CustomerPortalURL: session.URL,
 	}
 
 	render.Status(r, http.StatusOK)
@@ -115,7 +115,13 @@ func (c *RestAPI) HandleCreateCheckoutSession(w http.ResponseWriter, r *http.Req
 	}
 
 	// Get subscription
-	customer, err := c.StripeClient.Customers.Get(user.StripeCustomerID, nil)
+	customer, err := c.StripeClient.Customers.Get(user.StripeCustomerID, &stripe.CustomerParams{
+		Params: stripe.Params{
+			Expand: []*string{
+				stripe.String("subscriptions"),
+			},
+		},
+	})
 
 	if err != nil {
 		klog.Errorf("Error getting customer: %v", err)
@@ -194,7 +200,7 @@ func (c *RestAPI) HandleCreateCheckoutSession(w http.ResponseWriter, r *http.Req
 	}
 
 	sessionResponse := responses.StripeSessionResponse{
-		URL: session.URL,
+		CheckoutURL: session.URL,
 	}
 
 	render.Status(r, http.StatusOK)
@@ -242,7 +248,13 @@ func (c *RestAPI) HandleSubscriptionDowngrade(w http.ResponseWriter, r *http.Req
 	}
 
 	// Get subscription
-	customer, err := c.StripeClient.Customers.Get(user.StripeCustomerID, nil)
+	customer, err := c.StripeClient.Customers.Get(user.StripeCustomerID, &stripe.CustomerParams{
+		Params: stripe.Params{
+			Expand: []*string{
+				stripe.String("subscriptions"),
+			},
+		},
+	})
 
 	if err != nil {
 		klog.Errorf("Error getting customer: %v", err)

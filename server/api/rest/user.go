@@ -103,7 +103,13 @@ func (c *RestAPI) HandleGetUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	customer, err := c.StripeClient.Customers.Get(user.StripeCustomerID, nil)
+	customer, err := c.StripeClient.Customers.Get(user.StripeCustomerID, &stripe.CustomerParams{
+		Params: stripe.Params{
+			Expand: []*string{
+				stripe.String("subscriptions"),
+			},
+		},
+	})
 	stripeHadError := false
 	if err != nil {
 		klog.Errorf("Error getting customer from stripe, unknown error: %v", err)
