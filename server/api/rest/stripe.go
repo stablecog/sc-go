@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"github.com/go-chi/render"
+	"github.com/stablecog/sc-go/server/requests"
 	"github.com/stablecog/sc-go/server/responses"
 	"github.com/stablecog/sc-go/utils"
 	"github.com/stripe/stripe-go/v74"
@@ -14,28 +15,28 @@ import (
 	"k8s.io/klog/v2"
 )
 
-type StripeSubscriptionRequest struct {
-	TargetPriceID string `json:"target_price_id"`
-	Currency      string `json:"currency,omitempty"`
-}
-
-type StripeSessionResponse struct {
-	URL string `json:"url"`
-}
-
 var PriceIDs = map[int]string{
 	// ultimate
-	3: "price_1Mf591ATa0ehBYTA6ggpEEkA",
+	3: utils.GetEnv("STRIPE_ULTIMATE_PRICE_ID", "price_1Mf591ATa0ehBYTA6ggpEEkA"),
 	// pro
-	2: "price_1Mf50bATa0ehBYTAPOcfnOjG",
+	2: utils.GetEnv("STRIPE_PRO_PRICE_ID", "price_1Mf50bATa0ehBYTAPOcfnOjG"),
 	// starter
-	1: "price_1Mf56NATa0ehBYTAHkCUablG",
+	1: utils.GetEnv("STRIPE_STARTER_PRICE_ID", "price_1Mf56NATa0ehBYTAHkCUablG"),
 }
 
 // For creating customer portal session
 func (c *RestAPI) HandleCreatePortalSession(w http.ResponseWriter, r *http.Request) {
 	userID, _ := c.GetUserIDAndEmailIfAuthenticated(w, r)
 	if userID == nil {
+		return
+	}
+
+	// Parse request body
+	reqBody, _ := io.ReadAll(r.Body)
+	var stripeReq requests.StripePortalRequest
+	err := json.Unmarshal(reqBody, &stripeReq)
+	if err != nil {
+		responses.ErrUnableToParseJson(w, r)
 		return
 	}
 
@@ -47,15 +48,10 @@ func (c *RestAPI) HandleCreatePortalSession(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	// customerPortalSession = await stripe.billingPortal.sessions.create({
-	// 	customer: customer.id,
-	// 	return_url: returnUrl
-	// });
-
 	// Create portal session
 	session, err := c.StripeClient.BillingPortalSessions.New(&stripe.BillingPortalSessionParams{
 		Customer:  stripe.String(user.StripeCustomerID),
-		ReturnURL: stripe.String(utils.GetAppURL()),
+		ReturnURL: stripe.String(stripeReq.ReturnUrl),
 	})
 
 	if err != nil {
@@ -64,7 +60,7 @@ func (c *RestAPI) HandleCreatePortalSession(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	sessionResponse := StripeSessionResponse{
+	sessionResponse := responses.StripeSessionResponse{
 		URL: session.URL,
 	}
 
@@ -82,8 +78,8 @@ func (c *RestAPI) HandleCreateCheckoutSession(w http.ResponseWriter, r *http.Req
 
 	// Parse request body
 	reqBody, _ := io.ReadAll(r.Body)
-	var generateReq StripeSubscriptionRequest
-	err := json.Unmarshal(reqBody, &generateReq)
+	var stripeReq requests.StripeCheckoutRequest
+	err := json.Unmarshal(reqBody, &stripeReq)
 	if err != nil {
 		responses.ErrUnableToParseJson(w, r)
 		return
@@ -93,7 +89,7 @@ func (c *RestAPI) HandleCreateCheckoutSession(w http.ResponseWriter, r *http.Req
 	var targetPriceID string
 	var targetPriceLevel int
 	for level, priceID := range PriceIDs {
-		if priceID == generateReq.TargetPriceID {
+		if priceID == stripeReq.TargetPriceID {
 			targetPriceID = priceID
 			targetPriceLevel = level
 			break
@@ -105,7 +101,7 @@ func (c *RestAPI) HandleCreateCheckoutSession(w http.ResponseWriter, r *http.Req
 	}
 
 	// Validate currency
-	if !slices.Contains([]string{"usd", "eur"}, generateReq.Currency) {
+	if !slices.Contains([]string{"usd", "eur"}, stripeReq.Currency) {
 		responses.ErrBadRequest(w, r, "invalid_currency")
 		return
 	}
@@ -143,6 +139,11 @@ func (c *RestAPI) HandleCreateCheckoutSession(w http.ResponseWriter, r *http.Req
 							break
 						}
 					}
+					// See if this is starter euro price id
+					euroPriceId := utils.GetEnv("STRIPE_STARTER_EURO_PRICE_ID", "price_1Mf56NATa0ehBYTAHkCUablG")
+					if item.Price.ID == euroPriceId {
+						currentPriceID = item.Price.ID
+					}
 				}
 				break
 			}
@@ -157,6 +158,11 @@ func (c *RestAPI) HandleCreateCheckoutSession(w http.ResponseWriter, r *http.Req
 				currentPriceLevel = level
 				break
 			}
+		}
+		// Check euro
+		euroPriceId := utils.GetEnv("STRIPE_STARTER_EURO_PRICE_ID", "price_1Mf56NATa0ehBYTAHkCUablG")
+		if currentPriceID == euroPriceId {
+			currentPriceLevel = 1
 		}
 
 		if currentPriceLevel >= targetPriceLevel {
@@ -175,9 +181,9 @@ func (c *RestAPI) HandleCreateCheckoutSession(w http.ResponseWriter, r *http.Req
 			},
 		},
 		Mode:       stripe.String(string(stripe.CheckoutSessionModeSubscription)),
-		SuccessURL: stripe.String(utils.GetPurchaseSucceededURL()),
-		CancelURL:  stripe.String(utils.GetPurcahseCancelledURL()),
-		Currency:   stripe.String(generateReq.Currency),
+		SuccessURL: stripe.String(stripeReq.SuccessUrl),
+		CancelURL:  stripe.String(stripeReq.CancelUrl),
+		Currency:   stripe.String(stripeReq.Currency),
 	}
 
 	session, err := c.StripeClient.CheckoutSessions.New(params)
@@ -187,7 +193,7 @@ func (c *RestAPI) HandleCreateCheckoutSession(w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	sessionResponse := StripeSessionResponse{
+	sessionResponse := responses.StripeSessionResponse{
 		URL: session.URL,
 	}
 
@@ -205,8 +211,8 @@ func (c *RestAPI) HandleSubscriptionDowngrade(w http.ResponseWriter, r *http.Req
 
 	// Parse request body
 	reqBody, _ := io.ReadAll(r.Body)
-	var generateReq StripeSubscriptionRequest
-	err := json.Unmarshal(reqBody, &generateReq)
+	var stripeReq requests.StripeDowngradeRequest
+	err := json.Unmarshal(reqBody, &stripeReq)
 	if err != nil {
 		responses.ErrUnableToParseJson(w, r)
 		return
@@ -216,7 +222,7 @@ func (c *RestAPI) HandleSubscriptionDowngrade(w http.ResponseWriter, r *http.Req
 	var targetPriceID string
 	var targetPriceLevel int
 	for level, priceID := range PriceIDs {
-		if priceID == generateReq.TargetPriceID {
+		if priceID == stripeReq.TargetPriceID {
 			targetPriceID = priceID
 			targetPriceLevel = level
 			break
@@ -262,6 +268,12 @@ func (c *RestAPI) HandleSubscriptionDowngrade(w http.ResponseWriter, r *http.Req
 						break
 					}
 				}
+				// Check if euro price ID
+				euroPriceId := utils.GetEnv("STRIPE_STARTER_EURO_PRICE_ID", "price_1Mf56NATa0ehBYTAHkCUablG")
+				if item.Price.ID == euroPriceId {
+					currentPriceID = item.Price.ID
+					currentSubId = sub.ID
+				}
 				break
 			}
 		}
@@ -273,7 +285,7 @@ func (c *RestAPI) HandleSubscriptionDowngrade(w http.ResponseWriter, r *http.Req
 	}
 
 	if currentPriceID == targetPriceID {
-		responses.ErrBadRequest(w, r, "no_downgrade_needed")
+		responses.ErrBadRequest(w, r, "not_lower")
 		return
 	}
 
@@ -281,7 +293,7 @@ func (c *RestAPI) HandleSubscriptionDowngrade(w http.ResponseWriter, r *http.Req
 	for level, priceID := range PriceIDs {
 		if priceID == currentPriceID {
 			if level <= targetPriceLevel {
-				responses.ErrBadRequest(w, r, "no_downgrade_needed")
+				responses.ErrBadRequest(w, r, "not_lower")
 				return
 			}
 			break

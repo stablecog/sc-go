@@ -267,7 +267,7 @@ func main() {
 			// Subscriptions
 			r.Post("/subscription/downgrade", hc.HandleSubscriptionDowngrade)
 			r.Post("/subscription/checkout", hc.HandleCreateCheckoutSession)
-			r.Get("/subscription/portal", hc.HandleCreatePortalSession)
+			r.Post("/subscription/portal", hc.HandleCreatePortalSession)
 		})
 
 		// Admin only routes

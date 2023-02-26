@@ -38,15 +38,3 @@ func GetURLFromImagePath(s3UrlStr string) string {
 
 	return baseUrl + s3UrlStr
 }
-
-func GetAppURL() string {
-	return GetEnv("APP_URL", "https://stablecog.com")
-}
-
-func GetPurchaseSucceededURL() string {
-	return EnsureTrailingSlash(GetAppURL()) + "pricing/purchase/succeeded"
-}
-
-func GetPurcahseCancelledURL() string {
-	return EnsureTrailingSlash(GetAppURL()) + "pricing/purchase/cancelled"
-}
