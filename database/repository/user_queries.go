@@ -141,6 +141,9 @@ func (r *Repository) QueryUsers(per_page int, cursor *time.Time) (*UserQueryMeta
 		s.Where(credit.ExpiresAtGT(time.Now())).WithCreditType().Order(ent.Asc(credit.FieldExpiresAt))
 	})
 
+	// Include user roles
+	query.WithUserRoles()
+
 	res, err := query.All(r.Ctx)
 	if err != nil {
 		klog.Errorf("Error querying users: %v", err)
@@ -174,6 +177,9 @@ func (r *Repository) QueryUsers(per_page int, cursor *time.Time) (*UserQueryMeta
 			Email:            user.Email,
 			StripeCustomerID: user.StripeCustomerID,
 			CreatedAt:        user.CreatedAt,
+		}
+		for _, role := range user.Edges.UserRoles {
+			formatted.Roles = append(formatted.Roles, role.RoleName)
 		}
 		for _, credit := range user.Edges.Credits {
 			creditType := UserQueryCreditType{Name: credit.Edges.CreditType.Name}
@@ -212,9 +218,10 @@ type UserQueryCredits struct {
 }
 
 type UserQueryResult struct {
-	ID               uuid.UUID `json:"id"`
-	Email            string    `json:"email"`
-	StripeCustomerID string    `json:"stripe_customer_id"`
-	CreatedAt        time.Time `json:"created_at"`
+	ID               uuid.UUID           `json:"id"`
+	Email            string              `json:"email"`
+	StripeCustomerID string              `json:"stripe_customer_id"`
+	Roles            []userrole.RoleName `json:"role,omitempty"`
+	CreatedAt        time.Time           `json:"created_at"`
 	Credits          []UserQueryCredits
 }

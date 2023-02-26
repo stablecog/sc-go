@@ -1061,6 +1061,11 @@ components:
         created_at:
           type: string
           format: isoTimeString
+        roles:
+          type: array
+          items:
+            type: string
+            format: user role, SUPER_ADMIN/GALLERY_ADMIN
         credits:
           type: object
           properties:
