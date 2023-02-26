@@ -1,0 +1,17 @@
+// Launch with:
+// cd server && dlv debug --headless --listen=0.0.0.0:2345 --api-version=2 --log . 
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Launch Debugger",
+      "type": "go",
+      "request": "attach",
+      "mode": "remote",
+      "remotePath": "/home/go/app",
+      "port": 2345,
+      "showLog": true,
+      "trace": "verbose"
+    }
+  ]
+}
