@@ -21,6 +21,8 @@ type User struct {
 	Email string `json:"email,omitempty"`
 	// StripeCustomerID holds the value of the "stripe_customer_id" field.
 	StripeCustomerID string `json:"stripe_customer_id,omitempty"`
+	// ActiveProductID holds the value of the "active_product_id" field.
+	ActiveProductID *string `json:"active_product_id,omitempty"`
 	// CreatedAt holds the value of the "created_at" field.
 	CreatedAt time.Time `json:"created_at,omitempty"`
 	// UpdatedAt holds the value of the "updated_at" field.
@@ -86,7 +88,7 @@ func (*User) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case user.FieldEmail, user.FieldStripeCustomerID:
+		case user.FieldEmail, user.FieldStripeCustomerID, user.FieldActiveProductID:
 			values[i] = new(sql.NullString)
 		case user.FieldCreatedAt, user.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
@@ -124,6 +126,13 @@ func (u *User) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field stripe_customer_id", values[i])
 			} else if value.Valid {
 				u.StripeCustomerID = value.String
+			}
+		case user.FieldActiveProductID:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field active_product_id", values[i])
+			} else if value.Valid {
+				u.ActiveProductID = new(string)
+				*u.ActiveProductID = value.String
 			}
 		case user.FieldCreatedAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
@@ -190,6 +199,11 @@ func (u *User) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("stripe_customer_id=")
 	builder.WriteString(u.StripeCustomerID)
+	builder.WriteString(", ")
+	if v := u.ActiveProductID; v != nil {
+		builder.WriteString("active_product_id=")
+		builder.WriteString(*v)
+	}
 	builder.WriteString(", ")
 	builder.WriteString("created_at=")
 	builder.WriteString(u.CreatedAt.Format(time.ANSIC))

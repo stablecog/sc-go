@@ -17,6 +17,8 @@ const (
 	FieldEmail = "email"
 	// FieldStripeCustomerID holds the string denoting the stripe_customer_id field in the database.
 	FieldStripeCustomerID = "stripe_customer_id"
+	// FieldActiveProductID holds the string denoting the active_product_id field in the database.
+	FieldActiveProductID = "active_product_id"
 	// FieldCreatedAt holds the string denoting the created_at field in the database.
 	FieldCreatedAt = "created_at"
 	// FieldUpdatedAt holds the string denoting the updated_at field in the database.
@@ -66,6 +68,7 @@ var Columns = []string{
 	FieldID,
 	FieldEmail,
 	FieldStripeCustomerID,
+	FieldActiveProductID,
 	FieldCreatedAt,
 	FieldUpdatedAt,
 }

@@ -10426,6 +10426,7 @@ type UserMutation struct {
 	id                 *uuid.UUID
 	email              *string
 	stripe_customer_id *string
+	active_product_id  *string
 	created_at         *time.Time
 	updated_at         *time.Time
 	clearedFields      map[string]struct{}
@@ -10620,6 +10621,55 @@ func (m *UserMutation) OldStripeCustomerID(ctx context.Context) (v string, err e
 // ResetStripeCustomerID resets all changes to the "stripe_customer_id" field.
 func (m *UserMutation) ResetStripeCustomerID() {
 	m.stripe_customer_id = nil
+}
+
+// SetActiveProductID sets the "active_product_id" field.
+func (m *UserMutation) SetActiveProductID(s string) {
+	m.active_product_id = &s
+}
+
+// ActiveProductID returns the value of the "active_product_id" field in the mutation.
+func (m *UserMutation) ActiveProductID() (r string, exists bool) {
+	v := m.active_product_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldActiveProductID returns the old "active_product_id" field's value of the User entity.
+// If the User object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UserMutation) OldActiveProductID(ctx context.Context) (v *string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldActiveProductID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldActiveProductID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldActiveProductID: %w", err)
+	}
+	return oldValue.ActiveProductID, nil
+}
+
+// ClearActiveProductID clears the value of the "active_product_id" field.
+func (m *UserMutation) ClearActiveProductID() {
+	m.active_product_id = nil
+	m.clearedFields[user.FieldActiveProductID] = struct{}{}
+}
+
+// ActiveProductIDCleared returns if the "active_product_id" field was cleared in this mutation.
+func (m *UserMutation) ActiveProductIDCleared() bool {
+	_, ok := m.clearedFields[user.FieldActiveProductID]
+	return ok
+}
+
+// ResetActiveProductID resets all changes to the "active_product_id" field.
+func (m *UserMutation) ResetActiveProductID() {
+	m.active_product_id = nil
+	delete(m.clearedFields, user.FieldActiveProductID)
 }
 
 // SetCreatedAt sets the "created_at" field.
@@ -10944,12 +10994,15 @@ func (m *UserMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *UserMutation) Fields() []string {
-	fields := make([]string, 0, 4)
+	fields := make([]string, 0, 5)
 	if m.email != nil {
 		fields = append(fields, user.FieldEmail)
 	}
 	if m.stripe_customer_id != nil {
 		fields = append(fields, user.FieldStripeCustomerID)
+	}
+	if m.active_product_id != nil {
+		fields = append(fields, user.FieldActiveProductID)
 	}
 	if m.created_at != nil {
 		fields = append(fields, user.FieldCreatedAt)
@@ -10969,6 +11022,8 @@ func (m *UserMutation) Field(name string) (ent.Value, bool) {
 		return m.Email()
 	case user.FieldStripeCustomerID:
 		return m.StripeCustomerID()
+	case user.FieldActiveProductID:
+		return m.ActiveProductID()
 	case user.FieldCreatedAt:
 		return m.CreatedAt()
 	case user.FieldUpdatedAt:
@@ -10986,6 +11041,8 @@ func (m *UserMutation) OldField(ctx context.Context, name string) (ent.Value, er
 		return m.OldEmail(ctx)
 	case user.FieldStripeCustomerID:
 		return m.OldStripeCustomerID(ctx)
+	case user.FieldActiveProductID:
+		return m.OldActiveProductID(ctx)
 	case user.FieldCreatedAt:
 		return m.OldCreatedAt(ctx)
 	case user.FieldUpdatedAt:
@@ -11012,6 +11069,13 @@ func (m *UserMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetStripeCustomerID(v)
+		return nil
+	case user.FieldActiveProductID:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetActiveProductID(v)
 		return nil
 	case user.FieldCreatedAt:
 		v, ok := value.(time.Time)
@@ -11056,7 +11120,11 @@ func (m *UserMutation) AddField(name string, value ent.Value) error {
 // ClearedFields returns all nullable fields that were cleared during this
 // mutation.
 func (m *UserMutation) ClearedFields() []string {
-	return nil
+	var fields []string
+	if m.FieldCleared(user.FieldActiveProductID) {
+		fields = append(fields, user.FieldActiveProductID)
+	}
+	return fields
 }
 
 // FieldCleared returns a boolean indicating if a field with the given name was
@@ -11069,6 +11137,11 @@ func (m *UserMutation) FieldCleared(name string) bool {
 // ClearField clears the value of the field with the given name. It returns an
 // error if the field is not defined in the schema.
 func (m *UserMutation) ClearField(name string) error {
+	switch name {
+	case user.FieldActiveProductID:
+		m.ClearActiveProductID()
+		return nil
+	}
 	return fmt.Errorf("unknown User nullable field %s", name)
 }
 
@@ -11081,6 +11154,9 @@ func (m *UserMutation) ResetField(name string) error {
 		return nil
 	case user.FieldStripeCustomerID:
 		m.ResetStripeCustomerID()
+		return nil
+	case user.FieldActiveProductID:
+		m.ResetActiveProductID()
 		return nil
 	case user.FieldCreatedAt:
 		m.ResetCreatedAt()

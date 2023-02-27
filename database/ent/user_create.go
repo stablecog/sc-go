@@ -37,6 +37,20 @@ func (uc *UserCreate) SetStripeCustomerID(s string) *UserCreate {
 	return uc
 }
 
+// SetActiveProductID sets the "active_product_id" field.
+func (uc *UserCreate) SetActiveProductID(s string) *UserCreate {
+	uc.mutation.SetActiveProductID(s)
+	return uc
+}
+
+// SetNillableActiveProductID sets the "active_product_id" field if the given value is not nil.
+func (uc *UserCreate) SetNillableActiveProductID(s *string) *UserCreate {
+	if s != nil {
+		uc.SetActiveProductID(*s)
+	}
+	return uc
+}
+
 // SetCreatedAt sets the "created_at" field.
 func (uc *UserCreate) SetCreatedAt(t time.Time) *UserCreate {
 	uc.mutation.SetCreatedAt(t)
@@ -250,6 +264,10 @@ func (uc *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 	if value, ok := uc.mutation.StripeCustomerID(); ok {
 		_spec.SetField(user.FieldStripeCustomerID, field.TypeString, value)
 		_node.StripeCustomerID = value
+	}
+	if value, ok := uc.mutation.ActiveProductID(); ok {
+		_spec.SetField(user.FieldActiveProductID, field.TypeString, value)
+		_node.ActiveProductID = &value
 	}
 	if value, ok := uc.mutation.CreatedAt(); ok {
 		_spec.SetField(user.FieldCreatedAt, field.TypeTime, value)

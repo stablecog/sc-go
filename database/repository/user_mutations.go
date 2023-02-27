@@ -3,6 +3,7 @@ package repository
 import (
 	"github.com/google/uuid"
 	"github.com/stablecog/sc-go/database/ent"
+	"github.com/stablecog/sc-go/database/ent/user"
 )
 
 func (r *Repository) CreateUser(id uuid.UUID, email string, stripeCustomerId string, db *ent.Client) (*ent.User, error) {
@@ -10,4 +11,18 @@ func (r *Repository) CreateUser(id uuid.UUID, email string, stripeCustomerId str
 		db = r.DB
 	}
 	return db.User.Create().SetID(id).SetStripeCustomerID(stripeCustomerId).SetEmail(email).Save(r.Ctx)
+}
+
+func (r *Repository) SetActiveProductID(id uuid.UUID, stripeProductID string, db *ent.Client) error {
+	if db == nil {
+		db = r.DB
+	}
+	return db.User.UpdateOneID(id).SetActiveProductID(stripeProductID).Exec(r.Ctx)
+}
+
+func (r *Repository) UnsetActiveProductID(id uuid.UUID, stripeProductId string, db *ent.Client) error {
+	if db == nil {
+		db = r.DB
+	}
+	return db.User.Update().Where(user.IDEQ(id), user.ActiveProductIDEQ(stripeProductId)).SetActiveProductID("").Exec(r.Ctx)
 }

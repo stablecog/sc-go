@@ -46,6 +46,26 @@ func (uu *UserUpdate) SetStripeCustomerID(s string) *UserUpdate {
 	return uu
 }
 
+// SetActiveProductID sets the "active_product_id" field.
+func (uu *UserUpdate) SetActiveProductID(s string) *UserUpdate {
+	uu.mutation.SetActiveProductID(s)
+	return uu
+}
+
+// SetNillableActiveProductID sets the "active_product_id" field if the given value is not nil.
+func (uu *UserUpdate) SetNillableActiveProductID(s *string) *UserUpdate {
+	if s != nil {
+		uu.SetActiveProductID(*s)
+	}
+	return uu
+}
+
+// ClearActiveProductID clears the value of the "active_product_id" field.
+func (uu *UserUpdate) ClearActiveProductID() *UserUpdate {
+	uu.mutation.ClearActiveProductID()
+	return uu
+}
+
 // SetUpdatedAt sets the "updated_at" field.
 func (uu *UserUpdate) SetUpdatedAt(t time.Time) *UserUpdate {
 	uu.mutation.SetUpdatedAt(t)
@@ -266,6 +286,12 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if value, ok := uu.mutation.StripeCustomerID(); ok {
 		_spec.SetField(user.FieldStripeCustomerID, field.TypeString, value)
+	}
+	if value, ok := uu.mutation.ActiveProductID(); ok {
+		_spec.SetField(user.FieldActiveProductID, field.TypeString, value)
+	}
+	if uu.mutation.ActiveProductIDCleared() {
+		_spec.ClearField(user.FieldActiveProductID, field.TypeString)
 	}
 	if value, ok := uu.mutation.UpdatedAt(); ok {
 		_spec.SetField(user.FieldUpdatedAt, field.TypeTime, value)
@@ -520,6 +546,26 @@ func (uuo *UserUpdateOne) SetStripeCustomerID(s string) *UserUpdateOne {
 	return uuo
 }
 
+// SetActiveProductID sets the "active_product_id" field.
+func (uuo *UserUpdateOne) SetActiveProductID(s string) *UserUpdateOne {
+	uuo.mutation.SetActiveProductID(s)
+	return uuo
+}
+
+// SetNillableActiveProductID sets the "active_product_id" field if the given value is not nil.
+func (uuo *UserUpdateOne) SetNillableActiveProductID(s *string) *UserUpdateOne {
+	if s != nil {
+		uuo.SetActiveProductID(*s)
+	}
+	return uuo
+}
+
+// ClearActiveProductID clears the value of the "active_product_id" field.
+func (uuo *UserUpdateOne) ClearActiveProductID() *UserUpdateOne {
+	uuo.mutation.ClearActiveProductID()
+	return uuo
+}
+
 // SetUpdatedAt sets the "updated_at" field.
 func (uuo *UserUpdateOne) SetUpdatedAt(t time.Time) *UserUpdateOne {
 	uuo.mutation.SetUpdatedAt(t)
@@ -764,6 +810,12 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 	}
 	if value, ok := uuo.mutation.StripeCustomerID(); ok {
 		_spec.SetField(user.FieldStripeCustomerID, field.TypeString, value)
+	}
+	if value, ok := uuo.mutation.ActiveProductID(); ok {
+		_spec.SetField(user.FieldActiveProductID, field.TypeString, value)
+	}
+	if uuo.mutation.ActiveProductIDCleared() {
+		_spec.ClearField(user.FieldActiveProductID, field.TypeString)
 	}
 	if value, ok := uuo.mutation.UpdatedAt(); ok {
 		_spec.SetField(user.FieldUpdatedAt, field.TypeTime, value)

@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"github.com/go-chi/render"
+	"github.com/stablecog/sc-go/database/ent"
 	"github.com/stablecog/sc-go/server/requests"
 	"github.com/stablecog/sc-go/server/responses"
 	"github.com/stablecog/sc-go/utils"
@@ -386,6 +387,32 @@ func (c *RestAPI) HandleStripeWebhook(w http.ResponseWriter, r *http.Request) {
 				}
 			}
 		}
+	case "customer.subscription.deleted":
+		sub, err := stripeObjectMapToCustomSubscriptionObject(event.Data.Object)
+		if err != nil || sub == nil {
+			klog.Errorf("Unable parsing stripe subscription object: %v", err)
+			responses.ErrInternalServerError(w, r, err.Error())
+			return
+		}
+		user, err := c.Repo.GetUserByStripeCustomerId(sub.Customer)
+		if err != nil {
+			klog.Errorf("Unable getting user from stripe customer id: %v", err)
+			responses.ErrInternalServerError(w, r, err.Error())
+			return
+		} else if user == nil {
+			klog.Errorf("User does not exist with stripe customer id: %s", sub.Customer)
+			responses.ErrInternalServerError(w, r, "User does not exist with stripe customer id")
+			return
+		}
+		// Get product Id from subscription
+		if sub.Items != nil && len(sub.Items.Data) > 0 && sub.Items.Data[0].Price != nil {
+			err := c.Repo.UnsetActiveProductID(user.ID, sub.Items.Data[0].Price.Product, nil)
+			if err != nil {
+				klog.Errorf("Unable unsetting stripe product id: %v", err)
+				responses.ErrInternalServerError(w, r, err.Error())
+				return
+			}
+		}
 	case "invoice.payment_succeeded":
 		// We can parse the object as an invoice since that's the only thing we care about
 		invoice, err := stripeObjectMapToInvoiceObject(event.Data.Object)
@@ -469,10 +496,23 @@ func (c *RestAPI) HandleStripeWebhook(w http.ResponseWriter, r *http.Request) {
 			} else {
 				expiresAt := utils.SecondsSinceEpochToTime(line.Period.End)
 				// Update user credit
-				_, err = c.Repo.AddCreditsIfEligible(creditType, user.ID, expiresAt, line.ID, nil)
-				if err != nil {
+				if err := c.Repo.WithTx(func(tx *ent.Tx) error {
+					client := tx.Client()
+					_, err = c.Repo.AddCreditsIfEligible(creditType, user.ID, expiresAt, line.ID, client)
+					if err != nil {
+						klog.Errorf("Unable adding credits to user %s: %v", user.ID.String(), err)
+						responses.ErrInternalServerError(w, r, err.Error())
+						return err
+					}
+					err = c.Repo.SetActiveProductID(user.ID, product, client)
+					if err != nil {
+						klog.Errorf("Unable setting stripe product id for user %s: %v", user.ID.String(), err)
+						responses.ErrInternalServerError(w, r, err.Error())
+						return err
+					}
+					return nil
+				}); err != nil {
 					klog.Errorf("Unable adding credits to user %s: %v", user.ID.String(), err)
-					responses.ErrInternalServerError(w, r, err.Error())
 					return
 				}
 			}
@@ -504,6 +544,20 @@ func stripeObjectMapToSubscriptionObject(obj map[string]interface{}) (*stripe.Su
 		return nil, err
 	}
 	var subscription stripe.Subscription
+	err = json.Unmarshal(marshalled, &subscription)
+	if err != nil {
+		return nil, err
+	}
+	return &subscription, nil
+}
+
+// Parse generic object into custom stripe subscription struct with correct types
+func stripeObjectMapToCustomSubscriptionObject(obj map[string]interface{}) (*Subscription, error) {
+	marshalled, err := json.Marshal(obj)
+	if err != nil {
+		return nil, err
+	}
+	var subscription Subscription
 	err = json.Unmarshal(marshalled, &subscription)
 	if err != nil {
 		return nil, err
@@ -568,4 +622,16 @@ type Invoice struct {
 	BillingReason InvoiceBillingReason `json:"billing_reason"`
 	Lines         *InvoiceLineList     `json:"lines"`
 	Customer      string               `json:"customer"`
+}
+
+// Subscription object is also pbroken in stripe
+type SubscriptionItem struct {
+	Price *Price `json:"price"`
+}
+type SubscriptionItemList struct {
+	Data []*SubscriptionItem `json:"data"`
+}
+type Subscription struct {
+	Items    *SubscriptionItemList `json:"items"`
+	Customer string                `json:"customer"`
 }

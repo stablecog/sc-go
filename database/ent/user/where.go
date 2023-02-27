@@ -66,6 +66,11 @@ func StripeCustomerID(v string) predicate.User {
 	return predicate.User(sql.FieldEQ(FieldStripeCustomerID, v))
 }
 
+// ActiveProductID applies equality check predicate on the "active_product_id" field. It's identical to ActiveProductIDEQ.
+func ActiveProductID(v string) predicate.User {
+	return predicate.User(sql.FieldEQ(FieldActiveProductID, v))
+}
+
 // CreatedAt applies equality check predicate on the "created_at" field. It's identical to CreatedAtEQ.
 func CreatedAt(v time.Time) predicate.User {
 	return predicate.User(sql.FieldEQ(FieldCreatedAt, v))
@@ -204,6 +209,81 @@ func StripeCustomerIDEqualFold(v string) predicate.User {
 // StripeCustomerIDContainsFold applies the ContainsFold predicate on the "stripe_customer_id" field.
 func StripeCustomerIDContainsFold(v string) predicate.User {
 	return predicate.User(sql.FieldContainsFold(FieldStripeCustomerID, v))
+}
+
+// ActiveProductIDEQ applies the EQ predicate on the "active_product_id" field.
+func ActiveProductIDEQ(v string) predicate.User {
+	return predicate.User(sql.FieldEQ(FieldActiveProductID, v))
+}
+
+// ActiveProductIDNEQ applies the NEQ predicate on the "active_product_id" field.
+func ActiveProductIDNEQ(v string) predicate.User {
+	return predicate.User(sql.FieldNEQ(FieldActiveProductID, v))
+}
+
+// ActiveProductIDIn applies the In predicate on the "active_product_id" field.
+func ActiveProductIDIn(vs ...string) predicate.User {
+	return predicate.User(sql.FieldIn(FieldActiveProductID, vs...))
+}
+
+// ActiveProductIDNotIn applies the NotIn predicate on the "active_product_id" field.
+func ActiveProductIDNotIn(vs ...string) predicate.User {
+	return predicate.User(sql.FieldNotIn(FieldActiveProductID, vs...))
+}
+
+// ActiveProductIDGT applies the GT predicate on the "active_product_id" field.
+func ActiveProductIDGT(v string) predicate.User {
+	return predicate.User(sql.FieldGT(FieldActiveProductID, v))
+}
+
+// ActiveProductIDGTE applies the GTE predicate on the "active_product_id" field.
+func ActiveProductIDGTE(v string) predicate.User {
+	return predicate.User(sql.FieldGTE(FieldActiveProductID, v))
+}
+
+// ActiveProductIDLT applies the LT predicate on the "active_product_id" field.
+func ActiveProductIDLT(v string) predicate.User {
+	return predicate.User(sql.FieldLT(FieldActiveProductID, v))
+}
+
+// ActiveProductIDLTE applies the LTE predicate on the "active_product_id" field.
+func ActiveProductIDLTE(v string) predicate.User {
+	return predicate.User(sql.FieldLTE(FieldActiveProductID, v))
+}
+
+// ActiveProductIDContains applies the Contains predicate on the "active_product_id" field.
+func ActiveProductIDContains(v string) predicate.User {
+	return predicate.User(sql.FieldContains(FieldActiveProductID, v))
+}
+
+// ActiveProductIDHasPrefix applies the HasPrefix predicate on the "active_product_id" field.
+func ActiveProductIDHasPrefix(v string) predicate.User {
+	return predicate.User(sql.FieldHasPrefix(FieldActiveProductID, v))
+}
+
+// ActiveProductIDHasSuffix applies the HasSuffix predicate on the "active_product_id" field.
+func ActiveProductIDHasSuffix(v string) predicate.User {
+	return predicate.User(sql.FieldHasSuffix(FieldActiveProductID, v))
+}
+
+// ActiveProductIDIsNil applies the IsNil predicate on the "active_product_id" field.
+func ActiveProductIDIsNil() predicate.User {
+	return predicate.User(sql.FieldIsNull(FieldActiveProductID))
+}
+
+// ActiveProductIDNotNil applies the NotNil predicate on the "active_product_id" field.
+func ActiveProductIDNotNil() predicate.User {
+	return predicate.User(sql.FieldNotNull(FieldActiveProductID))
+}
+
+// ActiveProductIDEqualFold applies the EqualFold predicate on the "active_product_id" field.
+func ActiveProductIDEqualFold(v string) predicate.User {
+	return predicate.User(sql.FieldEqualFold(FieldActiveProductID, v))
+}
+
+// ActiveProductIDContainsFold applies the ContainsFold predicate on the "active_product_id" field.
+func ActiveProductIDContainsFold(v string) predicate.User {
+	return predicate.User(sql.FieldContainsFold(FieldActiveProductID, v))
 }
 
 // CreatedAtEQ applies the EQ predicate on the "created_at" field.
