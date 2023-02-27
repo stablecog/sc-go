@@ -24,5 +24,5 @@ func (r *Repository) UnsetActiveProductID(id uuid.UUID, stripeProductId string, 
 	if db == nil {
 		db = r.DB
 	}
-	return db.User.Update().Where(user.IDEQ(id), user.ActiveProductIDEQ(stripeProductId)).SetActiveProductID("").Exec(r.Ctx)
+	return db.User.Update().Where(user.IDEQ(id), user.ActiveProductIDEQ(stripeProductId)).ClearActiveProductID().Exec(r.Ctx)
 }
