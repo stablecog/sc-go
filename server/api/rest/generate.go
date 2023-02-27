@@ -203,33 +203,3 @@ func (c *RestAPI) HandleCreateGeneration(w http.ResponseWriter, r *http.Request)
 		RemainingCredits: remainingCredits,
 	})
 }
-
-// HTTP POST submit a generation to gallery
-func (c *RestAPI) HandleSubmitGenerationToGallery(w http.ResponseWriter, r *http.Request) {
-	userID, _ := c.GetUserIDAndEmailIfAuthenticated(w, r)
-	if userID == nil {
-		return
-	}
-
-	// Parse request body
-	reqBody, _ := io.ReadAll(r.Body)
-	var submitToGalleryReq requests.SubmitGalleryRequest
-	err := json.Unmarshal(reqBody, &submitToGalleryReq)
-	if err != nil {
-		responses.ErrUnableToParseJson(w, r)
-		return
-	}
-
-	submitted, err := c.Repo.SubmitGenerationOutputsToGalleryForUser(submitToGalleryReq.GenerationOutputIDs, *userID)
-	if err != nil {
-		responses.ErrInternalServerError(w, r, "Error submitting generation outputs to gallery")
-		return
-	}
-
-	res := responses.SubmitGalleryResponse{
-		Submitted: submitted,
-	}
-
-	render.Status(r, http.StatusOK)
-	render.JSON(w, r, res)
-}

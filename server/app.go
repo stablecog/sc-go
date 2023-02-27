@@ -269,6 +269,9 @@ func main() {
 			// Query credits
 			r.Get("/credits", hc.HandleQueryCredits)
 
+			// Submit to gallery
+			r.Put("/gallery", hc.HandleSubmitGenerationToGallery)
+
 			// Subscriptions
 			r.Post("/subscription/downgrade", hc.HandleSubscriptionDowngrade)
 			r.Post("/subscription/checkout", hc.HandleCreateCheckoutSession)
