@@ -184,7 +184,7 @@ func (c *RestAPI) HandleQueryUsers(w http.ResponseWriter, r *http.Request) {
 	if cursor == nil && c.StripeClient != nil {
 		users.TotalByProductID = make(map[string]int)
 		params := &stripe.SubscriptionSearchParams{}
-		params.Query = *stripe.String("status:'active' AND cancel_at_period_end:'false'")
+		params.Query = *stripe.String("status:'active'")
 		subIter := c.StripeClient.Subscriptions.Search(params)
 		for subIter.Next() {
 			sub := subIter.Subscription()
