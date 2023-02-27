@@ -137,7 +137,7 @@ func (c *RestAPI) HandleGetUser(w http.ResponseWriter, r *http.Request) {
 				}
 				highestProduct = item.Price.Product.ID
 				// If not scheduled to be cancelled, we are done
-				if subscription.CancelAt == 0 {
+				if !subscription.CancelAtPeriodEnd {
 					cancelsAt = nil
 					break
 				}
