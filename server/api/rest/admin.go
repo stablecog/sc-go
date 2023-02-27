@@ -188,7 +188,7 @@ func (c *RestAPI) HandleQueryUsers(w http.ResponseWriter, r *http.Request) {
 		subIter := c.StripeClient.Subscriptions.Search(params)
 		for subIter.Next() {
 			sub := subIter.Subscription()
-			if sub == nil || sub.Items == nil || sub.Items.Data == nil {
+			if sub == nil || sub.Items == nil || sub.Items.Data == nil || sub.CancelAtPeriodEnd {
 				continue
 			}
 			for _, item := range sub.Items.Data {
