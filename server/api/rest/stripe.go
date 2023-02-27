@@ -317,8 +317,8 @@ func (c *RestAPI) HandleSubscriptionDowngrade(w http.ResponseWriter, r *http.Req
 		ProrationBehavior: stripe.String("none"),
 		Items: []*stripe.SubscriptionItemsParams{
 			{
-				ID:   stripe.String(currentSubId),
-				Plan: stripe.String(targetPriceID),
+				ID:    stripe.String(currentSubId),
+				Price: stripe.String(targetPriceID),
 			},
 		},
 	})
