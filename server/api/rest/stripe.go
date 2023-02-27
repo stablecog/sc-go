@@ -269,6 +269,7 @@ func (c *RestAPI) HandleSubscriptionDowngrade(w http.ResponseWriter, r *http.Req
 
 	var currentPriceID string
 	var currentSubId string
+	var currentItemId string
 	for _, sub := range customer.Subscriptions.Data {
 		if sub.Status == stripe.SubscriptionStatusActive && sub.CancelAt == 0 {
 			for _, item := range sub.Items.Data {
@@ -277,6 +278,7 @@ func (c *RestAPI) HandleSubscriptionDowngrade(w http.ResponseWriter, r *http.Req
 					if item.Price.ID == priceID {
 						currentPriceID = item.Price.ID
 						currentSubId = sub.ID
+						currentItemId = item.ID
 						break
 					}
 				}
@@ -285,6 +287,7 @@ func (c *RestAPI) HandleSubscriptionDowngrade(w http.ResponseWriter, r *http.Req
 				if item.Price.ID == euroPriceId {
 					currentPriceID = item.Price.ID
 					currentSubId = sub.ID
+					currentItemId = item.ID
 				}
 				break
 			}
@@ -317,7 +320,7 @@ func (c *RestAPI) HandleSubscriptionDowngrade(w http.ResponseWriter, r *http.Req
 		ProrationBehavior: stripe.String("none"),
 		Items: []*stripe.SubscriptionItemsParams{
 			{
-				ID:    stripe.String(currentSubId),
+				ID:    stripe.String(currentItemId),
 				Price: stripe.String(targetPriceID),
 			},
 		},
