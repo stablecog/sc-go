@@ -277,5 +277,5 @@ type UserQueryResult struct {
 	Roles            []userrole.RoleName `json:"role,omitempty"`
 	CreatedAt        time.Time           `json:"created_at"`
 	Credits          []UserQueryCredits  `json:"credits,omitempty"`
-	StripeProductID  string              `json:"stripe_product_id,omitempty"`
+	StripeProductID  string              `json:"product_id,omitempty"`
 }
