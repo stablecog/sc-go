@@ -254,8 +254,8 @@ type UserQueryCreditType struct {
 }
 
 type UserQueryCredits struct {
-	RemainingAmount int32 `json:"remaining_amount"`
-	ExpiresAt       time.Time
+	RemainingAmount int32               `json:"remaining_amount"`
+	ExpiresAt       time.Time           `json:"expires_at"`
 	CreditType      UserQueryCreditType `json:"credit_type"`
 }
 
@@ -265,5 +265,5 @@ type UserQueryResult struct {
 	StripeCustomerID string              `json:"stripe_customer_id"`
 	Roles            []userrole.RoleName `json:"role,omitempty"`
 	CreatedAt        time.Time           `json:"created_at"`
-	Credits          []UserQueryCredits
+	Credits          []UserQueryCredits  `json:"credits"`
 }
