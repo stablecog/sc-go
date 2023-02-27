@@ -61,6 +61,10 @@ func (repo *Repository) CreateMockData(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
+	err = repo.SetActiveProductID(u.ID, stripeProductId, nil)
+	if err != nil {
+		return err
+	}
 	// Create another non-admin user
 	u, err = repo.DB.User.Create().SetEmail("mockuser@stablecog.com").SetID(uuid.MustParse(MOCK_NORMAL_UUID)).SetStripeCustomerID("2").Save(ctx)
 	if err != nil {
@@ -71,7 +75,10 @@ func (repo *Repository) CreateMockData(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	// Give user more credits
+	err = repo.SetActiveProductID(u.ID, stripeProductId, nil)
+	if err != nil {
+		return err
+	}
 
 	// Create another non-admin user
 	u, err = repo.DB.User.Create().SetEmail("mockaltuser@stablecog.com").SetID(uuid.MustParse(MOCK_ALT_UUID)).SetStripeCustomerID("3").Save(ctx)
@@ -80,6 +87,10 @@ func (repo *Repository) CreateMockData(ctx context.Context) error {
 	}
 	// Give user credits
 	_, err = repo.AddCreditsIfEligible(creditType, u.ID, time.Now().AddDate(0, 0, 30), "", nil)
+	if err != nil {
+		return err
+	}
+	err = repo.SetActiveProductID(u.ID, stripeProductId, nil)
 	if err != nil {
 		return err
 	}

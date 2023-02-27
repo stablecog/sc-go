@@ -7,7 +7,6 @@ import (
 	"github.com/google/uuid"
 	"github.com/stablecog/sc-go/database/ent"
 	"github.com/stablecog/sc-go/database/ent/credit"
-	"github.com/stablecog/sc-go/database/ent/credittype"
 	"github.com/stablecog/sc-go/database/ent/user"
 	"github.com/stablecog/sc-go/database/ent/userrole"
 	"k8s.io/klog/v2"
@@ -115,19 +114,32 @@ func (r *Repository) GetRoles(userID uuid.UUID) ([]userrole.RoleName, error) {
 }
 
 // Get count for QueryUsers
-func (r *Repository) QueryUsersCount() (totalCount int, err error) {
+func (r *Repository) QueryUsersCount() (totalCount int, totalCountByProduct map[string]int, err error) {
 	count, err := r.DB.User.Query().Count(r.Ctx)
 	if err != nil {
 		klog.Errorf("Error querying users count: %v", err)
-		return 0, err
+		return 0, nil, err
 	}
 
-	return count, nil
+	// Get map of user product_id / count
+	var userCreditCount []UserCreditGroupByType
+	r.DB.User.Query().Where(user.ActiveProductIDNotNil()).
+		GroupBy(user.FieldActiveProductID).
+		Aggregate(ent.Count()).
+		Scan(r.Ctx, &userCreditCount)
+
+	// Make it a map
+	userCreditCountMap := make(map[string]int, len(userCreditCount))
+	for _, userCredit := range userCreditCount {
+		userCreditCountMap[userCredit.ActiveProductID] = userCredit.Count
+	}
+
+	return count, userCreditCountMap, nil
 }
 
 type UserCreditGroupByType struct {
-	CreditName string    `json:"credit_name" sql:"credit_name"`
-	UserID     uuid.UUID `json:"user_id" sql:"user_id"`
+	ActiveProductID string `json:"active_product_id"`
+	Count           int    `json:"count"`
 }
 
 // Query all users with filters
@@ -137,6 +149,7 @@ func (r *Repository) QueryUsers(emailSearch string, per_page int, cursor *time.T
 	selectFields := []string{
 		user.FieldID,
 		user.FieldEmail,
+		user.FieldActiveProductID,
 		user.FieldStripeCustomerID,
 		user.FieldCreatedAt,
 	}
@@ -181,12 +194,13 @@ func (r *Repository) QueryUsers(emailSearch string, per_page int, cursor *time.T
 		Users: make([]UserQueryResult, len(res)),
 	}
 	if cursor == nil {
-		total, err := r.QueryUsersCount()
+		total, totalByProduct, err := r.QueryUsersCount()
 		if err != nil {
 			klog.Errorf("Error querying users count: %v", err)
 			return nil, err
 		}
 		meta.Total = &total
+		meta.TotalByProductID = totalByProduct
 	}
 
 	for i, user := range res {
@@ -195,25 +209,17 @@ func (r *Repository) QueryUsers(emailSearch string, per_page int, cursor *time.T
 			Email:            user.Email,
 			StripeCustomerID: user.StripeCustomerID,
 			CreatedAt:        user.CreatedAt,
+			StripeProductID:  user.ActiveProductID,
 		}
 		for _, role := range user.Edges.UserRoles {
 			formatted.Roles = append(formatted.Roles, role.RoleName)
 		}
-		// Figure out their highest subscription
-		highestStripeProduct := ""
-		var lastAmount int32
 
 		formatted.Credits = make([]UserQueryCredits, len(user.Edges.Credits))
 		for i, credit := range user.Edges.Credits {
 			creditType := UserQueryCreditType{Name: credit.Edges.CreditType.Name}
 			if credit.Edges.CreditType.StripeProductID != nil {
 				creditType.StripeProductId = *credit.Edges.CreditType.StripeProductID
-				if credit.Edges.CreditType.Type == credittype.TypeSubscription {
-					if credit.Edges.CreditType.Amount > lastAmount {
-						highestStripeProduct = *credit.Edges.CreditType.StripeProductID
-						lastAmount = credit.Edges.CreditType.Amount
-					}
-				}
 			}
 			formatted.Credits[i] = UserQueryCredits{
 				RemainingAmount: credit.RemainingAmount,
@@ -221,7 +227,6 @@ func (r *Repository) QueryUsers(emailSearch string, per_page int, cursor *time.T
 				CreditType:      creditType,
 			}
 		}
-		formatted.StripeProductID = highestStripeProduct
 		meta.Users[i] = formatted
 	}
 
@@ -254,5 +259,5 @@ type UserQueryResult struct {
 	Roles            []userrole.RoleName `json:"role,omitempty"`
 	CreatedAt        time.Time           `json:"created_at"`
 	Credits          []UserQueryCredits  `json:"credits,omitempty"`
-	StripeProductID  string              `json:"product_id,omitempty"`
+	StripeProductID  *string             `json:"product_id,omitempty"`
 }

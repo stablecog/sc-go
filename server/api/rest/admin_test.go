@@ -245,6 +245,9 @@ func TestHandleQueryUsersDefaultParams(t *testing.T) {
 	assert.Len(t, usersResponse.Users, 4)
 	assert.Nil(t, usersResponse.Next)
 
+	assert.Len(t, usersResponse.TotalByProductID, 1)
+	assert.Equal(t, 3, usersResponse.TotalByProductID["prod_123"])
+
 	assert.Equal(t, uuid.MustParse(repository.MOCK_NO_CREDITS_UUID), usersResponse.Users[0].ID)
 	assert.Equal(t, "mocknocredituser@stablecog.com", usersResponse.Users[0].Email)
 	assert.Equal(t, "4", usersResponse.Users[0].StripeCustomerID)
@@ -271,7 +274,7 @@ func TestHandleQueryUsersDefaultParams(t *testing.T) {
 	assert.Equal(t, "1", usersResponse.Users[3].StripeCustomerID)
 	assert.Len(t, usersResponse.Users[3].Credits, 1)
 	assert.Equal(t, int32(100), usersResponse.Users[3].Credits[0].RemainingAmount)
-	assert.Equal(t, "prod_123", usersResponse.Users[3].StripeProductID)
+	assert.Equal(t, "prod_123", *usersResponse.Users[3].StripeProductID)
 	assert.Equal(t, "mock", usersResponse.Users[3].Credits[0].CreditType.Name)
 }
 
