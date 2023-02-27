@@ -3,6 +3,7 @@
 package credittype
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/google/uuid"
@@ -21,6 +22,8 @@ const (
 	FieldAmount = "amount"
 	// FieldStripeProductID holds the string denoting the stripe_product_id field in the database.
 	FieldStripeProductID = "stripe_product_id"
+	// FieldType holds the string denoting the type field in the database.
+	FieldType = "type"
 	// FieldCreatedAt holds the string denoting the created_at field in the database.
 	FieldCreatedAt = "created_at"
 	// FieldUpdatedAt holds the string denoting the updated_at field in the database.
@@ -45,6 +48,7 @@ var Columns = []string{
 	FieldDescription,
 	FieldAmount,
 	FieldStripeProductID,
+	FieldType,
 	FieldCreatedAt,
 	FieldUpdatedAt,
 }
@@ -69,3 +73,27 @@ var (
 	// DefaultID holds the default value on creation for the "id" field.
 	DefaultID func() uuid.UUID
 )
+
+// Type defines the type for the "type" enum field.
+type Type string
+
+// Type values.
+const (
+	TypeFree         Type = "free"
+	TypeSubscription Type = "subscription"
+	TypeOneTime      Type = "one_time"
+)
+
+func (_type Type) String() string {
+	return string(_type)
+}
+
+// TypeValidator is a validator for the "type" field enum values. It is called by the builders before save.
+func TypeValidator(_type Type) error {
+	switch _type {
+	case TypeFree, TypeSubscription, TypeOneTime:
+		return nil
+	default:
+		return fmt.Errorf("credittype: invalid enum value for type field: %q", _type)
+	}
+}

@@ -90,6 +90,12 @@ func (ctu *CreditTypeUpdate) ClearStripeProductID() *CreditTypeUpdate {
 	return ctu
 }
 
+// SetType sets the "type" field.
+func (ctu *CreditTypeUpdate) SetType(c credittype.Type) *CreditTypeUpdate {
+	ctu.mutation.SetType(c)
+	return ctu
+}
+
 // SetUpdatedAt sets the "updated_at" field.
 func (ctu *CreditTypeUpdate) SetUpdatedAt(t time.Time) *CreditTypeUpdate {
 	ctu.mutation.SetUpdatedAt(t)
@@ -173,6 +179,16 @@ func (ctu *CreditTypeUpdate) defaults() {
 	}
 }
 
+// check runs all checks and user-defined validators on the builder.
+func (ctu *CreditTypeUpdate) check() error {
+	if v, ok := ctu.mutation.GetType(); ok {
+		if err := credittype.TypeValidator(v); err != nil {
+			return &ValidationError{Name: "type", err: fmt.Errorf(`ent: validator failed for field "CreditType.type": %w`, err)}
+		}
+	}
+	return nil
+}
+
 // Modify adds a statement modifier for attaching custom logic to the UPDATE statement.
 func (ctu *CreditTypeUpdate) Modify(modifiers ...func(u *sql.UpdateBuilder)) *CreditTypeUpdate {
 	ctu.modifiers = append(ctu.modifiers, modifiers...)
@@ -180,6 +196,9 @@ func (ctu *CreditTypeUpdate) Modify(modifiers ...func(u *sql.UpdateBuilder)) *Cr
 }
 
 func (ctu *CreditTypeUpdate) sqlSave(ctx context.Context) (n int, err error) {
+	if err := ctu.check(); err != nil {
+		return n, err
+	}
 	_spec := &sqlgraph.UpdateSpec{
 		Node: &sqlgraph.NodeSpec{
 			Table:   credittype.Table,
@@ -217,6 +236,9 @@ func (ctu *CreditTypeUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if ctu.mutation.StripeProductIDCleared() {
 		_spec.ClearField(credittype.FieldStripeProductID, field.TypeString)
+	}
+	if value, ok := ctu.mutation.GetType(); ok {
+		_spec.SetField(credittype.FieldType, field.TypeEnum, value)
 	}
 	if value, ok := ctu.mutation.UpdatedAt(); ok {
 		_spec.SetField(credittype.FieldUpdatedAt, field.TypeTime, value)
@@ -356,6 +378,12 @@ func (ctuo *CreditTypeUpdateOne) ClearStripeProductID() *CreditTypeUpdateOne {
 	return ctuo
 }
 
+// SetType sets the "type" field.
+func (ctuo *CreditTypeUpdateOne) SetType(c credittype.Type) *CreditTypeUpdateOne {
+	ctuo.mutation.SetType(c)
+	return ctuo
+}
+
 // SetUpdatedAt sets the "updated_at" field.
 func (ctuo *CreditTypeUpdateOne) SetUpdatedAt(t time.Time) *CreditTypeUpdateOne {
 	ctuo.mutation.SetUpdatedAt(t)
@@ -446,6 +474,16 @@ func (ctuo *CreditTypeUpdateOne) defaults() {
 	}
 }
 
+// check runs all checks and user-defined validators on the builder.
+func (ctuo *CreditTypeUpdateOne) check() error {
+	if v, ok := ctuo.mutation.GetType(); ok {
+		if err := credittype.TypeValidator(v); err != nil {
+			return &ValidationError{Name: "type", err: fmt.Errorf(`ent: validator failed for field "CreditType.type": %w`, err)}
+		}
+	}
+	return nil
+}
+
 // Modify adds a statement modifier for attaching custom logic to the UPDATE statement.
 func (ctuo *CreditTypeUpdateOne) Modify(modifiers ...func(u *sql.UpdateBuilder)) *CreditTypeUpdateOne {
 	ctuo.modifiers = append(ctuo.modifiers, modifiers...)
@@ -453,6 +491,9 @@ func (ctuo *CreditTypeUpdateOne) Modify(modifiers ...func(u *sql.UpdateBuilder))
 }
 
 func (ctuo *CreditTypeUpdateOne) sqlSave(ctx context.Context) (_node *CreditType, err error) {
+	if err := ctuo.check(); err != nil {
+		return _node, err
+	}
 	_spec := &sqlgraph.UpdateSpec{
 		Node: &sqlgraph.NodeSpec{
 			Table:   credittype.Table,
@@ -507,6 +548,9 @@ func (ctuo *CreditTypeUpdateOne) sqlSave(ctx context.Context) (_node *CreditType
 	}
 	if ctuo.mutation.StripeProductIDCleared() {
 		_spec.ClearField(credittype.FieldStripeProductID, field.TypeString)
+	}
+	if value, ok := ctuo.mutation.GetType(); ok {
+		_spec.SetField(credittype.FieldType, field.TypeEnum, value)
 	}
 	if value, ok := ctuo.mutation.UpdatedAt(); ok {
 		_spec.SetField(credittype.FieldUpdatedAt, field.TypeTime, value)

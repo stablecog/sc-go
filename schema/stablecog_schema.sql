@@ -41,12 +41,25 @@ CREATE TYPE public.generation_output_gallery_status_enum AS ENUM (
 ALTER TYPE public.generation_output_gallery_status_enum OWNER TO postgres;
 
 --
+-- Name: credit_type_enum; Type: TYPE; Schema: public; Owner: postgres
+--
+CREATE TYPE public.credit_type_enum AS ENUM (
+    'free',
+    'subscription',
+    'one_time'
+);
+
+ALTER TYPE public.credit_type_enum OWNER TO postgres;
+
+
+--
 -- Name: credit_types; Type: TABLE; Schema: public; Owner: postgres
 --
 
 CREATE TABLE public.credit_types (
     id uuid DEFAULT extensions.uuid_generate_v4() NOT NULL,
     name text NOT NULL,
+    type public.credit_type_enum NOT NULL,
     description text,
     amount integer NOT NULL,
     stripe_product_id text,

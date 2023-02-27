@@ -25,6 +25,8 @@ type CreditType struct {
 	Amount int32 `json:"amount,omitempty"`
 	// StripeProductID holds the value of the "stripe_product_id" field.
 	StripeProductID *string `json:"stripe_product_id,omitempty"`
+	// Type holds the value of the "type" field.
+	Type credittype.Type `json:"type,omitempty"`
 	// CreatedAt holds the value of the "created_at" field.
 	CreatedAt time.Time `json:"created_at,omitempty"`
 	// UpdatedAt holds the value of the "updated_at" field.
@@ -59,7 +61,7 @@ func (*CreditType) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case credittype.FieldAmount:
 			values[i] = new(sql.NullInt64)
-		case credittype.FieldName, credittype.FieldDescription, credittype.FieldStripeProductID:
+		case credittype.FieldName, credittype.FieldDescription, credittype.FieldStripeProductID, credittype.FieldType:
 			values[i] = new(sql.NullString)
 		case credittype.FieldCreatedAt, credittype.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
@@ -111,6 +113,12 @@ func (ct *CreditType) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				ct.StripeProductID = new(string)
 				*ct.StripeProductID = value.String
+			}
+		case credittype.FieldType:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field type", values[i])
+			} else if value.Valid {
+				ct.Type = credittype.Type(value.String)
 			}
 		case credittype.FieldCreatedAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
@@ -172,6 +180,9 @@ func (ct *CreditType) String() string {
 		builder.WriteString("stripe_product_id=")
 		builder.WriteString(*v)
 	}
+	builder.WriteString(", ")
+	builder.WriteString("type=")
+	builder.WriteString(fmt.Sprintf("%v", ct.Type))
 	builder.WriteString(", ")
 	builder.WriteString("created_at=")
 	builder.WriteString(ct.CreatedAt.Format(time.ANSIC))

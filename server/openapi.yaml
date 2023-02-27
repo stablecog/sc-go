@@ -1174,6 +1174,9 @@ components:
           type: string
         stripe_customer_id:
           type: string
+        stripe_product_id:
+          type: string
+          format: optional
         created_at:
           type: string
           format: isoTimeString

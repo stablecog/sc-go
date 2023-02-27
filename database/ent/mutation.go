@@ -891,6 +891,7 @@ type CreditTypeMutation struct {
 	amount            *int32
 	addamount         *int32
 	stripe_product_id *string
+	_type             *credittype.Type
 	created_at        *time.Time
 	updated_at        *time.Time
 	clearedFields     map[string]struct{}
@@ -1196,6 +1197,42 @@ func (m *CreditTypeMutation) ResetStripeProductID() {
 	delete(m.clearedFields, credittype.FieldStripeProductID)
 }
 
+// SetType sets the "type" field.
+func (m *CreditTypeMutation) SetType(c credittype.Type) {
+	m._type = &c
+}
+
+// GetType returns the value of the "type" field in the mutation.
+func (m *CreditTypeMutation) GetType() (r credittype.Type, exists bool) {
+	v := m._type
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldType returns the old "type" field's value of the CreditType entity.
+// If the CreditType object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CreditTypeMutation) OldType(ctx context.Context) (v credittype.Type, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldType is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldType requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldType: %w", err)
+	}
+	return oldValue.Type, nil
+}
+
+// ResetType resets all changes to the "type" field.
+func (m *CreditTypeMutation) ResetType() {
+	m._type = nil
+}
+
 // SetCreatedAt sets the "created_at" field.
 func (m *CreditTypeMutation) SetCreatedAt(t time.Time) {
 	m.created_at = &t
@@ -1356,7 +1393,7 @@ func (m *CreditTypeMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *CreditTypeMutation) Fields() []string {
-	fields := make([]string, 0, 6)
+	fields := make([]string, 0, 7)
 	if m.name != nil {
 		fields = append(fields, credittype.FieldName)
 	}
@@ -1368,6 +1405,9 @@ func (m *CreditTypeMutation) Fields() []string {
 	}
 	if m.stripe_product_id != nil {
 		fields = append(fields, credittype.FieldStripeProductID)
+	}
+	if m._type != nil {
+		fields = append(fields, credittype.FieldType)
 	}
 	if m.created_at != nil {
 		fields = append(fields, credittype.FieldCreatedAt)
@@ -1391,6 +1431,8 @@ func (m *CreditTypeMutation) Field(name string) (ent.Value, bool) {
 		return m.Amount()
 	case credittype.FieldStripeProductID:
 		return m.StripeProductID()
+	case credittype.FieldType:
+		return m.GetType()
 	case credittype.FieldCreatedAt:
 		return m.CreatedAt()
 	case credittype.FieldUpdatedAt:
@@ -1412,6 +1454,8 @@ func (m *CreditTypeMutation) OldField(ctx context.Context, name string) (ent.Val
 		return m.OldAmount(ctx)
 	case credittype.FieldStripeProductID:
 		return m.OldStripeProductID(ctx)
+	case credittype.FieldType:
+		return m.OldType(ctx)
 	case credittype.FieldCreatedAt:
 		return m.OldCreatedAt(ctx)
 	case credittype.FieldUpdatedAt:
@@ -1452,6 +1496,13 @@ func (m *CreditTypeMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetStripeProductID(v)
+		return nil
+	case credittype.FieldType:
+		v, ok := value.(credittype.Type)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetType(v)
 		return nil
 	case credittype.FieldCreatedAt:
 		v, ok := value.(time.Time)
@@ -1557,6 +1608,9 @@ func (m *CreditTypeMutation) ResetField(name string) error {
 		return nil
 	case credittype.FieldStripeProductID:
 		m.ResetStripeProductID()
+		return nil
+	case credittype.FieldType:
+		m.ResetType()
 		return nil
 	case credittype.FieldCreatedAt:
 		m.ResetCreatedAt()

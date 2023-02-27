@@ -223,10 +223,19 @@ func (r *Repository) QueryUsers(emailSearch string, per_page int, cursor *time.T
 		for _, role := range user.Edges.UserRoles {
 			formatted.Roles = append(formatted.Roles, role.RoleName)
 		}
+		// Figure out their highest subscription
+		highestStripeProduct := ""
+		var lastAmount int32
 		for _, credit := range user.Edges.Credits {
 			creditType := UserQueryCreditType{Name: credit.Edges.CreditType.Name}
 			if credit.Edges.CreditType.StripeProductID != nil {
 				creditType.StripeProductId = *credit.Edges.CreditType.StripeProductID
+				if credit.Edges.CreditType.Type == credittype.TypeSubscription {
+					if credit.Edges.CreditType.Amount > lastAmount {
+						highestStripeProduct = *credit.Edges.CreditType.StripeProductID
+						lastAmount = credit.Edges.CreditType.Amount
+					}
+				}
 			}
 			formatted.Credits = append(formatted.Credits, UserQueryCredits{
 				RemainingAmount: credit.RemainingAmount,
@@ -234,6 +243,7 @@ func (r *Repository) QueryUsers(emailSearch string, per_page int, cursor *time.T
 				CreditType:      creditType,
 			})
 		}
+		formatted.StripeProductID = highestStripeProduct
 		meta.Users = append(meta.Users, formatted)
 	}
 
@@ -266,4 +276,5 @@ type UserQueryResult struct {
 	Roles            []userrole.RoleName `json:"role,omitempty"`
 	CreatedAt        time.Time           `json:"created_at"`
 	Credits          []UserQueryCredits  `json:"credits"`
+	StripeProductID  string              `json:"stripe_product_id,omitempty"`
 }

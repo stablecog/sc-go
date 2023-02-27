@@ -8,8 +8,8 @@ import (
 
 const FREE_CREDIT_TYPE_ID = "3b12b23e-478b-4c18-8e34-70b3f0af1ee6"
 
-func (r *Repository) CreateCreditType(name string, amount int32, description *string, stripeProductID *string) (*ent.CreditType, error) {
-	create := r.DB.CreditType.Create().SetName(name).SetAmount(amount)
+func (r *Repository) CreateCreditType(name string, amount int32, description *string, stripeProductID *string, ctype credittype.Type) (*ent.CreditType, error) {
+	create := r.DB.CreditType.Create().SetName(name).SetAmount(amount).SetType(ctype)
 	if description != nil {
 		create.SetDescription(*description)
 	}
@@ -34,7 +34,7 @@ func (r *Repository) GetOrCreateFreeCreditType() (*ent.CreditType, error) {
 	creditType, err := r.DB.CreditType.Query().Where(credittype.IDEQ(freeId)).Only(r.Ctx)
 	if err != nil && ent.IsNotFound(err) {
 		// Create it
-		creditType, err := r.DB.CreditType.Create().SetID(freeId).SetName("Free").SetAmount(50).Save(r.Ctx)
+		creditType, err := r.DB.CreditType.Create().SetID(freeId).SetName("Free").SetAmount(50).SetType(credittype.TypeFree).Save(r.Ctx)
 		if err != nil {
 			return nil, err
 		}

@@ -6,6 +6,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/stablecog/sc-go/database/ent"
+	"github.com/stablecog/sc-go/database/ent/credittype"
 	"github.com/stablecog/sc-go/database/ent/userrole"
 	"github.com/stablecog/sc-go/server/requests"
 )
@@ -38,7 +39,8 @@ func (repo *Repository) CreateMockData(ctx context.Context) error {
 	repo.DB.Upscale.Delete().ExecX(ctx)
 
 	// Create a credit type
-	creditType, err := repo.CreateCreditType("mock", 100, nil, nil)
+	stripeProductId := "prod_123"
+	creditType, err := repo.CreateCreditType("mock", 100, nil, &stripeProductId, credittype.TypeSubscription)
 	if err != nil {
 		return err
 	}

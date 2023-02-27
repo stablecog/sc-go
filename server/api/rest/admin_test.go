@@ -274,6 +274,7 @@ func TestHandleQueryUsersDefaultParams(t *testing.T) {
 	assert.Equal(t, "1", usersResponse.Users[3].StripeCustomerID)
 	assert.Len(t, usersResponse.Users[3].Credits, 1)
 	assert.Equal(t, int32(100), usersResponse.Users[3].Credits[0].RemainingAmount)
+	assert.Equal(t, "prod_123", usersResponse.Users[3].StripeProductID)
 	assert.Equal(t, "mock", usersResponse.Users[3].Credits[0].CreditType.Name)
 }
 

@@ -341,6 +341,26 @@ func StripeProductIDContainsFold(v string) predicate.CreditType {
 	return predicate.CreditType(sql.FieldContainsFold(FieldStripeProductID, v))
 }
 
+// TypeEQ applies the EQ predicate on the "type" field.
+func TypeEQ(v Type) predicate.CreditType {
+	return predicate.CreditType(sql.FieldEQ(FieldType, v))
+}
+
+// TypeNEQ applies the NEQ predicate on the "type" field.
+func TypeNEQ(v Type) predicate.CreditType {
+	return predicate.CreditType(sql.FieldNEQ(FieldType, v))
+}
+
+// TypeIn applies the In predicate on the "type" field.
+func TypeIn(vs ...Type) predicate.CreditType {
+	return predicate.CreditType(sql.FieldIn(FieldType, vs...))
+}
+
+// TypeNotIn applies the NotIn predicate on the "type" field.
+func TypeNotIn(vs ...Type) predicate.CreditType {
+	return predicate.CreditType(sql.FieldNotIn(FieldType, vs...))
+}
+
 // CreatedAtEQ applies the EQ predicate on the "created_at" field.
 func CreatedAtEQ(v time.Time) predicate.CreditType {
 	return predicate.CreditType(sql.FieldEQ(FieldCreatedAt, v))

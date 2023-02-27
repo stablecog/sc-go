@@ -62,6 +62,12 @@ func (ctc *CreditTypeCreate) SetNillableStripeProductID(s *string) *CreditTypeCr
 	return ctc
 }
 
+// SetType sets the "type" field.
+func (ctc *CreditTypeCreate) SetType(c credittype.Type) *CreditTypeCreate {
+	ctc.mutation.SetType(c)
+	return ctc
+}
+
 // SetCreatedAt sets the "created_at" field.
 func (ctc *CreditTypeCreate) SetCreatedAt(t time.Time) *CreditTypeCreate {
 	ctc.mutation.SetCreatedAt(t)
@@ -176,6 +182,14 @@ func (ctc *CreditTypeCreate) check() error {
 	if _, ok := ctc.mutation.Amount(); !ok {
 		return &ValidationError{Name: "amount", err: errors.New(`ent: missing required field "CreditType.amount"`)}
 	}
+	if _, ok := ctc.mutation.GetType(); !ok {
+		return &ValidationError{Name: "type", err: errors.New(`ent: missing required field "CreditType.type"`)}
+	}
+	if v, ok := ctc.mutation.GetType(); ok {
+		if err := credittype.TypeValidator(v); err != nil {
+			return &ValidationError{Name: "type", err: fmt.Errorf(`ent: validator failed for field "CreditType.type": %w`, err)}
+		}
+	}
 	if _, ok := ctc.mutation.CreatedAt(); !ok {
 		return &ValidationError{Name: "created_at", err: errors.New(`ent: missing required field "CreditType.created_at"`)}
 	}
@@ -238,6 +252,10 @@ func (ctc *CreditTypeCreate) createSpec() (*CreditType, *sqlgraph.CreateSpec) {
 	if value, ok := ctc.mutation.StripeProductID(); ok {
 		_spec.SetField(credittype.FieldStripeProductID, field.TypeString, value)
 		_node.StripeProductID = &value
+	}
+	if value, ok := ctc.mutation.GetType(); ok {
+		_spec.SetField(credittype.FieldType, field.TypeEnum, value)
+		_node.Type = value
 	}
 	if value, ok := ctc.mutation.CreatedAt(); ok {
 		_spec.SetField(credittype.FieldCreatedAt, field.TypeTime, value)

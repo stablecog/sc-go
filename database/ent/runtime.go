@@ -46,11 +46,11 @@ func init() {
 	credittypeFields := schema.CreditType{}.Fields()
 	_ = credittypeFields
 	// credittypeDescCreatedAt is the schema descriptor for created_at field.
-	credittypeDescCreatedAt := credittypeFields[5].Descriptor()
+	credittypeDescCreatedAt := credittypeFields[6].Descriptor()
 	// credittype.DefaultCreatedAt holds the default value on creation for the created_at field.
 	credittype.DefaultCreatedAt = credittypeDescCreatedAt.Default.(func() time.Time)
 	// credittypeDescUpdatedAt is the schema descriptor for updated_at field.
-	credittypeDescUpdatedAt := credittypeFields[6].Descriptor()
+	credittypeDescUpdatedAt := credittypeFields[7].Descriptor()
 	// credittype.DefaultUpdatedAt holds the default value on creation for the updated_at field.
 	credittype.DefaultUpdatedAt = credittypeDescUpdatedAt.Default.(func() time.Time)
 	// credittype.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
