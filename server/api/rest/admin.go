@@ -172,7 +172,7 @@ func (c *RestAPI) HandleQueryUsers(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Get users
-	users, err := c.Repo.QueryUsers(perPage, cursor)
+	users, err := c.Repo.QueryUsers(r.URL.Query().Get("search"), perPage, cursor)
 	if err != nil {
 		klog.Errorf("Error getting users: %s", err)
 		responses.ErrInternalServerError(w, r, "Error getting users")

@@ -157,7 +157,7 @@ type UserCreditGroupByType struct {
 // Query all users with filters
 // per_page is how many rows to return
 // cursor is created_at on users, will return items with created_at less than cursor
-func (r *Repository) QueryUsers(per_page int, cursor *time.Time) (*UserQueryMeta, error) {
+func (r *Repository) QueryUsers(emailSearch string, per_page int, cursor *time.Time) (*UserQueryMeta, error) {
 	selectFields := []string{
 		user.FieldID,
 		user.FieldEmail,
@@ -178,6 +178,10 @@ func (r *Repository) QueryUsers(per_page int, cursor *time.Time) (*UserQueryMeta
 	query.WithCredits(func(s *ent.CreditQuery) {
 		s.Where(credit.ExpiresAtGT(time.Now())).WithCreditType().Order(ent.Asc(credit.FieldExpiresAt))
 	})
+
+	if emailSearch != "" {
+		query = query.Where(user.EmailContains(emailSearch))
+	}
 
 	// Include user roles
 	query.WithUserRoles()
