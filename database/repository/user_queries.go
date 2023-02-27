@@ -201,7 +201,8 @@ func (r *Repository) QueryUsers(emailSearch string, per_page int, cursor *time.T
 
 	// Build meta
 	meta := &UserQueryMeta{
-		Next: next,
+		Next:  next,
+		Users: make([]UserQueryResult, 0, len(res)),
 	}
 	if cursor == nil {
 		total, totalByType, err := r.QueryUsersCount()
@@ -275,6 +276,6 @@ type UserQueryResult struct {
 	StripeCustomerID string              `json:"stripe_customer_id"`
 	Roles            []userrole.RoleName `json:"role,omitempty"`
 	CreatedAt        time.Time           `json:"created_at"`
-	Credits          []UserQueryCredits  `json:"credits"`
+	Credits          []UserQueryCredits  `json:"credits,omitempty"`
 	StripeProductID  string              `json:"stripe_product_id,omitempty"`
 }
