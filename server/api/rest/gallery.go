@@ -2,6 +2,7 @@ package rest
 
 import (
 	"encoding/json"
+	"io"
 	"math/rand"
 	"net/http"
 	"strconv"
@@ -9,6 +10,7 @@ import (
 	"github.com/go-chi/render"
 	"github.com/meilisearch/meilisearch-go"
 	"github.com/stablecog/sc-go/database/repository"
+	"github.com/stablecog/sc-go/server/requests"
 	"github.com/stablecog/sc-go/server/responses"
 	"github.com/stablecog/sc-go/utils"
 	"k8s.io/klog/v2"
@@ -124,4 +126,35 @@ type GalleryResponse struct {
 	Next int                      `json:"next"`
 	Page int                      `json:"page"`
 	Hits []repository.GalleryData `json:"hits"`
+}
+
+// HTTP PUT submit a generation to gallery - for user
+// Only allow submitting user's own gallery items.
+func (c *RestAPI) HandleSubmitGenerationToGallery(w http.ResponseWriter, r *http.Request) {
+	userID, _ := c.GetUserIDAndEmailIfAuthenticated(w, r)
+	if userID == nil {
+		return
+	}
+
+	// Parse request body
+	reqBody, _ := io.ReadAll(r.Body)
+	var submitToGalleryReq requests.SubmitGalleryRequest
+	err := json.Unmarshal(reqBody, &submitToGalleryReq)
+	if err != nil {
+		responses.ErrUnableToParseJson(w, r)
+		return
+	}
+
+	submitted, err := c.Repo.SubmitGenerationOutputsToGalleryForUser(submitToGalleryReq.GenerationOutputIDs, *userID)
+	if err != nil {
+		responses.ErrInternalServerError(w, r, "Error submitting generation outputs to gallery")
+		return
+	}
+
+	res := responses.SubmitGalleryResponse{
+		Submitted: submitted,
+	}
+
+	render.Status(r, http.StatusOK)
+	render.JSON(w, r, res)
 }
