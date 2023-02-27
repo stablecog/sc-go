@@ -202,7 +202,7 @@ func (r *Repository) QueryUsers(emailSearch string, per_page int, cursor *time.T
 	// Build meta
 	meta := &UserQueryMeta{
 		Next:  next,
-		Users: make([]UserQueryResult, 0, len(res)),
+		Users: make([]UserQueryResult, len(res)),
 	}
 	if cursor == nil {
 		total, totalByType, err := r.QueryUsersCount()
@@ -214,7 +214,7 @@ func (r *Repository) QueryUsers(emailSearch string, per_page int, cursor *time.T
 		meta.TotalByCreditName = totalByType
 	}
 
-	for _, user := range res {
+	for i, user := range res {
 		formatted := UserQueryResult{
 			ID:               user.ID,
 			Email:            user.Email,
@@ -227,7 +227,8 @@ func (r *Repository) QueryUsers(emailSearch string, per_page int, cursor *time.T
 		// Figure out their highest subscription
 		highestStripeProduct := ""
 		var lastAmount int32
-		for _, credit := range user.Edges.Credits {
+		formatted.Credits = make([]UserQueryCredits, len(user.Edges.Credits))
+		for i, credit := range user.Edges.Credits {
 			creditType := UserQueryCreditType{Name: credit.Edges.CreditType.Name}
 			if credit.Edges.CreditType.StripeProductID != nil {
 				creditType.StripeProductId = *credit.Edges.CreditType.StripeProductID
@@ -238,14 +239,14 @@ func (r *Repository) QueryUsers(emailSearch string, per_page int, cursor *time.T
 					}
 				}
 			}
-			formatted.Credits = append(formatted.Credits, UserQueryCredits{
+			formatted.Credits[i] = UserQueryCredits{
 				RemainingAmount: credit.RemainingAmount,
 				ExpiresAt:       credit.ExpiresAt,
 				CreditType:      creditType,
-			})
+			}
 		}
 		formatted.StripeProductID = highestStripeProduct
-		meta.Users = append(meta.Users, formatted)
+		meta.Users[i] = formatted
 	}
 
 	return meta, nil
