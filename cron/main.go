@@ -10,9 +10,11 @@ import (
 
 	"github.com/go-co-op/gocron"
 	"github.com/joho/godotenv"
+	"github.com/stablecog/sc-go/cron/discord"
 	"github.com/stablecog/sc-go/cron/jobs"
 	"github.com/stablecog/sc-go/database"
 	"github.com/stablecog/sc-go/database/repository"
+	"github.com/stablecog/sc-go/utils"
 	"k8s.io/klog/v2"
 )
 
@@ -79,10 +81,11 @@ func main() {
 
 	// Create a job runner
 	jobRunner := jobs.JobRunner{
-		Repo:  repo,
-		Redis: redis,
-		Ctx:   ctx,
-		Meili: database.NewMeiliSearchClient(),
+		Repo:    repo,
+		Redis:   redis,
+		Ctx:     ctx,
+		Meili:   database.NewMeiliSearchClient(),
+		Discord: discord.NewDiscordHealthTracker(ctx, redis.Client),
 	}
 
 	if *healthCheck {
@@ -117,6 +120,9 @@ func main() {
 		s := gocron.NewScheduler(time.UTC)
 		s.Every(60).Seconds().Do(jobRunner.SyncMeili)
 		s.Every(60).Seconds().Do(jobRunner.GetAndSetStats)
+		if utils.GetEnv("DISCORD_WEBHOOK_URL", "") != "" {
+			s.Every(60).Seconds().Do(jobRunner.CheckHealth)
+		}
 		s.StartBlocking()
 		os.Exit(0)
 	}

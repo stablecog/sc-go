@@ -39,6 +39,11 @@ func (r *Repository) GetGenerationOutputWidthHeight(outputID uuid.UUID) (width, 
 	return gen.Width, gen.Height, nil
 }
 
+// Get last N generations, a basic view
+func (r *Repository) GetGenerations(limit int) ([]*ent.Generation, error) {
+	return r.DB.Generation.Query().Order(ent.Desc(generation.FieldCreatedAt)).Limit(limit).All(r.Ctx)
+}
+
 // Apply all filters to root ent query
 func (r *Repository) ApplyUserGenerationsFilters(query *ent.GenerationQuery, filters *requests.QueryGenerationFilters) *ent.GenerationQuery {
 	resQuery := query

@@ -3,6 +3,11 @@ package jobs
 import (
 	"fmt"
 	"time"
+
+	"github.com/stablecog/sc-go/cron/discord"
+	"github.com/stablecog/sc-go/database/ent/generation"
+	"github.com/stablecog/sc-go/shared"
+	"k8s.io/klog/v2"
 )
 
 // General redis key prefix
@@ -18,65 +23,52 @@ var lastGenerationKey = fmt.Sprintf("%s:last_generation", redisHealthKeyPrefix)
 
 // CheckHealth cron job
 func (j *JobRunner) CheckHealth() error {
-	return nil
-	// start := time.Now()
-	// klog.Infof("Checking health...")
+	start := time.Now()
+	klog.Infof("Checking health...")
 
-	// generations, err := j.GetLastGenerations(generationCountToCheck)
-	// if err != nil {
-	// 	klog.Errorf("Couldn't get generations %v", err)
-	// 	return err
-	// }
+	generations, err := j.Repo.GetGenerations(generationCountToCheck)
+	if err != nil {
+		klog.Errorf("Couldn't get generations %v", err)
+		return err
+	}
 
-	// if j.LastHealthStatus == "" {
-	// 	j.LastHealthStatus = "unknown"
-	// }
+	nsfwGenerations := 0
+	failedGenerations := 0
+	var lastGenerationTime time.Time
 
-	// var generationsFailed int
-	// var generationsFailedWithoutNSFW int
-	// var lastGenerationTime time.Time
-	// lastGenerationTimeStr := j.Redis.Get(j.Ctx, lastGenerationKey).Val()
-	// lastGenerationTime, _ = time.Parse(time.RFC3339, lastGenerationTimeStr)
-	// for i, generation := range generations {
-	// 	if i == 0 {
-	// 		lastGenerationTime = generation.CreatedAt
-	// 		err := j.Redis.Set(j.Ctx, lastGenerationKey, lastGenerationTime.Format(time.RFC3339), rTTL).Err()
-	// 		if err != nil {
-	// 			klog.Error("Redis - Error setting last generation key: %v", err)
-	// 			return err
-	// 		}
-	// 	}
-	// 	if generation.Status == nil {
-	// 		continue
-	// 	} else if *generation.Status == dbgeneration.StatusFailed {
-	// 		generationsFailed++
-	// 		if generation.FailureReason == nil || *generation.FailureReason != "NSFW" {
-	// 			generationsFailedWithoutNSFW++
-	// 		}
-	// 	} else if *generation.Status == dbgeneration.StatusStarted && time.Now().Sub(generation.CreatedAt) > maxGenerationDuration {
-	// 		generationsFailed++
-	// 		generationsFailedWithoutNSFW++
-	// 	}
-	// }
-	// /* generationFailRate := float64(generationsFailed) / float64(len(generations)) */
-	// generationFailWithoutNSFWRate := float64(generationsFailedWithoutNSFW) / float64(len(generations))
-	// klog.Infof("Generation fail rate: %d/%d", generationsFailed, len(generations))
-	// klog.Infof("Generation fail rate without NSFW: %d/%d", generationsFailedWithoutNSFW, len(generations))
+	for i, g := range generations {
+		if i == 0 {
+			lastGenerationTime = g.CreatedAt
+			err := j.Redis.Client.Set(j.Ctx, lastGenerationKey, lastGenerationTime.Format(time.RFC3339), rTTL).Err()
+			if err != nil {
+				klog.Error("Redis - Error setting last generation key: %v", err)
+				return err
+			}
+		}
+		if g.Status == generation.StatusFailed && g.FailureReason != nil && *g.FailureReason == shared.NSFW_ERROR {
+			nsfwGenerations++
+		} else if g.Status == generation.StatusFailed {
+			failedGenerations++
+		}
+	}
 
-	// lastStatusPrev := j.LastHealthStatus
-	// if generationFailWithoutNSFWRate > maxGenerationFailWithoutNSFWRate {
-	// 	j.LastHealthStatus = "unhealthy"
-	// } else {
-	// 	j.LastHealthStatus = "healthy"
-	// }
-	// now := time.Now()
-	// klog.Infof("Done checking health in: %dms", now.Sub(start).Milliseconds())
+	klog.Infof("Generation fail rate (NSFW): %d/%d", nsfwGenerations, len(generations))
+	klog.Infof("Generation fail rate: %d/%d", failedGenerations, len(generations))
 
-	// return j.Discord.SendDiscordNotificationIfNeeded(
-	// 	j.LastHealthStatus,
-	// 	lastStatusPrev,
-	// 	generations,
-	// 	lastGenerationTime,
-	// 	now,
-	// )
+	// Figure out if we're healthy
+	healthStatus := discord.HEALTHY
+	failRate := float64(failedGenerations) / float64(len(generations))
+	if failRate > maxGenerationFailWithoutNSFWRate {
+		healthStatus = discord.UNHEALTHY
+	}
+
+	now := time.Now()
+	klog.Infof("Done checking health in: %dms", now.Sub(start).Milliseconds())
+
+	return j.Discord.SendDiscordNotificationIfNeeded(
+		healthStatus,
+		generations,
+		lastGenerationTime,
+		now,
+	)
 }
