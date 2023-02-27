@@ -123,7 +123,7 @@ func (r *Repository) QueryUsersCount() (totalCount int, totalCountByProduct map[
 
 	// Get map of user product_id / count
 	var userCreditCount []UserCreditGroupByType
-	r.DB.User.Query().Where(user.ActiveProductIDNotNil()).
+	r.DB.User.Query().Where(user.ActiveProductIDNotNil(), user.ActiveProductIDNEQ("")).
 		GroupBy(user.FieldActiveProductID).
 		Aggregate(ent.Count()).
 		Scan(r.Ctx, &userCreditCount)
