@@ -85,7 +85,7 @@ func main() {
 		Redis:   redis,
 		Ctx:     ctx,
 		Meili:   database.NewMeiliSearchClient(),
-		Discord: discord.NewDiscordHealthTracker(ctx, redis.Client),
+		Discord: discord.NewDiscordHealthTracker(ctx),
 	}
 
 	if *healthCheck {

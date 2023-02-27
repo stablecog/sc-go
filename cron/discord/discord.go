@@ -9,20 +9,12 @@ import (
 	"strings"
 	"time"
 
-	"github.com/go-redis/redis/v8"
 	"github.com/stablecog/sc-go/cron/models"
 	"github.com/stablecog/sc-go/database/ent"
 	"github.com/stablecog/sc-go/database/ent/generation"
 	"github.com/stablecog/sc-go/utils"
 	"k8s.io/klog/v2"
 )
-
-// General redis key prefix
-const redisDiscordKeyPrefix = "discord_notification"
-
-// Keep state of health with these keys
-var lastHealthyKey = fmt.Sprintf("%s:last_healthy", redisDiscordKeyPrefix)
-var lastUnhealthyKey = fmt.Sprintf("%s:last_unhealthy", redisDiscordKeyPrefix)
 
 // Constants
 const unhealthyNotificationInterval = 5 * time.Minute
@@ -52,46 +44,48 @@ var klogInfof = klog.Infof
 type DiscordHealthTracker struct {
 	ctx                           context.Context
 	webhookUrl                    string
+	lastStatus                    HEALTH_STATUS
 	lastNotificationTime          time.Time
 	lastUnhealthyNotificationTime time.Time
 	lastHealthyNotificationTime   time.Time
-	redis                         *redis.Client
-	lastStatus                    HEALTH_STATUS
 }
 
-func NewDiscordHealthTracker(ctx context.Context, redis *redis.Client) *DiscordHealthTracker {
+// Create new instance of discord health tracker
+func NewDiscordHealthTracker(ctx context.Context) *DiscordHealthTracker {
 	return &DiscordHealthTracker{
 		ctx:        ctx,
 		webhookUrl: utils.GetEnv("DISCORD_WEBHOOK_URL", ""),
-		redis:      redis,
+		// Init last status as UNKNOWN
 		lastStatus: UNKNOWN,
 	}
 }
 
+// Sends a discord notification on either the healthy/unhealthy interval depending on status
 func (d *DiscordHealthTracker) SendDiscordNotificationIfNeeded(
 	status HEALTH_STATUS,
 	generations []*ent.Generation,
 	lastGenerationTime time.Time,
 	lastCheckTime time.Time,
 ) error {
-	lastHealthyStr := d.redis.Get(d.ctx, lastHealthyKey).Val()
-	lastUnhealthyStr := d.redis.Get(d.ctx, lastUnhealthyKey).Val()
-	d.lastHealthyNotificationTime, _ = time.Parse(time.RFC3339, lastHealthyStr)
-	d.lastUnhealthyNotificationTime, _ = time.Parse(time.RFC3339, lastUnhealthyStr)
-
 	sinceHealthyNotification := time.Since(d.lastHealthyNotificationTime)
 	sinceUnhealthyNotification := time.Since(d.lastUnhealthyNotificationTime)
 
+	// The first time we run (UNKNOWN) we skip notification
+	// Otherwise, we sent it if unhealthy and it's been more than unhealthyNotificationInterval
+	// Or if healthy and it's been more than healthyNotificationInterval
 	if d.lastStatus == UNKNOWN || (status == d.lastStatus &&
 		((status == UNHEALTHY && sinceUnhealthyNotification < unhealthyNotificationInterval) ||
 			(status == HEALTHY && sinceHealthyNotification < healthyNotificationInterval))) {
 		klogInfof("Skipping Discord notification, not needed")
+		// Set last status
 		d.lastStatus = status
 		return nil
 	}
 
 	start := time.Now().UnixMilli()
 	klog.Infoln("Sending Discord notification...")
+
+	// Build webhook body
 	webhookBody := getDiscordWebhookBody(status, generations, lastGenerationTime, lastCheckTime)
 	reqBody, err := json.Marshal(webhookBody)
 	if err != nil {
@@ -104,22 +98,17 @@ func (d *DiscordHealthTracker) SendDiscordNotificationIfNeeded(
 		return postErr
 	}
 	defer res.Body.Close()
+
+	// Update last notification times
 	d.lastNotificationTime = time.Now()
 	if status == HEALTHY {
-		err := d.redis.Set(d.ctx, lastHealthyKey, d.lastNotificationTime.Format(time.RFC3339), rTTL).Err()
-		if err != nil {
-			klog.Error("Redis - Error setting last healthy key: %v", err)
-			return err
-		}
+		d.lastHealthyNotificationTime = d.lastNotificationTime
 	} else {
-		err := d.redis.Set(d.ctx, lastUnhealthyKey, d.lastNotificationTime.Format(time.RFC3339), rTTL).Err()
-		if err != nil {
-			klog.Errorf("Redis - Error setting last unhealthy key: %v", err)
-			return err
-		}
+		d.lastUnhealthyNotificationTime = d.lastNotificationTime
 	}
 	end := time.Now().UnixMilli()
 	klog.Infof("Sent Discord notification in: %dms", end-start)
+
 	return nil
 }
 

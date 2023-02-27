@@ -12,7 +12,6 @@ import (
 	"github.com/google/uuid"
 	"github.com/jarcoal/httpmock"
 	"github.com/stablecog/sc-go/cron/models"
-	"github.com/stablecog/sc-go/database"
 	"github.com/stablecog/sc-go/database/ent"
 	"github.com/stablecog/sc-go/database/ent/generation"
 	"github.com/stretchr/testify/assert"
@@ -26,16 +25,10 @@ func TestMain(m *testing.M) {
 
 func testMainWrapper(m *testing.M) int {
 	// Setup
-	os.Setenv("MOCK_REDIS", "true")
-	defer os.Unsetenv("MOCK_REDIS")
 	os.Setenv("DISCORD_WEBHOOK_URL", "http://localhost:123456")
 	defer os.Unsetenv("DISCORD_WEBHOOK_URL")
 
-	redis, err := database.NewRedis(context.Background())
-	if err != nil {
-		panic(err)
-	}
-	MockDiscordHealthTracker = NewDiscordHealthTracker(context.Background(), redis.Client)
+	MockDiscordHealthTracker = NewDiscordHealthTracker(context.Background())
 
 	return m.Run()
 }
@@ -91,21 +84,18 @@ func TestSendDiscordNotificationIfNeeded(t *testing.T) {
 	assert.Equal(t, "Skipping Discord notification, not needed", logs[0])
 
 	MockDiscordHealthTracker.lastNotificationTime = time.Now()
-	err = MockDiscordHealthTracker.redis.Set(MockDiscordHealthTracker.ctx, lastHealthyKey, MockDiscordHealthTracker.lastNotificationTime.Format(time.RFC3339), rTTL).Err()
-	assert.Nil(t, err)
-	err = MockDiscordHealthTracker.redis.Set(MockDiscordHealthTracker.ctx, lastUnhealthyKey, MockDiscordHealthTracker.lastNotificationTime.Format(time.RFC3339), rTTL).Err()
-	assert.Nil(t, err)
+	MockDiscordHealthTracker.lastHealthyNotificationTime = time.Now()
+	MockDiscordHealthTracker.lastUnhealthyNotificationTime = time.Now()
 
 	MockDiscordHealthTracker.lastStatus = UNHEALTHY
 	err = MockDiscordHealthTracker.SendDiscordNotificationIfNeeded(UNHEALTHY, generations, time.Now(), time.Now())
 	assert.Nil(t, err)
 	assert.Equal(t, "Skipping Discord notification, not needed", logs[1])
 
-	// Cleanup redis keys
-	err = MockDiscordHealthTracker.redis.Del(MockDiscordHealthTracker.ctx, lastHealthyKey).Err()
-	assert.Nil(t, err)
-	err = MockDiscordHealthTracker.redis.Del(MockDiscordHealthTracker.ctx, lastUnhealthyKey).Err()
-	assert.Nil(t, err)
+	// Reset keys
+	MockDiscordHealthTracker.lastNotificationTime = time.Time{}
+	MockDiscordHealthTracker.lastHealthyNotificationTime = time.Time{}
+	MockDiscordHealthTracker.lastUnhealthyNotificationTime = time.Time{}
 
 	// ! Test notification needed
 	// Setup httpmock
