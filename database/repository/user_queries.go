@@ -115,38 +115,14 @@ func (r *Repository) GetRoles(userID uuid.UUID) ([]userrole.RoleName, error) {
 }
 
 // Get count for QueryUsers
-func (r *Repository) QueryUsersCount() (totalCount int, countByCreditName map[string]int, err error) {
+func (r *Repository) QueryUsersCount() (totalCount int, err error) {
 	count, err := r.DB.User.Query().Count(r.Ctx)
 	if err != nil {
 		klog.Errorf("Error querying users count: %v", err)
-		return 0, nil, err
+		return 0, err
 	}
 
-	// Get count of users with credits grouped by credit_type
-	// ! TODO - it would be better to have SQL do the aggregations for this data
-	var rawResult []UserCreditGroupByType
-	err = r.DB.Credit.Query().Where(credit.ExpiresAtGT(time.Now())).
-		Modify(func(s *sql.Selector) {
-			ct := sql.Table(credittype.Table)
-			s.Join(ct).On(ct.C(credittype.FieldID), s.C(credit.FieldCreditTypeID)).
-				Select(sql.As(ct.C(credittype.FieldName), "credit_name"), sql.As(s.C(credit.FieldUserID), "user_id")).
-				GroupBy(s.C(credit.FieldUserID), "credit_name")
-		}).Scan(r.Ctx, &rawResult)
-	if err != nil {
-		klog.Errorf("Error querying users count: %v", err)
-		return 0, nil, err
-	}
-
-	userCreditCountMap := make(map[string]int)
-	for _, result := range rawResult {
-		if _, ok := userCreditCountMap[result.CreditName]; !ok {
-			userCreditCountMap[result.CreditName] = 1
-			continue
-		}
-		userCreditCountMap[result.CreditName]++
-	}
-
-	return count, userCreditCountMap, nil
+	return count, nil
 }
 
 type UserCreditGroupByType struct {
@@ -205,13 +181,12 @@ func (r *Repository) QueryUsers(emailSearch string, per_page int, cursor *time.T
 		Users: make([]UserQueryResult, len(res)),
 	}
 	if cursor == nil {
-		total, totalByType, err := r.QueryUsersCount()
+		total, err := r.QueryUsersCount()
 		if err != nil {
 			klog.Errorf("Error querying users count: %v", err)
 			return nil, err
 		}
 		meta.Total = &total
-		meta.TotalByCreditName = totalByType
 	}
 
 	for i, user := range res {
@@ -254,10 +229,10 @@ func (r *Repository) QueryUsers(emailSearch string, per_page int, cursor *time.T
 
 // Paginated meta for querying generations
 type UserQueryMeta struct {
-	Total             *int              `json:"total_count,omitempty"`
-	TotalByCreditName map[string]int    `json:"total_count_by_name,omitempty"`
-	Next              *time.Time        `json:"next,omitempty"`
-	Users             []UserQueryResult `json:"users"`
+	Total            *int              `json:"total_count,omitempty"`
+	TotalByProductID map[string]int    `json:"total_count_by_product_id,omitempty"`
+	Next             *time.Time        `json:"next,omitempty"`
+	Users            []UserQueryResult `json:"users"`
 }
 
 type UserQueryCreditType struct {

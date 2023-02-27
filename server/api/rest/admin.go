@@ -13,6 +13,7 @@ import (
 	"github.com/stablecog/sc-go/server/requests"
 	"github.com/stablecog/sc-go/server/responses"
 	"github.com/stablecog/sc-go/utils"
+	"github.com/stripe/stripe-go/v74"
 	"k8s.io/klog/v2"
 )
 
@@ -177,6 +178,26 @@ func (c *RestAPI) HandleQueryUsers(w http.ResponseWriter, r *http.Request) {
 		klog.Errorf("Error getting users: %s", err)
 		responses.ErrInternalServerError(w, r, "Error getting users")
 		return
+	}
+
+	// If no cursor, query stripe for active subscriptions
+	if cursor == nil && c.StripeClient != nil {
+		users.TotalByProductID = make(map[string]int)
+		params := &stripe.SubscriptionSearchParams{}
+		params.Query = *stripe.String("status:'active' AND cancel_at_period_end:false")
+		subIter := c.StripeClient.Subscriptions.Search(params)
+		for subIter.Next() {
+			sub := subIter.Subscription()
+			if sub == nil || sub.Items == nil || sub.Items.Data == nil {
+				continue
+			}
+			for _, item := range sub.Items.Data {
+				if item.Price == nil || item.Price.Product == nil {
+					continue
+				}
+				users.TotalByProductID[item.Price.Product.ID]++
+			}
+		}
 	}
 
 	// Return generations

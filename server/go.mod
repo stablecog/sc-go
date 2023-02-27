@@ -11,11 +11,13 @@ require (
 	github.com/google/uuid v1.3.0
 	github.com/jarcoal/httpmock v1.3.0
 	github.com/joho/godotenv v1.4.0
-	github.com/stretchr/testify v1.8.1
+	github.com/stretchr/testify v1.8.2
 	github.com/stripe/stripe-go v70.15.0+incompatible
 	golang.org/x/net v0.0.0-20220722155237-a158d28d115b
 	k8s.io/klog/v2 v2.80.1
 )
+
+require github.com/stretchr/objx v0.5.0 // indirect
 
 require (
 	ariga.io/atlas v0.9.1-0.20230119123307-a3ab6808892b // indirect
