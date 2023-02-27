@@ -202,6 +202,7 @@ func (r *Repository) QueryUsers(emailSearch string, per_page int, cursor *time.T
 		// Figure out their highest subscription
 		highestStripeProduct := ""
 		var lastAmount int32
+
 		formatted.Credits = make([]UserQueryCredits, len(user.Edges.Credits))
 		for i, credit := range user.Edges.Credits {
 			creditType := UserQueryCreditType{Name: credit.Edges.CreditType.Name}
