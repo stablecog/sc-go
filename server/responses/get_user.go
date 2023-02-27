@@ -11,5 +11,5 @@ type GetUserResponse struct {
 	ProductID             string              `json:"product_id,omitempty"`
 	CancelsAt             *time.Time          `json:"cancels_at,omitempty"`
 	StripeHadError        bool                `json:"stripe_had_error"`
-	Roles                 []userrole.RoleName `json:"roles"`
+	Roles                 []userrole.RoleName `json:"roles,omitempty"`
 }

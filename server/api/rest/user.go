@@ -146,6 +146,9 @@ func (c *RestAPI) HandleGetUser(w http.ResponseWriter, r *http.Request) {
 				cancelsAsTime := utils.SecondsSinceEpochToTime(subscription.CancelAt)
 				cancelsAt = &cancelsAsTime
 			}
+			if cancelsAt == nil && highestProduct != "" {
+				break
+			}
 		}
 	}
 
