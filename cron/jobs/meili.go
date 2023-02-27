@@ -10,6 +10,8 @@ import (
 
 // General redis key prefix
 const redisMeiliKeyPrefix = "meili"
+const rTTL = 2 * time.Hour
+
 const maxTotalHits = 5000
 
 var shouldSetSettings = true

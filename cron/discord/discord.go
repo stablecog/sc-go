@@ -12,6 +12,7 @@ import (
 	"github.com/stablecog/sc-go/cron/models"
 	"github.com/stablecog/sc-go/database/ent"
 	"github.com/stablecog/sc-go/database/ent/generation"
+	"github.com/stablecog/sc-go/shared"
 	"github.com/stablecog/sc-go/utils"
 	"k8s.io/klog/v2"
 )
@@ -121,12 +122,10 @@ func getDiscordWebhookBody(
 	generationsStr := ""
 	generationsStrArr := []string{}
 	for _, g := range generations {
-		if g.Status == generation.StatusFailed {
-			if g.FailureReason != nil && *g.FailureReason == "NSFW" {
-				generationsStrArr = append(generationsStrArr, "🌶️")
-			} else {
-				generationsStrArr = append(generationsStrArr, "🔴")
-			}
+		if g.Status == generation.StatusFailed && g.FailureReason != nil && *g.FailureReason == shared.NSFW_ERROR {
+			generationsStrArr = append(generationsStrArr, "🌶️")
+		} else if g.Status == generation.StatusFailed {
+			generationsStrArr = append(generationsStrArr, "🔴")
 		} else if g.Status == generation.StatusQueued {
 			generationsStrArr = append(generationsStrArr, "⏲️")
 		} else if g.Status == generation.StatusStarted {

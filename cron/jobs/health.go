@@ -1,7 +1,6 @@
 package jobs
 
 import (
-	"fmt"
 	"time"
 
 	"github.com/stablecog/sc-go/cron/discord"
@@ -10,16 +9,11 @@ import (
 	"k8s.io/klog/v2"
 )
 
-// General redis key prefix
-const redisHealthKeyPrefix = "health_check"
-
+// Considered failed if len(failures)/len(generations) > maxGenerationFailWithoutNSFWRate
 const maxGenerationFailWithoutNSFWRate = 0.5
+
+// Get this number of generations on each check, sorted by created_at DESC
 const generationCountToCheck = 10
-const maxGenerationDuration = 2 * time.Minute
-
-const rTTL = 2 * time.Hour
-
-var lastGenerationKey = fmt.Sprintf("%s:last_generation", redisHealthKeyPrefix)
 
 // CheckHealth cron job
 func (j *JobRunner) CheckHealth() error {
@@ -27,24 +21,17 @@ func (j *JobRunner) CheckHealth() error {
 	klog.Infof("Checking health...")
 
 	generations, err := j.Repo.GetGenerations(generationCountToCheck)
-	if err != nil {
+	if err != nil || len(generations) == 0 {
 		klog.Errorf("Couldn't get generations %v", err)
 		return err
 	}
 
 	nsfwGenerations := 0
 	failedGenerations := 0
-	var lastGenerationTime time.Time
+	lastGenerationTime := generations[0].CreatedAt
 
-	for i, g := range generations {
-		if i == 0 {
-			lastGenerationTime = g.CreatedAt
-			err := j.Redis.Client.Set(j.Ctx, lastGenerationKey, lastGenerationTime.Format(time.RFC3339), rTTL).Err()
-			if err != nil {
-				klog.Error("Redis - Error setting last generation key: %v", err)
-				return err
-			}
-		}
+	// Count the number of failed generations distinguishing between NSFW and other failures
+	for _, g := range generations {
 		if g.Status == generation.StatusFailed && g.FailureReason != nil && *g.FailureReason == shared.NSFW_ERROR {
 			nsfwGenerations++
 		} else if g.Status == generation.StatusFailed {
