@@ -150,6 +150,11 @@ func main() {
 				klog.Warningf("Error adding credits to user %s: %v", user.ID, err)
 				continue
 			}
+			err = repo.SetActiveProductID(user.ID, productId, nil)
+			if err != nil {
+				klog.Warningf("Error setting active product ID for user %s: %v", user.ID, err)
+				continue
+			}
 		}
 		klog.Infof("Bye bye!")
 		os.Exit(0)

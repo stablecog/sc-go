@@ -339,8 +339,17 @@ func (c *RestAPI) HandleSubscriptionDowngrade(w http.ResponseWriter, r *http.Req
 	})
 }
 
+// Handle stripe webhooks in the following ways:
 // invoice.payment_succeeded
+//   - Apply credits to user depending on type (subscription, adhoc)
+//   - For subscriptions, set active_product_id
+//
+// customer.subscription.deleted"
+//   - For an immediate cancellation, we set active_product_id to nil if this is a cancellation
+//     of the product ID we currently have set for them. (In case they upgraded, it won't unset their upgrade)
+//
 // customer.subscription.created
+//   - For a subscription upgrade, we cancel all old subscriptions
 func (c *RestAPI) HandleStripeWebhook(w http.ResponseWriter, r *http.Request) {
 	// Parse request body
 	reqBody, err := io.ReadAll(r.Body)
@@ -361,7 +370,7 @@ func (c *RestAPI) HandleStripeWebhook(w http.ResponseWriter, r *http.Request) {
 	}
 
 	switch event.Type {
-	// For subscription upgrades, we want to cancel all old subscriptions (schedule to cancel)
+	// For subscription upgrades, we want to cancel all old subscriptions
 	case "customer.subscription.created":
 		newSub, err := stripeObjectMapToSubscriptionObject(event.Data.Object)
 		if err != nil || newSub == nil {
