@@ -377,8 +377,8 @@ func (c *RestAPI) HandleStripeWebhook(w http.ResponseWriter, r *http.Request) {
 			sub := subIter.Subscription()
 			if sub.ID != newSub.ID {
 				// We need to cancel this subscription
-				_, err := c.StripeClient.Subscriptions.Update(sub.ID, &stripe.SubscriptionParams{
-					CancelAtPeriodEnd: stripe.Bool(true),
+				_, err := c.StripeClient.Subscriptions.Cancel(sub.ID, &stripe.SubscriptionCancelParams{
+					Prorate: stripe.Bool(false),
 				})
 				if err != nil {
 					klog.Errorf("Unable canceling stripe subscription: %v", err)
