@@ -21,6 +21,44 @@ func (r *Repository) GetUser(id uuid.UUID) (*ent.User, error) {
 	return user, err
 }
 
+func (r *Repository) GetUserWithRoles(id uuid.UUID) (*UserWithRoles, error) {
+	var userWithRoles []UserWithRolesRaw
+	err := r.DB.User.Query().Where(user.IDEQ(id)).Modify(func(s *sql.Selector) {
+		rt := sql.Table(userrole.Table)
+		s.LeftJoin(rt).On(rt.C(userrole.FieldUserID), s.C(user.FieldID)).
+			Select(sql.As(rt.C(userrole.FieldRoleName), "role_name"), sql.As(s.C(user.FieldID), "user_id"), sql.As(s.C(user.FieldStripeCustomerID), "stripe_customer_id"))
+	}).Scan(r.Ctx, &userWithRoles)
+	if err != nil {
+		klog.Errorf("Error getting user with roles: %v", err)
+		return nil, err
+	}
+
+	if len(userWithRoles) == 0 {
+		return nil, nil
+	}
+
+	ret := UserWithRoles{ID: userWithRoles[0].ID, StripeCustomerID: userWithRoles[0].StripeCustomerID}
+	for _, userWithRole := range userWithRoles {
+		if userWithRole.RoleName == "" {
+			continue
+		}
+		ret.Roles = append(ret.Roles, userrole.RoleName(userWithRole.RoleName))
+	}
+	return &ret, nil
+}
+
+type UserWithRolesRaw struct {
+	ID               uuid.UUID `sql:"user_id"`
+	RoleName         string    `sql:"role_name"`
+	StripeCustomerID string    `sql:"stripe_customer_id"`
+}
+
+type UserWithRoles struct {
+	ID               uuid.UUID
+	Roles            []userrole.RoleName
+	StripeCustomerID string
+}
+
 func (r *Repository) GetUserByStripeCustomerId(customerId string) (*ent.User, error) {
 	user, err := r.DB.User.Query().Where(user.StripeCustomerIDEQ(customerId)).Only(r.Ctx)
 	if err != nil && ent.IsNotFound(err) {

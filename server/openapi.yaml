@@ -1086,6 +1086,10 @@ components:
         stripe_had_error:
           type: boolean
           format: If stripe API returned an unknown error code
+        roles:
+          type: array
+          items:
+            type: string
       description: Summary of user data
     GalleryResponse:
       type: object

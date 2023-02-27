@@ -26,7 +26,7 @@ func (c *RestAPI) HandleGetUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Get customer ID for user
-	user, err := c.Repo.GetUser(*userID)
+	user, err := c.Repo.GetUserWithRoles(*userID)
 	if err != nil {
 		klog.Errorf("Error getting user: %v", err)
 		responses.ErrInternalServerError(w, r, "An unknown error has occured")
@@ -74,6 +74,8 @@ func (c *RestAPI) HandleGetUser(w http.ResponseWriter, r *http.Request) {
 				klog.Errorf("Error adding free credits: %v", err)
 				return err
 			}
+
+			user, err = c.Repo.GetUserWithRoles(*userID)
 
 			return nil
 		}); err != nil {
@@ -153,6 +155,7 @@ func (c *RestAPI) HandleGetUser(w http.ResponseWriter, r *http.Request) {
 		ProductID:             highestProduct,
 		CancelsAt:             cancelsAt,
 		StripeHadError:        stripeHadError,
+		Roles:                 user.Roles,
 	})
 }
 
