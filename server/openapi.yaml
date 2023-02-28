@@ -171,6 +171,7 @@ paths:
         - $ref: "#/components/parameters/schedulerIdsParam"
         - $ref: "#/components/parameters/modelIdsParam"
         - $ref: "#/components/parameters/orderParam"
+        - $ref: "#/components/parameters/orderByParam"
         - $ref: "#/components/parameters/upscaledParam"
         - $ref: "#/components/parameters/galleryStatusParam"
         - $ref: "#/components/parameters/startDtParam"
@@ -217,6 +218,7 @@ paths:
         - $ref: "#/components/parameters/schedulerIdsParam"
         - $ref: "#/components/parameters/modelIdsParam"
         - $ref: "#/components/parameters/orderParam"
+        - $ref: "#/components/parameters/orderByParam"
         - $ref: "#/components/parameters/upscaledParam"
         - $ref: "#/components/parameters/galleryStatusParam"
         - $ref: "#/components/parameters/startDtParam"
@@ -699,6 +701,13 @@ components:
         type: string
         format: "optional, asc/desc, default: desc"
       example: 3
+    orderByParam:
+      name: order_by
+      in: query
+      schema:
+        type: string
+        format: "optional, created_at/updated_at, default: created_at"
+      example: updated_at
     upscaledParam:
       name: upscaled
       in: query

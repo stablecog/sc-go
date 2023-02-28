@@ -22,6 +22,13 @@ const (
 	SortOrderDescending SortOrder = "desc"
 )
 
+type OrderBy string
+
+const (
+	OrderByCreatedAt OrderBy = "created_at"
+	OrderByUpdatedAt OrderBy = "updated_at"
+)
+
 type UpscaleStatus string
 
 const (
@@ -54,6 +61,7 @@ type QueryGenerationFilters struct {
 	StartDt           *time.Time                       `json:"start_dt"`
 	EndDt             *time.Time                       `json:"end_dt"`
 	UserID            *uuid.UUID                       `json:"user_id"`
+	OrderBy           OrderBy                          `json:"order_by"`
 }
 
 // Parse all filters into a QueryGenerationFilters struct
@@ -326,6 +334,15 @@ func (filters *QueryGenerationFilters) ParseURLQueryParameters(urlValues url.Val
 			}
 			filters.EndDt = &endDt
 		}
+		if key == "order_by" {
+			if strings.ToLower(value[0]) == string(OrderByUpdatedAt) {
+				filters.OrderBy = OrderByUpdatedAt
+			} else if strings.ToLower(value[0]) == string(OrderByCreatedAt) {
+				filters.OrderBy = OrderByCreatedAt
+			} else {
+				return fmt.Errorf("invalid order_by: '%s' expected '%s' or '%s'", value[0], OrderByUpdatedAt, OrderByCreatedAt)
+			}
+		}
 	}
 	// Descending default
 	if filters.Order == "" {
@@ -334,6 +351,10 @@ func (filters *QueryGenerationFilters) ParseURLQueryParameters(urlValues url.Val
 	// Upscale status any default
 	if filters.UpscaleStatus == "" {
 		filters.UpscaleStatus = UpscaleStatusAny
+	}
+	// Sort by created_at by default
+	if filters.OrderBy == "" {
+		filters.OrderBy = OrderByCreatedAt
 	}
 	return nil
 }

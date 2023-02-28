@@ -281,11 +281,20 @@ func (r *Repository) QueryGenerations(per_page int, cursor *time.Time, filters *
 			GroupBy(s.C(generation.FieldID), npt.C(negativeprompt.FieldText), pt.C(prompt.FieldText),
 				got.C(generationoutput.FieldID), got.C(generationoutput.FieldGalleryStatus),
 				got.C(generationoutput.FieldImagePath), got.C(generationoutput.FieldUpscaledImagePath))
+		var orderByGeneration string
+		var orderByOutput string
+		if filters == nil || (filters != nil && filters.OrderBy == requests.OrderByCreatedAt) {
+			orderByGeneration = generation.FieldCreatedAt
+			orderByOutput = generationoutput.FieldCreatedAt
+		} else {
+			orderByGeneration = generation.FieldUpdatedAt
+			orderByOutput = generationoutput.FieldUpdatedAt
+		}
 		// Order by generation, then output
 		if filters == nil || (filters != nil && filters.Order == requests.SortOrderDescending) {
-			s.OrderBy(sql.Desc(gt.C(generation.FieldCreatedAt)), sql.Desc(got.C(generationoutput.FieldCreatedAt)))
+			s.OrderBy(sql.Desc(gt.C(orderByGeneration)), sql.Desc(got.C(orderByOutput)))
 		} else {
-			s.OrderBy(sql.Asc(gt.C(generation.FieldCreatedAt)), sql.Asc(got.C(generationoutput.FieldCreatedAt)))
+			s.OrderBy(sql.Asc(gt.C(orderByGeneration)), sql.Asc(got.C(orderByOutput)))
 		}
 	}).Scan(r.Ctx, &gQueryResult)
 

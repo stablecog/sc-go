@@ -232,7 +232,7 @@ func TestHandleQueryGenerationsFilters(t *testing.T) {
 
 	w := httptest.NewRecorder()
 	// Build request
-	req := httptest.NewRequest("GET", "/gens?inference_steps=11&min_guidance_scale=2&gallery_status=not_submitted,submitted,approved,rejected", nil)
+	req := httptest.NewRequest("GET", "/gens?inference_steps=11&min_guidance_scale=2&gallery_status=not_submitted,submitted,approved,rejected&order_by=created_at", nil)
 	req.Header.Set("Content-Type", "application/json")
 
 	ctx := context.WithValue(req.Context(), "user_id", repository.MOCK_ADMIN_UUID)
