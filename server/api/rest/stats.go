@@ -3,15 +3,15 @@ package rest
 import (
 	"net/http"
 
+	"github.com/charmbracelet/log"
 	"github.com/go-chi/render"
 	"github.com/stablecog/sc-go/server/responses"
-	"k8s.io/klog/v2"
 )
 
 func (c *RestAPI) HandleGetStats(w http.ResponseWriter, r *http.Request) {
 	res, err := c.Redis.GetGenerateUpscaleCount()
 	if err != nil {
-		klog.Errorf("Error getting generate upscale count: %v", err)
+		log.Error("Error getting generate upscale count", "err", err)
 		responses.ErrInternalServerError(w, r, "Unable to get stats")
 		return
 	}

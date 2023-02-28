@@ -9,6 +9,7 @@ import (
 	"os"
 	"time"
 
+	"github.com/charmbracelet/log"
 	"github.com/go-chi/chi/v5"
 	chimiddleware "github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/cors"
@@ -26,21 +27,14 @@ import (
 	stripe "github.com/stripe/stripe-go/v74/client"
 	"golang.org/x/net/http2"
 	"golang.org/x/net/http2/h2c"
-	"k8s.io/klog/v2"
 )
 
 func main() {
 	// Load .env
 	err := godotenv.Load("../.env")
 	if err != nil {
-		klog.Warningf("Error loading .env file (this is fine): %v", err)
+		log.Warn("Error loading .env file (this is fine) err", err)
 	}
-
-	// Setup logger
-	klog.InitFlags(nil)
-	flag.Set("logtostderr", "true")
-	flag.Set("stderrthreshold", "INFO")
-	flag.Set("v", "3")
 
 	// Custom flags
 	createMockData := flag.Bool("load-mock-data", false, "Create test data in database")
@@ -53,24 +47,24 @@ func main() {
 	ctx := context.Background()
 
 	// Setup sql
-	klog.Infoln("🏡 Connecting to database...")
+	log.Info("🏡 Connecting to database...")
 	dbconn, err := database.GetSqlDbConn(false)
 	if err != nil {
-		klog.Fatalf("Failed to connect to database: %v", err)
+		log.Fatal("Failed to connect to database", "err", err)
 		os.Exit(1)
 	}
 	entClient, err := database.NewEntClient(dbconn)
 	if err != nil {
-		klog.Fatalf("Failed to create ent client: %v", err)
+		log.Fatal("Failed to create ent client", "err", err)
 		os.Exit(1)
 	}
 	defer entClient.Close()
 	// Run migrations
 	// We can't run on supabase, :(
 	if utils.GetEnv("RUN_MIGRATIONS", "") == "true" {
-		klog.Infoln("🦋 Running migrations...")
+		log.Info("🦋 Running migrations...")
 		if err := entClient.Schema.Create(ctx); err != nil {
-			klog.Fatalf("Failed to run migrations: %v", err)
+			log.Fatal("Failed to run migrations", "err", err)
 			os.Exit(1)
 		}
 	}
@@ -78,7 +72,7 @@ func main() {
 	// Setup redis
 	redis, err := database.NewRedis(ctx)
 	if err != nil {
-		klog.Fatalf("Error connecting to redis: %v", err)
+		log.Fatal("Error connecting to redis", "err", err)
 		os.Exit(1)
 	}
 
@@ -90,10 +84,10 @@ func main() {
 	}
 
 	if *createMockData {
-		klog.Infoln("🏡 Creating mock data...")
+		log.Info("🏡 Creating mock data...")
 		err = repo.CreateMockData(ctx)
 		if err != nil {
-			klog.Fatalf("Failed to create mock data: %v", err)
+			log.Fatal("Failed to create mock data", "err", err)
 			os.Exit(1)
 		}
 		os.Exit(0)
@@ -109,11 +103,11 @@ func main() {
 		for subList.Next() {
 			sub := subList.Subscription()
 			if sub == nil {
-				klog.Warningf("Subscription is nil")
+				log.Warn("Subscription is nil")
 				continue
 			}
 			if sub.LatestInvoice == nil || sub.LatestInvoice.Lines == nil {
-				klog.Warningf("Latest invoice is nil")
+				log.Warn("Latest invoice is nil")
 				continue
 			}
 			// Get product ID
@@ -129,17 +123,17 @@ func main() {
 			// Find credit type with this id
 			creditType, err := repo.GetCreditTypeByStripeProductID(productId)
 			if err != nil {
-				klog.Warningf("Error getting credit type: %v", err)
+				log.Warn("Error getting credit type", "err", err)
 				continue
 			} else if creditType == nil {
-				klog.Warningf("Credit type doesn't exist with product ID %s", productId)
+				log.Warn("Credit type doesn't exist with product ID", "productID", productId)
 				continue
 			}
 
 			// Get user
 			user, err := repo.GetUserByStripeCustomerId(sub.Customer.ID)
 			if err != nil {
-				klog.Warningf("Error getting user with ID %s: %v", sub.Customer.ID, err)
+				log.Warn("Error getting user with ID", "customerID", sub.Customer.ID, "err", err)
 				continue
 			}
 
@@ -147,16 +141,16 @@ func main() {
 
 			_, err = repo.AddCreditsIfEligible(creditType, user.ID, expiresAt, lineItemId, nil)
 			if err != nil {
-				klog.Warningf("Error adding credits to user %s: %v", user.ID, err)
+				log.Warn("Error adding credits to user", "user", user.ID, "err", err)
 				continue
 			}
 			err = repo.SetActiveProductID(user.ID, productId, nil)
 			if err != nil {
-				klog.Warningf("Error setting active product ID for user %s: %v", user.ID, err)
+				log.Warn("Error setting active product ID for user", "user", user.ID, "err", err)
 				continue
 			}
 		}
-		klog.Infof("Bye bye!")
+		log.Info("Bye bye!")
 		os.Exit(0)
 	}
 
@@ -181,7 +175,7 @@ func main() {
 	}))
 
 	// Get models, schedulers and put in cache
-	klog.Infof("📦 Updating cache...")
+	log.Info("📦 Updating cache...")
 	err = repo.UpdateCache()
 	if err != nil {
 		// ! Not getting these is fatal and will result in crash
@@ -190,10 +184,10 @@ func main() {
 	// Update periodically
 	s := gocron.NewScheduler(time.UTC)
 	s.Every(5).Minutes().StartAt(time.Now().Add(5 * time.Minute)).Do(func() {
-		klog.Infof("📦 Updating cache...")
+		log.Info("📦 Updating cache...")
 		err = repo.UpdateCache()
 		if err != nil {
-			klog.Errorf("Error updating cache: %v", err)
+			log.Error("Error updating cache", "err", err)
 		}
 	})
 	// Start cron scheduler
@@ -314,13 +308,13 @@ func main() {
 
 	// Process messages from cog
 	go func() {
-		klog.Infof("Listening for cog messages on channel: %s", shared.COG_REDIS_EVENT_CHANNEL)
+		log.Info("Listening for cog messages", "channel", shared.COG_REDIS_EVENT_CHANNEL)
 		for msg := range pubsub.Channel() {
-			klog.Infof("Received %s message: %s", shared.COG_REDIS_EVENT_CHANNEL, msg.Payload)
+			log.Info("Received", "channel", shared.COG_REDIS_EVENT_CHANNEL, "message", msg.Payload)
 			var cogMessage requests.CogRedisMessage
 			err := json.Unmarshal([]byte(msg.Payload), &cogMessage)
 			if err != nil {
-				klog.Errorf("--- Error unmarshalling webhook message: %v", err)
+				log.Error("Error unmarshalling webhook message", "err", err)
 				continue
 			}
 
@@ -355,12 +349,12 @@ func main() {
 				}
 				respBytes, err := json.Marshal(liveResp)
 				if err != nil {
-					klog.Errorf("--- Error marshalling sse live response: %v", err)
+					log.Error("Error marshalling sse live response", "err", err)
 					return
 				}
 				err = redis.Client.Publish(redis.Client.Context(), shared.REDIS_SSE_BROADCAST_CHANNEL, respBytes).Err()
 				if err != nil {
-					klog.Errorf("Failed to publish live page update: %v", err)
+					log.Error("Failed to publish live page update", "err", err)
 				}
 			}()
 
@@ -380,13 +374,13 @@ func main() {
 
 	// Start SSE redis subscription
 	go func() {
-		klog.Infof("Listening for cog messages on channel: %s", shared.REDIS_SSE_BROADCAST_CHANNEL)
+		log.Info("Listening for cog messages", "channel", shared.REDIS_SSE_BROADCAST_CHANNEL)
 		for msg := range pubsubSSEMessages.Channel() {
-			klog.Infof("Received %s message: %s", shared.REDIS_SSE_BROADCAST_CHANNEL, msg.Payload)
+			log.Info("Received %s message: %s", shared.REDIS_SSE_BROADCAST_CHANNEL, msg.Payload)
 			var sseMessage repository.TaskStatusUpdateResponse
 			err := json.Unmarshal([]byte(msg.Payload), &sseMessage)
 			if err != nil {
-				klog.Errorf("--- Error unmarshalling sse message: %v", err)
+				log.Error("Error unmarshalling sse message", "err", err)
 				continue
 			}
 
@@ -405,12 +399,12 @@ func main() {
 
 	// Start server
 	port := utils.GetEnv("PORT", "13337")
-	klog.Infof("Starting server on port %s", port)
+	log.Info("Starting server", "port", port)
 
 	h2s := &http2.Server{}
 	srv := &http.Server{
 		Addr:    fmt.Sprintf(":%s", port),
 		Handler: h2c.NewHandler(app, h2s),
 	}
-	klog.Infoln(srv.ListenAndServe())
+	log.Info(srv.ListenAndServe())
 }

@@ -5,8 +5,8 @@ import (
 	"os"
 
 	"entgo.io/ent/dialect"
+	"github.com/charmbracelet/log"
 	"github.com/stablecog/sc-go/utils"
-	"k8s.io/klog/v2"
 )
 
 type SqlDBConn interface {
@@ -56,10 +56,10 @@ func GetSqlDbConn(mock bool) (SqlDBConn, error) {
 	postgresPort := utils.GetEnv("POSTGRES_PORT", "5432")
 
 	if postgresDb == "" || postgresUser == "" || postgresPassword == "" {
-		klog.Error("Postgres environment variables not set, not sure what to do? so exiting")
+		log.Error("Postgres environment variables not set, not sure what to do? so exiting")
 		os.Exit(1)
 	}
-	klog.V(3).Infof("Using PostgreSQL database %s@%s:%s", postgresUser, postgresHost, postgresPort)
+	log.Info("Using PostgreSQL database", "conn", fmt.Sprintf("%s@%s:%s", postgresUser, postgresHost, postgresPort))
 	return &PostgresConn{
 		Host:     postgresHost,
 		Port:     postgresPort,

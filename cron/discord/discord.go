@@ -9,12 +9,12 @@ import (
 	"strings"
 	"time"
 
+	"github.com/charmbracelet/log"
 	"github.com/stablecog/sc-go/cron/models"
 	"github.com/stablecog/sc-go/database/ent"
 	"github.com/stablecog/sc-go/database/ent/generation"
 	"github.com/stablecog/sc-go/shared"
 	"github.com/stablecog/sc-go/utils"
-	"k8s.io/klog/v2"
 )
 
 // Constants
@@ -40,7 +40,7 @@ func (h HEALTH_STATUS) StatusString() string {
 }
 
 // For mocking
-var klogInfof = klog.Infof
+var logInfo = log.Info
 
 type DiscordHealthTracker struct {
 	ctx                           context.Context
@@ -77,25 +77,25 @@ func (d *DiscordHealthTracker) SendDiscordNotificationIfNeeded(
 	if d.lastStatus == UNKNOWN || (status == d.lastStatus &&
 		((status == UNHEALTHY && sinceUnhealthyNotification < unhealthyNotificationInterval) ||
 			(status == HEALTHY && sinceHealthyNotification < healthyNotificationInterval))) {
-		klogInfof("Skipping Discord notification, not needed")
+		logInfo("Skipping Discord notification, not needed")
 		// Set last status
 		d.lastStatus = status
 		return nil
 	}
 
 	start := time.Now().UnixMilli()
-	klog.Infoln("Sending Discord notification...")
+	log.Info("Sending Discord notification...")
 
 	// Build webhook body
 	webhookBody := getDiscordWebhookBody(status, generations, lastGenerationTime, lastCheckTime)
 	reqBody, err := json.Marshal(webhookBody)
 	if err != nil {
-		klog.Errorf("Error marshalling webhook body: %s", err)
+		log.Error("Error marshalling webhook body", "err", err)
 		return err
 	}
 	res, postErr := http.Post(d.webhookUrl, "application/json", bytes.NewBuffer(reqBody))
 	if postErr != nil {
-		klog.Errorf("Error sending webhook: %s", postErr)
+		log.Error("Error sending webhook", "err", postErr)
 		return postErr
 	}
 	defer res.Body.Close()
@@ -108,7 +108,7 @@ func (d *DiscordHealthTracker) SendDiscordNotificationIfNeeded(
 		d.lastUnhealthyNotificationTime = d.lastNotificationTime
 	}
 	end := time.Now().UnixMilli()
-	klog.Infof("Sent Discord notification in: %dms", end-start)
+	log.Info("Sent Discord notification", "duration", fmt.Sprintf("%dms", end-start))
 
 	return nil
 }

@@ -7,13 +7,13 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/charmbracelet/log"
 	"github.com/go-chi/render"
 	"github.com/meilisearch/meilisearch-go"
 	"github.com/stablecog/sc-go/database/repository"
 	"github.com/stablecog/sc-go/server/requests"
 	"github.com/stablecog/sc-go/server/responses"
 	"github.com/stablecog/sc-go/utils"
-	"k8s.io/klog/v2"
 )
 
 const GALLERY_PER_PAGE = 50
@@ -30,7 +30,7 @@ func (c *RestAPI) GetGenerationGs(page int, batchSize int, search string, filter
 		Sort:        sortBy,
 	})
 	if err != nil {
-		klog.Errorf("Error searching for generation_g: %v", err)
+		log.Error("Error searching for generation_g", "err", err)
 		return nil, err
 	}
 	if len(res.Hits) == 0 {
@@ -39,13 +39,13 @@ func (c *RestAPI) GetGenerationGs(page int, batchSize int, search string, filter
 	for _, hit := range res.Hits {
 		j, err := json.Marshal(hit)
 		if err != nil {
-			klog.Errorf("Error marshalling hit: %v", err)
+			log.Error("Error marshalling hit", "err", err)
 			return nil, err
 		}
 		var gen repository.GalleryData
 		err = json.Unmarshal(j, &gen)
 		if err != nil {
-			klog.Errorf("Error unmarshalling hit: %v", err)
+			log.Error("Error unmarshalling hit", "err", err)
 			return nil, err
 		}
 		gen.Seed = 0
@@ -65,7 +65,7 @@ func (c *RestAPI) HandleQueryGallery(w http.ResponseWriter, r *http.Request) {
 
 	generationGs, err := c.GetGenerationGs(page, GALLERY_PER_PAGE+1, search, "")
 	if err != nil {
-		klog.Errorf("Error searching meili: %v", err)
+		log.Error("Error searching meili", "err", err)
 		responses.ErrInternalServerError(w, r, "Error querying gallery")
 		return
 	}
@@ -82,7 +82,7 @@ func (c *RestAPI) HandleQueryGallery(w http.ResponseWriter, r *http.Request) {
 		if seed != "" {
 			seedInt, err := strconv.Atoi(seed)
 			if err != nil {
-				klog.Errorf("Error parsing seed: %v", err)
+				log.Error("Error parsing seed", "err", err)
 			} else {
 				rand.Seed(int64(seedInt))
 				rand.Shuffle(
@@ -102,7 +102,7 @@ func (c *RestAPI) HandleQueryGallery(w http.ResponseWriter, r *http.Request) {
 	for i := range generationGs {
 		imageUrl := utils.GetURLFromImagePath(generationGs[i].ImagePath)
 		if err != nil {
-			klog.Errorf("Error parsing S3 URL: %v", err)
+			log.Error("Error parsing S3 URL", "err", err)
 			imageUrl = generationGs[i].ImagePath
 		}
 		generationGs[i].ImageURL = imageUrl

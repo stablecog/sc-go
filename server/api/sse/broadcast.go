@@ -3,9 +3,9 @@ package sse
 import (
 	"encoding/json"
 
+	"github.com/charmbracelet/log"
 	"github.com/stablecog/sc-go/database/repository"
 	"github.com/stablecog/sc-go/shared"
-	"k8s.io/klog/v2"
 )
 
 // Broadcasts message from sc-worker to client(s) SSE stream(s)
@@ -14,7 +14,7 @@ func (h *Hub) BroadcastStatusUpdate(msg repository.TaskStatusUpdateResponse) {
 	// Marshal
 	respBytes, err := json.Marshal(msg)
 	if err != nil {
-		klog.Errorf("--- Error marshalling sse response: %v", err)
+		log.Error("Error marshalling sse response", "err", err)
 		return
 	}
 
@@ -29,7 +29,7 @@ func (h *Hub) BroadcastStatusUpdate(msg repository.TaskStatusUpdateResponse) {
 func (h *Hub) BroadcastLivePageMessage(req shared.LivePageMessage) {
 	bytes, err := json.Marshal(req)
 	if err != nil {
-		klog.Errorf("Error marshalling live page message: %v", err)
+		log.Error("Error marshalling live page message", "err", err)
 		return
 	}
 	h.Broadcast <- BroadcastPayload{

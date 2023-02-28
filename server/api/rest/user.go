@@ -8,6 +8,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/charmbracelet/log"
 	"github.com/go-chi/render"
 	"github.com/google/uuid"
 	"github.com/stablecog/sc-go/database/ent"
@@ -15,7 +16,6 @@ import (
 	"github.com/stablecog/sc-go/server/responses"
 	"github.com/stablecog/sc-go/utils"
 	"github.com/stripe/stripe-go/v74"
-	"k8s.io/klog/v2"
 )
 
 // HTTP Get - user info
@@ -28,19 +28,19 @@ func (c *RestAPI) HandleGetUser(w http.ResponseWriter, r *http.Request) {
 	// Get customer ID for user
 	user, err := c.Repo.GetUserWithRoles(*userID)
 	if err != nil {
-		klog.Errorf("Error getting user: %v", err)
+		log.Error("Error getting user", "err", err)
 		responses.ErrInternalServerError(w, r, "An unknown error has occured")
 		return
 	} else if user == nil {
 		// Handle create user flow
 		freeCreditType, err := c.Repo.GetOrCreateFreeCreditType()
 		if err != nil {
-			klog.Errorf("Error getting free credit type: %v", err)
+			log.Error("Error getting free credit type", "err", err)
 			responses.ErrInternalServerError(w, r, "An unknown error has occured")
 			return
 		}
 		if freeCreditType == nil {
-			klog.Errorf("Server misconfiguration: a credit_type with the name 'free' must exist")
+			log.Error("Server misconfiguration: a credit_type with the name 'free' must exist")
 			responses.ErrInternalServerError(w, r, "An unknown error has occured")
 			return
 		}
@@ -58,20 +58,20 @@ func (c *RestAPI) HandleGetUser(w http.ResponseWriter, r *http.Request) {
 				},
 			})
 			if err != nil {
-				klog.Errorf("Error creating stripe customer: %v", err)
+				log.Error("Error creating stripe customer", "err", err)
 				return err
 			}
 
 			u, err := c.Repo.CreateUser(*userID, email, customer.ID, client)
 			if err != nil {
-				klog.Errorf("Error creating user: %v", err)
+				log.Error("Error creating user", "err", err)
 				return err
 			}
 
 			// Add free credits
 			_, err = c.Repo.ReplenishFreeCreditsIfEligible(u.ID, time.Now().AddDate(0, 0, 30), client)
 			if err != nil {
-				klog.Errorf("Error adding free credits: %v", err)
+				log.Error("Error adding free credits", "err", err)
 				return err
 			}
 
@@ -79,13 +79,13 @@ func (c *RestAPI) HandleGetUser(w http.ResponseWriter, r *http.Request) {
 
 			return nil
 		}); err != nil {
-			klog.Errorf("Error creating user: %v", err)
+			log.Error("Error creating user", "err", err)
 			responses.ErrInternalServerError(w, r, "An unknown error has occured")
 			// Delete stripe customer
 			if customer != nil {
 				_, err := c.StripeClient.Customers.Del(customer.ID, nil)
 				if err != nil {
-					klog.Errorf("Error deleting stripe customer: %v", err)
+					log.Error("Error deleting stripe customer", "err", err)
 				}
 			}
 			return
@@ -93,14 +93,14 @@ func (c *RestAPI) HandleGetUser(w http.ResponseWriter, r *http.Request) {
 	} else {
 		_, err := c.Repo.ReplenishFreeCreditsIfEligible(*userID, time.Now().AddDate(0, 0, 30), nil)
 		if err != nil {
-			klog.Errorf("Error replenishing free credits: %v", err)
+			log.Error("Error replenishing free credits", "err", err)
 		}
 	}
 
 	// Get total credits
 	totalRemaining, err := c.Repo.GetNonExpiredCreditTotalForUser(*userID, nil)
 	if err != nil {
-		klog.Errorf("Error getting credits for user: %v", err)
+		log.Error("Error getting credits for user", "err", err)
 		responses.ErrInternalServerError(w, r, "An unknown error has occured")
 		return
 	}
@@ -114,7 +114,7 @@ func (c *RestAPI) HandleGetUser(w http.ResponseWriter, r *http.Request) {
 	})
 	stripeHadError := false
 	if err != nil {
-		klog.Errorf("Error getting customer from stripe, unknown error: %v", err)
+		log.Error("Error getting customer from stripe, unknown error", "err", err)
 		stripeHadError = true
 	}
 
@@ -209,7 +209,7 @@ func (c *RestAPI) HandleQueryGenerations(w http.ResponseWriter, r *http.Request)
 	// Get generaions
 	generations, err := c.Repo.QueryGenerations(perPage, cursor, filters)
 	if err != nil {
-		klog.Errorf("Error getting generations for user: %s", err)
+		log.Error("Error getting generations for user", "err", err)
 		responses.ErrInternalServerError(w, r, "Error getting generations")
 		return
 	}
@@ -238,7 +238,7 @@ func (c *RestAPI) HandleQueryCredits(w http.ResponseWriter, r *http.Request) {
 	// Get credits
 	credits, err := c.Repo.GetCreditsForUser(userId)
 	if err != nil {
-		klog.Errorf("Error getting credits for user: %s", err)
+		log.Error("Error getting credits for user", "err", err)
 		responses.ErrInternalServerError(w, r, "Error getting credits")
 		return
 	}

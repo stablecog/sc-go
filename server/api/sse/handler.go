@@ -6,9 +6,9 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/charmbracelet/log"
 	"github.com/stablecog/sc-go/server/responses"
 	"github.com/stablecog/sc-go/utils"
-	"k8s.io/klog/v2"
 )
 
 // App version
@@ -57,7 +57,7 @@ func (h *Hub) ServeSSE(w http.ResponseWriter, r *http.Request) {
 	version := AppVersionMessage{Version: APP_VERSION}
 	versionBytes, err := json.Marshal(version)
 	if err != nil {
-		klog.Errorf("Error marshalling app version message: %v", err)
+		log.Error("Error marshalling app version message", "err", err)
 		http.Error(w, "Error marshalling app version message", http.StatusInternalServerError)
 		return
 	}

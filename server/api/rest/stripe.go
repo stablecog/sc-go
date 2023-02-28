@@ -5,6 +5,7 @@ import (
 	"io"
 	"net/http"
 
+	"github.com/charmbracelet/log"
 	"github.com/go-chi/render"
 	"github.com/stablecog/sc-go/database/ent"
 	"github.com/stablecog/sc-go/server/requests"
@@ -13,7 +14,6 @@ import (
 	"github.com/stripe/stripe-go/v74"
 	"github.com/stripe/stripe-go/v74/webhook"
 	"golang.org/x/exp/slices"
-	"k8s.io/klog/v2"
 )
 
 var PriceIDs = map[int]string{
@@ -44,7 +44,7 @@ func (c *RestAPI) HandleCreatePortalSession(w http.ResponseWriter, r *http.Reque
 	// Get user
 	user, err := c.Repo.GetUser(*userID)
 	if err != nil {
-		klog.Errorf("Error getting user: %v", err)
+		log.Error("Error getting user", "err", err)
 		responses.ErrInternalServerError(w, r, "An unknown error has occured")
 		return
 	}
@@ -56,7 +56,7 @@ func (c *RestAPI) HandleCreatePortalSession(w http.ResponseWriter, r *http.Reque
 	})
 
 	if err != nil {
-		klog.Errorf("Error creating portal session: %v", err)
+		log.Error("Error creating portal session", "err", err)
 		responses.ErrInternalServerError(w, r, "An unknown error has occured")
 		return
 	}
@@ -110,7 +110,7 @@ func (c *RestAPI) HandleCreateCheckoutSession(w http.ResponseWriter, r *http.Req
 	// Get user
 	user, err := c.Repo.GetUser(*userID)
 	if err != nil {
-		klog.Errorf("Error getting user: %v", err)
+		log.Error("Error getting user", "err", err)
 		responses.ErrInternalServerError(w, r, "An unknown error has occured")
 		return
 	}
@@ -125,7 +125,7 @@ func (c *RestAPI) HandleCreateCheckoutSession(w http.ResponseWriter, r *http.Req
 	})
 
 	if err != nil {
-		klog.Errorf("Error getting customer: %v", err)
+		log.Error("Error getting customer", "err", err)
 		responses.ErrInternalServerError(w, r, "An unknown error has occured")
 		return
 	}
@@ -195,7 +195,7 @@ func (c *RestAPI) HandleCreateCheckoutSession(w http.ResponseWriter, r *http.Req
 
 	session, err := c.StripeClient.CheckoutSessions.New(params)
 	if err != nil {
-		klog.Errorf("Error creating checkout session: %v", err)
+		log.Error("Error creating checkout session", "err", err)
 		responses.ErrInternalServerError(w, r, "An unknown error has occured")
 		return
 	}
@@ -243,7 +243,7 @@ func (c *RestAPI) HandleSubscriptionDowngrade(w http.ResponseWriter, r *http.Req
 	// Get user
 	user, err := c.Repo.GetUser(*userID)
 	if err != nil {
-		klog.Errorf("Error getting user: %v", err)
+		log.Error("Error getting user", "err", err)
 		responses.ErrInternalServerError(w, r, "An unknown error has occured")
 		return
 	}
@@ -258,7 +258,7 @@ func (c *RestAPI) HandleSubscriptionDowngrade(w http.ResponseWriter, r *http.Req
 	})
 
 	if err != nil {
-		klog.Errorf("Error getting customer: %v", err)
+		log.Error("Error getting customer", "err", err)
 		responses.ErrInternalServerError(w, r, "An unknown error has occured")
 		return
 	}
@@ -328,7 +328,7 @@ func (c *RestAPI) HandleSubscriptionDowngrade(w http.ResponseWriter, r *http.Req
 	})
 
 	if err != nil {
-		klog.Errorf("Error updating subscription: %v", err)
+		log.Error("Error updating subscription", "err", err)
 		responses.ErrInternalServerError(w, r, "An unknown error has occured")
 		return
 	}
@@ -354,7 +354,7 @@ func (c *RestAPI) HandleStripeWebhook(w http.ResponseWriter, r *http.Request) {
 	// Parse request body
 	reqBody, err := io.ReadAll(r.Body)
 	if err != nil {
-		klog.Errorf("Unable reading stripe webhook body: %v", err)
+		log.Error("Unable reading stripe webhook body", "err", err)
 		responses.ErrBadRequest(w, r, "invalid stripe webhook body")
 		return
 	}
@@ -364,7 +364,7 @@ func (c *RestAPI) HandleStripeWebhook(w http.ResponseWriter, r *http.Request) {
 
 	event, err := webhook.ConstructEvent(reqBody, r.Header.Get("Stripe-Signature"), endpointSecret)
 	if err != nil {
-		klog.Errorf("Unable verifying stripe webhook signature: %v", err)
+		log.Error("Unable verifying stripe webhook signature", "err", err)
 		responses.ErrBadRequest(w, r, "invalid stripe webhook signature")
 		return
 	}
@@ -374,7 +374,7 @@ func (c *RestAPI) HandleStripeWebhook(w http.ResponseWriter, r *http.Request) {
 	case "customer.subscription.created":
 		newSub, err := stripeObjectMapToSubscriptionObject(event.Data.Object)
 		if err != nil || newSub == nil {
-			klog.Errorf("Unable parsing stripe subscription object: %v", err)
+			log.Error("Unable parsing stripe subscription object", "err", err)
 			responses.ErrInternalServerError(w, r, err.Error())
 			return
 		}
@@ -390,7 +390,7 @@ func (c *RestAPI) HandleStripeWebhook(w http.ResponseWriter, r *http.Request) {
 					Prorate: stripe.Bool(false),
 				})
 				if err != nil {
-					klog.Errorf("Unable canceling stripe subscription: %v", err)
+					log.Error("Unable canceling stripe subscription", "err", err)
 					responses.ErrInternalServerError(w, r, err.Error())
 					return
 				}
@@ -399,17 +399,17 @@ func (c *RestAPI) HandleStripeWebhook(w http.ResponseWriter, r *http.Request) {
 	case "customer.subscription.deleted":
 		sub, err := stripeObjectMapToCustomSubscriptionObject(event.Data.Object)
 		if err != nil || sub == nil {
-			klog.Errorf("Unable parsing stripe subscription object: %v", err)
+			log.Error("Unable parsing stripe subscription object", "err", err)
 			responses.ErrInternalServerError(w, r, err.Error())
 			return
 		}
 		user, err := c.Repo.GetUserByStripeCustomerId(sub.Customer)
 		if err != nil {
-			klog.Errorf("Unable getting user from stripe customer id: %v", err)
+			log.Error("Unable getting user from stripe customer id", "err", err)
 			responses.ErrInternalServerError(w, r, err.Error())
 			return
 		} else if user == nil {
-			klog.Errorf("User does not exist with stripe customer id: %s", sub.Customer)
+			log.Error("User does not exist with stripe customer id: %s", sub.Customer)
 			responses.ErrInternalServerError(w, r, "User does not exist with stripe customer id")
 			return
 		}
@@ -417,7 +417,7 @@ func (c *RestAPI) HandleStripeWebhook(w http.ResponseWriter, r *http.Request) {
 		if sub.Items != nil && len(sub.Items.Data) > 0 && sub.Items.Data[0].Price != nil {
 			err := c.Repo.UnsetActiveProductID(user.ID, sub.Items.Data[0].Price.Product, nil)
 			if err != nil {
-				klog.Errorf("Unable unsetting stripe product id: %v", err)
+				log.Error("Unable unsetting stripe product id", "err", err)
 				responses.ErrInternalServerError(w, r, err.Error())
 				return
 			}
@@ -426,7 +426,7 @@ func (c *RestAPI) HandleStripeWebhook(w http.ResponseWriter, r *http.Request) {
 		// We can parse the object as an invoice since that's the only thing we care about
 		invoice, err := stripeObjectMapToInvoiceObject(event.Data.Object)
 		if err != nil || invoice == nil {
-			klog.Errorf("Unable parsing stripe invoice object: %v", err)
+			log.Error("Unable parsing stripe invoice object", "err", err)
 			responses.ErrInternalServerError(w, r, err.Error())
 			return
 		}
@@ -439,7 +439,7 @@ func (c *RestAPI) HandleStripeWebhook(w http.ResponseWriter, r *http.Request) {
 		}
 
 		if invoice.Lines == nil {
-			klog.Errorf("Stripe invoice lines is nil %s", invoice.ID)
+			log.Error("Stripe invoice lines is nil %s", invoice.ID)
 			responses.ErrInternalServerError(w, r, "Stripe invoice lines is nil")
 			return
 		}
@@ -447,13 +447,13 @@ func (c *RestAPI) HandleStripeWebhook(w http.ResponseWriter, r *http.Request) {
 		for _, line := range invoice.Lines.Data {
 			var product string
 			if line.Plan == nil && invoice.BillingReason != InvoiceBillingReasonManual {
-				klog.Errorf("Stripe plan is nil in line item %s", line.ID)
+				log.Error("Stripe plan is nil in line item %s", line.ID)
 				responses.ErrInternalServerError(w, r, "Stripe plan is nil in line item")
 				return
 			}
 
 			if line.Price == nil && invoice.BillingReason == InvoiceBillingReasonManual {
-				klog.Errorf("Stripe price is nil in line item %s", line.ID)
+				log.Error("Stripe price is nil in line item %s", line.ID)
 				responses.ErrInternalServerError(w, r, "Stripe price is nil in line item")
 				return
 			}
@@ -465,7 +465,7 @@ func (c *RestAPI) HandleStripeWebhook(w http.ResponseWriter, r *http.Request) {
 			}
 
 			if product == "" {
-				klog.Errorf("Stripe product is nil in line item %s", line.ID)
+				log.Error("Stripe product is nil in line item %s", line.ID)
 				responses.ErrInternalServerError(w, r, "Stripe product is nil in line item")
 				return
 			}
@@ -473,11 +473,11 @@ func (c *RestAPI) HandleStripeWebhook(w http.ResponseWriter, r *http.Request) {
 			// Get user from customer ID
 			user, err := c.Repo.GetUserByStripeCustomerId(invoice.Customer)
 			if err != nil {
-				klog.Errorf("Unable getting user from stripe customer id: %v", err)
+				log.Error("Unable getting user from stripe customer id", "err", err)
 				responses.ErrInternalServerError(w, r, err.Error())
 				return
 			} else if user == nil {
-				klog.Errorf("User does not exist with stripe customer id: %s", invoice.Customer)
+				log.Error("User does not exist with stripe customer id: %s", invoice.Customer)
 				responses.ErrInternalServerError(w, r, "User does not exist with stripe customer id")
 				return
 			}
@@ -485,11 +485,11 @@ func (c *RestAPI) HandleStripeWebhook(w http.ResponseWriter, r *http.Request) {
 			// Get the credit type for this plan
 			creditType, err := c.Repo.GetCreditTypeByStripeProductID(product)
 			if err != nil {
-				klog.Errorf("Unable getting credit type from stripe product id: %v", err)
+				log.Error("Unable getting credit type from stripe product id", "err", err)
 				responses.ErrInternalServerError(w, r, err.Error())
 				return
 			} else if creditType == nil {
-				klog.Errorf("Credit type does not exist with stripe product id: %s", line.Plan.Product)
+				log.Error("Credit type does not exist with stripe product id: %s", line.Plan.Product)
 				responses.ErrInternalServerError(w, r, "Credit type does not exist with stripe product id")
 				return
 			}
@@ -498,7 +498,7 @@ func (c *RestAPI) HandleStripeWebhook(w http.ResponseWriter, r *http.Request) {
 				// Ad-hoc credit add
 				_, err = c.Repo.AddAdhocCreditsIfEligible(creditType, user.ID, line.ID)
 				if err != nil {
-					klog.Errorf("Unable adding credits to user %s: %v", user.ID.String(), err)
+					log.Error("Unable adding credits to user %s: %v", user.ID.String(), err)
 					responses.ErrInternalServerError(w, r, err.Error())
 					return
 				}
@@ -509,19 +509,19 @@ func (c *RestAPI) HandleStripeWebhook(w http.ResponseWriter, r *http.Request) {
 					client := tx.Client()
 					_, err = c.Repo.AddCreditsIfEligible(creditType, user.ID, expiresAt, line.ID, client)
 					if err != nil {
-						klog.Errorf("Unable adding credits to user %s: %v", user.ID.String(), err)
+						log.Error("Unable adding credits to user %s: %v", user.ID.String(), err)
 						responses.ErrInternalServerError(w, r, err.Error())
 						return err
 					}
 					err = c.Repo.SetActiveProductID(user.ID, product, client)
 					if err != nil {
-						klog.Errorf("Unable setting stripe product id for user %s: %v", user.ID.String(), err)
+						log.Error("Unable setting stripe product id for user %s: %v", user.ID.String(), err)
 						responses.ErrInternalServerError(w, r, err.Error())
 						return err
 					}
 					return nil
 				}); err != nil {
-					klog.Errorf("Unable adding credits to user %s: %v", user.ID.String(), err)
+					log.Error("Unable adding credits to user %s: %v", user.ID.String(), err)
 					return
 				}
 			}

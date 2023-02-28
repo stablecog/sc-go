@@ -3,21 +3,20 @@ module github.com/stablecog/sc-go/database
 go 1.20
 
 require (
+	github.com/charmbracelet/log v0.1.2
 	github.com/go-redis/redis/v8 v8.11.5
 	github.com/stablecog/sc-go/server v0.0.0-20230216152639-fdb95f1bb7ba
 	github.com/stablecog/sc-go/shared v0.0.0-20230216152639-fdb95f1bb7ba
 	github.com/stablecog/sc-go/utils v0.0.0-20230216152639-fdb95f1bb7ba
-	github.com/stretchr/testify v1.8.1
-	k8s.io/klog/v2 v2.80.1
+	github.com/stretchr/testify v1.8.2
 )
 
 require (
-	github.com/ajg/form v1.5.1 // indirect
 	github.com/alicebob/gopher-json v0.0.0-20200520072559-a9ecdc9d1d3a // indirect
 	github.com/andybalholm/brotli v1.0.4 // indirect
+	github.com/charmbracelet/lipgloss v0.6.0 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
-	github.com/go-chi/render v1.0.2 // indirect
-	github.com/go-logr/logr v1.2.0 // indirect
+	github.com/go-logfmt/logfmt v0.6.0 // indirect
 	github.com/golang-jwt/jwt/v4 v4.4.2 // indirect
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
 	github.com/jackc/chunkreader/v2 v2.0.1 // indirect
@@ -29,9 +28,15 @@ require (
 	github.com/jackc/pgtype v1.12.0 // indirect
 	github.com/josharian/intern v1.0.0 // indirect
 	github.com/klauspost/compress v1.15.6 // indirect
+	github.com/lucasb-eyer/go-colorful v1.2.0 // indirect
 	github.com/mailru/easyjson v0.7.7 // indirect
+	github.com/mattn/go-isatty v0.0.17 // indirect
+	github.com/mattn/go-runewidth v0.0.13 // indirect
 	github.com/mileusna/useragent v1.2.1 // indirect
+	github.com/muesli/reflow v0.2.1-0.20210115123740-9e1d0d53df68 // indirect
+	github.com/muesli/termenv v0.11.1-0.20220204035834-5ac8409525e0 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
+	github.com/rivo/uniseg v0.2.0 // indirect
 	github.com/tomnomnom/linkheader v0.0.0-20180905144013-02ca5825eb80 // indirect
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
 	github.com/valyala/fasthttp v1.37.1-0.20220607072126-8a320890c08d // indirect
@@ -42,6 +47,7 @@ require (
 	golang.org/x/crypto v0.0.0-20220722155217-630584e8d5aa // indirect
 	golang.org/x/exp v0.0.0-20230206171751-46f607a40771 // indirect
 	golang.org/x/image v0.3.0 // indirect
+	golang.org/x/sys v0.2.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
 

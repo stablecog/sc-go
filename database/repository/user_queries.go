@@ -4,12 +4,12 @@ import (
 	"time"
 
 	"entgo.io/ent/dialect/sql"
+	"github.com/charmbracelet/log"
 	"github.com/google/uuid"
 	"github.com/stablecog/sc-go/database/ent"
 	"github.com/stablecog/sc-go/database/ent/credit"
 	"github.com/stablecog/sc-go/database/ent/user"
 	"github.com/stablecog/sc-go/database/ent/userrole"
-	"k8s.io/klog/v2"
 )
 
 func (r *Repository) GetUser(id uuid.UUID) (*ent.User, error) {
@@ -28,7 +28,7 @@ func (r *Repository) GetUserWithRoles(id uuid.UUID) (*UserWithRoles, error) {
 			Select(sql.As(rt.C(userrole.FieldRoleName), "role_name"), sql.As(s.C(user.FieldID), "user_id"), sql.As(s.C(user.FieldStripeCustomerID), "stripe_customer_id"))
 	}).Scan(r.Ctx, &userWithRoles)
 	if err != nil {
-		klog.Errorf("Error getting user with roles: %v", err)
+		log.Error("Error getting user with roles", "err", err)
 		return nil, err
 	}
 
@@ -63,7 +63,7 @@ func (r *Repository) GetUserByStripeCustomerId(customerId string) (*ent.User, er
 	if err != nil && ent.IsNotFound(err) {
 		return nil, nil
 	} else if err != nil {
-		klog.Errorf("Error getting user by stripe customer ID: %v", err)
+		log.Error("Error getting user by stripe customer ID", "err", err)
 		return nil, err
 	}
 	return user, nil
@@ -73,7 +73,7 @@ func (r *Repository) IsSuperAdmin(userID uuid.UUID) (bool, error) {
 	// Check for admin
 	roles, err := r.GetRoles(userID)
 	if err != nil {
-		klog.Errorf("Error getting user roles: %v", err)
+		log.Error("Error getting user roles", "err", err)
 		return false, err
 	}
 	for _, role := range roles {
@@ -89,7 +89,7 @@ func (r *Repository) GetSuperAdminUserIDs() ([]uuid.UUID, error) {
 	// Query all super  admins
 	admins, err := r.DB.UserRole.Query().Select(userrole.FieldUserID).Where(userrole.RoleNameEQ(userrole.RoleNameSUPER_ADMIN)).All(r.Ctx)
 	if err != nil {
-		klog.Errorf("Error getting user roles: %v", err)
+		log.Error("Error getting user roles", "err", err)
 		return nil, err
 	}
 	var adminIDs []uuid.UUID
@@ -102,7 +102,7 @@ func (r *Repository) GetSuperAdminUserIDs() ([]uuid.UUID, error) {
 func (r *Repository) GetRoles(userID uuid.UUID) ([]userrole.RoleName, error) {
 	roles, err := r.DB.UserRole.Query().Where(userrole.UserIDEQ(userID)).All(r.Ctx)
 	if err != nil {
-		klog.Errorf("Error getting user roles: %v", err)
+		log.Error("Error getting user roles", "err", err)
 		return nil, err
 	}
 	var roleNames []userrole.RoleName
@@ -117,7 +117,7 @@ func (r *Repository) GetRoles(userID uuid.UUID) ([]userrole.RoleName, error) {
 func (r *Repository) QueryUsersCount() (totalCount int, totalCountByProduct map[string]int, err error) {
 	count, err := r.DB.User.Query().Count(r.Ctx)
 	if err != nil {
-		klog.Errorf("Error querying users count: %v", err)
+		log.Error("Error querying users count", "err", err)
 		return 0, nil, err
 	}
 
@@ -177,7 +177,7 @@ func (r *Repository) QueryUsers(emailSearch string, per_page int, cursor *time.T
 
 	res, err := query.All(r.Ctx)
 	if err != nil {
-		klog.Errorf("Error querying users: %v", err)
+		log.Error("Error querying users", "err", err)
 		return nil, err
 	}
 
@@ -196,7 +196,7 @@ func (r *Repository) QueryUsers(emailSearch string, per_page int, cursor *time.T
 	if cursor == nil {
 		total, totalByProduct, err := r.QueryUsersCount()
 		if err != nil {
-			klog.Errorf("Error querying users count: %v", err)
+			log.Error("Error querying users count", "err", err)
 			return nil, err
 		}
 		meta.Total = &total

@@ -7,16 +7,16 @@ import (
 	"time"
 
 	"github.com/alicebob/miniredis/v2"
+	"github.com/charmbracelet/log"
 	"github.com/go-redis/redis/v8"
 	"github.com/google/uuid"
 	"github.com/stablecog/sc-go/server/requests"
 	"github.com/stablecog/sc-go/shared"
 	"github.com/stablecog/sc-go/utils"
-	"k8s.io/klog/v2"
 )
 
-var klogInfof = klog.Infof
-var klogErrorf = klog.Errorf
+var logInfo = log.Info
+var logError = log.Error
 
 type RedisWrapper struct {
 	Client *redis.Client
@@ -32,7 +32,7 @@ func NewRedis(ctx context.Context) (*RedisWrapper, error) {
 	var opts *redis.Options
 	var err error
 	if utils.GetEnv("MOCK_REDIS", "false") == "true" {
-		klogInfof("Using mock redis client because MOCK_REDIS=true is set in environment")
+		logInfo("Using mock redis client because MOCK_REDIS=true is set in environment")
 		mr, _ := miniredis.Run()
 		opts = &redis.Options{
 			Addr: mr.Addr(),
@@ -40,14 +40,14 @@ func NewRedis(ctx context.Context) (*RedisWrapper, error) {
 	} else {
 		opts, err = redis.ParseURL(getRedisURL())
 		if err != nil {
-			klogErrorf("Error parsing REDIS_CONNECTION_STRING: %v", err)
+			logError("Error parsing REDIS_CONNECTION_STRING", "err", err)
 			return nil, err
 		}
 	}
 	redis := redis.NewClient(opts)
 	_, err = redis.Ping(ctx).Result()
 	if err != nil {
-		klogErrorf("Error pinging Redis: %v", err)
+		logError("Error pinging Redis", "err", err)
 		return nil, err
 	}
 	return &RedisWrapper{
@@ -104,7 +104,7 @@ func (r *RedisWrapper) GetPendingGenerationAndUpscaleIDs(olderThan time.Duration
 	// Get from the redis stream COG_REDIS_QUEUE, we want to read them without deleting them
 	messages, err := r.Client.XRange(r.Client.Context(), shared.COG_REDIS_QUEUE, "0-0", fmt.Sprintf("%d", to)).Result()
 	if err != nil {
-		klog.Errorf("Error getting pending generation and upscale IDs: %v", err)
+		log.Error("Error getting pending generation and upscale IDs", "err", err)
 		return nil, nil, err
 	}
 
@@ -115,21 +115,21 @@ func (r *RedisWrapper) GetPendingGenerationAndUpscaleIDs(olderThan time.Duration
 		// Get the request ID from the message
 		input, ok := message.Values["value"].(string)
 		if input == "" || !ok {
-			klog.Errorf("Error getting value from message: %v", message)
+			log.Error("Error getting value from message", "message", message)
 			continue
 		}
 		// Deserialize
 		var request requests.CogQueueRequest
 		err = json.Unmarshal([]byte(input), &request)
 		if err != nil {
-			klog.Errorf("Error deserializing input: %v", err)
+			log.Error("Error deserializing input", "err", err)
 			continue
 		}
 
 		if request.Input.ProcessType == shared.UPSCALE {
 			parsed, err := uuid.Parse(request.Input.ID)
 			if err != nil {
-				klog.Errorf("Error parsing upscale output ID: %v", err)
+				log.Error("Error parsing upscale output ID", "err", err)
 				continue
 			}
 			upscaleOutputIDs = append(upscaleOutputIDs, PendingCogRequestRedis{
@@ -141,7 +141,7 @@ func (r *RedisWrapper) GetPendingGenerationAndUpscaleIDs(olderThan time.Duration
 		if request.Input.ProcessType == shared.GENERATE || request.Input.ProcessType == shared.GENERATE_AND_UPSCALE {
 			parsed, err := uuid.Parse(request.Input.ID)
 			if err != nil {
-				klog.Errorf("Error parsing generation output ID: %v", err)
+				log.Error("Error parsing generation output ID", "err", err)
 				continue
 			}
 			generationOutputIDs = append(generationOutputIDs, PendingCogRequestRedis{

@@ -8,12 +8,12 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/charmbracelet/log"
 	"github.com/go-chi/render"
 	"github.com/stablecog/sc-go/database/ent"
 	"github.com/stablecog/sc-go/server/requests"
 	"github.com/stablecog/sc-go/server/responses"
 	"github.com/stablecog/sc-go/utils"
-	"k8s.io/klog/v2"
 )
 
 // Admin-related routes, these must be behind admin middleware and auth middleware
@@ -130,7 +130,7 @@ func (c *RestAPI) HandleQueryGenerationsForAdmin(w http.ResponseWriter, r *http.
 	// Get generaions
 	generations, err := c.Repo.QueryGenerations(perPage, cursor, filters)
 	if err != nil {
-		klog.Errorf("Error getting generations for user: %s", err)
+		log.Error("Error getting generations for user", "err", err)
 		responses.ErrInternalServerError(w, r, "Error getting generations")
 		return
 	}
@@ -174,7 +174,7 @@ func (c *RestAPI) HandleQueryUsers(w http.ResponseWriter, r *http.Request) {
 	// Get users
 	users, err := c.Repo.QueryUsers(r.URL.Query().Get("search"), perPage, cursor)
 	if err != nil {
-		klog.Errorf("Error getting users: %s", err)
+		log.Error("Error getting users", "err", err)
 		responses.ErrInternalServerError(w, r, "Error getting users")
 		return
 	}

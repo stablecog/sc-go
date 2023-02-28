@@ -26,13 +26,13 @@ func TestMockRedis(t *testing.T) {
 	defer os.Unsetenv("MOCK_REDIS")
 
 	// Mock logger
-	orgKlogInfof := klogInfof
-	defer func() { klogInfof = orgKlogInfof }()
+	orgLogInfo := logInfo
+	defer func() { logInfo = orgLogInfo }()
 
 	// Write log output to string
 	logs := []string{}
-	klogInfof = func(format string, args ...interface{}) {
-		logs = append(logs, fmt.Sprintf(format, args...))
+	logInfo = func(format interface{}, args ...interface{}) {
+		logs = append(logs, format.(string)+fmt.Sprint(args...))
 	}
 
 	_, err := NewRedis(context.TODO())
@@ -45,18 +45,18 @@ func TestInvalidConnUrlFails(t *testing.T) {
 	os.Setenv("REDIS_CONNECTION_STRING", "invalidredisurl")
 
 	// Mock logger
-	orgKlogErrorf := klogErrorf
-	defer func() { klogErrorf = orgKlogErrorf }()
+	orgLogError := logError
+	defer func() { logError = orgLogError }()
 
 	// Write log output to string
 	logs := []string{}
-	klogErrorf = func(format string, args ...interface{}) {
-		logs = append(logs, fmt.Sprintf(format, args...))
+	logError = func(format interface{}, args ...interface{}) {
+		logs = append(logs, format.(string)+fmt.Sprint(args...))
 	}
 
 	_, err := NewRedis(context.TODO())
 	assert.NotNil(t, err)
-	assert.Equal(t, "Error parsing REDIS_CONNECTION_STRING: redis: invalid URL scheme: ", logs[0])
+	assert.Equal(t, "Error parsing REDIS_CONNECTION_STRINGerrredis: invalid URL scheme: ", logs[0])
 }
 
 func TestPingErrorIfCantConnect(t *testing.T) {
@@ -64,18 +64,18 @@ func TestPingErrorIfCantConnect(t *testing.T) {
 	os.Setenv("REDIS_CONNECTION_STRING", "redis://notarealredishost:1234")
 
 	// Mock logger
-	orgKlogErrorf := klogErrorf
-	defer func() { klogErrorf = orgKlogErrorf }()
+	orgLogError := logError
+	defer func() { logError = orgLogError }()
 
 	// Write log output to string
 	logs := []string{}
-	klogErrorf = func(format string, args ...interface{}) {
-		logs = append(logs, fmt.Sprintf(format, args...))
+	logError = func(format interface{}, args ...interface{}) {
+		logs = append(logs, format.(string)+fmt.Sprint(args...))
 	}
 
 	_, err := NewRedis(context.TODO())
 	assert.NotNil(t, err)
-	assert.Equal(t, "Error pinging Redis: dial tcp: lookup notarealredishost", logs[0][:len("Error pinging Redis: dial tcp: lookup notarealredishost")])
+	assert.Equal(t, "Error pinging Rediserrdial tcp: lookup notarealredishos", logs[0][:len("Error pinging Redis: dial tcp: lookup notarealredishost")])
 }
 
 func TestGetPendingGenerationAndUpscaleIDs(t *testing.T) {

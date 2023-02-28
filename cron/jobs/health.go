@@ -1,12 +1,13 @@
 package jobs
 
 import (
+	"fmt"
 	"time"
 
+	"github.com/charmbracelet/log"
 	"github.com/stablecog/sc-go/cron/discord"
 	"github.com/stablecog/sc-go/database/ent/generation"
 	"github.com/stablecog/sc-go/shared"
-	"k8s.io/klog/v2"
 )
 
 // Considered failed if len(failures)/len(generations) > maxGenerationFailWithoutNSFWRate
@@ -18,11 +19,11 @@ const generationCountToCheck = 10
 // CheckHealth cron job
 func (j *JobRunner) CheckHealth() error {
 	start := time.Now()
-	klog.Infof("Checking health...")
+	log.Info("Checking health...")
 
 	generations, err := j.Repo.GetGenerations(generationCountToCheck)
 	if err != nil || len(generations) == 0 {
-		klog.Errorf("Couldn't get generations %v", err)
+		log.Error("Couldn't get generations", "err", err)
 		return err
 	}
 
@@ -39,8 +40,7 @@ func (j *JobRunner) CheckHealth() error {
 		}
 	}
 
-	klog.Infof("Generation fail rate (NSFW): %d/%d", nsfwGenerations, len(generations))
-	klog.Infof("Generation fail rate: %d/%d", failedGenerations, len(generations))
+	log.Info("Generation fail rate", "NSFW", fmt.Sprintf("%d/%d", nsfwGenerations, len(generations)), "Other", fmt.Sprintf("%d/%d", failedGenerations, len(generations)))
 
 	// Figure out if we're healthy
 	healthStatus := discord.HEALTHY
@@ -50,7 +50,7 @@ func (j *JobRunner) CheckHealth() error {
 	}
 
 	now := time.Now()
-	klog.Infof("Done checking health in: %dms", now.Sub(start).Milliseconds())
+	log.Info("Done checking health", "duration", fmt.Sprintf("%dms", now.Sub(start).Milliseconds()))
 
 	return j.Discord.SendDiscordNotificationIfNeeded(
 		healthStatus,

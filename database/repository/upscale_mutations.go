@@ -3,13 +3,13 @@ package repository
 import (
 	"time"
 
+	"github.com/charmbracelet/log"
 	"github.com/google/uuid"
 	"github.com/stablecog/sc-go/database/ent"
 	"github.com/stablecog/sc-go/database/ent/upscale"
 	"github.com/stablecog/sc-go/server/requests"
 	"github.com/stablecog/sc-go/shared"
 	"github.com/stablecog/sc-go/utils"
-	"k8s.io/klog/v2"
 )
 
 // CreateUpscale creates the initial generation in the database
@@ -37,13 +37,13 @@ func (r *Repository) CreateUpscale(userID uuid.UUID, width, height int32, device
 func (r *Repository) SetUpscaleStarted(upscaleID string) error {
 	uid, err := uuid.Parse(upscaleID)
 	if err != nil {
-		klog.Errorf("Error parsing generation id in SetUpscaleStarted %s: %v", upscaleID, err)
+		log.Error("Error parsing generation id in SetUpscaleStarted", "id", upscaleID, "err", err)
 		return err
 	}
 	_, err = r.DB.Upscale.UpdateOneID(uid).SetStatus(upscale.StatusStarted).SetStartedAt(time.Now()).Save(r.Ctx)
 	if err != nil {
 		// Log error here since this might be happening in a goroutine
-		klog.Errorf("Error setting upscale started %s: %v", upscaleID, err)
+		log.Error("Error setting upscale started", "id", upscaleID, "err", err)
 	}
 	return err
 }
@@ -55,12 +55,12 @@ func (r *Repository) SetUpscaleFailed(upscaleID string, reason string, db *ent.C
 
 	uid, err := uuid.Parse(upscaleID)
 	if err != nil {
-		klog.Errorf("Error parsing generation id in SetUpscaleFailed %s: %v", upscaleID, err)
+		log.Error("Error parsing generation id in SetUpscaleFailed", "id", upscaleID, "err", err)
 		return err
 	}
 	_, err = db.Upscale.UpdateOneID(uid).SetStatus(upscale.StatusFailed).SetFailureReason(reason).SetCompletedAt(time.Now()).Save(r.Ctx)
 	if err != nil {
-		klog.Errorf("Error setting upscale failed %s: %v", upscaleID, err)
+		log.Error("Error setting upscale failed", "id", upscaleID, "err", err)
 	}
 	return err
 }
@@ -69,7 +69,7 @@ func (r *Repository) SetUpscaleFailed(upscaleID string, reason string, db *ent.C
 func (r *Repository) SetUpscaleSucceeded(upscaleID, generationOutputID, inputImageUrl, output string) (*ent.UpscaleOutput, error) {
 	uid, err := uuid.Parse(upscaleID)
 	if err != nil {
-		klog.Errorf("Error parsing generation id in SetUpscaleSucceeded %s: %v", upscaleID, err)
+		log.Error("Error parsing generation id in SetUpscaleSucceeded", "id", upscaleID, "err", err)
 		return nil, err
 	}
 
@@ -87,21 +87,21 @@ func (r *Repository) SetUpscaleSucceeded(upscaleID, generationOutputID, inputIma
 		// Retrieve the upscale
 		u, err := r.GetUpscale(uid)
 		if err != nil {
-			klog.Errorf("Error retrieving upscale %s: %v", upscaleID, err)
+			log.Error("Error retrieving upscale", "id", upscaleID, "err", err)
 			return err
 		}
 
 		// Update the upscale
 		_, err = tx.Upscale.UpdateOneID(u.ID).SetStatus(upscale.StatusSucceeded).SetCompletedAt(time.Now()).Save(r.Ctx)
 		if err != nil {
-			klog.Errorf("Error setting upscale succeeded %s: %v", upscaleID, err)
+			log.Error("Error setting upscale succeeded", "id", upscaleID, "err", err)
 			return err
 		}
 
 		// Set upscale output
 		parsedS3, err := utils.GetPathFromS3URL(output)
 		if err != nil {
-			klog.Errorf("Error parsing s3 url %s: %v", output, err)
+			log.Error("Error parsing s3 url", "output", output, "err", err)
 			parsedS3 = output
 		}
 		uOutput := tx.UpscaleOutput.Create().SetImagePath(parsedS3).SetInputImageURL(inputImageUrl).SetUpscaleID(uid)
@@ -110,7 +110,7 @@ func (r *Repository) SetUpscaleSucceeded(upscaleID, generationOutputID, inputIma
 		}
 		upscaleOutput, err = uOutput.Save(r.Ctx)
 		if err != nil {
-			klog.Errorf("Error inserting upscale output %s: %v", upscaleID, err)
+			log.Error("Error inserting upscale output", "id", upscaleID, "err", err)
 			return err
 		}
 
@@ -118,19 +118,19 @@ func (r *Repository) SetUpscaleSucceeded(upscaleID, generationOutputID, inputIma
 		if hasGenerationOutput {
 			parsedS3, err := utils.GetPathFromS3URL(output)
 			if err != nil {
-				klog.Errorf("Error parsing s3 url %s: %v", output, err)
+				log.Error("Error parsing s3 url", "output", output, "err", err)
 				parsedS3 = output
 			}
 			_, err = tx.GenerationOutput.UpdateOneID(outputId).SetUpscaledImagePath(parsedS3).Save(r.Ctx)
 			if err != nil {
-				klog.Errorf("Error setting upscaled_image_url %s: %v", upscaleID, err)
+				log.Error("Error setting upscaled_image_url", "id", upscaleID, "err", err)
 				return err
 			}
 		}
 
 		return nil
 	}); err != nil {
-		klog.Errorf("Error in SetUpscaleSucceeded %s: %v", upscaleID, err)
+		log.Error("Error in SetUpscaleSucceeded", "id", upscaleID, "err", err)
 		return nil, err
 	}
 

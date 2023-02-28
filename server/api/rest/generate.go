@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/charmbracelet/log"
 	"github.com/go-chi/render"
 	"github.com/stablecog/sc-go/database/ent"
 	"github.com/stablecog/sc-go/database/repository"
@@ -14,7 +15,6 @@ import (
 	"github.com/stablecog/sc-go/server/responses"
 	"github.com/stablecog/sc-go/shared"
 	"github.com/stablecog/sc-go/utils"
-	"k8s.io/klog/v2"
 )
 
 // POST generate endpoint
@@ -51,7 +51,7 @@ func (c *RestAPI) HandleCreateGeneration(w http.ResponseWriter, r *http.Request)
 	modelName := shared.GetCache().GetGenerationModelNameFromID(generateReq.ModelId)
 	schedulerName := shared.GetCache().GetSchedulerNameFromID(generateReq.SchedulerId)
 	if modelName == "" || schedulerName == "" {
-		klog.Errorf("Error getting model or scheduler name: %s - %s", modelName, schedulerName)
+		log.Error("Error getting model or scheduler name: %s - %s", modelName, schedulerName)
 		responses.ErrInternalServerError(w, r, "An unknown error has occured")
 		return
 	}
@@ -79,7 +79,7 @@ func (c *RestAPI) HandleCreateGeneration(w http.ResponseWriter, r *http.Request)
 		start := time.Now()
 		deducted, err := c.Repo.DeductCreditsFromUser(*userID, int32(generateReq.NumOutputs), DB)
 		if err != nil {
-			klog.Errorf("Error deducting credits: %v", err)
+			log.Error("Error deducting credits", "err", err)
 			responses.ErrInternalServerError(w, r, "Error deducting credits from user")
 			return err
 		} else if !deducted {
@@ -90,7 +90,7 @@ func (c *RestAPI) HandleCreateGeneration(w http.ResponseWriter, r *http.Request)
 
 		remainingCredits, err = c.Repo.GetNonExpiredCreditTotalForUser(*userID, DB)
 		if err != nil {
-			klog.Errorf("Error getting remaining credits: %v", err)
+			log.Error("Error getting remaining credits", "err", err)
 			responses.ErrInternalServerError(w, r, "An unknown error has occured")
 			return err
 		}
@@ -106,7 +106,7 @@ func (c *RestAPI) HandleCreateGeneration(w http.ResponseWriter, r *http.Request)
 			generateReq,
 			DB)
 		if err != nil {
-			klog.Errorf("Error creating generation: %v", err)
+			log.Error("Error creating generation", "err", err)
 			responses.ErrInternalServerError(w, r, "Error creating generation")
 			return err
 		}
@@ -152,14 +152,14 @@ func (c *RestAPI) HandleCreateGeneration(w http.ResponseWriter, r *http.Request)
 		start = time.Now()
 		err = c.Redis.EnqueueCogRequest(r.Context(), cogReqBody)
 		if err != nil {
-			klog.Errorf("Failed to write request %s to queue: %v", requestId, err)
+			log.Error("Failed to write request %s to queue: %v", requestId, err)
 			responses.ErrInternalServerError(w, r, "Failed to queue generate request")
 			return err
 		}
 		fmt.Printf("--- Enqueue cog request took: %s\n", time.Now().Sub(start))
 		return nil
 	}); err != nil {
-		klog.Errorf("Error in transaction: %v", err)
+		log.Error("Error in transaction", "err", err)
 		return
 	}
 
@@ -176,12 +176,12 @@ func (c *RestAPI) HandleCreateGeneration(w http.ResponseWriter, r *http.Request)
 		}
 		respBytes, err := json.Marshal(liveResp)
 		if err != nil {
-			klog.Errorf("--- Error marshalling sse live response: %v", err)
+			log.Error("Error marshalling sse live response", "err", err)
 			return
 		}
 		err = c.Redis.Client.Publish(r.Context(), shared.REDIS_SSE_BROADCAST_CHANNEL, respBytes).Err()
 		if err != nil {
-			klog.Errorf("Failed to publish live page update: %v", err)
+			log.Error("Failed to publish live page update", "err", err)
 		}
 	}()
 

@@ -4,8 +4,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/stablecog/sc-go/utils/color"
-	"k8s.io/klog/v2"
+	"github.com/charmbracelet/log"
 )
 
 func (j *JobRunner) GetUpscaleOutputCount() (int, error) {
@@ -18,7 +17,7 @@ func (j *JobRunner) GetGenerationOutputCount() (int, error) {
 
 func (j *JobRunner) GetAndSetStats() error {
 	start := time.Now()
-	klog.Infof("Getting stats...")
+	log.Info("Getting stats...")
 
 	results := make(chan map[string]int, 2)
 	errors := make(chan error, 2)
@@ -80,8 +79,8 @@ func (j *JobRunner) GetAndSetStats() error {
 	}
 
 	end := time.Now()
-	klog.Infof("--- upscales: %s", color.Green(upscaleOutputCount))
-	klog.Infof("--- generations: %s", color.Green(generationOutputCount))
-	klog.Infof("--- Got stats in: %s", color.Green(end.Sub(start).Milliseconds(), "ms"))
+	log.Info("--- upscales", "count", upscaleOutputCount)
+	log.Info("--- generations", "count", generationOutputCount)
+	log.Info("--- Got stats in", "ms", end.Sub(start).Milliseconds())
 	return nil
 }

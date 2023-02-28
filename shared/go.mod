@@ -6,7 +6,6 @@ require (
 	github.com/google/uuid v1.3.0
 	github.com/stablecog/sc-go/database v0.0.0-20230212171313-d3dc468134f0
 	github.com/stretchr/testify v1.8.1
-	golang.org/x/exp v0.0.0-20230206171751-46f607a40771
 )
 
 require (

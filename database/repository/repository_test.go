@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 	"errors"
+	"log"
 	"os"
 	"testing"
 
@@ -11,7 +12,6 @@ import (
 	"github.com/stablecog/sc-go/database/ent/deviceinfo"
 	"github.com/stablecog/sc-go/utils"
 	"github.com/stretchr/testify/assert"
-	"k8s.io/klog/v2"
 )
 
 var MockRepo *Repository
@@ -24,13 +24,13 @@ func testMainWrapper(m *testing.M) int {
 	ctx := context.Background()
 	dbconn, err := database.GetSqlDbConn(utils.GetEnv("GITHUB_ACTIONS", "") != "true")
 	if err != nil {
-		klog.Fatalf("Failed to connect to database: %v", err)
+		log.Fatal("Failed to connect to database", "err", err)
 		os.Exit(1)
 	}
 	entClient, err := database.NewEntClient(dbconn)
 	defer entClient.Close()
 	if err != nil {
-		klog.Fatalf("Failed to create ent client: %v", err)
+		log.Fatal("Failed to create ent client", "err", err)
 		os.Exit(1)
 	}
 
@@ -40,13 +40,13 @@ func testMainWrapper(m *testing.M) int {
 
 	redis, err := database.NewRedis(ctx)
 	if err != nil {
-		klog.Fatalf("Error connecting to redis: %v", err)
+		log.Fatal("Error connecting to redis", "err", err)
 		os.Exit(1)
 	}
 
 	//Create schema
 	if err := entClient.Schema.Create(ctx); err != nil {
-		klog.Fatalf("Failed to run migrations: %v", err)
+		log.Fatal("Failed to run migrations", "err", err)
 		os.Exit(1)
 	}
 
@@ -58,7 +58,7 @@ func testMainWrapper(m *testing.M) int {
 
 	// Create mockdata
 	if err = MockRepo.CreateMockData(ctx); err != nil {
-		klog.Fatalf("Failed to create mock data: %v", err)
+		log.Fatal("Failed to create mock data", "err", err)
 		os.Exit(1)
 	}
 

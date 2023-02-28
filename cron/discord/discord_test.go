@@ -35,13 +35,13 @@ func testMainWrapper(m *testing.M) int {
 
 func TestSendDiscordNotificationIfNeeded(t *testing.T) {
 	// Mock logger
-	orgKlogInfof := klogInfof
-	defer func() { klogInfof = orgKlogInfof }()
+	orgLogInfo := logInfo
+	defer func() { logInfo = orgLogInfo }()
 
 	// Write log output to string
 	logs := []string{}
-	klogInfof = func(format string, args ...interface{}) {
-		logs = append(logs, fmt.Sprintf(format, args...))
+	logInfo = func(format interface{}, args ...interface{}) {
+		logs = append(logs, format.(string)+fmt.Sprint(args...))
 	}
 
 	// Mock generations

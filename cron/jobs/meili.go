@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/charmbracelet/log"
 	"github.com/meilisearch/meilisearch-go"
-	"k8s.io/klog/v2"
 )
 
 // General redis key prefix
@@ -35,7 +35,7 @@ func (j *JobRunner) SyncMeili() error {
 	}
 
 	if len(galleryItems) == 0 {
-		klog.Infof("-- MeiliWorker - No new generations to sync")
+		log.Info("-- MeiliWorker - No new generations to sync")
 		return nil
 	}
 	lastGen := galleryItems[len(galleryItems)-1]
@@ -43,17 +43,17 @@ func (j *JobRunner) SyncMeili() error {
 	if shouldSetSettings {
 		_, err = j.Meili.Index("generation_g").UpdateSortableAttributes(&sortableAttributes)
 		if err != nil {
-			klog.Errorf("-- MeiliWorker - Meili update sortable attributes error: %v", err)
+			log.Error("-- MeiliWorker - Meili update sortable attributes", "error", err)
 			return err
 		} else {
-			klog.Infof("-- MeiliWorker - Meili sortable attributes updated")
+			log.Info("-- MeiliWorker - Meili sortable attributes updated")
 		}
 		_, errMax := j.Meili.Index("generation_g").UpdatePagination(&meilisearch.Pagination{MaxTotalHits: int64(maxTotalHits)})
 		if errMax != nil {
-			klog.Errorf("-- MeiliWorker - Meili update max total hits error: %v", errMax)
+			log.Error("-- MeiliWorker - Meili update max total hits", "err", errMax)
 			return errMax
 		} else {
-			klog.Infof("-- MeiliWorker - Meili max total hits updated")
+			log.Info("-- MeiliWorker - Meili max total hits updated")
 		}
 		if err == nil && errMax == nil {
 			shouldSetSettings = false
@@ -62,12 +62,12 @@ func (j *JobRunner) SyncMeili() error {
 
 	_, errMeili := j.Meili.Index("generation_g").AddDocuments(galleryItems)
 	if errMeili != nil {
-		klog.Errorf("-- MeiliWorker - Meili error: %v", errMeili)
+		log.Error("-- MeiliWorker - Meili", "err", errMeili)
 		return errMeili
 	} else {
 		lastSyncedGenUpdatedAt = lastGen.UpdatedAt
 		j.Redis.Client.Set(j.Ctx, lastSyncedGenUpdatedAtKey, lastSyncedGenUpdatedAt.UTC().Format(time.RFC3339), rTTL)
-		klog.Infof("-- MeiliWorker - Successfully indexed - %s -- ", lastSyncedGenUpdatedAt.UTC())
+		log.Info("-- MeiliWorker - Successfully indexed", "last_synced", lastSyncedGenUpdatedAt.UTC())
 	}
 
 	return nil

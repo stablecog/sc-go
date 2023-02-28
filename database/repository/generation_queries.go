@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"entgo.io/ent/dialect/sql"
+	"github.com/charmbracelet/log"
 	"github.com/google/uuid"
 	"github.com/stablecog/sc-go/database/ent"
 	"github.com/stablecog/sc-go/database/ent/generation"
@@ -12,7 +13,6 @@ import (
 	"github.com/stablecog/sc-go/database/ent/prompt"
 	"github.com/stablecog/sc-go/server/requests"
 	"github.com/stablecog/sc-go/utils"
-	"k8s.io/klog/v2"
 )
 
 // Get generation by ID
@@ -286,7 +286,7 @@ func (r *Repository) QueryGenerations(per_page int, cursor *time.Time, filters *
 	}).Scan(r.Ctx, &gQueryResult)
 
 	if err != nil {
-		klog.Errorf("Error getting user generations: %v", err)
+		log.Error("Error getting user generations", "err", err)
 		return nil, err
 	}
 
@@ -325,7 +325,7 @@ func (r *Repository) QueryGenerations(per_page int, cursor *time.Time, filters *
 	generationOutputMap := make(map[uuid.UUID][]GenerationUpscaleOutput)
 	for _, g := range gQueryResult {
 		if g.OutputID == nil {
-			klog.Warningf("Output ID is nil for generation, cannot include in result %v", g.ID)
+			log.Warn("Output ID is nil for generation, cannot include in result", "id", g.ID)
 			continue
 		}
 		gOutput := GenerationUpscaleOutput{
@@ -374,7 +374,7 @@ func (r *Repository) QueryGenerations(per_page int, cursor *time.Time, filters *
 	if cursor == nil {
 		total, err := r.GetGenerationCount(filters)
 		if err != nil {
-			klog.Errorf("Error getting user generation count: %v", err)
+			log.Error("Error getting user generation count", "err", err)
 			return nil, err
 		}
 		meta.Total = &total

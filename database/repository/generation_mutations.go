@@ -3,13 +3,13 @@ package repository
 import (
 	"time"
 
+	"github.com/charmbracelet/log"
 	"github.com/google/uuid"
 	"github.com/stablecog/sc-go/database/ent"
 	"github.com/stablecog/sc-go/database/ent/generation"
 	"github.com/stablecog/sc-go/database/ent/generationoutput"
 	"github.com/stablecog/sc-go/server/requests"
 	"github.com/stablecog/sc-go/utils"
-	"k8s.io/klog/v2"
 )
 
 // CreateGeneration creates the initial generation in the database
@@ -43,13 +43,13 @@ func (r *Repository) CreateGeneration(userID uuid.UUID, deviceType, deviceOs, de
 func (r *Repository) SetGenerationStarted(generationID string) error {
 	uid, err := uuid.Parse(generationID)
 	if err != nil {
-		klog.Errorf("Error parsing generation id in SetGenerationStarted %s: %v", generationID, err)
+		log.Error("Error parsing generation id in SetGenerationStarted", "id", generationID, "err", err)
 		return err
 	}
 	_, err = r.DB.Generation.Update().Where(generation.IDEQ(uid), generation.StatusEQ(generation.StatusQueued)).SetStatus(generation.StatusStarted).SetStartedAt(time.Now()).Save(r.Ctx)
 	if err != nil {
 		// Log error here since this might be happening in a goroutine
-		klog.Errorf("Error setting generation started %s: %v", generationID, err)
+		log.Error("Error setting generation started", "id", generationID, "err", err)
 	}
 	return err
 }
@@ -61,12 +61,12 @@ func (r *Repository) SetGenerationFailed(generationID string, reason string, nsf
 
 	uid, err := uuid.Parse(generationID)
 	if err != nil {
-		klog.Errorf("Error parsing generation id in SetGenerationFailed %s: %v", generationID, err)
+		log.Error("Error parsing generation id in SetGenerationFailed", "id", generationID, "err", err)
 		return err
 	}
 	_, err = db.Generation.UpdateOneID(uid).SetStatus(generation.StatusFailed).SetFailureReason(reason).SetNsfwCount(nsfwCount).SetCompletedAt(time.Now()).Save(r.Ctx)
 	if err != nil {
-		klog.Errorf("Error setting generation failed %s: %v", generationID, err)
+		log.Error("Error setting generation failed", "id", generationID, "err", err)
 	}
 	return err
 }
@@ -74,7 +74,7 @@ func (r *Repository) SetGenerationFailed(generationID string, reason string, nsf
 func (r *Repository) SetGenerationSucceeded(generationID string, prompt string, negativePrompt string, outputs []string, nsfwCount int32) ([]*ent.GenerationOutput, error) {
 	uid, err := uuid.Parse(generationID)
 	if err != nil {
-		klog.Errorf("Error parsing generation id in SetGenerationSucceeded %s: %v", generationID, err)
+		log.Error("Error parsing generation id in SetGenerationSucceeded", "id", generationID, "err", err)
 		return nil, err
 	}
 
@@ -83,7 +83,7 @@ func (r *Repository) SetGenerationSucceeded(generationID string, prompt string, 
 	// Wrap in transaction
 	if err := r.WithTx(func(tx *ent.Tx) error {
 		if err != nil {
-			klog.Errorf("Error starting transaction in SetGenerationSucceeded %s: %v", generationID, err)
+			log.Error("Error starting transaction in SetGenerationSucceeded", "id", generationID, "err", err)
 			return err
 		}
 		db := tx.Client()
@@ -91,14 +91,14 @@ func (r *Repository) SetGenerationSucceeded(generationID string, prompt string, 
 		// Retrieve the generation
 		g, err := r.GetGeneration(uid)
 		if err != nil {
-			klog.Errorf("Error retrieving generation %s: %v", generationID, err)
+			log.Error("Error retrieving generation", "id", generationID, "err", err)
 			return err
 		}
 
 		// Get prompt IDs
 		promptId, negativePromptId, err := r.GetOrCreatePrompts(prompt, negativePrompt, db)
 		if err != nil {
-			klog.Errorf("Error getting or creating prompts %s: %v", generationID, err)
+			log.Error("Error getting or creating prompts", "id", generationID, "err", err)
 			return err
 		}
 
@@ -112,7 +112,7 @@ func (r *Repository) SetGenerationSucceeded(generationID string, prompt string, 
 		}
 		_, err = genUpdate.Save(r.Ctx)
 		if err != nil {
-			klog.Errorf("Error setting generation succeeded %s: %v", generationID, err)
+			log.Error("Error setting generation succeeded", "id", generationID, "err", err)
 			return err
 		}
 
@@ -128,12 +128,12 @@ func (r *Repository) SetGenerationSucceeded(generationID string, prompt string, 
 		for _, output := range outputs {
 			parsedS3, err := utils.GetPathFromS3URL(output)
 			if err != nil {
-				klog.Errorf("Error parsing s3 url %s: %v", output, err)
+				log.Error("Error parsing s3 url", "output", output, "err", err)
 				parsedS3 = output
 			}
 			gOutput, err := db.GenerationOutput.Create().SetGenerationID(uid).SetImagePath(parsedS3).SetGalleryStatus(galleryStatus).Save(r.Ctx)
 			if err != nil {
-				klog.Errorf("Error inserting generation output %s: %v", generationID, err)
+				log.Error("Error inserting generation output", "id", generationID, "err", err)
 				return err
 			}
 			outputRet = append(outputRet, gOutput)
@@ -141,7 +141,7 @@ func (r *Repository) SetGenerationSucceeded(generationID string, prompt string, 
 
 		return nil
 	}); err != nil {
-		klog.Errorf("Error starting transaction in SetGenerationSucceeded %s: %v", generationID, err)
+		log.Error("Error starting transaction in SetGenerationSucceeded", "id", generationID, "err", err)
 		return nil, err
 	}
 

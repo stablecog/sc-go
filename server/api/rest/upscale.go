@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/charmbracelet/log"
 	"github.com/go-chi/render"
 	"github.com/stablecog/sc-go/database/ent"
 	"github.com/stablecog/sc-go/database/repository"
@@ -14,7 +15,6 @@ import (
 	"github.com/stablecog/sc-go/server/responses"
 	"github.com/stablecog/sc-go/shared"
 	"github.com/stablecog/sc-go/utils"
-	"k8s.io/klog/v2"
 )
 
 func (c *RestAPI) HandleUpscale(w http.ResponseWriter, r *http.Request) {
@@ -46,7 +46,7 @@ func (c *RestAPI) HandleUpscale(w http.ResponseWriter, r *http.Request) {
 	// Get model name for cog
 	modelName := shared.GetCache().GetUpscaleModelNameFromID(upscaleReq.ModelId)
 	if modelName == "" {
-		klog.Errorf("Error getting model name: %s", modelName)
+		log.Error("Error getting model name", "model_name", modelName)
 		responses.ErrInternalServerError(w, r, "An unknown error has occured")
 		return
 	}
@@ -76,7 +76,7 @@ func (c *RestAPI) HandleUpscale(w http.ResponseWriter, r *http.Request) {
 				responses.ErrBadRequest(w, r, "output_not_found")
 				return
 			}
-			klog.Errorf("Error getting output: %v", err)
+			log.Error("Error getting output", "err", err)
 			responses.ErrInternalServerError(w, r, "Error getting output")
 			return
 		}
@@ -112,7 +112,7 @@ func (c *RestAPI) HandleUpscale(w http.ResponseWriter, r *http.Request) {
 		// Charge credits
 		deducted, err := c.Repo.DeductCreditsFromUser(*userID, 1, DB)
 		if err != nil {
-			klog.Errorf("Error deducting credits: %v", err)
+			log.Error("Error deducting credits", "err", err)
 			responses.ErrInternalServerError(w, r, "Error deducting credits from user")
 			return err
 		} else if !deducted {
@@ -122,7 +122,7 @@ func (c *RestAPI) HandleUpscale(w http.ResponseWriter, r *http.Request) {
 
 		remainingCredits, err = c.Repo.GetNonExpiredCreditTotalForUser(*userID, DB)
 		if err != nil {
-			klog.Errorf("Error getting remaining credits: %v", err)
+			log.Error("Error getting remaining credits", "err", err)
 			responses.ErrInternalServerError(w, r, "An unknown error has occured")
 			return err
 		}
@@ -139,7 +139,7 @@ func (c *RestAPI) HandleUpscale(w http.ResponseWriter, r *http.Request) {
 			upscaleReq,
 			DB)
 		if err != nil {
-			klog.Errorf("Error creating upscale: %v", err)
+			log.Error("Error creating upscale", "err", err)
 			responses.ErrInternalServerError(w, r, "Error creating upscale")
 			return err
 		}
@@ -178,14 +178,14 @@ func (c *RestAPI) HandleUpscale(w http.ResponseWriter, r *http.Request) {
 
 		err = c.Redis.EnqueueCogRequest(r.Context(), cogReqBody)
 		if err != nil {
-			klog.Errorf("Failed to write request %s to queue: %v", requestId, err)
+			log.Error("Failed to write request to queue", "id", requestId, "err", err)
 			responses.ErrInternalServerError(w, r, "Failed to queue upscale request")
 			return err
 		}
 
 		return nil
 	}); err != nil {
-		klog.Errorf("Error with transaction: %v", err)
+		log.Error("Error with transaction", "err", err)
 		return
 	}
 
@@ -200,12 +200,12 @@ func (c *RestAPI) HandleUpscale(w http.ResponseWriter, r *http.Request) {
 		}
 		respBytes, err := json.Marshal(liveResp)
 		if err != nil {
-			klog.Errorf("--- Error marshalling sse live response: %v", err)
+			log.Error("Error marshalling sse live response", "err", err)
 			return
 		}
 		err = c.Redis.Client.Publish(r.Context(), shared.REDIS_SSE_BROADCAST_CHANNEL, respBytes).Err()
 		if err != nil {
-			klog.Errorf("Failed to publish live page update: %v", err)
+			log.Error("Failed to publish live page update", "err", err)
 		}
 	}()
 

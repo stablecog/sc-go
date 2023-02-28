@@ -3,10 +3,10 @@ package repository
 import (
 	"fmt"
 
+	"github.com/charmbracelet/log"
 	"github.com/google/uuid"
 	"github.com/stablecog/sc-go/database/ent/generation"
 	"github.com/stablecog/sc-go/database/ent/generationoutput"
-	"k8s.io/klog/v2"
 )
 
 // Submits all generation outputs to gallery for review, from user
@@ -17,11 +17,11 @@ func (r *Repository) SubmitGenerationOutputsToGalleryForUser(outputIDs []uuid.UU
 	// Make sure the user owns all the generations of these outputs
 	count, err := r.DB.GenerationOutput.Query().Where(generationoutput.IDIn(outputIDs...)).QueryGenerations().Where(generation.UserIDNEQ(userID)).Count(r.Ctx)
 	if err != nil {
-		klog.Errorf("Error getting generation count: %v", err)
+		log.Error("Error getting generation count", "err", err)
 		return 0, err
 	}
 	if count > 0 {
-		klog.Warningf("User %s tried to submit generation outputs that don't belong to them", userID.String())
+		log.Warn("MALICIOUS USER tried to submit generation outputs that don't belong to them", "user_id", userID.String())
 		return 0, fmt.Errorf("Not all outputs belong to user")
 	}
 
@@ -30,7 +30,7 @@ func (r *Repository) SubmitGenerationOutputsToGalleryForUser(outputIDs []uuid.UU
 		SetGalleryStatus(generationoutput.GalleryStatusSubmitted).Save(r.Ctx)
 
 	if err != nil {
-		klog.Errorf("Error submitting generation outputs to gallery: %v", err)
+		log.Error("Error submitting generation outputs to gallery", "err", err)
 		return 0, err
 	}
 

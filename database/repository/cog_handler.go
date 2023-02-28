@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"strconv"
 
+	"github.com/charmbracelet/log"
 	"github.com/go-redis/redis/v8"
 	"github.com/google/uuid"
 	"github.com/stablecog/sc-go/database/ent"
@@ -16,7 +17,6 @@ import (
 	"github.com/stablecog/sc-go/server/requests"
 	"github.com/stablecog/sc-go/shared"
 	"github.com/stablecog/sc-go/utils"
-	"k8s.io/klog/v2"
 )
 
 // Consider a generation/upscale a failure due to timeout
@@ -29,14 +29,14 @@ func (r *Repository) FailCogMessageDueToTimeoutIfTimedOut(msg requests.CogRedisM
 			// Probably means another instance picked this up
 			return
 		}
-		klog.Errorf("--- Error getting stream ID from redis: %v", err)
+		log.Error("Error getting stream ID from redis", "err", err)
 		return
 	}
 
 	// We delete this, if our delete is successful then that means we are the ones responsible for processing it
 	deleted, err := r.Redis.DeleteCogRequestStreamID(r.Redis.Client.Context(), redisKey)
 	if err != nil {
-		klog.Errorf("--- Error deleting stream ID from redis: %v", err)
+		log.Error("Error deleting stream ID from redis", "err", err)
 		return
 	}
 	if deleted == 0 {
@@ -49,13 +49,13 @@ func (r *Repository) FailCogMessageDueToTimeoutIfTimedOut(msg requests.CogRedisM
 	// Ensure is valid
 	if !utils.IsSha256Hash(streamIdStr) {
 		// Not sure how we get here, we never should
-		klog.Errorf("--- Invalid SSE stream id: %s", streamIdStr)
+		log.Error("Invalid SSE stream id", "stream_id", streamIdStr)
 		return
 	}
 
 	// Get process type
 	if msg.Input.ProcessType != shared.GENERATE && msg.Input.ProcessType != shared.UPSCALE && msg.Input.ProcessType != shared.GENERATE_AND_UPSCALE {
-		klog.Errorf("--- Invalid process type from cog, can't handle message: %s", msg.Input.ProcessType)
+		log.Error("Invalid process type from cog, can't handle message", "process_type", msg.Input.ProcessType)
 		return
 	}
 
@@ -63,7 +63,7 @@ func (r *Repository) FailCogMessageDueToTimeoutIfTimedOut(msg requests.CogRedisM
 
 	inputUuid, err := uuid.Parse(msg.Input.ID)
 	if err != nil {
-		klog.Errorf("--- Error parsing input ID, not a UUID: %v", err)
+		log.Error("Error parsing input ID, not a UUID", "err", err)
 		return
 	}
 
@@ -77,46 +77,46 @@ func (r *Repository) FailCogMessageDueToTimeoutIfTimedOut(msg requests.CogRedisM
 			r.SetUpscaleFailed(msg.Input.ID, msg.Error, db)
 			user, err := r.DB.Upscale.Query().Where(upscale.IDEQ(inputUuid)).QueryUser().Select(user.FieldID).First(r.Ctx)
 			if err != nil {
-				klog.Errorf("--- Error getting user ID from upscale: %v", err)
+				log.Error("Error getting user ID from upscale", "err", err)
 				return err
 			}
 			userId = user.ID
 			// Upscale is always 1 credit
 			success, err := r.RefundCreditsToUser(userId, 1, db)
 			if err != nil || !success {
-				klog.Errorf("--- Error refunding credits to user %s for upscale %s: %v", userId.String(), msg.Input.ID, err)
+				log.Error("Error refunding credits for upscale", "user", userId.String(), "id", msg.Input.ID, "err", err)
 				return err
 			}
 		} else {
 			r.SetGenerationFailed(msg.Input.ID, msg.Error, msg.NSFWCount, db)
 			user, err := r.DB.Generation.Query().Where(generation.IDEQ(inputUuid)).QueryUser().Select(user.FieldID).First(r.Ctx)
 			if err != nil {
-				klog.Errorf("--- Error getting user ID from upscale: %v", err)
+				log.Error("Error getting user ID from upscale", "err", err)
 				return err
 			}
 			userId = user.ID
 			// Generation credits is num_outputs
 			numOutputs, err := strconv.Atoi(msg.Input.NumOutputs)
 			if err != nil {
-				klog.Errorf("--- Error parsing num outputs: %v", err)
+				log.Error("Error parsing num outputs", "err", err)
 				return err
 			}
 			success, err := r.RefundCreditsToUser(userId, int32(numOutputs), db)
 			if err != nil || !success {
-				klog.Errorf("--- Error refunding credits to user %s for generation %s: %v", userId.String(), msg.Input.ID, err)
+				log.Error("Error refunding credits for generation", "user", userId.String(), "id", msg.Input.ID, "err", err)
 				return err
 			}
 		}
 
 		remainingCredits, err = r.GetNonExpiredCreditTotalForUser(userId, db)
 		if err != nil {
-			klog.Errorf("Error getting remaining credits: %v", err)
+			log.Error("Error getting remaining credits", "err", err)
 			return err
 		}
 
 		return nil
 	}); err != nil {
-		klog.Errorf("--- Error in processing timeout failure transaction: %v", err)
+		log.Error("Error in processing timeout failure transaction", "err", err)
 		return
 	}
 
@@ -135,7 +135,7 @@ func (r *Repository) FailCogMessageDueToTimeoutIfTimedOut(msg requests.CogRedisM
 	// Marshal
 	respBytes, err := json.Marshal(resp)
 	if err != nil {
-		klog.Errorf("--- Error marshalling sse response: %v", err)
+		log.Error("Error marshalling sse response", "err", err)
 		return
 	}
 
@@ -156,14 +156,14 @@ func (r *Repository) ProcessCogMessage(msg requests.CogRedisMessage) {
 			// Probably means another instance picked this up
 			return
 		}
-		klog.Errorf("--- Error getting stream ID from redis: %v", err)
+		log.Error("Error getting stream ID from redis", "err", err)
 		return
 	}
 
 	// We delete this, if our delete is successful then that means we are the ones responsible for processing it
 	deleted, err := r.Redis.DeleteCogRequestStreamID(r.Redis.Client.Context(), redisKey)
 	if err != nil {
-		klog.Errorf("--- Error deleting stream ID from redis: %v", err)
+		log.Error("Error deleting stream ID from redis", "err", err)
 		return
 	}
 	if deleted == 0 {
@@ -174,13 +174,13 @@ func (r *Repository) ProcessCogMessage(msg requests.CogRedisMessage) {
 	// Ensure is valid
 	if !utils.IsSha256Hash(streamIdStr) {
 		// Not sure how we get here, we never should
-		klog.Errorf("--- Invalid SSE stream id: %s", streamIdStr)
+		log.Error("Invalid SSE stream", "id", streamIdStr)
 		return
 	}
 
 	// Get process type
 	if msg.Input.ProcessType != shared.GENERATE && msg.Input.ProcessType != shared.UPSCALE && msg.Input.ProcessType != shared.GENERATE_AND_UPSCALE {
-		klog.Errorf("--- Invalid process type from cog, can't handle message: %s", msg.Input.ProcessType)
+		log.Error("Invalid process type from cog, can't handle message", "process_type", msg.Input.ProcessType)
 		return
 	}
 
@@ -190,7 +190,7 @@ func (r *Repository) ProcessCogMessage(msg requests.CogRedisMessage) {
 
 	inputUuid, err := uuid.Parse(msg.Input.ID)
 	if err != nil {
-		klog.Errorf("--- Error parsing input ID, not a UUID: %v", err)
+		log.Error("Error parsing input ID, not a UUID", "err", err)
 		return
 	}
 
@@ -215,45 +215,45 @@ func (r *Repository) ProcessCogMessage(msg requests.CogRedisMessage) {
 				r.SetUpscaleFailed(msg.Input.ID, msg.Error, db)
 				user, err := r.DB.Upscale.Query().Where(upscale.IDEQ(inputUuid)).QueryUser().Select(user.FieldID).First(r.Ctx)
 				if err != nil {
-					klog.Errorf("--- Error getting user ID from upscale: %v", err)
+					log.Error("Error getting user ID from upscale", "err", err)
 					return err
 				}
 				userId = user.ID
 				// Upscale is always 1 credit
 				success, err := r.RefundCreditsToUser(userId, 1, db)
 				if err != nil || !success {
-					klog.Errorf("--- Error refunding credits to user %s for upscale %s: %v", userId.String(), msg.Input.ID, err)
+					log.Error("Error refunding credits for upscale", "user", userId.String(), "id", msg.Input.ID, "err", err)
 					return err
 				}
 			} else {
 				r.SetGenerationFailed(msg.Input.ID, msg.Error, msg.NSFWCount, db)
 				user, err := r.DB.Generation.Query().Where(generation.IDEQ(inputUuid)).QueryUser().Select(user.FieldID).First(r.Ctx)
 				if err != nil {
-					klog.Errorf("--- Error getting user ID from upscale: %v", err)
+					log.Error("Error getting user ID from upscale", "err", err)
 					return err
 				}
 				userId = user.ID
 				// Generation credits is num_outputs
 				numOutputs, err := strconv.Atoi(msg.Input.NumOutputs)
 				if err != nil {
-					klog.Errorf("--- Error parsing num outputs: %v", err)
+					log.Error("Error parsing num outputs", "err", err)
 					return err
 				}
 				success, err := r.RefundCreditsToUser(userId, int32(numOutputs), db)
 				if err != nil || !success {
-					klog.Errorf("--- Error refunding credits to user %s for generation %s: %v", userId.String(), msg.Input.ID, err)
+					log.Error("Error refunding credits for generation", "user", userId.String(), "id", msg.Input.ID, "err", err)
 					return err
 				}
 			}
 			remainingCredits, err = r.GetNonExpiredCreditTotalForUser(userId, db)
 			if err != nil {
-				klog.Errorf("Error getting remaining credits: %v", err)
+				log.Error("Error getting remaining credits", "err", err)
 				return err
 			}
 			cogErr = msg.Error
 			return nil
 		}); err != nil {
-			klog.Errorf("--- Error with transaction in cog message process: %v", err)
+			log.Error("Error with transaction in cog message process", "err", err)
 			return
 		}
 	} else if msg.Status == requests.CogSucceeded {
@@ -271,51 +271,51 @@ func (r *Repository) ProcessCogMessage(msg requests.CogRedisMessage) {
 				if msg.Input.ProcessType == shared.UPSCALE {
 					err := r.SetUpscaleFailed(msg.Input.ID, cogErr, db)
 					if err != nil {
-						klog.Errorf("--- Error setting upscale failed: %v", err)
+						log.Error("Error setting upscale failed", "err", err)
 						return err
 					}
 					if processRefund {
 						user, err := r.DB.Upscale.Query().Where(upscale.IDEQ(inputUuid)).QueryUser().Select(user.FieldID).First(r.Ctx)
 						if err != nil {
-							klog.Errorf("--- Error getting user ID from upscale: %v", err)
+							log.Error("Error getting user ID from upscale", "err", err)
 							return err
 						}
 						success, err := r.RefundCreditsToUser(user.ID, 1, db)
 						if err != nil || !success {
-							klog.Errorf("--- Error refunding credits to user %s for upscale %s: %v", user.ID.String(), msg.Input.ID, err)
+							log.Error("Error refunding credits for upscale", "user", user.ID.String(), "id", msg.Input.ID, "err", err)
 							return err
 						}
 						remainingCredits, err = r.GetNonExpiredCreditTotalForUser(user.ID, db)
 						if err != nil {
-							klog.Errorf("Error getting remaining credits: %v", err)
+							log.Error("Error getting remaining credits", "err", err)
 							return err
 						}
 					}
 				} else {
 					err := r.SetGenerationFailed(msg.Input.ID, cogErr, msg.NSFWCount, db)
 					if err != nil {
-						klog.Errorf("--- Error setting generation failed: %v", err)
+						log.Error("Error setting generation failed", "err", err)
 						return err
 					}
 					if processRefund {
 						user, err := r.DB.Generation.Query().Where(generation.IDEQ(inputUuid)).QueryUser().Select(user.FieldID).First(r.Ctx)
 						if err != nil {
-							klog.Errorf("--- Error getting user ID from upscale: %v", err)
+							log.Error("Error getting user ID from upscale", "err", err)
 							return err
 						}
 						numOutputs, err := strconv.Atoi(msg.Input.NumOutputs)
 						if err != nil {
-							klog.Errorf("--- Error parsing num outputs: %v", err)
+							log.Error("Error parsing num outputs", "err", err)
 							return err
 						}
 						success, err := r.RefundCreditsToUser(user.ID, int32(numOutputs), db)
 						if err != nil || !success {
-							klog.Errorf("--- Error refunding credits to user %s for generation %s: %v", user.ID.String(), msg.Input.ID, err)
+							log.Error("Error refunding credits for upscale", "user", user.ID.String(), "id", msg.Input.ID, "err", err)
 							return err
 						}
 						remainingCredits, err = r.GetNonExpiredCreditTotalForUser(user.ID, db)
 						if err != nil {
-							klog.Errorf("Error getting remaining credits: %v", err)
+							log.Error("Error getting remaining credits", "err", err)
 							return err
 						}
 					}
@@ -323,7 +323,7 @@ func (r *Repository) ProcessCogMessage(msg requests.CogRedisMessage) {
 				msg.Status = requests.CogFailed
 				return nil
 			}); err != nil {
-				klog.Errorf("--- Error with transaction in cog message process: %v", err)
+				log.Error("Error with transaction in cog message process", "err", err)
 				return
 			}
 		} else {
@@ -334,13 +334,13 @@ func (r *Repository) ProcessCogMessage(msg requests.CogRedisMessage) {
 				generationOutputs, err = r.SetGenerationSucceeded(msg.Input.ID, msg.Input.Prompt, msg.Input.NegativePrompt, msg.Outputs, msg.NSFWCount)
 			}
 			if err != nil {
-				klog.Errorf("--- Error setting %s succeeded for ID %s: %v", msg.Input.ProcessType, msg.Input.ID, err)
+				log.Error("Error setting process succeeded", "process_type", msg.Input.ProcessType, "id", msg.Input.ID, "err", err)
 				return
 			}
 		}
 
 	} else {
-		klog.Warningf("--- Unknown webhook status, not sure how to proceed so not proceeding at all: %s", msg.Status)
+		log.Warn("Unknown webhook status, not sure how to proceed so not proceeding at all", "status", msg.Status)
 		return
 	}
 
@@ -391,7 +391,7 @@ func (r *Repository) ProcessCogMessage(msg requests.CogRedisMessage) {
 	// Marshal
 	respBytes, err := json.Marshal(resp)
 	if err != nil {
-		klog.Errorf("--- Error marshalling sse response: %v", err)
+		log.Error("Error marshalling sse response", "err", err)
 		return
 	}
 

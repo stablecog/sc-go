@@ -3,32 +3,52 @@ module github.com/stablecog/sc-go/cron
 go 1.20
 
 require (
-	github.com/go-redis/redis/v8 v8.11.5
+	github.com/charmbracelet/log v0.1.2
+	github.com/google/uuid v1.3.0
+	github.com/jarcoal/httpmock v1.3.0
 	github.com/meilisearch/meilisearch-go v0.22.0
-	k8s.io/klog/v2 v2.80.1
+	github.com/stablecog/sc-go/database v0.0.0-20230228024452-ecbe094b6ada
+	github.com/stablecog/sc-go/shared v0.0.0-20230228024452-ecbe094b6ada
+	github.com/stablecog/sc-go/utils v0.0.0-20230228024452-ecbe094b6ada
+	github.com/stretchr/testify v1.8.2
 )
 
 require (
+	ariga.io/sqlcomment v0.1.0 // indirect
 	github.com/alicebob/miniredis/v2 v2.30.0 // indirect
 	github.com/andybalholm/brotli v1.0.4 // indirect
-	github.com/fatih/color v1.13.0 // indirect
+	github.com/charmbracelet/lipgloss v0.6.0 // indirect
+	github.com/davecgh/go-spew v1.1.1 // indirect
+	github.com/go-logfmt/logfmt v0.6.0 // indirect
+	github.com/go-redis/redis/v8 v8.11.5 // indirect
 	github.com/golang-jwt/jwt/v4 v4.4.3 // indirect
-	github.com/google/uuid v1.3.0 // indirect
+	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
 	github.com/josharian/intern v1.0.0 // indirect
 	github.com/klauspost/compress v1.15.6 // indirect
+	github.com/lucasb-eyer/go-colorful v1.2.0 // indirect
 	github.com/mailru/easyjson v0.7.7 // indirect
-	github.com/mattn/go-colorable v0.1.9 // indirect
-	github.com/mattn/go-isatty v0.0.14 // indirect
+	github.com/mattn/go-isatty v0.0.17 // indirect
+	github.com/mattn/go-runewidth v0.0.13 // indirect
 	github.com/mileusna/useragent v1.2.1 // indirect
+	github.com/muesli/reflow v0.2.1-0.20210115123740-9e1d0d53df68 // indirect
+	github.com/muesli/termenv v0.11.1-0.20220204035834-5ac8409525e0 // indirect
 	github.com/onsi/gomega v1.24.1 // indirect
+	github.com/pmezard/go-difflib v1.0.0 // indirect
+	github.com/rivo/uniseg v0.2.0 // indirect
 	github.com/robfig/cron/v3 v3.0.1 // indirect
+	github.com/stablecog/sc-go/server v0.0.0-20230216152639-fdb95f1bb7ba // indirect
 	github.com/supabase-community/gotrue-go v1.0.1 // indirect
 	github.com/tomnomnom/linkheader v0.0.0-20180905144013-02ca5825eb80 // indirect
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
 	github.com/valyala/fasthttp v1.37.1-0.20220607072126-8a320890c08d // indirect
+	go.opencensus.io v0.24.0 // indirect
+	go.opentelemetry.io/otel v1.0.1 // indirect
+	go.opentelemetry.io/otel/trace v1.0.1 // indirect
 	golang.org/x/image v0.3.0 // indirect
 	golang.org/x/sync v0.1.0 // indirect
 	golang.org/x/sys v0.2.0 // indirect
+	gopkg.in/yaml.v3 v3.0.1 // indirect
+	k8s.io/klog/v2 v2.80.1 // indirect
 )
 
 require (
