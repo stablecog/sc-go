@@ -8,7 +8,6 @@ jobs:
   test:
     name: ☔️ Tests
     runs-on: ubuntu-latest
-    container: golang:1.20
 
     # Setup postgres service for tests
     services:
@@ -31,25 +30,10 @@ jobs:
       - name: Check out code
         uses: actions/checkout@master
 
-      # Get values for cache paths to be used in later steps
-      - id: go-cache-paths
-        run: |
-          echo "::set-output name=go-build::$(go env GOCACHE)"
-          echo "::set-output name=go-mod::$(go env GOMODCACHE)"
-
-      # Cache go build cache, used to speedup go test
-      - name: Go Build Cache
-        uses: actions/cache@v2
+      - name: Setup Golang with cache
+        uses: magnetikonline/action-golang-cache@v3
         with:
-          path: ${{ steps.go-cache-paths.outputs.go-build }}
-          key: ${{ runner.os }}-go-build-${{ hashFiles('**/go.sum') }}
-
-      # Cache go mod cache, used to speedup builds
-      - name: Go Mod Cache
-        uses: actions/cache@v2
-        with:
-          path: ${{ steps.go-cache-paths.outputs.go-mod }}
-          key: ${{ runner.os }}-go-mod-${{ hashFiles('**/go.sum') }}
+          go-version-file: ./server/go.mod
 
       - name: Run Tests
         env:
