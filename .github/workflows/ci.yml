@@ -88,3 +88,21 @@ jobs:
           push: true
           file: ./server/Dockerfile.lite
           tags: appditto/sc-server:${{ env.BRANCH_NAME }}-${{ env.GITHUB_RUN_ID }}
+
+      - name: Create Release Dockerfile
+        if: success()
+        run: |
+          echo FROM appditto/sc-server:${{ env.BRANCH_NAME }}-${{ env.GITHUB_RUN_ID }} >> Dockerfile.release
+
+      - uses: EndBug/add-and-commit@v9
+        if: success()
+        with:
+          # The arguments for the `git add` command (see the paragraph below for more info)
+          # Default: '.'
+          add: "src"
+          author_name: Release Bot
+          author_email: releasebot@stablecog.comff
+          default_author: github_actor
+          new_branch: qa-release
+          pathspec_error_handling: exitImmediately
+          push: "--force"
