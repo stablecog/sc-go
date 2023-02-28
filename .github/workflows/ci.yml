@@ -75,9 +75,13 @@ jobs:
           username: ${{ secrets.DOCKER_USER }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
-      - name: Build GO Binary
+      - name: Build GO Server Binary
         run: |
           cd server && go build -ldflags '-s -w' -o server && cd ..
+
+      - name: Build GO Cron Binary
+        run: |
+          cd cron && go build -ldflags '-s -w' -o cron && cd ..
 
       - name: Build and push image
         if: success()
@@ -86,13 +90,13 @@ jobs:
           context: .
           platforms: linux/amd64
           push: true
-          file: ./server/Dockerfile.lite
-          tags: appditto/sc-server:${{ env.BRANCH_NAME }}-${{ env.GITHUB_RUN_ID }}
+          file: ./Dockerfile.lite
+          tags: stablecog/sc-server:${{ env.BRANCH_NAME }}-${{ env.GITHUB_RUN_ID }}
 
       - name: Create Release Dockerfile
         if: success()
         run: |
-          echo FROM appditto/sc-server:${{ env.BRANCH_NAME }}-${{ env.GITHUB_RUN_ID }} >> Dockerfile.release
+          echo FROM stablecog/sc-server:${{ env.BRANCH_NAME }}-${{ env.GITHUB_RUN_ID }} >> Dockerfile.release
 
       - uses: EndBug/add-and-commit@v9
         if: success()
