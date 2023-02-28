@@ -1,10 +1,19 @@
 # Should be built from root directory of the workspace
 FROM golang:1.20-buster as builder
 
+WORKDIR /app/server
+
+# manage dependencies
+COPY ./server/go.mod .
+COPY ./server/go.sum .
+RUN go mod download
+
 WORKDIR /app
 
 ADD . .
-RUN cd server && go build -ldflags '-s -w' -o /app/sc-go-server
+
+WORKDIR /app/server
+RUN go build -ldflags '-s -w' -o /app/sc-go-server
 
 FROM debian:buster-slim
 
