@@ -77,11 +77,11 @@ jobs:
 
       - name: Build GO Server Binary
         run: |
-          cd server && go build -ldflags '-s -w -X main.Version=${GITHUB_SHA::7}' -o server && cd ..
+          cd server && go build -ldflags "-s -w -X main.Version=${GITHUB_SHA::7}" -o server && cd ..
 
       - name: Build GO Cron Binary
         run: |
-          cd cron && go build -ldflags '-s -w -X main.Version=${GITHUB_SHA::7}' -o cron && cd ..
+          cd cron && go build -ldflags "-s -w -X main.Version=${GITHUB_SHA::7}" -o cron && cd ..
 
       - name: Build and push image
         if: success()
@@ -144,11 +144,11 @@ jobs:
 
   # - name: Build GO Server Binary
   #   run: |
-  #     cd server && go build -ldflags '-s -w -X main.Version=${GITHUB_SHA::7}' -o server && cd ..
+  #     cd server && go build -ldflags "-s -w -X main.Version=${GITHUB_SHA::7}" -o server && cd ..
 
   # - name: Build GO Cron Binary
   #   run: |
-  #     cd cron && go build -ldflags '-s -w -X main.Version=${GITHUB_SHA::7}' -o cron && cd ..
+  #     cd cron && go build -ldflags "-s -w -X main.Version=${GITHUB_SHA::7}" -o cron && cd ..
 
   #     - name: Build and push image
   #       if: success()
