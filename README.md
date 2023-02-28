@@ -33,7 +33,7 @@ This repository has a [VSCode devcontainer configuration](https://github.com/sta
 
 ### Running
 
-## Create database schema
+## Create mock data
 
 In the dev container run the following to create some mock data:
 
