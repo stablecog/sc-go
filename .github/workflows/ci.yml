@@ -68,12 +68,16 @@ jobs:
   build_publish:
     name: Build image
     runs-on: ubuntu-latest
-    container: golang:1.20
 
     env:
       GITHUB_RUN_ID: ${{ github.run_id }}
     steps:
       - uses: actions/checkout@master
+
+      - name: Set up Go
+        uses: actions/setup-go@v3
+        with:
+          go-version: 1.20
 
       # Get values for cache paths to be used in later steps
       - id: go-cache-paths
@@ -112,7 +116,7 @@ jobs:
 
       - name: Build GO Binary
         run: |
-          cd server && go build -buildvcs=false -ldflags '-s -w' -o server && cd ..
+          cd server && go build -ldflags '-s -w' -o server && cd ..
 
       - name: Build and push image
         if: success()
