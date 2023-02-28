@@ -6,7 +6,7 @@ WORKDIR /app/server
 # manage dependencies
 COPY ./server/go.mod .
 COPY ./server/go.sum .
-RUN go mod download
+RUN go mod graph | awk '{if ($1 !~ "@") print $2}' | xargs go get
 
 WORKDIR /app
 
