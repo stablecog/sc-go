@@ -47,7 +47,7 @@ jobs:
           go test -v -parallel 1 $(go list -f '{{.Dir}}/...' -m | xargs)
 
   build_publish:
-    name: GO Server Build
+    name: QA Build & Release
     runs-on: ubuntu-latest
 
     env:
@@ -102,4 +102,4 @@ jobs:
           default_author: github_actor
           new_branch: qa-release
           pathspec_error_handling: exitImmediately
-          push: "--force"
+          push: "origin qa-release --set-upstream --force"
