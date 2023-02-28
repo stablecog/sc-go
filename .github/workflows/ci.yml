@@ -46,8 +46,8 @@ jobs:
         run: |
           go test -v -parallel 1 $(go list -f '{{.Dir}}/...' -m | xargs)
 
-  build_publish:
-    name: QA Build & Release
+  build_publish_qa:
+    name: 🧑🏻‍🔬 QA Build & Release
     runs-on: ubuntu-22.04
 
     env:
@@ -77,11 +77,11 @@ jobs:
 
       - name: Build GO Server Binary
         run: |
-          cd server && go build -ldflags '-s -w' -o server && cd ..
+          cd server && go build -ldflags '-s -w -X main.Version=${GITHUB_SHA::7}' -o server && cd ..
 
       - name: Build GO Cron Binary
         run: |
-          cd cron && go build -ldflags '-s -w' -o cron && cd ..
+          cd cron && go build -ldflags '-s -w -X main.Version=${GITHUB_SHA::7}' -o cron && cd ..
 
       - name: Build and push image
         if: success()
@@ -111,3 +111,69 @@ jobs:
           message: "QA Release ${{ github.sha }}"
           # We only care about tag for production
           # tag: qa-release-${{ github.sha }}
+
+  # build_publish_prod:
+  #   name: 🚀 PROD Build & Release
+  #   runs-on: ubuntu-22.04
+  #   needs: test
+
+  #   env:
+  #     GITHUB_RUN_ID: ${{ github.run_id }}
+  #   steps:
+  #     - uses: actions/checkout@master
+
+  #     - name: Setup Golang with cache
+  #       uses: magnetikonline/action-golang-cache@v3
+  #       with:
+  #         go-version-file: ./server/go.mod
+
+  #     - name: Get branch name (merge)
+  #       if: github.event_name != 'pull_request'
+  #       shell: bash
+  #       run: echo "BRANCH_NAME=$(echo ${GITHUB_REF#refs/heads/} | tr / -)" >> $GITHUB_ENV
+
+  #     - name: Get branch name (pull request)
+  #       if: github.event_name == 'pull_request'
+  #       shell: bash
+  #       run: echo "BRANCH_NAME=$(echo ${GITHUB_HEAD_REF} | tr / -)" >> $GITHUB_ENV
+  #     - name: Login to registry
+  #       uses: docker/login-action@v2
+  #       with:
+  #         username: ${{ secrets.DOCKER_USER }}
+  #         password: ${{ secrets.DOCKER_PASSWORD }}
+
+  # - name: Build GO Server Binary
+  #   run: |
+  #     cd server && go build -ldflags '-s -w -X main.Version=${GITHUB_SHA::7}' -o server && cd ..
+
+  # - name: Build GO Cron Binary
+  #   run: |
+  #     cd cron && go build -ldflags '-s -w -X main.Version=${GITHUB_SHA::7}' -o cron && cd ..
+
+  #     - name: Build and push image
+  #       if: success()
+  #       uses: docker/build-push-action@v3
+  #       with:
+  #         context: .
+  #         platforms: linux/amd64
+  #         push: true
+  #         file: ./Dockerfile.ci
+  #         tags: stablecog/sc-server:${{ env.BRANCH_NAME }}-${{ env.GITHUB_RUN_ID }}
+
+  #     - name: Create Release Dockerfile
+  #       if: success()
+  #       run: |
+  #         echo FROM stablecog/sc-server:${{ env.BRANCH_NAME }}-${{ env.GITHUB_RUN_ID }} >> Dockerfile.release
+
+  #     - uses: EndBug/add-and-commit@v9
+  #       if: success()
+  #       with:
+  #         add: "Dockerfile.release"
+  #         author_name: Release Bot
+  #         author_email: prod_release@stablecog.com
+  #         default_author: github_actor
+  #         new_branch: prod-release
+  #         pathspec_error_handling: exitImmediately
+  #         push: "origin prod-release --set-upstream --force"
+  #         message: "PROD Release ${{ github.sha }}"
+  #         tag: prod-release-${{ github.sha }}

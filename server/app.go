@@ -29,7 +29,11 @@ import (
 	"golang.org/x/net/http2/h2c"
 )
 
+var Version = "dev"
+
 func main() {
+	log.Info("SC Server", "version", Version)
+
 	// Load .env
 	err := godotenv.Load("../.env")
 	if err != nil {

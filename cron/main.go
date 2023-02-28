@@ -18,6 +18,8 @@ import (
 	"github.com/stablecog/sc-go/utils"
 )
 
+var Version = "dev"
+
 func usage() {
 	fmt.Printf("Usage %s [options]\n", os.Args[0])
 	flag.PrintDefaults()
@@ -25,6 +27,7 @@ func usage() {
 }
 
 func main() {
+	log.Info("SC Cron", "version", Version)
 	showHelp := flag.Bool("help", false, "Show help")
 	healthCheck := flag.Bool("healthCheck", false, "Run the health check job")
 	syncMeili := flag.Bool("syncMeili", false, "Sync the meili index")
