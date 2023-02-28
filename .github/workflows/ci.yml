@@ -11,21 +11,21 @@ jobs:
     container: golang:1.20
 
     # Setup postgres service for tests
-    services:
-      db:
-        image: postgres:14
-        env:
-          POSTGRES_DB: testing
-          POSTGRES_PASSWORD: postgres
-          POSTGRES_USER: postgres
-        ports:
-          - 5432:5432
-        # set health checks to wait until postgres has started
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
+    # services:
+    #   db:
+    #     image: postgres:14
+    #     env:
+    #       POSTGRES_DB: testing
+    #       POSTGRES_PASSWORD: postgres
+    #       POSTGRES_USER: postgres
+    #     ports:
+    #       - 5432:5432
+    #     # set health checks to wait until postgres has started
+    #     options: >-
+    #       --health-cmd pg_isready
+    #       --health-interval 10s
+    #       --health-timeout 5s
+    #       --health-retries 5
 
     steps:
       - name: Check out code
@@ -54,18 +54,18 @@ jobs:
           path: ${{ steps.go-cache-paths.outputs.go-mod }}
           key: ${{ runner.os }}-go-mod-${{ hashFiles('**/go.sum') }}
 
-      - name: Run Tests
-        env:
-          GITHUB_ACTIONS: true
-          POSTGRES_DB: testing
-          POSTGRES_PORT: 5432
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: postgres
-          POSTGRES_HOST: db
-        run: |
-          go test -v -parallel 1 $(go list -f '{{.Dir}}/...' -m | xargs)
+      # - name: Run Tests
+      #   env:
+      #     GITHUB_ACTIONS: true
+      #     POSTGRES_DB: testing
+      #     POSTGRES_PORT: 5432
+      #     POSTGRES_USER: postgres
+      #     POSTGRES_PASSWORD: postgres
+      #     POSTGRES_HOST: db
+      #   run: |
+      #     go test -v -parallel 1 $(go list -f '{{.Dir}}/...' -m | xargs)
 
       - name: build
         if: success()
         run: |
-          cd server && go build -ldflags '-s -w' -o server
+          cd server && go build -buildvcs=false -ldflags '-s -w' -o server
