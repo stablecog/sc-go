@@ -41,3 +41,20 @@ jobs:
           POSTGRES_HOST: db
         run: |
           go test -v -parallel 1 $(go list -f '{{.Dir}}/...' -m | xargs)
+
+      - name: Login to registry
+        if: success()
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKER_USER }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Build and push
+        if: success()
+        uses: docker/build-push-action@v3
+        with:
+          context: .
+          platforms: linux/amd64
+          push: true
+          file: ./server/Dockerfile
+          tags: appditto/sc-server:${{ env.BRANCH_NAME }}-${{ env.GITHUB_RUN_ID }}
