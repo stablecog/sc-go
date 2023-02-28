@@ -42,8 +42,11 @@ jobs:
         run: |
           go test -v -parallel 1 $(go list -f '{{.Dir}}/...' -m | xargs)
 
+  build_publish:
+    name: Build image
+    runs-on: ubuntu-latest
+    steps:
       - name: Login to registry
-        if: success()
         uses: docker/login-action@v2
         with:
           username: ${{ secrets.DOCKER_USER }}
