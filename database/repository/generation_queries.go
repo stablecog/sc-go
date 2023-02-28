@@ -154,8 +154,12 @@ func (r *Repository) ApplyUserGenerationsFilters(query *ent.GenerationQuery, fil
 		}
 
 		if len(filters.GalleryStatus) > 0 {
+			v := make([]any, len(filters.GalleryStatus))
+			for i := range v {
+				v[i] = filters.GalleryStatus[i]
+			}
 			resQuery = resQuery.Where(func(s *sql.Selector) {
-				s.Where(sql.In("output_gallery_status", filters.GalleryStatus))
+				s.Where(sql.In(generationoutput.FieldGalleryStatus, v...))
 			})
 		}
 
@@ -241,7 +245,7 @@ func (r *Repository) QueryGenerations(per_page int, cursor *time.Time, filters *
 	var query *ent.GenerationQuery
 	var gQueryResult []GenerationQueryWithOutputsResult
 
-	query = r.DB.Generation.Query().Select(selectFields...).
+	query = r.DB.Debug().Generation.Query().Select(selectFields...).
 		Where(generation.StatusEQ(generation.StatusSucceeded))
 	if filters.UserID != nil {
 		query = query.Where(generation.UserID(*filters.UserID))
