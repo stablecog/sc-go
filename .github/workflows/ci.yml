@@ -109,3 +109,4 @@ jobs:
           pathspec_error_handling: exitImmediately
           push: "origin qa-release --set-upstream --force"
           message: "QA Release ${{ github.sha }}"
+          tag: qa-release-${{ github.sha }}
