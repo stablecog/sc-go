@@ -66,7 +66,6 @@ func (d *DiscordHealthTracker) SendDiscordNotificationIfNeeded(
 	status HEALTH_STATUS,
 	generations []*ent.Generation,
 	lastGenerationTime time.Time,
-	lastCheckTime time.Time,
 ) error {
 	sinceHealthyNotification := time.Since(d.lastHealthyNotificationTime)
 	sinceUnhealthyNotification := time.Since(d.lastUnhealthyNotificationTime)
@@ -87,7 +86,7 @@ func (d *DiscordHealthTracker) SendDiscordNotificationIfNeeded(
 	log.Info("Sending Discord notification...")
 
 	// Build webhook body
-	webhookBody := getDiscordWebhookBody(status, generations, lastGenerationTime, lastCheckTime)
+	webhookBody := getDiscordWebhookBody(status, generations, lastGenerationTime)
 	reqBody, err := json.Marshal(webhookBody)
 	if err != nil {
 		log.Error("Error marshalling webhook body", "err", err)
@@ -117,7 +116,6 @@ func getDiscordWebhookBody(
 	status HEALTH_STATUS,
 	generations []*ent.Generation,
 	lastGenerationTime time.Time,
-	lastCheckTime time.Time,
 ) models.DiscordWebhookBody {
 	generationsStr := ""
 	generationsStrArr := []string{}
@@ -154,7 +152,7 @@ func getDiscordWebhookBody(
 					},
 				},
 				Footer: models.DiscordWebhookEmbedFooter{
-					Text: lastCheckTime.Format(time.RFC1123),
+					Text: time.Now().Format(time.RFC1123),
 				},
 			},
 		},

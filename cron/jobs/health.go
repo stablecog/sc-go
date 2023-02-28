@@ -49,13 +49,11 @@ func (j *JobRunner) CheckHealth() error {
 		healthStatus = discord.UNHEALTHY
 	}
 
-	now := time.Now()
-	log.Info("Done checking health", "duration", fmt.Sprintf("%dms", now.Sub(start).Milliseconds()))
+	log.Info("Done checking health", "duration", fmt.Sprintf("%dms", time.Now().Sub(start).Milliseconds()))
 
 	return j.Discord.SendDiscordNotificationIfNeeded(
 		healthStatus,
 		generations,
 		lastGenerationTime,
-		now,
 	)
 }
