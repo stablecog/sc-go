@@ -97,9 +97,6 @@ jobs:
       - uses: EndBug/add-and-commit@v9
         if: success()
         with:
-          # The arguments for the `git add` command (see the paragraph below for more info)
-          # Default: '.'
-          add: "src"
           author_name: Release Bot
           author_email: releasebot@stablecog.comff
           default_author: github_actor
