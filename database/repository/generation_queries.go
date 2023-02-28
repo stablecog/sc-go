@@ -292,9 +292,9 @@ func (r *Repository) QueryGenerations(per_page int, cursor *time.Time, filters *
 		}
 		// Order by generation, then output
 		if filters == nil || (filters != nil && filters.Order == requests.SortOrderDescending) {
-			s.OrderBy(sql.Desc(gt.C(orderByGeneration)), sql.Desc(got.C(orderByOutput)))
+			s.OrderBy(sql.Desc(got.C(orderByOutput)), sql.Desc(gt.C(orderByGeneration)))
 		} else {
-			s.OrderBy(sql.Asc(gt.C(orderByGeneration)), sql.Asc(got.C(orderByOutput)))
+			s.OrderBy(sql.Asc(got.C(orderByOutput)), sql.Asc(gt.C(orderByGeneration)))
 		}
 	}).Scan(r.Ctx, &gQueryResult)
 
