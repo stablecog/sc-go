@@ -90,7 +90,7 @@ jobs:
           context: .
           platforms: linux/amd64
           push: true
-          file: ./Dockerfile.lite
+          file: ./Dockerfile.ci
           tags: stablecog/sc-server:${{ env.BRANCH_NAME }}-${{ env.GITHUB_RUN_ID }}
 
       - name: Create Release Dockerfile
