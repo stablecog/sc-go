@@ -18,8 +18,8 @@ import (
 )
 
 func (c *RestAPI) HandleUpscale(w http.ResponseWriter, r *http.Request) {
-	userID, _ := c.GetUserIDAndEmailIfAuthenticated(w, r)
-	if userID == nil {
+	var user *ent.User
+	if user = c.GetUserIfAuthenticated(w, r); user == nil {
 		return
 	}
 
@@ -70,7 +70,7 @@ func (c *RestAPI) HandleUpscale(w http.ResponseWriter, r *http.Request) {
 	var outputIDStr string
 	if upscaleReq.Type == requests.UpscaleRequestTypeOutput {
 		outputIDStr = upscaleReq.OutputID.String()
-		output, err := c.Repo.GetGenerationOutputForUser(upscaleReq.OutputID, *userID)
+		output, err := c.Repo.GetGenerationOutputForUser(upscaleReq.OutputID, user.ID)
 		if err != nil {
 			if ent.IsNotFound(err) {
 				responses.ErrBadRequest(w, r, "output_not_found")
@@ -110,7 +110,7 @@ func (c *RestAPI) HandleUpscale(w http.ResponseWriter, r *http.Request) {
 		DB := tx.Client()
 
 		// Charge credits
-		deducted, err := c.Repo.DeductCreditsFromUser(*userID, 1, DB)
+		deducted, err := c.Repo.DeductCreditsFromUser(user.ID, 1, DB)
 		if err != nil {
 			log.Error("Error deducting credits", "err", err)
 			responses.ErrInternalServerError(w, r, "Error deducting credits from user")
@@ -120,7 +120,7 @@ func (c *RestAPI) HandleUpscale(w http.ResponseWriter, r *http.Request) {
 			return responses.InsufficientCreditsErr
 		}
 
-		remainingCredits, err = c.Repo.GetNonExpiredCreditTotalForUser(*userID, DB)
+		remainingCredits, err = c.Repo.GetNonExpiredCreditTotalForUser(user.ID, DB)
 		if err != nil {
 			log.Error("Error getting remaining credits", "err", err)
 			responses.ErrInternalServerError(w, r, "An unknown error has occured")
@@ -129,7 +129,7 @@ func (c *RestAPI) HandleUpscale(w http.ResponseWriter, r *http.Request) {
 
 		// Create upscale
 		upscale, err := c.Repo.CreateUpscale(
-			*userID,
+			user.ID,
 			width,
 			height,
 			string(deviceInfo.DeviceType),

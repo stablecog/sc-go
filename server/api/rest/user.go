@@ -25,6 +25,11 @@ func (c *RestAPI) HandleGetUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Tracking current free credits
+	var freeCredits *ent.Credit
+	var freeCreditAmount int32
+	freeCreditsReplenished := false
+
 	// Get customer ID for user
 	user, err := c.Repo.GetUserWithRoles(*userID)
 	if err != nil {
@@ -69,7 +74,7 @@ func (c *RestAPI) HandleGetUser(w http.ResponseWriter, r *http.Request) {
 			}
 
 			// Add free credits
-			_, err = c.Repo.ReplenishFreeCreditsIfEligible(u.ID, time.Now().AddDate(0, 0, 30), client)
+			freeCreditsReplenished, freeCredits, freeCreditAmount, err = c.Repo.ReplenishFreeCreditsIfEligible(u.ID, time.Now().AddDate(0, 0, 30), client)
 			if err != nil {
 				log.Error("Error adding free credits", "err", err)
 				return err
@@ -91,7 +96,7 @@ func (c *RestAPI) HandleGetUser(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	} else {
-		_, err := c.Repo.ReplenishFreeCreditsIfEligible(*userID, time.Now().AddDate(0, 0, 30), nil)
+		freeCreditsReplenished, freeCredits, freeCreditAmount, err = c.Repo.ReplenishFreeCreditsIfEligible(*userID, time.Now().AddDate(0, 0, 30), nil)
 		if err != nil {
 			log.Error("Error replenishing free credits", "err", err)
 		}
@@ -122,6 +127,7 @@ func (c *RestAPI) HandleGetUser(w http.ResponseWriter, r *http.Request) {
 	now := time.Now().UnixNano() / int64(time.Second)
 	var highestProduct string
 	var cancelsAt *time.Time
+	var renewsAt *time.Time
 	if customer != nil && customer.Subscriptions != nil && customer.Subscriptions.Data != nil {
 		// Find highest subscription tier
 		for _, subscription := range customer.Subscriptions.Data {
@@ -147,8 +153,21 @@ func (c *RestAPI) HandleGetUser(w http.ResponseWriter, r *http.Request) {
 				cancelsAt = &cancelsAsTime
 			}
 			if cancelsAt == nil && highestProduct != "" {
+				renewsAtTime := utils.SecondsSinceEpochToTime(subscription.CurrentPeriodEnd)
+				renewsAt = &renewsAtTime
 				break
 			}
+		}
+	}
+
+	// Renews at date for free users
+	if highestProduct == "" && !stripeHadError && freeCredits != nil {
+		if freeCreditsReplenished {
+			// Add 30 days to expires_at
+			renewsAtTime := freeCredits.ExpiresAt.AddDate(0, 0, 30)
+			renewsAt = &renewsAtTime
+		} else {
+			renewsAt = &freeCredits.ExpiresAt
 		}
 	}
 
@@ -157,6 +176,8 @@ func (c *RestAPI) HandleGetUser(w http.ResponseWriter, r *http.Request) {
 		TotalRemainingCredits: totalRemaining,
 		ProductID:             highestProduct,
 		CancelsAt:             cancelsAt,
+		RenewsAt:              renewsAt,
+		FreeCreditAmount:      freeCreditAmount,
 		StripeHadError:        stripeHadError,
 		Roles:                 user.Roles,
 	})
@@ -167,8 +188,8 @@ func (c *RestAPI) HandleGetUser(w http.ResponseWriter, r *http.Request) {
 // per_page: number of generations to return
 // cursor: cursor for pagination, it is an iso time string in UTC
 func (c *RestAPI) HandleQueryGenerations(w http.ResponseWriter, r *http.Request) {
-	userID, _ := c.GetUserIDAndEmailIfAuthenticated(w, r)
-	if userID == nil {
+	var user *ent.User
+	if user = c.GetUserIfAuthenticated(w, r); user == nil {
 		return
 	}
 
@@ -204,7 +225,7 @@ func (c *RestAPI) HandleQueryGenerations(w http.ResponseWriter, r *http.Request)
 	}
 
 	// Ensure user ID is set to only include this users generations
-	filters.UserID = userID
+	filters.UserID = &user.ID
 
 	// Get generaions
 	generations, err := c.Repo.QueryGenerations(perPage, cursor, filters)
@@ -274,11 +295,10 @@ func (c *RestAPI) HandleQueryCredits(w http.ResponseWriter, r *http.Request) {
 	render.JSON(w, r, creditsResponse)
 }
 
-// HTTP DELETE - admin delete generation
+// HTTP DELETE - delete generation
 func (c *RestAPI) HandleDeleteGenerationOutputForUser(w http.ResponseWriter, r *http.Request) {
-	// Get user id (of admin)
-	userID, _ := c.GetUserIDAndEmailIfAuthenticated(w, r)
-	if userID == nil {
+	var user *ent.User
+	if user = c.GetUserIfAuthenticated(w, r); user == nil {
 		return
 	}
 
@@ -291,7 +311,7 @@ func (c *RestAPI) HandleDeleteGenerationOutputForUser(w http.ResponseWriter, r *
 		return
 	}
 
-	count, err := c.Repo.MarkGenerationOutputsForDeletionForUser(deleteReq.GenerationOutputIDs, *userID)
+	count, err := c.Repo.MarkGenerationOutputsForDeletionForUser(deleteReq.GenerationOutputIDs, user.ID)
 	if err != nil {
 		responses.ErrInternalServerError(w, r, err.Error())
 		return

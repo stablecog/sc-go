@@ -1092,6 +1092,11 @@ components:
         cancels_at:
           type: string
           format: isoTimeString, optional, only if cancel scheduled
+        renews_at:
+          type: string
+          format: isoTimeString, stripe renewal if subscribed, else free
+        free_credit_amount:
+          type: integer
         stripe_had_error:
           type: boolean
           format: If stripe API returned an unknown error code

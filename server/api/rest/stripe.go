@@ -27,8 +27,8 @@ var PriceIDs = map[int]string{
 
 // For creating customer portal session
 func (c *RestAPI) HandleCreatePortalSession(w http.ResponseWriter, r *http.Request) {
-	userID, _ := c.GetUserIDAndEmailIfAuthenticated(w, r)
-	if userID == nil {
+	var user *ent.User
+	if user = c.GetUserIfAuthenticated(w, r); user == nil {
 		return
 	}
 
@@ -38,14 +38,6 @@ func (c *RestAPI) HandleCreatePortalSession(w http.ResponseWriter, r *http.Reque
 	err := json.Unmarshal(reqBody, &stripeReq)
 	if err != nil {
 		responses.ErrUnableToParseJson(w, r)
-		return
-	}
-
-	// Get user
-	user, err := c.Repo.GetUser(*userID)
-	if err != nil {
-		log.Error("Error getting user", "err", err)
-		responses.ErrInternalServerError(w, r, "An unknown error has occured")
 		return
 	}
 
@@ -72,11 +64,10 @@ func (c *RestAPI) HandleCreatePortalSession(w http.ResponseWriter, r *http.Reque
 // For creating a new subscription or upgrading one
 // Rejects, if they have a subscription that is at a higher level than the target priceID
 func (c *RestAPI) HandleCreateCheckoutSession(w http.ResponseWriter, r *http.Request) {
-	userID, _ := c.GetUserIDAndEmailIfAuthenticated(w, r)
-	if userID == nil {
+	var user *ent.User
+	if user = c.GetUserIfAuthenticated(w, r); user == nil {
 		return
 	}
-
 	// Parse request body
 	reqBody, _ := io.ReadAll(r.Body)
 	var stripeReq requests.StripeCheckoutRequest
@@ -104,14 +95,6 @@ func (c *RestAPI) HandleCreateCheckoutSession(w http.ResponseWriter, r *http.Req
 	// Validate currency
 	if !slices.Contains([]string{"usd", "eur"}, stripeReq.Currency) {
 		responses.ErrBadRequest(w, r, "invalid_currency")
-		return
-	}
-
-	// Get user
-	user, err := c.Repo.GetUser(*userID)
-	if err != nil {
-		log.Error("Error getting user", "err", err)
-		responses.ErrInternalServerError(w, r, "An unknown error has occured")
 		return
 	}
 
@@ -211,8 +194,8 @@ func (c *RestAPI) HandleCreateCheckoutSession(w http.ResponseWriter, r *http.Req
 // HTTP Post - handle stripe subscription downgrade
 // Rejects if they don't have a subscription, or if they are not downgrading
 func (c *RestAPI) HandleSubscriptionDowngrade(w http.ResponseWriter, r *http.Request) {
-	userID, _ := c.GetUserIDAndEmailIfAuthenticated(w, r)
-	if userID == nil {
+	var user *ent.User
+	if user = c.GetUserIfAuthenticated(w, r); user == nil {
 		return
 	}
 
@@ -237,14 +220,6 @@ func (c *RestAPI) HandleSubscriptionDowngrade(w http.ResponseWriter, r *http.Req
 	}
 	if targetPriceID == "" {
 		responses.ErrBadRequest(w, r, "invalid_price_id")
-		return
-	}
-
-	// Get user
-	user, err := c.Repo.GetUser(*userID)
-	if err != nil {
-		log.Error("Error getting user", "err", err)
-		responses.ErrInternalServerError(w, r, "An unknown error has occured")
 		return
 	}
 

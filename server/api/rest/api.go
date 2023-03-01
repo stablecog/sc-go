@@ -3,9 +3,11 @@ package rest
 import (
 	"net/http"
 
+	"github.com/charmbracelet/log"
 	"github.com/google/uuid"
 	"github.com/meilisearch/meilisearch-go"
 	"github.com/stablecog/sc-go/database"
+	"github.com/stablecog/sc-go/database/ent"
 	"github.com/stablecog/sc-go/database/repository"
 	"github.com/stablecog/sc-go/server/api/sse"
 	"github.com/stablecog/sc-go/server/responses"
@@ -22,6 +24,31 @@ type RestAPI struct {
 	Hub          *sse.Hub
 	StripeClient *stripe.API
 	Meili        *meilisearch.Client
+}
+
+func (c *RestAPI) GetUserIfAuthenticated(w http.ResponseWriter, r *http.Request) (user *ent.User) {
+	// See if authenticated
+	userIDStr, authenticated := r.Context().Value("user_id").(string)
+	// This should always be true because of the auth middleware, but check it anyway
+	if !authenticated || userIDStr == "" {
+		responses.ErrUnauthorized(w, r)
+		return nil
+	}
+	// Ensure valid uuid
+	userID, err := uuid.Parse(userIDStr)
+	if err != nil {
+		responses.ErrUnauthorized(w, r)
+		return nil
+	}
+
+	// Get user
+	user, err = c.Repo.GetUser(userID)
+	if err != nil || user == nil {
+		log.Error("Error getting user", "err", err)
+		responses.ErrUnauthorized(w, r)
+		return nil
+	}
+	return user
 }
 
 func (c *RestAPI) GetUserIDAndEmailIfAuthenticated(w http.ResponseWriter, r *http.Request) (id *uuid.UUID, email string) {

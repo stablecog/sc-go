@@ -5,7 +5,6 @@ import (
 
 	"github.com/charmbracelet/log"
 	"github.com/dukex/mixpanel"
-	"github.com/hashicorp/go-multierror"
 	"github.com/posthog/posthog-go"
 	"github.com/stablecog/sc-go/utils"
 )
@@ -34,28 +33,14 @@ func NewAnalyticsService() *AnalyticsService {
 		service.Posthog = client
 	}
 
-	// Setup mixpanel
-	mixpanelAPIKey := utils.GetEnv("MIXPANEL_API_KEY", "")
-	mixpanelEndpoint := utils.GetEnv("MIXPANEL_ENDPOINT", "")
-	if mixpanelAPIKey != "" && mixpanelEndpoint != "" {
-		mixpanelClient := mixpanel.New(mixpanelAPIKey, mixpanelEndpoint)
-		service.Mixpanel = mixpanelClient
-	} else {
-		log.Warn("Mixpanel not configured")
-	}
 	return service
 }
 
 // Dispatch to all available analytics services
-func (a *AnalyticsService) Dispatch(e Event) error {
-	var mErr *multierror.Error
+func (a *AnalyticsService) Dispatch(e Event) (err error) {
 	if a.Posthog != nil {
-		mErr = multierror.Append(mErr, a.Posthog.Enqueue(e.PosthogEvent()))
+		err = a.Posthog.Enqueue(e.PosthogEvent())
 	}
-	if a.Mixpanel != nil {
-		mErr = multierror.Append(mErr, a.Mixpanel.Track(e.MixpanelEvent()))
-	}
-	err := mErr.ErrorOrNil()
 	if err != nil {
 		log.Error("Error dispatching analytics event", "err", err)
 	}

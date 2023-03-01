@@ -1,7 +1,6 @@
 package analytics
 
 import (
-	"github.com/dukex/mixpanel"
 	"github.com/posthog/posthog-go"
 )
 
@@ -22,11 +21,4 @@ func (e *Event) PosthogEvent() posthog.Capture {
 		Event:      e.EventName,
 		Properties: properties,
 	}
-}
-
-func (e *Event) MixpanelEvent() (distinctId, eventName string, event *mixpanel.Event) {
-	mixpanelEvent := &mixpanel.Event{
-		Properties: e.Properties,
-	}
-	return e.DistinctId, e.EventName, mixpanelEvent
 }

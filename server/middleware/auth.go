@@ -31,7 +31,7 @@ func (m *Middleware) AuthMiddleware(level AuthLevel) func(next http.Handler) htt
 			}
 			// Check supabase to see if it's all good
 			start := time.Now()
-			userId, email, err := m.SupabaseAuth.GetSupabaseUserIdFromAccessToken(authHeader[1])
+			userId, _, err := m.SupabaseAuth.GetSupabaseUserIdFromAccessToken(authHeader[1])
 			if err != nil {
 				responses.ErrUnauthorized(w, r)
 				return
@@ -40,7 +40,6 @@ func (m *Middleware) AuthMiddleware(level AuthLevel) func(next http.Handler) htt
 
 			// Set the user ID in the context
 			ctx := context.WithValue(r.Context(), "user_id", userId)
-			ctx = context.WithValue(ctx, "user_email", email)
 
 			userIDParsed, err := uuid.Parse(userId)
 			if err != nil {

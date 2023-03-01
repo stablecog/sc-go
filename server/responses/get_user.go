@@ -7,9 +7,12 @@ import (
 )
 
 type GetUserResponse struct {
-	TotalRemainingCredits int                 `json:"total_remaining_credits"`
-	ProductID             string              `json:"product_id,omitempty"`
-	CancelsAt             *time.Time          `json:"cancels_at,omitempty"`
-	StripeHadError        bool                `json:"stripe_had_error"`
-	Roles                 []userrole.RoleName `json:"roles,omitempty"`
+	TotalRemainingCredits int        `json:"total_remaining_credits"`
+	ProductID             string     `json:"product_id,omitempty"`
+	CancelsAt             *time.Time `json:"cancels_at,omitempty"`
+	RenewsAt              *time.Time `json:"renews_at,omitempty"`
+	// The current amoount of free credits server offers
+	FreeCreditAmount int32               `json:"free_credit_amount"`
+	StripeHadError   bool                `json:"stripe_had_error"`
+	Roles            []userrole.RoleName `json:"roles,omitempty"`
 }

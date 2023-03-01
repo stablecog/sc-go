@@ -20,8 +20,8 @@ import (
 // POST generate endpoint
 // Adds generate to queue, if authenticated, returns the ID of the generation
 func (c *RestAPI) HandleCreateGeneration(w http.ResponseWriter, r *http.Request) {
-	userID, _ := c.GetUserIDAndEmailIfAuthenticated(w, r)
-	if userID == nil {
+	var user *ent.User
+	if user = c.GetUserIfAuthenticated(w, r); user == nil {
 		return
 	}
 
@@ -77,7 +77,7 @@ func (c *RestAPI) HandleCreateGeneration(w http.ResponseWriter, r *http.Request)
 		DB := tx.Client()
 		// Deduct credits from user
 		start := time.Now()
-		deducted, err := c.Repo.DeductCreditsFromUser(*userID, int32(generateReq.NumOutputs), DB)
+		deducted, err := c.Repo.DeductCreditsFromUser(user.ID, int32(generateReq.NumOutputs), DB)
 		if err != nil {
 			log.Error("Error deducting credits", "err", err)
 			responses.ErrInternalServerError(w, r, "Error deducting credits from user")
@@ -88,7 +88,7 @@ func (c *RestAPI) HandleCreateGeneration(w http.ResponseWriter, r *http.Request)
 		}
 		fmt.Printf("--- Deduct credits took took: %s\n", time.Now().Sub(start))
 
-		remainingCredits, err = c.Repo.GetNonExpiredCreditTotalForUser(*userID, DB)
+		remainingCredits, err = c.Repo.GetNonExpiredCreditTotalForUser(user.ID, DB)
 		if err != nil {
 			log.Error("Error getting remaining credits", "err", err)
 			responses.ErrInternalServerError(w, r, "An unknown error has occured")
@@ -98,7 +98,7 @@ func (c *RestAPI) HandleCreateGeneration(w http.ResponseWriter, r *http.Request)
 		// Create generation
 		start = time.Now()
 		g, err := c.Repo.CreateGeneration(
-			*userID,
+			user.ID,
 			string(deviceInfo.DeviceType),
 			deviceInfo.DeviceOs,
 			deviceInfo.DeviceBrowser,
@@ -140,12 +140,15 @@ func (c *RestAPI) HandleCreateGeneration(w http.ResponseWriter, r *http.Request)
 				NumInferenceSteps:    fmt.Sprint(generateReq.InferenceSteps),
 				GuidanceScale:        fmt.Sprint(generateReq.GuidanceScale),
 				Model:                modelName,
+				ModelId:              generateReq.ModelId,
 				Scheduler:            schedulerName,
+				SchedulerId:          generateReq.SchedulerId,
 				Seed:                 fmt.Sprint(generateReq.Seed),
 				NumOutputs:           fmt.Sprint(generateReq.NumOutputs),
 				OutputImageExtension: string(shared.DEFAULT_GENERATE_OUTPUT_EXTENSION),
 				OutputImageQuality:   fmt.Sprint(shared.DEFAULT_GENERATE_OUTPUT_QUALITY),
 				ProcessType:          generateReq.ProcessType,
+				SubmitToGallery:      generateReq.SubmitToGallery,
 			},
 		}
 

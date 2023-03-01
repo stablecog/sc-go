@@ -10,6 +10,7 @@ import (
 	"github.com/charmbracelet/log"
 	"github.com/go-chi/render"
 	"github.com/meilisearch/meilisearch-go"
+	"github.com/stablecog/sc-go/database/ent"
 	"github.com/stablecog/sc-go/database/repository"
 	"github.com/stablecog/sc-go/server/requests"
 	"github.com/stablecog/sc-go/server/responses"
@@ -131,8 +132,8 @@ type GalleryResponse struct {
 // HTTP PUT submit a generation to gallery - for user
 // Only allow submitting user's own gallery items.
 func (c *RestAPI) HandleSubmitGenerationToGallery(w http.ResponseWriter, r *http.Request) {
-	userID, _ := c.GetUserIDAndEmailIfAuthenticated(w, r)
-	if userID == nil {
+	var user *ent.User
+	if user = c.GetUserIfAuthenticated(w, r); user == nil {
 		return
 	}
 
@@ -145,7 +146,7 @@ func (c *RestAPI) HandleSubmitGenerationToGallery(w http.ResponseWriter, r *http
 		return
 	}
 
-	submitted, err := c.Repo.SubmitGenerationOutputsToGalleryForUser(submitToGalleryReq.GenerationOutputIDs, *userID)
+	submitted, err := c.Repo.SubmitGenerationOutputsToGalleryForUser(submitToGalleryReq.GenerationOutputIDs, user.ID)
 	if err != nil {
 		responses.ErrInternalServerError(w, r, "Error submitting generation outputs to gallery")
 		return

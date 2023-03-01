@@ -20,9 +20,7 @@ import (
 
 // HTTP POST - admin approve/reject image in gallery
 func (c *RestAPI) HandleReviewGallerySubmission(w http.ResponseWriter, r *http.Request) {
-	// Get user id (of admin)
-	userID, _ := c.GetUserIDAndEmailIfAuthenticated(w, r)
-	if userID == nil {
+	if user, email := c.GetUserIDAndEmailIfAuthenticated(w, r); user == nil || email == "" {
 		return
 	}
 
@@ -61,9 +59,8 @@ func (c *RestAPI) HandleReviewGallerySubmission(w http.ResponseWriter, r *http.R
 
 // HTTP DELETE - admin delete generation
 func (c *RestAPI) HandleDeleteGenerationOutput(w http.ResponseWriter, r *http.Request) {
-	// Get user id (of admin)
-	userID, _ := c.GetUserIDAndEmailIfAuthenticated(w, r)
-	if userID == nil {
+	// Get user
+	if user, email := c.GetUserIDAndEmailIfAuthenticated(w, r); user == nil || email == "" {
 		return
 	}
 
@@ -91,8 +88,7 @@ func (c *RestAPI) HandleDeleteGenerationOutput(w http.ResponseWriter, r *http.Re
 
 // HTTP Get - generations for admin
 func (c *RestAPI) HandleQueryGenerationsForAdmin(w http.ResponseWriter, r *http.Request) {
-	userID, _ := c.GetUserIDAndEmailIfAuthenticated(w, r)
-	if userID == nil {
+	if user, email := c.GetUserIDAndEmailIfAuthenticated(w, r); user == nil || email == "" {
 		return
 	}
 
@@ -142,8 +138,7 @@ func (c *RestAPI) HandleQueryGenerationsForAdmin(w http.ResponseWriter, r *http.
 
 // HTTP Get - users for admin
 func (c *RestAPI) HandleQueryUsers(w http.ResponseWriter, r *http.Request) {
-	userID, _ := c.GetUserIDAndEmailIfAuthenticated(w, r)
-	if userID == nil {
+	if user, email := c.GetUserIDAndEmailIfAuthenticated(w, r); user == nil || email == "" {
 		return
 	}
 

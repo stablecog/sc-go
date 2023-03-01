@@ -3,6 +3,7 @@ package requests
 import (
 	"encoding/json"
 
+	"github.com/google/uuid"
 	"github.com/stablecog/sc-go/shared"
 )
 
@@ -34,7 +35,9 @@ type BaseCogRequest struct {
 	NumInferenceSteps    string             `json:"num_inference_steps,omitempty"`
 	GuidanceScale        string             `json:"guidance_scale,omitempty"`
 	Model                string             `json:"model,omitempty"`
+	ModelId              uuid.UUID          `json:"model_id,omitempty"`
 	Scheduler            string             `json:"scheduler,omitempty"`
+	SchedulerId          uuid.UUID          `json:"scheduler_id,omitempty"`
 	InitImage            string             `json:"init_image,omitempty"`
 	PromptStrength       string             `json:"prompt_strength,omitempty"`
 	Mask                 string             `json:"mask,omitempty"`
@@ -43,6 +46,7 @@ type BaseCogRequest struct {
 	ProcessType          shared.ProcessType `json:"process_type"`
 	PromptFlores         string             `json:"prompt_flores_200_code,omitempty"`
 	NegativePromptFlores string             `json:"negative_prompt_flores_200_code,omitempty"`
+	SubmitToGallery      bool               `json:"submit_to_gallery,omitempty"`
 	// Upscale specific
 	Image string `json:"image_to_upscale,omitempty"`
 }
