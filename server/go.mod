@@ -12,25 +12,26 @@ require (
 	github.com/google/uuid v1.3.0
 	github.com/jarcoal/httpmock v1.3.0
 	github.com/joho/godotenv v1.4.0
-	github.com/stablecog/sc-go/database v0.0.0-20230228024452-ecbe094b6ada
-	github.com/stablecog/sc-go/shared v0.0.0-20230228024452-ecbe094b6ada
-	github.com/stablecog/sc-go/utils v0.0.0-20230228024452-ecbe094b6ada
 	github.com/stretchr/testify v1.8.2
-	golang.org/x/exp v0.0.0-20230224173230-c95f2b4c22f2
 	golang.org/x/net v0.0.0-20220722155237-a158d28d115b
 )
 
 require (
 	ariga.io/sqlcomment v0.1.0 // indirect
 	github.com/charmbracelet/lipgloss v0.6.0 // indirect
+	github.com/dukex/mixpanel v1.0.1 // indirect
 	github.com/go-logfmt/logfmt v0.6.0 // indirect
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
+	github.com/hashicorp/errwrap v1.0.0 // indirect
+	github.com/hashicorp/go-multierror v1.1.1 // indirect
 	github.com/lucasb-eyer/go-colorful v1.2.0 // indirect
 	github.com/mattn/go-isatty v0.0.17 // indirect
 	github.com/mattn/go-runewidth v0.0.13 // indirect
 	github.com/muesli/reflow v0.2.1-0.20210115123740-9e1d0d53df68 // indirect
 	github.com/muesli/termenv v0.11.1-0.20220204035834-5ac8409525e0 // indirect
+	github.com/posthog/posthog-go v0.0.0-20221221115252-24dfed35d71a // indirect
 	github.com/rivo/uniseg v0.2.0 // indirect
+	github.com/xtgo/uuid v0.0.0-20140804021211-a0b114877d4c // indirect
 	go.opencensus.io v0.24.0 // indirect
 	go.opentelemetry.io/otel v1.0.1 // indirect
 	go.opentelemetry.io/otel/trace v1.0.1 // indirect
