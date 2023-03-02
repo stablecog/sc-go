@@ -380,7 +380,11 @@ func main() {
 					}
 					// Get duration in seconds
 					duration := time.Now().Sub(cogMessage.Input.LivePageData.CreatedAt).Seconds()
-					analyticsService.GenerationSucceeded(u, cogMessage.Input, duration)
+					if cogMessage.Input.ProcessType == shared.GENERATE || cogMessage.Input.ProcessType == shared.GENERATE_AND_UPSCALE {
+						analyticsService.GenerationSucceeded(u, cogMessage.Input, duration)
+					} else if cogMessage.Input.ProcessType == shared.UPSCALE {
+						analyticsService.UpscaleSucceeded(u, cogMessage.Input, duration)
+					}
 				}
 
 				if cogMessage.Status == requests.CogSucceeded && cogMessage.NSFWCount > 0 {
@@ -391,7 +395,9 @@ func main() {
 					}
 					// Get duration in seconds
 					duration := time.Now().Sub(cogMessage.Input.LivePageData.CreatedAt).Seconds()
-					analyticsService.GenerationFailedNSFW(u, cogMessage.Input, duration)
+					if cogMessage.Input.ProcessType == shared.GENERATE || cogMessage.Input.ProcessType == shared.GENERATE_AND_UPSCALE {
+						analyticsService.GenerationFailedNSFW(u, cogMessage.Input, duration)
+					}
 				}
 
 				if cogMessage.Status == requests.CogFailed {
@@ -402,7 +408,11 @@ func main() {
 					}
 					// Get duration in seconds
 					duration := time.Now().Sub(cogMessage.Input.LivePageData.CreatedAt).Seconds()
-					analyticsService.GenerationFailed(u, cogMessage.Input, duration, cogMessage.Error)
+					if cogMessage.Input.ProcessType == shared.GENERATE || cogMessage.Input.ProcessType == shared.GENERATE_AND_UPSCALE {
+						analyticsService.GenerationFailed(u, cogMessage.Input, duration, cogMessage.Error)
+					} else if cogMessage.Input.ProcessType == shared.UPSCALE {
+						analyticsService.UpscaleFailed(u, cogMessage.Input, duration, cogMessage.Error)
+					}
 				}
 			}()
 

@@ -49,7 +49,8 @@ type BaseCogRequest struct {
 	NegativePromptFlores string             `json:"negative_prompt_flores_200_code,omitempty"`
 	SubmitToGallery      bool               `json:"submit_to_gallery,omitempty"`
 	// Upscale specific
-	Image string `json:"image_to_upscale,omitempty"`
+	Image string             `json:"image_to_upscale,omitempty"`
+	Type  UpscaleRequestType `json:"type,omitempty"`
 }
 
 // Data type is what we actually send to the cog, includes some additional metadata beyond BaseCogRequest

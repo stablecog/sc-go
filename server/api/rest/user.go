@@ -172,6 +172,10 @@ func (c *RestAPI) HandleGetUser(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	if freeCreditsReplenished {
+		go c.Track.FreeCreditsReplenished(*userID, email, int(freeCreditAmount))
+	}
+
 	render.Status(r, http.StatusOK)
 	render.JSON(w, r, responses.GetUserResponse{
 		TotalRemainingCredits: totalRemaining,

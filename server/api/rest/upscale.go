@@ -171,8 +171,11 @@ func (c *RestAPI) HandleUpscale(w http.ResponseWriter, r *http.Request) {
 				ProcessType:          shared.UPSCALE,
 				Width:                fmt.Sprint(width),
 				Height:               fmt.Sprint(height),
+				Model:                modelName,
+				ModelId:              upscaleReq.ModelId,
 				OutputImageExtension: string(shared.DEFAULT_UPSCALE_OUTPUT_EXTENSION),
 				OutputImageQuality:   fmt.Sprint(shared.DEFAULT_UPSCALE_OUTPUT_QUALITY),
+				Type:                 upscaleReq.Type,
 			},
 		}
 
@@ -220,6 +223,8 @@ func (c *RestAPI) HandleUpscale(w http.ResponseWriter, r *http.Request) {
 			Status: requests.CogFailed,
 		})
 	}()
+
+	go c.Track.UpscaleStarted(user, cogReqBody.Input, utils.GetIPAddress(r))
 
 	render.Status(r, http.StatusOK)
 	render.JSON(w, r, &responses.TaskQueuedResponse{

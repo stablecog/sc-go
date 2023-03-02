@@ -56,7 +56,6 @@ func (a *AnalyticsService) GenerationSucceeded(user *ent.User, cogReq requests.B
 		"SC - Inference Steps":   inferenceSteps,
 		"SC - Model Id":          cogReq.ModelId.String(),
 		"SC - Scheduler Id":      cogReq.SchedulerId.String(),
-		"SC - Product Id":        user.ActiveProductID,
 		"SC - Submit to Gallery": cogReq.SubmitToGallery,
 		"SC - Duration":          duration,
 		"SC - Num Outputs":       cogReq.NumOutputs,
@@ -89,7 +88,6 @@ func (a *AnalyticsService) GenerationFailedNSFW(user *ent.User, cogReq requests.
 		"SC - Inference Steps":   inferenceSteps,
 		"SC - Model Id":          cogReq.ModelId.String(),
 		"SC - Scheduler Id":      cogReq.SchedulerId.String(),
-		"SC - Product Id":        user.ActiveProductID,
 		"SC - Submit to Gallery": cogReq.SubmitToGallery,
 		"SC - Duration":          duration,
 		"SC - Num Outputs":       cogReq.NumOutputs,
@@ -122,7 +120,6 @@ func (a *AnalyticsService) GenerationFailed(user *ent.User, cogReq requests.Base
 		"SC - Inference Steps":   inferenceSteps,
 		"SC - Model Id":          cogReq.ModelId.String(),
 		"SC - Scheduler Id":      cogReq.SchedulerId.String(),
-		"SC - Product Id":        user.ActiveProductID,
 		"SC - Submit to Gallery": cogReq.SubmitToGallery,
 		"SC - Duration":          duration,
 		"SC - Num Outputs":       cogReq.NumOutputs,
@@ -140,6 +137,86 @@ func (a *AnalyticsService) GenerationFailed(user *ent.User, cogReq requests.Base
 	})
 }
 
+// Upscale | Started
+func (a *AnalyticsService) UpscaleStarted(user *ent.User, cogReq requests.BaseCogRequest, ip string) error {
+	// We need to get guidance scale/height/inference steps/width as numeric values
+	height, _ := strconv.Atoi(cogReq.Height)
+	width, _ := strconv.Atoi(cogReq.Width)
+
+	properties := map[string]interface{}{
+		"SC - Height":   height,
+		"SC - Width":    width,
+		"SC - Model Id": cogReq.ModelId.String(),
+		"SC - Scale":    4, // Always 4 for now
+		"SC - Image":    cogReq.Image,
+		"SC - Type":     cogReq.Type,
+		"$ip":           ip,
+	}
+	if user.ActiveProductID != nil {
+		properties["SC - Product Id"] = user.ActiveProductID
+	}
+
+	return a.Dispatch(Event{
+		DistinctId: user.ID.String(),
+		EventName:  "Upscale | Started",
+		Properties: properties,
+	})
+}
+
+// Upscale | Succeeded
+func (a *AnalyticsService) UpscaleSucceeded(user *ent.User, cogReq requests.BaseCogRequest, duration float64) error {
+	// We need to get guidance scale/height/inference steps/width as numeric values
+	height, _ := strconv.Atoi(cogReq.Height)
+	width, _ := strconv.Atoi(cogReq.Width)
+
+	properties := map[string]interface{}{
+		"SC - Height":    height,
+		"SC - Width":     width,
+		"SC - Model Id":  cogReq.ModelId.String(),
+		"SC - Scale":     4, // Always 4 for now
+		"SC - Image":     cogReq.Image,
+		"SC - Type":      cogReq.Type,
+		"SC - Duration":  duration,
+		"$geoip_disable": true,
+	}
+	if user.ActiveProductID != nil {
+		properties["SC - Product Id"] = user.ActiveProductID
+	}
+
+	return a.Dispatch(Event{
+		DistinctId: user.ID.String(),
+		EventName:  "Upscale | Succeeded",
+		Properties: properties,
+	})
+}
+
+// Upscale | Failed
+func (a *AnalyticsService) UpscaleFailed(user *ent.User, cogReq requests.BaseCogRequest, duration float64, failureReason string) error {
+	// We need to get guidance scale/height/inference steps/width as numeric values
+	height, _ := strconv.Atoi(cogReq.Height)
+	width, _ := strconv.Atoi(cogReq.Width)
+	properties := map[string]interface{}{
+		"SC - Height":         height,
+		"SC - Width":          width,
+		"SC - Model Id":       cogReq.ModelId.String(),
+		"SC - Scale":          4, // Always 4 for now
+		"SC - Image":          cogReq.Image,
+		"SC - Type":           cogReq.Type,
+		"SC - Duration":       duration,
+		"$geoip_disable":      true,
+		"SC - Failure Reason": failureReason,
+	}
+	if user.ActiveProductID != nil {
+		properties["SC - Product Id"] = user.ActiveProductID
+	}
+
+	return a.Dispatch(Event{
+		DistinctId: user.ID.String(),
+		EventName:  "Upscale | Failed",
+		Properties: properties,
+	})
+}
+
 // Sign Up
 func (a *AnalyticsService) SignUp(userId uuid.UUID, email, ipAddress string) error {
 	return a.Dispatch(Event{
@@ -153,9 +230,87 @@ func (a *AnalyticsService) SignUp(userId uuid.UUID, email, ipAddress string) err
 	})
 }
 
-// Generation | NSFW
-// Subscribe
+// New Subscription
+func (a *AnalyticsService) Subscription(user *ent.User, productId string) error {
+	return a.Dispatch(Event{
+		DistinctId: user.ID.String(),
+		EventName:  "Subscribe",
+		Properties: map[string]interface{}{
+			"SC - Product Id": productId,
+			"SC - Email":      user.Email,
+			"SC - Stripe ID":  user.StripeCustomerID,
+			"$geoip_disable":  true,
+		},
+	})
+}
+
+// Renewed Subscription
+func (a *AnalyticsService) SubscriptionRenewal(user *ent.User, productId string) error {
+	return a.Dispatch(Event{
+		DistinctId: user.ID.String(),
+		EventName:  "Subscription | Renewed",
+		Properties: map[string]interface{}{
+			"SC - Product Id": productId,
+			"SC - Email":      user.Email,
+			"SC - Stripe ID":  user.StripeCustomerID,
+			"$geoip_disable":  true,
+		},
+	})
+}
+
 // Cancelled Subscription
-// Downgraded Subscription
-// Upgraded Subscription
-// Free Credits Replenished
+func (a *AnalyticsService) SubscriptionCancelled(user *ent.User, productId string) error {
+	return a.Dispatch(Event{
+		DistinctId: user.ID.String(),
+		EventName:  "Subscription | Cancelled",
+		Properties: map[string]interface{}{
+			"SC - Product Id": productId,
+			"SC - Email":      user.Email,
+			"SC - Stripe ID":  user.StripeCustomerID,
+			"$geoip_disable":  true,
+		},
+	})
+}
+
+// Upgraded subscription
+func (a *AnalyticsService) SubscriptionUpgraded(user *ent.User, oldProductId string, productId string) error {
+	return a.Dispatch(Event{
+		DistinctId: user.ID.String(),
+		EventName:  "Subscription | Upgraded",
+		Properties: map[string]interface{}{
+			"SC - Old Product Id": oldProductId,
+			"SC - Product Id":     productId,
+			"SC - Email":          user.Email,
+			"SC - Stripe ID":      user.StripeCustomerID,
+			"$geoip_disable":      true,
+		},
+	})
+}
+
+// Credit purchase
+func (a *AnalyticsService) CreditPurchase(user *ent.User, productId string, amount int) error {
+	return a.Dispatch(Event{
+		DistinctId: user.ID.String(),
+		EventName:  "Credit | Purchase",
+		Properties: map[string]interface{}{
+			"SC - Product Id": productId,
+			"SC - Email":      user.Email,
+			"SC - Stripe ID":  user.StripeCustomerID,
+			"SC - Amount":     amount,
+			"$geoip_disable":  true,
+		},
+	})
+}
+
+// Free credits replenished
+func (a *AnalyticsService) FreeCreditsReplenished(userId uuid.UUID, email string, amount int) error {
+	return a.Dispatch(Event{
+		DistinctId: userId.String(),
+		EventName:  "Credit | Free Replenished",
+		Properties: map[string]interface{}{
+			"SC - Email":     email,
+			"SC - Amount":    amount,
+			"$geoip_disable": true,
+		},
+	})
+}

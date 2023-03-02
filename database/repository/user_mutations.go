@@ -20,9 +20,9 @@ func (r *Repository) SetActiveProductID(id uuid.UUID, stripeProductID string, db
 	return db.User.UpdateOneID(id).SetActiveProductID(stripeProductID).Exec(r.Ctx)
 }
 
-func (r *Repository) UnsetActiveProductID(id uuid.UUID, stripeProductId string, db *ent.Client) error {
+func (r *Repository) UnsetActiveProductID(id uuid.UUID, stripeProductId string, db *ent.Client) (int, error) {
 	if db == nil {
 		db = r.DB
 	}
-	return db.User.Update().Where(user.IDEQ(id), user.ActiveProductIDEQ(stripeProductId)).ClearActiveProductID().Exec(r.Ctx)
+	return db.User.Update().Where(user.IDEQ(id), user.ActiveProductIDEQ(stripeProductId)).ClearActiveProductID().Save(r.Ctx)
 }

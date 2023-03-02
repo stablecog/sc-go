@@ -369,10 +369,15 @@ func (c *RestAPI) HandleStripeWebhook(w http.ResponseWriter, r *http.Request) {
 	// For subscription upgrades, we want to cancel all old subscriptions
 	case "customer.subscription.created":
 		newSub, err := stripeObjectMapToSubscriptionObject(event.Data.Object)
+		var newProduct string
+		var oldProduct string
 		if err != nil || newSub == nil {
 			log.Error("Unable parsing stripe subscription object", "err", err)
 			responses.ErrInternalServerError(w, r, err.Error())
 			return
+		}
+		if newSub.Items != nil && len(newSub.Items.Data) > 0 && newSub.Items.Data[0].Price != nil && newSub.Items.Data[0].Price.Product != nil {
+			newProduct = newSub.Items.Data[0].Price.Product.ID
 		}
 		// We need to see if they have more than one subscription
 		subIter := c.StripeClient.Subscriptions.List(&stripe.SubscriptionListParams{
@@ -381,6 +386,9 @@ func (c *RestAPI) HandleStripeWebhook(w http.ResponseWriter, r *http.Request) {
 		for subIter.Next() {
 			sub := subIter.Subscription()
 			if sub.ID != newSub.ID {
+				if sub.Items != nil && len(sub.Items.Data) > 0 && sub.Items.Data[0].Price != nil && sub.Items.Data[0].Price.Product != nil {
+					oldProduct = newSub.Items.Data[0].Price.Product.ID
+				}
 				// We need to cancel this subscription
 				_, err := c.StripeClient.Subscriptions.Cancel(sub.ID, &stripe.SubscriptionCancelParams{
 					Prorate: stripe.Bool(false),
@@ -391,6 +399,17 @@ func (c *RestAPI) HandleStripeWebhook(w http.ResponseWriter, r *http.Request) {
 					return
 				}
 			}
+		}
+		// Analytics
+		if newProduct != "" && oldProduct != "" {
+			go func() {
+				user, err := c.Repo.GetUserByStripeCustomerId(newSub.Customer.ID)
+				if err != nil {
+					log.Error("Unable getting user from stripe customer id in upgrade subscription event", "err", err)
+					return
+				}
+				go c.Track.SubscriptionUpgraded(user, oldProduct, newProduct)
+			}()
 		}
 	case "customer.subscription.deleted":
 		sub, err := stripeObjectMapToCustomSubscriptionObject(event.Data.Object)
@@ -411,11 +430,15 @@ func (c *RestAPI) HandleStripeWebhook(w http.ResponseWriter, r *http.Request) {
 		}
 		// Get product Id from subscription
 		if sub.Items != nil && len(sub.Items.Data) > 0 && sub.Items.Data[0].Price != nil {
-			err := c.Repo.UnsetActiveProductID(user.ID, sub.Items.Data[0].Price.Product, nil)
+			affected, err := c.Repo.UnsetActiveProductID(user.ID, sub.Items.Data[0].Price.Product, nil)
 			if err != nil {
 				log.Error("Unable unsetting stripe product id", "err", err)
 				responses.ErrInternalServerError(w, r, err.Error())
 				return
+			}
+			if affected > 0 {
+				// Subscription cancelled
+				go c.Track.SubscriptionCancelled(user, sub.Items.Data[0].Price.Product)
 			}
 		}
 	case "invoice.payment_succeeded":
@@ -498,6 +521,7 @@ func (c *RestAPI) HandleStripeWebhook(w http.ResponseWriter, r *http.Request) {
 					responses.ErrInternalServerError(w, r, err.Error())
 					return
 				}
+				go c.Track.CreditPurchase(user, product, int(creditType.Amount))
 			} else {
 				expiresAt := utils.SecondsSinceEpochToTime(line.Period.End)
 				// Update user credit
@@ -508,6 +532,13 @@ func (c *RestAPI) HandleStripeWebhook(w http.ResponseWriter, r *http.Request) {
 						log.Error("Unable adding credits to user %s: %v", user.ID.String(), err)
 						responses.ErrInternalServerError(w, r, err.Error())
 						return err
+					}
+					if user.ActiveProductID == nil {
+						// New subscriber
+						go c.Track.Subscription(user, product)
+					} else {
+						// Renewal
+						go c.Track.SubscriptionRenewal(user, product)
 					}
 					err = c.Repo.SetActiveProductID(user.ID, product, client)
 					if err != nil {
