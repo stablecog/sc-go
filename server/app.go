@@ -179,7 +179,7 @@ func main() {
 	}))
 
 	// Get models, schedulers and put in cache
-	log.Info("📦 Updating cache...")
+	log.Info("📦 Populating cache...")
 	err = repo.UpdateCache()
 	if err != nil {
 		// ! Not getting these is fatal and will result in crash
