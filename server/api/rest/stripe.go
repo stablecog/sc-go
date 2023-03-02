@@ -481,23 +481,13 @@ func (c *RestAPI) HandleStripeWebhook(w http.ResponseWriter, r *http.Request) {
 
 		for _, line := range invoice.Lines.Data {
 			var product string
-			if line.Plan == nil && invoice.BillingReason != InvoiceBillingReasonManual {
+			if line.Plan == nil {
 				log.Error("Stripe plan is nil in line item %s", line.ID)
 				responses.ErrInternalServerError(w, r, "Stripe plan is nil in line item")
 				return
 			}
 
-			if line.Price == nil && invoice.BillingReason == InvoiceBillingReasonManual {
-				log.Error("Stripe price is nil in line item %s", line.ID)
-				responses.ErrInternalServerError(w, r, "Stripe price is nil in line item")
-				return
-			}
-
-			if invoice.BillingReason == InvoiceBillingReasonManual {
-				product = line.Price.Product
-			} else {
-				product = line.Plan.Product
-			}
+			product = line.Plan.Product
 
 			if product == "" {
 				log.Error("Stripe product is nil in line item %s", line.ID)
@@ -529,44 +519,33 @@ func (c *RestAPI) HandleStripeWebhook(w http.ResponseWriter, r *http.Request) {
 				return
 			}
 
-			if invoice.BillingReason == InvoiceBillingReasonManual {
-				// Ad-hoc credit add
-				_, err = c.Repo.AddAdhocCreditsIfEligible(creditType, user.ID, line.ID)
+			expiresAt := utils.SecondsSinceEpochToTime(line.Period.End)
+			// Update user credit
+			if err := c.Repo.WithTx(func(tx *ent.Tx) error {
+				client := tx.Client()
+				_, err = c.Repo.AddCreditsIfEligible(creditType, user.ID, expiresAt, line.ID, client)
 				if err != nil {
 					log.Error("Unable adding credits to user %s: %v", user.ID.String(), err)
 					responses.ErrInternalServerError(w, r, err.Error())
-					return
+					return err
 				}
-				go c.Track.CreditPurchase(user, product, int(creditType.Amount))
-			} else {
-				expiresAt := utils.SecondsSinceEpochToTime(line.Period.End)
-				// Update user credit
-				if err := c.Repo.WithTx(func(tx *ent.Tx) error {
-					client := tx.Client()
-					_, err = c.Repo.AddCreditsIfEligible(creditType, user.ID, expiresAt, line.ID, client)
-					if err != nil {
-						log.Error("Unable adding credits to user %s: %v", user.ID.String(), err)
-						responses.ErrInternalServerError(w, r, err.Error())
-						return err
-					}
-					if user.ActiveProductID == nil {
-						// New subscriber
-						go c.Track.Subscription(user, product)
-					} else {
-						// Renewal
-						go c.Track.SubscriptionRenewal(user, product)
-					}
-					err = c.Repo.SetActiveProductID(user.ID, product, client)
-					if err != nil {
-						log.Error("Unable setting stripe product id for user %s: %v", user.ID.String(), err)
-						responses.ErrInternalServerError(w, r, err.Error())
-						return err
-					}
-					return nil
-				}); err != nil {
-					log.Error("Unable adding credits to user %s: %v", user.ID.String(), err)
-					return
+				if user.ActiveProductID == nil {
+					// New subscriber
+					go c.Track.Subscription(user, product)
+				} else {
+					// Renewal
+					go c.Track.SubscriptionRenewal(user, product)
 				}
+				err = c.Repo.SetActiveProductID(user.ID, product, client)
+				if err != nil {
+					log.Error("Unable setting stripe product id for user %s: %v", user.ID.String(), err)
+					responses.ErrInternalServerError(w, r, err.Error())
+					return err
+				}
+				return nil
+			}); err != nil {
+				log.Error("Unable adding credits to user %s: %v", user.ID.String(), err)
+				return
 			}
 		}
 	// Adhoc credit purchases
@@ -577,15 +556,53 @@ func (c *RestAPI) HandleStripeWebhook(w http.ResponseWriter, r *http.Request) {
 			responses.ErrInternalServerError(w, r, err.Error())
 			return
 		}
-		if pi == nil || pi.Invoice == nil {
+		if pi == nil || pi.Invoice == "" {
 			// Not an adhoc payment
 			render.Status(r, http.StatusOK)
 			render.PlainText(w, r, "OK")
 			return
 		}
 
-		// Figure out the product
+		// Get product from metadata
+		product, ok := pi.Metadata["product"]
+		if !ok {
+			log.Error("Stripe payment intent metadata is missing product", "payment_intent_id", pi.ID)
+			responses.ErrInternalServerError(w, r, "Stripe payment intent metadata is missing product")
+			return
+		}
 
+		// Get the credit type for this plan
+		creditType, err := c.Repo.GetCreditTypeByStripeProductID(product)
+		if err != nil {
+			log.Error("Unable getting credit type from stripe product id", "err", err)
+			responses.ErrInternalServerError(w, r, err.Error())
+			return
+		} else if creditType == nil {
+			log.Error("Credit type does not exist with stripe product id: %s", product)
+			responses.ErrInternalServerError(w, r, "Credit type does not exist with stripe product id")
+			return
+		}
+
+		// Get user by customer id
+		user, err := c.Repo.GetUserByStripeCustomerId(pi.Customer)
+		if err != nil {
+			log.Error("Unable getting user from stripe customer id", "err", err)
+			responses.ErrInternalServerError(w, r, err.Error())
+			return
+		} else if user == nil {
+			log.Error("User does not exist with stripe customer id: %s", pi.Customer)
+			responses.ErrInternalServerError(w, r, "User does not exist with stripe customer id")
+			return
+		}
+
+		// Ad-hoc credit add
+		_, err = c.Repo.AddAdhocCreditsIfEligible(creditType, user.ID, pi.ID)
+		if err != nil {
+			log.Error("Unable adding credits to user %s: %v", user.ID.String(), err)
+			responses.ErrInternalServerError(w, r, err.Error())
+			return
+		}
+		go c.Track.CreditPurchase(user, product, int(creditType.Amount))
 	}
 
 	render.Status(r, http.StatusOK)
@@ -635,12 +652,12 @@ func stripeObjectMapToCustomSubscriptionObject(obj map[string]interface{}) (*Sub
 }
 
 // Parse generic object into stripe invoice struct
-func stripeObjectMapToPaymentIntent(obj map[string]interface{}) (*stripe.PaymentIntent, error) {
+func stripeObjectMapToPaymentIntent(obj map[string]interface{}) (*PaymentIntent, error) {
 	marshalled, err := json.Marshal(obj)
 	if err != nil {
 		return nil, err
 	}
-	var pi stripe.PaymentIntent
+	var pi PaymentIntent
 	err = json.Unmarshal(marshalled, &pi)
 	if err != nil {
 		return nil, err
@@ -654,7 +671,6 @@ type InvoiceBillingReason string
 
 // List of values that InvoiceBillingReason can take.
 const (
-	InvoiceBillingReasonManual                InvoiceBillingReason = "manual"
 	InvoiceBillingReasonSubscription          InvoiceBillingReason = "subscription"
 	InvoiceBillingReasonSubscriptionCreate    InvoiceBillingReason = "subscription_create"
 	InvoiceBillingReasonSubscriptionCycle     InvoiceBillingReason = "subscription_cycle"
@@ -717,4 +733,12 @@ type SubscriptionItemList struct {
 type Subscription struct {
 	Items    *SubscriptionItemList `json:"items"`
 	Customer string                `json:"customer"`
+}
+
+// PaymentIntent is also broken
+type PaymentIntent struct {
+	ID       string            `json:"id"`
+	Invoice  string            `json:"invoice"`
+	Metadata map[string]string `json:"metadata"`
+	Customer string            `json:"customer"`
 }
