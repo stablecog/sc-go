@@ -556,8 +556,7 @@ func (c *RestAPI) HandleStripeWebhook(w http.ResponseWriter, r *http.Request) {
 			responses.ErrInternalServerError(w, r, err.Error())
 			return
 		}
-		if pi == nil || pi.Invoice == nil {
-			log.Info("!!!! Not an adhoc payment")
+		if pi == nil || pi.Invoice != nil {
 			// Not an adhoc payment
 			render.Status(r, http.StatusOK)
 			render.PlainText(w, r, "OK")
