@@ -486,7 +486,7 @@ paths:
                 properties:
                   error:
                     type: string
-                    format: invalid_price_id, invalid_currency, already_subscribed, cannot_downgrade,
+                    format: invalid_price_id, invalid_currency, already_subscribed, cannot_downgrade, no_subscription
         "401":
           description: Bad request
           content:

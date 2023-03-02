@@ -25,6 +25,10 @@ var PriceIDs = map[int]string{
 	1: utils.GetEnv("STRIPE_STARTER_PRICE_ID", "price_1Mf56NATa0ehBYTAHkCUablG"),
 }
 
+var SinglePurchasePriceIDs = []string{
+	"price_1MfRaaATa0ehBYTAVRW3LPdR",
+}
+
 // For creating customer portal session
 func (c *RestAPI) HandleCreatePortalSession(w http.ResponseWriter, r *http.Request) {
 	var user *ent.User
@@ -80,6 +84,7 @@ func (c *RestAPI) HandleCreateCheckoutSession(w http.ResponseWriter, r *http.Req
 	// Make sure price ID exists in map
 	var targetPriceID string
 	var targetPriceLevel int
+	adhocPrice := false
 	for level, priceID := range PriceIDs {
 		if priceID == stripeReq.TargetPriceID {
 			targetPriceID = priceID
@@ -88,6 +93,14 @@ func (c *RestAPI) HandleCreateCheckoutSession(w http.ResponseWriter, r *http.Req
 		}
 	}
 	if targetPriceID == "" {
+		// Check if it's a single purchase price
+		for _, priceID := range SinglePurchasePriceIDs {
+			if priceID == stripeReq.TargetPriceID {
+				targetPriceID = priceID
+				adhocPrice = true
+				break
+			}
+		}
 		responses.ErrBadRequest(w, r, "invalid_price_id")
 		return
 	}
@@ -140,8 +153,14 @@ func (c *RestAPI) HandleCreateCheckoutSession(w http.ResponseWriter, r *http.Req
 		}
 	}
 
+	// If they don't have one, cannot buy adhoc
+	if currentPriceID == "" && adhocPrice {
+		responses.ErrBadRequest(w, r, "no_subscription")
+		return
+	}
+
 	// If they have a current one, make sure they are upgrading
-	if currentPriceID != "" {
+	if currentPriceID != "" && !adhocPrice {
 		var currentPriceLevel int
 		for level, priceID := range PriceIDs {
 			if priceID == currentPriceID {
