@@ -101,6 +101,8 @@ func (c *RestAPI) HandleCreateCheckoutSession(w http.ResponseWriter, r *http.Req
 				break
 			}
 		}
+	}
+	if targetPriceID == "" {
 		responses.ErrBadRequest(w, r, "invalid_price_id")
 		return
 	}
