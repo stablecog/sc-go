@@ -9,6 +9,7 @@ import (
 	"github.com/stablecog/sc-go/database"
 	"github.com/stablecog/sc-go/database/ent"
 	"github.com/stablecog/sc-go/database/repository"
+	"github.com/stablecog/sc-go/server/analytics"
 	"github.com/stablecog/sc-go/server/api/sse"
 	"github.com/stablecog/sc-go/server/responses"
 	stripe "github.com/stripe/stripe-go/v74/client"
@@ -24,6 +25,7 @@ type RestAPI struct {
 	Hub          *sse.Hub
 	StripeClient *stripe.API
 	Meili        *meilisearch.Client
+	Track        *analytics.AnalyticsService
 }
 
 func (c *RestAPI) GetUserIfAuthenticated(w http.ResponseWriter, r *http.Request) (user *ent.User) {

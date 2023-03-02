@@ -4,14 +4,12 @@ import (
 	"os"
 
 	"github.com/charmbracelet/log"
-	"github.com/dukex/mixpanel"
 	"github.com/posthog/posthog-go"
 	"github.com/stablecog/sc-go/utils"
 )
 
 type AnalyticsService struct {
-	Posthog  posthog.Client
-	Mixpanel mixpanel.Mixpanel
+	Posthog posthog.Client
 }
 
 func NewAnalyticsService() *AnalyticsService {
@@ -34,6 +32,12 @@ func NewAnalyticsService() *AnalyticsService {
 	}
 
 	return service
+}
+
+func (a *AnalyticsService) Close() {
+	if a.Posthog != nil {
+		a.Posthog.Close()
+	}
 }
 
 // Dispatch to all available analytics services

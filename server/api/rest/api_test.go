@@ -9,6 +9,7 @@ import (
 
 	"github.com/stablecog/sc-go/database"
 	"github.com/stablecog/sc-go/database/repository"
+	"github.com/stablecog/sc-go/server/analytics"
 	"github.com/stablecog/sc-go/server/api/sse"
 	"github.com/stablecog/sc-go/utils"
 )
@@ -84,6 +85,7 @@ func testMainWrapper(m *testing.M) int {
 		Repo:  repo,
 		Redis: redis,
 		Hub:   hub,
+		Track: analytics.NewAnalyticsService(),
 	}
 
 	return m.Run()

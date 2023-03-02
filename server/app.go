@@ -17,6 +17,7 @@ import (
 	"github.com/joho/godotenv"
 	"github.com/stablecog/sc-go/database"
 	"github.com/stablecog/sc-go/database/repository"
+	"github.com/stablecog/sc-go/server/analytics"
 	"github.com/stablecog/sc-go/server/api/rest"
 	"github.com/stablecog/sc-go/server/api/sse"
 	"github.com/stablecog/sc-go/server/middleware"
@@ -201,6 +202,10 @@ func main() {
 	sseHub := sse.NewHub(redis, repo)
 	go sseHub.Run()
 
+	// Create analytics service
+	analyticsService := analytics.NewAnalyticsService()
+	defer analyticsService.Close()
+
 	// Create controller
 	hc := rest.RestAPI{
 		Repo:         repo,
@@ -208,6 +213,7 @@ func main() {
 		Hub:          sseHub,
 		StripeClient: stripeClient,
 		Meili:        database.NewMeiliSearchClient(),
+		Track:        analyticsService,
 	}
 
 	// Create middleware
@@ -322,7 +328,7 @@ func main() {
 				continue
 			}
 
-			// Process live page message
+			// Process live page message and analytics
 			go func() {
 				// Live page update
 				livePageMsg := cogMessage.Input.LivePageData
@@ -359,6 +365,31 @@ func main() {
 				err = redis.Client.Publish(redis.Client.Context(), shared.REDIS_SSE_BROADCAST_CHANNEL, respBytes).Err()
 				if err != nil {
 					log.Error("Failed to publish live page update", "err", err)
+				}
+			}()
+
+			// Analytics
+			go func() {
+				if cogMessage.Status == requests.CogSucceeded && len(cogMessage.Outputs) > 0 {
+					u, err := repo.GetUser(cogMessage.Input.UserID)
+					if err != nil {
+						log.Error("Error getting user for analytics", "err", err)
+						return
+					}
+					// Get duration in seconds
+					duration := time.Now().Sub(cogMessage.Input.LivePageData.CreatedAt).Seconds()
+					analyticsService.GenerationSucceeded(u, cogMessage.Input, duration)
+				}
+
+				if cogMessage.Status == requests.CogSucceeded && cogMessage.NSFWCount > 0 {
+					u, err := repo.GetUser(cogMessage.Input.UserID)
+					if err != nil {
+						log.Error("Error getting user for analytics", "err", err)
+						return
+					}
+					// Get duration in seconds
+					duration := time.Now().Sub(cogMessage.Input.LivePageData.CreatedAt).Seconds()
+					analyticsService.GenerationFailedNSFW(u, cogMessage.Input, duration)
 				}
 			}()
 
