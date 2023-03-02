@@ -24,13 +24,13 @@ func (a *AnalyticsService) GenerationStarted(user *ent.User, cogReq requests.Bas
 		"SC - Inference Steps":   inferenceSteps,
 		"SC - Model Id":          cogReq.ModelId.String(),
 		"SC - Scheduler Id":      cogReq.SchedulerId.String(),
-		"SC - Product Id":        user.ActiveProductID,
+		"SC - Stripe Product Id": user.ActiveProductID,
 		"SC - Submit to Gallery": cogReq.SubmitToGallery,
 		"SC - Num Outputs":       cogReq.NumOutputs,
 		"$ip":                    ip,
 	}
 	if user.ActiveProductID != nil {
-		properties["SC - Product Id"] = user.ActiveProductID
+		properties["SC - Stripe Product Id"] = user.ActiveProductID
 	}
 
 	return a.Dispatch(Event{
@@ -62,7 +62,7 @@ func (a *AnalyticsService) GenerationSucceeded(user *ent.User, cogReq requests.B
 		"$geoip_disable":         true,
 	}
 	if user.ActiveProductID != nil {
-		properties["SC - Product Id"] = user.ActiveProductID
+		properties["SC - Stripe Product Id"] = user.ActiveProductID
 	}
 
 	return a.Dispatch(Event{
@@ -94,7 +94,7 @@ func (a *AnalyticsService) GenerationFailedNSFW(user *ent.User, cogReq requests.
 		"$geoip_disable":         true,
 	}
 	if user.ActiveProductID != nil {
-		properties["SC - Product Id"] = user.ActiveProductID
+		properties["SC - Stripe Product Id"] = user.ActiveProductID
 	}
 
 	return a.Dispatch(Event{
@@ -127,7 +127,7 @@ func (a *AnalyticsService) GenerationFailed(user *ent.User, cogReq requests.Base
 		"$geoip_disable":         true,
 	}
 	if user.ActiveProductID != nil {
-		properties["SC - Product Id"] = user.ActiveProductID
+		properties["SC - Stripe Product Id"] = user.ActiveProductID
 	}
 
 	return a.Dispatch(Event{
@@ -153,7 +153,7 @@ func (a *AnalyticsService) UpscaleStarted(user *ent.User, cogReq requests.BaseCo
 		"$ip":           ip,
 	}
 	if user.ActiveProductID != nil {
-		properties["SC - Product Id"] = user.ActiveProductID
+		properties["SC - Stripe Product Id"] = user.ActiveProductID
 	}
 
 	return a.Dispatch(Event{
@@ -180,7 +180,7 @@ func (a *AnalyticsService) UpscaleSucceeded(user *ent.User, cogReq requests.Base
 		"$geoip_disable": true,
 	}
 	if user.ActiveProductID != nil {
-		properties["SC - Product Id"] = user.ActiveProductID
+		properties["SC - Stripe Product Id"] = user.ActiveProductID
 	}
 
 	return a.Dispatch(Event{
@@ -207,7 +207,7 @@ func (a *AnalyticsService) UpscaleFailed(user *ent.User, cogReq requests.BaseCog
 		"SC - Failure Reason": failureReason,
 	}
 	if user.ActiveProductID != nil {
-		properties["SC - Product Id"] = user.ActiveProductID
+		properties["SC - Stripe Product Id"] = user.ActiveProductID
 	}
 
 	return a.Dispatch(Event{
@@ -236,10 +236,10 @@ func (a *AnalyticsService) Subscription(user *ent.User, productId string) error 
 		DistinctId: user.ID.String(),
 		EventName:  "Subscription",
 		Properties: map[string]interface{}{
-			"SC - Product Id": productId,
-			"SC - Email":      user.Email,
-			"SC - Stripe ID":  user.StripeCustomerID,
-			"$geoip_disable":  true,
+			"SC - Stripe Product Id": productId,
+			"SC - Email":             user.Email,
+			"SC - Stripe ID":         user.StripeCustomerID,
+			"$geoip_disable":         true,
 		},
 	})
 }
@@ -250,10 +250,10 @@ func (a *AnalyticsService) SubscriptionRenewal(user *ent.User, productId string)
 		DistinctId: user.ID.String(),
 		EventName:  "Subscription | Renewed",
 		Properties: map[string]interface{}{
-			"SC - Product Id": productId,
-			"SC - Email":      user.Email,
-			"SC - Stripe ID":  user.StripeCustomerID,
-			"$geoip_disable":  true,
+			"SC - Stripe Product Id": productId,
+			"SC - Email":             user.Email,
+			"SC - Stripe ID":         user.StripeCustomerID,
+			"$geoip_disable":         true,
 		},
 	})
 }
@@ -264,10 +264,10 @@ func (a *AnalyticsService) SubscriptionCancelled(user *ent.User, productId strin
 		DistinctId: user.ID.String(),
 		EventName:  "Subscription | Cancelled",
 		Properties: map[string]interface{}{
-			"SC - Product Id": productId,
-			"SC - Email":      user.Email,
-			"SC - Stripe ID":  user.StripeCustomerID,
-			"$geoip_disable":  true,
+			"SC - Stripe Product Id": productId,
+			"SC - Email":             user.Email,
+			"SC - Stripe ID":         user.StripeCustomerID,
+			"$geoip_disable":         true,
 		},
 	})
 }
@@ -278,11 +278,11 @@ func (a *AnalyticsService) SubscriptionUpgraded(user *ent.User, oldProductId str
 		DistinctId: user.ID.String(),
 		EventName:  "Subscription | Upgraded",
 		Properties: map[string]interface{}{
-			"SC - Old Product Id": oldProductId,
-			"SC - Product Id":     productId,
-			"SC - Email":          user.Email,
-			"SC - Stripe ID":      user.StripeCustomerID,
-			"$geoip_disable":      true,
+			"SC - Old Product Id":    oldProductId,
+			"SC - Stripe Product Id": productId,
+			"SC - Email":             user.Email,
+			"SC - Stripe ID":         user.StripeCustomerID,
+			"$geoip_disable":         true,
 		},
 	})
 }
@@ -293,11 +293,11 @@ func (a *AnalyticsService) CreditPurchase(user *ent.User, productId string, amou
 		DistinctId: user.ID.String(),
 		EventName:  "Credit | Purchase",
 		Properties: map[string]interface{}{
-			"SC - Product Id": productId,
-			"SC - Email":      user.Email,
-			"SC - Stripe ID":  user.StripeCustomerID,
-			"SC - Amount":     amount,
-			"$geoip_disable":  true,
+			"SC - Stripe Product Id": productId,
+			"SC - Email":             user.Email,
+			"SC - Stripe ID":         user.StripeCustomerID,
+			"SC - Amount":            amount,
+			"$geoip_disable":         true,
 		},
 	})
 }
