@@ -391,6 +391,17 @@ func main() {
 					duration := time.Now().Sub(cogMessage.Input.LivePageData.CreatedAt).Seconds()
 					analyticsService.GenerationFailedNSFW(u, cogMessage.Input, duration)
 				}
+
+				if cogMessage.Status == requests.CogFailed {
+					u, err := repo.GetUser(cogMessage.Input.UserID)
+					if err != nil {
+						log.Error("Error getting user for analytics", "err", err)
+						return
+					}
+					// Get duration in seconds
+					duration := time.Now().Sub(cogMessage.Input.LivePageData.CreatedAt).Seconds()
+					analyticsService.GenerationFailed(u, cogMessage.Input, duration, cogMessage.Error)
+				}
 			}()
 
 			// Process in database
