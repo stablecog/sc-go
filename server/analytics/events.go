@@ -234,7 +234,7 @@ func (a *AnalyticsService) SignUp(userId uuid.UUID, email, ipAddress string) err
 func (a *AnalyticsService) Subscription(user *ent.User, productId string) error {
 	return a.Dispatch(Event{
 		DistinctId: user.ID.String(),
-		EventName:  "Subscribe",
+		EventName:  "Subscription",
 		Properties: map[string]interface{}{
 			"SC - Product Id": productId,
 			"SC - Email":      user.Email,
