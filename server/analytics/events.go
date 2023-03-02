@@ -24,7 +24,6 @@ func (a *AnalyticsService) GenerationStarted(user *ent.User, cogReq requests.Bas
 		"SC - Inference Steps":   inferenceSteps,
 		"SC - Model Id":          cogReq.ModelId.String(),
 		"SC - Scheduler Id":      cogReq.SchedulerId.String(),
-		"SC - Stripe Product Id": user.ActiveProductID,
 		"SC - Submit to Gallery": cogReq.SubmitToGallery,
 		"SC - Num Outputs":       cogReq.NumOutputs,
 		"$ip":                    ip,
