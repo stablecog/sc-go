@@ -25,8 +25,9 @@ var PriceIDs = map[int]string{
 	1: utils.GetEnv("STRIPE_STARTER_PRICE_ID", "price_1Mf56NATa0ehBYTAHkCUablG"),
 }
 
-var SinglePurchasePriceIDs = []string{
-	"price_1MfRaaATa0ehBYTAVRW3LPdR",
+var SinglePurchasePriceIDs = map[string]string{
+	"price_1MfRaaATa0ehBYTAVRW3LPdR": "prod_NQIAwnD61CSElQ",
+	"price_1MhHtWATa0ehBYTAeBRQMXIP": "prod_NSCIDEdB7ZHb5x",
 }
 
 // For creating customer portal session
@@ -94,7 +95,7 @@ func (c *RestAPI) HandleCreateCheckoutSession(w http.ResponseWriter, r *http.Req
 	}
 	if targetPriceID == "" {
 		// Check if it's a single purchase price
-		for _, priceID := range SinglePurchasePriceIDs {
+		for priceID := range SinglePurchasePriceIDs {
 			if priceID == stripeReq.TargetPriceID {
 				targetPriceID = priceID
 				adhocPrice = true
@@ -199,6 +200,13 @@ func (c *RestAPI) HandleCreateCheckoutSession(w http.ResponseWriter, r *http.Req
 		SuccessURL: stripe.String(stripeReq.SuccessUrl),
 		CancelURL:  stripe.String(stripeReq.CancelUrl),
 		Currency:   stripe.String(stripeReq.Currency),
+	}
+	if adhocPrice {
+		params.PaymentIntentData = &stripe.CheckoutSessionPaymentIntentDataParams{
+			Metadata: map[string]string{
+				"product": SinglePurchasePriceIDs[targetPriceID],
+			},
+		}
 	}
 
 	session, err := c.StripeClient.CheckoutSessions.New(params)
@@ -350,6 +358,9 @@ func (c *RestAPI) HandleSubscriptionDowngrade(w http.ResponseWriter, r *http.Req
 //
 // customer.subscription.created
 //   - For a subscription upgrade, we cancel all old subscriptions
+//
+// payment_intent.succeeded
+//   - For adhoc payments, we apply credits to the user
 func (c *RestAPI) HandleStripeWebhook(w http.ResponseWriter, r *http.Request) {
 	// Parse request body
 	reqBody, err := io.ReadAll(r.Body)
@@ -445,6 +456,7 @@ func (c *RestAPI) HandleStripeWebhook(w http.ResponseWriter, r *http.Request) {
 				go c.Track.SubscriptionCancelled(user, sub.Items.Data[0].Price.Product)
 			}
 		}
+	// Subcription payments
 	case "invoice.payment_succeeded":
 		// We can parse the object as an invoice since that's the only thing we care about
 		invoice, err := stripeObjectMapToInvoiceObject(event.Data.Object)
@@ -455,7 +467,7 @@ func (c *RestAPI) HandleStripeWebhook(w http.ResponseWriter, r *http.Request) {
 		}
 
 		// We only care about renewal (cycle), create, and manual
-		if invoice.BillingReason != InvoiceBillingReasonSubscriptionCycle && invoice.BillingReason != InvoiceBillingReasonSubscriptionCreate && invoice.BillingReason != InvoiceBillingReasonManual {
+		if invoice.BillingReason != InvoiceBillingReasonSubscriptionCycle && invoice.BillingReason != InvoiceBillingReasonSubscriptionCreate {
 			render.Status(r, http.StatusOK)
 			render.PlainText(w, r, "OK")
 			return
@@ -557,6 +569,23 @@ func (c *RestAPI) HandleStripeWebhook(w http.ResponseWriter, r *http.Request) {
 				}
 			}
 		}
+	// Adhoc credit purchases
+	case "payment_intent.succeeded":
+		pi, err := stripeObjectMapToPaymentIntent(event.Data.Object)
+		if err != nil || pi == nil {
+			log.Error("Unable parsing stripe payment intent object", "err", err)
+			responses.ErrInternalServerError(w, r, err.Error())
+			return
+		}
+		if pi == nil || pi.Invoice == nil {
+			// Not an adhoc payment
+			render.Status(r, http.StatusOK)
+			render.PlainText(w, r, "OK")
+			return
+		}
+
+		// Figure out the product
+
 	}
 
 	render.Status(r, http.StatusOK)
@@ -603,6 +632,20 @@ func stripeObjectMapToCustomSubscriptionObject(obj map[string]interface{}) (*Sub
 		return nil, err
 	}
 	return &subscription, nil
+}
+
+// Parse generic object into stripe invoice struct
+func stripeObjectMapToPaymentIntent(obj map[string]interface{}) (*stripe.PaymentIntent, error) {
+	marshalled, err := json.Marshal(obj)
+	if err != nil {
+		return nil, err
+	}
+	var pi stripe.PaymentIntent
+	err = json.Unmarshal(marshalled, &pi)
+	if err != nil {
+		return nil, err
+	}
+	return &pi, nil
 }
 
 // ! Stripe types are busted so we modify the ones included in their lib
