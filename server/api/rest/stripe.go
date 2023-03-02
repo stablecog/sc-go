@@ -182,6 +182,10 @@ func (c *RestAPI) HandleCreateCheckoutSession(w http.ResponseWriter, r *http.Req
 		}
 	}
 
+	mode := stripe.CheckoutSessionModeSubscription
+	if adhocPrice {
+		mode = stripe.CheckoutSessionModePayment
+	}
 	// Create checkout session
 	params := &stripe.CheckoutSessionParams{
 		Customer: stripe.String(user.StripeCustomerID),
@@ -191,7 +195,7 @@ func (c *RestAPI) HandleCreateCheckoutSession(w http.ResponseWriter, r *http.Req
 				Quantity: stripe.Int64(1),
 			},
 		},
-		Mode:       stripe.String(string(stripe.CheckoutSessionModeSubscription)),
+		Mode:       stripe.String(string(mode)),
 		SuccessURL: stripe.String(stripeReq.SuccessUrl),
 		CancelURL:  stripe.String(stripeReq.CancelUrl),
 		Currency:   stripe.String(stripeReq.Currency),
