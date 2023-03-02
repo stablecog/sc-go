@@ -322,7 +322,6 @@ func main() {
 	go func() {
 		log.Info("Listening for cog messages", "channel", shared.COG_REDIS_EVENT_CHANNEL)
 		for msg := range pubsub.Channel() {
-			log.Info("Received", "channel", shared.COG_REDIS_EVENT_CHANNEL, "message", msg.Payload)
 			var cogMessage requests.CogRedisMessage
 			err := json.Unmarshal([]byte(msg.Payload), &cogMessage)
 			if err != nil {
@@ -437,7 +436,6 @@ func main() {
 	go func() {
 		log.Info("Listening for cog messages", "channel", shared.REDIS_SSE_BROADCAST_CHANNEL)
 		for msg := range pubsubSSEMessages.Channel() {
-			log.Info("Received %s message: %s", shared.REDIS_SSE_BROADCAST_CHANNEL, msg.Payload)
 			var sseMessage repository.TaskStatusUpdateResponse
 			err := json.Unmarshal([]byte(msg.Payload), &sseMessage)
 			if err != nil {
