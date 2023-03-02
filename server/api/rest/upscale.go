@@ -171,7 +171,7 @@ func (c *RestAPI) HandleUpscale(w http.ResponseWriter, r *http.Request) {
 				ProcessType:          shared.UPSCALE,
 				Width:                fmt.Sprint(width),
 				Height:               fmt.Sprint(height),
-				Model:                modelName,
+				UpscaleModel:         modelName,
 				ModelId:              upscaleReq.ModelId,
 				OutputImageExtension: string(shared.DEFAULT_UPSCALE_OUTPUT_EXTENSION),
 				OutputImageQuality:   fmt.Sprint(shared.DEFAULT_UPSCALE_OUTPUT_QUALITY),
