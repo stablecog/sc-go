@@ -9,19 +9,28 @@ type Event struct {
 	DistinctId string
 	EventName  string
 	Properties map[string]interface{}
+	Identify   bool
 }
 
-func (e *Event) PosthogEvent() posthog.Capture {
+func (e *Event) PosthogEvent() (posthog.Capture, *posthog.Identify) {
 	// Construct properties
 	properties := posthog.NewProperties()
 	for k, v := range e.Properties {
 		properties.Set(k, v)
 	}
-	return posthog.Capture{
+	c := posthog.Capture{
 		DistinctId: e.DistinctId,
 		Event:      e.EventName,
 		Properties: properties,
 	}
+	if e.Identify {
+		i := posthog.Identify{
+			DistinctId: e.DistinctId,
+			Properties: properties,
+		}
+		return c, &i
+	}
+	return c, nil
 }
 
 func (e *Event) MixpanelEvent() (distinctId, eventName string, event *mixpanel.Event) {
