@@ -56,11 +56,7 @@ func (a *AnalyticsService) Close() {
 func (a *AnalyticsService) Dispatch(e Event) error {
 	var mErr *multierror.Error
 	if a.Posthog != nil {
-		capture, identify := e.PosthogEvent()
-		if identify != nil {
-			mErr = multierror.Append(mErr, a.Posthog.Enqueue(*identify))
-		}
-		mErr = multierror.Append(mErr, a.Posthog.Enqueue(capture))
+		mErr = multierror.Append(mErr, a.Posthog.Enqueue(e.PosthogEvent()))
 	}
 	if a.Mixpanel != nil {
 		mErr = multierror.Append(mErr, a.Mixpanel.Track(e.MixpanelEvent()))
