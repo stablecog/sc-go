@@ -224,8 +224,6 @@ func (c *RestAPI) HandleUpscale(w http.ResponseWriter, r *http.Request) {
 		})
 	}()
 
-	go c.Track.UpscaleStarted(user, cogReqBody.Input, utils.GetIPAddress(r))
-
 	render.Status(r, http.StatusOK)
 	render.JSON(w, r, &responses.TaskQueuedResponse{
 		ID:               requestId,
