@@ -81,6 +81,10 @@ func (c *RestAPI) HandleGetUser(w http.ResponseWriter, r *http.Request) {
 			}
 
 			user, err = c.Repo.GetUserWithRoles(*userID)
+			if err != nil {
+				log.Error("Error getting user with roles", "err", err)
+				return err
+			}
 
 			return nil
 		}); err != nil {

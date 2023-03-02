@@ -22,7 +22,8 @@ const (
 type BaseCogRequest struct {
 	// These fields are irrelevant to sc-worker, just used to identify the request when it comes back
 	ID                 string                  `json:"id"`
-	UserID             uuid.UUID               `json:"user_id"`
+	UserID             *uuid.UUID              `json:"user_id,omitempty"`
+	IP                 string                  `json:"ip,omitempty"`
 	GenerationOutputID string                  `json:"generation_output_id,omitempty"` // Specific to upscale requests
 	LivePageData       *shared.LivePageMessage `json:"live_page_data,omitempty"`
 	// Generate specific

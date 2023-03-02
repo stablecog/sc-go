@@ -40,7 +40,7 @@ func (a *AnalyticsService) GenerationStarted(user *ent.User, cogReq requests.Bas
 }
 
 // Generation | Succeeded
-func (a *AnalyticsService) GenerationSucceeded(user *ent.User, cogReq requests.BaseCogRequest, duration float64) error {
+func (a *AnalyticsService) GenerationSucceeded(user *ent.User, cogReq requests.BaseCogRequest, duration float64, ip string) error {
 	// We need to get guidance scale/height/inference steps/width as numeric values
 	height, _ := strconv.Atoi(cogReq.Height)
 	width, _ := strconv.Atoi(cogReq.Width)
@@ -58,7 +58,7 @@ func (a *AnalyticsService) GenerationSucceeded(user *ent.User, cogReq requests.B
 		"SC - Submit to Gallery": cogReq.SubmitToGallery,
 		"SC - Duration":          duration,
 		"SC - Num Outputs":       cogReq.NumOutputs,
-		"$geoip_disable":         true,
+		"$ip":                    ip,
 	}
 	if user.ActiveProductID != nil {
 		properties["SC - Stripe Product Id"] = user.ActiveProductID
@@ -72,7 +72,7 @@ func (a *AnalyticsService) GenerationSucceeded(user *ent.User, cogReq requests.B
 }
 
 // Generation | Failed-NSFW
-func (a *AnalyticsService) GenerationFailedNSFW(user *ent.User, cogReq requests.BaseCogRequest, duration float64) error {
+func (a *AnalyticsService) GenerationFailedNSFW(user *ent.User, cogReq requests.BaseCogRequest, duration float64, ip string) error {
 	// We need to get guidance scale/height/inference steps/width as numeric values
 	height, _ := strconv.Atoi(cogReq.Height)
 	width, _ := strconv.Atoi(cogReq.Width)
@@ -90,7 +90,7 @@ func (a *AnalyticsService) GenerationFailedNSFW(user *ent.User, cogReq requests.
 		"SC - Submit to Gallery": cogReq.SubmitToGallery,
 		"SC - Duration":          duration,
 		"SC - Num Outputs":       cogReq.NumOutputs,
-		"$geoip_disable":         true,
+		"$ip":                    ip,
 	}
 	if user.ActiveProductID != nil {
 		properties["SC - Stripe Product Id"] = user.ActiveProductID
@@ -104,7 +104,7 @@ func (a *AnalyticsService) GenerationFailedNSFW(user *ent.User, cogReq requests.
 }
 
 // Generation | Failed
-func (a *AnalyticsService) GenerationFailed(user *ent.User, cogReq requests.BaseCogRequest, duration float64, failureReason string) error {
+func (a *AnalyticsService) GenerationFailed(user *ent.User, cogReq requests.BaseCogRequest, duration float64, failureReason string, ip string) error {
 	// We need to get guidance scale/height/inference steps/width as numeric values
 	height, _ := strconv.Atoi(cogReq.Height)
 	width, _ := strconv.Atoi(cogReq.Width)
@@ -123,7 +123,7 @@ func (a *AnalyticsService) GenerationFailed(user *ent.User, cogReq requests.Base
 		"SC - Duration":          duration,
 		"SC - Num Outputs":       cogReq.NumOutputs,
 		"SC - Failure Reason":    failureReason,
-		"$geoip_disable":         true,
+		"$ip":                    ip,
 	}
 	if user.ActiveProductID != nil {
 		properties["SC - Stripe Product Id"] = user.ActiveProductID
@@ -163,20 +163,20 @@ func (a *AnalyticsService) UpscaleStarted(user *ent.User, cogReq requests.BaseCo
 }
 
 // Upscale | Succeeded
-func (a *AnalyticsService) UpscaleSucceeded(user *ent.User, cogReq requests.BaseCogRequest, duration float64) error {
+func (a *AnalyticsService) UpscaleSucceeded(user *ent.User, cogReq requests.BaseCogRequest, duration float64, ip string) error {
 	// We need to get guidance scale/height/inference steps/width as numeric values
 	height, _ := strconv.Atoi(cogReq.Height)
 	width, _ := strconv.Atoi(cogReq.Width)
 
 	properties := map[string]interface{}{
-		"SC - Height":    height,
-		"SC - Width":     width,
-		"SC - Model Id":  cogReq.ModelId.String(),
-		"SC - Scale":     4, // Always 4 for now
-		"SC - Image":     cogReq.Image,
-		"SC - Type":      cogReq.Type,
-		"SC - Duration":  duration,
-		"$geoip_disable": true,
+		"SC - Height":   height,
+		"SC - Width":    width,
+		"SC - Model Id": cogReq.ModelId.String(),
+		"SC - Scale":    4, // Always 4 for now
+		"SC - Image":    cogReq.Image,
+		"SC - Type":     cogReq.Type,
+		"SC - Duration": duration,
+		"$ip":           ip,
 	}
 	if user.ActiveProductID != nil {
 		properties["SC - Stripe Product Id"] = user.ActiveProductID
@@ -190,7 +190,7 @@ func (a *AnalyticsService) UpscaleSucceeded(user *ent.User, cogReq requests.Base
 }
 
 // Upscale | Failed
-func (a *AnalyticsService) UpscaleFailed(user *ent.User, cogReq requests.BaseCogRequest, duration float64, failureReason string) error {
+func (a *AnalyticsService) UpscaleFailed(user *ent.User, cogReq requests.BaseCogRequest, duration float64, failureReason string, ip string) error {
 	// We need to get guidance scale/height/inference steps/width as numeric values
 	height, _ := strconv.Atoi(cogReq.Height)
 	width, _ := strconv.Atoi(cogReq.Width)
@@ -202,7 +202,7 @@ func (a *AnalyticsService) UpscaleFailed(user *ent.User, cogReq requests.BaseCog
 		"SC - Image":          cogReq.Image,
 		"SC - Type":           cogReq.Type,
 		"SC - Duration":       duration,
-		"$geoip_disable":      true,
+		"$ip":                 ip,
 		"SC - Failure Reason": failureReason,
 	}
 	if user.ActiveProductID != nil {
