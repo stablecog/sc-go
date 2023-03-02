@@ -235,10 +235,10 @@ func (a *AnalyticsService) Subscription(user *ent.User, productId string) error 
 		DistinctId: user.ID.String(),
 		EventName:  "Subscription",
 		Properties: map[string]interface{}{
-			"SC - Stripe Product Id": productId,
-			"SC - Email":             user.Email,
-			"SC - Stripe ID":         user.StripeCustomerID,
-			"$geoip_disable":         true,
+			"SC - Stripe Product Id":  productId,
+			"SC - Email":              user.Email,
+			"SC - Stripe Customer Id": user.StripeCustomerID,
+			"$geoip_disable":          true,
 		},
 	})
 }
@@ -249,10 +249,10 @@ func (a *AnalyticsService) SubscriptionRenewal(user *ent.User, productId string)
 		DistinctId: user.ID.String(),
 		EventName:  "Subscription | Renewed",
 		Properties: map[string]interface{}{
-			"SC - Stripe Product Id": productId,
-			"SC - Email":             user.Email,
-			"SC - Stripe ID":         user.StripeCustomerID,
-			"$geoip_disable":         true,
+			"SC - Stripe Product Id":  productId,
+			"SC - Email":              user.Email,
+			"SC - Stripe Customer Id": user.StripeCustomerID,
+			"$geoip_disable":          true,
 		},
 	})
 }
@@ -263,10 +263,10 @@ func (a *AnalyticsService) SubscriptionCancelled(user *ent.User, productId strin
 		DistinctId: user.ID.String(),
 		EventName:  "Subscription | Cancelled",
 		Properties: map[string]interface{}{
-			"SC - Stripe Product Id": productId,
-			"SC - Email":             user.Email,
-			"SC - Stripe ID":         user.StripeCustomerID,
-			"$geoip_disable":         true,
+			"SC - Stripe Product Id":  productId,
+			"SC - Email":              user.Email,
+			"SC - Stripe Customer Id": user.StripeCustomerID,
+			"$geoip_disable":          true,
 		},
 	})
 }
@@ -277,11 +277,11 @@ func (a *AnalyticsService) SubscriptionUpgraded(user *ent.User, oldProductId str
 		DistinctId: user.ID.String(),
 		EventName:  "Subscription | Upgraded",
 		Properties: map[string]interface{}{
-			"SC - Old Product Id":    oldProductId,
-			"SC - Stripe Product Id": productId,
-			"SC - Email":             user.Email,
-			"SC - Stripe ID":         user.StripeCustomerID,
-			"$geoip_disable":         true,
+			"SC - Stripe Old Product Id": oldProductId,
+			"SC - Stripe Product Id":     productId,
+			"SC - Email":                 user.Email,
+			"SC - Stripe Customer Id":    user.StripeCustomerID,
+			"$geoip_disable":             true,
 		},
 	})
 }
@@ -292,11 +292,11 @@ func (a *AnalyticsService) CreditPurchase(user *ent.User, productId string, amou
 		DistinctId: user.ID.String(),
 		EventName:  "Credit | Purchase",
 		Properties: map[string]interface{}{
-			"SC - Stripe Product Id": productId,
-			"SC - Email":             user.Email,
-			"SC - Stripe ID":         user.StripeCustomerID,
-			"SC - Amount":            amount,
-			"$geoip_disable":         true,
+			"SC - Stripe Product Id":  productId,
+			"SC - Email":              user.Email,
+			"SC - Stripe Customer Id": user.StripeCustomerID,
+			"SC - Amount":             amount,
+			"$geoip_disable":          true,
 		},
 	})
 }
