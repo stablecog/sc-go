@@ -372,8 +372,11 @@ func main() {
 
 			// Analytics
 			go func() {
+				if cogMessage.Input.UserID == nil {
+					return
+				}
 				if cogMessage.Status == requests.CogSucceeded && len(cogMessage.Outputs) > 0 {
-					u, err := repo.GetUser(cogMessage.Input.UserID)
+					u, err := repo.GetUser(*cogMessage.Input.UserID)
 					if err != nil {
 						log.Error("Error getting user for analytics", "err", err)
 						return
@@ -381,14 +384,14 @@ func main() {
 					// Get duration in seconds
 					duration := time.Now().Sub(cogMessage.Input.LivePageData.CreatedAt).Seconds()
 					if cogMessage.Input.ProcessType == shared.GENERATE || cogMessage.Input.ProcessType == shared.GENERATE_AND_UPSCALE {
-						analyticsService.GenerationSucceeded(u, cogMessage.Input, duration)
+						analyticsService.GenerationSucceeded(u, cogMessage.Input, duration, cogMessage.Input.IP)
 					} else if cogMessage.Input.ProcessType == shared.UPSCALE {
-						analyticsService.UpscaleSucceeded(u, cogMessage.Input, duration)
+						analyticsService.UpscaleSucceeded(u, cogMessage.Input, duration, cogMessage.Input.IP)
 					}
 				}
 
 				if cogMessage.Status == requests.CogSucceeded && cogMessage.NSFWCount > 0 {
-					u, err := repo.GetUser(cogMessage.Input.UserID)
+					u, err := repo.GetUser(*cogMessage.Input.UserID)
 					if err != nil {
 						log.Error("Error getting user for analytics", "err", err)
 						return
@@ -396,12 +399,12 @@ func main() {
 					// Get duration in seconds
 					duration := time.Now().Sub(cogMessage.Input.LivePageData.CreatedAt).Seconds()
 					if cogMessage.Input.ProcessType == shared.GENERATE || cogMessage.Input.ProcessType == shared.GENERATE_AND_UPSCALE {
-						analyticsService.GenerationFailedNSFW(u, cogMessage.Input, duration)
+						analyticsService.GenerationFailedNSFW(u, cogMessage.Input, duration, cogMessage.Input.IP)
 					}
 				}
 
 				if cogMessage.Status == requests.CogFailed {
-					u, err := repo.GetUser(cogMessage.Input.UserID)
+					u, err := repo.GetUser(*cogMessage.Input.UserID)
 					if err != nil {
 						log.Error("Error getting user for analytics", "err", err)
 						return
@@ -409,9 +412,9 @@ func main() {
 					// Get duration in seconds
 					duration := time.Now().Sub(cogMessage.Input.LivePageData.CreatedAt).Seconds()
 					if cogMessage.Input.ProcessType == shared.GENERATE || cogMessage.Input.ProcessType == shared.GENERATE_AND_UPSCALE {
-						analyticsService.GenerationFailed(u, cogMessage.Input, duration, cogMessage.Error)
+						analyticsService.GenerationFailed(u, cogMessage.Input, duration, cogMessage.Error, cogMessage.Input.IP)
 					} else if cogMessage.Input.ProcessType == shared.UPSCALE {
-						analyticsService.UpscaleFailed(u, cogMessage.Input, duration, cogMessage.Error)
+						analyticsService.UpscaleFailed(u, cogMessage.Input, duration, cogMessage.Error, cogMessage.Input.IP)
 					}
 				}
 			}()

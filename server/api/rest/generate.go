@@ -132,7 +132,8 @@ func (c *RestAPI) HandleCreateGeneration(w http.ResponseWriter, r *http.Request)
 			RedisPubsubKey:      shared.COG_REDIS_EVENT_CHANNEL,
 			Input: requests.BaseCogRequest{
 				ID:                   requestId,
-				UserID:               user.ID,
+				UserID:               &user.ID,
+				IP:                   utils.GetIPAddress(r),
 				LivePageData:         &livePageMsg,
 				Prompt:               generateReq.Prompt,
 				NegativePrompt:       generateReq.NegativePrompt,
