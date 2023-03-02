@@ -3,12 +3,13 @@ package analytics
 import (
 	"strconv"
 
+	"github.com/google/uuid"
 	"github.com/stablecog/sc-go/database/ent"
 	"github.com/stablecog/sc-go/server/requests"
 )
 
 // Generation | Started
-func (a *AnalyticsService) GenerationStarted(user *ent.User, cogReq requests.BaseCogRequest) error {
+func (a *AnalyticsService) GenerationStarted(user *ent.User, cogReq requests.BaseCogRequest, ip string) error {
 	// We need to get guidance scale/height/inference steps/width as numeric values
 	height, _ := strconv.Atoi(cogReq.Height)
 	width, _ := strconv.Atoi(cogReq.Width)
@@ -26,6 +27,7 @@ func (a *AnalyticsService) GenerationStarted(user *ent.User, cogReq requests.Bas
 		"SC - Product Id":        user.ActiveProductID,
 		"SC - Submit to Gallery": cogReq.SubmitToGallery,
 		"SC - Num Outputs":       cogReq.NumOutputs,
+		"$ip":                    ip,
 	}
 	if user.ActiveProductID != nil {
 		properties["SC - Product Id"] = user.ActiveProductID
@@ -58,6 +60,7 @@ func (a *AnalyticsService) GenerationSucceeded(user *ent.User, cogReq requests.B
 		"SC - Submit to Gallery": cogReq.SubmitToGallery,
 		"SC - Duration":          duration,
 		"SC - Num Outputs":       cogReq.NumOutputs,
+		"$geoip_disable":         true,
 	}
 	if user.ActiveProductID != nil {
 		properties["SC - Product Id"] = user.ActiveProductID
@@ -90,6 +93,7 @@ func (a *AnalyticsService) GenerationFailedNSFW(user *ent.User, cogReq requests.
 		"SC - Submit to Gallery": cogReq.SubmitToGallery,
 		"SC - Duration":          duration,
 		"SC - Num Outputs":       cogReq.NumOutputs,
+		"$geoip_disable":         true,
 	}
 	if user.ActiveProductID != nil {
 		properties["SC - Product Id"] = user.ActiveProductID
@@ -123,6 +127,7 @@ func (a *AnalyticsService) GenerationFailed(user *ent.User, cogReq requests.Base
 		"SC - Duration":          duration,
 		"SC - Num Outputs":       cogReq.NumOutputs,
 		"SC - Failure Reason":    failureReason,
+		"$geoip_disable":         true,
 	}
 	if user.ActiveProductID != nil {
 		properties["SC - Product Id"] = user.ActiveProductID
@@ -132,6 +137,19 @@ func (a *AnalyticsService) GenerationFailed(user *ent.User, cogReq requests.Base
 		DistinctId: user.ID.String(),
 		EventName:  "Generation | Failed",
 		Properties: properties,
+	})
+}
+
+// Sign Up
+func (a *AnalyticsService) SignUp(userId uuid.UUID, email, ipAddress string) error {
+	return a.Dispatch(Event{
+		DistinctId: userId.String(),
+		EventName:  "Sign Up",
+		Properties: map[string]interface{}{
+			"email":      email,
+			"SC - Email": email,
+			"$ip":        ipAddress,
+		},
 	})
 }
 

@@ -316,6 +316,8 @@ func main() {
 	pubsub := redis.Client.Subscribe(ctx, shared.COG_REDIS_EVENT_CHANNEL)
 	defer pubsub.Close()
 
+	// TODO - these goroutines are too chonky to be in ap.go, move them out
+
 	// Process messages from cog
 	go func() {
 		log.Info("Listening for cog messages", "channel", shared.COG_REDIS_EVENT_CHANNEL)

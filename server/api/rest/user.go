@@ -95,6 +95,7 @@ func (c *RestAPI) HandleGetUser(w http.ResponseWriter, r *http.Request) {
 			}
 			return
 		}
+		go c.Track.SignUp(*userID, email, utils.GetIPAddress(r))
 	} else {
 		freeCreditsReplenished, freeCredits, freeCreditAmount, err = c.Repo.ReplenishFreeCreditsIfEligible(*userID, time.Now().AddDate(0, 0, 30), nil)
 		if err != nil {
