@@ -74,8 +74,8 @@ func (c *RestAPI) HandleGetUser(w http.ResponseWriter, r *http.Request) {
 			}
 
 			// Add free credits
-			freeCreditsReplenished, freeCredits, freeCreditAmount, err = c.Repo.ReplenishFreeCreditsIfEligible(u.ID, time.Now().AddDate(0, 0, 30), client)
-			if err != nil {
+			added, err := c.Repo.GiveFreeCredits(u.ID, client)
+			if err != nil || !added {
 				log.Error("Error adding free credits", "err", err)
 				return err
 			}
@@ -100,11 +100,6 @@ func (c *RestAPI) HandleGetUser(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		go c.Track.SignUp(*userID, email, utils.GetIPAddress(r))
-	} else {
-		freeCreditsReplenished, freeCredits, freeCreditAmount, err = c.Repo.ReplenishFreeCreditsIfEligible(*userID, time.Now().AddDate(0, 0, 30), nil)
-		if err != nil {
-			log.Error("Error replenishing free credits", "err", err)
-		}
 	}
 
 	// Get total credits

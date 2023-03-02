@@ -11,7 +11,7 @@ import (
 )
 
 // Expiration date for manual invoices (non-recurring)
-var EXPIRES_MANUAL_INVOICE = time.Date(2100, 1, 1, 5, 0, 0, 0, time.UTC)
+var NEVER_EXPIRE = time.Date(2100, 1, 1, 5, 0, 0, 0, time.UTC)
 
 // Add credits of creditType to user if they do not have any un-expired credits of this type
 func (r *Repository) AddCreditsIfEligible(creditType *ent.CreditType, userID uuid.UUID, expiresAt time.Time, lineItemId string, DB *ent.Client) (added bool, err error) {
@@ -42,38 +42,34 @@ func (r *Repository) AddCreditsIfEligible(creditType *ent.CreditType, userID uui
 	return true, nil
 }
 
-// Get free credit renewal data
-
-// Replenish free credits if eligible
-func (r *Repository) ReplenishFreeCreditsIfEligible(userID uuid.UUID, expiresAt time.Time, DB *ent.Client) (added bool, currentCredits *ent.Credit, amount int32, err error) {
+// Give free credits if eligible
+func (r *Repository) GiveFreeCredits(userID uuid.UUID, DB *ent.Client) (added bool, err error) {
 	if DB == nil {
 		DB = r.DB
 	}
 
 	creditType, err := r.GetOrCreateFreeCreditType()
 	if err != nil {
-		return false, nil, amount, err
+		return false, err
 	}
-	amount = creditType.Amount
 
 	// See if user has any credits of this type
-	// ExpiresAt must be greater than or equal to the current time
-	credits, err := DB.Credit.Query().Where(credit.UserID(userID), credit.CreditTypeID(creditType.ID), credit.ExpiresAtGTE(time.Now())).Order(ent.Desc(credit.FieldExpiresAt)).First(r.Ctx)
+	credits, err := DB.Credit.Query().Where(credit.UserID(userID), credit.CreditTypeID(creditType.ID)).First(r.Ctx)
 	if err != nil && !ent.IsNotFound(err) {
-		return false, nil, amount, err
+		return false, err
 	}
 
 	if credits != nil {
 		// User already has credits of this type
-		return false, credits, amount, nil
+		return false, nil
 	}
 
 	// Add credits
-	credits, err = DB.Credit.Create().SetCreditTypeID(creditType.ID).SetUserID(userID).SetRemainingAmount(creditType.Amount).SetExpiresAt(expiresAt).Save(r.Ctx)
+	credits, err = DB.Credit.Create().SetCreditTypeID(creditType.ID).SetUserID(userID).SetRemainingAmount(creditType.Amount).SetExpiresAt(NEVER_EXPIRE).Save(r.Ctx)
 	if err != nil {
-		return false, nil, amount, err
+		return false, err
 	}
-	return true, credits, amount, nil
+	return true, nil
 }
 
 // Adds credits of creditType to user if they do not already have any belonging to stripe invoice line item
@@ -93,7 +89,7 @@ func (r *Repository) AddAdhocCreditsIfEligible(creditType *ent.CreditType, userI
 	}
 
 	// Add credits
-	_, err = r.DB.Credit.Create().SetCreditTypeID(creditType.ID).SetUserID(userID).SetRemainingAmount(creditType.Amount).SetStripeLineItemID(lineItemID).SetExpiresAt(EXPIRES_MANUAL_INVOICE).Save(r.Ctx)
+	_, err = r.DB.Credit.Create().SetCreditTypeID(creditType.ID).SetUserID(userID).SetRemainingAmount(creditType.Amount).SetStripeLineItemID(lineItemID).SetExpiresAt(NEVER_EXPIRE).Save(r.Ctx)
 	if err != nil {
 		return false, err
 	}
