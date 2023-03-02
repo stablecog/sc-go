@@ -556,7 +556,8 @@ func (c *RestAPI) HandleStripeWebhook(w http.ResponseWriter, r *http.Request) {
 			responses.ErrInternalServerError(w, r, err.Error())
 			return
 		}
-		if pi == nil || pi.Invoice == "" {
+		if pi == nil || pi.Invoice == nil {
+			log.Info("!!!! Not an adhoc payment")
 			// Not an adhoc payment
 			render.Status(r, http.StatusOK)
 			render.PlainText(w, r, "OK")
@@ -738,7 +739,7 @@ type Subscription struct {
 // PaymentIntent is also broken
 type PaymentIntent struct {
 	ID       string            `json:"id"`
-	Invoice  string            `json:"invoice"`
+	Invoice  *string           `json:"invoice,omitempty"`
 	Metadata map[string]string `json:"metadata"`
 	Customer string            `json:"customer"`
 }
