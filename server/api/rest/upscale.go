@@ -228,6 +228,7 @@ func (c *RestAPI) HandleUpscale(w http.ResponseWriter, r *http.Request) {
 	render.Status(r, http.StatusOK)
 	render.JSON(w, r, &responses.TaskQueuedResponse{
 		ID:               requestId,
+		UIId:             upscaleReq.UIId,
 		RemainingCredits: remainingCredits,
 	})
 }

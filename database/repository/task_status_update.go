@@ -10,7 +10,7 @@ type TaskStatusUpdateResponse struct {
 	Status           requests.CogTaskStatus    `json:"status"`
 	ProcessType      shared.ProcessType        `json:"process_type"`
 	Id               string                    `json:"id"`
-	UIId             string                    `json:"ui_id"`
+	UIId             string                    `json:"ui_id,omitempty"`
 	StreamId         string                    `json:"stream_id"`
 	Error            string                    `json:"error,omitempty"`
 	NSFWCount        int32                     `json:"nsfw_count,omitempty"`
