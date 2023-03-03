@@ -97,6 +97,8 @@ jobs:
     name: 🖥️ Deploy Server
     runs-on: ubuntu-22.04
     needs: build_qa
+    env:
+      GITHUB_RUN_ID: ${{ github.run_id }}
     steps:
       - uses: actions/checkout@master
 
@@ -139,6 +141,8 @@ jobs:
     name: ✨ Deploy Cron
     runs-on: ubuntu-22.04
     needs: build_qa
+    env:
+      GITHUB_RUN_ID: ${{ github.run_id }}
     steps:
       - uses: actions/checkout@master
 
