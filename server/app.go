@@ -330,6 +330,8 @@ func main() {
 				continue
 			}
 
+			log.Infof("Received COG message, %v", cogMessage)
+
 			// Process live page message and analytics
 			go func() {
 				// Live page update
