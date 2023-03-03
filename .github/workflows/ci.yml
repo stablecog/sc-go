@@ -94,7 +94,7 @@ jobs:
           tags: stablecog/sc-server:${{ env.BRANCH_NAME }}-${{ env.GITHUB_RUN_ID }}
 
   deploy_server:
-    name: 🧑🏻‍🔬 QA Build & Release
+    name: 🖥️ Deploy Server
     runs-on: ubuntu-22.04
     needs: build_qa
     steps:
@@ -126,7 +126,7 @@ jobs:
           wait-for-service-stability: true
 
   deploy_cron:
-    name: 🧑🏻‍🔬 QA Build & Release
+    name: ✨ Deploy Cron
     runs-on: ubuntu-22.04
     needs: build_qa
     steps:
