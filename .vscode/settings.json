@@ -1,0 +1,6 @@
+{
+  "search.exclude": {
+    "database/ent/**": true,
+    "database/ent/schema": false,
+  }
+}
