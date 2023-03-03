@@ -18,6 +18,8 @@ func (h *Hub) BroadcastStatusUpdate(msg repository.TaskStatusUpdateResponse) {
 		return
 	}
 
+	log.Info("Sending message with stauts %s and ui_id %s", msg.Status, msg.UIId)
+
 	// Broadcast to all clients subcribed to this stream
 	h.Broadcast <- BroadcastPayload{
 		ID:      msg.StreamId,
