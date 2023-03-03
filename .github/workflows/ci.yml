@@ -101,7 +101,7 @@ jobs:
           file: ./Dockerfile.ci
           tags: stablecog/sc-server:${{ env.BRANCH_NAME }}-${{ env.GITHUB_RUN_ID }}
 
-      - name: Set Task Definition (Server)
+      - name: AWS Set Task Definition (Server)
         if: success()
         id: task-def
         uses: aws-actions/amazon-ecs-render-task-definition@v1
@@ -110,7 +110,7 @@ jobs:
           container-name: main
           image: stablecog/sc-server:${{ env.BRANCH_NAME }}-${{ env.GITHUB_RUN_ID }}
 
-      - name: Set Task Definition (Cron)
+      - name: AWS Set Task Definition (Cron)
         if: success()
         id: task-def-cron
         uses: aws-actions/amazon-ecs-render-task-definition@v1
@@ -119,7 +119,7 @@ jobs:
           container-name: main
           image: stablecog/sc-server:${{ env.BRANCH_NAME }}-${{ env.GITHUB_RUN_ID }}
 
-      - name: Deploy QA Server
+      - name: AWS Deploy QA Server
         uses: aws-actions/amazon-ecs-deploy-task-definition@v1
         with:
           task-definition: ${{ steps.task-def.outputs.task-definition }}
@@ -127,7 +127,7 @@ jobs:
           cluster: qa-stablecog-Cluster-g4jXWMxvTvnZ
           wait-for-service-stability: false
 
-      - name: Deploy QA Cron
+      - name: AWS Deploy QA Cron
         uses: aws-actions/amazon-ecs-deploy-task-definition@v1
         with:
           task-definition: ${{ steps.task-def-cron.outputs.task-definition }}
