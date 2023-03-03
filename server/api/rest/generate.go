@@ -34,6 +34,11 @@ func (c *RestAPI) HandleCreateGeneration(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
+	if !utils.IsSha256Hash(generateReq.UIId) {
+		responses.ErrBadRequest(w, r, fmt.Sprintf("Invalid UI ID %s", generateReq.UIId))
+		return
+	}
+
 	// Validation
 	err = generateReq.Validate()
 	if err != nil {

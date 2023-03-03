@@ -32,6 +32,11 @@ func (c *RestAPI) HandleUpscale(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if !utils.IsSha256Hash(upscaleReq.UIId) {
+		responses.ErrBadRequest(w, r, fmt.Sprintf("Invalid UI ID %s", upscaleReq.UIId))
+		return
+	}
+
 	// Validation
 	err = upscaleReq.Validate()
 	if err != nil {
