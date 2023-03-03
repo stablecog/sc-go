@@ -46,23 +46,13 @@ jobs:
         run: |
           go test -v -parallel 1 $(go list -f '{{.Dir}}/...' -m | xargs)
 
-  build_publish_qa:
+  build_qa:
     name: 🧑🏻‍🔬 QA Build & Release
     runs-on: ubuntu-22.04
 
     env:
       GITHUB_RUN_ID: ${{ github.run_id }}
     steps:
-      - uses: actions/checkout@master
-
-      - name: Configure AWS credentials
-        if: success()
-        uses: aws-actions/configure-aws-credentials@v1
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: us-east-2
-
       - name: Setup Golang with cache
         uses: magnetikonline/action-golang-cache@v3
         with:
@@ -101,7 +91,22 @@ jobs:
           file: ./Dockerfile.ci
           tags: stablecog/sc-server:${{ env.BRANCH_NAME }}-${{ env.GITHUB_RUN_ID }}
 
-      - name: AWS Set Task Definition (Server)
+  deploy_server:
+    name: 🧑🏻‍🔬 QA Build & Release
+    runs-on: ubuntu-22.04
+    needs: build_qa
+    steps:
+      - uses: actions/checkout@master
+
+      - name: Configure AWS credentials
+        if: success()
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-2
+
+      - name: AWS Set Task Definition
         if: success()
         id: task-def
         uses: aws-actions/amazon-ecs-render-task-definition@v1
@@ -110,7 +115,30 @@ jobs:
           container-name: main
           image: stablecog/sc-server:${{ env.BRANCH_NAME }}-${{ env.GITHUB_RUN_ID }}
 
-      - name: AWS Set Task Definition (Cron)
+      - name: AWS Deploy QA
+        uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+        with:
+          task-definition: ${{ steps.task-def.outputs.task-definition }}
+          service: qa-sc-server-Service-XSweBbsvI0JC
+          cluster: qa-stablecog-Cluster-g4jXWMxvTvnZ
+          wait-for-service-stability: true
+
+  deploy_cron:
+    name: 🧑🏻‍🔬 QA Build & Release
+    runs-on: ubuntu-22.04
+    needs: build_qa
+    steps:
+      - uses: actions/checkout@master
+
+      - name: Configure AWS credentials
+        if: success()
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-2
+
+      - name: AWS Set Task Definition
         if: success()
         id: task-def-cron
         uses: aws-actions/amazon-ecs-render-task-definition@v1
@@ -119,18 +147,10 @@ jobs:
           container-name: main
           image: stablecog/sc-server:${{ env.BRANCH_NAME }}-${{ env.GITHUB_RUN_ID }}
 
-      - name: AWS Deploy QA Server
-        uses: aws-actions/amazon-ecs-deploy-task-definition@v1
-        with:
-          task-definition: ${{ steps.task-def.outputs.task-definition }}
-          service: qa-sc-server-Service-XSweBbsvI0JC
-          cluster: qa-stablecog-Cluster-g4jXWMxvTvnZ
-          wait-for-service-stability: false
-
-      - name: AWS Deploy QA Cron
+      - name: AWS Deploy QA
         uses: aws-actions/amazon-ecs-deploy-task-definition@v1
         with:
           task-definition: ${{ steps.task-def-cron.outputs.task-definition }}
           service: qa-sc-cron
           cluster: qa-stablecog-Cluster-g4jXWMxvTvnZ
-          wait-for-service-stability: false
+          wait-for-service-stability: true
