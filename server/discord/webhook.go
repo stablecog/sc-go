@@ -26,15 +26,15 @@ func FireServerReadyWebhook(version string) error {
 				Fields: []models.DiscordWebhookField{
 					{
 						// TODO - environment/change
-						Name:  "Environment",
+						Name:  "🌏 Environment",
 						Value: "```QA```",
 					},
 					{
-						Name:  "App",
-						Value: "```sc-server```",
+						Name:  "🟩 Instance Started",
+						Value: "```sc-server instance is accepting connections.```",
 					},
 					{
-						Name:  "Version",
+						Name:  "🚀 Version",
 						Value: fmt.Sprintf("```%s```", version),
 					},
 				},

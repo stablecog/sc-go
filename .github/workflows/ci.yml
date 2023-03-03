@@ -47,7 +47,7 @@ jobs:
           go test -v -parallel 1 $(go list -f '{{.Dir}}/...' -m | xargs)
 
   build_qa:
-    name: 🧑🏻‍🔬 QA Build & Release
+    name: 🔨 Build Binaries and Docker Image
     runs-on: ubuntu-22.04
 
     env:
@@ -94,7 +94,7 @@ jobs:
           tags: stablecog/sc-server:${{ env.BRANCH_NAME }}-${{ env.GITHUB_RUN_ID }}
 
   deploy_server:
-    name: 🖥️ Deploy Server
+    name: 🚀 Deploy Server
     runs-on: ubuntu-22.04
     needs: build_qa
     env:
@@ -138,7 +138,7 @@ jobs:
           wait-for-service-stability: true
 
   deploy_cron:
-    name: ✨ Deploy Cron
+    name: 🚀 Deploy Cron
     runs-on: ubuntu-22.04
     needs: build_qa
     env:
