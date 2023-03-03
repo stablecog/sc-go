@@ -110,10 +110,27 @@ jobs:
           container-name: main
           image: stablecog/sc-server:${{ env.BRANCH_NAME }}-${{ env.GITHUB_RUN_ID }}
 
+      - name: Set Task Definition (Cron)
+        if: success()
+        id: task-def-cron
+        uses: aws-actions/amazon-ecs-render-task-definition@v1
+        with:
+          task-definition: ./aws/qa/sc-cron.json
+          container-name: main
+          image: stablecog/sc-server:${{ env.BRANCH_NAME }}-${{ env.GITHUB_RUN_ID }}
+
       - name: Deploy QA Server
         uses: aws-actions/amazon-ecs-deploy-task-definition@v1
         with:
           task-definition: ${{ steps.task-def.outputs.task-definition }}
           service: qa-sc-server-Service-XSweBbsvI0JC
           cluster: qa-stablecog-Cluster-g4jXWMxvTvnZ
-          wait-for-service-stability: true
+          wait-for-service-stability: false
+
+      - name: Deploy QA Cron
+        uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+        with:
+          task-definition: ${{ steps.task-def-cron.outputs.task-definition }}
+          service: qa-sc-cron
+          cluster: qa-stablecog-Cluster-g4jXWMxvTvnZ
+          wait-for-service-stability: false
