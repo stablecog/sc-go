@@ -171,12 +171,33 @@ func (r *Repository) ReplenishFreeCreditsToEligibleUsers(userIDs []uuid.UUID) (i
 	// - remaining amount is less than amount (cap)
 	// - item was last updated more than FREE_CREDIT_REPLENISHMENT_INTERVAL ago
 	updatedAtSince := time.Now().Add(-shared.FREE_CREDIT_REPLENISHMENT_INTERVAL)
-	return r.DB.Credit.Update().
-		Where(
-			credit.UserIDIn(userIDs...),
-			credit.CreditTypeID(creditType.ID),
-			credit.RemainingAmountLT(creditType.Amount),
-			credit.UpdatedAtLT(updatedAtSince),
-		).
-		AddRemainingAmount(shared.FREE_CREDIT_AMOUNT_DAILY).Save(r.Ctx)
+	var updated int
+	if err := r.WithTx(func(tx *ent.Tx) error {
+		updated, err = tx.Credit.Update().
+			Where(
+				credit.UserIDIn(userIDs...),
+				credit.CreditTypeID(creditType.ID),
+				credit.RemainingAmountLT(creditType.Amount),
+				credit.UpdatedAtLT(updatedAtSince),
+			).
+			AddRemainingAmount(shared.FREE_CREDIT_AMOUNT_DAILY).Save(r.Ctx)
+		if err != nil {
+			return err
+		}
+		// Ensure nothing is higher than the cap
+		_, err = tx.Credit.Update().
+			Where(
+				credit.UserIDIn(userIDs...),
+				credit.CreditTypeID(creditType.ID),
+				credit.RemainingAmountGT(creditType.Amount),
+			).
+			SetRemainingAmount(creditType.Amount).Save(r.Ctx)
+		if err != nil {
+			return err
+		}
+		return nil
+	}); err != nil {
+		return 0, err
+	}
+	return updated, nil
 }
