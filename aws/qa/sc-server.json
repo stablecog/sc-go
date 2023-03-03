@@ -1,0 +1,124 @@
+{
+    "containerDefinitions": [
+        {
+            "name": "main",
+            "image": "stablecog/sc-server:master-4320036592",
+            "cpu": 0,
+            "memory": 512,
+            "portMappings": [
+                {
+                    "containerPort": 80,
+                    "hostPort": 0,
+                    "protocol": "tcp"
+                }
+            ],
+            "essential": true,
+            "environment": [
+                {
+                    "name": "PUBLIC_SUPABASE_REFERENCE_ID",
+                    "value": "rmhwcodjirhwssvvndna"
+                },
+                {
+                    "name": "PORT",
+                    "value": "80"
+                },
+                {
+                    "name": "BUCKET_BASE_URL",
+                    "value": "https://b.stablecog.com"
+                },
+                {
+                    "name": "POSTHOG_ENDPOINT",
+                    "value": "https://ph.stablecog.com"
+                }
+            ],
+            "mountPoints": [],
+            "volumesFrom": [],
+            "secrets": [
+                {
+                    "name": "MEILI_URL",
+                    "valueFrom": "arn:aws:secretsmanager:us-east-2:280846200654:secret:qa-stablecog/go-546TP9:MEILI_URL::"
+                },
+                {
+                    "name": "MEILI_MASTER_KEY",
+                    "valueFrom": "arn:aws:secretsmanager:us-east-2:280846200654:secret:qa-stablecog/go-546TP9:MEILI_MASTER_KEY::"
+                },
+                {
+                    "name": "POSTGRES_PASSWORD",
+                    "valueFrom": "arn:aws:secretsmanager:us-east-2:280846200654:secret:qa-stablecog/go-546TP9:POSTGRES_PASSWORD::"
+                },
+                {
+                    "name": "POSTGRES_USER",
+                    "valueFrom": "arn:aws:secretsmanager:us-east-2:280846200654:secret:qa-stablecog/go-546TP9:POSTGRES_USER::"
+                },
+                {
+                    "name": "POSTGRES_HOST",
+                    "valueFrom": "arn:aws:secretsmanager:us-east-2:280846200654:secret:qa-stablecog/go-546TP9:POSTGRES_HOST::"
+                },
+                {
+                    "name": "POSTGRES_DB",
+                    "valueFrom": "arn:aws:secretsmanager:us-east-2:280846200654:secret:qa-stablecog/go-546TP9:POSTGRES_DB::"
+                },
+                {
+                    "name": "POSTHOG_API_KEY",
+                    "valueFrom": "arn:aws:secretsmanager:us-east-2:280846200654:secret:qa-stablecog/go-546TP9:POSTHOG_API_KEY::"
+                },
+                {
+                    "name": "STRIPE_ENDPOINT_SECRET",
+                    "valueFrom": "arn:aws:secretsmanager:us-east-2:280846200654:secret:qa-stablecog/go-546TP9:STRIPE_ENDPOINT_SECRET::"
+                },
+                {
+                    "name": "STRIPE_SECRET_KEY",
+                    "valueFrom": "arn:aws:secretsmanager:us-east-2:280846200654:secret:qa-stablecog/go-546TP9:STRIPE_SECRET_KEY::"
+                },
+                {
+                    "name": "SUPABASE_ADMIN_KEY",
+                    "valueFrom": "arn:aws:secretsmanager:us-east-2:280846200654:secret:qa-stablecog/go-546TP9:SUPABASE_ADMIN_KEY::"
+                },
+                {
+                    "name": "REDIS_CONNECTION_STRING",
+                    "valueFrom": "arn:aws:secretsmanager:us-east-2:280846200654:secret:qa-stablecog/go-546TP9:REDIS_CONNECTION_STRING::"
+                }
+            ],
+            "dockerLabels": {},
+            "logConfiguration": {
+                "logDriver": "awslogs",
+                "options": {
+                    "awslogs-group": "qa-stablecog",
+                    "awslogs-region": "us-east-2",
+                    "awslogs-stream-prefix": "sc-server"
+                }
+            }
+        }
+    ],
+    "family": "qa-sc-server",
+    "executionRoleArn": "ecsTaskExecutionRole",
+    "networkMode": "bridge",
+    "revision": 7,
+    "volumes": [],
+    "status": "ACTIVE",
+    "requiresAttributes": [
+        {
+            "name": "com.amazonaws.ecs.capability.logging-driver.awslogs"
+        },
+        {
+            "name": "ecs.capability.execution-role-awslogs"
+        },
+        {
+            "name": "com.amazonaws.ecs.capability.docker-remote-api.1.19"
+        },
+        {
+            "name": "ecs.capability.secrets.asm.environment-variables"
+        },
+        {
+            "name": "com.amazonaws.ecs.capability.docker-remote-api.1.18"
+        }
+    ],
+    "placementConstraints": [],
+    "compatibilities": [
+        "EXTERNAL",
+        "EC2"
+    ],
+    "registeredAt": "2023-03-03T17:25:04.106Z",
+    "registeredBy": "arn:aws:iam::280846200654:root",
+    "tags": []
+}
