@@ -93,32 +93,7 @@
     "family": "qa-sc-server",
     "executionRoleArn": "ecsTaskExecutionRole",
     "networkMode": "bridge",
-    "revision": 7,
     "volumes": [],
-    "status": "ACTIVE",
-    "requiresAttributes": [
-        {
-            "name": "com.amazonaws.ecs.capability.logging-driver.awslogs"
-        },
-        {
-            "name": "ecs.capability.execution-role-awslogs"
-        },
-        {
-            "name": "com.amazonaws.ecs.capability.docker-remote-api.1.19"
-        },
-        {
-            "name": "ecs.capability.secrets.asm.environment-variables"
-        },
-        {
-            "name": "com.amazonaws.ecs.capability.docker-remote-api.1.18"
-        }
-    ],
     "placementConstraints": [],
-    "compatibilities": [
-        "EXTERNAL",
-        "EC2"
-    ],
-    "registeredAt": "2023-03-03T17:25:04.106Z",
-    "registeredBy": "arn:aws:iam::280846200654:root",
     "tags": []
 }
