@@ -20,6 +20,7 @@ import (
 	"github.com/stablecog/sc-go/server/analytics"
 	"github.com/stablecog/sc-go/server/api/rest"
 	"github.com/stablecog/sc-go/server/api/sse"
+	"github.com/stablecog/sc-go/server/discord"
 	"github.com/stablecog/sc-go/server/middleware"
 	"github.com/stablecog/sc-go/server/requests"
 	"github.com/stablecog/sc-go/shared"
@@ -416,5 +417,13 @@ func main() {
 		Addr:    fmt.Sprintf(":%s", port),
 		Handler: h2c.NewHandler(app, h2s),
 	}
+
+	// Send discord notification
+	go func() {
+		err = discord.FireServerReadyWebhook(Version)
+		if err != nil {
+			log.Error("Error firing discord ready webhook", "err", err)
+		}
+	}()
 	log.Info(srv.ListenAndServe())
 }

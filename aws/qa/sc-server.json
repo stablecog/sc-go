@@ -38,6 +38,10 @@
             "volumesFrom": [],
             "secrets": [
                 {
+                    "name": "DISCORD_WEBHOOK_URL_DEPLOY",
+                    "valueFrom": "arn:aws:secretsmanager:us-east-2:280846200654:secret:qa-stablecog/go-546TP9:DISCORD_WEBHOOK_URL_DEPLOY::"
+                },
+                {
                     "name": "MEILI_URL",
                     "valueFrom": "arn:aws:secretsmanager:us-east-2:280846200654:secret:qa-stablecog/go-546TP9:MEILI_URL::"
                 },
