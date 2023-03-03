@@ -23,6 +23,7 @@ type CreateUpscaleRequest struct {
 	Input    string             `json:"input"`
 	ModelId  uuid.UUID          `json:"model_id"`
 	StreamID string             `json:"stream_id"`
+	UIId     string             `json:"ui_id"` // Corresponds to UI identifier
 	OutputID uuid.UUID
 }
 

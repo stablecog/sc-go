@@ -165,6 +165,7 @@ func (c *RestAPI) HandleUpscale(w http.ResponseWriter, r *http.Request) {
 			RedisPubsubKey:      shared.COG_REDIS_EVENT_CHANNEL,
 			Input: requests.BaseCogRequest{
 				ID:                   requestId,
+				UIId:                 upscaleReq.UIId,
 				LivePageData:         &livePageMsg,
 				GenerationOutputID:   outputIDStr,
 				Image:                imageUrl,

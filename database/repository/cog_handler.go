@@ -125,6 +125,7 @@ func (r *Repository) FailCogMessageDueToTimeoutIfTimedOut(msg requests.CogRedisM
 	resp := TaskStatusUpdateResponse{
 		Status:           msg.Status,
 		Id:               msg.Input.ID,
+		UIId:             msg.Input.UIId,
 		StreamId:         streamIdStr,
 		NSFWCount:        msg.NSFWCount,
 		Error:            msg.Error,
@@ -349,6 +350,7 @@ func (r *Repository) ProcessCogMessage(msg requests.CogRedisMessage) {
 	resp := TaskStatusUpdateResponse{
 		Status:           msg.Status,
 		Id:               msg.Input.ID,
+		UIId:             msg.Input.UIId,
 		StreamId:         streamIdStr,
 		NSFWCount:        msg.NSFWCount,
 		Error:            cogErr,
