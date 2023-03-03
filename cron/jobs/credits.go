@@ -8,15 +8,15 @@ import (
 const FREE_JOB_NAME = "FREE_CREDITS_JOB"
 
 func (j *JobRunner) AddFreeCreditsToEligibleUsers(log Logger) error {
-	log.Info("Running free credit job...")
+	log.Infof("Running free credit job...")
 	users, err := j.Repo.GetUsersThatSignedInSince(shared.FREE_CREDIT_LAST_ACTIVITY_REQUIREMENT)
 	if err != nil {
-		log.Error("Error getting users eligible for free credits %v", err)
+		log.Errorf("Error getting users eligible for free credits %v", err)
 		return err
 	}
 
 	if len(users) == 0 {
-		log.Info("No users eligible for free credits")
+		log.Infof("No users eligible for free credits")
 		return nil
 	}
 
@@ -29,15 +29,15 @@ func (j *JobRunner) AddFreeCreditsToEligibleUsers(log Logger) error {
 	// Replenish credits
 	count, err := j.Repo.ReplenishFreeCreditsToEligibleUsers(uuids)
 	if err != nil {
-		log.Error("Error replenishing free credits to eligible users %v", err)
+		log.Errorf("Error replenishing free credits to eligible users %v", err)
 		return err
 	}
 
 	if count == 0 {
-		log.Info("No users eligible for free credits")
+		log.Infof("No users eligible for free credits")
 		return nil
 	}
 
-	log.Info("Added %d credits to %d users", shared.FREE_CREDIT_AMOUNT_DAILY, count)
+	log.Infof("Added %d credits to %d users", shared.FREE_CREDIT_AMOUNT_DAILY, count)
 	return nil
 }

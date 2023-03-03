@@ -9,7 +9,6 @@ import (
 	"os"
 	"time"
 
-	"github.com/charmbracelet/log"
 	"github.com/go-chi/chi/v5"
 	chimiddleware "github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/cors"
@@ -17,6 +16,7 @@ import (
 	"github.com/joho/godotenv"
 	"github.com/stablecog/sc-go/database"
 	"github.com/stablecog/sc-go/database/repository"
+	"github.com/stablecog/sc-go/log"
 	"github.com/stablecog/sc-go/server/analytics"
 	"github.com/stablecog/sc-go/server/api/rest"
 	"github.com/stablecog/sc-go/server/api/sse"
@@ -33,7 +33,7 @@ import (
 var Version = "dev"
 
 func main() {
-	log.Info("SC Server", "version", Version)
+	log.Infof("SC Server %s", Version)
 
 	// Load .env
 	err := godotenv.Load("../.env")

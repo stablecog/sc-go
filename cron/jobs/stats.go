@@ -15,7 +15,7 @@ func (j *JobRunner) GetGenerationOutputCount() (int, error) {
 
 func (j *JobRunner) GetAndSetStats(log Logger) error {
 	start := time.Now()
-	log.Info("Getting stats...")
+	log.Infof("Getting stats...")
 
 	results := make(chan map[string]int, 2)
 	errors := make(chan error, 2)
@@ -77,8 +77,8 @@ func (j *JobRunner) GetAndSetStats(log Logger) error {
 	}
 
 	end := time.Now()
-	log.Info("--- upscales %d", upscaleOutputCount)
-	log.Info("--- generations %d", generationOutputCount)
-	log.Info("--- Got stats in %dms", end.Sub(start).Milliseconds())
+	log.Infof("--- upscales %d", upscaleOutputCount)
+	log.Infof("--- generations %d", generationOutputCount)
+	log.Infof("--- Got stats in %dms", end.Sub(start).Milliseconds())
 	return nil
 }

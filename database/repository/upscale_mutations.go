@@ -3,10 +3,10 @@ package repository
 import (
 	"time"
 
-	"github.com/charmbracelet/log"
 	"github.com/google/uuid"
 	"github.com/stablecog/sc-go/database/ent"
 	"github.com/stablecog/sc-go/database/ent/upscale"
+	"github.com/stablecog/sc-go/log"
 	"github.com/stablecog/sc-go/server/requests"
 	"github.com/stablecog/sc-go/shared"
 	"github.com/stablecog/sc-go/utils"

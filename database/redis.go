@@ -7,9 +7,9 @@ import (
 	"time"
 
 	"github.com/alicebob/miniredis/v2"
-	"github.com/charmbracelet/log"
 	"github.com/go-redis/redis/v8"
 	"github.com/google/uuid"
+	"github.com/stablecog/sc-go/log"
 	"github.com/stablecog/sc-go/server/requests"
 	"github.com/stablecog/sc-go/shared"
 	"github.com/stablecog/sc-go/utils"

@@ -3,12 +3,12 @@ package rest
 import (
 	"net/http"
 
-	"github.com/charmbracelet/log"
 	"github.com/google/uuid"
 	"github.com/meilisearch/meilisearch-go"
 	"github.com/stablecog/sc-go/database"
 	"github.com/stablecog/sc-go/database/ent"
 	"github.com/stablecog/sc-go/database/repository"
+	"github.com/stablecog/sc-go/log"
 	"github.com/stablecog/sc-go/server/analytics"
 	"github.com/stablecog/sc-go/server/api/sse"
 	"github.com/stablecog/sc-go/server/responses"

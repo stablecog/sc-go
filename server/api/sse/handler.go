@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/charmbracelet/log"
+	"github.com/stablecog/sc-go/log"
 	"github.com/stablecog/sc-go/server/responses"
 	"github.com/stablecog/sc-go/utils"
 )

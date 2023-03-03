@@ -5,7 +5,7 @@ import (
 	"os"
 
 	"entgo.io/ent/dialect"
-	"github.com/charmbracelet/log"
+	"github.com/stablecog/sc-go/log"
 	"github.com/stablecog/sc-go/utils"
 )
 
@@ -59,7 +59,7 @@ func GetSqlDbConn(mock bool) (SqlDBConn, error) {
 		log.Error("Postgres environment variables not set, not sure what to do? so exiting")
 		os.Exit(1)
 	}
-	log.Info("Using PostgreSQL database", "conn", fmt.Sprintf("%s@%s:%s", postgresUser, postgresHost, postgresPort))
+	log.Infof("Using PostgreSQL database %s@%s:%s", postgresUser, postgresHost, postgresPort)
 	return &PostgresConn{
 		Host:     postgresHost,
 		Port:     postgresPort,

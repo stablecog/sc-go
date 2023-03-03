@@ -3,8 +3,8 @@ package rest
 import (
 	"net/http"
 
-	"github.com/charmbracelet/log"
 	"github.com/go-chi/render"
+	"github.com/stablecog/sc-go/log"
 	"github.com/stablecog/sc-go/server/responses"
 )
 

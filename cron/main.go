@@ -8,13 +8,13 @@ import (
 	"os"
 	"time"
 
-	"github.com/charmbracelet/log"
 	"github.com/go-co-op/gocron"
 	"github.com/joho/godotenv"
 	"github.com/stablecog/sc-go/cron/discord"
 	"github.com/stablecog/sc-go/cron/jobs"
 	"github.com/stablecog/sc-go/database"
 	"github.com/stablecog/sc-go/database/repository"
+	"github.com/stablecog/sc-go/log"
 	"github.com/stablecog/sc-go/utils"
 )
 
@@ -27,7 +27,7 @@ func usage() {
 }
 
 func main() {
-	log.Info("SC Cron", "version", Version)
+	log.Infof("SC Cron %s", Version)
 	showHelp := flag.Bool("help", false, "Show help")
 	healthCheck := flag.Bool("healthCheck", false, "Run the health check job")
 	syncMeili := flag.Bool("syncMeili", false, "Sync the meili index")

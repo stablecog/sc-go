@@ -4,11 +4,11 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/charmbracelet/log"
 	"github.com/meilisearch/meilisearch-go"
 	"github.com/stablecog/sc-go/cron/discord"
 	"github.com/stablecog/sc-go/database"
 	"github.com/stablecog/sc-go/database/repository"
+	"github.com/stablecog/sc-go/log"
 )
 
 type JobRunner struct {
@@ -21,19 +21,19 @@ type JobRunner struct {
 
 // Just wrap logger so we can include the job name without repeating it
 type Logger interface {
-	Info(s string, args ...any)
-	Error(s string, args ...any)
+	Infof(s string, args ...any)
+	Errorf(s string, args ...any)
 }
 
 type JobLogger struct {
 	JobName string
 }
 
-func (j *JobLogger) Info(s string, args ...any) {
+func (j *JobLogger) Infof(s string, args ...any) {
 	log.Info(fmt.Sprintf("%s -- %v", j.JobName, fmt.Sprintf(s, args...)))
 }
 
-func (j *JobLogger) Error(s string, args ...any) {
+func (j *JobLogger) Errorf(s string, args ...any) {
 	log.Error(fmt.Sprintf("%s -- %v", j.JobName, fmt.Sprintf(s, args...)))
 }
 

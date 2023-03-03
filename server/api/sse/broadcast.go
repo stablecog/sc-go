@@ -3,8 +3,8 @@ package sse
 import (
 	"encoding/json"
 
-	"github.com/charmbracelet/log"
 	"github.com/stablecog/sc-go/database/repository"
+	"github.com/stablecog/sc-go/log"
 	"github.com/stablecog/sc-go/shared"
 )
 

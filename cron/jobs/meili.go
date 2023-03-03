@@ -34,7 +34,7 @@ func (j *JobRunner) SyncMeili(log Logger) error {
 	}
 
 	if len(galleryItems) == 0 {
-		log.Info("No new generations to sync")
+		log.Infof("No new generations to sync")
 		return nil
 	}
 	lastGen := galleryItems[len(galleryItems)-1]
@@ -42,17 +42,17 @@ func (j *JobRunner) SyncMeili(log Logger) error {
 	if shouldSetSettings {
 		_, err = j.Meili.Index("generation_g").UpdateSortableAttributes(&sortableAttributes)
 		if err != nil {
-			log.Error("Update sortable attributes %v", err)
+			log.Errorf("Update sortable attributes %v", err)
 			return err
 		} else {
-			log.Info("Sortable attributes updated")
+			log.Infof("Sortable attributes updated")
 		}
 		_, errMax := j.Meili.Index("generation_g").UpdatePagination(&meilisearch.Pagination{MaxTotalHits: int64(maxTotalHits)})
 		if errMax != nil {
-			log.Error("Update max total hits %v", errMax)
+			log.Errorf("Update max total hits %v", errMax)
 			return errMax
 		} else {
-			log.Info("Meili max total hits updated")
+			log.Infof("Meili max total hits updated")
 		}
 		if err == nil && errMax == nil {
 			shouldSetSettings = false
@@ -61,12 +61,12 @@ func (j *JobRunner) SyncMeili(log Logger) error {
 
 	_, errMeili := j.Meili.Index("generation_g").AddDocuments(galleryItems)
 	if errMeili != nil {
-		log.Error("%v", errMeili)
+		log.Errorf("%v", errMeili)
 		return errMeili
 	} else {
 		lastSyncedGenUpdatedAt = lastGen.UpdatedAt
 		j.Redis.Client.Set(j.Ctx, lastSyncedGenUpdatedAtKey, lastSyncedGenUpdatedAt.UTC().Format(time.RFC3339), rTTL)
-		log.Info("Successfully indexed at %s", lastSyncedGenUpdatedAt.UTC())
+		log.Infof("Successfully indexed at %s", lastSyncedGenUpdatedAt.UTC())
 	}
 
 	return nil

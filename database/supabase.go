@@ -3,7 +3,7 @@ package database
 import (
 	"errors"
 
-	"github.com/charmbracelet/log"
+	"github.com/stablecog/sc-go/log"
 	"github.com/stablecog/sc-go/utils"
 	"github.com/supabase-community/gotrue-go"
 )

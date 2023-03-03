@@ -9,10 +9,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/charmbracelet/log"
 	"github.com/stablecog/sc-go/cron/models"
 	"github.com/stablecog/sc-go/database/ent"
 	"github.com/stablecog/sc-go/database/ent/generation"
+	"github.com/stablecog/sc-go/log"
 	"github.com/stablecog/sc-go/shared"
 	"github.com/stablecog/sc-go/utils"
 )
@@ -107,7 +107,7 @@ func (d *DiscordHealthTracker) SendDiscordNotificationIfNeeded(
 		d.lastUnhealthyNotificationTime = d.lastNotificationTime
 	}
 	end := time.Now().UnixMilli()
-	log.Info("Sent Discord notification", "duration", fmt.Sprintf("%dms", end-start))
+	log.Infof("Sent Discord notification in %dms", end-start)
 
 	return nil
 }

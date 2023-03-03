@@ -3,10 +3,10 @@ package repository
 import (
 	"fmt"
 
-	"github.com/charmbracelet/log"
 	"github.com/google/uuid"
 	"github.com/stablecog/sc-go/database/ent/generation"
 	"github.com/stablecog/sc-go/database/ent/generationoutput"
+	"github.com/stablecog/sc-go/log"
 )
 
 // Submits all generation outputs to gallery for review, from user

@@ -5,10 +5,10 @@ import (
 	"time"
 
 	"entgo.io/ent/dialect/sql"
-	"github.com/charmbracelet/log"
 	"github.com/google/uuid"
 	"github.com/stablecog/sc-go/database/ent"
 	"github.com/stablecog/sc-go/database/ent/credit"
+	"github.com/stablecog/sc-go/log"
 	"github.com/stablecog/sc-go/shared"
 )
 

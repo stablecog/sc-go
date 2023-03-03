@@ -3,10 +3,10 @@ package analytics
 import (
 	"os"
 
-	"github.com/charmbracelet/log"
 	"github.com/dukex/mixpanel"
 	"github.com/hashicorp/go-multierror"
 	"github.com/posthog/posthog-go"
+	"github.com/stablecog/sc-go/log"
 	"github.com/stablecog/sc-go/utils"
 )
 
@@ -32,6 +32,8 @@ func NewAnalyticsService() *AnalyticsService {
 			os.Exit(1)
 		}
 		service.Posthog = client
+	} else {
+		log.Warn("Posthog not configured")
 	}
 
 	// Setup mixpanel

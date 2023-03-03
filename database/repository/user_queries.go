@@ -4,12 +4,12 @@ import (
 	"time"
 
 	"entgo.io/ent/dialect/sql"
-	"github.com/charmbracelet/log"
 	"github.com/google/uuid"
 	"github.com/stablecog/sc-go/database/ent"
 	"github.com/stablecog/sc-go/database/ent/credit"
 	"github.com/stablecog/sc-go/database/ent/user"
 	"github.com/stablecog/sc-go/database/ent/userrole"
+	"github.com/stablecog/sc-go/log"
 )
 
 func (r *Repository) GetUser(id uuid.UUID) (*ent.User, error) {
