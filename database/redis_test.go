@@ -85,24 +85,24 @@ func TestGetPendingGenerationAndUpscaleIDs(t *testing.T) {
 	redis, err := NewRedis(context.TODO())
 	assert.Nil(t, err)
 	// MKStream
-	redis.Client.XGroupCreateMkStream(redis.Client.Context(), shared.COG_REDIS_QUEUE, shared.COG_REDIS_QUEUE, "0-0").Err()
+	redis.Client.XGroupCreateMkStream(redis.Ctx, shared.COG_REDIS_QUEUE, shared.COG_REDIS_QUEUE, "0-0").Err()
 
 	// Enqueue a few requests
-	assert.Nil(t, redis.EnqueueCogRequest(redis.Client.Context(), requests.CogQueueRequest{
+	assert.Nil(t, redis.EnqueueCogRequest(redis.Ctx, requests.CogQueueRequest{
 		Input: requests.BaseCogRequest{
 			ID:          uuid.MustParse("00000000-0000-0000-0000-000000000001").String(),
 			ProcessType: shared.UPSCALE,
 		},
 	}))
 
-	assert.Nil(t, redis.EnqueueCogRequest(redis.Client.Context(), requests.CogQueueRequest{
+	assert.Nil(t, redis.EnqueueCogRequest(redis.Ctx, requests.CogQueueRequest{
 		Input: requests.BaseCogRequest{
 			ID:          uuid.MustParse("00000000-0000-0000-0000-000000000002").String(),
 			ProcessType: shared.GENERATE,
 		},
 	}))
 
-	assert.Nil(t, redis.EnqueueCogRequest(redis.Client.Context(), requests.CogQueueRequest{
+	assert.Nil(t, redis.EnqueueCogRequest(redis.Ctx, requests.CogQueueRequest{
 		Input: requests.BaseCogRequest{
 			ID:          uuid.MustParse("00000000-0000-0000-0000-000000000032").String(),
 			ProcessType: shared.GENERATE_AND_UPSCALE,

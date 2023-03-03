@@ -364,7 +364,7 @@ func main() {
 					log.Error("Error marshalling sse live response", "err", err)
 					return
 				}
-				err = redis.Client.Publish(redis.Client.Context(), shared.REDIS_SSE_BROADCAST_CHANNEL, respBytes).Err()
+				err = redis.Client.Publish(redis.Ctx, shared.REDIS_SSE_BROADCAST_CHANNEL, respBytes).Err()
 				if err != nil {
 					log.Error("Failed to publish live page update", "err", err)
 				}

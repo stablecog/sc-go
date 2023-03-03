@@ -34,11 +34,6 @@ func (c *RestAPI) HandleCreateGeneration(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	if !utils.IsSha256Hash(generateReq.UIId) {
-		responses.ErrBadRequest(w, r, fmt.Sprintf("Invalid UI ID %s", generateReq.UIId))
-		return
-	}
-
 	// Validation
 	err = generateReq.Validate()
 	if err != nil {
@@ -188,7 +183,7 @@ func (c *RestAPI) HandleCreateGeneration(w http.ResponseWriter, r *http.Request)
 			log.Error("Error marshalling sse live response", "err", err)
 			return
 		}
-		err = c.Redis.Client.Publish(c.Redis.Client.Context(), shared.REDIS_SSE_BROADCAST_CHANNEL, respBytes).Err()
+		err = c.Redis.Client.Publish(c.Redis.Ctx, shared.REDIS_SSE_BROADCAST_CHANNEL, respBytes).Err()
 		if err != nil {
 			log.Error("Failed to publish live page update", "err", err)
 		}

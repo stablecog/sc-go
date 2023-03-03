@@ -3,7 +3,6 @@ module github.com/stablecog/sc-go/server
 go 1.20
 
 require (
-	github.com/charmbracelet/log v0.1.2
 	github.com/dukex/mixpanel v1.0.1
 	github.com/go-chi/chi/v5 v5.0.8
 	github.com/go-chi/cors v1.2.1
@@ -15,7 +14,10 @@ require (
 	github.com/jarcoal/httpmock v1.3.0
 	github.com/joho/godotenv v1.4.0
 	github.com/posthog/posthog-go v0.0.0-20221221115252-24dfed35d71a
+	github.com/redis/go-redis/v9 v9.0.2
+	github.com/stablecog/sc-go/cron v0.0.0-20230303221221-dcc7ec43e5e1
 	github.com/stablecog/sc-go/database v0.0.0-20230302020341-97439f16e654
+	github.com/stablecog/sc-go/log v0.0.0-20230303221221-dcc7ec43e5e1
 	github.com/stablecog/sc-go/shared v0.0.0-20230302020341-97439f16e654
 	github.com/stablecog/sc-go/utils v0.0.0-20230302020341-97439f16e654
 	github.com/stretchr/testify v1.8.2
@@ -26,6 +28,7 @@ require (
 require (
 	ariga.io/sqlcomment v0.1.0 // indirect
 	github.com/charmbracelet/lipgloss v0.6.0 // indirect
+	github.com/charmbracelet/log v0.1.2 // indirect
 	github.com/go-logfmt/logfmt v0.6.0 // indirect
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
 	github.com/hashicorp/errwrap v1.0.0 // indirect
@@ -49,11 +52,11 @@ require (
 	github.com/alicebob/gopher-json v0.0.0-20200520072559-a9ecdc9d1d3a // indirect
 	github.com/andybalholm/brotli v1.0.4 // indirect
 	github.com/apparentlymart/go-textseg/v13 v13.0.0 // indirect
-	github.com/cespare/xxhash/v2 v2.1.2 // indirect
+	github.com/cespare/xxhash/v2 v2.2.0 // indirect
 	github.com/dgryski/go-rendezvous v0.0.0-20200823014737-9f7001d12a5f // indirect
 	github.com/go-openapi/inflect v0.19.0 // indirect
-	github.com/go-redis/redis/v8 v8.11.5
-	github.com/golang-jwt/jwt/v4 v4.4.2 // indirect
+	github.com/go-redis/redis/v8 v8.11.5 // indirect
+	github.com/golang-jwt/jwt/v4 v4.4.3 // indirect
 	github.com/google/go-cmp v0.5.9 // indirect
 	github.com/hashicorp/hcl/v2 v2.13.0 // indirect
 	github.com/jackc/chunkreader/v2 v2.0.1 // indirect

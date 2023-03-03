@@ -7,8 +7,8 @@ import (
 	"time"
 
 	"github.com/go-chi/httprate"
-	"github.com/go-redis/redis/v8"
 	"github.com/google/uuid"
+	"github.com/redis/go-redis/v9"
 	"github.com/stablecog/sc-go/database"
 	"github.com/stablecog/sc-go/shared"
 	"github.com/stablecog/sc-go/utils"
@@ -56,12 +56,12 @@ func (c *redisCounter) Config(requestLimit int, windowLength time.Duration) {
 func (c *redisCounter) Increment(key string, currentWindow time.Time) error {
 	hkey := limitCounterKey(key, currentWindow)
 
-	c.redis.Client.Incr(c.redis.Client.Context(), hkey).Err()
-	err := c.redis.Client.Incr(c.redis.Client.Context(), hkey).Err()
+	c.redis.Client.Incr(c.redis.Ctx, hkey).Err()
+	err := c.redis.Client.Incr(c.redis.Ctx, hkey).Err()
 	if err != nil {
 		return err
 	}
-	err = c.redis.Client.Expire(c.redis.Client.Context(), hkey, c.windowLength*3).Err()
+	err = c.redis.Client.Expire(c.redis.Ctx, hkey, c.windowLength*3).Err()
 	if err != nil {
 		return err
 	}
@@ -70,7 +70,7 @@ func (c *redisCounter) Increment(key string, currentWindow time.Time) error {
 }
 
 func (c *redisCounter) Get(key string, currentWindow, previousWindow time.Time) (int, int, error) {
-	currValue, err := c.redis.Client.Get(c.redis.Client.Context(), limitCounterKey(key, currentWindow)).Result()
+	currValue, err := c.redis.Client.Get(c.redis.Ctx, limitCounterKey(key, currentWindow)).Result()
 	if err != nil && err != redis.Nil {
 		return 0, 0, fmt.Errorf("redis get failed: %w", err)
 	}
@@ -83,7 +83,7 @@ func (c *redisCounter) Get(key string, currentWindow, previousWindow time.Time) 
 		}
 	}
 
-	prevValue, err := c.redis.Client.Get(c.redis.Client.Context(), limitCounterKey(key, previousWindow)).Result()
+	prevValue, err := c.redis.Client.Get(c.redis.Ctx, limitCounterKey(key, previousWindow)).Result()
 	if err != nil && err != redis.Nil {
 		return 0, 0, fmt.Errorf("redis get failed: %w", err)
 	}

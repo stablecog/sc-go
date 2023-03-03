@@ -3,13 +3,13 @@ module github.com/stablecog/sc-go/cron
 go 1.20
 
 require (
-	github.com/charmbracelet/log v0.1.2
 	github.com/google/uuid v1.3.0
 	github.com/jarcoal/httpmock v1.3.0
 	github.com/meilisearch/meilisearch-go v0.22.0
-	github.com/stablecog/sc-go/database v0.0.0-20230228024452-ecbe094b6ada
-	github.com/stablecog/sc-go/shared v0.0.0-20230228024452-ecbe094b6ada
-	github.com/stablecog/sc-go/utils v0.0.0-20230228024452-ecbe094b6ada
+	github.com/stablecog/sc-go/database v0.0.0-20230302020341-97439f16e654
+	github.com/stablecog/sc-go/log v0.0.0-20230303221221-dcc7ec43e5e1
+	github.com/stablecog/sc-go/shared v0.0.0-20230302020341-97439f16e654
+	github.com/stablecog/sc-go/utils v0.0.0-20230302020341-97439f16e654
 	github.com/stretchr/testify v1.8.2
 )
 
@@ -18,6 +18,7 @@ require (
 	github.com/alicebob/miniredis/v2 v2.30.0 // indirect
 	github.com/andybalholm/brotli v1.0.4 // indirect
 	github.com/charmbracelet/lipgloss v0.6.0 // indirect
+	github.com/charmbracelet/log v0.1.2 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/go-logfmt/logfmt v0.6.0 // indirect
 	github.com/go-redis/redis/v8 v8.11.5 // indirect
@@ -36,7 +37,7 @@ require (
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/rivo/uniseg v0.2.0 // indirect
 	github.com/robfig/cron/v3 v3.0.1 // indirect
-	github.com/stablecog/sc-go/server v0.0.0-20230216152639-fdb95f1bb7ba // indirect
+	github.com/stablecog/sc-go/server v0.0.0-20230303221221-dcc7ec43e5e1 // indirect
 	github.com/supabase-community/gotrue-go v1.0.1 // indirect
 	github.com/tomnomnom/linkheader v0.0.0-20180905144013-02ca5825eb80 // indirect
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
@@ -48,7 +49,6 @@ require (
 	golang.org/x/sync v0.1.0 // indirect
 	golang.org/x/sys v0.2.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
-	k8s.io/klog/v2 v2.80.1 // indirect
 )
 
 require (
@@ -57,10 +57,9 @@ require (
 	github.com/agext/levenshtein v1.2.1 // indirect
 	github.com/alicebob/gopher-json v0.0.0-20200520072559-a9ecdc9d1d3a // indirect
 	github.com/apparentlymart/go-textseg/v13 v13.0.0 // indirect
-	github.com/cespare/xxhash/v2 v2.1.2 // indirect
+	github.com/cespare/xxhash/v2 v2.2.0 // indirect
 	github.com/dgryski/go-rendezvous v0.0.0-20200823014737-9f7001d12a5f // indirect
 	github.com/go-co-op/gocron v1.18.0
-	github.com/go-logr/logr v1.2.3 // indirect
 	github.com/go-openapi/inflect v0.19.0 // indirect
 	github.com/google/go-cmp v0.5.9 // indirect
 	github.com/hashicorp/hcl/v2 v2.13.0 // indirect

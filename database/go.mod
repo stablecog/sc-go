@@ -3,11 +3,11 @@ module github.com/stablecog/sc-go/database
 go 1.20
 
 require (
-	github.com/charmbracelet/log v0.1.2
-	github.com/go-redis/redis/v8 v8.11.5
-	github.com/stablecog/sc-go/server v0.0.0-20230216152639-fdb95f1bb7ba
-	github.com/stablecog/sc-go/shared v0.0.0-20230216152639-fdb95f1bb7ba
-	github.com/stablecog/sc-go/utils v0.0.0-20230216152639-fdb95f1bb7ba
+	github.com/redis/go-redis/v9 v9.0.2
+	github.com/stablecog/sc-go/log v0.0.0-20230303221221-dcc7ec43e5e1
+	github.com/stablecog/sc-go/server v0.0.0-20230303221221-dcc7ec43e5e1
+	github.com/stablecog/sc-go/shared v0.0.0-20230303221221-dcc7ec43e5e1
+	github.com/stablecog/sc-go/utils v0.0.0-20230303221221-dcc7ec43e5e1
 	github.com/stretchr/testify v1.8.2
 )
 
@@ -15,6 +15,7 @@ require (
 	github.com/alicebob/gopher-json v0.0.0-20200520072559-a9ecdc9d1d3a // indirect
 	github.com/andybalholm/brotli v1.0.4 // indirect
 	github.com/charmbracelet/lipgloss v0.6.0 // indirect
+	github.com/charmbracelet/log v0.1.2 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/go-logfmt/logfmt v0.6.0 // indirect
 	github.com/golang-jwt/jwt/v4 v4.4.2 // indirect
@@ -45,7 +46,6 @@ require (
 	go.opentelemetry.io/otel v1.0.1 // indirect
 	go.opentelemetry.io/otel/trace v1.0.1 // indirect
 	golang.org/x/crypto v0.0.0-20220722155217-630584e8d5aa // indirect
-	golang.org/x/exp v0.0.0-20230206171751-46f607a40771 // indirect
 	golang.org/x/image v0.3.0 // indirect
 	golang.org/x/sys v0.2.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
@@ -58,7 +58,7 @@ require (
 	github.com/agext/levenshtein v1.2.1 // indirect
 	github.com/alicebob/miniredis/v2 v2.30.0
 	github.com/apparentlymart/go-textseg/v13 v13.0.0 // indirect
-	github.com/cespare/xxhash/v2 v2.1.2 // indirect
+	github.com/cespare/xxhash/v2 v2.2.0 // indirect
 	github.com/dgryski/go-rendezvous v0.0.0-20200823014737-9f7001d12a5f // indirect
 	github.com/go-openapi/inflect v0.19.0 // indirect
 	github.com/google/go-cmp v0.5.9 // indirect

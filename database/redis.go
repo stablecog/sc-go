@@ -7,8 +7,8 @@ import (
 	"time"
 
 	"github.com/alicebob/miniredis/v2"
-	"github.com/go-redis/redis/v8"
 	"github.com/google/uuid"
+	"github.com/redis/go-redis/v9"
 	"github.com/stablecog/sc-go/log"
 	"github.com/stablecog/sc-go/server/requests"
 	"github.com/stablecog/sc-go/shared"
@@ -20,6 +20,7 @@ var logError = log.Error
 
 type RedisWrapper struct {
 	Client *redis.Client
+	Ctx    context.Context
 }
 
 // Should return render redis url if render is set
@@ -52,6 +53,7 @@ func NewRedis(ctx context.Context) (*RedisWrapper, error) {
 	}
 	return &RedisWrapper{
 		Client: redis,
+		Ctx:    ctx,
 	}, nil
 }
 
@@ -102,7 +104,7 @@ func (r *RedisWrapper) GetPendingGenerationAndUpscaleIDs(olderThan time.Duration
 	// Get current time in MS since epoch, minus endAt
 	to := time.Now().UnixNano()/int64(time.Millisecond) - int64(olderThan/time.Millisecond)
 	// Get from the redis stream COG_REDIS_QUEUE, we want to read them without deleting them
-	messages, err := r.Client.XRange(r.Client.Context(), shared.COG_REDIS_QUEUE, "0-0", fmt.Sprintf("%d", to)).Result()
+	messages, err := r.Client.XRange(r.Ctx, shared.COG_REDIS_QUEUE, "0-0", fmt.Sprintf("%d", to)).Result()
 	if err != nil {
 		log.Error("Error getting pending generation and upscale IDs", "err", err)
 		return nil, nil, err

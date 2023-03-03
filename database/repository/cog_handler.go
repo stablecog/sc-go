@@ -7,8 +7,8 @@ import (
 	"fmt"
 	"strconv"
 
-	"github.com/go-redis/redis/v8"
 	"github.com/google/uuid"
+	"github.com/redis/go-redis/v9"
 	"github.com/stablecog/sc-go/database/ent"
 	"github.com/stablecog/sc-go/database/ent/generation"
 	"github.com/stablecog/sc-go/database/ent/upscale"
@@ -23,7 +23,7 @@ import (
 func (r *Repository) FailCogMessageDueToTimeoutIfTimedOut(msg requests.CogRedisMessage) {
 	redisKey := fmt.Sprintf("second:%s", msg.Input.ID)
 	// Since we sync with other instances, we get the stream ID from redis
-	streamIdStr, err := r.Redis.GetCogRequestStreamID(r.Redis.Client.Context(), redisKey)
+	streamIdStr, err := r.Redis.GetCogRequestStreamID(r.Redis.Ctx, redisKey)
 	if err != nil {
 		if errors.Is(err, redis.Nil) {
 			// Probably means another instance picked this up
@@ -34,7 +34,7 @@ func (r *Repository) FailCogMessageDueToTimeoutIfTimedOut(msg requests.CogRedisM
 	}
 
 	// We delete this, if our delete is successful then that means we are the ones responsible for processing it
-	deleted, err := r.Redis.DeleteCogRequestStreamID(r.Redis.Client.Context(), redisKey)
+	deleted, err := r.Redis.DeleteCogRequestStreamID(r.Redis.Ctx, redisKey)
 	if err != nil {
 		log.Error("Error deleting stream ID from redis", "err", err)
 		return
@@ -142,7 +142,7 @@ func (r *Repository) FailCogMessageDueToTimeoutIfTimedOut(msg requests.CogRedisM
 	}
 
 	// Broadcast to all clients subcribed to this stream
-	r.Redis.Client.Publish(r.Redis.Client.Context(), shared.REDIS_SSE_BROADCAST_CHANNEL, respBytes)
+	r.Redis.Client.Publish(r.Redis.Ctx, shared.REDIS_SSE_BROADCAST_CHANNEL, respBytes)
 }
 
 // Process a cog message into database
@@ -152,7 +152,7 @@ func (r *Repository) ProcessCogMessage(msg requests.CogRedisMessage) {
 		redisKey = fmt.Sprintf("second:%s", msg.Input.ID)
 	}
 	// Since we sync with other instances, we get the stream ID from redis
-	streamIdStr, err := r.Redis.GetCogRequestStreamID(r.Redis.Client.Context(), redisKey)
+	streamIdStr, err := r.Redis.GetCogRequestStreamID(r.Redis.Ctx, redisKey)
 	if err != nil {
 		if errors.Is(err, redis.Nil) {
 			// Probably means another instance picked this up
@@ -163,7 +163,7 @@ func (r *Repository) ProcessCogMessage(msg requests.CogRedisMessage) {
 	}
 
 	// We delete this, if our delete is successful then that means we are the ones responsible for processing it
-	deleted, err := r.Redis.DeleteCogRequestStreamID(r.Redis.Client.Context(), redisKey)
+	deleted, err := r.Redis.DeleteCogRequestStreamID(r.Redis.Ctx, redisKey)
 	if err != nil {
 		log.Error("Error deleting stream ID from redis", "err", err)
 		return
@@ -400,5 +400,5 @@ func (r *Repository) ProcessCogMessage(msg requests.CogRedisMessage) {
 	}
 
 	// Broadcast to all clients subcribed to this stream
-	r.Redis.Client.Publish(r.Redis.Client.Context(), shared.REDIS_SSE_BROADCAST_CHANNEL, respBytes)
+	r.Redis.Client.Publish(r.Redis.Ctx, shared.REDIS_SSE_BROADCAST_CHANNEL, respBytes)
 }
