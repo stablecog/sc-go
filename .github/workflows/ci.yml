@@ -53,6 +53,8 @@ jobs:
     env:
       GITHUB_RUN_ID: ${{ github.run_id }}
     steps:
+      - uses: actions/checkout@master
+
       - name: Setup Golang with cache
         uses: magnetikonline/action-golang-cache@v3
         with:
