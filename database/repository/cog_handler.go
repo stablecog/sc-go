@@ -122,6 +122,7 @@ func (r *Repository) FailCogMessageDueToTimeoutIfTimedOut(msg requests.CogRedisM
 
 	// Regardless of the status, we always send over sse so user knows what's up
 	// Send message to user
+	log.Infof("Sending Update %s, ui_id: %s", msg.Status, msg.Input.UIId)
 	resp := TaskStatusUpdateResponse{
 		Status:           msg.Status,
 		Id:               msg.Input.ID,
@@ -347,6 +348,7 @@ func (r *Repository) ProcessCogMessage(msg requests.CogRedisMessage) {
 
 	// Regardless of the status, we always send over sse so user knows what's up
 	// Send message to user
+	log.Infof("Sending Update %s, ui_id: %s", msg.Status, msg.Input.UIId)
 	resp := TaskStatusUpdateResponse{
 		Status:           msg.Status,
 		Id:               msg.Input.ID,

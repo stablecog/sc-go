@@ -30,8 +30,8 @@ func FireServerReadyWebhook(version string) error {
 						Value: "```QA```",
 					},
 					{
-						Name:  "🟩 Instance Started",
-						Value: "```sc-server instance is accepting connections.```",
+						Name:  "🟩",
+						Value: "```Server status: Started```",
 					},
 					{
 						Name:  "🚀 Version",
