@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/charmbracelet/log"
 	"github.com/stablecog/sc-go/cron/discord"
 	"github.com/stablecog/sc-go/database/ent/generation"
 	"github.com/stablecog/sc-go/shared"
@@ -16,14 +15,16 @@ const maxGenerationFailWithoutNSFWRate = 0.5
 // Get this number of generations on each check, sorted by created_at DESC
 const generationCountToCheck = 10
 
+const HEALTH_JOB_NAME = "HEALTH_JOB"
+
 // CheckHealth cron job
-func (j *JobRunner) CheckHealth() error {
+func (j *JobRunner) CheckHealth(log Logger) error {
 	start := time.Now()
 	log.Info("Checking health...")
 
 	generations, err := j.Repo.GetGenerations(generationCountToCheck)
 	if err != nil || len(generations) == 0 {
-		log.Error("Couldn't get generations", "err", err)
+		log.Error("Couldn't get generations %v", err)
 		return err
 	}
 
@@ -40,7 +41,8 @@ func (j *JobRunner) CheckHealth() error {
 		}
 	}
 
-	log.Info("Generation fail rate", "NSFW", fmt.Sprintf("%d/%d", nsfwGenerations, len(generations)), "Other", fmt.Sprintf("%d/%d", failedGenerations, len(generations)))
+	log.Info("Generation fail rate NSFW %s", fmt.Sprintf("%d/%d", nsfwGenerations, len(generations)))
+	log.Info("Generation fail rate other %s", fmt.Sprintf("%d/%d", failedGenerations, len(generations)))
 
 	// Figure out if we're healthy
 	healthStatus := discord.HEALTHY
@@ -49,7 +51,7 @@ func (j *JobRunner) CheckHealth() error {
 		healthStatus = discord.UNHEALTHY
 	}
 
-	log.Info("Done checking health", "duration", fmt.Sprintf("%dms", time.Now().Sub(start).Milliseconds()))
+	log.Info("Done checking health in %s", fmt.Sprintf("%dms", time.Now().Sub(start).Milliseconds()))
 
 	return j.Discord.SendDiscordNotificationIfNeeded(
 		healthStatus,

@@ -87,7 +87,7 @@ func main() {
 	}
 
 	if *healthCheck {
-		err := jobRunner.CheckHealth()
+		err := jobRunner.CheckHealth(jobs.NewJobLogger("HEALTH"))
 		if err != nil {
 			log.Fatal("Error running health check", "err", err)
 			os.Exit(1)
@@ -96,7 +96,7 @@ func main() {
 	}
 
 	if *syncMeili {
-		err := jobRunner.SyncMeili()
+		err := jobRunner.SyncMeili(jobs.NewJobLogger("MEILI_SYNC"))
 		if err != nil {
 			log.Fatal("Error syncing meili", "err", err)
 			os.Exit(1)
@@ -105,7 +105,7 @@ func main() {
 	}
 
 	if *stats {
-		err := jobRunner.GetAndSetStats()
+		err := jobRunner.GetAndSetStats(jobs.NewJobLogger("STATS"))
 		if err != nil {
 			log.Fatal("Error running stats job", "err", err)
 			os.Exit(1)
@@ -116,12 +116,12 @@ func main() {
 	if *allJobs {
 		log.Info("🏡 Starting all jobs...")
 		s := gocron.NewScheduler(time.UTC)
-		s.Every(60).Seconds().Do(jobRunner.SyncMeili)
-		s.Every(60).Seconds().Do(jobRunner.GetAndSetStats)
+		s.Every(60).Seconds().Do(jobRunner.SyncMeili, jobs.NewJobLogger("MEILI_SYNC"))
+		s.Every(60).Seconds().Do(jobRunner.GetAndSetStats, jobs.NewJobLogger("STATS"))
 		if utils.GetEnv("DISCORD_WEBHOOK_URL", "") != "" {
-			s.Every(60).Seconds().Do(jobRunner.CheckHealth)
+			s.Every(60).Seconds().Do(jobRunner.CheckHealth, jobs.NewJobLogger("HEALTH"))
 		}
-		s.Every(60).Seconds().Do(jobRunner.AddFreeCreditsToEligibleUsers)
+		s.Every(60).Seconds().Do(jobRunner.AddFreeCreditsToEligibleUsers, jobs.NewJobLogger("FREE_CREDITS"))
 		s.StartBlocking()
 		os.Exit(0)
 	}

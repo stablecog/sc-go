@@ -2,7 +2,9 @@ package jobs
 
 import (
 	"context"
+	"fmt"
 
+	"github.com/charmbracelet/log"
 	"github.com/meilisearch/meilisearch-go"
 	"github.com/stablecog/sc-go/cron/discord"
 	"github.com/stablecog/sc-go/database"
@@ -15,4 +17,26 @@ type JobRunner struct {
 	Ctx     context.Context
 	Meili   *meilisearch.Client
 	Discord *discord.DiscordHealthTracker
+}
+
+// Just wrap logger so we can include the job name without repeating it
+type Logger interface {
+	Info(s string, args ...any)
+	Error(s string, args ...any)
+}
+
+type JobLogger struct {
+	JobName string
+}
+
+func (j *JobLogger) Info(s string, args ...any) {
+	log.Info(fmt.Sprintf("%s -- %v", j.JobName, fmt.Sprintf(s, args...)))
+}
+
+func (j *JobLogger) Error(s string, args ...any) {
+	log.Error(fmt.Sprintf("%s -- %v", j.JobName, fmt.Sprintf(s, args...)))
+}
+
+func NewJobLogger(jobName string) *JobLogger {
+	return &JobLogger{JobName: jobName}
 }

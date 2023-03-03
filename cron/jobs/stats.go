@@ -3,8 +3,6 @@ package jobs
 import (
 	"sync"
 	"time"
-
-	"github.com/charmbracelet/log"
 )
 
 func (j *JobRunner) GetUpscaleOutputCount() (int, error) {
@@ -15,7 +13,7 @@ func (j *JobRunner) GetGenerationOutputCount() (int, error) {
 	return j.Repo.DB.GenerationOutput.Query().Count(j.Ctx)
 }
 
-func (j *JobRunner) GetAndSetStats() error {
+func (j *JobRunner) GetAndSetStats(log Logger) error {
 	start := time.Now()
 	log.Info("Getting stats...")
 
@@ -79,8 +77,8 @@ func (j *JobRunner) GetAndSetStats() error {
 	}
 
 	end := time.Now()
-	log.Info("--- upscales", "count", upscaleOutputCount)
-	log.Info("--- generations", "count", generationOutputCount)
-	log.Info("--- Got stats in", "ms", end.Sub(start).Milliseconds())
+	log.Info("--- upscales %d", upscaleOutputCount)
+	log.Info("--- generations %d", generationOutputCount)
+	log.Info("--- Got stats in %dms", end.Sub(start).Milliseconds())
 	return nil
 }
