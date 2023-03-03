@@ -3,7 +3,6 @@ package sse
 import (
 	"github.com/stablecog/sc-go/database"
 	"github.com/stablecog/sc-go/database/repository"
-	"github.com/stablecog/sc-go/log"
 )
 
 type BroadcastPayload struct {
@@ -55,7 +54,6 @@ func (h *Hub) Run() {
 				if client.Uid == payload.ID {
 					select {
 					case client.Send <- payload.Message:
-						log.Infof("Sent message to client %s", client.Uid)
 					default:
 						close(client.Send)
 						delete(h.clients, client)

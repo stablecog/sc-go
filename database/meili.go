@@ -13,8 +13,5 @@ func NewMeiliSearchClient() *meilisearch.Client {
 }
 
 func getMeiliUrl() string {
-	if utils.GetEnv("RENDER", "") != "" {
-		return utils.GetEnv("MEILI_URL_RENDER", "")
-	}
 	return utils.GetEnv("MEILI_URL", "")
 }
