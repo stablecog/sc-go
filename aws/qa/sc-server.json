@@ -12,6 +12,9 @@
                     "protocol": "tcp"
                 }
             ],
+            "linuxParameters": {
+                "initProcessEnabled": true
+            },
             "essential": true,
             "environment": [
                 {
@@ -92,6 +95,7 @@
     ],
     "family": "qa-sc-server",
     "executionRoleArn": "ecsTaskExecutionRole",
+    "taskRoleArn": "ecsTaskRole",
     "networkMode": "bridge",
     "volumes": [],
     "placementConstraints": [],

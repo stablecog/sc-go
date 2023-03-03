@@ -10,6 +10,9 @@
         "/app/cron",
         "-all"
       ],
+      "linuxParameters": {
+        "initProcessEnabled": true
+      },
       "environment": [
         {
           "name": "PUBLIC_SUPABASE_REFERENCE_ID",
@@ -89,6 +92,7 @@
   ],
   "family": "qa-sc-cron",
   "executionRoleArn": "ecsTaskExecutionRole",
+  "taskRoleArn": "ecsTaskRole",
   "networkMode": "bridge",
   "volumes": [],
   "placementConstraints": [],
