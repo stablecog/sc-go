@@ -75,3 +75,14 @@ const MAX_UPSCALE_IMAGE_SIZE = 1024 * 1024 * 10
 const DEFAULT_UPSCALE_SCALE = int32(4)
 const DEFAULT_UPSCALE_OUTPUT_EXTENSION = JPEG
 const DEFAULT_UPSCALE_OUTPUT_QUALITY = 85
+
+// Free credit replenishments
+// How much to give per day
+const FREE_CREDIT_AMOUNT_DAILY = 10
+
+// How often to replenish (related to updated_at on credits)
+// They get up to FREE_CREDIT_AMOUNT_DAILY in this time period
+const FREE_CREDIT_REPLENISHMENT_INTERVAL = 24 * time.Hour
+
+// Last sign in within 7 days
+const FREE_CREDIT_LAST_ACTIVITY_REQUIREMENT = 168 * time.Hour

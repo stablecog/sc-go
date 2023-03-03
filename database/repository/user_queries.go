@@ -261,3 +261,9 @@ type UserQueryResult struct {
 	Credits          []UserQueryCredits  `json:"credits,omitempty"`
 	StripeProductID  *string             `json:"product_id,omitempty"`
 }
+
+// For credit replenishment
+func (r *Repository) GetUsersThatSignedInSince(since time.Duration) ([]*ent.User, error) {
+	// Subtract since from now to get users signed in since then
+	return r.DB.User.Query().Where(user.LastSignInAtGT(time.Now().Add(-since)), user.ActiveProductIDIsNil()).All(r.Ctx)
+}

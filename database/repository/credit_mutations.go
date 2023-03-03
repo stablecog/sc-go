@@ -5,9 +5,11 @@ import (
 	"time"
 
 	"entgo.io/ent/dialect/sql"
+	"github.com/charmbracelet/log"
 	"github.com/google/uuid"
 	"github.com/stablecog/sc-go/database/ent"
 	"github.com/stablecog/sc-go/database/ent/credit"
+	"github.com/stablecog/sc-go/shared"
 )
 
 // Expiration date for manual invoices (non-recurring)
@@ -152,4 +154,29 @@ func (r *Repository) RefundCreditsToUser(userID uuid.UUID, amount int32, db *ent
 		return false, err
 	}
 	return rowsAffected > 0, nil
+}
+
+// Replenish free credits where eligible
+func (r *Repository) ReplenishFreeCreditsToEligibleUsers(userIDs []uuid.UUID) (int, error) {
+	// Get free credit type
+	creditType, err := r.GetOrCreateFreeCreditType()
+	if err != nil {
+		log.Error("Error getting free credit type", "err", err)
+		return 0, err
+	}
+
+	// Add where
+	// - user is in userIDs
+	// - credit type is free credit type
+	// - remaining amount is less than amount (cap)
+	// - item was last updated more than FREE_CREDIT_REPLENISHMENT_INTERVAL ago
+	updatedAtSince := time.Now().Add(-shared.FREE_CREDIT_REPLENISHMENT_INTERVAL)
+	return r.DB.Credit.Update().
+		Where(
+			credit.UserIDIn(userIDs...),
+			credit.CreditTypeID(creditType.ID),
+			credit.RemainingAmountLT(creditType.Amount),
+			credit.UpdatedAtLT(updatedAtSince),
+		).
+		AddRemainingAmount(shared.FREE_CREDIT_AMOUNT_DAILY).Save(r.Ctx)
 }

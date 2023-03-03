@@ -335,6 +335,7 @@ CREATE TABLE public.users (
     email text NOT NULL,
     stripe_customer_id text NOT NULL,
     active_product_id text,
+    last_sign_in_at timestamp with time zone,
     created_at timestamp with time zone DEFAULT timezone('utc'::text, now()) NOT NULL,
     updated_at timestamp with time zone DEFAULT timezone('utc'::text, now()) NOT NULL
 );
@@ -342,6 +343,24 @@ CREATE TABLE public.users (
 CREATE trigger handle_updated_at before
 UPDATE
     ON public.users FOR each ROW EXECUTE PROCEDURE moddatetime (updated_at);
+
+-- To update last_sign_in_at
+
+create function handle_updated_user() returns trigger as $$ begin
+update
+    public.users
+set
+    last_sign_in_at = new.last_sign_in_at
+where
+    id = new.id;
+return new;
+end;
+$$ language plpgsql security definer;
+
+create trigger on_auth_user_updated
+after
+update
+    on auth.users for each row execute procedure handle_updated_user();
 
 ALTER TABLE public.users OWNER TO postgres;
 

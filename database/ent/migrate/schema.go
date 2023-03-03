@@ -355,6 +355,7 @@ var (
 		{Name: "email", Type: field.TypeString, Size: 2147483647},
 		{Name: "stripe_customer_id", Type: field.TypeString, Unique: true, Size: 2147483647},
 		{Name: "active_product_id", Type: field.TypeString, Nullable: true, Size: 2147483647},
+		{Name: "last_sign_in_at", Type: field.TypeTime, Nullable: true},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},
 	}

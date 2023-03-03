@@ -121,6 +121,7 @@ func main() {
 		if utils.GetEnv("DISCORD_WEBHOOK_URL", "") != "" {
 			s.Every(60).Seconds().Do(jobRunner.CheckHealth)
 		}
+		s.Every(60).Seconds().Do(jobRunner.AddFreeCreditsToEligibleUsers)
 		s.StartBlocking()
 		os.Exit(0)
 	}

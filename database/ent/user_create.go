@@ -51,6 +51,20 @@ func (uc *UserCreate) SetNillableActiveProductID(s *string) *UserCreate {
 	return uc
 }
 
+// SetLastSignInAt sets the "last_sign_in_at" field.
+func (uc *UserCreate) SetLastSignInAt(t time.Time) *UserCreate {
+	uc.mutation.SetLastSignInAt(t)
+	return uc
+}
+
+// SetNillableLastSignInAt sets the "last_sign_in_at" field if the given value is not nil.
+func (uc *UserCreate) SetNillableLastSignInAt(t *time.Time) *UserCreate {
+	if t != nil {
+		uc.SetLastSignInAt(*t)
+	}
+	return uc
+}
+
 // SetCreatedAt sets the "created_at" field.
 func (uc *UserCreate) SetCreatedAt(t time.Time) *UserCreate {
 	uc.mutation.SetCreatedAt(t)
@@ -268,6 +282,10 @@ func (uc *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 	if value, ok := uc.mutation.ActiveProductID(); ok {
 		_spec.SetField(user.FieldActiveProductID, field.TypeString, value)
 		_node.ActiveProductID = &value
+	}
+	if value, ok := uc.mutation.LastSignInAt(); ok {
+		_spec.SetField(user.FieldLastSignInAt, field.TypeTime, value)
+		_node.LastSignInAt = &value
 	}
 	if value, ok := uc.mutation.CreatedAt(); ok {
 		_spec.SetField(user.FieldCreatedAt, field.TypeTime, value)

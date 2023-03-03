@@ -281,6 +281,7 @@ CREATE TABLE public.users (
     email text NOT NULL,
     created_at timestamp with time zone DEFAULT timezone('utc'::text, now()) NOT NULL,
     updated_at timestamp with time zone DEFAULT timezone('utc'::text, now()),
+    last_sign_in_at timestamp with time zone DEFAULT timezone('utc'::text, now()),
     active_product_id text,
     stripe_customer_id text NOT NULL
 );
