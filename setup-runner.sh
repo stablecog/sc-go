@@ -42,10 +42,10 @@ fi
 
 # Configure GitHub runner
 cd ~/actions-runner
-./config.sh --url $REPO --token $TOKEN --unattended
+sudo ./config.sh --url $REPO --token $TOKEN --unattended
 echo "GitHub runner configured successfully."
 
 # Launch GitHub runner as a service
-sudo ./svc.sh install
-sudo ./svc.sh start
+./svc.sh install
+./svc.sh start
 echo "GitHub runner launched successfully."
