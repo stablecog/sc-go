@@ -55,6 +55,12 @@ jobs:
     steps:
       - uses: actions/checkout@master
 
+      - name: Discord notification
+        env:
+          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
+          DISCORD-EMBED: '{"content":null,"embeds":[{"fields":[{"name":"🟨","value":"```Build Started```","inline":false}],"color":11437547}}],"attachments":[]}'
+        uses: Ilshidur/action-discord@master
+
       - name: Setup Golang with cache
         uses: magnetikonline/action-golang-cache@v3
         with:
@@ -105,7 +111,7 @@ jobs:
       - name: Discord notification
         env:
           DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
-          DISCORD-EMBED: '{"content":null,"embeds":[{"fields":[{"name":"🟨","value":"```Build Started```","inline":false}],"color":11437547}}],"attachments":[]}'
+          DISCORD-EMBED: '{"content":null,"embeds":[{"fields":[{"name":"🟪","value":"```AWS Deploy Started```","inline":false}],"color":11437547}}],"attachments":[]}'
         uses: Ilshidur/action-discord@master
 
       - name: Configure AWS credentials
@@ -142,6 +148,13 @@ jobs:
           service: qa-sc-server-Service-XSweBbsvI0JC
           cluster: qa-stablecog-Cluster-g4jXWMxvTvnZ
           wait-for-service-stability: true
+
+      - name: Discord notification
+        if: success()
+        env:
+          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
+          DISCORD-EMBED: '{"content":null,"embeds":[{"fields":[{"name":"✅","value":"```AWS Reports Service Stable```","inline":false}],"color":11437547}}],"attachments":[]}'
+        uses: Ilshidur/action-discord@master
 
   deploy_cron:
     name: 🚀 Deploy Cron
