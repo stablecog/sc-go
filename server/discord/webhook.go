@@ -26,12 +26,7 @@ func FireServerReadyWebhook(version string, msg string) error {
 				Color: 3447003,
 				Fields: []models.DiscordWebhookField{
 					{
-						Value: "```Accepting Traffic```",
-					},
-					{
-						// TODO - environment/change
-						Name:  "Environment",
-						Value: "```QA```",
+						Value: "```Deployed```",
 					},
 				},
 				Footer: models.DiscordWebhookEmbedFooter{
