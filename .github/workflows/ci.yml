@@ -139,7 +139,7 @@ jobs:
           webhook-url: ${{ secrets.DISCORD_WEBHOOK }}
           embed-color: 15105570
           embed-title: "${{ github.event.head_commit.message }}  •  ${{ env.SHORT_SHA}}"
-          embed-description: "```AWS Deploy Started```"
+          embed-description: "```Deploy Started```"
           embed-footer-text: "${{ env.NOW }}"
 
       - name: Configure AWS credentials
