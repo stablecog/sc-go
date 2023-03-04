@@ -22,7 +22,7 @@ func FireServerReadyWebhook(version string, msg string) error {
 	body := models.DiscordWebhookBody{
 		Embeds: []models.DiscordWebhookEmbed{
 			{
-				Title: fmt.Sprintf(`🟦 Commit: "%s"`, msg),
+				Title: fmt.Sprintf(`🟦 "%s" • %s`, msg, version),
 				Color: 3447003,
 				Fields: []models.DiscordWebhookField{
 					{
@@ -35,7 +35,7 @@ func FireServerReadyWebhook(version string, msg string) error {
 					},
 				},
 				Footer: models.DiscordWebhookEmbedFooter{
-					Text: fmt.Sprintf("%s • Version: %s", time.Now().Format(time.RFC1123), version),
+					Text: fmt.Sprintf("%s", time.Now().Format(time.RFC1123)),
 				},
 			},
 		},
