@@ -42,7 +42,7 @@ if [ ! -d ~/actions-runner ]; then
 fi
 
 # Configure GitHub runner
-sudo ./config.sh --url $REPO --token $TOKEN --unattended
+./config.sh --url $REPO --token $TOKEN --unattended
 echo "GitHub runner configured successfully."
 
 # Launch GitHub runner as a service
