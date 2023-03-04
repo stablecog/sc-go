@@ -187,7 +187,7 @@ jobs:
           webhook-url: ${{ secrets.DISCORD_WEBHOOK }}
           embed-color: 3066993
           embed-title: "${{ github.event.head_commit.message }}  •  ${{ env.SHORT_SHA}}"
-          embed-description: "```AWS Reports Service Stable```"
+          embed-description: "```AWS Service Stable```"
           embed-footer-text: "${{ env.NOW }}"
 
       - name: Discord Webhook Action
