@@ -34,6 +34,9 @@ import (
 var Version = "dev"
 var CommitMsg = "dev"
 
+// Used to track the build time from our CI
+var BuildStart = ""
+
 func main() {
 	log.Infof("SC Server %s", Version)
 
@@ -423,7 +426,7 @@ func main() {
 
 	// Send discord notification
 	go func() {
-		err = discord.FireServerReadyWebhook(Version, CommitMsg)
+		err = discord.FireServerReadyWebhook(Version, CommitMsg, BuildStart)
 		if err != nil {
 			log.Error("Error firing discord ready webhook", "err", err)
 		}

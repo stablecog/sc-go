@@ -58,6 +58,9 @@ jobs:
       - name: Add SHORT_SHA env property
         run: echo "SHORT_SHA=`echo ${GITHUB_SHA::7}`" >> $GITHUB_ENV
 
+      - name: Set build start in env variable
+        run: echo "BUILD_START=$(date +%s)" >> $GITHUB_ENV
+
       - name: Set current date as env variable
         run: echo "NOW=$(date +'%a, %d %b %Y %T %Z' )" >> $GITHUB_ENV
 
@@ -92,7 +95,7 @@ jobs:
 
       - name: Build GO Server Binary
         run: |
-          cd server && go build -ldflags "-s -w -X main.Version=${GITHUB_SHA::7} -X \"main.CommitMsg=${{ github.event.head_commit.message }}\"" -o server && cd ..
+          cd server && go build -ldflags "-s -w -X main.Version=${GITHUB_SHA::7} -X \"main.CommitMsg=${{ github.event.head_commit.message }}\" -Xmain.BuildStart=${{ env.BUILD_START }}" -o server && cd ..
 
       - name: Build GO Cron Binary
         run: |
