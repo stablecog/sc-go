@@ -55,9 +55,6 @@ jobs:
     steps:
       - uses: actions/checkout@master
 
-      - name: Add SHORT_SHA env property
-        run: echo "SHORT_SHA=`echo ${GITHUB_SHA::7}`" >> $GITHUB_ENV
-
       - name: Set current date as env variable
         run: echo "NOW=$(date +'%a, %d %b %Y %T %Z' )" >> $GITHUB_ENV
 
@@ -67,7 +64,7 @@ jobs:
           webhook-url: ${{ secrets.DISCORD_WEBHOOK }}
           embed-footer-text: ${{ env.NOW }}
           embed-color: 16776960
-          embed-title: "🟨 Version ${{ env.SHORT_SHA }}"
+          embed-title: "🟨 ${{ github.event.head_commit.message }}"
           embed-description: "```Build Started```"
 
       - name: Setup Golang with cache
@@ -92,11 +89,11 @@ jobs:
 
       - name: Build GO Server Binary
         run: |
-          cd server && go build -ldflags "-s -w -X main.Version=${GITHUB_SHA::7}" -o server && cd ..
+          cd server && go build -ldflags "-s -w -X main.Version=${{ github.event.head_commit.message }}" -o server && cd ..
 
       - name: Build GO Cron Binary
         run: |
-          cd cron && go build -ldflags "-s -w -X main.Version=${GITHUB_SHA::7}" -o cron && cd ..
+          cd cron && go build -ldflags "-s -w -X main.Version=${{ github.event.head_commit.message }}" -o cron && cd ..
 
       - name: Build and push image
         if: success()
@@ -115,7 +112,7 @@ jobs:
           webhook-url: ${{ secrets.DISCORD_WEBHOOK }}
           embed-footer-text: ${{ env.NOW }}
           embed-color: 15548997
-          embed-title: "🟥 Version ${{ env.SHORT_SHA }}"
+          embed-title: "🟥 ${{ github.event.head_commit.message }}"
           embed-description: "```Build FAILED```"
 
   deploy_server:
@@ -127,9 +124,6 @@ jobs:
     steps:
       - uses: actions/checkout@master
 
-      - name: Add SHORT_SHA env property
-        run: echo "SHORT_SHA=`echo ${GITHUB_SHA::7}`" >> $GITHUB_ENV
-
       - name: Set current date as env variable
         run: echo "NOW=$(date +'%a, %d %b %Y %T %Z' )" >> $GITHUB_ENV
 
@@ -139,7 +133,7 @@ jobs:
           webhook-url: ${{ secrets.DISCORD_WEBHOOK }}
           embed-footer-text: ${{ env.NOW }}
           embed-color: 11437547
-          embed-title: "🟪 Version ${{ env.SHORT_SHA }}"
+          embed-title: "🟪 ${{ github.event.head_commit.message }}"
           embed-description: "```AWS Deploy Started```"
 
       - name: Configure AWS credentials
@@ -187,7 +181,7 @@ jobs:
           webhook-url: ${{ secrets.DISCORD_WEBHOOK }}
           embed-footer-text: ${{ env.NOW }}
           embed-color: 3066993
-          embed-title: "✅ Version ${{ env.SHORT_SHA }}"
+          embed-title: "✅ ${{ github.event.head_commit.message }}"
           embed-description: "```AWS Reports Service Stable```"
 
       - name: Discord Webhook Action
@@ -197,7 +191,7 @@ jobs:
           webhook-url: ${{ secrets.DISCORD_WEBHOOK }}
           embed-footer-text: ${{ env.NOW }}
           embed-color: 15548997
-          embed-title: "🟥 Version ${{ env.SHORT_SHA }}"
+          embed-title: "🟥 ${{ github.event.head_commit.message }}"
           embed-description: "```AWS Deploy FAILED```"
 
   deploy_cron:
