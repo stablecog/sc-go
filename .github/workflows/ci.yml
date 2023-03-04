@@ -66,7 +66,7 @@ jobs:
         with:
           webhook-url: ${{ secrets.DISCORD_WEBHOOK }}
           embed-color: 16776960
-          embed-title: '🟨 "${{ github.event.head_commit.message }}" • ${{ env.SHORT_SHA}}'
+          embed-title: "🟨 ${{ github.event.head_commit.message }}  •  ${{ env.SHORT_SHA}}"
           embed-description: "```Build Started```"
           embed-footer-text: "${{ env.NOW }}"
 
@@ -114,7 +114,7 @@ jobs:
         with:
           webhook-url: ${{ secrets.DISCORD_WEBHOOK }}
           embed-color: 15548997
-          embed-title: '🟥 "${{ github.event.head_commit.message }}" • ${{ env.SHORT_SHA}}'
+          embed-title: "🟥 ${{ github.event.head_commit.message }}  •  ${{ env.SHORT_SHA}}"
           embed-description: "```Build FAILED```"
           embed-footer-text: "${{ env.NOW }}"
 
@@ -138,7 +138,7 @@ jobs:
         with:
           webhook-url: ${{ secrets.DISCORD_WEBHOOK }}
           embed-color: 15105570
-          embed-title: '🟧 "${{ github.event.head_commit.message }}" • ${{ env.SHORT_SHA}}'
+          embed-title: "🟧 ${{ github.event.head_commit.message }}  •  ${{ env.SHORT_SHA}}"
           embed-description: "```AWS Deploy Started```"
           embed-footer-text: "${{ env.NOW }}"
 
@@ -186,7 +186,7 @@ jobs:
         with:
           webhook-url: ${{ secrets.DISCORD_WEBHOOK }}
           embed-color: 3066993
-          embed-title: '✅ "${{ github.event.head_commit.message }}" • ${{ env.SHORT_SHA}}'
+          embed-title: "✅ ${{ github.event.head_commit.message }}  •  ${{ env.SHORT_SHA}}"
           embed-description: "```AWS Reports Service Stable```"
           embed-footer-text: "${{ env.NOW }}"
 
@@ -196,7 +196,7 @@ jobs:
         with:
           webhook-url: ${{ secrets.DISCORD_WEBHOOK }}
           embed-color: 15548997
-          embed-title: '🟥 "${{ github.event.head_commit.message }}" • ${{ env.SHORT_SHA}}'
+          embed-title: "🟥 ${{ github.event.head_commit.message }}  •  ${{ env.SHORT_SHA}}"
           embed-description: "```AWS Deploy FAILED```"
           embed-footer-text: "${{ env.NOW }}"
 
