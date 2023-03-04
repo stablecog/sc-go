@@ -26,7 +26,7 @@ func FireServerReadyWebhook(version string, msg string) error {
 				Color: 3447003,
 				Fields: []models.DiscordWebhookField{
 					{
-						Value: "```ECS Task Started, Accepting Traffic```",
+						Value: "```Accepting Traffic```",
 					},
 					{
 						// TODO - environment/change
