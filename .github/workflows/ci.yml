@@ -30,10 +30,12 @@ jobs:
       - name: Check out code
         uses: actions/checkout@master
 
-      - name: Setup Golang with cache
-        uses: magnetikonline/action-golang-cache@v3
+      - name: Setup Go with cache
+        uses: actions/setup-go@v3
         with:
-          go-version-file: ./server/go.mod
+          go-version: "1.20"
+          check-latest: true
+          cache: true
 
       - name: Run Tests
         env:
@@ -73,10 +75,12 @@ jobs:
           embed-description: "```Build Started```"
           embed-footer-text: "${{ env.NOW }}"
 
-      - name: Setup Golang with cache
-        uses: magnetikonline/action-golang-cache@v3
+      - name: Setup Go with cache
+        uses: actions/setup-go@v3
         with:
-          go-version-file: ./server/go.mod
+          go-version: "1.20"
+          check-latest: true
+          cache: true
 
       - name: Get branch name (merge)
         if: github.event_name != 'pull_request'
