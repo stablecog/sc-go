@@ -1,5 +1,13 @@
 #!/bin/bash
 
+# Check if curl is installed
+if ! [ -x "$(command -v curl)" ]; then
+    echo "curl is not installed. Installing curl..."
+    sudo apt-get update
+    sudo apt-get install -y curl
+    echo "curl installed successfully."
+fi
+
 # Check if Docker is installed
 if ! [ -x "$(command -v docker)" ]; then
     echo "Docker is not installed. Installing Docker..."
@@ -29,7 +37,7 @@ fi
 
 # Configure GitHub runner
 cd ~/actions-runner
-./config.sh --url https://github.com/stablecog/sc-go --token $TOKEN
+./config.sh --url $REPO --token $TOKEN --unattended
 echo "GitHub runner configured successfully."
 
 # Launch GitHub runner as a service
