@@ -38,7 +38,7 @@ var CommitMsg = "dev"
 var BuildStart = ""
 
 func main() {
-	log.Infof("SC Server %s", Version)
+	log.Infof("SC Server: %s", Version)
 
 	// Load .env
 	err := godotenv.Load("../.env")
