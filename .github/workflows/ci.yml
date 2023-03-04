@@ -64,7 +64,7 @@ jobs:
           webhook-url: ${{ secrets.DISCORD_WEBHOOK }}
           embed-footer-text: ${{ env.NOW }}
           embed-color: 16776960
-          embed-title: "🟨"
+          embed-title: "🟨 Version ${GITHUB_SHA::7}"
           embed-description: "```Build Started```"
 
       - name: Setup Golang with cache
@@ -123,7 +123,7 @@ jobs:
           webhook-url: ${{ secrets.DISCORD_WEBHOOK }}
           embed-footer-text: ${{ env.NOW }}
           embed-color: 11437547
-          embed-title: "🟪"
+          embed-title: "🟪 Version ${GITHUB_SHA::7}"
           embed-description: "```AWS Deploy Started```"
 
       - name: Configure AWS credentials
@@ -167,7 +167,7 @@ jobs:
           webhook-url: ${{ secrets.DISCORD_WEBHOOK }}
           embed-footer-text: ${{ env.NOW }}
           embed-color: 3066993
-          embed-title: "✅"
+          embed-title: "✅ Version ${GITHUB_SHA::7}"
           embed-description: "```AWS Reports Service Stable```"
 
   deploy_cron:
