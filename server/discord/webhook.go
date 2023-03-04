@@ -22,10 +22,10 @@ func FireServerReadyWebhook(version string) error {
 	body := models.DiscordWebhookBody{
 		Embeds: []models.DiscordWebhookEmbed{
 			{
-				Color: 11437547,
+				Color: 3447003,
 				Fields: []models.DiscordWebhookField{
 					{
-						Name:  "🟩",
+						Name:  "🟦",
 						Value: "```ECS Task Started, Accepting Traffic```",
 					},
 					{

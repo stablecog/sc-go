@@ -62,7 +62,7 @@ jobs:
         uses: tsickert/discord-webhook@v5.3.0
         with:
           webhook-url: ${{ secrets.DISCORD_WEBHOOK }}
-          embed-footer: ${{ env.NOW }}
+          embed-footer-text: ${{ env.NOW }}
           embed-color: 16776960
           embed-title: "🟨"
           embed-description: "```Build Started```"
@@ -114,11 +114,17 @@ jobs:
     steps:
       - uses: actions/checkout@master
 
-      - name: Discord notification
-        env:
-          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
-          DISCORD-EMBED: '{"content":null,"embeds":[{"fields":[{"name":"🟪","value":"```AWS Deploy Started```","inline":false}],"color":11437547}}],"attachments":[]}'
-        uses: Ilshidur/action-discord@master
+      - name: Set current date as env variable
+        run: echo "NOW=$(date +'%Y-%m-%dT%H:%M:%S')" >> $GITHUB_ENV
+
+      - name: Discord Webhook Action
+        uses: tsickert/discord-webhook@v5.3.0
+        with:
+          webhook-url: ${{ secrets.DISCORD_WEBHOOK }}
+          embed-footer-text: ${{ env.NOW }}
+          embed-color: 11437547
+          embed-title: "🟪"
+          embed-description: "```AWS Deploy Started```"
 
       - name: Configure AWS credentials
         if: success()
@@ -155,12 +161,14 @@ jobs:
           cluster: qa-stablecog-Cluster-g4jXWMxvTvnZ
           wait-for-service-stability: true
 
-      - name: Discord notification
-        if: success()
-        env:
-          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
-          DISCORD-EMBED: '{"content":null,"embeds":[{"fields":[{"name":"✅","value":"```AWS Reports Service Stable```","inline":false}],"color":11437547}}],"attachments":[]}'
-        uses: Ilshidur/action-discord@master
+      - name: Discord Webhook Action
+        uses: tsickert/discord-webhook@v5.3.0
+        with:
+          webhook-url: ${{ secrets.DISCORD_WEBHOOK }}
+          embed-footer-text: ${{ env.NOW }}
+          embed-color: 3066993
+          embed-title: "✅"
+          embed-description: "```AWS Reports Service Stable```"
 
   deploy_cron:
     name: 🚀 Deploy Cron
