@@ -32,6 +32,7 @@ import (
 )
 
 var Version = "dev"
+var CommitMsg = "dev"
 
 func main() {
 	log.Infof("SC Server %s", Version)
@@ -422,7 +423,7 @@ func main() {
 
 	// Send discord notification
 	go func() {
-		err = discord.FireServerReadyWebhook(Version)
+		err = discord.FireServerReadyWebhook(Version, CommitMsg)
 		if err != nil {
 			log.Error("Error firing discord ready webhook", "err", err)
 		}

@@ -55,6 +55,9 @@ jobs:
     steps:
       - uses: actions/checkout@master
 
+      - name: Add SHORT_SHA env property
+        run: echo "SHORT_SHA=`echo ${GITHUB_SHA::7}`" >> $GITHUB_ENV
+
       - name: Set current date as env variable
         run: echo "NOW=$(date +'%a, %d %b %Y %T %Z' )" >> $GITHUB_ENV
 
@@ -62,7 +65,7 @@ jobs:
         uses: tsickert/discord-webhook@v5.3.0
         with:
           webhook-url: ${{ secrets.DISCORD_WEBHOOK }}
-          embed-footer-text: ${{ env.NOW }}
+          embed-footer-text: "${{ env.NOW }} v${{ env.SHORT_SHA}}"
           embed-color: 16776960
           embed-title: "🟨 ${{ github.event.head_commit.message }}"
           embed-description: "```Build Started```"
@@ -89,11 +92,11 @@ jobs:
 
       - name: Build GO Server Binary
         run: |
-          cd server && go build -ldflags "-s -w -X main.Version=${{ github.event.head_commit.message }}" -o server && cd ..
+          cd server && go build -ldflags "-s -w -X main.Version=${GITHUB_SHA::7} -X main.CommitMsg=\"${{ github.event.head_commit.message }}\"" -o server && cd ..
 
       - name: Build GO Cron Binary
         run: |
-          cd cron && go build -ldflags "-s -w -X main.Version=${{ github.event.head_commit.message }}" -o cron && cd ..
+          cd cron && go build -ldflags "-s -w -X main.Version=${GITHUB_SHA::7} -X main.CommitMsg=\"${{ github.event.head_commit.message }}\"" -o cron && cd ..
 
       - name: Build and push image
         if: success()
@@ -110,7 +113,7 @@ jobs:
         uses: tsickert/discord-webhook@v5.3.0
         with:
           webhook-url: ${{ secrets.DISCORD_WEBHOOK }}
-          embed-footer-text: ${{ env.NOW }}
+          embed-footer-text: "${{ env.NOW }} v${{ env.SHORT_SHA}}"
           embed-color: 15548997
           embed-title: "🟥 ${{ github.event.head_commit.message }}"
           embed-description: "```Build FAILED```"
@@ -124,6 +127,9 @@ jobs:
     steps:
       - uses: actions/checkout@master
 
+      - name: Add SHORT_SHA env property
+        run: echo "SHORT_SHA=`echo ${GITHUB_SHA::7}`" >> $GITHUB_ENV
+
       - name: Set current date as env variable
         run: echo "NOW=$(date +'%a, %d %b %Y %T %Z' )" >> $GITHUB_ENV
 
@@ -131,7 +137,7 @@ jobs:
         uses: tsickert/discord-webhook@v5.3.0
         with:
           webhook-url: ${{ secrets.DISCORD_WEBHOOK }}
-          embed-footer-text: ${{ env.NOW }}
+          embed-footer-text: "${{ env.NOW }} v${{ env.SHORT_SHA}}"
           embed-color: 11437547
           embed-title: "🟪 ${{ github.event.head_commit.message }}"
           embed-description: "```AWS Deploy Started```"
@@ -179,7 +185,7 @@ jobs:
         uses: tsickert/discord-webhook@v5.3.0
         with:
           webhook-url: ${{ secrets.DISCORD_WEBHOOK }}
-          embed-footer-text: ${{ env.NOW }}
+          embed-footer-text: "${{ env.NOW }} v${{ env.SHORT_SHA}}"
           embed-color: 3066993
           embed-title: "✅ ${{ github.event.head_commit.message }}"
           embed-description: "```AWS Reports Service Stable```"
@@ -189,7 +195,7 @@ jobs:
         uses: tsickert/discord-webhook@v5.3.0
         with:
           webhook-url: ${{ secrets.DISCORD_WEBHOOK }}
-          embed-footer-text: ${{ env.NOW }}
+          embed-footer-text: "${{ env.NOW }} v${{ env.SHORT_SHA}}"
           embed-color: 15548997
           embed-title: "🟥 ${{ github.event.head_commit.message }}"
           embed-description: "```AWS Deploy FAILED```"

@@ -19,6 +19,7 @@ import (
 )
 
 var Version = "dev"
+var CommitMsg = "dev"
 
 func usage() {
 	fmt.Printf("Usage %s [options]\n", os.Args[0])

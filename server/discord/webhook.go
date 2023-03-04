@@ -13,7 +13,7 @@ import (
 )
 
 // Sends a discord notification on either the healthy/unhealthy interval depending on status
-func FireServerReadyWebhook(version string) error {
+func FireServerReadyWebhook(version string, msg string) error {
 	webhookUrl := utils.GetEnv("DISCORD_WEBHOOK_URL_DEPLOY", "")
 	if webhookUrl == "" {
 		return fmt.Errorf("DISCORD_WEBHOOK_URL_DEPLOY not set")
@@ -22,7 +22,7 @@ func FireServerReadyWebhook(version string) error {
 	body := models.DiscordWebhookBody{
 		Embeds: []models.DiscordWebhookEmbed{
 			{
-				Title: fmt.Sprintf("🟦 %s", version),
+				Title: fmt.Sprintf("🟦 %s", msg),
 				Color: 3447003,
 				Fields: []models.DiscordWebhookField{
 					{
@@ -35,7 +35,7 @@ func FireServerReadyWebhook(version string) error {
 					},
 				},
 				Footer: models.DiscordWebhookEmbedFooter{
-					Text: time.Now().Format(time.RFC1123),
+					Text: fmt.Sprintf("%s v%s", time.Now().Format(time.RFC1123), version),
 				},
 			},
 		},
