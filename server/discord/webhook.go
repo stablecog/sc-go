@@ -57,7 +57,5 @@ func FireServerReadyWebhook(version string, msg string, buildStart string) error
 	}
 	defer res.Body.Close()
 
-	panic("intentional fail3")
-
 	return nil
 }
