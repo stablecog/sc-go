@@ -58,6 +58,9 @@ jobs:
       - name: Add SHORT_SHA env property
         run: echo "SHORT_SHA=`echo ${GITHUB_SHA::7}`" >> $GITHUB_ENV
 
+      - name: Set build start in env variable
+        run: echo "BUILD_START=$(date +%s)" >> $GITHUB_ENV
+
       - name: Set current date as env variable
         run: echo "NOW=$(date +'%a, %d %b %Y %T %Z' )" >> $GITHUB_ENV
 
@@ -92,7 +95,7 @@ jobs:
 
       - name: Build GO Server Binary
         run: |
-          cd server && go build -ldflags "-s -w -X main.Version=${GITHUB_SHA::7} -X \"main.CommitMsg=${{ github.event.head_commit.message }}\"" -o server && cd ..
+          cd server && go build -ldflags "-s -w -X main.Version=${GITHUB_SHA::7} -X \"main.CommitMsg=${{ github.event.head_commit.message }}\" -X main.BuildStart=${{ env.BUILD_START }}" -o server && cd ..
 
       - name: Build GO Cron Binary
         run: |
@@ -115,7 +118,7 @@ jobs:
           webhook-url: ${{ secrets.DISCORD_WEBHOOK }}
           embed-color: 15548997
           embed-title: "${{ github.event.head_commit.message }}  •  ${{ env.SHORT_SHA}}"
-          embed-description: "```Build FAILED```"
+          embed-description: "```🚨 Build FAILED 🚨```"
           embed-footer-text: "${{ env.NOW }}"
 
   deploy_server:
@@ -139,7 +142,7 @@ jobs:
           webhook-url: ${{ secrets.DISCORD_WEBHOOK }}
           embed-color: 15105570
           embed-title: "${{ github.event.head_commit.message }}  •  ${{ env.SHORT_SHA}}"
-          embed-description: "```AWS Deploy Started```"
+          embed-description: "```Deploy Started```"
           embed-footer-text: "${{ env.NOW }}"
 
       - name: Configure AWS credentials
@@ -181,23 +184,13 @@ jobs:
         run: echo "NOW=$(date +'%a, %d %b %Y %T %Z' )" >> $GITHUB_ENV
 
       - name: Discord Webhook Action
-        if: success()
-        uses: tsickert/discord-webhook@v5.3.0
-        with:
-          webhook-url: ${{ secrets.DISCORD_WEBHOOK }}
-          embed-color: 3066993
-          embed-title: "${{ github.event.head_commit.message }}  •  ${{ env.SHORT_SHA}}"
-          embed-description: "```AWS Service Stable```"
-          embed-footer-text: "${{ env.NOW }}"
-
-      - name: Discord Webhook Action
         if: failure()
         uses: tsickert/discord-webhook@v5.3.0
         with:
           webhook-url: ${{ secrets.DISCORD_WEBHOOK }}
           embed-color: 15548997
           embed-title: "${{ github.event.head_commit.message }}  •  ${{ env.SHORT_SHA}}"
-          embed-description: "```AWS Deploy FAILED```"
+          embed-description: "```🚨 Service Unstable 🚨```"
           embed-footer-text: "${{ env.NOW }}"
 
   deploy_cron:

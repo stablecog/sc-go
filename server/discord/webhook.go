@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/stablecog/sc-go/cron/models"
@@ -13,25 +14,28 @@ import (
 )
 
 // Sends a discord notification on either the healthy/unhealthy interval depending on status
-func FireServerReadyWebhook(version string, msg string) error {
+func FireServerReadyWebhook(version string, msg string, buildStart string) error {
 	webhookUrl := utils.GetEnv("DISCORD_WEBHOOK_URL_DEPLOY", "")
 	if webhookUrl == "" {
 		return fmt.Errorf("DISCORD_WEBHOOK_URL_DEPLOY not set")
+	}
+	// Parse build start as int
+	buildStartInt, err := strconv.Atoi(buildStart)
+	buildStartStr := ""
+	if err != nil {
+		log.Error("Error parsing build start", "err", err)
+	} else {
+		buildStartStr = fmt.Sprintf(" in %ds", int(time.Now().Sub(utils.SecondsSinceEpochToTime(int64(buildStartInt))).Seconds()))
 	}
 	// Build webhook body
 	body := models.DiscordWebhookBody{
 		Embeds: []models.DiscordWebhookEmbed{
 			{
 				Title: fmt.Sprintf(`%s  •  %s`, msg, version),
-				Color: 3447003,
+				Color: 5763719,
 				Fields: []models.DiscordWebhookField{
 					{
-						Value: "```Accepting Traffic```",
-					},
-					{
-						// TODO - environment/change
-						Name:  "Environment",
-						Value: "```QA```",
+						Value: fmt.Sprintf("```Deployed%s```", buildStartStr),
 					},
 				},
 				Footer: models.DiscordWebhookEmbedFooter{
