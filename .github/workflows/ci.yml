@@ -267,4 +267,3 @@ jobs:
           aws_region: us-east-2
           function_name: QA_Status_Webhook
           zip_file: lambda/deployment.zip
-          handler: lambda
