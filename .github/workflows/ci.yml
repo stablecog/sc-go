@@ -7,7 +7,7 @@ on:
 jobs:
   test:
     name: ☔️ Tests
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
 
     # Setup postgres service for tests
     services:
@@ -48,7 +48,7 @@ jobs:
 
   build_qa:
     name: 🔨 Build Binaries and Docker Image
-    runs-on: ubuntu-22.04
+    runs-on: self-hosted
 
     env:
       GITHUB_RUN_ID: ${{ github.run_id }}
@@ -120,7 +120,7 @@ jobs:
 
   deploy_server:
     name: 🚀 Deploy Server
-    runs-on: ubuntu-22.04
+    runs-on: self-hosted
     needs: build_qa
     env:
       GITHUB_RUN_ID: ${{ github.run_id }}
@@ -202,7 +202,7 @@ jobs:
 
   deploy_cron:
     name: 🚀 Deploy Cron
-    runs-on: ubuntu-22.04
+    runs-on: self-hosted
     needs: build_qa
     env:
       GITHUB_RUN_ID: ${{ github.run_id }}
