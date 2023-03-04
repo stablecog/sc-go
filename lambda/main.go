@@ -17,7 +17,7 @@ import (
 var WebhookUrl string
 
 // Sends a discord notification on either the healthy/unhealthy interval depending on status
-func FireWebhook(data events.SQSEvent) error {
+func FireWebhook(data events.SNSEvent) error {
 	// Encode to json string
 	jsonData, err := json.Marshal(data)
 	if err != nil {
@@ -57,7 +57,7 @@ func FireWebhook(data events.SQSEvent) error {
 	return nil
 }
 
-func HandleRequest(ctx context.Context, event events.SQSEvent) (string, error) {
+func HandleRequest(ctx context.Context, event events.SNSEvent) (string, error) {
 	err := FireWebhook(event)
 	return "", err
 }
