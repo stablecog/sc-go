@@ -167,6 +167,9 @@ jobs:
           cluster: qa-stablecog-Cluster-g4jXWMxvTvnZ
           wait-for-service-stability: true
 
+      - name: Update current date as env variable
+        run: echo "NOW=$(date +'%a, %d %b %Y %T %Z' )" >> $GITHUB_ENV
+
       - name: Discord Webhook Action
         uses: tsickert/discord-webhook@v5.3.0
         with:
