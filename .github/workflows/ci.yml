@@ -96,7 +96,7 @@ jobs:
 
       - name: Build GO Cron Binary
         run: |
-          cd cron && go build -ldflags -s -w -X main.Version=${GITHUB_SHA::7} -X \"main.CommitMsg=${{ github.event.head_commit.message }}\"" -o cron && cd ..
+          cd cron && go build -ldflags "-s -w -X main.Version=${GITHUB_SHA::7} -X \"main.CommitMsg=${{ github.event.head_commit.message }}\"" -o cron && cd ..
 
       - name: Build and push image
         if: success()
