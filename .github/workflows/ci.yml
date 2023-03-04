@@ -67,7 +67,7 @@ jobs:
           webhook-url: ${{ secrets.DISCORD_WEBHOOK }}
           embed-footer-text: "${{ env.NOW }} version ${{ env.SHORT_SHA}}"
           embed-color: 16776960
-          embed-title: "🟨 ${{ github.event.head_commit.message }}"
+          embed-title: '🟨 Commit: "${{ github.event.head_commit.message }}"'
           embed-description: "```Build Started```"
 
       - name: Setup Golang with cache
@@ -115,7 +115,7 @@ jobs:
           webhook-url: ${{ secrets.DISCORD_WEBHOOK }}
           embed-footer-text: "${{ env.NOW }} version ${{ env.SHORT_SHA}}"
           embed-color: 15548997
-          embed-title: "🟥 ${{ github.event.head_commit.message }}"
+          embed-title: '🟥 Commit: "${{ github.event.head_commit.message }}"'
           embed-description: "```Build FAILED```"
 
   deploy_server:
@@ -139,7 +139,7 @@ jobs:
           webhook-url: ${{ secrets.DISCORD_WEBHOOK }}
           embed-footer-text: "${{ env.NOW }} version ${{ env.SHORT_SHA}}"
           embed-color: 15105570
-          embed-title: "🟧 ${{ github.event.head_commit.message }}"
+          embed-title: '🟧 Commit: "${{ github.event.head_commit.message }}"'
           embed-description: "```AWS Deploy Started```"
 
       - name: Configure AWS credentials
@@ -187,7 +187,7 @@ jobs:
           webhook-url: ${{ secrets.DISCORD_WEBHOOK }}
           embed-footer-text: "${{ env.NOW }} version ${{ env.SHORT_SHA}}"
           embed-color: 3066993
-          embed-title: "✅ ${{ github.event.head_commit.message }}"
+          embed-title: '✅ Commit: "${{ github.event.head_commit.message }}"'
           embed-description: "```AWS Reports Service Stable```"
 
       - name: Discord Webhook Action
@@ -197,7 +197,7 @@ jobs:
           webhook-url: ${{ secrets.DISCORD_WEBHOOK }}
           embed-footer-text: "${{ env.NOW }} version ${{ env.SHORT_SHA}}"
           embed-color: 15548997
-          embed-title: "🟥 ${{ github.event.head_commit.message }}"
+          embed-title: '🟥 Commit: "${{ github.event.head_commit.message }}"'
           embed-description: "```AWS Deploy FAILED```"
 
   deploy_cron:

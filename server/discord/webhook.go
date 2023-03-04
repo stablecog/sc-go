@@ -22,7 +22,7 @@ func FireServerReadyWebhook(version string, msg string) error {
 	body := models.DiscordWebhookBody{
 		Embeds: []models.DiscordWebhookEmbed{
 			{
-				Title: fmt.Sprintf("🟦 %s", msg),
+				Title: fmt.Sprintf(`🟦 Commit: "%s"`, msg),
 				Color: 3447003,
 				Fields: []models.DiscordWebhookField{
 					{
