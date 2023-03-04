@@ -1,9 +1,5 @@
 # Docker file for github actions CI build
-FROM ubuntu:22.04
-
-RUN set -x && apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y \
-  ca-certificates && \
-  rm -rf /var/lib/apt/lists/*
+FROM stablecog/ubuntu:22.04
 
 COPY ./server/server /app/server
 COPY ./cron/cron /app/cron
