@@ -108,6 +108,16 @@ jobs:
           file: ./Dockerfile.ci
           tags: stablecog/sc-server:${{ env.BRANCH_NAME }}-${{ env.GITHUB_RUN_ID }}
 
+      - name: Discord Webhook Action
+        if: failure()
+        uses: tsickert/discord-webhook@v5.3.0
+        with:
+          webhook-url: ${{ secrets.DISCORD_WEBHOOK }}
+          embed-footer-text: ${{ env.NOW }}
+          embed-color: 15548997
+          embed-title: "🟥 Version ${{ env.SHORT_SHA }}"
+          embed-description: "```Build FAILED```"
+
   deploy_server:
     name: 🚀 Deploy Server
     runs-on: ubuntu-22.04
@@ -171,6 +181,7 @@ jobs:
         run: echo "NOW=$(date +'%a, %d %b %Y %T %Z' )" >> $GITHUB_ENV
 
       - name: Discord Webhook Action
+        if: success()
         uses: tsickert/discord-webhook@v5.3.0
         with:
           webhook-url: ${{ secrets.DISCORD_WEBHOOK }}
@@ -178,6 +189,16 @@ jobs:
           embed-color: 3066993
           embed-title: "✅ Version ${{ env.SHORT_SHA }}"
           embed-description: "```AWS Reports Service Stable```"
+
+      - name: Discord Webhook Action
+        if: failure()
+        uses: tsickert/discord-webhook@v5.3.0
+        with:
+          webhook-url: ${{ secrets.DISCORD_WEBHOOK }}
+          embed-footer-text: ${{ env.NOW }}
+          embed-color: 15548997
+          embed-title: "🟥 Version ${{ env.SHORT_SHA }}"
+          embed-description: "```AWS Deploy FAILED```"
 
   deploy_cron:
     name: 🚀 Deploy Cron
