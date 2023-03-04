@@ -30,6 +30,7 @@ if [ ! -d ~/actions-runner ]; then
     echo "GitHub runner is not installed. Installing GitHub runner..."
     mkdir ~/actions-runner && cd ~/actions-runner
     LATEST_RELEASE=$(curl -s https://api.github.com/repos/actions/runner/releases/latest | grep -oP '"tag_name": "\K(.*)(?=")')
+    echo "Latest GitHub runner release: $LATEST_RELEASE"
     if [[ $LATEST_RELEASE == v* ]]; then
         FILENAME="actions-runner-linux-x64-${LATEST_RELEASE:1}.tar.gz"
     else
@@ -41,11 +42,10 @@ if [ ! -d ~/actions-runner ]; then
 fi
 
 # Configure GitHub runner
-cd ~/actions-runner
 sudo ./config.sh --url $REPO --token $TOKEN --unattended
 echo "GitHub runner configured successfully."
 
 # Launch GitHub runner as a service
-./svc.sh install
-./svc.sh start
+sudo ./svc.sh install
+sudo ./svc.sh start
 echo "GitHub runner launched successfully."
