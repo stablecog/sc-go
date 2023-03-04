@@ -35,7 +35,7 @@ func FireServerReadyWebhook(version string, msg string) error {
 					},
 				},
 				Footer: models.DiscordWebhookEmbedFooter{
-					Text: fmt.Sprintf("%s v%s", time.Now().Format(time.RFC1123), version),
+					Text: fmt.Sprintf("%s version %s", time.Now().Format(time.RFC1123), version),
 				},
 			},
 		},
