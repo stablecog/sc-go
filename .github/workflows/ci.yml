@@ -242,3 +242,29 @@ jobs:
           service: qa-sc-cron
           cluster: qa-stablecog-Cluster-g4jXWMxvTvnZ
           wait-for-service-stability: false
+
+  deploy_lambda:
+    name: Deploy lambda
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout source code
+        uses: actions/checkout@v1
+
+      - name: Install Go
+        uses: actions/setup-go@v3
+        with:
+          go-version: "1.20"
+
+      - name: Build binary
+        run: |
+          cd lambda && CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags "-s -w -X main.WebhookUrl=${{ secrets.DISCORD_WEBHOOK_LAMBDA }}" -o lambda && zip deployment.zip lambda && cd ..
+
+      - name: default deploy
+        uses: appleboy/lambda-action@master
+        with:
+          aws_access_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws_region: us-east-2
+          function_name: QA_Status_Webhook
+          zip_file: lambda/deployment.zip
+          handler: lambda
