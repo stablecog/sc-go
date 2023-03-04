@@ -184,7 +184,7 @@ jobs:
           task-definition: ${{ steps.task-def.outputs.task-definition }}
           service: qa-sc-server-Service-XSweBbsvI0JC
           cluster: qa-stablecog-Cluster-g4jXWMxvTvnZ
-          wait-for-service-stability: true
+          wait-for-service-stability: false
 
       - name: Update current date as env variable
         run: echo "NOW=$(date +'%a, %d %b %Y %T %Z' )" >> $GITHUB_ENV
@@ -241,4 +241,4 @@ jobs:
           task-definition: ${{ steps.task-def-cron.outputs.task-definition }}
           service: qa-sc-cron
           cluster: qa-stablecog-Cluster-g4jXWMxvTvnZ
-          wait-for-service-stability: true
+          wait-for-service-stability: false
