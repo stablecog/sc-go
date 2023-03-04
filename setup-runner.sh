@@ -30,8 +30,13 @@ if [ ! -d ~/actions-runner ]; then
     echo "GitHub runner is not installed. Installing GitHub runner..."
     mkdir ~/actions-runner && cd ~/actions-runner
     LATEST_RELEASE=$(curl -s https://api.github.com/repos/actions/runner/releases/latest | grep -oP '"tag_name": "\K(.*)(?=")')
-    curl -o actions-runner-linux-x64.tar.gz -L https://github.com/actions/runner/releases/download/${LATEST_RELEASE}/actions-runner-linux-x64-${LATEST_RELEASE}.tar.gz
-    tar xzf ./actions-runner-linux-x64.tar.gz
+    if [[ $LATEST_RELEASE == v* ]]; then
+        FILENAME="actions-runner-linux-x64-${LATEST_RELEASE:1}.tar.gz"
+    else
+        FILENAME="actions-runner-linux-x64-${LATEST_RELEASE}.tar.gz"
+    fi
+    curl -o $FILENAME -L https://github.com/actions/runner/releases/download/${LATEST_RELEASE}/$FILENAME
+    tar xzf ./$FILENAME
     echo "GitHub runner installed successfully."
 fi
 
