@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
 	"github.com/stablecog/sc-go/cron/models"
 	"github.com/stablecog/sc-go/log"
@@ -16,7 +17,7 @@ import (
 var WebhookUrl string
 
 // Sends a discord notification on either the healthy/unhealthy interval depending on status
-func FireWebhook(data map[string]interface{}) error {
+func FireWebhook(data events.SQSEvent) error {
 	// Encode to json string
 	jsonData, err := json.Marshal(data)
 	if err != nil {
@@ -56,8 +57,8 @@ func FireWebhook(data map[string]interface{}) error {
 	return nil
 }
 
-func HandleRequest(ctx context.Context, data map[string]interface{}) (string, error) {
-	err := FireWebhook(data)
+func HandleRequest(ctx context.Context, event events.SQSEvent) (string, error) {
+	err := FireWebhook(event)
 	return "", err
 }
 
