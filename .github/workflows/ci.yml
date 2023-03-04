@@ -55,6 +55,9 @@ jobs:
     steps:
       - uses: actions/checkout@master
 
+      - name: Add SHORT_SHA env property
+        run: echo "SHORT_SHA=`echo ${GITHUB_SHA::7}`" >> $GITHUB_ENV
+
       - name: Set current date as env variable
         run: echo "NOW=$(date +'%Y-%m-%dT%H:%M:%S')" >> $GITHUB_ENV
 
@@ -64,7 +67,7 @@ jobs:
           webhook-url: ${{ secrets.DISCORD_WEBHOOK }}
           embed-footer-text: ${{ env.NOW }}
           embed-color: 16776960
-          embed-title: "🟨 Version ${GITHUB_SHA::7}"
+          embed-title: "🟨 Version ${{ env.SHORT_SHA }}"
           embed-description: "```Build Started```"
 
       - name: Setup Golang with cache
@@ -114,6 +117,9 @@ jobs:
     steps:
       - uses: actions/checkout@master
 
+      - name: Add SHORT_SHA env property
+        run: echo "SHORT_SHA=`echo ${GITHUB_SHA::7}`" >> $GITHUB_ENV
+
       - name: Set current date as env variable
         run: echo "NOW=$(date +'%Y-%m-%dT%H:%M:%S')" >> $GITHUB_ENV
 
@@ -123,7 +129,7 @@ jobs:
           webhook-url: ${{ secrets.DISCORD_WEBHOOK }}
           embed-footer-text: ${{ env.NOW }}
           embed-color: 11437547
-          embed-title: "🟪 Version ${GITHUB_SHA::7}"
+          embed-title: "🟪 Version ${{ env.SHORT_SHA }}"
           embed-description: "```AWS Deploy Started```"
 
       - name: Configure AWS credentials
@@ -167,7 +173,7 @@ jobs:
           webhook-url: ${{ secrets.DISCORD_WEBHOOK }}
           embed-footer-text: ${{ env.NOW }}
           embed-color: 3066993
-          embed-title: "✅ Version ${GITHUB_SHA::7}"
+          embed-title: "✅ Version ${{ env.SHORT_SHA }}"
           embed-description: "```AWS Reports Service Stable```"
 
   deploy_cron:
