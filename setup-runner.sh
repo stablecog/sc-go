@@ -46,6 +46,6 @@ cd ~/actions-runner
 echo "GitHub runner configured successfully."
 
 # Launch GitHub runner as a service
-./svc.sh install
-./svc.sh start
+sudo ./svc.sh install
+sudo ./svc.sh start
 echo "GitHub runner launched successfully."
