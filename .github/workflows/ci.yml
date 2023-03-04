@@ -95,7 +95,7 @@ jobs:
 
       - name: Build GO Server Binary
         run: |
-          cd server && go build -ldflags "-s -w -X main.Version=${GITHUB_SHA::7} -X \"main.CommitMsg=${{ github.event.head_commit.message }}\" \"-Xmain.BuildStart=${{ env.BUILD_START }}\"" -o server && cd ..
+          cd server && go build -ldflags "-s -w -X main.Version=${GITHUB_SHA::7} -X \"main.CommitMsg=${{ github.event.head_commit.message }}\" -X main.BuildStart=${{ env.BUILD_START }}" -o server && cd ..
 
       - name: Build GO Cron Binary
         run: |
