@@ -25,7 +25,7 @@ func FireServerReadyWebhook(version string, msg string, buildStart string) error
 	if err != nil {
 		log.Error("Error parsing build start", "err", err)
 	} else {
-		buildStartStr = fmt.Sprintf(" in %fs", time.Now().Sub(utils.SecondsSinceEpochToTime(int64(buildStartInt))).Seconds())
+		buildStartStr = fmt.Sprintf(" in %.2fs", time.Now().Sub(utils.SecondsSinceEpochToTime(int64(buildStartInt))).Seconds())
 	}
 	// Build webhook body
 	body := models.DiscordWebhookBody{
