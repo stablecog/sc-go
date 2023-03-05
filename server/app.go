@@ -39,7 +39,7 @@ var BuildStart = ""
 
 func main() {
 	log.Infof("SC Server: %s", Version)
-	panic("fail")
+	panic("fail2")
 
 	// Load .env
 	err := godotenv.Load("../.env")
