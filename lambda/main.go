@@ -58,7 +58,14 @@ func FireWebhook(data events.SNSEvent) error {
 }
 
 func HandleRequest(ctx context.Context, event events.SNSEvent) (string, error) {
-	err := FireWebhook(event)
+	// Marshal
+	serialzied, err := json.Marshal(event)
+	if err != nil {
+		log.Error("Error marshalling event", "err", err)
+		return "", err
+	}
+	log.Info("Received event", "event", string(serialzied))
+	err = FireWebhook(event)
 	return "", err
 }
 
