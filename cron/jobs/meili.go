@@ -17,6 +17,7 @@ var shouldSetSettings = true
 
 var lastSyncedGenUpdatedAtKey = fmt.Sprintf("%s:last_sync_gen_updated_at_v2", redisMeiliKeyPrefix)
 var sortableAttributes = []string{"updated_at", "created_at"}
+var filterableAttributes = []string{"id"}
 
 func (j *JobRunner) SyncMeili(log Logger) error {
 	var lastSyncedGenUpdatedAt time.Time
@@ -46,6 +47,13 @@ func (j *JobRunner) SyncMeili(log Logger) error {
 			return err
 		} else {
 			log.Infof("Sortable attributes updated")
+		}
+		_, err = j.Meili.Index("generation_g").UpdateFilterableAttributes(&filterableAttributes)
+		if err != nil {
+			log.Errorf("Update filterable attributes %v", err)
+			return err
+		} else {
+			log.Infof("Filterable attributes updated")
 		}
 		_, errMax := j.Meili.Index("generation_g").UpdatePagination(&meilisearch.Pagination{MaxTotalHits: int64(maxTotalHits)})
 		if errMax != nil {

@@ -2,6 +2,7 @@ package rest
 
 import (
 	"encoding/json"
+	"fmt"
 	"io"
 	"math/rand"
 	"net/http"
@@ -58,10 +59,10 @@ func (c *RestAPI) GetGenerationGs(page int, batchSize int, search string, filter
 
 // Get a specific generation_g by ID
 func (c *RestAPI) GetGenerationGByID(outputId uuid.UUID) (*repository.GalleryData, error) {
-	res, err := c.Meili.Index("generation_g").Search(outputId.String(), &meilisearch.SearchRequest{
+	res, err := c.Meili.Index("generation_g").Search("", &meilisearch.SearchRequest{
 		Page:        int64(1),
 		HitsPerPage: int64(1),
-		Filter:      []string{"id"},
+		Filter:      []string{fmt.Sprintf("id = %s", outputId.String())},
 	})
 	if err != nil {
 		log.Error("Error searching for generation_g", "err", err)
