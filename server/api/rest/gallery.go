@@ -8,6 +8,7 @@ import (
 	"strconv"
 
 	"github.com/go-chi/render"
+	"github.com/google/uuid"
 	"github.com/meilisearch/meilisearch-go"
 	"github.com/stablecog/sc-go/database/ent"
 	"github.com/stablecog/sc-go/database/repository"
@@ -56,6 +57,32 @@ func (c *RestAPI) GetGenerationGs(page int, batchSize int, search string, filter
 }
 
 func (c *RestAPI) HandleQueryGallery(w http.ResponseWriter, r *http.Request) {
+	// Get output_id param
+	outputId := r.URL.Query().Get("output_id")
+	if outputId != "" {
+		// Validate output_id
+		uid, err := uuid.Parse(outputId)
+		if err != nil {
+			responses.ErrBadRequest(w, r, "invalid_output_id")
+			return
+		}
+
+		// Get single output ID
+		res, err := c.Repo.GetSingleGenerationQueryWithOutputsResultFormatted(uid)
+		if err != nil && !ent.IsNotFound(err) {
+			log.Error("Error querying generation", "err", err)
+			responses.ErrInternalServerError(w, r, "Error querying generation")
+			return
+		} else if ent.IsNotFound(err) || res == nil {
+			responses.ErrNotFound(w, r, "output_not_found")
+			return
+		}
+
+		render.Status(r, http.StatusOK)
+		render.JSON(w, r, res)
+		return
+	}
+
 	// Get query params
 	page, err := strconv.Atoi(r.URL.Query().Get("cursor"))
 	if err != nil || page < 1 {

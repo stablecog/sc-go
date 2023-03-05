@@ -396,6 +396,132 @@ func (r *Repository) QueryGenerations(per_page int, cursor *time.Time, filters *
 	return meta, err
 }
 
+// Only returns results where gallery status is approved
+func (r *Repository) GetSingleGenerationQueryWithOutputsResultFormatted(outputId uuid.UUID) (*GenerationQueryWithOutputsResultFormatted, error) {
+	// First get the generation
+	g, err := r.DB.GenerationOutput.Query().Select(generation.FieldID).Where(generationoutput.IDEQ(outputId)).Only(r.Ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	// Now get the generation with outputs
+	selectFields := []string{
+		generation.FieldID,
+		generation.FieldWidth,
+		generation.FieldHeight,
+		generation.FieldInferenceSteps,
+		generation.FieldSeed,
+		generation.FieldStatus,
+		generation.FieldGuidanceScale,
+		generation.FieldSchedulerID,
+		generation.FieldModelID,
+		generation.FieldPromptID,
+		generation.FieldNegativePromptID,
+		generation.FieldCreatedAt,
+		generation.FieldStartedAt,
+		generation.FieldCompletedAt,
+	}
+	var query *ent.GenerationQuery
+	var gQueryResult []GenerationQueryWithOutputsResult
+
+	query = r.DB.Generation.Query().Select(selectFields...).
+		Where(generation.StatusEQ(generation.StatusSucceeded), generation.IDEQ(g.ID))
+
+	// Exclude deleted at always
+	query = query.Where(func(s *sql.Selector) {
+		s.Where(sql.IsNull("deleted_at"))
+	})
+
+	// Only return approved outputs
+	query = query.Where(func(s *sql.Selector) {
+		s.Where(sql.EQ(generationoutput.FieldGalleryStatus, generationoutput.GalleryStatusApproved))
+	})
+
+	// Join other data
+	err = query.Modify(func(s *sql.Selector) {
+		npt := sql.Table(negativeprompt.Table)
+		pt := sql.Table(prompt.Table)
+		got := sql.Table(generationoutput.Table)
+		s.LeftJoin(npt).On(
+			s.C(generation.FieldNegativePromptID), npt.C(negativeprompt.FieldID),
+		).LeftJoin(pt).On(
+			s.C(generation.FieldPromptID), pt.C(prompt.FieldID),
+		).LeftJoin(got).On(
+			s.C(generation.FieldID), got.C(generationoutput.FieldGenerationID),
+		).AppendSelect(sql.As(npt.C(negativeprompt.FieldText), "negative_prompt_text"), sql.As(pt.C(prompt.FieldText), "prompt_text"), sql.As(got.C(generationoutput.FieldID), "output_id"), sql.As(got.C(generationoutput.FieldGalleryStatus), "output_gallery_status"), sql.As(got.C(generationoutput.FieldImagePath), "image_path"), sql.As(got.C(generationoutput.FieldUpscaledImagePath), "upscaled_image_path"), sql.As(got.C(generationoutput.FieldDeletedAt), "deleted_at")).
+			GroupBy(s.C(generation.FieldID), npt.C(negativeprompt.FieldText), pt.C(prompt.FieldText),
+				got.C(generationoutput.FieldID), got.C(generationoutput.FieldGalleryStatus),
+				got.C(generationoutput.FieldImagePath), got.C(generationoutput.FieldUpscaledImagePath))
+		s.OrderBy(sql.Desc(got.C(generationoutput.FieldCreatedAt)))
+	}).Scan(r.Ctx, &gQueryResult)
+
+	if err != nil {
+		return nil, err
+	}
+
+	if len(gQueryResult) == 0 {
+		return nil, &ent.NotFoundError{}
+	}
+
+	// Now format the result
+	generationOutputMap := make(map[uuid.UUID][]GenerationUpscaleOutput)
+	var res *GenerationQueryWithOutputsResultFormatted
+	for _, g := range gQueryResult {
+		if g.OutputID == nil {
+			log.Warn("Output ID is nil for generation, cannot include in result", "id", g.ID)
+			continue
+		}
+		gOutput := GenerationUpscaleOutput{
+			ID:               *g.OutputID,
+			ImageUrl:         g.ImageUrl,
+			UpscaledImageUrl: g.UpscaledImageUrl,
+			GalleryStatus:    g.GalleryStatus,
+		}
+		output := GenerationQueryWithOutputsResultFormatted{
+			GenerationUpscaleOutput: gOutput,
+			Generation: GenerationQueryWithOutputsData{
+				ID:               g.ID,
+				Height:           g.Height,
+				Width:            g.Width,
+				InferenceSteps:   g.InferenceSteps,
+				Seed:             g.Seed,
+				Status:           g.Status,
+				GuidanceScale:    g.GuidanceScale,
+				SchedulerID:      g.SchedulerID,
+				ModelID:          g.ModelID,
+				PromptID:         g.PromptID,
+				NegativePromptID: g.NegativePromptID,
+				CreatedAt:        g.CreatedAt,
+				StartedAt:        g.StartedAt,
+				CompletedAt:      g.CompletedAt,
+				Prompt: PromptType{
+					Text: g.PromptText,
+					ID:   *g.PromptID,
+				},
+			},
+		}
+		if g.NegativePromptID != nil {
+			output.Generation.NegativePrompt = &PromptType{
+				Text: g.NegativePromptText,
+				ID:   *g.NegativePromptID,
+			}
+		}
+		generationOutputMap[g.ID] = append(generationOutputMap[g.ID], gOutput)
+		if output.ID == outputId {
+			res = &output
+		}
+	}
+
+	if res == nil {
+		return nil, &ent.NotFoundError{}
+	}
+
+	// Add all outputs to the resulting generation
+	res.Generation.Outputs = generationOutputMap[res.Generation.ID]
+
+	return res, nil
+}
+
 type GenerationUpscaleOutput struct {
 	ID               uuid.UUID                      `json:"id"`
 	ImageUrl         string                         `json:"image_url"`

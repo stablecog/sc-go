@@ -40,6 +40,13 @@ func ErrInsufficientCredits(w http.ResponseWriter, r *http.Request) {
 	render.JSON(w, r, &InsufficientCredits)
 }
 
+func ErrNotFound(w http.ResponseWriter, r *http.Request, errorText string) {
+	render.Status(r, http.StatusNotFound)
+	render.JSON(w, r, &ErrorResponse{
+		Error: errorText,
+	})
+}
+
 func ErrBadRequest(w http.ResponseWriter, r *http.Request, errorText string) {
 	render.Status(r, http.StatusBadRequest)
 	render.JSON(w, r, &ErrorResponse{
