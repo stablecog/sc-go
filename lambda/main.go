@@ -101,6 +101,8 @@ func HandleRequest(ctx context.Context, event events.SNSEvent) (string, error) {
 		return "", errors.New("No records found in event")
 	}
 	// Marshal
+	marshalled, _ := json.Marshal(event)
+	log.Info("Received event", "event", string(marshalled))
 	err := FireWebhook(event)
 	return "", err
 }
