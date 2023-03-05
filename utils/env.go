@@ -38,3 +38,18 @@ func GetURLFromImagePath(s3UrlStr string) string {
 
 	return baseUrl + s3UrlStr
 }
+
+func GetCorsOrigins() []string {
+	if GetEnv("PRODUCTION", "false") == "true" {
+		return []string{
+			"https://stablecog.com",
+		}
+	}
+	return []string{
+		"http://localhost:3000",
+		"http://localhost:5173",
+		"http://localhost:8000",
+		"https://stablecog-git-v21-stablecog.vercel.app",
+		"https://stablecog.com",
+	}
+}

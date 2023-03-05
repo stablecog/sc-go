@@ -40,8 +40,6 @@ func (h *Hub) ServeSSE(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Cache-Control", "no-cache")
 	w.Header().Set("Connection", "keep-alive")
 	w.Header().Set("X-Accel-Buffering", "no")
-	// TODO - Proper cors restrictions
-	w.Header().Set("Access-Control-Allow-Origin", "*")
 
 	// Register client in the hub
 	client := &Client{Send: make(chan []byte, 256), Uid: streamID}

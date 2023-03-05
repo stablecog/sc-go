@@ -168,14 +168,7 @@ func main() {
 
 	// Cors middleware
 	app.Use(cors.Handler(cors.Options{
-		// AllowedOrigins:   []string{"https://foo.com"}, // Use this to allow specific origin hosts
-		AllowedOrigins: []string{
-			"http://localhost:3000",
-			"http://localhost:5173",
-			"http://localhost:8000",
-			"https://stablecog-git-v21-stablecog.vercel.app",
-			"https://stablecog.com",
-		},
+		AllowedOrigins: utils.GetCorsOrigins(),
 		// AllowOriginFunc:  func(r *http.Request, origin string) bool { return true },
 		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
 		AllowedHeaders:   []string{"*"},
