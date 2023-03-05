@@ -56,6 +56,40 @@ func (c *RestAPI) GetGenerationGs(page int, batchSize int, search string, filter
 	return generationGs, nil
 }
 
+// Get a specific generation_g by ID
+func (c *RestAPI) GetGenerationGByID(outputId uuid.UUID) (*repository.GalleryData, error) {
+	res, err := c.Meili.Index("generation_g").Search(outputId.String(), &meilisearch.SearchRequest{
+		Page:        int64(1),
+		HitsPerPage: int64(1),
+		Filter:      []string{"id"},
+	})
+	if err != nil {
+		log.Error("Error searching for generation_g", "err", err)
+		return nil, err
+	}
+	if len(res.Hits) == 0 {
+		return nil, nil
+	}
+	var generationG repository.GalleryData
+	for _, hit := range res.Hits {
+		j, err := json.Marshal(hit)
+		if err != nil {
+			log.Error("Error marshalling hit", "err", err)
+			return nil, err
+		}
+		var gen repository.GalleryData
+		err = json.Unmarshal(j, &gen)
+		if err != nil {
+			log.Error("Error unmarshalling hit", "err", err)
+			return nil, err
+		}
+		gen.Seed = 0
+		generationG = gen
+		break
+	}
+	return &generationG, nil
+}
+
 func (c *RestAPI) HandleQueryGallery(w http.ResponseWriter, r *http.Request) {
 	// Get output_id param
 	outputId := r.URL.Query().Get("output_id")
@@ -67,19 +101,18 @@ func (c *RestAPI) HandleQueryGallery(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		// Get single output ID
-		res, err := c.Repo.GetSingleGenerationQueryWithOutputsResultFormatted(uid)
-		if err != nil && !ent.IsNotFound(err) {
-			log.Error("Error querying generation", "err", err)
+		data, err := c.GetGenerationGByID(uid)
+		if err != nil || data == nil {
+			log.Error("Error querying generation meili", "err", err)
 			responses.ErrInternalServerError(w, r, "Error querying generation")
-			return
-		} else if ent.IsNotFound(err) || res == nil {
-			responses.ErrNotFound(w, r, "output_not_found")
 			return
 		}
 
 		render.Status(r, http.StatusOK)
-		render.JSON(w, r, res)
+		render.JSON(w, r, GalleryResponse{
+			Page: 1,
+			Hits: []repository.GalleryData{*data},
+		})
 		return
 	}
 
