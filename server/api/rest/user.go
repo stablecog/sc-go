@@ -162,13 +162,7 @@ func (c *RestAPI) HandleGetUser(w http.ResponseWriter, r *http.Request) {
 
 	// Renews at date for free users
 	if (highestProduct == "" || cancelsAt != nil) && !stripeHadError && freeCredits != nil {
-		if freeCreditsReplenished {
-			// Add 30 days to expires_at
-			renewsAtTime := freeCredits.ExpiresAt.AddDate(0, 0, 30)
-			renewsAt = &renewsAtTime
-		} else {
-			renewsAt = &freeCredits.ExpiresAt
-		}
+		// Figure out the duration
 	}
 
 	if freeCreditsReplenished {

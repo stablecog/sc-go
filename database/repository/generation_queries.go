@@ -459,10 +459,6 @@ func (r *Repository) GetSingleGenerationQueryWithOutputsResultFormatted(outputId
 		return nil, err
 	}
 
-	if len(gQueryResult) == 0 {
-		return nil, &ent.NotFoundError{}
-	}
-
 	// Now format the result
 	generationOutputMap := make(map[uuid.UUID][]GenerationUpscaleOutput)
 	var res *GenerationQueryWithOutputsResultFormatted
@@ -507,7 +503,7 @@ func (r *Repository) GetSingleGenerationQueryWithOutputsResultFormatted(outputId
 			}
 		}
 		generationOutputMap[g.ID] = append(generationOutputMap[g.ID], gOutput)
-		if *g.OutputID == outputId {
+		if gOutput.ID == outputId {
 			res = &output
 		}
 	}
