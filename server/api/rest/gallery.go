@@ -109,6 +109,9 @@ func (c *RestAPI) HandleQueryGallery(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
+		// Sanitize
+		data.UserID = nil
+
 		render.Status(r, http.StatusOK)
 		render.JSON(w, r, GalleryResponse{
 			Page: 1,
