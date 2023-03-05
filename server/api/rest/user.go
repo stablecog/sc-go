@@ -126,6 +126,7 @@ func (c *RestAPI) HandleGetUser(w http.ResponseWriter, r *http.Request) {
 	// Get current time in ms since epoch
 	now := time.Now().UnixNano() / int64(time.Second)
 	var highestProduct string
+	var highestPrice string
 	var cancelsAt *time.Time
 	var renewsAt *time.Time
 	if customer != nil && customer.Subscriptions != nil && customer.Subscriptions.Data != nil {
@@ -143,6 +144,7 @@ func (c *RestAPI) HandleGetUser(w http.ResponseWriter, r *http.Request) {
 				if now > subscription.CurrentPeriodEnd || subscription.CanceledAt > subscription.CurrentPeriodEnd {
 					continue
 				}
+				highestPrice = item.Price.ID
 				highestProduct = item.Price.Product.ID
 				// If not scheduled to be cancelled, we are done
 				if !subscription.CancelAtPeriodEnd {
@@ -173,6 +175,7 @@ func (c *RestAPI) HandleGetUser(w http.ResponseWriter, r *http.Request) {
 	render.JSON(w, r, responses.GetUserResponse{
 		TotalRemainingCredits: totalRemaining,
 		ProductID:             highestProduct,
+		PriceID:               highestPrice,
 		CancelsAt:             cancelsAt,
 		RenewsAt:              renewsAt,
 		FreeCreditAmount:      freeCreditAmount,
