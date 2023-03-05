@@ -425,7 +425,7 @@ func (r *Repository) GetSingleGenerationQueryWithOutputsResultFormatted(outputId
 	var gQueryResult []GenerationQueryWithOutputsResult
 
 	// Exclude deleted at always
-	query = r.DB.Debug().Generation.Query().Select(selectFields...).Where(func(s *sql.Selector) {
+	query = r.DB.Generation.Query().Select(selectFields...).Where(func(s *sql.Selector) {
 		s.Where(sql.And(
 			sql.EQ(s.C(generation.FieldID), output.GenerationID),
 			sql.IsNull("deleted_at"),
