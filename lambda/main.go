@@ -17,6 +17,11 @@ import (
 
 var WebhookUrl string
 
+type Dimensions struct {
+	Group string `json:"group"`
+	Task  string `json:"task"`
+}
+
 type SNSMessage struct {
 	AlarmName                          string        `json:"AlarmName"`
 	AlarmDescription                   interface{}   `json:"AlarmDescription"`
@@ -32,19 +37,19 @@ type SNSMessage struct {
 	AlarmActions                       []string      `json:"AlarmActions"`
 	InsufficientDataActions            []interface{} `json:"InsufficientDataActions"`
 	Trigger                            struct {
-		MetricName                       string        `json:"MetricName"`
-		Namespace                        string        `json:"Namespace"`
-		StatisticType                    string        `json:"StatisticType"`
-		Statistic                        string        `json:"Statistic"`
-		Unit                             interface{}   `json:"Unit"`
-		Dimensions                       []interface{} `json:"Dimensions"`
-		Period                           int           `json:"Period"`
-		EvaluationPeriods                int           `json:"EvaluationPeriods"`
-		DatapointsToAlarm                int           `json:"DatapointsToAlarm"`
-		ComparisonOperator               string        `json:"ComparisonOperator"`
-		Threshold                        float64       `json:"Threshold"`
-		TreatMissingData                 string        `json:"TreatMissingData"`
-		EvaluateLowSampleCountPercentile string        `json:"EvaluateLowSampleCountPercentile"`
+		MetricName                       string       `json:"MetricName"`
+		Namespace                        string       `json:"Namespace"`
+		StatisticType                    string       `json:"StatisticType"`
+		Statistic                        string       `json:"Statistic"`
+		Unit                             interface{}  `json:"Unit"`
+		Dimensions                       []Dimensions `json:"Dimensions"`
+		Period                           int          `json:"Period"`
+		EvaluationPeriods                int          `json:"EvaluationPeriods"`
+		DatapointsToAlarm                int          `json:"DatapointsToAlarm"`
+		ComparisonOperator               string       `json:"ComparisonOperator"`
+		Threshold                        float64      `json:"Threshold"`
+		TreatMissingData                 string       `json:"TreatMissingData"`
+		EvaluateLowSampleCountPercentile string       `json:"EvaluateLowSampleCountPercentile"`
 	} `json:"Trigger"`
 }
 
@@ -66,6 +71,16 @@ func FireWebhook(data events.SNSEvent) error {
 		Name:  "Alarm Arn",
 		Value: msg.AlarmArn,
 	})
+	if len(msg.Trigger.Dimensions) > 0 {
+		fields = append(fields, models.DiscordWebhookField{
+			Name:  "Group",
+			Value: msg.Trigger.Dimensions[0].Group,
+		})
+		fields = append(fields, models.DiscordWebhookField{
+			Name:  "Task",
+			Value: msg.Trigger.Dimensions[0].Task,
+		})
+	}
 	// Build webhook body
 	body := models.DiscordWebhookBody{
 		Embeds: []models.DiscordWebhookEmbed{
