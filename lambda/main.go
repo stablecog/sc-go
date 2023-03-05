@@ -59,14 +59,6 @@ func FireWebhook(data events.SNSEvent) error {
 		return err
 	}
 	fields = append(fields, models.DiscordWebhookField{
-		Name:  "Alarm Name",
-		Value: msg.AlarmName,
-	})
-	fields = append(fields, models.DiscordWebhookField{
-		Name:  "Region",
-		Value: msg.Region,
-	})
-	fields = append(fields, models.DiscordWebhookField{
 		Name:  "New State Reason",
 		Value: msg.NewStateReason,
 	})
