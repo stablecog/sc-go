@@ -399,7 +399,7 @@ func (r *Repository) QueryGenerations(per_page int, cursor *time.Time, filters *
 // Only returns results where gallery status is approved
 func (r *Repository) GetSingleGenerationQueryWithOutputsResultFormatted(outputId uuid.UUID) (*GenerationQueryWithOutputsResultFormatted, error) {
 	// First get the generation
-	g, err := r.DB.GenerationOutput.Query().Select(generation.FieldID).Where(generationoutput.IDEQ(outputId)).Only(r.Ctx)
+	output, err := r.DB.GenerationOutput.Query().Select(generationoutput.FieldGenerationID).Where(generationoutput.IDEQ(outputId)).Only(r.Ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -424,17 +424,13 @@ func (r *Repository) GetSingleGenerationQueryWithOutputsResultFormatted(outputId
 	var query *ent.GenerationQuery
 	var gQueryResult []GenerationQueryWithOutputsResult
 
-	query = r.DB.Generation.Query().Select(selectFields...).
-		Where(generation.StatusEQ(generation.StatusSucceeded), generation.IDEQ(g.ID))
-
 	// Exclude deleted at always
-	query = query.Where(func(s *sql.Selector) {
-		s.Where(sql.IsNull("deleted_at"))
-	})
-
-	// Only return approved outputs
-	query = query.Where(func(s *sql.Selector) {
-		s.Where(sql.EQ(generationoutput.FieldGalleryStatus, generationoutput.GalleryStatusApproved))
+	query = r.DB.Debug().Generation.Query().Select(selectFields...).Where(func(s *sql.Selector) {
+		s.Where(sql.And(
+			sql.EQ(s.C(generation.FieldID), output.GenerationID),
+			sql.IsNull("deleted_at"),
+			sql.EQ(generationoutput.FieldGalleryStatus, generationoutput.GalleryStatusApproved),
+		))
 	})
 
 	// Join other data
