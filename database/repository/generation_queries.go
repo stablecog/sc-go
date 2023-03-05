@@ -507,7 +507,7 @@ func (r *Repository) GetSingleGenerationQueryWithOutputsResultFormatted(outputId
 			}
 		}
 		generationOutputMap[g.ID] = append(generationOutputMap[g.ID], gOutput)
-		if output.ID == outputId {
+		if *g.OutputID == outputId {
 			res = &output
 		}
 	}
