@@ -102,20 +102,33 @@ func (c *RestAPI) HandleQueryGallery(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		data, err := c.GetGenerationGByID(uid)
-		if err != nil || data == nil {
+		generationG, err := c.GetGenerationGByID(uid)
+		if err != nil || generationG == nil {
 			log.Error("Error querying generation meili", "err", err)
 			responses.ErrInternalServerError(w, r, "Error querying generation")
 			return
 		}
 
 		// Sanitize
-		data.UserID = nil
+		generationG.UserID = nil
+
+		imageUrl := utils.GetURLFromImagePath(generationG.ImagePath)
+		if err != nil {
+			log.Error("Error parsing S3 URL", "err", err)
+			imageUrl = generationG.ImagePath
+		}
+		generationG.ImageURL = imageUrl
+		generationG.ImagePath = ""
+		if generationG.UpscaledImagePath != "" {
+			imageUrl := utils.GetURLFromImagePath(generationG.UpscaledImagePath)
+			generationG.UpscaledImageURL = imageUrl
+			generationG.UpscaledImagePath = ""
+		}
 
 		render.Status(r, http.StatusOK)
 		render.JSON(w, r, GalleryResponse{
 			Page: 1,
-			Hits: []repository.GalleryData{*data},
+			Hits: []repository.GalleryData{*generationG},
 		})
 		return
 	}
@@ -188,7 +201,7 @@ func (c *RestAPI) HandleQueryGallery(w http.ResponseWriter, r *http.Request) {
 }
 
 type GalleryResponse struct {
-	Next int                      `json:"next"`
+	Next int                      `json:"next,omitempty"`
 	Page int                      `json:"page"`
 	Hits []repository.GalleryData `json:"hits"`
 }
