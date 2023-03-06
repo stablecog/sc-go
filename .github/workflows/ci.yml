@@ -150,7 +150,7 @@ jobs:
           embed-description: "```🚨 Build FAILED 🚨```"
 
   deploy_server:
-    name: 🚀 Deploy Server (QA)
+    name: 🧪 Deploy Server (QA)
     runs-on: self-hosted
     needs:
       - setup_env
@@ -176,6 +176,7 @@ jobs:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           task-definition: ./aws/qa/sc-server.json
+          service: qa-sc-server-Service-XSweBbsvI0JC
           image: stablecog/sc-server:${{ needs.setup_env.outputs.branch_name}}-${{ env.GITHUB_RUN_ID }}
           env: qa
 
@@ -191,7 +192,7 @@ jobs:
           embed-description: "```🚨 Service Unstable 🚨```"
 
   deploy_cron:
-    name: 🚀 Deploy Cron (QA)
+    name: 🧪 Deploy Cron (QA)
     runs-on: self-hosted
     needs:
       - setup_env
@@ -206,6 +207,7 @@ jobs:
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          service: qa-sc-cron
           task-definition: ./aws/qa/sc-cron.json
           image: stablecog/sc-server:${{ needs.setup_env.outputs.branch_name}}-${{ env.GITHUB_RUN_ID }}
           env: qa
@@ -237,6 +239,7 @@ jobs:
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          service: prod-sc-server-Service-uDZHByAncsMB
           task-definition: ./aws/prod/sc-server.json
           image: stablecog/sc-server:${{ needs.setup_env.outputs.branch_name}}-${{ env.GITHUB_RUN_ID }}
           env: prod
@@ -269,6 +272,7 @@ jobs:
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          service: prod-sc-cron
           task-definition: ./aws/prod/sc-cron.json
           image: stablecog/sc-server:${{ needs.setup_env.outputs.branch_name}}-${{ env.GITHUB_RUN_ID }}
           env: prod

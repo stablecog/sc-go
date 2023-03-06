@@ -21,6 +21,9 @@ inputs:
   image:
     description: Image to deploy
     required: true
+  service:
+    description: Name of the service
+    required: true
   env:
     description: Environment to deploy to (prod/qa)
     required: true
@@ -49,7 +52,7 @@ runs:
       uses: aws-actions/amazon-ecs-deploy-task-definition@v1
       with:
         task-definition: ${{ steps.task-def.outputs.task-definition }}
-        service: qa-sc-server-Service-XSweBbsvI0JC
+        service: ${{ inputs.service }}
         cluster: qa-stablecog-Cluster-g4jXWMxvTvnZ
         wait-for-service-stability: false
 
@@ -58,6 +61,6 @@ runs:
       uses: aws-actions/amazon-ecs-deploy-task-definition@v1
       with:
         task-definition: ${{ steps.task-def.outputs.task-definition }}
-        service: prod-sc-server-Service-uDZHByAncsMB
+        service: ${{ inputs.service }}
         cluster: prod-stablecog-Cluster-wF6ivHjjqkzo
         wait-for-service-stability: false
