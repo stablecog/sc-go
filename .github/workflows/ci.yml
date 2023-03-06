@@ -69,12 +69,24 @@ jobs:
       - name: Set current date as env variable
         run: echo "NOW=$(date +'%a, %d %b %Y %T %Z' )" >> $GITHUB_ENV
 
+      - name: Escape commit message
+        run: |
+          import json
+          import os
+          import shlex
+          with open('${{ github.event_path }}') as fh:
+              event = json.load(fh)
+          escaped = shlex.quote(event['head_commit']['message'])
+          with open(os.environ['GITHUB_ENV'], 'a') as fh:
+              print(f'COMMIT_MSG={escaped}', file=fh)
+        shell: python3 {0}
+
       - name: Discord Webhook Action
         uses: tsickert/discord-webhook@v5.3.0
         with:
           webhook-url: ${{ secrets.DISCORD_WEBHOOK }}
           embed-color: 16776960
-          embed-title: "${{ github.event.head_commit.message }}  •  ${{ env.SHORT_SHA}}"
+          embed-title: "${{ env.COMMIT_MSG }}  •  ${{ env.SHORT_SHA}}"
           embed-description: "```Build Started```"
           embed-footer-text: "${{ env.NOW }}"
 
@@ -83,7 +95,7 @@ jobs:
         with:
           webhook-url: ${{ secrets.DISCORD_WEBHOOK_PROD }}
           embed-color: 16776960
-          embed-title: "${{ github.event.head_commit.message }}  •  ${{ env.SHORT_SHA}}"
+          embed-title: "${{ env.COMMIT_MSG }}  •  ${{ env.SHORT_SHA}}"
           embed-description: "```Build Started```"
           embed-footer-text: "${{ env.NOW }}"
 
@@ -109,21 +121,6 @@ jobs:
           username: ${{ secrets.DOCKER_USER }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
-      - name: Escape commit message
-        run: |
-          import json
-          import os
-          import shlex
-          with open('${{ github.event_path }}') as fh:
-              event = json.load(fh)
-          escaped = shlex.quote(event['head_commit']['message'])
-          with open(os.environ['GITHUB_ENV'], 'a') as fh:
-              print(f'COMMIT_MSG={escaped}', file=fh)
-        shell: python3 {0}
-
-      - name: Commit message in environment-$
-        run: echo `COMMIT_MSG=${{ github.event.head_commit.message }}' | sed -e 's/["']//g` >> $GITHUB_ENV
-
       - name: Build GO Server Binary
         run: |
           cd server && go build -ldflags "-s -w -X main.Version=${GITHUB_SHA::7} -X \"main.CommitMsg=${{ env.COMMIT_MSG }}\" -X main.BuildStart=${{ env.BUILD_START }}" -o server && cd ..
@@ -148,7 +145,7 @@ jobs:
         with:
           webhook-url: ${{ secrets.DISCORD_WEBHOOK }}
           embed-color: 15548997
-          embed-title: "${{ github.event.head_commit.message }}  •  ${{ env.SHORT_SHA}}"
+          embed-title: "${{ env.COMMIT_MSG }}  •  ${{ env.SHORT_SHA}}"
           embed-description: "```🚨 Build FAILED 🚨```"
           embed-footer-text: "${{ env.NOW }}"
 
@@ -158,7 +155,7 @@ jobs:
         with:
           webhook-url: ${{ secrets.DISCORD_WEBHOOK_PROD }}
           embed-color: 15548997
-          embed-title: "${{ github.event.head_commit.message }}  •  ${{ env.SHORT_SHA}}"
+          embed-title: "${{ env.COMMIT_MSG }}  •  ${{ env.SHORT_SHA}}"
           embed-description: "```🚨 Build FAILED 🚨```"
           embed-footer-text: "${{ env.NOW }}"
 
@@ -177,12 +174,24 @@ jobs:
       - name: Set current date as env variable
         run: echo "NOW=$(date +'%a, %d %b %Y %T %Z' )" >> $GITHUB_ENV
 
+      - name: Escape commit message
+        run: |
+          import json
+          import os
+          import shlex
+          with open('${{ github.event_path }}') as fh:
+              event = json.load(fh)
+          escaped = shlex.quote(event['head_commit']['message'])
+          with open(os.environ['GITHUB_ENV'], 'a') as fh:
+              print(f'COMMIT_MSG={escaped}', file=fh)
+        shell: python3 {0}
+
       - name: Discord Webhook Action
         uses: tsickert/discord-webhook@v5.3.0
         with:
           webhook-url: ${{ secrets.DISCORD_WEBHOOK }}
           embed-color: 15105570
-          embed-title: "${{ github.event.head_commit.message }}  •  ${{ env.SHORT_SHA}}"
+          embed-title: "${{ env.COMMIT_MSG }}  •  ${{ env.SHORT_SHA}}"
           embed-description: "```Deploy Started```"
           embed-footer-text: "${{ env.NOW }}"
 
@@ -230,7 +239,7 @@ jobs:
         with:
           webhook-url: ${{ secrets.DISCORD_WEBHOOK }}
           embed-color: 15548997
-          embed-title: "${{ github.event.head_commit.message }}  •  ${{ env.SHORT_SHA}}"
+          embed-title: "${{ env.COMMIT_MSG }}  •  ${{ env.SHORT_SHA}}"
           embed-description: "```🚨 Service Unstable 🚨```"
           embed-footer-text: "${{ env.NOW }}"
 
@@ -295,12 +304,24 @@ jobs:
       - name: Set current date as env variable
         run: echo "NOW=$(date +'%a, %d %b %Y %T %Z' )" >> $GITHUB_ENV
 
+      - name: Escape commit message
+        run: |
+          import json
+          import os
+          import shlex
+          with open('${{ github.event_path }}') as fh:
+              event = json.load(fh)
+          escaped = shlex.quote(event['head_commit']['message'])
+          with open(os.environ['GITHUB_ENV'], 'a') as fh:
+              print(f'COMMIT_MSG={escaped}', file=fh)
+        shell: python3 {0}
+
       - name: Discord Webhook Action
         uses: tsickert/discord-webhook@v5.3.0
         with:
           webhook-url: ${{ secrets.DISCORD_WEBHOOK_PROD }}
           embed-color: 15105570
-          embed-title: "${{ github.event.head_commit.message }}  •  ${{ env.SHORT_SHA}}"
+          embed-title: "${{ env.COMMIT_MSG }}  •  ${{ env.SHORT_SHA}}"
           embed-description: "```Deploy Started```"
           embed-footer-text: "${{ env.NOW }}"
 
@@ -348,7 +369,7 @@ jobs:
         with:
           webhook-url: ${{ secrets.DISCORD_WEBHOOK_PROD }}
           embed-color: 15548997
-          embed-title: "${{ github.event.head_commit.message }}  •  ${{ env.SHORT_SHA}}"
+          embed-title: "${{ env.COMMIT_MSG }}  •  ${{ env.SHORT_SHA}}"
           embed-description: "```🚨 Service Unstable 🚨```"
           embed-footer-text: "${{ env.NOW }}"
 
