@@ -18,7 +18,7 @@ import (
 var WebhookUrl string
 
 type Dimensions struct {
-	Group string `json:"group"`
+	Value string `json:"value"`
 }
 
 type SNSMessage struct {
@@ -72,8 +72,8 @@ func FireWebhook(data events.SNSEvent) error {
 	})
 	if len(msg.Trigger.Dimensions) > 0 {
 		fields = append(fields, models.DiscordWebhookField{
-			Name:  "Group",
-			Value: msg.Trigger.Dimensions[0].Group,
+			Name:  "Service",
+			Value: msg.Trigger.Dimensions[0].Value,
 		})
 	}
 	// Build webhook body
