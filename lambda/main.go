@@ -18,9 +18,7 @@ import (
 var WebhookUrl string
 
 type Dimensions struct {
-	Group       string `json:"group"`
-	Task        string `json:"task"`
-	TaskVersion string `json:"task_version"`
+	Group string `json:"group"`
 }
 
 type SNSMessage struct {
@@ -76,14 +74,6 @@ func FireWebhook(data events.SNSEvent) error {
 		fields = append(fields, models.DiscordWebhookField{
 			Name:  "Group",
 			Value: msg.Trigger.Dimensions[0].Group,
-		})
-		fields = append(fields, models.DiscordWebhookField{
-			Name:  "Task",
-			Value: msg.Trigger.Dimensions[0].Task,
-		})
-		fields = append(fields, models.DiscordWebhookField{
-			Name:  "Task Version",
-			Value: msg.Trigger.Dimensions[0].TaskVersion,
 		})
 	}
 	// Build webhook body
