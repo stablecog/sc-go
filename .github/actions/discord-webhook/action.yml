@@ -17,6 +17,12 @@ inputs:
   embed-footer-text:
     description: Footer text of the embed
     required: true
+  prod-webhook-url:
+    description: Webhook URL for prod
+    required: true
+  qa-webhook-url:
+    description: Webhook URL for qa
+    required: true
 runs:
   using: composite
   steps:
@@ -24,7 +30,7 @@ runs:
       if: ${{ inputs.context == 'all' || inputs.context == 'prod' }}
       uses: tsickert/discord-webhook@v5.3.0
       with:
-        webhook-url: ${{ secrets.DISCORD_WEBHOOK_PROD }}
+        webhook-url: ${{ inputs.prod-webhook-url }}
         embed-color: ${{ inputs.embed-color }}
         embed-title: ${{ inputs.embed-title }}
         embed-description: ${{ inputs.embed-description }}
@@ -34,7 +40,7 @@ runs:
       if: ${{ inputs.context == 'all' || inputs.context == 'qa' }}
       uses: tsickert/discord-webhook@v5.3.0
       with:
-        webhook-url: ${{ secrets.DISCORD_WEBHOOK_PROD }}
+        webhook-url: ${{ inputs.qa-webhook-url }}
         embed-color: ${{ inputs.embed-color }}
         embed-title: ${{ inputs.embed-title }}
         embed-description: ${{ inputs.embed-description }}

@@ -105,6 +105,8 @@ jobs:
         uses: ./.github/actions/discord-webhook
         with:
           context: all
+          prod-webhook-url: ${{ secrets.DISCORD_WEBHOOK_PROD }}
+          qa-webhook-url: ${{ secrets.DISCORD_WEBHOOK }}
           embed-color: 16776960
           embed-title: "${{ needs.setup_env.outputs.commit_msg }}  •  ${{ needs.setup_env.outputs.short_sha }}"
           embed-description: "```Build Started```"
@@ -145,6 +147,8 @@ jobs:
         uses: ./.github/actions/discord-webhook
         with:
           context: all
+          prod-webhook-url: ${{ secrets.DISCORD_WEBHOOK_PROD }}
+          qa-webhook-url: ${{ secrets.DISCORD_WEBHOOK }}
           embed-color: 15548997
           embed-title: "${{ needs.setup_env.outputs.commit_msg }}  •  ${{ needs.setup_env.outputs.short_sha }}"
           embed-description: "```🚨 Build FAILED 🚨```"
@@ -168,6 +172,8 @@ jobs:
         uses: ./.github/actions/discord-webhook
         with:
           context: qa
+          prod-webhook-url: ${{ secrets.DISCORD_WEBHOOK_PROD }}
+          qa-webhook-url: ${{ secrets.DISCORD_WEBHOOK }}
           embed-color: 15105570
           embed-title: "${{ needs.setup_env.outputs.commit_msg }}  •  ${{ needs.setup_env.outputs.short_sha }}"
           embed-description: "```Deploy Started```"
@@ -206,6 +212,8 @@ jobs:
         uses: ./.github/actions/discord-webhook
         with:
           context: qa
+          prod-webhook-url: ${{ secrets.DISCORD_WEBHOOK_PROD }}
+          qa-webhook-url: ${{ secrets.DISCORD_WEBHOOK }}
           embed-color: 15548997
           embed-title: "${{ needs.setup_env.outputs.commit_msg }}  •  ${{ needs.setup_env.outputs.short_sha }}"
           embed-description: "```🚨 Service Unstable 🚨```"
@@ -266,6 +274,8 @@ jobs:
         uses: ./.github/actions/discord-webhook
         with:
           context: prod
+          prod-webhook-url: ${{ secrets.DISCORD_WEBHOOK_PROD }}
+          qa-webhook-url: ${{ secrets.DISCORD_WEBHOOK }}
           embed-color: 15105570
           embed-title: "${{ needs.setup_env.outputs.commit_msg }}  •  ${{ needs.setup_env.outputs.short_sha }}"
           embed-description: "```Deploy Started```"
@@ -304,6 +314,8 @@ jobs:
         uses: ./.github/actions/discord-webhook
         with:
           context: prod
+          prod-webhook-url: ${{ secrets.DISCORD_WEBHOOK_PROD }}
+          qa-webhook-url: ${{ secrets.DISCORD_WEBHOOK }}
           embed-color: 15548997
           embed-title: "${{ needs.setup_env.outputs.commit_msg }}  •  ${{ needs.setup_env.outputs.short_sha }}"
           embed-description: "```🚨 Service Unstable 🚨```"
