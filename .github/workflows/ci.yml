@@ -172,7 +172,9 @@ jobs:
   deploy_server:
     name: 🚀 Deploy Server (QA)
     runs-on: self-hosted
-    needs: build
+    needs:
+      - setup_env
+      - build
     env:
       GITHUB_RUN_ID: ${{ github.run_id }}
     steps:
@@ -231,7 +233,9 @@ jobs:
   deploy_cron:
     name: 🚀 Deploy Cron (QA)
     runs-on: self-hosted
-    needs: build
+    needs:
+      - setup_env
+      - build
     env:
       GITHUB_RUN_ID: ${{ github.run_id }}
     steps:
@@ -266,6 +270,7 @@ jobs:
     name: 🚀 Deploy Server (PROD)
     runs-on: self-hosted
     needs:
+      - setup_env
       - test
       - build
     env:
@@ -327,6 +332,7 @@ jobs:
     name: 🚀 Deploy Cron (PROD)
     runs-on: self-hosted
     needs:
+      - setup_env
       - test
       - build
     env:
