@@ -1,0 +1,41 @@
+name: Send Discord Webhook
+description: Sends a webhook to Discord
+inputs:
+  context:
+    description: qa/prod/all
+    required: true
+    default: all
+  embed-color:
+    description: Color of the embed
+    required: true
+  embed-title:
+    description: Title of the embed
+    required: true
+  embed-description:
+    description: Description of the embed
+    required: true
+  embed-footer-text:
+    description: Footer text of the embed
+    required: true
+runs:
+  using: composite
+  steps:
+    - name: PROD Webhook
+      if: ${{ inputs.context == 'all' || inputs.context == 'prod' }}
+      uses: tsickert/discord-webhook@v5.3.0
+      with:
+        webhook-url: ${{ secrets.DISCORD_WEBHOOK_PROD }}
+        embed-color: ${{ inputs.embed-color }}
+        embed-title: ${{ inputs.embed-title }}
+        embed-description: ${{ inputs.embed-description }}
+        embed-footer-text: ${{ inputs.embed-footer-text }}
+
+    - name: QA Webhook
+      if: ${{ inputs.context == 'all' || inputs.context == 'qa' }}
+      uses: tsickert/discord-webhook@v5.3.0
+      with:
+        webhook-url: ${{ secrets.DISCORD_WEBHOOK_PROD }}
+        embed-color: ${{ inputs.embed-color }}
+        embed-title: ${{ inputs.embed-title }}
+        embed-description: ${{ inputs.embed-description }}
+        embed-footer-text: ${{ inputs.embed-footer-text }}

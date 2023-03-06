@@ -101,19 +101,10 @@ jobs:
       - name: Set current date as env variable
         run: echo "NOW=$(date +'%a, %d %b %Y %T %Z' )" >> $GITHUB_ENV
 
-      - name: Discord Webhook Action
-        uses: tsickert/discord-webhook@v5.3.0
+      - name: Send Discord Webhook
+        uses: ./.github/actions/discord
         with:
-          webhook-url: ${{ secrets.DISCORD_WEBHOOK }}
-          embed-color: 16776960
-          embed-title: "${{ needs.setup_env.outputs.commit_msg }}  •  ${{ needs.setup_env.outputs.short_sha }}"
-          embed-description: "```Build Started```"
-          embed-footer-text: "${{ env.NOW }}"
-
-      - name: Discord Webhook Action (PROD)
-        uses: tsickert/discord-webhook@v5.3.0
-        with:
-          webhook-url: ${{ secrets.DISCORD_WEBHOOK_PROD }}
+          context: all
           embed-color: 16776960
           embed-title: "${{ needs.setup_env.outputs.commit_msg }}  •  ${{ needs.setup_env.outputs.short_sha }}"
           embed-description: "```Build Started```"
@@ -149,21 +140,11 @@ jobs:
           file: ./Dockerfile.ci
           tags: stablecog/sc-server:${{ needs.setup_env.outputs.branch_name }}-${{ env.GITHUB_RUN_ID }}
 
-      - name: Discord Webhook Action
+      - name: Send Discord Webhook
         if: failure()
-        uses: tsickert/discord-webhook@v5.3.0
+        uses: ./.github/actions/discord
         with:
-          webhook-url: ${{ secrets.DISCORD_WEBHOOK }}
-          embed-color: 15548997
-          embed-title: "${{ needs.setup_env.outputs.commit_msg }}  •  ${{ needs.setup_env.outputs.short_sha }}"
-          embed-description: "```🚨 Build FAILED 🚨```"
-          embed-footer-text: "${{ env.NOW }}"
-
-      - name: Discord Webhook Action (PROD)
-        if: failure()
-        uses: tsickert/discord-webhook@v5.3.0
-        with:
-          webhook-url: ${{ secrets.DISCORD_WEBHOOK_PROD }}
+          context: all
           embed-color: 15548997
           embed-title: "${{ needs.setup_env.outputs.commit_msg }}  •  ${{ needs.setup_env.outputs.short_sha }}"
           embed-description: "```🚨 Build FAILED 🚨```"
@@ -183,10 +164,10 @@ jobs:
       - name: Set current date as env variable
         run: echo "NOW=$(date +'%a, %d %b %Y %T %Z' )" >> $GITHUB_ENV
 
-      - name: Discord Webhook Action
-        uses: tsickert/discord-webhook@v5.3.0
+      - name: Send Discord Webhook
+        uses: ./.github/actions/discord
         with:
-          webhook-url: ${{ secrets.DISCORD_WEBHOOK }}
+          context: qa
           embed-color: 15105570
           embed-title: "${{ needs.setup_env.outputs.commit_msg }}  •  ${{ needs.setup_env.outputs.short_sha }}"
           embed-description: "```Deploy Started```"
@@ -220,11 +201,11 @@ jobs:
       - name: Update current date as env variable
         run: echo "NOW=$(date +'%a, %d %b %Y %T %Z' )" >> $GITHUB_ENV
 
-      - name: Discord Webhook Action
+      - name: Send Discord Webhook
         if: failure()
-        uses: tsickert/discord-webhook@v5.3.0
+        uses: ./.github/actions/discord
         with:
-          webhook-url: ${{ secrets.DISCORD_WEBHOOK }}
+          context: qa
           embed-color: 15548997
           embed-title: "${{ needs.setup_env.outputs.commit_msg }}  •  ${{ needs.setup_env.outputs.short_sha }}"
           embed-description: "```🚨 Service Unstable 🚨```"
@@ -281,10 +262,10 @@ jobs:
       - name: Set current date as env variable
         run: echo "NOW=$(date +'%a, %d %b %Y %T %Z' )" >> $GITHUB_ENV
 
-      - name: Discord Webhook Action
-        uses: tsickert/discord-webhook@v5.3.0
+      - name: Send Discord Webhook
+        uses: ./.github/actions/discord
         with:
-          webhook-url: ${{ secrets.DISCORD_WEBHOOK_PROD }}
+          context: prod
           embed-color: 15105570
           embed-title: "${{ needs.setup_env.outputs.commit_msg }}  •  ${{ needs.setup_env.outputs.short_sha }}"
           embed-description: "```Deploy Started```"
@@ -318,11 +299,11 @@ jobs:
       - name: Update current date as env variable
         run: echo "NOW=$(date +'%a, %d %b %Y %T %Z' )" >> $GITHUB_ENV
 
-      - name: Discord Webhook Action
+      - name: Send Discord Webhook
         if: failure()
-        uses: tsickert/discord-webhook@v5.3.0
+        uses: ./.github/actions/discord
         with:
-          webhook-url: ${{ secrets.DISCORD_WEBHOOK_PROD }}
+          context: prod
           embed-color: 15548997
           embed-title: "${{ needs.setup_env.outputs.commit_msg }}  •  ${{ needs.setup_env.outputs.short_sha }}"
           embed-description: "```🚨 Service Unstable 🚨```"
