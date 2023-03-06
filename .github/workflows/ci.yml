@@ -335,3 +335,49 @@ jobs:
           embed-title: "${{ github.event.head_commit.message }}  •  ${{ env.SHORT_SHA}}"
           embed-description: "```🚨 Service Unstable 🚨```"
           embed-footer-text: "${{ env.NOW }}"
+
+  deploy_cron_prod:
+    name: 🚀 Deploy Cron (PROD)
+    runs-on: self-hosted
+    needs:
+      - test
+      - build
+    env:
+      GITHUB_RUN_ID: ${{ github.run_id }}
+    steps:
+      - uses: actions/checkout@master
+
+      - name: Configure AWS credentials
+        if: success()
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-2
+
+      - name: Get branch name (merge)
+        if: github.event_name != 'pull_request'
+        shell: bash
+        run: echo "BRANCH_NAME=$(echo ${GITHUB_REF#refs/heads/} | tr / -)" >> $GITHUB_ENV
+
+      - name: Get branch name (pull request)
+        if: github.event_name == 'pull_request'
+        shell: bash
+        run: echo "BRANCH_NAME=$(echo ${GITHUB_HEAD_REF} | tr / -)" >> $GITHUB_ENV
+
+      - name: AWS Set Task Definition
+        if: success()
+        id: task-def-cron
+        uses: aws-actions/amazon-ecs-render-task-definition@v1
+        with:
+          task-definition: ./aws/qa/sc-cron.json
+          container-name: main
+          image: stablecog/sc-server:${{ env.BRANCH_NAME }}-${{ env.GITHUB_RUN_ID }}
+
+      - name: AWS Deploy PROD
+        uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+        with:
+          task-definition: ${{ steps.task-def-cron.outputs.task-definition }}
+          service: prod-sc-cron
+          cluster: prod-stablecog-Cluster-wF6ivHjjqkzo
+          wait-for-service-stability: false

@@ -1,0 +1,100 @@
+{
+  "containerDefinitions": [
+    {
+      "name": "main",
+      "image": "stablecog/sc-server:master-4320036592",
+      "cpu": 0,
+      "memory": 512,
+      "essential": true,
+      "command": [
+        "/app/cron",
+        "-all"
+      ],
+      "linuxParameters": {
+        "initProcessEnabled": true
+      },
+      "environment": [
+        {
+          "name": "PUBLIC_SUPABASE_REFERENCE_ID",
+          "value": "rmhwcodjirhwssvvndna"
+        },
+        {
+          "name": "PORT",
+          "value": "80"
+        },
+        {
+          "name": "BUCKET_BASE_URL",
+          "value": "https://b.stablecog.com"
+        },
+        {
+          "name": "POSTHOG_ENDPOINT",
+          "value": "https://ph.stablecog.com"
+        }
+      ],
+      "mountPoints": [],
+      "volumesFrom": [],
+      "secrets": [
+        {
+          "name": "MEILI_URL",
+          "valueFrom": "arn:aws:secretsmanager:us-east-2:280846200654:secret:prod-stablecog/go-D0kHwQ:MEILI_URL::"
+        },
+        {
+          "name": "MEILI_MASTER_KEY",
+          "valueFrom": "arn:aws:secretsmanager:us-east-2:280846200654:secret:prod-stablecog/go-D0kHwQ:MEILI_MASTER_KEY::"
+        },
+        {
+          "name": "POSTGRES_PASSWORD",
+          "valueFrom": "arn:aws:secretsmanager:us-east-2:280846200654:secret:prod-stablecog/go-D0kHwQ:POSTGRES_PASSWORD::"
+        },
+        {
+          "name": "POSTGRES_USER",
+          "valueFrom": "arn:aws:secretsmanager:us-east-2:280846200654:secret:prod-stablecog/go-D0kHwQ:POSTGRES_USER::"
+        },
+        {
+          "name": "POSTGRES_HOST",
+          "valueFrom": "arn:aws:secretsmanager:us-east-2:280846200654:secret:prod-stablecog/go-D0kHwQ:POSTGRES_HOST::"
+        },
+        {
+          "name": "POSTGRES_DB",
+          "valueFrom": "arn:aws:secretsmanager:us-east-2:280846200654:secret:prod-stablecog/go-D0kHwQ:POSTGRES_DB::"
+        },
+        {
+          "name": "POSTHOG_API_KEY",
+          "valueFrom": "arn:aws:secretsmanager:us-east-2:280846200654:secret:prod-stablecog/go-D0kHwQ:POSTHOG_API_KEY::"
+        },
+        {
+          "name": "STRIPE_ENDPOINT_SECRET",
+          "valueFrom": "arn:aws:secretsmanager:us-east-2:280846200654:secret:prod-stablecog/go-D0kHwQ:STRIPE_ENDPOINT_SECRET::"
+        },
+        {
+          "name": "STRIPE_SECRET_KEY",
+          "valueFrom": "arn:aws:secretsmanager:us-east-2:280846200654:secret:prod-stablecog/go-D0kHwQ:STRIPE_SECRET_KEY::"
+        },
+        {
+          "name": "SUPABASE_ADMIN_KEY",
+          "valueFrom": "arn:aws:secretsmanager:us-east-2:280846200654:secret:prod-stablecog/go-D0kHwQ:SUPABASE_ADMIN_KEY::"
+        },
+        {
+          "name": "REDIS_CONNECTION_STRING",
+          "valueFrom": "arn:aws:secretsmanager:us-east-2:280846200654:secret:prod-stablecog/go-D0kHwQ:REDIS_CONNECTION_STRING::"
+        }
+      ],
+      "dockerLabels": {},
+      "logConfiguration": {
+        "logDriver": "awslogs",
+        "options": {
+          "awslogs-group": "prod-stablecog",
+          "awslogs-region": "us-east-2",
+          "awslogs-stream-prefix": "sc-cron"
+        }
+      }
+    }
+  ],
+  "family": "prod-sc-cron",
+  "executionRoleArn": "ecsTaskExecutionRole",
+  "taskRoleArn": "ecsTaskRole",
+  "networkMode": "bridge",
+  "volumes": [],
+  "placementConstraints": [],
+  "tags": []
+}
