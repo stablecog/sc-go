@@ -170,30 +170,14 @@ jobs:
           embed-title: "${{ needs.setup_env.outputs.commit_msg }}  •  ${{ needs.setup_env.outputs.short_sha }}"
           embed-description: "```Deploy Started```"
 
-      - name: Configure AWS credentials
-        if: success()
-        uses: aws-actions/configure-aws-credentials@v1-node16
+      - name: Deploy
+        uses: ./.github/actions/aws-deploy
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: us-east-2
-
-      - name: AWS Set Task Definition
-        if: success()
-        id: task-def
-        uses: aws-actions/amazon-ecs-render-task-definition@v1
-        with:
           task-definition: ./aws/qa/sc-server.json
-          container-name: main
           image: stablecog/sc-server:${{ needs.setup_env.outputs.branch_name}}-${{ env.GITHUB_RUN_ID }}
-
-      - name: AWS Deploy QA
-        uses: aws-actions/amazon-ecs-deploy-task-definition@v1
-        with:
-          task-definition: ${{ steps.task-def.outputs.task-definition }}
-          service: qa-sc-server-Service-XSweBbsvI0JC
-          cluster: qa-stablecog-Cluster-g4jXWMxvTvnZ
-          wait-for-service-stability: false
+          env: qa
 
       - name: Send Discord Webhook
         if: failure()
@@ -217,30 +201,14 @@ jobs:
     steps:
       - uses: actions/checkout@master
 
-      - name: Configure AWS credentials
-        if: success()
-        uses: aws-actions/configure-aws-credentials@v1-node16
+      - name: Deploy
+        uses: ./.github/actions/aws-deploy
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: us-east-2
-
-      - name: AWS Set Task Definition
-        if: success()
-        id: task-def-cron
-        uses: aws-actions/amazon-ecs-render-task-definition@v1
-        with:
           task-definition: ./aws/qa/sc-cron.json
-          container-name: main
           image: stablecog/sc-server:${{ needs.setup_env.outputs.branch_name}}-${{ env.GITHUB_RUN_ID }}
-
-      - name: AWS Deploy QA
-        uses: aws-actions/amazon-ecs-deploy-task-definition@v1
-        with:
-          task-definition: ${{ steps.task-def-cron.outputs.task-definition }}
-          service: qa-sc-cron
-          cluster: qa-stablecog-Cluster-g4jXWMxvTvnZ
-          wait-for-service-stability: false
+          env: qa
 
   deploy_server_prod:
     name: 🚀 Deploy Server (PROD)
@@ -264,30 +232,14 @@ jobs:
           embed-title: "${{ needs.setup_env.outputs.commit_msg }}  •  ${{ needs.setup_env.outputs.short_sha }}"
           embed-description: "```Deploy Started```"
 
-      - name: Configure AWS credentials
-        if: success()
-        uses: aws-actions/configure-aws-credentials@v1-node16
+      - name: Deploy
+        uses: ./.github/actions/aws-deploy
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: us-east-2
-
-      - name: AWS Set Task Definition
-        if: success()
-        id: task-def
-        uses: aws-actions/amazon-ecs-render-task-definition@v1
-        with:
           task-definition: ./aws/prod/sc-server.json
-          container-name: main
           image: stablecog/sc-server:${{ needs.setup_env.outputs.branch_name}}-${{ env.GITHUB_RUN_ID }}
-
-      - name: AWS Deploy PROD
-        uses: aws-actions/amazon-ecs-deploy-task-definition@v1
-        with:
-          task-definition: ${{ steps.task-def.outputs.task-definition }}
-          service: prod-sc-server-Service-uDZHByAncsMB
-          cluster: prod-stablecog-Cluster-wF6ivHjjqkzo
-          wait-for-service-stability: false
+          env: prod
 
       - name: Send Discord Webhook
         if: failure()
@@ -312,27 +264,11 @@ jobs:
     steps:
       - uses: actions/checkout@master
 
-      - name: Configure AWS credentials
-        if: success()
-        uses: aws-actions/configure-aws-credentials@v1-node16
+      - name: Deploy
+        uses: ./.github/actions/aws-deploy
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: us-east-2
-
-      - name: AWS Set Task Definition
-        if: success()
-        id: task-def-cron
-        uses: aws-actions/amazon-ecs-render-task-definition@v1
-        with:
           task-definition: ./aws/qa/sc-cron.json
-          container-name: main
           image: stablecog/sc-server:${{ needs.setup_env.outputs.branch_name}}-${{ env.GITHUB_RUN_ID }}
-
-      - name: AWS Deploy PROD
-        uses: aws-actions/amazon-ecs-deploy-task-definition@v1
-        with:
-          task-definition: ${{ steps.task-def-cron.outputs.task-definition }}
-          service: prod-sc-cron
-          cluster: prod-stablecog-Cluster-wF6ivHjjqkzo
-          wait-for-service-stability: false
+          env: prod

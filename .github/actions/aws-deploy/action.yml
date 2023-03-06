@@ -1,0 +1,63 @@
+name: Send Discord Webhook
+description: Sends a webhook to Discord
+inputs:
+  aws-access-key-id:
+    description: AWS Access Key ID
+    required: true
+  aws-secret-access-key:
+    description: AWS Secret Access Key
+    required: true
+  aws-region:
+    description: AWS Region
+    required: true
+    default: us-east-2
+  task-definition:
+    description: Path to task definition
+    required: true
+  container-name:
+    description: Name of the container
+    required: true
+    default: main
+  image:
+    description: Image to deploy
+    required: true
+  env:
+    description: Environment to deploy to (prod/qa)
+    required: true
+runs:
+  using: composite
+  steps:
+    - name: Configure AWS credentials
+      if: success()
+      uses: aws-actions/configure-aws-credentials@v1-node16
+      with:
+        aws-access-key-id: ${{ inputs.aws-access-key-id }}
+        aws-secret-access-key: ${{ inputs.aws-secret-access-key }}
+        aws-region: ${{ inputs.aws-region }}
+
+    - name: Set Task Definition
+      if: success()
+      id: task-def
+      uses: aws-actions/amazon-ecs-render-task-definition@v1
+      with:
+        task-definition: ${{ inputs.task-definition }}
+        container-name: ${{ inputs.container-name }}
+        image: ${{ inputs.image }}
+
+    - name: Deploy QA
+      if: ${{ inputs.env == 'qa' }}
+      uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+      with:
+        task-definition: ${{ steps.task-def.outputs.task-definition }}
+        service: qa-sc-server-Service-XSweBbsvI0JC
+        cluster: qa-stablecog-Cluster-g4jXWMxvTvnZ
+        wait-for-service-stability: false
+
+    - name: Deploy PROD
+      if: ${{ inputs.env == 'prod' }}
+      uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+      with:
+        task-definition: ${{ steps.task-def.outputs.task-definition }}
+        service: prod-sc-server-Service-uDZHByAncsMB
+        cluster: prod-stablecog-Cluster-wF6ivHjjqkzo
+        wait-for-service-stability: false
