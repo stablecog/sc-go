@@ -14,9 +14,6 @@ inputs:
   embed-description:
     description: Description of the embed
     required: true
-  embed-footer-text:
-    description: Footer text of the embed
-    required: true
   prod-webhook-url:
     description: Webhook URL for prod
     required: true
@@ -26,6 +23,10 @@ inputs:
 runs:
   using: composite
   steps:
+    - name: Update current date as env variable
+      shell: bash
+      run: echo "NOW=$(date +'%a, %d %b %Y %T %Z' )" >> $GITHUB_ENV
+
     - name: PROD Webhook
       if: ${{ inputs.context == 'all' || inputs.context == 'prod' }}
       uses: tsickert/discord-webhook@v5.3.0
@@ -34,7 +35,7 @@ runs:
         embed-color: ${{ inputs.embed-color }}
         embed-title: ${{ inputs.embed-title }}
         embed-description: ${{ inputs.embed-description }}
-        embed-footer-text: ${{ inputs.embed-footer-text }}
+        embed-footer-text: "${{ env.NOW }}"
 
     - name: QA Webhook
       if: ${{ inputs.context == 'all' || inputs.context == 'qa' }}
@@ -44,4 +45,4 @@ runs:
         embed-color: ${{ inputs.embed-color }}
         embed-title: ${{ inputs.embed-title }}
         embed-description: ${{ inputs.embed-description }}
-        embed-footer-text: ${{ inputs.embed-footer-text }}
+        embed-footer-text: "${{ env.NOW }}"
