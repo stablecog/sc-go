@@ -160,16 +160,6 @@ jobs:
     steps:
       - uses: actions/checkout@master
 
-      - name: Send Discord Webhook
-        uses: ./.github/actions/discord-webhook
-        with:
-          context: qa
-          prod-webhook-url: ${{ secrets.DISCORD_WEBHOOK_PROD }}
-          qa-webhook-url: ${{ secrets.DISCORD_WEBHOOK }}
-          embed-color: 15105570
-          embed-title: "${{ needs.setup_env.outputs.commit_msg }}  •  ${{ needs.setup_env.outputs.short_sha }}"
-          embed-description: "```Deploy Started```"
-
       - name: Deploy
         uses: ./.github/actions/aws-deploy
         with:
@@ -178,18 +168,10 @@ jobs:
           task-definition: ./aws/qa/sc-server.json
           service: qa-sc-server-Service-XSweBbsvI0JC
           image: stablecog/sc-server:${{ needs.setup_env.outputs.branch_name}}-${{ env.GITHUB_RUN_ID }}
-          env: qa
-
-      - name: Send Discord Webhook
-        if: failure()
-        uses: ./.github/actions/discord-webhook
-        with:
-          context: qa
+          embed-title: "${{ needs.setup_env.outputs.commit_msg }}  •  ${{ needs.setup_env.outputs.short_sha }}"
           prod-webhook-url: ${{ secrets.DISCORD_WEBHOOK_PROD }}
           qa-webhook-url: ${{ secrets.DISCORD_WEBHOOK }}
-          embed-color: 15548997
-          embed-title: "${{ needs.setup_env.outputs.commit_msg }}  •  ${{ needs.setup_env.outputs.short_sha }}"
-          embed-description: "```🚨 Service Unstable 🚨```"
+          env: qa
 
   deploy_cron:
     name: 🧪 Deploy Cron (QA)
@@ -224,16 +206,6 @@ jobs:
     steps:
       - uses: actions/checkout@master
 
-      - name: Send Discord Webhook
-        uses: ./.github/actions/discord-webhook
-        with:
-          context: prod
-          prod-webhook-url: ${{ secrets.DISCORD_WEBHOOK_PROD }}
-          qa-webhook-url: ${{ secrets.DISCORD_WEBHOOK }}
-          embed-color: 15105570
-          embed-title: "${{ needs.setup_env.outputs.commit_msg }}  •  ${{ needs.setup_env.outputs.short_sha }}"
-          embed-description: "```Deploy Started```"
-
       - name: Deploy
         uses: ./.github/actions/aws-deploy
         with:
@@ -242,18 +214,10 @@ jobs:
           service: prod-sc-server-Service-uDZHByAncsMB
           task-definition: ./aws/prod/sc-server.json
           image: stablecog/sc-server:${{ needs.setup_env.outputs.branch_name}}-${{ env.GITHUB_RUN_ID }}
-          env: prod
-
-      - name: Send Discord Webhook
-        if: failure()
-        uses: ./.github/actions/discord-webhook
-        with:
-          context: prod
+          embed-title: "${{ needs.setup_env.outputs.commit_msg }}  •  ${{ needs.setup_env.outputs.short_sha }}"
           prod-webhook-url: ${{ secrets.DISCORD_WEBHOOK_PROD }}
           qa-webhook-url: ${{ secrets.DISCORD_WEBHOOK }}
-          embed-color: 15548997
-          embed-title: "${{ needs.setup_env.outputs.commit_msg }}  •  ${{ needs.setup_env.outputs.short_sha }}"
-          embed-description: "```🚨 Service Unstable 🚨```"
+          env: prod
 
   deploy_cron_prod:
     name: 🚀 Deploy Cron (PROD)
