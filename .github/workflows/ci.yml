@@ -269,6 +269,6 @@ jobs:
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          task-definition: ./aws/qa/sc-cron.json
+          task-definition: ./aws/prod/sc-cron.json
           image: stablecog/sc-server:${{ needs.setup_env.outputs.branch_name}}-${{ env.GITHUB_RUN_ID }}
           env: prod
