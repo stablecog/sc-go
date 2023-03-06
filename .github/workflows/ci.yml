@@ -76,7 +76,7 @@ jobs:
           import shlex
           with open('${{ github.event_path }}') as fh:
               event = json.load(fh)
-          escaped = shlex.quote(event['head_commit']['message'])
+          escaped = shlex.quote(event['head_commit']['message']).replace("'", "")
           with open(os.environ['GITHUB_ENV'], 'a') as fh:
               print(f'COMMIT_MSG={escaped}', file=fh)
         shell: python3 {0}
@@ -181,7 +181,7 @@ jobs:
           import shlex
           with open('${{ github.event_path }}') as fh:
               event = json.load(fh)
-          escaped = shlex.quote(event['head_commit']['message'])
+          escaped = shlex.quote(event['head_commit']['message']).replace("'", "")
           with open(os.environ['GITHUB_ENV'], 'a') as fh:
               print(f'COMMIT_MSG={escaped}', file=fh)
         shell: python3 {0}
@@ -311,7 +311,7 @@ jobs:
           import shlex
           with open('${{ github.event_path }}') as fh:
               event = json.load(fh)
-          escaped = shlex.quote(event['head_commit']['message'])
+          escaped = shlex.quote(event['head_commit']['message']).replace("'", "")
           with open(os.environ['GITHUB_ENV'], 'a') as fh:
               print(f'COMMIT_MSG={escaped}', file=fh)
         shell: python3 {0}
