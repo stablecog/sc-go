@@ -41,7 +41,7 @@ jobs:
     outputs:
       short_sha: ${{ env.SHORT_SHA }}
       commit_msg: ${{ env.COMMIT_MSG }}
-      branch_name: ${{ env.COMMIT_MSG }}
+      branch_name: ${{ env.BRANCH_NAME }}
 
   test:
     name: ☔️ Tests
