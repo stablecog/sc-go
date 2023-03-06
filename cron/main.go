@@ -29,6 +29,7 @@ func usage() {
 
 func main() {
 	log.Infof("SC Cron %s", Version)
+	panic("oops")
 	showHelp := flag.Bool("help", false, "Show help")
 	healthCheck := flag.Bool("healthCheck", false, "Run the health check job")
 	syncMeili := flag.Bool("syncMeili", false, "Sync the meili index")
