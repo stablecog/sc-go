@@ -39,9 +39,9 @@ jobs:
         run: echo "BRANCH_NAME=$(echo ${GITHUB_HEAD_REF} | tr / -)" >> $GITHUB_ENV
 
     outputs:
-      short_sha: ${{ needs.setup_env.outputs.short_sha }}
-      commit_msg: ${{ needs.setup_env.outputs.commit_msg }}
-      branch_name: ${{ needs.setup_env.outputs.branch_name}}
+      short_sha: ${{ env.SHORT_SHA }}
+      commit_msg: ${{ env.COMMIT_MSG }}
+      branch_name: ${{ env.COMMIT_MSG }}
 
   test:
     name: ☔️ Tests
