@@ -51,7 +51,7 @@ jobs:
         run: |
           go test -v -parallel 1 $(go list -f '{{.Dir}}/...' -m | xargs)
 
-  build_qa:
+  build:
     name: 🔨 Build Binaries and Docker Image
     runs-on: self-hosted
 
@@ -73,6 +73,15 @@ jobs:
         uses: tsickert/discord-webhook@v5.3.0
         with:
           webhook-url: ${{ secrets.DISCORD_WEBHOOK }}
+          embed-color: 16776960
+          embed-title: "${{ github.event.head_commit.message }}  •  ${{ env.SHORT_SHA}}"
+          embed-description: "```Build Started```"
+          embed-footer-text: "${{ env.NOW }}"
+
+      - name: Discord Webhook Action (PROD)
+        uses: tsickert/discord-webhook@v5.3.0
+        with:
+          webhook-url: ${{ secrets.DISCORD_WEBHOOK_PROD }}
           embed-color: 16776960
           embed-title: "${{ github.event.head_commit.message }}  •  ${{ env.SHORT_SHA}}"
           embed-description: "```Build Started```"
@@ -127,10 +136,20 @@ jobs:
           embed-description: "```🚨 Build FAILED 🚨```"
           embed-footer-text: "${{ env.NOW }}"
 
+      - name: Discord Webhook Action (PROD)
+        if: failure()
+        uses: tsickert/discord-webhook@v5.3.0
+        with:
+          webhook-url: ${{ secrets.DISCORD_WEBHOOK_PROD }}
+          embed-color: 15548997
+          embed-title: "${{ github.event.head_commit.message }}  •  ${{ env.SHORT_SHA}}"
+          embed-description: "```🚨 Build FAILED 🚨```"
+          embed-footer-text: "${{ env.NOW }}"
+
   deploy_server:
-    name: 🚀 Deploy Server
+    name: 🚀 Deploy Server (QA)
     runs-on: self-hosted
-    needs: build_qa
+    needs: build
     env:
       GITHUB_RUN_ID: ${{ github.run_id }}
     steps:
@@ -200,9 +219,9 @@ jobs:
           embed-footer-text: "${{ env.NOW }}"
 
   deploy_cron:
-    name: 🚀 Deploy Cron
+    name: 🚀 Deploy Cron (QA)
     runs-on: self-hosted
-    needs: build_qa
+    needs: build
     env:
       GITHUB_RUN_ID: ${{ github.run_id }}
     steps:
@@ -242,3 +261,77 @@ jobs:
           service: qa-sc-cron
           cluster: qa-stablecog-Cluster-g4jXWMxvTvnZ
           wait-for-service-stability: false
+
+  deploy_server_prod:
+    name: 🚀 Deploy Server (PROD)
+    runs-on: self-hosted
+    needs:
+      - test
+      - build
+    env:
+      GITHUB_RUN_ID: ${{ github.run_id }}
+    steps:
+      - uses: actions/checkout@master
+
+      - name: Add SHORT_SHA env property
+        run: echo "SHORT_SHA=`echo ${GITHUB_SHA::7}`" >> $GITHUB_ENV
+
+      - name: Set current date as env variable
+        run: echo "NOW=$(date +'%a, %d %b %Y %T %Z' )" >> $GITHUB_ENV
+
+      - name: Discord Webhook Action
+        uses: tsickert/discord-webhook@v5.3.0
+        with:
+          webhook-url: ${{ secrets.DISCORD_WEBHOOK_PROD }}
+          embed-color: 15105570
+          embed-title: "${{ github.event.head_commit.message }}  •  ${{ env.SHORT_SHA}}"
+          embed-description: "```Deploy Started```"
+          embed-footer-text: "${{ env.NOW }}"
+
+      - name: Configure AWS credentials
+        if: success()
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-2
+
+      - name: Get branch name (merge)
+        if: github.event_name != 'pull_request'
+        shell: bash
+        run: echo "BRANCH_NAME=$(echo ${GITHUB_REF#refs/heads/} | tr / -)" >> $GITHUB_ENV
+
+      - name: Get branch name (pull request)
+        if: github.event_name == 'pull_request'
+        shell: bash
+        run: echo "BRANCH_NAME=$(echo ${GITHUB_HEAD_REF} | tr / -)" >> $GITHUB_ENV
+
+      - name: AWS Set Task Definition
+        if: success()
+        id: task-def
+        uses: aws-actions/amazon-ecs-render-task-definition@v1
+        with:
+          task-definition: ./aws/prod/sc-server.json
+          container-name: main
+          image: stablecog/sc-server:${{ env.BRANCH_NAME }}-${{ env.GITHUB_RUN_ID }}
+
+      - name: AWS Deploy PROD
+        uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+        with:
+          task-definition: ${{ steps.task-def.outputs.task-definition }}
+          service: prod-sc-server-Service-uDZHByAncsMB
+          cluster: prod-stablecog-Cluster-wF6ivHjjqkzo
+          wait-for-service-stability: false
+
+      - name: Update current date as env variable
+        run: echo "NOW=$(date +'%a, %d %b %Y %T %Z' )" >> $GITHUB_ENV
+
+      - name: Discord Webhook Action
+        if: failure()
+        uses: tsickert/discord-webhook@v5.3.0
+        with:
+          webhook-url: ${{ secrets.DISCORD_WEBHOOK_PROD }}
+          embed-color: 15548997
+          embed-title: "${{ github.event.head_commit.message }}  •  ${{ env.SHORT_SHA}}"
+          embed-description: "```🚨 Service Unstable 🚨```"
+          embed-footer-text: "${{ env.NOW }}"
