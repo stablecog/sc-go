@@ -102,7 +102,7 @@ jobs:
         run: echo "NOW=$(date +'%a, %d %b %Y %T %Z' )" >> $GITHUB_ENV
 
       - name: Send Discord Webhook
-        uses: ./.github/actions/discord
+        uses: ./.github/actions/discord-webhook
         with:
           context: all
           embed-color: 16776960
@@ -142,7 +142,7 @@ jobs:
 
       - name: Send Discord Webhook
         if: failure()
-        uses: ./.github/actions/discord
+        uses: ./.github/actions/discord-webhook
         with:
           context: all
           embed-color: 15548997
@@ -165,7 +165,7 @@ jobs:
         run: echo "NOW=$(date +'%a, %d %b %Y %T %Z' )" >> $GITHUB_ENV
 
       - name: Send Discord Webhook
-        uses: ./.github/actions/discord
+        uses: ./.github/actions/discord-webhook
         with:
           context: qa
           embed-color: 15105570
@@ -203,7 +203,7 @@ jobs:
 
       - name: Send Discord Webhook
         if: failure()
-        uses: ./.github/actions/discord
+        uses: ./.github/actions/discord-webhook
         with:
           context: qa
           embed-color: 15548997
@@ -263,7 +263,7 @@ jobs:
         run: echo "NOW=$(date +'%a, %d %b %Y %T %Z' )" >> $GITHUB_ENV
 
       - name: Send Discord Webhook
-        uses: ./.github/actions/discord
+        uses: ./.github/actions/discord-webhook
         with:
           context: prod
           embed-color: 15105570
@@ -301,7 +301,7 @@ jobs:
 
       - name: Send Discord Webhook
         if: failure()
-        uses: ./.github/actions/discord
+        uses: ./.github/actions/discord-webhook
         with:
           context: prod
           embed-color: 15548997
