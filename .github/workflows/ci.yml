@@ -9,6 +9,40 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  setup_env:
+    name: ⚙️ Setup environment
+    runs-on: self-hosted
+    steps:
+      - name: Add SHORT_SHA env property
+        run: echo "SHORT_SHA=`echo ${GITHUB_SHA::7}`" >> $GITHUB_ENV
+
+      - name: Escape commit message
+        run: |
+          import json
+          import os
+          import shlex
+          with open('${{ github.event_path }}') as fh:
+              event = json.load(fh)
+          escaped = shlex.quote(event['head_commit']['message']).replace("'", "")
+          with open(os.environ['GITHUB_ENV'], 'a') as fh:
+              print(f'COMMIT_MSG={escaped}', file=fh)
+        shell: python3 {0}
+
+      - name: Get branch name (merge)
+        if: github.event_name != 'pull_request'
+        shell: bash
+        run: echo "BRANCH_NAME=$(echo ${GITHUB_REF#refs/heads/} | tr / -)" >> $GITHUB_ENV
+
+      - name: Get branch name (pull request)
+        if: github.event_name == 'pull_request'
+        shell: bash
+        run: echo "BRANCH_NAME=$(echo ${GITHUB_HEAD_REF} | tr / -)" >> $GITHUB_ENV
+
+    outputs:
+      short_sha: ${{ needs.setup_env.outputs.short_sha }}
+      commit_msg: ${{ needs.setup_env.outputs.commit_msg }}
+      branch_name: ${{ needs.setup_env.outputs.branch_name}}
+
   test:
     name: ☔️ Tests
     runs-on: self-hosted
@@ -54,14 +88,12 @@ jobs:
   build:
     name: 🔨 Build Binaries and Docker Image
     runs-on: self-hosted
+    needs: setup_env
 
     env:
       GITHUB_RUN_ID: ${{ github.run_id }}
     steps:
       - uses: actions/checkout@master
-
-      - name: Add SHORT_SHA env property
-        run: echo "SHORT_SHA=`echo ${GITHUB_SHA::7}`" >> $GITHUB_ENV
 
       - name: Set build start in env variable
         run: echo "BUILD_START=$(date +%s)" >> $GITHUB_ENV
@@ -69,24 +101,12 @@ jobs:
       - name: Set current date as env variable
         run: echo "NOW=$(date +'%a, %d %b %Y %T %Z' )" >> $GITHUB_ENV
 
-      - name: Escape commit message
-        run: |
-          import json
-          import os
-          import shlex
-          with open('${{ github.event_path }}') as fh:
-              event = json.load(fh)
-          escaped = shlex.quote(event['head_commit']['message']).replace("'", "")
-          with open(os.environ['GITHUB_ENV'], 'a') as fh:
-              print(f'COMMIT_MSG={escaped}', file=fh)
-        shell: python3 {0}
-
       - name: Discord Webhook Action
         uses: tsickert/discord-webhook@v5.3.0
         with:
           webhook-url: ${{ secrets.DISCORD_WEBHOOK }}
           embed-color: 16776960
-          embed-title: "${{ env.COMMIT_MSG }}  •  ${{ env.SHORT_SHA}}"
+          embed-title: "${{ needs.setup_env.outputs.commit_msg }}  •  ${{ needs.setup_env.outputs.short_sha }}"
           embed-description: "```Build Started```"
           embed-footer-text: "${{ env.NOW }}"
 
@@ -95,7 +115,7 @@ jobs:
         with:
           webhook-url: ${{ secrets.DISCORD_WEBHOOK_PROD }}
           embed-color: 16776960
-          embed-title: "${{ env.COMMIT_MSG }}  •  ${{ env.SHORT_SHA}}"
+          embed-title: "${{ needs.setup_env.outputs.commit_msg }}  •  ${{ needs.setup_env.outputs.short_sha }}"
           embed-description: "```Build Started```"
           embed-footer-text: "${{ env.NOW }}"
 
@@ -105,16 +125,6 @@ jobs:
           go-version: "1.20"
           cache-dependency-path: server/go.sum
 
-      - name: Get branch name (merge)
-        if: github.event_name != 'pull_request'
-        shell: bash
-        run: echo "BRANCH_NAME=$(echo ${GITHUB_REF#refs/heads/} | tr / -)" >> $GITHUB_ENV
-
-      - name: Get branch name (pull request)
-        if: github.event_name == 'pull_request'
-        shell: bash
-        run: echo "BRANCH_NAME=$(echo ${GITHUB_HEAD_REF} | tr / -)" >> $GITHUB_ENV
-
       - name: Login to registry
         uses: docker/login-action@v2
         with:
@@ -123,11 +133,11 @@ jobs:
 
       - name: Build GO Server Binary
         run: |
-          cd server && go build -ldflags "-s -w -X main.Version=${GITHUB_SHA::7} -X \"main.CommitMsg=${{ env.COMMIT_MSG }}\" -X main.BuildStart=${{ env.BUILD_START }}" -o server && cd ..
+          cd server && go build -ldflags "-s -w -X main.Version=${{ needs.setup_env.outputs.short_sha }} -X \"main.CommitMsg=${{ needs.setup_env.outputs.commit_msg }}\" -X main.BuildStart=${{ env.BUILD_START }}" -o server && cd ..
 
       - name: Build GO Cron Binary
         run: |
-          cd cron && go build -ldflags "-s -w -X main.Version=${GITHUB_SHA::7} -X \"main.CommitMsg=${{ env.COMMIT_MSG }}\"" -o cron && cd ..
+          cd cron && go build -ldflags "-s -w -X main.Version=${{ needs.setup_env.outputs.short_sha }} -X \"main.CommitMsg=${{ needs.setup_env.outputs.commit_msg }}\"" -o cron && cd ..
 
       - name: Build and push image
         if: success()
@@ -137,7 +147,7 @@ jobs:
           platforms: linux/amd64
           push: true
           file: ./Dockerfile.ci
-          tags: stablecog/sc-server:${{ env.BRANCH_NAME }}-${{ env.GITHUB_RUN_ID }}
+          tags: stablecog/sc-server:${{ needs.setup_env.outputs.branch_name }}-${{ env.GITHUB_RUN_ID }}
 
       - name: Discord Webhook Action
         if: failure()
@@ -145,7 +155,7 @@ jobs:
         with:
           webhook-url: ${{ secrets.DISCORD_WEBHOOK }}
           embed-color: 15548997
-          embed-title: "${{ env.COMMIT_MSG }}  •  ${{ env.SHORT_SHA}}"
+          embed-title: "${{ needs.setup_env.outputs.commit_msg }}  •  ${{ needs.setup_env.outputs.short_sha }}"
           embed-description: "```🚨 Build FAILED 🚨```"
           embed-footer-text: "${{ env.NOW }}"
 
@@ -155,7 +165,7 @@ jobs:
         with:
           webhook-url: ${{ secrets.DISCORD_WEBHOOK_PROD }}
           embed-color: 15548997
-          embed-title: "${{ env.COMMIT_MSG }}  •  ${{ env.SHORT_SHA}}"
+          embed-title: "${{ needs.setup_env.outputs.commit_msg }}  •  ${{ needs.setup_env.outputs.short_sha }}"
           embed-description: "```🚨 Build FAILED 🚨```"
           embed-footer-text: "${{ env.NOW }}"
 
@@ -168,30 +178,15 @@ jobs:
     steps:
       - uses: actions/checkout@master
 
-      - name: Add SHORT_SHA env property
-        run: echo "SHORT_SHA=`echo ${GITHUB_SHA::7}`" >> $GITHUB_ENV
-
       - name: Set current date as env variable
         run: echo "NOW=$(date +'%a, %d %b %Y %T %Z' )" >> $GITHUB_ENV
-
-      - name: Escape commit message
-        run: |
-          import json
-          import os
-          import shlex
-          with open('${{ github.event_path }}') as fh:
-              event = json.load(fh)
-          escaped = shlex.quote(event['head_commit']['message']).replace("'", "")
-          with open(os.environ['GITHUB_ENV'], 'a') as fh:
-              print(f'COMMIT_MSG={escaped}', file=fh)
-        shell: python3 {0}
 
       - name: Discord Webhook Action
         uses: tsickert/discord-webhook@v5.3.0
         with:
           webhook-url: ${{ secrets.DISCORD_WEBHOOK }}
           embed-color: 15105570
-          embed-title: "${{ env.COMMIT_MSG }}  •  ${{ env.SHORT_SHA}}"
+          embed-title: "${{ needs.setup_env.outputs.commit_msg }}  •  ${{ needs.setup_env.outputs.short_sha }}"
           embed-description: "```Deploy Started```"
           embed-footer-text: "${{ env.NOW }}"
 
@@ -203,16 +198,6 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: us-east-2
 
-      - name: Get branch name (merge)
-        if: github.event_name != 'pull_request'
-        shell: bash
-        run: echo "BRANCH_NAME=$(echo ${GITHUB_REF#refs/heads/} | tr / -)" >> $GITHUB_ENV
-
-      - name: Get branch name (pull request)
-        if: github.event_name == 'pull_request'
-        shell: bash
-        run: echo "BRANCH_NAME=$(echo ${GITHUB_HEAD_REF} | tr / -)" >> $GITHUB_ENV
-
       - name: AWS Set Task Definition
         if: success()
         id: task-def
@@ -220,7 +205,7 @@ jobs:
         with:
           task-definition: ./aws/qa/sc-server.json
           container-name: main
-          image: stablecog/sc-server:${{ env.BRANCH_NAME }}-${{ env.GITHUB_RUN_ID }}
+          image: stablecog/sc-server:${{ needs.setup_env.outputs.branch_name}}-${{ env.GITHUB_RUN_ID }}
 
       - name: AWS Deploy QA
         uses: aws-actions/amazon-ecs-deploy-task-definition@v1
@@ -239,7 +224,7 @@ jobs:
         with:
           webhook-url: ${{ secrets.DISCORD_WEBHOOK }}
           embed-color: 15548997
-          embed-title: "${{ env.COMMIT_MSG }}  •  ${{ env.SHORT_SHA}}"
+          embed-title: "${{ needs.setup_env.outputs.commit_msg }}  •  ${{ needs.setup_env.outputs.short_sha }}"
           embed-description: "```🚨 Service Unstable 🚨```"
           embed-footer-text: "${{ env.NOW }}"
 
@@ -260,16 +245,6 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: us-east-2
 
-      - name: Get branch name (merge)
-        if: github.event_name != 'pull_request'
-        shell: bash
-        run: echo "BRANCH_NAME=$(echo ${GITHUB_REF#refs/heads/} | tr / -)" >> $GITHUB_ENV
-
-      - name: Get branch name (pull request)
-        if: github.event_name == 'pull_request'
-        shell: bash
-        run: echo "BRANCH_NAME=$(echo ${GITHUB_HEAD_REF} | tr / -)" >> $GITHUB_ENV
-
       - name: AWS Set Task Definition
         if: success()
         id: task-def-cron
@@ -277,7 +252,7 @@ jobs:
         with:
           task-definition: ./aws/qa/sc-cron.json
           container-name: main
-          image: stablecog/sc-server:${{ env.BRANCH_NAME }}-${{ env.GITHUB_RUN_ID }}
+          image: stablecog/sc-server:${{ needs.setup_env.outputs.branch_name}}-${{ env.GITHUB_RUN_ID }}
 
       - name: AWS Deploy QA
         uses: aws-actions/amazon-ecs-deploy-task-definition@v1
@@ -298,30 +273,15 @@ jobs:
     steps:
       - uses: actions/checkout@master
 
-      - name: Add SHORT_SHA env property
-        run: echo "SHORT_SHA=`echo ${GITHUB_SHA::7}`" >> $GITHUB_ENV
-
       - name: Set current date as env variable
         run: echo "NOW=$(date +'%a, %d %b %Y %T %Z' )" >> $GITHUB_ENV
-
-      - name: Escape commit message
-        run: |
-          import json
-          import os
-          import shlex
-          with open('${{ github.event_path }}') as fh:
-              event = json.load(fh)
-          escaped = shlex.quote(event['head_commit']['message']).replace("'", "")
-          with open(os.environ['GITHUB_ENV'], 'a') as fh:
-              print(f'COMMIT_MSG={escaped}', file=fh)
-        shell: python3 {0}
 
       - name: Discord Webhook Action
         uses: tsickert/discord-webhook@v5.3.0
         with:
           webhook-url: ${{ secrets.DISCORD_WEBHOOK_PROD }}
           embed-color: 15105570
-          embed-title: "${{ env.COMMIT_MSG }}  •  ${{ env.SHORT_SHA}}"
+          embed-title: "${{ needs.setup_env.outputs.commit_msg }}  •  ${{ needs.setup_env.outputs.short_sha }}"
           embed-description: "```Deploy Started```"
           embed-footer-text: "${{ env.NOW }}"
 
@@ -333,16 +293,6 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: us-east-2
 
-      - name: Get branch name (merge)
-        if: github.event_name != 'pull_request'
-        shell: bash
-        run: echo "BRANCH_NAME=$(echo ${GITHUB_REF#refs/heads/} | tr / -)" >> $GITHUB_ENV
-
-      - name: Get branch name (pull request)
-        if: github.event_name == 'pull_request'
-        shell: bash
-        run: echo "BRANCH_NAME=$(echo ${GITHUB_HEAD_REF} | tr / -)" >> $GITHUB_ENV
-
       - name: AWS Set Task Definition
         if: success()
         id: task-def
@@ -350,7 +300,7 @@ jobs:
         with:
           task-definition: ./aws/prod/sc-server.json
           container-name: main
-          image: stablecog/sc-server:${{ env.BRANCH_NAME }}-${{ env.GITHUB_RUN_ID }}
+          image: stablecog/sc-server:${{ needs.setup_env.outputs.branch_name}}-${{ env.GITHUB_RUN_ID }}
 
       - name: AWS Deploy PROD
         uses: aws-actions/amazon-ecs-deploy-task-definition@v1
@@ -369,7 +319,7 @@ jobs:
         with:
           webhook-url: ${{ secrets.DISCORD_WEBHOOK_PROD }}
           embed-color: 15548997
-          embed-title: "${{ env.COMMIT_MSG }}  •  ${{ env.SHORT_SHA}}"
+          embed-title: "${{ needs.setup_env.outputs.commit_msg }}  •  ${{ needs.setup_env.outputs.short_sha }}"
           embed-description: "```🚨 Service Unstable 🚨```"
           embed-footer-text: "${{ env.NOW }}"
 
@@ -392,16 +342,6 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: us-east-2
 
-      - name: Get branch name (merge)
-        if: github.event_name != 'pull_request'
-        shell: bash
-        run: echo "BRANCH_NAME=$(echo ${GITHUB_REF#refs/heads/} | tr / -)" >> $GITHUB_ENV
-
-      - name: Get branch name (pull request)
-        if: github.event_name == 'pull_request'
-        shell: bash
-        run: echo "BRANCH_NAME=$(echo ${GITHUB_HEAD_REF} | tr / -)" >> $GITHUB_ENV
-
       - name: AWS Set Task Definition
         if: success()
         id: task-def-cron
@@ -409,7 +349,7 @@ jobs:
         with:
           task-definition: ./aws/qa/sc-cron.json
           container-name: main
-          image: stablecog/sc-server:${{ env.BRANCH_NAME }}-${{ env.GITHUB_RUN_ID }}
+          image: stablecog/sc-server:${{ needs.setup_env.outputs.branch_name}}-${{ env.GITHUB_RUN_ID }}
 
       - name: AWS Deploy PROD
         uses: aws-actions/amazon-ecs-deploy-task-definition@v1
