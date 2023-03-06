@@ -102,19 +102,23 @@ jobs:
         if: github.event_name == 'pull_request'
         shell: bash
         run: echo "BRANCH_NAME=$(echo ${GITHUB_HEAD_REF} | tr / -)" >> $GITHUB_ENV
+
       - name: Login to registry
         uses: docker/login-action@v2
         with:
           username: ${{ secrets.DOCKER_USER }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
+      - name: Commit message in environment-$
+        run: echo 'COMMIT_MSG=${{ github.event.head_commit.message }}' | sed -e 's/["']//g' >> $GITHUB_ENV
+
       - name: Build GO Server Binary
         run: |
-          cd server && go build -ldflags "-s -w -X main.Version=${GITHUB_SHA::7} -X \"main.CommitMsg=${{ github.event.head_commit.message }}\" -X main.BuildStart=${{ env.BUILD_START }}" -o server && cd ..
+          cd server && go build -ldflags "-s -w -X main.Version=${GITHUB_SHA::7} -X \"main.CommitMsg=${{ env.COMMIT_MSG }}\" -X main.BuildStart=${{ env.BUILD_START }}" -o server && cd ..
 
       - name: Build GO Cron Binary
         run: |
-          cd cron && go build -ldflags "-s -w -X main.Version=${GITHUB_SHA::7} -X \"main.CommitMsg=${{ github.event.head_commit.message }}\"" -o cron && cd ..
+          cd cron && go build -ldflags "-s -w -X main.Version=${GITHUB_SHA::7} -X \"main.CommitMsg=${{ env.COMMIT_MSG }}\"" -o cron && cd ..
 
       - name: Build and push image
         if: success()
