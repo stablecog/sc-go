@@ -86,7 +86,7 @@ runs:
         wait-for-service-stability: false
 
     - name: Send Discord Webhook
-      if: success() && ${{ inputs.embed-title != '' }}
+      if: ${{ failure() && inputs.embed-title != '' }}
       uses: ./.github/actions/discord-webhook
       with:
         context: ${{ inputs.env }}
