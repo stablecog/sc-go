@@ -204,13 +204,15 @@ jobs:
       - build
     steps:
       - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
 
       - name: Create/Update Pull Request
-        uses: peter-evans/create-pull-request@v4
+        uses: devops-infra/action-pull-request@v0.5.5
         with:
-          committer: Release <noreply@stablecog.com>
-          branch: create-pull-request/release
-          base: production
-          title: 👤 Pending Release
-          labels: ci,production
-          assignees: bbedward,yekta
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          assignee: ${{ github.actor }}
+          label: automatic,release
+          target_branch: production
+          template: .github/RELEASE_PR.md
+          get_diff: true
