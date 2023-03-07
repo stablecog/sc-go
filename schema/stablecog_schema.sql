@@ -344,6 +344,22 @@ CREATE trigger handle_updated_at before
 UPDATE
     ON public.users FOR each ROW EXECUTE PROCEDURE moddatetime (updated_at);
 
+--
+-- Name: disposable_emails; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public.disposable_emails (
+    id uuid DEFAULT extensions.uuid_generate_v4() NOT NULL,
+    domain text NOT NULL,
+    created_at timestamp with time zone DEFAULT timezone('utc'::text, now()) NOT NULL,
+    updated_at timestamp with time zone DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+CREATE trigger handle_updated_at before
+UPDATE
+    ON public.disposable_emails FOR each ROW EXECUTE PROCEDURE moddatetime (updated_at);
+
+
 -- To update last_sign_in_at
 
 create function handle_updated_user() returns trigger as $$ begin
@@ -466,6 +482,13 @@ ALTER TABLE ONLY public.upscales
 
 ALTER TABLE ONLY public.users
     ADD CONSTRAINT user_pkey PRIMARY KEY (id);
+
+--
+-- Name: users user_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.disposable_emails
+    ADD CONSTRAINT disposable_emails_pkey PRIMARY KEY (id);
 
 
 --

@@ -34,6 +34,7 @@ type (
 		Credit           []ent.Hook
 		CreditType       []ent.Hook
 		DeviceInfo       []ent.Hook
+		DisposableEmail  []ent.Hook
 		Generation       []ent.Hook
 		GenerationModel  []ent.Hook
 		GenerationOutput []ent.Hook
@@ -50,6 +51,7 @@ type (
 		Credit           []ent.Interceptor
 		CreditType       []ent.Interceptor
 		DeviceInfo       []ent.Interceptor
+		DisposableEmail  []ent.Interceptor
 		Generation       []ent.Interceptor
 		GenerationModel  []ent.Interceptor
 		GenerationOutput []ent.Interceptor

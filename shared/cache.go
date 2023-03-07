@@ -1,6 +1,7 @@
 package shared
 
 import (
+	"strings"
 	"sync"
 
 	"github.com/google/uuid"
@@ -12,10 +13,11 @@ import (
 
 type Cache struct {
 	// Models and options available to free users
-	GenerateModels []*ent.GenerationModel
-	UpscaleModels  []*ent.UpscaleModel
-	Schedulers     []*ent.Scheduler
-	AdminIDs       []uuid.UUID
+	GenerateModels         []*ent.GenerationModel
+	UpscaleModels          []*ent.UpscaleModel
+	Schedulers             []*ent.Scheduler
+	AdminIDs               []uuid.UUID
+	DisposableEmailDomains []string
 }
 
 var lock = &sync.Mutex{}
@@ -122,4 +124,24 @@ func (f *Cache) SetAdminUUIDs(ids []uuid.UUID) {
 	lock.Lock()
 	defer lock.Unlock()
 	f.AdminIDs = ids
+}
+
+func (f *Cache) UpdateDisposableEmailDomains(domains []string) {
+	lock.Lock()
+	defer lock.Unlock()
+	f.DisposableEmailDomains = domains
+}
+
+func (f *Cache) IsDisposableEmail(email string) bool {
+	segs := strings.Split(email, "@")
+	if len(segs) != 2 {
+		return false
+	}
+	domain := strings.ToLower(segs[1])
+	for _, disposableDomain := range f.DisposableEmailDomains {
+		if domain == disposableDomain {
+			return true
+		}
+	}
+	return false
 }

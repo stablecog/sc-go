@@ -3,6 +3,7 @@ package repository
 import (
 	"log"
 
+	"github.com/stablecog/sc-go/database/ent/disposableemail"
 	"github.com/stablecog/sc-go/shared"
 )
 
@@ -35,5 +36,16 @@ func (r *Repository) UpdateCache() error {
 		return err
 	}
 	shared.GetCache().SetAdminUUIDs(admins)
+
+	disposableEmailDomains, err := r.DB.DisposableEmail.Query().Select(disposableemail.FieldDomain).All(r.Ctx)
+	if err != nil {
+		log.Fatal("Failed to get disposable email domains", "err", err)
+		return err
+	}
+	disposableEmailDomainsStr := make([]string, len(disposableEmailDomains))
+	for i, domain := range disposableEmailDomains {
+		disposableEmailDomainsStr[i] = domain.Domain
+	}
+	shared.GetCache().UpdateDisposableEmailDomains(disposableEmailDomainsStr)
 	return nil
 }

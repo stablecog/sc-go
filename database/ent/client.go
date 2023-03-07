@@ -14,6 +14,7 @@ import (
 	"github.com/stablecog/sc-go/database/ent/credit"
 	"github.com/stablecog/sc-go/database/ent/credittype"
 	"github.com/stablecog/sc-go/database/ent/deviceinfo"
+	"github.com/stablecog/sc-go/database/ent/disposableemail"
 	"github.com/stablecog/sc-go/database/ent/generation"
 	"github.com/stablecog/sc-go/database/ent/generationmodel"
 	"github.com/stablecog/sc-go/database/ent/generationoutput"
@@ -42,6 +43,8 @@ type Client struct {
 	CreditType *CreditTypeClient
 	// DeviceInfo is the client for interacting with the DeviceInfo builders.
 	DeviceInfo *DeviceInfoClient
+	// DisposableEmail is the client for interacting with the DisposableEmail builders.
+	DisposableEmail *DisposableEmailClient
 	// Generation is the client for interacting with the Generation builders.
 	Generation *GenerationClient
 	// GenerationModel is the client for interacting with the GenerationModel builders.
@@ -80,6 +83,7 @@ func (c *Client) init() {
 	c.Credit = NewCreditClient(c.config)
 	c.CreditType = NewCreditTypeClient(c.config)
 	c.DeviceInfo = NewDeviceInfoClient(c.config)
+	c.DisposableEmail = NewDisposableEmailClient(c.config)
 	c.Generation = NewGenerationClient(c.config)
 	c.GenerationModel = NewGenerationModelClient(c.config)
 	c.GenerationOutput = NewGenerationOutputClient(c.config)
@@ -127,6 +131,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		Credit:           NewCreditClient(cfg),
 		CreditType:       NewCreditTypeClient(cfg),
 		DeviceInfo:       NewDeviceInfoClient(cfg),
+		DisposableEmail:  NewDisposableEmailClient(cfg),
 		Generation:       NewGenerationClient(cfg),
 		GenerationModel:  NewGenerationModelClient(cfg),
 		GenerationOutput: NewGenerationOutputClient(cfg),
@@ -160,6 +165,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		Credit:           NewCreditClient(cfg),
 		CreditType:       NewCreditTypeClient(cfg),
 		DeviceInfo:       NewDeviceInfoClient(cfg),
+		DisposableEmail:  NewDisposableEmailClient(cfg),
 		Generation:       NewGenerationClient(cfg),
 		GenerationModel:  NewGenerationModelClient(cfg),
 		GenerationOutput: NewGenerationOutputClient(cfg),
@@ -202,6 +208,7 @@ func (c *Client) Use(hooks ...Hook) {
 	c.Credit.Use(hooks...)
 	c.CreditType.Use(hooks...)
 	c.DeviceInfo.Use(hooks...)
+	c.DisposableEmail.Use(hooks...)
 	c.Generation.Use(hooks...)
 	c.GenerationModel.Use(hooks...)
 	c.GenerationOutput.Use(hooks...)
@@ -221,6 +228,7 @@ func (c *Client) Intercept(interceptors ...Interceptor) {
 	c.Credit.Intercept(interceptors...)
 	c.CreditType.Intercept(interceptors...)
 	c.DeviceInfo.Intercept(interceptors...)
+	c.DisposableEmail.Intercept(interceptors...)
 	c.Generation.Intercept(interceptors...)
 	c.GenerationModel.Intercept(interceptors...)
 	c.GenerationOutput.Intercept(interceptors...)
@@ -243,6 +251,8 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.CreditType.mutate(ctx, m)
 	case *DeviceInfoMutation:
 		return c.DeviceInfo.mutate(ctx, m)
+	case *DisposableEmailMutation:
+		return c.DisposableEmail.mutate(ctx, m)
 	case *GenerationMutation:
 		return c.Generation.mutate(ctx, m)
 	case *GenerationModelMutation:
@@ -701,6 +711,124 @@ func (c *DeviceInfoClient) mutate(ctx context.Context, m *DeviceInfoMutation) (V
 		return (&DeviceInfoDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("ent: unknown DeviceInfo mutation op: %q", m.Op())
+	}
+}
+
+// DisposableEmailClient is a client for the DisposableEmail schema.
+type DisposableEmailClient struct {
+	config
+}
+
+// NewDisposableEmailClient returns a client for the DisposableEmail from the given config.
+func NewDisposableEmailClient(c config) *DisposableEmailClient {
+	return &DisposableEmailClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `disposableemail.Hooks(f(g(h())))`.
+func (c *DisposableEmailClient) Use(hooks ...Hook) {
+	c.hooks.DisposableEmail = append(c.hooks.DisposableEmail, hooks...)
+}
+
+// Use adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `disposableemail.Intercept(f(g(h())))`.
+func (c *DisposableEmailClient) Intercept(interceptors ...Interceptor) {
+	c.inters.DisposableEmail = append(c.inters.DisposableEmail, interceptors...)
+}
+
+// Create returns a builder for creating a DisposableEmail entity.
+func (c *DisposableEmailClient) Create() *DisposableEmailCreate {
+	mutation := newDisposableEmailMutation(c.config, OpCreate)
+	return &DisposableEmailCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of DisposableEmail entities.
+func (c *DisposableEmailClient) CreateBulk(builders ...*DisposableEmailCreate) *DisposableEmailCreateBulk {
+	return &DisposableEmailCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for DisposableEmail.
+func (c *DisposableEmailClient) Update() *DisposableEmailUpdate {
+	mutation := newDisposableEmailMutation(c.config, OpUpdate)
+	return &DisposableEmailUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *DisposableEmailClient) UpdateOne(de *DisposableEmail) *DisposableEmailUpdateOne {
+	mutation := newDisposableEmailMutation(c.config, OpUpdateOne, withDisposableEmail(de))
+	return &DisposableEmailUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *DisposableEmailClient) UpdateOneID(id uuid.UUID) *DisposableEmailUpdateOne {
+	mutation := newDisposableEmailMutation(c.config, OpUpdateOne, withDisposableEmailID(id))
+	return &DisposableEmailUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for DisposableEmail.
+func (c *DisposableEmailClient) Delete() *DisposableEmailDelete {
+	mutation := newDisposableEmailMutation(c.config, OpDelete)
+	return &DisposableEmailDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *DisposableEmailClient) DeleteOne(de *DisposableEmail) *DisposableEmailDeleteOne {
+	return c.DeleteOneID(de.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *DisposableEmailClient) DeleteOneID(id uuid.UUID) *DisposableEmailDeleteOne {
+	builder := c.Delete().Where(disposableemail.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &DisposableEmailDeleteOne{builder}
+}
+
+// Query returns a query builder for DisposableEmail.
+func (c *DisposableEmailClient) Query() *DisposableEmailQuery {
+	return &DisposableEmailQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeDisposableEmail},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a DisposableEmail entity by its id.
+func (c *DisposableEmailClient) Get(ctx context.Context, id uuid.UUID) (*DisposableEmail, error) {
+	return c.Query().Where(disposableemail.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *DisposableEmailClient) GetX(ctx context.Context, id uuid.UUID) *DisposableEmail {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *DisposableEmailClient) Hooks() []Hook {
+	return c.hooks.DisposableEmail
+}
+
+// Interceptors returns the client interceptors.
+func (c *DisposableEmailClient) Interceptors() []Interceptor {
+	return c.inters.DisposableEmail
+}
+
+func (c *DisposableEmailClient) mutate(ctx context.Context, m *DisposableEmailMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&DisposableEmailCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&DisposableEmailUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&DisposableEmailUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&DisposableEmailDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown DisposableEmail mutation op: %q", m.Op())
 	}
 }
 

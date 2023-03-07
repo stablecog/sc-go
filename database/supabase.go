@@ -4,6 +4,7 @@ import (
 	"errors"
 
 	"github.com/stablecog/sc-go/log"
+	"github.com/stablecog/sc-go/shared"
 	"github.com/stablecog/sc-go/utils"
 	"github.com/supabase-community/gotrue-go"
 )
@@ -38,6 +39,12 @@ func (s *SupabaseAuth) GetSupabaseUserIdFromAccessToken(accessToken string) (id,
 
 	if user.EmailConfirmedAt == nil {
 		log.Info("User not confirmed in Supabase (unauthorized))")
+		return "", "", SupabaseAuthUnauthorized
+	}
+
+	// Check disposable email
+	if shared.GetCache().IsDisposableEmail(user.Email) {
+		log.Info("User is using disposable email (unauthorized)", "email", user.Email)
 		return "", "", SupabaseAuthUnauthorized
 	}
 

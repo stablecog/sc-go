@@ -15,6 +15,9 @@ type CreditType func(*sql.Selector)
 // DeviceInfo is the predicate function for deviceinfo builders.
 type DeviceInfo func(*sql.Selector)
 
+// DisposableEmail is the predicate function for disposableemail builders.
+type DisposableEmail func(*sql.Selector)
+
 // Generation is the predicate function for generation builders.
 type Generation func(*sql.Selector)
 

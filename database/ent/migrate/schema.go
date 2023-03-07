@@ -79,6 +79,19 @@ var (
 		Columns:    DeviceInfoColumns,
 		PrimaryKey: []*schema.Column{DeviceInfoColumns[0]},
 	}
+	// DisposableEmailsColumns holds the columns for the "disposable_emails" table.
+	DisposableEmailsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID},
+		{Name: "domain", Type: field.TypeString, Unique: true, Size: 2147483647},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+	}
+	// DisposableEmailsTable holds the schema information for the "disposable_emails" table.
+	DisposableEmailsTable = &schema.Table{
+		Name:       "disposable_emails",
+		Columns:    DisposableEmailsColumns,
+		PrimaryKey: []*schema.Column{DisposableEmailsColumns[0]},
+	}
 	// GenerationsColumns holds the columns for the "generations" table.
 	GenerationsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID},
@@ -392,6 +405,7 @@ var (
 		CreditsTable,
 		CreditTypesTable,
 		DeviceInfoTable,
+		DisposableEmailsTable,
 		GenerationsTable,
 		GenerationModelsTable,
 		GenerationOutputsTable,
@@ -417,6 +431,9 @@ func init() {
 	}
 	DeviceInfoTable.Annotation = &entsql.Annotation{
 		Table: "device_info",
+	}
+	DisposableEmailsTable.Annotation = &entsql.Annotation{
+		Table: "disposable_emails",
 	}
 	GenerationsTable.ForeignKeys[0].RefTable = DeviceInfoTable
 	GenerationsTable.ForeignKeys[1].RefTable = GenerationModelsTable

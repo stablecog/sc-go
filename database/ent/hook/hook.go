@@ -45,6 +45,18 @@ func (f DeviceInfoFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, 
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.DeviceInfoMutation", m)
 }
 
+// The DisposableEmailFunc type is an adapter to allow the use of ordinary
+// function as DisposableEmail mutator.
+type DisposableEmailFunc func(context.Context, *ent.DisposableEmailMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f DisposableEmailFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.DisposableEmailMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.DisposableEmailMutation", m)
+}
+
 // The GenerationFunc type is an adapter to allow the use of ordinary
 // function as Generation mutator.
 type GenerationFunc func(context.Context, *ent.GenerationMutation) (ent.Value, error)

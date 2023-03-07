@@ -14,6 +14,7 @@ import (
 	"github.com/stablecog/sc-go/database/ent/credit"
 	"github.com/stablecog/sc-go/database/ent/credittype"
 	"github.com/stablecog/sc-go/database/ent/deviceinfo"
+	"github.com/stablecog/sc-go/database/ent/disposableemail"
 	"github.com/stablecog/sc-go/database/ent/generation"
 	"github.com/stablecog/sc-go/database/ent/generationmodel"
 	"github.com/stablecog/sc-go/database/ent/generationoutput"
@@ -55,6 +56,7 @@ func columnChecker(table string) func(string) error {
 		credit.Table:           credit.ValidColumn,
 		credittype.Table:       credittype.ValidColumn,
 		deviceinfo.Table:       deviceinfo.ValidColumn,
+		disposableemail.Table:  disposableemail.ValidColumn,
 		generation.Table:       generation.ValidColumn,
 		generationmodel.Table:  generationmodel.ValidColumn,
 		generationoutput.Table: generationoutput.ValidColumn,

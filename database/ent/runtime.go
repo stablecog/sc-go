@@ -9,6 +9,7 @@ import (
 	"github.com/stablecog/sc-go/database/ent/credit"
 	"github.com/stablecog/sc-go/database/ent/credittype"
 	"github.com/stablecog/sc-go/database/ent/deviceinfo"
+	"github.com/stablecog/sc-go/database/ent/disposableemail"
 	"github.com/stablecog/sc-go/database/ent/generation"
 	"github.com/stablecog/sc-go/database/ent/generationmodel"
 	"github.com/stablecog/sc-go/database/ent/generationoutput"
@@ -75,6 +76,22 @@ func init() {
 	deviceinfoDescID := deviceinfoFields[0].Descriptor()
 	// deviceinfo.DefaultID holds the default value on creation for the id field.
 	deviceinfo.DefaultID = deviceinfoDescID.Default.(func() uuid.UUID)
+	disposableemailFields := schema.DisposableEmail{}.Fields()
+	_ = disposableemailFields
+	// disposableemailDescCreatedAt is the schema descriptor for created_at field.
+	disposableemailDescCreatedAt := disposableemailFields[2].Descriptor()
+	// disposableemail.DefaultCreatedAt holds the default value on creation for the created_at field.
+	disposableemail.DefaultCreatedAt = disposableemailDescCreatedAt.Default.(func() time.Time)
+	// disposableemailDescUpdatedAt is the schema descriptor for updated_at field.
+	disposableemailDescUpdatedAt := disposableemailFields[3].Descriptor()
+	// disposableemail.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	disposableemail.DefaultUpdatedAt = disposableemailDescUpdatedAt.Default.(func() time.Time)
+	// disposableemail.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	disposableemail.UpdateDefaultUpdatedAt = disposableemailDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// disposableemailDescID is the schema descriptor for id field.
+	disposableemailDescID := disposableemailFields[0].Descriptor()
+	// disposableemail.DefaultID holds the default value on creation for the id field.
+	disposableemail.DefaultID = disposableemailDescID.Default.(func() uuid.UUID)
 	generationFields := schema.Generation{}.Fields()
 	_ = generationFields
 	// generationDescNsfwCount is the schema descriptor for nsfw_count field.

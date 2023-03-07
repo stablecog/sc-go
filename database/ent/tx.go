@@ -20,6 +20,8 @@ type Tx struct {
 	CreditType *CreditTypeClient
 	// DeviceInfo is the client for interacting with the DeviceInfo builders.
 	DeviceInfo *DeviceInfoClient
+	// DisposableEmail is the client for interacting with the DisposableEmail builders.
+	DisposableEmail *DisposableEmailClient
 	// Generation is the client for interacting with the Generation builders.
 	Generation *GenerationClient
 	// GenerationModel is the client for interacting with the GenerationModel builders.
@@ -176,6 +178,7 @@ func (tx *Tx) init() {
 	tx.Credit = NewCreditClient(tx.config)
 	tx.CreditType = NewCreditTypeClient(tx.config)
 	tx.DeviceInfo = NewDeviceInfoClient(tx.config)
+	tx.DisposableEmail = NewDisposableEmailClient(tx.config)
 	tx.Generation = NewGenerationClient(tx.config)
 	tx.GenerationModel = NewGenerationModelClient(tx.config)
 	tx.GenerationOutput = NewGenerationOutputClient(tx.config)
