@@ -66,7 +66,7 @@ jobs:
 
     steps:
       - name: Check out code
-        uses: actions/checkout@master
+        uses: actions/checkout@v3
 
       - name: Setup Go with cache
         uses: actions/setup-go@v3
@@ -94,7 +94,7 @@ jobs:
     env:
       GITHUB_RUN_ID: ${{ github.run_id }}
     steps:
-      - uses: actions/checkout@master
+      - uses: actions/checkout@v3
 
       - name: Set build start in env variable
         run: echo "BUILD_START=$(date +%s)" >> $GITHUB_ENV
@@ -160,7 +160,7 @@ jobs:
     env:
       GITHUB_RUN_ID: ${{ github.run_id }}
     steps:
-      - uses: actions/checkout@master
+      - uses: actions/checkout@v3
 
       - name: Deploy
         uses: ./.github/actions/aws-deploy
@@ -184,7 +184,7 @@ jobs:
     env:
       GITHUB_RUN_ID: ${{ github.run_id }}
     steps:
-      - uses: actions/checkout@master
+      - uses: actions/checkout@v3
 
       - name: Deploy
         uses: ./.github/actions/aws-deploy
@@ -203,14 +203,16 @@ jobs:
       - test
       - build
     steps:
-      - uses: actions/checkout@master
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
 
       - name: Create/Update Pull Request
-        uses: peter-evans/create-pull-request@v4
+        uses: devops-infra/action-pull-request@v0.5.5
         with:
-          committer: Release <noreply@stablecog.com>
-          branch: create-pull-request/release
-          base: production
-          title: 👤 Pending Release
-          labels: ci,production
-          assignees: bbedward,yekta
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          assignee: ${{ github.actor }}
+          label: automatic,release
+          target_branch: production
+          template: .github/RELEASE_PR.md
+          get_diff: true

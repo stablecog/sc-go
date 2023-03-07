@@ -51,7 +51,7 @@ jobs:
     env:
       GITHUB_RUN_ID: ${{ github.run_id }}
     steps:
-      - uses: actions/checkout@master
+      - uses: actions/checkout@v3
 
       - name: Set build start in env variable
         run: echo "BUILD_START=$(date +%s)" >> $GITHUB_ENV
@@ -118,7 +118,7 @@ jobs:
     env:
       GITHUB_RUN_ID: ${{ github.run_id }}
     steps:
-      - uses: actions/checkout@master
+      - uses: actions/checkout@v3
 
       - name: Deploy
         uses: ./.github/actions/aws-deploy
@@ -143,7 +143,7 @@ jobs:
     env:
       GITHUB_RUN_ID: ${{ github.run_id }}
     steps:
-      - uses: actions/checkout@master
+      - uses: actions/checkout@v3
 
       - name: Deploy
         uses: ./.github/actions/aws-deploy
