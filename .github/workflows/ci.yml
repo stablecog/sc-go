@@ -199,6 +199,9 @@ jobs:
   release_pull_request:
     runs-on: ubuntu-latest
     name: 🚦 Create Release PR
+    needs:
+      - tests
+      - build
     steps:
       - uses: actions/checkout@master
 
