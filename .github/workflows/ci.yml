@@ -204,8 +204,6 @@ jobs:
       - build
     steps:
       - uses: actions/checkout@v3
-        with:
-          ref: production
 
       - name: Create/Update Pull Request
         uses: peter-evans/create-pull-request@v4
