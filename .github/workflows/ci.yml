@@ -200,7 +200,7 @@ jobs:
     runs-on: ubuntu-latest
     name: 🚦 Create Release PR
     needs:
-      - tests
+      - test
       - build
     steps:
       - uses: actions/checkout@master
