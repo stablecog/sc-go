@@ -71,8 +71,8 @@ jobs:
       - name: Setup Go with cache
         uses: actions/setup-go@v3
         with:
-          go-version: "1.20"
-          cache-dependency-path: server/go.sum
+          go-version-file: ./go.work
+          cache-dependency-path: **/go.sum
 
       - name: Run Tests
         env:
@@ -111,8 +111,8 @@ jobs:
       - name: Setup Go with cache
         uses: actions/setup-go@v3
         with:
-          go-version: "1.20"
-          cache-dependency-path: server/go.sum
+          go-version-file: ./go.work
+          cache-dependency-path: **/go.sum
 
       - name: Login to registry
         uses: docker/login-action@v2
