@@ -94,7 +94,7 @@ jobs:
       - name: Send Discord Webhook
         uses: ./.github/actions/discord-webhook
         with:
-          context: qa
+          context: all
           prod-webhook-url: ${{ secrets.DISCORD_WEBHOOK_PROD }}
           qa-webhook-url: ${{ secrets.DISCORD_WEBHOOK }}
           embed-color: 16776960
@@ -136,7 +136,7 @@ jobs:
         if: failure()
         uses: ./.github/actions/discord-webhook
         with:
-          context: qa
+          context: all
           prod-webhook-url: ${{ secrets.DISCORD_WEBHOOK_PROD }}
           qa-webhook-url: ${{ secrets.DISCORD_WEBHOOK }}
           embed-color: 15548997
@@ -188,23 +188,70 @@ jobs:
           image: stablecog/sc-server:${{ needs.setup_env.outputs.branch_name}}-${{ env.GITHUB_RUN_ID }}
           env: qa
 
-  release_pull_request:
-    runs-on: ubuntu-latest
-    name: 🚦 Create Release PR
+  deploy_server_prod:
+    name: 🚀 Deploy Server (PROD)
+    runs-on: self-hosted
     needs:
+      - setup_env
       - test
       - build
+    env:
+      GITHUB_RUN_ID: ${{ github.run_id }}
     steps:
-      - uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
+      - uses: actions/checkout@master
 
-      - name: Create/Update Pull Request
-        uses: devops-infra/action-pull-request@v0.5.5
+      - name: Deploy
+        uses: ./.github/actions/aws-deploy
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          assignee: ${{ github.actor }}
-          label: automatic,release
-          target_branch: production
-          template: .github/RELEASE_PR.md
-          get_diff: true
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          service: prod-sc-server-Service-uDZHByAncsMB
+          task-definition: ./aws/prod/sc-server.json
+          image: stablecog/sc-server:${{ needs.setup_env.outputs.branch_name}}-${{ env.GITHUB_RUN_ID }}
+          embed-title: "${{ needs.setup_env.outputs.commit_msg }}  •  ${{ needs.setup_env.outputs.short_sha }}"
+          prod-webhook-url: ${{ secrets.DISCORD_WEBHOOK_PROD }}
+          qa-webhook-url: ${{ secrets.DISCORD_WEBHOOK }}
+          env: prod
+
+  deploy_cron_prod:
+    name: 🚀 Deploy Cron (PROD)
+    runs-on: self-hosted
+    needs:
+      - setup_env
+      - test
+      - build
+    env:
+      GITHUB_RUN_ID: ${{ github.run_id }}
+    steps:
+      - uses: actions/checkout@master
+
+      - name: Deploy
+        uses: ./.github/actions/aws-deploy
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          service: prod-sc-cron
+          task-definition: ./aws/prod/sc-cron.json
+          image: stablecog/sc-server:${{ needs.setup_env.outputs.branch_name}}-${{ env.GITHUB_RUN_ID }}
+          env: prod
+
+  # release_pull_request:
+  #   runs-on: ubuntu-latest
+  #   name: 🚦 Create Release PR
+  #   needs:
+  #     - test
+  #     - build
+  #   steps:
+  #     - uses: actions/checkout@v3
+  #       with:
+  #         fetch-depth: 0
+
+  #     - name: Create/Update Pull Request
+  #       uses: devops-infra/action-pull-request@v0.5.5
+  #       with:
+  #         github_token: ${{ secrets.GITHUB_TOKEN }}
+  #         assignee: ${{ github.actor }}
+  #         label: automatic,release
+  #         target_branch: production
+  #         template: .github/RELEASE_PR.md
+  #         get_diff: true
