@@ -1,12 +1,15 @@
 ## Brief description
 
-<!-- Diff summary - START -->summary<!-- Diff summary - END -->
+<!-- Diff summary - START -->
+<!-- Diff summary - END -->
 
 ## Commits
 
-<!-- Diff commits - START -->commits<!-- Diff files - END -->
+<!-- Diff commits - START -->
+<!-- Diff files - END -->
 
 ## Modified files
 
 
-<!-- Diff files - START -->files<!-- Diff files - END -->
+<!-- Diff files - START -->
+<!-- Diff files - END -->
