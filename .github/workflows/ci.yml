@@ -209,8 +209,8 @@ jobs:
         uses: peter-evans/create-pull-request@v4
         with:
           committer: Release <noreply@stablecog.com>
-          branch: master
-          base: production
+          branch: production
+          base: master
           title: 👤 Pending Release
           labels: ci,production
           assignees: bbedward,yekta
