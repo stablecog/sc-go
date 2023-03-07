@@ -144,7 +144,7 @@ jobs:
         if: failure()
         uses: ./.github/actions/discord-webhook
         with:
-          context: all
+          context: qa
           prod-webhook-url: ${{ secrets.DISCORD_WEBHOOK_PROD }}
           qa-webhook-url: ${{ secrets.DISCORD_WEBHOOK }}
           embed-color: 15548997
