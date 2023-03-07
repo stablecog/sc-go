@@ -145,11 +145,6 @@ func (c *RestAPI) HandleCreateCheckoutSession(w http.ResponseWriter, r *http.Req
 							break
 						}
 					}
-					// See if this is starter euro price id
-					euroPriceId := utils.GetEnv("STRIPE_STARTER_EURO_PRICE_ID", "price_1Mf56NATa0ehBYTAHkCUablG")
-					if item.Price.ID == euroPriceId {
-						currentPriceID = item.Price.ID
-					}
 				}
 				break
 			}
@@ -171,12 +166,6 @@ func (c *RestAPI) HandleCreateCheckoutSession(w http.ResponseWriter, r *http.Req
 				break
 			}
 		}
-		// Check euro
-		euroPriceId := utils.GetEnv("STRIPE_STARTER_EURO_PRICE_ID", "price_1Mf56NATa0ehBYTAHkCUablG")
-		if currentPriceID == euroPriceId {
-			currentPriceLevel = 1
-		}
-
 		if currentPriceLevel >= targetPriceLevel {
 			responses.ErrBadRequest(w, r, "cannot_downgrade")
 			return
@@ -290,13 +279,6 @@ func (c *RestAPI) HandleSubscriptionDowngrade(w http.ResponseWriter, r *http.Req
 						currentItemId = item.ID
 						break
 					}
-				}
-				// Check if euro price ID
-				euroPriceId := utils.GetEnv("STRIPE_STARTER_EURO_PRICE_ID", "price_1Mf56NATa0ehBYTAHkCUablG")
-				if item.Price.ID == euroPriceId {
-					currentPriceID = item.Price.ID
-					currentSubId = sub.ID
-					currentItemId = item.ID
 				}
 				break
 			}
