@@ -18,15 +18,7 @@ jobs:
 
       - name: Escape commit message
         run: |
-          import json
-          import os
-          import shlex
-          with open('${{ github.event_path }}') as fh:
-              event = json.load(fh)
-          escaped = shlex.quote(event['head_commit']['message']).replace("'", "")
-          with open(os.environ['GITHUB_ENV'], 'a') as fh:
-              print(f'COMMIT_MSG={escaped}', file=fh)
-        shell: python3 {0}
+          echo "COMMIT_MSG=$(echo ${{ github.event.head_commit.message }} | tr -d \'\\\")" >> $GITHUB_ENV
 
       - name: Get branch name (merge)
         if: github.event_name != 'pull_request'
