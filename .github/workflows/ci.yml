@@ -212,7 +212,6 @@ jobs:
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           assignee: ${{ github.actor }}
-          title: Release to Production
           label: automatic,release
           target_branch: production
           template: .github/RELEASE_PR.md
