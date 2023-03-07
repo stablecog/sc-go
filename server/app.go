@@ -116,19 +116,22 @@ func main() {
 				log.Warn("Subscription is nil")
 				continue
 			}
-			if sub.LatestInvoice == nil || sub.LatestInvoice.Lines == nil {
+			if sub.LatestInvoice == nil {
 				log.Warn("Latest invoice is nil")
 				continue
 			}
 			// Get product ID
 			var productId string
-			var lineItemId string
-			for _, line := range sub.LatestInvoice.Lines.Data {
+			lineItemId := sub.LatestInvoice.ID
+			for _, line := range sub.Items.Data {
 				if line.Plan != nil {
 					productId = line.Plan.Product.ID
-					lineItemId = line.ID
 					break
 				}
+			}
+			if productId == "" {
+				log.Warn("Product ID is empty")
+				continue
 			}
 			// Find credit type with this id
 			creditType, err := repo.GetCreditTypeByStripeProductID(productId)
@@ -142,7 +145,7 @@ func main() {
 
 			// Get user
 			user, err := repo.GetUserByStripeCustomerId(sub.Customer.ID)
-			if err != nil {
+			if err != nil || user == nil {
 				log.Warn("Error getting user with ID", "customerID", sub.Customer.ID, "err", err)
 				continue
 			}
