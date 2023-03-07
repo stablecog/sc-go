@@ -102,7 +102,7 @@ jobs:
       - name: Send Discord Webhook
         uses: ./.github/actions/discord-webhook
         with:
-          context: all
+          context: qa
           prod-webhook-url: ${{ secrets.DISCORD_WEBHOOK_PROD }}
           qa-webhook-url: ${{ secrets.DISCORD_WEBHOOK }}
           embed-color: 16776960
@@ -205,14 +205,15 @@ jobs:
     steps:
       - uses: actions/checkout@master
 
-      - name: Open/Update Release PR
-        uses: grassedge/git-pr-release-action@v1.0
+      - name: Create/Update Pull Request
+        uses: peter-evans/create-pull-request@v4
         with:
+          committer: Release <noreply@stablecog.com>
+          branch: master
           base: production
-          head: master
-          token: ${{ secrets.GITHUB_TOKEN }}
-          labels: production
-          assign: true
+          title: 👤 Pending Release
+          labels: ci,production
+          assignees: bbedward,yekta
 
   # deploy_server_prod:
   #   name: 🚀 Deploy Server (PROD)
