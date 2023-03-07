@@ -554,6 +554,11 @@ CREATE INDEX generationoutput_id_gallery_status ON public.generation_outputs USI
 
 CREATE UNIQUE INDEX upscale_outputs_generation_output_id_key ON public.upscale_outputs USING btree (generation_output_id);
 
+--
+-- Name: disposable_emails_domain_key; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE UNIQUE INDEX disposable_emails_domain_key ON public.disposable_emails USING btree (domain);
 
 --
 -- Name: upscaleoutput_image_path; Type: INDEX; Schema: public; Owner: postgres
@@ -780,3 +785,9 @@ ALTER TABLE public.user_roles ENABLE ROW LEVEL SECURITY;
 --
 
 ALTER TABLE public.users ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: disposable_emails; Type: ROW SECURITY; Schema: public; Owner: postgres
+--
+
+ALTER TABLE public.disposable_emails ENABLE ROW LEVEL SECURITY;

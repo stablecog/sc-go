@@ -29,6 +29,10 @@
         {
           "name": "POSTHOG_ENDPOINT",
           "value": "https://ph.stablecog.com"
+        },
+        {
+          "name": "PRODUCTION",
+          "value": "true"
         }
       ],
       "mountPoints": [],
