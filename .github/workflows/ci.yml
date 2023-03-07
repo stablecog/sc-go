@@ -210,6 +210,7 @@ jobs:
         with:
           committer: Release <noreply@stablecog.com>
           branch: create-pull-request/release
+          base: production
           title: 👤 Pending Release
           labels: ci,production
           assignees: bbedward,yekta
