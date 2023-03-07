@@ -326,8 +326,4 @@ func TestGenerateValidRequest(t *testing.T) {
 	// Make sure valid uuid
 	_, err := uuid.Parse(generateResp.ID)
 	assert.Nil(t, err)
-
-	// make sure we have this ID on our map
-	streamid, _ := MockController.Redis.GetCogRequestStreamID(ctx, "first:"+generateResp.ID)
-	assert.Equal(t, MockSSEId, streamid)
 }

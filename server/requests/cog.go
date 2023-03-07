@@ -27,6 +27,7 @@ type BaseCogRequest struct {
 	UIId               string                  `json:"ui_id,omitempty"`
 	GenerationOutputID string                  `json:"generation_output_id,omitempty"` // Specific to upscale requests
 	LivePageData       *shared.LivePageMessage `json:"live_page_data,omitempty"`
+	StreamID           string                  `json:"stream_id,omitempty"`
 	// Generate specific
 	UploadPathPrefix     string             `json:"upload_path_prefix,omitempty"`
 	Prompt               string             `json:"prompt,omitempty"`
@@ -58,7 +59,7 @@ type BaseCogRequest struct {
 
 // Data type is what we actually send to the cog, includes some additional metadata beyond BaseCogRequest
 type CogQueueRequest struct {
-	RedisPubsubKey      string           `json:"redis_pubsub_key,omitempty"`
+	WebhookUrl          string           `json:"webhook_url,omitempty"`
 	WebhookEventsFilter []CogEventFilter `json:"webhook_events_filter"`
 	Input               BaseCogRequest   `json:"input"`
 }
@@ -78,7 +79,7 @@ const (
 )
 
 // Msg from sc-worker to redis channel
-type CogRedisMessage struct {
+type CogWebhookMessage struct {
 	Webhook   string         `json:"webhook"`
 	Input     BaseCogRequest `json:"input"`
 	Status    CogTaskStatus  `json:"status"`

@@ -3,12 +3,10 @@ package repository
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"strconv"
 
 	"github.com/google/uuid"
-	"github.com/redis/go-redis/v9"
 	"github.com/stablecog/sc-go/database/ent"
 	"github.com/stablecog/sc-go/database/ent/generation"
 	"github.com/stablecog/sc-go/database/ent/upscale"
@@ -20,39 +18,8 @@ import (
 )
 
 // Consider a generation/upscale a failure due to timeout
-func (r *Repository) FailCogMessageDueToTimeoutIfTimedOut(msg requests.CogRedisMessage) {
-	redisKey := fmt.Sprintf("second:%s", msg.Input.ID)
-	// Since we sync with other instances, we get the stream ID from redis
-	streamIdStr, err := r.Redis.GetCogRequestStreamID(r.Redis.Ctx, redisKey)
-	if err != nil {
-		if errors.Is(err, redis.Nil) {
-			// Probably means another instance picked this up
-			return
-		}
-		log.Error("Error getting stream ID from redis", "err", err)
-		return
-	}
-
-	// We delete this, if our delete is successful then that means we are the ones responsible for processing it
-	deleted, err := r.Redis.DeleteCogRequestStreamID(r.Redis.Ctx, redisKey)
-	if err != nil {
-		log.Error("Error deleting stream ID from redis", "err", err)
-		return
-	}
-	if deleted == 0 {
-		// Means we don't need to timeout
-		return
-	}
-
+func (r *Repository) FailCogMessageDueToTimeoutIfTimedOut(msg requests.CogWebhookMessage) {
 	// ! Execute timeout failure
-
-	// Ensure is valid
-	if !utils.IsSha256Hash(streamIdStr) {
-		// Not sure how we get here, we never should
-		log.Error("Invalid SSE stream id", "stream_id", streamIdStr)
-		return
-	}
-
 	// Get process type
 	if msg.Input.ProcessType != shared.GENERATE && msg.Input.ProcessType != shared.UPSCALE && msg.Input.ProcessType != shared.GENERATE_AND_UPSCALE {
 		log.Error("Invalid process type from cog, can't handle message", "process_type", msg.Input.ProcessType)
@@ -126,7 +93,7 @@ func (r *Repository) FailCogMessageDueToTimeoutIfTimedOut(msg requests.CogRedisM
 		Status:           msg.Status,
 		Id:               msg.Input.ID,
 		UIId:             msg.Input.UIId,
-		StreamId:         streamIdStr,
+		StreamId:         msg.Input.StreamID,
 		NSFWCount:        msg.NSFWCount,
 		Error:            msg.Error,
 		ProcessType:      msg.Input.ProcessType,
@@ -145,44 +112,11 @@ func (r *Repository) FailCogMessageDueToTimeoutIfTimedOut(msg requests.CogRedisM
 }
 
 // Process a cog message into database
-func (r *Repository) ProcessCogMessage(msg requests.CogRedisMessage) {
-	redisKey := fmt.Sprintf("first:%s", msg.Input.ID)
-	if msg.Status != requests.CogProcessing {
-		redisKey = fmt.Sprintf("second:%s", msg.Input.ID)
-	}
-	// Since we sync with other instances, we get the stream ID from redis
-	streamIdStr, err := r.Redis.GetCogRequestStreamID(r.Redis.Ctx, redisKey)
-	if err != nil {
-		if errors.Is(err, redis.Nil) {
-			// Probably means another instance picked this up
-			return
-		}
-		log.Error("Error getting stream ID from redis", "err", err)
-		return
-	}
-
-	// We delete this, if our delete is successful then that means we are the ones responsible for processing it
-	deleted, err := r.Redis.DeleteCogRequestStreamID(r.Redis.Ctx, redisKey)
-	if err != nil {
-		log.Error("Error deleting stream ID from redis", "err", err)
-		return
-	}
-	if deleted == 0 {
-		// Means another instance already deleted it probably and handled it
-		return
-	}
-
-	// Ensure is valid
-	if !utils.IsSha256Hash(streamIdStr) {
-		// Not sure how we get here, we never should
-		log.Error("Invalid SSE stream", "id", streamIdStr)
-		return
-	}
-
+func (r *Repository) ProcessCogMessage(msg requests.CogWebhookMessage) error {
 	// Get process type
 	if msg.Input.ProcessType != shared.GENERATE && msg.Input.ProcessType != shared.UPSCALE && msg.Input.ProcessType != shared.GENERATE_AND_UPSCALE {
 		log.Error("Invalid process type from cog, can't handle message", "process_type", msg.Input.ProcessType)
-		return
+		return fmt.Errorf("invalid process type from cog %s, can't handle message", msg.Input.ProcessType)
 	}
 
 	var upscaleOutput *ent.UpscaleOutput
@@ -192,7 +126,7 @@ func (r *Repository) ProcessCogMessage(msg requests.CogRedisMessage) {
 	inputUuid, err := uuid.Parse(msg.Input.ID)
 	if err != nil {
 		log.Error("Error parsing input ID, not a UUID", "err", err)
-		return
+		return err
 	}
 
 	// Remaining credits set only for failures
@@ -255,7 +189,7 @@ func (r *Repository) ProcessCogMessage(msg requests.CogRedisMessage) {
 			return nil
 		}); err != nil {
 			log.Error("Error with transaction in cog message process", "err", err)
-			return
+			return err
 		}
 	} else if msg.Status == requests.CogSucceeded {
 		if len(msg.Outputs) == 0 {
@@ -325,7 +259,7 @@ func (r *Repository) ProcessCogMessage(msg requests.CogRedisMessage) {
 				return nil
 			}); err != nil {
 				log.Error("Error with transaction in cog message process", "err", err)
-				return
+				return err
 			}
 		} else {
 			if msg.Input.ProcessType == shared.UPSCALE {
@@ -336,13 +270,13 @@ func (r *Repository) ProcessCogMessage(msg requests.CogRedisMessage) {
 			}
 			if err != nil {
 				log.Error("Error setting process succeeded", "process_type", msg.Input.ProcessType, "id", msg.Input.ID, "err", err)
-				return
+				return err
 			}
 		}
 
 	} else {
 		log.Warn("Unknown webhook status, not sure how to proceed so not proceeding at all", "status", msg.Status)
-		return
+		return fmt.Errorf("invalid status %s", msg.Status)
 	}
 
 	// Regardless of the status, we always send over sse so user knows what's up
@@ -351,7 +285,7 @@ func (r *Repository) ProcessCogMessage(msg requests.CogRedisMessage) {
 		Status:           msg.Status,
 		Id:               msg.Input.ID,
 		UIId:             msg.Input.UIId,
-		StreamId:         streamIdStr,
+		StreamId:         msg.Input.StreamID,
 		NSFWCount:        msg.NSFWCount,
 		Error:            cogErr,
 		ProcessType:      msg.Input.ProcessType,
@@ -394,9 +328,10 @@ func (r *Repository) ProcessCogMessage(msg requests.CogRedisMessage) {
 	respBytes, err := json.Marshal(resp)
 	if err != nil {
 		log.Error("Error marshalling sse response", "err", err)
-		return
+		return err
 	}
 
 	// Broadcast to all clients subcribed to this stream
 	r.Redis.Client.Publish(r.Redis.Ctx, shared.REDIS_SSE_BROADCAST_CHANNEL, respBytes)
+	return nil
 }

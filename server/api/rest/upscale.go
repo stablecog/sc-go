@@ -162,10 +162,11 @@ func (c *RestAPI) HandleUpscale(w http.ResponseWriter, r *http.Request) {
 		// Send to the cog
 		cogReqBody = requests.CogQueueRequest{
 			WebhookEventsFilter: []requests.CogEventFilter{requests.CogEventFilterStart, requests.CogEventFilterStart},
-			RedisPubsubKey:      shared.COG_REDIS_EVENT_CHANNEL,
+			WebhookUrl:          fmt.Sprintf("%s/v1/worker/webhook", utils.GetEnv("PUBLIC_API_URL", "")),
 			Input: requests.BaseCogRequest{
 				ID:                   requestId,
 				UIId:                 upscaleReq.UIId,
+				StreamID:             upscaleReq.StreamID,
 				LivePageData:         &livePageMsg,
 				GenerationOutputID:   outputIDStr,
 				Image:                imageUrl,
@@ -193,9 +194,6 @@ func (c *RestAPI) HandleUpscale(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Track the request in our internal map
-	c.Redis.SetCogRequestStreamID(r.Context(), requestId, upscaleReq.StreamID)
-
 	// Send live page update
 	go func() {
 		liveResp := repository.TaskStatusUpdateResponse{
@@ -218,7 +216,7 @@ func (c *RestAPI) HandleUpscale(w http.ResponseWriter, r *http.Request) {
 		// sleep
 		time.Sleep(shared.REQUEST_COG_TIMEOUT)
 		// this will trigger timeout if it hasnt been finished
-		c.Repo.FailCogMessageDueToTimeoutIfTimedOut(requests.CogRedisMessage{
+		c.Repo.FailCogMessageDueToTimeoutIfTimedOut(requests.CogWebhookMessage{
 			Input:  cogReqBody.Input,
 			Error:  shared.TIMEOUT_ERROR,
 			Status: requests.CogFailed,

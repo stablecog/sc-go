@@ -32,6 +32,10 @@
                 {
                     "name": "POSTHOG_ENDPOINT",
                     "value": "https://ph.stablecog.com"
+                },
+                {
+                    "name": "PUBLIC_API_URL",
+                    "value": "https://qa-api.stablecog.com"
                 }
             ],
             "mountPoints": [],
@@ -84,6 +88,10 @@
                 {
                     "name": "REDIS_CONNECTION_STRING",
                     "valueFrom": "arn:aws:secretsmanager:us-east-2:280846200654:secret:qa-stablecog/go-546TP9:REDIS_CONNECTION_STRING::"
+                },
+                {
+                    "name": "SC_WORKER_WEBHOOK_SECRET",
+                    "valueFrom": "arn:aws:secretsmanager:us-east-2:280846200654:secret:qa-stablecog/go-546TP9:SC_WORKER_WEBHOOK_SECRET::"
                 }
             ],
             "dockerLabels": {},

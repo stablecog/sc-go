@@ -129,10 +129,11 @@ func (c *RestAPI) HandleCreateGeneration(w http.ResponseWriter, r *http.Request)
 
 		cogReqBody = requests.CogQueueRequest{
 			WebhookEventsFilter: []requests.CogEventFilter{requests.CogEventFilterStart, requests.CogEventFilterStart},
-			RedisPubsubKey:      shared.COG_REDIS_EVENT_CHANNEL,
+			WebhookUrl:          fmt.Sprintf("%s/v1/worker/webhook", utils.GetEnv("PUBLIC_API_URL", "")),
 			Input: requests.BaseCogRequest{
 				ID:                   requestId,
 				UIId:                 generateReq.UIId,
+				StreamID:             generateReq.StreamID,
 				LivePageData:         &livePageMsg,
 				Prompt:               generateReq.Prompt,
 				NegativePrompt:       generateReq.NegativePrompt,
@@ -169,7 +170,6 @@ func (c *RestAPI) HandleCreateGeneration(w http.ResponseWriter, r *http.Request)
 
 	// Track the request in our internal map
 	start := time.Now()
-	c.Redis.SetCogRequestStreamID(r.Context(), requestId, generateReq.StreamID)
 	fmt.Printf("--- Put request in map took: %s\n", time.Now().Sub(start))
 
 	// Send live page update
@@ -194,7 +194,7 @@ func (c *RestAPI) HandleCreateGeneration(w http.ResponseWriter, r *http.Request)
 		// sleep
 		time.Sleep(shared.REQUEST_COG_TIMEOUT)
 		// this will trigger timeout if it hasnt been finished
-		c.Repo.FailCogMessageDueToTimeoutIfTimedOut(requests.CogRedisMessage{
+		c.Repo.FailCogMessageDueToTimeoutIfTimedOut(requests.CogWebhookMessage{
 			Input:  cogReqBody.Input,
 			Error:  shared.TIMEOUT_ERROR,
 			Status: requests.CogFailed,

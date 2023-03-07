@@ -162,26 +162,3 @@ type PendingCogRequestRedis struct {
 	Type       shared.ProcessType
 	ID         uuid.UUID
 }
-
-// Keep track of request ID to cog, with stream ID of the client
-func (r *RedisWrapper) SetCogRequestStreamID(ctx context.Context, requestID string, streamID string) error {
-	// We set 2 keys since we expect 2 responses from the cog, started and failed/succeeded
-	// These keys are basically used to make sure only 1 instance of the cog takes these requests
-	// TODO: We should probably use a queue to get responses from the cog, or go back to webhook
-	_, err := r.Client.Set(ctx, fmt.Sprintf("first:%s", requestID), streamID, 1*time.Hour).Result()
-	if err != nil {
-		return err
-	}
-	_, err = r.Client.Set(ctx, fmt.Sprintf("second:%s", requestID), streamID, 1*time.Hour).Result()
-	return err
-}
-
-// Get the stream ID of the client for a given request ID
-func (r *RedisWrapper) GetCogRequestStreamID(ctx context.Context, requestID string) (string, error) {
-	return r.Client.Get(ctx, requestID).Result()
-}
-
-// Delete the stream ID of the client for a given request ID
-func (r *RedisWrapper) DeleteCogRequestStreamID(ctx context.Context, requestID string) (int64, error) {
-	return r.Client.Del(ctx, requestID).Result()
-}

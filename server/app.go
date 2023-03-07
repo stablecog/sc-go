@@ -22,7 +22,6 @@ import (
 	"github.com/stablecog/sc-go/server/api/sse"
 	"github.com/stablecog/sc-go/server/discord"
 	"github.com/stablecog/sc-go/server/middleware"
-	"github.com/stablecog/sc-go/server/requests"
 	"github.com/stablecog/sc-go/shared"
 	"github.com/stablecog/sc-go/utils"
 	stripeBase "github.com/stripe/stripe-go/v74"
@@ -311,6 +310,11 @@ func main() {
 			r.Post("/webhook", hc.HandleStripeWebhook)
 		})
 
+		// SCWorker
+		r.Route("/worker", func(r chi.Router) {
+			r.Post("/webhook", hc.HandleSCWorkerWebhook)
+		})
+
 		// Stats
 		r.Route("/stats", func(r chi.Router) {
 			r.Use(chimiddleware.Logger)
@@ -380,73 +384,6 @@ func main() {
 			})
 		})
 	})
-
-	// This redis subscription has the following purpose:
-	// - We receive events from the cog (e.g. started/succeeded/failed)
-	// - We update the database with the new status
-	// - Our repository will broadcast to another redis channel, the SSE one
-	pubsub := redis.Client.Subscribe(ctx, shared.COG_REDIS_EVENT_CHANNEL)
-	defer pubsub.Close()
-
-	// TODO - these goroutines are too chonky to be in ap.go, move them out
-
-	// Process messages from cog
-	go func() {
-		log.Info("Listening for cog messages", "channel", shared.COG_REDIS_EVENT_CHANNEL)
-		for msg := range pubsub.Channel() {
-			var cogMessage requests.CogRedisMessage
-			err := json.Unmarshal([]byte(msg.Payload), &cogMessage)
-			if err != nil {
-				log.Error("Error unmarshalling webhook message", "err", err)
-				continue
-			}
-
-			log.Infof("Received COG message, %v", cogMessage)
-
-			// Process live page message and analytics
-			go func() {
-				// Live page update
-				livePageMsg := cogMessage.Input.LivePageData
-				if cogMessage.Status == requests.CogProcessing {
-					livePageMsg.Status = shared.LivePageProcessing
-				} else if cogMessage.Status == requests.CogSucceeded && len(cogMessage.Outputs) > 0 {
-					livePageMsg.Status = shared.LivePageSucceeded
-				} else if cogMessage.Status == requests.CogSucceeded && cogMessage.NSFWCount > 0 {
-					livePageMsg.Status = shared.LivePageFailed
-					livePageMsg.FailureReason = shared.NSFW_ERROR
-				} else {
-					livePageMsg.Status = shared.LivePageFailed
-				}
-
-				now := time.Now()
-				if cogMessage.Status == requests.CogProcessing {
-					livePageMsg.StartedAt = &now
-				}
-				if cogMessage.Status == requests.CogSucceeded || cogMessage.Status == requests.CogFailed {
-					livePageMsg.CompletedAt = &now
-					livePageMsg.ActualNumOutputs = len(cogMessage.Outputs)
-					livePageMsg.NSFWCount = cogMessage.NSFWCount
-				}
-				// Send live page update
-				liveResp := repository.TaskStatusUpdateResponse{
-					ForLivePage:     true,
-					LivePageMessage: livePageMsg,
-				}
-				respBytes, err := json.Marshal(liveResp)
-				if err != nil {
-					log.Error("Error marshalling sse live response", "err", err)
-					return
-				}
-				err = redis.Client.Publish(redis.Ctx, shared.REDIS_SSE_BROADCAST_CHANNEL, respBytes).Err()
-				if err != nil {
-					log.Error("Failed to publish live page update", "err", err)
-				}
-			}()
-
-			// Process in database
-			repo.ProcessCogMessage(cogMessage)
-		}
-	}()
 
 	// This redis subscription has the following purpose:
 	// After we are done processing a cog message, we want to broadcast it to

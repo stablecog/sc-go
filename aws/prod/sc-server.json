@@ -36,6 +36,10 @@
                 {
                     "name": "PRODUCTION",
                     "value": "true"
+                },
+                {
+                    "name": "PUBLIC_API_URL",
+                    "value": "https://prod-api.stablecog.com"
                 }
             ],
             "mountPoints": [],
@@ -88,6 +92,10 @@
                 {
                     "name": "REDIS_CONNECTION_STRING",
                     "valueFrom": "arn:aws:secretsmanager:us-east-2:280846200654:secret:prod-stablecog/go-D0kHwQ:REDIS_CONNECTION_STRING::"
+                },
+                {
+                    "name": "SC_WORKER_WEBHOOK_SECRET",
+                    "valueFrom": "arn:aws:secretsmanager:us-east-2:280846200654:secret:prod-stablecog/go-D0kHwQ:SC_WORKER_WEBHOOK_SECRET::"
                 }
             ],
             "dockerLabels": {},
