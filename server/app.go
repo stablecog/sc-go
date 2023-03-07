@@ -50,6 +50,7 @@ func main() {
 	createMockData := flag.Bool("load-mock-data", false, "Create test data in database")
 	// ! TODO - remove after production
 	processCredits := flag.Bool("process-credits", false, "Process stripe subscription credits")
+	updateSubscriptions := flag.Bool("update-subscriptions", false, "Change starter subscriptions")
 
 	flag.Parse()
 
@@ -105,6 +106,76 @@ func main() {
 
 	// Create stripe client
 	stripeClient := stripe.New(utils.GetEnv("STRIPE_SECRET_KEY", ""), nil)
+
+	if *updateSubscriptions {
+		cusList := stripeClient.Customers.List(&stripeBase.CustomerListParams{
+			ListParams: stripeBase.ListParams{
+				Expand: []*string{
+					stripeBase.String("subscriptions"),
+				},
+			},
+		})
+
+		updated := 0
+		for cusList.Next() {
+			customer := cusList.Customer()
+
+			if customer.Subscriptions == nil || len(customer.Subscriptions.Data) == 0 || customer.Subscriptions.TotalCount == 0 {
+				continue
+			}
+
+			var currentPriceID string
+			var currentSubId string
+			var currentItemId string
+			for _, sub := range customer.Subscriptions.Data {
+				if sub.Status == stripeBase.SubscriptionStatusActive && sub.CancelAt == 0 {
+					for _, item := range sub.Items.Data {
+						// If price ID is in map it's valid
+						for _, priceID := range rest.PriceIDs {
+							if item.Price.ID == priceID {
+								currentPriceID = item.Price.ID
+								currentSubId = sub.ID
+								currentItemId = item.ID
+								break
+							}
+						}
+						// Check if euro price ID
+						euroPriceId := utils.GetEnv("STRIPE_STARTER_EURO_PRICE_ID", "price_1Mf56NATa0ehBYTAHkCUablG")
+						if item.Price.ID == euroPriceId {
+							currentPriceID = item.Price.ID
+							currentSubId = sub.ID
+							currentItemId = item.ID
+						}
+						break
+					}
+				}
+			}
+
+			if currentPriceID == "" {
+				log.Info("No active subscription found", "customer", customer.ID)
+				continue
+			}
+
+			// Execute subscription update
+			_, err = stripeClient.Subscriptions.Update(currentSubId, &stripeBase.SubscriptionParams{
+				ProrationBehavior: stripeBase.String("none"),
+				Items: []*stripeBase.SubscriptionItemsParams{
+					{
+						ID:    stripeBase.String(currentItemId),
+						Price: stripeBase.String("the_target_price"),
+					},
+				},
+			})
+
+			if err != nil {
+				log.Error("Error updating subscription", "err", err, "cus", customer.ID)
+				continue
+			}
+			updated++
+		}
+		log.Info("Updated subscriptions", "updated", updated)
+		os.Exit(0)
+	}
 
 	if *processCredits {
 		subList := stripeClient.Subscriptions.List(&stripeBase.SubscriptionListParams{
