@@ -55,8 +55,6 @@ func (c *RestAPI) HandleCreateGeneration(w http.ResponseWriter, r *http.Request)
 	}
 
 	// Get queue count
-	log.Infof("Queue count: %d", c.QueueThrottler.NumQueued(user.ID.String()))
-	log.Infof("Queue max: %d", qMax)
 	if c.QueueThrottler.NumQueued(user.ID.String()) > qMax {
 		responses.ErrBadRequest(w, r, "queue_limit_reached")
 		return
