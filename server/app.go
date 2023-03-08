@@ -403,7 +403,7 @@ func main() {
 				log.Error("Error unmarshalling unthrottle message", "err", err)
 				continue
 			}
-			qThrottler.Decrement(unthrottleMsg.UserID)
+			qThrottler.Decrement(unthrottleMsg.RequestID, unthrottleMsg.UserID)
 		}
 	}()
 

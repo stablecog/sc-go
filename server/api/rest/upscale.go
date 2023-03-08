@@ -201,7 +201,7 @@ func (c *RestAPI) HandleUpscale(w http.ResponseWriter, r *http.Request) {
 			return err
 		}
 
-		c.QueueThrottler.Increment(user.ID.String())
+		c.QueueThrottler.Increment(requestId, user.ID.String())
 
 		return nil
 	}); err != nil {

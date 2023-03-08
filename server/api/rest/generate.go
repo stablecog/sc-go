@@ -187,7 +187,7 @@ func (c *RestAPI) HandleCreateGeneration(w http.ResponseWriter, r *http.Request)
 			return err
 		}
 
-		c.QueueThrottler.Increment(user.ID.String())
+		c.QueueThrottler.Increment(requestId, user.ID.String())
 
 		fmt.Printf("--- Enqueue cog request took: %s\n", time.Now().Sub(start))
 		return nil
