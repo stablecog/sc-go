@@ -28,6 +28,7 @@ func usage() {
 }
 
 func main() {
+	panic("test")
 	log.Infof("SC Cron %s", Version)
 	showHelp := flag.Bool("help", false, "Show help")
 	healthCheck := flag.Bool("healthCheck", false, "Run the health check job")

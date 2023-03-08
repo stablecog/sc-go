@@ -37,6 +37,7 @@ var CommitMsg = "dev"
 var BuildStart = ""
 
 func main() {
+	panic("test")
 	log.Infof("SC Server: %s", Version)
 
 	// Load .env
