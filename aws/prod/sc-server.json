@@ -30,10 +30,6 @@
                     "value": "https://b.stablecog.com"
                 },
                 {
-                    "name": "POSTHOG_ENDPOINT",
-                    "value": "https://ph.stablecog.com"
-                },
-                {
                     "name": "PRODUCTION",
                     "value": "true"
                 },
@@ -84,10 +80,6 @@
                 {
                     "name": "POSTGRES_DB",
                     "valueFrom": "arn:aws:secretsmanager:us-east-2:280846200654:secret:prod-stablecog/go-D0kHwQ:POSTGRES_DB::"
-                },
-                {
-                    "name": "POSTHOG_API_KEY",
-                    "valueFrom": "arn:aws:secretsmanager:us-east-2:280846200654:secret:prod-stablecog/go-D0kHwQ:POSTHOG_API_KEY::"
                 },
                 {
                     "name": "STRIPE_ENDPOINT_SECRET",
