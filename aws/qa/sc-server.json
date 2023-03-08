@@ -36,6 +36,18 @@
                 {
                     "name": "PUBLIC_API_URL",
                     "value": "https://qa-api.stablecog.com"
+                },
+                {
+                    "name": "STRIPE_STARTER_PRODUCT_ID",
+                    "value": "prod_NPuwbni7ZNkHDO"
+                },
+                {
+                    "name": "STRIPE_PRO_PRODUCT_ID",
+                    "value": "prod_NPuqoCPVl1u3Qc"
+                },
+                {
+                    "name": "STRIPE_ULTIMATE_PRODUCT_ID",
+                    "value": "prod_NPuyRRiAU6TPl3"
                 }
             ],
             "mountPoints": [],

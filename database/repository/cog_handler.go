@@ -29,6 +29,11 @@ func (r *Repository) FailCogMessageDueToTimeoutIfTimedOut(msg requests.CogWebhoo
 		return
 	}
 
+	// Dec queue count
+	if msg.Input.UserID != nil {
+		r.QueueThrottler.Decrement(msg.Input.UserID.String())
+	}
+
 	// ! Execute timeout failure
 	// Get process type
 	if msg.Input.ProcessType != shared.GENERATE && msg.Input.ProcessType != shared.UPSCALE && msg.Input.ProcessType != shared.GENERATE_AND_UPSCALE {
@@ -127,6 +132,11 @@ func (r *Repository) ProcessCogMessage(msg requests.CogWebhookMessage) error {
 	_, err := r.Redis.DeleteCogRequestStreamID(r.Redis.Ctx, msg.Input.ID)
 	if err != nil {
 		log.Error("Error deleting stream ID from redis", "err", err)
+	}
+
+	// Dec queue count
+	if msg.Input.UserID != nil && (msg.Status == requests.CogSucceeded || msg.Status == requests.CogFailed) {
+		r.QueueThrottler.Decrement(msg.Input.UserID.String())
 	}
 
 	// Get process type

@@ -6,11 +6,13 @@ import (
 	"log"
 	"os"
 	"testing"
+	"time"
 
 	"github.com/stablecog/sc-go/database"
 	"github.com/stablecog/sc-go/database/repository"
 	"github.com/stablecog/sc-go/server/analytics"
 	"github.com/stablecog/sc-go/server/api/sse"
+	"github.com/stablecog/sc-go/shared"
 	"github.com/stablecog/sc-go/utils"
 )
 
@@ -54,9 +56,10 @@ func testMainWrapper(m *testing.M) int {
 	}
 
 	repo := &repository.Repository{
-		DB:    entClient,
-		Redis: redis,
-		Ctx:   ctx,
+		DB:             entClient,
+		Redis:          redis,
+		Ctx:            ctx,
+		QueueThrottler: shared.NewQueueThrottler(time.Hour),
 	}
 
 	// Mock data
@@ -82,10 +85,11 @@ func testMainWrapper(m *testing.M) int {
 
 	// Setup controller
 	MockController = &RestAPI{
-		Repo:  repo,
-		Redis: redis,
-		Hub:   hub,
-		Track: analytics.NewAnalyticsService(),
+		Repo:           repo,
+		Redis:          redis,
+		Hub:            hub,
+		Track:          analytics.NewAnalyticsService(),
+		QueueThrottler: shared.NewQueueThrottler(time.Hour),
 	}
 
 	return m.Run()

@@ -49,6 +49,12 @@ paths:
             type: string
             format: optional
           example: A portrait of a cat by Van Gogh
+        - name: output_id
+          in: query
+          schema:
+            type: string
+            format: optional
+          description: "Query for a single output_id"
       responses:
         "200":
           description: JSON object with gallery hits and metadata
@@ -744,7 +750,7 @@ components:
       properties:
         error:
           type: string
-          format: insufficient_credits, json_parse_error, invalid_stream_id, invalid_model_id, invalid_scheduler_id, invalid_image_url, invalid_output_id, image_url_width_height_error, output_not_found, image_already_upscaled
+          format: insufficient_credits, json_parse_error, invalid_stream_id, invalid_model_id, invalid_scheduler_id, invalid_image_url, invalid_output_id, image_url_width_height_error, output_not_found, image_already_upscaled, queue_limit_reached
     ErrorResponse401:
       type: object
       properties:

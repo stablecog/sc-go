@@ -2,6 +2,10 @@ package shared
 
 import "time"
 
+// Max queued items allowed
+const MAX_QUEUED_ITEMS_SUBSCRIBED = 5
+const MAX_QUEUED_ITEMS_FREE = 1
+
 // NSFW Error
 const NSFW_ERROR = "NSFW"
 

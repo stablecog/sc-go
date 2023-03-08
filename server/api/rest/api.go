@@ -12,6 +12,7 @@ import (
 	"github.com/stablecog/sc-go/server/analytics"
 	"github.com/stablecog/sc-go/server/api/sse"
 	"github.com/stablecog/sc-go/server/responses"
+	"github.com/stablecog/sc-go/shared"
 	stripe "github.com/stripe/stripe-go/v74/client"
 )
 
@@ -20,12 +21,13 @@ const DEFAULT_PER_PAGE = 50
 const MAX_PER_PAGE = 100
 
 type RestAPI struct {
-	Repo         *repository.Repository
-	Redis        *database.RedisWrapper
-	Hub          *sse.Hub
-	StripeClient *stripe.API
-	Meili        *meilisearch.Client
-	Track        *analytics.AnalyticsService
+	Repo           *repository.Repository
+	Redis          *database.RedisWrapper
+	Hub            *sse.Hub
+	StripeClient   *stripe.API
+	Meili          *meilisearch.Client
+	Track          *analytics.AnalyticsService
+	QueueThrottler *shared.UserQueueThrottlerMap
 }
 
 func (c *RestAPI) GetUserIfAuthenticated(w http.ResponseWriter, r *http.Request) (user *ent.User) {

@@ -88,9 +88,10 @@ func main() {
 
 	// Create repository (database access)
 	repo := &repository.Repository{
-		DB:    entClient,
-		Redis: redis,
-		Ctx:   ctx,
+		DB:             entClient,
+		Redis:          redis,
+		Ctx:            ctx,
+		QueueThrottler: shared.NewQueueThrottler(shared.REQUEST_COG_TIMEOUT),
 	}
 
 	if *createMockData {
@@ -278,12 +279,13 @@ func main() {
 
 	// Create controller
 	hc := rest.RestAPI{
-		Repo:         repo,
-		Redis:        redis,
-		Hub:          sseHub,
-		StripeClient: stripeClient,
-		Meili:        database.NewMeiliSearchClient(),
-		Track:        analyticsService,
+		Repo:           repo,
+		Redis:          redis,
+		Hub:            sseHub,
+		StripeClient:   stripeClient,
+		Meili:          database.NewMeiliSearchClient(),
+		Track:          analyticsService,
+		QueueThrottler: shared.NewQueueThrottler(shared.REQUEST_COG_TIMEOUT),
 	}
 
 	// Create middleware

@@ -25,6 +25,20 @@ func (c *RestAPI) HandleCreateGeneration(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
+	free := user.ActiveProductID == nil
+	prodLevel := 0
+	qMax := shared.MAX_QUEUED_ITEMS_FREE
+	if !free {
+		qMax = shared.MAX_QUEUED_ITEMS_SUBSCRIBED
+		// Get product level
+		for level, product := range GetProductIDs() {
+			if product == *user.ActiveProductID {
+				prodLevel = level
+				break
+			}
+		}
+	}
+
 	// Parse request body
 	reqBody, _ := io.ReadAll(r.Body)
 	var generateReq requests.CreateGenerationRequest
@@ -39,6 +53,17 @@ func (c *RestAPI) HandleCreateGeneration(w http.ResponseWriter, r *http.Request)
 	if err != nil {
 		responses.ErrBadRequest(w, r, err.Error())
 		return
+	}
+
+	// Get queue count
+	if c.QueueThrottler.NumQueued(user.ID.String()) > qMax {
+		responses.ErrBadRequest(w, r, "queue_limit_reached")
+		return
+	}
+
+	// Enforce submit to gallery
+	if prodLevel < 2 {
+		generateReq.SubmitToGallery = true
 	}
 
 	// Parse request headers
@@ -133,6 +158,7 @@ func (c *RestAPI) HandleCreateGeneration(w http.ResponseWriter, r *http.Request)
 			Input: requests.BaseCogRequest{
 				ID:                   requestId,
 				UIId:                 generateReq.UIId,
+				UserID:               &user.ID,
 				StreamID:             generateReq.StreamID,
 				LivePageData:         &livePageMsg,
 				Prompt:               generateReq.Prompt,
@@ -161,6 +187,9 @@ func (c *RestAPI) HandleCreateGeneration(w http.ResponseWriter, r *http.Request)
 			responses.ErrInternalServerError(w, r, "Failed to queue generate request")
 			return err
 		}
+
+		c.QueueThrottler.Increment(user.ID.String())
+
 		fmt.Printf("--- Enqueue cog request took: %s\n", time.Now().Sub(start))
 		return nil
 	}); err != nil {

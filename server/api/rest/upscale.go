@@ -32,10 +32,22 @@ func (c *RestAPI) HandleUpscale(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	free := user.ActiveProductID == nil
+	qMax := shared.MAX_QUEUED_ITEMS_FREE
+	if !free {
+		qMax = shared.MAX_QUEUED_ITEMS_SUBSCRIBED
+	}
+
 	// Validation
 	err = upscaleReq.Validate()
 	if err != nil {
 		responses.ErrBadRequest(w, r, err.Error())
+		return
+	}
+
+	// Get queue count
+	if c.QueueThrottler.NumQueued(user.ID.String()) > qMax {
+		responses.ErrBadRequest(w, r, "queue_limit_reached")
 		return
 	}
 
@@ -166,6 +178,7 @@ func (c *RestAPI) HandleUpscale(w http.ResponseWriter, r *http.Request) {
 			Input: requests.BaseCogRequest{
 				ID:                   requestId,
 				UIId:                 upscaleReq.UIId,
+				UserID:               &user.ID,
 				StreamID:             upscaleReq.StreamID,
 				LivePageData:         &livePageMsg,
 				GenerationOutputID:   outputIDStr,
@@ -187,6 +200,8 @@ func (c *RestAPI) HandleUpscale(w http.ResponseWriter, r *http.Request) {
 			responses.ErrInternalServerError(w, r, "Failed to queue upscale request")
 			return err
 		}
+
+		c.QueueThrottler.Increment(user.ID.String())
 
 		return nil
 	}); err != nil {
