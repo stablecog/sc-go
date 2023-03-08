@@ -110,7 +110,7 @@ func main() {
 		cusList := stripeClient.Customers.List(&stripeBase.CustomerListParams{
 			ListParams: stripeBase.ListParams{
 				Expand: []*string{
-					stripeBase.String("subscriptions"),
+					stripeBase.String("data.subscriptions"),
 				},
 			},
 		})
@@ -127,19 +127,18 @@ func main() {
 			var currentSubId string
 			var currentItemId string
 			for _, sub := range customer.Subscriptions.Data {
-				if sub.Status == stripeBase.SubscriptionStatusActive && sub.CancelAt == 0 {
+				if sub.Status == stripeBase.SubscriptionStatusActive {
 					for _, item := range sub.Items.Data {
+						log.Info("Found active subscription", "sub", sub.ID, "item", item.ID, "price", item.Price.ID)
 						// If price ID is in map it's valid
-						for _, priceID := range rest.PriceIDs {
-							if item.Price.ID == priceID {
-								currentPriceID = item.Price.ID
-								currentSubId = sub.ID
-								currentItemId = item.ID
-								break
-							}
+						if item.Price.ID == "price_1MTOGMATa0ehBYTAU9HUsHBM" {
+							currentPriceID = item.Price.ID
+							currentSubId = sub.ID
+							currentItemId = item.ID
+							break
 						}
 						// Check if euro price ID
-						euroPriceId := utils.GetEnv("STRIPE_STARTER_EURO_PRICE_ID", "price_1Mf56NATa0ehBYTAHkCUablG")
+						euroPriceId := utils.GetEnv("STRIPE_STARTER_EURO_PRICE_ID", "price_1MTOJaATa0ehBYTAptW6S1r7")
 						if item.Price.ID == euroPriceId {
 							currentPriceID = item.Price.ID
 							currentSubId = sub.ID
@@ -161,7 +160,7 @@ func main() {
 				Items: []*stripeBase.SubscriptionItemsParams{
 					{
 						ID:    stripeBase.String(currentItemId),
-						Price: stripeBase.String("the_target_price"),
+						Price: stripeBase.String("price_1Mj1EqATa0ehBYTAw4xFqw2s"),
 					},
 				},
 			})

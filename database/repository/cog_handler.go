@@ -19,6 +19,16 @@ import (
 
 // Consider a generation/upscale a failure due to timeout
 func (r *Repository) FailCogMessageDueToTimeoutIfTimedOut(msg requests.CogWebhookMessage) {
+	deleted, err := r.Redis.DeleteCogRequestStreamID(r.Redis.Ctx, msg.Input.ID)
+	if err != nil {
+		log.Error("Error deleting stream ID from redis", "err", err)
+		return
+	}
+	if deleted == 0 {
+		// Means it didnt time out
+		return
+	}
+
 	// ! Execute timeout failure
 	// Get process type
 	if msg.Input.ProcessType != shared.GENERATE && msg.Input.ProcessType != shared.UPSCALE && msg.Input.ProcessType != shared.GENERATE_AND_UPSCALE {
@@ -113,6 +123,12 @@ func (r *Repository) FailCogMessageDueToTimeoutIfTimedOut(msg requests.CogWebhoo
 
 // Process a cog message into database
 func (r *Repository) ProcessCogMessage(msg requests.CogWebhookMessage) error {
+	// Delete timeout key
+	_, err := r.Redis.DeleteCogRequestStreamID(r.Redis.Ctx, msg.Input.ID)
+	if err != nil {
+		log.Error("Error deleting stream ID from redis", "err", err)
+	}
+
 	// Get process type
 	if msg.Input.ProcessType != shared.GENERATE && msg.Input.ProcessType != shared.UPSCALE && msg.Input.ProcessType != shared.GENERATE_AND_UPSCALE {
 		log.Error("Invalid process type from cog, can't handle message", "process_type", msg.Input.ProcessType)

@@ -189,17 +189,24 @@ func (c *RestAPI) HandleCreateGeneration(w http.ResponseWriter, r *http.Request)
 		}
 	}()
 
-	// Start the timeout timer
-	go func() {
-		// sleep
-		time.Sleep(shared.REQUEST_COG_TIMEOUT)
-		// this will trigger timeout if it hasnt been finished
-		c.Repo.FailCogMessageDueToTimeoutIfTimedOut(requests.CogWebhookMessage{
-			Input:  cogReqBody.Input,
-			Error:  shared.TIMEOUT_ERROR,
-			Status: requests.CogFailed,
-		})
-	}()
+	// Set timeout key
+	err = c.Redis.SetCogRequestStreamID(c.Redis.Ctx, requestId, generateReq.StreamID)
+	if err != nil {
+		// Don't time it out if this fails
+		log.Error("Failed to set timeout key", "err", err)
+	} else {
+		// Start the timeout timer
+		go func() {
+			// sleep
+			time.Sleep(shared.REQUEST_COG_TIMEOUT)
+			// this will trigger timeout if it hasnt been finished
+			c.Repo.FailCogMessageDueToTimeoutIfTimedOut(requests.CogWebhookMessage{
+				Input:  cogReqBody.Input,
+				Error:  shared.TIMEOUT_ERROR,
+				Status: requests.CogFailed,
+			})
+		}()
+	}
 
 	render.Status(r, http.StatusOK)
 	render.JSON(w, r, &responses.TaskQueuedResponse{

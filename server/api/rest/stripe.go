@@ -132,7 +132,7 @@ func (c *RestAPI) HandleCreateCheckoutSession(w http.ResponseWriter, r *http.Req
 	var currentPriceID string
 	if customer.Subscriptions != nil {
 		for _, sub := range customer.Subscriptions.Data {
-			if sub.Status == stripe.SubscriptionStatusActive && sub.CancelAt == 0 {
+			if sub.Status == stripe.SubscriptionStatusActive {
 				for _, item := range sub.Items.Data {
 					if item.Price.ID == targetPriceID {
 						responses.ErrBadRequest(w, r, "already_subscribed")
