@@ -163,7 +163,7 @@ jobs:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           task-definition: ./aws/qa/sc-server.json
-          service: qa-sc-server-Service-XSweBbsvI0JC
+          service: qa-sc-server-Service-PAHvv9lELi5m
           image: stablecog/sc-server:${{ needs.setup_env.outputs.branch_name}}-${{ env.GITHUB_RUN_ID }}
           embed-title: "${{ needs.setup_env.outputs.commit_msg }}  •  ${{ needs.setup_env.outputs.short_sha }}"
           prod-webhook-url: ${{ secrets.DISCORD_WEBHOOK_PROD }}
@@ -186,7 +186,7 @@ jobs:
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          service: qa-sc-cron-Service-XSweBbsvI0JC
+          service: qa-sc-cron-Service-PAHvv9lELi5m
           task-definition: ./aws/qa/sc-cron.json
           image: stablecog/sc-server:${{ needs.setup_env.outputs.branch_name}}-${{ env.GITHUB_RUN_ID }}
           env: qa
