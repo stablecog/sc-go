@@ -186,7 +186,7 @@ jobs:
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          service: qa-sc-cron
+          service: qa-sc-cron-Service-XSweBbsvI0JC
           task-definition: ./aws/qa/sc-cron.json
           image: stablecog/sc-server:${{ needs.setup_env.outputs.branch_name}}-${{ env.GITHUB_RUN_ID }}
           env: qa
@@ -208,7 +208,7 @@ jobs:
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          service: prod-sc-server-Service-uDZHByAncsMB
+          service: prod-sc-server-Service-zZN0rS56eFBi
           task-definition: ./aws/prod/sc-server.json
           image: stablecog/sc-server:${{ needs.setup_env.outputs.branch_name}}-${{ env.GITHUB_RUN_ID }}
           embed-title: "${{ needs.setup_env.outputs.commit_msg }}  •  ${{ needs.setup_env.outputs.short_sha }}"
@@ -233,7 +233,7 @@ jobs:
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          service: prod-sc-cron
+          service: prod-sc-cron-Service-zZN0rS56eFBi
           task-definition: ./aws/prod/sc-cron.json
           image: stablecog/sc-server:${{ needs.setup_env.outputs.branch_name}}-${{ env.GITHUB_RUN_ID }}
           env: prod

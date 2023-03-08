@@ -10,7 +10,7 @@ inputs:
   aws-region:
     description: AWS Region
     required: true
-    default: us-east-2
+    default: us-east-1
   task-definition:
     description: Path to task definition
     required: true
@@ -73,7 +73,7 @@ runs:
       with:
         task-definition: ${{ steps.task-def.outputs.task-definition }}
         service: ${{ inputs.service }}
-        cluster: qa-stablecog-Cluster-g4jXWMxvTvnZ
+        cluster: qa-ecs-cluster-Cluster-UprHq7IznJij
         wait-for-service-stability: false
 
     - name: Deploy PROD
@@ -82,7 +82,7 @@ runs:
       with:
         task-definition: ${{ steps.task-def.outputs.task-definition }}
         service: ${{ inputs.service }}
-        cluster: prod-stablecog-Cluster-wF6ivHjjqkzo
+        cluster: prod-ecs-cluster-Cluster-8TMWuJFHdmaO
         wait-for-service-stability: false
 
     - name: Send Discord Webhook

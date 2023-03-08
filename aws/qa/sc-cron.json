@@ -32,43 +32,43 @@
       "secrets": [
         {
           "name": "MEILI_URL",
-          "valueFrom": "arn:aws:secretsmanager:us-east-2:280846200654:secret:qa-stablecog/go-546TP9:MEILI_URL::"
+          "valueFrom": "arn:aws:secretsmanager:us-east-1:280846200654:secret:qa-stablecog/go-EUbMO6:MEILI_URL::"
         },
         {
           "name": "MEILI_MASTER_KEY",
-          "valueFrom": "arn:aws:secretsmanager:us-east-2:280846200654:secret:qa-stablecog/go-546TP9:MEILI_MASTER_KEY::"
+          "valueFrom": "arn:aws:secretsmanager:us-east-1:280846200654:secret:qa-stablecog/go-EUbMO6:MEILI_MASTER_KEY::"
         },
         {
           "name": "POSTGRES_PASSWORD",
-          "valueFrom": "arn:aws:secretsmanager:us-east-2:280846200654:secret:qa-stablecog/go-546TP9:POSTGRES_PASSWORD::"
+          "valueFrom": "arn:aws:secretsmanager:us-east-1:280846200654:secret:qa-stablecog/go-EUbMO6:POSTGRES_PASSWORD::"
         },
         {
           "name": "POSTGRES_USER",
-          "valueFrom": "arn:aws:secretsmanager:us-east-2:280846200654:secret:qa-stablecog/go-546TP9:POSTGRES_USER::"
+          "valueFrom": "arn:aws:secretsmanager:us-east-1:280846200654:secret:qa-stablecog/go-EUbMO6:POSTGRES_USER::"
         },
         {
           "name": "POSTGRES_HOST",
-          "valueFrom": "arn:aws:secretsmanager:us-east-2:280846200654:secret:qa-stablecog/go-546TP9:POSTGRES_HOST::"
+          "valueFrom": "arn:aws:secretsmanager:us-east-1:280846200654:secret:qa-stablecog/go-EUbMO6:POSTGRES_HOST::"
         },
         {
           "name": "POSTGRES_DB",
-          "valueFrom": "arn:aws:secretsmanager:us-east-2:280846200654:secret:qa-stablecog/go-546TP9:POSTGRES_DB::"
+          "valueFrom": "arn:aws:secretsmanager:us-east-1:280846200654:secret:qa-stablecog/go-EUbMO6:POSTGRES_DB::"
         },
         {
           "name": "STRIPE_ENDPOINT_SECRET",
-          "valueFrom": "arn:aws:secretsmanager:us-east-2:280846200654:secret:qa-stablecog/go-546TP9:STRIPE_ENDPOINT_SECRET::"
+          "valueFrom": "arn:aws:secretsmanager:us-east-1:280846200654:secret:qa-stablecog/go-EUbMO6:STRIPE_ENDPOINT_SECRET::"
         },
         {
           "name": "STRIPE_SECRET_KEY",
-          "valueFrom": "arn:aws:secretsmanager:us-east-2:280846200654:secret:qa-stablecog/go-546TP9:STRIPE_SECRET_KEY::"
+          "valueFrom": "arn:aws:secretsmanager:us-east-1:280846200654:secret:qa-stablecog/go-EUbMO6:STRIPE_SECRET_KEY::"
         },
         {
           "name": "SUPABASE_ADMIN_KEY",
-          "valueFrom": "arn:aws:secretsmanager:us-east-2:280846200654:secret:qa-stablecog/go-546TP9:SUPABASE_ADMIN_KEY::"
+          "valueFrom": "arn:aws:secretsmanager:us-east-1:280846200654:secret:qa-stablecog/go-EUbMO6:SUPABASE_ADMIN_KEY::"
         },
         {
           "name": "REDIS_CONNECTION_STRING",
-          "valueFrom": "arn:aws:secretsmanager:us-east-2:280846200654:secret:qa-stablecog/go-546TP9:REDIS_CONNECTION_STRING::"
+          "valueFrom": "arn:aws:secretsmanager:us-east-1:280846200654:secret:qa-stablecog/go-EUbMO6:REDIS_CONNECTION_STRING::"
         }
       ],
       "dockerLabels": {},
@@ -76,7 +76,7 @@
         "logDriver": "awslogs",
         "options": {
           "awslogs-group": "qa-stablecog",
-          "awslogs-region": "us-east-2",
+          "awslogs-region": "us-east-1",
           "awslogs-stream-prefix": "sc-cron"
         }
       }
