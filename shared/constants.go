@@ -32,8 +32,8 @@ const MAX_PROMPT_LENGTH = 500
 // The name of the redis stream used to enqueue worker requests
 const COG_REDIS_QUEUE = "input_queue"
 
-// This is the redis channel that the cog publishes to for events
-const COG_REDIS_EVENT_CHANNEL = "queue:event_channel"
+// Redis channel for queue throttle updates
+const REDIS_QUEUE_THROTTLE_CHANNEL = "queue_throttle"
 
 // This redis channel our servers publish to when we want to broadcast SSE events to clients
 const REDIS_SSE_BROADCAST_CHANNEL = "sse:broadcast_channel"

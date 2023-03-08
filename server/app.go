@@ -88,10 +88,9 @@ func main() {
 
 	// Create repository (database access)
 	repo := &repository.Repository{
-		DB:             entClient,
-		Redis:          redis,
-		Ctx:            ctx,
-		QueueThrottler: shared.NewQueueThrottler(shared.REQUEST_COG_TIMEOUT),
+		DB:    entClient,
+		Redis: redis,
+		Ctx:   ctx,
 	}
 
 	if *createMockData {
@@ -277,6 +276,9 @@ func main() {
 	analyticsService := analytics.NewAnalyticsService()
 	defer analyticsService.Close()
 
+	// Q Throttler
+	qThrottler := shared.NewQueueThrottler(shared.REQUEST_COG_TIMEOUT)
+
 	// Create controller
 	hc := rest.RestAPI{
 		Repo:           repo,
@@ -285,7 +287,7 @@ func main() {
 		StripeClient:   stripeClient,
 		Meili:          database.NewMeiliSearchClient(),
 		Track:          analyticsService,
-		QueueThrottler: shared.NewQueueThrottler(shared.REQUEST_COG_TIMEOUT),
+		QueueThrottler: qThrottler,
 	}
 
 	// Create middleware
@@ -385,6 +387,25 @@ func main() {
 			})
 		})
 	})
+
+	// This redis subscription has the following purpose:
+	// When a generation/upscale is finished - we want to un-throttle them from the queue across all instances
+	pubsubThrottleMessages := redis.Client.Subscribe(ctx, shared.REDIS_QUEUE_THROTTLE_CHANNEL)
+	defer pubsubThrottleMessages.Close()
+
+	// Start SSE redis subscription
+	go func() {
+		log.Info("Listening for throttle messages", "channel", shared.REDIS_QUEUE_THROTTLE_CHANNEL)
+		for msg := range pubsubThrottleMessages.Channel() {
+			var unthrottleMsg repository.UnthrottleUserResponse
+			err := json.Unmarshal([]byte(msg.Payload), &unthrottleMsg)
+			if err != nil {
+				log.Error("Error unmarshalling unthrottle message", "err", err)
+				continue
+			}
+			qThrottler.Decrement(unthrottleMsg.UserID)
+		}
+	}()
 
 	// This redis subscription has the following purpose:
 	// After we are done processing a cog message, we want to broadcast it to

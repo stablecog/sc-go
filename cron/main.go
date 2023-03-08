@@ -15,7 +15,6 @@ import (
 	"github.com/stablecog/sc-go/database"
 	"github.com/stablecog/sc-go/database/repository"
 	"github.com/stablecog/sc-go/log"
-	"github.com/stablecog/sc-go/shared"
 	"github.com/stablecog/sc-go/utils"
 )
 
@@ -74,10 +73,9 @@ func main() {
 	// Create repostiory
 	// Create repository (database access)
 	repo := &repository.Repository{
-		DB:             entClient,
-		Redis:          redis,
-		Ctx:            ctx,
-		QueueThrottler: shared.NewQueueThrottler(time.Hour),
+		DB:    entClient,
+		Redis: redis,
+		Ctx:   ctx,
 	}
 
 	// Create a job runner

@@ -31,7 +31,16 @@ func (r *Repository) FailCogMessageDueToTimeoutIfTimedOut(msg requests.CogWebhoo
 
 	// Dec queue count
 	if msg.Input.UserID != nil {
-		r.QueueThrottler.Decrement(msg.Input.UserID.String())
+		unthrottleMsg := UnthrottleUserResponse{
+			UserID: msg.Input.UserID.String(),
+		}
+		respBytes, err := json.Marshal(unthrottleMsg)
+		if err != nil {
+			log.Error("Error marshalling unthrottle response", "err", err)
+		} else {
+			// Broadcast to all clients subcribed to this stream
+			r.Redis.Client.Publish(r.Redis.Ctx, shared.REDIS_QUEUE_THROTTLE_CHANNEL, respBytes)
+		}
 	}
 
 	// ! Execute timeout failure
@@ -136,7 +145,16 @@ func (r *Repository) ProcessCogMessage(msg requests.CogWebhookMessage) error {
 
 	// Dec queue count
 	if msg.Input.UserID != nil && (msg.Status == requests.CogSucceeded || msg.Status == requests.CogFailed) {
-		r.QueueThrottler.Decrement(msg.Input.UserID.String())
+		unthrottleMsg := UnthrottleUserResponse{
+			UserID: msg.Input.UserID.String(),
+		}
+		respBytes, err := json.Marshal(unthrottleMsg)
+		if err != nil {
+			return err
+		} else {
+			// Broadcast to all clients subcribed to this stream
+			r.Redis.Client.Publish(r.Redis.Ctx, shared.REDIS_QUEUE_THROTTLE_CHANNEL, respBytes)
+		}
 	}
 
 	// Get process type

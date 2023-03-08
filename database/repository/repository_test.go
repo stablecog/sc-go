@@ -6,12 +6,10 @@ import (
 	"log"
 	"os"
 	"testing"
-	"time"
 
 	"github.com/stablecog/sc-go/database"
 	"github.com/stablecog/sc-go/database/ent"
 	"github.com/stablecog/sc-go/database/ent/deviceinfo"
-	"github.com/stablecog/sc-go/shared"
 	"github.com/stablecog/sc-go/utils"
 	"github.com/stretchr/testify/assert"
 )
@@ -53,10 +51,9 @@ func testMainWrapper(m *testing.M) int {
 	}
 
 	MockRepo = &Repository{
-		DB:             entClient,
-		Redis:          redis,
-		Ctx:            ctx,
-		QueueThrottler: shared.NewQueueThrottler(time.Hour),
+		DB:    entClient,
+		Redis: redis,
+		Ctx:   ctx,
 	}
 
 	// Create mockdata

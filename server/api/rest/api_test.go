@@ -56,10 +56,9 @@ func testMainWrapper(m *testing.M) int {
 	}
 
 	repo := &repository.Repository{
-		DB:             entClient,
-		Redis:          redis,
-		Ctx:            ctx,
-		QueueThrottler: shared.NewQueueThrottler(time.Hour),
+		DB:    entClient,
+		Redis: redis,
+		Ctx:   ctx,
 	}
 
 	// Mock data

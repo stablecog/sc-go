@@ -6,16 +6,14 @@ import (
 
 	"github.com/stablecog/sc-go/database"
 	"github.com/stablecog/sc-go/database/ent"
-	"github.com/stablecog/sc-go/shared"
 )
 
 // Repository is a package that contains all the database access functions
 
 type Repository struct {
-	DB             *ent.Client
-	Redis          *database.RedisWrapper
-	Ctx            context.Context
-	QueueThrottler *shared.UserQueueThrottlerMap
+	DB    *ent.Client
+	Redis *database.RedisWrapper
+	Ctx   context.Context
 }
 
 // WithTx runs a function in a transaction
