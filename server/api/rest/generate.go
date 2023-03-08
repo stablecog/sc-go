@@ -26,17 +26,16 @@ func (c *RestAPI) HandleCreateGeneration(w http.ResponseWriter, r *http.Request)
 	}
 
 	free := user.ActiveProductID == nil
-	prodLevel := 0
 	qMax := shared.MAX_QUEUED_ITEMS_FREE
 	if !free {
 		qMax = shared.MAX_QUEUED_ITEMS_SUBSCRIBED
-		// Get product level
-		for level, product := range GetProductIDs() {
-			if product == *user.ActiveProductID {
-				prodLevel = level
-				break
-			}
-		}
+		// // Get product level
+		// for level, product := range GetProductIDs() {
+		// 	if product == *user.ActiveProductID {
+		// 		prodLevel = level
+		// 		break
+		// 	}
+		// }
 	}
 
 	// Parse request body
@@ -62,9 +61,9 @@ func (c *RestAPI) HandleCreateGeneration(w http.ResponseWriter, r *http.Request)
 	}
 
 	// Enforce submit to gallery
-	if prodLevel < 2 {
-		generateReq.SubmitToGallery = true
-	}
+	// if prodLevel < 2 {
+	// 	generateReq.SubmitToGallery = true
+	// }
 
 	// Parse request headers
 	countryCode := utils.GetCountryCode(r)

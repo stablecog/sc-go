@@ -143,20 +143,6 @@ func (r *Repository) ProcessCogMessage(msg requests.CogWebhookMessage) error {
 		log.Error("Error deleting stream ID from redis", "err", err)
 	}
 
-	// Dec queue count
-	if msg.Input.UserID != nil && (msg.Status == requests.CogSucceeded || msg.Status == requests.CogFailed) {
-		unthrottleMsg := UnthrottleUserResponse{
-			UserID: msg.Input.UserID.String(),
-		}
-		respBytes, err := json.Marshal(unthrottleMsg)
-		if err != nil {
-			return err
-		} else {
-			// Broadcast to all clients subcribed to this stream
-			r.Redis.Client.Publish(r.Redis.Ctx, shared.REDIS_QUEUE_THROTTLE_CHANNEL, respBytes)
-		}
-	}
-
 	// Get process type
 	if msg.Input.ProcessType != shared.GENERATE && msg.Input.ProcessType != shared.UPSCALE && msg.Input.ProcessType != shared.GENERATE_AND_UPSCALE {
 		log.Error("Invalid process type from cog, can't handle message", "process_type", msg.Input.ProcessType)
@@ -373,6 +359,20 @@ func (r *Repository) ProcessCogMessage(msg requests.CogWebhookMessage) error {
 	if err != nil {
 		log.Error("Error marshalling sse response", "err", err)
 		return err
+	}
+
+	// Dec queue count
+	if msg.Input.UserID != nil && (msg.Status == requests.CogSucceeded || msg.Status == requests.CogFailed) {
+		unthrottleMsg := UnthrottleUserResponse{
+			UserID: msg.Input.UserID.String(),
+		}
+		respBytes, err := json.Marshal(unthrottleMsg)
+		if err != nil {
+			return err
+		} else {
+			// Broadcast to all clients subcribed to this stream
+			r.Redis.Client.Publish(r.Redis.Ctx, shared.REDIS_QUEUE_THROTTLE_CHANNEL, respBytes)
+		}
 	}
 
 	// Broadcast to all clients subcribed to this stream
