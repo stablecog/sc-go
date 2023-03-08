@@ -17,6 +17,7 @@ import (
 
 var WebhookUrl string
 
+// Dimension is service name for the event we target
 type Dimensions struct {
 	Value string `json:"value"`
 }
