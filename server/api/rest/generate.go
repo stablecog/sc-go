@@ -125,6 +125,7 @@ func (c *RestAPI) HandleCreateGeneration(w http.ResponseWriter, r *http.Request)
 			deviceInfo.DeviceBrowser,
 			countryCode,
 			generateReq,
+			user.ActiveProductID,
 			DB)
 		if err != nil {
 			log.Error("Error creating generation", "err", err)

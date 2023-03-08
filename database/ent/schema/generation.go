@@ -33,6 +33,7 @@ func (Generation) Fields() []ent.Field {
 		field.Text("country_code").Optional().Nillable(),
 		field.Text("init_image_url").Optional().Nillable(),
 		field.Bool("submit_to_gallery").Default(false),
+		field.Text("stripe_product_id").Optional().Nillable(),
 		// ! Relationships / many-to-one
 		field.UUID("prompt_id", uuid.UUID{}).Optional().Nillable(),
 		field.UUID("negative_prompt_id", uuid.UUID{}).Optional().Nillable(),

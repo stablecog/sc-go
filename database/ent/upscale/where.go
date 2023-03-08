@@ -81,6 +81,11 @@ func FailureReason(v string) predicate.Upscale {
 	return predicate.Upscale(sql.FieldEQ(FieldFailureReason, v))
 }
 
+// StripeProductID applies equality check predicate on the "stripe_product_id" field. It's identical to StripeProductIDEQ.
+func StripeProductID(v string) predicate.Upscale {
+	return predicate.Upscale(sql.FieldEQ(FieldStripeProductID, v))
+}
+
 // UserID applies equality check predicate on the "user_id" field. It's identical to UserIDEQ.
 func UserID(v uuid.UUID) predicate.Upscale {
 	return predicate.Upscale(sql.FieldEQ(FieldUserID, v))
@@ -404,6 +409,81 @@ func FailureReasonEqualFold(v string) predicate.Upscale {
 // FailureReasonContainsFold applies the ContainsFold predicate on the "failure_reason" field.
 func FailureReasonContainsFold(v string) predicate.Upscale {
 	return predicate.Upscale(sql.FieldContainsFold(FieldFailureReason, v))
+}
+
+// StripeProductIDEQ applies the EQ predicate on the "stripe_product_id" field.
+func StripeProductIDEQ(v string) predicate.Upscale {
+	return predicate.Upscale(sql.FieldEQ(FieldStripeProductID, v))
+}
+
+// StripeProductIDNEQ applies the NEQ predicate on the "stripe_product_id" field.
+func StripeProductIDNEQ(v string) predicate.Upscale {
+	return predicate.Upscale(sql.FieldNEQ(FieldStripeProductID, v))
+}
+
+// StripeProductIDIn applies the In predicate on the "stripe_product_id" field.
+func StripeProductIDIn(vs ...string) predicate.Upscale {
+	return predicate.Upscale(sql.FieldIn(FieldStripeProductID, vs...))
+}
+
+// StripeProductIDNotIn applies the NotIn predicate on the "stripe_product_id" field.
+func StripeProductIDNotIn(vs ...string) predicate.Upscale {
+	return predicate.Upscale(sql.FieldNotIn(FieldStripeProductID, vs...))
+}
+
+// StripeProductIDGT applies the GT predicate on the "stripe_product_id" field.
+func StripeProductIDGT(v string) predicate.Upscale {
+	return predicate.Upscale(sql.FieldGT(FieldStripeProductID, v))
+}
+
+// StripeProductIDGTE applies the GTE predicate on the "stripe_product_id" field.
+func StripeProductIDGTE(v string) predicate.Upscale {
+	return predicate.Upscale(sql.FieldGTE(FieldStripeProductID, v))
+}
+
+// StripeProductIDLT applies the LT predicate on the "stripe_product_id" field.
+func StripeProductIDLT(v string) predicate.Upscale {
+	return predicate.Upscale(sql.FieldLT(FieldStripeProductID, v))
+}
+
+// StripeProductIDLTE applies the LTE predicate on the "stripe_product_id" field.
+func StripeProductIDLTE(v string) predicate.Upscale {
+	return predicate.Upscale(sql.FieldLTE(FieldStripeProductID, v))
+}
+
+// StripeProductIDContains applies the Contains predicate on the "stripe_product_id" field.
+func StripeProductIDContains(v string) predicate.Upscale {
+	return predicate.Upscale(sql.FieldContains(FieldStripeProductID, v))
+}
+
+// StripeProductIDHasPrefix applies the HasPrefix predicate on the "stripe_product_id" field.
+func StripeProductIDHasPrefix(v string) predicate.Upscale {
+	return predicate.Upscale(sql.FieldHasPrefix(FieldStripeProductID, v))
+}
+
+// StripeProductIDHasSuffix applies the HasSuffix predicate on the "stripe_product_id" field.
+func StripeProductIDHasSuffix(v string) predicate.Upscale {
+	return predicate.Upscale(sql.FieldHasSuffix(FieldStripeProductID, v))
+}
+
+// StripeProductIDIsNil applies the IsNil predicate on the "stripe_product_id" field.
+func StripeProductIDIsNil() predicate.Upscale {
+	return predicate.Upscale(sql.FieldIsNull(FieldStripeProductID))
+}
+
+// StripeProductIDNotNil applies the NotNil predicate on the "stripe_product_id" field.
+func StripeProductIDNotNil() predicate.Upscale {
+	return predicate.Upscale(sql.FieldNotNull(FieldStripeProductID))
+}
+
+// StripeProductIDEqualFold applies the EqualFold predicate on the "stripe_product_id" field.
+func StripeProductIDEqualFold(v string) predicate.Upscale {
+	return predicate.Upscale(sql.FieldEqualFold(FieldStripeProductID, v))
+}
+
+// StripeProductIDContainsFold applies the ContainsFold predicate on the "stripe_product_id" field.
+func StripeProductIDContainsFold(v string) predicate.Upscale {
+	return predicate.Upscale(sql.FieldContainsFold(FieldStripeProductID, v))
 }
 
 // UserIDEQ applies the EQ predicate on the "user_id" field.

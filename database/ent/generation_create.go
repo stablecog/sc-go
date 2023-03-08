@@ -140,6 +140,20 @@ func (gc *GenerationCreate) SetNillableSubmitToGallery(b *bool) *GenerationCreat
 	return gc
 }
 
+// SetStripeProductID sets the "stripe_product_id" field.
+func (gc *GenerationCreate) SetStripeProductID(s string) *GenerationCreate {
+	gc.mutation.SetStripeProductID(s)
+	return gc
+}
+
+// SetNillableStripeProductID sets the "stripe_product_id" field if the given value is not nil.
+func (gc *GenerationCreate) SetNillableStripeProductID(s *string) *GenerationCreate {
+	if s != nil {
+		gc.SetStripeProductID(*s)
+	}
+	return gc
+}
+
 // SetPromptID sets the "prompt_id" field.
 func (gc *GenerationCreate) SetPromptID(u uuid.UUID) *GenerationCreate {
 	gc.mutation.SetPromptID(u)
@@ -522,6 +536,10 @@ func (gc *GenerationCreate) createSpec() (*Generation, *sqlgraph.CreateSpec) {
 	if value, ok := gc.mutation.SubmitToGallery(); ok {
 		_spec.SetField(generation.FieldSubmitToGallery, field.TypeBool, value)
 		_node.SubmitToGallery = value
+	}
+	if value, ok := gc.mutation.StripeProductID(); ok {
+		_spec.SetField(generation.FieldStripeProductID, field.TypeString, value)
+		_node.StripeProductID = &value
 	}
 	if value, ok := gc.mutation.StartedAt(); ok {
 		_spec.SetField(generation.FieldStartedAt, field.TypeTime, value)

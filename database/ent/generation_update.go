@@ -216,6 +216,26 @@ func (gu *GenerationUpdate) SetNillableSubmitToGallery(b *bool) *GenerationUpdat
 	return gu
 }
 
+// SetStripeProductID sets the "stripe_product_id" field.
+func (gu *GenerationUpdate) SetStripeProductID(s string) *GenerationUpdate {
+	gu.mutation.SetStripeProductID(s)
+	return gu
+}
+
+// SetNillableStripeProductID sets the "stripe_product_id" field if the given value is not nil.
+func (gu *GenerationUpdate) SetNillableStripeProductID(s *string) *GenerationUpdate {
+	if s != nil {
+		gu.SetStripeProductID(*s)
+	}
+	return gu
+}
+
+// ClearStripeProductID clears the value of the "stripe_product_id" field.
+func (gu *GenerationUpdate) ClearStripeProductID() *GenerationUpdate {
+	gu.mutation.ClearStripeProductID()
+	return gu
+}
+
 // SetPromptID sets the "prompt_id" field.
 func (gu *GenerationUpdate) SetPromptID(u uuid.UUID) *GenerationUpdate {
 	gu.mutation.SetPromptID(u)
@@ -589,6 +609,12 @@ func (gu *GenerationUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if value, ok := gu.mutation.SubmitToGallery(); ok {
 		_spec.SetField(generation.FieldSubmitToGallery, field.TypeBool, value)
+	}
+	if value, ok := gu.mutation.StripeProductID(); ok {
+		_spec.SetField(generation.FieldStripeProductID, field.TypeString, value)
+	}
+	if gu.mutation.StripeProductIDCleared() {
+		_spec.ClearField(generation.FieldStripeProductID, field.TypeString)
 	}
 	if value, ok := gu.mutation.StartedAt(); ok {
 		_spec.SetField(generation.FieldStartedAt, field.TypeTime, value)
@@ -1070,6 +1096,26 @@ func (guo *GenerationUpdateOne) SetNillableSubmitToGallery(b *bool) *GenerationU
 	return guo
 }
 
+// SetStripeProductID sets the "stripe_product_id" field.
+func (guo *GenerationUpdateOne) SetStripeProductID(s string) *GenerationUpdateOne {
+	guo.mutation.SetStripeProductID(s)
+	return guo
+}
+
+// SetNillableStripeProductID sets the "stripe_product_id" field if the given value is not nil.
+func (guo *GenerationUpdateOne) SetNillableStripeProductID(s *string) *GenerationUpdateOne {
+	if s != nil {
+		guo.SetStripeProductID(*s)
+	}
+	return guo
+}
+
+// ClearStripeProductID clears the value of the "stripe_product_id" field.
+func (guo *GenerationUpdateOne) ClearStripeProductID() *GenerationUpdateOne {
+	guo.mutation.ClearStripeProductID()
+	return guo
+}
+
 // SetPromptID sets the "prompt_id" field.
 func (guo *GenerationUpdateOne) SetPromptID(u uuid.UUID) *GenerationUpdateOne {
 	guo.mutation.SetPromptID(u)
@@ -1467,6 +1513,12 @@ func (guo *GenerationUpdateOne) sqlSave(ctx context.Context) (_node *Generation,
 	}
 	if value, ok := guo.mutation.SubmitToGallery(); ok {
 		_spec.SetField(generation.FieldSubmitToGallery, field.TypeBool, value)
+	}
+	if value, ok := guo.mutation.StripeProductID(); ok {
+		_spec.SetField(generation.FieldStripeProductID, field.TypeString, value)
+	}
+	if guo.mutation.StripeProductIDCleared() {
+		_spec.ClearField(generation.FieldStripeProductID, field.TypeString)
 	}
 	if value, ok := guo.mutation.StartedAt(); ok {
 		_spec.SetField(generation.FieldStartedAt, field.TypeTime, value)

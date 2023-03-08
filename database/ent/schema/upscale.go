@@ -26,6 +26,7 @@ func (Upscale) Fields() []ent.Field {
 		field.Text("country_code").Optional().Nillable(),
 		field.Enum("status").Values("queued", "started", "succeeded", "failed"),
 		field.Text("failure_reason").Optional().Nillable(),
+		field.Text("stripe_product_id").Optional().Nillable(),
 		// ! Relationships / many-to-one
 		field.UUID("user_id", uuid.UUID{}),
 		field.UUID("device_info_id", uuid.UUID{}),

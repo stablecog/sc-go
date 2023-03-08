@@ -2957,6 +2957,7 @@ type GenerationMutation struct {
 	country_code              *string
 	init_image_url            *string
 	submit_to_gallery         *bool
+	stripe_product_id         *string
 	started_at                *time.Time
 	completed_at              *time.Time
 	created_at                *time.Time
@@ -3697,6 +3698,55 @@ func (m *GenerationMutation) ResetSubmitToGallery() {
 	m.submit_to_gallery = nil
 }
 
+// SetStripeProductID sets the "stripe_product_id" field.
+func (m *GenerationMutation) SetStripeProductID(s string) {
+	m.stripe_product_id = &s
+}
+
+// StripeProductID returns the value of the "stripe_product_id" field in the mutation.
+func (m *GenerationMutation) StripeProductID() (r string, exists bool) {
+	v := m.stripe_product_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldStripeProductID returns the old "stripe_product_id" field's value of the Generation entity.
+// If the Generation object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *GenerationMutation) OldStripeProductID(ctx context.Context) (v *string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldStripeProductID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldStripeProductID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldStripeProductID: %w", err)
+	}
+	return oldValue.StripeProductID, nil
+}
+
+// ClearStripeProductID clears the value of the "stripe_product_id" field.
+func (m *GenerationMutation) ClearStripeProductID() {
+	m.stripe_product_id = nil
+	m.clearedFields[generation.FieldStripeProductID] = struct{}{}
+}
+
+// StripeProductIDCleared returns if the "stripe_product_id" field was cleared in this mutation.
+func (m *GenerationMutation) StripeProductIDCleared() bool {
+	_, ok := m.clearedFields[generation.FieldStripeProductID]
+	return ok
+}
+
+// ResetStripeProductID resets all changes to the "stripe_product_id" field.
+func (m *GenerationMutation) ResetStripeProductID() {
+	m.stripe_product_id = nil
+	delete(m.clearedFields, generation.FieldStripeProductID)
+}
+
 // SetPromptID sets the "prompt_id" field.
 func (m *GenerationMutation) SetPromptID(u uuid.UUID) {
 	m.prompt = &u
@@ -4366,7 +4416,7 @@ func (m *GenerationMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *GenerationMutation) Fields() []string {
-	fields := make([]string, 0, 22)
+	fields := make([]string, 0, 23)
 	if m.width != nil {
 		fields = append(fields, generation.FieldWidth)
 	}
@@ -4402,6 +4452,9 @@ func (m *GenerationMutation) Fields() []string {
 	}
 	if m.submit_to_gallery != nil {
 		fields = append(fields, generation.FieldSubmitToGallery)
+	}
+	if m.stripe_product_id != nil {
+		fields = append(fields, generation.FieldStripeProductID)
 	}
 	if m.prompt != nil {
 		fields = append(fields, generation.FieldPromptID)
@@ -4465,6 +4518,8 @@ func (m *GenerationMutation) Field(name string) (ent.Value, bool) {
 		return m.InitImageURL()
 	case generation.FieldSubmitToGallery:
 		return m.SubmitToGallery()
+	case generation.FieldStripeProductID:
+		return m.StripeProductID()
 	case generation.FieldPromptID:
 		return m.PromptID()
 	case generation.FieldNegativePromptID:
@@ -4518,6 +4573,8 @@ func (m *GenerationMutation) OldField(ctx context.Context, name string) (ent.Val
 		return m.OldInitImageURL(ctx)
 	case generation.FieldSubmitToGallery:
 		return m.OldSubmitToGallery(ctx)
+	case generation.FieldStripeProductID:
+		return m.OldStripeProductID(ctx)
 	case generation.FieldPromptID:
 		return m.OldPromptID(ctx)
 	case generation.FieldNegativePromptID:
@@ -4630,6 +4687,13 @@ func (m *GenerationMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetSubmitToGallery(v)
+		return nil
+	case generation.FieldStripeProductID:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetStripeProductID(v)
 		return nil
 	case generation.FieldPromptID:
 		v, ok := value.(uuid.UUID)
@@ -4827,6 +4891,9 @@ func (m *GenerationMutation) ClearedFields() []string {
 	if m.FieldCleared(generation.FieldInitImageURL) {
 		fields = append(fields, generation.FieldInitImageURL)
 	}
+	if m.FieldCleared(generation.FieldStripeProductID) {
+		fields = append(fields, generation.FieldStripeProductID)
+	}
 	if m.FieldCleared(generation.FieldPromptID) {
 		fields = append(fields, generation.FieldPromptID)
 	}
@@ -4861,6 +4928,9 @@ func (m *GenerationMutation) ClearField(name string) error {
 		return nil
 	case generation.FieldInitImageURL:
 		m.ClearInitImageURL()
+		return nil
+	case generation.FieldStripeProductID:
+		m.ClearStripeProductID()
 		return nil
 	case generation.FieldPromptID:
 		m.ClearPromptID()
@@ -4917,6 +4987,9 @@ func (m *GenerationMutation) ResetField(name string) error {
 		return nil
 	case generation.FieldSubmitToGallery:
 		m.ResetSubmitToGallery()
+		return nil
+	case generation.FieldStripeProductID:
+		m.ResetStripeProductID()
 		return nil
 	case generation.FieldPromptID:
 		m.ResetPromptID()
@@ -8113,6 +8186,7 @@ type UpscaleMutation struct {
 	country_code           *string
 	status                 *upscale.Status
 	failure_reason         *string
+	stripe_product_id      *string
 	started_at             *time.Time
 	completed_at           *time.Time
 	created_at             *time.Time
@@ -8536,6 +8610,55 @@ func (m *UpscaleMutation) FailureReasonCleared() bool {
 func (m *UpscaleMutation) ResetFailureReason() {
 	m.failure_reason = nil
 	delete(m.clearedFields, upscale.FieldFailureReason)
+}
+
+// SetStripeProductID sets the "stripe_product_id" field.
+func (m *UpscaleMutation) SetStripeProductID(s string) {
+	m.stripe_product_id = &s
+}
+
+// StripeProductID returns the value of the "stripe_product_id" field in the mutation.
+func (m *UpscaleMutation) StripeProductID() (r string, exists bool) {
+	v := m.stripe_product_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldStripeProductID returns the old "stripe_product_id" field's value of the Upscale entity.
+// If the Upscale object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UpscaleMutation) OldStripeProductID(ctx context.Context) (v *string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldStripeProductID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldStripeProductID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldStripeProductID: %w", err)
+	}
+	return oldValue.StripeProductID, nil
+}
+
+// ClearStripeProductID clears the value of the "stripe_product_id" field.
+func (m *UpscaleMutation) ClearStripeProductID() {
+	m.stripe_product_id = nil
+	m.clearedFields[upscale.FieldStripeProductID] = struct{}{}
+}
+
+// StripeProductIDCleared returns if the "stripe_product_id" field was cleared in this mutation.
+func (m *UpscaleMutation) StripeProductIDCleared() bool {
+	_, ok := m.clearedFields[upscale.FieldStripeProductID]
+	return ok
+}
+
+// ResetStripeProductID resets all changes to the "stripe_product_id" field.
+func (m *UpscaleMutation) ResetStripeProductID() {
+	m.stripe_product_id = nil
+	delete(m.clearedFields, upscale.FieldStripeProductID)
 }
 
 // SetUserID sets the "user_id" field.
@@ -8995,7 +9118,7 @@ func (m *UpscaleMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *UpscaleMutation) Fields() []string {
-	fields := make([]string, 0, 13)
+	fields := make([]string, 0, 14)
 	if m.width != nil {
 		fields = append(fields, upscale.FieldWidth)
 	}
@@ -9013,6 +9136,9 @@ func (m *UpscaleMutation) Fields() []string {
 	}
 	if m.failure_reason != nil {
 		fields = append(fields, upscale.FieldFailureReason)
+	}
+	if m.stripe_product_id != nil {
+		fields = append(fields, upscale.FieldStripeProductID)
 	}
 	if m.user != nil {
 		fields = append(fields, upscale.FieldUserID)
@@ -9055,6 +9181,8 @@ func (m *UpscaleMutation) Field(name string) (ent.Value, bool) {
 		return m.Status()
 	case upscale.FieldFailureReason:
 		return m.FailureReason()
+	case upscale.FieldStripeProductID:
+		return m.StripeProductID()
 	case upscale.FieldUserID:
 		return m.UserID()
 	case upscale.FieldDeviceInfoID:
@@ -9090,6 +9218,8 @@ func (m *UpscaleMutation) OldField(ctx context.Context, name string) (ent.Value,
 		return m.OldStatus(ctx)
 	case upscale.FieldFailureReason:
 		return m.OldFailureReason(ctx)
+	case upscale.FieldStripeProductID:
+		return m.OldStripeProductID(ctx)
 	case upscale.FieldUserID:
 		return m.OldUserID(ctx)
 	case upscale.FieldDeviceInfoID:
@@ -9154,6 +9284,13 @@ func (m *UpscaleMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetFailureReason(v)
+		return nil
+	case upscale.FieldStripeProductID:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetStripeProductID(v)
 		return nil
 	case upscale.FieldUserID:
 		v, ok := value.(uuid.UUID)
@@ -9279,6 +9416,9 @@ func (m *UpscaleMutation) ClearedFields() []string {
 	if m.FieldCleared(upscale.FieldFailureReason) {
 		fields = append(fields, upscale.FieldFailureReason)
 	}
+	if m.FieldCleared(upscale.FieldStripeProductID) {
+		fields = append(fields, upscale.FieldStripeProductID)
+	}
 	if m.FieldCleared(upscale.FieldStartedAt) {
 		fields = append(fields, upscale.FieldStartedAt)
 	}
@@ -9304,6 +9444,9 @@ func (m *UpscaleMutation) ClearField(name string) error {
 		return nil
 	case upscale.FieldFailureReason:
 		m.ClearFailureReason()
+		return nil
+	case upscale.FieldStripeProductID:
+		m.ClearStripeProductID()
 		return nil
 	case upscale.FieldStartedAt:
 		m.ClearStartedAt()
@@ -9336,6 +9479,9 @@ func (m *UpscaleMutation) ResetField(name string) error {
 		return nil
 	case upscale.FieldFailureReason:
 		m.ResetFailureReason()
+		return nil
+	case upscale.FieldStripeProductID:
+		m.ResetStripeProductID()
 		return nil
 	case upscale.FieldUserID:
 		m.ResetUserID()

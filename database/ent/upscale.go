@@ -32,6 +32,8 @@ type Upscale struct {
 	Status upscale.Status `json:"status,omitempty"`
 	// FailureReason holds the value of the "failure_reason" field.
 	FailureReason *string `json:"failure_reason,omitempty"`
+	// StripeProductID holds the value of the "stripe_product_id" field.
+	StripeProductID *string `json:"stripe_product_id,omitempty"`
 	// UserID holds the value of the "user_id" field.
 	UserID uuid.UUID `json:"user_id,omitempty"`
 	// DeviceInfoID holds the value of the "device_info_id" field.
@@ -121,7 +123,7 @@ func (*Upscale) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case upscale.FieldWidth, upscale.FieldHeight, upscale.FieldScale:
 			values[i] = new(sql.NullInt64)
-		case upscale.FieldCountryCode, upscale.FieldStatus, upscale.FieldFailureReason:
+		case upscale.FieldCountryCode, upscale.FieldStatus, upscale.FieldFailureReason, upscale.FieldStripeProductID:
 			values[i] = new(sql.NullString)
 		case upscale.FieldStartedAt, upscale.FieldCompletedAt, upscale.FieldCreatedAt, upscale.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
@@ -185,6 +187,13 @@ func (u *Upscale) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				u.FailureReason = new(string)
 				*u.FailureReason = value.String
+			}
+		case upscale.FieldStripeProductID:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field stripe_product_id", values[i])
+			} else if value.Valid {
+				u.StripeProductID = new(string)
+				*u.StripeProductID = value.String
 			}
 		case upscale.FieldUserID:
 			if value, ok := values[i].(*uuid.UUID); !ok {
@@ -297,6 +306,11 @@ func (u *Upscale) String() string {
 	builder.WriteString(", ")
 	if v := u.FailureReason; v != nil {
 		builder.WriteString("failure_reason=")
+		builder.WriteString(*v)
+	}
+	builder.WriteString(", ")
+	if v := u.StripeProductID; v != nil {
+		builder.WriteString("stripe_product_id=")
 		builder.WriteString(*v)
 	}
 	builder.WriteString(", ")

@@ -26,6 +26,8 @@ const (
 	FieldStatus = "status"
 	// FieldFailureReason holds the string denoting the failure_reason field in the database.
 	FieldFailureReason = "failure_reason"
+	// FieldStripeProductID holds the string denoting the stripe_product_id field in the database.
+	FieldStripeProductID = "stripe_product_id"
 	// FieldUserID holds the string denoting the user_id field in the database.
 	FieldUserID = "user_id"
 	// FieldDeviceInfoID holds the string denoting the device_info_id field in the database.
@@ -89,6 +91,7 @@ var Columns = []string{
 	FieldCountryCode,
 	FieldStatus,
 	FieldFailureReason,
+	FieldStripeProductID,
 	FieldUserID,
 	FieldDeviceInfoID,
 	FieldModelID,

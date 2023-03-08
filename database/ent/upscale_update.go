@@ -119,6 +119,26 @@ func (uu *UpscaleUpdate) ClearFailureReason() *UpscaleUpdate {
 	return uu
 }
 
+// SetStripeProductID sets the "stripe_product_id" field.
+func (uu *UpscaleUpdate) SetStripeProductID(s string) *UpscaleUpdate {
+	uu.mutation.SetStripeProductID(s)
+	return uu
+}
+
+// SetNillableStripeProductID sets the "stripe_product_id" field if the given value is not nil.
+func (uu *UpscaleUpdate) SetNillableStripeProductID(s *string) *UpscaleUpdate {
+	if s != nil {
+		uu.SetStripeProductID(*s)
+	}
+	return uu
+}
+
+// ClearStripeProductID clears the value of the "stripe_product_id" field.
+func (uu *UpscaleUpdate) ClearStripeProductID() *UpscaleUpdate {
+	uu.mutation.ClearStripeProductID()
+	return uu
+}
+
 // SetUserID sets the "user_id" field.
 func (uu *UpscaleUpdate) SetUserID(u uuid.UUID) *UpscaleUpdate {
 	uu.mutation.SetUserID(u)
@@ -377,6 +397,12 @@ func (uu *UpscaleUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if uu.mutation.FailureReasonCleared() {
 		_spec.ClearField(upscale.FieldFailureReason, field.TypeString)
+	}
+	if value, ok := uu.mutation.StripeProductID(); ok {
+		_spec.SetField(upscale.FieldStripeProductID, field.TypeString, value)
+	}
+	if uu.mutation.StripeProductIDCleared() {
+		_spec.ClearField(upscale.FieldStripeProductID, field.TypeString)
 	}
 	if value, ok := uu.mutation.StartedAt(); ok {
 		_spec.SetField(upscale.FieldStartedAt, field.TypeTime, value)
@@ -656,6 +682,26 @@ func (uuo *UpscaleUpdateOne) SetNillableFailureReason(s *string) *UpscaleUpdateO
 // ClearFailureReason clears the value of the "failure_reason" field.
 func (uuo *UpscaleUpdateOne) ClearFailureReason() *UpscaleUpdateOne {
 	uuo.mutation.ClearFailureReason()
+	return uuo
+}
+
+// SetStripeProductID sets the "stripe_product_id" field.
+func (uuo *UpscaleUpdateOne) SetStripeProductID(s string) *UpscaleUpdateOne {
+	uuo.mutation.SetStripeProductID(s)
+	return uuo
+}
+
+// SetNillableStripeProductID sets the "stripe_product_id" field if the given value is not nil.
+func (uuo *UpscaleUpdateOne) SetNillableStripeProductID(s *string) *UpscaleUpdateOne {
+	if s != nil {
+		uuo.SetStripeProductID(*s)
+	}
+	return uuo
+}
+
+// ClearStripeProductID clears the value of the "stripe_product_id" field.
+func (uuo *UpscaleUpdateOne) ClearStripeProductID() *UpscaleUpdateOne {
+	uuo.mutation.ClearStripeProductID()
 	return uuo
 }
 
@@ -941,6 +987,12 @@ func (uuo *UpscaleUpdateOne) sqlSave(ctx context.Context) (_node *Upscale, err e
 	}
 	if uuo.mutation.FailureReasonCleared() {
 		_spec.ClearField(upscale.FieldFailureReason, field.TypeString)
+	}
+	if value, ok := uuo.mutation.StripeProductID(); ok {
+		_spec.SetField(upscale.FieldStripeProductID, field.TypeString, value)
+	}
+	if uuo.mutation.StripeProductIDCleared() {
+		_spec.ClearField(upscale.FieldStripeProductID, field.TypeString)
 	}
 	if value, ok := uuo.mutation.StartedAt(); ok {
 		_spec.SetField(upscale.FieldStartedAt, field.TypeTime, value)

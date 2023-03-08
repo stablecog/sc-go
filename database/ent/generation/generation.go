@@ -38,6 +38,8 @@ const (
 	FieldInitImageURL = "init_image_url"
 	// FieldSubmitToGallery holds the string denoting the submit_to_gallery field in the database.
 	FieldSubmitToGallery = "submit_to_gallery"
+	// FieldStripeProductID holds the string denoting the stripe_product_id field in the database.
+	FieldStripeProductID = "stripe_product_id"
 	// FieldPromptID holds the string denoting the prompt_id field in the database.
 	FieldPromptID = "prompt_id"
 	// FieldNegativePromptID holds the string denoting the negative_prompt_id field in the database.
@@ -140,6 +142,7 @@ var Columns = []string{
 	FieldCountryCode,
 	FieldInitImageURL,
 	FieldSubmitToGallery,
+	FieldStripeProductID,
 	FieldPromptID,
 	FieldNegativePromptID,
 	FieldModelID,

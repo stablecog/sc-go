@@ -77,6 +77,20 @@ func (uc *UpscaleCreate) SetNillableFailureReason(s *string) *UpscaleCreate {
 	return uc
 }
 
+// SetStripeProductID sets the "stripe_product_id" field.
+func (uc *UpscaleCreate) SetStripeProductID(s string) *UpscaleCreate {
+	uc.mutation.SetStripeProductID(s)
+	return uc
+}
+
+// SetNillableStripeProductID sets the "stripe_product_id" field if the given value is not nil.
+func (uc *UpscaleCreate) SetNillableStripeProductID(s *string) *UpscaleCreate {
+	if s != nil {
+		uc.SetStripeProductID(*s)
+	}
+	return uc
+}
+
 // SetUserID sets the "user_id" field.
 func (uc *UpscaleCreate) SetUserID(u uuid.UUID) *UpscaleCreate {
 	uc.mutation.SetUserID(u)
@@ -357,6 +371,10 @@ func (uc *UpscaleCreate) createSpec() (*Upscale, *sqlgraph.CreateSpec) {
 	if value, ok := uc.mutation.FailureReason(); ok {
 		_spec.SetField(upscale.FieldFailureReason, field.TypeString, value)
 		_node.FailureReason = &value
+	}
+	if value, ok := uc.mutation.StripeProductID(); ok {
+		_spec.SetField(upscale.FieldStripeProductID, field.TypeString, value)
+		_node.StripeProductID = &value
 	}
 	if value, ok := uc.mutation.StartedAt(); ok {
 		_spec.SetField(upscale.FieldStartedAt, field.TypeTime, value)

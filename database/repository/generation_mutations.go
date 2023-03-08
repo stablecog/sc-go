@@ -14,7 +14,7 @@ import (
 
 // CreateGeneration creates the initial generation in the database
 // Takes in a userID (creator),  device info, countryCode, and a request body
-func (r *Repository) CreateGeneration(userID uuid.UUID, deviceType, deviceOs, deviceBrowser, countryCode string, req requests.CreateGenerationRequest, DB *ent.Client) (*ent.Generation, error) {
+func (r *Repository) CreateGeneration(userID uuid.UUID, deviceType, deviceOs, deviceBrowser, countryCode string, req requests.CreateGenerationRequest, productId *string, DB *ent.Client) (*ent.Generation, error) {
 	if DB == nil {
 		DB = r.DB
 	}
@@ -37,6 +37,9 @@ func (r *Repository) CreateGeneration(userID uuid.UUID, deviceType, deviceOs, de
 		SetUserID(userID).
 		SetSubmitToGallery(req.SubmitToGallery).
 		SetNumOutputs(req.NumOutputs)
+	if productId != nil {
+		insert.SetStripeProductID(*productId)
+	}
 	return insert.Save(r.Ctx)
 }
 

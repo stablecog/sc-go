@@ -47,6 +47,8 @@ type Generation struct {
 	InitImageURL *string `json:"init_image_url,omitempty"`
 	// SubmitToGallery holds the value of the "submit_to_gallery" field.
 	SubmitToGallery bool `json:"submit_to_gallery,omitempty"`
+	// StripeProductID holds the value of the "stripe_product_id" field.
+	StripeProductID *string `json:"stripe_product_id,omitempty"`
 	// PromptID holds the value of the "prompt_id" field.
 	PromptID *uuid.UUID `json:"prompt_id,omitempty"`
 	// NegativePromptID holds the value of the "negative_prompt_id" field.
@@ -193,7 +195,7 @@ func (*Generation) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullFloat64)
 		case generation.FieldWidth, generation.FieldHeight, generation.FieldInferenceSteps, generation.FieldNumOutputs, generation.FieldNsfwCount, generation.FieldSeed:
 			values[i] = new(sql.NullInt64)
-		case generation.FieldStatus, generation.FieldFailureReason, generation.FieldCountryCode, generation.FieldInitImageURL:
+		case generation.FieldStatus, generation.FieldFailureReason, generation.FieldCountryCode, generation.FieldInitImageURL, generation.FieldStripeProductID:
 			values[i] = new(sql.NullString)
 		case generation.FieldStartedAt, generation.FieldCompletedAt, generation.FieldCreatedAt, generation.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
@@ -294,6 +296,13 @@ func (ge *Generation) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field submit_to_gallery", values[i])
 			} else if value.Valid {
 				ge.SubmitToGallery = value.Bool
+			}
+		case generation.FieldStripeProductID:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field stripe_product_id", values[i])
+			} else if value.Valid {
+				ge.StripeProductID = new(string)
+				*ge.StripeProductID = value.String
 			}
 		case generation.FieldPromptID:
 			if value, ok := values[i].(*sql.NullScanner); !ok {
@@ -463,6 +472,11 @@ func (ge *Generation) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("submit_to_gallery=")
 	builder.WriteString(fmt.Sprintf("%v", ge.SubmitToGallery))
+	builder.WriteString(", ")
+	if v := ge.StripeProductID; v != nil {
+		builder.WriteString("stripe_product_id=")
+		builder.WriteString(*v)
+	}
 	builder.WriteString(", ")
 	if v := ge.PromptID; v != nil {
 		builder.WriteString("prompt_id=")

@@ -111,6 +111,11 @@ func SubmitToGallery(v bool) predicate.Generation {
 	return predicate.Generation(sql.FieldEQ(FieldSubmitToGallery, v))
 }
 
+// StripeProductID applies equality check predicate on the "stripe_product_id" field. It's identical to StripeProductIDEQ.
+func StripeProductID(v string) predicate.Generation {
+	return predicate.Generation(sql.FieldEQ(FieldStripeProductID, v))
+}
+
 // PromptID applies equality check predicate on the "prompt_id" field. It's identical to PromptIDEQ.
 func PromptID(v uuid.UUID) predicate.Generation {
 	return predicate.Generation(sql.FieldEQ(FieldPromptID, v))
@@ -694,6 +699,81 @@ func SubmitToGalleryEQ(v bool) predicate.Generation {
 // SubmitToGalleryNEQ applies the NEQ predicate on the "submit_to_gallery" field.
 func SubmitToGalleryNEQ(v bool) predicate.Generation {
 	return predicate.Generation(sql.FieldNEQ(FieldSubmitToGallery, v))
+}
+
+// StripeProductIDEQ applies the EQ predicate on the "stripe_product_id" field.
+func StripeProductIDEQ(v string) predicate.Generation {
+	return predicate.Generation(sql.FieldEQ(FieldStripeProductID, v))
+}
+
+// StripeProductIDNEQ applies the NEQ predicate on the "stripe_product_id" field.
+func StripeProductIDNEQ(v string) predicate.Generation {
+	return predicate.Generation(sql.FieldNEQ(FieldStripeProductID, v))
+}
+
+// StripeProductIDIn applies the In predicate on the "stripe_product_id" field.
+func StripeProductIDIn(vs ...string) predicate.Generation {
+	return predicate.Generation(sql.FieldIn(FieldStripeProductID, vs...))
+}
+
+// StripeProductIDNotIn applies the NotIn predicate on the "stripe_product_id" field.
+func StripeProductIDNotIn(vs ...string) predicate.Generation {
+	return predicate.Generation(sql.FieldNotIn(FieldStripeProductID, vs...))
+}
+
+// StripeProductIDGT applies the GT predicate on the "stripe_product_id" field.
+func StripeProductIDGT(v string) predicate.Generation {
+	return predicate.Generation(sql.FieldGT(FieldStripeProductID, v))
+}
+
+// StripeProductIDGTE applies the GTE predicate on the "stripe_product_id" field.
+func StripeProductIDGTE(v string) predicate.Generation {
+	return predicate.Generation(sql.FieldGTE(FieldStripeProductID, v))
+}
+
+// StripeProductIDLT applies the LT predicate on the "stripe_product_id" field.
+func StripeProductIDLT(v string) predicate.Generation {
+	return predicate.Generation(sql.FieldLT(FieldStripeProductID, v))
+}
+
+// StripeProductIDLTE applies the LTE predicate on the "stripe_product_id" field.
+func StripeProductIDLTE(v string) predicate.Generation {
+	return predicate.Generation(sql.FieldLTE(FieldStripeProductID, v))
+}
+
+// StripeProductIDContains applies the Contains predicate on the "stripe_product_id" field.
+func StripeProductIDContains(v string) predicate.Generation {
+	return predicate.Generation(sql.FieldContains(FieldStripeProductID, v))
+}
+
+// StripeProductIDHasPrefix applies the HasPrefix predicate on the "stripe_product_id" field.
+func StripeProductIDHasPrefix(v string) predicate.Generation {
+	return predicate.Generation(sql.FieldHasPrefix(FieldStripeProductID, v))
+}
+
+// StripeProductIDHasSuffix applies the HasSuffix predicate on the "stripe_product_id" field.
+func StripeProductIDHasSuffix(v string) predicate.Generation {
+	return predicate.Generation(sql.FieldHasSuffix(FieldStripeProductID, v))
+}
+
+// StripeProductIDIsNil applies the IsNil predicate on the "stripe_product_id" field.
+func StripeProductIDIsNil() predicate.Generation {
+	return predicate.Generation(sql.FieldIsNull(FieldStripeProductID))
+}
+
+// StripeProductIDNotNil applies the NotNil predicate on the "stripe_product_id" field.
+func StripeProductIDNotNil() predicate.Generation {
+	return predicate.Generation(sql.FieldNotNull(FieldStripeProductID))
+}
+
+// StripeProductIDEqualFold applies the EqualFold predicate on the "stripe_product_id" field.
+func StripeProductIDEqualFold(v string) predicate.Generation {
+	return predicate.Generation(sql.FieldEqualFold(FieldStripeProductID, v))
+}
+
+// StripeProductIDContainsFold applies the ContainsFold predicate on the "stripe_product_id" field.
+func StripeProductIDContainsFold(v string) predicate.Generation {
+	return predicate.Generation(sql.FieldContainsFold(FieldStripeProductID, v))
 }
 
 // PromptIDEQ applies the EQ predicate on the "prompt_id" field.

@@ -149,6 +149,7 @@ func (c *RestAPI) HandleUpscale(w http.ResponseWriter, r *http.Request) {
 			deviceInfo.DeviceBrowser,
 			countryCode,
 			upscaleReq,
+			user.ActiveProductID,
 			DB)
 		if err != nil {
 			log.Error("Error creating upscale", "err", err)
