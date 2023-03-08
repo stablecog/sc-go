@@ -61,9 +61,9 @@ func (c *RestAPI) HandleCreateGeneration(w http.ResponseWriter, r *http.Request)
 	}
 
 	// Enforce submit to gallery
-	// if prodLevel < 2 {
-	// 	generateReq.SubmitToGallery = true
-	// }
+	if free {
+		generateReq.SubmitToGallery = true
+	}
 
 	// Parse request headers
 	countryCode := utils.GetCountryCode(r)
