@@ -2,10 +2,8 @@ package middleware
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 	"strings"
-	"time"
 
 	"github.com/google/uuid"
 	"github.com/stablecog/sc-go/database/ent/userrole"
@@ -30,13 +28,11 @@ func (m *Middleware) AuthMiddleware(level AuthLevel) func(next http.Handler) htt
 				return
 			}
 			// Check supabase to see if it's all good
-			start := time.Now()
 			userId, email, err := m.SupabaseAuth.GetSupabaseUserIdFromAccessToken(authHeader[1])
 			if err != nil {
 				responses.ErrUnauthorized(w, r)
 				return
 			}
-			fmt.Printf("--- Get supabase user_id took: %s\n", time.Now().Sub(start))
 
 			// Set the user ID in the context
 			ctx := context.WithValue(r.Context(), "user_id", userId)

@@ -100,7 +100,6 @@ func (c *RestAPI) HandleCreateGeneration(w http.ResponseWriter, r *http.Request)
 		// Bind a client to the transaction
 		DB := tx.Client()
 		// Deduct credits from user
-		start := time.Now()
 		deducted, err := c.Repo.DeductCreditsFromUser(user.ID, int32(generateReq.NumOutputs), DB)
 		if err != nil {
 			log.Error("Error deducting credits", "err", err)
@@ -110,7 +109,6 @@ func (c *RestAPI) HandleCreateGeneration(w http.ResponseWriter, r *http.Request)
 			responses.ErrInsufficientCredits(w, r)
 			return responses.InsufficientCreditsErr
 		}
-		fmt.Printf("--- Deduct credits took took: %s\n", time.Now().Sub(start))
 
 		remainingCredits, err = c.Repo.GetNonExpiredCreditTotalForUser(user.ID, DB)
 		if err != nil {
@@ -120,7 +118,6 @@ func (c *RestAPI) HandleCreateGeneration(w http.ResponseWriter, r *http.Request)
 		}
 
 		// Create generation
-		start = time.Now()
 		g, err := c.Repo.CreateGeneration(
 			user.ID,
 			string(deviceInfo.DeviceType),
@@ -134,7 +131,6 @@ func (c *RestAPI) HandleCreateGeneration(w http.ResponseWriter, r *http.Request)
 			responses.ErrInternalServerError(w, r, "Error creating generation")
 			return err
 		}
-		fmt.Printf("--- Create generation took: %s\n", time.Now().Sub(start))
 
 		// Request Id matches generation ID
 		requestId = g.ID.String()
@@ -179,7 +175,6 @@ func (c *RestAPI) HandleCreateGeneration(w http.ResponseWriter, r *http.Request)
 			},
 		}
 
-		start = time.Now()
 		err = c.Redis.EnqueueCogRequest(r.Context(), cogReqBody)
 		if err != nil {
 			log.Error("Failed to write request %s to queue: %v", requestId, err)
@@ -188,17 +183,11 @@ func (c *RestAPI) HandleCreateGeneration(w http.ResponseWriter, r *http.Request)
 		}
 
 		c.QueueThrottler.Increment(requestId, user.ID.String())
-
-		fmt.Printf("--- Enqueue cog request took: %s\n", time.Now().Sub(start))
 		return nil
 	}); err != nil {
 		log.Error("Error in transaction", "err", err)
 		return
 	}
-
-	// Track the request in our internal map
-	start := time.Now()
-	fmt.Printf("--- Put request in map took: %s\n", time.Now().Sub(start))
 
 	// Send live page update
 	go func() {
