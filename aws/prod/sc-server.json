@@ -48,6 +48,34 @@
                 {
                     "name": "STRIPE_ULTIMATE_PRODUCT_ID",
                     "value": "prod_NTzE0C8bEuIv6F"
+                },
+                {
+                    "name": "STRIPE_STARTER_PRICE_ID",
+                    "value": "price_1Mj1EqATa0ehBYTAw4xFqw2s"
+                },
+                {
+                    "name": "STRIPE_PRO_PRICE_ID",
+                    "value": "price_1Mj1EZATa0ehBYTAMf839xbe"
+                },
+                {
+                    "name": "STRIPE_ULTIMATE_PRICE_ID",
+                    "value": "price_1Mj1FfATa0ehBYTAD3iLwSav"
+                },
+                {
+                    "name": "STRIPE_MEDIUM_PACK_PRICE_ID",
+                    "value": "price_1Mj1FjATa0ehBYTACkdGOPHR"
+                },
+                {
+                    "name": "STRIPE_MEDIUM_PACK_PRODUCT_ID",
+                    "value": "prod_NTzEOBmfK1DFMs"
+                },
+                {
+                    "name": "STRIPE_LARGE_PACK_PRICE_ID",
+                    "value": "price_1Mj1FpATa0ehBYTATTb8FzLg"
+                },
+                {
+                    "name": "STRIPE_LARGE_PACK_PRODUCT_ID",
+                    "value": "prod_NTzE9KmD5wfCYn"
                 }
             ],
             "mountPoints": [],

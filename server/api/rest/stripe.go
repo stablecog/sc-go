@@ -44,8 +44,8 @@ func GetProductIDs() map[int]string {
 
 func GetSinglePurchasePriceIDs() map[string]string {
 	return map[string]string{
-		"price_1MfRaaATa0ehBYTAVRW3LPdR": "prod_NQIAwnD61CSElQ",
-		"price_1MhHtWATa0ehBYTAeBRQMXIP": "prod_NSCIDEdB7ZHb5x",
+		utils.GetEnv("STRIPE_LARGE_PACK_PRICE_ID", "1"):  utils.GetEnv("STRIPE_LARGE_PACK_PRODUCT_ID", "1"),
+		utils.GetEnv("STRIPE_MEDIUM_PACK_PRICE_ID", "2"): utils.GetEnv("STRIPE_MEDIUM_PACK_PRODUCT_ID", "2"),
 	}
 }
 
