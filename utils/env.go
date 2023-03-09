@@ -43,7 +43,6 @@ func GetCorsOrigins() []string {
 	if GetEnv("PRODUCTION", "false") == "true" {
 		return []string{
 			"https://stablecog.com",
-			"http://localhost:5173",
 		}
 	}
 	return []string{
