@@ -124,7 +124,7 @@ func (c *RestAPI) HandleQueryGenerationsForAdmin(w http.ResponseWriter, r *http.
 	}
 
 	// Get generaions
-	generations, err := c.Repo.QueryGenerations(perPage, cursor, filters)
+	generations, err := c.Repo.QueryGenerationsAdmin(perPage, cursor, filters)
 	if err != nil {
 		log.Error("Error getting generations for user", "err", err)
 		responses.ErrInternalServerError(w, r, "Error getting generations")

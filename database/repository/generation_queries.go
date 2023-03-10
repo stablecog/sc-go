@@ -45,7 +45,7 @@ func (r *Repository) GetGenerations(limit int) ([]*ent.Generation, error) {
 }
 
 // Apply all filters to root ent query
-func (r *Repository) ApplyUserGenerationsFilters(query *ent.GenerationQuery, filters *requests.QueryGenerationFilters) *ent.GenerationQuery {
+func (r *Repository) ApplyUserGenerationsFilters(query *ent.GenerationQuery, filters *requests.QueryGenerationFilters, omitEdges bool) *ent.GenerationQuery {
 	resQuery := query
 	if filters != nil {
 		// Apply filters
@@ -142,25 +142,27 @@ func (r *Repository) ApplyUserGenerationsFilters(query *ent.GenerationQuery, fil
 			}
 		}
 
-		// Upscaled
-		if filters.UpscaleStatus == requests.UpscaleStatusNot {
-			resQuery = resQuery.Where(func(s *sql.Selector) {
-				s.Where(sql.IsNull("upscaled_image_path"))
-			})
-		} else if filters.UpscaleStatus == requests.UpscaleStatusOnly {
-			resQuery = resQuery.Where(func(s *sql.Selector) {
-				s.Where(sql.NotNull("upscaled_image_path"))
-			})
-		}
-
-		if len(filters.GalleryStatus) > 0 {
-			v := make([]any, len(filters.GalleryStatus))
-			for i := range v {
-				v[i] = filters.GalleryStatus[i]
+		if !omitEdges {
+			// Upscaled
+			if filters.UpscaleStatus == requests.UpscaleStatusNot {
+				resQuery = resQuery.Where(func(s *sql.Selector) {
+					s.Where(sql.IsNull("upscaled_image_path"))
+				})
+			} else if filters.UpscaleStatus == requests.UpscaleStatusOnly {
+				resQuery = resQuery.Where(func(s *sql.Selector) {
+					s.Where(sql.NotNull("upscaled_image_path"))
+				})
 			}
-			resQuery = resQuery.Where(func(s *sql.Selector) {
-				s.Where(sql.In(generationoutput.FieldGalleryStatus, v...))
-			})
+
+			if len(filters.GalleryStatus) > 0 {
+				v := make([]any, len(filters.GalleryStatus))
+				for i := range v {
+					v[i] = filters.GalleryStatus[i]
+				}
+				resQuery = resQuery.Where(func(s *sql.Selector) {
+					s.Where(sql.In(generationoutput.FieldGalleryStatus, v...))
+				})
+			}
 		}
 
 		// Start dt
@@ -192,7 +194,7 @@ func (r *Repository) GetGenerationCount(filters *requests.QueryGenerationFilters
 	})
 
 	// Apply filters
-	query = r.ApplyUserGenerationsFilters(query, filters)
+	query = r.ApplyUserGenerationsFilters(query, filters, false)
 
 	// Join other data
 	var res []UserGenCount
@@ -260,7 +262,7 @@ func (r *Repository) QueryGenerations(per_page int, cursor *time.Time, filters *
 	})
 
 	// Apply filters
-	query = r.ApplyUserGenerationsFilters(query, filters)
+	query = r.ApplyUserGenerationsFilters(query, filters, false)
 
 	// Limits is + 1 so we can check if there are more pages
 	query = query.Limit(per_page + 1)
@@ -390,6 +392,206 @@ func (r *Repository) QueryGenerations(per_page int, cursor *time.Time, filters *
 			log.Error("Error getting user generation count", "err", err)
 			return nil, err
 		}
+		meta.Total = &total
+	}
+
+	return meta, err
+}
+
+func (r *Repository) QueryGenerationsAdmin(per_page int, cursor *time.Time, filters *requests.QueryGenerationFilters) (*GenerationQueryWithOutputsMeta, error) {
+	// Base fields to select in our query
+	selectFields := []string{
+		generation.FieldID,
+		generation.FieldWidth,
+		generation.FieldHeight,
+		generation.FieldInferenceSteps,
+		generation.FieldSeed,
+		generation.FieldStatus,
+		generation.FieldGuidanceScale,
+		generation.FieldSchedulerID,
+		generation.FieldModelID,
+		generation.FieldPromptID,
+		generation.FieldNegativePromptID,
+		generation.FieldCreatedAt,
+		generation.FieldStartedAt,
+		generation.FieldCompletedAt,
+	}
+	var query *ent.GenerationQuery
+	var gQueryResult []GenerationQueryWithOutputsResult
+
+	query = r.DB.Debug().Generation.Query().Select(selectFields...).
+		Where(generation.StatusEQ(generation.StatusSucceeded))
+	if filters.UserID != nil {
+		query = query.Where(generation.UserID(*filters.UserID))
+	}
+	if cursor != nil {
+		query = query.Where(generation.CreatedAtLT(*cursor))
+	}
+
+	// Apply filters
+	query = r.ApplyUserGenerationsFilters(query, filters, true)
+
+	// Limits is + 1 so we can check if there are more pages
+	query = query.Limit(per_page + 1)
+
+	query = query.WithPrompt()
+	query = query.WithNegativePrompt()
+	query = query.WithGenerationOutputs(func(goq *ent.GenerationOutputQuery) {
+		goq.Where(generationoutput.DeletedAtIsNil())
+		if filters.UpscaleStatus == requests.UpscaleStatusNot {
+			goq.Where(generationoutput.UpscaledImagePathIsNil())
+		} else if filters.UpscaleStatus == requests.UpscaleStatusOnly {
+			goq.Where(generationoutput.UpscaledImagePathIsNil())
+		}
+		if len(filters.GalleryStatus) > 0 {
+			goq.Where(generationoutput.GalleryStatusIn(filters.GalleryStatus...))
+		}
+		// Order by
+		if filters == nil || (filters != nil && filters.OrderBy == requests.OrderByCreatedAt) {
+			goq.Order(ent.Desc(generationoutput.FieldCreatedAt))
+		} else {
+			goq.Order(ent.Desc(generationoutput.FieldUpdatedAt))
+		}
+	})
+
+	var orderByGeneration string
+	if filters == nil || (filters != nil && filters.OrderBy == requests.OrderByCreatedAt) {
+		orderByGeneration = generation.FieldCreatedAt
+	} else {
+		orderByGeneration = generation.FieldUpdatedAt
+	}
+	// Order by generation, then output
+	if filters == nil || (filters != nil && filters.Order == requests.SortOrderDescending) {
+		query = query.Order(ent.Desc(orderByGeneration))
+	} else {
+		query = query.Order(ent.Asc(orderByGeneration))
+	}
+
+	res, err := query.All(r.Ctx)
+
+	if err != nil {
+		log.Error("Error getting user generations", "err", err)
+		return nil, err
+	}
+
+	if len(res) == 0 {
+		meta := &GenerationQueryWithOutputsMeta{
+			Outputs: []GenerationQueryWithOutputsResultFormatted{},
+		}
+		// Only give total if we have no cursor
+		if cursor == nil {
+			zero := 0
+			meta.Total = &zero
+		}
+		return meta, nil
+	}
+
+	meta := &GenerationQueryWithOutputsMeta{}
+	if len(res) > per_page {
+		// Remove last item
+		res = res[:len(res)-1]
+		meta.Next = &gQueryResult[len(gQueryResult)-1].CreatedAt
+	}
+
+	// Get real image URLs for each
+	for _, g := range res {
+		// root generation data
+		generationRoot := GenerationQueryWithOutputsData{
+			ID:               g.ID,
+			Width:            g.Width,
+			Height:           g.Height,
+			InferenceSteps:   g.InferenceSteps,
+			Seed:             g.Seed,
+			Status:           string(g.Status),
+			GuidanceScale:    g.GuidanceScale,
+			SchedulerID:      g.SchedulerID,
+			ModelID:          g.ModelID,
+			PromptID:         g.PromptID,
+			NegativePromptID: g.NegativePromptID,
+			CreatedAt:        g.CreatedAt,
+			StartedAt:        g.StartedAt,
+			CompletedAt:      g.CompletedAt,
+		}
+		if g.Edges.NegativePrompt != nil {
+			generationRoot.NegativePromptText = g.Edges.NegativePrompt.Text
+		}
+		if g.Edges.Prompt != nil {
+			generationRoot.PromptText = g.Edges.Prompt.Text
+		}
+
+		for _, o := range g.Edges.GenerationOutputs {
+			ret := GenerationQueryWithOutputsResult{
+				OutputID:                       &o.ID,
+				ImageUrl:                       utils.GetURLFromImagePath(o.ImagePath),
+				GalleryStatus:                  o.GalleryStatus,
+				DeletedAt:                      o.DeletedAt,
+				GenerationQueryWithOutputsData: generationRoot,
+			}
+			if o.UpscaledImagePath != nil {
+				ret.UpscaledImageUrl = utils.GetURLFromImagePath(*o.UpscaledImagePath)
+			}
+			gQueryResult = append(gQueryResult, ret)
+		}
+	}
+
+	// Format to GenerationQueryWithOutputsResultFormatted
+	generationOutputMap := make(map[uuid.UUID][]GenerationUpscaleOutput)
+	for _, g := range gQueryResult {
+		if g.OutputID == nil {
+			log.Warn("Output ID is nil for generation, cannot include in result", "id", g.ID)
+			continue
+		}
+		gOutput := GenerationUpscaleOutput{
+			ID:               *g.OutputID,
+			ImageUrl:         g.ImageUrl,
+			UpscaledImageUrl: g.UpscaledImageUrl,
+			GalleryStatus:    g.GalleryStatus,
+		}
+		output := GenerationQueryWithOutputsResultFormatted{
+			GenerationUpscaleOutput: gOutput,
+			Generation: GenerationQueryWithOutputsData{
+				ID:               g.ID,
+				Height:           g.Height,
+				Width:            g.Width,
+				InferenceSteps:   g.InferenceSteps,
+				Seed:             g.Seed,
+				Status:           g.Status,
+				GuidanceScale:    g.GuidanceScale,
+				SchedulerID:      g.SchedulerID,
+				ModelID:          g.ModelID,
+				PromptID:         g.PromptID,
+				NegativePromptID: g.NegativePromptID,
+				CreatedAt:        g.CreatedAt,
+				StartedAt:        g.StartedAt,
+				CompletedAt:      g.CompletedAt,
+				Prompt: PromptType{
+					Text: g.PromptText,
+					ID:   *g.PromptID,
+				},
+			},
+		}
+		if g.NegativePromptID != nil {
+			output.Generation.NegativePrompt = &PromptType{
+				Text: g.NegativePromptText,
+				ID:   *g.NegativePromptID,
+			}
+		}
+		generationOutputMap[g.ID] = append(generationOutputMap[g.ID], gOutput)
+		meta.Outputs = append(meta.Outputs, output)
+	}
+	// Now loop through and add outputs to each generation
+	for i, g := range meta.Outputs {
+		meta.Outputs[i].Generation.Outputs = generationOutputMap[g.Generation.ID]
+	}
+
+	if cursor == nil {
+		// total, err := r.GetGenerationCount(filters)
+		// if err != nil {
+		// 	log.Error("Error getting user generation count", "err", err)
+		// 	return nil, err
+		// }
+		// TODO
+		total := 100
 		meta.Total = &total
 	}
 
