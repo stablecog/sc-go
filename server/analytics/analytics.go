@@ -38,9 +38,8 @@ func NewAnalyticsService() *AnalyticsService {
 
 	// Setup mixpanel
 	mixpanelAPIKey := utils.GetEnv("MIXPANEL_API_KEY", "")
-	mixpanelEndpoint := utils.GetEnv("MIXPANEL_ENDPOINT", "")
-	if mixpanelAPIKey != "" && mixpanelEndpoint != "" {
-		mixpanelClient := mixpanel.New(mixpanelAPIKey, mixpanelEndpoint)
+	if mixpanelAPIKey != "" {
+		mixpanelClient := mixpanel.New(mixpanelAPIKey, "")
 		service.Mixpanel = mixpanelClient
 	} else {
 		log.Warn("Mixpanel not configured")
