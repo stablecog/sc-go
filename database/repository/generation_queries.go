@@ -398,6 +398,37 @@ func (r *Repository) QueryGenerations(per_page int, cursor *time.Time, filters *
 	return meta, err
 }
 
+// Separate count function
+func (r *Repository) GetGenerationCountAdmin(filters *requests.QueryGenerationFilters) (int, error) {
+	var query *ent.GenerationOutputQuery
+
+	query = r.DB.Debug().GenerationOutput.Query().Where(
+		generationoutput.DeletedAtIsNil(),
+	)
+	if filters != nil {
+		if filters.UpscaleStatus == requests.UpscaleStatusNot {
+			query = query.Where(generationoutput.UpscaledImagePathIsNil())
+		}
+		if filters.UpscaleStatus == requests.UpscaleStatusOnly {
+			query = query.Where(generationoutput.UpscaledImagePathNotNil())
+		}
+		if len(filters.GalleryStatus) > 0 {
+			query = query.Where(generationoutput.GalleryStatusIn(filters.GalleryStatus...))
+		}
+	}
+
+	query = query.WithGenerations(func(s *ent.GenerationQuery) {
+		s.Where(generation.StatusEQ(generation.StatusSucceeded))
+		s = r.ApplyUserGenerationsFilters(s, filters, true)
+		s.WithPrompt()
+		s.WithNegativePrompt()
+		s.WithGenerationOutputs()
+	})
+
+	return query.Count(r.Ctx)
+}
+
+// Alternate version for performance when we can't index by user_id
 func (r *Repository) QueryGenerationsAdmin(per_page int, cursor *time.Time, filters *requests.QueryGenerationFilters) (*GenerationQueryWithOutputsMeta, error) {
 	var query *ent.GenerationOutputQuery
 	var gQueryResult []GenerationQueryWithOutputsResult
@@ -575,7 +606,7 @@ func (r *Repository) QueryGenerationsAdmin(per_page int, cursor *time.Time, filt
 
 	// Get count when no cursor
 	if cursor == nil {
-		total, err := r.GetGenerationCount(filters)
+		total, err := r.GetGenerationCountAdmin(filters)
 		if err != nil {
 			log.Error("Error getting user generation count", "err", err)
 			return nil, err
