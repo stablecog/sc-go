@@ -73,6 +73,10 @@
         {
           "name": "REDIS_CONNECTION_STRING",
           "valueFrom": "arn:aws:secretsmanager:us-east-1:280846200654:secret:prod-stablecog/go-X9rw5v:REDIS_CONNECTION_STRING::"
+        },
+        {
+          "name": "DISCORD_WEBHOOK_URL",
+          "valueFrom": "arn:aws:secretsmanager:us-east-1:280846200654:secret:prod-stablecog/go-X9rw5v:DISCORD_WEBHOOK_URL::"
         }
       ],
       "dockerLabels": {},
