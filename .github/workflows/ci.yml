@@ -41,6 +41,7 @@ jobs:
   test:
     name: ☔️ Tests
     runs-on: self-hosted
+    needs: setup_env
 
     # Setup postgres service for tests
     services:
