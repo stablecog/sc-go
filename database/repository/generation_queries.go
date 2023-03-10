@@ -413,6 +413,7 @@ func (r *Repository) QueryGenerationsAdmin(per_page int, cursor *time.Time, filt
 		generation.FieldPromptID,
 		generation.FieldNegativePromptID,
 		generation.FieldCreatedAt,
+		generation.FieldUpdatedAt,
 		generation.FieldStartedAt,
 		generation.FieldCompletedAt,
 	}
@@ -430,9 +431,6 @@ func (r *Repository) QueryGenerationsAdmin(per_page int, cursor *time.Time, filt
 
 	// Apply filters
 	query = r.ApplyUserGenerationsFilters(query, filters, true)
-
-	// Limits is + 1 so we can check if there are more pages
-	query = query.Limit(per_page + 1)
 
 	query = query.WithPrompt()
 	query = query.WithNegativePrompt()
@@ -454,25 +452,24 @@ func (r *Repository) QueryGenerationsAdmin(per_page int, cursor *time.Time, filt
 		}
 	})
 
-	var orderByGeneration string
-	if filters == nil || (filters != nil && filters.OrderBy == requests.OrderByCreatedAt) {
-		orderByGeneration = generation.FieldCreatedAt
-	} else {
-		orderByGeneration = generation.FieldUpdatedAt
-	}
 	// Order by generation, then output
 	if filters == nil || (filters != nil && filters.Order == requests.SortOrderDescending) {
-		query = query.Order(ent.Desc(orderByGeneration))
+		query = query.Order(ent.Desc(generation.FieldCreatedAt))
 	} else {
-		query = query.Order(ent.Asc(orderByGeneration))
+		query = query.Order(ent.Asc(generation.FieldUpdatedAt))
 	}
+
+	// Limits is + 1 so we can check if there are more pages
+	query = query.Limit(per_page + 1)
 
 	res, err := query.All(r.Ctx)
 
 	if err != nil {
-		log.Error("Error getting user generations", "err", err)
+		log.Error("Error getting admin generations", "err", err)
 		return nil, err
 	}
+
+	meta := &GenerationQueryWithOutputsMeta{}
 
 	if len(res) == 0 {
 		meta := &GenerationQueryWithOutputsMeta{
@@ -486,7 +483,6 @@ func (r *Repository) QueryGenerationsAdmin(per_page int, cursor *time.Time, filt
 		return meta, nil
 	}
 
-	meta := &GenerationQueryWithOutputsMeta{}
 	if len(res) > per_page {
 		// Remove last item
 		res = res[:len(res)-1]
@@ -584,14 +580,13 @@ func (r *Repository) QueryGenerationsAdmin(per_page int, cursor *time.Time, filt
 		meta.Outputs[i].Generation.Outputs = generationOutputMap[g.Generation.ID]
 	}
 
+	// Get count when no cursor
 	if cursor == nil {
-		// total, err := r.GetGenerationCount(filters)
-		// if err != nil {
-		// 	log.Error("Error getting user generation count", "err", err)
-		// 	return nil, err
-		// }
-		// TODO
-		total := 100
+		total, err := r.GetGenerationCount(filters)
+		if err != nil {
+			log.Error("Error getting user generation count", "err", err)
+			return nil, err
+		}
 		meta.Total = &total
 	}
 
