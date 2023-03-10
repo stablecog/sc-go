@@ -397,34 +397,6 @@ func (r *Repository) QueryGenerations(per_page int, cursor *time.Time, filters *
 
 	return meta, err
 }
-func (r *Repository) GetGenerationCountAdmin(filters *requests.QueryGenerationFilters) (int, error) {
-	var query *ent.GenerationQuery
-
-	query = r.DB.Generation.Query().
-		Where(generation.StatusEQ(generation.StatusSucceeded))
-	if filters.UserID != nil {
-		query = query.Where(generation.UserID(*filters.UserID))
-	}
-
-	// Apply filters
-	query = r.ApplyUserGenerationsFilters(query, filters, true)
-
-	query = query.WithPrompt()
-	query = query.WithNegativePrompt()
-	query = query.WithGenerationOutputs(func(goq *ent.GenerationOutputQuery) {
-		goq.Where(generationoutput.DeletedAtIsNil())
-		if filters.UpscaleStatus == requests.UpscaleStatusNot {
-			goq.Where(generationoutput.UpscaledImagePathIsNil())
-		} else if filters.UpscaleStatus == requests.UpscaleStatusOnly {
-			goq.Where(generationoutput.UpscaledImagePathIsNil())
-		}
-		if len(filters.GalleryStatus) > 0 {
-			goq.Where(generationoutput.GalleryStatusIn(filters.GalleryStatus...))
-		}
-	})
-
-	return query.QueryGenerationOutputs().Count(r.Ctx)
-}
 
 func (r *Repository) QueryGenerationsAdmin(per_page int, cursor *time.Time, filters *requests.QueryGenerationFilters) (*GenerationQueryWithOutputsMeta, error) {
 	// Base fields to select in our query
@@ -610,7 +582,7 @@ func (r *Repository) QueryGenerationsAdmin(per_page int, cursor *time.Time, filt
 
 	// Get count when no cursor
 	if cursor == nil {
-		total, err := r.GetGenerationCountAdmin(filters)
+		total, err := r.GetGenerationCount(filters)
 		if err != nil {
 			log.Error("Error getting user generation count", "err", err)
 			return nil, err

@@ -58,6 +58,7 @@ func (GenerationOutput) Annotations() []schema.Annotation {
 func (GenerationOutput) Indexes() []ent.Index {
 	return []ent.Index{
 		index.Fields("id", "gallery_status"),
+		index.Fields("gallery_status"),
 		index.Fields("created_at"),
 		index.Fields("updated_at"),
 		index.Fields("generation_id"),

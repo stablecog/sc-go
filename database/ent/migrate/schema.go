@@ -229,6 +229,11 @@ var (
 				Columns: []*schema.Column{GenerationOutputsColumns[0], GenerationOutputsColumns[3]},
 			},
 			{
+				Name:    "generationoutput_gallery_status",
+				Unique:  false,
+				Columns: []*schema.Column{GenerationOutputsColumns[3]},
+			},
+			{
 				Name:    "generationoutput_created_at",
 				Unique:  false,
 				Columns: []*schema.Column{GenerationOutputsColumns[5]},
