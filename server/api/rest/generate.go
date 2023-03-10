@@ -146,6 +146,7 @@ func (c *RestAPI) HandleCreateGeneration(w http.ResponseWriter, r *http.Request)
 			Width:            generateReq.Width,
 			Height:           generateReq.Height,
 			CreatedAt:        g.CreatedAt,
+			ProductID:        user.ActiveProductID,
 		}
 
 		cogReqBody = requests.CogQueueRequest{

@@ -1076,6 +1076,9 @@ components:
         height:
           type: integer
           format: int32
+        product_id:
+          type: string
+          format: stripe product ID, optional
         created_at:
           type: string
           format: isoTimeString

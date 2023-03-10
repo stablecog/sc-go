@@ -170,6 +170,7 @@ func (c *RestAPI) HandleUpscale(w http.ResponseWriter, r *http.Request) {
 			Width:            width,
 			Height:           height,
 			CreatedAt:        upscale.CreatedAt,
+			ProductID:        user.ActiveProductID,
 		}
 
 		// Send to the cog

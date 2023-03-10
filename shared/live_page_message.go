@@ -27,4 +27,5 @@ type LivePageMessage struct {
 	CreatedAt        time.Time      `json:"created_at"`
 	StartedAt        *time.Time     `json:"started_at,omitempty"`
 	CompletedAt      *time.Time     `json:"completed_at,omitempty"`
+	ProductID        *string        `json:"product_id,omitempty"`
 }
