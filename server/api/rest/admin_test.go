@@ -304,7 +304,7 @@ func TestHandleQueryGenerationsAdminPerPage(t *testing.T) {
 	json.Unmarshal(respBody, &genResponse)
 
 	assert.Len(t, genResponse.Outputs, 1)
-	assert.Equal(t, *genResponse.Next, genResponse.Outputs[0].Generation.CreatedAt)
+	assert.Equal(t, *genResponse.Next, *genResponse.Outputs[0].CreatedAt)
 
 	assert.Equal(t, "This is a prompt 2", genResponse.Outputs[0].Generation.Prompt.Text)
 	assert.Equal(t, string(generation.StatusSucceeded), genResponse.Outputs[0].Generation.Status)

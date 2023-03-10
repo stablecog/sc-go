@@ -399,66 +399,61 @@ func (r *Repository) QueryGenerations(per_page int, cursor *time.Time, filters *
 }
 
 func (r *Repository) QueryGenerationsAdmin(per_page int, cursor *time.Time, filters *requests.QueryGenerationFilters) (*GenerationQueryWithOutputsMeta, error) {
-	// Base fields to select in our query
-	selectFields := []string{
-		generation.FieldID,
-		generation.FieldWidth,
-		generation.FieldHeight,
-		generation.FieldInferenceSteps,
-		generation.FieldSeed,
-		generation.FieldStatus,
-		generation.FieldGuidanceScale,
-		generation.FieldSchedulerID,
-		generation.FieldModelID,
-		generation.FieldPromptID,
-		generation.FieldNegativePromptID,
-		generation.FieldCreatedAt,
-		generation.FieldUpdatedAt,
-		generation.FieldStartedAt,
-		generation.FieldCompletedAt,
-	}
-	var query *ent.GenerationQuery
+	var query *ent.GenerationOutputQuery
 	var gQueryResult []GenerationQueryWithOutputsResult
 
-	query = r.DB.Debug().Generation.Query().Select(selectFields...).
-		Where(generation.StatusEQ(generation.StatusSucceeded))
-	if filters.UserID != nil {
-		query = query.Where(generation.UserID(*filters.UserID))
-	}
+	query = r.DB.Debug().GenerationOutput.Query().Where(
+		generationoutput.DeletedAtIsNil(),
+	)
 	if cursor != nil {
-		query = query.Where(generation.CreatedAtLT(*cursor))
+		query = query.Where(generationoutput.CreatedAtLT(*cursor))
 	}
-
-	// Apply filters
-	query = r.ApplyUserGenerationsFilters(query, filters, true)
-
-	query = query.WithPrompt()
-	query = query.WithNegativePrompt()
-	query = query.WithGenerationOutputs(func(goq *ent.GenerationOutputQuery) {
-		goq.Where(generationoutput.DeletedAtIsNil())
+	if filters != nil {
 		if filters.UpscaleStatus == requests.UpscaleStatusNot {
-			goq.Where(generationoutput.UpscaledImagePathIsNil())
-		} else if filters.UpscaleStatus == requests.UpscaleStatusOnly {
-			goq.Where(generationoutput.UpscaledImagePathIsNil())
+			query = query.Where(generationoutput.UpscaledImagePathIsNil())
+		}
+		if filters.UpscaleStatus == requests.UpscaleStatusOnly {
+			query = query.Where(generationoutput.UpscaledImagePathNotNil())
 		}
 		if len(filters.GalleryStatus) > 0 {
-			goq.Where(generationoutput.GalleryStatusIn(filters.GalleryStatus...))
+			query = query.Where(generationoutput.GalleryStatusIn(filters.GalleryStatus...))
 		}
-		// Order by
-		if filters == nil || (filters != nil && filters.OrderBy == requests.OrderByCreatedAt) {
-			goq.Order(ent.Desc(generationoutput.FieldCreatedAt))
+	}
+
+	// Figure out order bys
+	var orderByGeneration string
+	var orderByOutput string
+	if filters == nil || (filters != nil && filters.OrderBy == requests.OrderByCreatedAt) {
+		orderByGeneration = generation.FieldCreatedAt
+		orderByOutput = generationoutput.FieldCreatedAt
+	} else {
+		orderByGeneration = generation.FieldUpdatedAt
+		orderByOutput = generationoutput.FieldUpdatedAt
+	}
+
+	query = query.WithGenerations(func(s *ent.GenerationQuery) {
+		s.Where(generation.StatusEQ(generation.StatusSucceeded))
+		s = r.ApplyUserGenerationsFilters(s, filters, true)
+		s.WithPrompt()
+		s.WithNegativePrompt()
+		s.WithGenerationOutputs(func(goq *ent.GenerationOutputQuery) {
+			if filters == nil || (filters != nil && filters.Order == requests.SortOrderDescending) {
+				goq = goq.Order(ent.Desc(orderByOutput))
+			} else {
+				goq = goq.Order(ent.Asc(orderByOutput))
+			}
+		})
+		if filters == nil || (filters != nil && filters.Order == requests.SortOrderDescending) {
+			s = s.Order(ent.Desc(orderByGeneration))
 		} else {
-			goq.Order(ent.Desc(generationoutput.FieldUpdatedAt))
+			s = s.Order(ent.Asc(orderByGeneration))
 		}
-		// Limit
-		goq.Limit(per_page + 1)
 	})
 
-	// Order by generation, then output
 	if filters == nil || (filters != nil && filters.Order == requests.SortOrderDescending) {
-		query = query.Order(ent.Desc(generation.FieldCreatedAt))
+		query = query.Order(ent.Desc(orderByOutput))
 	} else {
-		query = query.Order(ent.Asc(generation.FieldUpdatedAt))
+		query = query.Order(ent.Asc(orderByOutput))
 	}
 
 	// Limit
@@ -493,56 +488,66 @@ func (r *Repository) QueryGenerationsAdmin(per_page int, cursor *time.Time, filt
 
 	// Get real image URLs for each
 	// Since we do this weird format need to cap at per page
-	found := 0
 	for _, g := range res {
 		// root generation data
 		generationRoot := GenerationQueryWithOutputsData{
 			ID:               g.ID,
-			Width:            g.Width,
-			Height:           g.Height,
-			InferenceSteps:   g.InferenceSteps,
-			Seed:             g.Seed,
-			Status:           string(g.Status),
-			GuidanceScale:    g.GuidanceScale,
-			SchedulerID:      g.SchedulerID,
-			ModelID:          g.ModelID,
-			PromptID:         g.PromptID,
-			NegativePromptID: g.NegativePromptID,
-			CreatedAt:        g.CreatedAt,
-			StartedAt:        g.StartedAt,
-			CompletedAt:      g.CompletedAt,
+			Width:            g.Edges.Generations.Width,
+			Height:           g.Edges.Generations.Height,
+			InferenceSteps:   g.Edges.Generations.InferenceSteps,
+			Seed:             g.Edges.Generations.Seed,
+			Status:           string(g.Edges.Generations.Status),
+			GuidanceScale:    g.Edges.Generations.GuidanceScale,
+			SchedulerID:      g.Edges.Generations.SchedulerID,
+			ModelID:          g.Edges.Generations.ModelID,
+			PromptID:         g.Edges.Generations.PromptID,
+			NegativePromptID: g.Edges.Generations.NegativePromptID,
+			CreatedAt:        g.Edges.Generations.CreatedAt,
+			StartedAt:        g.Edges.Generations.StartedAt,
+			CompletedAt:      g.Edges.Generations.CompletedAt,
 		}
-		if g.Edges.NegativePrompt != nil {
-			generationRoot.NegativePromptText = g.Edges.NegativePrompt.Text
+		if g.Edges.Generations.Edges.NegativePrompt != nil {
+			generationRoot.NegativePrompt = &PromptType{
+				Text: g.Edges.Generations.Edges.NegativePrompt.Text,
+				ID:   *g.Edges.Generations.NegativePromptID,
+			}
 		}
-		if g.Edges.Prompt != nil {
-			generationRoot.PromptText = g.Edges.Prompt.Text
+		if g.Edges.Generations.Edges.Prompt != nil {
+			generationRoot.Prompt = PromptType{
+				Text: g.Edges.Generations.Edges.Prompt.Text,
+				ID:   *g.Edges.Generations.PromptID,
+			}
 		}
 
-		for _, o := range g.Edges.GenerationOutputs {
-			ret := GenerationQueryWithOutputsResult{
-				OutputID:                       &o.ID,
-				ImageUrl:                       utils.GetURLFromImagePath(o.ImagePath),
-				GalleryStatus:                  o.GalleryStatus,
-				DeletedAt:                      o.DeletedAt,
-				GenerationQueryWithOutputsData: generationRoot,
+		// Add outputs
+		for _, o := range g.Edges.Generations.Edges.GenerationOutputs {
+			output := GenerationUpscaleOutput{
+				ID:            o.ID,
+				ImageUrl:      utils.GetURLFromImagePath(o.ImagePath),
+				GalleryStatus: o.GalleryStatus,
+				CreatedAt:     &o.CreatedAt,
 			}
 			if o.UpscaledImagePath != nil {
-				ret.UpscaledImageUrl = utils.GetURLFromImagePath(*o.UpscaledImagePath)
+				output.UpscaledImageUrl = utils.GetURLFromImagePath(*o.UpscaledImagePath)
 			}
-			gQueryResult = append(gQueryResult, ret)
-			found += 1
-			if found >= per_page {
-				break
-			}
+			generationRoot.Outputs = append(generationRoot.Outputs, output)
 		}
-		if found >= per_page {
-			break
+
+		ret := GenerationQueryWithOutputsResult{
+			OutputID:                       &g.ID,
+			ImageUrl:                       utils.GetURLFromImagePath(g.ImagePath),
+			GalleryStatus:                  g.GalleryStatus,
+			DeletedAt:                      g.DeletedAt,
+			GenerationQueryWithOutputsData: generationRoot,
 		}
+		if g.UpscaledImagePath != nil {
+			ret.UpscaledImageUrl = utils.GetURLFromImagePath(*g.UpscaledImagePath)
+		}
+
+		gQueryResult = append(gQueryResult, ret)
 	}
 
 	// Format to GenerationQueryWithOutputsResultFormatted
-	generationOutputMap := make(map[uuid.UUID][]GenerationUpscaleOutput)
 	for _, g := range gQueryResult {
 		if g.OutputID == nil {
 			log.Warn("Output ID is nil for generation, cannot include in result", "id", g.ID)
@@ -554,41 +559,18 @@ func (r *Repository) QueryGenerationsAdmin(per_page int, cursor *time.Time, filt
 			UpscaledImageUrl: g.UpscaledImageUrl,
 			GalleryStatus:    g.GalleryStatus,
 		}
-		output := GenerationQueryWithOutputsResultFormatted{
-			GenerationUpscaleOutput: gOutput,
-			Generation: GenerationQueryWithOutputsData{
-				ID:               g.ID,
-				Height:           g.Height,
-				Width:            g.Width,
-				InferenceSteps:   g.InferenceSteps,
-				Seed:             g.Seed,
-				Status:           g.Status,
-				GuidanceScale:    g.GuidanceScale,
-				SchedulerID:      g.SchedulerID,
-				ModelID:          g.ModelID,
-				PromptID:         g.PromptID,
-				NegativePromptID: g.NegativePromptID,
-				CreatedAt:        g.CreatedAt,
-				StartedAt:        g.StartedAt,
-				CompletedAt:      g.CompletedAt,
-				Prompt: PromptType{
-					Text: g.PromptText,
-					ID:   *g.PromptID,
-				},
-			},
-		}
-		if g.NegativePromptID != nil {
-			output.Generation.NegativePrompt = &PromptType{
-				Text: g.NegativePromptText,
-				ID:   *g.NegativePromptID,
+		for _, o := range g.Outputs {
+			if o.ID == *g.OutputID {
+				gOutput.CreatedAt = o.CreatedAt
+				break
 			}
 		}
-		generationOutputMap[g.ID] = append(generationOutputMap[g.ID], gOutput)
+		output := GenerationQueryWithOutputsResultFormatted{
+			GenerationUpscaleOutput: gOutput,
+			Generation:              g.GenerationQueryWithOutputsData,
+		}
+
 		meta.Outputs = append(meta.Outputs, output)
-	}
-	// Now loop through and add outputs to each generation
-	for i, g := range meta.Outputs {
-		meta.Outputs[i].Generation.Outputs = generationOutputMap[g.Generation.ID]
 	}
 
 	// Get count when no cursor
@@ -611,6 +593,7 @@ type GenerationUpscaleOutput struct {
 	GalleryStatus    generationoutput.GalleryStatus `json:"gallery_status,omitempty"`
 	InputImageUrl    string                         `json:"input_image_url,omitempty"`
 	OutputID         *uuid.UUID                     `json:"output_id,omitempty"`
+	CreatedAt        *time.Time                     `json:"created_at,omitempty"`
 }
 
 // Paginated meta for querying generations
