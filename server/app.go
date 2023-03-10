@@ -24,7 +24,6 @@ import (
 	"github.com/stablecog/sc-go/server/middleware"
 	"github.com/stablecog/sc-go/shared"
 	"github.com/stablecog/sc-go/utils"
-	stripeBase "github.com/stripe/stripe-go/v74"
 	stripe "github.com/stripe/stripe-go/v74/client"
 	"golang.org/x/net/http2"
 	"golang.org/x/net/http2/h2c"
@@ -47,9 +46,6 @@ func main() {
 
 	// Custom flags
 	createMockData := flag.Bool("load-mock-data", false, "Create test data in database")
-	// ! TODO - remove after production
-	processCredits := flag.Bool("process-credits", false, "Process stripe subscription credits")
-	updateSubscriptions := flag.Bool("update-subscriptions", false, "Change starter subscriptions")
 
 	flag.Parse()
 
@@ -105,136 +101,6 @@ func main() {
 
 	// Create stripe client
 	stripeClient := stripe.New(utils.GetEnv("STRIPE_SECRET_KEY", ""), nil)
-
-	if *updateSubscriptions {
-		cusList := stripeClient.Customers.List(&stripeBase.CustomerListParams{
-			ListParams: stripeBase.ListParams{
-				Expand: []*string{
-					stripeBase.String("data.subscriptions"),
-				},
-			},
-		})
-
-		updated := 0
-		for cusList.Next() {
-			customer := cusList.Customer()
-
-			if customer.Subscriptions == nil || len(customer.Subscriptions.Data) == 0 || customer.Subscriptions.TotalCount == 0 {
-				continue
-			}
-
-			var currentPriceID string
-			var currentSubId string
-			var currentItemId string
-			for _, sub := range customer.Subscriptions.Data {
-				if sub.Status == stripeBase.SubscriptionStatusActive {
-					for _, item := range sub.Items.Data {
-						log.Info("Found active subscription", "sub", sub.ID, "item", item.ID, "price", item.Price.ID)
-						// If price ID is in map it's valid
-						if item.Price.ID == "price_1MTOGMATa0ehBYTAU9HUsHBM" {
-							currentPriceID = item.Price.ID
-							currentSubId = sub.ID
-							currentItemId = item.ID
-							break
-						}
-						// Check if euro price ID
-						euroPriceId := utils.GetEnv("STRIPE_STARTER_EURO_PRICE_ID", "price_1MTOJaATa0ehBYTAptW6S1r7")
-						if item.Price.ID == euroPriceId {
-							currentPriceID = item.Price.ID
-							currentSubId = sub.ID
-							currentItemId = item.ID
-						}
-						break
-					}
-				}
-			}
-
-			if currentPriceID == "" {
-				log.Info("No active subscription found", "customer", customer.ID)
-				continue
-			}
-
-			// Execute subscription update
-			_, err = stripeClient.Subscriptions.Update(currentSubId, &stripeBase.SubscriptionParams{
-				ProrationBehavior: stripeBase.String("none"),
-				Items: []*stripeBase.SubscriptionItemsParams{
-					{
-						ID:    stripeBase.String(currentItemId),
-						Price: stripeBase.String("price_1Mj1EqATa0ehBYTAw4xFqw2s"),
-					},
-				},
-			})
-
-			if err != nil {
-				log.Error("Error updating subscription", "err", err, "cus", customer.ID)
-				continue
-			}
-			updated++
-		}
-		log.Info("Updated subscriptions", "updated", updated)
-		os.Exit(0)
-	}
-
-	if *processCredits {
-		subList := stripeClient.Subscriptions.List(&stripeBase.SubscriptionListParams{
-			Status: stripeBase.String("active"),
-		})
-		for subList.Next() {
-			sub := subList.Subscription()
-			if sub == nil {
-				log.Warn("Subscription is nil")
-				continue
-			}
-			if sub.LatestInvoice == nil {
-				log.Warn("Latest invoice is nil")
-				continue
-			}
-			// Get product ID
-			var productId string
-			lineItemId := sub.LatestInvoice.ID
-			for _, line := range sub.Items.Data {
-				if line.Plan != nil {
-					productId = line.Plan.Product.ID
-					break
-				}
-			}
-			if productId == "" {
-				log.Warn("Product ID is empty")
-				continue
-			}
-			// Find credit type with this id
-			creditType, err := repo.GetCreditTypeByStripeProductID(productId)
-			if err != nil {
-				log.Warn("Error getting credit type", "err", err)
-				continue
-			} else if creditType == nil {
-				log.Warn("Credit type doesn't exist with product ID", "productID", productId)
-				continue
-			}
-
-			// Get user
-			user, err := repo.GetUserByStripeCustomerId(sub.Customer.ID)
-			if err != nil || user == nil {
-				log.Warn("Error getting user with ID", "customerID", sub.Customer.ID, "err", err)
-				continue
-			}
-
-			expiresAt := utils.SecondsSinceEpochToTime(sub.CurrentPeriodEnd)
-
-			_, err = repo.AddCreditsIfEligible(creditType, user.ID, expiresAt, lineItemId, nil)
-			if err != nil {
-				log.Warn("Error adding credits to user", "user", user.ID, "err", err)
-				continue
-			}
-			err = repo.SetActiveProductID(user.ID, productId, nil)
-			if err != nil {
-				log.Warn("Error setting active product ID for user", "user", user.ID, "err", err)
-				continue
-			}
-		}
-		log.Info("Bye bye!")
-		os.Exit(0)
-	}
 
 	app := chi.NewRouter()
 
