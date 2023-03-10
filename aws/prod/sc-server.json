@@ -2,7 +2,7 @@
     "containerDefinitions": [
         {
             "name": "main",
-            "image": "stablecog/sc-server:master-4320036592",
+            "image": "stablecog/sc-server:master-4320036593",
             "cpu": 0,
             "memory": 2048,
             "portMappings": [
