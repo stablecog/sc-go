@@ -84,7 +84,7 @@ func NewSubscriberWebhook(repo *repository.Repository, user *ent.User, productId
 		Embeds: []models.DiscordWebhookEmbed{
 			{
 				Title: fmt.Sprintf("🎉 New Subscriber #%d", nSubs),
-				Color: 10181046,
+				Color: 11437567,
 				Fields: []models.DiscordWebhookField{
 					{
 						Name:  "Email",
