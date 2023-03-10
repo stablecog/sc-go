@@ -245,7 +245,7 @@ func (r *Repository) QueryGenerations(per_page int, cursor *time.Time, filters *
 	var query *ent.GenerationQuery
 	var gQueryResult []GenerationQueryWithOutputsResult
 
-	query = r.DB.Generation.Query().Select(selectFields...).
+	query = r.DB.Debug().Generation.Query().Select(selectFields...).
 		Where(generation.StatusEQ(generation.StatusSucceeded))
 	if filters.UserID != nil {
 		query = query.Where(generation.UserID(*filters.UserID))
