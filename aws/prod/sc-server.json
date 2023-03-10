@@ -19,7 +19,7 @@
             "environment": [
                 {
                     "name": "PUBLIC_SUPABASE_REFERENCE_ID",
-                    "value": "rmhwcodjirhwssvvndna"
+                    "value": "jaqefzjqokaemzyvjcew"
                 },
                 {
                     "name": "PORT",
@@ -35,7 +35,7 @@
                 },
                 {
                     "name": "PUBLIC_API_URL",
-                    "value": "https://prod-api.stablecog.com"
+                    "value": "https://api.stablecog.com"
                 },
                 {
                     "name": "STRIPE_STARTER_PRODUCT_ID",
@@ -128,6 +128,14 @@
                 {
                     "name": "SC_WORKER_WEBHOOK_SECRET",
                     "valueFrom": "arn:aws:secretsmanager:us-east-1:280846200654:secret:prod-stablecog/go-X9rw5v:SC_WORKER_WEBHOOK_SECRET::"
+                },
+                {
+                    "name": "MIXPANEL_API_KEY",
+                    "valueFrom": "arn:aws:secretsmanager:us-east-1:280846200654:secret:prod-stablecog/go-X9rw5v:MIXPANEL_API_KEY::"
+                },
+                {
+                    "name": "MIXPANEL_ENDPOINT",
+                    "valueFrom": "arn:aws:secretsmanager:us-east-1:280846200654:secret:prod-stablecog/go-X9rw5v:MIXPANEL_ENDPOINT::"
                 }
             ],
             "dockerLabels": {},
