@@ -8,6 +8,7 @@ import (
 	"github.com/go-chi/render"
 	"github.com/stablecog/sc-go/database/ent"
 	"github.com/stablecog/sc-go/log"
+	"github.com/stablecog/sc-go/server/discord"
 	"github.com/stablecog/sc-go/server/requests"
 	"github.com/stablecog/sc-go/server/responses"
 	"github.com/stablecog/sc-go/utils"
@@ -533,6 +534,7 @@ func (c *RestAPI) HandleStripeWebhook(w http.ResponseWriter, r *http.Request) {
 				if user.ActiveProductID == nil {
 					// New subscriber
 					go c.Track.Subscription(user, product)
+					go discord.NewSubscriberWebhook(c.Repo, user, product)
 				} else {
 					// Renewal
 					go c.Track.SubscriptionRenewal(user, product)

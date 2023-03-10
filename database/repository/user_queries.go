@@ -267,3 +267,8 @@ func (r *Repository) GetUsersThatSignedInSince(since time.Duration) ([]*ent.User
 	// Subtract since from now to get users signed in since then
 	return r.DB.User.Query().Where(user.LastSignInAtGT(time.Now().Add(-since)), user.ActiveProductIDIsNil()).All(r.Ctx)
 }
+
+// Get N subscribers
+func (r *Repository) GetNSubscribers() (int, error) {
+	return r.DB.User.Query().Where(user.ActiveProductIDNotNil(), user.ActiveProductIDNEQ("")).Count(r.Ctx)
+}

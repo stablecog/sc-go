@@ -136,6 +136,10 @@
                 {
                     "name": "MIXPANEL_ENDPOINT",
                     "valueFrom": "arn:aws:secretsmanager:us-east-1:280846200654:secret:prod-stablecog/go-X9rw5v:MIXPANEL_ENDPOINT::"
+                },
+                {
+                    "name": "DISCORD_WEBHOOK_URL_NEWSUB",
+                    "valueFrom": "arn:aws:secretsmanager:us-east-1:280846200654:secret:prod-stablecog/go-X9rw5v:DISCORD_WEBHOOK_URL_NEWSUB::"
                 }
             ],
             "dockerLabels": {},
