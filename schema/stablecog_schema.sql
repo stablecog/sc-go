@@ -539,11 +539,6 @@ CREATE INDEX generationoutput_generation_id ON public.generation_outputs USING b
 
 CREATE INDEX generationoutput_updated_at ON public.generation_outputs USING btree (updated_at);
 
---
--- Name: generationoutput_gallery_status; Type: INDEX; Schema: public; Owner: postgres
---
-
-CREATE INDEX generationoutput_gallery_status ON public.generation_outputs USING btree (gallery_status);
 
 --
 -- Name: generation_user_id_created_at; Type: INDEX; Schema: public; Owner: postgres

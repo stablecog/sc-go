@@ -450,8 +450,6 @@ func (r *Repository) QueryGenerationsAdmin(per_page int, cursor *time.Time, filt
 		} else {
 			goq.Order(ent.Desc(generationoutput.FieldUpdatedAt))
 		}
-		// Limit
-		goq.Limit(per_page + 1)
 	})
 
 	// Order by generation, then output
@@ -460,6 +458,9 @@ func (r *Repository) QueryGenerationsAdmin(per_page int, cursor *time.Time, filt
 	} else {
 		query = query.Order(ent.Asc(generation.FieldUpdatedAt))
 	}
+
+	// Limits is + 1 so we can check if there are more pages
+	query = query.Limit(per_page + 1)
 
 	res, err := query.All(r.Ctx)
 
@@ -489,8 +490,6 @@ func (r *Repository) QueryGenerationsAdmin(per_page int, cursor *time.Time, filt
 	}
 
 	// Get real image URLs for each
-	// Since we do this weird format need to cap at per page
-	found := 0
 	for _, g := range res {
 		// root generation data
 		generationRoot := GenerationQueryWithOutputsData{
@@ -528,13 +527,6 @@ func (r *Repository) QueryGenerationsAdmin(per_page int, cursor *time.Time, filt
 				ret.UpscaledImageUrl = utils.GetURLFromImagePath(*o.UpscaledImagePath)
 			}
 			gQueryResult = append(gQueryResult, ret)
-			found += 1
-			if found >= per_page {
-				break
-			}
-		}
-		if found >= per_page {
-			break
 		}
 	}
 
