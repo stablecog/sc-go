@@ -433,7 +433,7 @@ func (r *Repository) QueryGenerationsAdmin(per_page int, cursor *time.Time, filt
 	var query *ent.GenerationOutputQuery
 	var gQueryResult []GenerationQueryWithOutputsResult
 
-	query = r.DB.Debug().GenerationOutput.Query().Where(
+	query = r.DB.GenerationOutput.Query().Where(
 		generationoutput.DeletedAtIsNil(),
 	)
 	if cursor != nil {
