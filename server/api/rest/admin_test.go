@@ -224,6 +224,103 @@ func TestHandleQueryGenerationsForAdminDefaultParams(t *testing.T) {
 	assert.Equal(t, 1234, genResponse.Outputs[3].Generation.Seed)
 }
 
+func TestHandleQueryGenerationsAdminCursor(t *testing.T) {
+	os.Setenv("BUCKET_BASE_URL", "http://test.com/")
+	defer os.Unsetenv("BUCKET_BASE_URL")
+
+	w := httptest.NewRecorder()
+	// Build request
+	req := httptest.NewRequest("GET", "/gens?upscaled=not", nil)
+	req.Header.Set("Content-Type", "application/json")
+
+	ctx := context.WithValue(req.Context(), "user_id", repository.MOCK_ADMIN_UUID)
+	ctx = context.WithValue(ctx, "user_email", repository.MOCK_ADMIN_UUID)
+
+	MockController.HandleQueryGenerationsForAdmin(w, req.WithContext(ctx))
+	resp := w.Result()
+	defer resp.Body.Close()
+	assert.Equal(t, 200, resp.StatusCode)
+	var genResponse repository.GenerationQueryWithOutputsMeta
+	respBody, _ := io.ReadAll(resp.Body)
+	json.Unmarshal(respBody, &genResponse)
+
+	assert.Len(t, genResponse.Outputs, 6)
+	assert.Nil(t, genResponse.Next)
+
+	// Get tiemstamp of first item so we can exclude it in "second page"
+	assert.Equal(t, "This is a prompt 2", genResponse.Outputs[0].Generation.Prompt.Text)
+	assert.Equal(t, string(generation.StatusSucceeded), genResponse.Outputs[0].Generation.Status)
+	assert.NotNil(t, genResponse.Outputs[0].Generation.StartedAt)
+	assert.NotNil(t, genResponse.Outputs[0].Generation.CompletedAt)
+	assert.Nil(t, genResponse.Outputs[0].Generation.NegativePrompt)
+	assert.Equal(t, int32(30), genResponse.Outputs[0].Generation.InferenceSteps)
+	assert.Equal(t, float32(1.0), genResponse.Outputs[0].Generation.GuidanceScale)
+	assert.Equal(t, uuid.MustParse(repository.MOCK_GENERATION_MODEL_ID), genResponse.Outputs[0].Generation.ModelID)
+	assert.Equal(t, uuid.MustParse(repository.MOCK_SCHEDULER_ID), genResponse.Outputs[0].Generation.SchedulerID)
+	assert.Equal(t, int32(512), genResponse.Outputs[0].Generation.Width)
+	assert.Equal(t, int32(512), genResponse.Outputs[0].Generation.Height)
+	assert.Equal(t, "http://test.com/output_6", genResponse.Outputs[0].ImageUrl)
+	assert.Equal(t, 1234, genResponse.Outputs[0].Generation.Seed)
+
+	// With cursor off most recent item, we should get next items
+	w = httptest.NewRecorder()
+	req = httptest.NewRequest("GET", fmt.Sprintf("/gens?cursor=%s", utils.TimeToIsoString(genResponse.Outputs[0].Generation.CreatedAt)), nil)
+	req.Header.Set("Content-Type", "application/json")
+
+	ctx = context.WithValue(req.Context(), "user_id", repository.MOCK_ADMIN_UUID)
+	ctx = context.WithValue(ctx, "user_email", repository.MOCK_ADMIN_UUID)
+
+	MockController.HandleQueryGenerationsForAdmin(w, req.WithContext(ctx))
+	resp = w.Result()
+	defer resp.Body.Close()
+	assert.Equal(t, 200, resp.StatusCode)
+	respBody, _ = io.ReadAll(resp.Body)
+	genResponse = repository.GenerationQueryWithOutputsMeta{}
+	json.Unmarshal(respBody, &genResponse)
+
+	assert.Nil(t, genResponse.Total)
+	assert.Len(t, genResponse.Outputs, 3)
+	assert.Equal(t, "This is a prompt", genResponse.Outputs[0].Generation.Prompt.Text)
+}
+
+// Test per page param
+func TestHandleQueryGenerationsAdminPerPage(t *testing.T) {
+	os.Setenv("BUCKET_BASE_URL", "http://test.com/")
+	defer os.Unsetenv("BUCKET_BASE_URL")
+	w := httptest.NewRecorder()
+	// Build request
+	req := httptest.NewRequest("GET", "/gens?per_page=1", nil)
+	req.Header.Set("Content-Type", "application/json")
+
+	ctx := context.WithValue(req.Context(), "user_id", repository.MOCK_ADMIN_UUID)
+	ctx = context.WithValue(ctx, "user_email", repository.MOCK_ADMIN_UUID)
+
+	MockController.HandleQueryGenerationsForAdmin(w, req.WithContext(ctx))
+	resp := w.Result()
+	defer resp.Body.Close()
+	assert.Equal(t, 200, resp.StatusCode)
+	var genResponse repository.GenerationQueryWithOutputsMeta
+	respBody, _ := io.ReadAll(resp.Body)
+	json.Unmarshal(respBody, &genResponse)
+
+	assert.Len(t, genResponse.Outputs, 1)
+	assert.Equal(t, *genResponse.Next, genResponse.Outputs[0].Generation.CreatedAt)
+
+	assert.Equal(t, "This is a prompt 2", genResponse.Outputs[0].Generation.Prompt.Text)
+	assert.Equal(t, string(generation.StatusSucceeded), genResponse.Outputs[0].Generation.Status)
+	assert.NotNil(t, genResponse.Outputs[0].Generation.StartedAt)
+	assert.NotNil(t, genResponse.Outputs[0].Generation.CompletedAt)
+	assert.Nil(t, genResponse.Outputs[0].Generation.NegativePrompt)
+	assert.Equal(t, int32(30), genResponse.Outputs[0].Generation.InferenceSteps)
+	assert.Equal(t, float32(1.0), genResponse.Outputs[0].Generation.GuidanceScale)
+	assert.Equal(t, uuid.MustParse(repository.MOCK_GENERATION_MODEL_ID), genResponse.Outputs[0].Generation.ModelID)
+	assert.Equal(t, uuid.MustParse(repository.MOCK_SCHEDULER_ID), genResponse.Outputs[0].Generation.SchedulerID)
+	assert.Equal(t, int32(512), genResponse.Outputs[0].Generation.Width)
+	assert.Equal(t, int32(512), genResponse.Outputs[0].Generation.Height)
+	assert.Equal(t, "http://test.com/output_6", genResponse.Outputs[0].ImageUrl)
+	assert.Equal(t, 1234, genResponse.Outputs[0].Generation.Seed)
+}
+
 func TestHandleQueryUsersDefaultParams(t *testing.T) {
 	w := httptest.NewRecorder()
 	// Build request
