@@ -461,6 +461,9 @@ func (r *Repository) QueryGenerationsAdmin(per_page int, cursor *time.Time, filt
 		query = query.Order(ent.Asc(generation.FieldUpdatedAt))
 	}
 
+	// Limit
+	query = query.Limit(per_page + 1)
+
 	res, err := query.All(r.Ctx)
 
 	if err != nil {
