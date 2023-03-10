@@ -402,7 +402,7 @@ func (r *Repository) QueryGenerations(per_page int, cursor *time.Time, filters *
 func (r *Repository) GetGenerationCountAdmin(filters *requests.QueryGenerationFilters) (int, error) {
 	var query *ent.GenerationOutputQuery
 
-	query = r.DB.Debug().GenerationOutput.Query().Where(
+	query = r.DB.GenerationOutput.Query().Where(
 		generationoutput.DeletedAtIsNil(),
 	)
 	if filters != nil {
