@@ -81,6 +81,17 @@ jobs:
         run: |
           go test -v -parallel 1 $(go list -f '{{.Dir}}/...' -m | xargs)
 
+      - name: Send Discord Webhook
+        if: failure()
+        uses: ./.github/actions/discord-webhook
+        with:
+          context: prod
+          prod-webhook-url: ${{ secrets.DISCORD_WEBHOOK_PROD }}
+          qa-webhook-url: ${{ secrets.DISCORD_WEBHOOK }}
+          embed-color: 15548997
+          embed-title: "${{ needs.setup_env.outputs.commit_msg }}  •  ${{ needs.setup_env.outputs.short_sha }}"
+          embed-description: "```Tests Failed```"
+
   build:
     name: 🔨 Build Binaries and Docker Image
     runs-on: self-hosted
