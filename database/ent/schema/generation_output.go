@@ -60,5 +60,6 @@ func (GenerationOutput) Indexes() []ent.Index {
 		index.Fields("id", "gallery_status"),
 		index.Fields("created_at"),
 		index.Fields("updated_at"),
+		index.Fields("generation_id"),
 	}
 }

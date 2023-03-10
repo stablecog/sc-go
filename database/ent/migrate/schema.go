@@ -238,6 +238,11 @@ var (
 				Unique:  false,
 				Columns: []*schema.Column{GenerationOutputsColumns[6]},
 			},
+			{
+				Name:    "generationoutput_generation_id",
+				Unique:  false,
+				Columns: []*schema.Column{GenerationOutputsColumns[7]},
+			},
 		},
 	}
 	// NegativePromptsColumns holds the columns for the "negative_prompts" table.
