@@ -80,12 +80,6 @@ func (c *RestAPI) HandleGetUser(w http.ResponseWriter, r *http.Request) {
 				return err
 			}
 
-			user, err = c.Repo.GetUserWithRoles(*userID)
-			if err != nil {
-				log.Error("Error getting user with roles", "err", err)
-				return err
-			}
-
 			return nil
 		}); err != nil {
 			log.Error("Error creating user", "err", err)
@@ -100,6 +94,15 @@ func (c *RestAPI) HandleGetUser(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		go c.Track.SignUp(*userID, email, utils.GetIPAddress(r))
+	}
+
+	if user == nil {
+		user, err = c.Repo.GetUserWithRoles(*userID)
+		if err != nil {
+			log.Error("Error getting user with roles", "err", err)
+			responses.ErrInternalServerError(w, r, "An unknown error has occured")
+			return
+		}
 	}
 
 	// Get total credits
