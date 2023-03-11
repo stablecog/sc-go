@@ -404,7 +404,7 @@ func (c *RestAPI) HandleStripeWebhook(w http.ResponseWriter, r *http.Request) {
 			sub := subIter.Subscription()
 			if sub.ID != newSub.ID {
 				if sub.Items != nil && len(sub.Items.Data) > 0 && sub.Items.Data[0].Price != nil && sub.Items.Data[0].Price.Product != nil {
-					oldProduct = newSub.Items.Data[0].Price.Product.ID
+					oldProduct = sub.Items.Data[0].Price.Product.ID
 				}
 				// We need to cancel this subscription
 				_, err := c.StripeClient.Subscriptions.Cancel(sub.ID, &stripe.SubscriptionCancelParams{
