@@ -13,6 +13,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/stablecog/sc-go/database/ent/generation"
 	"github.com/stablecog/sc-go/database/ent/generationoutput"
+	"github.com/stablecog/sc-go/database/ent/userrole"
 	"github.com/stablecog/sc-go/database/repository"
 	"github.com/stablecog/sc-go/server/requests"
 	"github.com/stablecog/sc-go/server/responses"
@@ -96,7 +97,7 @@ func TestHandleDeleteGeneration(t *testing.T) {
 	targetUpscaleOutput, err := MockController.Repo.DB.UpscaleOutput.Create().SetImagePath("s3://hello/upscaled.png").SetUpscaleID(targetUpscale.ID).Save(ctx)
 	assert.Nil(t, err)
 
-	// ! Can delete generation
+	// ! Can NOT delete generation if gallery admiin
 	reqBody := requests.DeleteGenerationRequest{
 		GenerationOutputIDs: []uuid.UUID{targetGOutput.ID},
 	}
@@ -109,11 +110,29 @@ func TestHandleDeleteGeneration(t *testing.T) {
 	// Setup context
 	ctx = context.WithValue(req.Context(), "user_id", repository.MOCK_ADMIN_UUID)
 	ctx = context.WithValue(ctx, "user_email", repository.MOCK_ADMIN_UUID)
+	ctx = context.WithValue(ctx, "user_role", userrole.RoleNameGALLERY_ADMIN.String())
 
 	MockController.HandleDeleteGenerationOutput(w, req.WithContext(ctx))
 	resp := w.Result()
 	defer resp.Body.Close()
+	assert.Equal(t, 401, resp.StatusCode)
+
+	// ! Can delete generation if super
+	w = httptest.NewRecorder()
+	// Build request
+	req = httptest.NewRequest("DELETE", "/", bytes.NewReader(body))
+	req.Header.Set("Content-Type", "application/json")
+
+	// Setup context
+	ctx = context.WithValue(req.Context(), "user_id", repository.MOCK_ADMIN_UUID)
+	ctx = context.WithValue(ctx, "user_email", repository.MOCK_ADMIN_UUID)
+	ctx = context.WithValue(ctx, "user_role", userrole.RoleNameSUPER_ADMIN.String())
+
+	MockController.HandleDeleteGenerationOutput(w, req.WithContext(ctx))
+	resp = w.Result()
+	defer resp.Body.Close()
 	assert.Equal(t, 200, resp.StatusCode)
+
 	var deleteResp responses.DeletedResponse
 	respBody, _ := io.ReadAll(resp.Body)
 	json.Unmarshal(respBody, &deleteResp)
@@ -149,6 +168,7 @@ func TestHandleQueryGenerationsForAdminDefaultParams(t *testing.T) {
 
 	ctx := context.WithValue(req.Context(), "user_id", repository.MOCK_ADMIN_UUID)
 	ctx = context.WithValue(ctx, "user_email", repository.MOCK_ADMIN_UUID)
+	ctx = context.WithValue(ctx, "user_role", userrole.RoleNameSUPER_ADMIN.String())
 
 	MockController.HandleQueryGenerationsForAdmin(w, req.WithContext(ctx))
 	resp := w.Result()
@@ -235,6 +255,7 @@ func TestHandleQueryGenerationsAdminCursor(t *testing.T) {
 
 	ctx := context.WithValue(req.Context(), "user_id", repository.MOCK_ADMIN_UUID)
 	ctx = context.WithValue(ctx, "user_email", repository.MOCK_ADMIN_UUID)
+	ctx = context.WithValue(ctx, "user_role", userrole.RoleNameSUPER_ADMIN.String())
 
 	MockController.HandleQueryGenerationsForAdmin(w, req.WithContext(ctx))
 	resp := w.Result()
@@ -269,6 +290,7 @@ func TestHandleQueryGenerationsAdminCursor(t *testing.T) {
 
 	ctx = context.WithValue(req.Context(), "user_id", repository.MOCK_ADMIN_UUID)
 	ctx = context.WithValue(ctx, "user_email", repository.MOCK_ADMIN_UUID)
+	ctx = context.WithValue(ctx, "user_role", userrole.RoleNameSUPER_ADMIN.String())
 
 	MockController.HandleQueryGenerationsForAdmin(w, req.WithContext(ctx))
 	resp = w.Result()
@@ -294,6 +316,7 @@ func TestHandleQueryGenerationsAdminPerPage(t *testing.T) {
 
 	ctx := context.WithValue(req.Context(), "user_id", repository.MOCK_ADMIN_UUID)
 	ctx = context.WithValue(ctx, "user_email", repository.MOCK_ADMIN_UUID)
+	ctx = context.WithValue(ctx, "user_role", userrole.RoleNameSUPER_ADMIN.String())
 
 	MockController.HandleQueryGenerationsForAdmin(w, req.WithContext(ctx))
 	resp := w.Result()
