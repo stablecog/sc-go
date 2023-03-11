@@ -37,7 +37,9 @@ func (r *Repository) AddCreditsIfEligible(creditType *ent.CreditType, userID uui
 	}
 
 	// Add credits
-	_, err = DB.Credit.Create().SetCreditTypeID(creditType.ID).SetUserID(userID).SetRemainingAmount(creditType.Amount).SetExpiresAt(expiresAt).SetStripeLineItemID(lineItemId).Save(r.Ctx)
+	// Add an extra day to expiresAt
+	expiresAtBuffer := expiresAt.AddDate(0, 0, 1)
+	_, err = DB.Credit.Create().SetCreditTypeID(creditType.ID).SetUserID(userID).SetRemainingAmount(creditType.Amount).SetExpiresAt(expiresAtBuffer).SetStripeLineItemID(lineItemId).Save(r.Ctx)
 	if err != nil {
 		return false, err
 	}
