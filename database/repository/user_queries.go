@@ -127,7 +127,11 @@ func (r *Repository) QueryUsersCount(emailSearch string) (totalCount int, totalC
 
 	// Get map of user product_id / count
 	var userCreditCount []UserCreditGroupByType
-	r.DB.User.Query().Where(user.ActiveProductIDNotNil(), user.ActiveProductIDNEQ("")).
+	q := r.DB.User.Query().Where(user.ActiveProductIDNotNil(), user.ActiveProductIDNEQ(""))
+	if emailSearch != "" {
+		q = q.Where(user.EmailContains(emailSearch))
+	}
+	q.
 		GroupBy(user.FieldActiveProductID).
 		Aggregate(ent.Count()).
 		Scan(r.Ctx, &userCreditCount)

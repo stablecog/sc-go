@@ -112,6 +112,15 @@ func TestGetRoles(t *testing.T) {
 	assert.Len(t, roles, 0)
 }
 
+func TestQueryUsersCount(t *testing.T) {
+	// Query users
+	c, cMap, err := MockRepo.QueryUsersCount("")
+	assert.Nil(t, err)
+	assert.Equal(t, 4, c)
+	assert.Len(t, cMap, 1)
+	assert.Equal(t, 3, cMap["prod_123"])
+}
+
 func TestQueryUsers(t *testing.T) {
 	// Query users
 	users, err := MockRepo.QueryUsers("mockadmin", 50, nil)
