@@ -125,6 +125,79 @@ func NewSubscriberWebhook(repo *repository.Repository, user *ent.User, productId
 	return nil
 }
 
+func SubscriptionUpgradeWebhook(
+	repo *repository.Repository,
+	user *ent.User,
+	productIdOld string,
+	productIdNew string,
+) error {
+	webhookUrl := utils.GetEnv("DISCORD_WEBHOOK_URL_NEWSUB", "")
+	if webhookUrl == "" {
+		return fmt.Errorf("DISCORD_WEBHOOK_URL_NEWSUB not set")
+	}
+	// Get credit type by product ID
+	creditTypeOld, err := repo.GetCreditTypeByStripeProductID(productIdOld)
+	if err != nil || creditTypeOld == nil {
+		log.Error("Error getting credit type", "err", err, "creditTypeOld", creditTypeOld)
+		return err
+	}
+
+	creditTypeNew, err := repo.GetCreditTypeByStripeProductID(productIdNew)
+	if err != nil || creditTypeNew == nil {
+		log.Error("Error getting credit type", "err", err, "creditTypeNew", creditTypeNew)
+		return err
+	}
+
+	// Build webhook body
+	body := models.DiscordWebhookBody{
+		Embeds: []models.DiscordWebhookEmbed{
+			{
+				Title: "🎉 Subscription Upgrade",
+				Color: 11437567,
+				Fields: []models.DiscordWebhookField{
+					{
+						Name:  "Email",
+						Value: user.Email,
+					},
+					{
+						Name:  "New Plan",
+						Value: creditTypeNew.Name,
+					},
+					{
+						Name:  "Old Plan",
+						Value: creditTypeOld.Name,
+					},
+					{
+						Name:  "Supabase ID",
+						Value: user.ID.String(),
+					},
+					{
+						Name:  "Stripe ID",
+						Value: user.StripeCustomerID,
+					},
+				},
+				Footer: models.DiscordWebhookEmbedFooter{
+					Text: fmt.Sprintf("%s", time.Now().Format(time.RFC1123)),
+				},
+			},
+		},
+		Attachments: []models.DiscordWebhookAttachment{},
+	}
+	reqBody, err := json.Marshal(body)
+	if err != nil {
+		log.Error("Error marshalling webhook body", "err", err)
+		return err
+	}
+	res, postErr := http.Post(utils.GetEnv("DISCORD_WEBHOOK_URL_NEWSUB", ""), "application/json", bytes.NewBuffer(reqBody))
+	if postErr != nil {
+		log.Error("Error sending webhook", "err", postErr)
+		return postErr
+	}
+	defer res.Body.Close()
+
+	return nil
+}
+
 // Sends a discord notification when adhoc credits purchased
 func AdhocCreditsPurchasedWebhook(repo *repository.Repository, user *ent.User, creditType *ent.CreditType) error {
 	webhookUrl := utils.GetEnv("DISCORD_WEBHOOK_URL_NEWSUB", "")

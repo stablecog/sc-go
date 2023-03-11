@@ -426,6 +426,7 @@ func (c *RestAPI) HandleStripeWebhook(w http.ResponseWriter, r *http.Request) {
 					return
 				}
 				go c.Track.SubscriptionUpgraded(user, oldProduct, newProduct)
+				go discord.SubscriptionUpgradeWebhook(c.Repo, user, oldProduct, newProduct)
 			}()
 		}
 	case "customer.subscription.deleted":
