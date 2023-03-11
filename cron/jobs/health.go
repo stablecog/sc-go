@@ -1,7 +1,6 @@
 package jobs
 
 import (
-	"fmt"
 	"time"
 
 	"github.com/stablecog/sc-go/cron/discord"
@@ -41,8 +40,8 @@ func (j *JobRunner) CheckHealth(log Logger) error {
 		}
 	}
 
-	log.Infof("Generation fail rate NSFW %s", fmt.Sprintf("%d/%d", nsfwGenerations, len(generations)))
-	log.Infof("Generation fail rate other %s", fmt.Sprintf("%d/%d", failedGenerations, len(generations)))
+	log.Infof("Generation fail rate NSFW %d/%d", nsfwGenerations, len(generations))
+	log.Infof("Generation fail rate other %d/%d", failedGenerations, len(generations))
 
 	// Figure out if we're healthy
 	healthStatus := discord.HEALTHY
@@ -51,7 +50,7 @@ func (j *JobRunner) CheckHealth(log Logger) error {
 		healthStatus = discord.UNHEALTHY
 	}
 
-	log.Infof("Done checking health in %s", fmt.Sprintf("%dms", time.Now().Sub(start).Milliseconds()))
+	log.Infof("Done checking health in %dms", time.Now().Sub(start).Milliseconds())
 
 	return j.Discord.SendDiscordNotificationIfNeeded(
 		healthStatus,
