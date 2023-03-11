@@ -149,7 +149,7 @@ func (c *RestAPI) HandleQueryGenerationsForAdmin(w http.ResponseWriter, r *http.
 				generationoutput.GalleryStatusSubmitted,
 			}
 		} else if slices.Contains(filters.GalleryStatus, generationoutput.GalleryStatusNotSubmitted) {
-			responses.ErrBadRequest(w, r, "Only super admins can query for not submitted generations")
+			responses.ErrUnauthorized(w, r)
 			return
 		}
 	}
