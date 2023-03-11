@@ -59,13 +59,12 @@ func (m *Middleware) AuthMiddleware(level AuthLevel) func(next http.Handler) htt
 					// Super admin always authorized
 					if role == userrole.RoleNameSUPER_ADMIN {
 						authorized = true
-						ctx = context.WithValue(ctx, "user_role", userrole.RoleNameSUPER_ADMIN)
+						ctx = context.WithValue(ctx, "user_role", userrole.RoleNameSUPER_ADMIN.String())
 						break
 					} else if role == userrole.RoleNameGALLERY_ADMIN && level == AuthLevelGalleryAdmin {
 						// Gallery admin only authorized if we're checking for gallery admin
 						authorized = true
-						ctx = context.WithValue(ctx, "user_role", userrole.RoleNameSUPER_ADMIN)
-						break
+						ctx = context.WithValue(ctx, "user_role", userrole.RoleNameSUPER_ADMIN.String())
 					}
 				}
 			}
