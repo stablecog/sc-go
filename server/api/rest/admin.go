@@ -10,10 +10,13 @@ import (
 
 	"github.com/go-chi/render"
 	"github.com/stablecog/sc-go/database/ent"
+	"github.com/stablecog/sc-go/database/ent/generationoutput"
+	"github.com/stablecog/sc-go/database/ent/userrole"
 	"github.com/stablecog/sc-go/log"
 	"github.com/stablecog/sc-go/server/requests"
 	"github.com/stablecog/sc-go/server/responses"
 	"github.com/stablecog/sc-go/utils"
+	"golang.org/x/exp/slices"
 )
 
 // Admin-related routes, these must be behind admin middleware and auth middleware
@@ -64,6 +67,13 @@ func (c *RestAPI) HandleDeleteGenerationOutput(w http.ResponseWriter, r *http.Re
 		return
 	}
 
+	// Get user_role from context
+	userRole, ok := r.Context().Value("user_role").(string)
+	if !ok || userRole != userrole.RoleNameSUPER_ADMIN.String() {
+		responses.ErrUnauthorized(w, r)
+		return
+	}
+
 	// Parse request body
 	reqBody, _ := io.ReadAll(r.Body)
 	var deleteReq requests.DeleteGenerationRequest
@@ -91,6 +101,14 @@ func (c *RestAPI) HandleQueryGenerationsForAdmin(w http.ResponseWriter, r *http.
 	if user, email := c.GetUserIDAndEmailIfAuthenticated(w, r); user == nil || email == "" {
 		return
 	}
+
+	// Get user_role from context
+	userRole, ok := r.Context().Value("user_role").(string)
+	if !ok {
+		responses.ErrUnauthorized(w, r)
+		return
+	}
+	superAdmin := userRole == userrole.RoleNameSUPER_ADMIN.String()
 
 	// Validate query parameters
 	perPage := DEFAULT_PER_PAGE
@@ -121,6 +139,19 @@ func (c *RestAPI) HandleQueryGenerationsForAdmin(w http.ResponseWriter, r *http.
 	if err != nil {
 		responses.ErrBadRequest(w, r, err.Error())
 		return
+	}
+	// Make sure non-super admin can't get private generations
+	if !superAdmin {
+		if len(filters.GalleryStatus) == 0 {
+			filters.GalleryStatus = []generationoutput.GalleryStatus{
+				generationoutput.GalleryStatusApproved,
+				generationoutput.GalleryStatusRejected,
+				generationoutput.GalleryStatusSubmitted,
+			}
+		} else if slices.Contains(filters.GalleryStatus, generationoutput.GalleryStatusNotSubmitted) {
+			responses.ErrBadRequest(w, r, "Only super admins can query for not submitted generations")
+			return
+		}
 	}
 
 	// Get generaions

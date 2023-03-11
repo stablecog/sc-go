@@ -241,7 +241,8 @@ func main() {
 				r.Put("/", hc.HandleReviewGallerySubmission)
 			})
 			r.Route("/outputs", func(r chi.Router) {
-				r.Use(mw.AuthMiddleware(middleware.AuthLevelSuperAdmin))
+				// TODO - this is auth level gallery admin, but delete route manually enforces super admin
+				r.Use(mw.AuthMiddleware(middleware.AuthLevelGalleryAdmin))
 				r.Use(chimiddleware.Logger)
 				r.Delete("/", hc.HandleDeleteGenerationOutput)
 				r.Get("/", hc.HandleQueryGenerationsForAdmin)
