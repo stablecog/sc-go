@@ -20,6 +20,7 @@ func (r *Repository) SetActiveProductID(id uuid.UUID, stripeProductID string, db
 	return db.User.UpdateOneID(id).SetActiveProductID(stripeProductID).Exec(r.Ctx)
 }
 
+// Only unset if the active product ID matches the stripe product ID given
 func (r *Repository) UnsetActiveProductID(id uuid.UUID, stripeProductId string, db *ent.Client) (int, error) {
 	if db == nil {
 		db = r.DB

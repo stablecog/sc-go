@@ -101,7 +101,7 @@ func (repo *Repository) CreateMockData(ctx context.Context) error {
 	}
 
 	// Create another non-admin user with no credits
-	u, err = repo.DB.User.Create().SetEmail("mocknocredituser@stablecog.com").SetID(uuid.MustParse(MOCK_NO_CREDITS_UUID)).SetStripeCustomerID("4").Save(ctx)
+	u, err = repo.DB.User.Create().SetEmail("mocknocredituser@stablecog.com").SetID(uuid.MustParse(MOCK_NO_CREDITS_UUID)).SetStripeCustomerID("4").SetLastSignInAt(time.Now()).Save(ctx)
 	if err != nil {
 		return err
 	}

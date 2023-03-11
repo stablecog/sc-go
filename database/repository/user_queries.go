@@ -114,8 +114,12 @@ func (r *Repository) GetRoles(userID uuid.UUID) ([]userrole.RoleName, error) {
 }
 
 // Get count for QueryUsers
-func (r *Repository) QueryUsersCount() (totalCount int, totalCountByProduct map[string]int, err error) {
-	count, err := r.DB.User.Query().Count(r.Ctx)
+func (r *Repository) QueryUsersCount(emailSearch string) (totalCount int, totalCountByProduct map[string]int, err error) {
+	query := r.DB.User.Query()
+	if emailSearch != "" {
+		query = query.Where(user.EmailContains(emailSearch))
+	}
+	count, err := query.Count(r.Ctx)
 	if err != nil {
 		log.Error("Error querying users count", "err", err)
 		return 0, nil, err
@@ -194,7 +198,7 @@ func (r *Repository) QueryUsers(emailSearch string, per_page int, cursor *time.T
 		Users: make([]UserQueryResult, len(res)),
 	}
 	if cursor == nil {
-		total, totalByProduct, err := r.QueryUsersCount()
+		total, totalByProduct, err := r.QueryUsersCount(emailSearch)
 		if err != nil {
 			log.Error("Error querying users count", "err", err)
 			return nil, err
