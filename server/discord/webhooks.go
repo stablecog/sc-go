@@ -62,7 +62,7 @@ func FireServerReadyWebhook(version string, msg string, buildStart string) error
 	return nil
 }
 
-// Sends a discord notification on either the healthy/unhealthy interval depending on status
+// Sends a discord notification when a new subscriber signs up
 func NewSubscriberWebhook(repo *repository.Repository, user *ent.User, productId string) error {
 	webhookUrl := utils.GetEnv("DISCORD_WEBHOOK_URL_NEWSUB", "")
 	if webhookUrl == "" {
@@ -93,6 +93,58 @@ func NewSubscriberWebhook(repo *repository.Repository, user *ent.User, productId
 					{
 						Name:  "Plan",
 						Value: ctype.Name,
+					},
+					{
+						Name:  "Supabase ID",
+						Value: user.ID.String(),
+					},
+					{
+						Name:  "Stripe ID",
+						Value: user.StripeCustomerID,
+					},
+				},
+				Footer: models.DiscordWebhookEmbedFooter{
+					Text: fmt.Sprintf("%s", time.Now().Format(time.RFC1123)),
+				},
+			},
+		},
+		Attachments: []models.DiscordWebhookAttachment{},
+	}
+	reqBody, err := json.Marshal(body)
+	if err != nil {
+		log.Error("Error marshalling webhook body", "err", err)
+		return err
+	}
+	res, postErr := http.Post(utils.GetEnv("DISCORD_WEBHOOK_URL_NEWSUB", ""), "application/json", bytes.NewBuffer(reqBody))
+	if postErr != nil {
+		log.Error("Error sending webhook", "err", postErr)
+		return postErr
+	}
+	defer res.Body.Close()
+
+	return nil
+}
+
+// Sends a discord notification when adhoc credits purchased
+func AdhocCreditsPurchasedWebhook(repo *repository.Repository, user *ent.User, creditType *ent.CreditType) error {
+	webhookUrl := utils.GetEnv("DISCORD_WEBHOOK_URL_NEWSUB", "")
+	if webhookUrl == "" {
+		return fmt.Errorf("DISCORD_WEBHOOK_URL_NEWSUB not set")
+	}
+	// Build webhook body
+	body := models.DiscordWebhookBody{
+		Embeds: []models.DiscordWebhookEmbed{
+			{
+				Title: "🎉 Credits Purchased",
+				Color: 11437567,
+				Fields: []models.DiscordWebhookField{
+					{
+						Name:  "Email",
+						Value: user.Email,
+					},
+					{
+						Name:  "Pack",
+						Value: creditType.Name,
 					},
 					{
 						Name:  "Supabase ID",

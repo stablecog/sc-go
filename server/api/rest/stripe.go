@@ -606,6 +606,7 @@ func (c *RestAPI) HandleStripeWebhook(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		go c.Track.CreditPurchase(user, product, int(creditType.Amount))
+		go discord.AdhocCreditsPurchasedWebhook(c.Repo, user, creditType)
 	}
 
 	render.Status(r, http.StatusOK)
