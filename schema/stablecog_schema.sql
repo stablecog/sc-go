@@ -364,11 +364,12 @@ UPDATE
 
 -- To update last_sign_in_at
 
-create function handle_updated_user() returns trigger as $$ begin
+create or replace function handle_updated_user() returns trigger as $$ begin
 update
     public.users
 set
-    last_sign_in_at = new.last_sign_in_at
+    last_sign_in_at = new.last_sign_in_at,
+    email = new.email
 where
     id = new.id;
 return new;
