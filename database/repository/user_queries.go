@@ -177,14 +177,12 @@ func (r *Repository) QueryUsers(
 	query = query.Limit(per_page + 1)
 
 	// Include non-expired credits and type
+	query.WithCredits(func(s *ent.CreditQuery) {
+		s.Where(credit.ExpiresAtGT(time.Now())).WithCreditType().Order(ent.Asc(credit.FieldExpiresAt))
+	})
+
 	if productIds != nil && len(productIds) > 0 {
-		query.WithCredits(func(s *ent.CreditQuery) {
-			s.Where(credit.ExpiresAtGT(time.Now())).WithCreditType().Order(ent.Asc(credit.FieldExpiresAt))
-		}).Where(user.ActiveProductIDIn(productIds...))
-	} else {
-		query.WithCredits(func(s *ent.CreditQuery) {
-			s.Where(credit.ExpiresAtGT(time.Now())).WithCreditType().Order(ent.Asc(credit.FieldExpiresAt))
-		})
+		query.Where(user.ActiveProductIDIn(productIds...))
 	}
 
 	if emailSearch != "" {
