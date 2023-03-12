@@ -153,7 +153,12 @@ type UserCreditGroupByType struct {
 // Query all users with filters
 // per_page is how many rows to return
 // cursor is created_at on users, will return items with created_at less than cursor
-func (r *Repository) QueryUsers(emailSearch string, per_page int, cursor *time.Time) (*UserQueryMeta, error) {
+func (r *Repository) QueryUsers(
+	emailSearch string,
+	per_page int,
+	cursor *time.Time,
+	productIds []string,
+) (*UserQueryMeta, error) {
 	selectFields := []string{
 		user.FieldID,
 		user.FieldEmail,
@@ -172,9 +177,15 @@ func (r *Repository) QueryUsers(emailSearch string, per_page int, cursor *time.T
 	query = query.Limit(per_page + 1)
 
 	// Include non-expired credits and type
-	query.WithCredits(func(s *ent.CreditQuery) {
-		s.Where(credit.ExpiresAtGT(time.Now())).WithCreditType().Order(ent.Asc(credit.FieldExpiresAt))
-	})
+	if len(productIds) > 0 {
+		query.WithCredits(func(s *ent.CreditQuery) {
+			s.Where(credit.ExpiresAtGT(time.Now())).WithCreditType().Order(ent.Asc(credit.FieldExpiresAt))
+		}).Where(user.ActiveProductIDIn(productIds...))
+	} else {
+		query.WithCredits(func(s *ent.CreditQuery) {
+			s.Where(credit.ExpiresAtGT(time.Now())).WithCreditType().Order(ent.Asc(credit.FieldExpiresAt))
+		})
+	}
 
 	if emailSearch != "" {
 		query = query.Where(user.EmailContains(emailSearch))

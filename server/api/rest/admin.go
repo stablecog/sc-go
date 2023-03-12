@@ -6,6 +6,7 @@ import (
 	"io"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/go-chi/render"
@@ -197,8 +198,13 @@ func (c *RestAPI) HandleQueryUsers(w http.ResponseWriter, r *http.Request) {
 		cursor = &cursorTime
 	}
 
+	var productIds []string
+	if productIdsStr := r.URL.Query().Get("product_ids"); productIdsStr != "" {
+		productIds = strings.Split(productIdsStr, ",")
+	}
+
 	// Get users
-	users, err := c.Repo.QueryUsers(r.URL.Query().Get("search"), perPage, cursor)
+	users, err := c.Repo.QueryUsers(r.URL.Query().Get("search"), perPage, cursor, productIds)
 	if err != nil {
 		log.Error("Error getting users", "err", err)
 		responses.ErrInternalServerError(w, r, "Error getting users")
