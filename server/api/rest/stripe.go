@@ -498,6 +498,11 @@ func (c *RestAPI) HandleStripeWebhook(w http.ResponseWriter, r *http.Request) {
 				return
 			}
 
+			// old pro to starter
+			if product == "prod_NDpntRHZ5BK7jJ" {
+				product = "prod_NTzD6l0KByWfLm"
+			}
+
 			// Get user from customer ID
 			user, err := c.Repo.GetUserByStripeCustomerId(invoice.Customer)
 			if err != nil {
