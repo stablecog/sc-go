@@ -177,7 +177,7 @@ func (r *Repository) QueryUsers(
 	query = query.Limit(per_page + 1)
 
 	// Include non-expired credits and type
-	if len(productIds) > 0 {
+	if productIds != nil && len(productIds) > 0 {
 		query.WithCredits(func(s *ent.CreditQuery) {
 			s.Where(credit.ExpiresAtGT(time.Now())).WithCreditType().Order(ent.Asc(credit.FieldExpiresAt))
 		}).Where(user.ActiveProductIDIn(productIds...))
