@@ -199,7 +199,7 @@ func (c *RestAPI) HandleQueryUsers(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var productIds []string
-	if productIdsStr := r.URL.Query().Get("product_ids"); productIdsStr != "" {
+	if productIdsStr := r.URL.Query().Get("active_product_ids"); productIdsStr != "" {
 		productIds = strings.Split(productIdsStr, ",")
 	}
 
