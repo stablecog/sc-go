@@ -19,6 +19,8 @@ const (
 	FieldExpiresAt = "expires_at"
 	// FieldStripeLineItemID holds the string denoting the stripe_line_item_id field in the database.
 	FieldStripeLineItemID = "stripe_line_item_id"
+	// FieldReplenishedAt holds the string denoting the replenished_at field in the database.
+	FieldReplenishedAt = "replenished_at"
 	// FieldUserID holds the string denoting the user_id field in the database.
 	FieldUserID = "user_id"
 	// FieldCreditTypeID holds the string denoting the credit_type_id field in the database.
@@ -55,6 +57,7 @@ var Columns = []string{
 	FieldRemainingAmount,
 	FieldExpiresAt,
 	FieldStripeLineItemID,
+	FieldReplenishedAt,
 	FieldUserID,
 	FieldCreditTypeID,
 	FieldCreatedAt,
@@ -72,6 +75,8 @@ func ValidColumn(column string) bool {
 }
 
 var (
+	// DefaultReplenishedAt holds the default value on creation for the "replenished_at" field.
+	DefaultReplenishedAt func() time.Time
 	// DefaultCreatedAt holds the default value on creation for the "created_at" field.
 	DefaultCreatedAt func() time.Time
 	// DefaultUpdatedAt holds the default value on creation for the "updated_at" field.

@@ -67,6 +67,7 @@ type CreditMutation struct {
 	addremaining_amount *int32
 	expires_at          *time.Time
 	stripe_line_item_id *string
+	replenished_at      *time.Time
 	created_at          *time.Time
 	updated_at          *time.Time
 	clearedFields       map[string]struct{}
@@ -324,6 +325,42 @@ func (m *CreditMutation) ResetStripeLineItemID() {
 	delete(m.clearedFields, credit.FieldStripeLineItemID)
 }
 
+// SetReplenishedAt sets the "replenished_at" field.
+func (m *CreditMutation) SetReplenishedAt(t time.Time) {
+	m.replenished_at = &t
+}
+
+// ReplenishedAt returns the value of the "replenished_at" field in the mutation.
+func (m *CreditMutation) ReplenishedAt() (r time.Time, exists bool) {
+	v := m.replenished_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldReplenishedAt returns the old "replenished_at" field's value of the Credit entity.
+// If the Credit object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CreditMutation) OldReplenishedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldReplenishedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldReplenishedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldReplenishedAt: %w", err)
+	}
+	return oldValue.ReplenishedAt, nil
+}
+
+// ResetReplenishedAt resets all changes to the "replenished_at" field.
+func (m *CreditMutation) ResetReplenishedAt() {
+	m.replenished_at = nil
+}
+
 // SetUserID sets the "user_id" field.
 func (m *CreditMutation) SetUserID(u uuid.UUID) {
 	m.users = &u
@@ -567,7 +604,7 @@ func (m *CreditMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *CreditMutation) Fields() []string {
-	fields := make([]string, 0, 7)
+	fields := make([]string, 0, 8)
 	if m.remaining_amount != nil {
 		fields = append(fields, credit.FieldRemainingAmount)
 	}
@@ -576,6 +613,9 @@ func (m *CreditMutation) Fields() []string {
 	}
 	if m.stripe_line_item_id != nil {
 		fields = append(fields, credit.FieldStripeLineItemID)
+	}
+	if m.replenished_at != nil {
+		fields = append(fields, credit.FieldReplenishedAt)
 	}
 	if m.users != nil {
 		fields = append(fields, credit.FieldUserID)
@@ -603,6 +643,8 @@ func (m *CreditMutation) Field(name string) (ent.Value, bool) {
 		return m.ExpiresAt()
 	case credit.FieldStripeLineItemID:
 		return m.StripeLineItemID()
+	case credit.FieldReplenishedAt:
+		return m.ReplenishedAt()
 	case credit.FieldUserID:
 		return m.UserID()
 	case credit.FieldCreditTypeID:
@@ -626,6 +668,8 @@ func (m *CreditMutation) OldField(ctx context.Context, name string) (ent.Value, 
 		return m.OldExpiresAt(ctx)
 	case credit.FieldStripeLineItemID:
 		return m.OldStripeLineItemID(ctx)
+	case credit.FieldReplenishedAt:
+		return m.OldReplenishedAt(ctx)
 	case credit.FieldUserID:
 		return m.OldUserID(ctx)
 	case credit.FieldCreditTypeID:
@@ -663,6 +707,13 @@ func (m *CreditMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetStripeLineItemID(v)
+		return nil
+	case credit.FieldReplenishedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetReplenishedAt(v)
 		return nil
 	case credit.FieldUserID:
 		v, ok := value.(uuid.UUID)
@@ -773,6 +824,9 @@ func (m *CreditMutation) ResetField(name string) error {
 		return nil
 	case credit.FieldStripeLineItemID:
 		m.ResetStripeLineItemID()
+		return nil
+	case credit.FieldReplenishedAt:
+		m.ResetReplenishedAt()
 		return nil
 	case credit.FieldUserID:
 		m.ResetUserID()

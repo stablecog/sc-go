@@ -180,7 +180,7 @@ func (r *Repository) ReplenishFreeCreditsToEligibleUsers(userIDs []uuid.UUID) (i
 				credit.UserIDIn(userIDs...),
 				credit.CreditTypeID(creditType.ID),
 				credit.RemainingAmountLT(creditType.Amount),
-				credit.UpdatedAtLT(updatedAtSince),
+				credit.ReplenishedAtLT(updatedAtSince),
 			).
 			AddRemainingAmount(shared.FREE_CREDIT_AMOUNT_DAILY).Save(r.Ctx)
 		if err != nil {

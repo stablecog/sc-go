@@ -49,6 +49,20 @@ func (cc *CreditCreate) SetNillableStripeLineItemID(s *string) *CreditCreate {
 	return cc
 }
 
+// SetReplenishedAt sets the "replenished_at" field.
+func (cc *CreditCreate) SetReplenishedAt(t time.Time) *CreditCreate {
+	cc.mutation.SetReplenishedAt(t)
+	return cc
+}
+
+// SetNillableReplenishedAt sets the "replenished_at" field if the given value is not nil.
+func (cc *CreditCreate) SetNillableReplenishedAt(t *time.Time) *CreditCreate {
+	if t != nil {
+		cc.SetReplenishedAt(*t)
+	}
+	return cc
+}
+
 // SetUserID sets the "user_id" field.
 func (cc *CreditCreate) SetUserID(u uuid.UUID) *CreditCreate {
 	cc.mutation.SetUserID(u)
@@ -154,6 +168,10 @@ func (cc *CreditCreate) ExecX(ctx context.Context) {
 
 // defaults sets the default values of the builder before save.
 func (cc *CreditCreate) defaults() {
+	if _, ok := cc.mutation.ReplenishedAt(); !ok {
+		v := credit.DefaultReplenishedAt()
+		cc.mutation.SetReplenishedAt(v)
+	}
 	if _, ok := cc.mutation.CreatedAt(); !ok {
 		v := credit.DefaultCreatedAt()
 		cc.mutation.SetCreatedAt(v)
@@ -175,6 +193,9 @@ func (cc *CreditCreate) check() error {
 	}
 	if _, ok := cc.mutation.ExpiresAt(); !ok {
 		return &ValidationError{Name: "expires_at", err: errors.New(`ent: missing required field "Credit.expires_at"`)}
+	}
+	if _, ok := cc.mutation.ReplenishedAt(); !ok {
+		return &ValidationError{Name: "replenished_at", err: errors.New(`ent: missing required field "Credit.replenished_at"`)}
 	}
 	if _, ok := cc.mutation.UserID(); !ok {
 		return &ValidationError{Name: "user_id", err: errors.New(`ent: missing required field "Credit.user_id"`)}
@@ -246,6 +267,10 @@ func (cc *CreditCreate) createSpec() (*Credit, *sqlgraph.CreateSpec) {
 	if value, ok := cc.mutation.StripeLineItemID(); ok {
 		_spec.SetField(credit.FieldStripeLineItemID, field.TypeString, value)
 		_node.StripeLineItemID = &value
+	}
+	if value, ok := cc.mutation.ReplenishedAt(); ok {
+		_spec.SetField(credit.FieldReplenishedAt, field.TypeTime, value)
+		_node.ReplenishedAt = value
 	}
 	if value, ok := cc.mutation.CreatedAt(); ok {
 		_spec.SetField(credit.FieldCreatedAt, field.TypeTime, value)

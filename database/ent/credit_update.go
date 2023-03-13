@@ -65,6 +65,20 @@ func (cu *CreditUpdate) ClearStripeLineItemID() *CreditUpdate {
 	return cu
 }
 
+// SetReplenishedAt sets the "replenished_at" field.
+func (cu *CreditUpdate) SetReplenishedAt(t time.Time) *CreditUpdate {
+	cu.mutation.SetReplenishedAt(t)
+	return cu
+}
+
+// SetNillableReplenishedAt sets the "replenished_at" field if the given value is not nil.
+func (cu *CreditUpdate) SetNillableReplenishedAt(t *time.Time) *CreditUpdate {
+	if t != nil {
+		cu.SetReplenishedAt(*t)
+	}
+	return cu
+}
+
 // SetUserID sets the "user_id" field.
 func (cu *CreditUpdate) SetUserID(u uuid.UUID) *CreditUpdate {
 	cu.mutation.SetUserID(u)
@@ -202,6 +216,9 @@ func (cu *CreditUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if cu.mutation.StripeLineItemIDCleared() {
 		_spec.ClearField(credit.FieldStripeLineItemID, field.TypeString)
 	}
+	if value, ok := cu.mutation.ReplenishedAt(); ok {
+		_spec.SetField(credit.FieldReplenishedAt, field.TypeTime, value)
+	}
 	if value, ok := cu.mutation.UpdatedAt(); ok {
 		_spec.SetField(credit.FieldUpdatedAt, field.TypeTime, value)
 	}
@@ -327,6 +344,20 @@ func (cuo *CreditUpdateOne) SetNillableStripeLineItemID(s *string) *CreditUpdate
 // ClearStripeLineItemID clears the value of the "stripe_line_item_id" field.
 func (cuo *CreditUpdateOne) ClearStripeLineItemID() *CreditUpdateOne {
 	cuo.mutation.ClearStripeLineItemID()
+	return cuo
+}
+
+// SetReplenishedAt sets the "replenished_at" field.
+func (cuo *CreditUpdateOne) SetReplenishedAt(t time.Time) *CreditUpdateOne {
+	cuo.mutation.SetReplenishedAt(t)
+	return cuo
+}
+
+// SetNillableReplenishedAt sets the "replenished_at" field if the given value is not nil.
+func (cuo *CreditUpdateOne) SetNillableReplenishedAt(t *time.Time) *CreditUpdateOne {
+	if t != nil {
+		cuo.SetReplenishedAt(*t)
+	}
 	return cuo
 }
 
@@ -490,6 +521,9 @@ func (cuo *CreditUpdateOne) sqlSave(ctx context.Context) (_node *Credit, err err
 	}
 	if cuo.mutation.StripeLineItemIDCleared() {
 		_spec.ClearField(credit.FieldStripeLineItemID, field.TypeString)
+	}
+	if value, ok := cuo.mutation.ReplenishedAt(); ok {
+		_spec.SetField(credit.FieldReplenishedAt, field.TypeTime, value)
 	}
 	if value, ok := cuo.mutation.UpdatedAt(); ok {
 		_spec.SetField(credit.FieldUpdatedAt, field.TypeTime, value)

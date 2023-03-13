@@ -86,6 +86,7 @@ CREATE TABLE public.credits (
     user_id uuid NOT NULL,
     stripe_line_item_id character varying,
     created_at timestamp with time zone DEFAULT (now() AT TIME ZONE 'utc'::text) NOT NULL,
+    replenished_at timestamp with time zone DEFAULT (now() AT TIME ZONE 'utc'::text) NOT NULL,
     updated_at timestamp with time zone DEFAULT (now() AT TIME ZONE 'utc'::text) NOT NULL
 );
 

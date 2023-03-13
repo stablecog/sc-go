@@ -71,6 +71,11 @@ func StripeLineItemID(v string) predicate.Credit {
 	return predicate.Credit(sql.FieldEQ(FieldStripeLineItemID, v))
 }
 
+// ReplenishedAt applies equality check predicate on the "replenished_at" field. It's identical to ReplenishedAtEQ.
+func ReplenishedAt(v time.Time) predicate.Credit {
+	return predicate.Credit(sql.FieldEQ(FieldReplenishedAt, v))
+}
+
 // UserID applies equality check predicate on the "user_id" field. It's identical to UserIDEQ.
 func UserID(v uuid.UUID) predicate.Credit {
 	return predicate.Credit(sql.FieldEQ(FieldUserID, v))
@@ -244,6 +249,46 @@ func StripeLineItemIDEqualFold(v string) predicate.Credit {
 // StripeLineItemIDContainsFold applies the ContainsFold predicate on the "stripe_line_item_id" field.
 func StripeLineItemIDContainsFold(v string) predicate.Credit {
 	return predicate.Credit(sql.FieldContainsFold(FieldStripeLineItemID, v))
+}
+
+// ReplenishedAtEQ applies the EQ predicate on the "replenished_at" field.
+func ReplenishedAtEQ(v time.Time) predicate.Credit {
+	return predicate.Credit(sql.FieldEQ(FieldReplenishedAt, v))
+}
+
+// ReplenishedAtNEQ applies the NEQ predicate on the "replenished_at" field.
+func ReplenishedAtNEQ(v time.Time) predicate.Credit {
+	return predicate.Credit(sql.FieldNEQ(FieldReplenishedAt, v))
+}
+
+// ReplenishedAtIn applies the In predicate on the "replenished_at" field.
+func ReplenishedAtIn(vs ...time.Time) predicate.Credit {
+	return predicate.Credit(sql.FieldIn(FieldReplenishedAt, vs...))
+}
+
+// ReplenishedAtNotIn applies the NotIn predicate on the "replenished_at" field.
+func ReplenishedAtNotIn(vs ...time.Time) predicate.Credit {
+	return predicate.Credit(sql.FieldNotIn(FieldReplenishedAt, vs...))
+}
+
+// ReplenishedAtGT applies the GT predicate on the "replenished_at" field.
+func ReplenishedAtGT(v time.Time) predicate.Credit {
+	return predicate.Credit(sql.FieldGT(FieldReplenishedAt, v))
+}
+
+// ReplenishedAtGTE applies the GTE predicate on the "replenished_at" field.
+func ReplenishedAtGTE(v time.Time) predicate.Credit {
+	return predicate.Credit(sql.FieldGTE(FieldReplenishedAt, v))
+}
+
+// ReplenishedAtLT applies the LT predicate on the "replenished_at" field.
+func ReplenishedAtLT(v time.Time) predicate.Credit {
+	return predicate.Credit(sql.FieldLT(FieldReplenishedAt, v))
+}
+
+// ReplenishedAtLTE applies the LTE predicate on the "replenished_at" field.
+func ReplenishedAtLTE(v time.Time) predicate.Credit {
+	return predicate.Credit(sql.FieldLTE(FieldReplenishedAt, v))
 }
 
 // UserIDEQ applies the EQ predicate on the "user_id" field.
