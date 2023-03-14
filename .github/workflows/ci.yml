@@ -165,7 +165,7 @@ jobs:
           embed-description: "```🚨 Build FAILED 🚨```"
 
   deploy_server:
-    name: 🧪 Deploy Server (QA)
+    name: 🧪 Deploy Server & Cron (QA)
     runs-on: self-hosted
     needs:
       - setup_env
@@ -186,27 +186,6 @@ jobs:
           qa-webhook-url: ${{ secrets.DISCORD_WEBHOOK }}
           kube_config: ${{ secrets.KUBE_CONFIG_DATA }}
           env: qa
-
-  # deploy_cron:
-  #   name: 🧪 Deploy Cron (QA)
-  #   runs-on: self-hosted
-  #   needs:
-  #     - setup_env
-  #     - build
-  #   env:
-  #     GITHUB_RUN_ID: ${{ github.run_id }}
-  #   steps:
-  #     - uses: actions/checkout@v3
-
-  #     - name: Deploy
-  #       uses: ./.github/actions/aws-deploy
-  #       with:
-  #         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-  #         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-  #         service: qa-sc-cron-Service-PAHvv9lELi5m
-  #         task-definition: ./aws/qa/sc-cron.json
-  #         image: stablecog/sc-server:${{ needs.setup_env.outputs.branch_name}}-${{ env.GITHUB_RUN_ID }}
-  #         env: qa
 
   deploy_server_prod:
     name: 🚀 Deploy Server (PROD)

@@ -3,5 +3,6 @@ kind: Kustomization
 namespace: qa-stablecog
 resources:
   - deployment_server.yaml
+  - deployment_cron.yaml
   - svc.yaml
   - ingress.yaml
