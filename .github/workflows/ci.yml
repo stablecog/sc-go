@@ -178,6 +178,8 @@ jobs:
       - name: Deploy
         uses: ./.github/actions/k8s-deploy
         with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           image: stablecog/sc-server:${{ needs.setup_env.outputs.branch_name}}-${{ env.GITHUB_RUN_ID }}
           embed-title: "${{ needs.setup_env.outputs.commit_msg }}  •  ${{ needs.setup_env.outputs.short_sha }}"
           prod-webhook-url: ${{ secrets.DISCORD_WEBHOOK_PROD }}

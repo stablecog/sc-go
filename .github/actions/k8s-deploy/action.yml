@@ -1,6 +1,16 @@
 name: Deploy to Kubernetes
 description: Deploy to Kubernetes
 inputs:
+  aws-access-key-id:
+    description: AWS Access Key ID
+    required: true
+  aws-secret-access-key:
+    description: AWS Secret Access Key
+    required: true
+  aws-region:
+    description: AWS Region
+    required: true
+    default: us-east-1
   image:
     description: Image to deploy
     required: true
@@ -36,6 +46,14 @@ runs:
         embed-title: "${{ inputs.embed-title }}"
         embed-description: "```Deploy Started```"
 
+    - name: Configure AWS credentials
+      if: success()
+      uses: aws-actions/configure-aws-credentials@v1-node16
+      with:
+        aws-access-key-id: ${{ inputs.aws-access-key-id }}
+        aws-secret-access-key: ${{ inputs.aws-secret-access-key }}
+        aws-region: ${{ inputs.aws-region }}
+
     - uses: imranismail/setup-kustomize@v1
       with:
         kustomize-version: "3.5.4"
@@ -48,7 +66,7 @@ runs:
         kustomize build . > ci-deployment.yaml
 
     - name: Deploy image to k8s cluster
-      uses: bbedward/kubectl@master
+      uses: kodermax/kubectl-aws-eks@master
       env:
         KUBE_CONFIG_DATA: ${{ inputs.kube_config }}
       with:
