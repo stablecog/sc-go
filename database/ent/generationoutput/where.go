@@ -66,6 +66,11 @@ func UpscaledImagePath(v string) predicate.GenerationOutput {
 	return predicate.GenerationOutput(sql.FieldEQ(FieldUpscaledImagePath, v))
 }
 
+// IsFavorited applies equality check predicate on the "is_favorited" field. It's identical to IsFavoritedEQ.
+func IsFavorited(v bool) predicate.GenerationOutput {
+	return predicate.GenerationOutput(sql.FieldEQ(FieldIsFavorited, v))
+}
+
 // GenerationID applies equality check predicate on the "generation_id" field. It's identical to GenerationIDEQ.
 func GenerationID(v uuid.UUID) predicate.GenerationOutput {
 	return predicate.GenerationOutput(sql.FieldEQ(FieldGenerationID, v))
@@ -244,6 +249,16 @@ func GalleryStatusIn(vs ...GalleryStatus) predicate.GenerationOutput {
 // GalleryStatusNotIn applies the NotIn predicate on the "gallery_status" field.
 func GalleryStatusNotIn(vs ...GalleryStatus) predicate.GenerationOutput {
 	return predicate.GenerationOutput(sql.FieldNotIn(FieldGalleryStatus, vs...))
+}
+
+// IsFavoritedEQ applies the EQ predicate on the "is_favorited" field.
+func IsFavoritedEQ(v bool) predicate.GenerationOutput {
+	return predicate.GenerationOutput(sql.FieldEQ(FieldIsFavorited, v))
+}
+
+// IsFavoritedNEQ applies the NEQ predicate on the "is_favorited" field.
+func IsFavoritedNEQ(v bool) predicate.GenerationOutput {
+	return predicate.GenerationOutput(sql.FieldNEQ(FieldIsFavorited, v))
 }
 
 // GenerationIDEQ applies the EQ predicate on the "generation_id" field.

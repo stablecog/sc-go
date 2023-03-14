@@ -163,6 +163,12 @@ func (r *Repository) ApplyUserGenerationsFilters(query *ent.GenerationQuery, fil
 					s.Where(sql.In(generationoutput.FieldGalleryStatus, v...))
 				})
 			}
+
+			if filters.IsFavorited != nil {
+				resQuery = resQuery.Where(func(s *sql.Selector) {
+					s.Where(sql.EQ(generationoutput.FieldIsFavorited, *filters.IsFavorited))
+				})
+			}
 		}
 
 		// Start dt

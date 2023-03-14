@@ -307,6 +307,36 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse401"
+  /v1/user/outputs/favorite:
+    put:
+      description: "Generation: Favorite (User)"
+      security:
+        - supabase: []
+      requestBody:
+        description: JSON object with output IDs and favorite options
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/FavoriteOutputRequest"
+      responses:
+        "200":
+          description: JSON object count favorited
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FavoritedResponse"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse400"
+        "401":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse401"
   /v1/user/upscale:
     post:
       description: "Upscale: Create"
@@ -992,6 +1022,17 @@ components:
         submitted:
           type: integer
       description: The number of items successfully submitted to gallery
+    FavoriteOutputRequest:
+      type: object
+      properties:
+        generation_output_ids:
+          type: array
+          items:
+            type: string
+            format: uuidv4
+        remove_favorites:
+          type: boolean
+          default: false
     DeleteGenerationRequest:
       type: object
       properties:
@@ -1000,6 +1041,12 @@ components:
           items:
             type: string
             format: uuidv4
+    FavoritedResponse:
+      type: object
+      properties:
+        favorited:
+          type: integer
+      description: The number of items successfully deleted
     DeletedResponse:
       type: object
       properties:

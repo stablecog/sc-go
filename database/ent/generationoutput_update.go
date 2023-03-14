@@ -72,6 +72,20 @@ func (gou *GenerationOutputUpdate) SetNillableGalleryStatus(gs *generationoutput
 	return gou
 }
 
+// SetIsFavorited sets the "is_favorited" field.
+func (gou *GenerationOutputUpdate) SetIsFavorited(b bool) *GenerationOutputUpdate {
+	gou.mutation.SetIsFavorited(b)
+	return gou
+}
+
+// SetNillableIsFavorited sets the "is_favorited" field if the given value is not nil.
+func (gou *GenerationOutputUpdate) SetNillableIsFavorited(b *bool) *GenerationOutputUpdate {
+	if b != nil {
+		gou.SetIsFavorited(*b)
+	}
+	return gou
+}
+
 // SetGenerationID sets the "generation_id" field.
 func (gou *GenerationOutputUpdate) SetGenerationID(u uuid.UUID) *GenerationOutputUpdate {
 	gou.mutation.SetGenerationID(u)
@@ -239,6 +253,9 @@ func (gou *GenerationOutputUpdate) sqlSave(ctx context.Context) (n int, err erro
 	if value, ok := gou.mutation.GalleryStatus(); ok {
 		_spec.SetField(generationoutput.FieldGalleryStatus, field.TypeEnum, value)
 	}
+	if value, ok := gou.mutation.IsFavorited(); ok {
+		_spec.SetField(generationoutput.FieldIsFavorited, field.TypeBool, value)
+	}
 	if value, ok := gou.mutation.DeletedAt(); ok {
 		_spec.SetField(generationoutput.FieldDeletedAt, field.TypeTime, value)
 	}
@@ -376,6 +393,20 @@ func (gouo *GenerationOutputUpdateOne) SetGalleryStatus(gs generationoutput.Gall
 func (gouo *GenerationOutputUpdateOne) SetNillableGalleryStatus(gs *generationoutput.GalleryStatus) *GenerationOutputUpdateOne {
 	if gs != nil {
 		gouo.SetGalleryStatus(*gs)
+	}
+	return gouo
+}
+
+// SetIsFavorited sets the "is_favorited" field.
+func (gouo *GenerationOutputUpdateOne) SetIsFavorited(b bool) *GenerationOutputUpdateOne {
+	gouo.mutation.SetIsFavorited(b)
+	return gouo
+}
+
+// SetNillableIsFavorited sets the "is_favorited" field if the given value is not nil.
+func (gouo *GenerationOutputUpdateOne) SetNillableIsFavorited(b *bool) *GenerationOutputUpdateOne {
+	if b != nil {
+		gouo.SetIsFavorited(*b)
 	}
 	return gouo
 }
@@ -570,6 +601,9 @@ func (gouo *GenerationOutputUpdateOne) sqlSave(ctx context.Context) (_node *Gene
 	}
 	if value, ok := gouo.mutation.GalleryStatus(); ok {
 		_spec.SetField(generationoutput.FieldGalleryStatus, field.TypeEnum, value)
+	}
+	if value, ok := gouo.mutation.IsFavorited(); ok {
+		_spec.SetField(generationoutput.FieldIsFavorited, field.TypeBool, value)
 	}
 	if value, ok := gouo.mutation.DeletedAt(); ok {
 		_spec.SetField(generationoutput.FieldDeletedAt, field.TypeTime, value)

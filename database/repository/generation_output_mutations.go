@@ -48,3 +48,21 @@ func (r *Repository) MarkGenerationOutputsForDeletionForUser(generationOutputIDs
 	// Execute delete
 	return r.MarkGenerationOutputsForDeletion(userGenerationOutputIds)
 }
+
+// Marks generations for deletions by setting deleted_at, only if they belong to the user with ID userID
+func (r *Repository) SetFavoriteGenerationOutputsForUser(generationOutputIDs []uuid.UUID, userID uuid.UUID, removeFavorites bool) (int, error) {
+	// Get outputs belonging to this user
+	outputs, err := r.DB.Generation.Query().Select().Where(generation.UserIDEQ(userID)).QueryGenerationOutputs().Select(generationoutput.FieldID).Where(generationoutput.IDIn(generationOutputIDs...)).All(r.Ctx)
+	if err != nil {
+		return 0, err
+	}
+
+	// get IDs only
+	var idsOnly []uuid.UUID
+	for _, output := range outputs {
+		idsOnly = append(idsOnly, output.ID)
+	}
+
+	// Execute delete
+	return r.DB.GenerationOutput.Update().SetIsFavorited(!removeFavorites).Where(generationoutput.IDIn(idsOnly...)).Save(r.Ctx)
+}

@@ -327,3 +327,32 @@ func (c *RestAPI) HandleDeleteGenerationOutputForUser(w http.ResponseWriter, r *
 	render.Status(r, http.StatusOK)
 	render.JSON(w, r, res)
 }
+
+// HTTP PUT - favorite generation
+func (c *RestAPI) HandleFavoriteGenerationOutputsForUser(w http.ResponseWriter, r *http.Request) {
+	var user *ent.User
+	if user = c.GetUserIfAuthenticated(w, r); user == nil {
+		return
+	}
+
+	// Parse request body
+	reqBody, _ := io.ReadAll(r.Body)
+	var favReq requests.FavoriteGenerationRequest
+	err := json.Unmarshal(reqBody, &favReq)
+	if err != nil {
+		responses.ErrUnableToParseJson(w, r)
+		return
+	}
+
+	count, err := c.Repo.SetFavoriteGenerationOutputsForUser(favReq.GenerationOutputIDs, user.ID, favReq.RemoveFavorites)
+	if err != nil {
+		responses.ErrInternalServerError(w, r, err.Error())
+		return
+	}
+
+	res := responses.FavoritedResponse{
+		Favorited: count,
+	}
+	render.Status(r, http.StatusOK)
+	render.JSON(w, r, res)
+}

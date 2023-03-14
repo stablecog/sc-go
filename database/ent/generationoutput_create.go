@@ -57,6 +57,20 @@ func (goc *GenerationOutputCreate) SetNillableGalleryStatus(gs *generationoutput
 	return goc
 }
 
+// SetIsFavorited sets the "is_favorited" field.
+func (goc *GenerationOutputCreate) SetIsFavorited(b bool) *GenerationOutputCreate {
+	goc.mutation.SetIsFavorited(b)
+	return goc
+}
+
+// SetNillableIsFavorited sets the "is_favorited" field if the given value is not nil.
+func (goc *GenerationOutputCreate) SetNillableIsFavorited(b *bool) *GenerationOutputCreate {
+	if b != nil {
+		goc.SetIsFavorited(*b)
+	}
+	return goc
+}
+
 // SetGenerationID sets the "generation_id" field.
 func (goc *GenerationOutputCreate) SetGenerationID(u uuid.UUID) *GenerationOutputCreate {
 	goc.mutation.SetGenerationID(u)
@@ -188,6 +202,10 @@ func (goc *GenerationOutputCreate) defaults() {
 		v := generationoutput.DefaultGalleryStatus
 		goc.mutation.SetGalleryStatus(v)
 	}
+	if _, ok := goc.mutation.IsFavorited(); !ok {
+		v := generationoutput.DefaultIsFavorited
+		goc.mutation.SetIsFavorited(v)
+	}
 	if _, ok := goc.mutation.CreatedAt(); !ok {
 		v := generationoutput.DefaultCreatedAt()
 		goc.mutation.SetCreatedAt(v)
@@ -214,6 +232,9 @@ func (goc *GenerationOutputCreate) check() error {
 		if err := generationoutput.GalleryStatusValidator(v); err != nil {
 			return &ValidationError{Name: "gallery_status", err: fmt.Errorf(`ent: validator failed for field "GenerationOutput.gallery_status": %w`, err)}
 		}
+	}
+	if _, ok := goc.mutation.IsFavorited(); !ok {
+		return &ValidationError{Name: "is_favorited", err: errors.New(`ent: missing required field "GenerationOutput.is_favorited"`)}
 	}
 	if _, ok := goc.mutation.GenerationID(); !ok {
 		return &ValidationError{Name: "generation_id", err: errors.New(`ent: missing required field "GenerationOutput.generation_id"`)}
@@ -279,6 +300,10 @@ func (goc *GenerationOutputCreate) createSpec() (*GenerationOutput, *sqlgraph.Cr
 	if value, ok := goc.mutation.GalleryStatus(); ok {
 		_spec.SetField(generationoutput.FieldGalleryStatus, field.TypeEnum, value)
 		_node.GalleryStatus = value
+	}
+	if value, ok := goc.mutation.IsFavorited(); ok {
+		_spec.SetField(generationoutput.FieldIsFavorited, field.TypeBool, value)
+		_node.IsFavorited = value
 	}
 	if value, ok := goc.mutation.DeletedAt(); ok {
 		_spec.SetField(generationoutput.FieldDeletedAt, field.TypeTime, value)

@@ -62,6 +62,7 @@ type QueryGenerationFilters struct {
 	EndDt             *time.Time                       `json:"end_dt"`
 	UserID            *uuid.UUID                       `json:"user_id"`
 	OrderBy           OrderBy                          `json:"order_by"`
+	IsFavorited       *bool                            `json:"is_favorited,omitempty"`
 }
 
 // Parse all filters into a QueryGenerationFilters struct
@@ -341,6 +342,19 @@ func (filters *QueryGenerationFilters) ParseURLQueryParameters(urlValues url.Val
 				filters.OrderBy = OrderByCreatedAt
 			} else {
 				return fmt.Errorf("invalid order_by: '%s' expected '%s' or '%s'", value[0], OrderByUpdatedAt, OrderByCreatedAt)
+			}
+		}
+
+		// Favorited
+		if key == "is_favorited" {
+			if strings.ToLower(value[0]) == "true" {
+				t := true
+				filters.IsFavorited = &t
+			} else if strings.ToLower(value[0]) == "false" {
+				f := false
+				filters.IsFavorited = &f
+			} else {
+				return fmt.Errorf("invalid is_favorited: '%s' expected 'true' or 'false'", value[0])
 			}
 		}
 	}

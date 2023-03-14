@@ -218,6 +218,9 @@ func main() {
 			// Query Generation (outputs + generations)
 			r.Get("/outputs", hc.HandleQueryGenerations)
 
+			// Favorite
+			r.Put("/outputs/favorite", hc.HandleFavoriteGenerationOutputsForUser)
+
 			// Create upscale
 			r.Post("/upscale", hc.HandleUpscale)
 

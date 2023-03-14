@@ -138,12 +138,16 @@ func init() {
 	generationmodel.DefaultID = generationmodelDescID.Default.(func() uuid.UUID)
 	generationoutputFields := schema.GenerationOutput{}.Fields()
 	_ = generationoutputFields
+	// generationoutputDescIsFavorited is the schema descriptor for is_favorited field.
+	generationoutputDescIsFavorited := generationoutputFields[4].Descriptor()
+	// generationoutput.DefaultIsFavorited holds the default value on creation for the is_favorited field.
+	generationoutput.DefaultIsFavorited = generationoutputDescIsFavorited.Default.(bool)
 	// generationoutputDescCreatedAt is the schema descriptor for created_at field.
-	generationoutputDescCreatedAt := generationoutputFields[6].Descriptor()
+	generationoutputDescCreatedAt := generationoutputFields[7].Descriptor()
 	// generationoutput.DefaultCreatedAt holds the default value on creation for the created_at field.
 	generationoutput.DefaultCreatedAt = generationoutputDescCreatedAt.Default.(func() time.Time)
 	// generationoutputDescUpdatedAt is the schema descriptor for updated_at field.
-	generationoutputDescUpdatedAt := generationoutputFields[7].Descriptor()
+	generationoutputDescUpdatedAt := generationoutputFields[8].Descriptor()
 	// generationoutput.DefaultUpdatedAt holds the default value on creation for the updated_at field.
 	generationoutput.DefaultUpdatedAt = generationoutputDescUpdatedAt.Default.(func() time.Time)
 	// generationoutput.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.

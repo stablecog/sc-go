@@ -5813,6 +5813,7 @@ type GenerationOutputMutation struct {
 	image_path             *string
 	upscaled_image_path    *string
 	gallery_status         *generationoutput.GalleryStatus
+	is_favorited           *bool
 	deleted_at             *time.Time
 	created_at             *time.Time
 	updated_at             *time.Time
@@ -6049,6 +6050,42 @@ func (m *GenerationOutputMutation) OldGalleryStatus(ctx context.Context) (v gene
 // ResetGalleryStatus resets all changes to the "gallery_status" field.
 func (m *GenerationOutputMutation) ResetGalleryStatus() {
 	m.gallery_status = nil
+}
+
+// SetIsFavorited sets the "is_favorited" field.
+func (m *GenerationOutputMutation) SetIsFavorited(b bool) {
+	m.is_favorited = &b
+}
+
+// IsFavorited returns the value of the "is_favorited" field in the mutation.
+func (m *GenerationOutputMutation) IsFavorited() (r bool, exists bool) {
+	v := m.is_favorited
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldIsFavorited returns the old "is_favorited" field's value of the GenerationOutput entity.
+// If the GenerationOutput object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *GenerationOutputMutation) OldIsFavorited(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldIsFavorited is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldIsFavorited requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldIsFavorited: %w", err)
+	}
+	return oldValue.IsFavorited, nil
+}
+
+// ResetIsFavorited resets all changes to the "is_favorited" field.
+func (m *GenerationOutputMutation) ResetIsFavorited() {
+	m.is_favorited = nil
 }
 
 // SetGenerationID sets the "generation_id" field.
@@ -6320,7 +6357,7 @@ func (m *GenerationOutputMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *GenerationOutputMutation) Fields() []string {
-	fields := make([]string, 0, 7)
+	fields := make([]string, 0, 8)
 	if m.image_path != nil {
 		fields = append(fields, generationoutput.FieldImagePath)
 	}
@@ -6329,6 +6366,9 @@ func (m *GenerationOutputMutation) Fields() []string {
 	}
 	if m.gallery_status != nil {
 		fields = append(fields, generationoutput.FieldGalleryStatus)
+	}
+	if m.is_favorited != nil {
+		fields = append(fields, generationoutput.FieldIsFavorited)
 	}
 	if m.generations != nil {
 		fields = append(fields, generationoutput.FieldGenerationID)
@@ -6356,6 +6396,8 @@ func (m *GenerationOutputMutation) Field(name string) (ent.Value, bool) {
 		return m.UpscaledImagePath()
 	case generationoutput.FieldGalleryStatus:
 		return m.GalleryStatus()
+	case generationoutput.FieldIsFavorited:
+		return m.IsFavorited()
 	case generationoutput.FieldGenerationID:
 		return m.GenerationID()
 	case generationoutput.FieldDeletedAt:
@@ -6379,6 +6421,8 @@ func (m *GenerationOutputMutation) OldField(ctx context.Context, name string) (e
 		return m.OldUpscaledImagePath(ctx)
 	case generationoutput.FieldGalleryStatus:
 		return m.OldGalleryStatus(ctx)
+	case generationoutput.FieldIsFavorited:
+		return m.OldIsFavorited(ctx)
 	case generationoutput.FieldGenerationID:
 		return m.OldGenerationID(ctx)
 	case generationoutput.FieldDeletedAt:
@@ -6416,6 +6460,13 @@ func (m *GenerationOutputMutation) SetField(name string, value ent.Value) error 
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetGalleryStatus(v)
+		return nil
+	case generationoutput.FieldIsFavorited:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetIsFavorited(v)
 		return nil
 	case generationoutput.FieldGenerationID:
 		v, ok := value.(uuid.UUID)
@@ -6517,6 +6568,9 @@ func (m *GenerationOutputMutation) ResetField(name string) error {
 		return nil
 	case generationoutput.FieldGalleryStatus:
 		m.ResetGalleryStatus()
+		return nil
+	case generationoutput.FieldIsFavorited:
+		m.ResetIsFavorited()
 		return nil
 	case generationoutput.FieldGenerationID:
 		m.ResetGenerationID()
