@@ -41,7 +41,7 @@ runs:
         kustomize-version: "3.5.4"
 
     - name: Set image
-      working-directory: ./k8s
+      working-directory: ./k8s/qa
       shell: bash
       run: |
         kustomize edit set image replaceme=${{ inputs.image }}
@@ -52,7 +52,7 @@ runs:
       env:
         KUBE_CONFIG_DATA: ${{ inputs.kube_config }}
       with:
-        args: apply -f ./k8s/ci-deployment.yaml
+        args: apply -f ./k8s/qa/ci-deployment.yaml
 
     - name: Send Discord Webhook
       if: ${{ failure() && inputs.embed-title != '' }}
