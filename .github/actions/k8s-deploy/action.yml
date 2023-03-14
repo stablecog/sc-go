@@ -36,6 +36,10 @@ runs:
         embed-title: "${{ inputs.embed-title }}"
         embed-description: "```Deploy Started```"
 
+    - uses: imranismail/setup-kustomize@v1
+      with:
+        kustomize-version: "3.5.4"
+
     - name: Set image
       working-directory: ./k8s
       shell: bash
