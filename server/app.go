@@ -219,7 +219,7 @@ func main() {
 			r.Get("/outputs", hc.HandleQueryGenerations)
 
 			// Favorite
-			r.Put("/outputs/favorite", hc.HandleFavoriteGenerationOutputsForUser)
+			r.Post("/outputs/favorite", hc.HandleFavoriteGenerationOutputsForUser)
 
 			// Create upscale
 			r.Post("/upscale", hc.HandleUpscale)

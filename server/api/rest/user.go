@@ -328,7 +328,7 @@ func (c *RestAPI) HandleDeleteGenerationOutputForUser(w http.ResponseWriter, r *
 	render.JSON(w, r, res)
 }
 
-// HTTP PUT - favorite generation
+// HTTP POST - favorite generation
 func (c *RestAPI) HandleFavoriteGenerationOutputsForUser(w http.ResponseWriter, r *http.Request) {
 	var user *ent.User
 	if user = c.GetUserIfAuthenticated(w, r); user == nil {
@@ -344,7 +344,12 @@ func (c *RestAPI) HandleFavoriteGenerationOutputsForUser(w http.ResponseWriter, 
 		return
 	}
 
-	count, err := c.Repo.SetFavoriteGenerationOutputsForUser(favReq.GenerationOutputIDs, user.ID, favReq.RemoveFavorites)
+	if favReq.Action != requests.AddFavoriteAction && favReq.Action != requests.RemoveFavoriteAction {
+		responses.ErrBadRequest(w, r, "action must be either 'add' or 'remove'")
+		return
+	}
+
+	count, err := c.Repo.SetFavoriteGenerationOutputsForUser(favReq.GenerationOutputIDs, user.ID, favReq.Action)
 	if err != nil {
 		responses.ErrInternalServerError(w, r, err.Error())
 		return

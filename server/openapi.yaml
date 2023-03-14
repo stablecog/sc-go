@@ -1030,9 +1030,9 @@ components:
           items:
             type: string
             format: uuidv4
-        remove_favorites:
-          type: boolean
-          default: false
+        action:
+          type: string
+          format: add/remove
     DeleteGenerationRequest:
       type: object
       properties:

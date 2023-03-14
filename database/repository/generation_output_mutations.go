@@ -7,6 +7,7 @@ import (
 	"github.com/stablecog/sc-go/database/ent"
 	"github.com/stablecog/sc-go/database/ent/generation"
 	"github.com/stablecog/sc-go/database/ent/generationoutput"
+	"github.com/stablecog/sc-go/server/requests"
 )
 
 // Marks generations for deletions by setting deleted_at
@@ -50,7 +51,7 @@ func (r *Repository) MarkGenerationOutputsForDeletionForUser(generationOutputIDs
 }
 
 // Marks generations for deletions by setting deleted_at, only if they belong to the user with ID userID
-func (r *Repository) SetFavoriteGenerationOutputsForUser(generationOutputIDs []uuid.UUID, userID uuid.UUID, removeFavorites bool) (int, error) {
+func (r *Repository) SetFavoriteGenerationOutputsForUser(generationOutputIDs []uuid.UUID, userID uuid.UUID, action requests.FavoriteAction) (int, error) {
 	// Get outputs belonging to this user
 	outputs, err := r.DB.Generation.Query().Select().Where(generation.UserIDEQ(userID)).QueryGenerationOutputs().Select(generationoutput.FieldID).Where(generationoutput.IDIn(generationOutputIDs...)).All(r.Ctx)
 	if err != nil {
@@ -61,6 +62,11 @@ func (r *Repository) SetFavoriteGenerationOutputsForUser(generationOutputIDs []u
 	var idsOnly []uuid.UUID
 	for _, output := range outputs {
 		idsOnly = append(idsOnly, output.ID)
+	}
+
+	removeFavorites := false
+	if action == requests.RemoveFavoriteAction {
+		removeFavorites = true
 	}
 
 	// Execute delete
