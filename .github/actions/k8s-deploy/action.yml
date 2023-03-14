@@ -44,7 +44,7 @@ runs:
         qa-webhook-url: ${{ inputs.qa-webhook-url }}
         embed-color: 15105570
         embed-title: "${{ inputs.embed-title }}"
-        embed-description: "```Deploy Started to K8S```"
+        embed-description: "```Deploy Started```"
 
     - name: Configure AWS credentials
       if: success()
