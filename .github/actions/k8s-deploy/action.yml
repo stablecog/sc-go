@@ -4,6 +4,9 @@ inputs:
   image:
     description: Image to deploy
     required: true
+  kube_config:
+    description: base64 encoded kube config
+    required: true
   service:
     description: Name of the service
     required: true
@@ -43,7 +46,7 @@ runs:
     - name: Deploy image to k8s cluster
       uses: bbedward/kubectl@master
       env:
-        KUBE_CONFIG_DATA: ${{ secrets.KUBE_CONFIG_DATA }}
+        KUBE_CONFIG_DATA: ${{ inputs.kube_config }}
       with:
         args: apply -f ./k8s/ci-deployment.yaml
 

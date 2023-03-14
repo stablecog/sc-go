@@ -182,6 +182,7 @@ jobs:
           embed-title: "${{ needs.setup_env.outputs.commit_msg }}  •  ${{ needs.setup_env.outputs.short_sha }}"
           prod-webhook-url: ${{ secrets.DISCORD_WEBHOOK_PROD }}
           qa-webhook-url: ${{ secrets.DISCORD_WEBHOOK }}
+          kube_config: ${{ secrets.KUBE_CONFIG_DATA }}
           env: qa
 
   # deploy_cron:
