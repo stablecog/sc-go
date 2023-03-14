@@ -288,7 +288,7 @@ func (r *Repository) QueryGenerations(per_page int, cursor *time.Time, filters *
 		).AppendSelect(sql.As(npt.C(negativeprompt.FieldText), "negative_prompt_text"), sql.As(pt.C(prompt.FieldText), "prompt_text"), sql.As(got.C(generationoutput.FieldID), "output_id"), sql.As(got.C(generationoutput.FieldGalleryStatus), "output_gallery_status"), sql.As(got.C(generationoutput.FieldImagePath), "image_path"), sql.As(got.C(generationoutput.FieldUpscaledImagePath), "upscaled_image_path"), sql.As(got.C(generationoutput.FieldDeletedAt), "deleted_at")).
 			GroupBy(s.C(generation.FieldID), npt.C(negativeprompt.FieldText), pt.C(prompt.FieldText),
 				got.C(generationoutput.FieldID), got.C(generationoutput.FieldGalleryStatus),
-				got.C(generationoutput.FieldImagePath), got.C(generationoutput.FieldUpscaledImagePath))
+				got.C(generationoutput.FieldImagePath), got.C(generationoutput.FieldUpscaledImagePath), got.C(generationoutput.FieldIsFavorited))
 		var orderByGeneration string
 		var orderByOutput string
 		if filters == nil || (filters != nil && filters.OrderBy == requests.OrderByCreatedAt) {
@@ -354,6 +354,7 @@ func (r *Repository) QueryGenerations(per_page int, cursor *time.Time, filters *
 			ImageUrl:         g.ImageUrl,
 			UpscaledImageUrl: g.UpscaledImageUrl,
 			GalleryStatus:    g.GalleryStatus,
+			IsFavorited:      g.IsFavorited,
 		}
 		output := GenerationQueryWithOutputsResultFormatted{
 			GenerationUpscaleOutput: gOutput,
@@ -542,6 +543,7 @@ func (r *Repository) QueryGenerationsAdmin(per_page int, cursor *time.Time, filt
 			CreatedAt:        g.Edges.Generations.CreatedAt,
 			StartedAt:        g.Edges.Generations.StartedAt,
 			CompletedAt:      g.Edges.Generations.CompletedAt,
+			IsFavorited:      g.IsFavorited,
 		}
 		if g.Edges.Generations.Edges.NegativePrompt != nil {
 			generationRoot.NegativePrompt = &PromptType{
@@ -563,6 +565,7 @@ func (r *Repository) QueryGenerationsAdmin(per_page int, cursor *time.Time, filt
 				ImageUrl:      utils.GetURLFromImagePath(o.ImagePath),
 				GalleryStatus: o.GalleryStatus,
 				CreatedAt:     &o.CreatedAt,
+				IsFavorited:   o.IsFavorited,
 			}
 			if o.UpscaledImagePath != nil {
 				output.UpscaledImageUrl = utils.GetURLFromImagePath(*o.UpscaledImagePath)
@@ -631,6 +634,7 @@ type GenerationUpscaleOutput struct {
 	InputImageUrl    string                         `json:"input_image_url,omitempty"`
 	OutputID         *uuid.UUID                     `json:"output_id,omitempty"`
 	CreatedAt        *time.Time                     `json:"created_at,omitempty"`
+	IsFavorited      bool                           `json:"is_favorited,omitempty"`
 }
 
 // Paginated meta for querying generations
@@ -662,6 +666,7 @@ type GenerationQueryWithOutputsData struct {
 	CompletedAt        *time.Time                `json:"completed_at,omitempty" sql:"completed_at"`
 	NegativePromptText string                    `json:"negative_prompt_text,omitempty" sql:"negative_prompt_text"`
 	PromptText         string                    `json:"prompt_text,omitempty" sql:"prompt_text"`
+	IsFavorited        bool                      `json:"is_favorited,omitempty" sql:"is_favorited"`
 	Outputs            []GenerationUpscaleOutput `json:"outputs"`
 	Prompt             PromptType                `json:"prompt"`
 	NegativePrompt     *PromptType               `json:"negative_prompt,omitempty"`

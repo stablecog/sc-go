@@ -966,6 +966,8 @@ components:
         input_image_url:
           type: string
           format: optional, if upscale
+        is_favorited:
+          type: boolean
       description: An output of a generation
     CreditResponse:
       type: object
