@@ -18,6 +18,9 @@ type SupabaseAuth struct {
 // Returns gotrue client with keys
 func NewSupabaseAuth() *SupabaseAuth {
 	client := gotrue.New(utils.GetEnv("PUBLIC_SUPABASE_REFERENCE_ID", ""), utils.GetEnv("SUPABASE_ADMIN_KEY", ""))
+	if utils.GetEnv("GOTRUE_URL", "") != "" {
+		client = client.WithCustomGoTrueURL(utils.GetEnv("GOTRUE_URL", ""))
+	}
 	return &SupabaseAuth{client: client}
 }
 
