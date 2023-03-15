@@ -377,6 +377,7 @@ func (r *Repository) QueryGenerations(per_page int, cursor *time.Time, filters *
 					Text: g.PromptText,
 					ID:   *g.PromptID,
 				},
+				IsFavorited: gOutput.IsFavorited,
 			},
 		}
 		if g.NegativePromptID != nil {
@@ -634,7 +635,7 @@ type GenerationUpscaleOutput struct {
 	InputImageUrl    string                         `json:"input_image_url,omitempty"`
 	OutputID         *uuid.UUID                     `json:"output_id,omitempty"`
 	CreatedAt        *time.Time                     `json:"created_at,omitempty"`
-	IsFavorited      bool                           `json:"is_favorited,omitempty"`
+	IsFavorited      bool                           `json:"is_favorited"`
 }
 
 // Paginated meta for querying generations
@@ -666,7 +667,7 @@ type GenerationQueryWithOutputsData struct {
 	CompletedAt        *time.Time                `json:"completed_at,omitempty" sql:"completed_at"`
 	NegativePromptText string                    `json:"negative_prompt_text,omitempty" sql:"negative_prompt_text"`
 	PromptText         string                    `json:"prompt_text,omitempty" sql:"prompt_text"`
-	IsFavorited        bool                      `json:"is_favorited,omitempty" sql:"is_favorited"`
+	IsFavorited        bool                      `json:"is_favorited" sql:"is_favorited"`
 	Outputs            []GenerationUpscaleOutput `json:"outputs"`
 	Prompt             PromptType                `json:"prompt"`
 	NegativePrompt     *PromptType               `json:"negative_prompt,omitempty"`
