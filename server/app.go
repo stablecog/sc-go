@@ -164,9 +164,9 @@ func main() {
 	}
 
 	// Routes
+	app.Get("/", hc.HandleHealth)
 	app.Route("/v1", func(r chi.Router) {
 		r.Get("/health", hc.HandleHealth)
-		r.Get("/", hc.HandleHealth)
 
 		// SSE
 		r.Route("/sse", func(r chi.Router) {
