@@ -3,6 +3,6 @@ kind: Kustomization
 namespace: prod-stablecog
 resources:
   - deployment_server.yaml
-  # - deployment_cron.yaml
+  - deployment_cron.yaml
   - svc.yaml
   - ingress.yaml
