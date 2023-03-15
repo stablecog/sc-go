@@ -27,6 +27,18 @@ spec:
               memory: 1Gi
           ports:
             - containerPort: 13337
+          readinessProbe:
+            httpGet:
+              path: /v1/health
+              port: 13337
+            initialDelaySeconds: 3
+            periodSeconds: 3
+          livenessProbe:
+            httpGet:
+              path: /v1/health
+              port: 13337
+            initialDelaySeconds: 15
+            periodSeconds: 10
           imagePullPolicy: "Always"
           env:
             - name: GOTRUE_URL
