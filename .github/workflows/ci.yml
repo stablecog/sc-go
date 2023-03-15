@@ -164,7 +164,7 @@ jobs:
           embed-title: "${{ needs.setup_env.outputs.commit_msg }}  •  ${{ needs.setup_env.outputs.short_sha }}"
           embed-description: "```🚨 Build FAILED 🚨```"
 
-  deploy_server:
+  deploy_qa:
     name: 🧪 Deploy Server & Cron (QA)
     runs-on: self-hosted
     needs:
@@ -186,6 +186,29 @@ jobs:
           qa-webhook-url: ${{ secrets.DISCORD_WEBHOOK }}
           kube_config: ${{ secrets.KUBE_CONFIG_DATA }}
           env: qa
+
+  deploy_prod:
+    name: 🚀 Deploy Server & Cron (PROD)
+    runs-on: self-hosted
+    needs:
+      - setup_env
+      - build
+    env:
+      GITHUB_RUN_ID: ${{ github.run_id }}
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Deploy
+        uses: ./.github/actions/k8s-deploy
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          image: stablecog/sc-server:${{ needs.setup_env.outputs.branch_name}}-${{ env.GITHUB_RUN_ID }}
+          embed-title: "${{ needs.setup_env.outputs.commit_msg }}  •  ${{ needs.setup_env.outputs.short_sha }}"
+          prod-webhook-url: ${{ secrets.DISCORD_WEBHOOK_PROD }}
+          qa-webhook-url: ${{ secrets.DISCORD_WEBHOOK }}
+          kube_config: ${{ secrets.KUBE_CONFIG_DATA }}
+          env: prod
 
   deploy_server_prod:
     name: 🚀 Deploy Server (PROD)

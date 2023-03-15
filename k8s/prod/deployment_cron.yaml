@@ -1,0 +1,104 @@
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: sc-cron-deployment
+  namespace: prod-stablecog
+  labels:
+    app: sc-cron
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: sc-cron
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: sc-cron
+    spec:
+      containers:
+        - name: sc-cron
+          image: replaceme
+          resources:
+            requests:
+              cpu: 100m
+              memory: 200Mi
+            limits:
+              cpu: 250m
+              memory: 512Mi
+          command: ["/bin/sh", "-c"]
+          args: ["/app/cron -all"]
+          imagePullPolicy: "Always"
+          env:
+            - name: PUBLIC_SUPABASE_REFERENCE_ID
+              value: jaqefzjqokaemzyvjcew
+            - name: PRODUCTION
+              value: true
+            - name: BUCKET_BASE_URL
+              value: https://b.stablecog.com
+            - name: DISCORD_WEBHOOK_URL
+              valueFrom:
+                secretKeyRef:
+                  name: sc-go
+                  key: DISCORD_WEBHOOK_URL
+            - name: DISCORD_WEBHOOK_URL_DEPLOY
+              valueFrom:
+                secretKeyRef:
+                  name: sc-go
+                  key: DISCORD_WEBHOOK_URL_DEPLOY
+            - name: MEILI_URL
+              valueFrom:
+                secretKeyRef:
+                  name: sc-go
+                  key: MEILI_URL
+            - name: MEILI_MASTER_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: sc-go
+                  key: MEILI_MASTER_KEY
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: sc-go
+                  key: POSTGRES_PASSWORD
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: sc-go
+                  key: POSTGRES_USER
+            - name: POSTGRES_HOST
+              valueFrom:
+                secretKeyRef:
+                  name: sc-go
+                  key: POSTGRES_HOST
+            - name: POSTGRES_DB
+              valueFrom:
+                secretKeyRef:
+                  name: sc-go
+                  key: POSTGRES_DB
+            - name: STRIPE_ENDPOINT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: sc-go
+                  key: STRIPE_ENDPOINT_SECRET
+            - name: STRIPE_SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: sc-go
+                  key: STRIPE_SECRET_KEY
+            - name: SUPABASE_ADMIN_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: sc-go
+                  key: SUPABASE_ADMIN_KEY
+            - name: REDIS_CONNECTION_STRING
+              valueFrom:
+                secretKeyRef:
+                  name: sc-go
+                  key: REDIS_CONNECTION_STRING
+            - name: SC_WORKER_WEBHOOK_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: sc-go
+                  key: SC_WORKER_WEBHOOK_SECRET
