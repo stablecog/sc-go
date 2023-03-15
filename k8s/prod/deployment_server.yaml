@@ -23,8 +23,7 @@ spec:
               cpu: 100m
               memory: 200Mi
             limits:
-              cpu: 500m
-              memory: 1Gi
+              memory: 2Gi
           ports:
             - containerPort: 13337
           imagePullPolicy: "Always"
