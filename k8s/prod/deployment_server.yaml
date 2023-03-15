@@ -32,7 +32,7 @@ spec:
             - name: PUBLIC_SUPABASE_REFERENCE_ID
               value: jaqefzjqokaemzyvjcew
             - name: PRODUCTION
-              value: true
+              value: "true"
             - name: BUCKET_BASE_URL
               value: https://b.stablecog.com
             - name: PUBLIC_API_URL
