@@ -285,10 +285,10 @@ func (r *Repository) QueryGenerations(per_page int, cursor *time.Time, filters *
 			s.C(generation.FieldPromptID), pt.C(prompt.FieldID),
 		).LeftJoin(got).On(
 			s.C(generation.FieldID), got.C(generationoutput.FieldGenerationID),
-		).AppendSelect(sql.As(npt.C(negativeprompt.FieldText), "negative_prompt_text"), sql.As(pt.C(prompt.FieldText), "prompt_text"), sql.As(got.C(generationoutput.FieldID), "output_id"), sql.As(got.C(generationoutput.FieldGalleryStatus), "output_gallery_status"), sql.As(got.C(generationoutput.FieldImagePath), "image_path"), sql.As(got.C(generationoutput.FieldUpscaledImagePath), "upscaled_image_path"), sql.As(got.C(generationoutput.FieldDeletedAt), "deleted_at")).
+		).AppendSelect(sql.As(npt.C(negativeprompt.FieldText), "negative_prompt_text"), sql.As(pt.C(prompt.FieldText), "prompt_text"), sql.As(got.C(generationoutput.FieldID), "output_id"), sql.As(got.C(generationoutput.FieldGalleryStatus), "output_gallery_status"), sql.As(got.C(generationoutput.FieldImagePath), "image_path"), sql.As(got.C(generationoutput.FieldUpscaledImagePath), "upscaled_image_path"), sql.As(got.C(generationoutput.FieldDeletedAt), "deleted_at"), sql.As(got.C(generationoutput.FieldIsFavorited), "is_favorited")).
 			GroupBy(s.C(generation.FieldID), npt.C(negativeprompt.FieldText), pt.C(prompt.FieldText),
 				got.C(generationoutput.FieldID), got.C(generationoutput.FieldGalleryStatus),
-				got.C(generationoutput.FieldImagePath), got.C(generationoutput.FieldUpscaledImagePath), got.C(generationoutput.FieldIsFavorited))
+				got.C(generationoutput.FieldImagePath), got.C(generationoutput.FieldUpscaledImagePath))
 		var orderByGeneration string
 		var orderByOutput string
 		if filters == nil || (filters != nil && filters.OrderBy == requests.OrderByCreatedAt) {
