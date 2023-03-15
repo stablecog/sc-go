@@ -30,7 +30,7 @@ spec:
           imagePullPolicy: "Always"
           env:
             - name: GOTRUE_URL
-              value: supabase-supabase-auth.qa-supabase:9999
+              value: http://supabase-supabase-auth.qa-supabase:9999
             - name: BUCKET_BASE_URL
               value: https://b.stablecog.com
             - name: PUBLIC_API_URL
