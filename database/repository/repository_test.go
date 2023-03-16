@@ -3,13 +3,13 @@ package repository
 import (
 	"context"
 	"errors"
-	"log"
 	"os"
 	"testing"
 
 	"github.com/stablecog/sc-go/database"
 	"github.com/stablecog/sc-go/database/ent"
 	"github.com/stablecog/sc-go/database/ent/deviceinfo"
+	"github.com/stablecog/sc-go/log"
 	"github.com/stablecog/sc-go/utils"
 	"github.com/stretchr/testify/assert"
 )
