@@ -10,7 +10,6 @@ import (
 	"time"
 
 	"github.com/go-chi/chi/v5"
-	chimiddleware "github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/cors"
 	"github.com/go-co-op/gocron"
 	"github.com/joho/godotenv"
@@ -187,7 +186,7 @@ func main() {
 
 		// Stats
 		r.Route("/stats", func(r chi.Router) {
-			r.Use(chimiddleware.Logger)
+			r.Use(middleware.Logger)
 			// 10 requests per second
 			r.Use(mw.RateLimit(10, 1*time.Second))
 			r.Get("/", hc.HandleGetStats)
@@ -195,7 +194,7 @@ func main() {
 
 		// Gallery search
 		r.Route("/gallery", func(r chi.Router) {
-			r.Use(chimiddleware.Logger)
+			r.Use(middleware.Logger)
 			// 20 requests per second
 			r.Use(mw.RateLimit(20, 1*time.Second))
 			r.Get("/", hc.HandleQueryGallery)
@@ -204,7 +203,7 @@ func main() {
 		// Routes that require authentication
 		r.Route("/user", func(r chi.Router) {
 			r.Use(mw.AuthMiddleware(middleware.AuthLevelAny))
-			r.Use(chimiddleware.Logger)
+			r.Use(middleware.Logger)
 			// 10 requests per second
 			r.Use(mw.RateLimit(10, 1*time.Second))
 
@@ -241,19 +240,19 @@ func main() {
 		r.Route("/admin", func(r chi.Router) {
 			r.Route("/gallery", func(r chi.Router) {
 				r.Use(mw.AuthMiddleware(middleware.AuthLevelGalleryAdmin))
-				r.Use(chimiddleware.Logger)
+				r.Use(middleware.Logger)
 				r.Put("/", hc.HandleReviewGallerySubmission)
 			})
 			r.Route("/outputs", func(r chi.Router) {
 				// TODO - this is auth level gallery admin, but delete route manually enforces super admin
 				r.Use(mw.AuthMiddleware(middleware.AuthLevelGalleryAdmin))
-				r.Use(chimiddleware.Logger)
+				r.Use(middleware.Logger)
 				r.Delete("/", hc.HandleDeleteGenerationOutput)
 				r.Get("/", hc.HandleQueryGenerationsForAdmin)
 			})
 			r.Route("/users", func(r chi.Router) {
 				r.Use(mw.AuthMiddleware(middleware.AuthLevelSuperAdmin))
-				r.Use(chimiddleware.Logger)
+				r.Use(middleware.Logger)
 				r.Get("/", hc.HandleQueryUsers)
 			})
 		})
