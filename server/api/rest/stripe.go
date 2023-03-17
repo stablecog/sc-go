@@ -506,7 +506,7 @@ func (c *RestAPI) HandleStripeWebhook(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 	// Subcription payments
-	case "invoice.created", "invoice.paid":
+	case "invoice.created":
 		// We can parse the object as an invoice since that's the only thing we care about
 		invoice, err := stripeObjectMapToInvoiceObject(event.Data.Object)
 		if err != nil || invoice == nil {
