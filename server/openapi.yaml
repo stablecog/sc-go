@@ -1252,6 +1252,9 @@ components:
         created_at:
           type: string
           format: isoTimeString
+        last_sign_in_at:
+          type: string
+          format: isoTimeString, optional
         roles:
           type: array
           items:
