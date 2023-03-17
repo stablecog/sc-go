@@ -459,8 +459,54 @@ func (c *RestAPI) HandleStripeWebhook(w http.ResponseWriter, r *http.Request) {
 				go c.Track.SubscriptionCancelled(user, sub.Items.Data[0].Price.Product)
 			}
 		}
+	// Remove credits if necessary
+	case "invoice.finalization_failed", "invoice.payment_failed":
+		// We can parse the object as an invoice since that's the only thing we care about
+		invoice, err := stripeObjectMapToInvoiceObject(event.Data.Object)
+		if err != nil || invoice == nil {
+			log.Error("Unable parsing stripe invoice object", "err", err)
+			responses.ErrInternalServerError(w, r, err.Error())
+			return
+		}
+
+		// We only care about renewal (cycle), create, and manual
+		if invoice.BillingReason != InvoiceBillingReasonSubscriptionCycle && invoice.BillingReason != InvoiceBillingReasonSubscriptionCreate {
+			render.Status(r, http.StatusOK)
+			render.PlainText(w, r, "OK")
+			return
+		}
+
+		if invoice.Lines == nil {
+			log.Error("Stripe invoice lines is nil %s", invoice.ID)
+			responses.ErrInternalServerError(w, r, "Stripe invoice lines is nil")
+			return
+		}
+
+		for _, line := range invoice.Lines.Data {
+			var product string
+			if line.Plan == nil {
+				log.Error("Stripe plan is nil in line item %s", line.ID)
+				responses.ErrInternalServerError(w, r, "Stripe plan is nil in line item")
+				return
+			}
+
+			product = line.Plan.Product
+
+			if product == "" {
+				log.Error("Stripe product is nil in line item %s", line.ID)
+				responses.ErrInternalServerError(w, r, "Stripe product is nil in line item")
+				return
+			}
+
+			err = c.Repo.DeleteCreditsWithLineItemID(line.ID)
+			if err != nil {
+				log.Error("Unable deleting credits with line item id", "err", err)
+				responses.ErrInternalServerError(w, r, err.Error())
+				return
+			}
+		}
 	// Subcription payments
-	case "invoice.payment_succeeded":
+	case "invoice.created", "invoice.paid":
 		// We can parse the object as an invoice since that's the only thing we care about
 		invoice, err := stripeObjectMapToInvoiceObject(event.Data.Object)
 		if err != nil || invoice == nil {

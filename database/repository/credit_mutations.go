@@ -15,6 +15,14 @@ import (
 // Expiration date for manual invoices (non-recurring)
 var NEVER_EXPIRE = time.Date(2100, 1, 1, 5, 0, 0, 0, time.UTC)
 
+func (r *Repository) DeleteCreditsWithLineItemID(lineItemID string) error {
+	_, err := r.DB.Credit.Delete().Where(credit.StripeLineItemIDEQ(lineItemID)).Exec(r.Ctx)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 // Add credits of creditType to user if they do not have any un-expired credits of this type
 func (r *Repository) AddCreditsIfEligible(creditType *ent.CreditType, userID uuid.UUID, expiresAt time.Time, lineItemId string, DB *ent.Client) (added bool, err error) {
 	if DB == nil {
