@@ -143,8 +143,3 @@ spec:
                 secretKeyRef:
                   name: sc-go
                   key: DISCORD_WEBHOOK_URL_NEWSUB
-            - name: PP_SECRET
-              valueFrom:
-                secretKeyRef:
-                  name: sc-go
-                  key: PP_SECRET
