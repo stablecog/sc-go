@@ -24,6 +24,14 @@ func (c *RestAPI) HandleGetUser(w http.ResponseWriter, r *http.Request) {
 	if userID == nil || email == "" {
 		return
 	}
+	var lastSignIn *time.Time
+	lastSignInStr, ok := r.Context().Value("user_last_sign_in").(string)
+	if ok {
+		lastSignInP, err := time.Parse(time.RFC3339, lastSignInStr)
+		if err == nil {
+			lastSignIn = &lastSignInP
+		}
+	}
 
 	// Tracking current free credits
 	var freeCredits *ent.Credit
@@ -67,7 +75,7 @@ func (c *RestAPI) HandleGetUser(w http.ResponseWriter, r *http.Request) {
 				return err
 			}
 
-			u, err := c.Repo.CreateUser(*userID, email, customer.ID, client)
+			u, err := c.Repo.CreateUser(*userID, email, customer.ID, lastSignIn, client)
 			if err != nil {
 				log.Error("Error creating user", "err", err)
 				return err

@@ -2,22 +2,25 @@ package repository
 
 import (
 	"testing"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestCreateUser(t *testing.T) {
-	u, err := MockRepo.CreateUser(uuid.New(), "testcreateuser@stablecog.com", "cus_1234", nil)
+	ls := time.Date(2023, 1, 1, 5, 0, 0, 0, time.UTC)
+	u, err := MockRepo.CreateUser(uuid.New(), "testcreateuser@stablecog.com", "cus_1234", &ls, nil)
 	assert.Nil(t, err)
 	assert.NotNil(t, u)
+	assert.Equal(t, ls, *u.LastSignInAt)
 
 	// Delete
 	MockRepo.DB.User.DeleteOne(u).ExecX(MockRepo.Ctx)
 }
 
 func TestSetActiveProductID(t *testing.T) {
-	u, err := MockRepo.CreateUser(uuid.New(), "testsetactiveproductid@stablecog.com", "cus_1234", nil)
+	u, err := MockRepo.CreateUser(uuid.New(), "testsetactiveproductid@stablecog.com", "cus_1234", nil, nil)
 	assert.Nil(t, err)
 	assert.NotNil(t, u)
 	assert.Nil(t, u.ActiveProductID)
@@ -37,7 +40,7 @@ func TestSetActiveProductID(t *testing.T) {
 }
 
 func TestUnsetActiveProductID(t *testing.T) {
-	u, err := MockRepo.CreateUser(uuid.New(), "testunsetactiveproductid@stablecog.com", "cus_1234", nil)
+	u, err := MockRepo.CreateUser(uuid.New(), "testunsetactiveproductid@stablecog.com", "cus_1234", nil, nil)
 	assert.Nil(t, err)
 	assert.NotNil(t, u)
 	assert.Nil(t, u.ActiveProductID)

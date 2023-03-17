@@ -2,6 +2,7 @@ package database
 
 import (
 	"errors"
+	"time"
 
 	"github.com/stablecog/sc-go/log"
 	"github.com/stablecog/sc-go/shared"
@@ -24,32 +25,32 @@ func NewSupabaseAuth() *SupabaseAuth {
 	return &SupabaseAuth{client: client}
 }
 
-func (s *SupabaseAuth) GetSupabaseUserIdFromAccessToken(accessToken string) (id, email string, err error) {
+func (s *SupabaseAuth) GetSupabaseUserIdFromAccessToken(accessToken string) (id, email string, lastSignIn *time.Time, err error) {
 	if accessToken == "" {
-		return "", "", SupabaseAuthUnauthorized
+		return "", "", nil, SupabaseAuthUnauthorized
 	}
 
 	user, err := s.client.WithToken(accessToken).GetUser()
 	if err != nil {
 		log.Error("Error getting user from Supabase", "err", err)
-		return "", "", err
+		return "", "", nil, err
 	}
 
 	if user == nil {
 		log.Info("User not found in Supabase (unauthorized)")
-		return "", "", SupabaseAuthUnauthorized
+		return "", "", nil, SupabaseAuthUnauthorized
 	}
 
 	if user.EmailConfirmedAt == nil {
 		log.Info("User not confirmed in Supabase (unauthorized))")
-		return "", "", SupabaseAuthUnauthorized
+		return "", "", nil, SupabaseAuthUnauthorized
 	}
 
 	// Check disposable email
 	if shared.GetCache().IsDisposableEmail(user.Email) {
 		log.Info("User is using disposable email (unauthorized)", "email", user.Email)
-		return "", "", SupabaseAuthUnauthorized
+		return "", "", nil, SupabaseAuthUnauthorized
 	}
 
-	return user.ID.String(), user.Email, nil
+	return user.ID.String(), user.Email, user.LastSignInAt, nil
 }

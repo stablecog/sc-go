@@ -1,16 +1,22 @@
 package repository
 
 import (
+	"time"
+
 	"github.com/google/uuid"
 	"github.com/stablecog/sc-go/database/ent"
 	"github.com/stablecog/sc-go/database/ent/user"
 )
 
-func (r *Repository) CreateUser(id uuid.UUID, email string, stripeCustomerId string, db *ent.Client) (*ent.User, error) {
+func (r *Repository) CreateUser(id uuid.UUID, email string, stripeCustomerId string, lastSignIn *time.Time, db *ent.Client) (*ent.User, error) {
 	if db == nil {
 		db = r.DB
 	}
-	return db.User.Create().SetID(id).SetStripeCustomerID(stripeCustomerId).SetEmail(email).Save(r.Ctx)
+	cq := db.User.Create().SetID(id).SetStripeCustomerID(stripeCustomerId).SetEmail(email)
+	if lastSignIn != nil {
+		cq.SetLastSignInAt(*lastSignIn)
+	}
+	return cq.Save(r.Ctx)
 }
 
 func (r *Repository) SetActiveProductID(id uuid.UUID, stripeProductID string, db *ent.Client) error {

@@ -4,6 +4,7 @@ import (
 	"context"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/stablecog/sc-go/database/ent/userrole"
@@ -28,7 +29,7 @@ func (m *Middleware) AuthMiddleware(level AuthLevel) func(next http.Handler) htt
 				return
 			}
 			// Check supabase to see if it's all good
-			userId, email, err := m.SupabaseAuth.GetSupabaseUserIdFromAccessToken(authHeader[1])
+			userId, email, lastSignIn, err := m.SupabaseAuth.GetSupabaseUserIdFromAccessToken(authHeader[1])
 			if err != nil {
 				responses.ErrUnauthorized(w, r)
 				return
@@ -37,6 +38,11 @@ func (m *Middleware) AuthMiddleware(level AuthLevel) func(next http.Handler) htt
 			// Set the user ID in the context
 			ctx := context.WithValue(r.Context(), "user_id", userId)
 			ctx = context.WithValue(ctx, "user_email", email)
+			// Set the last sign in time in the context, if not null
+			if lastSignIn != nil {
+				formatted := lastSignIn.Format(time.RFC3339)
+				ctx = context.WithValue(ctx, "user_last_sign_in", formatted)
+			}
 
 			userIDParsed, err := uuid.Parse(userId)
 			if err != nil {
