@@ -634,7 +634,7 @@ func (c *RestAPI) HandleStripeWebhook(w http.ResponseWriter, r *http.Request) {
 		}
 
 	// Adhoc credit purchases
-	case "payment_intent.succeeded", "payment_intent.created":
+	case "payment_intent.succeeded", "payment_intent.processing":
 		pi, err := stripeObjectMapToPaymentIntent(event.Data.Object)
 		if err != nil || pi == nil {
 			log.Error("Unable parsing stripe payment intent object", "err", err)
