@@ -62,17 +62,14 @@ func (h *Hub) ServeSSE(w http.ResponseWriter, r *http.Request) {
 	client.Send <- versionBytes
 
 	// Listen to connection close and un-register client
-	notify := w.(http.CloseNotifier).CloseNotify()
 	for {
 		select {
-		case <-notify:
+		case <-r.Context().Done():
 			return
-		default:
+		case message := <-client.Send:
 			// Write to the ResponseWriter
 			// SSE compatible
-			fmt.Fprintf(w, "data: %s\n\n", <-client.Send)
-
-			// Flush the data immediatly instead of buffering it for later.
+			fmt.Fprintf(w, "data: %s\n\n", message)
 			flusher.Flush()
 		}
 	}
