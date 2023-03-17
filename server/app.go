@@ -6,6 +6,7 @@ import (
 	"flag"
 	"fmt"
 	"net/http"
+	"net/http/pprof"
 	"os"
 	"time"
 
@@ -164,6 +165,7 @@ func main() {
 
 	// Routes
 	app.Get("/", hc.HandleHealth)
+	app.HandleFunc(fmt.Sprintf("/pprof/%s", utils.GetEnv("PP_SECRET", "")), pprof.Index)
 	app.Route("/v1", func(r chi.Router) {
 		r.Get("/health", hc.HandleHealth)
 

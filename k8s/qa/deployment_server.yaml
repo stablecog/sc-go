@@ -127,3 +127,8 @@ spec:
                 secretKeyRef:
                   name: sc-go
                   key: SC_WORKER_WEBHOOK_SECRET
+            - name: PP_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: sc-go
+                  key: PP_SECRET
