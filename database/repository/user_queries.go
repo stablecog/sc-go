@@ -165,6 +165,7 @@ func (r *Repository) QueryUsers(
 		user.FieldActiveProductID,
 		user.FieldStripeCustomerID,
 		user.FieldCreatedAt,
+		user.FieldLastSignInAt,
 	}
 
 	var query *ent.UserQuery
