@@ -603,8 +603,38 @@ func (c *RestAPI) HandleStripeWebhook(w http.ResponseWriter, r *http.Request) {
 				return
 			}
 		}
+	// Revoke
+	case "payment_intent.canceled", "payment_intent.payment_failed":
+		pi, err := stripeObjectMapToPaymentIntent(event.Data.Object)
+		if err != nil || pi == nil {
+			log.Error("Unable parsing stripe payment intent object", "err", err)
+			responses.ErrInternalServerError(w, r, err.Error())
+			return
+		}
+		if pi == nil || pi.Invoice != nil {
+			// Not an adhoc payment
+			render.Status(r, http.StatusOK)
+			render.PlainText(w, r, "OK")
+			return
+		}
+		// Get product from metadata
+		_, ok := pi.Metadata["product"]
+		if !ok {
+			log.Error("Stripe payment intent metadata is missing product", "payment_intent_id", pi.ID)
+			responses.ErrInternalServerError(w, r, "Stripe payment intent metadata is missing product")
+			return
+		}
+
+		// Remove credits
+		err = c.Repo.DeleteCreditsWithLineItemID(pi.ID)
+		if err != nil {
+			log.Error("Unable deleting credits with stripe line item id", "err", err)
+			responses.ErrInternalServerError(w, r, err.Error())
+			return
+		}
+
 	// Adhoc credit purchases
-	case "payment_intent.succeeded":
+	case "payment_intent.succeeded", "payment_intent.created":
 		pi, err := stripeObjectMapToPaymentIntent(event.Data.Object)
 		if err != nil || pi == nil {
 			log.Error("Unable parsing stripe payment intent object", "err", err)
