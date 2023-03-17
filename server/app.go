@@ -165,7 +165,7 @@ func main() {
 
 	// Routes
 	app.Get("/", hc.HandleHealth)
-	app.HandleFunc("/debug/pprof/", pprof.Index)
+	app.Handle("/pprof/heap", pprof.Handler("heap"))
 	app.Route("/v1", func(r chi.Router) {
 		r.Get("/health", hc.HandleHealth)
 
