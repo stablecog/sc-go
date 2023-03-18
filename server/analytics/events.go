@@ -302,7 +302,7 @@ func (a *AnalyticsService) SubscriptionUpgraded(user *ent.User, oldProductId str
 func (a *AnalyticsService) CreditPurchase(user *ent.User, productId string, amount int) error {
 	return a.Dispatch(Event{
 		DistinctId: user.ID.String(),
-		EventName:  "Credit | Purchase",
+		EventName:  "Credits | Purchased",
 		Properties: map[string]interface{}{
 			"SC - Stripe Product Id":  productId,
 			"SC - Email":              user.Email,
@@ -317,7 +317,7 @@ func (a *AnalyticsService) CreditPurchase(user *ent.User, productId string, amou
 func (a *AnalyticsService) FreeCreditsReplenished(userId uuid.UUID, email string, amount int) error {
 	return a.Dispatch(Event{
 		DistinctId: userId.String(),
-		EventName:  "Credit | Free Replenished",
+		EventName:  "Credits | Free Replenished",
 		Properties: map[string]interface{}{
 			"SC - Email":     email,
 			"SC - Amount":    amount,
