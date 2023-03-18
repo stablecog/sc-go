@@ -202,16 +202,16 @@ func (gu *GenerationUpdate) ClearInitImageURL() *GenerationUpdate {
 	return gu
 }
 
-// SetSubmitToGallery sets the "submit_to_gallery" field.
-func (gu *GenerationUpdate) SetSubmitToGallery(b bool) *GenerationUpdate {
-	gu.mutation.SetSubmitToGallery(b)
+// SetWasAutoSubmitted sets the "was_auto_submitted" field.
+func (gu *GenerationUpdate) SetWasAutoSubmitted(b bool) *GenerationUpdate {
+	gu.mutation.SetWasAutoSubmitted(b)
 	return gu
 }
 
-// SetNillableSubmitToGallery sets the "submit_to_gallery" field if the given value is not nil.
-func (gu *GenerationUpdate) SetNillableSubmitToGallery(b *bool) *GenerationUpdate {
+// SetNillableWasAutoSubmitted sets the "was_auto_submitted" field if the given value is not nil.
+func (gu *GenerationUpdate) SetNillableWasAutoSubmitted(b *bool) *GenerationUpdate {
 	if b != nil {
-		gu.SetSubmitToGallery(*b)
+		gu.SetWasAutoSubmitted(*b)
 	}
 	return gu
 }
@@ -607,8 +607,8 @@ func (gu *GenerationUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if gu.mutation.InitImageURLCleared() {
 		_spec.ClearField(generation.FieldInitImageURL, field.TypeString)
 	}
-	if value, ok := gu.mutation.SubmitToGallery(); ok {
-		_spec.SetField(generation.FieldSubmitToGallery, field.TypeBool, value)
+	if value, ok := gu.mutation.WasAutoSubmitted(); ok {
+		_spec.SetField(generation.FieldWasAutoSubmitted, field.TypeBool, value)
 	}
 	if value, ok := gu.mutation.StripeProductID(); ok {
 		_spec.SetField(generation.FieldStripeProductID, field.TypeString, value)
@@ -1082,16 +1082,16 @@ func (guo *GenerationUpdateOne) ClearInitImageURL() *GenerationUpdateOne {
 	return guo
 }
 
-// SetSubmitToGallery sets the "submit_to_gallery" field.
-func (guo *GenerationUpdateOne) SetSubmitToGallery(b bool) *GenerationUpdateOne {
-	guo.mutation.SetSubmitToGallery(b)
+// SetWasAutoSubmitted sets the "was_auto_submitted" field.
+func (guo *GenerationUpdateOne) SetWasAutoSubmitted(b bool) *GenerationUpdateOne {
+	guo.mutation.SetWasAutoSubmitted(b)
 	return guo
 }
 
-// SetNillableSubmitToGallery sets the "submit_to_gallery" field if the given value is not nil.
-func (guo *GenerationUpdateOne) SetNillableSubmitToGallery(b *bool) *GenerationUpdateOne {
+// SetNillableWasAutoSubmitted sets the "was_auto_submitted" field if the given value is not nil.
+func (guo *GenerationUpdateOne) SetNillableWasAutoSubmitted(b *bool) *GenerationUpdateOne {
 	if b != nil {
-		guo.SetSubmitToGallery(*b)
+		guo.SetWasAutoSubmitted(*b)
 	}
 	return guo
 }
@@ -1511,8 +1511,8 @@ func (guo *GenerationUpdateOne) sqlSave(ctx context.Context) (_node *Generation,
 	if guo.mutation.InitImageURLCleared() {
 		_spec.ClearField(generation.FieldInitImageURL, field.TypeString)
 	}
-	if value, ok := guo.mutation.SubmitToGallery(); ok {
-		_spec.SetField(generation.FieldSubmitToGallery, field.TypeBool, value)
+	if value, ok := guo.mutation.WasAutoSubmitted(); ok {
+		_spec.SetField(generation.FieldWasAutoSubmitted, field.TypeBool, value)
 	}
 	if value, ok := guo.mutation.StripeProductID(); ok {
 		_spec.SetField(generation.FieldStripeProductID, field.TypeString, value)

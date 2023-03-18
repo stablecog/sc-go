@@ -35,7 +35,7 @@ func (r *Repository) CreateGeneration(userID uuid.UUID, deviceType, deviceOs, de
 		SetDeviceInfoID(deviceInfoId).
 		SetCountryCode(countryCode).
 		SetUserID(userID).
-		SetSubmitToGallery(req.SubmitToGallery).
+		SetWasAutoSubmitted(req.SubmitToGallery).
 		SetNumOutputs(req.NumOutputs)
 	if productId != nil {
 		insert.SetStripeProductID(*productId)
@@ -121,7 +121,7 @@ func (r *Repository) SetGenerationSucceeded(generationID string, prompt string, 
 
 		// If this generation was created with "submit_to_gallery", then submit all outputs to gallery
 		var galleryStatus generationoutput.GalleryStatus
-		if g.SubmitToGallery {
+		if g.WasAutoSubmitted {
 			galleryStatus = generationoutput.GalleryStatusSubmitted
 		} else {
 			galleryStatus = generationoutput.GalleryStatusNotSubmitted

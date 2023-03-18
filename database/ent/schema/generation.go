@@ -32,7 +32,7 @@ func (Generation) Fields() []ent.Field {
 		field.Text("failure_reason").Optional().Nillable(),
 		field.Text("country_code").Optional().Nillable(),
 		field.Text("init_image_url").Optional().Nillable(),
-		field.Bool("submit_to_gallery").Default(false),
+		field.Bool("was_auto_submitted").Default(false),
 		field.Text("stripe_product_id").Optional().Nillable(),
 		// ! Relationships / many-to-one
 		field.UUID("prompt_id", uuid.UUID{}).Optional().Nillable(),

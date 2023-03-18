@@ -106,9 +106,9 @@ func InitImageURL(v string) predicate.Generation {
 	return predicate.Generation(sql.FieldEQ(FieldInitImageURL, v))
 }
 
-// SubmitToGallery applies equality check predicate on the "submit_to_gallery" field. It's identical to SubmitToGalleryEQ.
-func SubmitToGallery(v bool) predicate.Generation {
-	return predicate.Generation(sql.FieldEQ(FieldSubmitToGallery, v))
+// WasAutoSubmitted applies equality check predicate on the "was_auto_submitted" field. It's identical to WasAutoSubmittedEQ.
+func WasAutoSubmitted(v bool) predicate.Generation {
+	return predicate.Generation(sql.FieldEQ(FieldWasAutoSubmitted, v))
 }
 
 // StripeProductID applies equality check predicate on the "stripe_product_id" field. It's identical to StripeProductIDEQ.
@@ -691,14 +691,14 @@ func InitImageURLContainsFold(v string) predicate.Generation {
 	return predicate.Generation(sql.FieldContainsFold(FieldInitImageURL, v))
 }
 
-// SubmitToGalleryEQ applies the EQ predicate on the "submit_to_gallery" field.
-func SubmitToGalleryEQ(v bool) predicate.Generation {
-	return predicate.Generation(sql.FieldEQ(FieldSubmitToGallery, v))
+// WasAutoSubmittedEQ applies the EQ predicate on the "was_auto_submitted" field.
+func WasAutoSubmittedEQ(v bool) predicate.Generation {
+	return predicate.Generation(sql.FieldEQ(FieldWasAutoSubmitted, v))
 }
 
-// SubmitToGalleryNEQ applies the NEQ predicate on the "submit_to_gallery" field.
-func SubmitToGalleryNEQ(v bool) predicate.Generation {
-	return predicate.Generation(sql.FieldNEQ(FieldSubmitToGallery, v))
+// WasAutoSubmittedNEQ applies the NEQ predicate on the "was_auto_submitted" field.
+func WasAutoSubmittedNEQ(v bool) predicate.Generation {
+	return predicate.Generation(sql.FieldNEQ(FieldWasAutoSubmitted, v))
 }
 
 // StripeProductIDEQ applies the EQ predicate on the "stripe_product_id" field.

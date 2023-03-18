@@ -45,8 +45,8 @@ type Generation struct {
 	CountryCode *string `json:"country_code,omitempty"`
 	// InitImageURL holds the value of the "init_image_url" field.
 	InitImageURL *string `json:"init_image_url,omitempty"`
-	// SubmitToGallery holds the value of the "submit_to_gallery" field.
-	SubmitToGallery bool `json:"submit_to_gallery,omitempty"`
+	// WasAutoSubmitted holds the value of the "was_auto_submitted" field.
+	WasAutoSubmitted bool `json:"was_auto_submitted,omitempty"`
 	// StripeProductID holds the value of the "stripe_product_id" field.
 	StripeProductID *string `json:"stripe_product_id,omitempty"`
 	// PromptID holds the value of the "prompt_id" field.
@@ -189,7 +189,7 @@ func (*Generation) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case generation.FieldPromptID, generation.FieldNegativePromptID:
 			values[i] = &sql.NullScanner{S: new(uuid.UUID)}
-		case generation.FieldSubmitToGallery:
+		case generation.FieldWasAutoSubmitted:
 			values[i] = new(sql.NullBool)
 		case generation.FieldGuidanceScale:
 			values[i] = new(sql.NullFloat64)
@@ -291,11 +291,11 @@ func (ge *Generation) assignValues(columns []string, values []any) error {
 				ge.InitImageURL = new(string)
 				*ge.InitImageURL = value.String
 			}
-		case generation.FieldSubmitToGallery:
+		case generation.FieldWasAutoSubmitted:
 			if value, ok := values[i].(*sql.NullBool); !ok {
-				return fmt.Errorf("unexpected type %T for field submit_to_gallery", values[i])
+				return fmt.Errorf("unexpected type %T for field was_auto_submitted", values[i])
 			} else if value.Valid {
-				ge.SubmitToGallery = value.Bool
+				ge.WasAutoSubmitted = value.Bool
 			}
 		case generation.FieldStripeProductID:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -470,8 +470,8 @@ func (ge *Generation) String() string {
 		builder.WriteString(*v)
 	}
 	builder.WriteString(", ")
-	builder.WriteString("submit_to_gallery=")
-	builder.WriteString(fmt.Sprintf("%v", ge.SubmitToGallery))
+	builder.WriteString("was_auto_submitted=")
+	builder.WriteString(fmt.Sprintf("%v", ge.WasAutoSubmitted))
 	builder.WriteString(", ")
 	if v := ge.StripeProductID; v != nil {
 		builder.WriteString("stripe_product_id=")

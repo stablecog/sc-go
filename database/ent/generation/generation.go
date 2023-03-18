@@ -36,8 +36,8 @@ const (
 	FieldCountryCode = "country_code"
 	// FieldInitImageURL holds the string denoting the init_image_url field in the database.
 	FieldInitImageURL = "init_image_url"
-	// FieldSubmitToGallery holds the string denoting the submit_to_gallery field in the database.
-	FieldSubmitToGallery = "submit_to_gallery"
+	// FieldWasAutoSubmitted holds the string denoting the was_auto_submitted field in the database.
+	FieldWasAutoSubmitted = "was_auto_submitted"
 	// FieldStripeProductID holds the string denoting the stripe_product_id field in the database.
 	FieldStripeProductID = "stripe_product_id"
 	// FieldPromptID holds the string denoting the prompt_id field in the database.
@@ -141,7 +141,7 @@ var Columns = []string{
 	FieldFailureReason,
 	FieldCountryCode,
 	FieldInitImageURL,
-	FieldSubmitToGallery,
+	FieldWasAutoSubmitted,
 	FieldStripeProductID,
 	FieldPromptID,
 	FieldNegativePromptID,
@@ -168,8 +168,8 @@ func ValidColumn(column string) bool {
 var (
 	// DefaultNsfwCount holds the default value on creation for the "nsfw_count" field.
 	DefaultNsfwCount int32
-	// DefaultSubmitToGallery holds the default value on creation for the "submit_to_gallery" field.
-	DefaultSubmitToGallery bool
+	// DefaultWasAutoSubmitted holds the default value on creation for the "was_auto_submitted" field.
+	DefaultWasAutoSubmitted bool
 	// DefaultCreatedAt holds the default value on creation for the "created_at" field.
 	DefaultCreatedAt func() time.Time
 	// DefaultUpdatedAt holds the default value on creation for the "updated_at" field.

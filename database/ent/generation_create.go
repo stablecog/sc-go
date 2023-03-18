@@ -126,16 +126,16 @@ func (gc *GenerationCreate) SetNillableInitImageURL(s *string) *GenerationCreate
 	return gc
 }
 
-// SetSubmitToGallery sets the "submit_to_gallery" field.
-func (gc *GenerationCreate) SetSubmitToGallery(b bool) *GenerationCreate {
-	gc.mutation.SetSubmitToGallery(b)
+// SetWasAutoSubmitted sets the "was_auto_submitted" field.
+func (gc *GenerationCreate) SetWasAutoSubmitted(b bool) *GenerationCreate {
+	gc.mutation.SetWasAutoSubmitted(b)
 	return gc
 }
 
-// SetNillableSubmitToGallery sets the "submit_to_gallery" field if the given value is not nil.
-func (gc *GenerationCreate) SetNillableSubmitToGallery(b *bool) *GenerationCreate {
+// SetNillableWasAutoSubmitted sets the "was_auto_submitted" field if the given value is not nil.
+func (gc *GenerationCreate) SetNillableWasAutoSubmitted(b *bool) *GenerationCreate {
 	if b != nil {
-		gc.SetSubmitToGallery(*b)
+		gc.SetWasAutoSubmitted(*b)
 	}
 	return gc
 }
@@ -366,9 +366,9 @@ func (gc *GenerationCreate) defaults() {
 		v := generation.DefaultNsfwCount
 		gc.mutation.SetNsfwCount(v)
 	}
-	if _, ok := gc.mutation.SubmitToGallery(); !ok {
-		v := generation.DefaultSubmitToGallery
-		gc.mutation.SetSubmitToGallery(v)
+	if _, ok := gc.mutation.WasAutoSubmitted(); !ok {
+		v := generation.DefaultWasAutoSubmitted
+		gc.mutation.SetWasAutoSubmitted(v)
 	}
 	if _, ok := gc.mutation.CreatedAt(); !ok {
 		v := generation.DefaultCreatedAt()
@@ -415,8 +415,8 @@ func (gc *GenerationCreate) check() error {
 			return &ValidationError{Name: "status", err: fmt.Errorf(`ent: validator failed for field "Generation.status": %w`, err)}
 		}
 	}
-	if _, ok := gc.mutation.SubmitToGallery(); !ok {
-		return &ValidationError{Name: "submit_to_gallery", err: errors.New(`ent: missing required field "Generation.submit_to_gallery"`)}
+	if _, ok := gc.mutation.WasAutoSubmitted(); !ok {
+		return &ValidationError{Name: "was_auto_submitted", err: errors.New(`ent: missing required field "Generation.was_auto_submitted"`)}
 	}
 	if _, ok := gc.mutation.ModelID(); !ok {
 		return &ValidationError{Name: "model_id", err: errors.New(`ent: missing required field "Generation.model_id"`)}
@@ -533,9 +533,9 @@ func (gc *GenerationCreate) createSpec() (*Generation, *sqlgraph.CreateSpec) {
 		_spec.SetField(generation.FieldInitImageURL, field.TypeString, value)
 		_node.InitImageURL = &value
 	}
-	if value, ok := gc.mutation.SubmitToGallery(); ok {
-		_spec.SetField(generation.FieldSubmitToGallery, field.TypeBool, value)
-		_node.SubmitToGallery = value
+	if value, ok := gc.mutation.WasAutoSubmitted(); ok {
+		_spec.SetField(generation.FieldWasAutoSubmitted, field.TypeBool, value)
+		_node.WasAutoSubmitted = value
 	}
 	if value, ok := gc.mutation.StripeProductID(); ok {
 		_spec.SetField(generation.FieldStripeProductID, field.TypeString, value)

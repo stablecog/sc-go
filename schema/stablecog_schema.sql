@@ -170,7 +170,7 @@ CREATE TABLE public.generations (
     failure_reason text,
     country_code text,
     init_image_url text,
-    submit_to_gallery boolean DEFAULT false NOT NULL,
+    was_auto_submitted boolean DEFAULT false NOT NULL,
     num_outputs integer NOT NULL,
     nsfw_count integer DEFAULT 0 NOT NULL,
     stripe_product_id text,

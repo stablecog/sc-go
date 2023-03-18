@@ -3010,7 +3010,7 @@ type GenerationMutation struct {
 	failure_reason            *string
 	country_code              *string
 	init_image_url            *string
-	submit_to_gallery         *bool
+	was_auto_submitted        *bool
 	stripe_product_id         *string
 	started_at                *time.Time
 	completed_at              *time.Time
@@ -3716,40 +3716,40 @@ func (m *GenerationMutation) ResetInitImageURL() {
 	delete(m.clearedFields, generation.FieldInitImageURL)
 }
 
-// SetSubmitToGallery sets the "submit_to_gallery" field.
-func (m *GenerationMutation) SetSubmitToGallery(b bool) {
-	m.submit_to_gallery = &b
+// SetWasAutoSubmitted sets the "was_auto_submitted" field.
+func (m *GenerationMutation) SetWasAutoSubmitted(b bool) {
+	m.was_auto_submitted = &b
 }
 
-// SubmitToGallery returns the value of the "submit_to_gallery" field in the mutation.
-func (m *GenerationMutation) SubmitToGallery() (r bool, exists bool) {
-	v := m.submit_to_gallery
+// WasAutoSubmitted returns the value of the "was_auto_submitted" field in the mutation.
+func (m *GenerationMutation) WasAutoSubmitted() (r bool, exists bool) {
+	v := m.was_auto_submitted
 	if v == nil {
 		return
 	}
 	return *v, true
 }
 
-// OldSubmitToGallery returns the old "submit_to_gallery" field's value of the Generation entity.
+// OldWasAutoSubmitted returns the old "was_auto_submitted" field's value of the Generation entity.
 // If the Generation object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *GenerationMutation) OldSubmitToGallery(ctx context.Context) (v bool, err error) {
+func (m *GenerationMutation) OldWasAutoSubmitted(ctx context.Context) (v bool, err error) {
 	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldSubmitToGallery is only allowed on UpdateOne operations")
+		return v, errors.New("OldWasAutoSubmitted is only allowed on UpdateOne operations")
 	}
 	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldSubmitToGallery requires an ID field in the mutation")
+		return v, errors.New("OldWasAutoSubmitted requires an ID field in the mutation")
 	}
 	oldValue, err := m.oldValue(ctx)
 	if err != nil {
-		return v, fmt.Errorf("querying old value for OldSubmitToGallery: %w", err)
+		return v, fmt.Errorf("querying old value for OldWasAutoSubmitted: %w", err)
 	}
-	return oldValue.SubmitToGallery, nil
+	return oldValue.WasAutoSubmitted, nil
 }
 
-// ResetSubmitToGallery resets all changes to the "submit_to_gallery" field.
-func (m *GenerationMutation) ResetSubmitToGallery() {
-	m.submit_to_gallery = nil
+// ResetWasAutoSubmitted resets all changes to the "was_auto_submitted" field.
+func (m *GenerationMutation) ResetWasAutoSubmitted() {
+	m.was_auto_submitted = nil
 }
 
 // SetStripeProductID sets the "stripe_product_id" field.
@@ -4504,8 +4504,8 @@ func (m *GenerationMutation) Fields() []string {
 	if m.init_image_url != nil {
 		fields = append(fields, generation.FieldInitImageURL)
 	}
-	if m.submit_to_gallery != nil {
-		fields = append(fields, generation.FieldSubmitToGallery)
+	if m.was_auto_submitted != nil {
+		fields = append(fields, generation.FieldWasAutoSubmitted)
 	}
 	if m.stripe_product_id != nil {
 		fields = append(fields, generation.FieldStripeProductID)
@@ -4570,8 +4570,8 @@ func (m *GenerationMutation) Field(name string) (ent.Value, bool) {
 		return m.CountryCode()
 	case generation.FieldInitImageURL:
 		return m.InitImageURL()
-	case generation.FieldSubmitToGallery:
-		return m.SubmitToGallery()
+	case generation.FieldWasAutoSubmitted:
+		return m.WasAutoSubmitted()
 	case generation.FieldStripeProductID:
 		return m.StripeProductID()
 	case generation.FieldPromptID:
@@ -4625,8 +4625,8 @@ func (m *GenerationMutation) OldField(ctx context.Context, name string) (ent.Val
 		return m.OldCountryCode(ctx)
 	case generation.FieldInitImageURL:
 		return m.OldInitImageURL(ctx)
-	case generation.FieldSubmitToGallery:
-		return m.OldSubmitToGallery(ctx)
+	case generation.FieldWasAutoSubmitted:
+		return m.OldWasAutoSubmitted(ctx)
 	case generation.FieldStripeProductID:
 		return m.OldStripeProductID(ctx)
 	case generation.FieldPromptID:
@@ -4735,12 +4735,12 @@ func (m *GenerationMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetInitImageURL(v)
 		return nil
-	case generation.FieldSubmitToGallery:
+	case generation.FieldWasAutoSubmitted:
 		v, ok := value.(bool)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
-		m.SetSubmitToGallery(v)
+		m.SetWasAutoSubmitted(v)
 		return nil
 	case generation.FieldStripeProductID:
 		v, ok := value.(string)
@@ -5039,8 +5039,8 @@ func (m *GenerationMutation) ResetField(name string) error {
 	case generation.FieldInitImageURL:
 		m.ResetInitImageURL()
 		return nil
-	case generation.FieldSubmitToGallery:
-		m.ResetSubmitToGallery()
+	case generation.FieldWasAutoSubmitted:
+		m.ResetWasAutoSubmitted()
 		return nil
 	case generation.FieldStripeProductID:
 		m.ResetStripeProductID()

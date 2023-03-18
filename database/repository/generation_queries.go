@@ -182,7 +182,7 @@ func (r *Repository) ApplyUserGenerationsFilters(query *ent.GenerationQuery, fil
 		}
 
 		if filters.WasAutoSubmitted != nil {
-			resQuery = resQuery.Where(generation.SubmitToGalleryEQ(*filters.WasAutoSubmitted))
+			resQuery = resQuery.Where(generation.WasAutoSubmittedEQ(*filters.WasAutoSubmitted))
 		}
 	}
 	return resQuery
@@ -253,7 +253,7 @@ func (r *Repository) QueryGenerations(per_page int, cursor *time.Time, filters *
 		generation.FieldCreatedAt,
 		generation.FieldStartedAt,
 		generation.FieldCompletedAt,
-		generation.FieldSubmitToGallery,
+		generation.FieldWasAutoSubmitted,
 	}
 	var query *ent.GenerationQuery
 	var gQueryResult []GenerationQueryWithOutputsResult
@@ -550,7 +550,7 @@ func (r *Repository) QueryGenerationsAdmin(per_page int, cursor *time.Time, filt
 			CreatedAt:        g.Edges.Generations.CreatedAt,
 			StartedAt:        g.Edges.Generations.StartedAt,
 			CompletedAt:      g.Edges.Generations.CompletedAt,
-			WasAutoSubmitted: g.Edges.Generations.SubmitToGallery,
+			WasAutoSubmitted: g.Edges.Generations.WasAutoSubmitted,
 			IsFavorited:      g.IsFavorited,
 		}
 		if g.Edges.Generations.Edges.NegativePrompt != nil {
@@ -680,7 +680,7 @@ type GenerationQueryWithOutputsData struct {
 	Outputs            []GenerationUpscaleOutput `json:"outputs"`
 	Prompt             PromptType                `json:"prompt"`
 	NegativePrompt     *PromptType               `json:"negative_prompt,omitempty"`
-	WasAutoSubmitted   bool                      `json:"submit_to_gallery" sql:"submit_to_gallery"`
+	WasAutoSubmitted   bool                      `json:"was_auto_submitted" sql:"was_auto_submitted"`
 }
 
 type GenerationQueryWithOutputsResult struct {
