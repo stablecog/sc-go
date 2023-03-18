@@ -10,6 +10,7 @@ import (
 
 // Generation | Started
 func (a *AnalyticsService) GenerationStarted(user *ent.User, cogReq requests.BaseCogRequest, ip string) error {
+	return nil
 	// We need to get guidance scale/height/inference steps/width as numeric values
 	height, _ := strconv.Atoi(cogReq.Height)
 	width, _ := strconv.Atoi(cogReq.Width)
@@ -41,6 +42,7 @@ func (a *AnalyticsService) GenerationStarted(user *ent.User, cogReq requests.Bas
 
 // Generation | Succeeded
 func (a *AnalyticsService) GenerationSucceeded(user *ent.User, cogReq requests.BaseCogRequest, duration float64, ip string) error {
+	return nil
 	// We need to get guidance scale/height/inference steps/width as numeric values
 	height, _ := strconv.Atoi(cogReq.Height)
 	width, _ := strconv.Atoi(cogReq.Width)
@@ -73,6 +75,8 @@ func (a *AnalyticsService) GenerationSucceeded(user *ent.User, cogReq requests.B
 
 // Generation | Failed-NSFW
 func (a *AnalyticsService) GenerationFailedNSFW(user *ent.User, cogReq requests.BaseCogRequest, duration float64, ip string) error {
+	return nil
+
 	// We need to get guidance scale/height/inference steps/width as numeric values
 	height, _ := strconv.Atoi(cogReq.Height)
 	width, _ := strconv.Atoi(cogReq.Width)
@@ -105,6 +109,8 @@ func (a *AnalyticsService) GenerationFailedNSFW(user *ent.User, cogReq requests.
 
 // Generation | Failed
 func (a *AnalyticsService) GenerationFailed(user *ent.User, cogReq requests.BaseCogRequest, duration float64, failureReason string, ip string) error {
+	return nil
+
 	// We need to get guidance scale/height/inference steps/width as numeric values
 	height, _ := strconv.Atoi(cogReq.Height)
 	width, _ := strconv.Atoi(cogReq.Width)
@@ -138,6 +144,8 @@ func (a *AnalyticsService) GenerationFailed(user *ent.User, cogReq requests.Base
 
 // Upscale | Started
 func (a *AnalyticsService) UpscaleStarted(user *ent.User, cogReq requests.BaseCogRequest, ip string) error {
+	return nil
+
 	// We need to get guidance scale/height/inference steps/width as numeric values
 	height, _ := strconv.Atoi(cogReq.Height)
 	width, _ := strconv.Atoi(cogReq.Width)
@@ -164,6 +172,8 @@ func (a *AnalyticsService) UpscaleStarted(user *ent.User, cogReq requests.BaseCo
 
 // Upscale | Succeeded
 func (a *AnalyticsService) UpscaleSucceeded(user *ent.User, cogReq requests.BaseCogRequest, duration float64, ip string) error {
+	return nil
+
 	// We need to get guidance scale/height/inference steps/width as numeric values
 	height, _ := strconv.Atoi(cogReq.Height)
 	width, _ := strconv.Atoi(cogReq.Width)
@@ -191,6 +201,8 @@ func (a *AnalyticsService) UpscaleSucceeded(user *ent.User, cogReq requests.Base
 
 // Upscale | Failed
 func (a *AnalyticsService) UpscaleFailed(user *ent.User, cogReq requests.BaseCogRequest, duration float64, failureReason string, ip string) error {
+	return nil
+
 	// We need to get guidance scale/height/inference steps/width as numeric values
 	height, _ := strconv.Atoi(cogReq.Height)
 	width, _ := strconv.Atoi(cogReq.Width)

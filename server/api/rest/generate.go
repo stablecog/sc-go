@@ -154,6 +154,7 @@ func (c *RestAPI) HandleCreateGeneration(w http.ResponseWriter, r *http.Request)
 			WebhookUrl:          fmt.Sprintf("%s/v1/worker/webhook", utils.GetEnv("PUBLIC_API_URL", "")),
 			Input: requests.BaseCogRequest{
 				ID:                   requestId,
+				IP:                   utils.GetIPAddress(r),
 				UIId:                 generateReq.UIId,
 				UserID:               &user.ID,
 				StreamID:             generateReq.StreamID,
