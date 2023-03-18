@@ -33,13 +33,15 @@ func (e *Event) PosthogEvent() (posthog.Capture, *posthog.Identify) {
 	return c, nil
 }
 
-func (e *Event) MixpanelEvent() (distinctId, eventName string, event *mixpanel.Event) {
+func (e *Event) MixpanelEvent() (distinctId, eventName string, event *mixpanel.Event, identify *mixpanel.Update) {
 	ip := "0"
 	// Prune $ip from map if it exists
 	mapCopy := make(map[string]interface{})
 	for k, v := range e.Properties {
 		if k == "$ip" {
 			ip = v.(string)
+		} else if k == "email" {
+			mapCopy["$email"] = v
 		} else {
 			mapCopy[k] = v
 		}
@@ -48,5 +50,12 @@ func (e *Event) MixpanelEvent() (distinctId, eventName string, event *mixpanel.E
 		IP:         ip,
 		Properties: mapCopy,
 	}
-	return e.DistinctId, e.EventName, mixpanelEvent
+	if e.Identify {
+		identify = &mixpanel.Update{
+			IP:         ip,
+			Properties: mapCopy,
+			Operation:  "$set",
+		}
+	}
+	return e.DistinctId, e.EventName, mixpanelEvent, identify
 }

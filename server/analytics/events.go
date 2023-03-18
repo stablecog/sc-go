@@ -27,12 +27,14 @@ func (a *AnalyticsService) GenerationStarted(user *ent.User, cogReq requests.Bas
 		"SC - Submit to Gallery": cogReq.SubmitToGallery,
 		"SC - Num Outputs":       cogReq.NumOutputs,
 		"$ip":                    ip,
+		"email":                  user.Email,
 	}
 	if user.ActiveProductID != nil {
 		properties["SC - Stripe Product Id"] = user.ActiveProductID
 	}
 
 	return a.Dispatch(Event{
+		Identify:   true,
 		DistinctId: user.ID.String(),
 		EventName:  "Generation | Started",
 		Properties: properties,
@@ -150,12 +152,14 @@ func (a *AnalyticsService) UpscaleStarted(user *ent.User, cogReq requests.BaseCo
 		"SC - Image":    cogReq.Image,
 		"SC - Type":     cogReq.Type,
 		"$ip":           ip,
+		"email":         user.Email,
 	}
 	if user.ActiveProductID != nil {
 		properties["SC - Stripe Product Id"] = user.ActiveProductID
 	}
 
 	return a.Dispatch(Event{
+		Identify:   true,
 		DistinctId: user.ID.String(),
 		EventName:  "Upscale | Started",
 		Properties: properties,
@@ -219,6 +223,7 @@ func (a *AnalyticsService) UpscaleFailed(user *ent.User, cogReq requests.BaseCog
 // Sign Up
 func (a *AnalyticsService) SignUp(userId uuid.UUID, email, ipAddress string) error {
 	return a.Dispatch(Event{
+		Identify:   true,
 		DistinctId: userId.String(),
 		EventName:  "Sign Up",
 		Properties: map[string]interface{}{

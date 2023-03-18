@@ -64,7 +64,11 @@ func (a *AnalyticsService) Dispatch(e Event) error {
 		mErr = multierror.Append(mErr, a.Posthog.Enqueue(capture))
 	}
 	if a.Mixpanel != nil {
-		mErr = multierror.Append(mErr, a.Mixpanel.Track(e.MixpanelEvent()))
+		distinctId, eventName, capture, identify := e.MixpanelEvent()
+		if identify != nil {
+			mErr = multierror.Append(mErr, a.Mixpanel.UpdateUser(distinctId, identify))
+		}
+		mErr = multierror.Append(mErr, a.Mixpanel.Track(distinctId, eventName, capture))
 	}
 	err := mErr.ErrorOrNil()
 	if err != nil {
