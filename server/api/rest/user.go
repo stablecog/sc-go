@@ -14,6 +14,7 @@ import (
 	"github.com/stablecog/sc-go/log"
 	"github.com/stablecog/sc-go/server/requests"
 	"github.com/stablecog/sc-go/server/responses"
+	"github.com/stablecog/sc-go/shared"
 	"github.com/stablecog/sc-go/utils"
 	"github.com/stripe/stripe-go/v74"
 )
@@ -34,7 +35,6 @@ func (c *RestAPI) HandleGetUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Tracking current free credits
-	var freeCreditAmount int32
 	freeCreditsReplenished := false
 
 	// Get customer ID for user
@@ -178,7 +178,7 @@ func (c *RestAPI) HandleGetUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if freeCreditsReplenished {
-		go c.Track.FreeCreditsReplenished(*userID, email, int(freeCreditAmount))
+		go c.Track.FreeCreditsReplenished(*userID, email, shared.FREE_CREDIT_AMOUNT_DAILY)
 	}
 
 	// Figure out when free credits will be replenished
@@ -197,7 +197,7 @@ func (c *RestAPI) HandleGetUser(w http.ResponseWriter, r *http.Request) {
 		PriceID:               highestPrice,
 		CancelsAt:             cancelsAt,
 		RenewsAt:              renewsAt,
-		FreeCreditAmount:      freeCreditAmount,
+		FreeCreditAmount:      shared.FREE_CREDIT_AMOUNT_DAILY,
 		StripeHadError:        stripeHadError,
 		Roles:                 user.Roles,
 		MoreCreditsAt:         moreCreditsAt,
