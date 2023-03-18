@@ -166,6 +166,7 @@ func (r *Repository) QueryUsers(
 		user.FieldStripeCustomerID,
 		user.FieldCreatedAt,
 		user.FieldLastSignInAt,
+		user.FieldLastSeenAt,
 	}
 
 	var query *ent.UserQuery
@@ -229,6 +230,7 @@ func (r *Repository) QueryUsers(
 			CreatedAt:        user.CreatedAt,
 			StripeProductID:  user.ActiveProductID,
 			LastSignInAt:     user.LastSignInAt,
+			LastSeenAt:       user.LastSeenAt,
 		}
 		for _, role := range user.Edges.UserRoles {
 			formatted.Roles = append(formatted.Roles, role.RoleName)
@@ -279,6 +281,7 @@ type UserQueryResult struct {
 	CreatedAt        time.Time           `json:"created_at"`
 	Credits          []UserQueryCredits  `json:"credits,omitempty"`
 	LastSignInAt     *time.Time          `json:"last_sign_in_at,omitempty"`
+	LastSeenAt       time.Time           `json:"last_seen_at"`
 	StripeProductID  *string             `json:"product_id,omitempty"`
 }
 
