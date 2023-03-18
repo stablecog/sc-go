@@ -144,7 +144,6 @@ CREATE TABLE public.generation_outputs (
     generation_id uuid NOT NULL,
     gallery_status public.generation_output_gallery_status_enum DEFAULT 'not_submitted'::public.generation_output_gallery_status_enum NOT NULL,
     is_favorited DEFAULT false not null;
-    was_auto_submitted boolean DEFAULT false NOT NULL,
     deleted_at timestamp with time zone,
     created_at timestamp with time zone DEFAULT (now() AT TIME ZONE 'utc'::text) NOT NULL,
     updated_at timestamp with time zone DEFAULT (now() AT TIME ZONE 'utc'::text) NOT NULL

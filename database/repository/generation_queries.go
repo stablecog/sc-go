@@ -180,6 +180,10 @@ func (r *Repository) ApplyUserGenerationsFilters(query *ent.GenerationQuery, fil
 		if filters.EndDt != nil {
 			resQuery = resQuery.Where(generation.CreatedAtLTE(*filters.EndDt))
 		}
+
+		if filters.WasAutoSubmitted != nil {
+			resQuery = resQuery.Where(generation.SubmitToGalleryEQ(*filters.WasAutoSubmitted))
+		}
 	}
 	return resQuery
 }
@@ -249,6 +253,7 @@ func (r *Repository) QueryGenerations(per_page int, cursor *time.Time, filters *
 		generation.FieldCreatedAt,
 		generation.FieldStartedAt,
 		generation.FieldCompletedAt,
+		generation.FieldSubmitToGallery,
 	}
 	var query *ent.GenerationQuery
 	var gQueryResult []GenerationQueryWithOutputsResult
@@ -285,7 +290,7 @@ func (r *Repository) QueryGenerations(per_page int, cursor *time.Time, filters *
 			s.C(generation.FieldPromptID), pt.C(prompt.FieldID),
 		).LeftJoin(got).On(
 			s.C(generation.FieldID), got.C(generationoutput.FieldGenerationID),
-		).AppendSelect(sql.As(npt.C(negativeprompt.FieldText), "negative_prompt_text"), sql.As(pt.C(prompt.FieldText), "prompt_text"), sql.As(got.C(generationoutput.FieldID), "output_id"), sql.As(got.C(generationoutput.FieldGalleryStatus), "output_gallery_status"), sql.As(got.C(generationoutput.FieldImagePath), "image_path"), sql.As(got.C(generationoutput.FieldUpscaledImagePath), "upscaled_image_path"), sql.As(got.C(generationoutput.FieldDeletedAt), "deleted_at"), sql.As(got.C(generationoutput.FieldIsFavorited), "is_favorited"), sql.As(got.C(generationoutput.FieldWasAutoSubmitted), "was_auto_submitted")).
+		).AppendSelect(sql.As(npt.C(negativeprompt.FieldText), "negative_prompt_text"), sql.As(pt.C(prompt.FieldText), "prompt_text"), sql.As(got.C(generationoutput.FieldID), "output_id"), sql.As(got.C(generationoutput.FieldGalleryStatus), "output_gallery_status"), sql.As(got.C(generationoutput.FieldImagePath), "image_path"), sql.As(got.C(generationoutput.FieldUpscaledImagePath), "upscaled_image_path"), sql.As(got.C(generationoutput.FieldDeletedAt), "deleted_at"), sql.As(got.C(generationoutput.FieldIsFavorited), "is_favorited")).
 			GroupBy(s.C(generation.FieldID), npt.C(negativeprompt.FieldText), pt.C(prompt.FieldText),
 				got.C(generationoutput.FieldID), got.C(generationoutput.FieldGalleryStatus),
 				got.C(generationoutput.FieldImagePath), got.C(generationoutput.FieldUpscaledImagePath))
@@ -458,9 +463,6 @@ func (r *Repository) QueryGenerationsAdmin(per_page int, cursor *time.Time, filt
 		if len(filters.GalleryStatus) > 0 {
 			query = query.Where(generationoutput.GalleryStatusIn(filters.GalleryStatus...))
 		}
-		if filters.WasAutoSubmitted != nil {
-			query = query.Where(generationoutput.WasAutoSubmittedEQ(*filters.WasAutoSubmitted))
-		}
 	}
 
 	// Figure out order bys
@@ -548,6 +550,7 @@ func (r *Repository) QueryGenerationsAdmin(per_page int, cursor *time.Time, filt
 			CreatedAt:        g.Edges.Generations.CreatedAt,
 			StartedAt:        g.Edges.Generations.StartedAt,
 			CompletedAt:      g.Edges.Generations.CompletedAt,
+			WasAutoSubmitted: g.Edges.Generations.SubmitToGallery,
 			IsFavorited:      g.IsFavorited,
 		}
 		if g.Edges.Generations.Edges.NegativePrompt != nil {
@@ -571,7 +574,7 @@ func (r *Repository) QueryGenerationsAdmin(per_page int, cursor *time.Time, filt
 				GalleryStatus:    o.GalleryStatus,
 				CreatedAt:        &o.CreatedAt,
 				IsFavorited:      o.IsFavorited,
-				WasAutoSubmitted: o.WasAutoSubmitted,
+				WasAutoSubmitted: generationRoot.WasAutoSubmitted,
 			}
 			if o.UpscaledImagePath != nil {
 				output.UpscaledImageUrl = utils.GetURLFromImagePath(*o.UpscaledImagePath)
@@ -677,7 +680,7 @@ type GenerationQueryWithOutputsData struct {
 	Outputs            []GenerationUpscaleOutput `json:"outputs"`
 	Prompt             PromptType                `json:"prompt"`
 	NegativePrompt     *PromptType               `json:"negative_prompt,omitempty"`
-	WasAutoSubmitted   bool                      `json:"was_auto_submitted" sql:"was_auto_submitted"`
+	WasAutoSubmitted   bool                      `json:"submit_to_gallery" sql:"submit_to_gallery"`
 }
 
 type GenerationQueryWithOutputsResult struct {

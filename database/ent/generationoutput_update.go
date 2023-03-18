@@ -72,20 +72,6 @@ func (gou *GenerationOutputUpdate) SetNillableGalleryStatus(gs *generationoutput
 	return gou
 }
 
-// SetWasAutoSubmitted sets the "was_auto_submitted" field.
-func (gou *GenerationOutputUpdate) SetWasAutoSubmitted(b bool) *GenerationOutputUpdate {
-	gou.mutation.SetWasAutoSubmitted(b)
-	return gou
-}
-
-// SetNillableWasAutoSubmitted sets the "was_auto_submitted" field if the given value is not nil.
-func (gou *GenerationOutputUpdate) SetNillableWasAutoSubmitted(b *bool) *GenerationOutputUpdate {
-	if b != nil {
-		gou.SetWasAutoSubmitted(*b)
-	}
-	return gou
-}
-
 // SetIsFavorited sets the "is_favorited" field.
 func (gou *GenerationOutputUpdate) SetIsFavorited(b bool) *GenerationOutputUpdate {
 	gou.mutation.SetIsFavorited(b)
@@ -267,9 +253,6 @@ func (gou *GenerationOutputUpdate) sqlSave(ctx context.Context) (n int, err erro
 	if value, ok := gou.mutation.GalleryStatus(); ok {
 		_spec.SetField(generationoutput.FieldGalleryStatus, field.TypeEnum, value)
 	}
-	if value, ok := gou.mutation.WasAutoSubmitted(); ok {
-		_spec.SetField(generationoutput.FieldWasAutoSubmitted, field.TypeBool, value)
-	}
 	if value, ok := gou.mutation.IsFavorited(); ok {
 		_spec.SetField(generationoutput.FieldIsFavorited, field.TypeBool, value)
 	}
@@ -410,20 +393,6 @@ func (gouo *GenerationOutputUpdateOne) SetGalleryStatus(gs generationoutput.Gall
 func (gouo *GenerationOutputUpdateOne) SetNillableGalleryStatus(gs *generationoutput.GalleryStatus) *GenerationOutputUpdateOne {
 	if gs != nil {
 		gouo.SetGalleryStatus(*gs)
-	}
-	return gouo
-}
-
-// SetWasAutoSubmitted sets the "was_auto_submitted" field.
-func (gouo *GenerationOutputUpdateOne) SetWasAutoSubmitted(b bool) *GenerationOutputUpdateOne {
-	gouo.mutation.SetWasAutoSubmitted(b)
-	return gouo
-}
-
-// SetNillableWasAutoSubmitted sets the "was_auto_submitted" field if the given value is not nil.
-func (gouo *GenerationOutputUpdateOne) SetNillableWasAutoSubmitted(b *bool) *GenerationOutputUpdateOne {
-	if b != nil {
-		gouo.SetWasAutoSubmitted(*b)
 	}
 	return gouo
 }
@@ -632,9 +601,6 @@ func (gouo *GenerationOutputUpdateOne) sqlSave(ctx context.Context) (_node *Gene
 	}
 	if value, ok := gouo.mutation.GalleryStatus(); ok {
 		_spec.SetField(generationoutput.FieldGalleryStatus, field.TypeEnum, value)
-	}
-	if value, ok := gouo.mutation.WasAutoSubmitted(); ok {
-		_spec.SetField(generationoutput.FieldWasAutoSubmitted, field.TypeBool, value)
 	}
 	if value, ok := gouo.mutation.IsFavorited(); ok {
 		_spec.SetField(generationoutput.FieldIsFavorited, field.TypeBool, value)

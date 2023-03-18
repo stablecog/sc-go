@@ -20,8 +20,6 @@ const (
 	FieldUpscaledImagePath = "upscaled_image_path"
 	// FieldGalleryStatus holds the string denoting the gallery_status field in the database.
 	FieldGalleryStatus = "gallery_status"
-	// FieldWasAutoSubmitted holds the string denoting the was_auto_submitted field in the database.
-	FieldWasAutoSubmitted = "was_auto_submitted"
 	// FieldIsFavorited holds the string denoting the is_favorited field in the database.
 	FieldIsFavorited = "is_favorited"
 	// FieldGenerationID holds the string denoting the generation_id field in the database.
@@ -60,7 +58,6 @@ var Columns = []string{
 	FieldImagePath,
 	FieldUpscaledImagePath,
 	FieldGalleryStatus,
-	FieldWasAutoSubmitted,
 	FieldIsFavorited,
 	FieldGenerationID,
 	FieldDeletedAt,
@@ -79,8 +76,6 @@ func ValidColumn(column string) bool {
 }
 
 var (
-	// DefaultWasAutoSubmitted holds the default value on creation for the "was_auto_submitted" field.
-	DefaultWasAutoSubmitted bool
 	// DefaultIsFavorited holds the default value on creation for the "is_favorited" field.
 	DefaultIsFavorited bool
 	// DefaultCreatedAt holds the default value on creation for the "created_at" field.

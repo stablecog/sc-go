@@ -121,10 +121,8 @@ func (r *Repository) SetGenerationSucceeded(generationID string, prompt string, 
 
 		// If this generation was created with "submit_to_gallery", then submit all outputs to gallery
 		var galleryStatus generationoutput.GalleryStatus
-		wasAutoSubmitted := false
 		if g.SubmitToGallery {
 			galleryStatus = generationoutput.GalleryStatusSubmitted
-			wasAutoSubmitted = true
 		} else {
 			galleryStatus = generationoutput.GalleryStatusNotSubmitted
 		}
@@ -136,7 +134,7 @@ func (r *Repository) SetGenerationSucceeded(generationID string, prompt string, 
 				log.Error("Error parsing s3 url", "output", output, "err", err)
 				parsedS3 = output
 			}
-			gOutput, err := db.GenerationOutput.Create().SetGenerationID(uid).SetImagePath(parsedS3).SetGalleryStatus(galleryStatus).SetWasAutoSubmitted(wasAutoSubmitted).Save(r.Ctx)
+			gOutput, err := db.GenerationOutput.Create().SetGenerationID(uid).SetImagePath(parsedS3).SetGalleryStatus(galleryStatus).Save(r.Ctx)
 			if err != nil {
 				log.Error("Error inserting generation output", "id", generationID, "err", err)
 				return err
