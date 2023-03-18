@@ -285,7 +285,7 @@ func (r *Repository) QueryGenerations(per_page int, cursor *time.Time, filters *
 			s.C(generation.FieldPromptID), pt.C(prompt.FieldID),
 		).LeftJoin(got).On(
 			s.C(generation.FieldID), got.C(generationoutput.FieldGenerationID),
-		).AppendSelect(sql.As(npt.C(negativeprompt.FieldText), "negative_prompt_text"), sql.As(pt.C(prompt.FieldText), "prompt_text"), sql.As(got.C(generationoutput.FieldID), "output_id"), sql.As(got.C(generationoutput.FieldGalleryStatus), "output_gallery_status"), sql.As(got.C(generationoutput.FieldImagePath), "image_path"), sql.As(got.C(generationoutput.FieldUpscaledImagePath), "upscaled_image_path"), sql.As(got.C(generationoutput.FieldDeletedAt), "deleted_at"), sql.As(got.C(generationoutput.FieldIsFavorited), "is_favorited")).
+		).AppendSelect(sql.As(npt.C(negativeprompt.FieldText), "negative_prompt_text"), sql.As(pt.C(prompt.FieldText), "prompt_text"), sql.As(got.C(generationoutput.FieldID), "output_id"), sql.As(got.C(generationoutput.FieldGalleryStatus), "output_gallery_status"), sql.As(got.C(generationoutput.FieldImagePath), "image_path"), sql.As(got.C(generationoutput.FieldUpscaledImagePath), "upscaled_image_path"), sql.As(got.C(generationoutput.FieldDeletedAt), "deleted_at"), sql.As(got.C(generationoutput.FieldIsFavorited), "is_favorited"), sql.As(got.C(generationoutput.FieldWasAutoSubmitted), "was_auto_submitted")).
 			GroupBy(s.C(generation.FieldID), npt.C(negativeprompt.FieldText), pt.C(prompt.FieldText),
 				got.C(generationoutput.FieldID), got.C(generationoutput.FieldGalleryStatus),
 				got.C(generationoutput.FieldImagePath), got.C(generationoutput.FieldUpscaledImagePath))
@@ -354,6 +354,7 @@ func (r *Repository) QueryGenerations(per_page int, cursor *time.Time, filters *
 			ImageUrl:         g.ImageUrl,
 			UpscaledImageUrl: g.UpscaledImageUrl,
 			GalleryStatus:    g.GalleryStatus,
+			WasAutoSubmitted: g.WasAutoSubmitted,
 			IsFavorited:      g.IsFavorited,
 		}
 		output := GenerationQueryWithOutputsResultFormatted{
@@ -565,11 +566,12 @@ func (r *Repository) QueryGenerationsAdmin(per_page int, cursor *time.Time, filt
 		// Add outputs
 		for _, o := range g.Edges.Generations.Edges.GenerationOutputs {
 			output := GenerationUpscaleOutput{
-				ID:            o.ID,
-				ImageUrl:      utils.GetURLFromImagePath(o.ImagePath),
-				GalleryStatus: o.GalleryStatus,
-				CreatedAt:     &o.CreatedAt,
-				IsFavorited:   o.IsFavorited,
+				ID:               o.ID,
+				ImageUrl:         utils.GetURLFromImagePath(o.ImagePath),
+				GalleryStatus:    o.GalleryStatus,
+				CreatedAt:        &o.CreatedAt,
+				IsFavorited:      o.IsFavorited,
+				WasAutoSubmitted: o.WasAutoSubmitted,
 			}
 			if o.UpscaledImagePath != nil {
 				output.UpscaledImageUrl = utils.GetURLFromImagePath(*o.UpscaledImagePath)
@@ -639,6 +641,7 @@ type GenerationUpscaleOutput struct {
 	OutputID         *uuid.UUID                     `json:"output_id,omitempty"`
 	CreatedAt        *time.Time                     `json:"created_at,omitempty"`
 	IsFavorited      bool                           `json:"is_favorited"`
+	WasAutoSubmitted bool                           `json:"was_auto_submitted"`
 }
 
 // Paginated meta for querying generations
@@ -674,6 +677,7 @@ type GenerationQueryWithOutputsData struct {
 	Outputs            []GenerationUpscaleOutput `json:"outputs"`
 	Prompt             PromptType                `json:"prompt"`
 	NegativePrompt     *PromptType               `json:"negative_prompt,omitempty"`
+	WasAutoSubmitted   bool                      `json:"was_auto_submitted" sql:"was_auto_submitted"`
 }
 
 type GenerationQueryWithOutputsResult struct {

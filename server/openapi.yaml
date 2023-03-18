@@ -984,6 +984,8 @@ components:
           format: optional, if upscale
         is_favorited:
           type: boolean
+        was_auto_submitted:
+          type: boolean
       description: An output of a generation
     CreditResponse:
       type: object
