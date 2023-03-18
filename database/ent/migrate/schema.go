@@ -205,6 +205,7 @@ var (
 		{Name: "image_path", Type: field.TypeString, Size: 2147483647},
 		{Name: "upscaled_image_path", Type: field.TypeString, Nullable: true, Size: 2147483647},
 		{Name: "gallery_status", Type: field.TypeEnum, Enums: []string{"not_submitted", "submitted", "approved", "rejected"}, Default: "not_submitted"},
+		{Name: "was_auto_submitted", Type: field.TypeBool, Default: false},
 		{Name: "is_favorited", Type: field.TypeBool, Default: false},
 		{Name: "deleted_at", Type: field.TypeTime, Nullable: true},
 		{Name: "created_at", Type: field.TypeTime},
@@ -219,7 +220,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "generation_outputs_generations_generation_outputs",
-				Columns:    []*schema.Column{GenerationOutputsColumns[8]},
+				Columns:    []*schema.Column{GenerationOutputsColumns[9]},
 				RefColumns: []*schema.Column{GenerationsColumns[0]},
 				OnDelete:   schema.Cascade,
 			},
@@ -238,17 +239,17 @@ var (
 			{
 				Name:    "generationoutput_created_at",
 				Unique:  false,
-				Columns: []*schema.Column{GenerationOutputsColumns[6]},
+				Columns: []*schema.Column{GenerationOutputsColumns[7]},
 			},
 			{
 				Name:    "generationoutput_updated_at",
 				Unique:  false,
-				Columns: []*schema.Column{GenerationOutputsColumns[7]},
+				Columns: []*schema.Column{GenerationOutputsColumns[8]},
 			},
 			{
 				Name:    "generationoutput_generation_id",
 				Unique:  false,
-				Columns: []*schema.Column{GenerationOutputsColumns[8]},
+				Columns: []*schema.Column{GenerationOutputsColumns[9]},
 			},
 		},
 	}

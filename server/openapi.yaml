@@ -182,6 +182,8 @@ paths:
         - $ref: "#/components/parameters/galleryStatusParam"
         - $ref: "#/components/parameters/startDtParam"
         - $ref: "#/components/parameters/endDtParam"
+        - $ref: "#/components/parameters/isFavoritedParam"
+        - $ref: "#/components/parameters/wasAutoSubmittedParam"
       responses:
         "200":
           description: JSON object with generations and outputs
@@ -229,6 +231,8 @@ paths:
         - $ref: "#/components/parameters/galleryStatusParam"
         - $ref: "#/components/parameters/startDtParam"
         - $ref: "#/components/parameters/endDtParam"
+        - $ref: "#/components/parameters/isFavoritedParam"
+        - $ref: "#/components/parameters/wasAutoSubmittedParam"
       responses:
         "200":
           description: JSON object with generations and outputs
@@ -774,6 +778,18 @@ components:
         type: string
         format: "optional, isoTimeString"
       example: 2023-02-15T22:41:39.841Z
+    isFavoritedParam:
+      name: is_favorited
+      in: query
+      schema:
+        type: boolean
+        format: "optional"
+    wasAutoSubmittedParam:
+      name: was_auto_submitted
+      in: query
+      schema:
+        type: boolean
+        format: "optional"
   schemas:
     ErrorResponse400:
       type: object

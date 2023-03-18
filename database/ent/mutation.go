@@ -5813,6 +5813,7 @@ type GenerationOutputMutation struct {
 	image_path             *string
 	upscaled_image_path    *string
 	gallery_status         *generationoutput.GalleryStatus
+	was_auto_submitted     *bool
 	is_favorited           *bool
 	deleted_at             *time.Time
 	created_at             *time.Time
@@ -6050,6 +6051,42 @@ func (m *GenerationOutputMutation) OldGalleryStatus(ctx context.Context) (v gene
 // ResetGalleryStatus resets all changes to the "gallery_status" field.
 func (m *GenerationOutputMutation) ResetGalleryStatus() {
 	m.gallery_status = nil
+}
+
+// SetWasAutoSubmitted sets the "was_auto_submitted" field.
+func (m *GenerationOutputMutation) SetWasAutoSubmitted(b bool) {
+	m.was_auto_submitted = &b
+}
+
+// WasAutoSubmitted returns the value of the "was_auto_submitted" field in the mutation.
+func (m *GenerationOutputMutation) WasAutoSubmitted() (r bool, exists bool) {
+	v := m.was_auto_submitted
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldWasAutoSubmitted returns the old "was_auto_submitted" field's value of the GenerationOutput entity.
+// If the GenerationOutput object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *GenerationOutputMutation) OldWasAutoSubmitted(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldWasAutoSubmitted is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldWasAutoSubmitted requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldWasAutoSubmitted: %w", err)
+	}
+	return oldValue.WasAutoSubmitted, nil
+}
+
+// ResetWasAutoSubmitted resets all changes to the "was_auto_submitted" field.
+func (m *GenerationOutputMutation) ResetWasAutoSubmitted() {
+	m.was_auto_submitted = nil
 }
 
 // SetIsFavorited sets the "is_favorited" field.
@@ -6357,7 +6394,7 @@ func (m *GenerationOutputMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *GenerationOutputMutation) Fields() []string {
-	fields := make([]string, 0, 8)
+	fields := make([]string, 0, 9)
 	if m.image_path != nil {
 		fields = append(fields, generationoutput.FieldImagePath)
 	}
@@ -6366,6 +6403,9 @@ func (m *GenerationOutputMutation) Fields() []string {
 	}
 	if m.gallery_status != nil {
 		fields = append(fields, generationoutput.FieldGalleryStatus)
+	}
+	if m.was_auto_submitted != nil {
+		fields = append(fields, generationoutput.FieldWasAutoSubmitted)
 	}
 	if m.is_favorited != nil {
 		fields = append(fields, generationoutput.FieldIsFavorited)
@@ -6396,6 +6436,8 @@ func (m *GenerationOutputMutation) Field(name string) (ent.Value, bool) {
 		return m.UpscaledImagePath()
 	case generationoutput.FieldGalleryStatus:
 		return m.GalleryStatus()
+	case generationoutput.FieldWasAutoSubmitted:
+		return m.WasAutoSubmitted()
 	case generationoutput.FieldIsFavorited:
 		return m.IsFavorited()
 	case generationoutput.FieldGenerationID:
@@ -6421,6 +6463,8 @@ func (m *GenerationOutputMutation) OldField(ctx context.Context, name string) (e
 		return m.OldUpscaledImagePath(ctx)
 	case generationoutput.FieldGalleryStatus:
 		return m.OldGalleryStatus(ctx)
+	case generationoutput.FieldWasAutoSubmitted:
+		return m.OldWasAutoSubmitted(ctx)
 	case generationoutput.FieldIsFavorited:
 		return m.OldIsFavorited(ctx)
 	case generationoutput.FieldGenerationID:
@@ -6460,6 +6504,13 @@ func (m *GenerationOutputMutation) SetField(name string, value ent.Value) error 
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetGalleryStatus(v)
+		return nil
+	case generationoutput.FieldWasAutoSubmitted:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetWasAutoSubmitted(v)
 		return nil
 	case generationoutput.FieldIsFavorited:
 		v, ok := value.(bool)
@@ -6568,6 +6619,9 @@ func (m *GenerationOutputMutation) ResetField(name string) error {
 		return nil
 	case generationoutput.FieldGalleryStatus:
 		m.ResetGalleryStatus()
+		return nil
+	case generationoutput.FieldWasAutoSubmitted:
+		m.ResetWasAutoSubmitted()
 		return nil
 	case generationoutput.FieldIsFavorited:
 		m.ResetIsFavorited()

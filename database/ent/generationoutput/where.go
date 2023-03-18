@@ -66,6 +66,11 @@ func UpscaledImagePath(v string) predicate.GenerationOutput {
 	return predicate.GenerationOutput(sql.FieldEQ(FieldUpscaledImagePath, v))
 }
 
+// WasAutoSubmitted applies equality check predicate on the "was_auto_submitted" field. It's identical to WasAutoSubmittedEQ.
+func WasAutoSubmitted(v bool) predicate.GenerationOutput {
+	return predicate.GenerationOutput(sql.FieldEQ(FieldWasAutoSubmitted, v))
+}
+
 // IsFavorited applies equality check predicate on the "is_favorited" field. It's identical to IsFavoritedEQ.
 func IsFavorited(v bool) predicate.GenerationOutput {
 	return predicate.GenerationOutput(sql.FieldEQ(FieldIsFavorited, v))
@@ -249,6 +254,16 @@ func GalleryStatusIn(vs ...GalleryStatus) predicate.GenerationOutput {
 // GalleryStatusNotIn applies the NotIn predicate on the "gallery_status" field.
 func GalleryStatusNotIn(vs ...GalleryStatus) predicate.GenerationOutput {
 	return predicate.GenerationOutput(sql.FieldNotIn(FieldGalleryStatus, vs...))
+}
+
+// WasAutoSubmittedEQ applies the EQ predicate on the "was_auto_submitted" field.
+func WasAutoSubmittedEQ(v bool) predicate.GenerationOutput {
+	return predicate.GenerationOutput(sql.FieldEQ(FieldWasAutoSubmitted, v))
+}
+
+// WasAutoSubmittedNEQ applies the NEQ predicate on the "was_auto_submitted" field.
+func WasAutoSubmittedNEQ(v bool) predicate.GenerationOutput {
+	return predicate.GenerationOutput(sql.FieldNEQ(FieldWasAutoSubmitted, v))
 }
 
 // IsFavoritedEQ applies the EQ predicate on the "is_favorited" field.

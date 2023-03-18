@@ -57,6 +57,20 @@ func (goc *GenerationOutputCreate) SetNillableGalleryStatus(gs *generationoutput
 	return goc
 }
 
+// SetWasAutoSubmitted sets the "was_auto_submitted" field.
+func (goc *GenerationOutputCreate) SetWasAutoSubmitted(b bool) *GenerationOutputCreate {
+	goc.mutation.SetWasAutoSubmitted(b)
+	return goc
+}
+
+// SetNillableWasAutoSubmitted sets the "was_auto_submitted" field if the given value is not nil.
+func (goc *GenerationOutputCreate) SetNillableWasAutoSubmitted(b *bool) *GenerationOutputCreate {
+	if b != nil {
+		goc.SetWasAutoSubmitted(*b)
+	}
+	return goc
+}
+
 // SetIsFavorited sets the "is_favorited" field.
 func (goc *GenerationOutputCreate) SetIsFavorited(b bool) *GenerationOutputCreate {
 	goc.mutation.SetIsFavorited(b)
@@ -202,6 +216,10 @@ func (goc *GenerationOutputCreate) defaults() {
 		v := generationoutput.DefaultGalleryStatus
 		goc.mutation.SetGalleryStatus(v)
 	}
+	if _, ok := goc.mutation.WasAutoSubmitted(); !ok {
+		v := generationoutput.DefaultWasAutoSubmitted
+		goc.mutation.SetWasAutoSubmitted(v)
+	}
 	if _, ok := goc.mutation.IsFavorited(); !ok {
 		v := generationoutput.DefaultIsFavorited
 		goc.mutation.SetIsFavorited(v)
@@ -232,6 +250,9 @@ func (goc *GenerationOutputCreate) check() error {
 		if err := generationoutput.GalleryStatusValidator(v); err != nil {
 			return &ValidationError{Name: "gallery_status", err: fmt.Errorf(`ent: validator failed for field "GenerationOutput.gallery_status": %w`, err)}
 		}
+	}
+	if _, ok := goc.mutation.WasAutoSubmitted(); !ok {
+		return &ValidationError{Name: "was_auto_submitted", err: errors.New(`ent: missing required field "GenerationOutput.was_auto_submitted"`)}
 	}
 	if _, ok := goc.mutation.IsFavorited(); !ok {
 		return &ValidationError{Name: "is_favorited", err: errors.New(`ent: missing required field "GenerationOutput.is_favorited"`)}
@@ -300,6 +321,10 @@ func (goc *GenerationOutputCreate) createSpec() (*GenerationOutput, *sqlgraph.Cr
 	if value, ok := goc.mutation.GalleryStatus(); ok {
 		_spec.SetField(generationoutput.FieldGalleryStatus, field.TypeEnum, value)
 		_node.GalleryStatus = value
+	}
+	if value, ok := goc.mutation.WasAutoSubmitted(); ok {
+		_spec.SetField(generationoutput.FieldWasAutoSubmitted, field.TypeBool, value)
+		_node.WasAutoSubmitted = value
 	}
 	if value, ok := goc.mutation.IsFavorited(); ok {
 		_spec.SetField(generationoutput.FieldIsFavorited, field.TypeBool, value)

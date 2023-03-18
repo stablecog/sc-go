@@ -25,6 +25,8 @@ type GenerationOutput struct {
 	UpscaledImagePath *string `json:"upscaled_image_path,omitempty"`
 	// GalleryStatus holds the value of the "gallery_status" field.
 	GalleryStatus generationoutput.GalleryStatus `json:"gallery_status,omitempty"`
+	// WasAutoSubmitted holds the value of the "was_auto_submitted" field.
+	WasAutoSubmitted bool `json:"was_auto_submitted,omitempty"`
 	// IsFavorited holds the value of the "is_favorited" field.
 	IsFavorited bool `json:"is_favorited,omitempty"`
 	// GenerationID holds the value of the "generation_id" field.
@@ -82,7 +84,7 @@ func (*GenerationOutput) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case generationoutput.FieldIsFavorited:
+		case generationoutput.FieldWasAutoSubmitted, generationoutput.FieldIsFavorited:
 			values[i] = new(sql.NullBool)
 		case generationoutput.FieldImagePath, generationoutput.FieldUpscaledImagePath, generationoutput.FieldGalleryStatus:
 			values[i] = new(sql.NullString)
@@ -129,6 +131,12 @@ func (_go *GenerationOutput) assignValues(columns []string, values []any) error 
 				return fmt.Errorf("unexpected type %T for field gallery_status", values[i])
 			} else if value.Valid {
 				_go.GalleryStatus = generationoutput.GalleryStatus(value.String)
+			}
+		case generationoutput.FieldWasAutoSubmitted:
+			if value, ok := values[i].(*sql.NullBool); !ok {
+				return fmt.Errorf("unexpected type %T for field was_auto_submitted", values[i])
+			} else if value.Valid {
+				_go.WasAutoSubmitted = value.Bool
 			}
 		case generationoutput.FieldIsFavorited:
 			if value, ok := values[i].(*sql.NullBool); !ok {
@@ -209,6 +217,9 @@ func (_go *GenerationOutput) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("gallery_status=")
 	builder.WriteString(fmt.Sprintf("%v", _go.GalleryStatus))
+	builder.WriteString(", ")
+	builder.WriteString("was_auto_submitted=")
+	builder.WriteString(fmt.Sprintf("%v", _go.WasAutoSubmitted))
 	builder.WriteString(", ")
 	builder.WriteString("is_favorited=")
 	builder.WriteString(fmt.Sprintf("%v", _go.IsFavorited))

@@ -457,6 +457,9 @@ func (r *Repository) QueryGenerationsAdmin(per_page int, cursor *time.Time, filt
 		if len(filters.GalleryStatus) > 0 {
 			query = query.Where(generationoutput.GalleryStatusIn(filters.GalleryStatus...))
 		}
+		if filters.WasAutoSubmitted != nil {
+			query = query.Where(generationoutput.WasAutoSubmittedEQ(*filters.WasAutoSubmitted))
+		}
 	}
 
 	// Figure out order bys

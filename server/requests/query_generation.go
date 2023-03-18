@@ -63,6 +63,7 @@ type QueryGenerationFilters struct {
 	UserID            *uuid.UUID                       `json:"user_id"`
 	OrderBy           OrderBy                          `json:"order_by"`
 	IsFavorited       *bool                            `json:"is_favorited,omitempty"`
+	WasAutoSubmitted  *bool                            `json:"was_auto_submitted,omitempty"`
 }
 
 // Parse all filters into a QueryGenerationFilters struct
@@ -355,6 +356,19 @@ func (filters *QueryGenerationFilters) ParseURLQueryParameters(urlValues url.Val
 				filters.IsFavorited = &f
 			} else {
 				return fmt.Errorf("invalid is_favorited: '%s' expected 'true' or 'false'", value[0])
+			}
+		}
+
+		// Was auto submitted
+		if key == "was_auto_submitted" {
+			if strings.ToLower(value[0]) == "true" {
+				t := true
+				filters.WasAutoSubmitted = &t
+			} else if strings.ToLower(value[0]) == "false" {
+				f := false
+				filters.WasAutoSubmitted = &f
+			} else {
+				return fmt.Errorf("invalid was_auto_submitted: '%s' expected 'true' or 'false'", value[0])
 			}
 		}
 	}
