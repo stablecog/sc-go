@@ -34,7 +34,6 @@ func (c *RestAPI) HandleGetUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Tracking current free credits
-	var freeCredits *ent.Credit
 	var freeCreditAmount int32
 	freeCreditsReplenished := false
 
@@ -173,18 +172,22 @@ func (c *RestAPI) HandleGetUser(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	// Renews at date for free users
-	if (highestProduct == "" || cancelsAt != nil) && !stripeHadError && freeCredits != nil {
-		// Figure out the duration
+	err = c.Repo.UpdateLastSeenAt(*userID)
+	if err != nil {
+		log.Warn("Error updating last seen at", "err", err, "user", userID.String())
 	}
 
 	if freeCreditsReplenished {
 		go c.Track.FreeCreditsReplenished(*userID, email, int(freeCreditAmount))
 	}
 
-	err = c.Repo.UpdateLastSeenAt(*userID)
-	if err != nil {
-		log.Warn("Error updating last seen at", "err", err, "user", userID.String())
+	// Figure out when free credits will be replenished
+	var moreCreditsAt *time.Time
+	if highestProduct == "" && !stripeHadError {
+		moreCreditsAt, err = c.Repo.GetFreeCreditReplenishesAtForUser(*userID)
+		if err != nil {
+			log.Error("Error getting next free credit replenishment time", "err", err, "user", userID.String())
+		}
 	}
 
 	render.Status(r, http.StatusOK)
@@ -197,6 +200,7 @@ func (c *RestAPI) HandleGetUser(w http.ResponseWriter, r *http.Request) {
 		FreeCreditAmount:      freeCreditAmount,
 		StripeHadError:        stripeHadError,
 		Roles:                 user.Roles,
+		MoreCreditsAt:         moreCreditsAt,
 	})
 }
 

@@ -1153,6 +1153,9 @@ components:
         renews_at:
           type: string
           format: isoTimeString, stripe renewal if subscribed, else free
+        more_credits_at:
+          type: string
+          format: isoTimeString, optional, only if free & not at max credits
         free_credit_amount:
           type: integer
         stripe_had_error:

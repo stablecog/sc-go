@@ -12,6 +12,7 @@ type GetUserResponse struct {
 	PriceID               string     `json:"price_id,omitempty"`
 	CancelsAt             *time.Time `json:"cancels_at,omitempty"`
 	RenewsAt              *time.Time `json:"renews_at,omitempty"`
+	MoreCreditsAt         *time.Time `json:"more_credits_at,omitempty"`
 	// The current amoount of free credits server offers
 	FreeCreditAmount int32               `json:"free_credit_amount"`
 	StripeHadError   bool                `json:"stripe_had_error"`

@@ -34,7 +34,7 @@ func (r *Repository) GetOrCreateFreeCreditType() (*ent.CreditType, error) {
 	creditType, err := r.DB.CreditType.Query().Where(credittype.IDEQ(freeId)).Only(r.Ctx)
 	if err != nil && ent.IsNotFound(err) {
 		// Create it
-		creditType, err := r.DB.CreditType.Create().SetID(freeId).SetName("Free").SetAmount(50).SetType(credittype.TypeFree).Save(r.Ctx)
+		creditType, err := r.DB.CreditType.Create().SetID(freeId).SetName("Free").SetAmount(100).SetType(credittype.TypeFree).Save(r.Ctx)
 		if err != nil {
 			return nil, err
 		}

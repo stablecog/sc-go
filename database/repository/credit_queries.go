@@ -8,6 +8,8 @@ import (
 	"github.com/stablecog/sc-go/database/ent"
 	"github.com/stablecog/sc-go/database/ent/credit"
 	"github.com/stablecog/sc-go/database/ent/credittype"
+	"github.com/stablecog/sc-go/log"
+	"github.com/stablecog/sc-go/shared"
 )
 
 // Get credits for user that are not expired
@@ -22,6 +24,40 @@ func (r *Repository) GetCreditsForUser(userID uuid.UUID) ([]*UserCreditsQueryRes
 		}).Scan(r.Ctx, &res)
 
 	return res, err
+}
+
+// For mocking
+var Now = time.Now
+
+func (r *Repository) GetFreeCreditReplenishesAtForUser(userID uuid.UUID) (*time.Time, error) {
+	// Free type
+	ctype, err := r.GetOrCreateFreeCreditType()
+	if err != nil {
+		log.Error("Error getting free credit type", "err", err)
+		return nil, err
+	}
+	// get the free credit row
+	credit, err := r.DB.Credit.Query().Where(credit.UserID(userID), credit.CreditTypeID(ctype.ID)).Only(r.Ctx)
+	if err != nil {
+		log.Error("Error getting free credit", "err", err)
+		return nil, err
+	}
+	if credit.RemainingAmount >= ctype.Amount {
+		// Already has full amount
+		return nil, nil
+	}
+	// Figure out when it will be replenished
+	// It is based on replenished_at and shared.FREE_CREDIT_REPLENISHMENT_INTERVAL
+	// It was last replenished at replnished_at and will be replenished every FREE_CREDIT_REPLENISHMENT_INTERVAL
+	now := Now()
+	// Get time delta between now and replenished_at
+	delta := now.Add(credit.ReplenishedAt.Sub(now))
+	d := now.Sub(delta)
+	diff := shared.FREE_CREDIT_REPLENISHMENT_INTERVAL - d
+
+	replenishesAt := now.Add(diff)
+
+	return &replenishesAt, nil
 }
 
 func (r *Repository) GetNonExpiredCreditTotalForUser(userID uuid.UUID, DB *ent.Client) (int, error) {

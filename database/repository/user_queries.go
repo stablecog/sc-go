@@ -25,7 +25,7 @@ func (r *Repository) GetUserWithRoles(id uuid.UUID) (*UserWithRoles, error) {
 	err := r.DB.User.Query().Where(user.IDEQ(id)).Modify(func(s *sql.Selector) {
 		rt := sql.Table(userrole.Table)
 		s.LeftJoin(rt).On(rt.C(userrole.FieldUserID), s.C(user.FieldID)).
-			Select(sql.As(rt.C(userrole.FieldRoleName), "role_name"), sql.As(s.C(user.FieldID), "user_id"), sql.As(s.C(user.FieldStripeCustomerID), "stripe_customer_id"))
+			Select(sql.As(rt.C(userrole.FieldRoleName), "role_name"), sql.As(s.C(user.FieldID), "user_id"), sql.As(s.C(user.FieldStripeCustomerID), "stripe_customer_id"), sql.As(s.C(user.FieldActiveProductID), "active_product_id"))
 	}).Scan(r.Ctx, &userWithRoles)
 	if err != nil {
 		log.Error("Error getting user with roles", "err", err)
@@ -36,7 +36,7 @@ func (r *Repository) GetUserWithRoles(id uuid.UUID) (*UserWithRoles, error) {
 		return nil, nil
 	}
 
-	ret := UserWithRoles{ID: userWithRoles[0].ID, StripeCustomerID: userWithRoles[0].StripeCustomerID}
+	ret := UserWithRoles{ID: userWithRoles[0].ID, StripeCustomerID: userWithRoles[0].StripeCustomerID, ActiveProductID: userWithRoles[0].ActiveProductID}
 	for _, userWithRole := range userWithRoles {
 		if userWithRole.RoleName == "" {
 			continue
@@ -50,12 +50,14 @@ type UserWithRolesRaw struct {
 	ID               uuid.UUID `sql:"user_id"`
 	RoleName         string    `sql:"role_name"`
 	StripeCustomerID string    `sql:"stripe_customer_id"`
+	ActiveProductID  string    `sql:"active_product_id"`
 }
 
 type UserWithRoles struct {
 	ID               uuid.UUID
 	Roles            []userrole.RoleName
 	StripeCustomerID string
+	ActiveProductID  string
 }
 
 func (r *Repository) GetUserByStripeCustomerId(customerId string) (*ent.User, error) {

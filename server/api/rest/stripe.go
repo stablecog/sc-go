@@ -482,6 +482,17 @@ func (c *RestAPI) HandleStripeWebhook(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
+		u, err := c.Repo.GetUserByStripeCustomerId(invoice.Customer)
+		if err != nil {
+			log.Error("Unable getting user from stripe customer id", "err", err)
+			responses.ErrInternalServerError(w, r, err.Error())
+			return
+		} else if u == nil {
+			log.Error("User does not exist with stripe customer id: %s", invoice.Customer)
+			responses.ErrInternalServerError(w, r, "User does not exist with stripe customer id")
+			return
+		}
+
 		for _, line := range invoice.Lines.Data {
 			var product string
 			if line.Plan == nil {
@@ -504,7 +515,15 @@ func (c *RestAPI) HandleStripeWebhook(w http.ResponseWriter, r *http.Request) {
 				responses.ErrInternalServerError(w, r, err.Error())
 				return
 			}
+
+			_, err := c.Repo.UnsetActiveProductID(u.ID, product, nil)
+			if err != nil {
+				log.Error("Unable unsetting stripe product id", "err", err)
+				responses.ErrInternalServerError(w, r, err.Error())
+				return
+			}
 		}
+
 	// Subcription payments
 	case "invoice.finalized", "invoice.paid":
 		// We can parse the object as an invoice since that's the only thing we care about
