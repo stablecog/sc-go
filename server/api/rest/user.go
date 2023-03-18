@@ -34,9 +34,6 @@ func (c *RestAPI) HandleGetUser(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	// Tracking current free credits
-	freeCreditsReplenished := false
-
 	// Get customer ID for user
 	user, err := c.Repo.GetUserWithRoles(*userID)
 	if err != nil {
@@ -175,10 +172,6 @@ func (c *RestAPI) HandleGetUser(w http.ResponseWriter, r *http.Request) {
 	err = c.Repo.UpdateLastSeenAt(*userID)
 	if err != nil {
 		log.Warn("Error updating last seen at", "err", err, "user", userID.String())
-	}
-
-	if freeCreditsReplenished {
-		go c.Track.FreeCreditsReplenished(*userID, email, shared.FREE_CREDIT_AMOUNT_DAILY)
 	}
 
 	// Figure out when free credits will be replenished
