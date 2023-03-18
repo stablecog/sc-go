@@ -24,11 +24,18 @@ func (e *Event) PosthogEvent() (posthog.Capture, *posthog.Identify) {
 		Properties: properties,
 	}
 	if e.Identify {
-		i := posthog.Identify{
-			DistinctId: e.DistinctId,
-			Properties: properties,
+		mapOnlyEmail := make(map[string]interface{})
+		if email, ok := e.Properties["email"]; ok {
+			mapOnlyEmail["email"] = email
+			if ip, ok := e.Properties["$ip"]; ok {
+				mapOnlyEmail["$ip"] = ip
+				i := posthog.Identify{
+					DistinctId: e.DistinctId,
+					Properties: mapOnlyEmail,
+				}
+				return c, &i
+			}
 		}
-		return c, &i
 	}
 	return c, nil
 }
@@ -51,10 +58,14 @@ func (e *Event) MixpanelEvent() (distinctId, eventName string, event *mixpanel.E
 		Properties: mapCopy,
 	}
 	if e.Identify {
-		identify = &mixpanel.Update{
-			IP:         ip,
-			Properties: mapCopy,
-			Operation:  "$set",
+		mapOnlyEmail := make(map[string]interface{})
+		if email, ok := mapCopy["$email"]; ok {
+			mapOnlyEmail["$email"] = email
+			identify = &mixpanel.Update{
+				IP:         ip,
+				Properties: mapOnlyEmail,
+				Operation:  "$set",
+			}
 		}
 	}
 	return e.DistinctId, e.EventName, mixpanelEvent, identify
