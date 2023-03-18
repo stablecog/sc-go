@@ -447,8 +447,40 @@ func (r *Repository) QueryGenerationsAdmin(per_page int, cursor *time.Time, filt
 	var query *ent.GenerationOutputQuery
 	var gQueryResult []GenerationQueryWithOutputsResult
 
+	// Figure out order bys
+	var orderByGeneration string
+	var orderByOutput string
+	if filters == nil || (filters != nil && filters.OrderBy == requests.OrderByCreatedAt) {
+		orderByGeneration = generation.FieldCreatedAt
+		orderByOutput = generationoutput.FieldCreatedAt
+	} else {
+		orderByGeneration = generation.FieldUpdatedAt
+		orderByOutput = generationoutput.FieldUpdatedAt
+	}
+
+	// Query generations first to get the IDs we want to limit to
+	genQuery := r.DB.Generation.Query().Where(generation.StatusEQ(generation.StatusSucceeded))
+	genQuery = r.ApplyUserGenerationsFilters(genQuery, filters, true)
+	if filters == nil || (filters != nil && filters.Order == requests.SortOrderDescending) {
+		genQuery = genQuery.Order(ent.Desc(orderByGeneration))
+	} else {
+		genQuery = genQuery.Order(ent.Asc(orderByGeneration))
+	}
+	gens, err := genQuery.Limit(per_page + 1).All(r.Ctx)
+	if err != nil {
+		log.Error("Error querying generations", "err", err)
+		return nil, err
+	}
+
+	generationIDs := make([]uuid.UUID, len(gens))
+	// Get only the IDs
+	for i, g := range gens {
+		generationIDs[i] = g.ID
+	}
+
 	query = r.DB.GenerationOutput.Query().Where(
 		generationoutput.DeletedAtIsNil(),
+		generationoutput.GenerationIDIn(generationIDs...),
 	)
 	if cursor != nil {
 		query = query.Where(generationoutput.CreatedAtLT(*cursor))
@@ -465,20 +497,8 @@ func (r *Repository) QueryGenerationsAdmin(per_page int, cursor *time.Time, filt
 		}
 	}
 
-	// Figure out order bys
-	var orderByGeneration string
-	var orderByOutput string
-	if filters == nil || (filters != nil && filters.OrderBy == requests.OrderByCreatedAt) {
-		orderByGeneration = generation.FieldCreatedAt
-		orderByOutput = generationoutput.FieldCreatedAt
-	} else {
-		orderByGeneration = generation.FieldUpdatedAt
-		orderByOutput = generationoutput.FieldUpdatedAt
-	}
-
+	// Get extra data from the generations
 	query = query.WithGenerations(func(s *ent.GenerationQuery) {
-		s.Where(generation.StatusEQ(generation.StatusSucceeded))
-		s = r.ApplyUserGenerationsFilters(s, filters, true)
 		s.WithPrompt()
 		s.WithNegativePrompt()
 		s.WithGenerationOutputs(func(goq *ent.GenerationOutputQuery) {
