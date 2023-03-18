@@ -21,6 +21,8 @@ const (
 	FieldActiveProductID = "active_product_id"
 	// FieldLastSignInAt holds the string denoting the last_sign_in_at field in the database.
 	FieldLastSignInAt = "last_sign_in_at"
+	// FieldLastSeenAt holds the string denoting the last_seen_at field in the database.
+	FieldLastSeenAt = "last_seen_at"
 	// FieldCreatedAt holds the string denoting the created_at field in the database.
 	FieldCreatedAt = "created_at"
 	// FieldUpdatedAt holds the string denoting the updated_at field in the database.
@@ -72,6 +74,7 @@ var Columns = []string{
 	FieldStripeCustomerID,
 	FieldActiveProductID,
 	FieldLastSignInAt,
+	FieldLastSeenAt,
 	FieldCreatedAt,
 	FieldUpdatedAt,
 }
@@ -87,6 +90,8 @@ func ValidColumn(column string) bool {
 }
 
 var (
+	// DefaultLastSeenAt holds the default value on creation for the "last_seen_at" field.
+	DefaultLastSeenAt func() time.Time
 	// DefaultCreatedAt holds the default value on creation for the "created_at" field.
 	DefaultCreatedAt func() time.Time
 	// DefaultUpdatedAt holds the default value on creation for the "updated_at" field.

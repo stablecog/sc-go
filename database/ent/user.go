@@ -25,6 +25,8 @@ type User struct {
 	ActiveProductID *string `json:"active_product_id,omitempty"`
 	// LastSignInAt holds the value of the "last_sign_in_at" field.
 	LastSignInAt *time.Time `json:"last_sign_in_at,omitempty"`
+	// LastSeenAt holds the value of the "last_seen_at" field.
+	LastSeenAt time.Time `json:"last_seen_at,omitempty"`
 	// CreatedAt holds the value of the "created_at" field.
 	CreatedAt time.Time `json:"created_at,omitempty"`
 	// UpdatedAt holds the value of the "updated_at" field.
@@ -92,7 +94,7 @@ func (*User) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case user.FieldEmail, user.FieldStripeCustomerID, user.FieldActiveProductID:
 			values[i] = new(sql.NullString)
-		case user.FieldLastSignInAt, user.FieldCreatedAt, user.FieldUpdatedAt:
+		case user.FieldLastSignInAt, user.FieldLastSeenAt, user.FieldCreatedAt, user.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
 		case user.FieldID:
 			values[i] = new(uuid.UUID)
@@ -142,6 +144,12 @@ func (u *User) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				u.LastSignInAt = new(time.Time)
 				*u.LastSignInAt = value.Time
+			}
+		case user.FieldLastSeenAt:
+			if value, ok := values[i].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field last_seen_at", values[i])
+			} else if value.Valid {
+				u.LastSeenAt = value.Time
 			}
 		case user.FieldCreatedAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
@@ -218,6 +226,9 @@ func (u *User) String() string {
 		builder.WriteString("last_sign_in_at=")
 		builder.WriteString(v.Format(time.ANSIC))
 	}
+	builder.WriteString(", ")
+	builder.WriteString("last_seen_at=")
+	builder.WriteString(u.LastSeenAt.Format(time.ANSIC))
 	builder.WriteString(", ")
 	builder.WriteString("created_at=")
 	builder.WriteString(u.CreatedAt.Format(time.ANSIC))

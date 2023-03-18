@@ -11124,6 +11124,7 @@ type UserMutation struct {
 	stripe_customer_id *string
 	active_product_id  *string
 	last_sign_in_at    *time.Time
+	last_seen_at       *time.Time
 	created_at         *time.Time
 	updated_at         *time.Time
 	clearedFields      map[string]struct{}
@@ -11416,6 +11417,42 @@ func (m *UserMutation) LastSignInAtCleared() bool {
 func (m *UserMutation) ResetLastSignInAt() {
 	m.last_sign_in_at = nil
 	delete(m.clearedFields, user.FieldLastSignInAt)
+}
+
+// SetLastSeenAt sets the "last_seen_at" field.
+func (m *UserMutation) SetLastSeenAt(t time.Time) {
+	m.last_seen_at = &t
+}
+
+// LastSeenAt returns the value of the "last_seen_at" field in the mutation.
+func (m *UserMutation) LastSeenAt() (r time.Time, exists bool) {
+	v := m.last_seen_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldLastSeenAt returns the old "last_seen_at" field's value of the User entity.
+// If the User object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UserMutation) OldLastSeenAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldLastSeenAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldLastSeenAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldLastSeenAt: %w", err)
+	}
+	return oldValue.LastSeenAt, nil
+}
+
+// ResetLastSeenAt resets all changes to the "last_seen_at" field.
+func (m *UserMutation) ResetLastSeenAt() {
+	m.last_seen_at = nil
 }
 
 // SetCreatedAt sets the "created_at" field.
@@ -11740,7 +11777,7 @@ func (m *UserMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *UserMutation) Fields() []string {
-	fields := make([]string, 0, 6)
+	fields := make([]string, 0, 7)
 	if m.email != nil {
 		fields = append(fields, user.FieldEmail)
 	}
@@ -11752,6 +11789,9 @@ func (m *UserMutation) Fields() []string {
 	}
 	if m.last_sign_in_at != nil {
 		fields = append(fields, user.FieldLastSignInAt)
+	}
+	if m.last_seen_at != nil {
+		fields = append(fields, user.FieldLastSeenAt)
 	}
 	if m.created_at != nil {
 		fields = append(fields, user.FieldCreatedAt)
@@ -11775,6 +11815,8 @@ func (m *UserMutation) Field(name string) (ent.Value, bool) {
 		return m.ActiveProductID()
 	case user.FieldLastSignInAt:
 		return m.LastSignInAt()
+	case user.FieldLastSeenAt:
+		return m.LastSeenAt()
 	case user.FieldCreatedAt:
 		return m.CreatedAt()
 	case user.FieldUpdatedAt:
@@ -11796,6 +11838,8 @@ func (m *UserMutation) OldField(ctx context.Context, name string) (ent.Value, er
 		return m.OldActiveProductID(ctx)
 	case user.FieldLastSignInAt:
 		return m.OldLastSignInAt(ctx)
+	case user.FieldLastSeenAt:
+		return m.OldLastSeenAt(ctx)
 	case user.FieldCreatedAt:
 		return m.OldCreatedAt(ctx)
 	case user.FieldUpdatedAt:
@@ -11836,6 +11880,13 @@ func (m *UserMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetLastSignInAt(v)
+		return nil
+	case user.FieldLastSeenAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetLastSeenAt(v)
 		return nil
 	case user.FieldCreatedAt:
 		v, ok := value.(time.Time)
@@ -11926,6 +11977,9 @@ func (m *UserMutation) ResetField(name string) error {
 		return nil
 	case user.FieldLastSignInAt:
 		m.ResetLastSignInAt()
+		return nil
+	case user.FieldLastSeenAt:
+		m.ResetLastSeenAt()
 		return nil
 	case user.FieldCreatedAt:
 		m.ResetCreatedAt()

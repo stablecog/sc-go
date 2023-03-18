@@ -182,6 +182,11 @@ func (c *RestAPI) HandleGetUser(w http.ResponseWriter, r *http.Request) {
 		go c.Track.FreeCreditsReplenished(*userID, email, int(freeCreditAmount))
 	}
 
+	err = c.Repo.UpdateLastSeenAt(*userID)
+	if err != nil {
+		log.Warn("Error updating last seen at", "err", err, "user", userID.String())
+	}
+
 	render.Status(r, http.StatusOK)
 	render.JSON(w, r, responses.GetUserResponse{
 		TotalRemainingCredits: totalRemaining,

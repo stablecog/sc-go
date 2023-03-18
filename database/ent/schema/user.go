@@ -24,6 +24,7 @@ func (User) Fields() []ent.Field {
 		field.Text("stripe_customer_id").Unique(),
 		field.Text("active_product_id").Optional().Nillable(),
 		field.Time("last_sign_in_at").Optional().Nillable(),
+		field.Time("last_seen_at").Default(time.Now),
 		field.Time("created_at").Default(time.Now).Immutable(),
 		field.Time("updated_at").Default(time.Now).UpdateDefault(time.Now),
 	}

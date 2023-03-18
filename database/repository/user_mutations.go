@@ -33,3 +33,8 @@ func (r *Repository) UnsetActiveProductID(id uuid.UUID, stripeProductId string, 
 	}
 	return db.User.Update().Where(user.IDEQ(id), user.ActiveProductIDEQ(stripeProductId)).ClearActiveProductID().Save(r.Ctx)
 }
+
+// Update last_seen_at
+func (r *Repository) UpdateLastSeenAt(id uuid.UUID) error {
+	return r.DB.User.UpdateOneID(id).SetLastSeenAt(time.Now()).Exec(r.Ctx)
+}

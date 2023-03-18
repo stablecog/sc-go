@@ -65,6 +65,20 @@ func (uc *UserCreate) SetNillableLastSignInAt(t *time.Time) *UserCreate {
 	return uc
 }
 
+// SetLastSeenAt sets the "last_seen_at" field.
+func (uc *UserCreate) SetLastSeenAt(t time.Time) *UserCreate {
+	uc.mutation.SetLastSeenAt(t)
+	return uc
+}
+
+// SetNillableLastSeenAt sets the "last_seen_at" field if the given value is not nil.
+func (uc *UserCreate) SetNillableLastSeenAt(t *time.Time) *UserCreate {
+	if t != nil {
+		uc.SetLastSeenAt(*t)
+	}
+	return uc
+}
+
 // SetCreatedAt sets the "created_at" field.
 func (uc *UserCreate) SetCreatedAt(t time.Time) *UserCreate {
 	uc.mutation.SetCreatedAt(t)
@@ -202,6 +216,10 @@ func (uc *UserCreate) ExecX(ctx context.Context) {
 
 // defaults sets the default values of the builder before save.
 func (uc *UserCreate) defaults() {
+	if _, ok := uc.mutation.LastSeenAt(); !ok {
+		v := user.DefaultLastSeenAt()
+		uc.mutation.SetLastSeenAt(v)
+	}
 	if _, ok := uc.mutation.CreatedAt(); !ok {
 		v := user.DefaultCreatedAt()
 		uc.mutation.SetCreatedAt(v)
@@ -223,6 +241,9 @@ func (uc *UserCreate) check() error {
 	}
 	if _, ok := uc.mutation.StripeCustomerID(); !ok {
 		return &ValidationError{Name: "stripe_customer_id", err: errors.New(`ent: missing required field "User.stripe_customer_id"`)}
+	}
+	if _, ok := uc.mutation.LastSeenAt(); !ok {
+		return &ValidationError{Name: "last_seen_at", err: errors.New(`ent: missing required field "User.last_seen_at"`)}
 	}
 	if _, ok := uc.mutation.CreatedAt(); !ok {
 		return &ValidationError{Name: "created_at", err: errors.New(`ent: missing required field "User.created_at"`)}
@@ -286,6 +307,10 @@ func (uc *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 	if value, ok := uc.mutation.LastSignInAt(); ok {
 		_spec.SetField(user.FieldLastSignInAt, field.TypeTime, value)
 		_node.LastSignInAt = &value
+	}
+	if value, ok := uc.mutation.LastSeenAt(); ok {
+		_spec.SetField(user.FieldLastSeenAt, field.TypeTime, value)
+		_node.LastSeenAt = value
 	}
 	if value, ok := uc.mutation.CreatedAt(); ok {
 		_spec.SetField(user.FieldCreatedAt, field.TypeTime, value)

@@ -6,7 +6,6 @@ import (
 	"flag"
 	"fmt"
 	"net/http"
-	"net/http/pprof"
 	"os"
 	"time"
 
@@ -165,7 +164,6 @@ func main() {
 
 	// Routes
 	app.Get("/", hc.HandleHealth)
-	app.Handle("/pprof/heap", pprof.Handler("heap"))
 	app.Route("/v1", func(r chi.Router) {
 		r.Get("/health", hc.HandleHealth)
 

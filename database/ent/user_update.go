@@ -86,6 +86,20 @@ func (uu *UserUpdate) ClearLastSignInAt() *UserUpdate {
 	return uu
 }
 
+// SetLastSeenAt sets the "last_seen_at" field.
+func (uu *UserUpdate) SetLastSeenAt(t time.Time) *UserUpdate {
+	uu.mutation.SetLastSeenAt(t)
+	return uu
+}
+
+// SetNillableLastSeenAt sets the "last_seen_at" field if the given value is not nil.
+func (uu *UserUpdate) SetNillableLastSeenAt(t *time.Time) *UserUpdate {
+	if t != nil {
+		uu.SetLastSeenAt(*t)
+	}
+	return uu
+}
+
 // SetUpdatedAt sets the "updated_at" field.
 func (uu *UserUpdate) SetUpdatedAt(t time.Time) *UserUpdate {
 	uu.mutation.SetUpdatedAt(t)
@@ -318,6 +332,9 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if uu.mutation.LastSignInAtCleared() {
 		_spec.ClearField(user.FieldLastSignInAt, field.TypeTime)
+	}
+	if value, ok := uu.mutation.LastSeenAt(); ok {
+		_spec.SetField(user.FieldLastSeenAt, field.TypeTime, value)
 	}
 	if value, ok := uu.mutation.UpdatedAt(); ok {
 		_spec.SetField(user.FieldUpdatedAt, field.TypeTime, value)
@@ -612,6 +629,20 @@ func (uuo *UserUpdateOne) ClearLastSignInAt() *UserUpdateOne {
 	return uuo
 }
 
+// SetLastSeenAt sets the "last_seen_at" field.
+func (uuo *UserUpdateOne) SetLastSeenAt(t time.Time) *UserUpdateOne {
+	uuo.mutation.SetLastSeenAt(t)
+	return uuo
+}
+
+// SetNillableLastSeenAt sets the "last_seen_at" field if the given value is not nil.
+func (uuo *UserUpdateOne) SetNillableLastSeenAt(t *time.Time) *UserUpdateOne {
+	if t != nil {
+		uuo.SetLastSeenAt(*t)
+	}
+	return uuo
+}
+
 // SetUpdatedAt sets the "updated_at" field.
 func (uuo *UserUpdateOne) SetUpdatedAt(t time.Time) *UserUpdateOne {
 	uuo.mutation.SetUpdatedAt(t)
@@ -868,6 +899,9 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 	}
 	if uuo.mutation.LastSignInAtCleared() {
 		_spec.ClearField(user.FieldLastSignInAt, field.TypeTime)
+	}
+	if value, ok := uuo.mutation.LastSeenAt(); ok {
+		_spec.SetField(user.FieldLastSeenAt, field.TypeTime, value)
 	}
 	if value, ok := uuo.mutation.UpdatedAt(); ok {
 		_spec.SetField(user.FieldUpdatedAt, field.TypeTime, value)

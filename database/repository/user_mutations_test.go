@@ -72,3 +72,23 @@ func TestUnsetActiveProductID(t *testing.T) {
 	// Delete
 	MockRepo.DB.User.DeleteOne(u).ExecX(MockRepo.Ctx)
 }
+
+func TestUpdateLastSeenAt(t *testing.T) {
+	u, err := MockRepo.CreateUser(uuid.New(), "TestUpdateLastSeenAt@stablecog.com", "cus_1234", nil, nil)
+	assert.Nil(t, err)
+	assert.NotNil(t, u)
+	assert.Nil(t, u.ActiveProductID)
+
+	// Set
+	err = MockRepo.UpdateLastSeenAt(u.ID)
+	assert.Nil(t, err)
+
+	// Get user
+	u2, err := MockRepo.GetUser(u.ID)
+	assert.Nil(t, err)
+	assert.NotNil(t, u2)
+	assert.NotEqual(t, u.LastSeenAt, u2.LastSeenAt)
+
+	// Delete
+	MockRepo.DB.User.DeleteOne(u).ExecX(MockRepo.Ctx)
+}
