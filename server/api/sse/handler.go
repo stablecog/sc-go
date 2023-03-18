@@ -12,7 +12,7 @@ import (
 )
 
 // App version
-const APP_VERSION = "4.00"
+const APP_VERSION = "4.01"
 
 // Special stream ID for live page
 const LIVE_STREAM_ID = "live"
