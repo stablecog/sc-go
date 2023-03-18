@@ -476,9 +476,8 @@ func (r *Repository) QueryGenerationsAdmin(per_page int, cursor *time.Time, filt
 		orderByOutput = generationoutput.FieldUpdatedAt
 	}
 
+	query = r.ApplyUserGenerationsFilters(query.QueryGenerations(), filters, true).QueryGenerationOutputs()
 	query = query.WithGenerations(func(s *ent.GenerationQuery) {
-		s.Where(generation.StatusEQ(generation.StatusSucceeded))
-		s = r.ApplyUserGenerationsFilters(s, filters, true)
 		s.WithPrompt()
 		s.WithNegativePrompt()
 		s.WithGenerationOutputs(func(goq *ent.GenerationOutputQuery) {
