@@ -63,8 +63,10 @@ func TestGetFreeCreditReplenishesAtForUser(t *testing.T) {
 	MockRepo.DB.Credit.UpdateOne(credit).SetReplenishedAt(replenishedAt).SetRemainingAmount(50).ExecX(context.Background())
 
 	// Get free credit replenishes at
-	replenishesAt, err := MockRepo.GetFreeCreditReplenishesAtForUser(u.ID)
+	replenishesAt, c, ct, err := MockRepo.GetFreeCreditReplenishesAtForUser(u.ID)
 	assert.Nil(t, err)
+	assert.NotNil(t, c)
+	assert.NotNil(t, ct)
 	assert.Equal(t, replenishedAt.Add(shared.FREE_CREDIT_REPLENISHMENT_INTERVAL), *replenishesAt)
 
 	// Cleanup

@@ -14,7 +14,7 @@ type GetUserResponse struct {
 	RenewsAt              *time.Time `json:"renews_at,omitempty"`
 	MoreCreditsAt         *time.Time `json:"more_credits_at,omitempty"`
 	// The current amoount of free credits server offers
-	FreeCreditAmount int32               `json:"free_credit_amount"`
+	FreeCreditAmount *int                `json:"free_credit_amount,omitempty"`
 	StripeHadError   bool                `json:"stripe_had_error"`
 	Roles            []userrole.RoleName `json:"roles,omitempty"`
 }

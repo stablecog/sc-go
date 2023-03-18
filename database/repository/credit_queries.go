@@ -29,22 +29,22 @@ func (r *Repository) GetCreditsForUser(userID uuid.UUID) ([]*UserCreditsQueryRes
 // For mocking
 var Now = time.Now
 
-func (r *Repository) GetFreeCreditReplenishesAtForUser(userID uuid.UUID) (*time.Time, error) {
+func (r *Repository) GetFreeCreditReplenishesAtForUser(userID uuid.UUID) (*time.Time, *ent.Credit, *ent.CreditType, error) {
 	// Free type
 	ctype, err := r.GetOrCreateFreeCreditType()
 	if err != nil {
 		log.Error("Error getting free credit type", "err", err)
-		return nil, err
+		return nil, nil, nil, err
 	}
 	// get the free credit row
 	credit, err := r.DB.Credit.Query().Where(credit.UserID(userID), credit.CreditTypeID(ctype.ID)).Only(r.Ctx)
 	if err != nil {
 		log.Error("Error getting free credit", "err", err)
-		return nil, err
+		return nil, nil, nil, err
 	}
 	if credit.RemainingAmount >= ctype.Amount {
 		// Already has full amount
-		return nil, nil
+		return nil, nil, nil, nil
 	}
 	// Figure out when it will be replenished
 	// It is based on replenished_at and shared.FREE_CREDIT_REPLENISHMENT_INTERVAL
@@ -57,7 +57,7 @@ func (r *Repository) GetFreeCreditReplenishesAtForUser(userID uuid.UUID) (*time.
 
 	replenishesAt := now.Add(diff)
 
-	return &replenishesAt, nil
+	return &replenishesAt, credit, ctype, nil
 }
 
 func (r *Repository) GetNonExpiredCreditTotalForUser(userID uuid.UUID, DB *ent.Client) (int, error) {

@@ -183,10 +183,21 @@ func (c *RestAPI) HandleGetUser(w http.ResponseWriter, r *http.Request) {
 
 	// Figure out when free credits will be replenished
 	var moreCreditsAt *time.Time
+	var fcredit *ent.Credit
+	var ctype *ent.CreditType
+	var freeCreditAmount *int
 	if highestProduct == "" && !stripeHadError {
-		moreCreditsAt, err = c.Repo.GetFreeCreditReplenishesAtForUser(*userID)
+		moreCreditsAt, fcredit, ctype, err = c.Repo.GetFreeCreditReplenishesAtForUser(*userID)
 		if err != nil {
 			log.Error("Error getting next free credit replenishment time", "err", err, "user", userID.String())
+		}
+
+		if shared.FREE_CREDIT_AMOUNT_DAILY+fcredit.RemainingAmount > ctype.Amount {
+			am := int(shared.FREE_CREDIT_AMOUNT_DAILY + fcredit.RemainingAmount - ctype.Amount)
+			freeCreditAmount = &am
+		} else {
+			am := shared.FREE_CREDIT_AMOUNT_DAILY
+			freeCreditAmount = &am
 		}
 	}
 
@@ -197,7 +208,7 @@ func (c *RestAPI) HandleGetUser(w http.ResponseWriter, r *http.Request) {
 		PriceID:               highestPrice,
 		CancelsAt:             cancelsAt,
 		RenewsAt:              renewsAt,
-		FreeCreditAmount:      shared.FREE_CREDIT_AMOUNT_DAILY,
+		FreeCreditAmount:      freeCreditAmount,
 		StripeHadError:        stripeHadError,
 		Roles:                 user.Roles,
 		MoreCreditsAt:         moreCreditsAt,
