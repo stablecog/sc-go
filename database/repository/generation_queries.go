@@ -460,6 +460,9 @@ func (r *Repository) QueryGenerationsAdmin(per_page int, cursor *time.Time, filt
 
 	// Query generations first to get the IDs we want to limit to
 	genQuery := r.DB.Generation.Query().Where(generation.StatusEQ(generation.StatusSucceeded))
+	if cursor != nil {
+		genQuery = genQuery.Where(generation.CreatedAtLT(*cursor))
+	}
 	genQuery = r.ApplyUserGenerationsFilters(genQuery, filters, true)
 	if filters == nil || (filters != nil && filters.Order == requests.SortOrderDescending) {
 		genQuery = genQuery.Order(ent.Desc(orderByGeneration))
