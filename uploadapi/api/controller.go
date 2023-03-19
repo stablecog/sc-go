@@ -16,6 +16,7 @@ import (
 	"github.com/stablecog/sc-go/database/repository"
 	"github.com/stablecog/sc-go/log"
 	"github.com/stablecog/sc-go/server/responses"
+	"github.com/stablecog/sc-go/utils"
 )
 
 // Max upload size allowed for img2img
@@ -137,7 +138,10 @@ func (c *Controller) HandleUpload(w http.ResponseWriter, r *http.Request) {
 		responses.ErrInternalServerError(w, r, "An unknown error has occurred")
 		return
 	}
-	objKey := fmt.Sprintf("%s/%s.%s", userID.String(), uuid.New().String(), extension)
+
+	// Hash user ID to protect leaking it
+	uidHash := utils.Sha256(userID.String())
+	objKey := fmt.Sprintf("%s/%s.%s", uidHash, uuid.New().String(), extension)
 	_, err = c.S3.PutObject(&s3.PutObjectInput{
 		Bucket:      aws.String(os.Getenv("S3_IMG2IMG_BUCKET_NAME")),
 		Key:         aws.String(objKey),
