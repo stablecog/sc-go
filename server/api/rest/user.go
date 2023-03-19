@@ -185,12 +185,14 @@ func (c *RestAPI) HandleGetUser(w http.ResponseWriter, r *http.Request) {
 			log.Error("Error getting next free credit replenishment time", "err", err, "user", userID.String())
 		}
 
-		if shared.FREE_CREDIT_AMOUNT_DAILY+fcredit.RemainingAmount > ctype.Amount {
-			am := int(shared.FREE_CREDIT_AMOUNT_DAILY + fcredit.RemainingAmount - ctype.Amount)
-			freeCreditAmount = &am
-		} else {
-			am := shared.FREE_CREDIT_AMOUNT_DAILY
-			freeCreditAmount = &am
+		if fcredit != nil && ctype != nil {
+			if shared.FREE_CREDIT_AMOUNT_DAILY+fcredit.RemainingAmount > ctype.Amount {
+				am := int(shared.FREE_CREDIT_AMOUNT_DAILY + fcredit.RemainingAmount - ctype.Amount)
+				freeCreditAmount = &am
+			} else {
+				am := shared.FREE_CREDIT_AMOUNT_DAILY
+				freeCreditAmount = &am
+			}
 		}
 	}
 
