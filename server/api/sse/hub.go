@@ -56,7 +56,7 @@ func (h *Hub) Run() {
 		case <-h.KeepAlive:
 			for client := range h.clients {
 				select {
-				case client.Send <- []byte("keepalive"):
+				case client.Send <- []byte("{\"keepalive\": true}"):
 				default:
 					close(client.Send)
 					delete(h.clients, client)
