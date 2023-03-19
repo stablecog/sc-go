@@ -86,6 +86,7 @@ jobs:
           go test -v -parallel 1 ./server/...
           go test -v -parallel 1 ./shared/...
           go test -v -parallel 1 ./utils/...
+          go test -v -parallel 1 ./uploadapi/...
 
       - name: Send Discord Webhook
         if: failure()
@@ -141,6 +142,10 @@ jobs:
       - name: Build GO Cron Binary
         run: |
           cd cron && go build -ldflags "-s -w -X main.Version=${{ needs.setup_env.outputs.short_sha }} -X \"main.CommitMsg=${{ needs.setup_env.outputs.commit_msg }}\"" -o cron && cd ..
+
+      - name: Build GO Upload API Binary
+        run: |
+          cd uploadapi && go build -ldflags "-s -w -X main.Version=${{ needs.setup_env.outputs.short_sha }}" -o uploadapi && cd ..
 
       - name: Build and push image
         if: success()

@@ -3,6 +3,7 @@ FROM stablecog/ubuntu:22.04
 
 COPY ./server/server /app/server
 COPY ./cron/cron /app/cron
+COPY ./uploadapi/uploadapi /app/uploadapi
 
 EXPOSE 13337
 

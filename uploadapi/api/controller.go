@@ -118,8 +118,13 @@ func (c *Controller) HandleUpload(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	// Generate presigned URL for upload
+	// Upload the file to S3
 	buf, err := io.ReadAll(file)
+	if err != nil {
+		log.Error("Error reading body", "err", err)
+		responses.ErrInternalServerError(w, r, "An unknown error has occurred")
+		return
+	}
 	// Detect content-type
 	contentType := http.DetectContentType(buf)
 	if contentType != "image/jpeg" && contentType != "image/png" && contentType != "image/webp" {
@@ -136,11 +141,6 @@ func (c *Controller) HandleUpload(w http.ResponseWriter, r *http.Request) {
 	case "image/webp":
 		extension = "webp"
 	}
-	if err != nil {
-		log.Error("Error reading body", "err", err)
-		responses.ErrInternalServerError(w, r, "An unknown error has occurred")
-		return
-	}
 
 	objKey := fmt.Sprintf("%s/%s.%s", uidHash, uuid.New().String(), extension)
 	_, err = c.S3.PutObject(&s3.PutObjectInput{
@@ -150,7 +150,7 @@ func (c *Controller) HandleUpload(w http.ResponseWriter, r *http.Request) {
 		ContentType: aws.String(contentType),
 	})
 	if err != nil {
-		log.Error("Error generating presigned URL", "err", err)
+		log.Error("Error uploading object", "err", err)
 		responses.ErrInternalServerError(w, r, "An unknown error has occurred")
 		return
 	}
