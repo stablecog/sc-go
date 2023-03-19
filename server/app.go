@@ -130,12 +130,18 @@ func main() {
 			log.Error("Error updating cache", "err", err)
 		}
 	})
-	// Start cron scheduler
-	s.StartAsync()
 
 	// Create SSE hub
 	sseHub := sse.NewHub(redis, repo)
 	go sseHub.Run()
+
+	// Need to send keepalive every 30 seconds
+	s.Every(30).Seconds().StartAt(time.Now().Add(30 * time.Second)).Do(func() {
+		sseHub.BraodcastKeepalive()
+	})
+
+	// Start cron scheduler
+	s.StartAsync()
 
 	// Create analytics service
 	analyticsService := analytics.NewAnalyticsService()

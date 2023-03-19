@@ -14,6 +14,9 @@ type Hub struct {
 	// Events are pushed to this channel by the main events-gathering routine
 	Broadcast chan BroadcastPayload
 
+	// We need to send keepalives to clients so connections stay alive
+	KeepAlive chan bool
+
 	// Clients connecting
 	Register chan *Client
 
@@ -31,6 +34,7 @@ type Hub struct {
 func NewHub(redis *database.RedisWrapper, repo *repository.Repository) *Hub {
 	return &Hub{
 		Broadcast:  make(chan BroadcastPayload, 100),
+		KeepAlive:  make(chan bool),
 		Register:   make(chan *Client),
 		Unregister: make(chan *Client),
 		clients:    make(map[*Client]bool),
@@ -49,6 +53,15 @@ func (h *Hub) Run() {
 				delete(h.clients, client)
 				close(client.Send)
 			}
+		case <-h.KeepAlive:
+			for client := range h.clients {
+				select {
+				case client.Send <- []byte("keepalive"):
+				default:
+					close(client.Send)
+					delete(h.clients, client)
+				}
+			}
 		case payload := <-h.Broadcast:
 			for client := range h.clients {
 				if client.Uid == payload.ID {
@@ -62,5 +75,8 @@ func (h *Hub) Run() {
 			}
 		}
 	}
+}
 
+func (h *Hub) BraodcastKeepalive() {
+	h.KeepAlive <- true
 }
