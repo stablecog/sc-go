@@ -55,6 +55,9 @@ func (c *Controller) HandleUpload(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Hash user ID to protect leaking it
+	uidHash := utils.Sha256(userID.String())
+
 	// Get total credits
 	credits, err := c.Repo.GetNonExpiredCreditTotalForUser(userID, nil)
 	if err != nil {
@@ -86,7 +89,7 @@ func (c *Controller) HandleUpload(w http.ResponseWriter, r *http.Request) {
 	// Prune files in this users folder, if they have more than MAX_FILES_PER_USER
 	out, err := c.S3.ListObjects(&s3.ListObjectsInput{
 		Bucket: aws.String(os.Getenv("S3_IMG2IMG_BUCKET_NAME")),
-		Prefix: aws.String(fmt.Sprintf("%s/", userID.String())),
+		Prefix: aws.String(fmt.Sprintf("%s/", uidHash)),
 	})
 
 	if err != nil {
@@ -139,8 +142,6 @@ func (c *Controller) HandleUpload(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Hash user ID to protect leaking it
-	uidHash := utils.Sha256(userID.String())
 	objKey := fmt.Sprintf("%s/%s.%s", uidHash, uuid.New().String(), extension)
 	_, err = c.S3.PutObject(&s3.PutObjectInput{
 		Bucket:      aws.String(os.Getenv("S3_IMG2IMG_BUCKET_NAME")),
