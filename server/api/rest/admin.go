@@ -43,14 +43,14 @@ func (c *RestAPI) HandleReviewGallerySubmission(w http.ResponseWriter, r *http.R
 		updateCount, err = c.Repo.ApproveOrRejectGenerationOutputs(adminGalleryReq.GenerationOutputIDs, adminGalleryReq.Action == requests.GalleryApproveAction)
 		if err != nil {
 			if ent.IsNotFound(err) {
-				responses.ErrBadRequest(w, r, "Generation not found")
+				responses.ErrBadRequest(w, r, "Generation not found", "")
 				return
 			}
 			responses.ErrInternalServerError(w, r, err.Error())
 			return
 		}
 	default:
-		responses.ErrBadRequest(w, r, fmt.Sprintf("Unsupported action %s", adminGalleryReq.Action))
+		responses.ErrBadRequest(w, r, fmt.Sprintf("Unsupported action %s", adminGalleryReq.Action), "")
 		return
 	}
 
@@ -117,10 +117,10 @@ func (c *RestAPI) HandleQueryGenerationsForAdmin(w http.ResponseWriter, r *http.
 	if perPageStr := r.URL.Query().Get("per_page"); perPageStr != "" {
 		perPage, err = strconv.Atoi(perPageStr)
 		if err != nil {
-			responses.ErrBadRequest(w, r, "per_page must be an integer")
+			responses.ErrBadRequest(w, r, "per_page must be an integer", "")
 			return
 		} else if perPage < 1 || perPage > MAX_PER_PAGE {
-			responses.ErrBadRequest(w, r, fmt.Sprintf("per_page must be between 1 and %d", MAX_PER_PAGE))
+			responses.ErrBadRequest(w, r, fmt.Sprintf("per_page must be between 1 and %d", MAX_PER_PAGE), "")
 			return
 		}
 	}
@@ -129,7 +129,7 @@ func (c *RestAPI) HandleQueryGenerationsForAdmin(w http.ResponseWriter, r *http.
 	if cursorStr := r.URL.Query().Get("cursor"); cursorStr != "" {
 		cursorTime, err := utils.ParseIsoTime(cursorStr)
 		if err != nil {
-			responses.ErrBadRequest(w, r, "cursor must be a valid iso time string")
+			responses.ErrBadRequest(w, r, "cursor must be a valid iso time string", "")
 			return
 		}
 		cursor = &cursorTime
@@ -138,7 +138,7 @@ func (c *RestAPI) HandleQueryGenerationsForAdmin(w http.ResponseWriter, r *http.
 	filters := &requests.QueryGenerationFilters{}
 	err = filters.ParseURLQueryParameters(r.URL.Query())
 	if err != nil {
-		responses.ErrBadRequest(w, r, err.Error())
+		responses.ErrBadRequest(w, r, err.Error(), "")
 		return
 	}
 	// Make sure non-super admin can't get private generations
@@ -180,10 +180,10 @@ func (c *RestAPI) HandleQueryUsers(w http.ResponseWriter, r *http.Request) {
 	if perPageStr := r.URL.Query().Get("per_page"); perPageStr != "" {
 		perPage, err = strconv.Atoi(perPageStr)
 		if err != nil {
-			responses.ErrBadRequest(w, r, "per_page must be an integer")
+			responses.ErrBadRequest(w, r, "per_page must be an integer", "")
 			return
 		} else if perPage < 1 || perPage > MAX_PER_PAGE {
-			responses.ErrBadRequest(w, r, fmt.Sprintf("per_page must be between 1 and %d", MAX_PER_PAGE))
+			responses.ErrBadRequest(w, r, fmt.Sprintf("per_page must be between 1 and %d", MAX_PER_PAGE), "")
 			return
 		}
 	}
@@ -192,7 +192,7 @@ func (c *RestAPI) HandleQueryUsers(w http.ResponseWriter, r *http.Request) {
 	if cursorStr := r.URL.Query().Get("cursor"); cursorStr != "" {
 		cursorTime, err := utils.ParseIsoTime(cursorStr)
 		if err != nil {
-			responses.ErrBadRequest(w, r, "cursor must be a valid iso time string")
+			responses.ErrBadRequest(w, r, "cursor must be a valid iso time string", "")
 			return
 		}
 		cursor = &cursorTime

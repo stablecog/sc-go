@@ -224,10 +224,10 @@ func (c *RestAPI) HandleQueryGenerations(w http.ResponseWriter, r *http.Request)
 	if perPageStr := r.URL.Query().Get("per_page"); perPageStr != "" {
 		perPage, err = strconv.Atoi(perPageStr)
 		if err != nil {
-			responses.ErrBadRequest(w, r, "per_page must be an integer")
+			responses.ErrBadRequest(w, r, "per_page must be an integer", "")
 			return
 		} else if perPage < 1 || perPage > MAX_PER_PAGE {
-			responses.ErrBadRequest(w, r, fmt.Sprintf("per_page must be between 1 and %d", MAX_PER_PAGE))
+			responses.ErrBadRequest(w, r, fmt.Sprintf("per_page must be between 1 and %d", MAX_PER_PAGE), "")
 			return
 		}
 	}
@@ -236,7 +236,7 @@ func (c *RestAPI) HandleQueryGenerations(w http.ResponseWriter, r *http.Request)
 	if cursorStr := r.URL.Query().Get("cursor"); cursorStr != "" {
 		cursorTime, err := utils.ParseIsoTime(cursorStr)
 		if err != nil {
-			responses.ErrBadRequest(w, r, "cursor must be a valid iso time string")
+			responses.ErrBadRequest(w, r, "cursor must be a valid iso time string", "")
 			return
 		}
 		cursor = &cursorTime
@@ -245,7 +245,7 @@ func (c *RestAPI) HandleQueryGenerations(w http.ResponseWriter, r *http.Request)
 	filters := &requests.QueryGenerationFilters{}
 	err = filters.ParseURLQueryParameters(r.URL.Query())
 	if err != nil {
-		responses.ErrBadRequest(w, r, err.Error())
+		responses.ErrBadRequest(w, r, err.Error(), "")
 		return
 	}
 
@@ -366,7 +366,7 @@ func (c *RestAPI) HandleFavoriteGenerationOutputsForUser(w http.ResponseWriter, 
 	}
 
 	if favReq.Action != requests.AddFavoriteAction && favReq.Action != requests.RemoveFavoriteAction {
-		responses.ErrBadRequest(w, r, "action must be either 'add' or 'remove'")
+		responses.ErrBadRequest(w, r, "action must be either 'add' or 'remove'", "")
 		return
 	}
 

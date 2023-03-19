@@ -41,13 +41,13 @@ func (c *RestAPI) HandleUpscale(w http.ResponseWriter, r *http.Request) {
 	// Validation
 	err = upscaleReq.Validate()
 	if err != nil {
-		responses.ErrBadRequest(w, r, err.Error())
+		responses.ErrBadRequest(w, r, err.Error(), "")
 		return
 	}
 
 	// Get queue count
 	if c.QueueThrottler.NumQueued(user.ID.String()) > qMax {
-		responses.ErrBadRequest(w, r, "queue_limit_reached")
+		responses.ErrBadRequest(w, r, "queue_limit_reached", "")
 		return
 	}
 
@@ -73,7 +73,7 @@ func (c *RestAPI) HandleUpscale(w http.ResponseWriter, r *http.Request) {
 	if upscaleReq.Type == requests.UpscaleRequestTypeImage {
 		width, height, err = utils.GetImageWidthHeightFromUrl(imageUrl, shared.MAX_UPSCALE_IMAGE_SIZE)
 		if err != nil {
-			responses.ErrBadRequest(w, r, "image_url_width_height_error")
+			responses.ErrBadRequest(w, r, "image_url_width_height_error", "")
 			return
 		}
 	}
@@ -85,7 +85,7 @@ func (c *RestAPI) HandleUpscale(w http.ResponseWriter, r *http.Request) {
 		output, err := c.Repo.GetGenerationOutputForUser(upscaleReq.OutputID, user.ID)
 		if err != nil {
 			if ent.IsNotFound(err) {
-				responses.ErrBadRequest(w, r, "output_not_found")
+				responses.ErrBadRequest(w, r, "output_not_found", "")
 				return
 			}
 			log.Error("Error getting output", "err", err)
@@ -93,7 +93,7 @@ func (c *RestAPI) HandleUpscale(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		if output.UpscaledImagePath != nil {
-			responses.ErrBadRequest(w, r, "image_already_upscaled")
+			responses.ErrBadRequest(w, r, "image_already_upscaled", "")
 			return
 		}
 		imageUrl = utils.GetURLFromImagePath(output.ImagePath)
@@ -101,7 +101,7 @@ func (c *RestAPI) HandleUpscale(w http.ResponseWriter, r *http.Request) {
 		// Get width/height of generation
 		width, height, err = c.Repo.GetGenerationOutputWidthHeight(upscaleReq.OutputID)
 		if err != nil {
-			responses.ErrBadRequest(w, r, "Unable to retrieve width/height for upscale")
+			responses.ErrBadRequest(w, r, "Unable to retrieve width/height for upscale", "")
 			return
 		}
 	}

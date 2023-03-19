@@ -98,7 +98,7 @@ func (c *RestAPI) HandleQueryGallery(w http.ResponseWriter, r *http.Request) {
 		// Validate output_id
 		uid, err := uuid.Parse(outputId)
 		if err != nil {
-			responses.ErrBadRequest(w, r, "invalid_output_id")
+			responses.ErrBadRequest(w, r, "invalid_output_id", "")
 			return
 		}
 

@@ -6,5 +6,6 @@ use (
 	./log
 	./server
 	./shared
+	./uploadapi
 	./utils
 )

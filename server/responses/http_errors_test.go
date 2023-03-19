@@ -65,7 +65,7 @@ func TestErrBadRequest(t *testing.T) {
 	// Build request
 	req := httptest.NewRequest("GET", "/", nil)
 	req.Header.Set("Content-Type", "application/json")
-	ErrBadRequest(w, req, "server error")
+	ErrBadRequest(w, req, "server error", "")
 	resp := w.Result()
 	defer resp.Body.Close()
 	assert.Equal(t, 400, resp.StatusCode)

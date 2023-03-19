@@ -8,7 +8,8 @@ import (
 )
 
 type ErrorResponse struct {
-	Error string `json:"error"`
+	Error       string `json:"error"`
+	Description string `json:"description,omitempty"`
 }
 
 var UnableToParseJsonError = ErrorResponse{
@@ -47,10 +48,11 @@ func ErrNotFound(w http.ResponseWriter, r *http.Request, errorText string) {
 	})
 }
 
-func ErrBadRequest(w http.ResponseWriter, r *http.Request, errorText string) {
+func ErrBadRequest(w http.ResponseWriter, r *http.Request, errorText string, description string) {
 	render.Status(r, http.StatusBadRequest)
 	render.JSON(w, r, &ErrorResponse{
-		Error: errorText,
+		Error:       errorText,
+		Description: description,
 	})
 }
 

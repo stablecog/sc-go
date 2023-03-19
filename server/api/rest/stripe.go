@@ -124,13 +124,13 @@ func (c *RestAPI) HandleCreateCheckoutSession(w http.ResponseWriter, r *http.Req
 		}
 	}
 	if targetPriceID == "" {
-		responses.ErrBadRequest(w, r, "invalid_price_id")
+		responses.ErrBadRequest(w, r, "invalid_price_id", "")
 		return
 	}
 
 	// Validate currency
 	if !slices.Contains([]string{"usd", "eur"}, stripeReq.Currency) {
-		responses.ErrBadRequest(w, r, "invalid_currency")
+		responses.ErrBadRequest(w, r, "invalid_currency", "")
 		return
 	}
 
@@ -155,7 +155,7 @@ func (c *RestAPI) HandleCreateCheckoutSession(w http.ResponseWriter, r *http.Req
 			if sub.Status == stripe.SubscriptionStatusActive {
 				for _, item := range sub.Items.Data {
 					if item.Price.ID == targetPriceID {
-						responses.ErrBadRequest(w, r, "already_subscribed")
+						responses.ErrBadRequest(w, r, "already_subscribed", "")
 						return
 					}
 					// If price ID is in map it's valid
@@ -173,7 +173,7 @@ func (c *RestAPI) HandleCreateCheckoutSession(w http.ResponseWriter, r *http.Req
 
 	// If they don't have one, cannot buy adhoc
 	if currentPriceID == "" && adhocPrice {
-		responses.ErrBadRequest(w, r, "no_subscription")
+		responses.ErrBadRequest(w, r, "no_subscription", "")
 		return
 	}
 
@@ -187,7 +187,7 @@ func (c *RestAPI) HandleCreateCheckoutSession(w http.ResponseWriter, r *http.Req
 			}
 		}
 		if currentPriceLevel >= targetPriceLevel {
-			responses.ErrBadRequest(w, r, "cannot_downgrade")
+			responses.ErrBadRequest(w, r, "cannot_downgrade", "")
 			return
 		}
 	}
@@ -261,7 +261,7 @@ func (c *RestAPI) HandleSubscriptionDowngrade(w http.ResponseWriter, r *http.Req
 		}
 	}
 	if targetPriceID == "" {
-		responses.ErrBadRequest(w, r, "invalid_price_id")
+		responses.ErrBadRequest(w, r, "invalid_price_id", "")
 		return
 	}
 
@@ -281,7 +281,7 @@ func (c *RestAPI) HandleSubscriptionDowngrade(w http.ResponseWriter, r *http.Req
 	}
 
 	if customer.Subscriptions == nil || len(customer.Subscriptions.Data) == 0 || customer.Subscriptions.TotalCount == 0 {
-		responses.ErrBadRequest(w, r, "no_active_subscription")
+		responses.ErrBadRequest(w, r, "no_active_subscription", "")
 		return
 	}
 
@@ -306,12 +306,12 @@ func (c *RestAPI) HandleSubscriptionDowngrade(w http.ResponseWriter, r *http.Req
 	}
 
 	if currentPriceID == "" {
-		responses.ErrBadRequest(w, r, "no_active_subscription")
+		responses.ErrBadRequest(w, r, "no_active_subscription", "")
 		return
 	}
 
 	if currentPriceID == targetPriceID {
-		responses.ErrBadRequest(w, r, "not_lower")
+		responses.ErrBadRequest(w, r, "not_lower", "")
 		return
 	}
 
@@ -319,7 +319,7 @@ func (c *RestAPI) HandleSubscriptionDowngrade(w http.ResponseWriter, r *http.Req
 	for level, priceID := range GetPriceIDs() {
 		if priceID == currentPriceID {
 			if level <= targetPriceLevel {
-				responses.ErrBadRequest(w, r, "not_lower")
+				responses.ErrBadRequest(w, r, "not_lower", "")
 				return
 			}
 			break
@@ -368,7 +368,7 @@ func (c *RestAPI) HandleStripeWebhook(w http.ResponseWriter, r *http.Request) {
 	reqBody, err := io.ReadAll(r.Body)
 	if err != nil {
 		log.Error("Unable reading stripe webhook body", "err", err)
-		responses.ErrBadRequest(w, r, "invalid stripe webhook body")
+		responses.ErrBadRequest(w, r, "invalid stripe webhook body", "")
 		return
 	}
 
@@ -378,7 +378,7 @@ func (c *RestAPI) HandleStripeWebhook(w http.ResponseWriter, r *http.Request) {
 	event, err := webhook.ConstructEvent(reqBody, r.Header.Get("Stripe-Signature"), endpointSecret)
 	if err != nil {
 		log.Error("Unable verifying stripe webhook signature", "err", err)
-		responses.ErrBadRequest(w, r, "invalid stripe webhook signature")
+		responses.ErrBadRequest(w, r, "invalid stripe webhook signature", "")
 		return
 	}
 
