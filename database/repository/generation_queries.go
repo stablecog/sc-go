@@ -461,7 +461,7 @@ func (r *Repository) QueryGenerationsAdmin(per_page int, dtCursor *time.Time, of
 		orderByOutput = generationoutput.FieldUpdatedAt
 	}
 
-	queryG := r.DB.Debug().Generation.Query().Where(
+	queryG := r.DB.Generation.Query().Where(
 		generation.StatusEQ(generation.StatusSucceeded),
 	)
 	queryG = r.ApplyUserGenerationsFilters(queryG, filters, true)
