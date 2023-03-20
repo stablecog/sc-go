@@ -42,7 +42,7 @@ type BaseCogRequest struct {
 	ModelId              uuid.UUID          `json:"model_id,omitempty"`
 	Scheduler            string             `json:"scheduler,omitempty"`
 	SchedulerId          uuid.UUID          `json:"scheduler_id,omitempty"`
-	InitImage            string             `json:"init_image,omitempty"`
+	InitImageUrl         string             `json:"init_image_url,omitempty"`
 	PromptStrength       string             `json:"prompt_strength,omitempty"`
 	Mask                 string             `json:"mask,omitempty"`
 	Seed                 string             `json:"seed,omitempty"`
