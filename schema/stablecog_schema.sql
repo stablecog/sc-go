@@ -525,6 +525,13 @@ CREATE UNIQUE INDEX credit_types_name_key ON public.credit_types USING btree (na
 CREATE INDEX generation_created_at ON public.generations USING btree (created_at);
 
 --
+-- Name: generation_updated_at; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX generation_updated_at ON public.generations USING btree (updated_at);
+
+
+--
 -- Name: generationoutput_created_at; Type: INDEX; Schema: public; Owner: postgres
 --
 

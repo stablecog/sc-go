@@ -184,6 +184,11 @@ var (
 				Unique:  false,
 				Columns: []*schema.Column{GenerationsColumns[16]},
 			},
+			{
+				Name:    "generation_updated_at",
+				Unique:  false,
+				Columns: []*schema.Column{GenerationsColumns[17]},
+			},
 		},
 	}
 	// GenerationModelsColumns holds the columns for the "generation_models" table.
