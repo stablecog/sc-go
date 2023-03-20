@@ -464,7 +464,7 @@ func (r *Repository) QueryGenerationsAdmin(per_page int, dtCursor *time.Time, of
 	queryG := r.DB.Debug().Generation.Query().Where(
 		generation.StatusEQ(generation.StatusSucceeded),
 	)
-	queryG = r.ApplyUserGenerationsFilters(queryG, filters, true).Limit(per_page + 1)
+	queryG = r.ApplyUserGenerationsFilters(queryG, filters, true)
 	query := queryG.QueryGenerationOutputs().Where(
 		generationoutput.DeletedAtIsNil(),
 	)
