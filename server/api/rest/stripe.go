@@ -596,19 +596,22 @@ func (c *RestAPI) HandleStripeWebhook(w http.ResponseWriter, r *http.Request) {
 			// Update user credit
 			if err := c.Repo.WithTx(func(tx *ent.Tx) error {
 				client := tx.Client()
-				_, err = c.Repo.AddCreditsIfEligible(creditType, user.ID, expiresAt, line.ID, client)
+				added, err := c.Repo.AddCreditsIfEligible(creditType, user.ID, expiresAt, line.ID, client)
 				if err != nil {
 					log.Error("Unable adding credits to user %s: %v", user.ID.String(), err)
 					responses.ErrInternalServerError(w, r, err.Error())
 					return err
 				}
-				if user.ActiveProductID == nil {
+				if user.ActiveProductID == nil && added {
 					// New subscriber
 					go c.Track.Subscription(user, product)
 					go discord.NewSubscriberWebhook(c.Repo, user, product)
-				} else {
+				} else if added {
 					// Renewal
 					go c.Track.SubscriptionRenewal(user, product)
+				} else {
+					// Probably already added
+					return nil
 				}
 				err = c.Repo.SetActiveProductID(user.ID, product, client)
 				if err != nil {
