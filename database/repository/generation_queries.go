@@ -533,6 +533,9 @@ func (r *Repository) QueryGenerationsAdmin(per_page int, dtCursor *time.Time, of
 		} else {
 			// Use offset otherwise
 			meta.Next = len(res)
+			if offsetCursor != nil {
+				meta.Next = *offsetCursor + len(res)
+			}
 		}
 	}
 
