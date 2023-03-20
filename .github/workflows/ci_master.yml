@@ -115,7 +115,7 @@ jobs:
       - name: Send Discord Webhook
         uses: ./.github/actions/discord-webhook
         with:
-          context: all
+          context: prod
           prod-webhook-url: ${{ secrets.DISCORD_WEBHOOK_PROD }}
           qa-webhook-url: ${{ secrets.DISCORD_WEBHOOK }}
           embed-color: 16776960
