@@ -474,6 +474,7 @@ func (r *Repository) QueryGenerationsAdmin(per_page int, cursor *time.Time, filt
 			query = query.Where(generationoutput.GalleryStatusIn(filters.GalleryStatus...))
 		}
 	}
+	query = query.Limit(per_page + 1)
 	query = query.WithGenerations(func(s *ent.GenerationQuery) {
 		s.WithPrompt()
 		s.WithNegativePrompt()
