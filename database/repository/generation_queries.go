@@ -265,7 +265,11 @@ func (r *Repository) QueryGenerations(per_page int, cursor *time.Time, filters *
 		query = query.Where(generation.UserID(*filters.UserID))
 	}
 	if cursor != nil {
-		query = query.Where(generation.CreatedAtLT(*cursor))
+		if filters == nil || (filters != nil && filters.Order == requests.SortOrderDescending) {
+			query = query.Where(generation.CreatedAtLT(*cursor))
+		} else {
+			query = query.Where(generation.UpdatedAtLT(*cursor))
+		}
 	}
 
 	// Exclude deleted at always
@@ -467,7 +471,11 @@ func (r *Repository) QueryGenerationsAdmin(per_page int, cursor *time.Time, filt
 		generationoutput.DeletedAtIsNil(),
 	)
 	if cursor != nil {
-		query = query.Where(generationoutput.CreatedAtLT(*cursor))
+		if filters == nil || (filters != nil && filters.Order == requests.SortOrderDescending) {
+			query = query.Where(generationoutput.CreatedAtLT(*cursor))
+		} else {
+			query = query.Where(generationoutput.UpdatedAtLT(*cursor))
+		}
 	}
 	if filters != nil {
 		if filters.UpscaleStatus == requests.UpscaleStatusNot {
