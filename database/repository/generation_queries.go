@@ -532,9 +532,7 @@ func (r *Repository) QueryGenerationsAdmin(per_page int, cursor *time.Time, filt
 	if len(res) > per_page {
 		// Remove last item
 		res = res[:len(res)-1]
-		if filters == nil || (filters != nil && filters.OrderBy == requests.OrderByCreatedAt) {
-			meta.Next = &res[len(res)-1].CreatedAt
-		}
+		meta.Next = &res[len(res)-1].CreatedAt
 	}
 
 	// Get real image URLs for each
