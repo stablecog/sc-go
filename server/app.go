@@ -9,6 +9,10 @@ import (
 	"os"
 	"time"
 
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/credentials"
+	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/cors"
 	"github.com/go-co-op/gocron"
@@ -150,6 +154,20 @@ func main() {
 	// Q Throttler
 	qThrottler := shared.NewQueueThrottler(shared.REQUEST_COG_TIMEOUT)
 
+	// Setup S3 Client
+	region := os.Getenv("S3_IMG2IMG_REGION")
+	accessKey := os.Getenv("S3_IMG2IMG_ACCESS_KEY")
+	secretKey := os.Getenv("S3_IMG2IMG_SECRET_KEY")
+
+	s3Config := &aws.Config{
+		Credentials: credentials.NewStaticCredentials(accessKey, secretKey, ""),
+		Endpoint:    aws.String(os.Getenv("S3_IMG2IMG_ENDPOINT")),
+		Region:      aws.String(region),
+	}
+
+	newSession := session.New(s3Config)
+	s3Client := s3.New(newSession)
+
 	// Create controller
 	hc := rest.RestAPI{
 		Repo:           repo,
@@ -159,6 +177,7 @@ func main() {
 		Meili:          database.NewMeiliSearchClient(),
 		Track:          analyticsService,
 		QueueThrottler: qThrottler,
+		S3:             s3Client,
 	}
 
 	// Create middleware

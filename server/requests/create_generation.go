@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"math"
 	"math/rand"
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
@@ -26,6 +27,8 @@ type CreateGenerationRequest struct {
 	NumOutputs           int32                 `json:"num_outputs,omitempty"`
 	StreamID             string                `json:"stream_id"` // Corresponds to SSE stream
 	UIId                 string                `json:"ui_id"`     // Corresponds to UI identifier
+	InitImageUrl         string                `json:"init_image_url,omitempty"`
+	PromptStrength       *int32                `json:"prompt_strength,omitempty"`
 	SubmitToGallery      bool                  `json:"submit_to_gallery"`
 	ProcessType          shared.ProcessType    `json:"process_type"`
 	OutputImageExtension shared.ImageExtension `json:"output_image_extension"`
@@ -73,6 +76,10 @@ func (t *CreateGenerationRequest) Validate() error {
 
 	if !shared.GetCache().IsValidShedulerID(t.SchedulerId) {
 		return errors.New("invalid_scheduler_id")
+	}
+
+	if t.InitImageUrl != "" && !strings.HasPrefix(t.InitImageUrl, "s3://") {
+		return errors.New("invalid_init_image_url")
 	}
 
 	if t.Seed < 0 {

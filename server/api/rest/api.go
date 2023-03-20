@@ -3,6 +3,7 @@ package rest
 import (
 	"net/http"
 
+	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/google/uuid"
 	"github.com/meilisearch/meilisearch-go"
 	"github.com/stablecog/sc-go/database"
@@ -28,6 +29,7 @@ type RestAPI struct {
 	Meili          *meilisearch.Client
 	Track          *analytics.AnalyticsService
 	QueueThrottler *shared.UserQueueThrottlerMap
+	S3             *s3.S3
 }
 
 func (c *RestAPI) GetUserIfAuthenticated(w http.ResponseWriter, r *http.Request) (user *ent.User) {

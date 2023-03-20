@@ -202,6 +202,33 @@ func (gu *GenerationUpdate) ClearInitImageURL() *GenerationUpdate {
 	return gu
 }
 
+// SetPromptStrength sets the "prompt_strength" field.
+func (gu *GenerationUpdate) SetPromptStrength(i int32) *GenerationUpdate {
+	gu.mutation.ResetPromptStrength()
+	gu.mutation.SetPromptStrength(i)
+	return gu
+}
+
+// SetNillablePromptStrength sets the "prompt_strength" field if the given value is not nil.
+func (gu *GenerationUpdate) SetNillablePromptStrength(i *int32) *GenerationUpdate {
+	if i != nil {
+		gu.SetPromptStrength(*i)
+	}
+	return gu
+}
+
+// AddPromptStrength adds i to the "prompt_strength" field.
+func (gu *GenerationUpdate) AddPromptStrength(i int32) *GenerationUpdate {
+	gu.mutation.AddPromptStrength(i)
+	return gu
+}
+
+// ClearPromptStrength clears the value of the "prompt_strength" field.
+func (gu *GenerationUpdate) ClearPromptStrength() *GenerationUpdate {
+	gu.mutation.ClearPromptStrength()
+	return gu
+}
+
 // SetWasAutoSubmitted sets the "was_auto_submitted" field.
 func (gu *GenerationUpdate) SetWasAutoSubmitted(b bool) *GenerationUpdate {
 	gu.mutation.SetWasAutoSubmitted(b)
@@ -606,6 +633,15 @@ func (gu *GenerationUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if gu.mutation.InitImageURLCleared() {
 		_spec.ClearField(generation.FieldInitImageURL, field.TypeString)
+	}
+	if value, ok := gu.mutation.PromptStrength(); ok {
+		_spec.SetField(generation.FieldPromptStrength, field.TypeInt32, value)
+	}
+	if value, ok := gu.mutation.AddedPromptStrength(); ok {
+		_spec.AddField(generation.FieldPromptStrength, field.TypeInt32, value)
+	}
+	if gu.mutation.PromptStrengthCleared() {
+		_spec.ClearField(generation.FieldPromptStrength, field.TypeInt32)
 	}
 	if value, ok := gu.mutation.WasAutoSubmitted(); ok {
 		_spec.SetField(generation.FieldWasAutoSubmitted, field.TypeBool, value)
@@ -1082,6 +1118,33 @@ func (guo *GenerationUpdateOne) ClearInitImageURL() *GenerationUpdateOne {
 	return guo
 }
 
+// SetPromptStrength sets the "prompt_strength" field.
+func (guo *GenerationUpdateOne) SetPromptStrength(i int32) *GenerationUpdateOne {
+	guo.mutation.ResetPromptStrength()
+	guo.mutation.SetPromptStrength(i)
+	return guo
+}
+
+// SetNillablePromptStrength sets the "prompt_strength" field if the given value is not nil.
+func (guo *GenerationUpdateOne) SetNillablePromptStrength(i *int32) *GenerationUpdateOne {
+	if i != nil {
+		guo.SetPromptStrength(*i)
+	}
+	return guo
+}
+
+// AddPromptStrength adds i to the "prompt_strength" field.
+func (guo *GenerationUpdateOne) AddPromptStrength(i int32) *GenerationUpdateOne {
+	guo.mutation.AddPromptStrength(i)
+	return guo
+}
+
+// ClearPromptStrength clears the value of the "prompt_strength" field.
+func (guo *GenerationUpdateOne) ClearPromptStrength() *GenerationUpdateOne {
+	guo.mutation.ClearPromptStrength()
+	return guo
+}
+
 // SetWasAutoSubmitted sets the "was_auto_submitted" field.
 func (guo *GenerationUpdateOne) SetWasAutoSubmitted(b bool) *GenerationUpdateOne {
 	guo.mutation.SetWasAutoSubmitted(b)
@@ -1510,6 +1573,15 @@ func (guo *GenerationUpdateOne) sqlSave(ctx context.Context) (_node *Generation,
 	}
 	if guo.mutation.InitImageURLCleared() {
 		_spec.ClearField(generation.FieldInitImageURL, field.TypeString)
+	}
+	if value, ok := guo.mutation.PromptStrength(); ok {
+		_spec.SetField(generation.FieldPromptStrength, field.TypeInt32, value)
+	}
+	if value, ok := guo.mutation.AddedPromptStrength(); ok {
+		_spec.AddField(generation.FieldPromptStrength, field.TypeInt32, value)
+	}
+	if guo.mutation.PromptStrengthCleared() {
+		_spec.ClearField(generation.FieldPromptStrength, field.TypeInt32)
 	}
 	if value, ok := guo.mutation.WasAutoSubmitted(); ok {
 		_spec.SetField(generation.FieldWasAutoSubmitted, field.TypeBool, value)

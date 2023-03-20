@@ -106,6 +106,11 @@ func InitImageURL(v string) predicate.Generation {
 	return predicate.Generation(sql.FieldEQ(FieldInitImageURL, v))
 }
 
+// PromptStrength applies equality check predicate on the "prompt_strength" field. It's identical to PromptStrengthEQ.
+func PromptStrength(v int32) predicate.Generation {
+	return predicate.Generation(sql.FieldEQ(FieldPromptStrength, v))
+}
+
 // WasAutoSubmitted applies equality check predicate on the "was_auto_submitted" field. It's identical to WasAutoSubmittedEQ.
 func WasAutoSubmitted(v bool) predicate.Generation {
 	return predicate.Generation(sql.FieldEQ(FieldWasAutoSubmitted, v))
@@ -689,6 +694,56 @@ func InitImageURLEqualFold(v string) predicate.Generation {
 // InitImageURLContainsFold applies the ContainsFold predicate on the "init_image_url" field.
 func InitImageURLContainsFold(v string) predicate.Generation {
 	return predicate.Generation(sql.FieldContainsFold(FieldInitImageURL, v))
+}
+
+// PromptStrengthEQ applies the EQ predicate on the "prompt_strength" field.
+func PromptStrengthEQ(v int32) predicate.Generation {
+	return predicate.Generation(sql.FieldEQ(FieldPromptStrength, v))
+}
+
+// PromptStrengthNEQ applies the NEQ predicate on the "prompt_strength" field.
+func PromptStrengthNEQ(v int32) predicate.Generation {
+	return predicate.Generation(sql.FieldNEQ(FieldPromptStrength, v))
+}
+
+// PromptStrengthIn applies the In predicate on the "prompt_strength" field.
+func PromptStrengthIn(vs ...int32) predicate.Generation {
+	return predicate.Generation(sql.FieldIn(FieldPromptStrength, vs...))
+}
+
+// PromptStrengthNotIn applies the NotIn predicate on the "prompt_strength" field.
+func PromptStrengthNotIn(vs ...int32) predicate.Generation {
+	return predicate.Generation(sql.FieldNotIn(FieldPromptStrength, vs...))
+}
+
+// PromptStrengthGT applies the GT predicate on the "prompt_strength" field.
+func PromptStrengthGT(v int32) predicate.Generation {
+	return predicate.Generation(sql.FieldGT(FieldPromptStrength, v))
+}
+
+// PromptStrengthGTE applies the GTE predicate on the "prompt_strength" field.
+func PromptStrengthGTE(v int32) predicate.Generation {
+	return predicate.Generation(sql.FieldGTE(FieldPromptStrength, v))
+}
+
+// PromptStrengthLT applies the LT predicate on the "prompt_strength" field.
+func PromptStrengthLT(v int32) predicate.Generation {
+	return predicate.Generation(sql.FieldLT(FieldPromptStrength, v))
+}
+
+// PromptStrengthLTE applies the LTE predicate on the "prompt_strength" field.
+func PromptStrengthLTE(v int32) predicate.Generation {
+	return predicate.Generation(sql.FieldLTE(FieldPromptStrength, v))
+}
+
+// PromptStrengthIsNil applies the IsNil predicate on the "prompt_strength" field.
+func PromptStrengthIsNil() predicate.Generation {
+	return predicate.Generation(sql.FieldIsNull(FieldPromptStrength))
+}
+
+// PromptStrengthNotNil applies the NotNil predicate on the "prompt_strength" field.
+func PromptStrengthNotNil() predicate.Generation {
+	return predicate.Generation(sql.FieldNotNull(FieldPromptStrength))
 }
 
 // WasAutoSubmittedEQ applies the EQ predicate on the "was_auto_submitted" field.

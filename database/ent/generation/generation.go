@@ -36,6 +36,8 @@ const (
 	FieldCountryCode = "country_code"
 	// FieldInitImageURL holds the string denoting the init_image_url field in the database.
 	FieldInitImageURL = "init_image_url"
+	// FieldPromptStrength holds the string denoting the prompt_strength field in the database.
+	FieldPromptStrength = "prompt_strength"
 	// FieldWasAutoSubmitted holds the string denoting the was_auto_submitted field in the database.
 	FieldWasAutoSubmitted = "was_auto_submitted"
 	// FieldStripeProductID holds the string denoting the stripe_product_id field in the database.
@@ -141,6 +143,7 @@ var Columns = []string{
 	FieldFailureReason,
 	FieldCountryCode,
 	FieldInitImageURL,
+	FieldPromptStrength,
 	FieldWasAutoSubmitted,
 	FieldStripeProductID,
 	FieldPromptID,

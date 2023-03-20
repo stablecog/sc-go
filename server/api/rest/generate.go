@@ -5,8 +5,13 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"os"
+	"strings"
 	"time"
 
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/awserr"
+	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/go-chi/render"
 	"github.com/stablecog/sc-go/database/ent"
 	"github.com/stablecog/sc-go/database/repository"
@@ -52,6 +57,50 @@ func (c *RestAPI) HandleCreateGeneration(w http.ResponseWriter, r *http.Request)
 	if err != nil {
 		responses.ErrBadRequest(w, r, err.Error(), "")
 		return
+	}
+
+	// See if init image specified, validate it belongs to user, validate it exists in bucket
+	if generateReq.InitImageUrl != "" {
+		// Remove s3 prefix
+		generateReq.InitImageUrl = strings.TrimPrefix(generateReq.InitImageUrl, "s3://")
+		// Hash user ID to see if it belongs to this user
+		uidHash := utils.Sha256(user.ID.String())
+		if !strings.HasPrefix(generateReq.InitImageUrl, fmt.Sprintf("%s/", uidHash)) {
+			responses.ErrUnauthorized(w, r)
+			return
+		}
+		// Verify exists in bucket
+		_, err := c.S3.HeadObject(&s3.HeadObjectInput{
+			Bucket: aws.String(os.Getenv("S3_IMG2IMG_BUCKET_NAME")),
+			Key:    aws.String(generateReq.InitImageUrl),
+		})
+		if err != nil {
+			if aerr, ok := err.(awserr.Error); ok {
+				switch aerr.Code() {
+				case "NotFound": // s3.ErrCodeNoSuchKey does not work, aws is missing this error code so we hardwire a string
+					responses.ErrBadRequest(w, r, "init_image_not_found", "")
+					return
+				default:
+					log.Error("Error checking if init image exists in bucket", "err", err)
+					responses.ErrInternalServerError(w, r, "An unknown error has occured")
+					return
+				}
+			}
+			responses.ErrBadRequest(w, r, "init_image_not_found", "")
+			return
+		}
+		// Sign object URL to pass to worker
+		req, _ := c.S3.GetObjectRequest(&s3.GetObjectInput{
+			Bucket: aws.String(os.Getenv("S3_IMG2IMG_BUCKET_NAME")),
+			Key:    aws.String(generateReq.InitImageUrl),
+		})
+		urlStr, err := req.Presign(5 * time.Minute)
+		if err != nil {
+			log.Error("Error signing init image URL", "err", err)
+			responses.ErrInternalServerError(w, r, "An unknown error has occured")
+			return
+		}
+		generateReq.InitImageUrl = urlStr
 	}
 
 	// Get queue count
@@ -175,6 +224,7 @@ func (c *RestAPI) HandleCreateGeneration(w http.ResponseWriter, r *http.Request)
 				OutputImageQuality:   fmt.Sprint(shared.DEFAULT_GENERATE_OUTPUT_QUALITY),
 				ProcessType:          generateReq.ProcessType,
 				SubmitToGallery:      generateReq.SubmitToGallery,
+				InitImage:            generateReq.InitImageUrl,
 			},
 		}
 

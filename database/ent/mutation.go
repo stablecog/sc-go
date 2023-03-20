@@ -3010,6 +3010,8 @@ type GenerationMutation struct {
 	failure_reason            *string
 	country_code              *string
 	init_image_url            *string
+	prompt_strength           *int32
+	addprompt_strength        *int32
 	was_auto_submitted        *bool
 	stripe_product_id         *string
 	started_at                *time.Time
@@ -3714,6 +3716,76 @@ func (m *GenerationMutation) InitImageURLCleared() bool {
 func (m *GenerationMutation) ResetInitImageURL() {
 	m.init_image_url = nil
 	delete(m.clearedFields, generation.FieldInitImageURL)
+}
+
+// SetPromptStrength sets the "prompt_strength" field.
+func (m *GenerationMutation) SetPromptStrength(i int32) {
+	m.prompt_strength = &i
+	m.addprompt_strength = nil
+}
+
+// PromptStrength returns the value of the "prompt_strength" field in the mutation.
+func (m *GenerationMutation) PromptStrength() (r int32, exists bool) {
+	v := m.prompt_strength
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldPromptStrength returns the old "prompt_strength" field's value of the Generation entity.
+// If the Generation object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *GenerationMutation) OldPromptStrength(ctx context.Context) (v *int32, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldPromptStrength is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldPromptStrength requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldPromptStrength: %w", err)
+	}
+	return oldValue.PromptStrength, nil
+}
+
+// AddPromptStrength adds i to the "prompt_strength" field.
+func (m *GenerationMutation) AddPromptStrength(i int32) {
+	if m.addprompt_strength != nil {
+		*m.addprompt_strength += i
+	} else {
+		m.addprompt_strength = &i
+	}
+}
+
+// AddedPromptStrength returns the value that was added to the "prompt_strength" field in this mutation.
+func (m *GenerationMutation) AddedPromptStrength() (r int32, exists bool) {
+	v := m.addprompt_strength
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ClearPromptStrength clears the value of the "prompt_strength" field.
+func (m *GenerationMutation) ClearPromptStrength() {
+	m.prompt_strength = nil
+	m.addprompt_strength = nil
+	m.clearedFields[generation.FieldPromptStrength] = struct{}{}
+}
+
+// PromptStrengthCleared returns if the "prompt_strength" field was cleared in this mutation.
+func (m *GenerationMutation) PromptStrengthCleared() bool {
+	_, ok := m.clearedFields[generation.FieldPromptStrength]
+	return ok
+}
+
+// ResetPromptStrength resets all changes to the "prompt_strength" field.
+func (m *GenerationMutation) ResetPromptStrength() {
+	m.prompt_strength = nil
+	m.addprompt_strength = nil
+	delete(m.clearedFields, generation.FieldPromptStrength)
 }
 
 // SetWasAutoSubmitted sets the "was_auto_submitted" field.
@@ -4470,7 +4542,7 @@ func (m *GenerationMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *GenerationMutation) Fields() []string {
-	fields := make([]string, 0, 23)
+	fields := make([]string, 0, 24)
 	if m.width != nil {
 		fields = append(fields, generation.FieldWidth)
 	}
@@ -4503,6 +4575,9 @@ func (m *GenerationMutation) Fields() []string {
 	}
 	if m.init_image_url != nil {
 		fields = append(fields, generation.FieldInitImageURL)
+	}
+	if m.prompt_strength != nil {
+		fields = append(fields, generation.FieldPromptStrength)
 	}
 	if m.was_auto_submitted != nil {
 		fields = append(fields, generation.FieldWasAutoSubmitted)
@@ -4570,6 +4645,8 @@ func (m *GenerationMutation) Field(name string) (ent.Value, bool) {
 		return m.CountryCode()
 	case generation.FieldInitImageURL:
 		return m.InitImageURL()
+	case generation.FieldPromptStrength:
+		return m.PromptStrength()
 	case generation.FieldWasAutoSubmitted:
 		return m.WasAutoSubmitted()
 	case generation.FieldStripeProductID:
@@ -4625,6 +4702,8 @@ func (m *GenerationMutation) OldField(ctx context.Context, name string) (ent.Val
 		return m.OldCountryCode(ctx)
 	case generation.FieldInitImageURL:
 		return m.OldInitImageURL(ctx)
+	case generation.FieldPromptStrength:
+		return m.OldPromptStrength(ctx)
 	case generation.FieldWasAutoSubmitted:
 		return m.OldWasAutoSubmitted(ctx)
 	case generation.FieldStripeProductID:
@@ -4734,6 +4813,13 @@ func (m *GenerationMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetInitImageURL(v)
+		return nil
+	case generation.FieldPromptStrength:
+		v, ok := value.(int32)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetPromptStrength(v)
 		return nil
 	case generation.FieldWasAutoSubmitted:
 		v, ok := value.(bool)
@@ -4848,6 +4934,9 @@ func (m *GenerationMutation) AddedFields() []string {
 	if m.addseed != nil {
 		fields = append(fields, generation.FieldSeed)
 	}
+	if m.addprompt_strength != nil {
+		fields = append(fields, generation.FieldPromptStrength)
+	}
 	return fields
 }
 
@@ -4870,6 +4959,8 @@ func (m *GenerationMutation) AddedField(name string) (ent.Value, bool) {
 		return m.AddedNsfwCount()
 	case generation.FieldSeed:
 		return m.AddedSeed()
+	case generation.FieldPromptStrength:
+		return m.AddedPromptStrength()
 	}
 	return nil, false
 }
@@ -4928,6 +5019,13 @@ func (m *GenerationMutation) AddField(name string, value ent.Value) error {
 		}
 		m.AddSeed(v)
 		return nil
+	case generation.FieldPromptStrength:
+		v, ok := value.(int32)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddPromptStrength(v)
+		return nil
 	}
 	return fmt.Errorf("unknown Generation numeric field %s", name)
 }
@@ -4944,6 +5042,9 @@ func (m *GenerationMutation) ClearedFields() []string {
 	}
 	if m.FieldCleared(generation.FieldInitImageURL) {
 		fields = append(fields, generation.FieldInitImageURL)
+	}
+	if m.FieldCleared(generation.FieldPromptStrength) {
+		fields = append(fields, generation.FieldPromptStrength)
 	}
 	if m.FieldCleared(generation.FieldStripeProductID) {
 		fields = append(fields, generation.FieldStripeProductID)
@@ -4982,6 +5083,9 @@ func (m *GenerationMutation) ClearField(name string) error {
 		return nil
 	case generation.FieldInitImageURL:
 		m.ClearInitImageURL()
+		return nil
+	case generation.FieldPromptStrength:
+		m.ClearPromptStrength()
 		return nil
 	case generation.FieldStripeProductID:
 		m.ClearStripeProductID()
@@ -5038,6 +5142,9 @@ func (m *GenerationMutation) ResetField(name string) error {
 		return nil
 	case generation.FieldInitImageURL:
 		m.ResetInitImageURL()
+		return nil
+	case generation.FieldPromptStrength:
+		m.ResetPromptStrength()
 		return nil
 	case generation.FieldWasAutoSubmitted:
 		m.ResetWasAutoSubmitted()
