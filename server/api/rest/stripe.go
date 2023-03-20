@@ -700,14 +700,16 @@ func (c *RestAPI) HandleStripeWebhook(w http.ResponseWriter, r *http.Request) {
 		}
 
 		// Ad-hoc credit add
-		_, err = c.Repo.AddAdhocCreditsIfEligible(creditType, user.ID, pi.ID)
+		added, err := c.Repo.AddAdhocCreditsIfEligible(creditType, user.ID, pi.ID)
 		if err != nil {
 			log.Error("Unable adding credits to user %s: %v", user.ID.String(), err)
 			responses.ErrInternalServerError(w, r, err.Error())
 			return
 		}
-		go c.Track.CreditPurchase(user, product, int(creditType.Amount))
-		go discord.AdhocCreditsPurchasedWebhook(c.Repo, user, creditType)
+		if added {
+			go c.Track.CreditPurchase(user, product, int(creditType.Amount))
+			go discord.AdhocCreditsPurchasedWebhook(c.Repo, user, creditType)
+		}
 	}
 
 	render.Status(r, http.StatusOK)
