@@ -67,7 +67,7 @@ func (c *RestAPI) HandleCreateGeneration(w http.ResponseWriter, r *http.Request)
 		signedInitImageUrl = strings.TrimPrefix(generateReq.InitImageUrl, "s3://")
 		// Hash user ID to see if it belongs to this user
 		uidHash := utils.Sha256(user.ID.String())
-		if !strings.HasPrefix(generateReq.InitImageUrl, fmt.Sprintf("%s/", uidHash)) {
+		if !strings.HasPrefix(signedInitImageUrl, fmt.Sprintf("%s/", uidHash)) {
 			responses.ErrUnauthorized(w, r)
 			return
 		}
