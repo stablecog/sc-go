@@ -447,18 +447,18 @@ func (r *Repository) GetGenerationCountAdmin(filters *requests.QueryGenerationFi
 }
 
 // Alternate version for performance when we can't index by user_id
-func (r *Repository) QueryGenerationsAdmin(per_page int, dtCursor *time.Time, offsetCursor *int, filters *requests.QueryGenerationFilters) (*GenerationQueryWithOutputsMeta, error) {
+func (r *Repository) QueryGenerationsAdmin(per_page int, cursor *time.Time, filters *requests.QueryGenerationFilters) (*GenerationQueryWithOutputsMeta, error) {
 	var gQueryResult []GenerationQueryWithOutputsResult
 
 	// Figure out order bys
-	var orderByGeneration string
-	var orderByOutput string
+	var orderByGeneration []string
+	var orderByOutput []string
 	if filters == nil || (filters != nil && filters.OrderBy == requests.OrderByCreatedAt) {
-		orderByGeneration = generation.FieldCreatedAt
-		orderByOutput = generationoutput.FieldCreatedAt
+		orderByGeneration = []string{generation.FieldCreatedAt}
+		orderByOutput = []string{generationoutput.FieldCreatedAt}
 	} else {
-		orderByGeneration = generation.FieldUpdatedAt
-		orderByOutput = generationoutput.FieldUpdatedAt
+		orderByGeneration = []string{generation.FieldCreatedAt, generation.FieldUpdatedAt}
+		orderByOutput = []string{generationoutput.FieldCreatedAt, generationoutput.FieldUpdatedAt}
 	}
 
 	queryG := r.DB.Generation.Query().Where(
@@ -468,10 +468,8 @@ func (r *Repository) QueryGenerationsAdmin(per_page int, dtCursor *time.Time, of
 	query := queryG.QueryGenerationOutputs().Where(
 		generationoutput.DeletedAtIsNil(),
 	)
-	if dtCursor != nil {
-		query = query.Where(generationoutput.CreatedAtLT(*dtCursor))
-	} else if offsetCursor != nil {
-		query = query.Offset(*offsetCursor)
+	if cursor != nil {
+		query = query.Where(generationoutput.CreatedAtLT(*cursor))
 	}
 	if filters != nil {
 		if filters.UpscaleStatus == requests.UpscaleStatusNot {
@@ -489,22 +487,22 @@ func (r *Repository) QueryGenerationsAdmin(per_page int, dtCursor *time.Time, of
 		s.WithNegativePrompt()
 		s.WithGenerationOutputs(func(goq *ent.GenerationOutputQuery) {
 			if filters == nil || (filters != nil && filters.Order == requests.SortOrderDescending) {
-				goq = goq.Order(ent.Desc(orderByOutput))
+				goq = goq.Order(ent.Desc(orderByOutput...))
 			} else {
-				goq = goq.Order(ent.Asc(orderByOutput))
+				goq = goq.Order(ent.Asc(orderByOutput...))
 			}
 		})
 		if filters == nil || (filters != nil && filters.Order == requests.SortOrderDescending) {
-			s = s.Order(ent.Desc(orderByGeneration))
+			s = s.Order(ent.Desc(orderByGeneration...))
 		} else {
-			s = s.Order(ent.Asc(orderByGeneration))
+			s = s.Order(ent.Asc(orderByGeneration...))
 		}
 	})
 
 	if filters == nil || (filters != nil && filters.Order == requests.SortOrderDescending) {
-		query = query.Order(ent.Desc(orderByOutput))
+		query = query.Order(ent.Desc(orderByOutput...))
 	} else {
-		query = query.Order(ent.Asc(orderByOutput))
+		query = query.Order(ent.Asc(orderByOutput...))
 	}
 
 	// Limit
@@ -524,7 +522,7 @@ func (r *Repository) QueryGenerationsAdmin(per_page int, dtCursor *time.Time, of
 			Outputs: []GenerationQueryWithOutputsResultFormatted{},
 		}
 		// Only give total if we have no cursor
-		if dtCursor == nil || offsetCursor == nil {
+		if cursor == nil {
 			zero := 0
 			meta.Total = &zero
 		}
@@ -536,12 +534,6 @@ func (r *Repository) QueryGenerationsAdmin(per_page int, dtCursor *time.Time, of
 		res = res[:len(res)-1]
 		if filters == nil || (filters != nil && filters.OrderBy == requests.OrderByCreatedAt) {
 			meta.Next = &res[len(res)-1].CreatedAt
-		} else {
-			// Use offset otherwise
-			meta.Next = len(res)
-			if offsetCursor != nil {
-				meta.Next = *offsetCursor + len(res)
-			}
 		}
 	}
 
@@ -638,7 +630,7 @@ func (r *Repository) QueryGenerationsAdmin(per_page int, dtCursor *time.Time, of
 	}
 
 	// Get count when no cursor
-	if dtCursor == nil && offsetCursor == nil {
+	if cursor == nil {
 		total, err := r.GetGenerationCountAdmin(filters)
 		if err != nil {
 			log.Error("Error getting user generation count", "err", err)
@@ -666,7 +658,7 @@ type GenerationUpscaleOutput struct {
 type GenerationQueryWithOutputsMeta struct {
 	Total   *int                                        `json:"total_count,omitempty"`
 	Outputs []GenerationQueryWithOutputsResultFormatted `json:"outputs"`
-	Next    interface{}                                 `json:"next,omitempty"`
+	Next    *time.Time                                  `json:"next,omitempty"`
 }
 
 type PromptType struct {
