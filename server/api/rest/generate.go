@@ -74,7 +74,7 @@ func (c *RestAPI) HandleCreateGeneration(w http.ResponseWriter, r *http.Request)
 		// Verify exists in bucket
 		_, err := c.S3.HeadObject(&s3.HeadObjectInput{
 			Bucket: aws.String(os.Getenv("S3_IMG2IMG_BUCKET_NAME")),
-			Key:    aws.String(generateReq.InitImageUrl),
+			Key:    aws.String(signedInitImageUrl),
 		})
 		if err != nil {
 			if aerr, ok := err.(awserr.Error); ok {
