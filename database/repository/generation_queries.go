@@ -418,11 +418,7 @@ func (r *Repository) QueryGenerations(per_page int, cursor *time.Time, filters *
 func (r *Repository) GetGenerationCountAdmin(filters *requests.QueryGenerationFilters) (int, error) {
 	var query *ent.GenerationOutputQuery
 
-	queryG := r.DB.Generation.Query().Where(
-		generation.StatusEQ(generation.StatusSucceeded),
-	)
-	queryG = r.ApplyUserGenerationsFilters(queryG, filters, true)
-	query = queryG.QueryGenerationOutputs().Where(
+	query = r.DB.GenerationOutput.Query().Where(
 		generationoutput.DeletedAtIsNil(),
 	)
 	if filters != nil {
@@ -438,6 +434,7 @@ func (r *Repository) GetGenerationCountAdmin(filters *requests.QueryGenerationFi
 	}
 
 	query = query.WithGenerations(func(s *ent.GenerationQuery) {
+		s = r.ApplyUserGenerationsFilters(s, filters, true)
 		s.WithPrompt()
 		s.WithNegativePrompt()
 		s.WithGenerationOutputs()
