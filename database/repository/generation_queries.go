@@ -463,7 +463,13 @@ func (r *Repository) QueryGenerationsAdmin(per_page int, cursor *time.Time, filt
 		orderByOutput = generationoutput.FieldUpdatedAt
 	}
 
-	query := r.ApplyUserGenerationsFilters(r.DB.Generation.Query(), filters, true).QueryGenerationOutputs().Limit(per_page + 1).Where(
+	queryG := r.ApplyUserGenerationsFilters(r.DB.Generation.Query(), filters, true)
+	if filters == nil || (filters != nil && filters.Order == requests.SortOrderDescending) {
+		queryG = queryG.Order(ent.Desc(orderByGeneration))
+	} else {
+		queryG = queryG.Order(ent.Asc(orderByGeneration))
+	}
+	query := queryG.QueryGenerationOutputs().Limit(per_page + 1).Where(
 		generationoutput.DeletedAtIsNil(),
 	)
 	if cursor != nil {
