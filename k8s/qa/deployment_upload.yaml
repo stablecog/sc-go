@@ -42,6 +42,13 @@ spec:
             periodSeconds: 10
           imagePullPolicy: "Always"
           env:
+            - name: GOTRUE_URL
+              value: http://supabase-supabase-auth.qa-supabase:9999
+            - name: SUPABASE_ADMIN_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: sc-go
+                  key: SUPABASE_ADMIN_KEY
             - name: POSTGRES_PASSWORD
               valueFrom:
                 secretKeyRef:
