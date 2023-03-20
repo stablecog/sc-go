@@ -444,10 +444,20 @@ func (r *Repository) GetGenerationCountAdmin(filters *requests.QueryGenerationFi
 
 // Alternate version for performance when we can't index by user_id
 func (r *Repository) QueryGenerationsAdmin(per_page int, cursor *time.Time, filters *requests.QueryGenerationFilters) (*GenerationQueryWithOutputsMeta, error) {
-	var query *ent.GenerationOutputQuery
 	var gQueryResult []GenerationQueryWithOutputsResult
 
-	query = r.DB.GenerationOutput.Query().Where(
+	// Figure out order bys
+	var orderByGeneration string
+	var orderByOutput string
+	if filters == nil || (filters != nil && filters.OrderBy == requests.OrderByCreatedAt) {
+		orderByGeneration = generation.FieldCreatedAt
+		orderByOutput = generationoutput.FieldCreatedAt
+	} else {
+		orderByGeneration = generation.FieldUpdatedAt
+		orderByOutput = generationoutput.FieldUpdatedAt
+	}
+
+	query := r.ApplyUserGenerationsFilters(r.DB.Generation.Query(), filters, true).QueryGenerationOutputs().Where(
 		generationoutput.DeletedAtIsNil(),
 	)
 	if cursor != nil {
@@ -464,19 +474,6 @@ func (r *Repository) QueryGenerationsAdmin(per_page int, cursor *time.Time, filt
 			query = query.Where(generationoutput.GalleryStatusIn(filters.GalleryStatus...))
 		}
 	}
-
-	// Figure out order bys
-	var orderByGeneration string
-	var orderByOutput string
-	if filters == nil || (filters != nil && filters.OrderBy == requests.OrderByCreatedAt) {
-		orderByGeneration = generation.FieldCreatedAt
-		orderByOutput = generationoutput.FieldCreatedAt
-	} else {
-		orderByGeneration = generation.FieldUpdatedAt
-		orderByOutput = generationoutput.FieldUpdatedAt
-	}
-
-	query = r.ApplyUserGenerationsFilters(query.QueryGenerations(), filters, true).QueryGenerationOutputs()
 	query = query.WithGenerations(func(s *ent.GenerationQuery) {
 		s.WithPrompt()
 		s.WithNegativePrompt()
