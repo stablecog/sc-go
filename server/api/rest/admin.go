@@ -125,14 +125,21 @@ func (c *RestAPI) HandleQueryGenerationsForAdmin(w http.ResponseWriter, r *http.
 		}
 	}
 
-	var cursor *time.Time
+	var dtCursor *time.Time
+	var offsetCursot *int
 	if cursorStr := r.URL.Query().Get("cursor"); cursorStr != "" {
 		cursorTime, err := utils.ParseIsoTime(cursorStr)
 		if err != nil {
-			responses.ErrBadRequest(w, r, "cursor must be a valid iso time string", "")
-			return
+			// try to parse as int
+			cursorInt, err := strconv.Atoi(cursorStr)
+			if err != nil {
+				responses.ErrBadRequest(w, r, "cursor must be a valid iso time string or offset", "")
+				return
+			}
+			offsetCursot = &cursorInt
+		} else {
+			dtCursor = &cursorTime
 		}
-		cursor = &cursorTime
 	}
 
 	filters := &requests.QueryGenerationFilters{}
@@ -156,7 +163,7 @@ func (c *RestAPI) HandleQueryGenerationsForAdmin(w http.ResponseWriter, r *http.
 	}
 
 	// Get generaions
-	generations, err := c.Repo.QueryGenerationsAdmin(perPage, cursor, filters)
+	generations, err := c.Repo.QueryGenerationsAdmin(perPage, dtCursor, offsetCursot, filters)
 	if err != nil {
 		log.Error("Error getting generations for admin", "err", err)
 		responses.ErrInternalServerError(w, r, "Error getting generations")

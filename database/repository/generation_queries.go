@@ -259,17 +259,18 @@ func (r *Repository) QueryGenerations(per_page int, cursor *time.Time, filters *
 	var query *ent.GenerationQuery
 	var gQueryResult []GenerationQueryWithOutputsResult
 
+	// User can't order by updated_At
+	if filters != nil && filters.OrderBy == requests.OrderByUpdatedAt {
+		filters.OrderBy = requests.OrderByCreatedAt
+	}
+
 	query = r.DB.Generation.Query().Select(selectFields...).
 		Where(generation.StatusEQ(generation.StatusSucceeded))
 	if filters.UserID != nil {
 		query = query.Where(generation.UserID(*filters.UserID))
 	}
 	if cursor != nil {
-		if filters == nil || (filters != nil && filters.Order == requests.SortOrderDescending) {
-			query = query.Where(generation.CreatedAtLT(*cursor))
-		} else {
-			query = query.Where(generation.UpdatedAtLT(*cursor))
-		}
+		query = query.Where(generation.CreatedAtLT(*cursor))
 	}
 
 	// Exclude deleted at always
@@ -301,13 +302,8 @@ func (r *Repository) QueryGenerations(per_page int, cursor *time.Time, filters *
 				got.C(generationoutput.FieldImagePath), got.C(generationoutput.FieldUpscaledImagePath))
 		var orderByGeneration string
 		var orderByOutput string
-		if filters == nil || (filters != nil && filters.OrderBy == requests.OrderByCreatedAt) {
-			orderByGeneration = generation.FieldCreatedAt
-			orderByOutput = generationoutput.FieldCreatedAt
-		} else {
-			orderByGeneration = generation.FieldUpdatedAt
-			orderByOutput = generationoutput.FieldUpdatedAt
-		}
+		orderByGeneration = generation.FieldCreatedAt
+		orderByOutput = generationoutput.FieldCreatedAt
 		// Order by generation, then output
 		if filters == nil || (filters != nil && filters.Order == requests.SortOrderDescending) {
 			s.OrderBy(sql.Desc(got.C(orderByOutput)), sql.Desc(gt.C(orderByGeneration)))
@@ -337,11 +333,7 @@ func (r *Repository) QueryGenerations(per_page int, cursor *time.Time, filters *
 	if len(gQueryResult) > per_page {
 		// Remove last item
 		gQueryResult = gQueryResult[:len(gQueryResult)-1]
-		if filters == nil || (filters != nil && filters.OrderBy == requests.OrderByCreatedAt) {
-			meta.Next = &gQueryResult[len(gQueryResult)-1].CreatedAt
-		} else {
-			meta.Next = &gQueryResult[len(gQueryResult)-1].UpdatedAt
-		}
+		meta.Next = &gQueryResult[len(gQueryResult)-1].CreatedAt
 	}
 
 	// Get real image URLs for each
@@ -453,7 +445,7 @@ func (r *Repository) GetGenerationCountAdmin(filters *requests.QueryGenerationFi
 }
 
 // Alternate version for performance when we can't index by user_id
-func (r *Repository) QueryGenerationsAdmin(per_page int, cursor *time.Time, filters *requests.QueryGenerationFilters) (*GenerationQueryWithOutputsMeta, error) {
+func (r *Repository) QueryGenerationsAdmin(per_page int, dtCursor *time.Time, offsetCursor *int, filters *requests.QueryGenerationFilters) (*GenerationQueryWithOutputsMeta, error) {
 	var gQueryResult []GenerationQueryWithOutputsResult
 
 	// Figure out order bys
@@ -470,12 +462,10 @@ func (r *Repository) QueryGenerationsAdmin(per_page int, cursor *time.Time, filt
 	query := r.ApplyUserGenerationsFilters(r.DB.Generation.Query(), filters, true).QueryGenerationOutputs().Where(
 		generationoutput.DeletedAtIsNil(),
 	)
-	if cursor != nil {
-		if filters == nil || (filters != nil && filters.Order == requests.SortOrderDescending) {
-			query = query.Where(generationoutput.CreatedAtLT(*cursor))
-		} else {
-			query = query.Where(generationoutput.UpdatedAtLT(*cursor))
-		}
+	if dtCursor != nil {
+		query = query.Where(generationoutput.CreatedAtLT(*dtCursor))
+	} else if offsetCursor != nil {
+		query = query.Offset(*offsetCursor)
 	}
 	if filters != nil {
 		if filters.UpscaleStatus == requests.UpscaleStatusNot {
@@ -528,7 +518,7 @@ func (r *Repository) QueryGenerationsAdmin(per_page int, cursor *time.Time, filt
 			Outputs: []GenerationQueryWithOutputsResultFormatted{},
 		}
 		// Only give total if we have no cursor
-		if cursor == nil {
+		if dtCursor == nil || offsetCursor == nil {
 			zero := 0
 			meta.Total = &zero
 		}
@@ -541,7 +531,8 @@ func (r *Repository) QueryGenerationsAdmin(per_page int, cursor *time.Time, filt
 		if filters == nil || (filters != nil && filters.OrderBy == requests.OrderByCreatedAt) {
 			meta.Next = &res[len(res)-1].CreatedAt
 		} else {
-			meta.Next = &res[len(res)-1].UpdatedAt
+			// Use offset otherwise
+			meta.Next = len(res)
 		}
 	}
 
@@ -638,7 +629,7 @@ func (r *Repository) QueryGenerationsAdmin(per_page int, cursor *time.Time, filt
 	}
 
 	// Get count when no cursor
-	if cursor == nil {
+	if dtCursor == nil && offsetCursor == nil {
 		total, err := r.GetGenerationCountAdmin(filters)
 		if err != nil {
 			log.Error("Error getting user generation count", "err", err)
@@ -666,7 +657,7 @@ type GenerationUpscaleOutput struct {
 type GenerationQueryWithOutputsMeta struct {
 	Total   *int                                        `json:"total_count,omitempty"`
 	Outputs []GenerationQueryWithOutputsResultFormatted `json:"outputs"`
-	Next    *time.Time                                  `json:"next,omitempty"`
+	Next    interface{}                                 `json:"next,omitempty"`
 }
 
 type PromptType struct {

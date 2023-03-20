@@ -9,6 +9,7 @@ import (
 	"net/http/httptest"
 	"os"
 	"testing"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/stablecog/sc-go/database/ent/generation"
@@ -208,7 +209,8 @@ func TestHandleQueryGenerationsPerPage(t *testing.T) {
 	json.Unmarshal(respBody, &genResponse)
 
 	assert.Len(t, genResponse.Outputs, 1)
-	assert.Equal(t, *genResponse.Next, genResponse.Outputs[0].Generation.CreatedAt)
+	parsed, _ := time.Parse(time.RFC3339, genResponse.Next.(string))
+	assert.Equal(t, parsed, genResponse.Outputs[0].Generation.CreatedAt)
 
 	assert.Equal(t, "This is a prompt 2", genResponse.Outputs[0].Generation.Prompt.Text)
 	assert.Equal(t, string(generation.StatusSucceeded), genResponse.Outputs[0].Generation.Status)
