@@ -251,6 +251,7 @@ func (r *Repository) QueryGenerations(per_page int, cursor *time.Time, filters *
 		generation.FieldPromptID,
 		generation.FieldNegativePromptID,
 		generation.FieldCreatedAt,
+		generation.FieldUpdatedAt,
 		generation.FieldStartedAt,
 		generation.FieldCompletedAt,
 		generation.FieldWasAutoSubmitted,
@@ -332,7 +333,11 @@ func (r *Repository) QueryGenerations(per_page int, cursor *time.Time, filters *
 	if len(gQueryResult) > per_page {
 		// Remove last item
 		gQueryResult = gQueryResult[:len(gQueryResult)-1]
-		meta.Next = &gQueryResult[len(gQueryResult)-1].CreatedAt
+		if filters == nil || (filters != nil && filters.OrderBy == requests.OrderByCreatedAt) {
+			meta.Next = &gQueryResult[len(gQueryResult)-1].CreatedAt
+		} else {
+			meta.Next = &gQueryResult[len(gQueryResult)-1].UpdatedAt
+		}
 	}
 
 	// Get real image URLs for each
@@ -377,6 +382,7 @@ func (r *Repository) QueryGenerations(per_page int, cursor *time.Time, filters *
 				PromptID:         g.PromptID,
 				NegativePromptID: g.NegativePromptID,
 				CreatedAt:        g.CreatedAt,
+				UpdatedAt:        g.UpdatedAt,
 				StartedAt:        g.StartedAt,
 				CompletedAt:      g.CompletedAt,
 				Prompt: PromptType{
@@ -524,7 +530,11 @@ func (r *Repository) QueryGenerationsAdmin(per_page int, cursor *time.Time, filt
 	if len(res) > per_page {
 		// Remove last item
 		res = res[:len(res)-1]
-		meta.Next = &res[len(res)-1].CreatedAt
+		if filters == nil || (filters != nil && filters.OrderBy == requests.OrderByCreatedAt) {
+			meta.Next = &res[len(res)-1].CreatedAt
+		} else {
+			meta.Next = &res[len(res)-1].UpdatedAt
+		}
 	}
 
 	// Get real image URLs for each
@@ -544,6 +554,7 @@ func (r *Repository) QueryGenerationsAdmin(per_page int, cursor *time.Time, filt
 			PromptID:         g.Edges.Generations.PromptID,
 			NegativePromptID: g.Edges.Generations.NegativePromptID,
 			CreatedAt:        g.Edges.Generations.CreatedAt,
+			UpdatedAt:        g.Edges.Generations.UpdatedAt,
 			StartedAt:        g.Edges.Generations.StartedAt,
 			CompletedAt:      g.Edges.Generations.CompletedAt,
 			WasAutoSubmitted: g.Edges.Generations.WasAutoSubmitted,
@@ -668,6 +679,7 @@ type GenerationQueryWithOutputsData struct {
 	PromptID           *uuid.UUID                `json:"prompt_id,omitempty" sql:"prompt_id"`
 	NegativePromptID   *uuid.UUID                `json:"negative_prompt_id,omitempty" sql:"negative_prompt_id"`
 	CreatedAt          time.Time                 `json:"created_at" sql:"created_at"`
+	UpdatedAt          time.Time                 `json:"updated_at" sql:"updated_at"`
 	StartedAt          *time.Time                `json:"started_at,omitempty" sql:"started_at"`
 	CompletedAt        *time.Time                `json:"completed_at,omitempty" sql:"completed_at"`
 	NegativePromptText string                    `json:"negative_prompt_text,omitempty" sql:"negative_prompt_text"`
