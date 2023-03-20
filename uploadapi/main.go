@@ -108,14 +108,16 @@ func main() {
 	}
 
 	// Routes
-	app.Get("/", hc.HandleHealth)
-	app.Route("/v1", func(r chi.Router) {
+	app.Route("/upload", func(r chi.Router) {
 		// File upload
-		r.Route("/upload", func(r chi.Router) {
-			r.Use(middleware.Logger)
-			r.Use(mw.RateLimit(2, 1*time.Second))
-			r.Use(mw.AuthMiddleware(middleware.AuthLevelAny))
-			r.Post("/", hc.HandleUpload)
+		r.Route("/", func(r chi.Router) {
+			r.Get("/health", hc.HandleHealth)
+			r.Route("/", func(r chi.Router) {
+				r.Use(middleware.Logger)
+				r.Use(mw.RateLimit(2, 1*time.Second))
+				r.Use(mw.AuthMiddleware(middleware.AuthLevelAny))
+				r.Post("/", hc.HandleUpload)
+			})
 		})
 	})
 

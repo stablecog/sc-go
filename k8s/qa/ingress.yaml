@@ -35,3 +35,10 @@ spec:
                 name: server-service
                 port:
                   number: 13337
+          - path: /upload
+            pathType: Prefix
+            backend:
+              service:
+                name: upload-service
+                port:
+                  number: 13338

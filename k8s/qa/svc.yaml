@@ -10,3 +10,16 @@ spec:
   ports:
     - port: 13337
       targetPort: 13337
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: upload-service
+  namespace: qa-stablecog
+spec:
+  selector:
+    app: sc-uploadapi
+  type: ClusterIP
+  ports:
+    - port: 13338
+      targetPort: 13338

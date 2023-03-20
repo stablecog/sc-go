@@ -156,7 +156,7 @@ func (c *Controller) HandleUpload(w http.ResponseWriter, r *http.Request) {
 	}
 
 	render.JSON(w, r, map[string]string{
-		"object": objKey,
+		"object": fmt.Sprintf("s3://%s", objKey),
 	})
 	render.Status(r, http.StatusOK)
 }

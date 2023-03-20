@@ -1,0 +1,99 @@
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: sc-uploadapi-deployment
+  namespace: qa-stablecog
+  labels:
+    app: sc-uploadapi
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: sc-uploadapi
+  template:
+    metadata:
+      labels:
+        app: sc-uploadapi
+    spec:
+      containers:
+        - name: sc-uploadapi
+          image: replaceme
+          resources:
+            requests:
+              cpu: 100m
+              memory: 200Mi
+            limits:
+              cpu: 500m
+          command: ["/bin/sh", "-c"]
+          args: ["/app/uploadapi"]
+          ports:
+            - containerPort: 13338
+          readinessProbe:
+            httpGet:
+              path: /upload/health
+              port: 13338
+            initialDelaySeconds: 3
+            periodSeconds: 3
+          livenessProbe:
+            httpGet:
+              path: /upload/health
+              port: 13338
+            initialDelaySeconds: 15
+            periodSeconds: 10
+          imagePullPolicy: "Always"
+          env:
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: sc-go
+                  key: POSTGRES_PASSWORD
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: sc-go
+                  key: POSTGRES_USER
+            - name: POSTGRES_HOST
+              valueFrom:
+                secretKeyRef:
+                  name: sc-go
+                  key: POSTGRES_HOST
+            - name: POSTGRES_DB
+              valueFrom:
+                secretKeyRef:
+                  name: sc-go
+                  key: POSTGRES_DB
+            - name: REDIS_CONNECTION_STRING
+              valueFrom:
+                secretKeyRef:
+                  name: sc-go
+                  key: REDIS_CONNECTION_STRING
+            - name: SC_WORKER_WEBHOOK_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: sc-go
+                  key: SC_WORKER_WEBHOOK_SECRET
+            - name: S3_IMG2IMG_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: sc-go
+                  key: S3_IMG2IMG_ACCESS_KEY
+            - name: S3_IMG2IMG_BUCKET_NAME
+              valueFrom:
+                secretKeyRef:
+                  name: sc-go
+                  key: S3_IMG2IMG_BUCKET_NAME
+            - name: S3_IMG2IMG_ENDPOINT
+              valueFrom:
+                secretKeyRef:
+                  name: sc-go
+                  key: S3_IMG2IMG_ENDPOINT
+            - name: S3_IMG2IMG_REGION
+              valueFrom:
+                secretKeyRef:
+                  name: sc-go
+                  key: S3_IMG2IMG_REGION
+            - name: S3_IMG2IMG_SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: sc-go
+                  key: S3_IMG2IMG_SECRET_KEY

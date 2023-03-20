@@ -4,5 +4,6 @@ namespace: qa-stablecog
 resources:
   - deployment_server.yaml
   - deployment_cron.yaml
+  - deployment_upload.yaml
   - svc.yaml
   - ingress.yaml
