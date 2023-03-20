@@ -40,6 +40,12 @@ func (r *Repository) CreateGeneration(userID uuid.UUID, deviceType, deviceOs, de
 	if productId != nil {
 		insert.SetStripeProductID(*productId)
 	}
+	if req.InitImageUrl != "" {
+		insert.SetInitImageURL(req.InitImageUrl)
+	}
+	if req.PromptStrength != nil {
+		insert.SetPromptStrength(*req.PromptStrength)
+	}
 	return insert.Save(r.Ctx)
 }
 

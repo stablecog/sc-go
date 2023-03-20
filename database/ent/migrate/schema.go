@@ -107,7 +107,7 @@ var (
 		{Name: "failure_reason", Type: field.TypeString, Nullable: true, Size: 2147483647},
 		{Name: "country_code", Type: field.TypeString, Nullable: true, Size: 2147483647},
 		{Name: "init_image_url", Type: field.TypeString, Nullable: true, Size: 2147483647},
-		{Name: "prompt_strength", Type: field.TypeInt32, Nullable: true},
+		{Name: "prompt_strength", Type: field.TypeFloat32, Nullable: true},
 		{Name: "was_auto_submitted", Type: field.TypeBool, Default: false},
 		{Name: "stripe_product_id", Type: field.TypeString, Nullable: true, Size: 2147483647},
 		{Name: "started_at", Type: field.TypeTime, Nullable: true},

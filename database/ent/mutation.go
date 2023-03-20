@@ -3010,8 +3010,8 @@ type GenerationMutation struct {
 	failure_reason            *string
 	country_code              *string
 	init_image_url            *string
-	prompt_strength           *int32
-	addprompt_strength        *int32
+	prompt_strength           *float32
+	addprompt_strength        *float32
 	was_auto_submitted        *bool
 	stripe_product_id         *string
 	started_at                *time.Time
@@ -3719,13 +3719,13 @@ func (m *GenerationMutation) ResetInitImageURL() {
 }
 
 // SetPromptStrength sets the "prompt_strength" field.
-func (m *GenerationMutation) SetPromptStrength(i int32) {
-	m.prompt_strength = &i
+func (m *GenerationMutation) SetPromptStrength(f float32) {
+	m.prompt_strength = &f
 	m.addprompt_strength = nil
 }
 
 // PromptStrength returns the value of the "prompt_strength" field in the mutation.
-func (m *GenerationMutation) PromptStrength() (r int32, exists bool) {
+func (m *GenerationMutation) PromptStrength() (r float32, exists bool) {
 	v := m.prompt_strength
 	if v == nil {
 		return
@@ -3736,7 +3736,7 @@ func (m *GenerationMutation) PromptStrength() (r int32, exists bool) {
 // OldPromptStrength returns the old "prompt_strength" field's value of the Generation entity.
 // If the Generation object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *GenerationMutation) OldPromptStrength(ctx context.Context) (v *int32, err error) {
+func (m *GenerationMutation) OldPromptStrength(ctx context.Context) (v *float32, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldPromptStrength is only allowed on UpdateOne operations")
 	}
@@ -3750,17 +3750,17 @@ func (m *GenerationMutation) OldPromptStrength(ctx context.Context) (v *int32, e
 	return oldValue.PromptStrength, nil
 }
 
-// AddPromptStrength adds i to the "prompt_strength" field.
-func (m *GenerationMutation) AddPromptStrength(i int32) {
+// AddPromptStrength adds f to the "prompt_strength" field.
+func (m *GenerationMutation) AddPromptStrength(f float32) {
 	if m.addprompt_strength != nil {
-		*m.addprompt_strength += i
+		*m.addprompt_strength += f
 	} else {
-		m.addprompt_strength = &i
+		m.addprompt_strength = &f
 	}
 }
 
 // AddedPromptStrength returns the value that was added to the "prompt_strength" field in this mutation.
-func (m *GenerationMutation) AddedPromptStrength() (r int32, exists bool) {
+func (m *GenerationMutation) AddedPromptStrength() (r float32, exists bool) {
 	v := m.addprompt_strength
 	if v == nil {
 		return
@@ -4815,7 +4815,7 @@ func (m *GenerationMutation) SetField(name string, value ent.Value) error {
 		m.SetInitImageURL(v)
 		return nil
 	case generation.FieldPromptStrength:
-		v, ok := value.(int32)
+		v, ok := value.(float32)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
@@ -5020,7 +5020,7 @@ func (m *GenerationMutation) AddField(name string, value ent.Value) error {
 		m.AddSeed(v)
 		return nil
 	case generation.FieldPromptStrength:
-		v, ok := value.(int32)
+		v, ok := value.(float32)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}

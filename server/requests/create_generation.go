@@ -28,7 +28,7 @@ type CreateGenerationRequest struct {
 	StreamID             string                `json:"stream_id"` // Corresponds to SSE stream
 	UIId                 string                `json:"ui_id"`     // Corresponds to UI identifier
 	InitImageUrl         string                `json:"init_image_url,omitempty"`
-	PromptStrength       *int32                `json:"prompt_strength,omitempty"`
+	PromptStrength       *float32              `json:"prompt_strength,omitempty"`
 	SubmitToGallery      bool                  `json:"submit_to_gallery"`
 	ProcessType          shared.ProcessType    `json:"process_type"`
 	OutputImageExtension shared.ImageExtension `json:"output_image_extension"`

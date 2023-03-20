@@ -203,23 +203,23 @@ func (gu *GenerationUpdate) ClearInitImageURL() *GenerationUpdate {
 }
 
 // SetPromptStrength sets the "prompt_strength" field.
-func (gu *GenerationUpdate) SetPromptStrength(i int32) *GenerationUpdate {
+func (gu *GenerationUpdate) SetPromptStrength(f float32) *GenerationUpdate {
 	gu.mutation.ResetPromptStrength()
-	gu.mutation.SetPromptStrength(i)
+	gu.mutation.SetPromptStrength(f)
 	return gu
 }
 
 // SetNillablePromptStrength sets the "prompt_strength" field if the given value is not nil.
-func (gu *GenerationUpdate) SetNillablePromptStrength(i *int32) *GenerationUpdate {
-	if i != nil {
-		gu.SetPromptStrength(*i)
+func (gu *GenerationUpdate) SetNillablePromptStrength(f *float32) *GenerationUpdate {
+	if f != nil {
+		gu.SetPromptStrength(*f)
 	}
 	return gu
 }
 
-// AddPromptStrength adds i to the "prompt_strength" field.
-func (gu *GenerationUpdate) AddPromptStrength(i int32) *GenerationUpdate {
-	gu.mutation.AddPromptStrength(i)
+// AddPromptStrength adds f to the "prompt_strength" field.
+func (gu *GenerationUpdate) AddPromptStrength(f float32) *GenerationUpdate {
+	gu.mutation.AddPromptStrength(f)
 	return gu
 }
 
@@ -635,13 +635,13 @@ func (gu *GenerationUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		_spec.ClearField(generation.FieldInitImageURL, field.TypeString)
 	}
 	if value, ok := gu.mutation.PromptStrength(); ok {
-		_spec.SetField(generation.FieldPromptStrength, field.TypeInt32, value)
+		_spec.SetField(generation.FieldPromptStrength, field.TypeFloat32, value)
 	}
 	if value, ok := gu.mutation.AddedPromptStrength(); ok {
-		_spec.AddField(generation.FieldPromptStrength, field.TypeInt32, value)
+		_spec.AddField(generation.FieldPromptStrength, field.TypeFloat32, value)
 	}
 	if gu.mutation.PromptStrengthCleared() {
-		_spec.ClearField(generation.FieldPromptStrength, field.TypeInt32)
+		_spec.ClearField(generation.FieldPromptStrength, field.TypeFloat32)
 	}
 	if value, ok := gu.mutation.WasAutoSubmitted(); ok {
 		_spec.SetField(generation.FieldWasAutoSubmitted, field.TypeBool, value)
@@ -1119,23 +1119,23 @@ func (guo *GenerationUpdateOne) ClearInitImageURL() *GenerationUpdateOne {
 }
 
 // SetPromptStrength sets the "prompt_strength" field.
-func (guo *GenerationUpdateOne) SetPromptStrength(i int32) *GenerationUpdateOne {
+func (guo *GenerationUpdateOne) SetPromptStrength(f float32) *GenerationUpdateOne {
 	guo.mutation.ResetPromptStrength()
-	guo.mutation.SetPromptStrength(i)
+	guo.mutation.SetPromptStrength(f)
 	return guo
 }
 
 // SetNillablePromptStrength sets the "prompt_strength" field if the given value is not nil.
-func (guo *GenerationUpdateOne) SetNillablePromptStrength(i *int32) *GenerationUpdateOne {
-	if i != nil {
-		guo.SetPromptStrength(*i)
+func (guo *GenerationUpdateOne) SetNillablePromptStrength(f *float32) *GenerationUpdateOne {
+	if f != nil {
+		guo.SetPromptStrength(*f)
 	}
 	return guo
 }
 
-// AddPromptStrength adds i to the "prompt_strength" field.
-func (guo *GenerationUpdateOne) AddPromptStrength(i int32) *GenerationUpdateOne {
-	guo.mutation.AddPromptStrength(i)
+// AddPromptStrength adds f to the "prompt_strength" field.
+func (guo *GenerationUpdateOne) AddPromptStrength(f float32) *GenerationUpdateOne {
+	guo.mutation.AddPromptStrength(f)
 	return guo
 }
 
@@ -1575,13 +1575,13 @@ func (guo *GenerationUpdateOne) sqlSave(ctx context.Context) (_node *Generation,
 		_spec.ClearField(generation.FieldInitImageURL, field.TypeString)
 	}
 	if value, ok := guo.mutation.PromptStrength(); ok {
-		_spec.SetField(generation.FieldPromptStrength, field.TypeInt32, value)
+		_spec.SetField(generation.FieldPromptStrength, field.TypeFloat32, value)
 	}
 	if value, ok := guo.mutation.AddedPromptStrength(); ok {
-		_spec.AddField(generation.FieldPromptStrength, field.TypeInt32, value)
+		_spec.AddField(generation.FieldPromptStrength, field.TypeFloat32, value)
 	}
 	if guo.mutation.PromptStrengthCleared() {
-		_spec.ClearField(generation.FieldPromptStrength, field.TypeInt32)
+		_spec.ClearField(generation.FieldPromptStrength, field.TypeFloat32)
 	}
 	if value, ok := guo.mutation.WasAutoSubmitted(); ok {
 		_spec.SetField(generation.FieldWasAutoSubmitted, field.TypeBool, value)

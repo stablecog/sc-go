@@ -127,15 +127,15 @@ func (gc *GenerationCreate) SetNillableInitImageURL(s *string) *GenerationCreate
 }
 
 // SetPromptStrength sets the "prompt_strength" field.
-func (gc *GenerationCreate) SetPromptStrength(i int32) *GenerationCreate {
-	gc.mutation.SetPromptStrength(i)
+func (gc *GenerationCreate) SetPromptStrength(f float32) *GenerationCreate {
+	gc.mutation.SetPromptStrength(f)
 	return gc
 }
 
 // SetNillablePromptStrength sets the "prompt_strength" field if the given value is not nil.
-func (gc *GenerationCreate) SetNillablePromptStrength(i *int32) *GenerationCreate {
-	if i != nil {
-		gc.SetPromptStrength(*i)
+func (gc *GenerationCreate) SetNillablePromptStrength(f *float32) *GenerationCreate {
+	if f != nil {
+		gc.SetPromptStrength(*f)
 	}
 	return gc
 }
@@ -548,7 +548,7 @@ func (gc *GenerationCreate) createSpec() (*Generation, *sqlgraph.CreateSpec) {
 		_node.InitImageURL = &value
 	}
 	if value, ok := gc.mutation.PromptStrength(); ok {
-		_spec.SetField(generation.FieldPromptStrength, field.TypeInt32, value)
+		_spec.SetField(generation.FieldPromptStrength, field.TypeFloat32, value)
 		_node.PromptStrength = &value
 	}
 	if value, ok := gc.mutation.WasAutoSubmitted(); ok {

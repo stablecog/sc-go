@@ -46,7 +46,7 @@ type Generation struct {
 	// InitImageURL holds the value of the "init_image_url" field.
 	InitImageURL *string `json:"init_image_url,omitempty"`
 	// PromptStrength holds the value of the "prompt_strength" field.
-	PromptStrength *int32 `json:"prompt_strength,omitempty"`
+	PromptStrength *float32 `json:"prompt_strength,omitempty"`
 	// WasAutoSubmitted holds the value of the "was_auto_submitted" field.
 	WasAutoSubmitted bool `json:"was_auto_submitted,omitempty"`
 	// StripeProductID holds the value of the "stripe_product_id" field.
@@ -193,9 +193,9 @@ func (*Generation) scanValues(columns []string) ([]any, error) {
 			values[i] = &sql.NullScanner{S: new(uuid.UUID)}
 		case generation.FieldWasAutoSubmitted:
 			values[i] = new(sql.NullBool)
-		case generation.FieldGuidanceScale:
+		case generation.FieldGuidanceScale, generation.FieldPromptStrength:
 			values[i] = new(sql.NullFloat64)
-		case generation.FieldWidth, generation.FieldHeight, generation.FieldInferenceSteps, generation.FieldNumOutputs, generation.FieldNsfwCount, generation.FieldSeed, generation.FieldPromptStrength:
+		case generation.FieldWidth, generation.FieldHeight, generation.FieldInferenceSteps, generation.FieldNumOutputs, generation.FieldNsfwCount, generation.FieldSeed:
 			values[i] = new(sql.NullInt64)
 		case generation.FieldStatus, generation.FieldFailureReason, generation.FieldCountryCode, generation.FieldInitImageURL, generation.FieldStripeProductID:
 			values[i] = new(sql.NullString)
@@ -294,11 +294,11 @@ func (ge *Generation) assignValues(columns []string, values []any) error {
 				*ge.InitImageURL = value.String
 			}
 		case generation.FieldPromptStrength:
-			if value, ok := values[i].(*sql.NullInt64); !ok {
+			if value, ok := values[i].(*sql.NullFloat64); !ok {
 				return fmt.Errorf("unexpected type %T for field prompt_strength", values[i])
 			} else if value.Valid {
-				ge.PromptStrength = new(int32)
-				*ge.PromptStrength = int32(value.Int64)
+				ge.PromptStrength = new(float32)
+				*ge.PromptStrength = float32(value.Float64)
 			}
 		case generation.FieldWasAutoSubmitted:
 			if value, ok := values[i].(*sql.NullBool); !ok {

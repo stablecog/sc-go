@@ -107,7 +107,7 @@ func InitImageURL(v string) predicate.Generation {
 }
 
 // PromptStrength applies equality check predicate on the "prompt_strength" field. It's identical to PromptStrengthEQ.
-func PromptStrength(v int32) predicate.Generation {
+func PromptStrength(v float32) predicate.Generation {
 	return predicate.Generation(sql.FieldEQ(FieldPromptStrength, v))
 }
 
@@ -697,42 +697,42 @@ func InitImageURLContainsFold(v string) predicate.Generation {
 }
 
 // PromptStrengthEQ applies the EQ predicate on the "prompt_strength" field.
-func PromptStrengthEQ(v int32) predicate.Generation {
+func PromptStrengthEQ(v float32) predicate.Generation {
 	return predicate.Generation(sql.FieldEQ(FieldPromptStrength, v))
 }
 
 // PromptStrengthNEQ applies the NEQ predicate on the "prompt_strength" field.
-func PromptStrengthNEQ(v int32) predicate.Generation {
+func PromptStrengthNEQ(v float32) predicate.Generation {
 	return predicate.Generation(sql.FieldNEQ(FieldPromptStrength, v))
 }
 
 // PromptStrengthIn applies the In predicate on the "prompt_strength" field.
-func PromptStrengthIn(vs ...int32) predicate.Generation {
+func PromptStrengthIn(vs ...float32) predicate.Generation {
 	return predicate.Generation(sql.FieldIn(FieldPromptStrength, vs...))
 }
 
 // PromptStrengthNotIn applies the NotIn predicate on the "prompt_strength" field.
-func PromptStrengthNotIn(vs ...int32) predicate.Generation {
+func PromptStrengthNotIn(vs ...float32) predicate.Generation {
 	return predicate.Generation(sql.FieldNotIn(FieldPromptStrength, vs...))
 }
 
 // PromptStrengthGT applies the GT predicate on the "prompt_strength" field.
-func PromptStrengthGT(v int32) predicate.Generation {
+func PromptStrengthGT(v float32) predicate.Generation {
 	return predicate.Generation(sql.FieldGT(FieldPromptStrength, v))
 }
 
 // PromptStrengthGTE applies the GTE predicate on the "prompt_strength" field.
-func PromptStrengthGTE(v int32) predicate.Generation {
+func PromptStrengthGTE(v float32) predicate.Generation {
 	return predicate.Generation(sql.FieldGTE(FieldPromptStrength, v))
 }
 
 // PromptStrengthLT applies the LT predicate on the "prompt_strength" field.
-func PromptStrengthLT(v int32) predicate.Generation {
+func PromptStrengthLT(v float32) predicate.Generation {
 	return predicate.Generation(sql.FieldLT(FieldPromptStrength, v))
 }
 
 // PromptStrengthLTE applies the LTE predicate on the "prompt_strength" field.
-func PromptStrengthLTE(v int32) predicate.Generation {
+func PromptStrengthLTE(v float32) predicate.Generation {
 	return predicate.Generation(sql.FieldLTE(FieldPromptStrength, v))
 }
 

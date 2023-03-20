@@ -59,10 +59,12 @@ func (c *RestAPI) HandleCreateGeneration(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
+	// The URL we send worker
+	var signedInitImageUrl string
 	// See if init image specified, validate it belongs to user, validate it exists in bucket
 	if generateReq.InitImageUrl != "" {
 		// Remove s3 prefix
-		generateReq.InitImageUrl = strings.TrimPrefix(generateReq.InitImageUrl, "s3://")
+		signedInitImageUrl = strings.TrimPrefix(generateReq.InitImageUrl, "s3://")
 		// Hash user ID to see if it belongs to this user
 		uidHash := utils.Sha256(user.ID.String())
 		if !strings.HasPrefix(generateReq.InitImageUrl, fmt.Sprintf("%s/", uidHash)) {
@@ -92,7 +94,7 @@ func (c *RestAPI) HandleCreateGeneration(w http.ResponseWriter, r *http.Request)
 		// Sign object URL to pass to worker
 		req, _ := c.S3.GetObjectRequest(&s3.GetObjectInput{
 			Bucket: aws.String(os.Getenv("S3_IMG2IMG_BUCKET_NAME")),
-			Key:    aws.String(generateReq.InitImageUrl),
+			Key:    aws.String(signedInitImageUrl),
 		})
 		urlStr, err := req.Presign(5 * time.Minute)
 		if err != nil {
@@ -100,7 +102,7 @@ func (c *RestAPI) HandleCreateGeneration(w http.ResponseWriter, r *http.Request)
 			responses.ErrInternalServerError(w, r, "An unknown error has occured")
 			return
 		}
-		generateReq.InitImageUrl = urlStr
+		signedInitImageUrl = urlStr
 	}
 
 	// Get queue count
@@ -224,7 +226,7 @@ func (c *RestAPI) HandleCreateGeneration(w http.ResponseWriter, r *http.Request)
 				OutputImageQuality:   fmt.Sprint(shared.DEFAULT_GENERATE_OUTPUT_QUALITY),
 				ProcessType:          generateReq.ProcessType,
 				SubmitToGallery:      generateReq.SubmitToGallery,
-				InitImage:            generateReq.InitImageUrl,
+				InitImage:            signedInitImageUrl,
 			},
 		}
 
