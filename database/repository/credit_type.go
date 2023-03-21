@@ -44,3 +44,7 @@ func (r *Repository) GetOrCreateFreeCreditType() (*ent.CreditType, error) {
 	}
 	return creditType, nil
 }
+
+func (r *Repository) GetCreditTypeList() ([]*ent.CreditType, error) {
+	return r.DB.CreditType.Query().Where(credittype.TypeEQ(credittype.TypeOneTime)).All(r.Ctx)
+}

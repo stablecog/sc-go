@@ -215,3 +215,29 @@ func (c *RestAPI) HandleQueryUsers(w http.ResponseWriter, r *http.Request) {
 	render.Status(r, http.StatusOK)
 	render.JSON(w, r, users)
 }
+
+// Get available credit types admin can gift to user
+func (c *RestAPI) HandleQueryCreditTypes(w http.ResponseWriter, r *http.Request) {
+	if user, email := c.GetUserIDAndEmailIfAuthenticated(w, r); user == nil || email == "" {
+		return
+	}
+
+	// Get credit types
+	creditTypes, err := c.Repo.GetCreditTypeList()
+	if err != nil {
+		log.Error("Error getting credit types", "err", err)
+		responses.ErrInternalServerError(w, r, "An unknown error has occured")
+		return
+	}
+
+	resp := make([]responses.QueryCreditTypesResponse, len(creditTypes))
+	for i, ct := range creditTypes {
+		resp[i].ID = ct.ID
+		resp[i].Amount = ct.Amount
+		resp[i].Name = ct.Name
+		resp[i].Description = ct.Name
+	}
+
+	render.Status(r, http.StatusOK)
+	render.JSON(w, r, resp)
+}

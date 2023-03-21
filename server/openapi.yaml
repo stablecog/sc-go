@@ -371,6 +371,30 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse401"
+  /v1/admin/credit/types:
+    get:
+      description: "Credits: Query Types (Admin-only)"
+      security:
+        - supabase: []
+      responses:
+        "200":
+          description: JSON object with array of credit types
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CreditTypesQueryResponse"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse400"
+        "401":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse401"
   /v1/user/credits:
     get:
       description: "Credits: Query (User-only)"
@@ -1297,3 +1321,16 @@ components:
                   type: string
                 stripe_product_id:
                   type: string
+    CreditTypesQueryResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuidv4
+        name:
+          type: string
+        amount:
+          type: integer
+        description:
+          type: string
+          format: optional

@@ -280,6 +280,11 @@ func main() {
 				r.Use(middleware.Logger)
 				r.Get("/", hc.HandleQueryUsers)
 			})
+			r.Route("/credit", func(r chi.Router) {
+				r.Use(mw.AuthMiddleware(middleware.AuthLevelSuperAdmin))
+				r.Use(middleware.Logger)
+				r.Get("/types", hc.HandleQueryCreditTypes)
+			})
 		})
 	})
 
