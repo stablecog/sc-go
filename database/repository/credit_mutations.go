@@ -23,6 +23,16 @@ func (r *Repository) DeleteCreditsWithLineItemID(lineItemID string) error {
 	return nil
 }
 
+// Give credits to user
+func (r *Repository) AddCreditsToUser(creditType *ent.CreditType, userID uuid.UUID) error {
+	if creditType == nil {
+		return errors.New("creditType cannot be nil")
+	}
+
+	_, err := r.DB.Credit.Create().SetCreditTypeID(creditType.ID).SetUserID(userID).SetRemainingAmount(creditType.Amount).SetExpiresAt(NEVER_EXPIRE).Save(r.Ctx)
+	return err
+}
+
 // Add credits of creditType to user if they do not have any un-expired credits of this type
 func (r *Repository) AddCreditsIfEligible(creditType *ent.CreditType, userID uuid.UUID, expiresAt time.Time, lineItemId string, DB *ent.Client) (added bool, err error) {
 	if DB == nil {

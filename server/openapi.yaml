@@ -371,6 +371,39 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse401"
+  /v1/admin/credit/add:
+    post:
+      description: "Credits: Add to User (Admin-only)"
+      security:
+        - supabase: []
+      requestBody:
+        description: JSON object with credit type and user ID
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AddCreditInput"
+      responses:
+        "200":
+          description: JSON object with array of credit types
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  added:
+                    type: boolean
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse400"
+        "401":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse401"
   /v1/admin/credit/types:
     get:
       description: "Credits: Query Types (Admin-only)"
@@ -1334,3 +1367,12 @@ components:
         description:
           type: string
           format: optional
+    AddCreditInput:
+      type: object
+      properties:
+        credit_type_id:
+          type: string
+          format: uuidv4
+        user_id:
+          type: string
+          format: uuidv4

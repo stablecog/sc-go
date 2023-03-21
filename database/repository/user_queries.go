@@ -240,7 +240,7 @@ func (r *Repository) QueryUsers(
 
 		formatted.Credits = make([]UserQueryCredits, len(user.Edges.Credits))
 		for i, credit := range user.Edges.Credits {
-			creditType := UserQueryCreditType{Name: credit.Edges.CreditType.Name}
+			creditType := UserQueryCreditType{ID: credit.Edges.CreditType.ID, Name: credit.Edges.CreditType.Name}
 			if credit.Edges.CreditType.StripeProductID != nil {
 				creditType.StripeProductId = *credit.Edges.CreditType.StripeProductID
 			}
@@ -265,8 +265,9 @@ type UserQueryMeta struct {
 }
 
 type UserQueryCreditType struct {
-	Name            string `json:"name"`
-	StripeProductId string `json:"stripe_product_id,omitempty"`
+	ID              uuid.UUID `json:"id"`
+	Name            string    `json:"name"`
+	StripeProductId string    `json:"stripe_product_id,omitempty"`
 }
 
 type UserQueryCredits struct {

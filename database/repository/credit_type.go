@@ -19,6 +19,16 @@ func (r *Repository) CreateCreditType(name string, amount int32, description *st
 	return create.Save(r.Ctx)
 }
 
+func (r *Repository) GetCreditTypeByID(id uuid.UUID) (*ent.CreditType, error) {
+	creditType, err := r.DB.CreditType.Query().Where(credittype.IDEQ(id)).Only(r.Ctx)
+	if err != nil && ent.IsNotFound(err) {
+		return nil, nil
+	} else if err != nil {
+		return nil, err
+	}
+	return creditType, nil
+}
+
 func (r *Repository) GetCreditTypeByStripeProductID(stripeProductID string) (*ent.CreditType, error) {
 	creditType, err := r.DB.CreditType.Query().Where(credittype.StripeProductIDEQ(stripeProductID)).Only(r.Ctx)
 	if err != nil && ent.IsNotFound(err) {

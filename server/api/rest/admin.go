@@ -241,3 +241,42 @@ func (c *RestAPI) HandleQueryCreditTypes(w http.ResponseWriter, r *http.Request)
 	render.Status(r, http.StatusOK)
 	render.JSON(w, r, resp)
 }
+
+// Add credits to user
+func (c *RestAPI) HandleAddCreditsToUser(w http.ResponseWriter, r *http.Request) {
+	if user, email := c.GetUserIDAndEmailIfAuthenticated(w, r); user == nil || email == "" {
+		return
+	}
+
+	// Parse request body
+	reqBody, _ := io.ReadAll(r.Body)
+	var addReq requests.CreditAddRequest
+	err := json.Unmarshal(reqBody, &addReq)
+	if err != nil {
+		responses.ErrUnableToParseJson(w, r)
+		return
+	}
+
+	// Get credit type
+	creditType, err := c.Repo.GetCreditTypeByID(addReq.CreditTypeID)
+	if err != nil {
+		log.Error("Error getting credit type", "err", err)
+		responses.ErrInternalServerError(w, r, "An unknown error has occured")
+		return
+	} else if err == nil && creditType == nil {
+		responses.ErrNotFound(w, r, fmt.Sprintf("Invalid credit type %s", addReq.CreditTypeID.String()))
+		return
+	}
+
+	err = c.Repo.AddCreditsToUser(creditType, addReq.UserID)
+	if err != nil {
+		log.Error("Error adding credits to user", "err", err)
+		responses.ErrInternalServerError(w, r, "An unknown error has occured")
+		return
+	}
+
+	render.Status(r, http.StatusOK)
+	render.JSON(w, r, map[string]interface{}{
+		"added": true,
+	})
+}

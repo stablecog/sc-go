@@ -284,6 +284,7 @@ func main() {
 				r.Use(mw.AuthMiddleware(middleware.AuthLevelSuperAdmin))
 				r.Use(middleware.Logger)
 				r.Get("/types", hc.HandleQueryCreditTypes)
+				r.Post("/add", hc.HandleAddCreditsToUser)
 			})
 		})
 	})
