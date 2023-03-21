@@ -87,5 +87,14 @@ func (t *CreateGenerationRequest) Validate() error {
 		t.Seed = rand.Intn(math.MaxInt32)
 	}
 
+	if t.PromptStrength != nil {
+		if *t.PromptStrength < shared.MIN_PROMPT_STRENGTH {
+			*t.PromptStrength = shared.MIN_PROMPT_STRENGTH
+		}
+		if *t.PromptStrength > shared.MAX_PROMPT_STRENGTH {
+			*t.PromptStrength = shared.MAX_PROMPT_STRENGTH
+		}
+	}
+
 	return nil
 }

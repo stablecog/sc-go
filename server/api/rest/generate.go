@@ -200,6 +200,11 @@ func (c *RestAPI) HandleCreateGeneration(w http.ResponseWriter, r *http.Request)
 			ProductID:        user.ActiveProductID,
 		}
 
+		var promtpStrengthStr string
+		if generateReq.PromptStrength != nil {
+			promtpStrengthStr = fmt.Sprint(*generateReq.PromptStrength)
+		}
+
 		cogReqBody = requests.CogQueueRequest{
 			WebhookEventsFilter: []requests.CogEventFilter{requests.CogEventFilterStart, requests.CogEventFilterStart},
 			WebhookUrl:          fmt.Sprintf("%s/v1/worker/webhook", utils.GetEnv("PUBLIC_API_URL", "")),
@@ -227,6 +232,7 @@ func (c *RestAPI) HandleCreateGeneration(w http.ResponseWriter, r *http.Request)
 				ProcessType:          generateReq.ProcessType,
 				SubmitToGallery:      generateReq.SubmitToGallery,
 				InitImageUrl:         signedInitImageUrl,
+				PromptStrength:       promtpStrengthStr,
 			},
 		}
 
