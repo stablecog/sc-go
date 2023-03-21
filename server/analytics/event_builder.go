@@ -3,6 +3,7 @@ package analytics
 import (
 	"github.com/dukex/mixpanel"
 	"github.com/posthog/posthog-go"
+	"github.com/stablecog/sc-go/shared"
 )
 
 type Event struct {
@@ -18,6 +19,7 @@ func (e *Event) PosthogEvent() (posthog.Capture, *posthog.Identify) {
 	for k, v := range e.Properties {
 		properties.Set(k, v)
 	}
+	properties.Set("SC - App Version", shared.APP_VERSION)
 	c := posthog.Capture{
 		DistinctId: e.DistinctId,
 		Event:      e.EventName,
@@ -53,6 +55,7 @@ func (e *Event) MixpanelEvent() (distinctId, eventName string, event *mixpanel.E
 			mapCopy[k] = v
 		}
 	}
+	mapCopy["SC - App Version"] = shared.APP_VERSION
 	mixpanelEvent := &mixpanel.Event{
 		IP:         ip,
 		Properties: mapCopy,
@@ -61,6 +64,7 @@ func (e *Event) MixpanelEvent() (distinctId, eventName string, event *mixpanel.E
 		mapOnlyEmail := make(map[string]interface{})
 		if email, ok := mapCopy["$email"]; ok {
 			mapOnlyEmail["$email"] = email
+			mapOnlyEmail["SC - App Version"] = shared.APP_VERSION
 			identify = &mixpanel.Update{
 				IP:         ip,
 				Properties: mapOnlyEmail,

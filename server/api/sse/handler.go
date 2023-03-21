@@ -8,11 +8,9 @@ import (
 
 	"github.com/stablecog/sc-go/log"
 	"github.com/stablecog/sc-go/server/responses"
+	"github.com/stablecog/sc-go/shared"
 	"github.com/stablecog/sc-go/utils"
 )
-
-// App version
-const APP_VERSION = "4.01"
 
 // Special stream ID for live page
 const LIVE_STREAM_ID = "live"
@@ -52,7 +50,7 @@ func (h *Hub) ServeSSE(w http.ResponseWriter, r *http.Request) {
 	}()
 
 	// Broadcast app version message
-	version := AppVersionMessage{Version: APP_VERSION}
+	version := AppVersionMessage{Version: shared.APP_VERSION}
 	versionBytes, err := json.Marshal(version)
 	if err != nil {
 		log.Error("Error marshalling app version message", "err", err)
