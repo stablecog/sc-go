@@ -2,19 +2,20 @@ package log
 
 import (
 	"fmt"
+	"os"
 
 	"github.com/charmbracelet/log"
 )
 
-var infoLogger log.Logger
-var warnLogger log.Logger
-var errorLogger log.Logger
-var fatalLogger log.Logger
+var infoLogger *log.Logger
+var warnLogger *log.Logger
+var errorLogger *log.Logger
+var fatalLogger *log.Logger
 
-func getLogger(level log.Level) log.Logger {
+func getLogger(level log.Level) *log.Logger {
 	if level == log.FatalLevel {
 		if fatalLogger == nil {
-			fatalLogger = log.New()
+			fatalLogger = log.New(os.Stderr)
 			fatalLogger.SetPrefix("☠️🟥☠️")
 			fatalLogger.SetReportTimestamp(true)
 		}
@@ -22,7 +23,7 @@ func getLogger(level log.Level) log.Logger {
 	}
 	if level == log.ErrorLevel {
 		if errorLogger == nil {
-			errorLogger = log.New()
+			errorLogger = log.New(os.Stderr)
 			errorLogger.SetPrefix("🟥")
 			errorLogger.SetReportTimestamp(true)
 		}
@@ -30,14 +31,14 @@ func getLogger(level log.Level) log.Logger {
 	}
 	if level == log.WarnLevel {
 		if warnLogger == nil {
-			warnLogger = log.New()
+			warnLogger = log.New(os.Stderr)
 			warnLogger.SetPrefix("🟨")
 			warnLogger.SetReportTimestamp(true)
 		}
 		return warnLogger
 	}
 	if infoLogger == nil {
-		infoLogger = log.New()
+		infoLogger = log.New(os.Stderr)
 		infoLogger.SetPrefix("🟦")
 		infoLogger.SetReportTimestamp(true)
 	}
