@@ -17,6 +17,8 @@ import (
 	"github.com/go-chi/cors"
 	"github.com/go-co-op/gocron"
 	"github.com/joho/godotenv"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
+	chiprometheus "github.com/stablecog/chi-prometheus"
 	"github.com/stablecog/sc-go/database"
 	"github.com/stablecog/sc-go/database/repository"
 	"github.com/stablecog/sc-go/log"
@@ -107,6 +109,10 @@ func main() {
 
 	app := chi.NewRouter()
 
+	// Prometheus middleware
+	promMiddleware := chiprometheus.NewMiddleware("sc-server")
+	app.Use(promMiddleware)
+
 	// Cors middleware
 	app.Use(cors.Handler(cors.Options{
 		AllowedOrigins: utils.GetCorsOrigins(),
@@ -189,6 +195,7 @@ func main() {
 
 	// Routes
 	app.Get("/", hc.HandleHealth)
+	app.Handle("/metrics", promhttp.Handler())
 	app.Route("/v1", func(r chi.Router) {
 		r.Get("/health", hc.HandleHealth)
 
