@@ -195,7 +195,7 @@ func main() {
 
 	// Routes
 	app.Get("/", hc.HandleHealth)
-	app.Handle("/metrics", promhttp.Handler())
+	app.Handle("/metrics", middleware.BasicAuth(promhttp.Handler(), "user", "password", "Authentication required"))
 	app.Route("/v1", func(r chi.Router) {
 		r.Get("/health", hc.HandleHealth)
 

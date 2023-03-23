@@ -2,6 +2,7 @@ package middleware
 
 import (
 	"context"
+	"crypto/subtle"
 	"net/http"
 	"strings"
 	"time"
@@ -83,4 +84,20 @@ func (m *Middleware) AuthMiddleware(level AuthLevel) func(next http.Handler) htt
 			next.ServeHTTP(w, r.WithContext(ctx))
 		})
 	}
+}
+
+// BasicAuth is a wrapper for Handler that requires username and password
+func BasicAuth(next http.Handler, username, password, realm string) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		user, pass, ok := r.BasicAuth()
+
+		if !ok || subtle.ConstantTimeCompare([]byte(user), []byte(username)) != 1 || subtle.ConstantTimeCompare([]byte(pass), []byte(password)) != 1 {
+			w.Header().Set("WWW-Authenticate", `Basic realm="`+realm+`"`)
+			w.WriteHeader(401)
+			w.Write([]byte("Unauthorised.\n"))
+			return
+		}
+
+		next.ServeHTTP(w, r)
+	})
 }
