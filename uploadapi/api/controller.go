@@ -73,6 +73,7 @@ func (c *Controller) HandleUpload(w http.ResponseWriter, r *http.Request) {
 	// Enforce max upload size
 	r.Body = http.MaxBytesReader(w, r.Body, MAX_UPLOAD_SIZE_MB*1024*1024)
 	if err := r.ParseMultipartForm(MAX_UPLOAD_SIZE_MB * 1024 * 1024); err != nil {
+		log.Error("Error parsing multipart form", "err", err)
 		responses.ErrBadRequest(w, r, "file_too_large", fmt.Sprintf("Cannot exceed %dMb", MAX_UPLOAD_SIZE_MB))
 		return
 	}
@@ -80,6 +81,7 @@ func (c *Controller) HandleUpload(w http.ResponseWriter, r *http.Request) {
 
 	file, _, err := r.FormFile("file")
 	if err != nil {
+		log.Error("Error in FormFile", "err", err)
 		responses.ErrBadRequest(w, r, "invalid_file", "Invalid file")
 		return
 	}
