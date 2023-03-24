@@ -14,6 +14,7 @@ metadata:
     nginx.ingress.kubernetes.io/websocket-services: "sc-server-service"
     nginx.ingress.kubernetes.io/proxy-send-timeout: "1800"
     nginx.ingress.kubernetes.io/proxy-read-timeout: "21600"
+    nginx.ingress.kubernetes.io/proxy-body-size: 10m
     nginx.ingress.kubernetes.io/upstream-hash-by: $realip_remote_addr
     nginx.ingress.kubernetes.io/affinity: "cookie"
     nginx.ingress.kubernetes.io/session-cookie-name: "sc-qa-server"
