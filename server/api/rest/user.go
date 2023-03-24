@@ -287,8 +287,7 @@ func (c *RestAPI) HandleQueryGenerations(w http.ResponseWriter, r *http.Request)
 				urlStr, err := req.Presign(1 * time.Hour)
 				if err != nil {
 					log.Error("Error signing init image URL", "err", err)
-					responses.ErrInternalServerError(w, r, "An unknown error has occured")
-					return
+					continue
 				}
 				// Add to map
 				signedMap[g.Generation.InitImageURL] = urlStr

@@ -1014,6 +1014,12 @@ components:
             completed_at:
               type: string
               format: isoTimeString,optional
+            init_image_url:
+              type: string
+              format: optional
+            init_image_url_signed:
+              type: string
+              format: optional
             outputs:
               type: array
               items:
