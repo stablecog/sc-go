@@ -255,6 +255,7 @@ func (r *Repository) QueryGenerations(per_page int, cursor *time.Time, filters *
 		generation.FieldStartedAt,
 		generation.FieldCompletedAt,
 		generation.FieldWasAutoSubmitted,
+		generation.FieldInitImageURL,
 	}
 	var query *ent.GenerationQuery
 	var gQueryResult []GenerationQueryWithOutputsResult
@@ -381,6 +382,7 @@ func (r *Repository) QueryGenerations(per_page int, cursor *time.Time, filters *
 				UpdatedAt:        g.UpdatedAt,
 				StartedAt:        g.StartedAt,
 				CompletedAt:      g.CompletedAt,
+				InitImageURL:     g.InitImageURL,
 				Prompt: PromptType{
 					Text: g.PromptText,
 					ID:   *g.PromptID,
@@ -684,6 +686,8 @@ type GenerationQueryWithOutputsData struct {
 	Prompt             PromptType                `json:"prompt"`
 	NegativePrompt     *PromptType               `json:"negative_prompt,omitempty"`
 	WasAutoSubmitted   bool                      `json:"was_auto_submitted" sql:"was_auto_submitted"`
+	InitImageURL       string                    `json:"init_image_url,omitempty" sql:"init_image_url"`
+	InitImageURLSigned string                    `json:"init_image_url_signed,omitempty"`
 }
 
 type GenerationQueryWithOutputsResult struct {

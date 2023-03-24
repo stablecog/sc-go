@@ -5,9 +5,13 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"os"
 	"strconv"
+	"strings"
 	"time"
 
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/go-chi/render"
 	"github.com/google/uuid"
 	"github.com/stablecog/sc-go/database/ent"
@@ -260,6 +264,37 @@ func (c *RestAPI) HandleQueryGenerations(w http.ResponseWriter, r *http.Request)
 		log.Error("Error getting generations for user", "err", err)
 		responses.ErrInternalServerError(w, r, "Error getting generations")
 		return
+	}
+
+	// Presign init image URLs
+	signedMap := make(map[string]string)
+	for _, g := range generations.Outputs {
+		if g.Generation.InitImageURL != "" {
+			// See if we have already signed this URL
+			signedInitImageUrl, ok := signedMap[g.Generation.InitImageURL]
+			if !ok {
+				g.Generation.InitImageURLSigned = signedInitImageUrl
+				continue
+			}
+			// remove s3:// prefix
+			if strings.HasPrefix(g.Generation.InitImageURL, "s3://") {
+				prefixRemoved := g.Generation.InitImageURL[5:]
+				// Sign object URL to pass to worker
+				req, _ := c.S3.GetObjectRequest(&s3.GetObjectInput{
+					Bucket: aws.String(os.Getenv("S3_IMG2IMG_BUCKET_NAME")),
+					Key:    aws.String(prefixRemoved),
+				})
+				urlStr, err := req.Presign(1 * time.Hour)
+				if err != nil {
+					log.Error("Error signing init image URL", "err", err)
+					responses.ErrInternalServerError(w, r, "An unknown error has occured")
+					return
+				}
+				// Add to map
+				signedMap[g.Generation.InitImageURL] = urlStr
+				g.Generation.InitImageURLSigned = urlStr
+			}
+		}
 	}
 
 	// Return generations
