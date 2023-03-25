@@ -5,6 +5,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/stablecog/sc-go/shared"
+	"github.com/stablecog/sc-go/utils"
 )
 
 // ! From our application to sc-worker
@@ -28,6 +29,7 @@ type BaseCogRequest struct {
 	GenerationOutputID string                  `json:"generation_output_id,omitempty"` // Specific to upscale requests
 	LivePageData       *shared.LivePageMessage `json:"live_page_data,omitempty"`
 	StreamID           string                  `json:"stream_id,omitempty"`
+	DeviceInfo         utils.ClientDeviceInfo  `json:"device_info,omitempty"`
 	// Generate specific
 	UploadPathPrefix     string             `json:"upload_path_prefix,omitempty"`
 	Prompt               string             `json:"prompt,omitempty"`

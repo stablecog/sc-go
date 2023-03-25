@@ -6,7 +6,23 @@ import (
 	"github.com/google/uuid"
 	"github.com/stablecog/sc-go/database/ent"
 	"github.com/stablecog/sc-go/server/requests"
+	"github.com/stablecog/sc-go/utils"
 )
+
+func setDeviceInfo(dInfo utils.ClientDeviceInfo, properties map[string]interface{}) {
+	if dInfo.DeviceBrowser != "" {
+		properties["$browser"] = dInfo.DeviceBrowser
+	}
+	if dInfo.DeviceOs != "" {
+		properties["$os"] = dInfo.DeviceOs
+	}
+	if dInfo.DeviceBrowserVersion != "" {
+		properties["$browser_version"] = dInfo.DeviceBrowserVersion
+	}
+	if dInfo.DeviceType != "" {
+		properties["$browser_type"] = dInfo.DeviceType
+	}
+}
 
 // Generation | Started
 func (a *AnalyticsService) GenerationStarted(user *ent.User, cogReq requests.BaseCogRequest, ip string) error {
@@ -39,6 +55,7 @@ func (a *AnalyticsService) GenerationStarted(user *ent.User, cogReq requests.Bas
 	if cogReq.PromptStrength != "" {
 		properties["SC - Prompt Strength"] = cogReq.PromptStrength
 	}
+	setDeviceInfo(cogReq.DeviceInfo, properties)
 
 	return a.Dispatch(Event{
 		Identify:   true,
@@ -79,6 +96,7 @@ func (a *AnalyticsService) GenerationSucceeded(user *ent.User, cogReq requests.B
 	if cogReq.PromptStrength != "" {
 		properties["SC - Prompt Strength"] = cogReq.PromptStrength
 	}
+	setDeviceInfo(cogReq.DeviceInfo, properties)
 
 	return a.Dispatch(Event{
 		DistinctId: user.ID.String(),
@@ -118,6 +136,7 @@ func (a *AnalyticsService) GenerationFailedNSFW(user *ent.User, cogReq requests.
 	if cogReq.PromptStrength != "" {
 		properties["SC - Prompt Strength"] = cogReq.PromptStrength
 	}
+	setDeviceInfo(cogReq.DeviceInfo, properties)
 
 	return a.Dispatch(Event{
 		DistinctId: user.ID.String(),
@@ -158,6 +177,7 @@ func (a *AnalyticsService) GenerationFailed(user *ent.User, cogReq requests.Base
 	if cogReq.PromptStrength != "" {
 		properties["SC - Prompt Strength"] = cogReq.PromptStrength
 	}
+	setDeviceInfo(cogReq.DeviceInfo, properties)
 
 	return a.Dispatch(Event{
 		DistinctId: user.ID.String(),
@@ -186,6 +206,7 @@ func (a *AnalyticsService) UpscaleStarted(user *ent.User, cogReq requests.BaseCo
 	if user.ActiveProductID != nil {
 		properties["SC - Stripe Product Id"] = user.ActiveProductID
 	}
+	setDeviceInfo(cogReq.DeviceInfo, properties)
 
 	return a.Dispatch(Event{
 		Identify:   true,
@@ -215,6 +236,7 @@ func (a *AnalyticsService) UpscaleSucceeded(user *ent.User, cogReq requests.Base
 	if user.ActiveProductID != nil {
 		properties["SC - Stripe Product Id"] = user.ActiveProductID
 	}
+	setDeviceInfo(cogReq.DeviceInfo, properties)
 
 	return a.Dispatch(Event{
 		DistinctId: user.ID.String(),
@@ -243,6 +265,7 @@ func (a *AnalyticsService) UpscaleFailed(user *ent.User, cogReq requests.BaseCog
 	if user.ActiveProductID != nil {
 		properties["SC - Stripe Product Id"] = user.ActiveProductID
 	}
+	setDeviceInfo(cogReq.DeviceInfo, properties)
 
 	return a.Dispatch(Event{
 		DistinctId: user.ID.String(),

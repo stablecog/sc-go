@@ -182,6 +182,7 @@ func (c *RestAPI) HandleUpscale(w http.ResponseWriter, r *http.Request) {
 				IP:                   utils.GetIPAddress(r),
 				UIId:                 upscaleReq.UIId,
 				UserID:               &user.ID,
+				DeviceInfo:           deviceInfo,
 				StreamID:             upscaleReq.StreamID,
 				LivePageData:         &livePageMsg,
 				GenerationOutputID:   outputIDStr,

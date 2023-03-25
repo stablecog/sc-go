@@ -27,9 +27,10 @@ const (
 )
 
 type ClientDeviceInfo struct {
-	DeviceType    ClientDeviceType
-	DeviceOs      string
-	DeviceBrowser string
+	DeviceType           ClientDeviceType `json:"device_type"`
+	DeviceOs             string           `json:"device_os"`
+	DeviceBrowser        string           `json:"device_browser"`
+	DeviceBrowserVersion string           `json:"device_browser_version"`
 }
 
 func GetClientDeviceInfo(r *http.Request) ClientDeviceInfo {
@@ -47,9 +48,10 @@ func GetClientDeviceInfo(r *http.Request) ClientDeviceInfo {
 	}
 
 	return ClientDeviceInfo{
-		DeviceType:    deviceType,
-		DeviceOs:      client.OS,
-		DeviceBrowser: client.Name,
+		DeviceType:           deviceType,
+		DeviceOs:             client.OS,
+		DeviceBrowser:        client.Name,
+		DeviceBrowserVersion: client.Version,
 	}
 }
 

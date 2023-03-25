@@ -213,6 +213,7 @@ func (c *RestAPI) HandleCreateGeneration(w http.ResponseWriter, r *http.Request)
 				IP:                   utils.GetIPAddress(r),
 				UIId:                 generateReq.UIId,
 				UserID:               &user.ID,
+				DeviceInfo:           deviceInfo,
 				StreamID:             generateReq.StreamID,
 				LivePageData:         &livePageMsg,
 				Prompt:               generateReq.Prompt,
