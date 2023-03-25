@@ -101,7 +101,7 @@ func (c *RestAPI) HandleGetUser(w http.ResponseWriter, r *http.Request) {
 			}
 			return
 		}
-		go c.Track.SignUp(*userID, email, utils.GetIPAddress(r))
+		go c.Track.SignUp(*userID, email, utils.GetIPAddress(r), utils.GetClientDeviceInfo(r))
 	}
 
 	if user == nil {

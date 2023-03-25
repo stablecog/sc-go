@@ -275,17 +275,19 @@ func (a *AnalyticsService) UpscaleFailed(user *ent.User, cogReq requests.BaseCog
 }
 
 // Sign Up
-func (a *AnalyticsService) SignUp(userId uuid.UUID, email, ipAddress string) error {
+func (a *AnalyticsService) SignUp(userId uuid.UUID, email, ipAddress string, deviceInfo utils.ClientDeviceInfo) error {
+	properties := map[string]interface{}{
+		"email":        email,
+		"SC - Email":   email,
+		"SC - User Id": userId,
+		"$ip":          ipAddress,
+	}
+	setDeviceInfo(deviceInfo, properties)
 	return a.Dispatch(Event{
 		Identify:   true,
 		DistinctId: userId.String(),
 		EventName:  "Sign Up",
-		Properties: map[string]interface{}{
-			"email":        email,
-			"SC - Email":   email,
-			"SC - User Id": userId,
-			"$ip":          ipAddress,
-		},
+		Properties: properties,
 	})
 }
 
