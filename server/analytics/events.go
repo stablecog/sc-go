@@ -26,6 +26,8 @@ func (a *AnalyticsService) GenerationStarted(user *ent.User, cogReq requests.Bas
 		"SC - Scheduler Id":      cogReq.SchedulerId.String(),
 		"SC - Submit to Gallery": cogReq.SubmitToGallery,
 		"SC - Num Outputs":       cogReq.NumOutputs,
+		"SC - Init Image Url":    cogReq.InitImageUrl,
+		"SC - Prompt Strength":   cogReq.PromptStrength,
 		"$ip":                    ip,
 		"email":                  user.Email,
 	}
@@ -60,6 +62,8 @@ func (a *AnalyticsService) GenerationSucceeded(user *ent.User, cogReq requests.B
 		"SC - Submit to Gallery": cogReq.SubmitToGallery,
 		"SC - Duration":          duration,
 		"SC - Num Outputs":       cogReq.NumOutputs,
+		"SC - Init Image Url":    cogReq.InitImageUrl,
+		"SC - Prompt Strength":   cogReq.PromptStrength,
 		"$ip":                    ip,
 	}
 	if user.ActiveProductID != nil {
@@ -92,6 +96,8 @@ func (a *AnalyticsService) GenerationFailedNSFW(user *ent.User, cogReq requests.
 		"SC - Submit to Gallery": cogReq.SubmitToGallery,
 		"SC - Duration":          duration,
 		"SC - Num Outputs":       cogReq.NumOutputs,
+		"SC - Init Image Url":    cogReq.InitImageUrl,
+		"SC - Prompt Strength":   cogReq.PromptStrength,
 		"$ip":                    ip,
 	}
 	if user.ActiveProductID != nil {
@@ -125,6 +131,8 @@ func (a *AnalyticsService) GenerationFailed(user *ent.User, cogReq requests.Base
 		"SC - Duration":          duration,
 		"SC - Num Outputs":       cogReq.NumOutputs,
 		"SC - Failure Reason":    failureReason,
+		"SC - Init Image Url":    cogReq.InitImageUrl,
+		"SC - Prompt Strength":   cogReq.PromptStrength,
 		"$ip":                    ip,
 	}
 	if user.ActiveProductID != nil {
