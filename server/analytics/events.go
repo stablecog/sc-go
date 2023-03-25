@@ -20,7 +20,7 @@ func setDeviceInfo(dInfo utils.ClientDeviceInfo, properties map[string]interface
 		properties["$browser_version"] = dInfo.DeviceBrowserVersion
 	}
 	if dInfo.DeviceType != "" {
-		properties["$browser_type"] = dInfo.DeviceType
+		properties["$device_type"] = dInfo.DeviceType
 	}
 }
 
