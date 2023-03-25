@@ -236,6 +236,10 @@ func (c *RestAPI) HandleCreateGeneration(w http.ResponseWriter, r *http.Request)
 			},
 		}
 
+		if cogReqBody.Input.InitImageUrl != "" {
+			cogReqBody.Input.InitImageUrlS3 = generateReq.InitImageUrl
+		}
+
 		err = c.Redis.EnqueueCogRequest(r.Context(), cogReqBody)
 		if err != nil {
 			log.Error("Failed to write request %s to queue: %v", requestId, err)

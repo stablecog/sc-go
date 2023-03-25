@@ -33,8 +33,8 @@ func (a *AnalyticsService) GenerationStarted(user *ent.User, cogReq requests.Bas
 	if user.ActiveProductID != nil {
 		properties["SC - Stripe Product Id"] = user.ActiveProductID
 	}
-	if cogReq.InitImageUrl != "" {
-		properties["SC - Init Image Url"] = cogReq.InitImageUrl
+	if cogReq.InitImageUrlS3 != "" {
+		properties["SC - Init Image Url"] = cogReq.InitImageUrlS3
 	}
 	if cogReq.PromptStrength != "" {
 		properties["SC - Prompt Strength"] = cogReq.PromptStrength
@@ -73,8 +73,8 @@ func (a *AnalyticsService) GenerationSucceeded(user *ent.User, cogReq requests.B
 	if user.ActiveProductID != nil {
 		properties["SC - Stripe Product Id"] = user.ActiveProductID
 	}
-	if cogReq.InitImageUrl != "" {
-		properties["SC - Init Image Url"] = cogReq.InitImageUrl
+	if cogReq.InitImageUrlS3 != "" {
+		properties["SC - Init Image Url"] = cogReq.InitImageUrlS3
 	}
 	if cogReq.PromptStrength != "" {
 		properties["SC - Prompt Strength"] = cogReq.PromptStrength
@@ -112,8 +112,8 @@ func (a *AnalyticsService) GenerationFailedNSFW(user *ent.User, cogReq requests.
 	if user.ActiveProductID != nil {
 		properties["SC - Stripe Product Id"] = user.ActiveProductID
 	}
-	if cogReq.InitImageUrl != "" {
-		properties["SC - Init Image Url"] = cogReq.InitImageUrl
+	if cogReq.InitImageUrlS3 != "" {
+		properties["SC - Init Image Url"] = cogReq.InitImageUrlS3
 	}
 	if cogReq.PromptStrength != "" {
 		properties["SC - Prompt Strength"] = cogReq.PromptStrength
@@ -152,8 +152,8 @@ func (a *AnalyticsService) GenerationFailed(user *ent.User, cogReq requests.Base
 	if user.ActiveProductID != nil {
 		properties["SC - Stripe Product Id"] = user.ActiveProductID
 	}
-	if cogReq.InitImageUrl != "" {
-		properties["SC - Init Image Url"] = cogReq.InitImageUrl
+	if cogReq.InitImageUrlS3 != "" {
+		properties["SC - Init Image Url"] = cogReq.InitImageUrlS3
 	}
 	if cogReq.PromptStrength != "" {
 		properties["SC - Prompt Strength"] = cogReq.PromptStrength
