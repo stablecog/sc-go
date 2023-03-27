@@ -83,7 +83,7 @@ func NewSubscriberWebhook(repo *repository.Repository, user *ent.User, productId
 	body := models.DiscordWebhookBody{
 		Embeds: []models.DiscordWebhookEmbed{
 			{
-				Title: fmt.Sprintf("🎉 New Subscriber #%d", nSubs),
+				Title: fmt.Sprintf("🎉 New Sub #%d • %s", nSubs, ctype.Name),
 				Color: 11437567,
 				Fields: []models.DiscordWebhookField{
 					{
@@ -152,7 +152,7 @@ func SubscriptionUpgradeWebhook(
 	body := models.DiscordWebhookBody{
 		Embeds: []models.DiscordWebhookEmbed{
 			{
-				Title: "🎉 Subscription Upgrade",
+				Title: fmt.Sprintf("🎉 Sub Upgrade • %s", creditTypeNew.Name),
 				Color: 11437567,
 				Fields: []models.DiscordWebhookField{
 					{
@@ -160,12 +160,12 @@ func SubscriptionUpgradeWebhook(
 						Value: user.Email,
 					},
 					{
-						Name:  "New Plan",
-						Value: creditTypeNew.Name,
-					},
-					{
 						Name:  "Old Plan",
 						Value: creditTypeOld.Name,
+					},
+					{
+						Name:  "New Plan",
+						Value: creditTypeNew.Name,
 					},
 					{
 						Name:  "Supabase ID",
@@ -208,7 +208,7 @@ func AdhocCreditsPurchasedWebhook(repo *repository.Repository, user *ent.User, c
 	body := models.DiscordWebhookBody{
 		Embeds: []models.DiscordWebhookEmbed{
 			{
-				Title: "🎉 Credits Purchased",
+				Title: fmt.Sprintf("🎉 Cred Purchase • %s", creditType.Name),
 				Color: 11437567,
 				Fields: []models.DiscordWebhookField{
 					{
