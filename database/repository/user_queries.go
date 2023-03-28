@@ -248,6 +248,7 @@ func (r *Repository) QueryUsers(
 				RemainingAmount: credit.RemainingAmount,
 				ExpiresAt:       credit.ExpiresAt,
 				CreditType:      creditType,
+				ReplenishedAt:   credit.ReplenishedAt,
 			}
 		}
 		meta.Users[i] = formatted
@@ -274,6 +275,7 @@ type UserQueryCredits struct {
 	RemainingAmount int32               `json:"remaining_amount"`
 	ExpiresAt       time.Time           `json:"expires_at"`
 	CreditType      UserQueryCreditType `json:"credit_type"`
+	ReplenishedAt   time.Time           `json:"replenished_at,omitempty"`
 }
 
 type UserQueryResult struct {
