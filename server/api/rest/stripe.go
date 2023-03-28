@@ -4,8 +4,10 @@ import (
 	"encoding/json"
 	"io"
 	"net/http"
+	"time"
 
 	"github.com/go-chi/render"
+	"github.com/go-redis/redis/v8"
 	"github.com/stablecog/sc-go/database/ent"
 	"github.com/stablecog/sc-go/log"
 	"github.com/stablecog/sc-go/server/discord"
@@ -523,6 +525,8 @@ func (c *RestAPI) HandleStripeWebhook(w http.ResponseWriter, r *http.Request) {
 				return
 			}
 		}
+		// Remove from redis
+		err = c.Redis.Client.Del(c.Redis.Ctx, invoice.ID).Err()
 
 	// Subcription payments
 	case "invoice.finalized", "invoice.paid":
@@ -603,10 +607,28 @@ func (c *RestAPI) HandleStripeWebhook(w http.ResponseWriter, r *http.Request) {
 					return err
 				}
 				if user.ActiveProductID == nil && added {
-					// New subscriber
-					go c.Track.Subscription(user, product)
-					go discord.NewSubscriberWebhook(c.Repo, user, product)
-				} else if added {
+					// Set a key in redis indicating we should track, to check later
+					err = c.Redis.Client.SetEx(c.Redis.Ctx, invoice.ID, user.ID, time.Minute*60).Err()
+					if err != nil {
+						log.Error("Unable setting redis key for user %s: %v", user.ID.String(), err)
+					}
+					go func() {
+						// See if key exists in redis still and notify
+						time.Sleep(time.Minute * 5)
+						_, err := c.Redis.Client.Get(c.Redis.Ctx, invoice.ID).Result()
+						if err == redis.Nil || err != nil {
+							return
+						}
+						// Remove key
+						err = c.Redis.Client.Del(c.Redis.Ctx, invoice.ID).Err()
+						if err != nil {
+							log.Error("Unable deleting redis key for user %s: %v", user.ID.String(), err)
+						}
+						// Notify
+						c.Track.Subscription(user, product)
+						discord.NewSubscriberWebhook(c.Repo, user, product)
+					}()
+				} else if added && event.Type == "invoice.paid" {
 					// Renewal
 					go c.Track.SubscriptionRenewal(user, product)
 				} else {
