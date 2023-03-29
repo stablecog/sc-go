@@ -6,10 +6,11 @@ require (
 	github.com/google/uuid v1.3.0
 	github.com/jarcoal/httpmock v1.3.0
 	github.com/meilisearch/meilisearch-go v0.22.0
-	github.com/stablecog/sc-go/database v0.0.0-20230302020341-97439f16e654
+	github.com/stablecog/sc-go/database v0.0.0-20230321001722-68888f92a48b
 	github.com/stablecog/sc-go/log v0.0.0-20230303221221-dcc7ec43e5e1
-	github.com/stablecog/sc-go/shared v0.0.0-20230302020341-97439f16e654
-	github.com/stablecog/sc-go/utils v0.0.0-20230302020341-97439f16e654
+	github.com/stablecog/sc-go/server v0.0.0-20230329175616-c8c62c35dc60
+	github.com/stablecog/sc-go/shared v0.0.0-20230321001722-68888f92a48b
+	github.com/stablecog/sc-go/utils v0.0.0-20230321001722-68888f92a48b
 	github.com/stretchr/testify v1.8.2
 )
 
@@ -21,7 +22,6 @@ require (
 	github.com/charmbracelet/log v0.1.2 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/go-logfmt/logfmt v0.6.0 // indirect
-	github.com/go-redis/redis/v8 v8.11.5 // indirect
 	github.com/golang-jwt/jwt/v4 v4.4.3 // indirect
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
 	github.com/josharian/intern v1.0.0 // indirect
@@ -33,11 +33,10 @@ require (
 	github.com/mileusna/useragent v1.2.1 // indirect
 	github.com/muesli/reflow v0.2.1-0.20210115123740-9e1d0d53df68 // indirect
 	github.com/muesli/termenv v0.11.1-0.20220204035834-5ac8409525e0 // indirect
-	github.com/onsi/gomega v1.24.1 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
+	github.com/redis/go-redis/v9 v9.0.2 // indirect
 	github.com/rivo/uniseg v0.2.0 // indirect
 	github.com/robfig/cron/v3 v3.0.1 // indirect
-	github.com/stablecog/sc-go/server v0.0.0-20230303221221-dcc7ec43e5e1 // indirect
 	github.com/supabase-community/gotrue-go v1.0.1 // indirect
 	github.com/tomnomnom/linkheader v0.0.0-20180905144013-02ca5825eb80 // indirect
 	github.com/valyala/bytebufferpool v1.0.0 // indirect

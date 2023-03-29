@@ -116,6 +116,13 @@ func main() {
 	}
 
 	if *allJobs {
+		// Get models, schedulers and put in cache
+		log.Info("📦 Populating cache...")
+		err = repo.UpdateCache()
+		if err != nil {
+			// ! Not getting these is fatal and will result in crash
+			panic(err)
+		}
 		log.Info("🏡 Starting all jobs...")
 		s := gocron.NewScheduler(time.UTC)
 		s.Every(60).Seconds().Do(jobRunner.SyncMeili, jobs.NewJobLogger("MEILI_SYNC"))
@@ -124,6 +131,15 @@ func main() {
 			s.Every(60).Seconds().Do(jobRunner.CheckHealth, jobs.NewJobLogger("HEALTH"))
 		}
 		s.Every(60).Seconds().Do(jobRunner.AddFreeCreditsToEligibleUsers, jobs.NewJobLogger("FREE_CREDITS"))
+		// cache update
+		s.Every(5).Minutes().StartAt(time.Now().Add(5 * time.Minute)).Do(func() {
+			log.Info("📦 Updating cache...")
+			err = repo.UpdateCache()
+			if err != nil {
+				log.Error("Error updating cache", "err", err)
+			}
+		})
+		// Auto upscale
 		go jobRunner.StartAutoUpscaleJob(jobs.NewJobLogger("AUTO_UPSCALE"))
 		s.StartBlocking()
 		os.Exit(0)
