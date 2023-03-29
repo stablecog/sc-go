@@ -89,9 +89,10 @@ func main() {
 
 	// Create repository (database access)
 	repo := &repository.Repository{
-		DB:    entClient,
-		Redis: redis,
-		Ctx:   ctx,
+		DB:       entClient,
+		ConnInfo: dbconn,
+		Redis:    redis,
+		Ctx:      ctx,
 	}
 
 	if *createMockData {

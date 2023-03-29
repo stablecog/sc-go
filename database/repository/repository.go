@@ -11,9 +11,10 @@ import (
 // Repository is a package that contains all the database access functions
 
 type Repository struct {
-	DB    *ent.Client
-	Redis *database.RedisWrapper
-	Ctx   context.Context
+	DB       *ent.Client
+	ConnInfo database.SqlDBConn
+	Redis    *database.RedisWrapper
+	Ctx      context.Context
 }
 
 // WithTx runs a function in a transaction

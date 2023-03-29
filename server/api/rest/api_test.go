@@ -56,9 +56,10 @@ func testMainWrapper(m *testing.M) int {
 	}
 
 	repo := &repository.Repository{
-		DB:    entClient,
-		Redis: redis,
-		Ctx:   ctx,
+		DB:       entClient,
+		ConnInfo: dbconn,
+		Redis:    redis,
+		Ctx:      ctx,
 	}
 
 	// Mock data

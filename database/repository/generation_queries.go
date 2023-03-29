@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"fmt"
 	"time"
 
 	"entgo.io/ent/dialect/sql"
@@ -42,6 +43,35 @@ func (r *Repository) GetGenerationOutputWidthHeight(outputID uuid.UUID) (width, 
 // Get last N generations, a basic view
 func (r *Repository) GetGenerations(limit int) ([]*ent.Generation, error) {
 	return r.DB.Generation.Query().Order(ent.Desc(generation.FieldCreatedAt)).Limit(limit).All(r.Ctx)
+}
+
+// Get avg(started_at - created_at) over a time period with limit
+func (r *Repository) GetAvgGenerationQueueTime(since time.Time, limit int) (float64, error) {
+	var avg []struct {
+		CreatedAt    time.Time `json:"created_at" sql:"created_at"`
+		AvgQueueTime float64   `json:"avg_queue_time" sql:"avg"`
+	}
+	err := r.DB.Generation.Query().Where(generation.StatusEQ(generation.StatusSucceeded), generation.CreatedAtGT(since)).
+		Order(ent.Desc(generation.FieldCreatedAt)).
+		Limit(limit).
+		GroupBy(generation.FieldCreatedAt).
+		Aggregate(func(s *sql.Selector) string {
+			var raw string
+			switch r.ConnInfo.Dialect() {
+			case "pgx":
+				raw = fmt.Sprintf("EXTRACT(EPOCH FROM (%s - %s))", s.C(generation.FieldStartedAt), s.C(generation.FieldCreatedAt))
+			default:
+				raw = fmt.Sprintf("ROUND((JULIANDAY(%s) - JULIANDAY(%s)) * 86400)", s.C(generation.FieldStartedAt), s.C(generation.FieldCreatedAt))
+			}
+			return sql.As(sql.Avg(raw), "avg")
+		}).Scan(r.Ctx, &avg)
+	if err != nil {
+		return 0, err
+	}
+	if len(avg) == 0 {
+		return 0, nil
+	}
+	return avg[0].AvgQueueTime, nil
 }
 
 // Apply all filters to root ent query
