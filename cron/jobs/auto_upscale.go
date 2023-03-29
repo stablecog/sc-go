@@ -29,6 +29,7 @@ func (j *JobRunner) StartAutoUpscaleJob(log Logger) {
 				log.Errorf("Error unmarshalling cog internal message %v", err)
 				continue
 			}
+			log.Infof("Received internal cog message %v", cogMessage)
 
 			// See if active channel exists
 			activeChannel := sMap.Get(cogMessage.Input.ID)
