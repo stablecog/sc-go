@@ -30,6 +30,7 @@ func (c *RestAPI) HandleSCWorkerWebhook(w http.ResponseWriter, r *http.Request) 
 	var cogMessage requests.CogWebhookMessage
 	err := json.Unmarshal(reqBody, &cogMessage)
 	if err != nil {
+		log.Errorf("Failed to parse COG webhook message, %v", err)
 		responses.ErrUnableToParseJson(w, r)
 		return
 	}

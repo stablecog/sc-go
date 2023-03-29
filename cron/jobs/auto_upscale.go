@@ -67,21 +67,21 @@ func (j *JobRunner) StartAutoUpscaleJob(log Logger) {
 					// Refresh
 					break
 				}
-				// // Determine if queue length is too long
-				// qSize, err := j.Redis.GetQueueSize()
-				// if err != nil {
-				// 	log.Errorf("Error getting queue size %v", err)
-				// 	time.Sleep(5 * time.Second)
-				// 	continue
-				// }
-				// // Get avg time in queue
-				// avgQTime, err := j.Repo.GetAvgGenerationQueueTime(time.Now().Add(-shared.AUTO_UPSCALE_AVG_TIME_IN_QUEUE_SINCE), 0)
-				// if err != nil {
-				// 	log.Errorf("Error getting avg queue time %v", err)
-				// 	time.Sleep(5 * time.Second)
-				// 	continue
-				// }
-
+				// Determine if queue length is too long
+				qSize, err := j.Redis.GetQueueSize()
+				if err != nil {
+					log.Errorf("Error getting queue size %v", err)
+					time.Sleep(5 * time.Second)
+					continue
+				}
+				// Get avg time in queue
+				avgQTime, err := j.Repo.GetAvgGenerationQueueTime(time.Now().Add(-shared.AUTO_UPSCALE_AVG_TIME_IN_QUEUE_SINCE), 0)
+				if err != nil {
+					log.Errorf("Error getting avg queue time %v", err)
+					time.Sleep(5 * time.Second)
+					continue
+				}
+				log.Infof("Critiera not met qSize %d -- avgQTime %f", qSize, avgQTime)
 				// if qSize > shared.AUTO_UPSCALE_QUEUE_SIZE_QSIZE_REQUIRED || avgQTime > shared.AUTO_UPSCALE_AVG_TIME_IN_QUEUE_REQUIRED {
 				// 	log.Infof("Critiera not met qSize %d -- avgQTime %f", qSize, avgQTime)
 				// 	time.Sleep(shared.AUTO_UPSCALE_RETRY_DURATION)
