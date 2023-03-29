@@ -171,8 +171,6 @@ func CreateUpscale(Track *analytics.AnalyticsService, Repo *repository.Repositor
 						log.Error("Failed to publish live page update", "err", err)
 					}
 				}()
-				// Analytics
-				go Track.UpscaleStarted(user, cogMsg.Input, "system")
 			case requests.CogSucceeded:
 				_, err := Repo.SetUpscaleSucceeded(upscale.ID.String(), output.ID.String(), cogMsg.Input.Image, cogMsg.Outputs[0])
 				if err != nil {
