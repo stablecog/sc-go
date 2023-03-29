@@ -1,6 +1,7 @@
 package scworker
 
 import (
+	"encoding/json"
 	"fmt"
 	"time"
 
@@ -81,6 +82,20 @@ func CreateUpscale(Repo *repository.Repository, Redis *database.RedisWrapper, sM
 			return err
 		}
 
+		// Live page
+		livePageMsg := &shared.LivePageMessage{
+			ProcessType:      shared.UPSCALE,
+			ID:               utils.Sha256(requestId),
+			CountryCode:      *generation.CountryCode,
+			Status:           shared.LivePageQueued,
+			TargetNumOutputs: 1,
+			Width:            generation.Width,
+			Height:           generation.Height,
+			CreatedAt:        upscale.CreatedAt,
+			ProductID:        user.ActiveProductID,
+			SystemGenerated:  true,
+		}
+
 		// Send to the cog
 		requestId = upscale.ID.String()
 		cogReqBody := requests.CogQueueRequest{
@@ -93,6 +108,7 @@ func CreateUpscale(Repo *repository.Repository, Redis *database.RedisWrapper, sM
 				UserID:               &user.ID,
 				StreamID:             upscaleReq.StreamID,
 				GenerationOutputID:   output.ID.String(),
+				LivePageData:         livePageMsg,
 				Image:                utils.GetURLFromImagePath(output.ImagePath),
 				ProcessType:          shared.UPSCALE,
 				Width:                fmt.Sprint(generation.Width),
@@ -114,6 +130,23 @@ func CreateUpscale(Repo *repository.Repository, Redis *database.RedisWrapper, sM
 			return err
 		}
 
+		// Send live page update
+		go func() {
+			liveResp := repository.TaskStatusUpdateResponse{
+				ForLivePage:     true,
+				LivePageMessage: livePageMsg,
+			}
+			respBytes, err := json.Marshal(liveResp)
+			if err != nil {
+				log.Error("Error marshalling sse live response", "err", err)
+				return
+			}
+			err = Redis.Client.Publish(Redis.Ctx, shared.REDIS_SSE_BROADCAST_CHANNEL, respBytes).Err()
+			if err != nil {
+				log.Error("Failed to publish live page update", "err", err)
+			}
+		}()
+
 		return nil
 	}); err != nil {
 		return err
@@ -129,17 +162,74 @@ func CreateUpscale(Repo *repository.Repository, Redis *database.RedisWrapper, sM
 					log.Error("Failed to set upscale started", "id", upscale.ID, "err", err)
 					return err
 				}
+				// Send live page update
+				go func() {
+					cogMsg.Input.LivePageData.Status = shared.LivePageProcessing
+					now := time.Now()
+					cogMsg.Input.LivePageData.StartedAt = &now
+					liveResp := repository.TaskStatusUpdateResponse{
+						ForLivePage:     true,
+						LivePageMessage: cogMsg.Input.LivePageData,
+					}
+					respBytes, err := json.Marshal(liveResp)
+					if err != nil {
+						log.Error("Error marshalling sse live response", "err", err)
+						return
+					}
+					err = Redis.Client.Publish(Redis.Ctx, shared.REDIS_SSE_BROADCAST_CHANNEL, respBytes).Err()
+					if err != nil {
+						log.Error("Failed to publish live page update", "err", err)
+					}
+				}()
 			case requests.CogSucceeded:
 				_, err := Repo.SetUpscaleSucceeded(upscale.ID.String(), output.ID.String(), cogMsg.Input.Image, cogMsg.Outputs[0])
 				if err != nil {
 					log.Error("Failed to set upscale succeeded", "id", upscale.ID, "err", err)
 				}
+				// Send live page update
+				go func() {
+					cogMsg.Input.LivePageData.Status = shared.LivePageSucceeded
+					now := time.Now()
+					cogMsg.Input.LivePageData.CompletedAt = &now
+					liveResp := repository.TaskStatusUpdateResponse{
+						ForLivePage:     true,
+						LivePageMessage: cogMsg.Input.LivePageData,
+					}
+					respBytes, err := json.Marshal(liveResp)
+					if err != nil {
+						log.Error("Error marshalling sse live response", "err", err)
+						return
+					}
+					err = Redis.Client.Publish(Redis.Ctx, shared.REDIS_SSE_BROADCAST_CHANNEL, respBytes).Err()
+					if err != nil {
+						log.Error("Failed to publish live page update", "err", err)
+					}
+				}()
 				return err
 			case requests.CogFailed:
 				err := Repo.SetUpscaleFailed(upscale.ID.String(), cogMsg.Error, nil)
 				if err != nil {
 					log.Error("Failed to set upscale failed", "id", upscale.ID, "err", err)
 				}
+				// Send live page update
+				go func() {
+					cogMsg.Input.LivePageData.Status = shared.LivePageFailed
+					now := time.Now()
+					cogMsg.Input.LivePageData.CompletedAt = &now
+					liveResp := repository.TaskStatusUpdateResponse{
+						ForLivePage:     true,
+						LivePageMessage: cogMsg.Input.LivePageData,
+					}
+					respBytes, err := json.Marshal(liveResp)
+					if err != nil {
+						log.Error("Error marshalling sse live response", "err", err)
+						return
+					}
+					err = Redis.Client.Publish(Redis.Ctx, shared.REDIS_SSE_BROADCAST_CHANNEL, respBytes).Err()
+					if err != nil {
+						log.Error("Failed to publish live page update", "err", err)
+					}
+				}()
 				return err
 			}
 		case <-time.After(shared.REQUEST_COG_TIMEOUT):

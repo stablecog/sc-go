@@ -1218,6 +1218,8 @@ components:
         completed_at:
           type: string
           format: isoTimeString, optional
+        system_generated:
+          type: boolean
       description: Status updates delivered for live activity page
     UserSummaryResponse:
       type: object

@@ -28,4 +28,5 @@ type LivePageMessage struct {
 	StartedAt        *time.Time     `json:"started_at,omitempty"`
 	CompletedAt      *time.Time     `json:"completed_at,omitempty"`
 	ProductID        *string        `json:"product_id,omitempty"`
+	SystemGenerated  bool           `json:"system_generated"`
 }
