@@ -98,7 +98,7 @@ const FREE_CREDIT_LAST_ACTIVITY_REQUIREMENT = 168 * time.Hour
 
 // ! Auto-upscale
 // Only trigger upscale if queue length is not greater than this
-const AUTO_UPSCALE_QUEUE_SIZE_QSIZE_REQUIRED = 1
+const AUTO_UPSCALE_QUEUE_SIZE_QSIZE_REQUIRED = 0
 
 // Evaluate time in queue over this period
 const AUTO_UPSCALE_AVG_TIME_IN_QUEUE_SINCE = 5 * time.Minute

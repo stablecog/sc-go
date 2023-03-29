@@ -81,12 +81,12 @@ func (j *JobRunner) StartAutoUpscaleJob(log Logger) {
 					time.Sleep(5 * time.Second)
 					continue
 				}
-				log.Infof("Critiera not met qSize %d -- avgQTime %f", qSize, avgQTime)
-				// if qSize > shared.AUTO_UPSCALE_QUEUE_SIZE_QSIZE_REQUIRED || avgQTime > shared.AUTO_UPSCALE_AVG_TIME_IN_QUEUE_REQUIRED {
-				// 	log.Infof("Critiera not met qSize %d -- avgQTime %f", qSize, avgQTime)
-				// 	time.Sleep(shared.AUTO_UPSCALE_RETRY_DURATION)
-				// 	continue
-				// }
+
+				if qSize > shared.AUTO_UPSCALE_QUEUE_SIZE_QSIZE_REQUIRED || avgQTime > shared.AUTO_UPSCALE_AVG_TIME_IN_QUEUE_REQUIRED {
+					log.Infof("Critiera not met qSize %d -- avgQTime %f", qSize, avgQTime)
+					time.Sleep(shared.AUTO_UPSCALE_RETRY_DURATION)
+					continue
+				}
 
 				// Upscale
 				log.Infof("Upscaling output %s", output.ID)
@@ -104,7 +104,6 @@ func (j *JobRunner) StartAutoUpscaleJob(log Logger) {
 					continue
 				}
 				log.Infof("Upscale created for output %s", output.ID)
-				time.Sleep(60 * time.Second)
 			}
 		}
 	}
