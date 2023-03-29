@@ -97,7 +97,7 @@ func (j *JobRunner) StartAutoUpscaleJob(log Logger) {
 					time.Sleep(5 * time.Second)
 					continue
 				}
-				err = scworker.CreateUpscale(j.Repo, j.Redis, sMap, g, output)
+				err = scworker.CreateUpscale(j.Track, j.Repo, j.Redis, sMap, g, output)
 				if err != nil {
 					log.Errorf("Error creating upscale %v", err)
 					time.Sleep(5 * time.Second)

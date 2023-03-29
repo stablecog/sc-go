@@ -203,6 +203,9 @@ func (a *AnalyticsService) UpscaleStarted(user *ent.User, cogReq requests.BaseCo
 		"$ip":           ip,
 		"email":         user.Email,
 	}
+	if ip == "system" {
+		properties["SC - System Generated"] = true
+	}
 	if user.ActiveProductID != nil {
 		properties["SC - Stripe Product Id"] = user.ActiveProductID
 	}
@@ -233,6 +236,9 @@ func (a *AnalyticsService) UpscaleSucceeded(user *ent.User, cogReq requests.Base
 		"SC - Duration": duration,
 		"$ip":           ip,
 	}
+	if ip == "system" {
+		properties["SC - System Generated"] = true
+	}
 	if user.ActiveProductID != nil {
 		properties["SC - Stripe Product Id"] = user.ActiveProductID
 	}
@@ -261,6 +267,9 @@ func (a *AnalyticsService) UpscaleFailed(user *ent.User, cogReq requests.BaseCog
 		"SC - Duration":       duration,
 		"$ip":                 ip,
 		"SC - Failure Reason": failureReason,
+	}
+	if ip == "system" {
+		properties["SC - System Generated"] = true
 	}
 	if user.ActiveProductID != nil {
 		properties["SC - Stripe Product Id"] = user.ActiveProductID

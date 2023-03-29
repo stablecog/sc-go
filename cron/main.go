@@ -15,6 +15,7 @@ import (
 	"github.com/stablecog/sc-go/database"
 	"github.com/stablecog/sc-go/database/repository"
 	"github.com/stablecog/sc-go/log"
+	"github.com/stablecog/sc-go/server/analytics"
 	"github.com/stablecog/sc-go/utils"
 )
 
@@ -79,6 +80,10 @@ func main() {
 		Ctx:      ctx,
 	}
 
+	// Create analytics service
+	analyticsService := analytics.NewAnalyticsService()
+	defer analyticsService.Close()
+
 	// Create a job runner
 	jobRunner := jobs.JobRunner{
 		Repo:    repo,
@@ -86,6 +91,7 @@ func main() {
 		Ctx:     ctx,
 		Meili:   database.NewMeiliSearchClient(),
 		Discord: discord.NewDiscordHealthTracker(ctx),
+		Track:   analyticsService,
 	}
 
 	if *healthCheck {

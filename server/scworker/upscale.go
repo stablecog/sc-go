@@ -5,17 +5,19 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/favadi/osinfo"
 	"github.com/stablecog/sc-go/database"
 	"github.com/stablecog/sc-go/database/ent"
 	"github.com/stablecog/sc-go/database/repository"
 	"github.com/stablecog/sc-go/log"
+	"github.com/stablecog/sc-go/server/analytics"
 	"github.com/stablecog/sc-go/server/requests"
 	"github.com/stablecog/sc-go/shared"
 	"github.com/stablecog/sc-go/utils"
 )
 
 // Create an Upscale in sc-worker, wait for result
-func CreateUpscale(Repo *repository.Repository, Redis *database.RedisWrapper, sMap *shared.SyncMap[chan requests.CogWebhookMessage], generation *ent.Generation, output *ent.GenerationOutput) error {
+func CreateUpscale(Track *analytics.AnalyticsService, Repo *repository.Repository, Redis *database.RedisWrapper, sMap *shared.SyncMap[chan requests.CogWebhookMessage], generation *ent.Generation, output *ent.GenerationOutput) error {
 	if len(shared.GetCache().UpscaleModels) == 0 {
 		log.Error("No upscale models available")
 		return fmt.Errorf("No upscale models available")
@@ -30,6 +32,8 @@ func CreateUpscale(Repo *repository.Repository, Redis *database.RedisWrapper, sM
 
 	var upscale *ent.Upscale
 	var requestId string
+	var user *ent.User
+	var err error
 
 	// Create channel
 	activeChl := make(chan requests.CogWebhookMessage)
@@ -41,27 +45,10 @@ func CreateUpscale(Repo *repository.Repository, Redis *database.RedisWrapper, sM
 		// Bind transaction to client
 		DB := tx.Client()
 
-		user, err := generation.QueryUser().Only(Repo.Ctx)
+		user, err = generation.QueryUser().Only(Repo.Ctx)
 		if err != nil {
 			log.Error("Error getting user", "err", err)
 			return err
-		}
-		dInfo, err := generation.QueryDeviceInfo().Only(Repo.Ctx)
-		if err != nil {
-			log.Error("Error getting device info", "err", err)
-			return err
-		}
-		var deviceType string
-		if dInfo.Type != nil {
-			deviceType = string(*dInfo.Type)
-		}
-		var deviceOs string
-		if dInfo.Os != nil {
-			deviceOs = string(*dInfo.Os)
-		}
-		var deviceBrowser string
-		if dInfo.Browser != nil {
-			deviceBrowser = string(*dInfo.Browser)
 		}
 
 		// Create upscale
@@ -69,10 +56,10 @@ func CreateUpscale(Repo *repository.Repository, Redis *database.RedisWrapper, sM
 			user.ID,
 			generation.Width,
 			generation.Height,
-			deviceType,
-			deviceOs,
-			deviceBrowser,
-			*generation.CountryCode,
+			"server",
+			osinfo.New().String(),
+			"",
+			"US",
 			upscaleReq,
 			user.ActiveProductID,
 			true,
@@ -86,7 +73,7 @@ func CreateUpscale(Repo *repository.Repository, Redis *database.RedisWrapper, sM
 		livePageMsg := &shared.LivePageMessage{
 			ProcessType:      shared.UPSCALE,
 			ID:               utils.Sha256(requestId),
-			CountryCode:      *generation.CountryCode,
+			CountryCode:      "US",
 			Status:           shared.LivePageQueued,
 			TargetNumOutputs: 1,
 			Width:            generation.Width,
@@ -129,6 +116,9 @@ func CreateUpscale(Repo *repository.Repository, Redis *database.RedisWrapper, sM
 			log.Error("Failed to write request to queue", "id", upscale.ID, "err", err)
 			return err
 		}
+
+		// Analytics
+		go Track.UpscaleStarted(user, cogReqBody.Input, "system")
 
 		// Send live page update
 		go func() {
@@ -181,6 +171,8 @@ func CreateUpscale(Repo *repository.Repository, Redis *database.RedisWrapper, sM
 						log.Error("Failed to publish live page update", "err", err)
 					}
 				}()
+				// Analytics
+				go Track.UpscaleStarted(user, cogMsg.Input, "system")
 			case requests.CogSucceeded:
 				_, err := Repo.SetUpscaleSucceeded(upscale.ID.String(), output.ID.String(), cogMsg.Input.Image, cogMsg.Outputs[0])
 				if err != nil {
@@ -205,6 +197,9 @@ func CreateUpscale(Repo *repository.Repository, Redis *database.RedisWrapper, sM
 						log.Error("Failed to publish live page update", "err", err)
 					}
 				}()
+				// Analytics
+				duration := time.Now().Sub(cogMsg.Input.LivePageData.CreatedAt).Seconds()
+				go Track.UpscaleSucceeded(user, cogMsg.Input, duration, "system")
 				return err
 			case requests.CogFailed:
 				err := Repo.SetUpscaleFailed(upscale.ID.String(), cogMsg.Error, nil)
@@ -230,6 +225,9 @@ func CreateUpscale(Repo *repository.Repository, Redis *database.RedisWrapper, sM
 						log.Error("Failed to publish live page update", "err", err)
 					}
 				}()
+				// Analytics
+				duration := time.Now().Sub(cogMsg.Input.LivePageData.CreatedAt).Seconds()
+				go Track.UpscaleFailed(user, cogMsg.Input, duration, cogMsg.Error, "system")
 				return err
 			}
 		case <-time.After(shared.REQUEST_COG_TIMEOUT):

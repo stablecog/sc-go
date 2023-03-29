@@ -14,9 +14,14 @@ type Event struct {
 }
 
 func (e *Event) PosthogEvent() (posthog.Capture, *posthog.Identify) {
+	skipIdentify := false
 	// Construct properties
 	properties := posthog.NewProperties()
 	for k, v := range e.Properties {
+		if k == "$ip" && v == "system" {
+			skipIdentify = true
+			continue
+		}
 		properties.Set(k, v)
 	}
 	properties.Set("SC - App Version", shared.APP_VERSION)
@@ -25,7 +30,7 @@ func (e *Event) PosthogEvent() (posthog.Capture, *posthog.Identify) {
 		Event:      e.EventName,
 		Properties: properties,
 	}
-	if e.Identify {
+	if e.Identify && !skipIdentify {
 		propertiesIdentify := posthog.NewProperties()
 		// Remove all properites except email, app version, device_type/browser/os/version
 		for k := range e.Properties {
@@ -45,6 +50,7 @@ func (e *Event) PosthogEvent() (posthog.Capture, *posthog.Identify) {
 
 func (e *Event) MixpanelEvent() (distinctId, eventName string, event *mixpanel.Event, identify *mixpanel.Update) {
 	ip := "0"
+	skipIdentify := false
 	// Prune $ip from map if it exists
 	mapCopy := make(map[string]interface{})
 	for k, v := range e.Properties {
@@ -56,12 +62,16 @@ func (e *Event) MixpanelEvent() (distinctId, eventName string, event *mixpanel.E
 			mapCopy[k] = v
 		}
 	}
+	if ip == "system" {
+		skipIdentify = true
+		ip = ""
+	}
 	mapCopy["SC - App Version"] = shared.APP_VERSION
 	mixpanelEvent := &mixpanel.Event{
 		IP:         ip,
 		Properties: mapCopy,
 	}
-	if e.Identify {
+	if e.Identify && !skipIdentify {
 		mapOnlyEmail := make(map[string]interface{})
 		// Remove all properites except email, app version, device_type/browser/os/version
 		for k := range mapCopy {

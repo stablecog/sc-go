@@ -18,11 +18,11 @@ require (
 	github.com/posthog/posthog-go v0.0.0-20221221115252-24dfed35d71a
 	github.com/prometheus/client_golang v1.14.0
 	github.com/redis/go-redis/v9 v9.0.2
-	github.com/stablecog/sc-go/cron v0.0.0-20230321001722-68888f92a48b
-	github.com/stablecog/sc-go/database v0.0.0-20230321001722-68888f92a48b
+	github.com/stablecog/sc-go/cron v0.0.0-20230329211320-ea8e574b08f6
+	github.com/stablecog/sc-go/database v0.0.0-20230329211320-ea8e574b08f6
 	github.com/stablecog/sc-go/log v0.0.0-20230303221221-dcc7ec43e5e1
-	github.com/stablecog/sc-go/shared v0.0.0-20230321001722-68888f92a48b
-	github.com/stablecog/sc-go/utils v0.0.0-20230321001722-68888f92a48b
+	github.com/stablecog/sc-go/shared v0.0.0-20230329211320-ea8e574b08f6
+	github.com/stablecog/sc-go/utils v0.0.0-20230329211320-ea8e574b08f6
 	github.com/stretchr/testify v1.8.2
 	golang.org/x/exp v0.0.0-20230321023759-10a507213a29
 	golang.org/x/net v0.1.0
@@ -99,6 +99,7 @@ require (
 	github.com/ajg/form v1.5.1 // indirect
 	github.com/alicebob/miniredis/v2 v2.30.0 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
+	github.com/favadi/osinfo v0.0.0-20200812114956-6c7e8ee533c0
 	github.com/mattn/go-sqlite3 v1.14.16 // indirect
 	github.com/mileusna/useragent v1.2.1 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
