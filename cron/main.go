@@ -124,8 +124,8 @@ func main() {
 			s.Every(60).Seconds().Do(jobRunner.CheckHealth, jobs.NewJobLogger("HEALTH"))
 		}
 		s.Every(60).Seconds().Do(jobRunner.AddFreeCreditsToEligibleUsers, jobs.NewJobLogger("FREE_CREDITS"))
-		s.StartBlocking()
 		go jobRunner.StartAutoUpscaleJob(jobs.NewJobLogger("AUTO_UPSCALE"))
+		s.StartBlocking()
 		os.Exit(0)
 	}
 
