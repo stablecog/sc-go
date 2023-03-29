@@ -34,9 +34,8 @@ func (c *RestAPI) HandleSCWorkerWebhook(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	log.Infof("Received COG message, %v", cogMessage)
-
 	if cogMessage.Input.Internal {
+		log.Infof("Received COG INTERNAL message, %v", cogMessage)
 		// Internal request handled in a separate flow
 		err = c.Redis.Client.Publish(c.Redis.Ctx, shared.REDIS_INTERNAL_COG_CHANNEL, reqBody).Err()
 		if err != nil {
