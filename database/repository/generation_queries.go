@@ -52,7 +52,7 @@ func (r *Repository) GetAvgGenerationQueueTime(since time.Time, limit int) (floa
 		StartedAt time.Time `json:"started_at" sql:"started_at"`
 		QueueS    float64   `json:"queue_s" sql:"queue_s"`
 	}
-	q := r.DB.Debug().Generation.Query().Where(generation.StatusEQ(generation.StatusSucceeded), generation.CreatedAtGT(since)).
+	q := r.DB.Generation.Query().Where(generation.StatusEQ(generation.StatusSucceeded), generation.CreatedAtGT(since)).
 		Order(ent.Desc(generation.FieldCreatedAt))
 	if limit > 0 {
 		q = q.Limit(limit)
