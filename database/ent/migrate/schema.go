@@ -307,6 +307,7 @@ var (
 		{Name: "status", Type: field.TypeEnum, Enums: []string{"queued", "started", "succeeded", "failed"}},
 		{Name: "failure_reason", Type: field.TypeString, Nullable: true, Size: 2147483647},
 		{Name: "stripe_product_id", Type: field.TypeString, Nullable: true, Size: 2147483647},
+		{Name: "system_generated", Type: field.TypeBool, Default: false},
 		{Name: "started_at", Type: field.TypeTime, Nullable: true},
 		{Name: "completed_at", Type: field.TypeTime, Nullable: true},
 		{Name: "created_at", Type: field.TypeTime},
@@ -323,19 +324,19 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "upscales_device_info_upscales",
-				Columns:    []*schema.Column{UpscalesColumns[12]},
+				Columns:    []*schema.Column{UpscalesColumns[13]},
 				RefColumns: []*schema.Column{DeviceInfoColumns[0]},
 				OnDelete:   schema.Cascade,
 			},
 			{
 				Symbol:     "upscales_upscale_models_upscales",
-				Columns:    []*schema.Column{UpscalesColumns[13]},
+				Columns:    []*schema.Column{UpscalesColumns[14]},
 				RefColumns: []*schema.Column{UpscaleModelsColumns[0]},
 				OnDelete:   schema.Cascade,
 			},
 			{
 				Symbol:     "upscales_users_upscales",
-				Columns:    []*schema.Column{UpscalesColumns[14]},
+				Columns:    []*schema.Column{UpscalesColumns[15]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.Cascade,
 			},

@@ -74,6 +74,7 @@ func CreateUpscale(Repo *repository.Repository, Redis *database.RedisWrapper, sM
 			*generation.CountryCode,
 			upscaleReq,
 			user.ActiveProductID,
+			true,
 			DB)
 		if err != nil {
 			log.Error("Error creating upscale", "err", err)

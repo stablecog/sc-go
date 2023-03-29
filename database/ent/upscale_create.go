@@ -91,6 +91,20 @@ func (uc *UpscaleCreate) SetNillableStripeProductID(s *string) *UpscaleCreate {
 	return uc
 }
 
+// SetSystemGenerated sets the "system_generated" field.
+func (uc *UpscaleCreate) SetSystemGenerated(b bool) *UpscaleCreate {
+	uc.mutation.SetSystemGenerated(b)
+	return uc
+}
+
+// SetNillableSystemGenerated sets the "system_generated" field if the given value is not nil.
+func (uc *UpscaleCreate) SetNillableSystemGenerated(b *bool) *UpscaleCreate {
+	if b != nil {
+		uc.SetSystemGenerated(*b)
+	}
+	return uc
+}
+
 // SetUserID sets the "user_id" field.
 func (uc *UpscaleCreate) SetUserID(u uuid.UUID) *UpscaleCreate {
 	uc.mutation.SetUserID(u)
@@ -250,6 +264,10 @@ func (uc *UpscaleCreate) ExecX(ctx context.Context) {
 
 // defaults sets the default values of the builder before save.
 func (uc *UpscaleCreate) defaults() {
+	if _, ok := uc.mutation.SystemGenerated(); !ok {
+		v := upscale.DefaultSystemGenerated
+		uc.mutation.SetSystemGenerated(v)
+	}
 	if _, ok := uc.mutation.CreatedAt(); !ok {
 		v := upscale.DefaultCreatedAt()
 		uc.mutation.SetCreatedAt(v)
@@ -282,6 +300,9 @@ func (uc *UpscaleCreate) check() error {
 		if err := upscale.StatusValidator(v); err != nil {
 			return &ValidationError{Name: "status", err: fmt.Errorf(`ent: validator failed for field "Upscale.status": %w`, err)}
 		}
+	}
+	if _, ok := uc.mutation.SystemGenerated(); !ok {
+		return &ValidationError{Name: "system_generated", err: errors.New(`ent: missing required field "Upscale.system_generated"`)}
 	}
 	if _, ok := uc.mutation.UserID(); !ok {
 		return &ValidationError{Name: "user_id", err: errors.New(`ent: missing required field "Upscale.user_id"`)}
@@ -375,6 +396,10 @@ func (uc *UpscaleCreate) createSpec() (*Upscale, *sqlgraph.CreateSpec) {
 	if value, ok := uc.mutation.StripeProductID(); ok {
 		_spec.SetField(upscale.FieldStripeProductID, field.TypeString, value)
 		_node.StripeProductID = &value
+	}
+	if value, ok := uc.mutation.SystemGenerated(); ok {
+		_spec.SetField(upscale.FieldSystemGenerated, field.TypeBool, value)
+		_node.SystemGenerated = value
 	}
 	if value, ok := uc.mutation.StartedAt(); ok {
 		_spec.SetField(upscale.FieldStartedAt, field.TypeTime, value)

@@ -14,7 +14,7 @@ import (
 
 // CreateUpscale creates the initial generation in the database
 // Takes in a userID (creator),  device info, countryCode, and a request body
-func (r *Repository) CreateUpscale(userID uuid.UUID, width, height int32, deviceType, deviceOs, deviceBrowser, countryCode string, req requests.CreateUpscaleRequest, productId *string, DB *ent.Client) (*ent.Upscale, error) {
+func (r *Repository) CreateUpscale(userID uuid.UUID, width, height int32, deviceType, deviceOs, deviceBrowser, countryCode string, req requests.CreateUpscaleRequest, productId *string, systemGenerated bool, DB *ent.Client) (*ent.Upscale, error) {
 	if DB == nil {
 		DB = r.DB
 	}
@@ -31,7 +31,8 @@ func (r *Repository) CreateUpscale(userID uuid.UUID, width, height int32, device
 		SetDeviceInfoID(deviceInfoId).
 		SetCountryCode(countryCode).
 		SetScale(shared.DEFAULT_UPSCALE_SCALE).
-		SetUserID(userID)
+		SetUserID(userID).
+		SetSystemGenerated(systemGenerated)
 	if productId != nil {
 		insert.SetStripeProductID(*productId)
 	}

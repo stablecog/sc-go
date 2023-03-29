@@ -28,6 +28,8 @@ const (
 	FieldFailureReason = "failure_reason"
 	// FieldStripeProductID holds the string denoting the stripe_product_id field in the database.
 	FieldStripeProductID = "stripe_product_id"
+	// FieldSystemGenerated holds the string denoting the system_generated field in the database.
+	FieldSystemGenerated = "system_generated"
 	// FieldUserID holds the string denoting the user_id field in the database.
 	FieldUserID = "user_id"
 	// FieldDeviceInfoID holds the string denoting the device_info_id field in the database.
@@ -92,6 +94,7 @@ var Columns = []string{
 	FieldStatus,
 	FieldFailureReason,
 	FieldStripeProductID,
+	FieldSystemGenerated,
 	FieldUserID,
 	FieldDeviceInfoID,
 	FieldModelID,
@@ -112,6 +115,8 @@ func ValidColumn(column string) bool {
 }
 
 var (
+	// DefaultSystemGenerated holds the default value on creation for the "system_generated" field.
+	DefaultSystemGenerated bool
 	// DefaultCreatedAt holds the default value on creation for the "created_at" field.
 	DefaultCreatedAt func() time.Time
 	// DefaultUpdatedAt holds the default value on creation for the "updated_at" field.

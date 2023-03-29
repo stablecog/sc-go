@@ -139,6 +139,20 @@ func (uu *UpscaleUpdate) ClearStripeProductID() *UpscaleUpdate {
 	return uu
 }
 
+// SetSystemGenerated sets the "system_generated" field.
+func (uu *UpscaleUpdate) SetSystemGenerated(b bool) *UpscaleUpdate {
+	uu.mutation.SetSystemGenerated(b)
+	return uu
+}
+
+// SetNillableSystemGenerated sets the "system_generated" field if the given value is not nil.
+func (uu *UpscaleUpdate) SetNillableSystemGenerated(b *bool) *UpscaleUpdate {
+	if b != nil {
+		uu.SetSystemGenerated(*b)
+	}
+	return uu
+}
+
 // SetUserID sets the "user_id" field.
 func (uu *UpscaleUpdate) SetUserID(u uuid.UUID) *UpscaleUpdate {
 	uu.mutation.SetUserID(u)
@@ -403,6 +417,9 @@ func (uu *UpscaleUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if uu.mutation.StripeProductIDCleared() {
 		_spec.ClearField(upscale.FieldStripeProductID, field.TypeString)
+	}
+	if value, ok := uu.mutation.SystemGenerated(); ok {
+		_spec.SetField(upscale.FieldSystemGenerated, field.TypeBool, value)
 	}
 	if value, ok := uu.mutation.StartedAt(); ok {
 		_spec.SetField(upscale.FieldStartedAt, field.TypeTime, value)
@@ -705,6 +722,20 @@ func (uuo *UpscaleUpdateOne) ClearStripeProductID() *UpscaleUpdateOne {
 	return uuo
 }
 
+// SetSystemGenerated sets the "system_generated" field.
+func (uuo *UpscaleUpdateOne) SetSystemGenerated(b bool) *UpscaleUpdateOne {
+	uuo.mutation.SetSystemGenerated(b)
+	return uuo
+}
+
+// SetNillableSystemGenerated sets the "system_generated" field if the given value is not nil.
+func (uuo *UpscaleUpdateOne) SetNillableSystemGenerated(b *bool) *UpscaleUpdateOne {
+	if b != nil {
+		uuo.SetSystemGenerated(*b)
+	}
+	return uuo
+}
+
 // SetUserID sets the "user_id" field.
 func (uuo *UpscaleUpdateOne) SetUserID(u uuid.UUID) *UpscaleUpdateOne {
 	uuo.mutation.SetUserID(u)
@@ -993,6 +1024,9 @@ func (uuo *UpscaleUpdateOne) sqlSave(ctx context.Context) (_node *Upscale, err e
 	}
 	if uuo.mutation.StripeProductIDCleared() {
 		_spec.ClearField(upscale.FieldStripeProductID, field.TypeString)
+	}
+	if value, ok := uuo.mutation.SystemGenerated(); ok {
+		_spec.SetField(upscale.FieldSystemGenerated, field.TypeBool, value)
 	}
 	if value, ok := uuo.mutation.StartedAt(); ok {
 		_spec.SetField(upscale.FieldStartedAt, field.TypeTime, value)

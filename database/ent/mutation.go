@@ -8402,6 +8402,7 @@ type UpscaleMutation struct {
 	status                 *upscale.Status
 	failure_reason         *string
 	stripe_product_id      *string
+	system_generated       *bool
 	started_at             *time.Time
 	completed_at           *time.Time
 	created_at             *time.Time
@@ -8876,6 +8877,42 @@ func (m *UpscaleMutation) ResetStripeProductID() {
 	delete(m.clearedFields, upscale.FieldStripeProductID)
 }
 
+// SetSystemGenerated sets the "system_generated" field.
+func (m *UpscaleMutation) SetSystemGenerated(b bool) {
+	m.system_generated = &b
+}
+
+// SystemGenerated returns the value of the "system_generated" field in the mutation.
+func (m *UpscaleMutation) SystemGenerated() (r bool, exists bool) {
+	v := m.system_generated
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSystemGenerated returns the old "system_generated" field's value of the Upscale entity.
+// If the Upscale object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UpscaleMutation) OldSystemGenerated(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSystemGenerated is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSystemGenerated requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSystemGenerated: %w", err)
+	}
+	return oldValue.SystemGenerated, nil
+}
+
+// ResetSystemGenerated resets all changes to the "system_generated" field.
+func (m *UpscaleMutation) ResetSystemGenerated() {
+	m.system_generated = nil
+}
+
 // SetUserID sets the "user_id" field.
 func (m *UpscaleMutation) SetUserID(u uuid.UUID) {
 	m.user = &u
@@ -9333,7 +9370,7 @@ func (m *UpscaleMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *UpscaleMutation) Fields() []string {
-	fields := make([]string, 0, 14)
+	fields := make([]string, 0, 15)
 	if m.width != nil {
 		fields = append(fields, upscale.FieldWidth)
 	}
@@ -9354,6 +9391,9 @@ func (m *UpscaleMutation) Fields() []string {
 	}
 	if m.stripe_product_id != nil {
 		fields = append(fields, upscale.FieldStripeProductID)
+	}
+	if m.system_generated != nil {
+		fields = append(fields, upscale.FieldSystemGenerated)
 	}
 	if m.user != nil {
 		fields = append(fields, upscale.FieldUserID)
@@ -9398,6 +9438,8 @@ func (m *UpscaleMutation) Field(name string) (ent.Value, bool) {
 		return m.FailureReason()
 	case upscale.FieldStripeProductID:
 		return m.StripeProductID()
+	case upscale.FieldSystemGenerated:
+		return m.SystemGenerated()
 	case upscale.FieldUserID:
 		return m.UserID()
 	case upscale.FieldDeviceInfoID:
@@ -9435,6 +9477,8 @@ func (m *UpscaleMutation) OldField(ctx context.Context, name string) (ent.Value,
 		return m.OldFailureReason(ctx)
 	case upscale.FieldStripeProductID:
 		return m.OldStripeProductID(ctx)
+	case upscale.FieldSystemGenerated:
+		return m.OldSystemGenerated(ctx)
 	case upscale.FieldUserID:
 		return m.OldUserID(ctx)
 	case upscale.FieldDeviceInfoID:
@@ -9506,6 +9550,13 @@ func (m *UpscaleMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetStripeProductID(v)
+		return nil
+	case upscale.FieldSystemGenerated:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSystemGenerated(v)
 		return nil
 	case upscale.FieldUserID:
 		v, ok := value.(uuid.UUID)
@@ -9697,6 +9748,9 @@ func (m *UpscaleMutation) ResetField(name string) error {
 		return nil
 	case upscale.FieldStripeProductID:
 		m.ResetStripeProductID()
+		return nil
+	case upscale.FieldSystemGenerated:
+		m.ResetSystemGenerated()
 		return nil
 	case upscale.FieldUserID:
 		m.ResetUserID()

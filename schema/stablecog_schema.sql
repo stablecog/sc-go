@@ -296,6 +296,7 @@ CREATE TABLE public.upscales (
     scale integer NOT NULL,
     country_code text,
     status public.generate_upscale_status_enum NOT NULL,
+    system_generated boolean default false not null,
     failure_reason text,
     stripe_product_id text,
     device_info_id uuid NOT NULL,

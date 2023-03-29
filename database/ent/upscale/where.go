@@ -86,6 +86,11 @@ func StripeProductID(v string) predicate.Upscale {
 	return predicate.Upscale(sql.FieldEQ(FieldStripeProductID, v))
 }
 
+// SystemGenerated applies equality check predicate on the "system_generated" field. It's identical to SystemGeneratedEQ.
+func SystemGenerated(v bool) predicate.Upscale {
+	return predicate.Upscale(sql.FieldEQ(FieldSystemGenerated, v))
+}
+
 // UserID applies equality check predicate on the "user_id" field. It's identical to UserIDEQ.
 func UserID(v uuid.UUID) predicate.Upscale {
 	return predicate.Upscale(sql.FieldEQ(FieldUserID, v))
@@ -484,6 +489,16 @@ func StripeProductIDEqualFold(v string) predicate.Upscale {
 // StripeProductIDContainsFold applies the ContainsFold predicate on the "stripe_product_id" field.
 func StripeProductIDContainsFold(v string) predicate.Upscale {
 	return predicate.Upscale(sql.FieldContainsFold(FieldStripeProductID, v))
+}
+
+// SystemGeneratedEQ applies the EQ predicate on the "system_generated" field.
+func SystemGeneratedEQ(v bool) predicate.Upscale {
+	return predicate.Upscale(sql.FieldEQ(FieldSystemGenerated, v))
+}
+
+// SystemGeneratedNEQ applies the NEQ predicate on the "system_generated" field.
+func SystemGeneratedNEQ(v bool) predicate.Upscale {
+	return predicate.Upscale(sql.FieldNEQ(FieldSystemGenerated, v))
 }
 
 // UserIDEQ applies the EQ predicate on the "user_id" field.

@@ -34,6 +34,8 @@ type Upscale struct {
 	FailureReason *string `json:"failure_reason,omitempty"`
 	// StripeProductID holds the value of the "stripe_product_id" field.
 	StripeProductID *string `json:"stripe_product_id,omitempty"`
+	// SystemGenerated holds the value of the "system_generated" field.
+	SystemGenerated bool `json:"system_generated,omitempty"`
 	// UserID holds the value of the "user_id" field.
 	UserID uuid.UUID `json:"user_id,omitempty"`
 	// DeviceInfoID holds the value of the "device_info_id" field.
@@ -121,6 +123,8 @@ func (*Upscale) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
+		case upscale.FieldSystemGenerated:
+			values[i] = new(sql.NullBool)
 		case upscale.FieldWidth, upscale.FieldHeight, upscale.FieldScale:
 			values[i] = new(sql.NullInt64)
 		case upscale.FieldCountryCode, upscale.FieldStatus, upscale.FieldFailureReason, upscale.FieldStripeProductID:
@@ -194,6 +198,12 @@ func (u *Upscale) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				u.StripeProductID = new(string)
 				*u.StripeProductID = value.String
+			}
+		case upscale.FieldSystemGenerated:
+			if value, ok := values[i].(*sql.NullBool); !ok {
+				return fmt.Errorf("unexpected type %T for field system_generated", values[i])
+			} else if value.Valid {
+				u.SystemGenerated = value.Bool
 			}
 		case upscale.FieldUserID:
 			if value, ok := values[i].(*uuid.UUID); !ok {
@@ -313,6 +323,9 @@ func (u *Upscale) String() string {
 		builder.WriteString("stripe_product_id=")
 		builder.WriteString(*v)
 	}
+	builder.WriteString(", ")
+	builder.WriteString("system_generated=")
+	builder.WriteString(fmt.Sprintf("%v", u.SystemGenerated))
 	builder.WriteString(", ")
 	builder.WriteString("user_id=")
 	builder.WriteString(fmt.Sprintf("%v", u.UserID))

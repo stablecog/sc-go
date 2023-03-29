@@ -206,12 +206,16 @@ func init() {
 	scheduler.DefaultID = schedulerDescID.Default.(func() uuid.UUID)
 	upscaleFields := schema.Upscale{}.Fields()
 	_ = upscaleFields
+	// upscaleDescSystemGenerated is the schema descriptor for system_generated field.
+	upscaleDescSystemGenerated := upscaleFields[8].Descriptor()
+	// upscale.DefaultSystemGenerated holds the default value on creation for the system_generated field.
+	upscale.DefaultSystemGenerated = upscaleDescSystemGenerated.Default.(bool)
 	// upscaleDescCreatedAt is the schema descriptor for created_at field.
-	upscaleDescCreatedAt := upscaleFields[13].Descriptor()
+	upscaleDescCreatedAt := upscaleFields[14].Descriptor()
 	// upscale.DefaultCreatedAt holds the default value on creation for the created_at field.
 	upscale.DefaultCreatedAt = upscaleDescCreatedAt.Default.(func() time.Time)
 	// upscaleDescUpdatedAt is the schema descriptor for updated_at field.
-	upscaleDescUpdatedAt := upscaleFields[14].Descriptor()
+	upscaleDescUpdatedAt := upscaleFields[15].Descriptor()
 	// upscale.DefaultUpdatedAt holds the default value on creation for the updated_at field.
 	upscale.DefaultUpdatedAt = upscaleDescUpdatedAt.Default.(func() time.Time)
 	// upscale.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
