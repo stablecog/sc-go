@@ -142,7 +142,10 @@ func CreateUpscale(Repo *repository.Repository, Redis *database.RedisWrapper, sM
 				return err
 			}
 		case <-time.After(shared.REQUEST_COG_TIMEOUT):
-			log.Error("Upscale request timed out", "id", upscale.ID)
+			err := Repo.SetUpscaleFailed(upscale.ID.String(), shared.TIMEOUT_ERROR, nil)
+			if err != nil {
+				log.Error("Failed to set upscale failed", "id", upscale.ID, "err", err)
+			}
 			return fmt.Errorf(shared.TIMEOUT_ERROR)
 		}
 	}
