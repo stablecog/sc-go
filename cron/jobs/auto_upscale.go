@@ -50,6 +50,7 @@ func (j *JobRunner) StartAutoUpscaleJob(log Logger) {
 		default:
 			// Get unscaled outputs
 			unscaledOutputs, err := j.Repo.GetNonUpscaledGalleryItems(10)
+			refreshedAt := time.Now()
 			if err != nil {
 				log.Errorf("Error getting unscaled outputs %v", err)
 				time.Sleep(5 * time.Second)
@@ -61,6 +62,11 @@ func (j *JobRunner) StartAutoUpscaleJob(log Logger) {
 				continue
 			}
 			for _, output := range unscaledOutputs {
+				// Check if refresh is needed
+				if time.Now().Sub(refreshedAt) > 5*time.Minute {
+					// Refresh
+					break
+				}
 				// Determine if queue length is too long
 				qSize, err := j.Redis.GetQueueSize()
 				if err != nil {
