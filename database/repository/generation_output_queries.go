@@ -14,7 +14,7 @@ func (r *Repository) GetNonUpscaledGalleryItems(limit int) ([]*ent.GenerationOut
 				generationoutput.UpscaledImagePathEQ(""),
 			),
 		).
-		Order(ent.Desc(generationoutput.FieldCreatedAt)).
+		Order(ent.Desc(generationoutput.FieldUpdatedAt, generationoutput.FieldCreatedAt)).
 		Limit(limit).
 		All(r.Ctx)
 }
