@@ -68,6 +68,10 @@ spec:
               value: price_1Mj1FpATa0ehBYTATTb8FzLg
             - name: STRIPE_LARGE_PACK_PRODUCT_ID
               value: prod_NTzE9KmD5wfCYn
+            - name: STRIPE_MEGA_PACK_PRICE_ID
+              value: price_1Mr4aEATa0ehBYTAalXOVpeg
+            - name: STRIPE_MEGA_PACK_PRODUCT_ID
+              value: prod_NcJCespFpjjQJj
             - name: DISCORD_WEBHOOK_URL_DEPLOY
               valueFrom:
                 secretKeyRef:
