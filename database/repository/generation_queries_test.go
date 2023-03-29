@@ -20,7 +20,6 @@ func TestGetAvgGenerationQueueTime(t *testing.T) {
 	deviceInfoId, err := MockRepo.GetOrCreateDeviceInfo("browser", "macos", "chrome", nil)
 	assert.Nil(t, err)
 	insert := MockRepo.DB.Generation.Create().
-		SetStatus(generation.StatusQueued).
 		SetWidth(512).
 		SetHeight(512).
 		SetGuidanceScale(1.0).
@@ -44,7 +43,6 @@ func TestGetAvgGenerationQueueTime(t *testing.T) {
 	startTime = time.Date(2030, 1, 1, 0, 0, 0, 0, time.UTC)
 	endTime = startTime.Add(time.Second * 30)
 	insert = MockRepo.DB.Generation.Create().
-		SetStatus(generation.StatusQueued).
 		SetWidth(512).
 		SetHeight(512).
 		SetGuidanceScale(1.0).

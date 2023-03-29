@@ -125,6 +125,7 @@ func main() {
 		}
 		s.Every(60).Seconds().Do(jobRunner.AddFreeCreditsToEligibleUsers, jobs.NewJobLogger("FREE_CREDITS"))
 		s.StartBlocking()
+		go jobRunner.StartAutoUpscaleJob(jobs.NewJobLogger("AUTO_UPSCALE"))
 		os.Exit(0)
 	}
 

@@ -113,4 +113,8 @@ func TestGetPendingGenerationAndUpscaleIDs(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Len(t, pendingGenerationIDs, 2)
 	assert.Len(t, pendingUpscaleIDs, 1)
+
+	s, err := redis.GetQueueSize()
+	assert.Nil(t, err)
+	assert.Equal(t, int64(3), s)
 }

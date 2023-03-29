@@ -40,6 +40,9 @@ const REDIS_QUEUE_THROTTLE_CHANNEL = "queue_throttle"
 // This redis channel our servers publish to when we want to broadcast SSE events to clients
 const REDIS_SSE_BROADCAST_CHANNEL = "sse:broadcast_channel"
 
+// This redis channel is when webhook sends an internal request we care about
+const REDIS_INTERNAL_COG_CHANNEL = "cog:internal_message"
+
 // Allowed image extensions used by various APIs
 type ImageExtension string
 
@@ -92,3 +95,16 @@ const FREE_CREDIT_REPLENISHMENT_INTERVAL = 12 * time.Hour
 
 // Last sign in within 7 days
 const FREE_CREDIT_LAST_ACTIVITY_REQUIREMENT = 168 * time.Hour
+
+// ! Auto-upscale
+// Only trigger upscale if queue length is not greater than this
+const AUTO_UPSCALE_QUEUE_SIZE_QSIZE_REQUIRED = 0
+
+// Evaluate time in queue over this period
+const AUTO_UPSCALE_AVG_TIME_IN_QUEUE_SINCE = 5 * time.Minute
+
+// Only trigger upscale if avg time in queue is less than this
+const AUTO_UPSCALE_AVG_TIME_IN_QUEUE_REQUIRED = 0.8
+
+// If criteria not met for auto-upscale, retry after this period
+const AUTO_UPSCALE_RETRY_DURATION = 30 * time.Second

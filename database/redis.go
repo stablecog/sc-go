@@ -98,6 +98,10 @@ func (r *RedisWrapper) EnqueueCogRequest(ctx context.Context, request interface{
 	return err
 }
 
+func (r *RedisWrapper) GetQueueSize() (int64, error) {
+	return r.Client.XLen(r.Ctx, shared.COG_REDIS_QUEUE).Result()
+}
+
 // Get pending request IDs on queue that are stale
 // olderThan will be subtracted from the current time to return requests older than that
 func (r *RedisWrapper) GetPendingGenerationAndUpscaleIDs(olderThan time.Duration) (generationOutputIDs, upscaleOutputIDs []PendingCogRequestRedis, err error) {

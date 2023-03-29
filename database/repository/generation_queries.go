@@ -47,14 +47,17 @@ func (r *Repository) GetGenerations(limit int) ([]*ent.Generation, error) {
 
 // Get avg(started_at - created_at) over a time period with limit
 func (r *Repository) GetAvgGenerationQueueTime(since time.Time, limit int) (float64, error) {
-	var avg []struct {
-		CreatedAt    time.Time `json:"created_at" sql:"created_at"`
-		AvgQueueTime float64   `json:"avg_queue_time" sql:"avg"`
+	var rawQ []struct {
+		CreatedAt time.Time `json:"created_at" sql:"created_at"`
+		StartedAt time.Time `json:"started_at" sql:"started_at"`
+		QueueS    float64   `json:"queue_s" sql:"queue_s"`
 	}
-	err := r.DB.Generation.Query().Where(generation.StatusEQ(generation.StatusSucceeded), generation.CreatedAtGT(since)).
-		Order(ent.Desc(generation.FieldCreatedAt)).
-		Limit(limit).
-		GroupBy(generation.FieldCreatedAt).
+	q := r.DB.Debug().Generation.Query().Where(generation.StatusEQ(generation.StatusSucceeded), generation.CreatedAtGT(since)).
+		Order(ent.Desc(generation.FieldCreatedAt))
+	if limit > 0 {
+		q = q.Limit(limit)
+	}
+	err := q.GroupBy(generation.FieldCreatedAt, generation.FieldStartedAt).
 		Aggregate(func(s *sql.Selector) string {
 			var raw string
 			switch r.ConnInfo.Dialect() {
@@ -63,15 +66,23 @@ func (r *Repository) GetAvgGenerationQueueTime(since time.Time, limit int) (floa
 			default:
 				raw = fmt.Sprintf("ROUND((JULIANDAY(%s) - JULIANDAY(%s)) * 86400)", s.C(generation.FieldStartedAt), s.C(generation.FieldCreatedAt))
 			}
-			return sql.As(sql.Avg(raw), "avg")
-		}).Scan(r.Ctx, &avg)
+			return sql.As(raw, "queue_s")
+		}).Scan(r.Ctx, &rawQ)
 	if err != nil {
 		return 0, err
 	}
-	if len(avg) == 0 {
+
+	if len(rawQ) == 0 {
 		return 0, nil
 	}
-	return avg[0].AvgQueueTime, nil
+	var avg float64
+	for _, q := range rawQ {
+		avg += q.QueueS
+	}
+	if len(rawQ) == 0 {
+		return 0, nil
+	}
+	return avg / float64(len(rawQ)), nil
 }
 
 // Apply all filters to root ent query
