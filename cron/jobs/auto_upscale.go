@@ -104,6 +104,7 @@ func (j *JobRunner) StartAutoUpscaleJob(log Logger) {
 					continue
 				}
 				log.Infof("Upscale created for output %s", output.ID)
+				time.Sleep(5 * time.Second)
 			}
 		}
 	}
