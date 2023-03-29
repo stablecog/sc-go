@@ -33,6 +33,8 @@ spec:
           env:
             - name: GOTRUE_URL
               value: supabase-supabase-auth.qa-supabase:9999
+            - name: PUBLIC_API_URL
+              value: https://qa-api.stablecog.com
             - name: BUCKET_BASE_URL
               value: https://b.stablecog.com
             - name: PUBLIC_API_URL
