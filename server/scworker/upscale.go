@@ -70,6 +70,9 @@ func CreateUpscale(Track *analytics.AnalyticsService, Repo *repository.Repositor
 			return err
 		}
 
+		// Send to the cog
+		requestId = upscale.ID.String()
+
 		// Live page
 		livePageMsg := &shared.LivePageMessage{
 			ProcessType:      shared.UPSCALE,
@@ -84,8 +87,6 @@ func CreateUpscale(Track *analytics.AnalyticsService, Repo *repository.Repositor
 			SystemGenerated:  true,
 		}
 
-		// Send to the cog
-		requestId = upscale.ID.String()
 		cogReqBody := requests.CogQueueRequest{
 			WebhookEventsFilter: []requests.CogEventFilter{requests.CogEventFilterStart, requests.CogEventFilterStart},
 			WebhookUrl:          fmt.Sprintf("%s/v1/worker/webhook", utils.GetEnv("PUBLIC_API_URL", "")),
