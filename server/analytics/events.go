@@ -66,7 +66,7 @@ func (a *AnalyticsService) GenerationStarted(user *ent.User, cogReq requests.Bas
 }
 
 // Generation | Succeeded
-func (a *AnalyticsService) GenerationSucceeded(user *ent.User, cogReq requests.BaseCogRequest, duration float64, ip string) error {
+func (a *AnalyticsService) GenerationSucceeded(user *ent.User, cogReq requests.BaseCogRequest, duration float64, qDuration float64, ip string) error {
 	// We need to get guidance scale/height/inference steps/width as numeric values
 	height, _ := strconv.Atoi(cogReq.Height)
 	width, _ := strconv.Atoi(cogReq.Width)
@@ -84,6 +84,7 @@ func (a *AnalyticsService) GenerationSucceeded(user *ent.User, cogReq requests.B
 		"SC - Scheduler Id":      cogReq.SchedulerId.String(),
 		"SC - Submit to Gallery": cogReq.SubmitToGallery,
 		"SC - Duration":          duration,
+		"SC - Duration in Queue": qDuration,
 		"SC - Num Outputs":       cogReq.NumOutputs,
 		"$ip":                    ip,
 	}
@@ -220,21 +221,22 @@ func (a *AnalyticsService) UpscaleStarted(user *ent.User, cogReq requests.BaseCo
 }
 
 // Upscale | Succeeded
-func (a *AnalyticsService) UpscaleSucceeded(user *ent.User, cogReq requests.BaseCogRequest, duration float64, ip string) error {
+func (a *AnalyticsService) UpscaleSucceeded(user *ent.User, cogReq requests.BaseCogRequest, duration float64, qDuration float64, ip string) error {
 	// We need to get guidance scale/height/inference steps/width as numeric values
 	height, _ := strconv.Atoi(cogReq.Height)
 	width, _ := strconv.Atoi(cogReq.Width)
 
 	properties := map[string]interface{}{
-		"SC - User Id":  user.ID,
-		"SC - Height":   height,
-		"SC - Width":    width,
-		"SC - Model Id": cogReq.ModelId.String(),
-		"SC - Scale":    4, // Always 4 for now
-		"SC - Image":    cogReq.Image,
-		"SC - Type":     cogReq.Type,
-		"SC - Duration": duration,
-		"$ip":           ip,
+		"SC - User Id":           user.ID,
+		"SC - Height":            height,
+		"SC - Width":             width,
+		"SC - Model Id":          cogReq.ModelId.String(),
+		"SC - Scale":             4, // Always 4 for now
+		"SC - Image":             cogReq.Image,
+		"SC - Type":              cogReq.Type,
+		"SC - Duration":          duration,
+		"SC - Duration in Queue": qDuration,
+		"$ip":                    ip,
 	}
 	if ip == "system" {
 		properties["SC - System Generated"] = true

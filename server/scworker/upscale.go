@@ -2,6 +2,7 @@ package scworker
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"time"
 
@@ -196,8 +197,19 @@ func CreateUpscale(Track *analytics.AnalyticsService, Repo *repository.Repositor
 					}
 				}()
 				// Analytics
-				duration := time.Now().Sub(cogMsg.Input.LivePageData.CreatedAt).Seconds()
-				go Track.UpscaleSucceeded(user, cogMsg.Input, duration, "system")
+				upscale, err := Repo.GetUpscale(upscale.ID)
+				if err != nil {
+					log.Error("Error getting upscale for analytics", "err", err)
+					return err
+				}
+				// Get durations in seconds
+				if upscale.StartedAt == nil {
+					log.Error("Upscale started at is nil", "id", cogMsg.Input.ID)
+					return errors.New("Upscale started at is nil")
+				}
+				duration := time.Now().Sub(*upscale.StartedAt).Seconds()
+				qDuration := (*upscale.StartedAt).Sub(upscale.CreatedAt).Seconds()
+				go Track.UpscaleSucceeded(user, cogMsg.Input, duration, qDuration, "system")
 				return err
 			case requests.CogFailed:
 				err := Repo.SetUpscaleFailed(upscale.ID.String(), cogMsg.Error, nil)

@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/go-chi/render"
+	"github.com/google/uuid"
 	"github.com/stablecog/sc-go/database/repository"
 	"github.com/stablecog/sc-go/log"
 	"github.com/stablecog/sc-go/server/requests"
@@ -97,12 +98,38 @@ func (c *RestAPI) HandleSCWorkerWebhook(w http.ResponseWriter, r *http.Request) 
 				log.Error("Error getting user for analytics", "err", err)
 				return
 			}
-			// Get duration in seconds
-			duration := time.Now().Sub(cogMessage.Input.LivePageData.CreatedAt).Seconds()
 			if cogMessage.Input.ProcessType == shared.GENERATE || cogMessage.Input.ProcessType == shared.GENERATE_AND_UPSCALE {
-				c.Track.GenerationSucceeded(u, cogMessage.Input, duration, cogMessage.Input.IP)
+				// Get generation
+				uid, _ := uuid.Parse(cogMessage.Input.ID)
+				generation, err := c.Repo.GetGeneration(uid)
+				if err != nil {
+					log.Error("Error getting generation for analytics", "err", err)
+					return
+				}
+				// Get durations in seconds
+				if generation.StartedAt == nil {
+					log.Error("Generation started at is nil", "id", cogMessage.Input.ID)
+					return
+				}
+				duration := time.Now().Sub(*generation.StartedAt).Seconds()
+				qDuration := (*generation.StartedAt).Sub(generation.CreatedAt).Seconds()
+				c.Track.GenerationSucceeded(u, cogMessage.Input, duration, qDuration, cogMessage.Input.IP)
 			} else if cogMessage.Input.ProcessType == shared.UPSCALE {
-				c.Track.UpscaleSucceeded(u, cogMessage.Input, duration, cogMessage.Input.IP)
+				// Get upscale
+				uid, _ := uuid.Parse(cogMessage.Input.ID)
+				upscale, err := c.Repo.GetUpscale(uid)
+				if err != nil {
+					log.Error("Error getting upscale for analytics", "err", err)
+					return
+				}
+				// Get durations in seconds
+				if upscale.StartedAt == nil {
+					log.Error("Upscale started at is nil", "id", cogMessage.Input.ID)
+					return
+				}
+				duration := time.Now().Sub(*upscale.StartedAt).Seconds()
+				qDuration := (*upscale.StartedAt).Sub(upscale.CreatedAt).Seconds()
+				c.Track.UpscaleSucceeded(u, cogMessage.Input, duration, qDuration, cogMessage.Input.IP)
 			}
 		}
 
