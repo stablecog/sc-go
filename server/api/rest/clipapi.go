@@ -79,7 +79,7 @@ func (c *RestAPI) HandleGetClipEmbeds(w http.ResponseWriter, r *http.Request) {
 	vec2search := []entity.Vector{
 		entity.FloatVector(clipAPIResponse.Embeddings[0].Embedding),
 	}
-	res, err := c.Milvus.Client.Search(c.Milvus.Ctx, database.MILVUS_COLLECTION_NAME, nil, "", []string{"image_path"}, vec2search, "image_embedding", entity.L2, 50, sp)
+	res, err := c.Milvus.Client.Search(c.Milvus.Ctx, database.MILVUS_COLLECTION_NAME, nil, "", []string{"id", "image_path"}, vec2search, "image_embedding", entity.L2, 50, sp)
 	if err != nil {
 		log.Errorf("Error searching %v", err)
 		responses.ErrBadRequest(w, r, err.Error(), "")
