@@ -52,6 +52,9 @@ func (m *MilvusClient) CreateCollectionIfNotExists() error {
 				DataType:   entity.FieldTypeVarChar,
 				PrimaryKey: true,
 				AutoID:     false,
+				TypeParams: map[string]string{
+					entity.TypeParamMaxLength: fmt.Sprintf("%d", 48),
+				},
 			},
 			{
 				Name:     "image_embedding",
