@@ -89,8 +89,8 @@ type CogWebhookOutputImage struct {
 }
 
 type CogWebhookOutput struct {
-	PromptEmbed []float32 `json:"prompt_embed"`
-	Images      []CogWebhookOutputImage
+	PromptEmbed []float32               `json:"prompt_embed"`
+	Images      []CogWebhookOutputImage `json:"images"`
 }
 
 type CogWebhookMessage struct {
