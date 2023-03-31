@@ -53,6 +53,16 @@ spec:
                 secretKeyRef:
                   name: sc-go
                   key: MILVUS_PASSWORD
+            - name: CLIPAPI_ENDPOINT
+              valueFrom:
+                secretKeyRef:
+                  name: sc-go
+                  key: CLIPAPI_ENDPOINT
+            - name: CLIPAPI_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: sc-go
+                  key: CLIPAPI_SECRET
             - name: GOTRUE_URL
               value: http://supabase-supabase-auth.qa-supabase:9999
             - name: BUCKET_BASE_URL
