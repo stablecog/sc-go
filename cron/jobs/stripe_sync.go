@@ -1,10 +1,15 @@
 package jobs
 
-import "github.com/stripe/stripe-go/v74"
+import (
+	"time"
+
+	"github.com/stripe/stripe-go/v74"
+)
 
 // Sync stripe subscriptions with active user products
 func (j *JobRunner) SyncStripe(log Logger) error {
 	log.Infof("Starting stripe customer sync job...")
+	start := time.Now()
 	iter := j.Stripe.Subscriptions.List(&stripe.SubscriptionListParams{
 		Status: stripe.String(string(stripe.SubscriptionStatusActive)),
 	})
@@ -38,5 +43,7 @@ func (j *JobRunner) SyncStripe(log Logger) error {
 		log.Errorf("Error syncing stripe product ids: %v", err)
 		return err
 	}
+	end := time.Now()
+	log.Infof("Finished stripe customer sync job in %v", end.Sub(start))
 	return nil
 }
