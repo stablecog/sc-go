@@ -3,6 +3,7 @@ package database
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"github.com/milvus-io/milvus-sdk-go/v2/client"
 	"github.com/milvus-io/milvus-sdk-go/v2/entity"
@@ -188,7 +189,7 @@ func (m *MilvusClient) CreateCollectionIfNotExists() error {
 
 func (m *MilvusClient) CreateIndexes() error {
 	index, err := m.Client.DescribeIndex(m.Ctx, MILVUS_COLLECTION_NAME, "image_embedding")
-	if err != nil {
+	if err != nil && !strings.Contains(err.Error(), "index doesn't exist") {
 		log.Errorf("describe index failed, err: %v", err)
 		return err
 	}
