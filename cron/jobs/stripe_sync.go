@@ -7,7 +7,7 @@ func (j *JobRunner) SyncStripe(log Logger) error {
 	iter := j.Stripe.Customers.List(&stripe.CustomerListParams{
 		ListParams: stripe.ListParams{
 			Expand: []*string{
-				stripe.String("subscriptions"),
+				stripe.String("data.subscriptions"),
 			},
 		},
 	})
