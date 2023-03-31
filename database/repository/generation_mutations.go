@@ -119,7 +119,7 @@ func (r *Repository) SetGenerationSucceeded(generationID string, prompt string, 
 		if negativePromptId != nil {
 			genUpdate.SetNegativePromptID(*negativePromptId)
 		}
-		_, err = genUpdate.Save(r.Ctx)
+		generation, err := genUpdate.Save(r.Ctx)
 		if err != nil {
 			log.Error("Error setting generation succeeded", "id", generationID, "err", err)
 			return err
@@ -146,6 +146,17 @@ func (r *Repository) SetGenerationSucceeded(generationID string, prompt string, 
 				return err
 			}
 			outputRet = append(outputRet, gOutput)
+
+			// Insert to milvus
+			var negativePromptPointer *string
+			if negativePrompt != "" {
+				negativePromptPointer = &negativePrompt
+			}
+			err = r.Milvus.InsertOutput(gOutput, generation, prompt, negativePromptPointer, output.ImageEmbed)
+			if err != nil {
+				log.Error("Error inserting output to milvus", "id", generationID, "err", err)
+				return err
+			}
 		}
 
 		return nil
