@@ -8,15 +8,17 @@ import (
 	"os"
 
 	"github.com/go-chi/render"
+	"github.com/milvus-io/milvus-sdk-go/v2/entity"
+	"github.com/stablecog/sc-go/database"
 	"github.com/stablecog/sc-go/log"
 	"github.com/stablecog/sc-go/server/requests"
 	"github.com/stablecog/sc-go/server/responses"
 )
 
 func (c *RestAPI) HandleGetClipEmbeds(w http.ResponseWriter, r *http.Request) {
-	if user, email := c.GetUserIDAndEmailIfAuthenticated(w, r); user == nil || email == "" {
-		return
-	}
+	// if user, email := c.GetUserIDAndEmailIfAuthenticated(w, r); user == nil || email == "" {
+	// 	return
+	// }
 
 	query := r.URL.Query().Get("query")
 
@@ -67,12 +69,24 @@ func (c *RestAPI) HandleGetClipEmbeds(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	embeddings := [][]float32{}
-	for _, embedding := range clipAPIResponse.Embeddings {
-		embeddings = append(embeddings, embedding.Embedding)
+	if len(clipAPIResponse.Embeddings) == 0 {
+		render.Status(r, http.StatusBadRequest)
+		render.JSON(w, r, []float32{})
+		return
+	}
+
+	sp, _ := entity.NewIndexFlatSearchParam()
+	vec2search := []entity.Vector{
+		entity.FloatVector(clipAPIResponse.Embeddings[0].Embedding),
+	}
+	res, err := c.Milvus.Client.Search(c.Milvus.Ctx, database.MILVUS_COLLECTION_NAME, nil, "", []string{"image_path"}, vec2search, "image_embedding", entity.L2, 50, sp)
+	if err != nil {
+		log.Errorf("Error searching %v", err)
+		responses.ErrBadRequest(w, r, err.Error(), "")
+		return
 	}
 
 	// Return as-is
 	render.Status(r, resp.StatusCode)
-	render.JSON(w, r, embeddings)
+	render.JSON(w, r, res)
 }
