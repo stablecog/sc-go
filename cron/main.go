@@ -17,6 +17,7 @@ import (
 	"github.com/stablecog/sc-go/log"
 	"github.com/stablecog/sc-go/server/analytics"
 	"github.com/stablecog/sc-go/utils"
+	stripe "github.com/stripe/stripe-go/v74/client"
 )
 
 var Version = "dev"
@@ -84,6 +85,9 @@ func main() {
 	analyticsService := analytics.NewAnalyticsService()
 	defer analyticsService.Close()
 
+	// Create stripe client
+	stripeClient := stripe.New(utils.GetEnv("STRIPE_SECRET_KEY", ""), nil)
+
 	// Create a job runner
 	jobRunner := jobs.JobRunner{
 		Repo:    repo,
@@ -92,6 +96,7 @@ func main() {
 		Meili:   database.NewMeiliSearchClient(),
 		Discord: discord.NewDiscordHealthTracker(ctx),
 		Track:   analyticsService,
+		Stripe:  stripeClient,
 	}
 
 	if *healthCheck {
@@ -137,6 +142,8 @@ func main() {
 			s.Every(60).Seconds().Do(jobRunner.CheckHealth, jobs.NewJobLogger("HEALTH"))
 		}
 		s.Every(60).Seconds().Do(jobRunner.AddFreeCreditsToEligibleUsers, jobs.NewJobLogger("FREE_CREDITS"))
+		// Sync stripe
+		s.Every(30).Minutes().Do(jobRunner.SyncStripe(jobs.NewJobLogger("STRIPE_SYNC")))
 		// cache update
 		s.Every(5).Minutes().StartAt(time.Now().Add(5 * time.Minute)).Do(func() {
 			log.Info("📦 Updating cache...")

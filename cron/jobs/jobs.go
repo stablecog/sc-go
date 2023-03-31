@@ -10,6 +10,7 @@ import (
 	"github.com/stablecog/sc-go/database/repository"
 	"github.com/stablecog/sc-go/log"
 	"github.com/stablecog/sc-go/server/analytics"
+	stripe "github.com/stripe/stripe-go/v74/client"
 )
 
 type JobRunner struct {
@@ -19,6 +20,7 @@ type JobRunner struct {
 	Meili   *meilisearch.Client
 	Discord *discord.DiscordHealthTracker
 	Track   *analytics.AnalyticsService
+	Stripe  *stripe.API
 }
 
 // Just wrap logger so we can include the job name without repeating it

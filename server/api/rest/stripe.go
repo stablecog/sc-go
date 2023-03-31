@@ -451,16 +451,19 @@ func (c *RestAPI) HandleStripeWebhook(w http.ResponseWriter, r *http.Request) {
 		}
 		// Get product Id from subscription
 		if sub.Items != nil && len(sub.Items.Data) > 0 && sub.Items.Data[0].Price != nil {
-			affected, err := c.Repo.UnsetActiveProductID(user.ID, sub.Items.Data[0].Price.Product, nil)
-			if err != nil {
-				log.Error("Unable unsetting stripe product id", "err", err)
-				responses.ErrInternalServerError(w, r, err.Error())
-				return
-			}
-			if affected > 0 {
-				// Subscription cancelled
-				go c.Track.SubscriptionCancelled(user, sub.Items.Data[0].Price.Product)
-			}
+			go func() {
+				// Delay to avoid race with upgrades
+				time.Sleep(30 * time.Second)
+				affected, err := c.Repo.UnsetActiveProductID(user.ID, sub.Items.Data[0].Price.Product, nil)
+				if err != nil {
+					log.Error("Unable unsetting stripe product id", "err", err)
+					return
+				}
+				if affected > 0 {
+					// Subscription cancelled
+					go c.Track.SubscriptionCancelled(user, sub.Items.Data[0].Price.Product)
+				}
+			}()
 		}
 	// Remove credits if necessary
 	case "invoice.finalization_failed", "invoice.payment_failed":
