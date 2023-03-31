@@ -143,7 +143,7 @@ func main() {
 		}
 		s.Every(60).Seconds().Do(jobRunner.AddFreeCreditsToEligibleUsers, jobs.NewJobLogger("FREE_CREDITS"))
 		// Sync stripe
-		s.Every(30).Minutes().Do(jobRunner.SyncStripe, jobs.NewJobLogger("STRIPE_SYNC"))
+		s.Every(10).Minutes().Do(jobRunner.SyncStripe, jobs.NewJobLogger("STRIPE_SYNC"))
 		// cache update
 		s.Every(5).Minutes().StartAt(time.Now().Add(5 * time.Minute)).Do(func() {
 			log.Info("📦 Updating cache...")
