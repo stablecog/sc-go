@@ -195,7 +195,7 @@ func (m *MilvusClient) InsertOutput(output *ent.GenerationOutput, generation *en
 		entity.NewColumnVarChar("id", []string{output.ID.String()}),
 		entity.NewColumnFloatVector("image_embedding", 1024, [][]float32{imageEmbedding}),
 		entity.NewColumnVarChar("image_path", []string{output.ImagePath}),
-		columns = append(columns, entity.NewColumnVarChar("upscaled_image_path", []string{upscaledImagePath}))
+		entity.NewColumnVarChar("upscaled_image_path", []string{upscaledImagePath}),
 		entity.NewColumnVarChar("gallery_status", []string{output.GalleryStatus.String()}),
 		entity.NewColumnBool("is_favorited", []bool{output.IsFavorited}),
 		entity.NewColumnInt32("width", []int32{generation.Width}),
