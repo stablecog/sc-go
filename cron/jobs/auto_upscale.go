@@ -13,7 +13,7 @@ import (
 )
 
 func (j *JobRunner) StartAutoUpscaleJob(log Logger) {
-	log.Infof("Starting free credit job...")
+	log.Infof("Starting auto upscale job...")
 	// Create a SyncMap to track requests
 	sMap := shared.NewSyncMap[chan requests.CogWebhookMessage]()
 	//Redis subscription for cog messages we should handle
