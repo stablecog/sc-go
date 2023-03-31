@@ -40,6 +40,8 @@ spec:
             initialDelaySeconds: 15
             periodSeconds: 10
           env:
+            - name: MILVUS_ENDPOINT
+              value: milvus:19530
             - name: PUBLIC_SUPABASE_REFERENCE_ID
               value: jaqefzjqokaemzyvjcew
             - name: PRODUCTION

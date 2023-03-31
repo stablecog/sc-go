@@ -71,7 +71,7 @@ func (r *Repository) SetUpscaleFailed(upscaleID string, reason string, db *ent.C
 }
 
 // ! Currently supports 1 output
-func (r *Repository) SetUpscaleSucceeded(upscaleID, generationOutputID, inputImageUrl, output string) (*ent.UpscaleOutput, error) {
+func (r *Repository) SetUpscaleSucceeded(upscaleID, generationOutputID, inputImageUrl string, output requests.CogWebhookOutput) (*ent.UpscaleOutput, error) {
 	uid, err := uuid.Parse(upscaleID)
 	if err != nil {
 		log.Error("Error parsing generation id in SetUpscaleSucceeded", "id", upscaleID, "err", err)
@@ -104,10 +104,10 @@ func (r *Repository) SetUpscaleSucceeded(upscaleID, generationOutputID, inputIma
 		}
 
 		// Set upscale output
-		parsedS3, err := utils.GetPathFromS3URL(output)
+		parsedS3, err := utils.GetPathFromS3URL(output.Images[0].Image)
 		if err != nil {
 			log.Error("Error parsing s3 url", "output", output, "err", err)
-			parsedS3 = output
+			parsedS3 = output.Images[0].Image
 		}
 		uOutput := tx.UpscaleOutput.Create().SetImagePath(parsedS3).SetInputImageURL(inputImageUrl).SetUpscaleID(uid)
 		if hasGenerationOutput {
@@ -121,10 +121,10 @@ func (r *Repository) SetUpscaleSucceeded(upscaleID, generationOutputID, inputIma
 
 		// If necessary add to generation output
 		if hasGenerationOutput {
-			parsedS3, err := utils.GetPathFromS3URL(output)
+			parsedS3, err := utils.GetPathFromS3URL(output.Images[0].Image)
 			if err != nil {
 				log.Error("Error parsing s3 url", "output", output, "err", err)
-				parsedS3 = output
+				parsedS3 = output.Images[0].Image
 			}
 			_, err = tx.GenerationOutput.UpdateOneID(outputId).SetUpscaledImagePath(parsedS3).Save(r.Ctx)
 			if err != nil {

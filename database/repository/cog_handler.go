@@ -223,7 +223,7 @@ func (r *Repository) ProcessCogMessage(msg requests.CogWebhookMessage) error {
 			return err
 		}
 	} else if msg.Status == requests.CogSucceeded {
-		if len(msg.Outputs) == 0 {
+		if len(msg.Output.Images) == 0 {
 			if err := r.WithTx(func(tx *ent.Tx) error {
 				db := tx.Client()
 				// NSFW comes back as a success, but with no outputs and nsfw count
@@ -295,9 +295,9 @@ func (r *Repository) ProcessCogMessage(msg requests.CogWebhookMessage) error {
 		} else {
 			if msg.Input.ProcessType == shared.UPSCALE {
 				// ! Currently we are only assuming 1 output per upscale request
-				upscaleOutput, err = r.SetUpscaleSucceeded(msg.Input.ID, msg.Input.GenerationOutputID, msg.Input.Image, msg.Outputs[0])
+				upscaleOutput, err = r.SetUpscaleSucceeded(msg.Input.ID, msg.Input.GenerationOutputID, msg.Input.Image, msg.Output)
 			} else {
-				generationOutputs, err = r.SetGenerationSucceeded(msg.Input.ID, msg.Input.Prompt, msg.Input.NegativePrompt, msg.Outputs, msg.NSFWCount)
+				generationOutputs, err = r.SetGenerationSucceeded(msg.Input.ID, msg.Input.Prompt, msg.Input.NegativePrompt, msg.Output, msg.NSFWCount)
 			}
 			if err != nil {
 				log.Error("Error setting process succeeded", "process_type", msg.Input.ProcessType, "id", msg.Input.ID, "err", err)

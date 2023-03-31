@@ -30,6 +30,7 @@ type RestAPI struct {
 	Track          *analytics.AnalyticsService
 	QueueThrottler *shared.UserQueueThrottlerMap
 	S3             *s3.S3
+	Milvus         *database.MilvusClient
 }
 
 func (c *RestAPI) GetUserIfAuthenticated(w http.ResponseWriter, r *http.Request) (user *ent.User) {

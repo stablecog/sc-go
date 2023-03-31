@@ -15,6 +15,7 @@ type Repository struct {
 	ConnInfo database.SqlDBConn
 	Redis    *database.RedisWrapper
 	Ctx      context.Context
+	Milvus   *database.MilvusClient
 }
 
 // WithTx runs a function in a transaction

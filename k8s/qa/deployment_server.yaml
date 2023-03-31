@@ -41,6 +41,18 @@ spec:
             periodSeconds: 10
           imagePullPolicy: "Always"
           env:
+            - name: MILVUS_ENDPOINT
+              value: milvus:19530
+            - name: MILVUS_USER
+              valueFrom:
+                secretKeyRef:
+                  name: sc-go
+                  key: MILVUS_USER
+            - name: MILVUS_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: sc-go
+                  key: MILVUS_PASSWORD
             - name: GOTRUE_URL
               value: http://supabase-supabase-auth.qa-supabase:9999
             - name: BUCKET_BASE_URL

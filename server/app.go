@@ -87,12 +87,27 @@ func main() {
 		os.Exit(1)
 	}
 
+	// Setup milvus client
+	milvusClient, err := database.NewMilvusClient(ctx)
+	if err != nil {
+		log.Error("Failed to create milvus client", "err", err)
+		os.Exit(1)
+	}
+
+	// Create milvus schema
+	err = milvusClient.CreateCollectionIfNotExists()
+	if err != nil {
+		log.Error("Failed to create milvus collection", "err", err)
+		os.Exit(1)
+	}
+
 	// Create repository (database access)
 	repo := &repository.Repository{
 		DB:       entClient,
 		ConnInfo: dbconn,
 		Redis:    redis,
 		Ctx:      ctx,
+		Milvus:   milvusClient,
 	}
 
 	if *createMockData {
@@ -185,6 +200,7 @@ func main() {
 		Track:          analyticsService,
 		QueueThrottler: qThrottler,
 		S3:             s3Client,
+		Milvus:         milvusClient,
 	}
 
 	// Create middleware

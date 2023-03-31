@@ -83,11 +83,21 @@ const (
 )
 
 // Msg from sc-worker to redis channel
+type CogWebhookOutputImage struct {
+	Image      string    `json:"image"`
+	ImageEmbed []float32 `json:"image_embed"`
+}
+
+type CogWebhookOutput struct {
+	PromptEmbed []float32 `json:"prompt_embed"`
+	Images      []CogWebhookOutputImage
+}
+
 type CogWebhookMessage struct {
-	Webhook   string         `json:"webhook"`
-	Input     BaseCogRequest `json:"input"`
-	Status    CogTaskStatus  `json:"status"`
-	Error     string         `json:"error"`
-	Outputs   []string       `json:"outputs"`
-	NSFWCount int32          `json:"nsfw_count"`
+	Webhook   string           `json:"webhook"`
+	Input     BaseCogRequest   `json:"input"`
+	Status    CogTaskStatus    `json:"status"`
+	Error     string           `json:"error"`
+	Output    CogWebhookOutput `json:"output"`
+	NSFWCount int32            `json:"nsfw_count"`
 }
