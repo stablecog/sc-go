@@ -33,8 +33,10 @@ func (j *JobRunner) SyncStripe(log Logger) error {
 		}
 	}
 
-	for k, v := range productCustomerMap {
-		log.Infof("Product %s has %d customers", k, len(v))
+	err := j.Repo.SyncStripeProductIDs(productCustomerMap)
+	if err != nil {
+		log.Errorf("Error syncing stripe product ids: %v", err)
+		return err
 	}
 	return nil
 }

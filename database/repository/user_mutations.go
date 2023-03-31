@@ -38,3 +38,22 @@ func (r *Repository) UnsetActiveProductID(id uuid.UUID, stripeProductId string, 
 func (r *Repository) UpdateLastSeenAt(id uuid.UUID) error {
 	return r.DB.User.UpdateOneID(id).SetLastSeenAt(time.Now()).Exec(r.Ctx)
 }
+
+// Sync stripe product IDs
+func (r *Repository) SyncStripeProductIDs(productCustomerIDMap map[string][]string) error {
+	if err := r.WithTx(func(tx *ent.Tx) error {
+		allCustomersWithProducts := make([]string, 0)
+		for productID, customerIDs := range productCustomerIDMap {
+			allCustomersWithProducts = append(allCustomersWithProducts, customerIDs...)
+			_, err := tx.User.Update().Where(user.StripeCustomerIDIn(customerIDs...)).SetActiveProductID(productID).Save(r.Ctx)
+			if err != nil {
+				return err
+			}
+		}
+		err := tx.User.Update().Where(user.StripeCustomerIDNotIn(allCustomersWithProducts...)).ClearActiveProductID().Exec(r.Ctx)
+		return err
+	}); err != nil {
+		return err
+	}
+	return nil
+}
