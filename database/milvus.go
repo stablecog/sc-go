@@ -35,6 +35,14 @@ func (m *MilvusClient) Close() {
 	m.Client.Close()
 }
 
+func (m *MilvusClient) LoadCollection() error {
+	err := m.Client.LoadCollection(m.Ctx, MILVUS_COLLECTION_NAME, false)
+	if err != nil {
+		log.Errorf("failed to load collection, err: %v", err)
+	}
+	return err
+}
+
 func (m *MilvusClient) CreateCollectionIfNotExists() error {
 	hasCollection, err := m.Client.HasCollection(m.Ctx, MILVUS_COLLECTION_NAME)
 	if err != nil {
