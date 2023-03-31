@@ -148,11 +148,7 @@ func (r *Repository) SetGenerationSucceeded(generationID string, prompt string, 
 			outputRet = append(outputRet, gOutput)
 
 			// Insert to milvus
-			var negativePromptPointer *string
-			if negativePrompt != "" {
-				negativePromptPointer = &negativePrompt
-			}
-			err = r.Milvus.InsertOutput(gOutput, generation, prompt, negativePromptPointer, output.ImageEmbed)
+			err = r.Milvus.InsertOutput(gOutput, generation, prompt, negativePrompt, output.ImageEmbed)
 			if err != nil {
 				log.Error("Error inserting output to milvus", "id", generationID, "err", err)
 				return err

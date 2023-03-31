@@ -186,11 +186,16 @@ func (m *MilvusClient) CreateCollectionIfNotExists() error {
 	return nil
 }
 
-func (m *MilvusClient) InsertOutput(output *ent.GenerationOutput, generation *ent.Generation, promptText string, negativePromptText *string, imageEmbedding []float32) error {
+func (m *MilvusClient) InsertOutput(output *ent.GenerationOutput, generation *ent.Generation, promptText string, negativePromptText string, imageEmbedding []float32) error {
+	var upscaledImagePath string
+	if output.UpscaledImagePath != nil {
+		upscaledImagePath = *output.UpscaledImagePath
+	}
 	columns := []entity.Column{
 		entity.NewColumnVarChar("id", []string{output.ID.String()}),
 		entity.NewColumnFloatVector("image_embedding", 1024, [][]float32{imageEmbedding}),
 		entity.NewColumnVarChar("image_path", []string{output.ImagePath}),
+		columns = append(columns, entity.NewColumnVarChar("upscaled_image_path", []string{upscaledImagePath}))
 		entity.NewColumnVarChar("gallery_status", []string{output.GalleryStatus.String()}),
 		entity.NewColumnBool("is_favorited", []bool{output.IsFavorited}),
 		entity.NewColumnInt32("width", []int32{generation.Width}),
@@ -200,14 +205,9 @@ func (m *MilvusClient) InsertOutput(output *ent.GenerationOutput, generation *en
 		entity.NewColumnVarChar("generation_id", []string{generation.ID.String()}),
 		entity.NewColumnVarChar("user_id", []string{generation.UserID.String()}),
 		entity.NewColumnVarChar("prompt_text", []string{promptText}),
+		entity.NewColumnVarChar("negative_prompt_text", []string{promptText}),
 		entity.NewColumnInt64("created_at", []int64{output.CreatedAt.Unix()}),
 		entity.NewColumnInt64("updated_at", []int64{output.UpdatedAt.Unix()}),
-	}
-	if output.UpscaledImagePath != nil {
-		columns = append(columns, entity.NewColumnVarChar("upscaled_image_path", []string{*output.UpscaledImagePath}))
-	}
-	if negativePromptText != nil {
-		columns = append(columns, entity.NewColumnVarChar("negative_prompt_text", []string{*negativePromptText}))
 	}
 
 	_, err := m.Client.Insert(m.Ctx, MILVUS_COLLECTION_NAME, "", columns...)
