@@ -93,6 +93,7 @@ func main() {
 		log.Error("Failed to create milvus client", "err", err)
 		os.Exit(1)
 	}
+	defer milvusClient.Close()
 
 	// Create milvus schema
 	err = milvusClient.CreateCollectionIfNotExists()

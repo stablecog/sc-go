@@ -42,7 +42,7 @@ spec:
           imagePullPolicy: "Always"
           env:
             - name: MILVUS_ENDPOINT
-              value: milvus:19530
+              value: milvus.milvus:19530
             - name: MILVUS_USER
               valueFrom:
                 secretKeyRef:
