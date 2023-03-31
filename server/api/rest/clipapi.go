@@ -20,9 +20,15 @@ func (c *RestAPI) HandleGetClipEmbeds(w http.ResponseWriter, r *http.Request) {
 
 	query := r.URL.Query().Get("query")
 
-	req := requests.ClipAPIRequest{
-		Text: query,
+	if query == "" {
+		render.Status(r, http.StatusBadRequest)
+		render.JSON(w, r, []float32{})
+		return
 	}
+
+	req := []requests.ClipAPIRequest{{
+		Text: query,
+	}}
 
 	secret := os.Getenv("CLIPAPI_SECRET")
 	endpoint := os.Getenv("CLIPAPI_ENDPOINT")
@@ -31,7 +37,7 @@ func (c *RestAPI) HandleGetClipEmbeds(w http.ResponseWriter, r *http.Request) {
 	// Marshal req
 	b, err := json.Marshal(req)
 	if err != nil {
-		log.Error(err)
+		log.Errorf("Error marshalling req %v", err)
 		responses.ErrBadRequest(w, r, err.Error(), "")
 		return
 	}
@@ -39,10 +45,9 @@ func (c *RestAPI) HandleGetClipEmbeds(w http.ResponseWriter, r *http.Request) {
 	request.Header.Set("Authorization", secret)
 	request.Header.Set("Content-Type", "application/json")
 	// Do
-	client := &http.Client{}
-	resp, err := client.Do(request)
+	resp, err := http.DefaultClient.Do(request)
 	if err != nil {
-		log.Error(err)
+		log.Errorf("Error making request %v", err)
 		responses.ErrBadRequest(w, r, err.Error(), "")
 		return
 	}
@@ -57,12 +62,17 @@ func (c *RestAPI) HandleGetClipEmbeds(w http.ResponseWriter, r *http.Request) {
 	var clipAPIResponse responses.EmbeddingsResponse
 	err = json.Unmarshal(readAll, &clipAPIResponse)
 	if err != nil {
-		log.Error(err)
+		log.Errorf("Error unmarshalling resp %v", err)
 		responses.ErrBadRequest(w, r, err.Error(), "")
 		return
 	}
 
+	embeddings := [][]float32{}
+	for _, embedding := range clipAPIResponse.Embeddings {
+		embeddings = append(embeddings, embedding.Embedding)
+	}
+
 	// Return as-is
 	render.Status(r, resp.StatusCode)
-	render.JSON(w, r, clipAPIResponse)
+	render.JSON(w, r, embeddings)
 }
