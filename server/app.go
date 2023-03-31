@@ -102,6 +102,13 @@ func main() {
 		os.Exit(1)
 	}
 
+	// Create milvus index
+	err = milvusClient.CreateIndexes()
+	if err != nil {
+		log.Error("Failed to create milvus indexes", "err", err)
+		os.Exit(1)
+	}
+
 	// Create repository (database access)
 	repo := &repository.Repository{
 		DB:       entClient,

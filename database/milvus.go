@@ -186,6 +186,27 @@ func (m *MilvusClient) CreateCollectionIfNotExists() error {
 	return nil
 }
 
+func (m *MilvusClient) CreateIndexes() error {
+	index, err := m.Client.DescribeIndex(m.Ctx, MILVUS_COLLECTION_NAME, "image_embedding")
+	if err != nil {
+		log.Errorf("describe index failed, err: %v", err)
+		return err
+	}
+	if len(index) > 0 {
+		log.Infof("index already exists, skipping")
+		return nil
+	}
+	idx, err := entity.NewIndexIvfFlat(entity.L2, 1024)
+	if err != nil {
+		log.Fatalf("failed to create ivf flat index, err: %v", err)
+	}
+	if err := m.Client.CreateIndex(m.Ctx, MILVUS_COLLECTION_NAME, "image_embedding", idx, false); err != nil {
+		log.Errorf("create index failed, err: %v", err)
+		return err
+	}
+	return nil
+}
+
 func (m *MilvusClient) InsertOutput(output *ent.GenerationOutput, generation *ent.Generation, promptText string, negativePromptText string, imageEmbedding []float32) error {
 	var upscaledImagePath string
 	if output.UpscaledImagePath != nil {
