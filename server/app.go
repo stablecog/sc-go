@@ -186,7 +186,7 @@ func main() {
 				})
 			}
 			end := time.Now()
-			log.Infof("Got generation outputs in %ds", end.Sub(start).Seconds())
+			log.Infof("Got generation outputs in %fs", end.Sub(start).Seconds())
 
 			// Http POST to endpoint with secret
 			// Marshal req
@@ -230,7 +230,7 @@ func main() {
 				}
 			}
 			end = time.Now()
-			log.Infof("Loaded batch in %ds", end.Sub(start).Seconds())
+			log.Infof("Loaded batch in %fs", end.Sub(start).Seconds())
 			log.Infof("Last cursor: %v", cursor.Format(time.RFC3339Nano))
 		}
 		os.Exit(0)
