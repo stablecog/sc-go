@@ -16,11 +16,7 @@ import (
 	"github.com/stablecog/sc-go/server/responses"
 )
 
-func (c *RestAPI) HandleGetClipEmbeds(w http.ResponseWriter, r *http.Request) {
-	if user, email := c.GetUserIDAndEmailIfAuthenticated(w, r); user == nil || email == "" {
-		return
-	}
-
+func (c *RestAPI) HandleClipSearch(w http.ResponseWriter, r *http.Request) {
 	query := r.URL.Query().Get("query")
 
 	if query == "" {

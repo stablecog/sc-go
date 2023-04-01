@@ -221,6 +221,7 @@ func main() {
 	// Routes
 	app.Get("/", hc.HandleHealth)
 	app.Handle("/metrics", middleware.BasicAuth(promhttp.Handler(), "user", "password", "Authentication required"))
+	app.Get("/clip", hc.HandleClipSearch)
 	app.Route("/v1", func(r chi.Router) {
 		r.Get("/health", hc.HandleHealth)
 
@@ -291,8 +292,6 @@ func main() {
 			r.Post("/subscription/downgrade", hc.HandleSubscriptionDowngrade)
 			r.Post("/subscription/checkout", hc.HandleCreateCheckoutSession)
 			r.Post("/subscription/portal", hc.HandleCreatePortalSession)
-
-			r.Get("/clip", hc.HandleGetClipEmbeds)
 		})
 
 		// Admin only routes
