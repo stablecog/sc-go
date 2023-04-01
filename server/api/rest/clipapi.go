@@ -17,9 +17,9 @@ import (
 )
 
 func (c *RestAPI) HandleGetClipEmbeds(w http.ResponseWriter, r *http.Request) {
-	// if user, email := c.GetUserIDAndEmailIfAuthenticated(w, r); user == nil || email == "" {
-	// 	return
-	// }
+	if user, email := c.GetUserIDAndEmailIfAuthenticated(w, r); user == nil || email == "" {
+		return
+	}
 
 	query := r.URL.Query().Get("query")
 
@@ -80,14 +80,25 @@ func (c *RestAPI) HandleGetClipEmbeds(w http.ResponseWriter, r *http.Request) {
 	vec2search := []entity.Vector{
 		entity.FloatVector(clipAPIResponse.Embeddings[0].Embedding),
 	}
-	res, err := c.Milvus.Client.Search(c.Milvus.Ctx, database.MILVUS_COLLECTION_NAME, []string{}, "", []string{"image_path"}, vec2search, "image_embedding", entity.L2, 50, sp, client.WithSearchQueryConsistencyLevel(entity.ClSession))
+	res, err := c.Milvus.Client.Search(c.Milvus.Ctx, database.MILVUS_COLLECTION_NAME, []string{}, "", []string{"image_path"}, vec2search, "image_embedding", entity.L2, 50, sp, client.WithSearchQueryConsistencyLevel(entity.ClSession), client.WithLimit(50), client.WithOffset(0))
 	if err != nil {
 		log.Errorf("Error searching %v", err)
 		responses.ErrBadRequest(w, r, err.Error(), "")
 		return
 	}
 
+	var response []string
+	for _, v := range res {
+		for _, v2 := range v.Fields {
+			response = v2.FieldData().GetScalars().GetStringData().Data
+		}
+	}
+
 	// Return as-is
 	render.Status(r, resp.StatusCode)
-	render.JSON(w, r, res)
+	render.JSON(w, r, response)
+}
+
+type MilvusResponse struct {
+	Data []string `json:"data"`
 }
