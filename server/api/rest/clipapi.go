@@ -3,7 +3,6 @@ package rest
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
 	"io"
 	"net/http"
 	"os"
@@ -12,6 +11,7 @@ import (
 	"github.com/go-chi/render"
 	"github.com/milvus-io/milvus-sdk-go/v2/client"
 	"github.com/milvus-io/milvus-sdk-go/v2/entity"
+	"github.com/pgvector/pgvector-go"
 	"github.com/stablecog/sc-go/database"
 	"github.com/stablecog/sc-go/database/ent"
 	"github.com/stablecog/sc-go/database/ent/generationoutput"
@@ -192,7 +192,7 @@ func (c *RestAPI) HandleClipSearchPGVector(w http.ResponseWriter, r *http.Reques
 			gq.WithPrompt()
 		}).
 		Order(func(s *sql.Selector) {
-			s.OrderBy(fmt.Sprintf("embedding <-> %v", vector), generationoutput.FieldCreatedAt)
+			s.OrderExpr(sql.Expr("embedding <-> ?", pgvector.NewVector(vector)), sql.Expr("created_at DESC"))
 		}).Limit(50).All(r.Context())
 	if err != nil {
 		log.Errorf("Error searching %v", err)
