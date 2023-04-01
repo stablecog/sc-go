@@ -3,6 +3,7 @@ package database
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"github.com/milvus-io/milvus-sdk-go/v2/client"
 	"github.com/milvus-io/milvus-sdk-go/v2/entity"
@@ -195,16 +196,17 @@ func (m *MilvusClient) CreateCollectionIfNotExists() error {
 }
 
 func (m *MilvusClient) CreateIndexes() error {
-	// indexes, err := m.Client.DescribeIndex(m.Ctx, MILVUS_COLLECTION_NAME, "image_embedding")
-	// if err != nil && !strings.Contains(err.Error(), "index doesn't exist") {
-	// 	log.Errorf("describe index failed, err: %v", err)
-	// 	return err
-	// }
-	// if len(indexes) > 0 {
-	// 	log.Infof("index already exists, skipping")
-	// 	return nil
-	// }
 	m.Client.ReleaseCollection(m.Ctx, MILVUS_COLLECTION_NAME)
+	indexes, err := m.Client.DescribeIndex(m.Ctx, MILVUS_COLLECTION_NAME, "image_embedding")
+	if err != nil && !strings.Contains(err.Error(), "index doesn't exist") {
+		log.Errorf("describe index failed, err: %v", err)
+		return err
+	}
+	if len(indexes) > 0 {
+		m.Client.DropIndex(m.Ctx, MILVUS_COLLECTION_NAME, "image_embedding")
+		log.Infof("index already exists, skipping")
+		return nil
+	}
 	idx, err := entity.NewIndexIvfSQ8(entity.IP, 1024)
 	if err != nil {
 		log.Errorf("create index failed, err: %v", err)
