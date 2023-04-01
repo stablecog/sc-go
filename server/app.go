@@ -164,11 +164,13 @@ func main() {
 			cur += each
 			// Get N G output IDs
 			var gOutputIDs []requests.ClipAPIImageRequest
+			start := time.Now()
 			bSelect := repo.DB.GenerationOutput.Query().Select(generationoutput.FieldID, generationoutput.FieldCreatedAt, generationoutput.FieldImagePath).Where(generationoutput.EmbeddingIsNil())
 			if cursor != nil {
 				bSelect = bSelect.Where(generationoutput.CreatedAtLT(*cursor))
 			}
 			gOutputs, err := bSelect.Order(ent.Desc(generationoutput.FieldCreatedAt)).Limit(each).All(ctx)
+
 			if err != nil {
 				log.Fatal("Failed to get generation outputs", "err", err)
 			}
@@ -183,6 +185,8 @@ func main() {
 					Image: utils.GetURLFromImagePath(gOutput.ImagePath),
 				})
 			}
+			end := time.Now()
+			log.Infof("Got generation outputs in %ds", end.Sub(start).Seconds())
 
 			// Http POST to endpoint with secret
 			// Marshal req
@@ -216,6 +220,7 @@ func main() {
 			}
 
 			// Update generation outputs
+			start = time.Now()
 			for _, embedding := range clipAPIResponse.Embeddings {
 				_, err = repo.DB.ExecContext(ctx, "UPDATE generation_outputs SET embedding = $1 WHERE id = $2", pgvector.NewVector(embedding.Embedding), embedding.ID)
 				// err = repo.DB.Debug().GenerationOutput.UpdateOneID(embedding.ID).SetEmbedding(pgvector.NewVector(embedding.Embedding)).Exec(ctx)
@@ -224,6 +229,8 @@ func main() {
 					log.Fatal("Failed to update generation output", "err", err)
 				}
 			}
+			end = time.Now()
+			log.Infof("Loaded batch in %ds", end.Sub(start).Seconds())
 			log.Infof("Last cursor: %v", cursor.Format(time.RFC3339Nano))
 		}
 		os.Exit(0)
