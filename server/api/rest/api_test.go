@@ -49,6 +49,15 @@ func testMainWrapper(m *testing.M) int {
 		os.Exit(1)
 	}
 
+	if utils.GetEnv("GITHUB_ACTIONS", "") == "true" {
+		// Run CREATE EXTENSION 'vector'; in postgres
+		_, err = entClient.ExecContext(ctx, "CREATE EXTENSION IF NOT EXISTS vector;")
+		if err != nil {
+			log.Fatal("Failed to create extension", "err", err)
+			os.Exit(1)
+		}
+	}
+
 	//Create schema
 	if err := entClient.Schema.Create(ctx); err != nil {
 		log.Fatal("Failed to run migrations", "err", err)
