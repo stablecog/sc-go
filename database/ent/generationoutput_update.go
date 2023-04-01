@@ -278,10 +278,10 @@ func (gou *GenerationOutputUpdate) sqlSave(ctx context.Context) (n int, err erro
 		_spec.SetField(generationoutput.FieldIsFavorited, field.TypeBool, value)
 	}
 	if value, ok := gou.mutation.Embedding(); ok {
-		_spec.SetField(generationoutput.FieldEmbedding, field.TypeString, value)
+		_spec.SetField(generationoutput.FieldEmbedding, field.TypeOther, value)
 	}
 	if gou.mutation.EmbeddingCleared() {
-		_spec.ClearField(generationoutput.FieldEmbedding, field.TypeString)
+		_spec.ClearField(generationoutput.FieldEmbedding, field.TypeOther)
 	}
 	if value, ok := gou.mutation.DeletedAt(); ok {
 		_spec.SetField(generationoutput.FieldDeletedAt, field.TypeTime, value)
@@ -653,10 +653,10 @@ func (gouo *GenerationOutputUpdateOne) sqlSave(ctx context.Context) (_node *Gene
 		_spec.SetField(generationoutput.FieldIsFavorited, field.TypeBool, value)
 	}
 	if value, ok := gouo.mutation.Embedding(); ok {
-		_spec.SetField(generationoutput.FieldEmbedding, field.TypeString, value)
+		_spec.SetField(generationoutput.FieldEmbedding, field.TypeOther, value)
 	}
 	if gouo.mutation.EmbeddingCleared() {
-		_spec.ClearField(generationoutput.FieldEmbedding, field.TypeString)
+		_spec.ClearField(generationoutput.FieldEmbedding, field.TypeOther)
 	}
 	if value, ok := gouo.mutation.DeletedAt(); ok {
 		_spec.SetField(generationoutput.FieldDeletedAt, field.TypeTime, value)

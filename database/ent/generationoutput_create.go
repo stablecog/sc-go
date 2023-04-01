@@ -321,7 +321,7 @@ func (goc *GenerationOutputCreate) createSpec() (*GenerationOutput, *sqlgraph.Cr
 		_node.IsFavorited = value
 	}
 	if value, ok := goc.mutation.Embedding(); ok {
-		_spec.SetField(generationoutput.FieldEmbedding, field.TypeString, value)
+		_spec.SetField(generationoutput.FieldEmbedding, field.TypeOther, value)
 		_node.Embedding = &value
 	}
 	if value, ok := goc.mutation.DeletedAt(); ok {

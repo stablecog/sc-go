@@ -212,7 +212,7 @@ var (
 		{Name: "upscaled_image_path", Type: field.TypeString, Nullable: true, Size: 2147483647},
 		{Name: "gallery_status", Type: field.TypeEnum, Enums: []string{"not_submitted", "submitted", "approved", "rejected"}, Default: "not_submitted"},
 		{Name: "is_favorited", Type: field.TypeBool, Default: false},
-		{Name: "embedding", Type: field.TypeString, Nullable: true, Size: 2147483647, SchemaType: map[string]string{"postgres": "vector(1024)", "sqlite3": "TEXT"}},
+		{Name: "embedding", Type: field.TypeOther, Nullable: true, SchemaType: map[string]string{"postgres": "vector(1024)", "sqlite3": "TEXT"}},
 		{Name: "deleted_at", Type: field.TypeTime, Nullable: true},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},

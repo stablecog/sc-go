@@ -307,24 +307,6 @@ func EmbeddingLTE(v pgvector.Vector) predicate.GenerationOutput {
 	return predicate.GenerationOutput(sql.FieldLTE(FieldEmbedding, v))
 }
 
-// EmbeddingContains applies the Contains predicate on the "embedding" field.
-func EmbeddingContains(v pgvector.Vector) predicate.GenerationOutput {
-	vc := v.String()
-	return predicate.GenerationOutput(sql.FieldContains(FieldEmbedding, vc))
-}
-
-// EmbeddingHasPrefix applies the HasPrefix predicate on the "embedding" field.
-func EmbeddingHasPrefix(v pgvector.Vector) predicate.GenerationOutput {
-	vc := v.String()
-	return predicate.GenerationOutput(sql.FieldHasPrefix(FieldEmbedding, vc))
-}
-
-// EmbeddingHasSuffix applies the HasSuffix predicate on the "embedding" field.
-func EmbeddingHasSuffix(v pgvector.Vector) predicate.GenerationOutput {
-	vc := v.String()
-	return predicate.GenerationOutput(sql.FieldHasSuffix(FieldEmbedding, vc))
-}
-
 // EmbeddingIsNil applies the IsNil predicate on the "embedding" field.
 func EmbeddingIsNil() predicate.GenerationOutput {
 	return predicate.GenerationOutput(sql.FieldIsNull(FieldEmbedding))
@@ -333,18 +315,6 @@ func EmbeddingIsNil() predicate.GenerationOutput {
 // EmbeddingNotNil applies the NotNil predicate on the "embedding" field.
 func EmbeddingNotNil() predicate.GenerationOutput {
 	return predicate.GenerationOutput(sql.FieldNotNull(FieldEmbedding))
-}
-
-// EmbeddingEqualFold applies the EqualFold predicate on the "embedding" field.
-func EmbeddingEqualFold(v pgvector.Vector) predicate.GenerationOutput {
-	vc := v.String()
-	return predicate.GenerationOutput(sql.FieldEqualFold(FieldEmbedding, vc))
-}
-
-// EmbeddingContainsFold applies the ContainsFold predicate on the "embedding" field.
-func EmbeddingContainsFold(v pgvector.Vector) predicate.GenerationOutput {
-	vc := v.String()
-	return predicate.GenerationOutput(sql.FieldContainsFold(FieldEmbedding, vc))
 }
 
 // GenerationIDEQ applies the EQ predicate on the "generation_id" field.
