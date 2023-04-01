@@ -102,7 +102,7 @@ func (c *RestAPI) HandleClipSearch(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Combine prompt and image data as if they correlate to each other
-	response.Data = make([]MilvusData, 0, len(promptData))
+	response.Data = make([]MilvusData, len(promptData))
 	for i := range promptData {
 		response.Data[i] = MilvusData{
 			Image:  imageData[i],
