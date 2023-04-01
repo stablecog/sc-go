@@ -190,7 +190,7 @@ func main() {
 		// Update generation outputs
 		for _, embedding := range clipAPIResponse.Embeddings {
 			fmt.Printf("%v", embedding.ID)
-			_, err = repo.DB.Debug().GenerationOutput.UpdateOneID(embedding.ID).SetEmbedding(pgvector.NewVector(embedding.Embedding)).Save(ctx)
+			err = repo.DB.Debug().GenerationOutput.UpdateOneID(embedding.ID).SetEmbedding(pgvector.NewVector(embedding.Embedding)).Exec(ctx)
 			if err != nil {
 				log.Fatal("Failed to update generation output", "err", err)
 			}
