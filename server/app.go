@@ -147,55 +147,68 @@ func main() {
 		log.Info("🏡 Loading embeddings...")
 		secret := os.Getenv("CLIPAPI_SECRET")
 		endpoint := os.Getenv("CLIPAPI_ENDPOINT")
-		// Get N G output IDs
-		var gOutputIDs []requests.ClipAPIImageRequest
-		gOutputs, err := repo.DB.GenerationOutput.Query().Select(generationoutput.FieldID, generationoutput.FieldCreatedAt, generationoutput.FieldImagePath).Where(generationoutput.EmbeddingIsNil()).Order(ent.Desc(generationoutput.FieldCreatedAt)).Limit(100).All(ctx)
-		if err != nil {
-			log.Fatal("Failed to get generation outputs", "err", err)
-		}
-		for _, gOutput := range gOutputs {
-			gOutputIDs = append(gOutputIDs, requests.ClipAPIImageRequest{
-				ID:    gOutput.ID,
-				Image: utils.GetURLFromImagePath(gOutput.ImagePath),
-			})
-		}
-
-		// Http POST to endpoint with secret
-		// Marshal req
-		b, err := json.Marshal(gOutputIDs)
-		if err != nil {
-			log.Fatalf("Error marshalling req %v", err)
-		}
-		request, _ := http.NewRequest(http.MethodPost, endpoint, bytes.NewReader(b))
-		request.Header.Set("Authorization", secret)
-		request.Header.Set("Content-Type", "application/json")
-		// Do
-		resp, err := http.DefaultClient.Do(request)
-		if err != nil {
-			log.Fatalf("Error making request %v", err)
-		}
-		defer resp.Body.Close()
-
-		readAll, err := io.ReadAll(resp.Body)
-		if err != nil {
-			log.Fatal(err)
-		}
-		var clipAPIResponse responses.EmbeddingsResponse
-		err = json.Unmarshal(readAll, &clipAPIResponse)
-		if err != nil {
-			log.Fatalf("Error unmarshalling resp %v", err)
-			return
-		}
-
-		// Update generation outputs
-		for _, embedding := range clipAPIResponse.Embeddings {
-			_, err = repo.DB.ExecContext(ctx, "UPDATE generation_outputs SET embedding = $1 WHERE id = $2", pgvector.NewVector(embedding.Embedding), embedding.ID)
-			// err = repo.DB.Debug().GenerationOutput.UpdateOneID(embedding.ID).SetEmbedding(pgvector.NewVector(embedding.Embedding)).Exec(ctx)
+		max := 10000
+		each := 100
+		cur := 0
+		var cursor *time.Time
+		for cur < max {
+			log.Info("Loading batch of embeddings", "cur", cur, "max", max, "each", each)
+			cur += each
+			// Get N G output IDs
+			var gOutputIDs []requests.ClipAPIImageRequest
+			bSelect := repo.DB.GenerationOutput.Query().Select(generationoutput.FieldID, generationoutput.FieldCreatedAt, generationoutput.FieldImagePath).Where(generationoutput.EmbeddingIsNil())
+			if cursor != nil {
+				bSelect = bSelect.Where(generationoutput.CreatedAtLT(*cursor))
+			}
+			gOutputs, err := bSelect.Order(ent.Desc(generationoutput.FieldCreatedAt)).Limit(each).All(ctx)
 			if err != nil {
-				log.Fatal("Failed to update generation output", "err", err)
+				log.Fatal("Failed to get generation outputs", "err", err)
+			}
+			cursor = &gOutputs[len(gOutputs)-1].CreatedAt
+			for _, gOutput := range gOutputs {
+				gOutputIDs = append(gOutputIDs, requests.ClipAPIImageRequest{
+					ID:    gOutput.ID,
+					Image: utils.GetURLFromImagePath(gOutput.ImagePath),
+				})
+			}
+
+			// Http POST to endpoint with secret
+			// Marshal req
+			b, err := json.Marshal(gOutputIDs)
+			if err != nil {
+				log.Fatalf("Error marshalling req %v", err)
+			}
+			request, _ := http.NewRequest(http.MethodPost, endpoint, bytes.NewReader(b))
+			request.Header.Set("Authorization", secret)
+			request.Header.Set("Content-Type", "application/json")
+			// Do
+			resp, err := http.DefaultClient.Do(request)
+			if err != nil {
+				log.Fatalf("Error making request %v", err)
+			}
+			defer resp.Body.Close()
+
+			readAll, err := io.ReadAll(resp.Body)
+			if err != nil {
+				log.Fatal(err)
+			}
+			var clipAPIResponse responses.EmbeddingsResponse
+			err = json.Unmarshal(readAll, &clipAPIResponse)
+			if err != nil {
+				log.Fatalf("Error unmarshalling resp %v", err)
+				return
+			}
+
+			// Update generation outputs
+			for _, embedding := range clipAPIResponse.Embeddings {
+				_, err = repo.DB.ExecContext(ctx, "UPDATE generation_outputs SET embedding = $1 WHERE id = $2", pgvector.NewVector(embedding.Embedding), embedding.ID)
+				// err = repo.DB.Debug().GenerationOutput.UpdateOneID(embedding.ID).SetEmbedding(pgvector.NewVector(embedding.Embedding)).Exec(ctx)
+				if err != nil {
+					log.Fatal("Failed to update generation output", "err", err)
+				}
 			}
 		}
-
+		log.Infof("Last cursor: %v", cursor.Format(time.RFC3339Nano))
 		os.Exit(0)
 	}
 
