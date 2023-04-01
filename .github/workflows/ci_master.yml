@@ -46,7 +46,7 @@ jobs:
     # Setup postgres service for tests
     services:
       db:
-        image: postgres:14
+        image: stablecog/postgres:14-pgvector
         env:
           POSTGRES_DB: testing
           POSTGRES_PASSWORD: postgres
@@ -63,6 +63,10 @@ jobs:
     steps:
       - name: Check out code
         uses: actions/checkout@v3
+
+      - name: Enable pgvector extension
+        run: |
+          PGPASSWORD=postgres psql -U postgres -tc "CREATE EXTENSION 'vector';" -d testing
 
       - name: Setup Go with cache
         uses: actions/setup-go@v3
