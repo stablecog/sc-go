@@ -205,7 +205,7 @@ func (m *MilvusClient) CreateIndexes() error {
 		log.Infof("index already exists, skipping")
 		return nil
 	}
-	idx, err := entity.NewIndexIvfFlat(entity.L2, 1024)
+	idx, err := entity.NewIndexHNSW(entity.L2, 32, 256)
 	if err != nil {
 		log.Errorf("create index failed, err: %v", err)
 		return err
