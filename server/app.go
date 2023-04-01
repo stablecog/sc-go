@@ -148,7 +148,7 @@ func main() {
 		log.Info("🏡 Loading embeddings...")
 		secret := os.Getenv("CLIPAPI_SECRET")
 		endpoint := os.Getenv("CLIPAPI_ENDPOINT")
-		max := 10000
+		max := 500000
 		each := 100
 		cur := 0
 		var cursor *time.Time

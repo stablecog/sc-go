@@ -22,6 +22,13 @@ import (
 )
 
 func (c *RestAPI) HandleClipSearch(w http.ResponseWriter, r *http.Request) {
+	// Get Authorization header
+	auth := r.Header.Get("Authorization")
+	if auth != os.Getenv("CLIPAPI_SECRET") {
+		responses.ErrUnauthorized(w, r)
+		return
+	}
+
 	query := r.URL.Query().Get("query")
 
 	if query == "" {
@@ -131,6 +138,12 @@ type MilvusResponse struct {
 }
 
 func (c *RestAPI) HandleClipSearchPGVector(w http.ResponseWriter, r *http.Request) {
+	// Get Authorization header
+	auth := r.Header.Get("Authorization")
+	if auth != os.Getenv("CLIPAPI_SECRET") {
+		responses.ErrUnauthorized(w, r)
+		return
+	}
 	query := r.URL.Query().Get("query")
 
 	if query == "" {
