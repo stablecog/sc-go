@@ -196,14 +196,14 @@ func (m *MilvusClient) CreateCollectionIfNotExists() error {
 }
 
 func (m *MilvusClient) CreateIndexes() error {
-	m.Client.ReleaseCollection(m.Ctx, MILVUS_COLLECTION_NAME)
+	// m.Client.ReleaseCollection(m.Ctx, MILVUS_COLLECTION_NAME)
 	indexes, err := m.Client.DescribeIndex(m.Ctx, MILVUS_COLLECTION_NAME, "image_embedding")
 	if err != nil && !strings.Contains(err.Error(), "index doesn't exist") {
 		log.Errorf("describe index failed, err: %v", err)
 		return err
 	}
 	if len(indexes) > 0 {
-		m.Client.DropIndex(m.Ctx, MILVUS_COLLECTION_NAME, "image_embedding")
+		// m.Client.DropIndex(m.Ctx, MILVUS_COLLECTION_NAME, "image_embedding")
 		log.Infof("index already exists, skipping")
 		return nil
 	}
