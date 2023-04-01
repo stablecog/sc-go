@@ -72,11 +72,11 @@ func (c *RestAPI) HandleClipSearch(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	sp, _ := entity.NewIndexHNSWSearchParam(300)
+	sp, _ := entity.NewIndexHNSWSearchParam(128)
 	vec2search := []entity.Vector{
 		entity.FloatVector(clipAPIResponse.Embeddings[0].Embedding),
 	}
-	res, err := c.Milvus.Client.Search(c.Milvus.Ctx, database.MILVUS_COLLECTION_NAME, []string{}, "", []string{"image_path"}, vec2search, "image_embedding", entity.IP, 50, sp, client.WithSearchQueryConsistencyLevel(entity.ClSession), client.WithLimit(50), client.WithOffset(0))
+	res, err := c.Milvus.Client.Search(c.Milvus.Ctx, database.MILVUS_COLLECTION_NAME, []string{}, "", []string{"prompt_text", "image_path"}, vec2search, "image_embedding", entity.IP, 50, sp, client.WithSearchQueryConsistencyLevel(entity.ClSession), client.WithLimit(50), client.WithOffset(0))
 	if err != nil {
 		log.Errorf("Error searching %v", err)
 		responses.ErrBadRequest(w, r, err.Error(), "")
@@ -88,9 +88,25 @@ func (c *RestAPI) HandleClipSearch(w http.ResponseWriter, r *http.Request) {
 		InputText:      clipAPIResponse.Embeddings[0].InputText,
 	}
 
+	var promptData []string
+	var imageData []string
 	for _, v := range res {
 		for _, v2 := range v.Fields {
-			response.Data = v2.FieldData().GetScalars().GetStringData().Data
+			if v2.Name() == "prompt_text" {
+				promptData = v2.FieldData().GetScalars().GetStringData().Data
+			}
+			if v2.Name() == "image_path" {
+				imageData = v2.FieldData().GetScalars().GetStringData().Data
+			}
+		}
+	}
+
+	// Combine prompt and image data as if they correlate to each other
+	response.Data = make([]MilvusData, 0, len(promptData))
+	for i := range promptData {
+		response.Data[i] = MilvusData{
+			Image:  imageData[i],
+			Prompt: promptData[i],
 		}
 	}
 
@@ -98,8 +114,13 @@ func (c *RestAPI) HandleClipSearch(w http.ResponseWriter, r *http.Request) {
 	render.JSON(w, r, response)
 }
 
+type MilvusData struct {
+	Image  string `json:"image"`
+	Prompt string `json:"prompt"`
+}
+
 type MilvusResponse struct {
-	Data           []string `json:"data"`
-	TranslatedText string   `json:"translated_text,omitempty"`
-	InputText      string   `json:"input_text"`
+	Data           []MilvusData `json:"data"`
+	TranslatedText string       `json:"translated_text,omitempty"`
+	InputText      string       `json:"input_text"`
 }
