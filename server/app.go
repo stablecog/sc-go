@@ -95,26 +95,26 @@ func main() {
 	}
 	defer milvusClient.Close()
 
-	// Create milvus schema
-	err = milvusClient.CreateCollectionIfNotExists()
-	if err != nil {
-		log.Error("Failed to create milvus collection", "err", err)
-		os.Exit(1)
-	}
+	// // Create milvus schema
+	// err = milvusClient.CreateCollectionIfNotExists()
+	// if err != nil {
+	// 	log.Error("Failed to create milvus collection", "err", err)
+	// 	os.Exit(1)
+	// }
 
-	// Create milvus index
-	err = milvusClient.CreateIndexes()
-	if err != nil {
-		log.Error("Failed to create milvus indexes", "err", err)
-		os.Exit(1)
-	}
+	// // Create milvus index
+	// err = milvusClient.CreateIndexes()
+	// if err != nil {
+	// 	log.Error("Failed to create milvus indexes", "err", err)
+	// 	os.Exit(1)
+	// }
 
-	// Load milvus collection
-	err = milvusClient.LoadCollection()
-	if err != nil {
-		log.Error("Failed to load milvus collection", "err", err)
-		os.Exit(1)
-	}
+	// // Load milvus collection
+	// err = milvusClient.LoadCollection()
+	// if err != nil {
+	// 	log.Error("Failed to load milvus collection", "err", err)
+	// 	os.Exit(1)
+	// }
 
 	// Create repository (database access)
 	repo := &repository.Repository{
