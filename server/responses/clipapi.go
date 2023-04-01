@@ -1,9 +1,12 @@
 package responses
 
+import "github.com/google/uuid"
+
 type EmbeddingObject struct {
 	Embedding      []float32 `json:"embedding"`
 	InputText      string    `json:"input_text"`
 	TranslatedText string    `json:"translated_text,omitempty"`
+	ID             uuid.UUID `json:"id,omitempty"`
 }
 
 type EmbeddingsResponse struct {

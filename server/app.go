@@ -1,10 +1,12 @@
 package main
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"flag"
 	"fmt"
+	"io"
 	"net/http"
 	"os"
 	"time"
@@ -17,9 +19,12 @@ import (
 	"github.com/go-chi/cors"
 	"github.com/go-co-op/gocron"
 	"github.com/joho/godotenv"
+	"github.com/pgvector/pgvector-go"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	chiprometheus "github.com/stablecog/chi-prometheus"
 	"github.com/stablecog/sc-go/database"
+	"github.com/stablecog/sc-go/database/ent"
+	"github.com/stablecog/sc-go/database/ent/generationoutput"
 	"github.com/stablecog/sc-go/database/repository"
 	"github.com/stablecog/sc-go/log"
 	"github.com/stablecog/sc-go/server/analytics"
@@ -27,6 +32,8 @@ import (
 	"github.com/stablecog/sc-go/server/api/sse"
 	"github.com/stablecog/sc-go/server/discord"
 	"github.com/stablecog/sc-go/server/middleware"
+	"github.com/stablecog/sc-go/server/requests"
+	"github.com/stablecog/sc-go/server/responses"
 	"github.com/stablecog/sc-go/shared"
 	"github.com/stablecog/sc-go/utils"
 	stripe "github.com/stripe/stripe-go/v74/client"
@@ -51,6 +58,7 @@ func main() {
 
 	// Custom flags
 	createMockData := flag.Bool("load-mock-data", false, "Create test data in database")
+	loadEmbeddings := flag.Bool("load-embeddings", false, "Load embeddings into database")
 
 	flag.Parse()
 
@@ -132,6 +140,61 @@ func main() {
 			log.Fatal("Failed to create mock data", "err", err)
 			os.Exit(1)
 		}
+		os.Exit(0)
+	}
+
+	if *loadEmbeddings {
+		log.Info("🏡 Loading embeddings...")
+		secret := os.Getenv("CLIPAPI_SECRET")
+		endpoint := os.Getenv("CLIPAPI_ENDPOINT")
+		// Get N G output IDs
+		var gOutputIDs []requests.ClipAPIImageRequest
+		gOutputs, err := repo.DB.GenerationOutput.Query().Select(generationoutput.FieldID, generationoutput.FieldCreatedAt, generationoutput.FieldImagePath).Where(generationoutput.EmbeddingIsNil()).Order(ent.Desc(generationoutput.FieldCreatedAt)).Limit(100).All(ctx)
+		if err != nil {
+			log.Fatal("Failed to get generation outputs", "err", err)
+		}
+		for _, gOutput := range gOutputs {
+			gOutputIDs = append(gOutputIDs, requests.ClipAPIImageRequest{
+				ID:    gOutput.ID,
+				Image: utils.GetURLFromImagePath(gOutput.ImagePath),
+			})
+		}
+
+		// Http POST to endpoint with secret
+		// Marshal req
+		b, err := json.Marshal(gOutputIDs)
+		if err != nil {
+			log.Fatalf("Error marshalling req %v", err)
+		}
+		request, _ := http.NewRequest(http.MethodPost, endpoint, bytes.NewReader(b))
+		request.Header.Set("Authorization", secret)
+		request.Header.Set("Content-Type", "application/json")
+		// Do
+		resp, err := http.DefaultClient.Do(request)
+		if err != nil {
+			log.Fatalf("Error making request %v", err)
+		}
+		defer resp.Body.Close()
+
+		readAll, err := io.ReadAll(resp.Body)
+		if err != nil {
+			log.Fatal(err)
+		}
+		var clipAPIResponse responses.EmbeddingsResponse
+		err = json.Unmarshal(readAll, &clipAPIResponse)
+		if err != nil {
+			log.Fatalf("Error unmarshalling resp %v", err)
+			return
+		}
+
+		// Update generation outputs
+		for _, embedding := range clipAPIResponse.Embeddings {
+			_, err = repo.DB.GenerationOutput.UpdateOneID(embedding.ID).SetEmbedding(pgvector.NewVector(embedding.Embedding)).Save(ctx)
+			if err != nil {
+				log.Fatal("Failed to update generation output", "err", err)
+			}
+		}
+
 		os.Exit(0)
 	}
 
