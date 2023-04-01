@@ -1,8 +1,9 @@
 package responses
 
 type EmbeddingObject struct {
-	Embedding []float32 `json:"embedding"`
-	InputText string    `json:"input_text"`
+	Embedding      []float32 `json:"embedding"`
+	InputText      string    `json:"input_text"`
+	TranslatedText string    `json:"translated_text,omitempty"`
 }
 
 type EmbeddingsResponse struct {

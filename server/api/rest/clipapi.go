@@ -76,25 +76,30 @@ func (c *RestAPI) HandleClipSearch(w http.ResponseWriter, r *http.Request) {
 	vec2search := []entity.Vector{
 		entity.FloatVector(clipAPIResponse.Embeddings[0].Embedding),
 	}
-	res, err := c.Milvus.Client.Search(c.Milvus.Ctx, database.MILVUS_COLLECTION_NAME, []string{}, "", []string{"image_path"}, vec2search, "image_embedding", entity.IP, 50, sp, client.WithSearchQueryConsistencyLevel(entity.ClSession), client.WithLimit(50), client.WithOffset(0))
+	res, err := c.Milvus.Client.Search(c.Milvus.Ctx, database.MILVUS_COLLECTION_NAME, []string{}, "", []string{"image_path"}, vec2search, "image_embedding", entity.L2, 50, sp, client.WithSearchQueryConsistencyLevel(entity.ClSession), client.WithLimit(50), client.WithOffset(0))
 	if err != nil {
 		log.Errorf("Error searching %v", err)
 		responses.ErrBadRequest(w, r, err.Error(), "")
 		return
 	}
 
-	var response []string
+	response := MilvusResponse{
+		TranslatedText: clipAPIResponse.Embeddings[0].TranslatedText,
+		InputText:      clipAPIResponse.Embeddings[0].InputText,
+	}
+
 	for _, v := range res {
 		for _, v2 := range v.Fields {
-			response = v2.FieldData().GetScalars().GetStringData().Data
+			response.Data = v2.FieldData().GetScalars().GetStringData().Data
 		}
 	}
 
-	// Return as-is
 	render.Status(r, resp.StatusCode)
 	render.JSON(w, r, response)
 }
 
 type MilvusResponse struct {
-	Data []string `json:"data"`
+	Data           []string `json:"data"`
+	TranslatedText string   `json:"translated_text,omitempty"`
+	InputText      string   `json:"input_text"`
 }
