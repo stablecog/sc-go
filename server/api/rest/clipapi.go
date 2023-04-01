@@ -72,7 +72,7 @@ func (c *RestAPI) HandleClipSearch(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	sp, _ := entity.NewIndexHNSWSearchParam(128)
+	sp, _ := entity.NewIndexHNSWSearchParam(300)
 	vec2search := []entity.Vector{
 		entity.FloatVector(clipAPIResponse.Embeddings[0].Embedding),
 	}
