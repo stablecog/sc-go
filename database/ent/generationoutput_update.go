@@ -12,6 +12,7 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
+	pgvector "github.com/pgvector/pgvector-go"
 	"github.com/stablecog/sc-go/database/ent/generation"
 	"github.com/stablecog/sc-go/database/ent/generationoutput"
 	"github.com/stablecog/sc-go/database/ent/predicate"
@@ -83,6 +84,26 @@ func (gou *GenerationOutputUpdate) SetNillableIsFavorited(b *bool) *GenerationOu
 	if b != nil {
 		gou.SetIsFavorited(*b)
 	}
+	return gou
+}
+
+// SetEmbedding sets the "embedding" field.
+func (gou *GenerationOutputUpdate) SetEmbedding(pg pgvector.Vector) *GenerationOutputUpdate {
+	gou.mutation.SetEmbedding(pg)
+	return gou
+}
+
+// SetNillableEmbedding sets the "embedding" field if the given value is not nil.
+func (gou *GenerationOutputUpdate) SetNillableEmbedding(pg *pgvector.Vector) *GenerationOutputUpdate {
+	if pg != nil {
+		gou.SetEmbedding(*pg)
+	}
+	return gou
+}
+
+// ClearEmbedding clears the value of the "embedding" field.
+func (gou *GenerationOutputUpdate) ClearEmbedding() *GenerationOutputUpdate {
+	gou.mutation.ClearEmbedding()
 	return gou
 }
 
@@ -256,6 +277,12 @@ func (gou *GenerationOutputUpdate) sqlSave(ctx context.Context) (n int, err erro
 	if value, ok := gou.mutation.IsFavorited(); ok {
 		_spec.SetField(generationoutput.FieldIsFavorited, field.TypeBool, value)
 	}
+	if value, ok := gou.mutation.Embedding(); ok {
+		_spec.SetField(generationoutput.FieldEmbedding, field.TypeString, value)
+	}
+	if gou.mutation.EmbeddingCleared() {
+		_spec.ClearField(generationoutput.FieldEmbedding, field.TypeString)
+	}
 	if value, ok := gou.mutation.DeletedAt(); ok {
 		_spec.SetField(generationoutput.FieldDeletedAt, field.TypeTime, value)
 	}
@@ -408,6 +435,26 @@ func (gouo *GenerationOutputUpdateOne) SetNillableIsFavorited(b *bool) *Generati
 	if b != nil {
 		gouo.SetIsFavorited(*b)
 	}
+	return gouo
+}
+
+// SetEmbedding sets the "embedding" field.
+func (gouo *GenerationOutputUpdateOne) SetEmbedding(pg pgvector.Vector) *GenerationOutputUpdateOne {
+	gouo.mutation.SetEmbedding(pg)
+	return gouo
+}
+
+// SetNillableEmbedding sets the "embedding" field if the given value is not nil.
+func (gouo *GenerationOutputUpdateOne) SetNillableEmbedding(pg *pgvector.Vector) *GenerationOutputUpdateOne {
+	if pg != nil {
+		gouo.SetEmbedding(*pg)
+	}
+	return gouo
+}
+
+// ClearEmbedding clears the value of the "embedding" field.
+func (gouo *GenerationOutputUpdateOne) ClearEmbedding() *GenerationOutputUpdateOne {
+	gouo.mutation.ClearEmbedding()
 	return gouo
 }
 
@@ -604,6 +651,12 @@ func (gouo *GenerationOutputUpdateOne) sqlSave(ctx context.Context) (_node *Gene
 	}
 	if value, ok := gouo.mutation.IsFavorited(); ok {
 		_spec.SetField(generationoutput.FieldIsFavorited, field.TypeBool, value)
+	}
+	if value, ok := gouo.mutation.Embedding(); ok {
+		_spec.SetField(generationoutput.FieldEmbedding, field.TypeString, value)
+	}
+	if gouo.mutation.EmbeddingCleared() {
+		_spec.ClearField(generationoutput.FieldEmbedding, field.TypeString)
 	}
 	if value, ok := gouo.mutation.DeletedAt(); ok {
 		_spec.SetField(generationoutput.FieldDeletedAt, field.TypeTime, value)

@@ -1,5 +1,6 @@
 CREATE extension IF NOT EXISTS moddatetime schema extensions;
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp" schema extensions;
+CREATE EXTENSION IF NOT EXISTS "vector" schema extensions;
 
 --
 -- Name: generate_upscale_status_enum; Type: TYPE; Schema: public; Owner: postgres
@@ -143,7 +144,8 @@ CREATE TABLE public.generation_outputs (
     upscaled_image_path text,
     generation_id uuid NOT NULL,
     gallery_status public.generation_output_gallery_status_enum DEFAULT 'not_submitted'::public.generation_output_gallery_status_enum NOT NULL,
-    is_favorited DEFAULT false not null;
+    is_favorited DEFAULT false not null,
+    embedding vector(1024),
     deleted_at timestamp with time zone,
     created_at timestamp with time zone DEFAULT (now() AT TIME ZONE 'utc'::text) NOT NULL,
     updated_at timestamp with time zone DEFAULT (now() AT TIME ZONE 'utc'::text) NOT NULL

@@ -8,6 +8,7 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"github.com/google/uuid"
+	pgvector "github.com/pgvector/pgvector-go"
 	"github.com/stablecog/sc-go/database/ent/predicate"
 )
 
@@ -69,6 +70,11 @@ func UpscaledImagePath(v string) predicate.GenerationOutput {
 // IsFavorited applies equality check predicate on the "is_favorited" field. It's identical to IsFavoritedEQ.
 func IsFavorited(v bool) predicate.GenerationOutput {
 	return predicate.GenerationOutput(sql.FieldEQ(FieldIsFavorited, v))
+}
+
+// Embedding applies equality check predicate on the "embedding" field. It's identical to EmbeddingEQ.
+func Embedding(v pgvector.Vector) predicate.GenerationOutput {
+	return predicate.GenerationOutput(sql.FieldEQ(FieldEmbedding, v))
 }
 
 // GenerationID applies equality check predicate on the "generation_id" field. It's identical to GenerationIDEQ.
@@ -259,6 +265,86 @@ func IsFavoritedEQ(v bool) predicate.GenerationOutput {
 // IsFavoritedNEQ applies the NEQ predicate on the "is_favorited" field.
 func IsFavoritedNEQ(v bool) predicate.GenerationOutput {
 	return predicate.GenerationOutput(sql.FieldNEQ(FieldIsFavorited, v))
+}
+
+// EmbeddingEQ applies the EQ predicate on the "embedding" field.
+func EmbeddingEQ(v pgvector.Vector) predicate.GenerationOutput {
+	return predicate.GenerationOutput(sql.FieldEQ(FieldEmbedding, v))
+}
+
+// EmbeddingNEQ applies the NEQ predicate on the "embedding" field.
+func EmbeddingNEQ(v pgvector.Vector) predicate.GenerationOutput {
+	return predicate.GenerationOutput(sql.FieldNEQ(FieldEmbedding, v))
+}
+
+// EmbeddingIn applies the In predicate on the "embedding" field.
+func EmbeddingIn(vs ...pgvector.Vector) predicate.GenerationOutput {
+	return predicate.GenerationOutput(sql.FieldIn(FieldEmbedding, vs...))
+}
+
+// EmbeddingNotIn applies the NotIn predicate on the "embedding" field.
+func EmbeddingNotIn(vs ...pgvector.Vector) predicate.GenerationOutput {
+	return predicate.GenerationOutput(sql.FieldNotIn(FieldEmbedding, vs...))
+}
+
+// EmbeddingGT applies the GT predicate on the "embedding" field.
+func EmbeddingGT(v pgvector.Vector) predicate.GenerationOutput {
+	return predicate.GenerationOutput(sql.FieldGT(FieldEmbedding, v))
+}
+
+// EmbeddingGTE applies the GTE predicate on the "embedding" field.
+func EmbeddingGTE(v pgvector.Vector) predicate.GenerationOutput {
+	return predicate.GenerationOutput(sql.FieldGTE(FieldEmbedding, v))
+}
+
+// EmbeddingLT applies the LT predicate on the "embedding" field.
+func EmbeddingLT(v pgvector.Vector) predicate.GenerationOutput {
+	return predicate.GenerationOutput(sql.FieldLT(FieldEmbedding, v))
+}
+
+// EmbeddingLTE applies the LTE predicate on the "embedding" field.
+func EmbeddingLTE(v pgvector.Vector) predicate.GenerationOutput {
+	return predicate.GenerationOutput(sql.FieldLTE(FieldEmbedding, v))
+}
+
+// EmbeddingContains applies the Contains predicate on the "embedding" field.
+func EmbeddingContains(v pgvector.Vector) predicate.GenerationOutput {
+	vc := v.String()
+	return predicate.GenerationOutput(sql.FieldContains(FieldEmbedding, vc))
+}
+
+// EmbeddingHasPrefix applies the HasPrefix predicate on the "embedding" field.
+func EmbeddingHasPrefix(v pgvector.Vector) predicate.GenerationOutput {
+	vc := v.String()
+	return predicate.GenerationOutput(sql.FieldHasPrefix(FieldEmbedding, vc))
+}
+
+// EmbeddingHasSuffix applies the HasSuffix predicate on the "embedding" field.
+func EmbeddingHasSuffix(v pgvector.Vector) predicate.GenerationOutput {
+	vc := v.String()
+	return predicate.GenerationOutput(sql.FieldHasSuffix(FieldEmbedding, vc))
+}
+
+// EmbeddingIsNil applies the IsNil predicate on the "embedding" field.
+func EmbeddingIsNil() predicate.GenerationOutput {
+	return predicate.GenerationOutput(sql.FieldIsNull(FieldEmbedding))
+}
+
+// EmbeddingNotNil applies the NotNil predicate on the "embedding" field.
+func EmbeddingNotNil() predicate.GenerationOutput {
+	return predicate.GenerationOutput(sql.FieldNotNull(FieldEmbedding))
+}
+
+// EmbeddingEqualFold applies the EqualFold predicate on the "embedding" field.
+func EmbeddingEqualFold(v pgvector.Vector) predicate.GenerationOutput {
+	vc := v.String()
+	return predicate.GenerationOutput(sql.FieldEqualFold(FieldEmbedding, vc))
+}
+
+// EmbeddingContainsFold applies the ContainsFold predicate on the "embedding" field.
+func EmbeddingContainsFold(v pgvector.Vector) predicate.GenerationOutput {
+	vc := v.String()
+	return predicate.GenerationOutput(sql.FieldContainsFold(FieldEmbedding, vc))
 }
 
 // GenerationIDEQ applies the EQ predicate on the "generation_id" field.

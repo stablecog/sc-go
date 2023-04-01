@@ -1,9 +1,11 @@
 package repository
 
 import (
+	"os"
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/pgvector/pgvector-go"
 	"github.com/stablecog/sc-go/database/ent"
 	"github.com/stablecog/sc-go/database/ent/generation"
 	"github.com/stablecog/sc-go/database/ent/generationoutput"
@@ -140,7 +142,11 @@ func (r *Repository) SetGenerationSucceeded(generationID string, prompt string, 
 				log.Error("Error parsing s3 url", "output", output, "err", err)
 				parsedS3 = output.Image
 			}
-			gOutput, err := db.GenerationOutput.Create().SetGenerationID(uid).SetImagePath(parsedS3).SetGalleryStatus(galleryStatus).Save(r.Ctx)
+			gOCreate := db.GenerationOutput.Create().SetGenerationID(uid).SetImagePath(parsedS3).SetGalleryStatus(galleryStatus)
+			if os.Getenv("USE_PGVECTOR") == "true" {
+				gOCreate.SetEmbedding(pgvector.NewVector(output.ImageEmbed))
+			}
+			gOutput, err := gOCreate.Save(r.Ctx)
 			if err != nil {
 				log.Error("Error inserting generation output", "id", generationID, "err", err)
 				return err

@@ -11,6 +11,7 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
+	pgvector "github.com/pgvector/pgvector-go"
 	"github.com/stablecog/sc-go/database/ent/generation"
 	"github.com/stablecog/sc-go/database/ent/generationoutput"
 	"github.com/stablecog/sc-go/database/ent/upscaleoutput"
@@ -67,6 +68,20 @@ func (goc *GenerationOutputCreate) SetIsFavorited(b bool) *GenerationOutputCreat
 func (goc *GenerationOutputCreate) SetNillableIsFavorited(b *bool) *GenerationOutputCreate {
 	if b != nil {
 		goc.SetIsFavorited(*b)
+	}
+	return goc
+}
+
+// SetEmbedding sets the "embedding" field.
+func (goc *GenerationOutputCreate) SetEmbedding(pg pgvector.Vector) *GenerationOutputCreate {
+	goc.mutation.SetEmbedding(pg)
+	return goc
+}
+
+// SetNillableEmbedding sets the "embedding" field if the given value is not nil.
+func (goc *GenerationOutputCreate) SetNillableEmbedding(pg *pgvector.Vector) *GenerationOutputCreate {
+	if pg != nil {
+		goc.SetEmbedding(*pg)
 	}
 	return goc
 }
@@ -304,6 +319,10 @@ func (goc *GenerationOutputCreate) createSpec() (*GenerationOutput, *sqlgraph.Cr
 	if value, ok := goc.mutation.IsFavorited(); ok {
 		_spec.SetField(generationoutput.FieldIsFavorited, field.TypeBool, value)
 		_node.IsFavorited = value
+	}
+	if value, ok := goc.mutation.Embedding(); ok {
+		_spec.SetField(generationoutput.FieldEmbedding, field.TypeString, value)
+		_node.Embedding = &value
 	}
 	if value, ok := goc.mutation.DeletedAt(); ok {
 		_spec.SetField(generationoutput.FieldDeletedAt, field.TypeTime, value)
