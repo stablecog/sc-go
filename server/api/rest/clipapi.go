@@ -187,7 +187,7 @@ func (c *RestAPI) HandleClipSearchPGVector(w http.ResponseWriter, r *http.Reques
 
 	vector := clipAPIResponse.Embeddings[0].Embedding
 
-	res, err := c.Repo.DB.GenerationOutput.Query().Select(generationoutput.FieldImagePath).
+	res, err := c.Repo.DB.Debug().GenerationOutput.Query().Select(generationoutput.FieldImagePath).
 		WithGenerations(func(gq *ent.GenerationQuery) {
 			gq.WithPrompt()
 		}).
