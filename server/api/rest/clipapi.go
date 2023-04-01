@@ -3,6 +3,7 @@ package rest
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
 	"os"
@@ -192,7 +193,7 @@ func (c *RestAPI) HandleClipSearchPGVector(w http.ResponseWriter, r *http.Reques
 			gq.WithPrompt()
 		}).
 		Order(func(s *sql.Selector) {
-			s.OrderExpr(sql.Expr("embedding <#> ?", pgvector.NewVector(vector)))
+			s.OrderExpr(sql.Expr("embedding <#> '?' ASC", pgvector.NewVector(vector)), sql.Expr(fmt.Sprintf("%s DESC", generationoutput.FieldCreatedAt)))
 		}).Limit(50).All(r.Context())
 	if err != nil {
 		log.Errorf("Error searching %v", err)
