@@ -109,6 +109,13 @@ func main() {
 		os.Exit(1)
 	}
 
+	// Load milvus collection
+	err = milvusClient.LoadCollection()
+	if err != nil {
+		log.Error("Failed to load milvus collection", "err", err)
+		os.Exit(1)
+	}
+
 	// Create repository (database access)
 	repo := &repository.Repository{
 		DB:       entClient,
