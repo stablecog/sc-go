@@ -192,7 +192,7 @@ func (c *RestAPI) HandleClipSearchPGVector(w http.ResponseWriter, r *http.Reques
 			gq.WithPrompt()
 		}).
 		Order(func(s *sql.Selector) {
-			s.OrderExpr(sql.Expr("embedding <-> ?", pgvector.NewVector(vector)), sql.Expr("created_at DESC"))
+			s.OrderExpr(sql.Expr("embedding <#> ?", pgvector.NewVector(vector)), sql.Expr("created_at DESC"))
 		}).Limit(50).All(r.Context())
 	if err != nil {
 		log.Errorf("Error searching %v", err)
