@@ -149,7 +149,7 @@ func main() {
 		endpoint := os.Getenv("CLIPAPI_ENDPOINT")
 		// Get N G output IDs
 		var gOutputIDs []requests.ClipAPIImageRequest
-		gOutputs, err := repo.DB.GenerationOutput.Query().Select(generationoutput.FieldID, generationoutput.FieldCreatedAt, generationoutput.FieldImagePath).Where(generationoutput.EmbeddingIsNil()).Order(ent.Desc(generationoutput.FieldCreatedAt)).Limit(10).All(ctx)
+		gOutputs, err := repo.DB.GenerationOutput.Query().Select(generationoutput.FieldID, generationoutput.FieldCreatedAt, generationoutput.FieldImagePath).Where(generationoutput.EmbeddingIsNil()).Order(ent.Desc(generationoutput.FieldCreatedAt)).Limit(100).All(ctx)
 		if err != nil {
 			log.Fatal("Failed to get generation outputs", "err", err)
 		}
@@ -189,7 +189,6 @@ func main() {
 
 		// Update generation outputs
 		for _, embedding := range clipAPIResponse.Embeddings {
-			fmt.Printf("%v", embedding.ID)
 			err = repo.DB.Debug().GenerationOutput.UpdateOneID(embedding.ID).SetEmbedding(pgvector.NewVector(embedding.Embedding)).Exec(ctx)
 			if err != nil {
 				log.Fatal("Failed to update generation output", "err", err)
