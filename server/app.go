@@ -59,6 +59,7 @@ func main() {
 	// Custom flags
 	createMockData := flag.Bool("load-mock-data", false, "Create test data in database")
 	loadEmbeddings := flag.Bool("load-embeddings", false, "Load embeddings into database")
+	cursorEmbeddings := flag.String("cursor", "", "Cursor to start from")
 
 	flag.Parse()
 
@@ -151,6 +152,13 @@ func main() {
 		each := 100
 		cur := 0
 		var cursor *time.Time
+		if *cursorEmbeddings != "" {
+			t, err := time.Parse(time.RFC3339, *cursorEmbeddings)
+			if err != nil {
+				log.Fatal("Failed to parse cursor", "err", err)
+			}
+			cursor = &t
+		}
 		for cur < max {
 			log.Info("Loading batch of embeddings", "cur", cur, "max", max, "each", each)
 			cur += each
@@ -164,6 +172,10 @@ func main() {
 			if err != nil {
 				log.Fatal("Failed to get generation outputs", "err", err)
 			}
+			if len(gOutputs) == 0 {
+				log.Info("No more generation outputs to load")
+				os.Exit(0)
+			}
 			cursor = &gOutputs[len(gOutputs)-1].CreatedAt
 			for _, gOutput := range gOutputs {
 				gOutputIDs = append(gOutputIDs, requests.ClipAPIImageRequest{
@@ -176,6 +188,7 @@ func main() {
 			// Marshal req
 			b, err := json.Marshal(gOutputIDs)
 			if err != nil {
+				log.Infof("Last cursor: %v", cursor.Format(time.RFC3339Nano))
 				log.Fatalf("Error marshalling req %v", err)
 			}
 			request, _ := http.NewRequest(http.MethodPost, endpoint, bytes.NewReader(b))
@@ -184,17 +197,20 @@ func main() {
 			// Do
 			resp, err := http.DefaultClient.Do(request)
 			if err != nil {
+				log.Infof("Last cursor: %v", cursor.Format(time.RFC3339Nano))
 				log.Fatalf("Error making request %v", err)
 			}
 			defer resp.Body.Close()
 
 			readAll, err := io.ReadAll(resp.Body)
 			if err != nil {
+				log.Infof("Last cursor: %v", cursor.Format(time.RFC3339Nano))
 				log.Fatal(err)
 			}
 			var clipAPIResponse responses.EmbeddingsResponse
 			err = json.Unmarshal(readAll, &clipAPIResponse)
 			if err != nil {
+				log.Infof("Last cursor: %v", cursor.Format(time.RFC3339Nano))
 				log.Fatalf("Error unmarshalling resp %v", err)
 				return
 			}
@@ -204,11 +220,12 @@ func main() {
 				_, err = repo.DB.ExecContext(ctx, "UPDATE generation_outputs SET embedding = $1 WHERE id = $2", pgvector.NewVector(embedding.Embedding), embedding.ID)
 				// err = repo.DB.Debug().GenerationOutput.UpdateOneID(embedding.ID).SetEmbedding(pgvector.NewVector(embedding.Embedding)).Exec(ctx)
 				if err != nil {
+					log.Infof("Last cursor: %v", cursor.Format(time.RFC3339Nano))
 					log.Fatal("Failed to update generation output", "err", err)
 				}
 			}
+			log.Infof("Last cursor: %v", cursor.Format(time.RFC3339Nano))
 		}
-		log.Infof("Last cursor: %v", cursor.Format(time.RFC3339Nano))
 		os.Exit(0)
 	}
 
