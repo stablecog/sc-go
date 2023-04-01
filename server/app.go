@@ -97,12 +97,12 @@ func main() {
 	}
 
 	// Setup milvus client
-	milvusClient, err := database.NewMilvusClient(ctx)
-	if err != nil {
-		log.Error("Failed to create milvus client", "err", err)
-		os.Exit(1)
-	}
-	defer milvusClient.Close()
+	// milvusClient, err := database.NewMilvusClient(ctx)
+	// if err != nil {
+	// 	log.Error("Failed to create milvus client", "err", err)
+	// 	os.Exit(1)
+	// }
+	// defer milvusClient.Close()
 
 	// // Create milvus schema
 	// err = milvusClient.CreateCollectionIfNotExists()
@@ -131,7 +131,7 @@ func main() {
 		ConnInfo: dbconn,
 		Redis:    redis,
 		Ctx:      ctx,
-		Milvus:   milvusClient,
+		// Milvus:   milvusClient,
 	}
 
 	if *createMockData {
@@ -148,7 +148,7 @@ func main() {
 		log.Info("🏡 Loading embeddings...")
 		secret := os.Getenv("CLIPAPI_SECRET")
 		endpoint := os.Getenv("CLIPAPI_ENDPOINT")
-		max := 500000
+		max := 5000000
 		each := 100
 		cur := 0
 		var cursor *time.Time
@@ -317,7 +317,7 @@ func main() {
 		Track:          analyticsService,
 		QueueThrottler: qThrottler,
 		S3:             s3Client,
-		Milvus:         milvusClient,
+		// Milvus:         milvusClient,
 	}
 
 	// Create middleware
