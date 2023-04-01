@@ -223,6 +223,10 @@ func main() {
 			// Update generation outputs
 			start = time.Now()
 			for _, embedding := range clipAPIResponse.Embeddings {
+				if embedding.Error != "" {
+					log.Infof("Skipping", "id", embedding.ID, "error", embedding.Error)
+					continue
+				}
 				_, err = repo.DB.ExecContext(ctx, "UPDATE generation_outputs SET embedding = $1 WHERE id = $2", pgvector.NewVector(embedding.Embedding), embedding.ID)
 				// err = repo.DB.Debug().GenerationOutput.UpdateOneID(embedding.ID).SetEmbedding(pgvector.NewVector(embedding.Embedding)).Exec(ctx)
 				if err != nil {

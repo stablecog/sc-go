@@ -7,6 +7,7 @@ type EmbeddingObject struct {
 	InputText      string    `json:"input_text"`
 	TranslatedText string    `json:"translated_text,omitempty"`
 	ID             uuid.UUID `json:"id,omitempty"`
+	Error          string    `json:"error,omitempty"`
 }
 
 type EmbeddingsResponse struct {
