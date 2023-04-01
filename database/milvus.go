@@ -205,7 +205,7 @@ func (m *MilvusClient) CreateIndexes() error {
 	// 	return nil
 	// }
 	m.Client.ReleaseCollection(m.Ctx, MILVUS_COLLECTION_NAME)
-	idx, err := entity.NewIndexHNSW(entity.IP, 32, 256)
+	idx, err := entity.NewIndexIvfSQ8("image_embedding", 1024)
 	if err != nil {
 		log.Errorf("create index failed, err: %v", err)
 		return err
