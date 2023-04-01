@@ -7,7 +7,7 @@ type ClipAPIRequest struct {
 }
 
 type ClipAPIImageRequest struct {
-	Image   string    `json:"image"`
-	ImageID string    `json:"image_id"`
+	Image   string    `json:"image,omitempty"`
+	ImageID string    `json:"image_id,omitempty"`
 	ID      uuid.UUID `json:"id"`
 }

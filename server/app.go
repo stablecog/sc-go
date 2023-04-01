@@ -181,8 +181,8 @@ func main() {
 			cursor = &gOutputs[len(gOutputs)-1].CreatedAt
 			for _, gOutput := range gOutputs {
 				gOutputIDs = append(gOutputIDs, requests.ClipAPIImageRequest{
-					ID:      gOutput.ID,
-					Image:   utils.GetURLFromImagePath(gOutput.ImagePath),
+					ID: gOutput.ID,
+					// Image:   utils.GetURLFromImagePath(gOutput.ImagePath),
 					ImageID: gOutput.ImagePath,
 				})
 			}
