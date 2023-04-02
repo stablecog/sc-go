@@ -20,6 +20,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/cors"
 	"github.com/go-co-op/gocron"
+	"github.com/go-openapi/strfmt"
 	"github.com/google/uuid"
 	"github.com/joho/godotenv"
 	"github.com/pgvector/pgvector-go"
@@ -41,6 +42,7 @@ import (
 	"github.com/stablecog/sc-go/shared"
 	"github.com/stablecog/sc-go/utils"
 	stripe "github.com/stripe/stripe-go/v74/client"
+	"github.com/weaviate/weaviate/entities/models"
 	"golang.org/x/net/http2"
 	"golang.org/x/net/http2/h2c"
 )
@@ -196,21 +198,23 @@ func main() {
 		}
 
 		// Load to weaviate
+		var objects []*models.Object
 		for _, generationOutput := range generationOutputs {
-			created, err := weaviate.Client.Data().Creator().
-				WithClassName("test").
-				WithID(generationOutput.ID).
-				WithProperties(map[string]interface{}{
+			objects = append(objects, &models.Object{
+				Class: "test",
+				ID:    strfmt.UUID(generationOutput.ID),
+				Properties: map[string]interface{}{
 					"image_path": generationOutput.ImagePath,
 					"prompt":     generationOutput.PromptText,
-				}).
-				WithVector(generationOutput.EmbeddingVector).
-				Do(context.Background())
-			if err != nil {
-				log.Fatal("Failed to create object", "err", err)
-			}
-			log.Info("Created object", "id", created.Object.ID)
+				},
+				Vector: generationOutput.EmbeddingVector,
+			})
 		}
+		b, err := weaviate.Client.Batch().ObjectsBatcher().WithObjects(objects...).Do(weaviate.Ctx)
+		if err != nil {
+			log.Fatal("Failed to batch objects", "err", err)
+		}
+		log.Info("Batched objects", "count", len(b))
 
 		// Repeat where created_at lt last created_at
 		cursor := generationOutputs[len(generationOutputs)-1].CreatedAt
@@ -250,21 +254,23 @@ func main() {
 				cursor = generationOutputs[len(generationOutputs)-1].CreatedAt
 			}
 			// Load to weaviate
+			var objects []*models.Object
 			for _, generationOutput := range generationOutputs {
-				created, err := weaviate.Client.Data().Creator().
-					WithClassName("test").
-					WithID(generationOutput.ID).
-					WithProperties(map[string]interface{}{
+				objects = append(objects, &models.Object{
+					Class: "test",
+					ID:    strfmt.UUID(generationOutput.ID),
+					Properties: map[string]interface{}{
 						"image_path": generationOutput.ImagePath,
 						"prompt":     generationOutput.PromptText,
-					}).
-					WithVector(generationOutput.EmbeddingVector).
-					Do(context.Background())
-				if err != nil {
-					log.Fatal("Failed to create object", "err", err)
-				}
-				log.Info("Created object", "id", created.Object.ID)
+					},
+					Vector: generationOutput.EmbeddingVector,
+				})
 			}
+			b, err := weaviate.Client.Batch().ObjectsBatcher().WithObjects(objects...).Do(weaviate.Ctx)
+			if err != nil {
+				log.Fatal("Failed to batch objects", "err", err)
+			}
+			log.Info("Batched objects", "count", len(b))
 		}
 
 		log.Info("Loaded generation outputs", "count", len(generationOutputs))
