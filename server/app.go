@@ -9,6 +9,8 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"strconv"
+	"strings"
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -18,12 +20,14 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/cors"
 	"github.com/go-co-op/gocron"
+	"github.com/google/uuid"
 	"github.com/joho/godotenv"
 	"github.com/pgvector/pgvector-go"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	chiprometheus "github.com/stablecog/chi-prometheus"
 	"github.com/stablecog/sc-go/database"
 	"github.com/stablecog/sc-go/database/ent"
+	"github.com/stablecog/sc-go/database/ent/generation"
 	"github.com/stablecog/sc-go/database/ent/generationoutput"
 	"github.com/stablecog/sc-go/database/repository"
 	"github.com/stablecog/sc-go/log"
@@ -60,6 +64,7 @@ func main() {
 	createMockData := flag.Bool("load-mock-data", false, "Create test data in database")
 	loadEmbeddings := flag.Bool("load-embeddings", false, "Load embeddings into database")
 	cursorEmbeddings := flag.String("cursor", "", "Cursor to start from")
+	loadWeaviate := flag.Bool("load-weaviate", false, "Load weaviate data into database")
 
 	flag.Parse()
 
@@ -141,6 +146,128 @@ func main() {
 			log.Fatal("Failed to create mock data", "err", err)
 			os.Exit(1)
 		}
+		os.Exit(0)
+	}
+
+	if *loadWeaviate {
+		weaviate := database.NewWeaviateClient(ctx)
+		log.Info("🏡 Loading weaviate data...")
+		rawQ := "select id, image_path, embedding, generation_id, created_at from generation_outputs where embedding is not null order by created_at desc limit 50;"
+		res, err := repo.DB.QueryContext(ctx, rawQ)
+		if err != nil {
+			log.Fatal("Failed to load generation outputs", "err", err)
+		}
+		// Load res into struct
+		type GenerationOutput struct {
+			ID              string `json:"id"`
+			ImagePath       string `json:"image_path"`
+			Embedding       string `json:"embedding"`
+			EmbeddingVector []float32
+			GenerationID    string    `json:"generation_id"`
+			GenerationUUID  uuid.UUID `json:"generation_uuid"`
+			PromptText      string    `json:"prompt_text"`
+			CreatedAt       time.Time `json:"created_at"`
+		}
+		var generationOutputs []GenerationOutput
+		for res.Next() {
+			var generationOutput GenerationOutput
+			err = res.Scan(&generationOutput.ID, &generationOutput.ImagePath, &generationOutput.Embedding, &generationOutput.GenerationID, &generationOutput.CreatedAt)
+			if err != nil {
+				log.Fatal("Failed to scan generation output", "err", err)
+			}
+			trimmed := strings.Trim(generationOutput.Embedding, "[]")
+			split := strings.Split(trimmed, ",")
+			floats := make([]float32, len(split))
+			for i, s := range split {
+				f, err := strconv.ParseFloat(s, 32)
+				if err != nil {
+					log.Fatal("Failed to parse float", "err", err)
+				}
+				floats[i] = float32(f)
+			}
+			generationOutput.EmbeddingVector = floats
+			generationOutput.GenerationUUID = uuid.MustParse(generationOutput.GenerationID)
+			g, err := repo.DB.Generation.Query().Where(generation.IDEQ(generationOutput.GenerationUUID)).WithPrompt().Only(ctx)
+			if err != nil {
+				log.Fatal("Failed to load generation", "err", err)
+			}
+			generationOutput.PromptText = g.Edges.Prompt.Text
+			generationOutputs = append(generationOutputs, generationOutput)
+		}
+
+		// Load to weaviate
+		for _, generationOutput := range generationOutputs {
+			created, err := weaviate.Client.Data().Creator().
+				WithClassName("test").
+				WithID(generationOutput.ID).
+				WithProperties(map[string]interface{}{
+					"image_path": generationOutput.ImagePath,
+					"prompt":     generationOutput.PromptText,
+				}).
+				WithVector(generationOutput.EmbeddingVector).
+				Do(context.Background())
+			if err != nil {
+				log.Fatal("Failed to create object", "err", err)
+			}
+			log.Info("Created object", "id", created.Object.ID)
+		}
+
+		// Repeat where created_at lt last created_at
+		cursor := generationOutputs[len(generationOutputs)-1].CreatedAt
+		for len(generationOutputs) < 5000000 {
+			log.Info("Loading more generation outputs", "cursor", cursor)
+			rawQ := "select id, image_path, embedding, generation_id, created_at from generation_outputs where embedding is not null and created_at < $1 order by created_at desc limit 50;"
+			res, err := repo.DB.QueryContext(ctx, rawQ, cursor)
+			if err != nil {
+				log.Fatal("Failed to load generation outputs", "err", err)
+			}
+			// Load res into struct
+			var generationOutputs []GenerationOutput
+			for res.Next() {
+				var generationOutput GenerationOutput
+				err = res.Scan(&generationOutput.ID, &generationOutput.ImagePath, &generationOutput.Embedding, &generationOutput.GenerationID, &generationOutput.CreatedAt)
+				if err != nil {
+					log.Fatal("Failed to scan generation output", "err", err)
+				}
+				trimmed := strings.Trim(generationOutput.Embedding, "[]")
+				split := strings.Split(trimmed, ",")
+				floats := make([]float32, len(split))
+				for i, s := range split {
+					f, err := strconv.ParseFloat(s, 32)
+					if err != nil {
+						log.Fatal("Failed to parse float", "err", err)
+					}
+					floats[i] = float32(f)
+				}
+				generationOutput.EmbeddingVector = floats
+				generationOutput.GenerationUUID = uuid.MustParse(generationOutput.GenerationID)
+				g, err := repo.DB.Generation.Query().Where(generation.IDEQ(generationOutput.GenerationUUID)).WithPrompt().Only(ctx)
+				if err != nil {
+					log.Fatal("Failed to load generation", "err", err)
+				}
+				generationOutput.PromptText = g.Edges.Prompt.Text
+				generationOutputs = append(generationOutputs, generationOutput)
+				cursor = generationOutputs[len(generationOutputs)-1].CreatedAt
+			}
+			// Load to weaviate
+			for _, generationOutput := range generationOutputs {
+				created, err := weaviate.Client.Data().Creator().
+					WithClassName("test").
+					WithID(generationOutput.ID).
+					WithProperties(map[string]interface{}{
+						"image_path": generationOutput.ImagePath,
+						"prompt":     generationOutput.PromptText,
+					}).
+					WithVector(generationOutput.EmbeddingVector).
+					Do(context.Background())
+				if err != nil {
+					log.Fatal("Failed to create object", "err", err)
+				}
+				log.Info("Created object", "id", created.Object.ID)
+			}
+		}
+
+		log.Info("Loaded generation outputs", "count", len(generationOutputs))
 		os.Exit(0)
 	}
 
