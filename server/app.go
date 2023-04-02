@@ -238,7 +238,7 @@ func main() {
 					log.Info("Skipping", "id", embedding.ID, "error", embedding.Error)
 					continue
 				}
-				query += fmt.Sprintf("('%s'::uuid, '%s'),", embedding.ID, pgvector.NewVector(embedding.Embedding))
+				query += fmt.Sprintf("('%s'::uuid, %v),", embedding.ID, pgvector.NewVector(embedding.Embedding))
 				// _, err = repo.DB.ExecContext(ctx, "UPDATE generation_outputs SET embedding = $1 WHERE id = $2", pgvector.NewVector(embedding.Embedding), embedding.ID)
 				// // err = repo.DB.Debug().GenerationOutput.UpdateOneID(embedding.ID).SetEmbedding(pgvector.NewVector(embedding.Embedding)).Exec(ctx)
 				// if err != nil {
