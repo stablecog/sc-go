@@ -42,6 +42,7 @@ import (
 	"github.com/stablecog/sc-go/shared"
 	"github.com/stablecog/sc-go/utils"
 	stripe "github.com/stripe/stripe-go/v74/client"
+	"github.com/weaviate/weaviate-go-client/v4/weaviate/data/replication"
 	"github.com/weaviate/weaviate/entities/models"
 	"golang.org/x/net/http2"
 	"golang.org/x/net/http2/h2c"
@@ -201,7 +202,7 @@ func main() {
 		var objects []*models.Object
 		for _, generationOutput := range generationOutputs {
 			objects = append(objects, &models.Object{
-				Class: "test",
+				Class: "Test",
 				ID:    strfmt.UUID(generationOutput.ID),
 				Properties: map[string]interface{}{
 					"image_path": generationOutput.ImagePath,
@@ -210,7 +211,7 @@ func main() {
 				Vector: generationOutput.EmbeddingVector,
 			})
 		}
-		b, err := weaviate.Client.Batch().ObjectsBatcher().WithObjects(objects...).Do(weaviate.Ctx)
+		b, err := weaviate.Client.Batch().ObjectsBatcher().WithConsistencyLevel(replication.ConsistencyLevel.ALL).WithObjects(objects...).Do(weaviate.Ctx)
 		if err != nil {
 			log.Fatal("Failed to batch objects", "err", err)
 		}
@@ -257,7 +258,7 @@ func main() {
 			var objects []*models.Object
 			for _, generationOutput := range generationOutputs {
 				objects = append(objects, &models.Object{
-					Class: "test",
+					Class: "Test",
 					ID:    strfmt.UUID(generationOutput.ID),
 					Properties: map[string]interface{}{
 						"image_path": generationOutput.ImagePath,
@@ -266,7 +267,7 @@ func main() {
 					Vector: generationOutput.EmbeddingVector,
 				})
 			}
-			b, err := weaviate.Client.Batch().ObjectsBatcher().WithObjects(objects...).Do(weaviate.Ctx)
+			b, err := weaviate.Client.Batch().ObjectsBatcher().WithObjects(objects...).WithConsistencyLevel(replication.ConsistencyLevel.ALL).Do(weaviate.Ctx)
 			if err != nil {
 				log.Fatal("Failed to batch objects", "err", err)
 			}

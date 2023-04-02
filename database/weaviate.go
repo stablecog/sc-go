@@ -30,7 +30,7 @@ func (w *WeaviateClient) SearchNearVector(vector []float32) (map[string]models.J
 
 	ctx := context.Background()
 	result, err := w.Client.GraphQL().Get().
-		WithClassName("test").
+		WithClassName("Test").
 		WithFields(imagePath, prompt).
 		WithNearVector(w.Client.GraphQL().NearVectorArgBuilder().WithVector(vector)).
 		Do(ctx)
