@@ -149,7 +149,7 @@ func main() {
 		secret := os.Getenv("CLIPAPI_SECRET")
 		endpoint := os.Getenv("CLIPAPI_ENDPOINT")
 		max := 5000000
-		each := 100
+		each := 200
 		cur := 0
 		var cursor *time.Time
 		if *cursorEmbeddings != "" {
@@ -224,7 +224,7 @@ func main() {
 			start = time.Now()
 			for _, embedding := range clipAPIResponse.Embeddings {
 				if embedding.Error != "" {
-					log.Infof("Skipping", "id", embedding.ID, "error", embedding.Error)
+					log.Info("Skipping", "id", embedding.ID, "error", embedding.Error)
 					continue
 				}
 				_, err = repo.DB.ExecContext(ctx, "UPDATE generation_outputs SET embedding = $1 WHERE id = $2", pgvector.NewVector(embedding.Embedding), embedding.ID)
