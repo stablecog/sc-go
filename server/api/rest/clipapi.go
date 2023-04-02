@@ -203,18 +203,46 @@ func (c *RestAPI) HandleClipSearchPGVector(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	// response := MilvusResponse{
-	// 	TranslatedText: clipAPIResponse.Embeddings[0].TranslatedText,
-	// 	InputText:      clipAPIResponse.Embeddings[0].InputText,
-	// }
+	jObj, ok := res["Get"]
+	if !ok {
+		log.Error("Error getting Get from response")
+		render.Status(r, http.StatusOK)
+		render.JSON(w, r, []float32{})
+		return
+	}
+	jObjInf, ok := jObj.(map[string]interface{})
+	if !ok {
+		log.Error("Error converting Get to map[string]interface{}")
+		render.Status(r, http.StatusOK)
+		render.JSON(w, r, []float32{})
+		return
+	}
+	items, ok := jObjInf["Test"]
+	if !ok {
+		log.Error("Error getting Test from response")
+		render.Status(r, http.StatusOK)
+		render.JSON(w, r, []float32{})
+		return
+	}
+	itmsList, ok := items.([]map[string]string)
+	if !ok {
+		log.Error("Error converting items to map[string]string")
+		render.Status(r, http.StatusOK)
+		render.JSON(w, r, []float32{})
+		return
+	}
 
-	// for k, v := range res {
-	// 	v.
-	// 	response.Data = append(response.Data, MilvusData{
-	// 		Image:  v[],
-	// 		Prompt: v.Edges.Generations.Edges.Prompt.Text,
-	// 	})
-	// }
+	response := MilvusResponse{
+		TranslatedText: clipAPIResponse.Embeddings[0].TranslatedText,
+		InputText:      clipAPIResponse.Embeddings[0].InputText,
+	}
+
+	for _, v := range itmsList {
+		response.Data = append(response.Data, MilvusData{
+			Image:  v["image_path"],
+			Prompt: v["prompt"],
+		})
+	}
 
 	render.Status(r, resp.StatusCode)
 	render.JSON(w, r, res)
