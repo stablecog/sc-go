@@ -9,7 +9,6 @@ import (
 	"io"
 	"net/http"
 	"os"
-	"strings"
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -222,40 +221,18 @@ func main() {
 			}
 
 			// Update generation outputs
-			// 			update account
-			// set currency = nv.currency
-			// from
-			//     ( values
-			//         (12, 'EURO'),
-			//         (18, 'DOLLAR'),
-			//         (13, 'Pound')
-			//     ) as nv (id, currency)
-			// where account.id = nv.id ;
-			query := "UPDATE generation_outputs set embedding = nv.embedding from (values "
 			start = time.Now()
-			i := 0
-			args := make([]interface{}, 0)
 			for _, embedding := range clipAPIResponse.Embeddings {
 				if embedding.Error != "" {
 					log.Info("Skipping", "id", embedding.ID, "error", embedding.Error)
 					continue
 				}
-				i++
-				query += fmt.Sprintf("('%s'::uuid, $%d),", embedding.ID, i)
-				args = append(args, pgvector.NewVector(embedding.Embedding))
-				// _, err = repo.DB.ExecContext(ctx, "UPDATE generation_outputs SET embedding = $1 WHERE id = $2", pgvector.NewVector(embedding.Embedding), embedding.ID)
-				// // err = repo.DB.Debug().GenerationOutput.UpdateOneID(embedding.ID).SetEmbedding(pgvector.NewVector(embedding.Embedding)).Exec(ctx)
-				// if err != nil {
-				// 	log.Infof("Last cursor: %v", cursor.Format(time.RFC3339Nano))
-				// 	log.Fatal("Failed to update generation output", "err", err)
-				// }
-			}
-			query = strings.TrimSuffix(query, ",")
-			query += ") as nv (id, embedding) where generation_outputs.id = nv.id"
-			_, err = repo.DB.ExecContext(ctx, query, args...)
-			if err != nil {
-				log.Infof("Last cursor: %v", cursor.Format(time.RFC3339Nano))
-				log.Fatal("Failed to update generation output", "err", err)
+				_, err = repo.DB.ExecContext(ctx, "UPDATE generation_outputs SET embedding = $1 WHERE id = $2", pgvector.NewVector(embedding.Embedding), embedding.ID)
+				// err = repo.DB.Debug().GenerationOutput.UpdateOneID(embedding.ID).SetEmbedding(pgvector.NewVector(embedding.Embedding)).Exec(ctx)
+				if err != nil {
+					log.Infof("Last cursor: %v", cursor.Format(time.RFC3339Nano))
+					log.Fatal("Failed to update generation output", "err", err)
+				}
 			}
 			end = time.Now()
 			log.Infof("Loaded batch in %fs", end.Sub(start).Seconds())
