@@ -245,5 +245,5 @@ func (c *RestAPI) HandleClipSearchPGVector(w http.ResponseWriter, r *http.Reques
 	}
 
 	render.Status(r, resp.StatusCode)
-	render.JSON(w, r, res)
+	render.JSON(w, r, response)
 }
