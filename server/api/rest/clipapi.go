@@ -3,19 +3,14 @@ package rest
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
 	"io"
 	"net/http"
 	"os"
 
-	"entgo.io/ent/dialect/sql"
 	"github.com/go-chi/render"
 	"github.com/milvus-io/milvus-sdk-go/v2/client"
 	"github.com/milvus-io/milvus-sdk-go/v2/entity"
-	"github.com/pgvector/pgvector-go"
 	"github.com/stablecog/sc-go/database"
-	"github.com/stablecog/sc-go/database/ent"
-	"github.com/stablecog/sc-go/database/ent/generationoutput"
 	"github.com/stablecog/sc-go/log"
 	"github.com/stablecog/sc-go/server/requests"
 	"github.com/stablecog/sc-go/server/responses"
@@ -201,31 +196,26 @@ func (c *RestAPI) HandleClipSearchPGVector(w http.ResponseWriter, r *http.Reques
 
 	vector := clipAPIResponse.Embeddings[0].Embedding
 
-	res, err := c.Repo.DB.GenerationOutput.Query().Unique(false).Select(generationoutput.FieldID, generationoutput.FieldImagePath, generationoutput.FieldGenerationID).
-		WithGenerations(func(gq *ent.GenerationQuery) {
-			gq.WithPrompt()
-		}).
-		Order(func(s *sql.Selector) {
-			s.OrderExpr(sql.Expr("embedding <#> $1 ASC", pgvector.NewVector(vector)), sql.Expr(fmt.Sprintf("%s DESC", generationoutput.FieldCreatedAt)))
-		}).Limit(50).All(r.Context())
+	res, err := c.Weaviate.SearchNearVector(vector)
 	if err != nil {
 		log.Errorf("Error searching %v", err)
 		responses.ErrBadRequest(w, r, err.Error(), "")
 		return
 	}
 
-	response := MilvusResponse{
-		TranslatedText: clipAPIResponse.Embeddings[0].TranslatedText,
-		InputText:      clipAPIResponse.Embeddings[0].InputText,
-	}
+	// response := MilvusResponse{
+	// 	TranslatedText: clipAPIResponse.Embeddings[0].TranslatedText,
+	// 	InputText:      clipAPIResponse.Embeddings[0].InputText,
+	// }
 
-	for _, v := range res {
-		response.Data = append(response.Data, MilvusData{
-			Image:  v.ImagePath,
-			Prompt: v.Edges.Generations.Edges.Prompt.Text,
-		})
-	}
+	// for k, v := range res {
+	// 	v.
+	// 	response.Data = append(response.Data, MilvusData{
+	// 		Image:  v[],
+	// 		Prompt: v.Edges.Generations.Edges.Prompt.Text,
+	// 	})
+	// }
 
 	render.Status(r, resp.StatusCode)
-	render.JSON(w, r, response)
+	render.JSON(w, r, res)
 }

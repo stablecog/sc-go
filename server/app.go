@@ -454,6 +454,7 @@ func main() {
 		Track:          analyticsService,
 		QueueThrottler: qThrottler,
 		S3:             s3Client,
+		Weaviate:       database.NewWeaviateClient(ctx),
 		// Milvus:         milvusClient,
 	}
 

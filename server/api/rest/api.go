@@ -31,6 +31,7 @@ type RestAPI struct {
 	QueueThrottler *shared.UserQueueThrottlerMap
 	S3             *s3.S3
 	Milvus         *database.MilvusClient
+	Weaviate       *database.WeaviateClient
 }
 
 func (c *RestAPI) GetUserIfAuthenticated(w http.ResponseWriter, r *http.Request) (user *ent.User) {
