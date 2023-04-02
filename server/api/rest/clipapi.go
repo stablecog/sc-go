@@ -224,7 +224,7 @@ func (c *RestAPI) HandleClipSearchPGVector(w http.ResponseWriter, r *http.Reques
 		render.JSON(w, r, []float32{})
 		return
 	}
-	itmsList, ok := items.([]map[string]interface{})
+	itmsList, ok := items.([]interface{})
 	if !ok {
 		log.Error("Error converting items to map[string]string")
 		render.Status(r, http.StatusOK)
@@ -239,8 +239,8 @@ func (c *RestAPI) HandleClipSearchPGVector(w http.ResponseWriter, r *http.Reques
 
 	for _, v := range itmsList {
 		response.Data = append(response.Data, MilvusData{
-			Image:  v["image_path"].(string),
-			Prompt: v["prompt"].(string),
+			Image:  v.(map[string]interface{})["image_path"].(string),
+			Prompt: v.(map[string]interface{})["prompt"].(string),
 		})
 	}
 
