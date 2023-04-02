@@ -233,12 +233,16 @@ func main() {
 			// where account.id = nv.id ;
 			query := "UPDATE generation_outputs set embedding = nv.embedding from (values "
 			start = time.Now()
+			i := 0
+			args := make([]interface{}, 0)
 			for _, embedding := range clipAPIResponse.Embeddings {
 				if embedding.Error != "" {
 					log.Info("Skipping", "id", embedding.ID, "error", embedding.Error)
 					continue
 				}
-				query += fmt.Sprintf("('%s'::uuid, %v),", embedding.ID, pgvector.NewVector(embedding.Embedding))
+				i++
+				query += fmt.Sprintf("('%s'::uuid, $%d),", embedding.ID, i)
+				args = append(args, pgvector.NewVector(embedding.Embedding))
 				// _, err = repo.DB.ExecContext(ctx, "UPDATE generation_outputs SET embedding = $1 WHERE id = $2", pgvector.NewVector(embedding.Embedding), embedding.ID)
 				// // err = repo.DB.Debug().GenerationOutput.UpdateOneID(embedding.ID).SetEmbedding(pgvector.NewVector(embedding.Embedding)).Exec(ctx)
 				// if err != nil {
@@ -248,7 +252,7 @@ func main() {
 			}
 			query = strings.TrimSuffix(query, ",")
 			query += ") as nv (id, embedding) where generation_outputs.id = nv.id"
-			_, err = repo.DB.ExecContext(ctx, query)
+			_, err = repo.DB.ExecContext(ctx, query, args...)
 			if err != nil {
 				log.Infof("Last cursor: %v", cursor.Format(time.RFC3339Nano))
 				log.Fatal("Failed to update generation output", "err", err)
