@@ -149,7 +149,7 @@ func main() {
 		secret := os.Getenv("CLIPAPI_SECRET")
 		endpoint := os.Getenv("CLIPAPI_ENDPOINT")
 		max := 5000000
-		each := 200
+		each := 100
 		cur := 0
 		var cursor *time.Time
 		if *cursorEmbeddings != "" {
