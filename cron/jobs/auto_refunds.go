@@ -20,8 +20,8 @@ func (j *JobRunner) RefundOldGenerationCredits(log Logger) error {
 			db := tx.Client()
 			j.Repo.SetGenerationFailed(gen.ID.String(), shared.TIMEOUT_ERROR, 0, db)
 			// Upscale is always 1 credit
-			success, err := j.Repo.RefundCreditsToUser(gen.UserID, gen.NumOutputs, db)
-			if err != nil || !success {
+			_, err := j.Repo.RefundCreditsToUser(gen.UserID, gen.NumOutputs, db)
+			if err != nil {
 				log.Errorf("Error refunding credits for generation %s %s %v", gen.UserID.String(), gen.ID.String(), err)
 				return err
 			}
@@ -43,8 +43,8 @@ func (j *JobRunner) RefundOldGenerationCredits(log Logger) error {
 			db := tx.Client()
 			j.Repo.SetUpscaleFailed(us.ID.String(), shared.TIMEOUT_ERROR, db)
 			// Upscale is always 1 credit
-			success, err := j.Repo.RefundCreditsToUser(us.UserID, 1, db)
-			if err != nil || !success {
+			_, err := j.Repo.RefundCreditsToUser(us.UserID, 1, db)
+			if err != nil {
 				log.Errorf("Error refunding credits for upscale %s %s %v", us.UserID.String(), us.ID.String(), err)
 				return err
 			}
