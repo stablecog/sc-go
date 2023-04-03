@@ -38,7 +38,9 @@ func (m *WeaviateClient) CreateSchema() error {
 		VectorIndexType: "hnsw",
 		Vectorizer:      "none",
 		VectorIndexConfig: map[string]interface{}{
-			"pq": true,
+			"pq": map[string]interface{}{
+				"enabled": true,
+			},
 		},
 		Properties: []*models.Property{
 			{
