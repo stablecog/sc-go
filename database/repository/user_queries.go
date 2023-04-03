@@ -293,7 +293,7 @@ type UserQueryResult struct {
 // For credit replenishment
 func (r *Repository) GetUsersThatSignedInSince(since time.Duration) ([]*ent.User, error) {
 	// Subtract since from now to get users signed in since then
-	return r.DB.User.Query().Where(user.LastSignInAtGT(time.Now().Add(-since)), user.ActiveProductIDIsNil()).All(r.Ctx)
+	return r.DB.User.Query().Where(user.LastSeenAtGT(time.Now().Add(-since)), user.ActiveProductIDIsNil()).All(r.Ctx)
 }
 
 // Get N subscribers
