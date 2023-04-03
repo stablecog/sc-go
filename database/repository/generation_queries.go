@@ -744,3 +744,18 @@ type GenerationQueryWithOutputsResultFormatted struct {
 	GenerationUpscaleOutput
 	Generation GenerationQueryWithOutputsData `json:"generation"`
 }
+
+func (r *Repository) GetGenerationsQueuedOrStarted() ([]*ent.Generation, error) {
+	// Get generations that are started/queued and older than 5 minutes
+	return r.DB.Generation.Query().
+		Where(
+			generation.StatusIn(
+				generation.StatusQueued,
+				generation.StatusStarted,
+			),
+			generation.CreatedAtLT(time.Now().Add(-5*time.Minute)),
+		).
+		Order(ent.Desc(generation.FieldCreatedAt)).
+		Limit(100).
+		All(r.Ctx)
+}
