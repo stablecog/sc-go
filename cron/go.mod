@@ -12,6 +12,7 @@ require (
 	github.com/stablecog/sc-go/shared v0.0.0-20230321001722-68888f92a48b
 	github.com/stablecog/sc-go/utils v0.0.0-20230321001722-68888f92a48b
 	github.com/stretchr/testify v1.8.2
+	github.com/stripe/stripe-go/v74 v74.9.0
 )
 
 require (
@@ -21,9 +22,12 @@ require (
 	github.com/charmbracelet/lipgloss v0.6.0 // indirect
 	github.com/charmbracelet/log v0.1.2 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
+	github.com/dukex/mixpanel v1.0.1 // indirect
 	github.com/go-logfmt/logfmt v0.6.0 // indirect
 	github.com/golang-jwt/jwt/v4 v4.4.3 // indirect
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
+	github.com/hashicorp/errwrap v1.0.0 // indirect
+	github.com/hashicorp/go-multierror v1.1.1 // indirect
 	github.com/josharian/intern v1.0.0 // indirect
 	github.com/klauspost/compress v1.15.6 // indirect
 	github.com/lucasb-eyer/go-colorful v1.2.0 // indirect
@@ -34,6 +38,7 @@ require (
 	github.com/muesli/reflow v0.2.1-0.20210115123740-9e1d0d53df68 // indirect
 	github.com/muesli/termenv v0.11.1-0.20220204035834-5ac8409525e0 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
+	github.com/posthog/posthog-go v0.0.0-20221221115252-24dfed35d71a // indirect
 	github.com/redis/go-redis/v9 v9.0.2 // indirect
 	github.com/rivo/uniseg v0.2.0 // indirect
 	github.com/robfig/cron/v3 v3.0.1 // indirect
@@ -41,6 +46,7 @@ require (
 	github.com/tomnomnom/linkheader v0.0.0-20180905144013-02ca5825eb80 // indirect
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
 	github.com/valyala/fasthttp v1.37.1-0.20220607072126-8a320890c08d // indirect
+	github.com/xtgo/uuid v0.0.0-20140804021211-a0b114877d4c // indirect
 	go.opencensus.io v0.24.0 // indirect
 	go.opentelemetry.io/otel v1.0.1 // indirect
 	go.opentelemetry.io/otel/trace v1.0.1 // indirect
