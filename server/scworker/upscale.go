@@ -174,7 +174,7 @@ func CreateUpscale(Track *analytics.AnalyticsService, Repo *repository.Repositor
 					}
 				}()
 			case requests.CogSucceeded:
-				_, err := Repo.SetUpscaleSucceeded(upscale.ID.String(), output.ID.String(), cogMsg.Input.Image, cogMsg.Outputs[0])
+				_, err := Repo.SetUpscaleSucceeded(upscale.ID.String(), output.ID.String(), cogMsg.Input.Image, cogMsg.Output)
 				if err != nil {
 					log.Error("Failed to set upscale succeeded", "id", upscale.ID, "err", err)
 				}

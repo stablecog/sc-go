@@ -145,7 +145,20 @@ func (repo *Repository) CreateMockData(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	_, err = repo.SetGenerationSucceeded(gen.ID.String(), "This is a prompt", "This is a negative prompt", []string{"output_1", "output_2", "output_3"}, 0)
+	_, err = repo.SetGenerationSucceeded(gen.ID.String(), "This is a prompt", "This is a negative prompt",
+		requests.CogWebhookOutput{
+			Images: []requests.CogWebhookOutputImage{
+				{
+					Image: "output_1",
+				},
+				{
+					Image: "output_2",
+				},
+				{
+					Image: "output_3",
+				},
+			},
+		}, 0)
 	if err != nil {
 		return err
 	}
@@ -170,7 +183,19 @@ func (repo *Repository) CreateMockData(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	_, err = repo.SetGenerationSucceeded(gen.ID.String(), "This is a prompt 2", "", []string{"output_4", "output_5", "output_6"}, 0)
+	_, err = repo.SetGenerationSucceeded(gen.ID.String(), "This is a prompt 2", "", requests.CogWebhookOutput{
+		Images: []requests.CogWebhookOutputImage{
+			{
+				Image: "output_4",
+			},
+			{
+				Image: "output_5",
+			},
+			{
+				Image: "output_6",
+			},
+		},
+	}, 0)
 	if err != nil {
 		return err
 	}
@@ -241,7 +266,19 @@ func (repo *Repository) CreateMockGenerationForDeletion(ctx context.Context) (*e
 	if err != nil {
 		return nil, err
 	}
-	_, err = repo.SetGenerationSucceeded(gen.ID.String(), "to_delete", "", []string{"output_4", "output_5", "output_6"}, 0)
+	_, err = repo.SetGenerationSucceeded(gen.ID.String(), "to_delete", "", requests.CogWebhookOutput{
+		Images: []requests.CogWebhookOutputImage{
+			{
+				Image: "output_4",
+			},
+			{
+				Image: "output_5",
+			},
+			{
+				Image: "output_6",
+			},
+		},
+	}, 0)
 	if err != nil {
 		return nil, err
 	}

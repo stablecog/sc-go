@@ -53,7 +53,7 @@ func (c *RestAPI) HandleSCWorkerWebhook(w http.ResponseWriter, r *http.Request) 
 		livePageMsg := cogMessage.Input.LivePageData
 		if cogMessage.Status == requests.CogProcessing {
 			livePageMsg.Status = shared.LivePageProcessing
-		} else if cogMessage.Status == requests.CogSucceeded && len(cogMessage.Outputs) > 0 {
+		} else if cogMessage.Status == requests.CogSucceeded && len(cogMessage.Output.Images) > 0 {
 			livePageMsg.Status = shared.LivePageSucceeded
 		} else if cogMessage.Status == requests.CogSucceeded && cogMessage.NSFWCount > 0 {
 			livePageMsg.Status = shared.LivePageFailed
@@ -68,7 +68,7 @@ func (c *RestAPI) HandleSCWorkerWebhook(w http.ResponseWriter, r *http.Request) 
 		}
 		if cogMessage.Status == requests.CogSucceeded || cogMessage.Status == requests.CogFailed {
 			livePageMsg.CompletedAt = &now
-			livePageMsg.ActualNumOutputs = len(cogMessage.Outputs)
+			livePageMsg.ActualNumOutputs = len(cogMessage.Output.Images)
 			livePageMsg.NSFWCount = cogMessage.NSFWCount
 		}
 		// Send live page update
@@ -92,7 +92,7 @@ func (c *RestAPI) HandleSCWorkerWebhook(w http.ResponseWriter, r *http.Request) 
 		if cogMessage.Input.UserID == nil {
 			return
 		}
-		if cogMessage.Status == requests.CogSucceeded && len(cogMessage.Outputs) > 0 {
+		if cogMessage.Status == requests.CogSucceeded && len(cogMessage.Output.Images) > 0 {
 			u, err := c.Repo.GetUser(*cogMessage.Input.UserID)
 			if err != nil {
 				log.Error("Error getting user for analytics", "err", err)

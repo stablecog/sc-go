@@ -80,7 +80,7 @@ func (r *Repository) SetGenerationFailed(generationID string, reason string, nsf
 	return err
 }
 
-func (r *Repository) SetGenerationSucceeded(generationID string, prompt string, negativePrompt string, outputs []string, nsfwCount int32) ([]*ent.GenerationOutput, error) {
+func (r *Repository) SetGenerationSucceeded(generationID string, prompt string, negativePrompt string, output requests.CogWebhookOutput, nsfwCount int32) ([]*ent.GenerationOutput, error) {
 	uid, err := uuid.Parse(generationID)
 	if err != nil {
 		log.Error("Error parsing generation id in SetGenerationSucceeded", "id", generationID, "err", err)
@@ -134,11 +134,11 @@ func (r *Repository) SetGenerationSucceeded(generationID string, prompt string, 
 		}
 
 		// Insert all generation outputs
-		for _, output := range outputs {
-			parsedS3, err := utils.GetPathFromS3URL(output)
+		for _, output := range output.Images {
+			parsedS3, err := utils.GetPathFromS3URL(output.Image)
 			if err != nil {
 				log.Error("Error parsing s3 url", "output", output, "err", err)
-				parsedS3 = output
+				parsedS3 = output.Image
 			}
 			gOutput, err := db.GenerationOutput.Create().SetGenerationID(uid).SetImagePath(parsedS3).SetGalleryStatus(galleryStatus).Save(r.Ctx)
 			if err != nil {
