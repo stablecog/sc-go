@@ -26,7 +26,6 @@ func NewWeaviateClient(ctx context.Context) *WeaviateClient {
 
 func (m *WeaviateClient) CreateSchema() error {
 	False := false
-	True := true
 
 	// See if class exists first
 	s, _ := m.Client.Schema().ClassGetter().WithClassName("Test").Do(m.Ctx)
