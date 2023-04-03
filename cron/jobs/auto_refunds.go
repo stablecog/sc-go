@@ -22,7 +22,7 @@ func (j *JobRunner) RefundOldGenerationCredits(log Logger) error {
 			// Upscale is always 1 credit
 			success, err := j.Repo.RefundCreditsToUser(gen.UserID, gen.NumOutputs, db)
 			if err != nil || !success {
-				log.Errorf("Error refunding credits for generation %s %s %v", gen.UserID.String(), gen.ID.String(), "err", err)
+				log.Errorf("Error refunding credits for generation %s %s %v", gen.UserID.String(), gen.ID.String(), err)
 				return err
 			}
 			return nil
@@ -45,7 +45,7 @@ func (j *JobRunner) RefundOldGenerationCredits(log Logger) error {
 			// Upscale is always 1 credit
 			success, err := j.Repo.RefundCreditsToUser(us.UserID, 1, db)
 			if err != nil || !success {
-				log.Errorf("Error refunding credits for upscale %s %s %v", us.UserID.String(), us.ID.String(), "err", err)
+				log.Errorf("Error refunding credits for upscale %s %s %v", us.UserID.String(), us.ID.String(), err)
 				return err
 			}
 			return nil
