@@ -160,7 +160,7 @@ func main() {
 
 	if *loadWeaviate {
 		log.Info("🏡 Loading weaviate data...")
-		rawQ := "select id, image_path, embedding, generation_id, created_at from generation_outputs where embedding is not null order by created_at desc limit 50;"
+		rawQ := "select id, image_path, embedding, generation_id, created_at from generation_outputs where embedding is not null order by created_at desc limit 100;"
 		res, err := repo.DB.QueryContext(ctx, rawQ)
 		if err != nil {
 			log.Fatal("Failed to load generation outputs", "err", err)
@@ -224,11 +224,12 @@ func main() {
 
 		// Repeat where created_at lt last created_at
 		cursor := generationOutputs[len(generationOutputs)-1].CreatedAt
-		for len(generationOutputs) < 5000000 {
+		for len(generationOutputs) < 50000 {
 			log.Info("Loading more generation outputs", "cursor", cursor)
-			rawQ := "select id, image_path, embedding, generation_id, created_at from generation_outputs where embedding is not null and created_at < $1 order by created_at desc limit 50;"
+			rawQ := "select id, image_path, embedding, generation_id, created_at from generation_outputs where embedding is not null and created_at < $1 order by created_at desc limit 100;"
 			res, err := repo.DB.QueryContext(ctx, rawQ, cursor)
 			if err != nil {
+				log.Infof("Last cursor: %v", cursor.Format(time.RFC3339Nano))
 				log.Fatal("Failed to load generation outputs", "err", err)
 			}
 			// Load res into struct
@@ -237,6 +238,7 @@ func main() {
 				var generationOutput GenerationOutput
 				err = res.Scan(&generationOutput.ID, &generationOutput.ImagePath, &generationOutput.Embedding, &generationOutput.GenerationID, &generationOutput.CreatedAt)
 				if err != nil {
+					log.Infof("Last cursor: %v", cursor.Format(time.RFC3339Nano))
 					log.Fatal("Failed to scan generation output", "err", err)
 				}
 				trimmed := strings.Trim(generationOutput.Embedding, "[]")
@@ -245,6 +247,7 @@ func main() {
 				for i, s := range split {
 					f, err := strconv.ParseFloat(s, 32)
 					if err != nil {
+						log.Infof("Last cursor: %v", cursor.Format(time.RFC3339Nano))
 						log.Fatal("Failed to parse float", "err", err)
 					}
 					floats[i] = float32(f)
@@ -253,6 +256,7 @@ func main() {
 				generationOutput.GenerationUUID = uuid.MustParse(generationOutput.GenerationID)
 				g, err := repo.DB.Generation.Query().Where(generation.IDEQ(generationOutput.GenerationUUID)).WithPrompt().Only(ctx)
 				if err != nil {
+					log.Infof("Last cursor: %v", cursor.Format(time.RFC3339Nano))
 					log.Fatal("Failed to load generation", "err", err)
 				}
 				generationOutput.PromptText = g.Edges.Prompt.Text
@@ -274,9 +278,11 @@ func main() {
 			}
 			b, err := weaviate.Client.Batch().ObjectsBatcher().WithObjects(objects...).WithConsistencyLevel(replication.ConsistencyLevel.ALL).Do(weaviate.Ctx)
 			if err != nil {
+				log.Infof("Last cursor: %v", cursor.Format(time.RFC3339Nano))
 				log.Fatal("Failed to batch objects", "err", err)
 			}
 			log.Info("Batched objects", "count", len(b))
+			log.Infof("Last cursor: %v", cursor.Format(time.RFC3339Nano))
 		}
 
 		log.Info("Loaded generation outputs", "count", len(generationOutputs))

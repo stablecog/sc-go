@@ -37,11 +37,14 @@ func (m *WeaviateClient) CreateSchema() error {
 		Description:     "Testing",
 		VectorIndexType: "hnsw",
 		Vectorizer:      "none",
-		VectorIndexConfig: map[string]interface{}{
-			"pq": map[string]interface{}{
-				"enabled": true,
-			},
-		},
+		// Recommended is to enable this after 10k+ items loaded
+		// VectorIndexConfig: map[string]interface{}{
+		// 	"pq": map[string]interface{}{
+		// 		"enabled":   true,
+		// 		"segments":  1024,
+		// 		"centroids": 128,
+		// 	},
+		// },
 		Properties: []*models.Property{
 			{
 				Name:          "image_path",
