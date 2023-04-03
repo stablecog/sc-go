@@ -133,6 +133,12 @@ func main() {
 	// 	os.Exit(1)
 	// }
 
+	// Setup weaviate
+	weaviate := database.NewWeaviateClient(ctx)
+	if err := weaviate.CreateSchema(); err != nil {
+		log.Warn("Failed to create weaviate schema", "err", err)
+	}
+
 	// Create repository (database access)
 	repo := &repository.Repository{
 		DB:       entClient,
@@ -153,7 +159,6 @@ func main() {
 	}
 
 	if *loadWeaviate {
-		weaviate := database.NewWeaviateClient(ctx)
 		log.Info("🏡 Loading weaviate data...")
 		rawQ := "select id, image_path, embedding, generation_id, created_at from generation_outputs where embedding is not null order by created_at desc limit 50;"
 		res, err := repo.DB.QueryContext(ctx, rawQ)
@@ -279,7 +284,6 @@ func main() {
 	}
 
 	if *loadEmbeddings {
-		weaviate := database.NewWeaviateClient(ctx)
 		log.Info("🏡 Loading embeddings...")
 		secret := os.Getenv("CLIPAPI_SECRET")
 		endpoint := os.Getenv("CLIPAPI_ENDPOINT")
@@ -498,7 +502,7 @@ func main() {
 		Track:          analyticsService,
 		QueueThrottler: qThrottler,
 		S3:             s3Client,
-		Weaviate:       database.NewWeaviateClient(ctx),
+		Weaviate:       weaviate,
 		// Milvus:         milvusClient,
 	}
 

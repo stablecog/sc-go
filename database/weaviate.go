@@ -24,6 +24,38 @@ func NewWeaviateClient(ctx context.Context) *WeaviateClient {
 	}
 }
 
+func (m *WeaviateClient) CreateSchema() error {
+	False := false
+	True := true
+
+	// See if class exists first
+	s, _ := m.Client.Schema().ClassGetter().WithClassName("Test").Do(m.Ctx)
+	if s != nil {
+		return nil
+	}
+	return m.Client.Schema().ClassCreator().WithClass(&models.Class{
+		Class:           "Test",
+		Description:     "Testing",
+		VectorIndexType: "hnsw",
+		Vectorizer:      "none",
+		VectorIndexConfig: map[string]interface{}{
+			"pq": true,
+		},
+		Properties: []*models.Property{
+			{
+				Name:          "id",
+				IndexInverted: &True,
+				DataType:      []string{"string"},
+			},
+			{
+				Name:          "image_path",
+				IndexInverted: &False,
+				DataType:      []string{"string"},
+			},
+		},
+	}).Do(m.Ctx)
+}
+
 func (w *WeaviateClient) SearchNearVector(vector []float32) (map[string]models.JSONObject, error) {
 	imagePath := graphql.Field{Name: "image_path"}
 	prompt := graphql.Field{Name: "prompt"}
