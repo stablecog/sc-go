@@ -22,8 +22,6 @@ const (
 	FieldGalleryStatus = "gallery_status"
 	// FieldIsFavorited holds the string denoting the is_favorited field in the database.
 	FieldIsFavorited = "is_favorited"
-	// FieldEmbedding holds the string denoting the embedding field in the database.
-	FieldEmbedding = "embedding"
 	// FieldGenerationID holds the string denoting the generation_id field in the database.
 	FieldGenerationID = "generation_id"
 	// FieldDeletedAt holds the string denoting the deleted_at field in the database.
@@ -61,7 +59,6 @@ var Columns = []string{
 	FieldUpscaledImagePath,
 	FieldGalleryStatus,
 	FieldIsFavorited,
-	FieldEmbedding,
 	FieldGenerationID,
 	FieldDeletedAt,
 	FieldCreatedAt,

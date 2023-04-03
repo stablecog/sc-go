@@ -212,7 +212,6 @@ var (
 		{Name: "upscaled_image_path", Type: field.TypeString, Nullable: true, Size: 2147483647},
 		{Name: "gallery_status", Type: field.TypeEnum, Enums: []string{"not_submitted", "submitted", "approved", "rejected"}, Default: "not_submitted"},
 		{Name: "is_favorited", Type: field.TypeBool, Default: false},
-		{Name: "embedding", Type: field.TypeOther, Nullable: true, SchemaType: map[string]string{"postgres": "vector(1024)", "sqlite3": "TEXT"}},
 		{Name: "deleted_at", Type: field.TypeTime, Nullable: true},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},
@@ -226,7 +225,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "generation_outputs_generations_generation_outputs",
-				Columns:    []*schema.Column{GenerationOutputsColumns[9]},
+				Columns:    []*schema.Column{GenerationOutputsColumns[8]},
 				RefColumns: []*schema.Column{GenerationsColumns[0]},
 				OnDelete:   schema.Cascade,
 			},
@@ -245,17 +244,17 @@ var (
 			{
 				Name:    "generationoutput_created_at",
 				Unique:  false,
-				Columns: []*schema.Column{GenerationOutputsColumns[7]},
+				Columns: []*schema.Column{GenerationOutputsColumns[6]},
 			},
 			{
 				Name:    "generationoutput_updated_at",
 				Unique:  false,
-				Columns: []*schema.Column{GenerationOutputsColumns[8]},
+				Columns: []*schema.Column{GenerationOutputsColumns[7]},
 			},
 			{
 				Name:    "generationoutput_generation_id",
 				Unique:  false,
-				Columns: []*schema.Column{GenerationOutputsColumns[9]},
+				Columns: []*schema.Column{GenerationOutputsColumns[8]},
 			},
 		},
 	}

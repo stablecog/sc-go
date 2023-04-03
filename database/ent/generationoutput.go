@@ -9,7 +9,6 @@ import (
 
 	"entgo.io/ent/dialect/sql"
 	"github.com/google/uuid"
-	pgvector "github.com/pgvector/pgvector-go"
 	"github.com/stablecog/sc-go/database/ent/generation"
 	"github.com/stablecog/sc-go/database/ent/generationoutput"
 	"github.com/stablecog/sc-go/database/ent/upscaleoutput"
@@ -28,8 +27,6 @@ type GenerationOutput struct {
 	GalleryStatus generationoutput.GalleryStatus `json:"gallery_status,omitempty"`
 	// IsFavorited holds the value of the "is_favorited" field.
 	IsFavorited bool `json:"is_favorited,omitempty"`
-	// Embedding holds the value of the "embedding" field.
-	Embedding *pgvector.Vector `json:"embedding,omitempty"`
 	// GenerationID holds the value of the "generation_id" field.
 	GenerationID uuid.UUID `json:"generation_id,omitempty"`
 	// DeletedAt holds the value of the "deleted_at" field.
@@ -85,8 +82,6 @@ func (*GenerationOutput) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case generationoutput.FieldEmbedding:
-			values[i] = &sql.NullScanner{S: new(pgvector.Vector)}
 		case generationoutput.FieldIsFavorited:
 			values[i] = new(sql.NullBool)
 		case generationoutput.FieldImagePath, generationoutput.FieldUpscaledImagePath, generationoutput.FieldGalleryStatus:
@@ -140,13 +135,6 @@ func (_go *GenerationOutput) assignValues(columns []string, values []any) error 
 				return fmt.Errorf("unexpected type %T for field is_favorited", values[i])
 			} else if value.Valid {
 				_go.IsFavorited = value.Bool
-			}
-		case generationoutput.FieldEmbedding:
-			if value, ok := values[i].(*sql.NullScanner); !ok {
-				return fmt.Errorf("unexpected type %T for field embedding", values[i])
-			} else if value.Valid {
-				_go.Embedding = new(pgvector.Vector)
-				*_go.Embedding = *value.S.(*pgvector.Vector)
 			}
 		case generationoutput.FieldGenerationID:
 			if value, ok := values[i].(*uuid.UUID); !ok {
@@ -224,11 +212,6 @@ func (_go *GenerationOutput) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("is_favorited=")
 	builder.WriteString(fmt.Sprintf("%v", _go.IsFavorited))
-	builder.WriteString(", ")
-	if v := _go.Embedding; v != nil {
-		builder.WriteString("embedding=")
-		builder.WriteString(fmt.Sprintf("%v", *v))
-	}
 	builder.WriteString(", ")
 	builder.WriteString("generation_id=")
 	builder.WriteString(fmt.Sprintf("%v", _go.GenerationID))

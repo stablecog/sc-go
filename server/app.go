@@ -13,6 +13,7 @@ import (
 	"strings"
 	"time"
 
+	"entgo.io/ent/dialect/sql"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
@@ -299,7 +300,9 @@ func main() {
 			// Get N G output IDs
 			var gOutputIDs []requests.ClipAPIImageRequest
 			start := time.Now()
-			bSelect := repo.DB.GenerationOutput.Query().Select(generationoutput.FieldID, generationoutput.FieldCreatedAt, generationoutput.FieldImagePath, generationoutput.FieldGenerationID).Where(generationoutput.EmbeddingIsNil())
+			bSelect := repo.DB.GenerationOutput.Query().Select(generationoutput.FieldID, generationoutput.FieldCreatedAt, generationoutput.FieldImagePath, generationoutput.FieldGenerationID).Where(func(s *sql.Selector) {
+				s.Where(sql.NotNull("embedding"))
+			})
 			if cursor != nil {
 				bSelect = bSelect.Where(generationoutput.CreatedAtLT(*cursor))
 			}

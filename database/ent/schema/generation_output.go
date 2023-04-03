@@ -4,14 +4,12 @@ import (
 	"time"
 
 	"entgo.io/ent"
-	"entgo.io/ent/dialect"
 	"entgo.io/ent/dialect/entsql"
 	"entgo.io/ent/schema"
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
 	"entgo.io/ent/schema/index"
 	"github.com/google/uuid"
-	"github.com/pgvector/pgvector-go"
 )
 
 // GenerationOutput holds the schema definition for the GenerationOutput entity.
@@ -27,12 +25,6 @@ func (GenerationOutput) Fields() []ent.Field {
 		field.Text("upscaled_image_path").Optional().Nillable(),
 		field.Enum("gallery_status").Values("not_submitted", "submitted", "approved", "rejected").Default("not_submitted"),
 		field.Bool("is_favorited").Default(false),
-		field.Other("embedding", pgvector.Vector{}).Optional().Nillable().SchemaType(
-			map[string]string{
-				dialect.SQLite:   "TEXT",
-				dialect.Postgres: "vector(1024)",
-			},
-		),
 		// ! Relationships / many-to-one
 		field.UUID("generation_id", uuid.UUID{}),
 		// ! End relationships

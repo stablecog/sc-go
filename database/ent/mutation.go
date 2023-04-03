@@ -10,7 +10,6 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	pgvector "github.com/pgvector/pgvector-go"
 	"github.com/stablecog/sc-go/database/ent/credit"
 	"github.com/stablecog/sc-go/database/ent/credittype"
 	"github.com/stablecog/sc-go/database/ent/deviceinfo"
@@ -5922,7 +5921,6 @@ type GenerationOutputMutation struct {
 	upscaled_image_path    *string
 	gallery_status         *generationoutput.GalleryStatus
 	is_favorited           *bool
-	embedding              *pgvector.Vector
 	deleted_at             *time.Time
 	created_at             *time.Time
 	updated_at             *time.Time
@@ -6197,55 +6195,6 @@ func (m *GenerationOutputMutation) ResetIsFavorited() {
 	m.is_favorited = nil
 }
 
-// SetEmbedding sets the "embedding" field.
-func (m *GenerationOutputMutation) SetEmbedding(pg pgvector.Vector) {
-	m.embedding = &pg
-}
-
-// Embedding returns the value of the "embedding" field in the mutation.
-func (m *GenerationOutputMutation) Embedding() (r pgvector.Vector, exists bool) {
-	v := m.embedding
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldEmbedding returns the old "embedding" field's value of the GenerationOutput entity.
-// If the GenerationOutput object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *GenerationOutputMutation) OldEmbedding(ctx context.Context) (v *pgvector.Vector, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldEmbedding is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldEmbedding requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldEmbedding: %w", err)
-	}
-	return oldValue.Embedding, nil
-}
-
-// ClearEmbedding clears the value of the "embedding" field.
-func (m *GenerationOutputMutation) ClearEmbedding() {
-	m.embedding = nil
-	m.clearedFields[generationoutput.FieldEmbedding] = struct{}{}
-}
-
-// EmbeddingCleared returns if the "embedding" field was cleared in this mutation.
-func (m *GenerationOutputMutation) EmbeddingCleared() bool {
-	_, ok := m.clearedFields[generationoutput.FieldEmbedding]
-	return ok
-}
-
-// ResetEmbedding resets all changes to the "embedding" field.
-func (m *GenerationOutputMutation) ResetEmbedding() {
-	m.embedding = nil
-	delete(m.clearedFields, generationoutput.FieldEmbedding)
-}
-
 // SetGenerationID sets the "generation_id" field.
 func (m *GenerationOutputMutation) SetGenerationID(u uuid.UUID) {
 	m.generations = &u
@@ -6515,7 +6464,7 @@ func (m *GenerationOutputMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *GenerationOutputMutation) Fields() []string {
-	fields := make([]string, 0, 9)
+	fields := make([]string, 0, 8)
 	if m.image_path != nil {
 		fields = append(fields, generationoutput.FieldImagePath)
 	}
@@ -6527,9 +6476,6 @@ func (m *GenerationOutputMutation) Fields() []string {
 	}
 	if m.is_favorited != nil {
 		fields = append(fields, generationoutput.FieldIsFavorited)
-	}
-	if m.embedding != nil {
-		fields = append(fields, generationoutput.FieldEmbedding)
 	}
 	if m.generations != nil {
 		fields = append(fields, generationoutput.FieldGenerationID)
@@ -6559,8 +6505,6 @@ func (m *GenerationOutputMutation) Field(name string) (ent.Value, bool) {
 		return m.GalleryStatus()
 	case generationoutput.FieldIsFavorited:
 		return m.IsFavorited()
-	case generationoutput.FieldEmbedding:
-		return m.Embedding()
 	case generationoutput.FieldGenerationID:
 		return m.GenerationID()
 	case generationoutput.FieldDeletedAt:
@@ -6586,8 +6530,6 @@ func (m *GenerationOutputMutation) OldField(ctx context.Context, name string) (e
 		return m.OldGalleryStatus(ctx)
 	case generationoutput.FieldIsFavorited:
 		return m.OldIsFavorited(ctx)
-	case generationoutput.FieldEmbedding:
-		return m.OldEmbedding(ctx)
 	case generationoutput.FieldGenerationID:
 		return m.OldGenerationID(ctx)
 	case generationoutput.FieldDeletedAt:
@@ -6632,13 +6574,6 @@ func (m *GenerationOutputMutation) SetField(name string, value ent.Value) error 
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetIsFavorited(v)
-		return nil
-	case generationoutput.FieldEmbedding:
-		v, ok := value.(pgvector.Vector)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetEmbedding(v)
 		return nil
 	case generationoutput.FieldGenerationID:
 		v, ok := value.(uuid.UUID)
@@ -6701,9 +6636,6 @@ func (m *GenerationOutputMutation) ClearedFields() []string {
 	if m.FieldCleared(generationoutput.FieldUpscaledImagePath) {
 		fields = append(fields, generationoutput.FieldUpscaledImagePath)
 	}
-	if m.FieldCleared(generationoutput.FieldEmbedding) {
-		fields = append(fields, generationoutput.FieldEmbedding)
-	}
 	if m.FieldCleared(generationoutput.FieldDeletedAt) {
 		fields = append(fields, generationoutput.FieldDeletedAt)
 	}
@@ -6723,9 +6655,6 @@ func (m *GenerationOutputMutation) ClearField(name string) error {
 	switch name {
 	case generationoutput.FieldUpscaledImagePath:
 		m.ClearUpscaledImagePath()
-		return nil
-	case generationoutput.FieldEmbedding:
-		m.ClearEmbedding()
 		return nil
 	case generationoutput.FieldDeletedAt:
 		m.ClearDeletedAt()
@@ -6749,9 +6678,6 @@ func (m *GenerationOutputMutation) ResetField(name string) error {
 		return nil
 	case generationoutput.FieldIsFavorited:
 		m.ResetIsFavorited()
-		return nil
-	case generationoutput.FieldEmbedding:
-		m.ResetEmbedding()
 		return nil
 	case generationoutput.FieldGenerationID:
 		m.ResetGenerationID()
