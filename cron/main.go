@@ -153,7 +153,7 @@ func main() {
 			}
 		})
 		// Auto upscale
-		go jobRunner.StartAutoUpscaleJob(jobs.NewJobLogger("AUTO_UPSCALE"))
+		// go jobRunner.StartAutoUpscaleJob(jobs.NewJobLogger("AUTO_UPSCALE"))
 		s.StartBlocking()
 		os.Exit(0)
 	}
