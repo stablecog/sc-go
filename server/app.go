@@ -23,7 +23,6 @@ import (
 	"github.com/go-openapi/strfmt"
 	"github.com/google/uuid"
 	"github.com/joho/godotenv"
-	"github.com/pgvector/pgvector-go"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	chiprometheus "github.com/stablecog/chi-prometheus"
 	"github.com/stablecog/sc-go/database"
@@ -279,10 +278,11 @@ func main() {
 	}
 
 	if *loadEmbeddings {
+		weaviate := database.NewWeaviateClient(ctx)
 		log.Info("🏡 Loading embeddings...")
 		secret := os.Getenv("CLIPAPI_SECRET")
 		endpoint := os.Getenv("CLIPAPI_ENDPOINT")
-		max := 5000000
+		max := 500000
 		each := 100
 		cur := 0
 		var cursor *time.Time
@@ -299,10 +299,13 @@ func main() {
 			// Get N G output IDs
 			var gOutputIDs []requests.ClipAPIImageRequest
 			start := time.Now()
-			bSelect := repo.DB.GenerationOutput.Query().Select(generationoutput.FieldID, generationoutput.FieldCreatedAt, generationoutput.FieldImagePath).Where(generationoutput.EmbeddingIsNil())
+			bSelect := repo.DB.GenerationOutput.Query().Select(generationoutput.FieldID, generationoutput.FieldCreatedAt, generationoutput.FieldImagePath, generationoutput.FieldGenerationID).Where(generationoutput.EmbeddingIsNil())
 			if cursor != nil {
 				bSelect = bSelect.Where(generationoutput.CreatedAtLT(*cursor))
 			}
+			bSelect.WithGenerations(func(b *ent.GenerationQuery) {
+				b.WithPrompt()
+			})
 			gOutputs, err := bSelect.Order(ent.Desc(generationoutput.FieldCreatedAt)).Limit(each).All(ctx)
 
 			if err != nil {
@@ -354,23 +357,60 @@ func main() {
 				return
 			}
 
-			// Update generation outputs
+			// Update weaviate
 			start = time.Now()
+			idEmbeddingMap := make(map[string][]float32)
 			for _, embedding := range clipAPIResponse.Embeddings {
 				if embedding.Error != "" {
 					log.Info("Skipping", "id", embedding.ID, "error", embedding.Error)
 					continue
 				}
-				_, err = repo.DB.ExecContext(ctx, "UPDATE generation_outputs SET embedding = $1 WHERE id = $2", pgvector.NewVector(embedding.Embedding), embedding.ID)
-				// err = repo.DB.Debug().GenerationOutput.UpdateOneID(embedding.ID).SetEmbedding(pgvector.NewVector(embedding.Embedding)).Exec(ctx)
-				if err != nil {
-					log.Infof("Last cursor: %v", cursor.Format(time.RFC3339Nano))
-					log.Fatal("Failed to update generation output", "err", err)
-				}
+				idEmbeddingMap[embedding.ID.String()] = embedding.Embedding
 			}
+			// Load to weaviate
+			var objects []*models.Object
+			for _, generationOutput := range gOutputs {
+				embedding, ok := idEmbeddingMap[generationOutput.ID.String()]
+				if !ok {
+					log.Info("Skipping", "id", generationOutput.ID.String())
+					continue
+				}
+				objects = append(objects, &models.Object{
+					Class: "Test",
+					ID:    strfmt.UUID(generationOutput.ID.String()),
+					Properties: map[string]interface{}{
+						"image_path": generationOutput.ImagePath,
+						"prompt":     generationOutput.Edges.Generations.Edges.Prompt.Text,
+					},
+					Vector: embedding,
+				})
+			}
+			batch, err := weaviate.Client.Batch().ObjectsBatcher().WithObjects(objects...).WithConsistencyLevel(replication.ConsistencyLevel.ALL).Do(weaviate.Ctx)
+			if err != nil {
+				log.Fatal("Failed to batch objects", "err", err)
+			}
+			log.Info("Batched objects", "count", len(batch))
 			end = time.Now()
 			log.Infof("Loaded batch in %fs", end.Sub(start).Seconds())
 			log.Infof("Last cursor: %v", cursor.Format(time.RFC3339Nano))
+
+			// // Update generation outputs
+			// start = time.Now()
+			// for _, embedding := range clipAPIResponse.Embeddings {
+			// 	if embedding.Error != "" {
+			// 		log.Info("Skipping", "id", embedding.ID, "error", embedding.Error)
+			// 		continue
+			// 	}
+			// 	_, err = repo.DB.ExecContext(ctx, "UPDATE generation_outputs SET embedding = $1 WHERE id = $2", pgvector.NewVector(embedding.Embedding), embedding.ID)
+			// 	// err = repo.DB.Debug().GenerationOutput.UpdateOneID(embedding.ID).SetEmbedding(pgvector.NewVector(embedding.Embedding)).Exec(ctx)
+			// 	if err != nil {
+			// 		log.Infof("Last cursor: %v", cursor.Format(time.RFC3339Nano))
+			// 		log.Fatal("Failed to update generation output", "err", err)
+			// 	}
+			// }
+			// end = time.Now()
+			// log.Infof("Loaded batch in %fs", end.Sub(start).Seconds())
+			// log.Infof("Last cursor: %v", cursor.Format(time.RFC3339Nano))
 		}
 		os.Exit(0)
 	}
