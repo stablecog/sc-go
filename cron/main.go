@@ -153,7 +153,7 @@ func main() {
 			}
 		})
 		// Auto refund
-		s.Every(5).Minutes().Do(jobRunner.RefundOldGenerationCredits, jobs.NewJobLogger("AUTO_REFUND"))
+		// s.Every(5).Minutes().Do(jobRunner.RefundOldGenerationCredits, jobs.NewJobLogger("AUTO_REFUND"))
 		// Auto upscale
 		go jobRunner.StartAutoUpscaleJob(jobs.NewJobLogger("AUTO_UPSCALE"))
 		s.StartBlocking()
