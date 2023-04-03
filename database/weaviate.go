@@ -43,12 +43,12 @@ func (m *WeaviateClient) CreateSchema() error {
 		},
 		Properties: []*models.Property{
 			{
-				Name:          "id",
-				IndexInverted: &True,
+				Name:          "image_path",
+				IndexInverted: &False,
 				DataType:      []string{"string"},
 			},
 			{
-				Name:          "image_path",
+				Name:          "prompt",
 				IndexInverted: &False,
 				DataType:      []string{"string"},
 			},
