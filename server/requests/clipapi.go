@@ -13,9 +13,9 @@ type ClipAPIImageRequest struct {
 }
 
 type QdrantRequest struct {
-	Limit       int  `json:"limit"`
-	WithPayload bool `json:"with_payload,omitempty"`
-	Vector      []float32
+	Limit       int                 `json:"limit"`
+	WithPayload bool                `json:"with_payload,omitempty"`
+	Vector      []float32           `json:"vector"`
 	Params      QdrantRequestParams `json:"params,omitempty"`
 }
 
