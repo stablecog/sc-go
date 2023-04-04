@@ -523,6 +523,7 @@ func main() {
 	app.Get("/", hc.HandleHealth)
 	app.Handle("/metrics", middleware.BasicAuth(promhttp.Handler(), "user", "password", "Authentication required"))
 	app.Get("/clip", hc.HandleClipSearch)
+	app.Get("/clipq", hc.HandleClipQSearch)
 	app.Get("/clippg", hc.HandleClipSearchPGVector)
 	app.Route("/v1", func(r chi.Router) {
 		r.Get("/health", hc.HandleHealth)

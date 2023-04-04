@@ -13,3 +13,22 @@ type EmbeddingObject struct {
 type EmbeddingsResponse struct {
 	Embeddings []EmbeddingObject `json:"embeddings"`
 }
+
+type QResponse struct {
+	Result []QResponseResult `json:"result"`
+	Status string            `json:"status"`
+	Time   float32           `json:"time"`
+}
+
+type QResponseResult struct {
+	Id      string                 `json:"id"`
+	Version int                    `json:"version"`
+	Score   float32                `json:"score"`
+	Payload QResponseResultPayload `json:"payload"`
+}
+
+type QResponseResultPayload struct {
+	CreatedAt string `json:"created_at"`
+	ImagePath string `json:"image_path"`
+	Prompt    string `json:"prompt"`
+}
