@@ -95,8 +95,6 @@ func (c *RestAPI) HandleClipQSearch(w http.ResponseWriter, r *http.Request) {
 		},
 	}
 
-	log.Info(qReq)
-
 	// Http POST to endpoint with secret
 	// Marshal req
 	b, err = json.Marshal(qReq)
@@ -106,10 +104,8 @@ func (c *RestAPI) HandleClipQSearch(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	log.Info(qEndpoint)
-
 	qRequest, _ := http.NewRequest(http.MethodPost, qEndpoint, bytes.NewReader(b))
-	request.Header.Set("Content-Type", "application/json")
+	/* request.Header.Set("Content-Type", "application/json") */
 	// Do
 	qResp, err := http.DefaultClient.Do(qRequest)
 	if err != nil {
@@ -135,8 +131,6 @@ func (c *RestAPI) HandleClipQSearch(w http.ResponseWriter, r *http.Request) {
 		responses.ErrBadRequest(w, r, err.Error(), "")
 		return
 	}
-
-	log.Info(qAPIResponse)
 
 	response := MilvusResponse{
 		TranslatedText: clipAPIResponse.Embeddings[0].TranslatedText,

@@ -16,6 +16,8 @@ type EmbeddingsResponse struct {
 
 type QResponse struct {
 	Result []QResponseResult `json:"result"`
+	Status string            `json:"status"`
+	Time   float32           `json:"time"`
 }
 
 type QResponseResult struct {
