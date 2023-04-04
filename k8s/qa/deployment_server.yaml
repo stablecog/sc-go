@@ -63,6 +63,11 @@ spec:
                 secretKeyRef:
                   name: sc-go
                   key: CLIPAPI_SECRET
+            - name: QDRANT_ENDPOINT
+              valueFrom:
+                secretKeyRef:
+                  name: sc-go
+                  key: QDRANT_ENDPOINT
             - name: USE_PGVECTOR
               value: "true"
             - name: GOTRUE_URL
