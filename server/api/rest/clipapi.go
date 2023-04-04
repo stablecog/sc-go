@@ -103,6 +103,8 @@ func (c *RestAPI) HandleClipQSearch(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	log.Info(qEndpoint)
+
 	qRequest, _ := http.NewRequest(http.MethodPost, qEndpoint, bytes.NewReader(b))
 	request.Header.Set("Content-Type", "application/json")
 	// Do
