@@ -60,6 +60,13 @@ func (r *Repository) GetFreeCreditReplenishesAtForUser(userID uuid.UUID) (*time.
 	return &replenishesAt, credit, ctype, nil
 }
 
+// Determine if a user has paid credits or not
+func (r *Repository) CountPaidCreditsForUser(userID uuid.UUID) (int, error) {
+	return r.DB.Credit.Query().Where(credit.UserIDEQ(userID), credit.CreditTypeIDNEQ(uuid.MustParse(FREE_CREDIT_TYPE_ID)), credit.RemainingAmountGT(0)).Aggregate(
+		ent.Sum(credit.FieldRemainingAmount),
+	).Int(r.Ctx)
+}
+
 func (r *Repository) GetNonExpiredCreditTotalForUser(userID uuid.UUID, DB *ent.Client) (int, error) {
 	if DB == nil {
 		DB = r.DB

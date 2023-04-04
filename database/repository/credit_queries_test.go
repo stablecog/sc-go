@@ -11,6 +11,12 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+func TestCountPaidCreditsForUser(t *testing.T) {
+	sum, err := MockRepo.CountPaidCreditsForUser(uuid.MustParse(MOCK_ADMIN_UUID))
+	assert.Nil(t, err)
+	assert.Equal(t, 100, sum)
+}
+
 func TestCreditsForUser(t *testing.T) {
 	// Create more credits
 	creditType := MockRepo.DB.CreditType.Query().FirstX(MockRepo.Ctx)

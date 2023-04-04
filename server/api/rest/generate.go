@@ -31,6 +31,17 @@ func (c *RestAPI) HandleCreateGeneration(w http.ResponseWriter, r *http.Request)
 	}
 
 	free := user.ActiveProductID == nil
+	if free {
+		// Re-evaluate if they have paid credits
+		sum, err := c.Repo.CountPaidCreditsForUser(user.ID)
+		if err != nil {
+			log.Error("Error getting paid credit sum for users", "err", err)
+			responses.ErrInternalServerError(w, r, "An unknown error has occurred")
+			return
+		}
+		free = sum <= 0
+	}
+
 	qMax := shared.MAX_QUEUED_ITEMS_FREE
 	if !free {
 		qMax = shared.MAX_QUEUED_ITEMS_SUBSCRIBED
