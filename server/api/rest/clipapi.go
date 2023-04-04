@@ -3,6 +3,7 @@ package rest
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
 	"os"
@@ -124,6 +125,8 @@ func (c *RestAPI) HandleClipQSearch(w http.ResponseWriter, r *http.Request) {
 		responses.ErrBadRequest(w, r, err.Error(), "")
 		return
 	}
+
+	fmt.Println(string(qReadAll))
 
 	var qAPIResponse responses.QResponse
 	err = json.Unmarshal(qReadAll, &qAPIResponse)
