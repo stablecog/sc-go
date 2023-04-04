@@ -379,7 +379,6 @@ func TestHandleQueryCreditsEmpty(t *testing.T) {
 	json.Unmarshal(respBody, &creditResp)
 
 	assert.Equal(t, int32(0), creditResp.TotalRemainingCredits)
-	assert.Len(t, creditResp.Credits, 0)
 }
 
 func TestHandleQueryCredits(t *testing.T) {

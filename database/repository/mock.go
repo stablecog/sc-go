@@ -105,6 +105,11 @@ func (repo *Repository) CreateMockData(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
+	// Create credit type with 0 remaining amount
+	_, err = repo.DB.Credit.Create().SetCreditTypeID(creditType.ID).SetUserID(u.ID).SetRemainingAmount(0).SetExpiresAt(time.Now().AddDate(1000, 0, 0)).Save(ctx)
+	if err != nil {
+		return err
+	}
 
 	// ! Mock generation models
 	// Create a generation model for the free user

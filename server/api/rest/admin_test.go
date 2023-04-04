@@ -429,7 +429,7 @@ func TestHandleQueryUsersDefaultParams(t *testing.T) {
 	assert.Equal(t, uuid.MustParse(repository.MOCK_NO_CREDITS_UUID), usersResponse.Users[0].ID)
 	assert.Equal(t, "mocknocredituser@stablecog.com", usersResponse.Users[0].Email)
 	assert.Equal(t, "4", usersResponse.Users[0].StripeCustomerID)
-	assert.Len(t, usersResponse.Users[0].Credits, 0)
+	assert.Len(t, usersResponse.Users[0].Credits, 1)
 
 	assert.Equal(t, uuid.MustParse(repository.MOCK_ALT_UUID), usersResponse.Users[1].ID)
 	assert.Equal(t, "mockaltuser@stablecog.com", usersResponse.Users[1].Email)
@@ -480,7 +480,7 @@ func TestHandleQueryUsersPerPage(t *testing.T) {
 	assert.Equal(t, uuid.MustParse(repository.MOCK_NO_CREDITS_UUID), usersResponse.Users[0].ID)
 	assert.Equal(t, "mocknocredituser@stablecog.com", usersResponse.Users[0].Email)
 	assert.Equal(t, "4", usersResponse.Users[0].StripeCustomerID)
-	assert.Len(t, usersResponse.Users[0].Credits, 0)
+	assert.Len(t, usersResponse.Users[0].Credits, 1)
 }
 
 func TestHandleQueryUsersCursor(t *testing.T) {
