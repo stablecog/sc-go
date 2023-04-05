@@ -201,7 +201,7 @@ func (c *RestAPI) HandleGetUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Get paid credits for user
-	paidCreditSum, err := c.Repo.CountPaidCreditsForUser(*userID)
+	paidCreditCount, err := c.Repo.HasPaidCredits(*userID)
 	if err != nil {
 		log.Error("Error getting paid credits for user", "err", err)
 		responses.ErrInternalServerError(w, r, "An unknown error has occured")
@@ -211,7 +211,7 @@ func (c *RestAPI) HandleGetUser(w http.ResponseWriter, r *http.Request) {
 	render.Status(r, http.StatusOK)
 	render.JSON(w, r, responses.GetUserResponse{
 		TotalRemainingCredits: totalRemaining,
-		HasNonfreeCredits:     paidCreditSum > 0,
+		HasNonfreeCredits:     paidCreditCount > 0,
 		ProductID:             highestProduct,
 		PriceID:               highestPrice,
 		CancelsAt:             cancelsAt,

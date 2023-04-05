@@ -12,9 +12,9 @@ import (
 )
 
 func TestCountPaidCreditsForUser(t *testing.T) {
-	sum, err := MockRepo.CountPaidCreditsForUser(uuid.MustParse(MOCK_ADMIN_UUID))
+	sum, err := MockRepo.HasPaidCredits(uuid.MustParse(MOCK_ADMIN_UUID))
 	assert.Nil(t, err)
-	assert.Equal(t, 100, sum)
+	assert.Equal(t, 1, sum)
 }
 
 func TestCreditsForUser(t *testing.T) {
