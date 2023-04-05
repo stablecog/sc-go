@@ -1,13 +1,11 @@
 package qdrant
 
 import (
-	"bytes"
 	"context"
 	"encoding/base64"
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io"
 	"net/http"
 	"os"
 	"strings"
@@ -266,36 +264,24 @@ func (q *QDrantClient) Upsert(id uuid.UUID, payload map[string]interface{}, embe
 
 // Query
 func (q *QDrantClient) Query(embedding []float32, noRetry bool) (*QResponse, error) {
-	qReq := QdrantRequest{
+	qParams := &SearchParams_Quantization{}
+	qParams.FromQuantizationSearchParams(QuantizationSearchParams{
+		Ignore:  utils.ToPtr(false),
+		Rescore: utils.ToPtr(false),
+	})
+	params := &SearchRequest_Params{}
+	params.FromSearchParams(SearchParams{
+		HnswEf:       utils.ToPtr[uint](128),
+		Exact:        utils.ToPtr(false),
+		Quantization: &SearchParams_Quantization{},
+	})
+	resp, err := q.Client.SearchPointsWithResponse(q.Ctx, q.CollectionName, &SearchPointsParams{}, SearchPointsJSONRequestBody{
 		Limit:       50,
 		WithPayload: true,
 		Vector:      embedding,
-		Params: QdrantRequestParams{
-			HNSWEf: 128,
-			Exact:  false,
-			Quantization: QdrantRequestParamsQuantization{
-				Ignore:  false,
-				Rescore: true,
-			},
-		},
-	}
-	// Http POST to endpoint with secret
-	// Marshal req
-	b, err := json.Marshal(qReq)
-	if err != nil {
-		log.Errorf("Error marshalling req %v", err)
-		return nil, err
-	}
+		Params:      params,
+	})
 
-	qRequest, _ := http.NewRequest(http.MethodPost, q.ActiveUrl, bytes.NewReader(b))
-	qRequest.Header.Set("Content-Type", "application/json")
-	// Do
-	qResp, err := q.Doer.Do(qRequest)
-	if err != nil {
-		log.Errorf("Error making request %v", err)
-		return nil, err
-	}
-	defer qResp.Body.Close()
 	if err != nil {
 		if !noRetry && (os.IsTimeout(err) || strings.Contains(err.Error(), "connection refused")) {
 			err = q.UpdateActiveClient()
@@ -306,19 +292,13 @@ func (q *QDrantClient) Query(embedding []float32, noRetry bool) (*QResponse, err
 		log.Errorf("Error getting collections %v", err)
 		return nil, err
 	}
-	if qResp.StatusCode != http.StatusOK {
-		log.Errorf("Error querying collection %v", qResp.StatusCode)
-		return nil, fmt.Errorf("Error querying collection %v", qResp.StatusCode)
-	}
-
-	qReadAll, qErr := io.ReadAll(qResp.Body)
-	if qErr != nil {
-		log.Error(qErr)
-		return nil, qErr
+	if resp.StatusCode() != http.StatusOK {
+		log.Errorf("Error querying collection %v", resp.StatusCode())
+		return nil, fmt.Errorf("Error querying collection %v", resp.StatusCode())
 	}
 
 	var qAPIResponse QResponse
-	err = json.Unmarshal(qReadAll, &qAPIResponse)
+	err = json.Unmarshal(resp.Body, &qAPIResponse)
 	if err != nil {
 		log.Errorf("Error unmarshalling resp %v", err)
 		return nil, err
@@ -344,22 +324,4 @@ type QResponseResultPayload struct {
 	CreatedAt string `json:"created_at"`
 	ImagePath string `json:"image_path"`
 	Prompt    string `json:"prompt"`
-}
-
-type QdrantRequest struct {
-	Limit       int                 `json:"limit"`
-	WithPayload bool                `json:"with_payload,omitempty"`
-	Vector      []float32           `json:"vector"`
-	Params      QdrantRequestParams `json:"params,omitempty"`
-}
-
-type QdrantRequestParams struct {
-	HNSWEf       int                             `json:"hnsw_ef"`
-	Exact        bool                            `json:"exact"`
-	Quantization QdrantRequestParamsQuantization `json:"quantization,omitempty"`
-}
-
-type QdrantRequestParamsQuantization struct {
-	Ignore  bool `json:"ignore"`
-	Rescore bool `json:"rescore"`
 }

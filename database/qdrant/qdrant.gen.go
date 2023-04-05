@@ -1620,10 +1620,10 @@ type SearchRequest struct {
 	// or named mode:
 	//
 	// { "vector": { "vector": [1.0, 2.0, 3.0], "name": "image-embeddings" } }
-	Vector NamedVectorStruct `json:"vector"`
+	Vector[]float32 `json:"vector"`
 
 	// WithPayload Select which payload to return with the response. Default: None
-	WithPayload *SearchRequest_WithPayload `json:"with_payload,omitempty"`
+	WithPayload bool `json:"with_payload,omitempty"`
 
 	// WithVector Whether to return the point vector with the result?
 	WithVector *SearchRequest_WithVector `json:"with_vector,omitempty"`
