@@ -12,11 +12,11 @@ import (
 // Repository is a package that contains all the database access functions
 
 type Repository struct {
-	DB           *ent.Client
-	ConnInfo     database.SqlDBConn
-	Redis        *database.RedisWrapper
-	Ctx          context.Context
-	QDrantClient *qdrant.QDrantClient
+	DB       *ent.Client
+	ConnInfo database.SqlDBConn
+	Redis    *database.RedisWrapper
+	Ctx      context.Context
+	QDrant   *qdrant.QDrantClient
 }
 
 // WithTx runs a function in a transaction

@@ -10413,12 +10413,12 @@ type ClientWithResponses struct {
 
 // NewClientWithResponses creates a new ClientWithResponses, which wraps
 // Client with return type handling
-func NewClientWithResponses(server string, opts ...ClientOption) (*ClientWithResponses, error) {
+func NewClientWithResponses(server string, opts ...ClientOption) (*ClientWithResponses, HttpRequestDoer, error) {
 	client, err := NewClient(server, opts...)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
-	return &ClientWithResponses{client}, nil
+	return &ClientWithResponses{client}, client.Client, nil
 }
 
 // WithBaseURL overrides the baseURL.

@@ -8,6 +8,7 @@ import (
 	"github.com/meilisearch/meilisearch-go"
 	"github.com/stablecog/sc-go/database"
 	"github.com/stablecog/sc-go/database/ent"
+	"github.com/stablecog/sc-go/database/qdrant"
 	"github.com/stablecog/sc-go/database/repository"
 	"github.com/stablecog/sc-go/log"
 	"github.com/stablecog/sc-go/server/analytics"
@@ -30,6 +31,7 @@ type RestAPI struct {
 	Track          *analytics.AnalyticsService
 	QueueThrottler *shared.UserQueueThrottlerMap
 	S3             *s3.S3
+	QDrant         *qdrant.QDrantClient
 }
 
 func (c *RestAPI) GetUserIfAuthenticated(w http.ResponseWriter, r *http.Request) (user *ent.User) {

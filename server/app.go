@@ -102,11 +102,11 @@ func main() {
 
 	// Create repository (database access)
 	repo := &repository.Repository{
-		DB:           entClient,
-		ConnInfo:     dbconn,
-		Redis:        redis,
-		Ctx:          ctx,
-		QDrantClient: qdrantClient,
+		DB:       entClient,
+		ConnInfo: dbconn,
+		Redis:    redis,
+		Ctx:      ctx,
+		QDrant:   qdrantClient,
 	}
 
 	if *createMockData {
@@ -199,6 +199,7 @@ func main() {
 		Track:          analyticsService,
 		QueueThrottler: qThrottler,
 		S3:             s3Client,
+		QDrant:         qdrantClient,
 	}
 
 	// Create middleware
@@ -211,6 +212,7 @@ func main() {
 	// Routes
 	app.Get("/", hc.HandleHealth)
 	app.Handle("/metrics", middleware.BasicAuth(promhttp.Handler(), "user", "password", "Authentication required"))
+	app.Get("/clipq", hc.HandleClipQSearch)
 	app.Route("/v1", func(r chi.Router) {
 		r.Get("/health", hc.HandleHealth)
 

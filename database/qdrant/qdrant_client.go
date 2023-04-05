@@ -1,11 +1,13 @@
 package qdrant
 
 import (
+	"bytes"
 	"context"
 	"encoding/base64"
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"net/http"
 	"os"
 	"strings"
@@ -22,6 +24,7 @@ type QDrantClient struct {
 	token          string
 	r              http.RoundTripper
 	Client         *ClientWithResponses
+	Doer           HttpRequestDoer
 	Ctx            context.Context
 	CollectionName string
 }
@@ -52,7 +55,7 @@ func NewQdrantClient(ctx context.Context) (*QDrantClient, error) {
 		CollectionName: utils.GetEnv("QDRANT_COLLECTION_NAME", "stablecog"),
 	}
 
-	c, err := NewClientWithResponses(qClient.ActiveUrl, WithHTTPClient(&http.Client{
+	c, doer, err := NewClientWithResponses(qClient.ActiveUrl, WithHTTPClient(&http.Client{
 		Timeout:   10 * time.Second,
 		Transport: qClient,
 	}))
@@ -61,6 +64,7 @@ func NewQdrantClient(ctx context.Context) (*QDrantClient, error) {
 		return nil, err
 	}
 	qClient.Client = c
+	qClient.Doer = doer
 
 	return qClient, nil
 }
@@ -81,7 +85,7 @@ func (q *QDrantClient) UpdateActiveClient() error {
 
 	q.ActiveUrl = targetUrl
 
-	c, err := NewClientWithResponses(q.ActiveUrl, WithHTTPClient(&http.Client{
+	c, doer, err := NewClientWithResponses(q.ActiveUrl, WithHTTPClient(&http.Client{
 		Timeout:   10 * time.Second,
 		Transport: q,
 	}))
@@ -91,6 +95,7 @@ func (q *QDrantClient) UpdateActiveClient() error {
 	}
 
 	q.Client = c
+	q.Doer = doer
 	return nil
 }
 
@@ -257,4 +262,104 @@ func (q *QDrantClient) Upsert(id uuid.UUID, payload map[string]interface{}, embe
 	}
 
 	return nil
+}
+
+// Query
+func (q *QDrantClient) Query(embedding []float32, noRetry bool) (*QResponse, error) {
+	qReq := QdrantRequest{
+		Limit:       50,
+		WithPayload: true,
+		Vector:      embedding,
+		Params: QdrantRequestParams{
+			HNSWEf: 128,
+			Exact:  false,
+			Quantization: QdrantRequestParamsQuantization{
+				Ignore:  false,
+				Rescore: true,
+			},
+		},
+	}
+	// Http POST to endpoint with secret
+	// Marshal req
+	b, err := json.Marshal(qReq)
+	if err != nil {
+		log.Errorf("Error marshalling req %v", err)
+		return nil, err
+	}
+
+	qRequest, _ := http.NewRequest(http.MethodPost, q.ActiveUrl, bytes.NewReader(b))
+	qRequest.Header.Set("Content-Type", "application/json")
+	// Do
+	qResp, err := q.Doer.Do(qRequest)
+	if err != nil {
+		log.Errorf("Error making request %v", err)
+		return nil, err
+	}
+	defer qResp.Body.Close()
+	if err != nil {
+		if !noRetry && (os.IsTimeout(err) || strings.Contains(err.Error(), "connection refused")) {
+			err = q.UpdateActiveClient()
+			if err == nil {
+				return q.Query(embedding, true)
+			}
+		}
+		log.Errorf("Error getting collections %v", err)
+		return nil, err
+	}
+	if qResp.StatusCode != http.StatusOK {
+		log.Errorf("Error querying collection %v", qResp.StatusCode)
+		return nil, fmt.Errorf("Error querying collection %v", qResp.StatusCode)
+	}
+
+	qReadAll, qErr := io.ReadAll(qResp.Body)
+	if qErr != nil {
+		log.Error(qErr)
+		return nil, qErr
+	}
+
+	var qAPIResponse QResponse
+	err = json.Unmarshal(qReadAll, &qAPIResponse)
+	if err != nil {
+		log.Errorf("Error unmarshalling resp %v", err)
+		return nil, err
+	}
+
+	return &qAPIResponse, nil
+}
+
+type QResponse struct {
+	Result []QResponseResult `json:"result"`
+	Status string            `json:"status"`
+	Time   float32           `json:"time"`
+}
+
+type QResponseResult struct {
+	Id      string                 `json:"id"`
+	Version int                    `json:"version"`
+	Score   float32                `json:"score"`
+	Payload QResponseResultPayload `json:"payload"`
+}
+
+type QResponseResultPayload struct {
+	CreatedAt string `json:"created_at"`
+	ImagePath string `json:"image_path"`
+	Prompt    string `json:"prompt"`
+}
+
+type QdrantRequest struct {
+	Limit       int                 `json:"limit"`
+	WithPayload bool                `json:"with_payload,omitempty"`
+	Vector      []float32           `json:"vector"`
+	Params      QdrantRequestParams `json:"params,omitempty"`
+}
+
+type QdrantRequestParams struct {
+	HNSWEf       int                             `json:"hnsw_ef"`
+	Exact        bool                            `json:"exact"`
+	Quantization QdrantRequestParamsQuantization `json:"quantization,omitempty"`
+}
+
+type QdrantRequestParamsQuantization struct {
+	Ignore  bool `json:"ignore"`
+	Rescore bool `json:"rescore"`
 }

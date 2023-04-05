@@ -146,7 +146,7 @@ func (r *Repository) SetGenerationSucceeded(generationID string, prompt string, 
 				return err
 			}
 			outputRet = append(outputRet, gOutput)
-			if r.QDrantClient != nil {
+			if r.QDrant != nil {
 				payload := map[string]interface{}{
 					"image_path":      gOutput.ImagePath,
 					"gallery_status":  gOutput.GalleryStatus,
@@ -172,7 +172,7 @@ func (r *Repository) SetGenerationSucceeded(generationID string, prompt string, 
 				if negativePrompt != "" {
 					payload["negative_prompt"] = negativePrompt
 				}
-				err = r.QDrantClient.Upsert(
+				err = r.QDrant.Upsert(
 					gOutput.ID,
 					payload,
 					output.ImageEmbed,
