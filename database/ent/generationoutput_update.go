@@ -86,6 +86,20 @@ func (gou *GenerationOutputUpdate) SetNillableIsFavorited(b *bool) *GenerationOu
 	return gou
 }
 
+// SetHasEmbeddings sets the "has_embeddings" field.
+func (gou *GenerationOutputUpdate) SetHasEmbeddings(b bool) *GenerationOutputUpdate {
+	gou.mutation.SetHasEmbeddings(b)
+	return gou
+}
+
+// SetNillableHasEmbeddings sets the "has_embeddings" field if the given value is not nil.
+func (gou *GenerationOutputUpdate) SetNillableHasEmbeddings(b *bool) *GenerationOutputUpdate {
+	if b != nil {
+		gou.SetHasEmbeddings(*b)
+	}
+	return gou
+}
+
 // SetGenerationID sets the "generation_id" field.
 func (gou *GenerationOutputUpdate) SetGenerationID(u uuid.UUID) *GenerationOutputUpdate {
 	gou.mutation.SetGenerationID(u)
@@ -256,6 +270,9 @@ func (gou *GenerationOutputUpdate) sqlSave(ctx context.Context) (n int, err erro
 	if value, ok := gou.mutation.IsFavorited(); ok {
 		_spec.SetField(generationoutput.FieldIsFavorited, field.TypeBool, value)
 	}
+	if value, ok := gou.mutation.HasEmbeddings(); ok {
+		_spec.SetField(generationoutput.FieldHasEmbeddings, field.TypeBool, value)
+	}
 	if value, ok := gou.mutation.DeletedAt(); ok {
 		_spec.SetField(generationoutput.FieldDeletedAt, field.TypeTime, value)
 	}
@@ -407,6 +424,20 @@ func (gouo *GenerationOutputUpdateOne) SetIsFavorited(b bool) *GenerationOutputU
 func (gouo *GenerationOutputUpdateOne) SetNillableIsFavorited(b *bool) *GenerationOutputUpdateOne {
 	if b != nil {
 		gouo.SetIsFavorited(*b)
+	}
+	return gouo
+}
+
+// SetHasEmbeddings sets the "has_embeddings" field.
+func (gouo *GenerationOutputUpdateOne) SetHasEmbeddings(b bool) *GenerationOutputUpdateOne {
+	gouo.mutation.SetHasEmbeddings(b)
+	return gouo
+}
+
+// SetNillableHasEmbeddings sets the "has_embeddings" field if the given value is not nil.
+func (gouo *GenerationOutputUpdateOne) SetNillableHasEmbeddings(b *bool) *GenerationOutputUpdateOne {
+	if b != nil {
+		gouo.SetHasEmbeddings(*b)
 	}
 	return gouo
 }
@@ -604,6 +635,9 @@ func (gouo *GenerationOutputUpdateOne) sqlSave(ctx context.Context) (_node *Gene
 	}
 	if value, ok := gouo.mutation.IsFavorited(); ok {
 		_spec.SetField(generationoutput.FieldIsFavorited, field.TypeBool, value)
+	}
+	if value, ok := gouo.mutation.HasEmbeddings(); ok {
+		_spec.SetField(generationoutput.FieldHasEmbeddings, field.TypeBool, value)
 	}
 	if value, ok := gouo.mutation.DeletedAt(); ok {
 		_spec.SetField(generationoutput.FieldDeletedAt, field.TypeTime, value)

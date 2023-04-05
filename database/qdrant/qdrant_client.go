@@ -262,6 +262,70 @@ func (q *QDrantClient) Upsert(id uuid.UUID, payload map[string]interface{}, embe
 	return nil
 }
 
+// Upsert
+func (q *QDrantClient) BatchUpsert(payload []map[string]interface{}, noRetry bool) error {
+	var points []PointStruct
+	for _, p := range payload {
+		// See if ID in payload and remove it
+		id := p["id"].(uuid.UUID)
+		delete(p, "id")
+		// Get embedding from payload and remove it
+		embedding := p["embedding"].([]float32)
+		delete(p, "embedding")
+
+		rId := ExtendedPointId{}
+		err := rId.FromExtendedPointId1(id)
+		if err != nil {
+			log.Errorf("Error creating id %v", err)
+			return err
+		}
+
+		// payload
+		rPayload := PointStruct_Payload{}
+		err = rPayload.FromPayload(p)
+		if err != nil {
+			log.Errorf("Error creating payload %v", err)
+			return err
+		}
+
+		// vector
+		v := VectorStruct{}
+		err = v.FromVectorStruct0(embedding)
+		if err != nil {
+			log.Errorf("Error creating vector %v", err)
+			return err
+		}
+
+		points = append(points, PointStruct{
+			Id:      rId,
+			Payload: &rPayload,
+			Vector:  v,
+		})
+	}
+	// request
+	b := UpsertPointsJSONRequestBody{}
+	b.FromPointsList(PointsList{
+		points,
+	})
+	resp, err := q.Client.UpsertPoints(q.Ctx, q.CollectionName, &UpsertPointsParams{}, b)
+	if err != nil {
+		if !noRetry && (os.IsTimeout(err) || strings.Contains(err.Error(), "connection refused")) {
+			err = q.UpdateActiveClient()
+			if err == nil {
+				return q.BatchUpsert(payload, true)
+			}
+		}
+		log.Errorf("Error upserting to collection %v", err)
+		return err
+	}
+	if resp.StatusCode != http.StatusOK {
+		log.Errorf("Error getting collections %v", resp.StatusCode)
+		return fmt.Errorf("Error upserting to collection %v", resp.StatusCode)
+	}
+
+	return nil
+}
+
 // Query
 func (q *QDrantClient) Query(embedding []float32, noRetry bool) (*QResponse, error) {
 	qParams := &SearchParams_Quantization{}

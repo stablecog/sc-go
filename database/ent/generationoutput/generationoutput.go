@@ -22,6 +22,8 @@ const (
 	FieldGalleryStatus = "gallery_status"
 	// FieldIsFavorited holds the string denoting the is_favorited field in the database.
 	FieldIsFavorited = "is_favorited"
+	// FieldHasEmbeddings holds the string denoting the has_embeddings field in the database.
+	FieldHasEmbeddings = "has_embeddings"
 	// FieldGenerationID holds the string denoting the generation_id field in the database.
 	FieldGenerationID = "generation_id"
 	// FieldDeletedAt holds the string denoting the deleted_at field in the database.
@@ -59,6 +61,7 @@ var Columns = []string{
 	FieldUpscaledImagePath,
 	FieldGalleryStatus,
 	FieldIsFavorited,
+	FieldHasEmbeddings,
 	FieldGenerationID,
 	FieldDeletedAt,
 	FieldCreatedAt,
@@ -78,6 +81,8 @@ func ValidColumn(column string) bool {
 var (
 	// DefaultIsFavorited holds the default value on creation for the "is_favorited" field.
 	DefaultIsFavorited bool
+	// DefaultHasEmbeddings holds the default value on creation for the "has_embeddings" field.
+	DefaultHasEmbeddings bool
 	// DefaultCreatedAt holds the default value on creation for the "created_at" field.
 	DefaultCreatedAt func() time.Time
 	// DefaultUpdatedAt holds the default value on creation for the "updated_at" field.

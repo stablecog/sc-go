@@ -25,6 +25,7 @@ func (GenerationOutput) Fields() []ent.Field {
 		field.Text("upscaled_image_path").Optional().Nillable(),
 		field.Enum("gallery_status").Values("not_submitted", "submitted", "approved", "rejected").Default("not_submitted"),
 		field.Bool("is_favorited").Default(false),
+		field.Bool("has_embeddings").Default(false),
 		// ! Relationships / many-to-one
 		field.UUID("generation_id", uuid.UUID{}),
 		// ! End relationships

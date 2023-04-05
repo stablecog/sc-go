@@ -27,6 +27,8 @@ type GenerationOutput struct {
 	GalleryStatus generationoutput.GalleryStatus `json:"gallery_status,omitempty"`
 	// IsFavorited holds the value of the "is_favorited" field.
 	IsFavorited bool `json:"is_favorited,omitempty"`
+	// HasEmbeddings holds the value of the "has_embeddings" field.
+	HasEmbeddings bool `json:"has_embeddings,omitempty"`
 	// GenerationID holds the value of the "generation_id" field.
 	GenerationID uuid.UUID `json:"generation_id,omitempty"`
 	// DeletedAt holds the value of the "deleted_at" field.
@@ -82,7 +84,7 @@ func (*GenerationOutput) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case generationoutput.FieldIsFavorited:
+		case generationoutput.FieldIsFavorited, generationoutput.FieldHasEmbeddings:
 			values[i] = new(sql.NullBool)
 		case generationoutput.FieldImagePath, generationoutput.FieldUpscaledImagePath, generationoutput.FieldGalleryStatus:
 			values[i] = new(sql.NullString)
@@ -135,6 +137,12 @@ func (_go *GenerationOutput) assignValues(columns []string, values []any) error 
 				return fmt.Errorf("unexpected type %T for field is_favorited", values[i])
 			} else if value.Valid {
 				_go.IsFavorited = value.Bool
+			}
+		case generationoutput.FieldHasEmbeddings:
+			if value, ok := values[i].(*sql.NullBool); !ok {
+				return fmt.Errorf("unexpected type %T for field has_embeddings", values[i])
+			} else if value.Valid {
+				_go.HasEmbeddings = value.Bool
 			}
 		case generationoutput.FieldGenerationID:
 			if value, ok := values[i].(*uuid.UUID); !ok {
@@ -212,6 +220,9 @@ func (_go *GenerationOutput) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("is_favorited=")
 	builder.WriteString(fmt.Sprintf("%v", _go.IsFavorited))
+	builder.WriteString(", ")
+	builder.WriteString("has_embeddings=")
+	builder.WriteString(fmt.Sprintf("%v", _go.HasEmbeddings))
 	builder.WriteString(", ")
 	builder.WriteString("generation_id=")
 	builder.WriteString(fmt.Sprintf("%v", _go.GenerationID))

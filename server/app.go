@@ -7,6 +7,8 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"strconv"
+	"strings"
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -16,10 +18,13 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/cors"
 	"github.com/go-co-op/gocron"
+	"github.com/google/uuid"
 	"github.com/joho/godotenv"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	chiprometheus "github.com/stablecog/chi-prometheus"
 	"github.com/stablecog/sc-go/database"
+	"github.com/stablecog/sc-go/database/ent"
+	"github.com/stablecog/sc-go/database/ent/generation"
 	"github.com/stablecog/sc-go/database/qdrant"
 	"github.com/stablecog/sc-go/database/repository"
 	"github.com/stablecog/sc-go/log"
@@ -52,6 +57,7 @@ func main() {
 
 	// Custom flags
 	createMockData := flag.Bool("load-mock-data", false, "Create test data in database")
+	loadQdrant := flag.Bool("load-qdrant", false, "Load qdrant data")
 
 	flag.Parse()
 
@@ -107,6 +113,107 @@ func main() {
 		Redis:    redis,
 		Ctx:      ctx,
 		QDrant:   qdrantClient,
+	}
+
+	if *loadQdrant {
+		log.Info("🏡 Loading qdrant data...")
+		loaded := 0
+		for loaded < 50000 {
+			rawQ := fmt.Sprintf("select id, image_path, upscaled_image_path, gallery_status, embedding, is_favorited, generation_id, created_at, updated_at, from generation_outputs where embedding is not null and has_embedding != true order by created_at desc limit 100 offset %d;", loaded)
+			res, err := repo.DB.QueryContext(ctx, rawQ)
+			if err != nil {
+				log.Fatal("Failed to load generation outputs", "err", err)
+			}
+			// Load res into struct
+			type GenerationOutput struct {
+				ID                 string  `json:"id"`
+				ImagePath          string  `json:"image_path"`
+				UpscaledImagePath  *string `json:"upscaled_image_path,omitempty"`
+				GalleryStatus      string  `json:"gallery_status"`
+				Embedding          string  `json:"embedding"`
+				IsFavorited        bool    `json:"is_favorited"`
+				EmbeddingVector    []float32
+				GenerationID       string    `json:"generation_id"`
+				GenerationUUID     uuid.UUID `json:"generation_uuid"`
+				PromptText         string    `json:"prompt_text"`
+				NegativePromptText *string   `json:"negative_prompt_text"`
+				Generation         *ent.Generation
+				CreatedAt          time.Time `json:"created_at"`
+				UpdatedAt          time.Time `json:"updated_at"`
+			}
+			var generationOutputs []GenerationOutput
+			for res.Next() {
+				var generationOutput GenerationOutput
+				err = res.Scan(&generationOutput.ID, &generationOutput.ImagePath, &generationOutput.UpscaledImagePath, &generationOutput.GalleryStatus, &generationOutput.Embedding, &generationOutput.IsFavorited, &generationOutput.GenerationID, &generationOutput.CreatedAt, &generationOutput.UpdatedAt)
+				if err != nil {
+					log.Fatal("Failed to scan generation output", "err", err)
+				}
+				trimmed := strings.Trim(generationOutput.Embedding, "[]")
+				split := strings.Split(trimmed, ",")
+				floats := make([]float32, len(split))
+				for i, s := range split {
+					f, err := strconv.ParseFloat(s, 32)
+					if err != nil {
+						log.Fatal("Failed to parse float", "err", err)
+					}
+					floats[i] = float32(f)
+				}
+				generationOutput.EmbeddingVector = floats
+				generationOutput.GenerationUUID = uuid.MustParse(generationOutput.GenerationID)
+				g, err := repo.DB.Generation.Query().Where(generation.IDEQ(generationOutput.GenerationUUID)).WithPrompt().WithNegativePrompt().Only(ctx)
+				if err != nil {
+					log.Fatal("Failed to load generation", "err", err)
+				}
+				generationOutput.PromptText = g.Edges.Prompt.Text
+				if g.Edges.NegativePrompt != nil {
+					generationOutput.NegativePromptText = &g.Edges.NegativePrompt.Text
+				}
+				generationOutput.Generation = g
+				generationOutputs = append(generationOutputs, generationOutput)
+			}
+
+			// Load to qdrant
+			var payloads []map[string]interface{}
+			for _, gOutput := range generationOutputs {
+				payload := map[string]interface{}{
+					"image_path":      gOutput.ImagePath,
+					"gallery_status":  gOutput.GalleryStatus,
+					"is_favorited":    gOutput.IsFavorited,
+					"created_at":      gOutput.CreatedAt.Unix(),
+					"updated_at":      gOutput.UpdatedAt.Unix(),
+					"guidance_scale":  gOutput.Generation.GuidanceScale,
+					"inference_steps": gOutput.Generation.InferenceSteps,
+					"prompt_strength": gOutput.Generation.PromptStrength,
+					"height":          gOutput.Generation.Height,
+					"width":           gOutput.Generation.Width,
+					"model":           gOutput.Generation.ModelID.String(),
+					"scheduler":       gOutput.Generation.SchedulerID.String(),
+					"user_id":         gOutput.Generation.UserID.String(),
+					"prompt":          gOutput.PromptText,
+				}
+				payload["embedding"] = gOutput.EmbeddingVector
+				payload["id"] = gOutput.ID
+				if gOutput.UpscaledImagePath != nil {
+					payload["upscaled_image_path"] = *gOutput.UpscaledImagePath
+				}
+				if gOutput.Generation.InitImageURL != nil {
+					payload["init_image_url"] = *gOutput.Generation.InitImageURL
+				}
+				if gOutput.NegativePromptText != nil {
+					payload["negative_prompt"] = *gOutput.NegativePromptText
+				}
+				payloads = append(payloads, payload)
+			}
+			err = qdrantClient.BatchUpsert(payloads, false)
+			if err != nil {
+				log.Fatal("Failed to batch objects", "err", err)
+			}
+			log.Info("Batched objects", "count", len(payloads))
+			loaded += len(payloads)
+		}
+
+		log.Info("Loaded generation outputs", "count", loaded)
+		os.Exit(0)
 	}
 
 	if *createMockData {

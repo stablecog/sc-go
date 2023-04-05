@@ -71,6 +71,11 @@ func IsFavorited(v bool) predicate.GenerationOutput {
 	return predicate.GenerationOutput(sql.FieldEQ(FieldIsFavorited, v))
 }
 
+// HasEmbeddings applies equality check predicate on the "has_embeddings" field. It's identical to HasEmbeddingsEQ.
+func HasEmbeddings(v bool) predicate.GenerationOutput {
+	return predicate.GenerationOutput(sql.FieldEQ(FieldHasEmbeddings, v))
+}
+
 // GenerationID applies equality check predicate on the "generation_id" field. It's identical to GenerationIDEQ.
 func GenerationID(v uuid.UUID) predicate.GenerationOutput {
 	return predicate.GenerationOutput(sql.FieldEQ(FieldGenerationID, v))
@@ -259,6 +264,16 @@ func IsFavoritedEQ(v bool) predicate.GenerationOutput {
 // IsFavoritedNEQ applies the NEQ predicate on the "is_favorited" field.
 func IsFavoritedNEQ(v bool) predicate.GenerationOutput {
 	return predicate.GenerationOutput(sql.FieldNEQ(FieldIsFavorited, v))
+}
+
+// HasEmbeddingsEQ applies the EQ predicate on the "has_embeddings" field.
+func HasEmbeddingsEQ(v bool) predicate.GenerationOutput {
+	return predicate.GenerationOutput(sql.FieldEQ(FieldHasEmbeddings, v))
+}
+
+// HasEmbeddingsNEQ applies the NEQ predicate on the "has_embeddings" field.
+func HasEmbeddingsNEQ(v bool) predicate.GenerationOutput {
+	return predicate.GenerationOutput(sql.FieldNEQ(FieldHasEmbeddings, v))
 }
 
 // GenerationIDEQ applies the EQ predicate on the "generation_id" field.
