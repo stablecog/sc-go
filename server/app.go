@@ -25,6 +25,7 @@ import (
 	"github.com/stablecog/sc-go/database"
 	"github.com/stablecog/sc-go/database/ent"
 	"github.com/stablecog/sc-go/database/ent/generation"
+	"github.com/stablecog/sc-go/database/ent/generationoutput"
 	"github.com/stablecog/sc-go/database/qdrant"
 	"github.com/stablecog/sc-go/database/repository"
 	"github.com/stablecog/sc-go/log"
@@ -174,7 +175,9 @@ func main() {
 
 			// Load to qdrant
 			var payloads []map[string]interface{}
+			var ids []uuid.UUID
 			for _, gOutput := range generationOutputs {
+				ids = append(ids, gOutput.GenerationUUID)
 				payload := map[string]interface{}{
 					"image_path":      gOutput.ImagePath,
 					"gallery_status":  gOutput.GalleryStatus,
@@ -207,6 +210,10 @@ func main() {
 			err = qdrantClient.BatchUpsert(payloads, false)
 			if err != nil {
 				log.Fatal("Failed to batch objects", "err", err)
+			}
+			err = repo.DB.GenerationOutput.Update().Where(generationoutput.IDIn(ids...)).SetHasEmbeddings(true).Exec(ctx)
+			if err != nil {
+				log.Fatal("Failed to update generation outputs", "err", err)
 			}
 			log.Info("Batched objects", "count", len(payloads))
 			loaded += len(payloads)
