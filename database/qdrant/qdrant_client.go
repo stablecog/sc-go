@@ -252,7 +252,7 @@ func (q *QDrantClient) Upsert(id uuid.UUID, payload map[string]interface{}, imag
 			},
 		},
 	})
-	resp, err := q.Client.UpsertPoints(q.Ctx, q.CollectionName, &UpsertPointsParams{}, b)
+	resp, err := q.Client.UpsertPointsWithResponse(q.Ctx, q.CollectionName, &UpsertPointsParams{}, b)
 	if err != nil {
 		if !noRetry && (os.IsTimeout(err) || strings.Contains(err.Error(), "connection refused")) {
 			err = q.UpdateActiveClient()
@@ -263,9 +263,9 @@ func (q *QDrantClient) Upsert(id uuid.UUID, payload map[string]interface{}, imag
 		log.Errorf("Error upserting to collection %v", err)
 		return err
 	}
-	if resp.StatusCode != http.StatusOK {
-		log.Errorf("Error getting collections %v", resp.StatusCode)
-		return fmt.Errorf("Error upserting to collection %v", resp.StatusCode)
+	if resp.StatusCode() != http.StatusOK {
+		log.Errorf("Error getting collections %v", resp.StatusCode())
+		return fmt.Errorf("Error upserting to collection %v", resp.StatusCode())
 	}
 
 	return nil
@@ -281,6 +281,8 @@ func (q *QDrantClient) BatchUpsert(payload []map[string]interface{}, noRetry boo
 		// Get embedding from payload and remove it
 		embedding := p["embedding"].([]float32)
 		delete(p, "embedding")
+		textEmbedding := p["text_embedding"].([]float32)
+		delete(p, "text_embedding")
 
 		rId := ExtendedPointId{}
 		err := rId.FromExtendedPointId1(id)
@@ -301,6 +303,7 @@ func (q *QDrantClient) BatchUpsert(payload []map[string]interface{}, noRetry boo
 		v := VectorStruct{}
 		vMulti := VectorStruct1{}
 		vMulti["image"] = embedding
+		vMulti["text"] = textEmbedding
 		err = v.FromVectorStruct1(vMulti)
 		if err != nil {
 			log.Errorf("Error creating vector %v", err)
@@ -318,7 +321,7 @@ func (q *QDrantClient) BatchUpsert(payload []map[string]interface{}, noRetry boo
 	b.FromPointsList(PointsList{
 		points,
 	})
-	resp, err := q.Client.UpsertPoints(q.Ctx, q.CollectionName, &UpsertPointsParams{}, b)
+	resp, err := q.Client.UpsertPointsWithResponse(q.Ctx, q.CollectionName, &UpsertPointsParams{}, b)
 	if err != nil {
 		if !noRetry && (os.IsTimeout(err) || strings.Contains(err.Error(), "connection refused")) {
 			err = q.UpdateActiveClient()
@@ -329,9 +332,9 @@ func (q *QDrantClient) BatchUpsert(payload []map[string]interface{}, noRetry boo
 		log.Errorf("Error upserting to collection %v", err)
 		return err
 	}
-	if resp.StatusCode != http.StatusOK {
-		log.Errorf("Error getting collections %v", resp.StatusCode)
-		return fmt.Errorf("Error upserting to collection %v", resp.StatusCode)
+	if resp.StatusCode() != http.StatusOK {
+		log.Errorf("Error getting collections %v", resp.StatusCode())
+		return fmt.Errorf("Error upserting to collection %v", resp.StatusCode())
 	}
 
 	return nil
