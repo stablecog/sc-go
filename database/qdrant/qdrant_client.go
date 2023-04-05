@@ -385,7 +385,7 @@ type QResponseResult struct {
 }
 
 type QResponseResultPayload struct {
-	CreatedAt string `json:"created_at"`
+	CreatedAt int64  `json:"created_at"`
 	ImagePath string `json:"image_path"`
 	Prompt    string `json:"prompt"`
 }
