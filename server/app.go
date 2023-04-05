@@ -120,7 +120,7 @@ func main() {
 		log.Info("🏡 Loading qdrant data...")
 		loaded := 0
 		for loaded < 50000 {
-			rawQ := fmt.Sprintf("select id, image_path, upscaled_image_path, gallery_status, embedding, is_favorited, generation_id, created_at, updated_at, from generation_outputs where embedding is not null and has_embedding != true order by created_at desc limit 100 offset %d;", loaded)
+			rawQ := fmt.Sprintf("select id, image_path, upscaled_image_path, gallery_status, embedding, is_favorited, generation_id, created_at, updated_at from generation_outputs where embedding is not null and has_embedding = false order by created_at desc limit 100 offset %d;", loaded)
 			res, err := repo.DB.QueryContext(ctx, rawQ)
 			if err != nil {
 				log.Fatal("Failed to load generation outputs", "err", err)
