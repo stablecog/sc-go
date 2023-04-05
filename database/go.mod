@@ -3,6 +3,8 @@ module github.com/stablecog/sc-go/database
 go 1.20
 
 require (
+	github.com/deepmap/oapi-codegen v1.12.4
+	github.com/joho/godotenv v1.4.0
 	github.com/redis/go-redis/v9 v9.0.2
 	github.com/stablecog/sc-go/log v0.0.0-20230303221221-dcc7ec43e5e1
 	github.com/stablecog/sc-go/server v0.0.0-20230303221221-dcc7ec43e5e1
@@ -14,6 +16,7 @@ require (
 require (
 	github.com/alicebob/gopher-json v0.0.0-20200520072559-a9ecdc9d1d3a // indirect
 	github.com/andybalholm/brotli v1.0.4 // indirect
+	github.com/apapsch/go-jsonmerge/v2 v2.0.0 // indirect
 	github.com/charmbracelet/lipgloss v0.6.0 // indirect
 	github.com/charmbracelet/log v0.1.2 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
@@ -45,9 +48,9 @@ require (
 	go.opencensus.io v0.24.0 // indirect
 	go.opentelemetry.io/otel v1.0.1 // indirect
 	go.opentelemetry.io/otel/trace v1.0.1 // indirect
-	golang.org/x/crypto v0.0.0-20220722155217-630584e8d5aa // indirect
+	golang.org/x/crypto v0.1.0 // indirect
 	golang.org/x/image v0.3.0 // indirect
-	golang.org/x/sys v0.2.0 // indirect
+	golang.org/x/sys v0.6.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
 
@@ -70,6 +73,6 @@ require (
 	github.com/mitchellh/go-wordwrap v0.0.0-20150314170334-ad45545899c7 // indirect
 	github.com/supabase-community/gotrue-go v1.0.1
 	github.com/zclconf/go-cty v1.8.0 // indirect
-	golang.org/x/mod v0.7.0 // indirect
-	golang.org/x/text v0.6.0 // indirect
+	golang.org/x/mod v0.8.0 // indirect
+	golang.org/x/text v0.8.0 // indirect
 )
