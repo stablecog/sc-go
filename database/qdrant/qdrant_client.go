@@ -267,7 +267,7 @@ func (q *QDrantClient) BatchUpsert(payload []map[string]interface{}, noRetry boo
 	var points []PointStruct
 	for _, p := range payload {
 		// See if ID in payload and remove it
-		id := p["id"].(uuid.UUID)
+		id := uuid.MustParse(p["id"].(string))
 		delete(p, "id")
 		// Get embedding from payload and remove it
 		embedding := p["embedding"].([]float32)
