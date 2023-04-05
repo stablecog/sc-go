@@ -119,7 +119,7 @@ func (r *Repository) SetGenerationSucceeded(generationID string, prompt string, 
 		if negativePromptId != nil {
 			genUpdate.SetNegativePromptID(*negativePromptId)
 		}
-		_, err = genUpdate.Save(r.Ctx)
+		generation, err := genUpdate.Save(r.Ctx)
 		if err != nil {
 			log.Error("Error setting generation succeeded", "id", generationID, "err", err)
 			return err
@@ -146,6 +146,45 @@ func (r *Repository) SetGenerationSucceeded(generationID string, prompt string, 
 				return err
 			}
 			outputRet = append(outputRet, gOutput)
+			if r.QDrantClient != nil {
+				payload := map[string]interface{}{
+					"image_path":      gOutput.ImagePath,
+					"gallery_status":  gOutput.GalleryStatus,
+					"is_favorited":    gOutput.IsFavorited,
+					"created_at":      gOutput.CreatedAt.Unix(),
+					"updated_at":      gOutput.UpdatedAt.Unix(),
+					"guidance_scale":  generation.GuidanceScale,
+					"inference_steps": generation.InferenceSteps,
+					"prompt_strength": generation.PromptStrength,
+					"height":          generation.Height,
+					"width":           generation.Width,
+					"model":           generation.ModelID.String(),
+					"scheduler":       generation.SchedulerID.String(),
+					"user_id":         generation.UserID.String(),
+					"prompt":          prompt,
+				}
+				if gOutput.UpscaledImagePath != nil {
+					payload["upscaled_image_path"] = *gOutput.UpscaledImagePath
+				}
+				if generation.InitImageURL != nil {
+					payload["init_image_url"] = *generation.InitImageURL
+				}
+				if negativePrompt != "" {
+					payload["negative_prompt"] = negativePrompt
+				}
+				err = r.QDrantClient.Upsert(
+					gOutput.ID,
+					payload,
+					output.ImageEmbed,
+					false,
+				)
+				if err != nil {
+					log.Error("Error upserting to qdrant", "id", generationID, "err", err)
+					return err
+				}
+			} else {
+				log.Warn("QDrant client not initialized, not adding to qdrant")
+			}
 		}
 
 		return nil

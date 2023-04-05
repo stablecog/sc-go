@@ -20,6 +20,7 @@ import (
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	chiprometheus "github.com/stablecog/chi-prometheus"
 	"github.com/stablecog/sc-go/database"
+	"github.com/stablecog/sc-go/database/qdrant"
 	"github.com/stablecog/sc-go/database/repository"
 	"github.com/stablecog/sc-go/log"
 	"github.com/stablecog/sc-go/server/analytics"
@@ -87,12 +88,25 @@ func main() {
 		os.Exit(1)
 	}
 
+	// Setup qdrant
+	qdrantClient, err := qdrant.NewQdrantClient(ctx)
+	if err != nil {
+		log.Fatal("Error connecting to qdrant", "err", err)
+		os.Exit(1)
+	}
+	err = qdrantClient.CreateCollectionIfNotExists(false)
+	if err != nil {
+		log.Fatal("Error creating qdrant collection", "err", err)
+		os.Exit(1)
+	}
+
 	// Create repository (database access)
 	repo := &repository.Repository{
-		DB:       entClient,
-		ConnInfo: dbconn,
-		Redis:    redis,
-		Ctx:      ctx,
+		DB:           entClient,
+		ConnInfo:     dbconn,
+		Redis:        redis,
+		Ctx:          ctx,
+		QDrantClient: qdrantClient,
 	}
 
 	if *createMockData {

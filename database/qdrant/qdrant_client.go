@@ -5,22 +5,25 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"net/http"
 	"os"
 	"strings"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/stablecog/sc-go/log"
 	"github.com/stablecog/sc-go/utils"
 )
 
 type QDrantClient struct {
-	ActiveUrl string
-	URLs      []string
-	token     string
-	r         http.RoundTripper
-	Client    *ClientWithResponses
-	Ctx       context.Context
+	ActiveUrl      string
+	URLs           []string
+	token          string
+	r              http.RoundTripper
+	Client         *ClientWithResponses
+	Ctx            context.Context
+	CollectionName string
 }
 
 func (q QDrantClient) RoundTrip(r *http.Request) (*http.Response, error) {
@@ -41,11 +44,12 @@ func NewQdrantClient(ctx context.Context) (*QDrantClient, error) {
 	auth := os.Getenv("QDRANT_USERNAME") + ":" + os.Getenv("QDRANT_PASSWORD")
 	// Create client
 	qClient := &QDrantClient{
-		URLs:      urls,
-		ActiveUrl: urls[0],
-		token:     base64.StdEncoding.EncodeToString([]byte(auth)),
-		r:         http.DefaultTransport,
-		Ctx:       ctx,
+		URLs:           urls,
+		ActiveUrl:      urls[0],
+		token:          base64.StdEncoding.EncodeToString([]byte(auth)),
+		r:              http.DefaultTransport,
+		Ctx:            ctx,
+		CollectionName: utils.GetEnv("QDRANT_COLLECTION_NAME", "stablecog"),
 	}
 
 	c, err := NewClientWithResponses(qClient.ActiveUrl, WithHTTPClient(&http.Client{
@@ -90,6 +94,7 @@ func (q *QDrantClient) UpdateActiveClient() error {
 	return nil
 }
 
+// Get all collections in qdrant
 func (q *QDrantClient) GetCollections(noRetry bool) (*CollectionsResponse, error) {
 	resp, err := q.Client.GetCollectionsWithResponse(q.Ctx)
 	if err != nil {
@@ -109,10 +114,22 @@ func (q *QDrantClient) GetCollections(noRetry bool) (*CollectionsResponse, error
 	return resp.JSON200.Result, nil
 }
 
-func (q *QDrantClient) CreateCollection(name string, noRetry bool) error {
+// Creates our app collection if it doesnt exist
+func (q *QDrantClient) CreateCollectionIfNotExists(noRetry bool) error {
+	// Check if collection exists
+	collections, err := q.GetCollections(false)
+	if err != nil {
+		return err
+	}
+	for _, collection := range collections.Collections {
+		if collection.Name == q.CollectionName {
+			return nil
+		}
+	}
+
 	// create optimizers config
 	optimizersConfig := &CreateCollection_OptimizersConfig{}
-	err := optimizersConfig.FromOptimizersConfigDiff(OptimizersConfigDiff{
+	err = optimizersConfig.FromOptimizersConfigDiff(OptimizersConfigDiff{
 		MemmapThreshold: utils.ToPtr[uint](20000),
 	})
 	if err != nil {
@@ -164,7 +181,7 @@ func (q *QDrantClient) CreateCollection(name string, noRetry bool) error {
 	}
 	log.Infof(string(json))
 
-	resp, err := q.Client.CreateCollectionWithResponse(q.Ctx, name, &CreateCollectionParams{}, CreateCollection{
+	resp, err := q.Client.CreateCollectionWithResponse(q.Ctx, q.CollectionName, &CreateCollectionParams{}, CreateCollection{
 		OptimizersConfig:   optimizersConfig,
 		QuantizationConfig: createCollectionQuantizationConfig,
 		Vectors:            vectorsConfig,
@@ -174,7 +191,7 @@ func (q *QDrantClient) CreateCollection(name string, noRetry bool) error {
 		if !noRetry && (os.IsTimeout(err) || strings.Contains(err.Error(), "connection refused")) {
 			err = q.UpdateActiveClient()
 			if err == nil {
-				return q.CreateCollection(name, true)
+				return q.CreateCollectionIfNotExists(true)
 			}
 		}
 		log.Errorf("Error getting collections %v", err)
@@ -183,6 +200,60 @@ func (q *QDrantClient) CreateCollection(name string, noRetry bool) error {
 	if resp.StatusCode() != http.StatusOK {
 		log.Errorf("Error getting collections %v", resp.StatusCode())
 		return errors.New("Error getting collections " + string(resp.Body))
+	}
+
+	return nil
+}
+
+// Upsert
+func (q *QDrantClient) Upsert(id uuid.UUID, payload map[string]interface{}, embedding []float32, noRetry bool) error {
+	// id
+	rId := ExtendedPointId{}
+	err := rId.FromExtendedPointId1(id)
+	if err != nil {
+		log.Errorf("Error creating id %v", err)
+		return err
+	}
+	// payload
+	rPayload := PointStruct_Payload{}
+	err = rPayload.FromPayload(payload)
+	if err != nil {
+		log.Errorf("Error creating payload %v", err)
+		return err
+	}
+	// vector
+	v := VectorStruct{}
+	err = v.FromVectorStruct0(embedding)
+	if err != nil {
+		log.Errorf("Error creating vector %v", err)
+		return err
+	}
+
+	// request
+	b := UpsertPointsJSONRequestBody{}
+	b.FromPointsList(PointsList{
+		[]PointStruct{
+			{
+				Id:      rId,
+				Payload: &rPayload,
+				Vector:  v,
+			},
+		},
+	})
+	resp, err := q.Client.UpsertPoints(q.Ctx, q.CollectionName, &UpsertPointsParams{}, b)
+	if err != nil {
+		if !noRetry && (os.IsTimeout(err) || strings.Contains(err.Error(), "connection refused")) {
+			err = q.UpdateActiveClient()
+			if err == nil {
+				return q.Upsert(id, payload, embedding, true)
+			}
+		}
+		log.Errorf("Error upserting to collection %v", err)
+		return err
+	}
+	if resp.StatusCode != http.StatusOK {
+		log.Errorf("Error getting collections %v", resp.StatusCode)
+		return fmt.Errorf("Error upserting to collection %v", resp.StatusCode)
 	}
 
 	return nil

@@ -6,15 +6,17 @@ import (
 
 	"github.com/stablecog/sc-go/database"
 	"github.com/stablecog/sc-go/database/ent"
+	"github.com/stablecog/sc-go/database/qdrant"
 )
 
 // Repository is a package that contains all the database access functions
 
 type Repository struct {
-	DB       *ent.Client
-	ConnInfo database.SqlDBConn
-	Redis    *database.RedisWrapper
-	Ctx      context.Context
+	DB           *ent.Client
+	ConnInfo     database.SqlDBConn
+	Redis        *database.RedisWrapper
+	Ctx          context.Context
+	QDrantClient *qdrant.QDrantClient
 }
 
 // WithTx runs a function in a transaction
