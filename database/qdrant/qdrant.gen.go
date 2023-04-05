@@ -1620,7 +1620,7 @@ type SearchRequest struct {
 	// or named mode:
 	//
 	// { "vector": { "vector": [1.0, 2.0, 3.0], "name": "image-embeddings" } }
-	Vector[]float32 `json:"vector"`
+	Vector NamedVectorStruct `json:"vector"`
 
 	// WithPayload Select which payload to return with the response. Default: None
 	WithPayload bool `json:"with_payload,omitempty"`

@@ -162,10 +162,16 @@ func (q *QDrantClient) CreateCollectionIfNotExists(noRetry bool) error {
 
 	// Create vectors config
 	vectorsConfig := VectorsConfig{}
-	err = vectorsConfig.FromVectorParams(VectorParams{
+	vectorsConfigMulti := VectorsConfig1{}
+	vectorsConfigMulti["image"] = VectorParams{
 		Size:     uint64(1024),
 		Distance: "Cosine",
-	})
+	}
+	vectorsConfigMulti["text"] = VectorParams{
+		Size:     uint64(1024),
+		Distance: "Cosine",
+	}
+	vectorsConfig.FromVectorsConfig1(vectorsConfigMulti)
 	if err != nil {
 		log.Errorf("Error creating vectors config %v", err)
 		return err
@@ -209,7 +215,7 @@ func (q *QDrantClient) CreateCollectionIfNotExists(noRetry bool) error {
 }
 
 // Upsert
-func (q *QDrantClient) Upsert(id uuid.UUID, payload map[string]interface{}, embedding []float32, noRetry bool) error {
+func (q *QDrantClient) Upsert(id uuid.UUID, payload map[string]interface{}, imageEmbedding []float32, promptEmbedding []float32, noRetry bool) error {
 	// id
 	rId := ExtendedPointId{}
 	err := rId.FromExtendedPointId1(id)
@@ -226,7 +232,10 @@ func (q *QDrantClient) Upsert(id uuid.UUID, payload map[string]interface{}, embe
 	}
 	// vector
 	v := VectorStruct{}
-	err = v.FromVectorStruct0(embedding)
+	err = v.FromVectorStruct1(VectorStruct1{
+		"image": imageEmbedding,
+		"text":  promptEmbedding,
+	})
 	if err != nil {
 		log.Errorf("Error creating vector %v", err)
 		return err
@@ -248,7 +257,7 @@ func (q *QDrantClient) Upsert(id uuid.UUID, payload map[string]interface{}, embe
 		if !noRetry && (os.IsTimeout(err) || strings.Contains(err.Error(), "connection refused")) {
 			err = q.UpdateActiveClient()
 			if err == nil {
-				return q.Upsert(id, payload, embedding, true)
+				return q.Upsert(id, payload, imageEmbedding, promptEmbedding, true)
 			}
 		}
 		log.Errorf("Error upserting to collection %v", err)
@@ -290,7 +299,9 @@ func (q *QDrantClient) BatchUpsert(payload []map[string]interface{}, noRetry boo
 
 		// vector
 		v := VectorStruct{}
-		err = v.FromVectorStruct0(embedding)
+		vMulti := VectorStruct1{}
+		vMulti["image"] = embedding
+		err = v.FromVectorStruct1(vMulti)
 		if err != nil {
 			log.Errorf("Error creating vector %v", err)
 			return err
@@ -339,10 +350,19 @@ func (q *QDrantClient) Query(embedding []float32, noRetry bool) (*QResponse, err
 		Exact:        utils.ToPtr(false),
 		Quantization: &SearchParams_Quantization{},
 	})
+	namedVectorParams := NamedVectorStruct{}
+	err := namedVectorParams.FromNamedVector(NamedVector{
+		Name:   "image",
+		Vector: embedding,
+	})
+	if err != nil {
+		log.Errorf("Error creating vector search param %v", err)
+		return nil, err
+	}
 	resp, err := q.Client.SearchPointsWithResponse(q.Ctx, q.CollectionName, &SearchPointsParams{}, SearchPointsJSONRequestBody{
 		Limit:       50,
 		WithPayload: true,
-		Vector:      embedding,
+		Vector:      namedVectorParams,
 		Params:      params,
 	})
 
