@@ -19,6 +19,7 @@ import (
 	"github.com/go-chi/cors"
 	"github.com/go-co-op/gocron"
 	"github.com/google/uuid"
+	"github.com/hashicorp/go-multierror"
 	"github.com/joho/godotenv"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	chiprometheus "github.com/stablecog/chi-prometheus"
@@ -105,6 +106,14 @@ func main() {
 	if err != nil {
 		log.Fatal("Error creating qdrant collection", "err", err)
 		os.Exit(1)
+	}
+
+	// Create index
+	var mErr *multierror.Error
+	mErr = multierror.Append(qdrantClient.CreateIndex("gallery_status", qdrant.PayloadSchemaTypeText, false))
+	err = mErr.ErrorOrNil()
+	if err != nil {
+		log.Warn("Error creating qdrant indexes", "err", err)
 	}
 
 	// Create repository (database access)

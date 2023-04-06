@@ -117,6 +117,42 @@ func (q *QDrantClient) GetCollections(noRetry bool) (*CollectionsResponse, error
 	return resp.JSON200.Result, nil
 }
 
+// Create indexes
+const (
+	PayloadTypeKeyword = "keyword"
+	PayloadTypeFloat   = "float"
+	PayloadTypeInt     = "integer"
+	PayloadTypeGeo     = "geo"
+	PayloadTypeText    = "text"
+)
+
+func (q *QDrantClient) CreateIndex(fieldName string, schemaType PayloadSchemaType, noRetry bool) error {
+	schema := &CreateFieldIndex_FieldSchema{}
+	plSchema := PayloadFieldSchema{}
+	plSchema.FromPayloadSchemaType(schemaType)
+	schema.FromPayloadFieldSchema(plSchema)
+	// Create indexes
+	res, err := q.Client.CreateFieldIndexWithResponse(q.Ctx, q.CollectionName, &CreateFieldIndexParams{}, CreateFieldIndex{
+		FieldName:   fieldName,
+		FieldSchema: schema,
+	})
+	if err != nil {
+		if !noRetry && (os.IsTimeout(err) || strings.Contains(err.Error(), "connection refused")) {
+			err = q.UpdateActiveClient()
+			if err == nil {
+				return q.CreateIndex(fieldName, schemaType, true)
+			}
+		}
+		log.Errorf("Error creating index %v", err)
+		return err
+	}
+	if res.StatusCode() != http.StatusOK {
+		log.Errorf("Error creating index %v", res.StatusCode())
+		return errors.New("Error creating index " + string(res.Body))
+	}
+	return nil
+}
+
 // Creates our app collection if it doesnt exist
 func (q *QDrantClient) CreateCollectionIfNotExists(noRetry bool) error {
 	// Check if collection exists
@@ -429,6 +465,34 @@ func (q *QDrantClient) Query(embedding []float32, noRetry bool) (*QResponse, err
 	}
 
 	return &qAPIResponse, nil
+}
+
+func (q *QDrantClient) DeleteById(id uuid.UUID, noRetry bool) error {
+	rId := ExtendedPointId{}
+	rId.FromExtendedPointId1(id)
+	body := DeletePointsJSONRequestBody{}
+	body.FromPointIdsList(PointIdsList{
+		Points: []ExtendedPointId{
+			rId,
+		},
+	})
+	resp, err := q.Client.DeletePointsWithResponse(q.Ctx, q.CollectionName, &DeletePointsParams{}, body)
+	if err != nil {
+		if !noRetry && (os.IsTimeout(err) || strings.Contains(err.Error(), "connection refused")) {
+			err = q.UpdateActiveClient()
+			if err == nil {
+				return q.DeleteById(id, true)
+			}
+		}
+		log.Errorf("Error deleting from collection %v", err)
+		return err
+	}
+	if resp.StatusCode() != http.StatusOK {
+		log.Errorf("Error getting collections %v", resp.StatusCode())
+		return fmt.Errorf("Error upserting to collection %v", resp.StatusCode())
+	}
+
+	return nil
 }
 
 type QResponse struct {
