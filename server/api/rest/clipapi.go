@@ -8,6 +8,7 @@ import (
 	"os"
 
 	"github.com/go-chi/render"
+	"github.com/stablecog/sc-go/database/ent/generationoutput"
 	"github.com/stablecog/sc-go/log"
 	"github.com/stablecog/sc-go/server/requests"
 	"github.com/stablecog/sc-go/server/responses"
@@ -91,8 +92,11 @@ func (c *RestAPI) HandleClipQSearch(w http.ResponseWriter, r *http.Request) {
 	response.Data = make([]MilvusData, len(qAPIResponse.Result))
 	for i := range qAPIResponse.Result {
 		response.Data[i] = MilvusData{
-			Image:  qAPIResponse.Result[i].Payload.ImagePath,
-			Prompt: qAPIResponse.Result[i].Payload.Prompt,
+			Image:             qAPIResponse.Result[i].Payload.ImagePath,
+			Prompt:            qAPIResponse.Result[i].Payload.Prompt,
+			UpscaledImagePath: qAPIResponse.Result[i].Payload.UpscaledImagePath,
+			GalleryStatus:     qAPIResponse.Result[i].Payload.GalleryStatus,
+			IsFavorited:       qAPIResponse.Result[i].Payload.IsFavorited,
 		}
 	}
 
@@ -101,8 +105,11 @@ func (c *RestAPI) HandleClipQSearch(w http.ResponseWriter, r *http.Request) {
 }
 
 type MilvusData struct {
-	Image  string `json:"image"`
-	Prompt string `json:"prompt"`
+	Image             string                         `json:"image"`
+	Prompt            string                         `json:"prompt"`
+	UpscaledImagePath string                         `json:"upscaled_image_path,omitempty"`
+	GalleryStatus     generationoutput.GalleryStatus `json:"gallery_status"`
+	IsFavorited       bool                           `json:"is_favorited"`
 }
 
 type MilvusResponse struct {
