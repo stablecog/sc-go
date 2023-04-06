@@ -131,7 +131,7 @@ func main() {
 		log.Info("🏡 Loading qdrant data...")
 		secret := os.Getenv("CLIPAPI_SECRET")
 		endpoint := os.Getenv("CLIPAPI_ENDPOINT")
-		each := 50
+		each := 100
 		cur := 0
 		var cursor *time.Time
 		if *cursorEmbeddings != "" {
