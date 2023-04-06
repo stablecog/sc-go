@@ -67,14 +67,14 @@ func (r *Repository) SetFavoriteGenerationOutputsForUser(generationOutputIDs []u
 	// get IDs only
 	var idsOnly []uuid.UUID
 	// Separate array for qdrant
-	var qdrantPayloads []map[string]interface{}
+	var qdrantIds []uuid.UUID
+	qdrantPayload := map[string]interface{}{
+		"is_favorited": !removeFavorites,
+	}
 	for _, output := range outputs {
 		idsOnly = append(idsOnly, output.ID)
 		if output.HasEmbeddings {
-			qdrantPayloads = append(qdrantPayloads, map[string]interface{}{
-				"id":           output.ID.String(),
-				"is_favorited": !removeFavorites,
-			})
+			qdrantIds = append(qdrantIds, output.ID)
 		}
 	}
 
@@ -88,7 +88,7 @@ func (r *Repository) SetFavoriteGenerationOutputsForUser(generationOutputIDs []u
 		}
 		updated = ud
 		// Update qdrant
-		err = r.QDrant.BatchUpsert(qdrantPayloads, false)
+		err = r.QDrant.SetPayload(qdrantPayload, qdrantIds, false)
 		if err != nil {
 			log.Error("Error updating qdrant", "err", err)
 			return err

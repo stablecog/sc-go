@@ -126,10 +126,20 @@ func (r *Repository) SetUpscaleSucceeded(upscaleID, generationOutputID, inputIma
 				log.Error("Error parsing s3 url", "output", output, "err", err)
 				parsedS3 = output.Images[0].Image
 			}
-			_, err = tx.GenerationOutput.UpdateOneID(outputId).SetUpscaledImagePath(parsedS3).Save(r.Ctx)
+			gOutput, err := tx.GenerationOutput.UpdateOneID(outputId).SetUpscaledImagePath(parsedS3).Save(r.Ctx)
 			if err != nil {
 				log.Error("Error setting upscaled_image_url", "id", upscaleID, "err", err)
 				return err
+			}
+			if gOutput.HasEmbeddings {
+				payload := map[string]interface{}{
+					"upscaled_image_path": parsedS3,
+				}
+				err = r.QDrant.SetPayload(payload, []uuid.UUID{gOutput.ID}, false)
+				if err != nil {
+					log.Error("Error setting upscaled_image_url in QDrant", "id", upscaleID, "err", err)
+					return err
+				}
 			}
 		}
 

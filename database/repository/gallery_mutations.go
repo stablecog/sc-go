@@ -34,13 +34,15 @@ func (r *Repository) SubmitGenerationOutputsToGalleryForUser(outputIDs []uuid.UU
 	}
 
 	var ids []uuid.UUID
-	var qdrantPayloads []map[string]interface{}
+	var qdrantIds []uuid.UUID
+	qdrantPayload := map[string]interface{}{
+		"gallery_status": generationoutput.GalleryStatusSubmitted,
+	}
 	for _, output := range outputs {
 		ids = append(ids, output.ID)
-		qdrantPayloads = append(qdrantPayloads, map[string]interface{}{
-			"id":             output.ID.String(),
-			"gallery_status": generationoutput.GalleryStatusSubmitted,
-		})
+		if output.HasEmbeddings {
+			qdrantIds = append(qdrantIds, output.ID)
+		}
 	}
 
 	var updated int
@@ -54,7 +56,7 @@ func (r *Repository) SubmitGenerationOutputsToGalleryForUser(outputIDs []uuid.UU
 		}
 		updated = u
 
-		err = r.QDrant.BatchUpsert(qdrantPayloads, false)
+		err = r.QDrant.SetPayload(qdrantPayload, qdrantIds, false)
 		if err != nil {
 			log.Error("Error updating generation outputs to gallery qdrant", "err", err)
 			return err
@@ -76,12 +78,21 @@ func (r *Repository) ApproveOrRejectGenerationOutputs(outputIDs []uuid.UUID, app
 		status = generationoutput.GalleryStatusRejected
 	}
 
-	var qdrantPayloads []map[string]interface{}
-	for _, outputID := range outputIDs {
-		qdrantPayloads = append(qdrantPayloads, map[string]interface{}{
-			"id":             outputID.String(),
-			"gallery_status": status,
-		})
+	// ! TODO temporary query since some stuff doesnt have embeddings
+	outputs, err := r.DB.GenerationOutput.Query().Where(generationoutput.IDIn(outputIDs...)).All(r.Ctx)
+	if err != nil {
+		log.Error("Error getting generation outputs ApproveOrRejectGenerationOutputs", "err", err)
+		return 0, err
+	}
+
+	qdrantPayload := map[string]interface{}{
+		"gallery_status": status,
+	}
+	var qdrantIds []uuid.UUID
+	for _, o := range outputs {
+		if o.HasEmbeddings {
+			qdrantIds = append(qdrantIds, o.ID)
+		}
 	}
 
 	var updated int
@@ -92,7 +103,7 @@ func (r *Repository) ApproveOrRejectGenerationOutputs(outputIDs []uuid.UUID, app
 			return err
 		}
 		updated = u
-		err = r.QDrant.BatchUpsert(qdrantPayloads, false)
+		err = r.QDrant.SetPayload(qdrantPayload, qdrantIds, false)
 		if err != nil {
 			log.Error("Error updating generation outputs to gallery qdrant", "err", err)
 			return err

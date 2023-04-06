@@ -271,6 +271,39 @@ func (q *QDrantClient) Upsert(id uuid.UUID, payload map[string]interface{}, imag
 	return nil
 }
 
+// Set payload on points
+func (q *QDrantClient) SetPayload(payload map[string]interface{}, ids []uuid.UUID, noRetry bool) error {
+	var points []ExtendedPointId
+	for _, id := range ids {
+		rId := ExtendedPointId{}
+		err := rId.FromExtendedPointId1(id)
+		if err != nil {
+			log.Errorf("Error creating id %v", err)
+			return err
+		}
+		points = append(points, rId)
+	}
+	res, err := q.Client.SetPayloadWithResponse(q.Ctx, q.CollectionName, &SetPayloadParams{}, SetPayload{
+		Points:  &points,
+		Payload: payload,
+	})
+	if err != nil {
+		if !noRetry && (os.IsTimeout(err) || strings.Contains(err.Error(), "connection refused")) {
+			err = q.UpdateActiveClient()
+			if err == nil {
+				return q.SetPayload(payload, ids, true)
+			}
+		}
+		log.Errorf("Error setting payload %v", err)
+		return err
+	}
+	if res.StatusCode() != http.StatusOK {
+		log.Errorf("Error setting payload %v", res.StatusCode())
+		return fmt.Errorf("Error setting payload %v", res.StatusCode())
+	}
+	return nil
+}
+
 // Upsert
 func (q *QDrantClient) BatchUpsert(payload []map[string]interface{}, noRetry bool) error {
 	var points []PointStruct
@@ -279,10 +312,14 @@ func (q *QDrantClient) BatchUpsert(payload []map[string]interface{}, noRetry boo
 		id := uuid.MustParse(p["id"].(string))
 		delete(p, "id")
 		// Get embedding from payload and remove it
-		embedding := p["embedding"].([]float32)
-		delete(p, "embedding")
-		textEmbedding := p["text_embedding"].([]float32)
-		delete(p, "text_embedding")
+		embedding, hasEmbedding := p["embedding"].([]float32)
+		if hasEmbedding {
+			delete(p, "embedding")
+		}
+		textEmbedding, hasTextEmbedding := p["text_embedding"].([]float32)
+		if hasTextEmbedding {
+			delete(p, "text_embedding")
+		}
 
 		rId := ExtendedPointId{}
 		err := rId.FromExtendedPointId1(id)
