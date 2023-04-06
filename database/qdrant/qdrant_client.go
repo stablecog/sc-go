@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/stablecog/sc-go/database/ent/generationoutput"
 	"github.com/stablecog/sc-go/log"
 	"github.com/stablecog/sc-go/utils"
 )
@@ -509,7 +510,10 @@ type QResponseResult struct {
 }
 
 type QResponseResultPayload struct {
-	CreatedAt int64  `json:"created_at"`
-	ImagePath string `json:"image_path"`
-	Prompt    string `json:"prompt"`
+	CreatedAt         int64                          `json:"created_at"`
+	ImagePath         string                         `json:"image_path"`
+	UpscaledImagePath string                         `json:"upscaled_image_path,omitempty"`
+	GalleryStatus     generationoutput.GalleryStatus `json:"gallery_status"`
+	IsFavorited       bool                           `json:"is_favorited"`
+	Prompt            string                         `json:"prompt"`
 }
