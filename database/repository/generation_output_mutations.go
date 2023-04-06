@@ -54,7 +54,7 @@ func (r *Repository) MarkGenerationOutputsForDeletionForUser(generationOutputIDs
 // Marks generations for deletions by setting deleted_at, only if they belong to the user with ID userID
 func (r *Repository) SetFavoriteGenerationOutputsForUser(generationOutputIDs []uuid.UUID, userID uuid.UUID, action requests.FavoriteAction) (int, error) {
 	// Get outputs belonging to this user
-	outputs, err := r.DB.Generation.Query().Select().Where(generation.UserIDEQ(userID)).QueryGenerationOutputs().Select(generationoutput.FieldID).Where(generationoutput.IDIn(generationOutputIDs...)).All(r.Ctx)
+	outputs, err := r.DB.Generation.Query().Select().Where(generation.UserIDEQ(userID)).QueryGenerationOutputs().Select(generationoutput.FieldID, generationoutput.FieldHasEmbeddings).Where(generationoutput.IDIn(generationOutputIDs...)).All(r.Ctx)
 	if err != nil {
 		return 0, err
 	}
@@ -94,9 +94,6 @@ func (r *Repository) SetFavoriteGenerationOutputsForUser(generationOutputIDs []u
 				log.Error("Error updating qdrant", "err", err)
 				return err
 			}
-			log.Infof("Updated QDrant %d", len(qdrantIds))
-		} else {
-			log.Infof("Not adding to QDrant %d", len(qdrantIds))
 		}
 		return nil
 	}); err != nil {
