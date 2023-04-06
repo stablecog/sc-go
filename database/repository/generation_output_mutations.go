@@ -7,6 +7,7 @@ import (
 	"github.com/stablecog/sc-go/database/ent"
 	"github.com/stablecog/sc-go/database/ent/generation"
 	"github.com/stablecog/sc-go/database/ent/generationoutput"
+	"github.com/stablecog/sc-go/log"
 	"github.com/stablecog/sc-go/server/requests"
 )
 
@@ -58,17 +59,43 @@ func (r *Repository) SetFavoriteGenerationOutputsForUser(generationOutputIDs []u
 		return 0, err
 	}
 
-	// get IDs only
-	var idsOnly []uuid.UUID
-	for _, output := range outputs {
-		idsOnly = append(idsOnly, output.ID)
-	}
-
 	removeFavorites := false
 	if action == requests.RemoveFavoriteAction {
 		removeFavorites = true
 	}
 
-	// Execute delete
-	return r.DB.GenerationOutput.Update().SetIsFavorited(!removeFavorites).Where(generationoutput.IDIn(idsOnly...)).Save(r.Ctx)
+	// get IDs only
+	var idsOnly []uuid.UUID
+	// Separate array for qdrant
+	var qdrantPayloads []map[string]interface{}
+	for _, output := range outputs {
+		idsOnly = append(idsOnly, output.ID)
+		if output.HasEmbeddings {
+			qdrantPayloads = append(qdrantPayloads, map[string]interface{}{
+				"id":           output.ID.String(),
+				"is_favorited": !removeFavorites,
+			})
+		}
+	}
+
+	// Execute in TX
+	var updated int
+	if err := r.WithTx(func(tx *ent.Tx) error {
+		ud, err := r.DB.GenerationOutput.Update().SetIsFavorited(!removeFavorites).Where(generationoutput.IDIn(idsOnly...)).Save(r.Ctx)
+		if err != nil {
+			log.Error("Error updating generation outputs", "err", err)
+			return err
+		}
+		updated = ud
+		// Update qdrant
+		err = r.QDrant.BatchUpsert(qdrantPayloads, false)
+		if err != nil {
+			log.Error("Error updating qdrant", "err", err)
+			return err
+		}
+		return nil
+	}); err != nil {
+		return 0, err
+	}
+	return updated, nil
 }
