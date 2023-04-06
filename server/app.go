@@ -154,9 +154,15 @@ func main() {
 				gq.WithNegativePrompt()
 			}).Limit(each).All(ctx)
 			if err != nil {
+				if cursor != nil {
+					log.Info("Last cursor", "cursor", cursor.Format(time.RFC3339Nano))
+				}
 				log.Fatal("Failed to load generation outputs", "err", err)
 			}
 			log.Infof("Retreived generations in %s", time.Since(start))
+
+			// Update cursor
+			cursor = &gens[len(gens)-1].CreatedAt
 
 			if len(gens) == 0 {
 				break
@@ -168,14 +174,14 @@ func main() {
 			for i, gen := range gens {
 				ids[i] = gen.ID
 				clipReq = append(clipReq, requests.ClipAPIImageRequest{
-					ID:      gen.ID.String(),
+					ID:      gen.ID,
 					ImageID: gen.ImagePath,
 				})
 				promptMap[gen.GenerationID] = gen.Edges.Generations.Edges.Prompt.Text
 			}
 			for k, gen := range promptMap {
 				clipReq = append(clipReq, requests.ClipAPIImageRequest{
-					ID:   k.String(),
+					ID:   k,
 					Text: gen,
 				})
 			}
@@ -212,7 +218,7 @@ func main() {
 			}
 
 			// Builds maps of embeddings
-			embeddings := make(map[string][]float32)
+			embeddings := make(map[uuid.UUID][]float32)
 			for _, embedding := range clipAPIResponse.Embeddings {
 				embeddings[embedding.ID] = embedding.Embedding
 			}
@@ -240,9 +246,9 @@ func main() {
 					"user_id":         gOutput.Edges.Generations.UserID.String(),
 					"prompt":          gOutput.Edges.Generations.Edges.Prompt.Text,
 				}
-				payload["embedding"] = embeddings[gOutput.ID.String()]
-				payload["text_embedding"] = embeddings[gOutput.Edges.Generations.ID.String()]
-				payload["id"] = gOutput.ID
+				payload["embedding"] = embeddings[gOutput.ID]
+				payload["text_embedding"] = embeddings[gOutput.Edges.Generations.ID]
+				payload["id"] = gOutput.ID.String()
 				if gOutput.UpscaledImagePath != nil {
 					payload["upscaled_image_path"] = *gOutput.UpscaledImagePath
 				}
@@ -258,6 +264,7 @@ func main() {
 			// QD Upsert
 			err = qdrantClient.BatchUpsert(payloads, false)
 			if err != nil {
+				log.Info("Last cursor", "cursor", cursor.Format(time.RFC3339Nano))
 				log.Fatal("Failed to batch objects", "err", err)
 			}
 
@@ -265,10 +272,14 @@ func main() {
 
 			err = repo.DB.GenerationOutput.Update().Where(generationoutput.IDIn(ids...)).SetHasEmbeddings(true).Exec(ctx)
 			if err != nil {
+				log.Info("Last cursor", "cursor", cursor.Format(time.RFC3339Nano))
 				log.Fatal("Failed to update generation outputs", "err", err)
 			}
 			log.Info("Batched objects", "count", len(payloads))
 			cur += len(payloads)
+
+			// Log cursor
+			log.Info("Last cursor", "cursor", cursor.Format(time.RFC3339Nano))
 		}
 
 		log.Info("Loaded generation outputs", "count", cur)

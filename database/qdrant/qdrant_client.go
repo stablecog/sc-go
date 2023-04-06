@@ -341,6 +341,26 @@ func (q *QDrantClient) SetPayload(payload map[string]interface{}, ids []uuid.UUI
 	return nil
 }
 
+// Count
+func (q *QDrantClient) Count(noRetry bool) (uint, error) {
+	resp, err := q.Client.CountPointsWithResponse(q.Ctx, q.CollectionName, CountPointsJSONRequestBody{})
+	if err != nil {
+		if !noRetry && (os.IsTimeout(err) || strings.Contains(err.Error(), "connection refused")) {
+			err = q.UpdateActiveClient()
+			if err == nil {
+				q.Count(true)
+			}
+		}
+		log.Errorf("Error counting points %v", err)
+		return 0, err
+	}
+	if resp.StatusCode() != http.StatusOK {
+		log.Errorf("Error counting points %v", resp.StatusCode())
+		return 0, fmt.Errorf("Error counting points %v", resp.StatusCode())
+	}
+	return resp.JSON200.Result.Count, nil
+}
+
 // Upsert
 func (q *QDrantClient) BatchUpsert(payload []map[string]interface{}, noRetry bool) error {
 	var points []PointStruct
