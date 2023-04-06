@@ -94,6 +94,9 @@ func (r *Repository) SetFavoriteGenerationOutputsForUser(generationOutputIDs []u
 				log.Error("Error updating qdrant", "err", err)
 				return err
 			}
+			log.Infof("Updated QDrant %d", len(qdrantIds))
+		} else {
+			log.Infof("Not adding to QDrant %d", len(qdrantIds))
 		}
 		return nil
 	}); err != nil {
