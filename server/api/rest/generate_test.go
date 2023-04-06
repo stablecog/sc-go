@@ -263,8 +263,8 @@ func TestGenerateNoCredits(t *testing.T) {
 	// ! Perfectly valid request
 	reqBody := requests.CreateGenerationRequest{
 		StreamID:       MockSSEId,
-		Height:         shared.MAX_GENERATE_HEIGHT,
-		Width:          shared.MAX_GENERATE_WIDTH,
+		Height:         512,
+		Width:          512,
 		SchedulerId:    uuid.MustParse(repository.MOCK_SCHEDULER_ID),
 		ModelId:        uuid.MustParse(repository.MOCK_GENERATION_MODEL_ID),
 		NumOutputs:     1,
@@ -296,8 +296,8 @@ func TestGenerateValidRequest(t *testing.T) {
 	// ! Perfectly valid request
 	reqBody := requests.CreateGenerationRequest{
 		StreamID:       MockSSEId,
-		Height:         shared.MAX_GENERATE_HEIGHT,
-		Width:          shared.MAX_GENERATE_WIDTH,
+		Height:         512,
+		Width:          512,
 		SchedulerId:    uuid.MustParse(repository.MOCK_SCHEDULER_ID),
 		ModelId:        uuid.MustParse(repository.MOCK_GENERATION_MODEL_ID),
 		NumOutputs:     1,

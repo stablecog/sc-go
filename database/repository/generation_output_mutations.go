@@ -88,10 +88,12 @@ func (r *Repository) SetFavoriteGenerationOutputsForUser(generationOutputIDs []u
 		}
 		updated = ud
 		// Update qdrant
-		err = r.QDrant.SetPayload(qdrantPayload, qdrantIds, false)
-		if err != nil {
-			log.Error("Error updating qdrant", "err", err)
-			return err
+		if r.QDrant != nil && len(qdrantIds) > 0 {
+			err = r.QDrant.SetPayload(qdrantPayload, qdrantIds, false)
+			if err != nil {
+				log.Error("Error updating qdrant", "err", err)
+				return err
+			}
 		}
 		return nil
 	}); err != nil {
