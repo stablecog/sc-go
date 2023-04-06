@@ -161,6 +161,7 @@ func (r *Repository) SetGenerationSucceeded(generationID string, prompt string, 
 					"model":           generation.ModelID.String(),
 					"scheduler":       generation.SchedulerID.String(),
 					"user_id":         generation.UserID.String(),
+					"generation_id":   generation.ID.String(),
 					"prompt":          prompt,
 				}
 				if gOutput.UpscaledImagePath != nil {

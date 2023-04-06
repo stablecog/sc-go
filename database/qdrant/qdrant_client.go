@@ -165,7 +165,7 @@ func (q *QDrantClient) CreateCollectionIfNotExists(noRetry bool) error {
 	vectorsConfigMulti := VectorsConfig1{}
 	vectorsConfigMulti["image"] = VectorParams{
 		Size:     uint64(1024),
-		Distance: "Cosine",
+		Distance: "Dot",
 	}
 	vectorsConfigMulti["text"] = VectorParams{
 		Size:     uint64(1024),
