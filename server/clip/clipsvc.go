@@ -104,6 +104,7 @@ func NewClipService() *ClipService {
 	svc := &ClipService{
 		urls:   strings.Split(os.Getenv("CLIP_URLS"), ","),
 		secret: os.Getenv("CLIPAPI_SECRET"),
+		r:      http.DefaultTransport,
 	}
 	svc.client = &http.Client{
 		Timeout:   5 * time.Second,
