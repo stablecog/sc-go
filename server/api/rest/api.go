@@ -13,6 +13,7 @@ import (
 	"github.com/stablecog/sc-go/log"
 	"github.com/stablecog/sc-go/server/analytics"
 	"github.com/stablecog/sc-go/server/api/sse"
+	"github.com/stablecog/sc-go/server/clip"
 	"github.com/stablecog/sc-go/server/responses"
 	"github.com/stablecog/sc-go/shared"
 	stripe "github.com/stripe/stripe-go/v74/client"
@@ -32,6 +33,7 @@ type RestAPI struct {
 	QueueThrottler *shared.UserQueueThrottlerMap
 	S3             *s3.S3
 	QDrant         *qdrant.QDrantClient
+	Clip           *clip.ClipService
 }
 
 func (c *RestAPI) GetUserIfAuthenticated(w http.ResponseWriter, r *http.Request) (user *ent.User) {

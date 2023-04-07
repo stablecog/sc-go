@@ -5,12 +5,14 @@ import (
 
 	"entgo.io/ent/dialect/sql"
 	"github.com/google/uuid"
+	"github.com/stablecog/sc-go/database/ent"
 	"github.com/stablecog/sc-go/database/ent/generation"
 	"github.com/stablecog/sc-go/database/ent/generationmodel"
 	"github.com/stablecog/sc-go/database/ent/generationoutput"
 	"github.com/stablecog/sc-go/database/ent/negativeprompt"
 	"github.com/stablecog/sc-go/database/ent/prompt"
 	"github.com/stablecog/sc-go/database/ent/scheduler"
+	"github.com/stablecog/sc-go/utils"
 )
 
 // Retrieves data for meilisearch
@@ -49,6 +51,106 @@ func (r *Repository) RetrieveGalleryData(limit int, updatedAtGT *time.Time) ([]G
 			s.OrderBy(sql.Desc(s.C(generationoutput.FieldCreatedAt)), sql.Desc(g.C(generation.FieldCreatedAt)))
 		}).Scan(r.Ctx, &res)
 	return res, err
+}
+
+// Retrieves data in gallery format given  output IDs
+// Returns data, next cursor, error
+func (r *Repository) RetrieveMostRecentGalleryData(per_page int, cursor *time.Time) ([]GalleryData, *time.Time, error) {
+	q := r.DB.GenerationOutput.Query().Where(generationoutput.GalleryStatusEQ(generationoutput.GalleryStatusApproved))
+	if cursor != nil {
+		q = q.Where(generationoutput.CreatedAtLT(*cursor))
+	}
+	res, err := q.
+		WithGenerations(func(gq *ent.GenerationQuery) {
+			gq.WithPrompt()
+			gq.WithNegativePrompt()
+		},
+		).Order(ent.Desc(generationoutput.FieldCreatedAt)).Limit(per_page + 1).All(r.Ctx)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	galleryData := make([]GalleryData, len(res))
+	for i, output := range res {
+		data := GalleryData{
+			ID:             output.ID,
+			ImagePath:      output.ImagePath,
+			ImageURL:       utils.GetURLFromImagePath(output.ImagePath),
+			CreatedAt:      output.CreatedAt,
+			UpdatedAt:      output.UpdatedAt,
+			Width:          output.Edges.Generations.Width,
+			Height:         output.Edges.Generations.Height,
+			InferenceSteps: output.Edges.Generations.InferenceSteps,
+			GuidanceScale:  output.Edges.Generations.GuidanceScale,
+			Seed:           output.Edges.Generations.Seed,
+			ModelID:        output.Edges.Generations.ModelID,
+			SchedulerID:    output.Edges.Generations.SchedulerID,
+			PromptText:     output.Edges.Generations.Edges.Prompt.Text,
+			PromptID:       output.Edges.Generations.Edges.Prompt.ID,
+			UserID:         &output.Edges.Generations.UserID,
+		}
+		if output.UpscaledImagePath != nil {
+			data.UpscaledImagePath = *output.UpscaledImagePath
+			data.UpscaledImageURL = utils.GetURLFromImagePath(data.UpscaledImagePath)
+		}
+		if output.Edges.Generations.Edges.NegativePrompt != nil {
+			data.NegativePromptText = output.Edges.Generations.Edges.NegativePrompt.Text
+			data.NegativePromptID = &output.Edges.Generations.Edges.NegativePrompt.ID
+		}
+		galleryData[i] = data
+	}
+
+	var nextCursor *time.Time
+	if len(galleryData) > per_page {
+		galleryData = galleryData[:len(galleryData)-1]
+		nextCursor = &galleryData[len(galleryData)-1].CreatedAt
+	}
+
+	return galleryData, nextCursor, nil
+}
+
+// Retrieves data in gallery format given  output IDs
+func (r *Repository) RetrieveGalleryDataWithOutputIDs(outputIDs []uuid.UUID) ([]GalleryData, error) {
+	res, err := r.DB.GenerationOutput.Query().Where(generationoutput.IDIn(outputIDs...), generationoutput.GalleryStatusEQ(generationoutput.GalleryStatusApproved)).
+		WithGenerations(func(gq *ent.GenerationQuery) {
+			gq.WithPrompt()
+			gq.WithNegativePrompt()
+		},
+		).All(r.Ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	galleryData := make([]GalleryData, len(res))
+	for i, output := range res {
+		data := GalleryData{
+			ID:             output.ID,
+			ImagePath:      output.ImagePath,
+			ImageURL:       utils.GetURLFromImagePath(output.ImagePath),
+			CreatedAt:      output.CreatedAt,
+			UpdatedAt:      output.UpdatedAt,
+			Width:          output.Edges.Generations.Width,
+			Height:         output.Edges.Generations.Height,
+			InferenceSteps: output.Edges.Generations.InferenceSteps,
+			GuidanceScale:  output.Edges.Generations.GuidanceScale,
+			Seed:           output.Edges.Generations.Seed,
+			ModelID:        output.Edges.Generations.ModelID,
+			SchedulerID:    output.Edges.Generations.SchedulerID,
+			PromptText:     output.Edges.Generations.Edges.Prompt.Text,
+			PromptID:       output.Edges.Generations.Edges.Prompt.ID,
+			UserID:         &output.Edges.Generations.UserID,
+		}
+		if output.UpscaledImagePath != nil {
+			data.UpscaledImagePath = *output.UpscaledImagePath
+			data.UpscaledImageURL = utils.GetURLFromImagePath(data.UpscaledImagePath)
+		}
+		if output.Edges.Generations.Edges.NegativePrompt != nil {
+			data.NegativePromptText = output.Edges.Generations.Edges.NegativePrompt.Text
+			data.NegativePromptID = &output.Edges.Generations.Edges.NegativePrompt.ID
+		}
+		galleryData[i] = data
+	}
+	return galleryData, nil
 }
 
 type GalleryData struct {

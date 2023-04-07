@@ -516,10 +516,85 @@ func (q *QDrantClient) DeleteById(id uuid.UUID, noRetry bool) error {
 	return nil
 }
 
+// Public gallery search
+func (q *QDrantClient) QueryGenerations(embedding []float32, per_page int, offset *uint, noRetry bool) (*QResponse, error) {
+	qParams := &SearchParams_Quantization{}
+	qParams.FromQuantizationSearchParams(QuantizationSearchParams{
+		Ignore:  utils.ToPtr(false),
+		Rescore: utils.ToPtr(false),
+	})
+	params := &SearchRequest_Params{}
+	params.FromSearchParams(SearchParams{
+		HnswEf:       utils.ToPtr[uint](128),
+		Exact:        utils.ToPtr(false),
+		Quantization: &SearchParams_Quantization{},
+	})
+	namedVectorParams := NamedVectorStruct{}
+	err := namedVectorParams.FromNamedVector(NamedVector{
+		Name:   "image",
+		Vector: embedding,
+	})
+	if err != nil {
+		log.Errorf("Error creating vector search param %v", err)
+		return nil, err
+	}
+
+	resp, err := q.Client.SearchPointsWithResponse(q.Ctx, q.CollectionName, &SearchPointsParams{}, SearchPointsJSONRequestBody{
+		Limit:       uint(per_page + 1),
+		WithPayload: true,
+		Vector:      namedVectorParams,
+		Offset:      offset,
+		Filter: &SearchRequest_Filter{
+			Must: []SCMatchCondition{
+				{
+					Key:   "gallery_status",
+					Match: SCValue{Value: generationoutput.GalleryStatusApproved},
+				},
+			},
+		},
+		Params: params,
+	})
+
+	if err != nil {
+		if !noRetry && (os.IsTimeout(err) || strings.Contains(err.Error(), "connection refused")) {
+			err = q.UpdateActiveClient()
+			if err == nil {
+				return q.QueryGenerations(embedding, per_page, offset, true)
+			}
+		}
+		log.Errorf("Error getting collections %v", err)
+		return nil, err
+	}
+	if resp.StatusCode() != http.StatusOK {
+		log.Errorf("Error querying collection %v", resp.StatusCode())
+		return nil, fmt.Errorf("Error querying collection %v", resp.StatusCode())
+	}
+
+	var qAPIResponse QResponse
+	err = json.Unmarshal(resp.Body, &qAPIResponse)
+	if err != nil {
+		log.Errorf("Error unmarshalling resp %v", err)
+		return nil, err
+	}
+
+	if len(qAPIResponse.Result) > per_page {
+		// Remove last result and get next offset
+		if offset != nil {
+			qAPIResponse.Next = utils.ToPtr(uint(*offset) + uint(per_page))
+		} else {
+			qAPIResponse.Next = utils.ToPtr(uint(per_page))
+		}
+		// Remove last item
+		qAPIResponse.Result = qAPIResponse.Result[:len(qAPIResponse.Result)-1]
+	}
+	return &qAPIResponse, nil
+}
+
 type QResponse struct {
 	Result []QResponseResult `json:"result"`
 	Status string            `json:"status"`
 	Time   float32           `json:"time"`
+	Next   *uint             `json:"next,omitempty"`
 }
 
 type QResponseResult struct {
@@ -536,4 +611,5 @@ type QResponseResultPayload struct {
 	GalleryStatus     generationoutput.GalleryStatus `json:"gallery_status"`
 	IsFavorited       bool                           `json:"is_favorited"`
 	Prompt            string                         `json:"prompt"`
+	GenerationID      string                         `json:"generation_id"`
 }

@@ -1633,8 +1633,17 @@ type SearchRequest struct {
 type SearchRequestFilter1 = interface{}
 
 // SearchRequest_Filter Look only for points which satisfies this conditions
+type SCValue struct {
+	Value interface{} `json:"value"`
+}
+type SCMatchCondition struct {
+	Key  string `json:"key"`
+	Match SCValue `json:"match"`
+}
+
 type SearchRequest_Filter struct {
-	union json.RawMessage
+	Must []SCMatchCondition `json:"must,omitempty"`
+	Should []SCMatchCondition `json:"should,omitempty"`
 }
 
 // SearchRequestParams1 defines model for .
@@ -6143,67 +6152,15 @@ func (t *SearchParams_Quantization) UnmarshalJSON(b []byte) error {
 	return err
 }
 
-// AsFilter returns the union data inside the SearchRequest_Filter as a Filter
-func (t SearchRequest_Filter) AsFilter() (Filter, error) {
-	var body Filter
-	err := json.Unmarshal(t.union, &body)
-	return body, err
-}
+// func (t SearchRequest_Filter) MarshalJSON() ([]byte, error) {
+// 	b, err := json.Marshal(t)
+// 	return b, err
+// }
 
-// FromFilter overwrites any union data inside the SearchRequest_Filter as the provided Filter
-func (t *SearchRequest_Filter) FromFilter(v Filter) error {
-	b, err := json.Marshal(v)
-	t.union = b
-	return err
-}
-
-// MergeFilter performs a merge with any union data inside the SearchRequest_Filter, using the provided Filter
-func (t *SearchRequest_Filter) MergeFilter(v Filter) error {
-	b, err := json.Marshal(v)
-	if err != nil {
-		return err
-	}
-
-	merged, err := runtime.JsonMerge(b, t.union)
-	t.union = merged
-	return err
-}
-
-// AsSearchRequestFilter1 returns the union data inside the SearchRequest_Filter as a SearchRequestFilter1
-func (t SearchRequest_Filter) AsSearchRequestFilter1() (SearchRequestFilter1, error) {
-	var body SearchRequestFilter1
-	err := json.Unmarshal(t.union, &body)
-	return body, err
-}
-
-// FromSearchRequestFilter1 overwrites any union data inside the SearchRequest_Filter as the provided SearchRequestFilter1
-func (t *SearchRequest_Filter) FromSearchRequestFilter1(v SearchRequestFilter1) error {
-	b, err := json.Marshal(v)
-	t.union = b
-	return err
-}
-
-// MergeSearchRequestFilter1 performs a merge with any union data inside the SearchRequest_Filter, using the provided SearchRequestFilter1
-func (t *SearchRequest_Filter) MergeSearchRequestFilter1(v SearchRequestFilter1) error {
-	b, err := json.Marshal(v)
-	if err != nil {
-		return err
-	}
-
-	merged, err := runtime.JsonMerge(b, t.union)
-	t.union = merged
-	return err
-}
-
-func (t SearchRequest_Filter) MarshalJSON() ([]byte, error) {
-	b, err := t.union.MarshalJSON()
-	return b, err
-}
-
-func (t *SearchRequest_Filter) UnmarshalJSON(b []byte) error {
-	err := t.union.UnmarshalJSON(b)
-	return err
-}
+// func (t *SearchRequest_Filter) UnmarshalJSON(b []byte) error {
+// 	err := json.Unmarshal(b, t)
+// 	return err
+// }
 
 // AsSearchParams returns the union data inside the SearchRequest_Params as a SearchParams
 func (t SearchRequest_Params) AsSearchParams() (SearchParams, error) {

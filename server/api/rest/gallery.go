@@ -7,6 +7,7 @@ import (
 	"math/rand"
 	"net/http"
 	"strconv"
+	"time"
 
 	"github.com/go-chi/render"
 	"github.com/google/uuid"
@@ -200,8 +201,153 @@ func (c *RestAPI) HandleQueryGallery(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
+func (c *RestAPI) HandleSemanticSearchGallery(w http.ResponseWriter, r *http.Request) {
+	// Get output_id param
+	outputId := r.URL.Query().Get("output_id")
+	if outputId != "" {
+		// Validate output_id
+		uid, err := uuid.Parse(outputId)
+		if err != nil {
+			responses.ErrBadRequest(w, r, "invalid_output_id", "")
+			return
+		}
+
+		generationG, err := c.GetGenerationGByID(uid)
+		if err != nil || generationG == nil {
+			log.Error("Error querying generation meili", "err", err)
+			responses.ErrInternalServerError(w, r, "Error querying generation")
+			return
+		}
+
+		// Sanitize
+		generationG.UserID = nil
+
+		imageUrl := utils.GetURLFromImagePath(generationG.ImagePath)
+		if err != nil {
+			log.Error("Error parsing S3 URL", "err", err)
+			imageUrl = generationG.ImagePath
+		}
+		generationG.ImageURL = imageUrl
+		generationG.ImagePath = ""
+		if generationG.UpscaledImagePath != "" {
+			imageUrl := utils.GetURLFromImagePath(generationG.UpscaledImagePath)
+			generationG.UpscaledImageURL = imageUrl
+			generationG.UpscaledImagePath = ""
+		}
+
+		render.Status(r, http.StatusOK)
+		render.JSON(w, r, GalleryResponse{
+			Page: 1,
+			Hits: []repository.GalleryData{*generationG},
+		})
+		return
+	}
+
+	search := r.URL.Query().Get("search")
+	cursor := r.URL.Query().Get("cursor")
+	var galleryData []repository.GalleryData
+	var nextCursor interface{}
+	var err error
+
+	// Leverage qdrant for semantic search
+	if search != "" {
+		var offset *uint
+		if cursor != "" {
+			cursorInt, err := strconv.Atoi(cursor)
+			if err != nil {
+				log.Error("Error parsing cursor", "err", err)
+			} else {
+				offset = utils.ToPtr(uint(cursorInt))
+			}
+		}
+		embeddings, err := c.Clip.GetEmbeddingFromText(search, 3)
+		if err != nil {
+			log.Error("Error getting embeddings from clip service", "err", err)
+			responses.ErrInternalServerError(w, r, "An unknown error occurred")
+			return
+		}
+
+		res, err := c.QDrant.QueryGenerations(embeddings, GALLERY_PER_PAGE, offset, false)
+		if err != nil {
+			log.Error("Error querying qdrant", "err", err)
+			responses.ErrInternalServerError(w, r, "An unknown error occurred")
+			return
+		}
+
+		// Get generation output ids
+		var outputIds []uuid.UUID
+		for _, hit := range res.Result {
+			outputId, err := uuid.Parse(hit.Id)
+			if err != nil {
+				log.Error("Error parsing uuid", "err", err)
+				continue
+			}
+			outputIds = append(outputIds, outputId)
+		}
+
+		// Get gallery data
+		galleryData, err = c.Repo.RetrieveGalleryDataWithOutputIDs(outputIds)
+		if err != nil {
+			log.Error("Error querying gallery data", "err", err)
+			responses.ErrInternalServerError(w, r, "An unknown error occurred")
+			return
+		}
+
+		// Set next cursor
+		nextCursor = res.Next
+	} else {
+		// Get most recent gallery data
+		var qCursor *time.Time
+		if cursor != "" {
+			cursorTime, err := utils.ParseIsoTime(cursor)
+			if err != nil {
+				responses.ErrBadRequest(w, r, "cursor must be a valid iso time string", "")
+				return
+			}
+			qCursor = &cursorTime
+		}
+
+		// Retrieve from postgres
+		galleryData, nextCursor, err = c.Repo.RetrieveMostRecentGalleryData(GALLERY_PER_PAGE, qCursor)
+		if err != nil {
+			log.Error("Error querying gallery data from postgres", "err", err)
+			responses.ErrInternalServerError(w, r, "An unknown error occurred")
+			return
+		}
+	}
+
+	// Shuffle results if no search was specified
+	if search == "" {
+		// Get seed from query
+		seed := r.URL.Query().Get("seed")
+		if seed != "" {
+			seedInt, err := strconv.Atoi(seed)
+			if err != nil {
+				log.Error("Error parsing seed", "err", err)
+			} else {
+				rand.Seed(int64(seedInt))
+				rand.Shuffle(
+					len(galleryData),
+					func(i, j int) { galleryData[i], galleryData[j] = galleryData[j], galleryData[i] },
+				)
+			}
+		}
+	}
+
+	// We don't want to leak primary keys, so set to nil
+	for i := range galleryData {
+		galleryData[i].UserID = nil
+	}
+
+	render.Status(r, http.StatusOK)
+	render.JSON(w, r, GalleryResponse{
+		Next: nextCursor,
+		Hits: galleryData,
+	})
+}
+
 type GalleryResponse struct {
-	Next int                      `json:"next,omitempty"`
+	Next interface{}              `json:"next,omitempty"`
 	Page int                      `json:"page"`
 	Hits []repository.GalleryData `json:"hits"`
 }

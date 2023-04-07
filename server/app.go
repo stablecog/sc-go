@@ -33,6 +33,7 @@ import (
 	"github.com/stablecog/sc-go/server/analytics"
 	"github.com/stablecog/sc-go/server/api/rest"
 	"github.com/stablecog/sc-go/server/api/sse"
+	"github.com/stablecog/sc-go/server/clip"
 	"github.com/stablecog/sc-go/server/discord"
 	"github.com/stablecog/sc-go/server/middleware"
 	"github.com/stablecog/sc-go/server/requests"
@@ -409,6 +410,7 @@ func main() {
 		QueueThrottler: qThrottler,
 		S3:             s3Client,
 		QDrant:         qdrantClient,
+		Clip:           clip.NewClipService(),
 	}
 
 	// Create middleware
@@ -456,6 +458,7 @@ func main() {
 			// 20 requests per second
 			r.Use(mw.RateLimit(20, 1*time.Second))
 			r.Get("/", hc.HandleQueryGallery)
+			r.Get("/semantic", hc.HandleSemanticSearchGallery)
 		})
 
 		// Routes that require authentication
