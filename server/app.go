@@ -115,6 +115,7 @@ func main() {
 	// Create index
 	var mErr *multierror.Error
 	mErr = multierror.Append(qdrantClient.CreateIndex("gallery_status", qdrant.PayloadSchemaTypeText, false))
+	mErr = multierror.Append(qdrantClient.CreateIndex("user_id", qdrant.PayloadSchemaTypeText, false))
 	err = mErr.ErrorOrNil()
 	if err != nil {
 		log.Warn("Error creating qdrant indexes", "err", err)

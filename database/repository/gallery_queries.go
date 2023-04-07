@@ -53,6 +53,42 @@ func (r *Repository) RetrieveGalleryData(limit int, updatedAtGT *time.Time) ([]G
 	return res, err
 }
 
+// Retrieved a single generation output by ID, in GalleryData format
+func (r *Repository) RetrieveGalleryDataByID(id uuid.UUID) (*GalleryData, error) {
+	output, err := r.DB.GenerationOutput.Query().Where(generationoutput.IDEQ(id)).WithGenerations(func(gq *ent.GenerationQuery) {
+		gq.WithPrompt()
+		gq.WithNegativePrompt()
+	}).Only(r.Ctx)
+	if err != nil {
+		return nil, err
+	}
+	data := GalleryData{
+		ID:             output.ID,
+		ImagePath:      output.ImagePath,
+		ImageURL:       utils.GetURLFromImagePath(output.ImagePath),
+		CreatedAt:      output.CreatedAt,
+		UpdatedAt:      output.UpdatedAt,
+		Width:          output.Edges.Generations.Width,
+		Height:         output.Edges.Generations.Height,
+		InferenceSteps: output.Edges.Generations.InferenceSteps,
+		GuidanceScale:  output.Edges.Generations.GuidanceScale,
+		Seed:           output.Edges.Generations.Seed,
+		ModelID:        output.Edges.Generations.ModelID,
+		SchedulerID:    output.Edges.Generations.SchedulerID,
+		PromptID:       output.Edges.Generations.Edges.Prompt.ID,
+		PromptText:     output.Edges.Generations.Edges.Prompt.Text,
+	}
+	if output.Edges.Generations.Edges.NegativePrompt != nil {
+		data.NegativePromptID = &output.Edges.Generations.Edges.NegativePrompt.ID
+		data.NegativePromptText = output.Edges.Generations.Edges.NegativePrompt.Text
+	}
+	if output.UpscaledImagePath != nil {
+		data.UpscaledImagePath = *output.UpscaledImagePath
+		data.UpscaledImageURL = utils.GetURLFromImagePath(*output.UpscaledImagePath)
+	}
+	return &data, nil
+}
+
 // Retrieves data in gallery format given  output IDs
 // Returns data, next cursor, error
 func (r *Repository) RetrieveMostRecentGalleryData(per_page int, cursor *time.Time) ([]GalleryData, *time.Time, error) {

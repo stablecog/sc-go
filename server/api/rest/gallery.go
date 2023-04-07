@@ -212,33 +212,24 @@ func (c *RestAPI) HandleSemanticSearchGallery(w http.ResponseWriter, r *http.Req
 			return
 		}
 
-		generationG, err := c.GetGenerationGByID(uid)
-		if err != nil || generationG == nil {
-			log.Error("Error querying generation meili", "err", err)
-			responses.ErrInternalServerError(w, r, "Error querying generation")
+		galleryData, err := c.Repo.RetrieveGalleryDataByID(uid)
+		if err != nil {
+			if ent.IsNotFound(err) {
+				responses.ErrNotFound(w, r, "generation_not_found")
+				return
+			}
+			log.Error("Error retrieving gallery data", "err", err)
+			responses.ErrInternalServerError(w, r, "Error retrieving gallery data")
 			return
 		}
 
 		// Sanitize
-		generationG.UserID = nil
-
-		imageUrl := utils.GetURLFromImagePath(generationG.ImagePath)
-		if err != nil {
-			log.Error("Error parsing S3 URL", "err", err)
-			imageUrl = generationG.ImagePath
-		}
-		generationG.ImageURL = imageUrl
-		generationG.ImagePath = ""
-		if generationG.UpscaledImagePath != "" {
-			imageUrl := utils.GetURLFromImagePath(generationG.UpscaledImagePath)
-			generationG.UpscaledImageURL = imageUrl
-			generationG.UpscaledImagePath = ""
-		}
+		galleryData.UserID = nil
 
 		render.Status(r, http.StatusOK)
 		render.JSON(w, r, GalleryResponse{
 			Page: 1,
-			Hits: []repository.GalleryData{*generationG},
+			Hits: []repository.GalleryData{*galleryData},
 		})
 		return
 	}
