@@ -9,6 +9,7 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -130,9 +131,11 @@ func main() {
 	if *loadQdrant {
 		log.Info("🏡 Loading qdrant data...")
 		secret := os.Getenv("CLIPAPI_SECRET")
-		endpoint := os.Getenv("CLIPAPI_ENDPOINT")
+		urlStr := os.Getenv("CLIPAPI_URLS")
+		urls := strings.Split(urlStr, ",")
 		each := 100
 		cur := 0
+		urlIdx := 0
 		var cursor *time.Time
 		if *cursorEmbeddings != "" {
 			t, err := time.Parse(time.RFC3339, *cursorEmbeddings)
@@ -143,6 +146,9 @@ func main() {
 		}
 
 		for {
+			if urlIdx >= len(urls) {
+				urlIdx = 0
+			}
 			log.Info("Loading batch of embeddings", "cur", cur, "each", each)
 			start := time.Now()
 			q := repo.DB.GenerationOutput.Query().Where(generationoutput.HasEmbeddings(false))
@@ -193,7 +199,8 @@ func main() {
 				log.Infof("Last cursor: %v", cursor.Format(time.RFC3339Nano))
 				log.Fatalf("Error marshalling req %v", err)
 			}
-			request, _ := http.NewRequest(http.MethodPost, endpoint, bytes.NewReader(b))
+			request, _ := http.NewRequest(http.MethodPost, urls[urlIdx], bytes.NewReader(b))
+			urlIdx++
 			request.Header.Set("Authorization", secret)
 			request.Header.Set("Content-Type", "application/json")
 			// Do

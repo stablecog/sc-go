@@ -212,3 +212,8 @@ spec:
                 secretKeyRef:
                   name: sc-go
                   key: CLIPAPI_SECRET
+            - name: CLIPAPI_URLS
+              valueFrom:
+                secretKeyRef:
+                  name: sc-go
+                  key: CLIPAPI_URLS
