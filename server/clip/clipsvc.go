@@ -102,7 +102,7 @@ func (c *ClipService) unmarkBadUrls() {
 
 func NewClipService() *ClipService {
 	svc := &ClipService{
-		urls:   strings.Split(os.Getenv("CLIP_URLS"), ","),
+		urls:   strings.Split(os.Getenv("CLIPAPI_URLS"), ","),
 		secret: os.Getenv("CLIPAPI_SECRET"),
 		r:      http.DefaultTransport,
 	}
