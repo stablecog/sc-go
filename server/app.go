@@ -145,7 +145,7 @@ func main() {
 			cursor = &t
 		}
 
-		var promptEmbeddings map[string][]float32
+		promptEmbeddings := make(map[string][]float32)
 
 		for {
 			if urlIdx >= len(urls) {
