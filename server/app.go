@@ -145,6 +145,8 @@ func main() {
 			cursor = &t
 		}
 
+		var promptEmbeddings map[string][]float32
+
 		for {
 			if urlIdx >= len(urls) {
 				urlIdx = 0
@@ -183,7 +185,9 @@ func main() {
 					ID:      gen.ID,
 					ImageID: gen.ImagePath,
 				})
-				promptMap[gen.GenerationID] = gen.Edges.Generations.Edges.Prompt.Text
+				if _, ok := promptEmbeddings[gen.Edges.Generations.Edges.Prompt.Text]; !ok {
+					promptMap[gen.GenerationID] = gen.Edges.Generations.Edges.Prompt.Text
+				}
 			}
 			for k, gen := range promptMap {
 				clipReq = append(clipReq, requests.ClipAPIImageRequest{
@@ -267,8 +271,13 @@ func main() {
 				}
 				payload["text_embedding"], ok = embeddings[gOutput.Edges.Generations.ID]
 				if !ok {
-					log.Warn("Missing text embedding", "id", gOutput.Edges.Generations.ID)
-					continue
+					payload["text_embedding"], ok = promptEmbeddings[gOutput.Edges.Generations.Edges.Prompt.Text]
+					if !ok {
+						log.Warn("Missing text embedding", "id", gOutput.Edges.Generations.ID)
+						continue
+					}
+				} else {
+					promptEmbeddings[gOutput.Edges.Generations.Edges.Prompt.Text] = embeddings[gOutput.Edges.Generations.ID]
 				}
 				payload["id"] = gOutput.ID.String()
 				if gOutput.UpscaledImagePath != nil {
