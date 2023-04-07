@@ -200,7 +200,9 @@ func main() {
 			resp, err := http.DefaultClient.Do(request)
 			if err != nil {
 				log.Infof("Last cursor: %v", cursor.Format(time.RFC3339Nano))
-				log.Fatalf("Error making request %v", err)
+				log.Warnf("Error making request %v", err)
+				time.Sleep(30 * time.Second)
+				continue
 			}
 			defer resp.Body.Close()
 
@@ -220,6 +222,10 @@ func main() {
 			// Builds maps of embeddings
 			embeddings := make(map[uuid.UUID][]float32)
 			for _, embedding := range clipAPIResponse.Embeddings {
+				if embedding.Error != "" {
+					log.Warn("Error from clip api", "err", embedding.Error)
+					continue
+				}
 				embeddings[embedding.ID] = embedding.Embedding
 			}
 
@@ -246,8 +252,17 @@ func main() {
 					"user_id":         gOutput.Edges.Generations.UserID.String(),
 					"prompt":          gOutput.Edges.Generations.Edges.Prompt.Text,
 				}
-				payload["embedding"] = embeddings[gOutput.ID]
-				payload["text_embedding"] = embeddings[gOutput.Edges.Generations.ID]
+				var ok bool
+				payload["embedding"], ok = embeddings[gOutput.ID]
+				if !ok {
+					log.Warn("Missing embedding", "id", gOutput.ID)
+					continue
+				}
+				payload["text_embedding"], ok = embeddings[gOutput.Edges.Generations.ID]
+				if !ok {
+					log.Warn("Missing text embedding", "id", gOutput.Edges.Generations.ID)
+					continue
+				}
 				payload["id"] = gOutput.ID.String()
 				if gOutput.UpscaledImagePath != nil {
 					payload["upscaled_image_path"] = *gOutput.UpscaledImagePath
@@ -265,7 +280,8 @@ func main() {
 			err = qdrantClient.BatchUpsert(payloads, false)
 			if err != nil {
 				log.Info("Last cursor", "cursor", cursor.Format(time.RFC3339Nano))
-				log.Fatal("Failed to batch objects", "err", err)
+				log.Warn("Failed to batch objects", "err", err)
+				continue
 			}
 
 			log.Infof("Batched objects for qdrant in %s", time.Since(start))
