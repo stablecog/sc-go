@@ -277,11 +277,29 @@ func (c *RestAPI) HandleSemanticSearchGallery(w http.ResponseWriter, r *http.Req
 		}
 
 		// Get gallery data
-		galleryData, err = c.Repo.RetrieveGalleryDataWithOutputIDs(outputIds)
+		galleryDataUnsorted, err := c.Repo.RetrieveGalleryDataWithOutputIDs(outputIds)
 		if err != nil {
 			log.Error("Error querying gallery data", "err", err)
 			responses.ErrInternalServerError(w, r, "An unknown error occurred")
 			return
+		}
+		gDataMap := make(map[uuid.UUID]repository.GalleryData)
+		for _, gData := range galleryDataUnsorted {
+			gDataMap[gData.ID] = gData
+		}
+
+		for _, hit := range res.Result {
+			outputId, err := uuid.Parse(hit.Id)
+			if err != nil {
+				log.Error("Error parsing uuid", "err", err)
+				continue
+			}
+			item, ok := gDataMap[outputId]
+			if !ok {
+				log.Error("Error retrieving gallery data", "output_id", outputId)
+				continue
+			}
+			galleryData = append(galleryData, item)
 		}
 
 		// Set next cursor
