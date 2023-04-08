@@ -517,7 +517,7 @@ func (q *QDrantClient) DeleteById(id uuid.UUID, noRetry bool) error {
 }
 
 // Public gallery search
-func (q *QDrantClient) QueryGenerations(embedding []float32, per_page int, offset *uint, noRetry bool) (*QResponse, error) {
+func (q *QDrantClient) QueryGenerations(embedding []float32, per_page int, offset *uint, filters *SearchRequest_Filter, noRetry bool) (*QResponse, error) {
 	qParams := &SearchParams_Quantization{}
 	qParams.FromQuantizationSearchParams(QuantizationSearchParams{
 		Ignore:  utils.ToPtr(false),
@@ -544,22 +544,15 @@ func (q *QDrantClient) QueryGenerations(embedding []float32, per_page int, offse
 		WithPayload: true,
 		Vector:      namedVectorParams,
 		Offset:      offset,
-		Filter: &SearchRequest_Filter{
-			Must: []SCMatchCondition{
-				{
-					Key:   "gallery_status",
-					Match: SCValue{Value: generationoutput.GalleryStatusApproved},
-				},
-			},
-		},
-		Params: params,
+		Filter:      filters,
+		Params:      params,
 	})
 
 	if err != nil {
 		if !noRetry && (os.IsTimeout(err) || strings.Contains(err.Error(), "connection refused")) {
 			err = q.UpdateActiveClient()
 			if err == nil {
-				return q.QueryGenerations(embedding, per_page, offset, true)
+				return q.QueryGenerations(embedding, per_page, offset, filters, true)
 			}
 		}
 		log.Errorf("Error getting collections %v", err)

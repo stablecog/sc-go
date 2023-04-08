@@ -13,6 +13,8 @@ import (
 	"github.com/google/uuid"
 	"github.com/meilisearch/meilisearch-go"
 	"github.com/stablecog/sc-go/database/ent"
+	"github.com/stablecog/sc-go/database/ent/generationoutput"
+	"github.com/stablecog/sc-go/database/qdrant"
 	"github.com/stablecog/sc-go/database/repository"
 	"github.com/stablecog/sc-go/log"
 	"github.com/stablecog/sc-go/server/requests"
@@ -240,6 +242,22 @@ func (c *RestAPI) HandleSemanticSearchGallery(w http.ResponseWriter, r *http.Req
 	var nextCursor interface{}
 	var err error
 
+	// Parse filters
+	filters := &requests.QueryGenerationFilters{}
+	err = filters.ParseURLQueryParameters(r.URL.Query())
+	if err != nil {
+		responses.ErrBadRequest(w, r, err.Error(), "")
+		return
+	}
+
+	// Parse as qdrant filters
+	qdrantFilters := filters.ToQdrantFilters(true)
+	// Append gallery status requirement
+	qdrantFilters.Must = append(qdrantFilters.Must, qdrant.SCMatchCondition{
+		Key:   "gallery_status",
+		Match: &qdrant.SCValue{Value: generationoutput.GalleryStatusApproved},
+	})
+
 	// Leverage qdrant for semantic search
 	if search != "" {
 		var offset *uint
@@ -258,7 +276,7 @@ func (c *RestAPI) HandleSemanticSearchGallery(w http.ResponseWriter, r *http.Req
 			return
 		}
 
-		res, err := c.QDrant.QueryGenerations(embeddings, GALLERY_PER_PAGE, offset, false)
+		res, err := c.QDrant.QueryGenerations(embeddings, GALLERY_PER_PAGE, offset, qdrantFilters, false)
 		if err != nil {
 			log.Error("Error querying qdrant", "err", err)
 			responses.ErrInternalServerError(w, r, "An unknown error occurred")

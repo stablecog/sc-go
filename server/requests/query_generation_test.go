@@ -1,6 +1,7 @@
 package requests
 
 import (
+	"encoding/json"
 	"net/url"
 	"testing"
 	"time"
@@ -86,4 +87,45 @@ func TestParseQueryGenerationFilterError(t *testing.T) {
 	err = filters.ParseURLQueryParameters(values)
 	assert.NotNil(t, err)
 	assert.Equal(t, "invalid order: 'invalid' expected 'asc' or 'desc'", err.Error())
+}
+
+func TestToQdrantFilters(t *testing.T) {
+	urlStr := "/gens?per_page=1&cursor=2021-01-01T00:00:00Z&min_width=1&max_width=5&min_height=6&max_height=7&max_inference_steps=3&min_inference_steps=2&max_guidance_scale=4&min_guidance_scale=2&widths=512,768&heights=512&inference_steps=30&guidance_scales=5&scheduler_ids=e07ad712-41ad-4ff7-8727-faf0d91e4c4e,c09aaf4d-2d78-4281-89aa-88d5d0a5d70b&model_ids=49d75ae2-5407-40d9-8c02-0c44ba08f358&upscaled=only&start_dt=2021-01-01T00:00:00Z&gallery_status=approved,not_submitted&order_by=updated_at&is_favorited=true&was_auto_submitted=true"
+	// Get url.Values from string
+	values, err := url.ParseQuery(urlStr)
+	assert.Nil(t, err)
+	// Parse filters
+	filters := &QueryGenerationFilters{}
+	err = filters.ParseURLQueryParameters(values)
+	assert.Nil(t, err)
+
+	// Convert to Qdrant filters
+	qdrantFilters := filters.ToQdrantFilters(false)
+	// marshal
+	b, err := json.Marshal(qdrantFilters)
+	assert.Nil(t, err)
+
+	// assert equal to prefined string
+	assert.Equal(t, "{\"must\":[{\"key\":\"height\",\"range\":{\"gte\":6}},{\"key\":\"height\",\"range\":{\"lte\":7}},{\"key\":\"width\",\"range\":{\"gte\":1}},{\"key\":\"width\",\"range\":{\"lte\":5}},{\"key\":\"inference_steps\",\"range\":{\"gte\":2}},{\"key\":\"inference_steps\",\"range\":{\"lte\":3}},{\"key\":\"guidance_scale\",\"range\":{\"gte\":2}},{\"key\":\"width\",\"range\":{\"lte\":4}},{\"key\":\"created_at\",\"range\":{\"gte\":1609459200}},{\"key\":\"is_favorited\",\"match\":{\"value\":true}}],\"must_not\":[{\"is_empty\":{\"key\":\"upscaled_image_path\"}}],\"should\":[{\"key\":\"model_id\",\"match\":{\"value\":\"49d75ae2-5407-40d9-8c02-0c44ba08f358\"}},{\"key\":\"scheduler_id\",\"match\":{\"value\":\"e07ad712-41ad-4ff7-8727-faf0d91e4c4e\"}},{\"key\":\"scheduler_id\",\"match\":{\"value\":\"c09aaf4d-2d78-4281-89aa-88d5d0a5d70b\"}},{\"key\":\"height\",\"match\":{\"value\":512}},{\"key\":\"width\",\"match\":{\"value\":512}},{\"key\":\"width\",\"match\":{\"value\":768}},{\"key\":\"inference_steps\",\"match\":{\"value\":30}},{\"key\":\"guidance_scale\",\"match\":{\"value\":5}},{\"key\":\"gallery_status\",\"match\":{\"value\":\"approved\"}},{\"key\":\"gallery_status\",\"match\":{\"value\":\"not_submitted\"}}]}", string(b))
+}
+
+// Ignore gallery status filters
+func TestToQdrantFiltersIgnoreGalleryStatus(t *testing.T) {
+	urlStr := "/gens?per_page=1&cursor=2021-01-01T00:00:00Z&min_width=1&max_width=5&min_height=6&max_height=7&max_inference_steps=3&min_inference_steps=2&max_guidance_scale=4&min_guidance_scale=2&widths=512,768&heights=512&inference_steps=30&guidance_scales=5&scheduler_ids=e07ad712-41ad-4ff7-8727-faf0d91e4c4e,c09aaf4d-2d78-4281-89aa-88d5d0a5d70b&model_ids=49d75ae2-5407-40d9-8c02-0c44ba08f358&upscaled=only&start_dt=2021-01-01T00:00:00Z&gallery_status=approved,not_submitted&order_by=updated_at&is_favorited=true&was_auto_submitted=true"
+	// Get url.Values from string
+	values, err := url.ParseQuery(urlStr)
+	assert.Nil(t, err)
+	// Parse filters
+	filters := &QueryGenerationFilters{}
+	err = filters.ParseURLQueryParameters(values)
+	assert.Nil(t, err)
+
+	// Convert to Qdrant filters
+	qdrantFilters := filters.ToQdrantFilters(true)
+	// marshal
+	b, err := json.Marshal(qdrantFilters)
+	assert.Nil(t, err)
+
+	// assert equal to prefined string
+	assert.Equal(t, "{\"must\":[{\"key\":\"height\",\"range\":{\"gte\":6}},{\"key\":\"height\",\"range\":{\"lte\":7}},{\"key\":\"width\",\"range\":{\"gte\":1}},{\"key\":\"width\",\"range\":{\"lte\":5}},{\"key\":\"inference_steps\",\"range\":{\"gte\":2}},{\"key\":\"inference_steps\",\"range\":{\"lte\":3}},{\"key\":\"guidance_scale\",\"range\":{\"gte\":2}},{\"key\":\"width\",\"range\":{\"lte\":4}},{\"key\":\"created_at\",\"range\":{\"gte\":1609459200}},{\"key\":\"is_favorited\",\"match\":{\"value\":true}}],\"must_not\":[{\"is_empty\":{\"key\":\"upscaled_image_path\"}}],\"should\":[{\"key\":\"model_id\",\"match\":{\"value\":\"49d75ae2-5407-40d9-8c02-0c44ba08f358\"}},{\"key\":\"scheduler_id\",\"match\":{\"value\":\"e07ad712-41ad-4ff7-8727-faf0d91e4c4e\"}},{\"key\":\"scheduler_id\",\"match\":{\"value\":\"c09aaf4d-2d78-4281-89aa-88d5d0a5d70b\"}},{\"key\":\"height\",\"match\":{\"value\":512}},{\"key\":\"width\",\"match\":{\"value\":512}},{\"key\":\"width\",\"match\":{\"value\":768}},{\"key\":\"inference_steps\",\"match\":{\"value\":30}},{\"key\":\"guidance_scale\",\"match\":{\"value\":5}}]}", string(b))
 }

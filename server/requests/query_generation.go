@@ -11,6 +11,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/stablecog/sc-go/database/ent/generationoutput"
+	"github.com/stablecog/sc-go/database/qdrant"
 	"github.com/stablecog/sc-go/utils"
 )
 
@@ -385,4 +386,181 @@ func (filters *QueryGenerationFilters) ParseURLQueryParameters(urlValues url.Val
 		filters.OrderBy = OrderByCreatedAt
 	}
 	return nil
+}
+
+func (filters *QueryGenerationFilters) ToQdrantFilters(ignoreGalleryStatus bool) *qdrant.SearchRequest_Filter {
+	f := &qdrant.SearchRequest_Filter{}
+
+	if len(filters.ModelIDs) > 0 {
+		for _, modelID := range filters.ModelIDs {
+			f.Should = append(f.Should, qdrant.SCMatchCondition{
+				Key:   "model_id",
+				Match: &qdrant.SCValue{Value: modelID.String()},
+			})
+		}
+	}
+
+	if len(filters.SchedulerIDs) > 0 {
+		for _, schedulerID := range filters.SchedulerIDs {
+			f.Should = append(f.Should, qdrant.SCMatchCondition{
+				Key:   "scheduler_id",
+				Match: &qdrant.SCValue{Value: schedulerID.String()},
+			})
+		}
+	}
+
+	// Width/height filters
+	if filters.MinHeight > 0 {
+		f.Must = append(f.Must, qdrant.SCMatchCondition{
+			Key: "height",
+			Range: qdrant.SCRange[int32]{
+				Gte: utils.ToPtr(filters.MinHeight),
+			},
+		})
+	}
+	if filters.MaxHeight > 0 {
+		f.Must = append(f.Must, qdrant.SCMatchCondition{
+			Key: "height",
+			Range: qdrant.SCRange[int32]{
+				Lte: utils.ToPtr(filters.MaxHeight),
+			},
+		})
+	}
+	if filters.MinWidth > 0 {
+		f.Must = append(f.Must, qdrant.SCMatchCondition{
+			Key: "width",
+			Range: qdrant.SCRange[int32]{
+				Gte: utils.ToPtr(filters.MinWidth),
+			},
+		})
+	}
+	if filters.MaxWidth > 0 {
+		f.Must = append(f.Must, qdrant.SCMatchCondition{
+			Key: "width",
+			Range: qdrant.SCRange[int32]{
+				Lte: utils.ToPtr(filters.MaxWidth),
+			},
+		})
+	}
+
+	// Guidance scale/inference steps
+	if filters.MinInferenceSteps > 0 {
+		f.Must = append(f.Must, qdrant.SCMatchCondition{
+			Key: "inference_steps",
+			Range: qdrant.SCRange[int32]{
+				Gte: utils.ToPtr(filters.MinInferenceSteps),
+			},
+		})
+	}
+	if filters.MaxInferenceSteps > 0 {
+		f.Must = append(f.Must, qdrant.SCMatchCondition{
+			Key: "inference_steps",
+			Range: qdrant.SCRange[int32]{
+				Lte: utils.ToPtr(filters.MaxInferenceSteps),
+			},
+		})
+	}
+	if filters.MinGuidanceScale > 0 {
+		f.Must = append(f.Must, qdrant.SCMatchCondition{
+			Key: "guidance_scale",
+			Range: qdrant.SCRange[float32]{
+				Gte: utils.ToPtr(filters.MinGuidanceScale),
+			},
+		})
+	}
+	if filters.MaxGuidanceScale > 0 {
+		f.Must = append(f.Must, qdrant.SCMatchCondition{
+			Key: "width",
+			Range: qdrant.SCRange[float32]{
+				Lte: utils.ToPtr(filters.MaxGuidanceScale),
+			},
+		})
+	}
+
+	// Widths/heights
+	if len(filters.Heights) > 0 {
+		for _, height := range filters.Heights {
+			f.Should = append(f.Should, qdrant.SCMatchCondition{
+				Key:   "height",
+				Match: &qdrant.SCValue{Value: height},
+			})
+		}
+	}
+	if len(filters.Widths) > 0 {
+		for _, width := range filters.Widths {
+			f.Should = append(f.Should, qdrant.SCMatchCondition{
+				Key:   "width",
+				Match: &qdrant.SCValue{Value: width},
+			})
+		}
+	}
+
+	// Inference steps/guidance scales
+	if len(filters.InferenceSteps) > 0 {
+		for _, inferenceStep := range filters.InferenceSteps {
+			f.Should = append(f.Should, qdrant.SCMatchCondition{
+				Key:   "inference_steps",
+				Match: &qdrant.SCValue{Value: inferenceStep},
+			})
+		}
+	}
+	if len(filters.GuidanceScales) > 0 {
+		for _, guidanceScale := range filters.GuidanceScales {
+			f.Should = append(f.Should, qdrant.SCMatchCondition{
+				Key:   "guidance_scale",
+				Match: &qdrant.SCValue{Value: guidanceScale},
+			})
+		}
+	}
+
+	// Upscaled or not
+	if filters.UpscaleStatus == UpscaleStatusNot {
+		f.Must = append(f.Must, qdrant.SCMatchCondition{
+			IsEmpty: &qdrant.SCIsEmpty{Key: "upscaled_image_path"},
+		})
+	} else if filters.UpscaleStatus == UpscaleStatusOnly {
+		f.MustNot = append(f.MustNot, qdrant.SCMatchCondition{
+			IsEmpty: &qdrant.SCIsEmpty{Key: "upscaled_image_path"},
+		})
+	}
+
+	// Gallery status
+	if !ignoreGalleryStatus && len(filters.GalleryStatus) > 0 {
+		for _, galleryStatus := range filters.GalleryStatus {
+			f.Should = append(f.Should, qdrant.SCMatchCondition{
+				Key:   "gallery_status",
+				Match: &qdrant.SCValue{Value: galleryStatus},
+			})
+		}
+	}
+
+	// Date range
+	if filters.StartDt != nil {
+		f.Must = append(f.Must, qdrant.SCMatchCondition{
+			Key: "created_at",
+			Range: qdrant.SCRange[int64]{
+				Gte: utils.ToPtr(filters.StartDt.Unix()),
+			},
+		})
+	}
+	if filters.EndDt != nil {
+		f.Must = append(f.Must, qdrant.SCMatchCondition{
+			Key: "created_at",
+			Range: qdrant.SCRange[int64]{
+				Lte: utils.ToPtr(filters.EndDt.Unix()),
+			},
+		})
+	}
+
+	// Is favorited
+	if filters.IsFavorited != nil {
+		f.Must = append(f.Must, qdrant.SCMatchCondition{
+			Key: "is_favorited",
+			Match: &qdrant.SCValue{
+				Value: *filters.IsFavorited,
+			},
+		})
+	}
+
+	return f
 }
