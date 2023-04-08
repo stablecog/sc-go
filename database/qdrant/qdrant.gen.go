@@ -470,7 +470,7 @@ type CountRequest struct {
 	Exact *bool `json:"exact,omitempty"`
 
 	// Filter Look only for points which satisfies this conditions
-	Filter *CountRequest_Filter `json:"filter,omitempty"`
+	Filter *SearchRequest_Filter `json:"filter,omitempty"`
 }
 
 // CountRequestFilter1 defines model for .

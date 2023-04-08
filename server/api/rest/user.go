@@ -16,6 +16,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/stablecog/sc-go/database/ent"
 	"github.com/stablecog/sc-go/database/qdrant"
+	"github.com/stablecog/sc-go/database/repository"
 	"github.com/stablecog/sc-go/log"
 	"github.com/stablecog/sc-go/server/requests"
 	"github.com/stablecog/sc-go/server/responses"
@@ -278,6 +279,7 @@ func (c *RestAPI) HandleQueryGenerations(w http.ResponseWriter, r *http.Request)
 
 		// Get cursor str as uint
 		var offset *uint
+		var total *uint
 		if cursorStr != "" {
 			cursoru64, err := strconv.ParseUint(cursorStr, 10, 64)
 			if err != nil {
@@ -286,6 +288,14 @@ func (c *RestAPI) HandleQueryGenerations(w http.ResponseWriter, r *http.Request)
 			}
 			cursoru := uint(cursoru64)
 			offset = &cursoru
+		} else {
+			count, err := c.QDrant.CountWithFilters(qdrantFilters, false)
+			if err != nil {
+				log.Error("Error counting qdrant", "err", err)
+				responses.ErrInternalServerError(w, r, "An unknown error has occured")
+				return
+			}
+			total = &count
 		}
 
 		// Query qdrant
@@ -308,9 +318,51 @@ func (c *RestAPI) HandleQueryGenerations(w http.ResponseWriter, r *http.Request)
 		}
 
 		// Get user generation data in correct format
+		generationsUnsorted, err := c.Repo.RetrieveGenerationsWithOutputIDs(outputIds)
+		if err != nil {
+			log.Error("Error getting generations", "err", err)
+			responses.ErrInternalServerError(w, r, "An unknown error has occured")
+			return
+		}
 
+		// Need to re-sort to preserve qdrant ordering
+		gDataMap := make(map[uuid.UUID]repository.GenerationQueryWithOutputsResultFormatted)
+		for _, gData := range generationsUnsorted.Outputs {
+			gDataMap[gData.ID] = gData
+		}
+
+		var generations []repository.GenerationQueryWithOutputsResultFormatted
+		for _, hit := range qdrantRes.Result {
+			outputId, err := uuid.Parse(hit.Id)
+			if err != nil {
+				log.Error("Error parsing uuid", "err", err)
+				continue
+			}
+			item, ok := gDataMap[outputId]
+			if !ok {
+				log.Error("Error retrieving gallery data", "output_id", outputId)
+				continue
+			}
+			generations = append(generations, item)
+		}
+		generationsUnsorted.Outputs = generations
+
+		if total != nil {
+			// uint to int
+			totalInt := int(*total)
+			generationsUnsorted.Total = &totalInt
+		}
+
+		// Get next cursor
+		generationsUnsorted.Next = qdrantRes.Next
+
+		// Return generations
+		render.Status(r, http.StatusOK)
+		render.JSON(w, r, generationsUnsorted)
+		return
 	}
 
+	// Otherwise, query postgres
 	var cursor *time.Time
 	if cursorStr := r.URL.Query().Get("cursor"); cursorStr != "" {
 		cursorTime, err := utils.ParseIsoTime(cursorStr)

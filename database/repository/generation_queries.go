@@ -273,6 +273,96 @@ type UserGenCount struct {
 	Total int `json:"total" sql:"total"`
 }
 
+// Get user generations in the *GenerationQueryWithOutputsMeta format
+// Using a list of generation_output ids
+// For when we semantic search against our vector db
+func (r *Repository) RetrieveGenerationsWithOutputIDs(outputIDs []uuid.UUID) (*GenerationQueryWithOutputsMeta, error) {
+	gQueryResult, err := r.DB.GenerationOutput.Query().Where(generationoutput.IDIn(outputIDs...)).WithGenerations(func(gq *ent.GenerationQuery) {
+		gq.WithPrompt()
+		gq.WithNegativePrompt()
+	}).All(r.Ctx)
+	if err != nil {
+		log.Errorf("Error retrieving generation outputs %v", err)
+		return nil, err
+	}
+
+	if len(gQueryResult) == 0 {
+		meta := &GenerationQueryWithOutputsMeta{
+			Outputs: []GenerationQueryWithOutputsResultFormatted{},
+		}
+		return meta, nil
+	}
+
+	meta := &GenerationQueryWithOutputsMeta{}
+
+	// Get real image URLs for each
+	for i, g := range gQueryResult {
+		if g.ImagePath != "" {
+			parsed := utils.GetURLFromImagePath(g.ImagePath)
+			gQueryResult[i].ImagePath = parsed
+		}
+		if g.UpscaledImagePath != nil {
+			parsed := utils.GetURLFromImagePath(*g.UpscaledImagePath)
+			gQueryResult[i].UpscaledImagePath = &parsed
+		}
+	}
+
+	// Format to GenerationQueryWithOutputsResultFormatted
+	generationOutputMap := make(map[uuid.UUID][]GenerationUpscaleOutput)
+	for _, g := range gQueryResult {
+		gOutput := GenerationUpscaleOutput{
+			ID:               g.ID,
+			ImageUrl:         g.ImagePath,
+			UpscaledImageUrl: *g.UpscaledImagePath,
+			GalleryStatus:    g.GalleryStatus,
+			WasAutoSubmitted: g.Edges.Generations.WasAutoSubmitted,
+			IsFavorited:      g.IsFavorited,
+		}
+		output := GenerationQueryWithOutputsResultFormatted{
+			GenerationUpscaleOutput: gOutput,
+			Generation: GenerationQueryWithOutputsData{
+				ID:               g.ID,
+				Height:           g.Edges.Generations.Height,
+				Width:            g.Edges.Generations.Width,
+				InferenceSteps:   g.Edges.Generations.InferenceSteps,
+				Seed:             g.Edges.Generations.Seed,
+				Status:           g.Edges.Generations.Status.String(),
+				GuidanceScale:    g.Edges.Generations.GuidanceScale,
+				SchedulerID:      g.Edges.Generations.SchedulerID,
+				ModelID:          g.Edges.Generations.ModelID,
+				PromptID:         g.Edges.Generations.PromptID,
+				NegativePromptID: g.Edges.Generations.NegativePromptID,
+				CreatedAt:        g.CreatedAt,
+				UpdatedAt:        g.UpdatedAt,
+				StartedAt:        g.Edges.Generations.StartedAt,
+				CompletedAt:      g.Edges.Generations.CompletedAt,
+				Prompt: PromptType{
+					Text: g.Edges.Generations.Edges.Prompt.Text,
+					ID:   *g.Edges.Generations.PromptID,
+				},
+				IsFavorited: gOutput.IsFavorited,
+			},
+		}
+		if g.Edges.Generations.InitImageURL != nil {
+			output.Generation.InitImageURL = *g.Edges.Generations.InitImageURL
+		}
+		if g.Edges.Generations.Edges.NegativePrompt != nil {
+			output.Generation.NegativePrompt = &PromptType{
+				Text: g.Edges.Generations.Edges.NegativePrompt.Text,
+				ID:   *g.Edges.Generations.NegativePromptID,
+			}
+		}
+		generationOutputMap[g.ID] = append(generationOutputMap[g.ID], gOutput)
+		meta.Outputs = append(meta.Outputs, output)
+	}
+	// Now loop through and add outputs to each generation
+	for i, g := range meta.Outputs {
+		meta.Outputs[i].Generation.Outputs = generationOutputMap[g.Generation.ID]
+	}
+
+	return meta, nil
+}
+
 // Get user generations from the database using page options
 // Cursor actually represents created_at, we paginate using this for performance reasons
 // If present, we will get results after the cursor (anything before, represents previous pages)
@@ -696,7 +786,7 @@ type GenerationUpscaleOutput struct {
 type GenerationQueryWithOutputsMeta struct {
 	Total   *int                                        `json:"total_count,omitempty"`
 	Outputs []GenerationQueryWithOutputsResultFormatted `json:"outputs"`
-	Next    *time.Time                                  `json:"next,omitempty"`
+	Next    interface{}                                 `json:"next,omitempty"`
 }
 
 type PromptType struct {

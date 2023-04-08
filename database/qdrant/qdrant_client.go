@@ -341,6 +341,29 @@ func (q *QDrantClient) SetPayload(payload map[string]interface{}, ids []uuid.UUI
 	return nil
 }
 
+// Count with filters
+func (q *QDrantClient) CountWithFilters(filters *SearchRequest_Filter, noRetry bool) (uint, error) {
+	resp, err := q.Client.CountPointsWithResponse(q.Ctx, q.CollectionName, CountPointsJSONRequestBody{
+		Filter: filters,
+		Exact:  utils.ToPtr(false),
+	})
+	if err != nil {
+		if !noRetry && (os.IsTimeout(err) || strings.Contains(err.Error(), "connection refused")) {
+			err = q.UpdateActiveClient()
+			if err == nil {
+				q.CountWithFilters(filters, true)
+			}
+		}
+		log.Errorf("Error counting points %v", err)
+		return 0, err
+	}
+	if resp.StatusCode() != http.StatusOK {
+		log.Errorf("Error counting points %v", resp.StatusCode())
+		return 0, fmt.Errorf("Error counting points %v", resp.StatusCode())
+	}
+	return resp.JSON200.Result.Count, nil
+}
+
 // Count
 func (q *QDrantClient) Count(noRetry bool) (uint, error) {
 	resp, err := q.Client.CountPointsWithResponse(q.Ctx, q.CollectionName, CountPointsJSONRequestBody{})
