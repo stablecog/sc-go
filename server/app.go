@@ -121,6 +121,7 @@ func main() {
 	mErr = multierror.Append(qdrantClient.CreateIndex("inference_steps", qdrant.PayloadSchemaTypeInteger, false))
 	mErr = multierror.Append(qdrantClient.CreateIndex("guidance_scale", qdrant.PayloadSchemaTypeFloat, false))
 	mErr = multierror.Append(qdrantClient.CreateIndex("created_at", qdrant.PayloadSchemaTypeInteger, false))
+	mErr = multierror.Append(qdrantClient.CreateIndex("deleted_at", qdrant.PayloadSchemaTypeInteger, false))
 	err = mErr.ErrorOrNil()
 	if err != nil {
 		log.Warn("Error creating qdrant indexes", "err", err)
