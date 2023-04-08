@@ -262,12 +262,13 @@ func (c *RestAPI) HandleSemanticSearchGallery(w http.ResponseWriter, r *http.Req
 	if search != "" {
 		var offset *uint
 		if cursor != "" {
-			cursorInt, err := strconv.Atoi(cursor)
+			cursoru64, err := strconv.ParseUint(cursor, 10, 64)
 			if err != nil {
-				log.Error("Error parsing cursor", "err", err)
-			} else {
-				offset = utils.ToPtr(uint(cursorInt))
+				responses.ErrBadRequest(w, r, "cursor must be a valid uint", "")
+				return
 			}
+			cursorU := uint(cursoru64)
+			offset = &cursorU
 		}
 		embeddings, err := c.Clip.GetEmbeddingFromText(search, 3)
 		if err != nil {
@@ -335,7 +336,8 @@ func (c *RestAPI) HandleSemanticSearchGallery(w http.ResponseWriter, r *http.Req
 		}
 
 		// Retrieve from postgres
-		galleryData, nextCursor, err = c.Repo.RetrieveMostRecentGalleryData(GALLERY_PER_PAGE, qCursor)
+		filters.GalleryStatus = []generationoutput.GalleryStatus{generationoutput.GalleryStatusApproved}
+		galleryData, nextCursor, err = c.Repo.RetrieveMostRecentGalleryData(filters, GALLERY_PER_PAGE, qCursor)
 		if err != nil {
 			log.Error("Error querying gallery data from postgres", "err", err)
 			responses.ErrInternalServerError(w, r, "An unknown error occurred")
