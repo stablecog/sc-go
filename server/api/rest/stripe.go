@@ -475,70 +475,20 @@ func (c *RestAPI) HandleStripeWebhook(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		// We only care about renewal (cycle), create, and manual
-		if invoice.BillingReason != InvoiceBillingReasonSubscriptionCycle && invoice.BillingReason != InvoiceBillingReasonSubscriptionCreate {
-			render.Status(r, http.StatusOK)
-			render.PlainText(w, r, "OK")
-			return
-		}
-
-		if invoice.Lines == nil {
-			log.Error("Stripe invoice lines is nil %s", invoice.ID)
-			responses.ErrInternalServerError(w, r, "Stripe invoice lines is nil")
-			return
-		}
-
-		u, err := c.Repo.GetUserByStripeCustomerId(invoice.Customer)
-		if err != nil {
-			log.Error("Unable getting user from stripe customer id", "err", err)
-			responses.ErrInternalServerError(w, r, err.Error())
-			return
-		} else if u == nil {
-			log.Error("User does not exist with stripe customer id: %s", invoice.Customer)
-			responses.ErrInternalServerError(w, r, "User does not exist with stripe customer id")
-			return
-		}
-
-		for _, line := range invoice.Lines.Data {
-			var product string
-			if line.Plan == nil {
-				log.Error("Stripe plan is nil in line item %s", line.ID)
-				responses.ErrInternalServerError(w, r, "Stripe plan is nil in line item")
-				return
-			}
-
-			product = line.Plan.Product
-
-			if product == "" {
-				log.Error("Stripe product is nil in line item %s", line.ID)
-				responses.ErrInternalServerError(w, r, "Stripe product is nil in line item")
-				return
-			}
-
-			err = c.Repo.DeleteCreditsWithLineItemID(line.ID)
-			if err != nil {
-				log.Error("Unable deleting credits with line item id", "err", err)
-				responses.ErrInternalServerError(w, r, err.Error())
-				return
-			}
-
-			_, err := c.Repo.UnsetActiveProductID(u.ID, product, nil)
-			if err != nil {
-				log.Error("Unable unsetting stripe product id", "err", err)
-				responses.ErrInternalServerError(w, r, err.Error())
-				return
-			}
-		}
-		// Remove from redis
-		err = c.Redis.Client.Del(c.Redis.Ctx, invoice.ID).Err()
-
+		c.RevertCreditsInvoice(invoice, w, r)
+		return
 	// Subcription payments
-	case "invoice.finalized", "invoice.paid":
+	case "invoice.finalized", "invoice.paid", "invoice.updated":
 		// We can parse the object as an invoice since that's the only thing we care about
 		invoice, err := stripeObjectMapToInvoiceObject(event.Data.Object)
 		if err != nil || invoice == nil {
 			log.Error("Unable parsing stripe invoice object", "err", err)
 			responses.ErrInternalServerError(w, r, err.Error())
+			return
+		}
+
+		if invoice.Status == InvoiceStatusVoid || invoice.Status == InvoiceStatusDraft || invoice.Status == InvoiceStatusUncollectible {
+			c.RevertCreditsInvoice(invoice, w, r)
 			return
 		}
 
@@ -745,6 +695,65 @@ func (c *RestAPI) HandleStripeWebhook(w http.ResponseWriter, r *http.Request) {
 	render.PlainText(w, r, "OK")
 }
 
+func (c *RestAPI) RevertCreditsInvoice(invoice *Invoice, w http.ResponseWriter, r *http.Request) {
+	// We only care about renewal (cycle), create, and manual
+	if invoice.BillingReason != InvoiceBillingReasonSubscriptionCycle && invoice.BillingReason != InvoiceBillingReasonSubscriptionCreate {
+		render.Status(r, http.StatusOK)
+		render.PlainText(w, r, "OK")
+		return
+	}
+
+	if invoice.Lines == nil {
+		log.Error("Stripe invoice lines is nil %s", invoice.ID)
+		responses.ErrInternalServerError(w, r, "Stripe invoice lines is nil")
+		return
+	}
+
+	u, err := c.Repo.GetUserByStripeCustomerId(invoice.Customer)
+	if err != nil {
+		log.Error("Unable getting user from stripe customer id", "err", err)
+		responses.ErrInternalServerError(w, r, err.Error())
+		return
+	} else if u == nil {
+		log.Error("User does not exist with stripe customer id: %s", invoice.Customer)
+		responses.ErrInternalServerError(w, r, "User does not exist with stripe customer id")
+		return
+	}
+
+	for _, line := range invoice.Lines.Data {
+		var product string
+		if line.Plan == nil {
+			log.Error("Stripe plan is nil in line item %s", line.ID)
+			responses.ErrInternalServerError(w, r, "Stripe plan is nil in line item")
+			return
+		}
+
+		product = line.Plan.Product
+
+		if product == "" {
+			log.Error("Stripe product is nil in line item %s", line.ID)
+			responses.ErrInternalServerError(w, r, "Stripe product is nil in line item")
+			return
+		}
+
+		err = c.Repo.DeleteCreditsWithLineItemID(line.ID)
+		if err != nil {
+			log.Error("Unable deleting credits with line item id", "err", err)
+			responses.ErrInternalServerError(w, r, err.Error())
+			return
+		}
+
+		_, err := c.Repo.UnsetActiveProductID(u.ID, product, nil)
+		if err != nil {
+			log.Error("Unable unsetting stripe product id", "err", err)
+			responses.ErrInternalServerError(w, r, err.Error())
+			return
+		}
+	}
+	// Remove from redis
+	err = c.Redis.Client.Del(c.Redis.Ctx, invoice.ID).Err()
+}
+
 // Parse generic object into stripe invoice struct
 func stripeObjectMapToInvoiceObject(obj map[string]interface{}) (*Invoice, error) {
 	marshalled, err := json.Marshal(obj)
@@ -852,11 +861,22 @@ type InvoiceLineList struct {
 	Data []*InvoiceLine `json:"data"`
 }
 
+type InvoiceStatus string
+
+const (
+	InvoiceStatusDraft         InvoiceStatus = "draft"
+	InvoiceStatusOpen          InvoiceStatus = "open"
+	InvoiceStatusPaid          InvoiceStatus = "paid"
+	InvoiceStatusUncollectible InvoiceStatus = "uncollectible"
+	InvoiceStatusVoid          InvoiceStatus = "void"
+)
+
 type Invoice struct {
 	ID            string               `json:"id"`
 	BillingReason InvoiceBillingReason `json:"billing_reason"`
 	Lines         *InvoiceLineList     `json:"lines"`
 	Customer      string               `json:"customer"`
+	Status        InvoiceStatus        `json:"status"`
 }
 
 // Subscription object is also pbroken in stripe
