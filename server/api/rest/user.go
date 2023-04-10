@@ -289,7 +289,7 @@ func (c *RestAPI) HandleQueryGenerations(w http.ResponseWriter, r *http.Request)
 			cursoru := uint(cursoru64)
 			offset = &cursoru
 		} else {
-			count, err := c.QDrant.CountWithFilters(qdrantFilters, false)
+			count, err := c.Qdrant.CountWithFilters(qdrantFilters, false)
 			if err != nil {
 				log.Error("Error counting qdrant", "err", err)
 				responses.ErrInternalServerError(w, r, "An unknown error has occured")
@@ -299,7 +299,7 @@ func (c *RestAPI) HandleQueryGenerations(w http.ResponseWriter, r *http.Request)
 		}
 
 		// Query qdrant
-		qdrantRes, err := c.QDrant.QueryGenerations(e, perPage, offset, qdrantFilters, false)
+		qdrantRes, err := c.Qdrant.QueryGenerations(e, perPage, offset, qdrantFilters, false)
 		if err != nil {
 			log.Error("Error querying qdrant", "err", err)
 			responses.ErrInternalServerError(w, r, "An unknown error has occured")

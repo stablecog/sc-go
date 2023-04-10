@@ -16,7 +16,7 @@ type Repository struct {
 	ConnInfo database.SqlDBConn
 	Redis    *database.RedisWrapper
 	Ctx      context.Context
-	QDrant   *qdrant.QDrantClient
+	Qdrant   *qdrant.QdrantClient
 }
 
 // WithTx runs a function in a transaction

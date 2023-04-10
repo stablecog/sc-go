@@ -45,8 +45,8 @@ func (r *Repository) MarkGenerationOutputsForDeletion(generationOutputIDs []uuid
 			return err
 		}
 		// Update qdrant
-		if r.QDrant != nil && len(qdrantIds) > 0 {
-			err = r.QDrant.SetPayload(qdrantPayload, qdrantIds, false)
+		if r.Qdrant != nil && len(qdrantIds) > 0 {
+			err = r.Qdrant.SetPayload(qdrantPayload, qdrantIds, false)
 			if err != nil {
 				log.Error("Error updating qdrant deleted_at", "err", err)
 				return err
@@ -114,8 +114,8 @@ func (r *Repository) SetFavoriteGenerationOutputsForUser(generationOutputIDs []u
 		}
 		updated = ud
 		// Update qdrant
-		if r.QDrant != nil && len(qdrantIds) > 0 {
-			err = r.QDrant.SetPayload(qdrantPayload, qdrantIds, false)
+		if r.Qdrant != nil && len(qdrantIds) > 0 {
+			err = r.Qdrant.SetPayload(qdrantPayload, qdrantIds, false)
 			if err != nil {
 				log.Error("Error updating qdrant", "err", err)
 				return err

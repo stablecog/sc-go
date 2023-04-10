@@ -123,7 +123,7 @@ func main() {
 		ConnInfo: dbconn,
 		Redis:    redis,
 		Ctx:      ctx,
-		QDrant:   qdrantClient,
+		Qdrant:   qdrantClient,
 	}
 
 	if *loadQdrant {
@@ -406,7 +406,7 @@ func main() {
 		Track:          analyticsService,
 		QueueThrottler: qThrottler,
 		S3:             s3Client,
-		QDrant:         qdrantClient,
+		Qdrant:         qdrantClient,
 		Clip:           clip.NewClipService(),
 	}
 
