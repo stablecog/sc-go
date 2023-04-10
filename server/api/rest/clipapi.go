@@ -77,7 +77,7 @@ func (c *RestAPI) HandleClipQSearch(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	qAPIResponse, err := c.QDrant.Query(clipAPIResponse.Embeddings[0].Embedding, false)
+	qAPIResponse, err := c.Qdrant.Query(clipAPIResponse.Embeddings[0].Embedding, false)
 	if err != nil {
 		log.Errorf("Error querying qdrant %v", err)
 		responses.ErrBadRequest(w, r, err.Error(), "")

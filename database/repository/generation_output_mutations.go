@@ -15,16 +15,42 @@ import (
 func (r *Repository) MarkGenerationOutputsForDeletion(generationOutputIDs []uuid.UUID) (int, error) {
 	var deleted int
 	var err error
+	deletedAt := time.Now()
+	// qdrant payload
+	qdrantPayload := map[string]interface{}{
+		"deleted_at": deletedAt.Unix(),
+	}
+	// Figure out which IDs have embeddings
+	embeddingOutputs, err := r.DB.GenerationOutput.Query().Select(generationoutput.FieldID, generationoutput.FieldHasEmbeddings).Where(generationoutput.IDIn(generationOutputIDs...)).All(r.Ctx)
+	if err != nil {
+		log.Error("Error getting generation outputs has_embeddings", "err", err)
+		return 0, err
+	}
+	// Separate array for qdrant
+	var qdrantIds []uuid.UUID
+	for _, output := range embeddingOutputs {
+		if output.HasEmbeddings {
+			qdrantIds = append(qdrantIds, output.ID)
+		}
+	}
 	// Start transaction
 	if err := r.WithTx(func(tx *ent.Tx) error {
 		db := tx.Client()
-		deleted, err = db.GenerationOutput.Update().Where(generationoutput.IDIn(generationOutputIDs...)).SetDeletedAt(time.Now()).Save(r.Ctx)
+		deleted, err = db.GenerationOutput.Update().Where(generationoutput.IDIn(generationOutputIDs...)).SetDeletedAt(deletedAt).Save(r.Ctx)
 		if err != nil {
 			return err
 		}
 		_, err := r.MarkUpscaleOutputForDeletionBasedOnGenerationOutputIDs(generationOutputIDs, db)
 		if err != nil {
 			return err
+		}
+		// Update qdrant
+		if r.Qdrant != nil && len(qdrantIds) > 0 {
+			err = r.Qdrant.SetPayload(qdrantPayload, qdrantIds, false)
+			if err != nil {
+				log.Error("Error updating qdrant deleted_at", "err", err)
+				return err
+			}
 		}
 		return nil
 	}); err != nil {
@@ -88,8 +114,8 @@ func (r *Repository) SetFavoriteGenerationOutputsForUser(generationOutputIDs []u
 		}
 		updated = ud
 		// Update qdrant
-		if r.QDrant != nil && len(qdrantIds) > 0 {
-			err = r.QDrant.SetPayload(qdrantPayload, qdrantIds, false)
+		if r.Qdrant != nil && len(qdrantIds) > 0 {
+			err = r.Qdrant.SetPayload(qdrantPayload, qdrantIds, false)
 			if err != nil {
 				log.Error("Error updating qdrant", "err", err)
 				return err

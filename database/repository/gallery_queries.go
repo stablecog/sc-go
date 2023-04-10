@@ -12,6 +12,8 @@ import (
 	"github.com/stablecog/sc-go/database/ent/negativeprompt"
 	"github.com/stablecog/sc-go/database/ent/prompt"
 	"github.com/stablecog/sc-go/database/ent/scheduler"
+	"github.com/stablecog/sc-go/log"
+	"github.com/stablecog/sc-go/server/requests"
 	"github.com/stablecog/sc-go/utils"
 )
 
@@ -91,18 +93,53 @@ func (r *Repository) RetrieveGalleryDataByID(id uuid.UUID) (*GalleryData, error)
 
 // Retrieves data in gallery format given  output IDs
 // Returns data, next cursor, error
-func (r *Repository) RetrieveMostRecentGalleryData(per_page int, cursor *time.Time) ([]GalleryData, *time.Time, error) {
-	q := r.DB.GenerationOutput.Query().Where(generationoutput.GalleryStatusEQ(generationoutput.GalleryStatusApproved))
+func (r *Repository) RetrieveMostRecentGalleryData(filters *requests.QueryGenerationFilters, per_page int, cursor *time.Time) ([]GalleryData, *time.Time, error) {
+	// Apply filters
+	queryG := r.DB.Generation.Query().Where(
+		generation.StatusEQ(generation.StatusSucceeded),
+	)
+	queryG = r.ApplyUserGenerationsFilters(queryG, filters, true)
+	query := queryG.QueryGenerationOutputs().Where(
+		generationoutput.DeletedAtIsNil(),
+	)
 	if cursor != nil {
-		q = q.Where(generationoutput.CreatedAtLT(*cursor))
+		query = query.Where(generationoutput.CreatedAtLT(*cursor))
 	}
-	res, err := q.
-		WithGenerations(func(gq *ent.GenerationQuery) {
-			gq.WithPrompt()
-			gq.WithNegativePrompt()
-		},
-		).Order(ent.Desc(generationoutput.FieldCreatedAt)).Limit(per_page + 1).All(r.Ctx)
+	if filters != nil {
+		if filters.UpscaleStatus == requests.UpscaleStatusNot {
+			query = query.Where(generationoutput.UpscaledImagePathIsNil())
+		}
+		if filters.UpscaleStatus == requests.UpscaleStatusOnly {
+			query = query.Where(generationoutput.UpscaledImagePathNotNil())
+		}
+		if len(filters.GalleryStatus) > 0 {
+			query = query.Where(generationoutput.GalleryStatusIn(filters.GalleryStatus...))
+		}
+	}
+	query = query.WithGenerations(func(s *ent.GenerationQuery) {
+		s.WithPrompt()
+		s.WithNegativePrompt()
+		s.WithGenerationOutputs(func(goq *ent.GenerationOutputQuery) {
+			if filters == nil || (filters != nil && filters.Order == requests.SortOrderDescending) {
+				goq = goq.Order(ent.Desc(generationoutput.FieldCreatedAt))
+			}
+		})
+		if filters == nil || (filters != nil && filters.Order == requests.SortOrderDescending) {
+			s = s.Order(ent.Desc(generation.FieldCreatedAt))
+		}
+	})
+
+	if filters == nil || (filters != nil && filters.Order == requests.SortOrderDescending) {
+		query = query.Order(ent.Desc(generationoutput.FieldCreatedAt))
+	}
+
+	// Limit
+	query = query.Limit(per_page + 1)
+
+	res, err := query.All(r.Ctx)
+
 	if err != nil {
+		log.Errorf("Error retrieving gallery data: %v", err)
 		return nil, nil, err
 	}
 

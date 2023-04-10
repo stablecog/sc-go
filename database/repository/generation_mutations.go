@@ -146,23 +146,24 @@ func (r *Repository) SetGenerationSucceeded(generationID string, prompt string, 
 				return err
 			}
 			outputRet = append(outputRet, gOutput)
-			if r.QDrant != nil {
+			if r.Qdrant != nil {
 				payload := map[string]interface{}{
-					"image_path":      gOutput.ImagePath,
-					"gallery_status":  gOutput.GalleryStatus,
-					"is_favorited":    gOutput.IsFavorited,
-					"created_at":      gOutput.CreatedAt.Unix(),
-					"updated_at":      gOutput.UpdatedAt.Unix(),
-					"guidance_scale":  generation.GuidanceScale,
-					"inference_steps": generation.InferenceSteps,
-					"prompt_strength": generation.PromptStrength,
-					"height":          generation.Height,
-					"width":           generation.Width,
-					"model":           generation.ModelID.String(),
-					"scheduler":       generation.SchedulerID.String(),
-					"user_id":         generation.UserID.String(),
-					"generation_id":   generation.ID.String(),
-					"prompt":          prompt,
+					"image_path":         gOutput.ImagePath,
+					"gallery_status":     gOutput.GalleryStatus,
+					"is_favorited":       gOutput.IsFavorited,
+					"created_at":         gOutput.CreatedAt.Unix(),
+					"updated_at":         gOutput.UpdatedAt.Unix(),
+					"was_auto_submitted": generation.WasAutoSubmitted,
+					"guidance_scale":     generation.GuidanceScale,
+					"inference_steps":    generation.InferenceSteps,
+					"prompt_strength":    generation.PromptStrength,
+					"height":             generation.Height,
+					"width":              generation.Width,
+					"model":              generation.ModelID.String(),
+					"scheduler":          generation.SchedulerID.String(),
+					"user_id":            generation.UserID.String(),
+					"generation_id":      generation.ID.String(),
+					"prompt":             prompt,
 				}
 				if gOutput.UpscaledImagePath != nil {
 					payload["upscaled_image_path"] = *gOutput.UpscaledImagePath
@@ -173,7 +174,7 @@ func (r *Repository) SetGenerationSucceeded(generationID string, prompt string, 
 				if negativePrompt != "" {
 					payload["negative_prompt"] = negativePrompt
 				}
-				err = r.QDrant.Upsert(
+				err = r.Qdrant.Upsert(
 					gOutput.ID,
 					payload,
 					output.ImageEmbed,
@@ -185,7 +186,7 @@ func (r *Repository) SetGenerationSucceeded(generationID string, prompt string, 
 					return err
 				}
 			} else {
-				log.Warn("QDrant client not initialized, not adding to qdrant")
+				log.Warn("Qdrant client not initialized, not adding to qdrant")
 			}
 		}
 

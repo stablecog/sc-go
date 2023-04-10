@@ -12,12 +12,55 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/hashicorp/go-multierror"
 	"github.com/stablecog/sc-go/database/ent/generationoutput"
 	"github.com/stablecog/sc-go/log"
 	"github.com/stablecog/sc-go/utils"
+	"golang.org/x/exp/slices"
 )
 
-type QDrantClient struct {
+type qDrantIndexField struct {
+	Name string            `json:"name"`
+	Type PayloadSchemaType `json:"type"`
+}
+
+// The fields we create indexes for on app startup
+var fieldsToIndex = []qDrantIndexField{
+	{
+		Name: "gallery_status",
+		Type: PayloadSchemaTypeText,
+	},
+	{
+		Name: "user_id",
+		Type: PayloadSchemaTypeText,
+	},
+	{
+		Name: "width",
+		Type: PayloadSchemaTypeInteger,
+	},
+	{
+		Name: "height",
+		Type: PayloadSchemaTypeInteger,
+	},
+	{
+		Name: "inference_steps",
+		Type: PayloadSchemaTypeInteger,
+	},
+	{
+		Name: "guidance_scale",
+		Type: PayloadSchemaTypeFloat,
+	},
+	{
+		Name: "created_at",
+		Type: PayloadSchemaTypeInteger,
+	},
+	{
+		Name: "deleted_at",
+		Type: PayloadSchemaTypeInteger,
+	},
+}
+
+type QdrantClient struct {
 	ActiveUrl      string
 	URLs           []string
 	token          string
@@ -28,12 +71,12 @@ type QDrantClient struct {
 	CollectionName string
 }
 
-func (q QDrantClient) RoundTrip(r *http.Request) (*http.Response, error) {
+func (q QdrantClient) RoundTrip(r *http.Request) (*http.Response, error) {
 	r.Header.Add("Authorization", "Basic "+q.token)
 	return q.r.RoundTrip(r)
 }
 
-func NewQdrantClient(ctx context.Context) (*QDrantClient, error) {
+func NewQdrantClient(ctx context.Context) (*QdrantClient, error) {
 	// Get URLs from env, comma separated
 	urlEnv := os.Getenv("QDRANT_URLS")
 	if urlEnv == "" {
@@ -45,7 +88,7 @@ func NewQdrantClient(ctx context.Context) (*QDrantClient, error) {
 	// Token
 	auth := os.Getenv("QDRANT_USERNAME") + ":" + os.Getenv("QDRANT_PASSWORD")
 	// Create client
-	qClient := &QDrantClient{
+	qClient := &QdrantClient{
 		URLs:           urls,
 		ActiveUrl:      urls[0],
 		token:          base64.StdEncoding.EncodeToString([]byte(auth)),
@@ -69,7 +112,7 @@ func NewQdrantClient(ctx context.Context) (*QDrantClient, error) {
 }
 
 // Update the client if the active url is not responding
-func (q *QDrantClient) UpdateActiveClient() error {
+func (q *QdrantClient) UpdateActiveClient() error {
 	var targetUrl string
 	for _, url := range q.URLs {
 		if url != q.ActiveUrl {
@@ -99,7 +142,7 @@ func (q *QDrantClient) UpdateActiveClient() error {
 }
 
 // Get all collections in qdrant
-func (q *QDrantClient) GetCollections(noRetry bool) (*CollectionsResponse, error) {
+func (q *QdrantClient) GetCollections(noRetry bool) (*CollectionsResponse, error) {
 	resp, err := q.Client.GetCollectionsWithResponse(q.Ctx)
 	if err != nil {
 		if !noRetry && (os.IsTimeout(err) || strings.Contains(err.Error(), "connection refused")) {
@@ -127,7 +170,7 @@ const (
 	PayloadTypeText    = "text"
 )
 
-func (q *QDrantClient) CreateIndex(fieldName string, schemaType PayloadSchemaType, noRetry bool) error {
+func (q *QdrantClient) CreateIndex(fieldName string, schemaType PayloadSchemaType, noRetry bool) error {
 	schema := &CreateFieldIndex_FieldSchema{}
 	plSchema := PayloadFieldSchema{}
 	plSchema.FromPayloadSchemaType(schemaType)
@@ -155,7 +198,7 @@ func (q *QDrantClient) CreateIndex(fieldName string, schemaType PayloadSchemaTyp
 }
 
 // Creates our app collection if it doesnt exist
-func (q *QDrantClient) CreateCollectionIfNotExists(noRetry bool) error {
+func (q *QdrantClient) CreateCollectionIfNotExists(noRetry bool) error {
 	// Check if collection exists
 	collections, err := q.GetCollections(false)
 	if err != nil {
@@ -252,7 +295,7 @@ func (q *QDrantClient) CreateCollectionIfNotExists(noRetry bool) error {
 }
 
 // Upsert
-func (q *QDrantClient) Upsert(id uuid.UUID, payload map[string]interface{}, imageEmbedding []float32, promptEmbedding []float32, noRetry bool) error {
+func (q *QdrantClient) Upsert(id uuid.UUID, payload map[string]interface{}, imageEmbedding []float32, promptEmbedding []float32, noRetry bool) error {
 	// id
 	rId := ExtendedPointId{}
 	err := rId.FromExtendedPointId1(id)
@@ -309,7 +352,7 @@ func (q *QDrantClient) Upsert(id uuid.UUID, payload map[string]interface{}, imag
 }
 
 // Set payload on points
-func (q *QDrantClient) SetPayload(payload map[string]interface{}, ids []uuid.UUID, noRetry bool) error {
+func (q *QdrantClient) SetPayload(payload map[string]interface{}, ids []uuid.UUID, noRetry bool) error {
 	var points []ExtendedPointId
 	for _, id := range ids {
 		rId := ExtendedPointId{}
@@ -341,8 +384,31 @@ func (q *QDrantClient) SetPayload(payload map[string]interface{}, ids []uuid.UUI
 	return nil
 }
 
+// Count with filters
+func (q *QdrantClient) CountWithFilters(filters *SearchRequest_Filter, noRetry bool) (uint, error) {
+	resp, err := q.Client.CountPointsWithResponse(q.Ctx, q.CollectionName, CountPointsJSONRequestBody{
+		Filter: filters,
+		Exact:  utils.ToPtr(false),
+	})
+	if err != nil {
+		if !noRetry && (os.IsTimeout(err) || strings.Contains(err.Error(), "connection refused")) {
+			err = q.UpdateActiveClient()
+			if err == nil {
+				q.CountWithFilters(filters, true)
+			}
+		}
+		log.Errorf("Error counting points %v", err)
+		return 0, err
+	}
+	if resp.StatusCode() != http.StatusOK {
+		log.Errorf("Error counting points %v", resp.StatusCode())
+		return 0, fmt.Errorf("Error counting points %v", resp.StatusCode())
+	}
+	return resp.JSON200.Result.Count, nil
+}
+
 // Count
-func (q *QDrantClient) Count(noRetry bool) (uint, error) {
+func (q *QdrantClient) Count(noRetry bool) (uint, error) {
 	resp, err := q.Client.CountPointsWithResponse(q.Ctx, q.CollectionName, CountPointsJSONRequestBody{})
 	if err != nil {
 		if !noRetry && (os.IsTimeout(err) || strings.Contains(err.Error(), "connection refused")) {
@@ -362,7 +428,7 @@ func (q *QDrantClient) Count(noRetry bool) (uint, error) {
 }
 
 // Upsert
-func (q *QDrantClient) BatchUpsert(payload []map[string]interface{}, noRetry bool) error {
+func (q *QdrantClient) BatchUpsert(payload []map[string]interface{}, noRetry bool) error {
 	var points []PointStruct
 	for _, p := range payload {
 		// See if ID in payload and remove it
@@ -435,7 +501,7 @@ func (q *QDrantClient) BatchUpsert(payload []map[string]interface{}, noRetry boo
 }
 
 // Query
-func (q *QDrantClient) Query(embedding []float32, noRetry bool) (*QResponse, error) {
+func (q *QdrantClient) Query(embedding []float32, noRetry bool) (*QResponse, error) {
 	qParams := &SearchParams_Quantization{}
 	qParams.FromQuantizationSearchParams(QuantizationSearchParams{
 		Ignore:  utils.ToPtr(false),
@@ -488,7 +554,7 @@ func (q *QDrantClient) Query(embedding []float32, noRetry bool) (*QResponse, err
 	return &qAPIResponse, nil
 }
 
-func (q *QDrantClient) DeleteById(id uuid.UUID, noRetry bool) error {
+func (q *QdrantClient) DeleteById(id uuid.UUID, noRetry bool) error {
 	rId := ExtendedPointId{}
 	rId.FromExtendedPointId1(id)
 	body := DeletePointsJSONRequestBody{}
@@ -517,7 +583,7 @@ func (q *QDrantClient) DeleteById(id uuid.UUID, noRetry bool) error {
 }
 
 // Public gallery search
-func (q *QDrantClient) QueryGenerations(embedding []float32, per_page int, offset *uint, noRetry bool) (*QResponse, error) {
+func (q *QdrantClient) QueryGenerations(embedding []float32, per_page int, offset *uint, filters *SearchRequest_Filter, noRetry bool) (*QResponse, error) {
 	qParams := &SearchParams_Quantization{}
 	qParams.FromQuantizationSearchParams(QuantizationSearchParams{
 		Ignore:  utils.ToPtr(false),
@@ -544,22 +610,15 @@ func (q *QDrantClient) QueryGenerations(embedding []float32, per_page int, offse
 		WithPayload: true,
 		Vector:      namedVectorParams,
 		Offset:      offset,
-		Filter: &SearchRequest_Filter{
-			Must: []SCMatchCondition{
-				{
-					Key:   "gallery_status",
-					Match: SCValue{Value: generationoutput.GalleryStatusApproved},
-				},
-			},
-		},
-		Params: params,
+		Filter:      filters,
+		Params:      params,
 	})
 
 	if err != nil {
 		if !noRetry && (os.IsTimeout(err) || strings.Contains(err.Error(), "connection refused")) {
 			err = q.UpdateActiveClient()
 			if err == nil {
-				return q.QueryGenerations(embedding, per_page, offset, true)
+				return q.QueryGenerations(embedding, per_page, offset, filters, true)
 			}
 		}
 		log.Errorf("Error getting collections %v", err)
@@ -588,6 +647,51 @@ func (q *QDrantClient) QueryGenerations(embedding []float32, per_page int, offse
 		qAPIResponse.Result = qAPIResponse.Result[:len(qAPIResponse.Result)-1]
 	}
 	return &qAPIResponse, nil
+}
+
+// Get list of fields with index
+func (q *QdrantClient) GetIndexedPayloadFields(noRetry bool) ([]string, error) {
+	resp, err := q.Client.GetCollectionWithResponse(q.Ctx, q.CollectionName)
+	if err != nil {
+		log.Errorf("Error getting collections %v", err)
+		return nil, err
+	}
+	if err != nil {
+		if !noRetry && (os.IsTimeout(err) || strings.Contains(err.Error(), "connection refused")) {
+			err = q.UpdateActiveClient()
+			if err == nil {
+				return q.GetIndexedPayloadFields(true)
+			}
+		}
+		log.Errorf("Error getting collections %v", err)
+		return nil, err
+	}
+	if resp.StatusCode() != http.StatusOK {
+		log.Errorf("Error getting collection %v", resp.StatusCode())
+		return nil, fmt.Errorf("Error getting collection %v", resp.StatusCode())
+	}
+	res := make([]string, len(resp.JSON200.Result.PayloadSchema))
+	i := 0
+	for fieldName := range resp.JSON200.Result.PayloadSchema {
+		res[i] = fieldName
+		i++
+	}
+	return res, nil
+}
+
+func (q *QdrantClient) CreateAllIndexes() error {
+	// Get indexed fields
+	indexFields, err := q.GetIndexedPayloadFields(false)
+	if err != nil {
+		return err
+	}
+	var mErr *multierror.Error
+	for _, field := range fieldsToIndex {
+		if !slices.Contains(indexFields, field.Name) {
+			mErr = multierror.Append(q.CreateIndex(field.Name, field.Type, false))
+		}
+	}
+	return mErr.ErrorOrNil()
 }
 
 type QResponse struct {

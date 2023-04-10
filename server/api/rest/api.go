@@ -32,7 +32,7 @@ type RestAPI struct {
 	Track          *analytics.AnalyticsService
 	QueueThrottler *shared.UserQueueThrottlerMap
 	S3             *s3.S3
-	QDrant         *qdrant.QDrantClient
+	Qdrant         *qdrant.QdrantClient
 	Clip           *clip.ClipService
 }
 

@@ -131,13 +131,13 @@ func (r *Repository) SetUpscaleSucceeded(upscaleID, generationOutputID, inputIma
 				log.Error("Error setting upscaled_image_url", "id", upscaleID, "err", err)
 				return err
 			}
-			if gOutput.HasEmbeddings && r.QDrant != nil {
+			if gOutput.HasEmbeddings && r.Qdrant != nil {
 				payload := map[string]interface{}{
 					"upscaled_image_path": parsedS3,
 				}
-				err = r.QDrant.SetPayload(payload, []uuid.UUID{gOutput.ID}, false)
+				err = r.Qdrant.SetPayload(payload, []uuid.UUID{gOutput.ID}, false)
 				if err != nil {
-					log.Error("Error setting upscaled_image_url in QDrant", "id", upscaleID, "err", err)
+					log.Error("Error setting upscaled_image_url in Qdrant", "id", upscaleID, "err", err)
 					return err
 				}
 			}

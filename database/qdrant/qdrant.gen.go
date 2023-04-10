@@ -16,6 +16,7 @@ import (
 
 	"github.com/deepmap/oapi-codegen/pkg/runtime"
 	openapi_types "github.com/deepmap/oapi-codegen/pkg/types"
+	"golang.org/x/exp/constraints"
 )
 
 // Defines values for CollectionStatus.
@@ -469,7 +470,7 @@ type CountRequest struct {
 	Exact *bool `json:"exact,omitempty"`
 
 	// Filter Look only for points which satisfies this conditions
-	Filter *CountRequest_Filter `json:"filter,omitempty"`
+	Filter *SearchRequest_Filter `json:"filter,omitempty"`
 }
 
 // CountRequestFilter1 defines model for .
@@ -1636,13 +1637,32 @@ type SearchRequestFilter1 = interface{}
 type SCValue struct {
 	Value interface{} `json:"value"`
 }
+type SCIsEmpty struct {
+	Key string `json:"key,omitempty"`
+}
+
+type Number interface {
+	constraints.Integer | constraints.Float
+}
+
+type SCRange[T Number] struct {
+	Key string `json:"key,omitempty"`
+	Gt *T `json:"gt,omitempty"`
+	Gte *T `json:"gte,omitempty"`
+	Lt *T `json:"lt,omitempty"`
+	Lte *T `json:"lte,omitempty"`
+}
 type SCMatchCondition struct {
-	Key  string `json:"key"`
-	Match SCValue `json:"match"`
+	Key  string `json:"key,omitempty"`
+	Match *SCValue `json:"match,omitempty"`
+	IsEmpty *SCIsEmpty `json:"is_empty,omitempty"`
+	// ! TODO Interface since we can't embed a generic struct?
+	Range interface{} `json:"range,omitempty"`
 }
 
 type SearchRequest_Filter struct {
 	Must []SCMatchCondition `json:"must,omitempty"`
+	MustNot []SCMatchCondition `json:"must_not,omitempty"`
 	Should []SCMatchCondition `json:"should,omitempty"`
 }
 

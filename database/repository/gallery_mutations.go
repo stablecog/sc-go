@@ -56,8 +56,8 @@ func (r *Repository) SubmitGenerationOutputsToGalleryForUser(outputIDs []uuid.UU
 		}
 		updated = u
 
-		if r.QDrant != nil && len(qdrantIds) > 0 {
-			err = r.QDrant.SetPayload(qdrantPayload, qdrantIds, false)
+		if r.Qdrant != nil && len(qdrantIds) > 0 {
+			err = r.Qdrant.SetPayload(qdrantPayload, qdrantIds, false)
 			if err != nil {
 				log.Error("Error updating generation outputs to gallery qdrant", "err", err)
 				return err
@@ -105,8 +105,8 @@ func (r *Repository) ApproveOrRejectGenerationOutputs(outputIDs []uuid.UUID, app
 			return err
 		}
 		updated = u
-		if r.QDrant != nil && len(qdrantIds) > 0 {
-			err = r.QDrant.SetPayload(qdrantPayload, qdrantIds, false)
+		if r.Qdrant != nil && len(qdrantIds) > 0 {
+			err = r.Qdrant.SetPayload(qdrantPayload, qdrantIds, false)
 			if err != nil {
 				log.Error("Error updating generation outputs to gallery qdrant", "err", err)
 				return err
