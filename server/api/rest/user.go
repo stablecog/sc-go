@@ -276,6 +276,10 @@ func (c *RestAPI) HandleQueryGenerations(w http.ResponseWriter, r *http.Request)
 			Key:   "user_id",
 			Match: &qdrant.SCValue{Value: user.ID.String()},
 		})
+		// Deleted at not empty
+		qdrantFilters.MustNot = append(qdrantFilters.MustNot, qdrant.SCMatchCondition{
+			IsEmpty: &qdrant.SCIsEmpty{Key: "deleted_at"},
+		})
 
 		// Get cursor str as uint
 		var offset *uint
