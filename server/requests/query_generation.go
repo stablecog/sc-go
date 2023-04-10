@@ -562,5 +562,15 @@ func (filters *QueryGenerationFilters) ToQdrantFilters(ignoreGalleryStatus bool)
 		})
 	}
 
+	// Was auto submitted
+	if filters.WasAutoSubmitted != nil {
+		f.Must = append(f.Must, qdrant.SCMatchCondition{
+			Key: "was_auto_submitted",
+			Match: &qdrant.SCValue{
+				Value: *filters.WasAutoSubmitted,
+			},
+		})
+	}
+
 	return f
 }

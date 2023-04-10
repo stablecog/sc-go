@@ -169,6 +169,9 @@ func main() {
 					log.Fatal("Failed to set payload", "err", err)
 				}
 			}
+			// Update cursor
+			cursor = &gens[len(gens)-1].CreatedAt
+			log.Info("Last cursor", "cursor", cursor.Format(time.RFC3339Nano))
 			log.Infof("Loaded %d generations", len(gens))
 			cur += len(gens)
 		}
@@ -218,6 +221,8 @@ func main() {
 					wasNotAutoSubmittedIDs = append(wasNotAutoSubmittedIDs, gen.ID)
 				}
 			}
+			// Update cursor
+			cursor = &gens[len(gens)-1].CreatedAt
 			if len(wasAutoSubmittedIDs) > 0 {
 				err = qdrantClient.SetPayload(map[string]interface{}{"was_auto_submitted": true}, wasAutoSubmittedIDs, false)
 				if err != nil {
@@ -231,6 +236,7 @@ func main() {
 				}
 			}
 			log.Infof("Loaded %d generations", len(gens))
+			log.Info("Last cursor", "cursor", cursor.Format(time.RFC3339Nano))
 			cur += len(gens)
 		}
 		log.Infof("Done, sync'd %d", cur)
