@@ -12,10 +12,53 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/hashicorp/go-multierror"
 	"github.com/stablecog/sc-go/database/ent/generationoutput"
 	"github.com/stablecog/sc-go/log"
 	"github.com/stablecog/sc-go/utils"
+	"golang.org/x/exp/slices"
 )
+
+type qDrantIndexField struct {
+	Name string            `json:"name"`
+	Type PayloadSchemaType `json:"type"`
+}
+
+// The fields we create indexes for on app startup
+var fieldsToIndex = []qDrantIndexField{
+	{
+		Name: "gallery_status",
+		Type: PayloadSchemaTypeText,
+	},
+	{
+		Name: "user_id",
+		Type: PayloadSchemaTypeText,
+	},
+	{
+		Name: "width",
+		Type: PayloadSchemaTypeInteger,
+	},
+	{
+		Name: "height",
+		Type: PayloadSchemaTypeInteger,
+	},
+	{
+		Name: "inference_steps",
+		Type: PayloadSchemaTypeInteger,
+	},
+	{
+		Name: "guidance_scale",
+		Type: PayloadSchemaTypeFloat,
+	},
+	{
+		Name: "created_at",
+		Type: PayloadSchemaTypeInteger,
+	},
+	{
+		Name: "deleted_at",
+		Type: PayloadSchemaTypeInteger,
+	},
+}
 
 type QDrantClient struct {
 	ActiveUrl      string
@@ -604,6 +647,51 @@ func (q *QDrantClient) QueryGenerations(embedding []float32, per_page int, offse
 		qAPIResponse.Result = qAPIResponse.Result[:len(qAPIResponse.Result)-1]
 	}
 	return &qAPIResponse, nil
+}
+
+// Get list of fields with index
+func (q *QDrantClient) GetIndexedPayloadFields(noRetry bool) ([]string, error) {
+	resp, err := q.Client.GetCollectionWithResponse(q.Ctx, q.CollectionName)
+	if err != nil {
+		log.Errorf("Error getting collections %v", err)
+		return nil, err
+	}
+	if err != nil {
+		if !noRetry && (os.IsTimeout(err) || strings.Contains(err.Error(), "connection refused")) {
+			err = q.UpdateActiveClient()
+			if err == nil {
+				return q.GetIndexedPayloadFields(true)
+			}
+		}
+		log.Errorf("Error getting collections %v", err)
+		return nil, err
+	}
+	if resp.StatusCode() != http.StatusOK {
+		log.Errorf("Error getting collection %v", resp.StatusCode())
+		return nil, fmt.Errorf("Error getting collection %v", resp.StatusCode())
+	}
+	res := make([]string, len(resp.JSON200.Result.PayloadSchema))
+	i := 0
+	for fieldName := range resp.JSON200.Result.PayloadSchema {
+		res[i] = fieldName
+		i++
+	}
+	return res, nil
+}
+
+func (q *QDrantClient) CreateAllIndexes() error {
+	// Get indexed fields
+	indexFields, err := q.GetIndexedPayloadFields(false)
+	if err != nil {
+		return err
+	}
+	var mErr *multierror.Error
+	for _, field := range fieldsToIndex {
+		if !slices.Contains(indexFields, field.Name) {
+			mErr = multierror.Append(q.CreateIndex(field.Name, field.Type, false))
+		}
+	}
+	return mErr.ErrorOrNil()
 }
 
 type QResponse struct {

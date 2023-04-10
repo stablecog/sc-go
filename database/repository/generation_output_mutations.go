@@ -20,6 +20,19 @@ func (r *Repository) MarkGenerationOutputsForDeletion(generationOutputIDs []uuid
 	qdrantPayload := map[string]interface{}{
 		"deleted_at": deletedAt.Unix(),
 	}
+	// Figure out which IDs have embeddings
+	embeddingOutputs, err := r.DB.GenerationOutput.Query().Select(generationoutput.FieldID, generationoutput.FieldHasEmbeddings).Where(generationoutput.IDIn(generationOutputIDs...)).All(r.Ctx)
+	if err != nil {
+		log.Error("Error getting generation outputs has_embeddings", "err", err)
+		return 0, err
+	}
+	// Separate array for qdrant
+	var qdrantIds []uuid.UUID
+	for _, output := range embeddingOutputs {
+		if output.HasEmbeddings {
+			qdrantIds = append(qdrantIds, output.ID)
+		}
+	}
 	// Start transaction
 	if err := r.WithTx(func(tx *ent.Tx) error {
 		db := tx.Client()
@@ -32,8 +45,8 @@ func (r *Repository) MarkGenerationOutputsForDeletion(generationOutputIDs []uuid
 			return err
 		}
 		// Update qdrant
-		if r.QDrant != nil {
-			err = r.QDrant.SetPayload(qdrantPayload, generationOutputIDs, false)
+		if r.QDrant != nil && len(qdrantIds) > 0 {
+			err = r.QDrant.SetPayload(qdrantPayload, qdrantIds, false)
 			if err != nil {
 				log.Error("Error updating qdrant deleted_at", "err", err)
 				return err
