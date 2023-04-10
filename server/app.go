@@ -116,6 +116,12 @@ func main() {
 	var mErr *multierror.Error
 	mErr = multierror.Append(qdrantClient.CreateIndex("gallery_status", qdrant.PayloadSchemaTypeText, false))
 	mErr = multierror.Append(qdrantClient.CreateIndex("user_id", qdrant.PayloadSchemaTypeText, false))
+	mErr = multierror.Append(qdrantClient.CreateIndex("width", qdrant.PayloadSchemaTypeInteger, false))
+	mErr = multierror.Append(qdrantClient.CreateIndex("height", qdrant.PayloadSchemaTypeInteger, false))
+	mErr = multierror.Append(qdrantClient.CreateIndex("inference_steps", qdrant.PayloadSchemaTypeInteger, false))
+	mErr = multierror.Append(qdrantClient.CreateIndex("guidance_scale", qdrant.PayloadSchemaTypeFloat, false))
+	mErr = multierror.Append(qdrantClient.CreateIndex("created_at", qdrant.PayloadSchemaTypeInteger, false))
+	mErr = multierror.Append(qdrantClient.CreateIndex("deleted_at", qdrant.PayloadSchemaTypeInteger, false))
 	err = mErr.ErrorOrNil()
 	if err != nil {
 		log.Warn("Error creating qdrant indexes", "err", err)
@@ -155,7 +161,7 @@ func main() {
 			}
 			log.Info("Loading batch of embeddings", "cur", cur, "each", each)
 			start := time.Now()
-			q := repo.DB.GenerationOutput.Query().Where(generationoutput.HasEmbeddings(false))
+			q := repo.DB.GenerationOutput.Query().Where(generationoutput.HasEmbeddings(false), generationoutput.ImagePathNEQ("placeholder.webp"))
 			if cursor != nil {
 				q = q.Where(generationoutput.CreatedAtLT(*cursor))
 			}
