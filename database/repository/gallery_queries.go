@@ -119,22 +119,11 @@ func (r *Repository) RetrieveMostRecentGalleryData(filters *requests.QueryGenera
 	query = query.WithGenerations(func(s *ent.GenerationQuery) {
 		s.WithPrompt()
 		s.WithNegativePrompt()
-		s.WithGenerationOutputs(func(goq *ent.GenerationOutputQuery) {
-			if filters == nil || (filters != nil && filters.Order == requests.SortOrderDescending) {
-				goq = goq.Order(ent.Desc(generationoutput.FieldCreatedAt))
-			}
-		})
-		if filters == nil || (filters != nil && filters.Order == requests.SortOrderDescending) {
-			s = s.Order(ent.Desc(generation.FieldCreatedAt))
-		}
+		s.WithGenerationOutputs()
 	})
 
-	if filters == nil || (filters != nil && filters.Order == requests.SortOrderDescending) {
-		query = query.Order(ent.Desc(generationoutput.FieldCreatedAt))
-	}
-
 	// Limit
-	query = query.Limit(per_page + 1)
+	query = query.Order(ent.Desc(generationoutput.FieldCreatedAt)).Limit(per_page + 1)
 
 	res, err := query.All(r.Ctx)
 
