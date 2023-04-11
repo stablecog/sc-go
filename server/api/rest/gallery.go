@@ -129,7 +129,7 @@ func (c *RestAPI) HandleQueryGallery(w http.ResponseWriter, r *http.Request) {
 		}
 
 		render.Status(r, http.StatusOK)
-		render.JSON(w, r, GalleryResponse{
+		render.JSON(w, r, GalleryResponse[int]{
 			Page: 1,
 			Hits: []repository.GalleryData{*generationG},
 		})
@@ -196,7 +196,7 @@ func (c *RestAPI) HandleQueryGallery(w http.ResponseWriter, r *http.Request) {
 	}
 
 	render.Status(r, http.StatusOK)
-	render.JSON(w, r, GalleryResponse{
+	render.JSON(w, r, GalleryResponse[int]{
 		Next: next,
 		Page: page,
 		Hits: generationGs,
@@ -229,7 +229,7 @@ func (c *RestAPI) HandleSemanticSearchGallery(w http.ResponseWriter, r *http.Req
 		galleryData.UserID = nil
 
 		render.Status(r, http.StatusOK)
-		render.JSON(w, r, GalleryResponse{
+		render.JSON(w, r, GalleryResponse[int]{
 			Page: 1,
 			Hits: []repository.GalleryData{*galleryData},
 		})
@@ -239,7 +239,8 @@ func (c *RestAPI) HandleSemanticSearchGallery(w http.ResponseWriter, r *http.Req
 	search := r.URL.Query().Get("search")
 	cursor := r.URL.Query().Get("cursor")
 	galleryData := []repository.GalleryData{}
-	var nextCursor interface{}
+	var nextCursorQdrant *uint
+	var nextCursorPostgres *time.Time
 	var err error
 
 	// Parse filters
@@ -322,7 +323,7 @@ func (c *RestAPI) HandleSemanticSearchGallery(w http.ResponseWriter, r *http.Req
 		}
 
 		// Set next cursor
-		nextCursor = res.Next
+		nextCursorQdrant = res.Next
 	} else {
 		// Get most recent gallery data
 		var qCursor *time.Time
@@ -337,7 +338,7 @@ func (c *RestAPI) HandleSemanticSearchGallery(w http.ResponseWriter, r *http.Req
 
 		// Retrieve from postgres
 		filters.GalleryStatus = []generationoutput.GalleryStatus{generationoutput.GalleryStatusApproved}
-		galleryData, nextCursor, err = c.Repo.RetrieveMostRecentGalleryData(filters, GALLERY_PER_PAGE, qCursor)
+		galleryData, nextCursorPostgres, err = c.Repo.RetrieveMostRecentGalleryData(filters, GALLERY_PER_PAGE, qCursor)
 		if err != nil {
 			log.Error("Error querying gallery data from postgres", "err", err)
 			responses.ErrInternalServerError(w, r, "An unknown error occurred")
@@ -368,15 +369,28 @@ func (c *RestAPI) HandleSemanticSearchGallery(w http.ResponseWriter, r *http.Req
 		galleryData[i].UserID = nil
 	}
 
+	if search == "" {
+		render.Status(r, http.StatusOK)
+		render.JSON(w, r, GalleryResponse[*time.Time]{
+			Next: nextCursorPostgres,
+			Hits: galleryData,
+		})
+		return
+	}
 	render.Status(r, http.StatusOK)
-	render.JSON(w, r, GalleryResponse{
-		Next: nextCursor,
+	render.JSON(w, r, GalleryResponse[*uint]{
+		Next: nextCursorQdrant,
 		Hits: galleryData,
 	})
 }
 
-type GalleryResponse struct {
-	Next interface{}              `json:"next,omitempty"`
+type GalleryResponseCursor interface {
+	// ! TODO - remove int when meili is gone
+	*uint | *time.Time | int
+}
+
+type GalleryResponse[T GalleryResponseCursor] struct {
+	Next T                        `json:"next,omitempty"`
 	Page int                      `json:"page"`
 	Hits []repository.GalleryData `json:"hits"`
 }
