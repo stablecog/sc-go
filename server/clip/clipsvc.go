@@ -107,7 +107,7 @@ func NewClipService() *ClipService {
 		r:      http.DefaultTransport,
 	}
 	svc.client = &http.Client{
-		Timeout:   5 * time.Second,
+		Timeout:   10 * time.Second,
 		Transport: svc,
 	}
 	return svc
@@ -135,7 +135,9 @@ func (c *ClipService) GetEmbeddingFromText(text string, retries int) (embedding 
 	if err != nil {
 		if os.IsTimeout(err) || strings.Contains(err.Error(), "connection refused") {
 			// Mark this URL as bad
-			c.markUrlBad(url)
+			if len(c.urls) > 1 {
+				c.markUrlBad(url)
+			}
 		}
 		log.Errorf("Error getting response from clip api %v", err)
 		if retries <= 0 {
