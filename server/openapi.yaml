@@ -40,8 +40,11 @@ paths:
         - name: next
           in: query
           schema:
-            type: integer
-            format: optional
+            oneOf:
+              - type: string
+                format: isoTimeString, if search not specified
+              - type: integer
+                format: next cursor, if search specified
           example: 2
         - name: search
           in: query
@@ -184,6 +187,7 @@ paths:
         - $ref: "#/components/parameters/endDtParam"
         - $ref: "#/components/parameters/isFavoritedParam"
         - $ref: "#/components/parameters/wasAutoSubmittedParam"
+        - $ref: "#/components/parameters/searchParam"
       responses:
         "200":
           description: JSON object with generations and outputs
@@ -233,6 +237,7 @@ paths:
         - $ref: "#/components/parameters/endDtParam"
         - $ref: "#/components/parameters/isFavoritedParam"
         - $ref: "#/components/parameters/wasAutoSubmittedParam"
+        - $ref: "#/components/parameters/searchParam"
       responses:
         "200":
           description: JSON object with generations and outputs
@@ -672,8 +677,11 @@ components:
       name: cursor
       in: query
       schema:
-        type: string
-        format: optional
+        oneOf:
+          - type: string
+            format: isoTimeString, if search not specified
+          - type: integer
+            format: next cursor, if search specified
       example: 2023-02-13T15%3A16%3A43.328Z
     minWidthParam:
       name: min_width
@@ -847,6 +855,12 @@ components:
       schema:
         type: boolean
         format: "optional"
+    searchParam:
+      name: search
+      in: query
+      schema:
+        type: string
+        format: "optional"
   schemas:
     ErrorResponse400:
       type: object
@@ -951,8 +965,11 @@ components:
           type: integer
           format: int32, only if offset not includes
         next:
-          type: string
-          format: isoTimeString
+          oneOf:
+            - type: string
+              format: isoTimeString, if search not specified
+            - type: integer
+              format: next cursor, if search specified
         outputs:
           type: array
           items:
@@ -1257,7 +1274,11 @@ components:
         page:
           type: integer
         next:
-          type: integer
+          oneOf:
+            - type: string
+              format: isoTimeString, if search not specified
+            - type: integer
+              format: next cursor, if search specified
         hits:
           type: array
           items:
