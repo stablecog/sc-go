@@ -582,5 +582,11 @@ func (filters *QueryGenerationFilters) ToQdrantFilters(ignoreGalleryStatus bool)
 		})
 	}
 
+	if filters.ScoreThreshold == nil {
+		filters.ScoreThreshold = utils.ToPtr[float32](50)
+	} else if *filters.ScoreThreshold < 50 {
+		filters.ScoreThreshold = utils.ToPtr[float32](50)
+	}
+
 	return f, filters.ScoreThreshold
 }
