@@ -276,7 +276,7 @@ type UserGenCount struct {
 // Get user generations in the *GenerationQueryWithOutputsMeta format
 // Using a list of generation_output ids
 // For when we semantic search against our vector db
-func (r *Repository) RetrieveGenerationsWithOutputIDs(outputIDs []uuid.UUID) (*GenerationQueryWithOutputsMeta, error) {
+func (r *Repository) RetrieveGenerationsWithOutputIDs(outputIDs []uuid.UUID) (*GenerationQueryWithOutputsMeta[*uint], error) {
 	gQueryResult, err := r.DB.GenerationOutput.Query().Where(generationoutput.IDIn(outputIDs...)).WithGenerations(func(gq *ent.GenerationQuery) {
 		gq.WithPrompt()
 		gq.WithNegativePrompt()
@@ -287,13 +287,13 @@ func (r *Repository) RetrieveGenerationsWithOutputIDs(outputIDs []uuid.UUID) (*G
 	}
 
 	if len(gQueryResult) == 0 {
-		meta := &GenerationQueryWithOutputsMeta{
+		meta := &GenerationQueryWithOutputsMeta[*uint]{
 			Outputs: []GenerationQueryWithOutputsResultFormatted{},
 		}
 		return meta, nil
 	}
 
-	meta := &GenerationQueryWithOutputsMeta{}
+	meta := &GenerationQueryWithOutputsMeta[*uint]{}
 
 	// Get real image URLs for each
 	for i, g := range gQueryResult {
@@ -367,7 +367,7 @@ func (r *Repository) RetrieveGenerationsWithOutputIDs(outputIDs []uuid.UUID) (*G
 // Cursor actually represents created_at, we paginate using this for performance reasons
 // If present, we will get results after the cursor (anything before, represents previous pages)
 // ! using ent .With... doesn't use joins, so we construct our own query to make it more efficient
-func (r *Repository) QueryGenerations(per_page int, cursor *time.Time, filters *requests.QueryGenerationFilters) (*GenerationQueryWithOutputsMeta, error) {
+func (r *Repository) QueryGenerations(per_page int, cursor *time.Time, filters *requests.QueryGenerationFilters) (*GenerationQueryWithOutputsMeta[*time.Time], error) {
 	// Base fields to select in our query
 	selectFields := []string{
 		generation.FieldID,
@@ -450,7 +450,7 @@ func (r *Repository) QueryGenerations(per_page int, cursor *time.Time, filters *
 	}
 
 	if len(gQueryResult) == 0 {
-		meta := &GenerationQueryWithOutputsMeta{
+		meta := &GenerationQueryWithOutputsMeta[*time.Time]{
 			Outputs: []GenerationQueryWithOutputsResultFormatted{},
 		}
 		// Only give total if we have no cursor
@@ -461,7 +461,7 @@ func (r *Repository) QueryGenerations(per_page int, cursor *time.Time, filters *
 		return meta, nil
 	}
 
-	meta := &GenerationQueryWithOutputsMeta{}
+	meta := &GenerationQueryWithOutputsMeta[*time.Time]{}
 	if len(gQueryResult) > per_page {
 		// Remove last item
 		gQueryResult = gQueryResult[:len(gQueryResult)-1]
@@ -577,7 +577,7 @@ func (r *Repository) GetGenerationCountAdmin(filters *requests.QueryGenerationFi
 }
 
 // Alternate version for performance when we can't index by user_id
-func (r *Repository) QueryGenerationsAdmin(per_page int, cursor *time.Time, filters *requests.QueryGenerationFilters) (*GenerationQueryWithOutputsMeta, error) {
+func (r *Repository) QueryGenerationsAdmin(per_page int, cursor *time.Time, filters *requests.QueryGenerationFilters) (*GenerationQueryWithOutputsMeta[*time.Time], error) {
 	var gQueryResult []GenerationQueryWithOutputsResult
 
 	// Figure out order bys
@@ -645,10 +645,10 @@ func (r *Repository) QueryGenerationsAdmin(per_page int, cursor *time.Time, filt
 		return nil, err
 	}
 
-	meta := &GenerationQueryWithOutputsMeta{}
+	meta := &GenerationQueryWithOutputsMeta[*time.Time]{}
 
 	if len(res) == 0 {
-		meta := &GenerationQueryWithOutputsMeta{
+		meta := &GenerationQueryWithOutputsMeta[*time.Time]{
 			Outputs: []GenerationQueryWithOutputsResultFormatted{},
 		}
 		// Only give total if we have no cursor
@@ -782,11 +782,15 @@ type GenerationUpscaleOutput struct {
 	WasAutoSubmitted bool                           `json:"was_auto_submitted"`
 }
 
+type GenerationQueryWithOutputsMetaCursor interface {
+	*uint | *time.Time
+}
+
 // Paginated meta for querying generations
-type GenerationQueryWithOutputsMeta struct {
+type GenerationQueryWithOutputsMeta[T GenerationQueryWithOutputsMetaCursor] struct {
 	Total   *int                                        `json:"total_count,omitempty"`
 	Outputs []GenerationQueryWithOutputsResultFormatted `json:"outputs"`
-	Next    interface{}                                 `json:"next,omitempty"`
+	Next    T                                           `json:"next,omitempty"`
 }
 
 type PromptType struct {
