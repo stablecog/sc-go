@@ -412,7 +412,7 @@ func (q *QdrantClient) SetPayload(payload map[string]interface{}, ids []uuid.UUI
 func (q *QdrantClient) CountWithFilters(filters *SearchRequest_Filter, noRetry bool) (uint, error) {
 	resp, err := q.Client.CountPointsWithResponse(q.Ctx, q.CollectionName, CountPointsJSONRequestBody{
 		Filter: filters,
-		Exact:  utils.ToPtr(false),
+		Exact:  utils.ToPtr(true),
 	})
 	if err != nil {
 		if !noRetry && (os.IsTimeout(err) || strings.Contains(err.Error(), "connection refused")) {
