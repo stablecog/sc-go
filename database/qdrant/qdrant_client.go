@@ -629,6 +629,10 @@ func (q *QdrantClient) QueryGenerations(embedding []float32, per_page int, offse
 		return nil, err
 	}
 
+	if scoreThreshold != nil {
+		log.Infof("Score threshold %v", *scoreThreshold)
+	}
+
 	resp, err := q.Client.SearchPointsWithResponse(q.Ctx, q.CollectionName, &SearchPointsParams{}, SearchPointsJSONRequestBody{
 		Limit:          uint(per_page + 1),
 		WithPayload:    withPayload,
