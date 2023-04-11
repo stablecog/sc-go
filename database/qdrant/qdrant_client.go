@@ -28,7 +28,7 @@ type qdrantIndexField struct {
 var fieldsToIndex = []qdrantIndexField{
 	{
 		Name: "gallery_status",
-		Type: PayloadSchemaTypeText,
+		Type: PayloadSchemaTypeKeyword,
 	},
 	{
 		Name: "user_id",
@@ -169,6 +169,14 @@ const (
 	PayloadTypeGeo     = "geo"
 	PayloadTypeText    = "text"
 )
+
+func (q *QdrantClient) DeleteIndex(fieldName string, noRetry bool) error {
+	_, err := q.Client.DeleteFieldIndex(q.Ctx, q.CollectionName, fieldName, &DeleteFieldIndexParams{})
+	if err != nil {
+		return err
+	}
+	return nil
+}
 
 func (q *QdrantClient) CreateIndex(fieldName string, schemaType PayloadSchemaType, noRetry bool) error {
 	schema := &CreateFieldIndex_FieldSchema{}
