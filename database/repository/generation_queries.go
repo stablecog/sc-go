@@ -690,6 +690,9 @@ func (r *Repository) QueryGenerationsAdmin(per_page int, cursor *time.Time, filt
 			WasAutoSubmitted: g.Edges.Generations.WasAutoSubmitted,
 			IsFavorited:      g.IsFavorited,
 		}
+		if g.Edges.Generations.InitImageURL != nil {
+			generationRoot.InitImageURL = *g.Edges.Generations.InitImageURL
+		}
 		if g.Edges.Generations.Edges.NegativePrompt != nil {
 			generationRoot.NegativePrompt = &PromptType{
 				Text: g.Edges.Generations.Edges.NegativePrompt.Text,
@@ -777,10 +780,10 @@ type GenerationUpscaleOutput struct {
 	ImageUrl         string                         `json:"image_url"`
 	UpscaledImageUrl string                         `json:"upscaled_image_url,omitempty"`
 	GalleryStatus    generationoutput.GalleryStatus `json:"gallery_status,omitempty"`
-	InputImageUrl    string                         `json:"input_image_url,omitempty"`
 	OutputID         *uuid.UUID                     `json:"output_id,omitempty"`
 	CreatedAt        *time.Time                     `json:"created_at,omitempty"`
 	IsFavorited      bool                           `json:"is_favorited"`
+	InitImageUrl     string                         `json:"init_image_url,omitempty"`
 	WasAutoSubmitted bool                           `json:"was_auto_submitted"`
 }
 

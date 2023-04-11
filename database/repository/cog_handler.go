@@ -327,9 +327,9 @@ func (r *Repository) ProcessCogMessage(msg requests.CogWebhookMessage) error {
 		imageUrl := utils.GetURLFromImagePath(upscaleOutput.ImagePath)
 		resp.Outputs = []GenerationUpscaleOutput{
 			{
-				ID:            upscaleOutput.ID,
-				ImageUrl:      imageUrl,
-				InputImageUrl: msg.Input.Image,
+				ID:           upscaleOutput.ID,
+				ImageUrl:     imageUrl,
+				InitImageUrl: msg.Input.Image,
 			},
 		}
 		outputId, err := uuid.Parse(msg.Input.GenerationOutputID)
