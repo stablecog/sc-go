@@ -208,7 +208,9 @@ func (r *RedisWrapper) GetEmbeddings(ctx context.Context, key string) ([]float32
 	// Get embedding from redis
 	b, err := r.Client.Get(ctx, key).Bytes()
 	if err != nil {
-		log.Error("Error getting embedding from cache", "err", err)
+		if err != redis.Nil {
+			log.Error("Error getting embedding from cache", "err", err)
+		}
 		return nil, err
 	}
 	// Convert string to embedding
