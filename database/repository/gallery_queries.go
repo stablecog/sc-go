@@ -127,15 +127,15 @@ func (r *Repository) RetrieveMostRecentGalleryData(filters *requests.QueryGenera
 
 	res, err := query.All(r.Ctx)
 
+	if err != nil {
+		log.Errorf("Error retrieving gallery data: %v", err)
+		return nil, nil, err
+	}
+
 	var nextCursor *time.Time
 	if len(res) > per_page {
 		res = res[:len(res)-1]
 		nextCursor = &res[len(res)-1].CreatedAt
-	}
-
-	if err != nil {
-		log.Errorf("Error retrieving gallery data: %v", err)
-		return nil, nil, err
 	}
 
 	galleryData := make([]GalleryData, len(res))
