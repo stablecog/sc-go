@@ -127,6 +127,12 @@ func (r *Repository) RetrieveMostRecentGalleryData(filters *requests.QueryGenera
 
 	res, err := query.All(r.Ctx)
 
+	var nextCursor *time.Time
+	if len(res) > per_page {
+		res = res[:len(res)-1]
+		nextCursor = &res[len(res)-1].CreatedAt
+	}
+
 	if err != nil {
 		log.Errorf("Error retrieving gallery data: %v", err)
 		return nil, nil, err
@@ -160,12 +166,6 @@ func (r *Repository) RetrieveMostRecentGalleryData(filters *requests.QueryGenera
 			data.NegativePromptID = &output.Edges.Generations.Edges.NegativePrompt.ID
 		}
 		galleryData[i] = data
-	}
-
-	var nextCursor *time.Time
-	if len(galleryData) > per_page {
-		galleryData = galleryData[:len(galleryData)-1]
-		nextCursor = &galleryData[len(galleryData)-1].CreatedAt
 	}
 
 	return galleryData, nextCursor, nil
