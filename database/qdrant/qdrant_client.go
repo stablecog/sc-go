@@ -621,7 +621,7 @@ func (q *QdrantClient) QueryGenerations(embedding []float32, per_page int, offse
 	})
 	namedVectorParams := NamedVectorStruct{}
 	err := namedVectorParams.FromNamedVector(NamedVector{
-		Name:   "text",
+		Name:   "image",
 		Vector: embedding,
 	})
 	if err != nil {
