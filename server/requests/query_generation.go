@@ -420,258 +420,106 @@ func (filters *QueryGenerationFilters) ToQdrantFilters(ignoreGalleryStatus bool)
 	}
 
 	// Width/height filters
-	// Apply OR if both are present
-	// Confusing, but example of what we want to do:
-	// If min_width=100, max_width=200, widths=[300,400]
-	// We want to query like; WHERE (width >= 100 AND width <= 200) OR width IN (300,400)
-	if (filters.MinWidth != 0 || filters.MaxWidth != 0) && len(filters.Widths) > 0 {
-		for _, width := range filters.Widths {
-			f.Should = append(f.Should, qdrant.SCMatchCondition{
-				Key:   "width",
-				Match: &qdrant.SCValue{Value: width},
-			})
-		}
-		if filters.MinWidth != 0 && filters.MaxWidth != 0 {
-			f.Should = append(f.Should, qdrant.SCMatchCondition{
-				Key: "width",
-				Range: qdrant.SCRange[int32]{
-					Gte: utils.ToPtr(filters.MinWidth),
-				},
-			})
-			f.Should = append(f.Should, qdrant.SCMatchCondition{
-				Key: "width",
-				Range: qdrant.SCRange[int32]{
-					Lte: utils.ToPtr(filters.MaxWidth),
-				},
-			})
-		} else if filters.MinWidth != 0 {
-			f.Should = append(f.Should, qdrant.SCMatchCondition{
-				Key: "width",
-				Range: qdrant.SCRange[int32]{
-					Gte: utils.ToPtr(filters.MinWidth),
-				},
-			})
-		} else {
-			f.Should = append(f.Should, qdrant.SCMatchCondition{
-				Key: "width",
-				Range: qdrant.SCRange[int32]{
-					Lte: utils.ToPtr(filters.MaxWidth),
-				},
-			})
-		}
-	} else {
-		if filters.MinWidth != 0 {
-			f.Should = append(f.Should, qdrant.SCMatchCondition{
-				Key: "width",
-				Range: qdrant.SCRange[int32]{
-					Gte: utils.ToPtr(filters.MinWidth),
-				},
-			})
-		}
-		if filters.MaxWidth != 0 {
-			f.Should = append(f.Should, qdrant.SCMatchCondition{
-				Key: "width",
-				Range: qdrant.SCRange[int32]{
-					Lte: utils.ToPtr(filters.MaxWidth),
-				},
-			})
-		}
-		if len(filters.Widths) > 0 {
-			for _, width := range filters.Widths {
-				f.Should = append(f.Should, qdrant.SCMatchCondition{
-					Key:   "width",
-					Match: &qdrant.SCValue{Value: width},
-				})
-			}
-		}
+	if filters.MinHeight > 0 {
+		f.Must = append(f.Must, qdrant.SCMatchCondition{
+			Key: "height",
+			Range: qdrant.SCRange[int32]{
+				Gte: utils.ToPtr(filters.MinHeight),
+			},
+		})
+	}
+	if filters.MaxHeight > 0 {
+		f.Must = append(f.Must, qdrant.SCMatchCondition{
+			Key: "height",
+			Range: qdrant.SCRange[int32]{
+				Lte: utils.ToPtr(filters.MaxHeight),
+			},
+		})
+	}
+	if filters.MinWidth > 0 {
+		f.Must = append(f.Must, qdrant.SCMatchCondition{
+			Key: "width",
+			Range: qdrant.SCRange[int32]{
+				Gte: utils.ToPtr(filters.MinWidth),
+			},
+		})
+	}
+	if filters.MaxWidth > 0 {
+		f.Must = append(f.Must, qdrant.SCMatchCondition{
+			Key: "width",
+			Range: qdrant.SCRange[int32]{
+				Lte: utils.ToPtr(filters.MaxWidth),
+			},
+		})
 	}
 
-	// All height conditions
-	if (filters.MinHeight != 0 || filters.MaxHeight != 0) && len(filters.Heights) > 0 {
+	// Guidance scale/inference steps
+	if filters.MinInferenceSteps > 0 {
+		f.Must = append(f.Must, qdrant.SCMatchCondition{
+			Key: "inference_steps",
+			Range: qdrant.SCRange[int32]{
+				Gte: utils.ToPtr(filters.MinInferenceSteps),
+			},
+		})
+	}
+	if filters.MaxInferenceSteps > 0 {
+		f.Must = append(f.Must, qdrant.SCMatchCondition{
+			Key: "inference_steps",
+			Range: qdrant.SCRange[int32]{
+				Lte: utils.ToPtr(filters.MaxInferenceSteps),
+			},
+		})
+	}
+	if filters.MinGuidanceScale > 0 {
+		f.Must = append(f.Must, qdrant.SCMatchCondition{
+			Key: "guidance_scale",
+			Range: qdrant.SCRange[float32]{
+				Gte: utils.ToPtr(filters.MinGuidanceScale),
+			},
+		})
+	}
+	if filters.MaxGuidanceScale > 0 {
+		f.Must = append(f.Must, qdrant.SCMatchCondition{
+			Key: "width",
+			Range: qdrant.SCRange[float32]{
+				Lte: utils.ToPtr(filters.MaxGuidanceScale),
+			},
+		})
+	}
+
+	// Widths/heights
+	if len(filters.Heights) > 0 {
 		for _, height := range filters.Heights {
 			f.Should = append(f.Should, qdrant.SCMatchCondition{
 				Key:   "height",
 				Match: &qdrant.SCValue{Value: height},
 			})
 		}
-		if filters.MinHeight != 0 && filters.MaxHeight != 0 {
+	}
+	if len(filters.Widths) > 0 {
+		for _, width := range filters.Widths {
 			f.Should = append(f.Should, qdrant.SCMatchCondition{
-				Key: "height",
-				Range: qdrant.SCRange[int32]{
-					Gte: utils.ToPtr(filters.MinHeight),
-				},
+				Key:   "width",
+				Match: &qdrant.SCValue{Value: width},
 			})
-			f.Should = append(f.Should, qdrant.SCMatchCondition{
-				Key: "height",
-				Range: qdrant.SCRange[int32]{
-					Lte: utils.ToPtr(filters.MaxHeight),
-				},
-			})
-		} else if filters.MinHeight != 0 {
-			f.Should = append(f.Should, qdrant.SCMatchCondition{
-				Key: "height",
-				Range: qdrant.SCRange[int32]{
-					Gte: utils.ToPtr(filters.MinHeight),
-				},
-			})
-		} else {
-			f.Should = append(f.Should, qdrant.SCMatchCondition{
-				Key: "height",
-				Range: qdrant.SCRange[int32]{
-					Lte: utils.ToPtr(filters.MaxHeight),
-				},
-			})
-		}
-	} else {
-		if filters.MinHeight != 0 {
-			f.Should = append(f.Should, qdrant.SCMatchCondition{
-				Key: "height",
-				Range: qdrant.SCRange[int32]{
-					Gte: utils.ToPtr(filters.MinHeight),
-				},
-			})
-		}
-		if filters.MaxHeight != 0 {
-			f.Should = append(f.Should, qdrant.SCMatchCondition{
-				Key: "height",
-				Range: qdrant.SCRange[int32]{
-					Lte: utils.ToPtr(filters.MaxHeight),
-				},
-			})
-		}
-		if len(filters.Heights) > 0 {
-			for _, height := range filters.Heights {
-				f.Should = append(f.Should, qdrant.SCMatchCondition{
-					Key:   "height",
-					Match: &qdrant.SCValue{Value: height},
-				})
-			}
 		}
 	}
 
-	// All inference steps conditions
-	if (filters.MinInferenceSteps != 0 || filters.MaxInferenceSteps != 0) && len(filters.InferenceSteps) > 0 {
-		for _, inference_steps := range filters.InferenceSteps {
+	// Inference steps/guidance scales
+	if len(filters.InferenceSteps) > 0 {
+		for _, inferenceStep := range filters.InferenceSteps {
 			f.Should = append(f.Should, qdrant.SCMatchCondition{
 				Key:   "inference_steps",
-				Match: &qdrant.SCValue{Value: inference_steps},
+				Match: &qdrant.SCValue{Value: inferenceStep},
 			})
-		}
-		if filters.MinInferenceSteps != 0 && filters.MaxInferenceSteps != 0 {
-			f.Should = append(f.Should, qdrant.SCMatchCondition{
-				Key: "inference_steps",
-				Range: qdrant.SCRange[int32]{
-					Gte: utils.ToPtr(filters.MinInferenceSteps),
-				},
-			})
-			f.Should = append(f.Should, qdrant.SCMatchCondition{
-				Key: "inference_steps",
-				Range: qdrant.SCRange[int32]{
-					Lte: utils.ToPtr(filters.MaxInferenceSteps),
-				},
-			})
-		} else if filters.MinInferenceSteps != 0 {
-			f.Should = append(f.Should, qdrant.SCMatchCondition{
-				Key: "inference_steps",
-				Range: qdrant.SCRange[int32]{
-					Gte: utils.ToPtr(filters.MinInferenceSteps),
-				},
-			})
-		} else {
-			f.Should = append(f.Should, qdrant.SCMatchCondition{
-				Key: "inference_steps",
-				Range: qdrant.SCRange[int32]{
-					Lte: utils.ToPtr(filters.MaxInferenceSteps),
-				},
-			})
-		}
-	} else {
-		if filters.MinInferenceSteps != 0 {
-			f.Should = append(f.Should, qdrant.SCMatchCondition{
-				Key: "inference_steps",
-				Range: qdrant.SCRange[int32]{
-					Gte: utils.ToPtr(filters.MinInferenceSteps),
-				},
-			})
-		}
-		if filters.MaxInferenceSteps != 0 {
-			f.Should = append(f.Should, qdrant.SCMatchCondition{
-				Key: "inference_steps",
-				Range: qdrant.SCRange[int32]{
-					Lte: utils.ToPtr(filters.MaxInferenceSteps),
-				},
-			})
-		}
-		if len(filters.InferenceSteps) > 0 {
-			for _, inference_steps := range filters.InferenceSteps {
-				f.Should = append(f.Should, qdrant.SCMatchCondition{
-					Key:   "inference_steps",
-					Match: &qdrant.SCValue{Value: inference_steps},
-				})
-			}
 		}
 	}
-
-	// All guidance scale conditions
-	if (filters.MinGuidanceScale != 0 || filters.MaxGuidanceScale != 0) && len(filters.GuidanceScales) > 0 {
-		for _, guidance_scale := range filters.GuidanceScales {
+	if len(filters.GuidanceScales) > 0 {
+		for _, guidanceScale := range filters.GuidanceScales {
 			f.Should = append(f.Should, qdrant.SCMatchCondition{
 				Key:   "guidance_scale",
-				Match: &qdrant.SCValue{Value: guidance_scale},
+				Match: &qdrant.SCValue{Value: guidanceScale},
 			})
-		}
-		if filters.MinGuidanceScale != 0 && filters.MaxGuidanceScale != 0 {
-			f.Should = append(f.Should, qdrant.SCMatchCondition{
-				Key: "guidance_scale",
-				Range: qdrant.SCRange[float32]{
-					Gte: utils.ToPtr(filters.MinGuidanceScale),
-				},
-			})
-			f.Should = append(f.Should, qdrant.SCMatchCondition{
-				Key: "guidance_scale",
-				Range: qdrant.SCRange[float32]{
-					Lte: utils.ToPtr(filters.MaxGuidanceScale),
-				},
-			})
-		} else if filters.MinGuidanceScale != 0 {
-			f.Should = append(f.Should, qdrant.SCMatchCondition{
-				Key: "guidance_scale",
-				Range: qdrant.SCRange[float32]{
-					Gte: utils.ToPtr(filters.MinGuidanceScale),
-				},
-			})
-		} else {
-			f.Should = append(f.Should, qdrant.SCMatchCondition{
-				Key: "guidance_scale",
-				Range: qdrant.SCRange[float32]{
-					Lte: utils.ToPtr(filters.MaxGuidanceScale),
-				},
-			})
-		}
-	} else {
-		if filters.MinGuidanceScale != 0 {
-			f.Should = append(f.Should, qdrant.SCMatchCondition{
-				Key: "guidance_scale",
-				Range: qdrant.SCRange[float32]{
-					Gte: utils.ToPtr(filters.MinGuidanceScale),
-				},
-			})
-		}
-		if filters.MaxGuidanceScale != 0 {
-			f.Should = append(f.Should, qdrant.SCMatchCondition{
-				Key: "guidance_scale",
-				Range: qdrant.SCRange[float32]{
-					Lte: utils.ToPtr(filters.MaxGuidanceScale),
-				},
-			})
-		}
-		if len(filters.GuidanceScales) > 0 {
-			for _, guidance_scale := range filters.GuidanceScales {
-				f.Should = append(f.Should, qdrant.SCMatchCondition{
-					Key:   "guidance_scale",
-					Match: &qdrant.SCValue{Value: guidance_scale},
-				})
-			}
 		}
 	}
 
