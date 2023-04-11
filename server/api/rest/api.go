@@ -5,7 +5,6 @@ import (
 
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/google/uuid"
-	"github.com/meilisearch/meilisearch-go"
 	"github.com/stablecog/sc-go/database"
 	"github.com/stablecog/sc-go/database/ent"
 	"github.com/stablecog/sc-go/database/qdrant"
@@ -28,7 +27,6 @@ type RestAPI struct {
 	Redis          *database.RedisWrapper
 	Hub            *sse.Hub
 	StripeClient   *stripe.API
-	Meili          *meilisearch.Client
 	Track          *analytics.AnalyticsService
 	QueueThrottler *shared.UserQueueThrottlerMap
 	S3             *s3.S3

@@ -33,7 +33,6 @@ func main() {
 	log.Infof("SC Cron %s", Version)
 	showHelp := flag.Bool("help", false, "Show help")
 	healthCheck := flag.Bool("healthCheck", false, "Run the health check job")
-	syncMeili := flag.Bool("syncMeili", false, "Sync the meili index")
 	stats := flag.Bool("stats", false, "Run the stats job")
 	allJobs := flag.Bool("all", false, "Run all jobs in a blocking process")
 	flag.Parse()
@@ -93,7 +92,6 @@ func main() {
 		Repo:    repo,
 		Redis:   redis,
 		Ctx:     ctx,
-		Meili:   database.NewMeiliSearchClient(),
 		Discord: discord.NewDiscordHealthTracker(ctx),
 		Track:   analyticsService,
 		Stripe:  stripeClient,
@@ -103,15 +101,6 @@ func main() {
 		err := jobRunner.CheckHealth(jobs.NewJobLogger("HEALTH"))
 		if err != nil {
 			log.Fatal("Error running health check", "err", err)
-			os.Exit(1)
-		}
-		os.Exit(0)
-	}
-
-	if *syncMeili {
-		err := jobRunner.SyncMeili(jobs.NewJobLogger("MEILI_SYNC"))
-		if err != nil {
-			log.Fatal("Error syncing meili", "err", err)
 			os.Exit(1)
 		}
 		os.Exit(0)
@@ -136,7 +125,6 @@ func main() {
 		}
 		log.Info("🏡 Starting all jobs...")
 		s := gocron.NewScheduler(time.UTC)
-		s.Every(60).Seconds().Do(jobRunner.SyncMeili, jobs.NewJobLogger("MEILI_SYNC"))
 		s.Every(60).Seconds().Do(jobRunner.GetAndSetStats, jobs.NewJobLogger("STATS"))
 		if utils.GetEnv("DISCORD_WEBHOOK_URL", "") != "" {
 			s.Every(60).Seconds().Do(jobRunner.CheckHealth, jobs.NewJobLogger("HEALTH"))

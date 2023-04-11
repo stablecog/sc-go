@@ -5,7 +5,6 @@ go 1.20
 require (
 	github.com/google/uuid v1.3.0
 	github.com/jarcoal/httpmock v1.3.0
-	github.com/meilisearch/meilisearch-go v0.22.0
 	github.com/stablecog/sc-go/database v0.0.0-20230321001722-68888f92a48b
 	github.com/stablecog/sc-go/log v0.0.0-20230303221221-dcc7ec43e5e1
 	github.com/stablecog/sc-go/server v0.0.0-20230329175616-c8c62c35dc60
@@ -34,6 +33,7 @@ require (
 	github.com/mailru/easyjson v0.7.7 // indirect
 	github.com/mattn/go-isatty v0.0.17 // indirect
 	github.com/mattn/go-runewidth v0.0.13 // indirect
+	github.com/meilisearch/meilisearch-go v0.22.0 // indirect
 	github.com/mileusna/useragent v1.2.1 // indirect
 	github.com/muesli/reflow v0.2.1-0.20210115123740-9e1d0d53df68 // indirect
 	github.com/muesli/termenv v0.11.1-0.20220204035834-5ac8409525e0 // indirect

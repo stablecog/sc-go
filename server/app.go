@@ -202,7 +202,6 @@ func main() {
 		Redis:          redis,
 		Hub:            sseHub,
 		StripeClient:   stripeClient,
-		Meili:          database.NewMeiliSearchClient(),
 		Track:          analyticsService,
 		QueueThrottler: qThrottler,
 		S3:             s3Client,
@@ -254,8 +253,7 @@ func main() {
 			r.Use(middleware.Logger)
 			// 20 requests per second
 			r.Use(mw.RateLimit(20, 1*time.Second))
-			r.Get("/", hc.HandleQueryGallery)
-			r.Get("/semantic", hc.HandleSemanticSearchGallery)
+			r.Get("/", hc.HandleSemanticSearchGallery)
 		})
 
 		// Routes that require authentication
