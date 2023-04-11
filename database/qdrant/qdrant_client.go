@@ -32,7 +32,7 @@ var fieldsToIndex = []qdrantIndexField{
 	},
 	{
 		Name: "user_id",
-		Type: PayloadSchemaTypeText,
+		Type: PayloadSchemaTypeKeyword,
 	},
 	{
 		Name: "width",
