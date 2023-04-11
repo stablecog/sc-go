@@ -35,7 +35,7 @@ func (r *Repository) CreateGeneration(userID uuid.UUID, deviceType, deviceOs, de
 		SetDeviceInfoID(deviceInfoId).
 		SetCountryCode(countryCode).
 		SetUserID(userID).
-		SetWasAutoSubmitted(req.SubmitToGallery && req.InitImageUrl == "").
+		SetWasAutoSubmitted(req.SubmitToGallery).
 		SetNumOutputs(req.NumOutputs)
 	if productId != nil {
 		insert.SetStripeProductID(*productId)
