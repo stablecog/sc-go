@@ -58,6 +58,22 @@ var fieldsToIndex = []qdrantIndexField{
 		Name: "deleted_at",
 		Type: PayloadSchemaTypeInteger,
 	},
+	{
+		Name: "model_id",
+		Type: PayloadSchemaTypeKeyword,
+	},
+	{
+		Name: "scheduler_id",
+		Type: PayloadSchemaTypeKeyword,
+	},
+	{
+		Name: "is_favorited",
+		Type: PayloadSchemaTypeKeyword,
+	},
+	{
+		Name: "was_auto_submitted",
+		Type: PayloadSchemaTypeKeyword,
+	},
 }
 
 type QdrantClient struct {
