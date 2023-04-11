@@ -287,6 +287,7 @@ func (c *RestAPI) HandleSemanticSearchGallery(w http.ResponseWriter, r *http.Req
 
 		// Get generation output ids
 		var outputIds []uuid.UUID
+		var outputIdScoreMap = make(map[uuid.UUID]float32)
 		for _, hit := range res.Result {
 			outputId, err := uuid.Parse(hit.Id)
 			if err != nil {
@@ -294,6 +295,7 @@ func (c *RestAPI) HandleSemanticSearchGallery(w http.ResponseWriter, r *http.Req
 				continue
 			}
 			outputIds = append(outputIds, outputId)
+			outputIdScoreMap[outputId] = hit.Score
 		}
 
 		// Get gallery data
@@ -319,6 +321,8 @@ func (c *RestAPI) HandleSemanticSearchGallery(w http.ResponseWriter, r *http.Req
 				log.Error("Error retrieving gallery data", "output_id", outputId)
 				continue
 			}
+			s := outputIdScoreMap[outputId]
+			item.Score = &s
 			galleryData = append(galleryData, item)
 		}
 
