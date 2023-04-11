@@ -185,3 +185,38 @@ func (r *RedisWrapper) GetCogRequestStreamID(ctx context.Context, requestID stri
 func (r *RedisWrapper) DeleteCogRequestStreamID(ctx context.Context, requestID string) (int64, error) {
 	return r.Client.Del(ctx, requestID).Result()
 }
+
+// Caching embeddings
+func (r *RedisWrapper) CacheEmbeddings(ctx context.Context, key string, embedding []float32) error {
+	// Convert embedding to string
+	b, err := json.Marshal(embedding)
+	if err != nil {
+		log.Error("Error converting embedding to string", "err", err)
+		return err
+	}
+	// Set embedding in redis
+	err = r.Client.Set(ctx, key, b, 3*time.Minute).Err()
+	if err != nil {
+		log.Error("Error caching embedding", "err", err)
+		return err
+	}
+	return nil
+}
+
+// Retrieve from cache
+func (r *RedisWrapper) GetEmbeddings(ctx context.Context, key string) ([]float32, error) {
+	// Get embedding from redis
+	b, err := r.Client.Get(ctx, key).Bytes()
+	if err != nil {
+		log.Error("Error getting embedding from cache", "err", err)
+		return nil, err
+	}
+	// Convert string to embedding
+	var embedding []float32
+	err = json.Unmarshal(b, &embedding)
+	if err != nil {
+		log.Error("Error converting embedding string to embedding", "err", err)
+		return nil, err
+	}
+	return embedding, nil
+}

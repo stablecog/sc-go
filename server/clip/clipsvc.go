@@ -12,8 +12,10 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/stablecog/sc-go/database"
 	"github.com/stablecog/sc-go/log"
 	"github.com/stablecog/sc-go/server/responses"
+	"github.com/stablecog/sc-go/utils"
 	"golang.org/x/exp/slices"
 )
 
@@ -23,6 +25,7 @@ type badUrl struct {
 }
 
 type ClipService struct {
+	redis *database.RedisWrapper
 	// Index for round robin
 	activeUrl int
 	badUrls   []badUrl
@@ -100,11 +103,12 @@ func (c *ClipService) unmarkBadUrls() {
 	c.badUrls = newBadUrls
 }
 
-func NewClipService() *ClipService {
+func NewClipService(redis *database.RedisWrapper) *ClipService {
 	svc := &ClipService{
 		urls:   strings.Split(os.Getenv("CLIPAPI_URLS"), ","),
 		secret: os.Getenv("CLIPAPI_SECRET"),
 		r:      http.DefaultTransport,
+		redis:  redis,
 	}
 	svc.client = &http.Client{
 		Timeout:   10 * time.Second,
@@ -115,6 +119,11 @@ func NewClipService() *ClipService {
 
 // GetEmbeddingFromText, retry up to retries times
 func (c *ClipService) GetEmbeddingFromText(text string, retries int) (embedding []float32, err error) {
+	// Check cache first
+	e, err := c.redis.GetEmbeddings(c.redis.Ctx, utils.Sha256(text))
+	if err == nil && len(e) > 0 {
+		return e, nil
+	}
 	c.unmarkBadUrls()
 
 	req := []clipApiRequest{{
@@ -162,6 +171,12 @@ func (c *ClipService) GetEmbeddingFromText(text string, retries int) (embedding 
 	if len(clipAPIResponse.Embeddings) == 0 {
 		log.Errorf("No embeddings returned from clip API")
 		return nil, fmt.Errorf("no embeddings returned from clip API")
+	}
+
+	// Cache
+	err = c.redis.CacheEmbeddings(c.redis.Ctx, utils.Sha256(text), clipAPIResponse.Embeddings[0].Embedding)
+	if err != nil {
+		log.Errorf("Error caching embeddings %v", err)
 	}
 	return clipAPIResponse.Embeddings[0].Embedding, nil
 }

@@ -206,7 +206,7 @@ func main() {
 		QueueThrottler: qThrottler,
 		S3:             s3Client,
 		Qdrant:         qdrantClient,
-		Clip:           clip.NewClipService(),
+		Clip:           clip.NewClipService(redis),
 	}
 
 	// Create middleware
