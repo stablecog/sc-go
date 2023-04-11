@@ -277,7 +277,7 @@ func (c *RestAPI) HandleQueryGenerations(w http.ResponseWriter, r *http.Request)
 			Match: &qdrant.SCValue{Value: user.ID.String()},
 		})
 		// Deleted at not empty
-		qdrantFilters.MustNot = append(qdrantFilters.MustNot, qdrant.SCMatchCondition{
+		qdrantFilters.Must = append(qdrantFilters.Must, qdrant.SCMatchCondition{
 			IsEmpty: &qdrant.SCIsEmpty{Key: "deleted_at"},
 		})
 
