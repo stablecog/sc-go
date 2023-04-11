@@ -19,13 +19,13 @@ import (
 	"golang.org/x/exp/slices"
 )
 
-type qDrantIndexField struct {
+type qdrantIndexField struct {
 	Name string            `json:"name"`
 	Type PayloadSchemaType `json:"type"`
 }
 
 // The fields we create indexes for on app startup
-var fieldsToIndex = []qDrantIndexField{
+var fieldsToIndex = []qdrantIndexField{
 	{
 		Name: "gallery_status",
 		Type: PayloadSchemaTypeText,
@@ -583,7 +583,7 @@ func (q *QdrantClient) DeleteById(id uuid.UUID, noRetry bool) error {
 }
 
 // Public gallery search
-func (q *QdrantClient) QueryGenerations(embedding []float32, per_page int, offset *uint, filters *SearchRequest_Filter, noRetry bool) (*QResponse, error) {
+func (q *QdrantClient) QueryGenerations(embedding []float32, per_page int, offset *uint, filters *SearchRequest_Filter, withPayload bool, noRetry bool) (*QResponse, error) {
 	qParams := &SearchParams_Quantization{}
 	qParams.FromQuantizationSearchParams(QuantizationSearchParams{
 		Ignore:  utils.ToPtr(false),
@@ -607,7 +607,7 @@ func (q *QdrantClient) QueryGenerations(embedding []float32, per_page int, offse
 
 	resp, err := q.Client.SearchPointsWithResponse(q.Ctx, q.CollectionName, &SearchPointsParams{}, SearchPointsJSONRequestBody{
 		Limit:       uint(per_page + 1),
-		WithPayload: true,
+		WithPayload: withPayload,
 		Vector:      namedVectorParams,
 		Offset:      offset,
 		Filter:      filters,
@@ -618,7 +618,7 @@ func (q *QdrantClient) QueryGenerations(embedding []float32, per_page int, offse
 		if !noRetry && (os.IsTimeout(err) || strings.Contains(err.Error(), "connection refused")) {
 			err = q.UpdateActiveClient()
 			if err == nil {
-				return q.QueryGenerations(embedding, per_page, offset, filters, true)
+				return q.QueryGenerations(embedding, per_page, offset, filters, withPayload, true)
 			}
 		}
 		log.Errorf("Error getting collections %v", err)
@@ -705,7 +705,7 @@ type QResponseResult struct {
 	Id      string                 `json:"id"`
 	Version int                    `json:"version"`
 	Score   float32                `json:"score"`
-	Payload QResponseResultPayload `json:"payload"`
+	Payload QResponseResultPayload `json:"payload,omitempty"`
 }
 
 type QResponseResultPayload struct {
