@@ -238,7 +238,7 @@ func (c *RestAPI) HandleSemanticSearchGallery(w http.ResponseWriter, r *http.Req
 
 	search := r.URL.Query().Get("search")
 	cursor := r.URL.Query().Get("cursor")
-	var galleryData []repository.GalleryData
+	galleryData := []repository.GalleryData{}
 	var nextCursor interface{}
 	var err error
 
