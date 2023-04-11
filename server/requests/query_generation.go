@@ -63,6 +63,7 @@ type QueryGenerationFilters struct {
 	EndDt             *time.Time                       `json:"end_dt"`
 	UserID            *uuid.UUID                       `json:"user_id"`
 	OrderBy           OrderBy                          `json:"order_by"`
+	ScoreThreshold    *float32                         `json:"score_threshold,omitempty"`
 	IsFavorited       *bool                            `json:"is_favorited,omitempty"`
 	WasAutoSubmitted  *bool                            `json:"was_auto_submitted,omitempty"`
 }
@@ -372,6 +373,15 @@ func (filters *QueryGenerationFilters) ParseURLQueryParameters(urlValues url.Val
 				return fmt.Errorf("invalid was_auto_submitted: '%s' expected 'true' or 'false'", value[0])
 			}
 		}
+
+		// Score threshold
+		if key == "score_threshold" {
+			parsed, err := strconv.ParseFloat(value[0], 32)
+			if err != nil {
+				return fmt.Errorf("invalid score_threshold: %s", value[0])
+			}
+			filters.ScoreThreshold = utils.ToPtr(float32(parsed))
+		}
 	}
 	// Descending default
 	if filters.Order == "" {
@@ -388,8 +398,8 @@ func (filters *QueryGenerationFilters) ParseURLQueryParameters(urlValues url.Val
 	return nil
 }
 
-func (filters *QueryGenerationFilters) ToQdrantFilters(ignoreGalleryStatus bool) *qdrant.SearchRequest_Filter {
-	f := &qdrant.SearchRequest_Filter{}
+func (filters *QueryGenerationFilters) ToQdrantFilters(ignoreGalleryStatus bool) (f *qdrant.SearchRequest_Filter, scoreThreshold *float32) {
+	f = &qdrant.SearchRequest_Filter{}
 
 	if len(filters.ModelIDs) > 0 {
 		for _, modelID := range filters.ModelIDs {
@@ -572,5 +582,5 @@ func (filters *QueryGenerationFilters) ToQdrantFilters(ignoreGalleryStatus bool)
 		})
 	}
 
-	return f
+	return f, filters.ScoreThreshold
 }

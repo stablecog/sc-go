@@ -100,7 +100,7 @@ func TestToQdrantFilters(t *testing.T) {
 	assert.Nil(t, err)
 
 	// Convert to Qdrant filters
-	qdrantFilters := filters.ToQdrantFilters(false)
+	qdrantFilters, _ := filters.ToQdrantFilters(false)
 	// marshal
 	b, err := json.Marshal(qdrantFilters)
 	assert.Nil(t, err)
@@ -121,7 +121,7 @@ func TestToQdrantFiltersIgnoreGalleryStatus(t *testing.T) {
 	assert.Nil(t, err)
 
 	// Convert to Qdrant filters
-	qdrantFilters := filters.ToQdrantFilters(true)
+	qdrantFilters, _ := filters.ToQdrantFilters(true)
 	// marshal
 	b, err := json.Marshal(qdrantFilters)
 	assert.Nil(t, err)

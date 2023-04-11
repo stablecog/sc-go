@@ -270,7 +270,7 @@ func (c *RestAPI) HandleQueryGenerations(w http.ResponseWriter, r *http.Request)
 		}
 
 		// Parse as qdrant filters
-		qdrantFilters := filters.ToQdrantFilters(false)
+		qdrantFilters, scoreThreshold := filters.ToQdrantFilters(false)
 		// Append user_id requirement
 		qdrantFilters.Must = append(qdrantFilters.Must, qdrant.SCMatchCondition{
 			Key:   "user_id",
@@ -303,7 +303,7 @@ func (c *RestAPI) HandleQueryGenerations(w http.ResponseWriter, r *http.Request)
 		}
 
 		// Query qdrant
-		qdrantRes, err := c.Qdrant.QueryGenerations(e, perPage, offset, qdrantFilters, false, false)
+		qdrantRes, err := c.Qdrant.QueryGenerations(e, perPage, offset, scoreThreshold, qdrantFilters, false, false)
 		if err != nil {
 			log.Error("Error querying qdrant", "err", err)
 			responses.ErrInternalServerError(w, r, "An unknown error has occured")

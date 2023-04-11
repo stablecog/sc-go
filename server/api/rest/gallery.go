@@ -251,7 +251,7 @@ func (c *RestAPI) HandleSemanticSearchGallery(w http.ResponseWriter, r *http.Req
 	}
 
 	// Parse as qdrant filters
-	qdrantFilters := filters.ToQdrantFilters(true)
+	qdrantFilters, scoreThreshold := filters.ToQdrantFilters(true)
 	// Append gallery status requirement
 	qdrantFilters.Must = append(qdrantFilters.Must, qdrant.SCMatchCondition{
 		Key:   "gallery_status",
@@ -277,7 +277,7 @@ func (c *RestAPI) HandleSemanticSearchGallery(w http.ResponseWriter, r *http.Req
 			return
 		}
 
-		res, err := c.Qdrant.QueryGenerations(embeddings, GALLERY_PER_PAGE, offset, qdrantFilters, false, false)
+		res, err := c.Qdrant.QueryGenerations(embeddings, GALLERY_PER_PAGE, offset, scoreThreshold, qdrantFilters, false, false)
 		if err != nil {
 			log.Error("Error querying qdrant", "err", err)
 			responses.ErrInternalServerError(w, r, "An unknown error occurred")

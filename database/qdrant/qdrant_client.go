@@ -607,7 +607,7 @@ func (q *QdrantClient) DeleteById(id uuid.UUID, noRetry bool) error {
 }
 
 // Public gallery search
-func (q *QdrantClient) QueryGenerations(embedding []float32, per_page int, offset *uint, filters *SearchRequest_Filter, withPayload bool, noRetry bool) (*QResponse, error) {
+func (q *QdrantClient) QueryGenerations(embedding []float32, per_page int, offset *uint, scoreThreshold *float32, filters *SearchRequest_Filter, withPayload bool, noRetry bool) (*QResponse, error) {
 	qParams := &SearchParams_Quantization{}
 	qParams.FromQuantizationSearchParams(QuantizationSearchParams{
 		Ignore:  utils.ToPtr(false),
@@ -630,19 +630,20 @@ func (q *QdrantClient) QueryGenerations(embedding []float32, per_page int, offse
 	}
 
 	resp, err := q.Client.SearchPointsWithResponse(q.Ctx, q.CollectionName, &SearchPointsParams{}, SearchPointsJSONRequestBody{
-		Limit:       uint(per_page + 1),
-		WithPayload: withPayload,
-		Vector:      namedVectorParams,
-		Offset:      offset,
-		Filter:      filters,
-		Params:      params,
+		Limit:          uint(per_page + 1),
+		WithPayload:    withPayload,
+		Vector:         namedVectorParams,
+		Offset:         offset,
+		Filter:         filters,
+		Params:         params,
+		ScoreThreshold: scoreThreshold,
 	})
 
 	if err != nil {
 		if !noRetry && (os.IsTimeout(err) || strings.Contains(err.Error(), "connection refused")) {
 			err = q.UpdateActiveClient()
 			if err == nil {
-				return q.QueryGenerations(embedding, per_page, offset, filters, withPayload, true)
+				return q.QueryGenerations(embedding, per_page, offset, scoreThreshold, filters, withPayload, true)
 			}
 		}
 		log.Errorf("Error getting collections %v", err)
