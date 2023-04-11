@@ -313,10 +313,12 @@ func (r *Repository) RetrieveGenerationsWithOutputIDs(outputIDs []uuid.UUID) (*G
 		gOutput := GenerationUpscaleOutput{
 			ID:               g.ID,
 			ImageUrl:         g.ImagePath,
-			UpscaledImageUrl: *g.UpscaledImagePath,
 			GalleryStatus:    g.GalleryStatus,
 			WasAutoSubmitted: g.Edges.Generations.WasAutoSubmitted,
 			IsFavorited:      g.IsFavorited,
+		}
+		if g.UpscaledImagePath != nil {
+			gOutput.UpscaledImageUrl = *g.UpscaledImagePath
 		}
 		output := GenerationQueryWithOutputsResultFormatted{
 			GenerationUpscaleOutput: gOutput,
