@@ -335,7 +335,7 @@ func (c *RestAPI) HandleQueryGenerations(w http.ResponseWriter, r *http.Request)
 			gDataMap[gData.ID] = gData
 		}
 
-		var generations []repository.GenerationQueryWithOutputsResultFormatted
+		generations := []repository.GenerationQueryWithOutputsResultFormatted{}
 		for _, hit := range qdrantRes.Result {
 			outputId, err := uuid.Parse(hit.Id)
 			if err != nil {
