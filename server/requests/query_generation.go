@@ -404,7 +404,7 @@ func (filters *QueryGenerationFilters) ToQdrantFilters(ignoreGalleryStatus bool)
 	if len(filters.ModelIDs) > 0 {
 		for _, modelID := range filters.ModelIDs {
 			f.Should = append(f.Should, qdrant.SCMatchCondition{
-				Key:   "model_id",
+				Key:   "model",
 				Match: &qdrant.SCValue{Value: modelID.String()},
 			})
 		}
@@ -413,7 +413,7 @@ func (filters *QueryGenerationFilters) ToQdrantFilters(ignoreGalleryStatus bool)
 	if len(filters.SchedulerIDs) > 0 {
 		for _, schedulerID := range filters.SchedulerIDs {
 			f.Should = append(f.Should, qdrant.SCMatchCondition{
-				Key:   "scheduler_id",
+				Key:   "scheduler",
 				Match: &qdrant.SCValue{Value: schedulerID.String()},
 			})
 		}
