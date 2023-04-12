@@ -57,7 +57,7 @@ func (r *Repository) RetrieveGalleryData(limit int, updatedAtGT *time.Time) ([]G
 
 // Retrieved a single generation output by ID, in GalleryData format
 func (r *Repository) RetrieveGalleryDataByID(id uuid.UUID) (*GalleryData, error) {
-	output, err := r.DB.GenerationOutput.Query().Where(generationoutput.IDEQ(id)).WithGenerations(func(gq *ent.GenerationQuery) {
+	output, err := r.DB.GenerationOutput.Query().Where(generationoutput.IDEQ(id), generationoutput.GalleryStatusEQ(generationoutput.GalleryStatusApproved)).WithGenerations(func(gq *ent.GenerationQuery) {
 		gq.WithPrompt()
 		gq.WithNegativePrompt()
 	}).Only(r.Ctx)
