@@ -59,11 +59,11 @@ var fieldsToIndex = []qdrantIndexField{
 		Type: PayloadSchemaTypeInteger,
 	},
 	{
-		Name: "model_id",
+		Name: "model",
 		Type: PayloadSchemaTypeKeyword,
 	},
 	{
-		Name: "scheduler_id",
+		Name: "scheduler",
 		Type: PayloadSchemaTypeKeyword,
 	},
 	{
