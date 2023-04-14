@@ -612,28 +612,43 @@ func (r *Repository) QueryGenerationsAdmin(per_page int, cursor *time.Time, filt
 		orderByOutput = []string{generationoutput.FieldCreatedAt, generationoutput.FieldUpdatedAt}
 	}
 
-	queryG := r.DB.Debug().Generation.Query().Where(
+	// Initial query to get output IDs
+	var rawQ []struct {
+		ID                uuid.UUID  `json:"id" sql:"id"`
+		OutputID          uuid.UUID  `json:"output_id" sql:"output_id"`
+		OutputCreatedAt   time.Time  `json:"output_created_at" sql:"output_created_at"`
+		DeletedAt         *time.Time `json:"deleted_at" sql:"deleted_at"`
+		UpscaledImagePath *string    `json:"upscaled_image_path" sql:"upscaled_image_path"`
+		GalleryStatus     string     `json:"gallery_status" sql:"gallery_status"`
+	}
+
+	queryG := r.DB.Debug().Generation.Query().Select(generation.FieldID).Where(
 		generation.StatusEQ(generation.StatusSucceeded),
 	)
-	queryG = r.ApplyUserGenerationsFilters(queryG, filters, true)
-	query := queryG.QueryGenerationOutputs().Where(
-		generationoutput.DeletedAtIsNil(),
-	)
+	queryG = r.ApplyUserGenerationsFilters(queryG, filters, false)
 	if cursor != nil {
-		query = query.Where(generationoutput.CreatedAtLT(*cursor))
+		queryG = queryG.Where(func(s *sql.Selector) {
+			s.Where(sql.LT("output_created_at", *cursor))
+			s.Where(sql.IsNull("deleted_at"))
+		})
 	}
-	if filters != nil {
-		if filters.UpscaleStatus == requests.UpscaleStatusNot {
-			query = query.Where(generationoutput.UpscaledImagePathIsNil())
-		}
-		if filters.UpscaleStatus == requests.UpscaleStatusOnly {
-			query = query.Where(generationoutput.UpscaledImagePathNotNil())
-		}
-		if len(filters.GalleryStatus) > 0 {
-			query = query.Where(generationoutput.GalleryStatusIn(filters.GalleryStatus...))
-		}
+	err := queryG.Modify(func(s *sql.Selector) {
+		got := sql.Table(generationoutput.Table)
+		s.LeftJoin(got).On(s.C(generation.FieldID), got.C(generationoutput.FieldGenerationID))
+		s.AppendSelect(sql.As(got.C(generationoutput.FieldID), "output_id"), sql.As(got.C(generationoutput.FieldCreatedAt), "output_created_at"), sql.As(got.C(generationoutput.FieldDeletedAt), "deleted_at"),
+			sql.As(got.C(generationoutput.FieldUpscaledImagePath), "upscaled_image_path"), sql.As(got.C(generationoutput.FieldGalleryStatus), "gallery_status"))
+	}).Scan(r.Ctx, &rawQ)
+	if err != nil {
+		log.Error("Error querying generations", "err", err)
+		return nil, err
 	}
-	query = query.WithGenerations(func(s *ent.GenerationQuery) {
+
+	outputIDs := make([]uuid.UUID, len(rawQ))
+	for i, r := range rawQ {
+		outputIDs[i] = r.OutputID
+	}
+
+	query := r.DB.GenerationOutput.Query().Where(generationoutput.IDIn(outputIDs...)).WithGenerations(func(s *ent.GenerationQuery) {
 		s.WithPrompt()
 		s.WithNegativePrompt()
 		s.WithGenerationOutputs(func(goq *ent.GenerationOutputQuery) {
