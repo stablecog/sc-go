@@ -604,7 +604,7 @@ func (r *Repository) UpdateGenerationCountCacheAdmin(filters *requests.QueryGene
 	if err != nil {
 		log.Error("Error marshalling cached count", "err", err)
 	}
-	err = r.Redis.Client.Set(r.Ctx, "generation_count_"+hash, marshalledCount, 30*time.Minute).Err()
+	err = r.Redis.Client.Set(r.Ctx, "generation_count_"+hash, marshalledCount, 0).Err()
 	if err != nil {
 		log.Error("Error setting cached count", "err", err)
 	}
