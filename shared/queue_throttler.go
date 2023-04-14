@@ -7,7 +7,6 @@ import (
 
 type queueItem struct {
 	Put    time.Time
-	ID     string
 	UserID string
 }
 
@@ -28,25 +27,30 @@ func NewQueueThrottler(ttl time.Duration) *UserQueueThrottlerMap {
 }
 
 // Increment the number of items in queue for this user
-func (r *UserQueueThrottlerMap) Increment(uniqueId string, userID string) {
+func (r *UserQueueThrottlerMap) IncrementBy(amount int, userID string) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
-	r.sMap = append(r.sMap, queueItem{
-		Put:    time.Now(),
-		ID:     uniqueId,
-		UserID: userID,
-	})
+	for i := 0; i < amount; i++ {
+		r.sMap = append(r.sMap, queueItem{
+			Put:    time.Now(),
+			UserID: userID,
+		})
+	}
 }
 
 // Decrement the number of items in queue for this user, minimum 0
-func (r *UserQueueThrottlerMap) Decrement(uniqueId string, userID string) {
+func (r *UserQueueThrottlerMap) DecrementBy(amount int, userID string) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 	// Remove the oldest item for this user
+	removed := 0
 	for i, item := range r.sMap {
-		if item.UserID == userID && item.ID == uniqueId {
+		if item.UserID == userID {
 			r.sMap = append(r.sMap[:i], r.sMap[i+1:]...)
-			return
+			removed++
+			if removed >= amount {
+				break
+			}
 		}
 	}
 }

@@ -31,9 +31,18 @@ func (r *Repository) FailCogMessageDueToTimeoutIfTimedOut(msg requests.CogWebhoo
 
 	// Dec queue count
 	if msg.Input.UserID != nil {
+		// Parse num
+		numOutputs := 1
+		if msg.Input.ProcessType != shared.UPSCALE {
+			// Parse as int
+			numOutputs, err = strconv.Atoi(msg.Input.NumOutputs)
+			if err != nil {
+				log.Error("Error parsing num outputs", "err", err)
+			}
+		}
 		unthrottleMsg := UnthrottleUserResponse{
-			RequestID: msg.Input.ID,
-			UserID:    msg.Input.UserID.String(),
+			Amount: numOutputs,
+			UserID: msg.Input.UserID.String(),
 		}
 		respBytes, err := json.Marshal(unthrottleMsg)
 		if err != nil {
@@ -364,9 +373,17 @@ func (r *Repository) ProcessCogMessage(msg requests.CogWebhookMessage) error {
 
 	// Dec queue count
 	if msg.Input.UserID != nil && (msg.Status == requests.CogSucceeded || msg.Status == requests.CogFailed) {
+		numOutputs := 1
+		if msg.Input.ProcessType != shared.UPSCALE {
+			// Parse as int
+			numOutputs, err = strconv.Atoi(msg.Input.NumOutputs)
+			if err != nil {
+				log.Error("Error parsing num outputs", "err", err)
+			}
+		}
 		unthrottleMsg := UnthrottleUserResponse{
-			RequestID: msg.Input.ID,
-			UserID:    msg.Input.UserID.String(),
+			Amount: numOutputs,
+			UserID: msg.Input.UserID.String(),
 		}
 		respBytes, err := json.Marshal(unthrottleMsg)
 		if err != nil {
