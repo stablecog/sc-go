@@ -763,8 +763,7 @@ func (r *Repository) QueryGenerationsAdmin(per_page int, cursor *time.Time, filt
 	}
 
 	// Get count when no cursor
-	// If we have qdrant, get count from there it's faster
-	if cursor == nil && r.Qdrant == nil {
+	if cursor == nil {
 		total, err := r.GetGenerationCountAdmin(filters)
 		if err != nil {
 			log.Error("Error getting user generation count", "err", err)

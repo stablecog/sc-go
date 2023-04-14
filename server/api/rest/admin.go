@@ -152,13 +152,6 @@ func (c *RestAPI) HandleQueryGenerationsForAdmin(w http.ResponseWriter, r *http.
 		}
 	}
 
-	// Parse as qdrant filters
-	qdrantFilters, scoreThreshold := filters.ToQdrantFilters(false)
-	// Deleted at not empty
-	qdrantFilters.Must = append(qdrantFilters.Must, qdrant.SCMatchCondition{
-		IsEmpty: &qdrant.SCIsEmpty{Key: "deleted_at"},
-	})
-
 	// For search, use qdrant semantic search
 	if search != "" {
 		// get embeddings from clip service
@@ -168,6 +161,13 @@ func (c *RestAPI) HandleQueryGenerationsForAdmin(w http.ResponseWriter, r *http.
 			responses.ErrInternalServerError(w, r, "An unknown error has occured")
 			return
 		}
+
+		// Parse as qdrant filters
+		qdrantFilters, scoreThreshold := filters.ToQdrantFilters(false)
+		// Deleted at not empty
+		qdrantFilters.Must = append(qdrantFilters.Must, qdrant.SCMatchCondition{
+			IsEmpty: &qdrant.SCIsEmpty{Key: "deleted_at"},
+		})
 
 		// Get cursor str as uint
 		var offset *uint
@@ -271,19 +271,6 @@ func (c *RestAPI) HandleQueryGenerationsForAdmin(w http.ResponseWriter, r *http.
 		log.Error("Error getting generations for admin", "err", err)
 		responses.ErrInternalServerError(w, r, "Error getting generations")
 		return
-	}
-
-	if cursorStr == "" && len(generations.Outputs) == 0 && generations.Total == nil {
-		generations.Total = utils.ToPtr(0)
-	} else if cursorStr == "" && len(generations.Outputs) > 0 && generations.Total == nil {
-		// Get from qdrant
-		count, err := c.Qdrant.CountWithFilters(qdrantFilters, false)
-		if err != nil {
-			log.Error("Error counting qdrant", "err", err)
-			responses.ErrInternalServerError(w, r, "An unknown error has occured")
-			return
-		}
-		generations.Total = utils.ToPtr(int(count))
 	}
 
 	// Return generations
