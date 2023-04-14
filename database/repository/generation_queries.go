@@ -572,7 +572,7 @@ func (r *Repository) QueryGenerations(per_page int, cursor *time.Time, filters *
 func (r *Repository) GetGenerationCountAdmin(filters *requests.QueryGenerationFilters) (int, error) {
 	var query *ent.GenerationOutputQuery
 
-	query = r.DB.Debug().GenerationOutput.Query().Where(
+	query = r.DB.GenerationOutput.Query().Where(
 		generationoutput.DeletedAtIsNil(),
 	)
 	if filters != nil {
@@ -628,15 +628,39 @@ func (r *Repository) QueryGenerationsAdmin(per_page int, cursor *time.Time, filt
 	queryG = r.ApplyUserGenerationsFilters(queryG, filters, false)
 	if cursor != nil {
 		queryG = queryG.Where(func(s *sql.Selector) {
-			s.Where(sql.LT("output_created_at", *cursor))
+			got := sql.Table(generationoutput.Table).As("t1")
+			s.Where(sql.LT(got.C(generationoutput.FieldCreatedAt), *cursor))
 			s.Where(sql.IsNull("deleted_at"))
 		})
 	}
-	err := queryG.Modify(func(s *sql.Selector) {
-		got := sql.Table(generationoutput.Table)
+	err := queryG.Limit(per_page+1).Modify(func(s *sql.Selector) {
+		got := sql.Table(generationoutput.Table).As("t1")
 		s.LeftJoin(got).On(s.C(generation.FieldID), got.C(generationoutput.FieldGenerationID))
 		s.AppendSelect(sql.As(got.C(generationoutput.FieldID), "output_id"), sql.As(got.C(generationoutput.FieldCreatedAt), "output_created_at"), sql.As(got.C(generationoutput.FieldDeletedAt), "deleted_at"),
 			sql.As(got.C(generationoutput.FieldUpscaledImagePath), "upscaled_image_path"), sql.As(got.C(generationoutput.FieldGalleryStatus), "gallery_status"))
+		orderDir := "asc"
+		if filters == nil || (filters != nil && filters.Order == requests.SortOrderDescending) {
+			orderDir = "desc"
+		}
+		var orderByGeneration2 []string
+		var orderByOutput2 []string
+		for _, o := range orderByGeneration {
+			if orderDir == "desc" {
+				orderByGeneration2 = append(orderByGeneration2, sql.Desc(s.C(o)))
+			} else {
+				orderByGeneration2 = append(orderByGeneration2, sql.Asc(s.C(o)))
+			}
+		}
+		for _, o := range orderByOutput {
+			if orderDir == "desc" {
+				orderByOutput2 = append(orderByOutput2, sql.Desc(got.C(o)))
+			} else {
+				orderByOutput2 = append(orderByOutput2, sql.Asc(got.C(o)))
+			}
+		}
+		// Order by generation, then output
+		orderByCombined := append(orderByGeneration2, orderByOutput2...)
+		s.OrderBy(orderByCombined...)
 	}).Scan(r.Ctx, &rawQ)
 	if err != nil {
 		log.Error("Error querying generations", "err", err)
