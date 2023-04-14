@@ -48,6 +48,7 @@ func (r *UserQueueThrottlerMap) DecrementBy(amount int, userID string) {
 		if item.UserID == userID {
 			r.sMap = append(r.sMap[:i], r.sMap[i+1:]...)
 			removed++
+			i--
 			if removed >= amount {
 				break
 			}
