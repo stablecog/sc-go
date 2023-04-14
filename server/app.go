@@ -335,7 +335,7 @@ func main() {
 				log.Error("Error unmarshalling unthrottle message", "err", err)
 				continue
 			}
-			qThrottler.Decrement(unthrottleMsg.RequestID, unthrottleMsg.UserID)
+			qThrottler.DecrementBy(unthrottleMsg.Amount, unthrottleMsg.UserID)
 		}
 	}()
 
