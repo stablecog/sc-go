@@ -393,9 +393,15 @@ func (r *Repository) QueryGenerations(per_page int, cursor *time.Time, filters *
 	var query *ent.GenerationQuery
 	var gQueryResult []GenerationQueryWithOutputsResult
 
-	// User can't order by updated_At
-	if filters != nil && filters.OrderBy == requests.OrderByUpdatedAt {
-		filters.OrderBy = requests.OrderByCreatedAt
+	// Figure out order bys
+	var orderByGeneration []string
+	var orderByOutput []string
+	if filters == nil || (filters != nil && filters.OrderBy == requests.OrderByCreatedAt) {
+		orderByGeneration = []string{generation.FieldCreatedAt}
+		orderByOutput = []string{generationoutput.FieldCreatedAt}
+	} else {
+		orderByGeneration = []string{generation.FieldCreatedAt, generation.FieldUpdatedAt}
+		orderByOutput = []string{generationoutput.FieldCreatedAt, generationoutput.FieldUpdatedAt}
 	}
 
 	query = r.DB.Generation.Query().Select(selectFields...).
@@ -434,16 +440,29 @@ func (r *Repository) QueryGenerations(per_page int, cursor *time.Time, filters *
 			GroupBy(s.C(generation.FieldID), npt.C(negativeprompt.FieldText), pt.C(prompt.FieldText),
 				got.C(generationoutput.FieldID), got.C(generationoutput.FieldGalleryStatus),
 				got.C(generationoutput.FieldImagePath), got.C(generationoutput.FieldUpscaledImagePath))
-		var orderByGeneration string
-		var orderByOutput string
-		orderByGeneration = generation.FieldCreatedAt
-		orderByOutput = generationoutput.FieldCreatedAt
-		// Order by generation, then output
+		orderDir := "asc"
 		if filters == nil || (filters != nil && filters.Order == requests.SortOrderDescending) {
-			s.OrderBy(sql.Desc(got.C(orderByOutput)), sql.Desc(gt.C(orderByGeneration)))
-		} else {
-			s.OrderBy(sql.Asc(got.C(orderByOutput)), sql.Asc(gt.C(orderByGeneration)))
+			orderDir = "desc"
 		}
+		var orderByGeneration2 []string
+		var orderByOutput2 []string
+		for _, o := range orderByGeneration {
+			if orderDir == "desc" {
+				orderByGeneration2 = append(orderByGeneration2, sql.Desc(gt.C(o)))
+			} else {
+				orderByGeneration2 = append(orderByGeneration2, sql.Asc(gt.C(o)))
+			}
+		}
+		for _, o := range orderByOutput {
+			if orderDir == "desc" {
+				orderByOutput2 = append(orderByOutput2, sql.Desc(got.C(o)))
+			} else {
+				orderByOutput2 = append(orderByOutput2, sql.Asc(got.C(o)))
+			}
+		}
+		// Order by generation, then output
+		orderByCombined := append(orderByGeneration2, orderByOutput2...)
+		s.OrderBy(orderByCombined...)
 	}).Scan(r.Ctx, &gQueryResult)
 
 	if err != nil {
