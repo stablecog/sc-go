@@ -597,12 +597,6 @@ func (r *Repository) QueryGenerationsAdmin(per_page int, cursor *time.Time, filt
 		generation.StatusEQ(generation.StatusSucceeded),
 	)
 	queryG = r.ApplyUserGenerationsFilters(queryG, filters, true)
-	if filters == nil || (filters != nil && filters.Order == requests.SortOrderDescending) {
-		queryG = queryG.Order(ent.Desc(orderByGeneration...))
-	} else {
-		queryG = queryG.Order(ent.Asc(orderByGeneration...))
-	}
-	queryG = queryG.Limit(500)
 	query := queryG.QueryGenerationOutputs().Where(
 		generationoutput.DeletedAtIsNil(),
 	)
