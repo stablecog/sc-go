@@ -44,19 +44,7 @@ func (c *RestAPI) HandleCreateGeneration(w http.ResponseWriter, r *http.Request)
 
 	qMax := shared.MAX_QUEUED_ITEMS_FREE
 	if !free {
-		switch *user.ActiveProductID {
-		// Starter
-		case GetProductIDs()[1]:
-			qMax = shared.MAX_QUEUED_ITEMS_STARTER
-			// Pro
-		case GetProductIDs()[2]:
-			qMax = shared.MAX_QUEUED_ITEMS_PRO
-		// Ultimate
-		case GetProductIDs()[3]:
-			qMax = shared.MAX_QUEUED_ITEMS_ULTIMATE
-		default:
-			log.Warn("Unknown product ID", "product_id", *user.ActiveProductID)
-		}
+		qMax = shared.MAX_QUEUED_ITEMS_SUBSCRIBED
 		// // Get product level
 		// for level, product := range GetProductIDs() {
 		// 	if product == *user.ActiveProductID {
@@ -271,7 +259,7 @@ func (c *RestAPI) HandleCreateGeneration(w http.ResponseWriter, r *http.Request)
 			return err
 		}
 
-		c.QueueThrottler.IncrementBy(int(generateReq.NumOutputs), user.ID.String())
+		c.QueueThrottler.Increment(requestId, user.ID.String())
 		return nil
 	}); err != nil {
 		log.Error("Error in transaction", "err", err)

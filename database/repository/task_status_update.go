@@ -22,6 +22,6 @@ type TaskStatusUpdateResponse struct {
 
 // Represents that we should un-throttle a user
 type UnthrottleUserResponse struct {
-	Amount int    `json:"amount"`
-	UserID string `json:"user_id"`
+	RequestID string `json:"request_id"`
+	UserID    string `json:"user_id"`
 }

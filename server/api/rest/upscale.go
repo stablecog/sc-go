@@ -35,19 +35,7 @@ func (c *RestAPI) HandleUpscale(w http.ResponseWriter, r *http.Request) {
 	free := user.ActiveProductID == nil
 	qMax := shared.MAX_QUEUED_ITEMS_FREE
 	if !free {
-		switch *user.ActiveProductID {
-		// Starter
-		case GetProductIDs()[1]:
-			qMax = shared.MAX_QUEUED_ITEMS_STARTER
-			// Pro
-		case GetProductIDs()[2]:
-			qMax = shared.MAX_QUEUED_ITEMS_PRO
-		// Ultimate
-		case GetProductIDs()[3]:
-			qMax = shared.MAX_QUEUED_ITEMS_ULTIMATE
-		default:
-			log.Warn("Unknown product ID", "product_id", *user.ActiveProductID)
-		}
+		qMax = shared.MAX_QUEUED_ITEMS_SUBSCRIBED
 	}
 
 	// Validation
@@ -218,7 +206,7 @@ func (c *RestAPI) HandleUpscale(w http.ResponseWriter, r *http.Request) {
 			return err
 		}
 
-		c.QueueThrottler.IncrementBy(1, user.ID.String())
+		c.QueueThrottler.Increment(requestId, user.ID.String())
 
 		return nil
 	}); err != nil {
