@@ -570,6 +570,7 @@ func (r *Repository) QueryGenerations(per_page int, cursor *time.Time, filters *
 }
 
 // Separate count function
+var cacheIsUpdating bool = false
 
 type CachedCount struct {
 	Count    int       `json:"count"`
@@ -627,7 +628,13 @@ func (r *Repository) GetGenerationCountAdmin(filters *requests.QueryGenerationFi
 	// See if needs updating
 	// If older than 30 minutes, refresh cache
 	if cachedCount.CachedAt.Before(time.Now().Add(-30 * time.Minute)) {
-		go r.UpdateGenerationCountCacheAdmin(filters)
+		if !cacheIsUpdating {
+			go func() {
+				cacheIsUpdating = true
+				r.UpdateGenerationCountCacheAdmin(filters)
+				cacheIsUpdating = false
+			}()
+		}
 	}
 	return cachedCount.Count, nil
 }
