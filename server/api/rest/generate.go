@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"math"
 	"net/http"
 	"os"
 	"strings"
@@ -42,8 +43,14 @@ func (c *RestAPI) HandleCreateGeneration(w http.ResponseWriter, r *http.Request)
 		free = count <= 0
 	}
 
-	qMax := shared.MAX_QUEUED_ITEMS_FREE
-	if !free {
+	var qMax int
+	isSuperAdmin, _ := c.Repo.IsSuperAdmin(user.ID)
+	if isSuperAdmin {
+		qMax = math.MaxInt64
+	} else {
+		qMax = shared.MAX_QUEUED_ITEMS_FREE
+	}
+	if !isSuperAdmin && user.ActiveProductID != nil {
 		switch *user.ActiveProductID {
 		// Starter
 		case GetProductIDs()[1]:
