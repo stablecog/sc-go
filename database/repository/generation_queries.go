@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"encoding/json"
 	"fmt"
 	"time"
 
@@ -569,7 +570,13 @@ func (r *Repository) QueryGenerations(per_page int, cursor *time.Time, filters *
 }
 
 // Separate count function
-func (r *Repository) GetGenerationCountAdmin(filters *requests.QueryGenerationFilters) (int, error) {
+
+type CachedCount struct {
+	Count    int       `json:"count"`
+	CachedAt time.Time `json:"cached_at"`
+}
+
+func (r *Repository) UpdateGenerationCountCacheAdmin(filters *requests.QueryGenerationFilters) (int, error) {
 	queryG := r.DB.Debug().Generation.Query().Select(generation.FieldID).Where(
 		generation.StatusEQ(generation.StatusSucceeded),
 	)
@@ -582,7 +589,47 @@ func (r *Repository) GetGenerationCountAdmin(filters *requests.QueryGenerationFi
 		s.LeftJoin(got).On(s.C(generation.FieldID), got.C(generationoutput.FieldGenerationID))
 	}).Count(r.Ctx)
 
+	// Set in cache
+	marshalled, err := json.Marshal(filters)
+	if err != nil {
+		log.Error("Error marshalling filters", "err", err)
+	}
+	hash := utils.Sha256(string(marshalled))
+	cachedCount := CachedCount{
+		Count:    total,
+		CachedAt: time.Now(),
+	}
+	marshalledCount, err := json.Marshal(cachedCount)
+	if err != nil {
+		log.Error("Error marshalling cached count", "err", err)
+	}
+	err = r.Redis.Client.Set(r.Ctx, "generation_count_"+hash, marshalledCount, 30*time.Minute).Err()
+	if err != nil {
+		log.Error("Error setting cached count", "err", err)
+	}
+
 	return total, err
+}
+
+func (r *Repository) GetGenerationCountAdmin(filters *requests.QueryGenerationFilters) (int, error) {
+	// Get has of filters to see if we have this in cache
+	marshalled, err := json.Marshal(filters)
+	if err != nil {
+		log.Error("Error marshalling filters", "err", err)
+	}
+	hash := utils.Sha256(string(marshalled))
+	// Check cache
+	var cachedCount CachedCount
+	err = r.Redis.Client.Get(r.Ctx, "generation_count_"+hash).Scan(&cachedCount)
+	if err != nil {
+		return r.UpdateGenerationCountCacheAdmin(filters)
+	}
+	// See if needs updating
+	// If older than 30 minutes, refresh cache
+	if cachedCount.CachedAt.Before(time.Now().Add(-30 * time.Minute)) {
+		go r.UpdateGenerationCountCacheAdmin(filters)
+	}
+	return cachedCount.Count, nil
 }
 
 // Alternate version for performance when we can't index by user_id
