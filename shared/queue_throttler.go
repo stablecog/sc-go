@@ -44,8 +44,8 @@ func (r *UserQueueThrottlerMap) DecrementBy(amount int, userID string) {
 	defer r.mu.Unlock()
 	// Remove the oldest item for this user
 	removed := 0
-	for i, item := range r.sMap {
-		if item.UserID == userID {
+	for i := 0; i < len(r.sMap); i++ {
+		if r.sMap[i].UserID == userID {
 			r.sMap = append(r.sMap[:i], r.sMap[i+1:]...)
 			removed++
 			i--
