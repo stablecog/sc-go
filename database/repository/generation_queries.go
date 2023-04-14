@@ -578,7 +578,7 @@ type CachedCount struct {
 }
 
 func (r *Repository) UpdateGenerationCountCacheAdmin(filters *requests.QueryGenerationFilters) (int, error) {
-	queryG := r.DB.Debug().Generation.Query().Select(generation.FieldID).Where(
+	queryG := r.DB.Generation.Query().Select(generation.FieldID).Where(
 		generation.StatusEQ(generation.StatusSucceeded),
 	)
 	queryG = r.ApplyUserGenerationsFilters(queryG, filters, false)
@@ -621,8 +621,14 @@ func (r *Repository) GetGenerationCountAdmin(filters *requests.QueryGenerationFi
 	hash := utils.Sha256(string(marshalled))
 	// Check cache
 	var cachedCount CachedCount
-	err = r.Redis.Client.Get(r.Ctx, "generation_count_"+hash).Scan(&cachedCount)
+	valStr, err := r.Redis.Client.Get(r.Ctx, "generation_count_"+hash).Result()
 	if err != nil {
+		log.Error("Error getting cached count", "err", err)
+		return r.UpdateGenerationCountCacheAdmin(filters)
+	}
+	err = json.Unmarshal([]byte(valStr), &cachedCount)
+	if err != nil {
+		log.Error("Error unmarshalling cached count", "err", err)
 		return r.UpdateGenerationCountCacheAdmin(filters)
 	}
 	// See if needs updating
@@ -664,7 +670,7 @@ func (r *Repository) QueryGenerationsAdmin(per_page int, cursor *time.Time, filt
 		GalleryStatus     string     `json:"gallery_status" sql:"gallery_status"`
 	}
 
-	queryG := r.DB.Debug().Generation.Query().Select(generation.FieldID).Where(
+	queryG := r.DB.Generation.Query().Select(generation.FieldID).Where(
 		generation.StatusEQ(generation.StatusSucceeded),
 	)
 	queryG = r.ApplyUserGenerationsFilters(queryG, filters, false)
