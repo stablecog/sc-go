@@ -19,9 +19,3 @@ type TaskStatusUpdateResponse struct {
 	LivePageMessage  *shared.LivePageMessage   `json:"live_page_message,omitempty"`
 	RemainingCredits int                       `json:"total_remaining_credits,omitempty"`
 }
-
-// Represents that we should un-throttle a user
-type UnthrottleUserResponse struct {
-	Amount int    `json:"amount"`
-	UserID string `json:"user_id"`
-}

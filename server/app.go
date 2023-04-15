@@ -107,13 +107,17 @@ func main() {
 		log.Warn("Error creating qdrant indexes", "err", err)
 	}
 
+	// Q Throttler
+	qThrottler := shared.NewQueueThrottler(ctx, redis.Client, shared.REQUEST_COG_TIMEOUT)
+
 	// Create repository (database access)
 	repo := &repository.Repository{
-		DB:       entClient,
-		ConnInfo: dbconn,
-		Redis:    redis,
-		Ctx:      ctx,
-		Qdrant:   qdrantClient,
+		DB:             entClient,
+		ConnInfo:       dbconn,
+		Redis:          redis,
+		Ctx:            ctx,
+		Qdrant:         qdrantClient,
+		QueueThrottler: qThrottler,
 	}
 
 	if *createMockData {
@@ -178,9 +182,6 @@ func main() {
 	// Create analytics service
 	analyticsService := analytics.NewAnalyticsService()
 	defer analyticsService.Close()
-
-	// Q Throttler
-	qThrottler := shared.NewQueueThrottler(shared.REQUEST_COG_TIMEOUT)
 
 	// Setup S3 Client
 	region := os.Getenv("S3_IMG2IMG_REGION")
@@ -319,25 +320,6 @@ func main() {
 			})
 		})
 	})
-
-	// This redis subscription has the following purpose:
-	// When a generation/upscale is finished - we want to un-throttle them from the queue across all instances
-	pubsubThrottleMessages := redis.Client.Subscribe(ctx, shared.REDIS_QUEUE_THROTTLE_CHANNEL)
-	defer pubsubThrottleMessages.Close()
-
-	// Start SSE redis subscription
-	go func() {
-		log.Info("Listening for throttle messages", "channel", shared.REDIS_QUEUE_THROTTLE_CHANNEL)
-		for msg := range pubsubThrottleMessages.Channel() {
-			var unthrottleMsg repository.UnthrottleUserResponse
-			err := json.Unmarshal([]byte(msg.Payload), &unthrottleMsg)
-			if err != nil {
-				log.Error("Error unmarshalling unthrottle message", "err", err)
-				continue
-			}
-			qThrottler.DecrementBy(unthrottleMsg.Amount, unthrottleMsg.UserID)
-		}
-	}()
 
 	// This redis subscription has the following purpose:
 	// After we are done processing a cog message, we want to broadcast it to

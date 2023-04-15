@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/go-chi/render"
-	"github.com/go-redis/redis/v8"
+	"github.com/redis/go-redis/v9"
 	"github.com/stablecog/sc-go/database/ent"
 	"github.com/stablecog/sc-go/log"
 	"github.com/stablecog/sc-go/server/discord"

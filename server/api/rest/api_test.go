@@ -55,11 +55,14 @@ func testMainWrapper(m *testing.M) int {
 		os.Exit(1)
 	}
 
+	qThrottler := shared.NewQueueThrottler(ctx, redis.Client, time.Hour)
+
 	repo := &repository.Repository{
-		DB:       entClient,
-		ConnInfo: dbconn,
-		Redis:    redis,
-		Ctx:      ctx,
+		DB:             entClient,
+		ConnInfo:       dbconn,
+		Redis:          redis,
+		Ctx:            ctx,
+		QueueThrottler: qThrottler,
 	}
 
 	// Mock data
@@ -89,7 +92,7 @@ func testMainWrapper(m *testing.M) int {
 		Redis:          redis,
 		Hub:            hub,
 		Track:          analytics.NewAnalyticsService(),
-		QueueThrottler: shared.NewQueueThrottler(time.Hour),
+		QueueThrottler: qThrottler,
 	}
 
 	return m.Run()

@@ -64,7 +64,11 @@ func (c *RestAPI) HandleUpscale(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Get queue count
-	if c.QueueThrottler.NumQueued(user.ID.String()) > qMax {
+	nq, err := c.QueueThrottler.NumQueued(user.ID.String())
+	if err != nil {
+		log.Warn("Error getting queue count for user", "err", err, "user_id", user.ID)
+	}
+	if err == nil && nq > qMax {
 		responses.ErrBadRequest(w, r, "queue_limit_reached", "")
 		return
 	}
