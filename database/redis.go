@@ -167,6 +167,19 @@ type PendingCogRequestRedis struct {
 	ID         uuid.UUID
 }
 
+func (r *RedisWrapper) XDelListOfIDs(ids []string) (deleted int64, err error) {
+	_, err = r.Client.XAck(r.Ctx, shared.COG_REDIS_QUEUE, shared.COG_REDIS_QUEUE, ids...).Result()
+	if err != nil {
+		log.Error("Error acking from redis", "err", err)
+		return 0, err
+	}
+	deleted, err = r.Client.XDel(r.Ctx, shared.COG_REDIS_QUEUE, ids...).Result()
+	if err != nil {
+		log.Error("Error deleting from redis", "err", err)
+	}
+	return deleted, err
+}
+
 // Keep track of request ID to cog, with stream ID of the client, for timeout tracking
 func (r *RedisWrapper) SetCogRequestStreamID(ctx context.Context, requestID string, streamID string) error {
 	_, err := r.Client.Set(ctx, requestID, streamID, 1*time.Hour).Result()

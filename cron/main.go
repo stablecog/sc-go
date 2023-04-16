@@ -132,6 +132,8 @@ func main() {
 		s.Every(60).Seconds().Do(jobRunner.AddFreeCreditsToEligibleUsers, jobs.NewJobLogger("FREE_CREDITS"))
 		// Sync stripe
 		s.Every(10).Minutes().Do(jobRunner.SyncStripe, jobs.NewJobLogger("STRIPE_SYNC"))
+		// Clean up old redis queue items
+		s.Every(10).Minutes().Do(jobRunner.PruneOldQueueItems, jobs.NewJobLogger("RDQUEUE_CLEANUP"))
 		// cache update
 		s.Every(5).Minutes().StartAt(time.Now().Add(5 * time.Minute)).Do(func() {
 			log.Info("📦 Updating cache...")
