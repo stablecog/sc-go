@@ -20,6 +20,11 @@ func (j *JobRunner) PruneOldQueueItems(log Logger) error {
 		return err
 	}
 
+	if len(generations) == 0 && len(upscales) == 0 {
+		log.Infof("No old queue items to delete")
+		return nil
+	}
+
 	idsToRemove := make([]string, len(generations)+len(upscales))
 
 	lastI := 0
