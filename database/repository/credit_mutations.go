@@ -206,16 +206,16 @@ func (r *Repository) ReplenishFreeCreditsToEligibleUsers(userIDs []uuid.UUID) (i
 			return err
 		}
 		// Ensure nothing is higher than the cap
-		_, err = tx.Credit.Update().
-			Where(
-				credit.UserIDIn(userIDs...),
-				credit.CreditTypeID(creditType.ID),
-				credit.RemainingAmountGT(creditType.Amount),
-			).
-			SetRemainingAmount(creditType.Amount).Save(r.Ctx)
-		if err != nil {
-			return err
-		}
+		// _, err = tx.Credit.Update().
+		// 	Where(
+		// 		credit.UserIDIn(userIDs...),
+		// 		credit.CreditTypeID(creditType.ID),
+		// 		credit.RemainingAmountGT(creditType.Amount),
+		// 	).
+		// 	SetRemainingAmount(creditType.Amount).Save(r.Ctx)
+		// if err != nil {
+		// 	return err
+		// }
 		return nil
 	}); err != nil {
 		return 0, err
