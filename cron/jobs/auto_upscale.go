@@ -91,7 +91,7 @@ func (j *JobRunner) StartAutoUpscaleJob(log Logger) {
 				// Upscale
 				log.Infof("Upscaling output %s", output.ID)
 				// Get generation
-				g, err := output.QueryGenerations().Only(j.Repo.Ctx)
+				g, err := output.QueryGenerations().First(j.Repo.Ctx)
 				if err != nil {
 					log.Errorf("Error getting generation %v", err)
 					time.Sleep(5 * time.Second)

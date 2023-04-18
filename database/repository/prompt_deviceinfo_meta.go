@@ -15,7 +15,7 @@ func (r *Repository) GetOrCreatePrompts(promptText, negativePromptText string, D
 	}
 	// Check if prompt exists
 	var dbPrompt *ent.Prompt
-	dbPrompt, err = DB.Prompt.Query().Where(prompt.TextEQ(promptText)).Only(r.Ctx)
+	dbPrompt, err = DB.Prompt.Query().Where(prompt.TextEQ(promptText)).First(r.Ctx)
 	if err != nil {
 		if ent.IsNotFound(err) {
 			// Create prompt
@@ -31,7 +31,7 @@ func (r *Repository) GetOrCreatePrompts(promptText, negativePromptText string, D
 	// Check if negative prompt exists
 	var dbNegativePrompt *ent.NegativePrompt
 	if negativePromptText != "" {
-		dbNegativePrompt, err = DB.NegativePrompt.Query().Where(negativeprompt.TextEQ(negativePromptText)).Only(r.Ctx)
+		dbNegativePrompt, err = DB.NegativePrompt.Query().Where(negativeprompt.TextEQ(negativePromptText)).First(r.Ctx)
 		if err != nil {
 			if ent.IsNotFound(err) {
 				// Create negative prompt
