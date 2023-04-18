@@ -492,6 +492,20 @@ func (c *RestAPI) HandleStripeWebhook(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
+		if invoice.Status == InvoiceStatusOpen {
+			// Get payment intent
+			pi, err := c.StripeClient.PaymentIntents.Get(invoice.PaymentIntent, nil)
+			if err != nil {
+				log.Error("Unable getting payment intent", "err", err)
+				responses.ErrInternalServerError(w, r, err.Error())
+				return
+			}
+			if pi.Status == stripe.PaymentIntentStatusRequiresConfirmation || pi.Status == stripe.PaymentIntentStatusRequiresAction || pi.Status == stripe.PaymentIntentStatusCanceled || pi.Status == stripe.PaymentIntentStatusRequiresPaymentMethod {
+				c.RevertCreditsInvoice(invoice, w, r)
+				return
+			}
+		}
+
 		// We only care about renewal (cycle), create, and manual
 		if invoice.BillingReason != InvoiceBillingReasonSubscriptionCycle && invoice.BillingReason != InvoiceBillingReasonSubscriptionCreate {
 			render.Status(r, http.StatusOK)
@@ -876,7 +890,9 @@ type Invoice struct {
 	BillingReason InvoiceBillingReason `json:"billing_reason"`
 	Lines         *InvoiceLineList     `json:"lines"`
 	Customer      string               `json:"customer"`
+	PaymentIntent string               `json:"payment_intent"`
 	Status        InvoiceStatus        `json:"status"`
+	Currency      string               `json:"currency"`
 }
 
 // Subscription object is also pbroken in stripe
