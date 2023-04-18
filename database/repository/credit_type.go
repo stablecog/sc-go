@@ -57,12 +57,16 @@ func (r *Repository) GetOrCreateFreeCreditType() (*ent.CreditType, error) {
 }
 
 // Refund credit types are used to refund credits in case of generation failure, they do not expire
-func (r *Repository) GetOrCreateRefundCreditType() (*ent.CreditType, error) {
+func (r *Repository) GetOrCreateRefundCreditType(db *ent.Client) (*ent.CreditType, error) {
+	if db == nil {
+		db = r.DB
+	}
+
 	freeId := uuid.MustParse(REFUND_CREDIT_TYPE_ID)
-	creditType, err := r.DB.CreditType.Query().Where(credittype.IDEQ(freeId)).Only(r.Ctx)
+	creditType, err := db.CreditType.Query().Where(credittype.IDEQ(freeId)).Only(r.Ctx)
 	if err != nil && ent.IsNotFound(err) {
 		// Create it
-		creditType, err := r.DB.CreditType.Create().SetID(freeId).SetName("Refund").SetDescription("For generate/upscale failure refunds").SetAmount(0).SetType(credittype.TypeOneTime).Save(r.Ctx)
+		creditType, err := db.CreditType.Create().SetID(freeId).SetName("Refund").SetDescription("For generate/upscale failure refunds").SetAmount(0).SetType(credittype.TypeOneTime).Save(r.Ctx)
 		if err != nil {
 			return nil, err
 		}

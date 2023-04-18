@@ -181,7 +181,7 @@ func (r *Repository) RefundCreditsToUser(userID uuid.UUID, amount int32, db *ent
 		db = r.DB
 	}
 	// See if user has refund get credit
-	refundCreditType, err := r.GetOrCreateRefundCreditType()
+	refundCreditType, err := r.GetOrCreateRefundCreditType(db)
 	if err != nil {
 		return false, err
 	}
