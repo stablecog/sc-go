@@ -144,6 +144,34 @@ func (r *Repository) DeductCreditsFromUser(userID uuid.UUID, amount int32, DB *e
 	if err != nil {
 		return false, err
 	}
+	if rowsAffected == 0 {
+		// Check total credits of all types
+		totalCredits, err := r.GetNonExpiredCreditTotalForUser(userID, DB)
+		if err != nil {
+			return false, err
+		}
+		if int32(totalCredits) >= amount {
+			// User has enough credits, deduct from lowest expiring types first
+			credits, err := DB.Credit.Query().Where(credit.UserID(userID), credit.RemainingAmountGT(0), credit.ExpiresAtGT(time.Now())).Order(ent.Desc(credit.FieldExpiresAt)).All(r.Ctx)
+			deducted := int32(0)
+			for _, c := range credits {
+				toDeduct := c.RemainingAmount - (amount - deducted)
+				// Get distance from 0
+				for toDeduct < c.RemainingAmount {
+					toDeduct++
+				}
+				_, err = DB.Credit.UpdateOne(c).AddRemainingAmount(-1 * toDeduct).Save(r.Ctx)
+				if err != nil {
+					return false, err
+				}
+				deducted += toDeduct
+				if deducted >= amount {
+					break
+				}
+				rowsAffected++
+			}
+		}
+	}
 	return rowsAffected > 0, nil
 }
 
@@ -152,28 +180,31 @@ func (r *Repository) RefundCreditsToUser(userID uuid.UUID, amount int32, db *ent
 	if db == nil {
 		db = r.DB
 	}
-	rowsAffected, err := db.Credit.Update().
-		Where(func(s *sql.Selector) {
-			t := sql.Table(credit.Table)
-			s.Where(
-				sql.EQ(t.C(credit.FieldID),
-					sql.Select(credit.FieldID).From(t).Where(
-						sql.And(
-							// Not expired
-							sql.GT(t.C(credit.FieldExpiresAt), time.Now()),
-							// Our user
-							sql.EQ(t.C(credit.FieldUserID), userID),
-							// Has remaining amount
-							sql.GTE(t.C(credit.FieldRemainingAmount), amount),
-						),
-					).OrderBy(sql.Asc(t.C(credit.FieldExpiresAt))).Limit(1),
-				),
-			)
-		}).AddRemainingAmount(amount).Save(r.Ctx)
+	// See if user has refund get credit
+	refundCreditType, err := r.GetOrCreateRefundCreditType()
 	if err != nil {
 		return false, err
 	}
-	return rowsAffected > 0, nil
+
+	// See if user has any credits of this type
+	credits, err := db.Credit.Query().Where(credit.UserID(userID), credit.CreditTypeID(refundCreditType.ID)).First(r.Ctx)
+	if err != nil && !ent.IsNotFound(err) {
+		return false, err
+	} else if ent.IsNotFound(err) {
+		// Add credits
+		_, err = db.Credit.Create().SetCreditTypeID(refundCreditType.ID).SetUserID(userID).SetRemainingAmount(amount).SetExpiresAt(NEVER_EXPIRE).Save(r.Ctx)
+		if err != nil {
+			return false, err
+		}
+		return true, nil
+	}
+
+	// Refund
+	err = db.Credit.UpdateOne(credits).AddRemainingAmount(amount).Exec(r.Ctx)
+	if err != nil {
+		return false, err
+	}
+	return true, nil
 }
 
 // Replenish free credits where eligible
