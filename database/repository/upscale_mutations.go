@@ -6,6 +6,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/stablecog/sc-go/database/ent"
 	"github.com/stablecog/sc-go/database/ent/upscale"
+	"github.com/stablecog/sc-go/database/ent/upscaleoutput"
 	"github.com/stablecog/sc-go/log"
 	"github.com/stablecog/sc-go/server/requests"
 	"github.com/stablecog/sc-go/shared"
@@ -114,7 +115,14 @@ func (r *Repository) SetUpscaleSucceeded(upscaleID, generationOutputID, inputIma
 			uOutput.SetGenerationOutputID(outputId)
 		}
 		upscaleOutput, err = uOutput.Save(r.Ctx)
-		if err != nil {
+		if err != nil && ent.IsConstraintError(err) {
+			// See if we can find the upscale output
+			upscaleOutput, err = tx.UpscaleOutput.Query().Where(upscaleoutput.GenerationOutputIDEQ(outputId)).First(r.Ctx)
+			if err != nil {
+				log.Error("Error inserting upscale output from constraint error", "id", upscaleID, "err", err)
+				return err
+			}
+		} else if err != nil {
 			log.Error("Error inserting upscale output", "id", upscaleID, "err", err)
 			return err
 		}

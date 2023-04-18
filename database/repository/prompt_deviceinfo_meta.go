@@ -62,7 +62,7 @@ func (r *Repository) GetOrCreateDeviceInfo(deviceType, deviceOs, deviceBrowser s
 	}
 	// Check if device info combo exists
 	var dbDeviceInfo *ent.DeviceInfo
-	dbDeviceInfo, err = DB.DeviceInfo.Query().Where(deviceinfo.Type(deviceType), deviceinfo.Os(deviceOs), deviceinfo.Browser(deviceBrowser)).Only(r.Ctx)
+	dbDeviceInfo, err = DB.DeviceInfo.Query().Where(deviceinfo.Type(deviceType), deviceinfo.Os(deviceOs), deviceinfo.Browser(deviceBrowser)).First(r.Ctx)
 	if err != nil {
 		if ent.IsNotFound(err) {
 			// Create device info
