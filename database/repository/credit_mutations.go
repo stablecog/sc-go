@@ -152,7 +152,7 @@ func (r *Repository) DeductCreditsFromUser(userID uuid.UUID, amount int32, DB *e
 		}
 		if int32(totalCredits) >= amount {
 			// User has enough credits, deduct from lowest expiring types first
-			credits, err := DB.Credit.Query().Where(credit.UserID(userID), credit.RemainingAmountGT(0), credit.ExpiresAtGT(time.Now())).Order(ent.Desc(credit.FieldExpiresAt)).All(r.Ctx)
+			credits, err := DB.Credit.Query().Where(credit.UserID(userID), credit.RemainingAmountGT(0), credit.ExpiresAtGT(time.Now())).Order(ent.Asc(credit.FieldExpiresAt)).All(r.Ctx)
 			deducted := int32(0)
 			for _, c := range credits {
 				toDeduct := c.RemainingAmount - (amount - deducted)
