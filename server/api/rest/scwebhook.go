@@ -8,6 +8,7 @@ import (
 
 	"github.com/go-chi/render"
 	"github.com/google/uuid"
+	"github.com/stablecog/sc-go/database/ent"
 	"github.com/stablecog/sc-go/database/repository"
 	"github.com/stablecog/sc-go/log"
 	"github.com/stablecog/sc-go/server/requests"
@@ -166,7 +167,14 @@ func (c *RestAPI) HandleSCWorkerWebhook(w http.ResponseWriter, r *http.Request) 
 	err = c.Repo.ProcessCogMessage(cogMessage)
 	if err != nil {
 		log.Error("Error processing COG message", "err", err)
+		if ent.IsConstraintError(err) {
+			// Squish
+			render.Status(r, http.StatusOK)
+			render.PlainText(w, r, "OK")
+			return
+		}
 		responses.ErrInternalServerError(w, r, "server error")
+		return
 	}
 
 	render.Status(r, http.StatusOK)
