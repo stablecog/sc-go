@@ -571,7 +571,6 @@ func (c *RestAPI) HandleStripeWebhook(w http.ResponseWriter, r *http.Request) {
 				added, err := c.Repo.AddCreditsIfEligible(creditType, user.ID, expiresAt, line.ID, client)
 				if err != nil {
 					log.Error("Unable adding credits to user %s: %v", user.ID.String(), err)
-					responses.ErrInternalServerError(w, r, err.Error())
 					return err
 				}
 				if user.ActiveProductID == nil && added {
@@ -606,12 +605,18 @@ func (c *RestAPI) HandleStripeWebhook(w http.ResponseWriter, r *http.Request) {
 				err = c.Repo.SetActiveProductID(user.ID, product, client)
 				if err != nil {
 					log.Error("Unable setting stripe product id for user %s: %v", user.ID.String(), err)
-					responses.ErrInternalServerError(w, r, err.Error())
 					return err
 				}
 				return nil
 			}); err != nil {
 				log.Error("Unable adding credits to user %s: %v", user.ID.String(), err)
+				if ent.IsConstraintError(err) {
+					// Ignore
+					render.Status(r, http.StatusOK)
+					render.PlainText(w, r, "OK")
+					return
+				}
+				responses.ErrInternalServerError(w, r, err.Error())
 				return
 			}
 		}
@@ -696,6 +701,12 @@ func (c *RestAPI) HandleStripeWebhook(w http.ResponseWriter, r *http.Request) {
 		added, err := c.Repo.AddAdhocCreditsIfEligible(creditType, user.ID, pi.ID)
 		if err != nil {
 			log.Error("Unable adding credits to user %s: %v", user.ID.String(), err)
+			if ent.IsConstraintError(err) {
+				// Ignore
+				render.Status(r, http.StatusOK)
+				render.PlainText(w, r, "OK")
+				return
+			}
 			responses.ErrInternalServerError(w, r, err.Error())
 			return
 		}

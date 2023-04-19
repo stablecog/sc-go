@@ -515,6 +515,12 @@ CREATE INDEX credit_expires_at_user_id_remaining_amount ON public.credits USING 
 
 
 --
+-- Name: credit_stripe_line_item_id_key; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE UNIQUE INDEX credit_stripe_line_item_id_key ON public.credits USING btree (stripe_line_item_id);
+
+--
 -- Name: credit_types_name_key; Type: INDEX; Schema: public; Owner: postgres
 --
 

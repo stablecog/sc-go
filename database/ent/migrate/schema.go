@@ -14,7 +14,7 @@ var (
 		{Name: "id", Type: field.TypeUUID},
 		{Name: "remaining_amount", Type: field.TypeInt32},
 		{Name: "expires_at", Type: field.TypeTime},
-		{Name: "stripe_line_item_id", Type: field.TypeString, Nullable: true},
+		{Name: "stripe_line_item_id", Type: field.TypeString, Unique: true, Nullable: true},
 		{Name: "replenished_at", Type: field.TypeTime},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},
