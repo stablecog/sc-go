@@ -233,11 +233,13 @@ func main() {
 
 		// Stripe
 		r.Route("/stripe", func(r chi.Router) {
+			r.Use(middleware.Logger)
 			r.Post("/webhook", hc.HandleStripeWebhook)
 		})
 
 		// SCWorker
 		r.Route("/worker", func(r chi.Router) {
+			r.Use(middleware.Logger)
 			r.Post("/webhook", hc.HandleSCWorkerWebhook)
 		})
 

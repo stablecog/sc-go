@@ -44,7 +44,13 @@ func (r *Repository) AddCreditsIfEligible(creditType *ent.CreditType, userID uui
 	}
 
 	// See if user has any credits of this type
-	credits, err := DB.Credit.Query().Where(credit.UserID(userID), credit.CreditTypeID(creditType.ID), credit.StripeLineItemIDEQ(lineItemId)).First(r.Ctx)
+	q := DB.Credit.Query().Where(credit.UserID(userID), credit.CreditTypeID(creditType.ID))
+	if lineItemId != "" {
+		q = q.Where(credit.StripeLineItemIDEQ(lineItemId))
+	} else {
+		q = q.Where(credit.StripeLineItemIDIsNil())
+	}
+	credits, err := q.First(r.Ctx)
 	if err != nil && !ent.IsNotFound(err) {
 		return false, err
 	}
@@ -57,7 +63,11 @@ func (r *Repository) AddCreditsIfEligible(creditType *ent.CreditType, userID uui
 	// Add credits
 	// Add an extra day to expiresAt
 	expiresAtBuffer := expiresAt.AddDate(0, 0, 1)
-	_, err = DB.Credit.Create().SetCreditTypeID(creditType.ID).SetUserID(userID).SetRemainingAmount(creditType.Amount).SetExpiresAt(expiresAtBuffer).SetStripeLineItemID(lineItemId).Save(r.Ctx)
+	m := DB.Credit.Create().SetCreditTypeID(creditType.ID).SetUserID(userID).SetRemainingAmount(creditType.Amount).SetExpiresAt(expiresAtBuffer)
+	if lineItemId != "" {
+		m = m.SetStripeLineItemID(lineItemId)
+	}
+	_, err = m.Save(r.Ctx)
 	if err != nil {
 		return false, err
 	}
