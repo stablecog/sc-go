@@ -8,6 +8,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/stablecog/sc-go/database/ent"
 	"github.com/stablecog/sc-go/database/ent/credit"
+	"github.com/stablecog/sc-go/database/ent/credittype"
 	"github.com/stablecog/sc-go/log"
 	"github.com/stablecog/sc-go/shared"
 )
@@ -71,6 +72,15 @@ func (r *Repository) AddCreditsIfEligible(creditType *ent.CreditType, userID uui
 	if err != nil {
 		return false, err
 	}
+
+	// Expire any other credits of this type
+	if lineItemId != "" && creditType.Type == credittype.TypeSubscription {
+		err = DB.Credit.Update().Where(credit.UserIDEQ(userID), credit.CreditTypeIDEQ(creditType.ID), credit.StripeLineItemIDNEQ(lineItemId), credit.ExpiresAtGT(time.Now())).SetExpiresAt(time.Now()).Exec(r.Ctx)
+		if err != nil {
+			return false, err
+		}
+	}
+
 	return true, nil
 }
 
