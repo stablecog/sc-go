@@ -55,6 +55,18 @@ func (c *Controller) HandleUpload(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// See if banned
+	banned, err := c.Repo.IsBanned(userID)
+	if err != nil {
+		log.Error("Error checking if user is banned", "err", err)
+		responses.ErrInternalServerError(w, r, "An unknown error has occurred")
+		return
+	}
+	if banned {
+		responses.ErrForbidden(w, r)
+		return
+	}
+
 	// Hash user ID to protect leaking it
 	uidHash := utils.Sha256(userID.String())
 

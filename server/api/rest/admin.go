@@ -24,6 +24,47 @@ import (
 )
 
 // Admin-related routes, these must be behind admin middleware and auth middleware
+// HTTP POST - admin ban user
+func (c *RestAPI) HandleBanUser(w http.ResponseWriter, r *http.Request) {
+	if user, email := c.GetUserIDAndEmailIfAuthenticated(w, r); user == nil || email == "" {
+		return
+	}
+
+	// Parse request body
+	reqBody, _ := io.ReadAll(r.Body)
+	var banUsersReq requests.BanUsersRequest
+	err := json.Unmarshal(reqBody, &banUsersReq)
+	if err != nil {
+		responses.ErrUnableToParseJson(w, r)
+		return
+	}
+
+	if banUsersReq.Action != requests.BanActionBan && banUsersReq.Action != requests.BanActionUnban {
+		responses.ErrBadRequest(w, r, fmt.Sprintf("Unsupported action %s", banUsersReq.Action), "")
+		return
+	}
+
+	var affected int
+	if banUsersReq.Action == requests.BanActionBan {
+		affected, err = c.Repo.BanUsers(banUsersReq.UserIDs)
+		if err != nil {
+			responses.ErrInternalServerError(w, r, err.Error())
+			return
+		}
+	} else {
+		affected, err = c.Repo.UnbanUsers(banUsersReq.UserIDs)
+		if err != nil {
+			responses.ErrInternalServerError(w, r, err.Error())
+			return
+		}
+	}
+
+	res := responses.UpdatedResponse{
+		Updated: affected,
+	}
+	render.Status(r, http.StatusOK)
+	render.JSON(w, r, res)
+}
 
 // HTTP POST - admin approve/reject image in gallery
 func (c *RestAPI) HandleReviewGallerySubmission(w http.ResponseWriter, r *http.Request) {

@@ -343,6 +343,8 @@ CREATE TABLE public.users (
     stripe_customer_id text NOT NULL,
     active_product_id text,
     last_sign_in_at timestamp with time zone,
+    banned_at timestamp with time zone,
+    deleted_at timestamp with time zone,
     created_at timestamp with time zone DEFAULT timezone('utc'::text, now()) NOT NULL,
     updated_at timestamp with time zone DEFAULT timezone('utc'::text, now()) NOT NULL
 );

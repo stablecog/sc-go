@@ -300,3 +300,8 @@ func (r *Repository) GetUsersThatSignedInSince(since time.Duration) ([]*ent.User
 func (r *Repository) GetNSubscribers() (int, error) {
 	return r.DB.User.Query().Where(user.ActiveProductIDNotNil(), user.ActiveProductIDNEQ("")).Count(r.Ctx)
 }
+
+// Get is banned
+func (r *Repository) IsBanned(userId uuid.UUID) (bool, error) {
+	return r.DB.User.Query().Where(user.IDEQ(userId), user.BannedAtNotNil()).Exist(r.Ctx)
+}

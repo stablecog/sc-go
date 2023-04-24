@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/go-chi/render"
+	"github.com/google/uuid"
 	"github.com/stablecog/sc-go/database/ent"
 	"github.com/stablecog/sc-go/database/repository"
 	"github.com/stablecog/sc-go/log"
@@ -30,6 +31,15 @@ func (c *RestAPI) HandleUpscale(w http.ResponseWriter, r *http.Request) {
 	err := json.Unmarshal(reqBody, &upscaleReq)
 	if err != nil {
 		responses.ErrUnableToParseJson(w, r)
+		return
+	}
+
+	if user.BannedAt != nil {
+		render.Status(r, http.StatusOK)
+		render.JSON(w, r, &responses.TaskQueuedResponse{
+			ID:   uuid.NewString(),
+			UIId: upscaleReq.UIId,
+		})
 		return
 	}
 

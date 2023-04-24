@@ -57,3 +57,13 @@ func (r *Repository) SyncStripeProductIDs(productCustomerIDMap map[string][]stri
 	}
 	return nil
 }
+
+// Ban users
+func (r *Repository) BanUsers(userIDs []uuid.UUID) (int, error) {
+	return r.DB.User.Update().Where(user.IDIn(userIDs...)).SetBannedAt(time.Now()).Save(r.Ctx)
+}
+
+// Unban users
+func (r *Repository) UnbanUsers(userIDs []uuid.UUID) (int, error) {
+	return r.DB.User.Update().Where(user.IDIn(userIDs...)).ClearBannedAt().Save(r.Ctx)
+}

@@ -222,6 +222,11 @@ func (c *RestAPI) HandleSubmitGenerationToGallery(w http.ResponseWriter, r *http
 		return
 	}
 
+	if user.BannedAt != nil {
+		responses.ErrForbidden(w, r)
+		return
+	}
+
 	// Parse request body
 	reqBody, _ := io.ReadAll(r.Body)
 	var submitToGalleryReq requests.SubmitGalleryRequest

@@ -11340,6 +11340,8 @@ type UserMutation struct {
 	active_product_id  *string
 	last_sign_in_at    *time.Time
 	last_seen_at       *time.Time
+	banned_at          *time.Time
+	deleted_at         *time.Time
 	created_at         *time.Time
 	updated_at         *time.Time
 	clearedFields      map[string]struct{}
@@ -11670,6 +11672,104 @@ func (m *UserMutation) ResetLastSeenAt() {
 	m.last_seen_at = nil
 }
 
+// SetBannedAt sets the "banned_at" field.
+func (m *UserMutation) SetBannedAt(t time.Time) {
+	m.banned_at = &t
+}
+
+// BannedAt returns the value of the "banned_at" field in the mutation.
+func (m *UserMutation) BannedAt() (r time.Time, exists bool) {
+	v := m.banned_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldBannedAt returns the old "banned_at" field's value of the User entity.
+// If the User object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UserMutation) OldBannedAt(ctx context.Context) (v *time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldBannedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldBannedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldBannedAt: %w", err)
+	}
+	return oldValue.BannedAt, nil
+}
+
+// ClearBannedAt clears the value of the "banned_at" field.
+func (m *UserMutation) ClearBannedAt() {
+	m.banned_at = nil
+	m.clearedFields[user.FieldBannedAt] = struct{}{}
+}
+
+// BannedAtCleared returns if the "banned_at" field was cleared in this mutation.
+func (m *UserMutation) BannedAtCleared() bool {
+	_, ok := m.clearedFields[user.FieldBannedAt]
+	return ok
+}
+
+// ResetBannedAt resets all changes to the "banned_at" field.
+func (m *UserMutation) ResetBannedAt() {
+	m.banned_at = nil
+	delete(m.clearedFields, user.FieldBannedAt)
+}
+
+// SetDeletedAt sets the "deleted_at" field.
+func (m *UserMutation) SetDeletedAt(t time.Time) {
+	m.deleted_at = &t
+}
+
+// DeletedAt returns the value of the "deleted_at" field in the mutation.
+func (m *UserMutation) DeletedAt() (r time.Time, exists bool) {
+	v := m.deleted_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDeletedAt returns the old "deleted_at" field's value of the User entity.
+// If the User object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UserMutation) OldDeletedAt(ctx context.Context) (v *time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDeletedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDeletedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDeletedAt: %w", err)
+	}
+	return oldValue.DeletedAt, nil
+}
+
+// ClearDeletedAt clears the value of the "deleted_at" field.
+func (m *UserMutation) ClearDeletedAt() {
+	m.deleted_at = nil
+	m.clearedFields[user.FieldDeletedAt] = struct{}{}
+}
+
+// DeletedAtCleared returns if the "deleted_at" field was cleared in this mutation.
+func (m *UserMutation) DeletedAtCleared() bool {
+	_, ok := m.clearedFields[user.FieldDeletedAt]
+	return ok
+}
+
+// ResetDeletedAt resets all changes to the "deleted_at" field.
+func (m *UserMutation) ResetDeletedAt() {
+	m.deleted_at = nil
+	delete(m.clearedFields, user.FieldDeletedAt)
+}
+
 // SetCreatedAt sets the "created_at" field.
 func (m *UserMutation) SetCreatedAt(t time.Time) {
 	m.created_at = &t
@@ -11992,7 +12092,7 @@ func (m *UserMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *UserMutation) Fields() []string {
-	fields := make([]string, 0, 7)
+	fields := make([]string, 0, 9)
 	if m.email != nil {
 		fields = append(fields, user.FieldEmail)
 	}
@@ -12007,6 +12107,12 @@ func (m *UserMutation) Fields() []string {
 	}
 	if m.last_seen_at != nil {
 		fields = append(fields, user.FieldLastSeenAt)
+	}
+	if m.banned_at != nil {
+		fields = append(fields, user.FieldBannedAt)
+	}
+	if m.deleted_at != nil {
+		fields = append(fields, user.FieldDeletedAt)
 	}
 	if m.created_at != nil {
 		fields = append(fields, user.FieldCreatedAt)
@@ -12032,6 +12138,10 @@ func (m *UserMutation) Field(name string) (ent.Value, bool) {
 		return m.LastSignInAt()
 	case user.FieldLastSeenAt:
 		return m.LastSeenAt()
+	case user.FieldBannedAt:
+		return m.BannedAt()
+	case user.FieldDeletedAt:
+		return m.DeletedAt()
 	case user.FieldCreatedAt:
 		return m.CreatedAt()
 	case user.FieldUpdatedAt:
@@ -12055,6 +12165,10 @@ func (m *UserMutation) OldField(ctx context.Context, name string) (ent.Value, er
 		return m.OldLastSignInAt(ctx)
 	case user.FieldLastSeenAt:
 		return m.OldLastSeenAt(ctx)
+	case user.FieldBannedAt:
+		return m.OldBannedAt(ctx)
+	case user.FieldDeletedAt:
+		return m.OldDeletedAt(ctx)
 	case user.FieldCreatedAt:
 		return m.OldCreatedAt(ctx)
 	case user.FieldUpdatedAt:
@@ -12102,6 +12216,20 @@ func (m *UserMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetLastSeenAt(v)
+		return nil
+	case user.FieldBannedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetBannedAt(v)
+		return nil
+	case user.FieldDeletedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDeletedAt(v)
 		return nil
 	case user.FieldCreatedAt:
 		v, ok := value.(time.Time)
@@ -12153,6 +12281,12 @@ func (m *UserMutation) ClearedFields() []string {
 	if m.FieldCleared(user.FieldLastSignInAt) {
 		fields = append(fields, user.FieldLastSignInAt)
 	}
+	if m.FieldCleared(user.FieldBannedAt) {
+		fields = append(fields, user.FieldBannedAt)
+	}
+	if m.FieldCleared(user.FieldDeletedAt) {
+		fields = append(fields, user.FieldDeletedAt)
+	}
 	return fields
 }
 
@@ -12172,6 +12306,12 @@ func (m *UserMutation) ClearField(name string) error {
 		return nil
 	case user.FieldLastSignInAt:
 		m.ClearLastSignInAt()
+		return nil
+	case user.FieldBannedAt:
+		m.ClearBannedAt()
+		return nil
+	case user.FieldDeletedAt:
+		m.ClearDeletedAt()
 		return nil
 	}
 	return fmt.Errorf("unknown User nullable field %s", name)
@@ -12195,6 +12335,12 @@ func (m *UserMutation) ResetField(name string) error {
 		return nil
 	case user.FieldLastSeenAt:
 		m.ResetLastSeenAt()
+		return nil
+	case user.FieldBannedAt:
+		m.ResetBannedAt()
+		return nil
+	case user.FieldDeletedAt:
+		m.ResetDeletedAt()
 		return nil
 	case user.FieldCreatedAt:
 		m.ResetCreatedAt()

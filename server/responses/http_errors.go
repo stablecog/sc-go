@@ -30,6 +30,15 @@ func ErrUnauthorized(w http.ResponseWriter, r *http.Request) {
 	render.JSON(w, r, &UnauthorizedError)
 }
 
+var ForbiddenError = ErrorResponse{
+	Error: "Forbidden",
+}
+
+func ErrForbidden(w http.ResponseWriter, r *http.Request) {
+	render.Status(r, http.StatusForbidden)
+	render.JSON(w, r, &ForbiddenError)
+}
+
 var InsufficientCredits = ErrorResponse{
 	Error: "insufficient_credits",
 }

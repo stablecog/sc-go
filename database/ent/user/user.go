@@ -23,6 +23,10 @@ const (
 	FieldLastSignInAt = "last_sign_in_at"
 	// FieldLastSeenAt holds the string denoting the last_seen_at field in the database.
 	FieldLastSeenAt = "last_seen_at"
+	// FieldBannedAt holds the string denoting the banned_at field in the database.
+	FieldBannedAt = "banned_at"
+	// FieldDeletedAt holds the string denoting the deleted_at field in the database.
+	FieldDeletedAt = "deleted_at"
 	// FieldCreatedAt holds the string denoting the created_at field in the database.
 	FieldCreatedAt = "created_at"
 	// FieldUpdatedAt holds the string denoting the updated_at field in the database.
@@ -75,6 +79,8 @@ var Columns = []string{
 	FieldActiveProductID,
 	FieldLastSignInAt,
 	FieldLastSeenAt,
+	FieldBannedAt,
+	FieldDeletedAt,
 	FieldCreatedAt,
 	FieldUpdatedAt,
 }
