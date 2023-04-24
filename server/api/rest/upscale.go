@@ -35,10 +35,12 @@ func (c *RestAPI) HandleUpscale(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if user.BannedAt != nil {
+		remainingCredits, _ := c.Repo.GetNonExpiredCreditTotalForUser(user.ID, nil)
 		render.Status(r, http.StatusOK)
 		render.JSON(w, r, &responses.TaskQueuedResponse{
-			ID:   uuid.NewString(),
-			UIId: upscaleReq.UIId,
+			ID:               uuid.NewString(),
+			UIId:             upscaleReq.UIId,
+			RemainingCredits: remainingCredits,
 		})
 		return
 	}

@@ -84,10 +84,12 @@ func (c *RestAPI) HandleCreateGeneration(w http.ResponseWriter, r *http.Request)
 	}
 
 	if user.BannedAt != nil {
+		remainingCredits, _ := c.Repo.GetNonExpiredCreditTotalForUser(user.ID, nil)
 		render.Status(r, http.StatusOK)
 		render.JSON(w, r, &responses.TaskQueuedResponse{
-			ID:   uuid.NewString(),
-			UIId: generateReq.UIId,
+			ID:               uuid.NewString(),
+			UIId:             generateReq.UIId,
+			RemainingCredits: remainingCredits,
 		})
 		return
 	}
