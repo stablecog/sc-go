@@ -160,6 +160,7 @@ func (r *Repository) QueryUsers(
 	per_page int,
 	cursor *time.Time,
 	productIds []string,
+	banned *bool,
 ) (*UserQueryMeta, error) {
 	selectFields := []string{
 		user.FieldID,
@@ -189,7 +190,15 @@ func (r *Repository) QueryUsers(
 	})
 
 	if productIds != nil && len(productIds) > 0 {
-		query.Where(user.ActiveProductIDIn(productIds...))
+		query = query.Where(user.ActiveProductIDIn(productIds...))
+	}
+
+	if banned != nil {
+		if *banned {
+			query = query.Where(user.BannedAtNotNil())
+		} else {
+			query = query.Where(user.BannedAtIsNil())
+		}
 	}
 
 	if emailSearch != "" {

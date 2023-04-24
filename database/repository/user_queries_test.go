@@ -123,14 +123,14 @@ func TestQueryUsersCount(t *testing.T) {
 
 func TestQueryUsers(t *testing.T) {
 	// Query users
-	users, err := MockRepo.QueryUsers("mockadmin", 50, nil, []string{})
+	users, err := MockRepo.QueryUsers("mockadmin", 50, nil, []string{}, nil)
 	assert.Nil(t, err)
 	assert.Equal(t, 1, *users.Total)
 	assert.Nil(t, users.Next)
 	assert.Equal(t, users.Users[0].ID, uuid.MustParse(MOCK_ADMIN_UUID))
 
 	// Query users
-	users, err = MockRepo.QueryUsers("", 1, nil, []string{})
+	users, err = MockRepo.QueryUsers("", 1, nil, []string{}, nil)
 	assert.Nil(t, err)
 	assert.Equal(t, 4, *users.Total)
 	assert.NotNil(t, users.Next)

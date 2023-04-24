@@ -354,8 +354,19 @@ func (c *RestAPI) HandleQueryUsers(w http.ResponseWriter, r *http.Request) {
 		productIds = strings.Split(productIdsStr, ",")
 	}
 
+	// Ban status
+	var banned *bool
+	if banStatusStr := r.URL.Query().Get("banned"); banStatusStr != "" {
+		bannedBool, err := strconv.ParseBool(banStatusStr)
+		if err != nil {
+			responses.ErrBadRequest(w, r, "banned must be a boolean", "")
+			return
+		}
+		banned = &bannedBool
+	}
+
 	// Get users
-	users, err := c.Repo.QueryUsers(r.URL.Query().Get("search"), perPage, cursor, productIds)
+	users, err := c.Repo.QueryUsers(r.URL.Query().Get("search"), perPage, cursor, productIds, banned)
 	if err != nil {
 		log.Error("Error getting users", "err", err)
 		responses.ErrInternalServerError(w, r, "Error getting users")

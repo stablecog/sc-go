@@ -8,6 +8,10 @@ import (
 	"os"
 	"time"
 
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/credentials"
+	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/go-co-op/gocron"
 	"github.com/joho/godotenv"
 	"github.com/stablecog/sc-go/cron/discord"
@@ -87,14 +91,44 @@ func main() {
 	// Create stripe client
 	stripeClient := stripe.New(utils.GetEnv("STRIPE_SECRET_KEY", ""), nil)
 
+	// Setup S3 Client img2img
+	region := os.Getenv("S3_IMG2IMG_REGION")
+	accessKey := os.Getenv("S3_IMG2IMG_ACCESS_KEY")
+	secretKey := os.Getenv("S3_IMG2IMG_SECRET_KEY")
+
+	s3ConfigI2I := &aws.Config{
+		Credentials: credentials.NewStaticCredentials(accessKey, secretKey, ""),
+		Endpoint:    aws.String(os.Getenv("S3_IMG2IMG_ENDPOINT")),
+		Region:      aws.String(region),
+	}
+
+	newSessionI2i := session.New(s3ConfigI2I)
+	s3Img2ImgClient := s3.New(newSessionI2i)
+
+	// Setup S3 Client regular
+	region = os.Getenv("S3_REGION")
+	accessKey = os.Getenv("S3_ACCESS_KEY")
+	secretKey = os.Getenv("S3_SECRET_KEY")
+
+	s3Config := &aws.Config{
+		Credentials: credentials.NewStaticCredentials(accessKey, secretKey, ""),
+		Endpoint:    aws.String(os.Getenv("S3_ENDPOINT")),
+		Region:      aws.String(region),
+	}
+
+	newSession := session.New(s3Config)
+	s3Client := s3.New(newSession)
+
 	// Create a job runner
 	jobRunner := jobs.JobRunner{
-		Repo:    repo,
-		Redis:   redis,
-		Ctx:     ctx,
-		Discord: discord.NewDiscordHealthTracker(ctx),
-		Track:   analyticsService,
-		Stripe:  stripeClient,
+		Repo:      repo,
+		Redis:     redis,
+		Ctx:       ctx,
+		Discord:   discord.NewDiscordHealthTracker(ctx),
+		Track:     analyticsService,
+		Stripe:    stripeClient,
+		S3:        s3Client,
+		S3Img2Img: s3Img2ImgClient,
 	}
 
 	if *healthCheck {
