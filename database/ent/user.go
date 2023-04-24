@@ -31,8 +31,8 @@ type User struct {
 	BannedAt *time.Time `json:"banned_at,omitempty"`
 	// ScheduledForDeletionOn holds the value of the "scheduled_for_deletion_on" field.
 	ScheduledForDeletionOn *time.Time `json:"scheduled_for_deletion_on,omitempty"`
-	// DeletedAt holds the value of the "deleted_at" field.
-	DeletedAt *time.Time `json:"deleted_at,omitempty"`
+	// DataDeletedAt holds the value of the "data_deleted_at" field.
+	DataDeletedAt *time.Time `json:"data_deleted_at,omitempty"`
 	// CreatedAt holds the value of the "created_at" field.
 	CreatedAt time.Time `json:"created_at,omitempty"`
 	// UpdatedAt holds the value of the "updated_at" field.
@@ -100,7 +100,7 @@ func (*User) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case user.FieldEmail, user.FieldStripeCustomerID, user.FieldActiveProductID:
 			values[i] = new(sql.NullString)
-		case user.FieldLastSignInAt, user.FieldLastSeenAt, user.FieldBannedAt, user.FieldScheduledForDeletionOn, user.FieldDeletedAt, user.FieldCreatedAt, user.FieldUpdatedAt:
+		case user.FieldLastSignInAt, user.FieldLastSeenAt, user.FieldBannedAt, user.FieldScheduledForDeletionOn, user.FieldDataDeletedAt, user.FieldCreatedAt, user.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
 		case user.FieldID:
 			values[i] = new(uuid.UUID)
@@ -171,12 +171,12 @@ func (u *User) assignValues(columns []string, values []any) error {
 				u.ScheduledForDeletionOn = new(time.Time)
 				*u.ScheduledForDeletionOn = value.Time
 			}
-		case user.FieldDeletedAt:
+		case user.FieldDataDeletedAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
-				return fmt.Errorf("unexpected type %T for field deleted_at", values[i])
+				return fmt.Errorf("unexpected type %T for field data_deleted_at", values[i])
 			} else if value.Valid {
-				u.DeletedAt = new(time.Time)
-				*u.DeletedAt = value.Time
+				u.DataDeletedAt = new(time.Time)
+				*u.DataDeletedAt = value.Time
 			}
 		case user.FieldCreatedAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
@@ -267,8 +267,8 @@ func (u *User) String() string {
 		builder.WriteString(v.Format(time.ANSIC))
 	}
 	builder.WriteString(", ")
-	if v := u.DeletedAt; v != nil {
-		builder.WriteString("deleted_at=")
+	if v := u.DataDeletedAt; v != nil {
+		builder.WriteString("data_deleted_at=")
 		builder.WriteString(v.Format(time.ANSIC))
 	}
 	builder.WriteString(", ")

@@ -1385,7 +1385,7 @@ components:
         banned_at:
           type: string
           format: isoTimeString, optional
-        deleted_at:
+        data_deleted_at:
           type: string
           format: isoTimeString, optional
         scheduled_for_deletion_on:

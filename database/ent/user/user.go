@@ -27,8 +27,8 @@ const (
 	FieldBannedAt = "banned_at"
 	// FieldScheduledForDeletionOn holds the string denoting the scheduled_for_deletion_on field in the database.
 	FieldScheduledForDeletionOn = "scheduled_for_deletion_on"
-	// FieldDeletedAt holds the string denoting the deleted_at field in the database.
-	FieldDeletedAt = "deleted_at"
+	// FieldDataDeletedAt holds the string denoting the data_deleted_at field in the database.
+	FieldDataDeletedAt = "data_deleted_at"
 	// FieldCreatedAt holds the string denoting the created_at field in the database.
 	FieldCreatedAt = "created_at"
 	// FieldUpdatedAt holds the string denoting the updated_at field in the database.
@@ -83,7 +83,7 @@ var Columns = []string{
 	FieldLastSeenAt,
 	FieldBannedAt,
 	FieldScheduledForDeletionOn,
-	FieldDeletedAt,
+	FieldDataDeletedAt,
 	FieldCreatedAt,
 	FieldUpdatedAt,
 }

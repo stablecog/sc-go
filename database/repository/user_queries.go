@@ -170,7 +170,7 @@ func (r *Repository) QueryUsers(
 		user.FieldLastSignInAt,
 		user.FieldLastSeenAt,
 		user.FieldBannedAt,
-		user.FieldDeletedAt,
+		user.FieldDataDeletedAt,
 		user.FieldScheduledForDeletionOn,
 	}
 
@@ -237,7 +237,7 @@ func (r *Repository) QueryUsers(
 			LastSignInAt:           user.LastSignInAt,
 			LastSeenAt:             user.LastSeenAt,
 			BannedAt:               user.BannedAt,
-			DeletedAt:              user.DeletedAt,
+			DataDeletedAt:          user.DataDeletedAt,
 			ScheduledForDeletionOn: user.ScheduledForDeletionOn,
 		}
 		for _, role := range user.Edges.UserRoles {
@@ -294,7 +294,7 @@ type UserQueryResult struct {
 	LastSignInAt           *time.Time          `json:"last_sign_in_at,omitempty"`
 	LastSeenAt             time.Time           `json:"last_seen_at"`
 	BannedAt               *time.Time          `json:"banned_at,omitempty"`
-	DeletedAt              *time.Time          `json:"deleted_at,omitempty"`
+	DataDeletedAt          *time.Time          `json:"data_deleted_at,omitempty"`
 	ScheduledForDeletionOn *time.Time          `json:"scheduled_for_deletion_on,omitempty"`
 	StripeProductID        *string             `json:"product_id,omitempty"`
 }

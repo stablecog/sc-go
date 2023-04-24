@@ -11342,7 +11342,7 @@ type UserMutation struct {
 	last_seen_at              *time.Time
 	banned_at                 *time.Time
 	scheduled_for_deletion_on *time.Time
-	deleted_at                *time.Time
+	data_deleted_at           *time.Time
 	created_at                *time.Time
 	updated_at                *time.Time
 	clearedFields             map[string]struct{}
@@ -11771,53 +11771,53 @@ func (m *UserMutation) ResetScheduledForDeletionOn() {
 	delete(m.clearedFields, user.FieldScheduledForDeletionOn)
 }
 
-// SetDeletedAt sets the "deleted_at" field.
-func (m *UserMutation) SetDeletedAt(t time.Time) {
-	m.deleted_at = &t
+// SetDataDeletedAt sets the "data_deleted_at" field.
+func (m *UserMutation) SetDataDeletedAt(t time.Time) {
+	m.data_deleted_at = &t
 }
 
-// DeletedAt returns the value of the "deleted_at" field in the mutation.
-func (m *UserMutation) DeletedAt() (r time.Time, exists bool) {
-	v := m.deleted_at
+// DataDeletedAt returns the value of the "data_deleted_at" field in the mutation.
+func (m *UserMutation) DataDeletedAt() (r time.Time, exists bool) {
+	v := m.data_deleted_at
 	if v == nil {
 		return
 	}
 	return *v, true
 }
 
-// OldDeletedAt returns the old "deleted_at" field's value of the User entity.
+// OldDataDeletedAt returns the old "data_deleted_at" field's value of the User entity.
 // If the User object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *UserMutation) OldDeletedAt(ctx context.Context) (v *time.Time, err error) {
+func (m *UserMutation) OldDataDeletedAt(ctx context.Context) (v *time.Time, err error) {
 	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldDeletedAt is only allowed on UpdateOne operations")
+		return v, errors.New("OldDataDeletedAt is only allowed on UpdateOne operations")
 	}
 	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldDeletedAt requires an ID field in the mutation")
+		return v, errors.New("OldDataDeletedAt requires an ID field in the mutation")
 	}
 	oldValue, err := m.oldValue(ctx)
 	if err != nil {
-		return v, fmt.Errorf("querying old value for OldDeletedAt: %w", err)
+		return v, fmt.Errorf("querying old value for OldDataDeletedAt: %w", err)
 	}
-	return oldValue.DeletedAt, nil
+	return oldValue.DataDeletedAt, nil
 }
 
-// ClearDeletedAt clears the value of the "deleted_at" field.
-func (m *UserMutation) ClearDeletedAt() {
-	m.deleted_at = nil
-	m.clearedFields[user.FieldDeletedAt] = struct{}{}
+// ClearDataDeletedAt clears the value of the "data_deleted_at" field.
+func (m *UserMutation) ClearDataDeletedAt() {
+	m.data_deleted_at = nil
+	m.clearedFields[user.FieldDataDeletedAt] = struct{}{}
 }
 
-// DeletedAtCleared returns if the "deleted_at" field was cleared in this mutation.
-func (m *UserMutation) DeletedAtCleared() bool {
-	_, ok := m.clearedFields[user.FieldDeletedAt]
+// DataDeletedAtCleared returns if the "data_deleted_at" field was cleared in this mutation.
+func (m *UserMutation) DataDeletedAtCleared() bool {
+	_, ok := m.clearedFields[user.FieldDataDeletedAt]
 	return ok
 }
 
-// ResetDeletedAt resets all changes to the "deleted_at" field.
-func (m *UserMutation) ResetDeletedAt() {
-	m.deleted_at = nil
-	delete(m.clearedFields, user.FieldDeletedAt)
+// ResetDataDeletedAt resets all changes to the "data_deleted_at" field.
+func (m *UserMutation) ResetDataDeletedAt() {
+	m.data_deleted_at = nil
+	delete(m.clearedFields, user.FieldDataDeletedAt)
 }
 
 // SetCreatedAt sets the "created_at" field.
@@ -12164,8 +12164,8 @@ func (m *UserMutation) Fields() []string {
 	if m.scheduled_for_deletion_on != nil {
 		fields = append(fields, user.FieldScheduledForDeletionOn)
 	}
-	if m.deleted_at != nil {
-		fields = append(fields, user.FieldDeletedAt)
+	if m.data_deleted_at != nil {
+		fields = append(fields, user.FieldDataDeletedAt)
 	}
 	if m.created_at != nil {
 		fields = append(fields, user.FieldCreatedAt)
@@ -12195,8 +12195,8 @@ func (m *UserMutation) Field(name string) (ent.Value, bool) {
 		return m.BannedAt()
 	case user.FieldScheduledForDeletionOn:
 		return m.ScheduledForDeletionOn()
-	case user.FieldDeletedAt:
-		return m.DeletedAt()
+	case user.FieldDataDeletedAt:
+		return m.DataDeletedAt()
 	case user.FieldCreatedAt:
 		return m.CreatedAt()
 	case user.FieldUpdatedAt:
@@ -12224,8 +12224,8 @@ func (m *UserMutation) OldField(ctx context.Context, name string) (ent.Value, er
 		return m.OldBannedAt(ctx)
 	case user.FieldScheduledForDeletionOn:
 		return m.OldScheduledForDeletionOn(ctx)
-	case user.FieldDeletedAt:
-		return m.OldDeletedAt(ctx)
+	case user.FieldDataDeletedAt:
+		return m.OldDataDeletedAt(ctx)
 	case user.FieldCreatedAt:
 		return m.OldCreatedAt(ctx)
 	case user.FieldUpdatedAt:
@@ -12288,12 +12288,12 @@ func (m *UserMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetScheduledForDeletionOn(v)
 		return nil
-	case user.FieldDeletedAt:
+	case user.FieldDataDeletedAt:
 		v, ok := value.(time.Time)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
-		m.SetDeletedAt(v)
+		m.SetDataDeletedAt(v)
 		return nil
 	case user.FieldCreatedAt:
 		v, ok := value.(time.Time)
@@ -12351,8 +12351,8 @@ func (m *UserMutation) ClearedFields() []string {
 	if m.FieldCleared(user.FieldScheduledForDeletionOn) {
 		fields = append(fields, user.FieldScheduledForDeletionOn)
 	}
-	if m.FieldCleared(user.FieldDeletedAt) {
-		fields = append(fields, user.FieldDeletedAt)
+	if m.FieldCleared(user.FieldDataDeletedAt) {
+		fields = append(fields, user.FieldDataDeletedAt)
 	}
 	return fields
 }
@@ -12380,8 +12380,8 @@ func (m *UserMutation) ClearField(name string) error {
 	case user.FieldScheduledForDeletionOn:
 		m.ClearScheduledForDeletionOn()
 		return nil
-	case user.FieldDeletedAt:
-		m.ClearDeletedAt()
+	case user.FieldDataDeletedAt:
+		m.ClearDataDeletedAt()
 		return nil
 	}
 	return fmt.Errorf("unknown User nullable field %s", name)
@@ -12412,8 +12412,8 @@ func (m *UserMutation) ResetField(name string) error {
 	case user.FieldScheduledForDeletionOn:
 		m.ResetScheduledForDeletionOn()
 		return nil
-	case user.FieldDeletedAt:
-		m.ResetDeletedAt()
+	case user.FieldDataDeletedAt:
+		m.ResetDataDeletedAt()
 		return nil
 	case user.FieldCreatedAt:
 		m.ResetCreatedAt()
