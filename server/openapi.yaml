@@ -1382,6 +1382,15 @@ components:
         last_sign_in_at:
           type: string
           format: isoTimeString, optional
+        banned_at:
+          type: string
+          format: isoTimeString, optional
+        deleted_at:
+          type: string
+          format: isoTimeString, optional
+        scheduled_for_deletion_on:
+          type: string
+          format: isoTimeString, optional
         roles:
           type: array
           items:

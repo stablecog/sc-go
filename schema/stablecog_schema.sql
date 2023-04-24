@@ -345,6 +345,7 @@ CREATE TABLE public.users (
     last_sign_in_at timestamp with time zone,
     banned_at timestamp with time zone,
     deleted_at timestamp with time zone,
+    scheduled_for_deletion_on timestamp with time zone,
     created_at timestamp with time zone DEFAULT timezone('utc'::text, now()) NOT NULL,
     updated_at timestamp with time zone DEFAULT timezone('utc'::text, now()) NOT NULL
 );

@@ -11332,34 +11332,35 @@ func (m *UpscaleOutputMutation) ResetEdge(name string) error {
 // UserMutation represents an operation that mutates the User nodes in the graph.
 type UserMutation struct {
 	config
-	op                 Op
-	typ                string
-	id                 *uuid.UUID
-	email              *string
-	stripe_customer_id *string
-	active_product_id  *string
-	last_sign_in_at    *time.Time
-	last_seen_at       *time.Time
-	banned_at          *time.Time
-	deleted_at         *time.Time
-	created_at         *time.Time
-	updated_at         *time.Time
-	clearedFields      map[string]struct{}
-	user_roles         map[uuid.UUID]struct{}
-	removeduser_roles  map[uuid.UUID]struct{}
-	cleareduser_roles  bool
-	generations        map[uuid.UUID]struct{}
-	removedgenerations map[uuid.UUID]struct{}
-	clearedgenerations bool
-	upscales           map[uuid.UUID]struct{}
-	removedupscales    map[uuid.UUID]struct{}
-	clearedupscales    bool
-	credits            map[uuid.UUID]struct{}
-	removedcredits     map[uuid.UUID]struct{}
-	clearedcredits     bool
-	done               bool
-	oldValue           func(context.Context) (*User, error)
-	predicates         []predicate.User
+	op                        Op
+	typ                       string
+	id                        *uuid.UUID
+	email                     *string
+	stripe_customer_id        *string
+	active_product_id         *string
+	last_sign_in_at           *time.Time
+	last_seen_at              *time.Time
+	banned_at                 *time.Time
+	scheduled_for_deletion_on *time.Time
+	deleted_at                *time.Time
+	created_at                *time.Time
+	updated_at                *time.Time
+	clearedFields             map[string]struct{}
+	user_roles                map[uuid.UUID]struct{}
+	removeduser_roles         map[uuid.UUID]struct{}
+	cleareduser_roles         bool
+	generations               map[uuid.UUID]struct{}
+	removedgenerations        map[uuid.UUID]struct{}
+	clearedgenerations        bool
+	upscales                  map[uuid.UUID]struct{}
+	removedupscales           map[uuid.UUID]struct{}
+	clearedupscales           bool
+	credits                   map[uuid.UUID]struct{}
+	removedcredits            map[uuid.UUID]struct{}
+	clearedcredits            bool
+	done                      bool
+	oldValue                  func(context.Context) (*User, error)
+	predicates                []predicate.User
 }
 
 var _ ent.Mutation = (*UserMutation)(nil)
@@ -11719,6 +11720,55 @@ func (m *UserMutation) BannedAtCleared() bool {
 func (m *UserMutation) ResetBannedAt() {
 	m.banned_at = nil
 	delete(m.clearedFields, user.FieldBannedAt)
+}
+
+// SetScheduledForDeletionOn sets the "scheduled_for_deletion_on" field.
+func (m *UserMutation) SetScheduledForDeletionOn(t time.Time) {
+	m.scheduled_for_deletion_on = &t
+}
+
+// ScheduledForDeletionOn returns the value of the "scheduled_for_deletion_on" field in the mutation.
+func (m *UserMutation) ScheduledForDeletionOn() (r time.Time, exists bool) {
+	v := m.scheduled_for_deletion_on
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldScheduledForDeletionOn returns the old "scheduled_for_deletion_on" field's value of the User entity.
+// If the User object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UserMutation) OldScheduledForDeletionOn(ctx context.Context) (v *time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldScheduledForDeletionOn is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldScheduledForDeletionOn requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldScheduledForDeletionOn: %w", err)
+	}
+	return oldValue.ScheduledForDeletionOn, nil
+}
+
+// ClearScheduledForDeletionOn clears the value of the "scheduled_for_deletion_on" field.
+func (m *UserMutation) ClearScheduledForDeletionOn() {
+	m.scheduled_for_deletion_on = nil
+	m.clearedFields[user.FieldScheduledForDeletionOn] = struct{}{}
+}
+
+// ScheduledForDeletionOnCleared returns if the "scheduled_for_deletion_on" field was cleared in this mutation.
+func (m *UserMutation) ScheduledForDeletionOnCleared() bool {
+	_, ok := m.clearedFields[user.FieldScheduledForDeletionOn]
+	return ok
+}
+
+// ResetScheduledForDeletionOn resets all changes to the "scheduled_for_deletion_on" field.
+func (m *UserMutation) ResetScheduledForDeletionOn() {
+	m.scheduled_for_deletion_on = nil
+	delete(m.clearedFields, user.FieldScheduledForDeletionOn)
 }
 
 // SetDeletedAt sets the "deleted_at" field.
@@ -12092,7 +12142,7 @@ func (m *UserMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *UserMutation) Fields() []string {
-	fields := make([]string, 0, 9)
+	fields := make([]string, 0, 10)
 	if m.email != nil {
 		fields = append(fields, user.FieldEmail)
 	}
@@ -12110,6 +12160,9 @@ func (m *UserMutation) Fields() []string {
 	}
 	if m.banned_at != nil {
 		fields = append(fields, user.FieldBannedAt)
+	}
+	if m.scheduled_for_deletion_on != nil {
+		fields = append(fields, user.FieldScheduledForDeletionOn)
 	}
 	if m.deleted_at != nil {
 		fields = append(fields, user.FieldDeletedAt)
@@ -12140,6 +12193,8 @@ func (m *UserMutation) Field(name string) (ent.Value, bool) {
 		return m.LastSeenAt()
 	case user.FieldBannedAt:
 		return m.BannedAt()
+	case user.FieldScheduledForDeletionOn:
+		return m.ScheduledForDeletionOn()
 	case user.FieldDeletedAt:
 		return m.DeletedAt()
 	case user.FieldCreatedAt:
@@ -12167,6 +12222,8 @@ func (m *UserMutation) OldField(ctx context.Context, name string) (ent.Value, er
 		return m.OldLastSeenAt(ctx)
 	case user.FieldBannedAt:
 		return m.OldBannedAt(ctx)
+	case user.FieldScheduledForDeletionOn:
+		return m.OldScheduledForDeletionOn(ctx)
 	case user.FieldDeletedAt:
 		return m.OldDeletedAt(ctx)
 	case user.FieldCreatedAt:
@@ -12223,6 +12280,13 @@ func (m *UserMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetBannedAt(v)
+		return nil
+	case user.FieldScheduledForDeletionOn:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetScheduledForDeletionOn(v)
 		return nil
 	case user.FieldDeletedAt:
 		v, ok := value.(time.Time)
@@ -12284,6 +12348,9 @@ func (m *UserMutation) ClearedFields() []string {
 	if m.FieldCleared(user.FieldBannedAt) {
 		fields = append(fields, user.FieldBannedAt)
 	}
+	if m.FieldCleared(user.FieldScheduledForDeletionOn) {
+		fields = append(fields, user.FieldScheduledForDeletionOn)
+	}
 	if m.FieldCleared(user.FieldDeletedAt) {
 		fields = append(fields, user.FieldDeletedAt)
 	}
@@ -12309,6 +12376,9 @@ func (m *UserMutation) ClearField(name string) error {
 		return nil
 	case user.FieldBannedAt:
 		m.ClearBannedAt()
+		return nil
+	case user.FieldScheduledForDeletionOn:
+		m.ClearScheduledForDeletionOn()
 		return nil
 	case user.FieldDeletedAt:
 		m.ClearDeletedAt()
@@ -12338,6 +12408,9 @@ func (m *UserMutation) ResetField(name string) error {
 		return nil
 	case user.FieldBannedAt:
 		m.ResetBannedAt()
+		return nil
+	case user.FieldScheduledForDeletionOn:
+		m.ResetScheduledForDeletionOn()
 		return nil
 	case user.FieldDeletedAt:
 		m.ResetDeletedAt()

@@ -107,3 +107,6 @@ const AUTO_UPSCALE_AVG_TIME_IN_QUEUE_REQUIRED = 0.8
 
 // If criteria not met for auto-upscale, retry after this period
 const AUTO_UPSCALE_RETRY_DURATION = 30 * time.Second
+
+// ! Deleting user data
+const DELETE_BANNED_USER_DATA_AFTER = 24 * time.Hour

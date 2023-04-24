@@ -120,6 +120,26 @@ func (uu *UserUpdate) ClearBannedAt() *UserUpdate {
 	return uu
 }
 
+// SetScheduledForDeletionOn sets the "scheduled_for_deletion_on" field.
+func (uu *UserUpdate) SetScheduledForDeletionOn(t time.Time) *UserUpdate {
+	uu.mutation.SetScheduledForDeletionOn(t)
+	return uu
+}
+
+// SetNillableScheduledForDeletionOn sets the "scheduled_for_deletion_on" field if the given value is not nil.
+func (uu *UserUpdate) SetNillableScheduledForDeletionOn(t *time.Time) *UserUpdate {
+	if t != nil {
+		uu.SetScheduledForDeletionOn(*t)
+	}
+	return uu
+}
+
+// ClearScheduledForDeletionOn clears the value of the "scheduled_for_deletion_on" field.
+func (uu *UserUpdate) ClearScheduledForDeletionOn() *UserUpdate {
+	uu.mutation.ClearScheduledForDeletionOn()
+	return uu
+}
+
 // SetDeletedAt sets the "deleted_at" field.
 func (uu *UserUpdate) SetDeletedAt(t time.Time) *UserUpdate {
 	uu.mutation.SetDeletedAt(t)
@@ -381,6 +401,12 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if uu.mutation.BannedAtCleared() {
 		_spec.ClearField(user.FieldBannedAt, field.TypeTime)
+	}
+	if value, ok := uu.mutation.ScheduledForDeletionOn(); ok {
+		_spec.SetField(user.FieldScheduledForDeletionOn, field.TypeTime, value)
+	}
+	if uu.mutation.ScheduledForDeletionOnCleared() {
+		_spec.ClearField(user.FieldScheduledForDeletionOn, field.TypeTime)
 	}
 	if value, ok := uu.mutation.DeletedAt(); ok {
 		_spec.SetField(user.FieldDeletedAt, field.TypeTime, value)
@@ -715,6 +741,26 @@ func (uuo *UserUpdateOne) ClearBannedAt() *UserUpdateOne {
 	return uuo
 }
 
+// SetScheduledForDeletionOn sets the "scheduled_for_deletion_on" field.
+func (uuo *UserUpdateOne) SetScheduledForDeletionOn(t time.Time) *UserUpdateOne {
+	uuo.mutation.SetScheduledForDeletionOn(t)
+	return uuo
+}
+
+// SetNillableScheduledForDeletionOn sets the "scheduled_for_deletion_on" field if the given value is not nil.
+func (uuo *UserUpdateOne) SetNillableScheduledForDeletionOn(t *time.Time) *UserUpdateOne {
+	if t != nil {
+		uuo.SetScheduledForDeletionOn(*t)
+	}
+	return uuo
+}
+
+// ClearScheduledForDeletionOn clears the value of the "scheduled_for_deletion_on" field.
+func (uuo *UserUpdateOne) ClearScheduledForDeletionOn() *UserUpdateOne {
+	uuo.mutation.ClearScheduledForDeletionOn()
+	return uuo
+}
+
 // SetDeletedAt sets the "deleted_at" field.
 func (uuo *UserUpdateOne) SetDeletedAt(t time.Time) *UserUpdateOne {
 	uuo.mutation.SetDeletedAt(t)
@@ -1000,6 +1046,12 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 	}
 	if uuo.mutation.BannedAtCleared() {
 		_spec.ClearField(user.FieldBannedAt, field.TypeTime)
+	}
+	if value, ok := uuo.mutation.ScheduledForDeletionOn(); ok {
+		_spec.SetField(user.FieldScheduledForDeletionOn, field.TypeTime, value)
+	}
+	if uuo.mutation.ScheduledForDeletionOnCleared() {
+		_spec.ClearField(user.FieldScheduledForDeletionOn, field.TypeTime)
 	}
 	if value, ok := uuo.mutation.DeletedAt(); ok {
 		_spec.SetField(user.FieldDeletedAt, field.TypeTime, value)

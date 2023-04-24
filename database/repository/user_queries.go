@@ -169,6 +169,9 @@ func (r *Repository) QueryUsers(
 		user.FieldCreatedAt,
 		user.FieldLastSignInAt,
 		user.FieldLastSeenAt,
+		user.FieldBannedAt,
+		user.FieldDeletedAt,
+		user.FieldScheduledForDeletionOn,
 	}
 
 	var query *ent.UserQuery
@@ -226,13 +229,16 @@ func (r *Repository) QueryUsers(
 
 	for i, user := range res {
 		formatted := UserQueryResult{
-			ID:               user.ID,
-			Email:            user.Email,
-			StripeCustomerID: user.StripeCustomerID,
-			CreatedAt:        user.CreatedAt,
-			StripeProductID:  user.ActiveProductID,
-			LastSignInAt:     user.LastSignInAt,
-			LastSeenAt:       user.LastSeenAt,
+			ID:                     user.ID,
+			Email:                  user.Email,
+			StripeCustomerID:       user.StripeCustomerID,
+			CreatedAt:              user.CreatedAt,
+			StripeProductID:        user.ActiveProductID,
+			LastSignInAt:           user.LastSignInAt,
+			LastSeenAt:             user.LastSeenAt,
+			BannedAt:               user.BannedAt,
+			DeletedAt:              user.DeletedAt,
+			ScheduledForDeletionOn: user.ScheduledForDeletionOn,
 		}
 		for _, role := range user.Edges.UserRoles {
 			formatted.Roles = append(formatted.Roles, role.RoleName)
@@ -279,15 +285,18 @@ type UserQueryCredits struct {
 }
 
 type UserQueryResult struct {
-	ID               uuid.UUID           `json:"id"`
-	Email            string              `json:"email"`
-	StripeCustomerID string              `json:"stripe_customer_id"`
-	Roles            []userrole.RoleName `json:"role,omitempty"`
-	CreatedAt        time.Time           `json:"created_at"`
-	Credits          []UserQueryCredits  `json:"credits,omitempty"`
-	LastSignInAt     *time.Time          `json:"last_sign_in_at,omitempty"`
-	LastSeenAt       time.Time           `json:"last_seen_at"`
-	StripeProductID  *string             `json:"product_id,omitempty"`
+	ID                     uuid.UUID           `json:"id"`
+	Email                  string              `json:"email"`
+	StripeCustomerID       string              `json:"stripe_customer_id"`
+	Roles                  []userrole.RoleName `json:"role,omitempty"`
+	CreatedAt              time.Time           `json:"created_at"`
+	Credits                []UserQueryCredits  `json:"credits,omitempty"`
+	LastSignInAt           *time.Time          `json:"last_sign_in_at,omitempty"`
+	LastSeenAt             time.Time           `json:"last_seen_at"`
+	BannedAt               *time.Time          `json:"banned_at,omitempty"`
+	DeletedAt              *time.Time          `json:"deleted_at,omitempty"`
+	ScheduledForDeletionOn *time.Time          `json:"scheduled_for_deletion_on,omitempty"`
+	StripeProductID        *string             `json:"product_id,omitempty"`
 }
 
 // For credit replenishment

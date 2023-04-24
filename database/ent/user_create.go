@@ -93,6 +93,20 @@ func (uc *UserCreate) SetNillableBannedAt(t *time.Time) *UserCreate {
 	return uc
 }
 
+// SetScheduledForDeletionOn sets the "scheduled_for_deletion_on" field.
+func (uc *UserCreate) SetScheduledForDeletionOn(t time.Time) *UserCreate {
+	uc.mutation.SetScheduledForDeletionOn(t)
+	return uc
+}
+
+// SetNillableScheduledForDeletionOn sets the "scheduled_for_deletion_on" field if the given value is not nil.
+func (uc *UserCreate) SetNillableScheduledForDeletionOn(t *time.Time) *UserCreate {
+	if t != nil {
+		uc.SetScheduledForDeletionOn(*t)
+	}
+	return uc
+}
+
 // SetDeletedAt sets the "deleted_at" field.
 func (uc *UserCreate) SetDeletedAt(t time.Time) *UserCreate {
 	uc.mutation.SetDeletedAt(t)
@@ -343,6 +357,10 @@ func (uc *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 	if value, ok := uc.mutation.BannedAt(); ok {
 		_spec.SetField(user.FieldBannedAt, field.TypeTime, value)
 		_node.BannedAt = &value
+	}
+	if value, ok := uc.mutation.ScheduledForDeletionOn(); ok {
+		_spec.SetField(user.FieldScheduledForDeletionOn, field.TypeTime, value)
+		_node.ScheduledForDeletionOn = &value
 	}
 	if value, ok := uc.mutation.DeletedAt(); ok {
 		_spec.SetField(user.FieldDeletedAt, field.TypeTime, value)

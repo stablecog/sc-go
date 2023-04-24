@@ -403,6 +403,7 @@ var (
 		{Name: "last_sign_in_at", Type: field.TypeTime, Nullable: true},
 		{Name: "last_seen_at", Type: field.TypeTime},
 		{Name: "banned_at", Type: field.TypeTime, Nullable: true},
+		{Name: "scheduled_for_deletion_on", Type: field.TypeTime, Nullable: true},
 		{Name: "deleted_at", Type: field.TypeTime, Nullable: true},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},
