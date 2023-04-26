@@ -3,6 +3,7 @@ package jobs
 import (
 	"fmt"
 	"os"
+	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/s3"
@@ -183,6 +184,12 @@ func (j *JobRunner) DeleteUserData(log Logger, dryRun bool) error {
 				// Delete from qdrant
 				if err := j.Qdrant.DeleteAllIDs(outputIds, false); err != nil {
 					log.Errorf("Error deleting from qdrant for user %s: %v", u.ID, err)
+					return err
+				}
+
+				// Set deleted_at on user
+				if _, err := tx.User.UpdateOneID(u.ID).SetDataDeletedAt(time.Now()).Save(j.Ctx); err != nil {
+					log.Errorf("Error setting deleted_at for user %s: %v", u.ID, err)
 					return err
 				}
 
