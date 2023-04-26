@@ -17,6 +17,7 @@ import (
 	"github.com/stablecog/sc-go/cron/discord"
 	"github.com/stablecog/sc-go/cron/jobs"
 	"github.com/stablecog/sc-go/database"
+	"github.com/stablecog/sc-go/database/qdrant"
 	"github.com/stablecog/sc-go/database/repository"
 	"github.com/stablecog/sc-go/log"
 	"github.com/stablecog/sc-go/server/analytics"
@@ -38,6 +39,7 @@ func main() {
 	showHelp := flag.Bool("help", false, "Show help")
 	healthCheck := flag.Bool("healthCheck", false, "Run the health check job")
 	stats := flag.Bool("stats", false, "Run the stats job")
+	deleteData := flag.Bool("delete-banned-data", false, "Delete banned user data")
 	allJobs := flag.Bool("all", false, "Run all jobs in a blocking process")
 	flag.Parse()
 
@@ -119,6 +121,12 @@ func main() {
 	newSession := session.New(s3Config)
 	s3Client := s3.New(newSession)
 
+	qdrantClient, err := qdrant.NewQdrantClient(ctx)
+	if err != nil {
+		log.Fatal("Error connecting to qdrant", "err", err)
+		os.Exit(1)
+	}
+
 	// Create a job runner
 	jobRunner := jobs.JobRunner{
 		Repo:      repo,
@@ -129,6 +137,7 @@ func main() {
 		Stripe:    stripeClient,
 		S3:        s3Client,
 		S3Img2Img: s3Img2ImgClient,
+		Qdrant:    qdrantClient,
 	}
 
 	if *healthCheck {
@@ -144,6 +153,15 @@ func main() {
 		err := jobRunner.GetAndSetStats(jobs.NewJobLogger("STATS"))
 		if err != nil {
 			log.Fatal("Error running stats job", "err", err)
+			os.Exit(1)
+		}
+		os.Exit(0)
+	}
+
+	if *deleteData {
+		err := jobRunner.DeleteUserData(jobs.NewJobLogger("DELETE_DATA"), true)
+		if err != nil {
+			log.Fatal("Error running delete data job", "err", err)
 			os.Exit(1)
 		}
 		os.Exit(0)

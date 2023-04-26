@@ -17,6 +17,11 @@ import (
 	"github.com/stablecog/sc-go/utils"
 )
 
+// Get generations by IDs
+func (r *Repository) GetGenerationsByIDList(ids []uuid.UUID) ([]*ent.Generation, error) {
+	return r.DB.Generation.Query().Where(generation.IDIn(ids...)).All(r.Ctx)
+}
+
 // Get generation by ID
 func (r *Repository) GetGeneration(id uuid.UUID) (*ent.Generation, error) {
 	return r.DB.Generation.Query().Where(generation.IDEQ(id)).First(r.Ctx)

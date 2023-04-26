@@ -7,6 +7,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/stablecog/sc-go/cron/discord"
 	"github.com/stablecog/sc-go/database"
+	"github.com/stablecog/sc-go/database/qdrant"
 	"github.com/stablecog/sc-go/database/repository"
 	"github.com/stablecog/sc-go/log"
 	"github.com/stablecog/sc-go/server/analytics"
@@ -22,6 +23,7 @@ type JobRunner struct {
 	Stripe    *stripe.API
 	S3        *s3.S3
 	S3Img2Img *s3.S3
+	Qdrant    *qdrant.QdrantClient
 }
 
 // Just wrap logger so we can include the job name without repeating it

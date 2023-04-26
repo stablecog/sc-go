@@ -323,3 +323,8 @@ func (r *Repository) GetNSubscribers() (int, error) {
 func (r *Repository) IsBanned(userId uuid.UUID) (bool, error) {
 	return r.DB.User.Query().Where(user.IDEQ(userId), user.BannedAtNotNil()).Exist(r.Ctx)
 }
+
+// Get banned users to delete
+func (r *Repository) GetBannedUsersToDelete() ([]*ent.User, error) {
+	return r.DB.User.Query().Where(user.BannedAtNotNil(), user.DataDeletedAtIsNil(), user.ScheduledForDeletionOnLT(time.Now())).All(r.Ctx)
+}
