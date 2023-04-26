@@ -76,7 +76,7 @@ func (j *JobRunner) DeleteUserData(log Logger, dryRun bool) error {
 
 		// Delete all uploaded objects
 		hashedId := utils.Sha256(u.ID.String())
-		out, err := j.S3.ListObjects(&s3.ListObjectsInput{
+		out, err := j.S3Img2Img.ListObjects(&s3.ListObjectsInput{
 			Bucket: aws.String(os.Getenv("S3_IMG2IMG_BUCKET_NAME")),
 			Prefix: aws.String(fmt.Sprintf("%s/", hashedId)),
 		})
@@ -93,7 +93,7 @@ func (j *JobRunner) DeleteUserData(log Logger, dryRun bool) error {
 		if len(img2imgPaths) > 0 {
 			if !dryRun {
 				log.Infof("Deleting %d img2img objects for user %s", len(img2imgPaths), u.ID)
-				_, err = j.S3.DeleteObjects(&s3.DeleteObjectsInput{
+				_, err = j.S3Img2Img.DeleteObjects(&s3.DeleteObjectsInput{
 					Bucket: aws.String(os.Getenv("S3_IMG2IMG_BUCKET_NAME")),
 					Delete: &s3.Delete{
 						Objects: img2imgPaths,
