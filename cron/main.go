@@ -40,6 +40,7 @@ func main() {
 	healthCheck := flag.Bool("healthCheck", false, "Run the health check job")
 	stats := flag.Bool("stats", false, "Run the stats job")
 	deleteData := flag.Bool("delete-banned-data", false, "Delete banned user data")
+	dryRun := flag.Bool("dry-run", false, "Dry run (don't actually do anything)")
 	allJobs := flag.Bool("all", false, "Run all jobs in a blocking process")
 	flag.Parse()
 
@@ -159,7 +160,7 @@ func main() {
 	}
 
 	if *deleteData {
-		err := jobRunner.DeleteUserData(jobs.NewJobLogger("DELETE_DATA"), true)
+		err := jobRunner.DeleteUserData(jobs.NewJobLogger("DELETE_DATA"), *dryRun)
 		if err != nil {
 			log.Fatal("Error running delete data job", "err", err)
 			os.Exit(1)
