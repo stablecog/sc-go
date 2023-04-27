@@ -6,6 +6,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/stablecog/sc-go/database/ent"
 	"github.com/stablecog/sc-go/database/ent/user"
+	"github.com/stablecog/sc-go/shared"
 )
 
 func (r *Repository) CreateUser(id uuid.UUID, email string, stripeCustomerId string, lastSignIn *time.Time, db *ent.Client) (*ent.User, error) {
@@ -56,4 +57,14 @@ func (r *Repository) SyncStripeProductIDs(productCustomerIDMap map[string][]stri
 		return err
 	}
 	return nil
+}
+
+// Ban users
+func (r *Repository) BanUsers(userIDs []uuid.UUID) (int, error) {
+	return r.DB.User.Update().Where(user.IDIn(userIDs...)).SetBannedAt(time.Now()).SetScheduledForDeletionOn(time.Now().Add(shared.DELETE_BANNED_USER_DATA_AFTER)).Save(r.Ctx)
+}
+
+// Unban users
+func (r *Repository) UnbanUsers(userIDs []uuid.UUID) (int, error) {
+	return r.DB.User.Update().Where(user.IDIn(userIDs...)).ClearBannedAt().ClearScheduledForDeletionOn().Save(r.Ctx)
 }

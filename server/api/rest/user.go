@@ -485,6 +485,11 @@ func (c *RestAPI) HandleDeleteGenerationOutputForUser(w http.ResponseWriter, r *
 		return
 	}
 
+	if user.BannedAt != nil {
+		responses.ErrForbidden(w, r)
+		return
+	}
+
 	// Parse request body
 	reqBody, _ := io.ReadAll(r.Body)
 	var deleteReq requests.DeleteGenerationRequest
@@ -511,6 +516,11 @@ func (c *RestAPI) HandleDeleteGenerationOutputForUser(w http.ResponseWriter, r *
 func (c *RestAPI) HandleFavoriteGenerationOutputsForUser(w http.ResponseWriter, r *http.Request) {
 	var user *ent.User
 	if user = c.GetUserIfAuthenticated(w, r); user == nil {
+		return
+	}
+
+	if user.BannedAt != nil {
+		responses.ErrForbidden(w, r)
 		return
 	}
 

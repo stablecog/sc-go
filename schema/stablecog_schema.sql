@@ -343,6 +343,9 @@ CREATE TABLE public.users (
     stripe_customer_id text NOT NULL,
     active_product_id text,
     last_sign_in_at timestamp with time zone,
+    banned_at timestamp with time zone,
+    data_deleted_at timestamp with time zone,
+    scheduled_for_deletion_on timestamp with time zone,
     created_at timestamp with time zone DEFAULT timezone('utc'::text, now()) NOT NULL,
     updated_at timestamp with time zone DEFAULT timezone('utc'::text, now()) NOT NULL
 );
@@ -513,6 +516,12 @@ ALTER TABLE ONLY public.user_roles
 
 CREATE INDEX credit_expires_at_user_id_remaining_amount ON public.credits USING btree (expires_at, user_id, remaining_amount);
 
+
+--
+-- Name: credit_stripe_line_item_id_key; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE UNIQUE INDEX credit_stripe_line_item_id_key ON public.credits USING btree (stripe_line_item_id);
 
 --
 -- Name: credit_types_name_key; Type: INDEX; Schema: public; Owner: postgres

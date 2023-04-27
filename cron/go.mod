@@ -3,6 +3,7 @@ module github.com/stablecog/sc-go/cron
 go 1.20
 
 require (
+	github.com/aws/aws-sdk-go v1.44.227
 	github.com/google/uuid v1.3.0
 	github.com/jarcoal/httpmock v1.3.0
 	github.com/stablecog/sc-go/database v0.0.0-20230321001722-68888f92a48b
@@ -27,6 +28,7 @@ require (
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
 	github.com/hashicorp/errwrap v1.0.0 // indirect
 	github.com/hashicorp/go-multierror v1.1.1 // indirect
+	github.com/jmespath/go-jmespath v0.4.0 // indirect
 	github.com/josharian/intern v1.0.0 // indirect
 	github.com/klauspost/compress v1.15.6 // indirect
 	github.com/lucasb-eyer/go-colorful v1.2.0 // indirect

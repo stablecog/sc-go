@@ -719,6 +719,44 @@ func (q *QdrantClient) CreateAllIndexes() error {
 	return mErr.ErrorOrNil()
 }
 
+func (q *QdrantClient) DeleteAllIDs(ids []uuid.UUID, noRetry bool) error {
+	p := &DeletePointsParams{
+		Wait: utils.ToPtr(false),
+	}
+	body := DeletePointsJSONRequestBody{}
+	extPointId := make([]ExtendedPointId, len(ids))
+	for i, id := range ids {
+		rId := ExtendedPointId{}
+		err := rId.FromExtendedPointId1(id)
+		if err != nil {
+			return err
+		}
+		extPointId[i] = rId
+	}
+	ls := PointIdsList{
+		Points: extPointId,
+	}
+	body.FromPointIdsList(ls)
+	resp, err := q.Client.DeletePointsWithResponse(q.Ctx, q.CollectionName, p, body)
+	if err != nil {
+		if !noRetry && (os.IsTimeout(err) || strings.Contains(err.Error(), "connection refused")) {
+			err = q.UpdateActiveClient()
+			if err == nil {
+				return q.DeleteAllIDs(ids, true)
+			}
+		}
+		log.Errorf("Error deleting multi points %v", err)
+		return err
+	}
+	if resp.StatusCode() != http.StatusOK {
+		log.Errorf("Error deleting multi points %v", resp.StatusCode())
+		return fmt.Errorf("Error deleting multi points %v", resp.StatusCode())
+	}
+
+	return nil
+
+}
+
 type QResponse struct {
 	Result []QResponseResult `json:"result"`
 	Status string            `json:"status"`

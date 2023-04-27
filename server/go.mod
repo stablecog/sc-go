@@ -10,7 +10,6 @@ require (
 	github.com/go-chi/httprate v0.7.1
 	github.com/go-chi/render v1.0.2
 	github.com/go-co-op/gocron v1.18.0
-	github.com/go-redis/redis/v8 v8.11.5
 	github.com/google/uuid v1.3.0
 	github.com/hashicorp/go-multierror v1.1.1
 	github.com/jarcoal/httpmock v1.3.0

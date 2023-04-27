@@ -45,6 +45,12 @@ func (cu *CreditUpdate) AddRemainingAmount(i int32) *CreditUpdate {
 	return cu
 }
 
+// SetExpiresAt sets the "expires_at" field.
+func (cu *CreditUpdate) SetExpiresAt(t time.Time) *CreditUpdate {
+	cu.mutation.SetExpiresAt(t)
+	return cu
+}
+
 // SetStripeLineItemID sets the "stripe_line_item_id" field.
 func (cu *CreditUpdate) SetStripeLineItemID(s string) *CreditUpdate {
 	cu.mutation.SetStripeLineItemID(s)
@@ -210,6 +216,9 @@ func (cu *CreditUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if value, ok := cu.mutation.AddedRemainingAmount(); ok {
 		_spec.AddField(credit.FieldRemainingAmount, field.TypeInt32, value)
 	}
+	if value, ok := cu.mutation.ExpiresAt(); ok {
+		_spec.SetField(credit.FieldExpiresAt, field.TypeTime, value)
+	}
 	if value, ok := cu.mutation.StripeLineItemID(); ok {
 		_spec.SetField(credit.FieldStripeLineItemID, field.TypeString, value)
 	}
@@ -324,6 +333,12 @@ func (cuo *CreditUpdateOne) SetRemainingAmount(i int32) *CreditUpdateOne {
 // AddRemainingAmount adds i to the "remaining_amount" field.
 func (cuo *CreditUpdateOne) AddRemainingAmount(i int32) *CreditUpdateOne {
 	cuo.mutation.AddRemainingAmount(i)
+	return cuo
+}
+
+// SetExpiresAt sets the "expires_at" field.
+func (cuo *CreditUpdateOne) SetExpiresAt(t time.Time) *CreditUpdateOne {
+	cuo.mutation.SetExpiresAt(t)
 	return cuo
 }
 
@@ -515,6 +530,9 @@ func (cuo *CreditUpdateOne) sqlSave(ctx context.Context) (_node *Credit, err err
 	}
 	if value, ok := cuo.mutation.AddedRemainingAmount(); ok {
 		_spec.AddField(credit.FieldRemainingAmount, field.TypeInt32, value)
+	}
+	if value, ok := cuo.mutation.ExpiresAt(); ok {
+		_spec.SetField(credit.FieldExpiresAt, field.TypeTime, value)
 	}
 	if value, ok := cuo.mutation.StripeLineItemID(); ok {
 		_spec.SetField(credit.FieldStripeLineItemID, field.TypeString, value)

@@ -233,11 +233,13 @@ func main() {
 
 		// Stripe
 		r.Route("/stripe", func(r chi.Router) {
+			r.Use(middleware.Logger)
 			r.Post("/webhook", hc.HandleStripeWebhook)
 		})
 
 		// SCWorker
 		r.Route("/worker", func(r chi.Router) {
+			r.Use(middleware.Logger)
 			r.Post("/webhook", hc.HandleSCWorkerWebhook)
 		})
 
@@ -311,6 +313,7 @@ func main() {
 				r.Use(mw.AuthMiddleware(middleware.AuthLevelSuperAdmin))
 				r.Use(middleware.Logger)
 				r.Get("/", hc.HandleQueryUsers)
+				r.Post("/ban", hc.HandleBanUser)
 			})
 			r.Route("/credit", func(r chi.Router) {
 				r.Use(mw.AuthMiddleware(middleware.AuthLevelSuperAdmin))

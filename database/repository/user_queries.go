@@ -160,6 +160,7 @@ func (r *Repository) QueryUsers(
 	per_page int,
 	cursor *time.Time,
 	productIds []string,
+	banned *bool,
 ) (*UserQueryMeta, error) {
 	selectFields := []string{
 		user.FieldID,
@@ -169,6 +170,9 @@ func (r *Repository) QueryUsers(
 		user.FieldCreatedAt,
 		user.FieldLastSignInAt,
 		user.FieldLastSeenAt,
+		user.FieldBannedAt,
+		user.FieldDataDeletedAt,
+		user.FieldScheduledForDeletionOn,
 	}
 
 	var query *ent.UserQuery
@@ -186,7 +190,15 @@ func (r *Repository) QueryUsers(
 	})
 
 	if productIds != nil && len(productIds) > 0 {
-		query.Where(user.ActiveProductIDIn(productIds...))
+		query = query.Where(user.ActiveProductIDIn(productIds...))
+	}
+
+	if banned != nil {
+		if *banned {
+			query = query.Where(user.BannedAtNotNil())
+		} else {
+			query = query.Where(user.BannedAtIsNil())
+		}
 	}
 
 	if emailSearch != "" {
@@ -226,13 +238,16 @@ func (r *Repository) QueryUsers(
 
 	for i, user := range res {
 		formatted := UserQueryResult{
-			ID:               user.ID,
-			Email:            user.Email,
-			StripeCustomerID: user.StripeCustomerID,
-			CreatedAt:        user.CreatedAt,
-			StripeProductID:  user.ActiveProductID,
-			LastSignInAt:     user.LastSignInAt,
-			LastSeenAt:       user.LastSeenAt,
+			ID:                     user.ID,
+			Email:                  user.Email,
+			StripeCustomerID:       user.StripeCustomerID,
+			CreatedAt:              user.CreatedAt,
+			StripeProductID:        user.ActiveProductID,
+			LastSignInAt:           user.LastSignInAt,
+			LastSeenAt:             user.LastSeenAt,
+			BannedAt:               user.BannedAt,
+			DataDeletedAt:          user.DataDeletedAt,
+			ScheduledForDeletionOn: user.ScheduledForDeletionOn,
 		}
 		for _, role := range user.Edges.UserRoles {
 			formatted.Roles = append(formatted.Roles, role.RoleName)
@@ -279,15 +294,18 @@ type UserQueryCredits struct {
 }
 
 type UserQueryResult struct {
-	ID               uuid.UUID           `json:"id"`
-	Email            string              `json:"email"`
-	StripeCustomerID string              `json:"stripe_customer_id"`
-	Roles            []userrole.RoleName `json:"role,omitempty"`
-	CreatedAt        time.Time           `json:"created_at"`
-	Credits          []UserQueryCredits  `json:"credits,omitempty"`
-	LastSignInAt     *time.Time          `json:"last_sign_in_at,omitempty"`
-	LastSeenAt       time.Time           `json:"last_seen_at"`
-	StripeProductID  *string             `json:"product_id,omitempty"`
+	ID                     uuid.UUID           `json:"id"`
+	Email                  string              `json:"email"`
+	StripeCustomerID       string              `json:"stripe_customer_id"`
+	Roles                  []userrole.RoleName `json:"role,omitempty"`
+	CreatedAt              time.Time           `json:"created_at"`
+	Credits                []UserQueryCredits  `json:"credits,omitempty"`
+	LastSignInAt           *time.Time          `json:"last_sign_in_at,omitempty"`
+	LastSeenAt             time.Time           `json:"last_seen_at"`
+	BannedAt               *time.Time          `json:"banned_at,omitempty"`
+	DataDeletedAt          *time.Time          `json:"data_deleted_at,omitempty"`
+	ScheduledForDeletionOn *time.Time          `json:"scheduled_for_deletion_on,omitempty"`
+	StripeProductID        *string             `json:"product_id,omitempty"`
 }
 
 // For credit replenishment
@@ -299,4 +317,14 @@ func (r *Repository) GetUsersThatSignedInSince(since time.Duration) ([]*ent.User
 // Get N subscribers
 func (r *Repository) GetNSubscribers() (int, error) {
 	return r.DB.User.Query().Where(user.ActiveProductIDNotNil(), user.ActiveProductIDNEQ("")).Count(r.Ctx)
+}
+
+// Get is banned
+func (r *Repository) IsBanned(userId uuid.UUID) (bool, error) {
+	return r.DB.User.Query().Where(user.IDEQ(userId), user.BannedAtNotNil()).Exist(r.Ctx)
+}
+
+// Get banned users to delete
+func (r *Repository) GetBannedUsersToDelete() ([]*ent.User, error) {
+	return r.DB.User.Query().Where(user.BannedAtNotNil(), user.DataDeletedAtIsNil(), user.ScheduledForDeletionOnLT(time.Now())).All(r.Ctx)
 }

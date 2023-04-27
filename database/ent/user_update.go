@@ -100,6 +100,66 @@ func (uu *UserUpdate) SetNillableLastSeenAt(t *time.Time) *UserUpdate {
 	return uu
 }
 
+// SetBannedAt sets the "banned_at" field.
+func (uu *UserUpdate) SetBannedAt(t time.Time) *UserUpdate {
+	uu.mutation.SetBannedAt(t)
+	return uu
+}
+
+// SetNillableBannedAt sets the "banned_at" field if the given value is not nil.
+func (uu *UserUpdate) SetNillableBannedAt(t *time.Time) *UserUpdate {
+	if t != nil {
+		uu.SetBannedAt(*t)
+	}
+	return uu
+}
+
+// ClearBannedAt clears the value of the "banned_at" field.
+func (uu *UserUpdate) ClearBannedAt() *UserUpdate {
+	uu.mutation.ClearBannedAt()
+	return uu
+}
+
+// SetScheduledForDeletionOn sets the "scheduled_for_deletion_on" field.
+func (uu *UserUpdate) SetScheduledForDeletionOn(t time.Time) *UserUpdate {
+	uu.mutation.SetScheduledForDeletionOn(t)
+	return uu
+}
+
+// SetNillableScheduledForDeletionOn sets the "scheduled_for_deletion_on" field if the given value is not nil.
+func (uu *UserUpdate) SetNillableScheduledForDeletionOn(t *time.Time) *UserUpdate {
+	if t != nil {
+		uu.SetScheduledForDeletionOn(*t)
+	}
+	return uu
+}
+
+// ClearScheduledForDeletionOn clears the value of the "scheduled_for_deletion_on" field.
+func (uu *UserUpdate) ClearScheduledForDeletionOn() *UserUpdate {
+	uu.mutation.ClearScheduledForDeletionOn()
+	return uu
+}
+
+// SetDataDeletedAt sets the "data_deleted_at" field.
+func (uu *UserUpdate) SetDataDeletedAt(t time.Time) *UserUpdate {
+	uu.mutation.SetDataDeletedAt(t)
+	return uu
+}
+
+// SetNillableDataDeletedAt sets the "data_deleted_at" field if the given value is not nil.
+func (uu *UserUpdate) SetNillableDataDeletedAt(t *time.Time) *UserUpdate {
+	if t != nil {
+		uu.SetDataDeletedAt(*t)
+	}
+	return uu
+}
+
+// ClearDataDeletedAt clears the value of the "data_deleted_at" field.
+func (uu *UserUpdate) ClearDataDeletedAt() *UserUpdate {
+	uu.mutation.ClearDataDeletedAt()
+	return uu
+}
+
 // SetUpdatedAt sets the "updated_at" field.
 func (uu *UserUpdate) SetUpdatedAt(t time.Time) *UserUpdate {
 	uu.mutation.SetUpdatedAt(t)
@@ -335,6 +395,24 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if value, ok := uu.mutation.LastSeenAt(); ok {
 		_spec.SetField(user.FieldLastSeenAt, field.TypeTime, value)
+	}
+	if value, ok := uu.mutation.BannedAt(); ok {
+		_spec.SetField(user.FieldBannedAt, field.TypeTime, value)
+	}
+	if uu.mutation.BannedAtCleared() {
+		_spec.ClearField(user.FieldBannedAt, field.TypeTime)
+	}
+	if value, ok := uu.mutation.ScheduledForDeletionOn(); ok {
+		_spec.SetField(user.FieldScheduledForDeletionOn, field.TypeTime, value)
+	}
+	if uu.mutation.ScheduledForDeletionOnCleared() {
+		_spec.ClearField(user.FieldScheduledForDeletionOn, field.TypeTime)
+	}
+	if value, ok := uu.mutation.DataDeletedAt(); ok {
+		_spec.SetField(user.FieldDataDeletedAt, field.TypeTime, value)
+	}
+	if uu.mutation.DataDeletedAtCleared() {
+		_spec.ClearField(user.FieldDataDeletedAt, field.TypeTime)
 	}
 	if value, ok := uu.mutation.UpdatedAt(); ok {
 		_spec.SetField(user.FieldUpdatedAt, field.TypeTime, value)
@@ -643,6 +721,66 @@ func (uuo *UserUpdateOne) SetNillableLastSeenAt(t *time.Time) *UserUpdateOne {
 	return uuo
 }
 
+// SetBannedAt sets the "banned_at" field.
+func (uuo *UserUpdateOne) SetBannedAt(t time.Time) *UserUpdateOne {
+	uuo.mutation.SetBannedAt(t)
+	return uuo
+}
+
+// SetNillableBannedAt sets the "banned_at" field if the given value is not nil.
+func (uuo *UserUpdateOne) SetNillableBannedAt(t *time.Time) *UserUpdateOne {
+	if t != nil {
+		uuo.SetBannedAt(*t)
+	}
+	return uuo
+}
+
+// ClearBannedAt clears the value of the "banned_at" field.
+func (uuo *UserUpdateOne) ClearBannedAt() *UserUpdateOne {
+	uuo.mutation.ClearBannedAt()
+	return uuo
+}
+
+// SetScheduledForDeletionOn sets the "scheduled_for_deletion_on" field.
+func (uuo *UserUpdateOne) SetScheduledForDeletionOn(t time.Time) *UserUpdateOne {
+	uuo.mutation.SetScheduledForDeletionOn(t)
+	return uuo
+}
+
+// SetNillableScheduledForDeletionOn sets the "scheduled_for_deletion_on" field if the given value is not nil.
+func (uuo *UserUpdateOne) SetNillableScheduledForDeletionOn(t *time.Time) *UserUpdateOne {
+	if t != nil {
+		uuo.SetScheduledForDeletionOn(*t)
+	}
+	return uuo
+}
+
+// ClearScheduledForDeletionOn clears the value of the "scheduled_for_deletion_on" field.
+func (uuo *UserUpdateOne) ClearScheduledForDeletionOn() *UserUpdateOne {
+	uuo.mutation.ClearScheduledForDeletionOn()
+	return uuo
+}
+
+// SetDataDeletedAt sets the "data_deleted_at" field.
+func (uuo *UserUpdateOne) SetDataDeletedAt(t time.Time) *UserUpdateOne {
+	uuo.mutation.SetDataDeletedAt(t)
+	return uuo
+}
+
+// SetNillableDataDeletedAt sets the "data_deleted_at" field if the given value is not nil.
+func (uuo *UserUpdateOne) SetNillableDataDeletedAt(t *time.Time) *UserUpdateOne {
+	if t != nil {
+		uuo.SetDataDeletedAt(*t)
+	}
+	return uuo
+}
+
+// ClearDataDeletedAt clears the value of the "data_deleted_at" field.
+func (uuo *UserUpdateOne) ClearDataDeletedAt() *UserUpdateOne {
+	uuo.mutation.ClearDataDeletedAt()
+	return uuo
+}
+
 // SetUpdatedAt sets the "updated_at" field.
 func (uuo *UserUpdateOne) SetUpdatedAt(t time.Time) *UserUpdateOne {
 	uuo.mutation.SetUpdatedAt(t)
@@ -902,6 +1040,24 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 	}
 	if value, ok := uuo.mutation.LastSeenAt(); ok {
 		_spec.SetField(user.FieldLastSeenAt, field.TypeTime, value)
+	}
+	if value, ok := uuo.mutation.BannedAt(); ok {
+		_spec.SetField(user.FieldBannedAt, field.TypeTime, value)
+	}
+	if uuo.mutation.BannedAtCleared() {
+		_spec.ClearField(user.FieldBannedAt, field.TypeTime)
+	}
+	if value, ok := uuo.mutation.ScheduledForDeletionOn(); ok {
+		_spec.SetField(user.FieldScheduledForDeletionOn, field.TypeTime, value)
+	}
+	if uuo.mutation.ScheduledForDeletionOnCleared() {
+		_spec.ClearField(user.FieldScheduledForDeletionOn, field.TypeTime)
+	}
+	if value, ok := uuo.mutation.DataDeletedAt(); ok {
+		_spec.SetField(user.FieldDataDeletedAt, field.TypeTime, value)
+	}
+	if uuo.mutation.DataDeletedAtCleared() {
+		_spec.ClearField(user.FieldDataDeletedAt, field.TypeTime)
 	}
 	if value, ok := uuo.mutation.UpdatedAt(); ok {
 		_spec.SetField(user.FieldUpdatedAt, field.TypeTime, value)

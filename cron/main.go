@@ -8,11 +8,16 @@ import (
 	"os"
 	"time"
 
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/credentials"
+	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/go-co-op/gocron"
 	"github.com/joho/godotenv"
 	"github.com/stablecog/sc-go/cron/discord"
 	"github.com/stablecog/sc-go/cron/jobs"
 	"github.com/stablecog/sc-go/database"
+	"github.com/stablecog/sc-go/database/qdrant"
 	"github.com/stablecog/sc-go/database/repository"
 	"github.com/stablecog/sc-go/log"
 	"github.com/stablecog/sc-go/server/analytics"
@@ -34,6 +39,8 @@ func main() {
 	showHelp := flag.Bool("help", false, "Show help")
 	healthCheck := flag.Bool("healthCheck", false, "Run the health check job")
 	stats := flag.Bool("stats", false, "Run the stats job")
+	deleteData := flag.Bool("delete-banned-data", false, "Delete banned user data")
+	dryRun := flag.Bool("dry-run", false, "Dry run (don't actually do anything)")
 	allJobs := flag.Bool("all", false, "Run all jobs in a blocking process")
 	flag.Parse()
 
@@ -87,14 +94,51 @@ func main() {
 	// Create stripe client
 	stripeClient := stripe.New(utils.GetEnv("STRIPE_SECRET_KEY", ""), nil)
 
+	// Setup S3 Client img2img
+	region := os.Getenv("S3_IMG2IMG_REGION")
+	accessKey := os.Getenv("S3_IMG2IMG_ACCESS_KEY")
+	secretKey := os.Getenv("S3_IMG2IMG_SECRET_KEY")
+
+	s3ConfigI2I := &aws.Config{
+		Credentials: credentials.NewStaticCredentials(accessKey, secretKey, ""),
+		Endpoint:    aws.String(os.Getenv("S3_IMG2IMG_ENDPOINT")),
+		Region:      aws.String(region),
+	}
+
+	newSessionI2i := session.New(s3ConfigI2I)
+	s3Img2ImgClient := s3.New(newSessionI2i)
+
+	// Setup S3 Client regular
+	region = os.Getenv("S3_REGION")
+	accessKey = os.Getenv("S3_ACCESS_KEY")
+	secretKey = os.Getenv("S3_SECRET_KEY")
+
+	s3Config := &aws.Config{
+		Credentials: credentials.NewStaticCredentials(accessKey, secretKey, ""),
+		Endpoint:    aws.String(os.Getenv("S3_ENDPOINT")),
+		Region:      aws.String(region),
+	}
+
+	newSession := session.New(s3Config)
+	s3Client := s3.New(newSession)
+
+	qdrantClient, err := qdrant.NewQdrantClient(ctx)
+	if err != nil {
+		log.Fatal("Error connecting to qdrant", "err", err)
+		os.Exit(1)
+	}
+
 	// Create a job runner
 	jobRunner := jobs.JobRunner{
-		Repo:    repo,
-		Redis:   redis,
-		Ctx:     ctx,
-		Discord: discord.NewDiscordHealthTracker(ctx),
-		Track:   analyticsService,
-		Stripe:  stripeClient,
+		Repo:      repo,
+		Redis:     redis,
+		Ctx:       ctx,
+		Discord:   discord.NewDiscordHealthTracker(ctx),
+		Track:     analyticsService,
+		Stripe:    stripeClient,
+		S3:        s3Client,
+		S3Img2Img: s3Img2ImgClient,
+		Qdrant:    qdrantClient,
 	}
 
 	if *healthCheck {
@@ -110,6 +154,15 @@ func main() {
 		err := jobRunner.GetAndSetStats(jobs.NewJobLogger("STATS"))
 		if err != nil {
 			log.Fatal("Error running stats job", "err", err)
+			os.Exit(1)
+		}
+		os.Exit(0)
+	}
+
+	if *deleteData {
+		err := jobRunner.DeleteUserData(jobs.NewJobLogger("DELETE_DATA"), *dryRun)
+		if err != nil {
+			log.Fatal("Error running delete data job", "err", err)
 			os.Exit(1)
 		}
 		os.Exit(0)

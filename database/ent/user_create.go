@@ -79,6 +79,48 @@ func (uc *UserCreate) SetNillableLastSeenAt(t *time.Time) *UserCreate {
 	return uc
 }
 
+// SetBannedAt sets the "banned_at" field.
+func (uc *UserCreate) SetBannedAt(t time.Time) *UserCreate {
+	uc.mutation.SetBannedAt(t)
+	return uc
+}
+
+// SetNillableBannedAt sets the "banned_at" field if the given value is not nil.
+func (uc *UserCreate) SetNillableBannedAt(t *time.Time) *UserCreate {
+	if t != nil {
+		uc.SetBannedAt(*t)
+	}
+	return uc
+}
+
+// SetScheduledForDeletionOn sets the "scheduled_for_deletion_on" field.
+func (uc *UserCreate) SetScheduledForDeletionOn(t time.Time) *UserCreate {
+	uc.mutation.SetScheduledForDeletionOn(t)
+	return uc
+}
+
+// SetNillableScheduledForDeletionOn sets the "scheduled_for_deletion_on" field if the given value is not nil.
+func (uc *UserCreate) SetNillableScheduledForDeletionOn(t *time.Time) *UserCreate {
+	if t != nil {
+		uc.SetScheduledForDeletionOn(*t)
+	}
+	return uc
+}
+
+// SetDataDeletedAt sets the "data_deleted_at" field.
+func (uc *UserCreate) SetDataDeletedAt(t time.Time) *UserCreate {
+	uc.mutation.SetDataDeletedAt(t)
+	return uc
+}
+
+// SetNillableDataDeletedAt sets the "data_deleted_at" field if the given value is not nil.
+func (uc *UserCreate) SetNillableDataDeletedAt(t *time.Time) *UserCreate {
+	if t != nil {
+		uc.SetDataDeletedAt(*t)
+	}
+	return uc
+}
+
 // SetCreatedAt sets the "created_at" field.
 func (uc *UserCreate) SetCreatedAt(t time.Time) *UserCreate {
 	uc.mutation.SetCreatedAt(t)
@@ -311,6 +353,18 @@ func (uc *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 	if value, ok := uc.mutation.LastSeenAt(); ok {
 		_spec.SetField(user.FieldLastSeenAt, field.TypeTime, value)
 		_node.LastSeenAt = value
+	}
+	if value, ok := uc.mutation.BannedAt(); ok {
+		_spec.SetField(user.FieldBannedAt, field.TypeTime, value)
+		_node.BannedAt = &value
+	}
+	if value, ok := uc.mutation.ScheduledForDeletionOn(); ok {
+		_spec.SetField(user.FieldScheduledForDeletionOn, field.TypeTime, value)
+		_node.ScheduledForDeletionOn = &value
+	}
+	if value, ok := uc.mutation.DataDeletedAt(); ok {
+		_spec.SetField(user.FieldDataDeletedAt, field.TypeTime, value)
+		_node.DataDeletedAt = &value
 	}
 	if value, ok := uc.mutation.CreatedAt(); ok {
 		_spec.SetField(user.FieldCreatedAt, field.TypeTime, value)

@@ -81,6 +81,21 @@ func LastSeenAt(v time.Time) predicate.User {
 	return predicate.User(sql.FieldEQ(FieldLastSeenAt, v))
 }
 
+// BannedAt applies equality check predicate on the "banned_at" field. It's identical to BannedAtEQ.
+func BannedAt(v time.Time) predicate.User {
+	return predicate.User(sql.FieldEQ(FieldBannedAt, v))
+}
+
+// ScheduledForDeletionOn applies equality check predicate on the "scheduled_for_deletion_on" field. It's identical to ScheduledForDeletionOnEQ.
+func ScheduledForDeletionOn(v time.Time) predicate.User {
+	return predicate.User(sql.FieldEQ(FieldScheduledForDeletionOn, v))
+}
+
+// DataDeletedAt applies equality check predicate on the "data_deleted_at" field. It's identical to DataDeletedAtEQ.
+func DataDeletedAt(v time.Time) predicate.User {
+	return predicate.User(sql.FieldEQ(FieldDataDeletedAt, v))
+}
+
 // CreatedAt applies equality check predicate on the "created_at" field. It's identical to CreatedAtEQ.
 func CreatedAt(v time.Time) predicate.User {
 	return predicate.User(sql.FieldEQ(FieldCreatedAt, v))
@@ -384,6 +399,156 @@ func LastSeenAtLT(v time.Time) predicate.User {
 // LastSeenAtLTE applies the LTE predicate on the "last_seen_at" field.
 func LastSeenAtLTE(v time.Time) predicate.User {
 	return predicate.User(sql.FieldLTE(FieldLastSeenAt, v))
+}
+
+// BannedAtEQ applies the EQ predicate on the "banned_at" field.
+func BannedAtEQ(v time.Time) predicate.User {
+	return predicate.User(sql.FieldEQ(FieldBannedAt, v))
+}
+
+// BannedAtNEQ applies the NEQ predicate on the "banned_at" field.
+func BannedAtNEQ(v time.Time) predicate.User {
+	return predicate.User(sql.FieldNEQ(FieldBannedAt, v))
+}
+
+// BannedAtIn applies the In predicate on the "banned_at" field.
+func BannedAtIn(vs ...time.Time) predicate.User {
+	return predicate.User(sql.FieldIn(FieldBannedAt, vs...))
+}
+
+// BannedAtNotIn applies the NotIn predicate on the "banned_at" field.
+func BannedAtNotIn(vs ...time.Time) predicate.User {
+	return predicate.User(sql.FieldNotIn(FieldBannedAt, vs...))
+}
+
+// BannedAtGT applies the GT predicate on the "banned_at" field.
+func BannedAtGT(v time.Time) predicate.User {
+	return predicate.User(sql.FieldGT(FieldBannedAt, v))
+}
+
+// BannedAtGTE applies the GTE predicate on the "banned_at" field.
+func BannedAtGTE(v time.Time) predicate.User {
+	return predicate.User(sql.FieldGTE(FieldBannedAt, v))
+}
+
+// BannedAtLT applies the LT predicate on the "banned_at" field.
+func BannedAtLT(v time.Time) predicate.User {
+	return predicate.User(sql.FieldLT(FieldBannedAt, v))
+}
+
+// BannedAtLTE applies the LTE predicate on the "banned_at" field.
+func BannedAtLTE(v time.Time) predicate.User {
+	return predicate.User(sql.FieldLTE(FieldBannedAt, v))
+}
+
+// BannedAtIsNil applies the IsNil predicate on the "banned_at" field.
+func BannedAtIsNil() predicate.User {
+	return predicate.User(sql.FieldIsNull(FieldBannedAt))
+}
+
+// BannedAtNotNil applies the NotNil predicate on the "banned_at" field.
+func BannedAtNotNil() predicate.User {
+	return predicate.User(sql.FieldNotNull(FieldBannedAt))
+}
+
+// ScheduledForDeletionOnEQ applies the EQ predicate on the "scheduled_for_deletion_on" field.
+func ScheduledForDeletionOnEQ(v time.Time) predicate.User {
+	return predicate.User(sql.FieldEQ(FieldScheduledForDeletionOn, v))
+}
+
+// ScheduledForDeletionOnNEQ applies the NEQ predicate on the "scheduled_for_deletion_on" field.
+func ScheduledForDeletionOnNEQ(v time.Time) predicate.User {
+	return predicate.User(sql.FieldNEQ(FieldScheduledForDeletionOn, v))
+}
+
+// ScheduledForDeletionOnIn applies the In predicate on the "scheduled_for_deletion_on" field.
+func ScheduledForDeletionOnIn(vs ...time.Time) predicate.User {
+	return predicate.User(sql.FieldIn(FieldScheduledForDeletionOn, vs...))
+}
+
+// ScheduledForDeletionOnNotIn applies the NotIn predicate on the "scheduled_for_deletion_on" field.
+func ScheduledForDeletionOnNotIn(vs ...time.Time) predicate.User {
+	return predicate.User(sql.FieldNotIn(FieldScheduledForDeletionOn, vs...))
+}
+
+// ScheduledForDeletionOnGT applies the GT predicate on the "scheduled_for_deletion_on" field.
+func ScheduledForDeletionOnGT(v time.Time) predicate.User {
+	return predicate.User(sql.FieldGT(FieldScheduledForDeletionOn, v))
+}
+
+// ScheduledForDeletionOnGTE applies the GTE predicate on the "scheduled_for_deletion_on" field.
+func ScheduledForDeletionOnGTE(v time.Time) predicate.User {
+	return predicate.User(sql.FieldGTE(FieldScheduledForDeletionOn, v))
+}
+
+// ScheduledForDeletionOnLT applies the LT predicate on the "scheduled_for_deletion_on" field.
+func ScheduledForDeletionOnLT(v time.Time) predicate.User {
+	return predicate.User(sql.FieldLT(FieldScheduledForDeletionOn, v))
+}
+
+// ScheduledForDeletionOnLTE applies the LTE predicate on the "scheduled_for_deletion_on" field.
+func ScheduledForDeletionOnLTE(v time.Time) predicate.User {
+	return predicate.User(sql.FieldLTE(FieldScheduledForDeletionOn, v))
+}
+
+// ScheduledForDeletionOnIsNil applies the IsNil predicate on the "scheduled_for_deletion_on" field.
+func ScheduledForDeletionOnIsNil() predicate.User {
+	return predicate.User(sql.FieldIsNull(FieldScheduledForDeletionOn))
+}
+
+// ScheduledForDeletionOnNotNil applies the NotNil predicate on the "scheduled_for_deletion_on" field.
+func ScheduledForDeletionOnNotNil() predicate.User {
+	return predicate.User(sql.FieldNotNull(FieldScheduledForDeletionOn))
+}
+
+// DataDeletedAtEQ applies the EQ predicate on the "data_deleted_at" field.
+func DataDeletedAtEQ(v time.Time) predicate.User {
+	return predicate.User(sql.FieldEQ(FieldDataDeletedAt, v))
+}
+
+// DataDeletedAtNEQ applies the NEQ predicate on the "data_deleted_at" field.
+func DataDeletedAtNEQ(v time.Time) predicate.User {
+	return predicate.User(sql.FieldNEQ(FieldDataDeletedAt, v))
+}
+
+// DataDeletedAtIn applies the In predicate on the "data_deleted_at" field.
+func DataDeletedAtIn(vs ...time.Time) predicate.User {
+	return predicate.User(sql.FieldIn(FieldDataDeletedAt, vs...))
+}
+
+// DataDeletedAtNotIn applies the NotIn predicate on the "data_deleted_at" field.
+func DataDeletedAtNotIn(vs ...time.Time) predicate.User {
+	return predicate.User(sql.FieldNotIn(FieldDataDeletedAt, vs...))
+}
+
+// DataDeletedAtGT applies the GT predicate on the "data_deleted_at" field.
+func DataDeletedAtGT(v time.Time) predicate.User {
+	return predicate.User(sql.FieldGT(FieldDataDeletedAt, v))
+}
+
+// DataDeletedAtGTE applies the GTE predicate on the "data_deleted_at" field.
+func DataDeletedAtGTE(v time.Time) predicate.User {
+	return predicate.User(sql.FieldGTE(FieldDataDeletedAt, v))
+}
+
+// DataDeletedAtLT applies the LT predicate on the "data_deleted_at" field.
+func DataDeletedAtLT(v time.Time) predicate.User {
+	return predicate.User(sql.FieldLT(FieldDataDeletedAt, v))
+}
+
+// DataDeletedAtLTE applies the LTE predicate on the "data_deleted_at" field.
+func DataDeletedAtLTE(v time.Time) predicate.User {
+	return predicate.User(sql.FieldLTE(FieldDataDeletedAt, v))
+}
+
+// DataDeletedAtIsNil applies the IsNil predicate on the "data_deleted_at" field.
+func DataDeletedAtIsNil() predicate.User {
+	return predicate.User(sql.FieldIsNull(FieldDataDeletedAt))
+}
+
+// DataDeletedAtNotNil applies the NotNil predicate on the "data_deleted_at" field.
+func DataDeletedAtNotNil() predicate.User {
+	return predicate.User(sql.FieldNotNull(FieldDataDeletedAt))
 }
 
 // CreatedAtEQ applies the EQ predicate on the "created_at" field.

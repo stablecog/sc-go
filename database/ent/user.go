@@ -27,6 +27,12 @@ type User struct {
 	LastSignInAt *time.Time `json:"last_sign_in_at,omitempty"`
 	// LastSeenAt holds the value of the "last_seen_at" field.
 	LastSeenAt time.Time `json:"last_seen_at,omitempty"`
+	// BannedAt holds the value of the "banned_at" field.
+	BannedAt *time.Time `json:"banned_at,omitempty"`
+	// ScheduledForDeletionOn holds the value of the "scheduled_for_deletion_on" field.
+	ScheduledForDeletionOn *time.Time `json:"scheduled_for_deletion_on,omitempty"`
+	// DataDeletedAt holds the value of the "data_deleted_at" field.
+	DataDeletedAt *time.Time `json:"data_deleted_at,omitempty"`
 	// CreatedAt holds the value of the "created_at" field.
 	CreatedAt time.Time `json:"created_at,omitempty"`
 	// UpdatedAt holds the value of the "updated_at" field.
@@ -94,7 +100,7 @@ func (*User) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case user.FieldEmail, user.FieldStripeCustomerID, user.FieldActiveProductID:
 			values[i] = new(sql.NullString)
-		case user.FieldLastSignInAt, user.FieldLastSeenAt, user.FieldCreatedAt, user.FieldUpdatedAt:
+		case user.FieldLastSignInAt, user.FieldLastSeenAt, user.FieldBannedAt, user.FieldScheduledForDeletionOn, user.FieldDataDeletedAt, user.FieldCreatedAt, user.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
 		case user.FieldID:
 			values[i] = new(uuid.UUID)
@@ -150,6 +156,27 @@ func (u *User) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field last_seen_at", values[i])
 			} else if value.Valid {
 				u.LastSeenAt = value.Time
+			}
+		case user.FieldBannedAt:
+			if value, ok := values[i].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field banned_at", values[i])
+			} else if value.Valid {
+				u.BannedAt = new(time.Time)
+				*u.BannedAt = value.Time
+			}
+		case user.FieldScheduledForDeletionOn:
+			if value, ok := values[i].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field scheduled_for_deletion_on", values[i])
+			} else if value.Valid {
+				u.ScheduledForDeletionOn = new(time.Time)
+				*u.ScheduledForDeletionOn = value.Time
+			}
+		case user.FieldDataDeletedAt:
+			if value, ok := values[i].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field data_deleted_at", values[i])
+			} else if value.Valid {
+				u.DataDeletedAt = new(time.Time)
+				*u.DataDeletedAt = value.Time
 			}
 		case user.FieldCreatedAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
@@ -229,6 +256,21 @@ func (u *User) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("last_seen_at=")
 	builder.WriteString(u.LastSeenAt.Format(time.ANSIC))
+	builder.WriteString(", ")
+	if v := u.BannedAt; v != nil {
+		builder.WriteString("banned_at=")
+		builder.WriteString(v.Format(time.ANSIC))
+	}
+	builder.WriteString(", ")
+	if v := u.ScheduledForDeletionOn; v != nil {
+		builder.WriteString("scheduled_for_deletion_on=")
+		builder.WriteString(v.Format(time.ANSIC))
+	}
+	builder.WriteString(", ")
+	if v := u.DataDeletedAt; v != nil {
+		builder.WriteString("data_deleted_at=")
+		builder.WriteString(v.Format(time.ANSIC))
+	}
 	builder.WriteString(", ")
 	builder.WriteString("created_at=")
 	builder.WriteString(u.CreatedAt.Format(time.ANSIC))

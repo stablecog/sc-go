@@ -124,3 +124,73 @@ spec:
                 secretKeyRef:
                   name: sc-go
                   key: POSTHOG_ENDPOINT
+            - name: S3_IMG2IMG_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: sc-go
+                  key: S3_IMG2IMG_ACCESS_KEY
+            - name: S3_IMG2IMG_BUCKET_NAME
+              valueFrom:
+                secretKeyRef:
+                  name: sc-go
+                  key: S3_IMG2IMG_BUCKET_NAME
+            - name: S3_IMG2IMG_ENDPOINT
+              valueFrom:
+                secretKeyRef:
+                  name: sc-go
+                  key: S3_IMG2IMG_ENDPOINT
+            - name: S3_IMG2IMG_REGION
+              valueFrom:
+                secretKeyRef:
+                  name: sc-go
+                  key: S3_IMG2IMG_REGION
+            - name: S3_IMG2IMG_SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: sc-go
+                  key: S3_IMG2IMG_SECRET_KEY
+            - name: S3_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: sc-go
+                  key: S3_ACCESS_KEY
+            - name: S3_BUCKET_NAME
+              valueFrom:
+                secretKeyRef:
+                  name: sc-go
+                  key: S3_BUCKET_NAME
+            - name: S3_ENDPOINT
+              valueFrom:
+                secretKeyRef:
+                  name: sc-go
+                  key: S3_ENDPOINT
+            - name: S3_REGION
+              valueFrom:
+                secretKeyRef:
+                  name: sc-go
+                  key: S3_IMG2IMG_REGION
+            - name: S3_SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: sc-go
+                  key: S3_SECRET_KEY
+            - name: QDRANT_URLS
+              valueFrom:
+                secretKeyRef:
+                  name: sc-go
+                  key: QDRANT_URLS
+            - name: QDRANT_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: sc-go
+                  key: QDRANT_USERNAME
+            - name: QDRANT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: sc-go
+                  key: QDRANT_PASSWORD
+            - name: QDRANT_COLLECTION_NAME
+              valueFrom:
+                secretKeyRef:
+                  name: sc-go
+                  key: QDRANT_COLLECTION_NAME

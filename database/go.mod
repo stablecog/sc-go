@@ -5,7 +5,6 @@ go 1.20
 require (
 	github.com/deepmap/oapi-codegen v1.12.4
 	github.com/hashicorp/go-multierror v1.1.1
-	github.com/joho/godotenv v1.4.0
 	github.com/redis/go-redis/v9 v9.0.2
 	github.com/stablecog/sc-go/log v0.0.0-20230303221221-dcc7ec43e5e1
 	github.com/stablecog/sc-go/server v0.0.0-20230303221221-dcc7ec43e5e1
