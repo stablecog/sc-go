@@ -76,7 +76,7 @@ func (c *RestAPI) HandleUpscale(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Get queue count
-	nq, err := c.QueueThrottler.NumQueued(user.ID.String())
+	nq, err := c.QueueThrottler.NumQueued(fmt.Sprintf("u:%s", user.ID.String()))
 	if err != nil {
 		log.Warn("Error getting queue count for user", "err", err, "user_id", user.ID)
 	}
@@ -240,7 +240,7 @@ func (c *RestAPI) HandleUpscale(w http.ResponseWriter, r *http.Request) {
 			return err
 		}
 
-		c.QueueThrottler.IncrementBy(1, user.ID.String())
+		c.QueueThrottler.IncrementBy(1, fmt.Sprintf("u:%s", user.ID.String()))
 
 		return nil
 	}); err != nil {

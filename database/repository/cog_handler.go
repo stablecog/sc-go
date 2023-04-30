@@ -31,7 +31,13 @@ func (r *Repository) FailCogMessageDueToTimeoutIfTimedOut(msg requests.CogWebhoo
 
 	// Dec queue count
 	if msg.Input.UserID != nil {
-		err := r.QueueThrottler.DecrementBy(1, msg.Input.UserID.String())
+		var prefix string
+		if msg.Input.ProcessType == shared.GENERATE || msg.Input.ProcessType == shared.GENERATE_AND_UPSCALE {
+			prefix = "g"
+		} else {
+			prefix = "u"
+		}
+		err := r.QueueThrottler.DecrementBy(1, fmt.Sprintf("%s:%s", prefix, msg.Input.UserID.String()))
 		if err != nil {
 			log.Error("Error decrementing queue count", "err", err, "user", msg.Input.UserID.String())
 		}
@@ -357,7 +363,13 @@ func (r *Repository) ProcessCogMessage(msg requests.CogWebhookMessage) error {
 
 	// Dec queue count
 	if msg.Input.UserID != nil && (msg.Status == requests.CogSucceeded || msg.Status == requests.CogFailed) {
-		err := r.QueueThrottler.DecrementBy(1, msg.Input.UserID.String())
+		var prefix string
+		if msg.Input.ProcessType == shared.GENERATE || msg.Input.ProcessType == shared.GENERATE_AND_UPSCALE {
+			prefix = "g"
+		} else {
+			prefix = "u"
+		}
+		err := r.QueueThrottler.DecrementBy(1, fmt.Sprintf("%s:%s", prefix, msg.Input.UserID.String()))
 		if err != nil {
 			log.Error("Error decrementing queue count", "err", err, "user", msg.Input.UserID.String())
 		}

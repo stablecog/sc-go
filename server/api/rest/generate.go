@@ -148,7 +148,7 @@ func (c *RestAPI) HandleCreateGeneration(w http.ResponseWriter, r *http.Request)
 	}
 
 	// Get queue count
-	nq, err := c.QueueThrottler.NumQueued(user.ID.String())
+	nq, err := c.QueueThrottler.NumQueued(fmt.Sprintf("g:%s", user.ID.String()))
 	if err != nil {
 		log.Warn("Error getting queue count", "err", err, "user_id", user.ID.String())
 	}
@@ -294,7 +294,7 @@ func (c *RestAPI) HandleCreateGeneration(w http.ResponseWriter, r *http.Request)
 			return err
 		}
 
-		c.QueueThrottler.IncrementBy(1, user.ID.String())
+		c.QueueThrottler.IncrementBy(1, fmt.Sprintf("g:%s", user.ID.String()))
 		return nil
 	}); err != nil {
 		log.Error("Error in transaction", "err", err)
