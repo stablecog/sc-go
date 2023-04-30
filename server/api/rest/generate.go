@@ -152,7 +152,7 @@ func (c *RestAPI) HandleCreateGeneration(w http.ResponseWriter, r *http.Request)
 	if err != nil {
 		log.Warn("Error getting queue count", "err", err, "user_id", user.ID.String())
 	}
-	if err == nil && nq > qMax {
+	if err == nil && nq >= qMax {
 		responses.ErrBadRequest(w, r, "queue_limit_reached", "")
 		return
 	}
@@ -294,7 +294,7 @@ func (c *RestAPI) HandleCreateGeneration(w http.ResponseWriter, r *http.Request)
 			return err
 		}
 
-		c.QueueThrottler.IncrementBy(int(generateReq.NumOutputs), user.ID.String())
+		c.QueueThrottler.IncrementBy(1, user.ID.String())
 		return nil
 	}); err != nil {
 		log.Error("Error in transaction", "err", err)

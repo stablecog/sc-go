@@ -80,7 +80,7 @@ func (c *RestAPI) HandleUpscale(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Warn("Error getting queue count for user", "err", err, "user_id", user.ID)
 	}
-	if err == nil && nq > qMax {
+	if err == nil && nq >= qMax {
 		responses.ErrBadRequest(w, r, "queue_limit_reached", "")
 		return
 	}

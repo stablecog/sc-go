@@ -31,16 +31,7 @@ func (r *Repository) FailCogMessageDueToTimeoutIfTimedOut(msg requests.CogWebhoo
 
 	// Dec queue count
 	if msg.Input.UserID != nil {
-		// Parse num
-		numOutputs := 1
-		if msg.Input.ProcessType != shared.UPSCALE {
-			// Parse as int
-			numOutputs, err = strconv.Atoi(msg.Input.NumOutputs)
-			if err != nil {
-				log.Error("Error parsing num outputs", "err", err)
-			}
-		}
-		err := r.QueueThrottler.DecrementBy(numOutputs, msg.Input.UserID.String())
+		err := r.QueueThrottler.DecrementBy(1, msg.Input.UserID.String())
 		if err != nil {
 			log.Error("Error decrementing queue count", "err", err, "user", msg.Input.UserID.String())
 		}
@@ -366,15 +357,7 @@ func (r *Repository) ProcessCogMessage(msg requests.CogWebhookMessage) error {
 
 	// Dec queue count
 	if msg.Input.UserID != nil && (msg.Status == requests.CogSucceeded || msg.Status == requests.CogFailed) {
-		numOutputs := 1
-		if msg.Input.ProcessType != shared.UPSCALE {
-			// Parse as int
-			numOutputs, err = strconv.Atoi(msg.Input.NumOutputs)
-			if err != nil {
-				log.Error("Error parsing num outputs", "err", err)
-			}
-		}
-		err := r.QueueThrottler.DecrementBy(numOutputs, msg.Input.UserID.String())
+		err := r.QueueThrottler.DecrementBy(1, msg.Input.UserID.String())
 		if err != nil {
 			log.Error("Error decrementing queue count", "err", err, "user", msg.Input.UserID.String())
 		}
