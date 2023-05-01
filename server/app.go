@@ -236,10 +236,11 @@ func main() {
 		}
 
 		// Set qdrant payload
-		payload := make(map[string]interface{})
-		payload["user_id"] = targetID.String()
+		qdrantPayload := map[string]interface{}{
+			"user_id": targetID.String(),
+		}
 
-		err := qdrantClient.SetPayload(payload, gOutputIDs, false)
+		err := qdrantClient.SetPayload(qdrantPayload, gOutputIDs, false)
 		if err != nil {
 			log.Fatalf("Error setting qdrant payload: %v", err)
 		}
