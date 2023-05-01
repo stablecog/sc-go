@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -241,6 +242,47 @@ func main() {
 		err := qdrantClient.SetPayload(payload, gOutputIDs, false)
 		if err != nil {
 			log.Fatalf("Error setting qdrant payload: %v", err)
+		}
+
+		log.Infof("Sync'd qdrant")
+
+		// Setup S3 Client
+		region := os.Getenv("S3_IMG2IMG_REGION")
+		accessKey := os.Getenv("S3_IMG2IMG_ACCESS_KEY")
+		secretKey := os.Getenv("S3_IMG2IMG_SECRET_KEY")
+
+		s3Config := &aws.Config{
+			Credentials: credentials.NewStaticCredentials(accessKey, secretKey, ""),
+			Endpoint:    aws.String(os.Getenv("S3_IMG2IMG_ENDPOINT")),
+			Region:      aws.String(region),
+		}
+
+		newSession := session.New(s3Config)
+		s3Client := s3.New(newSession)
+
+		sourceHash := utils.Sha256(sourceID.String())
+		targetHash := utils.Sha256(targetID.String())
+
+		out, err := s3Client.ListObjects(&s3.ListObjectsInput{
+			Bucket: aws.String(os.Getenv("S3_IMG2IMG_BUCKET_NAME")),
+			Prefix: aws.String(fmt.Sprintf("%s/", sourceHash)),
+		})
+		if err != nil {
+			log.Fatalf("Error listing img2img objects for user %s: %v", sourceID.String(), err)
+		}
+
+		for _, o := range out.Contents {
+			// Move object
+			src := *o.Key
+			dst := strings.Replace(src, sourceHash, targetHash, 1)
+			_, err := s3Client.CopyObject(&s3.CopyObjectInput{
+				Bucket:     aws.String(os.Getenv("S3_IMG2IMG_BUCKET_NAME")),
+				CopySource: o.Key,
+				Key:        aws.String(dst),
+			})
+			if err != nil {
+				log.Fatalf("Error copying img2img object for user %s: %v", sourceID.String(), err)
+			}
 		}
 
 		log.Infof("Finished sync")
