@@ -16,10 +16,12 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/cors"
 	"github.com/go-co-op/gocron"
+	"github.com/google/uuid"
 	"github.com/joho/godotenv"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	chiprometheus "github.com/stablecog/chi-prometheus"
 	"github.com/stablecog/sc-go/database"
+	"github.com/stablecog/sc-go/database/ent/generation"
 	"github.com/stablecog/sc-go/database/qdrant"
 	"github.com/stablecog/sc-go/database/repository"
 	"github.com/stablecog/sc-go/log"
@@ -53,6 +55,9 @@ func main() {
 
 	// Custom flags
 	createMockData := flag.Bool("load-mock-data", false, "Create test data in database")
+	transferUserData := flag.Bool("transfer-user", false, "transfer account data from one user to another")
+	sourceUser := flag.String("source-user", "", "source user id")
+	destUser := flag.String("dest-user", "", "destination user id")
 
 	flag.Parse()
 
@@ -215,6 +220,31 @@ func main() {
 		SupabaseAuth: database.NewSupabaseAuth(),
 		Repo:         repo,
 		Redis:        redis,
+	}
+
+	if *transferUserData {
+		sourceID := uuid.MustParse(*sourceUser)
+		targetID := uuid.MustParse(*destUser)
+
+		log.Info("📦 Transferring user data...", "source", sourceID, "target", targetID)
+		// Get all generation output ids
+		outputs := repo.DB.Generation.Query().Where(generation.UserIDEQ(sourceID)).QueryGenerationOutputs().AllX(ctx)
+		gOutputIDs := make([]uuid.UUID, len(outputs))
+		for i, o := range outputs {
+			gOutputIDs[i] = o.ID
+		}
+
+		// Set qdrant payload
+		payload := make(map[string]interface{})
+		payload["user_id"] = targetID.String()
+
+		err := qdrantClient.SetPayload(payload, gOutputIDs, false)
+		if err != nil {
+			log.Fatalf("Error setting qdrant payload: %v", err)
+		}
+
+		log.Infof("Finished sync")
+		os.Exit(0)
 	}
 
 	// Routes
