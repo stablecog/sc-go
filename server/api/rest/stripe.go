@@ -208,10 +208,11 @@ func (c *RestAPI) HandleCreateCheckoutSession(w http.ResponseWriter, r *http.Req
 				Quantity: stripe.Int64(1),
 			},
 		},
-		Mode:       stripe.String(string(mode)),
-		SuccessURL: stripe.String(stripeReq.SuccessUrl),
-		CancelURL:  stripe.String(stripeReq.CancelUrl),
-		Currency:   stripe.String(stripeReq.Currency),
+		Mode:                stripe.String(string(mode)),
+		SuccessURL:          stripe.String(stripeReq.SuccessUrl),
+		CancelURL:           stripe.String(stripeReq.CancelUrl),
+		Currency:            stripe.String(stripeReq.Currency),
+		AllowPromotionCodes: stripe.Bool(true),
 	}
 	if adhocPrice {
 		params.PaymentIntentData = &stripe.CheckoutSessionPaymentIntentDataParams{
