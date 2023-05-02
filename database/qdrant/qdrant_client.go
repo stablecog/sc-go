@@ -402,6 +402,14 @@ func (q *QdrantClient) SetPayload(payload map[string]interface{}, ids []uuid.UUI
 		return err
 	}
 	if res.StatusCode() != http.StatusOK {
+		if res.JSON4XX != nil {
+			marshalled, err := json.Marshal(*res.JSON4XX)
+			if err != nil {
+				log.Errorf("Error marshalling response %v", err)
+			} else {
+				log.Errorf("Error setting payload res %v", string(marshalled))
+			}
+		}
 		log.Errorf("Error setting payload %v", res.StatusCode())
 		return fmt.Errorf("Error setting payload %v", res.StatusCode())
 	}
