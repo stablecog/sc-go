@@ -44,19 +44,19 @@ func (c *RestAPI) HandleGetUser(w http.ResponseWriter, r *http.Request) {
 	user, err := c.Repo.GetUserWithRoles(*userID)
 	if err != nil {
 		log.Error("Error getting user", "err", err)
-		responses.ErrInternalServerError(w, r, "An unknown error has occured")
+		responses.ErrInternalServerError(w, r, "An unknown error has occurred")
 		return
 	} else if user == nil {
 		// Handle create user flow
 		freeCreditType, err := c.Repo.GetOrCreateFreeCreditType()
 		if err != nil {
 			log.Error("Error getting free credit type", "err", err)
-			responses.ErrInternalServerError(w, r, "An unknown error has occured")
+			responses.ErrInternalServerError(w, r, "An unknown error has occurred")
 			return
 		}
 		if freeCreditType == nil {
 			log.Error("Server misconfiguration: a credit_type with the name 'free' must exist")
-			responses.ErrInternalServerError(w, r, "An unknown error has occured")
+			responses.ErrInternalServerError(w, r, "An unknown error has occurred")
 			return
 		}
 
@@ -93,7 +93,7 @@ func (c *RestAPI) HandleGetUser(w http.ResponseWriter, r *http.Request) {
 			return nil
 		}); err != nil {
 			log.Error("Error creating user", "err", err)
-			responses.ErrInternalServerError(w, r, "An unknown error has occured")
+			responses.ErrInternalServerError(w, r, "An unknown error has occurred")
 			// Delete stripe customer
 			if customer != nil {
 				_, err := c.StripeClient.Customers.Del(customer.ID, nil)
@@ -110,7 +110,7 @@ func (c *RestAPI) HandleGetUser(w http.ResponseWriter, r *http.Request) {
 		user, err = c.Repo.GetUserWithRoles(*userID)
 		if err != nil {
 			log.Error("Error getting user with roles", "err", err)
-			responses.ErrInternalServerError(w, r, "An unknown error has occured")
+			responses.ErrInternalServerError(w, r, "An unknown error has occurred")
 			return
 		}
 	}
@@ -119,7 +119,7 @@ func (c *RestAPI) HandleGetUser(w http.ResponseWriter, r *http.Request) {
 	totalRemaining, err := c.Repo.GetNonExpiredCreditTotalForUser(*userID, nil)
 	if err != nil {
 		log.Error("Error getting credits for user", "err", err)
-		responses.ErrInternalServerError(w, r, "An unknown error has occured")
+		responses.ErrInternalServerError(w, r, "An unknown error has occurred")
 		return
 	}
 
@@ -206,7 +206,7 @@ func (c *RestAPI) HandleGetUser(w http.ResponseWriter, r *http.Request) {
 	paidCreditCount, err := c.Repo.HasPaidCredits(*userID)
 	if err != nil {
 		log.Error("Error getting paid credits for user", "err", err)
-		responses.ErrInternalServerError(w, r, "An unknown error has occured")
+		responses.ErrInternalServerError(w, r, "An unknown error has occurred")
 		return
 	}
 
@@ -265,7 +265,7 @@ func (c *RestAPI) HandleQueryGenerations(w http.ResponseWriter, r *http.Request)
 		e, err := c.Clip.GetEmbeddingFromText(search, 2)
 		if err != nil {
 			log.Error("Error getting embedding from clip service", "err", err)
-			responses.ErrInternalServerError(w, r, "An unknown error has occured")
+			responses.ErrInternalServerError(w, r, "An unknown error has occurred")
 			return
 		}
 
@@ -296,7 +296,7 @@ func (c *RestAPI) HandleQueryGenerations(w http.ResponseWriter, r *http.Request)
 			count, err := c.Qdrant.CountWithFilters(qdrantFilters, false)
 			if err != nil {
 				log.Error("Error counting qdrant", "err", err)
-				responses.ErrInternalServerError(w, r, "An unknown error has occured")
+				responses.ErrInternalServerError(w, r, "An unknown error has occurred")
 				return
 			}
 			total = &count
@@ -306,7 +306,7 @@ func (c *RestAPI) HandleQueryGenerations(w http.ResponseWriter, r *http.Request)
 		qdrantRes, err := c.Qdrant.QueryGenerations(e, perPage, offset, scoreThreshold, qdrantFilters, false, false)
 		if err != nil {
 			log.Error("Error querying qdrant", "err", err)
-			responses.ErrInternalServerError(w, r, "An unknown error has occured")
+			responses.ErrInternalServerError(w, r, "An unknown error has occurred")
 			return
 		}
 
@@ -325,7 +325,7 @@ func (c *RestAPI) HandleQueryGenerations(w http.ResponseWriter, r *http.Request)
 		generationsUnsorted, err := c.Repo.RetrieveGenerationsWithOutputIDs(outputIds)
 		if err != nil {
 			log.Error("Error getting generations", "err", err)
-			responses.ErrInternalServerError(w, r, "An unknown error has occured")
+			responses.ErrInternalServerError(w, r, "An unknown error has occurred")
 			return
 		}
 

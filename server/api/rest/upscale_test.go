@@ -77,8 +77,8 @@ func TestUpscaleFailsWithInvalidStreamID(t *testing.T) {
 	req.Header.Set("Content-Type", "application/json")
 
 	// Setup context
-	ctx := context.WithValue(req.Context(), "user_id", repository.MOCK_ADMIN_UUID)
-	ctx = context.WithValue(ctx, "user_email", repository.MOCK_ADMIN_UUID)
+	ctx := context.WithValue(req.Context(), "user_id", repository.MOCK_NORMAL_UUID)
+	ctx = context.WithValue(ctx, "user_email", repository.MOCK_NORMAL_UUID)
 
 	MockController.HandleUpscale(w, req.WithContext(ctx))
 	resp := w.Result()
@@ -103,8 +103,8 @@ func TestUpscaleEnforcesType(t *testing.T) {
 	req.Header.Set("Content-Type", "application/json")
 
 	// Setup context
-	ctx := context.WithValue(req.Context(), "user_id", repository.MOCK_ADMIN_UUID)
-	ctx = context.WithValue(ctx, "user_email", repository.MOCK_ADMIN_UUID)
+	ctx := context.WithValue(req.Context(), "user_id", repository.MOCK_NORMAL_UUID)
+	ctx = context.WithValue(ctx, "user_email", repository.MOCK_NORMAL_UUID)
 
 	MockController.HandleUpscale(w, req.WithContext(ctx))
 	resp := w.Result()
@@ -130,8 +130,8 @@ func TestUpscaleErrorsBadURL(t *testing.T) {
 	req.Header.Set("Content-Type", "application/json")
 
 	// Setup context
-	ctx := context.WithValue(req.Context(), "user_id", repository.MOCK_ADMIN_UUID)
-	ctx = context.WithValue(ctx, "user_email", repository.MOCK_ADMIN_UUID)
+	ctx := context.WithValue(req.Context(), "user_id", repository.MOCK_NORMAL_UUID)
+	ctx = context.WithValue(ctx, "user_email", repository.MOCK_NORMAL_UUID)
 
 	MockController.HandleUpscale(w, req.WithContext(ctx))
 	resp := w.Result()
@@ -157,8 +157,8 @@ func TestUpscaleErrorsBadOutputID(t *testing.T) {
 	req.Header.Set("Content-Type", "application/json")
 
 	// Setup context
-	ctx := context.WithValue(req.Context(), "user_id", repository.MOCK_ADMIN_UUID)
-	ctx = context.WithValue(ctx, "user_email", repository.MOCK_ADMIN_UUID)
+	ctx := context.WithValue(req.Context(), "user_id", repository.MOCK_NORMAL_UUID)
+	ctx = context.WithValue(ctx, "user_email", repository.MOCK_NORMAL_UUID)
 
 	MockController.HandleUpscale(w, req.WithContext(ctx))
 	resp := w.Result()
@@ -186,8 +186,8 @@ func TestUpscaleRejectsInvalidModel(t *testing.T) {
 	req.Header.Set("Content-Type", "application/json")
 
 	// Setup context
-	ctx := context.WithValue(req.Context(), "user_id", repository.MOCK_ADMIN_UUID)
-	ctx = context.WithValue(ctx, "user_email", repository.MOCK_ADMIN_UUID)
+	ctx := context.WithValue(req.Context(), "user_id", repository.MOCK_NORMAL_UUID)
+	ctx = context.WithValue(ctx, "user_email", repository.MOCK_NORMAL_UUID)
 
 	MockController.HandleUpscale(w, req.WithContext(ctx))
 	resp := w.Result()

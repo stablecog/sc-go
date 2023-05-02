@@ -74,8 +74,8 @@ func TestGenerateFailsWithInvalidStreamID(t *testing.T) {
 	req.Header.Set("Content-Type", "application/json")
 
 	// Setup context
-	ctx := context.WithValue(req.Context(), "user_id", repository.MOCK_ADMIN_UUID)
-	ctx = context.WithValue(ctx, "user_email", repository.MOCK_ADMIN_UUID)
+	ctx := context.WithValue(req.Context(), "user_id", repository.MOCK_NORMAL_UUID)
+	ctx = context.WithValue(ctx, "user_email", repository.MOCK_NORMAL_UUID)
 
 	MockController.HandleCreateGeneration(w, req.WithContext(ctx))
 	resp := w.Result()
@@ -104,8 +104,8 @@ func TestGenerateEnforcesNumOutputsChange(t *testing.T) {
 	req.Header.Set("Content-Type", "application/json")
 
 	// Setup context
-	ctx := context.WithValue(req.Context(), "user_id", repository.MOCK_ADMIN_UUID)
-	ctx = context.WithValue(ctx, "user_email", repository.MOCK_ADMIN_UUID)
+	ctx := context.WithValue(req.Context(), "user_id", repository.MOCK_NORMAL_UUID)
+	ctx = context.WithValue(ctx, "user_email", repository.MOCK_NORMAL_UUID)
 
 	MockController.HandleCreateGeneration(w, req.WithContext(ctx))
 	resp := w.Result()
@@ -132,8 +132,8 @@ func TestGenerateEnforcesNumOutputsChange(t *testing.T) {
 	req.Header.Set("Content-Type", "application/json")
 
 	// Setup context
-	ctx = context.WithValue(req.Context(), "user_id", repository.MOCK_ADMIN_UUID)
-	ctx = context.WithValue(ctx, "user_email", repository.MOCK_ADMIN_UUID)
+	ctx = context.WithValue(req.Context(), "user_id", repository.MOCK_NORMAL_UUID)
+	ctx = context.WithValue(ctx, "user_email", repository.MOCK_NORMAL_UUID)
 
 	MockController.HandleCreateGeneration(w, req.WithContext(ctx))
 	resp = w.Result()
@@ -159,8 +159,8 @@ func TestGenerateEnforcesMaxWidthMaxHeight(t *testing.T) {
 	req.Header.Set("Content-Type", "application/json")
 
 	// Setup context
-	ctx := context.WithValue(req.Context(), "user_id", repository.MOCK_ADMIN_UUID)
-	ctx = context.WithValue(ctx, "user_email", repository.MOCK_ADMIN_UUID)
+	ctx := context.WithValue(req.Context(), "user_id", repository.MOCK_NORMAL_UUID)
+	ctx = context.WithValue(ctx, "user_email", repository.MOCK_NORMAL_UUID)
 
 	MockController.HandleCreateGeneration(w, req.WithContext(ctx))
 	resp := w.Result()
@@ -185,8 +185,8 @@ func TestGenerateEnforcesMaxWidthMaxHeight(t *testing.T) {
 	req.Header.Set("Content-Type", "application/json")
 
 	// Setup context
-	ctx = context.WithValue(req.Context(), "user_id", repository.MOCK_ADMIN_UUID)
-	ctx = context.WithValue(ctx, "user_email", repository.MOCK_ADMIN_UUID)
+	ctx = context.WithValue(req.Context(), "user_id", repository.MOCK_NORMAL_UUID)
+	ctx = context.WithValue(ctx, "user_email", repository.MOCK_NORMAL_UUID)
 
 	MockController.HandleCreateGeneration(w, req.WithContext(ctx))
 	resp = w.Result()
@@ -196,6 +196,59 @@ func TestGenerateEnforcesMaxWidthMaxHeight(t *testing.T) {
 	json.Unmarshal(respBody, &respJson)
 
 	assert.Equal(t, fmt.Sprintf("Width is too large, max is: %d", shared.MAX_GENERATE_WIDTH), respJson["error"])
+}
+
+func TestGenerateValidationsSkippedForSuperAdmin(t *testing.T) {
+	reqBody := requests.CreateGenerationRequest{
+		StreamID:      MockSSEId,
+		Height:        shared.MAX_GENERATE_HEIGHT + 1,
+		Width:         shared.MAX_GENERATE_WIDTH,
+		GuidanceScale: 7,
+	}
+	body, _ := json.Marshal(reqBody)
+	w := httptest.NewRecorder()
+	// Build request
+	req := httptest.NewRequest("POST", "/", bytes.NewReader(body))
+	req.Header.Set("Content-Type", "application/json")
+
+	// Setup context
+	ctx := context.WithValue(req.Context(), "user_id", repository.MOCK_ADMIN_UUID)
+	ctx = context.WithValue(ctx, "user_email", repository.MOCK_ADMIN_UUID)
+
+	MockController.HandleCreateGeneration(w, req.WithContext(ctx))
+	resp := w.Result()
+	defer resp.Body.Close()
+	assert.Equal(t, 500, resp.StatusCode)
+	var respJson map[string]interface{}
+	respBody, _ := io.ReadAll(resp.Body)
+	json.Unmarshal(respBody, &respJson)
+
+	assert.Equal(t, "An unknown error has occurred", respJson["error"])
+
+	// ! Width
+	reqBody = requests.CreateGenerationRequest{
+		StreamID: MockSSEId,
+		Height:   shared.MAX_GENERATE_HEIGHT,
+		Width:    shared.MAX_GENERATE_WIDTH + 1,
+	}
+	body, _ = json.Marshal(reqBody)
+	w = httptest.NewRecorder()
+	// Build request
+	req = httptest.NewRequest("POST", "/", bytes.NewReader(body))
+	req.Header.Set("Content-Type", "application/json")
+
+	// Setup context
+	ctx = context.WithValue(req.Context(), "user_id", repository.MOCK_ADMIN_UUID)
+	ctx = context.WithValue(ctx, "user_email", repository.MOCK_ADMIN_UUID)
+
+	MockController.HandleCreateGeneration(w, req.WithContext(ctx))
+	resp = w.Result()
+	defer resp.Body.Close()
+	assert.Equal(t, 500, resp.StatusCode)
+	respBody, _ = io.ReadAll(resp.Body)
+	json.Unmarshal(respBody, &respJson)
+
+	assert.Equal(t, "An unknown error has occurred", respJson["error"])
 }
 
 func TestGenerateRejectsInvalidModelOrScheduler(t *testing.T) {
@@ -216,8 +269,8 @@ func TestGenerateRejectsInvalidModelOrScheduler(t *testing.T) {
 	req.Header.Set("Content-Type", "application/json")
 
 	// Setup context
-	ctx := context.WithValue(req.Context(), "user_id", repository.MOCK_ADMIN_UUID)
-	ctx = context.WithValue(ctx, "user_email", repository.MOCK_ADMIN_UUID)
+	ctx := context.WithValue(req.Context(), "user_id", repository.MOCK_NORMAL_UUID)
+	ctx = context.WithValue(ctx, "user_email", repository.MOCK_NORMAL_UUID)
 
 	MockController.HandleCreateGeneration(w, req.WithContext(ctx))
 	resp := w.Result()
@@ -246,8 +299,8 @@ func TestGenerateRejectsInvalidModelOrScheduler(t *testing.T) {
 	req.Header.Set("Content-Type", "application/json")
 
 	// Setup context
-	ctx = context.WithValue(req.Context(), "user_id", repository.MOCK_ADMIN_UUID)
-	ctx = context.WithValue(ctx, "user_email", repository.MOCK_ADMIN_UUID)
+	ctx = context.WithValue(req.Context(), "user_id", repository.MOCK_NORMAL_UUID)
+	ctx = context.WithValue(ctx, "user_email", repository.MOCK_NORMAL_UUID)
 
 	MockController.HandleCreateGeneration(w, req.WithContext(ctx))
 	resp = w.Result()

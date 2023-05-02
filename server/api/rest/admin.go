@@ -199,7 +199,7 @@ func (c *RestAPI) HandleQueryGenerationsForAdmin(w http.ResponseWriter, r *http.
 		e, err := c.Clip.GetEmbeddingFromText(search, 2)
 		if err != nil {
 			log.Error("Error getting embedding from clip service", "err", err)
-			responses.ErrInternalServerError(w, r, "An unknown error has occured")
+			responses.ErrInternalServerError(w, r, "An unknown error has occurred")
 			return
 		}
 
@@ -225,7 +225,7 @@ func (c *RestAPI) HandleQueryGenerationsForAdmin(w http.ResponseWriter, r *http.
 			count, err := c.Qdrant.CountWithFilters(qdrantFilters, false)
 			if err != nil {
 				log.Error("Error counting qdrant", "err", err)
-				responses.ErrInternalServerError(w, r, "An unknown error has occured")
+				responses.ErrInternalServerError(w, r, "An unknown error has occurred")
 				return
 			}
 			total = &count
@@ -235,7 +235,7 @@ func (c *RestAPI) HandleQueryGenerationsForAdmin(w http.ResponseWriter, r *http.
 		qdrantRes, err := c.Qdrant.QueryGenerations(e, perPage, offset, scoreThreshold, qdrantFilters, false, false)
 		if err != nil {
 			log.Error("Error querying qdrant", "err", err)
-			responses.ErrInternalServerError(w, r, "An unknown error has occured")
+			responses.ErrInternalServerError(w, r, "An unknown error has occurred")
 			return
 		}
 
@@ -254,7 +254,7 @@ func (c *RestAPI) HandleQueryGenerationsForAdmin(w http.ResponseWriter, r *http.
 		generationsUnsorted, err := c.Repo.RetrieveGenerationsWithOutputIDs(outputIds)
 		if err != nil {
 			log.Error("Error getting generations", "err", err)
-			responses.ErrInternalServerError(w, r, "An unknown error has occured")
+			responses.ErrInternalServerError(w, r, "An unknown error has occurred")
 			return
 		}
 
@@ -388,7 +388,7 @@ func (c *RestAPI) HandleQueryCreditTypes(w http.ResponseWriter, r *http.Request)
 	creditTypes, err := c.Repo.GetCreditTypeList()
 	if err != nil {
 		log.Error("Error getting credit types", "err", err)
-		responses.ErrInternalServerError(w, r, "An unknown error has occured")
+		responses.ErrInternalServerError(w, r, "An unknown error has occurred")
 		return
 	}
 
@@ -423,7 +423,7 @@ func (c *RestAPI) HandleAddCreditsToUser(w http.ResponseWriter, r *http.Request)
 	creditType, err := c.Repo.GetCreditTypeByID(addReq.CreditTypeID)
 	if err != nil {
 		log.Error("Error getting credit type", "err", err)
-		responses.ErrInternalServerError(w, r, "An unknown error has occured")
+		responses.ErrInternalServerError(w, r, "An unknown error has occurred")
 		return
 	} else if err == nil && creditType == nil {
 		responses.ErrNotFound(w, r, fmt.Sprintf("Invalid credit type %s", addReq.CreditTypeID.String()))
@@ -433,7 +433,7 @@ func (c *RestAPI) HandleAddCreditsToUser(w http.ResponseWriter, r *http.Request)
 	err = c.Repo.AddCreditsToUser(creditType, addReq.UserID)
 	if err != nil {
 		log.Error("Error adding credits to user", "err", err)
-		responses.ErrInternalServerError(w, r, "An unknown error has occured")
+		responses.ErrInternalServerError(w, r, "An unknown error has occurred")
 		return
 	}
 
