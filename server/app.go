@@ -6,6 +6,7 @@ import (
 	"flag"
 	"fmt"
 	"net/http"
+	"net/url"
 	"os"
 	"strings"
 	"time"
@@ -278,7 +279,7 @@ func main() {
 			dst := strings.Replace(src, sourceHash, targetHash, 1)
 			_, err := s3Client.CopyObject(&s3.CopyObjectInput{
 				Bucket:     aws.String(os.Getenv("S3_IMG2IMG_BUCKET_NAME")),
-				CopySource: o.Key,
+				CopySource: aws.String(url.QueryEscape(fmt.Sprintf("/%s/%s", os.Getenv("S3_IMG2IMG_BUCKET_NAME"), src))),
 				Key:        aws.String(dst),
 			})
 			if err != nil {
