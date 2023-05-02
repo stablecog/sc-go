@@ -229,7 +229,7 @@ func main() {
 
 		log.Info("📦 Transferring user data...", "source", sourceID, "target", targetID)
 		// Get all generation output ids
-		outputs := repo.DB.Generation.Query().Where(generation.UserIDEQ(sourceID)).QueryGenerationOutputs().AllX(ctx)
+		outputs := repo.DB.Generation.Query().Where(generation.UserIDEQ(targetID)).QueryGenerationOutputs().AllX(ctx)
 		gOutputIDs := make([]uuid.UUID, len(outputs))
 		for i, o := range outputs {
 			gOutputIDs[i] = o.ID
