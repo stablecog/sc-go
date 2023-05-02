@@ -68,11 +68,13 @@ func (c *RestAPI) HandleUpscale(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	// Validation
-	err = upscaleReq.Validate()
-	if err != nil {
-		responses.ErrBadRequest(w, r, err.Error(), "")
-		return
+	// Validation (skip for super admins)
+	if !isSuperAdmin {
+		err = upscaleReq.Validate()
+		if err != nil {
+			responses.ErrBadRequest(w, r, err.Error(), "")
+			return
+		}
 	}
 
 	// Get queue count

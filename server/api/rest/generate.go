@@ -94,11 +94,13 @@ func (c *RestAPI) HandleCreateGeneration(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	// Validation
-	err = generateReq.Validate()
-	if err != nil {
-		responses.ErrBadRequest(w, r, err.Error(), "")
-		return
+	// Validation (skip for super admin)
+	if !isSuperAdmin {
+		err = generateReq.Validate()
+		if err != nil {
+			responses.ErrBadRequest(w, r, err.Error(), "")
+			return
+		}
 	}
 
 	// The URL we send worker
