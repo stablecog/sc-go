@@ -12,6 +12,7 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
+	"github.com/stablecog/sc-go/database/ent/apitoken"
 	"github.com/stablecog/sc-go/database/ent/deviceinfo"
 	"github.com/stablecog/sc-go/database/ent/generation"
 	"github.com/stablecog/sc-go/database/ent/generationmodel"
@@ -36,6 +37,7 @@ type GenerationQuery struct {
 	withNegativePrompt    *NegativePromptQuery
 	withGenerationModel   *GenerationModelQuery
 	withUser              *UserQuery
+	withAPITokens         *ApiTokenQuery
 	withGenerationOutputs *GenerationOutputQuery
 	modifiers             []func(*sql.Selector)
 	// intermediate query (i.e. traversal path).
@@ -199,6 +201,28 @@ func (gq *GenerationQuery) QueryUser() *UserQuery {
 			sqlgraph.From(generation.Table, generation.FieldID, selector),
 			sqlgraph.To(user.Table, user.FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, true, generation.UserTable, generation.UserColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(gq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryAPITokens chains the current query on the "api_tokens" edge.
+func (gq *GenerationQuery) QueryAPITokens() *ApiTokenQuery {
+	query := (&ApiTokenClient{config: gq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := gq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := gq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(generation.Table, generation.FieldID, selector),
+			sqlgraph.To(apitoken.Table, apitoken.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, generation.APITokensTable, generation.APITokensColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(gq.driver.Dialect(), step)
 		return fromU, nil
@@ -424,6 +448,7 @@ func (gq *GenerationQuery) Clone() *GenerationQuery {
 		withNegativePrompt:    gq.withNegativePrompt.Clone(),
 		withGenerationModel:   gq.withGenerationModel.Clone(),
 		withUser:              gq.withUser.Clone(),
+		withAPITokens:         gq.withAPITokens.Clone(),
 		withGenerationOutputs: gq.withGenerationOutputs.Clone(),
 		// clone intermediate query.
 		sql:  gq.sql.Clone(),
@@ -494,6 +519,17 @@ func (gq *GenerationQuery) WithUser(opts ...func(*UserQuery)) *GenerationQuery {
 		opt(query)
 	}
 	gq.withUser = query
+	return gq
+}
+
+// WithAPITokens tells the query-builder to eager-load the nodes that are connected to
+// the "api_tokens" edge. The optional arguments are used to configure the query builder of the edge.
+func (gq *GenerationQuery) WithAPITokens(opts ...func(*ApiTokenQuery)) *GenerationQuery {
+	query := (&ApiTokenClient{config: gq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	gq.withAPITokens = query
 	return gq
 }
 
@@ -586,13 +622,14 @@ func (gq *GenerationQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*G
 	var (
 		nodes       = []*Generation{}
 		_spec       = gq.querySpec()
-		loadedTypes = [7]bool{
+		loadedTypes = [8]bool{
 			gq.withDeviceInfo != nil,
 			gq.withScheduler != nil,
 			gq.withPrompt != nil,
 			gq.withNegativePrompt != nil,
 			gq.withGenerationModel != nil,
 			gq.withUser != nil,
+			gq.withAPITokens != nil,
 			gq.withGenerationOutputs != nil,
 		}
 	)
@@ -650,6 +687,12 @@ func (gq *GenerationQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*G
 	if query := gq.withUser; query != nil {
 		if err := gq.loadUser(ctx, query, nodes, nil,
 			func(n *Generation, e *User) { n.Edges.User = e }); err != nil {
+			return nil, err
+		}
+	}
+	if query := gq.withAPITokens; query != nil {
+		if err := gq.loadAPITokens(ctx, query, nodes, nil,
+			func(n *Generation, e *ApiToken) { n.Edges.APITokens = e }); err != nil {
 			return nil, err
 		}
 	}
@@ -838,6 +881,38 @@ func (gq *GenerationQuery) loadUser(ctx context.Context, query *UserQuery, nodes
 		nodes, ok := nodeids[n.ID]
 		if !ok {
 			return fmt.Errorf(`unexpected foreign-key "user_id" returned %v`, n.ID)
+		}
+		for i := range nodes {
+			assign(nodes[i], n)
+		}
+	}
+	return nil
+}
+func (gq *GenerationQuery) loadAPITokens(ctx context.Context, query *ApiTokenQuery, nodes []*Generation, init func(*Generation), assign func(*Generation, *ApiToken)) error {
+	ids := make([]uuid.UUID, 0, len(nodes))
+	nodeids := make(map[uuid.UUID][]*Generation)
+	for i := range nodes {
+		if nodes[i].APITokenID == nil {
+			continue
+		}
+		fk := *nodes[i].APITokenID
+		if _, ok := nodeids[fk]; !ok {
+			ids = append(ids, fk)
+		}
+		nodeids[fk] = append(nodeids[fk], nodes[i])
+	}
+	if len(ids) == 0 {
+		return nil
+	}
+	query.Where(apitoken.IDIn(ids...))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nodeids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "api_token_id" returned %v`, n.ID)
 		}
 		for i := range nodes {
 			assign(nodes[i], n)

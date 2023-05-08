@@ -51,6 +51,25 @@ CREATE TYPE public.credit_type_enum AS ENUM (
 
 ALTER TYPE public.credit_type_enum OWNER TO postgres;
 
+--
+-- Name: api_tokens; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public.api_tokens (
+    id uuid DEFAULT extensions.uuid_generate_v4() NOT NULL,
+    hashed_token text NOT NULL,
+    is_active boolean default true not null,
+    uses bigint NOT NULL DEFAULT 0,
+    user_id uuid NOT NULL,
+    last_used_at timestamp with time zone,
+    created_at timestamp with time zone DEFAULT (now() AT TIME ZONE 'utc'::text) NOT NULL,
+    updated_at timestamp with time zone DEFAULT (now() AT TIME ZONE 'utc'::text) NOT NULL
+);
+
+CREATE trigger handle_updated_at before
+UPDATE
+    ON public.api_tokens FOR each ROW EXECUTE PROCEDURE moddatetime (updated_at);
+
 
 --
 -- Name: credit_types; Type: TABLE; Schema: public; Owner: postgres
@@ -182,6 +201,7 @@ CREATE TABLE public.generations (
     prompt_id uuid,
     scheduler_id uuid NOT NULL,
     user_id uuid NOT NULL,
+    api_token_id uuid,
     started_at timestamp with time zone,
     completed_at timestamp with time zone,
     created_at timestamp with time zone DEFAULT (now() AT TIME ZONE 'utc'::text) NOT NULL,
@@ -303,6 +323,7 @@ CREATE TABLE public.upscales (
     device_info_id uuid NOT NULL,
     model_id uuid NOT NULL,
     user_id uuid NOT NULL,
+    api_token_id uuid,
     started_at timestamp with time zone,
     completed_at timestamp with time zone,
     created_at timestamp with time zone DEFAULT (now() AT TIME ZONE 'utc'::text) NOT NULL,
@@ -390,6 +411,14 @@ update
     on auth.users for each row execute procedure handle_updated_user();
 
 ALTER TABLE public.users OWNER TO postgres;
+
+--
+-- Name: api_tokens api_tokens_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.api_tokens
+    ADD CONSTRAINT api_tokens_pkey PRIMARY KEY (id);
+
 
 --
 -- Name: credit_types credit_types_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
@@ -653,6 +682,12 @@ ALTER TABLE ONLY public.generations
 ALTER TABLE ONLY public.generations
     ADD CONSTRAINT generations_generation_models_generations FOREIGN KEY (model_id) REFERENCES public.generation_models(id) ON DELETE CASCADE;
 
+--
+-- Name: generations generations_api_tokens_generations; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.generations
+    ADD CONSTRAINT generations_api_tokens_generations FOREIGN KEY (api_token_id) REFERENCES public.api_tokens(id) ON DELETE CASCADE;
 
 --
 -- Name: generations generations_negative_prompts_generations; Type: FK CONSTRAINT; Schema: public; Owner: postgres
@@ -717,6 +752,12 @@ ALTER TABLE ONLY public.upscales
 ALTER TABLE ONLY public.upscales
     ADD CONSTRAINT upscales_upscale_models_upscales FOREIGN KEY (model_id) REFERENCES public.upscale_models(id) ON DELETE CASCADE;
 
+--
+-- Name: upscales upscales_api_tokens_upscales; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.upscales
+    ADD CONSTRAINT upscales_api_tokens_upscales FOREIGN KEY (api_token_id) REFERENCES public.api_tokens(id) ON DELETE CASCADE;
 
 --
 -- Name: upscales upscales_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres

@@ -503,6 +503,91 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse401"
+  /v1/user/tokens:
+    get:
+      description: "API Token: List (User-only)"
+      responses:
+        "200":
+          description: JSON Object with array of tokens
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  tokens:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                          format: uuidv4
+                        uses:
+                          type: integer
+                        is_active:
+                          type: boolean
+                        created_at:
+                          type: string
+                          format: date-time
+                        last_used_at:
+                          type: string
+                          format: date-time
+    post:
+      description: "API Token: Create (User-only)"
+      responses:
+        "200":
+          description: JSON Object with raw token
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    format: uuidv4
+                  token:
+                    type: string
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    format: too_many_tokens
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse401"
+    delete:
+      description: "API Token: Delete/Deactivate (User-only)"
+      requestBody:
+        description: JSON Object with token ID
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                id:
+                  type: string
+                  format: uuidv4
+      responses:
+        "200":
+          description: "Successful deactivation"
+        "404":
+          description: "Token not found"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    format: token_not_found
   /v1/admin/gallery:
     put:
       description: "Gallery: Approve/Reject (Admin)"

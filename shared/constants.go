@@ -42,6 +42,9 @@ const REDIS_SSE_BROADCAST_CHANNEL = "sse:broadcast_channel"
 // This redis channel is when webhook sends an internal request we care about
 const REDIS_INTERNAL_COG_CHANNEL = "cog:internal_message"
 
+// This redis channel is when webhook sends a request from API token
+const REDIS_APITOKEN_COG_CHANNEL = "cog:apitoken_message"
+
 // Allowed image extensions used by various APIs
 type ImageExtension string
 
@@ -110,3 +113,7 @@ const AUTO_UPSCALE_RETRY_DURATION = 30 * time.Second
 
 // ! Deleting user data
 const DELETE_BANNED_USER_DATA_AFTER = 24 * time.Hour
+
+// ! API Tokens
+// Maximum number of tokens a user can have at any given time
+const MAX_API_TOKENS_PER_USER = 10

@@ -12,6 +12,7 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
+	"github.com/stablecog/sc-go/database/ent/apitoken"
 	"github.com/stablecog/sc-go/database/ent/deviceinfo"
 	"github.com/stablecog/sc-go/database/ent/generation"
 	"github.com/stablecog/sc-go/database/ent/generationmodel"
@@ -327,6 +328,26 @@ func (gu *GenerationUpdate) SetDeviceInfoID(u uuid.UUID) *GenerationUpdate {
 	return gu
 }
 
+// SetAPITokenID sets the "api_token_id" field.
+func (gu *GenerationUpdate) SetAPITokenID(u uuid.UUID) *GenerationUpdate {
+	gu.mutation.SetAPITokenID(u)
+	return gu
+}
+
+// SetNillableAPITokenID sets the "api_token_id" field if the given value is not nil.
+func (gu *GenerationUpdate) SetNillableAPITokenID(u *uuid.UUID) *GenerationUpdate {
+	if u != nil {
+		gu.SetAPITokenID(*u)
+	}
+	return gu
+}
+
+// ClearAPITokenID clears the value of the "api_token_id" field.
+func (gu *GenerationUpdate) ClearAPITokenID() *GenerationUpdate {
+	gu.mutation.ClearAPITokenID()
+	return gu
+}
+
 // SetStartedAt sets the "started_at" field.
 func (gu *GenerationUpdate) SetStartedAt(t time.Time) *GenerationUpdate {
 	gu.mutation.SetStartedAt(t)
@@ -409,6 +430,25 @@ func (gu *GenerationUpdate) SetUser(u *User) *GenerationUpdate {
 	return gu.SetUserID(u.ID)
 }
 
+// SetAPITokensID sets the "api_tokens" edge to the ApiToken entity by ID.
+func (gu *GenerationUpdate) SetAPITokensID(id uuid.UUID) *GenerationUpdate {
+	gu.mutation.SetAPITokensID(id)
+	return gu
+}
+
+// SetNillableAPITokensID sets the "api_tokens" edge to the ApiToken entity by ID if the given value is not nil.
+func (gu *GenerationUpdate) SetNillableAPITokensID(id *uuid.UUID) *GenerationUpdate {
+	if id != nil {
+		gu = gu.SetAPITokensID(*id)
+	}
+	return gu
+}
+
+// SetAPITokens sets the "api_tokens" edge to the ApiToken entity.
+func (gu *GenerationUpdate) SetAPITokens(a *ApiToken) *GenerationUpdate {
+	return gu.SetAPITokensID(a.ID)
+}
+
 // AddGenerationOutputIDs adds the "generation_outputs" edge to the GenerationOutput entity by IDs.
 func (gu *GenerationUpdate) AddGenerationOutputIDs(ids ...uuid.UUID) *GenerationUpdate {
 	gu.mutation.AddGenerationOutputIDs(ids...)
@@ -462,6 +502,12 @@ func (gu *GenerationUpdate) ClearGenerationModel() *GenerationUpdate {
 // ClearUser clears the "user" edge to the User entity.
 func (gu *GenerationUpdate) ClearUser() *GenerationUpdate {
 	gu.mutation.ClearUser()
+	return gu
+}
+
+// ClearAPITokens clears the "api_tokens" edge to the ApiToken entity.
+func (gu *GenerationUpdate) ClearAPITokens() *GenerationUpdate {
+	gu.mutation.ClearAPITokens()
 	return gu
 }
 
@@ -877,6 +923,41 @@ func (gu *GenerationUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if gu.mutation.APITokensCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   generation.APITokensTable,
+			Columns: []string{generation.APITokensColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: apitoken.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := gu.mutation.APITokensIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   generation.APITokensTable,
+			Columns: []string{generation.APITokensColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: apitoken.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if gu.mutation.GenerationOutputsCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
@@ -1243,6 +1324,26 @@ func (guo *GenerationUpdateOne) SetDeviceInfoID(u uuid.UUID) *GenerationUpdateOn
 	return guo
 }
 
+// SetAPITokenID sets the "api_token_id" field.
+func (guo *GenerationUpdateOne) SetAPITokenID(u uuid.UUID) *GenerationUpdateOne {
+	guo.mutation.SetAPITokenID(u)
+	return guo
+}
+
+// SetNillableAPITokenID sets the "api_token_id" field if the given value is not nil.
+func (guo *GenerationUpdateOne) SetNillableAPITokenID(u *uuid.UUID) *GenerationUpdateOne {
+	if u != nil {
+		guo.SetAPITokenID(*u)
+	}
+	return guo
+}
+
+// ClearAPITokenID clears the value of the "api_token_id" field.
+func (guo *GenerationUpdateOne) ClearAPITokenID() *GenerationUpdateOne {
+	guo.mutation.ClearAPITokenID()
+	return guo
+}
+
 // SetStartedAt sets the "started_at" field.
 func (guo *GenerationUpdateOne) SetStartedAt(t time.Time) *GenerationUpdateOne {
 	guo.mutation.SetStartedAt(t)
@@ -1325,6 +1426,25 @@ func (guo *GenerationUpdateOne) SetUser(u *User) *GenerationUpdateOne {
 	return guo.SetUserID(u.ID)
 }
 
+// SetAPITokensID sets the "api_tokens" edge to the ApiToken entity by ID.
+func (guo *GenerationUpdateOne) SetAPITokensID(id uuid.UUID) *GenerationUpdateOne {
+	guo.mutation.SetAPITokensID(id)
+	return guo
+}
+
+// SetNillableAPITokensID sets the "api_tokens" edge to the ApiToken entity by ID if the given value is not nil.
+func (guo *GenerationUpdateOne) SetNillableAPITokensID(id *uuid.UUID) *GenerationUpdateOne {
+	if id != nil {
+		guo = guo.SetAPITokensID(*id)
+	}
+	return guo
+}
+
+// SetAPITokens sets the "api_tokens" edge to the ApiToken entity.
+func (guo *GenerationUpdateOne) SetAPITokens(a *ApiToken) *GenerationUpdateOne {
+	return guo.SetAPITokensID(a.ID)
+}
+
 // AddGenerationOutputIDs adds the "generation_outputs" edge to the GenerationOutput entity by IDs.
 func (guo *GenerationUpdateOne) AddGenerationOutputIDs(ids ...uuid.UUID) *GenerationUpdateOne {
 	guo.mutation.AddGenerationOutputIDs(ids...)
@@ -1378,6 +1498,12 @@ func (guo *GenerationUpdateOne) ClearGenerationModel() *GenerationUpdateOne {
 // ClearUser clears the "user" edge to the User entity.
 func (guo *GenerationUpdateOne) ClearUser() *GenerationUpdateOne {
 	guo.mutation.ClearUser()
+	return guo
+}
+
+// ClearAPITokens clears the "api_tokens" edge to the ApiToken entity.
+func (guo *GenerationUpdateOne) ClearAPITokens() *GenerationUpdateOne {
+	guo.mutation.ClearAPITokens()
 	return guo
 }
 
@@ -1809,6 +1935,41 @@ func (guo *GenerationUpdateOne) sqlSave(ctx context.Context) (_node *Generation,
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeUUID,
 					Column: user.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if guo.mutation.APITokensCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   generation.APITokensTable,
+			Columns: []string{generation.APITokensColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: apitoken.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := guo.mutation.APITokensIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   generation.APITokensTable,
+			Columns: []string{generation.APITokensColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: apitoken.FieldID,
 				},
 			},
 		}

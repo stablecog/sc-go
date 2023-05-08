@@ -12,6 +12,7 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
+	"github.com/stablecog/sc-go/database/ent/apitoken"
 	"github.com/stablecog/sc-go/database/ent/credit"
 	"github.com/stablecog/sc-go/database/ent/generation"
 	"github.com/stablecog/sc-go/database/ent/predicate"
@@ -31,6 +32,7 @@ type UserQuery struct {
 	withGenerations *GenerationQuery
 	withUpscales    *UpscaleQuery
 	withCredits     *CreditQuery
+	withAPITokens   *ApiTokenQuery
 	modifiers       []func(*sql.Selector)
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
@@ -149,6 +151,28 @@ func (uq *UserQuery) QueryCredits() *CreditQuery {
 			sqlgraph.From(user.Table, user.FieldID, selector),
 			sqlgraph.To(credit.Table, credit.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, user.CreditsTable, user.CreditsColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(uq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryAPITokens chains the current query on the "api_tokens" edge.
+func (uq *UserQuery) QueryAPITokens() *ApiTokenQuery {
+	query := (&ApiTokenClient{config: uq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := uq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := uq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, selector),
+			sqlgraph.To(apitoken.Table, apitoken.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.APITokensTable, user.APITokensColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(uq.driver.Dialect(), step)
 		return fromU, nil
@@ -350,6 +374,7 @@ func (uq *UserQuery) Clone() *UserQuery {
 		withGenerations: uq.withGenerations.Clone(),
 		withUpscales:    uq.withUpscales.Clone(),
 		withCredits:     uq.withCredits.Clone(),
+		withAPITokens:   uq.withAPITokens.Clone(),
 		// clone intermediate query.
 		sql:  uq.sql.Clone(),
 		path: uq.path,
@@ -397,6 +422,17 @@ func (uq *UserQuery) WithCredits(opts ...func(*CreditQuery)) *UserQuery {
 		opt(query)
 	}
 	uq.withCredits = query
+	return uq
+}
+
+// WithAPITokens tells the query-builder to eager-load the nodes that are connected to
+// the "api_tokens" edge. The optional arguments are used to configure the query builder of the edge.
+func (uq *UserQuery) WithAPITokens(opts ...func(*ApiTokenQuery)) *UserQuery {
+	query := (&ApiTokenClient{config: uq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	uq.withAPITokens = query
 	return uq
 }
 
@@ -478,11 +514,12 @@ func (uq *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 	var (
 		nodes       = []*User{}
 		_spec       = uq.querySpec()
-		loadedTypes = [4]bool{
+		loadedTypes = [5]bool{
 			uq.withUserRoles != nil,
 			uq.withGenerations != nil,
 			uq.withUpscales != nil,
 			uq.withCredits != nil,
+			uq.withAPITokens != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -531,6 +568,13 @@ func (uq *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 		if err := uq.loadCredits(ctx, query, nodes,
 			func(n *User) { n.Edges.Credits = []*Credit{} },
 			func(n *User, e *Credit) { n.Edges.Credits = append(n.Edges.Credits, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := uq.withAPITokens; query != nil {
+		if err := uq.loadAPITokens(ctx, query, nodes,
+			func(n *User) { n.Edges.APITokens = []*ApiToken{} },
+			func(n *User, e *ApiToken) { n.Edges.APITokens = append(n.Edges.APITokens, e) }); err != nil {
 			return nil, err
 		}
 	}
@@ -630,6 +674,33 @@ func (uq *UserQuery) loadCredits(ctx context.Context, query *CreditQuery, nodes 
 	}
 	query.Where(predicate.Credit(func(s *sql.Selector) {
 		s.Where(sql.InValues(user.CreditsColumn, fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.UserID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "user_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (uq *UserQuery) loadAPITokens(ctx context.Context, query *ApiTokenQuery, nodes []*User, init func(*User), assign func(*User, *ApiToken)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*User)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	query.Where(predicate.ApiToken(func(s *sql.Selector) {
+		s.Where(sql.InValues(user.APITokensColumn, fks...))
 	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {

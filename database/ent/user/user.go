@@ -41,6 +41,8 @@ const (
 	EdgeUpscales = "upscales"
 	// EdgeCredits holds the string denoting the credits edge name in mutations.
 	EdgeCredits = "credits"
+	// EdgeAPITokens holds the string denoting the api_tokens edge name in mutations.
+	EdgeAPITokens = "api_tokens"
 	// Table holds the table name of the user in the database.
 	Table = "users"
 	// UserRolesTable is the table that holds the user_roles relation/edge.
@@ -71,6 +73,13 @@ const (
 	CreditsInverseTable = "credits"
 	// CreditsColumn is the table column denoting the credits relation/edge.
 	CreditsColumn = "user_id"
+	// APITokensTable is the table that holds the api_tokens relation/edge.
+	APITokensTable = "api_tokens"
+	// APITokensInverseTable is the table name for the ApiToken entity.
+	// It exists in this package in order to avoid circular dependency with the "apitoken" package.
+	APITokensInverseTable = "api_tokens"
+	// APITokensColumn is the table column denoting the api_tokens relation/edge.
+	APITokensColumn = "user_id"
 )
 
 // Columns holds all SQL columns for user fields.

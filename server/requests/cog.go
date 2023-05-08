@@ -30,7 +30,8 @@ type BaseCogRequest struct {
 	LivePageData       *shared.LivePageMessage `json:"live_page_data,omitempty"`
 	StreamID           string                  `json:"stream_id,omitempty"`
 	DeviceInfo         utils.ClientDeviceInfo  `json:"device_info,omitempty"`
-	Internal           bool                    `json:"internal,omitempty"` // Used to indicate if the request is internal or not
+	Internal           bool                    `json:"internal,omitempty"`    // Used to indicate if the request is internal or not
+	APIRequest         bool                    `json:"api_request,omitempty"` // Used to indicate if the request is from token or not
 	// Generate specific
 	UploadPathPrefix     string             `json:"upload_path_prefix,omitempty"`
 	Prompt               string             `json:"prompt,omitempty"`

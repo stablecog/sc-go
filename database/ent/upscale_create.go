@@ -11,6 +11,7 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
+	"github.com/stablecog/sc-go/database/ent/apitoken"
 	"github.com/stablecog/sc-go/database/ent/deviceinfo"
 	"github.com/stablecog/sc-go/database/ent/upscale"
 	"github.com/stablecog/sc-go/database/ent/upscalemodel"
@@ -123,6 +124,20 @@ func (uc *UpscaleCreate) SetModelID(u uuid.UUID) *UpscaleCreate {
 	return uc
 }
 
+// SetAPITokenID sets the "api_token_id" field.
+func (uc *UpscaleCreate) SetAPITokenID(u uuid.UUID) *UpscaleCreate {
+	uc.mutation.SetAPITokenID(u)
+	return uc
+}
+
+// SetNillableAPITokenID sets the "api_token_id" field if the given value is not nil.
+func (uc *UpscaleCreate) SetNillableAPITokenID(u *uuid.UUID) *UpscaleCreate {
+	if u != nil {
+		uc.SetAPITokenID(*u)
+	}
+	return uc
+}
+
 // SetStartedAt sets the "started_at" field.
 func (uc *UpscaleCreate) SetStartedAt(t time.Time) *UpscaleCreate {
 	uc.mutation.SetStartedAt(t)
@@ -212,6 +227,25 @@ func (uc *UpscaleCreate) SetUpscaleModelsID(id uuid.UUID) *UpscaleCreate {
 // SetUpscaleModels sets the "upscale_models" edge to the UpscaleModel entity.
 func (uc *UpscaleCreate) SetUpscaleModels(u *UpscaleModel) *UpscaleCreate {
 	return uc.SetUpscaleModelsID(u.ID)
+}
+
+// SetAPITokensID sets the "api_tokens" edge to the ApiToken entity by ID.
+func (uc *UpscaleCreate) SetAPITokensID(id uuid.UUID) *UpscaleCreate {
+	uc.mutation.SetAPITokensID(id)
+	return uc
+}
+
+// SetNillableAPITokensID sets the "api_tokens" edge to the ApiToken entity by ID if the given value is not nil.
+func (uc *UpscaleCreate) SetNillableAPITokensID(id *uuid.UUID) *UpscaleCreate {
+	if id != nil {
+		uc = uc.SetAPITokensID(*id)
+	}
+	return uc
+}
+
+// SetAPITokens sets the "api_tokens" edge to the ApiToken entity.
+func (uc *UpscaleCreate) SetAPITokens(a *ApiToken) *UpscaleCreate {
+	return uc.SetAPITokensID(a.ID)
 }
 
 // AddUpscaleOutputIDs adds the "upscale_outputs" edge to the UpscaleOutput entity by IDs.
@@ -475,6 +509,26 @@ func (uc *UpscaleCreate) createSpec() (*Upscale, *sqlgraph.CreateSpec) {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_node.ModelID = nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := uc.mutation.APITokensIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   upscale.APITokensTable,
+			Columns: []string{upscale.APITokensColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: apitoken.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.APITokenID = &nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	if nodes := uc.mutation.UpscaleOutputsIDs(); len(nodes) > 0 {

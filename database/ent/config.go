@@ -31,6 +31,7 @@ type config struct {
 // hooks and interceptors per client, for fast access.
 type (
 	hooks struct {
+		ApiToken         []ent.Hook
 		Credit           []ent.Hook
 		CreditType       []ent.Hook
 		DeviceInfo       []ent.Hook
@@ -48,6 +49,7 @@ type (
 		UserRole         []ent.Hook
 	}
 	inters struct {
+		ApiToken         []ent.Interceptor
 		Credit           []ent.Interceptor
 		CreditType       []ent.Interceptor
 		DeviceInfo       []ent.Interceptor

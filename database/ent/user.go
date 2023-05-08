@@ -52,9 +52,11 @@ type UserEdges struct {
 	Upscales []*Upscale `json:"upscales,omitempty"`
 	// Credits holds the value of the credits edge.
 	Credits []*Credit `json:"credits,omitempty"`
+	// APITokens holds the value of the api_tokens edge.
+	APITokens []*ApiToken `json:"api_tokens,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [4]bool
+	loadedTypes [5]bool
 }
 
 // UserRolesOrErr returns the UserRoles value or an error if the edge
@@ -91,6 +93,15 @@ func (e UserEdges) CreditsOrErr() ([]*Credit, error) {
 		return e.Credits, nil
 	}
 	return nil, &NotLoadedError{edge: "credits"}
+}
+
+// APITokensOrErr returns the APITokens value or an error if the edge
+// was not loaded in eager-loading.
+func (e UserEdges) APITokensOrErr() ([]*ApiToken, error) {
+	if e.loadedTypes[4] {
+		return e.APITokens, nil
+	}
+	return nil, &NotLoadedError{edge: "api_tokens"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -213,6 +224,11 @@ func (u *User) QueryUpscales() *UpscaleQuery {
 // QueryCredits queries the "credits" edge of the User entity.
 func (u *User) QueryCredits() *CreditQuery {
 	return NewUserClient(u.config).QueryCredits(u)
+}
+
+// QueryAPITokens queries the "api_tokens" edge of the User entity.
+func (u *User) QueryAPITokens() *ApiTokenQuery {
+	return NewUserClient(u.config).QueryAPITokens(u)
 }
 
 // Update returns a builder for updating this User.

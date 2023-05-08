@@ -11,6 +11,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/stablecog/sc-go/database/ent/migrate"
 
+	"github.com/stablecog/sc-go/database/ent/apitoken"
 	"github.com/stablecog/sc-go/database/ent/credit"
 	"github.com/stablecog/sc-go/database/ent/credittype"
 	"github.com/stablecog/sc-go/database/ent/deviceinfo"
@@ -37,6 +38,8 @@ type Client struct {
 	config
 	// Schema is the client for creating, migrating and dropping schema.
 	Schema *migrate.Schema
+	// ApiToken is the client for interacting with the ApiToken builders.
+	ApiToken *ApiTokenClient
 	// Credit is the client for interacting with the Credit builders.
 	Credit *CreditClient
 	// CreditType is the client for interacting with the CreditType builders.
@@ -80,6 +83,7 @@ func NewClient(opts ...Option) *Client {
 
 func (c *Client) init() {
 	c.Schema = migrate.NewSchema(c.driver)
+	c.ApiToken = NewApiTokenClient(c.config)
 	c.Credit = NewCreditClient(c.config)
 	c.CreditType = NewCreditTypeClient(c.config)
 	c.DeviceInfo = NewDeviceInfoClient(c.config)
@@ -128,6 +132,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 	return &Tx{
 		ctx:              ctx,
 		config:           cfg,
+		ApiToken:         NewApiTokenClient(cfg),
 		Credit:           NewCreditClient(cfg),
 		CreditType:       NewCreditTypeClient(cfg),
 		DeviceInfo:       NewDeviceInfoClient(cfg),
@@ -162,6 +167,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 	return &Tx{
 		ctx:              ctx,
 		config:           cfg,
+		ApiToken:         NewApiTokenClient(cfg),
 		Credit:           NewCreditClient(cfg),
 		CreditType:       NewCreditTypeClient(cfg),
 		DeviceInfo:       NewDeviceInfoClient(cfg),
@@ -183,7 +189,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 // Debug returns a new debug-client. It's used to get verbose logging on specific operations.
 //
 //	client.Debug().
-//		Credit.
+//		ApiToken.
 //		Query().
 //		Count(ctx)
 func (c *Client) Debug() *Client {
@@ -205,6 +211,7 @@ func (c *Client) Close() error {
 // Use adds the mutation hooks to all the entity clients.
 // In order to add hooks to a specific client, call: `client.Node.Use(...)`.
 func (c *Client) Use(hooks ...Hook) {
+	c.ApiToken.Use(hooks...)
 	c.Credit.Use(hooks...)
 	c.CreditType.Use(hooks...)
 	c.DeviceInfo.Use(hooks...)
@@ -225,6 +232,7 @@ func (c *Client) Use(hooks ...Hook) {
 // Intercept adds the query interceptors to all the entity clients.
 // In order to add interceptors to a specific client, call: `client.Node.Intercept(...)`.
 func (c *Client) Intercept(interceptors ...Interceptor) {
+	c.ApiToken.Intercept(interceptors...)
 	c.Credit.Intercept(interceptors...)
 	c.CreditType.Intercept(interceptors...)
 	c.DeviceInfo.Intercept(interceptors...)
@@ -245,6 +253,8 @@ func (c *Client) Intercept(interceptors ...Interceptor) {
 // Mutate implements the ent.Mutator interface.
 func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 	switch m := m.(type) {
+	case *ApiTokenMutation:
+		return c.ApiToken.mutate(ctx, m)
 	case *CreditMutation:
 		return c.Credit.mutate(ctx, m)
 	case *CreditTypeMutation:
@@ -277,6 +287,172 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.UserRole.mutate(ctx, m)
 	default:
 		return nil, fmt.Errorf("ent: unknown mutation type %T", m)
+	}
+}
+
+// ApiTokenClient is a client for the ApiToken schema.
+type ApiTokenClient struct {
+	config
+}
+
+// NewApiTokenClient returns a client for the ApiToken from the given config.
+func NewApiTokenClient(c config) *ApiTokenClient {
+	return &ApiTokenClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `apitoken.Hooks(f(g(h())))`.
+func (c *ApiTokenClient) Use(hooks ...Hook) {
+	c.hooks.ApiToken = append(c.hooks.ApiToken, hooks...)
+}
+
+// Use adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `apitoken.Intercept(f(g(h())))`.
+func (c *ApiTokenClient) Intercept(interceptors ...Interceptor) {
+	c.inters.ApiToken = append(c.inters.ApiToken, interceptors...)
+}
+
+// Create returns a builder for creating a ApiToken entity.
+func (c *ApiTokenClient) Create() *ApiTokenCreate {
+	mutation := newApiTokenMutation(c.config, OpCreate)
+	return &ApiTokenCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of ApiToken entities.
+func (c *ApiTokenClient) CreateBulk(builders ...*ApiTokenCreate) *ApiTokenCreateBulk {
+	return &ApiTokenCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for ApiToken.
+func (c *ApiTokenClient) Update() *ApiTokenUpdate {
+	mutation := newApiTokenMutation(c.config, OpUpdate)
+	return &ApiTokenUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *ApiTokenClient) UpdateOne(at *ApiToken) *ApiTokenUpdateOne {
+	mutation := newApiTokenMutation(c.config, OpUpdateOne, withApiToken(at))
+	return &ApiTokenUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *ApiTokenClient) UpdateOneID(id uuid.UUID) *ApiTokenUpdateOne {
+	mutation := newApiTokenMutation(c.config, OpUpdateOne, withApiTokenID(id))
+	return &ApiTokenUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for ApiToken.
+func (c *ApiTokenClient) Delete() *ApiTokenDelete {
+	mutation := newApiTokenMutation(c.config, OpDelete)
+	return &ApiTokenDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *ApiTokenClient) DeleteOne(at *ApiToken) *ApiTokenDeleteOne {
+	return c.DeleteOneID(at.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *ApiTokenClient) DeleteOneID(id uuid.UUID) *ApiTokenDeleteOne {
+	builder := c.Delete().Where(apitoken.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &ApiTokenDeleteOne{builder}
+}
+
+// Query returns a query builder for ApiToken.
+func (c *ApiTokenClient) Query() *ApiTokenQuery {
+	return &ApiTokenQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeApiToken},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a ApiToken entity by its id.
+func (c *ApiTokenClient) Get(ctx context.Context, id uuid.UUID) (*ApiToken, error) {
+	return c.Query().Where(apitoken.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *ApiTokenClient) GetX(ctx context.Context, id uuid.UUID) *ApiToken {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryUser queries the user edge of a ApiToken.
+func (c *ApiTokenClient) QueryUser(at *ApiToken) *UserQuery {
+	query := (&UserClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := at.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(apitoken.Table, apitoken.FieldID, id),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, apitoken.UserTable, apitoken.UserColumn),
+		)
+		fromV = sqlgraph.Neighbors(at.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryGenerations queries the generations edge of a ApiToken.
+func (c *ApiTokenClient) QueryGenerations(at *ApiToken) *GenerationQuery {
+	query := (&GenerationClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := at.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(apitoken.Table, apitoken.FieldID, id),
+			sqlgraph.To(generation.Table, generation.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, apitoken.GenerationsTable, apitoken.GenerationsColumn),
+		)
+		fromV = sqlgraph.Neighbors(at.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryUpscales queries the upscales edge of a ApiToken.
+func (c *ApiTokenClient) QueryUpscales(at *ApiToken) *UpscaleQuery {
+	query := (&UpscaleClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := at.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(apitoken.Table, apitoken.FieldID, id),
+			sqlgraph.To(upscale.Table, upscale.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, apitoken.UpscalesTable, apitoken.UpscalesColumn),
+		)
+		fromV = sqlgraph.Neighbors(at.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *ApiTokenClient) Hooks() []Hook {
+	return c.hooks.ApiToken
+}
+
+// Interceptors returns the client interceptors.
+func (c *ApiTokenClient) Interceptors() []Interceptor {
+	return c.inters.ApiToken
+}
+
+func (c *ApiTokenClient) mutate(ctx context.Context, m *ApiTokenMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&ApiTokenCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&ApiTokenUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&ApiTokenUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&ApiTokenDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown ApiToken mutation op: %q", m.Op())
 	}
 }
 
@@ -1014,6 +1190,22 @@ func (c *GenerationClient) QueryUser(ge *Generation) *UserQuery {
 			sqlgraph.From(generation.Table, generation.FieldID, id),
 			sqlgraph.To(user.Table, user.FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, true, generation.UserTable, generation.UserColumn),
+		)
+		fromV = sqlgraph.Neighbors(ge.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryAPITokens queries the api_tokens edge of a Generation.
+func (c *GenerationClient) QueryAPITokens(ge *Generation) *ApiTokenQuery {
+	query := (&ApiTokenClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := ge.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(generation.Table, generation.FieldID, id),
+			sqlgraph.To(apitoken.Table, apitoken.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, generation.APITokensTable, generation.APITokensColumn),
 		)
 		fromV = sqlgraph.Neighbors(ge.driver.Dialect(), step)
 		return fromV, nil
@@ -1889,6 +2081,22 @@ func (c *UpscaleClient) QueryUpscaleModels(u *Upscale) *UpscaleModelQuery {
 	return query
 }
 
+// QueryAPITokens queries the api_tokens edge of a Upscale.
+func (c *UpscaleClient) QueryAPITokens(u *Upscale) *ApiTokenQuery {
+	query := (&ApiTokenClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := u.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(upscale.Table, upscale.FieldID, id),
+			sqlgraph.To(apitoken.Table, apitoken.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, upscale.APITokensTable, upscale.APITokensColumn),
+		)
+		fromV = sqlgraph.Neighbors(u.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // QueryUpscaleOutputs queries the upscale_outputs edge of a Upscale.
 func (c *UpscaleClient) QueryUpscaleOutputs(u *Upscale) *UpscaleOutputQuery {
 	query := (&UpscaleOutputClient{config: c.config}).Query()
@@ -2364,6 +2572,22 @@ func (c *UserClient) QueryCredits(u *User) *CreditQuery {
 			sqlgraph.From(user.Table, user.FieldID, id),
 			sqlgraph.To(credit.Table, credit.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, user.CreditsTable, user.CreditsColumn),
+		)
+		fromV = sqlgraph.Neighbors(u.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryAPITokens queries the api_tokens edge of a User.
+func (c *UserClient) QueryAPITokens(u *User) *ApiTokenQuery {
+	query := (&ApiTokenClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := u.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, id),
+			sqlgraph.To(apitoken.Table, apitoken.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.APITokensTable, user.APITokensColumn),
 		)
 		fromV = sqlgraph.Neighbors(u.driver.Dialect(), step)
 		return fromV, nil

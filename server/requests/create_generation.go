@@ -34,8 +34,8 @@ type CreateGenerationRequest struct {
 	OutputImageExtension shared.ImageExtension `json:"output_image_extension"`
 }
 
-func (t *CreateGenerationRequest) Validate() error {
-	if !utils.IsSha256Hash(t.StreamID) {
+func (t *CreateGenerationRequest) Validate(api bool) error {
+	if !api && !utils.IsSha256Hash(t.StreamID) {
 		return errors.New("invalid_stream_id")
 	}
 

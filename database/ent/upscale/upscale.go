@@ -36,6 +36,8 @@ const (
 	FieldDeviceInfoID = "device_info_id"
 	// FieldModelID holds the string denoting the model_id field in the database.
 	FieldModelID = "model_id"
+	// FieldAPITokenID holds the string denoting the api_token_id field in the database.
+	FieldAPITokenID = "api_token_id"
 	// FieldStartedAt holds the string denoting the started_at field in the database.
 	FieldStartedAt = "started_at"
 	// FieldCompletedAt holds the string denoting the completed_at field in the database.
@@ -50,6 +52,8 @@ const (
 	EdgeDeviceInfo = "device_info"
 	// EdgeUpscaleModels holds the string denoting the upscale_models edge name in mutations.
 	EdgeUpscaleModels = "upscale_models"
+	// EdgeAPITokens holds the string denoting the api_tokens edge name in mutations.
+	EdgeAPITokens = "api_tokens"
 	// EdgeUpscaleOutputs holds the string denoting the upscale_outputs edge name in mutations.
 	EdgeUpscaleOutputs = "upscale_outputs"
 	// Table holds the table name of the upscale in the database.
@@ -75,6 +79,13 @@ const (
 	UpscaleModelsInverseTable = "upscale_models"
 	// UpscaleModelsColumn is the table column denoting the upscale_models relation/edge.
 	UpscaleModelsColumn = "model_id"
+	// APITokensTable is the table that holds the api_tokens relation/edge.
+	APITokensTable = "upscales"
+	// APITokensInverseTable is the table name for the ApiToken entity.
+	// It exists in this package in order to avoid circular dependency with the "apitoken" package.
+	APITokensInverseTable = "api_tokens"
+	// APITokensColumn is the table column denoting the api_tokens relation/edge.
+	APITokensColumn = "api_token_id"
 	// UpscaleOutputsTable is the table that holds the upscale_outputs relation/edge.
 	UpscaleOutputsTable = "upscale_outputs"
 	// UpscaleOutputsInverseTable is the table name for the UpscaleOutput entity.
@@ -98,6 +109,7 @@ var Columns = []string{
 	FieldUserID,
 	FieldDeviceInfoID,
 	FieldModelID,
+	FieldAPITokenID,
 	FieldStartedAt,
 	FieldCompletedAt,
 	FieldCreatedAt,

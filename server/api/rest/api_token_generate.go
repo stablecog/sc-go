@@ -16,6 +16,7 @@ import (
 	"github.com/go-chi/render"
 	"github.com/google/uuid"
 	"github.com/stablecog/sc-go/database/ent"
+	"github.com/stablecog/sc-go/database/ent/upscale"
 	"github.com/stablecog/sc-go/database/repository"
 	"github.com/stablecog/sc-go/log"
 	"github.com/stablecog/sc-go/server/requests"
@@ -25,10 +26,14 @@ import (
 )
 
 // POST generate endpoint
-// Adds generate to queue, if authenticated, returns the ID of the generation
-func (c *RestAPI) HandleCreateGeneration(w http.ResponseWriter, r *http.Request) {
+// Handles creating a generation with API token
+func (c *RestAPI) HandleCreateGenerationToken(w http.ResponseWriter, r *http.Request) {
 	var user *ent.User
 	if user = c.GetUserIfAuthenticated(w, r); user == nil {
+		return
+	}
+	var apiToken *ent.ApiToken
+	if apiToken = c.GetApiToken(w, r); apiToken == nil {
 		return
 	}
 
@@ -83,24 +88,11 @@ func (c *RestAPI) HandleCreateGeneration(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	if user.BannedAt != nil {
-		remainingCredits, _ := c.Repo.GetNonExpiredCreditTotalForUser(user.ID, nil)
-		render.Status(r, http.StatusOK)
-		render.JSON(w, r, &responses.TaskQueuedResponse{
-			ID:               uuid.NewString(),
-			UIId:             generateReq.UIId,
-			RemainingCredits: remainingCredits,
-		})
+	// Validation
+	err = generateReq.Validate(true)
+	if err != nil {
+		responses.ErrBadRequest(w, r, err.Error(), "")
 		return
-	}
-
-	// Validation (skip for super admin)
-	if !isSuperAdmin {
-		err = generateReq.Validate(false)
-		if err != nil {
-			responses.ErrBadRequest(w, r, err.Error(), "")
-			return
-		}
 	}
 
 	// The URL we send worker
@@ -128,7 +120,7 @@ func (c *RestAPI) HandleCreateGeneration(w http.ResponseWriter, r *http.Request)
 					return
 				default:
 					log.Error("Error checking if init image exists in bucket", "err", err)
-					responses.ErrInternalServerError(w, r, "An unknown error has occurred")
+					responses.ErrInternalServerError(w, r, "An unknown error has occured")
 					return
 				}
 			}
@@ -143,18 +135,18 @@ func (c *RestAPI) HandleCreateGeneration(w http.ResponseWriter, r *http.Request)
 		urlStr, err := req.Presign(5 * time.Minute)
 		if err != nil {
 			log.Error("Error signing init image URL", "err", err)
-			responses.ErrInternalServerError(w, r, "An unknown error has occurred")
+			responses.ErrInternalServerError(w, r, "An unknown error has occured")
 			return
 		}
 		signedInitImageUrl = urlStr
 	}
 
 	// Get queue count
-	nq, err := c.QueueThrottler.NumQueued(fmt.Sprintf("g:%s", user.ID.String()))
+	nq, err := c.QueueThrottler.NumQueued(user.ID.String())
 	if err != nil {
 		log.Warn("Error getting queue count", "err", err, "user_id", user.ID.String())
 	}
-	if err == nil && nq >= qMax {
+	if err == nil && nq > qMax {
 		responses.ErrBadRequest(w, r, "queue_limit_reached", "")
 		return
 	}
@@ -168,14 +160,12 @@ func (c *RestAPI) HandleCreateGeneration(w http.ResponseWriter, r *http.Request)
 	countryCode := utils.GetCountryCode(r)
 	deviceInfo := utils.GetClientDeviceInfo(r)
 
-	// ! TODO - parallel generation toggle
-
 	// Get model and scheduler name for cog
 	modelName := shared.GetCache().GetGenerationModelNameFromID(generateReq.ModelId)
 	schedulerName := shared.GetCache().GetSchedulerNameFromID(generateReq.SchedulerId)
 	if modelName == "" || schedulerName == "" {
 		log.Error("Error getting model or scheduler name: %s - %s", modelName, schedulerName)
-		responses.ErrInternalServerError(w, r, "An unknown error has occurred")
+		responses.ErrInternalServerError(w, r, "An unknown error has occured")
 		return
 	}
 
@@ -192,6 +182,13 @@ func (c *RestAPI) HandleCreateGeneration(w http.ResponseWriter, r *http.Request)
 
 	// Credits left after this operation
 	var remainingCredits int
+
+	// Create channel to track request
+	// Create channel
+	activeChl := make(chan requests.CogWebhookMessage)
+	// Cleanup
+	defer close(activeChl)
+	defer c.SMap.Delete(requestId)
 
 	// Wrap everything in a DB transaction
 	// We do this since we want our credit deduction to be atomic with the whole process
@@ -212,7 +209,7 @@ func (c *RestAPI) HandleCreateGeneration(w http.ResponseWriter, r *http.Request)
 		remainingCredits, err = c.Repo.GetNonExpiredCreditTotalForUser(user.ID, DB)
 		if err != nil {
 			log.Error("Error getting remaining credits", "err", err)
-			responses.ErrInternalServerError(w, r, "An unknown error has occurred")
+			responses.ErrInternalServerError(w, r, "An unknown error has occured")
 			return err
 		}
 
@@ -225,7 +222,7 @@ func (c *RestAPI) HandleCreateGeneration(w http.ResponseWriter, r *http.Request)
 			countryCode,
 			generateReq,
 			user.ActiveProductID,
-			nil,
+			&apiToken.ID,
 			DB)
 		if err != nil {
 			log.Error("Error creating generation", "err", err)
@@ -247,6 +244,7 @@ func (c *RestAPI) HandleCreateGeneration(w http.ResponseWriter, r *http.Request)
 			Height:           generateReq.Height,
 			CreatedAt:        g.CreatedAt,
 			ProductID:        user.ActiveProductID,
+			FromApiToken:     utils.ToPtr(true),
 		}
 
 		var promtpStrengthStr string
@@ -258,12 +256,11 @@ func (c *RestAPI) HandleCreateGeneration(w http.ResponseWriter, r *http.Request)
 			WebhookEventsFilter: []requests.CogEventFilter{requests.CogEventFilterStart, requests.CogEventFilterStart},
 			WebhookUrl:          fmt.Sprintf("%s/v1/worker/webhook", utils.GetEnv("PUBLIC_API_URL", "")),
 			Input: requests.BaseCogRequest{
+				APIRequest:           true,
 				ID:                   requestId,
 				IP:                   utils.GetIPAddress(r),
-				UIId:                 generateReq.UIId,
 				UserID:               &user.ID,
 				DeviceInfo:           deviceInfo,
-				StreamID:             generateReq.StreamID,
 				LivePageData:         &livePageMsg,
 				Prompt:               generateReq.Prompt,
 				NegativePrompt:       generateReq.NegativePrompt,
@@ -290,6 +287,9 @@ func (c *RestAPI) HandleCreateGeneration(w http.ResponseWriter, r *http.Request)
 			cogReqBody.Input.InitImageUrlS3 = generateReq.InitImageUrl
 		}
 
+		// Add channel to sync array (basically a thread-safe map)
+		c.SMap.Put(requestId, activeChl)
+
 		err = c.Redis.EnqueueCogRequest(r.Context(), cogReqBody)
 		if err != nil {
 			log.Error("Failed to write request %s to queue: %v", requestId, err)
@@ -297,7 +297,7 @@ func (c *RestAPI) HandleCreateGeneration(w http.ResponseWriter, r *http.Request)
 			return err
 		}
 
-		c.QueueThrottler.IncrementBy(1, fmt.Sprintf("g:%s", user.ID.String()))
+		c.QueueThrottler.IncrementBy(int(generateReq.NumOutputs), user.ID.String())
 		return nil
 	}); err != nil {
 		log.Error("Error in transaction", "err", err)
@@ -321,31 +321,175 @@ func (c *RestAPI) HandleCreateGeneration(w http.ResponseWriter, r *http.Request)
 		}
 	}()
 
-	// Set timeout key
-	err = c.Redis.SetCogRequestStreamID(c.Redis.Ctx, requestId, generateReq.StreamID)
-	if err != nil {
-		// Don't time it out if this fails
-		log.Error("Failed to set timeout key", "err", err)
-	} else {
-		// Start the timeout timer
-		go func() {
-			// sleep
-			time.Sleep(shared.REQUEST_COG_TIMEOUT)
-			// this will trigger timeout if it hasnt been finished
-			c.Repo.FailCogMessageDueToTimeoutIfTimedOut(requests.CogWebhookMessage{
-				Input:  cogReqBody.Input,
-				Error:  shared.TIMEOUT_ERROR,
-				Status: requests.CogFailed,
-			})
-		}()
-	}
-
+	// Analytics
 	go c.Track.GenerationStarted(user, cogReqBody.Input, utils.GetIPAddress(r))
 
-	render.Status(r, http.StatusOK)
-	render.JSON(w, r, &responses.TaskQueuedResponse{
-		ID:               requestId,
-		UIId:             generateReq.UIId,
-		RemainingCredits: remainingCredits,
-	})
+	// Wait for result
+	for {
+		select {
+		case cogMsg := <-activeChl:
+			switch cogMsg.Status {
+			case requests.CogProcessing:
+				err := c.Repo.SetGenerationStarted(requestId)
+				if err != nil {
+					log.Error("Failed to set generate started", "id", requestId, "err", err)
+					responses.ErrInternalServerError(w, r, "An unknown error occurred")
+					return
+				}
+				// Send live page update
+				go func() {
+					cogMsg.Input.LivePageData.Status = shared.LivePageProcessing
+					now := time.Now()
+					cogMsg.Input.LivePageData.StartedAt = &now
+					liveResp := repository.TaskStatusUpdateResponse{
+						ForLivePage:     true,
+						LivePageMessage: cogMsg.Input.LivePageData,
+					}
+					respBytes, err := json.Marshal(liveResp)
+					if err != nil {
+						log.Error("Error marshalling sse live response", "err", err)
+						return
+					}
+					err = c.Redis.Client.Publish(c.Redis.Ctx, shared.REDIS_SSE_BROADCAST_CHANNEL, respBytes).Err()
+					if err != nil {
+						log.Error("Failed to publish live page update", "err", err)
+					}
+				}()
+			case requests.CogSucceeded:
+				outputs, err := c.Repo.SetGenerationSucceeded(requestId, generateReq.Prompt, generateReq.NegativePrompt, cogMsg.Output, cogMsg.NSFWCount)
+				if err != nil {
+					log.Error("Failed to set generation succeeded", "id", upscale.ID, "err", err)
+					responses.ErrInternalServerError(w, r, "An unknown error occurred")
+					return
+				}
+				// Send live page update
+				go func() {
+					cogMsg.Input.LivePageData.Status = shared.LivePageSucceeded
+					now := time.Now()
+					cogMsg.Input.LivePageData.CompletedAt = &now
+					liveResp := repository.TaskStatusUpdateResponse{
+						ForLivePage:     true,
+						LivePageMessage: cogMsg.Input.LivePageData,
+					}
+					respBytes, err := json.Marshal(liveResp)
+					if err != nil {
+						log.Error("Error marshalling sse live response", "err", err)
+						return
+					}
+					err = c.Redis.Client.Publish(c.Redis.Ctx, shared.REDIS_SSE_BROADCAST_CHANNEL, respBytes).Err()
+					if err != nil {
+						log.Error("Failed to publish live page update", "err", err)
+					}
+				}()
+				// Analytics
+				generation, err := c.Repo.GetGeneration(uuid.MustParse(requestId))
+				if err != nil {
+					log.Error("Error getting generation for analytics", "err", err)
+				}
+				// Get durations in seconds
+				if generation.StartedAt == nil {
+					log.Error("Generation started at is nil", "id", cogMsg.Input.ID)
+				}
+				duration := time.Now().Sub(*generation.StartedAt).Seconds()
+				qDuration := (*generation.StartedAt).Sub(generation.CreatedAt).Seconds()
+				go c.Track.GenerationSucceeded(user, cogMsg.Input, duration, qDuration, "system")
+
+				// Format response
+				resOutputs := make([]responses.ApiGenerateOutput, len(outputs))
+				for i, output := range outputs {
+					resOutputs[i] = responses.ApiGenerateOutput{
+						URL: utils.GetURLFromImagePath(output.ImagePath),
+						ID:  output.ID,
+					}
+				}
+
+				// Set token used
+				err = c.Repo.SetTokenUsed(int(generateReq.NumOutputs), *generation.APITokenID)
+				if err != nil {
+					log.Error("Failed to set token used", "err", err)
+				}
+
+				render.Status(r, http.StatusOK)
+				render.JSON(w, r, responses.ApiGenerateSucceededResponse{
+					Outputs:          resOutputs,
+					RemainingCredits: remainingCredits,
+				})
+				return
+			case requests.CogFailed:
+				if err := c.Repo.WithTx(func(tx *ent.Tx) error {
+					DB := tx.Client()
+					err := c.Repo.SetGenerationFailed(requestId, cogMsg.Error, cogMsg.NSFWCount, DB)
+					if err != nil {
+						log.Error("Failed to set generation failed", "id", upscale.ID, "err", err)
+						responses.ErrInternalServerError(w, r, "An unknown error occurred")
+						return err
+					}
+					// Send live page update
+					go func() {
+						cogMsg.Input.LivePageData.Status = shared.LivePageFailed
+						now := time.Now()
+						cogMsg.Input.LivePageData.CompletedAt = &now
+						liveResp := repository.TaskStatusUpdateResponse{
+							ForLivePage:     true,
+							LivePageMessage: cogMsg.Input.LivePageData,
+						}
+						respBytes, err := json.Marshal(liveResp)
+						if err != nil {
+							log.Error("Error marshalling sse live response", "err", err)
+							return
+						}
+						err = c.Redis.Client.Publish(c.Redis.Ctx, shared.REDIS_SSE_BROADCAST_CHANNEL, respBytes).Err()
+						if err != nil {
+							log.Error("Failed to publish live page update", "err", err)
+						}
+					}()
+					// Analytics
+					duration := time.Now().Sub(cogMsg.Input.LivePageData.CreatedAt).Seconds()
+					go c.Track.GenerationFailed(user, cogMsg.Input, duration, cogMsg.Error, "system")
+					// Refund credits
+					_, err = c.Repo.RefundCreditsToUser(user.ID, generateReq.NumOutputs, DB)
+					if err != nil {
+						log.Error("Failed to refund credits", "err", err)
+						return err
+					}
+					return nil
+				}); err != nil {
+					log.Error("Failed to set generation failed", "id", requestId, "err", err)
+					responses.ErrInternalServerError(w, r, "An unknown error occurred")
+					return
+				}
+
+				render.Status(r, http.StatusInternalServerError)
+				render.JSON(w, r, responses.ApiGenerateFailedResponse{
+					Error: cogMsg.Error,
+				})
+				return
+			}
+		case <-time.After(shared.REQUEST_COG_TIMEOUT):
+			if err := c.Repo.WithTx(func(tx *ent.Tx) error {
+				DB := tx.Client()
+				err := c.Repo.SetGenerationFailed(requestId, shared.TIMEOUT_ERROR, 0, DB)
+				if err != nil {
+					log.Error("Failed to set generation failed", "id", upscale.ID, "err", err)
+				}
+				// Refund credits
+				_, err = c.Repo.RefundCreditsToUser(user.ID, generateReq.NumOutputs, DB)
+				if err != nil {
+					log.Error("Failed to refund credits", "err", err)
+					return err
+				}
+				return nil
+			}); err != nil {
+				log.Error("Failed to set generation failed", "id", requestId, "err", err)
+				responses.ErrInternalServerError(w, r, "An unknown error occurred")
+				return
+			}
+
+			render.Status(r, http.StatusInternalServerError)
+			render.JSON(w, r, responses.ApiGenerateFailedResponse{
+				Error: shared.TIMEOUT_ERROR,
+			})
+			return
+		}
+	}
 }

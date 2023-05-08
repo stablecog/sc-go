@@ -13,6 +13,7 @@ import (
 	"github.com/stablecog/sc-go/server/analytics"
 	"github.com/stablecog/sc-go/server/api/sse"
 	"github.com/stablecog/sc-go/server/clip"
+	"github.com/stablecog/sc-go/server/requests"
 	"github.com/stablecog/sc-go/server/responses"
 	"github.com/stablecog/sc-go/shared"
 	stripe "github.com/stripe/stripe-go/v74/client"
@@ -32,6 +33,32 @@ type RestAPI struct {
 	S3             *s3.S3
 	Qdrant         *qdrant.QdrantClient
 	Clip           *clip.ClipService
+	// For API key requests to track them
+	SMap *shared.SyncMap[chan requests.CogWebhookMessage]
+}
+
+func (c *RestAPI) GetApiToken(w http.ResponseWriter, r *http.Request) (token *ent.ApiToken) {
+	// Get token from ctx
+	tokenIdStr, ok := r.Context().Value("api_token_id").(string)
+	if !ok || tokenIdStr == "" {
+		responses.ErrUnauthorized(w, r)
+		return nil
+	}
+	// Ensure valid uuid
+	tokenId, err := uuid.Parse(tokenIdStr)
+	if err != nil {
+		responses.ErrUnauthorized(w, r)
+		return nil
+	}
+
+	// get from DB
+	t, err := c.Repo.GetToken(tokenId)
+	if err != nil || t == nil {
+		log.Error("Error getting token", "err", err)
+		responses.ErrUnauthorized(w, r)
+		return nil
+	}
+	return t
 }
 
 func (c *RestAPI) GetUserIfAuthenticated(w http.ResponseWriter, r *http.Request) (user *ent.User) {

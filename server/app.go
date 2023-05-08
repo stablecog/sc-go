@@ -33,6 +33,7 @@ import (
 	"github.com/stablecog/sc-go/server/clip"
 	"github.com/stablecog/sc-go/server/discord"
 	"github.com/stablecog/sc-go/server/middleware"
+	"github.com/stablecog/sc-go/server/requests"
 	"github.com/stablecog/sc-go/shared"
 	"github.com/stablecog/sc-go/utils"
 	stripe "github.com/stripe/stripe-go/v74/client"
@@ -205,6 +206,7 @@ func main() {
 	s3Client := s3.New(newSession)
 
 	// Create controller
+	apiTokenSmap := shared.NewSyncMap[chan requests.CogWebhookMessage]()
 	hc := rest.RestAPI{
 		Repo:           repo,
 		Redis:          redis,
@@ -215,6 +217,7 @@ func main() {
 		S3:             s3Client,
 		Qdrant:         qdrantClient,
 		Clip:           clip.NewClipService(redis),
+		SMap:           apiTokenSmap,
 	}
 
 	// Create middleware
@@ -367,6 +370,11 @@ func main() {
 			r.Post("/subscription/downgrade", hc.HandleSubscriptionDowngrade)
 			r.Post("/subscription/checkout", hc.HandleCreateCheckoutSession)
 			r.Post("/subscription/portal", hc.HandleCreatePortalSession)
+
+			// API Tokens
+			r.Post("/tokens", hc.HandleNewAPIToken)
+			r.Get("/tokens", hc.HandleGetAPITokens)
+			r.Delete("/tokens", hc.HandleDeactivateAPIToken)
 		})
 
 		// Admin only routes
@@ -395,6 +403,14 @@ func main() {
 				r.Get("/types", hc.HandleQueryCreditTypes)
 				r.Post("/add", hc.HandleAddCreditsToUser)
 			})
+		})
+
+		// Api token route
+		r.Route("/token", func(r chi.Router) {
+			r.Use(mw.AuthMiddleware(middleware.AuthLevelAPIToken))
+			r.Use(middleware.Logger)
+			r.Use(mw.RateLimit(5, 1*time.Minute))
+			r.Post("/generate", hc.HandleCreateGenerationToken)
 		})
 	})
 
