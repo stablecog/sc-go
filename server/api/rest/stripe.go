@@ -77,7 +77,7 @@ func (c *RestAPI) HandleCreatePortalSession(w http.ResponseWriter, r *http.Reque
 
 	if err != nil {
 		log.Error("Error creating portal session", "err", err)
-		responses.ErrInternalServerError(w, r, "An unknown error has occured")
+		responses.ErrInternalServerError(w, r, "An unknown error has occurred")
 		return
 	}
 
@@ -148,7 +148,7 @@ func (c *RestAPI) HandleCreateCheckoutSession(w http.ResponseWriter, r *http.Req
 
 	if err != nil {
 		log.Error("Error getting customer", "err", err)
-		responses.ErrInternalServerError(w, r, "An unknown error has occured")
+		responses.ErrInternalServerError(w, r, "An unknown error has occurred")
 		return
 	}
 
@@ -225,7 +225,7 @@ func (c *RestAPI) HandleCreateCheckoutSession(w http.ResponseWriter, r *http.Req
 	session, err := c.StripeClient.CheckoutSessions.New(params)
 	if err != nil {
 		log.Error("Error creating checkout session", "err", err)
-		responses.ErrInternalServerError(w, r, "An unknown error has occured")
+		responses.ErrInternalServerError(w, r, "An unknown error has occurred")
 		return
 	}
 
@@ -280,7 +280,7 @@ func (c *RestAPI) HandleSubscriptionDowngrade(w http.ResponseWriter, r *http.Req
 
 	if err != nil {
 		log.Error("Error getting customer", "err", err)
-		responses.ErrInternalServerError(w, r, "An unknown error has occured")
+		responses.ErrInternalServerError(w, r, "An unknown error has occurred")
 		return
 	}
 
@@ -343,7 +343,7 @@ func (c *RestAPI) HandleSubscriptionDowngrade(w http.ResponseWriter, r *http.Req
 
 	if err != nil {
 		log.Error("Error updating subscription", "err", err)
-		responses.ErrInternalServerError(w, r, "An unknown error has occured")
+		responses.ErrInternalServerError(w, r, "An unknown error has occurred")
 		return
 	}
 

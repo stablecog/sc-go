@@ -94,11 +94,13 @@ func (c *RestAPI) HandleCreateGeneration(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	// Validation
-	err = generateReq.Validate()
-	if err != nil {
-		responses.ErrBadRequest(w, r, err.Error(), "")
-		return
+	// Validation (skip for super admin)
+	if !isSuperAdmin {
+		err = generateReq.Validate()
+		if err != nil {
+			responses.ErrBadRequest(w, r, err.Error(), "")
+			return
+		}
 	}
 
 	// The URL we send worker
@@ -126,7 +128,7 @@ func (c *RestAPI) HandleCreateGeneration(w http.ResponseWriter, r *http.Request)
 					return
 				default:
 					log.Error("Error checking if init image exists in bucket", "err", err)
-					responses.ErrInternalServerError(w, r, "An unknown error has occured")
+					responses.ErrInternalServerError(w, r, "An unknown error has occurred")
 					return
 				}
 			}
@@ -141,7 +143,7 @@ func (c *RestAPI) HandleCreateGeneration(w http.ResponseWriter, r *http.Request)
 		urlStr, err := req.Presign(5 * time.Minute)
 		if err != nil {
 			log.Error("Error signing init image URL", "err", err)
-			responses.ErrInternalServerError(w, r, "An unknown error has occured")
+			responses.ErrInternalServerError(w, r, "An unknown error has occurred")
 			return
 		}
 		signedInitImageUrl = urlStr
@@ -173,7 +175,7 @@ func (c *RestAPI) HandleCreateGeneration(w http.ResponseWriter, r *http.Request)
 	schedulerName := shared.GetCache().GetSchedulerNameFromID(generateReq.SchedulerId)
 	if modelName == "" || schedulerName == "" {
 		log.Error("Error getting model or scheduler name: %s - %s", modelName, schedulerName)
-		responses.ErrInternalServerError(w, r, "An unknown error has occured")
+		responses.ErrInternalServerError(w, r, "An unknown error has occurred")
 		return
 	}
 
@@ -210,7 +212,7 @@ func (c *RestAPI) HandleCreateGeneration(w http.ResponseWriter, r *http.Request)
 		remainingCredits, err = c.Repo.GetNonExpiredCreditTotalForUser(user.ID, DB)
 		if err != nil {
 			log.Error("Error getting remaining credits", "err", err)
-			responses.ErrInternalServerError(w, r, "An unknown error has occured")
+			responses.ErrInternalServerError(w, r, "An unknown error has occurred")
 			return err
 		}
 

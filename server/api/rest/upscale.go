@@ -68,7 +68,7 @@ func (c *RestAPI) HandleUpscale(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	// Validation
+	// Validation (skip for super admins)
 	err = upscaleReq.Validate()
 	if err != nil {
 		responses.ErrBadRequest(w, r, err.Error(), "")
@@ -93,7 +93,7 @@ func (c *RestAPI) HandleUpscale(w http.ResponseWriter, r *http.Request) {
 	modelName := shared.GetCache().GetUpscaleModelNameFromID(upscaleReq.ModelId)
 	if modelName == "" {
 		log.Error("Error getting model name", "model_name", modelName)
-		responses.ErrInternalServerError(w, r, "An unknown error has occured")
+		responses.ErrInternalServerError(w, r, "An unknown error has occurred")
 		return
 	}
 
@@ -169,7 +169,7 @@ func (c *RestAPI) HandleUpscale(w http.ResponseWriter, r *http.Request) {
 		remainingCredits, err = c.Repo.GetNonExpiredCreditTotalForUser(user.ID, DB)
 		if err != nil {
 			log.Error("Error getting remaining credits", "err", err)
-			responses.ErrInternalServerError(w, r, "An unknown error has occured")
+			responses.ErrInternalServerError(w, r, "An unknown error has occurred")
 			return err
 		}
 
