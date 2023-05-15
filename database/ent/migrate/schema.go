@@ -13,6 +13,8 @@ var (
 	APITokensColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID},
 		{Name: "hashed_token", Type: field.TypeString, Size: 2147483647},
+		{Name: "name", Type: field.TypeString, Size: 2147483647},
+		{Name: "short_string", Type: field.TypeString, Size: 2147483647},
 		{Name: "is_active", Type: field.TypeBool, Default: true},
 		{Name: "uses", Type: field.TypeInt, Default: 0},
 		{Name: "last_used_at", Type: field.TypeTime, Nullable: true},
@@ -28,7 +30,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "api_tokens_users_api_tokens",
-				Columns:    []*schema.Column{APITokensColumns[7]},
+				Columns:    []*schema.Column{APITokensColumns[9]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.Cascade,
 			},

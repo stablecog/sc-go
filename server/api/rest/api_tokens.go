@@ -31,11 +31,13 @@ func (c *RestAPI) HandleGetAPITokens(w http.ResponseWriter, r *http.Request) {
 	tokenRes := make([]responses.ApiToken, len(tokens))
 	for i, token := range tokens {
 		tokenRes[i] = responses.ApiToken{
-			ID:         token.ID,
-			Uses:       token.Uses,
-			IsActive:   token.IsActive,
-			LastUsedAt: token.LastUsedAt,
-			CreatedAt:  token.CreatedAt,
+			ID:          token.ID,
+			Name:        token.Name,
+			ShortString: token.ShortString,
+			Uses:        token.Uses,
+			IsActive:    token.IsActive,
+			LastUsedAt:  token.LastUsedAt,
+			CreatedAt:   token.CreatedAt,
 		}
 	}
 
@@ -52,6 +54,20 @@ func (c *RestAPI) HandleNewAPIToken(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Parse request body
+	reqBody, _ := io.ReadAll(r.Body)
+	var newReq requests.NewTokenRequest
+	err := json.Unmarshal(reqBody, &newReq)
+	if err != nil {
+		responses.ErrUnableToParseJson(w, r)
+		return
+	}
+
+	// Truncate to max length
+	if len(newReq.Name) > shared.MAX_TOKEN_NAME_SIZE {
+		newReq.Name = newReq.Name[:shared.MAX_TOKEN_NAME_SIZE]
+	}
+
 	// See if user already has more than max tokens
 	count, err := c.Repo.GetTokenCountByUserID(user.ID)
 	if err != nil {
@@ -66,7 +82,7 @@ func (c *RestAPI) HandleNewAPIToken(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Create new token
-	token, tokenStr, err := c.Repo.NewAPIToken(user.ID)
+	token, tokenStr, err := c.Repo.NewAPIToken(user.ID, newReq.Name)
 	if err != nil {
 		log.Error("Error creating new token", "err", err)
 		responses.ErrInternalServerError(w, r, "An unknown error has occured")

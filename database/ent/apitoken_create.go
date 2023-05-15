@@ -30,6 +30,18 @@ func (atc *ApiTokenCreate) SetHashedToken(s string) *ApiTokenCreate {
 	return atc
 }
 
+// SetName sets the "name" field.
+func (atc *ApiTokenCreate) SetName(s string) *ApiTokenCreate {
+	atc.mutation.SetName(s)
+	return atc
+}
+
+// SetShortString sets the "short_string" field.
+func (atc *ApiTokenCreate) SetShortString(s string) *ApiTokenCreate {
+	atc.mutation.SetShortString(s)
+	return atc
+}
+
 // SetIsActive sets the "is_active" field.
 func (atc *ApiTokenCreate) SetIsActive(b bool) *ApiTokenCreate {
 	atc.mutation.SetIsActive(b)
@@ -217,6 +229,12 @@ func (atc *ApiTokenCreate) check() error {
 	if _, ok := atc.mutation.HashedToken(); !ok {
 		return &ValidationError{Name: "hashed_token", err: errors.New(`ent: missing required field "ApiToken.hashed_token"`)}
 	}
+	if _, ok := atc.mutation.Name(); !ok {
+		return &ValidationError{Name: "name", err: errors.New(`ent: missing required field "ApiToken.name"`)}
+	}
+	if _, ok := atc.mutation.ShortString(); !ok {
+		return &ValidationError{Name: "short_string", err: errors.New(`ent: missing required field "ApiToken.short_string"`)}
+	}
 	if _, ok := atc.mutation.IsActive(); !ok {
 		return &ValidationError{Name: "is_active", err: errors.New(`ent: missing required field "ApiToken.is_active"`)}
 	}
@@ -279,6 +297,14 @@ func (atc *ApiTokenCreate) createSpec() (*ApiToken, *sqlgraph.CreateSpec) {
 	if value, ok := atc.mutation.HashedToken(); ok {
 		_spec.SetField(apitoken.FieldHashedToken, field.TypeString, value)
 		_node.HashedToken = value
+	}
+	if value, ok := atc.mutation.Name(); ok {
+		_spec.SetField(apitoken.FieldName, field.TypeString, value)
+		_node.Name = value
+	}
+	if value, ok := atc.mutation.ShortString(); ok {
+		_spec.SetField(apitoken.FieldShortString, field.TypeString, value)
+		_node.ShortString = value
 	}
 	if value, ok := atc.mutation.IsActive(); ok {
 		_spec.SetField(apitoken.FieldIsActive, field.TypeBool, value)

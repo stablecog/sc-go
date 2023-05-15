@@ -118,6 +118,15 @@ const DELETE_BANNED_USER_DATA_AFTER = 24 * time.Hour
 // Maximum number of tokens a user can have at any given time
 const MAX_API_TOKENS_PER_USER = 10
 
+// Default name for API tokens
+const DEFAULT_API_TOKEN_NAME = "Secret key"
+
+// Prefix on all API tokens
+const API_TOKEN_PREFIX = "sc-"
+
+// Max chars in an API token name
+const MAX_TOKEN_NAME_SIZE = 30
+
 // ! API Queue Overflow
 // How often to re-check queue length to re-submit extra requests
 const QUEUE_OVERFLOW_RETRY_DURATION = 250 * time.Millisecond

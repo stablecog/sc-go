@@ -522,6 +522,10 @@ paths:
                         id:
                           type: string
                           format: uuidv4
+                        name:
+                          type: string
+                        short_string:
+                          type: string
                         uses:
                           type: integer
                         is_active:
@@ -534,6 +538,15 @@ paths:
                           format: date-time
     post:
       description: "API Token: Create (User-only)"
+      requestBody:
+        description: JSON Object
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
       responses:
         "200":
           description: JSON Object with raw token

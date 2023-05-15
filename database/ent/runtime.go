@@ -32,19 +32,19 @@ func init() {
 	apitokenFields := schema.ApiToken{}.Fields()
 	_ = apitokenFields
 	// apitokenDescIsActive is the schema descriptor for is_active field.
-	apitokenDescIsActive := apitokenFields[2].Descriptor()
+	apitokenDescIsActive := apitokenFields[4].Descriptor()
 	// apitoken.DefaultIsActive holds the default value on creation for the is_active field.
 	apitoken.DefaultIsActive = apitokenDescIsActive.Default.(bool)
 	// apitokenDescUses is the schema descriptor for uses field.
-	apitokenDescUses := apitokenFields[3].Descriptor()
+	apitokenDescUses := apitokenFields[5].Descriptor()
 	// apitoken.DefaultUses holds the default value on creation for the uses field.
 	apitoken.DefaultUses = apitokenDescUses.Default.(int)
 	// apitokenDescCreatedAt is the schema descriptor for created_at field.
-	apitokenDescCreatedAt := apitokenFields[6].Descriptor()
+	apitokenDescCreatedAt := apitokenFields[8].Descriptor()
 	// apitoken.DefaultCreatedAt holds the default value on creation for the created_at field.
 	apitoken.DefaultCreatedAt = apitokenDescCreatedAt.Default.(func() time.Time)
 	// apitokenDescUpdatedAt is the schema descriptor for updated_at field.
-	apitokenDescUpdatedAt := apitokenFields[7].Descriptor()
+	apitokenDescUpdatedAt := apitokenFields[9].Descriptor()
 	// apitoken.DefaultUpdatedAt holds the default value on creation for the updated_at field.
 	apitoken.DefaultUpdatedAt = apitokenDescUpdatedAt.Default.(func() time.Time)
 	// apitoken.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.

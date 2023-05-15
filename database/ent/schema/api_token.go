@@ -21,6 +21,8 @@ func (ApiToken) Fields() []ent.Field {
 	return []ent.Field{
 		field.UUID("id", uuid.UUID{}).Default(uuid.New),
 		field.Text("hashed_token"),
+		field.Text("name"),
+		field.Text("short_string"),
 		field.Bool("is_active").Default(true),
 		field.Int("uses").Default(0),
 		// ! Relationships

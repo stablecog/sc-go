@@ -39,6 +39,18 @@ func (atu *ApiTokenUpdate) SetHashedToken(s string) *ApiTokenUpdate {
 	return atu
 }
 
+// SetName sets the "name" field.
+func (atu *ApiTokenUpdate) SetName(s string) *ApiTokenUpdate {
+	atu.mutation.SetName(s)
+	return atu
+}
+
+// SetShortString sets the "short_string" field.
+func (atu *ApiTokenUpdate) SetShortString(s string) *ApiTokenUpdate {
+	atu.mutation.SetShortString(s)
+	return atu
+}
+
 // SetIsActive sets the "is_active" field.
 func (atu *ApiTokenUpdate) SetIsActive(b bool) *ApiTokenUpdate {
 	atu.mutation.SetIsActive(b)
@@ -268,6 +280,12 @@ func (atu *ApiTokenUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if value, ok := atu.mutation.HashedToken(); ok {
 		_spec.SetField(apitoken.FieldHashedToken, field.TypeString, value)
 	}
+	if value, ok := atu.mutation.Name(); ok {
+		_spec.SetField(apitoken.FieldName, field.TypeString, value)
+	}
+	if value, ok := atu.mutation.ShortString(); ok {
+		_spec.SetField(apitoken.FieldShortString, field.TypeString, value)
+	}
 	if value, ok := atu.mutation.IsActive(); ok {
 		_spec.SetField(apitoken.FieldIsActive, field.TypeBool, value)
 	}
@@ -454,6 +472,18 @@ type ApiTokenUpdateOne struct {
 // SetHashedToken sets the "hashed_token" field.
 func (atuo *ApiTokenUpdateOne) SetHashedToken(s string) *ApiTokenUpdateOne {
 	atuo.mutation.SetHashedToken(s)
+	return atuo
+}
+
+// SetName sets the "name" field.
+func (atuo *ApiTokenUpdateOne) SetName(s string) *ApiTokenUpdateOne {
+	atuo.mutation.SetName(s)
+	return atuo
+}
+
+// SetShortString sets the "short_string" field.
+func (atuo *ApiTokenUpdateOne) SetShortString(s string) *ApiTokenUpdateOne {
+	atuo.mutation.SetShortString(s)
 	return atuo
 }
 
@@ -709,6 +739,12 @@ func (atuo *ApiTokenUpdateOne) sqlSave(ctx context.Context) (_node *ApiToken, er
 	}
 	if value, ok := atuo.mutation.HashedToken(); ok {
 		_spec.SetField(apitoken.FieldHashedToken, field.TypeString, value)
+	}
+	if value, ok := atuo.mutation.Name(); ok {
+		_spec.SetField(apitoken.FieldName, field.TypeString, value)
+	}
+	if value, ok := atuo.mutation.ShortString(); ok {
+		_spec.SetField(apitoken.FieldShortString, field.TypeString, value)
 	}
 	if value, ok := atuo.mutation.IsActive(); ok {
 		_spec.SetField(apitoken.FieldIsActive, field.TypeBool, value)

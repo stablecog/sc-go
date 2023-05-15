@@ -61,6 +61,8 @@ CREATE TABLE public.api_tokens (
     is_active boolean default true not null,
     uses bigint NOT NULL DEFAULT 0,
     user_id uuid NOT NULL,
+    name text NOT NULL,
+    short_string text NOT NULL,
     last_used_at timestamp with time zone,
     created_at timestamp with time zone DEFAULT (now() AT TIME ZONE 'utc'::text) NOT NULL,
     updated_at timestamp with time zone DEFAULT (now() AT TIME ZONE 'utc'::text) NOT NULL

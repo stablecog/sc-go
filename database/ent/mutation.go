@@ -66,6 +66,8 @@ type ApiTokenMutation struct {
 	typ                string
 	id                 *uuid.UUID
 	hashed_token       *string
+	name               *string
+	short_string       *string
 	is_active          *bool
 	uses               *int
 	adduses            *int
@@ -224,6 +226,78 @@ func (m *ApiTokenMutation) OldHashedToken(ctx context.Context) (v string, err er
 // ResetHashedToken resets all changes to the "hashed_token" field.
 func (m *ApiTokenMutation) ResetHashedToken() {
 	m.hashed_token = nil
+}
+
+// SetName sets the "name" field.
+func (m *ApiTokenMutation) SetName(s string) {
+	m.name = &s
+}
+
+// Name returns the value of the "name" field in the mutation.
+func (m *ApiTokenMutation) Name() (r string, exists bool) {
+	v := m.name
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldName returns the old "name" field's value of the ApiToken entity.
+// If the ApiToken object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ApiTokenMutation) OldName(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldName is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldName requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldName: %w", err)
+	}
+	return oldValue.Name, nil
+}
+
+// ResetName resets all changes to the "name" field.
+func (m *ApiTokenMutation) ResetName() {
+	m.name = nil
+}
+
+// SetShortString sets the "short_string" field.
+func (m *ApiTokenMutation) SetShortString(s string) {
+	m.short_string = &s
+}
+
+// ShortString returns the value of the "short_string" field in the mutation.
+func (m *ApiTokenMutation) ShortString() (r string, exists bool) {
+	v := m.short_string
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldShortString returns the old "short_string" field's value of the ApiToken entity.
+// If the ApiToken object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ApiTokenMutation) OldShortString(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldShortString is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldShortString requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldShortString: %w", err)
+	}
+	return oldValue.ShortString, nil
+}
+
+// ResetShortString resets all changes to the "short_string" field.
+func (m *ApiTokenMutation) ResetShortString() {
+	m.short_string = nil
 }
 
 // SetIsActive sets the "is_active" field.
@@ -643,9 +717,15 @@ func (m *ApiTokenMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *ApiTokenMutation) Fields() []string {
-	fields := make([]string, 0, 7)
+	fields := make([]string, 0, 9)
 	if m.hashed_token != nil {
 		fields = append(fields, apitoken.FieldHashedToken)
+	}
+	if m.name != nil {
+		fields = append(fields, apitoken.FieldName)
+	}
+	if m.short_string != nil {
+		fields = append(fields, apitoken.FieldShortString)
 	}
 	if m.is_active != nil {
 		fields = append(fields, apitoken.FieldIsActive)
@@ -675,6 +755,10 @@ func (m *ApiTokenMutation) Field(name string) (ent.Value, bool) {
 	switch name {
 	case apitoken.FieldHashedToken:
 		return m.HashedToken()
+	case apitoken.FieldName:
+		return m.Name()
+	case apitoken.FieldShortString:
+		return m.ShortString()
 	case apitoken.FieldIsActive:
 		return m.IsActive()
 	case apitoken.FieldUses:
@@ -698,6 +782,10 @@ func (m *ApiTokenMutation) OldField(ctx context.Context, name string) (ent.Value
 	switch name {
 	case apitoken.FieldHashedToken:
 		return m.OldHashedToken(ctx)
+	case apitoken.FieldName:
+		return m.OldName(ctx)
+	case apitoken.FieldShortString:
+		return m.OldShortString(ctx)
 	case apitoken.FieldIsActive:
 		return m.OldIsActive(ctx)
 	case apitoken.FieldUses:
@@ -725,6 +813,20 @@ func (m *ApiTokenMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetHashedToken(v)
+		return nil
+	case apitoken.FieldName:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetName(v)
+		return nil
+	case apitoken.FieldShortString:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetShortString(v)
 		return nil
 	case apitoken.FieldIsActive:
 		v, ok := value.(bool)
@@ -843,6 +945,12 @@ func (m *ApiTokenMutation) ResetField(name string) error {
 	switch name {
 	case apitoken.FieldHashedToken:
 		m.ResetHashedToken()
+		return nil
+	case apitoken.FieldName:
+		m.ResetName()
+		return nil
+	case apitoken.FieldShortString:
+		m.ResetShortString()
 		return nil
 	case apitoken.FieldIsActive:
 		m.ResetIsActive()

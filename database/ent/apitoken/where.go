@@ -61,6 +61,16 @@ func HashedToken(v string) predicate.ApiToken {
 	return predicate.ApiToken(sql.FieldEQ(FieldHashedToken, v))
 }
 
+// Name applies equality check predicate on the "name" field. It's identical to NameEQ.
+func Name(v string) predicate.ApiToken {
+	return predicate.ApiToken(sql.FieldEQ(FieldName, v))
+}
+
+// ShortString applies equality check predicate on the "short_string" field. It's identical to ShortStringEQ.
+func ShortString(v string) predicate.ApiToken {
+	return predicate.ApiToken(sql.FieldEQ(FieldShortString, v))
+}
+
 // IsActive applies equality check predicate on the "is_active" field. It's identical to IsActiveEQ.
 func IsActive(v bool) predicate.ApiToken {
 	return predicate.ApiToken(sql.FieldEQ(FieldIsActive, v))
@@ -154,6 +164,136 @@ func HashedTokenEqualFold(v string) predicate.ApiToken {
 // HashedTokenContainsFold applies the ContainsFold predicate on the "hashed_token" field.
 func HashedTokenContainsFold(v string) predicate.ApiToken {
 	return predicate.ApiToken(sql.FieldContainsFold(FieldHashedToken, v))
+}
+
+// NameEQ applies the EQ predicate on the "name" field.
+func NameEQ(v string) predicate.ApiToken {
+	return predicate.ApiToken(sql.FieldEQ(FieldName, v))
+}
+
+// NameNEQ applies the NEQ predicate on the "name" field.
+func NameNEQ(v string) predicate.ApiToken {
+	return predicate.ApiToken(sql.FieldNEQ(FieldName, v))
+}
+
+// NameIn applies the In predicate on the "name" field.
+func NameIn(vs ...string) predicate.ApiToken {
+	return predicate.ApiToken(sql.FieldIn(FieldName, vs...))
+}
+
+// NameNotIn applies the NotIn predicate on the "name" field.
+func NameNotIn(vs ...string) predicate.ApiToken {
+	return predicate.ApiToken(sql.FieldNotIn(FieldName, vs...))
+}
+
+// NameGT applies the GT predicate on the "name" field.
+func NameGT(v string) predicate.ApiToken {
+	return predicate.ApiToken(sql.FieldGT(FieldName, v))
+}
+
+// NameGTE applies the GTE predicate on the "name" field.
+func NameGTE(v string) predicate.ApiToken {
+	return predicate.ApiToken(sql.FieldGTE(FieldName, v))
+}
+
+// NameLT applies the LT predicate on the "name" field.
+func NameLT(v string) predicate.ApiToken {
+	return predicate.ApiToken(sql.FieldLT(FieldName, v))
+}
+
+// NameLTE applies the LTE predicate on the "name" field.
+func NameLTE(v string) predicate.ApiToken {
+	return predicate.ApiToken(sql.FieldLTE(FieldName, v))
+}
+
+// NameContains applies the Contains predicate on the "name" field.
+func NameContains(v string) predicate.ApiToken {
+	return predicate.ApiToken(sql.FieldContains(FieldName, v))
+}
+
+// NameHasPrefix applies the HasPrefix predicate on the "name" field.
+func NameHasPrefix(v string) predicate.ApiToken {
+	return predicate.ApiToken(sql.FieldHasPrefix(FieldName, v))
+}
+
+// NameHasSuffix applies the HasSuffix predicate on the "name" field.
+func NameHasSuffix(v string) predicate.ApiToken {
+	return predicate.ApiToken(sql.FieldHasSuffix(FieldName, v))
+}
+
+// NameEqualFold applies the EqualFold predicate on the "name" field.
+func NameEqualFold(v string) predicate.ApiToken {
+	return predicate.ApiToken(sql.FieldEqualFold(FieldName, v))
+}
+
+// NameContainsFold applies the ContainsFold predicate on the "name" field.
+func NameContainsFold(v string) predicate.ApiToken {
+	return predicate.ApiToken(sql.FieldContainsFold(FieldName, v))
+}
+
+// ShortStringEQ applies the EQ predicate on the "short_string" field.
+func ShortStringEQ(v string) predicate.ApiToken {
+	return predicate.ApiToken(sql.FieldEQ(FieldShortString, v))
+}
+
+// ShortStringNEQ applies the NEQ predicate on the "short_string" field.
+func ShortStringNEQ(v string) predicate.ApiToken {
+	return predicate.ApiToken(sql.FieldNEQ(FieldShortString, v))
+}
+
+// ShortStringIn applies the In predicate on the "short_string" field.
+func ShortStringIn(vs ...string) predicate.ApiToken {
+	return predicate.ApiToken(sql.FieldIn(FieldShortString, vs...))
+}
+
+// ShortStringNotIn applies the NotIn predicate on the "short_string" field.
+func ShortStringNotIn(vs ...string) predicate.ApiToken {
+	return predicate.ApiToken(sql.FieldNotIn(FieldShortString, vs...))
+}
+
+// ShortStringGT applies the GT predicate on the "short_string" field.
+func ShortStringGT(v string) predicate.ApiToken {
+	return predicate.ApiToken(sql.FieldGT(FieldShortString, v))
+}
+
+// ShortStringGTE applies the GTE predicate on the "short_string" field.
+func ShortStringGTE(v string) predicate.ApiToken {
+	return predicate.ApiToken(sql.FieldGTE(FieldShortString, v))
+}
+
+// ShortStringLT applies the LT predicate on the "short_string" field.
+func ShortStringLT(v string) predicate.ApiToken {
+	return predicate.ApiToken(sql.FieldLT(FieldShortString, v))
+}
+
+// ShortStringLTE applies the LTE predicate on the "short_string" field.
+func ShortStringLTE(v string) predicate.ApiToken {
+	return predicate.ApiToken(sql.FieldLTE(FieldShortString, v))
+}
+
+// ShortStringContains applies the Contains predicate on the "short_string" field.
+func ShortStringContains(v string) predicate.ApiToken {
+	return predicate.ApiToken(sql.FieldContains(FieldShortString, v))
+}
+
+// ShortStringHasPrefix applies the HasPrefix predicate on the "short_string" field.
+func ShortStringHasPrefix(v string) predicate.ApiToken {
+	return predicate.ApiToken(sql.FieldHasPrefix(FieldShortString, v))
+}
+
+// ShortStringHasSuffix applies the HasSuffix predicate on the "short_string" field.
+func ShortStringHasSuffix(v string) predicate.ApiToken {
+	return predicate.ApiToken(sql.FieldHasSuffix(FieldShortString, v))
+}
+
+// ShortStringEqualFold applies the EqualFold predicate on the "short_string" field.
+func ShortStringEqualFold(v string) predicate.ApiToken {
+	return predicate.ApiToken(sql.FieldEqualFold(FieldShortString, v))
+}
+
+// ShortStringContainsFold applies the ContainsFold predicate on the "short_string" field.
+func ShortStringContainsFold(v string) predicate.ApiToken {
+	return predicate.ApiToken(sql.FieldContainsFold(FieldShortString, v))
 }
 
 // IsActiveEQ applies the EQ predicate on the "is_active" field.

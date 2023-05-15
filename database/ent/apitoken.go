@@ -20,6 +20,10 @@ type ApiToken struct {
 	ID uuid.UUID `json:"id,omitempty"`
 	// HashedToken holds the value of the "hashed_token" field.
 	HashedToken string `json:"hashed_token,omitempty"`
+	// Name holds the value of the "name" field.
+	Name string `json:"name,omitempty"`
+	// ShortString holds the value of the "short_string" field.
+	ShortString string `json:"short_string,omitempty"`
 	// IsActive holds the value of the "is_active" field.
 	IsActive bool `json:"is_active,omitempty"`
 	// Uses holds the value of the "uses" field.
@@ -90,7 +94,7 @@ func (*ApiToken) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullBool)
 		case apitoken.FieldUses:
 			values[i] = new(sql.NullInt64)
-		case apitoken.FieldHashedToken:
+		case apitoken.FieldHashedToken, apitoken.FieldName, apitoken.FieldShortString:
 			values[i] = new(sql.NullString)
 		case apitoken.FieldLastUsedAt, apitoken.FieldCreatedAt, apitoken.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
@@ -122,6 +126,18 @@ func (at *ApiToken) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field hashed_token", values[i])
 			} else if value.Valid {
 				at.HashedToken = value.String
+			}
+		case apitoken.FieldName:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field name", values[i])
+			} else if value.Valid {
+				at.Name = value.String
+			}
+		case apitoken.FieldShortString:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field short_string", values[i])
+			} else if value.Valid {
+				at.ShortString = value.String
 			}
 		case apitoken.FieldIsActive:
 			if value, ok := values[i].(*sql.NullBool); !ok {
@@ -205,6 +221,12 @@ func (at *ApiToken) String() string {
 	builder.WriteString(fmt.Sprintf("id=%v, ", at.ID))
 	builder.WriteString("hashed_token=")
 	builder.WriteString(at.HashedToken)
+	builder.WriteString(", ")
+	builder.WriteString("name=")
+	builder.WriteString(at.Name)
+	builder.WriteString(", ")
+	builder.WriteString("short_string=")
+	builder.WriteString(at.ShortString)
 	builder.WriteString(", ")
 	builder.WriteString("is_active=")
 	builder.WriteString(fmt.Sprintf("%v", at.IsActive))

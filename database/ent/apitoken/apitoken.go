@@ -15,6 +15,10 @@ const (
 	FieldID = "id"
 	// FieldHashedToken holds the string denoting the hashed_token field in the database.
 	FieldHashedToken = "hashed_token"
+	// FieldName holds the string denoting the name field in the database.
+	FieldName = "name"
+	// FieldShortString holds the string denoting the short_string field in the database.
+	FieldShortString = "short_string"
 	// FieldIsActive holds the string denoting the is_active field in the database.
 	FieldIsActive = "is_active"
 	// FieldUses holds the string denoting the uses field in the database.
@@ -62,6 +66,8 @@ const (
 var Columns = []string{
 	FieldID,
 	FieldHashedToken,
+	FieldName,
+	FieldShortString,
 	FieldIsActive,
 	FieldUses,
 	FieldUserID,
