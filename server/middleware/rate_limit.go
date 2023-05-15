@@ -17,7 +17,7 @@ import (
 // Rate limit middleware
 // @requestLimit: The number of requests they can make
 // @windowLength: In this time window
-func (m *Middleware) RateLimit(requestLimit int, windowLength time.Duration) func(next http.Handler) http.Handler {
+func (m *Middleware) RateLimit(requestLimit int, customKey string, windowLength time.Duration) func(next http.Handler) http.Handler {
 	// ! For some reason, it seems like we get half of what we set with chi httprate middleware
 	// ! so we set requestLimit * 2 instead of requestLimit, which gives us what we actually want.
 	return httprate.Limit(
@@ -32,11 +32,11 @@ func (m *Middleware) RateLimit(requestLimit int, windowLength time.Duration) fun
 					// See if admin
 					if shared.GetCache().IsAdmin(parsed) {
 						// Rnadom UUID disables rate limit
-						return uuid.NewString(), nil
+						return fmt.Sprintf("%s:%s", customKey, uuid.NewString()), nil
 					}
 				}
 			}
-			return utils.GetIPAddress(r), nil
+			return fmt.Sprintf("%s:%s", customKey, utils.GetIPAddress(r)), nil
 		}),
 		httprate.WithLimitCounter(&redisCounter{redis: m.Redis}),
 	)

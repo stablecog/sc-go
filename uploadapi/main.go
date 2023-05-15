@@ -115,7 +115,7 @@ func main() {
 			r.Get("/health", hc.HandleHealth)
 			r.Route("/", func(r chi.Router) {
 				r.Use(middleware.Logger)
-				r.Use(mw.RateLimit(2, 1*time.Second))
+				r.Use(mw.RateLimit(2, "uapi", 1*time.Second))
 				r.Use(mw.AuthMiddleware(middleware.AuthLevelAny))
 				r.Post("/", hc.HandleUpload)
 			})

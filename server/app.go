@@ -324,7 +324,7 @@ func main() {
 		r.Route("/stats", func(r chi.Router) {
 			r.Use(middleware.Logger)
 			// 10 requests per second
-			r.Use(mw.RateLimit(10, 1*time.Second))
+			r.Use(mw.RateLimit(10, "srv", 1*time.Second))
 			r.Get("/", hc.HandleGetStats)
 		})
 
@@ -332,7 +332,7 @@ func main() {
 		r.Route("/gallery", func(r chi.Router) {
 			r.Use(middleware.Logger)
 			// 20 requests per second
-			r.Use(mw.RateLimit(20, 1*time.Second))
+			r.Use(mw.RateLimit(20, "srv", 1*time.Second))
 			r.Get("/", hc.HandleSemanticSearchGallery)
 		})
 
@@ -341,7 +341,7 @@ func main() {
 			r.Use(mw.AuthMiddleware(middleware.AuthLevelAny))
 			r.Use(middleware.Logger)
 			// 10 requests per second
-			r.Use(mw.RateLimit(10, 1*time.Second))
+			r.Use(mw.RateLimit(10, "srv", 1*time.Second))
 
 			// Get user summary
 			r.Get("/", hc.HandleGetUser)
