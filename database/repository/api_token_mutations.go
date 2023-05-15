@@ -26,7 +26,7 @@ func (r *Repository) NewAPIToken(userId uuid.UUID, name string) (dbToken *ent.Ap
 	}
 
 	// Get token short string as 3...3
-	tokenShortString := fmt.Sprintf("%s...%s", token[0:3], token[len(token)-3:])
+	tokenShortString := fmt.Sprintf("%s...%s", token[0:3], token[len(token)-4:])
 
 	// Create in DB
 	dbToken, err = r.DB.ApiToken.Create().SetHashedToken(utils.Sha256(token)).SetUserID(userId).SetName(name).SetShortString(tokenShortString).SetIsActive(true).SetUses(0).Save(r.Ctx)

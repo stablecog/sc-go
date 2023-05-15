@@ -125,7 +125,7 @@ const DEFAULT_API_TOKEN_NAME = "Secret key"
 const API_TOKEN_PREFIX = "sc-"
 
 // Max chars in an API token name
-const MAX_TOKEN_NAME_SIZE = 30
+const MAX_TOKEN_NAME_SIZE = 50
 
 // ! API Queue Overflow
 // How often to re-check queue length to re-submit extra requests
