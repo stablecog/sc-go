@@ -117,3 +117,10 @@ const DELETE_BANNED_USER_DATA_AFTER = 24 * time.Hour
 // ! API Tokens
 // Maximum number of tokens a user can have at any given time
 const MAX_API_TOKENS_PER_USER = 10
+
+// ! API Queue Overflow
+// How often to re-check queue length to re-submit extra requests
+const QUEUE_OVERFLOW_RETRY_DURATION = 250 * time.Millisecond
+
+// Max wait time for queue overflow
+const QUEUE_OVERFLOW_MAX_WAIT = 5 * time.Second

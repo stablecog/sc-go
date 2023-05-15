@@ -147,8 +147,23 @@ func (c *RestAPI) HandleCreateGenerationToken(w http.ResponseWriter, r *http.Req
 		log.Warn("Error getting queue count", "err", err, "user_id", user.ID.String())
 	}
 	if err == nil && nq > qMax {
-		responses.ErrBadRequest(w, r, "queue_limit_reached", "")
-		return
+		// Wait xxx MS until we can submit
+		startWait := time.Now()
+		for {
+			time.Sleep(shared.QUEUE_OVERFLOW_RETRY_DURATION)
+			nq, err = c.QueueThrottler.NumQueued(user.ID.String())
+			if err != nil {
+				log.Warn("Error getting queue count", "err", err, "user_id", user.ID.String())
+			}
+			if err == nil && nq <= qMax {
+				break
+			}
+			// Check if we have exceeded max wait time
+			if time.Since(startWait) > shared.QUEUE_OVERFLOW_MAX_WAIT {
+				responses.ErrBadRequest(w, r, "queue_limit_reached", "")
+				return
+			}
+		}
 	}
 
 	// Enforce submit to gallery
