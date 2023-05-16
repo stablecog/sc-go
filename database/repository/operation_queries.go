@@ -144,7 +144,7 @@ type OperationQueryResult struct {
 	StartedAt     time.Time                  `json:"started_at"`
 	CompletedAt   time.Time                  `json:"completed_at"`
 	NumOutputs    int                        `json:"num_outputs"`
-	Source        shared.OperationSourceType `json:"Source"`
+	Source        shared.OperationSourceType `json:"source"`
 }
 
 type OperationQueryResultMeta struct {
