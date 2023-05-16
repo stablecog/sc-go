@@ -528,6 +528,8 @@ paths:
                           type: string
                         uses:
                           type: integer
+                        credits_spent:
+                          type: integer
                         is_active:
                           type: boolean
                         created_at:

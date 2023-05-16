@@ -31,13 +31,14 @@ func (c *RestAPI) HandleGetAPITokens(w http.ResponseWriter, r *http.Request) {
 	tokenRes := make([]responses.ApiToken, len(tokens))
 	for i, token := range tokens {
 		tokenRes[i] = responses.ApiToken{
-			ID:          token.ID,
-			Name:        token.Name,
-			ShortString: token.ShortString,
-			Uses:        token.Uses,
-			IsActive:    token.IsActive,
-			LastUsedAt:  token.LastUsedAt,
-			CreatedAt:   token.CreatedAt,
+			ID:           token.ID,
+			Name:         token.Name,
+			ShortString:  token.ShortString,
+			Uses:         token.Uses,
+			CreditsSpent: token.CreditsSpent,
+			IsActive:     token.IsActive,
+			LastUsedAt:   token.LastUsedAt,
+			CreatedAt:    token.CreatedAt,
 		}
 	}
 
