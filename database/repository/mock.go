@@ -291,7 +291,7 @@ func (repo *Repository) CreateMockUpscaleForDeletion(ctx context.Context) (*ent.
 		Type:    requests.UpscaleRequestTypeOutput,
 		ModelId: uuid.MustParse(MOCK_UPSCALE_MODEL_ID),
 		Input:   uuid.NewString(),
-	}, nil, false, nil)
+	}, nil, false, nil, nil)
 	if err != nil {
 		return nil, err
 	}

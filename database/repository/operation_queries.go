@@ -57,9 +57,9 @@ func (r *Repository) QueryUserOperations(userId uuid.UUID, limit int, cursor *ti
 
 	var operationQueryResult []OperationQueryResult
 	for _, g := range gens {
-		source := OperationSourceTypeWebUI
+		source := shared.OperationSourceTypeWebUI
 		if g.APITokenID != nil {
-			source = OperationSourceTypeAPI
+			source = shared.OperationSourceTypeAPI
 		}
 		operationQueryResult = append(operationQueryResult, OperationQueryResult{
 			ID:            g.ID,
@@ -73,9 +73,9 @@ func (r *Repository) QueryUserOperations(userId uuid.UUID, limit int, cursor *ti
 	}
 
 	for _, u := range ups {
-		source := OperationSourceTypeWebUI
+		source := shared.OperationSourceTypeWebUI
 		if u.APITokenID != nil {
-			source = OperationSourceTypeAPI
+			source = shared.OperationSourceTypeAPI
 		}
 		// Is upscale
 		operationQueryResult = append(operationQueryResult, OperationQueryResult{
@@ -137,21 +137,14 @@ const (
 	OperationTypeUpscale    OperationType = "upscale"
 )
 
-type OperationSourceType string
-
-const (
-	OperationSourceTypeAPI   OperationSourceType = "api"
-	OperationSourceTypeWebUI OperationSourceType = "web-ui"
-)
-
 type OperationQueryResult struct {
-	ID            uuid.UUID           `json:"id"`
-	OperationType shared.ProcessType  `json:"operation_type"`
-	CreatedAt     time.Time           `json:"created_at"`
-	StartedAt     time.Time           `json:"started_at"`
-	CompletedAt   time.Time           `json:"completed_at"`
-	NumOutputs    int                 `json:"num_outputs"`
-	Source        OperationSourceType `json:"Source"`
+	ID            uuid.UUID                  `json:"id"`
+	OperationType shared.ProcessType         `json:"operation_type"`
+	CreatedAt     time.Time                  `json:"created_at"`
+	StartedAt     time.Time                  `json:"started_at"`
+	CompletedAt   time.Time                  `json:"completed_at"`
+	NumOutputs    int                        `json:"num_outputs"`
+	Source        shared.OperationSourceType `json:"Source"`
 }
 
 type OperationQueryResultMeta struct {

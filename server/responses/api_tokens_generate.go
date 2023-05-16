@@ -2,16 +2,16 @@ package responses
 
 import "github.com/google/uuid"
 
-type ApiGenerateOutput struct {
+type ApiOutput struct {
 	ID  uuid.UUID `json:"id"`
 	URL string    `json:"url"`
 }
 
-type ApiGenerateSucceededResponse struct {
-	Outputs          []ApiGenerateOutput `json:"outputs"`
-	RemainingCredits int                 `json:"remaining_credits"`
+type ApiSucceededResponse struct {
+	Outputs          []ApiOutput `json:"outputs"`
+	RemainingCredits int         `json:"remaining_credits"`
 }
 
-type ApiGenerateFailedResponse struct {
+type ApiFailedResponse struct {
 	Error string `json:"error"`
 }

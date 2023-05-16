@@ -247,6 +247,7 @@ func (c *RestAPI) HandleCreateGeneration(w http.ResponseWriter, r *http.Request)
 			Height:           generateReq.Height,
 			CreatedAt:        g.CreatedAt,
 			ProductID:        user.ActiveProductID,
+			Source:           shared.OperationSourceTypeWebUI,
 		}
 
 		var promtpStrengthStr string

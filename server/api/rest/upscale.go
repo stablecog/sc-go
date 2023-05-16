@@ -69,7 +69,7 @@ func (c *RestAPI) HandleUpscale(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Validation (skip for super admins)
-	err = upscaleReq.Validate()
+	err = upscaleReq.Validate(false)
 	if err != nil {
 		responses.ErrBadRequest(w, r, err.Error(), "")
 		return
@@ -185,6 +185,7 @@ func (c *RestAPI) HandleUpscale(w http.ResponseWriter, r *http.Request) {
 			upscaleReq,
 			user.ActiveProductID,
 			false,
+			nil,
 			DB)
 		if err != nil {
 			log.Error("Error creating upscale", "err", err)
@@ -206,6 +207,7 @@ func (c *RestAPI) HandleUpscale(w http.ResponseWriter, r *http.Request) {
 			Height:           height,
 			CreatedAt:        upscale.CreatedAt,
 			ProductID:        user.ActiveProductID,
+			Source:           shared.OperationSourceTypeWebUI,
 		}
 
 		// Send to the cog

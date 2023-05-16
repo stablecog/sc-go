@@ -6,13 +6,8 @@ import (
 	"io"
 	"math"
 	"net/http"
-	"os"
-	"strings"
 	"time"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/awserr"
-	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/go-chi/render"
 	"github.com/google/uuid"
 	"github.com/stablecog/sc-go/database/ent"
@@ -25,9 +20,9 @@ import (
 	"github.com/stablecog/sc-go/utils"
 )
 
-// POST generate endpoint
-// Handles creating a generation with API token
-func (c *RestAPI) HandleCreateGenerationToken(w http.ResponseWriter, r *http.Request) {
+// POST upscale endpoint
+// Handles creating a upscale with API token
+func (c *RestAPI) HandleCreateUpscaleToken(w http.ResponseWriter, r *http.Request) {
 	var user *ent.User
 	if user = c.GetUserIfAuthenticated(w, r); user == nil {
 		return
@@ -70,75 +65,22 @@ func (c *RestAPI) HandleCreateGenerationToken(w http.ResponseWriter, r *http.Req
 		default:
 			log.Warn("Unknown product ID", "product_id", *user.ActiveProductID)
 		}
-		// // Get product level
-		// for level, product := range GetProductIDs() {
-		// 	if product == *user.ActiveProductID {
-		// 		prodLevel = level
-		// 		break
-		// 	}
-		// }
 	}
 
 	// Parse request body
 	reqBody, _ := io.ReadAll(r.Body)
-	var generateReq requests.CreateGenerationRequest
-	err := json.Unmarshal(reqBody, &generateReq)
+	var upscaleReq requests.CreateUpscaleRequest
+	err := json.Unmarshal(reqBody, &upscaleReq)
 	if err != nil {
 		responses.ErrUnableToParseJson(w, r)
 		return
 	}
 
 	// Validation
-	err = generateReq.Validate(true)
+	err = upscaleReq.Validate(true)
 	if err != nil {
 		responses.ErrBadRequest(w, r, err.Error(), "")
 		return
-	}
-
-	// The URL we send worker
-	var signedInitImageUrl string
-	// See if init image specified, validate it belongs to user, validate it exists in bucket
-	if generateReq.InitImageUrl != "" {
-		// Remove s3 prefix
-		signedInitImageUrl = strings.TrimPrefix(generateReq.InitImageUrl, "s3://")
-		// Hash user ID to see if it belongs to this user
-		uidHash := utils.Sha256(user.ID.String())
-		if !strings.HasPrefix(signedInitImageUrl, fmt.Sprintf("%s/", uidHash)) {
-			responses.ErrUnauthorized(w, r)
-			return
-		}
-		// Verify exists in bucket
-		_, err := c.S3.HeadObject(&s3.HeadObjectInput{
-			Bucket: aws.String(os.Getenv("S3_IMG2IMG_BUCKET_NAME")),
-			Key:    aws.String(signedInitImageUrl),
-		})
-		if err != nil {
-			if aerr, ok := err.(awserr.Error); ok {
-				switch aerr.Code() {
-				case "NotFound": // s3.ErrCodeNoSuchKey does not work, aws is missing this error code so we hardwire a string
-					responses.ErrBadRequest(w, r, "init_image_not_found", "")
-					return
-				default:
-					log.Error("Error checking if init image exists in bucket", "err", err)
-					responses.ErrInternalServerError(w, r, "An unknown error has occured")
-					return
-				}
-			}
-			responses.ErrBadRequest(w, r, "init_image_not_found", "")
-			return
-		}
-		// Sign object URL to pass to worker
-		req, _ := c.S3.GetObjectRequest(&s3.GetObjectInput{
-			Bucket: aws.String(os.Getenv("S3_IMG2IMG_BUCKET_NAME")),
-			Key:    aws.String(signedInitImageUrl),
-		})
-		urlStr, err := req.Presign(5 * time.Minute)
-		if err != nil {
-			log.Error("Error signing init image URL", "err", err)
-			responses.ErrInternalServerError(w, r, "An unknown error has occured")
-			return
-		}
-		signedInitImageUrl = urlStr
 	}
 
 	// Get queue count
@@ -166,27 +108,60 @@ func (c *RestAPI) HandleCreateGenerationToken(w http.ResponseWriter, r *http.Req
 		}
 	}
 
-	// Enforce submit to gallery
-	if free {
-		generateReq.SubmitToGallery = true
-	}
-
 	// Parse request headers
 	countryCode := utils.GetCountryCode(r)
 	deviceInfo := utils.GetClientDeviceInfo(r)
 
-	// Get model and scheduler name for cog
-	modelName := shared.GetCache().GetGenerationModelNameFromID(generateReq.ModelId)
-	schedulerName := shared.GetCache().GetSchedulerNameFromID(generateReq.SchedulerId)
-	if modelName == "" || schedulerName == "" {
-		log.Error("Error getting model or scheduler name: %s - %s", modelName, schedulerName)
-		responses.ErrInternalServerError(w, r, "An unknown error has occured")
+	// Get model name for cog
+	modelName := shared.GetCache().GetUpscaleModelNameFromID(upscaleReq.ModelId)
+	if modelName == "" {
+		log.Error("Error getting model name", "model_name", modelName)
+		responses.ErrInternalServerError(w, r, "An unknown error has occurred")
 		return
 	}
 
-	// Format prompts
-	generateReq.Prompt = utils.FormatPrompt(generateReq.Prompt)
-	generateReq.NegativePrompt = utils.FormatPrompt(generateReq.NegativePrompt)
+	// Initiate upscale
+	// We need to get width/height, from our database if output otherwise from the external image
+	var width int32
+	var height int32
+
+	// Image Type
+	imageUrl := upscaleReq.Input
+	if upscaleReq.Type == requests.UpscaleRequestTypeImage {
+		width, height, err = utils.GetImageWidthHeightFromUrl(imageUrl, shared.MAX_UPSCALE_IMAGE_SIZE)
+		if err != nil {
+			responses.ErrBadRequest(w, r, "image_url_width_height_error", "")
+			return
+		}
+	}
+
+	// Output Type
+	var outputIDStr string
+	if upscaleReq.Type == requests.UpscaleRequestTypeOutput {
+		outputIDStr = upscaleReq.OutputID.String()
+		output, err := c.Repo.GetGenerationOutputForUser(upscaleReq.OutputID, user.ID)
+		if err != nil {
+			if ent.IsNotFound(err) {
+				responses.ErrBadRequest(w, r, "output_not_found", "")
+				return
+			}
+			log.Error("Error getting output", "err", err)
+			responses.ErrInternalServerError(w, r, "Error getting output")
+			return
+		}
+		if output.UpscaledImagePath != nil {
+			responses.ErrBadRequest(w, r, "image_already_upscaled", "")
+			return
+		}
+		imageUrl = utils.GetURLFromImagePath(output.ImagePath)
+
+		// Get width/height of generation
+		width, height, err = c.Repo.GetGenerationOutputWidthHeight(upscaleReq.OutputID)
+		if err != nil {
+			responses.ErrBadRequest(w, r, "Unable to retrieve width/height for upscale", "")
+			return
+		}
+	}
 
 	// For live page update
 	var livePageMsg shared.LivePageMessage
@@ -211,7 +186,7 @@ func (c *RestAPI) HandleCreateGenerationToken(w http.ResponseWriter, r *http.Req
 		// Bind a client to the transaction
 		DB := tx.Client()
 		// Deduct credits from user
-		deducted, err := c.Repo.DeductCreditsFromUser(user.ID, int32(generateReq.NumOutputs), DB)
+		deducted, err := c.Repo.DeductCreditsFromUser(user.ID, 1, DB)
 		if err != nil {
 			log.Error("Error deducting credits", "err", err)
 			responses.ErrInternalServerError(w, r, "Error deducting credits from user")
@@ -228,45 +203,44 @@ func (c *RestAPI) HandleCreateGenerationToken(w http.ResponseWriter, r *http.Req
 			return err
 		}
 
-		// Create generation
-		g, err := c.Repo.CreateGeneration(
+		// Create upscale
+		upscale, err := c.Repo.CreateUpscale(
 			user.ID,
+			width,
+			height,
 			string(deviceInfo.DeviceType),
 			deviceInfo.DeviceOs,
 			deviceInfo.DeviceBrowser,
 			countryCode,
-			generateReq,
+			upscaleReq,
 			user.ActiveProductID,
+			false,
 			&apiToken.ID,
 			DB)
 		if err != nil {
-			log.Error("Error creating generation", "err", err)
-			responses.ErrInternalServerError(w, r, "Error creating generation")
+			log.Error("Error creating upscale", "err", err)
+			responses.ErrInternalServerError(w, r, "Error creating upscale")
 			return err
 		}
 
-		// Request Id matches generation ID
-		requestId = g.ID.String()
+		// Request Id matches upscale ID
+		requestId = upscale.ID.String()
 
 		// For live page update
 		livePageMsg = shared.LivePageMessage{
-			ProcessType:      generateReq.ProcessType,
+			ProcessType:      shared.UPSCALE,
 			ID:               utils.Sha256(requestId),
 			CountryCode:      countryCode,
 			Status:           shared.LivePageQueued,
-			TargetNumOutputs: generateReq.NumOutputs,
-			Width:            generateReq.Width,
-			Height:           generateReq.Height,
-			CreatedAt:        g.CreatedAt,
+			TargetNumOutputs: 1,
+			Width:            width,
+			Height:           height,
+			CreatedAt:        upscale.CreatedAt,
 			ProductID:        user.ActiveProductID,
 			Source:           shared.OperationSourceTypeAPI,
 		}
 
-		var promtpStrengthStr string
-		if generateReq.PromptStrength != nil {
-			promtpStrengthStr = fmt.Sprint(*generateReq.PromptStrength)
-		}
-
+		// Send to the cog
 		cogReqBody = requests.CogQueueRequest{
 			WebhookEventsFilter: []requests.CogEventFilter{requests.CogEventFilterStart, requests.CogEventFilterStart},
 			WebhookUrl:          fmt.Sprintf("%s/v1/worker/webhook", utils.GetEnv("PUBLIC_API_URL", "")),
@@ -274,32 +248,22 @@ func (c *RestAPI) HandleCreateGenerationToken(w http.ResponseWriter, r *http.Req
 				APIRequest:           true,
 				ID:                   requestId,
 				IP:                   utils.GetIPAddress(r),
+				UIId:                 upscaleReq.UIId,
 				UserID:               &user.ID,
 				DeviceInfo:           deviceInfo,
+				StreamID:             upscaleReq.StreamID,
 				LivePageData:         &livePageMsg,
-				Prompt:               generateReq.Prompt,
-				NegativePrompt:       generateReq.NegativePrompt,
-				Width:                fmt.Sprint(generateReq.Width),
-				Height:               fmt.Sprint(generateReq.Height),
-				NumInferenceSteps:    fmt.Sprint(generateReq.InferenceSteps),
-				GuidanceScale:        fmt.Sprint(generateReq.GuidanceScale),
-				Model:                modelName,
-				ModelId:              generateReq.ModelId,
-				Scheduler:            schedulerName,
-				SchedulerId:          generateReq.SchedulerId,
-				Seed:                 fmt.Sprint(generateReq.Seed),
-				NumOutputs:           fmt.Sprint(generateReq.NumOutputs),
-				OutputImageExtension: string(shared.DEFAULT_GENERATE_OUTPUT_EXTENSION),
-				OutputImageQuality:   fmt.Sprint(shared.DEFAULT_GENERATE_OUTPUT_QUALITY),
-				ProcessType:          generateReq.ProcessType,
-				SubmitToGallery:      generateReq.SubmitToGallery,
-				InitImageUrl:         signedInitImageUrl,
-				PromptStrength:       promtpStrengthStr,
+				GenerationOutputID:   outputIDStr,
+				Image:                imageUrl,
+				ProcessType:          shared.UPSCALE,
+				Width:                fmt.Sprint(width),
+				Height:               fmt.Sprint(height),
+				UpscaleModel:         modelName,
+				ModelId:              upscaleReq.ModelId,
+				OutputImageExtension: string(shared.DEFAULT_UPSCALE_OUTPUT_EXTENSION),
+				OutputImageQuality:   fmt.Sprint(shared.DEFAULT_UPSCALE_OUTPUT_QUALITY),
+				Type:                 upscaleReq.Type,
 			},
-		}
-
-		if cogReqBody.Input.InitImageUrl != "" {
-			cogReqBody.Input.InitImageUrlS3 = generateReq.InitImageUrl
 		}
 
 		// Add channel to sync array (basically a thread-safe map)
@@ -308,11 +272,11 @@ func (c *RestAPI) HandleCreateGenerationToken(w http.ResponseWriter, r *http.Req
 		err = c.Redis.EnqueueCogRequest(r.Context(), cogReqBody)
 		if err != nil {
 			log.Error("Failed to write request %s to queue: %v", requestId, err)
-			responses.ErrInternalServerError(w, r, "Failed to queue generate request")
+			responses.ErrInternalServerError(w, r, "Failed to queue upscale request")
 			return err
 		}
 
-		c.QueueThrottler.IncrementBy(int(generateReq.NumOutputs), user.ID.String())
+		c.QueueThrottler.IncrementBy(1, user.ID.String())
 		return nil
 	}); err != nil {
 		log.Error("Error in transaction", "err", err)
@@ -337,7 +301,7 @@ func (c *RestAPI) HandleCreateGenerationToken(w http.ResponseWriter, r *http.Req
 	}()
 
 	// Analytics
-	go c.Track.GenerationStarted(user, cogReqBody.Input, utils.GetIPAddress(r))
+	go c.Track.UpscaleStarted(user, cogReqBody.Input, utils.GetIPAddress(r))
 
 	// Wait for result
 	for {
@@ -345,9 +309,9 @@ func (c *RestAPI) HandleCreateGenerationToken(w http.ResponseWriter, r *http.Req
 		case cogMsg := <-activeChl:
 			switch cogMsg.Status {
 			case requests.CogProcessing:
-				err := c.Repo.SetGenerationStarted(requestId)
+				err := c.Repo.SetUpscaleStarted(requestId)
 				if err != nil {
-					log.Error("Failed to set generate started", "id", requestId, "err", err)
+					log.Error("Failed to set upscale started", "id", requestId, "err", err)
 					responses.ErrInternalServerError(w, r, "An unknown error occurred")
 					return
 				}
@@ -371,9 +335,9 @@ func (c *RestAPI) HandleCreateGenerationToken(w http.ResponseWriter, r *http.Req
 					}
 				}()
 			case requests.CogSucceeded:
-				outputs, err := c.Repo.SetGenerationSucceeded(requestId, generateReq.Prompt, generateReq.NegativePrompt, cogMsg.Output, cogMsg.NSFWCount)
+				output, err := c.Repo.SetUpscaleSucceeded(requestId, outputIDStr, imageUrl, cogMsg.Output)
 				if err != nil {
-					log.Error("Failed to set generation succeeded", "id", upscale.ID, "err", err)
+					log.Error("Failed to set upscale succeeded", "id", upscale.ID, "err", err)
 					responses.ErrInternalServerError(w, r, "An unknown error occurred")
 					return
 				}
@@ -397,29 +361,28 @@ func (c *RestAPI) HandleCreateGenerationToken(w http.ResponseWriter, r *http.Req
 					}
 				}()
 				// Analytics
-				generation, err := c.Repo.GetGeneration(uuid.MustParse(requestId))
+				upscale, err := c.Repo.GetUpscale(uuid.MustParse(requestId))
 				if err != nil {
-					log.Error("Error getting generation for analytics", "err", err)
+					log.Error("Error getting upscale for analytics", "err", err)
 				}
 				// Get durations in seconds
-				if generation.StartedAt == nil {
-					log.Error("Generation started at is nil", "id", cogMsg.Input.ID)
+				if upscale.StartedAt == nil {
+					log.Error("Upscale started at is nil", "id", cogMsg.Input.ID)
 				}
-				duration := time.Now().Sub(*generation.StartedAt).Seconds()
-				qDuration := (*generation.StartedAt).Sub(generation.CreatedAt).Seconds()
-				go c.Track.GenerationSucceeded(user, cogMsg.Input, duration, qDuration, "system")
+				duration := time.Now().Sub(*upscale.StartedAt).Seconds()
+				qDuration := (*upscale.StartedAt).Sub(upscale.CreatedAt).Seconds()
+				go c.Track.UpscaleSucceeded(user, cogMsg.Input, duration, qDuration, "system")
 
 				// Format response
-				resOutputs := make([]responses.ApiOutput, len(outputs))
-				for i, output := range outputs {
-					resOutputs[i] = responses.ApiOutput{
+				resOutputs := []responses.ApiOutput{
+					{
 						URL: utils.GetURLFromImagePath(output.ImagePath),
 						ID:  output.ID,
-					}
+					},
 				}
 
 				// Set token used
-				err = c.Repo.SetTokenUsed(int(generateReq.NumOutputs), *generation.APITokenID)
+				err = c.Repo.SetTokenUsed(1, *upscale.APITokenID)
 				if err != nil {
 					log.Error("Failed to set token used", "err", err)
 				}
@@ -433,9 +396,9 @@ func (c *RestAPI) HandleCreateGenerationToken(w http.ResponseWriter, r *http.Req
 			case requests.CogFailed:
 				if err := c.Repo.WithTx(func(tx *ent.Tx) error {
 					DB := tx.Client()
-					err := c.Repo.SetGenerationFailed(requestId, cogMsg.Error, cogMsg.NSFWCount, DB)
+					err := c.Repo.SetUpscaleFailed(requestId, cogMsg.Error, DB)
 					if err != nil {
-						log.Error("Failed to set generation failed", "id", upscale.ID, "err", err)
+						log.Error("Failed to set upscale failed", "id", upscale.ID, "err", err)
 						responses.ErrInternalServerError(w, r, "An unknown error occurred")
 						return err
 					}
@@ -460,16 +423,16 @@ func (c *RestAPI) HandleCreateGenerationToken(w http.ResponseWriter, r *http.Req
 					}()
 					// Analytics
 					duration := time.Now().Sub(cogMsg.Input.LivePageData.CreatedAt).Seconds()
-					go c.Track.GenerationFailed(user, cogMsg.Input, duration, cogMsg.Error, "system")
+					go c.Track.UpscaleFailed(user, cogMsg.Input, duration, cogMsg.Error, "system")
 					// Refund credits
-					_, err = c.Repo.RefundCreditsToUser(user.ID, generateReq.NumOutputs, DB)
+					_, err = c.Repo.RefundCreditsToUser(user.ID, int32(1), DB)
 					if err != nil {
 						log.Error("Failed to refund credits", "err", err)
 						return err
 					}
 					return nil
 				}); err != nil {
-					log.Error("Failed to set generation failed", "id", requestId, "err", err)
+					log.Error("Failed to set upscale failed", "id", requestId, "err", err)
 					responses.ErrInternalServerError(w, r, "An unknown error occurred")
 					return
 				}
@@ -483,19 +446,19 @@ func (c *RestAPI) HandleCreateGenerationToken(w http.ResponseWriter, r *http.Req
 		case <-time.After(shared.REQUEST_COG_TIMEOUT):
 			if err := c.Repo.WithTx(func(tx *ent.Tx) error {
 				DB := tx.Client()
-				err := c.Repo.SetGenerationFailed(requestId, shared.TIMEOUT_ERROR, 0, DB)
+				err := c.Repo.SetUpscaleFailed(requestId, shared.TIMEOUT_ERROR, DB)
 				if err != nil {
-					log.Error("Failed to set generation failed", "id", upscale.ID, "err", err)
+					log.Error("Failed to set upscale failed", "id", upscale.ID, "err", err)
 				}
 				// Refund credits
-				_, err = c.Repo.RefundCreditsToUser(user.ID, generateReq.NumOutputs, DB)
+				_, err = c.Repo.RefundCreditsToUser(user.ID, int32(1), DB)
 				if err != nil {
 					log.Error("Failed to refund credits", "err", err)
 					return err
 				}
 				return nil
 			}); err != nil {
-				log.Error("Failed to set generation failed", "id", requestId, "err", err)
+				log.Error("Failed to set upscale failed", "id", requestId, "err", err)
 				responses.ErrInternalServerError(w, r, "An unknown error occurred")
 				return
 			}

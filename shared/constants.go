@@ -72,6 +72,14 @@ const (
 	GENERATE_AND_UPSCALE ProcessType = "generate_and_upscale"
 )
 
+// Source type for API requests
+type OperationSourceType string
+
+const (
+	OperationSourceTypeAPI   OperationSourceType = "api"
+	OperationSourceTypeWebUI OperationSourceType = "web-ui"
+)
+
 // Default image extension for generate
 const DEFAULT_PROCESS_TYPE = GENERATE
 
