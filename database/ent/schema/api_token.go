@@ -25,6 +25,7 @@ func (ApiToken) Fields() []ent.Field {
 		field.Text("short_string"),
 		field.Bool("is_active").Default(true),
 		field.Int("uses").Default(0),
+		field.Int("credits_spent").Default(0),
 		// ! Relationships
 		field.UUID("user_id", uuid.UUID{}),
 		// ! End Relationships

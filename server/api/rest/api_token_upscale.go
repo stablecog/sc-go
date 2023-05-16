@@ -382,7 +382,7 @@ func (c *RestAPI) HandleCreateUpscaleToken(w http.ResponseWriter, r *http.Reques
 				}
 
 				// Set token used
-				err = c.Repo.SetTokenUsed(1, *upscale.APITokenID)
+				err = c.Repo.SetTokenUsedAndIncrementCreditsSpent(1, *upscale.APITokenID)
 				if err != nil {
 					log.Error("Failed to set token used", "err", err)
 				}

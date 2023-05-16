@@ -81,6 +81,11 @@ func Uses(v int) predicate.ApiToken {
 	return predicate.ApiToken(sql.FieldEQ(FieldUses, v))
 }
 
+// CreditsSpent applies equality check predicate on the "credits_spent" field. It's identical to CreditsSpentEQ.
+func CreditsSpent(v int) predicate.ApiToken {
+	return predicate.ApiToken(sql.FieldEQ(FieldCreditsSpent, v))
+}
+
 // UserID applies equality check predicate on the "user_id" field. It's identical to UserIDEQ.
 func UserID(v uuid.UUID) predicate.ApiToken {
 	return predicate.ApiToken(sql.FieldEQ(FieldUserID, v))
@@ -344,6 +349,46 @@ func UsesLT(v int) predicate.ApiToken {
 // UsesLTE applies the LTE predicate on the "uses" field.
 func UsesLTE(v int) predicate.ApiToken {
 	return predicate.ApiToken(sql.FieldLTE(FieldUses, v))
+}
+
+// CreditsSpentEQ applies the EQ predicate on the "credits_spent" field.
+func CreditsSpentEQ(v int) predicate.ApiToken {
+	return predicate.ApiToken(sql.FieldEQ(FieldCreditsSpent, v))
+}
+
+// CreditsSpentNEQ applies the NEQ predicate on the "credits_spent" field.
+func CreditsSpentNEQ(v int) predicate.ApiToken {
+	return predicate.ApiToken(sql.FieldNEQ(FieldCreditsSpent, v))
+}
+
+// CreditsSpentIn applies the In predicate on the "credits_spent" field.
+func CreditsSpentIn(vs ...int) predicate.ApiToken {
+	return predicate.ApiToken(sql.FieldIn(FieldCreditsSpent, vs...))
+}
+
+// CreditsSpentNotIn applies the NotIn predicate on the "credits_spent" field.
+func CreditsSpentNotIn(vs ...int) predicate.ApiToken {
+	return predicate.ApiToken(sql.FieldNotIn(FieldCreditsSpent, vs...))
+}
+
+// CreditsSpentGT applies the GT predicate on the "credits_spent" field.
+func CreditsSpentGT(v int) predicate.ApiToken {
+	return predicate.ApiToken(sql.FieldGT(FieldCreditsSpent, v))
+}
+
+// CreditsSpentGTE applies the GTE predicate on the "credits_spent" field.
+func CreditsSpentGTE(v int) predicate.ApiToken {
+	return predicate.ApiToken(sql.FieldGTE(FieldCreditsSpent, v))
+}
+
+// CreditsSpentLT applies the LT predicate on the "credits_spent" field.
+func CreditsSpentLT(v int) predicate.ApiToken {
+	return predicate.ApiToken(sql.FieldLT(FieldCreditsSpent, v))
+}
+
+// CreditsSpentLTE applies the LTE predicate on the "credits_spent" field.
+func CreditsSpentLTE(v int) predicate.ApiToken {
+	return predicate.ApiToken(sql.FieldLTE(FieldCreditsSpent, v))
 }
 
 // UserIDEQ applies the EQ predicate on the "user_id" field.

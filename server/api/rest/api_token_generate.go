@@ -419,7 +419,7 @@ func (c *RestAPI) HandleCreateGenerationToken(w http.ResponseWriter, r *http.Req
 				}
 
 				// Set token used
-				err = c.Repo.SetTokenUsed(int(generateReq.NumOutputs), *generation.APITokenID)
+				err = c.Repo.SetTokenUsedAndIncrementCreditsSpent(int(generateReq.NumOutputs), *generation.APITokenID)
 				if err != nil {
 					log.Error("Failed to set token used", "err", err)
 				}

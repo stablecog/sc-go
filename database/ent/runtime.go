@@ -39,12 +39,16 @@ func init() {
 	apitokenDescUses := apitokenFields[5].Descriptor()
 	// apitoken.DefaultUses holds the default value on creation for the uses field.
 	apitoken.DefaultUses = apitokenDescUses.Default.(int)
+	// apitokenDescCreditsSpent is the schema descriptor for credits_spent field.
+	apitokenDescCreditsSpent := apitokenFields[6].Descriptor()
+	// apitoken.DefaultCreditsSpent holds the default value on creation for the credits_spent field.
+	apitoken.DefaultCreditsSpent = apitokenDescCreditsSpent.Default.(int)
 	// apitokenDescCreatedAt is the schema descriptor for created_at field.
-	apitokenDescCreatedAt := apitokenFields[8].Descriptor()
+	apitokenDescCreatedAt := apitokenFields[9].Descriptor()
 	// apitoken.DefaultCreatedAt holds the default value on creation for the created_at field.
 	apitoken.DefaultCreatedAt = apitokenDescCreatedAt.Default.(func() time.Time)
 	// apitokenDescUpdatedAt is the schema descriptor for updated_at field.
-	apitokenDescUpdatedAt := apitokenFields[9].Descriptor()
+	apitokenDescUpdatedAt := apitokenFields[10].Descriptor()
 	// apitoken.DefaultUpdatedAt holds the default value on creation for the updated_at field.
 	apitoken.DefaultUpdatedAt = apitokenDescUpdatedAt.Default.(func() time.Time)
 	// apitoken.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.

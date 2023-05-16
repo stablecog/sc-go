@@ -4,6 +4,7 @@ CREATE TABLE public.api_tokens (
     is_active boolean default true not null,
     user_id uuid NOT NULL,
     uses bigint NOT NULL DEFAULT 0,
+    credits_spent bigint NOT NULL DEFAULT 0,
     name text NOT NULL,
     short_string text NOT NULL,
     last_used_at timestamp with time zone,

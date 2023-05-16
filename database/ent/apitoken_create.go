@@ -70,6 +70,20 @@ func (atc *ApiTokenCreate) SetNillableUses(i *int) *ApiTokenCreate {
 	return atc
 }
 
+// SetCreditsSpent sets the "credits_spent" field.
+func (atc *ApiTokenCreate) SetCreditsSpent(i int) *ApiTokenCreate {
+	atc.mutation.SetCreditsSpent(i)
+	return atc
+}
+
+// SetNillableCreditsSpent sets the "credits_spent" field if the given value is not nil.
+func (atc *ApiTokenCreate) SetNillableCreditsSpent(i *int) *ApiTokenCreate {
+	if i != nil {
+		atc.SetCreditsSpent(*i)
+	}
+	return atc
+}
+
 // SetUserID sets the "user_id" field.
 func (atc *ApiTokenCreate) SetUserID(u uuid.UUID) *ApiTokenCreate {
 	atc.mutation.SetUserID(u)
@@ -210,6 +224,10 @@ func (atc *ApiTokenCreate) defaults() {
 		v := apitoken.DefaultUses
 		atc.mutation.SetUses(v)
 	}
+	if _, ok := atc.mutation.CreditsSpent(); !ok {
+		v := apitoken.DefaultCreditsSpent
+		atc.mutation.SetCreditsSpent(v)
+	}
 	if _, ok := atc.mutation.CreatedAt(); !ok {
 		v := apitoken.DefaultCreatedAt()
 		atc.mutation.SetCreatedAt(v)
@@ -240,6 +258,9 @@ func (atc *ApiTokenCreate) check() error {
 	}
 	if _, ok := atc.mutation.Uses(); !ok {
 		return &ValidationError{Name: "uses", err: errors.New(`ent: missing required field "ApiToken.uses"`)}
+	}
+	if _, ok := atc.mutation.CreditsSpent(); !ok {
+		return &ValidationError{Name: "credits_spent", err: errors.New(`ent: missing required field "ApiToken.credits_spent"`)}
 	}
 	if _, ok := atc.mutation.UserID(); !ok {
 		return &ValidationError{Name: "user_id", err: errors.New(`ent: missing required field "ApiToken.user_id"`)}
@@ -313,6 +334,10 @@ func (atc *ApiTokenCreate) createSpec() (*ApiToken, *sqlgraph.CreateSpec) {
 	if value, ok := atc.mutation.Uses(); ok {
 		_spec.SetField(apitoken.FieldUses, field.TypeInt, value)
 		_node.Uses = value
+	}
+	if value, ok := atc.mutation.CreditsSpent(); ok {
+		_spec.SetField(apitoken.FieldCreditsSpent, field.TypeInt, value)
+		_node.CreditsSpent = value
 	}
 	if value, ok := atc.mutation.LastUsedAt(); ok {
 		_spec.SetField(apitoken.FieldLastUsedAt, field.TypeTime, value)

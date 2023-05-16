@@ -36,8 +36,8 @@ func (r *Repository) NewAPIToken(userId uuid.UUID, name string) (dbToken *ent.Ap
 	return dbToken, token, nil
 }
 
-func (r *Repository) SetTokenUsed(amount int, tokenId uuid.UUID) error {
-	return r.DB.ApiToken.Update().Where(apitoken.IDEQ(tokenId)).AddUses(amount).SetLastUsedAt(time.Now()).Exec(r.Ctx)
+func (r *Repository) SetTokenUsedAndIncrementCreditsSpent(creditsSpent int, tokenId uuid.UUID) error {
+	return r.DB.ApiToken.Update().Where(apitoken.IDEQ(tokenId)).AddUses(1).AddCreditsSpent(creditsSpent).SetLastUsedAt(time.Now()).Exec(r.Ctx)
 }
 
 func (r *Repository) DeactivateTokenForUser(id uuid.UUID, userId uuid.UUID) (int, error) {

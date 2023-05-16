@@ -17,6 +17,7 @@ var (
 		{Name: "short_string", Type: field.TypeString, Size: 2147483647},
 		{Name: "is_active", Type: field.TypeBool, Default: true},
 		{Name: "uses", Type: field.TypeInt, Default: 0},
+		{Name: "credits_spent", Type: field.TypeInt, Default: 0},
 		{Name: "last_used_at", Type: field.TypeTime, Nullable: true},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},
@@ -30,7 +31,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "api_tokens_users_api_tokens",
-				Columns:    []*schema.Column{APITokensColumns[9]},
+				Columns:    []*schema.Column{APITokensColumns[10]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.Cascade,
 			},

@@ -23,6 +23,8 @@ const (
 	FieldIsActive = "is_active"
 	// FieldUses holds the string denoting the uses field in the database.
 	FieldUses = "uses"
+	// FieldCreditsSpent holds the string denoting the credits_spent field in the database.
+	FieldCreditsSpent = "credits_spent"
 	// FieldUserID holds the string denoting the user_id field in the database.
 	FieldUserID = "user_id"
 	// FieldLastUsedAt holds the string denoting the last_used_at field in the database.
@@ -70,6 +72,7 @@ var Columns = []string{
 	FieldShortString,
 	FieldIsActive,
 	FieldUses,
+	FieldCreditsSpent,
 	FieldUserID,
 	FieldLastUsedAt,
 	FieldCreatedAt,
@@ -91,6 +94,8 @@ var (
 	DefaultIsActive bool
 	// DefaultUses holds the default value on creation for the "uses" field.
 	DefaultUses int
+	// DefaultCreditsSpent holds the default value on creation for the "credits_spent" field.
+	DefaultCreditsSpent int
 	// DefaultCreatedAt holds the default value on creation for the "created_at" field.
 	DefaultCreatedAt func() time.Time
 	// DefaultUpdatedAt holds the default value on creation for the "updated_at" field.

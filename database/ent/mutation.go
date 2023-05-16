@@ -71,6 +71,8 @@ type ApiTokenMutation struct {
 	is_active          *bool
 	uses               *int
 	adduses            *int
+	credits_spent      *int
+	addcredits_spent   *int
 	last_used_at       *time.Time
 	created_at         *time.Time
 	updated_at         *time.Time
@@ -390,6 +392,62 @@ func (m *ApiTokenMutation) AddedUses() (r int, exists bool) {
 func (m *ApiTokenMutation) ResetUses() {
 	m.uses = nil
 	m.adduses = nil
+}
+
+// SetCreditsSpent sets the "credits_spent" field.
+func (m *ApiTokenMutation) SetCreditsSpent(i int) {
+	m.credits_spent = &i
+	m.addcredits_spent = nil
+}
+
+// CreditsSpent returns the value of the "credits_spent" field in the mutation.
+func (m *ApiTokenMutation) CreditsSpent() (r int, exists bool) {
+	v := m.credits_spent
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreditsSpent returns the old "credits_spent" field's value of the ApiToken entity.
+// If the ApiToken object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ApiTokenMutation) OldCreditsSpent(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreditsSpent is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreditsSpent requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreditsSpent: %w", err)
+	}
+	return oldValue.CreditsSpent, nil
+}
+
+// AddCreditsSpent adds i to the "credits_spent" field.
+func (m *ApiTokenMutation) AddCreditsSpent(i int) {
+	if m.addcredits_spent != nil {
+		*m.addcredits_spent += i
+	} else {
+		m.addcredits_spent = &i
+	}
+}
+
+// AddedCreditsSpent returns the value that was added to the "credits_spent" field in this mutation.
+func (m *ApiTokenMutation) AddedCreditsSpent() (r int, exists bool) {
+	v := m.addcredits_spent
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetCreditsSpent resets all changes to the "credits_spent" field.
+func (m *ApiTokenMutation) ResetCreditsSpent() {
+	m.credits_spent = nil
+	m.addcredits_spent = nil
 }
 
 // SetUserID sets the "user_id" field.
@@ -717,7 +775,7 @@ func (m *ApiTokenMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *ApiTokenMutation) Fields() []string {
-	fields := make([]string, 0, 9)
+	fields := make([]string, 0, 10)
 	if m.hashed_token != nil {
 		fields = append(fields, apitoken.FieldHashedToken)
 	}
@@ -732,6 +790,9 @@ func (m *ApiTokenMutation) Fields() []string {
 	}
 	if m.uses != nil {
 		fields = append(fields, apitoken.FieldUses)
+	}
+	if m.credits_spent != nil {
+		fields = append(fields, apitoken.FieldCreditsSpent)
 	}
 	if m.user != nil {
 		fields = append(fields, apitoken.FieldUserID)
@@ -763,6 +824,8 @@ func (m *ApiTokenMutation) Field(name string) (ent.Value, bool) {
 		return m.IsActive()
 	case apitoken.FieldUses:
 		return m.Uses()
+	case apitoken.FieldCreditsSpent:
+		return m.CreditsSpent()
 	case apitoken.FieldUserID:
 		return m.UserID()
 	case apitoken.FieldLastUsedAt:
@@ -790,6 +853,8 @@ func (m *ApiTokenMutation) OldField(ctx context.Context, name string) (ent.Value
 		return m.OldIsActive(ctx)
 	case apitoken.FieldUses:
 		return m.OldUses(ctx)
+	case apitoken.FieldCreditsSpent:
+		return m.OldCreditsSpent(ctx)
 	case apitoken.FieldUserID:
 		return m.OldUserID(ctx)
 	case apitoken.FieldLastUsedAt:
@@ -842,6 +907,13 @@ func (m *ApiTokenMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetUses(v)
 		return nil
+	case apitoken.FieldCreditsSpent:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreditsSpent(v)
+		return nil
 	case apitoken.FieldUserID:
 		v, ok := value.(uuid.UUID)
 		if !ok {
@@ -881,6 +953,9 @@ func (m *ApiTokenMutation) AddedFields() []string {
 	if m.adduses != nil {
 		fields = append(fields, apitoken.FieldUses)
 	}
+	if m.addcredits_spent != nil {
+		fields = append(fields, apitoken.FieldCreditsSpent)
+	}
 	return fields
 }
 
@@ -891,6 +966,8 @@ func (m *ApiTokenMutation) AddedField(name string) (ent.Value, bool) {
 	switch name {
 	case apitoken.FieldUses:
 		return m.AddedUses()
+	case apitoken.FieldCreditsSpent:
+		return m.AddedCreditsSpent()
 	}
 	return nil, false
 }
@@ -906,6 +983,13 @@ func (m *ApiTokenMutation) AddField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.AddUses(v)
+		return nil
+	case apitoken.FieldCreditsSpent:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddCreditsSpent(v)
 		return nil
 	}
 	return fmt.Errorf("unknown ApiToken numeric field %s", name)
@@ -957,6 +1041,9 @@ func (m *ApiTokenMutation) ResetField(name string) error {
 		return nil
 	case apitoken.FieldUses:
 		m.ResetUses()
+		return nil
+	case apitoken.FieldCreditsSpent:
+		m.ResetCreditsSpent()
 		return nil
 	case apitoken.FieldUserID:
 		m.ResetUserID()

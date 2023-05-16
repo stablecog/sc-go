@@ -28,6 +28,8 @@ type ApiToken struct {
 	IsActive bool `json:"is_active,omitempty"`
 	// Uses holds the value of the "uses" field.
 	Uses int `json:"uses,omitempty"`
+	// CreditsSpent holds the value of the "credits_spent" field.
+	CreditsSpent int `json:"credits_spent,omitempty"`
 	// UserID holds the value of the "user_id" field.
 	UserID uuid.UUID `json:"user_id,omitempty"`
 	// LastUsedAt holds the value of the "last_used_at" field.
@@ -92,7 +94,7 @@ func (*ApiToken) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case apitoken.FieldIsActive:
 			values[i] = new(sql.NullBool)
-		case apitoken.FieldUses:
+		case apitoken.FieldUses, apitoken.FieldCreditsSpent:
 			values[i] = new(sql.NullInt64)
 		case apitoken.FieldHashedToken, apitoken.FieldName, apitoken.FieldShortString:
 			values[i] = new(sql.NullString)
@@ -150,6 +152,12 @@ func (at *ApiToken) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field uses", values[i])
 			} else if value.Valid {
 				at.Uses = int(value.Int64)
+			}
+		case apitoken.FieldCreditsSpent:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field credits_spent", values[i])
+			} else if value.Valid {
+				at.CreditsSpent = int(value.Int64)
 			}
 		case apitoken.FieldUserID:
 			if value, ok := values[i].(*uuid.UUID); !ok {
@@ -233,6 +241,9 @@ func (at *ApiToken) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("uses=")
 	builder.WriteString(fmt.Sprintf("%v", at.Uses))
+	builder.WriteString(", ")
+	builder.WriteString("credits_spent=")
+	builder.WriteString(fmt.Sprintf("%v", at.CreditsSpent))
 	builder.WriteString(", ")
 	builder.WriteString("user_id=")
 	builder.WriteString(fmt.Sprintf("%v", at.UserID))

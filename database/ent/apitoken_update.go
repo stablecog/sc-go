@@ -86,6 +86,27 @@ func (atu *ApiTokenUpdate) AddUses(i int) *ApiTokenUpdate {
 	return atu
 }
 
+// SetCreditsSpent sets the "credits_spent" field.
+func (atu *ApiTokenUpdate) SetCreditsSpent(i int) *ApiTokenUpdate {
+	atu.mutation.ResetCreditsSpent()
+	atu.mutation.SetCreditsSpent(i)
+	return atu
+}
+
+// SetNillableCreditsSpent sets the "credits_spent" field if the given value is not nil.
+func (atu *ApiTokenUpdate) SetNillableCreditsSpent(i *int) *ApiTokenUpdate {
+	if i != nil {
+		atu.SetCreditsSpent(*i)
+	}
+	return atu
+}
+
+// AddCreditsSpent adds i to the "credits_spent" field.
+func (atu *ApiTokenUpdate) AddCreditsSpent(i int) *ApiTokenUpdate {
+	atu.mutation.AddCreditsSpent(i)
+	return atu
+}
+
 // SetUserID sets the "user_id" field.
 func (atu *ApiTokenUpdate) SetUserID(u uuid.UUID) *ApiTokenUpdate {
 	atu.mutation.SetUserID(u)
@@ -294,6 +315,12 @@ func (atu *ApiTokenUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if value, ok := atu.mutation.AddedUses(); ok {
 		_spec.AddField(apitoken.FieldUses, field.TypeInt, value)
+	}
+	if value, ok := atu.mutation.CreditsSpent(); ok {
+		_spec.SetField(apitoken.FieldCreditsSpent, field.TypeInt, value)
+	}
+	if value, ok := atu.mutation.AddedCreditsSpent(); ok {
+		_spec.AddField(apitoken.FieldCreditsSpent, field.TypeInt, value)
 	}
 	if value, ok := atu.mutation.LastUsedAt(); ok {
 		_spec.SetField(apitoken.FieldLastUsedAt, field.TypeTime, value)
@@ -519,6 +546,27 @@ func (atuo *ApiTokenUpdateOne) SetNillableUses(i *int) *ApiTokenUpdateOne {
 // AddUses adds i to the "uses" field.
 func (atuo *ApiTokenUpdateOne) AddUses(i int) *ApiTokenUpdateOne {
 	atuo.mutation.AddUses(i)
+	return atuo
+}
+
+// SetCreditsSpent sets the "credits_spent" field.
+func (atuo *ApiTokenUpdateOne) SetCreditsSpent(i int) *ApiTokenUpdateOne {
+	atuo.mutation.ResetCreditsSpent()
+	atuo.mutation.SetCreditsSpent(i)
+	return atuo
+}
+
+// SetNillableCreditsSpent sets the "credits_spent" field if the given value is not nil.
+func (atuo *ApiTokenUpdateOne) SetNillableCreditsSpent(i *int) *ApiTokenUpdateOne {
+	if i != nil {
+		atuo.SetCreditsSpent(*i)
+	}
+	return atuo
+}
+
+// AddCreditsSpent adds i to the "credits_spent" field.
+func (atuo *ApiTokenUpdateOne) AddCreditsSpent(i int) *ApiTokenUpdateOne {
+	atuo.mutation.AddCreditsSpent(i)
 	return atuo
 }
 
@@ -754,6 +802,12 @@ func (atuo *ApiTokenUpdateOne) sqlSave(ctx context.Context) (_node *ApiToken, er
 	}
 	if value, ok := atuo.mutation.AddedUses(); ok {
 		_spec.AddField(apitoken.FieldUses, field.TypeInt, value)
+	}
+	if value, ok := atuo.mutation.CreditsSpent(); ok {
+		_spec.SetField(apitoken.FieldCreditsSpent, field.TypeInt, value)
+	}
+	if value, ok := atuo.mutation.AddedCreditsSpent(); ok {
+		_spec.AddField(apitoken.FieldCreditsSpent, field.TypeInt, value)
 	}
 	if value, ok := atuo.mutation.LastUsedAt(); ok {
 		_spec.SetField(apitoken.FieldLastUsedAt, field.TypeTime, value)

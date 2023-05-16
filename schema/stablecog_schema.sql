@@ -60,6 +60,7 @@ CREATE TABLE public.api_tokens (
     hashed_token text NOT NULL,
     is_active boolean default true not null,
     uses bigint NOT NULL DEFAULT 0,
+    credits_spent bigint NOT NULL DEFAULT 0,
     user_id uuid NOT NULL,
     name text NOT NULL,
     short_string text NOT NULL,
