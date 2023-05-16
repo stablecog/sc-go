@@ -601,6 +601,21 @@ paths:
                   error:
                     type: string
                     format: token_not_found
+  /v1/user/operations:
+    get:
+      description: "Operations: List (User-only)"
+      security:
+        - supabase: []
+      parameters:
+        - $ref: "#/components/parameters/perPageParam"
+        - $ref: "#/components/parameters/cursorParam"
+      responses:
+        "200":
+          description: JSON Object next cursor and operations array
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OperationQueryResultMeta"
   /v1/admin/gallery:
     put:
       description: "Gallery: Approve/Reject (Admin)"

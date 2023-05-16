@@ -37,7 +37,6 @@ func (c *RestAPI) HandleQueryOperations(w http.ResponseWriter, r *http.Request) 
 		}
 	}
 
-	cursorStr := r.URL.Query().Get("cursor")
 	var cursor *time.Time
 	if cursorStr := r.URL.Query().Get("cursor"); cursorStr != "" {
 		cursorTime, err := utils.ParseIsoTime(cursorStr)
