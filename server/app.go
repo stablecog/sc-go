@@ -457,6 +457,29 @@ func main() {
 		}
 	}()
 
+	// This redis subscription has the following purpose:
+	// For API token requests, they are synchronous with API requests
+	// so we need to send the response back to the appropriate channel
+	apiTokenChannel := redis.Client.Subscribe(ctx, shared.REDIS_APITOKEN_COG_CHANNEL)
+	defer apiTokenChannel.Close()
+
+	// Start SSE redis subscription
+	go func() {
+		log.Info("Listening for api messages", "channel", shared.REDIS_APITOKEN_COG_CHANNEL)
+		for msg := range apiTokenChannel.Channel() {
+			var cogMessage requests.CogWebhookMessage
+			err := json.Unmarshal([]byte(msg.Payload), &cogMessage)
+			if err != nil {
+				log.Error("Error unmarshalling cog webhook message", "err", err)
+				continue
+			}
+
+			if chl := apiTokenSmap.Get(cogMessage.Input.ID); chl != nil {
+				chl <- cogMessage
+			}
+		}
+	}()
+
 	// Start server
 	port := utils.GetEnv("PORT", "13337")
 	log.Info("Starting server", "port", port)
