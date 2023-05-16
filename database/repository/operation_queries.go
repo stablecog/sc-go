@@ -57,7 +57,7 @@ func (r *Repository) QueryUserOperations(userId uuid.UUID, limit int, cursor *ti
 
 	var operationQueryResult []OperationQueryResult
 	for _, g := range gens {
-		source := OperationSourceTypeUI
+		source := OperationSourceTypeWebUI
 		if g.APITokenID != nil {
 			source = OperationSourceTypeAPI
 		}
@@ -73,7 +73,7 @@ func (r *Repository) QueryUserOperations(userId uuid.UUID, limit int, cursor *ti
 	}
 
 	for _, u := range ups {
-		source := OperationSourceTypeUI
+		source := OperationSourceTypeWebUI
 		if u.APITokenID != nil {
 			source = OperationSourceTypeAPI
 		}
@@ -140,8 +140,8 @@ const (
 type OperationSourceType string
 
 const (
-	OperationSourceTypeAPI OperationSourceType = "api"
-	OperationSourceTypeUI  OperationSourceType = "ui"
+	OperationSourceTypeAPI   OperationSourceType = "api"
+	OperationSourceTypeWebUI OperationSourceType = "web-ui"
 )
 
 type OperationQueryResult struct {
