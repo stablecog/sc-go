@@ -55,7 +55,7 @@ func (r *Repository) QueryUserOperations(userId uuid.UUID, limit int, cursor *ti
 		return nil, err
 	}
 
-	var operationQueryResult []OperationQueryResult
+	operationQueryResult := []OperationQueryResult{}
 	for _, g := range gens {
 		source := shared.OperationSourceTypeWebUI
 		if g.APITokenID != nil {
@@ -149,5 +149,5 @@ type OperationQueryResult struct {
 
 type OperationQueryResultMeta struct {
 	Operations []OperationQueryResult `json:"operations"`
-	Next       *time.Time             `json:"next"`
+	Next       *time.Time             `json:"next,omitempty"`
 }
