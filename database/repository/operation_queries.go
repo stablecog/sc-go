@@ -57,9 +57,9 @@ func (r *Repository) QueryUserOperations(userId uuid.UUID, limit int, cursor *ti
 
 	var operationQueryResult []OperationQueryResult
 	for _, g := range gens {
-		requestType := OperationRequestTypeUI
+		source := OperationSourceTypeUI
 		if g.APITokenID != nil {
-			requestType = OperationRequestTypeAPI
+			source = OperationSourceTypeAPI
 		}
 		operationQueryResult = append(operationQueryResult, OperationQueryResult{
 			ID:            g.ID,
@@ -67,15 +67,15 @@ func (r *Repository) QueryUserOperations(userId uuid.UUID, limit int, cursor *ti
 			CreatedAt:     g.CreatedAt,
 			StartedAt:     *g.StartedAt,
 			CompletedAt:   *g.CompletedAt,
-			RequestType:   requestType,
+			Source:        source,
 			NumOutputs:    int(g.NumOutputs),
 		})
 	}
 
 	for _, u := range ups {
-		requestType := OperationRequestTypeUI
+		source := OperationSourceTypeUI
 		if u.APITokenID != nil {
-			requestType = OperationRequestTypeAPI
+			source = OperationSourceTypeAPI
 		}
 		// Is upscale
 		operationQueryResult = append(operationQueryResult, OperationQueryResult{
@@ -84,7 +84,7 @@ func (r *Repository) QueryUserOperations(userId uuid.UUID, limit int, cursor *ti
 			CreatedAt:     u.CreatedAt,
 			StartedAt:     *u.StartedAt,
 			CompletedAt:   *u.CompletedAt,
-			RequestType:   requestType,
+			Source:        source,
 			NumOutputs:    1, // ! Always 1 for now
 		})
 	}
@@ -137,21 +137,21 @@ const (
 	OperationTypeUpscale    OperationType = "upscale"
 )
 
-type OperationRequestType string
+type OperationSourceType string
 
 const (
-	OperationRequestTypeAPI OperationRequestType = "api"
-	OperationRequestTypeUI  OperationRequestType = "ui"
+	OperationSourceTypeAPI OperationSourceType = "api"
+	OperationSourceTypeUI  OperationSourceType = "ui"
 )
 
 type OperationQueryResult struct {
-	ID            uuid.UUID            `json:"id"`
-	OperationType shared.ProcessType   `json:"operation_type"`
-	CreatedAt     time.Time            `json:"created_at"`
-	StartedAt     time.Time            `json:"started_at"`
-	CompletedAt   time.Time            `json:"completed_at"`
-	NumOutputs    int                  `json:"num_outputs"`
-	RequestType   OperationRequestType `json:"operation_request_type"`
+	ID            uuid.UUID           `json:"id"`
+	OperationType shared.ProcessType  `json:"operation_type"`
+	CreatedAt     time.Time           `json:"created_at"`
+	StartedAt     time.Time           `json:"started_at"`
+	CompletedAt   time.Time           `json:"completed_at"`
+	NumOutputs    int                 `json:"num_outputs"`
+	Source        OperationSourceType `json:"Source"`
 }
 
 type OperationQueryResultMeta struct {

@@ -1579,7 +1579,7 @@ components:
         num_outputs:
           type: integer
           format: int32
-        request_type:
+        source:
           type: string
           format: ui, api
     OperationQueryResultMeta:
