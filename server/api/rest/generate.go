@@ -238,7 +238,7 @@ func (c *RestAPI) HandleCreateGeneration(w http.ResponseWriter, r *http.Request)
 
 		// For live page update
 		livePageMsg = shared.LivePageMessage{
-			ProcessType:      generateReq.ProcessType,
+			ProcessType:      shared.GENERATE,
 			ID:               utils.Sha256(requestId),
 			CountryCode:      countryCode,
 			Status:           shared.LivePageQueued,
@@ -280,7 +280,7 @@ func (c *RestAPI) HandleCreateGeneration(w http.ResponseWriter, r *http.Request)
 				NumOutputs:           fmt.Sprint(generateReq.NumOutputs),
 				OutputImageExtension: string(shared.DEFAULT_GENERATE_OUTPUT_EXTENSION),
 				OutputImageQuality:   fmt.Sprint(shared.DEFAULT_GENERATE_OUTPUT_QUALITY),
-				ProcessType:          generateReq.ProcessType,
+				ProcessType:          shared.GENERATE,
 				SubmitToGallery:      generateReq.SubmitToGallery,
 				InitImageUrl:         signedInitImageUrl,
 				PromptStrength:       promtpStrengthStr,
