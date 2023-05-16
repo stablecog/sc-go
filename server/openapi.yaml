@@ -1543,3 +1543,37 @@ components:
           items:
             type: string
             format: uuidv4
+    OperationQueryResult:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuidv4
+        operation_type:
+          type: string
+          format: generate, upscale
+        created_at:
+          type: string
+          format: isoTimeString
+        started_at:
+          type: string
+          format: isoTimeString
+        completed_at:
+          type: string
+          format: isoTimeString
+        num_outputs:
+          type: integer
+          format: int32
+        request_type:
+          type: string
+          format: ui, api
+    OperationQueryResultMeta:
+      type: object
+      properties:
+        next:
+          type: string
+          format: isoTimeString, if search not specified
+        operations:
+          type: array
+          items:
+            $ref: "#/components/schemas/OperationQueryResult"

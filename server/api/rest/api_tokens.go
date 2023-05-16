@@ -128,5 +128,7 @@ func (c *RestAPI) HandleDeactivateAPIToken(w http.ResponseWriter, r *http.Reques
 	}
 
 	render.Status(r, http.StatusOK)
-	render.PlainText(w, r, "OK")
+	render.JSON(w, r, map[string]string{
+		"status": "ok",
+	})
 }

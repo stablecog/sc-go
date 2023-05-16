@@ -375,6 +375,9 @@ func main() {
 			r.Post("/tokens", hc.HandleNewAPIToken)
 			r.Get("/tokens", hc.HandleGetAPITokens)
 			r.Delete("/tokens", hc.HandleDeactivateAPIToken)
+
+			// Operations
+			r.Get("/operations", hc.HandleQueryOperations)
 		})
 
 		// Admin only routes
