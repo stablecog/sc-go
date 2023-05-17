@@ -33,6 +33,7 @@ import (
 	"github.com/stablecog/sc-go/server/clip"
 	"github.com/stablecog/sc-go/server/discord"
 	"github.com/stablecog/sc-go/server/middleware"
+	"github.com/stablecog/sc-go/server/requests"
 	"github.com/stablecog/sc-go/shared"
 	"github.com/stablecog/sc-go/utils"
 	stripe "github.com/stripe/stripe-go/v74/client"
@@ -205,6 +206,7 @@ func main() {
 	s3Client := s3.New(newSession)
 
 	// Create controller
+	apiTokenSmap := shared.NewSyncMap[chan requests.CogWebhookMessage]()
 	hc := rest.RestAPI{
 		Repo:           repo,
 		Redis:          redis,
@@ -215,6 +217,7 @@ func main() {
 		S3:             s3Client,
 		Qdrant:         qdrantClient,
 		Clip:           clip.NewClipService(redis),
+		SMap:           apiTokenSmap,
 	}
 
 	// Create middleware
@@ -367,6 +370,14 @@ func main() {
 			r.Post("/subscription/downgrade", hc.HandleSubscriptionDowngrade)
 			r.Post("/subscription/checkout", hc.HandleCreateCheckoutSession)
 			r.Post("/subscription/portal", hc.HandleCreatePortalSession)
+
+			// API Tokens
+			r.Post("/tokens", hc.HandleNewAPIToken)
+			r.Get("/tokens", hc.HandleGetAPITokens)
+			r.Delete("/tokens", hc.HandleDeactivateAPIToken)
+
+			// Operations
+			r.Get("/operations", hc.HandleQueryOperations)
 		})
 
 		// Admin only routes
@@ -395,6 +406,21 @@ func main() {
 				r.Get("/types", hc.HandleQueryCreditTypes)
 				r.Post("/add", hc.HandleAddCreditsToUser)
 			})
+		})
+
+		// Api token route
+		r.Route("/generate", func(r chi.Router) {
+			r.Use(mw.AuthMiddleware(middleware.AuthLevelAPIToken))
+			r.Use(middleware.Logger)
+			r.Use(mw.RateLimit(5, "api", 1*time.Second))
+			r.Post("/", hc.HandleCreateGenerationToken)
+		})
+
+		r.Route("/upscale", func(r chi.Router) {
+			r.Use(mw.AuthMiddleware(middleware.AuthLevelAPIToken))
+			r.Use(middleware.Logger)
+			r.Use(mw.RateLimit(5, "api", 1*time.Second))
+			r.Post("/", hc.HandleCreateUpscaleToken)
 		})
 	})
 
@@ -428,6 +454,29 @@ func main() {
 			sseMessage.LivePageMessage = nil
 			// The hub will broadcast this to our clients if it's supposed to
 			sseHub.BroadcastStatusUpdate(sseMessage)
+		}
+	}()
+
+	// This redis subscription has the following purpose:
+	// For API token requests, they are synchronous with API requests
+	// so we need to send the response back to the appropriate channel
+	apiTokenChannel := redis.Client.Subscribe(ctx, shared.REDIS_APITOKEN_COG_CHANNEL)
+	defer apiTokenChannel.Close()
+
+	// Start SSE redis subscription
+	go func() {
+		log.Info("Listening for api messages", "channel", shared.REDIS_APITOKEN_COG_CHANNEL)
+		for msg := range apiTokenChannel.Channel() {
+			var cogMessage requests.CogWebhookMessage
+			err := json.Unmarshal([]byte(msg.Payload), &cogMessage)
+			if err != nil {
+				log.Error("Error unmarshalling cog webhook message", "err", err)
+				continue
+			}
+
+			if chl := apiTokenSmap.Get(cogMessage.Input.ID); chl != nil {
+				chl <- cogMessage
+			}
 		}
 	}()
 

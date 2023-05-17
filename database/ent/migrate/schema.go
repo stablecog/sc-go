@@ -9,6 +9,34 @@ import (
 )
 
 var (
+	// APITokensColumns holds the columns for the "api_tokens" table.
+	APITokensColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID},
+		{Name: "hashed_token", Type: field.TypeString, Size: 2147483647},
+		{Name: "name", Type: field.TypeString, Size: 2147483647},
+		{Name: "short_string", Type: field.TypeString, Size: 2147483647},
+		{Name: "is_active", Type: field.TypeBool, Default: true},
+		{Name: "uses", Type: field.TypeInt, Default: 0},
+		{Name: "credits_spent", Type: field.TypeInt, Default: 0},
+		{Name: "last_used_at", Type: field.TypeTime, Nullable: true},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "user_id", Type: field.TypeUUID},
+	}
+	// APITokensTable holds the schema information for the "api_tokens" table.
+	APITokensTable = &schema.Table{
+		Name:       "api_tokens",
+		Columns:    APITokensColumns,
+		PrimaryKey: []*schema.Column{APITokensColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "api_tokens_users_api_tokens",
+				Columns:    []*schema.Column{APITokensColumns[10]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+		},
+	}
 	// CreditsColumns holds the columns for the "credits" table.
 	CreditsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID},
@@ -114,6 +142,7 @@ var (
 		{Name: "completed_at", Type: field.TypeTime, Nullable: true},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "api_token_id", Type: field.TypeUUID, Nullable: true},
 		{Name: "device_info_id", Type: field.TypeUUID},
 		{Name: "model_id", Type: field.TypeUUID},
 		{Name: "negative_prompt_id", Type: field.TypeUUID, Nullable: true},
@@ -128,38 +157,44 @@ var (
 		PrimaryKey: []*schema.Column{GenerationsColumns[0]},
 		ForeignKeys: []*schema.ForeignKey{
 			{
-				Symbol:     "generations_device_info_generations",
+				Symbol:     "generations_api_tokens_generations",
 				Columns:    []*schema.Column{GenerationsColumns[19]},
+				RefColumns: []*schema.Column{APITokensColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+			{
+				Symbol:     "generations_device_info_generations",
+				Columns:    []*schema.Column{GenerationsColumns[20]},
 				RefColumns: []*schema.Column{DeviceInfoColumns[0]},
 				OnDelete:   schema.Cascade,
 			},
 			{
 				Symbol:     "generations_generation_models_generations",
-				Columns:    []*schema.Column{GenerationsColumns[20]},
+				Columns:    []*schema.Column{GenerationsColumns[21]},
 				RefColumns: []*schema.Column{GenerationModelsColumns[0]},
 				OnDelete:   schema.Cascade,
 			},
 			{
 				Symbol:     "generations_negative_prompts_generations",
-				Columns:    []*schema.Column{GenerationsColumns[21]},
+				Columns:    []*schema.Column{GenerationsColumns[22]},
 				RefColumns: []*schema.Column{NegativePromptsColumns[0]},
 				OnDelete:   schema.Cascade,
 			},
 			{
 				Symbol:     "generations_prompts_generations",
-				Columns:    []*schema.Column{GenerationsColumns[22]},
+				Columns:    []*schema.Column{GenerationsColumns[23]},
 				RefColumns: []*schema.Column{PromptsColumns[0]},
 				OnDelete:   schema.Cascade,
 			},
 			{
 				Symbol:     "generations_schedulers_generations",
-				Columns:    []*schema.Column{GenerationsColumns[23]},
+				Columns:    []*schema.Column{GenerationsColumns[24]},
 				RefColumns: []*schema.Column{SchedulersColumns[0]},
 				OnDelete:   schema.Cascade,
 			},
 			{
 				Symbol:     "generations_users_generations",
-				Columns:    []*schema.Column{GenerationsColumns[24]},
+				Columns:    []*schema.Column{GenerationsColumns[25]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.Cascade,
 			},
@@ -168,17 +203,17 @@ var (
 			{
 				Name:    "generation_user_id_created_at",
 				Unique:  false,
-				Columns: []*schema.Column{GenerationsColumns[24], GenerationsColumns[17]},
+				Columns: []*schema.Column{GenerationsColumns[25], GenerationsColumns[17]},
 			},
 			{
 				Name:    "generation_user_id_status_created_at",
 				Unique:  false,
-				Columns: []*schema.Column{GenerationsColumns[24], GenerationsColumns[8], GenerationsColumns[17]},
+				Columns: []*schema.Column{GenerationsColumns[25], GenerationsColumns[8], GenerationsColumns[17]},
 			},
 			{
 				Name:    "generation_user_id_status",
 				Unique:  false,
-				Columns: []*schema.Column{GenerationsColumns[24], GenerationsColumns[8]},
+				Columns: []*schema.Column{GenerationsColumns[25], GenerationsColumns[8]},
 			},
 			{
 				Name:    "generation_created_at",
@@ -313,6 +348,7 @@ var (
 		{Name: "completed_at", Type: field.TypeTime, Nullable: true},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "api_token_id", Type: field.TypeUUID, Nullable: true},
 		{Name: "device_info_id", Type: field.TypeUUID},
 		{Name: "model_id", Type: field.TypeUUID},
 		{Name: "user_id", Type: field.TypeUUID},
@@ -324,20 +360,26 @@ var (
 		PrimaryKey: []*schema.Column{UpscalesColumns[0]},
 		ForeignKeys: []*schema.ForeignKey{
 			{
-				Symbol:     "upscales_device_info_upscales",
+				Symbol:     "upscales_api_tokens_upscales",
 				Columns:    []*schema.Column{UpscalesColumns[13]},
+				RefColumns: []*schema.Column{APITokensColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+			{
+				Symbol:     "upscales_device_info_upscales",
+				Columns:    []*schema.Column{UpscalesColumns[14]},
 				RefColumns: []*schema.Column{DeviceInfoColumns[0]},
 				OnDelete:   schema.Cascade,
 			},
 			{
 				Symbol:     "upscales_upscale_models_upscales",
-				Columns:    []*schema.Column{UpscalesColumns[14]},
+				Columns:    []*schema.Column{UpscalesColumns[15]},
 				RefColumns: []*schema.Column{UpscaleModelsColumns[0]},
 				OnDelete:   schema.Cascade,
 			},
 			{
 				Symbol:     "upscales_users_upscales",
-				Columns:    []*schema.Column{UpscalesColumns[15]},
+				Columns:    []*schema.Column{UpscalesColumns[16]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.Cascade,
 			},
@@ -438,6 +480,7 @@ var (
 	}
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
+		APITokensTable,
 		CreditsTable,
 		CreditTypesTable,
 		DeviceInfoTable,
@@ -457,6 +500,10 @@ var (
 )
 
 func init() {
+	APITokensTable.ForeignKeys[0].RefTable = UsersTable
+	APITokensTable.Annotation = &entsql.Annotation{
+		Table: "api_tokens",
+	}
 	CreditsTable.ForeignKeys[0].RefTable = CreditTypesTable
 	CreditsTable.ForeignKeys[1].RefTable = UsersTable
 	CreditsTable.Annotation = &entsql.Annotation{
@@ -471,12 +518,13 @@ func init() {
 	DisposableEmailsTable.Annotation = &entsql.Annotation{
 		Table: "disposable_emails",
 	}
-	GenerationsTable.ForeignKeys[0].RefTable = DeviceInfoTable
-	GenerationsTable.ForeignKeys[1].RefTable = GenerationModelsTable
-	GenerationsTable.ForeignKeys[2].RefTable = NegativePromptsTable
-	GenerationsTable.ForeignKeys[3].RefTable = PromptsTable
-	GenerationsTable.ForeignKeys[4].RefTable = SchedulersTable
-	GenerationsTable.ForeignKeys[5].RefTable = UsersTable
+	GenerationsTable.ForeignKeys[0].RefTable = APITokensTable
+	GenerationsTable.ForeignKeys[1].RefTable = DeviceInfoTable
+	GenerationsTable.ForeignKeys[2].RefTable = GenerationModelsTable
+	GenerationsTable.ForeignKeys[3].RefTable = NegativePromptsTable
+	GenerationsTable.ForeignKeys[4].RefTable = PromptsTable
+	GenerationsTable.ForeignKeys[5].RefTable = SchedulersTable
+	GenerationsTable.ForeignKeys[6].RefTable = UsersTable
 	GenerationsTable.Annotation = &entsql.Annotation{
 		Table: "generations",
 	}
@@ -496,9 +544,10 @@ func init() {
 	SchedulersTable.Annotation = &entsql.Annotation{
 		Table: "schedulers",
 	}
-	UpscalesTable.ForeignKeys[0].RefTable = DeviceInfoTable
-	UpscalesTable.ForeignKeys[1].RefTable = UpscaleModelsTable
-	UpscalesTable.ForeignKeys[2].RefTable = UsersTable
+	UpscalesTable.ForeignKeys[0].RefTable = APITokensTable
+	UpscalesTable.ForeignKeys[1].RefTable = DeviceInfoTable
+	UpscalesTable.ForeignKeys[2].RefTable = UpscaleModelsTable
+	UpscalesTable.ForeignKeys[3].RefTable = UsersTable
 	UpscalesTable.Annotation = &entsql.Annotation{
 		Table: "upscales",
 	}

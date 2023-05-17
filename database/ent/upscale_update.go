@@ -12,6 +12,7 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
+	"github.com/stablecog/sc-go/database/ent/apitoken"
 	"github.com/stablecog/sc-go/database/ent/deviceinfo"
 	"github.com/stablecog/sc-go/database/ent/predicate"
 	"github.com/stablecog/sc-go/database/ent/upscale"
@@ -171,6 +172,26 @@ func (uu *UpscaleUpdate) SetModelID(u uuid.UUID) *UpscaleUpdate {
 	return uu
 }
 
+// SetAPITokenID sets the "api_token_id" field.
+func (uu *UpscaleUpdate) SetAPITokenID(u uuid.UUID) *UpscaleUpdate {
+	uu.mutation.SetAPITokenID(u)
+	return uu
+}
+
+// SetNillableAPITokenID sets the "api_token_id" field if the given value is not nil.
+func (uu *UpscaleUpdate) SetNillableAPITokenID(u *uuid.UUID) *UpscaleUpdate {
+	if u != nil {
+		uu.SetAPITokenID(*u)
+	}
+	return uu
+}
+
+// ClearAPITokenID clears the value of the "api_token_id" field.
+func (uu *UpscaleUpdate) ClearAPITokenID() *UpscaleUpdate {
+	uu.mutation.ClearAPITokenID()
+	return uu
+}
+
 // SetStartedAt sets the "started_at" field.
 func (uu *UpscaleUpdate) SetStartedAt(t time.Time) *UpscaleUpdate {
 	uu.mutation.SetStartedAt(t)
@@ -238,6 +259,25 @@ func (uu *UpscaleUpdate) SetUpscaleModels(u *UpscaleModel) *UpscaleUpdate {
 	return uu.SetUpscaleModelsID(u.ID)
 }
 
+// SetAPITokensID sets the "api_tokens" edge to the ApiToken entity by ID.
+func (uu *UpscaleUpdate) SetAPITokensID(id uuid.UUID) *UpscaleUpdate {
+	uu.mutation.SetAPITokensID(id)
+	return uu
+}
+
+// SetNillableAPITokensID sets the "api_tokens" edge to the ApiToken entity by ID if the given value is not nil.
+func (uu *UpscaleUpdate) SetNillableAPITokensID(id *uuid.UUID) *UpscaleUpdate {
+	if id != nil {
+		uu = uu.SetAPITokensID(*id)
+	}
+	return uu
+}
+
+// SetAPITokens sets the "api_tokens" edge to the ApiToken entity.
+func (uu *UpscaleUpdate) SetAPITokens(a *ApiToken) *UpscaleUpdate {
+	return uu.SetAPITokensID(a.ID)
+}
+
 // AddUpscaleOutputIDs adds the "upscale_outputs" edge to the UpscaleOutput entity by IDs.
 func (uu *UpscaleUpdate) AddUpscaleOutputIDs(ids ...uuid.UUID) *UpscaleUpdate {
 	uu.mutation.AddUpscaleOutputIDs(ids...)
@@ -273,6 +313,12 @@ func (uu *UpscaleUpdate) ClearDeviceInfo() *UpscaleUpdate {
 // ClearUpscaleModels clears the "upscale_models" edge to the UpscaleModel entity.
 func (uu *UpscaleUpdate) ClearUpscaleModels() *UpscaleUpdate {
 	uu.mutation.ClearUpscaleModels()
+	return uu
+}
+
+// ClearAPITokens clears the "api_tokens" edge to the ApiToken entity.
+func (uu *UpscaleUpdate) ClearAPITokens() *UpscaleUpdate {
+	uu.mutation.ClearAPITokens()
 	return uu
 }
 
@@ -541,6 +587,41 @@ func (uu *UpscaleUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if uu.mutation.APITokensCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   upscale.APITokensTable,
+			Columns: []string{upscale.APITokensColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: apitoken.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uu.mutation.APITokensIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   upscale.APITokensTable,
+			Columns: []string{upscale.APITokensColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: apitoken.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if uu.mutation.UpscaleOutputsCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
@@ -754,6 +835,26 @@ func (uuo *UpscaleUpdateOne) SetModelID(u uuid.UUID) *UpscaleUpdateOne {
 	return uuo
 }
 
+// SetAPITokenID sets the "api_token_id" field.
+func (uuo *UpscaleUpdateOne) SetAPITokenID(u uuid.UUID) *UpscaleUpdateOne {
+	uuo.mutation.SetAPITokenID(u)
+	return uuo
+}
+
+// SetNillableAPITokenID sets the "api_token_id" field if the given value is not nil.
+func (uuo *UpscaleUpdateOne) SetNillableAPITokenID(u *uuid.UUID) *UpscaleUpdateOne {
+	if u != nil {
+		uuo.SetAPITokenID(*u)
+	}
+	return uuo
+}
+
+// ClearAPITokenID clears the value of the "api_token_id" field.
+func (uuo *UpscaleUpdateOne) ClearAPITokenID() *UpscaleUpdateOne {
+	uuo.mutation.ClearAPITokenID()
+	return uuo
+}
+
 // SetStartedAt sets the "started_at" field.
 func (uuo *UpscaleUpdateOne) SetStartedAt(t time.Time) *UpscaleUpdateOne {
 	uuo.mutation.SetStartedAt(t)
@@ -821,6 +922,25 @@ func (uuo *UpscaleUpdateOne) SetUpscaleModels(u *UpscaleModel) *UpscaleUpdateOne
 	return uuo.SetUpscaleModelsID(u.ID)
 }
 
+// SetAPITokensID sets the "api_tokens" edge to the ApiToken entity by ID.
+func (uuo *UpscaleUpdateOne) SetAPITokensID(id uuid.UUID) *UpscaleUpdateOne {
+	uuo.mutation.SetAPITokensID(id)
+	return uuo
+}
+
+// SetNillableAPITokensID sets the "api_tokens" edge to the ApiToken entity by ID if the given value is not nil.
+func (uuo *UpscaleUpdateOne) SetNillableAPITokensID(id *uuid.UUID) *UpscaleUpdateOne {
+	if id != nil {
+		uuo = uuo.SetAPITokensID(*id)
+	}
+	return uuo
+}
+
+// SetAPITokens sets the "api_tokens" edge to the ApiToken entity.
+func (uuo *UpscaleUpdateOne) SetAPITokens(a *ApiToken) *UpscaleUpdateOne {
+	return uuo.SetAPITokensID(a.ID)
+}
+
 // AddUpscaleOutputIDs adds the "upscale_outputs" edge to the UpscaleOutput entity by IDs.
 func (uuo *UpscaleUpdateOne) AddUpscaleOutputIDs(ids ...uuid.UUID) *UpscaleUpdateOne {
 	uuo.mutation.AddUpscaleOutputIDs(ids...)
@@ -856,6 +976,12 @@ func (uuo *UpscaleUpdateOne) ClearDeviceInfo() *UpscaleUpdateOne {
 // ClearUpscaleModels clears the "upscale_models" edge to the UpscaleModel entity.
 func (uuo *UpscaleUpdateOne) ClearUpscaleModels() *UpscaleUpdateOne {
 	uuo.mutation.ClearUpscaleModels()
+	return uuo
+}
+
+// ClearAPITokens clears the "api_tokens" edge to the ApiToken entity.
+func (uuo *UpscaleUpdateOne) ClearAPITokens() *UpscaleUpdateOne {
+	uuo.mutation.ClearAPITokens()
 	return uuo
 }
 
@@ -1140,6 +1266,41 @@ func (uuo *UpscaleUpdateOne) sqlSave(ctx context.Context) (_node *Upscale, err e
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeUUID,
 					Column: upscalemodel.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if uuo.mutation.APITokensCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   upscale.APITokensTable,
+			Columns: []string{upscale.APITokensColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: apitoken.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uuo.mutation.APITokensIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   upscale.APITokensTable,
+			Columns: []string{upscale.APITokensColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: apitoken.FieldID,
 				},
 			},
 		}

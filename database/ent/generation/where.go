@@ -151,6 +151,11 @@ func DeviceInfoID(v uuid.UUID) predicate.Generation {
 	return predicate.Generation(sql.FieldEQ(FieldDeviceInfoID, v))
 }
 
+// APITokenID applies equality check predicate on the "api_token_id" field. It's identical to APITokenIDEQ.
+func APITokenID(v uuid.UUID) predicate.Generation {
+	return predicate.Generation(sql.FieldEQ(FieldAPITokenID, v))
+}
+
 // StartedAt applies equality check predicate on the "started_at" field. It's identical to StartedAtEQ.
 func StartedAt(v time.Time) predicate.Generation {
 	return predicate.Generation(sql.FieldEQ(FieldStartedAt, v))
@@ -971,6 +976,36 @@ func DeviceInfoIDNotIn(vs ...uuid.UUID) predicate.Generation {
 	return predicate.Generation(sql.FieldNotIn(FieldDeviceInfoID, vs...))
 }
 
+// APITokenIDEQ applies the EQ predicate on the "api_token_id" field.
+func APITokenIDEQ(v uuid.UUID) predicate.Generation {
+	return predicate.Generation(sql.FieldEQ(FieldAPITokenID, v))
+}
+
+// APITokenIDNEQ applies the NEQ predicate on the "api_token_id" field.
+func APITokenIDNEQ(v uuid.UUID) predicate.Generation {
+	return predicate.Generation(sql.FieldNEQ(FieldAPITokenID, v))
+}
+
+// APITokenIDIn applies the In predicate on the "api_token_id" field.
+func APITokenIDIn(vs ...uuid.UUID) predicate.Generation {
+	return predicate.Generation(sql.FieldIn(FieldAPITokenID, vs...))
+}
+
+// APITokenIDNotIn applies the NotIn predicate on the "api_token_id" field.
+func APITokenIDNotIn(vs ...uuid.UUID) predicate.Generation {
+	return predicate.Generation(sql.FieldNotIn(FieldAPITokenID, vs...))
+}
+
+// APITokenIDIsNil applies the IsNil predicate on the "api_token_id" field.
+func APITokenIDIsNil() predicate.Generation {
+	return predicate.Generation(sql.FieldIsNull(FieldAPITokenID))
+}
+
+// APITokenIDNotNil applies the NotNil predicate on the "api_token_id" field.
+func APITokenIDNotNil() predicate.Generation {
+	return predicate.Generation(sql.FieldNotNull(FieldAPITokenID))
+}
+
 // StartedAtEQ applies the EQ predicate on the "started_at" field.
 func StartedAtEQ(v time.Time) predicate.Generation {
 	return predicate.Generation(sql.FieldEQ(FieldStartedAt, v))
@@ -1304,6 +1339,33 @@ func HasUserWith(preds ...predicate.User) predicate.Generation {
 			sqlgraph.From(Table, FieldID),
 			sqlgraph.To(UserInverseTable, FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, true, UserTable, UserColumn),
+		)
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasAPITokens applies the HasEdge predicate on the "api_tokens" edge.
+func HasAPITokens() predicate.Generation {
+	return predicate.Generation(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, APITokensTable, APITokensColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasAPITokensWith applies the HasEdge predicate on the "api_tokens" edge with a given conditions (other predicates).
+func HasAPITokensWith(preds ...predicate.ApiToken) predicate.Generation {
+	return predicate.Generation(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(APITokensInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, APITokensTable, APITokensColumn),
 		)
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {

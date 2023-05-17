@@ -11,6 +11,7 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
+	"github.com/stablecog/sc-go/database/ent/apitoken"
 	"github.com/stablecog/sc-go/database/ent/deviceinfo"
 	"github.com/stablecog/sc-go/database/ent/generation"
 	"github.com/stablecog/sc-go/database/ent/generationmodel"
@@ -220,6 +221,20 @@ func (gc *GenerationCreate) SetDeviceInfoID(u uuid.UUID) *GenerationCreate {
 	return gc
 }
 
+// SetAPITokenID sets the "api_token_id" field.
+func (gc *GenerationCreate) SetAPITokenID(u uuid.UUID) *GenerationCreate {
+	gc.mutation.SetAPITokenID(u)
+	return gc
+}
+
+// SetNillableAPITokenID sets the "api_token_id" field if the given value is not nil.
+func (gc *GenerationCreate) SetNillableAPITokenID(u *uuid.UUID) *GenerationCreate {
+	if u != nil {
+		gc.SetAPITokenID(*u)
+	}
+	return gc
+}
+
 // SetStartedAt sets the "started_at" field.
 func (gc *GenerationCreate) SetStartedAt(t time.Time) *GenerationCreate {
 	gc.mutation.SetStartedAt(t)
@@ -324,6 +339,25 @@ func (gc *GenerationCreate) SetGenerationModel(g *GenerationModel) *GenerationCr
 // SetUser sets the "user" edge to the User entity.
 func (gc *GenerationCreate) SetUser(u *User) *GenerationCreate {
 	return gc.SetUserID(u.ID)
+}
+
+// SetAPITokensID sets the "api_tokens" edge to the ApiToken entity by ID.
+func (gc *GenerationCreate) SetAPITokensID(id uuid.UUID) *GenerationCreate {
+	gc.mutation.SetAPITokensID(id)
+	return gc
+}
+
+// SetNillableAPITokensID sets the "api_tokens" edge to the ApiToken entity by ID if the given value is not nil.
+func (gc *GenerationCreate) SetNillableAPITokensID(id *uuid.UUID) *GenerationCreate {
+	if id != nil {
+		gc = gc.SetAPITokensID(*id)
+	}
+	return gc
+}
+
+// SetAPITokens sets the "api_tokens" edge to the ApiToken entity.
+func (gc *GenerationCreate) SetAPITokens(a *ApiToken) *GenerationCreate {
+	return gc.SetAPITokensID(a.ID)
 }
 
 // AddGenerationOutputIDs adds the "generation_outputs" edge to the GenerationOutput entity by IDs.
@@ -693,6 +727,26 @@ func (gc *GenerationCreate) createSpec() (*Generation, *sqlgraph.CreateSpec) {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_node.UserID = nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := gc.mutation.APITokensIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   generation.APITokensTable,
+			Columns: []string{generation.APITokensColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: apitoken.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.APITokenID = &nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	if nodes := gc.mutation.GenerationOutputsIDs(); len(nodes) > 0 {

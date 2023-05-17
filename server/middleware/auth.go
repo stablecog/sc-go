@@ -8,8 +8,11 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/stablecog/sc-go/database/ent"
 	"github.com/stablecog/sc-go/database/ent/userrole"
+	"github.com/stablecog/sc-go/log"
 	"github.com/stablecog/sc-go/server/responses"
+	"github.com/stablecog/sc-go/utils"
 )
 
 type AuthLevel int
@@ -18,6 +21,7 @@ const (
 	AuthLevelAny AuthLevel = iota
 	AuthLevelGalleryAdmin
 	AuthLevelSuperAdmin
+	AuthLevelAPIToken
 )
 
 // Enforces authorization at specific level
@@ -29,15 +33,48 @@ func (m *Middleware) AuthMiddleware(level AuthLevel) func(next http.Handler) htt
 				responses.ErrUnauthorized(w, r)
 				return
 			}
-			// Check supabase to see if it's all good
-			userId, email, lastSignIn, err := m.SupabaseAuth.GetSupabaseUserIdFromAccessToken(authHeader[1])
-			if err != nil {
-				responses.ErrUnauthorized(w, r)
-				return
+
+			var userId, email string
+			var lastSignIn *time.Time
+			var err error
+			ctx := r.Context()
+
+			// Separe flow for API tokens
+			if level == AuthLevelAPIToken {
+				// Hash token
+				hashed := utils.Sha256(authHeader[1])
+				// Validate
+				token, err := m.Repo.GetTokenByHashedToken(hashed)
+				if err != nil && !ent.IsNotFound(err) {
+					log.Error("Error getting token", "err", err)
+					responses.ErrInternalServerError(w, r, "An unknown error has occured")
+					return
+				} else if ent.IsNotFound(err) || !token.IsActive {
+					responses.ErrUnauthorized(w, r)
+					return
+				}
+
+				user, err := m.Repo.GetUser(token.UserID)
+				if err != nil {
+					log.Error("Error getting user", "err", err)
+					responses.ErrInternalServerError(w, r, "An unknown error has occured")
+					return
+				}
+				userId = user.ID.String()
+				email = user.Email
+				lastSignIn = user.LastSignInAt
+				ctx = context.WithValue(ctx, "api_token_id", token.ID.String())
+			} else {
+				// Check supabase to see if it's all good
+				userId, email, lastSignIn, err = m.SupabaseAuth.GetSupabaseUserIdFromAccessToken(authHeader[1])
+				if err != nil {
+					responses.ErrUnauthorized(w, r)
+					return
+				}
 			}
 
 			// Set the user ID in the context
-			ctx := context.WithValue(r.Context(), "user_id", userId)
+			ctx = context.WithValue(ctx, "user_id", userId)
 			ctx = context.WithValue(ctx, "user_email", email)
 			// Set the last sign in time in the context, if not null
 			if lastSignIn != nil {

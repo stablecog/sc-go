@@ -9,6 +9,7 @@ import (
 
 	"entgo.io/ent/dialect/sql"
 	"github.com/google/uuid"
+	"github.com/stablecog/sc-go/database/ent/apitoken"
 	"github.com/stablecog/sc-go/database/ent/deviceinfo"
 	"github.com/stablecog/sc-go/database/ent/generation"
 	"github.com/stablecog/sc-go/database/ent/generationmodel"
@@ -63,6 +64,8 @@ type Generation struct {
 	UserID uuid.UUID `json:"user_id,omitempty"`
 	// DeviceInfoID holds the value of the "device_info_id" field.
 	DeviceInfoID uuid.UUID `json:"device_info_id,omitempty"`
+	// APITokenID holds the value of the "api_token_id" field.
+	APITokenID *uuid.UUID `json:"api_token_id,omitempty"`
 	// StartedAt holds the value of the "started_at" field.
 	StartedAt *time.Time `json:"started_at,omitempty"`
 	// CompletedAt holds the value of the "completed_at" field.
@@ -90,11 +93,13 @@ type GenerationEdges struct {
 	GenerationModel *GenerationModel `json:"generation_model,omitempty"`
 	// User holds the value of the user edge.
 	User *User `json:"user,omitempty"`
+	// APITokens holds the value of the api_tokens edge.
+	APITokens *ApiToken `json:"api_tokens,omitempty"`
 	// GenerationOutputs holds the value of the generation_outputs edge.
 	GenerationOutputs []*GenerationOutput `json:"generation_outputs,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [7]bool
+	loadedTypes [8]bool
 }
 
 // DeviceInfoOrErr returns the DeviceInfo value or an error if the edge
@@ -175,10 +180,23 @@ func (e GenerationEdges) UserOrErr() (*User, error) {
 	return nil, &NotLoadedError{edge: "user"}
 }
 
+// APITokensOrErr returns the APITokens value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e GenerationEdges) APITokensOrErr() (*ApiToken, error) {
+	if e.loadedTypes[6] {
+		if e.APITokens == nil {
+			// Edge was loaded but was not found.
+			return nil, &NotFoundError{label: apitoken.Label}
+		}
+		return e.APITokens, nil
+	}
+	return nil, &NotLoadedError{edge: "api_tokens"}
+}
+
 // GenerationOutputsOrErr returns the GenerationOutputs value or an error if the edge
 // was not loaded in eager-loading.
 func (e GenerationEdges) GenerationOutputsOrErr() ([]*GenerationOutput, error) {
-	if e.loadedTypes[6] {
+	if e.loadedTypes[7] {
 		return e.GenerationOutputs, nil
 	}
 	return nil, &NotLoadedError{edge: "generation_outputs"}
@@ -189,7 +207,7 @@ func (*Generation) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case generation.FieldPromptID, generation.FieldNegativePromptID:
+		case generation.FieldPromptID, generation.FieldNegativePromptID, generation.FieldAPITokenID:
 			values[i] = &sql.NullScanner{S: new(uuid.UUID)}
 		case generation.FieldWasAutoSubmitted:
 			values[i] = new(sql.NullBool)
@@ -351,6 +369,13 @@ func (ge *Generation) assignValues(columns []string, values []any) error {
 			} else if value != nil {
 				ge.DeviceInfoID = *value
 			}
+		case generation.FieldAPITokenID:
+			if value, ok := values[i].(*sql.NullScanner); !ok {
+				return fmt.Errorf("unexpected type %T for field api_token_id", values[i])
+			} else if value.Valid {
+				ge.APITokenID = new(uuid.UUID)
+				*ge.APITokenID = *value.S.(*uuid.UUID)
+			}
 		case generation.FieldStartedAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
 				return fmt.Errorf("unexpected type %T for field started_at", values[i])
@@ -410,6 +435,11 @@ func (ge *Generation) QueryGenerationModel() *GenerationModelQuery {
 // QueryUser queries the "user" edge of the Generation entity.
 func (ge *Generation) QueryUser() *UserQuery {
 	return NewGenerationClient(ge.config).QueryUser(ge)
+}
+
+// QueryAPITokens queries the "api_tokens" edge of the Generation entity.
+func (ge *Generation) QueryAPITokens() *ApiTokenQuery {
+	return NewGenerationClient(ge.config).QueryAPITokens(ge)
 }
 
 // QueryGenerationOutputs queries the "generation_outputs" edge of the Generation entity.
@@ -513,6 +543,11 @@ func (ge *Generation) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("device_info_id=")
 	builder.WriteString(fmt.Sprintf("%v", ge.DeviceInfoID))
+	builder.WriteString(", ")
+	if v := ge.APITokenID; v != nil {
+		builder.WriteString("api_token_id=")
+		builder.WriteString(fmt.Sprintf("%v", *v))
+	}
 	builder.WriteString(", ")
 	if v := ge.StartedAt; v != nil {
 		builder.WriteString("started_at=")

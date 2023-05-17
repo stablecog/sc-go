@@ -42,6 +42,9 @@ const REDIS_SSE_BROADCAST_CHANNEL = "sse:broadcast_channel"
 // This redis channel is when webhook sends an internal request we care about
 const REDIS_INTERNAL_COG_CHANNEL = "cog:internal_message"
 
+// This redis channel is when webhook sends a request from API token
+const REDIS_APITOKEN_COG_CHANNEL = "cog:apitoken_message"
+
 // Allowed image extensions used by various APIs
 type ImageExtension string
 
@@ -67,6 +70,14 @@ const (
 	GENERATE             ProcessType = "generate"
 	UPSCALE              ProcessType = "upscale"
 	GENERATE_AND_UPSCALE ProcessType = "generate_and_upscale"
+)
+
+// Source type for API requests
+type OperationSourceType string
+
+const (
+	OperationSourceTypeAPI   OperationSourceType = "api"
+	OperationSourceTypeWebUI OperationSourceType = "web-ui"
 )
 
 // Default image extension for generate
@@ -110,3 +121,23 @@ const AUTO_UPSCALE_RETRY_DURATION = 30 * time.Second
 
 // ! Deleting user data
 const DELETE_BANNED_USER_DATA_AFTER = 24 * time.Hour
+
+// ! API Tokens
+// Maximum number of tokens a user can have at any given time
+const MAX_API_TOKENS_PER_USER = 10
+
+// Default name for API tokens
+const DEFAULT_API_TOKEN_NAME = "Secret key"
+
+// Prefix on all API tokens
+const API_TOKEN_PREFIX = "sc-"
+
+// Max chars in an API token name
+const MAX_TOKEN_NAME_SIZE = 50
+
+// ! API Queue Overflow
+// How often to re-check queue length to re-submit extra requests
+const QUEUE_OVERFLOW_RETRY_DURATION = 250 * time.Millisecond
+
+// Max wait time for queue overflow
+const QUEUE_OVERFLOW_MAX_WAIT = 5 * time.Second

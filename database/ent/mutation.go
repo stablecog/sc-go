@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/stablecog/sc-go/database/ent/apitoken"
 	"github.com/stablecog/sc-go/database/ent/credit"
 	"github.com/stablecog/sc-go/database/ent/credittype"
 	"github.com/stablecog/sc-go/database/ent/deviceinfo"
@@ -40,6 +41,7 @@ const (
 	OpUpdateOne = ent.OpUpdateOne
 
 	// Node types.
+	TypeApiToken         = "ApiToken"
 	TypeCredit           = "Credit"
 	TypeCreditType       = "CreditType"
 	TypeDeviceInfo       = "DeviceInfo"
@@ -56,6 +58,1136 @@ const (
 	TypeUser             = "User"
 	TypeUserRole         = "UserRole"
 )
+
+// ApiTokenMutation represents an operation that mutates the ApiToken nodes in the graph.
+type ApiTokenMutation struct {
+	config
+	op                 Op
+	typ                string
+	id                 *uuid.UUID
+	hashed_token       *string
+	name               *string
+	short_string       *string
+	is_active          *bool
+	uses               *int
+	adduses            *int
+	credits_spent      *int
+	addcredits_spent   *int
+	last_used_at       *time.Time
+	created_at         *time.Time
+	updated_at         *time.Time
+	clearedFields      map[string]struct{}
+	user               *uuid.UUID
+	cleareduser        bool
+	generations        map[uuid.UUID]struct{}
+	removedgenerations map[uuid.UUID]struct{}
+	clearedgenerations bool
+	upscales           map[uuid.UUID]struct{}
+	removedupscales    map[uuid.UUID]struct{}
+	clearedupscales    bool
+	done               bool
+	oldValue           func(context.Context) (*ApiToken, error)
+	predicates         []predicate.ApiToken
+}
+
+var _ ent.Mutation = (*ApiTokenMutation)(nil)
+
+// apitokenOption allows management of the mutation configuration using functional options.
+type apitokenOption func(*ApiTokenMutation)
+
+// newApiTokenMutation creates new mutation for the ApiToken entity.
+func newApiTokenMutation(c config, op Op, opts ...apitokenOption) *ApiTokenMutation {
+	m := &ApiTokenMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeApiToken,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withApiTokenID sets the ID field of the mutation.
+func withApiTokenID(id uuid.UUID) apitokenOption {
+	return func(m *ApiTokenMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *ApiToken
+		)
+		m.oldValue = func(ctx context.Context) (*ApiToken, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().ApiToken.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withApiToken sets the old ApiToken of the mutation.
+func withApiToken(node *ApiToken) apitokenOption {
+	return func(m *ApiTokenMutation) {
+		m.oldValue = func(context.Context) (*ApiToken, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m ApiTokenMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m ApiTokenMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of ApiToken entities.
+func (m *ApiTokenMutation) SetID(id uuid.UUID) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *ApiTokenMutation) ID() (id uuid.UUID, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *ApiTokenMutation) IDs(ctx context.Context) ([]uuid.UUID, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []uuid.UUID{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().ApiToken.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetHashedToken sets the "hashed_token" field.
+func (m *ApiTokenMutation) SetHashedToken(s string) {
+	m.hashed_token = &s
+}
+
+// HashedToken returns the value of the "hashed_token" field in the mutation.
+func (m *ApiTokenMutation) HashedToken() (r string, exists bool) {
+	v := m.hashed_token
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldHashedToken returns the old "hashed_token" field's value of the ApiToken entity.
+// If the ApiToken object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ApiTokenMutation) OldHashedToken(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldHashedToken is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldHashedToken requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldHashedToken: %w", err)
+	}
+	return oldValue.HashedToken, nil
+}
+
+// ResetHashedToken resets all changes to the "hashed_token" field.
+func (m *ApiTokenMutation) ResetHashedToken() {
+	m.hashed_token = nil
+}
+
+// SetName sets the "name" field.
+func (m *ApiTokenMutation) SetName(s string) {
+	m.name = &s
+}
+
+// Name returns the value of the "name" field in the mutation.
+func (m *ApiTokenMutation) Name() (r string, exists bool) {
+	v := m.name
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldName returns the old "name" field's value of the ApiToken entity.
+// If the ApiToken object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ApiTokenMutation) OldName(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldName is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldName requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldName: %w", err)
+	}
+	return oldValue.Name, nil
+}
+
+// ResetName resets all changes to the "name" field.
+func (m *ApiTokenMutation) ResetName() {
+	m.name = nil
+}
+
+// SetShortString sets the "short_string" field.
+func (m *ApiTokenMutation) SetShortString(s string) {
+	m.short_string = &s
+}
+
+// ShortString returns the value of the "short_string" field in the mutation.
+func (m *ApiTokenMutation) ShortString() (r string, exists bool) {
+	v := m.short_string
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldShortString returns the old "short_string" field's value of the ApiToken entity.
+// If the ApiToken object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ApiTokenMutation) OldShortString(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldShortString is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldShortString requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldShortString: %w", err)
+	}
+	return oldValue.ShortString, nil
+}
+
+// ResetShortString resets all changes to the "short_string" field.
+func (m *ApiTokenMutation) ResetShortString() {
+	m.short_string = nil
+}
+
+// SetIsActive sets the "is_active" field.
+func (m *ApiTokenMutation) SetIsActive(b bool) {
+	m.is_active = &b
+}
+
+// IsActive returns the value of the "is_active" field in the mutation.
+func (m *ApiTokenMutation) IsActive() (r bool, exists bool) {
+	v := m.is_active
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldIsActive returns the old "is_active" field's value of the ApiToken entity.
+// If the ApiToken object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ApiTokenMutation) OldIsActive(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldIsActive is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldIsActive requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldIsActive: %w", err)
+	}
+	return oldValue.IsActive, nil
+}
+
+// ResetIsActive resets all changes to the "is_active" field.
+func (m *ApiTokenMutation) ResetIsActive() {
+	m.is_active = nil
+}
+
+// SetUses sets the "uses" field.
+func (m *ApiTokenMutation) SetUses(i int) {
+	m.uses = &i
+	m.adduses = nil
+}
+
+// Uses returns the value of the "uses" field in the mutation.
+func (m *ApiTokenMutation) Uses() (r int, exists bool) {
+	v := m.uses
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUses returns the old "uses" field's value of the ApiToken entity.
+// If the ApiToken object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ApiTokenMutation) OldUses(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUses is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUses requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUses: %w", err)
+	}
+	return oldValue.Uses, nil
+}
+
+// AddUses adds i to the "uses" field.
+func (m *ApiTokenMutation) AddUses(i int) {
+	if m.adduses != nil {
+		*m.adduses += i
+	} else {
+		m.adduses = &i
+	}
+}
+
+// AddedUses returns the value that was added to the "uses" field in this mutation.
+func (m *ApiTokenMutation) AddedUses() (r int, exists bool) {
+	v := m.adduses
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetUses resets all changes to the "uses" field.
+func (m *ApiTokenMutation) ResetUses() {
+	m.uses = nil
+	m.adduses = nil
+}
+
+// SetCreditsSpent sets the "credits_spent" field.
+func (m *ApiTokenMutation) SetCreditsSpent(i int) {
+	m.credits_spent = &i
+	m.addcredits_spent = nil
+}
+
+// CreditsSpent returns the value of the "credits_spent" field in the mutation.
+func (m *ApiTokenMutation) CreditsSpent() (r int, exists bool) {
+	v := m.credits_spent
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreditsSpent returns the old "credits_spent" field's value of the ApiToken entity.
+// If the ApiToken object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ApiTokenMutation) OldCreditsSpent(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreditsSpent is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreditsSpent requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreditsSpent: %w", err)
+	}
+	return oldValue.CreditsSpent, nil
+}
+
+// AddCreditsSpent adds i to the "credits_spent" field.
+func (m *ApiTokenMutation) AddCreditsSpent(i int) {
+	if m.addcredits_spent != nil {
+		*m.addcredits_spent += i
+	} else {
+		m.addcredits_spent = &i
+	}
+}
+
+// AddedCreditsSpent returns the value that was added to the "credits_spent" field in this mutation.
+func (m *ApiTokenMutation) AddedCreditsSpent() (r int, exists bool) {
+	v := m.addcredits_spent
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetCreditsSpent resets all changes to the "credits_spent" field.
+func (m *ApiTokenMutation) ResetCreditsSpent() {
+	m.credits_spent = nil
+	m.addcredits_spent = nil
+}
+
+// SetUserID sets the "user_id" field.
+func (m *ApiTokenMutation) SetUserID(u uuid.UUID) {
+	m.user = &u
+}
+
+// UserID returns the value of the "user_id" field in the mutation.
+func (m *ApiTokenMutation) UserID() (r uuid.UUID, exists bool) {
+	v := m.user
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUserID returns the old "user_id" field's value of the ApiToken entity.
+// If the ApiToken object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ApiTokenMutation) OldUserID(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUserID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUserID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUserID: %w", err)
+	}
+	return oldValue.UserID, nil
+}
+
+// ResetUserID resets all changes to the "user_id" field.
+func (m *ApiTokenMutation) ResetUserID() {
+	m.user = nil
+}
+
+// SetLastUsedAt sets the "last_used_at" field.
+func (m *ApiTokenMutation) SetLastUsedAt(t time.Time) {
+	m.last_used_at = &t
+}
+
+// LastUsedAt returns the value of the "last_used_at" field in the mutation.
+func (m *ApiTokenMutation) LastUsedAt() (r time.Time, exists bool) {
+	v := m.last_used_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldLastUsedAt returns the old "last_used_at" field's value of the ApiToken entity.
+// If the ApiToken object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ApiTokenMutation) OldLastUsedAt(ctx context.Context) (v *time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldLastUsedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldLastUsedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldLastUsedAt: %w", err)
+	}
+	return oldValue.LastUsedAt, nil
+}
+
+// ClearLastUsedAt clears the value of the "last_used_at" field.
+func (m *ApiTokenMutation) ClearLastUsedAt() {
+	m.last_used_at = nil
+	m.clearedFields[apitoken.FieldLastUsedAt] = struct{}{}
+}
+
+// LastUsedAtCleared returns if the "last_used_at" field was cleared in this mutation.
+func (m *ApiTokenMutation) LastUsedAtCleared() bool {
+	_, ok := m.clearedFields[apitoken.FieldLastUsedAt]
+	return ok
+}
+
+// ResetLastUsedAt resets all changes to the "last_used_at" field.
+func (m *ApiTokenMutation) ResetLastUsedAt() {
+	m.last_used_at = nil
+	delete(m.clearedFields, apitoken.FieldLastUsedAt)
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *ApiTokenMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *ApiTokenMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the ApiToken entity.
+// If the ApiToken object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ApiTokenMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *ApiTokenMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (m *ApiTokenMutation) SetUpdatedAt(t time.Time) {
+	m.updated_at = &t
+}
+
+// UpdatedAt returns the value of the "updated_at" field in the mutation.
+func (m *ApiTokenMutation) UpdatedAt() (r time.Time, exists bool) {
+	v := m.updated_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedAt returns the old "updated_at" field's value of the ApiToken entity.
+// If the ApiToken object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ApiTokenMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
+	}
+	return oldValue.UpdatedAt, nil
+}
+
+// ResetUpdatedAt resets all changes to the "updated_at" field.
+func (m *ApiTokenMutation) ResetUpdatedAt() {
+	m.updated_at = nil
+}
+
+// ClearUser clears the "user" edge to the User entity.
+func (m *ApiTokenMutation) ClearUser() {
+	m.cleareduser = true
+}
+
+// UserCleared reports if the "user" edge to the User entity was cleared.
+func (m *ApiTokenMutation) UserCleared() bool {
+	return m.cleareduser
+}
+
+// UserIDs returns the "user" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// UserID instead. It exists only for internal usage by the builders.
+func (m *ApiTokenMutation) UserIDs() (ids []uuid.UUID) {
+	if id := m.user; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetUser resets all changes to the "user" edge.
+func (m *ApiTokenMutation) ResetUser() {
+	m.user = nil
+	m.cleareduser = false
+}
+
+// AddGenerationIDs adds the "generations" edge to the Generation entity by ids.
+func (m *ApiTokenMutation) AddGenerationIDs(ids ...uuid.UUID) {
+	if m.generations == nil {
+		m.generations = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.generations[ids[i]] = struct{}{}
+	}
+}
+
+// ClearGenerations clears the "generations" edge to the Generation entity.
+func (m *ApiTokenMutation) ClearGenerations() {
+	m.clearedgenerations = true
+}
+
+// GenerationsCleared reports if the "generations" edge to the Generation entity was cleared.
+func (m *ApiTokenMutation) GenerationsCleared() bool {
+	return m.clearedgenerations
+}
+
+// RemoveGenerationIDs removes the "generations" edge to the Generation entity by IDs.
+func (m *ApiTokenMutation) RemoveGenerationIDs(ids ...uuid.UUID) {
+	if m.removedgenerations == nil {
+		m.removedgenerations = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.generations, ids[i])
+		m.removedgenerations[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedGenerations returns the removed IDs of the "generations" edge to the Generation entity.
+func (m *ApiTokenMutation) RemovedGenerationsIDs() (ids []uuid.UUID) {
+	for id := range m.removedgenerations {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// GenerationsIDs returns the "generations" edge IDs in the mutation.
+func (m *ApiTokenMutation) GenerationsIDs() (ids []uuid.UUID) {
+	for id := range m.generations {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetGenerations resets all changes to the "generations" edge.
+func (m *ApiTokenMutation) ResetGenerations() {
+	m.generations = nil
+	m.clearedgenerations = false
+	m.removedgenerations = nil
+}
+
+// AddUpscaleIDs adds the "upscales" edge to the Upscale entity by ids.
+func (m *ApiTokenMutation) AddUpscaleIDs(ids ...uuid.UUID) {
+	if m.upscales == nil {
+		m.upscales = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.upscales[ids[i]] = struct{}{}
+	}
+}
+
+// ClearUpscales clears the "upscales" edge to the Upscale entity.
+func (m *ApiTokenMutation) ClearUpscales() {
+	m.clearedupscales = true
+}
+
+// UpscalesCleared reports if the "upscales" edge to the Upscale entity was cleared.
+func (m *ApiTokenMutation) UpscalesCleared() bool {
+	return m.clearedupscales
+}
+
+// RemoveUpscaleIDs removes the "upscales" edge to the Upscale entity by IDs.
+func (m *ApiTokenMutation) RemoveUpscaleIDs(ids ...uuid.UUID) {
+	if m.removedupscales == nil {
+		m.removedupscales = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.upscales, ids[i])
+		m.removedupscales[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedUpscales returns the removed IDs of the "upscales" edge to the Upscale entity.
+func (m *ApiTokenMutation) RemovedUpscalesIDs() (ids []uuid.UUID) {
+	for id := range m.removedupscales {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// UpscalesIDs returns the "upscales" edge IDs in the mutation.
+func (m *ApiTokenMutation) UpscalesIDs() (ids []uuid.UUID) {
+	for id := range m.upscales {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetUpscales resets all changes to the "upscales" edge.
+func (m *ApiTokenMutation) ResetUpscales() {
+	m.upscales = nil
+	m.clearedupscales = false
+	m.removedupscales = nil
+}
+
+// Where appends a list predicates to the ApiTokenMutation builder.
+func (m *ApiTokenMutation) Where(ps ...predicate.ApiToken) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the ApiTokenMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *ApiTokenMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.ApiToken, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *ApiTokenMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *ApiTokenMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (ApiToken).
+func (m *ApiTokenMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *ApiTokenMutation) Fields() []string {
+	fields := make([]string, 0, 10)
+	if m.hashed_token != nil {
+		fields = append(fields, apitoken.FieldHashedToken)
+	}
+	if m.name != nil {
+		fields = append(fields, apitoken.FieldName)
+	}
+	if m.short_string != nil {
+		fields = append(fields, apitoken.FieldShortString)
+	}
+	if m.is_active != nil {
+		fields = append(fields, apitoken.FieldIsActive)
+	}
+	if m.uses != nil {
+		fields = append(fields, apitoken.FieldUses)
+	}
+	if m.credits_spent != nil {
+		fields = append(fields, apitoken.FieldCreditsSpent)
+	}
+	if m.user != nil {
+		fields = append(fields, apitoken.FieldUserID)
+	}
+	if m.last_used_at != nil {
+		fields = append(fields, apitoken.FieldLastUsedAt)
+	}
+	if m.created_at != nil {
+		fields = append(fields, apitoken.FieldCreatedAt)
+	}
+	if m.updated_at != nil {
+		fields = append(fields, apitoken.FieldUpdatedAt)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *ApiTokenMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case apitoken.FieldHashedToken:
+		return m.HashedToken()
+	case apitoken.FieldName:
+		return m.Name()
+	case apitoken.FieldShortString:
+		return m.ShortString()
+	case apitoken.FieldIsActive:
+		return m.IsActive()
+	case apitoken.FieldUses:
+		return m.Uses()
+	case apitoken.FieldCreditsSpent:
+		return m.CreditsSpent()
+	case apitoken.FieldUserID:
+		return m.UserID()
+	case apitoken.FieldLastUsedAt:
+		return m.LastUsedAt()
+	case apitoken.FieldCreatedAt:
+		return m.CreatedAt()
+	case apitoken.FieldUpdatedAt:
+		return m.UpdatedAt()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *ApiTokenMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case apitoken.FieldHashedToken:
+		return m.OldHashedToken(ctx)
+	case apitoken.FieldName:
+		return m.OldName(ctx)
+	case apitoken.FieldShortString:
+		return m.OldShortString(ctx)
+	case apitoken.FieldIsActive:
+		return m.OldIsActive(ctx)
+	case apitoken.FieldUses:
+		return m.OldUses(ctx)
+	case apitoken.FieldCreditsSpent:
+		return m.OldCreditsSpent(ctx)
+	case apitoken.FieldUserID:
+		return m.OldUserID(ctx)
+	case apitoken.FieldLastUsedAt:
+		return m.OldLastUsedAt(ctx)
+	case apitoken.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	case apitoken.FieldUpdatedAt:
+		return m.OldUpdatedAt(ctx)
+	}
+	return nil, fmt.Errorf("unknown ApiToken field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *ApiTokenMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case apitoken.FieldHashedToken:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetHashedToken(v)
+		return nil
+	case apitoken.FieldName:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetName(v)
+		return nil
+	case apitoken.FieldShortString:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetShortString(v)
+		return nil
+	case apitoken.FieldIsActive:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetIsActive(v)
+		return nil
+	case apitoken.FieldUses:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUses(v)
+		return nil
+	case apitoken.FieldCreditsSpent:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreditsSpent(v)
+		return nil
+	case apitoken.FieldUserID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUserID(v)
+		return nil
+	case apitoken.FieldLastUsedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetLastUsedAt(v)
+		return nil
+	case apitoken.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	case apitoken.FieldUpdatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedAt(v)
+		return nil
+	}
+	return fmt.Errorf("unknown ApiToken field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *ApiTokenMutation) AddedFields() []string {
+	var fields []string
+	if m.adduses != nil {
+		fields = append(fields, apitoken.FieldUses)
+	}
+	if m.addcredits_spent != nil {
+		fields = append(fields, apitoken.FieldCreditsSpent)
+	}
+	return fields
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *ApiTokenMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case apitoken.FieldUses:
+		return m.AddedUses()
+	case apitoken.FieldCreditsSpent:
+		return m.AddedCreditsSpent()
+	}
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *ApiTokenMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	case apitoken.FieldUses:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddUses(v)
+		return nil
+	case apitoken.FieldCreditsSpent:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddCreditsSpent(v)
+		return nil
+	}
+	return fmt.Errorf("unknown ApiToken numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *ApiTokenMutation) ClearedFields() []string {
+	var fields []string
+	if m.FieldCleared(apitoken.FieldLastUsedAt) {
+		fields = append(fields, apitoken.FieldLastUsedAt)
+	}
+	return fields
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *ApiTokenMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *ApiTokenMutation) ClearField(name string) error {
+	switch name {
+	case apitoken.FieldLastUsedAt:
+		m.ClearLastUsedAt()
+		return nil
+	}
+	return fmt.Errorf("unknown ApiToken nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *ApiTokenMutation) ResetField(name string) error {
+	switch name {
+	case apitoken.FieldHashedToken:
+		m.ResetHashedToken()
+		return nil
+	case apitoken.FieldName:
+		m.ResetName()
+		return nil
+	case apitoken.FieldShortString:
+		m.ResetShortString()
+		return nil
+	case apitoken.FieldIsActive:
+		m.ResetIsActive()
+		return nil
+	case apitoken.FieldUses:
+		m.ResetUses()
+		return nil
+	case apitoken.FieldCreditsSpent:
+		m.ResetCreditsSpent()
+		return nil
+	case apitoken.FieldUserID:
+		m.ResetUserID()
+		return nil
+	case apitoken.FieldLastUsedAt:
+		m.ResetLastUsedAt()
+		return nil
+	case apitoken.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	case apitoken.FieldUpdatedAt:
+		m.ResetUpdatedAt()
+		return nil
+	}
+	return fmt.Errorf("unknown ApiToken field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *ApiTokenMutation) AddedEdges() []string {
+	edges := make([]string, 0, 3)
+	if m.user != nil {
+		edges = append(edges, apitoken.EdgeUser)
+	}
+	if m.generations != nil {
+		edges = append(edges, apitoken.EdgeGenerations)
+	}
+	if m.upscales != nil {
+		edges = append(edges, apitoken.EdgeUpscales)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *ApiTokenMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case apitoken.EdgeUser:
+		if id := m.user; id != nil {
+			return []ent.Value{*id}
+		}
+	case apitoken.EdgeGenerations:
+		ids := make([]ent.Value, 0, len(m.generations))
+		for id := range m.generations {
+			ids = append(ids, id)
+		}
+		return ids
+	case apitoken.EdgeUpscales:
+		ids := make([]ent.Value, 0, len(m.upscales))
+		for id := range m.upscales {
+			ids = append(ids, id)
+		}
+		return ids
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *ApiTokenMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 3)
+	if m.removedgenerations != nil {
+		edges = append(edges, apitoken.EdgeGenerations)
+	}
+	if m.removedupscales != nil {
+		edges = append(edges, apitoken.EdgeUpscales)
+	}
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *ApiTokenMutation) RemovedIDs(name string) []ent.Value {
+	switch name {
+	case apitoken.EdgeGenerations:
+		ids := make([]ent.Value, 0, len(m.removedgenerations))
+		for id := range m.removedgenerations {
+			ids = append(ids, id)
+		}
+		return ids
+	case apitoken.EdgeUpscales:
+		ids := make([]ent.Value, 0, len(m.removedupscales))
+		for id := range m.removedupscales {
+			ids = append(ids, id)
+		}
+		return ids
+	}
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *ApiTokenMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 3)
+	if m.cleareduser {
+		edges = append(edges, apitoken.EdgeUser)
+	}
+	if m.clearedgenerations {
+		edges = append(edges, apitoken.EdgeGenerations)
+	}
+	if m.clearedupscales {
+		edges = append(edges, apitoken.EdgeUpscales)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *ApiTokenMutation) EdgeCleared(name string) bool {
+	switch name {
+	case apitoken.EdgeUser:
+		return m.cleareduser
+	case apitoken.EdgeGenerations:
+		return m.clearedgenerations
+	case apitoken.EdgeUpscales:
+		return m.clearedupscales
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *ApiTokenMutation) ClearEdge(name string) error {
+	switch name {
+	case apitoken.EdgeUser:
+		m.ClearUser()
+		return nil
+	}
+	return fmt.Errorf("unknown ApiToken unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *ApiTokenMutation) ResetEdge(name string) error {
+	switch name {
+	case apitoken.EdgeUser:
+		m.ResetUser()
+		return nil
+	case apitoken.EdgeGenerations:
+		m.ResetGenerations()
+		return nil
+	case apitoken.EdgeUpscales:
+		m.ResetUpscales()
+		return nil
+	}
+	return fmt.Errorf("unknown ApiToken edge %s", name)
+}
 
 // CreditMutation represents an operation that mutates the Credit nodes in the graph.
 type CreditMutation struct {
@@ -3031,6 +4163,8 @@ type GenerationMutation struct {
 	clearedgeneration_model   bool
 	user                      *uuid.UUID
 	cleareduser               bool
+	api_tokens                *uuid.UUID
+	clearedapi_tokens         bool
 	generation_outputs        map[uuid.UUID]struct{}
 	removedgeneration_outputs map[uuid.UUID]struct{}
 	clearedgeneration_outputs bool
@@ -4115,6 +5249,55 @@ func (m *GenerationMutation) ResetDeviceInfoID() {
 	m.device_info = nil
 }
 
+// SetAPITokenID sets the "api_token_id" field.
+func (m *GenerationMutation) SetAPITokenID(u uuid.UUID) {
+	m.api_tokens = &u
+}
+
+// APITokenID returns the value of the "api_token_id" field in the mutation.
+func (m *GenerationMutation) APITokenID() (r uuid.UUID, exists bool) {
+	v := m.api_tokens
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldAPITokenID returns the old "api_token_id" field's value of the Generation entity.
+// If the Generation object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *GenerationMutation) OldAPITokenID(ctx context.Context) (v *uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldAPITokenID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldAPITokenID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldAPITokenID: %w", err)
+	}
+	return oldValue.APITokenID, nil
+}
+
+// ClearAPITokenID clears the value of the "api_token_id" field.
+func (m *GenerationMutation) ClearAPITokenID() {
+	m.api_tokens = nil
+	m.clearedFields[generation.FieldAPITokenID] = struct{}{}
+}
+
+// APITokenIDCleared returns if the "api_token_id" field was cleared in this mutation.
+func (m *GenerationMutation) APITokenIDCleared() bool {
+	_, ok := m.clearedFields[generation.FieldAPITokenID]
+	return ok
+}
+
+// ResetAPITokenID resets all changes to the "api_token_id" field.
+func (m *GenerationMutation) ResetAPITokenID() {
+	m.api_tokens = nil
+	delete(m.clearedFields, generation.FieldAPITokenID)
+}
+
 // SetStartedAt sets the "started_at" field.
 func (m *GenerationMutation) SetStartedAt(t time.Time) {
 	m.started_at = &t
@@ -4454,6 +5637,45 @@ func (m *GenerationMutation) ResetUser() {
 	m.cleareduser = false
 }
 
+// SetAPITokensID sets the "api_tokens" edge to the ApiToken entity by id.
+func (m *GenerationMutation) SetAPITokensID(id uuid.UUID) {
+	m.api_tokens = &id
+}
+
+// ClearAPITokens clears the "api_tokens" edge to the ApiToken entity.
+func (m *GenerationMutation) ClearAPITokens() {
+	m.clearedapi_tokens = true
+}
+
+// APITokensCleared reports if the "api_tokens" edge to the ApiToken entity was cleared.
+func (m *GenerationMutation) APITokensCleared() bool {
+	return m.APITokenIDCleared() || m.clearedapi_tokens
+}
+
+// APITokensID returns the "api_tokens" edge ID in the mutation.
+func (m *GenerationMutation) APITokensID() (id uuid.UUID, exists bool) {
+	if m.api_tokens != nil {
+		return *m.api_tokens, true
+	}
+	return
+}
+
+// APITokensIDs returns the "api_tokens" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// APITokensID instead. It exists only for internal usage by the builders.
+func (m *GenerationMutation) APITokensIDs() (ids []uuid.UUID) {
+	if id := m.api_tokens; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetAPITokens resets all changes to the "api_tokens" edge.
+func (m *GenerationMutation) ResetAPITokens() {
+	m.api_tokens = nil
+	m.clearedapi_tokens = false
+}
+
 // AddGenerationOutputIDs adds the "generation_outputs" edge to the GenerationOutput entity by ids.
 func (m *GenerationMutation) AddGenerationOutputIDs(ids ...uuid.UUID) {
 	if m.generation_outputs == nil {
@@ -4542,7 +5764,7 @@ func (m *GenerationMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *GenerationMutation) Fields() []string {
-	fields := make([]string, 0, 24)
+	fields := make([]string, 0, 25)
 	if m.width != nil {
 		fields = append(fields, generation.FieldWidth)
 	}
@@ -4602,6 +5824,9 @@ func (m *GenerationMutation) Fields() []string {
 	}
 	if m.device_info != nil {
 		fields = append(fields, generation.FieldDeviceInfoID)
+	}
+	if m.api_tokens != nil {
+		fields = append(fields, generation.FieldAPITokenID)
 	}
 	if m.started_at != nil {
 		fields = append(fields, generation.FieldStartedAt)
@@ -4663,6 +5888,8 @@ func (m *GenerationMutation) Field(name string) (ent.Value, bool) {
 		return m.UserID()
 	case generation.FieldDeviceInfoID:
 		return m.DeviceInfoID()
+	case generation.FieldAPITokenID:
+		return m.APITokenID()
 	case generation.FieldStartedAt:
 		return m.StartedAt()
 	case generation.FieldCompletedAt:
@@ -4720,6 +5947,8 @@ func (m *GenerationMutation) OldField(ctx context.Context, name string) (ent.Val
 		return m.OldUserID(ctx)
 	case generation.FieldDeviceInfoID:
 		return m.OldDeviceInfoID(ctx)
+	case generation.FieldAPITokenID:
+		return m.OldAPITokenID(ctx)
 	case generation.FieldStartedAt:
 		return m.OldStartedAt(ctx)
 	case generation.FieldCompletedAt:
@@ -4876,6 +6105,13 @@ func (m *GenerationMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetDeviceInfoID(v)
+		return nil
+	case generation.FieldAPITokenID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetAPITokenID(v)
 		return nil
 	case generation.FieldStartedAt:
 		v, ok := value.(time.Time)
@@ -5055,6 +6291,9 @@ func (m *GenerationMutation) ClearedFields() []string {
 	if m.FieldCleared(generation.FieldNegativePromptID) {
 		fields = append(fields, generation.FieldNegativePromptID)
 	}
+	if m.FieldCleared(generation.FieldAPITokenID) {
+		fields = append(fields, generation.FieldAPITokenID)
+	}
 	if m.FieldCleared(generation.FieldStartedAt) {
 		fields = append(fields, generation.FieldStartedAt)
 	}
@@ -5095,6 +6334,9 @@ func (m *GenerationMutation) ClearField(name string) error {
 		return nil
 	case generation.FieldNegativePromptID:
 		m.ClearNegativePromptID()
+		return nil
+	case generation.FieldAPITokenID:
+		m.ClearAPITokenID()
 		return nil
 	case generation.FieldStartedAt:
 		m.ClearStartedAt()
@@ -5170,6 +6412,9 @@ func (m *GenerationMutation) ResetField(name string) error {
 	case generation.FieldDeviceInfoID:
 		m.ResetDeviceInfoID()
 		return nil
+	case generation.FieldAPITokenID:
+		m.ResetAPITokenID()
+		return nil
 	case generation.FieldStartedAt:
 		m.ResetStartedAt()
 		return nil
@@ -5188,7 +6433,7 @@ func (m *GenerationMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *GenerationMutation) AddedEdges() []string {
-	edges := make([]string, 0, 7)
+	edges := make([]string, 0, 8)
 	if m.device_info != nil {
 		edges = append(edges, generation.EdgeDeviceInfo)
 	}
@@ -5206,6 +6451,9 @@ func (m *GenerationMutation) AddedEdges() []string {
 	}
 	if m.user != nil {
 		edges = append(edges, generation.EdgeUser)
+	}
+	if m.api_tokens != nil {
+		edges = append(edges, generation.EdgeAPITokens)
 	}
 	if m.generation_outputs != nil {
 		edges = append(edges, generation.EdgeGenerationOutputs)
@@ -5241,6 +6489,10 @@ func (m *GenerationMutation) AddedIDs(name string) []ent.Value {
 		if id := m.user; id != nil {
 			return []ent.Value{*id}
 		}
+	case generation.EdgeAPITokens:
+		if id := m.api_tokens; id != nil {
+			return []ent.Value{*id}
+		}
 	case generation.EdgeGenerationOutputs:
 		ids := make([]ent.Value, 0, len(m.generation_outputs))
 		for id := range m.generation_outputs {
@@ -5253,7 +6505,7 @@ func (m *GenerationMutation) AddedIDs(name string) []ent.Value {
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *GenerationMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 7)
+	edges := make([]string, 0, 8)
 	if m.removedgeneration_outputs != nil {
 		edges = append(edges, generation.EdgeGenerationOutputs)
 	}
@@ -5276,7 +6528,7 @@ func (m *GenerationMutation) RemovedIDs(name string) []ent.Value {
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *GenerationMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 7)
+	edges := make([]string, 0, 8)
 	if m.cleareddevice_info {
 		edges = append(edges, generation.EdgeDeviceInfo)
 	}
@@ -5294,6 +6546,9 @@ func (m *GenerationMutation) ClearedEdges() []string {
 	}
 	if m.cleareduser {
 		edges = append(edges, generation.EdgeUser)
+	}
+	if m.clearedapi_tokens {
+		edges = append(edges, generation.EdgeAPITokens)
 	}
 	if m.clearedgeneration_outputs {
 		edges = append(edges, generation.EdgeGenerationOutputs)
@@ -5317,6 +6572,8 @@ func (m *GenerationMutation) EdgeCleared(name string) bool {
 		return m.clearedgeneration_model
 	case generation.EdgeUser:
 		return m.cleareduser
+	case generation.EdgeAPITokens:
+		return m.clearedapi_tokens
 	case generation.EdgeGenerationOutputs:
 		return m.clearedgeneration_outputs
 	}
@@ -5345,6 +6602,9 @@ func (m *GenerationMutation) ClearEdge(name string) error {
 	case generation.EdgeUser:
 		m.ClearUser()
 		return nil
+	case generation.EdgeAPITokens:
+		m.ClearAPITokens()
+		return nil
 	}
 	return fmt.Errorf("unknown Generation unique edge %s", name)
 }
@@ -5370,6 +6630,9 @@ func (m *GenerationMutation) ResetEdge(name string) error {
 		return nil
 	case generation.EdgeUser:
 		m.ResetUser()
+		return nil
+	case generation.EdgeAPITokens:
+		m.ResetAPITokens()
 		return nil
 	case generation.EdgeGenerationOutputs:
 		m.ResetGenerationOutputs()
@@ -8468,6 +9731,8 @@ type UpscaleMutation struct {
 	cleareddevice_info     bool
 	upscale_models         *uuid.UUID
 	clearedupscale_models  bool
+	api_tokens             *uuid.UUID
+	clearedapi_tokens      bool
 	upscale_outputs        map[uuid.UUID]struct{}
 	removedupscale_outputs map[uuid.UUID]struct{}
 	clearedupscale_outputs bool
@@ -9075,6 +10340,55 @@ func (m *UpscaleMutation) ResetModelID() {
 	m.upscale_models = nil
 }
 
+// SetAPITokenID sets the "api_token_id" field.
+func (m *UpscaleMutation) SetAPITokenID(u uuid.UUID) {
+	m.api_tokens = &u
+}
+
+// APITokenID returns the value of the "api_token_id" field in the mutation.
+func (m *UpscaleMutation) APITokenID() (r uuid.UUID, exists bool) {
+	v := m.api_tokens
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldAPITokenID returns the old "api_token_id" field's value of the Upscale entity.
+// If the Upscale object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UpscaleMutation) OldAPITokenID(ctx context.Context) (v *uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldAPITokenID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldAPITokenID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldAPITokenID: %w", err)
+	}
+	return oldValue.APITokenID, nil
+}
+
+// ClearAPITokenID clears the value of the "api_token_id" field.
+func (m *UpscaleMutation) ClearAPITokenID() {
+	m.api_tokens = nil
+	m.clearedFields[upscale.FieldAPITokenID] = struct{}{}
+}
+
+// APITokenIDCleared returns if the "api_token_id" field was cleared in this mutation.
+func (m *UpscaleMutation) APITokenIDCleared() bool {
+	_, ok := m.clearedFields[upscale.FieldAPITokenID]
+	return ok
+}
+
+// ResetAPITokenID resets all changes to the "api_token_id" field.
+func (m *UpscaleMutation) ResetAPITokenID() {
+	m.api_tokens = nil
+	delete(m.clearedFields, upscale.FieldAPITokenID)
+}
+
 // SetStartedAt sets the "started_at" field.
 func (m *UpscaleMutation) SetStartedAt(t time.Time) {
 	m.started_at = &t
@@ -9336,6 +10650,45 @@ func (m *UpscaleMutation) ResetUpscaleModels() {
 	m.clearedupscale_models = false
 }
 
+// SetAPITokensID sets the "api_tokens" edge to the ApiToken entity by id.
+func (m *UpscaleMutation) SetAPITokensID(id uuid.UUID) {
+	m.api_tokens = &id
+}
+
+// ClearAPITokens clears the "api_tokens" edge to the ApiToken entity.
+func (m *UpscaleMutation) ClearAPITokens() {
+	m.clearedapi_tokens = true
+}
+
+// APITokensCleared reports if the "api_tokens" edge to the ApiToken entity was cleared.
+func (m *UpscaleMutation) APITokensCleared() bool {
+	return m.APITokenIDCleared() || m.clearedapi_tokens
+}
+
+// APITokensID returns the "api_tokens" edge ID in the mutation.
+func (m *UpscaleMutation) APITokensID() (id uuid.UUID, exists bool) {
+	if m.api_tokens != nil {
+		return *m.api_tokens, true
+	}
+	return
+}
+
+// APITokensIDs returns the "api_tokens" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// APITokensID instead. It exists only for internal usage by the builders.
+func (m *UpscaleMutation) APITokensIDs() (ids []uuid.UUID) {
+	if id := m.api_tokens; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetAPITokens resets all changes to the "api_tokens" edge.
+func (m *UpscaleMutation) ResetAPITokens() {
+	m.api_tokens = nil
+	m.clearedapi_tokens = false
+}
+
 // AddUpscaleOutputIDs adds the "upscale_outputs" edge to the UpscaleOutput entity by ids.
 func (m *UpscaleMutation) AddUpscaleOutputIDs(ids ...uuid.UUID) {
 	if m.upscale_outputs == nil {
@@ -9424,7 +10777,7 @@ func (m *UpscaleMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *UpscaleMutation) Fields() []string {
-	fields := make([]string, 0, 15)
+	fields := make([]string, 0, 16)
 	if m.width != nil {
 		fields = append(fields, upscale.FieldWidth)
 	}
@@ -9457,6 +10810,9 @@ func (m *UpscaleMutation) Fields() []string {
 	}
 	if m.upscale_models != nil {
 		fields = append(fields, upscale.FieldModelID)
+	}
+	if m.api_tokens != nil {
+		fields = append(fields, upscale.FieldAPITokenID)
 	}
 	if m.started_at != nil {
 		fields = append(fields, upscale.FieldStartedAt)
@@ -9500,6 +10856,8 @@ func (m *UpscaleMutation) Field(name string) (ent.Value, bool) {
 		return m.DeviceInfoID()
 	case upscale.FieldModelID:
 		return m.ModelID()
+	case upscale.FieldAPITokenID:
+		return m.APITokenID()
 	case upscale.FieldStartedAt:
 		return m.StartedAt()
 	case upscale.FieldCompletedAt:
@@ -9539,6 +10897,8 @@ func (m *UpscaleMutation) OldField(ctx context.Context, name string) (ent.Value,
 		return m.OldDeviceInfoID(ctx)
 	case upscale.FieldModelID:
 		return m.OldModelID(ctx)
+	case upscale.FieldAPITokenID:
+		return m.OldAPITokenID(ctx)
 	case upscale.FieldStartedAt:
 		return m.OldStartedAt(ctx)
 	case upscale.FieldCompletedAt:
@@ -9632,6 +10992,13 @@ func (m *UpscaleMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetModelID(v)
+		return nil
+	case upscale.FieldAPITokenID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetAPITokenID(v)
 		return nil
 	case upscale.FieldStartedAt:
 		v, ok := value.(time.Time)
@@ -9739,6 +11106,9 @@ func (m *UpscaleMutation) ClearedFields() []string {
 	if m.FieldCleared(upscale.FieldStripeProductID) {
 		fields = append(fields, upscale.FieldStripeProductID)
 	}
+	if m.FieldCleared(upscale.FieldAPITokenID) {
+		fields = append(fields, upscale.FieldAPITokenID)
+	}
 	if m.FieldCleared(upscale.FieldStartedAt) {
 		fields = append(fields, upscale.FieldStartedAt)
 	}
@@ -9767,6 +11137,9 @@ func (m *UpscaleMutation) ClearField(name string) error {
 		return nil
 	case upscale.FieldStripeProductID:
 		m.ClearStripeProductID()
+		return nil
+	case upscale.FieldAPITokenID:
+		m.ClearAPITokenID()
 		return nil
 	case upscale.FieldStartedAt:
 		m.ClearStartedAt()
@@ -9815,6 +11188,9 @@ func (m *UpscaleMutation) ResetField(name string) error {
 	case upscale.FieldModelID:
 		m.ResetModelID()
 		return nil
+	case upscale.FieldAPITokenID:
+		m.ResetAPITokenID()
+		return nil
 	case upscale.FieldStartedAt:
 		m.ResetStartedAt()
 		return nil
@@ -9833,7 +11209,7 @@ func (m *UpscaleMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *UpscaleMutation) AddedEdges() []string {
-	edges := make([]string, 0, 4)
+	edges := make([]string, 0, 5)
 	if m.user != nil {
 		edges = append(edges, upscale.EdgeUser)
 	}
@@ -9842,6 +11218,9 @@ func (m *UpscaleMutation) AddedEdges() []string {
 	}
 	if m.upscale_models != nil {
 		edges = append(edges, upscale.EdgeUpscaleModels)
+	}
+	if m.api_tokens != nil {
+		edges = append(edges, upscale.EdgeAPITokens)
 	}
 	if m.upscale_outputs != nil {
 		edges = append(edges, upscale.EdgeUpscaleOutputs)
@@ -9865,6 +11244,10 @@ func (m *UpscaleMutation) AddedIDs(name string) []ent.Value {
 		if id := m.upscale_models; id != nil {
 			return []ent.Value{*id}
 		}
+	case upscale.EdgeAPITokens:
+		if id := m.api_tokens; id != nil {
+			return []ent.Value{*id}
+		}
 	case upscale.EdgeUpscaleOutputs:
 		ids := make([]ent.Value, 0, len(m.upscale_outputs))
 		for id := range m.upscale_outputs {
@@ -9877,7 +11260,7 @@ func (m *UpscaleMutation) AddedIDs(name string) []ent.Value {
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *UpscaleMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 4)
+	edges := make([]string, 0, 5)
 	if m.removedupscale_outputs != nil {
 		edges = append(edges, upscale.EdgeUpscaleOutputs)
 	}
@@ -9900,7 +11283,7 @@ func (m *UpscaleMutation) RemovedIDs(name string) []ent.Value {
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *UpscaleMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 4)
+	edges := make([]string, 0, 5)
 	if m.cleareduser {
 		edges = append(edges, upscale.EdgeUser)
 	}
@@ -9909,6 +11292,9 @@ func (m *UpscaleMutation) ClearedEdges() []string {
 	}
 	if m.clearedupscale_models {
 		edges = append(edges, upscale.EdgeUpscaleModels)
+	}
+	if m.clearedapi_tokens {
+		edges = append(edges, upscale.EdgeAPITokens)
 	}
 	if m.clearedupscale_outputs {
 		edges = append(edges, upscale.EdgeUpscaleOutputs)
@@ -9926,6 +11312,8 @@ func (m *UpscaleMutation) EdgeCleared(name string) bool {
 		return m.cleareddevice_info
 	case upscale.EdgeUpscaleModels:
 		return m.clearedupscale_models
+	case upscale.EdgeAPITokens:
+		return m.clearedapi_tokens
 	case upscale.EdgeUpscaleOutputs:
 		return m.clearedupscale_outputs
 	}
@@ -9945,6 +11333,9 @@ func (m *UpscaleMutation) ClearEdge(name string) error {
 	case upscale.EdgeUpscaleModels:
 		m.ClearUpscaleModels()
 		return nil
+	case upscale.EdgeAPITokens:
+		m.ClearAPITokens()
+		return nil
 	}
 	return fmt.Errorf("unknown Upscale unique edge %s", name)
 }
@@ -9961,6 +11352,9 @@ func (m *UpscaleMutation) ResetEdge(name string) error {
 		return nil
 	case upscale.EdgeUpscaleModels:
 		m.ResetUpscaleModels()
+		return nil
+	case upscale.EdgeAPITokens:
+		m.ResetAPITokens()
 		return nil
 	case upscale.EdgeUpscaleOutputs:
 		m.ResetUpscaleOutputs()
@@ -11358,6 +12752,9 @@ type UserMutation struct {
 	credits                   map[uuid.UUID]struct{}
 	removedcredits            map[uuid.UUID]struct{}
 	clearedcredits            bool
+	api_tokens                map[uuid.UUID]struct{}
+	removedapi_tokens         map[uuid.UUID]struct{}
+	clearedapi_tokens         bool
 	done                      bool
 	oldValue                  func(context.Context) (*User, error)
 	predicates                []predicate.User
@@ -12108,6 +13505,60 @@ func (m *UserMutation) ResetCredits() {
 	m.removedcredits = nil
 }
 
+// AddAPITokenIDs adds the "api_tokens" edge to the ApiToken entity by ids.
+func (m *UserMutation) AddAPITokenIDs(ids ...uuid.UUID) {
+	if m.api_tokens == nil {
+		m.api_tokens = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.api_tokens[ids[i]] = struct{}{}
+	}
+}
+
+// ClearAPITokens clears the "api_tokens" edge to the ApiToken entity.
+func (m *UserMutation) ClearAPITokens() {
+	m.clearedapi_tokens = true
+}
+
+// APITokensCleared reports if the "api_tokens" edge to the ApiToken entity was cleared.
+func (m *UserMutation) APITokensCleared() bool {
+	return m.clearedapi_tokens
+}
+
+// RemoveAPITokenIDs removes the "api_tokens" edge to the ApiToken entity by IDs.
+func (m *UserMutation) RemoveAPITokenIDs(ids ...uuid.UUID) {
+	if m.removedapi_tokens == nil {
+		m.removedapi_tokens = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.api_tokens, ids[i])
+		m.removedapi_tokens[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedAPITokens returns the removed IDs of the "api_tokens" edge to the ApiToken entity.
+func (m *UserMutation) RemovedAPITokensIDs() (ids []uuid.UUID) {
+	for id := range m.removedapi_tokens {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// APITokensIDs returns the "api_tokens" edge IDs in the mutation.
+func (m *UserMutation) APITokensIDs() (ids []uuid.UUID) {
+	for id := range m.api_tokens {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetAPITokens resets all changes to the "api_tokens" edge.
+func (m *UserMutation) ResetAPITokens() {
+	m.api_tokens = nil
+	m.clearedapi_tokens = false
+	m.removedapi_tokens = nil
+}
+
 // Where appends a list predicates to the UserMutation builder.
 func (m *UserMutation) Where(ps ...predicate.User) {
 	m.predicates = append(m.predicates, ps...)
@@ -12427,7 +13878,7 @@ func (m *UserMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *UserMutation) AddedEdges() []string {
-	edges := make([]string, 0, 4)
+	edges := make([]string, 0, 5)
 	if m.user_roles != nil {
 		edges = append(edges, user.EdgeUserRoles)
 	}
@@ -12439,6 +13890,9 @@ func (m *UserMutation) AddedEdges() []string {
 	}
 	if m.credits != nil {
 		edges = append(edges, user.EdgeCredits)
+	}
+	if m.api_tokens != nil {
+		edges = append(edges, user.EdgeAPITokens)
 	}
 	return edges
 }
@@ -12471,13 +13925,19 @@ func (m *UserMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case user.EdgeAPITokens:
+		ids := make([]ent.Value, 0, len(m.api_tokens))
+		for id := range m.api_tokens {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *UserMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 4)
+	edges := make([]string, 0, 5)
 	if m.removeduser_roles != nil {
 		edges = append(edges, user.EdgeUserRoles)
 	}
@@ -12489,6 +13949,9 @@ func (m *UserMutation) RemovedEdges() []string {
 	}
 	if m.removedcredits != nil {
 		edges = append(edges, user.EdgeCredits)
+	}
+	if m.removedapi_tokens != nil {
+		edges = append(edges, user.EdgeAPITokens)
 	}
 	return edges
 }
@@ -12521,13 +13984,19 @@ func (m *UserMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case user.EdgeAPITokens:
+		ids := make([]ent.Value, 0, len(m.removedapi_tokens))
+		for id := range m.removedapi_tokens {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *UserMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 4)
+	edges := make([]string, 0, 5)
 	if m.cleareduser_roles {
 		edges = append(edges, user.EdgeUserRoles)
 	}
@@ -12539,6 +14008,9 @@ func (m *UserMutation) ClearedEdges() []string {
 	}
 	if m.clearedcredits {
 		edges = append(edges, user.EdgeCredits)
+	}
+	if m.clearedapi_tokens {
+		edges = append(edges, user.EdgeAPITokens)
 	}
 	return edges
 }
@@ -12555,6 +14027,8 @@ func (m *UserMutation) EdgeCleared(name string) bool {
 		return m.clearedupscales
 	case user.EdgeCredits:
 		return m.clearedcredits
+	case user.EdgeAPITokens:
+		return m.clearedapi_tokens
 	}
 	return false
 }
@@ -12582,6 +14056,9 @@ func (m *UserMutation) ResetEdge(name string) error {
 		return nil
 	case user.EdgeCredits:
 		m.ResetCredits()
+		return nil
+	case user.EdgeAPITokens:
+		m.ResetAPITokens()
 		return nil
 	}
 	return fmt.Errorf("unknown User edge %s", name)

@@ -12,6 +12,7 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
+	"github.com/stablecog/sc-go/database/ent/apitoken"
 	"github.com/stablecog/sc-go/database/ent/deviceinfo"
 	"github.com/stablecog/sc-go/database/ent/predicate"
 	"github.com/stablecog/sc-go/database/ent/upscale"
@@ -30,6 +31,7 @@ type UpscaleQuery struct {
 	withUser           *UserQuery
 	withDeviceInfo     *DeviceInfoQuery
 	withUpscaleModels  *UpscaleModelQuery
+	withAPITokens      *ApiTokenQuery
 	withUpscaleOutputs *UpscaleOutputQuery
 	modifiers          []func(*sql.Selector)
 	// intermediate query (i.e. traversal path).
@@ -127,6 +129,28 @@ func (uq *UpscaleQuery) QueryUpscaleModels() *UpscaleModelQuery {
 			sqlgraph.From(upscale.Table, upscale.FieldID, selector),
 			sqlgraph.To(upscalemodel.Table, upscalemodel.FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, true, upscale.UpscaleModelsTable, upscale.UpscaleModelsColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(uq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryAPITokens chains the current query on the "api_tokens" edge.
+func (uq *UpscaleQuery) QueryAPITokens() *ApiTokenQuery {
+	query := (&ApiTokenClient{config: uq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := uq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := uq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(upscale.Table, upscale.FieldID, selector),
+			sqlgraph.To(apitoken.Table, apitoken.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, upscale.APITokensTable, upscale.APITokensColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(uq.driver.Dialect(), step)
 		return fromU, nil
@@ -349,6 +373,7 @@ func (uq *UpscaleQuery) Clone() *UpscaleQuery {
 		withUser:           uq.withUser.Clone(),
 		withDeviceInfo:     uq.withDeviceInfo.Clone(),
 		withUpscaleModels:  uq.withUpscaleModels.Clone(),
+		withAPITokens:      uq.withAPITokens.Clone(),
 		withUpscaleOutputs: uq.withUpscaleOutputs.Clone(),
 		// clone intermediate query.
 		sql:  uq.sql.Clone(),
@@ -386,6 +411,17 @@ func (uq *UpscaleQuery) WithUpscaleModels(opts ...func(*UpscaleModelQuery)) *Ups
 		opt(query)
 	}
 	uq.withUpscaleModels = query
+	return uq
+}
+
+// WithAPITokens tells the query-builder to eager-load the nodes that are connected to
+// the "api_tokens" edge. The optional arguments are used to configure the query builder of the edge.
+func (uq *UpscaleQuery) WithAPITokens(opts ...func(*ApiTokenQuery)) *UpscaleQuery {
+	query := (&ApiTokenClient{config: uq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	uq.withAPITokens = query
 	return uq
 }
 
@@ -478,10 +514,11 @@ func (uq *UpscaleQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Upsc
 	var (
 		nodes       = []*Upscale{}
 		_spec       = uq.querySpec()
-		loadedTypes = [4]bool{
+		loadedTypes = [5]bool{
 			uq.withUser != nil,
 			uq.withDeviceInfo != nil,
 			uq.withUpscaleModels != nil,
+			uq.withAPITokens != nil,
 			uq.withUpscaleOutputs != nil,
 		}
 	)
@@ -521,6 +558,12 @@ func (uq *UpscaleQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Upsc
 	if query := uq.withUpscaleModels; query != nil {
 		if err := uq.loadUpscaleModels(ctx, query, nodes, nil,
 			func(n *Upscale, e *UpscaleModel) { n.Edges.UpscaleModels = e }); err != nil {
+			return nil, err
+		}
+	}
+	if query := uq.withAPITokens; query != nil {
+		if err := uq.loadAPITokens(ctx, query, nodes, nil,
+			func(n *Upscale, e *ApiToken) { n.Edges.APITokens = e }); err != nil {
 			return nil, err
 		}
 	}
@@ -614,6 +657,38 @@ func (uq *UpscaleQuery) loadUpscaleModels(ctx context.Context, query *UpscaleMod
 		nodes, ok := nodeids[n.ID]
 		if !ok {
 			return fmt.Errorf(`unexpected foreign-key "model_id" returned %v`, n.ID)
+		}
+		for i := range nodes {
+			assign(nodes[i], n)
+		}
+	}
+	return nil
+}
+func (uq *UpscaleQuery) loadAPITokens(ctx context.Context, query *ApiTokenQuery, nodes []*Upscale, init func(*Upscale), assign func(*Upscale, *ApiToken)) error {
+	ids := make([]uuid.UUID, 0, len(nodes))
+	nodeids := make(map[uuid.UUID][]*Upscale)
+	for i := range nodes {
+		if nodes[i].APITokenID == nil {
+			continue
+		}
+		fk := *nodes[i].APITokenID
+		if _, ok := nodeids[fk]; !ok {
+			ids = append(ids, fk)
+		}
+		nodeids[fk] = append(nodeids[fk], nodes[i])
+	}
+	if len(ids) == 0 {
+		return nil
+	}
+	query.Where(apitoken.IDIn(ids...))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nodeids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "api_token_id" returned %v`, n.ID)
 		}
 		for i := range nodes {
 			assign(nodes[i], n)

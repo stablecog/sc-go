@@ -96,7 +96,7 @@ func (c *RestAPI) HandleCreateGeneration(w http.ResponseWriter, r *http.Request)
 
 	// Validation (skip for super admin)
 	if !isSuperAdmin {
-		err = generateReq.Validate()
+		err = generateReq.Validate(false)
 		if err != nil {
 			responses.ErrBadRequest(w, r, err.Error(), "")
 			return
@@ -225,6 +225,7 @@ func (c *RestAPI) HandleCreateGeneration(w http.ResponseWriter, r *http.Request)
 			countryCode,
 			generateReq,
 			user.ActiveProductID,
+			nil,
 			DB)
 		if err != nil {
 			log.Error("Error creating generation", "err", err)
@@ -237,7 +238,7 @@ func (c *RestAPI) HandleCreateGeneration(w http.ResponseWriter, r *http.Request)
 
 		// For live page update
 		livePageMsg = shared.LivePageMessage{
-			ProcessType:      generateReq.ProcessType,
+			ProcessType:      shared.GENERATE,
 			ID:               utils.Sha256(requestId),
 			CountryCode:      countryCode,
 			Status:           shared.LivePageQueued,
@@ -246,6 +247,7 @@ func (c *RestAPI) HandleCreateGeneration(w http.ResponseWriter, r *http.Request)
 			Height:           generateReq.Height,
 			CreatedAt:        g.CreatedAt,
 			ProductID:        user.ActiveProductID,
+			Source:           shared.OperationSourceTypeWebUI,
 		}
 
 		var promtpStrengthStr string
@@ -278,7 +280,7 @@ func (c *RestAPI) HandleCreateGeneration(w http.ResponseWriter, r *http.Request)
 				NumOutputs:           fmt.Sprint(generateReq.NumOutputs),
 				OutputImageExtension: string(shared.DEFAULT_GENERATE_OUTPUT_EXTENSION),
 				OutputImageQuality:   fmt.Sprint(shared.DEFAULT_GENERATE_OUTPUT_QUALITY),
-				ProcessType:          generateReq.ProcessType,
+				ProcessType:          shared.GENERATE,
 				SubmitToGallery:      generateReq.SubmitToGallery,
 				InitImageUrl:         signedInitImageUrl,
 				PromptStrength:       promtpStrengthStr,

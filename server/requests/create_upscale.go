@@ -27,8 +27,8 @@ type CreateUpscaleRequest struct {
 	OutputID uuid.UUID
 }
 
-func (t *CreateUpscaleRequest) Validate() error {
-	if !utils.IsSha256Hash(t.StreamID) {
+func (t *CreateUpscaleRequest) Validate(api bool) error {
+	if !api && !utils.IsSha256Hash(t.StreamID) {
 		return errors.New("invalid_stream_id")
 	}
 

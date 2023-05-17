@@ -9,6 +9,7 @@ import (
 
 	"entgo.io/ent/dialect/sql"
 	"github.com/google/uuid"
+	"github.com/stablecog/sc-go/database/ent/apitoken"
 	"github.com/stablecog/sc-go/database/ent/deviceinfo"
 	"github.com/stablecog/sc-go/database/ent/upscale"
 	"github.com/stablecog/sc-go/database/ent/upscalemodel"
@@ -42,6 +43,8 @@ type Upscale struct {
 	DeviceInfoID uuid.UUID `json:"device_info_id,omitempty"`
 	// ModelID holds the value of the "model_id" field.
 	ModelID uuid.UUID `json:"model_id,omitempty"`
+	// APITokenID holds the value of the "api_token_id" field.
+	APITokenID *uuid.UUID `json:"api_token_id,omitempty"`
 	// StartedAt holds the value of the "started_at" field.
 	StartedAt *time.Time `json:"started_at,omitempty"`
 	// CompletedAt holds the value of the "completed_at" field.
@@ -63,11 +66,13 @@ type UpscaleEdges struct {
 	DeviceInfo *DeviceInfo `json:"device_info,omitempty"`
 	// UpscaleModels holds the value of the upscale_models edge.
 	UpscaleModels *UpscaleModel `json:"upscale_models,omitempty"`
+	// APITokens holds the value of the api_tokens edge.
+	APITokens *ApiToken `json:"api_tokens,omitempty"`
 	// UpscaleOutputs holds the value of the upscale_outputs edge.
 	UpscaleOutputs []*UpscaleOutput `json:"upscale_outputs,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [4]bool
+	loadedTypes [5]bool
 }
 
 // UserOrErr returns the User value or an error if the edge
@@ -109,10 +114,23 @@ func (e UpscaleEdges) UpscaleModelsOrErr() (*UpscaleModel, error) {
 	return nil, &NotLoadedError{edge: "upscale_models"}
 }
 
+// APITokensOrErr returns the APITokens value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e UpscaleEdges) APITokensOrErr() (*ApiToken, error) {
+	if e.loadedTypes[3] {
+		if e.APITokens == nil {
+			// Edge was loaded but was not found.
+			return nil, &NotFoundError{label: apitoken.Label}
+		}
+		return e.APITokens, nil
+	}
+	return nil, &NotLoadedError{edge: "api_tokens"}
+}
+
 // UpscaleOutputsOrErr returns the UpscaleOutputs value or an error if the edge
 // was not loaded in eager-loading.
 func (e UpscaleEdges) UpscaleOutputsOrErr() ([]*UpscaleOutput, error) {
-	if e.loadedTypes[3] {
+	if e.loadedTypes[4] {
 		return e.UpscaleOutputs, nil
 	}
 	return nil, &NotLoadedError{edge: "upscale_outputs"}
@@ -123,6 +141,8 @@ func (*Upscale) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
+		case upscale.FieldAPITokenID:
+			values[i] = &sql.NullScanner{S: new(uuid.UUID)}
 		case upscale.FieldSystemGenerated:
 			values[i] = new(sql.NullBool)
 		case upscale.FieldWidth, upscale.FieldHeight, upscale.FieldScale:
@@ -223,6 +243,13 @@ func (u *Upscale) assignValues(columns []string, values []any) error {
 			} else if value != nil {
 				u.ModelID = *value
 			}
+		case upscale.FieldAPITokenID:
+			if value, ok := values[i].(*sql.NullScanner); !ok {
+				return fmt.Errorf("unexpected type %T for field api_token_id", values[i])
+			} else if value.Valid {
+				u.APITokenID = new(uuid.UUID)
+				*u.APITokenID = *value.S.(*uuid.UUID)
+			}
 		case upscale.FieldStartedAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
 				return fmt.Errorf("unexpected type %T for field started_at", values[i])
@@ -267,6 +294,11 @@ func (u *Upscale) QueryDeviceInfo() *DeviceInfoQuery {
 // QueryUpscaleModels queries the "upscale_models" edge of the Upscale entity.
 func (u *Upscale) QueryUpscaleModels() *UpscaleModelQuery {
 	return NewUpscaleClient(u.config).QueryUpscaleModels(u)
+}
+
+// QueryAPITokens queries the "api_tokens" edge of the Upscale entity.
+func (u *Upscale) QueryAPITokens() *ApiTokenQuery {
+	return NewUpscaleClient(u.config).QueryAPITokens(u)
 }
 
 // QueryUpscaleOutputs queries the "upscale_outputs" edge of the Upscale entity.
@@ -335,6 +367,11 @@ func (u *Upscale) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("model_id=")
 	builder.WriteString(fmt.Sprintf("%v", u.ModelID))
+	builder.WriteString(", ")
+	if v := u.APITokenID; v != nil {
+		builder.WriteString("api_token_id=")
+		builder.WriteString(fmt.Sprintf("%v", *v))
+	}
 	builder.WriteString(", ")
 	if v := u.StartedAt; v != nil {
 		builder.WriteString("started_at=")

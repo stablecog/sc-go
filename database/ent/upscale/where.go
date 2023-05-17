@@ -106,6 +106,11 @@ func ModelID(v uuid.UUID) predicate.Upscale {
 	return predicate.Upscale(sql.FieldEQ(FieldModelID, v))
 }
 
+// APITokenID applies equality check predicate on the "api_token_id" field. It's identical to APITokenIDEQ.
+func APITokenID(v uuid.UUID) predicate.Upscale {
+	return predicate.Upscale(sql.FieldEQ(FieldAPITokenID, v))
+}
+
 // StartedAt applies equality check predicate on the "started_at" field. It's identical to StartedAtEQ.
 func StartedAt(v time.Time) predicate.Upscale {
 	return predicate.Upscale(sql.FieldEQ(FieldStartedAt, v))
@@ -561,6 +566,36 @@ func ModelIDNotIn(vs ...uuid.UUID) predicate.Upscale {
 	return predicate.Upscale(sql.FieldNotIn(FieldModelID, vs...))
 }
 
+// APITokenIDEQ applies the EQ predicate on the "api_token_id" field.
+func APITokenIDEQ(v uuid.UUID) predicate.Upscale {
+	return predicate.Upscale(sql.FieldEQ(FieldAPITokenID, v))
+}
+
+// APITokenIDNEQ applies the NEQ predicate on the "api_token_id" field.
+func APITokenIDNEQ(v uuid.UUID) predicate.Upscale {
+	return predicate.Upscale(sql.FieldNEQ(FieldAPITokenID, v))
+}
+
+// APITokenIDIn applies the In predicate on the "api_token_id" field.
+func APITokenIDIn(vs ...uuid.UUID) predicate.Upscale {
+	return predicate.Upscale(sql.FieldIn(FieldAPITokenID, vs...))
+}
+
+// APITokenIDNotIn applies the NotIn predicate on the "api_token_id" field.
+func APITokenIDNotIn(vs ...uuid.UUID) predicate.Upscale {
+	return predicate.Upscale(sql.FieldNotIn(FieldAPITokenID, vs...))
+}
+
+// APITokenIDIsNil applies the IsNil predicate on the "api_token_id" field.
+func APITokenIDIsNil() predicate.Upscale {
+	return predicate.Upscale(sql.FieldIsNull(FieldAPITokenID))
+}
+
+// APITokenIDNotNil applies the NotNil predicate on the "api_token_id" field.
+func APITokenIDNotNil() predicate.Upscale {
+	return predicate.Upscale(sql.FieldNotNull(FieldAPITokenID))
+}
+
 // StartedAtEQ applies the EQ predicate on the "started_at" field.
 func StartedAtEQ(v time.Time) predicate.Upscale {
 	return predicate.Upscale(sql.FieldEQ(FieldStartedAt, v))
@@ -813,6 +848,33 @@ func HasUpscaleModelsWith(preds ...predicate.UpscaleModel) predicate.Upscale {
 			sqlgraph.From(Table, FieldID),
 			sqlgraph.To(UpscaleModelsInverseTable, FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, true, UpscaleModelsTable, UpscaleModelsColumn),
+		)
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasAPITokens applies the HasEdge predicate on the "api_tokens" edge.
+func HasAPITokens() predicate.Upscale {
+	return predicate.Upscale(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, APITokensTable, APITokensColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasAPITokensWith applies the HasEdge predicate on the "api_tokens" edge with a given conditions (other predicates).
+func HasAPITokensWith(preds ...predicate.ApiToken) predicate.Upscale {
+	return predicate.Upscale(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(APITokensInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, APITokensTable, APITokensColumn),
 		)
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {

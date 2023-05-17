@@ -54,6 +54,8 @@ const (
 	FieldUserID = "user_id"
 	// FieldDeviceInfoID holds the string denoting the device_info_id field in the database.
 	FieldDeviceInfoID = "device_info_id"
+	// FieldAPITokenID holds the string denoting the api_token_id field in the database.
+	FieldAPITokenID = "api_token_id"
 	// FieldStartedAt holds the string denoting the started_at field in the database.
 	FieldStartedAt = "started_at"
 	// FieldCompletedAt holds the string denoting the completed_at field in the database.
@@ -74,6 +76,8 @@ const (
 	EdgeGenerationModel = "generation_model"
 	// EdgeUser holds the string denoting the user edge name in mutations.
 	EdgeUser = "user"
+	// EdgeAPITokens holds the string denoting the api_tokens edge name in mutations.
+	EdgeAPITokens = "api_tokens"
 	// EdgeGenerationOutputs holds the string denoting the generation_outputs edge name in mutations.
 	EdgeGenerationOutputs = "generation_outputs"
 	// Table holds the table name of the generation in the database.
@@ -120,6 +124,13 @@ const (
 	UserInverseTable = "users"
 	// UserColumn is the table column denoting the user relation/edge.
 	UserColumn = "user_id"
+	// APITokensTable is the table that holds the api_tokens relation/edge.
+	APITokensTable = "generations"
+	// APITokensInverseTable is the table name for the ApiToken entity.
+	// It exists in this package in order to avoid circular dependency with the "apitoken" package.
+	APITokensInverseTable = "api_tokens"
+	// APITokensColumn is the table column denoting the api_tokens relation/edge.
+	APITokensColumn = "api_token_id"
 	// GenerationOutputsTable is the table that holds the generation_outputs relation/edge.
 	GenerationOutputsTable = "generation_outputs"
 	// GenerationOutputsInverseTable is the table name for the GenerationOutput entity.
@@ -152,6 +163,7 @@ var Columns = []string{
 	FieldSchedulerID,
 	FieldUserID,
 	FieldDeviceInfoID,
+	FieldAPITokenID,
 	FieldStartedAt,
 	FieldCompletedAt,
 	FieldCreatedAt,
