@@ -1,8 +1,11 @@
 package sse
 
 import (
+	"encoding/json"
+
 	"github.com/stablecog/sc-go/database"
 	"github.com/stablecog/sc-go/database/repository"
+	"github.com/stablecog/sc-go/shared"
 )
 
 type BroadcastPayload struct {
@@ -54,9 +57,14 @@ func (h *Hub) Run() {
 				close(client.Send)
 			}
 		case <-h.KeepAlive:
+			keepaliveMsg := map[string]interface{}{
+				"keepalive": true,
+				"version":   shared.APP_VERSION,
+			}
+			keepaliveBytes, _ := json.Marshal(keepaliveMsg)
 			for client := range h.clients {
 				select {
-				case client.Send <- []byte("{\"keepalive\": true}"):
+				case client.Send <- keepaliveBytes:
 				default:
 					close(client.Send)
 					delete(h.clients, client)
