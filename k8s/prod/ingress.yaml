@@ -24,7 +24,7 @@ spec:
   tls:
     - hosts:
         - api.stablecog.com
-      secretName: api-stablecog-com-server-secret
+      secretName: api-stablecog-com-server-secret-3
   rules:
     - host: api.stablecog.com
       http:
