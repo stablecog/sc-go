@@ -63,7 +63,7 @@ func (j *JobRunner) DeleteUserData(log Logger, dryRun bool) error {
 		}
 
 		// Delete S3 objects
-		if !dryRun {
+		if !dryRun && len(paths) > 0 {
 			o, err := j.S3.DeleteObjects(&s3.DeleteObjectsInput{
 				Bucket: aws.String(os.Getenv("S3_BUCKET_NAME")),
 				Delete: &s3.Delete{
