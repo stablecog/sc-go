@@ -19,11 +19,19 @@ import (
 const DATA_DELETE_JOB = "USER_DATA_DELETE_JOB"
 
 func (j *JobRunner) DeleteUserData(log Logger, dryRun bool) error {
-	users, err := j.Repo.GetBannedUsersToDelete()
+	usersBanned, err := j.Repo.GetBannedUsersToDelete()
 	if err != nil {
 		log.Errorf("Error getting users to delete %v", err)
 		return err
 	}
+	usersNotBanned, err := j.Repo.GetUsersToDelete()
+	if err != nil {
+		log.Errorf("Error getting users to delete %v", err)
+		return err
+	}
+
+	// Combine banned and not banned users
+	users := append(usersBanned, usersNotBanned...)
 
 	if len(users) == 0 {
 		log.Infof("No users to delete")
