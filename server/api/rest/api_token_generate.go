@@ -318,6 +318,7 @@ func (c *RestAPI) HandleCreateGenerationToken(w http.ResponseWriter, r *http.Req
 		log.Error("Error in transaction", "err", err)
 		return
 	}
+	defer c.QueueThrottler.DecrementBy(int(generateReq.NumOutputs), user.ID.String())
 
 	// Send live page update
 	go func() {

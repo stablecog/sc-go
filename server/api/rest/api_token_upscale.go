@@ -282,6 +282,7 @@ func (c *RestAPI) HandleCreateUpscaleToken(w http.ResponseWriter, r *http.Reques
 		log.Error("Error in transaction", "err", err)
 		return
 	}
+	defer c.QueueThrottler.DecrementBy(1, user.ID.String())
 
 	// Send live page update
 	go func() {
