@@ -147,21 +147,28 @@ func (c *RestAPI) HandleCreateGenerationToken(w http.ResponseWriter, r *http.Req
 		log.Warn("Error getting queue count", "err", err, "user_id", user.ID.String())
 	}
 	if err == nil && nq > qMax {
-		// Wait xxx MS until we can submit
-		startWait := time.Now()
+		// Get queue overflow size
+		overflowSize, err := c.QueueThrottler.NumQueued(fmt.Sprintf("of:%s", user.ID.String()))
+		if err != nil {
+			log.Warn("Error getting queue overflow count", "err", err, "user_id", user.ID.String())
+		}
+		// If overflow size is greater than max, return error
+		if overflowSize > shared.QUEUE_OVERFLOW_MAX {
+			responses.ErrBadRequest(w, r, "queue_limit_reached", "")
+			return
+		}
+		// Overflow size can be 0 so we need to add 1
+		overflowSize++
+		c.QueueThrottler.IncrementBy(1, fmt.Sprintf("of:%s", user.ID.String()))
 		for {
-			time.Sleep(shared.QUEUE_OVERFLOW_RETRY_DURATION)
+			time.Sleep(time.Duration(shared.QUEUE_OVERFLOW_PENALTY_MS*overflowSize) * time.Millisecond)
 			nq, err = c.QueueThrottler.NumQueued(fmt.Sprintf("g:%s", user.ID.String()))
 			if err != nil {
 				log.Warn("Error getting queue count", "err", err, "user_id", user.ID.String())
 			}
 			if err == nil && nq <= qMax {
+				c.QueueThrottler.DecrementBy(1, fmt.Sprintf("of:%s", user.ID.String()))
 				break
-			}
-			// Check if we have exceeded max wait time
-			if time.Since(startWait) > shared.QUEUE_OVERFLOW_MAX_WAIT {
-				responses.ErrBadRequest(w, r, "queue_limit_reached", "")
-				return
 			}
 		}
 	}

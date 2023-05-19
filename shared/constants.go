@@ -136,8 +136,9 @@ const API_TOKEN_PREFIX = "sc-"
 const MAX_TOKEN_NAME_SIZE = 50
 
 // ! API Queue Overflow
-// How often to re-check queue length to re-submit extra requests
-const QUEUE_OVERFLOW_RETRY_DURATION = 250 * time.Millisecond
+// Max items in overflow queue
+const QUEUE_OVERFLOW_MAX = 50
 
-// Max wait time for queue overflow
-const QUEUE_OVERFLOW_MAX_WAIT = 5 * time.Second
+// Penalty for queue overflow
+// Computed as time.Sleep(QUEUE_OVERFLOW_PENALTY * QUEUE_OVERFLOW_SIZE)
+const QUEUE_OVERFLOW_PENALTY_MS = 150
