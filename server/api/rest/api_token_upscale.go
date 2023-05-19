@@ -112,6 +112,12 @@ func (c *RestAPI) HandleCreateUpscaleToken(w http.ResponseWriter, r *http.Reques
 				c.QueueThrottler.DecrementBy(1, fmt.Sprintf("of:%s", user.ID.String()))
 				break
 			}
+			// Update overflow size
+			overflowSize, err = c.QueueThrottler.NumQueued(fmt.Sprintf("of:%s", user.ID.String()))
+			if err != nil {
+				log.Warn("Error getting queue overflow count", "err", err, "user_id", user.ID.String())
+			}
+			overflowSize++
 		}
 	}
 
