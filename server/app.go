@@ -408,6 +408,13 @@ func main() {
 			})
 		})
 
+		// Settings
+		r.Route("/settings", func(r chi.Router) {
+			r.Use(middleware.Logger)
+			r.Use(mw.RateLimit(10, "srv", 1*time.Second))
+			r.Get("/", hc.HandleGetSettings)
+		})
+
 		// Api token route
 		r.Route("/generate", func(r chi.Router) {
 			r.Use(mw.AuthMiddleware(middleware.AuthLevelAPIToken))
