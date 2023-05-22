@@ -19,6 +19,10 @@ type GenerationModel struct {
 	ID uuid.UUID `json:"id,omitempty"`
 	// NameInWorker holds the value of the "name_in_worker" field.
 	NameInWorker string `json:"name_in_worker,omitempty"`
+	// IsActive holds the value of the "is_active" field.
+	IsActive bool `json:"is_active,omitempty"`
+	// IsDefault holds the value of the "is_default" field.
+	IsDefault bool `json:"is_default,omitempty"`
 	// CreatedAt holds the value of the "created_at" field.
 	CreatedAt time.Time `json:"created_at,omitempty"`
 	// UpdatedAt holds the value of the "updated_at" field.
@@ -51,6 +55,8 @@ func (*GenerationModel) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
+		case generationmodel.FieldIsActive, generationmodel.FieldIsDefault:
+			values[i] = new(sql.NullBool)
 		case generationmodel.FieldNameInWorker:
 			values[i] = new(sql.NullString)
 		case generationmodel.FieldCreatedAt, generationmodel.FieldUpdatedAt:
@@ -83,6 +89,18 @@ func (gm *GenerationModel) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field name_in_worker", values[i])
 			} else if value.Valid {
 				gm.NameInWorker = value.String
+			}
+		case generationmodel.FieldIsActive:
+			if value, ok := values[i].(*sql.NullBool); !ok {
+				return fmt.Errorf("unexpected type %T for field is_active", values[i])
+			} else if value.Valid {
+				gm.IsActive = value.Bool
+			}
+		case generationmodel.FieldIsDefault:
+			if value, ok := values[i].(*sql.NullBool); !ok {
+				return fmt.Errorf("unexpected type %T for field is_default", values[i])
+			} else if value.Valid {
+				gm.IsDefault = value.Bool
 			}
 		case generationmodel.FieldCreatedAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
@@ -131,6 +149,12 @@ func (gm *GenerationModel) String() string {
 	builder.WriteString(fmt.Sprintf("id=%v, ", gm.ID))
 	builder.WriteString("name_in_worker=")
 	builder.WriteString(gm.NameInWorker)
+	builder.WriteString(", ")
+	builder.WriteString("is_active=")
+	builder.WriteString(fmt.Sprintf("%v", gm.IsActive))
+	builder.WriteString(", ")
+	builder.WriteString("is_default=")
+	builder.WriteString(fmt.Sprintf("%v", gm.IsDefault))
 	builder.WriteString(", ")
 	builder.WriteString("created_at=")
 	builder.WriteString(gm.CreatedAt.Format(time.ANSIC))

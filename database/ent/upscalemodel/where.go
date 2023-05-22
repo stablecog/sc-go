@@ -61,6 +61,16 @@ func NameInWorker(v string) predicate.UpscaleModel {
 	return predicate.UpscaleModel(sql.FieldEQ(FieldNameInWorker, v))
 }
 
+// IsActive applies equality check predicate on the "is_active" field. It's identical to IsActiveEQ.
+func IsActive(v bool) predicate.UpscaleModel {
+	return predicate.UpscaleModel(sql.FieldEQ(FieldIsActive, v))
+}
+
+// IsDefault applies equality check predicate on the "is_default" field. It's identical to IsDefaultEQ.
+func IsDefault(v bool) predicate.UpscaleModel {
+	return predicate.UpscaleModel(sql.FieldEQ(FieldIsDefault, v))
+}
+
 // CreatedAt applies equality check predicate on the "created_at" field. It's identical to CreatedAtEQ.
 func CreatedAt(v time.Time) predicate.UpscaleModel {
 	return predicate.UpscaleModel(sql.FieldEQ(FieldCreatedAt, v))
@@ -134,6 +144,26 @@ func NameInWorkerEqualFold(v string) predicate.UpscaleModel {
 // NameInWorkerContainsFold applies the ContainsFold predicate on the "name_in_worker" field.
 func NameInWorkerContainsFold(v string) predicate.UpscaleModel {
 	return predicate.UpscaleModel(sql.FieldContainsFold(FieldNameInWorker, v))
+}
+
+// IsActiveEQ applies the EQ predicate on the "is_active" field.
+func IsActiveEQ(v bool) predicate.UpscaleModel {
+	return predicate.UpscaleModel(sql.FieldEQ(FieldIsActive, v))
+}
+
+// IsActiveNEQ applies the NEQ predicate on the "is_active" field.
+func IsActiveNEQ(v bool) predicate.UpscaleModel {
+	return predicate.UpscaleModel(sql.FieldNEQ(FieldIsActive, v))
+}
+
+// IsDefaultEQ applies the EQ predicate on the "is_default" field.
+func IsDefaultEQ(v bool) predicate.UpscaleModel {
+	return predicate.UpscaleModel(sql.FieldEQ(FieldIsDefault, v))
+}
+
+// IsDefaultNEQ applies the NEQ predicate on the "is_default" field.
+func IsDefaultNEQ(v bool) predicate.UpscaleModel {
+	return predicate.UpscaleModel(sql.FieldNEQ(FieldIsDefault, v))
 }
 
 // CreatedAtEQ applies the EQ predicate on the "created_at" field.

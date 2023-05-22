@@ -37,6 +37,34 @@ func (su *SchedulerUpdate) SetNameInWorker(s string) *SchedulerUpdate {
 	return su
 }
 
+// SetIsActive sets the "is_active" field.
+func (su *SchedulerUpdate) SetIsActive(b bool) *SchedulerUpdate {
+	su.mutation.SetIsActive(b)
+	return su
+}
+
+// SetNillableIsActive sets the "is_active" field if the given value is not nil.
+func (su *SchedulerUpdate) SetNillableIsActive(b *bool) *SchedulerUpdate {
+	if b != nil {
+		su.SetIsActive(*b)
+	}
+	return su
+}
+
+// SetIsDefault sets the "is_default" field.
+func (su *SchedulerUpdate) SetIsDefault(b bool) *SchedulerUpdate {
+	su.mutation.SetIsDefault(b)
+	return su
+}
+
+// SetNillableIsDefault sets the "is_default" field if the given value is not nil.
+func (su *SchedulerUpdate) SetNillableIsDefault(b *bool) *SchedulerUpdate {
+	if b != nil {
+		su.SetIsDefault(*b)
+	}
+	return su
+}
+
 // SetUpdatedAt sets the "updated_at" field.
 func (su *SchedulerUpdate) SetUpdatedAt(t time.Time) *SchedulerUpdate {
 	su.mutation.SetUpdatedAt(t)
@@ -147,6 +175,12 @@ func (su *SchedulerUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if value, ok := su.mutation.NameInWorker(); ok {
 		_spec.SetField(scheduler.FieldNameInWorker, field.TypeString, value)
 	}
+	if value, ok := su.mutation.IsActive(); ok {
+		_spec.SetField(scheduler.FieldIsActive, field.TypeBool, value)
+	}
+	if value, ok := su.mutation.IsDefault(); ok {
+		_spec.SetField(scheduler.FieldIsDefault, field.TypeBool, value)
+	}
 	if value, ok := su.mutation.UpdatedAt(); ok {
 		_spec.SetField(scheduler.FieldUpdatedAt, field.TypeTime, value)
 	}
@@ -229,6 +263,34 @@ type SchedulerUpdateOne struct {
 // SetNameInWorker sets the "name_in_worker" field.
 func (suo *SchedulerUpdateOne) SetNameInWorker(s string) *SchedulerUpdateOne {
 	suo.mutation.SetNameInWorker(s)
+	return suo
+}
+
+// SetIsActive sets the "is_active" field.
+func (suo *SchedulerUpdateOne) SetIsActive(b bool) *SchedulerUpdateOne {
+	suo.mutation.SetIsActive(b)
+	return suo
+}
+
+// SetNillableIsActive sets the "is_active" field if the given value is not nil.
+func (suo *SchedulerUpdateOne) SetNillableIsActive(b *bool) *SchedulerUpdateOne {
+	if b != nil {
+		suo.SetIsActive(*b)
+	}
+	return suo
+}
+
+// SetIsDefault sets the "is_default" field.
+func (suo *SchedulerUpdateOne) SetIsDefault(b bool) *SchedulerUpdateOne {
+	suo.mutation.SetIsDefault(b)
+	return suo
+}
+
+// SetNillableIsDefault sets the "is_default" field if the given value is not nil.
+func (suo *SchedulerUpdateOne) SetNillableIsDefault(b *bool) *SchedulerUpdateOne {
+	if b != nil {
+		suo.SetIsDefault(*b)
+	}
 	return suo
 }
 
@@ -365,6 +427,12 @@ func (suo *SchedulerUpdateOne) sqlSave(ctx context.Context) (_node *Scheduler, e
 	}
 	if value, ok := suo.mutation.NameInWorker(); ok {
 		_spec.SetField(scheduler.FieldNameInWorker, field.TypeString, value)
+	}
+	if value, ok := suo.mutation.IsActive(); ok {
+		_spec.SetField(scheduler.FieldIsActive, field.TypeBool, value)
+	}
+	if value, ok := suo.mutation.IsDefault(); ok {
+		_spec.SetField(scheduler.FieldIsDefault, field.TypeBool, value)
 	}
 	if value, ok := suo.mutation.UpdatedAt(); ok {
 		_spec.SetField(scheduler.FieldUpdatedAt, field.TypeTime, value)

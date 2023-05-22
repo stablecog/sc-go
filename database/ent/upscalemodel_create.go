@@ -28,6 +28,34 @@ func (umc *UpscaleModelCreate) SetNameInWorker(s string) *UpscaleModelCreate {
 	return umc
 }
 
+// SetIsActive sets the "is_active" field.
+func (umc *UpscaleModelCreate) SetIsActive(b bool) *UpscaleModelCreate {
+	umc.mutation.SetIsActive(b)
+	return umc
+}
+
+// SetNillableIsActive sets the "is_active" field if the given value is not nil.
+func (umc *UpscaleModelCreate) SetNillableIsActive(b *bool) *UpscaleModelCreate {
+	if b != nil {
+		umc.SetIsActive(*b)
+	}
+	return umc
+}
+
+// SetIsDefault sets the "is_default" field.
+func (umc *UpscaleModelCreate) SetIsDefault(b bool) *UpscaleModelCreate {
+	umc.mutation.SetIsDefault(b)
+	return umc
+}
+
+// SetNillableIsDefault sets the "is_default" field if the given value is not nil.
+func (umc *UpscaleModelCreate) SetNillableIsDefault(b *bool) *UpscaleModelCreate {
+	if b != nil {
+		umc.SetIsDefault(*b)
+	}
+	return umc
+}
+
 // SetCreatedAt sets the "created_at" field.
 func (umc *UpscaleModelCreate) SetCreatedAt(t time.Time) *UpscaleModelCreate {
 	umc.mutation.SetCreatedAt(t)
@@ -120,6 +148,14 @@ func (umc *UpscaleModelCreate) ExecX(ctx context.Context) {
 
 // defaults sets the default values of the builder before save.
 func (umc *UpscaleModelCreate) defaults() {
+	if _, ok := umc.mutation.IsActive(); !ok {
+		v := upscalemodel.DefaultIsActive
+		umc.mutation.SetIsActive(v)
+	}
+	if _, ok := umc.mutation.IsDefault(); !ok {
+		v := upscalemodel.DefaultIsDefault
+		umc.mutation.SetIsDefault(v)
+	}
 	if _, ok := umc.mutation.CreatedAt(); !ok {
 		v := upscalemodel.DefaultCreatedAt()
 		umc.mutation.SetCreatedAt(v)
@@ -138,6 +174,12 @@ func (umc *UpscaleModelCreate) defaults() {
 func (umc *UpscaleModelCreate) check() error {
 	if _, ok := umc.mutation.NameInWorker(); !ok {
 		return &ValidationError{Name: "name_in_worker", err: errors.New(`ent: missing required field "UpscaleModel.name_in_worker"`)}
+	}
+	if _, ok := umc.mutation.IsActive(); !ok {
+		return &ValidationError{Name: "is_active", err: errors.New(`ent: missing required field "UpscaleModel.is_active"`)}
+	}
+	if _, ok := umc.mutation.IsDefault(); !ok {
+		return &ValidationError{Name: "is_default", err: errors.New(`ent: missing required field "UpscaleModel.is_default"`)}
 	}
 	if _, ok := umc.mutation.CreatedAt(); !ok {
 		return &ValidationError{Name: "created_at", err: errors.New(`ent: missing required field "UpscaleModel.created_at"`)}
@@ -189,6 +231,14 @@ func (umc *UpscaleModelCreate) createSpec() (*UpscaleModel, *sqlgraph.CreateSpec
 	if value, ok := umc.mutation.NameInWorker(); ok {
 		_spec.SetField(upscalemodel.FieldNameInWorker, field.TypeString, value)
 		_node.NameInWorker = value
+	}
+	if value, ok := umc.mutation.IsActive(); ok {
+		_spec.SetField(upscalemodel.FieldIsActive, field.TypeBool, value)
+		_node.IsActive = value
+	}
+	if value, ok := umc.mutation.IsDefault(); ok {
+		_spec.SetField(upscalemodel.FieldIsDefault, field.TypeBool, value)
+		_node.IsDefault = value
 	}
 	if value, ok := umc.mutation.CreatedAt(); ok {
 		_spec.SetField(upscalemodel.FieldCreatedAt, field.TypeTime, value)

@@ -37,6 +37,34 @@ func (gmu *GenerationModelUpdate) SetNameInWorker(s string) *GenerationModelUpda
 	return gmu
 }
 
+// SetIsActive sets the "is_active" field.
+func (gmu *GenerationModelUpdate) SetIsActive(b bool) *GenerationModelUpdate {
+	gmu.mutation.SetIsActive(b)
+	return gmu
+}
+
+// SetNillableIsActive sets the "is_active" field if the given value is not nil.
+func (gmu *GenerationModelUpdate) SetNillableIsActive(b *bool) *GenerationModelUpdate {
+	if b != nil {
+		gmu.SetIsActive(*b)
+	}
+	return gmu
+}
+
+// SetIsDefault sets the "is_default" field.
+func (gmu *GenerationModelUpdate) SetIsDefault(b bool) *GenerationModelUpdate {
+	gmu.mutation.SetIsDefault(b)
+	return gmu
+}
+
+// SetNillableIsDefault sets the "is_default" field if the given value is not nil.
+func (gmu *GenerationModelUpdate) SetNillableIsDefault(b *bool) *GenerationModelUpdate {
+	if b != nil {
+		gmu.SetIsDefault(*b)
+	}
+	return gmu
+}
+
 // SetUpdatedAt sets the "updated_at" field.
 func (gmu *GenerationModelUpdate) SetUpdatedAt(t time.Time) *GenerationModelUpdate {
 	gmu.mutation.SetUpdatedAt(t)
@@ -147,6 +175,12 @@ func (gmu *GenerationModelUpdate) sqlSave(ctx context.Context) (n int, err error
 	if value, ok := gmu.mutation.NameInWorker(); ok {
 		_spec.SetField(generationmodel.FieldNameInWorker, field.TypeString, value)
 	}
+	if value, ok := gmu.mutation.IsActive(); ok {
+		_spec.SetField(generationmodel.FieldIsActive, field.TypeBool, value)
+	}
+	if value, ok := gmu.mutation.IsDefault(); ok {
+		_spec.SetField(generationmodel.FieldIsDefault, field.TypeBool, value)
+	}
 	if value, ok := gmu.mutation.UpdatedAt(); ok {
 		_spec.SetField(generationmodel.FieldUpdatedAt, field.TypeTime, value)
 	}
@@ -229,6 +263,34 @@ type GenerationModelUpdateOne struct {
 // SetNameInWorker sets the "name_in_worker" field.
 func (gmuo *GenerationModelUpdateOne) SetNameInWorker(s string) *GenerationModelUpdateOne {
 	gmuo.mutation.SetNameInWorker(s)
+	return gmuo
+}
+
+// SetIsActive sets the "is_active" field.
+func (gmuo *GenerationModelUpdateOne) SetIsActive(b bool) *GenerationModelUpdateOne {
+	gmuo.mutation.SetIsActive(b)
+	return gmuo
+}
+
+// SetNillableIsActive sets the "is_active" field if the given value is not nil.
+func (gmuo *GenerationModelUpdateOne) SetNillableIsActive(b *bool) *GenerationModelUpdateOne {
+	if b != nil {
+		gmuo.SetIsActive(*b)
+	}
+	return gmuo
+}
+
+// SetIsDefault sets the "is_default" field.
+func (gmuo *GenerationModelUpdateOne) SetIsDefault(b bool) *GenerationModelUpdateOne {
+	gmuo.mutation.SetIsDefault(b)
+	return gmuo
+}
+
+// SetNillableIsDefault sets the "is_default" field if the given value is not nil.
+func (gmuo *GenerationModelUpdateOne) SetNillableIsDefault(b *bool) *GenerationModelUpdateOne {
+	if b != nil {
+		gmuo.SetIsDefault(*b)
+	}
 	return gmuo
 }
 
@@ -365,6 +427,12 @@ func (gmuo *GenerationModelUpdateOne) sqlSave(ctx context.Context) (_node *Gener
 	}
 	if value, ok := gmuo.mutation.NameInWorker(); ok {
 		_spec.SetField(generationmodel.FieldNameInWorker, field.TypeString, value)
+	}
+	if value, ok := gmuo.mutation.IsActive(); ok {
+		_spec.SetField(generationmodel.FieldIsActive, field.TypeBool, value)
+	}
+	if value, ok := gmuo.mutation.IsDefault(); ok {
+		_spec.SetField(generationmodel.FieldIsDefault, field.TypeBool, value)
 	}
 	if value, ok := gmuo.mutation.UpdatedAt(); ok {
 		_spec.SetField(generationmodel.FieldUpdatedAt, field.TypeTime, value)

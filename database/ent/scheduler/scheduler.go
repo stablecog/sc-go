@@ -15,6 +15,10 @@ const (
 	FieldID = "id"
 	// FieldNameInWorker holds the string denoting the name_in_worker field in the database.
 	FieldNameInWorker = "name_in_worker"
+	// FieldIsActive holds the string denoting the is_active field in the database.
+	FieldIsActive = "is_active"
+	// FieldIsDefault holds the string denoting the is_default field in the database.
+	FieldIsDefault = "is_default"
 	// FieldCreatedAt holds the string denoting the created_at field in the database.
 	FieldCreatedAt = "created_at"
 	// FieldUpdatedAt holds the string denoting the updated_at field in the database.
@@ -36,6 +40,8 @@ const (
 var Columns = []string{
 	FieldID,
 	FieldNameInWorker,
+	FieldIsActive,
+	FieldIsDefault,
 	FieldCreatedAt,
 	FieldUpdatedAt,
 }
@@ -51,6 +57,10 @@ func ValidColumn(column string) bool {
 }
 
 var (
+	// DefaultIsActive holds the default value on creation for the "is_active" field.
+	DefaultIsActive bool
+	// DefaultIsDefault holds the default value on creation for the "is_default" field.
+	DefaultIsDefault bool
 	// DefaultCreatedAt holds the default value on creation for the "created_at" field.
 	DefaultCreatedAt func() time.Time
 	// DefaultUpdatedAt holds the default value on creation for the "updated_at" field.

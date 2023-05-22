@@ -231,6 +231,8 @@ var (
 	GenerationModelsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID},
 		{Name: "name_in_worker", Type: field.TypeString, Size: 2147483647},
+		{Name: "is_active", Type: field.TypeBool, Default: true},
+		{Name: "is_default", Type: field.TypeBool, Default: false},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},
 	}
@@ -324,6 +326,8 @@ var (
 	SchedulersColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID},
 		{Name: "name_in_worker", Type: field.TypeString, Size: 2147483647},
+		{Name: "is_active", Type: field.TypeBool, Default: true},
+		{Name: "is_default", Type: field.TypeBool, Default: false},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},
 	}
@@ -389,6 +393,8 @@ var (
 	UpscaleModelsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID},
 		{Name: "name_in_worker", Type: field.TypeString, Size: 2147483647},
+		{Name: "is_active", Type: field.TypeBool, Default: true},
+		{Name: "is_default", Type: field.TypeBool, Default: false},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},
 	}

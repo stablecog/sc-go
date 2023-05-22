@@ -37,6 +37,34 @@ func (umu *UpscaleModelUpdate) SetNameInWorker(s string) *UpscaleModelUpdate {
 	return umu
 }
 
+// SetIsActive sets the "is_active" field.
+func (umu *UpscaleModelUpdate) SetIsActive(b bool) *UpscaleModelUpdate {
+	umu.mutation.SetIsActive(b)
+	return umu
+}
+
+// SetNillableIsActive sets the "is_active" field if the given value is not nil.
+func (umu *UpscaleModelUpdate) SetNillableIsActive(b *bool) *UpscaleModelUpdate {
+	if b != nil {
+		umu.SetIsActive(*b)
+	}
+	return umu
+}
+
+// SetIsDefault sets the "is_default" field.
+func (umu *UpscaleModelUpdate) SetIsDefault(b bool) *UpscaleModelUpdate {
+	umu.mutation.SetIsDefault(b)
+	return umu
+}
+
+// SetNillableIsDefault sets the "is_default" field if the given value is not nil.
+func (umu *UpscaleModelUpdate) SetNillableIsDefault(b *bool) *UpscaleModelUpdate {
+	if b != nil {
+		umu.SetIsDefault(*b)
+	}
+	return umu
+}
+
 // SetUpdatedAt sets the "updated_at" field.
 func (umu *UpscaleModelUpdate) SetUpdatedAt(t time.Time) *UpscaleModelUpdate {
 	umu.mutation.SetUpdatedAt(t)
@@ -147,6 +175,12 @@ func (umu *UpscaleModelUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if value, ok := umu.mutation.NameInWorker(); ok {
 		_spec.SetField(upscalemodel.FieldNameInWorker, field.TypeString, value)
 	}
+	if value, ok := umu.mutation.IsActive(); ok {
+		_spec.SetField(upscalemodel.FieldIsActive, field.TypeBool, value)
+	}
+	if value, ok := umu.mutation.IsDefault(); ok {
+		_spec.SetField(upscalemodel.FieldIsDefault, field.TypeBool, value)
+	}
 	if value, ok := umu.mutation.UpdatedAt(); ok {
 		_spec.SetField(upscalemodel.FieldUpdatedAt, field.TypeTime, value)
 	}
@@ -229,6 +263,34 @@ type UpscaleModelUpdateOne struct {
 // SetNameInWorker sets the "name_in_worker" field.
 func (umuo *UpscaleModelUpdateOne) SetNameInWorker(s string) *UpscaleModelUpdateOne {
 	umuo.mutation.SetNameInWorker(s)
+	return umuo
+}
+
+// SetIsActive sets the "is_active" field.
+func (umuo *UpscaleModelUpdateOne) SetIsActive(b bool) *UpscaleModelUpdateOne {
+	umuo.mutation.SetIsActive(b)
+	return umuo
+}
+
+// SetNillableIsActive sets the "is_active" field if the given value is not nil.
+func (umuo *UpscaleModelUpdateOne) SetNillableIsActive(b *bool) *UpscaleModelUpdateOne {
+	if b != nil {
+		umuo.SetIsActive(*b)
+	}
+	return umuo
+}
+
+// SetIsDefault sets the "is_default" field.
+func (umuo *UpscaleModelUpdateOne) SetIsDefault(b bool) *UpscaleModelUpdateOne {
+	umuo.mutation.SetIsDefault(b)
+	return umuo
+}
+
+// SetNillableIsDefault sets the "is_default" field if the given value is not nil.
+func (umuo *UpscaleModelUpdateOne) SetNillableIsDefault(b *bool) *UpscaleModelUpdateOne {
+	if b != nil {
+		umuo.SetIsDefault(*b)
+	}
 	return umuo
 }
 
@@ -365,6 +427,12 @@ func (umuo *UpscaleModelUpdateOne) sqlSave(ctx context.Context) (_node *UpscaleM
 	}
 	if value, ok := umuo.mutation.NameInWorker(); ok {
 		_spec.SetField(upscalemodel.FieldNameInWorker, field.TypeString, value)
+	}
+	if value, ok := umuo.mutation.IsActive(); ok {
+		_spec.SetField(upscalemodel.FieldIsActive, field.TypeBool, value)
+	}
+	if value, ok := umuo.mutation.IsDefault(); ok {
+		_spec.SetField(upscalemodel.FieldIsDefault, field.TypeBool, value)
 	}
 	if value, ok := umuo.mutation.UpdatedAt(); ok {
 		_spec.SetField(upscalemodel.FieldUpdatedAt, field.TypeTime, value)

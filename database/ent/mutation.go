@@ -6648,6 +6648,8 @@ type GenerationModelMutation struct {
 	typ                string
 	id                 *uuid.UUID
 	name_in_worker     *string
+	is_active          *bool
+	is_default         *bool
 	created_at         *time.Time
 	updated_at         *time.Time
 	clearedFields      map[string]struct{}
@@ -6797,6 +6799,78 @@ func (m *GenerationModelMutation) OldNameInWorker(ctx context.Context) (v string
 // ResetNameInWorker resets all changes to the "name_in_worker" field.
 func (m *GenerationModelMutation) ResetNameInWorker() {
 	m.name_in_worker = nil
+}
+
+// SetIsActive sets the "is_active" field.
+func (m *GenerationModelMutation) SetIsActive(b bool) {
+	m.is_active = &b
+}
+
+// IsActive returns the value of the "is_active" field in the mutation.
+func (m *GenerationModelMutation) IsActive() (r bool, exists bool) {
+	v := m.is_active
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldIsActive returns the old "is_active" field's value of the GenerationModel entity.
+// If the GenerationModel object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *GenerationModelMutation) OldIsActive(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldIsActive is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldIsActive requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldIsActive: %w", err)
+	}
+	return oldValue.IsActive, nil
+}
+
+// ResetIsActive resets all changes to the "is_active" field.
+func (m *GenerationModelMutation) ResetIsActive() {
+	m.is_active = nil
+}
+
+// SetIsDefault sets the "is_default" field.
+func (m *GenerationModelMutation) SetIsDefault(b bool) {
+	m.is_default = &b
+}
+
+// IsDefault returns the value of the "is_default" field in the mutation.
+func (m *GenerationModelMutation) IsDefault() (r bool, exists bool) {
+	v := m.is_default
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldIsDefault returns the old "is_default" field's value of the GenerationModel entity.
+// If the GenerationModel object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *GenerationModelMutation) OldIsDefault(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldIsDefault is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldIsDefault requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldIsDefault: %w", err)
+	}
+	return oldValue.IsDefault, nil
+}
+
+// ResetIsDefault resets all changes to the "is_default" field.
+func (m *GenerationModelMutation) ResetIsDefault() {
+	m.is_default = nil
 }
 
 // SetCreatedAt sets the "created_at" field.
@@ -6959,9 +7033,15 @@ func (m *GenerationModelMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *GenerationModelMutation) Fields() []string {
-	fields := make([]string, 0, 3)
+	fields := make([]string, 0, 5)
 	if m.name_in_worker != nil {
 		fields = append(fields, generationmodel.FieldNameInWorker)
+	}
+	if m.is_active != nil {
+		fields = append(fields, generationmodel.FieldIsActive)
+	}
+	if m.is_default != nil {
+		fields = append(fields, generationmodel.FieldIsDefault)
 	}
 	if m.created_at != nil {
 		fields = append(fields, generationmodel.FieldCreatedAt)
@@ -6979,6 +7059,10 @@ func (m *GenerationModelMutation) Field(name string) (ent.Value, bool) {
 	switch name {
 	case generationmodel.FieldNameInWorker:
 		return m.NameInWorker()
+	case generationmodel.FieldIsActive:
+		return m.IsActive()
+	case generationmodel.FieldIsDefault:
+		return m.IsDefault()
 	case generationmodel.FieldCreatedAt:
 		return m.CreatedAt()
 	case generationmodel.FieldUpdatedAt:
@@ -6994,6 +7078,10 @@ func (m *GenerationModelMutation) OldField(ctx context.Context, name string) (en
 	switch name {
 	case generationmodel.FieldNameInWorker:
 		return m.OldNameInWorker(ctx)
+	case generationmodel.FieldIsActive:
+		return m.OldIsActive(ctx)
+	case generationmodel.FieldIsDefault:
+		return m.OldIsDefault(ctx)
 	case generationmodel.FieldCreatedAt:
 		return m.OldCreatedAt(ctx)
 	case generationmodel.FieldUpdatedAt:
@@ -7013,6 +7101,20 @@ func (m *GenerationModelMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetNameInWorker(v)
+		return nil
+	case generationmodel.FieldIsActive:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetIsActive(v)
+		return nil
+	case generationmodel.FieldIsDefault:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetIsDefault(v)
 		return nil
 	case generationmodel.FieldCreatedAt:
 		v, ok := value.(time.Time)
@@ -7079,6 +7181,12 @@ func (m *GenerationModelMutation) ResetField(name string) error {
 	switch name {
 	case generationmodel.FieldNameInWorker:
 		m.ResetNameInWorker()
+		return nil
+	case generationmodel.FieldIsActive:
+		m.ResetIsActive()
+		return nil
+	case generationmodel.FieldIsDefault:
+		m.ResetIsDefault()
 		return nil
 	case generationmodel.FieldCreatedAt:
 		m.ResetCreatedAt()
@@ -9177,6 +9285,8 @@ type SchedulerMutation struct {
 	typ                string
 	id                 *uuid.UUID
 	name_in_worker     *string
+	is_active          *bool
+	is_default         *bool
 	created_at         *time.Time
 	updated_at         *time.Time
 	clearedFields      map[string]struct{}
@@ -9326,6 +9436,78 @@ func (m *SchedulerMutation) OldNameInWorker(ctx context.Context) (v string, err 
 // ResetNameInWorker resets all changes to the "name_in_worker" field.
 func (m *SchedulerMutation) ResetNameInWorker() {
 	m.name_in_worker = nil
+}
+
+// SetIsActive sets the "is_active" field.
+func (m *SchedulerMutation) SetIsActive(b bool) {
+	m.is_active = &b
+}
+
+// IsActive returns the value of the "is_active" field in the mutation.
+func (m *SchedulerMutation) IsActive() (r bool, exists bool) {
+	v := m.is_active
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldIsActive returns the old "is_active" field's value of the Scheduler entity.
+// If the Scheduler object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SchedulerMutation) OldIsActive(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldIsActive is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldIsActive requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldIsActive: %w", err)
+	}
+	return oldValue.IsActive, nil
+}
+
+// ResetIsActive resets all changes to the "is_active" field.
+func (m *SchedulerMutation) ResetIsActive() {
+	m.is_active = nil
+}
+
+// SetIsDefault sets the "is_default" field.
+func (m *SchedulerMutation) SetIsDefault(b bool) {
+	m.is_default = &b
+}
+
+// IsDefault returns the value of the "is_default" field in the mutation.
+func (m *SchedulerMutation) IsDefault() (r bool, exists bool) {
+	v := m.is_default
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldIsDefault returns the old "is_default" field's value of the Scheduler entity.
+// If the Scheduler object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SchedulerMutation) OldIsDefault(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldIsDefault is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldIsDefault requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldIsDefault: %w", err)
+	}
+	return oldValue.IsDefault, nil
+}
+
+// ResetIsDefault resets all changes to the "is_default" field.
+func (m *SchedulerMutation) ResetIsDefault() {
+	m.is_default = nil
 }
 
 // SetCreatedAt sets the "created_at" field.
@@ -9488,9 +9670,15 @@ func (m *SchedulerMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *SchedulerMutation) Fields() []string {
-	fields := make([]string, 0, 3)
+	fields := make([]string, 0, 5)
 	if m.name_in_worker != nil {
 		fields = append(fields, scheduler.FieldNameInWorker)
+	}
+	if m.is_active != nil {
+		fields = append(fields, scheduler.FieldIsActive)
+	}
+	if m.is_default != nil {
+		fields = append(fields, scheduler.FieldIsDefault)
 	}
 	if m.created_at != nil {
 		fields = append(fields, scheduler.FieldCreatedAt)
@@ -9508,6 +9696,10 @@ func (m *SchedulerMutation) Field(name string) (ent.Value, bool) {
 	switch name {
 	case scheduler.FieldNameInWorker:
 		return m.NameInWorker()
+	case scheduler.FieldIsActive:
+		return m.IsActive()
+	case scheduler.FieldIsDefault:
+		return m.IsDefault()
 	case scheduler.FieldCreatedAt:
 		return m.CreatedAt()
 	case scheduler.FieldUpdatedAt:
@@ -9523,6 +9715,10 @@ func (m *SchedulerMutation) OldField(ctx context.Context, name string) (ent.Valu
 	switch name {
 	case scheduler.FieldNameInWorker:
 		return m.OldNameInWorker(ctx)
+	case scheduler.FieldIsActive:
+		return m.OldIsActive(ctx)
+	case scheduler.FieldIsDefault:
+		return m.OldIsDefault(ctx)
 	case scheduler.FieldCreatedAt:
 		return m.OldCreatedAt(ctx)
 	case scheduler.FieldUpdatedAt:
@@ -9542,6 +9738,20 @@ func (m *SchedulerMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetNameInWorker(v)
+		return nil
+	case scheduler.FieldIsActive:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetIsActive(v)
+		return nil
+	case scheduler.FieldIsDefault:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetIsDefault(v)
 		return nil
 	case scheduler.FieldCreatedAt:
 		v, ok := value.(time.Time)
@@ -9608,6 +9818,12 @@ func (m *SchedulerMutation) ResetField(name string) error {
 	switch name {
 	case scheduler.FieldNameInWorker:
 		m.ResetNameInWorker()
+		return nil
+	case scheduler.FieldIsActive:
+		m.ResetIsActive()
+		return nil
+	case scheduler.FieldIsDefault:
+		m.ResetIsDefault()
 		return nil
 	case scheduler.FieldCreatedAt:
 		m.ResetCreatedAt()
@@ -11370,6 +11586,8 @@ type UpscaleModelMutation struct {
 	typ             string
 	id              *uuid.UUID
 	name_in_worker  *string
+	is_active       *bool
+	is_default      *bool
 	created_at      *time.Time
 	updated_at      *time.Time
 	clearedFields   map[string]struct{}
@@ -11519,6 +11737,78 @@ func (m *UpscaleModelMutation) OldNameInWorker(ctx context.Context) (v string, e
 // ResetNameInWorker resets all changes to the "name_in_worker" field.
 func (m *UpscaleModelMutation) ResetNameInWorker() {
 	m.name_in_worker = nil
+}
+
+// SetIsActive sets the "is_active" field.
+func (m *UpscaleModelMutation) SetIsActive(b bool) {
+	m.is_active = &b
+}
+
+// IsActive returns the value of the "is_active" field in the mutation.
+func (m *UpscaleModelMutation) IsActive() (r bool, exists bool) {
+	v := m.is_active
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldIsActive returns the old "is_active" field's value of the UpscaleModel entity.
+// If the UpscaleModel object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UpscaleModelMutation) OldIsActive(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldIsActive is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldIsActive requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldIsActive: %w", err)
+	}
+	return oldValue.IsActive, nil
+}
+
+// ResetIsActive resets all changes to the "is_active" field.
+func (m *UpscaleModelMutation) ResetIsActive() {
+	m.is_active = nil
+}
+
+// SetIsDefault sets the "is_default" field.
+func (m *UpscaleModelMutation) SetIsDefault(b bool) {
+	m.is_default = &b
+}
+
+// IsDefault returns the value of the "is_default" field in the mutation.
+func (m *UpscaleModelMutation) IsDefault() (r bool, exists bool) {
+	v := m.is_default
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldIsDefault returns the old "is_default" field's value of the UpscaleModel entity.
+// If the UpscaleModel object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UpscaleModelMutation) OldIsDefault(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldIsDefault is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldIsDefault requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldIsDefault: %w", err)
+	}
+	return oldValue.IsDefault, nil
+}
+
+// ResetIsDefault resets all changes to the "is_default" field.
+func (m *UpscaleModelMutation) ResetIsDefault() {
+	m.is_default = nil
 }
 
 // SetCreatedAt sets the "created_at" field.
@@ -11681,9 +11971,15 @@ func (m *UpscaleModelMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *UpscaleModelMutation) Fields() []string {
-	fields := make([]string, 0, 3)
+	fields := make([]string, 0, 5)
 	if m.name_in_worker != nil {
 		fields = append(fields, upscalemodel.FieldNameInWorker)
+	}
+	if m.is_active != nil {
+		fields = append(fields, upscalemodel.FieldIsActive)
+	}
+	if m.is_default != nil {
+		fields = append(fields, upscalemodel.FieldIsDefault)
 	}
 	if m.created_at != nil {
 		fields = append(fields, upscalemodel.FieldCreatedAt)
@@ -11701,6 +11997,10 @@ func (m *UpscaleModelMutation) Field(name string) (ent.Value, bool) {
 	switch name {
 	case upscalemodel.FieldNameInWorker:
 		return m.NameInWorker()
+	case upscalemodel.FieldIsActive:
+		return m.IsActive()
+	case upscalemodel.FieldIsDefault:
+		return m.IsDefault()
 	case upscalemodel.FieldCreatedAt:
 		return m.CreatedAt()
 	case upscalemodel.FieldUpdatedAt:
@@ -11716,6 +12016,10 @@ func (m *UpscaleModelMutation) OldField(ctx context.Context, name string) (ent.V
 	switch name {
 	case upscalemodel.FieldNameInWorker:
 		return m.OldNameInWorker(ctx)
+	case upscalemodel.FieldIsActive:
+		return m.OldIsActive(ctx)
+	case upscalemodel.FieldIsDefault:
+		return m.OldIsDefault(ctx)
 	case upscalemodel.FieldCreatedAt:
 		return m.OldCreatedAt(ctx)
 	case upscalemodel.FieldUpdatedAt:
@@ -11735,6 +12039,20 @@ func (m *UpscaleModelMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetNameInWorker(v)
+		return nil
+	case upscalemodel.FieldIsActive:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetIsActive(v)
+		return nil
+	case upscalemodel.FieldIsDefault:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetIsDefault(v)
 		return nil
 	case upscalemodel.FieldCreatedAt:
 		v, ok := value.(time.Time)
@@ -11801,6 +12119,12 @@ func (m *UpscaleModelMutation) ResetField(name string) error {
 	switch name {
 	case upscalemodel.FieldNameInWorker:
 		m.ResetNameInWorker()
+		return nil
+	case upscalemodel.FieldIsActive:
+		m.ResetIsActive()
+		return nil
+	case upscalemodel.FieldIsDefault:
+		m.ResetIsDefault()
 		return nil
 	case upscalemodel.FieldCreatedAt:
 		m.ResetCreatedAt()

@@ -28,6 +28,34 @@ func (sc *SchedulerCreate) SetNameInWorker(s string) *SchedulerCreate {
 	return sc
 }
 
+// SetIsActive sets the "is_active" field.
+func (sc *SchedulerCreate) SetIsActive(b bool) *SchedulerCreate {
+	sc.mutation.SetIsActive(b)
+	return sc
+}
+
+// SetNillableIsActive sets the "is_active" field if the given value is not nil.
+func (sc *SchedulerCreate) SetNillableIsActive(b *bool) *SchedulerCreate {
+	if b != nil {
+		sc.SetIsActive(*b)
+	}
+	return sc
+}
+
+// SetIsDefault sets the "is_default" field.
+func (sc *SchedulerCreate) SetIsDefault(b bool) *SchedulerCreate {
+	sc.mutation.SetIsDefault(b)
+	return sc
+}
+
+// SetNillableIsDefault sets the "is_default" field if the given value is not nil.
+func (sc *SchedulerCreate) SetNillableIsDefault(b *bool) *SchedulerCreate {
+	if b != nil {
+		sc.SetIsDefault(*b)
+	}
+	return sc
+}
+
 // SetCreatedAt sets the "created_at" field.
 func (sc *SchedulerCreate) SetCreatedAt(t time.Time) *SchedulerCreate {
 	sc.mutation.SetCreatedAt(t)
@@ -120,6 +148,14 @@ func (sc *SchedulerCreate) ExecX(ctx context.Context) {
 
 // defaults sets the default values of the builder before save.
 func (sc *SchedulerCreate) defaults() {
+	if _, ok := sc.mutation.IsActive(); !ok {
+		v := scheduler.DefaultIsActive
+		sc.mutation.SetIsActive(v)
+	}
+	if _, ok := sc.mutation.IsDefault(); !ok {
+		v := scheduler.DefaultIsDefault
+		sc.mutation.SetIsDefault(v)
+	}
 	if _, ok := sc.mutation.CreatedAt(); !ok {
 		v := scheduler.DefaultCreatedAt()
 		sc.mutation.SetCreatedAt(v)
@@ -138,6 +174,12 @@ func (sc *SchedulerCreate) defaults() {
 func (sc *SchedulerCreate) check() error {
 	if _, ok := sc.mutation.NameInWorker(); !ok {
 		return &ValidationError{Name: "name_in_worker", err: errors.New(`ent: missing required field "Scheduler.name_in_worker"`)}
+	}
+	if _, ok := sc.mutation.IsActive(); !ok {
+		return &ValidationError{Name: "is_active", err: errors.New(`ent: missing required field "Scheduler.is_active"`)}
+	}
+	if _, ok := sc.mutation.IsDefault(); !ok {
+		return &ValidationError{Name: "is_default", err: errors.New(`ent: missing required field "Scheduler.is_default"`)}
 	}
 	if _, ok := sc.mutation.CreatedAt(); !ok {
 		return &ValidationError{Name: "created_at", err: errors.New(`ent: missing required field "Scheduler.created_at"`)}
@@ -189,6 +231,14 @@ func (sc *SchedulerCreate) createSpec() (*Scheduler, *sqlgraph.CreateSpec) {
 	if value, ok := sc.mutation.NameInWorker(); ok {
 		_spec.SetField(scheduler.FieldNameInWorker, field.TypeString, value)
 		_node.NameInWorker = value
+	}
+	if value, ok := sc.mutation.IsActive(); ok {
+		_spec.SetField(scheduler.FieldIsActive, field.TypeBool, value)
+		_node.IsActive = value
+	}
+	if value, ok := sc.mutation.IsDefault(); ok {
+		_spec.SetField(scheduler.FieldIsDefault, field.TypeBool, value)
+		_node.IsDefault = value
 	}
 	if value, ok := sc.mutation.CreatedAt(); ok {
 		_spec.SetField(scheduler.FieldCreatedAt, field.TypeTime, value)

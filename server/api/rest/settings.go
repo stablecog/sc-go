@@ -6,31 +6,41 @@ import (
 	"github.com/go-chi/render"
 	"github.com/stablecog/sc-go/server/responses"
 	"github.com/stablecog/sc-go/shared"
+	"github.com/stablecog/sc-go/utils"
 )
 
 func (c *RestAPI) HandleGetSettings(w http.ResponseWriter, r *http.Request) {
 	cache := shared.GetCache()
 
-	generationModels := make([]responses.SettingsResponseItem, len(cache.GenerateModels))
-	upscaleModels := make([]responses.SettingsResponseItem, len(cache.UpscaleModels))
-	schedulers := make([]responses.SettingsResponseItem, len(cache.Schedulers))
+	var generationModels []responses.SettingsResponseItem
+	var upscaleModels []responses.SettingsResponseItem
+	var schedulers []responses.SettingsResponseItem
 
-	for i, model := range cache.GenerateModels {
-		generationModels[i] = responses.SettingsResponseItem{
-			ID:   model.ID,
-			Name: model.NameInWorker,
+	for _, model := range cache.GenerateModels {
+		if model.IsActive {
+			generationModels = append(generationModels, responses.SettingsResponseItem{
+				ID:      model.ID,
+				Name:    model.NameInWorker,
+				Default: utils.ToPtr(model.IsDefault),
+			})
 		}
 	}
-	for i, model := range cache.UpscaleModels {
-		upscaleModels[i] = responses.SettingsResponseItem{
-			ID:   model.ID,
-			Name: model.NameInWorker,
+	for _, model := range cache.UpscaleModels {
+		if model.IsActive {
+			upscaleModels = append(upscaleModels, responses.SettingsResponseItem{
+				ID:      model.ID,
+				Name:    model.NameInWorker,
+				Default: utils.ToPtr(model.IsDefault),
+			})
 		}
 	}
-	for i, scheduler := range cache.Schedulers {
-		schedulers[i] = responses.SettingsResponseItem{
-			ID:   scheduler.ID,
-			Name: scheduler.NameInWorker,
+	for _, scheduler := range cache.Schedulers {
+		if scheduler.IsActive {
+			schedulers = append(schedulers, responses.SettingsResponseItem{
+				ID:      scheduler.ID,
+				Name:    scheduler.NameInWorker,
+				Default: utils.ToPtr(scheduler.IsDefault),
+			})
 		}
 	}
 

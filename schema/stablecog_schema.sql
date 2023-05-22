@@ -145,6 +145,8 @@ ALTER TABLE public.device_info OWNER TO postgres;
 CREATE TABLE public.generation_models (
     id uuid DEFAULT extensions.uuid_generate_v4() NOT NULL,
     name_in_worker text NOT NULL,
+    is_active boolean DEFAULT true NOT NULL,
+    is_default boolean DEFAULT false NOT NULL,
     created_at timestamp with time zone DEFAULT (now() AT TIME ZONE 'utc'::text) NOT NULL,
     updated_at timestamp with time zone DEFAULT (now() AT TIME ZONE 'utc'::text) NOT NULL
 );
@@ -260,6 +262,8 @@ ALTER TABLE public.prompts OWNER TO postgres;
 CREATE TABLE public.schedulers (
     id uuid DEFAULT extensions.uuid_generate_v4() NOT NULL,
     name_in_worker text NOT NULL,
+    is_active boolean DEFAULT true NOT NULL,
+    is_default boolean DEFAULT false NOT NULL,
     created_at timestamp with time zone DEFAULT (now() AT TIME ZONE 'utc'::text) NOT NULL,
     updated_at timestamp with time zone DEFAULT (now() AT TIME ZONE 'utc'::text) NOT NULL
 );
@@ -277,6 +281,8 @@ ALTER TABLE public.schedulers OWNER TO postgres;
 CREATE TABLE public.upscale_models (
     id uuid DEFAULT extensions.uuid_generate_v4() NOT NULL,
     name_in_worker text NOT NULL,
+    is_active boolean DEFAULT true NOT NULL,
+    is_default boolean DEFAULT false NOT NULL,
     created_at timestamp with time zone DEFAULT (now() AT TIME ZONE 'utc'::text) NOT NULL,
     updated_at timestamp with time zone DEFAULT (now() AT TIME ZONE 'utc'::text) NOT NULL
 );

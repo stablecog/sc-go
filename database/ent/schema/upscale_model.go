@@ -21,6 +21,8 @@ func (UpscaleModel) Fields() []ent.Field {
 	return []ent.Field{
 		field.UUID("id", uuid.UUID{}).Default(uuid.New),
 		field.Text("name_in_worker"),
+		field.Bool("is_active").Default(true),
+		field.Bool("is_default").Default(false),
 		field.Time("created_at").Default(time.Now).Immutable(),
 		field.Time("updated_at").Default(time.Now).UpdateDefault(time.Now),
 	}
