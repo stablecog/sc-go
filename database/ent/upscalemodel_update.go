@@ -65,6 +65,20 @@ func (umu *UpscaleModelUpdate) SetNillableIsDefault(b *bool) *UpscaleModelUpdate
 	return umu
 }
 
+// SetIsHidden sets the "is_hidden" field.
+func (umu *UpscaleModelUpdate) SetIsHidden(b bool) *UpscaleModelUpdate {
+	umu.mutation.SetIsHidden(b)
+	return umu
+}
+
+// SetNillableIsHidden sets the "is_hidden" field if the given value is not nil.
+func (umu *UpscaleModelUpdate) SetNillableIsHidden(b *bool) *UpscaleModelUpdate {
+	if b != nil {
+		umu.SetIsHidden(*b)
+	}
+	return umu
+}
+
 // SetUpdatedAt sets the "updated_at" field.
 func (umu *UpscaleModelUpdate) SetUpdatedAt(t time.Time) *UpscaleModelUpdate {
 	umu.mutation.SetUpdatedAt(t)
@@ -181,6 +195,9 @@ func (umu *UpscaleModelUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if value, ok := umu.mutation.IsDefault(); ok {
 		_spec.SetField(upscalemodel.FieldIsDefault, field.TypeBool, value)
 	}
+	if value, ok := umu.mutation.IsHidden(); ok {
+		_spec.SetField(upscalemodel.FieldIsHidden, field.TypeBool, value)
+	}
 	if value, ok := umu.mutation.UpdatedAt(); ok {
 		_spec.SetField(upscalemodel.FieldUpdatedAt, field.TypeTime, value)
 	}
@@ -290,6 +307,20 @@ func (umuo *UpscaleModelUpdateOne) SetIsDefault(b bool) *UpscaleModelUpdateOne {
 func (umuo *UpscaleModelUpdateOne) SetNillableIsDefault(b *bool) *UpscaleModelUpdateOne {
 	if b != nil {
 		umuo.SetIsDefault(*b)
+	}
+	return umuo
+}
+
+// SetIsHidden sets the "is_hidden" field.
+func (umuo *UpscaleModelUpdateOne) SetIsHidden(b bool) *UpscaleModelUpdateOne {
+	umuo.mutation.SetIsHidden(b)
+	return umuo
+}
+
+// SetNillableIsHidden sets the "is_hidden" field if the given value is not nil.
+func (umuo *UpscaleModelUpdateOne) SetNillableIsHidden(b *bool) *UpscaleModelUpdateOne {
+	if b != nil {
+		umuo.SetIsHidden(*b)
 	}
 	return umuo
 }
@@ -433,6 +464,9 @@ func (umuo *UpscaleModelUpdateOne) sqlSave(ctx context.Context) (_node *UpscaleM
 	}
 	if value, ok := umuo.mutation.IsDefault(); ok {
 		_spec.SetField(upscalemodel.FieldIsDefault, field.TypeBool, value)
+	}
+	if value, ok := umuo.mutation.IsHidden(); ok {
+		_spec.SetField(upscalemodel.FieldIsHidden, field.TypeBool, value)
 	}
 	if value, ok := umuo.mutation.UpdatedAt(); ok {
 		_spec.SetField(upscalemodel.FieldUpdatedAt, field.TypeTime, value)

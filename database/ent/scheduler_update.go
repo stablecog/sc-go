@@ -65,6 +65,20 @@ func (su *SchedulerUpdate) SetNillableIsDefault(b *bool) *SchedulerUpdate {
 	return su
 }
 
+// SetIsHidden sets the "is_hidden" field.
+func (su *SchedulerUpdate) SetIsHidden(b bool) *SchedulerUpdate {
+	su.mutation.SetIsHidden(b)
+	return su
+}
+
+// SetNillableIsHidden sets the "is_hidden" field if the given value is not nil.
+func (su *SchedulerUpdate) SetNillableIsHidden(b *bool) *SchedulerUpdate {
+	if b != nil {
+		su.SetIsHidden(*b)
+	}
+	return su
+}
+
 // SetUpdatedAt sets the "updated_at" field.
 func (su *SchedulerUpdate) SetUpdatedAt(t time.Time) *SchedulerUpdate {
 	su.mutation.SetUpdatedAt(t)
@@ -181,6 +195,9 @@ func (su *SchedulerUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if value, ok := su.mutation.IsDefault(); ok {
 		_spec.SetField(scheduler.FieldIsDefault, field.TypeBool, value)
 	}
+	if value, ok := su.mutation.IsHidden(); ok {
+		_spec.SetField(scheduler.FieldIsHidden, field.TypeBool, value)
+	}
 	if value, ok := su.mutation.UpdatedAt(); ok {
 		_spec.SetField(scheduler.FieldUpdatedAt, field.TypeTime, value)
 	}
@@ -290,6 +307,20 @@ func (suo *SchedulerUpdateOne) SetIsDefault(b bool) *SchedulerUpdateOne {
 func (suo *SchedulerUpdateOne) SetNillableIsDefault(b *bool) *SchedulerUpdateOne {
 	if b != nil {
 		suo.SetIsDefault(*b)
+	}
+	return suo
+}
+
+// SetIsHidden sets the "is_hidden" field.
+func (suo *SchedulerUpdateOne) SetIsHidden(b bool) *SchedulerUpdateOne {
+	suo.mutation.SetIsHidden(b)
+	return suo
+}
+
+// SetNillableIsHidden sets the "is_hidden" field if the given value is not nil.
+func (suo *SchedulerUpdateOne) SetNillableIsHidden(b *bool) *SchedulerUpdateOne {
+	if b != nil {
+		suo.SetIsHidden(*b)
 	}
 	return suo
 }
@@ -433,6 +464,9 @@ func (suo *SchedulerUpdateOne) sqlSave(ctx context.Context) (_node *Scheduler, e
 	}
 	if value, ok := suo.mutation.IsDefault(); ok {
 		_spec.SetField(scheduler.FieldIsDefault, field.TypeBool, value)
+	}
+	if value, ok := suo.mutation.IsHidden(); ok {
+		_spec.SetField(scheduler.FieldIsHidden, field.TypeBool, value)
 	}
 	if value, ok := suo.mutation.UpdatedAt(); ok {
 		_spec.SetField(scheduler.FieldUpdatedAt, field.TypeTime, value)

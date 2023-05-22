@@ -147,6 +147,7 @@ CREATE TABLE public.generation_models (
     name_in_worker text NOT NULL,
     is_active boolean DEFAULT true NOT NULL,
     is_default boolean DEFAULT false NOT NULL,
+    is_hidden boolean DEFAULT false NOT NULL,
     created_at timestamp with time zone DEFAULT (now() AT TIME ZONE 'utc'::text) NOT NULL,
     updated_at timestamp with time zone DEFAULT (now() AT TIME ZONE 'utc'::text) NOT NULL
 );
@@ -264,6 +265,7 @@ CREATE TABLE public.schedulers (
     name_in_worker text NOT NULL,
     is_active boolean DEFAULT true NOT NULL,
     is_default boolean DEFAULT false NOT NULL,
+    is_hidden boolean DEFAULT false NOT NULL,
     created_at timestamp with time zone DEFAULT (now() AT TIME ZONE 'utc'::text) NOT NULL,
     updated_at timestamp with time zone DEFAULT (now() AT TIME ZONE 'utc'::text) NOT NULL
 );
@@ -283,6 +285,7 @@ CREATE TABLE public.upscale_models (
     name_in_worker text NOT NULL,
     is_active boolean DEFAULT true NOT NULL,
     is_default boolean DEFAULT false NOT NULL,
+    is_hidden boolean DEFAULT false NOT NULL,
     created_at timestamp with time zone DEFAULT (now() AT TIME ZONE 'utc'::text) NOT NULL,
     updated_at timestamp with time zone DEFAULT (now() AT TIME ZONE 'utc'::text) NOT NULL
 );

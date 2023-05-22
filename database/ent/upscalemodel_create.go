@@ -56,6 +56,20 @@ func (umc *UpscaleModelCreate) SetNillableIsDefault(b *bool) *UpscaleModelCreate
 	return umc
 }
 
+// SetIsHidden sets the "is_hidden" field.
+func (umc *UpscaleModelCreate) SetIsHidden(b bool) *UpscaleModelCreate {
+	umc.mutation.SetIsHidden(b)
+	return umc
+}
+
+// SetNillableIsHidden sets the "is_hidden" field if the given value is not nil.
+func (umc *UpscaleModelCreate) SetNillableIsHidden(b *bool) *UpscaleModelCreate {
+	if b != nil {
+		umc.SetIsHidden(*b)
+	}
+	return umc
+}
+
 // SetCreatedAt sets the "created_at" field.
 func (umc *UpscaleModelCreate) SetCreatedAt(t time.Time) *UpscaleModelCreate {
 	umc.mutation.SetCreatedAt(t)
@@ -156,6 +170,10 @@ func (umc *UpscaleModelCreate) defaults() {
 		v := upscalemodel.DefaultIsDefault
 		umc.mutation.SetIsDefault(v)
 	}
+	if _, ok := umc.mutation.IsHidden(); !ok {
+		v := upscalemodel.DefaultIsHidden
+		umc.mutation.SetIsHidden(v)
+	}
 	if _, ok := umc.mutation.CreatedAt(); !ok {
 		v := upscalemodel.DefaultCreatedAt()
 		umc.mutation.SetCreatedAt(v)
@@ -180,6 +198,9 @@ func (umc *UpscaleModelCreate) check() error {
 	}
 	if _, ok := umc.mutation.IsDefault(); !ok {
 		return &ValidationError{Name: "is_default", err: errors.New(`ent: missing required field "UpscaleModel.is_default"`)}
+	}
+	if _, ok := umc.mutation.IsHidden(); !ok {
+		return &ValidationError{Name: "is_hidden", err: errors.New(`ent: missing required field "UpscaleModel.is_hidden"`)}
 	}
 	if _, ok := umc.mutation.CreatedAt(); !ok {
 		return &ValidationError{Name: "created_at", err: errors.New(`ent: missing required field "UpscaleModel.created_at"`)}
@@ -239,6 +260,10 @@ func (umc *UpscaleModelCreate) createSpec() (*UpscaleModel, *sqlgraph.CreateSpec
 	if value, ok := umc.mutation.IsDefault(); ok {
 		_spec.SetField(upscalemodel.FieldIsDefault, field.TypeBool, value)
 		_node.IsDefault = value
+	}
+	if value, ok := umc.mutation.IsHidden(); ok {
+		_spec.SetField(upscalemodel.FieldIsHidden, field.TypeBool, value)
+		_node.IsHidden = value
 	}
 	if value, ok := umc.mutation.CreatedAt(); ok {
 		_spec.SetField(upscalemodel.FieldCreatedAt, field.TypeTime, value)

@@ -6650,6 +6650,7 @@ type GenerationModelMutation struct {
 	name_in_worker     *string
 	is_active          *bool
 	is_default         *bool
+	is_hidden          *bool
 	created_at         *time.Time
 	updated_at         *time.Time
 	clearedFields      map[string]struct{}
@@ -6873,6 +6874,42 @@ func (m *GenerationModelMutation) ResetIsDefault() {
 	m.is_default = nil
 }
 
+// SetIsHidden sets the "is_hidden" field.
+func (m *GenerationModelMutation) SetIsHidden(b bool) {
+	m.is_hidden = &b
+}
+
+// IsHidden returns the value of the "is_hidden" field in the mutation.
+func (m *GenerationModelMutation) IsHidden() (r bool, exists bool) {
+	v := m.is_hidden
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldIsHidden returns the old "is_hidden" field's value of the GenerationModel entity.
+// If the GenerationModel object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *GenerationModelMutation) OldIsHidden(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldIsHidden is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldIsHidden requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldIsHidden: %w", err)
+	}
+	return oldValue.IsHidden, nil
+}
+
+// ResetIsHidden resets all changes to the "is_hidden" field.
+func (m *GenerationModelMutation) ResetIsHidden() {
+	m.is_hidden = nil
+}
+
 // SetCreatedAt sets the "created_at" field.
 func (m *GenerationModelMutation) SetCreatedAt(t time.Time) {
 	m.created_at = &t
@@ -7033,7 +7070,7 @@ func (m *GenerationModelMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *GenerationModelMutation) Fields() []string {
-	fields := make([]string, 0, 5)
+	fields := make([]string, 0, 6)
 	if m.name_in_worker != nil {
 		fields = append(fields, generationmodel.FieldNameInWorker)
 	}
@@ -7042,6 +7079,9 @@ func (m *GenerationModelMutation) Fields() []string {
 	}
 	if m.is_default != nil {
 		fields = append(fields, generationmodel.FieldIsDefault)
+	}
+	if m.is_hidden != nil {
+		fields = append(fields, generationmodel.FieldIsHidden)
 	}
 	if m.created_at != nil {
 		fields = append(fields, generationmodel.FieldCreatedAt)
@@ -7063,6 +7103,8 @@ func (m *GenerationModelMutation) Field(name string) (ent.Value, bool) {
 		return m.IsActive()
 	case generationmodel.FieldIsDefault:
 		return m.IsDefault()
+	case generationmodel.FieldIsHidden:
+		return m.IsHidden()
 	case generationmodel.FieldCreatedAt:
 		return m.CreatedAt()
 	case generationmodel.FieldUpdatedAt:
@@ -7082,6 +7124,8 @@ func (m *GenerationModelMutation) OldField(ctx context.Context, name string) (en
 		return m.OldIsActive(ctx)
 	case generationmodel.FieldIsDefault:
 		return m.OldIsDefault(ctx)
+	case generationmodel.FieldIsHidden:
+		return m.OldIsHidden(ctx)
 	case generationmodel.FieldCreatedAt:
 		return m.OldCreatedAt(ctx)
 	case generationmodel.FieldUpdatedAt:
@@ -7115,6 +7159,13 @@ func (m *GenerationModelMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetIsDefault(v)
+		return nil
+	case generationmodel.FieldIsHidden:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetIsHidden(v)
 		return nil
 	case generationmodel.FieldCreatedAt:
 		v, ok := value.(time.Time)
@@ -7187,6 +7238,9 @@ func (m *GenerationModelMutation) ResetField(name string) error {
 		return nil
 	case generationmodel.FieldIsDefault:
 		m.ResetIsDefault()
+		return nil
+	case generationmodel.FieldIsHidden:
+		m.ResetIsHidden()
 		return nil
 	case generationmodel.FieldCreatedAt:
 		m.ResetCreatedAt()
@@ -9287,6 +9341,7 @@ type SchedulerMutation struct {
 	name_in_worker     *string
 	is_active          *bool
 	is_default         *bool
+	is_hidden          *bool
 	created_at         *time.Time
 	updated_at         *time.Time
 	clearedFields      map[string]struct{}
@@ -9510,6 +9565,42 @@ func (m *SchedulerMutation) ResetIsDefault() {
 	m.is_default = nil
 }
 
+// SetIsHidden sets the "is_hidden" field.
+func (m *SchedulerMutation) SetIsHidden(b bool) {
+	m.is_hidden = &b
+}
+
+// IsHidden returns the value of the "is_hidden" field in the mutation.
+func (m *SchedulerMutation) IsHidden() (r bool, exists bool) {
+	v := m.is_hidden
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldIsHidden returns the old "is_hidden" field's value of the Scheduler entity.
+// If the Scheduler object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SchedulerMutation) OldIsHidden(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldIsHidden is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldIsHidden requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldIsHidden: %w", err)
+	}
+	return oldValue.IsHidden, nil
+}
+
+// ResetIsHidden resets all changes to the "is_hidden" field.
+func (m *SchedulerMutation) ResetIsHidden() {
+	m.is_hidden = nil
+}
+
 // SetCreatedAt sets the "created_at" field.
 func (m *SchedulerMutation) SetCreatedAt(t time.Time) {
 	m.created_at = &t
@@ -9670,7 +9761,7 @@ func (m *SchedulerMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *SchedulerMutation) Fields() []string {
-	fields := make([]string, 0, 5)
+	fields := make([]string, 0, 6)
 	if m.name_in_worker != nil {
 		fields = append(fields, scheduler.FieldNameInWorker)
 	}
@@ -9679,6 +9770,9 @@ func (m *SchedulerMutation) Fields() []string {
 	}
 	if m.is_default != nil {
 		fields = append(fields, scheduler.FieldIsDefault)
+	}
+	if m.is_hidden != nil {
+		fields = append(fields, scheduler.FieldIsHidden)
 	}
 	if m.created_at != nil {
 		fields = append(fields, scheduler.FieldCreatedAt)
@@ -9700,6 +9794,8 @@ func (m *SchedulerMutation) Field(name string) (ent.Value, bool) {
 		return m.IsActive()
 	case scheduler.FieldIsDefault:
 		return m.IsDefault()
+	case scheduler.FieldIsHidden:
+		return m.IsHidden()
 	case scheduler.FieldCreatedAt:
 		return m.CreatedAt()
 	case scheduler.FieldUpdatedAt:
@@ -9719,6 +9815,8 @@ func (m *SchedulerMutation) OldField(ctx context.Context, name string) (ent.Valu
 		return m.OldIsActive(ctx)
 	case scheduler.FieldIsDefault:
 		return m.OldIsDefault(ctx)
+	case scheduler.FieldIsHidden:
+		return m.OldIsHidden(ctx)
 	case scheduler.FieldCreatedAt:
 		return m.OldCreatedAt(ctx)
 	case scheduler.FieldUpdatedAt:
@@ -9752,6 +9850,13 @@ func (m *SchedulerMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetIsDefault(v)
+		return nil
+	case scheduler.FieldIsHidden:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetIsHidden(v)
 		return nil
 	case scheduler.FieldCreatedAt:
 		v, ok := value.(time.Time)
@@ -9824,6 +9929,9 @@ func (m *SchedulerMutation) ResetField(name string) error {
 		return nil
 	case scheduler.FieldIsDefault:
 		m.ResetIsDefault()
+		return nil
+	case scheduler.FieldIsHidden:
+		m.ResetIsHidden()
 		return nil
 	case scheduler.FieldCreatedAt:
 		m.ResetCreatedAt()
@@ -11588,6 +11696,7 @@ type UpscaleModelMutation struct {
 	name_in_worker  *string
 	is_active       *bool
 	is_default      *bool
+	is_hidden       *bool
 	created_at      *time.Time
 	updated_at      *time.Time
 	clearedFields   map[string]struct{}
@@ -11811,6 +11920,42 @@ func (m *UpscaleModelMutation) ResetIsDefault() {
 	m.is_default = nil
 }
 
+// SetIsHidden sets the "is_hidden" field.
+func (m *UpscaleModelMutation) SetIsHidden(b bool) {
+	m.is_hidden = &b
+}
+
+// IsHidden returns the value of the "is_hidden" field in the mutation.
+func (m *UpscaleModelMutation) IsHidden() (r bool, exists bool) {
+	v := m.is_hidden
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldIsHidden returns the old "is_hidden" field's value of the UpscaleModel entity.
+// If the UpscaleModel object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UpscaleModelMutation) OldIsHidden(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldIsHidden is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldIsHidden requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldIsHidden: %w", err)
+	}
+	return oldValue.IsHidden, nil
+}
+
+// ResetIsHidden resets all changes to the "is_hidden" field.
+func (m *UpscaleModelMutation) ResetIsHidden() {
+	m.is_hidden = nil
+}
+
 // SetCreatedAt sets the "created_at" field.
 func (m *UpscaleModelMutation) SetCreatedAt(t time.Time) {
 	m.created_at = &t
@@ -11971,7 +12116,7 @@ func (m *UpscaleModelMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *UpscaleModelMutation) Fields() []string {
-	fields := make([]string, 0, 5)
+	fields := make([]string, 0, 6)
 	if m.name_in_worker != nil {
 		fields = append(fields, upscalemodel.FieldNameInWorker)
 	}
@@ -11980,6 +12125,9 @@ func (m *UpscaleModelMutation) Fields() []string {
 	}
 	if m.is_default != nil {
 		fields = append(fields, upscalemodel.FieldIsDefault)
+	}
+	if m.is_hidden != nil {
+		fields = append(fields, upscalemodel.FieldIsHidden)
 	}
 	if m.created_at != nil {
 		fields = append(fields, upscalemodel.FieldCreatedAt)
@@ -12001,6 +12149,8 @@ func (m *UpscaleModelMutation) Field(name string) (ent.Value, bool) {
 		return m.IsActive()
 	case upscalemodel.FieldIsDefault:
 		return m.IsDefault()
+	case upscalemodel.FieldIsHidden:
+		return m.IsHidden()
 	case upscalemodel.FieldCreatedAt:
 		return m.CreatedAt()
 	case upscalemodel.FieldUpdatedAt:
@@ -12020,6 +12170,8 @@ func (m *UpscaleModelMutation) OldField(ctx context.Context, name string) (ent.V
 		return m.OldIsActive(ctx)
 	case upscalemodel.FieldIsDefault:
 		return m.OldIsDefault(ctx)
+	case upscalemodel.FieldIsHidden:
+		return m.OldIsHidden(ctx)
 	case upscalemodel.FieldCreatedAt:
 		return m.OldCreatedAt(ctx)
 	case upscalemodel.FieldUpdatedAt:
@@ -12053,6 +12205,13 @@ func (m *UpscaleModelMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetIsDefault(v)
+		return nil
+	case upscalemodel.FieldIsHidden:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetIsHidden(v)
 		return nil
 	case upscalemodel.FieldCreatedAt:
 		v, ok := value.(time.Time)
@@ -12125,6 +12284,9 @@ func (m *UpscaleModelMutation) ResetField(name string) error {
 		return nil
 	case upscalemodel.FieldIsDefault:
 		m.ResetIsDefault()
+		return nil
+	case upscalemodel.FieldIsHidden:
+		m.ResetIsHidden()
 		return nil
 	case upscalemodel.FieldCreatedAt:
 		m.ResetCreatedAt()

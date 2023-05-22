@@ -65,6 +65,20 @@ func (gmu *GenerationModelUpdate) SetNillableIsDefault(b *bool) *GenerationModel
 	return gmu
 }
 
+// SetIsHidden sets the "is_hidden" field.
+func (gmu *GenerationModelUpdate) SetIsHidden(b bool) *GenerationModelUpdate {
+	gmu.mutation.SetIsHidden(b)
+	return gmu
+}
+
+// SetNillableIsHidden sets the "is_hidden" field if the given value is not nil.
+func (gmu *GenerationModelUpdate) SetNillableIsHidden(b *bool) *GenerationModelUpdate {
+	if b != nil {
+		gmu.SetIsHidden(*b)
+	}
+	return gmu
+}
+
 // SetUpdatedAt sets the "updated_at" field.
 func (gmu *GenerationModelUpdate) SetUpdatedAt(t time.Time) *GenerationModelUpdate {
 	gmu.mutation.SetUpdatedAt(t)
@@ -181,6 +195,9 @@ func (gmu *GenerationModelUpdate) sqlSave(ctx context.Context) (n int, err error
 	if value, ok := gmu.mutation.IsDefault(); ok {
 		_spec.SetField(generationmodel.FieldIsDefault, field.TypeBool, value)
 	}
+	if value, ok := gmu.mutation.IsHidden(); ok {
+		_spec.SetField(generationmodel.FieldIsHidden, field.TypeBool, value)
+	}
 	if value, ok := gmu.mutation.UpdatedAt(); ok {
 		_spec.SetField(generationmodel.FieldUpdatedAt, field.TypeTime, value)
 	}
@@ -290,6 +307,20 @@ func (gmuo *GenerationModelUpdateOne) SetIsDefault(b bool) *GenerationModelUpdat
 func (gmuo *GenerationModelUpdateOne) SetNillableIsDefault(b *bool) *GenerationModelUpdateOne {
 	if b != nil {
 		gmuo.SetIsDefault(*b)
+	}
+	return gmuo
+}
+
+// SetIsHidden sets the "is_hidden" field.
+func (gmuo *GenerationModelUpdateOne) SetIsHidden(b bool) *GenerationModelUpdateOne {
+	gmuo.mutation.SetIsHidden(b)
+	return gmuo
+}
+
+// SetNillableIsHidden sets the "is_hidden" field if the given value is not nil.
+func (gmuo *GenerationModelUpdateOne) SetNillableIsHidden(b *bool) *GenerationModelUpdateOne {
+	if b != nil {
+		gmuo.SetIsHidden(*b)
 	}
 	return gmuo
 }
@@ -433,6 +464,9 @@ func (gmuo *GenerationModelUpdateOne) sqlSave(ctx context.Context) (_node *Gener
 	}
 	if value, ok := gmuo.mutation.IsDefault(); ok {
 		_spec.SetField(generationmodel.FieldIsDefault, field.TypeBool, value)
+	}
+	if value, ok := gmuo.mutation.IsHidden(); ok {
+		_spec.SetField(generationmodel.FieldIsHidden, field.TypeBool, value)
 	}
 	if value, ok := gmuo.mutation.UpdatedAt(); ok {
 		_spec.SetField(generationmodel.FieldUpdatedAt, field.TypeTime, value)

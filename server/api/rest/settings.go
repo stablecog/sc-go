@@ -17,7 +17,7 @@ func (c *RestAPI) HandleGetSettings(w http.ResponseWriter, r *http.Request) {
 	var schedulers []responses.SettingsResponseItem
 
 	for _, model := range cache.GenerateModels {
-		if model.IsActive {
+		if model.IsActive && !model.IsHidden {
 			generationModels = append(generationModels, responses.SettingsResponseItem{
 				ID:      model.ID,
 				Name:    model.NameInWorker,
@@ -26,7 +26,7 @@ func (c *RestAPI) HandleGetSettings(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	for _, model := range cache.UpscaleModels {
-		if model.IsActive {
+		if model.IsActive && !model.IsHidden {
 			upscaleModels = append(upscaleModels, responses.SettingsResponseItem{
 				ID:      model.ID,
 				Name:    model.NameInWorker,
@@ -35,7 +35,7 @@ func (c *RestAPI) HandleGetSettings(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	for _, scheduler := range cache.Schedulers {
-		if scheduler.IsActive {
+		if scheduler.IsActive && !scheduler.IsHidden {
 			schedulers = append(schedulers, responses.SettingsResponseItem{
 				ID:      scheduler.ID,
 				Name:    scheduler.NameInWorker,

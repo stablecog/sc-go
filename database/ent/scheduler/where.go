@@ -71,6 +71,11 @@ func IsDefault(v bool) predicate.Scheduler {
 	return predicate.Scheduler(sql.FieldEQ(FieldIsDefault, v))
 }
 
+// IsHidden applies equality check predicate on the "is_hidden" field. It's identical to IsHiddenEQ.
+func IsHidden(v bool) predicate.Scheduler {
+	return predicate.Scheduler(sql.FieldEQ(FieldIsHidden, v))
+}
+
 // CreatedAt applies equality check predicate on the "created_at" field. It's identical to CreatedAtEQ.
 func CreatedAt(v time.Time) predicate.Scheduler {
 	return predicate.Scheduler(sql.FieldEQ(FieldCreatedAt, v))
@@ -164,6 +169,16 @@ func IsDefaultEQ(v bool) predicate.Scheduler {
 // IsDefaultNEQ applies the NEQ predicate on the "is_default" field.
 func IsDefaultNEQ(v bool) predicate.Scheduler {
 	return predicate.Scheduler(sql.FieldNEQ(FieldIsDefault, v))
+}
+
+// IsHiddenEQ applies the EQ predicate on the "is_hidden" field.
+func IsHiddenEQ(v bool) predicate.Scheduler {
+	return predicate.Scheduler(sql.FieldEQ(FieldIsHidden, v))
+}
+
+// IsHiddenNEQ applies the NEQ predicate on the "is_hidden" field.
+func IsHiddenNEQ(v bool) predicate.Scheduler {
+	return predicate.Scheduler(sql.FieldNEQ(FieldIsHidden, v))
 }
 
 // CreatedAtEQ applies the EQ predicate on the "created_at" field.

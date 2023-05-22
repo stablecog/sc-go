@@ -56,6 +56,20 @@ func (sc *SchedulerCreate) SetNillableIsDefault(b *bool) *SchedulerCreate {
 	return sc
 }
 
+// SetIsHidden sets the "is_hidden" field.
+func (sc *SchedulerCreate) SetIsHidden(b bool) *SchedulerCreate {
+	sc.mutation.SetIsHidden(b)
+	return sc
+}
+
+// SetNillableIsHidden sets the "is_hidden" field if the given value is not nil.
+func (sc *SchedulerCreate) SetNillableIsHidden(b *bool) *SchedulerCreate {
+	if b != nil {
+		sc.SetIsHidden(*b)
+	}
+	return sc
+}
+
 // SetCreatedAt sets the "created_at" field.
 func (sc *SchedulerCreate) SetCreatedAt(t time.Time) *SchedulerCreate {
 	sc.mutation.SetCreatedAt(t)
@@ -156,6 +170,10 @@ func (sc *SchedulerCreate) defaults() {
 		v := scheduler.DefaultIsDefault
 		sc.mutation.SetIsDefault(v)
 	}
+	if _, ok := sc.mutation.IsHidden(); !ok {
+		v := scheduler.DefaultIsHidden
+		sc.mutation.SetIsHidden(v)
+	}
 	if _, ok := sc.mutation.CreatedAt(); !ok {
 		v := scheduler.DefaultCreatedAt()
 		sc.mutation.SetCreatedAt(v)
@@ -180,6 +198,9 @@ func (sc *SchedulerCreate) check() error {
 	}
 	if _, ok := sc.mutation.IsDefault(); !ok {
 		return &ValidationError{Name: "is_default", err: errors.New(`ent: missing required field "Scheduler.is_default"`)}
+	}
+	if _, ok := sc.mutation.IsHidden(); !ok {
+		return &ValidationError{Name: "is_hidden", err: errors.New(`ent: missing required field "Scheduler.is_hidden"`)}
 	}
 	if _, ok := sc.mutation.CreatedAt(); !ok {
 		return &ValidationError{Name: "created_at", err: errors.New(`ent: missing required field "Scheduler.created_at"`)}
@@ -239,6 +260,10 @@ func (sc *SchedulerCreate) createSpec() (*Scheduler, *sqlgraph.CreateSpec) {
 	if value, ok := sc.mutation.IsDefault(); ok {
 		_spec.SetField(scheduler.FieldIsDefault, field.TypeBool, value)
 		_node.IsDefault = value
+	}
+	if value, ok := sc.mutation.IsHidden(); ok {
+		_spec.SetField(scheduler.FieldIsHidden, field.TypeBool, value)
+		_node.IsHidden = value
 	}
 	if value, ok := sc.mutation.CreatedAt(); ok {
 		_spec.SetField(scheduler.FieldCreatedAt, field.TypeTime, value)

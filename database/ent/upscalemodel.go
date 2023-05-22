@@ -23,6 +23,8 @@ type UpscaleModel struct {
 	IsActive bool `json:"is_active,omitempty"`
 	// IsDefault holds the value of the "is_default" field.
 	IsDefault bool `json:"is_default,omitempty"`
+	// IsHidden holds the value of the "is_hidden" field.
+	IsHidden bool `json:"is_hidden,omitempty"`
 	// CreatedAt holds the value of the "created_at" field.
 	CreatedAt time.Time `json:"created_at,omitempty"`
 	// UpdatedAt holds the value of the "updated_at" field.
@@ -55,7 +57,7 @@ func (*UpscaleModel) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case upscalemodel.FieldIsActive, upscalemodel.FieldIsDefault:
+		case upscalemodel.FieldIsActive, upscalemodel.FieldIsDefault, upscalemodel.FieldIsHidden:
 			values[i] = new(sql.NullBool)
 		case upscalemodel.FieldNameInWorker:
 			values[i] = new(sql.NullString)
@@ -101,6 +103,12 @@ func (um *UpscaleModel) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field is_default", values[i])
 			} else if value.Valid {
 				um.IsDefault = value.Bool
+			}
+		case upscalemodel.FieldIsHidden:
+			if value, ok := values[i].(*sql.NullBool); !ok {
+				return fmt.Errorf("unexpected type %T for field is_hidden", values[i])
+			} else if value.Valid {
+				um.IsHidden = value.Bool
 			}
 		case upscalemodel.FieldCreatedAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
@@ -155,6 +163,9 @@ func (um *UpscaleModel) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("is_default=")
 	builder.WriteString(fmt.Sprintf("%v", um.IsDefault))
+	builder.WriteString(", ")
+	builder.WriteString("is_hidden=")
+	builder.WriteString(fmt.Sprintf("%v", um.IsHidden))
 	builder.WriteString(", ")
 	builder.WriteString("created_at=")
 	builder.WriteString(um.CreatedAt.Format(time.ANSIC))

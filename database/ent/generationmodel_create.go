@@ -56,6 +56,20 @@ func (gmc *GenerationModelCreate) SetNillableIsDefault(b *bool) *GenerationModel
 	return gmc
 }
 
+// SetIsHidden sets the "is_hidden" field.
+func (gmc *GenerationModelCreate) SetIsHidden(b bool) *GenerationModelCreate {
+	gmc.mutation.SetIsHidden(b)
+	return gmc
+}
+
+// SetNillableIsHidden sets the "is_hidden" field if the given value is not nil.
+func (gmc *GenerationModelCreate) SetNillableIsHidden(b *bool) *GenerationModelCreate {
+	if b != nil {
+		gmc.SetIsHidden(*b)
+	}
+	return gmc
+}
+
 // SetCreatedAt sets the "created_at" field.
 func (gmc *GenerationModelCreate) SetCreatedAt(t time.Time) *GenerationModelCreate {
 	gmc.mutation.SetCreatedAt(t)
@@ -156,6 +170,10 @@ func (gmc *GenerationModelCreate) defaults() {
 		v := generationmodel.DefaultIsDefault
 		gmc.mutation.SetIsDefault(v)
 	}
+	if _, ok := gmc.mutation.IsHidden(); !ok {
+		v := generationmodel.DefaultIsHidden
+		gmc.mutation.SetIsHidden(v)
+	}
 	if _, ok := gmc.mutation.CreatedAt(); !ok {
 		v := generationmodel.DefaultCreatedAt()
 		gmc.mutation.SetCreatedAt(v)
@@ -180,6 +198,9 @@ func (gmc *GenerationModelCreate) check() error {
 	}
 	if _, ok := gmc.mutation.IsDefault(); !ok {
 		return &ValidationError{Name: "is_default", err: errors.New(`ent: missing required field "GenerationModel.is_default"`)}
+	}
+	if _, ok := gmc.mutation.IsHidden(); !ok {
+		return &ValidationError{Name: "is_hidden", err: errors.New(`ent: missing required field "GenerationModel.is_hidden"`)}
 	}
 	if _, ok := gmc.mutation.CreatedAt(); !ok {
 		return &ValidationError{Name: "created_at", err: errors.New(`ent: missing required field "GenerationModel.created_at"`)}
@@ -239,6 +260,10 @@ func (gmc *GenerationModelCreate) createSpec() (*GenerationModel, *sqlgraph.Crea
 	if value, ok := gmc.mutation.IsDefault(); ok {
 		_spec.SetField(generationmodel.FieldIsDefault, field.TypeBool, value)
 		_node.IsDefault = value
+	}
+	if value, ok := gmc.mutation.IsHidden(); ok {
+		_spec.SetField(generationmodel.FieldIsHidden, field.TypeBool, value)
+		_node.IsHidden = value
 	}
 	if value, ok := gmc.mutation.CreatedAt(); ok {
 		_spec.SetField(generationmodel.FieldCreatedAt, field.TypeTime, value)

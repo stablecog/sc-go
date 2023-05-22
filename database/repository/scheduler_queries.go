@@ -6,7 +6,7 @@ import (
 )
 
 func (r *Repository) GetAllSchedulers() ([]*ent.Scheduler, error) {
-	schedulers, err := r.DB.Scheduler.Query().Select(scheduler.FieldID, scheduler.FieldNameInWorker, scheduler.FieldIsActive, scheduler.FieldIsDefault).All(r.Ctx)
+	schedulers, err := r.DB.Scheduler.Query().Select(scheduler.FieldID, scheduler.FieldNameInWorker, scheduler.FieldIsActive, scheduler.FieldIsDefault, scheduler.FieldIsHidden).All(r.Ctx)
 	if err != nil {
 		return nil, err
 	}
