@@ -31,7 +31,13 @@ func (j *JobRunner) DeleteUserData(log Logger, dryRun bool) error {
 	}
 
 	// Combine banned and not banned users
-	users := append(usersBanned, usersNotBanned...)
+	users := make(map[uuid.UUID]*ent.User)
+	for _, u := range usersBanned {
+		users[u.ID] = u
+	}
+	for _, u := range usersNotBanned {
+		users[u.ID] = u
+	}
 
 	if len(users) == 0 {
 		log.Infof("No users to delete")
