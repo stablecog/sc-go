@@ -39,6 +39,10 @@ func (j *JobRunner) DeleteUserData(log Logger, dryRun bool) error {
 	}
 
 	// Get all generation outputs for these users
+	grandTotalOutputs := 0
+	grandTotalGenerations := 0
+	grandTotalPrompts := 0
+	grandTotalNegativePrompts := 0
 	for _, u := range users {
 		log.Infof("Deleting user data %s", u.ID)
 		outputs, err := j.Repo.GetUserGenerationOutputs(u.ID)
@@ -48,6 +52,7 @@ func (j *JobRunner) DeleteUserData(log Logger, dryRun bool) error {
 		}
 
 		log.Infof("Deleting %d outputs for user %s", len(outputs), u.ID)
+		grandTotalOutputs += len(outputs)
 
 		// Get list of S3 objects
 		var paths []*s3.ObjectIdentifier
@@ -131,6 +136,7 @@ func (j *JobRunner) DeleteUserData(log Logger, dryRun bool) error {
 			log.Errorf("Error getting generations for user %s: %v", u.ID, err)
 			return err
 		}
+		grandTotalGenerations += len(generations)
 
 		var promptIds []uuid.UUID
 		var negativePromptIds []uuid.UUID
@@ -149,11 +155,13 @@ func (j *JobRunner) DeleteUserData(log Logger, dryRun bool) error {
 			log.Errorf("Error getting unique prompts for user %s: %v", u.ID, err)
 			return err
 		}
+		grandTotalPrompts += len(promptsToRemove)
 		negativePromptsToRemove, err := j.Repo.GetUsersUniqueNegativePromptIds(negativePromptIds, u.ID)
 		if err != nil {
 			log.Errorf("Error getting unique negative prompts for user %s: %v", u.ID, err)
 			return err
 		}
+		grandTotalNegativePrompts += len(negativePromptsToRemove)
 
 		if !dryRun {
 			if err := j.Repo.WithTx(func(tx *ent.Tx) error {
@@ -219,11 +227,12 @@ func (j *JobRunner) DeleteUserData(log Logger, dryRun bool) error {
 			for _, id := range negativePromptsToRemove {
 				log.Infof("Would delete negative prompt %s", id)
 			}
-			log.Infof("Total outputs %d", len(outputIds))
-			log.Infof("Total generations %d", len(generationIds))
-			log.Infof("Total prompts %d", len(promptsToRemove))
-			log.Infof("Total negative prompts %d", len(negativePromptsToRemove))
 		}
 	}
+	log.Infof("Total outputs %d", grandTotalOutputs)
+	log.Infof("Total generations %d", grandTotalGenerations)
+	log.Infof("Total prompts %d", grandTotalPrompts)
+	log.Infof("Total negative prompts %d", grandTotalNegativePrompts)
+	log.Infof("Total users %d", len(users))
 	return nil
 }
