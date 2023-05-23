@@ -288,6 +288,33 @@ func HasGenerationsWith(preds ...predicate.Generation) predicate.GenerationModel
 	})
 }
 
+// HasSchedulers applies the HasEdge predicate on the "schedulers" edge.
+func HasSchedulers() predicate.GenerationModel {
+	return predicate.GenerationModel(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, false, SchedulersTable, SchedulersPrimaryKey...),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasSchedulersWith applies the HasEdge predicate on the "schedulers" edge with a given conditions (other predicates).
+func HasSchedulersWith(preds ...predicate.Scheduler) predicate.GenerationModel {
+	return predicate.GenerationModel(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(SchedulersInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, false, SchedulersTable, SchedulersPrimaryKey...),
+		)
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // And groups predicates with the AND operator between them.
 func And(predicates ...predicate.GenerationModel) predicate.GenerationModel {
 	return predicate.GenerationModel(func(s *sql.Selector) {

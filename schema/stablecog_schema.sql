@@ -891,3 +891,19 @@ ALTER TABLE public.users ENABLE ROW LEVEL SECURITY;
 --
 
 ALTER TABLE public.disposable_emails ENABLE ROW LEVEL SECURITY;
+
+-- M2M tables
+CREATE TABLE "public"."generation_model_compatible_schedulers"
+  (
+     "generation_model_id" UUID NOT NULL,
+     "scheduler_id"        UUID NOT NULL,
+     PRIMARY KEY ("generation_model_id", "scheduler_id"),
+     CONSTRAINT "generation_model_compatible_schedulers_generation_model_id"
+     FOREIGN KEY ("generation_model_id") REFERENCES "public"."generation_models"
+     ("id") ON UPDATE no action ON DELETE CASCADE,
+     CONSTRAINT "generation_model_compatible_schedulers_scheduler_id" FOREIGN
+     KEY ("scheduler_id") REFERENCES "public"."schedulers" ("id") ON UPDATE no
+     action ON DELETE CASCADE
+  );
+
+ALTER TABLE public.generation_model_compatible_schedulers ENABLE ROW LEVEL SECURITY;

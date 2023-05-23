@@ -408,6 +408,7 @@ func (c *RestAPI) HandleCreateGenerationToken(w http.ResponseWriter, r *http.Req
 					cogMsg.Input.LivePageData.Status = shared.LivePageSucceeded
 					now := time.Now()
 					cogMsg.Input.LivePageData.CompletedAt = &now
+					cogMsg.Input.LivePageData.ActualNumOutputs = len(outputs)
 					liveResp := repository.TaskStatusUpdateResponse{
 						ForLivePage:     true,
 						LivePageMessage: cogMsg.Input.LivePageData,

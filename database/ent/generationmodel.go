@@ -38,9 +38,11 @@ type GenerationModel struct {
 type GenerationModelEdges struct {
 	// Generations holds the value of the generations edge.
 	Generations []*Generation `json:"generations,omitempty"`
+	// Schedulers holds the value of the schedulers edge.
+	Schedulers []*Scheduler `json:"schedulers,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [1]bool
+	loadedTypes [2]bool
 }
 
 // GenerationsOrErr returns the Generations value or an error if the edge
@@ -50,6 +52,15 @@ func (e GenerationModelEdges) GenerationsOrErr() ([]*Generation, error) {
 		return e.Generations, nil
 	}
 	return nil, &NotLoadedError{edge: "generations"}
+}
+
+// SchedulersOrErr returns the Schedulers value or an error if the edge
+// was not loaded in eager-loading.
+func (e GenerationModelEdges) SchedulersOrErr() ([]*Scheduler, error) {
+	if e.loadedTypes[1] {
+		return e.Schedulers, nil
+	}
+	return nil, &NotLoadedError{edge: "schedulers"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -130,6 +141,11 @@ func (gm *GenerationModel) assignValues(columns []string, values []any) error {
 // QueryGenerations queries the "generations" edge of the GenerationModel entity.
 func (gm *GenerationModel) QueryGenerations() *GenerationQuery {
 	return NewGenerationModelClient(gm.config).QueryGenerations(gm)
+}
+
+// QuerySchedulers queries the "schedulers" edge of the GenerationModel entity.
+func (gm *GenerationModel) QuerySchedulers() *SchedulerQuery {
+	return NewGenerationModelClient(gm.config).QuerySchedulers(gm)
 }
 
 // Update returns a builder for updating this GenerationModel.

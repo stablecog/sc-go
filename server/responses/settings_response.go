@@ -17,7 +17,7 @@ type ImageGenerationSettingsResponse struct {
 	NumImages      int32     `json:"num_images"`
 	GuidanceScale  float32   `json:"guidance_scale"`
 	InferenceSteps int32     `json:"inference_steps"`
-	Seed           *int      `json:"seed"`
+	Seed           *int      `json:"seed,omitempty"`
 }
 
 type SettingsResponse struct {

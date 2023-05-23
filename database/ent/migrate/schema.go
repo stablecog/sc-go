@@ -487,6 +487,31 @@ var (
 			},
 		},
 	}
+	// GenerationModelCompatibleSchedulersColumns holds the columns for the "generation_model_compatible_schedulers" table.
+	GenerationModelCompatibleSchedulersColumns = []*schema.Column{
+		{Name: "generation_model_id", Type: field.TypeUUID},
+		{Name: "scheduler_id", Type: field.TypeUUID},
+	}
+	// GenerationModelCompatibleSchedulersTable holds the schema information for the "generation_model_compatible_schedulers" table.
+	GenerationModelCompatibleSchedulersTable = &schema.Table{
+		Name:       "generation_model_compatible_schedulers",
+		Columns:    GenerationModelCompatibleSchedulersColumns,
+		PrimaryKey: []*schema.Column{GenerationModelCompatibleSchedulersColumns[0], GenerationModelCompatibleSchedulersColumns[1]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "generation_model_compatible_schedulers_generation_model_id",
+				Columns:    []*schema.Column{GenerationModelCompatibleSchedulersColumns[0]},
+				RefColumns: []*schema.Column{GenerationModelsColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+			{
+				Symbol:     "generation_model_compatible_schedulers_scheduler_id",
+				Columns:    []*schema.Column{GenerationModelCompatibleSchedulersColumns[1]},
+				RefColumns: []*schema.Column{SchedulersColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+		},
+	}
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
 		APITokensTable,
@@ -505,6 +530,7 @@ var (
 		UpscaleOutputsTable,
 		UsersTable,
 		UserRolesTable,
+		GenerationModelCompatibleSchedulersTable,
 	}
 )
 
@@ -575,4 +601,6 @@ func init() {
 	UserRolesTable.Annotation = &entsql.Annotation{
 		Table: "user_roles",
 	}
+	GenerationModelCompatibleSchedulersTable.ForeignKeys[0].RefTable = GenerationModelsTable
+	GenerationModelCompatibleSchedulersTable.ForeignKeys[1].RefTable = SchedulersTable
 }

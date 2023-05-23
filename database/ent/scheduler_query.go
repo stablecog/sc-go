@@ -13,6 +13,7 @@ import (
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
 	"github.com/stablecog/sc-go/database/ent/generation"
+	"github.com/stablecog/sc-go/database/ent/generationmodel"
 	"github.com/stablecog/sc-go/database/ent/predicate"
 	"github.com/stablecog/sc-go/database/ent/scheduler"
 )
@@ -20,12 +21,13 @@ import (
 // SchedulerQuery is the builder for querying Scheduler entities.
 type SchedulerQuery struct {
 	config
-	ctx             *QueryContext
-	order           []OrderFunc
-	inters          []Interceptor
-	predicates      []predicate.Scheduler
-	withGenerations *GenerationQuery
-	modifiers       []func(*sql.Selector)
+	ctx                  *QueryContext
+	order                []OrderFunc
+	inters               []Interceptor
+	predicates           []predicate.Scheduler
+	withGenerations      *GenerationQuery
+	withGenerationModels *GenerationModelQuery
+	modifiers            []func(*sql.Selector)
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -77,6 +79,28 @@ func (sq *SchedulerQuery) QueryGenerations() *GenerationQuery {
 			sqlgraph.From(scheduler.Table, scheduler.FieldID, selector),
 			sqlgraph.To(generation.Table, generation.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, scheduler.GenerationsTable, scheduler.GenerationsColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(sq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryGenerationModels chains the current query on the "generation_models" edge.
+func (sq *SchedulerQuery) QueryGenerationModels() *GenerationModelQuery {
+	query := (&GenerationModelClient{config: sq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := sq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := sq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(scheduler.Table, scheduler.FieldID, selector),
+			sqlgraph.To(generationmodel.Table, generationmodel.FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, true, scheduler.GenerationModelsTable, scheduler.GenerationModelsPrimaryKey...),
 		)
 		fromU = sqlgraph.SetNeighbors(sq.driver.Dialect(), step)
 		return fromU, nil
@@ -269,12 +293,13 @@ func (sq *SchedulerQuery) Clone() *SchedulerQuery {
 		return nil
 	}
 	return &SchedulerQuery{
-		config:          sq.config,
-		ctx:             sq.ctx.Clone(),
-		order:           append([]OrderFunc{}, sq.order...),
-		inters:          append([]Interceptor{}, sq.inters...),
-		predicates:      append([]predicate.Scheduler{}, sq.predicates...),
-		withGenerations: sq.withGenerations.Clone(),
+		config:               sq.config,
+		ctx:                  sq.ctx.Clone(),
+		order:                append([]OrderFunc{}, sq.order...),
+		inters:               append([]Interceptor{}, sq.inters...),
+		predicates:           append([]predicate.Scheduler{}, sq.predicates...),
+		withGenerations:      sq.withGenerations.Clone(),
+		withGenerationModels: sq.withGenerationModels.Clone(),
 		// clone intermediate query.
 		sql:  sq.sql.Clone(),
 		path: sq.path,
@@ -289,6 +314,17 @@ func (sq *SchedulerQuery) WithGenerations(opts ...func(*GenerationQuery)) *Sched
 		opt(query)
 	}
 	sq.withGenerations = query
+	return sq
+}
+
+// WithGenerationModels tells the query-builder to eager-load the nodes that are connected to
+// the "generation_models" edge. The optional arguments are used to configure the query builder of the edge.
+func (sq *SchedulerQuery) WithGenerationModels(opts ...func(*GenerationModelQuery)) *SchedulerQuery {
+	query := (&GenerationModelClient{config: sq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	sq.withGenerationModels = query
 	return sq
 }
 
@@ -370,8 +406,9 @@ func (sq *SchedulerQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Sc
 	var (
 		nodes       = []*Scheduler{}
 		_spec       = sq.querySpec()
-		loadedTypes = [1]bool{
+		loadedTypes = [2]bool{
 			sq.withGenerations != nil,
+			sq.withGenerationModels != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -402,6 +439,13 @@ func (sq *SchedulerQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Sc
 			return nil, err
 		}
 	}
+	if query := sq.withGenerationModels; query != nil {
+		if err := sq.loadGenerationModels(ctx, query, nodes,
+			func(n *Scheduler) { n.Edges.GenerationModels = []*GenerationModel{} },
+			func(n *Scheduler, e *GenerationModel) { n.Edges.GenerationModels = append(n.Edges.GenerationModels, e) }); err != nil {
+			return nil, err
+		}
+	}
 	return nodes, nil
 }
 
@@ -429,6 +473,64 @@ func (sq *SchedulerQuery) loadGenerations(ctx context.Context, query *Generation
 			return fmt.Errorf(`unexpected foreign-key "scheduler_id" returned %v for node %v`, fk, n.ID)
 		}
 		assign(node, n)
+	}
+	return nil
+}
+func (sq *SchedulerQuery) loadGenerationModels(ctx context.Context, query *GenerationModelQuery, nodes []*Scheduler, init func(*Scheduler), assign func(*Scheduler, *GenerationModel)) error {
+	edgeIDs := make([]driver.Value, len(nodes))
+	byID := make(map[uuid.UUID]*Scheduler)
+	nids := make(map[uuid.UUID]map[*Scheduler]struct{})
+	for i, node := range nodes {
+		edgeIDs[i] = node.ID
+		byID[node.ID] = node
+		if init != nil {
+			init(node)
+		}
+	}
+	query.Where(func(s *sql.Selector) {
+		joinT := sql.Table(scheduler.GenerationModelsTable)
+		s.Join(joinT).On(s.C(generationmodel.FieldID), joinT.C(scheduler.GenerationModelsPrimaryKey[0]))
+		s.Where(sql.InValues(joinT.C(scheduler.GenerationModelsPrimaryKey[1]), edgeIDs...))
+		columns := s.SelectedColumns()
+		s.Select(joinT.C(scheduler.GenerationModelsPrimaryKey[1]))
+		s.AppendSelect(columns...)
+		s.SetDistinct(false)
+	})
+	if err := query.prepareQuery(ctx); err != nil {
+		return err
+	}
+	neighbors, err := query.sqlAll(ctx, func(_ context.Context, spec *sqlgraph.QuerySpec) {
+		assign := spec.Assign
+		values := spec.ScanValues
+		spec.ScanValues = func(columns []string) ([]any, error) {
+			values, err := values(columns[1:])
+			if err != nil {
+				return nil, err
+			}
+			return append([]any{new(uuid.UUID)}, values...), nil
+		}
+		spec.Assign = func(columns []string, values []any) error {
+			outValue := *values[0].(*uuid.UUID)
+			inValue := *values[1].(*uuid.UUID)
+			if nids[inValue] == nil {
+				nids[inValue] = map[*Scheduler]struct{}{byID[outValue]: {}}
+				return assign(columns[1:], values[1:])
+			}
+			nids[inValue][byID[outValue]] = struct{}{}
+			return nil
+		}
+	})
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected "generation_models" node returned %v`, n.ID)
+		}
+		for kn := range nodes {
+			assign(kn, n)
+		}
 	}
 	return nil
 }

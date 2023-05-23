@@ -37,6 +37,9 @@ func (Scheduler) Edges() []ent.Edge {
 			Annotations(entsql.Annotation{
 				OnDelete: entsql.Cascade,
 			}),
+		// M2M with generation_models
+		edge.From("generation_models", GenerationModel.Type).
+			Ref("schedulers"),
 	}
 }
 

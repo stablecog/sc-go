@@ -6657,6 +6657,9 @@ type GenerationModelMutation struct {
 	generations        map[uuid.UUID]struct{}
 	removedgenerations map[uuid.UUID]struct{}
 	clearedgenerations bool
+	schedulers         map[uuid.UUID]struct{}
+	removedschedulers  map[uuid.UUID]struct{}
+	clearedschedulers  bool
 	done               bool
 	oldValue           func(context.Context) (*GenerationModel, error)
 	predicates         []predicate.GenerationModel
@@ -7036,6 +7039,60 @@ func (m *GenerationModelMutation) ResetGenerations() {
 	m.removedgenerations = nil
 }
 
+// AddSchedulerIDs adds the "schedulers" edge to the Scheduler entity by ids.
+func (m *GenerationModelMutation) AddSchedulerIDs(ids ...uuid.UUID) {
+	if m.schedulers == nil {
+		m.schedulers = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.schedulers[ids[i]] = struct{}{}
+	}
+}
+
+// ClearSchedulers clears the "schedulers" edge to the Scheduler entity.
+func (m *GenerationModelMutation) ClearSchedulers() {
+	m.clearedschedulers = true
+}
+
+// SchedulersCleared reports if the "schedulers" edge to the Scheduler entity was cleared.
+func (m *GenerationModelMutation) SchedulersCleared() bool {
+	return m.clearedschedulers
+}
+
+// RemoveSchedulerIDs removes the "schedulers" edge to the Scheduler entity by IDs.
+func (m *GenerationModelMutation) RemoveSchedulerIDs(ids ...uuid.UUID) {
+	if m.removedschedulers == nil {
+		m.removedschedulers = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.schedulers, ids[i])
+		m.removedschedulers[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedSchedulers returns the removed IDs of the "schedulers" edge to the Scheduler entity.
+func (m *GenerationModelMutation) RemovedSchedulersIDs() (ids []uuid.UUID) {
+	for id := range m.removedschedulers {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// SchedulersIDs returns the "schedulers" edge IDs in the mutation.
+func (m *GenerationModelMutation) SchedulersIDs() (ids []uuid.UUID) {
+	for id := range m.schedulers {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetSchedulers resets all changes to the "schedulers" edge.
+func (m *GenerationModelMutation) ResetSchedulers() {
+	m.schedulers = nil
+	m.clearedschedulers = false
+	m.removedschedulers = nil
+}
+
 // Where appends a list predicates to the GenerationModelMutation builder.
 func (m *GenerationModelMutation) Where(ps ...predicate.GenerationModel) {
 	m.predicates = append(m.predicates, ps...)
@@ -7254,9 +7311,12 @@ func (m *GenerationModelMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *GenerationModelMutation) AddedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
 	if m.generations != nil {
 		edges = append(edges, generationmodel.EdgeGenerations)
+	}
+	if m.schedulers != nil {
+		edges = append(edges, generationmodel.EdgeSchedulers)
 	}
 	return edges
 }
@@ -7271,15 +7331,24 @@ func (m *GenerationModelMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case generationmodel.EdgeSchedulers:
+		ids := make([]ent.Value, 0, len(m.schedulers))
+		for id := range m.schedulers {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *GenerationModelMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
 	if m.removedgenerations != nil {
 		edges = append(edges, generationmodel.EdgeGenerations)
+	}
+	if m.removedschedulers != nil {
+		edges = append(edges, generationmodel.EdgeSchedulers)
 	}
 	return edges
 }
@@ -7294,15 +7363,24 @@ func (m *GenerationModelMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case generationmodel.EdgeSchedulers:
+		ids := make([]ent.Value, 0, len(m.removedschedulers))
+		for id := range m.removedschedulers {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *GenerationModelMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
 	if m.clearedgenerations {
 		edges = append(edges, generationmodel.EdgeGenerations)
+	}
+	if m.clearedschedulers {
+		edges = append(edges, generationmodel.EdgeSchedulers)
 	}
 	return edges
 }
@@ -7313,6 +7391,8 @@ func (m *GenerationModelMutation) EdgeCleared(name string) bool {
 	switch name {
 	case generationmodel.EdgeGenerations:
 		return m.clearedgenerations
+	case generationmodel.EdgeSchedulers:
+		return m.clearedschedulers
 	}
 	return false
 }
@@ -7331,6 +7411,9 @@ func (m *GenerationModelMutation) ResetEdge(name string) error {
 	switch name {
 	case generationmodel.EdgeGenerations:
 		m.ResetGenerations()
+		return nil
+	case generationmodel.EdgeSchedulers:
+		m.ResetSchedulers()
 		return nil
 	}
 	return fmt.Errorf("unknown GenerationModel edge %s", name)
@@ -9335,22 +9418,25 @@ func (m *PromptMutation) ResetEdge(name string) error {
 // SchedulerMutation represents an operation that mutates the Scheduler nodes in the graph.
 type SchedulerMutation struct {
 	config
-	op                 Op
-	typ                string
-	id                 *uuid.UUID
-	name_in_worker     *string
-	is_active          *bool
-	is_default         *bool
-	is_hidden          *bool
-	created_at         *time.Time
-	updated_at         *time.Time
-	clearedFields      map[string]struct{}
-	generations        map[uuid.UUID]struct{}
-	removedgenerations map[uuid.UUID]struct{}
-	clearedgenerations bool
-	done               bool
-	oldValue           func(context.Context) (*Scheduler, error)
-	predicates         []predicate.Scheduler
+	op                       Op
+	typ                      string
+	id                       *uuid.UUID
+	name_in_worker           *string
+	is_active                *bool
+	is_default               *bool
+	is_hidden                *bool
+	created_at               *time.Time
+	updated_at               *time.Time
+	clearedFields            map[string]struct{}
+	generations              map[uuid.UUID]struct{}
+	removedgenerations       map[uuid.UUID]struct{}
+	clearedgenerations       bool
+	generation_models        map[uuid.UUID]struct{}
+	removedgeneration_models map[uuid.UUID]struct{}
+	clearedgeneration_models bool
+	done                     bool
+	oldValue                 func(context.Context) (*Scheduler, error)
+	predicates               []predicate.Scheduler
 }
 
 var _ ent.Mutation = (*SchedulerMutation)(nil)
@@ -9727,6 +9813,60 @@ func (m *SchedulerMutation) ResetGenerations() {
 	m.removedgenerations = nil
 }
 
+// AddGenerationModelIDs adds the "generation_models" edge to the GenerationModel entity by ids.
+func (m *SchedulerMutation) AddGenerationModelIDs(ids ...uuid.UUID) {
+	if m.generation_models == nil {
+		m.generation_models = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.generation_models[ids[i]] = struct{}{}
+	}
+}
+
+// ClearGenerationModels clears the "generation_models" edge to the GenerationModel entity.
+func (m *SchedulerMutation) ClearGenerationModels() {
+	m.clearedgeneration_models = true
+}
+
+// GenerationModelsCleared reports if the "generation_models" edge to the GenerationModel entity was cleared.
+func (m *SchedulerMutation) GenerationModelsCleared() bool {
+	return m.clearedgeneration_models
+}
+
+// RemoveGenerationModelIDs removes the "generation_models" edge to the GenerationModel entity by IDs.
+func (m *SchedulerMutation) RemoveGenerationModelIDs(ids ...uuid.UUID) {
+	if m.removedgeneration_models == nil {
+		m.removedgeneration_models = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.generation_models, ids[i])
+		m.removedgeneration_models[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedGenerationModels returns the removed IDs of the "generation_models" edge to the GenerationModel entity.
+func (m *SchedulerMutation) RemovedGenerationModelsIDs() (ids []uuid.UUID) {
+	for id := range m.removedgeneration_models {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// GenerationModelsIDs returns the "generation_models" edge IDs in the mutation.
+func (m *SchedulerMutation) GenerationModelsIDs() (ids []uuid.UUID) {
+	for id := range m.generation_models {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetGenerationModels resets all changes to the "generation_models" edge.
+func (m *SchedulerMutation) ResetGenerationModels() {
+	m.generation_models = nil
+	m.clearedgeneration_models = false
+	m.removedgeneration_models = nil
+}
+
 // Where appends a list predicates to the SchedulerMutation builder.
 func (m *SchedulerMutation) Where(ps ...predicate.Scheduler) {
 	m.predicates = append(m.predicates, ps...)
@@ -9945,9 +10085,12 @@ func (m *SchedulerMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *SchedulerMutation) AddedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
 	if m.generations != nil {
 		edges = append(edges, scheduler.EdgeGenerations)
+	}
+	if m.generation_models != nil {
+		edges = append(edges, scheduler.EdgeGenerationModels)
 	}
 	return edges
 }
@@ -9962,15 +10105,24 @@ func (m *SchedulerMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case scheduler.EdgeGenerationModels:
+		ids := make([]ent.Value, 0, len(m.generation_models))
+		for id := range m.generation_models {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *SchedulerMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
 	if m.removedgenerations != nil {
 		edges = append(edges, scheduler.EdgeGenerations)
+	}
+	if m.removedgeneration_models != nil {
+		edges = append(edges, scheduler.EdgeGenerationModels)
 	}
 	return edges
 }
@@ -9985,15 +10137,24 @@ func (m *SchedulerMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case scheduler.EdgeGenerationModels:
+		ids := make([]ent.Value, 0, len(m.removedgeneration_models))
+		for id := range m.removedgeneration_models {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *SchedulerMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
 	if m.clearedgenerations {
 		edges = append(edges, scheduler.EdgeGenerations)
+	}
+	if m.clearedgeneration_models {
+		edges = append(edges, scheduler.EdgeGenerationModels)
 	}
 	return edges
 }
@@ -10004,6 +10165,8 @@ func (m *SchedulerMutation) EdgeCleared(name string) bool {
 	switch name {
 	case scheduler.EdgeGenerations:
 		return m.clearedgenerations
+	case scheduler.EdgeGenerationModels:
+		return m.clearedgeneration_models
 	}
 	return false
 }
@@ -10022,6 +10185,9 @@ func (m *SchedulerMutation) ResetEdge(name string) error {
 	switch name {
 	case scheduler.EdgeGenerations:
 		m.ResetGenerations()
+		return nil
+	case scheduler.EdgeGenerationModels:
+		m.ResetGenerationModels()
 		return nil
 	}
 	return fmt.Errorf("unknown Scheduler edge %s", name)

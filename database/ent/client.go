@@ -1363,6 +1363,22 @@ func (c *GenerationModelClient) QueryGenerations(gm *GenerationModel) *Generatio
 	return query
 }
 
+// QuerySchedulers queries the schedulers edge of a GenerationModel.
+func (c *GenerationModelClient) QuerySchedulers(gm *GenerationModel) *SchedulerQuery {
+	query := (&SchedulerClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := gm.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(generationmodel.Table, generationmodel.FieldID, id),
+			sqlgraph.To(scheduler.Table, scheduler.FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, false, generationmodel.SchedulersTable, generationmodel.SchedulersPrimaryKey...),
+		)
+		fromV = sqlgraph.Neighbors(gm.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *GenerationModelClient) Hooks() []Hook {
 	return c.hooks.GenerationModel
@@ -1908,6 +1924,22 @@ func (c *SchedulerClient) QueryGenerations(s *Scheduler) *GenerationQuery {
 			sqlgraph.From(scheduler.Table, scheduler.FieldID, id),
 			sqlgraph.To(generation.Table, generation.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, scheduler.GenerationsTable, scheduler.GenerationsColumn),
+		)
+		fromV = sqlgraph.Neighbors(s.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryGenerationModels queries the generation_models edge of a Scheduler.
+func (c *SchedulerClient) QueryGenerationModels(s *Scheduler) *GenerationModelQuery {
+	query := (&GenerationModelClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := s.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(scheduler.Table, scheduler.FieldID, id),
+			sqlgraph.To(generationmodel.Table, generationmodel.FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, true, scheduler.GenerationModelsTable, scheduler.GenerationModelsPrimaryKey...),
 		)
 		fromV = sqlgraph.Neighbors(s.driver.Dialect(), step)
 		return fromV, nil

@@ -15,6 +15,7 @@ import (
 	"github.com/stablecog/sc-go/database/ent/generation"
 	"github.com/stablecog/sc-go/database/ent/generationmodel"
 	"github.com/stablecog/sc-go/database/ent/predicate"
+	"github.com/stablecog/sc-go/database/ent/scheduler"
 )
 
 // GenerationModelUpdate is the builder for updating GenerationModel entities.
@@ -100,6 +101,21 @@ func (gmu *GenerationModelUpdate) AddGenerations(g ...*Generation) *GenerationMo
 	return gmu.AddGenerationIDs(ids...)
 }
 
+// AddSchedulerIDs adds the "schedulers" edge to the Scheduler entity by IDs.
+func (gmu *GenerationModelUpdate) AddSchedulerIDs(ids ...uuid.UUID) *GenerationModelUpdate {
+	gmu.mutation.AddSchedulerIDs(ids...)
+	return gmu
+}
+
+// AddSchedulers adds the "schedulers" edges to the Scheduler entity.
+func (gmu *GenerationModelUpdate) AddSchedulers(s ...*Scheduler) *GenerationModelUpdate {
+	ids := make([]uuid.UUID, len(s))
+	for i := range s {
+		ids[i] = s[i].ID
+	}
+	return gmu.AddSchedulerIDs(ids...)
+}
+
 // Mutation returns the GenerationModelMutation object of the builder.
 func (gmu *GenerationModelUpdate) Mutation() *GenerationModelMutation {
 	return gmu.mutation
@@ -124,6 +140,27 @@ func (gmu *GenerationModelUpdate) RemoveGenerations(g ...*Generation) *Generatio
 		ids[i] = g[i].ID
 	}
 	return gmu.RemoveGenerationIDs(ids...)
+}
+
+// ClearSchedulers clears all "schedulers" edges to the Scheduler entity.
+func (gmu *GenerationModelUpdate) ClearSchedulers() *GenerationModelUpdate {
+	gmu.mutation.ClearSchedulers()
+	return gmu
+}
+
+// RemoveSchedulerIDs removes the "schedulers" edge to Scheduler entities by IDs.
+func (gmu *GenerationModelUpdate) RemoveSchedulerIDs(ids ...uuid.UUID) *GenerationModelUpdate {
+	gmu.mutation.RemoveSchedulerIDs(ids...)
+	return gmu
+}
+
+// RemoveSchedulers removes "schedulers" edges to Scheduler entities.
+func (gmu *GenerationModelUpdate) RemoveSchedulers(s ...*Scheduler) *GenerationModelUpdate {
+	ids := make([]uuid.UUID, len(s))
+	for i := range s {
+		ids[i] = s[i].ID
+	}
+	return gmu.RemoveSchedulerIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -255,6 +292,60 @@ func (gmu *GenerationModelUpdate) sqlSave(ctx context.Context) (n int, err error
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if gmu.mutation.SchedulersCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   generationmodel.SchedulersTable,
+			Columns: generationmodel.SchedulersPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: scheduler.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := gmu.mutation.RemovedSchedulersIDs(); len(nodes) > 0 && !gmu.mutation.SchedulersCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   generationmodel.SchedulersTable,
+			Columns: generationmodel.SchedulersPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: scheduler.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := gmu.mutation.SchedulersIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   generationmodel.SchedulersTable,
+			Columns: generationmodel.SchedulersPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: scheduler.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	_spec.AddModifiers(gmu.modifiers...)
 	if n, err = sqlgraph.UpdateNodes(ctx, gmu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
@@ -346,6 +437,21 @@ func (gmuo *GenerationModelUpdateOne) AddGenerations(g ...*Generation) *Generati
 	return gmuo.AddGenerationIDs(ids...)
 }
 
+// AddSchedulerIDs adds the "schedulers" edge to the Scheduler entity by IDs.
+func (gmuo *GenerationModelUpdateOne) AddSchedulerIDs(ids ...uuid.UUID) *GenerationModelUpdateOne {
+	gmuo.mutation.AddSchedulerIDs(ids...)
+	return gmuo
+}
+
+// AddSchedulers adds the "schedulers" edges to the Scheduler entity.
+func (gmuo *GenerationModelUpdateOne) AddSchedulers(s ...*Scheduler) *GenerationModelUpdateOne {
+	ids := make([]uuid.UUID, len(s))
+	for i := range s {
+		ids[i] = s[i].ID
+	}
+	return gmuo.AddSchedulerIDs(ids...)
+}
+
 // Mutation returns the GenerationModelMutation object of the builder.
 func (gmuo *GenerationModelUpdateOne) Mutation() *GenerationModelMutation {
 	return gmuo.mutation
@@ -370,6 +476,27 @@ func (gmuo *GenerationModelUpdateOne) RemoveGenerations(g ...*Generation) *Gener
 		ids[i] = g[i].ID
 	}
 	return gmuo.RemoveGenerationIDs(ids...)
+}
+
+// ClearSchedulers clears all "schedulers" edges to the Scheduler entity.
+func (gmuo *GenerationModelUpdateOne) ClearSchedulers() *GenerationModelUpdateOne {
+	gmuo.mutation.ClearSchedulers()
+	return gmuo
+}
+
+// RemoveSchedulerIDs removes the "schedulers" edge to Scheduler entities by IDs.
+func (gmuo *GenerationModelUpdateOne) RemoveSchedulerIDs(ids ...uuid.UUID) *GenerationModelUpdateOne {
+	gmuo.mutation.RemoveSchedulerIDs(ids...)
+	return gmuo
+}
+
+// RemoveSchedulers removes "schedulers" edges to Scheduler entities.
+func (gmuo *GenerationModelUpdateOne) RemoveSchedulers(s ...*Scheduler) *GenerationModelUpdateOne {
+	ids := make([]uuid.UUID, len(s))
+	for i := range s {
+		ids[i] = s[i].ID
+	}
+	return gmuo.RemoveSchedulerIDs(ids...)
 }
 
 // Select allows selecting one or more fields (columns) of the returned entity.
@@ -517,6 +644,60 @@ func (gmuo *GenerationModelUpdateOne) sqlSave(ctx context.Context) (_node *Gener
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeUUID,
 					Column: generation.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if gmuo.mutation.SchedulersCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   generationmodel.SchedulersTable,
+			Columns: generationmodel.SchedulersPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: scheduler.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := gmuo.mutation.RemovedSchedulersIDs(); len(nodes) > 0 && !gmuo.mutation.SchedulersCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   generationmodel.SchedulersTable,
+			Columns: generationmodel.SchedulersPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: scheduler.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := gmuo.mutation.SchedulersIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   generationmodel.SchedulersTable,
+			Columns: generationmodel.SchedulersPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: scheduler.FieldID,
 				},
 			},
 		}

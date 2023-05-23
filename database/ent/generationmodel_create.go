@@ -13,6 +13,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/stablecog/sc-go/database/ent/generation"
 	"github.com/stablecog/sc-go/database/ent/generationmodel"
+	"github.com/stablecog/sc-go/database/ent/scheduler"
 )
 
 // GenerationModelCreate is the builder for creating a GenerationModel entity.
@@ -125,6 +126,21 @@ func (gmc *GenerationModelCreate) AddGenerations(g ...*Generation) *GenerationMo
 		ids[i] = g[i].ID
 	}
 	return gmc.AddGenerationIDs(ids...)
+}
+
+// AddSchedulerIDs adds the "schedulers" edge to the Scheduler entity by IDs.
+func (gmc *GenerationModelCreate) AddSchedulerIDs(ids ...uuid.UUID) *GenerationModelCreate {
+	gmc.mutation.AddSchedulerIDs(ids...)
+	return gmc
+}
+
+// AddSchedulers adds the "schedulers" edges to the Scheduler entity.
+func (gmc *GenerationModelCreate) AddSchedulers(s ...*Scheduler) *GenerationModelCreate {
+	ids := make([]uuid.UUID, len(s))
+	for i := range s {
+		ids[i] = s[i].ID
+	}
+	return gmc.AddSchedulerIDs(ids...)
 }
 
 // Mutation returns the GenerationModelMutation object of the builder.
@@ -284,6 +300,25 @@ func (gmc *GenerationModelCreate) createSpec() (*GenerationModel, *sqlgraph.Crea
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeUUID,
 					Column: generation.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := gmc.mutation.SchedulersIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   generationmodel.SchedulersTable,
+			Columns: generationmodel.SchedulersPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: scheduler.FieldID,
 				},
 			},
 		}

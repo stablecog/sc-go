@@ -27,6 +27,8 @@ const (
 	FieldUpdatedAt = "updated_at"
 	// EdgeGenerations holds the string denoting the generations edge name in mutations.
 	EdgeGenerations = "generations"
+	// EdgeSchedulers holds the string denoting the schedulers edge name in mutations.
+	EdgeSchedulers = "schedulers"
 	// Table holds the table name of the generationmodel in the database.
 	Table = "generation_models"
 	// GenerationsTable is the table that holds the generations relation/edge.
@@ -36,6 +38,11 @@ const (
 	GenerationsInverseTable = "generations"
 	// GenerationsColumn is the table column denoting the generations relation/edge.
 	GenerationsColumn = "model_id"
+	// SchedulersTable is the table that holds the schedulers relation/edge. The primary key declared below.
+	SchedulersTable = "generation_model_compatible_schedulers"
+	// SchedulersInverseTable is the table name for the Scheduler entity.
+	// It exists in this package in order to avoid circular dependency with the "scheduler" package.
+	SchedulersInverseTable = "schedulers"
 )
 
 // Columns holds all SQL columns for generationmodel fields.
@@ -48,6 +55,12 @@ var Columns = []string{
 	FieldCreatedAt,
 	FieldUpdatedAt,
 }
+
+var (
+	// SchedulersPrimaryKey and SchedulersColumn2 are the table columns denoting the
+	// primary key for the schedulers relation (M2M).
+	SchedulersPrimaryKey = []string{"generation_model_id", "scheduler_id"}
+)
 
 // ValidColumn reports if the column name is valid (part of the table columns).
 func ValidColumn(column string) bool {
