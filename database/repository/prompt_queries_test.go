@@ -30,7 +30,7 @@ func TestGetUsersUniquePromptIds(t *testing.T) {
 		GuidanceScale:  utils.ToPtr[float32](2.0),
 		ModelId:        utils.ToPtr(uuid.MustParse(MOCK_GENERATION_MODEL_ID)),
 		SchedulerId:    utils.ToPtr(uuid.MustParse(MOCK_SCHEDULER_ID)),
-		Seed:           1234,
+		Seed:           utils.ToPtr(1234),
 	}
 	g1.ApplyDefaults()
 
@@ -43,7 +43,7 @@ func TestGetUsersUniquePromptIds(t *testing.T) {
 		GuidanceScale:  utils.ToPtr[float32](2.0),
 		ModelId:        utils.ToPtr(uuid.MustParse(MOCK_GENERATION_MODEL_ID)),
 		SchedulerId:    utils.ToPtr(uuid.MustParse(MOCK_SCHEDULER_ID)),
-		Seed:           1234,
+		Seed:           utils.ToPtr(1234),
 	}
 	g2.ApplyDefaults()
 

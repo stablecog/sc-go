@@ -104,7 +104,7 @@ func (c *RestAPI) HandleCreateGenerationToken(w http.ResponseWriter, r *http.Req
 		NumImages:      *generateReq.NumOutputs,
 		GuidanceScale:  *generateReq.GuidanceScale,
 		InferenceSteps: *generateReq.InferenceSteps,
-		Seed:           &generateReq.Seed,
+		Seed:           generateReq.Seed,
 	}
 
 	// The URL we send worker
@@ -312,7 +312,7 @@ func (c *RestAPI) HandleCreateGenerationToken(w http.ResponseWriter, r *http.Req
 				ModelId:              *generateReq.ModelId,
 				Scheduler:            schedulerName,
 				SchedulerId:          *generateReq.SchedulerId,
-				Seed:                 fmt.Sprint(generateReq.Seed),
+				Seed:                 fmt.Sprint(*generateReq.Seed),
 				NumOutputs:           fmt.Sprint(*generateReq.NumOutputs),
 				OutputImageExtension: string(shared.DEFAULT_GENERATE_OUTPUT_EXTENSION),
 				OutputImageQuality:   fmt.Sprint(shared.DEFAULT_GENERATE_OUTPUT_QUALITY),

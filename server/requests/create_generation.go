@@ -23,7 +23,7 @@ type CreateGenerationRequest struct {
 	GuidanceScale        *float32              `json:"guidance_scale,omitempty"`
 	ModelId              *uuid.UUID            `json:"model_id,omitempty"`
 	SchedulerId          *uuid.UUID            `json:"scheduler_id,omitempty"`
-	Seed                 int                   `json:"seed"`
+	Seed                 *int                  `json:"seed,omitempty"`
 	NumOutputs           *int32                `json:"num_outputs,omitempty"`
 	StreamID             string                `json:"stream_id"` // Corresponds to SSE stream
 	UIId                 string                `json:"ui_id"`     // Corresponds to UI identifier
@@ -109,9 +109,9 @@ func (t *CreateGenerationRequest) Validate(api bool) error {
 		return errors.New("invalid_init_image_url")
 	}
 
-	if t.Seed < 0 {
+	if t.Seed == nil || *t.Seed < 0 {
 		rand.Seed(time.Now().Unix())
-		t.Seed = rand.Intn(math.MaxInt32)
+		t.Seed = utils.ToPtr(rand.Intn(math.MaxInt32))
 	}
 
 	if t.PromptStrength != nil {

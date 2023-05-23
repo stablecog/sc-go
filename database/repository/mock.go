@@ -137,7 +137,7 @@ func (repo *Repository) CreateMockData(ctx context.Context) error {
 		GuidanceScale:  utils.ToPtr[float32](2.0),
 		ModelId:        utils.ToPtr(uuid.MustParse(MOCK_GENERATION_MODEL_ID)),
 		SchedulerId:    utils.ToPtr(uuid.MustParse(MOCK_SCHEDULER_ID)),
-		Seed:           1234,
+		Seed:           utils.ToPtr(1234),
 		NumOutputs:     utils.ToPtr[int32](3),
 	}, nil, nil, nil)
 	if err != nil {
@@ -174,7 +174,7 @@ func (repo *Repository) CreateMockData(ctx context.Context) error {
 		GuidanceScale:   utils.ToPtr[float32](1.0),
 		ModelId:         utils.ToPtr(uuid.MustParse(MOCK_GENERATION_MODEL_ID)),
 		SchedulerId:     utils.ToPtr(uuid.MustParse(MOCK_SCHEDULER_ID)),
-		Seed:            1234,
+		Seed:            utils.ToPtr(1234),
 		NumOutputs:      utils.ToPtr[int32](1),
 		SubmitToGallery: true,
 	}, nil, nil, nil)
@@ -211,7 +211,7 @@ func (repo *Repository) CreateMockData(ctx context.Context) error {
 		GuidanceScale:  utils.ToPtr[float32](1.0),
 		ModelId:        utils.ToPtr(uuid.MustParse(MOCK_GENERATION_MODEL_ID)),
 		SchedulerId:    utils.ToPtr(uuid.MustParse(MOCK_SCHEDULER_ID)),
-		Seed:           1234,
+		Seed:           utils.ToPtr(1234),
 		NumOutputs:     utils.ToPtr[int32](1),
 	}, nil, nil, nil)
 	if err != nil {
@@ -235,7 +235,7 @@ func (repo *Repository) CreateMockData(ctx context.Context) error {
 		GuidanceScale:  utils.ToPtr[float32](1.0),
 		ModelId:        utils.ToPtr(uuid.MustParse(MOCK_GENERATION_MODEL_ID)),
 		SchedulerId:    utils.ToPtr(uuid.MustParse(MOCK_SCHEDULER_ID)),
-		Seed:           1234,
+		Seed:           utils.ToPtr(1234),
 		NumOutputs:     utils.ToPtr[int32](1),
 	}, nil, nil, nil)
 	if err != nil {
@@ -258,7 +258,7 @@ func (repo *Repository) CreateMockGenerationForDeletion(ctx context.Context) (*e
 		GuidanceScale:  utils.ToPtr[float32](1.0),
 		ModelId:        utils.ToPtr(uuid.MustParse(MOCK_GENERATION_MODEL_ID)),
 		SchedulerId:    utils.ToPtr(uuid.MustParse(MOCK_SCHEDULER_ID)),
-		Seed:           1234,
+		Seed:           utils.ToPtr(1234),
 		NumOutputs:     utils.ToPtr[int32](1),
 	}, nil, nil, nil)
 	if err != nil {
