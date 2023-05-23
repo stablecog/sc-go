@@ -360,6 +360,7 @@ func (c *RestAPI) HandleCreateUpscaleToken(w http.ResponseWriter, r *http.Reques
 					cogMsg.Input.LivePageData.Status = shared.LivePageSucceeded
 					now := time.Now()
 					cogMsg.Input.LivePageData.CompletedAt = &now
+					cogMsg.Input.LivePageData.ActualNumOutputs = len(cogMsg.Output.Images)
 					liveResp := repository.TaskStatusUpdateResponse{
 						ForLivePage:     true,
 						LivePageMessage: cogMsg.Input.LivePageData,
