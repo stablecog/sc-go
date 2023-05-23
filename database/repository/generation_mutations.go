@@ -25,18 +25,18 @@ func (r *Repository) CreateGeneration(userID uuid.UUID, deviceType, deviceOs, de
 	}
 	insert := DB.Generation.Create().
 		SetStatus(generation.StatusQueued).
-		SetWidth(req.Width).
-		SetHeight(req.Height).
-		SetGuidanceScale(req.GuidanceScale).
-		SetInferenceSteps(req.InferenceSteps).
+		SetWidth(*req.Width).
+		SetHeight(*req.Height).
+		SetGuidanceScale(*req.GuidanceScale).
+		SetInferenceSteps(*req.InferenceSteps).
 		SetSeed(req.Seed).
-		SetModelID(req.ModelId).
-		SetSchedulerID(req.SchedulerId).
+		SetModelID(*req.ModelId).
+		SetSchedulerID(*req.SchedulerId).
 		SetDeviceInfoID(deviceInfoId).
 		SetCountryCode(countryCode).
 		SetUserID(userID).
 		SetWasAutoSubmitted(req.SubmitToGallery).
-		SetNumOutputs(req.NumOutputs)
+		SetNumOutputs(*req.NumOutputs)
 	if productId != nil {
 		insert.SetStripeProductID(*productId)
 	}

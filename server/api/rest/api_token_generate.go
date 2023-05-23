@@ -95,6 +95,18 @@ func (c *RestAPI) HandleCreateGenerationToken(w http.ResponseWriter, r *http.Req
 		return
 	}
 
+	// Set settings resp
+	initSettings := responses.ImageGenerationSettingsResponse{
+		Model:          *generateReq.ModelId,
+		Scheduler:      *generateReq.SchedulerId,
+		Width:          *generateReq.Width,
+		Height:         *generateReq.Height,
+		NumImages:      *generateReq.NumOutputs,
+		GuidanceScale:  *generateReq.GuidanceScale,
+		InferenceSteps: *generateReq.InferenceSteps,
+		Seed:           &generateReq.Seed,
+	}
+
 	// The URL we send worker
 	var signedInitImageUrl string
 	// See if init image specified, validate it belongs to user, validate it exists in bucket
@@ -189,8 +201,8 @@ func (c *RestAPI) HandleCreateGenerationToken(w http.ResponseWriter, r *http.Req
 	deviceInfo := utils.GetClientDeviceInfo(r)
 
 	// Get model and scheduler name for cog
-	modelName := shared.GetCache().GetGenerationModelNameFromID(generateReq.ModelId)
-	schedulerName := shared.GetCache().GetSchedulerNameFromID(generateReq.SchedulerId)
+	modelName := shared.GetCache().GetGenerationModelNameFromID(*generateReq.ModelId)
+	schedulerName := shared.GetCache().GetSchedulerNameFromID(*generateReq.SchedulerId)
 	if modelName == "" || schedulerName == "" {
 		log.Error("Error getting model or scheduler name: %s - %s", modelName, schedulerName)
 		responses.ErrInternalServerError(w, r, "An unknown error has occured")
@@ -224,7 +236,7 @@ func (c *RestAPI) HandleCreateGenerationToken(w http.ResponseWriter, r *http.Req
 		// Bind a client to the transaction
 		DB := tx.Client()
 		// Deduct credits from user
-		deducted, err := c.Repo.DeductCreditsFromUser(user.ID, int32(generateReq.NumOutputs), DB)
+		deducted, err := c.Repo.DeductCreditsFromUser(user.ID, *generateReq.NumOutputs, DB)
 		if err != nil {
 			log.Error("Error deducting credits", "err", err)
 			responses.ErrInternalServerError(w, r, "Error deducting credits from user")
@@ -267,9 +279,9 @@ func (c *RestAPI) HandleCreateGenerationToken(w http.ResponseWriter, r *http.Req
 			ID:               utils.Sha256(requestId),
 			CountryCode:      countryCode,
 			Status:           shared.LivePageQueued,
-			TargetNumOutputs: generateReq.NumOutputs,
-			Width:            generateReq.Width,
-			Height:           generateReq.Height,
+			TargetNumOutputs: *generateReq.NumOutputs,
+			Width:            *generateReq.Width,
+			Height:           *generateReq.Height,
 			CreatedAt:        g.CreatedAt,
 			ProductID:        user.ActiveProductID,
 			Source:           shared.OperationSourceTypeAPI,
@@ -292,16 +304,16 @@ func (c *RestAPI) HandleCreateGenerationToken(w http.ResponseWriter, r *http.Req
 				LivePageData:         &livePageMsg,
 				Prompt:               generateReq.Prompt,
 				NegativePrompt:       generateReq.NegativePrompt,
-				Width:                fmt.Sprint(generateReq.Width),
-				Height:               fmt.Sprint(generateReq.Height),
-				NumInferenceSteps:    fmt.Sprint(generateReq.InferenceSteps),
-				GuidanceScale:        fmt.Sprint(generateReq.GuidanceScale),
+				Width:                fmt.Sprint(*generateReq.Width),
+				Height:               fmt.Sprint(*generateReq.Height),
+				NumInferenceSteps:    fmt.Sprint(*generateReq.InferenceSteps),
+				GuidanceScale:        fmt.Sprint(*generateReq.GuidanceScale),
 				Model:                modelName,
-				ModelId:              generateReq.ModelId,
+				ModelId:              *generateReq.ModelId,
 				Scheduler:            schedulerName,
-				SchedulerId:          generateReq.SchedulerId,
+				SchedulerId:          *generateReq.SchedulerId,
 				Seed:                 fmt.Sprint(generateReq.Seed),
-				NumOutputs:           fmt.Sprint(generateReq.NumOutputs),
+				NumOutputs:           fmt.Sprint(*generateReq.NumOutputs),
 				OutputImageExtension: string(shared.DEFAULT_GENERATE_OUTPUT_EXTENSION),
 				OutputImageQuality:   fmt.Sprint(shared.DEFAULT_GENERATE_OUTPUT_QUALITY),
 				ProcessType:          shared.GENERATE,
@@ -433,7 +445,7 @@ func (c *RestAPI) HandleCreateGenerationToken(w http.ResponseWriter, r *http.Req
 				}
 
 				// Set token used
-				err = c.Repo.SetTokenUsedAndIncrementCreditsSpent(int(generateReq.NumOutputs), *generation.APITokenID)
+				err = c.Repo.SetTokenUsedAndIncrementCreditsSpent(int(*generateReq.NumOutputs), *generation.APITokenID)
 				if err != nil {
 					log.Error("Failed to set token used", "err", err)
 				}
@@ -442,6 +454,7 @@ func (c *RestAPI) HandleCreateGenerationToken(w http.ResponseWriter, r *http.Req
 				render.JSON(w, r, responses.ApiSucceededResponse{
 					Outputs:          resOutputs,
 					RemainingCredits: remainingCredits,
+					Settings:         initSettings,
 				})
 				return
 			case requests.CogFailed:
@@ -476,7 +489,7 @@ func (c *RestAPI) HandleCreateGenerationToken(w http.ResponseWriter, r *http.Req
 					duration := time.Now().Sub(cogMsg.Input.LivePageData.CreatedAt).Seconds()
 					go c.Track.GenerationFailed(user, cogMsg.Input, duration, cogMsg.Error, "system")
 					// Refund credits
-					_, err = c.Repo.RefundCreditsToUser(user.ID, generateReq.NumOutputs, DB)
+					_, err = c.Repo.RefundCreditsToUser(user.ID, *generateReq.NumOutputs, DB)
 					if err != nil {
 						log.Error("Failed to refund credits", "err", err)
 						return err
@@ -490,7 +503,8 @@ func (c *RestAPI) HandleCreateGenerationToken(w http.ResponseWriter, r *http.Req
 
 				render.Status(r, http.StatusInternalServerError)
 				render.JSON(w, r, responses.ApiFailedResponse{
-					Error: cogMsg.Error,
+					Error:    cogMsg.Error,
+					Settings: initSettings,
 				})
 				return
 			}
@@ -502,7 +516,7 @@ func (c *RestAPI) HandleCreateGenerationToken(w http.ResponseWriter, r *http.Req
 					log.Error("Failed to set generation failed", "id", upscale.ID, "err", err)
 				}
 				// Refund credits
-				_, err = c.Repo.RefundCreditsToUser(user.ID, generateReq.NumOutputs, DB)
+				_, err = c.Repo.RefundCreditsToUser(user.ID, *generateReq.NumOutputs, DB)
 				if err != nil {
 					log.Error("Failed to refund credits", "err", err)
 					return err
@@ -516,7 +530,8 @@ func (c *RestAPI) HandleCreateGenerationToken(w http.ResponseWriter, r *http.Req
 
 			render.Status(r, http.StatusInternalServerError)
 			render.JSON(w, r, responses.ApiFailedResponse{
-				Error: shared.TIMEOUT_ERROR,
+				Error:    shared.TIMEOUT_ERROR,
+				Settings: initSettings,
 			})
 			return
 		}

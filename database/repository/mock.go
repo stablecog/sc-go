@@ -9,6 +9,7 @@ import (
 	"github.com/stablecog/sc-go/database/ent/credittype"
 	"github.com/stablecog/sc-go/database/ent/userrole"
 	"github.com/stablecog/sc-go/server/requests"
+	"github.com/stablecog/sc-go/utils"
 )
 
 // Mock user IDs
@@ -130,13 +131,14 @@ func (repo *Repository) CreateMockData(ctx context.Context) error {
 	gen, err := repo.CreateGeneration(uuid.MustParse(MOCK_ADMIN_UUID), "browser", "macos", "chrome", "DE", requests.CreateGenerationRequest{
 		Prompt:         "This is a prompt",
 		NegativePrompt: "This is a negative prompt",
-		Width:          512,
-		Height:         512,
-		InferenceSteps: 11,
-		GuidanceScale:  2.0,
-		ModelId:        uuid.MustParse(MOCK_GENERATION_MODEL_ID),
-		SchedulerId:    uuid.MustParse(MOCK_SCHEDULER_ID),
+		Width:          utils.ToPtr[int32](512),
+		Height:         utils.ToPtr[int32](512),
+		InferenceSteps: utils.ToPtr[int32](11),
+		GuidanceScale:  utils.ToPtr[float32](2.0),
+		ModelId:        utils.ToPtr(uuid.MustParse(MOCK_GENERATION_MODEL_ID)),
+		SchedulerId:    utils.ToPtr(uuid.MustParse(MOCK_SCHEDULER_ID)),
 		Seed:           1234,
+		NumOutputs:     utils.ToPtr[int32](3),
 	}, nil, nil, nil)
 	if err != nil {
 		return err
@@ -166,14 +168,14 @@ func (repo *Repository) CreateMockData(ctx context.Context) error {
 	// Without negative prompt, also success
 	gen, err = repo.CreateGeneration(uuid.MustParse(MOCK_ADMIN_UUID), "browser", "macos", "chrome", "DE", requests.CreateGenerationRequest{
 		Prompt:          "This is a prompt 2",
-		Width:           512,
-		Height:          512,
-		InferenceSteps:  30,
-		GuidanceScale:   1.0,
-		ModelId:         uuid.MustParse(MOCK_GENERATION_MODEL_ID),
-		SchedulerId:     uuid.MustParse(MOCK_SCHEDULER_ID),
+		Width:           utils.ToPtr[int32](512),
+		Height:          utils.ToPtr[int32](512),
+		InferenceSteps:  utils.ToPtr[int32](30),
+		GuidanceScale:   utils.ToPtr[float32](1.0),
+		ModelId:         utils.ToPtr(uuid.MustParse(MOCK_GENERATION_MODEL_ID)),
+		SchedulerId:     utils.ToPtr(uuid.MustParse(MOCK_SCHEDULER_ID)),
 		Seed:            1234,
-		NumOutputs:      1,
+		NumOutputs:      utils.ToPtr[int32](1),
 		SubmitToGallery: true,
 	}, nil, nil, nil)
 	if err != nil {
@@ -203,14 +205,14 @@ func (repo *Repository) CreateMockData(ctx context.Context) error {
 	// Failure
 	gen, err = repo.CreateGeneration(uuid.MustParse(MOCK_ADMIN_UUID), "browser", "macos", "chrome", "DE", requests.CreateGenerationRequest{
 		Prompt:         "This is a prompt 3",
-		Width:          512,
-		Height:         512,
-		InferenceSteps: 30,
-		GuidanceScale:  1.0,
-		ModelId:        uuid.MustParse(MOCK_GENERATION_MODEL_ID),
-		SchedulerId:    uuid.MustParse(MOCK_SCHEDULER_ID),
+		Width:          utils.ToPtr[int32](512),
+		Height:         utils.ToPtr[int32](512),
+		InferenceSteps: utils.ToPtr[int32](30),
+		GuidanceScale:  utils.ToPtr[float32](1.0),
+		ModelId:        utils.ToPtr(uuid.MustParse(MOCK_GENERATION_MODEL_ID)),
+		SchedulerId:    utils.ToPtr(uuid.MustParse(MOCK_SCHEDULER_ID)),
 		Seed:           1234,
-		NumOutputs:     1,
+		NumOutputs:     utils.ToPtr[int32](1),
 	}, nil, nil, nil)
 	if err != nil {
 		return err
@@ -227,14 +229,14 @@ func (repo *Repository) CreateMockData(ctx context.Context) error {
 	// In progress
 	gen, err = repo.CreateGeneration(uuid.MustParse(MOCK_ADMIN_UUID), "browser", "macos", "chrome", "DE", requests.CreateGenerationRequest{
 		Prompt:         "This is a prompt 4",
-		Width:          512,
-		Height:         512,
-		InferenceSteps: 30,
-		GuidanceScale:  1.0,
-		ModelId:        uuid.MustParse(MOCK_GENERATION_MODEL_ID),
-		SchedulerId:    uuid.MustParse(MOCK_SCHEDULER_ID),
+		Width:          utils.ToPtr[int32](512),
+		Height:         utils.ToPtr[int32](512),
+		InferenceSteps: utils.ToPtr[int32](30),
+		GuidanceScale:  utils.ToPtr[float32](1.0),
+		ModelId:        utils.ToPtr(uuid.MustParse(MOCK_GENERATION_MODEL_ID)),
+		SchedulerId:    utils.ToPtr(uuid.MustParse(MOCK_SCHEDULER_ID)),
 		Seed:           1234,
-		NumOutputs:     1,
+		NumOutputs:     utils.ToPtr[int32](1),
 	}, nil, nil, nil)
 	if err != nil {
 		return err
@@ -250,14 +252,14 @@ func (repo *Repository) CreateMockData(ctx context.Context) error {
 func (repo *Repository) CreateMockGenerationForDeletion(ctx context.Context) (*ent.Generation, error) {
 	gen, err := repo.CreateGeneration(uuid.MustParse(MOCK_ADMIN_UUID), "browser", "macos", "chrome", "DE", requests.CreateGenerationRequest{
 		Prompt:         "to_delete",
-		Width:          512,
-		Height:         512,
-		InferenceSteps: 30,
-		GuidanceScale:  1.0,
-		ModelId:        uuid.MustParse(MOCK_GENERATION_MODEL_ID),
-		SchedulerId:    uuid.MustParse(MOCK_SCHEDULER_ID),
+		Width:          utils.ToPtr[int32](512),
+		Height:         utils.ToPtr[int32](512),
+		InferenceSteps: utils.ToPtr[int32](30),
+		GuidanceScale:  utils.ToPtr[float32](1.0),
+		ModelId:        utils.ToPtr(uuid.MustParse(MOCK_GENERATION_MODEL_ID)),
+		SchedulerId:    utils.ToPtr(uuid.MustParse(MOCK_SCHEDULER_ID)),
 		Seed:           1234,
-		NumOutputs:     1,
+		NumOutputs:     utils.ToPtr[int32](1),
 	}, nil, nil, nil)
 	if err != nil {
 		return nil, err

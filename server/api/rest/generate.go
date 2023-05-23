@@ -101,6 +101,8 @@ func (c *RestAPI) HandleCreateGeneration(w http.ResponseWriter, r *http.Request)
 			responses.ErrBadRequest(w, r, err.Error(), "")
 			return
 		}
+	} else {
+		generateReq.ApplyDefaults()
 	}
 
 	// The URL we send worker
@@ -171,8 +173,8 @@ func (c *RestAPI) HandleCreateGeneration(w http.ResponseWriter, r *http.Request)
 	// ! TODO - parallel generation toggle
 
 	// Get model and scheduler name for cog
-	modelName := shared.GetCache().GetGenerationModelNameFromID(generateReq.ModelId)
-	schedulerName := shared.GetCache().GetSchedulerNameFromID(generateReq.SchedulerId)
+	modelName := shared.GetCache().GetGenerationModelNameFromID(*generateReq.ModelId)
+	schedulerName := shared.GetCache().GetSchedulerNameFromID(*generateReq.SchedulerId)
 	if modelName == "" || schedulerName == "" {
 		log.Error("Error getting model or scheduler name: %s - %s", modelName, schedulerName)
 		responses.ErrInternalServerError(w, r, "An unknown error has occurred")
@@ -199,7 +201,7 @@ func (c *RestAPI) HandleCreateGeneration(w http.ResponseWriter, r *http.Request)
 		// Bind a client to the transaction
 		DB := tx.Client()
 		// Deduct credits from user
-		deducted, err := c.Repo.DeductCreditsFromUser(user.ID, int32(generateReq.NumOutputs), DB)
+		deducted, err := c.Repo.DeductCreditsFromUser(user.ID, *generateReq.NumOutputs, DB)
 		if err != nil {
 			log.Error("Error deducting credits", "err", err)
 			responses.ErrInternalServerError(w, r, "Error deducting credits from user")
@@ -242,9 +244,9 @@ func (c *RestAPI) HandleCreateGeneration(w http.ResponseWriter, r *http.Request)
 			ID:               utils.Sha256(requestId),
 			CountryCode:      countryCode,
 			Status:           shared.LivePageQueued,
-			TargetNumOutputs: generateReq.NumOutputs,
-			Width:            generateReq.Width,
-			Height:           generateReq.Height,
+			TargetNumOutputs: *generateReq.NumOutputs,
+			Width:            *generateReq.Width,
+			Height:           *generateReq.Height,
 			CreatedAt:        g.CreatedAt,
 			ProductID:        user.ActiveProductID,
 			Source:           shared.OperationSourceTypeWebUI,
@@ -268,16 +270,16 @@ func (c *RestAPI) HandleCreateGeneration(w http.ResponseWriter, r *http.Request)
 				LivePageData:         &livePageMsg,
 				Prompt:               generateReq.Prompt,
 				NegativePrompt:       generateReq.NegativePrompt,
-				Width:                fmt.Sprint(generateReq.Width),
-				Height:               fmt.Sprint(generateReq.Height),
-				NumInferenceSteps:    fmt.Sprint(generateReq.InferenceSteps),
-				GuidanceScale:        fmt.Sprint(generateReq.GuidanceScale),
+				Width:                fmt.Sprint(*generateReq.Width),
+				Height:               fmt.Sprint(*generateReq.Height),
+				NumInferenceSteps:    fmt.Sprint(*generateReq.InferenceSteps),
+				GuidanceScale:        fmt.Sprint(*generateReq.GuidanceScale),
 				Model:                modelName,
-				ModelId:              generateReq.ModelId,
+				ModelId:              *generateReq.ModelId,
 				Scheduler:            schedulerName,
-				SchedulerId:          generateReq.SchedulerId,
+				SchedulerId:          *generateReq.SchedulerId,
 				Seed:                 fmt.Sprint(generateReq.Seed),
-				NumOutputs:           fmt.Sprint(generateReq.NumOutputs),
+				NumOutputs:           fmt.Sprint(*generateReq.NumOutputs),
 				OutputImageExtension: string(shared.DEFAULT_GENERATE_OUTPUT_EXTENSION),
 				OutputImageQuality:   fmt.Sprint(shared.DEFAULT_GENERATE_OUTPUT_QUALITY),
 				ProcessType:          shared.GENERATE,
