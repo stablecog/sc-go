@@ -49,5 +49,14 @@ func (c *RestAPI) HandleGetSettings(w http.ResponseWriter, r *http.Request) {
 		GenerationModels: generationModels,
 		UpscaleModels:    upscaleModels,
 		Schedulers:       schedulers,
+		GenerationDefaults: responses.ImageGenerationSettingsResponse{
+			Model:          shared.GetCache().GetDefaultGenerationModel().ID,
+			Scheduler:      shared.GetCache().GetDefaultScheduler().ID,
+			Width:          shared.DEFAULT_GENERATE_WIDTH,
+			Height:         shared.DEFAULT_GENERATE_HEIGHT,
+			NumImages:      shared.DEFAULT_GENERATE_NUM_OUTPUTS,
+			GuidanceScale:  shared.DEFAULT_GENERATE_GUIDANCE_SCALE,
+			InferenceSteps: shared.DEFAULT_GENERATE_INFERENCE_STEPS,
+		},
 	})
 }

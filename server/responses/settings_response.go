@@ -9,8 +9,20 @@ type SettingsResponseItem struct {
 	Active  *bool     `json:"active,omitempty"`
 }
 
+type ImageGenerationSettingsResponse struct {
+	Model          uuid.UUID `json:"model"`
+	Scheduler      uuid.UUID `json:"scheduler"`
+	Width          int32     `json:"width"`
+	Height         int32     `json:"height"`
+	NumImages      int32     `json:"num_images"`
+	GuidanceScale  float32   `json:"guidance_scale"`
+	InferenceSteps int32     `json:"inference_steps"`
+	Seed           *int      `json:"seed"`
+}
+
 type SettingsResponse struct {
-	GenerationModels []SettingsResponseItem `json:"generation_models"`
-	UpscaleModels    []SettingsResponseItem `json:"upscale_models"`
-	Schedulers       []SettingsResponseItem `json:"schedulers"`
+	GenerationDefaults ImageGenerationSettingsResponse `json:"generation_defaults"`
+	GenerationModels   []SettingsResponseItem          `json:"generation_models"`
+	UpscaleModels      []SettingsResponseItem          `json:"upscale_models"`
+	Schedulers         []SettingsResponseItem          `json:"schedulers"`
 }

@@ -145,3 +145,45 @@ func (f *Cache) IsDisposableEmail(email string) bool {
 	}
 	return false
 }
+
+func (f *Cache) GetDefaultGenerationModel() *ent.GenerationModel {
+	var defaultModel *ent.GenerationModel
+	for _, model := range f.GenerateModels {
+		// always set at least 1 as default
+		if defaultModel == nil {
+			defaultModel = model
+		}
+		if model.IsDefault {
+			defaultModel = model
+		}
+	}
+	return defaultModel
+}
+
+func (f *Cache) GetDefaultUpscaleModel() *ent.UpscaleModel {
+	var defaultModel *ent.UpscaleModel
+	for _, model := range f.UpscaleModels {
+		// always set at least 1 as default
+		if defaultModel == nil {
+			defaultModel = model
+		}
+		if model.IsDefault {
+			defaultModel = model
+		}
+	}
+	return defaultModel
+}
+
+func (f *Cache) GetDefaultScheduler() *ent.Scheduler {
+	var defaultScheduler *ent.Scheduler
+	for _, scheduler := range f.Schedulers {
+		// always set at least 1 as default
+		if defaultScheduler == nil {
+			defaultScheduler = scheduler
+		}
+		if scheduler.IsDefault {
+			defaultScheduler = scheduler
+		}
+	}
+	return defaultScheduler
+}

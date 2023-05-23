@@ -55,11 +55,6 @@ const (
 	WEBP ImageExtension = "webp"
 )
 
-// Default image extension for generate
-const DEFAULT_GENERATE_OUTPUT_EXTENSION = JPEG
-const DEFAULT_GENERATE_NUM_OUTPUTS = 4
-const DEFAULT_GENERATE_OUTPUT_QUALITY = 85
-
 // Allowed image extensions for upload
 var ALLOWS_IMAGE_EXTENSIONS_UPLOAD = []ImageExtension{WEBP, JPEG, PNG}
 
@@ -142,3 +137,12 @@ const QUEUE_OVERFLOW_MAX = 50
 // Penalty for queue overflow
 // Computed as time.Sleep(QUEUE_OVERFLOW_PENALTY * QUEUE_OVERFLOW_SIZE)
 const QUEUE_OVERFLOW_PENALTY_MS = 150
+
+// ! Image Generation Defaults
+const DEFAULT_GENERATE_OUTPUT_EXTENSION = JPEG
+const DEFAULT_GENERATE_OUTPUT_QUALITY = 85
+const DEFAULT_GENERATE_NUM_OUTPUTS int32 = 4
+const DEFAULT_GENERATE_WIDTH int32 = 768
+const DEFAULT_GENERATE_HEIGHT int32 = 768
+const DEFAULT_GENERATE_GUIDANCE_SCALE float32 = 7.0
+const DEFAULT_GENERATE_INFERENCE_STEPS int32 = 30
