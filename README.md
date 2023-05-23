@@ -13,7 +13,7 @@ These are the standalone applications in this repository, they have more details
 - [Cron](https://github.com/stablecog/sc-go/cron) - Various cron jobs utilized by stablecog
 - [Upload API](https://github.com/stablecog/sc-go/uploadapi) - API for user uploaded images
 
-### Shared Modules
+### Shared Modules 
 These are modules referenced by both applications.
 
 - [Database](https://github.com/stablecog/sc-go/database) - Database interactions (SQL, Redis, etc.)
