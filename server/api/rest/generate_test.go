@@ -14,7 +14,6 @@ import (
 	"github.com/stablecog/sc-go/server/requests"
 	"github.com/stablecog/sc-go/server/responses"
 	"github.com/stablecog/sc-go/shared"
-	"github.com/stablecog/sc-go/utils"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -92,12 +91,11 @@ func TestGenerateFailsWithInvalidStreamID(t *testing.T) {
 func TestGenerateEnforcesNumOutputsChange(t *testing.T) {
 	reqBody := requests.CreateGenerationRequest{
 		StreamID:      MockSSEId,
-		Height:        utils.ToPtr[int32](768),
-		Width:         utils.ToPtr[int32](768),
-		GuidanceScale: utils.ToPtr[float32](7),
+		Height:        shared.MAX_GENERATE_HEIGHT,
+		Width:         shared.MAX_GENERATE_WIDTH,
+		GuidanceScale: 7,
 		// Minimum is not enforced since it should default to 1
-		NumOutputs: utils.ToPtr[int32](-1),
-		ModelId:    utils.ToPtr(uuid.MustParse("9b7d9d0e-9b7d-9d0e-9b7d-9d0e9b7d9d0e")),
+		NumOutputs: -1,
 	}
 	body, _ := json.Marshal(reqBody)
 	w := httptest.NewRecorder()
@@ -122,10 +120,10 @@ func TestGenerateEnforcesNumOutputsChange(t *testing.T) {
 	// ! Max
 	reqBody = requests.CreateGenerationRequest{
 		StreamID:      MockSSEId,
-		Height:        utils.ToPtr[int32](768),
-		Width:         utils.ToPtr[int32](768),
-		NumOutputs:    utils.ToPtr[int32](shared.MAX_GENERATE_NUM_OUTPUTS + 1),
-		GuidanceScale: utils.ToPtr[float32](7),
+		Height:        shared.MAX_GENERATE_HEIGHT,
+		Width:         shared.MAX_GENERATE_WIDTH,
+		NumOutputs:    shared.MAX_GENERATE_NUM_OUTPUTS + 1,
+		GuidanceScale: 7,
 	}
 	body, _ = json.Marshal(reqBody)
 	w = httptest.NewRecorder()
@@ -150,9 +148,9 @@ func TestGenerateEnforcesNumOutputsChange(t *testing.T) {
 func TestGenerateEnforcesMaxWidthMaxHeight(t *testing.T) {
 	reqBody := requests.CreateGenerationRequest{
 		StreamID:      MockSSEId,
-		Height:        utils.ToPtr[int32](shared.MAX_GENERATE_HEIGHT + 1),
-		Width:         utils.ToPtr[int32](shared.MAX_GENERATE_WIDTH),
-		GuidanceScale: utils.ToPtr[float32](7),
+		Height:        shared.MAX_GENERATE_HEIGHT + 1,
+		Width:         shared.MAX_GENERATE_WIDTH,
+		GuidanceScale: 7,
 	}
 	body, _ := json.Marshal(reqBody)
 	w := httptest.NewRecorder()
@@ -177,8 +175,8 @@ func TestGenerateEnforcesMaxWidthMaxHeight(t *testing.T) {
 	// ! Width
 	reqBody = requests.CreateGenerationRequest{
 		StreamID: MockSSEId,
-		Height:   utils.ToPtr[int32](shared.MAX_GENERATE_HEIGHT),
-		Width:    utils.ToPtr[int32](shared.MAX_GENERATE_WIDTH + 1),
+		Height:   shared.MAX_GENERATE_HEIGHT,
+		Width:    shared.MAX_GENERATE_WIDTH + 1,
 	}
 	body, _ = json.Marshal(reqBody)
 	w = httptest.NewRecorder()
@@ -203,10 +201,9 @@ func TestGenerateEnforcesMaxWidthMaxHeight(t *testing.T) {
 func TestGenerateValidationsSkippedForSuperAdmin(t *testing.T) {
 	reqBody := requests.CreateGenerationRequest{
 		StreamID:      MockSSEId,
-		Height:        utils.ToPtr[int32](shared.MAX_GENERATE_HEIGHT + 1),
-		Width:         utils.ToPtr[int32](shared.MAX_GENERATE_WIDTH),
-		GuidanceScale: utils.ToPtr[float32](7),
-		SchedulerId:   utils.ToPtr(uuid.MustParse("00000000-0000-0000-0000-000000000000")),
+		Height:        shared.MAX_GENERATE_HEIGHT + 1,
+		Width:         shared.MAX_GENERATE_WIDTH,
+		GuidanceScale: 7,
 	}
 	body, _ := json.Marshal(reqBody)
 	w := httptest.NewRecorder()
@@ -230,10 +227,9 @@ func TestGenerateValidationsSkippedForSuperAdmin(t *testing.T) {
 
 	// ! Width
 	reqBody = requests.CreateGenerationRequest{
-		StreamID:    MockSSEId,
-		Height:      utils.ToPtr[int32](shared.MAX_GENERATE_HEIGHT),
-		Width:       utils.ToPtr[int32](shared.MAX_GENERATE_WIDTH + 1),
-		SchedulerId: utils.ToPtr(uuid.MustParse("00000000-0000-0000-0000-000000000000")),
+		StreamID: MockSSEId,
+		Height:   shared.MAX_GENERATE_HEIGHT,
+		Width:    shared.MAX_GENERATE_WIDTH + 1,
 	}
 	body, _ = json.Marshal(reqBody)
 	w = httptest.NewRecorder()
@@ -259,12 +255,12 @@ func TestGenerateRejectsInvalidModelOrScheduler(t *testing.T) {
 	// ! invalid_scheduler_id
 	reqBody := requests.CreateGenerationRequest{
 		StreamID:      MockSSEId,
-		Height:        utils.ToPtr[int32](768),
-		Width:         utils.ToPtr[int32](768),
-		SchedulerId:   utils.ToPtr(uuid.MustParse("00000000-0000-0000-0000-000000000000")),
-		ModelId:       utils.ToPtr(uuid.MustParse(repository.MOCK_GENERATION_MODEL_ID)),
-		GuidanceScale: utils.ToPtr[float32](7),
-		NumOutputs:    utils.ToPtr[int32](1),
+		Height:        shared.MAX_GENERATE_HEIGHT,
+		Width:         shared.MAX_GENERATE_WIDTH,
+		SchedulerId:   uuid.MustParse("00000000-0000-0000-0000-000000000000"),
+		ModelId:       uuid.MustParse(repository.MOCK_GENERATION_MODEL_ID),
+		GuidanceScale: 7,
+		NumOutputs:    1,
 	}
 	body, _ := json.Marshal(reqBody)
 	w := httptest.NewRecorder()
@@ -289,12 +285,12 @@ func TestGenerateRejectsInvalidModelOrScheduler(t *testing.T) {
 	// ! invalid_model_id
 	reqBody = requests.CreateGenerationRequest{
 		StreamID:      MockSSEId,
-		Height:        utils.ToPtr[int32](768),
-		Width:         utils.ToPtr[int32](768),
-		SchedulerId:   utils.ToPtr(uuid.MustParse(repository.MOCK_SCHEDULER_ID)),
-		ModelId:       utils.ToPtr(uuid.MustParse("00000000-0000-0000-0000-000000000000")),
-		GuidanceScale: utils.ToPtr[float32](7),
-		NumOutputs:    utils.ToPtr[int32](1),
+		Height:        shared.MAX_GENERATE_HEIGHT,
+		Width:         shared.MAX_GENERATE_WIDTH,
+		SchedulerId:   uuid.MustParse(repository.MOCK_SCHEDULER_ID),
+		ModelId:       uuid.MustParse("00000000-0000-0000-0000-000000000000"),
+		GuidanceScale: 7,
+		NumOutputs:    1,
 	}
 	body, _ = json.Marshal(reqBody)
 	w = httptest.NewRecorder()
@@ -320,13 +316,13 @@ func TestGenerateNoCredits(t *testing.T) {
 	// ! Perfectly valid request
 	reqBody := requests.CreateGenerationRequest{
 		StreamID:       MockSSEId,
-		Height:         utils.ToPtr[int32](512),
-		Width:          utils.ToPtr[int32](512),
-		SchedulerId:    utils.ToPtr(uuid.MustParse(repository.MOCK_SCHEDULER_ID)),
-		ModelId:        utils.ToPtr(uuid.MustParse(repository.MOCK_GENERATION_MODEL_ID)),
-		NumOutputs:     utils.ToPtr[int32](1),
-		InferenceSteps: utils.ToPtr[int32](shared.MAX_GENERATE_INTERFERENCE_STEPS_FREE + 1),
-		GuidanceScale:  utils.ToPtr[float32](7),
+		Height:         512,
+		Width:          512,
+		SchedulerId:    uuid.MustParse(repository.MOCK_SCHEDULER_ID),
+		ModelId:        uuid.MustParse(repository.MOCK_GENERATION_MODEL_ID),
+		NumOutputs:     1,
+		InferenceSteps: shared.MAX_GENERATE_INTERFERENCE_STEPS_FREE + 1,
+		GuidanceScale:  7,
 		Prompt:         "A portrait of a cat by Van Gogh",
 	}
 	body, _ := json.Marshal(reqBody)
@@ -353,13 +349,13 @@ func TestGenerateValidRequest(t *testing.T) {
 	// ! Perfectly valid request
 	reqBody := requests.CreateGenerationRequest{
 		StreamID:       MockSSEId,
-		Height:         utils.ToPtr[int32](512),
-		Width:          utils.ToPtr[int32](512),
-		SchedulerId:    utils.ToPtr(uuid.MustParse(repository.MOCK_SCHEDULER_ID)),
-		ModelId:        utils.ToPtr(uuid.MustParse(repository.MOCK_GENERATION_MODEL_ID)),
-		NumOutputs:     utils.ToPtr[int32](1),
-		GuidanceScale:  utils.ToPtr[float32](7),
-		InferenceSteps: utils.ToPtr[int32](shared.MAX_GENERATE_INTERFERENCE_STEPS_FREE + 1),
+		Height:         512,
+		Width:          512,
+		SchedulerId:    uuid.MustParse(repository.MOCK_SCHEDULER_ID),
+		ModelId:        uuid.MustParse(repository.MOCK_GENERATION_MODEL_ID),
+		NumOutputs:     1,
+		GuidanceScale:  7,
+		InferenceSteps: shared.MAX_GENERATE_INTERFERENCE_STEPS_FREE + 1,
 		Prompt:         "A portrait of a cat by Van Gogh",
 	}
 	body, _ := json.Marshal(reqBody)

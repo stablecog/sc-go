@@ -7,7 +7,6 @@ import (
 	"github.com/stablecog/sc-go/database/ent/generation"
 	"github.com/stablecog/sc-go/database/ent/negativeprompt"
 	"github.com/stablecog/sc-go/server/requests"
-	"github.com/stablecog/sc-go/utils"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -25,29 +24,27 @@ func TestGetUsersUniqueNegativePromptIds(t *testing.T) {
 	g1 := requests.CreateGenerationRequest{
 		Prompt:         "TestGetUsersUniqueNegativePromptIds_1",
 		NegativePrompt: "TestGetUsersUniqueNegativePromptIds_1",
-		Width:          utils.ToPtr[int32](512),
-		Height:         utils.ToPtr[int32](512),
-		InferenceSteps: utils.ToPtr[int32](11),
-		GuidanceScale:  utils.ToPtr[float32](2.0),
-		ModelId:        utils.ToPtr(uuid.MustParse(MOCK_GENERATION_MODEL_ID)),
-		SchedulerId:    utils.ToPtr(uuid.MustParse(MOCK_SCHEDULER_ID)),
+		Width:          512,
+		Height:         512,
+		InferenceSteps: 11,
+		GuidanceScale:  2.0,
+		ModelId:        uuid.MustParse(MOCK_GENERATION_MODEL_ID),
+		SchedulerId:    uuid.MustParse(MOCK_SCHEDULER_ID),
 		Seed:           1234,
 	}
-	g1.ApplyDefaults()
 
 	// Shared prompt
 	g2 := requests.CreateGenerationRequest{
 		Prompt:         "TestGetUsersUniqueNegativePromptIds_2",
 		NegativePrompt: "TestGetUsersUniqueNegativePromptIds_2",
-		Width:          utils.ToPtr[int32](512),
-		Height:         utils.ToPtr[int32](512),
-		InferenceSteps: utils.ToPtr[int32](11),
-		GuidanceScale:  utils.ToPtr[float32](2.0),
-		ModelId:        utils.ToPtr(uuid.MustParse(MOCK_GENERATION_MODEL_ID)),
-		SchedulerId:    utils.ToPtr(uuid.MustParse(MOCK_SCHEDULER_ID)),
+		Width:          512,
+		Height:         512,
+		InferenceSteps: 11,
+		GuidanceScale:  2.0,
+		ModelId:        uuid.MustParse(MOCK_GENERATION_MODEL_ID),
+		SchedulerId:    uuid.MustParse(MOCK_SCHEDULER_ID),
 		Seed:           1234,
 	}
-	g2.ApplyDefaults()
 
 	gen1, err := MockRepo.CreateGeneration(uuid.MustParse(MOCK_ADMIN_UUID), "browser", "macos", "chrome", "DE", g1, nil, nil, nil)
 	assert.Nil(t, err)
