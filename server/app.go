@@ -423,7 +423,6 @@ func main() {
 				r.Use(mw.RateLimit(5, "api", 1*time.Second))
 				r.Post("/", hc.HandleCreateGenerationToken)
 			})
-
 			r.Route("/upscale", func(r chi.Router) {
 				r.Use(mw.AuthMiddleware(middleware.AuthLevelAPIToken))
 				r.Use(middleware.Logger)

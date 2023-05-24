@@ -119,6 +119,13 @@ func main() {
 				r.Use(mw.AuthMiddleware(middleware.AuthLevelAny))
 				r.Post("/", hc.HandleUpload)
 			})
+			// API token route is separate endpoint
+			r.Route("/upload", func(r chi.Router) {
+				r.Use(middleware.Logger)
+				r.Use(mw.RateLimit(2, "uapi", 1*time.Second))
+				r.Use(mw.AuthMiddleware(middleware.AuthLevelAPIToken))
+				r.Post("/", hc.HandleUpload)
+			})
 		})
 	})
 
