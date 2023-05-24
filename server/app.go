@@ -421,7 +421,7 @@ func main() {
 			// Settings
 			r.Route("/settings", func(r chi.Router) {
 				r.Use(middleware.Logger)
-				r.Use(mw.RateLimit(10, "srv", 1*time.Second))
+				r.Use(mw.RateLimit(10, "api", 1*time.Second))
 				r.Get("/", hc.HandleGetSettings)
 			})
 
@@ -448,6 +448,21 @@ func main() {
 				r.Use(mw.AuthMiddleware(middleware.AuthLevelAPIToken))
 				r.Post("/", uploadHc.HandleUpload)
 			})
+
+			// Querying user outputs
+			r.Route("/outputs", func(r chi.Router) {
+				r.Use(middleware.Logger)
+				r.Use(mw.RateLimit(10, "api", 1*time.Second))
+				r.Use(mw.AuthMiddleware(middleware.AuthLevelAPIToken))
+				r.Get("/", hc.HandleQueryGenerations)
+			})
+		})
+
+		r.Route("/credits", func(r chi.Router) {
+			r.Use(middleware.Logger)
+			r.Use(mw.RateLimit(10, "api", 1*time.Second))
+			r.Use(mw.AuthMiddleware(middleware.AuthLevelAPIToken))
+			r.Get("/credits", hc.HandleQueryCredits)
 		})
 
 		// Settings
