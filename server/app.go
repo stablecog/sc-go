@@ -462,7 +462,7 @@ func main() {
 			r.Use(middleware.Logger)
 			r.Use(mw.RateLimit(10, "api", 1*time.Second))
 			r.Use(mw.AuthMiddleware(middleware.AuthLevelAPIToken))
-			r.Get("/credits", hc.HandleQueryCredits)
+			r.Get("/", hc.HandleQueryCredits)
 		})
 
 		// Settings
