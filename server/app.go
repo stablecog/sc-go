@@ -35,6 +35,7 @@ import (
 	"github.com/stablecog/sc-go/server/middleware"
 	"github.com/stablecog/sc-go/server/requests"
 	"github.com/stablecog/sc-go/shared"
+	uapi "github.com/stablecog/sc-go/uploadapi/api"
 	"github.com/stablecog/sc-go/utils"
 	stripe "github.com/stripe/stripe-go/v74/client"
 	"golang.org/x/net/http2"
@@ -218,6 +219,13 @@ func main() {
 		Qdrant:         qdrantClient,
 		Clip:           clip.NewClipService(redis),
 		SMap:           apiTokenSmap,
+	}
+
+	// Create upload controller
+	uploadHc := uapi.Controller{
+		Repo:  repo,
+		Redis: redis,
+		S3:    s3Client,
 	}
 
 	// Create middleware
@@ -416,18 +424,29 @@ func main() {
 				r.Use(mw.RateLimit(10, "srv", 1*time.Second))
 				r.Get("/", hc.HandleGetSettings)
 			})
-			// Api token route
+
+			// txt2img/img2img
 			r.Route("/generate", func(r chi.Router) {
 				r.Use(mw.AuthMiddleware(middleware.AuthLevelAPIToken))
 				r.Use(middleware.Logger)
 				r.Use(mw.RateLimit(5, "api", 1*time.Second))
 				r.Post("/", hc.HandleCreateGenerationToken)
 			})
+
+			// upscale
 			r.Route("/upscale", func(r chi.Router) {
 				r.Use(mw.AuthMiddleware(middleware.AuthLevelAPIToken))
 				r.Use(middleware.Logger)
 				r.Use(mw.RateLimit(5, "api", 1*time.Second))
 				r.Post("/", hc.HandleCreateUpscaleToken)
+			})
+
+			// upload
+			r.Route("/upload", func(r chi.Router) {
+				r.Use(middleware.Logger)
+				r.Use(mw.RateLimit(2, "uapi", 1*time.Second))
+				r.Use(mw.AuthMiddleware(middleware.AuthLevelAPIToken))
+				r.Post("/", uploadHc.HandleUpload)
 			})
 		})
 

@@ -43,10 +43,3 @@ spec:
                 name: upload-service
                 port:
                   number: 13338
-          - path: /v1/image/upload
-            pathType: Prefix
-            backend:
-              service:
-                name: upload-service
-                port:
-                  number: 13338

@@ -13,14 +13,15 @@ require (
 	github.com/google/uuid v1.3.0
 	github.com/hashicorp/go-multierror v1.1.1
 	github.com/jarcoal/httpmock v1.3.0
-	github.com/joho/godotenv v1.4.0
+	github.com/joho/godotenv v1.5.1
 	github.com/posthog/posthog-go v0.0.0-20221221115252-24dfed35d71a
 	github.com/prometheus/client_golang v1.14.0
 	github.com/redis/go-redis/v9 v9.0.2
 	github.com/stablecog/sc-go/cron v0.0.0-20230329211320-ea8e574b08f6
 	github.com/stablecog/sc-go/database v0.0.0-20230411144026-268c794ea3d9
-	github.com/stablecog/sc-go/log v0.0.0-20230303221221-dcc7ec43e5e1
+	github.com/stablecog/sc-go/log v0.0.0-20230321001722-68888f92a48b
 	github.com/stablecog/sc-go/shared v0.0.0-20230329211320-ea8e574b08f6
+	github.com/stablecog/sc-go/uploadapi v0.0.0-20230524142133-beb40bd42d0d
 	github.com/stablecog/sc-go/utils v0.0.0-20230329211320-ea8e574b08f6
 	github.com/stretchr/testify v1.8.2
 	golang.org/x/exp v0.0.0-20230321023759-10a507213a29
