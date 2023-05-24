@@ -71,6 +71,48 @@ func (gmc *GenerationModelCreate) SetNillableIsHidden(b *bool) *GenerationModelC
 	return gmc
 }
 
+// SetDefaultSchedulerID sets the "default_scheduler_id" field.
+func (gmc *GenerationModelCreate) SetDefaultSchedulerID(u uuid.UUID) *GenerationModelCreate {
+	gmc.mutation.SetDefaultSchedulerID(u)
+	return gmc
+}
+
+// SetNillableDefaultSchedulerID sets the "default_scheduler_id" field if the given value is not nil.
+func (gmc *GenerationModelCreate) SetNillableDefaultSchedulerID(u *uuid.UUID) *GenerationModelCreate {
+	if u != nil {
+		gmc.SetDefaultSchedulerID(*u)
+	}
+	return gmc
+}
+
+// SetDefaultWidth sets the "default_width" field.
+func (gmc *GenerationModelCreate) SetDefaultWidth(i int32) *GenerationModelCreate {
+	gmc.mutation.SetDefaultWidth(i)
+	return gmc
+}
+
+// SetNillableDefaultWidth sets the "default_width" field if the given value is not nil.
+func (gmc *GenerationModelCreate) SetNillableDefaultWidth(i *int32) *GenerationModelCreate {
+	if i != nil {
+		gmc.SetDefaultWidth(*i)
+	}
+	return gmc
+}
+
+// SetDefaultHeight sets the "default_height" field.
+func (gmc *GenerationModelCreate) SetDefaultHeight(i int32) *GenerationModelCreate {
+	gmc.mutation.SetDefaultHeight(i)
+	return gmc
+}
+
+// SetNillableDefaultHeight sets the "default_height" field if the given value is not nil.
+func (gmc *GenerationModelCreate) SetNillableDefaultHeight(i *int32) *GenerationModelCreate {
+	if i != nil {
+		gmc.SetDefaultHeight(*i)
+	}
+	return gmc
+}
+
 // SetCreatedAt sets the "created_at" field.
 func (gmc *GenerationModelCreate) SetCreatedAt(t time.Time) *GenerationModelCreate {
 	gmc.mutation.SetCreatedAt(t)
@@ -190,6 +232,14 @@ func (gmc *GenerationModelCreate) defaults() {
 		v := generationmodel.DefaultIsHidden
 		gmc.mutation.SetIsHidden(v)
 	}
+	if _, ok := gmc.mutation.DefaultWidth(); !ok {
+		v := generationmodel.DefaultDefaultWidth
+		gmc.mutation.SetDefaultWidth(v)
+	}
+	if _, ok := gmc.mutation.DefaultHeight(); !ok {
+		v := generationmodel.DefaultDefaultHeight
+		gmc.mutation.SetDefaultHeight(v)
+	}
 	if _, ok := gmc.mutation.CreatedAt(); !ok {
 		v := generationmodel.DefaultCreatedAt()
 		gmc.mutation.SetCreatedAt(v)
@@ -217,6 +267,12 @@ func (gmc *GenerationModelCreate) check() error {
 	}
 	if _, ok := gmc.mutation.IsHidden(); !ok {
 		return &ValidationError{Name: "is_hidden", err: errors.New(`ent: missing required field "GenerationModel.is_hidden"`)}
+	}
+	if _, ok := gmc.mutation.DefaultWidth(); !ok {
+		return &ValidationError{Name: "default_width", err: errors.New(`ent: missing required field "GenerationModel.default_width"`)}
+	}
+	if _, ok := gmc.mutation.DefaultHeight(); !ok {
+		return &ValidationError{Name: "default_height", err: errors.New(`ent: missing required field "GenerationModel.default_height"`)}
 	}
 	if _, ok := gmc.mutation.CreatedAt(); !ok {
 		return &ValidationError{Name: "created_at", err: errors.New(`ent: missing required field "GenerationModel.created_at"`)}
@@ -280,6 +336,18 @@ func (gmc *GenerationModelCreate) createSpec() (*GenerationModel, *sqlgraph.Crea
 	if value, ok := gmc.mutation.IsHidden(); ok {
 		_spec.SetField(generationmodel.FieldIsHidden, field.TypeBool, value)
 		_node.IsHidden = value
+	}
+	if value, ok := gmc.mutation.DefaultSchedulerID(); ok {
+		_spec.SetField(generationmodel.FieldDefaultSchedulerID, field.TypeUUID, value)
+		_node.DefaultSchedulerID = &value
+	}
+	if value, ok := gmc.mutation.DefaultWidth(); ok {
+		_spec.SetField(generationmodel.FieldDefaultWidth, field.TypeInt32, value)
+		_node.DefaultWidth = value
+	}
+	if value, ok := gmc.mutation.DefaultHeight(); ok {
+		_spec.SetField(generationmodel.FieldDefaultHeight, field.TypeInt32, value)
+		_node.DefaultHeight = value
 	}
 	if value, ok := gmc.mutation.CreatedAt(); ok {
 		_spec.SetField(generationmodel.FieldCreatedAt, field.TypeTime, value)

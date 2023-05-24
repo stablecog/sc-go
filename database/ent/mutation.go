@@ -6644,25 +6644,30 @@ func (m *GenerationMutation) ResetEdge(name string) error {
 // GenerationModelMutation represents an operation that mutates the GenerationModel nodes in the graph.
 type GenerationModelMutation struct {
 	config
-	op                 Op
-	typ                string
-	id                 *uuid.UUID
-	name_in_worker     *string
-	is_active          *bool
-	is_default         *bool
-	is_hidden          *bool
-	created_at         *time.Time
-	updated_at         *time.Time
-	clearedFields      map[string]struct{}
-	generations        map[uuid.UUID]struct{}
-	removedgenerations map[uuid.UUID]struct{}
-	clearedgenerations bool
-	schedulers         map[uuid.UUID]struct{}
-	removedschedulers  map[uuid.UUID]struct{}
-	clearedschedulers  bool
-	done               bool
-	oldValue           func(context.Context) (*GenerationModel, error)
-	predicates         []predicate.GenerationModel
+	op                   Op
+	typ                  string
+	id                   *uuid.UUID
+	name_in_worker       *string
+	is_active            *bool
+	is_default           *bool
+	is_hidden            *bool
+	default_scheduler_id *uuid.UUID
+	default_width        *int32
+	adddefault_width     *int32
+	default_height       *int32
+	adddefault_height    *int32
+	created_at           *time.Time
+	updated_at           *time.Time
+	clearedFields        map[string]struct{}
+	generations          map[uuid.UUID]struct{}
+	removedgenerations   map[uuid.UUID]struct{}
+	clearedgenerations   bool
+	schedulers           map[uuid.UUID]struct{}
+	removedschedulers    map[uuid.UUID]struct{}
+	clearedschedulers    bool
+	done                 bool
+	oldValue             func(context.Context) (*GenerationModel, error)
+	predicates           []predicate.GenerationModel
 }
 
 var _ ent.Mutation = (*GenerationModelMutation)(nil)
@@ -6913,6 +6918,167 @@ func (m *GenerationModelMutation) ResetIsHidden() {
 	m.is_hidden = nil
 }
 
+// SetDefaultSchedulerID sets the "default_scheduler_id" field.
+func (m *GenerationModelMutation) SetDefaultSchedulerID(u uuid.UUID) {
+	m.default_scheduler_id = &u
+}
+
+// DefaultSchedulerID returns the value of the "default_scheduler_id" field in the mutation.
+func (m *GenerationModelMutation) DefaultSchedulerID() (r uuid.UUID, exists bool) {
+	v := m.default_scheduler_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDefaultSchedulerID returns the old "default_scheduler_id" field's value of the GenerationModel entity.
+// If the GenerationModel object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *GenerationModelMutation) OldDefaultSchedulerID(ctx context.Context) (v *uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDefaultSchedulerID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDefaultSchedulerID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDefaultSchedulerID: %w", err)
+	}
+	return oldValue.DefaultSchedulerID, nil
+}
+
+// ClearDefaultSchedulerID clears the value of the "default_scheduler_id" field.
+func (m *GenerationModelMutation) ClearDefaultSchedulerID() {
+	m.default_scheduler_id = nil
+	m.clearedFields[generationmodel.FieldDefaultSchedulerID] = struct{}{}
+}
+
+// DefaultSchedulerIDCleared returns if the "default_scheduler_id" field was cleared in this mutation.
+func (m *GenerationModelMutation) DefaultSchedulerIDCleared() bool {
+	_, ok := m.clearedFields[generationmodel.FieldDefaultSchedulerID]
+	return ok
+}
+
+// ResetDefaultSchedulerID resets all changes to the "default_scheduler_id" field.
+func (m *GenerationModelMutation) ResetDefaultSchedulerID() {
+	m.default_scheduler_id = nil
+	delete(m.clearedFields, generationmodel.FieldDefaultSchedulerID)
+}
+
+// SetDefaultWidth sets the "default_width" field.
+func (m *GenerationModelMutation) SetDefaultWidth(i int32) {
+	m.default_width = &i
+	m.adddefault_width = nil
+}
+
+// DefaultWidth returns the value of the "default_width" field in the mutation.
+func (m *GenerationModelMutation) DefaultWidth() (r int32, exists bool) {
+	v := m.default_width
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDefaultWidth returns the old "default_width" field's value of the GenerationModel entity.
+// If the GenerationModel object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *GenerationModelMutation) OldDefaultWidth(ctx context.Context) (v int32, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDefaultWidth is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDefaultWidth requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDefaultWidth: %w", err)
+	}
+	return oldValue.DefaultWidth, nil
+}
+
+// AddDefaultWidth adds i to the "default_width" field.
+func (m *GenerationModelMutation) AddDefaultWidth(i int32) {
+	if m.adddefault_width != nil {
+		*m.adddefault_width += i
+	} else {
+		m.adddefault_width = &i
+	}
+}
+
+// AddedDefaultWidth returns the value that was added to the "default_width" field in this mutation.
+func (m *GenerationModelMutation) AddedDefaultWidth() (r int32, exists bool) {
+	v := m.adddefault_width
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetDefaultWidth resets all changes to the "default_width" field.
+func (m *GenerationModelMutation) ResetDefaultWidth() {
+	m.default_width = nil
+	m.adddefault_width = nil
+}
+
+// SetDefaultHeight sets the "default_height" field.
+func (m *GenerationModelMutation) SetDefaultHeight(i int32) {
+	m.default_height = &i
+	m.adddefault_height = nil
+}
+
+// DefaultHeight returns the value of the "default_height" field in the mutation.
+func (m *GenerationModelMutation) DefaultHeight() (r int32, exists bool) {
+	v := m.default_height
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDefaultHeight returns the old "default_height" field's value of the GenerationModel entity.
+// If the GenerationModel object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *GenerationModelMutation) OldDefaultHeight(ctx context.Context) (v int32, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDefaultHeight is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDefaultHeight requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDefaultHeight: %w", err)
+	}
+	return oldValue.DefaultHeight, nil
+}
+
+// AddDefaultHeight adds i to the "default_height" field.
+func (m *GenerationModelMutation) AddDefaultHeight(i int32) {
+	if m.adddefault_height != nil {
+		*m.adddefault_height += i
+	} else {
+		m.adddefault_height = &i
+	}
+}
+
+// AddedDefaultHeight returns the value that was added to the "default_height" field in this mutation.
+func (m *GenerationModelMutation) AddedDefaultHeight() (r int32, exists bool) {
+	v := m.adddefault_height
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetDefaultHeight resets all changes to the "default_height" field.
+func (m *GenerationModelMutation) ResetDefaultHeight() {
+	m.default_height = nil
+	m.adddefault_height = nil
+}
+
 // SetCreatedAt sets the "created_at" field.
 func (m *GenerationModelMutation) SetCreatedAt(t time.Time) {
 	m.created_at = &t
@@ -7127,7 +7293,7 @@ func (m *GenerationModelMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *GenerationModelMutation) Fields() []string {
-	fields := make([]string, 0, 6)
+	fields := make([]string, 0, 9)
 	if m.name_in_worker != nil {
 		fields = append(fields, generationmodel.FieldNameInWorker)
 	}
@@ -7139,6 +7305,15 @@ func (m *GenerationModelMutation) Fields() []string {
 	}
 	if m.is_hidden != nil {
 		fields = append(fields, generationmodel.FieldIsHidden)
+	}
+	if m.default_scheduler_id != nil {
+		fields = append(fields, generationmodel.FieldDefaultSchedulerID)
+	}
+	if m.default_width != nil {
+		fields = append(fields, generationmodel.FieldDefaultWidth)
+	}
+	if m.default_height != nil {
+		fields = append(fields, generationmodel.FieldDefaultHeight)
 	}
 	if m.created_at != nil {
 		fields = append(fields, generationmodel.FieldCreatedAt)
@@ -7162,6 +7337,12 @@ func (m *GenerationModelMutation) Field(name string) (ent.Value, bool) {
 		return m.IsDefault()
 	case generationmodel.FieldIsHidden:
 		return m.IsHidden()
+	case generationmodel.FieldDefaultSchedulerID:
+		return m.DefaultSchedulerID()
+	case generationmodel.FieldDefaultWidth:
+		return m.DefaultWidth()
+	case generationmodel.FieldDefaultHeight:
+		return m.DefaultHeight()
 	case generationmodel.FieldCreatedAt:
 		return m.CreatedAt()
 	case generationmodel.FieldUpdatedAt:
@@ -7183,6 +7364,12 @@ func (m *GenerationModelMutation) OldField(ctx context.Context, name string) (en
 		return m.OldIsDefault(ctx)
 	case generationmodel.FieldIsHidden:
 		return m.OldIsHidden(ctx)
+	case generationmodel.FieldDefaultSchedulerID:
+		return m.OldDefaultSchedulerID(ctx)
+	case generationmodel.FieldDefaultWidth:
+		return m.OldDefaultWidth(ctx)
+	case generationmodel.FieldDefaultHeight:
+		return m.OldDefaultHeight(ctx)
 	case generationmodel.FieldCreatedAt:
 		return m.OldCreatedAt(ctx)
 	case generationmodel.FieldUpdatedAt:
@@ -7224,6 +7411,27 @@ func (m *GenerationModelMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetIsHidden(v)
 		return nil
+	case generationmodel.FieldDefaultSchedulerID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDefaultSchedulerID(v)
+		return nil
+	case generationmodel.FieldDefaultWidth:
+		v, ok := value.(int32)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDefaultWidth(v)
+		return nil
+	case generationmodel.FieldDefaultHeight:
+		v, ok := value.(int32)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDefaultHeight(v)
+		return nil
 	case generationmodel.FieldCreatedAt:
 		v, ok := value.(time.Time)
 		if !ok {
@@ -7245,13 +7453,26 @@ func (m *GenerationModelMutation) SetField(name string, value ent.Value) error {
 // AddedFields returns all numeric fields that were incremented/decremented during
 // this mutation.
 func (m *GenerationModelMutation) AddedFields() []string {
-	return nil
+	var fields []string
+	if m.adddefault_width != nil {
+		fields = append(fields, generationmodel.FieldDefaultWidth)
+	}
+	if m.adddefault_height != nil {
+		fields = append(fields, generationmodel.FieldDefaultHeight)
+	}
+	return fields
 }
 
 // AddedField returns the numeric value that was incremented/decremented on a field
 // with the given name. The second boolean return value indicates that this field
 // was not set, or was not defined in the schema.
 func (m *GenerationModelMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case generationmodel.FieldDefaultWidth:
+		return m.AddedDefaultWidth()
+	case generationmodel.FieldDefaultHeight:
+		return m.AddedDefaultHeight()
+	}
 	return nil, false
 }
 
@@ -7260,6 +7481,20 @@ func (m *GenerationModelMutation) AddedField(name string) (ent.Value, bool) {
 // type.
 func (m *GenerationModelMutation) AddField(name string, value ent.Value) error {
 	switch name {
+	case generationmodel.FieldDefaultWidth:
+		v, ok := value.(int32)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddDefaultWidth(v)
+		return nil
+	case generationmodel.FieldDefaultHeight:
+		v, ok := value.(int32)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddDefaultHeight(v)
+		return nil
 	}
 	return fmt.Errorf("unknown GenerationModel numeric field %s", name)
 }
@@ -7267,7 +7502,11 @@ func (m *GenerationModelMutation) AddField(name string, value ent.Value) error {
 // ClearedFields returns all nullable fields that were cleared during this
 // mutation.
 func (m *GenerationModelMutation) ClearedFields() []string {
-	return nil
+	var fields []string
+	if m.FieldCleared(generationmodel.FieldDefaultSchedulerID) {
+		fields = append(fields, generationmodel.FieldDefaultSchedulerID)
+	}
+	return fields
 }
 
 // FieldCleared returns a boolean indicating if a field with the given name was
@@ -7280,6 +7519,11 @@ func (m *GenerationModelMutation) FieldCleared(name string) bool {
 // ClearField clears the value of the field with the given name. It returns an
 // error if the field is not defined in the schema.
 func (m *GenerationModelMutation) ClearField(name string) error {
+	switch name {
+	case generationmodel.FieldDefaultSchedulerID:
+		m.ClearDefaultSchedulerID()
+		return nil
+	}
 	return fmt.Errorf("unknown GenerationModel nullable field %s", name)
 }
 
@@ -7298,6 +7542,15 @@ func (m *GenerationModelMutation) ResetField(name string) error {
 		return nil
 	case generationmodel.FieldIsHidden:
 		m.ResetIsHidden()
+		return nil
+	case generationmodel.FieldDefaultSchedulerID:
+		m.ResetDefaultSchedulerID()
+		return nil
+	case generationmodel.FieldDefaultWidth:
+		m.ResetDefaultWidth()
+		return nil
+	case generationmodel.FieldDefaultHeight:
+		m.ResetDefaultHeight()
 		return nil
 	case generationmodel.FieldCreatedAt:
 		m.ResetCreatedAt()

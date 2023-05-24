@@ -21,6 +21,12 @@ const (
 	FieldIsDefault = "is_default"
 	// FieldIsHidden holds the string denoting the is_hidden field in the database.
 	FieldIsHidden = "is_hidden"
+	// FieldDefaultSchedulerID holds the string denoting the default_scheduler_id field in the database.
+	FieldDefaultSchedulerID = "default_scheduler_id"
+	// FieldDefaultWidth holds the string denoting the default_width field in the database.
+	FieldDefaultWidth = "default_width"
+	// FieldDefaultHeight holds the string denoting the default_height field in the database.
+	FieldDefaultHeight = "default_height"
 	// FieldCreatedAt holds the string denoting the created_at field in the database.
 	FieldCreatedAt = "created_at"
 	// FieldUpdatedAt holds the string denoting the updated_at field in the database.
@@ -52,6 +58,9 @@ var Columns = []string{
 	FieldIsActive,
 	FieldIsDefault,
 	FieldIsHidden,
+	FieldDefaultSchedulerID,
+	FieldDefaultWidth,
+	FieldDefaultHeight,
 	FieldCreatedAt,
 	FieldUpdatedAt,
 }
@@ -79,6 +88,10 @@ var (
 	DefaultIsDefault bool
 	// DefaultIsHidden holds the default value on creation for the "is_hidden" field.
 	DefaultIsHidden bool
+	// DefaultDefaultWidth holds the default value on creation for the "default_width" field.
+	DefaultDefaultWidth int32
+	// DefaultDefaultHeight holds the default value on creation for the "default_height" field.
+	DefaultDefaultHeight int32
 	// DefaultCreatedAt holds the default value on creation for the "created_at" field.
 	DefaultCreatedAt func() time.Time
 	// DefaultUpdatedAt holds the default value on creation for the "updated_at" field.

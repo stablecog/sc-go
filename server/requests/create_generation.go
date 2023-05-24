@@ -1,6 +1,7 @@
 package requests
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"math"
@@ -11,6 +12,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/stablecog/sc-go/shared"
 	"github.com/stablecog/sc-go/utils"
+	"golang.org/x/exp/slices"
 )
 
 // HTTP Request for creating a new generation
@@ -36,12 +38,6 @@ type CreateGenerationRequest struct {
 
 // Apply defaults for missing parameters
 func (t *CreateGenerationRequest) ApplyDefaults() {
-	if t.Width == nil {
-		t.Width = utils.ToPtr(shared.DEFAULT_GENERATE_WIDTH)
-	}
-	if t.Height == nil {
-		t.Height = utils.ToPtr(shared.DEFAULT_GENERATE_HEIGHT)
-	}
 	if t.InferenceSteps == nil {
 		t.InferenceSteps = utils.ToPtr(shared.DEFAULT_GENERATE_INFERENCE_STEPS)
 	}
@@ -57,6 +53,12 @@ func (t *CreateGenerationRequest) ApplyDefaults() {
 	if t.SchedulerId == nil {
 		t.SchedulerId = utils.ToPtr(shared.GetCache().GetDefaultScheduler().ID)
 	}
+	if t.Width == nil {
+		t.Width = utils.ToPtr(shared.GetCache().GetGenerationModelByID(*t.ModelId).DefaultWidth)
+	}
+	if t.Height == nil {
+		t.Height = utils.ToPtr(shared.GetCache().GetGenerationModelByID(*t.ModelId).DefaultHeight)
+	}
 }
 
 func (t *CreateGenerationRequest) Validate(api bool) error {
@@ -65,6 +67,14 @@ func (t *CreateGenerationRequest) Validate(api bool) error {
 	}
 
 	t.ApplyDefaults()
+
+	// Only apply scheduler check to API for now
+	if api {
+		compatibleSchedulerIds := shared.GetCache().GetCompatibleSchedulerIDsForModel(context.TODO(), *t.ModelId)
+		if !slices.Contains(compatibleSchedulerIds, *t.SchedulerId) {
+			return errors.New("invalid_scheduler_id")
+		}
+	}
 
 	if *t.Height > shared.MAX_GENERATE_HEIGHT {
 		return fmt.Errorf("Height is too large, max is: %d", shared.MAX_GENERATE_HEIGHT)

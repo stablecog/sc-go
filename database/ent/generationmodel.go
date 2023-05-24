@@ -25,6 +25,12 @@ type GenerationModel struct {
 	IsDefault bool `json:"is_default,omitempty"`
 	// IsHidden holds the value of the "is_hidden" field.
 	IsHidden bool `json:"is_hidden,omitempty"`
+	// DefaultSchedulerID holds the value of the "default_scheduler_id" field.
+	DefaultSchedulerID *uuid.UUID `json:"default_scheduler_id,omitempty"`
+	// DefaultWidth holds the value of the "default_width" field.
+	DefaultWidth int32 `json:"default_width,omitempty"`
+	// DefaultHeight holds the value of the "default_height" field.
+	DefaultHeight int32 `json:"default_height,omitempty"`
 	// CreatedAt holds the value of the "created_at" field.
 	CreatedAt time.Time `json:"created_at,omitempty"`
 	// UpdatedAt holds the value of the "updated_at" field.
@@ -68,8 +74,12 @@ func (*GenerationModel) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
+		case generationmodel.FieldDefaultSchedulerID:
+			values[i] = &sql.NullScanner{S: new(uuid.UUID)}
 		case generationmodel.FieldIsActive, generationmodel.FieldIsDefault, generationmodel.FieldIsHidden:
 			values[i] = new(sql.NullBool)
+		case generationmodel.FieldDefaultWidth, generationmodel.FieldDefaultHeight:
+			values[i] = new(sql.NullInt64)
 		case generationmodel.FieldNameInWorker:
 			values[i] = new(sql.NullString)
 		case generationmodel.FieldCreatedAt, generationmodel.FieldUpdatedAt:
@@ -120,6 +130,25 @@ func (gm *GenerationModel) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field is_hidden", values[i])
 			} else if value.Valid {
 				gm.IsHidden = value.Bool
+			}
+		case generationmodel.FieldDefaultSchedulerID:
+			if value, ok := values[i].(*sql.NullScanner); !ok {
+				return fmt.Errorf("unexpected type %T for field default_scheduler_id", values[i])
+			} else if value.Valid {
+				gm.DefaultSchedulerID = new(uuid.UUID)
+				*gm.DefaultSchedulerID = *value.S.(*uuid.UUID)
+			}
+		case generationmodel.FieldDefaultWidth:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field default_width", values[i])
+			} else if value.Valid {
+				gm.DefaultWidth = int32(value.Int64)
+			}
+		case generationmodel.FieldDefaultHeight:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field default_height", values[i])
+			} else if value.Valid {
+				gm.DefaultHeight = int32(value.Int64)
 			}
 		case generationmodel.FieldCreatedAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
@@ -182,6 +211,17 @@ func (gm *GenerationModel) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("is_hidden=")
 	builder.WriteString(fmt.Sprintf("%v", gm.IsHidden))
+	builder.WriteString(", ")
+	if v := gm.DefaultSchedulerID; v != nil {
+		builder.WriteString("default_scheduler_id=")
+		builder.WriteString(fmt.Sprintf("%v", *v))
+	}
+	builder.WriteString(", ")
+	builder.WriteString("default_width=")
+	builder.WriteString(fmt.Sprintf("%v", gm.DefaultWidth))
+	builder.WriteString(", ")
+	builder.WriteString("default_height=")
+	builder.WriteString(fmt.Sprintf("%v", gm.DefaultHeight))
 	builder.WriteString(", ")
 	builder.WriteString("created_at=")
 	builder.WriteString(gm.CreatedAt.Format(time.ANSIC))

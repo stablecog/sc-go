@@ -18,11 +18,21 @@ func (c *RestAPI) HandleGetSettings(w http.ResponseWriter, r *http.Request) {
 
 	for _, model := range cache.GenerateModels {
 		if model.IsActive && !model.IsHidden {
-			generationModels = append(generationModels, responses.SettingsResponseItem{
-				ID:      model.ID,
-				Name:    model.NameInWorker,
-				Default: utils.ToPtr(model.IsDefault),
-			})
+			m := responses.SettingsResponseItem{
+				ID:            model.ID,
+				Name:          model.NameInWorker,
+				Default:       utils.ToPtr(model.IsDefault),
+				DefaultWidth:  utils.ToPtr(model.DefaultWidth),
+				DefaultHeight: utils.ToPtr(model.DefaultHeight),
+			}
+			m.AvailableSchedulers = make([]responses.AvailableScheduler, len(model.Edges.Schedulers))
+			for i, scheduler := range model.Edges.Schedulers {
+				m.AvailableSchedulers[i] = responses.AvailableScheduler{
+					ID:   scheduler.ID,
+					Name: scheduler.NameInWorker,
+				}
+			}
+			generationModels = append(generationModels, m)
 		}
 	}
 	for _, model := range cache.UpscaleModels {
@@ -48,13 +58,10 @@ func (c *RestAPI) HandleGetSettings(w http.ResponseWriter, r *http.Request) {
 	render.JSON(w, r, responses.SettingsResponse{
 		GenerationModels: generationModels,
 		UpscaleModels:    upscaleModels,
-		Schedulers:       schedulers,
 		GenerationDefaults: responses.ImageGenerationSettingsResponse{
 			Model:          shared.GetCache().GetDefaultGenerationModel().ID,
 			Scheduler:      shared.GetCache().GetDefaultScheduler().ID,
-			Width:          shared.DEFAULT_GENERATE_WIDTH,
-			Height:         shared.DEFAULT_GENERATE_HEIGHT,
-			NumImages:      shared.DEFAULT_GENERATE_NUM_OUTPUTS,
+			NumOutputs:     shared.DEFAULT_GENERATE_NUM_OUTPUTS,
 			GuidanceScale:  shared.DEFAULT_GENERATE_GUIDANCE_SCALE,
 			InferenceSteps: shared.DEFAULT_GENERATE_INFERENCE_STEPS,
 		},

@@ -163,12 +163,20 @@ func init() {
 	generationmodelDescIsHidden := generationmodelFields[4].Descriptor()
 	// generationmodel.DefaultIsHidden holds the default value on creation for the is_hidden field.
 	generationmodel.DefaultIsHidden = generationmodelDescIsHidden.Default.(bool)
+	// generationmodelDescDefaultWidth is the schema descriptor for default_width field.
+	generationmodelDescDefaultWidth := generationmodelFields[6].Descriptor()
+	// generationmodel.DefaultDefaultWidth holds the default value on creation for the default_width field.
+	generationmodel.DefaultDefaultWidth = generationmodelDescDefaultWidth.Default.(int32)
+	// generationmodelDescDefaultHeight is the schema descriptor for default_height field.
+	generationmodelDescDefaultHeight := generationmodelFields[7].Descriptor()
+	// generationmodel.DefaultDefaultHeight holds the default value on creation for the default_height field.
+	generationmodel.DefaultDefaultHeight = generationmodelDescDefaultHeight.Default.(int32)
 	// generationmodelDescCreatedAt is the schema descriptor for created_at field.
-	generationmodelDescCreatedAt := generationmodelFields[5].Descriptor()
+	generationmodelDescCreatedAt := generationmodelFields[8].Descriptor()
 	// generationmodel.DefaultCreatedAt holds the default value on creation for the created_at field.
 	generationmodel.DefaultCreatedAt = generationmodelDescCreatedAt.Default.(func() time.Time)
 	// generationmodelDescUpdatedAt is the schema descriptor for updated_at field.
-	generationmodelDescUpdatedAt := generationmodelFields[6].Descriptor()
+	generationmodelDescUpdatedAt := generationmodelFields[9].Descriptor()
 	// generationmodel.DefaultUpdatedAt holds the default value on creation for the updated_at field.
 	generationmodel.DefaultUpdatedAt = generationmodelDescUpdatedAt.Default.(func() time.Time)
 	// generationmodel.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.

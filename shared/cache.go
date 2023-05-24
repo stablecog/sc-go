@@ -1,6 +1,7 @@
 package shared
 
 import (
+	"context"
 	"strings"
 	"sync"
 
@@ -186,4 +187,25 @@ func (f *Cache) GetDefaultScheduler() *ent.Scheduler {
 		}
 	}
 	return defaultScheduler
+}
+
+func (f *Cache) GetGenerationModelByID(id uuid.UUID) *ent.GenerationModel {
+	for _, model := range f.GenerateModels {
+		if model.ID == id {
+			return model
+		}
+	}
+	return nil
+}
+
+func (f *Cache) GetCompatibleSchedulerIDsForModel(ctx context.Context, modelId uuid.UUID) []uuid.UUID {
+	m := f.GetGenerationModelByID(modelId)
+	if m == nil {
+		return []uuid.UUID{}
+	}
+	schedulerIds := make([]uuid.UUID, len(m.Edges.Schedulers))
+	for i, scheduler := range m.Edges.Schedulers {
+		schedulerIds[i] = scheduler.ID
+	}
+	return schedulerIds
 }

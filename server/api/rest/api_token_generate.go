@@ -101,7 +101,7 @@ func (c *RestAPI) HandleCreateGenerationToken(w http.ResponseWriter, r *http.Req
 		Scheduler:      *generateReq.SchedulerId,
 		Width:          *generateReq.Width,
 		Height:         *generateReq.Height,
-		NumImages:      *generateReq.NumOutputs,
+		NumOutputs:     *generateReq.NumOutputs,
 		GuidanceScale:  *generateReq.GuidanceScale,
 		InferenceSteps: *generateReq.InferenceSteps,
 		Seed:           generateReq.Seed,

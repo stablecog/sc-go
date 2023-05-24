@@ -76,6 +76,21 @@ func IsHidden(v bool) predicate.GenerationModel {
 	return predicate.GenerationModel(sql.FieldEQ(FieldIsHidden, v))
 }
 
+// DefaultSchedulerID applies equality check predicate on the "default_scheduler_id" field. It's identical to DefaultSchedulerIDEQ.
+func DefaultSchedulerID(v uuid.UUID) predicate.GenerationModel {
+	return predicate.GenerationModel(sql.FieldEQ(FieldDefaultSchedulerID, v))
+}
+
+// DefaultWidth applies equality check predicate on the "default_width" field. It's identical to DefaultWidthEQ.
+func DefaultWidth(v int32) predicate.GenerationModel {
+	return predicate.GenerationModel(sql.FieldEQ(FieldDefaultWidth, v))
+}
+
+// DefaultHeight applies equality check predicate on the "default_height" field. It's identical to DefaultHeightEQ.
+func DefaultHeight(v int32) predicate.GenerationModel {
+	return predicate.GenerationModel(sql.FieldEQ(FieldDefaultHeight, v))
+}
+
 // CreatedAt applies equality check predicate on the "created_at" field. It's identical to CreatedAtEQ.
 func CreatedAt(v time.Time) predicate.GenerationModel {
 	return predicate.GenerationModel(sql.FieldEQ(FieldCreatedAt, v))
@@ -179,6 +194,136 @@ func IsHiddenEQ(v bool) predicate.GenerationModel {
 // IsHiddenNEQ applies the NEQ predicate on the "is_hidden" field.
 func IsHiddenNEQ(v bool) predicate.GenerationModel {
 	return predicate.GenerationModel(sql.FieldNEQ(FieldIsHidden, v))
+}
+
+// DefaultSchedulerIDEQ applies the EQ predicate on the "default_scheduler_id" field.
+func DefaultSchedulerIDEQ(v uuid.UUID) predicate.GenerationModel {
+	return predicate.GenerationModel(sql.FieldEQ(FieldDefaultSchedulerID, v))
+}
+
+// DefaultSchedulerIDNEQ applies the NEQ predicate on the "default_scheduler_id" field.
+func DefaultSchedulerIDNEQ(v uuid.UUID) predicate.GenerationModel {
+	return predicate.GenerationModel(sql.FieldNEQ(FieldDefaultSchedulerID, v))
+}
+
+// DefaultSchedulerIDIn applies the In predicate on the "default_scheduler_id" field.
+func DefaultSchedulerIDIn(vs ...uuid.UUID) predicate.GenerationModel {
+	return predicate.GenerationModel(sql.FieldIn(FieldDefaultSchedulerID, vs...))
+}
+
+// DefaultSchedulerIDNotIn applies the NotIn predicate on the "default_scheduler_id" field.
+func DefaultSchedulerIDNotIn(vs ...uuid.UUID) predicate.GenerationModel {
+	return predicate.GenerationModel(sql.FieldNotIn(FieldDefaultSchedulerID, vs...))
+}
+
+// DefaultSchedulerIDGT applies the GT predicate on the "default_scheduler_id" field.
+func DefaultSchedulerIDGT(v uuid.UUID) predicate.GenerationModel {
+	return predicate.GenerationModel(sql.FieldGT(FieldDefaultSchedulerID, v))
+}
+
+// DefaultSchedulerIDGTE applies the GTE predicate on the "default_scheduler_id" field.
+func DefaultSchedulerIDGTE(v uuid.UUID) predicate.GenerationModel {
+	return predicate.GenerationModel(sql.FieldGTE(FieldDefaultSchedulerID, v))
+}
+
+// DefaultSchedulerIDLT applies the LT predicate on the "default_scheduler_id" field.
+func DefaultSchedulerIDLT(v uuid.UUID) predicate.GenerationModel {
+	return predicate.GenerationModel(sql.FieldLT(FieldDefaultSchedulerID, v))
+}
+
+// DefaultSchedulerIDLTE applies the LTE predicate on the "default_scheduler_id" field.
+func DefaultSchedulerIDLTE(v uuid.UUID) predicate.GenerationModel {
+	return predicate.GenerationModel(sql.FieldLTE(FieldDefaultSchedulerID, v))
+}
+
+// DefaultSchedulerIDIsNil applies the IsNil predicate on the "default_scheduler_id" field.
+func DefaultSchedulerIDIsNil() predicate.GenerationModel {
+	return predicate.GenerationModel(sql.FieldIsNull(FieldDefaultSchedulerID))
+}
+
+// DefaultSchedulerIDNotNil applies the NotNil predicate on the "default_scheduler_id" field.
+func DefaultSchedulerIDNotNil() predicate.GenerationModel {
+	return predicate.GenerationModel(sql.FieldNotNull(FieldDefaultSchedulerID))
+}
+
+// DefaultWidthEQ applies the EQ predicate on the "default_width" field.
+func DefaultWidthEQ(v int32) predicate.GenerationModel {
+	return predicate.GenerationModel(sql.FieldEQ(FieldDefaultWidth, v))
+}
+
+// DefaultWidthNEQ applies the NEQ predicate on the "default_width" field.
+func DefaultWidthNEQ(v int32) predicate.GenerationModel {
+	return predicate.GenerationModel(sql.FieldNEQ(FieldDefaultWidth, v))
+}
+
+// DefaultWidthIn applies the In predicate on the "default_width" field.
+func DefaultWidthIn(vs ...int32) predicate.GenerationModel {
+	return predicate.GenerationModel(sql.FieldIn(FieldDefaultWidth, vs...))
+}
+
+// DefaultWidthNotIn applies the NotIn predicate on the "default_width" field.
+func DefaultWidthNotIn(vs ...int32) predicate.GenerationModel {
+	return predicate.GenerationModel(sql.FieldNotIn(FieldDefaultWidth, vs...))
+}
+
+// DefaultWidthGT applies the GT predicate on the "default_width" field.
+func DefaultWidthGT(v int32) predicate.GenerationModel {
+	return predicate.GenerationModel(sql.FieldGT(FieldDefaultWidth, v))
+}
+
+// DefaultWidthGTE applies the GTE predicate on the "default_width" field.
+func DefaultWidthGTE(v int32) predicate.GenerationModel {
+	return predicate.GenerationModel(sql.FieldGTE(FieldDefaultWidth, v))
+}
+
+// DefaultWidthLT applies the LT predicate on the "default_width" field.
+func DefaultWidthLT(v int32) predicate.GenerationModel {
+	return predicate.GenerationModel(sql.FieldLT(FieldDefaultWidth, v))
+}
+
+// DefaultWidthLTE applies the LTE predicate on the "default_width" field.
+func DefaultWidthLTE(v int32) predicate.GenerationModel {
+	return predicate.GenerationModel(sql.FieldLTE(FieldDefaultWidth, v))
+}
+
+// DefaultHeightEQ applies the EQ predicate on the "default_height" field.
+func DefaultHeightEQ(v int32) predicate.GenerationModel {
+	return predicate.GenerationModel(sql.FieldEQ(FieldDefaultHeight, v))
+}
+
+// DefaultHeightNEQ applies the NEQ predicate on the "default_height" field.
+func DefaultHeightNEQ(v int32) predicate.GenerationModel {
+	return predicate.GenerationModel(sql.FieldNEQ(FieldDefaultHeight, v))
+}
+
+// DefaultHeightIn applies the In predicate on the "default_height" field.
+func DefaultHeightIn(vs ...int32) predicate.GenerationModel {
+	return predicate.GenerationModel(sql.FieldIn(FieldDefaultHeight, vs...))
+}
+
+// DefaultHeightNotIn applies the NotIn predicate on the "default_height" field.
+func DefaultHeightNotIn(vs ...int32) predicate.GenerationModel {
+	return predicate.GenerationModel(sql.FieldNotIn(FieldDefaultHeight, vs...))
+}
+
+// DefaultHeightGT applies the GT predicate on the "default_height" field.
+func DefaultHeightGT(v int32) predicate.GenerationModel {
+	return predicate.GenerationModel(sql.FieldGT(FieldDefaultHeight, v))
+}
+
+// DefaultHeightGTE applies the GTE predicate on the "default_height" field.
+func DefaultHeightGTE(v int32) predicate.GenerationModel {
+	return predicate.GenerationModel(sql.FieldGTE(FieldDefaultHeight, v))
+}
+
+// DefaultHeightLT applies the LT predicate on the "default_height" field.
+func DefaultHeightLT(v int32) predicate.GenerationModel {
+	return predicate.GenerationModel(sql.FieldLT(FieldDefaultHeight, v))
+}
+
+// DefaultHeightLTE applies the LTE predicate on the "default_height" field.
+func DefaultHeightLTE(v int32) predicate.GenerationModel {
+	return predicate.GenerationModel(sql.FieldLTE(FieldDefaultHeight, v))
 }
 
 // CreatedAtEQ applies the EQ predicate on the "created_at" field.

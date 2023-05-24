@@ -80,6 +80,68 @@ func (gmu *GenerationModelUpdate) SetNillableIsHidden(b *bool) *GenerationModelU
 	return gmu
 }
 
+// SetDefaultSchedulerID sets the "default_scheduler_id" field.
+func (gmu *GenerationModelUpdate) SetDefaultSchedulerID(u uuid.UUID) *GenerationModelUpdate {
+	gmu.mutation.SetDefaultSchedulerID(u)
+	return gmu
+}
+
+// SetNillableDefaultSchedulerID sets the "default_scheduler_id" field if the given value is not nil.
+func (gmu *GenerationModelUpdate) SetNillableDefaultSchedulerID(u *uuid.UUID) *GenerationModelUpdate {
+	if u != nil {
+		gmu.SetDefaultSchedulerID(*u)
+	}
+	return gmu
+}
+
+// ClearDefaultSchedulerID clears the value of the "default_scheduler_id" field.
+func (gmu *GenerationModelUpdate) ClearDefaultSchedulerID() *GenerationModelUpdate {
+	gmu.mutation.ClearDefaultSchedulerID()
+	return gmu
+}
+
+// SetDefaultWidth sets the "default_width" field.
+func (gmu *GenerationModelUpdate) SetDefaultWidth(i int32) *GenerationModelUpdate {
+	gmu.mutation.ResetDefaultWidth()
+	gmu.mutation.SetDefaultWidth(i)
+	return gmu
+}
+
+// SetNillableDefaultWidth sets the "default_width" field if the given value is not nil.
+func (gmu *GenerationModelUpdate) SetNillableDefaultWidth(i *int32) *GenerationModelUpdate {
+	if i != nil {
+		gmu.SetDefaultWidth(*i)
+	}
+	return gmu
+}
+
+// AddDefaultWidth adds i to the "default_width" field.
+func (gmu *GenerationModelUpdate) AddDefaultWidth(i int32) *GenerationModelUpdate {
+	gmu.mutation.AddDefaultWidth(i)
+	return gmu
+}
+
+// SetDefaultHeight sets the "default_height" field.
+func (gmu *GenerationModelUpdate) SetDefaultHeight(i int32) *GenerationModelUpdate {
+	gmu.mutation.ResetDefaultHeight()
+	gmu.mutation.SetDefaultHeight(i)
+	return gmu
+}
+
+// SetNillableDefaultHeight sets the "default_height" field if the given value is not nil.
+func (gmu *GenerationModelUpdate) SetNillableDefaultHeight(i *int32) *GenerationModelUpdate {
+	if i != nil {
+		gmu.SetDefaultHeight(*i)
+	}
+	return gmu
+}
+
+// AddDefaultHeight adds i to the "default_height" field.
+func (gmu *GenerationModelUpdate) AddDefaultHeight(i int32) *GenerationModelUpdate {
+	gmu.mutation.AddDefaultHeight(i)
+	return gmu
+}
+
 // SetUpdatedAt sets the "updated_at" field.
 func (gmu *GenerationModelUpdate) SetUpdatedAt(t time.Time) *GenerationModelUpdate {
 	gmu.mutation.SetUpdatedAt(t)
@@ -234,6 +296,24 @@ func (gmu *GenerationModelUpdate) sqlSave(ctx context.Context) (n int, err error
 	}
 	if value, ok := gmu.mutation.IsHidden(); ok {
 		_spec.SetField(generationmodel.FieldIsHidden, field.TypeBool, value)
+	}
+	if value, ok := gmu.mutation.DefaultSchedulerID(); ok {
+		_spec.SetField(generationmodel.FieldDefaultSchedulerID, field.TypeUUID, value)
+	}
+	if gmu.mutation.DefaultSchedulerIDCleared() {
+		_spec.ClearField(generationmodel.FieldDefaultSchedulerID, field.TypeUUID)
+	}
+	if value, ok := gmu.mutation.DefaultWidth(); ok {
+		_spec.SetField(generationmodel.FieldDefaultWidth, field.TypeInt32, value)
+	}
+	if value, ok := gmu.mutation.AddedDefaultWidth(); ok {
+		_spec.AddField(generationmodel.FieldDefaultWidth, field.TypeInt32, value)
+	}
+	if value, ok := gmu.mutation.DefaultHeight(); ok {
+		_spec.SetField(generationmodel.FieldDefaultHeight, field.TypeInt32, value)
+	}
+	if value, ok := gmu.mutation.AddedDefaultHeight(); ok {
+		_spec.AddField(generationmodel.FieldDefaultHeight, field.TypeInt32, value)
 	}
 	if value, ok := gmu.mutation.UpdatedAt(); ok {
 		_spec.SetField(generationmodel.FieldUpdatedAt, field.TypeTime, value)
@@ -416,6 +496,68 @@ func (gmuo *GenerationModelUpdateOne) SetNillableIsHidden(b *bool) *GenerationMo
 	return gmuo
 }
 
+// SetDefaultSchedulerID sets the "default_scheduler_id" field.
+func (gmuo *GenerationModelUpdateOne) SetDefaultSchedulerID(u uuid.UUID) *GenerationModelUpdateOne {
+	gmuo.mutation.SetDefaultSchedulerID(u)
+	return gmuo
+}
+
+// SetNillableDefaultSchedulerID sets the "default_scheduler_id" field if the given value is not nil.
+func (gmuo *GenerationModelUpdateOne) SetNillableDefaultSchedulerID(u *uuid.UUID) *GenerationModelUpdateOne {
+	if u != nil {
+		gmuo.SetDefaultSchedulerID(*u)
+	}
+	return gmuo
+}
+
+// ClearDefaultSchedulerID clears the value of the "default_scheduler_id" field.
+func (gmuo *GenerationModelUpdateOne) ClearDefaultSchedulerID() *GenerationModelUpdateOne {
+	gmuo.mutation.ClearDefaultSchedulerID()
+	return gmuo
+}
+
+// SetDefaultWidth sets the "default_width" field.
+func (gmuo *GenerationModelUpdateOne) SetDefaultWidth(i int32) *GenerationModelUpdateOne {
+	gmuo.mutation.ResetDefaultWidth()
+	gmuo.mutation.SetDefaultWidth(i)
+	return gmuo
+}
+
+// SetNillableDefaultWidth sets the "default_width" field if the given value is not nil.
+func (gmuo *GenerationModelUpdateOne) SetNillableDefaultWidth(i *int32) *GenerationModelUpdateOne {
+	if i != nil {
+		gmuo.SetDefaultWidth(*i)
+	}
+	return gmuo
+}
+
+// AddDefaultWidth adds i to the "default_width" field.
+func (gmuo *GenerationModelUpdateOne) AddDefaultWidth(i int32) *GenerationModelUpdateOne {
+	gmuo.mutation.AddDefaultWidth(i)
+	return gmuo
+}
+
+// SetDefaultHeight sets the "default_height" field.
+func (gmuo *GenerationModelUpdateOne) SetDefaultHeight(i int32) *GenerationModelUpdateOne {
+	gmuo.mutation.ResetDefaultHeight()
+	gmuo.mutation.SetDefaultHeight(i)
+	return gmuo
+}
+
+// SetNillableDefaultHeight sets the "default_height" field if the given value is not nil.
+func (gmuo *GenerationModelUpdateOne) SetNillableDefaultHeight(i *int32) *GenerationModelUpdateOne {
+	if i != nil {
+		gmuo.SetDefaultHeight(*i)
+	}
+	return gmuo
+}
+
+// AddDefaultHeight adds i to the "default_height" field.
+func (gmuo *GenerationModelUpdateOne) AddDefaultHeight(i int32) *GenerationModelUpdateOne {
+	gmuo.mutation.AddDefaultHeight(i)
+	return gmuo
+}
+
 // SetUpdatedAt sets the "updated_at" field.
 func (gmuo *GenerationModelUpdateOne) SetUpdatedAt(t time.Time) *GenerationModelUpdateOne {
 	gmuo.mutation.SetUpdatedAt(t)
@@ -594,6 +736,24 @@ func (gmuo *GenerationModelUpdateOne) sqlSave(ctx context.Context) (_node *Gener
 	}
 	if value, ok := gmuo.mutation.IsHidden(); ok {
 		_spec.SetField(generationmodel.FieldIsHidden, field.TypeBool, value)
+	}
+	if value, ok := gmuo.mutation.DefaultSchedulerID(); ok {
+		_spec.SetField(generationmodel.FieldDefaultSchedulerID, field.TypeUUID, value)
+	}
+	if gmuo.mutation.DefaultSchedulerIDCleared() {
+		_spec.ClearField(generationmodel.FieldDefaultSchedulerID, field.TypeUUID)
+	}
+	if value, ok := gmuo.mutation.DefaultWidth(); ok {
+		_spec.SetField(generationmodel.FieldDefaultWidth, field.TypeInt32, value)
+	}
+	if value, ok := gmuo.mutation.AddedDefaultWidth(); ok {
+		_spec.AddField(generationmodel.FieldDefaultWidth, field.TypeInt32, value)
+	}
+	if value, ok := gmuo.mutation.DefaultHeight(); ok {
+		_spec.SetField(generationmodel.FieldDefaultHeight, field.TypeInt32, value)
+	}
+	if value, ok := gmuo.mutation.AddedDefaultHeight(); ok {
+		_spec.AddField(generationmodel.FieldDefaultHeight, field.TypeInt32, value)
 	}
 	if value, ok := gmuo.mutation.UpdatedAt(); ok {
 		_spec.SetField(generationmodel.FieldUpdatedAt, field.TypeTime, value)
