@@ -64,6 +64,8 @@ func (c *RestAPI) HandleGetSettings(w http.ResponseWriter, r *http.Request) {
 			NumOutputs:     shared.DEFAULT_GENERATE_NUM_OUTPUTS,
 			GuidanceScale:  shared.DEFAULT_GENERATE_GUIDANCE_SCALE,
 			InferenceSteps: shared.DEFAULT_GENERATE_INFERENCE_STEPS,
+			Width:          shared.GetCache().GetDefaultGenerationModel().DefaultWidth,
+			Height:         shared.GetCache().GetDefaultGenerationModel().DefaultHeight,
 		},
 	})
 }
