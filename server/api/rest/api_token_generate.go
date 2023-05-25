@@ -97,8 +97,8 @@ func (c *RestAPI) HandleCreateGenerationToken(w http.ResponseWriter, r *http.Req
 
 	// Set settings resp
 	initSettings := responses.ImageGenerationSettingsResponse{
-		Model:          *generateReq.ModelId,
-		Scheduler:      *generateReq.SchedulerId,
+		ModelId:        *generateReq.ModelId,
+		SchedulerId:    *generateReq.SchedulerId,
 		Width:          *generateReq.Width,
 		Height:         *generateReq.Height,
 		NumOutputs:     *generateReq.NumOutputs,

@@ -18,8 +18,8 @@ type SettingsResponseItem struct {
 }
 
 type ImageGenerationSettingsResponse struct {
-	Model          uuid.UUID `json:"model"`
-	Scheduler      uuid.UUID `json:"scheduler"`
+	ModelId        uuid.UUID `json:"model_id"`
+	SchedulerId    uuid.UUID `json:"scheduler_id"`
 	Width          int32     `json:"width"`
 	Height         int32     `json:"height"`
 	NumOutputs     int32     `json:"num_outputs"`
