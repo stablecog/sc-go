@@ -83,6 +83,13 @@ func (c *RestAPI) HandleCreateUpscaleToken(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
+	// Set settings resp
+	initSettings := responses.ImageUpscaleSettingsResponse{
+		Type:    *upscaleReq.Type,
+		ModelId: *upscaleReq.ModelId,
+		Input:   upscaleReq.Input,
+	}
+
 	// Get queue count
 	nq, err := c.QueueThrottler.NumQueued(fmt.Sprintf("u:%s", user.ID.String()))
 	if err != nil {
@@ -126,7 +133,7 @@ func (c *RestAPI) HandleCreateUpscaleToken(w http.ResponseWriter, r *http.Reques
 	deviceInfo := utils.GetClientDeviceInfo(r)
 
 	// Get model name for cog
-	modelName := shared.GetCache().GetUpscaleModelNameFromID(upscaleReq.ModelId)
+	modelName := shared.GetCache().GetUpscaleModelNameFromID(*upscaleReq.ModelId)
 	if modelName == "" {
 		log.Error("Error getting model name", "model_name", modelName)
 		responses.ErrInternalServerError(w, r, "An unknown error has occurred")
@@ -140,7 +147,7 @@ func (c *RestAPI) HandleCreateUpscaleToken(w http.ResponseWriter, r *http.Reques
 
 	// Image Type
 	imageUrl := upscaleReq.Input
-	if upscaleReq.Type == requests.UpscaleRequestTypeImage {
+	if *upscaleReq.Type == requests.UpscaleRequestTypeImage {
 		width, height, err = utils.GetImageWidthHeightFromUrl(imageUrl, shared.MAX_UPSCALE_IMAGE_SIZE)
 		if err != nil {
 			responses.ErrBadRequest(w, r, "image_url_width_height_error", "")
@@ -150,9 +157,9 @@ func (c *RestAPI) HandleCreateUpscaleToken(w http.ResponseWriter, r *http.Reques
 
 	// Output Type
 	var outputIDStr string
-	if upscaleReq.Type == requests.UpscaleRequestTypeOutput {
+	if *upscaleReq.Type == requests.UpscaleRequestTypeOutput {
 		outputIDStr = upscaleReq.OutputID.String()
-		output, err := c.Repo.GetGenerationOutputForUser(upscaleReq.OutputID, user.ID)
+		output, err := c.Repo.GetGenerationOutputForUser(*upscaleReq.OutputID, user.ID)
 		if err != nil {
 			if ent.IsNotFound(err) {
 				responses.ErrBadRequest(w, r, "output_not_found", "")
@@ -169,7 +176,7 @@ func (c *RestAPI) HandleCreateUpscaleToken(w http.ResponseWriter, r *http.Reques
 		imageUrl = utils.GetURLFromImagePath(output.ImagePath)
 
 		// Get width/height of generation
-		width, height, err = c.Repo.GetGenerationOutputWidthHeight(upscaleReq.OutputID)
+		width, height, err = c.Repo.GetGenerationOutputWidthHeight(*upscaleReq.OutputID)
 		if err != nil {
 			responses.ErrBadRequest(w, r, "Unable to retrieve width/height for upscale", "")
 			return
@@ -272,10 +279,10 @@ func (c *RestAPI) HandleCreateUpscaleToken(w http.ResponseWriter, r *http.Reques
 				Width:                fmt.Sprint(width),
 				Height:               fmt.Sprint(height),
 				UpscaleModel:         modelName,
-				ModelId:              upscaleReq.ModelId,
+				ModelId:              *upscaleReq.ModelId,
 				OutputImageExtension: string(shared.DEFAULT_UPSCALE_OUTPUT_EXTENSION),
 				OutputImageQuality:   fmt.Sprint(shared.DEFAULT_UPSCALE_OUTPUT_QUALITY),
-				Type:                 upscaleReq.Type,
+				Type:                 *upscaleReq.Type,
 			},
 		}
 
@@ -406,6 +413,7 @@ func (c *RestAPI) HandleCreateUpscaleToken(w http.ResponseWriter, r *http.Reques
 				render.JSON(w, r, responses.ApiSucceededResponse{
 					Outputs:          resOutputs,
 					RemainingCredits: remainingCredits,
+					Settings:         initSettings,
 				})
 				return
 			case requests.CogFailed:
@@ -454,7 +462,8 @@ func (c *RestAPI) HandleCreateUpscaleToken(w http.ResponseWriter, r *http.Reques
 
 				render.Status(r, http.StatusInternalServerError)
 				render.JSON(w, r, responses.ApiFailedResponse{
-					Error: cogMsg.Error,
+					Error:    cogMsg.Error,
+					Settings: initSettings,
 				})
 				return
 			}
@@ -480,7 +489,8 @@ func (c *RestAPI) HandleCreateUpscaleToken(w http.ResponseWriter, r *http.Reques
 
 			render.Status(r, http.StatusInternalServerError)
 			render.JSON(w, r, responses.ApiFailedResponse{
-				Error: shared.TIMEOUT_ERROR,
+				Error:    shared.TIMEOUT_ERROR,
+				Settings: initSettings,
 			})
 			return
 		}

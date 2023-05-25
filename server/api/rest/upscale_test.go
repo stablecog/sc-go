@@ -17,6 +17,7 @@ import (
 	"github.com/stablecog/sc-go/database/repository"
 	"github.com/stablecog/sc-go/server/requests"
 	"github.com/stablecog/sc-go/server/responses"
+	"github.com/stablecog/sc-go/utils"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -94,7 +95,7 @@ func TestUpscaleFailsWithInvalidStreamID(t *testing.T) {
 func TestUpscaleEnforcesType(t *testing.T) {
 	reqBody := requests.CreateUpscaleRequest{
 		StreamID: MockSSEId,
-		Type:     "invalid",
+		Type:     utils.ToPtr[requests.UpscaleRequestType]("invalid"),
 	}
 	body, _ := json.Marshal(reqBody)
 	w := httptest.NewRecorder()
@@ -120,7 +121,7 @@ func TestUpscaleEnforcesType(t *testing.T) {
 func TestUpscaleErrorsBadURL(t *testing.T) {
 	reqBody := requests.CreateUpscaleRequest{
 		StreamID: MockSSEId,
-		Type:     requests.UpscaleRequestTypeImage,
+		Type:     utils.ToPtr(requests.UpscaleRequestTypeImage),
 		Input:    "not-a-url",
 	}
 	body, _ := json.Marshal(reqBody)
@@ -147,7 +148,7 @@ func TestUpscaleErrorsBadURL(t *testing.T) {
 func TestUpscaleErrorsBadOutputID(t *testing.T) {
 	reqBody := requests.CreateUpscaleRequest{
 		StreamID: MockSSEId,
-		Type:     requests.UpscaleRequestTypeOutput,
+		Type:     utils.ToPtr(requests.UpscaleRequestTypeOutput),
 		Input:    "not-a-uuid",
 	}
 	body, _ := json.Marshal(reqBody)
@@ -175,9 +176,9 @@ func TestUpscaleRejectsInvalidModel(t *testing.T) {
 	// ! invalid_model_id
 	reqBody := requests.CreateUpscaleRequest{
 		StreamID: MockSSEId,
-		Type:     requests.UpscaleRequestTypeImage,
+		Type:     utils.ToPtr(requests.UpscaleRequestTypeImage),
 		Input:    "https://example.com/image.png",
-		ModelId:  uuid.MustParse("00000000-0000-0000-0000-000000000000"),
+		ModelId:  utils.ToPtr(uuid.MustParse("00000000-0000-0000-0000-000000000000")),
 	}
 	body, _ := json.Marshal(reqBody)
 	w := httptest.NewRecorder()
@@ -227,9 +228,9 @@ func TestUpscaleFailsIfNoCredits(t *testing.T) {
 
 	reqBody := requests.CreateUpscaleRequest{
 		StreamID: MockSSEId,
-		Type:     requests.UpscaleRequestTypeImage,
+		Type:     utils.ToPtr(requests.UpscaleRequestTypeImage),
 		Input:    "https://example.com/image.png",
-		ModelId:  uuid.MustParse(repository.MOCK_UPSCALE_MODEL_ID),
+		ModelId:  utils.ToPtr(uuid.MustParse(repository.MOCK_UPSCALE_MODEL_ID)),
 	}
 	body, _ := json.Marshal(reqBody)
 	w := httptest.NewRecorder()
@@ -279,9 +280,9 @@ func TestUpscaleFromURL(t *testing.T) {
 
 	reqBody := requests.CreateUpscaleRequest{
 		StreamID: MockSSEId,
-		Type:     requests.UpscaleRequestTypeImage,
+		Type:     utils.ToPtr(requests.UpscaleRequestTypeImage),
 		Input:    "https://example.com/image.png",
-		ModelId:  uuid.MustParse(repository.MOCK_UPSCALE_MODEL_ID),
+		ModelId:  utils.ToPtr(uuid.MustParse(repository.MOCK_UPSCALE_MODEL_ID)),
 	}
 	body, _ := json.Marshal(reqBody)
 	w := httptest.NewRecorder()
@@ -313,9 +314,9 @@ func TestUpscaleFromOutput(t *testing.T) {
 
 	reqBody := requests.CreateUpscaleRequest{
 		StreamID: MockSSEId,
-		Type:     requests.UpscaleRequestTypeOutput,
+		Type:     utils.ToPtr(requests.UpscaleRequestTypeOutput),
 		Input:    output.ID.String(),
-		ModelId:  uuid.MustParse(repository.MOCK_UPSCALE_MODEL_ID),
+		ModelId:  utils.ToPtr(uuid.MustParse(repository.MOCK_UPSCALE_MODEL_ID)),
 	}
 	body, _ := json.Marshal(reqBody)
 	w := httptest.NewRecorder()

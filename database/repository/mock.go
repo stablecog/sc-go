@@ -290,8 +290,8 @@ func (repo *Repository) CreateMockGenerationForDeletion(ctx context.Context) (*e
 
 func (repo *Repository) CreateMockUpscaleForDeletion(ctx context.Context) (*ent.Upscale, error) {
 	up, err := repo.CreateUpscale(uuid.MustParse(MOCK_ADMIN_UUID), 512, 512, "browser", "macos", "chrome", "DE", requests.CreateUpscaleRequest{
-		Type:    requests.UpscaleRequestTypeOutput,
-		ModelId: uuid.MustParse(MOCK_UPSCALE_MODEL_ID),
+		Type:    utils.ToPtr(requests.UpscaleRequestTypeOutput),
+		ModelId: utils.ToPtr(uuid.MustParse(MOCK_UPSCALE_MODEL_ID)),
 		Input:   uuid.NewString(),
 	}, nil, false, nil, nil)
 	if err != nil {

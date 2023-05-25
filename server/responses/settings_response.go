@@ -1,6 +1,9 @@
 package responses
 
-import "github.com/google/uuid"
+import (
+	"github.com/google/uuid"
+	"github.com/stablecog/sc-go/server/requests"
+)
 
 type AvailableScheduler struct {
 	ID   uuid.UUID `json:"id"`
@@ -26,6 +29,12 @@ type ImageGenerationSettingsResponse struct {
 	GuidanceScale  float32   `json:"guidance_scale"`
 	InferenceSteps int32     `json:"inference_steps"`
 	Seed           *int      `json:"seed,omitempty"`
+}
+
+type ImageUpscaleSettingsResponse struct {
+	Type    requests.UpscaleRequestType `json:"type"`
+	ModelId uuid.UUID                   `json:"model_id"`
+	Input   string                      `json:"input"`
 }
 
 type SettingsResponse struct {

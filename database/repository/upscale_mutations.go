@@ -27,7 +27,7 @@ func (r *Repository) CreateUpscale(userID uuid.UUID, width, height int32, device
 		SetStatus(upscale.StatusQueued).
 		SetWidth(width).
 		SetHeight(height).
-		SetModelID(req.ModelId).
+		SetModelID(*req.ModelId).
 		SetDeviceInfoID(deviceInfoId).
 		SetCountryCode(countryCode).
 		SetScale(shared.DEFAULT_UPSCALE_SCALE).

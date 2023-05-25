@@ -26,9 +26,9 @@ func CreateUpscale(Track *analytics.AnalyticsService, Repo *repository.Repositor
 	upscaleModel := shared.GetCache().UpscaleModels[0]
 	// Create req
 	upscaleReq := requests.CreateUpscaleRequest{
-		Type:    requests.UpscaleRequestTypeOutput,
+		Type:    utils.ToPtr(requests.UpscaleRequestTypeOutput),
 		Input:   output.ID.String(),
-		ModelId: upscaleModel.ID,
+		ModelId: utils.ToPtr(upscaleModel.ID),
 	}
 
 	var upscale *ent.Upscale
@@ -104,10 +104,10 @@ func CreateUpscale(Track *analytics.AnalyticsService, Repo *repository.Repositor
 				Width:                fmt.Sprint(generation.Width),
 				Height:               fmt.Sprint(generation.Height),
 				UpscaleModel:         upscaleModel.NameInWorker,
-				ModelId:              upscaleReq.ModelId,
+				ModelId:              *upscaleReq.ModelId,
 				OutputImageExtension: string(shared.DEFAULT_UPSCALE_OUTPUT_EXTENSION),
 				OutputImageQuality:   fmt.Sprint(shared.DEFAULT_UPSCALE_OUTPUT_QUALITY),
-				Type:                 upscaleReq.Type,
+				Type:                 *upscaleReq.Type,
 			},
 		}
 

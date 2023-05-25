@@ -90,7 +90,7 @@ func (c *RestAPI) HandleUpscale(w http.ResponseWriter, r *http.Request) {
 	deviceInfo := utils.GetClientDeviceInfo(r)
 
 	// Get model name for cog
-	modelName := shared.GetCache().GetUpscaleModelNameFromID(upscaleReq.ModelId)
+	modelName := shared.GetCache().GetUpscaleModelNameFromID(*upscaleReq.ModelId)
 	if modelName == "" {
 		log.Error("Error getting model name", "model_name", modelName)
 		responses.ErrInternalServerError(w, r, "An unknown error has occurred")
@@ -104,7 +104,7 @@ func (c *RestAPI) HandleUpscale(w http.ResponseWriter, r *http.Request) {
 
 	// Image Type
 	imageUrl := upscaleReq.Input
-	if upscaleReq.Type == requests.UpscaleRequestTypeImage {
+	if *upscaleReq.Type == requests.UpscaleRequestTypeImage {
 		width, height, err = utils.GetImageWidthHeightFromUrl(imageUrl, shared.MAX_UPSCALE_IMAGE_SIZE)
 		if err != nil {
 			responses.ErrBadRequest(w, r, "image_url_width_height_error", "")
@@ -114,9 +114,9 @@ func (c *RestAPI) HandleUpscale(w http.ResponseWriter, r *http.Request) {
 
 	// Output Type
 	var outputIDStr string
-	if upscaleReq.Type == requests.UpscaleRequestTypeOutput {
+	if *upscaleReq.Type == requests.UpscaleRequestTypeOutput {
 		outputIDStr = upscaleReq.OutputID.String()
-		output, err := c.Repo.GetGenerationOutputForUser(upscaleReq.OutputID, user.ID)
+		output, err := c.Repo.GetGenerationOutputForUser(*upscaleReq.OutputID, user.ID)
 		if err != nil {
 			if ent.IsNotFound(err) {
 				responses.ErrBadRequest(w, r, "output_not_found", "")
@@ -133,7 +133,7 @@ func (c *RestAPI) HandleUpscale(w http.ResponseWriter, r *http.Request) {
 		imageUrl = utils.GetURLFromImagePath(output.ImagePath)
 
 		// Get width/height of generation
-		width, height, err = c.Repo.GetGenerationOutputWidthHeight(upscaleReq.OutputID)
+		width, height, err = c.Repo.GetGenerationOutputWidthHeight(*upscaleReq.OutputID)
 		if err != nil {
 			responses.ErrBadRequest(w, r, "Unable to retrieve width/height for upscale", "")
 			return
@@ -228,10 +228,10 @@ func (c *RestAPI) HandleUpscale(w http.ResponseWriter, r *http.Request) {
 				Width:                fmt.Sprint(width),
 				Height:               fmt.Sprint(height),
 				UpscaleModel:         modelName,
-				ModelId:              upscaleReq.ModelId,
+				ModelId:              *upscaleReq.ModelId,
 				OutputImageExtension: string(shared.DEFAULT_UPSCALE_OUTPUT_EXTENSION),
 				OutputImageQuality:   fmt.Sprint(shared.DEFAULT_UPSCALE_OUTPUT_QUALITY),
-				Type:                 upscaleReq.Type,
+				Type:                 *upscaleReq.Type,
 			},
 		}
 
