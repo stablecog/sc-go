@@ -426,16 +426,6 @@ func main() {
 					r.Use(mw.RateLimit(5, "api", 1*time.Second))
 					r.Post("/", hc.HandleCreateGenerationToken)
 				})
-				r.Route("/defaults", func(r chi.Router) {
-					r.Use(middleware.Logger)
-					r.Use(mw.RateLimit(10, "api", 1*time.Second))
-					r.Get("/", hc.HandleGetGenerationDefaults)
-				})
-				r.Route("/models", func(r chi.Router) {
-					r.Use(middleware.Logger)
-					r.Use(mw.RateLimit(10, "api", 1*time.Second))
-					r.Get("/", hc.HandleGetGenerationModels)
-				})
 			})
 
 			r.Route("/upscale", func(r chi.Router) {
@@ -445,16 +435,22 @@ func main() {
 					r.Use(mw.RateLimit(5, "api", 1*time.Second))
 					r.Post("/", hc.HandleCreateUpscaleToken)
 				})
-				r.Route("/defaults", func(r chi.Router) {
-					r.Use(middleware.Logger)
-					r.Use(mw.RateLimit(10, "api", 1*time.Second))
-					r.Get("/", hc.HandleGetUpscaleDefaults)
-				})
-				r.Route("/models", func(r chi.Router) {
-					r.Use(middleware.Logger)
-					r.Use(mw.RateLimit(10, "api", 1*time.Second))
-					r.Get("/", hc.HandleGetUpscaleModels)
-				})
+			})
+
+			// Model info
+			r.Route("/models", func(r chi.Router) {
+				r.Use(middleware.Logger)
+				r.Use(mw.RateLimit(10, "api", 1*time.Second))
+				r.Get("/generate", hc.HandleGetGenerationModels)
+				r.Get("/upscale", hc.HandleGetUpscaleModels)
+			})
+
+			// Defaults
+			r.Route("/defaults", func(r chi.Router) {
+				r.Use(middleware.Logger)
+				r.Use(mw.RateLimit(10, "api", 1*time.Second))
+				r.Get("/generate", hc.HandleGetGenerationDefaults)
+				r.Get("/upscale", hc.HandleGetUpscaleDefaults)
 			})
 
 			// upload
@@ -489,16 +485,6 @@ func main() {
 				r.Use(mw.RateLimit(5, "api", 1*time.Second))
 				r.Post("/", hc.HandleCreateGenerationToken)
 			})
-			r.Route("/defaults", func(r chi.Router) {
-				r.Use(middleware.Logger)
-				r.Use(mw.RateLimit(10, "api", 1*time.Second))
-				r.Get("/", hc.HandleGetGenerationDefaults)
-			})
-			r.Route("/models", func(r chi.Router) {
-				r.Use(middleware.Logger)
-				r.Use(mw.RateLimit(10, "api", 1*time.Second))
-				r.Get("/", hc.HandleGetGenerationModels)
-			})
 		})
 
 		r.Route("/upscale", func(r chi.Router) {
@@ -507,16 +493,6 @@ func main() {
 				r.Use(middleware.Logger)
 				r.Use(mw.RateLimit(5, "api", 1*time.Second))
 				r.Post("/", hc.HandleCreateUpscaleToken)
-			})
-			r.Route("/defaults", func(r chi.Router) {
-				r.Use(middleware.Logger)
-				r.Use(mw.RateLimit(10, "api", 1*time.Second))
-				r.Get("/", hc.HandleGetUpscaleDefaults)
-			})
-			r.Route("/models", func(r chi.Router) {
-				r.Use(middleware.Logger)
-				r.Use(mw.RateLimit(10, "api", 1*time.Second))
-				r.Get("/", hc.HandleGetUpscaleModels)
 			})
 		})
 	})

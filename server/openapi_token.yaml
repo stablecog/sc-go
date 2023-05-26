@@ -1,0 +1,763 @@
+openapi: 3.0.3
+info:
+  title: Stablecog API
+  description: API Specification for stablecog
+  version: "2"
+servers:
+  - url: https://api.stablecog.com
+paths:
+  /v1/health:
+    get:
+      description: Server Health
+      responses:
+        "200":
+          description: Success code when server is ready to accept requests
+  /v1/image/defaults/generate:
+    get:
+      description: "Generation: Get Default Settings"
+      responses:
+        "200":
+          description: JSON object with default settings
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  model_id:
+                    type: string
+                    format: uuidv4
+                  scheduler_id:
+                    type: string
+                    format: uuidv4
+                  width:
+                    type: integer
+                    format: int32
+                  height:
+                    type: integer
+                    format: int32
+                  num_outputs:
+                    type: integer
+                    format: int32
+                  guidance_scale:
+                    type: number
+                    format: float32
+                  inference_steps:
+                    type: integer
+                    format: int32
+                  prompt_strengtht:
+                    type: number
+                    format: float32
+  /v1/image/models/generate:
+    get:
+      description: "Generation: Get Available Models With Options"
+      responses:
+        "200":
+          description: JSON object with model information
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  models:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                          format: uuidv4
+                        name:
+                          type: string
+                        default:
+                          type: boolean
+                        available_schedulers:
+                          type: array
+                          items:
+                            type: object
+                            properties:
+                              id:
+                                type: string
+                                format: uuidv4
+                              name:
+                                type: string
+                        default_width:
+                          type: integer
+                          format: int32
+                        default_height:
+                          type: integer
+                          format: int32
+  /v1/image/generate:
+    post:
+      description: "Generation: Create"
+      security:
+        - token: []
+      requestBody:
+        description: JSON object with generation options
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/GenerationCreateInput"
+      responses:
+        "200":
+          description: JSON object with outputs, initial settings, and remaining credits
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CreateGenerationResponse"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse400"
+        "401":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse401"
+  /v1/image/defaults/upscale:
+    get:
+      description: "Upscale: Get Default Settings"
+      responses:
+        "200":
+          description: JSON object with default settings
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  model_id:
+                    type: string
+                    format: uuidv4
+  /v1/image/models/upscale:
+    get:
+      description: "Upscale: Get Available Models With Options"
+      responses:
+        "200":
+          description: JSON object with model information
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  models:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                          format: uuidv4
+                        name:
+                          type: string
+                        default:
+                          type: boolean
+  /v1/image/upscale:
+    post:
+      description: "Upscale: Create"
+      security:
+        - token: []
+      requestBody:
+        description: JSON object with upscale options
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpscaleCreateInput"
+      responses:
+        "200":
+          description: JSON object with outputs, initial settings, and remaining credits
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CreateUpscaleResponse"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse400"
+        "401":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse401"
+  /v1/credits:
+    get:
+      description: "Credits: List"
+      security:
+        - token: []
+      responses:
+        "200":
+          description: JSON object with detailed credit information
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CreditResponse"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse400"
+        "401":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse401"
+  /v1/image/outputs:
+    get:
+      description: "Generation: Query Outputs"
+      security:
+        - token: []
+      parameters:
+        - $ref: "#/components/parameters/perPageParam"
+        - $ref: "#/components/parameters/cursorParam"
+        - $ref: "#/components/parameters/minWidthParam"
+        - $ref: "#/components/parameters/maxWidthParam"
+        - $ref: "#/components/parameters/minHeightParam"
+        - $ref: "#/components/parameters/maxHeightParam"
+        - $ref: "#/components/parameters/minInferenceStepsParam"
+        - $ref: "#/components/parameters/maxInferenceStepsParam"
+        - $ref: "#/components/parameters/minGuidanceScaleParam"
+        - $ref: "#/components/parameters/maxGuidanceScaleParam"
+        - $ref: "#/components/parameters/widthsParam"
+        - $ref: "#/components/parameters/heightsParam"
+        - $ref: "#/components/parameters/inferenceStepsParam"
+        - $ref: "#/components/parameters/guidanceScalesParam"
+        - $ref: "#/components/parameters/schedulerIdsParam"
+        - $ref: "#/components/parameters/modelIdsParam"
+        - $ref: "#/components/parameters/orderParam"
+        - $ref: "#/components/parameters/orderByParam"
+        - $ref: "#/components/parameters/upscaledParam"
+        - $ref: "#/components/parameters/galleryStatusParam"
+        - $ref: "#/components/parameters/startDtParam"
+        - $ref: "#/components/parameters/endDtParam"
+        - $ref: "#/components/parameters/isFavoritedParam"
+        - $ref: "#/components/parameters/wasAutoSubmittedParam"
+        - $ref: "#/components/parameters/searchParam"
+      responses:
+        "200":
+          description: JSON object with generations and outputs
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GenerationQueryWithOutputsMeta"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse400"
+        "401":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse401"
+components:
+  securitySchemes:
+    token:
+      type: http
+      scheme: bearer
+      bearerFormat: TOKEN
+  parameters:
+    perPageParam:
+      name: per_page
+      in: query
+      schema:
+        type: string
+        format: optional, default:50
+      example: "50"
+    cursorParam:
+      name: cursor
+      in: query
+      schema:
+        oneOf:
+          - type: string
+            format: isoTimeString, if search not specified
+          - type: integer
+            format: next cursor, if search specified
+      example: 2023-02-13T15%3A16%3A43.328Z
+    minWidthParam:
+      name: min_width
+      in: query
+      schema:
+        type: integer
+        format: optional
+      example: 512
+    maxWidthParam:
+      name: max_width
+      in: query
+      schema:
+        type: integer
+        format: optional
+      example: 512
+    minHeightParam:
+      name: min_height
+      in: query
+      schema:
+        type: integer
+        format: optional
+      example: 512
+    maxHeightParam:
+      name: max_height
+      in: query
+      schema:
+        type: integer
+        format: optional
+      example: 512
+    minInferenceStepsParam:
+      name: min_inference_steps
+      in: query
+      schema:
+        type: integer
+        format: optional
+      example: 30
+    maxInferenceStepsParam:
+      name: max_inference_steps
+      in: query
+      schema:
+        type: integer
+        format: optional
+      example: 30
+    minGuidanceScaleParam:
+      name: min_guidance_scale
+      in: query
+      schema:
+        type: number
+        format: float32, optional
+      example: 3.0
+    maxGuidanceScaleParam:
+      name: max_guidance_scale
+      in: query
+      schema:
+        type: number
+        format: float32, optional
+      example: 3
+    widthsParam:
+      name: widths
+      in: query
+      schema:
+        type: array
+        format: comma-separated, optional
+        items:
+          type: integer
+          format: int32
+      example: 512,768
+    heightsParam:
+      name: heights
+      in: query
+      schema:
+        type: array
+        format: comma-separated, optional
+        items:
+          type: integer
+          format: int32
+      example: 512,768
+    inferenceStepsParam:
+      name: inference_steps
+      in: query
+      schema:
+        type: array
+        format: comma-separated, optional
+        items:
+          type: integer
+          format: int32
+      example: 30,50
+    guidanceScalesParam:
+      name: guidance_scales
+      in: query
+      schema:
+        type: array
+        format: comma-separated, optional
+        items:
+          type: number
+          format: float32
+      example: 1,2.0
+    schedulerIdsParam:
+      name: scheduler_ids
+      in: query
+      schema:
+        type: array
+        format: comma-separated, optional
+        items:
+          type: string
+          format: uuidv4
+      example: e07ad712-41ad-4ff7-8727-faf0d91e4c4e,c09aaf4d-2d78-4281-89aa-88d5d0a5d70b
+    modelIdsParam:
+      name: model_ids
+      in: query
+      schema:
+        type: array
+        format: comma-separated, optional
+        items:
+          type: string
+          format: uuidv4
+      example: e07ad712-41ad-4ff7-8727-faf0d91e4c4e,c09aaf4d-2d78-4281-89aa-88d5d0a5d70b
+    orderParam:
+      name: order
+      in: query
+      schema:
+        type: string
+        format: "optional, asc/desc, default: desc"
+      example: 3
+    orderByParam:
+      name: order_by
+      in: query
+      schema:
+        type: string
+        format: "optional, created_at/updated_at, default: created_at"
+      example: updated_at
+    upscaledParam:
+      name: upscaled
+      in: query
+      schema:
+        type: string
+        format: "optional, any/only/not, default: any"
+      example: not (return not upscaled only)
+    galleryStatusParam:
+      name: gallery_status
+      in: query
+      schema:
+        type: array
+        format: comma-separated, optional, default all items
+        items:
+          type: string
+          format: not_submitted, submitted, accepted, rejected
+    startDtParam:
+      name: start_dt
+      in: query
+      schema:
+        type: string
+        format: "optional, isoTimeString"
+      example: 2023-02-15T22:41:39.841Z
+    endDtParam:
+      name: end_dt
+      in: query
+      schema:
+        type: string
+        format: "optional, isoTimeString"
+      example: 2023-02-15T22:41:39.841Z
+    isFavoritedParam:
+      name: is_favorited
+      in: query
+      schema:
+        type: boolean
+        format: "optional"
+    wasAutoSubmittedParam:
+      name: was_auto_submitted
+      in: query
+      schema:
+        type: boolean
+        format: "optional"
+    searchParam:
+      name: search
+      in: query
+      schema:
+        type: string
+        format: "optional"
+  schemas:
+    ErrorResponse400:
+      type: object
+      properties:
+        error:
+          type: string
+          format: insufficient_credits, json_parse_error, invalid_model_id, invalid_scheduler_id, invalid_image_url, invalid_output_id, image_url_width_height_error, output_not_found, image_already_upscaled, queue_limit_reached
+    ErrorResponse401:
+      type: object
+      properties:
+        error:
+          type: string
+          format: unauthorized
+    GenerationCreateInput:
+      type: object
+      required: ["prompt"]
+      properties:
+        prompt:
+          type: string
+        negative_prompt:
+          type: string
+        width:
+          type: integer
+          format: int32
+          default: varies by model
+        height:
+          type: integer
+          format: int32
+          default: varies by model
+        inference_steps:
+          type: integer
+          format: int32
+          default: 30
+        guidance_scale:
+          type: number
+          format: float32
+          default: 7.0
+        model_id:
+          type: string
+          format: uuidv4
+          default: what is returned by v1/image/generate/defaults
+        scheduler_id:
+          type: string
+          format: uuidv4
+          default: what is returned by v1/image/generate/defaults
+        seed:
+          type: integer
+          format: int64
+          default: random
+        num_outputs:
+          type: integer
+          format: int32
+          default: 4
+        init_image_url:
+          type: string
+          format: (optional) s3:// or https:// image URL
+          default: none
+        prompt_strengtht:
+          type: number
+          format: (optional) float32
+          default: 0.6 if init_image_url is provided
+      description: Input for creating generation
+    UpscaleCreateInput:
+      type: object
+      required: ["input"]
+      properties:
+        input:
+          type: string
+          format: URL or uuidv4
+        model_id:
+          type: string
+          format: uuidv4
+          default: what is returned by v1/image/upscale/defaults
+        stream_id:
+          type: string
+          format: 64_char_hex_string
+      description: Input for creating upscale
+    CreateGenerationResponse:
+      type: object
+      properties:
+        outputs:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: string
+                format: uuidv4
+              url:
+                type: string
+        remaining_credits:
+          type: integer
+        settings:
+          type: object
+          properties:
+            model_id:
+              type: string
+              format: uuidv4
+            scheduler_id:
+              type: string
+              format: uuidv4
+            width:
+              type: integer
+              format: int32
+            height:
+              type: integer
+              format: int32
+            num_outputs:
+              type: integer
+              format: int32
+            guidance_scale:
+              type: number
+              format: float32
+            inference_steps:
+              type: integer
+              format: int32
+            seed:
+              type: integer
+              format: int64
+      description: Response after creating a generation
+    CreateUpscaleResponse:
+      type: object
+      properties:
+        outputs:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: string
+                format: uuidv4
+              url:
+                type: string
+        remaining_credits:
+          type: integer
+        settings:
+          type: object
+          properties:
+            model_id:
+              type: string
+              format: uuidv4
+            input:
+              type: string
+      description: Response after creating an upscale
+    PromptType:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuidv4
+        text:
+          type: string
+    GenerationQueryWithOutputsMeta:
+      type: object
+      properties:
+        total:
+          type: integer
+          format: int32, only if offset not includes
+        next:
+          oneOf:
+            - type: string
+              format: isoTimeString, if search not specified
+            - type: integer
+              format: next cursor, if search specified
+        outputs:
+          type: array
+          items:
+            $ref: "#/components/schemas/GenerationQueryResponse"
+    GenerationQueryResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuidv4
+        image_url:
+          type: string
+          format: optional
+        upscaled_image_url:
+          type: string
+          format: optional
+        gallery_status:
+          type: string
+          format: not_submitted/submitted/approved/rejected, optional
+        generation:
+          type: object
+          properties:
+            id:
+              type: string
+              format: uuidv4
+            width:
+              type: integer
+              format: int32
+            height:
+              type: integer
+              format: int32
+            inference_steps:
+              type: integer
+              format: int32
+            guidance_scale:
+              type: number
+              format: float32
+            model_id:
+              type: string
+              format: uuidv4
+            scheduler_id:
+              type: string
+              format: uuidv4
+            prompt:
+              type: object
+              $ref: "#/components/schemas/PromptType"
+            negative_prompt:
+              type: object
+              $ref: "#/components/schemas/PromptType"
+              format: optional
+            seed:
+              type: integer
+            created_at:
+              type: string
+              format: isoTimeString
+            started_at:
+              type: string
+              format: isoTimeString,optional
+            completed_at:
+              type: string
+              format: isoTimeString,optional
+            init_image_url:
+              type: string
+              format: optional
+            init_image_url_signed:
+              type: string
+              format: optional
+            outputs:
+              type: array
+              items:
+                $ref: "#/components/schemas/GenerationOutput"
+      description: Response after querying generations.
+    GenerationOutput:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuidv4
+        image_url:
+          type: string
+        upscaled_image_url:
+          type: string
+          format: optional
+        gallery_status:
+          type: string
+          format: not_submitted/submitted/approved/rejected
+        output_id:
+          type: string
+          format: uuidv4, optional, if upscale from_output
+        input_image_url:
+          type: string
+          format: optional, if upscale
+        is_favorited:
+          type: boolean
+        was_auto_submitted:
+          type: boolean
+      description: An output of a generation
+    CreditResponse:
+      type: object
+      properties:
+        total_remaining_credits:
+          type: integer
+          format: int32
+        credits:
+          type: array
+          items:
+            $ref: "#/components/schemas/Credit"
+      description: Detailed response from credit API
+    CreditType:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuidv4
+        name:
+          type: string
+        description:
+          type: string
+          format: optional
+        amount:
+          type: integer
+          format: int32
+      description: Details about the type of credit.
+    Credit:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuidv4
+        remaining_amount:
+          type: integer
+          format: int32
+        expires_at:
+          type: string
+          format: isoTimeString
+        type:
+          $ref: "#/components/schemas/CreditType"
+      description: Details about credits for user

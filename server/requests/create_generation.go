@@ -59,6 +59,9 @@ func (t *CreateGenerationRequest) ApplyDefaults() {
 	if t.Height == nil {
 		t.Height = utils.ToPtr(shared.GetCache().GetGenerationModelByID(*t.ModelId).DefaultHeight)
 	}
+	if t.InitImageUrl != "" && t.PromptStrength == nil {
+		t.PromptStrength = utils.ToPtr(shared.DEFAULT_GENERATE_PROMPT_STRENGTH)
+	}
 }
 
 func (t *CreateGenerationRequest) Validate(api bool) error {
