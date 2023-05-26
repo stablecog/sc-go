@@ -12,7 +12,7 @@ type AvailableScheduler struct {
 type SettingsResponseItem struct {
 	ID                  uuid.UUID            `json:"id"`
 	Name                string               `json:"name"`
-	Default             *bool                `json:"default,omitempty"`
+	IsDefault           *bool                `json:"is_default,omitempty"`
 	Active              *bool                `json:"active,omitempty"`
 	AvailableSchedulers []AvailableScheduler `json:"available_schedulers,omitempty"`
 	DefaultWidth        *int32               `json:"default_width,omitempty"`

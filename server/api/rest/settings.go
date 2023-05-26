@@ -32,7 +32,7 @@ func (c *RestAPI) HandleGetGenerationModels(w http.ResponseWriter, r *http.Reque
 			m := responses.SettingsResponseItem{
 				ID:            model.ID,
 				Name:          model.NameInWorker,
-				Default:       utils.ToPtr(model.IsDefault),
+				IsDefault:     utils.ToPtr(model.IsDefault),
 				DefaultWidth:  utils.ToPtr(model.DefaultWidth),
 				DefaultHeight: utils.ToPtr(model.DefaultHeight),
 			}
@@ -67,9 +67,9 @@ func (c *RestAPI) HandleGetUpscaleModels(w http.ResponseWriter, r *http.Request)
 	for _, model := range shared.GetCache().UpscaleModels {
 		if model.IsActive && !model.IsHidden {
 			upscaleModels = append(upscaleModels, responses.SettingsResponseItem{
-				ID:      model.ID,
-				Name:    model.NameInWorker,
-				Default: utils.ToPtr(model.IsDefault),
+				ID:        model.ID,
+				Name:      model.NameInWorker,
+				IsDefault: utils.ToPtr(model.IsDefault),
 			})
 		}
 	}
