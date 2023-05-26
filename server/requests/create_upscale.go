@@ -31,8 +31,13 @@ func (t *CreateUpscaleRequest) ApplyDefaults() {
 	if t.ModelId == nil {
 		t.ModelId = utils.ToPtr(shared.GetCache().GetDefaultUpscaleModel().ID)
 	}
-	if t.Type == nil {
+
+	// Auto-detect type
+	_, err := uuid.Parse(t.Input)
+	if err == nil {
 		t.Type = utils.ToPtr(UpscaleRequestTypeOutput)
+	} else {
+		t.Type = utils.ToPtr(UpscaleRequestTypeImage)
 	}
 }
 
