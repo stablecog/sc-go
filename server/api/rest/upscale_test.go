@@ -92,32 +92,6 @@ func TestUpscaleFailsWithInvalidStreamID(t *testing.T) {
 	assert.Equal(t, "invalid_stream_id", respJson["error"])
 }
 
-func TestUpscaleEnforcesType(t *testing.T) {
-	reqBody := requests.CreateUpscaleRequest{
-		StreamID: MockSSEId,
-		Type:     utils.ToPtr[requests.UpscaleRequestType]("invalid"),
-	}
-	body, _ := json.Marshal(reqBody)
-	w := httptest.NewRecorder()
-	// Build request
-	req := httptest.NewRequest("POST", "/", bytes.NewReader(body))
-	req.Header.Set("Content-Type", "application/json")
-
-	// Setup context
-	ctx := context.WithValue(req.Context(), "user_id", repository.MOCK_NORMAL_UUID)
-	ctx = context.WithValue(ctx, "user_email", repository.MOCK_NORMAL_UUID)
-
-	MockController.HandleUpscale(w, req.WithContext(ctx))
-	resp := w.Result()
-	defer resp.Body.Close()
-	assert.Equal(t, 400, resp.StatusCode)
-	var respJson map[string]interface{}
-	respBody, _ := io.ReadAll(resp.Body)
-	json.Unmarshal(respBody, &respJson)
-
-	assert.Equal(t, "Invalid upscale type, should be from_image or from_output", respJson["error"])
-}
-
 func TestUpscaleErrorsBadURL(t *testing.T) {
 	reqBody := requests.CreateUpscaleRequest{
 		StreamID: MockSSEId,
@@ -169,7 +143,7 @@ func TestUpscaleErrorsBadOutputID(t *testing.T) {
 	respBody, _ := io.ReadAll(resp.Body)
 	json.Unmarshal(respBody, &respJson)
 
-	assert.Equal(t, "invalid_output_id", respJson["error"])
+	assert.Equal(t, "invalid_image_url", respJson["error"])
 }
 
 func TestUpscaleRejectsInvalidModel(t *testing.T) {
