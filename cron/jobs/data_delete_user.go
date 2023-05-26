@@ -9,6 +9,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/google/uuid"
 	"github.com/stablecog/sc-go/database/ent"
+	"github.com/stablecog/sc-go/database/ent/credit"
 	"github.com/stablecog/sc-go/database/ent/generation"
 	"github.com/stablecog/sc-go/database/ent/generationoutput"
 	"github.com/stablecog/sc-go/database/ent/negativeprompt"
@@ -207,6 +208,16 @@ func (j *JobRunner) DeleteUserData(log Logger, dryRun bool) error {
 				if err := j.Qdrant.DeleteAllIDs(outputIds, false); err != nil {
 					log.Errorf("Error deleting from qdrant for user %s: %v", u.ID, err)
 					return err
+				}
+
+				// Delete credits if not banned
+				if u.BannedAt == nil {
+					if rowsAffected, err := tx.Credit.Delete().Where(
+						credit.UserIDEQ(u.ID),
+					).Exec(j.Ctx); err != nil || rowsAffected > 100 {
+						log.Errorf("Error deleting credits for user %s: %v", u.ID, err)
+						return err
+					}
 				}
 
 				// Set deleted_at on user
