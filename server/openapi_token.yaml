@@ -102,7 +102,7 @@ paths:
                           format: uuidv4
                         name:
                           type: string
-                        default:
+                        is_default:
                           type: boolean
                         available_schedulers:
                           type: array
@@ -185,7 +185,7 @@ paths:
                           format: uuidv4
                         name:
                           type: string
-                        default:
+                        is_default:
                           type: boolean
   /v1/image/upscale:
     post:
