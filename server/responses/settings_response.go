@@ -32,5 +32,5 @@ type ImageGenerationSettingsResponse struct {
 
 type ImageUpscaleSettingsResponse struct {
 	ModelId uuid.UUID `json:"model_id"`
-	Input   string    `json:"input"`
+	Input   string    `json:"input,omitempty"`
 }
