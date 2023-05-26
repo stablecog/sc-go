@@ -34,3 +34,7 @@ type ImageUpscaleSettingsResponse struct {
 	ModelId uuid.UUID `json:"model_id"`
 	Input   string    `json:"input,omitempty"`
 }
+
+type ImageModelsResponse struct {
+	Models []SettingsResponseItem `json:"models"`
+}

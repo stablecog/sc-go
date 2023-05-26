@@ -47,7 +47,9 @@ func (c *RestAPI) HandleGetGenerationModels(w http.ResponseWriter, r *http.Reque
 	}
 
 	render.Status(r, http.StatusOK)
-	render.JSON(w, r, generationModels)
+	render.JSON(w, r, responses.ImageModelsResponse{
+		Models: generationModels,
+	})
 }
 
 // Upscale defaults and models
@@ -72,5 +74,7 @@ func (c *RestAPI) HandleGetUpscaleModels(w http.ResponseWriter, r *http.Request)
 	}
 
 	render.Status(r, http.StatusOK)
-	render.JSON(w, r, upscaleModels)
+	render.JSON(w, r, responses.ImageModelsResponse{
+		Models: upscaleModels,
+	})
 }
