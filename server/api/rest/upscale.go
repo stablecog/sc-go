@@ -110,6 +110,10 @@ func (c *RestAPI) HandleUpscale(w http.ResponseWriter, r *http.Request) {
 			responses.ErrBadRequest(w, r, "image_url_width_height_error", "")
 			return
 		}
+		if width > shared.MAX_UPSCALE_INITIAL_WIDTH || height > shared.MAX_UPSCALE_INITIAL_HEIGHT {
+			responses.ErrBadRequest(w, r, "image_url_width_height_error", "Image cannot exceed 1024x1024")
+			return
+		}
 	}
 
 	// Output Type
