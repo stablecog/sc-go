@@ -20,6 +20,7 @@ func (c *RestAPI) HandleGetGenerationDefaults(w http.ResponseWriter, r *http.Req
 		InferenceSteps: shared.DEFAULT_GENERATE_INFERENCE_STEPS,
 		Width:          shared.GetCache().GetDefaultGenerationModel().DefaultWidth,
 		Height:         shared.GetCache().GetDefaultGenerationModel().DefaultHeight,
+		PromptStrength: utils.ToPtr(shared.DEFAULT_GENERATE_PROMPT_STRENGTH),
 	})
 }
 

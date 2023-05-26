@@ -28,6 +28,8 @@ type ImageGenerationSettingsResponse struct {
 	GuidanceScale  float32   `json:"guidance_scale"`
 	InferenceSteps int32     `json:"inference_steps"`
 	Seed           *int      `json:"seed,omitempty"`
+	InitImageURL   string    `json:"init_image_url,omitempty"`
+	PromptStrength *float32  `json:"prompt_strength,omitempty"`
 }
 
 type ImageUpscaleSettingsResponse struct {

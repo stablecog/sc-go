@@ -105,52 +105,64 @@ func (c *RestAPI) HandleCreateGenerationToken(w http.ResponseWriter, r *http.Req
 		GuidanceScale:  *generateReq.GuidanceScale,
 		InferenceSteps: *generateReq.InferenceSteps,
 		Seed:           generateReq.Seed,
+		InitImageURL:   generateReq.InitImageUrl,
+		PromptStrength: generateReq.PromptStrength,
 	}
 
 	// The URL we send worker
 	var signedInitImageUrl string
 	// See if init image specified, validate it belongs to user, validate it exists in bucket
 	if generateReq.InitImageUrl != "" {
-		// Remove s3 prefix
-		signedInitImageUrl = strings.TrimPrefix(generateReq.InitImageUrl, "s3://")
-		// Hash user ID to see if it belongs to this user
-		uidHash := utils.Sha256(user.ID.String())
-		if !strings.HasPrefix(signedInitImageUrl, fmt.Sprintf("%s/", uidHash)) {
-			responses.ErrUnauthorized(w, r)
-			return
-		}
-		// Verify exists in bucket
-		_, err := c.S3.HeadObject(&s3.HeadObjectInput{
-			Bucket: aws.String(os.Getenv("S3_IMG2IMG_BUCKET_NAME")),
-			Key:    aws.String(signedInitImageUrl),
-		})
-		if err != nil {
-			if aerr, ok := err.(awserr.Error); ok {
-				switch aerr.Code() {
-				case "NotFound": // s3.ErrCodeNoSuchKey does not work, aws is missing this error code so we hardwire a string
-					responses.ErrBadRequest(w, r, "init_image_not_found", "")
-					return
-				default:
-					log.Error("Error checking if init image exists in bucket", "err", err)
-					responses.ErrInternalServerError(w, r, "An unknown error has occured")
-					return
-				}
+		if utils.IsValidHTTPURL(generateReq.InitImageUrl) {
+			// Custom image, do some validation on size, format, etc.
+			_, _, err = utils.GetImageWidthHeightFromUrl(generateReq.InitImageUrl, shared.MAX_GENERATE_IMAGE_SIZE)
+			if err != nil {
+				responses.ErrBadRequest(w, r, "image_url_width_height_error", "")
+				return
 			}
-			responses.ErrBadRequest(w, r, "init_image_not_found", "")
-			return
+			signedInitImageUrl = generateReq.InitImageUrl
+		} else {
+			// Remove s3 prefix
+			signedInitImageUrl = strings.TrimPrefix(generateReq.InitImageUrl, "s3://")
+			// Hash user ID to see if it belongs to this user
+			uidHash := utils.Sha256(user.ID.String())
+			if !strings.HasPrefix(signedInitImageUrl, fmt.Sprintf("%s/", uidHash)) {
+				responses.ErrUnauthorized(w, r)
+				return
+			}
+			// Verify exists in bucket
+			_, err := c.S3.HeadObject(&s3.HeadObjectInput{
+				Bucket: aws.String(os.Getenv("S3_IMG2IMG_BUCKET_NAME")),
+				Key:    aws.String(signedInitImageUrl),
+			})
+			if err != nil {
+				if aerr, ok := err.(awserr.Error); ok {
+					switch aerr.Code() {
+					case "NotFound": // s3.ErrCodeNoSuchKey does not work, aws is missing this error code so we hardwire a string
+						responses.ErrBadRequest(w, r, "init_image_not_found", "")
+						return
+					default:
+						log.Error("Error checking if init image exists in bucket", "err", err)
+						responses.ErrInternalServerError(w, r, "An unknown error has occured")
+						return
+					}
+				}
+				responses.ErrBadRequest(w, r, "init_image_not_found", "")
+				return
+			}
+			// Sign object URL to pass to worker
+			req, _ := c.S3.GetObjectRequest(&s3.GetObjectInput{
+				Bucket: aws.String(os.Getenv("S3_IMG2IMG_BUCKET_NAME")),
+				Key:    aws.String(signedInitImageUrl),
+			})
+			urlStr, err := req.Presign(5 * time.Minute)
+			if err != nil {
+				log.Error("Error signing init image URL", "err", err)
+				responses.ErrInternalServerError(w, r, "An unknown error has occured")
+				return
+			}
+			signedInitImageUrl = urlStr
 		}
-		// Sign object URL to pass to worker
-		req, _ := c.S3.GetObjectRequest(&s3.GetObjectInput{
-			Bucket: aws.String(os.Getenv("S3_IMG2IMG_BUCKET_NAME")),
-			Key:    aws.String(signedInitImageUrl),
-		})
-		urlStr, err := req.Presign(5 * time.Minute)
-		if err != nil {
-			log.Error("Error signing init image URL", "err", err)
-			responses.ErrInternalServerError(w, r, "An unknown error has occured")
-			return
-		}
-		signedInitImageUrl = urlStr
 	}
 
 	// Get queue count
