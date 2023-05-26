@@ -12,6 +12,40 @@ paths:
       responses:
         "200":
           description: Success code when server is ready to accept requests
+  /v1/image/upload:
+    post:
+      description: "Image: Upload (for init_image_url)"
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+      responses:
+        "200":
+          description: JSON object with object path
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  object:
+                    type: string
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    format: image_too_large,invalid_file
+                  description:
+                    type: string
   /v1/image/defaults/generate:
     get:
       description: "Generation: Get Default Settings"
