@@ -9,14 +9,24 @@ import (
 	"github.com/stablecog/sc-go/utils"
 )
 
-func (c *RestAPI) HandleGetSettings(w http.ResponseWriter, r *http.Request) {
-	cache := shared.GetCache()
+// Generation defaults and models
+func (c *RestAPI) HandleGetGenerationDefaults(w http.ResponseWriter, r *http.Request) {
+	render.Status(r, http.StatusOK)
+	render.JSON(w, r, responses.ImageGenerationSettingsResponse{
+		ModelId:        shared.GetCache().GetDefaultGenerationModel().ID,
+		SchedulerId:    shared.GetCache().GetDefaultScheduler().ID,
+		NumOutputs:     shared.DEFAULT_GENERATE_NUM_OUTPUTS,
+		GuidanceScale:  shared.DEFAULT_GENERATE_GUIDANCE_SCALE,
+		InferenceSteps: shared.DEFAULT_GENERATE_INFERENCE_STEPS,
+		Width:          shared.GetCache().GetDefaultGenerationModel().DefaultWidth,
+		Height:         shared.GetCache().GetDefaultGenerationModel().DefaultHeight,
+	})
+}
 
+func (c *RestAPI) HandleGetGenerationModels(w http.ResponseWriter, r *http.Request) {
 	var generationModels []responses.SettingsResponseItem
-	var upscaleModels []responses.SettingsResponseItem
-	var schedulers []responses.SettingsResponseItem
 
-	for _, model := range cache.GenerateModels {
+	for _, model := range shared.GetCache().GenerateModels {
 		if model.IsActive && !model.IsHidden {
 			m := responses.SettingsResponseItem{
 				ID:            model.ID,
@@ -35,7 +45,23 @@ func (c *RestAPI) HandleGetSettings(w http.ResponseWriter, r *http.Request) {
 			generationModels = append(generationModels, m)
 		}
 	}
-	for _, model := range cache.UpscaleModels {
+
+	render.Status(r, http.StatusOK)
+	render.JSON(w, r, generationModels)
+}
+
+// Upscale defaults and models
+func (c *RestAPI) HandleGetUpscaleDefaults(w http.ResponseWriter, r *http.Request) {
+	render.Status(r, http.StatusOK)
+	render.JSON(w, r, responses.ImageUpscaleSettingsResponse{
+		ModelId: shared.GetCache().GetDefaultUpscaleModel().ID,
+	})
+}
+
+func (c *RestAPI) HandleGetUpscaleModels(w http.ResponseWriter, r *http.Request) {
+	var upscaleModels []responses.SettingsResponseItem
+
+	for _, model := range shared.GetCache().UpscaleModels {
 		if model.IsActive && !model.IsHidden {
 			upscaleModels = append(upscaleModels, responses.SettingsResponseItem{
 				ID:      model.ID,
@@ -44,28 +70,7 @@ func (c *RestAPI) HandleGetSettings(w http.ResponseWriter, r *http.Request) {
 			})
 		}
 	}
-	for _, scheduler := range cache.Schedulers {
-		if scheduler.IsActive && !scheduler.IsHidden {
-			schedulers = append(schedulers, responses.SettingsResponseItem{
-				ID:      scheduler.ID,
-				Name:    scheduler.NameInWorker,
-				Default: utils.ToPtr(scheduler.IsDefault),
-			})
-		}
-	}
 
 	render.Status(r, http.StatusOK)
-	render.JSON(w, r, responses.SettingsResponse{
-		GenerationModels: generationModels,
-		UpscaleModels:    upscaleModels,
-		GenerationDefaults: responses.ImageGenerationSettingsResponse{
-			ModelId:        shared.GetCache().GetDefaultGenerationModel().ID,
-			SchedulerId:    shared.GetCache().GetDefaultScheduler().ID,
-			NumOutputs:     shared.DEFAULT_GENERATE_NUM_OUTPUTS,
-			GuidanceScale:  shared.DEFAULT_GENERATE_GUIDANCE_SCALE,
-			InferenceSteps: shared.DEFAULT_GENERATE_INFERENCE_STEPS,
-			Width:          shared.GetCache().GetDefaultGenerationModel().DefaultWidth,
-			Height:         shared.GetCache().GetDefaultGenerationModel().DefaultHeight,
-		},
-	})
+	render.JSON(w, r, upscaleModels)
 }

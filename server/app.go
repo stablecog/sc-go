@@ -418,13 +418,6 @@ func main() {
 
 		// For API tokens
 		r.Route("/image", func(r chi.Router) {
-			// Settings
-			r.Route("/settings", func(r chi.Router) {
-				r.Use(middleware.Logger)
-				r.Use(mw.RateLimit(10, "api", 1*time.Second))
-				r.Get("/", hc.HandleGetSettings)
-			})
-
 			// txt2img/img2img
 			r.Route("/generate", func(r chi.Router) {
 				r.Use(mw.AuthMiddleware(middleware.AuthLevelAPIToken))
@@ -465,19 +458,14 @@ func main() {
 			r.Get("/", hc.HandleQueryCredits)
 		})
 
-		// Settings
-		r.Route("/settings", func(r chi.Router) {
-			r.Use(middleware.Logger)
-			r.Use(mw.RateLimit(10, "srv", 1*time.Second))
-			r.Get("/", hc.HandleGetSettings)
-		})
-
 		// Api token route
 		r.Route("/generate", func(r chi.Router) {
 			r.Use(mw.AuthMiddleware(middleware.AuthLevelAPIToken))
 			r.Use(middleware.Logger)
 			r.Use(mw.RateLimit(5, "api", 1*time.Second))
 			r.Post("/", hc.HandleCreateGenerationToken)
+			r.Get("/defaults", hc.HandleGetGenerationDefaults)
+			r.Get("/models", hc.HandleGetGenerationModels)
 		})
 
 		r.Route("/upscale", func(r chi.Router) {
@@ -485,6 +473,8 @@ func main() {
 			r.Use(middleware.Logger)
 			r.Use(mw.RateLimit(5, "api", 1*time.Second))
 			r.Post("/", hc.HandleCreateUpscaleToken)
+			r.Get("/defaults", hc.HandleGetUpscaleDefaults)
+			r.Get("/models", hc.HandleGetUpscaleModels)
 		})
 	})
 

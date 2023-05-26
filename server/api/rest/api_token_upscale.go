@@ -85,7 +85,6 @@ func (c *RestAPI) HandleCreateUpscaleToken(w http.ResponseWriter, r *http.Reques
 
 	// Set settings resp
 	initSettings := responses.ImageUpscaleSettingsResponse{
-		Type:    *upscaleReq.Type,
 		ModelId: *upscaleReq.ModelId,
 		Input:   upscaleReq.Input,
 	}

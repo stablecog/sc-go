@@ -2,7 +2,6 @@ package responses
 
 import (
 	"github.com/google/uuid"
-	"github.com/stablecog/sc-go/server/requests"
 )
 
 type AvailableScheduler struct {
@@ -32,13 +31,6 @@ type ImageGenerationSettingsResponse struct {
 }
 
 type ImageUpscaleSettingsResponse struct {
-	Type    requests.UpscaleRequestType `json:"type"`
-	ModelId uuid.UUID                   `json:"model_id"`
-	Input   string                      `json:"input"`
-}
-
-type SettingsResponse struct {
-	GenerationDefaults ImageGenerationSettingsResponse `json:"generation_defaults"`
-	GenerationModels   []SettingsResponseItem          `json:"generation_models"`
-	UpscaleModels      []SettingsResponseItem          `json:"upscale_models"`
+	ModelId uuid.UUID `json:"model_id"`
+	Input   string    `json:"input"`
 }
