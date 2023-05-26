@@ -97,9 +97,9 @@ func (t *CreateGenerationRequest) Validate(api bool) error {
 
 	if (*t.Width)*(*t.Height)*(*t.InferenceSteps) >= shared.MAX_PRO_PIXEL_STEPS {
 		return fmt.Errorf("Pick fewer inference steps or smaller dimensions: %d - %d - %d",
-			t.Width,
-			t.Height,
-			t.InferenceSteps,
+			*t.Width,
+			*t.Height,
+			*t.InferenceSteps,
 		)
 	}
 
