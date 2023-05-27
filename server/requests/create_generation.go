@@ -83,8 +83,16 @@ func (t *CreateGenerationRequest) Validate(api bool) error {
 		return fmt.Errorf("Height is too large, max is: %d", shared.MAX_GENERATE_HEIGHT)
 	}
 
+	if *t.Height < shared.MIN_GENERATE_HEIGHT {
+		return fmt.Errorf("Height is too small, min is: %d", shared.MIN_GENERATE_HEIGHT)
+	}
+
 	if *t.Width > shared.MAX_GENERATE_WIDTH {
 		return fmt.Errorf("Width is too large, max is: %d", shared.MAX_GENERATE_WIDTH)
+	}
+
+	if *t.Width < shared.MIN_GENERATE_WIDTH {
+		return fmt.Errorf("Width is too small, min is: %d", shared.MIN_GENERATE_WIDTH)
 	}
 
 	if *t.GuidanceScale < shared.MIN_GUIDANCE_SCALE {
@@ -93,6 +101,10 @@ func (t *CreateGenerationRequest) Validate(api bool) error {
 
 	if *t.GuidanceScale > shared.MAX_GUIDANCE_SCALE {
 		return fmt.Errorf("Guidance scale is too large, max is: %f", shared.MAX_GUIDANCE_SCALE)
+	}
+
+	if *t.InferenceSteps < shared.MIN_INFERENCE_STEPS {
+		return fmt.Errorf("Inference steps is too small, min is: %d", shared.MIN_INFERENCE_STEPS)
 	}
 
 	if (*t.Width)*(*t.Height)*(*t.InferenceSteps) >= shared.MAX_PRO_PIXEL_STEPS {
