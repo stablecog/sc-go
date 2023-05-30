@@ -99,7 +99,7 @@ func (c *RestAPI) HandleSemanticSearchGallery(w http.ResponseWriter, r *http.Req
 			getPointRes, err := c.Qdrant.GetPoint(uid, false)
 			if err != nil {
 				log.Error("Error getting point from qdrant", "err", err)
-				if strings.Contains(err.Error(), "not_found") {
+				if strings.Contains(err.Error(), "Error querying collection 404") {
 					responses.ErrNotFound(w, r, "generation_not_found")
 					return
 				}
