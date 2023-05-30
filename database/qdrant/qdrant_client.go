@@ -74,6 +74,10 @@ var fieldsToIndex = []qdrantIndexField{
 		Name: "was_auto_submitted",
 		Type: PayloadSchemaTypeKeyword,
 	},
+	{
+		Name: "prompt",
+		Type: PayloadSchemaTypeKeyword,
+	},
 }
 
 type QdrantClient struct {

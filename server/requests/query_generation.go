@@ -66,6 +66,7 @@ type QueryGenerationFilters struct {
 	ScoreThreshold    *float32                         `json:"score_threshold,omitempty"`
 	IsFavorited       *bool                            `json:"is_favorited,omitempty"`
 	WasAutoSubmitted  *bool                            `json:"was_auto_submitted,omitempty"`
+	Prompt            string                           `json:"prompt,omitempty"`
 }
 
 // Parse all filters into a QueryGenerationFilters struct
@@ -400,6 +401,13 @@ func (filters *QueryGenerationFilters) ParseURLQueryParameters(urlValues url.Val
 
 func (filters *QueryGenerationFilters) ToQdrantFilters(ignoreGalleryStatus bool) (f *qdrant.SearchRequest_Filter, scoreThreshold *float32) {
 	f = &qdrant.SearchRequest_Filter{}
+
+	if filters.Prompt != "" {
+		f.Must = append(f.Must, qdrant.SCMatchCondition{
+			Key:   "prompt",
+			Match: &qdrant.SCValue{Value: filters.Prompt},
+		})
+	}
 
 	if len(filters.ModelIDs) > 0 {
 		for _, modelID := range filters.ModelIDs {

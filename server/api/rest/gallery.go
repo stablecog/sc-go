@@ -62,6 +62,26 @@ func (c *RestAPI) HandleSemanticSearchGallery(w http.ResponseWriter, r *http.Req
 	var nextCursorPostgres *time.Time
 	var err error
 
+	// Get prompt_id filter and text from database
+	promptId := r.URL.Query().Get("prompt_id")
+	var promptText string
+	if promptId != "" {
+		promptIdUuid, err := uuid.Parse(promptId)
+		if err != nil {
+			responses.ErrBadRequest(w, r, "invalid_prompt_id", "")
+			return
+		}
+		promptText, err = c.Repo.GetPromptTextById(promptIdUuid)
+		if err != nil && ent.IsNotFound(err) {
+			responses.ErrNotFound(w, r, "prompt_not_found")
+			return
+		} else if err != nil {
+			log.Errorf("Error retrieving prompt from DB %v", err)
+			responses.ErrInternalServerError(w, r, "An unknown error has occurred")
+			return
+		}
+	}
+
 	// Parse filters
 	filters := &requests.QueryGenerationFilters{}
 	err = filters.ParseURLQueryParameters(r.URL.Query())
@@ -69,6 +89,7 @@ func (c *RestAPI) HandleSemanticSearchGallery(w http.ResponseWriter, r *http.Req
 		responses.ErrBadRequest(w, r, err.Error(), "")
 		return
 	}
+	filters.Prompt = promptText
 
 	// Parse as qdrant filters
 	qdrantFilters, scoreThreshold := filters.ToQdrantFilters(true)

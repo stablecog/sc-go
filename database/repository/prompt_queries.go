@@ -30,3 +30,12 @@ func (r *Repository) GetUsersUniquePromptIds(promptIds []uuid.UUID, userId uuid.
 	}
 	return uniquePromptIds, nil
 }
+
+// Get prompt text by prompt ID
+func (r *Repository) GetPromptTextById(id uuid.UUID) (text string, err error) {
+	prompt, err := r.DB.Prompt.Get(r.Ctx, id)
+	if err != nil {
+		return "", err
+	}
+	return prompt.Text, nil
+}
