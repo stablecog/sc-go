@@ -292,10 +292,6 @@ func (uc *UserCreate) defaults() {
 		v := user.DefaultLastSeenAt()
 		uc.mutation.SetLastSeenAt(v)
 	}
-	if _, ok := uc.mutation.WantsEmail(); !ok {
-		v := user.DefaultWantsEmail
-		uc.mutation.SetWantsEmail(v)
-	}
 	if _, ok := uc.mutation.CreatedAt(); !ok {
 		v := user.DefaultCreatedAt()
 		uc.mutation.SetCreatedAt(v)
@@ -320,9 +316,6 @@ func (uc *UserCreate) check() error {
 	}
 	if _, ok := uc.mutation.LastSeenAt(); !ok {
 		return &ValidationError{Name: "last_seen_at", err: errors.New(`ent: missing required field "User.last_seen_at"`)}
-	}
-	if _, ok := uc.mutation.WantsEmail(); !ok {
-		return &ValidationError{Name: "wants_email", err: errors.New(`ent: missing required field "User.wants_email"`)}
 	}
 	if _, ok := uc.mutation.CreatedAt(); !ok {
 		return &ValidationError{Name: "created_at", err: errors.New(`ent: missing required field "User.created_at"`)}
@@ -405,7 +398,7 @@ func (uc *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 	}
 	if value, ok := uc.mutation.WantsEmail(); ok {
 		_spec.SetField(user.FieldWantsEmail, field.TypeBool, value)
-		_node.WantsEmail = value
+		_node.WantsEmail = &value
 	}
 	if value, ok := uc.mutation.CreatedAt(); ok {
 		_spec.SetField(user.FieldCreatedAt, field.TypeTime, value)

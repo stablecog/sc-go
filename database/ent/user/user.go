@@ -113,8 +113,6 @@ func ValidColumn(column string) bool {
 var (
 	// DefaultLastSeenAt holds the default value on creation for the "last_seen_at" field.
 	DefaultLastSeenAt func() time.Time
-	// DefaultWantsEmail holds the default value on creation for the "wants_email" field.
-	DefaultWantsEmail bool
 	// DefaultCreatedAt holds the default value on creation for the "created_at" field.
 	DefaultCreatedAt func() time.Time
 	// DefaultUpdatedAt holds the default value on creation for the "updated_at" field.

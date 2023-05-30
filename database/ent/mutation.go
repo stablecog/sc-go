@@ -14140,7 +14140,7 @@ func (m *UserMutation) WantsEmail() (r bool, exists bool) {
 // OldWantsEmail returns the old "wants_email" field's value of the User entity.
 // If the User object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *UserMutation) OldWantsEmail(ctx context.Context) (v bool, err error) {
+func (m *UserMutation) OldWantsEmail(ctx context.Context) (v *bool, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldWantsEmail is only allowed on UpdateOne operations")
 	}
@@ -14154,9 +14154,22 @@ func (m *UserMutation) OldWantsEmail(ctx context.Context) (v bool, err error) {
 	return oldValue.WantsEmail, nil
 }
 
+// ClearWantsEmail clears the value of the "wants_email" field.
+func (m *UserMutation) ClearWantsEmail() {
+	m.wants_email = nil
+	m.clearedFields[user.FieldWantsEmail] = struct{}{}
+}
+
+// WantsEmailCleared returns if the "wants_email" field was cleared in this mutation.
+func (m *UserMutation) WantsEmailCleared() bool {
+	_, ok := m.clearedFields[user.FieldWantsEmail]
+	return ok
+}
+
 // ResetWantsEmail resets all changes to the "wants_email" field.
 func (m *UserMutation) ResetWantsEmail() {
 	m.wants_email = nil
+	delete(m.clearedFields, user.FieldWantsEmail)
 }
 
 // SetCreatedAt sets the "created_at" field.
@@ -14761,6 +14774,9 @@ func (m *UserMutation) ClearedFields() []string {
 	if m.FieldCleared(user.FieldDataDeletedAt) {
 		fields = append(fields, user.FieldDataDeletedAt)
 	}
+	if m.FieldCleared(user.FieldWantsEmail) {
+		fields = append(fields, user.FieldWantsEmail)
+	}
 	return fields
 }
 
@@ -14789,6 +14805,9 @@ func (m *UserMutation) ClearField(name string) error {
 		return nil
 	case user.FieldDataDeletedAt:
 		m.ClearDataDeletedAt()
+		return nil
+	case user.FieldWantsEmail:
+		m.ClearWantsEmail()
 		return nil
 	}
 	return fmt.Errorf("unknown User nullable field %s", name)

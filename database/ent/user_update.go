@@ -175,6 +175,12 @@ func (uu *UserUpdate) SetNillableWantsEmail(b *bool) *UserUpdate {
 	return uu
 }
 
+// ClearWantsEmail clears the value of the "wants_email" field.
+func (uu *UserUpdate) ClearWantsEmail() *UserUpdate {
+	uu.mutation.ClearWantsEmail()
+	return uu
+}
+
 // SetUpdatedAt sets the "updated_at" field.
 func (uu *UserUpdate) SetUpdatedAt(t time.Time) *UserUpdate {
 	uu.mutation.SetUpdatedAt(t)
@@ -467,6 +473,9 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if value, ok := uu.mutation.WantsEmail(); ok {
 		_spec.SetField(user.FieldWantsEmail, field.TypeBool, value)
+	}
+	if uu.mutation.WantsEmailCleared() {
+		_spec.ClearField(user.FieldWantsEmail, field.TypeBool)
 	}
 	if value, ok := uu.mutation.UpdatedAt(); ok {
 		_spec.SetField(user.FieldUpdatedAt, field.TypeTime, value)
@@ -903,6 +912,12 @@ func (uuo *UserUpdateOne) SetNillableWantsEmail(b *bool) *UserUpdateOne {
 	return uuo
 }
 
+// ClearWantsEmail clears the value of the "wants_email" field.
+func (uuo *UserUpdateOne) ClearWantsEmail() *UserUpdateOne {
+	uuo.mutation.ClearWantsEmail()
+	return uuo
+}
+
 // SetUpdatedAt sets the "updated_at" field.
 func (uuo *UserUpdateOne) SetUpdatedAt(t time.Time) *UserUpdateOne {
 	uuo.mutation.SetUpdatedAt(t)
@@ -1219,6 +1234,9 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 	}
 	if value, ok := uuo.mutation.WantsEmail(); ok {
 		_spec.SetField(user.FieldWantsEmail, field.TypeBool, value)
+	}
+	if uuo.mutation.WantsEmailCleared() {
+		_spec.ClearField(user.FieldWantsEmail, field.TypeBool)
 	}
 	if value, ok := uuo.mutation.UpdatedAt(); ok {
 		_spec.SetField(user.FieldUpdatedAt, field.TypeTime, value)

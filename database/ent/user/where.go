@@ -566,6 +566,16 @@ func WantsEmailNEQ(v bool) predicate.User {
 	return predicate.User(sql.FieldNEQ(FieldWantsEmail, v))
 }
 
+// WantsEmailIsNil applies the IsNil predicate on the "wants_email" field.
+func WantsEmailIsNil() predicate.User {
+	return predicate.User(sql.FieldIsNull(FieldWantsEmail))
+}
+
+// WantsEmailNotNil applies the NotNil predicate on the "wants_email" field.
+func WantsEmailNotNil() predicate.User {
+	return predicate.User(sql.FieldNotNull(FieldWantsEmail))
+}
+
 // CreatedAtEQ applies the EQ predicate on the "created_at" field.
 func CreatedAtEQ(v time.Time) predicate.User {
 	return predicate.User(sql.FieldEQ(FieldCreatedAt, v))

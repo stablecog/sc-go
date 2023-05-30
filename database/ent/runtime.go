@@ -339,10 +339,6 @@ func init() {
 	userDescLastSeenAt := userFields[5].Descriptor()
 	// user.DefaultLastSeenAt holds the default value on creation for the last_seen_at field.
 	user.DefaultLastSeenAt = userDescLastSeenAt.Default.(func() time.Time)
-	// userDescWantsEmail is the schema descriptor for wants_email field.
-	userDescWantsEmail := userFields[9].Descriptor()
-	// user.DefaultWantsEmail holds the default value on creation for the wants_email field.
-	user.DefaultWantsEmail = userDescWantsEmail.Default.(bool)
 	// userDescCreatedAt is the schema descriptor for created_at field.
 	userDescCreatedAt := userFields[10].Descriptor()
 	// user.DefaultCreatedAt holds the default value on creation for the created_at field.

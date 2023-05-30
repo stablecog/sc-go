@@ -34,7 +34,7 @@ type User struct {
 	// DataDeletedAt holds the value of the "data_deleted_at" field.
 	DataDeletedAt *time.Time `json:"data_deleted_at,omitempty"`
 	// WantsEmail holds the value of the "wants_email" field.
-	WantsEmail bool `json:"wants_email,omitempty"`
+	WantsEmail *bool `json:"wants_email,omitempty"`
 	// CreatedAt holds the value of the "created_at" field.
 	CreatedAt time.Time `json:"created_at,omitempty"`
 	// UpdatedAt holds the value of the "updated_at" field.
@@ -197,7 +197,8 @@ func (u *User) assignValues(columns []string, values []any) error {
 			if value, ok := values[i].(*sql.NullBool); !ok {
 				return fmt.Errorf("unexpected type %T for field wants_email", values[i])
 			} else if value.Valid {
-				u.WantsEmail = value.Bool
+				u.WantsEmail = new(bool)
+				*u.WantsEmail = value.Bool
 			}
 		case user.FieldCreatedAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
@@ -298,8 +299,10 @@ func (u *User) String() string {
 		builder.WriteString(v.Format(time.ANSIC))
 	}
 	builder.WriteString(", ")
-	builder.WriteString("wants_email=")
-	builder.WriteString(fmt.Sprintf("%v", u.WantsEmail))
+	if v := u.WantsEmail; v != nil {
+		builder.WriteString("wants_email=")
+		builder.WriteString(fmt.Sprintf("%v", *v))
+	}
 	builder.WriteString(", ")
 	builder.WriteString("created_at=")
 	builder.WriteString(u.CreatedAt.Format(time.ANSIC))
