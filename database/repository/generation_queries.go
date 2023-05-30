@@ -218,6 +218,11 @@ func (r *Repository) ApplyUserGenerationsFilters(query *ent.GenerationQuery, fil
 			}
 		}
 
+		// prompt ID
+		if filters.PromptID != nil {
+			resQuery = resQuery.Where(generation.PromptIDEQ(*filters.PromptID))
+		}
+
 		// Start dt
 		if filters.StartDt != nil {
 			resQuery = resQuery.Where(generation.CreatedAtGTE(*filters.StartDt))

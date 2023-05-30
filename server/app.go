@@ -159,7 +159,7 @@ func main() {
 		for {
 			log.Info("Loading batch of embeddings", "cur", cur, "each", each)
 			start := time.Now()
-			q := repo.DB.GenerationOutput.Query().Where(generationoutput.HasEmbeddings(true), generationoutput.DeletedAtNotNil(), generationoutput.ImagePathNEQ("placeholder.webp")).WithGenerations()
+			q := repo.DB.GenerationOutput.Query().Where(generationoutput.HasEmbeddings(true), generationoutput.DeletedAtIsNil(), generationoutput.ImagePathNEQ("placeholder.webp")).WithGenerations()
 			if cursor != nil {
 				q = q.Where(generationoutput.CreatedAtLT(*cursor))
 			}
