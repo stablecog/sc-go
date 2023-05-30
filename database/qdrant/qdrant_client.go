@@ -548,10 +548,9 @@ type GetPointVector struct {
 
 // Type for GetPoint response
 type GetPointResult struct {
-	ID      int `json:"id"`
-	Payload struct {
-	} `json:"payload"`
-	Vector GetPointVector `json:"vector"`
+	ID      uuid.UUID              `json:"id"`
+	Payload map[string]interface{} `json:"payload"`
+	Vector  GetPointVector         `json:"vector"`
 }
 
 type GetPointResponseSC struct {
