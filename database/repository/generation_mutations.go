@@ -167,6 +167,7 @@ func (r *Repository) SetGenerationSucceeded(generationID string, prompt string, 
 					"user_id":            generation.UserID.String(),
 					"generation_id":      generation.ID.String(),
 					"prompt":             prompt,
+					"prompt_id":          generation.PromptID.String(),
 				}
 				if gOutput.UpscaledImagePath != nil {
 					payload["upscaled_image_path"] = *gOutput.UpscaledImagePath

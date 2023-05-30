@@ -23,7 +23,9 @@ import (
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	chiprometheus "github.com/stablecog/chi-prometheus"
 	"github.com/stablecog/sc-go/database"
+	"github.com/stablecog/sc-go/database/ent"
 	"github.com/stablecog/sc-go/database/ent/generation"
+	"github.com/stablecog/sc-go/database/ent/generationoutput"
 	"github.com/stablecog/sc-go/database/qdrant"
 	"github.com/stablecog/sc-go/database/repository"
 	"github.com/stablecog/sc-go/log"
@@ -62,6 +64,8 @@ func main() {
 	transferUserData := flag.Bool("transfer-user", false, "transfer account data from one user to another")
 	sourceUser := flag.String("source-user", "", "source user id")
 	destUser := flag.String("dest-user", "", "destination user id")
+	cursorEmbeddings := flag.String("cursor-embeddings", "", "Cursor for loading embeddings")
+	syncPromptId := flag.Bool("sync-prompt-id", false, "Sync prompt_id to qdrant")
 
 	flag.Parse()
 
@@ -136,6 +140,57 @@ func main() {
 			log.Fatal("Failed to create mock data", "err", err)
 			os.Exit(1)
 		}
+		os.Exit(0)
+	}
+
+	if *syncPromptId {
+		log.Info("🏡 Loading qdrant data...")
+		each := 500
+		cur := 0
+		var cursor *time.Time
+		if *cursorEmbeddings != "" {
+			t, err := time.Parse(time.RFC3339, *cursorEmbeddings)
+			if err != nil {
+				log.Fatal("Failed to parse cursor", "err", err)
+			}
+			cursor = &t
+		}
+
+		for {
+			log.Info("Loading batch of embeddings", "cur", cur, "each", each)
+			start := time.Now()
+			q := repo.DB.GenerationOutput.Query().Where(generationoutput.HasEmbeddings(true), generationoutput.DeletedAtNotNil(), generationoutput.ImagePathNEQ("placeholder.webp")).WithGenerations()
+			if cursor != nil {
+				q = q.Where(generationoutput.CreatedAtLT(*cursor))
+			}
+			gens, err := q.Order(ent.Desc(generationoutput.FieldCreatedAt)).Limit(each).All(ctx)
+			if err != nil {
+				if cursor != nil {
+					log.Info("Last cursor", "cursor", cursor.Format(time.RFC3339Nano))
+				}
+				log.Fatal("Failed to load generation outputs", "err", err)
+			}
+			log.Infof("Retreived generations in %s", time.Since(start))
+
+			if len(gens) == 0 {
+				break
+			}
+
+			for _, gen := range gens {
+				properties := make(map[string]interface{})
+				properties["prompt_id"] = gen.Edges.Generations.PromptID.String()
+				err = qdrantClient.SetPayload(properties, []uuid.UUID{gen.ID}, false)
+				if err != nil {
+					log.Fatal("Failed to set payload", "err", err)
+				}
+			}
+			// Update cursor
+			cursor = &gens[len(gens)-1].CreatedAt
+			log.Info("Last cursor", "cursor", cursor.Format(time.RFC3339Nano))
+			log.Infof("Loaded %d generations", len(gens))
+			cur += len(gens)
+		}
+		log.Infof("Done, sync'd %d", cur)
 		os.Exit(0)
 	}
 
