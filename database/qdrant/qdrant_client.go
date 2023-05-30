@@ -540,6 +540,56 @@ func (q *QdrantClient) BatchUpsert(payload []map[string]interface{}, noRetry boo
 	return nil
 }
 
+// Type for vector result
+type GetPointVector struct {
+	Image []float32 `json:"image"`
+	Text  []float32 `json:"text"`
+}
+
+// Type for GetPoint response
+type GetPointResult struct {
+	ID      int `json:"id"`
+	Payload struct {
+	} `json:"payload"`
+	Vector GetPointVector `json:"vector"`
+}
+
+type GetPointResponseSC struct {
+	Result GetPointResult `json:"result"`
+}
+
+// Get vectors for an ID
+func (q *QdrantClient) GetPoint(id uuid.UUID, noRetry bool) (*GetPointResponseSC, error) {
+	rId := ExtendedPointId{}
+	rId.FromExtendedPointId1(id)
+	resp, err := q.Client.GetPointWithResponse(q.Ctx, q.CollectionName, rId, &GetPointParams{})
+	if err != nil {
+		if !noRetry && (os.IsTimeout(err) || strings.Contains(err.Error(), "connection refused")) {
+			err = q.UpdateActiveClient()
+			if err == nil {
+				return q.GetPoint(id, true)
+			}
+		}
+		log.Errorf("Error getting point %v", err)
+		return nil, err
+	}
+	if resp.StatusCode() != http.StatusOK {
+		log.Errorf("Error querying collection %v", resp.StatusCode())
+		return nil, fmt.Errorf("Error querying collection %v", resp.StatusCode())
+	}
+	if resp.StatusCode() == http.StatusNotFound {
+		return nil, fmt.Errorf("not_found")
+	}
+
+	var unmarshalled GetPointResponseSC
+	err = json.Unmarshal(resp.Body, &unmarshalled)
+	if err != nil {
+		log.Errorf("Error unmarshalling response %v", err)
+		return nil, err
+	}
+	return &unmarshalled, nil
+}
+
 // Query
 func (q *QdrantClient) Query(embedding []float32, noRetry bool) (*QResponse, error) {
 	qParams := &SearchParams_Quantization{}

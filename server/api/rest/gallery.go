@@ -6,6 +6,7 @@ import (
 	"math/rand"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/go-chi/render"
@@ -90,11 +91,29 @@ func (c *RestAPI) HandleSemanticSearchGallery(w http.ResponseWriter, r *http.Req
 			cursorU := uint(cursoru64)
 			offset = &cursorU
 		}
-		embeddings, err := c.Clip.GetEmbeddingFromText(search, 3)
-		if err != nil {
-			log.Error("Error getting embeddings from clip service", "err", err)
-			responses.ErrInternalServerError(w, r, "An unknown error occurred")
-			return
+		// See if search is a uuid
+		uid, err := uuid.Parse(search)
+		var embeddings []float32
+		if err == nil {
+			// Get embeddings from qdrant
+			getPointRes, err := c.Qdrant.GetPoint(uid, false)
+			if err != nil {
+				log.Error("Error getting point from qdrant", "err", err)
+				if strings.Contains(err.Error(), "not_found") {
+					responses.ErrNotFound(w, r, "generation_not_found")
+					return
+				}
+				responses.ErrInternalServerError(w, r, "An unknown error occurred")
+				return
+			}
+			embeddings = getPointRes.Result.Vector.Image
+		} else {
+			embeddings, err = c.Clip.GetEmbeddingFromText(search, 3)
+			if err != nil {
+				log.Error("Error getting embeddings from clip service", "err", err)
+				responses.ErrInternalServerError(w, r, "An unknown error occurred")
+				return
+			}
 		}
 
 		res, err := c.Qdrant.QueryGenerations(embeddings, GALLERY_PER_PAGE, offset, scoreThreshold, qdrantFilters, false, false)
