@@ -51,7 +51,7 @@ type UserWithRolesRaw struct {
 	RoleName         string    `sql:"role_name"`
 	StripeCustomerID string    `sql:"stripe_customer_id"`
 	ActiveProductID  string    `sql:"active_product_id"`
-	WantsEmail       bool      `sql:"wants_email"`
+	WantsEmail       *bool     `sql:"wants_email"`
 }
 
 type UserWithRoles struct {
@@ -59,7 +59,7 @@ type UserWithRoles struct {
 	Roles            []userrole.RoleName
 	StripeCustomerID string
 	ActiveProductID  string
-	WantsEmail       bool
+	WantsEmail       *bool
 }
 
 func (r *Repository) GetUserByStripeCustomerId(customerId string) (*ent.User, error) {

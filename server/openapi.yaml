@@ -1467,6 +1467,7 @@ components:
             type: string
         wants_email:
           type: boolean
+          format: optional
       description: Summary of user data
     GalleryResponse:
       type: object

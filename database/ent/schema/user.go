@@ -28,7 +28,7 @@ func (User) Fields() []ent.Field {
 		field.Time("banned_at").Optional().Nillable(),
 		field.Time("scheduled_for_deletion_on").Optional().Nillable(),
 		field.Time("data_deleted_at").Optional().Nillable(),
-		field.Bool("wants_email").Default(false),
+		field.Bool("wants_email").Optional().Nillable(),
 		field.Time("created_at").Default(time.Now).Immutable(),
 		field.Time("updated_at").Default(time.Now).UpdateDefault(time.Now),
 	}
