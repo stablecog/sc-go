@@ -29,6 +29,8 @@ const (
 	FieldScheduledForDeletionOn = "scheduled_for_deletion_on"
 	// FieldDataDeletedAt holds the string denoting the data_deleted_at field in the database.
 	FieldDataDeletedAt = "data_deleted_at"
+	// FieldWantsEmail holds the string denoting the wants_email field in the database.
+	FieldWantsEmail = "wants_email"
 	// FieldCreatedAt holds the string denoting the created_at field in the database.
 	FieldCreatedAt = "created_at"
 	// FieldUpdatedAt holds the string denoting the updated_at field in the database.
@@ -93,6 +95,7 @@ var Columns = []string{
 	FieldBannedAt,
 	FieldScheduledForDeletionOn,
 	FieldDataDeletedAt,
+	FieldWantsEmail,
 	FieldCreatedAt,
 	FieldUpdatedAt,
 }
@@ -110,6 +113,8 @@ func ValidColumn(column string) bool {
 var (
 	// DefaultLastSeenAt holds the default value on creation for the "last_seen_at" field.
 	DefaultLastSeenAt func() time.Time
+	// DefaultWantsEmail holds the default value on creation for the "wants_email" field.
+	DefaultWantsEmail bool
 	// DefaultCreatedAt holds the default value on creation for the "created_at" field.
 	DefaultCreatedAt func() time.Time
 	// DefaultUpdatedAt holds the default value on creation for the "updated_at" field.

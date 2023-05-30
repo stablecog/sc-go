@@ -122,6 +122,20 @@ func (uc *UserCreate) SetNillableDataDeletedAt(t *time.Time) *UserCreate {
 	return uc
 }
 
+// SetWantsEmail sets the "wants_email" field.
+func (uc *UserCreate) SetWantsEmail(b bool) *UserCreate {
+	uc.mutation.SetWantsEmail(b)
+	return uc
+}
+
+// SetNillableWantsEmail sets the "wants_email" field if the given value is not nil.
+func (uc *UserCreate) SetNillableWantsEmail(b *bool) *UserCreate {
+	if b != nil {
+		uc.SetWantsEmail(*b)
+	}
+	return uc
+}
+
 // SetCreatedAt sets the "created_at" field.
 func (uc *UserCreate) SetCreatedAt(t time.Time) *UserCreate {
 	uc.mutation.SetCreatedAt(t)
@@ -278,6 +292,10 @@ func (uc *UserCreate) defaults() {
 		v := user.DefaultLastSeenAt()
 		uc.mutation.SetLastSeenAt(v)
 	}
+	if _, ok := uc.mutation.WantsEmail(); !ok {
+		v := user.DefaultWantsEmail
+		uc.mutation.SetWantsEmail(v)
+	}
 	if _, ok := uc.mutation.CreatedAt(); !ok {
 		v := user.DefaultCreatedAt()
 		uc.mutation.SetCreatedAt(v)
@@ -302,6 +320,9 @@ func (uc *UserCreate) check() error {
 	}
 	if _, ok := uc.mutation.LastSeenAt(); !ok {
 		return &ValidationError{Name: "last_seen_at", err: errors.New(`ent: missing required field "User.last_seen_at"`)}
+	}
+	if _, ok := uc.mutation.WantsEmail(); !ok {
+		return &ValidationError{Name: "wants_email", err: errors.New(`ent: missing required field "User.wants_email"`)}
 	}
 	if _, ok := uc.mutation.CreatedAt(); !ok {
 		return &ValidationError{Name: "created_at", err: errors.New(`ent: missing required field "User.created_at"`)}
@@ -381,6 +402,10 @@ func (uc *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 	if value, ok := uc.mutation.DataDeletedAt(); ok {
 		_spec.SetField(user.FieldDataDeletedAt, field.TypeTime, value)
 		_node.DataDeletedAt = &value
+	}
+	if value, ok := uc.mutation.WantsEmail(); ok {
+		_spec.SetField(user.FieldWantsEmail, field.TypeBool, value)
+		_node.WantsEmail = value
 	}
 	if value, ok := uc.mutation.CreatedAt(); ok {
 		_spec.SetField(user.FieldCreatedAt, field.TypeTime, value)

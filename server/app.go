@@ -441,6 +441,9 @@ func main() {
 
 			// Operations
 			r.Get("/operations", hc.HandleQueryOperations)
+
+			// Email preferences
+			r.Post("/email", hc.HandleUpdateEmailPreferences)
 		})
 
 		// Admin only routes

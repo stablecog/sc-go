@@ -161,6 +161,20 @@ func (uu *UserUpdate) ClearDataDeletedAt() *UserUpdate {
 	return uu
 }
 
+// SetWantsEmail sets the "wants_email" field.
+func (uu *UserUpdate) SetWantsEmail(b bool) *UserUpdate {
+	uu.mutation.SetWantsEmail(b)
+	return uu
+}
+
+// SetNillableWantsEmail sets the "wants_email" field if the given value is not nil.
+func (uu *UserUpdate) SetNillableWantsEmail(b *bool) *UserUpdate {
+	if b != nil {
+		uu.SetWantsEmail(*b)
+	}
+	return uu
+}
+
 // SetUpdatedAt sets the "updated_at" field.
 func (uu *UserUpdate) SetUpdatedAt(t time.Time) *UserUpdate {
 	uu.mutation.SetUpdatedAt(t)
@@ -450,6 +464,9 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if uu.mutation.DataDeletedAtCleared() {
 		_spec.ClearField(user.FieldDataDeletedAt, field.TypeTime)
+	}
+	if value, ok := uu.mutation.WantsEmail(); ok {
+		_spec.SetField(user.FieldWantsEmail, field.TypeBool, value)
 	}
 	if value, ok := uu.mutation.UpdatedAt(); ok {
 		_spec.SetField(user.FieldUpdatedAt, field.TypeTime, value)
@@ -872,6 +889,20 @@ func (uuo *UserUpdateOne) ClearDataDeletedAt() *UserUpdateOne {
 	return uuo
 }
 
+// SetWantsEmail sets the "wants_email" field.
+func (uuo *UserUpdateOne) SetWantsEmail(b bool) *UserUpdateOne {
+	uuo.mutation.SetWantsEmail(b)
+	return uuo
+}
+
+// SetNillableWantsEmail sets the "wants_email" field if the given value is not nil.
+func (uuo *UserUpdateOne) SetNillableWantsEmail(b *bool) *UserUpdateOne {
+	if b != nil {
+		uuo.SetWantsEmail(*b)
+	}
+	return uuo
+}
+
 // SetUpdatedAt sets the "updated_at" field.
 func (uuo *UserUpdateOne) SetUpdatedAt(t time.Time) *UserUpdateOne {
 	uuo.mutation.SetUpdatedAt(t)
@@ -1185,6 +1216,9 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 	}
 	if uuo.mutation.DataDeletedAtCleared() {
 		_spec.ClearField(user.FieldDataDeletedAt, field.TypeTime)
+	}
+	if value, ok := uuo.mutation.WantsEmail(); ok {
+		_spec.SetField(user.FieldWantsEmail, field.TypeBool, value)
 	}
 	if value, ok := uuo.mutation.UpdatedAt(); ok {
 		_spec.SetField(user.FieldUpdatedAt, field.TypeTime, value)

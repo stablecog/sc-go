@@ -316,6 +316,71 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse401"
+  /v1/user/email:
+    post:
+      description: "Email: Update Preference (User-only)"
+      security:
+        - supabase: []
+      requestBody:
+        description: JSON object with email preference
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                wants_email:
+                  type: boolean
+      responses:
+        "200":
+          description: JSON object updated count
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  updated:
+                    type: integer
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse400"
+        "401":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse401"
+    delete:
+      description: "Generation: Mark for Delete (User)"
+      security:
+        - supabase: []
+      requestBody:
+        description: JSON Object with generation output IDs to delete
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DeleteGenerationRequest"
+      responses:
+        "200":
+          description: Number of generations marked for deletion
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DeletedResponse"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse400"
+        "401":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse401"
   /v1/user/outputs/favorite:
     put:
       description: "Generation: Favorite (User)"
@@ -1400,6 +1465,8 @@ components:
           type: array
           items:
             type: string
+        wants_email:
+          type: boolean
       description: Summary of user data
     GalleryResponse:
       type: object

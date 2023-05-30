@@ -222,6 +222,7 @@ func (c *RestAPI) HandleGetUser(w http.ResponseWriter, r *http.Request) {
 		StripeHadError:        stripeHadError,
 		Roles:                 user.Roles,
 		MoreCreditsAt:         moreCreditsAt,
+		WantsEmail:            user.WantsEmail,
 	})
 }
 
@@ -546,6 +547,42 @@ func (c *RestAPI) HandleFavoriteGenerationOutputsForUser(w http.ResponseWriter, 
 
 	res := responses.FavoritedResponse{
 		Favorited: count,
+	}
+	render.Status(r, http.StatusOK)
+	render.JSON(w, r, res)
+}
+
+// HTTP POST - set email preferences
+func (c *RestAPI) HandleUpdateEmailPreferences(w http.ResponseWriter, r *http.Request) {
+	var user *ent.User
+	if user = c.GetUserIfAuthenticated(w, r); user == nil {
+		return
+	}
+
+	if user.BannedAt != nil {
+		responses.ErrForbidden(w, r)
+		return
+	}
+
+	// Parse request body
+	reqBody, _ := io.ReadAll(r.Body)
+	var emailReq requests.EmailPreferencesRequest
+	err := json.Unmarshal(reqBody, &emailReq)
+	if err != nil {
+		responses.ErrUnableToParseJson(w, r)
+		return
+	}
+
+	// Update email preferences
+	err = c.Repo.SetWantsEmail(user.ID, emailReq.WantsEmail)
+	if err != nil {
+		log.Error("Error setting email preferences", "err", err)
+		responses.ErrInternalServerError(w, r, "An unknown error has occurred")
+		return
+	}
+
+	res := responses.UpdatedResponse{
+		Updated: 1,
 	}
 	render.Status(r, http.StatusOK)
 	render.JSON(w, r, res)

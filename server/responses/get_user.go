@@ -14,6 +14,7 @@ type GetUserResponse struct {
 	CancelsAt             *time.Time `json:"cancels_at,omitempty"`
 	RenewsAt              *time.Time `json:"renews_at,omitempty"`
 	MoreCreditsAt         *time.Time `json:"more_credits_at,omitempty"`
+	WantsEmail            bool       `json:"wants_email"`
 	// The current amoount of free credits server offers
 	FreeCreditAmount *int                `json:"free_credit_amount,omitempty"`
 	StripeHadError   bool                `json:"stripe_had_error"`

@@ -68,3 +68,8 @@ func (r *Repository) BanUsers(userIDs []uuid.UUID) (int, error) {
 func (r *Repository) UnbanUsers(userIDs []uuid.UUID) (int, error) {
 	return r.DB.User.Update().Where(user.IDIn(userIDs...)).ClearBannedAt().ClearScheduledForDeletionOn().Save(r.Ctx)
 }
+
+// Set wants email
+func (r *Repository) SetWantsEmail(userId uuid.UUID, wantsEmail bool) error {
+	return r.DB.User.Update().Where(user.IDEQ(userId)).SetWantsEmail(wantsEmail).Exec(r.Ctx)
+}

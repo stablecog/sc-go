@@ -459,6 +459,7 @@ var (
 		{Name: "banned_at", Type: field.TypeTime, Nullable: true},
 		{Name: "scheduled_for_deletion_on", Type: field.TypeTime, Nullable: true},
 		{Name: "data_deleted_at", Type: field.TypeTime, Nullable: true},
+		{Name: "wants_email", Type: field.TypeBool, Default: false},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},
 	}

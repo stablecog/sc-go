@@ -96,6 +96,11 @@ func DataDeletedAt(v time.Time) predicate.User {
 	return predicate.User(sql.FieldEQ(FieldDataDeletedAt, v))
 }
 
+// WantsEmail applies equality check predicate on the "wants_email" field. It's identical to WantsEmailEQ.
+func WantsEmail(v bool) predicate.User {
+	return predicate.User(sql.FieldEQ(FieldWantsEmail, v))
+}
+
 // CreatedAt applies equality check predicate on the "created_at" field. It's identical to CreatedAtEQ.
 func CreatedAt(v time.Time) predicate.User {
 	return predicate.User(sql.FieldEQ(FieldCreatedAt, v))
@@ -549,6 +554,16 @@ func DataDeletedAtIsNil() predicate.User {
 // DataDeletedAtNotNil applies the NotNil predicate on the "data_deleted_at" field.
 func DataDeletedAtNotNil() predicate.User {
 	return predicate.User(sql.FieldNotNull(FieldDataDeletedAt))
+}
+
+// WantsEmailEQ applies the EQ predicate on the "wants_email" field.
+func WantsEmailEQ(v bool) predicate.User {
+	return predicate.User(sql.FieldEQ(FieldWantsEmail, v))
+}
+
+// WantsEmailNEQ applies the NEQ predicate on the "wants_email" field.
+func WantsEmailNEQ(v bool) predicate.User {
+	return predicate.User(sql.FieldNEQ(FieldWantsEmail, v))
 }
 
 // CreatedAtEQ applies the EQ predicate on the "created_at" field.
