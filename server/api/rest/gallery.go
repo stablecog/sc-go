@@ -2,6 +2,7 @@ package rest
 
 import (
 	"encoding/json"
+	"fmt"
 	"io"
 	"math/rand"
 	"net/http"
@@ -71,6 +72,19 @@ func (c *RestAPI) HandleSemanticSearchGallery(w http.ResponseWriter, r *http.Req
 		return
 	}
 
+	// Validate query parameters
+	perPage := GALLERY_PER_PAGE
+	if perPageStr := r.URL.Query().Get("per_page"); perPageStr != "" {
+		perPage, err = strconv.Atoi(perPageStr)
+		if err != nil {
+			responses.ErrBadRequest(w, r, "per_page must be an integer", "")
+			return
+		} else if perPage < 1 || perPage > MAX_PER_PAGE {
+			responses.ErrBadRequest(w, r, fmt.Sprintf("per_page must be between 1 and %d", MAX_PER_PAGE), "")
+			return
+		}
+	}
+
 	// Parse as qdrant filters
 	qdrantFilters, scoreThreshold := filters.ToQdrantFilters(true)
 	// Append gallery status requirement
@@ -116,7 +130,7 @@ func (c *RestAPI) HandleSemanticSearchGallery(w http.ResponseWriter, r *http.Req
 			}
 		}
 
-		res, err := c.Qdrant.QueryGenerations(embeddings, GALLERY_PER_PAGE, offset, scoreThreshold, qdrantFilters, false, false)
+		res, err := c.Qdrant.QueryGenerations(embeddings, perPage, offset, scoreThreshold, qdrantFilters, false, false)
 		if err != nil {
 			log.Error("Error querying qdrant", "err", err)
 			responses.ErrInternalServerError(w, r, "An unknown error occurred")
@@ -176,7 +190,7 @@ func (c *RestAPI) HandleSemanticSearchGallery(w http.ResponseWriter, r *http.Req
 
 		// Retrieve from postgres
 		filters.GalleryStatus = []generationoutput.GalleryStatus{generationoutput.GalleryStatusApproved}
-		galleryData, nextCursorPostgres, err = c.Repo.RetrieveMostRecentGalleryData(filters, GALLERY_PER_PAGE, qCursor)
+		galleryData, nextCursorPostgres, err = c.Repo.RetrieveMostRecentGalleryData(filters, perPage, qCursor)
 		if err != nil {
 			log.Error("Error querying gallery data from postgres", "err", err)
 			responses.ErrInternalServerError(w, r, "An unknown error occurred")
