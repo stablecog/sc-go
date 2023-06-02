@@ -88,14 +88,17 @@ func (c *RestAPI) HandleCreateGenerationToken(w http.ResponseWriter, r *http.Req
 	for _, role := range roles {
 		switch role {
 		case "ULTIMATE":
+			free = false
 			if qMax < shared.MAX_QUEUED_ITEMS_ULTIMATE {
 				qMax = shared.MAX_QUEUED_ITEMS_ULTIMATE
 			}
 		case "PRO":
+			free = false
 			if qMax < shared.MAX_QUEUED_ITEMS_PRO {
 				qMax = shared.MAX_QUEUED_ITEMS_PRO
 			}
 		case "STARTER":
+			free = false
 			if qMax < shared.MAX_QUEUED_ITEMS_STARTER {
 				qMax = shared.MAX_QUEUED_ITEMS_STARTER
 			}
