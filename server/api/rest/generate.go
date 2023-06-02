@@ -22,6 +22,7 @@ import (
 	"github.com/stablecog/sc-go/server/responses"
 	"github.com/stablecog/sc-go/shared"
 	"github.com/stablecog/sc-go/utils"
+	"golang.org/x/exp/slices"
 )
 
 // POST generate endpoint
@@ -45,7 +46,13 @@ func (c *RestAPI) HandleCreateGeneration(w http.ResponseWriter, r *http.Request)
 	}
 
 	var qMax int
-	isSuperAdmin, _ := c.Repo.IsSuperAdmin(user.ID)
+	roles, err := c.Repo.GetRoles(user.ID)
+	if err != nil {
+		log.Error("Error getting roles for user", "err", err)
+		responses.ErrInternalServerError(w, r, "An unknown error has occurred")
+		return
+	}
+	isSuperAdmin := slices.Contains(roles, "SUPER_ADMIN")
 	if isSuperAdmin {
 		qMax = math.MaxInt64
 	} else {
@@ -73,11 +80,27 @@ func (c *RestAPI) HandleCreateGeneration(w http.ResponseWriter, r *http.Request)
 		// 	}
 		// }
 	}
+	for _, role := range roles {
+		switch role {
+		case "ULTIMATE":
+			if qMax < shared.MAX_QUEUED_ITEMS_ULTIMATE {
+				qMax = shared.MAX_QUEUED_ITEMS_ULTIMATE
+			}
+		case "PRO":
+			if qMax < shared.MAX_QUEUED_ITEMS_PRO {
+				qMax = shared.MAX_QUEUED_ITEMS_PRO
+			}
+		case "STARTER":
+			if qMax < shared.MAX_QUEUED_ITEMS_STARTER {
+				qMax = shared.MAX_QUEUED_ITEMS_STARTER
+			}
+		}
+	}
 
 	// Parse request body
 	reqBody, _ := io.ReadAll(r.Body)
 	var generateReq requests.CreateGenerationRequest
-	err := json.Unmarshal(reqBody, &generateReq)
+	err = json.Unmarshal(reqBody, &generateReq)
 	if err != nil {
 		responses.ErrUnableToParseJson(w, r)
 		return

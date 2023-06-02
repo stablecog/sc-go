@@ -17,6 +17,7 @@ import (
 	"github.com/stablecog/sc-go/server/responses"
 	"github.com/stablecog/sc-go/shared"
 	"github.com/stablecog/sc-go/utils"
+	"golang.org/x/exp/slices"
 )
 
 func (c *RestAPI) HandleUpscale(w http.ResponseWriter, r *http.Request) {
@@ -46,7 +47,13 @@ func (c *RestAPI) HandleUpscale(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var qMax int
-	isSuperAdmin, _ := c.Repo.IsSuperAdmin(user.ID)
+	roles, err := c.Repo.GetRoles(user.ID)
+	if err != nil {
+		log.Error("Error getting roles for user", "err", err)
+		responses.ErrInternalServerError(w, r, "An unknown error has occurred")
+		return
+	}
+	isSuperAdmin := slices.Contains(roles, "SUPER_ADMIN")
 	if isSuperAdmin {
 		qMax = math.MaxInt64
 	} else {
@@ -65,6 +72,29 @@ func (c *RestAPI) HandleUpscale(w http.ResponseWriter, r *http.Request) {
 			qMax = shared.MAX_QUEUED_ITEMS_ULTIMATE
 		default:
 			log.Warn("Unknown product ID", "product_id", *user.ActiveProductID)
+		}
+		// // Get product level
+		// for level, product := range GetProductIDs() {
+		// 	if product == *user.ActiveProductID {
+		// 		prodLevel = level
+		// 		break
+		// 	}
+		// }
+	}
+	for _, role := range roles {
+		switch role {
+		case "ULTIMATE":
+			if qMax < shared.MAX_QUEUED_ITEMS_ULTIMATE {
+				qMax = shared.MAX_QUEUED_ITEMS_ULTIMATE
+			}
+		case "PRO":
+			if qMax < shared.MAX_QUEUED_ITEMS_PRO {
+				qMax = shared.MAX_QUEUED_ITEMS_PRO
+			}
+		case "STARTER":
+			if qMax < shared.MAX_QUEUED_ITEMS_STARTER {
+				qMax = shared.MAX_QUEUED_ITEMS_STARTER
+			}
 		}
 	}
 
