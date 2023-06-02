@@ -37,11 +37,6 @@ func (User) Fields() []ent.Field {
 // Edges of the User.
 func (User) Edges() []ent.Edge {
 	return []ent.Edge{
-		// O2M with user_roles
-		edge.To("user_roles", UserRole.Type).
-			Annotations(entsql.Annotation{
-				OnDelete: entsql.Cascade,
-			}),
 		// O2M with generations
 		edge.To("generations", Generation.Type).
 			Annotations(entsql.Annotation{
@@ -62,6 +57,9 @@ func (User) Edges() []ent.Edge {
 			Annotations(entsql.Annotation{
 				OnDelete: entsql.Cascade,
 			}),
+		// M2M with roles
+		edge.From("roles", Role.Type).
+			Ref("users"),
 	}
 }
 

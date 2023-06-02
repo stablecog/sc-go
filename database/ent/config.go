@@ -41,12 +41,12 @@ type (
 		GenerationOutput []ent.Hook
 		NegativePrompt   []ent.Hook
 		Prompt           []ent.Hook
+		Role             []ent.Hook
 		Scheduler        []ent.Hook
 		Upscale          []ent.Hook
 		UpscaleModel     []ent.Hook
 		UpscaleOutput    []ent.Hook
 		User             []ent.Hook
-		UserRole         []ent.Hook
 	}
 	inters struct {
 		ApiToken         []ent.Interceptor
@@ -59,12 +59,12 @@ type (
 		GenerationOutput []ent.Interceptor
 		NegativePrompt   []ent.Interceptor
 		Prompt           []ent.Interceptor
+		Role             []ent.Interceptor
 		Scheduler        []ent.Interceptor
 		Upscale          []ent.Interceptor
 		UpscaleModel     []ent.Interceptor
 		UpscaleOutput    []ent.Interceptor
 		User             []ent.Interceptor
-		UserRole         []ent.Interceptor
 	}
 )
 

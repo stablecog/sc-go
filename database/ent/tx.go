@@ -34,6 +34,8 @@ type Tx struct {
 	NegativePrompt *NegativePromptClient
 	// Prompt is the client for interacting with the Prompt builders.
 	Prompt *PromptClient
+	// Role is the client for interacting with the Role builders.
+	Role *RoleClient
 	// Scheduler is the client for interacting with the Scheduler builders.
 	Scheduler *SchedulerClient
 	// Upscale is the client for interacting with the Upscale builders.
@@ -44,8 +46,6 @@ type Tx struct {
 	UpscaleOutput *UpscaleOutputClient
 	// User is the client for interacting with the User builders.
 	User *UserClient
-	// UserRole is the client for interacting with the UserRole builders.
-	UserRole *UserRoleClient
 
 	// lazily loaded.
 	client     *Client
@@ -187,12 +187,12 @@ func (tx *Tx) init() {
 	tx.GenerationOutput = NewGenerationOutputClient(tx.config)
 	tx.NegativePrompt = NewNegativePromptClient(tx.config)
 	tx.Prompt = NewPromptClient(tx.config)
+	tx.Role = NewRoleClient(tx.config)
 	tx.Scheduler = NewSchedulerClient(tx.config)
 	tx.Upscale = NewUpscaleClient(tx.config)
 	tx.UpscaleModel = NewUpscaleModelClient(tx.config)
 	tx.UpscaleOutput = NewUpscaleOutputClient(tx.config)
 	tx.User = NewUserClient(tx.config)
-	tx.UserRole = NewUserRoleClient(tx.config)
 }
 
 // txDriver wraps the given dialect.Tx with a nop dialect.Driver implementation.

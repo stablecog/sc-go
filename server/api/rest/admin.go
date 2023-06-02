@@ -13,7 +13,6 @@ import (
 	"github.com/google/uuid"
 	"github.com/stablecog/sc-go/database/ent"
 	"github.com/stablecog/sc-go/database/ent/generationoutput"
-	"github.com/stablecog/sc-go/database/ent/userrole"
 	"github.com/stablecog/sc-go/database/qdrant"
 	"github.com/stablecog/sc-go/database/repository"
 	"github.com/stablecog/sc-go/log"
@@ -114,7 +113,7 @@ func (c *RestAPI) HandleDeleteGenerationOutput(w http.ResponseWriter, r *http.Re
 
 	// Get user_role from context
 	userRole, ok := r.Context().Value("user_role").(string)
-	if !ok || userRole != userrole.RoleNameSUPER_ADMIN.String() {
+	if !ok || userRole != "SUPER_ADMIN" {
 		responses.ErrUnauthorized(w, r)
 		return
 	}
@@ -153,7 +152,7 @@ func (c *RestAPI) HandleQueryGenerationsForAdmin(w http.ResponseWriter, r *http.
 		responses.ErrUnauthorized(w, r)
 		return
 	}
-	superAdmin := userRole == userrole.RoleNameSUPER_ADMIN.String()
+	superAdmin := userRole == "SUPER_ADMIN"
 
 	// Validate query parameters
 	perPage := DEFAULT_PER_PAGE

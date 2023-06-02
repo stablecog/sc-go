@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/stablecog/sc-go/database/ent/userrole"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -40,8 +39,8 @@ func TestGetUserWithRoles(t *testing.T) {
 	user, err := MockRepo.GetUserWithRoles(adminId)
 	assert.Nil(t, err)
 	assert.NotNil(t, user)
-	assert.Len(t, user.Roles, 1)
-	assert.Equal(t, userrole.RoleNameSUPER_ADMIN, user.Roles[0])
+	assert.Len(t, user.Edges.Roles, 1)
+	assert.Equal(t, "SUPER_ADMIN", user.Edges.Roles[0].Name)
 	assert.Equal(t, adminId, user.ID)
 	assert.Equal(t, "1", user.StripeCustomerID)
 
@@ -50,7 +49,7 @@ func TestGetUserWithRoles(t *testing.T) {
 	user, err = MockRepo.GetUserWithRoles(normalId)
 	assert.Nil(t, err)
 	assert.NotNil(t, user)
-	assert.Len(t, user.Roles, 0)
+	assert.Len(t, user.Edges.Roles, 0)
 	assert.Equal(t, normalId, user.ID)
 	assert.Equal(t, "2", user.StripeCustomerID)
 

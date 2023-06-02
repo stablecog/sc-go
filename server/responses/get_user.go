@@ -2,8 +2,6 @@ package responses
 
 import (
 	"time"
-
-	"github.com/stablecog/sc-go/database/ent/userrole"
 )
 
 type GetUserResponse struct {
@@ -16,7 +14,7 @@ type GetUserResponse struct {
 	MoreCreditsAt         *time.Time `json:"more_credits_at,omitempty"`
 	WantsEmail            *bool      `json:"wants_email,omitempty"`
 	// The current amoount of free credits server offers
-	FreeCreditAmount *int                `json:"free_credit_amount,omitempty"`
-	StripeHadError   bool                `json:"stripe_had_error"`
-	Roles            []userrole.RoleName `json:"roles,omitempty"`
+	FreeCreditAmount *int     `json:"free_credit_amount,omitempty"`
+	StripeHadError   bool     `json:"stripe_had_error"`
+	Roles            []string `json:"roles,omitempty"`
 }

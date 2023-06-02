@@ -3,12 +3,11 @@ package repository
 import (
 	"time"
 
-	"entgo.io/ent/dialect/sql"
 	"github.com/google/uuid"
 	"github.com/stablecog/sc-go/database/ent"
 	"github.com/stablecog/sc-go/database/ent/credit"
+	"github.com/stablecog/sc-go/database/ent/role"
 	"github.com/stablecog/sc-go/database/ent/user"
-	"github.com/stablecog/sc-go/database/ent/userrole"
 	"github.com/stablecog/sc-go/log"
 )
 
@@ -20,46 +19,12 @@ func (r *Repository) GetUser(id uuid.UUID) (*ent.User, error) {
 	return user, err
 }
 
-func (r *Repository) GetUserWithRoles(id uuid.UUID) (*UserWithRoles, error) {
-	var userWithRoles []UserWithRolesRaw
-	err := r.DB.User.Query().Where(user.IDEQ(id)).Modify(func(s *sql.Selector) {
-		rt := sql.Table(userrole.Table)
-		s.LeftJoin(rt).On(rt.C(userrole.FieldUserID), s.C(user.FieldID)).
-			Select(sql.As(rt.C(userrole.FieldRoleName), "role_name"), sql.As(s.C(user.FieldID), "user_id"), sql.As(s.C(user.FieldStripeCustomerID), "stripe_customer_id"), sql.As(s.C(user.FieldActiveProductID), "active_product_id"), sql.As(s.C(user.FieldWantsEmail), "wants_email"))
-	}).Scan(r.Ctx, &userWithRoles)
-	if err != nil {
-		log.Error("Error getting user with roles", "err", err)
-		return nil, err
-	}
-
-	if len(userWithRoles) == 0 {
+func (r *Repository) GetUserWithRoles(id uuid.UUID) (*ent.User, error) {
+	user, err := r.DB.User.Query().Where(user.IDEQ(id)).WithRoles().Only(r.Ctx)
+	if err != nil && ent.IsNotFound(err) {
 		return nil, nil
 	}
-
-	ret := UserWithRoles{ID: userWithRoles[0].ID, StripeCustomerID: userWithRoles[0].StripeCustomerID, ActiveProductID: userWithRoles[0].ActiveProductID, WantsEmail: userWithRoles[0].WantsEmail}
-	for _, userWithRole := range userWithRoles {
-		if userWithRole.RoleName == "" {
-			continue
-		}
-		ret.Roles = append(ret.Roles, userrole.RoleName(userWithRole.RoleName))
-	}
-	return &ret, nil
-}
-
-type UserWithRolesRaw struct {
-	ID               uuid.UUID `sql:"user_id"`
-	RoleName         string    `sql:"role_name"`
-	StripeCustomerID string    `sql:"stripe_customer_id"`
-	ActiveProductID  string    `sql:"active_product_id"`
-	WantsEmail       *bool     `sql:"wants_email"`
-}
-
-type UserWithRoles struct {
-	ID               uuid.UUID
-	Roles            []userrole.RoleName
-	StripeCustomerID string
-	ActiveProductID  string
-	WantsEmail       *bool
+	return user, err
 }
 
 func (r *Repository) GetUserByStripeCustomerId(customerId string) (*ent.User, error) {
@@ -81,7 +46,7 @@ func (r *Repository) IsSuperAdmin(userID uuid.UUID) (bool, error) {
 		return false, err
 	}
 	for _, role := range roles {
-		if role == userrole.RoleNameSUPER_ADMIN {
+		if role == "SUPER_ADMIN" {
 			return true, nil
 		}
 	}
@@ -91,27 +56,27 @@ func (r *Repository) IsSuperAdmin(userID uuid.UUID) (bool, error) {
 
 func (r *Repository) GetSuperAdminUserIDs() ([]uuid.UUID, error) {
 	// Query all super  admins
-	admins, err := r.DB.UserRole.Query().Select(userrole.FieldUserID).Where(userrole.RoleNameEQ(userrole.RoleNameSUPER_ADMIN)).All(r.Ctx)
+	admins, err := r.DB.Role.Query().Where(role.NameEQ("SUPER_ADMIN")).QueryUsers().All(r.Ctx)
 	if err != nil {
 		log.Error("Error getting user roles", "err", err)
 		return nil, err
 	}
 	var adminIDs []uuid.UUID
 	for _, admin := range admins {
-		adminIDs = append(adminIDs, admin.UserID)
+		adminIDs = append(adminIDs, admin.ID)
 	}
 	return adminIDs, nil
 }
 
-func (r *Repository) GetRoles(userID uuid.UUID) ([]userrole.RoleName, error) {
-	roles, err := r.DB.UserRole.Query().Where(userrole.UserIDEQ(userID)).All(r.Ctx)
+func (r *Repository) GetRoles(userID uuid.UUID) ([]string, error) {
+	roles, err := r.DB.User.Query().Where(user.IDEQ(userID)).QueryRoles().All(r.Ctx)
 	if err != nil {
 		log.Error("Error getting user roles", "err", err)
 		return nil, err
 	}
-	var roleNames []userrole.RoleName
+	var roleNames []string
 	for _, role := range roles {
-		roleNames = append(roleNames, role.RoleName)
+		roleNames = append(roleNames, role.Name)
 	}
 
 	return roleNames, nil
@@ -208,7 +173,7 @@ func (r *Repository) QueryUsers(
 	}
 
 	// Include user roles
-	query.WithUserRoles()
+	query.WithRoles()
 
 	res, err := query.All(r.Ctx)
 	if err != nil {
@@ -251,8 +216,8 @@ func (r *Repository) QueryUsers(
 			DataDeletedAt:          user.DataDeletedAt,
 			ScheduledForDeletionOn: user.ScheduledForDeletionOn,
 		}
-		for _, role := range user.Edges.UserRoles {
-			formatted.Roles = append(formatted.Roles, role.RoleName)
+		for _, role := range user.Edges.Roles {
+			formatted.Roles = append(formatted.Roles, role.Name)
 		}
 
 		formatted.Credits = make([]UserQueryCredits, len(user.Edges.Credits))
@@ -296,18 +261,18 @@ type UserQueryCredits struct {
 }
 
 type UserQueryResult struct {
-	ID                     uuid.UUID           `json:"id"`
-	Email                  string              `json:"email"`
-	StripeCustomerID       string              `json:"stripe_customer_id"`
-	Roles                  []userrole.RoleName `json:"role,omitempty"`
-	CreatedAt              time.Time           `json:"created_at"`
-	Credits                []UserQueryCredits  `json:"credits,omitempty"`
-	LastSignInAt           *time.Time          `json:"last_sign_in_at,omitempty"`
-	LastSeenAt             time.Time           `json:"last_seen_at"`
-	BannedAt               *time.Time          `json:"banned_at,omitempty"`
-	DataDeletedAt          *time.Time          `json:"data_deleted_at,omitempty"`
-	ScheduledForDeletionOn *time.Time          `json:"scheduled_for_deletion_on,omitempty"`
-	StripeProductID        *string             `json:"product_id,omitempty"`
+	ID                     uuid.UUID          `json:"id"`
+	Email                  string             `json:"email"`
+	StripeCustomerID       string             `json:"stripe_customer_id"`
+	Roles                  []string           `json:"role,omitempty"`
+	CreatedAt              time.Time          `json:"created_at"`
+	Credits                []UserQueryCredits `json:"credits,omitempty"`
+	LastSignInAt           *time.Time         `json:"last_sign_in_at,omitempty"`
+	LastSeenAt             time.Time          `json:"last_seen_at"`
+	BannedAt               *time.Time         `json:"banned_at,omitempty"`
+	DataDeletedAt          *time.Time         `json:"data_deleted_at,omitempty"`
+	ScheduledForDeletionOn *time.Time         `json:"scheduled_for_deletion_on,omitempty"`
+	StripeProductID        *string            `json:"product_id,omitempty"`
 }
 
 // For credit replenishment

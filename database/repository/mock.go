@@ -7,7 +7,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/stablecog/sc-go/database/ent"
 	"github.com/stablecog/sc-go/database/ent/credittype"
-	"github.com/stablecog/sc-go/database/ent/userrole"
+	"github.com/stablecog/sc-go/database/ent/user"
 	"github.com/stablecog/sc-go/server/requests"
 	"github.com/stablecog/sc-go/utils"
 )
@@ -29,7 +29,7 @@ const MOCK_UPSCALE_MODEL_ID = "b972a2b8-f39e-4ee3-a670-05e3acdd821e"
 func (repo *Repository) CreateMockData(ctx context.Context) error {
 	// Drop all data
 	repo.DB.User.Delete().ExecX(ctx)
-	repo.DB.UserRole.Delete().ExecX(ctx)
+	repo.DB.Role.Delete().ExecX(ctx)
 	repo.DB.Credit.Delete().ExecX(ctx)
 	repo.DB.CreditType.Delete().ExecX(ctx)
 	repo.DB.GenerationModel.Delete().ExecX(ctx)
@@ -53,10 +53,11 @@ func (repo *Repository) CreateMockData(ctx context.Context) error {
 		return err
 	}
 	// Give user admin role
-	_, err = repo.DB.UserRole.Create().SetRoleName(userrole.RoleNameSUPER_ADMIN).SetUserID(u.ID).Save(ctx)
+	sAdminRole, err := repo.DB.Role.Create().SetName("SUPER_ADMIN").Save(ctx)
 	if err != nil {
 		return err
 	}
+	repo.DB.User.Update().Where(user.IDEQ(u.ID)).AddRoles(sAdminRole).ExecX(ctx)
 	// Give user credits
 	_, err = repo.AddCreditsIfEligible(creditType, u.ID, time.Now().AddDate(0, 0, 30), "", nil)
 	if err != nil {

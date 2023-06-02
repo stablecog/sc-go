@@ -36,6 +36,9 @@ type NegativePrompt func(*sql.Selector)
 // Prompt is the predicate function for prompt builders.
 type Prompt func(*sql.Selector)
 
+// Role is the predicate function for role builders.
+type Role func(*sql.Selector)
+
 // Scheduler is the predicate function for scheduler builders.
 type Scheduler func(*sql.Selector)
 
@@ -50,6 +53,3 @@ type UpscaleOutput func(*sql.Selector)
 
 // User is the predicate function for user builders.
 type User func(*sql.Selector)
-
-// UserRole is the predicate function for userrole builders.
-type UserRole func(*sql.Selector)

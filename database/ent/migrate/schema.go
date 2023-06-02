@@ -326,6 +326,19 @@ var (
 		Columns:    PromptsColumns,
 		PrimaryKey: []*schema.Column{PromptsColumns[0]},
 	}
+	// RolesColumns holds the columns for the "roles" table.
+	RolesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID},
+		{Name: "name", Type: field.TypeString},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+	}
+	// RolesTable holds the schema information for the "roles" table.
+	RolesTable = &schema.Table{
+		Name:       "roles",
+		Columns:    RolesColumns,
+		PrimaryKey: []*schema.Column{RolesColumns[0]},
+	}
 	// SchedulersColumns holds the columns for the "schedulers" table.
 	SchedulersColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID},
@@ -469,28 +482,6 @@ var (
 		Columns:    UsersColumns,
 		PrimaryKey: []*schema.Column{UsersColumns[0]},
 	}
-	// UserRolesColumns holds the columns for the "user_roles" table.
-	UserRolesColumns = []*schema.Column{
-		{Name: "id", Type: field.TypeUUID},
-		{Name: "role_name", Type: field.TypeEnum, Enums: []string{"SUPER_ADMIN", "GALLERY_ADMIN"}},
-		{Name: "created_at", Type: field.TypeTime},
-		{Name: "updated_at", Type: field.TypeTime},
-		{Name: "user_id", Type: field.TypeUUID},
-	}
-	// UserRolesTable holds the schema information for the "user_roles" table.
-	UserRolesTable = &schema.Table{
-		Name:       "user_roles",
-		Columns:    UserRolesColumns,
-		PrimaryKey: []*schema.Column{UserRolesColumns[0]},
-		ForeignKeys: []*schema.ForeignKey{
-			{
-				Symbol:     "user_roles_users_user_roles",
-				Columns:    []*schema.Column{UserRolesColumns[4]},
-				RefColumns: []*schema.Column{UsersColumns[0]},
-				OnDelete:   schema.Cascade,
-			},
-		},
-	}
 	// GenerationModelCompatibleSchedulersColumns holds the columns for the "generation_model_compatible_schedulers" table.
 	GenerationModelCompatibleSchedulersColumns = []*schema.Column{
 		{Name: "generation_model_id", Type: field.TypeUUID},
@@ -516,6 +507,31 @@ var (
 			},
 		},
 	}
+	// UserRoleUsersColumns holds the columns for the "user_role_users" table.
+	UserRoleUsersColumns = []*schema.Column{
+		{Name: "role_id", Type: field.TypeUUID},
+		{Name: "user_id", Type: field.TypeUUID},
+	}
+	// UserRoleUsersTable holds the schema information for the "user_role_users" table.
+	UserRoleUsersTable = &schema.Table{
+		Name:       "user_role_users",
+		Columns:    UserRoleUsersColumns,
+		PrimaryKey: []*schema.Column{UserRoleUsersColumns[0], UserRoleUsersColumns[1]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "user_role_users_role_id",
+				Columns:    []*schema.Column{UserRoleUsersColumns[0]},
+				RefColumns: []*schema.Column{RolesColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+			{
+				Symbol:     "user_role_users_user_id",
+				Columns:    []*schema.Column{UserRoleUsersColumns[1]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+		},
+	}
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
 		APITokensTable,
@@ -528,13 +544,14 @@ var (
 		GenerationOutputsTable,
 		NegativePromptsTable,
 		PromptsTable,
+		RolesTable,
 		SchedulersTable,
 		UpscalesTable,
 		UpscaleModelsTable,
 		UpscaleOutputsTable,
 		UsersTable,
-		UserRolesTable,
 		GenerationModelCompatibleSchedulersTable,
+		UserRoleUsersTable,
 	}
 )
 
@@ -580,6 +597,9 @@ func init() {
 	PromptsTable.Annotation = &entsql.Annotation{
 		Table: "prompts",
 	}
+	RolesTable.Annotation = &entsql.Annotation{
+		Table: "roles",
+	}
 	SchedulersTable.Annotation = &entsql.Annotation{
 		Table: "schedulers",
 	}
@@ -601,10 +621,8 @@ func init() {
 	UsersTable.Annotation = &entsql.Annotation{
 		Table: "users",
 	}
-	UserRolesTable.ForeignKeys[0].RefTable = UsersTable
-	UserRolesTable.Annotation = &entsql.Annotation{
-		Table: "user_roles",
-	}
 	GenerationModelCompatibleSchedulersTable.ForeignKeys[0].RefTable = GenerationModelsTable
 	GenerationModelCompatibleSchedulersTable.ForeignKeys[1].RefTable = SchedulersTable
+	UserRoleUsersTable.ForeignKeys[0].RefTable = RolesTable
+	UserRoleUsersTable.ForeignKeys[1].RefTable = UsersTable
 }

@@ -9,7 +9,6 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/stablecog/sc-go/database/ent"
-	"github.com/stablecog/sc-go/database/ent/userrole"
 	"github.com/stablecog/sc-go/log"
 	"github.com/stablecog/sc-go/server/responses"
 	"github.com/stablecog/sc-go/utils"
@@ -101,14 +100,14 @@ func (m *Middleware) AuthMiddleware(level AuthLevel) func(next http.Handler) htt
 				}
 				for _, role := range roles {
 					// Super admin always authorized
-					if role == userrole.RoleNameSUPER_ADMIN {
+					if role == "SUPER_ADMIN" {
 						authorized = true
-						ctx = context.WithValue(ctx, "user_role", userrole.RoleNameSUPER_ADMIN.String())
+						ctx = context.WithValue(ctx, "user_role", "SUPER_ADMIN")
 						break
-					} else if role == userrole.RoleNameGALLERY_ADMIN && level == AuthLevelGalleryAdmin {
+					} else if role == "GALLERY_ADMIN" && level == AuthLevelGalleryAdmin {
 						// Gallery admin only authorized if we're checking for gallery admin
 						authorized = true
-						ctx = context.WithValue(ctx, "user_role", userrole.RoleNameSUPER_ADMIN.String())
+						ctx = context.WithValue(ctx, "user_role", "GALLERY_ADMIN")
 					}
 				}
 			}

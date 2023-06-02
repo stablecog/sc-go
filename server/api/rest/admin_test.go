@@ -14,7 +14,6 @@ import (
 	"github.com/google/uuid"
 	"github.com/stablecog/sc-go/database/ent/generation"
 	"github.com/stablecog/sc-go/database/ent/generationoutput"
-	"github.com/stablecog/sc-go/database/ent/userrole"
 	"github.com/stablecog/sc-go/database/repository"
 	"github.com/stablecog/sc-go/server/requests"
 	"github.com/stablecog/sc-go/server/responses"
@@ -111,7 +110,7 @@ func TestHandleDeleteGeneration(t *testing.T) {
 	// Setup context
 	ctx = context.WithValue(req.Context(), "user_id", repository.MOCK_ADMIN_UUID)
 	ctx = context.WithValue(ctx, "user_email", repository.MOCK_ADMIN_UUID)
-	ctx = context.WithValue(ctx, "user_role", userrole.RoleNameGALLERY_ADMIN.String())
+	ctx = context.WithValue(ctx, "user_role", "GALLERY_ADMIN")
 
 	MockController.HandleDeleteGenerationOutput(w, req.WithContext(ctx))
 	resp := w.Result()
@@ -127,7 +126,7 @@ func TestHandleDeleteGeneration(t *testing.T) {
 	// Setup context
 	ctx = context.WithValue(req.Context(), "user_id", repository.MOCK_ADMIN_UUID)
 	ctx = context.WithValue(ctx, "user_email", repository.MOCK_ADMIN_UUID)
-	ctx = context.WithValue(ctx, "user_role", userrole.RoleNameSUPER_ADMIN.String())
+	ctx = context.WithValue(ctx, "user_role", "SUPER_ADMIN")
 
 	MockController.HandleDeleteGenerationOutput(w, req.WithContext(ctx))
 	resp = w.Result()
@@ -169,7 +168,7 @@ func TestHandleQueryGenerationsForAdminDefaultParams(t *testing.T) {
 
 	ctx := context.WithValue(req.Context(), "user_id", repository.MOCK_ADMIN_UUID)
 	ctx = context.WithValue(ctx, "user_email", repository.MOCK_ADMIN_UUID)
-	ctx = context.WithValue(ctx, "user_role", userrole.RoleNameSUPER_ADMIN.String())
+	ctx = context.WithValue(ctx, "user_role", "SUPER_ADMIN")
 
 	MockController.HandleQueryGenerationsForAdmin(w, req.WithContext(ctx))
 	resp := w.Result()
@@ -256,7 +255,7 @@ func TestHandleQueryGenerationsAdminCursor(t *testing.T) {
 
 	ctx := context.WithValue(req.Context(), "user_id", repository.MOCK_ADMIN_UUID)
 	ctx = context.WithValue(ctx, "user_email", repository.MOCK_ADMIN_UUID)
-	ctx = context.WithValue(ctx, "user_role", userrole.RoleNameSUPER_ADMIN.String())
+	ctx = context.WithValue(ctx, "user_role", "SUPER_ADMIN")
 
 	MockController.HandleQueryGenerationsForAdmin(w, req.WithContext(ctx))
 	resp := w.Result()
@@ -291,7 +290,7 @@ func TestHandleQueryGenerationsAdminCursor(t *testing.T) {
 
 	ctx = context.WithValue(req.Context(), "user_id", repository.MOCK_ADMIN_UUID)
 	ctx = context.WithValue(ctx, "user_email", repository.MOCK_ADMIN_UUID)
-	ctx = context.WithValue(ctx, "user_role", userrole.RoleNameSUPER_ADMIN.String())
+	ctx = context.WithValue(ctx, "user_role", "SUPER_ADMIN")
 
 	MockController.HandleQueryGenerationsForAdmin(w, req.WithContext(ctx))
 	resp = w.Result()
@@ -317,7 +316,7 @@ func TestHandleQueryGenerationsAdminPerPage(t *testing.T) {
 
 	ctx := context.WithValue(req.Context(), "user_id", repository.MOCK_ADMIN_UUID)
 	ctx = context.WithValue(ctx, "user_email", repository.MOCK_ADMIN_UUID)
-	ctx = context.WithValue(ctx, "user_role", userrole.RoleNameSUPER_ADMIN.String())
+	ctx = context.WithValue(ctx, "user_role", "SUPER_ADMIN")
 
 	MockController.HandleQueryGenerationsForAdmin(w, req.WithContext(ctx))
 	resp := w.Result()
@@ -356,7 +355,7 @@ func TestHandleQueryGenerationsAdminGalleryLevel(t *testing.T) {
 
 	ctx := context.WithValue(req.Context(), "user_id", repository.MOCK_ADMIN_UUID)
 	ctx = context.WithValue(ctx, "user_email", repository.MOCK_ADMIN_UUID)
-	ctx = context.WithValue(ctx, "user_role", userrole.RoleNameGALLERY_ADMIN.String())
+	ctx = context.WithValue(ctx, "user_role", "GALLERY_ADMIN")
 
 	MockController.HandleQueryGenerationsForAdmin(w, req.WithContext(ctx))
 	resp := w.Result()
@@ -395,7 +394,7 @@ func TestHandleQueryGenerationsAdminGalleryLevelCannotGetPrivate(t *testing.T) {
 
 	ctx := context.WithValue(req.Context(), "user_id", repository.MOCK_ADMIN_UUID)
 	ctx = context.WithValue(ctx, "user_email", repository.MOCK_ADMIN_UUID)
-	ctx = context.WithValue(ctx, "user_role", userrole.RoleNameGALLERY_ADMIN.String())
+	ctx = context.WithValue(ctx, "user_role", "GALLERY_ADMIN")
 
 	MockController.HandleQueryGenerationsForAdmin(w, req.WithContext(ctx))
 	resp := w.Result()

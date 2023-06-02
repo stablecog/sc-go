@@ -912,3 +912,41 @@ ALTER TABLE public.generation_model_compatible_schedulers ENABLE ROW LEVEL SECUR
 ALTER TABLE public.generation_models add column default_scheduler_id UUID REFERENCES public.schedulers(id) ON DELETE SET NULL;
 ALTER TABLE public.generation_models add column default_width INTEGER NOT NULL DEFAULT 512;
 ALTER TABLE public.generation_models add column default_height INTEGER NOT NULL DEFAULT 512;
+
+-- Create "roles" table
+CREATE TABLE "public"."roles"
+  (
+     "id"         uuid DEFAULT extensions.uuid_generate_v4() NOT NULL,
+    created_at timestamp with time zone DEFAULT (now() AT TIME ZONE 'utc'::text) NOT NULL,
+    updated_at timestamp with time zone DEFAULT (now() AT TIME ZONE 'utc'::text) NOT NULL
+     "name"       CHARACTER VARYING NOT NULL,
+     PRIMARY KEY ("id")
+  );
+
+CREATE trigger handle_updated_at before
+UPDATE
+    ON public.roles FOR each ROW EXECUTE PROCEDURE moddatetime (updated_at);
+
+-- Create "user_role_users" table
+CREATE TABLE "public"."user_role_users"
+  (
+     "role_model_id" UUID NOT NULL,
+     "user_id"       UUID NOT NULL,
+     PRIMARY KEY ("role_model_id", "user_id"),
+     CONSTRAINT "user_role_users_role_model_id" FOREIGN KEY ("role_model_id")
+     REFERENCES "public"."roles" ("id") ON UPDATE no action ON DELETE CASCADE,
+     CONSTRAINT "user_role_users_user_id" FOREIGN KEY ("user_id") REFERENCES
+     "auth"."users" ("id") ON UPDATE no action ON DELETE CASCADE
+  ); 
+
+--
+-- Name: roles; Type: ROW SECURITY; Schema: public; Owner: postgres
+--
+
+ALTER TABLE public.roles ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: user_role_users; Type: ROW SECURITY; Schema: public; Owner: postgres
+--
+
+ALTER TABLE public.user_role_users ENABLE ROW LEVEL SECURITY;

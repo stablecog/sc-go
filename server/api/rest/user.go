@@ -210,6 +210,11 @@ func (c *RestAPI) HandleGetUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	roles := make([]string, len(user.Edges.Roles))
+	for i, role := range user.Edges.Roles {
+		roles[i] = role.Name
+	}
+
 	render.Status(r, http.StatusOK)
 	render.JSON(w, r, responses.GetUserResponse{
 		TotalRemainingCredits: totalRemaining,
@@ -220,7 +225,7 @@ func (c *RestAPI) HandleGetUser(w http.ResponseWriter, r *http.Request) {
 		RenewsAt:              renewsAt,
 		FreeCreditAmount:      freeCreditAmount,
 		StripeHadError:        stripeHadError,
-		Roles:                 user.Roles,
+		Roles:                 roles,
 		MoreCreditsAt:         moreCreditsAt,
 		WantsEmail:            user.WantsEmail,
 	})

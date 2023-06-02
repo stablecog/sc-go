@@ -14,9 +14,9 @@ import (
 	"github.com/stablecog/sc-go/database/ent/apitoken"
 	"github.com/stablecog/sc-go/database/ent/credit"
 	"github.com/stablecog/sc-go/database/ent/generation"
+	"github.com/stablecog/sc-go/database/ent/role"
 	"github.com/stablecog/sc-go/database/ent/upscale"
 	"github.com/stablecog/sc-go/database/ent/user"
-	"github.com/stablecog/sc-go/database/ent/userrole"
 )
 
 // UserCreate is the builder for creating a User entity.
@@ -178,21 +178,6 @@ func (uc *UserCreate) SetNillableID(u *uuid.UUID) *UserCreate {
 	return uc
 }
 
-// AddUserRoleIDs adds the "user_roles" edge to the UserRole entity by IDs.
-func (uc *UserCreate) AddUserRoleIDs(ids ...uuid.UUID) *UserCreate {
-	uc.mutation.AddUserRoleIDs(ids...)
-	return uc
-}
-
-// AddUserRoles adds the "user_roles" edges to the UserRole entity.
-func (uc *UserCreate) AddUserRoles(u ...*UserRole) *UserCreate {
-	ids := make([]uuid.UUID, len(u))
-	for i := range u {
-		ids[i] = u[i].ID
-	}
-	return uc.AddUserRoleIDs(ids...)
-}
-
 // AddGenerationIDs adds the "generations" edge to the Generation entity by IDs.
 func (uc *UserCreate) AddGenerationIDs(ids ...uuid.UUID) *UserCreate {
 	uc.mutation.AddGenerationIDs(ids...)
@@ -251,6 +236,21 @@ func (uc *UserCreate) AddAPITokens(a ...*ApiToken) *UserCreate {
 		ids[i] = a[i].ID
 	}
 	return uc.AddAPITokenIDs(ids...)
+}
+
+// AddRoleIDs adds the "roles" edge to the Role entity by IDs.
+func (uc *UserCreate) AddRoleIDs(ids ...uuid.UUID) *UserCreate {
+	uc.mutation.AddRoleIDs(ids...)
+	return uc
+}
+
+// AddRoles adds the "roles" edges to the Role entity.
+func (uc *UserCreate) AddRoles(r ...*Role) *UserCreate {
+	ids := make([]uuid.UUID, len(r))
+	for i := range r {
+		ids[i] = r[i].ID
+	}
+	return uc.AddRoleIDs(ids...)
 }
 
 // Mutation returns the UserMutation object of the builder.
@@ -408,25 +408,6 @@ func (uc *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 		_spec.SetField(user.FieldUpdatedAt, field.TypeTime, value)
 		_node.UpdatedAt = value
 	}
-	if nodes := uc.mutation.UserRolesIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   user.UserRolesTable,
-			Columns: []string{user.UserRolesColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: userrole.FieldID,
-				},
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges = append(_spec.Edges, edge)
-	}
 	if nodes := uc.mutation.GenerationsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
@@ -495,6 +476,25 @@ func (uc *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeUUID,
 					Column: apitoken.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := uc.mutation.RolesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   user.RolesTable,
+			Columns: user.RolesPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: role.FieldID,
 				},
 			},
 		}

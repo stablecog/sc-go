@@ -21,12 +21,12 @@ import (
 	"github.com/stablecog/sc-go/database/ent/generationoutput"
 	"github.com/stablecog/sc-go/database/ent/negativeprompt"
 	"github.com/stablecog/sc-go/database/ent/prompt"
+	"github.com/stablecog/sc-go/database/ent/role"
 	"github.com/stablecog/sc-go/database/ent/scheduler"
 	"github.com/stablecog/sc-go/database/ent/upscale"
 	"github.com/stablecog/sc-go/database/ent/upscalemodel"
 	"github.com/stablecog/sc-go/database/ent/upscaleoutput"
 	"github.com/stablecog/sc-go/database/ent/user"
-	"github.com/stablecog/sc-go/database/ent/userrole"
 )
 
 // ent aliases to avoid import conflicts in user's code.
@@ -64,12 +64,12 @@ func columnChecker(table string) func(string) error {
 		generationoutput.Table: generationoutput.ValidColumn,
 		negativeprompt.Table:   negativeprompt.ValidColumn,
 		prompt.Table:           prompt.ValidColumn,
+		role.Table:             role.ValidColumn,
 		scheduler.Table:        scheduler.ValidColumn,
 		upscale.Table:          upscale.ValidColumn,
 		upscalemodel.Table:     upscalemodel.ValidColumn,
 		upscaleoutput.Table:    upscaleoutput.ValidColumn,
 		user.Table:             user.ValidColumn,
-		userrole.Table:         userrole.ValidColumn,
 	}
 	check, ok := checks[table]
 	if !ok {

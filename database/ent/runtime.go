@@ -16,13 +16,13 @@ import (
 	"github.com/stablecog/sc-go/database/ent/generationoutput"
 	"github.com/stablecog/sc-go/database/ent/negativeprompt"
 	"github.com/stablecog/sc-go/database/ent/prompt"
+	"github.com/stablecog/sc-go/database/ent/role"
 	"github.com/stablecog/sc-go/database/ent/scheduler"
 	"github.com/stablecog/sc-go/database/ent/schema"
 	"github.com/stablecog/sc-go/database/ent/upscale"
 	"github.com/stablecog/sc-go/database/ent/upscalemodel"
 	"github.com/stablecog/sc-go/database/ent/upscaleoutput"
 	"github.com/stablecog/sc-go/database/ent/user"
-	"github.com/stablecog/sc-go/database/ent/userrole"
 )
 
 // The init function reads all schema descriptors with runtime code
@@ -241,6 +241,22 @@ func init() {
 	promptDescID := promptFields[0].Descriptor()
 	// prompt.DefaultID holds the default value on creation for the id field.
 	prompt.DefaultID = promptDescID.Default.(func() uuid.UUID)
+	roleFields := schema.Role{}.Fields()
+	_ = roleFields
+	// roleDescCreatedAt is the schema descriptor for created_at field.
+	roleDescCreatedAt := roleFields[2].Descriptor()
+	// role.DefaultCreatedAt holds the default value on creation for the created_at field.
+	role.DefaultCreatedAt = roleDescCreatedAt.Default.(func() time.Time)
+	// roleDescUpdatedAt is the schema descriptor for updated_at field.
+	roleDescUpdatedAt := roleFields[3].Descriptor()
+	// role.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	role.DefaultUpdatedAt = roleDescUpdatedAt.Default.(func() time.Time)
+	// role.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	role.UpdateDefaultUpdatedAt = roleDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// roleDescID is the schema descriptor for id field.
+	roleDescID := roleFields[0].Descriptor()
+	// role.DefaultID holds the default value on creation for the id field.
+	role.DefaultID = roleDescID.Default.(func() uuid.UUID)
 	schedulerFields := schema.Scheduler{}.Fields()
 	_ = schedulerFields
 	// schedulerDescIsActive is the schema descriptor for is_active field.
@@ -353,20 +369,4 @@ func init() {
 	userDescID := userFields[0].Descriptor()
 	// user.DefaultID holds the default value on creation for the id field.
 	user.DefaultID = userDescID.Default.(func() uuid.UUID)
-	userroleFields := schema.UserRole{}.Fields()
-	_ = userroleFields
-	// userroleDescCreatedAt is the schema descriptor for created_at field.
-	userroleDescCreatedAt := userroleFields[3].Descriptor()
-	// userrole.DefaultCreatedAt holds the default value on creation for the created_at field.
-	userrole.DefaultCreatedAt = userroleDescCreatedAt.Default.(func() time.Time)
-	// userroleDescUpdatedAt is the schema descriptor for updated_at field.
-	userroleDescUpdatedAt := userroleFields[4].Descriptor()
-	// userrole.DefaultUpdatedAt holds the default value on creation for the updated_at field.
-	userrole.DefaultUpdatedAt = userroleDescUpdatedAt.Default.(func() time.Time)
-	// userrole.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
-	userrole.UpdateDefaultUpdatedAt = userroleDescUpdatedAt.UpdateDefault.(func() time.Time)
-	// userroleDescID is the schema descriptor for id field.
-	userroleDescID := userroleFields[0].Descriptor()
-	// userrole.DefaultID holds the default value on creation for the id field.
-	userrole.DefaultID = userroleDescID.Default.(func() uuid.UUID)
 }

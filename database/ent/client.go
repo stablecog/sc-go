@@ -21,12 +21,12 @@ import (
 	"github.com/stablecog/sc-go/database/ent/generationoutput"
 	"github.com/stablecog/sc-go/database/ent/negativeprompt"
 	"github.com/stablecog/sc-go/database/ent/prompt"
+	"github.com/stablecog/sc-go/database/ent/role"
 	"github.com/stablecog/sc-go/database/ent/scheduler"
 	"github.com/stablecog/sc-go/database/ent/upscale"
 	"github.com/stablecog/sc-go/database/ent/upscalemodel"
 	"github.com/stablecog/sc-go/database/ent/upscaleoutput"
 	"github.com/stablecog/sc-go/database/ent/user"
-	"github.com/stablecog/sc-go/database/ent/userrole"
 
 	"entgo.io/ent/dialect"
 	"entgo.io/ent/dialect/sql"
@@ -58,6 +58,8 @@ type Client struct {
 	NegativePrompt *NegativePromptClient
 	// Prompt is the client for interacting with the Prompt builders.
 	Prompt *PromptClient
+	// Role is the client for interacting with the Role builders.
+	Role *RoleClient
 	// Scheduler is the client for interacting with the Scheduler builders.
 	Scheduler *SchedulerClient
 	// Upscale is the client for interacting with the Upscale builders.
@@ -68,8 +70,6 @@ type Client struct {
 	UpscaleOutput *UpscaleOutputClient
 	// User is the client for interacting with the User builders.
 	User *UserClient
-	// UserRole is the client for interacting with the UserRole builders.
-	UserRole *UserRoleClient
 }
 
 // NewClient creates a new client configured with the given options.
@@ -93,12 +93,12 @@ func (c *Client) init() {
 	c.GenerationOutput = NewGenerationOutputClient(c.config)
 	c.NegativePrompt = NewNegativePromptClient(c.config)
 	c.Prompt = NewPromptClient(c.config)
+	c.Role = NewRoleClient(c.config)
 	c.Scheduler = NewSchedulerClient(c.config)
 	c.Upscale = NewUpscaleClient(c.config)
 	c.UpscaleModel = NewUpscaleModelClient(c.config)
 	c.UpscaleOutput = NewUpscaleOutputClient(c.config)
 	c.User = NewUserClient(c.config)
-	c.UserRole = NewUserRoleClient(c.config)
 }
 
 // Open opens a database/sql.DB specified by the driver name and
@@ -142,12 +142,12 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		GenerationOutput: NewGenerationOutputClient(cfg),
 		NegativePrompt:   NewNegativePromptClient(cfg),
 		Prompt:           NewPromptClient(cfg),
+		Role:             NewRoleClient(cfg),
 		Scheduler:        NewSchedulerClient(cfg),
 		Upscale:          NewUpscaleClient(cfg),
 		UpscaleModel:     NewUpscaleModelClient(cfg),
 		UpscaleOutput:    NewUpscaleOutputClient(cfg),
 		User:             NewUserClient(cfg),
-		UserRole:         NewUserRoleClient(cfg),
 	}, nil
 }
 
@@ -177,12 +177,12 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		GenerationOutput: NewGenerationOutputClient(cfg),
 		NegativePrompt:   NewNegativePromptClient(cfg),
 		Prompt:           NewPromptClient(cfg),
+		Role:             NewRoleClient(cfg),
 		Scheduler:        NewSchedulerClient(cfg),
 		Upscale:          NewUpscaleClient(cfg),
 		UpscaleModel:     NewUpscaleModelClient(cfg),
 		UpscaleOutput:    NewUpscaleOutputClient(cfg),
 		User:             NewUserClient(cfg),
-		UserRole:         NewUserRoleClient(cfg),
 	}, nil
 }
 
@@ -221,12 +221,12 @@ func (c *Client) Use(hooks ...Hook) {
 	c.GenerationOutput.Use(hooks...)
 	c.NegativePrompt.Use(hooks...)
 	c.Prompt.Use(hooks...)
+	c.Role.Use(hooks...)
 	c.Scheduler.Use(hooks...)
 	c.Upscale.Use(hooks...)
 	c.UpscaleModel.Use(hooks...)
 	c.UpscaleOutput.Use(hooks...)
 	c.User.Use(hooks...)
-	c.UserRole.Use(hooks...)
 }
 
 // Intercept adds the query interceptors to all the entity clients.
@@ -242,12 +242,12 @@ func (c *Client) Intercept(interceptors ...Interceptor) {
 	c.GenerationOutput.Intercept(interceptors...)
 	c.NegativePrompt.Intercept(interceptors...)
 	c.Prompt.Intercept(interceptors...)
+	c.Role.Intercept(interceptors...)
 	c.Scheduler.Intercept(interceptors...)
 	c.Upscale.Intercept(interceptors...)
 	c.UpscaleModel.Intercept(interceptors...)
 	c.UpscaleOutput.Intercept(interceptors...)
 	c.User.Intercept(interceptors...)
-	c.UserRole.Intercept(interceptors...)
 }
 
 // Mutate implements the ent.Mutator interface.
@@ -273,6 +273,8 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.NegativePrompt.mutate(ctx, m)
 	case *PromptMutation:
 		return c.Prompt.mutate(ctx, m)
+	case *RoleMutation:
+		return c.Role.mutate(ctx, m)
 	case *SchedulerMutation:
 		return c.Scheduler.mutate(ctx, m)
 	case *UpscaleMutation:
@@ -283,8 +285,6 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.UpscaleOutput.mutate(ctx, m)
 	case *UserMutation:
 		return c.User.mutate(ctx, m)
-	case *UserRoleMutation:
-		return c.UserRole.mutate(ctx, m)
 	default:
 		return nil, fmt.Errorf("ent: unknown mutation type %T", m)
 	}
@@ -1822,6 +1822,140 @@ func (c *PromptClient) mutate(ctx context.Context, m *PromptMutation) (Value, er
 	}
 }
 
+// RoleClient is a client for the Role schema.
+type RoleClient struct {
+	config
+}
+
+// NewRoleClient returns a client for the Role from the given config.
+func NewRoleClient(c config) *RoleClient {
+	return &RoleClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `role.Hooks(f(g(h())))`.
+func (c *RoleClient) Use(hooks ...Hook) {
+	c.hooks.Role = append(c.hooks.Role, hooks...)
+}
+
+// Use adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `role.Intercept(f(g(h())))`.
+func (c *RoleClient) Intercept(interceptors ...Interceptor) {
+	c.inters.Role = append(c.inters.Role, interceptors...)
+}
+
+// Create returns a builder for creating a Role entity.
+func (c *RoleClient) Create() *RoleCreate {
+	mutation := newRoleMutation(c.config, OpCreate)
+	return &RoleCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of Role entities.
+func (c *RoleClient) CreateBulk(builders ...*RoleCreate) *RoleCreateBulk {
+	return &RoleCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for Role.
+func (c *RoleClient) Update() *RoleUpdate {
+	mutation := newRoleMutation(c.config, OpUpdate)
+	return &RoleUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *RoleClient) UpdateOne(r *Role) *RoleUpdateOne {
+	mutation := newRoleMutation(c.config, OpUpdateOne, withRole(r))
+	return &RoleUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *RoleClient) UpdateOneID(id uuid.UUID) *RoleUpdateOne {
+	mutation := newRoleMutation(c.config, OpUpdateOne, withRoleID(id))
+	return &RoleUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for Role.
+func (c *RoleClient) Delete() *RoleDelete {
+	mutation := newRoleMutation(c.config, OpDelete)
+	return &RoleDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *RoleClient) DeleteOne(r *Role) *RoleDeleteOne {
+	return c.DeleteOneID(r.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *RoleClient) DeleteOneID(id uuid.UUID) *RoleDeleteOne {
+	builder := c.Delete().Where(role.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &RoleDeleteOne{builder}
+}
+
+// Query returns a query builder for Role.
+func (c *RoleClient) Query() *RoleQuery {
+	return &RoleQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeRole},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a Role entity by its id.
+func (c *RoleClient) Get(ctx context.Context, id uuid.UUID) (*Role, error) {
+	return c.Query().Where(role.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *RoleClient) GetX(ctx context.Context, id uuid.UUID) *Role {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryUsers queries the users edge of a Role.
+func (c *RoleClient) QueryUsers(r *Role) *UserQuery {
+	query := (&UserClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := r.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(role.Table, role.FieldID, id),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, false, role.UsersTable, role.UsersPrimaryKey...),
+		)
+		fromV = sqlgraph.Neighbors(r.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *RoleClient) Hooks() []Hook {
+	return c.hooks.Role
+}
+
+// Interceptors returns the client interceptors.
+func (c *RoleClient) Interceptors() []Interceptor {
+	return c.inters.Role
+}
+
+func (c *RoleClient) mutate(ctx context.Context, m *RoleMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&RoleCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&RoleUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&RoleUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&RoleDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown Role mutation op: %q", m.Op())
+	}
+}
+
 // SchedulerClient is a client for the Scheduler schema.
 type SchedulerClient struct {
 	config
@@ -2547,22 +2681,6 @@ func (c *UserClient) GetX(ctx context.Context, id uuid.UUID) *User {
 	return obj
 }
 
-// QueryUserRoles queries the user_roles edge of a User.
-func (c *UserClient) QueryUserRoles(u *User) *UserRoleQuery {
-	query := (&UserRoleClient{config: c.config}).Query()
-	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
-		id := u.ID
-		step := sqlgraph.NewStep(
-			sqlgraph.From(user.Table, user.FieldID, id),
-			sqlgraph.To(userrole.Table, userrole.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, user.UserRolesTable, user.UserRolesColumn),
-		)
-		fromV = sqlgraph.Neighbors(u.driver.Dialect(), step)
-		return fromV, nil
-	}
-	return query
-}
-
 // QueryGenerations queries the generations edge of a User.
 func (c *UserClient) QueryGenerations(u *User) *GenerationQuery {
 	query := (&GenerationClient{config: c.config}).Query()
@@ -2627,6 +2745,22 @@ func (c *UserClient) QueryAPITokens(u *User) *ApiTokenQuery {
 	return query
 }
 
+// QueryRoles queries the roles edge of a User.
+func (c *UserClient) QueryRoles(u *User) *RoleQuery {
+	query := (&RoleClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := u.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, id),
+			sqlgraph.To(role.Table, role.FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, true, user.RolesTable, user.RolesPrimaryKey...),
+		)
+		fromV = sqlgraph.Neighbors(u.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *UserClient) Hooks() []Hook {
 	return c.hooks.User
@@ -2649,139 +2783,5 @@ func (c *UserClient) mutate(ctx context.Context, m *UserMutation) (Value, error)
 		return (&UserDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("ent: unknown User mutation op: %q", m.Op())
-	}
-}
-
-// UserRoleClient is a client for the UserRole schema.
-type UserRoleClient struct {
-	config
-}
-
-// NewUserRoleClient returns a client for the UserRole from the given config.
-func NewUserRoleClient(c config) *UserRoleClient {
-	return &UserRoleClient{config: c}
-}
-
-// Use adds a list of mutation hooks to the hooks stack.
-// A call to `Use(f, g, h)` equals to `userrole.Hooks(f(g(h())))`.
-func (c *UserRoleClient) Use(hooks ...Hook) {
-	c.hooks.UserRole = append(c.hooks.UserRole, hooks...)
-}
-
-// Use adds a list of query interceptors to the interceptors stack.
-// A call to `Intercept(f, g, h)` equals to `userrole.Intercept(f(g(h())))`.
-func (c *UserRoleClient) Intercept(interceptors ...Interceptor) {
-	c.inters.UserRole = append(c.inters.UserRole, interceptors...)
-}
-
-// Create returns a builder for creating a UserRole entity.
-func (c *UserRoleClient) Create() *UserRoleCreate {
-	mutation := newUserRoleMutation(c.config, OpCreate)
-	return &UserRoleCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// CreateBulk returns a builder for creating a bulk of UserRole entities.
-func (c *UserRoleClient) CreateBulk(builders ...*UserRoleCreate) *UserRoleCreateBulk {
-	return &UserRoleCreateBulk{config: c.config, builders: builders}
-}
-
-// Update returns an update builder for UserRole.
-func (c *UserRoleClient) Update() *UserRoleUpdate {
-	mutation := newUserRoleMutation(c.config, OpUpdate)
-	return &UserRoleUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// UpdateOne returns an update builder for the given entity.
-func (c *UserRoleClient) UpdateOne(ur *UserRole) *UserRoleUpdateOne {
-	mutation := newUserRoleMutation(c.config, OpUpdateOne, withUserRole(ur))
-	return &UserRoleUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// UpdateOneID returns an update builder for the given id.
-func (c *UserRoleClient) UpdateOneID(id uuid.UUID) *UserRoleUpdateOne {
-	mutation := newUserRoleMutation(c.config, OpUpdateOne, withUserRoleID(id))
-	return &UserRoleUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// Delete returns a delete builder for UserRole.
-func (c *UserRoleClient) Delete() *UserRoleDelete {
-	mutation := newUserRoleMutation(c.config, OpDelete)
-	return &UserRoleDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// DeleteOne returns a builder for deleting the given entity.
-func (c *UserRoleClient) DeleteOne(ur *UserRole) *UserRoleDeleteOne {
-	return c.DeleteOneID(ur.ID)
-}
-
-// DeleteOneID returns a builder for deleting the given entity by its id.
-func (c *UserRoleClient) DeleteOneID(id uuid.UUID) *UserRoleDeleteOne {
-	builder := c.Delete().Where(userrole.ID(id))
-	builder.mutation.id = &id
-	builder.mutation.op = OpDeleteOne
-	return &UserRoleDeleteOne{builder}
-}
-
-// Query returns a query builder for UserRole.
-func (c *UserRoleClient) Query() *UserRoleQuery {
-	return &UserRoleQuery{
-		config: c.config,
-		ctx:    &QueryContext{Type: TypeUserRole},
-		inters: c.Interceptors(),
-	}
-}
-
-// Get returns a UserRole entity by its id.
-func (c *UserRoleClient) Get(ctx context.Context, id uuid.UUID) (*UserRole, error) {
-	return c.Query().Where(userrole.ID(id)).Only(ctx)
-}
-
-// GetX is like Get, but panics if an error occurs.
-func (c *UserRoleClient) GetX(ctx context.Context, id uuid.UUID) *UserRole {
-	obj, err := c.Get(ctx, id)
-	if err != nil {
-		panic(err)
-	}
-	return obj
-}
-
-// QueryUsers queries the users edge of a UserRole.
-func (c *UserRoleClient) QueryUsers(ur *UserRole) *UserQuery {
-	query := (&UserClient{config: c.config}).Query()
-	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
-		id := ur.ID
-		step := sqlgraph.NewStep(
-			sqlgraph.From(userrole.Table, userrole.FieldID, id),
-			sqlgraph.To(user.Table, user.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, userrole.UsersTable, userrole.UsersColumn),
-		)
-		fromV = sqlgraph.Neighbors(ur.driver.Dialect(), step)
-		return fromV, nil
-	}
-	return query
-}
-
-// Hooks returns the client hooks.
-func (c *UserRoleClient) Hooks() []Hook {
-	return c.hooks.UserRole
-}
-
-// Interceptors returns the client interceptors.
-func (c *UserRoleClient) Interceptors() []Interceptor {
-	return c.inters.UserRole
-}
-
-func (c *UserRoleClient) mutate(ctx context.Context, m *UserRoleMutation) (Value, error) {
-	switch m.Op() {
-	case OpCreate:
-		return (&UserRoleCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
-	case OpUpdate:
-		return (&UserRoleUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
-	case OpUpdateOne:
-		return (&UserRoleUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
-	case OpDelete, OpDeleteOne:
-		return (&UserRoleDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
-	default:
-		return nil, fmt.Errorf("ent: unknown UserRole mutation op: %q", m.Op())
 	}
 }

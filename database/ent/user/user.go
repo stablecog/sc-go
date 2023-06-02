@@ -35,8 +35,6 @@ const (
 	FieldCreatedAt = "created_at"
 	// FieldUpdatedAt holds the string denoting the updated_at field in the database.
 	FieldUpdatedAt = "updated_at"
-	// EdgeUserRoles holds the string denoting the user_roles edge name in mutations.
-	EdgeUserRoles = "user_roles"
 	// EdgeGenerations holds the string denoting the generations edge name in mutations.
 	EdgeGenerations = "generations"
 	// EdgeUpscales holds the string denoting the upscales edge name in mutations.
@@ -45,15 +43,10 @@ const (
 	EdgeCredits = "credits"
 	// EdgeAPITokens holds the string denoting the api_tokens edge name in mutations.
 	EdgeAPITokens = "api_tokens"
+	// EdgeRoles holds the string denoting the roles edge name in mutations.
+	EdgeRoles = "roles"
 	// Table holds the table name of the user in the database.
 	Table = "users"
-	// UserRolesTable is the table that holds the user_roles relation/edge.
-	UserRolesTable = "user_roles"
-	// UserRolesInverseTable is the table name for the UserRole entity.
-	// It exists in this package in order to avoid circular dependency with the "userrole" package.
-	UserRolesInverseTable = "user_roles"
-	// UserRolesColumn is the table column denoting the user_roles relation/edge.
-	UserRolesColumn = "user_id"
 	// GenerationsTable is the table that holds the generations relation/edge.
 	GenerationsTable = "generations"
 	// GenerationsInverseTable is the table name for the Generation entity.
@@ -82,6 +75,11 @@ const (
 	APITokensInverseTable = "api_tokens"
 	// APITokensColumn is the table column denoting the api_tokens relation/edge.
 	APITokensColumn = "user_id"
+	// RolesTable is the table that holds the roles relation/edge. The primary key declared below.
+	RolesTable = "user_role_users"
+	// RolesInverseTable is the table name for the Role entity.
+	// It exists in this package in order to avoid circular dependency with the "role" package.
+	RolesInverseTable = "roles"
 )
 
 // Columns holds all SQL columns for user fields.
@@ -99,6 +97,12 @@ var Columns = []string{
 	FieldCreatedAt,
 	FieldUpdatedAt,
 }
+
+var (
+	// RolesPrimaryKey and RolesColumn2 are the table columns denoting the
+	// primary key for the roles relation (M2M).
+	RolesPrimaryKey = []string{"role_id", "user_id"}
+)
 
 // ValidColumn reports if the column name is valid (part of the table columns).
 func ValidColumn(column string) bool {
