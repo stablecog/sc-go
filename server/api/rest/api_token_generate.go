@@ -105,7 +105,7 @@ func (c *RestAPI) HandleCreateGenerationToken(w http.ResponseWriter, r *http.Req
 	// Parse request body
 	reqBody, _ := io.ReadAll(r.Body)
 	var generateReq requests.CreateGenerationRequest
-	err := json.Unmarshal(reqBody, &generateReq)
+	err = json.Unmarshal(reqBody, &generateReq)
 	if err != nil {
 		responses.ErrUnableToParseJson(w, r)
 		return
