@@ -482,6 +482,132 @@ var (
 		Columns:    UsersColumns,
 		PrimaryKey: []*schema.Column{UsersColumns[0]},
 	}
+	// VoiceoversColumns holds the columns for the "voiceovers" table.
+	VoiceoversColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID},
+		{Name: "country_code", Type: field.TypeString, Nullable: true, Size: 2147483647},
+		{Name: "status", Type: field.TypeEnum, Enums: []string{"queued", "started", "succeeded", "failed"}},
+		{Name: "failure_reason", Type: field.TypeString, Nullable: true, Size: 2147483647},
+		{Name: "stripe_product_id", Type: field.TypeString, Nullable: true, Size: 2147483647},
+		{Name: "started_at", Type: field.TypeTime, Nullable: true},
+		{Name: "completed_at", Type: field.TypeTime, Nullable: true},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "api_token_id", Type: field.TypeUUID, Nullable: true},
+		{Name: "device_info_id", Type: field.TypeUUID},
+		{Name: "user_id", Type: field.TypeUUID},
+		{Name: "model_id", Type: field.TypeUUID},
+		{Name: "speaker_id", Type: field.TypeUUID},
+	}
+	// VoiceoversTable holds the schema information for the "voiceovers" table.
+	VoiceoversTable = &schema.Table{
+		Name:       "voiceovers",
+		Columns:    VoiceoversColumns,
+		PrimaryKey: []*schema.Column{VoiceoversColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "voiceovers_api_tokens_voiceovers",
+				Columns:    []*schema.Column{VoiceoversColumns[9]},
+				RefColumns: []*schema.Column{APITokensColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+			{
+				Symbol:     "voiceovers_device_info_voiceovers",
+				Columns:    []*schema.Column{VoiceoversColumns[10]},
+				RefColumns: []*schema.Column{DeviceInfoColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+			{
+				Symbol:     "voiceovers_users_voiceovers",
+				Columns:    []*schema.Column{VoiceoversColumns[11]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+			{
+				Symbol:     "voiceovers_voiceover_models_voiceovers",
+				Columns:    []*schema.Column{VoiceoversColumns[12]},
+				RefColumns: []*schema.Column{VoiceoverModelsColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+			{
+				Symbol:     "voiceovers_voiceover_speakers_voiceovers",
+				Columns:    []*schema.Column{VoiceoversColumns[13]},
+				RefColumns: []*schema.Column{VoiceoverSpeakersColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+		},
+	}
+	// VoiceoverModelsColumns holds the columns for the "voiceover_models" table.
+	VoiceoverModelsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID},
+		{Name: "name_in_worker", Type: field.TypeString, Size: 2147483647},
+		{Name: "is_active", Type: field.TypeBool, Default: true},
+		{Name: "is_default", Type: field.TypeBool, Default: false},
+		{Name: "is_hidden", Type: field.TypeBool, Default: false},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+	}
+	// VoiceoverModelsTable holds the schema information for the "voiceover_models" table.
+	VoiceoverModelsTable = &schema.Table{
+		Name:       "voiceover_models",
+		Columns:    VoiceoverModelsColumns,
+		PrimaryKey: []*schema.Column{VoiceoverModelsColumns[0]},
+	}
+	// VoiceoverOutputsColumns holds the columns for the "voiceover_outputs" table.
+	VoiceoverOutputsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID},
+		{Name: "audio_path", Type: field.TypeString, Size: 2147483647},
+		{Name: "deleted_at", Type: field.TypeTime, Nullable: true},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "voiceover_id", Type: field.TypeUUID},
+	}
+	// VoiceoverOutputsTable holds the schema information for the "voiceover_outputs" table.
+	VoiceoverOutputsTable = &schema.Table{
+		Name:       "voiceover_outputs",
+		Columns:    VoiceoverOutputsColumns,
+		PrimaryKey: []*schema.Column{VoiceoverOutputsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "voiceover_outputs_voiceovers_voiceover_outputs",
+				Columns:    []*schema.Column{VoiceoverOutputsColumns[5]},
+				RefColumns: []*schema.Column{VoiceoversColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "voiceoveroutput_audio_path",
+				Unique:  false,
+				Columns: []*schema.Column{VoiceoverOutputsColumns[1]},
+			},
+		},
+	}
+	// VoiceoverSpeakersColumns holds the columns for the "voiceover_speakers" table.
+	VoiceoverSpeakersColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID},
+		{Name: "name_in_worker", Type: field.TypeString, Size: 2147483647},
+		{Name: "is_active", Type: field.TypeBool, Default: true},
+		{Name: "is_default", Type: field.TypeBool, Default: false},
+		{Name: "is_hidden", Type: field.TypeBool, Default: false},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "model_id", Type: field.TypeUUID},
+	}
+	// VoiceoverSpeakersTable holds the schema information for the "voiceover_speakers" table.
+	VoiceoverSpeakersTable = &schema.Table{
+		Name:       "voiceover_speakers",
+		Columns:    VoiceoverSpeakersColumns,
+		PrimaryKey: []*schema.Column{VoiceoverSpeakersColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "voiceover_speakers_voiceover_models_voiceover_speakers",
+				Columns:    []*schema.Column{VoiceoverSpeakersColumns[7]},
+				RefColumns: []*schema.Column{VoiceoverModelsColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+		},
+	}
 	// GenerationModelCompatibleSchedulersColumns holds the columns for the "generation_model_compatible_schedulers" table.
 	GenerationModelCompatibleSchedulersColumns = []*schema.Column{
 		{Name: "generation_model_id", Type: field.TypeUUID},
@@ -550,6 +676,10 @@ var (
 		UpscaleModelsTable,
 		UpscaleOutputsTable,
 		UsersTable,
+		VoiceoversTable,
+		VoiceoverModelsTable,
+		VoiceoverOutputsTable,
+		VoiceoverSpeakersTable,
 		GenerationModelCompatibleSchedulersTable,
 		UserRoleUsersTable,
 	}
@@ -620,6 +750,25 @@ func init() {
 	}
 	UsersTable.Annotation = &entsql.Annotation{
 		Table: "users",
+	}
+	VoiceoversTable.ForeignKeys[0].RefTable = APITokensTable
+	VoiceoversTable.ForeignKeys[1].RefTable = DeviceInfoTable
+	VoiceoversTable.ForeignKeys[2].RefTable = UsersTable
+	VoiceoversTable.ForeignKeys[3].RefTable = VoiceoverModelsTable
+	VoiceoversTable.ForeignKeys[4].RefTable = VoiceoverSpeakersTable
+	VoiceoversTable.Annotation = &entsql.Annotation{
+		Table: "voiceovers",
+	}
+	VoiceoverModelsTable.Annotation = &entsql.Annotation{
+		Table: "voiceover_models",
+	}
+	VoiceoverOutputsTable.ForeignKeys[0].RefTable = VoiceoversTable
+	VoiceoverOutputsTable.Annotation = &entsql.Annotation{
+		Table: "voiceover_outputs",
+	}
+	VoiceoverSpeakersTable.ForeignKeys[0].RefTable = VoiceoverModelsTable
+	VoiceoverSpeakersTable.Annotation = &entsql.Annotation{
+		Table: "voiceover_speakers",
 	}
 	GenerationModelCompatibleSchedulersTable.ForeignKeys[0].RefTable = GenerationModelsTable
 	GenerationModelCompatibleSchedulersTable.ForeignKeys[1].RefTable = SchedulersTable

@@ -14,6 +14,7 @@ import (
 	"github.com/stablecog/sc-go/database/ent/deviceinfo"
 	"github.com/stablecog/sc-go/database/ent/generation"
 	"github.com/stablecog/sc-go/database/ent/upscale"
+	"github.com/stablecog/sc-go/database/ent/voiceover"
 )
 
 // DeviceInfoCreate is the builder for creating a DeviceInfo entity.
@@ -135,6 +136,21 @@ func (dic *DeviceInfoCreate) AddUpscales(u ...*Upscale) *DeviceInfoCreate {
 		ids[i] = u[i].ID
 	}
 	return dic.AddUpscaleIDs(ids...)
+}
+
+// AddVoiceoverIDs adds the "voiceovers" edge to the Voiceover entity by IDs.
+func (dic *DeviceInfoCreate) AddVoiceoverIDs(ids ...uuid.UUID) *DeviceInfoCreate {
+	dic.mutation.AddVoiceoverIDs(ids...)
+	return dic
+}
+
+// AddVoiceovers adds the "voiceovers" edges to the Voiceover entity.
+func (dic *DeviceInfoCreate) AddVoiceovers(v ...*Voiceover) *DeviceInfoCreate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return dic.AddVoiceoverIDs(ids...)
 }
 
 // Mutation returns the DeviceInfoMutation object of the builder.
@@ -285,6 +301,25 @@ func (dic *DeviceInfoCreate) createSpec() (*DeviceInfo, *sqlgraph.CreateSpec) {
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeUUID,
 					Column: upscale.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := dic.mutation.VoiceoversIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   deviceinfo.VoiceoversTable,
+			Columns: []string{deviceinfo.VoiceoversColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: voiceover.FieldID,
 				},
 			},
 		}

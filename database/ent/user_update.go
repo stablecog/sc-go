@@ -19,6 +19,7 @@ import (
 	"github.com/stablecog/sc-go/database/ent/role"
 	"github.com/stablecog/sc-go/database/ent/upscale"
 	"github.com/stablecog/sc-go/database/ent/user"
+	"github.com/stablecog/sc-go/database/ent/voiceover"
 )
 
 // UserUpdate is the builder for updating User entities.
@@ -217,6 +218,21 @@ func (uu *UserUpdate) AddUpscales(u ...*Upscale) *UserUpdate {
 	return uu.AddUpscaleIDs(ids...)
 }
 
+// AddVoiceoverIDs adds the "voiceovers" edge to the Voiceover entity by IDs.
+func (uu *UserUpdate) AddVoiceoverIDs(ids ...uuid.UUID) *UserUpdate {
+	uu.mutation.AddVoiceoverIDs(ids...)
+	return uu
+}
+
+// AddVoiceovers adds the "voiceovers" edges to the Voiceover entity.
+func (uu *UserUpdate) AddVoiceovers(v ...*Voiceover) *UserUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return uu.AddVoiceoverIDs(ids...)
+}
+
 // AddCreditIDs adds the "credits" edge to the Credit entity by IDs.
 func (uu *UserUpdate) AddCreditIDs(ids ...uuid.UUID) *UserUpdate {
 	uu.mutation.AddCreditIDs(ids...)
@@ -307,6 +323,27 @@ func (uu *UserUpdate) RemoveUpscales(u ...*Upscale) *UserUpdate {
 		ids[i] = u[i].ID
 	}
 	return uu.RemoveUpscaleIDs(ids...)
+}
+
+// ClearVoiceovers clears all "voiceovers" edges to the Voiceover entity.
+func (uu *UserUpdate) ClearVoiceovers() *UserUpdate {
+	uu.mutation.ClearVoiceovers()
+	return uu
+}
+
+// RemoveVoiceoverIDs removes the "voiceovers" edge to Voiceover entities by IDs.
+func (uu *UserUpdate) RemoveVoiceoverIDs(ids ...uuid.UUID) *UserUpdate {
+	uu.mutation.RemoveVoiceoverIDs(ids...)
+	return uu
+}
+
+// RemoveVoiceovers removes "voiceovers" edges to Voiceover entities.
+func (uu *UserUpdate) RemoveVoiceovers(v ...*Voiceover) *UserUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return uu.RemoveVoiceoverIDs(ids...)
 }
 
 // ClearCredits clears all "credits" edges to the Credit entity.
@@ -580,6 +617,60 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeUUID,
 					Column: upscale.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if uu.mutation.VoiceoversCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.VoiceoversTable,
+			Columns: []string{user.VoiceoversColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: voiceover.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uu.mutation.RemovedVoiceoversIDs(); len(nodes) > 0 && !uu.mutation.VoiceoversCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.VoiceoversTable,
+			Columns: []string{user.VoiceoversColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: voiceover.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uu.mutation.VoiceoversIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.VoiceoversTable,
+			Columns: []string{user.VoiceoversColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: voiceover.FieldID,
 				},
 			},
 		}
@@ -954,6 +1045,21 @@ func (uuo *UserUpdateOne) AddUpscales(u ...*Upscale) *UserUpdateOne {
 	return uuo.AddUpscaleIDs(ids...)
 }
 
+// AddVoiceoverIDs adds the "voiceovers" edge to the Voiceover entity by IDs.
+func (uuo *UserUpdateOne) AddVoiceoverIDs(ids ...uuid.UUID) *UserUpdateOne {
+	uuo.mutation.AddVoiceoverIDs(ids...)
+	return uuo
+}
+
+// AddVoiceovers adds the "voiceovers" edges to the Voiceover entity.
+func (uuo *UserUpdateOne) AddVoiceovers(v ...*Voiceover) *UserUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return uuo.AddVoiceoverIDs(ids...)
+}
+
 // AddCreditIDs adds the "credits" edge to the Credit entity by IDs.
 func (uuo *UserUpdateOne) AddCreditIDs(ids ...uuid.UUID) *UserUpdateOne {
 	uuo.mutation.AddCreditIDs(ids...)
@@ -1044,6 +1150,27 @@ func (uuo *UserUpdateOne) RemoveUpscales(u ...*Upscale) *UserUpdateOne {
 		ids[i] = u[i].ID
 	}
 	return uuo.RemoveUpscaleIDs(ids...)
+}
+
+// ClearVoiceovers clears all "voiceovers" edges to the Voiceover entity.
+func (uuo *UserUpdateOne) ClearVoiceovers() *UserUpdateOne {
+	uuo.mutation.ClearVoiceovers()
+	return uuo
+}
+
+// RemoveVoiceoverIDs removes the "voiceovers" edge to Voiceover entities by IDs.
+func (uuo *UserUpdateOne) RemoveVoiceoverIDs(ids ...uuid.UUID) *UserUpdateOne {
+	uuo.mutation.RemoveVoiceoverIDs(ids...)
+	return uuo
+}
+
+// RemoveVoiceovers removes "voiceovers" edges to Voiceover entities.
+func (uuo *UserUpdateOne) RemoveVoiceovers(v ...*Voiceover) *UserUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return uuo.RemoveVoiceoverIDs(ids...)
 }
 
 // ClearCredits clears all "credits" edges to the Credit entity.
@@ -1341,6 +1468,60 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeUUID,
 					Column: upscale.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if uuo.mutation.VoiceoversCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.VoiceoversTable,
+			Columns: []string{user.VoiceoversColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: voiceover.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uuo.mutation.RemovedVoiceoversIDs(); len(nodes) > 0 && !uuo.mutation.VoiceoversCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.VoiceoversTable,
+			Columns: []string{user.VoiceoversColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: voiceover.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uuo.mutation.VoiceoversIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.VoiceoversTable,
+			Columns: []string{user.VoiceoversColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: voiceover.FieldID,
 				},
 			},
 		}

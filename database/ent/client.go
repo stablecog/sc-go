@@ -27,6 +27,10 @@ import (
 	"github.com/stablecog/sc-go/database/ent/upscalemodel"
 	"github.com/stablecog/sc-go/database/ent/upscaleoutput"
 	"github.com/stablecog/sc-go/database/ent/user"
+	"github.com/stablecog/sc-go/database/ent/voiceover"
+	"github.com/stablecog/sc-go/database/ent/voiceovermodel"
+	"github.com/stablecog/sc-go/database/ent/voiceoveroutput"
+	"github.com/stablecog/sc-go/database/ent/voiceoverspeaker"
 
 	"entgo.io/ent/dialect"
 	"entgo.io/ent/dialect/sql"
@@ -70,6 +74,14 @@ type Client struct {
 	UpscaleOutput *UpscaleOutputClient
 	// User is the client for interacting with the User builders.
 	User *UserClient
+	// Voiceover is the client for interacting with the Voiceover builders.
+	Voiceover *VoiceoverClient
+	// VoiceoverModel is the client for interacting with the VoiceoverModel builders.
+	VoiceoverModel *VoiceoverModelClient
+	// VoiceoverOutput is the client for interacting with the VoiceoverOutput builders.
+	VoiceoverOutput *VoiceoverOutputClient
+	// VoiceoverSpeaker is the client for interacting with the VoiceoverSpeaker builders.
+	VoiceoverSpeaker *VoiceoverSpeakerClient
 }
 
 // NewClient creates a new client configured with the given options.
@@ -99,6 +111,10 @@ func (c *Client) init() {
 	c.UpscaleModel = NewUpscaleModelClient(c.config)
 	c.UpscaleOutput = NewUpscaleOutputClient(c.config)
 	c.User = NewUserClient(c.config)
+	c.Voiceover = NewVoiceoverClient(c.config)
+	c.VoiceoverModel = NewVoiceoverModelClient(c.config)
+	c.VoiceoverOutput = NewVoiceoverOutputClient(c.config)
+	c.VoiceoverSpeaker = NewVoiceoverSpeakerClient(c.config)
 }
 
 // Open opens a database/sql.DB specified by the driver name and
@@ -148,6 +164,10 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		UpscaleModel:     NewUpscaleModelClient(cfg),
 		UpscaleOutput:    NewUpscaleOutputClient(cfg),
 		User:             NewUserClient(cfg),
+		Voiceover:        NewVoiceoverClient(cfg),
+		VoiceoverModel:   NewVoiceoverModelClient(cfg),
+		VoiceoverOutput:  NewVoiceoverOutputClient(cfg),
+		VoiceoverSpeaker: NewVoiceoverSpeakerClient(cfg),
 	}, nil
 }
 
@@ -183,6 +203,10 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		UpscaleModel:     NewUpscaleModelClient(cfg),
 		UpscaleOutput:    NewUpscaleOutputClient(cfg),
 		User:             NewUserClient(cfg),
+		Voiceover:        NewVoiceoverClient(cfg),
+		VoiceoverModel:   NewVoiceoverModelClient(cfg),
+		VoiceoverOutput:  NewVoiceoverOutputClient(cfg),
+		VoiceoverSpeaker: NewVoiceoverSpeakerClient(cfg),
 	}, nil
 }
 
@@ -227,6 +251,10 @@ func (c *Client) Use(hooks ...Hook) {
 	c.UpscaleModel.Use(hooks...)
 	c.UpscaleOutput.Use(hooks...)
 	c.User.Use(hooks...)
+	c.Voiceover.Use(hooks...)
+	c.VoiceoverModel.Use(hooks...)
+	c.VoiceoverOutput.Use(hooks...)
+	c.VoiceoverSpeaker.Use(hooks...)
 }
 
 // Intercept adds the query interceptors to all the entity clients.
@@ -248,6 +276,10 @@ func (c *Client) Intercept(interceptors ...Interceptor) {
 	c.UpscaleModel.Intercept(interceptors...)
 	c.UpscaleOutput.Intercept(interceptors...)
 	c.User.Intercept(interceptors...)
+	c.Voiceover.Intercept(interceptors...)
+	c.VoiceoverModel.Intercept(interceptors...)
+	c.VoiceoverOutput.Intercept(interceptors...)
+	c.VoiceoverSpeaker.Intercept(interceptors...)
 }
 
 // Mutate implements the ent.Mutator interface.
@@ -285,6 +317,14 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.UpscaleOutput.mutate(ctx, m)
 	case *UserMutation:
 		return c.User.mutate(ctx, m)
+	case *VoiceoverMutation:
+		return c.Voiceover.mutate(ctx, m)
+	case *VoiceoverModelMutation:
+		return c.VoiceoverModel.mutate(ctx, m)
+	case *VoiceoverOutputMutation:
+		return c.VoiceoverOutput.mutate(ctx, m)
+	case *VoiceoverSpeakerMutation:
+		return c.VoiceoverSpeaker.mutate(ctx, m)
 	default:
 		return nil, fmt.Errorf("ent: unknown mutation type %T", m)
 	}
@@ -424,6 +464,22 @@ func (c *ApiTokenClient) QueryUpscales(at *ApiToken) *UpscaleQuery {
 			sqlgraph.From(apitoken.Table, apitoken.FieldID, id),
 			sqlgraph.To(upscale.Table, upscale.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, apitoken.UpscalesTable, apitoken.UpscalesColumn),
+		)
+		fromV = sqlgraph.Neighbors(at.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryVoiceovers queries the voiceovers edge of a ApiToken.
+func (c *ApiTokenClient) QueryVoiceovers(at *ApiToken) *VoiceoverQuery {
+	query := (&VoiceoverClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := at.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(apitoken.Table, apitoken.FieldID, id),
+			sqlgraph.To(voiceover.Table, voiceover.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, apitoken.VoiceoversTable, apitoken.VoiceoversColumn),
 		)
 		fromV = sqlgraph.Neighbors(at.driver.Dialect(), step)
 		return fromV, nil
@@ -858,6 +914,22 @@ func (c *DeviceInfoClient) QueryUpscales(di *DeviceInfo) *UpscaleQuery {
 			sqlgraph.From(deviceinfo.Table, deviceinfo.FieldID, id),
 			sqlgraph.To(upscale.Table, upscale.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, deviceinfo.UpscalesTable, deviceinfo.UpscalesColumn),
+		)
+		fromV = sqlgraph.Neighbors(di.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryVoiceovers queries the voiceovers edge of a DeviceInfo.
+func (c *DeviceInfoClient) QueryVoiceovers(di *DeviceInfo) *VoiceoverQuery {
+	query := (&VoiceoverClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := di.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(deviceinfo.Table, deviceinfo.FieldID, id),
+			sqlgraph.To(voiceover.Table, voiceover.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, deviceinfo.VoiceoversTable, deviceinfo.VoiceoversColumn),
 		)
 		fromV = sqlgraph.Neighbors(di.driver.Dialect(), step)
 		return fromV, nil
@@ -2713,6 +2785,22 @@ func (c *UserClient) QueryUpscales(u *User) *UpscaleQuery {
 	return query
 }
 
+// QueryVoiceovers queries the voiceovers edge of a User.
+func (c *UserClient) QueryVoiceovers(u *User) *VoiceoverQuery {
+	query := (&VoiceoverClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := u.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, id),
+			sqlgraph.To(voiceover.Table, voiceover.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.VoiceoversTable, user.VoiceoversColumn),
+		)
+		fromV = sqlgraph.Neighbors(u.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // QueryCredits queries the credits edge of a User.
 func (c *UserClient) QueryCredits(u *User) *CreditQuery {
 	query := (&CreditClient{config: c.config}).Query()
@@ -2783,5 +2871,653 @@ func (c *UserClient) mutate(ctx context.Context, m *UserMutation) (Value, error)
 		return (&UserDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("ent: unknown User mutation op: %q", m.Op())
+	}
+}
+
+// VoiceoverClient is a client for the Voiceover schema.
+type VoiceoverClient struct {
+	config
+}
+
+// NewVoiceoverClient returns a client for the Voiceover from the given config.
+func NewVoiceoverClient(c config) *VoiceoverClient {
+	return &VoiceoverClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `voiceover.Hooks(f(g(h())))`.
+func (c *VoiceoverClient) Use(hooks ...Hook) {
+	c.hooks.Voiceover = append(c.hooks.Voiceover, hooks...)
+}
+
+// Use adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `voiceover.Intercept(f(g(h())))`.
+func (c *VoiceoverClient) Intercept(interceptors ...Interceptor) {
+	c.inters.Voiceover = append(c.inters.Voiceover, interceptors...)
+}
+
+// Create returns a builder for creating a Voiceover entity.
+func (c *VoiceoverClient) Create() *VoiceoverCreate {
+	mutation := newVoiceoverMutation(c.config, OpCreate)
+	return &VoiceoverCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of Voiceover entities.
+func (c *VoiceoverClient) CreateBulk(builders ...*VoiceoverCreate) *VoiceoverCreateBulk {
+	return &VoiceoverCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for Voiceover.
+func (c *VoiceoverClient) Update() *VoiceoverUpdate {
+	mutation := newVoiceoverMutation(c.config, OpUpdate)
+	return &VoiceoverUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *VoiceoverClient) UpdateOne(v *Voiceover) *VoiceoverUpdateOne {
+	mutation := newVoiceoverMutation(c.config, OpUpdateOne, withVoiceover(v))
+	return &VoiceoverUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *VoiceoverClient) UpdateOneID(id uuid.UUID) *VoiceoverUpdateOne {
+	mutation := newVoiceoverMutation(c.config, OpUpdateOne, withVoiceoverID(id))
+	return &VoiceoverUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for Voiceover.
+func (c *VoiceoverClient) Delete() *VoiceoverDelete {
+	mutation := newVoiceoverMutation(c.config, OpDelete)
+	return &VoiceoverDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *VoiceoverClient) DeleteOne(v *Voiceover) *VoiceoverDeleteOne {
+	return c.DeleteOneID(v.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *VoiceoverClient) DeleteOneID(id uuid.UUID) *VoiceoverDeleteOne {
+	builder := c.Delete().Where(voiceover.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &VoiceoverDeleteOne{builder}
+}
+
+// Query returns a query builder for Voiceover.
+func (c *VoiceoverClient) Query() *VoiceoverQuery {
+	return &VoiceoverQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeVoiceover},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a Voiceover entity by its id.
+func (c *VoiceoverClient) Get(ctx context.Context, id uuid.UUID) (*Voiceover, error) {
+	return c.Query().Where(voiceover.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *VoiceoverClient) GetX(ctx context.Context, id uuid.UUID) *Voiceover {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryUser queries the user edge of a Voiceover.
+func (c *VoiceoverClient) QueryUser(v *Voiceover) *UserQuery {
+	query := (&UserClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := v.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(voiceover.Table, voiceover.FieldID, id),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, voiceover.UserTable, voiceover.UserColumn),
+		)
+		fromV = sqlgraph.Neighbors(v.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryDeviceInfo queries the device_info edge of a Voiceover.
+func (c *VoiceoverClient) QueryDeviceInfo(v *Voiceover) *DeviceInfoQuery {
+	query := (&DeviceInfoClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := v.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(voiceover.Table, voiceover.FieldID, id),
+			sqlgraph.To(deviceinfo.Table, deviceinfo.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, voiceover.DeviceInfoTable, voiceover.DeviceInfoColumn),
+		)
+		fromV = sqlgraph.Neighbors(v.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryVoiceoverModels queries the voiceover_models edge of a Voiceover.
+func (c *VoiceoverClient) QueryVoiceoverModels(v *Voiceover) *VoiceoverModelQuery {
+	query := (&VoiceoverModelClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := v.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(voiceover.Table, voiceover.FieldID, id),
+			sqlgraph.To(voiceovermodel.Table, voiceovermodel.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, voiceover.VoiceoverModelsTable, voiceover.VoiceoverModelsColumn),
+		)
+		fromV = sqlgraph.Neighbors(v.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryVoiceoverSpeakers queries the voiceover_speakers edge of a Voiceover.
+func (c *VoiceoverClient) QueryVoiceoverSpeakers(v *Voiceover) *VoiceoverSpeakerQuery {
+	query := (&VoiceoverSpeakerClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := v.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(voiceover.Table, voiceover.FieldID, id),
+			sqlgraph.To(voiceoverspeaker.Table, voiceoverspeaker.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, voiceover.VoiceoverSpeakersTable, voiceover.VoiceoverSpeakersColumn),
+		)
+		fromV = sqlgraph.Neighbors(v.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryAPITokens queries the api_tokens edge of a Voiceover.
+func (c *VoiceoverClient) QueryAPITokens(v *Voiceover) *ApiTokenQuery {
+	query := (&ApiTokenClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := v.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(voiceover.Table, voiceover.FieldID, id),
+			sqlgraph.To(apitoken.Table, apitoken.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, voiceover.APITokensTable, voiceover.APITokensColumn),
+		)
+		fromV = sqlgraph.Neighbors(v.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryVoiceoverOutputs queries the voiceover_outputs edge of a Voiceover.
+func (c *VoiceoverClient) QueryVoiceoverOutputs(v *Voiceover) *VoiceoverOutputQuery {
+	query := (&VoiceoverOutputClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := v.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(voiceover.Table, voiceover.FieldID, id),
+			sqlgraph.To(voiceoveroutput.Table, voiceoveroutput.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, voiceover.VoiceoverOutputsTable, voiceover.VoiceoverOutputsColumn),
+		)
+		fromV = sqlgraph.Neighbors(v.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *VoiceoverClient) Hooks() []Hook {
+	return c.hooks.Voiceover
+}
+
+// Interceptors returns the client interceptors.
+func (c *VoiceoverClient) Interceptors() []Interceptor {
+	return c.inters.Voiceover
+}
+
+func (c *VoiceoverClient) mutate(ctx context.Context, m *VoiceoverMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&VoiceoverCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&VoiceoverUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&VoiceoverUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&VoiceoverDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown Voiceover mutation op: %q", m.Op())
+	}
+}
+
+// VoiceoverModelClient is a client for the VoiceoverModel schema.
+type VoiceoverModelClient struct {
+	config
+}
+
+// NewVoiceoverModelClient returns a client for the VoiceoverModel from the given config.
+func NewVoiceoverModelClient(c config) *VoiceoverModelClient {
+	return &VoiceoverModelClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `voiceovermodel.Hooks(f(g(h())))`.
+func (c *VoiceoverModelClient) Use(hooks ...Hook) {
+	c.hooks.VoiceoverModel = append(c.hooks.VoiceoverModel, hooks...)
+}
+
+// Use adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `voiceovermodel.Intercept(f(g(h())))`.
+func (c *VoiceoverModelClient) Intercept(interceptors ...Interceptor) {
+	c.inters.VoiceoverModel = append(c.inters.VoiceoverModel, interceptors...)
+}
+
+// Create returns a builder for creating a VoiceoverModel entity.
+func (c *VoiceoverModelClient) Create() *VoiceoverModelCreate {
+	mutation := newVoiceoverModelMutation(c.config, OpCreate)
+	return &VoiceoverModelCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of VoiceoverModel entities.
+func (c *VoiceoverModelClient) CreateBulk(builders ...*VoiceoverModelCreate) *VoiceoverModelCreateBulk {
+	return &VoiceoverModelCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for VoiceoverModel.
+func (c *VoiceoverModelClient) Update() *VoiceoverModelUpdate {
+	mutation := newVoiceoverModelMutation(c.config, OpUpdate)
+	return &VoiceoverModelUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *VoiceoverModelClient) UpdateOne(vm *VoiceoverModel) *VoiceoverModelUpdateOne {
+	mutation := newVoiceoverModelMutation(c.config, OpUpdateOne, withVoiceoverModel(vm))
+	return &VoiceoverModelUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *VoiceoverModelClient) UpdateOneID(id uuid.UUID) *VoiceoverModelUpdateOne {
+	mutation := newVoiceoverModelMutation(c.config, OpUpdateOne, withVoiceoverModelID(id))
+	return &VoiceoverModelUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for VoiceoverModel.
+func (c *VoiceoverModelClient) Delete() *VoiceoverModelDelete {
+	mutation := newVoiceoverModelMutation(c.config, OpDelete)
+	return &VoiceoverModelDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *VoiceoverModelClient) DeleteOne(vm *VoiceoverModel) *VoiceoverModelDeleteOne {
+	return c.DeleteOneID(vm.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *VoiceoverModelClient) DeleteOneID(id uuid.UUID) *VoiceoverModelDeleteOne {
+	builder := c.Delete().Where(voiceovermodel.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &VoiceoverModelDeleteOne{builder}
+}
+
+// Query returns a query builder for VoiceoverModel.
+func (c *VoiceoverModelClient) Query() *VoiceoverModelQuery {
+	return &VoiceoverModelQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeVoiceoverModel},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a VoiceoverModel entity by its id.
+func (c *VoiceoverModelClient) Get(ctx context.Context, id uuid.UUID) (*VoiceoverModel, error) {
+	return c.Query().Where(voiceovermodel.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *VoiceoverModelClient) GetX(ctx context.Context, id uuid.UUID) *VoiceoverModel {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryVoiceovers queries the voiceovers edge of a VoiceoverModel.
+func (c *VoiceoverModelClient) QueryVoiceovers(vm *VoiceoverModel) *VoiceoverQuery {
+	query := (&VoiceoverClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := vm.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(voiceovermodel.Table, voiceovermodel.FieldID, id),
+			sqlgraph.To(voiceover.Table, voiceover.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, voiceovermodel.VoiceoversTable, voiceovermodel.VoiceoversColumn),
+		)
+		fromV = sqlgraph.Neighbors(vm.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryVoiceoverSpeakers queries the voiceover_speakers edge of a VoiceoverModel.
+func (c *VoiceoverModelClient) QueryVoiceoverSpeakers(vm *VoiceoverModel) *VoiceoverSpeakerQuery {
+	query := (&VoiceoverSpeakerClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := vm.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(voiceovermodel.Table, voiceovermodel.FieldID, id),
+			sqlgraph.To(voiceoverspeaker.Table, voiceoverspeaker.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, voiceovermodel.VoiceoverSpeakersTable, voiceovermodel.VoiceoverSpeakersColumn),
+		)
+		fromV = sqlgraph.Neighbors(vm.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *VoiceoverModelClient) Hooks() []Hook {
+	return c.hooks.VoiceoverModel
+}
+
+// Interceptors returns the client interceptors.
+func (c *VoiceoverModelClient) Interceptors() []Interceptor {
+	return c.inters.VoiceoverModel
+}
+
+func (c *VoiceoverModelClient) mutate(ctx context.Context, m *VoiceoverModelMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&VoiceoverModelCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&VoiceoverModelUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&VoiceoverModelUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&VoiceoverModelDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown VoiceoverModel mutation op: %q", m.Op())
+	}
+}
+
+// VoiceoverOutputClient is a client for the VoiceoverOutput schema.
+type VoiceoverOutputClient struct {
+	config
+}
+
+// NewVoiceoverOutputClient returns a client for the VoiceoverOutput from the given config.
+func NewVoiceoverOutputClient(c config) *VoiceoverOutputClient {
+	return &VoiceoverOutputClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `voiceoveroutput.Hooks(f(g(h())))`.
+func (c *VoiceoverOutputClient) Use(hooks ...Hook) {
+	c.hooks.VoiceoverOutput = append(c.hooks.VoiceoverOutput, hooks...)
+}
+
+// Use adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `voiceoveroutput.Intercept(f(g(h())))`.
+func (c *VoiceoverOutputClient) Intercept(interceptors ...Interceptor) {
+	c.inters.VoiceoverOutput = append(c.inters.VoiceoverOutput, interceptors...)
+}
+
+// Create returns a builder for creating a VoiceoverOutput entity.
+func (c *VoiceoverOutputClient) Create() *VoiceoverOutputCreate {
+	mutation := newVoiceoverOutputMutation(c.config, OpCreate)
+	return &VoiceoverOutputCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of VoiceoverOutput entities.
+func (c *VoiceoverOutputClient) CreateBulk(builders ...*VoiceoverOutputCreate) *VoiceoverOutputCreateBulk {
+	return &VoiceoverOutputCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for VoiceoverOutput.
+func (c *VoiceoverOutputClient) Update() *VoiceoverOutputUpdate {
+	mutation := newVoiceoverOutputMutation(c.config, OpUpdate)
+	return &VoiceoverOutputUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *VoiceoverOutputClient) UpdateOne(vo *VoiceoverOutput) *VoiceoverOutputUpdateOne {
+	mutation := newVoiceoverOutputMutation(c.config, OpUpdateOne, withVoiceoverOutput(vo))
+	return &VoiceoverOutputUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *VoiceoverOutputClient) UpdateOneID(id uuid.UUID) *VoiceoverOutputUpdateOne {
+	mutation := newVoiceoverOutputMutation(c.config, OpUpdateOne, withVoiceoverOutputID(id))
+	return &VoiceoverOutputUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for VoiceoverOutput.
+func (c *VoiceoverOutputClient) Delete() *VoiceoverOutputDelete {
+	mutation := newVoiceoverOutputMutation(c.config, OpDelete)
+	return &VoiceoverOutputDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *VoiceoverOutputClient) DeleteOne(vo *VoiceoverOutput) *VoiceoverOutputDeleteOne {
+	return c.DeleteOneID(vo.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *VoiceoverOutputClient) DeleteOneID(id uuid.UUID) *VoiceoverOutputDeleteOne {
+	builder := c.Delete().Where(voiceoveroutput.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &VoiceoverOutputDeleteOne{builder}
+}
+
+// Query returns a query builder for VoiceoverOutput.
+func (c *VoiceoverOutputClient) Query() *VoiceoverOutputQuery {
+	return &VoiceoverOutputQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeVoiceoverOutput},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a VoiceoverOutput entity by its id.
+func (c *VoiceoverOutputClient) Get(ctx context.Context, id uuid.UUID) (*VoiceoverOutput, error) {
+	return c.Query().Where(voiceoveroutput.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *VoiceoverOutputClient) GetX(ctx context.Context, id uuid.UUID) *VoiceoverOutput {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryVoiceovers queries the voiceovers edge of a VoiceoverOutput.
+func (c *VoiceoverOutputClient) QueryVoiceovers(vo *VoiceoverOutput) *VoiceoverQuery {
+	query := (&VoiceoverClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := vo.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(voiceoveroutput.Table, voiceoveroutput.FieldID, id),
+			sqlgraph.To(voiceover.Table, voiceover.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, voiceoveroutput.VoiceoversTable, voiceoveroutput.VoiceoversColumn),
+		)
+		fromV = sqlgraph.Neighbors(vo.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *VoiceoverOutputClient) Hooks() []Hook {
+	return c.hooks.VoiceoverOutput
+}
+
+// Interceptors returns the client interceptors.
+func (c *VoiceoverOutputClient) Interceptors() []Interceptor {
+	return c.inters.VoiceoverOutput
+}
+
+func (c *VoiceoverOutputClient) mutate(ctx context.Context, m *VoiceoverOutputMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&VoiceoverOutputCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&VoiceoverOutputUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&VoiceoverOutputUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&VoiceoverOutputDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown VoiceoverOutput mutation op: %q", m.Op())
+	}
+}
+
+// VoiceoverSpeakerClient is a client for the VoiceoverSpeaker schema.
+type VoiceoverSpeakerClient struct {
+	config
+}
+
+// NewVoiceoverSpeakerClient returns a client for the VoiceoverSpeaker from the given config.
+func NewVoiceoverSpeakerClient(c config) *VoiceoverSpeakerClient {
+	return &VoiceoverSpeakerClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `voiceoverspeaker.Hooks(f(g(h())))`.
+func (c *VoiceoverSpeakerClient) Use(hooks ...Hook) {
+	c.hooks.VoiceoverSpeaker = append(c.hooks.VoiceoverSpeaker, hooks...)
+}
+
+// Use adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `voiceoverspeaker.Intercept(f(g(h())))`.
+func (c *VoiceoverSpeakerClient) Intercept(interceptors ...Interceptor) {
+	c.inters.VoiceoverSpeaker = append(c.inters.VoiceoverSpeaker, interceptors...)
+}
+
+// Create returns a builder for creating a VoiceoverSpeaker entity.
+func (c *VoiceoverSpeakerClient) Create() *VoiceoverSpeakerCreate {
+	mutation := newVoiceoverSpeakerMutation(c.config, OpCreate)
+	return &VoiceoverSpeakerCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of VoiceoverSpeaker entities.
+func (c *VoiceoverSpeakerClient) CreateBulk(builders ...*VoiceoverSpeakerCreate) *VoiceoverSpeakerCreateBulk {
+	return &VoiceoverSpeakerCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for VoiceoverSpeaker.
+func (c *VoiceoverSpeakerClient) Update() *VoiceoverSpeakerUpdate {
+	mutation := newVoiceoverSpeakerMutation(c.config, OpUpdate)
+	return &VoiceoverSpeakerUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *VoiceoverSpeakerClient) UpdateOne(vs *VoiceoverSpeaker) *VoiceoverSpeakerUpdateOne {
+	mutation := newVoiceoverSpeakerMutation(c.config, OpUpdateOne, withVoiceoverSpeaker(vs))
+	return &VoiceoverSpeakerUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *VoiceoverSpeakerClient) UpdateOneID(id uuid.UUID) *VoiceoverSpeakerUpdateOne {
+	mutation := newVoiceoverSpeakerMutation(c.config, OpUpdateOne, withVoiceoverSpeakerID(id))
+	return &VoiceoverSpeakerUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for VoiceoverSpeaker.
+func (c *VoiceoverSpeakerClient) Delete() *VoiceoverSpeakerDelete {
+	mutation := newVoiceoverSpeakerMutation(c.config, OpDelete)
+	return &VoiceoverSpeakerDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *VoiceoverSpeakerClient) DeleteOne(vs *VoiceoverSpeaker) *VoiceoverSpeakerDeleteOne {
+	return c.DeleteOneID(vs.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *VoiceoverSpeakerClient) DeleteOneID(id uuid.UUID) *VoiceoverSpeakerDeleteOne {
+	builder := c.Delete().Where(voiceoverspeaker.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &VoiceoverSpeakerDeleteOne{builder}
+}
+
+// Query returns a query builder for VoiceoverSpeaker.
+func (c *VoiceoverSpeakerClient) Query() *VoiceoverSpeakerQuery {
+	return &VoiceoverSpeakerQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeVoiceoverSpeaker},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a VoiceoverSpeaker entity by its id.
+func (c *VoiceoverSpeakerClient) Get(ctx context.Context, id uuid.UUID) (*VoiceoverSpeaker, error) {
+	return c.Query().Where(voiceoverspeaker.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *VoiceoverSpeakerClient) GetX(ctx context.Context, id uuid.UUID) *VoiceoverSpeaker {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryVoiceovers queries the voiceovers edge of a VoiceoverSpeaker.
+func (c *VoiceoverSpeakerClient) QueryVoiceovers(vs *VoiceoverSpeaker) *VoiceoverQuery {
+	query := (&VoiceoverClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := vs.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(voiceoverspeaker.Table, voiceoverspeaker.FieldID, id),
+			sqlgraph.To(voiceover.Table, voiceover.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, voiceoverspeaker.VoiceoversTable, voiceoverspeaker.VoiceoversColumn),
+		)
+		fromV = sqlgraph.Neighbors(vs.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryVoiceoverModels queries the voiceover_models edge of a VoiceoverSpeaker.
+func (c *VoiceoverSpeakerClient) QueryVoiceoverModels(vs *VoiceoverSpeaker) *VoiceoverModelQuery {
+	query := (&VoiceoverModelClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := vs.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(voiceoverspeaker.Table, voiceoverspeaker.FieldID, id),
+			sqlgraph.To(voiceovermodel.Table, voiceovermodel.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, voiceoverspeaker.VoiceoverModelsTable, voiceoverspeaker.VoiceoverModelsColumn),
+		)
+		fromV = sqlgraph.Neighbors(vs.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *VoiceoverSpeakerClient) Hooks() []Hook {
+	return c.hooks.VoiceoverSpeaker
+}
+
+// Interceptors returns the client interceptors.
+func (c *VoiceoverSpeakerClient) Interceptors() []Interceptor {
+	return c.inters.VoiceoverSpeaker
+}
+
+func (c *VoiceoverSpeakerClient) mutate(ctx context.Context, m *VoiceoverSpeakerMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&VoiceoverSpeakerCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&VoiceoverSpeakerUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&VoiceoverSpeakerUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&VoiceoverSpeakerDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown VoiceoverSpeaker mutation op: %q", m.Op())
 	}
 }

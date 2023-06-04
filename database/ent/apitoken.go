@@ -51,9 +51,11 @@ type ApiTokenEdges struct {
 	Generations []*Generation `json:"generations,omitempty"`
 	// Upscales holds the value of the upscales edge.
 	Upscales []*Upscale `json:"upscales,omitempty"`
+	// Voiceovers holds the value of the voiceovers edge.
+	Voiceovers []*Voiceover `json:"voiceovers,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [3]bool
+	loadedTypes [4]bool
 }
 
 // UserOrErr returns the User value or an error if the edge
@@ -85,6 +87,15 @@ func (e ApiTokenEdges) UpscalesOrErr() ([]*Upscale, error) {
 		return e.Upscales, nil
 	}
 	return nil, &NotLoadedError{edge: "upscales"}
+}
+
+// VoiceoversOrErr returns the Voiceovers value or an error if the edge
+// was not loaded in eager-loading.
+func (e ApiTokenEdges) VoiceoversOrErr() ([]*Voiceover, error) {
+	if e.loadedTypes[3] {
+		return e.Voiceovers, nil
+	}
+	return nil, &NotLoadedError{edge: "voiceovers"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -202,6 +213,11 @@ func (at *ApiToken) QueryGenerations() *GenerationQuery {
 // QueryUpscales queries the "upscales" edge of the ApiToken entity.
 func (at *ApiToken) QueryUpscales() *UpscaleQuery {
 	return NewApiTokenClient(at.config).QueryUpscales(at)
+}
+
+// QueryVoiceovers queries the "voiceovers" edge of the ApiToken entity.
+func (at *ApiToken) QueryVoiceovers() *VoiceoverQuery {
+	return NewApiTokenClient(at.config).QueryVoiceovers(at)
 }
 
 // Update returns a builder for updating this ApiToken.

@@ -950,3 +950,102 @@ ALTER TABLE public.roles ENABLE ROW LEVEL SECURITY;
 --
 
 ALTER TABLE public.user_role_users ENABLE ROW LEVEL SECURITY;
+
+-- Create "voiceover_models" table
+CREATE TABLE "public"."voiceover_models"
+  (
+     "id"             UUID DEFAULT extensions.uuid_generate_v4() NOT NULL,
+     "name_in_worker" TEXT NOT NULL,
+     "is_active"      BOOLEAN NOT NULL DEFAULT TRUE,
+     "is_default"     BOOLEAN NOT NULL DEFAULT FALSE,
+     "is_hidden"      BOOLEAN NOT NULL DEFAULT FALSE,
+    created_at timestamp with time zone DEFAULT (now() AT TIME ZONE 'utc'::text) NOT NULL,
+    updated_at timestamp with time zone DEFAULT (now() AT TIME ZONE 'utc'::text) NOT NULL
+     PRIMARY KEY ("id")
+  );
+
+CREATE trigger handle_updated_at before
+UPDATE
+    ON public.voiceover_models FOR each ROW EXECUTE PROCEDURE moddatetime (updated_at);
+
+-- Create "voiceover_speakers" table
+CREATE TABLE "public"."voiceover_speakers"
+  (
+     "id"             UUID DEFAULT extensions.uuid_generate_v4() NOT NULL,
+     "name_in_worker" TEXT NOT NULL,
+     "is_active"      BOOLEAN NOT NULL DEFAULT TRUE,
+     "is_default"     BOOLEAN NOT NULL DEFAULT FALSE,
+     "is_hidden"      BOOLEAN NOT NULL DEFAULT FALSE,
+    created_at timestamp with time zone DEFAULT (now() AT TIME ZONE 'utc'::text) NOT NULL,
+    updated_at timestamp with time zone DEFAULT (now() AT TIME ZONE 'utc'::text) NOT NULL
+     "model_id"       UUID NOT NULL,
+     PRIMARY KEY ("id"),
+     CONSTRAINT "voiceover_speakers_voiceover_models_voiceover_speakers" FOREIGN
+     KEY ("model_id") REFERENCES "public"."voiceover_models" ("id") ON UPDATE no
+     action ON DELETE CASCADE
+  );
+
+CREATE trigger handle_updated_at before
+UPDATE
+    ON public.voiceover_speakers FOR each ROW EXECUTE PROCEDURE moddatetime (updated_at);
+
+-- Create "voiceovers" table
+CREATE TABLE "public"."voiceovers"
+  (
+     "id"                UUID DEFAULT extensions.uuid_generate_v4() NOT NULL,
+     "country_code"      TEXT NULL,
+     "status"            CHARACTER varying NOT NULL,
+     "failure_reason"    TEXT NULL,
+     "stripe_product_id" TEXT NULL,
+     "started_at"        TIMESTAMPTZ NULL,
+     "completed_at"      TIMESTAMPTZ NULL,
+    created_at timestamp with time zone DEFAULT (now() AT TIME ZONE 'utc'::text) NOT NULL,
+    updated_at timestamp with time zone DEFAULT (now() AT TIME ZONE 'utc'::text) NOT NULL
+     "api_token_id"      UUID NULL,
+     "device_info_id"    UUID NOT NULL,
+     "user_id"           UUID NOT NULL,
+     "model_id"          UUID NOT NULL,
+     "speaker_id"        UUID NOT NULL,
+     PRIMARY KEY ("id"),
+     CONSTRAINT "voiceovers_api_tokens_voiceovers" FOREIGN KEY ("api_token_id")
+     REFERENCES "public"."api_tokens" ("id") ON UPDATE no action ON DELETE
+     CASCADE,
+     CONSTRAINT "voiceovers_device_info_voiceovers" FOREIGN KEY (
+     "device_info_id") REFERENCES "public"."device_info" ("id") ON UPDATE no
+     action ON DELETE CASCADE,
+     CONSTRAINT "voiceovers_users_voiceovers" FOREIGN KEY ("user_id") REFERENCES
+     "auth"."users" ("id") ON UPDATE no action ON DELETE CASCADE,
+     CONSTRAINT "voiceovers_voiceover_models_voiceovers" FOREIGN KEY ("model_id"
+     ) REFERENCES "public"."voiceover_models" ("id") ON UPDATE no action ON
+     DELETE CASCADE,
+     CONSTRAINT "voiceovers_voiceover_speakers_voiceovers" FOREIGN KEY (
+     "speaker_id") REFERENCES "public"."voiceover_speakers" ("id") ON UPDATE no
+     action ON DELETE CASCADE
+  ); 
+
+CREATE trigger handle_updated_at before
+UPDATE
+    ON public.voiceovers FOR each ROW EXECUTE PROCEDURE moddatetime (updated_at);
+
+-- Create "voiceover_outputs" table
+CREATE TABLE "public"."voiceover_outputs"
+  (
+     "id"           UUID DEFAULT extensions.uuid_generate_v4() NOT NULL,
+     "audio_path"   TEXT NOT NULL,
+     "deleted_at"   TIMESTAMPTZ NULL,
+    created_at timestamp with time zone DEFAULT (now() AT TIME ZONE 'utc'::text) NOT NULL,
+    updated_at timestamp with time zone DEFAULT (now() AT TIME ZONE 'utc'::text) NOT NULL
+     "voiceover_id" UUID NOT NULL,
+     PRIMARY KEY ("id"),
+     CONSTRAINT "voiceover_outputs_voiceovers_voiceover_outputs" FOREIGN KEY (
+     "voiceover_id") REFERENCES "public"."voiceovers" ("id") ON UPDATE no action
+     ON DELETE CASCADE
+  );
+
+CREATE trigger handle_updated_at before
+UPDATE
+    ON public.voiceover_outputs FOR each ROW EXECUTE PROCEDURE moddatetime (updated_at);
+
+-- Create index "voiceoveroutput_audio_path" to table: "voiceover_outputs"
+CREATE INDEX "voiceoveroutput_audio_path"
+  ON "public"."voiceover_outputs" ("audio_path"); 

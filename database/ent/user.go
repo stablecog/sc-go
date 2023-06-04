@@ -50,6 +50,8 @@ type UserEdges struct {
 	Generations []*Generation `json:"generations,omitempty"`
 	// Upscales holds the value of the upscales edge.
 	Upscales []*Upscale `json:"upscales,omitempty"`
+	// Voiceovers holds the value of the voiceovers edge.
+	Voiceovers []*Voiceover `json:"voiceovers,omitempty"`
 	// Credits holds the value of the credits edge.
 	Credits []*Credit `json:"credits,omitempty"`
 	// APITokens holds the value of the api_tokens edge.
@@ -58,7 +60,7 @@ type UserEdges struct {
 	Roles []*Role `json:"roles,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [5]bool
+	loadedTypes [6]bool
 }
 
 // GenerationsOrErr returns the Generations value or an error if the edge
@@ -79,10 +81,19 @@ func (e UserEdges) UpscalesOrErr() ([]*Upscale, error) {
 	return nil, &NotLoadedError{edge: "upscales"}
 }
 
+// VoiceoversOrErr returns the Voiceovers value or an error if the edge
+// was not loaded in eager-loading.
+func (e UserEdges) VoiceoversOrErr() ([]*Voiceover, error) {
+	if e.loadedTypes[2] {
+		return e.Voiceovers, nil
+	}
+	return nil, &NotLoadedError{edge: "voiceovers"}
+}
+
 // CreditsOrErr returns the Credits value or an error if the edge
 // was not loaded in eager-loading.
 func (e UserEdges) CreditsOrErr() ([]*Credit, error) {
-	if e.loadedTypes[2] {
+	if e.loadedTypes[3] {
 		return e.Credits, nil
 	}
 	return nil, &NotLoadedError{edge: "credits"}
@@ -91,7 +102,7 @@ func (e UserEdges) CreditsOrErr() ([]*Credit, error) {
 // APITokensOrErr returns the APITokens value or an error if the edge
 // was not loaded in eager-loading.
 func (e UserEdges) APITokensOrErr() ([]*ApiToken, error) {
-	if e.loadedTypes[3] {
+	if e.loadedTypes[4] {
 		return e.APITokens, nil
 	}
 	return nil, &NotLoadedError{edge: "api_tokens"}
@@ -100,7 +111,7 @@ func (e UserEdges) APITokensOrErr() ([]*ApiToken, error) {
 // RolesOrErr returns the Roles value or an error if the edge
 // was not loaded in eager-loading.
 func (e UserEdges) RolesOrErr() ([]*Role, error) {
-	if e.loadedTypes[4] {
+	if e.loadedTypes[5] {
 		return e.Roles, nil
 	}
 	return nil, &NotLoadedError{edge: "roles"}
@@ -225,6 +236,11 @@ func (u *User) QueryGenerations() *GenerationQuery {
 // QueryUpscales queries the "upscales" edge of the User entity.
 func (u *User) QueryUpscales() *UpscaleQuery {
 	return NewUserClient(u.config).QueryUpscales(u)
+}
+
+// QueryVoiceovers queries the "voiceovers" edge of the User entity.
+func (u *User) QueryVoiceovers() *VoiceoverQuery {
+	return NewUserClient(u.config).QueryVoiceovers(u)
 }
 
 // QueryCredits queries the "credits" edge of the User entity.

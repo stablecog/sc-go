@@ -16,6 +16,7 @@ import (
 	"github.com/stablecog/sc-go/database/ent/generation"
 	"github.com/stablecog/sc-go/database/ent/predicate"
 	"github.com/stablecog/sc-go/database/ent/upscale"
+	"github.com/stablecog/sc-go/database/ent/voiceover"
 )
 
 // DeviceInfoQuery is the builder for querying DeviceInfo entities.
@@ -27,6 +28,7 @@ type DeviceInfoQuery struct {
 	predicates      []predicate.DeviceInfo
 	withGenerations *GenerationQuery
 	withUpscales    *UpscaleQuery
+	withVoiceovers  *VoiceoverQuery
 	modifiers       []func(*sql.Selector)
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
@@ -101,6 +103,28 @@ func (diq *DeviceInfoQuery) QueryUpscales() *UpscaleQuery {
 			sqlgraph.From(deviceinfo.Table, deviceinfo.FieldID, selector),
 			sqlgraph.To(upscale.Table, upscale.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, deviceinfo.UpscalesTable, deviceinfo.UpscalesColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(diq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryVoiceovers chains the current query on the "voiceovers" edge.
+func (diq *DeviceInfoQuery) QueryVoiceovers() *VoiceoverQuery {
+	query := (&VoiceoverClient{config: diq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := diq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := diq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(deviceinfo.Table, deviceinfo.FieldID, selector),
+			sqlgraph.To(voiceover.Table, voiceover.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, deviceinfo.VoiceoversTable, deviceinfo.VoiceoversColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(diq.driver.Dialect(), step)
 		return fromU, nil
@@ -300,6 +324,7 @@ func (diq *DeviceInfoQuery) Clone() *DeviceInfoQuery {
 		predicates:      append([]predicate.DeviceInfo{}, diq.predicates...),
 		withGenerations: diq.withGenerations.Clone(),
 		withUpscales:    diq.withUpscales.Clone(),
+		withVoiceovers:  diq.withVoiceovers.Clone(),
 		// clone intermediate query.
 		sql:  diq.sql.Clone(),
 		path: diq.path,
@@ -325,6 +350,17 @@ func (diq *DeviceInfoQuery) WithUpscales(opts ...func(*UpscaleQuery)) *DeviceInf
 		opt(query)
 	}
 	diq.withUpscales = query
+	return diq
+}
+
+// WithVoiceovers tells the query-builder to eager-load the nodes that are connected to
+// the "voiceovers" edge. The optional arguments are used to configure the query builder of the edge.
+func (diq *DeviceInfoQuery) WithVoiceovers(opts ...func(*VoiceoverQuery)) *DeviceInfoQuery {
+	query := (&VoiceoverClient{config: diq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	diq.withVoiceovers = query
 	return diq
 }
 
@@ -406,9 +442,10 @@ func (diq *DeviceInfoQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*
 	var (
 		nodes       = []*DeviceInfo{}
 		_spec       = diq.querySpec()
-		loadedTypes = [2]bool{
+		loadedTypes = [3]bool{
 			diq.withGenerations != nil,
 			diq.withUpscales != nil,
+			diq.withVoiceovers != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -443,6 +480,13 @@ func (diq *DeviceInfoQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*
 		if err := diq.loadUpscales(ctx, query, nodes,
 			func(n *DeviceInfo) { n.Edges.Upscales = []*Upscale{} },
 			func(n *DeviceInfo, e *Upscale) { n.Edges.Upscales = append(n.Edges.Upscales, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := diq.withVoiceovers; query != nil {
+		if err := diq.loadVoiceovers(ctx, query, nodes,
+			func(n *DeviceInfo) { n.Edges.Voiceovers = []*Voiceover{} },
+			func(n *DeviceInfo, e *Voiceover) { n.Edges.Voiceovers = append(n.Edges.Voiceovers, e) }); err != nil {
 			return nil, err
 		}
 	}
@@ -488,6 +532,33 @@ func (diq *DeviceInfoQuery) loadUpscales(ctx context.Context, query *UpscaleQuer
 	}
 	query.Where(predicate.Upscale(func(s *sql.Selector) {
 		s.Where(sql.InValues(deviceinfo.UpscalesColumn, fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.DeviceInfoID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "device_info_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (diq *DeviceInfoQuery) loadVoiceovers(ctx context.Context, query *VoiceoverQuery, nodes []*DeviceInfo, init func(*DeviceInfo), assign func(*DeviceInfo, *Voiceover)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*DeviceInfo)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	query.Where(predicate.Voiceover(func(s *sql.Selector) {
+		s.Where(sql.InValues(deviceinfo.VoiceoversColumn, fks...))
 	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {

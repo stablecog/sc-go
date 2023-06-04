@@ -16,6 +16,7 @@ import (
 	"github.com/stablecog/sc-go/database/ent/generation"
 	"github.com/stablecog/sc-go/database/ent/predicate"
 	"github.com/stablecog/sc-go/database/ent/upscale"
+	"github.com/stablecog/sc-go/database/ent/voiceover"
 )
 
 // DeviceInfoUpdate is the builder for updating DeviceInfo entities.
@@ -128,6 +129,21 @@ func (diu *DeviceInfoUpdate) AddUpscales(u ...*Upscale) *DeviceInfoUpdate {
 	return diu.AddUpscaleIDs(ids...)
 }
 
+// AddVoiceoverIDs adds the "voiceovers" edge to the Voiceover entity by IDs.
+func (diu *DeviceInfoUpdate) AddVoiceoverIDs(ids ...uuid.UUID) *DeviceInfoUpdate {
+	diu.mutation.AddVoiceoverIDs(ids...)
+	return diu
+}
+
+// AddVoiceovers adds the "voiceovers" edges to the Voiceover entity.
+func (diu *DeviceInfoUpdate) AddVoiceovers(v ...*Voiceover) *DeviceInfoUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return diu.AddVoiceoverIDs(ids...)
+}
+
 // Mutation returns the DeviceInfoMutation object of the builder.
 func (diu *DeviceInfoUpdate) Mutation() *DeviceInfoMutation {
 	return diu.mutation
@@ -173,6 +189,27 @@ func (diu *DeviceInfoUpdate) RemoveUpscales(u ...*Upscale) *DeviceInfoUpdate {
 		ids[i] = u[i].ID
 	}
 	return diu.RemoveUpscaleIDs(ids...)
+}
+
+// ClearVoiceovers clears all "voiceovers" edges to the Voiceover entity.
+func (diu *DeviceInfoUpdate) ClearVoiceovers() *DeviceInfoUpdate {
+	diu.mutation.ClearVoiceovers()
+	return diu
+}
+
+// RemoveVoiceoverIDs removes the "voiceovers" edge to Voiceover entities by IDs.
+func (diu *DeviceInfoUpdate) RemoveVoiceoverIDs(ids ...uuid.UUID) *DeviceInfoUpdate {
+	diu.mutation.RemoveVoiceoverIDs(ids...)
+	return diu
+}
+
+// RemoveVoiceovers removes "voiceovers" edges to Voiceover entities.
+func (diu *DeviceInfoUpdate) RemoveVoiceovers(v ...*Voiceover) *DeviceInfoUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return diu.RemoveVoiceoverIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -364,6 +401,60 @@ func (diu *DeviceInfoUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if diu.mutation.VoiceoversCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   deviceinfo.VoiceoversTable,
+			Columns: []string{deviceinfo.VoiceoversColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: voiceover.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := diu.mutation.RemovedVoiceoversIDs(); len(nodes) > 0 && !diu.mutation.VoiceoversCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   deviceinfo.VoiceoversTable,
+			Columns: []string{deviceinfo.VoiceoversColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: voiceover.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := diu.mutation.VoiceoversIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   deviceinfo.VoiceoversTable,
+			Columns: []string{deviceinfo.VoiceoversColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: voiceover.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	_spec.AddModifiers(diu.modifiers...)
 	if n, err = sqlgraph.UpdateNodes(ctx, diu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
@@ -482,6 +573,21 @@ func (diuo *DeviceInfoUpdateOne) AddUpscales(u ...*Upscale) *DeviceInfoUpdateOne
 	return diuo.AddUpscaleIDs(ids...)
 }
 
+// AddVoiceoverIDs adds the "voiceovers" edge to the Voiceover entity by IDs.
+func (diuo *DeviceInfoUpdateOne) AddVoiceoverIDs(ids ...uuid.UUID) *DeviceInfoUpdateOne {
+	diuo.mutation.AddVoiceoverIDs(ids...)
+	return diuo
+}
+
+// AddVoiceovers adds the "voiceovers" edges to the Voiceover entity.
+func (diuo *DeviceInfoUpdateOne) AddVoiceovers(v ...*Voiceover) *DeviceInfoUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return diuo.AddVoiceoverIDs(ids...)
+}
+
 // Mutation returns the DeviceInfoMutation object of the builder.
 func (diuo *DeviceInfoUpdateOne) Mutation() *DeviceInfoMutation {
 	return diuo.mutation
@@ -527,6 +633,27 @@ func (diuo *DeviceInfoUpdateOne) RemoveUpscales(u ...*Upscale) *DeviceInfoUpdate
 		ids[i] = u[i].ID
 	}
 	return diuo.RemoveUpscaleIDs(ids...)
+}
+
+// ClearVoiceovers clears all "voiceovers" edges to the Voiceover entity.
+func (diuo *DeviceInfoUpdateOne) ClearVoiceovers() *DeviceInfoUpdateOne {
+	diuo.mutation.ClearVoiceovers()
+	return diuo
+}
+
+// RemoveVoiceoverIDs removes the "voiceovers" edge to Voiceover entities by IDs.
+func (diuo *DeviceInfoUpdateOne) RemoveVoiceoverIDs(ids ...uuid.UUID) *DeviceInfoUpdateOne {
+	diuo.mutation.RemoveVoiceoverIDs(ids...)
+	return diuo
+}
+
+// RemoveVoiceovers removes "voiceovers" edges to Voiceover entities.
+func (diuo *DeviceInfoUpdateOne) RemoveVoiceovers(v ...*Voiceover) *DeviceInfoUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return diuo.RemoveVoiceoverIDs(ids...)
 }
 
 // Select allows selecting one or more fields (columns) of the returned entity.
@@ -734,6 +861,60 @@ func (diuo *DeviceInfoUpdateOne) sqlSave(ctx context.Context) (_node *DeviceInfo
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeUUID,
 					Column: upscale.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if diuo.mutation.VoiceoversCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   deviceinfo.VoiceoversTable,
+			Columns: []string{deviceinfo.VoiceoversColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: voiceover.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := diuo.mutation.RemovedVoiceoversIDs(); len(nodes) > 0 && !diuo.mutation.VoiceoversCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   deviceinfo.VoiceoversTable,
+			Columns: []string{deviceinfo.VoiceoversColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: voiceover.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := diuo.mutation.VoiceoversIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   deviceinfo.VoiceoversTable,
+			Columns: []string{deviceinfo.VoiceoversColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: voiceover.FieldID,
 				},
 			},
 		}

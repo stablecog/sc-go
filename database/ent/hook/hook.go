@@ -201,6 +201,54 @@ func (f UserFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error)
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.UserMutation", m)
 }
 
+// The VoiceoverFunc type is an adapter to allow the use of ordinary
+// function as Voiceover mutator.
+type VoiceoverFunc func(context.Context, *ent.VoiceoverMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f VoiceoverFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.VoiceoverMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.VoiceoverMutation", m)
+}
+
+// The VoiceoverModelFunc type is an adapter to allow the use of ordinary
+// function as VoiceoverModel mutator.
+type VoiceoverModelFunc func(context.Context, *ent.VoiceoverModelMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f VoiceoverModelFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.VoiceoverModelMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.VoiceoverModelMutation", m)
+}
+
+// The VoiceoverOutputFunc type is an adapter to allow the use of ordinary
+// function as VoiceoverOutput mutator.
+type VoiceoverOutputFunc func(context.Context, *ent.VoiceoverOutputMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f VoiceoverOutputFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.VoiceoverOutputMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.VoiceoverOutputMutation", m)
+}
+
+// The VoiceoverSpeakerFunc type is an adapter to allow the use of ordinary
+// function as VoiceoverSpeaker mutator.
+type VoiceoverSpeakerFunc func(context.Context, *ent.VoiceoverSpeakerMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f VoiceoverSpeakerFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.VoiceoverSpeakerMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.VoiceoverSpeakerMutation", m)
+}
+
 // Condition is a hook condition function.
 type Condition func(context.Context, ent.Mutation) bool
 

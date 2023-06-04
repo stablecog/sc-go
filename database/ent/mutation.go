@@ -27,6 +27,10 @@ import (
 	"github.com/stablecog/sc-go/database/ent/upscalemodel"
 	"github.com/stablecog/sc-go/database/ent/upscaleoutput"
 	"github.com/stablecog/sc-go/database/ent/user"
+	"github.com/stablecog/sc-go/database/ent/voiceover"
+	"github.com/stablecog/sc-go/database/ent/voiceovermodel"
+	"github.com/stablecog/sc-go/database/ent/voiceoveroutput"
+	"github.com/stablecog/sc-go/database/ent/voiceoverspeaker"
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
@@ -57,6 +61,10 @@ const (
 	TypeUpscaleModel     = "UpscaleModel"
 	TypeUpscaleOutput    = "UpscaleOutput"
 	TypeUser             = "User"
+	TypeVoiceover        = "Voiceover"
+	TypeVoiceoverModel   = "VoiceoverModel"
+	TypeVoiceoverOutput  = "VoiceoverOutput"
+	TypeVoiceoverSpeaker = "VoiceoverSpeaker"
 )
 
 // ApiTokenMutation represents an operation that mutates the ApiToken nodes in the graph.
@@ -85,6 +93,9 @@ type ApiTokenMutation struct {
 	upscales           map[uuid.UUID]struct{}
 	removedupscales    map[uuid.UUID]struct{}
 	clearedupscales    bool
+	voiceovers         map[uuid.UUID]struct{}
+	removedvoiceovers  map[uuid.UUID]struct{}
+	clearedvoiceovers  bool
 	done               bool
 	oldValue           func(context.Context) (*ApiToken, error)
 	predicates         []predicate.ApiToken
@@ -741,6 +752,60 @@ func (m *ApiTokenMutation) ResetUpscales() {
 	m.removedupscales = nil
 }
 
+// AddVoiceoverIDs adds the "voiceovers" edge to the Voiceover entity by ids.
+func (m *ApiTokenMutation) AddVoiceoverIDs(ids ...uuid.UUID) {
+	if m.voiceovers == nil {
+		m.voiceovers = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.voiceovers[ids[i]] = struct{}{}
+	}
+}
+
+// ClearVoiceovers clears the "voiceovers" edge to the Voiceover entity.
+func (m *ApiTokenMutation) ClearVoiceovers() {
+	m.clearedvoiceovers = true
+}
+
+// VoiceoversCleared reports if the "voiceovers" edge to the Voiceover entity was cleared.
+func (m *ApiTokenMutation) VoiceoversCleared() bool {
+	return m.clearedvoiceovers
+}
+
+// RemoveVoiceoverIDs removes the "voiceovers" edge to the Voiceover entity by IDs.
+func (m *ApiTokenMutation) RemoveVoiceoverIDs(ids ...uuid.UUID) {
+	if m.removedvoiceovers == nil {
+		m.removedvoiceovers = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.voiceovers, ids[i])
+		m.removedvoiceovers[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedVoiceovers returns the removed IDs of the "voiceovers" edge to the Voiceover entity.
+func (m *ApiTokenMutation) RemovedVoiceoversIDs() (ids []uuid.UUID) {
+	for id := range m.removedvoiceovers {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// VoiceoversIDs returns the "voiceovers" edge IDs in the mutation.
+func (m *ApiTokenMutation) VoiceoversIDs() (ids []uuid.UUID) {
+	for id := range m.voiceovers {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetVoiceovers resets all changes to the "voiceovers" edge.
+func (m *ApiTokenMutation) ResetVoiceovers() {
+	m.voiceovers = nil
+	m.clearedvoiceovers = false
+	m.removedvoiceovers = nil
+}
+
 // Where appends a list predicates to the ApiTokenMutation builder.
 func (m *ApiTokenMutation) Where(ps ...predicate.ApiToken) {
 	m.predicates = append(m.predicates, ps...)
@@ -1063,7 +1128,7 @@ func (m *ApiTokenMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *ApiTokenMutation) AddedEdges() []string {
-	edges := make([]string, 0, 3)
+	edges := make([]string, 0, 4)
 	if m.user != nil {
 		edges = append(edges, apitoken.EdgeUser)
 	}
@@ -1072,6 +1137,9 @@ func (m *ApiTokenMutation) AddedEdges() []string {
 	}
 	if m.upscales != nil {
 		edges = append(edges, apitoken.EdgeUpscales)
+	}
+	if m.voiceovers != nil {
+		edges = append(edges, apitoken.EdgeVoiceovers)
 	}
 	return edges
 }
@@ -1096,18 +1164,27 @@ func (m *ApiTokenMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case apitoken.EdgeVoiceovers:
+		ids := make([]ent.Value, 0, len(m.voiceovers))
+		for id := range m.voiceovers {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *ApiTokenMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 3)
+	edges := make([]string, 0, 4)
 	if m.removedgenerations != nil {
 		edges = append(edges, apitoken.EdgeGenerations)
 	}
 	if m.removedupscales != nil {
 		edges = append(edges, apitoken.EdgeUpscales)
+	}
+	if m.removedvoiceovers != nil {
+		edges = append(edges, apitoken.EdgeVoiceovers)
 	}
 	return edges
 }
@@ -1128,13 +1205,19 @@ func (m *ApiTokenMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case apitoken.EdgeVoiceovers:
+		ids := make([]ent.Value, 0, len(m.removedvoiceovers))
+		for id := range m.removedvoiceovers {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *ApiTokenMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 3)
+	edges := make([]string, 0, 4)
 	if m.cleareduser {
 		edges = append(edges, apitoken.EdgeUser)
 	}
@@ -1143,6 +1226,9 @@ func (m *ApiTokenMutation) ClearedEdges() []string {
 	}
 	if m.clearedupscales {
 		edges = append(edges, apitoken.EdgeUpscales)
+	}
+	if m.clearedvoiceovers {
+		edges = append(edges, apitoken.EdgeVoiceovers)
 	}
 	return edges
 }
@@ -1157,6 +1243,8 @@ func (m *ApiTokenMutation) EdgeCleared(name string) bool {
 		return m.clearedgenerations
 	case apitoken.EdgeUpscales:
 		return m.clearedupscales
+	case apitoken.EdgeVoiceovers:
+		return m.clearedvoiceovers
 	}
 	return false
 }
@@ -1184,6 +1272,9 @@ func (m *ApiTokenMutation) ResetEdge(name string) error {
 		return nil
 	case apitoken.EdgeUpscales:
 		m.ResetUpscales()
+		return nil
+	case apitoken.EdgeVoiceovers:
+		m.ResetVoiceovers()
 		return nil
 	}
 	return fmt.Errorf("unknown ApiToken edge %s", name)
@@ -2912,6 +3003,9 @@ type DeviceInfoMutation struct {
 	upscales           map[uuid.UUID]struct{}
 	removedupscales    map[uuid.UUID]struct{}
 	clearedupscales    bool
+	voiceovers         map[uuid.UUID]struct{}
+	removedvoiceovers  map[uuid.UUID]struct{}
+	clearedvoiceovers  bool
 	done               bool
 	oldValue           func(context.Context) (*DeviceInfo, error)
 	predicates         []predicate.DeviceInfo
@@ -3348,6 +3442,60 @@ func (m *DeviceInfoMutation) ResetUpscales() {
 	m.removedupscales = nil
 }
 
+// AddVoiceoverIDs adds the "voiceovers" edge to the Voiceover entity by ids.
+func (m *DeviceInfoMutation) AddVoiceoverIDs(ids ...uuid.UUID) {
+	if m.voiceovers == nil {
+		m.voiceovers = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.voiceovers[ids[i]] = struct{}{}
+	}
+}
+
+// ClearVoiceovers clears the "voiceovers" edge to the Voiceover entity.
+func (m *DeviceInfoMutation) ClearVoiceovers() {
+	m.clearedvoiceovers = true
+}
+
+// VoiceoversCleared reports if the "voiceovers" edge to the Voiceover entity was cleared.
+func (m *DeviceInfoMutation) VoiceoversCleared() bool {
+	return m.clearedvoiceovers
+}
+
+// RemoveVoiceoverIDs removes the "voiceovers" edge to the Voiceover entity by IDs.
+func (m *DeviceInfoMutation) RemoveVoiceoverIDs(ids ...uuid.UUID) {
+	if m.removedvoiceovers == nil {
+		m.removedvoiceovers = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.voiceovers, ids[i])
+		m.removedvoiceovers[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedVoiceovers returns the removed IDs of the "voiceovers" edge to the Voiceover entity.
+func (m *DeviceInfoMutation) RemovedVoiceoversIDs() (ids []uuid.UUID) {
+	for id := range m.removedvoiceovers {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// VoiceoversIDs returns the "voiceovers" edge IDs in the mutation.
+func (m *DeviceInfoMutation) VoiceoversIDs() (ids []uuid.UUID) {
+	for id := range m.voiceovers {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetVoiceovers resets all changes to the "voiceovers" edge.
+func (m *DeviceInfoMutation) ResetVoiceovers() {
+	m.voiceovers = nil
+	m.clearedvoiceovers = false
+	m.removedvoiceovers = nil
+}
+
 // Where appends a list predicates to the DeviceInfoMutation builder.
 func (m *DeviceInfoMutation) Where(ps ...predicate.DeviceInfo) {
 	m.predicates = append(m.predicates, ps...)
@@ -3570,12 +3718,15 @@ func (m *DeviceInfoMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *DeviceInfoMutation) AddedEdges() []string {
-	edges := make([]string, 0, 2)
+	edges := make([]string, 0, 3)
 	if m.generations != nil {
 		edges = append(edges, deviceinfo.EdgeGenerations)
 	}
 	if m.upscales != nil {
 		edges = append(edges, deviceinfo.EdgeUpscales)
+	}
+	if m.voiceovers != nil {
+		edges = append(edges, deviceinfo.EdgeVoiceovers)
 	}
 	return edges
 }
@@ -3596,18 +3747,27 @@ func (m *DeviceInfoMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case deviceinfo.EdgeVoiceovers:
+		ids := make([]ent.Value, 0, len(m.voiceovers))
+		for id := range m.voiceovers {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *DeviceInfoMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 2)
+	edges := make([]string, 0, 3)
 	if m.removedgenerations != nil {
 		edges = append(edges, deviceinfo.EdgeGenerations)
 	}
 	if m.removedupscales != nil {
 		edges = append(edges, deviceinfo.EdgeUpscales)
+	}
+	if m.removedvoiceovers != nil {
+		edges = append(edges, deviceinfo.EdgeVoiceovers)
 	}
 	return edges
 }
@@ -3628,18 +3788,27 @@ func (m *DeviceInfoMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case deviceinfo.EdgeVoiceovers:
+		ids := make([]ent.Value, 0, len(m.removedvoiceovers))
+		for id := range m.removedvoiceovers {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *DeviceInfoMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 2)
+	edges := make([]string, 0, 3)
 	if m.clearedgenerations {
 		edges = append(edges, deviceinfo.EdgeGenerations)
 	}
 	if m.clearedupscales {
 		edges = append(edges, deviceinfo.EdgeUpscales)
+	}
+	if m.clearedvoiceovers {
+		edges = append(edges, deviceinfo.EdgeVoiceovers)
 	}
 	return edges
 }
@@ -3652,6 +3821,8 @@ func (m *DeviceInfoMutation) EdgeCleared(name string) bool {
 		return m.clearedgenerations
 	case deviceinfo.EdgeUpscales:
 		return m.clearedupscales
+	case deviceinfo.EdgeVoiceovers:
+		return m.clearedvoiceovers
 	}
 	return false
 }
@@ -3673,6 +3844,9 @@ func (m *DeviceInfoMutation) ResetEdge(name string) error {
 		return nil
 	case deviceinfo.EdgeUpscales:
 		m.ResetUpscales()
+		return nil
+	case deviceinfo.EdgeVoiceovers:
+		m.ResetVoiceovers()
 		return nil
 	}
 	return fmt.Errorf("unknown DeviceInfo edge %s", name)
@@ -14185,6 +14359,9 @@ type UserMutation struct {
 	upscales                  map[uuid.UUID]struct{}
 	removedupscales           map[uuid.UUID]struct{}
 	clearedupscales           bool
+	voiceovers                map[uuid.UUID]struct{}
+	removedvoiceovers         map[uuid.UUID]struct{}
+	clearedvoiceovers         bool
 	credits                   map[uuid.UUID]struct{}
 	removedcredits            map[uuid.UUID]struct{}
 	clearedcredits            bool
@@ -14885,6 +15062,60 @@ func (m *UserMutation) ResetUpscales() {
 	m.removedupscales = nil
 }
 
+// AddVoiceoverIDs adds the "voiceovers" edge to the Voiceover entity by ids.
+func (m *UserMutation) AddVoiceoverIDs(ids ...uuid.UUID) {
+	if m.voiceovers == nil {
+		m.voiceovers = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.voiceovers[ids[i]] = struct{}{}
+	}
+}
+
+// ClearVoiceovers clears the "voiceovers" edge to the Voiceover entity.
+func (m *UserMutation) ClearVoiceovers() {
+	m.clearedvoiceovers = true
+}
+
+// VoiceoversCleared reports if the "voiceovers" edge to the Voiceover entity was cleared.
+func (m *UserMutation) VoiceoversCleared() bool {
+	return m.clearedvoiceovers
+}
+
+// RemoveVoiceoverIDs removes the "voiceovers" edge to the Voiceover entity by IDs.
+func (m *UserMutation) RemoveVoiceoverIDs(ids ...uuid.UUID) {
+	if m.removedvoiceovers == nil {
+		m.removedvoiceovers = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.voiceovers, ids[i])
+		m.removedvoiceovers[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedVoiceovers returns the removed IDs of the "voiceovers" edge to the Voiceover entity.
+func (m *UserMutation) RemovedVoiceoversIDs() (ids []uuid.UUID) {
+	for id := range m.removedvoiceovers {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// VoiceoversIDs returns the "voiceovers" edge IDs in the mutation.
+func (m *UserMutation) VoiceoversIDs() (ids []uuid.UUID) {
+	for id := range m.voiceovers {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetVoiceovers resets all changes to the "voiceovers" edge.
+func (m *UserMutation) ResetVoiceovers() {
+	m.voiceovers = nil
+	m.clearedvoiceovers = false
+	m.removedvoiceovers = nil
+}
+
 // AddCreditIDs adds the "credits" edge to the Credit entity by ids.
 func (m *UserMutation) AddCreditIDs(ids ...uuid.UUID) {
 	if m.credits == nil {
@@ -15389,12 +15620,15 @@ func (m *UserMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *UserMutation) AddedEdges() []string {
-	edges := make([]string, 0, 5)
+	edges := make([]string, 0, 6)
 	if m.generations != nil {
 		edges = append(edges, user.EdgeGenerations)
 	}
 	if m.upscales != nil {
 		edges = append(edges, user.EdgeUpscales)
+	}
+	if m.voiceovers != nil {
+		edges = append(edges, user.EdgeVoiceovers)
 	}
 	if m.credits != nil {
 		edges = append(edges, user.EdgeCredits)
@@ -15424,6 +15658,12 @@ func (m *UserMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case user.EdgeVoiceovers:
+		ids := make([]ent.Value, 0, len(m.voiceovers))
+		for id := range m.voiceovers {
+			ids = append(ids, id)
+		}
+		return ids
 	case user.EdgeCredits:
 		ids := make([]ent.Value, 0, len(m.credits))
 		for id := range m.credits {
@@ -15448,12 +15688,15 @@ func (m *UserMutation) AddedIDs(name string) []ent.Value {
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *UserMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 5)
+	edges := make([]string, 0, 6)
 	if m.removedgenerations != nil {
 		edges = append(edges, user.EdgeGenerations)
 	}
 	if m.removedupscales != nil {
 		edges = append(edges, user.EdgeUpscales)
+	}
+	if m.removedvoiceovers != nil {
+		edges = append(edges, user.EdgeVoiceovers)
 	}
 	if m.removedcredits != nil {
 		edges = append(edges, user.EdgeCredits)
@@ -15483,6 +15726,12 @@ func (m *UserMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case user.EdgeVoiceovers:
+		ids := make([]ent.Value, 0, len(m.removedvoiceovers))
+		for id := range m.removedvoiceovers {
+			ids = append(ids, id)
+		}
+		return ids
 	case user.EdgeCredits:
 		ids := make([]ent.Value, 0, len(m.removedcredits))
 		for id := range m.removedcredits {
@@ -15507,12 +15756,15 @@ func (m *UserMutation) RemovedIDs(name string) []ent.Value {
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *UserMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 5)
+	edges := make([]string, 0, 6)
 	if m.clearedgenerations {
 		edges = append(edges, user.EdgeGenerations)
 	}
 	if m.clearedupscales {
 		edges = append(edges, user.EdgeUpscales)
+	}
+	if m.clearedvoiceovers {
+		edges = append(edges, user.EdgeVoiceovers)
 	}
 	if m.clearedcredits {
 		edges = append(edges, user.EdgeCredits)
@@ -15534,6 +15786,8 @@ func (m *UserMutation) EdgeCleared(name string) bool {
 		return m.clearedgenerations
 	case user.EdgeUpscales:
 		return m.clearedupscales
+	case user.EdgeVoiceovers:
+		return m.clearedvoiceovers
 	case user.EdgeCredits:
 		return m.clearedcredits
 	case user.EdgeAPITokens:
@@ -15562,6 +15816,9 @@ func (m *UserMutation) ResetEdge(name string) error {
 	case user.EdgeUpscales:
 		m.ResetUpscales()
 		return nil
+	case user.EdgeVoiceovers:
+		m.ResetVoiceovers()
+		return nil
 	case user.EdgeCredits:
 		m.ResetCredits()
 		return nil
@@ -15573,4 +15830,3679 @@ func (m *UserMutation) ResetEdge(name string) error {
 		return nil
 	}
 	return fmt.Errorf("unknown User edge %s", name)
+}
+
+// VoiceoverMutation represents an operation that mutates the Voiceover nodes in the graph.
+type VoiceoverMutation struct {
+	config
+	op                        Op
+	typ                       string
+	id                        *uuid.UUID
+	country_code              *string
+	status                    *voiceover.Status
+	failure_reason            *string
+	stripe_product_id         *string
+	started_at                *time.Time
+	completed_at              *time.Time
+	created_at                *time.Time
+	updated_at                *time.Time
+	clearedFields             map[string]struct{}
+	user                      *uuid.UUID
+	cleareduser               bool
+	device_info               *uuid.UUID
+	cleareddevice_info        bool
+	voiceover_models          *uuid.UUID
+	clearedvoiceover_models   bool
+	voiceover_speakers        *uuid.UUID
+	clearedvoiceover_speakers bool
+	api_tokens                *uuid.UUID
+	clearedapi_tokens         bool
+	voiceover_outputs         map[uuid.UUID]struct{}
+	removedvoiceover_outputs  map[uuid.UUID]struct{}
+	clearedvoiceover_outputs  bool
+	done                      bool
+	oldValue                  func(context.Context) (*Voiceover, error)
+	predicates                []predicate.Voiceover
+}
+
+var _ ent.Mutation = (*VoiceoverMutation)(nil)
+
+// voiceoverOption allows management of the mutation configuration using functional options.
+type voiceoverOption func(*VoiceoverMutation)
+
+// newVoiceoverMutation creates new mutation for the Voiceover entity.
+func newVoiceoverMutation(c config, op Op, opts ...voiceoverOption) *VoiceoverMutation {
+	m := &VoiceoverMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeVoiceover,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withVoiceoverID sets the ID field of the mutation.
+func withVoiceoverID(id uuid.UUID) voiceoverOption {
+	return func(m *VoiceoverMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *Voiceover
+		)
+		m.oldValue = func(ctx context.Context) (*Voiceover, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().Voiceover.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withVoiceover sets the old Voiceover of the mutation.
+func withVoiceover(node *Voiceover) voiceoverOption {
+	return func(m *VoiceoverMutation) {
+		m.oldValue = func(context.Context) (*Voiceover, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m VoiceoverMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m VoiceoverMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of Voiceover entities.
+func (m *VoiceoverMutation) SetID(id uuid.UUID) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *VoiceoverMutation) ID() (id uuid.UUID, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *VoiceoverMutation) IDs(ctx context.Context) ([]uuid.UUID, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []uuid.UUID{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().Voiceover.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetCountryCode sets the "country_code" field.
+func (m *VoiceoverMutation) SetCountryCode(s string) {
+	m.country_code = &s
+}
+
+// CountryCode returns the value of the "country_code" field in the mutation.
+func (m *VoiceoverMutation) CountryCode() (r string, exists bool) {
+	v := m.country_code
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCountryCode returns the old "country_code" field's value of the Voiceover entity.
+// If the Voiceover object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *VoiceoverMutation) OldCountryCode(ctx context.Context) (v *string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCountryCode is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCountryCode requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCountryCode: %w", err)
+	}
+	return oldValue.CountryCode, nil
+}
+
+// ClearCountryCode clears the value of the "country_code" field.
+func (m *VoiceoverMutation) ClearCountryCode() {
+	m.country_code = nil
+	m.clearedFields[voiceover.FieldCountryCode] = struct{}{}
+}
+
+// CountryCodeCleared returns if the "country_code" field was cleared in this mutation.
+func (m *VoiceoverMutation) CountryCodeCleared() bool {
+	_, ok := m.clearedFields[voiceover.FieldCountryCode]
+	return ok
+}
+
+// ResetCountryCode resets all changes to the "country_code" field.
+func (m *VoiceoverMutation) ResetCountryCode() {
+	m.country_code = nil
+	delete(m.clearedFields, voiceover.FieldCountryCode)
+}
+
+// SetStatus sets the "status" field.
+func (m *VoiceoverMutation) SetStatus(v voiceover.Status) {
+	m.status = &v
+}
+
+// Status returns the value of the "status" field in the mutation.
+func (m *VoiceoverMutation) Status() (r voiceover.Status, exists bool) {
+	v := m.status
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldStatus returns the old "status" field's value of the Voiceover entity.
+// If the Voiceover object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *VoiceoverMutation) OldStatus(ctx context.Context) (v voiceover.Status, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldStatus is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldStatus requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldStatus: %w", err)
+	}
+	return oldValue.Status, nil
+}
+
+// ResetStatus resets all changes to the "status" field.
+func (m *VoiceoverMutation) ResetStatus() {
+	m.status = nil
+}
+
+// SetFailureReason sets the "failure_reason" field.
+func (m *VoiceoverMutation) SetFailureReason(s string) {
+	m.failure_reason = &s
+}
+
+// FailureReason returns the value of the "failure_reason" field in the mutation.
+func (m *VoiceoverMutation) FailureReason() (r string, exists bool) {
+	v := m.failure_reason
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldFailureReason returns the old "failure_reason" field's value of the Voiceover entity.
+// If the Voiceover object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *VoiceoverMutation) OldFailureReason(ctx context.Context) (v *string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldFailureReason is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldFailureReason requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldFailureReason: %w", err)
+	}
+	return oldValue.FailureReason, nil
+}
+
+// ClearFailureReason clears the value of the "failure_reason" field.
+func (m *VoiceoverMutation) ClearFailureReason() {
+	m.failure_reason = nil
+	m.clearedFields[voiceover.FieldFailureReason] = struct{}{}
+}
+
+// FailureReasonCleared returns if the "failure_reason" field was cleared in this mutation.
+func (m *VoiceoverMutation) FailureReasonCleared() bool {
+	_, ok := m.clearedFields[voiceover.FieldFailureReason]
+	return ok
+}
+
+// ResetFailureReason resets all changes to the "failure_reason" field.
+func (m *VoiceoverMutation) ResetFailureReason() {
+	m.failure_reason = nil
+	delete(m.clearedFields, voiceover.FieldFailureReason)
+}
+
+// SetStripeProductID sets the "stripe_product_id" field.
+func (m *VoiceoverMutation) SetStripeProductID(s string) {
+	m.stripe_product_id = &s
+}
+
+// StripeProductID returns the value of the "stripe_product_id" field in the mutation.
+func (m *VoiceoverMutation) StripeProductID() (r string, exists bool) {
+	v := m.stripe_product_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldStripeProductID returns the old "stripe_product_id" field's value of the Voiceover entity.
+// If the Voiceover object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *VoiceoverMutation) OldStripeProductID(ctx context.Context) (v *string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldStripeProductID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldStripeProductID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldStripeProductID: %w", err)
+	}
+	return oldValue.StripeProductID, nil
+}
+
+// ClearStripeProductID clears the value of the "stripe_product_id" field.
+func (m *VoiceoverMutation) ClearStripeProductID() {
+	m.stripe_product_id = nil
+	m.clearedFields[voiceover.FieldStripeProductID] = struct{}{}
+}
+
+// StripeProductIDCleared returns if the "stripe_product_id" field was cleared in this mutation.
+func (m *VoiceoverMutation) StripeProductIDCleared() bool {
+	_, ok := m.clearedFields[voiceover.FieldStripeProductID]
+	return ok
+}
+
+// ResetStripeProductID resets all changes to the "stripe_product_id" field.
+func (m *VoiceoverMutation) ResetStripeProductID() {
+	m.stripe_product_id = nil
+	delete(m.clearedFields, voiceover.FieldStripeProductID)
+}
+
+// SetUserID sets the "user_id" field.
+func (m *VoiceoverMutation) SetUserID(u uuid.UUID) {
+	m.user = &u
+}
+
+// UserID returns the value of the "user_id" field in the mutation.
+func (m *VoiceoverMutation) UserID() (r uuid.UUID, exists bool) {
+	v := m.user
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUserID returns the old "user_id" field's value of the Voiceover entity.
+// If the Voiceover object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *VoiceoverMutation) OldUserID(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUserID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUserID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUserID: %w", err)
+	}
+	return oldValue.UserID, nil
+}
+
+// ResetUserID resets all changes to the "user_id" field.
+func (m *VoiceoverMutation) ResetUserID() {
+	m.user = nil
+}
+
+// SetDeviceInfoID sets the "device_info_id" field.
+func (m *VoiceoverMutation) SetDeviceInfoID(u uuid.UUID) {
+	m.device_info = &u
+}
+
+// DeviceInfoID returns the value of the "device_info_id" field in the mutation.
+func (m *VoiceoverMutation) DeviceInfoID() (r uuid.UUID, exists bool) {
+	v := m.device_info
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDeviceInfoID returns the old "device_info_id" field's value of the Voiceover entity.
+// If the Voiceover object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *VoiceoverMutation) OldDeviceInfoID(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDeviceInfoID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDeviceInfoID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDeviceInfoID: %w", err)
+	}
+	return oldValue.DeviceInfoID, nil
+}
+
+// ResetDeviceInfoID resets all changes to the "device_info_id" field.
+func (m *VoiceoverMutation) ResetDeviceInfoID() {
+	m.device_info = nil
+}
+
+// SetModelID sets the "model_id" field.
+func (m *VoiceoverMutation) SetModelID(u uuid.UUID) {
+	m.voiceover_models = &u
+}
+
+// ModelID returns the value of the "model_id" field in the mutation.
+func (m *VoiceoverMutation) ModelID() (r uuid.UUID, exists bool) {
+	v := m.voiceover_models
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldModelID returns the old "model_id" field's value of the Voiceover entity.
+// If the Voiceover object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *VoiceoverMutation) OldModelID(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldModelID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldModelID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldModelID: %w", err)
+	}
+	return oldValue.ModelID, nil
+}
+
+// ResetModelID resets all changes to the "model_id" field.
+func (m *VoiceoverMutation) ResetModelID() {
+	m.voiceover_models = nil
+}
+
+// SetSpeakerID sets the "speaker_id" field.
+func (m *VoiceoverMutation) SetSpeakerID(u uuid.UUID) {
+	m.voiceover_speakers = &u
+}
+
+// SpeakerID returns the value of the "speaker_id" field in the mutation.
+func (m *VoiceoverMutation) SpeakerID() (r uuid.UUID, exists bool) {
+	v := m.voiceover_speakers
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSpeakerID returns the old "speaker_id" field's value of the Voiceover entity.
+// If the Voiceover object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *VoiceoverMutation) OldSpeakerID(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSpeakerID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSpeakerID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSpeakerID: %w", err)
+	}
+	return oldValue.SpeakerID, nil
+}
+
+// ResetSpeakerID resets all changes to the "speaker_id" field.
+func (m *VoiceoverMutation) ResetSpeakerID() {
+	m.voiceover_speakers = nil
+}
+
+// SetAPITokenID sets the "api_token_id" field.
+func (m *VoiceoverMutation) SetAPITokenID(u uuid.UUID) {
+	m.api_tokens = &u
+}
+
+// APITokenID returns the value of the "api_token_id" field in the mutation.
+func (m *VoiceoverMutation) APITokenID() (r uuid.UUID, exists bool) {
+	v := m.api_tokens
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldAPITokenID returns the old "api_token_id" field's value of the Voiceover entity.
+// If the Voiceover object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *VoiceoverMutation) OldAPITokenID(ctx context.Context) (v *uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldAPITokenID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldAPITokenID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldAPITokenID: %w", err)
+	}
+	return oldValue.APITokenID, nil
+}
+
+// ClearAPITokenID clears the value of the "api_token_id" field.
+func (m *VoiceoverMutation) ClearAPITokenID() {
+	m.api_tokens = nil
+	m.clearedFields[voiceover.FieldAPITokenID] = struct{}{}
+}
+
+// APITokenIDCleared returns if the "api_token_id" field was cleared in this mutation.
+func (m *VoiceoverMutation) APITokenIDCleared() bool {
+	_, ok := m.clearedFields[voiceover.FieldAPITokenID]
+	return ok
+}
+
+// ResetAPITokenID resets all changes to the "api_token_id" field.
+func (m *VoiceoverMutation) ResetAPITokenID() {
+	m.api_tokens = nil
+	delete(m.clearedFields, voiceover.FieldAPITokenID)
+}
+
+// SetStartedAt sets the "started_at" field.
+func (m *VoiceoverMutation) SetStartedAt(t time.Time) {
+	m.started_at = &t
+}
+
+// StartedAt returns the value of the "started_at" field in the mutation.
+func (m *VoiceoverMutation) StartedAt() (r time.Time, exists bool) {
+	v := m.started_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldStartedAt returns the old "started_at" field's value of the Voiceover entity.
+// If the Voiceover object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *VoiceoverMutation) OldStartedAt(ctx context.Context) (v *time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldStartedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldStartedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldStartedAt: %w", err)
+	}
+	return oldValue.StartedAt, nil
+}
+
+// ClearStartedAt clears the value of the "started_at" field.
+func (m *VoiceoverMutation) ClearStartedAt() {
+	m.started_at = nil
+	m.clearedFields[voiceover.FieldStartedAt] = struct{}{}
+}
+
+// StartedAtCleared returns if the "started_at" field was cleared in this mutation.
+func (m *VoiceoverMutation) StartedAtCleared() bool {
+	_, ok := m.clearedFields[voiceover.FieldStartedAt]
+	return ok
+}
+
+// ResetStartedAt resets all changes to the "started_at" field.
+func (m *VoiceoverMutation) ResetStartedAt() {
+	m.started_at = nil
+	delete(m.clearedFields, voiceover.FieldStartedAt)
+}
+
+// SetCompletedAt sets the "completed_at" field.
+func (m *VoiceoverMutation) SetCompletedAt(t time.Time) {
+	m.completed_at = &t
+}
+
+// CompletedAt returns the value of the "completed_at" field in the mutation.
+func (m *VoiceoverMutation) CompletedAt() (r time.Time, exists bool) {
+	v := m.completed_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCompletedAt returns the old "completed_at" field's value of the Voiceover entity.
+// If the Voiceover object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *VoiceoverMutation) OldCompletedAt(ctx context.Context) (v *time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCompletedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCompletedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCompletedAt: %w", err)
+	}
+	return oldValue.CompletedAt, nil
+}
+
+// ClearCompletedAt clears the value of the "completed_at" field.
+func (m *VoiceoverMutation) ClearCompletedAt() {
+	m.completed_at = nil
+	m.clearedFields[voiceover.FieldCompletedAt] = struct{}{}
+}
+
+// CompletedAtCleared returns if the "completed_at" field was cleared in this mutation.
+func (m *VoiceoverMutation) CompletedAtCleared() bool {
+	_, ok := m.clearedFields[voiceover.FieldCompletedAt]
+	return ok
+}
+
+// ResetCompletedAt resets all changes to the "completed_at" field.
+func (m *VoiceoverMutation) ResetCompletedAt() {
+	m.completed_at = nil
+	delete(m.clearedFields, voiceover.FieldCompletedAt)
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *VoiceoverMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *VoiceoverMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the Voiceover entity.
+// If the Voiceover object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *VoiceoverMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *VoiceoverMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (m *VoiceoverMutation) SetUpdatedAt(t time.Time) {
+	m.updated_at = &t
+}
+
+// UpdatedAt returns the value of the "updated_at" field in the mutation.
+func (m *VoiceoverMutation) UpdatedAt() (r time.Time, exists bool) {
+	v := m.updated_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedAt returns the old "updated_at" field's value of the Voiceover entity.
+// If the Voiceover object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *VoiceoverMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
+	}
+	return oldValue.UpdatedAt, nil
+}
+
+// ResetUpdatedAt resets all changes to the "updated_at" field.
+func (m *VoiceoverMutation) ResetUpdatedAt() {
+	m.updated_at = nil
+}
+
+// ClearUser clears the "user" edge to the User entity.
+func (m *VoiceoverMutation) ClearUser() {
+	m.cleareduser = true
+}
+
+// UserCleared reports if the "user" edge to the User entity was cleared.
+func (m *VoiceoverMutation) UserCleared() bool {
+	return m.cleareduser
+}
+
+// UserIDs returns the "user" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// UserID instead. It exists only for internal usage by the builders.
+func (m *VoiceoverMutation) UserIDs() (ids []uuid.UUID) {
+	if id := m.user; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetUser resets all changes to the "user" edge.
+func (m *VoiceoverMutation) ResetUser() {
+	m.user = nil
+	m.cleareduser = false
+}
+
+// ClearDeviceInfo clears the "device_info" edge to the DeviceInfo entity.
+func (m *VoiceoverMutation) ClearDeviceInfo() {
+	m.cleareddevice_info = true
+}
+
+// DeviceInfoCleared reports if the "device_info" edge to the DeviceInfo entity was cleared.
+func (m *VoiceoverMutation) DeviceInfoCleared() bool {
+	return m.cleareddevice_info
+}
+
+// DeviceInfoIDs returns the "device_info" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// DeviceInfoID instead. It exists only for internal usage by the builders.
+func (m *VoiceoverMutation) DeviceInfoIDs() (ids []uuid.UUID) {
+	if id := m.device_info; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetDeviceInfo resets all changes to the "device_info" edge.
+func (m *VoiceoverMutation) ResetDeviceInfo() {
+	m.device_info = nil
+	m.cleareddevice_info = false
+}
+
+// SetVoiceoverModelsID sets the "voiceover_models" edge to the VoiceoverModel entity by id.
+func (m *VoiceoverMutation) SetVoiceoverModelsID(id uuid.UUID) {
+	m.voiceover_models = &id
+}
+
+// ClearVoiceoverModels clears the "voiceover_models" edge to the VoiceoverModel entity.
+func (m *VoiceoverMutation) ClearVoiceoverModels() {
+	m.clearedvoiceover_models = true
+}
+
+// VoiceoverModelsCleared reports if the "voiceover_models" edge to the VoiceoverModel entity was cleared.
+func (m *VoiceoverMutation) VoiceoverModelsCleared() bool {
+	return m.clearedvoiceover_models
+}
+
+// VoiceoverModelsID returns the "voiceover_models" edge ID in the mutation.
+func (m *VoiceoverMutation) VoiceoverModelsID() (id uuid.UUID, exists bool) {
+	if m.voiceover_models != nil {
+		return *m.voiceover_models, true
+	}
+	return
+}
+
+// VoiceoverModelsIDs returns the "voiceover_models" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// VoiceoverModelsID instead. It exists only for internal usage by the builders.
+func (m *VoiceoverMutation) VoiceoverModelsIDs() (ids []uuid.UUID) {
+	if id := m.voiceover_models; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetVoiceoverModels resets all changes to the "voiceover_models" edge.
+func (m *VoiceoverMutation) ResetVoiceoverModels() {
+	m.voiceover_models = nil
+	m.clearedvoiceover_models = false
+}
+
+// SetVoiceoverSpeakersID sets the "voiceover_speakers" edge to the VoiceoverSpeaker entity by id.
+func (m *VoiceoverMutation) SetVoiceoverSpeakersID(id uuid.UUID) {
+	m.voiceover_speakers = &id
+}
+
+// ClearVoiceoverSpeakers clears the "voiceover_speakers" edge to the VoiceoverSpeaker entity.
+func (m *VoiceoverMutation) ClearVoiceoverSpeakers() {
+	m.clearedvoiceover_speakers = true
+}
+
+// VoiceoverSpeakersCleared reports if the "voiceover_speakers" edge to the VoiceoverSpeaker entity was cleared.
+func (m *VoiceoverMutation) VoiceoverSpeakersCleared() bool {
+	return m.clearedvoiceover_speakers
+}
+
+// VoiceoverSpeakersID returns the "voiceover_speakers" edge ID in the mutation.
+func (m *VoiceoverMutation) VoiceoverSpeakersID() (id uuid.UUID, exists bool) {
+	if m.voiceover_speakers != nil {
+		return *m.voiceover_speakers, true
+	}
+	return
+}
+
+// VoiceoverSpeakersIDs returns the "voiceover_speakers" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// VoiceoverSpeakersID instead. It exists only for internal usage by the builders.
+func (m *VoiceoverMutation) VoiceoverSpeakersIDs() (ids []uuid.UUID) {
+	if id := m.voiceover_speakers; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetVoiceoverSpeakers resets all changes to the "voiceover_speakers" edge.
+func (m *VoiceoverMutation) ResetVoiceoverSpeakers() {
+	m.voiceover_speakers = nil
+	m.clearedvoiceover_speakers = false
+}
+
+// SetAPITokensID sets the "api_tokens" edge to the ApiToken entity by id.
+func (m *VoiceoverMutation) SetAPITokensID(id uuid.UUID) {
+	m.api_tokens = &id
+}
+
+// ClearAPITokens clears the "api_tokens" edge to the ApiToken entity.
+func (m *VoiceoverMutation) ClearAPITokens() {
+	m.clearedapi_tokens = true
+}
+
+// APITokensCleared reports if the "api_tokens" edge to the ApiToken entity was cleared.
+func (m *VoiceoverMutation) APITokensCleared() bool {
+	return m.APITokenIDCleared() || m.clearedapi_tokens
+}
+
+// APITokensID returns the "api_tokens" edge ID in the mutation.
+func (m *VoiceoverMutation) APITokensID() (id uuid.UUID, exists bool) {
+	if m.api_tokens != nil {
+		return *m.api_tokens, true
+	}
+	return
+}
+
+// APITokensIDs returns the "api_tokens" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// APITokensID instead. It exists only for internal usage by the builders.
+func (m *VoiceoverMutation) APITokensIDs() (ids []uuid.UUID) {
+	if id := m.api_tokens; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetAPITokens resets all changes to the "api_tokens" edge.
+func (m *VoiceoverMutation) ResetAPITokens() {
+	m.api_tokens = nil
+	m.clearedapi_tokens = false
+}
+
+// AddVoiceoverOutputIDs adds the "voiceover_outputs" edge to the VoiceoverOutput entity by ids.
+func (m *VoiceoverMutation) AddVoiceoverOutputIDs(ids ...uuid.UUID) {
+	if m.voiceover_outputs == nil {
+		m.voiceover_outputs = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.voiceover_outputs[ids[i]] = struct{}{}
+	}
+}
+
+// ClearVoiceoverOutputs clears the "voiceover_outputs" edge to the VoiceoverOutput entity.
+func (m *VoiceoverMutation) ClearVoiceoverOutputs() {
+	m.clearedvoiceover_outputs = true
+}
+
+// VoiceoverOutputsCleared reports if the "voiceover_outputs" edge to the VoiceoverOutput entity was cleared.
+func (m *VoiceoverMutation) VoiceoverOutputsCleared() bool {
+	return m.clearedvoiceover_outputs
+}
+
+// RemoveVoiceoverOutputIDs removes the "voiceover_outputs" edge to the VoiceoverOutput entity by IDs.
+func (m *VoiceoverMutation) RemoveVoiceoverOutputIDs(ids ...uuid.UUID) {
+	if m.removedvoiceover_outputs == nil {
+		m.removedvoiceover_outputs = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.voiceover_outputs, ids[i])
+		m.removedvoiceover_outputs[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedVoiceoverOutputs returns the removed IDs of the "voiceover_outputs" edge to the VoiceoverOutput entity.
+func (m *VoiceoverMutation) RemovedVoiceoverOutputsIDs() (ids []uuid.UUID) {
+	for id := range m.removedvoiceover_outputs {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// VoiceoverOutputsIDs returns the "voiceover_outputs" edge IDs in the mutation.
+func (m *VoiceoverMutation) VoiceoverOutputsIDs() (ids []uuid.UUID) {
+	for id := range m.voiceover_outputs {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetVoiceoverOutputs resets all changes to the "voiceover_outputs" edge.
+func (m *VoiceoverMutation) ResetVoiceoverOutputs() {
+	m.voiceover_outputs = nil
+	m.clearedvoiceover_outputs = false
+	m.removedvoiceover_outputs = nil
+}
+
+// Where appends a list predicates to the VoiceoverMutation builder.
+func (m *VoiceoverMutation) Where(ps ...predicate.Voiceover) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the VoiceoverMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *VoiceoverMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.Voiceover, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *VoiceoverMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *VoiceoverMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (Voiceover).
+func (m *VoiceoverMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *VoiceoverMutation) Fields() []string {
+	fields := make([]string, 0, 13)
+	if m.country_code != nil {
+		fields = append(fields, voiceover.FieldCountryCode)
+	}
+	if m.status != nil {
+		fields = append(fields, voiceover.FieldStatus)
+	}
+	if m.failure_reason != nil {
+		fields = append(fields, voiceover.FieldFailureReason)
+	}
+	if m.stripe_product_id != nil {
+		fields = append(fields, voiceover.FieldStripeProductID)
+	}
+	if m.user != nil {
+		fields = append(fields, voiceover.FieldUserID)
+	}
+	if m.device_info != nil {
+		fields = append(fields, voiceover.FieldDeviceInfoID)
+	}
+	if m.voiceover_models != nil {
+		fields = append(fields, voiceover.FieldModelID)
+	}
+	if m.voiceover_speakers != nil {
+		fields = append(fields, voiceover.FieldSpeakerID)
+	}
+	if m.api_tokens != nil {
+		fields = append(fields, voiceover.FieldAPITokenID)
+	}
+	if m.started_at != nil {
+		fields = append(fields, voiceover.FieldStartedAt)
+	}
+	if m.completed_at != nil {
+		fields = append(fields, voiceover.FieldCompletedAt)
+	}
+	if m.created_at != nil {
+		fields = append(fields, voiceover.FieldCreatedAt)
+	}
+	if m.updated_at != nil {
+		fields = append(fields, voiceover.FieldUpdatedAt)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *VoiceoverMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case voiceover.FieldCountryCode:
+		return m.CountryCode()
+	case voiceover.FieldStatus:
+		return m.Status()
+	case voiceover.FieldFailureReason:
+		return m.FailureReason()
+	case voiceover.FieldStripeProductID:
+		return m.StripeProductID()
+	case voiceover.FieldUserID:
+		return m.UserID()
+	case voiceover.FieldDeviceInfoID:
+		return m.DeviceInfoID()
+	case voiceover.FieldModelID:
+		return m.ModelID()
+	case voiceover.FieldSpeakerID:
+		return m.SpeakerID()
+	case voiceover.FieldAPITokenID:
+		return m.APITokenID()
+	case voiceover.FieldStartedAt:
+		return m.StartedAt()
+	case voiceover.FieldCompletedAt:
+		return m.CompletedAt()
+	case voiceover.FieldCreatedAt:
+		return m.CreatedAt()
+	case voiceover.FieldUpdatedAt:
+		return m.UpdatedAt()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *VoiceoverMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case voiceover.FieldCountryCode:
+		return m.OldCountryCode(ctx)
+	case voiceover.FieldStatus:
+		return m.OldStatus(ctx)
+	case voiceover.FieldFailureReason:
+		return m.OldFailureReason(ctx)
+	case voiceover.FieldStripeProductID:
+		return m.OldStripeProductID(ctx)
+	case voiceover.FieldUserID:
+		return m.OldUserID(ctx)
+	case voiceover.FieldDeviceInfoID:
+		return m.OldDeviceInfoID(ctx)
+	case voiceover.FieldModelID:
+		return m.OldModelID(ctx)
+	case voiceover.FieldSpeakerID:
+		return m.OldSpeakerID(ctx)
+	case voiceover.FieldAPITokenID:
+		return m.OldAPITokenID(ctx)
+	case voiceover.FieldStartedAt:
+		return m.OldStartedAt(ctx)
+	case voiceover.FieldCompletedAt:
+		return m.OldCompletedAt(ctx)
+	case voiceover.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	case voiceover.FieldUpdatedAt:
+		return m.OldUpdatedAt(ctx)
+	}
+	return nil, fmt.Errorf("unknown Voiceover field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *VoiceoverMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case voiceover.FieldCountryCode:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCountryCode(v)
+		return nil
+	case voiceover.FieldStatus:
+		v, ok := value.(voiceover.Status)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetStatus(v)
+		return nil
+	case voiceover.FieldFailureReason:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetFailureReason(v)
+		return nil
+	case voiceover.FieldStripeProductID:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetStripeProductID(v)
+		return nil
+	case voiceover.FieldUserID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUserID(v)
+		return nil
+	case voiceover.FieldDeviceInfoID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDeviceInfoID(v)
+		return nil
+	case voiceover.FieldModelID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetModelID(v)
+		return nil
+	case voiceover.FieldSpeakerID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSpeakerID(v)
+		return nil
+	case voiceover.FieldAPITokenID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetAPITokenID(v)
+		return nil
+	case voiceover.FieldStartedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetStartedAt(v)
+		return nil
+	case voiceover.FieldCompletedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCompletedAt(v)
+		return nil
+	case voiceover.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	case voiceover.FieldUpdatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedAt(v)
+		return nil
+	}
+	return fmt.Errorf("unknown Voiceover field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *VoiceoverMutation) AddedFields() []string {
+	return nil
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *VoiceoverMutation) AddedField(name string) (ent.Value, bool) {
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *VoiceoverMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown Voiceover numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *VoiceoverMutation) ClearedFields() []string {
+	var fields []string
+	if m.FieldCleared(voiceover.FieldCountryCode) {
+		fields = append(fields, voiceover.FieldCountryCode)
+	}
+	if m.FieldCleared(voiceover.FieldFailureReason) {
+		fields = append(fields, voiceover.FieldFailureReason)
+	}
+	if m.FieldCleared(voiceover.FieldStripeProductID) {
+		fields = append(fields, voiceover.FieldStripeProductID)
+	}
+	if m.FieldCleared(voiceover.FieldAPITokenID) {
+		fields = append(fields, voiceover.FieldAPITokenID)
+	}
+	if m.FieldCleared(voiceover.FieldStartedAt) {
+		fields = append(fields, voiceover.FieldStartedAt)
+	}
+	if m.FieldCleared(voiceover.FieldCompletedAt) {
+		fields = append(fields, voiceover.FieldCompletedAt)
+	}
+	return fields
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *VoiceoverMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *VoiceoverMutation) ClearField(name string) error {
+	switch name {
+	case voiceover.FieldCountryCode:
+		m.ClearCountryCode()
+		return nil
+	case voiceover.FieldFailureReason:
+		m.ClearFailureReason()
+		return nil
+	case voiceover.FieldStripeProductID:
+		m.ClearStripeProductID()
+		return nil
+	case voiceover.FieldAPITokenID:
+		m.ClearAPITokenID()
+		return nil
+	case voiceover.FieldStartedAt:
+		m.ClearStartedAt()
+		return nil
+	case voiceover.FieldCompletedAt:
+		m.ClearCompletedAt()
+		return nil
+	}
+	return fmt.Errorf("unknown Voiceover nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *VoiceoverMutation) ResetField(name string) error {
+	switch name {
+	case voiceover.FieldCountryCode:
+		m.ResetCountryCode()
+		return nil
+	case voiceover.FieldStatus:
+		m.ResetStatus()
+		return nil
+	case voiceover.FieldFailureReason:
+		m.ResetFailureReason()
+		return nil
+	case voiceover.FieldStripeProductID:
+		m.ResetStripeProductID()
+		return nil
+	case voiceover.FieldUserID:
+		m.ResetUserID()
+		return nil
+	case voiceover.FieldDeviceInfoID:
+		m.ResetDeviceInfoID()
+		return nil
+	case voiceover.FieldModelID:
+		m.ResetModelID()
+		return nil
+	case voiceover.FieldSpeakerID:
+		m.ResetSpeakerID()
+		return nil
+	case voiceover.FieldAPITokenID:
+		m.ResetAPITokenID()
+		return nil
+	case voiceover.FieldStartedAt:
+		m.ResetStartedAt()
+		return nil
+	case voiceover.FieldCompletedAt:
+		m.ResetCompletedAt()
+		return nil
+	case voiceover.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	case voiceover.FieldUpdatedAt:
+		m.ResetUpdatedAt()
+		return nil
+	}
+	return fmt.Errorf("unknown Voiceover field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *VoiceoverMutation) AddedEdges() []string {
+	edges := make([]string, 0, 6)
+	if m.user != nil {
+		edges = append(edges, voiceover.EdgeUser)
+	}
+	if m.device_info != nil {
+		edges = append(edges, voiceover.EdgeDeviceInfo)
+	}
+	if m.voiceover_models != nil {
+		edges = append(edges, voiceover.EdgeVoiceoverModels)
+	}
+	if m.voiceover_speakers != nil {
+		edges = append(edges, voiceover.EdgeVoiceoverSpeakers)
+	}
+	if m.api_tokens != nil {
+		edges = append(edges, voiceover.EdgeAPITokens)
+	}
+	if m.voiceover_outputs != nil {
+		edges = append(edges, voiceover.EdgeVoiceoverOutputs)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *VoiceoverMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case voiceover.EdgeUser:
+		if id := m.user; id != nil {
+			return []ent.Value{*id}
+		}
+	case voiceover.EdgeDeviceInfo:
+		if id := m.device_info; id != nil {
+			return []ent.Value{*id}
+		}
+	case voiceover.EdgeVoiceoverModels:
+		if id := m.voiceover_models; id != nil {
+			return []ent.Value{*id}
+		}
+	case voiceover.EdgeVoiceoverSpeakers:
+		if id := m.voiceover_speakers; id != nil {
+			return []ent.Value{*id}
+		}
+	case voiceover.EdgeAPITokens:
+		if id := m.api_tokens; id != nil {
+			return []ent.Value{*id}
+		}
+	case voiceover.EdgeVoiceoverOutputs:
+		ids := make([]ent.Value, 0, len(m.voiceover_outputs))
+		for id := range m.voiceover_outputs {
+			ids = append(ids, id)
+		}
+		return ids
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *VoiceoverMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 6)
+	if m.removedvoiceover_outputs != nil {
+		edges = append(edges, voiceover.EdgeVoiceoverOutputs)
+	}
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *VoiceoverMutation) RemovedIDs(name string) []ent.Value {
+	switch name {
+	case voiceover.EdgeVoiceoverOutputs:
+		ids := make([]ent.Value, 0, len(m.removedvoiceover_outputs))
+		for id := range m.removedvoiceover_outputs {
+			ids = append(ids, id)
+		}
+		return ids
+	}
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *VoiceoverMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 6)
+	if m.cleareduser {
+		edges = append(edges, voiceover.EdgeUser)
+	}
+	if m.cleareddevice_info {
+		edges = append(edges, voiceover.EdgeDeviceInfo)
+	}
+	if m.clearedvoiceover_models {
+		edges = append(edges, voiceover.EdgeVoiceoverModels)
+	}
+	if m.clearedvoiceover_speakers {
+		edges = append(edges, voiceover.EdgeVoiceoverSpeakers)
+	}
+	if m.clearedapi_tokens {
+		edges = append(edges, voiceover.EdgeAPITokens)
+	}
+	if m.clearedvoiceover_outputs {
+		edges = append(edges, voiceover.EdgeVoiceoverOutputs)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *VoiceoverMutation) EdgeCleared(name string) bool {
+	switch name {
+	case voiceover.EdgeUser:
+		return m.cleareduser
+	case voiceover.EdgeDeviceInfo:
+		return m.cleareddevice_info
+	case voiceover.EdgeVoiceoverModels:
+		return m.clearedvoiceover_models
+	case voiceover.EdgeVoiceoverSpeakers:
+		return m.clearedvoiceover_speakers
+	case voiceover.EdgeAPITokens:
+		return m.clearedapi_tokens
+	case voiceover.EdgeVoiceoverOutputs:
+		return m.clearedvoiceover_outputs
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *VoiceoverMutation) ClearEdge(name string) error {
+	switch name {
+	case voiceover.EdgeUser:
+		m.ClearUser()
+		return nil
+	case voiceover.EdgeDeviceInfo:
+		m.ClearDeviceInfo()
+		return nil
+	case voiceover.EdgeVoiceoverModels:
+		m.ClearVoiceoverModels()
+		return nil
+	case voiceover.EdgeVoiceoverSpeakers:
+		m.ClearVoiceoverSpeakers()
+		return nil
+	case voiceover.EdgeAPITokens:
+		m.ClearAPITokens()
+		return nil
+	}
+	return fmt.Errorf("unknown Voiceover unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *VoiceoverMutation) ResetEdge(name string) error {
+	switch name {
+	case voiceover.EdgeUser:
+		m.ResetUser()
+		return nil
+	case voiceover.EdgeDeviceInfo:
+		m.ResetDeviceInfo()
+		return nil
+	case voiceover.EdgeVoiceoverModels:
+		m.ResetVoiceoverModels()
+		return nil
+	case voiceover.EdgeVoiceoverSpeakers:
+		m.ResetVoiceoverSpeakers()
+		return nil
+	case voiceover.EdgeAPITokens:
+		m.ResetAPITokens()
+		return nil
+	case voiceover.EdgeVoiceoverOutputs:
+		m.ResetVoiceoverOutputs()
+		return nil
+	}
+	return fmt.Errorf("unknown Voiceover edge %s", name)
+}
+
+// VoiceoverModelMutation represents an operation that mutates the VoiceoverModel nodes in the graph.
+type VoiceoverModelMutation struct {
+	config
+	op                        Op
+	typ                       string
+	id                        *uuid.UUID
+	name_in_worker            *string
+	is_active                 *bool
+	is_default                *bool
+	is_hidden                 *bool
+	created_at                *time.Time
+	updated_at                *time.Time
+	clearedFields             map[string]struct{}
+	voiceovers                map[uuid.UUID]struct{}
+	removedvoiceovers         map[uuid.UUID]struct{}
+	clearedvoiceovers         bool
+	voiceover_speakers        map[uuid.UUID]struct{}
+	removedvoiceover_speakers map[uuid.UUID]struct{}
+	clearedvoiceover_speakers bool
+	done                      bool
+	oldValue                  func(context.Context) (*VoiceoverModel, error)
+	predicates                []predicate.VoiceoverModel
+}
+
+var _ ent.Mutation = (*VoiceoverModelMutation)(nil)
+
+// voiceovermodelOption allows management of the mutation configuration using functional options.
+type voiceovermodelOption func(*VoiceoverModelMutation)
+
+// newVoiceoverModelMutation creates new mutation for the VoiceoverModel entity.
+func newVoiceoverModelMutation(c config, op Op, opts ...voiceovermodelOption) *VoiceoverModelMutation {
+	m := &VoiceoverModelMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeVoiceoverModel,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withVoiceoverModelID sets the ID field of the mutation.
+func withVoiceoverModelID(id uuid.UUID) voiceovermodelOption {
+	return func(m *VoiceoverModelMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *VoiceoverModel
+		)
+		m.oldValue = func(ctx context.Context) (*VoiceoverModel, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().VoiceoverModel.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withVoiceoverModel sets the old VoiceoverModel of the mutation.
+func withVoiceoverModel(node *VoiceoverModel) voiceovermodelOption {
+	return func(m *VoiceoverModelMutation) {
+		m.oldValue = func(context.Context) (*VoiceoverModel, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m VoiceoverModelMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m VoiceoverModelMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of VoiceoverModel entities.
+func (m *VoiceoverModelMutation) SetID(id uuid.UUID) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *VoiceoverModelMutation) ID() (id uuid.UUID, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *VoiceoverModelMutation) IDs(ctx context.Context) ([]uuid.UUID, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []uuid.UUID{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().VoiceoverModel.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetNameInWorker sets the "name_in_worker" field.
+func (m *VoiceoverModelMutation) SetNameInWorker(s string) {
+	m.name_in_worker = &s
+}
+
+// NameInWorker returns the value of the "name_in_worker" field in the mutation.
+func (m *VoiceoverModelMutation) NameInWorker() (r string, exists bool) {
+	v := m.name_in_worker
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldNameInWorker returns the old "name_in_worker" field's value of the VoiceoverModel entity.
+// If the VoiceoverModel object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *VoiceoverModelMutation) OldNameInWorker(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldNameInWorker is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldNameInWorker requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldNameInWorker: %w", err)
+	}
+	return oldValue.NameInWorker, nil
+}
+
+// ResetNameInWorker resets all changes to the "name_in_worker" field.
+func (m *VoiceoverModelMutation) ResetNameInWorker() {
+	m.name_in_worker = nil
+}
+
+// SetIsActive sets the "is_active" field.
+func (m *VoiceoverModelMutation) SetIsActive(b bool) {
+	m.is_active = &b
+}
+
+// IsActive returns the value of the "is_active" field in the mutation.
+func (m *VoiceoverModelMutation) IsActive() (r bool, exists bool) {
+	v := m.is_active
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldIsActive returns the old "is_active" field's value of the VoiceoverModel entity.
+// If the VoiceoverModel object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *VoiceoverModelMutation) OldIsActive(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldIsActive is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldIsActive requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldIsActive: %w", err)
+	}
+	return oldValue.IsActive, nil
+}
+
+// ResetIsActive resets all changes to the "is_active" field.
+func (m *VoiceoverModelMutation) ResetIsActive() {
+	m.is_active = nil
+}
+
+// SetIsDefault sets the "is_default" field.
+func (m *VoiceoverModelMutation) SetIsDefault(b bool) {
+	m.is_default = &b
+}
+
+// IsDefault returns the value of the "is_default" field in the mutation.
+func (m *VoiceoverModelMutation) IsDefault() (r bool, exists bool) {
+	v := m.is_default
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldIsDefault returns the old "is_default" field's value of the VoiceoverModel entity.
+// If the VoiceoverModel object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *VoiceoverModelMutation) OldIsDefault(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldIsDefault is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldIsDefault requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldIsDefault: %w", err)
+	}
+	return oldValue.IsDefault, nil
+}
+
+// ResetIsDefault resets all changes to the "is_default" field.
+func (m *VoiceoverModelMutation) ResetIsDefault() {
+	m.is_default = nil
+}
+
+// SetIsHidden sets the "is_hidden" field.
+func (m *VoiceoverModelMutation) SetIsHidden(b bool) {
+	m.is_hidden = &b
+}
+
+// IsHidden returns the value of the "is_hidden" field in the mutation.
+func (m *VoiceoverModelMutation) IsHidden() (r bool, exists bool) {
+	v := m.is_hidden
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldIsHidden returns the old "is_hidden" field's value of the VoiceoverModel entity.
+// If the VoiceoverModel object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *VoiceoverModelMutation) OldIsHidden(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldIsHidden is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldIsHidden requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldIsHidden: %w", err)
+	}
+	return oldValue.IsHidden, nil
+}
+
+// ResetIsHidden resets all changes to the "is_hidden" field.
+func (m *VoiceoverModelMutation) ResetIsHidden() {
+	m.is_hidden = nil
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *VoiceoverModelMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *VoiceoverModelMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the VoiceoverModel entity.
+// If the VoiceoverModel object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *VoiceoverModelMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *VoiceoverModelMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (m *VoiceoverModelMutation) SetUpdatedAt(t time.Time) {
+	m.updated_at = &t
+}
+
+// UpdatedAt returns the value of the "updated_at" field in the mutation.
+func (m *VoiceoverModelMutation) UpdatedAt() (r time.Time, exists bool) {
+	v := m.updated_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedAt returns the old "updated_at" field's value of the VoiceoverModel entity.
+// If the VoiceoverModel object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *VoiceoverModelMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
+	}
+	return oldValue.UpdatedAt, nil
+}
+
+// ResetUpdatedAt resets all changes to the "updated_at" field.
+func (m *VoiceoverModelMutation) ResetUpdatedAt() {
+	m.updated_at = nil
+}
+
+// AddVoiceoverIDs adds the "voiceovers" edge to the Voiceover entity by ids.
+func (m *VoiceoverModelMutation) AddVoiceoverIDs(ids ...uuid.UUID) {
+	if m.voiceovers == nil {
+		m.voiceovers = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.voiceovers[ids[i]] = struct{}{}
+	}
+}
+
+// ClearVoiceovers clears the "voiceovers" edge to the Voiceover entity.
+func (m *VoiceoverModelMutation) ClearVoiceovers() {
+	m.clearedvoiceovers = true
+}
+
+// VoiceoversCleared reports if the "voiceovers" edge to the Voiceover entity was cleared.
+func (m *VoiceoverModelMutation) VoiceoversCleared() bool {
+	return m.clearedvoiceovers
+}
+
+// RemoveVoiceoverIDs removes the "voiceovers" edge to the Voiceover entity by IDs.
+func (m *VoiceoverModelMutation) RemoveVoiceoverIDs(ids ...uuid.UUID) {
+	if m.removedvoiceovers == nil {
+		m.removedvoiceovers = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.voiceovers, ids[i])
+		m.removedvoiceovers[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedVoiceovers returns the removed IDs of the "voiceovers" edge to the Voiceover entity.
+func (m *VoiceoverModelMutation) RemovedVoiceoversIDs() (ids []uuid.UUID) {
+	for id := range m.removedvoiceovers {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// VoiceoversIDs returns the "voiceovers" edge IDs in the mutation.
+func (m *VoiceoverModelMutation) VoiceoversIDs() (ids []uuid.UUID) {
+	for id := range m.voiceovers {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetVoiceovers resets all changes to the "voiceovers" edge.
+func (m *VoiceoverModelMutation) ResetVoiceovers() {
+	m.voiceovers = nil
+	m.clearedvoiceovers = false
+	m.removedvoiceovers = nil
+}
+
+// AddVoiceoverSpeakerIDs adds the "voiceover_speakers" edge to the VoiceoverSpeaker entity by ids.
+func (m *VoiceoverModelMutation) AddVoiceoverSpeakerIDs(ids ...uuid.UUID) {
+	if m.voiceover_speakers == nil {
+		m.voiceover_speakers = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.voiceover_speakers[ids[i]] = struct{}{}
+	}
+}
+
+// ClearVoiceoverSpeakers clears the "voiceover_speakers" edge to the VoiceoverSpeaker entity.
+func (m *VoiceoverModelMutation) ClearVoiceoverSpeakers() {
+	m.clearedvoiceover_speakers = true
+}
+
+// VoiceoverSpeakersCleared reports if the "voiceover_speakers" edge to the VoiceoverSpeaker entity was cleared.
+func (m *VoiceoverModelMutation) VoiceoverSpeakersCleared() bool {
+	return m.clearedvoiceover_speakers
+}
+
+// RemoveVoiceoverSpeakerIDs removes the "voiceover_speakers" edge to the VoiceoverSpeaker entity by IDs.
+func (m *VoiceoverModelMutation) RemoveVoiceoverSpeakerIDs(ids ...uuid.UUID) {
+	if m.removedvoiceover_speakers == nil {
+		m.removedvoiceover_speakers = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.voiceover_speakers, ids[i])
+		m.removedvoiceover_speakers[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedVoiceoverSpeakers returns the removed IDs of the "voiceover_speakers" edge to the VoiceoverSpeaker entity.
+func (m *VoiceoverModelMutation) RemovedVoiceoverSpeakersIDs() (ids []uuid.UUID) {
+	for id := range m.removedvoiceover_speakers {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// VoiceoverSpeakersIDs returns the "voiceover_speakers" edge IDs in the mutation.
+func (m *VoiceoverModelMutation) VoiceoverSpeakersIDs() (ids []uuid.UUID) {
+	for id := range m.voiceover_speakers {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetVoiceoverSpeakers resets all changes to the "voiceover_speakers" edge.
+func (m *VoiceoverModelMutation) ResetVoiceoverSpeakers() {
+	m.voiceover_speakers = nil
+	m.clearedvoiceover_speakers = false
+	m.removedvoiceover_speakers = nil
+}
+
+// Where appends a list predicates to the VoiceoverModelMutation builder.
+func (m *VoiceoverModelMutation) Where(ps ...predicate.VoiceoverModel) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the VoiceoverModelMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *VoiceoverModelMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.VoiceoverModel, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *VoiceoverModelMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *VoiceoverModelMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (VoiceoverModel).
+func (m *VoiceoverModelMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *VoiceoverModelMutation) Fields() []string {
+	fields := make([]string, 0, 6)
+	if m.name_in_worker != nil {
+		fields = append(fields, voiceovermodel.FieldNameInWorker)
+	}
+	if m.is_active != nil {
+		fields = append(fields, voiceovermodel.FieldIsActive)
+	}
+	if m.is_default != nil {
+		fields = append(fields, voiceovermodel.FieldIsDefault)
+	}
+	if m.is_hidden != nil {
+		fields = append(fields, voiceovermodel.FieldIsHidden)
+	}
+	if m.created_at != nil {
+		fields = append(fields, voiceovermodel.FieldCreatedAt)
+	}
+	if m.updated_at != nil {
+		fields = append(fields, voiceovermodel.FieldUpdatedAt)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *VoiceoverModelMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case voiceovermodel.FieldNameInWorker:
+		return m.NameInWorker()
+	case voiceovermodel.FieldIsActive:
+		return m.IsActive()
+	case voiceovermodel.FieldIsDefault:
+		return m.IsDefault()
+	case voiceovermodel.FieldIsHidden:
+		return m.IsHidden()
+	case voiceovermodel.FieldCreatedAt:
+		return m.CreatedAt()
+	case voiceovermodel.FieldUpdatedAt:
+		return m.UpdatedAt()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *VoiceoverModelMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case voiceovermodel.FieldNameInWorker:
+		return m.OldNameInWorker(ctx)
+	case voiceovermodel.FieldIsActive:
+		return m.OldIsActive(ctx)
+	case voiceovermodel.FieldIsDefault:
+		return m.OldIsDefault(ctx)
+	case voiceovermodel.FieldIsHidden:
+		return m.OldIsHidden(ctx)
+	case voiceovermodel.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	case voiceovermodel.FieldUpdatedAt:
+		return m.OldUpdatedAt(ctx)
+	}
+	return nil, fmt.Errorf("unknown VoiceoverModel field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *VoiceoverModelMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case voiceovermodel.FieldNameInWorker:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetNameInWorker(v)
+		return nil
+	case voiceovermodel.FieldIsActive:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetIsActive(v)
+		return nil
+	case voiceovermodel.FieldIsDefault:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetIsDefault(v)
+		return nil
+	case voiceovermodel.FieldIsHidden:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetIsHidden(v)
+		return nil
+	case voiceovermodel.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	case voiceovermodel.FieldUpdatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedAt(v)
+		return nil
+	}
+	return fmt.Errorf("unknown VoiceoverModel field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *VoiceoverModelMutation) AddedFields() []string {
+	return nil
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *VoiceoverModelMutation) AddedField(name string) (ent.Value, bool) {
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *VoiceoverModelMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown VoiceoverModel numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *VoiceoverModelMutation) ClearedFields() []string {
+	return nil
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *VoiceoverModelMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *VoiceoverModelMutation) ClearField(name string) error {
+	return fmt.Errorf("unknown VoiceoverModel nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *VoiceoverModelMutation) ResetField(name string) error {
+	switch name {
+	case voiceovermodel.FieldNameInWorker:
+		m.ResetNameInWorker()
+		return nil
+	case voiceovermodel.FieldIsActive:
+		m.ResetIsActive()
+		return nil
+	case voiceovermodel.FieldIsDefault:
+		m.ResetIsDefault()
+		return nil
+	case voiceovermodel.FieldIsHidden:
+		m.ResetIsHidden()
+		return nil
+	case voiceovermodel.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	case voiceovermodel.FieldUpdatedAt:
+		m.ResetUpdatedAt()
+		return nil
+	}
+	return fmt.Errorf("unknown VoiceoverModel field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *VoiceoverModelMutation) AddedEdges() []string {
+	edges := make([]string, 0, 2)
+	if m.voiceovers != nil {
+		edges = append(edges, voiceovermodel.EdgeVoiceovers)
+	}
+	if m.voiceover_speakers != nil {
+		edges = append(edges, voiceovermodel.EdgeVoiceoverSpeakers)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *VoiceoverModelMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case voiceovermodel.EdgeVoiceovers:
+		ids := make([]ent.Value, 0, len(m.voiceovers))
+		for id := range m.voiceovers {
+			ids = append(ids, id)
+		}
+		return ids
+	case voiceovermodel.EdgeVoiceoverSpeakers:
+		ids := make([]ent.Value, 0, len(m.voiceover_speakers))
+		for id := range m.voiceover_speakers {
+			ids = append(ids, id)
+		}
+		return ids
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *VoiceoverModelMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 2)
+	if m.removedvoiceovers != nil {
+		edges = append(edges, voiceovermodel.EdgeVoiceovers)
+	}
+	if m.removedvoiceover_speakers != nil {
+		edges = append(edges, voiceovermodel.EdgeVoiceoverSpeakers)
+	}
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *VoiceoverModelMutation) RemovedIDs(name string) []ent.Value {
+	switch name {
+	case voiceovermodel.EdgeVoiceovers:
+		ids := make([]ent.Value, 0, len(m.removedvoiceovers))
+		for id := range m.removedvoiceovers {
+			ids = append(ids, id)
+		}
+		return ids
+	case voiceovermodel.EdgeVoiceoverSpeakers:
+		ids := make([]ent.Value, 0, len(m.removedvoiceover_speakers))
+		for id := range m.removedvoiceover_speakers {
+			ids = append(ids, id)
+		}
+		return ids
+	}
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *VoiceoverModelMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 2)
+	if m.clearedvoiceovers {
+		edges = append(edges, voiceovermodel.EdgeVoiceovers)
+	}
+	if m.clearedvoiceover_speakers {
+		edges = append(edges, voiceovermodel.EdgeVoiceoverSpeakers)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *VoiceoverModelMutation) EdgeCleared(name string) bool {
+	switch name {
+	case voiceovermodel.EdgeVoiceovers:
+		return m.clearedvoiceovers
+	case voiceovermodel.EdgeVoiceoverSpeakers:
+		return m.clearedvoiceover_speakers
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *VoiceoverModelMutation) ClearEdge(name string) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown VoiceoverModel unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *VoiceoverModelMutation) ResetEdge(name string) error {
+	switch name {
+	case voiceovermodel.EdgeVoiceovers:
+		m.ResetVoiceovers()
+		return nil
+	case voiceovermodel.EdgeVoiceoverSpeakers:
+		m.ResetVoiceoverSpeakers()
+		return nil
+	}
+	return fmt.Errorf("unknown VoiceoverModel edge %s", name)
+}
+
+// VoiceoverOutputMutation represents an operation that mutates the VoiceoverOutput nodes in the graph.
+type VoiceoverOutputMutation struct {
+	config
+	op                Op
+	typ               string
+	id                *uuid.UUID
+	audio_path        *string
+	deleted_at        *time.Time
+	created_at        *time.Time
+	updated_at        *time.Time
+	clearedFields     map[string]struct{}
+	voiceovers        *uuid.UUID
+	clearedvoiceovers bool
+	done              bool
+	oldValue          func(context.Context) (*VoiceoverOutput, error)
+	predicates        []predicate.VoiceoverOutput
+}
+
+var _ ent.Mutation = (*VoiceoverOutputMutation)(nil)
+
+// voiceoveroutputOption allows management of the mutation configuration using functional options.
+type voiceoveroutputOption func(*VoiceoverOutputMutation)
+
+// newVoiceoverOutputMutation creates new mutation for the VoiceoverOutput entity.
+func newVoiceoverOutputMutation(c config, op Op, opts ...voiceoveroutputOption) *VoiceoverOutputMutation {
+	m := &VoiceoverOutputMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeVoiceoverOutput,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withVoiceoverOutputID sets the ID field of the mutation.
+func withVoiceoverOutputID(id uuid.UUID) voiceoveroutputOption {
+	return func(m *VoiceoverOutputMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *VoiceoverOutput
+		)
+		m.oldValue = func(ctx context.Context) (*VoiceoverOutput, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().VoiceoverOutput.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withVoiceoverOutput sets the old VoiceoverOutput of the mutation.
+func withVoiceoverOutput(node *VoiceoverOutput) voiceoveroutputOption {
+	return func(m *VoiceoverOutputMutation) {
+		m.oldValue = func(context.Context) (*VoiceoverOutput, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m VoiceoverOutputMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m VoiceoverOutputMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of VoiceoverOutput entities.
+func (m *VoiceoverOutputMutation) SetID(id uuid.UUID) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *VoiceoverOutputMutation) ID() (id uuid.UUID, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *VoiceoverOutputMutation) IDs(ctx context.Context) ([]uuid.UUID, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []uuid.UUID{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().VoiceoverOutput.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetAudioPath sets the "audio_path" field.
+func (m *VoiceoverOutputMutation) SetAudioPath(s string) {
+	m.audio_path = &s
+}
+
+// AudioPath returns the value of the "audio_path" field in the mutation.
+func (m *VoiceoverOutputMutation) AudioPath() (r string, exists bool) {
+	v := m.audio_path
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldAudioPath returns the old "audio_path" field's value of the VoiceoverOutput entity.
+// If the VoiceoverOutput object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *VoiceoverOutputMutation) OldAudioPath(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldAudioPath is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldAudioPath requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldAudioPath: %w", err)
+	}
+	return oldValue.AudioPath, nil
+}
+
+// ResetAudioPath resets all changes to the "audio_path" field.
+func (m *VoiceoverOutputMutation) ResetAudioPath() {
+	m.audio_path = nil
+}
+
+// SetVoiceoverID sets the "voiceover_id" field.
+func (m *VoiceoverOutputMutation) SetVoiceoverID(u uuid.UUID) {
+	m.voiceovers = &u
+}
+
+// VoiceoverID returns the value of the "voiceover_id" field in the mutation.
+func (m *VoiceoverOutputMutation) VoiceoverID() (r uuid.UUID, exists bool) {
+	v := m.voiceovers
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldVoiceoverID returns the old "voiceover_id" field's value of the VoiceoverOutput entity.
+// If the VoiceoverOutput object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *VoiceoverOutputMutation) OldVoiceoverID(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldVoiceoverID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldVoiceoverID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldVoiceoverID: %w", err)
+	}
+	return oldValue.VoiceoverID, nil
+}
+
+// ResetVoiceoverID resets all changes to the "voiceover_id" field.
+func (m *VoiceoverOutputMutation) ResetVoiceoverID() {
+	m.voiceovers = nil
+}
+
+// SetDeletedAt sets the "deleted_at" field.
+func (m *VoiceoverOutputMutation) SetDeletedAt(t time.Time) {
+	m.deleted_at = &t
+}
+
+// DeletedAt returns the value of the "deleted_at" field in the mutation.
+func (m *VoiceoverOutputMutation) DeletedAt() (r time.Time, exists bool) {
+	v := m.deleted_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDeletedAt returns the old "deleted_at" field's value of the VoiceoverOutput entity.
+// If the VoiceoverOutput object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *VoiceoverOutputMutation) OldDeletedAt(ctx context.Context) (v *time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDeletedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDeletedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDeletedAt: %w", err)
+	}
+	return oldValue.DeletedAt, nil
+}
+
+// ClearDeletedAt clears the value of the "deleted_at" field.
+func (m *VoiceoverOutputMutation) ClearDeletedAt() {
+	m.deleted_at = nil
+	m.clearedFields[voiceoveroutput.FieldDeletedAt] = struct{}{}
+}
+
+// DeletedAtCleared returns if the "deleted_at" field was cleared in this mutation.
+func (m *VoiceoverOutputMutation) DeletedAtCleared() bool {
+	_, ok := m.clearedFields[voiceoveroutput.FieldDeletedAt]
+	return ok
+}
+
+// ResetDeletedAt resets all changes to the "deleted_at" field.
+func (m *VoiceoverOutputMutation) ResetDeletedAt() {
+	m.deleted_at = nil
+	delete(m.clearedFields, voiceoveroutput.FieldDeletedAt)
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *VoiceoverOutputMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *VoiceoverOutputMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the VoiceoverOutput entity.
+// If the VoiceoverOutput object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *VoiceoverOutputMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *VoiceoverOutputMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (m *VoiceoverOutputMutation) SetUpdatedAt(t time.Time) {
+	m.updated_at = &t
+}
+
+// UpdatedAt returns the value of the "updated_at" field in the mutation.
+func (m *VoiceoverOutputMutation) UpdatedAt() (r time.Time, exists bool) {
+	v := m.updated_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedAt returns the old "updated_at" field's value of the VoiceoverOutput entity.
+// If the VoiceoverOutput object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *VoiceoverOutputMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
+	}
+	return oldValue.UpdatedAt, nil
+}
+
+// ResetUpdatedAt resets all changes to the "updated_at" field.
+func (m *VoiceoverOutputMutation) ResetUpdatedAt() {
+	m.updated_at = nil
+}
+
+// SetVoiceoversID sets the "voiceovers" edge to the Voiceover entity by id.
+func (m *VoiceoverOutputMutation) SetVoiceoversID(id uuid.UUID) {
+	m.voiceovers = &id
+}
+
+// ClearVoiceovers clears the "voiceovers" edge to the Voiceover entity.
+func (m *VoiceoverOutputMutation) ClearVoiceovers() {
+	m.clearedvoiceovers = true
+}
+
+// VoiceoversCleared reports if the "voiceovers" edge to the Voiceover entity was cleared.
+func (m *VoiceoverOutputMutation) VoiceoversCleared() bool {
+	return m.clearedvoiceovers
+}
+
+// VoiceoversID returns the "voiceovers" edge ID in the mutation.
+func (m *VoiceoverOutputMutation) VoiceoversID() (id uuid.UUID, exists bool) {
+	if m.voiceovers != nil {
+		return *m.voiceovers, true
+	}
+	return
+}
+
+// VoiceoversIDs returns the "voiceovers" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// VoiceoversID instead. It exists only for internal usage by the builders.
+func (m *VoiceoverOutputMutation) VoiceoversIDs() (ids []uuid.UUID) {
+	if id := m.voiceovers; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetVoiceovers resets all changes to the "voiceovers" edge.
+func (m *VoiceoverOutputMutation) ResetVoiceovers() {
+	m.voiceovers = nil
+	m.clearedvoiceovers = false
+}
+
+// Where appends a list predicates to the VoiceoverOutputMutation builder.
+func (m *VoiceoverOutputMutation) Where(ps ...predicate.VoiceoverOutput) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the VoiceoverOutputMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *VoiceoverOutputMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.VoiceoverOutput, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *VoiceoverOutputMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *VoiceoverOutputMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (VoiceoverOutput).
+func (m *VoiceoverOutputMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *VoiceoverOutputMutation) Fields() []string {
+	fields := make([]string, 0, 5)
+	if m.audio_path != nil {
+		fields = append(fields, voiceoveroutput.FieldAudioPath)
+	}
+	if m.voiceovers != nil {
+		fields = append(fields, voiceoveroutput.FieldVoiceoverID)
+	}
+	if m.deleted_at != nil {
+		fields = append(fields, voiceoveroutput.FieldDeletedAt)
+	}
+	if m.created_at != nil {
+		fields = append(fields, voiceoveroutput.FieldCreatedAt)
+	}
+	if m.updated_at != nil {
+		fields = append(fields, voiceoveroutput.FieldUpdatedAt)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *VoiceoverOutputMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case voiceoveroutput.FieldAudioPath:
+		return m.AudioPath()
+	case voiceoveroutput.FieldVoiceoverID:
+		return m.VoiceoverID()
+	case voiceoveroutput.FieldDeletedAt:
+		return m.DeletedAt()
+	case voiceoveroutput.FieldCreatedAt:
+		return m.CreatedAt()
+	case voiceoveroutput.FieldUpdatedAt:
+		return m.UpdatedAt()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *VoiceoverOutputMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case voiceoveroutput.FieldAudioPath:
+		return m.OldAudioPath(ctx)
+	case voiceoveroutput.FieldVoiceoverID:
+		return m.OldVoiceoverID(ctx)
+	case voiceoveroutput.FieldDeletedAt:
+		return m.OldDeletedAt(ctx)
+	case voiceoveroutput.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	case voiceoveroutput.FieldUpdatedAt:
+		return m.OldUpdatedAt(ctx)
+	}
+	return nil, fmt.Errorf("unknown VoiceoverOutput field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *VoiceoverOutputMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case voiceoveroutput.FieldAudioPath:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetAudioPath(v)
+		return nil
+	case voiceoveroutput.FieldVoiceoverID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetVoiceoverID(v)
+		return nil
+	case voiceoveroutput.FieldDeletedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDeletedAt(v)
+		return nil
+	case voiceoveroutput.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	case voiceoveroutput.FieldUpdatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedAt(v)
+		return nil
+	}
+	return fmt.Errorf("unknown VoiceoverOutput field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *VoiceoverOutputMutation) AddedFields() []string {
+	return nil
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *VoiceoverOutputMutation) AddedField(name string) (ent.Value, bool) {
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *VoiceoverOutputMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown VoiceoverOutput numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *VoiceoverOutputMutation) ClearedFields() []string {
+	var fields []string
+	if m.FieldCleared(voiceoveroutput.FieldDeletedAt) {
+		fields = append(fields, voiceoveroutput.FieldDeletedAt)
+	}
+	return fields
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *VoiceoverOutputMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *VoiceoverOutputMutation) ClearField(name string) error {
+	switch name {
+	case voiceoveroutput.FieldDeletedAt:
+		m.ClearDeletedAt()
+		return nil
+	}
+	return fmt.Errorf("unknown VoiceoverOutput nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *VoiceoverOutputMutation) ResetField(name string) error {
+	switch name {
+	case voiceoveroutput.FieldAudioPath:
+		m.ResetAudioPath()
+		return nil
+	case voiceoveroutput.FieldVoiceoverID:
+		m.ResetVoiceoverID()
+		return nil
+	case voiceoveroutput.FieldDeletedAt:
+		m.ResetDeletedAt()
+		return nil
+	case voiceoveroutput.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	case voiceoveroutput.FieldUpdatedAt:
+		m.ResetUpdatedAt()
+		return nil
+	}
+	return fmt.Errorf("unknown VoiceoverOutput field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *VoiceoverOutputMutation) AddedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.voiceovers != nil {
+		edges = append(edges, voiceoveroutput.EdgeVoiceovers)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *VoiceoverOutputMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case voiceoveroutput.EdgeVoiceovers:
+		if id := m.voiceovers; id != nil {
+			return []ent.Value{*id}
+		}
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *VoiceoverOutputMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 1)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *VoiceoverOutputMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *VoiceoverOutputMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.clearedvoiceovers {
+		edges = append(edges, voiceoveroutput.EdgeVoiceovers)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *VoiceoverOutputMutation) EdgeCleared(name string) bool {
+	switch name {
+	case voiceoveroutput.EdgeVoiceovers:
+		return m.clearedvoiceovers
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *VoiceoverOutputMutation) ClearEdge(name string) error {
+	switch name {
+	case voiceoveroutput.EdgeVoiceovers:
+		m.ClearVoiceovers()
+		return nil
+	}
+	return fmt.Errorf("unknown VoiceoverOutput unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *VoiceoverOutputMutation) ResetEdge(name string) error {
+	switch name {
+	case voiceoveroutput.EdgeVoiceovers:
+		m.ResetVoiceovers()
+		return nil
+	}
+	return fmt.Errorf("unknown VoiceoverOutput edge %s", name)
+}
+
+// VoiceoverSpeakerMutation represents an operation that mutates the VoiceoverSpeaker nodes in the graph.
+type VoiceoverSpeakerMutation struct {
+	config
+	op                      Op
+	typ                     string
+	id                      *uuid.UUID
+	name_in_worker          *string
+	is_active               *bool
+	is_default              *bool
+	is_hidden               *bool
+	created_at              *time.Time
+	updated_at              *time.Time
+	clearedFields           map[string]struct{}
+	voiceovers              map[uuid.UUID]struct{}
+	removedvoiceovers       map[uuid.UUID]struct{}
+	clearedvoiceovers       bool
+	voiceover_models        *uuid.UUID
+	clearedvoiceover_models bool
+	done                    bool
+	oldValue                func(context.Context) (*VoiceoverSpeaker, error)
+	predicates              []predicate.VoiceoverSpeaker
+}
+
+var _ ent.Mutation = (*VoiceoverSpeakerMutation)(nil)
+
+// voiceoverspeakerOption allows management of the mutation configuration using functional options.
+type voiceoverspeakerOption func(*VoiceoverSpeakerMutation)
+
+// newVoiceoverSpeakerMutation creates new mutation for the VoiceoverSpeaker entity.
+func newVoiceoverSpeakerMutation(c config, op Op, opts ...voiceoverspeakerOption) *VoiceoverSpeakerMutation {
+	m := &VoiceoverSpeakerMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeVoiceoverSpeaker,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withVoiceoverSpeakerID sets the ID field of the mutation.
+func withVoiceoverSpeakerID(id uuid.UUID) voiceoverspeakerOption {
+	return func(m *VoiceoverSpeakerMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *VoiceoverSpeaker
+		)
+		m.oldValue = func(ctx context.Context) (*VoiceoverSpeaker, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().VoiceoverSpeaker.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withVoiceoverSpeaker sets the old VoiceoverSpeaker of the mutation.
+func withVoiceoverSpeaker(node *VoiceoverSpeaker) voiceoverspeakerOption {
+	return func(m *VoiceoverSpeakerMutation) {
+		m.oldValue = func(context.Context) (*VoiceoverSpeaker, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m VoiceoverSpeakerMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m VoiceoverSpeakerMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of VoiceoverSpeaker entities.
+func (m *VoiceoverSpeakerMutation) SetID(id uuid.UUID) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *VoiceoverSpeakerMutation) ID() (id uuid.UUID, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *VoiceoverSpeakerMutation) IDs(ctx context.Context) ([]uuid.UUID, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []uuid.UUID{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().VoiceoverSpeaker.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetNameInWorker sets the "name_in_worker" field.
+func (m *VoiceoverSpeakerMutation) SetNameInWorker(s string) {
+	m.name_in_worker = &s
+}
+
+// NameInWorker returns the value of the "name_in_worker" field in the mutation.
+func (m *VoiceoverSpeakerMutation) NameInWorker() (r string, exists bool) {
+	v := m.name_in_worker
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldNameInWorker returns the old "name_in_worker" field's value of the VoiceoverSpeaker entity.
+// If the VoiceoverSpeaker object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *VoiceoverSpeakerMutation) OldNameInWorker(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldNameInWorker is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldNameInWorker requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldNameInWorker: %w", err)
+	}
+	return oldValue.NameInWorker, nil
+}
+
+// ResetNameInWorker resets all changes to the "name_in_worker" field.
+func (m *VoiceoverSpeakerMutation) ResetNameInWorker() {
+	m.name_in_worker = nil
+}
+
+// SetIsActive sets the "is_active" field.
+func (m *VoiceoverSpeakerMutation) SetIsActive(b bool) {
+	m.is_active = &b
+}
+
+// IsActive returns the value of the "is_active" field in the mutation.
+func (m *VoiceoverSpeakerMutation) IsActive() (r bool, exists bool) {
+	v := m.is_active
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldIsActive returns the old "is_active" field's value of the VoiceoverSpeaker entity.
+// If the VoiceoverSpeaker object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *VoiceoverSpeakerMutation) OldIsActive(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldIsActive is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldIsActive requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldIsActive: %w", err)
+	}
+	return oldValue.IsActive, nil
+}
+
+// ResetIsActive resets all changes to the "is_active" field.
+func (m *VoiceoverSpeakerMutation) ResetIsActive() {
+	m.is_active = nil
+}
+
+// SetIsDefault sets the "is_default" field.
+func (m *VoiceoverSpeakerMutation) SetIsDefault(b bool) {
+	m.is_default = &b
+}
+
+// IsDefault returns the value of the "is_default" field in the mutation.
+func (m *VoiceoverSpeakerMutation) IsDefault() (r bool, exists bool) {
+	v := m.is_default
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldIsDefault returns the old "is_default" field's value of the VoiceoverSpeaker entity.
+// If the VoiceoverSpeaker object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *VoiceoverSpeakerMutation) OldIsDefault(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldIsDefault is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldIsDefault requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldIsDefault: %w", err)
+	}
+	return oldValue.IsDefault, nil
+}
+
+// ResetIsDefault resets all changes to the "is_default" field.
+func (m *VoiceoverSpeakerMutation) ResetIsDefault() {
+	m.is_default = nil
+}
+
+// SetIsHidden sets the "is_hidden" field.
+func (m *VoiceoverSpeakerMutation) SetIsHidden(b bool) {
+	m.is_hidden = &b
+}
+
+// IsHidden returns the value of the "is_hidden" field in the mutation.
+func (m *VoiceoverSpeakerMutation) IsHidden() (r bool, exists bool) {
+	v := m.is_hidden
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldIsHidden returns the old "is_hidden" field's value of the VoiceoverSpeaker entity.
+// If the VoiceoverSpeaker object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *VoiceoverSpeakerMutation) OldIsHidden(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldIsHidden is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldIsHidden requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldIsHidden: %w", err)
+	}
+	return oldValue.IsHidden, nil
+}
+
+// ResetIsHidden resets all changes to the "is_hidden" field.
+func (m *VoiceoverSpeakerMutation) ResetIsHidden() {
+	m.is_hidden = nil
+}
+
+// SetModelID sets the "model_id" field.
+func (m *VoiceoverSpeakerMutation) SetModelID(u uuid.UUID) {
+	m.voiceover_models = &u
+}
+
+// ModelID returns the value of the "model_id" field in the mutation.
+func (m *VoiceoverSpeakerMutation) ModelID() (r uuid.UUID, exists bool) {
+	v := m.voiceover_models
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldModelID returns the old "model_id" field's value of the VoiceoverSpeaker entity.
+// If the VoiceoverSpeaker object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *VoiceoverSpeakerMutation) OldModelID(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldModelID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldModelID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldModelID: %w", err)
+	}
+	return oldValue.ModelID, nil
+}
+
+// ResetModelID resets all changes to the "model_id" field.
+func (m *VoiceoverSpeakerMutation) ResetModelID() {
+	m.voiceover_models = nil
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *VoiceoverSpeakerMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *VoiceoverSpeakerMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the VoiceoverSpeaker entity.
+// If the VoiceoverSpeaker object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *VoiceoverSpeakerMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *VoiceoverSpeakerMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (m *VoiceoverSpeakerMutation) SetUpdatedAt(t time.Time) {
+	m.updated_at = &t
+}
+
+// UpdatedAt returns the value of the "updated_at" field in the mutation.
+func (m *VoiceoverSpeakerMutation) UpdatedAt() (r time.Time, exists bool) {
+	v := m.updated_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedAt returns the old "updated_at" field's value of the VoiceoverSpeaker entity.
+// If the VoiceoverSpeaker object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *VoiceoverSpeakerMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
+	}
+	return oldValue.UpdatedAt, nil
+}
+
+// ResetUpdatedAt resets all changes to the "updated_at" field.
+func (m *VoiceoverSpeakerMutation) ResetUpdatedAt() {
+	m.updated_at = nil
+}
+
+// AddVoiceoverIDs adds the "voiceovers" edge to the Voiceover entity by ids.
+func (m *VoiceoverSpeakerMutation) AddVoiceoverIDs(ids ...uuid.UUID) {
+	if m.voiceovers == nil {
+		m.voiceovers = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.voiceovers[ids[i]] = struct{}{}
+	}
+}
+
+// ClearVoiceovers clears the "voiceovers" edge to the Voiceover entity.
+func (m *VoiceoverSpeakerMutation) ClearVoiceovers() {
+	m.clearedvoiceovers = true
+}
+
+// VoiceoversCleared reports if the "voiceovers" edge to the Voiceover entity was cleared.
+func (m *VoiceoverSpeakerMutation) VoiceoversCleared() bool {
+	return m.clearedvoiceovers
+}
+
+// RemoveVoiceoverIDs removes the "voiceovers" edge to the Voiceover entity by IDs.
+func (m *VoiceoverSpeakerMutation) RemoveVoiceoverIDs(ids ...uuid.UUID) {
+	if m.removedvoiceovers == nil {
+		m.removedvoiceovers = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.voiceovers, ids[i])
+		m.removedvoiceovers[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedVoiceovers returns the removed IDs of the "voiceovers" edge to the Voiceover entity.
+func (m *VoiceoverSpeakerMutation) RemovedVoiceoversIDs() (ids []uuid.UUID) {
+	for id := range m.removedvoiceovers {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// VoiceoversIDs returns the "voiceovers" edge IDs in the mutation.
+func (m *VoiceoverSpeakerMutation) VoiceoversIDs() (ids []uuid.UUID) {
+	for id := range m.voiceovers {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetVoiceovers resets all changes to the "voiceovers" edge.
+func (m *VoiceoverSpeakerMutation) ResetVoiceovers() {
+	m.voiceovers = nil
+	m.clearedvoiceovers = false
+	m.removedvoiceovers = nil
+}
+
+// SetVoiceoverModelsID sets the "voiceover_models" edge to the VoiceoverModel entity by id.
+func (m *VoiceoverSpeakerMutation) SetVoiceoverModelsID(id uuid.UUID) {
+	m.voiceover_models = &id
+}
+
+// ClearVoiceoverModels clears the "voiceover_models" edge to the VoiceoverModel entity.
+func (m *VoiceoverSpeakerMutation) ClearVoiceoverModels() {
+	m.clearedvoiceover_models = true
+}
+
+// VoiceoverModelsCleared reports if the "voiceover_models" edge to the VoiceoverModel entity was cleared.
+func (m *VoiceoverSpeakerMutation) VoiceoverModelsCleared() bool {
+	return m.clearedvoiceover_models
+}
+
+// VoiceoverModelsID returns the "voiceover_models" edge ID in the mutation.
+func (m *VoiceoverSpeakerMutation) VoiceoverModelsID() (id uuid.UUID, exists bool) {
+	if m.voiceover_models != nil {
+		return *m.voiceover_models, true
+	}
+	return
+}
+
+// VoiceoverModelsIDs returns the "voiceover_models" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// VoiceoverModelsID instead. It exists only for internal usage by the builders.
+func (m *VoiceoverSpeakerMutation) VoiceoverModelsIDs() (ids []uuid.UUID) {
+	if id := m.voiceover_models; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetVoiceoverModels resets all changes to the "voiceover_models" edge.
+func (m *VoiceoverSpeakerMutation) ResetVoiceoverModels() {
+	m.voiceover_models = nil
+	m.clearedvoiceover_models = false
+}
+
+// Where appends a list predicates to the VoiceoverSpeakerMutation builder.
+func (m *VoiceoverSpeakerMutation) Where(ps ...predicate.VoiceoverSpeaker) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the VoiceoverSpeakerMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *VoiceoverSpeakerMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.VoiceoverSpeaker, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *VoiceoverSpeakerMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *VoiceoverSpeakerMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (VoiceoverSpeaker).
+func (m *VoiceoverSpeakerMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *VoiceoverSpeakerMutation) Fields() []string {
+	fields := make([]string, 0, 7)
+	if m.name_in_worker != nil {
+		fields = append(fields, voiceoverspeaker.FieldNameInWorker)
+	}
+	if m.is_active != nil {
+		fields = append(fields, voiceoverspeaker.FieldIsActive)
+	}
+	if m.is_default != nil {
+		fields = append(fields, voiceoverspeaker.FieldIsDefault)
+	}
+	if m.is_hidden != nil {
+		fields = append(fields, voiceoverspeaker.FieldIsHidden)
+	}
+	if m.voiceover_models != nil {
+		fields = append(fields, voiceoverspeaker.FieldModelID)
+	}
+	if m.created_at != nil {
+		fields = append(fields, voiceoverspeaker.FieldCreatedAt)
+	}
+	if m.updated_at != nil {
+		fields = append(fields, voiceoverspeaker.FieldUpdatedAt)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *VoiceoverSpeakerMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case voiceoverspeaker.FieldNameInWorker:
+		return m.NameInWorker()
+	case voiceoverspeaker.FieldIsActive:
+		return m.IsActive()
+	case voiceoverspeaker.FieldIsDefault:
+		return m.IsDefault()
+	case voiceoverspeaker.FieldIsHidden:
+		return m.IsHidden()
+	case voiceoverspeaker.FieldModelID:
+		return m.ModelID()
+	case voiceoverspeaker.FieldCreatedAt:
+		return m.CreatedAt()
+	case voiceoverspeaker.FieldUpdatedAt:
+		return m.UpdatedAt()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *VoiceoverSpeakerMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case voiceoverspeaker.FieldNameInWorker:
+		return m.OldNameInWorker(ctx)
+	case voiceoverspeaker.FieldIsActive:
+		return m.OldIsActive(ctx)
+	case voiceoverspeaker.FieldIsDefault:
+		return m.OldIsDefault(ctx)
+	case voiceoverspeaker.FieldIsHidden:
+		return m.OldIsHidden(ctx)
+	case voiceoverspeaker.FieldModelID:
+		return m.OldModelID(ctx)
+	case voiceoverspeaker.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	case voiceoverspeaker.FieldUpdatedAt:
+		return m.OldUpdatedAt(ctx)
+	}
+	return nil, fmt.Errorf("unknown VoiceoverSpeaker field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *VoiceoverSpeakerMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case voiceoverspeaker.FieldNameInWorker:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetNameInWorker(v)
+		return nil
+	case voiceoverspeaker.FieldIsActive:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetIsActive(v)
+		return nil
+	case voiceoverspeaker.FieldIsDefault:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetIsDefault(v)
+		return nil
+	case voiceoverspeaker.FieldIsHidden:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetIsHidden(v)
+		return nil
+	case voiceoverspeaker.FieldModelID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetModelID(v)
+		return nil
+	case voiceoverspeaker.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	case voiceoverspeaker.FieldUpdatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedAt(v)
+		return nil
+	}
+	return fmt.Errorf("unknown VoiceoverSpeaker field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *VoiceoverSpeakerMutation) AddedFields() []string {
+	return nil
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *VoiceoverSpeakerMutation) AddedField(name string) (ent.Value, bool) {
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *VoiceoverSpeakerMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown VoiceoverSpeaker numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *VoiceoverSpeakerMutation) ClearedFields() []string {
+	return nil
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *VoiceoverSpeakerMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *VoiceoverSpeakerMutation) ClearField(name string) error {
+	return fmt.Errorf("unknown VoiceoverSpeaker nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *VoiceoverSpeakerMutation) ResetField(name string) error {
+	switch name {
+	case voiceoverspeaker.FieldNameInWorker:
+		m.ResetNameInWorker()
+		return nil
+	case voiceoverspeaker.FieldIsActive:
+		m.ResetIsActive()
+		return nil
+	case voiceoverspeaker.FieldIsDefault:
+		m.ResetIsDefault()
+		return nil
+	case voiceoverspeaker.FieldIsHidden:
+		m.ResetIsHidden()
+		return nil
+	case voiceoverspeaker.FieldModelID:
+		m.ResetModelID()
+		return nil
+	case voiceoverspeaker.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	case voiceoverspeaker.FieldUpdatedAt:
+		m.ResetUpdatedAt()
+		return nil
+	}
+	return fmt.Errorf("unknown VoiceoverSpeaker field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *VoiceoverSpeakerMutation) AddedEdges() []string {
+	edges := make([]string, 0, 2)
+	if m.voiceovers != nil {
+		edges = append(edges, voiceoverspeaker.EdgeVoiceovers)
+	}
+	if m.voiceover_models != nil {
+		edges = append(edges, voiceoverspeaker.EdgeVoiceoverModels)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *VoiceoverSpeakerMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case voiceoverspeaker.EdgeVoiceovers:
+		ids := make([]ent.Value, 0, len(m.voiceovers))
+		for id := range m.voiceovers {
+			ids = append(ids, id)
+		}
+		return ids
+	case voiceoverspeaker.EdgeVoiceoverModels:
+		if id := m.voiceover_models; id != nil {
+			return []ent.Value{*id}
+		}
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *VoiceoverSpeakerMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 2)
+	if m.removedvoiceovers != nil {
+		edges = append(edges, voiceoverspeaker.EdgeVoiceovers)
+	}
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *VoiceoverSpeakerMutation) RemovedIDs(name string) []ent.Value {
+	switch name {
+	case voiceoverspeaker.EdgeVoiceovers:
+		ids := make([]ent.Value, 0, len(m.removedvoiceovers))
+		for id := range m.removedvoiceovers {
+			ids = append(ids, id)
+		}
+		return ids
+	}
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *VoiceoverSpeakerMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 2)
+	if m.clearedvoiceovers {
+		edges = append(edges, voiceoverspeaker.EdgeVoiceovers)
+	}
+	if m.clearedvoiceover_models {
+		edges = append(edges, voiceoverspeaker.EdgeVoiceoverModels)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *VoiceoverSpeakerMutation) EdgeCleared(name string) bool {
+	switch name {
+	case voiceoverspeaker.EdgeVoiceovers:
+		return m.clearedvoiceovers
+	case voiceoverspeaker.EdgeVoiceoverModels:
+		return m.clearedvoiceover_models
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *VoiceoverSpeakerMutation) ClearEdge(name string) error {
+	switch name {
+	case voiceoverspeaker.EdgeVoiceoverModels:
+		m.ClearVoiceoverModels()
+		return nil
+	}
+	return fmt.Errorf("unknown VoiceoverSpeaker unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *VoiceoverSpeakerMutation) ResetEdge(name string) error {
+	switch name {
+	case voiceoverspeaker.EdgeVoiceovers:
+		m.ResetVoiceovers()
+		return nil
+	case voiceoverspeaker.EdgeVoiceoverModels:
+		m.ResetVoiceoverModels()
+		return nil
+	}
+	return fmt.Errorf("unknown VoiceoverSpeaker edge %s", name)
 }

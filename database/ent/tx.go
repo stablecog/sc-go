@@ -46,6 +46,14 @@ type Tx struct {
 	UpscaleOutput *UpscaleOutputClient
 	// User is the client for interacting with the User builders.
 	User *UserClient
+	// Voiceover is the client for interacting with the Voiceover builders.
+	Voiceover *VoiceoverClient
+	// VoiceoverModel is the client for interacting with the VoiceoverModel builders.
+	VoiceoverModel *VoiceoverModelClient
+	// VoiceoverOutput is the client for interacting with the VoiceoverOutput builders.
+	VoiceoverOutput *VoiceoverOutputClient
+	// VoiceoverSpeaker is the client for interacting with the VoiceoverSpeaker builders.
+	VoiceoverSpeaker *VoiceoverSpeakerClient
 
 	// lazily loaded.
 	client     *Client
@@ -193,6 +201,10 @@ func (tx *Tx) init() {
 	tx.UpscaleModel = NewUpscaleModelClient(tx.config)
 	tx.UpscaleOutput = NewUpscaleOutputClient(tx.config)
 	tx.User = NewUserClient(tx.config)
+	tx.Voiceover = NewVoiceoverClient(tx.config)
+	tx.VoiceoverModel = NewVoiceoverModelClient(tx.config)
+	tx.VoiceoverOutput = NewVoiceoverOutputClient(tx.config)
+	tx.VoiceoverSpeaker = NewVoiceoverSpeakerClient(tx.config)
 }
 
 // txDriver wraps the given dialect.Tx with a nop dialect.Driver implementation.

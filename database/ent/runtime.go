@@ -23,6 +23,10 @@ import (
 	"github.com/stablecog/sc-go/database/ent/upscalemodel"
 	"github.com/stablecog/sc-go/database/ent/upscaleoutput"
 	"github.com/stablecog/sc-go/database/ent/user"
+	"github.com/stablecog/sc-go/database/ent/voiceover"
+	"github.com/stablecog/sc-go/database/ent/voiceovermodel"
+	"github.com/stablecog/sc-go/database/ent/voiceoveroutput"
+	"github.com/stablecog/sc-go/database/ent/voiceoverspeaker"
 )
 
 // The init function reads all schema descriptors with runtime code
@@ -369,4 +373,92 @@ func init() {
 	userDescID := userFields[0].Descriptor()
 	// user.DefaultID holds the default value on creation for the id field.
 	user.DefaultID = userDescID.Default.(func() uuid.UUID)
+	voiceoverFields := schema.Voiceover{}.Fields()
+	_ = voiceoverFields
+	// voiceoverDescCreatedAt is the schema descriptor for created_at field.
+	voiceoverDescCreatedAt := voiceoverFields[12].Descriptor()
+	// voiceover.DefaultCreatedAt holds the default value on creation for the created_at field.
+	voiceover.DefaultCreatedAt = voiceoverDescCreatedAt.Default.(func() time.Time)
+	// voiceoverDescUpdatedAt is the schema descriptor for updated_at field.
+	voiceoverDescUpdatedAt := voiceoverFields[13].Descriptor()
+	// voiceover.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	voiceover.DefaultUpdatedAt = voiceoverDescUpdatedAt.Default.(func() time.Time)
+	// voiceover.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	voiceover.UpdateDefaultUpdatedAt = voiceoverDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// voiceoverDescID is the schema descriptor for id field.
+	voiceoverDescID := voiceoverFields[0].Descriptor()
+	// voiceover.DefaultID holds the default value on creation for the id field.
+	voiceover.DefaultID = voiceoverDescID.Default.(func() uuid.UUID)
+	voiceovermodelFields := schema.VoiceoverModel{}.Fields()
+	_ = voiceovermodelFields
+	// voiceovermodelDescIsActive is the schema descriptor for is_active field.
+	voiceovermodelDescIsActive := voiceovermodelFields[2].Descriptor()
+	// voiceovermodel.DefaultIsActive holds the default value on creation for the is_active field.
+	voiceovermodel.DefaultIsActive = voiceovermodelDescIsActive.Default.(bool)
+	// voiceovermodelDescIsDefault is the schema descriptor for is_default field.
+	voiceovermodelDescIsDefault := voiceovermodelFields[3].Descriptor()
+	// voiceovermodel.DefaultIsDefault holds the default value on creation for the is_default field.
+	voiceovermodel.DefaultIsDefault = voiceovermodelDescIsDefault.Default.(bool)
+	// voiceovermodelDescIsHidden is the schema descriptor for is_hidden field.
+	voiceovermodelDescIsHidden := voiceovermodelFields[4].Descriptor()
+	// voiceovermodel.DefaultIsHidden holds the default value on creation for the is_hidden field.
+	voiceovermodel.DefaultIsHidden = voiceovermodelDescIsHidden.Default.(bool)
+	// voiceovermodelDescCreatedAt is the schema descriptor for created_at field.
+	voiceovermodelDescCreatedAt := voiceovermodelFields[5].Descriptor()
+	// voiceovermodel.DefaultCreatedAt holds the default value on creation for the created_at field.
+	voiceovermodel.DefaultCreatedAt = voiceovermodelDescCreatedAt.Default.(func() time.Time)
+	// voiceovermodelDescUpdatedAt is the schema descriptor for updated_at field.
+	voiceovermodelDescUpdatedAt := voiceovermodelFields[6].Descriptor()
+	// voiceovermodel.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	voiceovermodel.DefaultUpdatedAt = voiceovermodelDescUpdatedAt.Default.(func() time.Time)
+	// voiceovermodel.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	voiceovermodel.UpdateDefaultUpdatedAt = voiceovermodelDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// voiceovermodelDescID is the schema descriptor for id field.
+	voiceovermodelDescID := voiceovermodelFields[0].Descriptor()
+	// voiceovermodel.DefaultID holds the default value on creation for the id field.
+	voiceovermodel.DefaultID = voiceovermodelDescID.Default.(func() uuid.UUID)
+	voiceoveroutputFields := schema.VoiceoverOutput{}.Fields()
+	_ = voiceoveroutputFields
+	// voiceoveroutputDescCreatedAt is the schema descriptor for created_at field.
+	voiceoveroutputDescCreatedAt := voiceoveroutputFields[4].Descriptor()
+	// voiceoveroutput.DefaultCreatedAt holds the default value on creation for the created_at field.
+	voiceoveroutput.DefaultCreatedAt = voiceoveroutputDescCreatedAt.Default.(func() time.Time)
+	// voiceoveroutputDescUpdatedAt is the schema descriptor for updated_at field.
+	voiceoveroutputDescUpdatedAt := voiceoveroutputFields[5].Descriptor()
+	// voiceoveroutput.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	voiceoveroutput.DefaultUpdatedAt = voiceoveroutputDescUpdatedAt.Default.(func() time.Time)
+	// voiceoveroutput.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	voiceoveroutput.UpdateDefaultUpdatedAt = voiceoveroutputDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// voiceoveroutputDescID is the schema descriptor for id field.
+	voiceoveroutputDescID := voiceoveroutputFields[0].Descriptor()
+	// voiceoveroutput.DefaultID holds the default value on creation for the id field.
+	voiceoveroutput.DefaultID = voiceoveroutputDescID.Default.(func() uuid.UUID)
+	voiceoverspeakerFields := schema.VoiceoverSpeaker{}.Fields()
+	_ = voiceoverspeakerFields
+	// voiceoverspeakerDescIsActive is the schema descriptor for is_active field.
+	voiceoverspeakerDescIsActive := voiceoverspeakerFields[2].Descriptor()
+	// voiceoverspeaker.DefaultIsActive holds the default value on creation for the is_active field.
+	voiceoverspeaker.DefaultIsActive = voiceoverspeakerDescIsActive.Default.(bool)
+	// voiceoverspeakerDescIsDefault is the schema descriptor for is_default field.
+	voiceoverspeakerDescIsDefault := voiceoverspeakerFields[3].Descriptor()
+	// voiceoverspeaker.DefaultIsDefault holds the default value on creation for the is_default field.
+	voiceoverspeaker.DefaultIsDefault = voiceoverspeakerDescIsDefault.Default.(bool)
+	// voiceoverspeakerDescIsHidden is the schema descriptor for is_hidden field.
+	voiceoverspeakerDescIsHidden := voiceoverspeakerFields[4].Descriptor()
+	// voiceoverspeaker.DefaultIsHidden holds the default value on creation for the is_hidden field.
+	voiceoverspeaker.DefaultIsHidden = voiceoverspeakerDescIsHidden.Default.(bool)
+	// voiceoverspeakerDescCreatedAt is the schema descriptor for created_at field.
+	voiceoverspeakerDescCreatedAt := voiceoverspeakerFields[6].Descriptor()
+	// voiceoverspeaker.DefaultCreatedAt holds the default value on creation for the created_at field.
+	voiceoverspeaker.DefaultCreatedAt = voiceoverspeakerDescCreatedAt.Default.(func() time.Time)
+	// voiceoverspeakerDescUpdatedAt is the schema descriptor for updated_at field.
+	voiceoverspeakerDescUpdatedAt := voiceoverspeakerFields[7].Descriptor()
+	// voiceoverspeaker.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	voiceoverspeaker.DefaultUpdatedAt = voiceoverspeakerDescUpdatedAt.Default.(func() time.Time)
+	// voiceoverspeaker.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	voiceoverspeaker.UpdateDefaultUpdatedAt = voiceoverspeakerDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// voiceoverspeakerDescID is the schema descriptor for id field.
+	voiceoverspeakerDescID := voiceoverspeakerFields[0].Descriptor()
+	// voiceoverspeaker.DefaultID holds the default value on creation for the id field.
+	voiceoverspeaker.DefaultID = voiceoverspeakerDescID.Default.(func() uuid.UUID)
 }

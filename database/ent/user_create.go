@@ -17,6 +17,7 @@ import (
 	"github.com/stablecog/sc-go/database/ent/role"
 	"github.com/stablecog/sc-go/database/ent/upscale"
 	"github.com/stablecog/sc-go/database/ent/user"
+	"github.com/stablecog/sc-go/database/ent/voiceover"
 )
 
 // UserCreate is the builder for creating a User entity.
@@ -206,6 +207,21 @@ func (uc *UserCreate) AddUpscales(u ...*Upscale) *UserCreate {
 		ids[i] = u[i].ID
 	}
 	return uc.AddUpscaleIDs(ids...)
+}
+
+// AddVoiceoverIDs adds the "voiceovers" edge to the Voiceover entity by IDs.
+func (uc *UserCreate) AddVoiceoverIDs(ids ...uuid.UUID) *UserCreate {
+	uc.mutation.AddVoiceoverIDs(ids...)
+	return uc
+}
+
+// AddVoiceovers adds the "voiceovers" edges to the Voiceover entity.
+func (uc *UserCreate) AddVoiceovers(v ...*Voiceover) *UserCreate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return uc.AddVoiceoverIDs(ids...)
 }
 
 // AddCreditIDs adds the "credits" edge to the Credit entity by IDs.
@@ -438,6 +454,25 @@ func (uc *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeUUID,
 					Column: upscale.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := uc.mutation.VoiceoversIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.VoiceoversTable,
+			Columns: []string{user.VoiceoversColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: voiceover.FieldID,
 				},
 			},
 		}

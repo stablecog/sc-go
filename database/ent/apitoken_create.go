@@ -15,6 +15,7 @@ import (
 	"github.com/stablecog/sc-go/database/ent/generation"
 	"github.com/stablecog/sc-go/database/ent/upscale"
 	"github.com/stablecog/sc-go/database/ent/user"
+	"github.com/stablecog/sc-go/database/ent/voiceover"
 )
 
 // ApiTokenCreate is the builder for creating a ApiToken entity.
@@ -179,6 +180,21 @@ func (atc *ApiTokenCreate) AddUpscales(u ...*Upscale) *ApiTokenCreate {
 		ids[i] = u[i].ID
 	}
 	return atc.AddUpscaleIDs(ids...)
+}
+
+// AddVoiceoverIDs adds the "voiceovers" edge to the Voiceover entity by IDs.
+func (atc *ApiTokenCreate) AddVoiceoverIDs(ids ...uuid.UUID) *ApiTokenCreate {
+	atc.mutation.AddVoiceoverIDs(ids...)
+	return atc
+}
+
+// AddVoiceovers adds the "voiceovers" edges to the Voiceover entity.
+func (atc *ApiTokenCreate) AddVoiceovers(v ...*Voiceover) *ApiTokenCreate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return atc.AddVoiceoverIDs(ids...)
 }
 
 // Mutation returns the ApiTokenMutation object of the builder.
@@ -401,6 +417,25 @@ func (atc *ApiTokenCreate) createSpec() (*ApiToken, *sqlgraph.CreateSpec) {
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeUUID,
 					Column: upscale.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := atc.mutation.VoiceoversIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   apitoken.VoiceoversTable,
+			Columns: []string{apitoken.VoiceoversColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: voiceover.FieldID,
 				},
 			},
 		}

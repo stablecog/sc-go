@@ -622,6 +622,33 @@ func HasUpscalesWith(preds ...predicate.Upscale) predicate.ApiToken {
 	})
 }
 
+// HasVoiceovers applies the HasEdge predicate on the "voiceovers" edge.
+func HasVoiceovers() predicate.ApiToken {
+	return predicate.ApiToken(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, VoiceoversTable, VoiceoversColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasVoiceoversWith applies the HasEdge predicate on the "voiceovers" edge with a given conditions (other predicates).
+func HasVoiceoversWith(preds ...predicate.Voiceover) predicate.ApiToken {
+	return predicate.ApiToken(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(VoiceoversInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, VoiceoversTable, VoiceoversColumn),
+		)
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // And groups predicates with the AND operator between them.
 func And(predicates ...predicate.ApiToken) predicate.ApiToken {
 	return predicate.ApiToken(func(s *sql.Selector) {

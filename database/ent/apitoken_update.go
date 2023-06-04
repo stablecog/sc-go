@@ -17,6 +17,7 @@ import (
 	"github.com/stablecog/sc-go/database/ent/predicate"
 	"github.com/stablecog/sc-go/database/ent/upscale"
 	"github.com/stablecog/sc-go/database/ent/user"
+	"github.com/stablecog/sc-go/database/ent/voiceover"
 )
 
 // ApiTokenUpdate is the builder for updating ApiToken entities.
@@ -174,6 +175,21 @@ func (atu *ApiTokenUpdate) AddUpscales(u ...*Upscale) *ApiTokenUpdate {
 	return atu.AddUpscaleIDs(ids...)
 }
 
+// AddVoiceoverIDs adds the "voiceovers" edge to the Voiceover entity by IDs.
+func (atu *ApiTokenUpdate) AddVoiceoverIDs(ids ...uuid.UUID) *ApiTokenUpdate {
+	atu.mutation.AddVoiceoverIDs(ids...)
+	return atu
+}
+
+// AddVoiceovers adds the "voiceovers" edges to the Voiceover entity.
+func (atu *ApiTokenUpdate) AddVoiceovers(v ...*Voiceover) *ApiTokenUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return atu.AddVoiceoverIDs(ids...)
+}
+
 // Mutation returns the ApiTokenMutation object of the builder.
 func (atu *ApiTokenUpdate) Mutation() *ApiTokenMutation {
 	return atu.mutation
@@ -225,6 +241,27 @@ func (atu *ApiTokenUpdate) RemoveUpscales(u ...*Upscale) *ApiTokenUpdate {
 		ids[i] = u[i].ID
 	}
 	return atu.RemoveUpscaleIDs(ids...)
+}
+
+// ClearVoiceovers clears all "voiceovers" edges to the Voiceover entity.
+func (atu *ApiTokenUpdate) ClearVoiceovers() *ApiTokenUpdate {
+	atu.mutation.ClearVoiceovers()
+	return atu
+}
+
+// RemoveVoiceoverIDs removes the "voiceovers" edge to Voiceover entities by IDs.
+func (atu *ApiTokenUpdate) RemoveVoiceoverIDs(ids ...uuid.UUID) *ApiTokenUpdate {
+	atu.mutation.RemoveVoiceoverIDs(ids...)
+	return atu
+}
+
+// RemoveVoiceovers removes "voiceovers" edges to Voiceover entities.
+func (atu *ApiTokenUpdate) RemoveVoiceovers(v ...*Voiceover) *ApiTokenUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return atu.RemoveVoiceoverIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -474,6 +511,60 @@ func (atu *ApiTokenUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if atu.mutation.VoiceoversCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   apitoken.VoiceoversTable,
+			Columns: []string{apitoken.VoiceoversColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: voiceover.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := atu.mutation.RemovedVoiceoversIDs(); len(nodes) > 0 && !atu.mutation.VoiceoversCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   apitoken.VoiceoversTable,
+			Columns: []string{apitoken.VoiceoversColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: voiceover.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := atu.mutation.VoiceoversIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   apitoken.VoiceoversTable,
+			Columns: []string{apitoken.VoiceoversColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: voiceover.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	_spec.AddModifiers(atu.modifiers...)
 	if n, err = sqlgraph.UpdateNodes(ctx, atu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
@@ -637,6 +728,21 @@ func (atuo *ApiTokenUpdateOne) AddUpscales(u ...*Upscale) *ApiTokenUpdateOne {
 	return atuo.AddUpscaleIDs(ids...)
 }
 
+// AddVoiceoverIDs adds the "voiceovers" edge to the Voiceover entity by IDs.
+func (atuo *ApiTokenUpdateOne) AddVoiceoverIDs(ids ...uuid.UUID) *ApiTokenUpdateOne {
+	atuo.mutation.AddVoiceoverIDs(ids...)
+	return atuo
+}
+
+// AddVoiceovers adds the "voiceovers" edges to the Voiceover entity.
+func (atuo *ApiTokenUpdateOne) AddVoiceovers(v ...*Voiceover) *ApiTokenUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return atuo.AddVoiceoverIDs(ids...)
+}
+
 // Mutation returns the ApiTokenMutation object of the builder.
 func (atuo *ApiTokenUpdateOne) Mutation() *ApiTokenMutation {
 	return atuo.mutation
@@ -688,6 +794,27 @@ func (atuo *ApiTokenUpdateOne) RemoveUpscales(u ...*Upscale) *ApiTokenUpdateOne 
 		ids[i] = u[i].ID
 	}
 	return atuo.RemoveUpscaleIDs(ids...)
+}
+
+// ClearVoiceovers clears all "voiceovers" edges to the Voiceover entity.
+func (atuo *ApiTokenUpdateOne) ClearVoiceovers() *ApiTokenUpdateOne {
+	atuo.mutation.ClearVoiceovers()
+	return atuo
+}
+
+// RemoveVoiceoverIDs removes the "voiceovers" edge to Voiceover entities by IDs.
+func (atuo *ApiTokenUpdateOne) RemoveVoiceoverIDs(ids ...uuid.UUID) *ApiTokenUpdateOne {
+	atuo.mutation.RemoveVoiceoverIDs(ids...)
+	return atuo
+}
+
+// RemoveVoiceovers removes "voiceovers" edges to Voiceover entities.
+func (atuo *ApiTokenUpdateOne) RemoveVoiceovers(v ...*Voiceover) *ApiTokenUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return atuo.RemoveVoiceoverIDs(ids...)
 }
 
 // Select allows selecting one or more fields (columns) of the returned entity.
@@ -953,6 +1080,60 @@ func (atuo *ApiTokenUpdateOne) sqlSave(ctx context.Context) (_node *ApiToken, er
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeUUID,
 					Column: upscale.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if atuo.mutation.VoiceoversCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   apitoken.VoiceoversTable,
+			Columns: []string{apitoken.VoiceoversColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: voiceover.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := atuo.mutation.RemovedVoiceoversIDs(); len(nodes) > 0 && !atuo.mutation.VoiceoversCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   apitoken.VoiceoversTable,
+			Columns: []string{apitoken.VoiceoversColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: voiceover.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := atuo.mutation.VoiceoversIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   apitoken.VoiceoversTable,
+			Columns: []string{apitoken.VoiceoversColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: voiceover.FieldID,
 				},
 			},
 		}

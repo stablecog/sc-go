@@ -53,3 +53,15 @@ type UpscaleOutput func(*sql.Selector)
 
 // User is the predicate function for user builders.
 type User func(*sql.Selector)
+
+// Voiceover is the predicate function for voiceover builders.
+type Voiceover func(*sql.Selector)
+
+// VoiceoverModel is the predicate function for voiceovermodel builders.
+type VoiceoverModel func(*sql.Selector)
+
+// VoiceoverOutput is the predicate function for voiceoveroutput builders.
+type VoiceoverOutput func(*sql.Selector)
+
+// VoiceoverSpeaker is the predicate function for voiceoverspeaker builders.
+type VoiceoverSpeaker func(*sql.Selector)

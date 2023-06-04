@@ -27,6 +27,8 @@ const (
 	EdgeGenerations = "generations"
 	// EdgeUpscales holds the string denoting the upscales edge name in mutations.
 	EdgeUpscales = "upscales"
+	// EdgeVoiceovers holds the string denoting the voiceovers edge name in mutations.
+	EdgeVoiceovers = "voiceovers"
 	// Table holds the table name of the deviceinfo in the database.
 	Table = "device_info"
 	// GenerationsTable is the table that holds the generations relation/edge.
@@ -43,6 +45,13 @@ const (
 	UpscalesInverseTable = "upscales"
 	// UpscalesColumn is the table column denoting the upscales relation/edge.
 	UpscalesColumn = "device_info_id"
+	// VoiceoversTable is the table that holds the voiceovers relation/edge.
+	VoiceoversTable = "voiceovers"
+	// VoiceoversInverseTable is the table name for the Voiceover entity.
+	// It exists in this package in order to avoid circular dependency with the "voiceover" package.
+	VoiceoversInverseTable = "voiceovers"
+	// VoiceoversColumn is the table column denoting the voiceovers relation/edge.
+	VoiceoversColumn = "device_info_id"
 )
 
 // Columns holds all SQL columns for deviceinfo fields.

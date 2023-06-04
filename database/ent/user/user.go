@@ -39,6 +39,8 @@ const (
 	EdgeGenerations = "generations"
 	// EdgeUpscales holds the string denoting the upscales edge name in mutations.
 	EdgeUpscales = "upscales"
+	// EdgeVoiceovers holds the string denoting the voiceovers edge name in mutations.
+	EdgeVoiceovers = "voiceovers"
 	// EdgeCredits holds the string denoting the credits edge name in mutations.
 	EdgeCredits = "credits"
 	// EdgeAPITokens holds the string denoting the api_tokens edge name in mutations.
@@ -61,6 +63,13 @@ const (
 	UpscalesInverseTable = "upscales"
 	// UpscalesColumn is the table column denoting the upscales relation/edge.
 	UpscalesColumn = "user_id"
+	// VoiceoversTable is the table that holds the voiceovers relation/edge.
+	VoiceoversTable = "voiceovers"
+	// VoiceoversInverseTable is the table name for the Voiceover entity.
+	// It exists in this package in order to avoid circular dependency with the "voiceover" package.
+	VoiceoversInverseTable = "voiceovers"
+	// VoiceoversColumn is the table column denoting the voiceovers relation/edge.
+	VoiceoversColumn = "user_id"
 	// CreditsTable is the table that holds the credits relation/edge.
 	CreditsTable = "credits"
 	// CreditsInverseTable is the table name for the Credit entity.

@@ -39,6 +39,8 @@ const (
 	EdgeGenerations = "generations"
 	// EdgeUpscales holds the string denoting the upscales edge name in mutations.
 	EdgeUpscales = "upscales"
+	// EdgeVoiceovers holds the string denoting the voiceovers edge name in mutations.
+	EdgeVoiceovers = "voiceovers"
 	// Table holds the table name of the apitoken in the database.
 	Table = "api_tokens"
 	// UserTable is the table that holds the user relation/edge.
@@ -62,6 +64,13 @@ const (
 	UpscalesInverseTable = "upscales"
 	// UpscalesColumn is the table column denoting the upscales relation/edge.
 	UpscalesColumn = "api_token_id"
+	// VoiceoversTable is the table that holds the voiceovers relation/edge.
+	VoiceoversTable = "voiceovers"
+	// VoiceoversInverseTable is the table name for the Voiceover entity.
+	// It exists in this package in order to avoid circular dependency with the "voiceover" package.
+	VoiceoversInverseTable = "voiceovers"
+	// VoiceoversColumn is the table column denoting the voiceovers relation/edge.
+	VoiceoversColumn = "api_token_id"
 )
 
 // Columns holds all SQL columns for apitoken fields.

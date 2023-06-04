@@ -38,9 +38,11 @@ type DeviceInfoEdges struct {
 	Generations []*Generation `json:"generations,omitempty"`
 	// Upscales holds the value of the upscales edge.
 	Upscales []*Upscale `json:"upscales,omitempty"`
+	// Voiceovers holds the value of the voiceovers edge.
+	Voiceovers []*Voiceover `json:"voiceovers,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [2]bool
+	loadedTypes [3]bool
 }
 
 // GenerationsOrErr returns the Generations value or an error if the edge
@@ -59,6 +61,15 @@ func (e DeviceInfoEdges) UpscalesOrErr() ([]*Upscale, error) {
 		return e.Upscales, nil
 	}
 	return nil, &NotLoadedError{edge: "upscales"}
+}
+
+// VoiceoversOrErr returns the Voiceovers value or an error if the edge
+// was not loaded in eager-loading.
+func (e DeviceInfoEdges) VoiceoversOrErr() ([]*Voiceover, error) {
+	if e.loadedTypes[2] {
+		return e.Voiceovers, nil
+	}
+	return nil, &NotLoadedError{edge: "voiceovers"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -139,6 +150,11 @@ func (di *DeviceInfo) QueryGenerations() *GenerationQuery {
 // QueryUpscales queries the "upscales" edge of the DeviceInfo entity.
 func (di *DeviceInfo) QueryUpscales() *UpscaleQuery {
 	return NewDeviceInfoClient(di.config).QueryUpscales(di)
+}
+
+// QueryVoiceovers queries the "voiceovers" edge of the DeviceInfo entity.
+func (di *DeviceInfo) QueryVoiceovers() *VoiceoverQuery {
+	return NewDeviceInfoClient(di.config).QueryVoiceovers(di)
 }
 
 // Update returns a builder for updating this DeviceInfo.

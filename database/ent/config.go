@@ -47,6 +47,10 @@ type (
 		UpscaleModel     []ent.Hook
 		UpscaleOutput    []ent.Hook
 		User             []ent.Hook
+		Voiceover        []ent.Hook
+		VoiceoverModel   []ent.Hook
+		VoiceoverOutput  []ent.Hook
+		VoiceoverSpeaker []ent.Hook
 	}
 	inters struct {
 		ApiToken         []ent.Interceptor
@@ -65,6 +69,10 @@ type (
 		UpscaleModel     []ent.Interceptor
 		UpscaleOutput    []ent.Interceptor
 		User             []ent.Interceptor
+		Voiceover        []ent.Interceptor
+		VoiceoverModel   []ent.Interceptor
+		VoiceoverOutput  []ent.Interceptor
+		VoiceoverSpeaker []ent.Interceptor
 	}
 )
 

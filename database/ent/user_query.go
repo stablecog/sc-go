@@ -19,6 +19,7 @@ import (
 	"github.com/stablecog/sc-go/database/ent/role"
 	"github.com/stablecog/sc-go/database/ent/upscale"
 	"github.com/stablecog/sc-go/database/ent/user"
+	"github.com/stablecog/sc-go/database/ent/voiceover"
 )
 
 // UserQuery is the builder for querying User entities.
@@ -30,6 +31,7 @@ type UserQuery struct {
 	predicates      []predicate.User
 	withGenerations *GenerationQuery
 	withUpscales    *UpscaleQuery
+	withVoiceovers  *VoiceoverQuery
 	withCredits     *CreditQuery
 	withAPITokens   *ApiTokenQuery
 	withRoles       *RoleQuery
@@ -107,6 +109,28 @@ func (uq *UserQuery) QueryUpscales() *UpscaleQuery {
 			sqlgraph.From(user.Table, user.FieldID, selector),
 			sqlgraph.To(upscale.Table, upscale.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, user.UpscalesTable, user.UpscalesColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(uq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryVoiceovers chains the current query on the "voiceovers" edge.
+func (uq *UserQuery) QueryVoiceovers() *VoiceoverQuery {
+	query := (&VoiceoverClient{config: uq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := uq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := uq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, selector),
+			sqlgraph.To(voiceover.Table, voiceover.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.VoiceoversTable, user.VoiceoversColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(uq.driver.Dialect(), step)
 		return fromU, nil
@@ -372,6 +396,7 @@ func (uq *UserQuery) Clone() *UserQuery {
 		predicates:      append([]predicate.User{}, uq.predicates...),
 		withGenerations: uq.withGenerations.Clone(),
 		withUpscales:    uq.withUpscales.Clone(),
+		withVoiceovers:  uq.withVoiceovers.Clone(),
 		withCredits:     uq.withCredits.Clone(),
 		withAPITokens:   uq.withAPITokens.Clone(),
 		withRoles:       uq.withRoles.Clone(),
@@ -400,6 +425,17 @@ func (uq *UserQuery) WithUpscales(opts ...func(*UpscaleQuery)) *UserQuery {
 		opt(query)
 	}
 	uq.withUpscales = query
+	return uq
+}
+
+// WithVoiceovers tells the query-builder to eager-load the nodes that are connected to
+// the "voiceovers" edge. The optional arguments are used to configure the query builder of the edge.
+func (uq *UserQuery) WithVoiceovers(opts ...func(*VoiceoverQuery)) *UserQuery {
+	query := (&VoiceoverClient{config: uq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	uq.withVoiceovers = query
 	return uq
 }
 
@@ -514,9 +550,10 @@ func (uq *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 	var (
 		nodes       = []*User{}
 		_spec       = uq.querySpec()
-		loadedTypes = [5]bool{
+		loadedTypes = [6]bool{
 			uq.withGenerations != nil,
 			uq.withUpscales != nil,
+			uq.withVoiceovers != nil,
 			uq.withCredits != nil,
 			uq.withAPITokens != nil,
 			uq.withRoles != nil,
@@ -554,6 +591,13 @@ func (uq *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 		if err := uq.loadUpscales(ctx, query, nodes,
 			func(n *User) { n.Edges.Upscales = []*Upscale{} },
 			func(n *User, e *Upscale) { n.Edges.Upscales = append(n.Edges.Upscales, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := uq.withVoiceovers; query != nil {
+		if err := uq.loadVoiceovers(ctx, query, nodes,
+			func(n *User) { n.Edges.Voiceovers = []*Voiceover{} },
+			func(n *User, e *Voiceover) { n.Edges.Voiceovers = append(n.Edges.Voiceovers, e) }); err != nil {
 			return nil, err
 		}
 	}
@@ -620,6 +664,33 @@ func (uq *UserQuery) loadUpscales(ctx context.Context, query *UpscaleQuery, node
 	}
 	query.Where(predicate.Upscale(func(s *sql.Selector) {
 		s.Where(sql.InValues(user.UpscalesColumn, fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.UserID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "user_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (uq *UserQuery) loadVoiceovers(ctx context.Context, query *VoiceoverQuery, nodes []*User, init func(*User), assign func(*User, *Voiceover)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*User)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	query.Where(predicate.Voiceover(func(s *sql.Selector) {
+		s.Where(sql.InValues(user.VoiceoversColumn, fks...))
 	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {
