@@ -1058,4 +1058,11 @@ ALTER TABLE public.voiceover_models ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.voiceover_outputs ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.voiceovers ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.voiceover_speakers ENABLE ROW LEVEL SECURITY;
-alter table prompts add column is_voiceover bool not null default false;
+CREATE TYPE public.prompt_type_enum AS ENUM (
+    'image',
+    'voiceover'
+);
+
+ALTER TYPE public.prompt_type_enum OWNER TO postgres;
+
+alter table prompts add column type public.prompt_type_enum not null default 'image';

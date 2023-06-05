@@ -7,6 +7,7 @@ import (
 	"github.com/stablecog/sc-go/database/ent"
 	"github.com/stablecog/sc-go/database/ent/generation"
 	"github.com/stablecog/sc-go/database/ent/generationoutput"
+	"github.com/stablecog/sc-go/database/ent/prompt"
 	"github.com/stablecog/sc-go/log"
 	"github.com/stablecog/sc-go/server/requests"
 	"github.com/stablecog/sc-go/utils"
@@ -83,7 +84,7 @@ func (r *Repository) SetGenerationFailed(generationID string, reason string, nsf
 	return err
 }
 
-func (r *Repository) SetGenerationSucceeded(generationID string, prompt string, negativePrompt string, whOutput requests.CogWebhookOutput, nsfwCount int32) ([]*ent.GenerationOutput, error) {
+func (r *Repository) SetGenerationSucceeded(generationID string, promptStr string, negativePrompt string, whOutput requests.CogWebhookOutput, nsfwCount int32) ([]*ent.GenerationOutput, error) {
 	uid, err := uuid.Parse(generationID)
 	if err != nil {
 		log.Error("Error parsing generation id in SetGenerationSucceeded", "id", generationID, "err", err)
@@ -108,9 +109,9 @@ func (r *Repository) SetGenerationSucceeded(generationID string, prompt string, 
 		}
 
 		// Get prompt IDs
-		promptId, negativePromptId, err := r.GetOrCreatePrompts(prompt, negativePrompt, false, db)
+		promptId, negativePromptId, err := r.GetOrCreatePrompts(promptStr, negativePrompt, prompt.TypeImage, db)
 		if err != nil {
-			log.Error("Error getting or creating prompts", "id", generationID, "err", err, "prompt", prompt, "negativePrompt", negativePrompt)
+			log.Error("Error getting or creating prompts", "id", generationID, "err", err, "prompt", promptStr, "negativePrompt", negativePrompt)
 			return err
 		}
 
@@ -166,7 +167,7 @@ func (r *Repository) SetGenerationSucceeded(generationID string, prompt string, 
 					"scheduler":          generation.SchedulerID.String(),
 					"user_id":            generation.UserID.String(),
 					"generation_id":      generation.ID.String(),
-					"prompt":             prompt,
+					"prompt":             promptStr,
 					"prompt_id":          generation.PromptID.String(),
 				}
 				if gOutput.UpscaledImagePath != nil {

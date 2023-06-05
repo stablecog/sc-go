@@ -5,6 +5,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/stablecog/sc-go/database/ent"
+	"github.com/stablecog/sc-go/database/ent/prompt"
 	"github.com/stablecog/sc-go/database/ent/voiceover"
 	"github.com/stablecog/sc-go/log"
 	"github.com/stablecog/sc-go/server/requests"
@@ -71,7 +72,7 @@ func (r *Repository) SetVoiceoverFailed(voiceoverId string, reason string, db *e
 }
 
 // ! Currently supports 1 output
-func (r *Repository) SetVoiceoverSucceeded(voiceoverId, prompt string, output requests.CogWebhookOutput) (*ent.VoiceoverOutput, error) {
+func (r *Repository) SetVoiceoverSucceeded(voiceoverId, promptStr string, output requests.CogWebhookOutput) (*ent.VoiceoverOutput, error) {
 	uid, err := uuid.Parse(voiceoverId)
 	if err != nil {
 		log.Error("Error parsing voiceover id in SetVoiceoverSucceeded", "id", voiceoverId, "err", err)
@@ -92,9 +93,9 @@ func (r *Repository) SetVoiceoverSucceeded(voiceoverId, prompt string, output re
 		}
 
 		// Get prompt IDs
-		promptId, _, err := r.GetOrCreatePrompts(prompt, "", true, db)
+		promptId, _, err := r.GetOrCreatePrompts(promptStr, "", prompt.TypeImage, db)
 		if err != nil || promptId == nil {
-			log.Error("Error getting or creating prompts", "id", voiceoverId, "err", err, "prompt", prompt)
+			log.Error("Error getting or creating prompts", "id", voiceoverId, "err", err, "prompt", promptStr)
 			return err
 		}
 

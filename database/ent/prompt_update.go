@@ -38,16 +38,16 @@ func (pu *PromptUpdate) SetText(s string) *PromptUpdate {
 	return pu
 }
 
-// SetIsVoiceover sets the "is_voiceover" field.
-func (pu *PromptUpdate) SetIsVoiceover(b bool) *PromptUpdate {
-	pu.mutation.SetIsVoiceover(b)
+// SetType sets the "type" field.
+func (pu *PromptUpdate) SetType(pr prompt.Type) *PromptUpdate {
+	pu.mutation.SetType(pr)
 	return pu
 }
 
-// SetNillableIsVoiceover sets the "is_voiceover" field if the given value is not nil.
-func (pu *PromptUpdate) SetNillableIsVoiceover(b *bool) *PromptUpdate {
-	if b != nil {
-		pu.SetIsVoiceover(*b)
+// SetNillableType sets the "type" field if the given value is not nil.
+func (pu *PromptUpdate) SetNillableType(pr *prompt.Type) *PromptUpdate {
+	if pr != nil {
+		pu.SetType(*pr)
 	}
 	return pu
 }
@@ -171,6 +171,16 @@ func (pu *PromptUpdate) defaults() {
 	}
 }
 
+// check runs all checks and user-defined validators on the builder.
+func (pu *PromptUpdate) check() error {
+	if v, ok := pu.mutation.GetType(); ok {
+		if err := prompt.TypeValidator(v); err != nil {
+			return &ValidationError{Name: "type", err: fmt.Errorf(`ent: validator failed for field "Prompt.type": %w`, err)}
+		}
+	}
+	return nil
+}
+
 // Modify adds a statement modifier for attaching custom logic to the UPDATE statement.
 func (pu *PromptUpdate) Modify(modifiers ...func(u *sql.UpdateBuilder)) *PromptUpdate {
 	pu.modifiers = append(pu.modifiers, modifiers...)
@@ -178,6 +188,9 @@ func (pu *PromptUpdate) Modify(modifiers ...func(u *sql.UpdateBuilder)) *PromptU
 }
 
 func (pu *PromptUpdate) sqlSave(ctx context.Context) (n int, err error) {
+	if err := pu.check(); err != nil {
+		return n, err
+	}
 	_spec := &sqlgraph.UpdateSpec{
 		Node: &sqlgraph.NodeSpec{
 			Table:   prompt.Table,
@@ -198,8 +211,8 @@ func (pu *PromptUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if value, ok := pu.mutation.Text(); ok {
 		_spec.SetField(prompt.FieldText, field.TypeString, value)
 	}
-	if value, ok := pu.mutation.IsVoiceover(); ok {
-		_spec.SetField(prompt.FieldIsVoiceover, field.TypeBool, value)
+	if value, ok := pu.mutation.GetType(); ok {
+		_spec.SetField(prompt.FieldType, field.TypeEnum, value)
 	}
 	if value, ok := pu.mutation.UpdatedAt(); ok {
 		_spec.SetField(prompt.FieldUpdatedAt, field.TypeTime, value)
@@ -340,16 +353,16 @@ func (puo *PromptUpdateOne) SetText(s string) *PromptUpdateOne {
 	return puo
 }
 
-// SetIsVoiceover sets the "is_voiceover" field.
-func (puo *PromptUpdateOne) SetIsVoiceover(b bool) *PromptUpdateOne {
-	puo.mutation.SetIsVoiceover(b)
+// SetType sets the "type" field.
+func (puo *PromptUpdateOne) SetType(pr prompt.Type) *PromptUpdateOne {
+	puo.mutation.SetType(pr)
 	return puo
 }
 
-// SetNillableIsVoiceover sets the "is_voiceover" field if the given value is not nil.
-func (puo *PromptUpdateOne) SetNillableIsVoiceover(b *bool) *PromptUpdateOne {
-	if b != nil {
-		puo.SetIsVoiceover(*b)
+// SetNillableType sets the "type" field if the given value is not nil.
+func (puo *PromptUpdateOne) SetNillableType(pr *prompt.Type) *PromptUpdateOne {
+	if pr != nil {
+		puo.SetType(*pr)
 	}
 	return puo
 }
@@ -480,6 +493,16 @@ func (puo *PromptUpdateOne) defaults() {
 	}
 }
 
+// check runs all checks and user-defined validators on the builder.
+func (puo *PromptUpdateOne) check() error {
+	if v, ok := puo.mutation.GetType(); ok {
+		if err := prompt.TypeValidator(v); err != nil {
+			return &ValidationError{Name: "type", err: fmt.Errorf(`ent: validator failed for field "Prompt.type": %w`, err)}
+		}
+	}
+	return nil
+}
+
 // Modify adds a statement modifier for attaching custom logic to the UPDATE statement.
 func (puo *PromptUpdateOne) Modify(modifiers ...func(u *sql.UpdateBuilder)) *PromptUpdateOne {
 	puo.modifiers = append(puo.modifiers, modifiers...)
@@ -487,6 +510,9 @@ func (puo *PromptUpdateOne) Modify(modifiers ...func(u *sql.UpdateBuilder)) *Pro
 }
 
 func (puo *PromptUpdateOne) sqlSave(ctx context.Context) (_node *Prompt, err error) {
+	if err := puo.check(); err != nil {
+		return _node, err
+	}
 	_spec := &sqlgraph.UpdateSpec{
 		Node: &sqlgraph.NodeSpec{
 			Table:   prompt.Table,
@@ -524,8 +550,8 @@ func (puo *PromptUpdateOne) sqlSave(ctx context.Context) (_node *Prompt, err err
 	if value, ok := puo.mutation.Text(); ok {
 		_spec.SetField(prompt.FieldText, field.TypeString, value)
 	}
-	if value, ok := puo.mutation.IsVoiceover(); ok {
-		_spec.SetField(prompt.FieldIsVoiceover, field.TypeBool, value)
+	if value, ok := puo.mutation.GetType(); ok {
+		_spec.SetField(prompt.FieldType, field.TypeEnum, value)
 	}
 	if value, ok := puo.mutation.UpdatedAt(); ok {
 		_spec.SetField(prompt.FieldUpdatedAt, field.TypeTime, value)

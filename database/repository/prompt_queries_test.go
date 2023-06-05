@@ -13,10 +13,10 @@ import (
 
 func TestGetUsersUniquePromptIds(t *testing.T) {
 	// Create 2 prompts
-	p1, _, err := MockRepo.GetOrCreatePrompts("TestGetUsersUniquePromptIds_1", "", false, nil)
+	p1, _, err := MockRepo.GetOrCreatePrompts("TestGetUsersUniquePromptIds_1", "", prompt.TypeImage, nil)
 	assert.Nil(t, err)
 	assert.NotNil(t, p1)
-	p2, _, err := MockRepo.GetOrCreatePrompts("TestGetUsersUniquePromptIds_2", "", false, nil)
+	p2, _, err := MockRepo.GetOrCreatePrompts("TestGetUsersUniquePromptIds_2", "", prompt.TypeImage, nil)
 	assert.Nil(t, err)
 	assert.NotNil(t, p2)
 

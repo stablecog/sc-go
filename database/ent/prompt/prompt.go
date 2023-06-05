@@ -3,6 +3,7 @@
 package prompt
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/google/uuid"
@@ -15,8 +16,8 @@ const (
 	FieldID = "id"
 	// FieldText holds the string denoting the text field in the database.
 	FieldText = "text"
-	// FieldIsVoiceover holds the string denoting the is_voiceover field in the database.
-	FieldIsVoiceover = "is_voiceover"
+	// FieldType holds the string denoting the type field in the database.
+	FieldType = "type"
 	// FieldCreatedAt holds the string denoting the created_at field in the database.
 	FieldCreatedAt = "created_at"
 	// FieldUpdatedAt holds the string denoting the updated_at field in the database.
@@ -47,7 +48,7 @@ const (
 var Columns = []string{
 	FieldID,
 	FieldText,
-	FieldIsVoiceover,
+	FieldType,
 	FieldCreatedAt,
 	FieldUpdatedAt,
 }
@@ -63,8 +64,6 @@ func ValidColumn(column string) bool {
 }
 
 var (
-	// DefaultIsVoiceover holds the default value on creation for the "is_voiceover" field.
-	DefaultIsVoiceover bool
 	// DefaultCreatedAt holds the default value on creation for the "created_at" field.
 	DefaultCreatedAt func() time.Time
 	// DefaultUpdatedAt holds the default value on creation for the "updated_at" field.
@@ -74,3 +73,29 @@ var (
 	// DefaultID holds the default value on creation for the "id" field.
 	DefaultID func() uuid.UUID
 )
+
+// Type defines the type for the "type" enum field.
+type Type string
+
+// TypeImage is the default value of the Type enum.
+const DefaultType = TypeImage
+
+// Type values.
+const (
+	TypeImage     Type = "image"
+	TypeVoiceover Type = "voiceover"
+)
+
+func (_type Type) String() string {
+	return string(_type)
+}
+
+// TypeValidator is a validator for the "type" field enum values. It is called by the builders before save.
+func TypeValidator(_type Type) error {
+	switch _type {
+	case TypeImage, TypeVoiceover:
+		return nil
+	default:
+		return fmt.Errorf("prompt: invalid enum value for type field: %q", _type)
+	}
+}

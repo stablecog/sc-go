@@ -19,8 +19,8 @@ type Prompt struct {
 	ID uuid.UUID `json:"id,omitempty"`
 	// Text holds the value of the "text" field.
 	Text string `json:"text,omitempty"`
-	// IsVoiceover holds the value of the "is_voiceover" field.
-	IsVoiceover bool `json:"is_voiceover,omitempty"`
+	// Type holds the value of the "type" field.
+	Type prompt.Type `json:"type,omitempty"`
 	// CreatedAt holds the value of the "created_at" field.
 	CreatedAt time.Time `json:"created_at,omitempty"`
 	// UpdatedAt holds the value of the "updated_at" field.
@@ -64,9 +64,7 @@ func (*Prompt) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case prompt.FieldIsVoiceover:
-			values[i] = new(sql.NullBool)
-		case prompt.FieldText:
+		case prompt.FieldText, prompt.FieldType:
 			values[i] = new(sql.NullString)
 		case prompt.FieldCreatedAt, prompt.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
@@ -99,11 +97,11 @@ func (pr *Prompt) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				pr.Text = value.String
 			}
-		case prompt.FieldIsVoiceover:
-			if value, ok := values[i].(*sql.NullBool); !ok {
-				return fmt.Errorf("unexpected type %T for field is_voiceover", values[i])
+		case prompt.FieldType:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field type", values[i])
 			} else if value.Valid {
-				pr.IsVoiceover = value.Bool
+				pr.Type = prompt.Type(value.String)
 			}
 		case prompt.FieldCreatedAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
@@ -158,8 +156,8 @@ func (pr *Prompt) String() string {
 	builder.WriteString("text=")
 	builder.WriteString(pr.Text)
 	builder.WriteString(", ")
-	builder.WriteString("is_voiceover=")
-	builder.WriteString(fmt.Sprintf("%v", pr.IsVoiceover))
+	builder.WriteString("type=")
+	builder.WriteString(fmt.Sprintf("%v", pr.Type))
 	builder.WriteString(", ")
 	builder.WriteString("created_at=")
 	builder.WriteString(pr.CreatedAt.Format(time.ANSIC))

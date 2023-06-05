@@ -29,16 +29,16 @@ func (pc *PromptCreate) SetText(s string) *PromptCreate {
 	return pc
 }
 
-// SetIsVoiceover sets the "is_voiceover" field.
-func (pc *PromptCreate) SetIsVoiceover(b bool) *PromptCreate {
-	pc.mutation.SetIsVoiceover(b)
+// SetType sets the "type" field.
+func (pc *PromptCreate) SetType(pr prompt.Type) *PromptCreate {
+	pc.mutation.SetType(pr)
 	return pc
 }
 
-// SetNillableIsVoiceover sets the "is_voiceover" field if the given value is not nil.
-func (pc *PromptCreate) SetNillableIsVoiceover(b *bool) *PromptCreate {
-	if b != nil {
-		pc.SetIsVoiceover(*b)
+// SetNillableType sets the "type" field if the given value is not nil.
+func (pc *PromptCreate) SetNillableType(pr *prompt.Type) *PromptCreate {
+	if pr != nil {
+		pc.SetType(*pr)
 	}
 	return pc
 }
@@ -150,9 +150,9 @@ func (pc *PromptCreate) ExecX(ctx context.Context) {
 
 // defaults sets the default values of the builder before save.
 func (pc *PromptCreate) defaults() {
-	if _, ok := pc.mutation.IsVoiceover(); !ok {
-		v := prompt.DefaultIsVoiceover
-		pc.mutation.SetIsVoiceover(v)
+	if _, ok := pc.mutation.GetType(); !ok {
+		v := prompt.DefaultType
+		pc.mutation.SetType(v)
 	}
 	if _, ok := pc.mutation.CreatedAt(); !ok {
 		v := prompt.DefaultCreatedAt()
@@ -173,8 +173,13 @@ func (pc *PromptCreate) check() error {
 	if _, ok := pc.mutation.Text(); !ok {
 		return &ValidationError{Name: "text", err: errors.New(`ent: missing required field "Prompt.text"`)}
 	}
-	if _, ok := pc.mutation.IsVoiceover(); !ok {
-		return &ValidationError{Name: "is_voiceover", err: errors.New(`ent: missing required field "Prompt.is_voiceover"`)}
+	if _, ok := pc.mutation.GetType(); !ok {
+		return &ValidationError{Name: "type", err: errors.New(`ent: missing required field "Prompt.type"`)}
+	}
+	if v, ok := pc.mutation.GetType(); ok {
+		if err := prompt.TypeValidator(v); err != nil {
+			return &ValidationError{Name: "type", err: fmt.Errorf(`ent: validator failed for field "Prompt.type": %w`, err)}
+		}
 	}
 	if _, ok := pc.mutation.CreatedAt(); !ok {
 		return &ValidationError{Name: "created_at", err: errors.New(`ent: missing required field "Prompt.created_at"`)}
@@ -227,9 +232,9 @@ func (pc *PromptCreate) createSpec() (*Prompt, *sqlgraph.CreateSpec) {
 		_spec.SetField(prompt.FieldText, field.TypeString, value)
 		_node.Text = value
 	}
-	if value, ok := pc.mutation.IsVoiceover(); ok {
-		_spec.SetField(prompt.FieldIsVoiceover, field.TypeBool, value)
-		_node.IsVoiceover = value
+	if value, ok := pc.mutation.GetType(); ok {
+		_spec.SetField(prompt.FieldType, field.TypeEnum, value)
+		_node.Type = value
 	}
 	if value, ok := pc.mutation.CreatedAt(); ok {
 		_spec.SetField(prompt.FieldCreatedAt, field.TypeTime, value)
