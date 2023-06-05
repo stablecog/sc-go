@@ -89,8 +89,8 @@ func (r *Repository) FailCogMessageDueToTimeoutIfTimedOut(msg requests.CogWebhoo
 				return err
 			}
 			userId = user.ID
-			// Voiceover is always 1 credit
-			success, err := r.RefundCreditsToUser(userId, 1, db)
+			creditAmount := utils.CalculateVoiceoverCredits(msg.Input.Prompt)
+			success, err := r.RefundCreditsToUser(userId, creditAmount, db)
 			if err != nil || !success {
 				log.Error("Error refunding credits for voiceover", "user", userId.String(), "id", msg.Input.ID, "err", err)
 				return err
@@ -218,8 +218,8 @@ func (r *Repository) ProcessCogMessage(msg requests.CogWebhookMessage) error {
 					return err
 				}
 				userId = user.ID
-				// Voiceover is always 1 credit
-				success, err := r.RefundCreditsToUser(userId, 1, db)
+				creditAmount := utils.CalculateVoiceoverCredits(msg.Input.Prompt)
+				success, err := r.RefundCreditsToUser(userId, creditAmount, db)
 				if err != nil || !success {
 					log.Error("Error refunding credits for voiceover", "user", userId.String(), "id", msg.Input.ID, "err", err)
 					return err
@@ -338,7 +338,8 @@ func (r *Repository) ProcessCogMessage(msg requests.CogWebhookMessage) error {
 					log.Error("Error getting user ID from voiceover", "err", err)
 					return err
 				}
-				success, err := r.RefundCreditsToUser(user.ID, 1, db)
+				creditAmount := utils.CalculateVoiceoverCredits(msg.Input.Prompt)
+				success, err := r.RefundCreditsToUser(user.ID, creditAmount, db)
 				if err != nil || !success {
 					log.Error("Error refunding credits for voiceover", "user", user.ID.String(), "id", msg.Input.ID, "err", err)
 					return err

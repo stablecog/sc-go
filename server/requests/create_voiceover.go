@@ -38,6 +38,7 @@ func (t *CreateVoiceoverRequest) ApplyDefaults() {
 	if t.Temp == nil {
 		t.Temp = utils.ToPtr[float32](0.7)
 	}
+
 }
 
 func (t *CreateVoiceoverRequest) Validate(api bool) error {
@@ -58,6 +59,10 @@ func (t *CreateVoiceoverRequest) Validate(api bool) error {
 
 	if *t.Temp < 0.0 || *t.Temp > 1.0 {
 		return errors.New("invalid_temp")
+	}
+
+	if len(t.Prompt) > shared.VOICEOVER_MAX_TEXT_LENGTH {
+		return errors.New("prompt_too_long")
 	}
 
 	return nil

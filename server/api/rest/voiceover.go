@@ -115,7 +115,8 @@ func (c *RestAPI) HandleVoiceover(w http.ResponseWriter, r *http.Request) {
 		DB := tx.Client()
 
 		// Charge credits
-		deducted, err := c.Repo.DeductCreditsFromUser(user.ID, 1, DB)
+		creditAmount := utils.CalculateVoiceoverCredits(voiceoverReq.Prompt)
+		deducted, err := c.Repo.DeductCreditsFromUser(user.ID, creditAmount, DB)
 		if err != nil {
 			log.Error("Error deducting credits", "err", err)
 			responses.ErrInternalServerError(w, r, "Error deducting credits from user")
