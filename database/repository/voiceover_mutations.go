@@ -92,7 +92,7 @@ func (r *Repository) SetVoiceoverSucceeded(voiceoverId, prompt string, output re
 		}
 
 		// Get prompt IDs
-		promptId, _, err := r.GetOrCreatePrompts(prompt, "", db)
+		promptId, _, err := r.GetOrCreatePrompts(prompt, "", true, db)
 		if err != nil || promptId == nil {
 			log.Error("Error getting or creating prompts", "id", voiceoverId, "err", err, "prompt", prompt)
 			return err

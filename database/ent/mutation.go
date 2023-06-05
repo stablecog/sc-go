@@ -9316,6 +9316,7 @@ type PromptMutation struct {
 	typ                string
 	id                 *uuid.UUID
 	text               *string
+	is_voiceover       *bool
 	created_at         *time.Time
 	updated_at         *time.Time
 	clearedFields      map[string]struct{}
@@ -9468,6 +9469,42 @@ func (m *PromptMutation) OldText(ctx context.Context) (v string, err error) {
 // ResetText resets all changes to the "text" field.
 func (m *PromptMutation) ResetText() {
 	m.text = nil
+}
+
+// SetIsVoiceover sets the "is_voiceover" field.
+func (m *PromptMutation) SetIsVoiceover(b bool) {
+	m.is_voiceover = &b
+}
+
+// IsVoiceover returns the value of the "is_voiceover" field in the mutation.
+func (m *PromptMutation) IsVoiceover() (r bool, exists bool) {
+	v := m.is_voiceover
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldIsVoiceover returns the old "is_voiceover" field's value of the Prompt entity.
+// If the Prompt object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PromptMutation) OldIsVoiceover(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldIsVoiceover is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldIsVoiceover requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldIsVoiceover: %w", err)
+	}
+	return oldValue.IsVoiceover, nil
+}
+
+// ResetIsVoiceover resets all changes to the "is_voiceover" field.
+func (m *PromptMutation) ResetIsVoiceover() {
+	m.is_voiceover = nil
 }
 
 // SetCreatedAt sets the "created_at" field.
@@ -9684,9 +9721,12 @@ func (m *PromptMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *PromptMutation) Fields() []string {
-	fields := make([]string, 0, 3)
+	fields := make([]string, 0, 4)
 	if m.text != nil {
 		fields = append(fields, prompt.FieldText)
+	}
+	if m.is_voiceover != nil {
+		fields = append(fields, prompt.FieldIsVoiceover)
 	}
 	if m.created_at != nil {
 		fields = append(fields, prompt.FieldCreatedAt)
@@ -9704,6 +9744,8 @@ func (m *PromptMutation) Field(name string) (ent.Value, bool) {
 	switch name {
 	case prompt.FieldText:
 		return m.Text()
+	case prompt.FieldIsVoiceover:
+		return m.IsVoiceover()
 	case prompt.FieldCreatedAt:
 		return m.CreatedAt()
 	case prompt.FieldUpdatedAt:
@@ -9719,6 +9761,8 @@ func (m *PromptMutation) OldField(ctx context.Context, name string) (ent.Value, 
 	switch name {
 	case prompt.FieldText:
 		return m.OldText(ctx)
+	case prompt.FieldIsVoiceover:
+		return m.OldIsVoiceover(ctx)
 	case prompt.FieldCreatedAt:
 		return m.OldCreatedAt(ctx)
 	case prompt.FieldUpdatedAt:
@@ -9738,6 +9782,13 @@ func (m *PromptMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetText(v)
+		return nil
+	case prompt.FieldIsVoiceover:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetIsVoiceover(v)
 		return nil
 	case prompt.FieldCreatedAt:
 		v, ok := value.(time.Time)
@@ -9804,6 +9855,9 @@ func (m *PromptMutation) ResetField(name string) error {
 	switch name {
 	case prompt.FieldText:
 		m.ResetText()
+		return nil
+	case prompt.FieldIsVoiceover:
+		m.ResetIsVoiceover()
 		return nil
 	case prompt.FieldCreatedAt:
 		m.ResetCreatedAt()

@@ -19,6 +19,8 @@ type Prompt struct {
 	ID uuid.UUID `json:"id,omitempty"`
 	// Text holds the value of the "text" field.
 	Text string `json:"text,omitempty"`
+	// IsVoiceover holds the value of the "is_voiceover" field.
+	IsVoiceover bool `json:"is_voiceover,omitempty"`
 	// CreatedAt holds the value of the "created_at" field.
 	CreatedAt time.Time `json:"created_at,omitempty"`
 	// UpdatedAt holds the value of the "updated_at" field.
@@ -62,6 +64,8 @@ func (*Prompt) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
+		case prompt.FieldIsVoiceover:
+			values[i] = new(sql.NullBool)
 		case prompt.FieldText:
 			values[i] = new(sql.NullString)
 		case prompt.FieldCreatedAt, prompt.FieldUpdatedAt:
@@ -94,6 +98,12 @@ func (pr *Prompt) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field text", values[i])
 			} else if value.Valid {
 				pr.Text = value.String
+			}
+		case prompt.FieldIsVoiceover:
+			if value, ok := values[i].(*sql.NullBool); !ok {
+				return fmt.Errorf("unexpected type %T for field is_voiceover", values[i])
+			} else if value.Valid {
+				pr.IsVoiceover = value.Bool
 			}
 		case prompt.FieldCreatedAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
@@ -147,6 +157,9 @@ func (pr *Prompt) String() string {
 	builder.WriteString(fmt.Sprintf("id=%v, ", pr.ID))
 	builder.WriteString("text=")
 	builder.WriteString(pr.Text)
+	builder.WriteString(", ")
+	builder.WriteString("is_voiceover=")
+	builder.WriteString(fmt.Sprintf("%v", pr.IsVoiceover))
 	builder.WriteString(", ")
 	builder.WriteString("created_at=")
 	builder.WriteString(pr.CreatedAt.Format(time.ANSIC))

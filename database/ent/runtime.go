@@ -231,12 +231,16 @@ func init() {
 	negativeprompt.DefaultID = negativepromptDescID.Default.(func() uuid.UUID)
 	promptFields := schema.Prompt{}.Fields()
 	_ = promptFields
+	// promptDescIsVoiceover is the schema descriptor for is_voiceover field.
+	promptDescIsVoiceover := promptFields[2].Descriptor()
+	// prompt.DefaultIsVoiceover holds the default value on creation for the is_voiceover field.
+	prompt.DefaultIsVoiceover = promptDescIsVoiceover.Default.(bool)
 	// promptDescCreatedAt is the schema descriptor for created_at field.
-	promptDescCreatedAt := promptFields[2].Descriptor()
+	promptDescCreatedAt := promptFields[3].Descriptor()
 	// prompt.DefaultCreatedAt holds the default value on creation for the created_at field.
 	prompt.DefaultCreatedAt = promptDescCreatedAt.Default.(func() time.Time)
 	// promptDescUpdatedAt is the schema descriptor for updated_at field.
-	promptDescUpdatedAt := promptFields[3].Descriptor()
+	promptDescUpdatedAt := promptFields[4].Descriptor()
 	// prompt.DefaultUpdatedAt holds the default value on creation for the updated_at field.
 	prompt.DefaultUpdatedAt = promptDescUpdatedAt.Default.(func() time.Time)
 	// prompt.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.

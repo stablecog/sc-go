@@ -9,17 +9,17 @@ import (
 )
 
 // Create device info and prompts if they don't exist, otherwise get existing
-func (r *Repository) GetOrCreatePrompts(promptText, negativePromptText string, DB *ent.Client) (promptId *uuid.UUID, negativePromptId *uuid.UUID, err error) {
+func (r *Repository) GetOrCreatePrompts(promptText, negativePromptText string, isVoiceover bool, DB *ent.Client) (promptId *uuid.UUID, negativePromptId *uuid.UUID, err error) {
 	if DB == nil {
 		DB = r.DB
 	}
 	// Check if prompt exists
 	var dbPrompt *ent.Prompt
-	dbPrompt, err = DB.Prompt.Query().Where(prompt.TextEQ(promptText)).First(r.Ctx)
+	dbPrompt, err = DB.Prompt.Query().Where(prompt.TextEQ(promptText), prompt.IsVoiceoverEQ(isVoiceover)).First(r.Ctx)
 	if err != nil {
 		if ent.IsNotFound(err) {
 			// Create prompt
-			dbPrompt, err = DB.Prompt.Create().SetText(promptText).Save(r.Ctx)
+			dbPrompt, err = DB.Prompt.Create().SetText(promptText).SetIsVoiceover(isVoiceover).Save(r.Ctx)
 			if err != nil {
 				return promptId, negativePromptId, err
 			}

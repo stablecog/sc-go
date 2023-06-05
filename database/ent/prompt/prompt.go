@@ -15,6 +15,8 @@ const (
 	FieldID = "id"
 	// FieldText holds the string denoting the text field in the database.
 	FieldText = "text"
+	// FieldIsVoiceover holds the string denoting the is_voiceover field in the database.
+	FieldIsVoiceover = "is_voiceover"
 	// FieldCreatedAt holds the string denoting the created_at field in the database.
 	FieldCreatedAt = "created_at"
 	// FieldUpdatedAt holds the string denoting the updated_at field in the database.
@@ -45,6 +47,7 @@ const (
 var Columns = []string{
 	FieldID,
 	FieldText,
+	FieldIsVoiceover,
 	FieldCreatedAt,
 	FieldUpdatedAt,
 }
@@ -60,6 +63,8 @@ func ValidColumn(column string) bool {
 }
 
 var (
+	// DefaultIsVoiceover holds the default value on creation for the "is_voiceover" field.
+	DefaultIsVoiceover bool
 	// DefaultCreatedAt holds the default value on creation for the "created_at" field.
 	DefaultCreatedAt func() time.Time
 	// DefaultUpdatedAt holds the default value on creation for the "updated_at" field.

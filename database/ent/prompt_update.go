@@ -38,6 +38,20 @@ func (pu *PromptUpdate) SetText(s string) *PromptUpdate {
 	return pu
 }
 
+// SetIsVoiceover sets the "is_voiceover" field.
+func (pu *PromptUpdate) SetIsVoiceover(b bool) *PromptUpdate {
+	pu.mutation.SetIsVoiceover(b)
+	return pu
+}
+
+// SetNillableIsVoiceover sets the "is_voiceover" field if the given value is not nil.
+func (pu *PromptUpdate) SetNillableIsVoiceover(b *bool) *PromptUpdate {
+	if b != nil {
+		pu.SetIsVoiceover(*b)
+	}
+	return pu
+}
+
 // SetUpdatedAt sets the "updated_at" field.
 func (pu *PromptUpdate) SetUpdatedAt(t time.Time) *PromptUpdate {
 	pu.mutation.SetUpdatedAt(t)
@@ -184,6 +198,9 @@ func (pu *PromptUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if value, ok := pu.mutation.Text(); ok {
 		_spec.SetField(prompt.FieldText, field.TypeString, value)
 	}
+	if value, ok := pu.mutation.IsVoiceover(); ok {
+		_spec.SetField(prompt.FieldIsVoiceover, field.TypeBool, value)
+	}
 	if value, ok := pu.mutation.UpdatedAt(); ok {
 		_spec.SetField(prompt.FieldUpdatedAt, field.TypeTime, value)
 	}
@@ -320,6 +337,20 @@ type PromptUpdateOne struct {
 // SetText sets the "text" field.
 func (puo *PromptUpdateOne) SetText(s string) *PromptUpdateOne {
 	puo.mutation.SetText(s)
+	return puo
+}
+
+// SetIsVoiceover sets the "is_voiceover" field.
+func (puo *PromptUpdateOne) SetIsVoiceover(b bool) *PromptUpdateOne {
+	puo.mutation.SetIsVoiceover(b)
+	return puo
+}
+
+// SetNillableIsVoiceover sets the "is_voiceover" field if the given value is not nil.
+func (puo *PromptUpdateOne) SetNillableIsVoiceover(b *bool) *PromptUpdateOne {
+	if b != nil {
+		puo.SetIsVoiceover(*b)
+	}
 	return puo
 }
 
@@ -492,6 +523,9 @@ func (puo *PromptUpdateOne) sqlSave(ctx context.Context) (_node *Prompt, err err
 	}
 	if value, ok := puo.mutation.Text(); ok {
 		_spec.SetField(prompt.FieldText, field.TypeString, value)
+	}
+	if value, ok := puo.mutation.IsVoiceover(); ok {
+		_spec.SetField(prompt.FieldIsVoiceover, field.TypeBool, value)
 	}
 	if value, ok := puo.mutation.UpdatedAt(); ok {
 		_spec.SetField(prompt.FieldUpdatedAt, field.TypeTime, value)

@@ -108,7 +108,7 @@ func (r *Repository) SetGenerationSucceeded(generationID string, prompt string, 
 		}
 
 		// Get prompt IDs
-		promptId, negativePromptId, err := r.GetOrCreatePrompts(prompt, negativePrompt, db)
+		promptId, negativePromptId, err := r.GetOrCreatePrompts(prompt, negativePrompt, false, db)
 		if err != nil {
 			log.Error("Error getting or creating prompts", "id", generationID, "err", err, "prompt", prompt, "negativePrompt", negativePrompt)
 			return err

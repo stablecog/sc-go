@@ -29,6 +29,20 @@ func (pc *PromptCreate) SetText(s string) *PromptCreate {
 	return pc
 }
 
+// SetIsVoiceover sets the "is_voiceover" field.
+func (pc *PromptCreate) SetIsVoiceover(b bool) *PromptCreate {
+	pc.mutation.SetIsVoiceover(b)
+	return pc
+}
+
+// SetNillableIsVoiceover sets the "is_voiceover" field if the given value is not nil.
+func (pc *PromptCreate) SetNillableIsVoiceover(b *bool) *PromptCreate {
+	if b != nil {
+		pc.SetIsVoiceover(*b)
+	}
+	return pc
+}
+
 // SetCreatedAt sets the "created_at" field.
 func (pc *PromptCreate) SetCreatedAt(t time.Time) *PromptCreate {
 	pc.mutation.SetCreatedAt(t)
@@ -136,6 +150,10 @@ func (pc *PromptCreate) ExecX(ctx context.Context) {
 
 // defaults sets the default values of the builder before save.
 func (pc *PromptCreate) defaults() {
+	if _, ok := pc.mutation.IsVoiceover(); !ok {
+		v := prompt.DefaultIsVoiceover
+		pc.mutation.SetIsVoiceover(v)
+	}
 	if _, ok := pc.mutation.CreatedAt(); !ok {
 		v := prompt.DefaultCreatedAt()
 		pc.mutation.SetCreatedAt(v)
@@ -154,6 +172,9 @@ func (pc *PromptCreate) defaults() {
 func (pc *PromptCreate) check() error {
 	if _, ok := pc.mutation.Text(); !ok {
 		return &ValidationError{Name: "text", err: errors.New(`ent: missing required field "Prompt.text"`)}
+	}
+	if _, ok := pc.mutation.IsVoiceover(); !ok {
+		return &ValidationError{Name: "is_voiceover", err: errors.New(`ent: missing required field "Prompt.is_voiceover"`)}
 	}
 	if _, ok := pc.mutation.CreatedAt(); !ok {
 		return &ValidationError{Name: "created_at", err: errors.New(`ent: missing required field "Prompt.created_at"`)}
@@ -205,6 +226,10 @@ func (pc *PromptCreate) createSpec() (*Prompt, *sqlgraph.CreateSpec) {
 	if value, ok := pc.mutation.Text(); ok {
 		_spec.SetField(prompt.FieldText, field.TypeString, value)
 		_node.Text = value
+	}
+	if value, ok := pc.mutation.IsVoiceover(); ok {
+		_spec.SetField(prompt.FieldIsVoiceover, field.TypeBool, value)
+		_node.IsVoiceover = value
 	}
 	if value, ok := pc.mutation.CreatedAt(); ok {
 		_spec.SetField(prompt.FieldCreatedAt, field.TypeTime, value)

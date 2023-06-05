@@ -61,6 +61,11 @@ func Text(v string) predicate.Prompt {
 	return predicate.Prompt(sql.FieldEQ(FieldText, v))
 }
 
+// IsVoiceover applies equality check predicate on the "is_voiceover" field. It's identical to IsVoiceoverEQ.
+func IsVoiceover(v bool) predicate.Prompt {
+	return predicate.Prompt(sql.FieldEQ(FieldIsVoiceover, v))
+}
+
 // CreatedAt applies equality check predicate on the "created_at" field. It's identical to CreatedAtEQ.
 func CreatedAt(v time.Time) predicate.Prompt {
 	return predicate.Prompt(sql.FieldEQ(FieldCreatedAt, v))
@@ -134,6 +139,16 @@ func TextEqualFold(v string) predicate.Prompt {
 // TextContainsFold applies the ContainsFold predicate on the "text" field.
 func TextContainsFold(v string) predicate.Prompt {
 	return predicate.Prompt(sql.FieldContainsFold(FieldText, v))
+}
+
+// IsVoiceoverEQ applies the EQ predicate on the "is_voiceover" field.
+func IsVoiceoverEQ(v bool) predicate.Prompt {
+	return predicate.Prompt(sql.FieldEQ(FieldIsVoiceover, v))
+}
+
+// IsVoiceoverNEQ applies the NEQ predicate on the "is_voiceover" field.
+func IsVoiceoverNEQ(v bool) predicate.Prompt {
+	return predicate.Prompt(sql.FieldNEQ(FieldIsVoiceover, v))
 }
 
 // CreatedAtEQ applies the EQ predicate on the "created_at" field.
