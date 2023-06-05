@@ -443,7 +443,7 @@ func (r *Repository) ProcessCogMessage(msg requests.CogWebhookMessage) error {
 			audioFileURL := utils.GetURLFromImagePath(voiceoverOutput.AudioPath)
 			resp.AudioOutputs = []VoiceoverOutput{
 				{
-					ID:          upscaleOutput.ID,
+					ID:          voiceoverOutput.ID,
 					AudoFileURL: audioFileURL,
 				},
 			}
