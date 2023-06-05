@@ -96,6 +96,12 @@ func (c *RestAPI) HandleCreateCheckoutSession(w http.ResponseWriter, r *http.Req
 	if user = c.GetUserIfAuthenticated(w, r); user == nil {
 		return
 	}
+
+	if user.BannedAt != nil {
+		responses.ErrForbidden(w, r)
+		return
+	}
+
 	// Parse request body
 	reqBody, _ := io.ReadAll(r.Body)
 	var stripeReq requests.StripeCheckoutRequest
@@ -242,6 +248,11 @@ func (c *RestAPI) HandleCreateCheckoutSession(w http.ResponseWriter, r *http.Req
 func (c *RestAPI) HandleSubscriptionDowngrade(w http.ResponseWriter, r *http.Request) {
 	var user *ent.User
 	if user = c.GetUserIfAuthenticated(w, r); user == nil {
+		return
+	}
+
+	if user.BannedAt != nil {
+		responses.ErrForbidden(w, r)
 		return
 	}
 
