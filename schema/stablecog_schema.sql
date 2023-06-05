@@ -1058,6 +1058,3 @@ ALTER TABLE public.voiceover_models ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.voiceover_outputs ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.voiceovers ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.voiceover_speakers ENABLE ROW LEVEL SECURITY;
-
-ALTER TABLE public.credit_types ALTER COLUMN amount TYPE real;
-ALTER TABLE public.credits ALTER COLUMN remaining_amount TYPE real;

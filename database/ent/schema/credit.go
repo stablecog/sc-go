@@ -21,7 +21,7 @@ type Credit struct {
 func (Credit) Fields() []ent.Field {
 	return []ent.Field{
 		field.UUID("id", uuid.UUID{}).Default(uuid.New),
-		field.Float32("remaining_amount"),
+		field.Int32("remaining_amount"),
 		field.Time("expires_at"),
 		field.String("stripe_line_item_id").Optional().Unique().Nillable(),
 		field.Time("replenished_at").Default(time.Now),

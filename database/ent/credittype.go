@@ -22,7 +22,7 @@ type CreditType struct {
 	// Description holds the value of the "description" field.
 	Description *string `json:"description,omitempty"`
 	// Amount holds the value of the "amount" field.
-	Amount float32 `json:"amount,omitempty"`
+	Amount int32 `json:"amount,omitempty"`
 	// StripeProductID holds the value of the "stripe_product_id" field.
 	StripeProductID *string `json:"stripe_product_id,omitempty"`
 	// Type holds the value of the "type" field.
@@ -60,7 +60,7 @@ func (*CreditType) scanValues(columns []string) ([]any, error) {
 	for i := range columns {
 		switch columns[i] {
 		case credittype.FieldAmount:
-			values[i] = new(sql.NullFloat64)
+			values[i] = new(sql.NullInt64)
 		case credittype.FieldName, credittype.FieldDescription, credittype.FieldStripeProductID, credittype.FieldType:
 			values[i] = new(sql.NullString)
 		case credittype.FieldCreatedAt, credittype.FieldUpdatedAt:
@@ -102,10 +102,10 @@ func (ct *CreditType) assignValues(columns []string, values []any) error {
 				*ct.Description = value.String
 			}
 		case credittype.FieldAmount:
-			if value, ok := values[i].(*sql.NullFloat64); !ok {
+			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for field amount", values[i])
 			} else if value.Valid {
-				ct.Amount = float32(value.Float64)
+				ct.Amount = int32(value.Int64)
 			}
 		case credittype.FieldStripeProductID:
 			if value, ok := values[i].(*sql.NullString); !ok {

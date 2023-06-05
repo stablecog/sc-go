@@ -65,12 +65,12 @@ func (r *Repository) HasPaidCredits(userID uuid.UUID) (int, error) {
 	return r.DB.Credit.Query().Where(credit.UserIDEQ(userID), credit.CreditTypeIDNEQ(uuid.MustParse(FREE_CREDIT_TYPE_ID))).Count(r.Ctx)
 }
 
-func (r *Repository) GetNonExpiredCreditTotalForUser(userID uuid.UUID, DB *ent.Client) (float32, error) {
+func (r *Repository) GetNonExpiredCreditTotalForUser(userID uuid.UUID, DB *ent.Client) (int, error) {
 	if DB == nil {
 		DB = r.DB
 	}
 	var total []struct {
-		Sum float32
+		Sum int
 	}
 	err := DB.Credit.Query().Where(credit.UserID(userID), credit.ExpiresAtGT(time.Now())).Aggregate(ent.Sum(credit.FieldRemainingAmount)).Scan(r.Ctx, &total)
 	if err != nil {
@@ -83,10 +83,10 @@ func (r *Repository) GetNonExpiredCreditTotalForUser(userID uuid.UUID, DB *ent.C
 
 type UserCreditsQueryResult struct {
 	ID                    uuid.UUID `json:"id" sql:"id"`
-	RemainingAmount       float32   `json:"remaining_amount" sql:"remaining_amount"`
+	RemainingAmount       int32     `json:"remaining_amount" sql:"remaining_amount"`
 	ExpiresAt             time.Time `json:"expires_at" sql:"expires_at"`
 	CreditTypeID          uuid.UUID `json:"credit_type_id" sql:"credit_type_id"`
 	CreditTypeName        string    `json:"credit_type_name" sql:"credit_type_name"`
 	CreditTypeDescription string    `json:"credit_type_description" sql:"credit_type_description"`
-	CreditTypeAmount      float32   `json:"credit_type_amount" sql:"credit_type_amount"`
+	CreditTypeAmount      int32     `json:"credit_type_amount" sql:"credit_type_amount"`
 }

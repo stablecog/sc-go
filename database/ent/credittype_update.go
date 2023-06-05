@@ -58,15 +58,15 @@ func (ctu *CreditTypeUpdate) ClearDescription() *CreditTypeUpdate {
 }
 
 // SetAmount sets the "amount" field.
-func (ctu *CreditTypeUpdate) SetAmount(f float32) *CreditTypeUpdate {
+func (ctu *CreditTypeUpdate) SetAmount(i int32) *CreditTypeUpdate {
 	ctu.mutation.ResetAmount()
-	ctu.mutation.SetAmount(f)
+	ctu.mutation.SetAmount(i)
 	return ctu
 }
 
-// AddAmount adds f to the "amount" field.
-func (ctu *CreditTypeUpdate) AddAmount(f float32) *CreditTypeUpdate {
-	ctu.mutation.AddAmount(f)
+// AddAmount adds i to the "amount" field.
+func (ctu *CreditTypeUpdate) AddAmount(i int32) *CreditTypeUpdate {
+	ctu.mutation.AddAmount(i)
 	return ctu
 }
 
@@ -226,10 +226,10 @@ func (ctu *CreditTypeUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		_spec.ClearField(credittype.FieldDescription, field.TypeString)
 	}
 	if value, ok := ctu.mutation.Amount(); ok {
-		_spec.SetField(credittype.FieldAmount, field.TypeFloat32, value)
+		_spec.SetField(credittype.FieldAmount, field.TypeInt32, value)
 	}
 	if value, ok := ctu.mutation.AddedAmount(); ok {
-		_spec.AddField(credittype.FieldAmount, field.TypeFloat32, value)
+		_spec.AddField(credittype.FieldAmount, field.TypeInt32, value)
 	}
 	if value, ok := ctu.mutation.StripeProductID(); ok {
 		_spec.SetField(credittype.FieldStripeProductID, field.TypeString, value)
@@ -346,15 +346,15 @@ func (ctuo *CreditTypeUpdateOne) ClearDescription() *CreditTypeUpdateOne {
 }
 
 // SetAmount sets the "amount" field.
-func (ctuo *CreditTypeUpdateOne) SetAmount(f float32) *CreditTypeUpdateOne {
+func (ctuo *CreditTypeUpdateOne) SetAmount(i int32) *CreditTypeUpdateOne {
 	ctuo.mutation.ResetAmount()
-	ctuo.mutation.SetAmount(f)
+	ctuo.mutation.SetAmount(i)
 	return ctuo
 }
 
-// AddAmount adds f to the "amount" field.
-func (ctuo *CreditTypeUpdateOne) AddAmount(f float32) *CreditTypeUpdateOne {
-	ctuo.mutation.AddAmount(f)
+// AddAmount adds i to the "amount" field.
+func (ctuo *CreditTypeUpdateOne) AddAmount(i int32) *CreditTypeUpdateOne {
+	ctuo.mutation.AddAmount(i)
 	return ctuo
 }
 
@@ -538,10 +538,10 @@ func (ctuo *CreditTypeUpdateOne) sqlSave(ctx context.Context) (_node *CreditType
 		_spec.ClearField(credittype.FieldDescription, field.TypeString)
 	}
 	if value, ok := ctuo.mutation.Amount(); ok {
-		_spec.SetField(credittype.FieldAmount, field.TypeFloat32, value)
+		_spec.SetField(credittype.FieldAmount, field.TypeInt32, value)
 	}
 	if value, ok := ctuo.mutation.AddedAmount(); ok {
-		_spec.AddField(credittype.FieldAmount, field.TypeFloat32, value)
+		_spec.AddField(credittype.FieldAmount, field.TypeInt32, value)
 	}
 	if value, ok := ctuo.mutation.StripeProductID(); ok {
 		_spec.SetField(credittype.FieldStripeProductID, field.TypeString, value)

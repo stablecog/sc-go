@@ -9,7 +9,7 @@ type ApiOutput struct {
 
 type ApiSucceededResponse struct {
 	Outputs          []ApiOutput `json:"outputs"`
-	RemainingCredits float32     `json:"remaining_credits"`
+	RemainingCredits int         `json:"remaining_credits"`
 	Settings         interface{} `json:"settings"`
 }
 

@@ -1286,8 +1286,8 @@ type CreditMutation struct {
 	op                  Op
 	typ                 string
 	id                  *uuid.UUID
-	remaining_amount    *float32
-	addremaining_amount *float32
+	remaining_amount    *int32
+	addremaining_amount *int32
 	expires_at          *time.Time
 	stripe_line_item_id *string
 	replenished_at      *time.Time
@@ -1408,13 +1408,13 @@ func (m *CreditMutation) IDs(ctx context.Context) ([]uuid.UUID, error) {
 }
 
 // SetRemainingAmount sets the "remaining_amount" field.
-func (m *CreditMutation) SetRemainingAmount(f float32) {
-	m.remaining_amount = &f
+func (m *CreditMutation) SetRemainingAmount(i int32) {
+	m.remaining_amount = &i
 	m.addremaining_amount = nil
 }
 
 // RemainingAmount returns the value of the "remaining_amount" field in the mutation.
-func (m *CreditMutation) RemainingAmount() (r float32, exists bool) {
+func (m *CreditMutation) RemainingAmount() (r int32, exists bool) {
 	v := m.remaining_amount
 	if v == nil {
 		return
@@ -1425,7 +1425,7 @@ func (m *CreditMutation) RemainingAmount() (r float32, exists bool) {
 // OldRemainingAmount returns the old "remaining_amount" field's value of the Credit entity.
 // If the Credit object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *CreditMutation) OldRemainingAmount(ctx context.Context) (v float32, err error) {
+func (m *CreditMutation) OldRemainingAmount(ctx context.Context) (v int32, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldRemainingAmount is only allowed on UpdateOne operations")
 	}
@@ -1439,17 +1439,17 @@ func (m *CreditMutation) OldRemainingAmount(ctx context.Context) (v float32, err
 	return oldValue.RemainingAmount, nil
 }
 
-// AddRemainingAmount adds f to the "remaining_amount" field.
-func (m *CreditMutation) AddRemainingAmount(f float32) {
+// AddRemainingAmount adds i to the "remaining_amount" field.
+func (m *CreditMutation) AddRemainingAmount(i int32) {
 	if m.addremaining_amount != nil {
-		*m.addremaining_amount += f
+		*m.addremaining_amount += i
 	} else {
-		m.addremaining_amount = &f
+		m.addremaining_amount = &i
 	}
 }
 
 // AddedRemainingAmount returns the value that was added to the "remaining_amount" field in this mutation.
-func (m *CreditMutation) AddedRemainingAmount() (r float32, exists bool) {
+func (m *CreditMutation) AddedRemainingAmount() (r int32, exists bool) {
 	v := m.addremaining_amount
 	if v == nil {
 		return
@@ -1911,7 +1911,7 @@ func (m *CreditMutation) OldField(ctx context.Context, name string) (ent.Value, 
 func (m *CreditMutation) SetField(name string, value ent.Value) error {
 	switch name {
 	case credit.FieldRemainingAmount:
-		v, ok := value.(float32)
+		v, ok := value.(int32)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
@@ -1997,7 +1997,7 @@ func (m *CreditMutation) AddedField(name string) (ent.Value, bool) {
 func (m *CreditMutation) AddField(name string, value ent.Value) error {
 	switch name {
 	case credit.FieldRemainingAmount:
-		v, ok := value.(float32)
+		v, ok := value.(int32)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
@@ -2167,8 +2167,8 @@ type CreditTypeMutation struct {
 	id                *uuid.UUID
 	name              *string
 	description       *string
-	amount            *float32
-	addamount         *float32
+	amount            *int32
+	addamount         *int32
 	stripe_product_id *string
 	_type             *credittype.Type
 	created_at        *time.Time
@@ -2372,13 +2372,13 @@ func (m *CreditTypeMutation) ResetDescription() {
 }
 
 // SetAmount sets the "amount" field.
-func (m *CreditTypeMutation) SetAmount(f float32) {
-	m.amount = &f
+func (m *CreditTypeMutation) SetAmount(i int32) {
+	m.amount = &i
 	m.addamount = nil
 }
 
 // Amount returns the value of the "amount" field in the mutation.
-func (m *CreditTypeMutation) Amount() (r float32, exists bool) {
+func (m *CreditTypeMutation) Amount() (r int32, exists bool) {
 	v := m.amount
 	if v == nil {
 		return
@@ -2389,7 +2389,7 @@ func (m *CreditTypeMutation) Amount() (r float32, exists bool) {
 // OldAmount returns the old "amount" field's value of the CreditType entity.
 // If the CreditType object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *CreditTypeMutation) OldAmount(ctx context.Context) (v float32, err error) {
+func (m *CreditTypeMutation) OldAmount(ctx context.Context) (v int32, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldAmount is only allowed on UpdateOne operations")
 	}
@@ -2403,17 +2403,17 @@ func (m *CreditTypeMutation) OldAmount(ctx context.Context) (v float32, err erro
 	return oldValue.Amount, nil
 }
 
-// AddAmount adds f to the "amount" field.
-func (m *CreditTypeMutation) AddAmount(f float32) {
+// AddAmount adds i to the "amount" field.
+func (m *CreditTypeMutation) AddAmount(i int32) {
 	if m.addamount != nil {
-		*m.addamount += f
+		*m.addamount += i
 	} else {
-		m.addamount = &f
+		m.addamount = &i
 	}
 }
 
 // AddedAmount returns the value that was added to the "amount" field in this mutation.
-func (m *CreditTypeMutation) AddedAmount() (r float32, exists bool) {
+func (m *CreditTypeMutation) AddedAmount() (r int32, exists bool) {
 	v := m.addamount
 	if v == nil {
 		return
@@ -2763,7 +2763,7 @@ func (m *CreditTypeMutation) SetField(name string, value ent.Value) error {
 		m.SetDescription(v)
 		return nil
 	case credittype.FieldAmount:
-		v, ok := value.(float32)
+		v, ok := value.(int32)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
@@ -2828,7 +2828,7 @@ func (m *CreditTypeMutation) AddedField(name string) (ent.Value, bool) {
 func (m *CreditTypeMutation) AddField(name string, value ent.Value) error {
 	switch name {
 	case credittype.FieldAmount:
-		v, ok := value.(float32)
+		v, ok := value.(int32)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}

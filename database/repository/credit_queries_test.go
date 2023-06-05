@@ -27,8 +27,8 @@ func TestCreditsForUser(t *testing.T) {
 	credits, err := MockRepo.GetCreditsForUser(uuid.MustParse(MOCK_ADMIN_UUID))
 	assert.Nil(t, err)
 	assert.Equal(t, 2, len(credits))
-	assert.Equal(t, float32(100), credits[0].RemainingAmount)
-	assert.Equal(t, float32(1234), credits[1].RemainingAmount)
+	assert.Equal(t, int32(100), credits[0].RemainingAmount)
+	assert.Equal(t, int32(1234), credits[1].RemainingAmount)
 }
 
 func TestGetOrCreateFreeCreditType(t *testing.T) {
@@ -41,7 +41,7 @@ func TestGetNonExpiredCreditTotalForUser(t *testing.T) {
 	u := uuid.MustParse(MOCK_ALT_UUID)
 	total, err := MockRepo.GetNonExpiredCreditTotalForUser(u, nil)
 	assert.Nil(t, err)
-	assert.Equal(t, float32(1334), total)
+	assert.Equal(t, 1334, total)
 }
 
 func TestGetFreeCreditReplenishesAtForUser(t *testing.T) {

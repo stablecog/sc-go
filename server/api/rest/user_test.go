@@ -379,7 +379,7 @@ func TestHandleQueryCreditsEmpty(t *testing.T) {
 	respBody, _ := io.ReadAll(resp.Body)
 	json.Unmarshal(respBody, &creditResp)
 
-	assert.Equal(t, float32(0), creditResp.TotalRemainingCredits)
+	assert.Equal(t, int32(0), creditResp.TotalRemainingCredits)
 }
 
 func TestHandleQueryCredits(t *testing.T) {
@@ -399,11 +399,11 @@ func TestHandleQueryCredits(t *testing.T) {
 	respBody, _ := io.ReadAll(resp.Body)
 	json.Unmarshal(respBody, &creditResp)
 
-	assert.Equal(t, float32(1334), creditResp.TotalRemainingCredits)
+	assert.Equal(t, int32(1334), creditResp.TotalRemainingCredits)
 	assert.Len(t, creditResp.Credits, 2)
-	assert.Equal(t, float32(100), creditResp.Credits[0].RemainingAmount)
+	assert.Equal(t, int32(100), creditResp.Credits[0].RemainingAmount)
 	assert.Equal(t, "mock", creditResp.Credits[0].Type.Name)
-	assert.Equal(t, float32(1234), creditResp.Credits[1].RemainingAmount)
+	assert.Equal(t, int32(1234), creditResp.Credits[1].RemainingAmount)
 	assert.Equal(t, "mock", creditResp.Credits[1].Type.Name)
 }
 

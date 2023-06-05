@@ -254,7 +254,7 @@ type UserQueryCreditType struct {
 }
 
 type UserQueryCredits struct {
-	RemainingAmount float32             `json:"remaining_amount"`
+	RemainingAmount int32               `json:"remaining_amount"`
 	ExpiresAt       time.Time           `json:"expires_at"`
 	CreditType      UserQueryCreditType `json:"credit_type"`
 	ReplenishedAt   time.Time           `json:"replenished_at,omitempty"`

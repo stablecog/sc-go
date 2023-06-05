@@ -139,7 +139,7 @@ func (r *Repository) AddAdhocCreditsIfEligible(creditType *ent.CreditType, userI
 }
 
 // Deduct credits from user, starting with credits that expire soonest. Return true if deduction was successful
-func (r *Repository) DeductCreditsFromUser(userID uuid.UUID, amount float32, DB *ent.Client) (success bool, err error) {
+func (r *Repository) DeductCreditsFromUser(userID uuid.UUID, amount int32, DB *ent.Client) (success bool, err error) {
 	if DB == nil {
 		DB = r.DB
 	}
@@ -170,10 +170,10 @@ func (r *Repository) DeductCreditsFromUser(userID uuid.UUID, amount float32, DB 
 		if err != nil {
 			return false, err
 		}
-		if totalCredits >= amount {
+		if int32(totalCredits) >= amount {
 			// User has enough credits, deduct from lowest expiring types first
 			credits, err := DB.Credit.Query().Where(credit.UserID(userID), credit.RemainingAmountGT(0), credit.ExpiresAtGT(time.Now())).Order(ent.Asc(credit.FieldExpiresAt)).All(r.Ctx)
-			deducted := float32(0)
+			deducted := int32(0)
 			for _, c := range credits {
 				toDeduct := c.RemainingAmount - (amount - deducted)
 				// Get distance from 0
@@ -196,7 +196,7 @@ func (r *Repository) DeductCreditsFromUser(userID uuid.UUID, amount float32, DB 
 }
 
 // Refund credits for user, starting with credits that expire soonest. Return true if refund was successful
-func (r *Repository) RefundCreditsToUser(userID uuid.UUID, amount float32, db *ent.Client) (success bool, err error) {
+func (r *Repository) RefundCreditsToUser(userID uuid.UUID, amount int32, db *ent.Client) (success bool, err error) {
 	if db == nil {
 		db = r.DB
 	}

@@ -227,7 +227,7 @@ func (c *RestAPI) HandleCreateUpscaleToken(w http.ResponseWriter, r *http.Reques
 	var cogReqBody requests.CogQueueRequest
 
 	// Credits left after this operation
-	var remainingCredits float32
+	var remainingCredits int
 
 	// Create channel to track request
 	// Create channel
@@ -484,7 +484,7 @@ func (c *RestAPI) HandleCreateUpscaleToken(w http.ResponseWriter, r *http.Reques
 					duration := time.Now().Sub(cogMsg.Input.LivePageData.CreatedAt).Seconds()
 					go c.Track.UpscaleFailed(user, cogMsg.Input, duration, cogMsg.Error, "system")
 					// Refund credits
-					_, err = c.Repo.RefundCreditsToUser(user.ID, float32(1), DB)
+					_, err = c.Repo.RefundCreditsToUser(user.ID, int32(1), DB)
 					if err != nil {
 						log.Error("Failed to refund credits", "err", err)
 						return err
@@ -511,7 +511,7 @@ func (c *RestAPI) HandleCreateUpscaleToken(w http.ResponseWriter, r *http.Reques
 					log.Error("Failed to set upscale failed", "id", upscale.ID, "err", err)
 				}
 				// Refund credits
-				_, err = c.Repo.RefundCreditsToUser(user.ID, float32(1), DB)
+				_, err = c.Repo.RefundCreditsToUser(user.ID, int32(1), DB)
 				if err != nil {
 					log.Error("Failed to refund credits", "err", err)
 					return err

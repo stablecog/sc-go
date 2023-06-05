@@ -22,7 +22,7 @@ func (CreditType) Fields() []ent.Field {
 		field.UUID("id", uuid.UUID{}).Default(uuid.New),
 		field.Text("name").Unique(),
 		field.Text("description").Optional().Nillable(),
-		field.Float32("amount"),
+		field.Int32("amount"),
 		field.Text("stripe_product_id").Optional().Nillable(),
 		field.Enum("type").Values("free", "subscription", "one_time"),
 		field.Time("created_at").Default(time.Now).Immutable(),

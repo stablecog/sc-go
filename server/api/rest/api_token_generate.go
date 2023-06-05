@@ -259,7 +259,7 @@ func (c *RestAPI) HandleCreateGenerationToken(w http.ResponseWriter, r *http.Req
 	var cogReqBody requests.CogQueueRequest
 
 	// Credits left after this operation
-	var remainingCredits float32
+	var remainingCredits int
 
 	// Create channel to track request
 	// Create channel
@@ -274,7 +274,7 @@ func (c *RestAPI) HandleCreateGenerationToken(w http.ResponseWriter, r *http.Req
 		// Bind a client to the transaction
 		DB := tx.Client()
 		// Deduct credits from user
-		deducted, err := c.Repo.DeductCreditsFromUser(user.ID, float32(*generateReq.NumOutputs), DB)
+		deducted, err := c.Repo.DeductCreditsFromUser(user.ID, *generateReq.NumOutputs, DB)
 		if err != nil {
 			log.Error("Error deducting credits", "err", err)
 			responses.ErrInternalServerError(w, r, "Error deducting credits from user")
@@ -528,7 +528,7 @@ func (c *RestAPI) HandleCreateGenerationToken(w http.ResponseWriter, r *http.Req
 					duration := time.Now().Sub(cogMsg.Input.LivePageData.CreatedAt).Seconds()
 					go c.Track.GenerationFailed(user, cogMsg.Input, duration, cogMsg.Error, "system")
 					// Refund credits
-					_, err = c.Repo.RefundCreditsToUser(user.ID, float32(*generateReq.NumOutputs), DB)
+					_, err = c.Repo.RefundCreditsToUser(user.ID, *generateReq.NumOutputs, DB)
 					if err != nil {
 						log.Error("Failed to refund credits", "err", err)
 						return err
@@ -555,7 +555,7 @@ func (c *RestAPI) HandleCreateGenerationToken(w http.ResponseWriter, r *http.Req
 					log.Error("Failed to set generation failed", "id", upscale.ID, "err", err)
 				}
 				// Refund credits
-				_, err = c.Repo.RefundCreditsToUser(user.ID, float32(*generateReq.NumOutputs), DB)
+				_, err = c.Repo.RefundCreditsToUser(user.ID, *generateReq.NumOutputs, DB)
 				if err != nil {
 					log.Error("Failed to refund credits", "err", err)
 					return err

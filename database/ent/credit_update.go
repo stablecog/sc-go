@@ -33,15 +33,15 @@ func (cu *CreditUpdate) Where(ps ...predicate.Credit) *CreditUpdate {
 }
 
 // SetRemainingAmount sets the "remaining_amount" field.
-func (cu *CreditUpdate) SetRemainingAmount(f float32) *CreditUpdate {
+func (cu *CreditUpdate) SetRemainingAmount(i int32) *CreditUpdate {
 	cu.mutation.ResetRemainingAmount()
-	cu.mutation.SetRemainingAmount(f)
+	cu.mutation.SetRemainingAmount(i)
 	return cu
 }
 
-// AddRemainingAmount adds f to the "remaining_amount" field.
-func (cu *CreditUpdate) AddRemainingAmount(f float32) *CreditUpdate {
-	cu.mutation.AddRemainingAmount(f)
+// AddRemainingAmount adds i to the "remaining_amount" field.
+func (cu *CreditUpdate) AddRemainingAmount(i int32) *CreditUpdate {
+	cu.mutation.AddRemainingAmount(i)
 	return cu
 }
 
@@ -211,10 +211,10 @@ func (cu *CreditUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 	}
 	if value, ok := cu.mutation.RemainingAmount(); ok {
-		_spec.SetField(credit.FieldRemainingAmount, field.TypeFloat32, value)
+		_spec.SetField(credit.FieldRemainingAmount, field.TypeInt32, value)
 	}
 	if value, ok := cu.mutation.AddedRemainingAmount(); ok {
-		_spec.AddField(credit.FieldRemainingAmount, field.TypeFloat32, value)
+		_spec.AddField(credit.FieldRemainingAmount, field.TypeInt32, value)
 	}
 	if value, ok := cu.mutation.ExpiresAt(); ok {
 		_spec.SetField(credit.FieldExpiresAt, field.TypeTime, value)
@@ -324,15 +324,15 @@ type CreditUpdateOne struct {
 }
 
 // SetRemainingAmount sets the "remaining_amount" field.
-func (cuo *CreditUpdateOne) SetRemainingAmount(f float32) *CreditUpdateOne {
+func (cuo *CreditUpdateOne) SetRemainingAmount(i int32) *CreditUpdateOne {
 	cuo.mutation.ResetRemainingAmount()
-	cuo.mutation.SetRemainingAmount(f)
+	cuo.mutation.SetRemainingAmount(i)
 	return cuo
 }
 
-// AddRemainingAmount adds f to the "remaining_amount" field.
-func (cuo *CreditUpdateOne) AddRemainingAmount(f float32) *CreditUpdateOne {
-	cuo.mutation.AddRemainingAmount(f)
+// AddRemainingAmount adds i to the "remaining_amount" field.
+func (cuo *CreditUpdateOne) AddRemainingAmount(i int32) *CreditUpdateOne {
+	cuo.mutation.AddRemainingAmount(i)
 	return cuo
 }
 
@@ -526,10 +526,10 @@ func (cuo *CreditUpdateOne) sqlSave(ctx context.Context) (_node *Credit, err err
 		}
 	}
 	if value, ok := cuo.mutation.RemainingAmount(); ok {
-		_spec.SetField(credit.FieldRemainingAmount, field.TypeFloat32, value)
+		_spec.SetField(credit.FieldRemainingAmount, field.TypeInt32, value)
 	}
 	if value, ok := cuo.mutation.AddedRemainingAmount(); ok {
-		_spec.AddField(credit.FieldRemainingAmount, field.TypeFloat32, value)
+		_spec.AddField(credit.FieldRemainingAmount, field.TypeInt32, value)
 	}
 	if value, ok := cuo.mutation.ExpiresAt(); ok {
 		_spec.SetField(credit.FieldExpiresAt, field.TypeTime, value)
