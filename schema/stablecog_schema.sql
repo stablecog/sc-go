@@ -1066,3 +1066,4 @@ CREATE TYPE public.prompt_type_enum AS ENUM (
 ALTER TYPE public.prompt_type_enum OWNER TO postgres;
 
 alter table prompts add column type public.prompt_type_enum not null default 'image';
+alter table prompts alter column type drop default;

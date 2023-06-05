@@ -44,14 +44,6 @@ func (pu *PromptUpdate) SetType(pr prompt.Type) *PromptUpdate {
 	return pu
 }
 
-// SetNillableType sets the "type" field if the given value is not nil.
-func (pu *PromptUpdate) SetNillableType(pr *prompt.Type) *PromptUpdate {
-	if pr != nil {
-		pu.SetType(*pr)
-	}
-	return pu
-}
-
 // SetUpdatedAt sets the "updated_at" field.
 func (pu *PromptUpdate) SetUpdatedAt(t time.Time) *PromptUpdate {
 	pu.mutation.SetUpdatedAt(t)
@@ -356,14 +348,6 @@ func (puo *PromptUpdateOne) SetText(s string) *PromptUpdateOne {
 // SetType sets the "type" field.
 func (puo *PromptUpdateOne) SetType(pr prompt.Type) *PromptUpdateOne {
 	puo.mutation.SetType(pr)
-	return puo
-}
-
-// SetNillableType sets the "type" field if the given value is not nil.
-func (puo *PromptUpdateOne) SetNillableType(pr *prompt.Type) *PromptUpdateOne {
-	if pr != nil {
-		puo.SetType(*pr)
-	}
 	return puo
 }
 

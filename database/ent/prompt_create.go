@@ -35,14 +35,6 @@ func (pc *PromptCreate) SetType(pr prompt.Type) *PromptCreate {
 	return pc
 }
 
-// SetNillableType sets the "type" field if the given value is not nil.
-func (pc *PromptCreate) SetNillableType(pr *prompt.Type) *PromptCreate {
-	if pr != nil {
-		pc.SetType(*pr)
-	}
-	return pc
-}
-
 // SetCreatedAt sets the "created_at" field.
 func (pc *PromptCreate) SetCreatedAt(t time.Time) *PromptCreate {
 	pc.mutation.SetCreatedAt(t)
@@ -150,10 +142,6 @@ func (pc *PromptCreate) ExecX(ctx context.Context) {
 
 // defaults sets the default values of the builder before save.
 func (pc *PromptCreate) defaults() {
-	if _, ok := pc.mutation.GetType(); !ok {
-		v := prompt.DefaultType
-		pc.mutation.SetType(v)
-	}
 	if _, ok := pc.mutation.CreatedAt(); !ok {
 		v := prompt.DefaultCreatedAt()
 		pc.mutation.SetCreatedAt(v)

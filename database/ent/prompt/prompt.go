@@ -77,9 +77,6 @@ var (
 // Type defines the type for the "type" enum field.
 type Type string
 
-// TypeImage is the default value of the Type enum.
-const DefaultType = TypeImage
-
 // Type values.
 const (
 	TypeImage     Type = "image"
