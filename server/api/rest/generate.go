@@ -219,7 +219,7 @@ func (c *RestAPI) HandleCreateGeneration(w http.ResponseWriter, r *http.Request)
 	var cogReqBody requests.CogQueueRequest
 
 	// Credits left after this operation
-	var remainingCredits int
+	var remainingCredits float32
 
 	// Wrap everything in a DB transaction
 	// We do this since we want our credit deduction to be atomic with the whole process
@@ -227,7 +227,7 @@ func (c *RestAPI) HandleCreateGeneration(w http.ResponseWriter, r *http.Request)
 		// Bind a client to the transaction
 		DB := tx.Client()
 		// Deduct credits from user
-		deducted, err := c.Repo.DeductCreditsFromUser(user.ID, *generateReq.NumOutputs, DB)
+		deducted, err := c.Repo.DeductCreditsFromUser(user.ID, float32(*generateReq.NumOutputs), DB)
 		if err != nil {
 			log.Error("Error deducting credits", "err", err)
 			responses.ErrInternalServerError(w, r, "Error deducting credits from user")

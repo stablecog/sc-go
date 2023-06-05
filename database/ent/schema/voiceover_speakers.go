@@ -8,6 +8,7 @@ import (
 	"entgo.io/ent/schema"
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
+	"entgo.io/ent/schema/index"
 	"github.com/google/uuid"
 )
 
@@ -53,5 +54,12 @@ func (VoiceoverSpeaker) Edges() []ent.Edge {
 func (VoiceoverSpeaker) Annotations() []schema.Annotation {
 	return []schema.Annotation{
 		entsql.Annotation{Table: "voiceover_speakers"},
+	}
+}
+
+// Indexes of the VoiceoverSpeaker.
+func (VoiceoverSpeaker) Indexes() []ent.Index {
+	return []ent.Index{
+		index.Fields("name_in_worker", "model_id").Unique(),
 	}
 }

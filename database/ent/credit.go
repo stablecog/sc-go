@@ -20,7 +20,7 @@ type Credit struct {
 	// ID of the ent.
 	ID uuid.UUID `json:"id,omitempty"`
 	// RemainingAmount holds the value of the "remaining_amount" field.
-	RemainingAmount int32 `json:"remaining_amount,omitempty"`
+	RemainingAmount float32 `json:"remaining_amount,omitempty"`
 	// ExpiresAt holds the value of the "expires_at" field.
 	ExpiresAt time.Time `json:"expires_at,omitempty"`
 	// StripeLineItemID holds the value of the "stripe_line_item_id" field.
@@ -83,7 +83,7 @@ func (*Credit) scanValues(columns []string) ([]any, error) {
 	for i := range columns {
 		switch columns[i] {
 		case credit.FieldRemainingAmount:
-			values[i] = new(sql.NullInt64)
+			values[i] = new(sql.NullFloat64)
 		case credit.FieldStripeLineItemID:
 			values[i] = new(sql.NullString)
 		case credit.FieldExpiresAt, credit.FieldReplenishedAt, credit.FieldCreatedAt, credit.FieldUpdatedAt:
@@ -112,10 +112,10 @@ func (c *Credit) assignValues(columns []string, values []any) error {
 				c.ID = *value
 			}
 		case credit.FieldRemainingAmount:
-			if value, ok := values[i].(*sql.NullInt64); !ok {
+			if value, ok := values[i].(*sql.NullFloat64); !ok {
 				return fmt.Errorf("unexpected type %T for field remaining_amount", values[i])
 			} else if value.Valid {
-				c.RemainingAmount = int32(value.Int64)
+				c.RemainingAmount = float32(value.Float64)
 			}
 		case credit.FieldExpiresAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {

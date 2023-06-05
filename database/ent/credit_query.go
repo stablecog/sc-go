@@ -333,7 +333,7 @@ func (cq *CreditQuery) WithCreditType(opts ...func(*CreditTypeQuery)) *CreditQue
 // Example:
 //
 //	var v []struct {
-//		RemainingAmount int32 `json:"remaining_amount,omitempty"`
+//		RemainingAmount float32 `json:"remaining_amount,omitempty"`
 //		Count int `json:"count,omitempty"`
 //	}
 //
@@ -356,7 +356,7 @@ func (cq *CreditQuery) GroupBy(field string, fields ...string) *CreditGroupBy {
 // Example:
 //
 //	var v []struct {
-//		RemainingAmount int32 `json:"remaining_amount,omitempty"`
+//		RemainingAmount float32 `json:"remaining_amount,omitempty"`
 //	}
 //
 //	client.Credit.Query().

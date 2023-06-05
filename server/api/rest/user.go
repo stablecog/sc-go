@@ -184,7 +184,7 @@ func (c *RestAPI) HandleGetUser(w http.ResponseWriter, r *http.Request) {
 	var moreCreditsAt *time.Time
 	var fcredit *ent.Credit
 	var ctype *ent.CreditType
-	var freeCreditAmount *int
+	var freeCreditAmount *float32
 	if highestProduct == "" && !stripeHadError {
 		moreCreditsAt, fcredit, ctype, err = c.Repo.GetFreeCreditReplenishesAtForUser(*userID)
 		if err != nil {
@@ -193,7 +193,7 @@ func (c *RestAPI) HandleGetUser(w http.ResponseWriter, r *http.Request) {
 
 		if fcredit != nil && ctype != nil {
 			if shared.FREE_CREDIT_AMOUNT_DAILY+fcredit.RemainingAmount > ctype.Amount {
-				am := int(shared.FREE_CREDIT_AMOUNT_DAILY + fcredit.RemainingAmount - ctype.Amount)
+				am := shared.FREE_CREDIT_AMOUNT_DAILY + fcredit.RemainingAmount - ctype.Amount
 				freeCreditAmount = &am
 			} else {
 				am := shared.FREE_CREDIT_AMOUNT_DAILY
@@ -454,7 +454,7 @@ func (c *RestAPI) HandleQueryCredits(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Format as a nicer response
-	var totalRemaining int32
+	var totalRemaining float32
 	for _, credit := range credits {
 		totalRemaining += credit.RemainingAmount
 	}

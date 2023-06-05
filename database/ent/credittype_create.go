@@ -43,8 +43,8 @@ func (ctc *CreditTypeCreate) SetNillableDescription(s *string) *CreditTypeCreate
 }
 
 // SetAmount sets the "amount" field.
-func (ctc *CreditTypeCreate) SetAmount(i int32) *CreditTypeCreate {
-	ctc.mutation.SetAmount(i)
+func (ctc *CreditTypeCreate) SetAmount(f float32) *CreditTypeCreate {
+	ctc.mutation.SetAmount(f)
 	return ctc
 }
 
@@ -246,7 +246,7 @@ func (ctc *CreditTypeCreate) createSpec() (*CreditType, *sqlgraph.CreateSpec) {
 		_node.Description = &value
 	}
 	if value, ok := ctc.mutation.Amount(); ok {
-		_spec.SetField(credittype.FieldAmount, field.TypeInt32, value)
+		_spec.SetField(credittype.FieldAmount, field.TypeFloat32, value)
 		_node.Amount = value
 	}
 	if value, ok := ctc.mutation.StripeProductID(); ok {

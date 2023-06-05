@@ -9,7 +9,7 @@ import (
 const FREE_CREDIT_TYPE_ID = "3b12b23e-478b-4c18-8e34-70b3f0af1ee6"
 const REFUND_CREDIT_TYPE_ID = "7ca94fd6-c201-4ca6-a9bf-4473c83e30b4"
 
-func (r *Repository) CreateCreditType(name string, amount int32, description *string, stripeProductID *string, ctype credittype.Type) (*ent.CreditType, error) {
+func (r *Repository) CreateCreditType(name string, amount float32, description *string, stripeProductID *string, ctype credittype.Type) (*ent.CreditType, error) {
 	create := r.DB.CreditType.Create().SetName(name).SetAmount(amount).SetType(ctype)
 	if description != nil {
 		create.SetDescription(*description)

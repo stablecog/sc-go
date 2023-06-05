@@ -62,7 +62,7 @@ func (r *Repository) FailCogMessageDueToTimeoutIfTimedOut(msg requests.CogWebhoo
 	}
 
 	// Only set for failures in case of refund
-	var remainingCredits int
+	var remainingCredits float32
 
 	var userId uuid.UUID
 	if err := r.WithTx(func(tx *ent.Tx) error {
@@ -109,7 +109,7 @@ func (r *Repository) FailCogMessageDueToTimeoutIfTimedOut(msg requests.CogWebhoo
 				log.Error("Error parsing num outputs", "err", err)
 				return err
 			}
-			success, err := r.RefundCreditsToUser(userId, int32(numOutputs), db)
+			success, err := r.RefundCreditsToUser(userId, float32(numOutputs), db)
 			if err != nil || !success {
 				log.Error("Error refunding credits for generation", "user", userId.String(), "id", msg.Input.ID, "err", err)
 				return err
@@ -178,7 +178,7 @@ func (r *Repository) ProcessCogMessage(msg requests.CogWebhookMessage) error {
 	}
 
 	// Remaining credits set only for failures
-	var remainingCredits int
+	var remainingCredits float32
 
 	// Handle started/failed/succeeded message types
 	if msg.Status == requests.CogProcessing {
@@ -238,7 +238,7 @@ func (r *Repository) ProcessCogMessage(msg requests.CogWebhookMessage) error {
 					log.Error("Error parsing num outputs", "err", err)
 					return err
 				}
-				success, err := r.RefundCreditsToUser(userId, int32(numOutputs), db)
+				success, err := r.RefundCreditsToUser(userId, float32(numOutputs), db)
 				if err != nil || !success {
 					log.Error("Error refunding credits for generation", "user", userId.String(), "id", msg.Input.ID, "err", err)
 					return err
@@ -307,7 +307,7 @@ func (r *Repository) ProcessCogMessage(msg requests.CogWebhookMessage) error {
 							log.Error("Error parsing num outputs", "err", err)
 							return err
 						}
-						success, err := r.RefundCreditsToUser(user.ID, int32(numOutputs), db)
+						success, err := r.RefundCreditsToUser(user.ID, float32(numOutputs), db)
 						if err != nil || !success {
 							log.Error("Error refunding credits for upscale", "user", user.ID.String(), "id", msg.Input.ID, "err", err)
 							return err

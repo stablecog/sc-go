@@ -5,7 +5,7 @@ import (
 )
 
 type GetUserResponse struct {
-	TotalRemainingCredits int        `json:"total_remaining_credits"`
+	TotalRemainingCredits float32    `json:"total_remaining_credits"`
 	HasNonfreeCredits     bool       `json:"has_nonfree_credits"`
 	ProductID             string     `json:"product_id,omitempty"`
 	PriceID               string     `json:"price_id,omitempty"`
@@ -14,7 +14,7 @@ type GetUserResponse struct {
 	MoreCreditsAt         *time.Time `json:"more_credits_at,omitempty"`
 	WantsEmail            *bool      `json:"wants_email,omitempty"`
 	// The current amoount of free credits server offers
-	FreeCreditAmount *int     `json:"free_credit_amount,omitempty"`
+	FreeCreditAmount *float32 `json:"free_credit_amount,omitempty"`
 	StripeHadError   bool     `json:"stripe_had_error"`
 	Roles            []string `json:"roles,omitempty"`
 }

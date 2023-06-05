@@ -1051,3 +1051,13 @@ UPDATE
 -- Create index "voiceoveroutput_audio_path" to table: "voiceover_outputs"
 CREATE INDEX "voiceoveroutput_audio_path"
   ON "public"."voiceover_outputs" ("audio_path"); 
+
+CREATE UNIQUE INDEX "voiceoverspeaker_name_in_worker_model_id" ON "public"."voiceover_speakers" ("name_in_worker", "model_id");
+
+ALTER TABLE public.voiceover_models ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.voiceover_outputs ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.voiceovers ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.voiceover_speakers ENABLE ROW LEVEL SECURITY;
+
+ALTER TABLE public.credit_types ALTER COLUMN amount TYPE real;
+ALTER TABLE public.credits ALTER COLUMN remaining_amount TYPE real;

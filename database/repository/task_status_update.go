@@ -18,5 +18,5 @@ type TaskStatusUpdateResponse struct {
 	AudioOutputs     []VoiceoverOutput         `json:"audio_outputs,omitempty"`
 	ForLivePage      bool                      `json:"for_live_page,omitempty"`
 	LivePageMessage  *shared.LivePageMessage   `json:"live_page_message,omitempty"`
-	RemainingCredits int                       `json:"total_remaining_credits,omitempty"`
+	RemainingCredits float32                   `json:"total_remaining_credits,omitempty"`
 }

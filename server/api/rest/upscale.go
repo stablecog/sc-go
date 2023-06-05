@@ -181,7 +181,7 @@ func (c *RestAPI) HandleUpscale(w http.ResponseWriter, r *http.Request) {
 	// The cog request body
 	var cogReqBody requests.CogQueueRequest
 	// The total remaining credits
-	var remainingCredits int
+	var remainingCredits float32
 
 	// Wrap everything in a DB transaction
 	// We do this since we want our credit deduction to be atomic with the whole process

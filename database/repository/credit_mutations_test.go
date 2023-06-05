@@ -20,7 +20,7 @@ func TestDeductCreditsFromUser(t *testing.T) {
 
 	// User should have 50 credits
 	userCredit := MockRepo.DB.Credit.Query().Where(credit.UserIDEQ(uuid.MustParse(MOCK_NORMAL_UUID))).FirstX(MockRepo.Ctx)
-	assert.Equal(t, int32(50), userCredit.RemainingAmount)
+	assert.Equal(t, float32(50), userCredit.RemainingAmount)
 
 	// Create another row of non-expiring credits for user
 	creditType := MockRepo.DB.CreditType.Query().FirstX(MockRepo.Ctx)
@@ -34,8 +34,8 @@ func TestDeductCreditsFromUser(t *testing.T) {
 
 	// Ensure most recent expiritng credits were used
 	credits := MockRepo.DB.Credit.Query().Where(credit.UserIDEQ(uuid.MustParse(MOCK_NORMAL_UUID))).Order(ent.Desc(credit.FieldExpiresAt)).AllX(MockRepo.Ctx)
-	assert.Equal(t, int32(1234), credits[0].RemainingAmount)
-	assert.Equal(t, int32(0), credits[1].RemainingAmount)
+	assert.Equal(t, float32(1234), credits[0].RemainingAmount)
+	assert.Equal(t, float32(0), credits[1].RemainingAmount)
 
 	// Take again to ensure we get the next expiring credits
 	success, err = MockRepo.DeductCreditsFromUser(uuid.MustParse(MOCK_NORMAL_UUID), 50, nil)
@@ -44,8 +44,8 @@ func TestDeductCreditsFromUser(t *testing.T) {
 
 	// Ensure most recent expiritng credits were used
 	credits = MockRepo.DB.Credit.Query().Where(credit.UserIDEQ(uuid.MustParse(MOCK_NORMAL_UUID))).Order(ent.Desc(credit.FieldExpiresAt)).AllX(MockRepo.Ctx)
-	assert.Equal(t, int32(1234-50), credits[0].RemainingAmount)
-	assert.Equal(t, int32(0), credits[1].RemainingAmount)
+	assert.Equal(t, float32(1234-50), credits[0].RemainingAmount)
+	assert.Equal(t, float32(0), credits[1].RemainingAmount)
 
 	// Expire all credits and make sure we get 0 for deduction
 	_, err = MockRepo.DB.Credit.Delete().Where(credit.UserIDEQ(uuid.MustParse(MOCK_NORMAL_UUID))).Exec(MockRepo.Ctx)
@@ -88,7 +88,7 @@ func TestDeductCreditsFromUserMultipart(t *testing.T) {
 	// user should have 3 credits
 	userCredit, err := MockRepo.GetNonExpiredCreditTotalForUser(u.ID, nil)
 	assert.Nil(t, err)
-	assert.Equal(t, 3, userCredit)
+	assert.Equal(t, float32(3), userCredit)
 
 	// Test deduct
 	success, err = MockRepo.DeductCreditsFromUser(uuid.MustParse("c66b47be-aa0b-4840-965b-f19c8847904e"), 3, nil)
@@ -98,7 +98,7 @@ func TestDeductCreditsFromUserMultipart(t *testing.T) {
 	// User should have 0 credits
 	userCredit, err = MockRepo.GetNonExpiredCreditTotalForUser(u.ID, nil)
 	assert.Nil(t, err)
-	assert.Equal(t, 0, userCredit)
+	assert.Equal(t, float32(0), userCredit)
 
 	// Cleanup
 	_, err = MockRepo.DB.Credit.Delete().Where(credit.UserIDEQ(u.ID)).Exec(MockRepo.Ctx)
@@ -127,7 +127,7 @@ func TestRefundCreditsToUser(t *testing.T) {
 	assert.Equal(t, true, success)
 
 	creditsStarted := MockRepo.DB.Credit.Query().Where(credit.UserIDEQ(uuid.MustParse(MOCK_NORMAL_UUID))).Order(ent.Desc(credit.FieldExpiresAt)).FirstX(MockRepo.Ctx)
-	assert.Equal(t, int32(1234-50), creditsStarted.RemainingAmount)
+	assert.Equal(t, float32(1234-50), creditsStarted.RemainingAmount)
 
 	// Refund
 	success, err = MockRepo.RefundCreditsToUser(uuid.MustParse(MOCK_NORMAL_UUID), 50, nil)
@@ -135,14 +135,14 @@ func TestRefundCreditsToUser(t *testing.T) {
 	assert.Equal(t, true, success)
 
 	creditsStarted = MockRepo.DB.Credit.Query().Where(credit.IDEQ(creditsStarted.ID)).FirstX(MockRepo.Ctx)
-	assert.Equal(t, int32(1234-50), creditsStarted.RemainingAmount)
+	assert.Equal(t, float32(1234-50), creditsStarted.RemainingAmount)
 
 	// Get refund credit type
 	refundCreditType, err := MockRepo.GetOrCreateRefundCreditType(nil)
 	assert.Nil(t, err)
 	// Get credits of this type for user
 	creditsRefund := MockRepo.DB.Credit.Query().Where(credit.UserIDEQ(uuid.MustParse(MOCK_NORMAL_UUID))).Where(credit.CreditTypeIDEQ(refundCreditType.ID)).FirstX(MockRepo.Ctx)
-	assert.Equal(t, int32(50), creditsRefund.RemainingAmount)
+	assert.Equal(t, float32(50), creditsRefund.RemainingAmount)
 
 	// Cleanup
 	MockRepo.DB.Credit.Delete().Where(credit.IDEQ(creditsRefund.ID)).ExecX(MockRepo.Ctx)

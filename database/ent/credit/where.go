@@ -57,7 +57,7 @@ func IDLTE(id uuid.UUID) predicate.Credit {
 }
 
 // RemainingAmount applies equality check predicate on the "remaining_amount" field. It's identical to RemainingAmountEQ.
-func RemainingAmount(v int32) predicate.Credit {
+func RemainingAmount(v float32) predicate.Credit {
 	return predicate.Credit(sql.FieldEQ(FieldRemainingAmount, v))
 }
 
@@ -97,42 +97,42 @@ func UpdatedAt(v time.Time) predicate.Credit {
 }
 
 // RemainingAmountEQ applies the EQ predicate on the "remaining_amount" field.
-func RemainingAmountEQ(v int32) predicate.Credit {
+func RemainingAmountEQ(v float32) predicate.Credit {
 	return predicate.Credit(sql.FieldEQ(FieldRemainingAmount, v))
 }
 
 // RemainingAmountNEQ applies the NEQ predicate on the "remaining_amount" field.
-func RemainingAmountNEQ(v int32) predicate.Credit {
+func RemainingAmountNEQ(v float32) predicate.Credit {
 	return predicate.Credit(sql.FieldNEQ(FieldRemainingAmount, v))
 }
 
 // RemainingAmountIn applies the In predicate on the "remaining_amount" field.
-func RemainingAmountIn(vs ...int32) predicate.Credit {
+func RemainingAmountIn(vs ...float32) predicate.Credit {
 	return predicate.Credit(sql.FieldIn(FieldRemainingAmount, vs...))
 }
 
 // RemainingAmountNotIn applies the NotIn predicate on the "remaining_amount" field.
-func RemainingAmountNotIn(vs ...int32) predicate.Credit {
+func RemainingAmountNotIn(vs ...float32) predicate.Credit {
 	return predicate.Credit(sql.FieldNotIn(FieldRemainingAmount, vs...))
 }
 
 // RemainingAmountGT applies the GT predicate on the "remaining_amount" field.
-func RemainingAmountGT(v int32) predicate.Credit {
+func RemainingAmountGT(v float32) predicate.Credit {
 	return predicate.Credit(sql.FieldGT(FieldRemainingAmount, v))
 }
 
 // RemainingAmountGTE applies the GTE predicate on the "remaining_amount" field.
-func RemainingAmountGTE(v int32) predicate.Credit {
+func RemainingAmountGTE(v float32) predicate.Credit {
 	return predicate.Credit(sql.FieldGTE(FieldRemainingAmount, v))
 }
 
 // RemainingAmountLT applies the LT predicate on the "remaining_amount" field.
-func RemainingAmountLT(v int32) predicate.Credit {
+func RemainingAmountLT(v float32) predicate.Credit {
 	return predicate.Credit(sql.FieldLT(FieldRemainingAmount, v))
 }
 
 // RemainingAmountLTE applies the LTE predicate on the "remaining_amount" field.
-func RemainingAmountLTE(v int32) predicate.Credit {
+func RemainingAmountLTE(v float32) predicate.Credit {
 	return predicate.Credit(sql.FieldLTE(FieldRemainingAmount, v))
 }
 

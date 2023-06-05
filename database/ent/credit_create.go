@@ -24,8 +24,8 @@ type CreditCreate struct {
 }
 
 // SetRemainingAmount sets the "remaining_amount" field.
-func (cc *CreditCreate) SetRemainingAmount(i int32) *CreditCreate {
-	cc.mutation.SetRemainingAmount(i)
+func (cc *CreditCreate) SetRemainingAmount(f float32) *CreditCreate {
+	cc.mutation.SetRemainingAmount(f)
 	return cc
 }
 
@@ -257,7 +257,7 @@ func (cc *CreditCreate) createSpec() (*Credit, *sqlgraph.CreateSpec) {
 		_spec.ID.Value = &id
 	}
 	if value, ok := cc.mutation.RemainingAmount(); ok {
-		_spec.SetField(credit.FieldRemainingAmount, field.TypeInt32, value)
+		_spec.SetField(credit.FieldRemainingAmount, field.TypeFloat32, value)
 		_node.RemainingAmount = value
 	}
 	if value, ok := cc.mutation.ExpiresAt(); ok {

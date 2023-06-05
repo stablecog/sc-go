@@ -67,7 +67,7 @@ func Description(v string) predicate.CreditType {
 }
 
 // Amount applies equality check predicate on the "amount" field. It's identical to AmountEQ.
-func Amount(v int32) predicate.CreditType {
+func Amount(v float32) predicate.CreditType {
 	return predicate.CreditType(sql.FieldEQ(FieldAmount, v))
 }
 
@@ -227,42 +227,42 @@ func DescriptionContainsFold(v string) predicate.CreditType {
 }
 
 // AmountEQ applies the EQ predicate on the "amount" field.
-func AmountEQ(v int32) predicate.CreditType {
+func AmountEQ(v float32) predicate.CreditType {
 	return predicate.CreditType(sql.FieldEQ(FieldAmount, v))
 }
 
 // AmountNEQ applies the NEQ predicate on the "amount" field.
-func AmountNEQ(v int32) predicate.CreditType {
+func AmountNEQ(v float32) predicate.CreditType {
 	return predicate.CreditType(sql.FieldNEQ(FieldAmount, v))
 }
 
 // AmountIn applies the In predicate on the "amount" field.
-func AmountIn(vs ...int32) predicate.CreditType {
+func AmountIn(vs ...float32) predicate.CreditType {
 	return predicate.CreditType(sql.FieldIn(FieldAmount, vs...))
 }
 
 // AmountNotIn applies the NotIn predicate on the "amount" field.
-func AmountNotIn(vs ...int32) predicate.CreditType {
+func AmountNotIn(vs ...float32) predicate.CreditType {
 	return predicate.CreditType(sql.FieldNotIn(FieldAmount, vs...))
 }
 
 // AmountGT applies the GT predicate on the "amount" field.
-func AmountGT(v int32) predicate.CreditType {
+func AmountGT(v float32) predicate.CreditType {
 	return predicate.CreditType(sql.FieldGT(FieldAmount, v))
 }
 
 // AmountGTE applies the GTE predicate on the "amount" field.
-func AmountGTE(v int32) predicate.CreditType {
+func AmountGTE(v float32) predicate.CreditType {
 	return predicate.CreditType(sql.FieldGTE(FieldAmount, v))
 }
 
 // AmountLT applies the LT predicate on the "amount" field.
-func AmountLT(v int32) predicate.CreditType {
+func AmountLT(v float32) predicate.CreditType {
 	return predicate.CreditType(sql.FieldLT(FieldAmount, v))
 }
 
 // AmountLTE applies the LTE predicate on the "amount" field.
-func AmountLTE(v int32) predicate.CreditType {
+func AmountLTE(v float32) predicate.CreditType {
 	return predicate.CreditType(sql.FieldLTE(FieldAmount, v))
 }
 
