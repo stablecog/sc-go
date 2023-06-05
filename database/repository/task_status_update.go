@@ -15,6 +15,7 @@ type TaskStatusUpdateResponse struct {
 	Error            string                    `json:"error,omitempty"`
 	NSFWCount        int32                     `json:"nsfw_count,omitempty"`
 	Outputs          []GenerationUpscaleOutput `json:"outputs,omitempty"`
+	AudioOutputs     []VoiceoverOutput         `json:"audio_outputs,omitempty"`
 	ForLivePage      bool                      `json:"for_live_page,omitempty"`
 	LivePageMessage  *shared.LivePageMessage   `json:"live_page_message,omitempty"`
 	RemainingCredits int                       `json:"total_remaining_credits,omitempty"`

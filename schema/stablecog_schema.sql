@@ -960,7 +960,7 @@ CREATE TABLE "public"."voiceover_models"
      "is_default"     BOOLEAN NOT NULL DEFAULT FALSE,
      "is_hidden"      BOOLEAN NOT NULL DEFAULT FALSE,
     created_at timestamp with time zone DEFAULT (now() AT TIME ZONE 'utc'::text) NOT NULL,
-    updated_at timestamp with time zone DEFAULT (now() AT TIME ZONE 'utc'::text) NOT NULL
+    updated_at timestamp with time zone DEFAULT (now() AT TIME ZONE 'utc'::text) NOT NULL,
      PRIMARY KEY ("id")
   );
 
@@ -977,7 +977,7 @@ CREATE TABLE "public"."voiceover_speakers"
      "is_default"     BOOLEAN NOT NULL DEFAULT FALSE,
      "is_hidden"      BOOLEAN NOT NULL DEFAULT FALSE,
     created_at timestamp with time zone DEFAULT (now() AT TIME ZONE 'utc'::text) NOT NULL,
-    updated_at timestamp with time zone DEFAULT (now() AT TIME ZONE 'utc'::text) NOT NULL
+    updated_at timestamp with time zone DEFAULT (now() AT TIME ZONE 'utc'::text) NOT NULL,
      "model_id"       UUID NOT NULL,
      PRIMARY KEY ("id"),
      CONSTRAINT "voiceover_speakers_voiceover_models_voiceover_speakers" FOREIGN
@@ -997,15 +997,17 @@ CREATE TABLE "public"."voiceovers"
      "status"            CHARACTER varying NOT NULL,
      "failure_reason"    TEXT NULL,
      "stripe_product_id" TEXT NULL,
+     guidance_scale real NOT NULL,
      "started_at"        TIMESTAMPTZ NULL,
      "completed_at"      TIMESTAMPTZ NULL,
     created_at timestamp with time zone DEFAULT (now() AT TIME ZONE 'utc'::text) NOT NULL,
-    updated_at timestamp with time zone DEFAULT (now() AT TIME ZONE 'utc'::text) NOT NULL
+    updated_at timestamp with time zone DEFAULT (now() AT TIME ZONE 'utc'::text) NOT NULL,
      "api_token_id"      UUID NULL,
      "device_info_id"    UUID NOT NULL,
      "user_id"           UUID NOT NULL,
      "model_id"          UUID NOT NULL,
      "speaker_id"        UUID NOT NULL,
+     "prompt_id"         UUID NOT NULL constraint voiceovers_prompt_id_fk references prompts(id),
      PRIMARY KEY ("id"),
      CONSTRAINT "voiceovers_api_tokens_voiceovers" FOREIGN KEY ("api_token_id")
      REFERENCES "public"."api_tokens" ("id") ON UPDATE no action ON DELETE
@@ -1034,7 +1036,7 @@ CREATE TABLE "public"."voiceover_outputs"
      "audio_path"   TEXT NOT NULL,
      "deleted_at"   TIMESTAMPTZ NULL,
     created_at timestamp with time zone DEFAULT (now() AT TIME ZONE 'utc'::text) NOT NULL,
-    updated_at timestamp with time zone DEFAULT (now() AT TIME ZONE 'utc'::text) NOT NULL
+    updated_at timestamp with time zone DEFAULT (now() AT TIME ZONE 'utc'::text) NOT NULL,
      "voiceover_id" UUID NOT NULL,
      PRIMARY KEY ("id"),
      CONSTRAINT "voiceover_outputs_voiceovers_voiceover_outputs" FOREIGN KEY (

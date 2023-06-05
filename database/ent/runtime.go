@@ -376,11 +376,11 @@ func init() {
 	voiceoverFields := schema.Voiceover{}.Fields()
 	_ = voiceoverFields
 	// voiceoverDescCreatedAt is the schema descriptor for created_at field.
-	voiceoverDescCreatedAt := voiceoverFields[12].Descriptor()
+	voiceoverDescCreatedAt := voiceoverFields[14].Descriptor()
 	// voiceover.DefaultCreatedAt holds the default value on creation for the created_at field.
 	voiceover.DefaultCreatedAt = voiceoverDescCreatedAt.Default.(func() time.Time)
 	// voiceoverDescUpdatedAt is the schema descriptor for updated_at field.
-	voiceoverDescUpdatedAt := voiceoverFields[13].Descriptor()
+	voiceoverDescUpdatedAt := voiceoverFields[15].Descriptor()
 	// voiceover.DefaultUpdatedAt holds the default value on creation for the updated_at field.
 	voiceover.DefaultUpdatedAt = voiceoverDescUpdatedAt.Default.(func() time.Time)
 	// voiceover.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.

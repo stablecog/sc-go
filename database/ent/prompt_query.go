@@ -15,6 +15,7 @@ import (
 	"github.com/stablecog/sc-go/database/ent/generation"
 	"github.com/stablecog/sc-go/database/ent/predicate"
 	"github.com/stablecog/sc-go/database/ent/prompt"
+	"github.com/stablecog/sc-go/database/ent/voiceover"
 )
 
 // PromptQuery is the builder for querying Prompt entities.
@@ -25,6 +26,7 @@ type PromptQuery struct {
 	inters          []Interceptor
 	predicates      []predicate.Prompt
 	withGenerations *GenerationQuery
+	withVoiceovers  *VoiceoverQuery
 	modifiers       []func(*sql.Selector)
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
@@ -77,6 +79,28 @@ func (pq *PromptQuery) QueryGenerations() *GenerationQuery {
 			sqlgraph.From(prompt.Table, prompt.FieldID, selector),
 			sqlgraph.To(generation.Table, generation.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, prompt.GenerationsTable, prompt.GenerationsColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(pq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryVoiceovers chains the current query on the "voiceovers" edge.
+func (pq *PromptQuery) QueryVoiceovers() *VoiceoverQuery {
+	query := (&VoiceoverClient{config: pq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := pq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := pq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(prompt.Table, prompt.FieldID, selector),
+			sqlgraph.To(voiceover.Table, voiceover.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, prompt.VoiceoversTable, prompt.VoiceoversColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(pq.driver.Dialect(), step)
 		return fromU, nil
@@ -275,6 +299,7 @@ func (pq *PromptQuery) Clone() *PromptQuery {
 		inters:          append([]Interceptor{}, pq.inters...),
 		predicates:      append([]predicate.Prompt{}, pq.predicates...),
 		withGenerations: pq.withGenerations.Clone(),
+		withVoiceovers:  pq.withVoiceovers.Clone(),
 		// clone intermediate query.
 		sql:  pq.sql.Clone(),
 		path: pq.path,
@@ -289,6 +314,17 @@ func (pq *PromptQuery) WithGenerations(opts ...func(*GenerationQuery)) *PromptQu
 		opt(query)
 	}
 	pq.withGenerations = query
+	return pq
+}
+
+// WithVoiceovers tells the query-builder to eager-load the nodes that are connected to
+// the "voiceovers" edge. The optional arguments are used to configure the query builder of the edge.
+func (pq *PromptQuery) WithVoiceovers(opts ...func(*VoiceoverQuery)) *PromptQuery {
+	query := (&VoiceoverClient{config: pq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	pq.withVoiceovers = query
 	return pq
 }
 
@@ -370,8 +406,9 @@ func (pq *PromptQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Promp
 	var (
 		nodes       = []*Prompt{}
 		_spec       = pq.querySpec()
-		loadedTypes = [1]bool{
+		loadedTypes = [2]bool{
 			pq.withGenerations != nil,
+			pq.withVoiceovers != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -402,6 +439,13 @@ func (pq *PromptQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Promp
 			return nil, err
 		}
 	}
+	if query := pq.withVoiceovers; query != nil {
+		if err := pq.loadVoiceovers(ctx, query, nodes,
+			func(n *Prompt) { n.Edges.Voiceovers = []*Voiceover{} },
+			func(n *Prompt, e *Voiceover) { n.Edges.Voiceovers = append(n.Edges.Voiceovers, e) }); err != nil {
+			return nil, err
+		}
+	}
 	return nodes, nil
 }
 
@@ -417,6 +461,36 @@ func (pq *PromptQuery) loadGenerations(ctx context.Context, query *GenerationQue
 	}
 	query.Where(predicate.Generation(func(s *sql.Selector) {
 		s.Where(sql.InValues(prompt.GenerationsColumn, fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.PromptID
+		if fk == nil {
+			return fmt.Errorf(`foreign-key "prompt_id" is nil for node %v`, n.ID)
+		}
+		node, ok := nodeids[*fk]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "prompt_id" returned %v for node %v`, *fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (pq *PromptQuery) loadVoiceovers(ctx context.Context, query *VoiceoverQuery, nodes []*Prompt, init func(*Prompt), assign func(*Prompt, *Voiceover)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*Prompt)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	query.Where(predicate.Voiceover(func(s *sql.Selector) {
+		s.Where(sql.InValues(prompt.VoiceoversColumn, fks...))
 	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {

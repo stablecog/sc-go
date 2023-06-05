@@ -17,6 +17,8 @@ type Cache struct {
 	GenerateModels         []*ent.GenerationModel
 	UpscaleModels          []*ent.UpscaleModel
 	Schedulers             []*ent.Scheduler
+	VoiceoverModels        []*ent.VoiceoverModel
+	VoiceoverSpeakers      []*ent.VoiceoverSpeaker
 	AdminIDs               []uuid.UUID
 	DisposableEmailDomains []string
 }
@@ -58,6 +60,18 @@ func (f *Cache) UpdateSchedulers(schedulers []*ent.Scheduler) {
 	f.Schedulers = schedulers
 }
 
+func (f *Cache) UpdateVoiceoverModels(models []*ent.VoiceoverModel) {
+	lock.Lock()
+	defer lock.Unlock()
+	f.VoiceoverModels = models
+}
+
+func (f *Cache) UpdateVoiceoverSpeakers(speakers []*ent.VoiceoverSpeaker) {
+	lock.Lock()
+	defer lock.Unlock()
+	f.VoiceoverSpeakers = speakers
+}
+
 func (f *Cache) IsValidGenerationModelID(id uuid.UUID) bool {
 	for _, model := range f.GenerateModels {
 		if model.ID == id {
@@ -79,6 +93,24 @@ func (f *Cache) IsValidUpscaleModelID(id uuid.UUID) bool {
 func (f *Cache) IsValidShedulerID(id uuid.UUID) bool {
 	for _, scheduler := range f.Schedulers {
 		if scheduler.ID == id {
+			return true
+		}
+	}
+	return false
+}
+
+func (f *Cache) IsValidVoiceoverModelID(id uuid.UUID) bool {
+	for _, model := range f.VoiceoverModels {
+		if model.ID == id {
+			return true
+		}
+	}
+	return false
+}
+
+func (f *Cache) IsValidVoiceoverSpeakerID(speakerId uuid.UUID, modelId uuid.UUID) bool {
+	for _, speaker := range f.VoiceoverSpeakers {
+		if speaker.ID == speakerId && speaker.ModelID == modelId {
 			return true
 		}
 	}
@@ -107,6 +139,24 @@ func (f *Cache) GetSchedulerNameFromID(id uuid.UUID) string {
 	for _, scheduler := range f.Schedulers {
 		if scheduler.ID == id {
 			return scheduler.NameInWorker
+		}
+	}
+	return ""
+}
+
+func (f *Cache) GetVoiceoverModelNameFromID(id uuid.UUID) string {
+	for _, model := range f.VoiceoverModels {
+		if model.ID == id {
+			return model.NameInWorker
+		}
+	}
+	return ""
+}
+
+func (f *Cache) GetVoiceoverSpeakerNameFromID(speakerId uuid.UUID) string {
+	for _, speaker := range f.VoiceoverSpeakers {
+		if speaker.ID == speakerId {
+			return speaker.NameInWorker
 		}
 	}
 	return ""
@@ -173,6 +223,34 @@ func (f *Cache) GetDefaultUpscaleModel() *ent.UpscaleModel {
 		}
 	}
 	return defaultModel
+}
+
+func (f *Cache) GetDefaultVoiceoverModel() *ent.VoiceoverModel {
+	var defaultModel *ent.VoiceoverModel
+	for _, model := range f.VoiceoverModels {
+		// always set at least 1 as default
+		if defaultModel == nil {
+			defaultModel = model
+		}
+		if model.IsDefault {
+			defaultModel = model
+		}
+	}
+	return defaultModel
+}
+
+func (f *Cache) GetDefaultVoiceoverSpeaker() *ent.VoiceoverSpeaker {
+	var defaultSpeaker *ent.VoiceoverSpeaker
+	for _, speaker := range f.VoiceoverSpeakers {
+		// always set at least 1 as default
+		if defaultSpeaker == nil {
+			defaultSpeaker = speaker
+		}
+		if speaker.IsDefault {
+			defaultSpeaker = speaker
+		}
+	}
+	return defaultSpeaker
 }
 
 func (f *Cache) GetDefaultScheduler() *ent.Scheduler {

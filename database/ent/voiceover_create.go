@@ -13,6 +13,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/stablecog/sc-go/database/ent/apitoken"
 	"github.com/stablecog/sc-go/database/ent/deviceinfo"
+	"github.com/stablecog/sc-go/database/ent/prompt"
 	"github.com/stablecog/sc-go/database/ent/user"
 	"github.com/stablecog/sc-go/database/ent/voiceover"
 	"github.com/stablecog/sc-go/database/ent/voiceovermodel"
@@ -71,6 +72,26 @@ func (vc *VoiceoverCreate) SetStripeProductID(s string) *VoiceoverCreate {
 func (vc *VoiceoverCreate) SetNillableStripeProductID(s *string) *VoiceoverCreate {
 	if s != nil {
 		vc.SetStripeProductID(*s)
+	}
+	return vc
+}
+
+// SetTemp sets the "temp" field.
+func (vc *VoiceoverCreate) SetTemp(f float32) *VoiceoverCreate {
+	vc.mutation.SetTemp(f)
+	return vc
+}
+
+// SetPromptID sets the "prompt_id" field.
+func (vc *VoiceoverCreate) SetPromptID(u uuid.UUID) *VoiceoverCreate {
+	vc.mutation.SetPromptID(u)
+	return vc
+}
+
+// SetNillablePromptID sets the "prompt_id" field if the given value is not nil.
+func (vc *VoiceoverCreate) SetNillablePromptID(u *uuid.UUID) *VoiceoverCreate {
+	if u != nil {
+		vc.SetPromptID(*u)
 	}
 	return vc
 }
@@ -186,6 +207,11 @@ func (vc *VoiceoverCreate) SetNillableID(u *uuid.UUID) *VoiceoverCreate {
 // SetUser sets the "user" edge to the User entity.
 func (vc *VoiceoverCreate) SetUser(u *User) *VoiceoverCreate {
 	return vc.SetUserID(u.ID)
+}
+
+// SetPrompt sets the "prompt" edge to the Prompt entity.
+func (vc *VoiceoverCreate) SetPrompt(p *Prompt) *VoiceoverCreate {
+	return vc.SetPromptID(p.ID)
 }
 
 // SetDeviceInfo sets the "device_info" edge to the DeviceInfo entity.
@@ -308,6 +334,9 @@ func (vc *VoiceoverCreate) check() error {
 			return &ValidationError{Name: "status", err: fmt.Errorf(`ent: validator failed for field "Voiceover.status": %w`, err)}
 		}
 	}
+	if _, ok := vc.mutation.Temp(); !ok {
+		return &ValidationError{Name: "temp", err: errors.New(`ent: missing required field "Voiceover.temp"`)}
+	}
 	if _, ok := vc.mutation.UserID(); !ok {
 		return &ValidationError{Name: "user_id", err: errors.New(`ent: missing required field "Voiceover.user_id"`)}
 	}
@@ -395,6 +424,10 @@ func (vc *VoiceoverCreate) createSpec() (*Voiceover, *sqlgraph.CreateSpec) {
 		_spec.SetField(voiceover.FieldStripeProductID, field.TypeString, value)
 		_node.StripeProductID = &value
 	}
+	if value, ok := vc.mutation.Temp(); ok {
+		_spec.SetField(voiceover.FieldTemp, field.TypeFloat32, value)
+		_node.Temp = value
+	}
 	if value, ok := vc.mutation.StartedAt(); ok {
 		_spec.SetField(voiceover.FieldStartedAt, field.TypeTime, value)
 		_node.StartedAt = &value
@@ -429,6 +462,26 @@ func (vc *VoiceoverCreate) createSpec() (*Voiceover, *sqlgraph.CreateSpec) {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_node.UserID = nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := vc.mutation.PromptIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   voiceover.PromptTable,
+			Columns: []string{voiceover.PromptColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: prompt.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.PromptID = &nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	if nodes := vc.mutation.DeviceInfoIDs(); len(nodes) > 0 {

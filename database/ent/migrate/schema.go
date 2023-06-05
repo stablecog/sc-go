@@ -489,12 +489,14 @@ var (
 		{Name: "status", Type: field.TypeEnum, Enums: []string{"queued", "started", "succeeded", "failed"}},
 		{Name: "failure_reason", Type: field.TypeString, Nullable: true, Size: 2147483647},
 		{Name: "stripe_product_id", Type: field.TypeString, Nullable: true, Size: 2147483647},
+		{Name: "temp", Type: field.TypeFloat32},
 		{Name: "started_at", Type: field.TypeTime, Nullable: true},
 		{Name: "completed_at", Type: field.TypeTime, Nullable: true},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},
 		{Name: "api_token_id", Type: field.TypeUUID, Nullable: true},
 		{Name: "device_info_id", Type: field.TypeUUID},
+		{Name: "prompt_id", Type: field.TypeUUID, Nullable: true},
 		{Name: "user_id", Type: field.TypeUUID},
 		{Name: "model_id", Type: field.TypeUUID},
 		{Name: "speaker_id", Type: field.TypeUUID},
@@ -507,31 +509,37 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "voiceovers_api_tokens_voiceovers",
-				Columns:    []*schema.Column{VoiceoversColumns[9]},
+				Columns:    []*schema.Column{VoiceoversColumns[10]},
 				RefColumns: []*schema.Column{APITokensColumns[0]},
 				OnDelete:   schema.Cascade,
 			},
 			{
 				Symbol:     "voiceovers_device_info_voiceovers",
-				Columns:    []*schema.Column{VoiceoversColumns[10]},
+				Columns:    []*schema.Column{VoiceoversColumns[11]},
 				RefColumns: []*schema.Column{DeviceInfoColumns[0]},
 				OnDelete:   schema.Cascade,
 			},
 			{
+				Symbol:     "voiceovers_prompts_voiceovers",
+				Columns:    []*schema.Column{VoiceoversColumns[12]},
+				RefColumns: []*schema.Column{PromptsColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+			{
 				Symbol:     "voiceovers_users_voiceovers",
-				Columns:    []*schema.Column{VoiceoversColumns[11]},
+				Columns:    []*schema.Column{VoiceoversColumns[13]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.Cascade,
 			},
 			{
 				Symbol:     "voiceovers_voiceover_models_voiceovers",
-				Columns:    []*schema.Column{VoiceoversColumns[12]},
+				Columns:    []*schema.Column{VoiceoversColumns[14]},
 				RefColumns: []*schema.Column{VoiceoverModelsColumns[0]},
 				OnDelete:   schema.Cascade,
 			},
 			{
 				Symbol:     "voiceovers_voiceover_speakers_voiceovers",
-				Columns:    []*schema.Column{VoiceoversColumns[13]},
+				Columns:    []*schema.Column{VoiceoversColumns[15]},
 				RefColumns: []*schema.Column{VoiceoverSpeakersColumns[0]},
 				OnDelete:   schema.Cascade,
 			},
@@ -753,9 +761,10 @@ func init() {
 	}
 	VoiceoversTable.ForeignKeys[0].RefTable = APITokensTable
 	VoiceoversTable.ForeignKeys[1].RefTable = DeviceInfoTable
-	VoiceoversTable.ForeignKeys[2].RefTable = UsersTable
-	VoiceoversTable.ForeignKeys[3].RefTable = VoiceoverModelsTable
-	VoiceoversTable.ForeignKeys[4].RefTable = VoiceoverSpeakersTable
+	VoiceoversTable.ForeignKeys[2].RefTable = PromptsTable
+	VoiceoversTable.ForeignKeys[3].RefTable = UsersTable
+	VoiceoversTable.ForeignKeys[4].RefTable = VoiceoverModelsTable
+	VoiceoversTable.ForeignKeys[5].RefTable = VoiceoverSpeakersTable
 	VoiceoversTable.Annotation = &entsql.Annotation{
 		Table: "voiceovers",
 	}

@@ -32,9 +32,11 @@ type Prompt struct {
 type PromptEdges struct {
 	// Generations holds the value of the generations edge.
 	Generations []*Generation `json:"generations,omitempty"`
+	// Voiceovers holds the value of the voiceovers edge.
+	Voiceovers []*Voiceover `json:"voiceovers,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [1]bool
+	loadedTypes [2]bool
 }
 
 // GenerationsOrErr returns the Generations value or an error if the edge
@@ -44,6 +46,15 @@ func (e PromptEdges) GenerationsOrErr() ([]*Generation, error) {
 		return e.Generations, nil
 	}
 	return nil, &NotLoadedError{edge: "generations"}
+}
+
+// VoiceoversOrErr returns the Voiceovers value or an error if the edge
+// was not loaded in eager-loading.
+func (e PromptEdges) VoiceoversOrErr() ([]*Voiceover, error) {
+	if e.loadedTypes[1] {
+		return e.Voiceovers, nil
+	}
+	return nil, &NotLoadedError{edge: "voiceovers"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -104,6 +115,11 @@ func (pr *Prompt) assignValues(columns []string, values []any) error {
 // QueryGenerations queries the "generations" edge of the Prompt entity.
 func (pr *Prompt) QueryGenerations() *GenerationQuery {
 	return NewPromptClient(pr.config).QueryGenerations(pr)
+}
+
+// QueryVoiceovers queries the "voiceovers" edge of the Prompt entity.
+func (pr *Prompt) QueryVoiceovers() *VoiceoverQuery {
+	return NewPromptClient(pr.config).QueryVoiceovers(pr)
 }
 
 // Update returns a builder for updating this Prompt.

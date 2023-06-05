@@ -63,7 +63,7 @@ func (c *RestAPI) HandleSCWorkerWebhook(w http.ResponseWriter, r *http.Request) 
 		livePageMsg := cogMessage.Input.LivePageData
 		if cogMessage.Status == requests.CogProcessing {
 			livePageMsg.Status = shared.LivePageProcessing
-		} else if cogMessage.Status == requests.CogSucceeded && len(cogMessage.Output.Images) > 0 {
+		} else if cogMessage.Status == requests.CogSucceeded && (len(cogMessage.Output.Images) > 0 || len(cogMessage.Output.AudioFiles) > 0) {
 			livePageMsg.Status = shared.LivePageSucceeded
 		} else if cogMessage.Status == requests.CogSucceeded && cogMessage.NSFWCount > 0 {
 			livePageMsg.Status = shared.LivePageFailed
@@ -78,7 +78,7 @@ func (c *RestAPI) HandleSCWorkerWebhook(w http.ResponseWriter, r *http.Request) 
 		}
 		if cogMessage.Status == requests.CogSucceeded || cogMessage.Status == requests.CogFailed {
 			livePageMsg.CompletedAt = &now
-			livePageMsg.ActualNumOutputs = len(cogMessage.Output.Images)
+			livePageMsg.ActualNumOutputs = len(cogMessage.Output.Images) + len(cogMessage.Output.AudioFiles)
 			livePageMsg.NSFWCount = cogMessage.NSFWCount
 		}
 		// Send live page update
@@ -102,7 +102,7 @@ func (c *RestAPI) HandleSCWorkerWebhook(w http.ResponseWriter, r *http.Request) 
 		if cogMessage.Input.UserID == nil {
 			return
 		}
-		if cogMessage.Status == requests.CogSucceeded && len(cogMessage.Output.Images) > 0 {
+		if cogMessage.Status == requests.CogSucceeded && (len(cogMessage.Output.Images) > 0 || len(cogMessage.Output.AudioFiles) > 0) {
 			u, err := c.Repo.GetUser(*cogMessage.Input.UserID)
 			if err != nil {
 				log.Error("Error getting user for analytics", "err", err)
@@ -141,6 +141,7 @@ func (c *RestAPI) HandleSCWorkerWebhook(w http.ResponseWriter, r *http.Request) 
 				qDuration := (*upscale.StartedAt).Sub(upscale.CreatedAt).Seconds()
 				c.Track.UpscaleSucceeded(u, cogMessage.Input, duration, qDuration, cogMessage.Input.IP)
 			}
+			// ! TODO track audio generation
 		}
 
 		if cogMessage.Status == requests.CogSucceeded && cogMessage.NSFWCount > 0 {
@@ -169,6 +170,7 @@ func (c *RestAPI) HandleSCWorkerWebhook(w http.ResponseWriter, r *http.Request) 
 			} else if cogMessage.Input.ProcessType == shared.UPSCALE {
 				c.Track.UpscaleFailed(u, cogMessage.Input, duration, cogMessage.Error, cogMessage.Input.IP)
 			}
+			//  ! TODO track audio
 		}
 	}()
 

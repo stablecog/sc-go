@@ -22,6 +22,10 @@ const (
 	FieldFailureReason = "failure_reason"
 	// FieldStripeProductID holds the string denoting the stripe_product_id field in the database.
 	FieldStripeProductID = "stripe_product_id"
+	// FieldTemp holds the string denoting the temp field in the database.
+	FieldTemp = "temp"
+	// FieldPromptID holds the string denoting the prompt_id field in the database.
+	FieldPromptID = "prompt_id"
 	// FieldUserID holds the string denoting the user_id field in the database.
 	FieldUserID = "user_id"
 	// FieldDeviceInfoID holds the string denoting the device_info_id field in the database.
@@ -42,6 +46,8 @@ const (
 	FieldUpdatedAt = "updated_at"
 	// EdgeUser holds the string denoting the user edge name in mutations.
 	EdgeUser = "user"
+	// EdgePrompt holds the string denoting the prompt edge name in mutations.
+	EdgePrompt = "prompt"
 	// EdgeDeviceInfo holds the string denoting the device_info edge name in mutations.
 	EdgeDeviceInfo = "device_info"
 	// EdgeVoiceoverModels holds the string denoting the voiceover_models edge name in mutations.
@@ -61,6 +67,13 @@ const (
 	UserInverseTable = "users"
 	// UserColumn is the table column denoting the user relation/edge.
 	UserColumn = "user_id"
+	// PromptTable is the table that holds the prompt relation/edge.
+	PromptTable = "voiceovers"
+	// PromptInverseTable is the table name for the Prompt entity.
+	// It exists in this package in order to avoid circular dependency with the "prompt" package.
+	PromptInverseTable = "prompts"
+	// PromptColumn is the table column denoting the prompt relation/edge.
+	PromptColumn = "prompt_id"
 	// DeviceInfoTable is the table that holds the device_info relation/edge.
 	DeviceInfoTable = "voiceovers"
 	// DeviceInfoInverseTable is the table name for the DeviceInfo entity.
@@ -105,6 +118,8 @@ var Columns = []string{
 	FieldStatus,
 	FieldFailureReason,
 	FieldStripeProductID,
+	FieldTemp,
+	FieldPromptID,
 	FieldUserID,
 	FieldDeviceInfoID,
 	FieldModelID,

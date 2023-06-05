@@ -114,7 +114,7 @@ func CreateUpscale(Track *analytics.AnalyticsService, Repo *repository.Repositor
 		// Add channel to sync array (basically a thread-safe map)
 		sMap.Put(requestId, activeChl)
 
-		err = Redis.EnqueueCogRequest(Redis.Ctx, cogReqBody)
+		err = Redis.EnqueueCogRequest(Redis.Ctx, shared.COG_REDIS_QUEUE, cogReqBody)
 		if err != nil {
 			log.Error("Failed to write request to queue", "id", upscale.ID, "err", err)
 			return err

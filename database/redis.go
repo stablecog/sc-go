@@ -89,9 +89,9 @@ type RedisStats struct {
 }
 
 // Enqueues a request to sc-worker
-func (r *RedisWrapper) EnqueueCogRequest(ctx context.Context, request interface{}) error {
+func (r *RedisWrapper) EnqueueCogRequest(ctx context.Context, stream string, request interface{}) error {
 	_, err := r.Client.XAdd(ctx, &redis.XAddArgs{
-		Stream: shared.COG_REDIS_QUEUE,
+		Stream: stream,
 		ID:     "*", // Asterisk auto-generates an ID for the item on the stream
 		Values: []interface{}{"value", request},
 	}).Result()

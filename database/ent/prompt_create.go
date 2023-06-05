@@ -13,6 +13,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/stablecog/sc-go/database/ent/generation"
 	"github.com/stablecog/sc-go/database/ent/prompt"
+	"github.com/stablecog/sc-go/database/ent/voiceover"
 )
 
 // PromptCreate is the builder for creating a Prompt entity.
@@ -83,6 +84,21 @@ func (pc *PromptCreate) AddGenerations(g ...*Generation) *PromptCreate {
 		ids[i] = g[i].ID
 	}
 	return pc.AddGenerationIDs(ids...)
+}
+
+// AddVoiceoverIDs adds the "voiceovers" edge to the Voiceover entity by IDs.
+func (pc *PromptCreate) AddVoiceoverIDs(ids ...uuid.UUID) *PromptCreate {
+	pc.mutation.AddVoiceoverIDs(ids...)
+	return pc
+}
+
+// AddVoiceovers adds the "voiceovers" edges to the Voiceover entity.
+func (pc *PromptCreate) AddVoiceovers(v ...*Voiceover) *PromptCreate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return pc.AddVoiceoverIDs(ids...)
 }
 
 // Mutation returns the PromptMutation object of the builder.
@@ -209,6 +225,25 @@ func (pc *PromptCreate) createSpec() (*Prompt, *sqlgraph.CreateSpec) {
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeUUID,
 					Column: generation.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := pc.mutation.VoiceoversIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   prompt.VoiceoversTable,
+			Columns: []string{prompt.VoiceoversColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: voiceover.FieldID,
 				},
 			},
 		}

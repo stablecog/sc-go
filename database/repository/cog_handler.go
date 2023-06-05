@@ -11,6 +11,7 @@ import (
 	"github.com/stablecog/sc-go/database/ent/generation"
 	"github.com/stablecog/sc-go/database/ent/upscale"
 	"github.com/stablecog/sc-go/database/ent/user"
+	"github.com/stablecog/sc-go/database/ent/voiceover"
 	"github.com/stablecog/sc-go/log"
 	"github.com/stablecog/sc-go/server/requests"
 	"github.com/stablecog/sc-go/shared"
@@ -34,6 +35,8 @@ func (r *Repository) FailCogMessageDueToTimeoutIfTimedOut(msg requests.CogWebhoo
 		var prefix string
 		if msg.Input.ProcessType == shared.GENERATE || msg.Input.ProcessType == shared.GENERATE_AND_UPSCALE {
 			prefix = "g"
+		} else if msg.Input.ProcessType == shared.VOICEOVER {
+			prefix = "v"
 		} else {
 			prefix = "u"
 		}
@@ -45,7 +48,7 @@ func (r *Repository) FailCogMessageDueToTimeoutIfTimedOut(msg requests.CogWebhoo
 
 	// ! Execute timeout failure
 	// Get process type
-	if msg.Input.ProcessType != shared.GENERATE && msg.Input.ProcessType != shared.UPSCALE && msg.Input.ProcessType != shared.GENERATE_AND_UPSCALE {
+	if msg.Input.ProcessType != shared.GENERATE && msg.Input.ProcessType != shared.UPSCALE && msg.Input.ProcessType != shared.GENERATE_AND_UPSCALE && msg.Input.ProcessType != shared.VOICEOVER {
 		log.Error("Invalid process type from cog, can't handle message", "process_type", msg.Input.ProcessType)
 		return
 	}
@@ -76,6 +79,20 @@ func (r *Repository) FailCogMessageDueToTimeoutIfTimedOut(msg requests.CogWebhoo
 			success, err := r.RefundCreditsToUser(userId, 1, db)
 			if err != nil || !success {
 				log.Error("Error refunding credits for upscale", "user", userId.String(), "id", msg.Input.ID, "err", err)
+				return err
+			}
+		} else if msg.Input.ProcessType == shared.VOICEOVER {
+			r.SetVoiceoverFailed(msg.Input.ID, msg.Error, db)
+			user, err := r.DB.Voiceover.Query().Where(voiceover.IDEQ(inputUuid)).QueryUser().Select(user.FieldID).First(r.Ctx)
+			if err != nil {
+				log.Error("Error getting user ID from upscale", "err", err)
+				return err
+			}
+			userId = user.ID
+			// Voiceover is always 1 credit
+			success, err := r.RefundCreditsToUser(userId, 1, db)
+			if err != nil || !success {
+				log.Error("Error refunding credits for voiceover", "user", userId.String(), "id", msg.Input.ID, "err", err)
 				return err
 			}
 		} else {
@@ -144,12 +161,13 @@ func (r *Repository) ProcessCogMessage(msg requests.CogWebhookMessage) error {
 	}
 
 	// Get process type
-	if msg.Input.ProcessType != shared.GENERATE && msg.Input.ProcessType != shared.UPSCALE && msg.Input.ProcessType != shared.GENERATE_AND_UPSCALE {
+	if msg.Input.ProcessType != shared.GENERATE && msg.Input.ProcessType != shared.UPSCALE && msg.Input.ProcessType != shared.GENERATE_AND_UPSCALE && msg.Input.ProcessType != shared.VOICEOVER {
 		log.Error("Invalid process type from cog, can't handle message", "process_type", msg.Input.ProcessType)
 		return fmt.Errorf("invalid process type from cog %s, can't handle message", msg.Input.ProcessType)
 	}
 
 	var upscaleOutput *ent.UpscaleOutput
+	var voiceoverOutput *ent.VoiceoverOutput
 	var generationOutputs []*ent.GenerationOutput
 	var cogErr string
 
@@ -167,6 +185,8 @@ func (r *Repository) ProcessCogMessage(msg requests.CogWebhookMessage) error {
 		// In goroutine since we want them to know it started asap
 		if msg.Input.ProcessType == shared.UPSCALE {
 			go r.SetUpscaleStarted(msg.Input.ID)
+		} else if msg.Input.ProcessType == shared.VOICEOVER {
+			go r.SetVoiceoverStarted(msg.Input.ID)
 		} else {
 			go r.SetGenerationStarted(msg.Input.ID)
 		}
@@ -188,6 +208,20 @@ func (r *Repository) ProcessCogMessage(msg requests.CogWebhookMessage) error {
 				success, err := r.RefundCreditsToUser(userId, 1, db)
 				if err != nil || !success {
 					log.Error("Error refunding credits for upscale", "user", userId.String(), "id", msg.Input.ID, "err", err)
+					return err
+				}
+			} else if msg.Input.ProcessType == shared.VOICEOVER {
+				r.SetVoiceoverFailed(msg.Input.ID, msg.Error, db)
+				user, err := r.DB.Voiceover.Query().Where(voiceover.IDEQ(inputUuid)).QueryUser().Select(user.FieldID).First(r.Ctx)
+				if err != nil {
+					log.Error("Error getting user ID from upscale", "err", err)
+					return err
+				}
+				userId = user.ID
+				// Voiceover is always 1 credit
+				success, err := r.RefundCreditsToUser(userId, 1, db)
+				if err != nil || !success {
+					log.Error("Error refunding credits for voiceover", "user", userId.String(), "id", msg.Input.ID, "err", err)
 					return err
 				}
 			} else {
@@ -222,7 +256,7 @@ func (r *Repository) ProcessCogMessage(msg requests.CogWebhookMessage) error {
 			return err
 		}
 	} else if msg.Status == requests.CogSucceeded {
-		if len(msg.Output.Images) == 0 {
+		if len(msg.Output.Images) == 0 && msg.Input.ProcessType != shared.VOICEOVER {
 			if err := r.WithTx(func(tx *ent.Tx) error {
 				db := tx.Client()
 				// NSFW comes back as a success, but with no outputs and nsfw count
@@ -291,10 +325,41 @@ func (r *Repository) ProcessCogMessage(msg requests.CogWebhookMessage) error {
 				log.Error("Error with transaction in cog message process", "err", err)
 				return err
 			}
+		} else if msg.Input.ProcessType == shared.VOICEOVER && len(msg.Output.AudioFiles) == 0 {
+			if err := r.WithTx(func(tx *ent.Tx) error {
+				db := tx.Client()
+				err := r.SetVoiceoverFailed(msg.Input.ID, cogErr, db)
+				if err != nil {
+					log.Error("Error setting voiceover failed", "err", err)
+					return err
+				}
+				user, err := r.DB.Voiceover.Query().Where(voiceover.IDEQ(inputUuid)).QueryUser().Select(user.FieldID).First(r.Ctx)
+				if err != nil {
+					log.Error("Error getting user ID from voiceover", "err", err)
+					return err
+				}
+				success, err := r.RefundCreditsToUser(user.ID, 1, db)
+				if err != nil || !success {
+					log.Error("Error refunding credits for voiceover", "user", user.ID.String(), "id", msg.Input.ID, "err", err)
+					return err
+				}
+				remainingCredits, err = r.GetNonExpiredCreditTotalForUser(user.ID, db)
+				if err != nil {
+					log.Error("Error getting remaining credits", "err", err)
+					return err
+				}
+				msg.Status = requests.CogFailed
+				return nil
+			}); err != nil {
+				log.Error("Error with transaction in cog message process", "err", err)
+				return err
+			}
 		} else {
 			if msg.Input.ProcessType == shared.UPSCALE {
 				// ! Currently we are only assuming 1 output per upscale request
 				upscaleOutput, err = r.SetUpscaleSucceeded(msg.Input.ID, msg.Input.GenerationOutputID, msg.Input.Image, msg.Output)
+			} else if msg.Input.ProcessType == shared.VOICEOVER {
+				voiceoverOutput, err = r.SetVoiceoverSucceeded(msg.Input.ID, msg.Input.Prompt, msg.Output)
 			} else {
 				generationOutputs, err = r.SetGenerationSucceeded(msg.Input.ID, msg.Input.Prompt, msg.Input.NegativePrompt, msg.Output, msg.NSFWCount)
 			}
@@ -311,54 +376,83 @@ func (r *Repository) ProcessCogMessage(msg requests.CogWebhookMessage) error {
 
 	// Regardless of the status, we always send over sse so user knows what's up
 	// Send message to user
-	resp := TaskStatusUpdateResponse{
-		Status:           msg.Status,
-		Id:               msg.Input.ID,
-		UIId:             msg.Input.UIId,
-		StreamId:         msg.Input.StreamID,
-		NSFWCount:        msg.NSFWCount,
-		Error:            cogErr,
-		ProcessType:      msg.Input.ProcessType,
-		RemainingCredits: remainingCredits,
-	}
-	// Upscale
-	if msg.Status == requests.CogSucceeded && msg.Input.ProcessType == shared.UPSCALE {
-		imageUrl := utils.GetURLFromImagePath(upscaleOutput.ImagePath)
-		resp.Outputs = []GenerationUpscaleOutput{
-			{
-				ID:           upscaleOutput.ID,
-				ImageUrl:     imageUrl,
-				InitImageUrl: msg.Input.Image,
-			},
+	var respBytes []byte
+	if msg.Input.ProcessType != shared.VOICEOVER {
+		resp := TaskStatusUpdateResponse{
+			Status:           msg.Status,
+			Id:               msg.Input.ID,
+			UIId:             msg.Input.UIId,
+			StreamId:         msg.Input.StreamID,
+			NSFWCount:        msg.NSFWCount,
+			Error:            cogErr,
+			ProcessType:      msg.Input.ProcessType,
+			RemainingCredits: remainingCredits,
 		}
-		outputId, err := uuid.Parse(msg.Input.GenerationOutputID)
-		if err == nil {
-			resp.Outputs[0].OutputID = &outputId
-		}
-	} else if msg.Status == requests.CogSucceeded {
-		// Generate or generate and upscale
-		generateOutputs := make([]GenerationUpscaleOutput, len(generationOutputs))
-		for i, output := range generationOutputs {
-			// Parse S3 URLs to usable URLs
-			imageUrl := utils.GetURLFromImagePath(output.ImagePath)
-			var upscaledImageUrl string
-			if output.UpscaledImagePath != nil {
-				upscaledImageUrl = utils.GetURLFromImagePath(*output.UpscaledImagePath)
+		// Upscale
+		if msg.Status == requests.CogSucceeded && msg.Input.ProcessType == shared.UPSCALE {
+			imageUrl := utils.GetURLFromImagePath(upscaleOutput.ImagePath)
+			resp.Outputs = []GenerationUpscaleOutput{
+				{
+					ID:           upscaleOutput.ID,
+					ImageUrl:     imageUrl,
+					InitImageUrl: msg.Input.Image,
+				},
 			}
-			generateOutputs[i] = GenerationUpscaleOutput{
-				ID:               output.ID,
-				ImageUrl:         imageUrl,
-				UpscaledImageUrl: upscaledImageUrl,
-				GalleryStatus:    output.GalleryStatus,
+			outputId, err := uuid.Parse(msg.Input.GenerationOutputID)
+			if err == nil {
+				resp.Outputs[0].OutputID = &outputId
+			}
+		} else if msg.Status == requests.CogSucceeded {
+			// Generate or generate and upscale
+			generateOutputs := make([]GenerationUpscaleOutput, len(generationOutputs))
+			for i, output := range generationOutputs {
+				// Parse S3 URLs to usable URLs
+				imageUrl := utils.GetURLFromImagePath(output.ImagePath)
+				var upscaledImageUrl string
+				if output.UpscaledImagePath != nil {
+					upscaledImageUrl = utils.GetURLFromImagePath(*output.UpscaledImagePath)
+				}
+				generateOutputs[i] = GenerationUpscaleOutput{
+					ID:               output.ID,
+					ImageUrl:         imageUrl,
+					UpscaledImageUrl: upscaledImageUrl,
+					GalleryStatus:    output.GalleryStatus,
+				}
+			}
+			resp.Outputs = generateOutputs
+		}
+		// Marshal
+		respBytes, err = json.Marshal(resp)
+		if err != nil {
+			log.Error("Error marshalling sse response", "err", err)
+			return err
+		}
+	} else {
+		// Voiceover
+		resp := TaskStatusUpdateResponse{
+			Status:           msg.Status,
+			Id:               msg.Input.ID,
+			UIId:             msg.Input.UIId,
+			StreamId:         msg.Input.StreamID,
+			Error:            cogErr,
+			ProcessType:      msg.Input.ProcessType,
+			RemainingCredits: remainingCredits,
+		}
+		if msg.Status == requests.CogSucceeded {
+			audioFileURL := utils.GetURLFromImagePath(voiceoverOutput.AudioPath)
+			resp.AudioOutputs = []VoiceoverOutput{
+				{
+					ID:          upscaleOutput.ID,
+					AudoFileURL: audioFileURL,
+				},
 			}
 		}
-		resp.Outputs = generateOutputs
-	}
-	// Marshal
-	respBytes, err := json.Marshal(resp)
-	if err != nil {
-		log.Error("Error marshalling sse response", "err", err)
-		return err
+		// Marshal
+		respBytes, err = json.Marshal(resp)
+		if err != nil {
+			log.Error("Error marshalling sse response", "err", err)
+			return err
+		}
 	}
 
 	// Dec queue count
@@ -366,6 +460,8 @@ func (r *Repository) ProcessCogMessage(msg requests.CogWebhookMessage) error {
 		var prefix string
 		if msg.Input.ProcessType == shared.GENERATE || msg.Input.ProcessType == shared.GENERATE_AND_UPSCALE {
 			prefix = "g"
+		} else if msg.Input.ProcessType == shared.VOICEOVER {
+			prefix = "v"
 		} else {
 			prefix = "u"
 		}

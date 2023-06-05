@@ -29,6 +29,20 @@ func (r *Repository) UpdateCache() error {
 	}
 	shared.GetCache().UpdateSchedulers(schedulers)
 
+	voiceoverModels, err := r.GetAllVoiceoverModels()
+	if err != nil {
+		log.Error("Failed to get voiceover_models", "err", err)
+		return err
+	}
+	shared.GetCache().UpdateVoiceoverModels(voiceoverModels)
+
+	voiceoverSpeakers, err := r.GetAllVoiceoverSpeakers()
+	if err != nil {
+		log.Error("Failed to get voiceover_speakers", "err", err)
+		return err
+	}
+	shared.GetCache().UpdateVoiceoverSpeakers(voiceoverSpeakers)
+
 	admins, err := r.GetSuperAdminUserIDs()
 	if err != nil {
 		log.Error("Failed to get super admins", "err", err)

@@ -15,6 +15,7 @@ import (
 	"github.com/stablecog/sc-go/database/ent/generation"
 	"github.com/stablecog/sc-go/database/ent/predicate"
 	"github.com/stablecog/sc-go/database/ent/prompt"
+	"github.com/stablecog/sc-go/database/ent/voiceover"
 )
 
 // PromptUpdate is the builder for updating Prompt entities.
@@ -58,6 +59,21 @@ func (pu *PromptUpdate) AddGenerations(g ...*Generation) *PromptUpdate {
 	return pu.AddGenerationIDs(ids...)
 }
 
+// AddVoiceoverIDs adds the "voiceovers" edge to the Voiceover entity by IDs.
+func (pu *PromptUpdate) AddVoiceoverIDs(ids ...uuid.UUID) *PromptUpdate {
+	pu.mutation.AddVoiceoverIDs(ids...)
+	return pu
+}
+
+// AddVoiceovers adds the "voiceovers" edges to the Voiceover entity.
+func (pu *PromptUpdate) AddVoiceovers(v ...*Voiceover) *PromptUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return pu.AddVoiceoverIDs(ids...)
+}
+
 // Mutation returns the PromptMutation object of the builder.
 func (pu *PromptUpdate) Mutation() *PromptMutation {
 	return pu.mutation
@@ -82,6 +98,27 @@ func (pu *PromptUpdate) RemoveGenerations(g ...*Generation) *PromptUpdate {
 		ids[i] = g[i].ID
 	}
 	return pu.RemoveGenerationIDs(ids...)
+}
+
+// ClearVoiceovers clears all "voiceovers" edges to the Voiceover entity.
+func (pu *PromptUpdate) ClearVoiceovers() *PromptUpdate {
+	pu.mutation.ClearVoiceovers()
+	return pu
+}
+
+// RemoveVoiceoverIDs removes the "voiceovers" edge to Voiceover entities by IDs.
+func (pu *PromptUpdate) RemoveVoiceoverIDs(ids ...uuid.UUID) *PromptUpdate {
+	pu.mutation.RemoveVoiceoverIDs(ids...)
+	return pu
+}
+
+// RemoveVoiceovers removes "voiceovers" edges to Voiceover entities.
+func (pu *PromptUpdate) RemoveVoiceovers(v ...*Voiceover) *PromptUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return pu.RemoveVoiceoverIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -204,6 +241,60 @@ func (pu *PromptUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if pu.mutation.VoiceoversCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   prompt.VoiceoversTable,
+			Columns: []string{prompt.VoiceoversColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: voiceover.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := pu.mutation.RemovedVoiceoversIDs(); len(nodes) > 0 && !pu.mutation.VoiceoversCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   prompt.VoiceoversTable,
+			Columns: []string{prompt.VoiceoversColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: voiceover.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := pu.mutation.VoiceoversIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   prompt.VoiceoversTable,
+			Columns: []string{prompt.VoiceoversColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: voiceover.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	_spec.AddModifiers(pu.modifiers...)
 	if n, err = sqlgraph.UpdateNodes(ctx, pu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
@@ -253,6 +344,21 @@ func (puo *PromptUpdateOne) AddGenerations(g ...*Generation) *PromptUpdateOne {
 	return puo.AddGenerationIDs(ids...)
 }
 
+// AddVoiceoverIDs adds the "voiceovers" edge to the Voiceover entity by IDs.
+func (puo *PromptUpdateOne) AddVoiceoverIDs(ids ...uuid.UUID) *PromptUpdateOne {
+	puo.mutation.AddVoiceoverIDs(ids...)
+	return puo
+}
+
+// AddVoiceovers adds the "voiceovers" edges to the Voiceover entity.
+func (puo *PromptUpdateOne) AddVoiceovers(v ...*Voiceover) *PromptUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return puo.AddVoiceoverIDs(ids...)
+}
+
 // Mutation returns the PromptMutation object of the builder.
 func (puo *PromptUpdateOne) Mutation() *PromptMutation {
 	return puo.mutation
@@ -277,6 +383,27 @@ func (puo *PromptUpdateOne) RemoveGenerations(g ...*Generation) *PromptUpdateOne
 		ids[i] = g[i].ID
 	}
 	return puo.RemoveGenerationIDs(ids...)
+}
+
+// ClearVoiceovers clears all "voiceovers" edges to the Voiceover entity.
+func (puo *PromptUpdateOne) ClearVoiceovers() *PromptUpdateOne {
+	puo.mutation.ClearVoiceovers()
+	return puo
+}
+
+// RemoveVoiceoverIDs removes the "voiceovers" edge to Voiceover entities by IDs.
+func (puo *PromptUpdateOne) RemoveVoiceoverIDs(ids ...uuid.UUID) *PromptUpdateOne {
+	puo.mutation.RemoveVoiceoverIDs(ids...)
+	return puo
+}
+
+// RemoveVoiceovers removes "voiceovers" edges to Voiceover entities.
+func (puo *PromptUpdateOne) RemoveVoiceovers(v ...*Voiceover) *PromptUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return puo.RemoveVoiceoverIDs(ids...)
 }
 
 // Select allows selecting one or more fields (columns) of the returned entity.
@@ -415,6 +542,60 @@ func (puo *PromptUpdateOne) sqlSave(ctx context.Context) (_node *Prompt, err err
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeUUID,
 					Column: generation.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if puo.mutation.VoiceoversCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   prompt.VoiceoversTable,
+			Columns: []string{prompt.VoiceoversColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: voiceover.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := puo.mutation.RemovedVoiceoversIDs(); len(nodes) > 0 && !puo.mutation.VoiceoversCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   prompt.VoiceoversTable,
+			Columns: []string{prompt.VoiceoversColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: voiceover.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := puo.mutation.VoiceoversIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   prompt.VoiceoversTable,
+			Columns: []string{prompt.VoiceoversColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: voiceover.FieldID,
 				},
 			},
 		}

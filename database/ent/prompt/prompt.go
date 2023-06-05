@@ -21,6 +21,8 @@ const (
 	FieldUpdatedAt = "updated_at"
 	// EdgeGenerations holds the string denoting the generations edge name in mutations.
 	EdgeGenerations = "generations"
+	// EdgeVoiceovers holds the string denoting the voiceovers edge name in mutations.
+	EdgeVoiceovers = "voiceovers"
 	// Table holds the table name of the prompt in the database.
 	Table = "prompts"
 	// GenerationsTable is the table that holds the generations relation/edge.
@@ -30,6 +32,13 @@ const (
 	GenerationsInverseTable = "generations"
 	// GenerationsColumn is the table column denoting the generations relation/edge.
 	GenerationsColumn = "prompt_id"
+	// VoiceoversTable is the table that holds the voiceovers relation/edge.
+	VoiceoversTable = "voiceovers"
+	// VoiceoversInverseTable is the table name for the Voiceover entity.
+	// It exists in this package in order to avoid circular dependency with the "voiceover" package.
+	VoiceoversInverseTable = "voiceovers"
+	// VoiceoversColumn is the table column denoting the voiceovers relation/edge.
+	VoiceoversColumn = "prompt_id"
 )
 
 // Columns holds all SQL columns for prompt fields.

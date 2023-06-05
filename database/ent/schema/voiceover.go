@@ -24,7 +24,9 @@ func (Voiceover) Fields() []ent.Field {
 		field.Enum("status").Values("queued", "started", "succeeded", "failed"),
 		field.Text("failure_reason").Optional().Nillable(),
 		field.Text("stripe_product_id").Optional().Nillable(),
+		field.Float32("temp"),
 		// ! Relationships / many-to-one
+		field.UUID("prompt_id", uuid.UUID{}).Optional().Nillable(),
 		field.UUID("user_id", uuid.UUID{}),
 		field.UUID("device_info_id", uuid.UUID{}),
 		field.UUID("model_id", uuid.UUID{}),
@@ -46,6 +48,11 @@ func (Voiceover) Edges() []ent.Edge {
 			Ref("voiceovers").
 			Field("user_id").
 			Required().
+			Unique(),
+		// M2O with prompt
+		edge.From("prompt", Prompt.Type).
+			Ref("voiceovers").
+			Field("prompt_id").
 			Unique(),
 		// M2O with device_info
 		edge.From("device_info", DeviceInfo.Type).

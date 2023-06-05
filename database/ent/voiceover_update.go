@@ -15,6 +15,7 @@ import (
 	"github.com/stablecog/sc-go/database/ent/apitoken"
 	"github.com/stablecog/sc-go/database/ent/deviceinfo"
 	"github.com/stablecog/sc-go/database/ent/predicate"
+	"github.com/stablecog/sc-go/database/ent/prompt"
 	"github.com/stablecog/sc-go/database/ent/user"
 	"github.com/stablecog/sc-go/database/ent/voiceover"
 	"github.com/stablecog/sc-go/database/ent/voiceovermodel"
@@ -99,6 +100,39 @@ func (vu *VoiceoverUpdate) SetNillableStripeProductID(s *string) *VoiceoverUpdat
 // ClearStripeProductID clears the value of the "stripe_product_id" field.
 func (vu *VoiceoverUpdate) ClearStripeProductID() *VoiceoverUpdate {
 	vu.mutation.ClearStripeProductID()
+	return vu
+}
+
+// SetTemp sets the "temp" field.
+func (vu *VoiceoverUpdate) SetTemp(f float32) *VoiceoverUpdate {
+	vu.mutation.ResetTemp()
+	vu.mutation.SetTemp(f)
+	return vu
+}
+
+// AddTemp adds f to the "temp" field.
+func (vu *VoiceoverUpdate) AddTemp(f float32) *VoiceoverUpdate {
+	vu.mutation.AddTemp(f)
+	return vu
+}
+
+// SetPromptID sets the "prompt_id" field.
+func (vu *VoiceoverUpdate) SetPromptID(u uuid.UUID) *VoiceoverUpdate {
+	vu.mutation.SetPromptID(u)
+	return vu
+}
+
+// SetNillablePromptID sets the "prompt_id" field if the given value is not nil.
+func (vu *VoiceoverUpdate) SetNillablePromptID(u *uuid.UUID) *VoiceoverUpdate {
+	if u != nil {
+		vu.SetPromptID(*u)
+	}
+	return vu
+}
+
+// ClearPromptID clears the value of the "prompt_id" field.
+func (vu *VoiceoverUpdate) ClearPromptID() *VoiceoverUpdate {
+	vu.mutation.ClearPromptID()
 	return vu
 }
 
@@ -197,6 +231,11 @@ func (vu *VoiceoverUpdate) SetUser(u *User) *VoiceoverUpdate {
 	return vu.SetUserID(u.ID)
 }
 
+// SetPrompt sets the "prompt" edge to the Prompt entity.
+func (vu *VoiceoverUpdate) SetPrompt(p *Prompt) *VoiceoverUpdate {
+	return vu.SetPromptID(p.ID)
+}
+
 // SetDeviceInfo sets the "device_info" edge to the DeviceInfo entity.
 func (vu *VoiceoverUpdate) SetDeviceInfo(d *DeviceInfo) *VoiceoverUpdate {
 	return vu.SetDeviceInfoID(d.ID)
@@ -266,6 +305,12 @@ func (vu *VoiceoverUpdate) Mutation() *VoiceoverMutation {
 // ClearUser clears the "user" edge to the User entity.
 func (vu *VoiceoverUpdate) ClearUser() *VoiceoverUpdate {
 	vu.mutation.ClearUser()
+	return vu
+}
+
+// ClearPrompt clears the "prompt" edge to the Prompt entity.
+func (vu *VoiceoverUpdate) ClearPrompt() *VoiceoverUpdate {
+	vu.mutation.ClearPrompt()
 	return vu
 }
 
@@ -420,6 +465,12 @@ func (vu *VoiceoverUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if vu.mutation.StripeProductIDCleared() {
 		_spec.ClearField(voiceover.FieldStripeProductID, field.TypeString)
 	}
+	if value, ok := vu.mutation.Temp(); ok {
+		_spec.SetField(voiceover.FieldTemp, field.TypeFloat32, value)
+	}
+	if value, ok := vu.mutation.AddedTemp(); ok {
+		_spec.AddField(voiceover.FieldTemp, field.TypeFloat32, value)
+	}
 	if value, ok := vu.mutation.StartedAt(); ok {
 		_spec.SetField(voiceover.FieldStartedAt, field.TypeTime, value)
 	}
@@ -462,6 +513,41 @@ func (vu *VoiceoverUpdate) sqlSave(ctx context.Context) (n int, err error) {
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeUUID,
 					Column: user.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if vu.mutation.PromptCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   voiceover.PromptTable,
+			Columns: []string{voiceover.PromptColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: prompt.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := vu.mutation.PromptIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   voiceover.PromptTable,
+			Columns: []string{voiceover.PromptColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: prompt.FieldID,
 				},
 			},
 		}
@@ -752,6 +838,39 @@ func (vuo *VoiceoverUpdateOne) ClearStripeProductID() *VoiceoverUpdateOne {
 	return vuo
 }
 
+// SetTemp sets the "temp" field.
+func (vuo *VoiceoverUpdateOne) SetTemp(f float32) *VoiceoverUpdateOne {
+	vuo.mutation.ResetTemp()
+	vuo.mutation.SetTemp(f)
+	return vuo
+}
+
+// AddTemp adds f to the "temp" field.
+func (vuo *VoiceoverUpdateOne) AddTemp(f float32) *VoiceoverUpdateOne {
+	vuo.mutation.AddTemp(f)
+	return vuo
+}
+
+// SetPromptID sets the "prompt_id" field.
+func (vuo *VoiceoverUpdateOne) SetPromptID(u uuid.UUID) *VoiceoverUpdateOne {
+	vuo.mutation.SetPromptID(u)
+	return vuo
+}
+
+// SetNillablePromptID sets the "prompt_id" field if the given value is not nil.
+func (vuo *VoiceoverUpdateOne) SetNillablePromptID(u *uuid.UUID) *VoiceoverUpdateOne {
+	if u != nil {
+		vuo.SetPromptID(*u)
+	}
+	return vuo
+}
+
+// ClearPromptID clears the value of the "prompt_id" field.
+func (vuo *VoiceoverUpdateOne) ClearPromptID() *VoiceoverUpdateOne {
+	vuo.mutation.ClearPromptID()
+	return vuo
+}
+
 // SetUserID sets the "user_id" field.
 func (vuo *VoiceoverUpdateOne) SetUserID(u uuid.UUID) *VoiceoverUpdateOne {
 	vuo.mutation.SetUserID(u)
@@ -847,6 +966,11 @@ func (vuo *VoiceoverUpdateOne) SetUser(u *User) *VoiceoverUpdateOne {
 	return vuo.SetUserID(u.ID)
 }
 
+// SetPrompt sets the "prompt" edge to the Prompt entity.
+func (vuo *VoiceoverUpdateOne) SetPrompt(p *Prompt) *VoiceoverUpdateOne {
+	return vuo.SetPromptID(p.ID)
+}
+
 // SetDeviceInfo sets the "device_info" edge to the DeviceInfo entity.
 func (vuo *VoiceoverUpdateOne) SetDeviceInfo(d *DeviceInfo) *VoiceoverUpdateOne {
 	return vuo.SetDeviceInfoID(d.ID)
@@ -916,6 +1040,12 @@ func (vuo *VoiceoverUpdateOne) Mutation() *VoiceoverMutation {
 // ClearUser clears the "user" edge to the User entity.
 func (vuo *VoiceoverUpdateOne) ClearUser() *VoiceoverUpdateOne {
 	vuo.mutation.ClearUser()
+	return vuo
+}
+
+// ClearPrompt clears the "prompt" edge to the Prompt entity.
+func (vuo *VoiceoverUpdateOne) ClearPrompt() *VoiceoverUpdateOne {
+	vuo.mutation.ClearPrompt()
 	return vuo
 }
 
@@ -1094,6 +1224,12 @@ func (vuo *VoiceoverUpdateOne) sqlSave(ctx context.Context) (_node *Voiceover, e
 	if vuo.mutation.StripeProductIDCleared() {
 		_spec.ClearField(voiceover.FieldStripeProductID, field.TypeString)
 	}
+	if value, ok := vuo.mutation.Temp(); ok {
+		_spec.SetField(voiceover.FieldTemp, field.TypeFloat32, value)
+	}
+	if value, ok := vuo.mutation.AddedTemp(); ok {
+		_spec.AddField(voiceover.FieldTemp, field.TypeFloat32, value)
+	}
 	if value, ok := vuo.mutation.StartedAt(); ok {
 		_spec.SetField(voiceover.FieldStartedAt, field.TypeTime, value)
 	}
@@ -1136,6 +1272,41 @@ func (vuo *VoiceoverUpdateOne) sqlSave(ctx context.Context) (_node *Voiceover, e
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeUUID,
 					Column: user.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if vuo.mutation.PromptCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   voiceover.PromptTable,
+			Columns: []string{voiceover.PromptColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: prompt.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := vuo.mutation.PromptIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   voiceover.PromptTable,
+			Columns: []string{voiceover.PromptColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: prompt.FieldID,
 				},
 			},
 		}

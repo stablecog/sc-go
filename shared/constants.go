@@ -7,6 +7,7 @@ const MAX_QUEUED_ITEMS_ULTIMATE = 4
 const MAX_QUEUED_ITEMS_PRO = 3
 const MAX_QUEUED_ITEMS_STARTER = 2
 const MAX_QUEUED_ITEMS_FREE = 1
+const MAX_QUEUED_ITEMS_VOICEOVER = 1
 
 // NSFW Error
 const NSFW_ERROR = "NSFW"
@@ -39,6 +40,9 @@ const MAX_PROMPT_LENGTH = 500
 // The name of the redis stream used to enqueue worker requests
 const COG_REDIS_QUEUE = "input_queue"
 
+// The name of the redis stream used to enqueue worker voiceover requests
+const COG_REDIS_VOICEOVER_QUEUE = "input_queue_for_voiceover"
+
 // This redis channel our servers publish to when we want to broadcast SSE events to clients
 const REDIS_SSE_BROADCAST_CHANNEL = "sse:broadcast_channel"
 
@@ -68,6 +72,7 @@ const (
 	GENERATE             ProcessType = "generate"
 	UPSCALE              ProcessType = "upscale"
 	GENERATE_AND_UPSCALE ProcessType = "generate_and_upscale"
+	VOICEOVER            ProcessType = "voiceover"
 )
 
 // Source type for API requests

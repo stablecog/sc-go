@@ -60,6 +60,9 @@ type BaseCogRequest struct {
 	Image        string             `json:"image_to_upscale,omitempty"`
 	Type         UpscaleRequestType `json:"type,omitempty"`
 	UpscaleModel string             `json:"upscale_model,omitempty"`
+	// Voiceover specific
+	VoiceoverModel string `json:"voiceover_model,omitempty"`
+	Temp           string `json:"temp,omitempty"`
 }
 
 // Data type is what we actually send to the cog, includes some additional metadata beyond BaseCogRequest
@@ -89,9 +92,14 @@ type CogWebhookOutputImage struct {
 	ImageEmbed []float32 `json:"image_embed"`
 }
 
+type CogWebhookOutputAudio struct {
+	AudoFile string `json:"audio_file"`
+}
+
 type CogWebhookOutput struct {
 	PromptEmbed []float32               `json:"prompt_embed"`
 	Images      []CogWebhookOutputImage `json:"images"`
+	AudioFiles  []CogWebhookOutputAudio `json:"audio_files"`
 }
 
 type CogWebhookMessage struct {

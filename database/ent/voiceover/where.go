@@ -71,6 +71,16 @@ func StripeProductID(v string) predicate.Voiceover {
 	return predicate.Voiceover(sql.FieldEQ(FieldStripeProductID, v))
 }
 
+// Temp applies equality check predicate on the "temp" field. It's identical to TempEQ.
+func Temp(v float32) predicate.Voiceover {
+	return predicate.Voiceover(sql.FieldEQ(FieldTemp, v))
+}
+
+// PromptID applies equality check predicate on the "prompt_id" field. It's identical to PromptIDEQ.
+func PromptID(v uuid.UUID) predicate.Voiceover {
+	return predicate.Voiceover(sql.FieldEQ(FieldPromptID, v))
+}
+
 // UserID applies equality check predicate on the "user_id" field. It's identical to UserIDEQ.
 func UserID(v uuid.UUID) predicate.Voiceover {
 	return predicate.Voiceover(sql.FieldEQ(FieldUserID, v))
@@ -359,6 +369,76 @@ func StripeProductIDEqualFold(v string) predicate.Voiceover {
 // StripeProductIDContainsFold applies the ContainsFold predicate on the "stripe_product_id" field.
 func StripeProductIDContainsFold(v string) predicate.Voiceover {
 	return predicate.Voiceover(sql.FieldContainsFold(FieldStripeProductID, v))
+}
+
+// TempEQ applies the EQ predicate on the "temp" field.
+func TempEQ(v float32) predicate.Voiceover {
+	return predicate.Voiceover(sql.FieldEQ(FieldTemp, v))
+}
+
+// TempNEQ applies the NEQ predicate on the "temp" field.
+func TempNEQ(v float32) predicate.Voiceover {
+	return predicate.Voiceover(sql.FieldNEQ(FieldTemp, v))
+}
+
+// TempIn applies the In predicate on the "temp" field.
+func TempIn(vs ...float32) predicate.Voiceover {
+	return predicate.Voiceover(sql.FieldIn(FieldTemp, vs...))
+}
+
+// TempNotIn applies the NotIn predicate on the "temp" field.
+func TempNotIn(vs ...float32) predicate.Voiceover {
+	return predicate.Voiceover(sql.FieldNotIn(FieldTemp, vs...))
+}
+
+// TempGT applies the GT predicate on the "temp" field.
+func TempGT(v float32) predicate.Voiceover {
+	return predicate.Voiceover(sql.FieldGT(FieldTemp, v))
+}
+
+// TempGTE applies the GTE predicate on the "temp" field.
+func TempGTE(v float32) predicate.Voiceover {
+	return predicate.Voiceover(sql.FieldGTE(FieldTemp, v))
+}
+
+// TempLT applies the LT predicate on the "temp" field.
+func TempLT(v float32) predicate.Voiceover {
+	return predicate.Voiceover(sql.FieldLT(FieldTemp, v))
+}
+
+// TempLTE applies the LTE predicate on the "temp" field.
+func TempLTE(v float32) predicate.Voiceover {
+	return predicate.Voiceover(sql.FieldLTE(FieldTemp, v))
+}
+
+// PromptIDEQ applies the EQ predicate on the "prompt_id" field.
+func PromptIDEQ(v uuid.UUID) predicate.Voiceover {
+	return predicate.Voiceover(sql.FieldEQ(FieldPromptID, v))
+}
+
+// PromptIDNEQ applies the NEQ predicate on the "prompt_id" field.
+func PromptIDNEQ(v uuid.UUID) predicate.Voiceover {
+	return predicate.Voiceover(sql.FieldNEQ(FieldPromptID, v))
+}
+
+// PromptIDIn applies the In predicate on the "prompt_id" field.
+func PromptIDIn(vs ...uuid.UUID) predicate.Voiceover {
+	return predicate.Voiceover(sql.FieldIn(FieldPromptID, vs...))
+}
+
+// PromptIDNotIn applies the NotIn predicate on the "prompt_id" field.
+func PromptIDNotIn(vs ...uuid.UUID) predicate.Voiceover {
+	return predicate.Voiceover(sql.FieldNotIn(FieldPromptID, vs...))
+}
+
+// PromptIDIsNil applies the IsNil predicate on the "prompt_id" field.
+func PromptIDIsNil() predicate.Voiceover {
+	return predicate.Voiceover(sql.FieldIsNull(FieldPromptID))
+}
+
+// PromptIDNotNil applies the NotNil predicate on the "prompt_id" field.
+func PromptIDNotNil() predicate.Voiceover {
+	return predicate.Voiceover(sql.FieldNotNull(FieldPromptID))
 }
 
 // UserIDEQ applies the EQ predicate on the "user_id" field.
@@ -669,6 +749,33 @@ func HasUserWith(preds ...predicate.User) predicate.Voiceover {
 			sqlgraph.From(Table, FieldID),
 			sqlgraph.To(UserInverseTable, FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, true, UserTable, UserColumn),
+		)
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasPrompt applies the HasEdge predicate on the "prompt" edge.
+func HasPrompt() predicate.Voiceover {
+	return predicate.Voiceover(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, PromptTable, PromptColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasPromptWith applies the HasEdge predicate on the "prompt" edge with a given conditions (other predicates).
+func HasPromptWith(preds ...predicate.Prompt) predicate.Voiceover {
+	return predicate.Voiceover(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(PromptInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, PromptTable, PromptColumn),
 		)
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {

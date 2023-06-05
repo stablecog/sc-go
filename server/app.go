@@ -423,6 +423,9 @@ func main() {
 			// Create upscale
 			r.Post("/upscale", hc.HandleUpscale)
 
+			// Create voiceover
+			r.Post("/voiceover", hc.HandleVoiceover)
+
 			// Query credits
 			r.Get("/credits", hc.HandleQueryCredits)
 

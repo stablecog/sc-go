@@ -1869,6 +1869,22 @@ func (c *PromptClient) QueryGenerations(pr *Prompt) *GenerationQuery {
 	return query
 }
 
+// QueryVoiceovers queries the voiceovers edge of a Prompt.
+func (c *PromptClient) QueryVoiceovers(pr *Prompt) *VoiceoverQuery {
+	query := (&VoiceoverClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := pr.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(prompt.Table, prompt.FieldID, id),
+			sqlgraph.To(voiceover.Table, voiceover.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, prompt.VoiceoversTable, prompt.VoiceoversColumn),
+		)
+		fromV = sqlgraph.Neighbors(pr.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *PromptClient) Hooks() []Hook {
 	return c.hooks.Prompt
@@ -2976,6 +2992,22 @@ func (c *VoiceoverClient) QueryUser(v *Voiceover) *UserQuery {
 			sqlgraph.From(voiceover.Table, voiceover.FieldID, id),
 			sqlgraph.To(user.Table, user.FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, true, voiceover.UserTable, voiceover.UserColumn),
+		)
+		fromV = sqlgraph.Neighbors(v.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryPrompt queries the prompt edge of a Voiceover.
+func (c *VoiceoverClient) QueryPrompt(v *Voiceover) *PromptQuery {
+	query := (&PromptClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := v.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(voiceover.Table, voiceover.FieldID, id),
+			sqlgraph.To(prompt.Table, prompt.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, voiceover.PromptTable, voiceover.PromptColumn),
 		)
 		fromV = sqlgraph.Neighbors(v.driver.Dialect(), step)
 		return fromV, nil

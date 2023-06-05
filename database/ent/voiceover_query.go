@@ -15,6 +15,7 @@ import (
 	"github.com/stablecog/sc-go/database/ent/apitoken"
 	"github.com/stablecog/sc-go/database/ent/deviceinfo"
 	"github.com/stablecog/sc-go/database/ent/predicate"
+	"github.com/stablecog/sc-go/database/ent/prompt"
 	"github.com/stablecog/sc-go/database/ent/user"
 	"github.com/stablecog/sc-go/database/ent/voiceover"
 	"github.com/stablecog/sc-go/database/ent/voiceovermodel"
@@ -30,6 +31,7 @@ type VoiceoverQuery struct {
 	inters                []Interceptor
 	predicates            []predicate.Voiceover
 	withUser              *UserQuery
+	withPrompt            *PromptQuery
 	withDeviceInfo        *DeviceInfoQuery
 	withVoiceoverModels   *VoiceoverModelQuery
 	withVoiceoverSpeakers *VoiceoverSpeakerQuery
@@ -87,6 +89,28 @@ func (vq *VoiceoverQuery) QueryUser() *UserQuery {
 			sqlgraph.From(voiceover.Table, voiceover.FieldID, selector),
 			sqlgraph.To(user.Table, user.FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, true, voiceover.UserTable, voiceover.UserColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(vq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryPrompt chains the current query on the "prompt" edge.
+func (vq *VoiceoverQuery) QueryPrompt() *PromptQuery {
+	query := (&PromptClient{config: vq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := vq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := vq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(voiceover.Table, voiceover.FieldID, selector),
+			sqlgraph.To(prompt.Table, prompt.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, voiceover.PromptTable, voiceover.PromptColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(vq.driver.Dialect(), step)
 		return fromU, nil
@@ -395,6 +419,7 @@ func (vq *VoiceoverQuery) Clone() *VoiceoverQuery {
 		inters:                append([]Interceptor{}, vq.inters...),
 		predicates:            append([]predicate.Voiceover{}, vq.predicates...),
 		withUser:              vq.withUser.Clone(),
+		withPrompt:            vq.withPrompt.Clone(),
 		withDeviceInfo:        vq.withDeviceInfo.Clone(),
 		withVoiceoverModels:   vq.withVoiceoverModels.Clone(),
 		withVoiceoverSpeakers: vq.withVoiceoverSpeakers.Clone(),
@@ -414,6 +439,17 @@ func (vq *VoiceoverQuery) WithUser(opts ...func(*UserQuery)) *VoiceoverQuery {
 		opt(query)
 	}
 	vq.withUser = query
+	return vq
+}
+
+// WithPrompt tells the query-builder to eager-load the nodes that are connected to
+// the "prompt" edge. The optional arguments are used to configure the query builder of the edge.
+func (vq *VoiceoverQuery) WithPrompt(opts ...func(*PromptQuery)) *VoiceoverQuery {
+	query := (&PromptClient{config: vq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	vq.withPrompt = query
 	return vq
 }
 
@@ -550,8 +586,9 @@ func (vq *VoiceoverQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Vo
 	var (
 		nodes       = []*Voiceover{}
 		_spec       = vq.querySpec()
-		loadedTypes = [6]bool{
+		loadedTypes = [7]bool{
 			vq.withUser != nil,
+			vq.withPrompt != nil,
 			vq.withDeviceInfo != nil,
 			vq.withVoiceoverModels != nil,
 			vq.withVoiceoverSpeakers != nil,
@@ -583,6 +620,12 @@ func (vq *VoiceoverQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Vo
 	if query := vq.withUser; query != nil {
 		if err := vq.loadUser(ctx, query, nodes, nil,
 			func(n *Voiceover, e *User) { n.Edges.User = e }); err != nil {
+			return nil, err
+		}
+	}
+	if query := vq.withPrompt; query != nil {
+		if err := vq.loadPrompt(ctx, query, nodes, nil,
+			func(n *Voiceover, e *Prompt) { n.Edges.Prompt = e }); err != nil {
 			return nil, err
 		}
 	}
@@ -642,6 +685,38 @@ func (vq *VoiceoverQuery) loadUser(ctx context.Context, query *UserQuery, nodes 
 		nodes, ok := nodeids[n.ID]
 		if !ok {
 			return fmt.Errorf(`unexpected foreign-key "user_id" returned %v`, n.ID)
+		}
+		for i := range nodes {
+			assign(nodes[i], n)
+		}
+	}
+	return nil
+}
+func (vq *VoiceoverQuery) loadPrompt(ctx context.Context, query *PromptQuery, nodes []*Voiceover, init func(*Voiceover), assign func(*Voiceover, *Prompt)) error {
+	ids := make([]uuid.UUID, 0, len(nodes))
+	nodeids := make(map[uuid.UUID][]*Voiceover)
+	for i := range nodes {
+		if nodes[i].PromptID == nil {
+			continue
+		}
+		fk := *nodes[i].PromptID
+		if _, ok := nodeids[fk]; !ok {
+			ids = append(ids, fk)
+		}
+		nodeids[fk] = append(nodeids[fk], nodes[i])
+	}
+	if len(ids) == 0 {
+		return nil
+	}
+	query.Where(prompt.IDIn(ids...))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nodeids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "prompt_id" returned %v`, n.ID)
 		}
 		for i := range nodes {
 			assign(nodes[i], n)

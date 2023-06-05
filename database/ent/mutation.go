@@ -9322,6 +9322,9 @@ type PromptMutation struct {
 	generations        map[uuid.UUID]struct{}
 	removedgenerations map[uuid.UUID]struct{}
 	clearedgenerations bool
+	voiceovers         map[uuid.UUID]struct{}
+	removedvoiceovers  map[uuid.UUID]struct{}
+	clearedvoiceovers  bool
 	done               bool
 	oldValue           func(context.Context) (*Prompt, error)
 	predicates         []predicate.Prompt
@@ -9593,6 +9596,60 @@ func (m *PromptMutation) ResetGenerations() {
 	m.removedgenerations = nil
 }
 
+// AddVoiceoverIDs adds the "voiceovers" edge to the Voiceover entity by ids.
+func (m *PromptMutation) AddVoiceoverIDs(ids ...uuid.UUID) {
+	if m.voiceovers == nil {
+		m.voiceovers = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.voiceovers[ids[i]] = struct{}{}
+	}
+}
+
+// ClearVoiceovers clears the "voiceovers" edge to the Voiceover entity.
+func (m *PromptMutation) ClearVoiceovers() {
+	m.clearedvoiceovers = true
+}
+
+// VoiceoversCleared reports if the "voiceovers" edge to the Voiceover entity was cleared.
+func (m *PromptMutation) VoiceoversCleared() bool {
+	return m.clearedvoiceovers
+}
+
+// RemoveVoiceoverIDs removes the "voiceovers" edge to the Voiceover entity by IDs.
+func (m *PromptMutation) RemoveVoiceoverIDs(ids ...uuid.UUID) {
+	if m.removedvoiceovers == nil {
+		m.removedvoiceovers = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.voiceovers, ids[i])
+		m.removedvoiceovers[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedVoiceovers returns the removed IDs of the "voiceovers" edge to the Voiceover entity.
+func (m *PromptMutation) RemovedVoiceoversIDs() (ids []uuid.UUID) {
+	for id := range m.removedvoiceovers {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// VoiceoversIDs returns the "voiceovers" edge IDs in the mutation.
+func (m *PromptMutation) VoiceoversIDs() (ids []uuid.UUID) {
+	for id := range m.voiceovers {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetVoiceovers resets all changes to the "voiceovers" edge.
+func (m *PromptMutation) ResetVoiceovers() {
+	m.voiceovers = nil
+	m.clearedvoiceovers = false
+	m.removedvoiceovers = nil
+}
+
 // Where appends a list predicates to the PromptMutation builder.
 func (m *PromptMutation) Where(ps ...predicate.Prompt) {
 	m.predicates = append(m.predicates, ps...)
@@ -9760,9 +9817,12 @@ func (m *PromptMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *PromptMutation) AddedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
 	if m.generations != nil {
 		edges = append(edges, prompt.EdgeGenerations)
+	}
+	if m.voiceovers != nil {
+		edges = append(edges, prompt.EdgeVoiceovers)
 	}
 	return edges
 }
@@ -9777,15 +9837,24 @@ func (m *PromptMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case prompt.EdgeVoiceovers:
+		ids := make([]ent.Value, 0, len(m.voiceovers))
+		for id := range m.voiceovers {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *PromptMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
 	if m.removedgenerations != nil {
 		edges = append(edges, prompt.EdgeGenerations)
+	}
+	if m.removedvoiceovers != nil {
+		edges = append(edges, prompt.EdgeVoiceovers)
 	}
 	return edges
 }
@@ -9800,15 +9869,24 @@ func (m *PromptMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case prompt.EdgeVoiceovers:
+		ids := make([]ent.Value, 0, len(m.removedvoiceovers))
+		for id := range m.removedvoiceovers {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *PromptMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
 	if m.clearedgenerations {
 		edges = append(edges, prompt.EdgeGenerations)
+	}
+	if m.clearedvoiceovers {
+		edges = append(edges, prompt.EdgeVoiceovers)
 	}
 	return edges
 }
@@ -9819,6 +9897,8 @@ func (m *PromptMutation) EdgeCleared(name string) bool {
 	switch name {
 	case prompt.EdgeGenerations:
 		return m.clearedgenerations
+	case prompt.EdgeVoiceovers:
+		return m.clearedvoiceovers
 	}
 	return false
 }
@@ -9837,6 +9917,9 @@ func (m *PromptMutation) ResetEdge(name string) error {
 	switch name {
 	case prompt.EdgeGenerations:
 		m.ResetGenerations()
+		return nil
+	case prompt.EdgeVoiceovers:
+		m.ResetVoiceovers()
 		return nil
 	}
 	return fmt.Errorf("unknown Prompt edge %s", name)
@@ -15842,6 +15925,8 @@ type VoiceoverMutation struct {
 	status                    *voiceover.Status
 	failure_reason            *string
 	stripe_product_id         *string
+	temp                      *float32
+	addtemp                   *float32
 	started_at                *time.Time
 	completed_at              *time.Time
 	created_at                *time.Time
@@ -15849,6 +15934,8 @@ type VoiceoverMutation struct {
 	clearedFields             map[string]struct{}
 	user                      *uuid.UUID
 	cleareduser               bool
+	prompt                    *uuid.UUID
+	clearedprompt             bool
 	device_info               *uuid.UUID
 	cleareddevice_info        bool
 	voiceover_models          *uuid.UUID
@@ -16150,6 +16237,111 @@ func (m *VoiceoverMutation) StripeProductIDCleared() bool {
 func (m *VoiceoverMutation) ResetStripeProductID() {
 	m.stripe_product_id = nil
 	delete(m.clearedFields, voiceover.FieldStripeProductID)
+}
+
+// SetTemp sets the "temp" field.
+func (m *VoiceoverMutation) SetTemp(f float32) {
+	m.temp = &f
+	m.addtemp = nil
+}
+
+// Temp returns the value of the "temp" field in the mutation.
+func (m *VoiceoverMutation) Temp() (r float32, exists bool) {
+	v := m.temp
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldTemp returns the old "temp" field's value of the Voiceover entity.
+// If the Voiceover object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *VoiceoverMutation) OldTemp(ctx context.Context) (v float32, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldTemp is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldTemp requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldTemp: %w", err)
+	}
+	return oldValue.Temp, nil
+}
+
+// AddTemp adds f to the "temp" field.
+func (m *VoiceoverMutation) AddTemp(f float32) {
+	if m.addtemp != nil {
+		*m.addtemp += f
+	} else {
+		m.addtemp = &f
+	}
+}
+
+// AddedTemp returns the value that was added to the "temp" field in this mutation.
+func (m *VoiceoverMutation) AddedTemp() (r float32, exists bool) {
+	v := m.addtemp
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetTemp resets all changes to the "temp" field.
+func (m *VoiceoverMutation) ResetTemp() {
+	m.temp = nil
+	m.addtemp = nil
+}
+
+// SetPromptID sets the "prompt_id" field.
+func (m *VoiceoverMutation) SetPromptID(u uuid.UUID) {
+	m.prompt = &u
+}
+
+// PromptID returns the value of the "prompt_id" field in the mutation.
+func (m *VoiceoverMutation) PromptID() (r uuid.UUID, exists bool) {
+	v := m.prompt
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldPromptID returns the old "prompt_id" field's value of the Voiceover entity.
+// If the Voiceover object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *VoiceoverMutation) OldPromptID(ctx context.Context) (v *uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldPromptID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldPromptID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldPromptID: %w", err)
+	}
+	return oldValue.PromptID, nil
+}
+
+// ClearPromptID clears the value of the "prompt_id" field.
+func (m *VoiceoverMutation) ClearPromptID() {
+	m.prompt = nil
+	m.clearedFields[voiceover.FieldPromptID] = struct{}{}
+}
+
+// PromptIDCleared returns if the "prompt_id" field was cleared in this mutation.
+func (m *VoiceoverMutation) PromptIDCleared() bool {
+	_, ok := m.clearedFields[voiceover.FieldPromptID]
+	return ok
+}
+
+// ResetPromptID resets all changes to the "prompt_id" field.
+func (m *VoiceoverMutation) ResetPromptID() {
+	m.prompt = nil
+	delete(m.clearedFields, voiceover.FieldPromptID)
 }
 
 // SetUserID sets the "user_id" field.
@@ -16541,6 +16733,32 @@ func (m *VoiceoverMutation) ResetUser() {
 	m.cleareduser = false
 }
 
+// ClearPrompt clears the "prompt" edge to the Prompt entity.
+func (m *VoiceoverMutation) ClearPrompt() {
+	m.clearedprompt = true
+}
+
+// PromptCleared reports if the "prompt" edge to the Prompt entity was cleared.
+func (m *VoiceoverMutation) PromptCleared() bool {
+	return m.PromptIDCleared() || m.clearedprompt
+}
+
+// PromptIDs returns the "prompt" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// PromptID instead. It exists only for internal usage by the builders.
+func (m *VoiceoverMutation) PromptIDs() (ids []uuid.UUID) {
+	if id := m.prompt; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetPrompt resets all changes to the "prompt" edge.
+func (m *VoiceoverMutation) ResetPrompt() {
+	m.prompt = nil
+	m.clearedprompt = false
+}
+
 // ClearDeviceInfo clears the "device_info" edge to the DeviceInfo entity.
 func (m *VoiceoverMutation) ClearDeviceInfo() {
 	m.cleareddevice_info = true
@@ -16772,7 +16990,7 @@ func (m *VoiceoverMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *VoiceoverMutation) Fields() []string {
-	fields := make([]string, 0, 13)
+	fields := make([]string, 0, 15)
 	if m.country_code != nil {
 		fields = append(fields, voiceover.FieldCountryCode)
 	}
@@ -16784,6 +17002,12 @@ func (m *VoiceoverMutation) Fields() []string {
 	}
 	if m.stripe_product_id != nil {
 		fields = append(fields, voiceover.FieldStripeProductID)
+	}
+	if m.temp != nil {
+		fields = append(fields, voiceover.FieldTemp)
+	}
+	if m.prompt != nil {
+		fields = append(fields, voiceover.FieldPromptID)
 	}
 	if m.user != nil {
 		fields = append(fields, voiceover.FieldUserID)
@@ -16828,6 +17052,10 @@ func (m *VoiceoverMutation) Field(name string) (ent.Value, bool) {
 		return m.FailureReason()
 	case voiceover.FieldStripeProductID:
 		return m.StripeProductID()
+	case voiceover.FieldTemp:
+		return m.Temp()
+	case voiceover.FieldPromptID:
+		return m.PromptID()
 	case voiceover.FieldUserID:
 		return m.UserID()
 	case voiceover.FieldDeviceInfoID:
@@ -16863,6 +17091,10 @@ func (m *VoiceoverMutation) OldField(ctx context.Context, name string) (ent.Valu
 		return m.OldFailureReason(ctx)
 	case voiceover.FieldStripeProductID:
 		return m.OldStripeProductID(ctx)
+	case voiceover.FieldTemp:
+		return m.OldTemp(ctx)
+	case voiceover.FieldPromptID:
+		return m.OldPromptID(ctx)
 	case voiceover.FieldUserID:
 		return m.OldUserID(ctx)
 	case voiceover.FieldDeviceInfoID:
@@ -16917,6 +17149,20 @@ func (m *VoiceoverMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetStripeProductID(v)
+		return nil
+	case voiceover.FieldTemp:
+		v, ok := value.(float32)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetTemp(v)
+		return nil
+	case voiceover.FieldPromptID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetPromptID(v)
 		return nil
 	case voiceover.FieldUserID:
 		v, ok := value.(uuid.UUID)
@@ -16988,13 +17234,21 @@ func (m *VoiceoverMutation) SetField(name string, value ent.Value) error {
 // AddedFields returns all numeric fields that were incremented/decremented during
 // this mutation.
 func (m *VoiceoverMutation) AddedFields() []string {
-	return nil
+	var fields []string
+	if m.addtemp != nil {
+		fields = append(fields, voiceover.FieldTemp)
+	}
+	return fields
 }
 
 // AddedField returns the numeric value that was incremented/decremented on a field
 // with the given name. The second boolean return value indicates that this field
 // was not set, or was not defined in the schema.
 func (m *VoiceoverMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case voiceover.FieldTemp:
+		return m.AddedTemp()
+	}
 	return nil, false
 }
 
@@ -17003,6 +17257,13 @@ func (m *VoiceoverMutation) AddedField(name string) (ent.Value, bool) {
 // type.
 func (m *VoiceoverMutation) AddField(name string, value ent.Value) error {
 	switch name {
+	case voiceover.FieldTemp:
+		v, ok := value.(float32)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddTemp(v)
+		return nil
 	}
 	return fmt.Errorf("unknown Voiceover numeric field %s", name)
 }
@@ -17019,6 +17280,9 @@ func (m *VoiceoverMutation) ClearedFields() []string {
 	}
 	if m.FieldCleared(voiceover.FieldStripeProductID) {
 		fields = append(fields, voiceover.FieldStripeProductID)
+	}
+	if m.FieldCleared(voiceover.FieldPromptID) {
+		fields = append(fields, voiceover.FieldPromptID)
 	}
 	if m.FieldCleared(voiceover.FieldAPITokenID) {
 		fields = append(fields, voiceover.FieldAPITokenID)
@@ -17052,6 +17316,9 @@ func (m *VoiceoverMutation) ClearField(name string) error {
 	case voiceover.FieldStripeProductID:
 		m.ClearStripeProductID()
 		return nil
+	case voiceover.FieldPromptID:
+		m.ClearPromptID()
+		return nil
 	case voiceover.FieldAPITokenID:
 		m.ClearAPITokenID()
 		return nil
@@ -17080,6 +17347,12 @@ func (m *VoiceoverMutation) ResetField(name string) error {
 		return nil
 	case voiceover.FieldStripeProductID:
 		m.ResetStripeProductID()
+		return nil
+	case voiceover.FieldTemp:
+		m.ResetTemp()
+		return nil
+	case voiceover.FieldPromptID:
+		m.ResetPromptID()
 		return nil
 	case voiceover.FieldUserID:
 		m.ResetUserID()
@@ -17114,9 +17387,12 @@ func (m *VoiceoverMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *VoiceoverMutation) AddedEdges() []string {
-	edges := make([]string, 0, 6)
+	edges := make([]string, 0, 7)
 	if m.user != nil {
 		edges = append(edges, voiceover.EdgeUser)
+	}
+	if m.prompt != nil {
+		edges = append(edges, voiceover.EdgePrompt)
 	}
 	if m.device_info != nil {
 		edges = append(edges, voiceover.EdgeDeviceInfo)
@@ -17142,6 +17418,10 @@ func (m *VoiceoverMutation) AddedIDs(name string) []ent.Value {
 	switch name {
 	case voiceover.EdgeUser:
 		if id := m.user; id != nil {
+			return []ent.Value{*id}
+		}
+	case voiceover.EdgePrompt:
+		if id := m.prompt; id != nil {
 			return []ent.Value{*id}
 		}
 	case voiceover.EdgeDeviceInfo:
@@ -17172,7 +17452,7 @@ func (m *VoiceoverMutation) AddedIDs(name string) []ent.Value {
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *VoiceoverMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 6)
+	edges := make([]string, 0, 7)
 	if m.removedvoiceover_outputs != nil {
 		edges = append(edges, voiceover.EdgeVoiceoverOutputs)
 	}
@@ -17195,9 +17475,12 @@ func (m *VoiceoverMutation) RemovedIDs(name string) []ent.Value {
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *VoiceoverMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 6)
+	edges := make([]string, 0, 7)
 	if m.cleareduser {
 		edges = append(edges, voiceover.EdgeUser)
+	}
+	if m.clearedprompt {
+		edges = append(edges, voiceover.EdgePrompt)
 	}
 	if m.cleareddevice_info {
 		edges = append(edges, voiceover.EdgeDeviceInfo)
@@ -17223,6 +17506,8 @@ func (m *VoiceoverMutation) EdgeCleared(name string) bool {
 	switch name {
 	case voiceover.EdgeUser:
 		return m.cleareduser
+	case voiceover.EdgePrompt:
+		return m.clearedprompt
 	case voiceover.EdgeDeviceInfo:
 		return m.cleareddevice_info
 	case voiceover.EdgeVoiceoverModels:
@@ -17243,6 +17528,9 @@ func (m *VoiceoverMutation) ClearEdge(name string) error {
 	switch name {
 	case voiceover.EdgeUser:
 		m.ClearUser()
+		return nil
+	case voiceover.EdgePrompt:
+		m.ClearPrompt()
 		return nil
 	case voiceover.EdgeDeviceInfo:
 		m.ClearDeviceInfo()
@@ -17266,6 +17554,9 @@ func (m *VoiceoverMutation) ResetEdge(name string) error {
 	switch name {
 	case voiceover.EdgeUser:
 		m.ResetUser()
+		return nil
+	case voiceover.EdgePrompt:
+		m.ResetPrompt()
 		return nil
 	case voiceover.EdgeDeviceInfo:
 		m.ResetDeviceInfo()

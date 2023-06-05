@@ -11,6 +11,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/stablecog/sc-go/database/ent/apitoken"
 	"github.com/stablecog/sc-go/database/ent/deviceinfo"
+	"github.com/stablecog/sc-go/database/ent/prompt"
 	"github.com/stablecog/sc-go/database/ent/user"
 	"github.com/stablecog/sc-go/database/ent/voiceover"
 	"github.com/stablecog/sc-go/database/ent/voiceovermodel"
@@ -30,6 +31,10 @@ type Voiceover struct {
 	FailureReason *string `json:"failure_reason,omitempty"`
 	// StripeProductID holds the value of the "stripe_product_id" field.
 	StripeProductID *string `json:"stripe_product_id,omitempty"`
+	// Temp holds the value of the "temp" field.
+	Temp float32 `json:"temp,omitempty"`
+	// PromptID holds the value of the "prompt_id" field.
+	PromptID *uuid.UUID `json:"prompt_id,omitempty"`
 	// UserID holds the value of the "user_id" field.
 	UserID uuid.UUID `json:"user_id,omitempty"`
 	// DeviceInfoID holds the value of the "device_info_id" field.
@@ -57,6 +62,8 @@ type Voiceover struct {
 type VoiceoverEdges struct {
 	// User holds the value of the user edge.
 	User *User `json:"user,omitempty"`
+	// Prompt holds the value of the prompt edge.
+	Prompt *Prompt `json:"prompt,omitempty"`
 	// DeviceInfo holds the value of the device_info edge.
 	DeviceInfo *DeviceInfo `json:"device_info,omitempty"`
 	// VoiceoverModels holds the value of the voiceover_models edge.
@@ -69,7 +76,7 @@ type VoiceoverEdges struct {
 	VoiceoverOutputs []*VoiceoverOutput `json:"voiceover_outputs,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [6]bool
+	loadedTypes [7]bool
 }
 
 // UserOrErr returns the User value or an error if the edge
@@ -85,10 +92,23 @@ func (e VoiceoverEdges) UserOrErr() (*User, error) {
 	return nil, &NotLoadedError{edge: "user"}
 }
 
+// PromptOrErr returns the Prompt value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e VoiceoverEdges) PromptOrErr() (*Prompt, error) {
+	if e.loadedTypes[1] {
+		if e.Prompt == nil {
+			// Edge was loaded but was not found.
+			return nil, &NotFoundError{label: prompt.Label}
+		}
+		return e.Prompt, nil
+	}
+	return nil, &NotLoadedError{edge: "prompt"}
+}
+
 // DeviceInfoOrErr returns the DeviceInfo value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
 func (e VoiceoverEdges) DeviceInfoOrErr() (*DeviceInfo, error) {
-	if e.loadedTypes[1] {
+	if e.loadedTypes[2] {
 		if e.DeviceInfo == nil {
 			// Edge was loaded but was not found.
 			return nil, &NotFoundError{label: deviceinfo.Label}
@@ -101,7 +121,7 @@ func (e VoiceoverEdges) DeviceInfoOrErr() (*DeviceInfo, error) {
 // VoiceoverModelsOrErr returns the VoiceoverModels value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
 func (e VoiceoverEdges) VoiceoverModelsOrErr() (*VoiceoverModel, error) {
-	if e.loadedTypes[2] {
+	if e.loadedTypes[3] {
 		if e.VoiceoverModels == nil {
 			// Edge was loaded but was not found.
 			return nil, &NotFoundError{label: voiceovermodel.Label}
@@ -114,7 +134,7 @@ func (e VoiceoverEdges) VoiceoverModelsOrErr() (*VoiceoverModel, error) {
 // VoiceoverSpeakersOrErr returns the VoiceoverSpeakers value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
 func (e VoiceoverEdges) VoiceoverSpeakersOrErr() (*VoiceoverSpeaker, error) {
-	if e.loadedTypes[3] {
+	if e.loadedTypes[4] {
 		if e.VoiceoverSpeakers == nil {
 			// Edge was loaded but was not found.
 			return nil, &NotFoundError{label: voiceoverspeaker.Label}
@@ -127,7 +147,7 @@ func (e VoiceoverEdges) VoiceoverSpeakersOrErr() (*VoiceoverSpeaker, error) {
 // APITokensOrErr returns the APITokens value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
 func (e VoiceoverEdges) APITokensOrErr() (*ApiToken, error) {
-	if e.loadedTypes[4] {
+	if e.loadedTypes[5] {
 		if e.APITokens == nil {
 			// Edge was loaded but was not found.
 			return nil, &NotFoundError{label: apitoken.Label}
@@ -140,7 +160,7 @@ func (e VoiceoverEdges) APITokensOrErr() (*ApiToken, error) {
 // VoiceoverOutputsOrErr returns the VoiceoverOutputs value or an error if the edge
 // was not loaded in eager-loading.
 func (e VoiceoverEdges) VoiceoverOutputsOrErr() ([]*VoiceoverOutput, error) {
-	if e.loadedTypes[5] {
+	if e.loadedTypes[6] {
 		return e.VoiceoverOutputs, nil
 	}
 	return nil, &NotLoadedError{edge: "voiceover_outputs"}
@@ -151,8 +171,10 @@ func (*Voiceover) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case voiceover.FieldAPITokenID:
+		case voiceover.FieldPromptID, voiceover.FieldAPITokenID:
 			values[i] = &sql.NullScanner{S: new(uuid.UUID)}
+		case voiceover.FieldTemp:
+			values[i] = new(sql.NullFloat64)
 		case voiceover.FieldCountryCode, voiceover.FieldStatus, voiceover.FieldFailureReason, voiceover.FieldStripeProductID:
 			values[i] = new(sql.NullString)
 		case voiceover.FieldStartedAt, voiceover.FieldCompletedAt, voiceover.FieldCreatedAt, voiceover.FieldUpdatedAt:
@@ -206,6 +228,19 @@ func (v *Voiceover) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				v.StripeProductID = new(string)
 				*v.StripeProductID = value.String
+			}
+		case voiceover.FieldTemp:
+			if value, ok := values[i].(*sql.NullFloat64); !ok {
+				return fmt.Errorf("unexpected type %T for field temp", values[i])
+			} else if value.Valid {
+				v.Temp = float32(value.Float64)
+			}
+		case voiceover.FieldPromptID:
+			if value, ok := values[i].(*sql.NullScanner); !ok {
+				return fmt.Errorf("unexpected type %T for field prompt_id", values[i])
+			} else if value.Valid {
+				v.PromptID = new(uuid.UUID)
+				*v.PromptID = *value.S.(*uuid.UUID)
 			}
 		case voiceover.FieldUserID:
 			if value, ok := values[i].(*uuid.UUID); !ok {
@@ -274,6 +309,11 @@ func (v *Voiceover) QueryUser() *UserQuery {
 	return NewVoiceoverClient(v.config).QueryUser(v)
 }
 
+// QueryPrompt queries the "prompt" edge of the Voiceover entity.
+func (v *Voiceover) QueryPrompt() *PromptQuery {
+	return NewVoiceoverClient(v.config).QueryPrompt(v)
+}
+
 // QueryDeviceInfo queries the "device_info" edge of the Voiceover entity.
 func (v *Voiceover) QueryDeviceInfo() *DeviceInfoQuery {
 	return NewVoiceoverClient(v.config).QueryDeviceInfo(v)
@@ -338,6 +378,14 @@ func (v *Voiceover) String() string {
 	if v := v.StripeProductID; v != nil {
 		builder.WriteString("stripe_product_id=")
 		builder.WriteString(*v)
+	}
+	builder.WriteString(", ")
+	builder.WriteString("temp=")
+	builder.WriteString(fmt.Sprintf("%v", v.Temp))
+	builder.WriteString(", ")
+	if v := v.PromptID; v != nil {
+		builder.WriteString("prompt_id=")
+		builder.WriteString(fmt.Sprintf("%v", *v))
 	}
 	builder.WriteString(", ")
 	builder.WriteString("user_id=")

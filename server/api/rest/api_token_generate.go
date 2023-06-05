@@ -368,7 +368,7 @@ func (c *RestAPI) HandleCreateGenerationToken(w http.ResponseWriter, r *http.Req
 		// Add channel to sync array (basically a thread-safe map)
 		c.SMap.Put(requestId, activeChl)
 
-		err = c.Redis.EnqueueCogRequest(r.Context(), cogReqBody)
+		err = c.Redis.EnqueueCogRequest(r.Context(), shared.COG_REDIS_QUEUE, cogReqBody)
 		if err != nil {
 			log.Error("Failed to write request %s to queue: %v", requestId, err)
 			responses.ErrInternalServerError(w, r, "Failed to queue generate request")
