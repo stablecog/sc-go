@@ -410,24 +410,34 @@ func main() {
 			r.Get("/", hc.HandleGetUser)
 
 			// Create Generation
+			r.Post("/image/generation/create", hc.HandleCreateGeneration)
+			// ! Deprecated
 			r.Post("/generation", hc.HandleCreateGeneration)
 			// Mark generation for deletion
+			r.Delete("/image/generation", hc.HandleDeleteGenerationOutputForUser)
+			// ! Deprecated
 			r.Delete("/generation", hc.HandleDeleteGenerationOutputForUser)
 
 			// Query Generation (outputs + generations)
+			r.Get("/image/generation/outputs", hc.HandleQueryGenerations)
+			// ! Deprecated
 			r.Get("/outputs", hc.HandleQueryGenerations)
 
 			// Favorite
+			r.Post("/image/generation/outputs/favorite", hc.HandleFavoriteGenerationOutputsForUser)
+			// ! Deprecated
 			r.Post("/outputs/favorite", hc.HandleFavoriteGenerationOutputsForUser)
 
 			// Create upscale
+			r.Post("/image/upscale/create", hc.HandleUpscale)
+			// ! Deprecated
 			r.Post("/upscale", hc.HandleUpscale)
 
 			// Create voiceover
-			r.Post("/voiceover", hc.HandleVoiceover)
+			r.Post("/audio/voiceover/create", hc.HandleVoiceover)
 
 			// Query voiceover outputs
-			r.Get("/voiceover/outputs", hc.HandleQueryVoiceovers)
+			r.Get("/audio/voiceover/outputs", hc.HandleQueryVoiceovers)
 
 			// Query credits
 			r.Get("/credits", hc.HandleQueryCredits)
@@ -483,6 +493,15 @@ func main() {
 		// For API tokens
 		r.Route("/image", func(r chi.Router) {
 			// txt2img/img2img
+			r.Route("/generation/create", func(r chi.Router) {
+				r.Route("/", func(r chi.Router) {
+					r.Use(mw.AuthMiddleware(middleware.AuthLevelAPIToken))
+					r.Use(middleware.Logger)
+					r.Use(mw.RateLimit(5, "api", 1*time.Second))
+					r.Post("/", hc.HandleCreateGenerationToken)
+				})
+			})
+			// ! Deprecated
 			r.Route("/generate", func(r chi.Router) {
 				r.Route("/", func(r chi.Router) {
 					r.Use(mw.AuthMiddleware(middleware.AuthLevelAPIToken))
@@ -492,6 +511,15 @@ func main() {
 				})
 			})
 
+			r.Route("/upscale/create", func(r chi.Router) {
+				r.Route("/", func(r chi.Router) {
+					r.Use(mw.AuthMiddleware(middleware.AuthLevelAPIToken))
+					r.Use(middleware.Logger)
+					r.Use(mw.RateLimit(5, "api", 1*time.Second))
+					r.Post("/", hc.HandleCreateUpscaleToken)
+				})
+			})
+			// ! Deprecated
 			r.Route("/upscale", func(r chi.Router) {
 				r.Route("/", func(r chi.Router) {
 					r.Use(mw.AuthMiddleware(middleware.AuthLevelAPIToken))
@@ -526,6 +554,13 @@ func main() {
 			})
 
 			// Querying user outputs
+			r.Route("/generation/outputs", func(r chi.Router) {
+				r.Use(middleware.Logger)
+				r.Use(mw.RateLimit(10, "api", 1*time.Second))
+				r.Use(mw.AuthMiddleware(middleware.AuthLevelAPIToken))
+				r.Get("/", hc.HandleQueryGenerations)
+			})
+			// ! Deprecated
 			r.Route("/outputs", func(r chi.Router) {
 				r.Use(middleware.Logger)
 				r.Use(mw.RateLimit(10, "api", 1*time.Second))
@@ -539,25 +574,6 @@ func main() {
 			r.Use(mw.RateLimit(10, "api", 1*time.Second))
 			r.Use(mw.AuthMiddleware(middleware.AuthLevelAPIToken))
 			r.Get("/", hc.HandleQueryCredits)
-		})
-
-		// Api token route
-		r.Route("/generate", func(r chi.Router) {
-			r.Route("/", func(r chi.Router) {
-				r.Use(mw.AuthMiddleware(middleware.AuthLevelAPIToken))
-				r.Use(middleware.Logger)
-				r.Use(mw.RateLimit(5, "api", 1*time.Second))
-				r.Post("/", hc.HandleCreateGenerationToken)
-			})
-		})
-
-		r.Route("/upscale", func(r chi.Router) {
-			r.Route("/", func(r chi.Router) {
-				r.Use(mw.AuthMiddleware(middleware.AuthLevelAPIToken))
-				r.Use(middleware.Logger)
-				r.Use(mw.RateLimit(5, "api", 1*time.Second))
-				r.Post("/", hc.HandleCreateUpscaleToken)
-			})
 		})
 	})
 
