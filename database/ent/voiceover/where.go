@@ -71,9 +71,9 @@ func StripeProductID(v string) predicate.Voiceover {
 	return predicate.Voiceover(sql.FieldEQ(FieldStripeProductID, v))
 }
 
-// Temp applies equality check predicate on the "temp" field. It's identical to TempEQ.
-func Temp(v float32) predicate.Voiceover {
-	return predicate.Voiceover(sql.FieldEQ(FieldTemp, v))
+// Temperature applies equality check predicate on the "temperature" field. It's identical to TemperatureEQ.
+func Temperature(v float32) predicate.Voiceover {
+	return predicate.Voiceover(sql.FieldEQ(FieldTemperature, v))
 }
 
 // PromptID applies equality check predicate on the "prompt_id" field. It's identical to PromptIDEQ.
@@ -371,44 +371,44 @@ func StripeProductIDContainsFold(v string) predicate.Voiceover {
 	return predicate.Voiceover(sql.FieldContainsFold(FieldStripeProductID, v))
 }
 
-// TempEQ applies the EQ predicate on the "temp" field.
-func TempEQ(v float32) predicate.Voiceover {
-	return predicate.Voiceover(sql.FieldEQ(FieldTemp, v))
+// TemperatureEQ applies the EQ predicate on the "temperature" field.
+func TemperatureEQ(v float32) predicate.Voiceover {
+	return predicate.Voiceover(sql.FieldEQ(FieldTemperature, v))
 }
 
-// TempNEQ applies the NEQ predicate on the "temp" field.
-func TempNEQ(v float32) predicate.Voiceover {
-	return predicate.Voiceover(sql.FieldNEQ(FieldTemp, v))
+// TemperatureNEQ applies the NEQ predicate on the "temperature" field.
+func TemperatureNEQ(v float32) predicate.Voiceover {
+	return predicate.Voiceover(sql.FieldNEQ(FieldTemperature, v))
 }
 
-// TempIn applies the In predicate on the "temp" field.
-func TempIn(vs ...float32) predicate.Voiceover {
-	return predicate.Voiceover(sql.FieldIn(FieldTemp, vs...))
+// TemperatureIn applies the In predicate on the "temperature" field.
+func TemperatureIn(vs ...float32) predicate.Voiceover {
+	return predicate.Voiceover(sql.FieldIn(FieldTemperature, vs...))
 }
 
-// TempNotIn applies the NotIn predicate on the "temp" field.
-func TempNotIn(vs ...float32) predicate.Voiceover {
-	return predicate.Voiceover(sql.FieldNotIn(FieldTemp, vs...))
+// TemperatureNotIn applies the NotIn predicate on the "temperature" field.
+func TemperatureNotIn(vs ...float32) predicate.Voiceover {
+	return predicate.Voiceover(sql.FieldNotIn(FieldTemperature, vs...))
 }
 
-// TempGT applies the GT predicate on the "temp" field.
-func TempGT(v float32) predicate.Voiceover {
-	return predicate.Voiceover(sql.FieldGT(FieldTemp, v))
+// TemperatureGT applies the GT predicate on the "temperature" field.
+func TemperatureGT(v float32) predicate.Voiceover {
+	return predicate.Voiceover(sql.FieldGT(FieldTemperature, v))
 }
 
-// TempGTE applies the GTE predicate on the "temp" field.
-func TempGTE(v float32) predicate.Voiceover {
-	return predicate.Voiceover(sql.FieldGTE(FieldTemp, v))
+// TemperatureGTE applies the GTE predicate on the "temperature" field.
+func TemperatureGTE(v float32) predicate.Voiceover {
+	return predicate.Voiceover(sql.FieldGTE(FieldTemperature, v))
 }
 
-// TempLT applies the LT predicate on the "temp" field.
-func TempLT(v float32) predicate.Voiceover {
-	return predicate.Voiceover(sql.FieldLT(FieldTemp, v))
+// TemperatureLT applies the LT predicate on the "temperature" field.
+func TemperatureLT(v float32) predicate.Voiceover {
+	return predicate.Voiceover(sql.FieldLT(FieldTemperature, v))
 }
 
-// TempLTE applies the LTE predicate on the "temp" field.
-func TempLTE(v float32) predicate.Voiceover {
-	return predicate.Voiceover(sql.FieldLTE(FieldTemp, v))
+// TemperatureLTE applies the LTE predicate on the "temperature" field.
+func TemperatureLTE(v float32) predicate.Voiceover {
+	return predicate.Voiceover(sql.FieldLTE(FieldTemperature, v))
 }
 
 // PromptIDEQ applies the EQ predicate on the "prompt_id" field.

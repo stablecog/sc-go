@@ -15979,8 +15979,8 @@ type VoiceoverMutation struct {
 	status                    *voiceover.Status
 	failure_reason            *string
 	stripe_product_id         *string
-	temp                      *float32
-	addtemp                   *float32
+	temperature               *float32
+	addtemperature            *float32
 	started_at                *time.Time
 	completed_at              *time.Time
 	created_at                *time.Time
@@ -16293,60 +16293,60 @@ func (m *VoiceoverMutation) ResetStripeProductID() {
 	delete(m.clearedFields, voiceover.FieldStripeProductID)
 }
 
-// SetTemp sets the "temp" field.
-func (m *VoiceoverMutation) SetTemp(f float32) {
-	m.temp = &f
-	m.addtemp = nil
+// SetTemperature sets the "temperature" field.
+func (m *VoiceoverMutation) SetTemperature(f float32) {
+	m.temperature = &f
+	m.addtemperature = nil
 }
 
-// Temp returns the value of the "temp" field in the mutation.
-func (m *VoiceoverMutation) Temp() (r float32, exists bool) {
-	v := m.temp
+// Temperature returns the value of the "temperature" field in the mutation.
+func (m *VoiceoverMutation) Temperature() (r float32, exists bool) {
+	v := m.temperature
 	if v == nil {
 		return
 	}
 	return *v, true
 }
 
-// OldTemp returns the old "temp" field's value of the Voiceover entity.
+// OldTemperature returns the old "temperature" field's value of the Voiceover entity.
 // If the Voiceover object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *VoiceoverMutation) OldTemp(ctx context.Context) (v float32, err error) {
+func (m *VoiceoverMutation) OldTemperature(ctx context.Context) (v float32, err error) {
 	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldTemp is only allowed on UpdateOne operations")
+		return v, errors.New("OldTemperature is only allowed on UpdateOne operations")
 	}
 	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldTemp requires an ID field in the mutation")
+		return v, errors.New("OldTemperature requires an ID field in the mutation")
 	}
 	oldValue, err := m.oldValue(ctx)
 	if err != nil {
-		return v, fmt.Errorf("querying old value for OldTemp: %w", err)
+		return v, fmt.Errorf("querying old value for OldTemperature: %w", err)
 	}
-	return oldValue.Temp, nil
+	return oldValue.Temperature, nil
 }
 
-// AddTemp adds f to the "temp" field.
-func (m *VoiceoverMutation) AddTemp(f float32) {
-	if m.addtemp != nil {
-		*m.addtemp += f
+// AddTemperature adds f to the "temperature" field.
+func (m *VoiceoverMutation) AddTemperature(f float32) {
+	if m.addtemperature != nil {
+		*m.addtemperature += f
 	} else {
-		m.addtemp = &f
+		m.addtemperature = &f
 	}
 }
 
-// AddedTemp returns the value that was added to the "temp" field in this mutation.
-func (m *VoiceoverMutation) AddedTemp() (r float32, exists bool) {
-	v := m.addtemp
+// AddedTemperature returns the value that was added to the "temperature" field in this mutation.
+func (m *VoiceoverMutation) AddedTemperature() (r float32, exists bool) {
+	v := m.addtemperature
 	if v == nil {
 		return
 	}
 	return *v, true
 }
 
-// ResetTemp resets all changes to the "temp" field.
-func (m *VoiceoverMutation) ResetTemp() {
-	m.temp = nil
-	m.addtemp = nil
+// ResetTemperature resets all changes to the "temperature" field.
+func (m *VoiceoverMutation) ResetTemperature() {
+	m.temperature = nil
+	m.addtemperature = nil
 }
 
 // SetPromptID sets the "prompt_id" field.
@@ -17057,8 +17057,8 @@ func (m *VoiceoverMutation) Fields() []string {
 	if m.stripe_product_id != nil {
 		fields = append(fields, voiceover.FieldStripeProductID)
 	}
-	if m.temp != nil {
-		fields = append(fields, voiceover.FieldTemp)
+	if m.temperature != nil {
+		fields = append(fields, voiceover.FieldTemperature)
 	}
 	if m.prompt != nil {
 		fields = append(fields, voiceover.FieldPromptID)
@@ -17106,8 +17106,8 @@ func (m *VoiceoverMutation) Field(name string) (ent.Value, bool) {
 		return m.FailureReason()
 	case voiceover.FieldStripeProductID:
 		return m.StripeProductID()
-	case voiceover.FieldTemp:
-		return m.Temp()
+	case voiceover.FieldTemperature:
+		return m.Temperature()
 	case voiceover.FieldPromptID:
 		return m.PromptID()
 	case voiceover.FieldUserID:
@@ -17145,8 +17145,8 @@ func (m *VoiceoverMutation) OldField(ctx context.Context, name string) (ent.Valu
 		return m.OldFailureReason(ctx)
 	case voiceover.FieldStripeProductID:
 		return m.OldStripeProductID(ctx)
-	case voiceover.FieldTemp:
-		return m.OldTemp(ctx)
+	case voiceover.FieldTemperature:
+		return m.OldTemperature(ctx)
 	case voiceover.FieldPromptID:
 		return m.OldPromptID(ctx)
 	case voiceover.FieldUserID:
@@ -17204,12 +17204,12 @@ func (m *VoiceoverMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetStripeProductID(v)
 		return nil
-	case voiceover.FieldTemp:
+	case voiceover.FieldTemperature:
 		v, ok := value.(float32)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
-		m.SetTemp(v)
+		m.SetTemperature(v)
 		return nil
 	case voiceover.FieldPromptID:
 		v, ok := value.(uuid.UUID)
@@ -17289,8 +17289,8 @@ func (m *VoiceoverMutation) SetField(name string, value ent.Value) error {
 // this mutation.
 func (m *VoiceoverMutation) AddedFields() []string {
 	var fields []string
-	if m.addtemp != nil {
-		fields = append(fields, voiceover.FieldTemp)
+	if m.addtemperature != nil {
+		fields = append(fields, voiceover.FieldTemperature)
 	}
 	return fields
 }
@@ -17300,8 +17300,8 @@ func (m *VoiceoverMutation) AddedFields() []string {
 // was not set, or was not defined in the schema.
 func (m *VoiceoverMutation) AddedField(name string) (ent.Value, bool) {
 	switch name {
-	case voiceover.FieldTemp:
-		return m.AddedTemp()
+	case voiceover.FieldTemperature:
+		return m.AddedTemperature()
 	}
 	return nil, false
 }
@@ -17311,12 +17311,12 @@ func (m *VoiceoverMutation) AddedField(name string) (ent.Value, bool) {
 // type.
 func (m *VoiceoverMutation) AddField(name string, value ent.Value) error {
 	switch name {
-	case voiceover.FieldTemp:
+	case voiceover.FieldTemperature:
 		v, ok := value.(float32)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
-		m.AddTemp(v)
+		m.AddTemperature(v)
 		return nil
 	}
 	return fmt.Errorf("unknown Voiceover numeric field %s", name)
@@ -17402,8 +17402,8 @@ func (m *VoiceoverMutation) ResetField(name string) error {
 	case voiceover.FieldStripeProductID:
 		m.ResetStripeProductID()
 		return nil
-	case voiceover.FieldTemp:
-		m.ResetTemp()
+	case voiceover.FieldTemperature:
+		m.ResetTemperature()
 		return nil
 	case voiceover.FieldPromptID:
 		m.ResetPromptID()

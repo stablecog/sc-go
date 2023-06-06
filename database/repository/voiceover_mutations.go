@@ -29,7 +29,7 @@ func (r *Repository) CreateVoiceover(userID uuid.UUID, deviceType, deviceOs, dev
 		SetSpeakerID(*req.SpeakerId).
 		SetDeviceInfoID(deviceInfoId).
 		SetCountryCode(countryCode).
-		SetTemp(*req.Temp).
+		SetTemperature(*req.Temperature).
 		SetUserID(userID)
 	if productId != nil {
 		insert.SetStripeProductID(*productId)

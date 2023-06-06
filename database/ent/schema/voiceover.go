@@ -24,7 +24,7 @@ func (Voiceover) Fields() []ent.Field {
 		field.Enum("status").Values("queued", "started", "succeeded", "failed"),
 		field.Text("failure_reason").Optional().Nillable(),
 		field.Text("stripe_product_id").Optional().Nillable(),
-		field.Float32("temp"),
+		field.Float32("temperature"),
 		// ! Relationships / many-to-one
 		field.UUID("prompt_id", uuid.UUID{}).Optional().Nillable(),
 		field.UUID("user_id", uuid.UUID{}),

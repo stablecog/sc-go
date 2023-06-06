@@ -12,13 +12,13 @@ import (
 )
 
 type CreateVoiceoverRequest struct {
-	Prompt    string     `json:"prompt"`
-	ModelId   *uuid.UUID `json:"model_id,omitempty"`
-	SpeakerId *uuid.UUID `json:"speaker_id,omitempty"`
-	Seed      *int       `json:"seed,omitempty"`
-	Temp      *float32   `json:"temp,omitempty"`
-	StreamID  string     `json:"stream_id"`
-	UIId      string     `json:"ui_id"` // Corresponds to UI identifier
+	Prompt      string     `json:"prompt"`
+	ModelId     *uuid.UUID `json:"model_id,omitempty"`
+	SpeakerId   *uuid.UUID `json:"speaker_id,omitempty"`
+	Seed        *int       `json:"seed,omitempty"`
+	Temperature *float32   `json:"temperature,omitempty"`
+	StreamID    string     `json:"stream_id"`
+	UIId        string     `json:"ui_id"` // Corresponds to UI identifier
 }
 
 func (t *CreateVoiceoverRequest) ApplyDefaults() {
@@ -35,8 +35,8 @@ func (t *CreateVoiceoverRequest) ApplyDefaults() {
 		t.Seed = utils.ToPtr(rand.Intn(math.MaxInt32))
 	}
 
-	if t.Temp == nil {
-		t.Temp = utils.ToPtr[float32](0.7)
+	if t.Temperature == nil {
+		t.Temperature = utils.ToPtr[float32](0.7)
 	}
 
 }
@@ -57,7 +57,7 @@ func (t *CreateVoiceoverRequest) Validate(api bool) error {
 		return errors.New("invalid_speaker_id")
 	}
 
-	if *t.Temp < 0.0 || *t.Temp > 1.0 {
+	if *t.Temperature < 0.0 || *t.Temperature > 1.0 {
 		return errors.New("invalid_temp")
 	}
 

@@ -997,7 +997,7 @@ CREATE TABLE "public"."voiceovers"
      "status"            CHARACTER varying NOT NULL,
      "failure_reason"    TEXT NULL,
      "stripe_product_id" TEXT NULL,
-     guidance_scale real NOT NULL,
+     temperature real NOT NULL,
      "started_at"        TIMESTAMPTZ NULL,
      "completed_at"      TIMESTAMPTZ NULL,
     created_at timestamp with time zone DEFAULT (now() AT TIME ZONE 'utc'::text) NOT NULL,

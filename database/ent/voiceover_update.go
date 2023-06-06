@@ -103,16 +103,16 @@ func (vu *VoiceoverUpdate) ClearStripeProductID() *VoiceoverUpdate {
 	return vu
 }
 
-// SetTemp sets the "temp" field.
-func (vu *VoiceoverUpdate) SetTemp(f float32) *VoiceoverUpdate {
-	vu.mutation.ResetTemp()
-	vu.mutation.SetTemp(f)
+// SetTemperature sets the "temperature" field.
+func (vu *VoiceoverUpdate) SetTemperature(f float32) *VoiceoverUpdate {
+	vu.mutation.ResetTemperature()
+	vu.mutation.SetTemperature(f)
 	return vu
 }
 
-// AddTemp adds f to the "temp" field.
-func (vu *VoiceoverUpdate) AddTemp(f float32) *VoiceoverUpdate {
-	vu.mutation.AddTemp(f)
+// AddTemperature adds f to the "temperature" field.
+func (vu *VoiceoverUpdate) AddTemperature(f float32) *VoiceoverUpdate {
+	vu.mutation.AddTemperature(f)
 	return vu
 }
 
@@ -465,11 +465,11 @@ func (vu *VoiceoverUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if vu.mutation.StripeProductIDCleared() {
 		_spec.ClearField(voiceover.FieldStripeProductID, field.TypeString)
 	}
-	if value, ok := vu.mutation.Temp(); ok {
-		_spec.SetField(voiceover.FieldTemp, field.TypeFloat32, value)
+	if value, ok := vu.mutation.Temperature(); ok {
+		_spec.SetField(voiceover.FieldTemperature, field.TypeFloat32, value)
 	}
-	if value, ok := vu.mutation.AddedTemp(); ok {
-		_spec.AddField(voiceover.FieldTemp, field.TypeFloat32, value)
+	if value, ok := vu.mutation.AddedTemperature(); ok {
+		_spec.AddField(voiceover.FieldTemperature, field.TypeFloat32, value)
 	}
 	if value, ok := vu.mutation.StartedAt(); ok {
 		_spec.SetField(voiceover.FieldStartedAt, field.TypeTime, value)
@@ -838,16 +838,16 @@ func (vuo *VoiceoverUpdateOne) ClearStripeProductID() *VoiceoverUpdateOne {
 	return vuo
 }
 
-// SetTemp sets the "temp" field.
-func (vuo *VoiceoverUpdateOne) SetTemp(f float32) *VoiceoverUpdateOne {
-	vuo.mutation.ResetTemp()
-	vuo.mutation.SetTemp(f)
+// SetTemperature sets the "temperature" field.
+func (vuo *VoiceoverUpdateOne) SetTemperature(f float32) *VoiceoverUpdateOne {
+	vuo.mutation.ResetTemperature()
+	vuo.mutation.SetTemperature(f)
 	return vuo
 }
 
-// AddTemp adds f to the "temp" field.
-func (vuo *VoiceoverUpdateOne) AddTemp(f float32) *VoiceoverUpdateOne {
-	vuo.mutation.AddTemp(f)
+// AddTemperature adds f to the "temperature" field.
+func (vuo *VoiceoverUpdateOne) AddTemperature(f float32) *VoiceoverUpdateOne {
+	vuo.mutation.AddTemperature(f)
 	return vuo
 }
 
@@ -1224,11 +1224,11 @@ func (vuo *VoiceoverUpdateOne) sqlSave(ctx context.Context) (_node *Voiceover, e
 	if vuo.mutation.StripeProductIDCleared() {
 		_spec.ClearField(voiceover.FieldStripeProductID, field.TypeString)
 	}
-	if value, ok := vuo.mutation.Temp(); ok {
-		_spec.SetField(voiceover.FieldTemp, field.TypeFloat32, value)
+	if value, ok := vuo.mutation.Temperature(); ok {
+		_spec.SetField(voiceover.FieldTemperature, field.TypeFloat32, value)
 	}
-	if value, ok := vuo.mutation.AddedTemp(); ok {
-		_spec.AddField(voiceover.FieldTemp, field.TypeFloat32, value)
+	if value, ok := vuo.mutation.AddedTemperature(); ok {
+		_spec.AddField(voiceover.FieldTemperature, field.TypeFloat32, value)
 	}
 	if value, ok := vuo.mutation.StartedAt(); ok {
 		_spec.SetField(voiceover.FieldStartedAt, field.TypeTime, value)

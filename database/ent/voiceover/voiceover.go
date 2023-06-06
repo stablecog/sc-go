@@ -22,8 +22,8 @@ const (
 	FieldFailureReason = "failure_reason"
 	// FieldStripeProductID holds the string denoting the stripe_product_id field in the database.
 	FieldStripeProductID = "stripe_product_id"
-	// FieldTemp holds the string denoting the temp field in the database.
-	FieldTemp = "temp"
+	// FieldTemperature holds the string denoting the temperature field in the database.
+	FieldTemperature = "temperature"
 	// FieldPromptID holds the string denoting the prompt_id field in the database.
 	FieldPromptID = "prompt_id"
 	// FieldUserID holds the string denoting the user_id field in the database.
@@ -118,7 +118,7 @@ var Columns = []string{
 	FieldStatus,
 	FieldFailureReason,
 	FieldStripeProductID,
-	FieldTemp,
+	FieldTemperature,
 	FieldPromptID,
 	FieldUserID,
 	FieldDeviceInfoID,

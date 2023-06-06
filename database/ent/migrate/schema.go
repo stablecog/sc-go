@@ -490,7 +490,7 @@ var (
 		{Name: "status", Type: field.TypeEnum, Enums: []string{"queued", "started", "succeeded", "failed"}},
 		{Name: "failure_reason", Type: field.TypeString, Nullable: true, Size: 2147483647},
 		{Name: "stripe_product_id", Type: field.TypeString, Nullable: true, Size: 2147483647},
-		{Name: "temp", Type: field.TypeFloat32},
+		{Name: "temperature", Type: field.TypeFloat32},
 		{Name: "started_at", Type: field.TypeTime, Nullable: true},
 		{Name: "completed_at", Type: field.TypeTime, Nullable: true},
 		{Name: "created_at", Type: field.TypeTime},

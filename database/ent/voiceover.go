@@ -31,8 +31,8 @@ type Voiceover struct {
 	FailureReason *string `json:"failure_reason,omitempty"`
 	// StripeProductID holds the value of the "stripe_product_id" field.
 	StripeProductID *string `json:"stripe_product_id,omitempty"`
-	// Temp holds the value of the "temp" field.
-	Temp float32 `json:"temp,omitempty"`
+	// Temperature holds the value of the "temperature" field.
+	Temperature float32 `json:"temperature,omitempty"`
 	// PromptID holds the value of the "prompt_id" field.
 	PromptID *uuid.UUID `json:"prompt_id,omitempty"`
 	// UserID holds the value of the "user_id" field.
@@ -173,7 +173,7 @@ func (*Voiceover) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case voiceover.FieldPromptID, voiceover.FieldAPITokenID:
 			values[i] = &sql.NullScanner{S: new(uuid.UUID)}
-		case voiceover.FieldTemp:
+		case voiceover.FieldTemperature:
 			values[i] = new(sql.NullFloat64)
 		case voiceover.FieldCountryCode, voiceover.FieldStatus, voiceover.FieldFailureReason, voiceover.FieldStripeProductID:
 			values[i] = new(sql.NullString)
@@ -229,11 +229,11 @@ func (v *Voiceover) assignValues(columns []string, values []any) error {
 				v.StripeProductID = new(string)
 				*v.StripeProductID = value.String
 			}
-		case voiceover.FieldTemp:
+		case voiceover.FieldTemperature:
 			if value, ok := values[i].(*sql.NullFloat64); !ok {
-				return fmt.Errorf("unexpected type %T for field temp", values[i])
+				return fmt.Errorf("unexpected type %T for field temperature", values[i])
 			} else if value.Valid {
-				v.Temp = float32(value.Float64)
+				v.Temperature = float32(value.Float64)
 			}
 		case voiceover.FieldPromptID:
 			if value, ok := values[i].(*sql.NullScanner); !ok {
@@ -380,8 +380,8 @@ func (v *Voiceover) String() string {
 		builder.WriteString(*v)
 	}
 	builder.WriteString(", ")
-	builder.WriteString("temp=")
-	builder.WriteString(fmt.Sprintf("%v", v.Temp))
+	builder.WriteString("temperature=")
+	builder.WriteString(fmt.Sprintf("%v", v.Temperature))
 	builder.WriteString(", ")
 	if v := v.PromptID; v != nil {
 		builder.WriteString("prompt_id=")

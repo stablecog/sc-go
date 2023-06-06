@@ -76,9 +76,9 @@ func (vc *VoiceoverCreate) SetNillableStripeProductID(s *string) *VoiceoverCreat
 	return vc
 }
 
-// SetTemp sets the "temp" field.
-func (vc *VoiceoverCreate) SetTemp(f float32) *VoiceoverCreate {
-	vc.mutation.SetTemp(f)
+// SetTemperature sets the "temperature" field.
+func (vc *VoiceoverCreate) SetTemperature(f float32) *VoiceoverCreate {
+	vc.mutation.SetTemperature(f)
 	return vc
 }
 
@@ -334,8 +334,8 @@ func (vc *VoiceoverCreate) check() error {
 			return &ValidationError{Name: "status", err: fmt.Errorf(`ent: validator failed for field "Voiceover.status": %w`, err)}
 		}
 	}
-	if _, ok := vc.mutation.Temp(); !ok {
-		return &ValidationError{Name: "temp", err: errors.New(`ent: missing required field "Voiceover.temp"`)}
+	if _, ok := vc.mutation.Temperature(); !ok {
+		return &ValidationError{Name: "temperature", err: errors.New(`ent: missing required field "Voiceover.temperature"`)}
 	}
 	if _, ok := vc.mutation.UserID(); !ok {
 		return &ValidationError{Name: "user_id", err: errors.New(`ent: missing required field "Voiceover.user_id"`)}
@@ -424,9 +424,9 @@ func (vc *VoiceoverCreate) createSpec() (*Voiceover, *sqlgraph.CreateSpec) {
 		_spec.SetField(voiceover.FieldStripeProductID, field.TypeString, value)
 		_node.StripeProductID = &value
 	}
-	if value, ok := vc.mutation.Temp(); ok {
-		_spec.SetField(voiceover.FieldTemp, field.TypeFloat32, value)
-		_node.Temp = value
+	if value, ok := vc.mutation.Temperature(); ok {
+		_spec.SetField(voiceover.FieldTemperature, field.TypeFloat32, value)
+		_node.Temperature = value
 	}
 	if value, ok := vc.mutation.StartedAt(); ok {
 		_spec.SetField(voiceover.FieldStartedAt, field.TypeTime, value)
