@@ -893,7 +893,8 @@ func (r *Repository) QueryGenerationsAdmin(per_page int, cursor *time.Time, filt
 
 type GenerationUpscaleOutput struct {
 	ID               uuid.UUID                      `json:"id"`
-	ImageUrl         string                         `json:"image_url"`
+	ImageUrl         string                         `json:"image_url,omitempty"`
+	AudioFileUrl     string                         `json:"audio_file_url,omitempty"`
 	UpscaledImageUrl string                         `json:"upscaled_image_url,omitempty"`
 	GalleryStatus    generationoutput.GalleryStatus `json:"gallery_status,omitempty"`
 	OutputID         *uuid.UUID                     `json:"output_id,omitempty"`

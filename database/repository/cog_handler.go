@@ -441,10 +441,10 @@ func (r *Repository) ProcessCogMessage(msg requests.CogWebhookMessage) error {
 		}
 		if msg.Status == requests.CogSucceeded {
 			audioFileURL := utils.GetURLFromImagePath(voiceoverOutput.AudioPath)
-			resp.AudioOutputs = []VoiceoverOutput{
+			resp.Outputs = []GenerationUpscaleOutput{
 				{
-					ID:          voiceoverOutput.ID,
-					AudoFileURL: audioFileURL,
+					ID:           voiceoverOutput.ID,
+					AudioFileUrl: audioFileURL,
 				},
 			}
 		}
