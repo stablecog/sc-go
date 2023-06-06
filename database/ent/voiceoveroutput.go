@@ -20,6 +20,8 @@ type VoiceoverOutput struct {
 	ID uuid.UUID `json:"id,omitempty"`
 	// AudioPath holds the value of the "audio_path" field.
 	AudioPath string `json:"audio_path,omitempty"`
+	// IsFavorited holds the value of the "is_favorited" field.
+	IsFavorited bool `json:"is_favorited,omitempty"`
 	// VoiceoverID holds the value of the "voiceover_id" field.
 	VoiceoverID uuid.UUID `json:"voiceover_id,omitempty"`
 	// DeletedAt holds the value of the "deleted_at" field.
@@ -60,6 +62,8 @@ func (*VoiceoverOutput) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
+		case voiceoveroutput.FieldIsFavorited:
+			values[i] = new(sql.NullBool)
 		case voiceoveroutput.FieldAudioPath:
 			values[i] = new(sql.NullString)
 		case voiceoveroutput.FieldDeletedAt, voiceoveroutput.FieldCreatedAt, voiceoveroutput.FieldUpdatedAt:
@@ -92,6 +96,12 @@ func (vo *VoiceoverOutput) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field audio_path", values[i])
 			} else if value.Valid {
 				vo.AudioPath = value.String
+			}
+		case voiceoveroutput.FieldIsFavorited:
+			if value, ok := values[i].(*sql.NullBool); !ok {
+				return fmt.Errorf("unexpected type %T for field is_favorited", values[i])
+			} else if value.Valid {
+				vo.IsFavorited = value.Bool
 			}
 		case voiceoveroutput.FieldVoiceoverID:
 			if value, ok := values[i].(*uuid.UUID); !ok {
@@ -153,6 +163,9 @@ func (vo *VoiceoverOutput) String() string {
 	builder.WriteString(fmt.Sprintf("id=%v, ", vo.ID))
 	builder.WriteString("audio_path=")
 	builder.WriteString(vo.AudioPath)
+	builder.WriteString(", ")
+	builder.WriteString("is_favorited=")
+	builder.WriteString(fmt.Sprintf("%v", vo.IsFavorited))
 	builder.WriteString(", ")
 	builder.WriteString("voiceover_id=")
 	builder.WriteString(fmt.Sprintf("%v", vo.VoiceoverID))

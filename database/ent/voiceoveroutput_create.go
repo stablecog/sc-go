@@ -28,6 +28,20 @@ func (voc *VoiceoverOutputCreate) SetAudioPath(s string) *VoiceoverOutputCreate 
 	return voc
 }
 
+// SetIsFavorited sets the "is_favorited" field.
+func (voc *VoiceoverOutputCreate) SetIsFavorited(b bool) *VoiceoverOutputCreate {
+	voc.mutation.SetIsFavorited(b)
+	return voc
+}
+
+// SetNillableIsFavorited sets the "is_favorited" field if the given value is not nil.
+func (voc *VoiceoverOutputCreate) SetNillableIsFavorited(b *bool) *VoiceoverOutputCreate {
+	if b != nil {
+		voc.SetIsFavorited(*b)
+	}
+	return voc
+}
+
 // SetVoiceoverID sets the "voiceover_id" field.
 func (voc *VoiceoverOutputCreate) SetVoiceoverID(u uuid.UUID) *VoiceoverOutputCreate {
 	voc.mutation.SetVoiceoverID(u)
@@ -136,6 +150,10 @@ func (voc *VoiceoverOutputCreate) ExecX(ctx context.Context) {
 
 // defaults sets the default values of the builder before save.
 func (voc *VoiceoverOutputCreate) defaults() {
+	if _, ok := voc.mutation.IsFavorited(); !ok {
+		v := voiceoveroutput.DefaultIsFavorited
+		voc.mutation.SetIsFavorited(v)
+	}
 	if _, ok := voc.mutation.CreatedAt(); !ok {
 		v := voiceoveroutput.DefaultCreatedAt()
 		voc.mutation.SetCreatedAt(v)
@@ -154,6 +172,9 @@ func (voc *VoiceoverOutputCreate) defaults() {
 func (voc *VoiceoverOutputCreate) check() error {
 	if _, ok := voc.mutation.AudioPath(); !ok {
 		return &ValidationError{Name: "audio_path", err: errors.New(`ent: missing required field "VoiceoverOutput.audio_path"`)}
+	}
+	if _, ok := voc.mutation.IsFavorited(); !ok {
+		return &ValidationError{Name: "is_favorited", err: errors.New(`ent: missing required field "VoiceoverOutput.is_favorited"`)}
 	}
 	if _, ok := voc.mutation.VoiceoverID(); !ok {
 		return &ValidationError{Name: "voiceover_id", err: errors.New(`ent: missing required field "VoiceoverOutput.voiceover_id"`)}
@@ -211,6 +232,10 @@ func (voc *VoiceoverOutputCreate) createSpec() (*VoiceoverOutput, *sqlgraph.Crea
 	if value, ok := voc.mutation.AudioPath(); ok {
 		_spec.SetField(voiceoveroutput.FieldAudioPath, field.TypeString, value)
 		_node.AudioPath = value
+	}
+	if value, ok := voc.mutation.IsFavorited(); ok {
+		_spec.SetField(voiceoveroutput.FieldIsFavorited, field.TypeBool, value)
+		_node.IsFavorited = value
 	}
 	if value, ok := voc.mutation.DeletedAt(); ok {
 		_spec.SetField(voiceoveroutput.FieldDeletedAt, field.TypeTime, value)

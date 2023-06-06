@@ -76,6 +76,16 @@ func Temperature(v float32) predicate.Voiceover {
 	return predicate.Voiceover(sql.FieldEQ(FieldTemperature, v))
 }
 
+// Seed applies equality check predicate on the "seed" field. It's identical to SeedEQ.
+func Seed(v int) predicate.Voiceover {
+	return predicate.Voiceover(sql.FieldEQ(FieldSeed, v))
+}
+
+// WasAutoSubmitted applies equality check predicate on the "was_auto_submitted" field. It's identical to WasAutoSubmittedEQ.
+func WasAutoSubmitted(v bool) predicate.Voiceover {
+	return predicate.Voiceover(sql.FieldEQ(FieldWasAutoSubmitted, v))
+}
+
 // PromptID applies equality check predicate on the "prompt_id" field. It's identical to PromptIDEQ.
 func PromptID(v uuid.UUID) predicate.Voiceover {
 	return predicate.Voiceover(sql.FieldEQ(FieldPromptID, v))
@@ -409,6 +419,56 @@ func TemperatureLT(v float32) predicate.Voiceover {
 // TemperatureLTE applies the LTE predicate on the "temperature" field.
 func TemperatureLTE(v float32) predicate.Voiceover {
 	return predicate.Voiceover(sql.FieldLTE(FieldTemperature, v))
+}
+
+// SeedEQ applies the EQ predicate on the "seed" field.
+func SeedEQ(v int) predicate.Voiceover {
+	return predicate.Voiceover(sql.FieldEQ(FieldSeed, v))
+}
+
+// SeedNEQ applies the NEQ predicate on the "seed" field.
+func SeedNEQ(v int) predicate.Voiceover {
+	return predicate.Voiceover(sql.FieldNEQ(FieldSeed, v))
+}
+
+// SeedIn applies the In predicate on the "seed" field.
+func SeedIn(vs ...int) predicate.Voiceover {
+	return predicate.Voiceover(sql.FieldIn(FieldSeed, vs...))
+}
+
+// SeedNotIn applies the NotIn predicate on the "seed" field.
+func SeedNotIn(vs ...int) predicate.Voiceover {
+	return predicate.Voiceover(sql.FieldNotIn(FieldSeed, vs...))
+}
+
+// SeedGT applies the GT predicate on the "seed" field.
+func SeedGT(v int) predicate.Voiceover {
+	return predicate.Voiceover(sql.FieldGT(FieldSeed, v))
+}
+
+// SeedGTE applies the GTE predicate on the "seed" field.
+func SeedGTE(v int) predicate.Voiceover {
+	return predicate.Voiceover(sql.FieldGTE(FieldSeed, v))
+}
+
+// SeedLT applies the LT predicate on the "seed" field.
+func SeedLT(v int) predicate.Voiceover {
+	return predicate.Voiceover(sql.FieldLT(FieldSeed, v))
+}
+
+// SeedLTE applies the LTE predicate on the "seed" field.
+func SeedLTE(v int) predicate.Voiceover {
+	return predicate.Voiceover(sql.FieldLTE(FieldSeed, v))
+}
+
+// WasAutoSubmittedEQ applies the EQ predicate on the "was_auto_submitted" field.
+func WasAutoSubmittedEQ(v bool) predicate.Voiceover {
+	return predicate.Voiceover(sql.FieldEQ(FieldWasAutoSubmitted, v))
+}
+
+// WasAutoSubmittedNEQ applies the NEQ predicate on the "was_auto_submitted" field.
+func WasAutoSubmittedNEQ(v bool) predicate.Voiceover {
+	return predicate.Voiceover(sql.FieldNEQ(FieldWasAutoSubmitted, v))
 }
 
 // PromptIDEQ applies the EQ predicate on the "prompt_id" field.

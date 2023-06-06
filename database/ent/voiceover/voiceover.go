@@ -24,6 +24,10 @@ const (
 	FieldStripeProductID = "stripe_product_id"
 	// FieldTemperature holds the string denoting the temperature field in the database.
 	FieldTemperature = "temperature"
+	// FieldSeed holds the string denoting the seed field in the database.
+	FieldSeed = "seed"
+	// FieldWasAutoSubmitted holds the string denoting the was_auto_submitted field in the database.
+	FieldWasAutoSubmitted = "was_auto_submitted"
 	// FieldPromptID holds the string denoting the prompt_id field in the database.
 	FieldPromptID = "prompt_id"
 	// FieldUserID holds the string denoting the user_id field in the database.
@@ -119,6 +123,8 @@ var Columns = []string{
 	FieldFailureReason,
 	FieldStripeProductID,
 	FieldTemperature,
+	FieldSeed,
+	FieldWasAutoSubmitted,
 	FieldPromptID,
 	FieldUserID,
 	FieldDeviceInfoID,
@@ -142,6 +148,8 @@ func ValidColumn(column string) bool {
 }
 
 var (
+	// DefaultWasAutoSubmitted holds the default value on creation for the "was_auto_submitted" field.
+	DefaultWasAutoSubmitted bool
 	// DefaultCreatedAt holds the default value on creation for the "created_at" field.
 	DefaultCreatedAt func() time.Time
 	// DefaultUpdatedAt holds the default value on creation for the "updated_at" field.

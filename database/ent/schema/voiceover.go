@@ -25,6 +25,8 @@ func (Voiceover) Fields() []ent.Field {
 		field.Text("failure_reason").Optional().Nillable(),
 		field.Text("stripe_product_id").Optional().Nillable(),
 		field.Float32("temperature"),
+		field.Int("seed"),
+		field.Bool("was_auto_submitted").Default(false),
 		// ! Relationships / many-to-one
 		field.UUID("prompt_id", uuid.UUID{}).Optional().Nillable(),
 		field.UUID("user_id", uuid.UUID{}),

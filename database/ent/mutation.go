@@ -15981,6 +15981,9 @@ type VoiceoverMutation struct {
 	stripe_product_id         *string
 	temperature               *float32
 	addtemperature            *float32
+	seed                      *int
+	addseed                   *int
+	was_auto_submitted        *bool
 	started_at                *time.Time
 	completed_at              *time.Time
 	created_at                *time.Time
@@ -16347,6 +16350,98 @@ func (m *VoiceoverMutation) AddedTemperature() (r float32, exists bool) {
 func (m *VoiceoverMutation) ResetTemperature() {
 	m.temperature = nil
 	m.addtemperature = nil
+}
+
+// SetSeed sets the "seed" field.
+func (m *VoiceoverMutation) SetSeed(i int) {
+	m.seed = &i
+	m.addseed = nil
+}
+
+// Seed returns the value of the "seed" field in the mutation.
+func (m *VoiceoverMutation) Seed() (r int, exists bool) {
+	v := m.seed
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSeed returns the old "seed" field's value of the Voiceover entity.
+// If the Voiceover object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *VoiceoverMutation) OldSeed(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSeed is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSeed requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSeed: %w", err)
+	}
+	return oldValue.Seed, nil
+}
+
+// AddSeed adds i to the "seed" field.
+func (m *VoiceoverMutation) AddSeed(i int) {
+	if m.addseed != nil {
+		*m.addseed += i
+	} else {
+		m.addseed = &i
+	}
+}
+
+// AddedSeed returns the value that was added to the "seed" field in this mutation.
+func (m *VoiceoverMutation) AddedSeed() (r int, exists bool) {
+	v := m.addseed
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetSeed resets all changes to the "seed" field.
+func (m *VoiceoverMutation) ResetSeed() {
+	m.seed = nil
+	m.addseed = nil
+}
+
+// SetWasAutoSubmitted sets the "was_auto_submitted" field.
+func (m *VoiceoverMutation) SetWasAutoSubmitted(b bool) {
+	m.was_auto_submitted = &b
+}
+
+// WasAutoSubmitted returns the value of the "was_auto_submitted" field in the mutation.
+func (m *VoiceoverMutation) WasAutoSubmitted() (r bool, exists bool) {
+	v := m.was_auto_submitted
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldWasAutoSubmitted returns the old "was_auto_submitted" field's value of the Voiceover entity.
+// If the Voiceover object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *VoiceoverMutation) OldWasAutoSubmitted(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldWasAutoSubmitted is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldWasAutoSubmitted requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldWasAutoSubmitted: %w", err)
+	}
+	return oldValue.WasAutoSubmitted, nil
+}
+
+// ResetWasAutoSubmitted resets all changes to the "was_auto_submitted" field.
+func (m *VoiceoverMutation) ResetWasAutoSubmitted() {
+	m.was_auto_submitted = nil
 }
 
 // SetPromptID sets the "prompt_id" field.
@@ -17044,7 +17139,7 @@ func (m *VoiceoverMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *VoiceoverMutation) Fields() []string {
-	fields := make([]string, 0, 15)
+	fields := make([]string, 0, 17)
 	if m.country_code != nil {
 		fields = append(fields, voiceover.FieldCountryCode)
 	}
@@ -17059,6 +17154,12 @@ func (m *VoiceoverMutation) Fields() []string {
 	}
 	if m.temperature != nil {
 		fields = append(fields, voiceover.FieldTemperature)
+	}
+	if m.seed != nil {
+		fields = append(fields, voiceover.FieldSeed)
+	}
+	if m.was_auto_submitted != nil {
+		fields = append(fields, voiceover.FieldWasAutoSubmitted)
 	}
 	if m.prompt != nil {
 		fields = append(fields, voiceover.FieldPromptID)
@@ -17108,6 +17209,10 @@ func (m *VoiceoverMutation) Field(name string) (ent.Value, bool) {
 		return m.StripeProductID()
 	case voiceover.FieldTemperature:
 		return m.Temperature()
+	case voiceover.FieldSeed:
+		return m.Seed()
+	case voiceover.FieldWasAutoSubmitted:
+		return m.WasAutoSubmitted()
 	case voiceover.FieldPromptID:
 		return m.PromptID()
 	case voiceover.FieldUserID:
@@ -17147,6 +17252,10 @@ func (m *VoiceoverMutation) OldField(ctx context.Context, name string) (ent.Valu
 		return m.OldStripeProductID(ctx)
 	case voiceover.FieldTemperature:
 		return m.OldTemperature(ctx)
+	case voiceover.FieldSeed:
+		return m.OldSeed(ctx)
+	case voiceover.FieldWasAutoSubmitted:
+		return m.OldWasAutoSubmitted(ctx)
 	case voiceover.FieldPromptID:
 		return m.OldPromptID(ctx)
 	case voiceover.FieldUserID:
@@ -17210,6 +17319,20 @@ func (m *VoiceoverMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetTemperature(v)
+		return nil
+	case voiceover.FieldSeed:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSeed(v)
+		return nil
+	case voiceover.FieldWasAutoSubmitted:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetWasAutoSubmitted(v)
 		return nil
 	case voiceover.FieldPromptID:
 		v, ok := value.(uuid.UUID)
@@ -17292,6 +17415,9 @@ func (m *VoiceoverMutation) AddedFields() []string {
 	if m.addtemperature != nil {
 		fields = append(fields, voiceover.FieldTemperature)
 	}
+	if m.addseed != nil {
+		fields = append(fields, voiceover.FieldSeed)
+	}
 	return fields
 }
 
@@ -17302,6 +17428,8 @@ func (m *VoiceoverMutation) AddedField(name string) (ent.Value, bool) {
 	switch name {
 	case voiceover.FieldTemperature:
 		return m.AddedTemperature()
+	case voiceover.FieldSeed:
+		return m.AddedSeed()
 	}
 	return nil, false
 }
@@ -17317,6 +17445,13 @@ func (m *VoiceoverMutation) AddField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.AddTemperature(v)
+		return nil
+	case voiceover.FieldSeed:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddSeed(v)
 		return nil
 	}
 	return fmt.Errorf("unknown Voiceover numeric field %s", name)
@@ -17404,6 +17539,12 @@ func (m *VoiceoverMutation) ResetField(name string) error {
 		return nil
 	case voiceover.FieldTemperature:
 		m.ResetTemperature()
+		return nil
+	case voiceover.FieldSeed:
+		m.ResetSeed()
+		return nil
+	case voiceover.FieldWasAutoSubmitted:
+		m.ResetWasAutoSubmitted()
 		return nil
 	case voiceover.FieldPromptID:
 		m.ResetPromptID()
@@ -18416,6 +18557,7 @@ type VoiceoverOutputMutation struct {
 	typ               string
 	id                *uuid.UUID
 	audio_path        *string
+	is_favorited      *bool
 	deleted_at        *time.Time
 	created_at        *time.Time
 	updated_at        *time.Time
@@ -18565,6 +18707,42 @@ func (m *VoiceoverOutputMutation) OldAudioPath(ctx context.Context) (v string, e
 // ResetAudioPath resets all changes to the "audio_path" field.
 func (m *VoiceoverOutputMutation) ResetAudioPath() {
 	m.audio_path = nil
+}
+
+// SetIsFavorited sets the "is_favorited" field.
+func (m *VoiceoverOutputMutation) SetIsFavorited(b bool) {
+	m.is_favorited = &b
+}
+
+// IsFavorited returns the value of the "is_favorited" field in the mutation.
+func (m *VoiceoverOutputMutation) IsFavorited() (r bool, exists bool) {
+	v := m.is_favorited
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldIsFavorited returns the old "is_favorited" field's value of the VoiceoverOutput entity.
+// If the VoiceoverOutput object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *VoiceoverOutputMutation) OldIsFavorited(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldIsFavorited is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldIsFavorited requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldIsFavorited: %w", err)
+	}
+	return oldValue.IsFavorited, nil
+}
+
+// ResetIsFavorited resets all changes to the "is_favorited" field.
+func (m *VoiceoverOutputMutation) ResetIsFavorited() {
+	m.is_favorited = nil
 }
 
 // SetVoiceoverID sets the "voiceover_id" field.
@@ -18797,9 +18975,12 @@ func (m *VoiceoverOutputMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *VoiceoverOutputMutation) Fields() []string {
-	fields := make([]string, 0, 5)
+	fields := make([]string, 0, 6)
 	if m.audio_path != nil {
 		fields = append(fields, voiceoveroutput.FieldAudioPath)
+	}
+	if m.is_favorited != nil {
+		fields = append(fields, voiceoveroutput.FieldIsFavorited)
 	}
 	if m.voiceovers != nil {
 		fields = append(fields, voiceoveroutput.FieldVoiceoverID)
@@ -18823,6 +19004,8 @@ func (m *VoiceoverOutputMutation) Field(name string) (ent.Value, bool) {
 	switch name {
 	case voiceoveroutput.FieldAudioPath:
 		return m.AudioPath()
+	case voiceoveroutput.FieldIsFavorited:
+		return m.IsFavorited()
 	case voiceoveroutput.FieldVoiceoverID:
 		return m.VoiceoverID()
 	case voiceoveroutput.FieldDeletedAt:
@@ -18842,6 +19025,8 @@ func (m *VoiceoverOutputMutation) OldField(ctx context.Context, name string) (en
 	switch name {
 	case voiceoveroutput.FieldAudioPath:
 		return m.OldAudioPath(ctx)
+	case voiceoveroutput.FieldIsFavorited:
+		return m.OldIsFavorited(ctx)
 	case voiceoveroutput.FieldVoiceoverID:
 		return m.OldVoiceoverID(ctx)
 	case voiceoveroutput.FieldDeletedAt:
@@ -18865,6 +19050,13 @@ func (m *VoiceoverOutputMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetAudioPath(v)
+		return nil
+	case voiceoveroutput.FieldIsFavorited:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetIsFavorited(v)
 		return nil
 	case voiceoveroutput.FieldVoiceoverID:
 		v, ok := value.(uuid.UUID)
@@ -18954,6 +19146,9 @@ func (m *VoiceoverOutputMutation) ResetField(name string) error {
 	switch name {
 	case voiceoveroutput.FieldAudioPath:
 		m.ResetAudioPath()
+		return nil
+	case voiceoveroutput.FieldIsFavorited:
+		m.ResetIsFavorited()
 		return nil
 	case voiceoveroutput.FieldVoiceoverID:
 		m.ResetVoiceoverID()

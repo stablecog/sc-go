@@ -116,6 +116,33 @@ func (vu *VoiceoverUpdate) AddTemperature(f float32) *VoiceoverUpdate {
 	return vu
 }
 
+// SetSeed sets the "seed" field.
+func (vu *VoiceoverUpdate) SetSeed(i int) *VoiceoverUpdate {
+	vu.mutation.ResetSeed()
+	vu.mutation.SetSeed(i)
+	return vu
+}
+
+// AddSeed adds i to the "seed" field.
+func (vu *VoiceoverUpdate) AddSeed(i int) *VoiceoverUpdate {
+	vu.mutation.AddSeed(i)
+	return vu
+}
+
+// SetWasAutoSubmitted sets the "was_auto_submitted" field.
+func (vu *VoiceoverUpdate) SetWasAutoSubmitted(b bool) *VoiceoverUpdate {
+	vu.mutation.SetWasAutoSubmitted(b)
+	return vu
+}
+
+// SetNillableWasAutoSubmitted sets the "was_auto_submitted" field if the given value is not nil.
+func (vu *VoiceoverUpdate) SetNillableWasAutoSubmitted(b *bool) *VoiceoverUpdate {
+	if b != nil {
+		vu.SetWasAutoSubmitted(*b)
+	}
+	return vu
+}
+
 // SetPromptID sets the "prompt_id" field.
 func (vu *VoiceoverUpdate) SetPromptID(u uuid.UUID) *VoiceoverUpdate {
 	vu.mutation.SetPromptID(u)
@@ -470,6 +497,15 @@ func (vu *VoiceoverUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if value, ok := vu.mutation.AddedTemperature(); ok {
 		_spec.AddField(voiceover.FieldTemperature, field.TypeFloat32, value)
+	}
+	if value, ok := vu.mutation.Seed(); ok {
+		_spec.SetField(voiceover.FieldSeed, field.TypeInt, value)
+	}
+	if value, ok := vu.mutation.AddedSeed(); ok {
+		_spec.AddField(voiceover.FieldSeed, field.TypeInt, value)
+	}
+	if value, ok := vu.mutation.WasAutoSubmitted(); ok {
+		_spec.SetField(voiceover.FieldWasAutoSubmitted, field.TypeBool, value)
 	}
 	if value, ok := vu.mutation.StartedAt(); ok {
 		_spec.SetField(voiceover.FieldStartedAt, field.TypeTime, value)
@@ -851,6 +887,33 @@ func (vuo *VoiceoverUpdateOne) AddTemperature(f float32) *VoiceoverUpdateOne {
 	return vuo
 }
 
+// SetSeed sets the "seed" field.
+func (vuo *VoiceoverUpdateOne) SetSeed(i int) *VoiceoverUpdateOne {
+	vuo.mutation.ResetSeed()
+	vuo.mutation.SetSeed(i)
+	return vuo
+}
+
+// AddSeed adds i to the "seed" field.
+func (vuo *VoiceoverUpdateOne) AddSeed(i int) *VoiceoverUpdateOne {
+	vuo.mutation.AddSeed(i)
+	return vuo
+}
+
+// SetWasAutoSubmitted sets the "was_auto_submitted" field.
+func (vuo *VoiceoverUpdateOne) SetWasAutoSubmitted(b bool) *VoiceoverUpdateOne {
+	vuo.mutation.SetWasAutoSubmitted(b)
+	return vuo
+}
+
+// SetNillableWasAutoSubmitted sets the "was_auto_submitted" field if the given value is not nil.
+func (vuo *VoiceoverUpdateOne) SetNillableWasAutoSubmitted(b *bool) *VoiceoverUpdateOne {
+	if b != nil {
+		vuo.SetWasAutoSubmitted(*b)
+	}
+	return vuo
+}
+
 // SetPromptID sets the "prompt_id" field.
 func (vuo *VoiceoverUpdateOne) SetPromptID(u uuid.UUID) *VoiceoverUpdateOne {
 	vuo.mutation.SetPromptID(u)
@@ -1229,6 +1292,15 @@ func (vuo *VoiceoverUpdateOne) sqlSave(ctx context.Context) (_node *Voiceover, e
 	}
 	if value, ok := vuo.mutation.AddedTemperature(); ok {
 		_spec.AddField(voiceover.FieldTemperature, field.TypeFloat32, value)
+	}
+	if value, ok := vuo.mutation.Seed(); ok {
+		_spec.SetField(voiceover.FieldSeed, field.TypeInt, value)
+	}
+	if value, ok := vuo.mutation.AddedSeed(); ok {
+		_spec.AddField(voiceover.FieldSeed, field.TypeInt, value)
+	}
+	if value, ok := vuo.mutation.WasAutoSubmitted(); ok {
+		_spec.SetField(voiceover.FieldWasAutoSubmitted, field.TypeBool, value)
 	}
 	if value, ok := vuo.mutation.StartedAt(); ok {
 		_spec.SetField(voiceover.FieldStartedAt, field.TypeTime, value)

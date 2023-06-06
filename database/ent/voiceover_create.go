@@ -82,6 +82,26 @@ func (vc *VoiceoverCreate) SetTemperature(f float32) *VoiceoverCreate {
 	return vc
 }
 
+// SetSeed sets the "seed" field.
+func (vc *VoiceoverCreate) SetSeed(i int) *VoiceoverCreate {
+	vc.mutation.SetSeed(i)
+	return vc
+}
+
+// SetWasAutoSubmitted sets the "was_auto_submitted" field.
+func (vc *VoiceoverCreate) SetWasAutoSubmitted(b bool) *VoiceoverCreate {
+	vc.mutation.SetWasAutoSubmitted(b)
+	return vc
+}
+
+// SetNillableWasAutoSubmitted sets the "was_auto_submitted" field if the given value is not nil.
+func (vc *VoiceoverCreate) SetNillableWasAutoSubmitted(b *bool) *VoiceoverCreate {
+	if b != nil {
+		vc.SetWasAutoSubmitted(*b)
+	}
+	return vc
+}
+
 // SetPromptID sets the "prompt_id" field.
 func (vc *VoiceoverCreate) SetPromptID(u uuid.UUID) *VoiceoverCreate {
 	vc.mutation.SetPromptID(u)
@@ -310,6 +330,10 @@ func (vc *VoiceoverCreate) ExecX(ctx context.Context) {
 
 // defaults sets the default values of the builder before save.
 func (vc *VoiceoverCreate) defaults() {
+	if _, ok := vc.mutation.WasAutoSubmitted(); !ok {
+		v := voiceover.DefaultWasAutoSubmitted
+		vc.mutation.SetWasAutoSubmitted(v)
+	}
 	if _, ok := vc.mutation.CreatedAt(); !ok {
 		v := voiceover.DefaultCreatedAt()
 		vc.mutation.SetCreatedAt(v)
@@ -336,6 +360,12 @@ func (vc *VoiceoverCreate) check() error {
 	}
 	if _, ok := vc.mutation.Temperature(); !ok {
 		return &ValidationError{Name: "temperature", err: errors.New(`ent: missing required field "Voiceover.temperature"`)}
+	}
+	if _, ok := vc.mutation.Seed(); !ok {
+		return &ValidationError{Name: "seed", err: errors.New(`ent: missing required field "Voiceover.seed"`)}
+	}
+	if _, ok := vc.mutation.WasAutoSubmitted(); !ok {
+		return &ValidationError{Name: "was_auto_submitted", err: errors.New(`ent: missing required field "Voiceover.was_auto_submitted"`)}
 	}
 	if _, ok := vc.mutation.UserID(); !ok {
 		return &ValidationError{Name: "user_id", err: errors.New(`ent: missing required field "Voiceover.user_id"`)}
@@ -427,6 +457,14 @@ func (vc *VoiceoverCreate) createSpec() (*Voiceover, *sqlgraph.CreateSpec) {
 	if value, ok := vc.mutation.Temperature(); ok {
 		_spec.SetField(voiceover.FieldTemperature, field.TypeFloat32, value)
 		_node.Temperature = value
+	}
+	if value, ok := vc.mutation.Seed(); ok {
+		_spec.SetField(voiceover.FieldSeed, field.TypeInt, value)
+		_node.Seed = value
+	}
+	if value, ok := vc.mutation.WasAutoSubmitted(); ok {
+		_spec.SetField(voiceover.FieldWasAutoSubmitted, field.TypeBool, value)
+		_node.WasAutoSubmitted = value
 	}
 	if value, ok := vc.mutation.StartedAt(); ok {
 		_spec.SetField(voiceover.FieldStartedAt, field.TypeTime, value)

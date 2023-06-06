@@ -61,6 +61,11 @@ func AudioPath(v string) predicate.VoiceoverOutput {
 	return predicate.VoiceoverOutput(sql.FieldEQ(FieldAudioPath, v))
 }
 
+// IsFavorited applies equality check predicate on the "is_favorited" field. It's identical to IsFavoritedEQ.
+func IsFavorited(v bool) predicate.VoiceoverOutput {
+	return predicate.VoiceoverOutput(sql.FieldEQ(FieldIsFavorited, v))
+}
+
 // VoiceoverID applies equality check predicate on the "voiceover_id" field. It's identical to VoiceoverIDEQ.
 func VoiceoverID(v uuid.UUID) predicate.VoiceoverOutput {
 	return predicate.VoiceoverOutput(sql.FieldEQ(FieldVoiceoverID, v))
@@ -144,6 +149,16 @@ func AudioPathEqualFold(v string) predicate.VoiceoverOutput {
 // AudioPathContainsFold applies the ContainsFold predicate on the "audio_path" field.
 func AudioPathContainsFold(v string) predicate.VoiceoverOutput {
 	return predicate.VoiceoverOutput(sql.FieldContainsFold(FieldAudioPath, v))
+}
+
+// IsFavoritedEQ applies the EQ predicate on the "is_favorited" field.
+func IsFavoritedEQ(v bool) predicate.VoiceoverOutput {
+	return predicate.VoiceoverOutput(sql.FieldEQ(FieldIsFavorited, v))
+}
+
+// IsFavoritedNEQ applies the NEQ predicate on the "is_favorited" field.
+func IsFavoritedNEQ(v bool) predicate.VoiceoverOutput {
+	return predicate.VoiceoverOutput(sql.FieldNEQ(FieldIsFavorited, v))
 }
 
 // VoiceoverIDEQ applies the EQ predicate on the "voiceover_id" field.

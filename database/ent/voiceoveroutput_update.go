@@ -37,6 +37,20 @@ func (vou *VoiceoverOutputUpdate) SetAudioPath(s string) *VoiceoverOutputUpdate 
 	return vou
 }
 
+// SetIsFavorited sets the "is_favorited" field.
+func (vou *VoiceoverOutputUpdate) SetIsFavorited(b bool) *VoiceoverOutputUpdate {
+	vou.mutation.SetIsFavorited(b)
+	return vou
+}
+
+// SetNillableIsFavorited sets the "is_favorited" field if the given value is not nil.
+func (vou *VoiceoverOutputUpdate) SetNillableIsFavorited(b *bool) *VoiceoverOutputUpdate {
+	if b != nil {
+		vou.SetIsFavorited(*b)
+	}
+	return vou
+}
+
 // SetVoiceoverID sets the "voiceover_id" field.
 func (vou *VoiceoverOutputUpdate) SetVoiceoverID(u uuid.UUID) *VoiceoverOutputUpdate {
 	vou.mutation.SetVoiceoverID(u)
@@ -165,6 +179,9 @@ func (vou *VoiceoverOutputUpdate) sqlSave(ctx context.Context) (n int, err error
 	if value, ok := vou.mutation.AudioPath(); ok {
 		_spec.SetField(voiceoveroutput.FieldAudioPath, field.TypeString, value)
 	}
+	if value, ok := vou.mutation.IsFavorited(); ok {
+		_spec.SetField(voiceoveroutput.FieldIsFavorited, field.TypeBool, value)
+	}
 	if value, ok := vou.mutation.DeletedAt(); ok {
 		_spec.SetField(voiceoveroutput.FieldDeletedAt, field.TypeTime, value)
 	}
@@ -234,6 +251,20 @@ type VoiceoverOutputUpdateOne struct {
 // SetAudioPath sets the "audio_path" field.
 func (vouo *VoiceoverOutputUpdateOne) SetAudioPath(s string) *VoiceoverOutputUpdateOne {
 	vouo.mutation.SetAudioPath(s)
+	return vouo
+}
+
+// SetIsFavorited sets the "is_favorited" field.
+func (vouo *VoiceoverOutputUpdateOne) SetIsFavorited(b bool) *VoiceoverOutputUpdateOne {
+	vouo.mutation.SetIsFavorited(b)
+	return vouo
+}
+
+// SetNillableIsFavorited sets the "is_favorited" field if the given value is not nil.
+func (vouo *VoiceoverOutputUpdateOne) SetNillableIsFavorited(b *bool) *VoiceoverOutputUpdateOne {
+	if b != nil {
+		vouo.SetIsFavorited(*b)
+	}
 	return vouo
 }
 
@@ -388,6 +419,9 @@ func (vouo *VoiceoverOutputUpdateOne) sqlSave(ctx context.Context) (_node *Voice
 	}
 	if value, ok := vouo.mutation.AudioPath(); ok {
 		_spec.SetField(voiceoveroutput.FieldAudioPath, field.TypeString, value)
+	}
+	if value, ok := vouo.mutation.IsFavorited(); ok {
+		_spec.SetField(voiceoveroutput.FieldIsFavorited, field.TypeBool, value)
 	}
 	if value, ok := vouo.mutation.DeletedAt(); ok {
 		_spec.SetField(voiceoveroutput.FieldDeletedAt, field.TypeTime, value)

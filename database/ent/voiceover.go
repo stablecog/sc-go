@@ -33,6 +33,10 @@ type Voiceover struct {
 	StripeProductID *string `json:"stripe_product_id,omitempty"`
 	// Temperature holds the value of the "temperature" field.
 	Temperature float32 `json:"temperature,omitempty"`
+	// Seed holds the value of the "seed" field.
+	Seed int `json:"seed,omitempty"`
+	// WasAutoSubmitted holds the value of the "was_auto_submitted" field.
+	WasAutoSubmitted bool `json:"was_auto_submitted,omitempty"`
 	// PromptID holds the value of the "prompt_id" field.
 	PromptID *uuid.UUID `json:"prompt_id,omitempty"`
 	// UserID holds the value of the "user_id" field.
@@ -173,8 +177,12 @@ func (*Voiceover) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case voiceover.FieldPromptID, voiceover.FieldAPITokenID:
 			values[i] = &sql.NullScanner{S: new(uuid.UUID)}
+		case voiceover.FieldWasAutoSubmitted:
+			values[i] = new(sql.NullBool)
 		case voiceover.FieldTemperature:
 			values[i] = new(sql.NullFloat64)
+		case voiceover.FieldSeed:
+			values[i] = new(sql.NullInt64)
 		case voiceover.FieldCountryCode, voiceover.FieldStatus, voiceover.FieldFailureReason, voiceover.FieldStripeProductID:
 			values[i] = new(sql.NullString)
 		case voiceover.FieldStartedAt, voiceover.FieldCompletedAt, voiceover.FieldCreatedAt, voiceover.FieldUpdatedAt:
@@ -234,6 +242,18 @@ func (v *Voiceover) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field temperature", values[i])
 			} else if value.Valid {
 				v.Temperature = float32(value.Float64)
+			}
+		case voiceover.FieldSeed:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field seed", values[i])
+			} else if value.Valid {
+				v.Seed = int(value.Int64)
+			}
+		case voiceover.FieldWasAutoSubmitted:
+			if value, ok := values[i].(*sql.NullBool); !ok {
+				return fmt.Errorf("unexpected type %T for field was_auto_submitted", values[i])
+			} else if value.Valid {
+				v.WasAutoSubmitted = value.Bool
 			}
 		case voiceover.FieldPromptID:
 			if value, ok := values[i].(*sql.NullScanner); !ok {
@@ -382,6 +402,12 @@ func (v *Voiceover) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("temperature=")
 	builder.WriteString(fmt.Sprintf("%v", v.Temperature))
+	builder.WriteString(", ")
+	builder.WriteString("seed=")
+	builder.WriteString(fmt.Sprintf("%v", v.Seed))
+	builder.WriteString(", ")
+	builder.WriteString("was_auto_submitted=")
+	builder.WriteString(fmt.Sprintf("%v", v.WasAutoSubmitted))
 	builder.WriteString(", ")
 	if v := v.PromptID; v != nil {
 		builder.WriteString("prompt_id=")

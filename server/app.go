@@ -426,6 +426,9 @@ func main() {
 			// Create voiceover
 			r.Post("/voiceover", hc.HandleVoiceover)
 
+			// Query voiceover outputs
+			r.Get("/voiceover/outputs", hc.HandleQueryVoiceovers)
+
 			// Query credits
 			r.Get("/credits", hc.HandleQueryCredits)
 

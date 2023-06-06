@@ -15,6 +15,8 @@ const (
 	FieldID = "id"
 	// FieldAudioPath holds the string denoting the audio_path field in the database.
 	FieldAudioPath = "audio_path"
+	// FieldIsFavorited holds the string denoting the is_favorited field in the database.
+	FieldIsFavorited = "is_favorited"
 	// FieldVoiceoverID holds the string denoting the voiceover_id field in the database.
 	FieldVoiceoverID = "voiceover_id"
 	// FieldDeletedAt holds the string denoting the deleted_at field in the database.
@@ -40,6 +42,7 @@ const (
 var Columns = []string{
 	FieldID,
 	FieldAudioPath,
+	FieldIsFavorited,
 	FieldVoiceoverID,
 	FieldDeletedAt,
 	FieldCreatedAt,
@@ -57,6 +60,8 @@ func ValidColumn(column string) bool {
 }
 
 var (
+	// DefaultIsFavorited holds the default value on creation for the "is_favorited" field.
+	DefaultIsFavorited bool
 	// DefaultCreatedAt holds the default value on creation for the "created_at" field.
 	DefaultCreatedAt func() time.Time
 	// DefaultUpdatedAt holds the default value on creation for the "updated_at" field.

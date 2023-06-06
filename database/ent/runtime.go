@@ -375,12 +375,16 @@ func init() {
 	user.DefaultID = userDescID.Default.(func() uuid.UUID)
 	voiceoverFields := schema.Voiceover{}.Fields()
 	_ = voiceoverFields
+	// voiceoverDescWasAutoSubmitted is the schema descriptor for was_auto_submitted field.
+	voiceoverDescWasAutoSubmitted := voiceoverFields[7].Descriptor()
+	// voiceover.DefaultWasAutoSubmitted holds the default value on creation for the was_auto_submitted field.
+	voiceover.DefaultWasAutoSubmitted = voiceoverDescWasAutoSubmitted.Default.(bool)
 	// voiceoverDescCreatedAt is the schema descriptor for created_at field.
-	voiceoverDescCreatedAt := voiceoverFields[14].Descriptor()
+	voiceoverDescCreatedAt := voiceoverFields[16].Descriptor()
 	// voiceover.DefaultCreatedAt holds the default value on creation for the created_at field.
 	voiceover.DefaultCreatedAt = voiceoverDescCreatedAt.Default.(func() time.Time)
 	// voiceoverDescUpdatedAt is the schema descriptor for updated_at field.
-	voiceoverDescUpdatedAt := voiceoverFields[15].Descriptor()
+	voiceoverDescUpdatedAt := voiceoverFields[17].Descriptor()
 	// voiceover.DefaultUpdatedAt holds the default value on creation for the updated_at field.
 	voiceover.DefaultUpdatedAt = voiceoverDescUpdatedAt.Default.(func() time.Time)
 	// voiceover.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
@@ -419,12 +423,16 @@ func init() {
 	voiceovermodel.DefaultID = voiceovermodelDescID.Default.(func() uuid.UUID)
 	voiceoveroutputFields := schema.VoiceoverOutput{}.Fields()
 	_ = voiceoveroutputFields
+	// voiceoveroutputDescIsFavorited is the schema descriptor for is_favorited field.
+	voiceoveroutputDescIsFavorited := voiceoveroutputFields[2].Descriptor()
+	// voiceoveroutput.DefaultIsFavorited holds the default value on creation for the is_favorited field.
+	voiceoveroutput.DefaultIsFavorited = voiceoveroutputDescIsFavorited.Default.(bool)
 	// voiceoveroutputDescCreatedAt is the schema descriptor for created_at field.
-	voiceoveroutputDescCreatedAt := voiceoveroutputFields[4].Descriptor()
+	voiceoveroutputDescCreatedAt := voiceoveroutputFields[5].Descriptor()
 	// voiceoveroutput.DefaultCreatedAt holds the default value on creation for the created_at field.
 	voiceoveroutput.DefaultCreatedAt = voiceoveroutputDescCreatedAt.Default.(func() time.Time)
 	// voiceoveroutputDescUpdatedAt is the schema descriptor for updated_at field.
-	voiceoveroutputDescUpdatedAt := voiceoveroutputFields[5].Descriptor()
+	voiceoveroutputDescUpdatedAt := voiceoveroutputFields[6].Descriptor()
 	// voiceoveroutput.DefaultUpdatedAt holds the default value on creation for the updated_at field.
 	voiceoveroutput.DefaultUpdatedAt = voiceoveroutputDescUpdatedAt.Default.(func() time.Time)
 	// voiceoveroutput.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.

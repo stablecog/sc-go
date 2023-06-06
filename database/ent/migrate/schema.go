@@ -491,6 +491,8 @@ var (
 		{Name: "failure_reason", Type: field.TypeString, Nullable: true, Size: 2147483647},
 		{Name: "stripe_product_id", Type: field.TypeString, Nullable: true, Size: 2147483647},
 		{Name: "temperature", Type: field.TypeFloat32},
+		{Name: "seed", Type: field.TypeInt},
+		{Name: "was_auto_submitted", Type: field.TypeBool, Default: false},
 		{Name: "started_at", Type: field.TypeTime, Nullable: true},
 		{Name: "completed_at", Type: field.TypeTime, Nullable: true},
 		{Name: "created_at", Type: field.TypeTime},
@@ -510,37 +512,37 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "voiceovers_api_tokens_voiceovers",
-				Columns:    []*schema.Column{VoiceoversColumns[10]},
+				Columns:    []*schema.Column{VoiceoversColumns[12]},
 				RefColumns: []*schema.Column{APITokensColumns[0]},
 				OnDelete:   schema.Cascade,
 			},
 			{
 				Symbol:     "voiceovers_device_info_voiceovers",
-				Columns:    []*schema.Column{VoiceoversColumns[11]},
+				Columns:    []*schema.Column{VoiceoversColumns[13]},
 				RefColumns: []*schema.Column{DeviceInfoColumns[0]},
 				OnDelete:   schema.Cascade,
 			},
 			{
 				Symbol:     "voiceovers_prompts_voiceovers",
-				Columns:    []*schema.Column{VoiceoversColumns[12]},
+				Columns:    []*schema.Column{VoiceoversColumns[14]},
 				RefColumns: []*schema.Column{PromptsColumns[0]},
 				OnDelete:   schema.Cascade,
 			},
 			{
 				Symbol:     "voiceovers_users_voiceovers",
-				Columns:    []*schema.Column{VoiceoversColumns[13]},
+				Columns:    []*schema.Column{VoiceoversColumns[15]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.Cascade,
 			},
 			{
 				Symbol:     "voiceovers_voiceover_models_voiceovers",
-				Columns:    []*schema.Column{VoiceoversColumns[14]},
+				Columns:    []*schema.Column{VoiceoversColumns[16]},
 				RefColumns: []*schema.Column{VoiceoverModelsColumns[0]},
 				OnDelete:   schema.Cascade,
 			},
 			{
 				Symbol:     "voiceovers_voiceover_speakers_voiceovers",
-				Columns:    []*schema.Column{VoiceoversColumns[15]},
+				Columns:    []*schema.Column{VoiceoversColumns[17]},
 				RefColumns: []*schema.Column{VoiceoverSpeakersColumns[0]},
 				OnDelete:   schema.Cascade,
 			},
@@ -566,6 +568,7 @@ var (
 	VoiceoverOutputsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID},
 		{Name: "audio_path", Type: field.TypeString, Size: 2147483647},
+		{Name: "is_favorited", Type: field.TypeBool, Default: false},
 		{Name: "deleted_at", Type: field.TypeTime, Nullable: true},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},
@@ -579,7 +582,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "voiceover_outputs_voiceovers_voiceover_outputs",
-				Columns:    []*schema.Column{VoiceoverOutputsColumns[5]},
+				Columns:    []*schema.Column{VoiceoverOutputsColumns[6]},
 				RefColumns: []*schema.Column{VoiceoversColumns[0]},
 				OnDelete:   schema.Cascade,
 			},
