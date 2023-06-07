@@ -42,6 +42,10 @@ func (repo *Repository) CreateMockData(ctx context.Context) error {
 	repo.DB.Generation.Delete().ExecX(ctx)
 	repo.DB.GenerationOutput.Delete().ExecX(ctx)
 	repo.DB.Upscale.Delete().ExecX(ctx)
+	repo.DB.Voiceover.Delete().ExecX(ctx)
+	repo.DB.VoiceoverOutput.Delete().ExecX(ctx)
+	repo.DB.VoiceoverModel.Delete().ExecX(ctx)
+	repo.DB.VoiceoverSpeaker.Delete().ExecX(ctx)
 
 	// Create a credit type
 	stripeProductId := "prod_123"
