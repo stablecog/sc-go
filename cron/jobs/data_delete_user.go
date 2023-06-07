@@ -222,9 +222,11 @@ func (j *JobRunner) DeleteUserData(log Logger, dryRun bool) error {
 				}
 
 				// Delete from qdrant
-				if err := j.Qdrant.DeleteAllIDs(outputIds, false); err != nil {
-					log.Errorf("Error deleting from qdrant for user %s: %v", u.ID, err)
-					return err
+				if len(outputIds) > 0 {
+					if err := j.Qdrant.DeleteAllIDs(outputIds, false); err != nil {
+						log.Errorf("Error deleting from qdrant for user %s: %v", u.ID, err)
+						return err
+					}
 				}
 
 				// Delete credits if not banned
