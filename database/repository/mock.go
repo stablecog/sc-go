@@ -25,6 +25,10 @@ const MOCK_SCHEDULER_ID = "b4dff6e9-91a7-449b-b1a7-c25000e3ccd0"
 // Mock upscale
 const MOCK_UPSCALE_MODEL_ID = "b972a2b8-f39e-4ee3-a670-05e3acdd821e"
 
+// Mock voiceover
+const MOCK_VOICEOVER_MODEL_ID = "b972a2b8-f39e-4ee3-a670-05e3acdd821f"
+const MOCK_VOICEOVER_SPEAKER_ID = "b4dff6e9-91a7-449b-b1a7-c25000e3ccd1"
+
 // Just creates some mock data for our tests
 func (repo *Repository) CreateMockData(ctx context.Context) error {
 	// Drop all data
@@ -123,6 +127,18 @@ func (repo *Repository) CreateMockData(ctx context.Context) error {
 	// ! Mock schedulers
 	// Create a scheduler for the free user
 	_, err = repo.DB.Scheduler.Create().SetID(uuid.MustParse(MOCK_SCHEDULER_ID)).SetNameInWorker("mockfreescheduler").Save(ctx)
+	if err != nil {
+		return err
+	}
+
+	// ! Mock voiceover model and speaker
+	_, err = repo.DB.VoiceoverModel.Create().SetID(uuid.MustParse(MOCK_VOICEOVER_MODEL_ID)).SetNameInWorker("mockvoiceovermodel").Save(ctx)
+	if err != nil {
+		return err
+	}
+
+	// ! Mock voiceover speaker
+	_, err = repo.DB.VoiceoverSpeaker.Create().SetID(uuid.MustParse(MOCK_VOICEOVER_SPEAKER_ID)).SetNameInWorker("mockvoiceoverspeaker").SetModelID(uuid.MustParse(MOCK_VOICEOVER_MODEL_ID)).Save(ctx)
 	if err != nil {
 		return err
 	}
@@ -243,6 +259,35 @@ func (repo *Repository) CreateMockData(ctx context.Context) error {
 		return err
 	}
 	err = repo.SetGenerationStarted(gen.ID.String())
+	if err != nil {
+		return err
+	}
+
+	// ! Mock voiceover
+	// ! Mock some generations
+	// With negative prompt, success, and outpts
+	vo, err := repo.CreateVoiceover(uuid.MustParse(MOCK_ADMIN_UUID), "browser", "macos", "chrome", "DE", requests.CreateVoiceoverRequest{
+		Prompt:      "This is a prompt",
+		ModelId:     utils.ToPtr(uuid.MustParse(MOCK_VOICEOVER_MODEL_ID)),
+		SpeakerId:   utils.ToPtr(uuid.MustParse(MOCK_VOICEOVER_SPEAKER_ID)),
+		Seed:        utils.ToPtr(1234),
+		Temperature: utils.ToPtr(float32(0.5)),
+	}, nil, nil, nil)
+	if err != nil {
+		return err
+	}
+	err = repo.SetVoiceoverStarted(vo.ID.String())
+	if err != nil {
+		return err
+	}
+	_, err = repo.SetVoiceoverSucceeded(vo.ID.String(), "This is a prompt",
+		requests.CogWebhookOutput{
+			AudioFiles: []requests.CogWebhookOutputAudio{
+				{
+					AudoFile: "output_1",
+				},
+			},
+		})
 	if err != nil {
 		return err
 	}
