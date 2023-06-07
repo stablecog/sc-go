@@ -14,6 +14,7 @@ import (
 	"github.com/stablecog/sc-go/database/ent/generationoutput"
 	"github.com/stablecog/sc-go/database/ent/negativeprompt"
 	"github.com/stablecog/sc-go/database/ent/prompt"
+	"github.com/stablecog/sc-go/database/ent/upscale"
 	"github.com/stablecog/sc-go/utils"
 )
 
@@ -185,6 +186,22 @@ func (j *JobRunner) DeleteUserData(log Logger, dryRun bool) error {
 					generation.IDIn(generationIds...),
 				).Exec(j.Ctx); err != nil {
 					log.Errorf("Error deleting generations for user %s: %v", u.ID, err)
+					return err
+				}
+
+				// Delete failed generations
+				if _, err := tx.Generation.Delete().Where(
+					generation.UserIDEQ(u.ID),
+				).Exec(j.Ctx); err != nil {
+					log.Errorf("Error deleting failed generations for user %s: %v", u.ID, err)
+					return err
+				}
+
+				// Delete upscales
+				if _, err := tx.Upscale.Delete().Where(
+					upscale.UserIDEQ(u.ID),
+				).Exec(j.Ctx); err != nil {
+					log.Errorf("Error deleting upscales for user %s: %v", u.ID, err)
 					return err
 				}
 
