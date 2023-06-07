@@ -184,6 +184,7 @@ func (c *RestAPI) HandleVoiceover(w http.ResponseWriter, r *http.Request) {
 				ModelId:      *voiceoverReq.ModelId,
 				Prompt:       voiceoverReq.Prompt,
 				Temp:         fmt.Sprint(*voiceoverReq.Temperature),
+				Seed:         fmt.Sprint(*voiceoverReq.Seed),
 			},
 		}
 
