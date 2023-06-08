@@ -5,6 +5,7 @@ import (
 	"math"
 	"math/rand"
 	"time"
+	"unicode/utf8"
 
 	"github.com/google/uuid"
 	"github.com/stablecog/sc-go/shared"
@@ -61,7 +62,7 @@ func (t *CreateVoiceoverRequest) Validate(api bool) error {
 		return errors.New("invalid_temp")
 	}
 
-	if len(t.Prompt) > shared.VOICEOVER_MAX_TEXT_LENGTH {
+	if utf8.RuneCountInString(t.Prompt) > shared.VOICEOVER_MAX_TEXT_LENGTH {
 		return errors.New("prompt_too_long")
 	}
 

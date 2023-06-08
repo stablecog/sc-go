@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"unicode/utf8"
 
 	"github.com/go-chi/render"
 	"github.com/stablecog/sc-go/database/ent"
@@ -65,7 +66,7 @@ func (c *RestAPI) HandleNewAPIToken(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Truncate to max length
-	if len(newReq.Name) > shared.MAX_TOKEN_NAME_SIZE {
+	if utf8.RuneCountInString(newReq.Name) > shared.MAX_TOKEN_NAME_SIZE {
 		newReq.Name = newReq.Name[:shared.MAX_TOKEN_NAME_SIZE]
 	}
 

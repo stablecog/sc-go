@@ -2,6 +2,7 @@ package utils
 
 import (
 	"strings"
+	"unicode/utf8"
 
 	"github.com/stablecog/sc-go/shared"
 )
@@ -22,7 +23,7 @@ func RemoveLineBreaks(s string) string {
 // e.g. "  hello   world  " -> "hello world"
 func FormatPrompt(s string) string {
 	cleanStr := RemoveRedundantSpaces(RemoveLineBreaks(s))
-	if len(cleanStr) > shared.MAX_PROMPT_LENGTH {
+	if utf8.RuneCountInString(cleanStr) > shared.MAX_PROMPT_LENGTH {
 		cleanStr = cleanStr[:shared.MAX_PROMPT_LENGTH]
 	}
 	return cleanStr
