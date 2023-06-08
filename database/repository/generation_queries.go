@@ -895,6 +895,7 @@ type GenerationUpscaleOutput struct {
 	ID               uuid.UUID                      `json:"id"`
 	ImageUrl         string                         `json:"image_url,omitempty"`
 	AudioFileUrl     string                         `json:"audio_file_url,omitempty"`
+	AudioDuration    *float32                       `json:"audio_duration,omitempty"`
 	UpscaledImageUrl string                         `json:"upscaled_image_url,omitempty"`
 	GalleryStatus    generationoutput.GalleryStatus `json:"gallery_status,omitempty"`
 	OutputID         *uuid.UUID                     `json:"output_id,omitempty"`

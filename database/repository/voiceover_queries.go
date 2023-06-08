@@ -251,6 +251,7 @@ func (r *Repository) QueryVoiceovers(per_page int, cursor *time.Time, filters *r
 			AudioFileUrl:     v.AudioFileUrl,
 			WasAutoSubmitted: v.WasAutoSubmitted,
 			IsFavorited:      v.IsFavorited,
+			AudioDuration:    utils.ToPtr(v.AudioDuration),
 		}
 		output := VoiceoverQueryWithOutputsResultFormatted{
 			GenerationUpscaleOutput: vOutput,
@@ -270,7 +271,8 @@ func (r *Repository) QueryVoiceovers(per_page int, cursor *time.Time, filters *r
 					Text: v.PromptText,
 					ID:   *v.PromptID,
 				},
-				IsFavorited: vOutput.IsFavorited,
+				IsFavorited:   vOutput.IsFavorited,
+				AudioDuration: v.AudioDuration,
 			},
 		}
 		voiceoverOutputMap[v.ID] = append(voiceoverOutputMap[v.ID], vOutput)
