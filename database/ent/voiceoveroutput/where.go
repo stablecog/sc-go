@@ -66,6 +66,11 @@ func IsFavorited(v bool) predicate.VoiceoverOutput {
 	return predicate.VoiceoverOutput(sql.FieldEQ(FieldIsFavorited, v))
 }
 
+// AudioDuration applies equality check predicate on the "audio_duration" field. It's identical to AudioDurationEQ.
+func AudioDuration(v float32) predicate.VoiceoverOutput {
+	return predicate.VoiceoverOutput(sql.FieldEQ(FieldAudioDuration, v))
+}
+
 // VoiceoverID applies equality check predicate on the "voiceover_id" field. It's identical to VoiceoverIDEQ.
 func VoiceoverID(v uuid.UUID) predicate.VoiceoverOutput {
 	return predicate.VoiceoverOutput(sql.FieldEQ(FieldVoiceoverID, v))
@@ -159,6 +164,46 @@ func IsFavoritedEQ(v bool) predicate.VoiceoverOutput {
 // IsFavoritedNEQ applies the NEQ predicate on the "is_favorited" field.
 func IsFavoritedNEQ(v bool) predicate.VoiceoverOutput {
 	return predicate.VoiceoverOutput(sql.FieldNEQ(FieldIsFavorited, v))
+}
+
+// AudioDurationEQ applies the EQ predicate on the "audio_duration" field.
+func AudioDurationEQ(v float32) predicate.VoiceoverOutput {
+	return predicate.VoiceoverOutput(sql.FieldEQ(FieldAudioDuration, v))
+}
+
+// AudioDurationNEQ applies the NEQ predicate on the "audio_duration" field.
+func AudioDurationNEQ(v float32) predicate.VoiceoverOutput {
+	return predicate.VoiceoverOutput(sql.FieldNEQ(FieldAudioDuration, v))
+}
+
+// AudioDurationIn applies the In predicate on the "audio_duration" field.
+func AudioDurationIn(vs ...float32) predicate.VoiceoverOutput {
+	return predicate.VoiceoverOutput(sql.FieldIn(FieldAudioDuration, vs...))
+}
+
+// AudioDurationNotIn applies the NotIn predicate on the "audio_duration" field.
+func AudioDurationNotIn(vs ...float32) predicate.VoiceoverOutput {
+	return predicate.VoiceoverOutput(sql.FieldNotIn(FieldAudioDuration, vs...))
+}
+
+// AudioDurationGT applies the GT predicate on the "audio_duration" field.
+func AudioDurationGT(v float32) predicate.VoiceoverOutput {
+	return predicate.VoiceoverOutput(sql.FieldGT(FieldAudioDuration, v))
+}
+
+// AudioDurationGTE applies the GTE predicate on the "audio_duration" field.
+func AudioDurationGTE(v float32) predicate.VoiceoverOutput {
+	return predicate.VoiceoverOutput(sql.FieldGTE(FieldAudioDuration, v))
+}
+
+// AudioDurationLT applies the LT predicate on the "audio_duration" field.
+func AudioDurationLT(v float32) predicate.VoiceoverOutput {
+	return predicate.VoiceoverOutput(sql.FieldLT(FieldAudioDuration, v))
+}
+
+// AudioDurationLTE applies the LTE predicate on the "audio_duration" field.
+func AudioDurationLTE(v float32) predicate.VoiceoverOutput {
+	return predicate.VoiceoverOutput(sql.FieldLTE(FieldAudioDuration, v))
 }
 
 // VoiceoverIDEQ applies the EQ predicate on the "voiceover_id" field.

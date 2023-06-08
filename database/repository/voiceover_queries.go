@@ -38,7 +38,7 @@ func (r *Repository) GetVoiceover(id uuid.UUID) (*ent.Voiceover, error) {
 
 type VoiceoverOutput struct {
 	ID               uuid.UUID  `json:"id"`
-	AudoFileURL      string     `json:"audio_file_url"`
+	AudioFileURL     string     `json:"audio_file_url"`
 	CreatedAt        *time.Time `json:"created_at,omitempty"`
 	IsFavorited      bool       `json:"is_favorited"`
 	WasAutoSubmitted bool       `json:"was_auto_submitted"`
@@ -179,7 +179,7 @@ func (r *Repository) QueryVoiceovers(per_page int, cursor *time.Time, filters *r
 			s.C(voiceover.FieldPromptID), pt.C(prompt.FieldID),
 		).LeftJoin(vot).On(
 			s.C(voiceover.FieldID), vot.C(voiceoveroutput.FieldVoiceoverID),
-		).AppendSelect(sql.As(pt.C(prompt.FieldText), "prompt_text"), sql.As(vot.C(voiceoveroutput.FieldID), "output_id"), sql.As(vot.C(voiceoveroutput.FieldAudioPath), "audio_path"), sql.As(vot.C(voiceoveroutput.FieldDeletedAt), "deleted_at"), sql.As(vot.C(voiceoveroutput.FieldIsFavorited), "is_favorited")).
+		).AppendSelect(sql.As(pt.C(prompt.FieldText), "prompt_text"), sql.As(vot.C(voiceoveroutput.FieldID), "output_id"), sql.As(vot.C(voiceoveroutput.FieldAudioPath), "audio_path"), sql.As(vot.C(voiceoveroutput.FieldDeletedAt), "deleted_at"), sql.As(vot.C(voiceoveroutput.FieldIsFavorited), "is_favorited"), sql.As(vot.C(voiceoveroutput.FieldAudioDuration), "audio_duration")).
 			GroupBy(s.C(voiceover.FieldID), pt.C(prompt.FieldText),
 				vot.C(voiceoveroutput.FieldID), vot.C(voiceoveroutput.FieldAudioPath))
 		orderDir := "asc"
@@ -317,6 +317,7 @@ type VoiceoverQueryWithOutputsData struct {
 	Outputs          []GenerationUpscaleOutput `json:"outputs"`
 	Prompt           PromptType                `json:"prompt"`
 	WasAutoSubmitted bool                      `json:"was_auto_submitted" sql:"was_auto_submitted"`
+	AudioDuration    float32                   `json:"audio_duration" sql:"audio_duration"`
 }
 
 type VoiceoverQueryWithOutputsResultFormatted struct {

@@ -17,6 +17,8 @@ const (
 	FieldAudioPath = "audio_path"
 	// FieldIsFavorited holds the string denoting the is_favorited field in the database.
 	FieldIsFavorited = "is_favorited"
+	// FieldAudioDuration holds the string denoting the audio_duration field in the database.
+	FieldAudioDuration = "audio_duration"
 	// FieldVoiceoverID holds the string denoting the voiceover_id field in the database.
 	FieldVoiceoverID = "voiceover_id"
 	// FieldDeletedAt holds the string denoting the deleted_at field in the database.
@@ -43,6 +45,7 @@ var Columns = []string{
 	FieldID,
 	FieldAudioPath,
 	FieldIsFavorited,
+	FieldAudioDuration,
 	FieldVoiceoverID,
 	FieldDeletedAt,
 	FieldCreatedAt,

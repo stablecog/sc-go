@@ -23,6 +23,7 @@ func (VoiceoverOutput) Fields() []ent.Field {
 		field.UUID("id", uuid.UUID{}).Default(uuid.New),
 		field.Text("audio_path"),
 		field.Bool("is_favorited").Default(false),
+		field.Float32("audio_duration"),
 		// ! Relationships / many-to-one
 		field.UUID("voiceover_id", uuid.UUID{}),
 		// ! End relationships

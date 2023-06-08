@@ -428,11 +428,11 @@ func init() {
 	// voiceoveroutput.DefaultIsFavorited holds the default value on creation for the is_favorited field.
 	voiceoveroutput.DefaultIsFavorited = voiceoveroutputDescIsFavorited.Default.(bool)
 	// voiceoveroutputDescCreatedAt is the schema descriptor for created_at field.
-	voiceoveroutputDescCreatedAt := voiceoveroutputFields[5].Descriptor()
+	voiceoveroutputDescCreatedAt := voiceoveroutputFields[6].Descriptor()
 	// voiceoveroutput.DefaultCreatedAt holds the default value on creation for the created_at field.
 	voiceoveroutput.DefaultCreatedAt = voiceoveroutputDescCreatedAt.Default.(func() time.Time)
 	// voiceoveroutputDescUpdatedAt is the schema descriptor for updated_at field.
-	voiceoveroutputDescUpdatedAt := voiceoveroutputFields[6].Descriptor()
+	voiceoveroutputDescUpdatedAt := voiceoveroutputFields[7].Descriptor()
 	// voiceoveroutput.DefaultUpdatedAt holds the default value on creation for the updated_at field.
 	voiceoveroutput.DefaultUpdatedAt = voiceoveroutputDescUpdatedAt.Default.(func() time.Time)
 	// voiceoveroutput.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.

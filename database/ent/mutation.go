@@ -18558,6 +18558,8 @@ type VoiceoverOutputMutation struct {
 	id                *uuid.UUID
 	audio_path        *string
 	is_favorited      *bool
+	audio_duration    *float32
+	addaudio_duration *float32
 	deleted_at        *time.Time
 	created_at        *time.Time
 	updated_at        *time.Time
@@ -18743,6 +18745,62 @@ func (m *VoiceoverOutputMutation) OldIsFavorited(ctx context.Context) (v bool, e
 // ResetIsFavorited resets all changes to the "is_favorited" field.
 func (m *VoiceoverOutputMutation) ResetIsFavorited() {
 	m.is_favorited = nil
+}
+
+// SetAudioDuration sets the "audio_duration" field.
+func (m *VoiceoverOutputMutation) SetAudioDuration(f float32) {
+	m.audio_duration = &f
+	m.addaudio_duration = nil
+}
+
+// AudioDuration returns the value of the "audio_duration" field in the mutation.
+func (m *VoiceoverOutputMutation) AudioDuration() (r float32, exists bool) {
+	v := m.audio_duration
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldAudioDuration returns the old "audio_duration" field's value of the VoiceoverOutput entity.
+// If the VoiceoverOutput object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *VoiceoverOutputMutation) OldAudioDuration(ctx context.Context) (v float32, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldAudioDuration is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldAudioDuration requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldAudioDuration: %w", err)
+	}
+	return oldValue.AudioDuration, nil
+}
+
+// AddAudioDuration adds f to the "audio_duration" field.
+func (m *VoiceoverOutputMutation) AddAudioDuration(f float32) {
+	if m.addaudio_duration != nil {
+		*m.addaudio_duration += f
+	} else {
+		m.addaudio_duration = &f
+	}
+}
+
+// AddedAudioDuration returns the value that was added to the "audio_duration" field in this mutation.
+func (m *VoiceoverOutputMutation) AddedAudioDuration() (r float32, exists bool) {
+	v := m.addaudio_duration
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetAudioDuration resets all changes to the "audio_duration" field.
+func (m *VoiceoverOutputMutation) ResetAudioDuration() {
+	m.audio_duration = nil
+	m.addaudio_duration = nil
 }
 
 // SetVoiceoverID sets the "voiceover_id" field.
@@ -18975,12 +19033,15 @@ func (m *VoiceoverOutputMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *VoiceoverOutputMutation) Fields() []string {
-	fields := make([]string, 0, 6)
+	fields := make([]string, 0, 7)
 	if m.audio_path != nil {
 		fields = append(fields, voiceoveroutput.FieldAudioPath)
 	}
 	if m.is_favorited != nil {
 		fields = append(fields, voiceoveroutput.FieldIsFavorited)
+	}
+	if m.audio_duration != nil {
+		fields = append(fields, voiceoveroutput.FieldAudioDuration)
 	}
 	if m.voiceovers != nil {
 		fields = append(fields, voiceoveroutput.FieldVoiceoverID)
@@ -19006,6 +19067,8 @@ func (m *VoiceoverOutputMutation) Field(name string) (ent.Value, bool) {
 		return m.AudioPath()
 	case voiceoveroutput.FieldIsFavorited:
 		return m.IsFavorited()
+	case voiceoveroutput.FieldAudioDuration:
+		return m.AudioDuration()
 	case voiceoveroutput.FieldVoiceoverID:
 		return m.VoiceoverID()
 	case voiceoveroutput.FieldDeletedAt:
@@ -19027,6 +19090,8 @@ func (m *VoiceoverOutputMutation) OldField(ctx context.Context, name string) (en
 		return m.OldAudioPath(ctx)
 	case voiceoveroutput.FieldIsFavorited:
 		return m.OldIsFavorited(ctx)
+	case voiceoveroutput.FieldAudioDuration:
+		return m.OldAudioDuration(ctx)
 	case voiceoveroutput.FieldVoiceoverID:
 		return m.OldVoiceoverID(ctx)
 	case voiceoveroutput.FieldDeletedAt:
@@ -19057,6 +19122,13 @@ func (m *VoiceoverOutputMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetIsFavorited(v)
+		return nil
+	case voiceoveroutput.FieldAudioDuration:
+		v, ok := value.(float32)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetAudioDuration(v)
 		return nil
 	case voiceoveroutput.FieldVoiceoverID:
 		v, ok := value.(uuid.UUID)
@@ -19093,13 +19165,21 @@ func (m *VoiceoverOutputMutation) SetField(name string, value ent.Value) error {
 // AddedFields returns all numeric fields that were incremented/decremented during
 // this mutation.
 func (m *VoiceoverOutputMutation) AddedFields() []string {
-	return nil
+	var fields []string
+	if m.addaudio_duration != nil {
+		fields = append(fields, voiceoveroutput.FieldAudioDuration)
+	}
+	return fields
 }
 
 // AddedField returns the numeric value that was incremented/decremented on a field
 // with the given name. The second boolean return value indicates that this field
 // was not set, or was not defined in the schema.
 func (m *VoiceoverOutputMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case voiceoveroutput.FieldAudioDuration:
+		return m.AddedAudioDuration()
+	}
 	return nil, false
 }
 
@@ -19108,6 +19188,13 @@ func (m *VoiceoverOutputMutation) AddedField(name string) (ent.Value, bool) {
 // type.
 func (m *VoiceoverOutputMutation) AddField(name string, value ent.Value) error {
 	switch name {
+	case voiceoveroutput.FieldAudioDuration:
+		v, ok := value.(float32)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddAudioDuration(v)
+		return nil
 	}
 	return fmt.Errorf("unknown VoiceoverOutput numeric field %s", name)
 }
@@ -19149,6 +19236,9 @@ func (m *VoiceoverOutputMutation) ResetField(name string) error {
 		return nil
 	case voiceoveroutput.FieldIsFavorited:
 		m.ResetIsFavorited()
+		return nil
+	case voiceoveroutput.FieldAudioDuration:
+		m.ResetAudioDuration()
 		return nil
 	case voiceoveroutput.FieldVoiceoverID:
 		m.ResetVoiceoverID()

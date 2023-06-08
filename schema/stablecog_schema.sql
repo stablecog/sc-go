@@ -1038,6 +1038,7 @@ CREATE TABLE "public"."voiceover_outputs"
      "audio_path"   TEXT NOT NULL,
      "deleted_at"   TIMESTAMPTZ NULL,
      is_favorited boolean DEFAULT false NOT NULL,
+     audio_duration real NOT NULL,
     created_at timestamp with time zone DEFAULT (now() AT TIME ZONE 'utc'::text) NOT NULL,
     updated_at timestamp with time zone DEFAULT (now() AT TIME ZONE 'utc'::text) NOT NULL,
      "voiceover_id" UUID NOT NULL,

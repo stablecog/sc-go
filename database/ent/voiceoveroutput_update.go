@@ -51,6 +51,19 @@ func (vou *VoiceoverOutputUpdate) SetNillableIsFavorited(b *bool) *VoiceoverOutp
 	return vou
 }
 
+// SetAudioDuration sets the "audio_duration" field.
+func (vou *VoiceoverOutputUpdate) SetAudioDuration(f float32) *VoiceoverOutputUpdate {
+	vou.mutation.ResetAudioDuration()
+	vou.mutation.SetAudioDuration(f)
+	return vou
+}
+
+// AddAudioDuration adds f to the "audio_duration" field.
+func (vou *VoiceoverOutputUpdate) AddAudioDuration(f float32) *VoiceoverOutputUpdate {
+	vou.mutation.AddAudioDuration(f)
+	return vou
+}
+
 // SetVoiceoverID sets the "voiceover_id" field.
 func (vou *VoiceoverOutputUpdate) SetVoiceoverID(u uuid.UUID) *VoiceoverOutputUpdate {
 	vou.mutation.SetVoiceoverID(u)
@@ -182,6 +195,12 @@ func (vou *VoiceoverOutputUpdate) sqlSave(ctx context.Context) (n int, err error
 	if value, ok := vou.mutation.IsFavorited(); ok {
 		_spec.SetField(voiceoveroutput.FieldIsFavorited, field.TypeBool, value)
 	}
+	if value, ok := vou.mutation.AudioDuration(); ok {
+		_spec.SetField(voiceoveroutput.FieldAudioDuration, field.TypeFloat32, value)
+	}
+	if value, ok := vou.mutation.AddedAudioDuration(); ok {
+		_spec.AddField(voiceoveroutput.FieldAudioDuration, field.TypeFloat32, value)
+	}
 	if value, ok := vou.mutation.DeletedAt(); ok {
 		_spec.SetField(voiceoveroutput.FieldDeletedAt, field.TypeTime, value)
 	}
@@ -265,6 +284,19 @@ func (vouo *VoiceoverOutputUpdateOne) SetNillableIsFavorited(b *bool) *Voiceover
 	if b != nil {
 		vouo.SetIsFavorited(*b)
 	}
+	return vouo
+}
+
+// SetAudioDuration sets the "audio_duration" field.
+func (vouo *VoiceoverOutputUpdateOne) SetAudioDuration(f float32) *VoiceoverOutputUpdateOne {
+	vouo.mutation.ResetAudioDuration()
+	vouo.mutation.SetAudioDuration(f)
+	return vouo
+}
+
+// AddAudioDuration adds f to the "audio_duration" field.
+func (vouo *VoiceoverOutputUpdateOne) AddAudioDuration(f float32) *VoiceoverOutputUpdateOne {
+	vouo.mutation.AddAudioDuration(f)
 	return vouo
 }
 
@@ -422,6 +454,12 @@ func (vouo *VoiceoverOutputUpdateOne) sqlSave(ctx context.Context) (_node *Voice
 	}
 	if value, ok := vouo.mutation.IsFavorited(); ok {
 		_spec.SetField(voiceoveroutput.FieldIsFavorited, field.TypeBool, value)
+	}
+	if value, ok := vouo.mutation.AudioDuration(); ok {
+		_spec.SetField(voiceoveroutput.FieldAudioDuration, field.TypeFloat32, value)
+	}
+	if value, ok := vouo.mutation.AddedAudioDuration(); ok {
+		_spec.AddField(voiceoveroutput.FieldAudioDuration, field.TypeFloat32, value)
 	}
 	if value, ok := vouo.mutation.DeletedAt(); ok {
 		_spec.SetField(voiceoveroutput.FieldDeletedAt, field.TypeTime, value)

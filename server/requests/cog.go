@@ -93,7 +93,8 @@ type CogWebhookOutputImage struct {
 }
 
 type CogWebhookOutputAudio struct {
-	AudoFile string `json:"audio_file"`
+	AudioFile     string  `json:"audio_file"`
+	AudioDuration float32 `json:"audio_duration"`
 }
 
 type CogWebhookOutput struct {

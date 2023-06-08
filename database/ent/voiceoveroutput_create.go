@@ -42,6 +42,12 @@ func (voc *VoiceoverOutputCreate) SetNillableIsFavorited(b *bool) *VoiceoverOutp
 	return voc
 }
 
+// SetAudioDuration sets the "audio_duration" field.
+func (voc *VoiceoverOutputCreate) SetAudioDuration(f float32) *VoiceoverOutputCreate {
+	voc.mutation.SetAudioDuration(f)
+	return voc
+}
+
 // SetVoiceoverID sets the "voiceover_id" field.
 func (voc *VoiceoverOutputCreate) SetVoiceoverID(u uuid.UUID) *VoiceoverOutputCreate {
 	voc.mutation.SetVoiceoverID(u)
@@ -176,6 +182,9 @@ func (voc *VoiceoverOutputCreate) check() error {
 	if _, ok := voc.mutation.IsFavorited(); !ok {
 		return &ValidationError{Name: "is_favorited", err: errors.New(`ent: missing required field "VoiceoverOutput.is_favorited"`)}
 	}
+	if _, ok := voc.mutation.AudioDuration(); !ok {
+		return &ValidationError{Name: "audio_duration", err: errors.New(`ent: missing required field "VoiceoverOutput.audio_duration"`)}
+	}
 	if _, ok := voc.mutation.VoiceoverID(); !ok {
 		return &ValidationError{Name: "voiceover_id", err: errors.New(`ent: missing required field "VoiceoverOutput.voiceover_id"`)}
 	}
@@ -236,6 +245,10 @@ func (voc *VoiceoverOutputCreate) createSpec() (*VoiceoverOutput, *sqlgraph.Crea
 	if value, ok := voc.mutation.IsFavorited(); ok {
 		_spec.SetField(voiceoveroutput.FieldIsFavorited, field.TypeBool, value)
 		_node.IsFavorited = value
+	}
+	if value, ok := voc.mutation.AudioDuration(); ok {
+		_spec.SetField(voiceoveroutput.FieldAudioDuration, field.TypeFloat32, value)
+		_node.AudioDuration = value
 	}
 	if value, ok := voc.mutation.DeletedAt(); ok {
 		_spec.SetField(voiceoveroutput.FieldDeletedAt, field.TypeTime, value)

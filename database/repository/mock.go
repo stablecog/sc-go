@@ -288,7 +288,7 @@ func (repo *Repository) CreateMockData(ctx context.Context) error {
 		requests.CogWebhookOutput{
 			AudioFiles: []requests.CogWebhookOutputAudio{
 				{
-					AudoFile: "output_1",
+					AudioFile: "output_1",
 				},
 			},
 		})
