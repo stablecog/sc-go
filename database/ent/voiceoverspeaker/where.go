@@ -76,6 +76,11 @@ func IsHidden(v bool) predicate.VoiceoverSpeaker {
 	return predicate.VoiceoverSpeaker(sql.FieldEQ(FieldIsHidden, v))
 }
 
+// Locale applies equality check predicate on the "locale" field. It's identical to LocaleEQ.
+func Locale(v string) predicate.VoiceoverSpeaker {
+	return predicate.VoiceoverSpeaker(sql.FieldEQ(FieldLocale, v))
+}
+
 // ModelID applies equality check predicate on the "model_id" field. It's identical to ModelIDEQ.
 func ModelID(v uuid.UUID) predicate.VoiceoverSpeaker {
 	return predicate.VoiceoverSpeaker(sql.FieldEQ(FieldModelID, v))
@@ -184,6 +189,71 @@ func IsHiddenEQ(v bool) predicate.VoiceoverSpeaker {
 // IsHiddenNEQ applies the NEQ predicate on the "is_hidden" field.
 func IsHiddenNEQ(v bool) predicate.VoiceoverSpeaker {
 	return predicate.VoiceoverSpeaker(sql.FieldNEQ(FieldIsHidden, v))
+}
+
+// LocaleEQ applies the EQ predicate on the "locale" field.
+func LocaleEQ(v string) predicate.VoiceoverSpeaker {
+	return predicate.VoiceoverSpeaker(sql.FieldEQ(FieldLocale, v))
+}
+
+// LocaleNEQ applies the NEQ predicate on the "locale" field.
+func LocaleNEQ(v string) predicate.VoiceoverSpeaker {
+	return predicate.VoiceoverSpeaker(sql.FieldNEQ(FieldLocale, v))
+}
+
+// LocaleIn applies the In predicate on the "locale" field.
+func LocaleIn(vs ...string) predicate.VoiceoverSpeaker {
+	return predicate.VoiceoverSpeaker(sql.FieldIn(FieldLocale, vs...))
+}
+
+// LocaleNotIn applies the NotIn predicate on the "locale" field.
+func LocaleNotIn(vs ...string) predicate.VoiceoverSpeaker {
+	return predicate.VoiceoverSpeaker(sql.FieldNotIn(FieldLocale, vs...))
+}
+
+// LocaleGT applies the GT predicate on the "locale" field.
+func LocaleGT(v string) predicate.VoiceoverSpeaker {
+	return predicate.VoiceoverSpeaker(sql.FieldGT(FieldLocale, v))
+}
+
+// LocaleGTE applies the GTE predicate on the "locale" field.
+func LocaleGTE(v string) predicate.VoiceoverSpeaker {
+	return predicate.VoiceoverSpeaker(sql.FieldGTE(FieldLocale, v))
+}
+
+// LocaleLT applies the LT predicate on the "locale" field.
+func LocaleLT(v string) predicate.VoiceoverSpeaker {
+	return predicate.VoiceoverSpeaker(sql.FieldLT(FieldLocale, v))
+}
+
+// LocaleLTE applies the LTE predicate on the "locale" field.
+func LocaleLTE(v string) predicate.VoiceoverSpeaker {
+	return predicate.VoiceoverSpeaker(sql.FieldLTE(FieldLocale, v))
+}
+
+// LocaleContains applies the Contains predicate on the "locale" field.
+func LocaleContains(v string) predicate.VoiceoverSpeaker {
+	return predicate.VoiceoverSpeaker(sql.FieldContains(FieldLocale, v))
+}
+
+// LocaleHasPrefix applies the HasPrefix predicate on the "locale" field.
+func LocaleHasPrefix(v string) predicate.VoiceoverSpeaker {
+	return predicate.VoiceoverSpeaker(sql.FieldHasPrefix(FieldLocale, v))
+}
+
+// LocaleHasSuffix applies the HasSuffix predicate on the "locale" field.
+func LocaleHasSuffix(v string) predicate.VoiceoverSpeaker {
+	return predicate.VoiceoverSpeaker(sql.FieldHasSuffix(FieldLocale, v))
+}
+
+// LocaleEqualFold applies the EqualFold predicate on the "locale" field.
+func LocaleEqualFold(v string) predicate.VoiceoverSpeaker {
+	return predicate.VoiceoverSpeaker(sql.FieldEqualFold(FieldLocale, v))
+}
+
+// LocaleContainsFold applies the ContainsFold predicate on the "locale" field.
+func LocaleContainsFold(v string) predicate.VoiceoverSpeaker {
+	return predicate.VoiceoverSpeaker(sql.FieldContainsFold(FieldLocale, v))
 }
 
 // ModelIDEQ applies the EQ predicate on the "model_id" field.

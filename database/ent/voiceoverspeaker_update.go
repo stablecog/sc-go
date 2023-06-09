@@ -80,6 +80,20 @@ func (vsu *VoiceoverSpeakerUpdate) SetNillableIsHidden(b *bool) *VoiceoverSpeake
 	return vsu
 }
 
+// SetLocale sets the "locale" field.
+func (vsu *VoiceoverSpeakerUpdate) SetLocale(s string) *VoiceoverSpeakerUpdate {
+	vsu.mutation.SetLocale(s)
+	return vsu
+}
+
+// SetNillableLocale sets the "locale" field if the given value is not nil.
+func (vsu *VoiceoverSpeakerUpdate) SetNillableLocale(s *string) *VoiceoverSpeakerUpdate {
+	if s != nil {
+		vsu.SetLocale(*s)
+	}
+	return vsu
+}
+
 // SetModelID sets the "model_id" field.
 func (vsu *VoiceoverSpeakerUpdate) SetModelID(u uuid.UUID) *VoiceoverSpeakerUpdate {
 	vsu.mutation.SetModelID(u)
@@ -232,6 +246,9 @@ func (vsu *VoiceoverSpeakerUpdate) sqlSave(ctx context.Context) (n int, err erro
 	}
 	if value, ok := vsu.mutation.IsHidden(); ok {
 		_spec.SetField(voiceoverspeaker.FieldIsHidden, field.TypeBool, value)
+	}
+	if value, ok := vsu.mutation.Locale(); ok {
+		_spec.SetField(voiceoverspeaker.FieldLocale, field.TypeString, value)
 	}
 	if value, ok := vsu.mutation.UpdatedAt(); ok {
 		_spec.SetField(voiceoverspeaker.FieldUpdatedAt, field.TypeTime, value)
@@ -391,6 +408,20 @@ func (vsuo *VoiceoverSpeakerUpdateOne) SetIsHidden(b bool) *VoiceoverSpeakerUpda
 func (vsuo *VoiceoverSpeakerUpdateOne) SetNillableIsHidden(b *bool) *VoiceoverSpeakerUpdateOne {
 	if b != nil {
 		vsuo.SetIsHidden(*b)
+	}
+	return vsuo
+}
+
+// SetLocale sets the "locale" field.
+func (vsuo *VoiceoverSpeakerUpdateOne) SetLocale(s string) *VoiceoverSpeakerUpdateOne {
+	vsuo.mutation.SetLocale(s)
+	return vsuo
+}
+
+// SetNillableLocale sets the "locale" field if the given value is not nil.
+func (vsuo *VoiceoverSpeakerUpdateOne) SetNillableLocale(s *string) *VoiceoverSpeakerUpdateOne {
+	if s != nil {
+		vsuo.SetLocale(*s)
 	}
 	return vsuo
 }
@@ -571,6 +602,9 @@ func (vsuo *VoiceoverSpeakerUpdateOne) sqlSave(ctx context.Context) (_node *Voic
 	}
 	if value, ok := vsuo.mutation.IsHidden(); ok {
 		_spec.SetField(voiceoverspeaker.FieldIsHidden, field.TypeBool, value)
+	}
+	if value, ok := vsuo.mutation.Locale(); ok {
+		_spec.SetField(voiceoverspeaker.FieldLocale, field.TypeString, value)
 	}
 	if value, ok := vsuo.mutation.UpdatedAt(); ok {
 		_spec.SetField(voiceoverspeaker.FieldUpdatedAt, field.TypeTime, value)

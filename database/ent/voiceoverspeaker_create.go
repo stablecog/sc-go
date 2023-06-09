@@ -71,6 +71,20 @@ func (vsc *VoiceoverSpeakerCreate) SetNillableIsHidden(b *bool) *VoiceoverSpeake
 	return vsc
 }
 
+// SetLocale sets the "locale" field.
+func (vsc *VoiceoverSpeakerCreate) SetLocale(s string) *VoiceoverSpeakerCreate {
+	vsc.mutation.SetLocale(s)
+	return vsc
+}
+
+// SetNillableLocale sets the "locale" field if the given value is not nil.
+func (vsc *VoiceoverSpeakerCreate) SetNillableLocale(s *string) *VoiceoverSpeakerCreate {
+	if s != nil {
+		vsc.SetLocale(*s)
+	}
+	return vsc
+}
+
 // SetModelID sets the "model_id" field.
 func (vsc *VoiceoverSpeakerCreate) SetModelID(u uuid.UUID) *VoiceoverSpeakerCreate {
 	vsc.mutation.SetModelID(u)
@@ -192,6 +206,10 @@ func (vsc *VoiceoverSpeakerCreate) defaults() {
 		v := voiceoverspeaker.DefaultIsHidden
 		vsc.mutation.SetIsHidden(v)
 	}
+	if _, ok := vsc.mutation.Locale(); !ok {
+		v := voiceoverspeaker.DefaultLocale
+		vsc.mutation.SetLocale(v)
+	}
 	if _, ok := vsc.mutation.CreatedAt(); !ok {
 		v := voiceoverspeaker.DefaultCreatedAt()
 		vsc.mutation.SetCreatedAt(v)
@@ -219,6 +237,9 @@ func (vsc *VoiceoverSpeakerCreate) check() error {
 	}
 	if _, ok := vsc.mutation.IsHidden(); !ok {
 		return &ValidationError{Name: "is_hidden", err: errors.New(`ent: missing required field "VoiceoverSpeaker.is_hidden"`)}
+	}
+	if _, ok := vsc.mutation.Locale(); !ok {
+		return &ValidationError{Name: "locale", err: errors.New(`ent: missing required field "VoiceoverSpeaker.locale"`)}
 	}
 	if _, ok := vsc.mutation.ModelID(); !ok {
 		return &ValidationError{Name: "model_id", err: errors.New(`ent: missing required field "VoiceoverSpeaker.model_id"`)}
@@ -288,6 +309,10 @@ func (vsc *VoiceoverSpeakerCreate) createSpec() (*VoiceoverSpeaker, *sqlgraph.Cr
 	if value, ok := vsc.mutation.IsHidden(); ok {
 		_spec.SetField(voiceoverspeaker.FieldIsHidden, field.TypeBool, value)
 		_node.IsHidden = value
+	}
+	if value, ok := vsc.mutation.Locale(); ok {
+		_spec.SetField(voiceoverspeaker.FieldLocale, field.TypeString, value)
+		_node.Locale = value
 	}
 	if value, ok := vsc.mutation.CreatedAt(); ok {
 		_spec.SetField(voiceoverspeaker.FieldCreatedAt, field.TypeTime, value)

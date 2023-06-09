@@ -19340,6 +19340,7 @@ type VoiceoverSpeakerMutation struct {
 	is_active               *bool
 	is_default              *bool
 	is_hidden               *bool
+	locale                  *string
 	created_at              *time.Time
 	updated_at              *time.Time
 	clearedFields           map[string]struct{}
@@ -19601,6 +19602,42 @@ func (m *VoiceoverSpeakerMutation) ResetIsHidden() {
 	m.is_hidden = nil
 }
 
+// SetLocale sets the "locale" field.
+func (m *VoiceoverSpeakerMutation) SetLocale(s string) {
+	m.locale = &s
+}
+
+// Locale returns the value of the "locale" field in the mutation.
+func (m *VoiceoverSpeakerMutation) Locale() (r string, exists bool) {
+	v := m.locale
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldLocale returns the old "locale" field's value of the VoiceoverSpeaker entity.
+// If the VoiceoverSpeaker object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *VoiceoverSpeakerMutation) OldLocale(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldLocale is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldLocale requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldLocale: %w", err)
+	}
+	return oldValue.Locale, nil
+}
+
+// ResetLocale resets all changes to the "locale" field.
+func (m *VoiceoverSpeakerMutation) ResetLocale() {
+	m.locale = nil
+}
+
 // SetModelID sets the "model_id" field.
 func (m *VoiceoverSpeakerMutation) SetModelID(u uuid.UUID) {
 	m.voiceover_models = &u
@@ -19836,7 +19873,7 @@ func (m *VoiceoverSpeakerMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *VoiceoverSpeakerMutation) Fields() []string {
-	fields := make([]string, 0, 7)
+	fields := make([]string, 0, 8)
 	if m.name_in_worker != nil {
 		fields = append(fields, voiceoverspeaker.FieldNameInWorker)
 	}
@@ -19848,6 +19885,9 @@ func (m *VoiceoverSpeakerMutation) Fields() []string {
 	}
 	if m.is_hidden != nil {
 		fields = append(fields, voiceoverspeaker.FieldIsHidden)
+	}
+	if m.locale != nil {
+		fields = append(fields, voiceoverspeaker.FieldLocale)
 	}
 	if m.voiceover_models != nil {
 		fields = append(fields, voiceoverspeaker.FieldModelID)
@@ -19874,6 +19914,8 @@ func (m *VoiceoverSpeakerMutation) Field(name string) (ent.Value, bool) {
 		return m.IsDefault()
 	case voiceoverspeaker.FieldIsHidden:
 		return m.IsHidden()
+	case voiceoverspeaker.FieldLocale:
+		return m.Locale()
 	case voiceoverspeaker.FieldModelID:
 		return m.ModelID()
 	case voiceoverspeaker.FieldCreatedAt:
@@ -19897,6 +19939,8 @@ func (m *VoiceoverSpeakerMutation) OldField(ctx context.Context, name string) (e
 		return m.OldIsDefault(ctx)
 	case voiceoverspeaker.FieldIsHidden:
 		return m.OldIsHidden(ctx)
+	case voiceoverspeaker.FieldLocale:
+		return m.OldLocale(ctx)
 	case voiceoverspeaker.FieldModelID:
 		return m.OldModelID(ctx)
 	case voiceoverspeaker.FieldCreatedAt:
@@ -19939,6 +19983,13 @@ func (m *VoiceoverSpeakerMutation) SetField(name string, value ent.Value) error 
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetIsHidden(v)
+		return nil
+	case voiceoverspeaker.FieldLocale:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetLocale(v)
 		return nil
 	case voiceoverspeaker.FieldModelID:
 		v, ok := value.(uuid.UUID)
@@ -20021,6 +20072,9 @@ func (m *VoiceoverSpeakerMutation) ResetField(name string) error {
 		return nil
 	case voiceoverspeaker.FieldIsHidden:
 		m.ResetIsHidden()
+		return nil
+	case voiceoverspeaker.FieldLocale:
+		m.ResetLocale()
 		return nil
 	case voiceoverspeaker.FieldModelID:
 		m.ResetModelID()

@@ -979,6 +979,7 @@ CREATE TABLE "public"."voiceover_speakers"
     created_at timestamp with time zone DEFAULT (now() AT TIME ZONE 'utc'::text) NOT NULL,
     updated_at timestamp with time zone DEFAULT (now() AT TIME ZONE 'utc'::text) NOT NULL,
      "model_id"       UUID NOT NULL,
+     "locale"         TEXT NOT NULL DEFAULT 'en',
      PRIMARY KEY ("id"),
      CONSTRAINT "voiceover_speakers_voiceover_models_voiceover_speakers" FOREIGN
      KEY ("model_id") REFERENCES "public"."voiceover_models" ("id") ON UPDATE no

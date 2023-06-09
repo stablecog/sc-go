@@ -455,12 +455,16 @@ func init() {
 	voiceoverspeakerDescIsHidden := voiceoverspeakerFields[4].Descriptor()
 	// voiceoverspeaker.DefaultIsHidden holds the default value on creation for the is_hidden field.
 	voiceoverspeaker.DefaultIsHidden = voiceoverspeakerDescIsHidden.Default.(bool)
+	// voiceoverspeakerDescLocale is the schema descriptor for locale field.
+	voiceoverspeakerDescLocale := voiceoverspeakerFields[5].Descriptor()
+	// voiceoverspeaker.DefaultLocale holds the default value on creation for the locale field.
+	voiceoverspeaker.DefaultLocale = voiceoverspeakerDescLocale.Default.(string)
 	// voiceoverspeakerDescCreatedAt is the schema descriptor for created_at field.
-	voiceoverspeakerDescCreatedAt := voiceoverspeakerFields[6].Descriptor()
+	voiceoverspeakerDescCreatedAt := voiceoverspeakerFields[7].Descriptor()
 	// voiceoverspeaker.DefaultCreatedAt holds the default value on creation for the created_at field.
 	voiceoverspeaker.DefaultCreatedAt = voiceoverspeakerDescCreatedAt.Default.(func() time.Time)
 	// voiceoverspeakerDescUpdatedAt is the schema descriptor for updated_at field.
-	voiceoverspeakerDescUpdatedAt := voiceoverspeakerFields[7].Descriptor()
+	voiceoverspeakerDescUpdatedAt := voiceoverspeakerFields[8].Descriptor()
 	// voiceoverspeaker.DefaultUpdatedAt holds the default value on creation for the updated_at field.
 	voiceoverspeaker.DefaultUpdatedAt = voiceoverspeakerDescUpdatedAt.Default.(func() time.Time)
 	// voiceoverspeaker.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.

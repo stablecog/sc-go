@@ -21,6 +21,8 @@ const (
 	FieldIsDefault = "is_default"
 	// FieldIsHidden holds the string denoting the is_hidden field in the database.
 	FieldIsHidden = "is_hidden"
+	// FieldLocale holds the string denoting the locale field in the database.
+	FieldLocale = "locale"
 	// FieldModelID holds the string denoting the model_id field in the database.
 	FieldModelID = "model_id"
 	// FieldCreatedAt holds the string denoting the created_at field in the database.
@@ -56,6 +58,7 @@ var Columns = []string{
 	FieldIsActive,
 	FieldIsDefault,
 	FieldIsHidden,
+	FieldLocale,
 	FieldModelID,
 	FieldCreatedAt,
 	FieldUpdatedAt,
@@ -78,6 +81,8 @@ var (
 	DefaultIsDefault bool
 	// DefaultIsHidden holds the default value on creation for the "is_hidden" field.
 	DefaultIsHidden bool
+	// DefaultLocale holds the default value on creation for the "locale" field.
+	DefaultLocale string
 	// DefaultCreatedAt holds the default value on creation for the "created_at" field.
 	DefaultCreatedAt func() time.Time
 	// DefaultUpdatedAt holds the default value on creation for the "updated_at" field.

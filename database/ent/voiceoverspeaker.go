@@ -26,6 +26,8 @@ type VoiceoverSpeaker struct {
 	IsDefault bool `json:"is_default,omitempty"`
 	// IsHidden holds the value of the "is_hidden" field.
 	IsHidden bool `json:"is_hidden,omitempty"`
+	// Locale holds the value of the "locale" field.
+	Locale string `json:"locale,omitempty"`
 	// ModelID holds the value of the "model_id" field.
 	ModelID uuid.UUID `json:"model_id,omitempty"`
 	// CreatedAt holds the value of the "created_at" field.
@@ -77,7 +79,7 @@ func (*VoiceoverSpeaker) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case voiceoverspeaker.FieldIsActive, voiceoverspeaker.FieldIsDefault, voiceoverspeaker.FieldIsHidden:
 			values[i] = new(sql.NullBool)
-		case voiceoverspeaker.FieldNameInWorker:
+		case voiceoverspeaker.FieldNameInWorker, voiceoverspeaker.FieldLocale:
 			values[i] = new(sql.NullString)
 		case voiceoverspeaker.FieldCreatedAt, voiceoverspeaker.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
@@ -127,6 +129,12 @@ func (vs *VoiceoverSpeaker) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field is_hidden", values[i])
 			} else if value.Valid {
 				vs.IsHidden = value.Bool
+			}
+		case voiceoverspeaker.FieldLocale:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field locale", values[i])
+			} else if value.Valid {
+				vs.Locale = value.String
 			}
 		case voiceoverspeaker.FieldModelID:
 			if value, ok := values[i].(*uuid.UUID); !ok {
@@ -195,6 +203,9 @@ func (vs *VoiceoverSpeaker) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("is_hidden=")
 	builder.WriteString(fmt.Sprintf("%v", vs.IsHidden))
+	builder.WriteString(", ")
+	builder.WriteString("locale=")
+	builder.WriteString(vs.Locale)
 	builder.WriteString(", ")
 	builder.WriteString("model_id=")
 	builder.WriteString(fmt.Sprintf("%v", vs.ModelID))

@@ -25,6 +25,7 @@ func (VoiceoverSpeaker) Fields() []ent.Field {
 		field.Bool("is_active").Default(true),
 		field.Bool("is_default").Default(false),
 		field.Bool("is_hidden").Default(false),
+		field.String("locale").Default("en"),
 		// ! Relationships / many-to-one
 		field.UUID("model_id", uuid.UUID{}),
 		// ! End relationships

@@ -603,6 +603,7 @@ var (
 		{Name: "is_active", Type: field.TypeBool, Default: true},
 		{Name: "is_default", Type: field.TypeBool, Default: false},
 		{Name: "is_hidden", Type: field.TypeBool, Default: false},
+		{Name: "locale", Type: field.TypeString, Default: "en"},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},
 		{Name: "model_id", Type: field.TypeUUID},
@@ -615,7 +616,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "voiceover_speakers_voiceover_models_voiceover_speakers",
-				Columns:    []*schema.Column{VoiceoverSpeakersColumns[7]},
+				Columns:    []*schema.Column{VoiceoverSpeakersColumns[8]},
 				RefColumns: []*schema.Column{VoiceoverModelsColumns[0]},
 				OnDelete:   schema.Cascade,
 			},
@@ -624,7 +625,7 @@ var (
 			{
 				Name:    "voiceoverspeaker_name_in_worker_model_id",
 				Unique:  true,
-				Columns: []*schema.Column{VoiceoverSpeakersColumns[1], VoiceoverSpeakersColumns[7]},
+				Columns: []*schema.Column{VoiceoverSpeakersColumns[1], VoiceoverSpeakersColumns[8]},
 			},
 		},
 	}

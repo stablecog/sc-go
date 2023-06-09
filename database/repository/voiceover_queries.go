@@ -9,6 +9,7 @@ import (
 	"github.com/stablecog/sc-go/database/ent/prompt"
 	"github.com/stablecog/sc-go/database/ent/voiceover"
 	"github.com/stablecog/sc-go/database/ent/voiceoveroutput"
+	"github.com/stablecog/sc-go/database/ent/voiceoverspeaker"
 	"github.com/stablecog/sc-go/log"
 	"github.com/stablecog/sc-go/server/requests"
 	"github.com/stablecog/sc-go/utils"
@@ -175,11 +176,14 @@ func (r *Repository) QueryVoiceovers(per_page int, cursor *time.Time, filters *r
 		vt := sql.Table(voiceover.Table)
 		pt := sql.Table(prompt.Table)
 		vot := sql.Table(voiceoveroutput.Table)
+		st := sql.Table(voiceoverspeaker.Table)
 		s.LeftJoin(pt).On(
 			s.C(voiceover.FieldPromptID), pt.C(prompt.FieldID),
 		).LeftJoin(vot).On(
 			s.C(voiceover.FieldID), vot.C(voiceoveroutput.FieldVoiceoverID),
-		).AppendSelect(sql.As(pt.C(prompt.FieldText), "prompt_text"), sql.As(vot.C(voiceoveroutput.FieldID), "output_id"), sql.As(vot.C(voiceoveroutput.FieldAudioPath), "audio_path"), sql.As(vot.C(voiceoveroutput.FieldDeletedAt), "deleted_at"), sql.As(vot.C(voiceoveroutput.FieldIsFavorited), "is_favorited"), sql.As(vot.C(voiceoveroutput.FieldAudioDuration), "audio_duration")).
+		).LeftJoin(st).On(
+			s.C(voiceover.FieldSpeakerID), st.C(voiceoverspeaker.FieldID),
+		).AppendSelect(sql.As(pt.C(prompt.FieldText), "prompt_text"), sql.As(vot.C(voiceoveroutput.FieldID), "output_id"), sql.As(vot.C(voiceoveroutput.FieldAudioPath), "audio_path"), sql.As(vot.C(voiceoveroutput.FieldDeletedAt), "deleted_at"), sql.As(vot.C(voiceoveroutput.FieldIsFavorited), "is_favorited"), sql.As(vot.C(voiceoveroutput.FieldAudioDuration), "audio_duration"), sql.As(st.C(voiceoverspeaker.FieldNameInWorker), "name_in_worker"), sql.As(st.C(voiceoverspeaker.FieldLocale), "locale")).
 			GroupBy(s.C(voiceover.FieldID), pt.C(prompt.FieldText),
 				vot.C(voiceoveroutput.FieldID), vot.C(voiceoveroutput.FieldAudioPath))
 		orderDir := "asc"
@@ -260,7 +264,6 @@ func (r *Repository) QueryVoiceovers(per_page int, cursor *time.Time, filters *r
 				Seed:        v.Seed,
 				Status:      v.Status,
 				Temperature: v.Temperature,
-				SpeakerID:   v.SpeakerID,
 				ModelID:     v.ModelID,
 				PromptID:    v.PromptID,
 				CreatedAt:   v.CreatedAt,
@@ -273,6 +276,11 @@ func (r *Repository) QueryVoiceovers(per_page int, cursor *time.Time, filters *r
 				},
 				IsFavorited:   vOutput.IsFavorited,
 				AudioDuration: v.AudioDuration,
+				Speaker: VoiceoverSpeaker{
+					ID:     v.SpeakerID,
+					Name:   v.NameInWorker,
+					Locale: v.Locale,
+				},
 			},
 		}
 		voiceoverOutputMap[v.ID] = append(voiceoverOutputMap[v.ID], vOutput)
@@ -302,12 +310,17 @@ type VoiceoverQueryWithOutputsResult struct {
 	VoiceoverQueryWithOutputsData
 }
 
+type VoiceoverSpeaker struct {
+	ID     uuid.UUID `json:"id"`
+	Name   string    `json:"name"`
+	Locale string    `json:"locale"`
+}
+
 type VoiceoverQueryWithOutputsData struct {
 	ID               uuid.UUID                 `json:"id" sql:"id"`
 	Seed             int                       `json:"seed" sql:"seed"`
 	Temperature      float32                   `json:"temperature" sql:"temperature"`
 	Status           string                    `json:"status" sql:"status"`
-	SpeakerID        uuid.UUID                 `json:"speaker_id" sql:"speaker_id"`
 	ModelID          uuid.UUID                 `json:"model_id" sql:"model_id"`
 	PromptID         *uuid.UUID                `json:"prompt_id,omitempty" sql:"prompt_id"`
 	CreatedAt        time.Time                 `json:"created_at" sql:"created_at"`
@@ -320,6 +333,11 @@ type VoiceoverQueryWithOutputsData struct {
 	Prompt           PromptType                `json:"prompt"`
 	WasAutoSubmitted bool                      `json:"was_auto_submitted" sql:"was_auto_submitted"`
 	AudioDuration    float32                   `json:"audio_duration" sql:"audio_duration"`
+	Speaker          VoiceoverSpeaker          `json:"speaker"`
+	// For speaker object
+	SpeakerID    uuid.UUID `sql:"speaker_id"`
+	NameInWorker string    `sql:"name_in_worker"`
+	Locale       string    `sql:"locale"`
 }
 
 type VoiceoverQueryWithOutputsResultFormatted struct {
