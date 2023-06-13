@@ -41,6 +41,7 @@ func main() {
 	stats := flag.Bool("stats", false, "Run the stats job")
 	deleteData := flag.Bool("delete-banned-data", false, "Delete banned user data")
 	dryRun := flag.Bool("dry-run", false, "Dry run (don't actually do anything)")
+	refund := flag.Bool("refund", false, "Refund expired credits")
 	allJobs := flag.Bool("all", false, "Run all jobs in a blocking process")
 	flag.Parse()
 
@@ -163,6 +164,15 @@ func main() {
 		err := jobRunner.DeleteUserData(jobs.NewJobLogger("DELETE_DATA"), *dryRun)
 		if err != nil {
 			log.Fatal("Error running delete data job", "err", err)
+			os.Exit(1)
+		}
+		os.Exit(0)
+	}
+
+	if *refund {
+		err := jobRunner.RefundOldGenerationCredits(jobs.NewJobLogger("REFUND"))
+		if err != nil {
+			log.Fatal("Error running refund job", "err", err)
 			os.Exit(1)
 		}
 		os.Exit(0)
