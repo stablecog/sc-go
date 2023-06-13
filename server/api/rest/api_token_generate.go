@@ -114,6 +114,16 @@ func (c *RestAPI) HandleCreateGenerationToken(w http.ResponseWriter, r *http.Req
 		return
 	}
 
+	if user.BannedAt != nil {
+		remainingCredits, _ := c.Repo.GetNonExpiredCreditTotalForUser(user.ID, nil)
+		render.Status(r, http.StatusOK)
+		render.JSON(w, r, &responses.TaskQueuedResponse{
+			ID:               uuid.NewString(),
+			RemainingCredits: remainingCredits,
+		})
+		return
+	}
+
 	// Validation
 	err = generateReq.Validate(true)
 	if err != nil {
