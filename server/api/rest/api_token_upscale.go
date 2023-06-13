@@ -109,6 +109,16 @@ func (c *RestAPI) HandleCreateUpscaleToken(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
+	if user.BannedAt != nil {
+		remainingCredits, _ := c.Repo.GetNonExpiredCreditTotalForUser(user.ID, nil)
+		render.Status(r, http.StatusOK)
+		render.JSON(w, r, &responses.TaskQueuedResponse{
+			ID:               uuid.NewString(),
+			RemainingCredits: remainingCredits,
+		})
+		return
+	}
+
 	// Validation
 	err = upscaleReq.Validate(true)
 	if err != nil {

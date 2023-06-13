@@ -173,10 +173,7 @@ func (c *RestAPI) HandleSCWorkerWebhook(w http.ResponseWriter, r *http.Request) 
 	}()
 
 	// Process in database
-	st := time.Now()
 	err = c.Repo.ProcessCogMessage(cogMessage)
-	end := time.Now()
-	log.Info("Processed COG message", "duration", end.Sub(st).Seconds())
 	if err != nil {
 		log.Error("Error processing COG message", "err", err)
 		if ent.IsConstraintError(err) {
