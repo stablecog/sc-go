@@ -440,7 +440,7 @@ func (r *Repository) ProcessCogMessage(msg requests.CogWebhookMessage) error {
 			RemainingCredits: remainingCredits,
 		}
 		if msg.Status == requests.CogSucceeded {
-			audioFileURL := utils.GetURLFromImagePath(voiceoverOutput.AudioPath)
+			audioFileURL := utils.GetURLFromAudioFilePath(voiceoverOutput.AudioPath)
 			resp.Outputs = []GenerationUpscaleOutput{
 				{
 					ID:           voiceoverOutput.ID,

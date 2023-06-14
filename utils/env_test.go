@@ -36,3 +36,10 @@ func TestGetURLFromImagePath(t *testing.T) {
 
 	assert.Equal(t, "http://test.com/cc70edec-b6ff-42c5-8726-957bbd8fc212.jpeg", GetURLFromImagePath("cc70edec-b6ff-42c5-8726-957bbd8fc212.jpeg"))
 }
+
+func TestGetUrlFromAudioFilePath(t *testing.T) {
+	os.Setenv("BUCKET_VOICEOVER_URL", "http://testv.com/")
+	defer os.Unsetenv("BUCKET_VOICEOVER_URL")
+
+	assert.Equal(t, "http://testv.com/cc70edec-b6ff-42c5-8726-957bbd8fc212.mp3", GetURLFromAudioFilePath("cc70edec-b6ff-42c5-8726-957bbd8fc212.mp3"))
+}

@@ -39,6 +39,12 @@ func GetURLFromImagePath(s3UrlStr string) string {
 	return baseUrl + s3UrlStr
 }
 
+func GetURLFromAudioFilePath(s3UrlStr string) string {
+	baseUrl := EnsureTrailingSlash(GetEnv("BUCKET_VOICEOVER_URL", "https://bvoi.stablecog.com/"))
+
+	return baseUrl + s3UrlStr
+}
+
 func GetCorsOrigins() []string {
 	if GetEnv("PRODUCTION", "false") == "true" {
 		return []string{
