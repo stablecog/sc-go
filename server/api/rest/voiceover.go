@@ -47,6 +47,18 @@ func (c *RestAPI) HandleVoiceover(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	free := user.ActiveProductID == nil
+	if free {
+		// Re-evaluate if they have paid credits
+		count, err := c.Repo.HasPaidCredits(user.ID)
+		if err != nil {
+			log.Error("Error getting paid credit sum for users", "err", err)
+			responses.ErrInternalServerError(w, r, "An unknown error has occurred")
+			return
+		}
+		free = count <= 0
+	}
+
 	var qMax int
 	roles, err := c.Repo.GetRoles(user.ID)
 	if err != nil {
@@ -59,6 +71,17 @@ func (c *RestAPI) HandleVoiceover(w http.ResponseWriter, r *http.Request) {
 		qMax = math.MaxInt64
 	} else {
 		qMax = shared.MAX_QUEUED_ITEMS_VOICEOVER
+	}
+
+	for _, role := range roles {
+		switch role {
+		case "ULTIMATE":
+			free = false
+		case "PRO":
+			free = false
+		case "STARTER":
+			free = false
+		}
 	}
 
 	// Validation
@@ -78,6 +101,11 @@ func (c *RestAPI) HandleVoiceover(w http.ResponseWriter, r *http.Request) {
 	if err == nil && nq >= qMax {
 		responses.ErrBadRequest(w, r, "queue_limit_reached", "")
 		return
+	}
+
+	// Enforce submit to gallery
+	if free {
+		voiceoverReq.SubmitToGallery = true
 	}
 
 	// Parse request headers

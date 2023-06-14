@@ -31,7 +31,8 @@ func (r *Repository) CreateVoiceover(userID uuid.UUID, deviceType, deviceOs, dev
 		SetCountryCode(countryCode).
 		SetTemperature(*req.Temperature).
 		SetUserID(userID).
-		SetSeed(*req.Seed)
+		SetSeed(*req.Seed).
+		SetWasAutoSubmitted(req.SubmitToGallery)
 	if productId != nil {
 		insert.SetStripeProductID(*productId)
 	}
