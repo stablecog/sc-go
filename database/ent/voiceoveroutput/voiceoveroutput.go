@@ -3,6 +3,7 @@
 package voiceoveroutput
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/google/uuid"
@@ -19,6 +20,8 @@ const (
 	FieldIsFavorited = "is_favorited"
 	// FieldAudioDuration holds the string denoting the audio_duration field in the database.
 	FieldAudioDuration = "audio_duration"
+	// FieldGalleryStatus holds the string denoting the gallery_status field in the database.
+	FieldGalleryStatus = "gallery_status"
 	// FieldVoiceoverID holds the string denoting the voiceover_id field in the database.
 	FieldVoiceoverID = "voiceover_id"
 	// FieldDeletedAt holds the string denoting the deleted_at field in the database.
@@ -46,6 +49,7 @@ var Columns = []string{
 	FieldAudioPath,
 	FieldIsFavorited,
 	FieldAudioDuration,
+	FieldGalleryStatus,
 	FieldVoiceoverID,
 	FieldDeletedAt,
 	FieldCreatedAt,
@@ -74,3 +78,31 @@ var (
 	// DefaultID holds the default value on creation for the "id" field.
 	DefaultID func() uuid.UUID
 )
+
+// GalleryStatus defines the type for the "gallery_status" enum field.
+type GalleryStatus string
+
+// GalleryStatusNotSubmitted is the default value of the GalleryStatus enum.
+const DefaultGalleryStatus = GalleryStatusNotSubmitted
+
+// GalleryStatus values.
+const (
+	GalleryStatusNotSubmitted GalleryStatus = "not_submitted"
+	GalleryStatusSubmitted    GalleryStatus = "submitted"
+	GalleryStatusApproved     GalleryStatus = "approved"
+	GalleryStatusRejected     GalleryStatus = "rejected"
+)
+
+func (gs GalleryStatus) String() string {
+	return string(gs)
+}
+
+// GalleryStatusValidator is a validator for the "gallery_status" field enum values. It is called by the builders before save.
+func GalleryStatusValidator(gs GalleryStatus) error {
+	switch gs {
+	case GalleryStatusNotSubmitted, GalleryStatusSubmitted, GalleryStatusApproved, GalleryStatusRejected:
+		return nil
+	default:
+		return fmt.Errorf("voiceoveroutput: invalid enum value for gallery_status field: %q", gs)
+	}
+}

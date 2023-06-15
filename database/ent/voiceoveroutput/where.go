@@ -206,6 +206,26 @@ func AudioDurationLTE(v float32) predicate.VoiceoverOutput {
 	return predicate.VoiceoverOutput(sql.FieldLTE(FieldAudioDuration, v))
 }
 
+// GalleryStatusEQ applies the EQ predicate on the "gallery_status" field.
+func GalleryStatusEQ(v GalleryStatus) predicate.VoiceoverOutput {
+	return predicate.VoiceoverOutput(sql.FieldEQ(FieldGalleryStatus, v))
+}
+
+// GalleryStatusNEQ applies the NEQ predicate on the "gallery_status" field.
+func GalleryStatusNEQ(v GalleryStatus) predicate.VoiceoverOutput {
+	return predicate.VoiceoverOutput(sql.FieldNEQ(FieldGalleryStatus, v))
+}
+
+// GalleryStatusIn applies the In predicate on the "gallery_status" field.
+func GalleryStatusIn(vs ...GalleryStatus) predicate.VoiceoverOutput {
+	return predicate.VoiceoverOutput(sql.FieldIn(FieldGalleryStatus, vs...))
+}
+
+// GalleryStatusNotIn applies the NotIn predicate on the "gallery_status" field.
+func GalleryStatusNotIn(vs ...GalleryStatus) predicate.VoiceoverOutput {
+	return predicate.VoiceoverOutput(sql.FieldNotIn(FieldGalleryStatus, vs...))
+}
+
 // VoiceoverIDEQ applies the EQ predicate on the "voiceover_id" field.
 func VoiceoverIDEQ(v uuid.UUID) predicate.VoiceoverOutput {
 	return predicate.VoiceoverOutput(sql.FieldEQ(FieldVoiceoverID, v))

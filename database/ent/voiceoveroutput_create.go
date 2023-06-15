@@ -48,6 +48,20 @@ func (voc *VoiceoverOutputCreate) SetAudioDuration(f float32) *VoiceoverOutputCr
 	return voc
 }
 
+// SetGalleryStatus sets the "gallery_status" field.
+func (voc *VoiceoverOutputCreate) SetGalleryStatus(vs voiceoveroutput.GalleryStatus) *VoiceoverOutputCreate {
+	voc.mutation.SetGalleryStatus(vs)
+	return voc
+}
+
+// SetNillableGalleryStatus sets the "gallery_status" field if the given value is not nil.
+func (voc *VoiceoverOutputCreate) SetNillableGalleryStatus(vs *voiceoveroutput.GalleryStatus) *VoiceoverOutputCreate {
+	if vs != nil {
+		voc.SetGalleryStatus(*vs)
+	}
+	return voc
+}
+
 // SetVoiceoverID sets the "voiceover_id" field.
 func (voc *VoiceoverOutputCreate) SetVoiceoverID(u uuid.UUID) *VoiceoverOutputCreate {
 	voc.mutation.SetVoiceoverID(u)
@@ -160,6 +174,10 @@ func (voc *VoiceoverOutputCreate) defaults() {
 		v := voiceoveroutput.DefaultIsFavorited
 		voc.mutation.SetIsFavorited(v)
 	}
+	if _, ok := voc.mutation.GalleryStatus(); !ok {
+		v := voiceoveroutput.DefaultGalleryStatus
+		voc.mutation.SetGalleryStatus(v)
+	}
 	if _, ok := voc.mutation.CreatedAt(); !ok {
 		v := voiceoveroutput.DefaultCreatedAt()
 		voc.mutation.SetCreatedAt(v)
@@ -184,6 +202,14 @@ func (voc *VoiceoverOutputCreate) check() error {
 	}
 	if _, ok := voc.mutation.AudioDuration(); !ok {
 		return &ValidationError{Name: "audio_duration", err: errors.New(`ent: missing required field "VoiceoverOutput.audio_duration"`)}
+	}
+	if _, ok := voc.mutation.GalleryStatus(); !ok {
+		return &ValidationError{Name: "gallery_status", err: errors.New(`ent: missing required field "VoiceoverOutput.gallery_status"`)}
+	}
+	if v, ok := voc.mutation.GalleryStatus(); ok {
+		if err := voiceoveroutput.GalleryStatusValidator(v); err != nil {
+			return &ValidationError{Name: "gallery_status", err: fmt.Errorf(`ent: validator failed for field "VoiceoverOutput.gallery_status": %w`, err)}
+		}
 	}
 	if _, ok := voc.mutation.VoiceoverID(); !ok {
 		return &ValidationError{Name: "voiceover_id", err: errors.New(`ent: missing required field "VoiceoverOutput.voiceover_id"`)}
@@ -249,6 +275,10 @@ func (voc *VoiceoverOutputCreate) createSpec() (*VoiceoverOutput, *sqlgraph.Crea
 	if value, ok := voc.mutation.AudioDuration(); ok {
 		_spec.SetField(voiceoveroutput.FieldAudioDuration, field.TypeFloat32, value)
 		_node.AudioDuration = value
+	}
+	if value, ok := voc.mutation.GalleryStatus(); ok {
+		_spec.SetField(voiceoveroutput.FieldGalleryStatus, field.TypeEnum, value)
+		_node.GalleryStatus = value
 	}
 	if value, ok := voc.mutation.DeletedAt(); ok {
 		_spec.SetField(voiceoveroutput.FieldDeletedAt, field.TypeTime, value)

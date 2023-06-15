@@ -64,6 +64,20 @@ func (vou *VoiceoverOutputUpdate) AddAudioDuration(f float32) *VoiceoverOutputUp
 	return vou
 }
 
+// SetGalleryStatus sets the "gallery_status" field.
+func (vou *VoiceoverOutputUpdate) SetGalleryStatus(vs voiceoveroutput.GalleryStatus) *VoiceoverOutputUpdate {
+	vou.mutation.SetGalleryStatus(vs)
+	return vou
+}
+
+// SetNillableGalleryStatus sets the "gallery_status" field if the given value is not nil.
+func (vou *VoiceoverOutputUpdate) SetNillableGalleryStatus(vs *voiceoveroutput.GalleryStatus) *VoiceoverOutputUpdate {
+	if vs != nil {
+		vou.SetGalleryStatus(*vs)
+	}
+	return vou
+}
+
 // SetVoiceoverID sets the "voiceover_id" field.
 func (vou *VoiceoverOutputUpdate) SetVoiceoverID(u uuid.UUID) *VoiceoverOutputUpdate {
 	vou.mutation.SetVoiceoverID(u)
@@ -156,6 +170,11 @@ func (vou *VoiceoverOutputUpdate) defaults() {
 
 // check runs all checks and user-defined validators on the builder.
 func (vou *VoiceoverOutputUpdate) check() error {
+	if v, ok := vou.mutation.GalleryStatus(); ok {
+		if err := voiceoveroutput.GalleryStatusValidator(v); err != nil {
+			return &ValidationError{Name: "gallery_status", err: fmt.Errorf(`ent: validator failed for field "VoiceoverOutput.gallery_status": %w`, err)}
+		}
+	}
 	if _, ok := vou.mutation.VoiceoversID(); vou.mutation.VoiceoversCleared() && !ok {
 		return errors.New(`ent: clearing a required unique edge "VoiceoverOutput.voiceovers"`)
 	}
@@ -200,6 +219,9 @@ func (vou *VoiceoverOutputUpdate) sqlSave(ctx context.Context) (n int, err error
 	}
 	if value, ok := vou.mutation.AddedAudioDuration(); ok {
 		_spec.AddField(voiceoveroutput.FieldAudioDuration, field.TypeFloat32, value)
+	}
+	if value, ok := vou.mutation.GalleryStatus(); ok {
+		_spec.SetField(voiceoveroutput.FieldGalleryStatus, field.TypeEnum, value)
 	}
 	if value, ok := vou.mutation.DeletedAt(); ok {
 		_spec.SetField(voiceoveroutput.FieldDeletedAt, field.TypeTime, value)
@@ -297,6 +319,20 @@ func (vouo *VoiceoverOutputUpdateOne) SetAudioDuration(f float32) *VoiceoverOutp
 // AddAudioDuration adds f to the "audio_duration" field.
 func (vouo *VoiceoverOutputUpdateOne) AddAudioDuration(f float32) *VoiceoverOutputUpdateOne {
 	vouo.mutation.AddAudioDuration(f)
+	return vouo
+}
+
+// SetGalleryStatus sets the "gallery_status" field.
+func (vouo *VoiceoverOutputUpdateOne) SetGalleryStatus(vs voiceoveroutput.GalleryStatus) *VoiceoverOutputUpdateOne {
+	vouo.mutation.SetGalleryStatus(vs)
+	return vouo
+}
+
+// SetNillableGalleryStatus sets the "gallery_status" field if the given value is not nil.
+func (vouo *VoiceoverOutputUpdateOne) SetNillableGalleryStatus(vs *voiceoveroutput.GalleryStatus) *VoiceoverOutputUpdateOne {
+	if vs != nil {
+		vouo.SetGalleryStatus(*vs)
+	}
 	return vouo
 }
 
@@ -399,6 +435,11 @@ func (vouo *VoiceoverOutputUpdateOne) defaults() {
 
 // check runs all checks and user-defined validators on the builder.
 func (vouo *VoiceoverOutputUpdateOne) check() error {
+	if v, ok := vouo.mutation.GalleryStatus(); ok {
+		if err := voiceoveroutput.GalleryStatusValidator(v); err != nil {
+			return &ValidationError{Name: "gallery_status", err: fmt.Errorf(`ent: validator failed for field "VoiceoverOutput.gallery_status": %w`, err)}
+		}
+	}
 	if _, ok := vouo.mutation.VoiceoversID(); vouo.mutation.VoiceoversCleared() && !ok {
 		return errors.New(`ent: clearing a required unique edge "VoiceoverOutput.voiceovers"`)
 	}
@@ -460,6 +501,9 @@ func (vouo *VoiceoverOutputUpdateOne) sqlSave(ctx context.Context) (_node *Voice
 	}
 	if value, ok := vouo.mutation.AddedAudioDuration(); ok {
 		_spec.AddField(voiceoveroutput.FieldAudioDuration, field.TypeFloat32, value)
+	}
+	if value, ok := vouo.mutation.GalleryStatus(); ok {
+		_spec.SetField(voiceoveroutput.FieldGalleryStatus, field.TypeEnum, value)
 	}
 	if value, ok := vouo.mutation.DeletedAt(); ok {
 		_spec.SetField(voiceoveroutput.FieldDeletedAt, field.TypeTime, value)

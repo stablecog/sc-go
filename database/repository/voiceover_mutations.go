@@ -7,6 +7,7 @@ import (
 	"github.com/stablecog/sc-go/database/ent"
 	"github.com/stablecog/sc-go/database/ent/prompt"
 	"github.com/stablecog/sc-go/database/ent/voiceover"
+	"github.com/stablecog/sc-go/database/ent/voiceoveroutput"
 	"github.com/stablecog/sc-go/log"
 	"github.com/stablecog/sc-go/server/requests"
 	"github.com/stablecog/sc-go/utils"
@@ -108,13 +109,21 @@ func (r *Repository) SetVoiceoverSucceeded(voiceoverId, promptStr string, output
 			return err
 		}
 
+		// If this voiceover was created with "submit_to_gallery", then submit all outputs to gallery
+		var galleryStatus voiceoveroutput.GalleryStatus
+		if u.WasAutoSubmitted {
+			galleryStatus = voiceoveroutput.GalleryStatusSubmitted
+		} else {
+			galleryStatus = voiceoveroutput.GalleryStatusNotSubmitted
+		}
+
 		// Set audio output
 		parsedS3, err := utils.GetPathFromS3URL(output.AudioFiles[0].AudioFile)
 		if err != nil {
 			log.Error("Error parsing s3 url", "output", output, "err", err)
 			parsedS3 = output.AudioFiles[0].AudioFile
 		}
-		vOutput := tx.VoiceoverOutput.Create().SetAudioPath(parsedS3).SetVoiceoverID(uid).SetAudioDuration(output.AudioFiles[0].AudioDuration)
+		vOutput := tx.VoiceoverOutput.Create().SetAudioPath(parsedS3).SetVoiceoverID(uid).SetGalleryStatus(galleryStatus).SetAudioDuration(output.AudioFiles[0].AudioDuration)
 		voiceoverOutput, err = vOutput.Save(r.Ctx)
 		if err != nil {
 			log.Error("Error inserting voiceover output", "id", voiceoverId, "err", err)

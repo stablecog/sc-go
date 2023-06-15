@@ -18560,6 +18560,7 @@ type VoiceoverOutputMutation struct {
 	is_favorited      *bool
 	audio_duration    *float32
 	addaudio_duration *float32
+	gallery_status    *voiceoveroutput.GalleryStatus
 	deleted_at        *time.Time
 	created_at        *time.Time
 	updated_at        *time.Time
@@ -18803,6 +18804,42 @@ func (m *VoiceoverOutputMutation) ResetAudioDuration() {
 	m.addaudio_duration = nil
 }
 
+// SetGalleryStatus sets the "gallery_status" field.
+func (m *VoiceoverOutputMutation) SetGalleryStatus(vs voiceoveroutput.GalleryStatus) {
+	m.gallery_status = &vs
+}
+
+// GalleryStatus returns the value of the "gallery_status" field in the mutation.
+func (m *VoiceoverOutputMutation) GalleryStatus() (r voiceoveroutput.GalleryStatus, exists bool) {
+	v := m.gallery_status
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldGalleryStatus returns the old "gallery_status" field's value of the VoiceoverOutput entity.
+// If the VoiceoverOutput object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *VoiceoverOutputMutation) OldGalleryStatus(ctx context.Context) (v voiceoveroutput.GalleryStatus, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldGalleryStatus is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldGalleryStatus requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldGalleryStatus: %w", err)
+	}
+	return oldValue.GalleryStatus, nil
+}
+
+// ResetGalleryStatus resets all changes to the "gallery_status" field.
+func (m *VoiceoverOutputMutation) ResetGalleryStatus() {
+	m.gallery_status = nil
+}
+
 // SetVoiceoverID sets the "voiceover_id" field.
 func (m *VoiceoverOutputMutation) SetVoiceoverID(u uuid.UUID) {
 	m.voiceovers = &u
@@ -19033,7 +19070,7 @@ func (m *VoiceoverOutputMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *VoiceoverOutputMutation) Fields() []string {
-	fields := make([]string, 0, 7)
+	fields := make([]string, 0, 8)
 	if m.audio_path != nil {
 		fields = append(fields, voiceoveroutput.FieldAudioPath)
 	}
@@ -19042,6 +19079,9 @@ func (m *VoiceoverOutputMutation) Fields() []string {
 	}
 	if m.audio_duration != nil {
 		fields = append(fields, voiceoveroutput.FieldAudioDuration)
+	}
+	if m.gallery_status != nil {
+		fields = append(fields, voiceoveroutput.FieldGalleryStatus)
 	}
 	if m.voiceovers != nil {
 		fields = append(fields, voiceoveroutput.FieldVoiceoverID)
@@ -19069,6 +19109,8 @@ func (m *VoiceoverOutputMutation) Field(name string) (ent.Value, bool) {
 		return m.IsFavorited()
 	case voiceoveroutput.FieldAudioDuration:
 		return m.AudioDuration()
+	case voiceoveroutput.FieldGalleryStatus:
+		return m.GalleryStatus()
 	case voiceoveroutput.FieldVoiceoverID:
 		return m.VoiceoverID()
 	case voiceoveroutput.FieldDeletedAt:
@@ -19092,6 +19134,8 @@ func (m *VoiceoverOutputMutation) OldField(ctx context.Context, name string) (en
 		return m.OldIsFavorited(ctx)
 	case voiceoveroutput.FieldAudioDuration:
 		return m.OldAudioDuration(ctx)
+	case voiceoveroutput.FieldGalleryStatus:
+		return m.OldGalleryStatus(ctx)
 	case voiceoveroutput.FieldVoiceoverID:
 		return m.OldVoiceoverID(ctx)
 	case voiceoveroutput.FieldDeletedAt:
@@ -19129,6 +19173,13 @@ func (m *VoiceoverOutputMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetAudioDuration(v)
+		return nil
+	case voiceoveroutput.FieldGalleryStatus:
+		v, ok := value.(voiceoveroutput.GalleryStatus)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetGalleryStatus(v)
 		return nil
 	case voiceoveroutput.FieldVoiceoverID:
 		v, ok := value.(uuid.UUID)
@@ -19239,6 +19290,9 @@ func (m *VoiceoverOutputMutation) ResetField(name string) error {
 		return nil
 	case voiceoveroutput.FieldAudioDuration:
 		m.ResetAudioDuration()
+		return nil
+	case voiceoveroutput.FieldGalleryStatus:
+		m.ResetGalleryStatus()
 		return nil
 	case voiceoveroutput.FieldVoiceoverID:
 		m.ResetVoiceoverID()

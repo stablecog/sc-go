@@ -24,6 +24,8 @@ type VoiceoverOutput struct {
 	IsFavorited bool `json:"is_favorited,omitempty"`
 	// AudioDuration holds the value of the "audio_duration" field.
 	AudioDuration float32 `json:"audio_duration,omitempty"`
+	// GalleryStatus holds the value of the "gallery_status" field.
+	GalleryStatus voiceoveroutput.GalleryStatus `json:"gallery_status,omitempty"`
 	// VoiceoverID holds the value of the "voiceover_id" field.
 	VoiceoverID uuid.UUID `json:"voiceover_id,omitempty"`
 	// DeletedAt holds the value of the "deleted_at" field.
@@ -68,7 +70,7 @@ func (*VoiceoverOutput) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullBool)
 		case voiceoveroutput.FieldAudioDuration:
 			values[i] = new(sql.NullFloat64)
-		case voiceoveroutput.FieldAudioPath:
+		case voiceoveroutput.FieldAudioPath, voiceoveroutput.FieldGalleryStatus:
 			values[i] = new(sql.NullString)
 		case voiceoveroutput.FieldDeletedAt, voiceoveroutput.FieldCreatedAt, voiceoveroutput.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
@@ -112,6 +114,12 @@ func (vo *VoiceoverOutput) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field audio_duration", values[i])
 			} else if value.Valid {
 				vo.AudioDuration = float32(value.Float64)
+			}
+		case voiceoveroutput.FieldGalleryStatus:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field gallery_status", values[i])
+			} else if value.Valid {
+				vo.GalleryStatus = voiceoveroutput.GalleryStatus(value.String)
 			}
 		case voiceoveroutput.FieldVoiceoverID:
 			if value, ok := values[i].(*uuid.UUID); !ok {
@@ -179,6 +187,9 @@ func (vo *VoiceoverOutput) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("audio_duration=")
 	builder.WriteString(fmt.Sprintf("%v", vo.AudioDuration))
+	builder.WriteString(", ")
+	builder.WriteString("gallery_status=")
+	builder.WriteString(fmt.Sprintf("%v", vo.GalleryStatus))
 	builder.WriteString(", ")
 	builder.WriteString("voiceover_id=")
 	builder.WriteString(fmt.Sprintf("%v", vo.VoiceoverID))

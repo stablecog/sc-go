@@ -570,6 +570,7 @@ var (
 		{Name: "audio_path", Type: field.TypeString, Size: 2147483647},
 		{Name: "is_favorited", Type: field.TypeBool, Default: false},
 		{Name: "audio_duration", Type: field.TypeFloat32},
+		{Name: "gallery_status", Type: field.TypeEnum, Enums: []string{"not_submitted", "submitted", "approved", "rejected"}, Default: "not_submitted"},
 		{Name: "deleted_at", Type: field.TypeTime, Nullable: true},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},
@@ -583,7 +584,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "voiceover_outputs_voiceovers_voiceover_outputs",
-				Columns:    []*schema.Column{VoiceoverOutputsColumns[7]},
+				Columns:    []*schema.Column{VoiceoverOutputsColumns[8]},
 				RefColumns: []*schema.Column{VoiceoversColumns[0]},
 				OnDelete:   schema.Cascade,
 			},

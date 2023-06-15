@@ -24,6 +24,7 @@ func (VoiceoverOutput) Fields() []ent.Field {
 		field.Text("audio_path"),
 		field.Bool("is_favorited").Default(false),
 		field.Float32("audio_duration"),
+		field.Enum("gallery_status").Values("not_submitted", "submitted", "approved", "rejected").Default("not_submitted"),
 		// ! Relationships / many-to-one
 		field.UUID("voiceover_id", uuid.UUID{}),
 		// ! End relationships
