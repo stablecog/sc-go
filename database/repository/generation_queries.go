@@ -903,6 +903,8 @@ type GenerationUpscaleOutput struct {
 	IsFavorited      bool                           `json:"is_favorited"`
 	InitImageUrl     string                         `json:"init_image_url,omitempty"`
 	WasAutoSubmitted bool                           `json:"was_auto_submitted"`
+	DenoiseAudio     *bool                          `json:"denoise_audio,omitempty"`
+	RemoveSilence    *bool                          `json:"remove_silence,omitempty"`
 }
 
 type GenerationQueryWithOutputsMetaCursor interface {

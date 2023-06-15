@@ -34,6 +34,12 @@ func (r *Repository) CreateVoiceover(userID uuid.UUID, deviceType, deviceOs, dev
 		SetUserID(userID).
 		SetSeed(*req.Seed).
 		SetWasAutoSubmitted(req.SubmitToGallery)
+	if req.DenoiseAudio != nil {
+		insert.SetDenoiseAudio(*req.DenoiseAudio)
+	}
+	if req.RemoveSilence != nil {
+		insert.SetRemoveSilence(*req.RemoveSilence)
+	}
 	if productId != nil {
 		insert.SetStripeProductID(*productId)
 	}

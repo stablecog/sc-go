@@ -379,12 +379,20 @@ func init() {
 	voiceoverDescWasAutoSubmitted := voiceoverFields[7].Descriptor()
 	// voiceover.DefaultWasAutoSubmitted holds the default value on creation for the was_auto_submitted field.
 	voiceover.DefaultWasAutoSubmitted = voiceoverDescWasAutoSubmitted.Default.(bool)
+	// voiceoverDescDenoiseAudio is the schema descriptor for denoise_audio field.
+	voiceoverDescDenoiseAudio := voiceoverFields[8].Descriptor()
+	// voiceover.DefaultDenoiseAudio holds the default value on creation for the denoise_audio field.
+	voiceover.DefaultDenoiseAudio = voiceoverDescDenoiseAudio.Default.(bool)
+	// voiceoverDescRemoveSilence is the schema descriptor for remove_silence field.
+	voiceoverDescRemoveSilence := voiceoverFields[9].Descriptor()
+	// voiceover.DefaultRemoveSilence holds the default value on creation for the remove_silence field.
+	voiceover.DefaultRemoveSilence = voiceoverDescRemoveSilence.Default.(bool)
 	// voiceoverDescCreatedAt is the schema descriptor for created_at field.
-	voiceoverDescCreatedAt := voiceoverFields[16].Descriptor()
+	voiceoverDescCreatedAt := voiceoverFields[18].Descriptor()
 	// voiceover.DefaultCreatedAt holds the default value on creation for the created_at field.
 	voiceover.DefaultCreatedAt = voiceoverDescCreatedAt.Default.(func() time.Time)
 	// voiceoverDescUpdatedAt is the schema descriptor for updated_at field.
-	voiceoverDescUpdatedAt := voiceoverFields[17].Descriptor()
+	voiceoverDescUpdatedAt := voiceoverFields[19].Descriptor()
 	// voiceover.DefaultUpdatedAt holds the default value on creation for the updated_at field.
 	voiceover.DefaultUpdatedAt = voiceoverDescUpdatedAt.Default.(func() time.Time)
 	// voiceover.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.

@@ -86,6 +86,16 @@ func WasAutoSubmitted(v bool) predicate.Voiceover {
 	return predicate.Voiceover(sql.FieldEQ(FieldWasAutoSubmitted, v))
 }
 
+// DenoiseAudio applies equality check predicate on the "denoise_audio" field. It's identical to DenoiseAudioEQ.
+func DenoiseAudio(v bool) predicate.Voiceover {
+	return predicate.Voiceover(sql.FieldEQ(FieldDenoiseAudio, v))
+}
+
+// RemoveSilence applies equality check predicate on the "remove_silence" field. It's identical to RemoveSilenceEQ.
+func RemoveSilence(v bool) predicate.Voiceover {
+	return predicate.Voiceover(sql.FieldEQ(FieldRemoveSilence, v))
+}
+
 // PromptID applies equality check predicate on the "prompt_id" field. It's identical to PromptIDEQ.
 func PromptID(v uuid.UUID) predicate.Voiceover {
 	return predicate.Voiceover(sql.FieldEQ(FieldPromptID, v))
@@ -469,6 +479,26 @@ func WasAutoSubmittedEQ(v bool) predicate.Voiceover {
 // WasAutoSubmittedNEQ applies the NEQ predicate on the "was_auto_submitted" field.
 func WasAutoSubmittedNEQ(v bool) predicate.Voiceover {
 	return predicate.Voiceover(sql.FieldNEQ(FieldWasAutoSubmitted, v))
+}
+
+// DenoiseAudioEQ applies the EQ predicate on the "denoise_audio" field.
+func DenoiseAudioEQ(v bool) predicate.Voiceover {
+	return predicate.Voiceover(sql.FieldEQ(FieldDenoiseAudio, v))
+}
+
+// DenoiseAudioNEQ applies the NEQ predicate on the "denoise_audio" field.
+func DenoiseAudioNEQ(v bool) predicate.Voiceover {
+	return predicate.Voiceover(sql.FieldNEQ(FieldDenoiseAudio, v))
+}
+
+// RemoveSilenceEQ applies the EQ predicate on the "remove_silence" field.
+func RemoveSilenceEQ(v bool) predicate.Voiceover {
+	return predicate.Voiceover(sql.FieldEQ(FieldRemoveSilence, v))
+}
+
+// RemoveSilenceNEQ applies the NEQ predicate on the "remove_silence" field.
+func RemoveSilenceNEQ(v bool) predicate.Voiceover {
+	return predicate.Voiceover(sql.FieldNEQ(FieldRemoveSilence, v))
 }
 
 // PromptIDEQ applies the EQ predicate on the "prompt_id" field.

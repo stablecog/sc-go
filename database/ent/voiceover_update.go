@@ -143,6 +143,34 @@ func (vu *VoiceoverUpdate) SetNillableWasAutoSubmitted(b *bool) *VoiceoverUpdate
 	return vu
 }
 
+// SetDenoiseAudio sets the "denoise_audio" field.
+func (vu *VoiceoverUpdate) SetDenoiseAudio(b bool) *VoiceoverUpdate {
+	vu.mutation.SetDenoiseAudio(b)
+	return vu
+}
+
+// SetNillableDenoiseAudio sets the "denoise_audio" field if the given value is not nil.
+func (vu *VoiceoverUpdate) SetNillableDenoiseAudio(b *bool) *VoiceoverUpdate {
+	if b != nil {
+		vu.SetDenoiseAudio(*b)
+	}
+	return vu
+}
+
+// SetRemoveSilence sets the "remove_silence" field.
+func (vu *VoiceoverUpdate) SetRemoveSilence(b bool) *VoiceoverUpdate {
+	vu.mutation.SetRemoveSilence(b)
+	return vu
+}
+
+// SetNillableRemoveSilence sets the "remove_silence" field if the given value is not nil.
+func (vu *VoiceoverUpdate) SetNillableRemoveSilence(b *bool) *VoiceoverUpdate {
+	if b != nil {
+		vu.SetRemoveSilence(*b)
+	}
+	return vu
+}
+
 // SetPromptID sets the "prompt_id" field.
 func (vu *VoiceoverUpdate) SetPromptID(u uuid.UUID) *VoiceoverUpdate {
 	vu.mutation.SetPromptID(u)
@@ -506,6 +534,12 @@ func (vu *VoiceoverUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if value, ok := vu.mutation.WasAutoSubmitted(); ok {
 		_spec.SetField(voiceover.FieldWasAutoSubmitted, field.TypeBool, value)
+	}
+	if value, ok := vu.mutation.DenoiseAudio(); ok {
+		_spec.SetField(voiceover.FieldDenoiseAudio, field.TypeBool, value)
+	}
+	if value, ok := vu.mutation.RemoveSilence(); ok {
+		_spec.SetField(voiceover.FieldRemoveSilence, field.TypeBool, value)
 	}
 	if value, ok := vu.mutation.StartedAt(); ok {
 		_spec.SetField(voiceover.FieldStartedAt, field.TypeTime, value)
@@ -914,6 +948,34 @@ func (vuo *VoiceoverUpdateOne) SetNillableWasAutoSubmitted(b *bool) *VoiceoverUp
 	return vuo
 }
 
+// SetDenoiseAudio sets the "denoise_audio" field.
+func (vuo *VoiceoverUpdateOne) SetDenoiseAudio(b bool) *VoiceoverUpdateOne {
+	vuo.mutation.SetDenoiseAudio(b)
+	return vuo
+}
+
+// SetNillableDenoiseAudio sets the "denoise_audio" field if the given value is not nil.
+func (vuo *VoiceoverUpdateOne) SetNillableDenoiseAudio(b *bool) *VoiceoverUpdateOne {
+	if b != nil {
+		vuo.SetDenoiseAudio(*b)
+	}
+	return vuo
+}
+
+// SetRemoveSilence sets the "remove_silence" field.
+func (vuo *VoiceoverUpdateOne) SetRemoveSilence(b bool) *VoiceoverUpdateOne {
+	vuo.mutation.SetRemoveSilence(b)
+	return vuo
+}
+
+// SetNillableRemoveSilence sets the "remove_silence" field if the given value is not nil.
+func (vuo *VoiceoverUpdateOne) SetNillableRemoveSilence(b *bool) *VoiceoverUpdateOne {
+	if b != nil {
+		vuo.SetRemoveSilence(*b)
+	}
+	return vuo
+}
+
 // SetPromptID sets the "prompt_id" field.
 func (vuo *VoiceoverUpdateOne) SetPromptID(u uuid.UUID) *VoiceoverUpdateOne {
 	vuo.mutation.SetPromptID(u)
@@ -1301,6 +1363,12 @@ func (vuo *VoiceoverUpdateOne) sqlSave(ctx context.Context) (_node *Voiceover, e
 	}
 	if value, ok := vuo.mutation.WasAutoSubmitted(); ok {
 		_spec.SetField(voiceover.FieldWasAutoSubmitted, field.TypeBool, value)
+	}
+	if value, ok := vuo.mutation.DenoiseAudio(); ok {
+		_spec.SetField(voiceover.FieldDenoiseAudio, field.TypeBool, value)
+	}
+	if value, ok := vuo.mutation.RemoveSilence(); ok {
+		_spec.SetField(voiceover.FieldRemoveSilence, field.TypeBool, value)
 	}
 	if value, ok := vuo.mutation.StartedAt(); ok {
 		_spec.SetField(voiceover.FieldStartedAt, field.TypeTime, value)

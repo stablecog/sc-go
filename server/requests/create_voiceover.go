@@ -18,6 +18,8 @@ type CreateVoiceoverRequest struct {
 	SpeakerId       *uuid.UUID `json:"speaker_id,omitempty"`
 	Seed            *int       `json:"seed,omitempty"`
 	Temperature     *float32   `json:"temperature,omitempty"`
+	DenoiseAudio    *bool      `json:"denoise_audio,omitempty"`
+	RemoveSilence   *bool      `json:"remove_silence,omitempty"`
 	StreamID        string     `json:"stream_id"`
 	SubmitToGallery bool       `json:"submit_to_gallery"`
 	UIId            string     `json:"ui_id"` // Corresponds to UI identifier
@@ -41,6 +43,13 @@ func (t *CreateVoiceoverRequest) ApplyDefaults() {
 		t.Temperature = utils.ToPtr[float32](0.7)
 	}
 
+	if t.DenoiseAudio == nil {
+		t.DenoiseAudio = utils.ToPtr[bool](true)
+	}
+
+	if t.RemoveSilence == nil {
+		t.RemoveSilence = utils.ToPtr[bool](true)
+	}
 }
 
 func (t *CreateVoiceoverRequest) Validate(api bool) error {

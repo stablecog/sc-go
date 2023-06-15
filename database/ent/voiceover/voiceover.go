@@ -28,6 +28,10 @@ const (
 	FieldSeed = "seed"
 	// FieldWasAutoSubmitted holds the string denoting the was_auto_submitted field in the database.
 	FieldWasAutoSubmitted = "was_auto_submitted"
+	// FieldDenoiseAudio holds the string denoting the denoise_audio field in the database.
+	FieldDenoiseAudio = "denoise_audio"
+	// FieldRemoveSilence holds the string denoting the remove_silence field in the database.
+	FieldRemoveSilence = "remove_silence"
 	// FieldPromptID holds the string denoting the prompt_id field in the database.
 	FieldPromptID = "prompt_id"
 	// FieldUserID holds the string denoting the user_id field in the database.
@@ -125,6 +129,8 @@ var Columns = []string{
 	FieldTemperature,
 	FieldSeed,
 	FieldWasAutoSubmitted,
+	FieldDenoiseAudio,
+	FieldRemoveSilence,
 	FieldPromptID,
 	FieldUserID,
 	FieldDeviceInfoID,
@@ -150,6 +156,10 @@ func ValidColumn(column string) bool {
 var (
 	// DefaultWasAutoSubmitted holds the default value on creation for the "was_auto_submitted" field.
 	DefaultWasAutoSubmitted bool
+	// DefaultDenoiseAudio holds the default value on creation for the "denoise_audio" field.
+	DefaultDenoiseAudio bool
+	// DefaultRemoveSilence holds the default value on creation for the "remove_silence" field.
+	DefaultRemoveSilence bool
 	// DefaultCreatedAt holds the default value on creation for the "created_at" field.
 	DefaultCreatedAt func() time.Time
 	// DefaultUpdatedAt holds the default value on creation for the "updated_at" field.

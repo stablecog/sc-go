@@ -102,6 +102,34 @@ func (vc *VoiceoverCreate) SetNillableWasAutoSubmitted(b *bool) *VoiceoverCreate
 	return vc
 }
 
+// SetDenoiseAudio sets the "denoise_audio" field.
+func (vc *VoiceoverCreate) SetDenoiseAudio(b bool) *VoiceoverCreate {
+	vc.mutation.SetDenoiseAudio(b)
+	return vc
+}
+
+// SetNillableDenoiseAudio sets the "denoise_audio" field if the given value is not nil.
+func (vc *VoiceoverCreate) SetNillableDenoiseAudio(b *bool) *VoiceoverCreate {
+	if b != nil {
+		vc.SetDenoiseAudio(*b)
+	}
+	return vc
+}
+
+// SetRemoveSilence sets the "remove_silence" field.
+func (vc *VoiceoverCreate) SetRemoveSilence(b bool) *VoiceoverCreate {
+	vc.mutation.SetRemoveSilence(b)
+	return vc
+}
+
+// SetNillableRemoveSilence sets the "remove_silence" field if the given value is not nil.
+func (vc *VoiceoverCreate) SetNillableRemoveSilence(b *bool) *VoiceoverCreate {
+	if b != nil {
+		vc.SetRemoveSilence(*b)
+	}
+	return vc
+}
+
 // SetPromptID sets the "prompt_id" field.
 func (vc *VoiceoverCreate) SetPromptID(u uuid.UUID) *VoiceoverCreate {
 	vc.mutation.SetPromptID(u)
@@ -334,6 +362,14 @@ func (vc *VoiceoverCreate) defaults() {
 		v := voiceover.DefaultWasAutoSubmitted
 		vc.mutation.SetWasAutoSubmitted(v)
 	}
+	if _, ok := vc.mutation.DenoiseAudio(); !ok {
+		v := voiceover.DefaultDenoiseAudio
+		vc.mutation.SetDenoiseAudio(v)
+	}
+	if _, ok := vc.mutation.RemoveSilence(); !ok {
+		v := voiceover.DefaultRemoveSilence
+		vc.mutation.SetRemoveSilence(v)
+	}
 	if _, ok := vc.mutation.CreatedAt(); !ok {
 		v := voiceover.DefaultCreatedAt()
 		vc.mutation.SetCreatedAt(v)
@@ -366,6 +402,12 @@ func (vc *VoiceoverCreate) check() error {
 	}
 	if _, ok := vc.mutation.WasAutoSubmitted(); !ok {
 		return &ValidationError{Name: "was_auto_submitted", err: errors.New(`ent: missing required field "Voiceover.was_auto_submitted"`)}
+	}
+	if _, ok := vc.mutation.DenoiseAudio(); !ok {
+		return &ValidationError{Name: "denoise_audio", err: errors.New(`ent: missing required field "Voiceover.denoise_audio"`)}
+	}
+	if _, ok := vc.mutation.RemoveSilence(); !ok {
+		return &ValidationError{Name: "remove_silence", err: errors.New(`ent: missing required field "Voiceover.remove_silence"`)}
 	}
 	if _, ok := vc.mutation.UserID(); !ok {
 		return &ValidationError{Name: "user_id", err: errors.New(`ent: missing required field "Voiceover.user_id"`)}
@@ -465,6 +507,14 @@ func (vc *VoiceoverCreate) createSpec() (*Voiceover, *sqlgraph.CreateSpec) {
 	if value, ok := vc.mutation.WasAutoSubmitted(); ok {
 		_spec.SetField(voiceover.FieldWasAutoSubmitted, field.TypeBool, value)
 		_node.WasAutoSubmitted = value
+	}
+	if value, ok := vc.mutation.DenoiseAudio(); ok {
+		_spec.SetField(voiceover.FieldDenoiseAudio, field.TypeBool, value)
+		_node.DenoiseAudio = value
+	}
+	if value, ok := vc.mutation.RemoveSilence(); ok {
+		_spec.SetField(voiceover.FieldRemoveSilence, field.TypeBool, value)
+		_node.RemoveSilence = value
 	}
 	if value, ok := vc.mutation.StartedAt(); ok {
 		_spec.SetField(voiceover.FieldStartedAt, field.TypeTime, value)

@@ -15984,6 +15984,8 @@ type VoiceoverMutation struct {
 	seed                      *int
 	addseed                   *int
 	was_auto_submitted        *bool
+	denoise_audio             *bool
+	remove_silence            *bool
 	started_at                *time.Time
 	completed_at              *time.Time
 	created_at                *time.Time
@@ -16442,6 +16444,78 @@ func (m *VoiceoverMutation) OldWasAutoSubmitted(ctx context.Context) (v bool, er
 // ResetWasAutoSubmitted resets all changes to the "was_auto_submitted" field.
 func (m *VoiceoverMutation) ResetWasAutoSubmitted() {
 	m.was_auto_submitted = nil
+}
+
+// SetDenoiseAudio sets the "denoise_audio" field.
+func (m *VoiceoverMutation) SetDenoiseAudio(b bool) {
+	m.denoise_audio = &b
+}
+
+// DenoiseAudio returns the value of the "denoise_audio" field in the mutation.
+func (m *VoiceoverMutation) DenoiseAudio() (r bool, exists bool) {
+	v := m.denoise_audio
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDenoiseAudio returns the old "denoise_audio" field's value of the Voiceover entity.
+// If the Voiceover object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *VoiceoverMutation) OldDenoiseAudio(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDenoiseAudio is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDenoiseAudio requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDenoiseAudio: %w", err)
+	}
+	return oldValue.DenoiseAudio, nil
+}
+
+// ResetDenoiseAudio resets all changes to the "denoise_audio" field.
+func (m *VoiceoverMutation) ResetDenoiseAudio() {
+	m.denoise_audio = nil
+}
+
+// SetRemoveSilence sets the "remove_silence" field.
+func (m *VoiceoverMutation) SetRemoveSilence(b bool) {
+	m.remove_silence = &b
+}
+
+// RemoveSilence returns the value of the "remove_silence" field in the mutation.
+func (m *VoiceoverMutation) RemoveSilence() (r bool, exists bool) {
+	v := m.remove_silence
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldRemoveSilence returns the old "remove_silence" field's value of the Voiceover entity.
+// If the Voiceover object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *VoiceoverMutation) OldRemoveSilence(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldRemoveSilence is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldRemoveSilence requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldRemoveSilence: %w", err)
+	}
+	return oldValue.RemoveSilence, nil
+}
+
+// ResetRemoveSilence resets all changes to the "remove_silence" field.
+func (m *VoiceoverMutation) ResetRemoveSilence() {
+	m.remove_silence = nil
 }
 
 // SetPromptID sets the "prompt_id" field.
@@ -17139,7 +17213,7 @@ func (m *VoiceoverMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *VoiceoverMutation) Fields() []string {
-	fields := make([]string, 0, 17)
+	fields := make([]string, 0, 19)
 	if m.country_code != nil {
 		fields = append(fields, voiceover.FieldCountryCode)
 	}
@@ -17160,6 +17234,12 @@ func (m *VoiceoverMutation) Fields() []string {
 	}
 	if m.was_auto_submitted != nil {
 		fields = append(fields, voiceover.FieldWasAutoSubmitted)
+	}
+	if m.denoise_audio != nil {
+		fields = append(fields, voiceover.FieldDenoiseAudio)
+	}
+	if m.remove_silence != nil {
+		fields = append(fields, voiceover.FieldRemoveSilence)
 	}
 	if m.prompt != nil {
 		fields = append(fields, voiceover.FieldPromptID)
@@ -17213,6 +17293,10 @@ func (m *VoiceoverMutation) Field(name string) (ent.Value, bool) {
 		return m.Seed()
 	case voiceover.FieldWasAutoSubmitted:
 		return m.WasAutoSubmitted()
+	case voiceover.FieldDenoiseAudio:
+		return m.DenoiseAudio()
+	case voiceover.FieldRemoveSilence:
+		return m.RemoveSilence()
 	case voiceover.FieldPromptID:
 		return m.PromptID()
 	case voiceover.FieldUserID:
@@ -17256,6 +17340,10 @@ func (m *VoiceoverMutation) OldField(ctx context.Context, name string) (ent.Valu
 		return m.OldSeed(ctx)
 	case voiceover.FieldWasAutoSubmitted:
 		return m.OldWasAutoSubmitted(ctx)
+	case voiceover.FieldDenoiseAudio:
+		return m.OldDenoiseAudio(ctx)
+	case voiceover.FieldRemoveSilence:
+		return m.OldRemoveSilence(ctx)
 	case voiceover.FieldPromptID:
 		return m.OldPromptID(ctx)
 	case voiceover.FieldUserID:
@@ -17333,6 +17421,20 @@ func (m *VoiceoverMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetWasAutoSubmitted(v)
+		return nil
+	case voiceover.FieldDenoiseAudio:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDenoiseAudio(v)
+		return nil
+	case voiceover.FieldRemoveSilence:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetRemoveSilence(v)
 		return nil
 	case voiceover.FieldPromptID:
 		v, ok := value.(uuid.UUID)
@@ -17545,6 +17647,12 @@ func (m *VoiceoverMutation) ResetField(name string) error {
 		return nil
 	case voiceover.FieldWasAutoSubmitted:
 		m.ResetWasAutoSubmitted()
+		return nil
+	case voiceover.FieldDenoiseAudio:
+		m.ResetDenoiseAudio()
+		return nil
+	case voiceover.FieldRemoveSilence:
+		m.ResetRemoveSilence()
 		return nil
 	case voiceover.FieldPromptID:
 		m.ResetPromptID()

@@ -37,6 +37,10 @@ type Voiceover struct {
 	Seed int `json:"seed,omitempty"`
 	// WasAutoSubmitted holds the value of the "was_auto_submitted" field.
 	WasAutoSubmitted bool `json:"was_auto_submitted,omitempty"`
+	// DenoiseAudio holds the value of the "denoise_audio" field.
+	DenoiseAudio bool `json:"denoise_audio,omitempty"`
+	// RemoveSilence holds the value of the "remove_silence" field.
+	RemoveSilence bool `json:"remove_silence,omitempty"`
 	// PromptID holds the value of the "prompt_id" field.
 	PromptID *uuid.UUID `json:"prompt_id,omitempty"`
 	// UserID holds the value of the "user_id" field.
@@ -177,7 +181,7 @@ func (*Voiceover) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case voiceover.FieldPromptID, voiceover.FieldAPITokenID:
 			values[i] = &sql.NullScanner{S: new(uuid.UUID)}
-		case voiceover.FieldWasAutoSubmitted:
+		case voiceover.FieldWasAutoSubmitted, voiceover.FieldDenoiseAudio, voiceover.FieldRemoveSilence:
 			values[i] = new(sql.NullBool)
 		case voiceover.FieldTemperature:
 			values[i] = new(sql.NullFloat64)
@@ -254,6 +258,18 @@ func (v *Voiceover) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field was_auto_submitted", values[i])
 			} else if value.Valid {
 				v.WasAutoSubmitted = value.Bool
+			}
+		case voiceover.FieldDenoiseAudio:
+			if value, ok := values[i].(*sql.NullBool); !ok {
+				return fmt.Errorf("unexpected type %T for field denoise_audio", values[i])
+			} else if value.Valid {
+				v.DenoiseAudio = value.Bool
+			}
+		case voiceover.FieldRemoveSilence:
+			if value, ok := values[i].(*sql.NullBool); !ok {
+				return fmt.Errorf("unexpected type %T for field remove_silence", values[i])
+			} else if value.Valid {
+				v.RemoveSilence = value.Bool
 			}
 		case voiceover.FieldPromptID:
 			if value, ok := values[i].(*sql.NullScanner); !ok {
@@ -408,6 +424,12 @@ func (v *Voiceover) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("was_auto_submitted=")
 	builder.WriteString(fmt.Sprintf("%v", v.WasAutoSubmitted))
+	builder.WriteString(", ")
+	builder.WriteString("denoise_audio=")
+	builder.WriteString(fmt.Sprintf("%v", v.DenoiseAudio))
+	builder.WriteString(", ")
+	builder.WriteString("remove_silence=")
+	builder.WriteString(fmt.Sprintf("%v", v.RemoveSilence))
 	builder.WriteString(", ")
 	if v := v.PromptID; v != nil {
 		builder.WriteString("prompt_id=")

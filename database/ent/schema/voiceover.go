@@ -27,6 +27,8 @@ func (Voiceover) Fields() []ent.Field {
 		field.Float32("temperature"),
 		field.Int("seed"),
 		field.Bool("was_auto_submitted").Default(false),
+		field.Bool("denoise_audio").Default(true),
+		field.Bool("remove_silence").Default(true),
 		// ! Relationships / many-to-one
 		field.UUID("prompt_id", uuid.UUID{}).Optional().Nillable(),
 		field.UUID("user_id", uuid.UUID{}),

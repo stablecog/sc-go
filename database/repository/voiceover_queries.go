@@ -136,6 +136,8 @@ func (r *Repository) QueryVoiceovers(per_page int, cursor *time.Time, filters *r
 		voiceover.FieldStartedAt,
 		voiceover.FieldCompletedAt,
 		voiceover.FieldWasAutoSubmitted,
+		voiceover.FieldDenoiseAudio,
+		voiceover.FieldRemoveSilence,
 	}
 	var query *ent.VoiceoverQuery
 	var vQueryResult []VoiceoverQueryWithOutputsResult
@@ -256,6 +258,8 @@ func (r *Repository) QueryVoiceovers(per_page int, cursor *time.Time, filters *r
 			AudioFileUrl:     v.AudioFileUrl,
 			WasAutoSubmitted: v.WasAutoSubmitted,
 			IsFavorited:      v.IsFavorited,
+			DenoiseAudio:     utils.ToPtr(v.DenoiseAudio),
+			RemoveSilence:    utils.ToPtr(v.RemoveSilence),
 			AudioDuration:    utils.ToPtr(v.AudioDuration),
 		}
 		output := VoiceoverQueryWithOutputsResultFormatted{
@@ -282,6 +286,8 @@ func (r *Repository) QueryVoiceovers(per_page int, cursor *time.Time, filters *r
 					Name:   v.NameInWorker,
 					Locale: v.Locale,
 				},
+				DenoiseAudio:  v.DenoiseAudio,
+				RemoveSilence: v.RemoveSilence,
 			},
 		}
 		voiceoverOutputMap[v.ID] = append(voiceoverOutputMap[v.ID], vOutput)
@@ -333,6 +339,8 @@ type VoiceoverQueryWithOutputsData struct {
 	Outputs          []GenerationUpscaleOutput `json:"outputs"`
 	Prompt           PromptType                `json:"prompt"`
 	WasAutoSubmitted bool                      `json:"was_auto_submitted" sql:"was_auto_submitted"`
+	DenoiseAudio     bool                      `json:"denoise_audio" sql:"denoise_audio"`
+	RemoveSilence    bool                      `json:"remove_silence" sql:"remove_silence"`
 	AudioDuration    float32                   `json:"audio_duration" sql:"audio_duration"`
 	Speaker          VoiceoverSpeaker          `json:"speaker"`
 	// For speaker object
