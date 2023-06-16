@@ -21,6 +21,7 @@ const (
 
 // Base request data sc-worker uses to process request
 type BaseCogRequest struct {
+	SkipSafetyChecker string `json:"skip_safety_checker,omitempty"`
 	// These fields are irrelevant to sc-worker, just used to identify the request when it comes back
 	ID                 string                  `json:"id"`
 	UserID             *uuid.UUID              `json:"user_id,omitempty"`

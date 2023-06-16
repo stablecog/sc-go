@@ -287,6 +287,7 @@ func (c *RestAPI) HandleCreateGeneration(w http.ResponseWriter, r *http.Request)
 			WebhookEventsFilter: []requests.CogEventFilter{requests.CogEventFilterStart, requests.CogEventFilterStart},
 			WebhookUrl:          fmt.Sprintf("%s/v1/worker/webhook", utils.GetEnv("PUBLIC_API_URL", "")),
 			Input: requests.BaseCogRequest{
+				SkipSafetyChecker:    fmt.Sprint(generateReq.SkipSafetyChecker),
 				ID:                   requestId,
 				IP:                   utils.GetIPAddress(r),
 				UIId:                 generateReq.UIId,
