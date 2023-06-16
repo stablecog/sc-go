@@ -264,7 +264,7 @@ func (c *RestAPI) HandleCreateGenerationToken(w http.ResponseWriter, r *http.Req
 	// For live page update
 	var livePageMsg shared.LivePageMessage
 	// For keeping track of this request as it gets sent to the worker
-	var requestId string
+	var requestId uuid.UUID
 	// Cog request
 	var cogReqBody requests.CogQueueRequest
 
@@ -276,7 +276,7 @@ func (c *RestAPI) HandleCreateGenerationToken(w http.ResponseWriter, r *http.Req
 	activeChl := make(chan requests.CogWebhookMessage)
 	// Cleanup
 	defer close(activeChl)
-	defer c.SMap.Delete(requestId)
+	defer c.SMap.Delete(requestId.String())
 
 	// Wrap everything in a DB transaction
 	// We do this since we want our credit deduction to be atomic with the whole process
@@ -319,12 +319,12 @@ func (c *RestAPI) HandleCreateGenerationToken(w http.ResponseWriter, r *http.Req
 		}
 
 		// Request Id matches generation ID
-		requestId = g.ID.String()
+		requestId = g.ID
 
 		// For live page update
 		livePageMsg = shared.LivePageMessage{
 			ProcessType:      shared.GENERATE,
-			ID:               utils.Sha256(requestId),
+			ID:               utils.Sha256(requestId.String()),
 			CountryCode:      countryCode,
 			Status:           shared.LivePageQueued,
 			TargetNumOutputs: *generateReq.NumOutputs,
@@ -333,11 +333,6 @@ func (c *RestAPI) HandleCreateGenerationToken(w http.ResponseWriter, r *http.Req
 			CreatedAt:        g.CreatedAt,
 			ProductID:        user.ActiveProductID,
 			Source:           shared.OperationSourceTypeAPI,
-		}
-
-		var promtpStrengthStr string
-		if generateReq.PromptStrength != nil {
-			promtpStrengthStr = fmt.Sprint(*generateReq.PromptStrength)
 		}
 
 		cogReqBody = requests.CogQueueRequest{
@@ -352,22 +347,22 @@ func (c *RestAPI) HandleCreateGenerationToken(w http.ResponseWriter, r *http.Req
 				LivePageData:         &livePageMsg,
 				Prompt:               generateReq.Prompt,
 				NegativePrompt:       generateReq.NegativePrompt,
-				Width:                fmt.Sprint(*generateReq.Width),
-				Height:               fmt.Sprint(*generateReq.Height),
-				NumInferenceSteps:    fmt.Sprint(*generateReq.InferenceSteps),
-				GuidanceScale:        fmt.Sprint(*generateReq.GuidanceScale),
+				Width:                generateReq.Width,
+				Height:               generateReq.Height,
+				NumInferenceSteps:    generateReq.InferenceSteps,
+				GuidanceScale:        generateReq.GuidanceScale,
 				Model:                modelName,
 				ModelId:              *generateReq.ModelId,
 				Scheduler:            schedulerName,
 				SchedulerId:          *generateReq.SchedulerId,
-				Seed:                 fmt.Sprint(*generateReq.Seed),
-				NumOutputs:           fmt.Sprint(*generateReq.NumOutputs),
+				Seed:                 generateReq.Seed,
+				NumOutputs:           generateReq.NumOutputs,
 				OutputImageExtension: string(shared.DEFAULT_GENERATE_OUTPUT_EXTENSION),
-				OutputImageQuality:   fmt.Sprint(shared.DEFAULT_GENERATE_OUTPUT_QUALITY),
+				OutputImageQuality:   utils.ToPtr(shared.DEFAULT_GENERATE_OUTPUT_QUALITY),
 				ProcessType:          shared.GENERATE,
 				SubmitToGallery:      generateReq.SubmitToGallery,
 				InitImageUrl:         signedInitImageUrl,
-				PromptStrength:       promtpStrengthStr,
+				PromptStrength:       generateReq.PromptStrength,
 			},
 		}
 
@@ -376,7 +371,7 @@ func (c *RestAPI) HandleCreateGenerationToken(w http.ResponseWriter, r *http.Req
 		}
 
 		// Add channel to sync array (basically a thread-safe map)
-		c.SMap.Put(requestId, activeChl)
+		c.SMap.Put(requestId.String(), activeChl)
 
 		err = c.Redis.EnqueueCogRequest(r.Context(), shared.COG_REDIS_QUEUE, cogReqBody)
 		if err != nil {
@@ -419,7 +414,7 @@ func (c *RestAPI) HandleCreateGenerationToken(w http.ResponseWriter, r *http.Req
 		case cogMsg := <-activeChl:
 			switch cogMsg.Status {
 			case requests.CogProcessing:
-				err := c.Repo.SetGenerationStarted(requestId)
+				err := c.Repo.SetGenerationStarted(requestId.String())
 				if err != nil {
 					log.Error("Failed to set generate started", "id", requestId, "err", err)
 					responses.ErrInternalServerError(w, r, "An unknown error occurred")
@@ -445,7 +440,7 @@ func (c *RestAPI) HandleCreateGenerationToken(w http.ResponseWriter, r *http.Req
 					}
 				}()
 			case requests.CogSucceeded:
-				outputs, err := c.Repo.SetGenerationSucceeded(requestId, generateReq.Prompt, generateReq.NegativePrompt, cogMsg.Output, cogMsg.NSFWCount)
+				outputs, err := c.Repo.SetGenerationSucceeded(requestId.String(), generateReq.Prompt, generateReq.NegativePrompt, cogMsg.Output, cogMsg.NSFWCount)
 				if err != nil {
 					log.Error("Failed to set generation succeeded", "id", upscale.ID, "err", err)
 					responses.ErrInternalServerError(w, r, "An unknown error occurred")
@@ -472,7 +467,7 @@ func (c *RestAPI) HandleCreateGenerationToken(w http.ResponseWriter, r *http.Req
 					}
 				}()
 				// Analytics
-				generation, err := c.Repo.GetGeneration(uuid.MustParse(requestId))
+				generation, err := c.Repo.GetGeneration(requestId)
 				if err != nil {
 					log.Error("Error getting generation for analytics", "err", err)
 				}
@@ -509,7 +504,7 @@ func (c *RestAPI) HandleCreateGenerationToken(w http.ResponseWriter, r *http.Req
 			case requests.CogFailed:
 				if err := c.Repo.WithTx(func(tx *ent.Tx) error {
 					DB := tx.Client()
-					err := c.Repo.SetGenerationFailed(requestId, cogMsg.Error, cogMsg.NSFWCount, DB)
+					err := c.Repo.SetGenerationFailed(requestId.String(), cogMsg.Error, cogMsg.NSFWCount, DB)
 					if err != nil {
 						log.Error("Failed to set generation failed", "id", upscale.ID, "err", err)
 						responses.ErrInternalServerError(w, r, "An unknown error occurred")
@@ -560,7 +555,7 @@ func (c *RestAPI) HandleCreateGenerationToken(w http.ResponseWriter, r *http.Req
 		case <-time.After(shared.REQUEST_COG_TIMEOUT):
 			if err := c.Repo.WithTx(func(tx *ent.Tx) error {
 				DB := tx.Client()
-				err := c.Repo.SetGenerationFailed(requestId, shared.TIMEOUT_ERROR, 0, DB)
+				err := c.Repo.SetGenerationFailed(requestId.String(), shared.TIMEOUT_ERROR, 0, DB)
 				if err != nil {
 					log.Error("Failed to set generation failed", "id", upscale.ID, "err", err)
 				}

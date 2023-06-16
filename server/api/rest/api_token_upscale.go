@@ -232,7 +232,7 @@ func (c *RestAPI) HandleCreateUpscaleToken(w http.ResponseWriter, r *http.Reques
 	// For live page update
 	var livePageMsg shared.LivePageMessage
 	// For keeping track of this request as it gets sent to the worker
-	var requestId string
+	var requestId uuid.UUID
 	// Cog request
 	var cogReqBody requests.CogQueueRequest
 
@@ -244,7 +244,7 @@ func (c *RestAPI) HandleCreateUpscaleToken(w http.ResponseWriter, r *http.Reques
 	activeChl := make(chan requests.CogWebhookMessage)
 	// Cleanup
 	defer close(activeChl)
-	defer c.SMap.Delete(requestId)
+	defer c.SMap.Delete(requestId.String())
 
 	// Wrap everything in a DB transaction
 	// We do this since we want our credit deduction to be atomic with the whole process
@@ -290,12 +290,12 @@ func (c *RestAPI) HandleCreateUpscaleToken(w http.ResponseWriter, r *http.Reques
 		}
 
 		// Request Id matches upscale ID
-		requestId = upscale.ID.String()
+		requestId = upscale.ID
 
 		// For live page update
 		livePageMsg = shared.LivePageMessage{
 			ProcessType:      shared.UPSCALE,
-			ID:               utils.Sha256(requestId),
+			ID:               utils.Sha256(requestId.String()),
 			CountryCode:      countryCode,
 			Status:           shared.LivePageQueued,
 			TargetNumOutputs: 1,
@@ -322,18 +322,18 @@ func (c *RestAPI) HandleCreateUpscaleToken(w http.ResponseWriter, r *http.Reques
 				GenerationOutputID:   outputIDStr,
 				Image:                imageUrl,
 				ProcessType:          shared.UPSCALE,
-				Width:                fmt.Sprint(width),
-				Height:               fmt.Sprint(height),
+				Width:                utils.ToPtr(width),
+				Height:               utils.ToPtr(height),
 				UpscaleModel:         modelName,
 				ModelId:              *upscaleReq.ModelId,
 				OutputImageExtension: string(shared.DEFAULT_UPSCALE_OUTPUT_EXTENSION),
-				OutputImageQuality:   fmt.Sprint(shared.DEFAULT_UPSCALE_OUTPUT_QUALITY),
+				OutputImageQuality:   utils.ToPtr(shared.DEFAULT_UPSCALE_OUTPUT_QUALITY),
 				Type:                 *upscaleReq.Type,
 			},
 		}
 
 		// Add channel to sync array (basically a thread-safe map)
-		c.SMap.Put(requestId, activeChl)
+		c.SMap.Put(requestId.String(), activeChl)
 
 		err = c.Redis.EnqueueCogRequest(r.Context(), shared.COG_REDIS_QUEUE, cogReqBody)
 		if err != nil {
@@ -376,7 +376,7 @@ func (c *RestAPI) HandleCreateUpscaleToken(w http.ResponseWriter, r *http.Reques
 		case cogMsg := <-activeChl:
 			switch cogMsg.Status {
 			case requests.CogProcessing:
-				err := c.Repo.SetUpscaleStarted(requestId)
+				err := c.Repo.SetUpscaleStarted(requestId.String())
 				if err != nil {
 					log.Error("Failed to set upscale started", "id", requestId, "err", err)
 					responses.ErrInternalServerError(w, r, "An unknown error occurred")
@@ -402,7 +402,7 @@ func (c *RestAPI) HandleCreateUpscaleToken(w http.ResponseWriter, r *http.Reques
 					}
 				}()
 			case requests.CogSucceeded:
-				output, err := c.Repo.SetUpscaleSucceeded(requestId, outputIDStr, imageUrl, cogMsg.Output)
+				output, err := c.Repo.SetUpscaleSucceeded(requestId.String(), outputIDStr, imageUrl, cogMsg.Output)
 				if err != nil {
 					log.Error("Failed to set upscale succeeded", "id", upscale.ID, "err", err)
 					responses.ErrInternalServerError(w, r, "An unknown error occurred")
@@ -429,7 +429,7 @@ func (c *RestAPI) HandleCreateUpscaleToken(w http.ResponseWriter, r *http.Reques
 					}
 				}()
 				// Analytics
-				upscale, err := c.Repo.GetUpscale(uuid.MustParse(requestId))
+				upscale, err := c.Repo.GetUpscale(requestId)
 				if err != nil {
 					log.Error("Error getting upscale for analytics", "err", err)
 				}
@@ -465,7 +465,7 @@ func (c *RestAPI) HandleCreateUpscaleToken(w http.ResponseWriter, r *http.Reques
 			case requests.CogFailed:
 				if err := c.Repo.WithTx(func(tx *ent.Tx) error {
 					DB := tx.Client()
-					err := c.Repo.SetUpscaleFailed(requestId, cogMsg.Error, DB)
+					err := c.Repo.SetUpscaleFailed(requestId.String(), cogMsg.Error, DB)
 					if err != nil {
 						log.Error("Failed to set upscale failed", "id", upscale.ID, "err", err)
 						responses.ErrInternalServerError(w, r, "An unknown error occurred")
@@ -516,7 +516,7 @@ func (c *RestAPI) HandleCreateUpscaleToken(w http.ResponseWriter, r *http.Reques
 		case <-time.After(shared.REQUEST_COG_TIMEOUT):
 			if err := c.Repo.WithTx(func(tx *ent.Tx) error {
 				DB := tx.Client()
-				err := c.Repo.SetUpscaleFailed(requestId, shared.TIMEOUT_ERROR, DB)
+				err := c.Repo.SetUpscaleFailed(requestId.String(), shared.TIMEOUT_ERROR, DB)
 				if err != nil {
 					log.Error("Failed to set upscale failed", "id", upscale.ID, "err", err)
 				}

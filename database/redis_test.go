@@ -90,21 +90,21 @@ func TestGetPendingGenerationAndUpscaleIDs(t *testing.T) {
 	// Enqueue a few requests
 	assert.Nil(t, redis.EnqueueCogRequest(redis.Ctx, shared.COG_REDIS_QUEUE, requests.CogQueueRequest{
 		Input: requests.BaseCogRequest{
-			ID:          uuid.MustParse("00000000-0000-0000-0000-000000000001").String(),
+			ID:          uuid.MustParse("00000000-0000-0000-0000-000000000001"),
 			ProcessType: shared.UPSCALE,
 		},
 	}))
 
 	assert.Nil(t, redis.EnqueueCogRequest(redis.Ctx, shared.COG_REDIS_QUEUE, requests.CogQueueRequest{
 		Input: requests.BaseCogRequest{
-			ID:          uuid.MustParse("00000000-0000-0000-0000-000000000002").String(),
+			ID:          uuid.MustParse("00000000-0000-0000-0000-000000000002"),
 			ProcessType: shared.GENERATE,
 		},
 	}))
 
 	assert.Nil(t, redis.EnqueueCogRequest(redis.Ctx, shared.COG_REDIS_QUEUE, requests.CogQueueRequest{
 		Input: requests.BaseCogRequest{
-			ID:          uuid.MustParse("00000000-0000-0000-0000-000000000032").String(),
+			ID:          uuid.MustParse("00000000-0000-0000-0000-000000000032"),
 			ProcessType: shared.GENERATE_AND_UPSCALE,
 		},
 	}))

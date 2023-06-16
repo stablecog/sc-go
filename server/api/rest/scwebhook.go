@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/go-chi/render"
-	"github.com/google/uuid"
 	"github.com/stablecog/sc-go/database/ent"
 	"github.com/stablecog/sc-go/database/repository"
 	"github.com/stablecog/sc-go/log"
@@ -110,7 +109,7 @@ func (c *RestAPI) HandleSCWorkerWebhook(w http.ResponseWriter, r *http.Request) 
 			}
 			if cogMessage.Input.ProcessType == shared.GENERATE || cogMessage.Input.ProcessType == shared.GENERATE_AND_UPSCALE {
 				// Get generation
-				uid, _ := uuid.Parse(cogMessage.Input.ID)
+				uid := cogMessage.Input.ID
 				generation, err := c.Repo.GetGeneration(uid)
 				if err != nil {
 					log.Error("Error getting generation for analytics", "err", err)
@@ -126,7 +125,7 @@ func (c *RestAPI) HandleSCWorkerWebhook(w http.ResponseWriter, r *http.Request) 
 				c.Track.GenerationSucceeded(u, cogMessage.Input, duration, qDuration, cogMessage.Input.IP)
 			} else if cogMessage.Input.ProcessType == shared.UPSCALE {
 				// Get upscale
-				uid, _ := uuid.Parse(cogMessage.Input.ID)
+				uid := cogMessage.Input.ID
 				upscale, err := c.Repo.GetUpscale(uid)
 				if err != nil {
 					log.Error("Error getting upscale for analytics", "err", err)

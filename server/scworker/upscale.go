@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/favadi/osinfo"
+	"github.com/google/uuid"
 	"github.com/stablecog/sc-go/database"
 	"github.com/stablecog/sc-go/database/ent"
 	"github.com/stablecog/sc-go/database/repository"
@@ -32,7 +33,7 @@ func CreateUpscale(Track *analytics.AnalyticsService, Repo *repository.Repositor
 	}
 
 	var upscale *ent.Upscale
-	var requestId string
+	var requestId uuid.UUID
 	var user *ent.User
 	var err error
 
@@ -40,7 +41,6 @@ func CreateUpscale(Track *analytics.AnalyticsService, Repo *repository.Repositor
 	activeChl := make(chan requests.CogWebhookMessage)
 	// Cleanup
 	defer close(activeChl)
-	defer sMap.Delete(requestId)
 
 	if err := Repo.WithTx(func(tx *ent.Tx) error {
 		// Bind transaction to client
@@ -72,12 +72,12 @@ func CreateUpscale(Track *analytics.AnalyticsService, Repo *repository.Repositor
 		}
 
 		// Send to the cog
-		requestId = upscale.ID.String()
+		requestId = upscale.ID
 
 		// Live page
 		livePageMsg := &shared.LivePageMessage{
 			ProcessType:      shared.UPSCALE,
-			ID:               utils.Sha256(requestId),
+			ID:               utils.Sha256(requestId.String()),
 			CountryCode:      "US",
 			Status:           shared.LivePageQueued,
 			TargetNumOutputs: 1,
@@ -101,18 +101,19 @@ func CreateUpscale(Track *analytics.AnalyticsService, Repo *repository.Repositor
 				LivePageData:         livePageMsg,
 				Image:                utils.GetURLFromImagePath(output.ImagePath),
 				ProcessType:          shared.UPSCALE,
-				Width:                fmt.Sprint(generation.Width),
-				Height:               fmt.Sprint(generation.Height),
+				Width:                utils.ToPtr(generation.Width),
+				Height:               utils.ToPtr(generation.Height),
 				UpscaleModel:         upscaleModel.NameInWorker,
 				ModelId:              *upscaleReq.ModelId,
 				OutputImageExtension: string(shared.DEFAULT_UPSCALE_OUTPUT_EXTENSION),
-				OutputImageQuality:   fmt.Sprint(shared.DEFAULT_UPSCALE_OUTPUT_QUALITY),
+				OutputImageQuality:   utils.ToPtr(shared.DEFAULT_UPSCALE_OUTPUT_QUALITY),
 				Type:                 *upscaleReq.Type,
 			},
 		}
 
 		// Add channel to sync array (basically a thread-safe map)
-		sMap.Put(requestId, activeChl)
+		sMap.Put(requestId.String(), activeChl)
+		defer sMap.Delete(requestId.String())
 
 		err = Redis.EnqueueCogRequest(Redis.Ctx, shared.COG_REDIS_QUEUE, cogReqBody)
 		if err != nil {

@@ -4,7 +4,6 @@ package repository
 import (
 	"encoding/json"
 	"fmt"
-	"strconv"
 
 	"github.com/google/uuid"
 	"github.com/stablecog/sc-go/database/ent"
@@ -20,7 +19,7 @@ import (
 
 // Consider a generation/upscale a failure due to timeout
 func (r *Repository) FailCogMessageDueToTimeoutIfTimedOut(msg requests.CogWebhookMessage) {
-	deleted, err := r.Redis.DeleteCogRequestStreamID(r.Redis.Ctx, msg.Input.ID)
+	deleted, err := r.Redis.DeleteCogRequestStreamID(r.Redis.Ctx, msg.Input.ID.String())
 	if err != nil {
 		log.Error("Error deleting stream ID from redis", "err", err)
 		return
@@ -55,12 +54,6 @@ func (r *Repository) FailCogMessageDueToTimeoutIfTimedOut(msg requests.CogWebhoo
 
 	msg.Error = shared.TIMEOUT_ERROR
 
-	inputUuid, err := uuid.Parse(msg.Input.ID)
-	if err != nil {
-		log.Error("Error parsing input ID, not a UUID", "err", err)
-		return
-	}
-
 	// Only set for failures in case of refund
 	var remainingCredits int
 
@@ -68,8 +61,8 @@ func (r *Repository) FailCogMessageDueToTimeoutIfTimedOut(msg requests.CogWebhoo
 	if err := r.WithTx(func(tx *ent.Tx) error {
 		db := tx.Client()
 		if msg.Input.ProcessType == shared.UPSCALE {
-			r.SetUpscaleFailed(msg.Input.ID, msg.Error, db)
-			user, err := r.DB.Upscale.Query().Where(upscale.IDEQ(inputUuid)).QueryUser().Select(user.FieldID).First(r.Ctx)
+			r.SetUpscaleFailed(msg.Input.ID.String(), msg.Error, db)
+			user, err := r.DB.Upscale.Query().Where(upscale.IDEQ(msg.Input.ID)).QueryUser().Select(user.FieldID).First(r.Ctx)
 			if err != nil {
 				log.Error("Error getting user ID from upscale", "err", err)
 				return err
@@ -82,8 +75,8 @@ func (r *Repository) FailCogMessageDueToTimeoutIfTimedOut(msg requests.CogWebhoo
 				return err
 			}
 		} else if msg.Input.ProcessType == shared.VOICEOVER {
-			r.SetVoiceoverFailed(msg.Input.ID, msg.Error, db)
-			user, err := r.DB.Voiceover.Query().Where(voiceover.IDEQ(inputUuid)).QueryUser().Select(user.FieldID).First(r.Ctx)
+			r.SetVoiceoverFailed(msg.Input.ID.String(), msg.Error, db)
+			user, err := r.DB.Voiceover.Query().Where(voiceover.IDEQ(msg.Input.ID)).QueryUser().Select(user.FieldID).First(r.Ctx)
 			if err != nil {
 				log.Error("Error getting user ID from upscale", "err", err)
 				return err
@@ -96,20 +89,14 @@ func (r *Repository) FailCogMessageDueToTimeoutIfTimedOut(msg requests.CogWebhoo
 				return err
 			}
 		} else {
-			r.SetGenerationFailed(msg.Input.ID, msg.Error, msg.NSFWCount, db)
-			user, err := r.DB.Generation.Query().Where(generation.IDEQ(inputUuid)).QueryUser().Select(user.FieldID).First(r.Ctx)
+			r.SetGenerationFailed(msg.Input.ID.String(), msg.Error, msg.NSFWCount, db)
+			user, err := r.DB.Generation.Query().Where(generation.IDEQ(msg.Input.ID)).QueryUser().Select(user.FieldID).First(r.Ctx)
 			if err != nil {
 				log.Error("Error getting user ID from upscale", "err", err)
 				return err
 			}
 			userId = user.ID
-			// Generation credits is num_outputs
-			numOutputs, err := strconv.Atoi(msg.Input.NumOutputs)
-			if err != nil {
-				log.Error("Error parsing num outputs", "err", err)
-				return err
-			}
-			success, err := r.RefundCreditsToUser(userId, int32(numOutputs), db)
+			success, err := r.RefundCreditsToUser(userId, *msg.Input.NumOutputs, db)
 			if err != nil || !success {
 				log.Error("Error refunding credits for generation", "user", userId.String(), "id", msg.Input.ID, "err", err)
 				return err
@@ -132,7 +119,7 @@ func (r *Repository) FailCogMessageDueToTimeoutIfTimedOut(msg requests.CogWebhoo
 	// Send message to user
 	resp := TaskStatusUpdateResponse{
 		Status:           msg.Status,
-		Id:               msg.Input.ID,
+		Id:               msg.Input.ID.String(),
 		UIId:             msg.Input.UIId,
 		StreamId:         msg.Input.StreamID,
 		NSFWCount:        msg.NSFWCount,
@@ -155,7 +142,7 @@ func (r *Repository) FailCogMessageDueToTimeoutIfTimedOut(msg requests.CogWebhoo
 // Process a cog message into database
 func (r *Repository) ProcessCogMessage(msg requests.CogWebhookMessage) error {
 	// Delete timeout key
-	_, err := r.Redis.DeleteCogRequestStreamID(r.Redis.Ctx, msg.Input.ID)
+	_, err := r.Redis.DeleteCogRequestStreamID(r.Redis.Ctx, msg.Input.ID.String())
 	if err != nil {
 		log.Error("Error deleting stream ID from redis", "err", err)
 	}
@@ -171,12 +158,6 @@ func (r *Repository) ProcessCogMessage(msg requests.CogWebhookMessage) error {
 	var generationOutputs []*ent.GenerationOutput
 	var cogErr string
 
-	inputUuid, err := uuid.Parse(msg.Input.ID)
-	if err != nil {
-		log.Error("Error parsing input ID, not a UUID", "err", err)
-		return err
-	}
-
 	// Remaining credits set only for failures
 	var remainingCredits int
 
@@ -184,11 +165,11 @@ func (r *Repository) ProcessCogMessage(msg requests.CogWebhookMessage) error {
 	if msg.Status == requests.CogProcessing {
 		// In goroutine since we want them to know it started asap
 		if msg.Input.ProcessType == shared.UPSCALE {
-			go r.SetUpscaleStarted(msg.Input.ID)
+			go r.SetUpscaleStarted(msg.Input.ID.String())
 		} else if msg.Input.ProcessType == shared.VOICEOVER {
-			go r.SetVoiceoverStarted(msg.Input.ID)
+			go r.SetVoiceoverStarted(msg.Input.ID.String())
 		} else {
-			go r.SetGenerationStarted(msg.Input.ID)
+			go r.SetGenerationStarted(msg.Input.ID.String())
 		}
 	} else if msg.Status == requests.CogFailed {
 		// ! Failures for reasons other than NSFW,
@@ -197,8 +178,8 @@ func (r *Repository) ProcessCogMessage(msg requests.CogWebhookMessage) error {
 			db := tx.Client()
 			var userId uuid.UUID
 			if msg.Input.ProcessType == shared.UPSCALE {
-				r.SetUpscaleFailed(msg.Input.ID, msg.Error, db)
-				user, err := r.DB.Upscale.Query().Where(upscale.IDEQ(inputUuid)).QueryUser().Select(user.FieldID).First(r.Ctx)
+				r.SetUpscaleFailed(msg.Input.ID.String(), msg.Error, db)
+				user, err := r.DB.Upscale.Query().Where(upscale.IDEQ(msg.Input.ID)).QueryUser().Select(user.FieldID).First(r.Ctx)
 				if err != nil {
 					log.Error("Error getting user ID from upscale", "err", err)
 					return err
@@ -211,8 +192,8 @@ func (r *Repository) ProcessCogMessage(msg requests.CogWebhookMessage) error {
 					return err
 				}
 			} else if msg.Input.ProcessType == shared.VOICEOVER {
-				r.SetVoiceoverFailed(msg.Input.ID, msg.Error, db)
-				user, err := r.DB.Voiceover.Query().Where(voiceover.IDEQ(inputUuid)).QueryUser().Select(user.FieldID).First(r.Ctx)
+				r.SetVoiceoverFailed(msg.Input.ID.String(), msg.Error, db)
+				user, err := r.DB.Voiceover.Query().Where(voiceover.IDEQ(msg.Input.ID)).QueryUser().Select(user.FieldID).First(r.Ctx)
 				if err != nil {
 					log.Error("Error getting user ID from upscale", "err", err)
 					return err
@@ -225,20 +206,14 @@ func (r *Repository) ProcessCogMessage(msg requests.CogWebhookMessage) error {
 					return err
 				}
 			} else {
-				r.SetGenerationFailed(msg.Input.ID, msg.Error, msg.NSFWCount, db)
-				user, err := r.DB.Generation.Query().Where(generation.IDEQ(inputUuid)).QueryUser().Select(user.FieldID).First(r.Ctx)
+				r.SetGenerationFailed(msg.Input.ID.String(), msg.Error, msg.NSFWCount, db)
+				user, err := r.DB.Generation.Query().Where(generation.IDEQ(msg.Input.ID)).QueryUser().Select(user.FieldID).First(r.Ctx)
 				if err != nil {
 					log.Error("Error getting user ID from upscale", "err", err)
 					return err
 				}
 				userId = user.ID
-				// Generation credits is num_outputs
-				numOutputs, err := strconv.Atoi(msg.Input.NumOutputs)
-				if err != nil {
-					log.Error("Error parsing num outputs", "err", err)
-					return err
-				}
-				success, err := r.RefundCreditsToUser(userId, int32(numOutputs), db)
+				success, err := r.RefundCreditsToUser(userId, *msg.Input.NumOutputs, db)
 				if err != nil || !success {
 					log.Error("Error refunding credits for generation", "user", userId.String(), "id", msg.Input.ID, "err", err)
 					return err
@@ -268,13 +243,13 @@ func (r *Repository) ProcessCogMessage(msg requests.CogWebhookMessage) error {
 					processRefund = true
 				}
 				if msg.Input.ProcessType == shared.UPSCALE {
-					err := r.SetUpscaleFailed(msg.Input.ID, cogErr, db)
+					err := r.SetUpscaleFailed(msg.Input.ID.String(), cogErr, db)
 					if err != nil {
 						log.Error("Error setting upscale failed", "err", err)
 						return err
 					}
 					if processRefund {
-						user, err := r.DB.Upscale.Query().Where(upscale.IDEQ(inputUuid)).QueryUser().Select(user.FieldID).First(r.Ctx)
+						user, err := r.DB.Upscale.Query().Where(upscale.IDEQ(msg.Input.ID)).QueryUser().Select(user.FieldID).First(r.Ctx)
 						if err != nil {
 							log.Error("Error getting user ID from upscale", "err", err)
 							return err
@@ -291,23 +266,18 @@ func (r *Repository) ProcessCogMessage(msg requests.CogWebhookMessage) error {
 						}
 					}
 				} else {
-					err := r.SetGenerationFailed(msg.Input.ID, cogErr, msg.NSFWCount, db)
+					err := r.SetGenerationFailed(msg.Input.ID.String(), cogErr, msg.NSFWCount, db)
 					if err != nil {
 						log.Error("Error setting generation failed", "err", err)
 						return err
 					}
 					if processRefund {
-						user, err := r.DB.Generation.Query().Where(generation.IDEQ(inputUuid)).QueryUser().Select(user.FieldID).First(r.Ctx)
+						user, err := r.DB.Generation.Query().Where(generation.IDEQ(msg.Input.ID)).QueryUser().Select(user.FieldID).First(r.Ctx)
 						if err != nil {
 							log.Error("Error getting user ID from upscale", "err", err)
 							return err
 						}
-						numOutputs, err := strconv.Atoi(msg.Input.NumOutputs)
-						if err != nil {
-							log.Error("Error parsing num outputs", "err", err)
-							return err
-						}
-						success, err := r.RefundCreditsToUser(user.ID, int32(numOutputs), db)
+						success, err := r.RefundCreditsToUser(user.ID, *msg.Input.NumOutputs, db)
 						if err != nil || !success {
 							log.Error("Error refunding credits for upscale", "user", user.ID.String(), "id", msg.Input.ID, "err", err)
 							return err
@@ -328,12 +298,12 @@ func (r *Repository) ProcessCogMessage(msg requests.CogWebhookMessage) error {
 		} else if msg.Input.ProcessType == shared.VOICEOVER && len(msg.Output.AudioFiles) == 0 {
 			if err := r.WithTx(func(tx *ent.Tx) error {
 				db := tx.Client()
-				err := r.SetVoiceoverFailed(msg.Input.ID, cogErr, db)
+				err := r.SetVoiceoverFailed(msg.Input.ID.String(), cogErr, db)
 				if err != nil {
 					log.Error("Error setting voiceover failed", "err", err)
 					return err
 				}
-				user, err := r.DB.Voiceover.Query().Where(voiceover.IDEQ(inputUuid)).QueryUser().Select(user.FieldID).First(r.Ctx)
+				user, err := r.DB.Voiceover.Query().Where(voiceover.IDEQ(msg.Input.ID)).QueryUser().Select(user.FieldID).First(r.Ctx)
 				if err != nil {
 					log.Error("Error getting user ID from voiceover", "err", err)
 					return err
@@ -358,11 +328,11 @@ func (r *Repository) ProcessCogMessage(msg requests.CogWebhookMessage) error {
 		} else {
 			if msg.Input.ProcessType == shared.UPSCALE {
 				// ! Currently we are only assuming 1 output per upscale request
-				upscaleOutput, err = r.SetUpscaleSucceeded(msg.Input.ID, msg.Input.GenerationOutputID, msg.Input.Image, msg.Output)
+				upscaleOutput, err = r.SetUpscaleSucceeded(msg.Input.ID.String(), msg.Input.GenerationOutputID, msg.Input.Image, msg.Output)
 			} else if msg.Input.ProcessType == shared.VOICEOVER {
-				voiceoverOutput, err = r.SetVoiceoverSucceeded(msg.Input.ID, msg.Input.Prompt, msg.Output)
+				voiceoverOutput, err = r.SetVoiceoverSucceeded(msg.Input.ID.String(), msg.Input.Prompt, msg.Output)
 			} else {
-				generationOutputs, err = r.SetGenerationSucceeded(msg.Input.ID, msg.Input.Prompt, msg.Input.NegativePrompt, msg.Output, msg.NSFWCount)
+				generationOutputs, err = r.SetGenerationSucceeded(msg.Input.ID.String(), msg.Input.Prompt, msg.Input.NegativePrompt, msg.Output, msg.NSFWCount)
 			}
 			if err != nil {
 				log.Error("Error setting process succeeded", "process_type", msg.Input.ProcessType, "id", msg.Input.ID, "err", err)
@@ -381,7 +351,7 @@ func (r *Repository) ProcessCogMessage(msg requests.CogWebhookMessage) error {
 	if msg.Input.ProcessType != shared.VOICEOVER {
 		resp := TaskStatusUpdateResponse{
 			Status:           msg.Status,
-			Id:               msg.Input.ID,
+			Id:               msg.Input.ID.String(),
 			UIId:             msg.Input.UIId,
 			StreamId:         msg.Input.StreamID,
 			NSFWCount:        msg.NSFWCount,
@@ -432,7 +402,7 @@ func (r *Repository) ProcessCogMessage(msg requests.CogWebhookMessage) error {
 		// Voiceover
 		resp := TaskStatusUpdateResponse{
 			Status:           msg.Status,
-			Id:               msg.Input.ID,
+			Id:               msg.Input.ID.String(),
 			UIId:             msg.Input.UIId,
 			StreamId:         msg.Input.StreamID,
 			Error:            cogErr,

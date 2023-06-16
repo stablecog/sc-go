@@ -32,7 +32,7 @@ func (j *JobRunner) StartAutoUpscaleJob(log Logger) {
 			log.Infof("Received internal cog message %v", cogMessage)
 
 			// See if active channel exists
-			activeChannel := sMap.Get(cogMessage.Input.ID)
+			activeChannel := sMap.Get(cogMessage.Input.ID.String())
 			// Write to channel
 			if activeChannel != nil {
 				activeChannel <- cogMessage

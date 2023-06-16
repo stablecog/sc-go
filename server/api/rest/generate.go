@@ -214,7 +214,7 @@ func (c *RestAPI) HandleCreateGeneration(w http.ResponseWriter, r *http.Request)
 	// For live page update
 	var livePageMsg shared.LivePageMessage
 	// For keeping track of this request as it gets sent to the worker
-	var requestId string
+	var requestId uuid.UUID
 	// Cog request
 	var cogReqBody requests.CogQueueRequest
 
@@ -262,12 +262,12 @@ func (c *RestAPI) HandleCreateGeneration(w http.ResponseWriter, r *http.Request)
 		}
 
 		// Request Id matches generation ID
-		requestId = g.ID.String()
+		requestId = g.ID
 
 		// For live page update
 		livePageMsg = shared.LivePageMessage{
 			ProcessType:      shared.GENERATE,
-			ID:               utils.Sha256(requestId),
+			ID:               utils.Sha256(requestId.String()),
 			CountryCode:      countryCode,
 			Status:           shared.LivePageQueued,
 			TargetNumOutputs: *generateReq.NumOutputs,
@@ -278,17 +278,12 @@ func (c *RestAPI) HandleCreateGeneration(w http.ResponseWriter, r *http.Request)
 			Source:           shared.OperationSourceTypeWebUI,
 		}
 
-		var promtpStrengthStr string
-		if generateReq.PromptStrength != nil {
-			promtpStrengthStr = fmt.Sprint(*generateReq.PromptStrength)
-		}
-
 		cogReqBody = requests.CogQueueRequest{
 			WebhookEventsFilter: []requests.CogEventFilter{requests.CogEventFilterStart, requests.CogEventFilterStart},
 			WebhookUrl:          fmt.Sprintf("%s/v1/worker/webhook", utils.GetEnv("PUBLIC_API_URL", "")),
 			Input: requests.BaseCogRequest{
-				SkipSafetyChecker:    fmt.Sprint(generateReq.SkipSafetyChecker),
-				TranslatePrompts:     fmt.Sprint(generateReq.TranslatePrompts),
+				SkipSafetyChecker:    generateReq.SkipSafetyChecker,
+				SkipTranslation:      generateReq.SkipTranslation,
 				ID:                   requestId,
 				IP:                   utils.GetIPAddress(r),
 				UIId:                 generateReq.UIId,
@@ -298,22 +293,22 @@ func (c *RestAPI) HandleCreateGeneration(w http.ResponseWriter, r *http.Request)
 				LivePageData:         &livePageMsg,
 				Prompt:               generateReq.Prompt,
 				NegativePrompt:       generateReq.NegativePrompt,
-				Width:                fmt.Sprint(*generateReq.Width),
-				Height:               fmt.Sprint(*generateReq.Height),
-				NumInferenceSteps:    fmt.Sprint(*generateReq.InferenceSteps),
-				GuidanceScale:        fmt.Sprint(*generateReq.GuidanceScale),
+				Width:                generateReq.Width,
+				Height:               generateReq.Height,
+				NumInferenceSteps:    generateReq.InferenceSteps,
+				GuidanceScale:        generateReq.GuidanceScale,
 				Model:                modelName,
 				ModelId:              *generateReq.ModelId,
 				Scheduler:            schedulerName,
 				SchedulerId:          *generateReq.SchedulerId,
-				Seed:                 fmt.Sprint(*generateReq.Seed),
-				NumOutputs:           fmt.Sprint(*generateReq.NumOutputs),
+				Seed:                 generateReq.Seed,
+				NumOutputs:           generateReq.NumOutputs,
 				OutputImageExtension: string(shared.DEFAULT_GENERATE_OUTPUT_EXTENSION),
-				OutputImageQuality:   fmt.Sprint(shared.DEFAULT_GENERATE_OUTPUT_QUALITY),
+				OutputImageQuality:   utils.ToPtr(shared.DEFAULT_GENERATE_OUTPUT_QUALITY),
 				ProcessType:          shared.GENERATE,
 				SubmitToGallery:      generateReq.SubmitToGallery,
 				InitImageUrl:         signedInitImageUrl,
-				PromptStrength:       promtpStrengthStr,
+				PromptStrength:       generateReq.PromptStrength,
 			},
 		}
 
@@ -353,7 +348,7 @@ func (c *RestAPI) HandleCreateGeneration(w http.ResponseWriter, r *http.Request)
 	}()
 
 	// Set timeout key
-	err = c.Redis.SetCogRequestStreamID(c.Redis.Ctx, requestId, generateReq.StreamID)
+	err = c.Redis.SetCogRequestStreamID(c.Redis.Ctx, requestId.String(), generateReq.StreamID)
 	if err != nil {
 		// Don't time it out if this fails
 		log.Error("Failed to set timeout key", "err", err)
@@ -375,7 +370,7 @@ func (c *RestAPI) HandleCreateGeneration(w http.ResponseWriter, r *http.Request)
 
 	render.Status(r, http.StatusOK)
 	render.JSON(w, r, &responses.TaskQueuedResponse{
-		ID:               requestId,
+		ID:               requestId.String(),
 		UIId:             generateReq.UIId,
 		RemainingCredits: remainingCredits,
 	})

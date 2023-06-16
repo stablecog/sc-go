@@ -177,7 +177,7 @@ func (c *RestAPI) HandleUpscale(w http.ResponseWriter, r *http.Request) {
 	// For live page update
 	var livePageMsg shared.LivePageMessage
 	// For keeping track of this request as it gets sent to the worker
-	var requestId string
+	var requestId uuid.UUID
 	// The cog request body
 	var cogReqBody requests.CogQueueRequest
 	// The total remaining credits
@@ -228,12 +228,12 @@ func (c *RestAPI) HandleUpscale(w http.ResponseWriter, r *http.Request) {
 		}
 
 		// Request ID matches upscale ID
-		requestId = upscale.ID.String()
+		requestId = upscale.ID
 
 		// For live page update
 		livePageMsg = shared.LivePageMessage{
 			ProcessType:      shared.UPSCALE,
-			ID:               utils.Sha256(requestId),
+			ID:               utils.Sha256(requestId.String()),
 			CountryCode:      countryCode,
 			Status:           shared.LivePageQueued,
 			TargetNumOutputs: 1,
@@ -259,12 +259,12 @@ func (c *RestAPI) HandleUpscale(w http.ResponseWriter, r *http.Request) {
 				GenerationOutputID:   outputIDStr,
 				Image:                imageUrl,
 				ProcessType:          shared.UPSCALE,
-				Width:                fmt.Sprint(width),
-				Height:               fmt.Sprint(height),
+				Width:                utils.ToPtr(width),
+				Height:               utils.ToPtr(height),
 				UpscaleModel:         modelName,
 				ModelId:              *upscaleReq.ModelId,
 				OutputImageExtension: string(shared.DEFAULT_UPSCALE_OUTPUT_EXTENSION),
-				OutputImageQuality:   fmt.Sprint(shared.DEFAULT_UPSCALE_OUTPUT_QUALITY),
+				OutputImageQuality:   utils.ToPtr(shared.DEFAULT_UPSCALE_OUTPUT_QUALITY),
 				Type:                 *upscaleReq.Type,
 			},
 		}
@@ -302,7 +302,7 @@ func (c *RestAPI) HandleUpscale(w http.ResponseWriter, r *http.Request) {
 	}()
 
 	// Set timeout key
-	err = c.Redis.SetCogRequestStreamID(c.Redis.Ctx, requestId, upscaleReq.StreamID)
+	err = c.Redis.SetCogRequestStreamID(c.Redis.Ctx, requestId.String(), upscaleReq.StreamID)
 	if err != nil {
 		// Don't time it out if this fails
 		log.Error("Failed to set timeout key", "err", err)
@@ -324,7 +324,7 @@ func (c *RestAPI) HandleUpscale(w http.ResponseWriter, r *http.Request) {
 
 	render.Status(r, http.StatusOK)
 	render.JSON(w, r, &responses.TaskQueuedResponse{
-		ID:               requestId,
+		ID:               requestId.String(),
 		UIId:             upscaleReq.UIId,
 		RemainingCredits: remainingCredits,
 	})

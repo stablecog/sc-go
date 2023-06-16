@@ -35,7 +35,7 @@ type CreateGenerationRequest struct {
 	ProcessType          shared.ProcessType    `json:"process_type"`
 	OutputImageExtension shared.ImageExtension `json:"output_image_extension"`
 	SkipSafetyChecker    bool                  `json:"skip_safety_checker"`
-	TranslatePrompts     bool                  `json:"translate_prompts"`
+	SkipTranslation      bool                  `json:"skip_translation"`
 }
 
 // Apply defaults for missing parameters

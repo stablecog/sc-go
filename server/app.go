@@ -627,7 +627,7 @@ func main() {
 				continue
 			}
 
-			if chl := apiTokenSmap.Get(cogMessage.Input.ID); chl != nil {
+			if chl := apiTokenSmap.Get(cogMessage.Input.ID.String()); chl != nil {
 				chl <- cogMessage
 			}
 		}

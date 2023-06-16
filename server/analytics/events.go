@@ -1,8 +1,6 @@
 package analytics
 
 import (
-	"strconv"
-
 	"github.com/google/uuid"
 	"github.com/stablecog/sc-go/database/ent"
 	"github.com/stablecog/sc-go/server/requests"
@@ -26,19 +24,12 @@ func setDeviceInfo(dInfo utils.ClientDeviceInfo, properties map[string]interface
 
 // Generation | Started
 func (a *AnalyticsService) GenerationStarted(user *ent.User, cogReq requests.BaseCogRequest, ip string) error {
-	// We need to get guidance scale/height/inference steps/width as numeric values
-	height, _ := strconv.Atoi(cogReq.Height)
-	width, _ := strconv.Atoi(cogReq.Width)
-	inferenceSteps, _ := strconv.Atoi(cogReq.NumInferenceSteps)
-	// Guidance scale is a float
-	guidanceScale, _ := strconv.ParseFloat(cogReq.GuidanceScale, 32)
-
 	properties := map[string]interface{}{
 		"SC - User Id":           user.ID,
-		"SC - Guidance Scale":    guidanceScale,
-		"SC - Height":            height,
-		"SC - Width":             width,
-		"SC - Inference Steps":   inferenceSteps,
+		"SC - Guidance Scale":    *cogReq.GuidanceScale,
+		"SC - Height":            *cogReq.Height,
+		"SC - Width":             *cogReq.Width,
+		"SC - Inference Steps":   *cogReq.NumInferenceSteps,
 		"SC - Model Id":          cogReq.ModelId.String(),
 		"SC - Scheduler Id":      cogReq.SchedulerId.String(),
 		"SC - Submit to Gallery": cogReq.SubmitToGallery,
@@ -52,8 +43,8 @@ func (a *AnalyticsService) GenerationStarted(user *ent.User, cogReq requests.Bas
 	if cogReq.InitImageUrlS3 != "" {
 		properties["SC - Init Image Url"] = cogReq.InitImageUrlS3
 	}
-	if cogReq.PromptStrength != "" {
-		properties["SC - Prompt Strength"] = cogReq.PromptStrength
+	if cogReq.PromptStrength != nil {
+		properties["SC - Prompt Strength"] = *cogReq.PromptStrength
 	}
 	setDeviceInfo(cogReq.DeviceInfo, properties)
 
@@ -67,19 +58,12 @@ func (a *AnalyticsService) GenerationStarted(user *ent.User, cogReq requests.Bas
 
 // Generation | Succeeded
 func (a *AnalyticsService) GenerationSucceeded(user *ent.User, cogReq requests.BaseCogRequest, duration float64, qDuration float64, ip string) error {
-	// We need to get guidance scale/height/inference steps/width as numeric values
-	height, _ := strconv.Atoi(cogReq.Height)
-	width, _ := strconv.Atoi(cogReq.Width)
-	inferenceSteps, _ := strconv.Atoi(cogReq.NumInferenceSteps)
-	// Guidance scale is a float
-	guidanceScale, _ := strconv.ParseFloat(cogReq.GuidanceScale, 32)
-
 	properties := map[string]interface{}{
 		"SC - User Id":           user.ID,
-		"SC - Guidance Scale":    guidanceScale,
-		"SC - Height":            height,
-		"SC - Width":             width,
-		"SC - Inference Steps":   inferenceSteps,
+		"SC - Guidance Scale":    *cogReq.GuidanceScale,
+		"SC - Height":            *cogReq.Height,
+		"SC - Width":             *cogReq.Width,
+		"SC - Inference Steps":   *cogReq.NumInferenceSteps,
 		"SC - Model Id":          cogReq.ModelId.String(),
 		"SC - Scheduler Id":      cogReq.SchedulerId.String(),
 		"SC - Submit to Gallery": cogReq.SubmitToGallery,
@@ -94,8 +78,8 @@ func (a *AnalyticsService) GenerationSucceeded(user *ent.User, cogReq requests.B
 	if cogReq.InitImageUrlS3 != "" {
 		properties["SC - Init Image Url"] = cogReq.InitImageUrlS3
 	}
-	if cogReq.PromptStrength != "" {
-		properties["SC - Prompt Strength"] = cogReq.PromptStrength
+	if cogReq.PromptStrength != nil {
+		properties["SC - Prompt Strength"] = *cogReq.PromptStrength
 	}
 	setDeviceInfo(cogReq.DeviceInfo, properties)
 
@@ -108,19 +92,12 @@ func (a *AnalyticsService) GenerationSucceeded(user *ent.User, cogReq requests.B
 
 // Generation | Failed-NSFW
 func (a *AnalyticsService) GenerationFailedNSFW(user *ent.User, cogReq requests.BaseCogRequest, duration float64, ip string) error {
-	// We need to get guidance scale/height/inference steps/width as numeric values
-	height, _ := strconv.Atoi(cogReq.Height)
-	width, _ := strconv.Atoi(cogReq.Width)
-	inferenceSteps, _ := strconv.Atoi(cogReq.NumInferenceSteps)
-	// Guidance scale is a float
-	guidanceScale, _ := strconv.ParseFloat(cogReq.GuidanceScale, 32)
-
 	properties := map[string]interface{}{
 		"SC - User Id":           user.ID,
-		"SC - Guidance Scale":    guidanceScale,
-		"SC - Height":            height,
-		"SC - Width":             width,
-		"SC - Inference Steps":   inferenceSteps,
+		"SC - Guidance Scale":    *cogReq.GuidanceScale,
+		"SC - Height":            *cogReq.Height,
+		"SC - Width":             *cogReq.Width,
+		"SC - Inference Steps":   *cogReq.NumInferenceSteps,
 		"SC - Model Id":          cogReq.ModelId.String(),
 		"SC - Scheduler Id":      cogReq.SchedulerId.String(),
 		"SC - Submit to Gallery": cogReq.SubmitToGallery,
@@ -134,8 +111,8 @@ func (a *AnalyticsService) GenerationFailedNSFW(user *ent.User, cogReq requests.
 	if cogReq.InitImageUrlS3 != "" {
 		properties["SC - Init Image Url"] = cogReq.InitImageUrlS3
 	}
-	if cogReq.PromptStrength != "" {
-		properties["SC - Prompt Strength"] = cogReq.PromptStrength
+	if cogReq.PromptStrength != nil {
+		properties["SC - Prompt Strength"] = *cogReq.PromptStrength
 	}
 	setDeviceInfo(cogReq.DeviceInfo, properties)
 
@@ -148,19 +125,12 @@ func (a *AnalyticsService) GenerationFailedNSFW(user *ent.User, cogReq requests.
 
 // Generation | Failed
 func (a *AnalyticsService) GenerationFailed(user *ent.User, cogReq requests.BaseCogRequest, duration float64, failureReason string, ip string) error {
-	// We need to get guidance scale/height/inference steps/width as numeric values
-	height, _ := strconv.Atoi(cogReq.Height)
-	width, _ := strconv.Atoi(cogReq.Width)
-	inferenceSteps, _ := strconv.Atoi(cogReq.NumInferenceSteps)
-	// Guidance scale is a float
-	guidanceScale, _ := strconv.ParseFloat(cogReq.GuidanceScale, 32)
-
 	properties := map[string]interface{}{
 		"SC - User Id":           user.ID,
-		"SC - Guidance Scale":    guidanceScale,
-		"SC - Height":            height,
-		"SC - Width":             width,
-		"SC - Inference Steps":   inferenceSteps,
+		"SC - Guidance Scale":    *cogReq.GuidanceScale,
+		"SC - Height":            *cogReq.Height,
+		"SC - Width":             *cogReq.Width,
+		"SC - Inference Steps":   *cogReq.NumInferenceSteps,
 		"SC - Model Id":          cogReq.ModelId.String(),
 		"SC - Scheduler Id":      cogReq.SchedulerId.String(),
 		"SC - Submit to Gallery": cogReq.SubmitToGallery,
@@ -175,8 +145,8 @@ func (a *AnalyticsService) GenerationFailed(user *ent.User, cogReq requests.Base
 	if cogReq.InitImageUrlS3 != "" {
 		properties["SC - Init Image Url"] = cogReq.InitImageUrlS3
 	}
-	if cogReq.PromptStrength != "" {
-		properties["SC - Prompt Strength"] = cogReq.PromptStrength
+	if cogReq.PromptStrength != nil {
+		properties["SC - Prompt Strength"] = *cogReq.PromptStrength
 	}
 	setDeviceInfo(cogReq.DeviceInfo, properties)
 
@@ -189,14 +159,10 @@ func (a *AnalyticsService) GenerationFailed(user *ent.User, cogReq requests.Base
 
 // Upscale | Started
 func (a *AnalyticsService) UpscaleStarted(user *ent.User, cogReq requests.BaseCogRequest, ip string) error {
-	// We need to get guidance scale/height/inference steps/width as numeric values
-	height, _ := strconv.Atoi(cogReq.Height)
-	width, _ := strconv.Atoi(cogReq.Width)
-
 	properties := map[string]interface{}{
 		"SC - User Id":  user.ID,
-		"SC - Height":   height,
-		"SC - Width":    width,
+		"SC - Height":   *cogReq.Height,
+		"SC - Width":    *cogReq.Width,
 		"SC - Model Id": cogReq.ModelId.String(),
 		"SC - Scale":    4, // Always 4 for now
 		"SC - Image":    cogReq.Image,
@@ -222,14 +188,11 @@ func (a *AnalyticsService) UpscaleStarted(user *ent.User, cogReq requests.BaseCo
 
 // Upscale | Succeeded
 func (a *AnalyticsService) UpscaleSucceeded(user *ent.User, cogReq requests.BaseCogRequest, duration float64, qDuration float64, ip string) error {
-	// We need to get guidance scale/height/inference steps/width as numeric values
-	height, _ := strconv.Atoi(cogReq.Height)
-	width, _ := strconv.Atoi(cogReq.Width)
 
 	properties := map[string]interface{}{
 		"SC - User Id":           user.ID,
-		"SC - Height":            height,
-		"SC - Width":             width,
+		"SC - Height":            *cogReq.Height,
+		"SC - Width":             *cogReq.Width,
 		"SC - Model Id":          cogReq.ModelId.String(),
 		"SC - Scale":             4, // Always 4 for now
 		"SC - Image":             cogReq.Image,
@@ -255,13 +218,10 @@ func (a *AnalyticsService) UpscaleSucceeded(user *ent.User, cogReq requests.Base
 
 // Upscale | Failed
 func (a *AnalyticsService) UpscaleFailed(user *ent.User, cogReq requests.BaseCogRequest, duration float64, failureReason string, ip string) error {
-	// We need to get guidance scale/height/inference steps/width as numeric values
-	height, _ := strconv.Atoi(cogReq.Height)
-	width, _ := strconv.Atoi(cogReq.Width)
 	properties := map[string]interface{}{
 		"SC - User Id":        user.ID,
-		"SC - Height":         height,
-		"SC - Width":          width,
+		"SC - Height":         *cogReq.Height,
+		"SC - Width":          *cogReq.Width,
 		"SC - Model Id":       cogReq.ModelId.String(),
 		"SC - Scale":          4, // Always 4 for now
 		"SC - Image":          cogReq.Image,

@@ -131,7 +131,7 @@ func (c *RestAPI) HandleVoiceover(w http.ResponseWriter, r *http.Request) {
 	// For live page update
 	var livePageMsg shared.LivePageMessage
 	// For keeping track of this request as it gets sent to the worker
-	var requestId string
+	var requestId uuid.UUID
 	// The cog request body
 	var cogReqBody requests.CogQueueRequest
 	// The total remaining credits
@@ -180,12 +180,12 @@ func (c *RestAPI) HandleVoiceover(w http.ResponseWriter, r *http.Request) {
 		}
 
 		// Request ID matches upscale ID
-		requestId = voiceover.ID.String()
+		requestId = voiceover.ID
 
 		// For live page update
 		livePageMsg = shared.LivePageMessage{
 			ProcessType:      shared.VOICEOVER,
-			ID:               utils.Sha256(requestId),
+			ID:               utils.Sha256(requestId.String()),
 			CountryCode:      countryCode,
 			Status:           shared.LivePageQueued,
 			TargetNumOutputs: 1,
@@ -211,10 +211,10 @@ func (c *RestAPI) HandleVoiceover(w http.ResponseWriter, r *http.Request) {
 				Speaker:       speakerName,
 				ModelId:       *voiceoverReq.ModelId,
 				Prompt:        voiceoverReq.Prompt,
-				Temp:          fmt.Sprint(*voiceoverReq.Temperature),
-				Seed:          fmt.Sprint(*voiceoverReq.Seed),
-				RemoveSilence: fmt.Sprint(*voiceoverReq.RemoveSilence),
-				DenoiseAudio:  fmt.Sprint(*voiceoverReq.DenoiseAudio),
+				Temp:          voiceoverReq.Temperature,
+				Seed:          voiceoverReq.Seed,
+				RemoveSilence: voiceoverReq.RemoveSilence,
+				DenoiseAudio:  voiceoverReq.DenoiseAudio,
 			},
 		}
 
@@ -251,7 +251,7 @@ func (c *RestAPI) HandleVoiceover(w http.ResponseWriter, r *http.Request) {
 	}()
 
 	// Set timeout key
-	err = c.Redis.SetCogRequestStreamID(c.Redis.Ctx, requestId, voiceoverReq.StreamID)
+	err = c.Redis.SetCogRequestStreamID(c.Redis.Ctx, requestId.String(), voiceoverReq.StreamID)
 	if err != nil {
 		// Don't time it out if this fails
 		log.Error("Failed to set timeout key", "err", err)
@@ -273,7 +273,7 @@ func (c *RestAPI) HandleVoiceover(w http.ResponseWriter, r *http.Request) {
 
 	render.Status(r, http.StatusOK)
 	render.JSON(w, r, &responses.TaskQueuedResponse{
-		ID:               requestId,
+		ID:               requestId.String(),
 		UIId:             voiceoverReq.UIId,
 		RemainingCredits: remainingCredits,
 	})

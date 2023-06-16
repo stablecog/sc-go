@@ -21,10 +21,10 @@ const (
 
 // Base request data sc-worker uses to process request
 type BaseCogRequest struct {
-	SkipSafetyChecker string `json:"skip_safety_checker,omitempty"`
-	TranslatePrompts  string `json:"translate_prompts,omitempty"`
+	SkipSafetyChecker bool `json:"skip_safety_checker"`
+	SkipTranslation   bool `json:"skip_translation"`
 	// These fields are irrelevant to sc-worker, just used to identify the request when it comes back
-	ID                 string                  `json:"id"`
+	ID                 uuid.UUID               `json:"id"`
 	UserID             *uuid.UUID              `json:"user_id,omitempty"`
 	IP                 string                  `json:"ip,omitempty"`
 	UIId               string                  `json:"ui_id,omitempty"`
@@ -38,22 +38,22 @@ type BaseCogRequest struct {
 	UploadPathPrefix     string             `json:"upload_path_prefix,omitempty"`
 	Prompt               string             `json:"prompt,omitempty"`
 	NegativePrompt       string             `json:"negative_prompt,omitempty"`
-	Width                string             `json:"width,omitempty"`
-	Height               string             `json:"height,omitempty"`
+	Width                *int32             `json:"width,omitempty"`
+	Height               *int32             `json:"height,omitempty"`
 	OutputImageExtension string             `json:"output_image_extension,omitempty"`
-	OutputImageQuality   string             `json:"output_image_quality,omitempty"`
-	NumInferenceSteps    string             `json:"num_inference_steps,omitempty"`
-	GuidanceScale        string             `json:"guidance_scale,omitempty"`
+	OutputImageQuality   *int               `json:"output_image_quality,omitempty"`
+	NumInferenceSteps    *int32             `json:"num_inference_steps,omitempty"`
+	GuidanceScale        *float32           `json:"guidance_scale,omitempty"`
 	Model                string             `json:"model,omitempty"`
 	ModelId              uuid.UUID          `json:"model_id,omitempty"`
 	Scheduler            string             `json:"scheduler,omitempty"`
 	SchedulerId          uuid.UUID          `json:"scheduler_id,omitempty"`
 	InitImageUrl         string             `json:"init_image_url,omitempty"`
 	InitImageUrlS3       string             `json:"init_image_url_s3,omitempty"`
-	PromptStrength       string             `json:"prompt_strength,omitempty"`
+	PromptStrength       *float32           `json:"prompt_strength,omitempty"`
 	Mask                 string             `json:"mask,omitempty"`
-	Seed                 string             `json:"seed,omitempty"`
-	NumOutputs           string             `json:"num_outputs,omitempty"`
+	Seed                 *int               `json:"seed,omitempty"`
+	NumOutputs           *int32             `json:"num_outputs,omitempty"`
 	ProcessType          shared.ProcessType `json:"process_type"`
 	PromptFlores         string             `json:"prompt_flores_200_code,omitempty"`
 	NegativePromptFlores string             `json:"negative_prompt_flores_200_code,omitempty"`
@@ -63,10 +63,10 @@ type BaseCogRequest struct {
 	Type         UpscaleRequestType `json:"type,omitempty"`
 	UpscaleModel string             `json:"upscale_model,omitempty"`
 	// Voiceover specific
-	Speaker       string `json:"speaker,omitempty"`
-	Temp          string `json:"temperature,omitempty"`
-	DenoiseAudio  string `json:"denoise_audio,omitempty"`
-	RemoveSilence string `json:"remove_silence,omitempty"`
+	Speaker       string   `json:"speaker,omitempty"`
+	Temp          *float32 `json:"temperature,omitempty"`
+	DenoiseAudio  *bool    `json:"denoise_audio,omitempty"`
+	RemoveSilence *bool    `json:"remove_silence,omitempty"`
 }
 
 // Data type is what we actually send to the cog, includes some additional metadata beyond BaseCogRequest

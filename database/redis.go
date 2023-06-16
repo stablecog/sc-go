@@ -133,27 +133,17 @@ func (r *RedisWrapper) GetPendingGenerationAndUpscaleIDs(olderThan time.Duration
 		}
 
 		if request.Input.ProcessType == shared.UPSCALE {
-			parsed, err := uuid.Parse(request.Input.ID)
-			if err != nil {
-				log.Error("Error parsing upscale output ID", "err", err)
-				continue
-			}
 			upscaleOutputIDs = append(upscaleOutputIDs, PendingCogRequestRedis{
 				RedisMsgid: message.ID,
 				Type:       request.Input.ProcessType,
-				ID:         parsed,
+				ID:         request.Input.ID,
 			})
 		}
 		if request.Input.ProcessType == shared.GENERATE || request.Input.ProcessType == shared.GENERATE_AND_UPSCALE {
-			parsed, err := uuid.Parse(request.Input.ID)
-			if err != nil {
-				log.Error("Error parsing generation output ID", "err", err)
-				continue
-			}
 			generationOutputIDs = append(generationOutputIDs, PendingCogRequestRedis{
 				RedisMsgid: message.ID,
 				Type:       request.Input.ProcessType,
-				ID:         parsed,
+				ID:         request.Input.ID,
 			})
 		}
 	}
