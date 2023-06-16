@@ -245,6 +245,82 @@ func (a *AnalyticsService) UpscaleFailed(user *ent.User, cogReq requests.BaseCog
 	})
 }
 
+// Voiceover | Started
+func (a *AnalyticsService) VoiceoverStarted(user *ent.User, cogReq requests.BaseCogRequest, ip string) error {
+	properties := map[string]interface{}{
+		"SC - User Id":        user.ID,
+		"SC - Model Id":       cogReq.ModelId.String(),
+		"SC - Speaker Id":     cogReq.SpeakerId.String(),
+		"SC - Temperature":    *cogReq.Temp,
+		"SC - Denoise Audio":  *cogReq.DenoiseAudio,
+		"SC - Remove Silence": *cogReq.RemoveSilence,
+		"$ip":                 ip,
+		"email":               user.Email,
+	}
+	if user.ActiveProductID != nil {
+		properties["SC - Stripe Product Id"] = user.ActiveProductID
+	}
+	setDeviceInfo(cogReq.DeviceInfo, properties)
+
+	return a.Dispatch(Event{
+		Identify:   true,
+		DistinctId: user.ID.String(),
+		EventName:  "Voiceover | Started",
+		Properties: properties,
+	})
+}
+
+// Voiceover | Succeeded
+func (a *AnalyticsService) VoiceoverSucceeded(user *ent.User, cogReq requests.BaseCogRequest, duration float64, qDuration float64, ip string) error {
+
+	properties := map[string]interface{}{
+		"SC - User Id":           user.ID,
+		"SC - Model Id":          cogReq.ModelId.String(),
+		"SC - Speaker Id":        cogReq.SpeakerId.String(),
+		"SC - Temperature":       *cogReq.Temp,
+		"SC - Denoise Audio":     *cogReq.DenoiseAudio,
+		"SC - Remove Silence":    *cogReq.RemoveSilence,
+		"SC - Duration":          duration,
+		"SC - Duration in Queue": qDuration,
+		"$ip":                    ip,
+	}
+	if user.ActiveProductID != nil {
+		properties["SC - Stripe Product Id"] = user.ActiveProductID
+	}
+	setDeviceInfo(cogReq.DeviceInfo, properties)
+
+	return a.Dispatch(Event{
+		DistinctId: user.ID.String(),
+		EventName:  "Voiceover | Succeeded",
+		Properties: properties,
+	})
+}
+
+// Voiceover | Failed
+func (a *AnalyticsService) VoiceoverFailed(user *ent.User, cogReq requests.BaseCogRequest, duration float64, failureReason string, ip string) error {
+	properties := map[string]interface{}{
+		"SC - User Id":        user.ID,
+		"SC - Model Id":       cogReq.ModelId.String(),
+		"SC - Speaker Id":     cogReq.SpeakerId.String(),
+		"SC - Temperature":    *cogReq.Temp,
+		"SC - Denoise Audio":  *cogReq.DenoiseAudio,
+		"SC - Remove Silence": *cogReq.RemoveSilence,
+		"SC - Duration":       duration,
+		"$ip":                 ip,
+		"SC - Failure Reason": failureReason,
+	}
+	if user.ActiveProductID != nil {
+		properties["SC - Stripe Product Id"] = user.ActiveProductID
+	}
+	setDeviceInfo(cogReq.DeviceInfo, properties)
+
+	return a.Dispatch(Event{
+		DistinctId: user.ID.String(),
+		EventName:  "Voiceover | Failed",
+		Properties: properties,
+	})
+}
+
 // Sign Up
 func (a *AnalyticsService) SignUp(userId uuid.UUID, email, ipAddress string, deviceInfo utils.ClientDeviceInfo) error {
 	properties := map[string]interface{}{

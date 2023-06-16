@@ -569,6 +569,25 @@ func main() {
 			})
 		})
 
+		r.Route("/audio", func(r chi.Router) {
+			r.Route("/voiceover/create", func(r chi.Router) {
+				r.Route("/", func(r chi.Router) {
+					r.Use(mw.AuthMiddleware(middleware.AuthLevelAPIToken))
+					r.Use(middleware.Logger)
+					r.Use(mw.RateLimit(5, "api", 1*time.Second))
+					r.Post("/", hc.HandleCreateVoiceoverToken)
+				})
+			})
+
+			// Querying user outputs
+			r.Route("/voiceover/outputs", func(r chi.Router) {
+				r.Use(middleware.Logger)
+				r.Use(mw.RateLimit(10, "api", 1*time.Second))
+				r.Use(mw.AuthMiddleware(middleware.AuthLevelAPIToken))
+				r.Get("/", hc.HandleQueryVoiceovers)
+			})
+		})
+
 		r.Route("/credits", func(r chi.Router) {
 			r.Use(middleware.Logger)
 			r.Use(mw.RateLimit(10, "api", 1*time.Second))

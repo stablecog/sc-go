@@ -63,10 +63,11 @@ type BaseCogRequest struct {
 	Type         UpscaleRequestType `json:"type,omitempty"`
 	UpscaleModel string             `json:"upscale_model,omitempty"`
 	// Voiceover specific
-	Speaker       string   `json:"speaker,omitempty"`
-	Temp          *float32 `json:"temperature,omitempty"`
-	DenoiseAudio  *bool    `json:"denoise_audio,omitempty"`
-	RemoveSilence *bool    `json:"remove_silence,omitempty"`
+	Speaker       string    `json:"speaker,omitempty"`
+	Temp          *float32  `json:"temperature,omitempty"`
+	DenoiseAudio  *bool     `json:"denoise_audio,omitempty"`
+	RemoveSilence *bool     `json:"remove_silence,omitempty"`
+	SpeakerId     uuid.UUID `json:"speaker_id,omitempty"`
 }
 
 // Data type is what we actually send to the cog, includes some additional metadata beyond BaseCogRequest

@@ -21,15 +21,32 @@ import (
 	"golang.org/x/exp/slices"
 )
 
-// POST upscale endpoint
-// Handles creating a upscale with API token
-func (c *RestAPI) HandleCreateUpscaleToken(w http.ResponseWriter, r *http.Request) {
+func (c *RestAPI) HandleCreateVoiceoverToken(w http.ResponseWriter, r *http.Request) {
 	var user *ent.User
 	if user = c.GetUserIfAuthenticated(w, r); user == nil {
 		return
 	}
 	var apiToken *ent.ApiToken
 	if apiToken = c.GetApiToken(w, r); apiToken == nil {
+		return
+	}
+
+	// Parse request body
+	reqBody, _ := io.ReadAll(r.Body)
+	var voiceoverReq requests.CreateVoiceoverRequest
+	err := json.Unmarshal(reqBody, &voiceoverReq)
+	if err != nil {
+		responses.ErrUnableToParseJson(w, r)
+		return
+	}
+
+	if user.BannedAt != nil {
+		remainingCredits, _ := c.Repo.GetNonExpiredCreditTotalForUser(user.ID, nil)
+		render.Status(r, http.StatusOK)
+		render.JSON(w, r, &responses.TaskQueuedResponse{
+			ID:               uuid.NewString(),
+			RemainingCredits: remainingCredits,
+		})
 		return
 	}
 
@@ -56,86 +73,43 @@ func (c *RestAPI) HandleCreateUpscaleToken(w http.ResponseWriter, r *http.Reques
 	if isSuperAdmin {
 		qMax = math.MaxInt64
 	} else {
-		qMax = shared.MAX_QUEUED_ITEMS_FREE
+		qMax = shared.MAX_QUEUED_ITEMS_VOICEOVER
 	}
-	if !isSuperAdmin && user.ActiveProductID != nil {
-		switch *user.ActiveProductID {
-		// Starter
-		case GetProductIDs()[1]:
-			qMax = shared.MAX_QUEUED_ITEMS_STARTER
-			// Pro
-		case GetProductIDs()[2]:
-			qMax = shared.MAX_QUEUED_ITEMS_PRO
-		// Ultimate
-		case GetProductIDs()[3]:
-			qMax = shared.MAX_QUEUED_ITEMS_ULTIMATE
-		default:
-			log.Warn("Unknown product ID", "product_id", *user.ActiveProductID)
-		}
-		// // Get product level
-		// for level, product := range GetProductIDs() {
-		// 	if product == *user.ActiveProductID {
-		// 		prodLevel = level
-		// 		break
-		// 	}
-		// }
-	}
+
 	for _, role := range roles {
 		switch role {
 		case "ULTIMATE":
 			free = false
-			if qMax < shared.MAX_QUEUED_ITEMS_ULTIMATE {
-				qMax = shared.MAX_QUEUED_ITEMS_ULTIMATE
-			}
 		case "PRO":
 			free = false
-			if qMax < shared.MAX_QUEUED_ITEMS_PRO {
-				qMax = shared.MAX_QUEUED_ITEMS_PRO
-			}
 		case "STARTER":
 			free = false
-			if qMax < shared.MAX_QUEUED_ITEMS_STARTER {
-				qMax = shared.MAX_QUEUED_ITEMS_STARTER
-			}
 		}
 	}
 
-	// Parse request body
-	reqBody, _ := io.ReadAll(r.Body)
-	var upscaleReq requests.CreateUpscaleRequest
-	err = json.Unmarshal(reqBody, &upscaleReq)
-	if err != nil {
-		responses.ErrUnableToParseJson(w, r)
-		return
-	}
-
-	if user.BannedAt != nil {
-		remainingCredits, _ := c.Repo.GetNonExpiredCreditTotalForUser(user.ID, nil)
-		render.Status(r, http.StatusOK)
-		render.JSON(w, r, &responses.TaskQueuedResponse{
-			ID:               uuid.NewString(),
-			RemainingCredits: remainingCredits,
-		})
-		return
-	}
-
 	// Validation
-	err = upscaleReq.Validate(true)
-	if err != nil {
-		responses.ErrBadRequest(w, r, err.Error(), "")
-		return
+	if !isSuperAdmin {
+		err = voiceoverReq.Validate(true)
+		if err != nil {
+			responses.ErrBadRequest(w, r, err.Error(), "")
+			return
+		}
 	}
 
 	// Set settings resp
-	initSettings := responses.ImageUpscaleSettingsResponse{
-		ModelId: *upscaleReq.ModelId,
-		Input:   upscaleReq.Input,
+	initSettings := responses.VoiceoverSettingsResponse{
+		ModelId:       *voiceoverReq.ModelId,
+		SpeakerId:     *voiceoverReq.SpeakerId,
+		Temperature:   *voiceoverReq.Temperature,
+		Seed:          voiceoverReq.Seed,
+		DenoiseAudio:  *voiceoverReq.DenoiseAudio,
+		RemoveSilence: *voiceoverReq.RemoveSilence,
 	}
 
 	// Get queue count
-	nq, err := c.QueueThrottler.NumQueued(fmt.Sprintf("u:%s", user.ID.String()))
+	nq, err := c.QueueThrottler.NumQueued(fmt.Sprintf("v:%s", user.ID.String()))
 	if err != nil {
-		log.Warn("Error getting queue count", "err", err, "user_id", user.ID.String())
+		log.Warn("Error getting queue count for user", "err", err, "user_id", user.ID)
 	}
 	if err == nil && nq > qMax {
 		// Get queue overflow size
@@ -153,7 +127,7 @@ func (c *RestAPI) HandleCreateUpscaleToken(w http.ResponseWriter, r *http.Reques
 		c.QueueThrottler.IncrementBy(1, fmt.Sprintf("of:%s", user.ID.String()))
 		for {
 			time.Sleep(time.Duration(shared.QUEUE_OVERFLOW_PENALTY_MS*overflowSize) * time.Millisecond)
-			nq, err = c.QueueThrottler.NumQueued(fmt.Sprintf("u:%s", user.ID.String()))
+			nq, err = c.QueueThrottler.NumQueued(fmt.Sprintf("v:%s", user.ID.String()))
 			if err != nil {
 				log.Warn("Error getting queue count", "err", err, "user_id", user.ID.String())
 			}
@@ -170,73 +144,38 @@ func (c *RestAPI) HandleCreateUpscaleToken(w http.ResponseWriter, r *http.Reques
 		}
 	}
 
+	// Enforce submit to gallery
+	if free {
+		voiceoverReq.SubmitToGallery = true
+	}
+
 	// Parse request headers
 	countryCode := utils.GetCountryCode(r)
 	deviceInfo := utils.GetClientDeviceInfo(r)
 
 	// Get model name for cog
-	modelName := shared.GetCache().GetUpscaleModelNameFromID(*upscaleReq.ModelId)
+	modelName := shared.GetCache().GetVoiceoverModelNameFromID(*voiceoverReq.ModelId)
 	if modelName == "" {
 		log.Error("Error getting model name", "model_name", modelName)
 		responses.ErrInternalServerError(w, r, "An unknown error has occurred")
 		return
 	}
 
-	// Initiate upscale
-	// We need to get width/height, from our database if output otherwise from the external image
-	var width int32
-	var height int32
-
-	// Image Type
-	imageUrl := upscaleReq.Input
-	if *upscaleReq.Type == requests.UpscaleRequestTypeImage {
-		width, height, err = utils.GetImageWidthHeightFromUrl(imageUrl, shared.MAX_UPSCALE_IMAGE_SIZE)
-		if err != nil {
-			responses.ErrBadRequest(w, r, "image_url_width_height_error", "")
-			return
-		}
-		if width > shared.MAX_UPSCALE_INITIAL_WIDTH || height > shared.MAX_UPSCALE_INITIAL_HEIGHT {
-			responses.ErrBadRequest(w, r, "image_url_width_height_error", "Image cannot exceed 1024x1024")
-			return
-		}
-	}
-
-	// Output Type
-	var outputIDStr string
-	if *upscaleReq.Type == requests.UpscaleRequestTypeOutput {
-		outputIDStr = upscaleReq.OutputID.String()
-		output, err := c.Repo.GetGenerationOutputForUser(*upscaleReq.OutputID, user.ID)
-		if err != nil {
-			if ent.IsNotFound(err) {
-				responses.ErrBadRequest(w, r, "output_not_found", "")
-				return
-			}
-			log.Error("Error getting output", "err", err)
-			responses.ErrInternalServerError(w, r, "Error getting output")
-			return
-		}
-		if output.UpscaledImagePath != nil {
-			responses.ErrBadRequest(w, r, "image_already_upscaled", "")
-			return
-		}
-		imageUrl = utils.GetURLFromImagePath(output.ImagePath)
-
-		// Get width/height of generation
-		width, height, err = c.Repo.GetGenerationOutputWidthHeight(*upscaleReq.OutputID)
-		if err != nil {
-			responses.ErrBadRequest(w, r, "Unable to retrieve width/height for upscale", "")
-			return
-		}
+	// Get speaker name for cog
+	speakerName := shared.GetCache().GetVoiceoverSpeakerNameFromID(*voiceoverReq.SpeakerId)
+	if speakerName == "" {
+		log.Error("Error getting speaker name", "speaker_name", speakerName)
+		responses.ErrInternalServerError(w, r, "An unknown error has occurred")
+		return
 	}
 
 	// For live page update
 	var livePageMsg shared.LivePageMessage
 	// For keeping track of this request as it gets sent to the worker
 	var requestId uuid.UUID
-	// Cog request
+	// The cog request body
 	var cogReqBody requests.CogQueueRequest
-
-	// Credits left after this operation
+	// The total remaining credits
 	var remainingCredits int
 
 	// Create channel to track request
@@ -248,10 +187,12 @@ func (c *RestAPI) HandleCreateUpscaleToken(w http.ResponseWriter, r *http.Reques
 	// Wrap everything in a DB transaction
 	// We do this since we want our credit deduction to be atomic with the whole process
 	if err := c.Repo.WithTx(func(tx *ent.Tx) error {
-		// Bind a client to the transaction
+		// Bind transaction to client
 		DB := tx.Client()
-		// Deduct credits from user
-		deducted, err := c.Repo.DeductCreditsFromUser(user.ID, 1, DB)
+
+		// Charge credits
+		creditAmount := utils.CalculateVoiceoverCredits(voiceoverReq.Prompt)
+		deducted, err := c.Repo.DeductCreditsFromUser(user.ID, creditAmount, DB)
 		if err != nil {
 			log.Error("Error deducting credits", "err", err)
 			responses.ErrInternalServerError(w, r, "Error deducting credits from user")
@@ -264,43 +205,38 @@ func (c *RestAPI) HandleCreateUpscaleToken(w http.ResponseWriter, r *http.Reques
 		remainingCredits, err = c.Repo.GetNonExpiredCreditTotalForUser(user.ID, DB)
 		if err != nil {
 			log.Error("Error getting remaining credits", "err", err)
-			responses.ErrInternalServerError(w, r, "An unknown error has occured")
+			responses.ErrInternalServerError(w, r, "An unknown error has occurred")
 			return err
 		}
 
-		// Create upscale
-		upscale, err := c.Repo.CreateUpscale(
+		// Create voiceover
+		voiceover, err := c.Repo.CreateVoiceover(
 			user.ID,
-			width,
-			height,
 			string(deviceInfo.DeviceType),
 			deviceInfo.DeviceOs,
 			deviceInfo.DeviceBrowser,
 			countryCode,
-			upscaleReq,
+			voiceoverReq,
 			user.ActiveProductID,
-			false,
 			&apiToken.ID,
 			DB)
 		if err != nil {
-			log.Error("Error creating upscale", "err", err)
-			responses.ErrInternalServerError(w, r, "Error creating upscale")
+			log.Error("Error creating voiceover", "err", err)
+			responses.ErrInternalServerError(w, r, "Error creating voiceover")
 			return err
 		}
 
-		// Request Id matches upscale ID
-		requestId = upscale.ID
+		// Request ID matches upscale ID
+		requestId = voiceover.ID
 
 		// For live page update
 		livePageMsg = shared.LivePageMessage{
-			ProcessType:      shared.UPSCALE,
+			ProcessType:      shared.VOICEOVER,
 			ID:               utils.Sha256(requestId.String()),
 			CountryCode:      countryCode,
 			Status:           shared.LivePageQueued,
 			TargetNumOutputs: 1,
-			Width:            width,
-			Height:           height,
-			CreatedAt:        upscale.CreatedAt,
+			CreatedAt:        voiceover.CreatedAt,
 			ProductID:        user.ActiveProductID,
 			Source:           shared.OperationSourceTypeAPI,
 		}
@@ -310,44 +246,42 @@ func (c *RestAPI) HandleCreateUpscaleToken(w http.ResponseWriter, r *http.Reques
 			WebhookEventsFilter: []requests.CogEventFilter{requests.CogEventFilterStart, requests.CogEventFilterStart},
 			WebhookUrl:          fmt.Sprintf("%s/v1/worker/webhook", utils.GetEnv("PUBLIC_API_URL", "")),
 			Input: requests.BaseCogRequest{
-				APIRequest:           true,
-				ID:                   requestId,
-				IP:                   utils.GetIPAddress(r),
-				UIId:                 upscaleReq.UIId,
-				UserID:               &user.ID,
-				DeviceInfo:           deviceInfo,
-				StreamID:             upscaleReq.StreamID,
-				LivePageData:         &livePageMsg,
-				GenerationOutputID:   outputIDStr,
-				Image:                imageUrl,
-				ProcessType:          shared.UPSCALE,
-				Width:                utils.ToPtr(width),
-				Height:               utils.ToPtr(height),
-				UpscaleModel:         modelName,
-				ModelId:              *upscaleReq.ModelId,
-				OutputImageExtension: string(shared.DEFAULT_UPSCALE_OUTPUT_EXTENSION),
-				OutputImageQuality:   utils.ToPtr(shared.DEFAULT_UPSCALE_OUTPUT_QUALITY),
-				Type:                 *upscaleReq.Type,
+				APIRequest:    true,
+				ID:            requestId,
+				IP:            utils.GetIPAddress(r),
+				UserID:        &user.ID,
+				DeviceInfo:    deviceInfo,
+				LivePageData:  &livePageMsg,
+				ProcessType:   shared.VOICEOVER,
+				Model:         modelName,
+				Speaker:       speakerName,
+				ModelId:       *voiceoverReq.ModelId,
+				Prompt:        voiceoverReq.Prompt,
+				Temp:          voiceoverReq.Temperature,
+				Seed:          voiceoverReq.Seed,
+				RemoveSilence: voiceoverReq.RemoveSilence,
+				DenoiseAudio:  voiceoverReq.DenoiseAudio,
 			},
 		}
 
-		err = c.Redis.EnqueueCogRequest(r.Context(), shared.COG_REDIS_QUEUE, cogReqBody)
+		err = c.Redis.EnqueueCogRequest(r.Context(), shared.COG_REDIS_VOICEOVER_QUEUE, cogReqBody)
 		if err != nil {
-			log.Error("Failed to write request %s to queue: %v", requestId, err)
+			log.Error("Failed to write request to queue", "id", requestId, "err", err)
 			responses.ErrInternalServerError(w, r, "Failed to queue upscale request")
 			return err
 		}
 
-		c.QueueThrottler.IncrementBy(1, fmt.Sprintf("u:%s", user.ID.String()))
+		c.QueueThrottler.IncrementBy(1, fmt.Sprintf("v:%s", user.ID.String()))
+
 		return nil
 	}); err != nil {
-		log.Error("Error in transaction", "err", err)
+		log.Error("Error with transaction", "err", err)
 		return
 	}
+
 	// Add channel to sync array (basically a thread-safe map)
 	c.SMap.Put(requestId.String(), activeChl)
 	defer c.SMap.Delete(requestId.String())
-	defer c.QueueThrottler.DecrementBy(1, fmt.Sprintf("u:%s", user.ID.String()))
 
 	// Send live page update
 	go func() {
@@ -367,7 +301,7 @@ func (c *RestAPI) HandleCreateUpscaleToken(w http.ResponseWriter, r *http.Reques
 	}()
 
 	// Analytics
-	go c.Track.UpscaleStarted(user, cogReqBody.Input, utils.GetIPAddress(r))
+	go c.Track.VoiceoverStarted(user, cogReqBody.Input, utils.GetIPAddress(r))
 
 	// Wait for result
 	for {
@@ -375,9 +309,9 @@ func (c *RestAPI) HandleCreateUpscaleToken(w http.ResponseWriter, r *http.Reques
 		case cogMsg := <-activeChl:
 			switch cogMsg.Status {
 			case requests.CogProcessing:
-				err := c.Repo.SetUpscaleStarted(requestId.String())
+				err := c.Repo.SetVoiceoverStarted(requestId.String())
 				if err != nil {
-					log.Error("Failed to set upscale started", "id", requestId, "err", err)
+					log.Error("Failed to set voiceover started", "id", requestId, "err", err)
 					responses.ErrInternalServerError(w, r, "An unknown error occurred")
 					return
 				}
@@ -401,9 +335,9 @@ func (c *RestAPI) HandleCreateUpscaleToken(w http.ResponseWriter, r *http.Reques
 					}
 				}()
 			case requests.CogSucceeded:
-				output, err := c.Repo.SetUpscaleSucceeded(requestId.String(), outputIDStr, imageUrl, cogMsg.Output)
+				outputs, err := c.Repo.SetVoiceoverSucceeded(requestId.String(), voiceoverReq.Prompt, cogMsg.Output)
 				if err != nil {
-					log.Error("Failed to set upscale succeeded", "id", upscale.ID, "err", err)
+					log.Error("Failed to set voiceover succeeded", "id", upscale.ID, "err", err)
 					responses.ErrInternalServerError(w, r, "An unknown error occurred")
 					return
 				}
@@ -412,7 +346,7 @@ func (c *RestAPI) HandleCreateUpscaleToken(w http.ResponseWriter, r *http.Reques
 					cogMsg.Input.LivePageData.Status = shared.LivePageSucceeded
 					now := time.Now()
 					cogMsg.Input.LivePageData.CompletedAt = &now
-					cogMsg.Input.LivePageData.ActualNumOutputs = len(cogMsg.Output.Images)
+					cogMsg.Input.LivePageData.ActualNumOutputs = 1
 					liveResp := repository.TaskStatusUpdateResponse{
 						ForLivePage:     true,
 						LivePageMessage: cogMsg.Input.LivePageData,
@@ -428,28 +362,27 @@ func (c *RestAPI) HandleCreateUpscaleToken(w http.ResponseWriter, r *http.Reques
 					}
 				}()
 				// Analytics
-				upscale, err := c.Repo.GetUpscale(requestId)
+				voiceover, err := c.Repo.GetVoiceover(requestId)
 				if err != nil {
-					log.Error("Error getting upscale for analytics", "err", err)
+					log.Error("Error getting voiceover for analytics", "err", err)
 				}
 				// Get durations in seconds
-				if upscale.StartedAt == nil {
-					log.Error("Upscale started at is nil", "id", cogMsg.Input.ID)
+				if voiceover.StartedAt == nil {
+					log.Error("Voiceover started at is nil", "id", cogMsg.Input.ID)
 				}
-				duration := time.Now().Sub(*upscale.StartedAt).Seconds()
-				qDuration := (*upscale.StartedAt).Sub(upscale.CreatedAt).Seconds()
-				go c.Track.UpscaleSucceeded(user, cogMsg.Input, duration, qDuration, utils.GetIPAddress(r))
+				duration := time.Now().Sub(*voiceover.StartedAt).Seconds()
+				qDuration := (*voiceover.StartedAt).Sub(voiceover.CreatedAt).Seconds()
+				go c.Track.VoiceoverSucceeded(user, cogMsg.Input, duration, qDuration, utils.GetIPAddress(r))
 
 				// Format response
-				resOutputs := []responses.ApiOutput{
-					{
-						URL: utils.GetURLFromImagePath(output.ImagePath),
-						ID:  output.ID,
-					},
+				resOutputs := make([]responses.ApiOutput, 1)
+				resOutputs[0] = responses.ApiOutput{
+					URL: utils.GetURLFromAudioFilePath(outputs.AudioPath),
+					ID:  outputs.ID,
 				}
 
 				// Set token used
-				err = c.Repo.SetTokenUsedAndIncrementCreditsSpent(1, *upscale.APITokenID)
+				err = c.Repo.SetTokenUsedAndIncrementCreditsSpent(int(utils.CalculateVoiceoverCredits(voiceoverReq.Prompt)), *voiceover.APITokenID)
 				if err != nil {
 					log.Error("Failed to set token used", "err", err)
 				}
@@ -464,9 +397,9 @@ func (c *RestAPI) HandleCreateUpscaleToken(w http.ResponseWriter, r *http.Reques
 			case requests.CogFailed:
 				if err := c.Repo.WithTx(func(tx *ent.Tx) error {
 					DB := tx.Client()
-					err := c.Repo.SetUpscaleFailed(requestId.String(), cogMsg.Error, DB)
+					err := c.Repo.SetVoiceoverFailed(requestId.String(), cogMsg.Error, DB)
 					if err != nil {
-						log.Error("Failed to set upscale failed", "id", upscale.ID, "err", err)
+						log.Error("Failed to set voiceover failed", "id", upscale.ID, "err", err)
 						responses.ErrInternalServerError(w, r, "An unknown error occurred")
 						return err
 					}
@@ -491,16 +424,16 @@ func (c *RestAPI) HandleCreateUpscaleToken(w http.ResponseWriter, r *http.Reques
 					}()
 					// Analytics
 					duration := time.Now().Sub(cogMsg.Input.LivePageData.CreatedAt).Seconds()
-					go c.Track.UpscaleFailed(user, cogMsg.Input, duration, cogMsg.Error, utils.GetIPAddress(r))
+					go c.Track.VoiceoverFailed(user, cogMsg.Input, duration, cogMsg.Error, utils.GetIPAddress(r))
 					// Refund credits
-					_, err = c.Repo.RefundCreditsToUser(user.ID, int32(1), DB)
+					_, err = c.Repo.RefundCreditsToUser(user.ID, utils.CalculateVoiceoverCredits(voiceoverReq.Prompt), DB)
 					if err != nil {
 						log.Error("Failed to refund credits", "err", err)
 						return err
 					}
 					return nil
 				}); err != nil {
-					log.Error("Failed to set upscale failed", "id", requestId, "err", err)
+					log.Error("Failed to set voiceover failed", "id", requestId, "err", err)
 					responses.ErrInternalServerError(w, r, "An unknown error occurred")
 					return
 				}
@@ -515,19 +448,19 @@ func (c *RestAPI) HandleCreateUpscaleToken(w http.ResponseWriter, r *http.Reques
 		case <-time.After(shared.REQUEST_COG_TIMEOUT):
 			if err := c.Repo.WithTx(func(tx *ent.Tx) error {
 				DB := tx.Client()
-				err := c.Repo.SetUpscaleFailed(requestId.String(), shared.TIMEOUT_ERROR, DB)
+				err := c.Repo.SetVoiceoverFailed(requestId.String(), shared.TIMEOUT_ERROR, DB)
 				if err != nil {
-					log.Error("Failed to set upscale failed", "id", upscale.ID, "err", err)
+					log.Error("Failed to set voiceover failed", "id", upscale.ID, "err", err)
 				}
 				// Refund credits
-				_, err = c.Repo.RefundCreditsToUser(user.ID, int32(1), DB)
+				_, err = c.Repo.RefundCreditsToUser(user.ID, utils.CalculateVoiceoverCredits(voiceoverReq.Prompt), DB)
 				if err != nil {
 					log.Error("Failed to refund credits", "err", err)
 					return err
 				}
 				return nil
 			}); err != nil {
-				log.Error("Failed to set upscale failed", "id", requestId, "err", err)
+				log.Error("Failed to set voiceover failed", "id", requestId, "err", err)
 				responses.ErrInternalServerError(w, r, "An unknown error occurred")
 				return
 			}

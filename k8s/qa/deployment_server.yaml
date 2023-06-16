@@ -216,3 +216,8 @@ spec:
                 secretKeyRef:
                   name: sc-go
                   key: S3_SECRET_KEY
+            - name: TRANSLATOR_COG_URL
+              valueFrom:
+                secretKeyRef:
+                  name: sc-go
+                  key: TRANSLATOR_COG_URL

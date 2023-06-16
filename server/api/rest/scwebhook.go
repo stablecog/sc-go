@@ -139,8 +139,23 @@ func (c *RestAPI) HandleSCWorkerWebhook(w http.ResponseWriter, r *http.Request) 
 				duration := time.Now().Sub(*upscale.StartedAt).Seconds()
 				qDuration := (*upscale.StartedAt).Sub(upscale.CreatedAt).Seconds()
 				c.Track.UpscaleSucceeded(u, cogMessage.Input, duration, qDuration, cogMessage.Input.IP)
+			} else if cogMessage.Input.ProcessType == shared.VOICEOVER {
+				// Get upscale
+				uid := cogMessage.Input.ID
+				voiceover, err := c.Repo.GetVoiceover(uid)
+				if err != nil {
+					log.Error("Error getting voiceover for analytics", "err", err)
+					return
+				}
+				// Get durations in seconds
+				if voiceover.StartedAt == nil {
+					log.Error("Voiceover started at is nil", "id", cogMessage.Input.ID)
+					return
+				}
+				duration := time.Now().Sub(*voiceover.StartedAt).Seconds()
+				qDuration := (*voiceover.StartedAt).Sub(voiceover.CreatedAt).Seconds()
+				c.Track.VoiceoverSucceeded(u, cogMessage.Input, duration, qDuration, cogMessage.Input.IP)
 			}
-			// ! TODO track audio generation
 		}
 
 		if cogMessage.Status == requests.CogSucceeded && cogMessage.NSFWCount > 0 {
@@ -168,8 +183,9 @@ func (c *RestAPI) HandleSCWorkerWebhook(w http.ResponseWriter, r *http.Request) 
 				c.Track.GenerationFailed(u, cogMessage.Input, duration, cogMessage.Error, cogMessage.Input.IP)
 			} else if cogMessage.Input.ProcessType == shared.UPSCALE {
 				c.Track.UpscaleFailed(u, cogMessage.Input, duration, cogMessage.Error, cogMessage.Input.IP)
+			} else if cogMessage.Input.ProcessType == shared.VOICEOVER {
+				c.Track.VoiceoverFailed(u, cogMessage.Input, duration, cogMessage.Error, cogMessage.Input.IP)
 			}
-			//  ! TODO track audio
 		}
 	}()
 

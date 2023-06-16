@@ -215,6 +215,7 @@ func (c *RestAPI) HandleVoiceover(w http.ResponseWriter, r *http.Request) {
 				Seed:          voiceoverReq.Seed,
 				RemoveSilence: voiceoverReq.RemoveSilence,
 				DenoiseAudio:  voiceoverReq.DenoiseAudio,
+				SpeakerId:     *voiceoverReq.SpeakerId,
 			},
 		}
 
@@ -269,7 +270,7 @@ func (c *RestAPI) HandleVoiceover(w http.ResponseWriter, r *http.Request) {
 		}()
 	}
 
-	go c.Track.UpscaleStarted(user, cogReqBody.Input, utils.GetIPAddress(r))
+	go c.Track.VoiceoverStarted(user, cogReqBody.Input, utils.GetIPAddress(r))
 
 	render.Status(r, http.StatusOK)
 	render.JSON(w, r, &responses.TaskQueuedResponse{

@@ -37,6 +37,15 @@ type ImageUpscaleSettingsResponse struct {
 	Input   string    `json:"input,omitempty"`
 }
 
+type VoiceoverSettingsResponse struct {
+	ModelId       uuid.UUID `json:"model_id"`
+	SpeakerId     uuid.UUID `json:"speaker_id"`
+	Temperature   float32   `json:"temperature"`
+	Seed          *int      `json:"seed,omitempty"`
+	DenoiseAudio  bool      `json:"denoise_audio"`
+	RemoveSilence bool      `json:"remove_silence"`
+}
+
 type ImageModelsResponse struct {
 	Models []SettingsResponseItem `json:"models"`
 }

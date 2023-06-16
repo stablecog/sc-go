@@ -276,7 +276,6 @@ func (c *RestAPI) HandleCreateGenerationToken(w http.ResponseWriter, r *http.Req
 	activeChl := make(chan requests.CogWebhookMessage)
 	// Cleanup
 	defer close(activeChl)
-	defer c.SMap.Delete(requestId.String())
 
 	// Wrap everything in a DB transaction
 	// We do this since we want our credit deduction to be atomic with the whole process
@@ -370,9 +369,6 @@ func (c *RestAPI) HandleCreateGenerationToken(w http.ResponseWriter, r *http.Req
 			cogReqBody.Input.InitImageUrlS3 = generateReq.InitImageUrl
 		}
 
-		// Add channel to sync array (basically a thread-safe map)
-		c.SMap.Put(requestId.String(), activeChl)
-
 		err = c.Redis.EnqueueCogRequest(r.Context(), shared.COG_REDIS_QUEUE, cogReqBody)
 		if err != nil {
 			log.Error("Failed to write request %s to queue: %v", requestId, err)
@@ -386,6 +382,10 @@ func (c *RestAPI) HandleCreateGenerationToken(w http.ResponseWriter, r *http.Req
 		log.Error("Error in transaction", "err", err)
 		return
 	}
+
+	// Add channel to sync array (basically a thread-safe map)
+	c.SMap.Put(requestId.String(), activeChl)
+	defer c.SMap.Delete(requestId.String())
 	defer c.QueueThrottler.DecrementBy(1, fmt.Sprintf("g:%s", user.ID.String()))
 
 	// Send live page update
@@ -477,7 +477,7 @@ func (c *RestAPI) HandleCreateGenerationToken(w http.ResponseWriter, r *http.Req
 				}
 				duration := time.Now().Sub(*generation.StartedAt).Seconds()
 				qDuration := (*generation.StartedAt).Sub(generation.CreatedAt).Seconds()
-				go c.Track.GenerationSucceeded(user, cogMsg.Input, duration, qDuration, "system")
+				go c.Track.GenerationSucceeded(user, cogMsg.Input, duration, qDuration, utils.GetIPAddress(r))
 
 				// Format response
 				resOutputs := make([]responses.ApiOutput, len(outputs))
@@ -531,7 +531,7 @@ func (c *RestAPI) HandleCreateGenerationToken(w http.ResponseWriter, r *http.Req
 					}()
 					// Analytics
 					duration := time.Now().Sub(cogMsg.Input.LivePageData.CreatedAt).Seconds()
-					go c.Track.GenerationFailed(user, cogMsg.Input, duration, cogMsg.Error, "system")
+					go c.Track.GenerationFailed(user, cogMsg.Input, duration, cogMsg.Error, utils.GetIPAddress(r))
 					// Refund credits
 					_, err = c.Repo.RefundCreditsToUser(user.ID, *generateReq.NumOutputs, DB)
 					if err != nil {
