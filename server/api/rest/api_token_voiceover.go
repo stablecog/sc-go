@@ -377,8 +377,9 @@ func (c *RestAPI) HandleCreateVoiceoverToken(w http.ResponseWriter, r *http.Requ
 				// Format response
 				resOutputs := make([]responses.ApiOutput, 1)
 				resOutputs[0] = responses.ApiOutput{
-					URL: utils.GetURLFromAudioFilePath(outputs.AudioPath),
-					ID:  outputs.ID,
+					URL:           utils.GetURLFromAudioFilePath(outputs.AudioPath),
+					ID:            outputs.ID,
+					AudioDuration: utils.ToPtr(outputs.AudioDuration),
 				}
 
 				// Set token used

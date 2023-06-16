@@ -161,6 +161,8 @@ func (r *Repository) ProcessCogMessage(msg requests.CogWebhookMessage) error {
 	// Remaining credits set only for failures
 	var remainingCredits int
 
+	var audioDuration *float32
+
 	// Handle started/failed/succeeded message types
 	if msg.Status == requests.CogProcessing {
 		// In goroutine since we want them to know it started asap
@@ -331,6 +333,9 @@ func (r *Repository) ProcessCogMessage(msg requests.CogWebhookMessage) error {
 				upscaleOutput, err = r.SetUpscaleSucceeded(msg.Input.ID.String(), msg.Input.GenerationOutputID, msg.Input.Image, msg.Output)
 			} else if msg.Input.ProcessType == shared.VOICEOVER {
 				voiceoverOutput, err = r.SetVoiceoverSucceeded(msg.Input.ID.String(), msg.Input.Prompt, msg.Output)
+				if err == nil {
+					audioDuration = utils.ToPtr(voiceoverOutput.AudioDuration)
+				}
 			} else {
 				generationOutputs, err = r.SetGenerationSucceeded(msg.Input.ID.String(), msg.Input.Prompt, msg.Input.NegativePrompt, msg.Output, msg.NSFWCount)
 			}
@@ -408,6 +413,7 @@ func (r *Repository) ProcessCogMessage(msg requests.CogWebhookMessage) error {
 			Error:            cogErr,
 			ProcessType:      msg.Input.ProcessType,
 			RemainingCredits: remainingCredits,
+			AudioDuration:    audioDuration,
 		}
 		if msg.Status == requests.CogSucceeded {
 			audioFileURL := utils.GetURLFromAudioFilePath(voiceoverOutput.AudioPath)
