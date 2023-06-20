@@ -448,7 +448,7 @@ func (c *RestAPI) HandleCreateVoiceoverToken(w http.ResponseWriter, r *http.Requ
 				})
 				return
 			}
-		case <-time.After(shared.REQUEST_COG_TIMEOUT):
+		case <-time.After(shared.REQUEST_COG_TIMEOUT_VOICEOVER):
 			if err := c.Repo.WithTx(func(tx *ent.Tx) error {
 				DB := tx.Client()
 				err := c.Repo.SetVoiceoverFailed(requestId.String(), shared.TIMEOUT_ERROR, DB)

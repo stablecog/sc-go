@@ -262,7 +262,7 @@ func (c *RestAPI) HandleVoiceover(w http.ResponseWriter, r *http.Request) {
 		// Start the timeout timer
 		go func() {
 			// sleep
-			time.Sleep(shared.REQUEST_COG_TIMEOUT)
+			time.Sleep(shared.REQUEST_COG_TIMEOUT_VOICEOVER)
 			// this will trigger timeout if it hasnt been finished
 			c.Repo.FailCogMessageDueToTimeoutIfTimedOut(requests.CogWebhookMessage{
 				Input:  cogReqBody.Input,

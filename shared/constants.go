@@ -19,6 +19,8 @@ const TIMEOUT_ERROR = "TIMEOUT"
 // But the generation/upscale may still go through, if it takes longer than this
 const REQUEST_COG_TIMEOUT = 60 * time.Second
 
+const REQUEST_COG_TIMEOUT_VOICEOVER = 180 * time.Second
+
 // Generation related
 const MAX_GENERATE_WIDTH = 1280
 const MAX_GENERATE_HEIGHT = 1280
