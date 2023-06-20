@@ -46,7 +46,7 @@ paths:
                     format: image_too_large,invalid_file
                   description:
                     type: string
-  /v1/image/defaults/generate:
+  /v1/image/generation/defaults:
     get:
       description: "Generation: Get Default Settings"
       responses:
@@ -81,7 +81,7 @@ paths:
                   prompt_strengtht:
                     type: number
                     format: float32
-  /v1/image/models/generate:
+  /v1/image/generation/models:
     get:
       description: "Generation: Get Available Models With Options"
       responses:
@@ -120,7 +120,7 @@ paths:
                         default_height:
                           type: integer
                           format: int32
-  /v1/image/generate:
+  /v1/image/generation/create:
     post:
       description: "Generation: Create"
       security:
@@ -150,98 +150,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse401"
-  /v1/image/defaults/upscale:
-    get:
-      description: "Upscale: Get Default Settings"
-      responses:
-        "200":
-          description: JSON object with default settings
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  model_id:
-                    type: string
-                    format: uuidv4
-  /v1/image/models/upscale:
-    get:
-      description: "Upscale: Get Available Models With Options"
-      responses:
-        "200":
-          description: JSON object with model information
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  models:
-                    type: array
-                    items:
-                      type: object
-                      properties:
-                        id:
-                          type: string
-                          format: uuidv4
-                        name:
-                          type: string
-                        is_default:
-                          type: boolean
-  /v1/image/upscale:
-    post:
-      description: "Upscale: Create"
-      security:
-        - token: []
-      requestBody:
-        description: JSON object with upscale options
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/UpscaleCreateInput"
-      responses:
-        "200":
-          description: JSON object with outputs, initial settings, and remaining credits
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/CreateUpscaleResponse"
-        "400":
-          description: Bad request
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse400"
-        "401":
-          description: Bad request
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse401"
-  /v1/credits:
-    get:
-      description: "Credits: List"
-      security:
-        - token: []
-      responses:
-        "200":
-          description: JSON object with detailed credit information
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/CreditResponse"
-        "400":
-          description: Bad request
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse400"
-        "401":
-          description: Bad request
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse401"
-  /v1/image/outputs:
+  /v1/image/generation/outputs:
     get:
       description: "Generation: Query Outputs"
       security:
@@ -279,6 +188,217 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/GenerationQueryWithOutputsMeta"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse400"
+        "401":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse401"
+  /v1/image/upscale/defaults:
+    get:
+      description: "Upscale: Get Default Settings"
+      responses:
+        "200":
+          description: JSON object with default settings
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  model_id:
+                    type: string
+                    format: uuidv4
+  /v1/image/upscale/models:
+    get:
+      description: "Upscale: Get Available Models With Options"
+      responses:
+        "200":
+          description: JSON object with model information
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  models:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                          format: uuidv4
+                        name:
+                          type: string
+                        is_default:
+                          type: boolean
+  /v1/image/upscale/create:
+    post:
+      description: "Upscale: Create"
+      security:
+        - token: []
+      requestBody:
+        description: JSON object with upscale options
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpscaleCreateInput"
+      responses:
+        "200":
+          description: JSON object with outputs, initial settings, and remaining credits
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CreateUpscaleResponse"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse400"
+        "401":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse401"
+  /v1/audio/voiceover/create:
+    post:
+      description: "Voiceover: Create"
+      security:
+        - token: []
+      requestBody:
+        description: JSON object with voiceover options
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/VoiceoverCreateInput"
+      responses:
+        "200":
+          description: JSON object with outputs, initial settings, and remaining credits
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CreateVoiceoverResponse"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse400"
+        "401":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse401"
+  /v1/audio/voiceover/outputs:
+    get:
+      description: "Voiceover: Query Outputs"
+      security:
+        - token: []
+      parameters:
+        - $ref: "#/components/parameters/perPageParam"
+        - $ref: "#/components/parameters/cursorParam"
+        - $ref: "#/components/parameters/orderParam"
+        - $ref: "#/components/parameters/orderByParam"
+        - $ref: "#/components/parameters/startDtParam"
+        - $ref: "#/components/parameters/endDtParam"
+        - $ref: "#/components/parameters/isFavoritedParam"
+        - $ref: "#/components/parameters/wasAutoSubmittedParam"
+      responses:
+        "200":
+          description: JSON object with voiceovers and outputs
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VoiceoverQueryWithOutputsMeta"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse400"
+        "401":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse401"
+  /v1/audio/voiceover/defaults:
+    get:
+      description: "Voiceover: Get Default Settings"
+      responses:
+        "200":
+          description: JSON object with default settings
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  model_id:
+                    type: string
+                    format: uuidv4
+                  speaker_id:
+                    type: string
+                    format: uuidv4
+                  temperature:
+                    type: number
+                    format: float
+                  denoise_audio:
+                    type: boolean
+                  remove_silence:
+                    type: boolean
+  /v1/audio/voiceover/models:
+    get:
+      description: "Voiceover: Get Available Models With Speakers"
+      responses:
+        "200":
+          description: JSON object with model information
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  models:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                          format: uuidv4
+                        name:
+                          type: string
+                        is_default:
+                          type: boolean
+                        available_speakers:
+                          type: array
+                          items:
+                            type: object
+                            properties:
+                              id:
+                                type: string
+                                format: uuidv4
+                              name:
+                                type: string
+  /v1/credits:
+    get:
+      description: "Credits: List"
+      security:
+        - token: []
+      responses:
+        "200":
+          description: JSON object with detailed credit information
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CreditResponse"
         "400":
           description: Bad request
           content:
@@ -570,6 +690,31 @@ components:
           type: string
           format: 64_char_hex_string
       description: Input for creating upscale
+    VoiceoverCreateInput:
+      type: object
+      required: ["prompt"]
+      properties:
+        prompt:
+          type: string
+        temperature:
+          type: number
+          format: float32
+          default: 0.7
+        denoise_audio:
+          type: boolean
+          default: true
+        remove_silence:
+          type: boolean
+          default: true
+        model_id:
+          type: string
+          format: uuidv4
+          default: what is returned by v1/image/voiceover/defaults
+        speaker_id:
+          type: string
+          format: uuidv4
+          default: what is returned by v1/image/voiceover/defaults
+      description: Input for creating upscale
     CreateGenerationResponse:
       type: object
       properties:
@@ -636,6 +781,43 @@ components:
               format: uuidv4
             input:
               type: string
+      description: Response after creating an upscale
+    CreateVoiceoverResponse:
+      type: object
+      properties:
+        outputs:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: string
+                format: uuidv4
+              url:
+                type: string
+        remaining_credits:
+          type: integer
+        settings:
+          type: object
+          properties:
+            model_id:
+              type: string
+              format: uuidv4
+            speaker_id:
+              type: string
+              format: uuidv4
+            prompt:
+              type: string
+            temperature:
+              type: number
+              format: float32
+            seed:
+              type: integer
+              format: int64
+            denoise_audio:
+              type: boolean
+            remove_silence:
+              type: boolean
       description: Response after creating an upscale
     PromptType:
       type: object
@@ -795,3 +977,85 @@ components:
         type:
           $ref: "#/components/schemas/CreditType"
       description: Details about credits for user
+    VoiceoverQueryWithOutputsMeta:
+      type: object
+      properties:
+        total:
+          type: integer
+          format: int32, only if offset not includes
+        next:
+          type: string
+          format: isoTimeString, if search not specified
+        outputs:
+          type: array
+          items:
+            $ref: "#/components/schemas/VoiceoverQueryResponse"
+    VoiceoverQueryResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuidv4
+        image_url:
+          type: string
+          format: optional
+        upscaled_image_url:
+          type: string
+          format: optional
+        gallery_status:
+          type: string
+          format: not_submitted/submitted/approved/rejected, optional
+        generation:
+          type: object
+          properties:
+            id:
+              type: string
+              format: uuidv4
+            denoise_audio:
+              type: boolean
+            remove_silence:
+              type: boolean
+            temperature:
+              type: number
+              format: float32
+            model_id:
+              type: string
+              format: uuidv4
+            speaker_id:
+              type: string
+              format: uuidv4
+            prompt:
+              type: object
+              $ref: "#/components/schemas/PromptType"
+            seed:
+              type: integer
+            created_at:
+              type: string
+              format: isoTimeString
+            started_at:
+              type: string
+              format: isoTimeString,optional
+            completed_at:
+              type: string
+              format: isoTimeString,optional
+            outputs:
+              type: array
+              items:
+                $ref: "#/components/schemas/VoiceoverOutput"
+      description: Response after querying voiceovers.
+    VoiceoverOutput:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuidv4
+        audio_file_url:
+          type: string
+        gallery_status:
+          type: string
+          format: not_submitted/submitted/approved/rejected
+        is_favorited:
+          type: boolean
+        was_auto_submitted:
+          type: boolean
+      description: An output of a voiceover
