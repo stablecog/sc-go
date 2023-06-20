@@ -91,6 +91,8 @@ func (c *RestAPI) HandleVoiceover(w http.ResponseWriter, r *http.Request) {
 			responses.ErrBadRequest(w, r, err.Error(), "")
 			return
 		}
+	} else {
+		voiceoverReq.ApplyDefaults()
 	}
 
 	// Get queue count
