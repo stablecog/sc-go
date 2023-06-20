@@ -147,6 +147,10 @@ jobs:
         run: |
           cd uploadapi && go build -ldflags "-s -w -X main.Version=${{ needs.setup_env.outputs.short_sha }}" -o uploadapi && cd ..
 
+      - name: Build GO Lingua API Binary
+        run: |
+          cd language && go build -ldflags "-s -w -X main.Version=${{ needs.setup_env.outputs.short_sha }}" -o linguaapi && cd ..
+
       - name: Build and push image
         if: success()
         uses: docker/build-push-action@v3

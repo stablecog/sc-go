@@ -3,6 +3,7 @@ go 1.20
 use (
 	./cron
 	./database
+	./language
 	./log
 	./server
 	./shared
