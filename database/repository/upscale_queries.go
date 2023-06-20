@@ -5,7 +5,6 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/stablecog/sc-go/database/ent"
-	"github.com/stablecog/sc-go/database/ent/generation"
 	"github.com/stablecog/sc-go/database/ent/upscale"
 )
 
@@ -15,7 +14,7 @@ func (r *Repository) GetUpscale(id uuid.UUID) (*ent.Upscale, error) {
 }
 
 func (r *Repository) GetUpscalesQueuedOrStarted() ([]*ent.Upscale, error) {
-	// Get generations that are started/queued and older than 5 minutes
+	// Get upscales that are started/queued and older than 5 minutes
 	return r.DB.Upscale.Query().
 		Where(
 			upscale.StatusIn(
@@ -24,7 +23,7 @@ func (r *Repository) GetUpscalesQueuedOrStarted() ([]*ent.Upscale, error) {
 			),
 			upscale.CreatedAtLT(time.Now().Add(-5*time.Minute)),
 		).
-		Order(ent.Desc(generation.FieldCreatedAt)).
+		Order(ent.Desc(upscale.FieldCreatedAt)).
 		Limit(100).
 		All(r.Ctx)
 }

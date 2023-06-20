@@ -37,6 +37,22 @@ func (r *Repository) GetVoiceover(id uuid.UUID) (*ent.Voiceover, error) {
 	return r.DB.Voiceover.Query().Where(voiceover.ID(id)).Only(r.Ctx)
 }
 
+func (r *Repository) GetVoiceoversQueuedOrStarted() ([]*ent.Voiceover, error) {
+	// Get voiceovers that are started/queued and older than 5 minutes
+	return r.DB.Voiceover.Query().
+		Where(
+			voiceover.StatusIn(
+				voiceover.StatusQueued,
+				voiceover.StatusStarted,
+			),
+			voiceover.CreatedAtLT(time.Now().Add(-5*time.Minute)),
+		).
+		WithPrompt().
+		Order(ent.Desc(voiceover.FieldCreatedAt)).
+		Limit(100).
+		All(r.Ctx)
+}
+
 type VoiceoverOutput struct {
 	ID               uuid.UUID  `json:"id"`
 	AudioFileURL     string     `json:"audio_file_url"`

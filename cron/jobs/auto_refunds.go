@@ -3,6 +3,7 @@ package jobs
 import (
 	"github.com/stablecog/sc-go/database/ent"
 	"github.com/stablecog/sc-go/shared"
+	"github.com/stablecog/sc-go/utils"
 )
 
 func (j *JobRunner) RefundOldGenerationCredits(log Logger) error {
@@ -15,6 +16,7 @@ func (j *JobRunner) RefundOldGenerationCredits(log Logger) error {
 	refunded := 0
 	refundedGens := 0
 	refundedUpscales := 0
+	refundedVoiceovers := 0
 	for _, gen := range gens {
 		if err := j.Repo.WithTx(func(tx *ent.Tx) error {
 			db := tx.Client()
@@ -56,7 +58,31 @@ func (j *JobRunner) RefundOldGenerationCredits(log Logger) error {
 		refundedUpscales++
 	}
 
-	log.Infof("Refunded %d credits for %d generations and %d upscales", refunded, refundedGens, refundedUpscales)
+	voiceovers, err := j.Repo.GetVoiceoversQueuedOrStarted()
+	if err != nil {
+		log.Errorf("Error getting queued/started voiceovers %v", err)
+		return err
+	}
+	for _, vo := range voiceovers {
+		// Voiceovers varies based on prompt length
+		creditCost := utils.CalculateVoiceoverCredits(vo.Edges.Prompt.Text)
+		if err := j.Repo.WithTx(func(tx *ent.Tx) error {
+			db := tx.Client()
+			j.Repo.SetVoiceoverFailed(vo.ID.String(), shared.TIMEOUT_ERROR, db)
+			_, err := j.Repo.RefundCreditsToUser(vo.UserID, creditCost, db)
+			if err != nil {
+				log.Errorf("Error refunding credits for voiceover %s %s %v", vo.UserID.String(), vo.ID.String(), err)
+				return err
+			}
+			return nil
+		}); err != nil {
+			return nil
+		}
+		refunded += int(creditCost)
+		refundedVoiceovers++
+	}
+
+	log.Infof("Refunded %d credits for %d generations, %d upscales, %d voiceovers", refunded, refundedGens, refundedUpscales, refundedVoiceovers)
 
 	return nil
 }
