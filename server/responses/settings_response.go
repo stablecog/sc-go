@@ -9,12 +9,18 @@ type AvailableScheduler struct {
 	Name string    `json:"name"`
 }
 
+type AvailableSpeaker struct {
+	ID   uuid.UUID `json:"id"`
+	Name string    `json:"name"`
+}
+
 type SettingsResponseItem struct {
 	ID                  uuid.UUID            `json:"id"`
 	Name                string               `json:"name"`
 	IsDefault           *bool                `json:"is_default,omitempty"`
 	Active              *bool                `json:"active,omitempty"`
 	AvailableSchedulers []AvailableScheduler `json:"available_schedulers,omitempty"`
+	AvailableSpeakers   []AvailableSpeaker   `json:"available_speakers,omitempty"`
 	DefaultWidth        *int32               `json:"default_width,omitempty"`
 	DefaultHeight       *int32               `json:"default_height,omitempty"`
 }

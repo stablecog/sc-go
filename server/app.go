@@ -605,6 +605,18 @@ func main() {
 				r.Use(mw.AuthMiddleware(middleware.AuthLevelAPIToken))
 				r.Get("/", hc.HandleQueryVoiceovers)
 			})
+
+			r.Route("/voiceover/defaults", func(r chi.Router) {
+				r.Use(middleware.Logger)
+				r.Use(mw.RateLimit(10, "api", 1*time.Second))
+				r.Get("/", hc.HandleGetVoiceoverDefaults)
+			})
+
+			r.Route("/voiceover/models", func(r chi.Router) {
+				r.Use(middleware.Logger)
+				r.Use(mw.RateLimit(10, "api", 1*time.Second))
+				r.Get("/", hc.HandleGetVoiceoverModels)
+			})
 		})
 
 		r.Route("/credits", func(r chi.Router) {

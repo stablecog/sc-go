@@ -117,6 +117,16 @@ func (f *Cache) IsValidVoiceoverSpeakerID(speakerId uuid.UUID, modelId uuid.UUID
 	return false
 }
 
+func (f *Cache) GetVoiceoverSpeakersForModel(modelId uuid.UUID) []*ent.VoiceoverSpeaker {
+	speakers := []*ent.VoiceoverSpeaker{}
+	for _, speaker := range f.VoiceoverSpeakers {
+		if speaker.ModelID == modelId {
+			speakers = append(speakers, speaker)
+		}
+	}
+	return speakers
+}
+
 func (f *Cache) GetGenerationModelNameFromID(id uuid.UUID) string {
 	for _, model := range f.GenerateModels {
 		if model.ID == id {

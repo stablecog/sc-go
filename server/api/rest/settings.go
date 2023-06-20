@@ -79,3 +79,43 @@ func (c *RestAPI) HandleGetUpscaleModels(w http.ResponseWriter, r *http.Request)
 		Models: upscaleModels,
 	})
 }
+
+// Voiceover defaults and models
+func (c *RestAPI) HandleGetVoiceoverDefaults(w http.ResponseWriter, r *http.Request) {
+	render.Status(r, http.StatusOK)
+	render.JSON(w, r, responses.VoiceoverSettingsResponse{
+		ModelId:       shared.GetCache().GetDefaultVoiceoverModel().ID,
+		SpeakerId:     shared.GetCache().GetDefaultVoiceoverSpeaker().ID,
+		Temperature:   shared.DEFAULT_VOICEOVER_TEMPERATURE,
+		DenoiseAudio:  shared.DEFAULT_VOICEOVER_DENOISE_AUDIO,
+		RemoveSilence: shared.DEFAULT_VOICEOVER_REMOVE_SILENCE,
+	})
+}
+
+func (c *RestAPI) HandleGetVoiceoverModels(w http.ResponseWriter, r *http.Request) {
+	var voiceoverModels []responses.SettingsResponseItem
+
+	for _, model := range shared.GetCache().VoiceoverModels {
+		if model.IsActive && !model.IsHidden {
+			speakers := shared.GetCache().GetVoiceoverSpeakersForModel(model.ID)
+			availableSpeakers := make([]responses.AvailableSpeaker, len(speakers))
+			for i, speaker := range speakers {
+				availableSpeakers[i] = responses.AvailableSpeaker{
+					ID:   speaker.ID,
+					Name: speaker.NameInWorker,
+				}
+			}
+			voiceoverModels = append(voiceoverModels, responses.SettingsResponseItem{
+				ID:                model.ID,
+				Name:              model.NameInWorker,
+				IsDefault:         utils.ToPtr(model.IsDefault),
+				AvailableSpeakers: availableSpeakers,
+			})
+		}
+	}
+
+	render.Status(r, http.StatusOK)
+	render.JSON(w, r, responses.ImageModelsResponse{
+		Models: voiceoverModels,
+	})
+}

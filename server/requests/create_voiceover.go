@@ -40,15 +40,15 @@ func (t *CreateVoiceoverRequest) ApplyDefaults() {
 	}
 
 	if t.Temperature == nil {
-		t.Temperature = utils.ToPtr[float32](0.7)
+		t.Temperature = utils.ToPtr[float32](shared.DEFAULT_VOICEOVER_TEMPERATURE)
 	}
 
 	if t.DenoiseAudio == nil {
-		t.DenoiseAudio = utils.ToPtr[bool](true)
+		t.DenoiseAudio = utils.ToPtr[bool](shared.DEFAULT_VOICEOVER_DENOISE_AUDIO)
 	}
 
 	if t.RemoveSilence == nil {
-		t.RemoveSilence = utils.ToPtr[bool](true)
+		t.RemoveSilence = utils.ToPtr[bool](shared.DEFAULT_VOICEOVER_REMOVE_SILENCE)
 	}
 }
 
