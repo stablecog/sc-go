@@ -94,6 +94,8 @@ func (c *RestAPI) HandleCreateVoiceoverToken(w http.ResponseWriter, r *http.Requ
 			responses.ErrBadRequest(w, r, err.Error(), "")
 			return
 		}
+	} else {
+		voiceoverReq.ApplyDefaults()
 	}
 
 	// Set settings resp
