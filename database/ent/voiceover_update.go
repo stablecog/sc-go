@@ -171,6 +171,19 @@ func (vu *VoiceoverUpdate) SetNillableRemoveSilence(b *bool) *VoiceoverUpdate {
 	return vu
 }
 
+// SetCost sets the "cost" field.
+func (vu *VoiceoverUpdate) SetCost(i int32) *VoiceoverUpdate {
+	vu.mutation.ResetCost()
+	vu.mutation.SetCost(i)
+	return vu
+}
+
+// AddCost adds i to the "cost" field.
+func (vu *VoiceoverUpdate) AddCost(i int32) *VoiceoverUpdate {
+	vu.mutation.AddCost(i)
+	return vu
+}
+
 // SetPromptID sets the "prompt_id" field.
 func (vu *VoiceoverUpdate) SetPromptID(u uuid.UUID) *VoiceoverUpdate {
 	vu.mutation.SetPromptID(u)
@@ -540,6 +553,12 @@ func (vu *VoiceoverUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if value, ok := vu.mutation.RemoveSilence(); ok {
 		_spec.SetField(voiceover.FieldRemoveSilence, field.TypeBool, value)
+	}
+	if value, ok := vu.mutation.Cost(); ok {
+		_spec.SetField(voiceover.FieldCost, field.TypeInt32, value)
+	}
+	if value, ok := vu.mutation.AddedCost(); ok {
+		_spec.AddField(voiceover.FieldCost, field.TypeInt32, value)
 	}
 	if value, ok := vu.mutation.StartedAt(); ok {
 		_spec.SetField(voiceover.FieldStartedAt, field.TypeTime, value)
@@ -976,6 +995,19 @@ func (vuo *VoiceoverUpdateOne) SetNillableRemoveSilence(b *bool) *VoiceoverUpdat
 	return vuo
 }
 
+// SetCost sets the "cost" field.
+func (vuo *VoiceoverUpdateOne) SetCost(i int32) *VoiceoverUpdateOne {
+	vuo.mutation.ResetCost()
+	vuo.mutation.SetCost(i)
+	return vuo
+}
+
+// AddCost adds i to the "cost" field.
+func (vuo *VoiceoverUpdateOne) AddCost(i int32) *VoiceoverUpdateOne {
+	vuo.mutation.AddCost(i)
+	return vuo
+}
+
 // SetPromptID sets the "prompt_id" field.
 func (vuo *VoiceoverUpdateOne) SetPromptID(u uuid.UUID) *VoiceoverUpdateOne {
 	vuo.mutation.SetPromptID(u)
@@ -1369,6 +1401,12 @@ func (vuo *VoiceoverUpdateOne) sqlSave(ctx context.Context) (_node *Voiceover, e
 	}
 	if value, ok := vuo.mutation.RemoveSilence(); ok {
 		_spec.SetField(voiceover.FieldRemoveSilence, field.TypeBool, value)
+	}
+	if value, ok := vuo.mutation.Cost(); ok {
+		_spec.SetField(voiceover.FieldCost, field.TypeInt32, value)
+	}
+	if value, ok := vuo.mutation.AddedCost(); ok {
+		_spec.AddField(voiceover.FieldCost, field.TypeInt32, value)
 	}
 	if value, ok := vuo.mutation.StartedAt(); ok {
 		_spec.SetField(voiceover.FieldStartedAt, field.TypeTime, value)

@@ -47,7 +47,6 @@ func (r *Repository) GetVoiceoversQueuedOrStarted() ([]*ent.Voiceover, error) {
 			),
 			voiceover.CreatedAtLT(time.Now().Add(-5*time.Minute)),
 		).
-		WithPrompt().
 		Order(ent.Desc(voiceover.FieldCreatedAt)).
 		Limit(100).
 		All(r.Ctx)

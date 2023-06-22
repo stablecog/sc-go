@@ -41,6 +41,8 @@ type Voiceover struct {
 	DenoiseAudio bool `json:"denoise_audio,omitempty"`
 	// RemoveSilence holds the value of the "remove_silence" field.
 	RemoveSilence bool `json:"remove_silence,omitempty"`
+	// Cost holds the value of the "cost" field.
+	Cost int32 `json:"cost,omitempty"`
 	// PromptID holds the value of the "prompt_id" field.
 	PromptID *uuid.UUID `json:"prompt_id,omitempty"`
 	// UserID holds the value of the "user_id" field.
@@ -185,7 +187,7 @@ func (*Voiceover) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullBool)
 		case voiceover.FieldTemperature:
 			values[i] = new(sql.NullFloat64)
-		case voiceover.FieldSeed:
+		case voiceover.FieldSeed, voiceover.FieldCost:
 			values[i] = new(sql.NullInt64)
 		case voiceover.FieldCountryCode, voiceover.FieldStatus, voiceover.FieldFailureReason, voiceover.FieldStripeProductID:
 			values[i] = new(sql.NullString)
@@ -270,6 +272,12 @@ func (v *Voiceover) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field remove_silence", values[i])
 			} else if value.Valid {
 				v.RemoveSilence = value.Bool
+			}
+		case voiceover.FieldCost:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field cost", values[i])
+			} else if value.Valid {
+				v.Cost = int32(value.Int64)
 			}
 		case voiceover.FieldPromptID:
 			if value, ok := values[i].(*sql.NullScanner); !ok {
@@ -430,6 +438,9 @@ func (v *Voiceover) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("remove_silence=")
 	builder.WriteString(fmt.Sprintf("%v", v.RemoveSilence))
+	builder.WriteString(", ")
+	builder.WriteString("cost=")
+	builder.WriteString(fmt.Sprintf("%v", v.Cost))
 	builder.WriteString(", ")
 	if v := v.PromptID; v != nil {
 		builder.WriteString("prompt_id=")

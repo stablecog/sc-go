@@ -388,11 +388,11 @@ func init() {
 	// voiceover.DefaultRemoveSilence holds the default value on creation for the remove_silence field.
 	voiceover.DefaultRemoveSilence = voiceoverDescRemoveSilence.Default.(bool)
 	// voiceoverDescCreatedAt is the schema descriptor for created_at field.
-	voiceoverDescCreatedAt := voiceoverFields[18].Descriptor()
+	voiceoverDescCreatedAt := voiceoverFields[19].Descriptor()
 	// voiceover.DefaultCreatedAt holds the default value on creation for the created_at field.
 	voiceover.DefaultCreatedAt = voiceoverDescCreatedAt.Default.(func() time.Time)
 	// voiceoverDescUpdatedAt is the schema descriptor for updated_at field.
-	voiceoverDescUpdatedAt := voiceoverFields[19].Descriptor()
+	voiceoverDescUpdatedAt := voiceoverFields[20].Descriptor()
 	// voiceover.DefaultUpdatedAt holds the default value on creation for the updated_at field.
 	voiceover.DefaultUpdatedAt = voiceoverDescUpdatedAt.Default.(func() time.Time)
 	// voiceover.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.

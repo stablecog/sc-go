@@ -3,7 +3,6 @@ package jobs
 import (
 	"github.com/stablecog/sc-go/database/ent"
 	"github.com/stablecog/sc-go/shared"
-	"github.com/stablecog/sc-go/utils"
 )
 
 func (j *JobRunner) RefundOldGenerationCredits(log Logger) error {
@@ -65,11 +64,10 @@ func (j *JobRunner) RefundOldGenerationCredits(log Logger) error {
 	}
 	for _, vo := range voiceovers {
 		// Voiceovers varies based on prompt length
-		creditCost := utils.CalculateVoiceoverCredits(vo.Edges.Prompt.Text)
 		if err := j.Repo.WithTx(func(tx *ent.Tx) error {
 			db := tx.Client()
 			j.Repo.SetVoiceoverFailed(vo.ID.String(), shared.TIMEOUT_ERROR, db)
-			_, err := j.Repo.RefundCreditsToUser(vo.UserID, creditCost, db)
+			_, err := j.Repo.RefundCreditsToUser(vo.UserID, vo.Cost, db)
 			if err != nil {
 				log.Errorf("Error refunding credits for voiceover %s %s %v", vo.UserID.String(), vo.ID.String(), err)
 				return err
@@ -78,7 +76,7 @@ func (j *JobRunner) RefundOldGenerationCredits(log Logger) error {
 		}); err != nil {
 			return nil
 		}
-		refunded += int(creditCost)
+		refunded += int(vo.Cost)
 		refundedVoiceovers++
 	}
 

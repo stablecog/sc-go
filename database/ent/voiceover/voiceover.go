@@ -32,6 +32,8 @@ const (
 	FieldDenoiseAudio = "denoise_audio"
 	// FieldRemoveSilence holds the string denoting the remove_silence field in the database.
 	FieldRemoveSilence = "remove_silence"
+	// FieldCost holds the string denoting the cost field in the database.
+	FieldCost = "cost"
 	// FieldPromptID holds the string denoting the prompt_id field in the database.
 	FieldPromptID = "prompt_id"
 	// FieldUserID holds the string denoting the user_id field in the database.
@@ -131,6 +133,7 @@ var Columns = []string{
 	FieldWasAutoSubmitted,
 	FieldDenoiseAudio,
 	FieldRemoveSilence,
+	FieldCost,
 	FieldPromptID,
 	FieldUserID,
 	FieldDeviceInfoID,
