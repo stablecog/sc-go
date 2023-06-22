@@ -483,8 +483,9 @@ func (c *RestAPI) HandleCreateGenerationToken(w http.ResponseWriter, r *http.Req
 				resOutputs := make([]responses.ApiOutput, len(outputs))
 				for i, output := range outputs {
 					resOutputs[i] = responses.ApiOutput{
-						URL: utils.GetURLFromImagePath(output.ImagePath),
-						ID:  output.ID,
+						URL:      utils.GetURLFromImagePath(output.ImagePath),
+						ImageURL: utils.ToPtr(utils.GetURLFromImagePath(output.ImagePath)),
+						ID:       output.ID,
 					}
 				}
 

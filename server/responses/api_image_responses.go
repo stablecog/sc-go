@@ -3,9 +3,12 @@ package responses
 import "github.com/google/uuid"
 
 type ApiOutput struct {
-	ID            uuid.UUID `json:"id"`
-	URL           string    `json:"url"`
-	AudioDuration *float32  `json:"audio_duration,omitempty"`
+	ID               uuid.UUID `json:"id"`
+	URL              string    `json:"url"`
+	ImageURL         *string   `json:"image_url,omitempty"`
+	UpscaledImageURL *string   `json:"upscaled_image_url,omitempty"`
+	AudioFileURL     *string   `json:"audio_file_url,omitempty"`
+	AudioDuration    *float32  `json:"audio_duration,omitempty"`
 }
 
 type ApiSucceededResponse struct {

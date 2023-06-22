@@ -443,8 +443,9 @@ func (c *RestAPI) HandleCreateUpscaleToken(w http.ResponseWriter, r *http.Reques
 				// Format response
 				resOutputs := []responses.ApiOutput{
 					{
-						URL: utils.GetURLFromImagePath(output.ImagePath),
-						ID:  output.ID,
+						URL:              utils.GetURLFromImagePath(output.ImagePath),
+						UpscaledImageURL: utils.ToPtr(utils.GetURLFromImagePath(output.ImagePath)),
+						ID:               output.ID,
 					},
 				}
 
