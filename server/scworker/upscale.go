@@ -111,10 +111,6 @@ func CreateUpscale(Track *analytics.AnalyticsService, Repo *repository.Repositor
 			},
 		}
 
-		// Add channel to sync array (basically a thread-safe map)
-		sMap.Put(requestId.String(), activeChl)
-		defer sMap.Delete(requestId.String())
-
 		err = Redis.EnqueueCogRequest(Redis.Ctx, shared.COG_REDIS_QUEUE, cogReqBody)
 		if err != nil {
 			log.Error("Failed to write request to queue", "id", upscale.ID, "err", err)
@@ -145,6 +141,10 @@ func CreateUpscale(Track *analytics.AnalyticsService, Repo *repository.Repositor
 	}); err != nil {
 		return err
 	}
+
+	// Add channel to sync array (basically a thread-safe map)
+	sMap.Put(requestId.String(), activeChl)
+	defer sMap.Delete(requestId.String())
 
 	for {
 		select {
