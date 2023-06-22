@@ -278,6 +278,14 @@ func (r *Repository) QueryVoiceovers(per_page int, cursor *time.Time, filters *r
 			RemoveSilence:    utils.ToPtr(v.RemoveSilence),
 			AudioDuration:    utils.ToPtr(v.AudioDuration),
 		}
+		var speaker VoiceoverSpeaker
+		if v.SpeakerID != nil {
+			speaker = VoiceoverSpeaker{
+				ID:     *v.SpeakerID,
+				Name:   v.NameInWorker,
+				Locale: v.Locale,
+			}
+		}
 		output := VoiceoverQueryWithOutputsResultFormatted{
 			GenerationUpscaleOutput: vOutput,
 			Voiceover: VoiceoverQueryWithOutputsData{
@@ -286,7 +294,6 @@ func (r *Repository) QueryVoiceovers(per_page int, cursor *time.Time, filters *r
 				Status:      v.Status,
 				Temperature: v.Temperature,
 				ModelID:     v.ModelID,
-				PromptID:    v.PromptID,
 				CreatedAt:   v.CreatedAt,
 				UpdatedAt:   v.UpdatedAt,
 				StartedAt:   v.StartedAt,
@@ -297,11 +304,7 @@ func (r *Repository) QueryVoiceovers(per_page int, cursor *time.Time, filters *r
 				},
 				IsFavorited:   vOutput.IsFavorited,
 				AudioDuration: v.AudioDuration,
-				Speaker: VoiceoverSpeaker{
-					ID:     v.SpeakerID,
-					Name:   v.NameInWorker,
-					Locale: v.Locale,
-				},
+				Speaker:       &speaker,
 				DenoiseAudio:  v.DenoiseAudio,
 				RemoveSilence: v.RemoveSilence,
 			},
@@ -345,12 +348,12 @@ type VoiceoverQueryWithOutputsData struct {
 	Temperature      float32                   `json:"temperature" sql:"temperature"`
 	Status           string                    `json:"status" sql:"status"`
 	ModelID          uuid.UUID                 `json:"model_id" sql:"model_id"`
-	PromptID         *uuid.UUID                `sql:"prompt_id"`
+	PromptID         *uuid.UUID                `json:"prompt_id,omitempty" sql:"prompt_id"`
 	CreatedAt        time.Time                 `json:"created_at" sql:"created_at"`
 	UpdatedAt        time.Time                 `json:"updated_at" sql:"updated_at"`
 	StartedAt        *time.Time                `json:"started_at,omitempty" sql:"started_at"`
 	CompletedAt      *time.Time                `json:"completed_at,omitempty" sql:"completed_at"`
-	PromptText       string                    `sql:"prompt_text"`
+	PromptText       string                    `json:"prompt_text,omitempty" sql:"prompt_text"`
 	IsFavorited      bool                      `json:"is_favorited" sql:"is_favorited"`
 	Outputs          []GenerationUpscaleOutput `json:"outputs"`
 	Prompt           PromptType                `json:"prompt"`
@@ -358,11 +361,11 @@ type VoiceoverQueryWithOutputsData struct {
 	DenoiseAudio     bool                      `json:"denoise_audio" sql:"denoise_audio"`
 	RemoveSilence    bool                      `json:"remove_silence" sql:"remove_silence"`
 	AudioDuration    float32                   `json:"audio_duration" sql:"audio_duration"`
-	Speaker          VoiceoverSpeaker          `json:"speaker"`
+	Speaker          *VoiceoverSpeaker         `json:"speaker,omitempty"`
 	// For speaker object
-	SpeakerID    uuid.UUID `sql:"speaker_id"`
-	NameInWorker string    `sql:"name_in_worker"`
-	Locale       string    `sql:"locale"`
+	SpeakerID    *uuid.UUID `json:"speaker_id,omitempty" sql:"speaker_id"`
+	NameInWorker string     `json:"name_in_worker,omitempty" sql:"name_in_worker"`
+	Locale       string     `json:"locale,omitempty" sql:"locale"`
 }
 
 type VoiceoverQueryWithOutputsResultFormatted struct {

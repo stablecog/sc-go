@@ -334,21 +334,19 @@ func (r *Repository) RetrieveGenerationsWithOutputIDs(outputIDs []uuid.UUID) (*G
 		output := GenerationQueryWithOutputsResultFormatted{
 			GenerationUpscaleOutput: gOutput,
 			Generation: GenerationQueryWithOutputsData{
-				ID:               g.ID,
-				Height:           g.Edges.Generations.Height,
-				Width:            g.Edges.Generations.Width,
-				InferenceSteps:   g.Edges.Generations.InferenceSteps,
-				Seed:             g.Edges.Generations.Seed,
-				Status:           g.Edges.Generations.Status.String(),
-				GuidanceScale:    g.Edges.Generations.GuidanceScale,
-				SchedulerID:      g.Edges.Generations.SchedulerID,
-				ModelID:          g.Edges.Generations.ModelID,
-				PromptID:         g.Edges.Generations.PromptID,
-				NegativePromptID: g.Edges.Generations.NegativePromptID,
-				CreatedAt:        g.CreatedAt,
-				UpdatedAt:        g.UpdatedAt,
-				StartedAt:        g.Edges.Generations.StartedAt,
-				CompletedAt:      g.Edges.Generations.CompletedAt,
+				ID:             g.ID,
+				Height:         g.Edges.Generations.Height,
+				Width:          g.Edges.Generations.Width,
+				InferenceSteps: g.Edges.Generations.InferenceSteps,
+				Seed:           g.Edges.Generations.Seed,
+				Status:         g.Edges.Generations.Status.String(),
+				GuidanceScale:  g.Edges.Generations.GuidanceScale,
+				SchedulerID:    g.Edges.Generations.SchedulerID,
+				ModelID:        g.Edges.Generations.ModelID,
+				CreatedAt:      g.CreatedAt,
+				UpdatedAt:      g.UpdatedAt,
+				StartedAt:      g.Edges.Generations.StartedAt,
+				CompletedAt:    g.Edges.Generations.CompletedAt,
 				Prompt: PromptType{
 					Text: g.Edges.Generations.Edges.Prompt.Text,
 					ID:   *g.Edges.Generations.PromptID,
@@ -933,14 +931,14 @@ type GenerationQueryWithOutputsData struct {
 	GuidanceScale      float32                   `json:"guidance_scale" sql:"guidance_scale"`
 	SchedulerID        uuid.UUID                 `json:"scheduler_id" sql:"scheduler_id"`
 	ModelID            uuid.UUID                 `json:"model_id" sql:"model_id"`
-	PromptID           *uuid.UUID                `sql:"prompt_id"`
-	NegativePromptID   *uuid.UUID                `sql:"negative_prompt_id"`
+	PromptID           *uuid.UUID                `json:"prompt_id,omitempty" sql:"prompt_id"`
+	NegativePromptID   *uuid.UUID                `json:"negative_prompt_id,omitempty" sql:"negative_prompt_id"`
 	CreatedAt          time.Time                 `json:"created_at" sql:"created_at"`
 	UpdatedAt          time.Time                 `json:"updated_at" sql:"updated_at"`
 	StartedAt          *time.Time                `json:"started_at,omitempty" sql:"started_at"`
 	CompletedAt        *time.Time                `json:"completed_at,omitempty" sql:"completed_at"`
-	NegativePromptText string                    `sql:"negative_prompt_text"`
-	PromptText         string                    `sql:"prompt_text"`
+	NegativePromptText string                    `json:"negative_prompt_text,omitempty" sql:"negative_prompt_text"`
+	PromptText         string                    `json:"prompt_text,omitempty" sql:"prompt_text"`
 	IsFavorited        bool                      `json:"is_favorited" sql:"is_favorited"`
 	Outputs            []GenerationUpscaleOutput `json:"outputs"`
 	Prompt             PromptType                `json:"prompt"`
