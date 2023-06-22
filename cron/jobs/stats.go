@@ -13,6 +13,10 @@ func (j *JobRunner) GetGenerationOutputCount() (int, error) {
 	return j.Repo.DB.GenerationOutput.Query().Count(j.Ctx)
 }
 
+func (j *JobRunner) GetVoiceoverOutputCount() (int, error) {
+	return j.Repo.DB.VoiceoverOutput.Query().Count(j.Ctx)
+}
+
 func (j *JobRunner) GetAndSetStats(log Logger) error {
 	start := time.Now()
 	log.Infof("Getting stats...")
@@ -45,6 +49,18 @@ func (j *JobRunner) GetAndSetStats(log Logger) error {
 			"generation_output_count": count,
 		}
 	}()
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		count, err := j.GetVoiceoverOutputCount()
+		if err != nil {
+			errors <- err
+			return
+		}
+		results <- map[string]int{
+			"voiceover_output_count": count,
+		}
+	}()
 
 	// Wait all jobs and close channels
 	go func() {
@@ -59,7 +75,7 @@ func (j *JobRunner) GetAndSetStats(log Logger) error {
 		}
 	}
 
-	var generationOutputCount, upscaleOutputCount int
+	var generationOutputCount, upscaleOutputCount, voiceoverOutputCount int
 	for result := range results {
 		resStat, ok := result["generation_output_count"]
 		if ok {
@@ -69,9 +85,13 @@ func (j *JobRunner) GetAndSetStats(log Logger) error {
 		if ok {
 			upscaleOutputCount = resStat
 		}
+		resStat, ok = result["voiceover_output_count"]
+		if ok {
+			voiceoverOutputCount = resStat
+		}
 	}
 
-	err := j.Redis.SetGenerateUpscaleOutputCount(generationOutputCount, upscaleOutputCount)
+	err := j.Redis.SetOutputCount(generationOutputCount, upscaleOutputCount, voiceoverOutputCount)
 	if err != nil {
 		return err
 	}
@@ -79,6 +99,7 @@ func (j *JobRunner) GetAndSetStats(log Logger) error {
 	end := time.Now()
 	log.Infof("--- upscales %d", upscaleOutputCount)
 	log.Infof("--- generations %d", generationOutputCount)
+	log.Infof("--- voiceovers %d", voiceoverOutputCount)
 	log.Infof("--- Got stats in %dms", end.Sub(start).Milliseconds())
 	return nil
 }
