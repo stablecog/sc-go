@@ -274,9 +274,6 @@ func (r *Repository) QueryVoiceovers(per_page int, cursor *time.Time, filters *r
 			AudioFileUrl:     v.AudioFileUrl,
 			WasAutoSubmitted: v.WasAutoSubmitted,
 			IsFavorited:      v.IsFavorited,
-			DenoiseAudio:     utils.ToPtr(v.DenoiseAudio),
-			RemoveSilence:    utils.ToPtr(v.RemoveSilence),
-			AudioDuration:    utils.ToPtr(v.AudioDuration),
 		}
 		var speaker VoiceoverSpeaker
 		if v.SpeakerID != nil {
