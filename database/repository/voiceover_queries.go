@@ -345,12 +345,12 @@ type VoiceoverQueryWithOutputsData struct {
 	Temperature      float32                   `json:"temperature" sql:"temperature"`
 	Status           string                    `json:"status" sql:"status"`
 	ModelID          uuid.UUID                 `json:"model_id" sql:"model_id"`
-	PromptID         *uuid.UUID                `json:"prompt_id,omitempty" sql:"prompt_id"`
+	PromptID         *uuid.UUID                `sql:"prompt_id"`
 	CreatedAt        time.Time                 `json:"created_at" sql:"created_at"`
 	UpdatedAt        time.Time                 `json:"updated_at" sql:"updated_at"`
 	StartedAt        *time.Time                `json:"started_at,omitempty" sql:"started_at"`
 	CompletedAt      *time.Time                `json:"completed_at,omitempty" sql:"completed_at"`
-	PromptText       string                    `json:"prompt_text,omitempty" sql:"prompt_text"`
+	PromptText       string                    `sql:"prompt_text"`
 	IsFavorited      bool                      `json:"is_favorited" sql:"is_favorited"`
 	Outputs          []GenerationUpscaleOutput `json:"outputs"`
 	Prompt           PromptType                `json:"prompt"`
