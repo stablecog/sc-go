@@ -21,8 +21,8 @@ func (j *JobRunner) GetAndSetStats(log Logger) error {
 	start := time.Now()
 	log.Infof("Getting stats...")
 
-	results := make(chan map[string]int, 2)
-	errors := make(chan error, 2)
+	results := make(chan map[string]int, 3)
+	errors := make(chan error, 3)
 
 	var wg sync.WaitGroup
 	wg.Add(1)
