@@ -9,7 +9,7 @@ import (
 )
 
 func (c *RestAPI) HandleGetStats(w http.ResponseWriter, r *http.Request) {
-	res, err := c.Redis.GetGenerateUpscaleCount()
+	res, err := c.Redis.GetStatsCount()
 	if err != nil {
 		log.Error("Error getting generate upscale count", "err", err)
 		responses.ErrInternalServerError(w, r, "Unable to get stats")

@@ -29,6 +29,7 @@ func (Voiceover) Fields() []ent.Field {
 		field.Bool("was_auto_submitted").Default(false),
 		field.Bool("denoise_audio").Default(true),
 		field.Bool("remove_silence").Default(true),
+		field.Int32("cost"),
 		// ! Relationships / many-to-one
 		field.UUID("prompt_id", uuid.UUID{}).Optional().Nillable(),
 		field.UUID("user_id", uuid.UUID{}),

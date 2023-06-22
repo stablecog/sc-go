@@ -78,7 +78,7 @@ func (c *RestAPI) HandleSCWorkerWebhook(w http.ResponseWriter, r *http.Request) 
 		if cogMessage.Status == requests.CogSucceeded || cogMessage.Status == requests.CogFailed {
 			livePageMsg.CompletedAt = &now
 			livePageMsg.ActualNumOutputs = len(cogMessage.Output.Images) + len(cogMessage.Output.AudioFiles)
-			livePageMsg.NSFWCount = cogMessage.NSFWCount
+			livePageMsg.NSFWCount = utils.ToPtr(cogMessage.NSFWCount)
 		}
 		// Send live page update
 		liveResp := repository.TaskStatusUpdateResponse{

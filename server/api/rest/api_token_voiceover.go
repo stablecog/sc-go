@@ -241,6 +241,10 @@ func (c *RestAPI) HandleCreateVoiceoverToken(w http.ResponseWriter, r *http.Requ
 			CreatedAt:        voiceover.CreatedAt,
 			ProductID:        user.ActiveProductID,
 			Source:           shared.OperationSourceTypeAPI,
+			SpeakerID:        voiceoverReq.SpeakerId,
+			RemoveSilence:    voiceoverReq.RemoveSilence,
+			DenoiseAudio:     voiceoverReq.DenoiseAudio,
+			Temperature:      voiceoverReq.Temperature,
 		}
 
 		// Send to the cog

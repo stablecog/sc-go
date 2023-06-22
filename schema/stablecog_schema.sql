@@ -1012,6 +1012,7 @@ CREATE TABLE "public"."voiceovers"
      "user_id"           UUID NOT NULL,
      "model_id"          UUID NOT NULL,
      "speaker_id"        UUID NOT NULL,
+     "cost" integer NOT NULL,
      "prompt_id"         UUID constraint voiceovers_prompt_id_fk references prompts(id),
      PRIMARY KEY ("id"),
      CONSTRAINT "voiceovers_api_tokens_voiceovers" FOREIGN KEY ("api_token_id")

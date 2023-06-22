@@ -130,6 +130,12 @@ func (vc *VoiceoverCreate) SetNillableRemoveSilence(b *bool) *VoiceoverCreate {
 	return vc
 }
 
+// SetCost sets the "cost" field.
+func (vc *VoiceoverCreate) SetCost(i int32) *VoiceoverCreate {
+	vc.mutation.SetCost(i)
+	return vc
+}
+
 // SetPromptID sets the "prompt_id" field.
 func (vc *VoiceoverCreate) SetPromptID(u uuid.UUID) *VoiceoverCreate {
 	vc.mutation.SetPromptID(u)
@@ -409,6 +415,9 @@ func (vc *VoiceoverCreate) check() error {
 	if _, ok := vc.mutation.RemoveSilence(); !ok {
 		return &ValidationError{Name: "remove_silence", err: errors.New(`ent: missing required field "Voiceover.remove_silence"`)}
 	}
+	if _, ok := vc.mutation.Cost(); !ok {
+		return &ValidationError{Name: "cost", err: errors.New(`ent: missing required field "Voiceover.cost"`)}
+	}
 	if _, ok := vc.mutation.UserID(); !ok {
 		return &ValidationError{Name: "user_id", err: errors.New(`ent: missing required field "Voiceover.user_id"`)}
 	}
@@ -515,6 +524,10 @@ func (vc *VoiceoverCreate) createSpec() (*Voiceover, *sqlgraph.CreateSpec) {
 	if value, ok := vc.mutation.RemoveSilence(); ok {
 		_spec.SetField(voiceover.FieldRemoveSilence, field.TypeBool, value)
 		_node.RemoveSilence = value
+	}
+	if value, ok := vc.mutation.Cost(); ok {
+		_spec.SetField(voiceover.FieldCost, field.TypeInt32, value)
+		_node.Cost = value
 	}
 	if value, ok := vc.mutation.StartedAt(); ok {
 		_spec.SetField(voiceover.FieldStartedAt, field.TypeTime, value)

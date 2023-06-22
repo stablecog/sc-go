@@ -96,6 +96,11 @@ func RemoveSilence(v bool) predicate.Voiceover {
 	return predicate.Voiceover(sql.FieldEQ(FieldRemoveSilence, v))
 }
 
+// Cost applies equality check predicate on the "cost" field. It's identical to CostEQ.
+func Cost(v int32) predicate.Voiceover {
+	return predicate.Voiceover(sql.FieldEQ(FieldCost, v))
+}
+
 // PromptID applies equality check predicate on the "prompt_id" field. It's identical to PromptIDEQ.
 func PromptID(v uuid.UUID) predicate.Voiceover {
 	return predicate.Voiceover(sql.FieldEQ(FieldPromptID, v))
@@ -499,6 +504,46 @@ func RemoveSilenceEQ(v bool) predicate.Voiceover {
 // RemoveSilenceNEQ applies the NEQ predicate on the "remove_silence" field.
 func RemoveSilenceNEQ(v bool) predicate.Voiceover {
 	return predicate.Voiceover(sql.FieldNEQ(FieldRemoveSilence, v))
+}
+
+// CostEQ applies the EQ predicate on the "cost" field.
+func CostEQ(v int32) predicate.Voiceover {
+	return predicate.Voiceover(sql.FieldEQ(FieldCost, v))
+}
+
+// CostNEQ applies the NEQ predicate on the "cost" field.
+func CostNEQ(v int32) predicate.Voiceover {
+	return predicate.Voiceover(sql.FieldNEQ(FieldCost, v))
+}
+
+// CostIn applies the In predicate on the "cost" field.
+func CostIn(vs ...int32) predicate.Voiceover {
+	return predicate.Voiceover(sql.FieldIn(FieldCost, vs...))
+}
+
+// CostNotIn applies the NotIn predicate on the "cost" field.
+func CostNotIn(vs ...int32) predicate.Voiceover {
+	return predicate.Voiceover(sql.FieldNotIn(FieldCost, vs...))
+}
+
+// CostGT applies the GT predicate on the "cost" field.
+func CostGT(v int32) predicate.Voiceover {
+	return predicate.Voiceover(sql.FieldGT(FieldCost, v))
+}
+
+// CostGTE applies the GTE predicate on the "cost" field.
+func CostGTE(v int32) predicate.Voiceover {
+	return predicate.Voiceover(sql.FieldGTE(FieldCost, v))
+}
+
+// CostLT applies the LT predicate on the "cost" field.
+func CostLT(v int32) predicate.Voiceover {
+	return predicate.Voiceover(sql.FieldLT(FieldCost, v))
+}
+
+// CostLTE applies the LTE predicate on the "cost" field.
+func CostLTE(v int32) predicate.Voiceover {
+	return predicate.Voiceover(sql.FieldLTE(FieldCost, v))
 }
 
 // PromptIDEQ applies the EQ predicate on the "prompt_id" field.

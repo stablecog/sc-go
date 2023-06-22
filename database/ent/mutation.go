@@ -15986,6 +15986,8 @@ type VoiceoverMutation struct {
 	was_auto_submitted        *bool
 	denoise_audio             *bool
 	remove_silence            *bool
+	cost                      *int32
+	addcost                   *int32
 	started_at                *time.Time
 	completed_at              *time.Time
 	created_at                *time.Time
@@ -16516,6 +16518,62 @@ func (m *VoiceoverMutation) OldRemoveSilence(ctx context.Context) (v bool, err e
 // ResetRemoveSilence resets all changes to the "remove_silence" field.
 func (m *VoiceoverMutation) ResetRemoveSilence() {
 	m.remove_silence = nil
+}
+
+// SetCost sets the "cost" field.
+func (m *VoiceoverMutation) SetCost(i int32) {
+	m.cost = &i
+	m.addcost = nil
+}
+
+// Cost returns the value of the "cost" field in the mutation.
+func (m *VoiceoverMutation) Cost() (r int32, exists bool) {
+	v := m.cost
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCost returns the old "cost" field's value of the Voiceover entity.
+// If the Voiceover object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *VoiceoverMutation) OldCost(ctx context.Context) (v int32, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCost is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCost requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCost: %w", err)
+	}
+	return oldValue.Cost, nil
+}
+
+// AddCost adds i to the "cost" field.
+func (m *VoiceoverMutation) AddCost(i int32) {
+	if m.addcost != nil {
+		*m.addcost += i
+	} else {
+		m.addcost = &i
+	}
+}
+
+// AddedCost returns the value that was added to the "cost" field in this mutation.
+func (m *VoiceoverMutation) AddedCost() (r int32, exists bool) {
+	v := m.addcost
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetCost resets all changes to the "cost" field.
+func (m *VoiceoverMutation) ResetCost() {
+	m.cost = nil
+	m.addcost = nil
 }
 
 // SetPromptID sets the "prompt_id" field.
@@ -17213,7 +17271,7 @@ func (m *VoiceoverMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *VoiceoverMutation) Fields() []string {
-	fields := make([]string, 0, 19)
+	fields := make([]string, 0, 20)
 	if m.country_code != nil {
 		fields = append(fields, voiceover.FieldCountryCode)
 	}
@@ -17240,6 +17298,9 @@ func (m *VoiceoverMutation) Fields() []string {
 	}
 	if m.remove_silence != nil {
 		fields = append(fields, voiceover.FieldRemoveSilence)
+	}
+	if m.cost != nil {
+		fields = append(fields, voiceover.FieldCost)
 	}
 	if m.prompt != nil {
 		fields = append(fields, voiceover.FieldPromptID)
@@ -17297,6 +17358,8 @@ func (m *VoiceoverMutation) Field(name string) (ent.Value, bool) {
 		return m.DenoiseAudio()
 	case voiceover.FieldRemoveSilence:
 		return m.RemoveSilence()
+	case voiceover.FieldCost:
+		return m.Cost()
 	case voiceover.FieldPromptID:
 		return m.PromptID()
 	case voiceover.FieldUserID:
@@ -17344,6 +17407,8 @@ func (m *VoiceoverMutation) OldField(ctx context.Context, name string) (ent.Valu
 		return m.OldDenoiseAudio(ctx)
 	case voiceover.FieldRemoveSilence:
 		return m.OldRemoveSilence(ctx)
+	case voiceover.FieldCost:
+		return m.OldCost(ctx)
 	case voiceover.FieldPromptID:
 		return m.OldPromptID(ctx)
 	case voiceover.FieldUserID:
@@ -17436,6 +17501,13 @@ func (m *VoiceoverMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetRemoveSilence(v)
 		return nil
+	case voiceover.FieldCost:
+		v, ok := value.(int32)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCost(v)
+		return nil
 	case voiceover.FieldPromptID:
 		v, ok := value.(uuid.UUID)
 		if !ok {
@@ -17520,6 +17592,9 @@ func (m *VoiceoverMutation) AddedFields() []string {
 	if m.addseed != nil {
 		fields = append(fields, voiceover.FieldSeed)
 	}
+	if m.addcost != nil {
+		fields = append(fields, voiceover.FieldCost)
+	}
 	return fields
 }
 
@@ -17532,6 +17607,8 @@ func (m *VoiceoverMutation) AddedField(name string) (ent.Value, bool) {
 		return m.AddedTemperature()
 	case voiceover.FieldSeed:
 		return m.AddedSeed()
+	case voiceover.FieldCost:
+		return m.AddedCost()
 	}
 	return nil, false
 }
@@ -17554,6 +17631,13 @@ func (m *VoiceoverMutation) AddField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.AddSeed(v)
+		return nil
+	case voiceover.FieldCost:
+		v, ok := value.(int32)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddCost(v)
 		return nil
 	}
 	return fmt.Errorf("unknown Voiceover numeric field %s", name)
@@ -17653,6 +17737,9 @@ func (m *VoiceoverMutation) ResetField(name string) error {
 		return nil
 	case voiceover.FieldRemoveSilence:
 		m.ResetRemoveSilence()
+		return nil
+	case voiceover.FieldCost:
+		m.ResetCost()
 		return nil
 	case voiceover.FieldPromptID:
 		m.ResetPromptID()

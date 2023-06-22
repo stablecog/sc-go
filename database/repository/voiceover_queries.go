@@ -47,7 +47,6 @@ func (r *Repository) GetVoiceoversQueuedOrStarted() ([]*ent.Voiceover, error) {
 			),
 			voiceover.CreatedAtLT(time.Now().Add(-5*time.Minute)),
 		).
-		WithPrompt().
 		Order(ent.Desc(voiceover.FieldCreatedAt)).
 		Limit(100).
 		All(r.Ctx)
@@ -274,6 +273,7 @@ func (r *Repository) QueryVoiceovers(per_page int, cursor *time.Time, filters *r
 			AudioFileUrl:     v.AudioFileUrl,
 			WasAutoSubmitted: v.WasAutoSubmitted,
 			IsFavorited:      v.IsFavorited,
+			AudioDuration:    &v.AudioDuration,
 		}
 		var speaker VoiceoverSpeaker
 		if v.SpeakerID != nil {
@@ -300,7 +300,6 @@ func (r *Repository) QueryVoiceovers(per_page int, cursor *time.Time, filters *r
 					ID:   *v.PromptID,
 				},
 				IsFavorited:   vOutput.IsFavorited,
-				AudioDuration: v.AudioDuration,
 				Speaker:       &speaker,
 				DenoiseAudio:  v.DenoiseAudio,
 				RemoveSilence: v.RemoveSilence,

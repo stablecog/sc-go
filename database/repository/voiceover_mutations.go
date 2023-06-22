@@ -33,7 +33,8 @@ func (r *Repository) CreateVoiceover(userID uuid.UUID, deviceType, deviceOs, dev
 		SetTemperature(*req.Temperature).
 		SetUserID(userID).
 		SetSeed(*req.Seed).
-		SetWasAutoSubmitted(req.SubmitToGallery)
+		SetWasAutoSubmitted(req.SubmitToGallery).
+		SetCost(utils.CalculateVoiceoverCredits(req.Prompt))
 	if req.DenoiseAudio != nil {
 		insert.SetDenoiseAudio(*req.DenoiseAudio)
 	}
