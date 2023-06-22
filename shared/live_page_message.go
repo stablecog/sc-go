@@ -2,6 +2,8 @@ package shared
 
 import (
 	"time"
+
+	"github.com/google/uuid"
 )
 
 type LivePageStatus string
@@ -19,15 +21,19 @@ type LivePageMessage struct {
 	CountryCode      string              `json:"country_code"`
 	Status           LivePageStatus      `json:"status"`
 	FailureReason    string              `json:"failure_reason,omitempty"`
-	Width            int32               `json:"width"`
-	Height           int32               `json:"height"`
+	Width            *int32              `json:"width,omitempty"`
+	Height           *int32              `json:"height,omitempty"`
 	TargetNumOutputs int32               `json:"target_num_outputs"`
 	ActualNumOutputs int                 `json:"actual_num_outputs"`
-	NSFWCount        int32               `json:"nsfw_count"`
+	NSFWCount        *int32              `json:"nsfw_count,omitempty"`
 	CreatedAt        time.Time           `json:"created_at"`
 	StartedAt        *time.Time          `json:"started_at,omitempty"`
 	CompletedAt      *time.Time          `json:"completed_at,omitempty"`
 	ProductID        *string             `json:"product_id,omitempty"`
 	SystemGenerated  bool                `json:"system_generated"`
 	Source           OperationSourceType `json:"source,omitempty"`
+	Temperature      *float32            `json:"temperature,omitempty"`
+	RemoveSilence    *bool               `json:"remove_silence,omitempty"`
+	DenoiseAudio     *bool               `json:"denoise_audio,omitempty"`
+	SpeakerID        *uuid.UUID          `json:"speaker_id,omitempty"`
 }

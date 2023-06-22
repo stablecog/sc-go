@@ -194,6 +194,10 @@ func (c *RestAPI) HandleVoiceover(w http.ResponseWriter, r *http.Request) {
 			CreatedAt:        voiceover.CreatedAt,
 			ProductID:        user.ActiveProductID,
 			Source:           shared.OperationSourceTypeWebUI,
+			SpeakerID:        voiceoverReq.SpeakerId,
+			RemoveSilence:    voiceoverReq.RemoveSilence,
+			DenoiseAudio:     voiceoverReq.DenoiseAudio,
+			Temperature:      voiceoverReq.Temperature,
 		}
 
 		// Send to the cog
