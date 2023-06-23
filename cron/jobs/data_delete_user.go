@@ -12,8 +12,6 @@ import (
 	"github.com/stablecog/sc-go/database/ent/credit"
 	"github.com/stablecog/sc-go/database/ent/generation"
 	"github.com/stablecog/sc-go/database/ent/generationoutput"
-	"github.com/stablecog/sc-go/database/ent/negativeprompt"
-	"github.com/stablecog/sc-go/database/ent/prompt"
 	"github.com/stablecog/sc-go/database/ent/upscale"
 	"github.com/stablecog/sc-go/utils"
 )
@@ -206,20 +204,20 @@ func (j *JobRunner) DeleteUserData(log Logger, dryRun bool) error {
 				}
 
 				// Delete prompts
-				if _, err := tx.Prompt.Delete().Where(
-					prompt.IDIn(promptsToRemove...),
-				).Exec(j.Ctx); err != nil {
-					log.Errorf("Error deleting prompts for user %s: %v", u.ID, err)
-					return err
-				}
+				// if _, err := tx.Prompt.Delete().Where(
+				// 	prompt.IDIn(promptsToRemove...),
+				// ).Exec(j.Ctx); err != nil {
+				// 	log.Errorf("Error deleting prompts for user %s: %v", u.ID, err)
+				// 	return err
+				// }
 
-				// Delete negative prompts
-				if _, err := tx.NegativePrompt.Delete().Where(
-					negativeprompt.IDIn(negativePromptsToRemove...),
-				).Exec(j.Ctx); err != nil {
-					log.Errorf("Error deleting negative prompts for user %s: %v", u.ID, err)
-					return err
-				}
+				// // Delete negative prompts
+				// if _, err := tx.NegativePrompt.Delete().Where(
+				// 	negativeprompt.IDIn(negativePromptsToRemove...),
+				// ).Exec(j.Ctx); err != nil {
+				// 	log.Errorf("Error deleting negative prompts for user %s: %v", u.ID, err)
+				// 	return err
+				// }
 
 				// Delete from qdrant
 				if len(outputIds) > 0 {
