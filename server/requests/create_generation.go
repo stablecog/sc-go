@@ -132,7 +132,8 @@ func (t *CreateGenerationRequest) Validate(api bool) error {
 		return errors.New("invalid_scheduler_id")
 	}
 
-	if t.InitImageUrl != "" && !strings.HasPrefix(t.InitImageUrl, "s3://") {
+	// Ensure http, https, or s3
+	if t.InitImageUrl != "" && !strings.HasPrefix(t.InitImageUrl, "s3://") && !strings.HasPrefix(t.InitImageUrl, "http://") && !strings.HasPrefix(t.InitImageUrl, "https://") {
 		return errors.New("invalid_init_image_url")
 	}
 
