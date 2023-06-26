@@ -474,6 +474,7 @@ var (
 		{Name: "scheduled_for_deletion_on", Type: field.TypeTime, Nullable: true},
 		{Name: "data_deleted_at", Type: field.TypeTime, Nullable: true},
 		{Name: "wants_email", Type: field.TypeBool, Nullable: true},
+		{Name: "discord_id", Type: field.TypeString, Nullable: true, Size: 2147483647},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},
 	}

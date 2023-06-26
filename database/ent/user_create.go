@@ -137,6 +137,20 @@ func (uc *UserCreate) SetNillableWantsEmail(b *bool) *UserCreate {
 	return uc
 }
 
+// SetDiscordID sets the "discord_id" field.
+func (uc *UserCreate) SetDiscordID(s string) *UserCreate {
+	uc.mutation.SetDiscordID(s)
+	return uc
+}
+
+// SetNillableDiscordID sets the "discord_id" field if the given value is not nil.
+func (uc *UserCreate) SetNillableDiscordID(s *string) *UserCreate {
+	if s != nil {
+		uc.SetDiscordID(*s)
+	}
+	return uc
+}
+
 // SetCreatedAt sets the "created_at" field.
 func (uc *UserCreate) SetCreatedAt(t time.Time) *UserCreate {
 	uc.mutation.SetCreatedAt(t)
@@ -415,6 +429,10 @@ func (uc *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 	if value, ok := uc.mutation.WantsEmail(); ok {
 		_spec.SetField(user.FieldWantsEmail, field.TypeBool, value)
 		_node.WantsEmail = &value
+	}
+	if value, ok := uc.mutation.DiscordID(); ok {
+		_spec.SetField(user.FieldDiscordID, field.TypeString, value)
+		_node.DiscordID = &value
 	}
 	if value, ok := uc.mutation.CreatedAt(); ok {
 		_spec.SetField(user.FieldCreatedAt, field.TypeTime, value)

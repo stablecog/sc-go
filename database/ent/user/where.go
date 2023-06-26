@@ -101,6 +101,11 @@ func WantsEmail(v bool) predicate.User {
 	return predicate.User(sql.FieldEQ(FieldWantsEmail, v))
 }
 
+// DiscordID applies equality check predicate on the "discord_id" field. It's identical to DiscordIDEQ.
+func DiscordID(v string) predicate.User {
+	return predicate.User(sql.FieldEQ(FieldDiscordID, v))
+}
+
 // CreatedAt applies equality check predicate on the "created_at" field. It's identical to CreatedAtEQ.
 func CreatedAt(v time.Time) predicate.User {
 	return predicate.User(sql.FieldEQ(FieldCreatedAt, v))
@@ -574,6 +579,81 @@ func WantsEmailIsNil() predicate.User {
 // WantsEmailNotNil applies the NotNil predicate on the "wants_email" field.
 func WantsEmailNotNil() predicate.User {
 	return predicate.User(sql.FieldNotNull(FieldWantsEmail))
+}
+
+// DiscordIDEQ applies the EQ predicate on the "discord_id" field.
+func DiscordIDEQ(v string) predicate.User {
+	return predicate.User(sql.FieldEQ(FieldDiscordID, v))
+}
+
+// DiscordIDNEQ applies the NEQ predicate on the "discord_id" field.
+func DiscordIDNEQ(v string) predicate.User {
+	return predicate.User(sql.FieldNEQ(FieldDiscordID, v))
+}
+
+// DiscordIDIn applies the In predicate on the "discord_id" field.
+func DiscordIDIn(vs ...string) predicate.User {
+	return predicate.User(sql.FieldIn(FieldDiscordID, vs...))
+}
+
+// DiscordIDNotIn applies the NotIn predicate on the "discord_id" field.
+func DiscordIDNotIn(vs ...string) predicate.User {
+	return predicate.User(sql.FieldNotIn(FieldDiscordID, vs...))
+}
+
+// DiscordIDGT applies the GT predicate on the "discord_id" field.
+func DiscordIDGT(v string) predicate.User {
+	return predicate.User(sql.FieldGT(FieldDiscordID, v))
+}
+
+// DiscordIDGTE applies the GTE predicate on the "discord_id" field.
+func DiscordIDGTE(v string) predicate.User {
+	return predicate.User(sql.FieldGTE(FieldDiscordID, v))
+}
+
+// DiscordIDLT applies the LT predicate on the "discord_id" field.
+func DiscordIDLT(v string) predicate.User {
+	return predicate.User(sql.FieldLT(FieldDiscordID, v))
+}
+
+// DiscordIDLTE applies the LTE predicate on the "discord_id" field.
+func DiscordIDLTE(v string) predicate.User {
+	return predicate.User(sql.FieldLTE(FieldDiscordID, v))
+}
+
+// DiscordIDContains applies the Contains predicate on the "discord_id" field.
+func DiscordIDContains(v string) predicate.User {
+	return predicate.User(sql.FieldContains(FieldDiscordID, v))
+}
+
+// DiscordIDHasPrefix applies the HasPrefix predicate on the "discord_id" field.
+func DiscordIDHasPrefix(v string) predicate.User {
+	return predicate.User(sql.FieldHasPrefix(FieldDiscordID, v))
+}
+
+// DiscordIDHasSuffix applies the HasSuffix predicate on the "discord_id" field.
+func DiscordIDHasSuffix(v string) predicate.User {
+	return predicate.User(sql.FieldHasSuffix(FieldDiscordID, v))
+}
+
+// DiscordIDIsNil applies the IsNil predicate on the "discord_id" field.
+func DiscordIDIsNil() predicate.User {
+	return predicate.User(sql.FieldIsNull(FieldDiscordID))
+}
+
+// DiscordIDNotNil applies the NotNil predicate on the "discord_id" field.
+func DiscordIDNotNil() predicate.User {
+	return predicate.User(sql.FieldNotNull(FieldDiscordID))
+}
+
+// DiscordIDEqualFold applies the EqualFold predicate on the "discord_id" field.
+func DiscordIDEqualFold(v string) predicate.User {
+	return predicate.User(sql.FieldEqualFold(FieldDiscordID, v))
+}
+
+// DiscordIDContainsFold applies the ContainsFold predicate on the "discord_id" field.
+func DiscordIDContainsFold(v string) predicate.User {
+	return predicate.User(sql.FieldContainsFold(FieldDiscordID, v))
 }
 
 // CreatedAtEQ applies the EQ predicate on the "created_at" field.

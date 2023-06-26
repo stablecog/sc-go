@@ -372,6 +372,7 @@ ALTER TABLE public.user_roles OWNER TO postgres;
 
 CREATE TABLE public.users (
     id uuid NOT NULL,
+    discord_id text,
     email text NOT NULL,
     stripe_customer_id text NOT NULL,
     active_product_id text,

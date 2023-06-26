@@ -14487,6 +14487,7 @@ type UserMutation struct {
 	scheduled_for_deletion_on *time.Time
 	data_deleted_at           *time.Time
 	wants_email               *bool
+	discord_id                *string
 	created_at                *time.Time
 	updated_at                *time.Time
 	clearedFields             map[string]struct{}
@@ -15019,6 +15020,55 @@ func (m *UserMutation) ResetWantsEmail() {
 	delete(m.clearedFields, user.FieldWantsEmail)
 }
 
+// SetDiscordID sets the "discord_id" field.
+func (m *UserMutation) SetDiscordID(s string) {
+	m.discord_id = &s
+}
+
+// DiscordID returns the value of the "discord_id" field in the mutation.
+func (m *UserMutation) DiscordID() (r string, exists bool) {
+	v := m.discord_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDiscordID returns the old "discord_id" field's value of the User entity.
+// If the User object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UserMutation) OldDiscordID(ctx context.Context) (v *string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDiscordID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDiscordID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDiscordID: %w", err)
+	}
+	return oldValue.DiscordID, nil
+}
+
+// ClearDiscordID clears the value of the "discord_id" field.
+func (m *UserMutation) ClearDiscordID() {
+	m.discord_id = nil
+	m.clearedFields[user.FieldDiscordID] = struct{}{}
+}
+
+// DiscordIDCleared returns if the "discord_id" field was cleared in this mutation.
+func (m *UserMutation) DiscordIDCleared() bool {
+	_, ok := m.clearedFields[user.FieldDiscordID]
+	return ok
+}
+
+// ResetDiscordID resets all changes to the "discord_id" field.
+func (m *UserMutation) ResetDiscordID() {
+	m.discord_id = nil
+	delete(m.clearedFields, user.FieldDiscordID)
+}
+
 // SetCreatedAt sets the "created_at" field.
 func (m *UserMutation) SetCreatedAt(t time.Time) {
 	m.created_at = &t
@@ -15449,7 +15499,7 @@ func (m *UserMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *UserMutation) Fields() []string {
-	fields := make([]string, 0, 11)
+	fields := make([]string, 0, 12)
 	if m.email != nil {
 		fields = append(fields, user.FieldEmail)
 	}
@@ -15476,6 +15526,9 @@ func (m *UserMutation) Fields() []string {
 	}
 	if m.wants_email != nil {
 		fields = append(fields, user.FieldWantsEmail)
+	}
+	if m.discord_id != nil {
+		fields = append(fields, user.FieldDiscordID)
 	}
 	if m.created_at != nil {
 		fields = append(fields, user.FieldCreatedAt)
@@ -15509,6 +15562,8 @@ func (m *UserMutation) Field(name string) (ent.Value, bool) {
 		return m.DataDeletedAt()
 	case user.FieldWantsEmail:
 		return m.WantsEmail()
+	case user.FieldDiscordID:
+		return m.DiscordID()
 	case user.FieldCreatedAt:
 		return m.CreatedAt()
 	case user.FieldUpdatedAt:
@@ -15540,6 +15595,8 @@ func (m *UserMutation) OldField(ctx context.Context, name string) (ent.Value, er
 		return m.OldDataDeletedAt(ctx)
 	case user.FieldWantsEmail:
 		return m.OldWantsEmail(ctx)
+	case user.FieldDiscordID:
+		return m.OldDiscordID(ctx)
 	case user.FieldCreatedAt:
 		return m.OldCreatedAt(ctx)
 	case user.FieldUpdatedAt:
@@ -15616,6 +15673,13 @@ func (m *UserMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetWantsEmail(v)
 		return nil
+	case user.FieldDiscordID:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDiscordID(v)
+		return nil
 	case user.FieldCreatedAt:
 		v, ok := value.(time.Time)
 		if !ok {
@@ -15678,6 +15742,9 @@ func (m *UserMutation) ClearedFields() []string {
 	if m.FieldCleared(user.FieldWantsEmail) {
 		fields = append(fields, user.FieldWantsEmail)
 	}
+	if m.FieldCleared(user.FieldDiscordID) {
+		fields = append(fields, user.FieldDiscordID)
+	}
 	return fields
 }
 
@@ -15709,6 +15776,9 @@ func (m *UserMutation) ClearField(name string) error {
 		return nil
 	case user.FieldWantsEmail:
 		m.ClearWantsEmail()
+		return nil
+	case user.FieldDiscordID:
+		m.ClearDiscordID()
 		return nil
 	}
 	return fmt.Errorf("unknown User nullable field %s", name)
@@ -15744,6 +15814,9 @@ func (m *UserMutation) ResetField(name string) error {
 		return nil
 	case user.FieldWantsEmail:
 		m.ResetWantsEmail()
+		return nil
+	case user.FieldDiscordID:
+		m.ResetDiscordID()
 		return nil
 	case user.FieldCreatedAt:
 		m.ResetCreatedAt()

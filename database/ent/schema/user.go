@@ -29,6 +29,7 @@ func (User) Fields() []ent.Field {
 		field.Time("scheduled_for_deletion_on").Optional().Nillable(),
 		field.Time("data_deleted_at").Optional().Nillable(),
 		field.Bool("wants_email").Optional().Nillable(),
+		field.Text("discord_id").Optional().Nillable(),
 		field.Time("created_at").Default(time.Now).Immutable(),
 		field.Time("updated_at").Default(time.Now).UpdateDefault(time.Now),
 	}

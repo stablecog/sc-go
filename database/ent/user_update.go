@@ -182,6 +182,26 @@ func (uu *UserUpdate) ClearWantsEmail() *UserUpdate {
 	return uu
 }
 
+// SetDiscordID sets the "discord_id" field.
+func (uu *UserUpdate) SetDiscordID(s string) *UserUpdate {
+	uu.mutation.SetDiscordID(s)
+	return uu
+}
+
+// SetNillableDiscordID sets the "discord_id" field if the given value is not nil.
+func (uu *UserUpdate) SetNillableDiscordID(s *string) *UserUpdate {
+	if s != nil {
+		uu.SetDiscordID(*s)
+	}
+	return uu
+}
+
+// ClearDiscordID clears the value of the "discord_id" field.
+func (uu *UserUpdate) ClearDiscordID() *UserUpdate {
+	uu.mutation.ClearDiscordID()
+	return uu
+}
+
 // SetUpdatedAt sets the "updated_at" field.
 func (uu *UserUpdate) SetUpdatedAt(t time.Time) *UserUpdate {
 	uu.mutation.SetUpdatedAt(t)
@@ -513,6 +533,12 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if uu.mutation.WantsEmailCleared() {
 		_spec.ClearField(user.FieldWantsEmail, field.TypeBool)
+	}
+	if value, ok := uu.mutation.DiscordID(); ok {
+		_spec.SetField(user.FieldDiscordID, field.TypeString, value)
+	}
+	if uu.mutation.DiscordIDCleared() {
+		_spec.ClearField(user.FieldDiscordID, field.TypeString)
 	}
 	if value, ok := uu.mutation.UpdatedAt(); ok {
 		_spec.SetField(user.FieldUpdatedAt, field.TypeTime, value)
@@ -1009,6 +1035,26 @@ func (uuo *UserUpdateOne) ClearWantsEmail() *UserUpdateOne {
 	return uuo
 }
 
+// SetDiscordID sets the "discord_id" field.
+func (uuo *UserUpdateOne) SetDiscordID(s string) *UserUpdateOne {
+	uuo.mutation.SetDiscordID(s)
+	return uuo
+}
+
+// SetNillableDiscordID sets the "discord_id" field if the given value is not nil.
+func (uuo *UserUpdateOne) SetNillableDiscordID(s *string) *UserUpdateOne {
+	if s != nil {
+		uuo.SetDiscordID(*s)
+	}
+	return uuo
+}
+
+// ClearDiscordID clears the value of the "discord_id" field.
+func (uuo *UserUpdateOne) ClearDiscordID() *UserUpdateOne {
+	uuo.mutation.ClearDiscordID()
+	return uuo
+}
+
 // SetUpdatedAt sets the "updated_at" field.
 func (uuo *UserUpdateOne) SetUpdatedAt(t time.Time) *UserUpdateOne {
 	uuo.mutation.SetUpdatedAt(t)
@@ -1364,6 +1410,12 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 	}
 	if uuo.mutation.WantsEmailCleared() {
 		_spec.ClearField(user.FieldWantsEmail, field.TypeBool)
+	}
+	if value, ok := uuo.mutation.DiscordID(); ok {
+		_spec.SetField(user.FieldDiscordID, field.TypeString, value)
+	}
+	if uuo.mutation.DiscordIDCleared() {
+		_spec.ClearField(user.FieldDiscordID, field.TypeString)
 	}
 	if value, ok := uuo.mutation.UpdatedAt(); ok {
 		_spec.SetField(user.FieldUpdatedAt, field.TypeTime, value)

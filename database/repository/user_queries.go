@@ -300,3 +300,8 @@ func (r *Repository) GetBannedUsersToDelete() ([]*ent.User, error) {
 func (r *Repository) GetUsersToDelete() ([]*ent.User, error) {
 	return r.DB.User.Query().Where(user.DataDeletedAtIsNil(), user.ScheduledForDeletionOnLT(time.Now())).All(r.Ctx)
 }
+
+// Get user by discord ID
+func (r *Repository) GetUserByDiscordID(discordId string) (*ent.User, error) {
+	return r.DB.User.Query().Where(user.DiscordID(discordId)).First(r.Ctx)
+}

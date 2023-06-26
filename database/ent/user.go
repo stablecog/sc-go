@@ -35,6 +35,8 @@ type User struct {
 	DataDeletedAt *time.Time `json:"data_deleted_at,omitempty"`
 	// WantsEmail holds the value of the "wants_email" field.
 	WantsEmail *bool `json:"wants_email,omitempty"`
+	// DiscordID holds the value of the "discord_id" field.
+	DiscordID *string `json:"discord_id,omitempty"`
 	// CreatedAt holds the value of the "created_at" field.
 	CreatedAt time.Time `json:"created_at,omitempty"`
 	// UpdatedAt holds the value of the "updated_at" field.
@@ -124,7 +126,7 @@ func (*User) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case user.FieldWantsEmail:
 			values[i] = new(sql.NullBool)
-		case user.FieldEmail, user.FieldStripeCustomerID, user.FieldActiveProductID:
+		case user.FieldEmail, user.FieldStripeCustomerID, user.FieldActiveProductID, user.FieldDiscordID:
 			values[i] = new(sql.NullString)
 		case user.FieldLastSignInAt, user.FieldLastSeenAt, user.FieldBannedAt, user.FieldScheduledForDeletionOn, user.FieldDataDeletedAt, user.FieldCreatedAt, user.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
@@ -210,6 +212,13 @@ func (u *User) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				u.WantsEmail = new(bool)
 				*u.WantsEmail = value.Bool
+			}
+		case user.FieldDiscordID:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field discord_id", values[i])
+			} else if value.Valid {
+				u.DiscordID = new(string)
+				*u.DiscordID = value.String
 			}
 		case user.FieldCreatedAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
@@ -318,6 +327,11 @@ func (u *User) String() string {
 	if v := u.WantsEmail; v != nil {
 		builder.WriteString("wants_email=")
 		builder.WriteString(fmt.Sprintf("%v", *v))
+	}
+	builder.WriteString(", ")
+	if v := u.DiscordID; v != nil {
+		builder.WriteString("discord_id=")
+		builder.WriteString(*v)
 	}
 	builder.WriteString(", ")
 	builder.WriteString("created_at=")

@@ -31,6 +31,8 @@ const (
 	FieldDataDeletedAt = "data_deleted_at"
 	// FieldWantsEmail holds the string denoting the wants_email field in the database.
 	FieldWantsEmail = "wants_email"
+	// FieldDiscordID holds the string denoting the discord_id field in the database.
+	FieldDiscordID = "discord_id"
 	// FieldCreatedAt holds the string denoting the created_at field in the database.
 	FieldCreatedAt = "created_at"
 	// FieldUpdatedAt holds the string denoting the updated_at field in the database.
@@ -103,6 +105,7 @@ var Columns = []string{
 	FieldScheduledForDeletionOn,
 	FieldDataDeletedAt,
 	FieldWantsEmail,
+	FieldDiscordID,
 	FieldCreatedAt,
 	FieldUpdatedAt,
 }
