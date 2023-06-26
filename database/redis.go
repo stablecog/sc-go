@@ -227,3 +227,26 @@ func (r *RedisWrapper) GetEmbeddings(ctx context.Context, key string) ([]float32
 	}
 	return embedding, nil
 }
+
+// Discord bot
+
+// Set verify token and return token
+func (r *RedisWrapper) SetDiscordVerifyToken(discordId string) (string, error) {
+	// Generate random token
+	token, err := utils.GenerateRandomHex(nil, 32)
+	if err != nil {
+		return "", err
+	}
+
+	// Set token in redis
+	err = r.Client.Set(r.Ctx, fmt.Sprintf("disco_verify:%s", discordId), token, shared.DISCORD_VERIFY_TOKEN_EXPIRY).Err()
+	if err != nil {
+		return "", err
+	}
+	return token, nil
+}
+
+// Get discord ID from token
+func (r *RedisWrapper) GetDiscordTokenFromID(discordId string) (string, error) {
+	return r.Client.Get(r.Ctx, fmt.Sprintf("disco_verify:%s", discordId)).Result()
+}

@@ -76,7 +76,7 @@ func main() {
 	}
 
 	// Setup commands
-	cmdWrapper := commands.NewDiscordCommandWrapper(repo)
+	cmdWrapper := commands.NewDiscordCommandWrapper(repo, redis)
 
 	s.AddHandler(func(s *discordgo.Session, r *discordgo.Ready) {
 		log.Infof("Logged in as: %v#%v", s.State.User.Username, s.State.User.Discriminator)
