@@ -88,9 +88,7 @@ func main() {
 	}
 
 	// Setup commands
-	cmdWrapper := commands.DiscordCommands{
-		Repo: repo,
-	}
+	cmdWrapper := commands.NewDiscordCommandWrapper(repo)
 
 	s.AddHandler(func(s *discordgo.Session, r *discordgo.Ready) {
 		log.Infof("Logged in as: %v#%v", s.State.User.Username, s.State.User.Discriminator)
@@ -101,16 +99,19 @@ func main() {
 	}
 
 	log.Info("Adding commands...")
-	registeredCommands := make([]*discordgo.ApplicationCommand, 1)
-	cmd, err := s.ApplicationCommandCreate(s.State.User.ID, *GuildID, cmdWrapper.AuthenticateCommand())
-	if err != nil {
-		log.Fatalf("Cannot create '%v' command: %v", cmdWrapper.AuthenticateCommand().Name, err)
-	}
-	registeredCommands[0] = cmd
+	registeredCommands := make([]*discordgo.ApplicationCommand, len(cmdWrapper.Commands))
+	for i, v := range cmdWrapper.Commands {
+		cmd, err := s.ApplicationCommandCreate(s.State.User.ID, *GuildID, v.ApplicationCommand)
+		if err != nil {
+			log.Fatalf("Cannot create '%v' command: %v", v.ApplicationCommand.Name, err)
+		}
+		registeredCommands[i] = cmd
 
-	s.AddHandler(func(s *discordgo.Session, i *discordgo.InteractionCreate) {
-		cmdWrapper.AuthenticateHandler(s, i)
-	})
+		// Setup handler
+		s.AddHandler(func(s *discordgo.Session, i *discordgo.InteractionCreate) {
+			v.Handler(s, i)
+		})
+	}
 
 	defer s.Close()
 
