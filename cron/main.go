@@ -40,6 +40,7 @@ func main() {
 	healthCheck := flag.Bool("healthCheck", false, "Run the health check job")
 	stats := flag.Bool("stats", false, "Run the stats job")
 	deleteData := flag.Bool("delete-banned-data", false, "Delete banned user data")
+	disableAutoUpscale := flag.Bool("disable-auto-upscale", false, "Disable auto upscaling")
 	dryRun := flag.Bool("dry-run", false, "Dry run (don't actually do anything)")
 	refund := flag.Bool("refund", false, "Refund expired credits")
 	allJobs := flag.Bool("all", false, "Run all jobs in a blocking process")
@@ -208,7 +209,9 @@ func main() {
 		// Auto refund
 		s.Every(10).Minutes().Do(jobRunner.RefundOldGenerationCredits, jobs.NewJobLogger("AUTO_REFUND"))
 		// Auto upscale
-		go jobRunner.StartAutoUpscaleJob(jobs.NewJobLogger("AUTO_UPSCALE"))
+		if !*disableAutoUpscale {
+			go jobRunner.StartAutoUpscaleJob(jobs.NewJobLogger("AUTO_UPSCALE"))
+		}
 		s.StartBlocking()
 		os.Exit(0)
 	}
