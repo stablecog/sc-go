@@ -1,0 +1,62 @@
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: sc-discord-deployment
+  namespace: prod-stablecog
+  labels:
+    app: sc-discordbot
+spec:
+  strategy:
+    type: Recreate
+  replicas: 1
+  selector:
+    matchLabels:
+      app: sc-discordbot
+  template:
+    metadata:
+      labels:
+        app: sc-discordbot
+    spec:
+      containers:
+        - name: sc-discordbot
+          image: replaceme
+          resources:
+            requests:
+              cpu: 100m
+              memory: 200Mi
+            limits:
+              memory: 2Gi
+          command: ["/bin/sh", "-c"]
+          args: ["/app/discobot"]
+          imagePullPolicy: "Always"
+          env:
+            - name: DISCORD_BOT_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: sc-go
+                  key: DISCORD_BOT_TOKEN
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: sc-go
+                  key: POSTGRES_PASSWORD
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: sc-go
+                  key: POSTGRES_USER
+            - name: POSTGRES_HOST
+              valueFrom:
+                secretKeyRef:
+                  name: sc-go
+                  key: POSTGRES_HOST
+            - name: POSTGRES_DB
+              valueFrom:
+                secretKeyRef:
+                  name: sc-go
+                  key: POSTGRES_DB
+            - name: REDIS_CONNECTION_STRING
+              valueFrom:
+                secretKeyRef:
+                  name: sc-go
+                  key: REDIS_CONNECTION_STRING

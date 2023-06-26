@@ -15,12 +15,7 @@ import (
 	"github.com/stablecog/sc-go/utils"
 )
 
-// Bot parameters
-var (
-	GuildID        = flag.String("guild", "", "Test guild ID. If not passed - bot registers commands globally")
-	BotToken       = flag.String("token", "", "Bot access token")
-	RemoveCommands = flag.Bool("rmcmd", true, "Remove all commands after shutdowning or not")
-)
+var Version = "dev"
 
 var s *discordgo.Session
 
@@ -28,7 +23,7 @@ func init() { flag.Parse() }
 
 func init() {
 	var err error
-	s, err = discordgo.New("Bot " + *BotToken)
+	s, err = discordgo.New("Bot " + os.Getenv("DISCORD_BOT_TOKEN"))
 	if err != nil {
 		log.Fatalf("Invalid bot parameters: %v", err)
 	}
@@ -41,6 +36,7 @@ var (
 )
 
 func main() {
+	log.Infof("Starting SC Discobot v%v", Version)
 	// Load .env
 	err := godotenv.Load("../.env")
 	if err != nil {
@@ -101,7 +97,7 @@ func main() {
 	log.Info("Adding commands...")
 	registeredCommands := make([]*discordgo.ApplicationCommand, len(cmdWrapper.Commands))
 	for i, v := range cmdWrapper.Commands {
-		cmd, err := s.ApplicationCommandCreate(s.State.User.ID, *GuildID, v.ApplicationCommand)
+		cmd, err := s.ApplicationCommandCreate(s.State.User.ID, "", v.ApplicationCommand)
 		if err != nil {
 			log.Fatalf("Cannot create '%v' command: %v", v.ApplicationCommand.Name, err)
 		}
@@ -120,13 +116,11 @@ func main() {
 	log.Info("Press Ctrl+C to exit")
 	<-stop
 
-	if *RemoveCommands {
-		log.Info("Removing commands...")
-		for _, v := range registeredCommands {
-			err := s.ApplicationCommandDelete(s.State.User.ID, *GuildID, v.ID)
-			if err != nil {
-				log.Fatalf("Cannot delete '%v' command: %v", v.Name, err)
-			}
+	log.Info("Removing commands...")
+	for _, v := range registeredCommands {
+		err := s.ApplicationCommandDelete(s.State.User.ID, "", v.ID)
+		if err != nil {
+			log.Fatalf("Cannot delete '%v' command: %v", v.Name, err)
 		}
 	}
 
