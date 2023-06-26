@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"flag"
 	"os"
 	"os/signal"
 
@@ -17,18 +16,6 @@ import (
 
 var Version = "dev"
 
-var s *discordgo.Session
-
-func init() { flag.Parse() }
-
-func init() {
-	var err error
-	s, err = discordgo.New("Bot " + os.Getenv("DISCORD_BOT_TOKEN"))
-	if err != nil {
-		log.Fatalf("Invalid bot parameters: %v", err)
-	}
-}
-
 var (
 	integerOptionMinValue          = 1.0
 	dmPermission                   = false
@@ -41,6 +28,11 @@ func main() {
 	err := godotenv.Load("../.env")
 	if err != nil {
 		log.Warn("Error loading .env file (this is fine)", "err", err)
+	}
+
+	s, err := discordgo.New("Bot " + os.Getenv("DISCORD_BOT_TOKEN"))
+	if err != nil {
+		log.Fatalf("Invalid bot parameters: %v", err)
 	}
 
 	ctx := context.Background()

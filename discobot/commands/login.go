@@ -22,22 +22,25 @@ func (c *DiscordCommandWrapper) NewAuthenticateCommand() *DiscordCommand {
 			_, err := c.Repo.GetUserByDiscordID(i.Member.User.ID)
 			if err != nil && !ent.IsNotFound(err) {
 				log.Errorf("Failed to get user by discord ID %v", err)
-				responses.PrivateInteractionResponse(s, i, "Something went wrong. Please try again later.")
+				responses.UnknownErrorPrivateInteractionResponse(s, i)
 				return
 			}
 			if err != nil && ent.IsNotFound(err) {
 				urlComponent, err := responses.URLComponent("Authenticate", "https://stablecog.com")
 				if err != nil {
 					log.Errorf("Failed to create URL component %v", err)
-					responses.PrivateInteractionResponse(s, i, "Something went wrong. Please try again later.")
+					responses.UnknownErrorPrivateInteractionResponse(s, i)
 					return
 				}
-				responses.PrivateInteractionResponseWithComponents(s, i, "Your account is not registered with Stablecog, click the link below to login/register.",
+				responses.PrivateInteractionResponseWithComponents(s, i, "⚠️ Action Required", "You must authenticate your Discord account with Stablecog before you can use this command.\n\nClick the button below to connect your Discord account to Stablecog.",
 					[]discordgo.MessageComponent{
 						urlComponent,
 					})
 				return
 			}
+
+			// User is already authenticated
+			responses.PrivateInteractionResponse(s, i, "👍", "Your Discord account is already authenticated with Stablecog.")
 		},
 	}
 }
