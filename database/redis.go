@@ -250,3 +250,8 @@ func (r *RedisWrapper) SetDiscordVerifyToken(discordId string) (string, error) {
 func (r *RedisWrapper) GetDiscordTokenFromID(discordId string) (string, error) {
 	return r.Client.Get(r.Ctx, fmt.Sprintf("disco_verify:%s", discordId)).Result()
 }
+
+// Delete token
+func (r *RedisWrapper) DeleteDiscordToken(discordId string) error {
+	return r.Client.Del(r.Ctx, fmt.Sprintf("disco_verify:%s", discordId)).Err()
+}

@@ -73,3 +73,8 @@ func (r *Repository) UnbanUsers(userIDs []uuid.UUID) (int, error) {
 func (r *Repository) SetWantsEmail(userId uuid.UUID, wantsEmail bool) error {
 	return r.DB.User.Update().Where(user.IDEQ(userId)).SetWantsEmail(wantsEmail).Exec(r.Ctx)
 }
+
+// Set discord ID on user
+func (r *Repository) SetDiscordID(userId uuid.UUID, discordId string) error {
+	return r.DB.User.Update().Where(user.IDEQ(userId)).SetDiscordID(discordId).Exec(r.Ctx)
+}

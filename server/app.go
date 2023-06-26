@@ -409,6 +409,9 @@ func main() {
 			// Get user summary
 			r.Get("/", hc.HandleGetUser)
 
+			// Link to discord
+			r.Post("/discordverify", hc.HandleAuthorizeDiscord)
+
 			// Create Generation
 			r.Post("/image/generation/create", hc.HandleCreateGeneration)
 			// ! Deprecated
