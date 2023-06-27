@@ -202,7 +202,7 @@ func (r *Repository) QueryVoiceovers(per_page int, cursor *time.Time, filters *r
 			s.C(voiceover.FieldSpeakerID), st.C(voiceoverspeaker.FieldID),
 		).AppendSelect(sql.As(pt.C(prompt.FieldText), "prompt_text"), sql.As(vot.C(voiceoveroutput.FieldID), "output_id"), sql.As(vot.C(voiceoveroutput.FieldAudioPath), "audio_path"), sql.As(vot.C(voiceoveroutput.FieldDeletedAt), "deleted_at"), sql.As(vot.C(voiceoveroutput.FieldIsFavorited), "is_favorited"), sql.As(vot.C(voiceoveroutput.FieldAudioDuration), "audio_duration"), sql.As(st.C(voiceoverspeaker.FieldNameInWorker), "name_in_worker"), sql.As(st.C(voiceoverspeaker.FieldLocale), "locale")).
 			GroupBy(s.C(voiceover.FieldID), pt.C(prompt.FieldText),
-				vot.C(voiceoveroutput.FieldID), vot.C(voiceoveroutput.FieldAudioPath),
+				vot.C(voiceoveroutput.FieldID), vot.C(voiceoveroutput.FieldAudioPath), vot.C(voiceoveroutput.FieldAudioDuration),
 				st.C(voiceoverspeaker.FieldNameInWorker), st.C(voiceoverspeaker.FieldLocale))
 		orderDir := "asc"
 		if filters == nil || (filters != nil && filters.Order == requests.SortOrderDescending) {
