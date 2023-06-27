@@ -326,9 +326,10 @@ func (r *Repository) QueryVoiceovers(per_page int, cursor *time.Time, filters *r
 }
 
 type VoiceoverQueryWithOutputsResult struct {
-	OutputID     *uuid.UUID `json:"output_id,omitempty" sql:"output_id"`
-	AudioFileUrl string     `json:"audio_file_url,omitempty" sql:"audio_path"`
-	DeletedAt    *time.Time `json:"deleted_at,omitempty" sql:"deleted_at"`
+	OutputID      *uuid.UUID `json:"output_id,omitempty" sql:"output_id"`
+	AudioFileUrl  string     `json:"audio_file_url,omitempty" sql:"audio_path"`
+	AudioDuration float32    `json:"audio_duration" sql:"audio_duration"`
+	DeletedAt     *time.Time `json:"deleted_at,omitempty" sql:"deleted_at"`
 	VoiceoverQueryWithOutputsData
 }
 
@@ -356,7 +357,6 @@ type VoiceoverQueryWithOutputsData struct {
 	WasAutoSubmitted bool                      `json:"was_auto_submitted" sql:"was_auto_submitted"`
 	DenoiseAudio     bool                      `json:"denoise_audio" sql:"denoise_audio"`
 	RemoveSilence    bool                      `json:"remove_silence" sql:"remove_silence"`
-	AudioDuration    float32                   `json:"audio_duration" sql:"audio_duration"`
 	Speaker          *VoiceoverSpeaker         `json:"speaker,omitempty"`
 	// For speaker object
 	SpeakerID    *uuid.UUID `json:"speaker_id,omitempty" sql:"speaker_id"`

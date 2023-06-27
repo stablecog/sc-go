@@ -8,6 +8,7 @@ import (
 	"github.com/stablecog/sc-go/shared"
 	"github.com/stablecog/sc-go/utils"
 	"github.com/supabase-community/gotrue-go"
+	"github.com/supabase-community/gotrue-go/types"
 )
 
 var SupabaseAuthUnauthorized = errors.New("Unauthorized")
@@ -23,6 +24,10 @@ func NewSupabaseAuth() *SupabaseAuth {
 		client = client.WithCustomGoTrueURL(utils.GetEnv("GOTRUE_URL", ""))
 	}
 	return &SupabaseAuth{client: client}
+}
+
+func (s *SupabaseAuth) CreateUser(email string) {
+	s.client.AdminCreateUser(types.AdminCreateUserRequest{})
 }
 
 func (s *SupabaseAuth) GetSupabaseUserIdFromAccessToken(accessToken string) (id, email string, lastSignIn *time.Time, err error) {

@@ -23,14 +23,20 @@ type SCDiscordComponent struct {
 	Disabled *bool                   `json:"disabled,omitempty"`
 }
 
-func URLComponent(label string, url string) (discordgo.MessageComponent, error) {
+func AuthComponent(primaryButtonLabel string, linkLabel string, url string) (discordgo.MessageComponent, error) {
 	urlComponent := SCDiscordActionRow{
 		Type: discordgo.ActionsRowComponent,
 		Components: []SCDiscordComponent{
 			{
+				Type:     discordgo.ButtonComponent,
+				Style:    discordgo.PrimaryButton,
+				Label:    primaryButtonLabel,
+				CustomID: "discord_sign_in",
+			},
+			{
 				Type:  discordgo.ButtonComponent,
 				Style: discordgo.LinkButton,
-				Label: label,
+				Label: linkLabel,
 				URL:   url,
 			},
 		},
