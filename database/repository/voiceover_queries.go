@@ -52,14 +52,6 @@ func (r *Repository) GetVoiceoversQueuedOrStarted() ([]*ent.Voiceover, error) {
 		All(r.Ctx)
 }
 
-type VoiceoverOutput struct {
-	ID               uuid.UUID  `json:"id"`
-	AudioFileURL     string     `json:"audio_file_url"`
-	CreatedAt        *time.Time `json:"created_at,omitempty"`
-	IsFavorited      bool       `json:"is_favorited"`
-	WasAutoSubmitted bool       `json:"was_auto_submitted"`
-}
-
 // Apply all filters to root ent query
 func (r *Repository) ApplyUserVoiceoverFilters(query *ent.VoiceoverQuery, filters *requests.QueryVoiceoverFilters, omitEdges bool) *ent.VoiceoverQuery {
 	resQuery := query
@@ -273,7 +265,7 @@ func (r *Repository) QueryVoiceovers(per_page int, cursor *time.Time, filters *r
 			AudioFileUrl:     v.AudioFileUrl,
 			WasAutoSubmitted: v.WasAutoSubmitted,
 			IsFavorited:      v.IsFavorited,
-			AudioDuration:    &v.AudioDuration,
+			AudioDuration:    utils.ToPtr(v.AudioDuration),
 		}
 		var speaker VoiceoverSpeaker
 		if v.SpeakerID != nil {
