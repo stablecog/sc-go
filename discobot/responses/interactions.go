@@ -23,8 +23,27 @@ func PrivateInteractionResponseWithComponents(s *discordgo.Session, i *discordgo
 	return err
 }
 
+func PublicInteractionResponseWithComponents(s *discordgo.Session, i *discordgo.InteractionCreate, title, content, footer string, components []discordgo.MessageComponent) error {
+	err := s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+		Type: discordgo.InteractionResponseChannelMessageWithSource,
+		Data: &discordgo.InteractionResponseData{
+			Embeds: []*discordgo.MessageEmbed{
+				NewEmbed(title, content, footer),
+			},
+			Components: components,
+		},
+	})
+	if err != nil {
+		log.Errorf("Failed to respond to interaction: %v", err)
+	}
+	return err
+}
+
 func PrivateInteractionResponse(s *discordgo.Session, i *discordgo.InteractionCreate, title, content, footer string) error {
 	return PrivateInteractionResponseWithComponents(s, i, title, content, footer, nil)
+}
+func PublicInteractionResponse(s *discordgo.Session, i *discordgo.InteractionCreate, title, content, footer string) error {
+	return PublicInteractionResponseWithComponents(s, i, title, content, footer, nil)
 }
 
 func UnknownErrorPrivateInteractionResponse(s *discordgo.Session, i *discordgo.InteractionCreate) error {
@@ -33,14 +52,12 @@ func UnknownErrorPrivateInteractionResponse(s *discordgo.Session, i *discordgo.I
 
 // Public messages
 func PublicImageResponse(s *discordgo.Session, i *discordgo.InteractionCreate, url string, components []discordgo.MessageComponent) error {
-	err := s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
-		Type: discordgo.InteractionResponseChannelMessageWithSource,
-		Data: &discordgo.InteractionResponseData{
-			Embeds: []*discordgo.MessageEmbed{
-				NewImageEmbed(url),
-			},
-			Components: components,
-		},
+	embeds := []*discordgo.MessageEmbed{
+		NewImageEmbed(url),
+	}
+	_, err := s.InteractionResponseEdit(i.Interaction, &discordgo.WebhookEdit{
+		Embeds:     &embeds,
+		Components: nil,
 	})
 	if err != nil {
 		log.Errorf("Failed to respond to interaction: %v", err)

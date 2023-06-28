@@ -37,6 +37,7 @@ func (c *DiscordInteractionWrapper) NewImageCommand() *DiscordInteraction {
 				ctx := context.Background()
 				// Generate the image
 				log.Infof("Generating image for %s", u.ID)
+				responses.PublicInteractionResponse(s, i, "Please wait", "Please wait...", "")
 				res, err := scworker.CreateGeneration(
 					ctx,
 					c.Repo,
@@ -51,6 +52,7 @@ func (c *DiscordInteractionWrapper) NewImageCommand() *DiscordInteraction {
 				)
 				if err != nil {
 					responses.PrivateInteractionResponse(s, i, "👍", "Your Discord account is already authenticated with Stablecog.", "")
+					return
 				}
 
 				// Send the image

@@ -471,10 +471,11 @@ func CreateGeneration(ctx context.Context,
 				}
 
 				// Set token used
-				err = repo.SetTokenUsedAndIncrementCreditsSpent(int(*generateReq.NumOutputs), *generation.APITokenID)
-				if err != nil {
-					log.Error("Failed to set token used", "err", err)
-				}
+				// ! TODO
+				// err = repo.SetTokenUsedAndIncrementCreditsSpent(int(*generateReq.NumOutputs), *generation.APITokenID)
+				// if err != nil {
+				// 	log.Error("Failed to set token used", "err", err)
+				// }
 
 				return &responses.ApiSucceededResponse{
 					Outputs:          resOutputs,
