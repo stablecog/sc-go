@@ -7,6 +7,7 @@ import (
 
 // Domain logic layer
 type DiscoDomain struct {
-	Repo  *repository.Repository
-	Redis *database.RedisWrapper
+	Repo         *repository.Repository
+	Redis        *database.RedisWrapper
+	SupabaseAuth *database.SupabaseAuth
 }

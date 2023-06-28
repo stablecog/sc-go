@@ -242,8 +242,3 @@ spec:
                 secretKeyRef:
                   name: sc-go
                   key: CLIPAPI_URLS
-            - name: TRANSLATOR_COG_URL
-              valueFrom:
-                secretKeyRef:
-                  name: sc-go
-                  key: TRANSLATOR_COG_URL

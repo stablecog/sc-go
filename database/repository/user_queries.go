@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
@@ -304,4 +305,9 @@ func (r *Repository) GetUsersToDelete() ([]*ent.User, error) {
 // Get user by discord ID
 func (r *Repository) GetUserByDiscordID(discordId string) (*ent.User, error) {
 	return r.DB.User.Query().Where(user.DiscordID(discordId)).First(r.Ctx)
+}
+
+// Get user by email
+func (r *Repository) GetUserByEmail(email string) (*ent.User, error) {
+	return r.DB.User.Query().Where(user.Email(strings.ToLower(email))).First(r.Ctx)
 }

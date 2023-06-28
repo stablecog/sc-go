@@ -9,7 +9,7 @@ import (
 	"github.com/joho/godotenv"
 	"github.com/stablecog/sc-go/database"
 	"github.com/stablecog/sc-go/database/repository"
-	"github.com/stablecog/sc-go/discobot/commands"
+	"github.com/stablecog/sc-go/discobot/interactions"
 	"github.com/stablecog/sc-go/log"
 	"github.com/stablecog/sc-go/utils"
 )
@@ -75,8 +75,8 @@ func main() {
 		Ctx:      ctx,
 	}
 
-	// Setup commands
-	cmdWrapper := commands.NewDiscordCommandWrapper(repo, redis)
+	// Setup interactions
+	cmdWrapper := interactions.NewDiscordInteractionWrapper(repo, redis, database.NewSupabaseAuth())
 
 	s.AddHandler(func(s *discordgo.Session, r *discordgo.Ready) {
 		log.Infof("Logged in as: %v#%v", s.State.User.Username, s.State.User.Discriminator)
@@ -94,12 +94,24 @@ func main() {
 			log.Fatalf("Cannot create '%v' command: %v", v.ApplicationCommand.Name, err)
 		}
 		registeredCommands[i] = cmd
-
-		// Setup handler
-		s.AddHandler(func(s *discordgo.Session, i *discordgo.InteractionCreate) {
-			v.Handler(s, i)
-		})
 	}
+
+	// Register handlers
+	// Components are part of interactions, so we register InteractionCreate handler
+	s.AddHandler(func(s *discordgo.Session, i *discordgo.InteractionCreate) {
+		switch i.Type {
+		case discordgo.InteractionApplicationCommand:
+			handler := cmdWrapper.GetHandlerForCommand(i.ApplicationCommandData().Name)
+			if handler != nil {
+				handler(s, i)
+			}
+		case discordgo.InteractionMessageComponent:
+			handler := cmdWrapper.GetHandlerForComponent(i.MessageComponentData().CustomID)
+			if handler != nil {
+				handler(s, i)
+			}
+		}
+	})
 
 	defer s.Close()
 

@@ -1,4 +1,4 @@
-package responses
+package components
 
 import (
 	"encoding/json"
@@ -6,6 +6,8 @@ import (
 	"github.com/bwmarrin/discordgo"
 	"github.com/hashicorp/go-multierror"
 )
+
+const AuthComponentSignInID = "sc_discord_sign_in"
 
 type SCDiscordActionRow struct {
 	Type discordgo.ComponentType `json:"type"`
@@ -23,21 +25,27 @@ type SCDiscordComponent struct {
 	Disabled *bool                   `json:"disabled,omitempty"`
 }
 
-func AuthComponent(primaryButtonLabel string, linkLabel string, url string) (discordgo.MessageComponent, error) {
+func AuthComponent(label string, url string) (discordgo.MessageComponent, error) {
 	urlComponent := SCDiscordActionRow{
 		Type: discordgo.ActionsRowComponent,
 		Components: []SCDiscordComponent{
 			{
-				Type:     discordgo.ButtonComponent,
-				Style:    discordgo.PrimaryButton,
-				Label:    primaryButtonLabel,
-				CustomID: "discord_sign_in",
+				Type:  discordgo.ButtonComponent,
+				Style: discordgo.LinkButton,
+				Label: label,
+				URL:   url,
 			},
 			{
 				Type:  discordgo.ButtonComponent,
 				Style: discordgo.LinkButton,
-				Label: linkLabel,
-				URL:   url,
+				Label: "Terms of Service",
+				URL:   "https://stablecog.com/terms",
+			},
+			{
+				Type:  discordgo.ButtonComponent,
+				Style: discordgo.LinkButton,
+				Label: "Privacy Policy",
+				URL:   "https://stablecog.com/privacy",
 			},
 		},
 	}

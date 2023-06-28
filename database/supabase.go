@@ -26,8 +26,15 @@ func NewSupabaseAuth() *SupabaseAuth {
 	return &SupabaseAuth{client: client}
 }
 
-func (s *SupabaseAuth) CreateUser(email string) {
-	s.client.AdminCreateUser(types.AdminCreateUserRequest{})
+func (s *SupabaseAuth) AuthorizeWithDiscord() (authUrl string, err error) {
+	res, err := s.client.Authorize(types.AuthorizeRequest{
+		Provider: "discord",
+	})
+	if err != nil {
+		log.Error("Error authorizing with Discord", "err", err)
+		return "", err
+	}
+	return res.AuthorizationURL, nil
 }
 
 func (s *SupabaseAuth) GetSupabaseUserIdFromAccessToken(accessToken string) (id, email string, lastSignIn *time.Time, err error) {

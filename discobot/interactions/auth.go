@@ -1,12 +1,12 @@
-package commands
+package interactions
 
 import (
 	"github.com/bwmarrin/discordgo"
 	"github.com/stablecog/sc-go/discobot/responses"
 )
 
-func (c *DiscordCommandWrapper) NewAuthenticateCommand() *DiscordCommand {
-	return &DiscordCommand{
+func (c *DiscordInteractionWrapper) NewAuthenticateCommand() *DiscordInteraction {
+	return &DiscordInteraction{
 		// Command spec
 		ApplicationCommand: &discordgo.ApplicationCommand{
 			Name:        "authenticate",
