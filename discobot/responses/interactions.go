@@ -108,6 +108,15 @@ func InteractionEdit(s *discordgo.Session, i *discordgo.InteractionCreate, optio
 	return resp, err
 }
 
+func ErrorResponseInitial(s *discordgo.Session, i *discordgo.InteractionCreate, privacy RESPONSE_PRIVACY) error {
+	return InitialInteractionResponse(s, i, &InteractionResponseOptions{
+		EmbedTitle:   "😔",
+		EmbedContent: "An unknown error occurred. Please try again later.",
+		EmbedFooter:  "If this error persists, please contact the bot owner.",
+		Privacy:      privacy,
+	})
+}
+
 func ErrorResponseEdit(s *discordgo.Session, i *discordgo.InteractionCreate) (*discordgo.Message, error) {
 	return InteractionEdit(s, i, &InteractionResponseOptions{
 		EmbedTitle:   "😔",

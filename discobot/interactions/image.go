@@ -25,21 +25,33 @@ func (c *DiscordInteractionWrapper) NewImageCommand() *DiscordInteraction {
 					Description: "The prompt for the generation.",
 					Required:    true,
 				},
+				{
+					Type:        discordgo.ApplicationCommandOptionInteger,
+					Name:        "num-outputs",
+					Description: "The number of outputs to generate.",
+					Required:    false,
+				},
 			},
 		},
 		// The handler for the command
 		Handler: func(s *discordgo.Session, i *discordgo.InteractionCreate) {
-			if u := c.Disco.CheckAuthorization(s, i, responses.PUBLIC); u != nil {
+			if u := c.Disco.CheckAuthorization(s, i); u != nil {
+				// Always create initial message
+				responses.InitialLoadingResponse(s, i, responses.PUBLIC)
+
 				// Access options in the order provided by the user.
 				options := i.ApplicationCommandData().Options
 
 				// Parse options
 				var prompt string
+				numOutputs := 4
 
 				for _, option := range options {
 					switch option.Name {
 					case "prompt":
 						prompt = option.StringValue()
+					case "num-outputs":
+						numOutputs = int(option.IntValue())
 					}
 				}
 
@@ -54,7 +66,7 @@ func (c *DiscordInteractionWrapper) NewImageCommand() *DiscordInteraction {
 					u,
 					requests.CreateGenerationRequest{
 						Prompt:     prompt,
-						NumOutputs: utils.ToPtr[int32](2),
+						NumOutputs: utils.ToPtr[int32](int32(numOutputs)),
 					},
 				)
 				if err != nil {
