@@ -13,45 +13,12 @@ import (
 	"github.com/stablecog/sc-go/server/discord"
 	"github.com/stablecog/sc-go/server/requests"
 	"github.com/stablecog/sc-go/server/responses"
+	scstripe "github.com/stablecog/sc-go/server/stripe"
 	"github.com/stablecog/sc-go/utils"
 	"github.com/stripe/stripe-go/v74"
 	"github.com/stripe/stripe-go/v74/webhook"
 	"golang.org/x/exp/slices"
 )
-
-// Stripe constants
-// Return new instances every time to avoid any potential thread safety issues
-
-func GetPriceIDs() map[int]string {
-	return map[int]string{
-		// ultimate
-		3: utils.GetEnv("STRIPE_ULTIMATE_PRICE_ID", "price_1Mf591ATa0ehBYTA6ggpEEkA"),
-		// pro
-		2: utils.GetEnv("STRIPE_PRO_PRICE_ID", "price_1Mf50bATa0ehBYTAPOcfnOjG"),
-		// starter
-		1: utils.GetEnv("STRIPE_STARTER_PRICE_ID", "price_1Mf56NATa0ehBYTAHkCUablG"),
-	}
-}
-
-func GetProductIDs() map[int]string {
-	return map[int]string{
-		// ultimate
-		3: utils.GetEnv("STRIPE_ULTIMATE_PRODUCT_ID", "prod_NTzE0C8bEuIv6F"),
-		// pro
-		2: utils.GetEnv("STRIPE_PRO_PRODUCT_ID", "prod_NTzCojAHPw6tbX"),
-		// starter
-		1: utils.GetEnv("STRIPE_STARTER_PRODUCT_ID", "prod_NPuwbni7ZNkHDO"),
-	}
-
-}
-
-func GetSinglePurchasePriceIDs() map[string]string {
-	return map[string]string{
-		utils.GetEnv("STRIPE_LARGE_PACK_PRICE_ID", "1"):  utils.GetEnv("STRIPE_LARGE_PACK_PRODUCT_ID", "1"),
-		utils.GetEnv("STRIPE_MEDIUM_PACK_PRICE_ID", "2"): utils.GetEnv("STRIPE_MEDIUM_PACK_PRODUCT_ID", "2"),
-		utils.GetEnv("STRIPE_MEGA_PACK_PRICE_ID", "3"):   utils.GetEnv("STRIPE_MEGA_PACK_PRODUCT_ID", "3"),
-	}
-}
 
 // For creating customer portal session
 func (c *RestAPI) HandleCreatePortalSession(w http.ResponseWriter, r *http.Request) {
@@ -115,7 +82,7 @@ func (c *RestAPI) HandleCreateCheckoutSession(w http.ResponseWriter, r *http.Req
 	var targetPriceID string
 	var targetPriceLevel int
 	adhocPrice := false
-	for level, priceID := range GetPriceIDs() {
+	for level, priceID := range scstripe.GetPriceIDs() {
 		if priceID == stripeReq.TargetPriceID {
 			targetPriceID = priceID
 			targetPriceLevel = level
@@ -124,7 +91,7 @@ func (c *RestAPI) HandleCreateCheckoutSession(w http.ResponseWriter, r *http.Req
 	}
 	if targetPriceID == "" {
 		// Check if it's a single purchase price
-		for priceID := range GetSinglePurchasePriceIDs() {
+		for priceID := range scstripe.GetSinglePurchasePriceIDs() {
 			if priceID == stripeReq.TargetPriceID {
 				targetPriceID = priceID
 				adhocPrice = true
@@ -168,7 +135,7 @@ func (c *RestAPI) HandleCreateCheckoutSession(w http.ResponseWriter, r *http.Req
 						return
 					}
 					// If price ID is in map it's valid
-					for _, priceID := range GetPriceIDs() {
+					for _, priceID := range scstripe.GetPriceIDs() {
 						if item.Price.ID == priceID {
 							currentPriceID = item.Price.ID
 							break
@@ -189,7 +156,7 @@ func (c *RestAPI) HandleCreateCheckoutSession(w http.ResponseWriter, r *http.Req
 	// If they have a current one, make sure they are upgrading
 	if currentPriceID != "" && !adhocPrice {
 		var currentPriceLevel int
-		for level, priceID := range GetPriceIDs() {
+		for level, priceID := range scstripe.GetPriceIDs() {
 			if priceID == currentPriceID {
 				currentPriceLevel = level
 				break
@@ -223,7 +190,7 @@ func (c *RestAPI) HandleCreateCheckoutSession(w http.ResponseWriter, r *http.Req
 	if adhocPrice {
 		params.PaymentIntentData = &stripe.CheckoutSessionPaymentIntentDataParams{
 			Metadata: map[string]string{
-				"product": GetSinglePurchasePriceIDs()[targetPriceID],
+				"product": scstripe.GetSinglePurchasePriceIDs()[targetPriceID],
 			},
 		}
 	}
@@ -268,7 +235,7 @@ func (c *RestAPI) HandleSubscriptionDowngrade(w http.ResponseWriter, r *http.Req
 	// Make sure price ID exists in map
 	var targetPriceID string
 	var targetPriceLevel int
-	for level, priceID := range GetPriceIDs() {
+	for level, priceID := range scstripe.GetPriceIDs() {
 		if priceID == stripeReq.TargetPriceID {
 			targetPriceID = priceID
 			targetPriceLevel = level
@@ -307,7 +274,7 @@ func (c *RestAPI) HandleSubscriptionDowngrade(w http.ResponseWriter, r *http.Req
 		if sub.Status == stripe.SubscriptionStatusActive && sub.CancelAt == 0 {
 			for _, item := range sub.Items.Data {
 				// If price ID is in map it's valid
-				for _, priceID := range GetPriceIDs() {
+				for _, priceID := range scstripe.GetPriceIDs() {
 					if item.Price.ID == priceID {
 						currentPriceID = item.Price.ID
 						currentSubId = sub.ID
@@ -331,7 +298,7 @@ func (c *RestAPI) HandleSubscriptionDowngrade(w http.ResponseWriter, r *http.Req
 	}
 
 	// Make sure this is a downgrade
-	for level, priceID := range GetPriceIDs() {
+	for level, priceID := range scstripe.GetPriceIDs() {
 		if priceID == currentPriceID {
 			if level <= targetPriceLevel {
 				responses.ErrBadRequest(w, r, "not_lower", "")

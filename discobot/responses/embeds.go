@@ -18,3 +18,14 @@ func NewEmbed(title, description, footer string) *discordgo.MessageEmbed {
 		Footer:      footerEmbed,
 	}
 }
+
+func NewImageEmbed(url string) *discordgo.MessageEmbed {
+	image := &discordgo.MessageEmbedImage{
+		URL: url,
+	}
+	return &discordgo.MessageEmbed{
+		Color: EMBED_PURPLE,
+		Type:  discordgo.EmbedTypeImage,
+		Image: image,
+	}
+}

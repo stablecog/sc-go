@@ -5,19 +5,25 @@ import (
 	"github.com/stablecog/sc-go/database"
 	"github.com/stablecog/sc-go/database/repository"
 	"github.com/stablecog/sc-go/discobot/domain"
+	"github.com/stablecog/sc-go/server/requests"
+	"github.com/stablecog/sc-go/shared"
 )
 
 // Create new wrapper and register interactions
-func NewDiscordInteractionWrapper(repo *repository.Repository, redis *database.RedisWrapper, supabase *database.SupabaseAuth) *DiscordInteractionWrapper {
+func NewDiscordInteractionWrapper(repo *repository.Repository, redis *database.RedisWrapper, supabase *database.SupabaseAuth, sMap *shared.SyncMap[chan requests.CogWebhookMessage], qThrottler *shared.UserQueueThrottlerMap) *DiscordInteractionWrapper {
 	// Create wrapper
 	wrapper := &DiscordInteractionWrapper{
 		Disco:       &domain.DiscoDomain{Repo: repo, Redis: redis, SupabaseAuth: supabase},
 		Repo:        repo,
 		SupabseAuth: supabase,
+		SMap:        sMap,
+		Redis:       redis,
+		QThrottler:  qThrottler,
 	}
 	// Register commands
 	commands := []*DiscordInteraction{
 		wrapper.NewAuthenticateCommand(),
+		wrapper.NewImageCommand(),
 	}
 	// Register component responses
 	components := []*DiscordInteraction{}
@@ -33,6 +39,9 @@ type DiscordInteractionWrapper struct {
 	Disco       *domain.DiscoDomain
 	Repo        *repository.Repository
 	SupabseAuth *database.SupabaseAuth
+	Redis       *database.RedisWrapper
+	SMap        *shared.SyncMap[chan requests.CogWebhookMessage]
+	QThrottler  *shared.UserQueueThrottlerMap
 	Commands    []*DiscordInteraction
 	Components  []*DiscordInteraction
 }

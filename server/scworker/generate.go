@@ -1,20 +1,16 @@
-package rest
+package scworker
 
 import (
+	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
-	"io"
 	"math"
 	"net/http"
-	"os"
-	"strings"
 	"time"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/awserr"
-	"github.com/aws/aws-sdk-go/service/s3"
-	"github.com/go-chi/render"
 	"github.com/google/uuid"
+	"github.com/stablecog/sc-go/database"
 	"github.com/stablecog/sc-go/database/ent"
 	"github.com/stablecog/sc-go/database/ent/upscale"
 	"github.com/stablecog/sc-go/database/repository"
@@ -27,36 +23,39 @@ import (
 	"golang.org/x/exp/slices"
 )
 
-// POST generate endpoint
-// Handles creating a generation with API token
-func (c *RestAPI) HandleCreateGenerationToken(w http.ResponseWriter, r *http.Request) {
-	var user *ent.User
-	if user = c.GetUserIfAuthenticated(w, r); user == nil {
-		return
-	}
-	var apiToken *ent.ApiToken
-	if apiToken = c.GetApiToken(w, r); apiToken == nil {
-		return
-	}
+type GenerateError struct {
+	StatusCode int
 
+	Err error
+}
+
+func (r *GenerateError) Error() string {
+	return fmt.Sprintf("status %d: err %v", r.StatusCode, r.Err)
+}
+
+func CreateGeneration(ctx context.Context,
+	repo *repository.Repository,
+	redis *database.RedisWrapper,
+	SMap *shared.SyncMap[chan requests.CogWebhookMessage],
+	qThrottler *shared.UserQueueThrottlerMap,
+	user *ent.User,
+	generateReq requests.CreateGenerationRequest) (*responses.ApiSucceededResponse, error) {
 	free := user.ActiveProductID == nil
 	if free {
 		// Re-evaluate if they have paid credits
-		count, err := c.Repo.HasPaidCredits(user.ID)
+		count, err := repo.HasPaidCredits(user.ID)
 		if err != nil {
 			log.Error("Error getting paid credit sum for users", "err", err)
-			responses.ErrInternalServerError(w, r, "An unknown error has occurred")
-			return
+			return nil, err
 		}
 		free = count <= 0
 	}
 
 	var qMax int
-	roles, err := c.Repo.GetRoles(user.ID)
+	roles, err := repo.GetRoles(user.ID)
 	if err != nil {
 		log.Error("Error getting roles for user", "err", err)
-		responses.ErrInternalServerError(w, r, "An unknown error has occurred")
-		return
+		return nil, &GenerateError{http.StatusInternalServerError, err}
 	}
 	isSuperAdmin := slices.Contains(roles, "SUPER_ADMIN")
 	if isSuperAdmin {
@@ -106,30 +105,14 @@ func (c *RestAPI) HandleCreateGenerationToken(w http.ResponseWriter, r *http.Req
 		}
 	}
 
-	// Parse request body
-	reqBody, _ := io.ReadAll(r.Body)
-	var generateReq requests.CreateGenerationRequest
-	err = json.Unmarshal(reqBody, &generateReq)
-	if err != nil {
-		responses.ErrUnableToParseJson(w, r)
-		return
-	}
-
 	if user.BannedAt != nil {
-		remainingCredits, _ := c.Repo.GetNonExpiredCreditTotalForUser(user.ID, nil)
-		render.Status(r, http.StatusOK)
-		render.JSON(w, r, &responses.TaskQueuedResponse{
-			ID:               uuid.NewString(),
-			RemainingCredits: remainingCredits,
-		})
-		return
+		return nil, &GenerateError{http.StatusForbidden, fmt.Errorf("user_banned")}
 	}
 
 	// Validation
 	err = generateReq.Validate(true)
 	if err != nil {
-		responses.ErrBadRequest(w, r, err.Error(), "")
-		return
+		return nil, &GenerateError{http.StatusBadRequest, err}
 	}
 
 	// Set settings resp
@@ -149,90 +132,87 @@ func (c *RestAPI) HandleCreateGenerationToken(w http.ResponseWriter, r *http.Req
 	// The URL we send worker
 	var signedInitImageUrl string
 	// See if init image specified, validate it belongs to user, validate it exists in bucket
-	if generateReq.InitImageUrl != "" {
-		if utils.IsValidHTTPURL(generateReq.InitImageUrl) {
-			// Custom image, do some validation on size, format, etc.
-			_, _, err = utils.GetImageWidthHeightFromUrl(generateReq.InitImageUrl, shared.MAX_GENERATE_IMAGE_SIZE)
-			if err != nil {
-				responses.ErrBadRequest(w, r, "image_url_width_height_error", "")
-				return
-			}
-			signedInitImageUrl = generateReq.InitImageUrl
-		} else {
-			// Remove s3 prefix
-			signedInitImageUrl = strings.TrimPrefix(generateReq.InitImageUrl, "s3://")
-			// Hash user ID to see if it belongs to this user
-			uidHash := utils.Sha256(user.ID.String())
-			if !strings.HasPrefix(signedInitImageUrl, fmt.Sprintf("%s/", uidHash)) {
-				responses.ErrUnauthorized(w, r)
-				return
-			}
-			// Verify exists in bucket
-			_, err := c.S3.HeadObject(&s3.HeadObjectInput{
-				Bucket: aws.String(os.Getenv("S3_IMG2IMG_BUCKET_NAME")),
-				Key:    aws.String(signedInitImageUrl),
-			})
-			if err != nil {
-				if aerr, ok := err.(awserr.Error); ok {
-					switch aerr.Code() {
-					case "NotFound": // s3.ErrCodeNoSuchKey does not work, aws is missing this error code so we hardwire a string
-						responses.ErrBadRequest(w, r, "init_image_not_found", "")
-						return
-					default:
-						log.Error("Error checking if init image exists in bucket", "err", err)
-						responses.ErrInternalServerError(w, r, "An unknown error has occured")
-						return
-					}
-				}
-				responses.ErrBadRequest(w, r, "init_image_not_found", "")
-				return
-			}
-			// Sign object URL to pass to worker
-			req, _ := c.S3.GetObjectRequest(&s3.GetObjectInput{
-				Bucket: aws.String(os.Getenv("S3_IMG2IMG_BUCKET_NAME")),
-				Key:    aws.String(signedInitImageUrl),
-			})
-			urlStr, err := req.Presign(5 * time.Minute)
-			if err != nil {
-				log.Error("Error signing init image URL", "err", err)
-				responses.ErrInternalServerError(w, r, "An unknown error has occured")
-				return
-			}
-			signedInitImageUrl = urlStr
-		}
-	}
+	// if generateReq.InitImageUrl != "" {
+	// 	if utils.IsValidHTTPURL(generateReq.InitImageUrl) {
+	// 		// Custom image, do some validation on size, format, etc.
+	// 		_, _, err = utils.GetImageWidthHeightFromUrl(generateReq.InitImageUrl, shared.MAX_GENERATE_IMAGE_SIZE)
+	// 		if err != nil {
+	// 			return &GenerateError{http.StatusBadRequest, fmt.Errorf("image_url_width_height_error")}
+	// 		}
+	// 		signedInitImageUrl = generateReq.InitImageUrl
+	// 	} else {
+	// 		// Remove s3 prefix
+	// 		signedInitImageUrl = strings.TrimPrefix(generateReq.InitImageUrl, "s3://")
+	// 		// Hash user ID to see if it belongs to this user
+	// 		uidHash := utils.Sha256(user.ID.String())
+	// 		if !strings.HasPrefix(signedInitImageUrl, fmt.Sprintf("%s/", uidHash)) {
+	// 			return &GenerateError{http.StatusUnauthorized, fmt.Errorf("init_image_not_owned")}
+	// 		}
+	// 		// Verify exists in bucket
+	// 		_, err := c.S3.HeadObject(&s3.HeadObjectInput{
+	// 			Bucket: aws.String(os.Getenv("S3_IMG2IMG_BUCKET_NAME")),
+	// 			Key:    aws.String(signedInitImageUrl),
+	// 		})
+	// 		if err != nil {
+	// 			if aerr, ok := err.(awserr.Error); ok {
+	// 				switch aerr.Code() {
+	// 				case "NotFound": // s3.ErrCodeNoSuchKey does not work, aws is missing this error code so we hardwire a string
+	// 					responses.ErrBadRequest(w, r, "init_image_not_found", "")
+	// 					return
+	// 				default:
+	// 					log.Error("Error checking if init image exists in bucket", "err", err)
+	// 					responses.ErrInternalServerError(w, r, "An unknown error has occured")
+	// 					return
+	// 				}
+	// 			}
+	// 			responses.ErrBadRequest(w, r, "init_image_not_found", "")
+	// 			return
+	// 		}
+	// 		// Sign object URL to pass to worker
+	// 		req, _ := c.S3.GetObjectRequest(&s3.GetObjectInput{
+	// 			Bucket: aws.String(os.Getenv("S3_IMG2IMG_BUCKET_NAME")),
+	// 			Key:    aws.String(signedInitImageUrl),
+	// 		})
+	// 		urlStr, err := req.Presign(5 * time.Minute)
+	// 		if err != nil {
+	// 			log.Error("Error signing init image URL", "err", err)
+	// 			responses.ErrInternalServerError(w, r, "An unknown error has occured")
+	// 			return
+	// 		}
+	// 		signedInitImageUrl = urlStr
+	// 	}
+	// }
 
 	// Get queue count
-	nq, err := c.QueueThrottler.NumQueued(fmt.Sprintf("g:%s", user.ID.String()))
+	nq, err := qThrottler.NumQueued(fmt.Sprintf("g:%s", user.ID.String()))
 	if err != nil {
 		log.Warn("Error getting queue count", "err", err, "user_id", user.ID.String())
 	}
 	if err == nil && nq > qMax {
 		// Get queue overflow size
-		overflowSize, err := c.QueueThrottler.NumQueued(fmt.Sprintf("of:%s", user.ID.String()))
+		overflowSize, err := qThrottler.NumQueued(fmt.Sprintf("of:%s", user.ID.String()))
 		if err != nil {
 			log.Warn("Error getting queue overflow count", "err", err, "user_id", user.ID.String())
 		}
 		// If overflow size is greater than max, return error
 		if overflowSize > shared.QUEUE_OVERFLOW_MAX {
-			responses.ErrBadRequest(w, r, "queue_limit_reached", "")
-			return
+			return nil, &GenerateError{http.StatusBadRequest, fmt.Errorf("queue_limit_reached")}
 		}
 		// Overflow size can be 0 so we need to add 1
 		overflowSize++
-		c.QueueThrottler.IncrementBy(1, fmt.Sprintf("of:%s", user.ID.String()))
+		qThrottler.IncrementBy(1, fmt.Sprintf("of:%s", user.ID.String()))
 		for {
 			time.Sleep(time.Duration(shared.QUEUE_OVERFLOW_PENALTY_MS*overflowSize) * time.Millisecond)
-			nq, err = c.QueueThrottler.NumQueued(fmt.Sprintf("g:%s", user.ID.String()))
+			nq, err = qThrottler.NumQueued(fmt.Sprintf("g:%s", user.ID.String()))
 			if err != nil {
 				log.Warn("Error getting queue count", "err", err, "user_id", user.ID.String())
 			}
 			if err == nil && nq <= qMax {
-				c.QueueThrottler.DecrementBy(1, fmt.Sprintf("of:%s", user.ID.String()))
+				qThrottler.DecrementBy(1, fmt.Sprintf("of:%s", user.ID.String()))
 				break
 			}
 			// Update overflow size
-			overflowSize, err = c.QueueThrottler.NumQueued(fmt.Sprintf("of:%s", user.ID.String()))
+			overflowSize, err = qThrottler.NumQueued(fmt.Sprintf("of:%s", user.ID.String()))
 			if err != nil {
 				log.Warn("Error getting queue overflow count", "err", err, "user_id", user.ID.String())
 			}
@@ -246,16 +226,16 @@ func (c *RestAPI) HandleCreateGenerationToken(w http.ResponseWriter, r *http.Req
 	}
 
 	// Parse request headers
-	countryCode := utils.GetCountryCode(r)
-	deviceInfo := utils.GetClientDeviceInfo(r)
+	// ! TODO - add country code and device info
+	// countryCode := utils.GetCountryCode(r)
+	// deviceInfo := utils.GetClientDeviceInfo(r)
 
 	// Get model and scheduler name for cog
 	modelName := shared.GetCache().GetGenerationModelNameFromID(*generateReq.ModelId)
 	schedulerName := shared.GetCache().GetSchedulerNameFromID(*generateReq.SchedulerId)
 	if modelName == "" || schedulerName == "" {
 		log.Error("Error getting model or scheduler name: %s - %s", modelName, schedulerName)
-		responses.ErrInternalServerError(w, r, "An unknown error has occured")
-		return
+		return nil, &GenerateError{http.StatusBadRequest, fmt.Errorf("invalid_model_or_scheduler")}
 	}
 
 	// Format prompts
@@ -280,41 +260,37 @@ func (c *RestAPI) HandleCreateGenerationToken(w http.ResponseWriter, r *http.Req
 
 	// Wrap everything in a DB transaction
 	// We do this since we want our credit deduction to be atomic with the whole process
-	if err := c.Repo.WithTx(func(tx *ent.Tx) error {
+	if err := repo.WithTx(func(tx *ent.Tx) error {
 		// Bind a client to the transaction
 		DB := tx.Client()
 		// Deduct credits from user
-		deducted, err := c.Repo.DeductCreditsFromUser(user.ID, *generateReq.NumOutputs, DB)
+		deducted, err := repo.DeductCreditsFromUser(user.ID, *generateReq.NumOutputs, DB)
 		if err != nil {
 			log.Error("Error deducting credits", "err", err)
-			responses.ErrInternalServerError(w, r, "Error deducting credits from user")
 			return err
 		} else if !deducted {
-			responses.ErrInsufficientCredits(w, r)
 			return responses.InsufficientCreditsErr
 		}
 
-		remainingCredits, err = c.Repo.GetNonExpiredCreditTotalForUser(user.ID, DB)
+		remainingCredits, err = repo.GetNonExpiredCreditTotalForUser(user.ID, DB)
 		if err != nil {
 			log.Error("Error getting remaining credits", "err", err)
-			responses.ErrInternalServerError(w, r, "An unknown error has occured")
 			return err
 		}
 
 		// Create generation
-		g, err := c.Repo.CreateGeneration(
+		g, err := repo.CreateGeneration(
 			user.ID,
-			string(deviceInfo.DeviceType),
-			deviceInfo.DeviceOs,
-			deviceInfo.DeviceBrowser,
-			countryCode,
+			"unknown",
+			"Linux",
+			"Discord",
+			"US",
 			generateReq,
 			user.ActiveProductID,
-			&apiToken.ID,
+			nil,
 			DB)
 		if err != nil {
 			log.Error("Error creating generation", "err", err)
-			responses.ErrInternalServerError(w, r, "Error creating generation")
 			return err
 		}
 
@@ -325,7 +301,7 @@ func (c *RestAPI) HandleCreateGenerationToken(w http.ResponseWriter, r *http.Req
 		livePageMsg = shared.LivePageMessage{
 			ProcessType:      shared.GENERATE,
 			ID:               utils.Sha256(requestId.String()),
-			CountryCode:      countryCode,
+			CountryCode:      "US",
 			Status:           shared.LivePageQueued,
 			TargetNumOutputs: *generateReq.NumOutputs,
 			Width:            generateReq.Width,
@@ -339,11 +315,15 @@ func (c *RestAPI) HandleCreateGenerationToken(w http.ResponseWriter, r *http.Req
 			WebhookEventsFilter: []requests.CogEventFilter{requests.CogEventFilterStart, requests.CogEventFilterStart},
 			WebhookUrl:          fmt.Sprintf("%s/v1/worker/webhook", utils.GetEnv("PUBLIC_API_URL", "")),
 			Input: requests.BaseCogRequest{
-				APIRequest:           true,
-				ID:                   requestId,
-				IP:                   utils.GetIPAddress(r),
-				UserID:               &user.ID,
-				DeviceInfo:           deviceInfo,
+				APIRequest: true,
+				ID:         requestId,
+				IP:         "internal",
+				UserID:     &user.ID,
+				DeviceInfo: utils.ClientDeviceInfo{
+					DeviceType:    utils.Bot,
+					DeviceOs:      "Linux",
+					DeviceBrowser: "Discord",
+				},
 				LivePageData:         &livePageMsg,
 				Prompt:               generateReq.Prompt,
 				NegativePrompt:       generateReq.NegativePrompt,
@@ -370,24 +350,24 @@ func (c *RestAPI) HandleCreateGenerationToken(w http.ResponseWriter, r *http.Req
 			cogReqBody.Input.InitImageUrlS3 = generateReq.InitImageUrl
 		}
 
-		err = c.Redis.EnqueueCogRequest(r.Context(), shared.COG_REDIS_QUEUE, cogReqBody)
+		err = redis.EnqueueCogRequest(ctx, shared.COG_REDIS_QUEUE, cogReqBody)
 		if err != nil {
 			log.Error("Failed to write request %s to queue: %v", requestId, err)
-			responses.ErrInternalServerError(w, r, "Failed to queue generate request")
 			return err
 		}
 
-		c.QueueThrottler.IncrementBy(1, fmt.Sprintf("g:%s", user.ID.String()))
+		qThrottler.IncrementBy(1, fmt.Sprintf("g:%s", user.ID.String()))
 		return nil
 	}); err != nil {
 		log.Error("Error in transaction", "err", err)
-		return
+		// ! TODO fine grain error handling
+		return nil, &GenerateError{http.StatusInternalServerError, err}
 	}
 
 	// Add channel to sync array (basically a thread-safe map)
-	c.SMap.Put(requestId.String(), activeChl)
-	defer c.SMap.Delete(requestId.String())
-	defer c.QueueThrottler.DecrementBy(1, fmt.Sprintf("g:%s", user.ID.String()))
+	SMap.Put(requestId.String(), activeChl)
+	defer SMap.Delete(requestId.String())
+	defer qThrottler.DecrementBy(1, fmt.Sprintf("g:%s", user.ID.String()))
 
 	// Send live page update
 	go func() {
@@ -400,14 +380,15 @@ func (c *RestAPI) HandleCreateGenerationToken(w http.ResponseWriter, r *http.Req
 			log.Error("Error marshalling sse live response", "err", err)
 			return
 		}
-		err = c.Redis.Client.Publish(c.Redis.Ctx, shared.REDIS_SSE_BROADCAST_CHANNEL, respBytes).Err()
+		err = redis.Client.Publish(redis.Ctx, shared.REDIS_SSE_BROADCAST_CHANNEL, respBytes).Err()
 		if err != nil {
 			log.Error("Failed to publish live page update", "err", err)
 		}
 	}()
 
 	// Analytics
-	go c.Track.GenerationStarted(user, cogReqBody.Input, utils.GetIPAddress(r))
+	// ! TODO
+	//go c.Track.GenerationStarted(user, cogReqBody.Input, utils.GetIPAddress(r))
 
 	// Wait for result
 	for {
@@ -415,11 +396,10 @@ func (c *RestAPI) HandleCreateGenerationToken(w http.ResponseWriter, r *http.Req
 		case cogMsg := <-activeChl:
 			switch cogMsg.Status {
 			case requests.CogProcessing:
-				err := c.Repo.SetGenerationStarted(requestId.String())
+				err := repo.SetGenerationStarted(requestId.String())
 				if err != nil {
 					log.Error("Failed to set generate started", "id", requestId, "err", err)
-					responses.ErrInternalServerError(w, r, "An unknown error occurred")
-					return
+					return nil, &GenerateError{http.StatusInternalServerError, err}
 				}
 				// Send live page update
 				go func() {
@@ -435,17 +415,16 @@ func (c *RestAPI) HandleCreateGenerationToken(w http.ResponseWriter, r *http.Req
 						log.Error("Error marshalling sse live response", "err", err)
 						return
 					}
-					err = c.Redis.Client.Publish(c.Redis.Ctx, shared.REDIS_SSE_BROADCAST_CHANNEL, respBytes).Err()
+					err = redis.Client.Publish(redis.Ctx, shared.REDIS_SSE_BROADCAST_CHANNEL, respBytes).Err()
 					if err != nil {
 						log.Error("Failed to publish live page update", "err", err)
 					}
 				}()
 			case requests.CogSucceeded:
-				outputs, err := c.Repo.SetGenerationSucceeded(requestId.String(), generateReq.Prompt, generateReq.NegativePrompt, cogMsg.Output, cogMsg.NSFWCount)
+				outputs, err := repo.SetGenerationSucceeded(requestId.String(), generateReq.Prompt, generateReq.NegativePrompt, cogMsg.Output, cogMsg.NSFWCount)
 				if err != nil {
 					log.Error("Failed to set generation succeeded", "id", upscale.ID, "err", err)
-					responses.ErrInternalServerError(w, r, "An unknown error occurred")
-					return
+					return nil, &GenerateError{http.StatusInternalServerError, err}
 				}
 				// Send live page update
 				go func() {
@@ -462,13 +441,13 @@ func (c *RestAPI) HandleCreateGenerationToken(w http.ResponseWriter, r *http.Req
 						log.Error("Error marshalling sse live response", "err", err)
 						return
 					}
-					err = c.Redis.Client.Publish(c.Redis.Ctx, shared.REDIS_SSE_BROADCAST_CHANNEL, respBytes).Err()
+					err = redis.Client.Publish(redis.Ctx, shared.REDIS_SSE_BROADCAST_CHANNEL, respBytes).Err()
 					if err != nil {
 						log.Error("Failed to publish live page update", "err", err)
 					}
 				}()
 				// Analytics
-				generation, err := c.Repo.GetGeneration(requestId)
+				generation, err := repo.GetGeneration(requestId)
 				if err != nil {
 					log.Error("Error getting generation for analytics", "err", err)
 				}
@@ -476,9 +455,10 @@ func (c *RestAPI) HandleCreateGenerationToken(w http.ResponseWriter, r *http.Req
 				if generation.StartedAt == nil {
 					log.Error("Generation started at is nil", "id", cogMsg.Input.ID)
 				}
-				duration := time.Now().Sub(*generation.StartedAt).Seconds()
-				qDuration := (*generation.StartedAt).Sub(generation.CreatedAt).Seconds()
-				go c.Track.GenerationSucceeded(user, cogMsg.Input, duration, qDuration, utils.GetIPAddress(r))
+				// ! TODO
+				//duration := time.Now().Sub(*generation.StartedAt).Seconds()
+				//qDuration := (*generation.StartedAt).Sub(generation.CreatedAt).Seconds()
+				//go c.Track.GenerationSucceeded(user, cogMsg.Input, duration, qDuration, utils.GetIPAddress(r))
 
 				// Format response
 				resOutputs := make([]responses.ApiOutput, len(outputs))
@@ -491,25 +471,22 @@ func (c *RestAPI) HandleCreateGenerationToken(w http.ResponseWriter, r *http.Req
 				}
 
 				// Set token used
-				err = c.Repo.SetTokenUsedAndIncrementCreditsSpent(int(*generateReq.NumOutputs), *generation.APITokenID)
+				err = repo.SetTokenUsedAndIncrementCreditsSpent(int(*generateReq.NumOutputs), *generation.APITokenID)
 				if err != nil {
 					log.Error("Failed to set token used", "err", err)
 				}
 
-				render.Status(r, http.StatusOK)
-				render.JSON(w, r, responses.ApiSucceededResponse{
+				return &responses.ApiSucceededResponse{
 					Outputs:          resOutputs,
 					RemainingCredits: remainingCredits,
 					Settings:         initSettings,
-				})
-				return
+				}, nil
 			case requests.CogFailed:
-				if err := c.Repo.WithTx(func(tx *ent.Tx) error {
+				if err := repo.WithTx(func(tx *ent.Tx) error {
 					DB := tx.Client()
-					err := c.Repo.SetGenerationFailed(requestId.String(), cogMsg.Error, cogMsg.NSFWCount, DB)
+					err := repo.SetGenerationFailed(requestId.String(), cogMsg.Error, cogMsg.NSFWCount, DB)
 					if err != nil {
 						log.Error("Failed to set generation failed", "id", upscale.ID, "err", err)
-						responses.ErrInternalServerError(w, r, "An unknown error occurred")
 						return err
 					}
 					// Send live page update
@@ -526,16 +503,16 @@ func (c *RestAPI) HandleCreateGenerationToken(w http.ResponseWriter, r *http.Req
 							log.Error("Error marshalling sse live response", "err", err)
 							return
 						}
-						err = c.Redis.Client.Publish(c.Redis.Ctx, shared.REDIS_SSE_BROADCAST_CHANNEL, respBytes).Err()
+						err = redis.Client.Publish(redis.Ctx, shared.REDIS_SSE_BROADCAST_CHANNEL, respBytes).Err()
 						if err != nil {
 							log.Error("Failed to publish live page update", "err", err)
 						}
 					}()
-					// Analytics
-					duration := time.Now().Sub(cogMsg.Input.LivePageData.CreatedAt).Seconds()
-					go c.Track.GenerationFailed(user, cogMsg.Input, duration, cogMsg.Error, utils.GetIPAddress(r))
+					// ! TODO Analytics
+					// duration := time.Now().Sub(cogMsg.Input.LivePageData.CreatedAt).Seconds()
+					// go c.Track.GenerationFailed(user, cogMsg.Input, duration, cogMsg.Error, utils.GetIPAddress(r))
 					// Refund credits
-					_, err = c.Repo.RefundCreditsToUser(user.ID, *generateReq.NumOutputs, DB)
+					_, err = repo.RefundCreditsToUser(user.ID, *generateReq.NumOutputs, DB)
 					if err != nil {
 						log.Error("Failed to refund credits", "err", err)
 						return err
@@ -543,26 +520,26 @@ func (c *RestAPI) HandleCreateGenerationToken(w http.ResponseWriter, r *http.Req
 					return nil
 				}); err != nil {
 					log.Error("Failed to set generation failed", "id", requestId, "err", err)
-					responses.ErrInternalServerError(w, r, "An unknown error occurred")
-					return
+					return nil, &GenerateError{http.StatusInternalServerError, err}
 				}
 
-				render.Status(r, http.StatusInternalServerError)
-				render.JSON(w, r, responses.ApiFailedResponse{
-					Error:    cogMsg.Error,
-					Settings: initSettings,
-				})
-				return
+				// ! TODO
+				// render.Status(r, http.StatusInternalServerError)
+				// render.JSON(w, r, responses.ApiFailedResponse{
+				// 	Error:    cogMsg.Error,
+				// 	Settings: initSettings,
+				// })
+				return nil, &GenerateError{http.StatusInternalServerError, errors.New(cogMsg.Error)}
 			}
 		case <-time.After(shared.REQUEST_COG_TIMEOUT):
-			if err := c.Repo.WithTx(func(tx *ent.Tx) error {
+			if err := repo.WithTx(func(tx *ent.Tx) error {
 				DB := tx.Client()
-				err := c.Repo.SetGenerationFailed(requestId.String(), shared.TIMEOUT_ERROR, 0, DB)
+				err := repo.SetGenerationFailed(requestId.String(), shared.TIMEOUT_ERROR, 0, DB)
 				if err != nil {
 					log.Error("Failed to set generation failed", "id", upscale.ID, "err", err)
 				}
 				// Refund credits
-				_, err = c.Repo.RefundCreditsToUser(user.ID, *generateReq.NumOutputs, DB)
+				_, err = repo.RefundCreditsToUser(user.ID, *generateReq.NumOutputs, DB)
 				if err != nil {
 					log.Error("Failed to refund credits", "err", err)
 					return err
@@ -570,16 +547,10 @@ func (c *RestAPI) HandleCreateGenerationToken(w http.ResponseWriter, r *http.Req
 				return nil
 			}); err != nil {
 				log.Error("Failed to set generation failed", "id", requestId, "err", err)
-				responses.ErrInternalServerError(w, r, "An unknown error occurred")
-				return
+				return nil, &GenerateError{http.StatusInternalServerError, err}
 			}
 
-			render.Status(r, http.StatusInternalServerError)
-			render.JSON(w, r, responses.ApiFailedResponse{
-				Error:    shared.TIMEOUT_ERROR,
-				Settings: initSettings,
-			})
-			return
+			return nil, &GenerateError{http.StatusInternalServerError, errors.New(shared.TIMEOUT_ERROR)}
 		}
 	}
 }

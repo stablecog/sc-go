@@ -4,13 +4,17 @@ import (
 	"context"
 	"os"
 	"os/signal"
+	"time"
 
 	"github.com/bwmarrin/discordgo"
+	"github.com/go-co-op/gocron"
 	"github.com/joho/godotenv"
 	"github.com/stablecog/sc-go/database"
 	"github.com/stablecog/sc-go/database/repository"
 	"github.com/stablecog/sc-go/discobot/interactions"
 	"github.com/stablecog/sc-go/log"
+	"github.com/stablecog/sc-go/server/requests"
+	"github.com/stablecog/sc-go/shared"
 	"github.com/stablecog/sc-go/utils"
 )
 
@@ -75,8 +79,31 @@ func main() {
 		Ctx:      ctx,
 	}
 
+	// Sync map for tracking requests
+	sMap := shared.NewSyncMap[chan requests.CogWebhookMessage]()
+
+	// Q Throttler
+	qThrottler := shared.NewQueueThrottler(ctx, redis.Client, shared.REQUEST_COG_TIMEOUT)
+
+	// Get models, schedulers and put in cache
+	log.Info("📦 Populating cache...")
+	err = repo.UpdateCache()
+	if err != nil {
+		// ! Not getting these is fatal and will result in crash
+		panic(err)
+	}
+	// Update periodically
+	cronSscheduler := gocron.NewScheduler(time.UTC)
+	cronSscheduler.Every(5).Minutes().StartAt(time.Now().Add(5 * time.Minute)).Do(func() {
+		log.Info("📦 Updating cache...")
+		err = repo.UpdateCache()
+		if err != nil {
+			log.Error("Error updating cache", "err", err)
+		}
+	})
+
 	// Setup interactions
-	cmdWrapper := interactions.NewDiscordInteractionWrapper(repo, redis, database.NewSupabaseAuth())
+	cmdWrapper := interactions.NewDiscordInteractionWrapper(repo, redis, database.NewSupabaseAuth(), sMap, qThrottler)
 
 	s.AddHandler(func(s *discordgo.Session, r *discordgo.Ready) {
 		log.Infof("Logged in as: %v#%v", s.State.User.Username, s.State.User.Discriminator)

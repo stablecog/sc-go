@@ -16,6 +16,7 @@ import (
 	"github.com/stablecog/sc-go/log"
 	"github.com/stablecog/sc-go/server/requests"
 	"github.com/stablecog/sc-go/server/responses"
+	"github.com/stablecog/sc-go/server/stripe"
 	"github.com/stablecog/sc-go/shared"
 	"github.com/stablecog/sc-go/utils"
 	"golang.org/x/exp/slices"
@@ -61,13 +62,13 @@ func (c *RestAPI) HandleCreateUpscaleToken(w http.ResponseWriter, r *http.Reques
 	if !isSuperAdmin && user.ActiveProductID != nil {
 		switch *user.ActiveProductID {
 		// Starter
-		case GetProductIDs()[1]:
+		case stripe.GetProductIDs()[1]:
 			qMax = shared.MAX_QUEUED_ITEMS_STARTER
 			// Pro
-		case GetProductIDs()[2]:
+		case stripe.GetProductIDs()[2]:
 			qMax = shared.MAX_QUEUED_ITEMS_PRO
 		// Ultimate
-		case GetProductIDs()[3]:
+		case stripe.GetProductIDs()[3]:
 			qMax = shared.MAX_QUEUED_ITEMS_ULTIMATE
 		default:
 			log.Warn("Unknown product ID", "product_id", *user.ActiveProductID)
