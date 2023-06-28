@@ -11,6 +11,7 @@ import (
 	"github.com/go-co-op/gocron"
 	"github.com/joho/godotenv"
 	"github.com/stablecog/sc-go/database"
+	"github.com/stablecog/sc-go/database/qdrant"
 	"github.com/stablecog/sc-go/database/repository"
 	"github.com/stablecog/sc-go/discobot/interactions"
 	"github.com/stablecog/sc-go/log"
@@ -72,10 +73,18 @@ func main() {
 		}
 	}
 
+	// Setup qdrant
+	qdrantClient, err := qdrant.NewQdrantClient(ctx)
+	if err != nil {
+		log.Fatal("Error connecting to qdrant", "err", err)
+		os.Exit(1)
+	}
+
 	// Create repository (database access)
 	repo := &repository.Repository{
 		DB:       entClient,
 		ConnInfo: dbconn,
+		Qdrant:   qdrantClient,
 		Redis:    redis,
 		Ctx:      ctx,
 	}

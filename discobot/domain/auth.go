@@ -16,14 +16,16 @@ import (
 var ErrNotAuthorized = errors.New("not authorized")
 
 // Shared auth wrapper, returns nil if unauthorized
-func (d *DiscoDomain) CheckAuthorization(s *discordgo.Session, i *discordgo.InteractionCreate) *ent.User {
+func (d *DiscoDomain) CheckAuthorization(s *discordgo.Session, i *discordgo.InteractionCreate, privacy responses.RESPONSE_PRIVACY) *ent.User {
 	if i.Member == nil {
 		return nil
 	}
+	// Always create an initial message
+	responses.InitialLoadingResponse(s, i, privacy)
 	u, err := d.Repo.GetUserByDiscordID(i.Member.User.ID)
 	if err != nil && !ent.IsNotFound(err) {
 		log.Errorf("Failed to get user by discord ID %v", err)
-		responses.UnknownErrorPrivateInteractionResponse(s, i)
+		responses.ErrorResponseEdit(s, i)
 		return nil
 	}
 	if err != nil && ent.IsNotFound(err) {
@@ -31,25 +33,26 @@ func (d *DiscoDomain) CheckAuthorization(s *discordgo.Session, i *discordgo.Inte
 		token, err := d.Redis.SetDiscordVerifyToken(i.Member.User.ID)
 		if err != nil {
 			log.Errorf("Failed to set discord verify token in redis %v", err)
-			responses.UnknownErrorPrivateInteractionResponse(s, i)
+			responses.ErrorResponseEdit(s, i)
 			return nil
 		}
 
 		urlComponent, err := components.AuthComponent("Sign in", fmt.Sprintf("https://stablecog.com/discord?token=%s&discord_id=%s", token, i.Member.User.ID))
 		if err != nil {
 			log.Errorf("Failed to create URL component %v", err)
-			responses.UnknownErrorPrivateInteractionResponse(s, i)
+			responses.ErrorResponseEdit(s, i)
 			return nil
 		}
 		// Get duration as minutes
-		responses.PrivateInteractionResponseWithComponents(s,
+		responses.InteractionEdit(s,
 			i,
-			"🔐 Authentication Required",
-			"You must sign in to stablecog before you can use this command.\n\n",
-			"By signing in you agree to our Terms of Service and Privacy Policy.",
-			[]discordgo.MessageComponent{
-				urlComponent,
-			})
+			&responses.InteractionResponseOptions{
+				EmbedTitle:   "🔐 Authentication Required",
+				EmbedContent: "You must sign in to stablecog before you can use this command.\n\n",
+				EmbedFooter:  "By signing in you agree to our Terms of Service and Privacy Policy.",
+				Components:   []discordgo.MessageComponent{urlComponent},
+			},
+		)
 		// Delete message when link expires
 		time.AfterFunc(shared.DISCORD_VERIFY_TOKEN_EXPIRY, func() {
 			s.InteractionResponseDelete(i.Interaction)

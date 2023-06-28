@@ -2,6 +2,7 @@ package interactions
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/bwmarrin/discordgo"
 	"github.com/stablecog/sc-go/discobot/responses"
@@ -28,16 +29,22 @@ func (c *DiscordInteractionWrapper) NewImageCommand() *DiscordInteraction {
 		},
 		// The handler for the command
 		Handler: func(s *discordgo.Session, i *discordgo.InteractionCreate) {
-			if u := c.Disco.CheckAuthorization(s, i); u != nil {
+			if u := c.Disco.CheckAuthorization(s, i, responses.PUBLIC); u != nil {
 				// Access options in the order provided by the user.
 				options := i.ApplicationCommandData().Options
 
-				// Prompt
-				prompt := options[0].StringValue()
+				// Parse options
+				var prompt string
+
+				for _, option := range options {
+					switch option.Name {
+					case "prompt":
+						prompt = option.StringValue()
+					}
+				}
+
+				// Create context
 				ctx := context.Background()
-				// Generate the image
-				log.Infof("Generating image for %s", u.ID)
-				responses.PublicInteractionResponse(s, i, "Please wait", "Please wait...", "")
 				res, err := scworker.CreateGeneration(
 					ctx,
 					c.Repo,
@@ -47,16 +54,30 @@ func (c *DiscordInteractionWrapper) NewImageCommand() *DiscordInteraction {
 					u,
 					requests.CreateGenerationRequest{
 						Prompt:     prompt,
-						NumOutputs: utils.ToPtr[int32](1),
+						NumOutputs: utils.ToPtr[int32](2),
 					},
 				)
 				if err != nil {
-					responses.PrivateInteractionResponse(s, i, "👍", "Your Discord account is already authenticated with Stablecog.", "")
+					log.Errorf("Error creating generation: %v", err)
+					responses.ErrorResponseEdit(s, i)
 					return
 				}
 
+				var imageUrls []string
+				for _, output := range res.Outputs {
+					if output.ImageURL != nil {
+						imageUrls = append(imageUrls, *output.ImageURL)
+					}
+				}
+
 				// Send the image
-				err = responses.PublicImageResponse(s, i, *res.Outputs[0].ImageURL, nil)
+				_, err = responses.InteractionEdit(s, i, &responses.InteractionResponseOptions{
+					Content:    utils.ToPtr(fmt.Sprintf("<@%s> **%s**", i.Member.User.ID, prompt)),
+					ImageURLs:  imageUrls,
+					Embeds:     nil,
+					Components: nil,
+				},
+				)
 				if err != nil {
 					log.Error(err)
 				}

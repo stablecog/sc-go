@@ -25,7 +25,7 @@ func NewImageEmbed(url string) *discordgo.MessageEmbed {
 	}
 	return &discordgo.MessageEmbed{
 		Color: EMBED_PURPLE,
-		Type:  discordgo.EmbedTypeImage,
+		URL:   "https://stablecog.com",
 		Image: image,
 	}
 }

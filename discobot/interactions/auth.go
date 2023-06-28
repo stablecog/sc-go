@@ -14,9 +14,12 @@ func (c *DiscordInteractionWrapper) NewAuthenticateCommand() *DiscordInteraction
 		},
 		// The handler for the command
 		Handler: func(s *discordgo.Session, i *discordgo.InteractionCreate) {
-			if u := c.Disco.CheckAuthorization(s, i); u != nil {
+			if u := c.Disco.CheckAuthorization(s, i, responses.PRIVATE); u != nil {
 				// User is already authenticated
-				responses.PrivateInteractionResponse(s, i, "👍", "Your Discord account is already authenticated with Stablecog.", "")
+				responses.InteractionEdit(s, i, &responses.InteractionResponseOptions{
+					EmbedTitle:   "👍",
+					EmbedContent: "Your Discord account is already authenticated with Stablecog.",
+				})
 			}
 		},
 	}
