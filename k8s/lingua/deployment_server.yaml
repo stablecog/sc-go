@@ -1,0 +1,240 @@
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: sc-lingua-deployment
+  namespace: prod-stablecog
+  labels:
+    app: sc-lingua
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: sc-lingua
+  template:
+    metadata:
+      labels:
+        app: sc-lingua
+    spec:
+      containers:
+        - name: sc-lingua
+          image: replaceme
+          ports:
+            - containerPort: 13339
+          imagePullPolicy: "Always"
+          command: ["/bin/sh", "-c"]
+          args: ["/app/linguaapi"]
+          readinessProbe:
+            httpGet:
+              path: /lingua/health
+              port: 13339
+            initialDelaySeconds: 3
+            periodSeconds: 3
+          livenessProbe:
+            httpGet:
+              path: /lingua/health
+              port: 13339
+            initialDelaySeconds: 15
+            periodSeconds: 10
+          env:
+            - name: PUBLIC_SUPABASE_REFERENCE_ID
+              value: jaqefzjqokaemzyvjcew
+            - name: PRODUCTION
+              value: "true"
+            - name: BUCKET_BASE_URL
+              value: https://b.stablecog.com
+            - name: PUBLIC_API_URL
+              value: https://api.stablecog.com
+            - name: STRIPE_STARTER_PRODUCT_ID
+              value: prod_NTzD6l0KByWfLm
+            - name: STRIPE_PRO_PRODUCT_ID
+              value: prod_NTzCojAHPw6tbX
+            - name: STRIPE_ULTIMATE_PRODUCT_ID
+              value: prod_NTzE0C8bEuIv6F
+            - name: STRIPE_STARTER_PRICE_ID
+              value: price_1Mj1EqATa0ehBYTAw4xFqw2s
+            - name: STRIPE_PRO_PRICE_ID
+              value: price_1Mj1EZATa0ehBYTAMf839xbe
+            - name: STRIPE_ULTIMATE_PRICE_ID
+              value: price_1Mj1FfATa0ehBYTAD3iLwSav
+            - name: STRIPE_MEDIUM_PACK_PRICE_ID
+              value: price_1Mj1FjATa0ehBYTACkdGOPHR
+            - name: STRIPE_MEDIUM_PACK_PRODUCT_ID
+              value: prod_NTzEOBmfK1DFMs
+            - name: STRIPE_LARGE_PACK_PRICE_ID
+              value: price_1Mj1FpATa0ehBYTATTb8FzLg
+            - name: STRIPE_LARGE_PACK_PRODUCT_ID
+              value: prod_NTzE9KmD5wfCYn
+            - name: STRIPE_MEGA_PACK_PRICE_ID
+              value: price_1Mr4aEATa0ehBYTAalXOVpeg
+            - name: STRIPE_MEGA_PACK_PRODUCT_ID
+              value: prod_NcJCespFpjjQJj
+            - name: DISCORD_WEBHOOK_URL_DEPLOY
+              valueFrom:
+                secretKeyRef:
+                  name: sc-go
+                  key: DISCORD_WEBHOOK_URL_DEPLOY
+            - name: MEILI_URL
+              valueFrom:
+                secretKeyRef:
+                  name: sc-go
+                  key: MEILI_URL
+            - name: MEILI_MASTER_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: sc-go
+                  key: MEILI_MASTER_KEY
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: sc-go
+                  key: POSTGRES_PASSWORD
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: sc-go
+                  key: POSTGRES_USER
+            - name: POSTGRES_HOST
+              valueFrom:
+                secretKeyRef:
+                  name: sc-go
+                  key: POSTGRES_HOST
+            - name: POSTGRES_DB
+              valueFrom:
+                secretKeyRef:
+                  name: sc-go
+                  key: POSTGRES_DB
+            - name: STRIPE_ENDPOINT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: sc-go
+                  key: STRIPE_ENDPOINT_SECRET
+            - name: STRIPE_SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: sc-go
+                  key: STRIPE_SECRET_KEY
+            - name: SUPABASE_ADMIN_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: sc-go
+                  key: SUPABASE_ADMIN_KEY
+            - name: REDIS_CONNECTION_STRING
+              valueFrom:
+                secretKeyRef:
+                  name: sc-go
+                  key: REDIS_CONNECTION_STRING
+            - name: SC_WORKER_WEBHOOK_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: sc-go
+                  key: SC_WORKER_WEBHOOK_SECRET
+            - name: MIXPANEL_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: sc-go
+                  key: MIXPANEL_API_KEY
+            - name: MIXPANEL_ENDPOINT
+              valueFrom:
+                secretKeyRef:
+                  name: sc-go
+                  key: MIXPANEL_ENDPOINT
+            - name: DISCORD_WEBHOOK_URL_NEWSUB
+              valueFrom:
+                secretKeyRef:
+                  name: sc-go
+                  key: DISCORD_WEBHOOK_URL_NEWSUB
+            - name: POSTHOG_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: sc-go
+                  key: POSTHOG_API_KEY
+            - name: POSTHOG_ENDPOINT
+              valueFrom:
+                secretKeyRef:
+                  name: sc-go
+                  key: POSTHOG_ENDPOINT
+            - name: S3_IMG2IMG_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: sc-go
+                  key: S3_IMG2IMG_ACCESS_KEY
+            - name: S3_IMG2IMG_BUCKET_NAME
+              valueFrom:
+                secretKeyRef:
+                  name: sc-go
+                  key: S3_IMG2IMG_BUCKET_NAME
+            - name: S3_IMG2IMG_ENDPOINT
+              valueFrom:
+                secretKeyRef:
+                  name: sc-go
+                  key: S3_IMG2IMG_ENDPOINT
+            - name: S3_IMG2IMG_REGION
+              valueFrom:
+                secretKeyRef:
+                  name: sc-go
+                  key: S3_IMG2IMG_REGION
+            - name: S3_IMG2IMG_SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: sc-go
+                  key: S3_IMG2IMG_SECRET_KEY
+            - name: S3_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: sc-go
+                  key: S3_ACCESS_KEY
+            - name: S3_BUCKET_NAME
+              valueFrom:
+                secretKeyRef:
+                  name: sc-go
+                  key: S3_BUCKET_NAME
+            - name: S3_ENDPOINT
+              valueFrom:
+                secretKeyRef:
+                  name: sc-go
+                  key: S3_ENDPOINT
+            - name: S3_REGION
+              valueFrom:
+                secretKeyRef:
+                  name: sc-go
+                  key: S3_IMG2IMG_REGION
+            - name: S3_SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: sc-go
+                  key: S3_SECRET_KEY
+            - name: QDRANT_URLS
+              valueFrom:
+                secretKeyRef:
+                  name: sc-go
+                  key: QDRANT_URLS
+            - name: QDRANT_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: sc-go
+                  key: QDRANT_USERNAME
+            - name: QDRANT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: sc-go
+                  key: QDRANT_PASSWORD
+            - name: QDRANT_COLLECTION_NAME
+              valueFrom:
+                secretKeyRef:
+                  name: sc-go
+                  key: QDRANT_COLLECTION_NAME
+            - name: CLIPAPI_ENDPOINT
+              valueFrom:
+                secretKeyRef:
+                  name: sc-go
+                  key: CLIPAPI_ENDPOINT
+            - name: CLIPAPI_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: sc-go
+                  key: CLIPAPI_SECRET
+            - name: CLIPAPI_URLS
+              valueFrom:
+                secretKeyRef:
+                  name: sc-go
+                  key: CLIPAPI_URLS

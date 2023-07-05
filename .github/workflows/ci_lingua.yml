@@ -1,0 +1,180 @@
+name: 💫 CI (Lingua API)
+
+on:
+  push:
+    branches: [master]
+    paths: ["language/**"]
+
+concurrency:
+  group: environment-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  setup_env:
+    name: ⚙️ Setup environment
+    runs-on: self-hosted
+    steps:
+      - name: Add SHORT_SHA env property
+        run: echo "SHORT_SHA=`echo ${GITHUB_SHA::7}`" >> $GITHUB_ENV
+
+      - name: Put commit msg in environment
+        run: echo "COMMIT_MSG=${{ github.event.head_commit.message }}" >> $GITHUB_ENV
+
+      - name: Escape commit message
+        run: |
+          echo "COMMIT_MSG=$(echo $COMMIT_MSG | tr -d \'\\\")" >> $GITHUB_ENV
+
+      - name: Get branch name (merge)
+        if: github.event_name != 'pull_request'
+        shell: bash
+        run: echo "BRANCH_NAME=$(echo ${GITHUB_REF#refs/heads/} | tr / -)" >> $GITHUB_ENV
+
+      - name: Get branch name (pull request)
+        if: github.event_name == 'pull_request'
+        shell: bash
+        run: echo "BRANCH_NAME=$(echo ${GITHUB_HEAD_REF} | tr / -)" >> $GITHUB_ENV
+
+    outputs:
+      short_sha: ${{ env.SHORT_SHA }}
+      commit_msg: ${{ env.COMMIT_MSG }}
+      branch_name: ${{ env.BRANCH_NAME }}
+
+  test:
+    name: ☔️ Tests
+    runs-on: self-hosted
+    needs: setup_env
+
+    # Setup postgres service for tests
+    services:
+      db:
+        image: postgres:14
+        env:
+          POSTGRES_DB: testing
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_USER: postgres
+        ports:
+          - 5432:5432
+        # set health checks to wait until postgres has started
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v3
+
+      - name: Setup Go with cache
+        uses: actions/setup-go@v3
+        with:
+          go-version-file: ./go.work
+          cache-dependency-path: |
+            **/go.sum
+
+      - name: Run Tests
+        env:
+          GITHUB_ACTIONS: true
+          POSTGRES_DB: testing
+          POSTGRES_PORT: 5432
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_HOST: localhost
+        run: |
+          go test -v -parallel 1 ./language/...
+
+      - name: Send Discord Webhook
+        if: failure()
+        uses: ./.github/actions/discord-webhook
+        with:
+          context: prod
+          prod-webhook-url: ${{ secrets.DISCORD_WEBHOOK_PROD }}
+          qa-webhook-url: ${{ secrets.DISCORD_WEBHOOK }}
+          embed-color: 15548997
+          embed-title: "${{ needs.setup_env.outputs.commit_msg }}  •  ${{ needs.setup_env.outputs.short_sha }}"
+          embed-description: "```(Language) Tests Failed```"
+
+  build:
+    name: 🔨 Build Binaries and Docker Image
+    runs-on: self-hosted
+    needs: setup_env
+
+    env:
+      GITHUB_RUN_ID: ${{ github.run_id }}
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set build start in env variable
+        run: echo "BUILD_START=$(date +%s)" >> $GITHUB_ENV
+
+      - name: Send Discord Webhook
+        uses: ./.github/actions/discord-webhook
+        with:
+          context: prod
+          prod-webhook-url: ${{ secrets.DISCORD_WEBHOOK_PROD }}
+          qa-webhook-url: ${{ secrets.DISCORD_WEBHOOK }}
+          embed-color: 16776960
+          embed-title: "${{ needs.setup_env.outputs.commit_msg }}  •  ${{ needs.setup_env.outputs.short_sha }}"
+          embed-description: "```(Language) Build Started```"
+
+      - name: Setup Go with cache
+        uses: actions/setup-go@v3
+        with:
+          go-version-file: ./go.work
+          cache-dependency-path: |
+            **/go.sum
+
+      - name: Login to registry
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKER_USER }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Build GO Lingua API Binary
+        run: |
+          cd language && go build -ldflags "-s -w -X main.Version=${{ needs.setup_env.outputs.short_sha }}" -o linguaapi && cd ..
+
+      - name: Build and push image
+        if: success()
+        uses: docker/build-push-action@v3
+        with:
+          context: .
+          platforms: linux/amd64
+          push: true
+          file: ./Dockerfile.ci
+          tags: stablecog/sc-language:${{ needs.setup_env.outputs.branch_name }}-${{ env.GITHUB_RUN_ID }}
+
+      - name: Send Discord Webhook
+        if: failure()
+        uses: ./.github/actions/discord-webhook
+        with:
+          context: prod
+          prod-webhook-url: ${{ secrets.DISCORD_WEBHOOK_PROD }}
+          qa-webhook-url: ${{ secrets.DISCORD_WEBHOOK }}
+          embed-color: 15548997
+          embed-title: "${{ needs.setup_env.outputs.commit_msg }}  •  ${{ needs.setup_env.outputs.short_sha }}"
+          embed-description: "```(Language) 🚨 Build FAILED 🚨```"
+
+  deploy_prod:
+    name: 🚀 Deploy Language API (PROD)
+    runs-on: self-hosted
+    needs:
+      - setup_env
+      - test
+      - build
+    env:
+      GITHUB_RUN_ID: ${{ github.run_id }}
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Deploy
+        uses: ./.github/actions/k8s-deploy
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          image: stablecog/sc-language:${{ needs.setup_env.outputs.branch_name}}-${{ env.GITHUB_RUN_ID }}
+          embed-title: ""
+          prod-webhook-url: ${{ secrets.DISCORD_WEBHOOK_PROD }}
+          qa-webhook-url: ${{ secrets.DISCORD_WEBHOOK }}
+          kube_config: ${{ secrets.KUBE_CONFIG_DATA }}
+          env: lingua
