@@ -260,7 +260,7 @@ func (c *RestAPI) HandleCreateGeneration(w http.ResponseWriter, r *http.Request)
 				return err
 			}
 			if !safe {
-				responses.ErrBadRequest(w, r, "nsfw", reason)
+				responses.ErrBadRequest(w, r, "nsfw_prompt", reason)
 				return fmt.Errorf("nsfw: %s", reason)
 			}
 		}
