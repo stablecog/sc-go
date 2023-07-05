@@ -93,6 +93,7 @@ func testMainWrapper(m *testing.M) int {
 		Hub:            hub,
 		Track:          analytics.NewAnalyticsService(),
 		QueueThrottler: qThrottler,
+		SafetyChecker:  utils.NewTranslatorSafetyChecker(ctx, "", true),
 	}
 
 	return m.Run()

@@ -23,15 +23,18 @@ type TranslatorSafetyChecker struct {
 	TargetFloresUrl  string
 	TranslatorCogUrl string
 	OpenaiClient     *openai.Client
-	mu               sync.Mutex
+	// TODO - mock better for testing, this just disables
+	Disable bool
+	mu      sync.Mutex
 }
 
-func NewTranslatorSafetyChecker(ctx context.Context, openaiKey string) *TranslatorSafetyChecker {
+func NewTranslatorSafetyChecker(ctx context.Context, openaiKey string, disable bool) *TranslatorSafetyChecker {
 	return &TranslatorSafetyChecker{
 		Ctx:              ctx,
 		TargetFloresUrl:  os.Getenv("PRIVATE_LINGUA_API_URL"),
 		TranslatorCogUrl: os.Getenv("TRANSLATOR_COG_URL"),
 		OpenaiClient:     openai.NewClient(openaiKey),
+		Disable:          disable,
 	}
 }
 
@@ -44,6 +47,9 @@ type TargetFloresCodeResponse struct {
 }
 
 func (t *TranslatorSafetyChecker) GetTargetFloresCode(inputs []string) ([]string, error) {
+	if t.Disable {
+		return inputs, nil
+	}
 	// Make request to target flores API
 	request := TargetFloresCodeRequest{
 		Inputs: inputs,
@@ -98,6 +104,10 @@ type TranslatorCogResponse struct {
 func (t *TranslatorSafetyChecker) TranslatePrompt(prompt string, negativePrompt string) (translatedPrompt string, translatedNegativePrompt string, err error) {
 	t.mu.Lock()
 	defer t.mu.Unlock()
+
+	if t.Disable {
+		return prompt, negativePrompt, nil
+	}
 
 	var inputs []string
 	if negativePrompt == "" {
@@ -184,6 +194,9 @@ func (t *TranslatorSafetyChecker) TranslatePrompt(prompt string, negativePrompt 
 
 // Safety check
 func (t *TranslatorSafetyChecker) IsPromptNSFW(input string) (isNsfw bool, nsfwReason string, err error) {
+	if t.Disable {
+		return false, "", nil
+	}
 	res, err := t.OpenaiClient.Moderations(t.Ctx, openai.ModerationRequest{
 		Input: input,
 	})
