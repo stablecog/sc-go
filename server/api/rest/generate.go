@@ -253,13 +253,13 @@ func (c *RestAPI) HandleCreateGeneration(w http.ResponseWriter, r *http.Request)
 			generateReq.Prompt = translatedPrompt
 			generateReq.NegativePrompt = translatedNegativePrompt
 			// Check NSFW
-			safe, reason, err := c.SafetyChecker.IsPromptNSFW(generateReq.Prompt)
+			isNSFW, reason, err := c.SafetyChecker.IsPromptNSFW(generateReq.Prompt)
 			if err != nil {
 				log.Error("Error checking prompt NSFW", "err", err)
 				responses.ErrInternalServerError(w, r, "An unknown error has occured")
 				return err
 			}
-			if !safe {
+			if isNSFW {
 				responses.ErrBadRequest(w, r, "nsfw_prompt", reason)
 				return fmt.Errorf("nsfw: %s", reason)
 			}
