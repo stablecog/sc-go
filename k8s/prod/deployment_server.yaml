@@ -244,3 +244,8 @@ spec:
                 secretKeyRef:
                   name: sc-go
                   key: CLIPAPI_URLS
+            - name: OPENAI_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: sc-go
+                  key: OPENAI_API_KEY

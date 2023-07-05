@@ -2,12 +2,15 @@ package utils
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 	"os"
 	"sync"
 
+	openai "github.com/sashabaranov/go-openai"
 	"github.com/stablecog/sc-go/log"
 )
 
@@ -16,17 +19,19 @@ const TARGET_LANG_SCORE_MAX = 0.88
 const DETECTED_CONFIDENCE_SCORE_MIN = 0.1
 
 type TranslatorSafetyChecker struct {
+	Ctx              context.Context
 	TargetFloresUrl  string
 	TranslatorCogUrl string
-	openaiUrl        string
-	openaiKey        string
+	OpenaiClient     *openai.Client
 	mu               sync.Mutex
 }
 
-func NewTranslatorSafetyChecker(openaiKey string) *TranslatorSafetyChecker {
+func NewTranslatorSafetyChecker(ctx context.Context, openaiKey string) *TranslatorSafetyChecker {
 	return &TranslatorSafetyChecker{
+		Ctx:              ctx,
 		TargetFloresUrl:  os.Getenv("PRIVATE_LINGUA_API_URL"),
 		TranslatorCogUrl: os.Getenv("TRANSLATOR_COG_URL"),
+		OpenaiClient:     openai.NewClient(openaiKey),
 	}
 }
 
@@ -68,19 +73,6 @@ func (t *TranslatorSafetyChecker) GetTargetFloresCode(inputs []string) ([]string
 }
 
 // Translator cog types
-//
-//	{
-//		"text_1": text_1,
-//		"text_flores_1": text_flores_1,
-//		"target_flores_1": TARGET_LANG_FLORES,
-//		"target_score_max_1": TARGET_LANG_SCORE_MAX,
-//		"detected_confidence_score_min_1": DETECTED_CONFIDENCE_SCORE_MIN,
-//		"text_2": text_2,
-//		"text_flores_2": text_flores_2,
-//		"target_flores_2": TARGET_LANG_FLORES,
-//		"target_score_max_2": TARGET_LANG_SCORE_MAX,
-//		"detected_confidence_score_min_2": DETECTED_CONFIDENCE_SCORE_MIN,
-//	}
 type TranslatorCogInput struct {
 	Text1                       string  `json:"text_1"`
 	TextFlores1                 string  `json:"text_flores_1,omitempty"`
@@ -117,6 +109,18 @@ func (t *TranslatorSafetyChecker) TranslatePrompt(prompt string, negativePrompt 
 	targetCodes, err := t.GetTargetFloresCode(inputs)
 	if err != nil {
 		log.Error("Error getting target flores code", "err", err)
+	} else {
+		// Skip translator if all target codes are TARGET_FLORES_CODE
+		allTargetFlores := true
+		for _, floresCode := range targetCodes {
+			if floresCode != TARGET_FLORES_CODE {
+				allTargetFlores = false
+				break
+			}
+		}
+		if allTargetFlores {
+			return prompt, negativePrompt, nil
+		}
 	}
 
 	var textFlores1 string
@@ -176,4 +180,21 @@ func (t *TranslatorSafetyChecker) TranslatePrompt(prompt string, negativePrompt 
 	}
 
 	return translatedPrompt, translatedNegativePrompt, nil
+}
+
+// Safety check
+func (t *TranslatorSafetyChecker) IsPromptNSFW(input string) (bool, error) {
+	res, err := t.OpenaiClient.Moderations(t.Ctx, openai.ModerationRequest{
+		Input: input,
+	})
+	if err != nil {
+		log.Error("Error calling openai safety check", "err", err)
+		return false, err
+	}
+	if len(res.Results) < 0 {
+		log.Error("Error calling openai safety check", "err", "no results")
+		return false, errors.New("no results")
+	}
+
+	return res.Results[0].Categories.Sexual || res.Results[0].Categories.SexualMinors, nil
 }

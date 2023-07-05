@@ -221,3 +221,8 @@ spec:
                 secretKeyRef:
                   name: sc-go
                   key: TRANSLATOR_COG_URL
+            - name: OPENAI_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: sc-go
+                  key: OPENAI_API_KEY

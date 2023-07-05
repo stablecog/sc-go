@@ -29,6 +29,7 @@ require (
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/jarcoal/httpmock v1.3.0
 	github.com/pmezard/go-difflib v1.0.0 // indirect
+	github.com/sashabaranov/go-openai v1.12.0
 	golang.org/x/image v0.3.0
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
