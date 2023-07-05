@@ -35,8 +35,7 @@ type CreateGenerationRequest struct {
 	SubmitToGallery      bool                  `json:"submit_to_gallery"`
 	ProcessType          shared.ProcessType    `json:"process_type"`
 	OutputImageExtension shared.ImageExtension `json:"output_image_extension"`
-	SkipSafetyChecker    bool                  `json:"skip_safety_checker"`
-	SkipTranslation      bool                  `json:"skip_translation"`
+	UseNewSafetyChecker  bool                  `json:"use_new_safety_checker"`
 }
 
 // Apply defaults for missing parameters

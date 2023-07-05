@@ -274,6 +274,7 @@ func main() {
 		Qdrant:         qdrantClient,
 		Clip:           clip.NewClipService(redis),
 		SMap:           apiTokenSmap,
+		SafetyChecker:  utils.NewTranslatorSafetyChecker(ctx, os.Getenv("OPENAI_API_KEY")),
 	}
 
 	// Create upload controller

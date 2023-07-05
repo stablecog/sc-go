@@ -183,18 +183,34 @@ func (t *TranslatorSafetyChecker) TranslatePrompt(prompt string, negativePrompt 
 }
 
 // Safety check
-func (t *TranslatorSafetyChecker) IsPromptNSFW(input string) (bool, error) {
+func (t *TranslatorSafetyChecker) IsPromptNSFW(input string) (isNsfw bool, nsfwReason string, err error) {
 	res, err := t.OpenaiClient.Moderations(t.Ctx, openai.ModerationRequest{
 		Input: input,
 	})
 	if err != nil {
 		log.Error("Error calling openai safety check", "err", err)
-		return false, err
+		return
 	}
 	if len(res.Results) < 0 {
 		log.Error("Error calling openai safety check", "err", "no results")
-		return false, errors.New("no results")
+		err = errors.New("no results")
+		return
 	}
 
-	return res.Results[0].Categories.Sexual || res.Results[0].Categories.SexualMinors, nil
+	isNsfw = res.Results[0].Categories.Sexual || res.Results[0].Categories.SexualMinors
+	if isNsfw {
+		// Populate reason
+		if res.Results[0].Categories.Sexual {
+			if nsfwReason != "" {
+				nsfwReason += ","
+			}
+			nsfwReason = "sexual"
+		} else if res.Results[0].Categories.SexualMinors {
+			if nsfwReason != "" {
+				nsfwReason += ","
+			}
+			nsfwReason = "sexual_minors"
+		}
+	}
+	return
 }
