@@ -50,7 +50,7 @@ func main() {
 
 	// Start server
 	port := utils.GetEnv("PORT", "13339")
-	log.Info("Starting language server", "port", port)
+	log.Info("Starting lingua server", "port", port)
 
 	h2s := &http2.Server{}
 	srv := &http.Server{

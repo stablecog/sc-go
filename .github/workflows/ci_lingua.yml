@@ -6,7 +6,7 @@ on:
     paths: ["language/**"]
 
 concurrency:
-  group: environment-${{ github.ref }}
+  group: environment-lingua-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
