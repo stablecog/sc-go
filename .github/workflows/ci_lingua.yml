@@ -130,9 +130,25 @@ jobs:
           username: ${{ secrets.DOCKER_USER }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
+      - name: Build GO Server Binary
+        run: |
+          cd server && go build -ldflags "-s -w -X main.Version=${{ needs.setup_env.outputs.short_sha }} -X \"main.CommitMsg=${{ needs.setup_env.outputs.commit_msg }}\" -X main.BuildStart=${{ env.BUILD_START }}" -o server && cd ..
+
+      - name: Build GO Cron Binary
+        run: |
+          cd cron && go build -ldflags "-s -w -X main.Version=${{ needs.setup_env.outputs.short_sha }} -X \"main.CommitMsg=${{ needs.setup_env.outputs.commit_msg }}\"" -o cron && cd ..
+
+      - name: Build GO Upload API Binary
+        run: |
+          cd uploadapi && go build -ldflags "-s -w -X main.Version=${{ needs.setup_env.outputs.short_sha }}" -o uploadapi && cd ..
+
       - name: Build GO Lingua API Binary
         run: |
           cd language && go build -ldflags "-s -w -X main.Version=${{ needs.setup_env.outputs.short_sha }}" -o linguaapi && cd ..
+
+      - name: Build GO Discord Bot Binary
+        run: |
+          cd discobot && go build -ldflags "-s -w -X main.Version=${{ needs.setup_env.outputs.short_sha }}" -o discobot && cd ..
 
       - name: Build and push image
         if: success()
