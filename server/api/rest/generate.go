@@ -313,6 +313,10 @@ func (c *RestAPI) HandleCreateGeneration(w http.ResponseWriter, r *http.Request)
 			},
 		}
 
+		if isSuperAdmin && generateReq.MaskImageUrl != "" {
+			cogReqBody.Input.MaskImageUrl = generateReq.MaskImageUrl
+		}
+
 		if cogReqBody.Input.InitImageUrl != "" {
 			cogReqBody.Input.InitImageUrlS3 = generateReq.InitImageUrl
 		}
