@@ -10,6 +10,7 @@ import (
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
+	"entgo.io/ent/dialect/sql/sqljson"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
 	"github.com/stablecog/sc-go/database/ent/predicate"
@@ -34,6 +35,44 @@ func (vou *VoiceoverOutputUpdate) Where(ps ...predicate.VoiceoverOutput) *Voiceo
 // SetAudioPath sets the "audio_path" field.
 func (vou *VoiceoverOutputUpdate) SetAudioPath(s string) *VoiceoverOutputUpdate {
 	vou.mutation.SetAudioPath(s)
+	return vou
+}
+
+// SetVideoPath sets the "video_path" field.
+func (vou *VoiceoverOutputUpdate) SetVideoPath(s string) *VoiceoverOutputUpdate {
+	vou.mutation.SetVideoPath(s)
+	return vou
+}
+
+// SetNillableVideoPath sets the "video_path" field if the given value is not nil.
+func (vou *VoiceoverOutputUpdate) SetNillableVideoPath(s *string) *VoiceoverOutputUpdate {
+	if s != nil {
+		vou.SetVideoPath(*s)
+	}
+	return vou
+}
+
+// ClearVideoPath clears the value of the "video_path" field.
+func (vou *VoiceoverOutputUpdate) ClearVideoPath() *VoiceoverOutputUpdate {
+	vou.mutation.ClearVideoPath()
+	return vou
+}
+
+// SetAudioArray sets the "audio_array" field.
+func (vou *VoiceoverOutputUpdate) SetAudioArray(f []float64) *VoiceoverOutputUpdate {
+	vou.mutation.SetAudioArray(f)
+	return vou
+}
+
+// AppendAudioArray appends f to the "audio_array" field.
+func (vou *VoiceoverOutputUpdate) AppendAudioArray(f []float64) *VoiceoverOutputUpdate {
+	vou.mutation.AppendAudioArray(f)
+	return vou
+}
+
+// ClearAudioArray clears the value of the "audio_array" field.
+func (vou *VoiceoverOutputUpdate) ClearAudioArray() *VoiceoverOutputUpdate {
+	vou.mutation.ClearAudioArray()
 	return vou
 }
 
@@ -211,6 +250,23 @@ func (vou *VoiceoverOutputUpdate) sqlSave(ctx context.Context) (n int, err error
 	if value, ok := vou.mutation.AudioPath(); ok {
 		_spec.SetField(voiceoveroutput.FieldAudioPath, field.TypeString, value)
 	}
+	if value, ok := vou.mutation.VideoPath(); ok {
+		_spec.SetField(voiceoveroutput.FieldVideoPath, field.TypeString, value)
+	}
+	if vou.mutation.VideoPathCleared() {
+		_spec.ClearField(voiceoveroutput.FieldVideoPath, field.TypeString)
+	}
+	if value, ok := vou.mutation.AudioArray(); ok {
+		_spec.SetField(voiceoveroutput.FieldAudioArray, field.TypeJSON, value)
+	}
+	if value, ok := vou.mutation.AppendedAudioArray(); ok {
+		_spec.AddModifier(func(u *sql.UpdateBuilder) {
+			sqljson.Append(u, voiceoveroutput.FieldAudioArray, value)
+		})
+	}
+	if vou.mutation.AudioArrayCleared() {
+		_spec.ClearField(voiceoveroutput.FieldAudioArray, field.TypeJSON)
+	}
 	if value, ok := vou.mutation.IsFavorited(); ok {
 		_spec.SetField(voiceoveroutput.FieldIsFavorited, field.TypeBool, value)
 	}
@@ -292,6 +348,44 @@ type VoiceoverOutputUpdateOne struct {
 // SetAudioPath sets the "audio_path" field.
 func (vouo *VoiceoverOutputUpdateOne) SetAudioPath(s string) *VoiceoverOutputUpdateOne {
 	vouo.mutation.SetAudioPath(s)
+	return vouo
+}
+
+// SetVideoPath sets the "video_path" field.
+func (vouo *VoiceoverOutputUpdateOne) SetVideoPath(s string) *VoiceoverOutputUpdateOne {
+	vouo.mutation.SetVideoPath(s)
+	return vouo
+}
+
+// SetNillableVideoPath sets the "video_path" field if the given value is not nil.
+func (vouo *VoiceoverOutputUpdateOne) SetNillableVideoPath(s *string) *VoiceoverOutputUpdateOne {
+	if s != nil {
+		vouo.SetVideoPath(*s)
+	}
+	return vouo
+}
+
+// ClearVideoPath clears the value of the "video_path" field.
+func (vouo *VoiceoverOutputUpdateOne) ClearVideoPath() *VoiceoverOutputUpdateOne {
+	vouo.mutation.ClearVideoPath()
+	return vouo
+}
+
+// SetAudioArray sets the "audio_array" field.
+func (vouo *VoiceoverOutputUpdateOne) SetAudioArray(f []float64) *VoiceoverOutputUpdateOne {
+	vouo.mutation.SetAudioArray(f)
+	return vouo
+}
+
+// AppendAudioArray appends f to the "audio_array" field.
+func (vouo *VoiceoverOutputUpdateOne) AppendAudioArray(f []float64) *VoiceoverOutputUpdateOne {
+	vouo.mutation.AppendAudioArray(f)
+	return vouo
+}
+
+// ClearAudioArray clears the value of the "audio_array" field.
+func (vouo *VoiceoverOutputUpdateOne) ClearAudioArray() *VoiceoverOutputUpdateOne {
+	vouo.mutation.ClearAudioArray()
 	return vouo
 }
 
@@ -492,6 +586,23 @@ func (vouo *VoiceoverOutputUpdateOne) sqlSave(ctx context.Context) (_node *Voice
 	}
 	if value, ok := vouo.mutation.AudioPath(); ok {
 		_spec.SetField(voiceoveroutput.FieldAudioPath, field.TypeString, value)
+	}
+	if value, ok := vouo.mutation.VideoPath(); ok {
+		_spec.SetField(voiceoveroutput.FieldVideoPath, field.TypeString, value)
+	}
+	if vouo.mutation.VideoPathCleared() {
+		_spec.ClearField(voiceoveroutput.FieldVideoPath, field.TypeString)
+	}
+	if value, ok := vouo.mutation.AudioArray(); ok {
+		_spec.SetField(voiceoveroutput.FieldAudioArray, field.TypeJSON, value)
+	}
+	if value, ok := vouo.mutation.AppendedAudioArray(); ok {
+		_spec.AddModifier(func(u *sql.UpdateBuilder) {
+			sqljson.Append(u, voiceoveroutput.FieldAudioArray, value)
+		})
+	}
+	if vouo.mutation.AudioArrayCleared() {
+		_spec.ClearField(voiceoveroutput.FieldAudioArray, field.TypeJSON)
 	}
 	if value, ok := vouo.mutation.IsFavorited(); ok {
 		_spec.SetField(voiceoveroutput.FieldIsFavorited, field.TypeBool, value)

@@ -16,6 +16,10 @@ const (
 	FieldID = "id"
 	// FieldAudioPath holds the string denoting the audio_path field in the database.
 	FieldAudioPath = "audio_path"
+	// FieldVideoPath holds the string denoting the video_path field in the database.
+	FieldVideoPath = "video_path"
+	// FieldAudioArray holds the string denoting the audio_array field in the database.
+	FieldAudioArray = "audio_array"
 	// FieldIsFavorited holds the string denoting the is_favorited field in the database.
 	FieldIsFavorited = "is_favorited"
 	// FieldAudioDuration holds the string denoting the audio_duration field in the database.
@@ -47,6 +51,8 @@ const (
 var Columns = []string{
 	FieldID,
 	FieldAudioPath,
+	FieldVideoPath,
+	FieldAudioArray,
 	FieldIsFavorited,
 	FieldAudioDuration,
 	FieldGalleryStatus,

@@ -3,6 +3,7 @@
 package ent
 
 import (
+	"encoding/json"
 	"fmt"
 	"strings"
 	"time"
@@ -20,6 +21,10 @@ type VoiceoverOutput struct {
 	ID uuid.UUID `json:"id,omitempty"`
 	// AudioPath holds the value of the "audio_path" field.
 	AudioPath string `json:"audio_path,omitempty"`
+	// VideoPath holds the value of the "video_path" field.
+	VideoPath *string `json:"video_path,omitempty"`
+	// AudioArray holds the value of the "audio_array" field.
+	AudioArray []float64 `json:"audio_array,omitempty"`
 	// IsFavorited holds the value of the "is_favorited" field.
 	IsFavorited bool `json:"is_favorited,omitempty"`
 	// AudioDuration holds the value of the "audio_duration" field.
@@ -66,11 +71,13 @@ func (*VoiceoverOutput) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
+		case voiceoveroutput.FieldAudioArray:
+			values[i] = new([]byte)
 		case voiceoveroutput.FieldIsFavorited:
 			values[i] = new(sql.NullBool)
 		case voiceoveroutput.FieldAudioDuration:
 			values[i] = new(sql.NullFloat64)
-		case voiceoveroutput.FieldAudioPath, voiceoveroutput.FieldGalleryStatus:
+		case voiceoveroutput.FieldAudioPath, voiceoveroutput.FieldVideoPath, voiceoveroutput.FieldGalleryStatus:
 			values[i] = new(sql.NullString)
 		case voiceoveroutput.FieldDeletedAt, voiceoveroutput.FieldCreatedAt, voiceoveroutput.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
@@ -102,6 +109,21 @@ func (vo *VoiceoverOutput) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field audio_path", values[i])
 			} else if value.Valid {
 				vo.AudioPath = value.String
+			}
+		case voiceoveroutput.FieldVideoPath:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field video_path", values[i])
+			} else if value.Valid {
+				vo.VideoPath = new(string)
+				*vo.VideoPath = value.String
+			}
+		case voiceoveroutput.FieldAudioArray:
+			if value, ok := values[i].(*[]byte); !ok {
+				return fmt.Errorf("unexpected type %T for field audio_array", values[i])
+			} else if value != nil && len(*value) > 0 {
+				if err := json.Unmarshal(*value, &vo.AudioArray); err != nil {
+					return fmt.Errorf("unmarshal field audio_array: %w", err)
+				}
 			}
 		case voiceoveroutput.FieldIsFavorited:
 			if value, ok := values[i].(*sql.NullBool); !ok {
@@ -181,6 +203,14 @@ func (vo *VoiceoverOutput) String() string {
 	builder.WriteString(fmt.Sprintf("id=%v, ", vo.ID))
 	builder.WriteString("audio_path=")
 	builder.WriteString(vo.AudioPath)
+	builder.WriteString(", ")
+	if v := vo.VideoPath; v != nil {
+		builder.WriteString("video_path=")
+		builder.WriteString(*v)
+	}
+	builder.WriteString(", ")
+	builder.WriteString("audio_array=")
+	builder.WriteString(fmt.Sprintf("%v", vo.AudioArray))
 	builder.WriteString(", ")
 	builder.WriteString("is_favorited=")
 	builder.WriteString(fmt.Sprintf("%v", vo.IsFavorited))

@@ -18825,6 +18825,9 @@ type VoiceoverOutputMutation struct {
 	typ               string
 	id                *uuid.UUID
 	audio_path        *string
+	video_path        *string
+	audio_array       *[]float64
+	appendaudio_array []float64
 	is_favorited      *bool
 	audio_duration    *float32
 	addaudio_duration *float32
@@ -18978,6 +18981,120 @@ func (m *VoiceoverOutputMutation) OldAudioPath(ctx context.Context) (v string, e
 // ResetAudioPath resets all changes to the "audio_path" field.
 func (m *VoiceoverOutputMutation) ResetAudioPath() {
 	m.audio_path = nil
+}
+
+// SetVideoPath sets the "video_path" field.
+func (m *VoiceoverOutputMutation) SetVideoPath(s string) {
+	m.video_path = &s
+}
+
+// VideoPath returns the value of the "video_path" field in the mutation.
+func (m *VoiceoverOutputMutation) VideoPath() (r string, exists bool) {
+	v := m.video_path
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldVideoPath returns the old "video_path" field's value of the VoiceoverOutput entity.
+// If the VoiceoverOutput object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *VoiceoverOutputMutation) OldVideoPath(ctx context.Context) (v *string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldVideoPath is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldVideoPath requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldVideoPath: %w", err)
+	}
+	return oldValue.VideoPath, nil
+}
+
+// ClearVideoPath clears the value of the "video_path" field.
+func (m *VoiceoverOutputMutation) ClearVideoPath() {
+	m.video_path = nil
+	m.clearedFields[voiceoveroutput.FieldVideoPath] = struct{}{}
+}
+
+// VideoPathCleared returns if the "video_path" field was cleared in this mutation.
+func (m *VoiceoverOutputMutation) VideoPathCleared() bool {
+	_, ok := m.clearedFields[voiceoveroutput.FieldVideoPath]
+	return ok
+}
+
+// ResetVideoPath resets all changes to the "video_path" field.
+func (m *VoiceoverOutputMutation) ResetVideoPath() {
+	m.video_path = nil
+	delete(m.clearedFields, voiceoveroutput.FieldVideoPath)
+}
+
+// SetAudioArray sets the "audio_array" field.
+func (m *VoiceoverOutputMutation) SetAudioArray(f []float64) {
+	m.audio_array = &f
+	m.appendaudio_array = nil
+}
+
+// AudioArray returns the value of the "audio_array" field in the mutation.
+func (m *VoiceoverOutputMutation) AudioArray() (r []float64, exists bool) {
+	v := m.audio_array
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldAudioArray returns the old "audio_array" field's value of the VoiceoverOutput entity.
+// If the VoiceoverOutput object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *VoiceoverOutputMutation) OldAudioArray(ctx context.Context) (v []float64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldAudioArray is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldAudioArray requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldAudioArray: %w", err)
+	}
+	return oldValue.AudioArray, nil
+}
+
+// AppendAudioArray adds f to the "audio_array" field.
+func (m *VoiceoverOutputMutation) AppendAudioArray(f []float64) {
+	m.appendaudio_array = append(m.appendaudio_array, f...)
+}
+
+// AppendedAudioArray returns the list of values that were appended to the "audio_array" field in this mutation.
+func (m *VoiceoverOutputMutation) AppendedAudioArray() ([]float64, bool) {
+	if len(m.appendaudio_array) == 0 {
+		return nil, false
+	}
+	return m.appendaudio_array, true
+}
+
+// ClearAudioArray clears the value of the "audio_array" field.
+func (m *VoiceoverOutputMutation) ClearAudioArray() {
+	m.audio_array = nil
+	m.appendaudio_array = nil
+	m.clearedFields[voiceoveroutput.FieldAudioArray] = struct{}{}
+}
+
+// AudioArrayCleared returns if the "audio_array" field was cleared in this mutation.
+func (m *VoiceoverOutputMutation) AudioArrayCleared() bool {
+	_, ok := m.clearedFields[voiceoveroutput.FieldAudioArray]
+	return ok
+}
+
+// ResetAudioArray resets all changes to the "audio_array" field.
+func (m *VoiceoverOutputMutation) ResetAudioArray() {
+	m.audio_array = nil
+	m.appendaudio_array = nil
+	delete(m.clearedFields, voiceoveroutput.FieldAudioArray)
 }
 
 // SetIsFavorited sets the "is_favorited" field.
@@ -19338,9 +19455,15 @@ func (m *VoiceoverOutputMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *VoiceoverOutputMutation) Fields() []string {
-	fields := make([]string, 0, 8)
+	fields := make([]string, 0, 10)
 	if m.audio_path != nil {
 		fields = append(fields, voiceoveroutput.FieldAudioPath)
+	}
+	if m.video_path != nil {
+		fields = append(fields, voiceoveroutput.FieldVideoPath)
+	}
+	if m.audio_array != nil {
+		fields = append(fields, voiceoveroutput.FieldAudioArray)
 	}
 	if m.is_favorited != nil {
 		fields = append(fields, voiceoveroutput.FieldIsFavorited)
@@ -19373,6 +19496,10 @@ func (m *VoiceoverOutputMutation) Field(name string) (ent.Value, bool) {
 	switch name {
 	case voiceoveroutput.FieldAudioPath:
 		return m.AudioPath()
+	case voiceoveroutput.FieldVideoPath:
+		return m.VideoPath()
+	case voiceoveroutput.FieldAudioArray:
+		return m.AudioArray()
 	case voiceoveroutput.FieldIsFavorited:
 		return m.IsFavorited()
 	case voiceoveroutput.FieldAudioDuration:
@@ -19398,6 +19525,10 @@ func (m *VoiceoverOutputMutation) OldField(ctx context.Context, name string) (en
 	switch name {
 	case voiceoveroutput.FieldAudioPath:
 		return m.OldAudioPath(ctx)
+	case voiceoveroutput.FieldVideoPath:
+		return m.OldVideoPath(ctx)
+	case voiceoveroutput.FieldAudioArray:
+		return m.OldAudioArray(ctx)
 	case voiceoveroutput.FieldIsFavorited:
 		return m.OldIsFavorited(ctx)
 	case voiceoveroutput.FieldAudioDuration:
@@ -19427,6 +19558,20 @@ func (m *VoiceoverOutputMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetAudioPath(v)
+		return nil
+	case voiceoveroutput.FieldVideoPath:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetVideoPath(v)
+		return nil
+	case voiceoveroutput.FieldAudioArray:
+		v, ok := value.([]float64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetAudioArray(v)
 		return nil
 	case voiceoveroutput.FieldIsFavorited:
 		v, ok := value.(bool)
@@ -19522,6 +19667,12 @@ func (m *VoiceoverOutputMutation) AddField(name string, value ent.Value) error {
 // mutation.
 func (m *VoiceoverOutputMutation) ClearedFields() []string {
 	var fields []string
+	if m.FieldCleared(voiceoveroutput.FieldVideoPath) {
+		fields = append(fields, voiceoveroutput.FieldVideoPath)
+	}
+	if m.FieldCleared(voiceoveroutput.FieldAudioArray) {
+		fields = append(fields, voiceoveroutput.FieldAudioArray)
+	}
 	if m.FieldCleared(voiceoveroutput.FieldDeletedAt) {
 		fields = append(fields, voiceoveroutput.FieldDeletedAt)
 	}
@@ -19539,6 +19690,12 @@ func (m *VoiceoverOutputMutation) FieldCleared(name string) bool {
 // error if the field is not defined in the schema.
 func (m *VoiceoverOutputMutation) ClearField(name string) error {
 	switch name {
+	case voiceoveroutput.FieldVideoPath:
+		m.ClearVideoPath()
+		return nil
+	case voiceoveroutput.FieldAudioArray:
+		m.ClearAudioArray()
+		return nil
 	case voiceoveroutput.FieldDeletedAt:
 		m.ClearDeletedAt()
 		return nil
@@ -19552,6 +19709,12 @@ func (m *VoiceoverOutputMutation) ResetField(name string) error {
 	switch name {
 	case voiceoveroutput.FieldAudioPath:
 		m.ResetAudioPath()
+		return nil
+	case voiceoveroutput.FieldVideoPath:
+		m.ResetVideoPath()
+		return nil
+	case voiceoveroutput.FieldAudioArray:
+		m.ResetAudioArray()
 		return nil
 	case voiceoveroutput.FieldIsFavorited:
 		m.ResetIsFavorited()

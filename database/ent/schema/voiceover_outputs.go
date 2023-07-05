@@ -22,6 +22,9 @@ func (VoiceoverOutput) Fields() []ent.Field {
 	return []ent.Field{
 		field.UUID("id", uuid.UUID{}).Default(uuid.New),
 		field.Text("audio_path"),
+		// ! TODO - these 2 optional since not all have them yet
+		field.Text("video_path").Optional().Nillable(),
+		field.JSON("audio_array", []float64{}).Optional(),
 		field.Bool("is_favorited").Default(false),
 		field.Float32("audio_duration"),
 		field.Enum("gallery_status").Values("not_submitted", "submitted", "approved", "rejected").Default("not_submitted"),

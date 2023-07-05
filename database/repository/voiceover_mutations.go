@@ -131,6 +131,16 @@ func (r *Repository) SetVoiceoverSucceeded(voiceoverId, promptStr string, output
 			parsedS3 = output.AudioFiles[0].AudioFile
 		}
 		vOutput := tx.VoiceoverOutput.Create().SetAudioPath(parsedS3).SetVoiceoverID(uid).SetGalleryStatus(galleryStatus).SetAudioDuration(output.AudioFiles[0].AudioDuration)
+		if output.AudioFiles[0].VideoFile != "" {
+			parsedVideoS3, err := utils.GetPathFromS3URL(output.AudioFiles[0].VideoFile)
+			if err != nil {
+				parsedVideoS3 = output.AudioFiles[0].VideoFile
+			}
+			vOutput.SetVideoPath(parsedVideoS3)
+		}
+		if len(output.AudioFiles[0].AudioArray) > 0 {
+			vOutput.SetAudioArray(output.AudioFiles[0].AudioArray)
+		}
 		voiceoverOutput, err = vOutput.Save(r.Ctx)
 		if err != nil {
 			log.Error("Error inserting voiceover output", "id", voiceoverId, "err", err)

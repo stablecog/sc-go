@@ -1053,6 +1053,7 @@ CREATE TABLE "public"."voiceover_outputs"
      "voiceover_id") REFERENCES "public"."voiceovers" ("id") ON UPDATE no action
      ON DELETE CASCADE
   );
+alter table public.voiceover_outputs ADD COLUMN "video_path" text NULL, ADD COLUMN "audio_array" jsonb NULL;
 
 CREATE trigger handle_updated_at before
 UPDATE

@@ -572,6 +572,8 @@ var (
 	VoiceoverOutputsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID},
 		{Name: "audio_path", Type: field.TypeString, Size: 2147483647},
+		{Name: "video_path", Type: field.TypeString, Nullable: true, Size: 2147483647},
+		{Name: "audio_array", Type: field.TypeJSON, Nullable: true},
 		{Name: "is_favorited", Type: field.TypeBool, Default: false},
 		{Name: "audio_duration", Type: field.TypeFloat32},
 		{Name: "gallery_status", Type: field.TypeEnum, Enums: []string{"not_submitted", "submitted", "approved", "rejected"}, Default: "not_submitted"},
@@ -588,7 +590,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "voiceover_outputs_voiceovers_voiceover_outputs",
-				Columns:    []*schema.Column{VoiceoverOutputsColumns[8]},
+				Columns:    []*schema.Column{VoiceoverOutputsColumns[10]},
 				RefColumns: []*schema.Column{VoiceoversColumns[0]},
 				OnDelete:   schema.Cascade,
 			},

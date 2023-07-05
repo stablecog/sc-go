@@ -192,9 +192,9 @@ func (r *Repository) QueryVoiceovers(per_page int, cursor *time.Time, filters *r
 			s.C(voiceover.FieldID), vot.C(voiceoveroutput.FieldVoiceoverID),
 		).LeftJoin(st).On(
 			s.C(voiceover.FieldSpeakerID), st.C(voiceoverspeaker.FieldID),
-		).AppendSelect(sql.As(pt.C(prompt.FieldText), "prompt_text"), sql.As(vot.C(voiceoveroutput.FieldID), "output_id"), sql.As(vot.C(voiceoveroutput.FieldAudioPath), "audio_path"), sql.As(vot.C(voiceoveroutput.FieldDeletedAt), "deleted_at"), sql.As(vot.C(voiceoveroutput.FieldIsFavorited), "is_favorited"), sql.As(vot.C(voiceoveroutput.FieldAudioDuration), "audio_duration"), sql.As(st.C(voiceoverspeaker.FieldNameInWorker), "name_in_worker"), sql.As(st.C(voiceoverspeaker.FieldLocale), "locale")).
+		).AppendSelect(sql.As(pt.C(prompt.FieldText), "prompt_text"), sql.As(vot.C(voiceoveroutput.FieldID), "output_id"), sql.As(vot.C(voiceoveroutput.FieldAudioPath), "audio_path"), sql.As(vot.C(voiceoveroutput.FieldVideoPath), "video_path"), sql.As(vot.C(voiceoveroutput.FieldAudioArray), "audio_array"), sql.As(vot.C(voiceoveroutput.FieldDeletedAt), "deleted_at"), sql.As(vot.C(voiceoveroutput.FieldIsFavorited), "is_favorited"), sql.As(vot.C(voiceoveroutput.FieldAudioDuration), "audio_duration"), sql.As(st.C(voiceoverspeaker.FieldNameInWorker), "name_in_worker"), sql.As(st.C(voiceoverspeaker.FieldLocale), "locale")).
 			GroupBy(s.C(voiceover.FieldID), pt.C(prompt.FieldText),
-				vot.C(voiceoveroutput.FieldID), vot.C(voiceoveroutput.FieldAudioPath), vot.C(voiceoveroutput.FieldAudioDuration),
+				vot.C(voiceoveroutput.FieldID), vot.C(voiceoveroutput.FieldAudioPath), vot.C(voiceoveroutput.FieldVideoPath), vot.C(voiceoveroutput.FieldAudioArray), vot.C(voiceoveroutput.FieldAudioDuration),
 				st.C(voiceoverspeaker.FieldNameInWorker), st.C(voiceoverspeaker.FieldLocale))
 		orderDir := "asc"
 		if filters == nil || (filters != nil && filters.Order == requests.SortOrderDescending) {
@@ -251,6 +251,10 @@ func (r *Repository) QueryVoiceovers(per_page int, cursor *time.Time, filters *r
 			parsed := utils.GetURLFromAudioFilePath(v.AudioFileUrl)
 			vQueryResult[i].AudioFileUrl = parsed
 		}
+		if v.VideoFileUrl != "" {
+			parsed := utils.GetURLFromAudioFilePath(v.VideoFileUrl)
+			vQueryResult[i].VideoFileUrl = parsed
+		}
 	}
 
 	// Format to VoiceoverQueryWithOutputsResultFormatted
@@ -263,6 +267,8 @@ func (r *Repository) QueryVoiceovers(per_page int, cursor *time.Time, filters *r
 		vOutput := GenerationUpscaleOutput{
 			ID:               *v.OutputID,
 			AudioFileUrl:     v.AudioFileUrl,
+			VideoFileUrl:     v.VideoFileUrl,
+			AudioArray:       v.AudioArray,
 			WasAutoSubmitted: v.WasAutoSubmitted,
 			IsFavorited:      v.IsFavorited,
 			AudioDuration:    utils.ToPtr(v.AudioDuration),
@@ -320,6 +326,8 @@ func (r *Repository) QueryVoiceovers(per_page int, cursor *time.Time, filters *r
 type VoiceoverQueryWithOutputsResult struct {
 	OutputID      *uuid.UUID `json:"output_id,omitempty" sql:"output_id"`
 	AudioFileUrl  string     `json:"audio_file_url,omitempty" sql:"audio_path"`
+	VideoFileUrl  string     `json:"video_file_url,omitempty" sql:"video_path"`
+	AudioArray    []float64  `json:"audio_array,omitempty" sql:"audio_array"`
 	AudioDuration float32    `json:"audio_duration" sql:"audio_duration"`
 	DeletedAt     *time.Time `json:"deleted_at,omitempty" sql:"deleted_at"`
 	VoiceoverQueryWithOutputsData

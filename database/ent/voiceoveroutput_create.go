@@ -28,6 +28,26 @@ func (voc *VoiceoverOutputCreate) SetAudioPath(s string) *VoiceoverOutputCreate 
 	return voc
 }
 
+// SetVideoPath sets the "video_path" field.
+func (voc *VoiceoverOutputCreate) SetVideoPath(s string) *VoiceoverOutputCreate {
+	voc.mutation.SetVideoPath(s)
+	return voc
+}
+
+// SetNillableVideoPath sets the "video_path" field if the given value is not nil.
+func (voc *VoiceoverOutputCreate) SetNillableVideoPath(s *string) *VoiceoverOutputCreate {
+	if s != nil {
+		voc.SetVideoPath(*s)
+	}
+	return voc
+}
+
+// SetAudioArray sets the "audio_array" field.
+func (voc *VoiceoverOutputCreate) SetAudioArray(f []float64) *VoiceoverOutputCreate {
+	voc.mutation.SetAudioArray(f)
+	return voc
+}
+
 // SetIsFavorited sets the "is_favorited" field.
 func (voc *VoiceoverOutputCreate) SetIsFavorited(b bool) *VoiceoverOutputCreate {
 	voc.mutation.SetIsFavorited(b)
@@ -267,6 +287,14 @@ func (voc *VoiceoverOutputCreate) createSpec() (*VoiceoverOutput, *sqlgraph.Crea
 	if value, ok := voc.mutation.AudioPath(); ok {
 		_spec.SetField(voiceoveroutput.FieldAudioPath, field.TypeString, value)
 		_node.AudioPath = value
+	}
+	if value, ok := voc.mutation.VideoPath(); ok {
+		_spec.SetField(voiceoveroutput.FieldVideoPath, field.TypeString, value)
+		_node.VideoPath = &value
+	}
+	if value, ok := voc.mutation.AudioArray(); ok {
+		_spec.SetField(voiceoveroutput.FieldAudioArray, field.TypeJSON, value)
+		_node.AudioArray = value
 	}
 	if value, ok := voc.mutation.IsFavorited(); ok {
 		_spec.SetField(voiceoveroutput.FieldIsFavorited, field.TypeBool, value)

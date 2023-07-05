@@ -61,6 +61,11 @@ func AudioPath(v string) predicate.VoiceoverOutput {
 	return predicate.VoiceoverOutput(sql.FieldEQ(FieldAudioPath, v))
 }
 
+// VideoPath applies equality check predicate on the "video_path" field. It's identical to VideoPathEQ.
+func VideoPath(v string) predicate.VoiceoverOutput {
+	return predicate.VoiceoverOutput(sql.FieldEQ(FieldVideoPath, v))
+}
+
 // IsFavorited applies equality check predicate on the "is_favorited" field. It's identical to IsFavoritedEQ.
 func IsFavorited(v bool) predicate.VoiceoverOutput {
 	return predicate.VoiceoverOutput(sql.FieldEQ(FieldIsFavorited, v))
@@ -154,6 +159,91 @@ func AudioPathEqualFold(v string) predicate.VoiceoverOutput {
 // AudioPathContainsFold applies the ContainsFold predicate on the "audio_path" field.
 func AudioPathContainsFold(v string) predicate.VoiceoverOutput {
 	return predicate.VoiceoverOutput(sql.FieldContainsFold(FieldAudioPath, v))
+}
+
+// VideoPathEQ applies the EQ predicate on the "video_path" field.
+func VideoPathEQ(v string) predicate.VoiceoverOutput {
+	return predicate.VoiceoverOutput(sql.FieldEQ(FieldVideoPath, v))
+}
+
+// VideoPathNEQ applies the NEQ predicate on the "video_path" field.
+func VideoPathNEQ(v string) predicate.VoiceoverOutput {
+	return predicate.VoiceoverOutput(sql.FieldNEQ(FieldVideoPath, v))
+}
+
+// VideoPathIn applies the In predicate on the "video_path" field.
+func VideoPathIn(vs ...string) predicate.VoiceoverOutput {
+	return predicate.VoiceoverOutput(sql.FieldIn(FieldVideoPath, vs...))
+}
+
+// VideoPathNotIn applies the NotIn predicate on the "video_path" field.
+func VideoPathNotIn(vs ...string) predicate.VoiceoverOutput {
+	return predicate.VoiceoverOutput(sql.FieldNotIn(FieldVideoPath, vs...))
+}
+
+// VideoPathGT applies the GT predicate on the "video_path" field.
+func VideoPathGT(v string) predicate.VoiceoverOutput {
+	return predicate.VoiceoverOutput(sql.FieldGT(FieldVideoPath, v))
+}
+
+// VideoPathGTE applies the GTE predicate on the "video_path" field.
+func VideoPathGTE(v string) predicate.VoiceoverOutput {
+	return predicate.VoiceoverOutput(sql.FieldGTE(FieldVideoPath, v))
+}
+
+// VideoPathLT applies the LT predicate on the "video_path" field.
+func VideoPathLT(v string) predicate.VoiceoverOutput {
+	return predicate.VoiceoverOutput(sql.FieldLT(FieldVideoPath, v))
+}
+
+// VideoPathLTE applies the LTE predicate on the "video_path" field.
+func VideoPathLTE(v string) predicate.VoiceoverOutput {
+	return predicate.VoiceoverOutput(sql.FieldLTE(FieldVideoPath, v))
+}
+
+// VideoPathContains applies the Contains predicate on the "video_path" field.
+func VideoPathContains(v string) predicate.VoiceoverOutput {
+	return predicate.VoiceoverOutput(sql.FieldContains(FieldVideoPath, v))
+}
+
+// VideoPathHasPrefix applies the HasPrefix predicate on the "video_path" field.
+func VideoPathHasPrefix(v string) predicate.VoiceoverOutput {
+	return predicate.VoiceoverOutput(sql.FieldHasPrefix(FieldVideoPath, v))
+}
+
+// VideoPathHasSuffix applies the HasSuffix predicate on the "video_path" field.
+func VideoPathHasSuffix(v string) predicate.VoiceoverOutput {
+	return predicate.VoiceoverOutput(sql.FieldHasSuffix(FieldVideoPath, v))
+}
+
+// VideoPathIsNil applies the IsNil predicate on the "video_path" field.
+func VideoPathIsNil() predicate.VoiceoverOutput {
+	return predicate.VoiceoverOutput(sql.FieldIsNull(FieldVideoPath))
+}
+
+// VideoPathNotNil applies the NotNil predicate on the "video_path" field.
+func VideoPathNotNil() predicate.VoiceoverOutput {
+	return predicate.VoiceoverOutput(sql.FieldNotNull(FieldVideoPath))
+}
+
+// VideoPathEqualFold applies the EqualFold predicate on the "video_path" field.
+func VideoPathEqualFold(v string) predicate.VoiceoverOutput {
+	return predicate.VoiceoverOutput(sql.FieldEqualFold(FieldVideoPath, v))
+}
+
+// VideoPathContainsFold applies the ContainsFold predicate on the "video_path" field.
+func VideoPathContainsFold(v string) predicate.VoiceoverOutput {
+	return predicate.VoiceoverOutput(sql.FieldContainsFold(FieldVideoPath, v))
+}
+
+// AudioArrayIsNil applies the IsNil predicate on the "audio_array" field.
+func AudioArrayIsNil() predicate.VoiceoverOutput {
+	return predicate.VoiceoverOutput(sql.FieldIsNull(FieldAudioArray))
+}
+
+// AudioArrayNotNil applies the NotNil predicate on the "audio_array" field.
+func AudioArrayNotNil() predicate.VoiceoverOutput {
+	return predicate.VoiceoverOutput(sql.FieldNotNull(FieldAudioArray))
 }
 
 // IsFavoritedEQ applies the EQ predicate on the "is_favorited" field.
