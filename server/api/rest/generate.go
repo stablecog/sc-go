@@ -238,31 +238,25 @@ func (c *RestAPI) HandleCreateGeneration(w http.ResponseWriter, r *http.Request)
 			return responses.InsufficientCreditsErr
 		}
 
-		skipSafetyChecker := false
-		skipTranslation := false
-		if generateReq.UseNewSafetyChecker {
-			skipSafetyChecker = true
-			skipTranslation = true
-			// Translate prompts
-			translatedPrompt, translatedNegativePrompt, err := c.SafetyChecker.TranslatePrompt(generateReq.Prompt, generateReq.NegativePrompt)
-			if err != nil {
-				log.Error("Error translating prompt", "err", err)
-				responses.ErrInternalServerError(w, r, "An unknown error has occured")
-				return err
-			}
-			generateReq.Prompt = translatedPrompt
-			generateReq.NegativePrompt = translatedNegativePrompt
-			// Check NSFW
-			isNSFW, reason, err := c.SafetyChecker.IsPromptNSFW(generateReq.Prompt)
-			if err != nil {
-				log.Error("Error checking prompt NSFW", "err", err)
-				responses.ErrInternalServerError(w, r, "An unknown error has occured")
-				return err
-			}
-			if isNSFW {
-				responses.ErrBadRequest(w, r, "nsfw_prompt", reason)
-				return fmt.Errorf("nsfw: %s", reason)
-			}
+		// Translate prompts
+		translatedPrompt, translatedNegativePrompt, err := c.SafetyChecker.TranslatePrompt(generateReq.Prompt, generateReq.NegativePrompt)
+		if err != nil {
+			log.Error("Error translating prompt", "err", err)
+			responses.ErrInternalServerError(w, r, "An unknown error has occured")
+			return err
+		}
+		generateReq.Prompt = translatedPrompt
+		generateReq.NegativePrompt = translatedNegativePrompt
+		// Check NSFW
+		isNSFW, reason, err := c.SafetyChecker.IsPromptNSFW(generateReq.Prompt)
+		if err != nil {
+			log.Error("Error checking prompt NSFW", "err", err)
+			responses.ErrInternalServerError(w, r, "An unknown error has occured")
+			return err
+		}
+		if isNSFW {
+			responses.ErrBadRequest(w, r, "nsfw_prompt", reason)
+			return fmt.Errorf("nsfw: %s", reason)
 		}
 
 		remainingCredits, err = c.Repo.GetNonExpiredCreditTotalForUser(user.ID, DB)
@@ -310,8 +304,8 @@ func (c *RestAPI) HandleCreateGeneration(w http.ResponseWriter, r *http.Request)
 			WebhookEventsFilter: []requests.CogEventFilter{requests.CogEventFilterStart, requests.CogEventFilterStart},
 			WebhookUrl:          fmt.Sprintf("%s/v1/worker/webhook", utils.GetEnv("PUBLIC_API_URL", "")),
 			Input: requests.BaseCogRequest{
-				SkipSafetyChecker:    skipSafetyChecker,
-				SkipTranslation:      skipTranslation,
+				SkipSafetyChecker:    true,
+				SkipTranslation:      true,
 				ID:                   requestId,
 				IP:                   utils.GetIPAddress(r),
 				UIId:                 generateReq.UIId,

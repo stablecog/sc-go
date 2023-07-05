@@ -75,12 +75,12 @@ func (t *TranslatorSafetyChecker) GetTargetFloresCode(inputs []string) ([]string
 // Translator cog types
 type TranslatorCogInput struct {
 	Text1                       string  `json:"text_1"`
-	TextFlores1                 string  `json:"text_flores_1,omitempty"`
+	TextFlores1                 string  `json:"text_flores_1"`
 	TargetFlores1               string  `json:"target_flores_1"`
 	TargetScoreMax1             float64 `json:"target_score_max_1"`
 	DetectedConfidenceScoreMin1 float64 `json:"detected_confidence_score_min_1"`
-	Text2                       string  `json:"text_2,omitempty"`
-	TextFlores2                 string  `json:"text_flores_2,omitempty"`
+	Text2                       string  `json:"text_2"`
+	TextFlores2                 string  `json:"text_flores_2"`
 	TargetFlores2               string  `json:"target_flores_2"`
 	TargetScoreMax2             float64 `json:"target_score_max_2"`
 	DetectedConfidenceScoreMin2 float64 `json:"detected_confidence_score_min_2"`
