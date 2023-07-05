@@ -241,6 +241,8 @@ func (c *RestAPI) HandleCreateGeneration(w http.ResponseWriter, r *http.Request)
 		skipSafetyChecker := false
 		skipTranslation := false
 		if generateReq.UseNewSafetyChecker {
+			skipSafetyChecker = true
+			skipTranslation = true
 			// Translate prompts
 			translatedPrompt, translatedNegativePrompt, err := c.SafetyChecker.TranslatePrompt(generateReq.Prompt, generateReq.NegativePrompt)
 			if err != nil {
