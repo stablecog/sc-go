@@ -5,10 +5,13 @@ import (
 	"encoding/json"
 	"os"
 	"os/signal"
+	"strconv"
+	"strings"
 	"time"
 
 	"github.com/bwmarrin/discordgo"
 	"github.com/go-co-op/gocron"
+	"github.com/google/uuid"
 	"github.com/joho/godotenv"
 	"github.com/stablecog/sc-go/database"
 	"github.com/stablecog/sc-go/database/qdrant"
@@ -143,9 +146,33 @@ func main() {
 				handler(s, i)
 			}
 		case discordgo.InteractionMessageComponent:
-			handler := cmdWrapper.GetHandlerForComponent(i.MessageComponentData().CustomID)
-			if handler != nil {
-				handler(s, i)
+			if strings.HasPrefix(i.MessageComponentData().CustomID, "upscale:") {
+				// String should look like this: upscale:%s:prompt:%s:number:%d
+				splitStr := strings.Split(i.MessageComponentData().CustomID, ":")
+				if len(splitStr) != 6 {
+					log.Error("Invalid upscale custom id, parsing length", "custom_id", i.MessageComponentData().CustomID)
+					return
+				}
+				// Parse uuid
+				outputId, err := uuid.Parse(splitStr[1])
+				if err != nil {
+					log.Error("Invalid upscale custom id, parsing uuid", "custom_id", i.MessageComponentData().CustomID)
+					return
+				}
+				// Get prompt
+				prompt := splitStr[3]
+				// Get number
+				number, err := strconv.Atoi(splitStr[5])
+				if err != nil {
+					log.Error("Invalid upscale custom id, parsing number", "custom_id", i.MessageComponentData().CustomID)
+					return
+				}
+				cmdWrapper.HandleUpscale(s, i, outputId, prompt, number)
+			} else {
+				handler := cmdWrapper.GetHandlerForComponent(i.MessageComponentData().CustomID)
+				if handler != nil {
+					handler(s, i)
+				}
 			}
 		}
 	})

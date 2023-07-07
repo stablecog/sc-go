@@ -24,7 +24,7 @@ func NewDiscordInteractionWrapper(repo *repository.Repository, redis *database.R
 	commands := []*DiscordInteraction{
 		wrapper.NewAuthenticateCommand(),
 		wrapper.NewImageCommand(),
-		wrapper.NewSpeakCommand(),
+		wrapper.NewVoiceoverCommand(),
 	}
 	// Register component responses
 	components := []*DiscordInteraction{}

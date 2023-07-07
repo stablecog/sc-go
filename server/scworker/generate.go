@@ -23,22 +23,13 @@ import (
 	"golang.org/x/exp/slices"
 )
 
-type GenerateError struct {
-	StatusCode int
-
-	Err error
-}
-
-func (r *GenerateError) Error() string {
-	return fmt.Sprintf("status %d: err %v", r.StatusCode, r.Err)
-}
-
 func CreateGeneration(ctx context.Context,
 	repo *repository.Repository,
 	redis *database.RedisWrapper,
 	SMap *shared.SyncMap[chan requests.CogWebhookMessage],
 	qThrottler *shared.UserQueueThrottlerMap,
 	user *ent.User,
+	overrideSubmitToGallery bool,
 	generateReq requests.CreateGenerationRequest) (*responses.ApiSucceededResponse, error) {
 	free := user.ActiveProductID == nil
 	if free {
@@ -55,7 +46,7 @@ func CreateGeneration(ctx context.Context,
 	roles, err := repo.GetRoles(user.ID)
 	if err != nil {
 		log.Error("Error getting roles for user", "err", err)
-		return nil, &GenerateError{http.StatusInternalServerError, err}
+		return nil, &WorkerError{http.StatusInternalServerError, err}
 	}
 	isSuperAdmin := slices.Contains(roles, "SUPER_ADMIN")
 	if isSuperAdmin {
@@ -106,13 +97,13 @@ func CreateGeneration(ctx context.Context,
 	}
 
 	if user.BannedAt != nil {
-		return nil, &GenerateError{http.StatusForbidden, fmt.Errorf("user_banned")}
+		return nil, &WorkerError{http.StatusForbidden, fmt.Errorf("user_banned")}
 	}
 
 	// Validation
 	err = generateReq.Validate(true)
 	if err != nil {
-		return nil, &GenerateError{http.StatusBadRequest, err}
+		return nil, &WorkerError{http.StatusBadRequest, err}
 	}
 
 	// Set settings resp
@@ -137,7 +128,7 @@ func CreateGeneration(ctx context.Context,
 	// 		// Custom image, do some validation on size, format, etc.
 	// 		_, _, err = utils.GetImageWidthHeightFromUrl(generateReq.InitImageUrl, shared.MAX_GENERATE_IMAGE_SIZE)
 	// 		if err != nil {
-	// 			return &GenerateError{http.StatusBadRequest, fmt.Errorf("image_url_width_height_error")}
+	// 			return &WorkerError{http.StatusBadRequest, fmt.Errorf("image_url_width_height_error")}
 	// 		}
 	// 		signedInitImageUrl = generateReq.InitImageUrl
 	// 	} else {
@@ -146,7 +137,7 @@ func CreateGeneration(ctx context.Context,
 	// 		// Hash user ID to see if it belongs to this user
 	// 		uidHash := utils.Sha256(user.ID.String())
 	// 		if !strings.HasPrefix(signedInitImageUrl, fmt.Sprintf("%s/", uidHash)) {
-	// 			return &GenerateError{http.StatusUnauthorized, fmt.Errorf("init_image_not_owned")}
+	// 			return &WorkerError{http.StatusUnauthorized, fmt.Errorf("init_image_not_owned")}
 	// 		}
 	// 		// Verify exists in bucket
 	// 		_, err := c.S3.HeadObject(&s3.HeadObjectInput{
@@ -196,7 +187,7 @@ func CreateGeneration(ctx context.Context,
 		}
 		// If overflow size is greater than max, return error
 		if overflowSize > shared.QUEUE_OVERFLOW_MAX {
-			return nil, &GenerateError{http.StatusBadRequest, fmt.Errorf("queue_limit_reached")}
+			return nil, &WorkerError{http.StatusBadRequest, fmt.Errorf("queue_limit_reached")}
 		}
 		// Overflow size can be 0 so we need to add 1
 		overflowSize++
@@ -221,7 +212,7 @@ func CreateGeneration(ctx context.Context,
 	}
 
 	// Enforce submit to gallery
-	if free {
+	if free || overrideSubmitToGallery {
 		generateReq.SubmitToGallery = true
 	}
 
@@ -235,7 +226,7 @@ func CreateGeneration(ctx context.Context,
 	schedulerName := shared.GetCache().GetSchedulerNameFromID(*generateReq.SchedulerId)
 	if modelName == "" || schedulerName == "" {
 		log.Error("Error getting model or scheduler name: %s - %s", modelName, schedulerName)
-		return nil, &GenerateError{http.StatusBadRequest, fmt.Errorf("invalid_model_or_scheduler")}
+		return nil, &WorkerError{http.StatusBadRequest, fmt.Errorf("invalid_model_or_scheduler")}
 	}
 
 	// Format prompts
@@ -361,7 +352,7 @@ func CreateGeneration(ctx context.Context,
 	}); err != nil {
 		log.Error("Error in transaction", "err", err)
 		// ! TODO fine grain error handling
-		return nil, &GenerateError{http.StatusInternalServerError, err}
+		return nil, &WorkerError{http.StatusInternalServerError, err}
 	}
 
 	// Add channel to sync array (basically a thread-safe map)
@@ -399,7 +390,7 @@ func CreateGeneration(ctx context.Context,
 				err := repo.SetGenerationStarted(requestId.String())
 				if err != nil {
 					log.Error("Failed to set generate started", "id", requestId, "err", err)
-					return nil, &GenerateError{http.StatusInternalServerError, err}
+					return nil, &WorkerError{http.StatusInternalServerError, err}
 				}
 				// Send live page update
 				go func() {
@@ -424,7 +415,7 @@ func CreateGeneration(ctx context.Context,
 				outputs, err := repo.SetGenerationSucceeded(requestId.String(), generateReq.Prompt, generateReq.NegativePrompt, cogMsg.Output, cogMsg.NSFWCount)
 				if err != nil {
 					log.Error("Failed to set generation succeeded", "id", upscale.ID, "err", err)
-					return nil, &GenerateError{http.StatusInternalServerError, err}
+					return nil, &WorkerError{http.StatusInternalServerError, err}
 				}
 				// Send live page update
 				go func() {
@@ -521,7 +512,7 @@ func CreateGeneration(ctx context.Context,
 					return nil
 				}); err != nil {
 					log.Error("Failed to set generation failed", "id", requestId, "err", err)
-					return nil, &GenerateError{http.StatusInternalServerError, err}
+					return nil, &WorkerError{http.StatusInternalServerError, err}
 				}
 
 				// ! TODO
@@ -530,7 +521,7 @@ func CreateGeneration(ctx context.Context,
 				// 	Error:    cogMsg.Error,
 				// 	Settings: initSettings,
 				// })
-				return nil, &GenerateError{http.StatusInternalServerError, errors.New(cogMsg.Error)}
+				return nil, &WorkerError{http.StatusInternalServerError, errors.New(cogMsg.Error)}
 			}
 		case <-time.After(shared.REQUEST_COG_TIMEOUT):
 			if err := repo.WithTx(func(tx *ent.Tx) error {
@@ -548,10 +539,10 @@ func CreateGeneration(ctx context.Context,
 				return nil
 			}); err != nil {
 				log.Error("Failed to set generation failed", "id", requestId, "err", err)
-				return nil, &GenerateError{http.StatusInternalServerError, err}
+				return nil, &WorkerError{http.StatusInternalServerError, err}
 			}
 
-			return nil, &GenerateError{http.StatusInternalServerError, errors.New(shared.TIMEOUT_ERROR)}
+			return nil, &WorkerError{http.StatusInternalServerError, errors.New(shared.TIMEOUT_ERROR)}
 		}
 	}
 }

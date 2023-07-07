@@ -16,7 +16,7 @@ import (
 	"github.com/stablecog/sc-go/utils"
 )
 
-func (c *DiscordInteractionWrapper) NewSpeakCommand() *DiscordInteraction {
+func (c *DiscordInteractionWrapper) NewVoiceoverCommand() *DiscordInteraction {
 	// Get voiceover speakers from DB
 	// Discord has a limit of 25 choices per command
 	speakers, err := c.Repo.GetVoiceverSpeakersWithName(25)
@@ -50,7 +50,7 @@ func (c *DiscordInteractionWrapper) NewSpeakCommand() *DiscordInteraction {
 	return &DiscordInteraction{
 		// Command spec
 		ApplicationCommand: &discordgo.ApplicationCommand{
-			Name:        "speak",
+			Name:        "voice",
 			Description: "Create a voiceover with Stablecog.",
 			Options: []*discordgo.ApplicationCommandOption{
 				{
@@ -116,15 +116,19 @@ func (c *DiscordInteractionWrapper) NewSpeakCommand() *DiscordInteraction {
 						videoUrls = append(videoUrls, *output.VideoFileURL)
 					}
 				}
+				if len(videoUrls) == 0 {
+					log.Errorf("Error creating voiceover: %v", err)
+					responses.ErrorResponseEdit(s, i)
+					return
+				}
 
 				// Send the image
 				_, err = responses.InteractionEdit(s, i, &responses.InteractionResponseOptions{
-					Content:   utils.ToPtr(fmt.Sprintf("<@%s> **%s**", i.Member.User.ID, prompt)),
-					VideoURLs: videoUrls,
-					Embeds:    nil,
+					Content: utils.ToPtr(fmt.Sprintf("<@%s> **%s**\n%s", i.Member.User.ID, prompt, videoUrls[0])),
+					Embeds:  nil,
 					ActionRowOne: []*components.SCDiscordComponent{
-						components.NewLinkButton("🎵MP3", *res.Outputs[0].AudioFileURL),
-						components.NewLinkButton("🎥MP4", *res.Outputs[0].VideoFileURL),
+						components.NewLinkButton("MP3", *res.Outputs[0].AudioFileURL, "🎵"),
+						components.NewLinkButton("MP4", *res.Outputs[0].VideoFileURL, "🎥"),
 					},
 				},
 				)

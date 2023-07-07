@@ -43,9 +43,9 @@ func (d *DiscoDomain) CheckAuthorization(s *discordgo.Session, i *discordgo.Inte
 				EmbedContent: "You must sign in to stablecog before you can use this command.\n\n",
 				EmbedFooter:  "By signing in you agree to our Terms of Service and Privacy Policy.",
 				ActionRowOne: []*components.SCDiscordComponent{
-					components.NewLinkButton("Sign in", fmt.Sprintf("https://stablecog.com/discordlink?token=%s&discord_id=%s", token, i.Member.User.ID)),
-					components.NewLinkButton("Terms of Service", "https://stablecog.com/terms"),
-					components.NewLinkButton("Privacy Policy", "https://stablecog.com/privacy"),
+					components.NewLinkButton("Sign in", fmt.Sprintf("https://stablecog.com/discordlink?token=%s&discord_id=%s", token, i.Member.User.ID), "🔐"),
+					components.NewLinkButton("Terms of Service", "https://stablecog.com/terms", ""),
+					components.NewLinkButton("Privacy Policy", "https://stablecog.com/privacy", ""),
 				},
 				Privacy: responses.PRIVATE,
 			},

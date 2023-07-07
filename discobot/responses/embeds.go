@@ -4,6 +4,9 @@ import "github.com/bwmarrin/discordgo"
 
 const EMBED_PURPLE = 11437547
 
+// Not really transparent, but appears so on dark theme
+const EMBED_TRANSPARENT = 2829617
+
 func NewEmbed(title, description, footer string) *discordgo.MessageEmbed {
 	var footerEmbed *discordgo.MessageEmbedFooter
 	if footer != "" {
@@ -24,7 +27,7 @@ func NewImageEmbed(url string) *discordgo.MessageEmbed {
 		URL: url,
 	}
 	return &discordgo.MessageEmbed{
-		Color: EMBED_PURPLE,
+		Color: EMBED_TRANSPARENT,
 		URL:   "https://stablecog.com",
 		Image: image,
 	}

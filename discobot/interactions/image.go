@@ -5,6 +5,8 @@ import (
 	"fmt"
 
 	"github.com/bwmarrin/discordgo"
+	"github.com/google/uuid"
+	"github.com/stablecog/sc-go/discobot/components"
 	"github.com/stablecog/sc-go/discobot/responses"
 	"github.com/stablecog/sc-go/log"
 	"github.com/stablecog/sc-go/server/requests"
@@ -64,6 +66,7 @@ func (c *DiscordInteractionWrapper) NewImageCommand() *DiscordInteraction {
 					c.SMap,
 					c.QThrottler,
 					u,
+					true,
 					requests.CreateGenerationRequest{
 						Prompt:     prompt,
 						NumOutputs: utils.ToPtr[int32](int32(numOutputs)),
@@ -76,17 +79,20 @@ func (c *DiscordInteractionWrapper) NewImageCommand() *DiscordInteraction {
 				}
 
 				var imageUrls []string
-				for _, output := range res.Outputs {
+				var actionRowOne []*components.SCDiscordComponent
+				for i, output := range res.Outputs {
 					if output.ImageURL != nil {
 						imageUrls = append(imageUrls, *output.ImageURL)
+						actionRowOne = append(actionRowOne, components.NewButton(fmt.Sprintf("Upscale #%d", i+1), fmt.Sprintf("upscale:%s:prompt:%s:number:%d", output.ID.String(), prompt, i+1), "✨"))
 					}
 				}
 
 				// Send the image
 				_, err = responses.InteractionEdit(s, i, &responses.InteractionResponseOptions{
-					Content:   utils.ToPtr(fmt.Sprintf("<@%s> **%s**", i.Member.User.ID, prompt)),
-					ImageURLs: imageUrls,
-					Embeds:    nil,
+					Content:      utils.ToPtr(fmt.Sprintf("<@%s> **%s**", i.Member.User.ID, prompt)),
+					ImageURLs:    imageUrls,
+					Embeds:       nil,
+					ActionRowOne: actionRowOne,
 				},
 				)
 				if err != nil {
@@ -95,5 +101,71 @@ func (c *DiscordInteractionWrapper) NewImageCommand() *DiscordInteraction {
 				}
 			}
 		},
+	}
+}
+
+// Handle upscaling
+func (c *DiscordInteractionWrapper) HandleUpscale(s *discordgo.Session, i *discordgo.InteractionCreate, outputId uuid.UUID, prompt string, number int) {
+	if u := c.Disco.CheckAuthorization(s, i); u != nil {
+		// See if the output is already upscaled, send private response to avoid pollution
+		existingOutput, err := c.Repo.GetPublicGenerationOutput(outputId)
+		if err != nil {
+			log.Errorf("Error getting output: %v", err)
+			responses.ErrorResponseInitial(s, i, responses.PRIVATE)
+			return
+		}
+		if existingOutput.UpscaledImagePath != nil {
+			// Send the image
+			err = responses.InitialInteractionResponse(s, i, &responses.InteractionResponseOptions{
+				Content: utils.ToPtr(fmt.Sprintf("<@%s> ✨ Image has already been upscaled #%d ✅ *\"%s\"* \n%s", i.Member.User.ID, number, prompt, utils.GetURLFromImagePath(*existingOutput.UpscaledImagePath))),
+				Embeds:  nil,
+				Privacy: responses.PRIVATE,
+			})
+			return
+		}
+		// Always create initial message
+		responses.InitialLoadingResponse(s, i, responses.PUBLIC)
+
+		// Create context
+		ctx := context.Background()
+		res, err := scworker.CreateUpscale(
+			ctx,
+			c.Repo,
+			c.Redis,
+			c.SMap,
+			c.QThrottler,
+			u,
+			requests.CreateUpscaleRequest{
+				Input: outputId.String(),
+			},
+		)
+		if err != nil {
+			log.Errorf("Error creating upscale: %v", err)
+			responses.ErrorResponseEdit(s, i)
+			return
+		}
+
+		var upscaledImageUrl string
+		for _, output := range res.Outputs {
+			if output.UpscaledImageURL != nil {
+				upscaledImageUrl = *output.UpscaledImageURL
+			}
+		}
+		if upscaledImageUrl == "" {
+			log.Errorf("Error getting upscaled image url")
+			responses.ErrorResponseEdit(s, i)
+			return
+		}
+
+		// Send the image
+		_, err = responses.InteractionEdit(s, i, &responses.InteractionResponseOptions{
+			Content: utils.ToPtr(fmt.Sprintf("<@%s> ✨ Upscaled #%d ✅ *\"%s\"* \n%s", i.Member.User.ID, number, prompt, upscaledImageUrl)),
+			Embeds:  nil,
+		},
+		)
+		if err != nil {
+			log.Error(err)
+			responses.ErrorResponseEdit(s, i)
+		}
 	}
 }

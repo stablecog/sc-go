@@ -16,15 +16,16 @@ const (
 )
 
 type InteractionResponseOptions struct {
-	Content      *string
-	EmbedTitle   string
-	EmbedContent string
-	EmbedFooter  string
-	ImageURLs    []string
-	VideoURLs    []string
-	Privacy      RESPONSE_PRIVACY
-	Embeds       []*discordgo.MessageEmbed
-	ActionRowOne []*components.SCDiscordComponent
+	Content        *string
+	EmbedTitle     string
+	EmbedContent   string
+	EmbedFooter    string
+	ImageURLs      []string
+	ImageURLsEmbed []string
+	VideoURLs      []string
+	Privacy        RESPONSE_PRIVACY
+	Embeds         []*discordgo.MessageEmbed
+	ActionRowOne   []*components.SCDiscordComponent
 }
 
 // For the first response to an interaction
@@ -47,19 +48,46 @@ func InitialInteractionResponse(s *discordgo.Session, i *discordgo.InteractionCr
 	}
 
 	// Create image embeds
-	for _, url := range options.ImageURLs {
+	for _, url := range options.ImageURLsEmbed {
 		options.Embeds = append(options.Embeds, NewImageEmbed(url))
-	}
-
-	// Create video embeds
-	for _, url := range options.VideoURLs {
-		options.Embeds = append(options.Embeds, NewVideoEmbed(url))
 	}
 
 	// Deref content
 	var content string
 	if options.Content != nil {
 		content = *options.Content
+	}
+
+	// ! TODO ?
+	// Would be nice to be able to attach files without downloading and uploading them to discord
+	files := make([]*discordgo.File, len(options.ImageURLs)+len(options.VideoURLs))
+	for i, url := range options.ImageURLs {
+		response, err := http.Get(url)
+		if err != nil {
+			log.Errorf("Failed to get image: %v", err)
+			return err
+		}
+		defer response.Body.Close()
+
+		files[i] = &discordgo.File{
+			Name:        url,
+			ContentType: "image/jpeg",
+			Reader:      response.Body,
+		}
+	}
+
+	for i, url := range options.VideoURLs {
+		response, err := http.Get(url)
+		if err != nil {
+			log.Errorf("Failed to get video: %v", err)
+			return err
+		}
+		defer response.Body.Close()
+		files[i+len(options.ImageURLs)] = &discordgo.File{
+			Name:        url,
+			ContentType: "video/mp4",
+			Reader:      response.Body,
+		}
 	}
 
 	// Create components
@@ -80,6 +108,7 @@ func InitialInteractionResponse(s *discordgo.Session, i *discordgo.InteractionCr
 			Flags:      flags,
 			Embeds:     options.Embeds,
 			Components: discComponents,
+			Files:      files,
 		},
 	})
 	if err != nil {
@@ -106,6 +135,11 @@ func InteractionEdit(s *discordgo.Session, i *discordgo.InteractionCreate, optio
 	embeds := []*discordgo.MessageEmbed{}
 	if len(options.Embeds) > 0 {
 		embeds = options.Embeds
+	}
+
+	// Create image embeds
+	for _, url := range options.ImageURLsEmbed {
+		embeds = append(options.Embeds, NewImageEmbed(url))
 	}
 
 	// ! TODO ?

@@ -26,3 +26,17 @@ func (r *Repository) GetUserGenerationOutputs(userId uuid.UUID) ([]*ent.Generati
 		generation.UserIDEQ(userId),
 	).QueryGenerationOutputs().All(r.Ctx)
 }
+
+func (r *Repository) GetPromptFromOutputID(outputID uuid.UUID) (string, error) {
+	output, err := r.DB.GenerationOutput.Get(r.Ctx, outputID)
+	if err != nil {
+		return "", err
+	}
+
+	prompt, err := output.QueryGenerations().QueryPrompt().Only(r.Ctx)
+	if err != nil {
+		return "", err
+	}
+
+	return prompt.Text, nil
+}
