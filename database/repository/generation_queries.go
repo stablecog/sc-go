@@ -367,7 +367,7 @@ func (r *Repository) RetrieveGenerationsWithOutputIDs(outputIDs []uuid.UUID, adm
 			}
 		}
 		if g.Edges.Generations.Edges.User != nil {
-			output.Generation.User = &ent.User{
+			output.Generation.User = &UserType{
 				Email: g.Edges.Generations.Edges.User.Email,
 			}
 		}
@@ -829,7 +829,7 @@ func (r *Repository) QueryGenerationsAdmin(per_page int, cursor *time.Time, filt
 			}
 		}
 		if g.Edges.Generations.Edges.User != nil {
-			generationRoot.User = &ent.User{
+			generationRoot.User = &UserType{
 				Email: g.Edges.Generations.Edges.User.Email,
 			}
 		}
@@ -937,6 +937,10 @@ type PromptType struct {
 	Text string    `json:"text"`
 }
 
+type UserType struct {
+	Email string `json:"email"`
+}
+
 type GenerationQueryWithOutputsData struct {
 	ID                 uuid.UUID                 `json:"id" sql:"id"`
 	Height             int32                     `json:"height" sql:"height"`
@@ -962,7 +966,7 @@ type GenerationQueryWithOutputsData struct {
 	WasAutoSubmitted   bool                      `json:"was_auto_submitted" sql:"was_auto_submitted"`
 	InitImageURL       string                    `json:"init_image_url,omitempty" sql:"init_image_url"`
 	InitImageURLSigned string                    `json:"init_image_url_signed,omitempty"`
-	User               *ent.User                 `json:"user,omitempty"`
+	User               *UserType                 `json:"user,omitempty"`
 }
 
 type GenerationQueryWithOutputsResult struct {
