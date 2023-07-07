@@ -29,6 +29,20 @@ func (vsc *VoiceoverSpeakerCreate) SetNameInWorker(s string) *VoiceoverSpeakerCr
 	return vsc
 }
 
+// SetName sets the "name" field.
+func (vsc *VoiceoverSpeakerCreate) SetName(s string) *VoiceoverSpeakerCreate {
+	vsc.mutation.SetName(s)
+	return vsc
+}
+
+// SetNillableName sets the "name" field if the given value is not nil.
+func (vsc *VoiceoverSpeakerCreate) SetNillableName(s *string) *VoiceoverSpeakerCreate {
+	if s != nil {
+		vsc.SetName(*s)
+	}
+	return vsc
+}
+
 // SetIsActive sets the "is_active" field.
 func (vsc *VoiceoverSpeakerCreate) SetIsActive(b bool) *VoiceoverSpeakerCreate {
 	vsc.mutation.SetIsActive(b)
@@ -297,6 +311,10 @@ func (vsc *VoiceoverSpeakerCreate) createSpec() (*VoiceoverSpeaker, *sqlgraph.Cr
 	if value, ok := vsc.mutation.NameInWorker(); ok {
 		_spec.SetField(voiceoverspeaker.FieldNameInWorker, field.TypeString, value)
 		_node.NameInWorker = value
+	}
+	if value, ok := vsc.mutation.Name(); ok {
+		_spec.SetField(voiceoverspeaker.FieldName, field.TypeString, value)
+		_node.Name = &value
 	}
 	if value, ok := vsc.mutation.IsActive(); ok {
 		_spec.SetField(voiceoverspeaker.FieldIsActive, field.TypeBool, value)

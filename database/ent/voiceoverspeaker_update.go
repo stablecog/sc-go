@@ -38,6 +38,26 @@ func (vsu *VoiceoverSpeakerUpdate) SetNameInWorker(s string) *VoiceoverSpeakerUp
 	return vsu
 }
 
+// SetName sets the "name" field.
+func (vsu *VoiceoverSpeakerUpdate) SetName(s string) *VoiceoverSpeakerUpdate {
+	vsu.mutation.SetName(s)
+	return vsu
+}
+
+// SetNillableName sets the "name" field if the given value is not nil.
+func (vsu *VoiceoverSpeakerUpdate) SetNillableName(s *string) *VoiceoverSpeakerUpdate {
+	if s != nil {
+		vsu.SetName(*s)
+	}
+	return vsu
+}
+
+// ClearName clears the value of the "name" field.
+func (vsu *VoiceoverSpeakerUpdate) ClearName() *VoiceoverSpeakerUpdate {
+	vsu.mutation.ClearName()
+	return vsu
+}
+
 // SetIsActive sets the "is_active" field.
 func (vsu *VoiceoverSpeakerUpdate) SetIsActive(b bool) *VoiceoverSpeakerUpdate {
 	vsu.mutation.SetIsActive(b)
@@ -238,6 +258,12 @@ func (vsu *VoiceoverSpeakerUpdate) sqlSave(ctx context.Context) (n int, err erro
 	if value, ok := vsu.mutation.NameInWorker(); ok {
 		_spec.SetField(voiceoverspeaker.FieldNameInWorker, field.TypeString, value)
 	}
+	if value, ok := vsu.mutation.Name(); ok {
+		_spec.SetField(voiceoverspeaker.FieldName, field.TypeString, value)
+	}
+	if vsu.mutation.NameCleared() {
+		_spec.ClearField(voiceoverspeaker.FieldName, field.TypeString)
+	}
 	if value, ok := vsu.mutation.IsActive(); ok {
 		_spec.SetField(voiceoverspeaker.FieldIsActive, field.TypeBool, value)
 	}
@@ -367,6 +393,26 @@ type VoiceoverSpeakerUpdateOne struct {
 // SetNameInWorker sets the "name_in_worker" field.
 func (vsuo *VoiceoverSpeakerUpdateOne) SetNameInWorker(s string) *VoiceoverSpeakerUpdateOne {
 	vsuo.mutation.SetNameInWorker(s)
+	return vsuo
+}
+
+// SetName sets the "name" field.
+func (vsuo *VoiceoverSpeakerUpdateOne) SetName(s string) *VoiceoverSpeakerUpdateOne {
+	vsuo.mutation.SetName(s)
+	return vsuo
+}
+
+// SetNillableName sets the "name" field if the given value is not nil.
+func (vsuo *VoiceoverSpeakerUpdateOne) SetNillableName(s *string) *VoiceoverSpeakerUpdateOne {
+	if s != nil {
+		vsuo.SetName(*s)
+	}
+	return vsuo
+}
+
+// ClearName clears the value of the "name" field.
+func (vsuo *VoiceoverSpeakerUpdateOne) ClearName() *VoiceoverSpeakerUpdateOne {
+	vsuo.mutation.ClearName()
 	return vsuo
 }
 
@@ -593,6 +639,12 @@ func (vsuo *VoiceoverSpeakerUpdateOne) sqlSave(ctx context.Context) (_node *Voic
 	}
 	if value, ok := vsuo.mutation.NameInWorker(); ok {
 		_spec.SetField(voiceoverspeaker.FieldNameInWorker, field.TypeString, value)
+	}
+	if value, ok := vsuo.mutation.Name(); ok {
+		_spec.SetField(voiceoverspeaker.FieldName, field.TypeString, value)
+	}
+	if vsuo.mutation.NameCleared() {
+		_spec.ClearField(voiceoverspeaker.FieldName, field.TypeString)
 	}
 	if value, ok := vsuo.mutation.IsActive(); ok {
 		_spec.SetField(voiceoverspeaker.FieldIsActive, field.TypeBool, value)

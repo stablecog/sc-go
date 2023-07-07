@@ -29,3 +29,14 @@ func NewImageEmbed(url string) *discordgo.MessageEmbed {
 		Image: image,
 	}
 }
+
+func NewVideoEmbed(url string) *discordgo.MessageEmbed {
+	video := &discordgo.MessageEmbedVideo{
+		URL: url,
+	}
+	return &discordgo.MessageEmbed{
+		Color: EMBED_PURPLE,
+		URL:   "https://stablecog.com",
+		Video: video,
+	}
+}

@@ -986,6 +986,7 @@ CREATE TABLE "public"."voiceover_speakers"
      KEY ("model_id") REFERENCES "public"."voiceover_models" ("id") ON UPDATE no
      action ON DELETE CASCADE
   );
+alter table public.voiceover_speakers add column name text;
 
 CREATE trigger handle_updated_at before
 UPDATE

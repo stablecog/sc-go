@@ -84,14 +84,14 @@ func (c *DiscordInteractionWrapper) NewImageCommand() *DiscordInteraction {
 
 				// Send the image
 				_, err = responses.InteractionEdit(s, i, &responses.InteractionResponseOptions{
-					Content:    utils.ToPtr(fmt.Sprintf("<@%s> **%s**", i.Member.User.ID, prompt)),
-					ImageURLs:  imageUrls,
-					Embeds:     nil,
-					Components: nil,
+					Content:   utils.ToPtr(fmt.Sprintf("<@%s> **%s**", i.Member.User.ID, prompt)),
+					ImageURLs: imageUrls,
+					Embeds:    nil,
 				},
 				)
 				if err != nil {
 					log.Error(err)
+					responses.ErrorResponseEdit(s, i)
 				}
 			}
 		},

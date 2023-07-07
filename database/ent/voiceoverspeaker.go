@@ -20,6 +20,8 @@ type VoiceoverSpeaker struct {
 	ID uuid.UUID `json:"id,omitempty"`
 	// NameInWorker holds the value of the "name_in_worker" field.
 	NameInWorker string `json:"name_in_worker,omitempty"`
+	// Name holds the value of the "name" field.
+	Name *string `json:"name,omitempty"`
 	// IsActive holds the value of the "is_active" field.
 	IsActive bool `json:"is_active,omitempty"`
 	// IsDefault holds the value of the "is_default" field.
@@ -79,7 +81,7 @@ func (*VoiceoverSpeaker) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case voiceoverspeaker.FieldIsActive, voiceoverspeaker.FieldIsDefault, voiceoverspeaker.FieldIsHidden:
 			values[i] = new(sql.NullBool)
-		case voiceoverspeaker.FieldNameInWorker, voiceoverspeaker.FieldLocale:
+		case voiceoverspeaker.FieldNameInWorker, voiceoverspeaker.FieldName, voiceoverspeaker.FieldLocale:
 			values[i] = new(sql.NullString)
 		case voiceoverspeaker.FieldCreatedAt, voiceoverspeaker.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
@@ -111,6 +113,13 @@ func (vs *VoiceoverSpeaker) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field name_in_worker", values[i])
 			} else if value.Valid {
 				vs.NameInWorker = value.String
+			}
+		case voiceoverspeaker.FieldName:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field name", values[i])
+			} else if value.Valid {
+				vs.Name = new(string)
+				*vs.Name = value.String
 			}
 		case voiceoverspeaker.FieldIsActive:
 			if value, ok := values[i].(*sql.NullBool); !ok {
@@ -194,6 +203,11 @@ func (vs *VoiceoverSpeaker) String() string {
 	builder.WriteString(fmt.Sprintf("id=%v, ", vs.ID))
 	builder.WriteString("name_in_worker=")
 	builder.WriteString(vs.NameInWorker)
+	builder.WriteString(", ")
+	if v := vs.Name; v != nil {
+		builder.WriteString("name=")
+		builder.WriteString(*v)
+	}
 	builder.WriteString(", ")
 	builder.WriteString("is_active=")
 	builder.WriteString(fmt.Sprintf("%v", vs.IsActive))

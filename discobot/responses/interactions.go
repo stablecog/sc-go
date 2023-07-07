@@ -1,7 +1,10 @@
 package responses
 
 import (
+	"net/http"
+
 	"github.com/bwmarrin/discordgo"
+	"github.com/stablecog/sc-go/discobot/components"
 	"github.com/stablecog/sc-go/log"
 )
 
@@ -18,9 +21,10 @@ type InteractionResponseOptions struct {
 	EmbedContent string
 	EmbedFooter  string
 	ImageURLs    []string
+	VideoURLs    []string
 	Privacy      RESPONSE_PRIVACY
 	Embeds       []*discordgo.MessageEmbed
-	Components   []discordgo.MessageComponent
+	ActionRowOne []*components.SCDiscordComponent
 }
 
 // For the first response to an interaction
@@ -47,10 +51,26 @@ func InitialInteractionResponse(s *discordgo.Session, i *discordgo.InteractionCr
 		options.Embeds = append(options.Embeds, NewImageEmbed(url))
 	}
 
+	// Create video embeds
+	for _, url := range options.VideoURLs {
+		options.Embeds = append(options.Embeds, NewVideoEmbed(url))
+	}
+
 	// Deref content
 	var content string
 	if options.Content != nil {
 		content = *options.Content
+	}
+
+	// Create components
+	discComponents := []discordgo.MessageComponent{}
+	if len(options.ActionRowOne) > 0 {
+		actionRowOne, err := components.NewActionRow(options.ActionRowOne...)
+		if err != nil {
+			log.Errorf("Failed to create action row: %v", err)
+			return err
+		}
+		discComponents = append(discComponents, actionRowOne)
 	}
 
 	err := s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
@@ -59,7 +79,7 @@ func InitialInteractionResponse(s *discordgo.Session, i *discordgo.InteractionCr
 			Content:    content,
 			Flags:      flags,
 			Embeds:     options.Embeds,
-			Components: options.Components,
+			Components: discComponents,
 		},
 	})
 	if err != nil {
@@ -82,25 +102,60 @@ func InteractionEdit(s *discordgo.Session, i *discordgo.InteractionCreate, optio
 		options.Embeds = append(options.Embeds, NewEmbed(options.EmbedTitle, options.EmbedContent, options.EmbedFooter))
 	}
 
-	// Create image embeds
-	for _, url := range options.ImageURLs {
-		options.Embeds = append(options.Embeds, NewImageEmbed(url))
+	// Embeds and components as pointers
+	embeds := []*discordgo.MessageEmbed{}
+	if len(options.Embeds) > 0 {
+		embeds = options.Embeds
 	}
 
-	// Embeds and components as pointers
-	var embeds *[]*discordgo.MessageEmbed
-	var components *[]discordgo.MessageComponent
-	if len(options.Embeds) > 0 {
-		embeds = &options.Embeds
+	// ! TODO ?
+	// Would be nice to be able to attach files without downloading and uploading them to discord
+	files := make([]*discordgo.File, len(options.ImageURLs)+len(options.VideoURLs))
+	for i, url := range options.ImageURLs {
+		response, err := http.Get(url)
+		if err != nil {
+			log.Errorf("Failed to get image: %v", err)
+			return nil, err
+		}
+		defer response.Body.Close()
+
+		files[i] = &discordgo.File{
+			Name:        url,
+			ContentType: "image/jpeg",
+			Reader:      response.Body,
+		}
 	}
-	if len(options.Components) > 0 {
-		components = &options.Components
+
+	for i, url := range options.VideoURLs {
+		response, err := http.Get(url)
+		if err != nil {
+			log.Errorf("Failed to get video: %v", err)
+			return nil, err
+		}
+		defer response.Body.Close()
+		files[i+len(options.ImageURLs)] = &discordgo.File{
+			Name:        url,
+			ContentType: "video/mp4",
+			Reader:      response.Body,
+		}
+	}
+
+	// Create components
+	discComponents := []discordgo.MessageComponent{}
+	if len(options.ActionRowOne) > 0 {
+		actionRowOne, err := components.NewActionRow(options.ActionRowOne...)
+		if err != nil {
+			log.Errorf("Failed to create action row: %v", err)
+			return nil, err
+		}
+		discComponents = append(discComponents, actionRowOne)
 	}
 
 	resp, err := s.InteractionResponseEdit(i.Interaction, &discordgo.WebhookEdit{
 		Content:    options.Content,
-		Components: components,
-		Embeds:     embeds,
+		Components: &discComponents,
+		Embeds:     &embeds,
+		Files:      files,
 	})
 	if err != nil {
 		log.Errorf("Failed to edit interaction response: %v", err)

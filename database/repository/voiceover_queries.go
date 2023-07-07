@@ -323,6 +323,10 @@ func (r *Repository) QueryVoiceovers(per_page int, cursor *time.Time, filters *r
 	return meta, err
 }
 
+func (r *Repository) GetVoiceverSpeakersWithName(limit int) ([]*ent.VoiceoverSpeaker, error) {
+	return r.DB.VoiceoverSpeaker.Query().Where(voiceoverspeaker.NameNotNil(), voiceoverspeaker.IsActiveEQ(true)).Limit(limit).Order(ent.Desc(voiceoverspeaker.FieldIsDefault)).All(r.Ctx)
+}
+
 type VoiceoverQueryWithOutputsResult struct {
 	OutputID      *uuid.UUID `json:"output_id,omitempty" sql:"output_id"`
 	AudioFileUrl  string     `json:"audio_file_url,omitempty" sql:"audio_path"`

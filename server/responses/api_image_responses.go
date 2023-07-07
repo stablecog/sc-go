@@ -8,6 +8,7 @@ type ApiOutput struct {
 	ImageURL         *string   `json:"image_url,omitempty"`
 	UpscaledImageURL *string   `json:"upscaled_image_url,omitempty"`
 	AudioFileURL     *string   `json:"audio_file_url,omitempty"`
+	VideoFileURL     *string   `json:"video_file_url,omitempty"`
 	AudioDuration    *float32  `json:"audio_duration,omitempty"`
 }
 

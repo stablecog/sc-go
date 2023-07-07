@@ -607,6 +607,7 @@ var (
 	VoiceoverSpeakersColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID},
 		{Name: "name_in_worker", Type: field.TypeString, Size: 2147483647},
+		{Name: "name", Type: field.TypeString, Nullable: true, Size: 2147483647},
 		{Name: "is_active", Type: field.TypeBool, Default: true},
 		{Name: "is_default", Type: field.TypeBool, Default: false},
 		{Name: "is_hidden", Type: field.TypeBool, Default: false},
@@ -623,7 +624,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "voiceover_speakers_voiceover_models_voiceover_speakers",
-				Columns:    []*schema.Column{VoiceoverSpeakersColumns[8]},
+				Columns:    []*schema.Column{VoiceoverSpeakersColumns[9]},
 				RefColumns: []*schema.Column{VoiceoverModelsColumns[0]},
 				OnDelete:   schema.Cascade,
 			},
@@ -632,7 +633,7 @@ var (
 			{
 				Name:    "voiceoverspeaker_name_in_worker_model_id",
 				Unique:  true,
-				Columns: []*schema.Column{VoiceoverSpeakersColumns[1], VoiceoverSpeakersColumns[8]},
+				Columns: []*schema.Column{VoiceoverSpeakersColumns[1], VoiceoverSpeakersColumns[9]},
 			},
 		},
 	}

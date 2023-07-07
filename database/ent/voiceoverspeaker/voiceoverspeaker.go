@@ -15,6 +15,8 @@ const (
 	FieldID = "id"
 	// FieldNameInWorker holds the string denoting the name_in_worker field in the database.
 	FieldNameInWorker = "name_in_worker"
+	// FieldName holds the string denoting the name field in the database.
+	FieldName = "name"
 	// FieldIsActive holds the string denoting the is_active field in the database.
 	FieldIsActive = "is_active"
 	// FieldIsDefault holds the string denoting the is_default field in the database.
@@ -55,6 +57,7 @@ const (
 var Columns = []string{
 	FieldID,
 	FieldNameInWorker,
+	FieldName,
 	FieldIsActive,
 	FieldIsDefault,
 	FieldIsHidden,

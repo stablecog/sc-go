@@ -22,6 +22,7 @@ func (VoiceoverSpeaker) Fields() []ent.Field {
 	return []ent.Field{
 		field.UUID("id", uuid.UUID{}).Default(uuid.New),
 		field.Text("name_in_worker"),
+		field.Text("name").Optional().Nillable(),
 		field.Bool("is_active").Default(true),
 		field.Bool("is_default").Default(false),
 		field.Bool("is_hidden").Default(false),

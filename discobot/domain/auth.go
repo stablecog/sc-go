@@ -35,23 +35,25 @@ func (d *DiscoDomain) CheckAuthorization(s *discordgo.Session, i *discordgo.Inte
 			return nil
 		}
 
-		urlComponent, err := components.AuthComponent("Sign in", fmt.Sprintf("https://stablecog.com/discord?token=%s&discord_id=%s", token, i.Member.User.ID))
-		if err != nil {
-			log.Errorf("Failed to create URL component %v", err)
-			responses.ErrorResponseInitial(s, i, responses.PRIVATE)
-			return nil
-		}
 		// Get duration as minutes
-		responses.InitialInteractionResponse(s,
+		err = responses.InitialInteractionResponse(s,
 			i,
 			&responses.InteractionResponseOptions{
 				EmbedTitle:   "🔐 Authentication Required",
 				EmbedContent: "You must sign in to stablecog before you can use this command.\n\n",
 				EmbedFooter:  "By signing in you agree to our Terms of Service and Privacy Policy.",
-				Components:   []discordgo.MessageComponent{urlComponent},
-				Privacy:      responses.PRIVATE,
+				ActionRowOne: []*components.SCDiscordComponent{
+					components.NewLinkButton("Sign in", fmt.Sprintf("https://stablecog.com/discordlink?token=%s&discord_id=%s", token, i.Member.User.ID)),
+					components.NewLinkButton("Terms of Service", "https://stablecog.com/terms"),
+					components.NewLinkButton("Privacy Policy", "https://stablecog.com/privacy"),
+				},
+				Privacy: responses.PRIVATE,
 			},
 		)
+		if err != nil {
+			responses.ErrorResponseInitial(s, i, responses.PRIVATE)
+			return nil
+		}
 		// Delete message when link expires
 		time.AfterFunc(shared.DISCORD_VERIFY_TOKEN_EXPIRY, func() {
 			s.InteractionResponseDelete(i.Interaction)

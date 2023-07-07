@@ -19822,6 +19822,7 @@ type VoiceoverSpeakerMutation struct {
 	typ                     string
 	id                      *uuid.UUID
 	name_in_worker          *string
+	name                    *string
 	is_active               *bool
 	is_default              *bool
 	is_hidden               *bool
@@ -19977,6 +19978,55 @@ func (m *VoiceoverSpeakerMutation) OldNameInWorker(ctx context.Context) (v strin
 // ResetNameInWorker resets all changes to the "name_in_worker" field.
 func (m *VoiceoverSpeakerMutation) ResetNameInWorker() {
 	m.name_in_worker = nil
+}
+
+// SetName sets the "name" field.
+func (m *VoiceoverSpeakerMutation) SetName(s string) {
+	m.name = &s
+}
+
+// Name returns the value of the "name" field in the mutation.
+func (m *VoiceoverSpeakerMutation) Name() (r string, exists bool) {
+	v := m.name
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldName returns the old "name" field's value of the VoiceoverSpeaker entity.
+// If the VoiceoverSpeaker object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *VoiceoverSpeakerMutation) OldName(ctx context.Context) (v *string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldName is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldName requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldName: %w", err)
+	}
+	return oldValue.Name, nil
+}
+
+// ClearName clears the value of the "name" field.
+func (m *VoiceoverSpeakerMutation) ClearName() {
+	m.name = nil
+	m.clearedFields[voiceoverspeaker.FieldName] = struct{}{}
+}
+
+// NameCleared returns if the "name" field was cleared in this mutation.
+func (m *VoiceoverSpeakerMutation) NameCleared() bool {
+	_, ok := m.clearedFields[voiceoverspeaker.FieldName]
+	return ok
+}
+
+// ResetName resets all changes to the "name" field.
+func (m *VoiceoverSpeakerMutation) ResetName() {
+	m.name = nil
+	delete(m.clearedFields, voiceoverspeaker.FieldName)
 }
 
 // SetIsActive sets the "is_active" field.
@@ -20358,9 +20408,12 @@ func (m *VoiceoverSpeakerMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *VoiceoverSpeakerMutation) Fields() []string {
-	fields := make([]string, 0, 8)
+	fields := make([]string, 0, 9)
 	if m.name_in_worker != nil {
 		fields = append(fields, voiceoverspeaker.FieldNameInWorker)
+	}
+	if m.name != nil {
+		fields = append(fields, voiceoverspeaker.FieldName)
 	}
 	if m.is_active != nil {
 		fields = append(fields, voiceoverspeaker.FieldIsActive)
@@ -20393,6 +20446,8 @@ func (m *VoiceoverSpeakerMutation) Field(name string) (ent.Value, bool) {
 	switch name {
 	case voiceoverspeaker.FieldNameInWorker:
 		return m.NameInWorker()
+	case voiceoverspeaker.FieldName:
+		return m.Name()
 	case voiceoverspeaker.FieldIsActive:
 		return m.IsActive()
 	case voiceoverspeaker.FieldIsDefault:
@@ -20418,6 +20473,8 @@ func (m *VoiceoverSpeakerMutation) OldField(ctx context.Context, name string) (e
 	switch name {
 	case voiceoverspeaker.FieldNameInWorker:
 		return m.OldNameInWorker(ctx)
+	case voiceoverspeaker.FieldName:
+		return m.OldName(ctx)
 	case voiceoverspeaker.FieldIsActive:
 		return m.OldIsActive(ctx)
 	case voiceoverspeaker.FieldIsDefault:
@@ -20447,6 +20504,13 @@ func (m *VoiceoverSpeakerMutation) SetField(name string, value ent.Value) error 
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetNameInWorker(v)
+		return nil
+	case voiceoverspeaker.FieldName:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetName(v)
 		return nil
 	case voiceoverspeaker.FieldIsActive:
 		v, ok := value.(bool)
@@ -20526,7 +20590,11 @@ func (m *VoiceoverSpeakerMutation) AddField(name string, value ent.Value) error 
 // ClearedFields returns all nullable fields that were cleared during this
 // mutation.
 func (m *VoiceoverSpeakerMutation) ClearedFields() []string {
-	return nil
+	var fields []string
+	if m.FieldCleared(voiceoverspeaker.FieldName) {
+		fields = append(fields, voiceoverspeaker.FieldName)
+	}
+	return fields
 }
 
 // FieldCleared returns a boolean indicating if a field with the given name was
@@ -20539,6 +20607,11 @@ func (m *VoiceoverSpeakerMutation) FieldCleared(name string) bool {
 // ClearField clears the value of the field with the given name. It returns an
 // error if the field is not defined in the schema.
 func (m *VoiceoverSpeakerMutation) ClearField(name string) error {
+	switch name {
+	case voiceoverspeaker.FieldName:
+		m.ClearName()
+		return nil
+	}
 	return fmt.Errorf("unknown VoiceoverSpeaker nullable field %s", name)
 }
 
@@ -20548,6 +20621,9 @@ func (m *VoiceoverSpeakerMutation) ResetField(name string) error {
 	switch name {
 	case voiceoverspeaker.FieldNameInWorker:
 		m.ResetNameInWorker()
+		return nil
+	case voiceoverspeaker.FieldName:
+		m.ResetName()
 		return nil
 	case voiceoverspeaker.FieldIsActive:
 		m.ResetIsActive()
