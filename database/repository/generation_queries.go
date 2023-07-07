@@ -287,10 +287,13 @@ type UserGenCount struct {
 // Get user generations in the *GenerationQueryWithOutputsMeta format
 // Using a list of generation_output ids
 // For when we semantic search against our vector db
-func (r *Repository) RetrieveGenerationsWithOutputIDs(outputIDs []uuid.UUID) (*GenerationQueryWithOutputsMeta[*uint], error) {
+func (r *Repository) RetrieveGenerationsWithOutputIDs(outputIDs []uuid.UUID, admin bool) (*GenerationQueryWithOutputsMeta[*uint], error) {
 	gQueryResult, err := r.DB.GenerationOutput.Query().Where(generationoutput.IDIn(outputIDs...)).WithGenerations(func(gq *ent.GenerationQuery) {
 		gq.WithPrompt()
 		gq.WithNegativePrompt()
+		if admin {
+			gq.WithUser()
+		}
 	}).All(r.Ctx)
 	if err != nil {
 		log.Errorf("Error retrieving generation outputs %v", err)
@@ -361,6 +364,11 @@ func (r *Repository) RetrieveGenerationsWithOutputIDs(outputIDs []uuid.UUID) (*G
 			output.Generation.NegativePrompt = &PromptType{
 				Text: g.Edges.Generations.Edges.NegativePrompt.Text,
 				ID:   *g.Edges.Generations.NegativePromptID,
+			}
+		}
+		if g.Edges.Generations.Edges.User != nil {
+			output.Generation.User = &ent.User{
+				Email: g.Edges.Generations.Edges.User.Email,
 			}
 		}
 		generationOutputMap[g.ID] = append(generationOutputMap[g.ID], gOutput)
@@ -731,6 +739,7 @@ func (r *Repository) QueryGenerationsAdmin(per_page int, cursor *time.Time, filt
 	query := r.DB.GenerationOutput.Query().Where(generationoutput.IDIn(outputIDs...)).WithGenerations(func(s *ent.GenerationQuery) {
 		s.WithPrompt()
 		s.WithNegativePrompt()
+		s.WithUser()
 		s.WithGenerationOutputs(func(goq *ent.GenerationOutputQuery) {
 			if filters == nil || (filters != nil && filters.Order == requests.SortOrderDescending) {
 				goq = goq.Order(ent.Desc(orderByOutput...))
@@ -817,6 +826,11 @@ func (r *Repository) QueryGenerationsAdmin(per_page int, cursor *time.Time, filt
 			generationRoot.Prompt = PromptType{
 				Text: g.Edges.Generations.Edges.Prompt.Text,
 				ID:   *g.Edges.Generations.PromptID,
+			}
+		}
+		if g.Edges.Generations.Edges.User != nil {
+			generationRoot.User = &ent.User{
+				Email: g.Edges.Generations.Edges.User.Email,
 			}
 		}
 
@@ -948,6 +962,7 @@ type GenerationQueryWithOutputsData struct {
 	WasAutoSubmitted   bool                      `json:"was_auto_submitted" sql:"was_auto_submitted"`
 	InitImageURL       string                    `json:"init_image_url,omitempty" sql:"init_image_url"`
 	InitImageURLSigned string                    `json:"init_image_url_signed,omitempty"`
+	User               *ent.User                 `json:"user,omitempty"`
 }
 
 type GenerationQueryWithOutputsResult struct {
