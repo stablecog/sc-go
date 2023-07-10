@@ -174,6 +174,7 @@ func (c *RestAPI) HandleVoiceover(w http.ResponseWriter, r *http.Request) {
 			voiceoverReq,
 			user.ActiveProductID,
 			nil,
+			false,
 			DB)
 		if err != nil {
 			log.Error("Error creating voiceover", "err", err)

@@ -282,6 +282,7 @@ func (c *RestAPI) HandleCreateUpscaleToken(w http.ResponseWriter, r *http.Reques
 			user.ActiveProductID,
 			false,
 			&apiToken.ID,
+			false,
 			DB)
 		if err != nil {
 			log.Error("Error creating upscale", "err", err)

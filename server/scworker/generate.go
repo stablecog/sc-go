@@ -311,6 +311,7 @@ func CreateGeneration(ctx context.Context,
 			generateReq,
 			user.ActiveProductID,
 			nil,
+			source == shared.OperationSourceTypeDiscord,
 			DB)
 		if err != nil {
 			log.Error("Error creating generation", "err", err)
@@ -331,7 +332,7 @@ func CreateGeneration(ctx context.Context,
 			Height:           generateReq.Height,
 			CreatedAt:        g.CreatedAt,
 			ProductID:        user.ActiveProductID,
-			Source:           shared.OperationSourceTypeAPI,
+			Source:           source,
 		}
 
 		cogReqBody = requests.CogQueueRequest{

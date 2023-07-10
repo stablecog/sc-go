@@ -15,7 +15,7 @@ import (
 
 // CreateGeneration creates the initial generation in the database
 // Takes in a userID (creator),  device info, countryCode, and a request body
-func (r *Repository) CreateGeneration(userID uuid.UUID, deviceType, deviceOs, deviceBrowser, countryCode string, req requests.CreateGenerationRequest, productId *string, apiTokenId *uuid.UUID, DB *ent.Client) (*ent.Generation, error) {
+func (r *Repository) CreateGeneration(userID uuid.UUID, deviceType, deviceOs, deviceBrowser, countryCode string, req requests.CreateGenerationRequest, productId *string, apiTokenId *uuid.UUID, fromDiscord bool, DB *ent.Client) (*ent.Generation, error) {
 	if DB == nil {
 		DB = r.DB
 	}
@@ -37,7 +37,8 @@ func (r *Repository) CreateGeneration(userID uuid.UUID, deviceType, deviceOs, de
 		SetCountryCode(countryCode).
 		SetUserID(userID).
 		SetWasAutoSubmitted(req.SubmitToGallery).
-		SetNumOutputs(*req.NumOutputs)
+		SetNumOutputs(*req.NumOutputs).
+		SetFromDiscord(fromDiscord)
 	if productId != nil {
 		insert.SetStripeProductID(*productId)
 	}

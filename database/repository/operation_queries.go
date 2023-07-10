@@ -8,6 +8,7 @@ import (
 	"github.com/stablecog/sc-go/database/ent"
 	"github.com/stablecog/sc-go/database/ent/generation"
 	"github.com/stablecog/sc-go/database/ent/upscale"
+	"github.com/stablecog/sc-go/database/ent/voiceover"
 	"github.com/stablecog/sc-go/log"
 	"github.com/stablecog/sc-go/shared"
 )
@@ -24,7 +25,8 @@ func (r *Repository) QueryUserOperations(userId uuid.UUID, limit int, cursor *ti
 		generation.FieldCompletedAt,
 		generation.FieldAPITokenID,
 		generation.FieldNumOutputs,
-	).Where(generation.StatusEQ(generation.StatusSucceeded), generation.UserIDEQ(userId), generation.StartedAtNotNil(), generation.CompletedAtNotIn())
+		generation.FieldFromDiscord,
+	).Where(generation.StatusEQ(generation.StatusSucceeded), generation.UserIDEQ(userId), generation.StartedAtNotNil(), generation.CompletedAtNotNil())
 	if cursor != nil {
 		query = query.Where(generation.CreatedAtLT(*cursor))
 	}
@@ -44,7 +46,8 @@ func (r *Repository) QueryUserOperations(userId uuid.UUID, limit int, cursor *ti
 		upscale.FieldStartedAt,
 		upscale.FieldCompletedAt,
 		upscale.FieldAPITokenID,
-	).Where(upscale.StatusEQ(upscale.StatusSucceeded), upscale.UserIDEQ(userId), upscale.StartedAtNotNil(), upscale.CompletedAtNotIn())
+		upscale.FieldFromDiscord,
+	).Where(upscale.StatusEQ(upscale.StatusSucceeded), upscale.UserIDEQ(userId), upscale.StartedAtNotNil(), upscale.CompletedAtNotNil())
 	if cursor != nil {
 		uQuery = uQuery.Where(upscale.CreatedAtLT(*cursor))
 	}
@@ -55,11 +58,34 @@ func (r *Repository) QueryUserOperations(userId uuid.UUID, limit int, cursor *ti
 		return nil, err
 	}
 
+	// Query voiceovers
+	voQuery := r.DB.Voiceover.Query().Select(
+		voiceover.FieldID,
+		voiceover.FieldStatus,
+		voiceover.FieldUserID,
+		voiceover.FieldCreatedAt,
+		voiceover.FieldStartedAt,
+		voiceover.FieldCompletedAt,
+		voiceover.FieldAPITokenID,
+		voiceover.FieldFromDiscord,
+	).Where(voiceover.StatusEQ(voiceover.StatusSucceeded), voiceover.UserIDEQ(userId), voiceover.StartedAtNotNil(), voiceover.CompletedAtNotNil())
+	if cursor != nil {
+		voQuery = voQuery.Where(voiceover.CreatedAtLT(*cursor))
+	}
+	voQuery = voQuery.Order(ent.Desc(voiceover.FieldCreatedAt)).Limit(limit + 1)
+	vos, err := voQuery.All(r.Ctx)
+	if err != nil {
+		log.Error("QueryUserOperations query voiceovers error", "err", err)
+		return nil, err
+	}
+
 	operationQueryResult := []OperationQueryResult{}
 	for _, g := range gens {
 		source := shared.OperationSourceTypeWebUI
 		if g.APITokenID != nil {
 			source = shared.OperationSourceTypeAPI
+		} else if g.FromDiscord {
+			source = shared.OperationSourceTypeDiscord
 		}
 		operationQueryResult = append(operationQueryResult, OperationQueryResult{
 			ID:            g.ID,
@@ -76,6 +102,8 @@ func (r *Repository) QueryUserOperations(userId uuid.UUID, limit int, cursor *ti
 		source := shared.OperationSourceTypeWebUI
 		if u.APITokenID != nil {
 			source = shared.OperationSourceTypeAPI
+		} else if u.FromDiscord {
+			source = shared.OperationSourceTypeDiscord
 		}
 		// Is upscale
 		operationQueryResult = append(operationQueryResult, OperationQueryResult{
@@ -84,6 +112,25 @@ func (r *Repository) QueryUserOperations(userId uuid.UUID, limit int, cursor *ti
 			CreatedAt:     u.CreatedAt,
 			StartedAt:     *u.StartedAt,
 			CompletedAt:   *u.CompletedAt,
+			Source:        source,
+			NumOutputs:    1, // ! Always 1 for now
+		})
+	}
+
+	for _, vo := range vos {
+		source := shared.OperationSourceTypeWebUI
+		if vo.APITokenID != nil {
+			source = shared.OperationSourceTypeAPI
+		} else if vo.FromDiscord {
+			source = shared.OperationSourceTypeDiscord
+		}
+		// Is voiceover
+		operationQueryResult = append(operationQueryResult, OperationQueryResult{
+			ID:            vo.ID,
+			OperationType: shared.VOICEOVER,
+			CreatedAt:     vo.CreatedAt,
+			StartedAt:     *vo.StartedAt,
+			CompletedAt:   *vo.CompletedAt,
 			Source:        source,
 			NumOutputs:    1, // ! Always 1 for now
 		})

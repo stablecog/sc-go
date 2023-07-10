@@ -221,6 +221,7 @@ func (c *RestAPI) HandleCreateVoiceoverToken(w http.ResponseWriter, r *http.Requ
 			voiceoverReq,
 			user.ActiveProductID,
 			&apiToken.ID,
+			false,
 			DB)
 		if err != nil {
 			log.Error("Error creating voiceover", "err", err)

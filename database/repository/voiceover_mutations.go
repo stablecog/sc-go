@@ -15,7 +15,7 @@ import (
 
 // CreateVoiceover creates the initial voiceover in the database
 // Takes in a userID (creator),  device info, countryCode, and a request body
-func (r *Repository) CreateVoiceover(userID uuid.UUID, deviceType, deviceOs, deviceBrowser, countryCode string, req requests.CreateVoiceoverRequest, productId *string, apiTokenId *uuid.UUID, DB *ent.Client) (*ent.Voiceover, error) {
+func (r *Repository) CreateVoiceover(userID uuid.UUID, deviceType, deviceOs, deviceBrowser, countryCode string, req requests.CreateVoiceoverRequest, productId *string, apiTokenId *uuid.UUID, fromDiscord bool, DB *ent.Client) (*ent.Voiceover, error) {
 	if DB == nil {
 		DB = r.DB
 	}
@@ -34,7 +34,8 @@ func (r *Repository) CreateVoiceover(userID uuid.UUID, deviceType, deviceOs, dev
 		SetUserID(userID).
 		SetSeed(*req.Seed).
 		SetWasAutoSubmitted(req.SubmitToGallery).
-		SetCost(utils.CalculateVoiceoverCredits(req.Prompt))
+		SetCost(utils.CalculateVoiceoverCredits(req.Prompt)).
+		SetFromDiscord(fromDiscord)
 	if req.DenoiseAudio != nil {
 		insert.SetDenoiseAudio(*req.DenoiseAudio)
 	}

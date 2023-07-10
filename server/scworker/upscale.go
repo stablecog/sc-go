@@ -283,6 +283,7 @@ func CreateUpscale(ctx context.Context,
 			user.ActiveProductID,
 			false,
 			nil,
+			source == shared.OperationSourceTypeDiscord,
 			DB)
 		if err != nil {
 			log.Error("Error creating upscale", "err", err)

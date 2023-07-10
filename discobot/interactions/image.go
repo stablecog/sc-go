@@ -30,8 +30,8 @@ func (c *DiscordInteractionWrapper) NewImageCommand() *DiscordInteraction {
 				},
 				{
 					Type:        discordgo.ApplicationCommandOptionInteger,
-					Name:        "num-outputs",
-					Description: "The number of outputs to generate.",
+					Name:        "image-count",
+					Description: "The number of images to generate.",
 					Required:    false,
 				},
 			},
@@ -53,7 +53,7 @@ func (c *DiscordInteractionWrapper) NewImageCommand() *DiscordInteraction {
 					switch option.Name {
 					case "prompt":
 						prompt = option.StringValue()
-					case "num-outputs":
+					case "image-count":
 						numOutputs = int(option.IntValue())
 					}
 				}
@@ -87,7 +87,7 @@ func (c *DiscordInteractionWrapper) NewImageCommand() *DiscordInteraction {
 				for i, output := range res.Outputs {
 					if output.ImageURL != nil {
 						imageUrls = append(imageUrls, *output.ImageURL)
-						actionRowOne = append(actionRowOne, components.NewButton(fmt.Sprintf("Upscale #%d", i+1), fmt.Sprintf("upscale:%s:prompt:%s:number:%d", output.ID.String(), prompt, i+1), "✨"))
+						actionRowOne = append(actionRowOne, components.NewButton(fmt.Sprintf("Upscale #%d", i+1), fmt.Sprintf("upscale:%s:number:%d", output.ID.String(), i+1), "✨"))
 					}
 				}
 
@@ -109,7 +109,7 @@ func (c *DiscordInteractionWrapper) NewImageCommand() *DiscordInteraction {
 }
 
 // Handle upscaling
-func (c *DiscordInteractionWrapper) HandleUpscale(s *discordgo.Session, i *discordgo.InteractionCreate, outputId uuid.UUID, prompt string, number int) {
+func (c *DiscordInteractionWrapper) HandleUpscale(s *discordgo.Session, i *discordgo.InteractionCreate, outputId uuid.UUID, number int) {
 	if u := c.Disco.CheckAuthorization(s, i); u != nil {
 		// See if the output is already upscaled, send private response to avoid pollution
 		existingOutput, err := c.Repo.GetPublicGenerationOutput(outputId)
@@ -121,7 +121,7 @@ func (c *DiscordInteractionWrapper) HandleUpscale(s *discordgo.Session, i *disco
 		if existingOutput.UpscaledImagePath != nil {
 			// Send the image
 			err = responses.InitialInteractionResponse(s, i, &responses.InteractionResponseOptions{
-				Content: utils.ToPtr(fmt.Sprintf("<@%s> ✨ Image has already been upscaled #%d ✅ *\"%s\"* \n%s", i.Member.User.ID, number, prompt, utils.GetURLFromImagePath(*existingOutput.UpscaledImagePath))),
+				Content: utils.ToPtr(fmt.Sprintf("<@%s> ✨ Image has already been upscaled #%d ✅ \n%s", i.Member.User.ID, number, utils.GetURLFromImagePath(*existingOutput.UpscaledImagePath))),
 				Embeds:  nil,
 				Privacy: responses.PRIVATE,
 			})
@@ -165,7 +165,7 @@ func (c *DiscordInteractionWrapper) HandleUpscale(s *discordgo.Session, i *disco
 
 		// Send the image
 		_, err = responses.InteractionEdit(s, i, &responses.InteractionResponseOptions{
-			Content: utils.ToPtr(fmt.Sprintf("<@%s> ✨ Upscaled #%d ✅ *\"%s\"* \n%s", i.Member.User.ID, number, prompt, upscaledImageUrl)),
+			Content: utils.ToPtr(fmt.Sprintf("<@%s> ✨ Upscaled #%d ✅ \n%s", i.Member.User.ID, number, upscaledImageUrl)),
 			Embeds:  nil,
 		},
 		)

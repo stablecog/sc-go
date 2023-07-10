@@ -276,6 +276,7 @@ func (c *RestAPI) HandleCreateGeneration(w http.ResponseWriter, r *http.Request)
 			generateReq,
 			user.ActiveProductID,
 			nil,
+			false,
 			DB)
 		if err != nil {
 			log.Error("Error creating generation", "err", err)

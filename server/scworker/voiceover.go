@@ -210,6 +210,7 @@ func CreateVoiceover(ctx context.Context,
 			voiceoverReq,
 			user.ActiveProductID,
 			nil,
+			source == shared.OperationSourceTypeDiscord,
 			DB)
 		if err != nil {
 			log.Error("Error creating voiceover", "err", err)
@@ -228,7 +229,7 @@ func CreateVoiceover(ctx context.Context,
 			TargetNumOutputs: 1,
 			CreatedAt:        voiceover.CreatedAt,
 			ProductID:        user.ActiveProductID,
-			Source:           shared.OperationSourceTypeAPI,
+			Source:           source,
 			SpeakerID:        voiceoverReq.SpeakerId,
 			RemoveSilence:    voiceoverReq.RemoveSilence,
 			DenoiseAudio:     voiceoverReq.DenoiseAudio,

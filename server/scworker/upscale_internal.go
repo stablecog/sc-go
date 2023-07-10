@@ -66,6 +66,7 @@ func CreateUpscaleInternal(Track *analytics.AnalyticsService, Repo *repository.R
 			user.ActiveProductID,
 			true,
 			nil,
+			false,
 			DB)
 		if err != nil {
 			log.Error("Error creating upscale", "err", err)

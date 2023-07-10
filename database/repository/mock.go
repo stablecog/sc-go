@@ -160,7 +160,7 @@ func (repo *Repository) CreateMockData(ctx context.Context) error {
 		SchedulerId:    utils.ToPtr(uuid.MustParse(MOCK_SCHEDULER_ID)),
 		Seed:           utils.ToPtr(1234),
 		NumOutputs:     utils.ToPtr[int32](3),
-	}, nil, nil, nil)
+	}, nil, nil, false, nil)
 	if err != nil {
 		return err
 	}
@@ -198,7 +198,7 @@ func (repo *Repository) CreateMockData(ctx context.Context) error {
 		Seed:            utils.ToPtr(1234),
 		NumOutputs:      utils.ToPtr[int32](1),
 		SubmitToGallery: true,
-	}, nil, nil, nil)
+	}, nil, nil, false, nil)
 	if err != nil {
 		return err
 	}
@@ -234,7 +234,7 @@ func (repo *Repository) CreateMockData(ctx context.Context) error {
 		SchedulerId:    utils.ToPtr(uuid.MustParse(MOCK_SCHEDULER_ID)),
 		Seed:           utils.ToPtr(1234),
 		NumOutputs:     utils.ToPtr[int32](1),
-	}, nil, nil, nil)
+	}, nil, nil, false, nil)
 	if err != nil {
 		return err
 	}
@@ -258,7 +258,7 @@ func (repo *Repository) CreateMockData(ctx context.Context) error {
 		SchedulerId:    utils.ToPtr(uuid.MustParse(MOCK_SCHEDULER_ID)),
 		Seed:           utils.ToPtr(1234),
 		NumOutputs:     utils.ToPtr[int32](1),
-	}, nil, nil, nil)
+	}, nil, nil, false, nil)
 	if err != nil {
 		return err
 	}
@@ -276,7 +276,7 @@ func (repo *Repository) CreateMockData(ctx context.Context) error {
 		SpeakerId:   utils.ToPtr(uuid.MustParse(MOCK_VOICEOVER_SPEAKER_ID)),
 		Seed:        utils.ToPtr(1234),
 		Temperature: utils.ToPtr(float32(0.5)),
-	}, nil, nil, nil)
+	}, nil, nil, false, nil)
 	if err != nil {
 		return err
 	}
@@ -310,7 +310,7 @@ func (repo *Repository) CreateMockGenerationForDeletion(ctx context.Context) (*e
 		SchedulerId:    utils.ToPtr(uuid.MustParse(MOCK_SCHEDULER_ID)),
 		Seed:           utils.ToPtr(1234),
 		NumOutputs:     utils.ToPtr[int32](1),
-	}, nil, nil, nil)
+	}, nil, nil, false, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -343,7 +343,7 @@ func (repo *Repository) CreateMockUpscaleForDeletion(ctx context.Context) (*ent.
 		Type:    utils.ToPtr(requests.UpscaleRequestTypeOutput),
 		ModelId: utils.ToPtr(uuid.MustParse(MOCK_UPSCALE_MODEL_ID)),
 		Input:   uuid.NewString(),
-	}, nil, false, nil, nil)
+	}, nil, false, nil, false, nil)
 	if err != nil {
 		return nil, err
 	}

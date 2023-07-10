@@ -332,6 +332,7 @@ func (c *RestAPI) HandleCreateGenerationToken(w http.ResponseWriter, r *http.Req
 			generateReq,
 			user.ActiveProductID,
 			&apiToken.ID,
+			false,
 			DB)
 		if err != nil {
 			log.Error("Error creating generation", "err", err)

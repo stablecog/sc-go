@@ -221,6 +221,7 @@ func (c *RestAPI) HandleUpscale(w http.ResponseWriter, r *http.Request) {
 			user.ActiveProductID,
 			false,
 			nil,
+			false,
 			DB)
 		if err != nil {
 			log.Error("Error creating upscale", "err", err)

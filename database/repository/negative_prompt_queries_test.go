@@ -50,7 +50,7 @@ func TestGetUsersUniqueNegativePromptIds(t *testing.T) {
 	}
 	g2.ApplyDefaults()
 
-	gen1, err := MockRepo.CreateGeneration(uuid.MustParse(MOCK_ADMIN_UUID), "browser", "macos", "chrome", "DE", g1, nil, nil, nil)
+	gen1, err := MockRepo.CreateGeneration(uuid.MustParse(MOCK_ADMIN_UUID), "browser", "macos", "chrome", "DE", g1, nil, nil, false, nil)
 	assert.Nil(t, err)
 	assert.NotNil(t, gen1)
 	_, err = MockRepo.SetGenerationSucceeded(gen1.ID.String(), "TestGetUsersUniqueNegativePromptIds_1", "TestGetUsersUniqueNegativePromptIds_1", requests.CogWebhookOutput{
@@ -61,7 +61,7 @@ func TestGetUsersUniqueNegativePromptIds(t *testing.T) {
 	assert.Nil(t, err)
 
 	// 2 different users, same prompt
-	gen2, err := MockRepo.CreateGeneration(uuid.MustParse(MOCK_NORMAL_UUID), "browser", "macos", "chrome", "DE", g2, nil, nil, nil)
+	gen2, err := MockRepo.CreateGeneration(uuid.MustParse(MOCK_NORMAL_UUID), "browser", "macos", "chrome", "DE", g2, nil, nil, false, nil)
 	assert.Nil(t, err)
 	assert.NotNil(t, gen2)
 	_, err = MockRepo.SetGenerationSucceeded(gen2.ID.String(), "TestGetUsersUniqueNegativePromptIds_2", "TestGetUsersUniqueNegativePromptIds_2", requests.CogWebhookOutput{
@@ -71,7 +71,7 @@ func TestGetUsersUniqueNegativePromptIds(t *testing.T) {
 	}, 0)
 	assert.Nil(t, err)
 
-	gen3, err := MockRepo.CreateGeneration(uuid.MustParse(MOCK_ADMIN_UUID), "browser", "macos", "chrome", "DE", g2, nil, nil, nil)
+	gen3, err := MockRepo.CreateGeneration(uuid.MustParse(MOCK_ADMIN_UUID), "browser", "macos", "chrome", "DE", g2, nil, nil, false, nil)
 	assert.Nil(t, err)
 	assert.NotNil(t, gen3)
 	_, err = MockRepo.SetGenerationSucceeded(gen3.ID.String(), "TestGetUsersUniqueNegativePromptIds_2", "TestGetUsersUniqueNegativePromptIds_2", requests.CogWebhookOutput{
