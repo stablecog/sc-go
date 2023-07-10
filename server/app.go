@@ -411,7 +411,7 @@ func main() {
 			r.Get("/", hc.HandleGetUser)
 
 			// Link to discord
-			r.Post("/discordverify", hc.HandleAuthorizeDiscord)
+			r.Post("/connect/discord", hc.HandleAuthorizeDiscord)
 
 			// Create Generation
 			r.Post("/image/generation/create", hc.HandleCreateGeneration)

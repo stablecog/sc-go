@@ -31,7 +31,7 @@ func (c *RestAPI) HandleAuthorizeDiscord(w http.ResponseWriter, r *http.Request)
 	}
 
 	// Verify token exists in redis and is valid
-	token, err := c.Redis.GetDiscordTokenFromID(authReq.DiscordID)
+	token, err := c.Redis.GetDiscordTokenFromID(authReq.UserID)
 	if err != nil {
 		if err == redis.Nil {
 			responses.ErrBadRequest(w, r, "invalid_token", "The token provided is invalid")
@@ -42,7 +42,7 @@ func (c *RestAPI) HandleAuthorizeDiscord(w http.ResponseWriter, r *http.Request)
 			return
 		}
 	}
-	if token != authReq.DiscordToken {
+	if token != authReq.Token {
 		render.Status(r, http.StatusForbidden)
 		render.JSON(w, r, &responses.ErrorResponse{
 			Error: "invalid_token",
@@ -51,7 +51,7 @@ func (c *RestAPI) HandleAuthorizeDiscord(w http.ResponseWriter, r *http.Request)
 	}
 
 	// See if user already exists with this ID
-	u, err := c.Repo.GetUserByDiscordID(authReq.DiscordID)
+	u, err := c.Repo.GetUserByDiscordID(authReq.UserID)
 	if err != nil && !ent.IsNotFound(err) {
 		log.Errorf("Error checking for existing discord user: %v", err)
 		responses.ErrInternalServerError(w, r, "An unknown error has occured")
@@ -64,7 +64,7 @@ func (c *RestAPI) HandleAuthorizeDiscord(w http.ResponseWriter, r *http.Request)
 	}
 
 	// Update user with discord ID
-	err = c.Repo.SetDiscordID(user.ID, authReq.DiscordID)
+	err = c.Repo.SetDiscordID(user.ID, authReq.UserID)
 	if err != nil {
 		log.Errorf("Error setting discord ID: %v", err)
 		responses.ErrInternalServerError(w, r, "An unknown error has occured")
@@ -72,7 +72,7 @@ func (c *RestAPI) HandleAuthorizeDiscord(w http.ResponseWriter, r *http.Request)
 	}
 
 	// Delete token from redis
-	err = c.Redis.DeleteDiscordToken(authReq.DiscordID)
+	err = c.Redis.DeleteDiscordToken(authReq.UserID)
 	if err != nil {
 		log.Warnf("Error deleting discord token: %v", err)
 	}
