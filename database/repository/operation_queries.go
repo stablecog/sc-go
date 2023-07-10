@@ -68,6 +68,7 @@ func (r *Repository) QueryUserOperations(userId uuid.UUID, limit int, cursor *ti
 		voiceover.FieldCompletedAt,
 		voiceover.FieldAPITokenID,
 		voiceover.FieldFromDiscord,
+		voiceover.FieldCost,
 	).Where(voiceover.StatusEQ(voiceover.StatusSucceeded), voiceover.UserIDEQ(userId), voiceover.StartedAtNotNil(), voiceover.CompletedAtNotNil())
 	if cursor != nil {
 		voQuery = voQuery.Where(voiceover.CreatedAtLT(*cursor))
@@ -95,6 +96,7 @@ func (r *Repository) QueryUserOperations(userId uuid.UUID, limit int, cursor *ti
 			CompletedAt:   *g.CompletedAt,
 			Source:        source,
 			NumOutputs:    int(g.NumOutputs),
+			Cost:          g.NumOutputs,
 		})
 	}
 
@@ -114,6 +116,7 @@ func (r *Repository) QueryUserOperations(userId uuid.UUID, limit int, cursor *ti
 			CompletedAt:   *u.CompletedAt,
 			Source:        source,
 			NumOutputs:    1, // ! Always 1 for now
+			Cost:          1,
 		})
 	}
 
@@ -133,6 +136,7 @@ func (r *Repository) QueryUserOperations(userId uuid.UUID, limit int, cursor *ti
 			CompletedAt:   *vo.CompletedAt,
 			Source:        source,
 			NumOutputs:    1, // ! Always 1 for now
+			Cost:          vo.Cost,
 		})
 	}
 
@@ -159,24 +163,6 @@ func (r *Repository) QueryUserOperations(userId uuid.UUID, limit int, cursor *ti
 	}, nil
 }
 
-type OperationQueryResultRaw struct {
-	ID                 *uuid.UUID `json:"id" sql:"id"`
-	Status             *string    `json:"status" sql:"status"`
-	UserID             *uuid.UUID `json:"user_id" sql:"user_id"`
-	CreatedAt          *time.Time `json:"created_at" sql:"created_at"`
-	StartedAt          *time.Time `json:"started_at" sql:"started_at"`
-	CompletedAt        *time.Time `json:"completed_at" sql:"completed_at"`
-	ApiTokenID         *uuid.UUID `json:"api_token_id" sql:"api_token_id"`
-	NumOutputs         *int       `json:"num_outputs" sql:"num_outputs"`
-	UpscaleID          *uuid.UUID `json:"upscale_id" sql:"upscale_id"`
-	UpscaleStatus      *string    `json:"upscale_status" sql:"upscale_status"`
-	UpscaleUserID      *uuid.UUID `json:"upscale_user_id" sql:"upscale_user_id"`
-	UpscaleCreatedAt   *time.Time `json:"upscale_created_at" sql:"upscale_created_at"`
-	UpscaleStartedAt   *time.Time `json:"upscale_started_at" sql:"upscale_started_at"`
-	UpscaleCompletedAt *time.Time `json:"upscale_completed_at" sql:"upscale_completed_at"`
-	UpscaleApiTokenID  *uuid.UUID `json:"upscale_api_token_id" sql:"upscale_api_token_id"`
-}
-
 type OperationType string
 
 const (
@@ -191,6 +177,7 @@ type OperationQueryResult struct {
 	StartedAt     time.Time                  `json:"started_at"`
 	CompletedAt   time.Time                  `json:"completed_at"`
 	NumOutputs    int                        `json:"num_outputs"`
+	Cost          int32                      `json:"cost"`
 	Source        shared.OperationSourceType `json:"source"`
 }
 

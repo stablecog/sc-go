@@ -111,6 +111,7 @@ func (c *DiscordInteractionWrapper) NewImageCommand() *DiscordInteraction {
 // Handle upscaling
 func (c *DiscordInteractionWrapper) HandleUpscale(s *discordgo.Session, i *discordgo.InteractionCreate, outputId uuid.UUID, number int) {
 	if u := c.Disco.CheckAuthorization(s, i); u != nil {
+		// Disable the button
 		// See if the output is already upscaled, send private response to avoid pollution
 		existingOutput, err := c.Repo.GetPublicGenerationOutput(outputId)
 		if err != nil {
