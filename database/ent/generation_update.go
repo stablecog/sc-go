@@ -22,6 +22,7 @@ import (
 	"github.com/stablecog/sc-go/database/ent/prompt"
 	"github.com/stablecog/sc-go/database/ent/scheduler"
 	"github.com/stablecog/sc-go/database/ent/user"
+	"github.com/stablecog/sc-go/database/enttypes"
 )
 
 // GenerationUpdate is the builder for updating Generation entities.
@@ -264,6 +265,20 @@ func (gu *GenerationUpdate) ClearStripeProductID() *GenerationUpdate {
 	return gu
 }
 
+// SetSourceType sets the "source_type" field.
+func (gu *GenerationUpdate) SetSourceType(et enttypes.SourceType) *GenerationUpdate {
+	gu.mutation.SetSourceType(et)
+	return gu
+}
+
+// SetNillableSourceType sets the "source_type" field if the given value is not nil.
+func (gu *GenerationUpdate) SetNillableSourceType(et *enttypes.SourceType) *GenerationUpdate {
+	if et != nil {
+		gu.SetSourceType(*et)
+	}
+	return gu
+}
+
 // SetPromptID sets the "prompt_id" field.
 func (gu *GenerationUpdate) SetPromptID(u uuid.UUID) *GenerationUpdate {
 	gu.mutation.SetPromptID(u)
@@ -345,20 +360,6 @@ func (gu *GenerationUpdate) SetNillableAPITokenID(u *uuid.UUID) *GenerationUpdat
 // ClearAPITokenID clears the value of the "api_token_id" field.
 func (gu *GenerationUpdate) ClearAPITokenID() *GenerationUpdate {
 	gu.mutation.ClearAPITokenID()
-	return gu
-}
-
-// SetFromDiscord sets the "from_discord" field.
-func (gu *GenerationUpdate) SetFromDiscord(b bool) *GenerationUpdate {
-	gu.mutation.SetFromDiscord(b)
-	return gu
-}
-
-// SetNillableFromDiscord sets the "from_discord" field if the given value is not nil.
-func (gu *GenerationUpdate) SetNillableFromDiscord(b *bool) *GenerationUpdate {
-	if b != nil {
-		gu.SetFromDiscord(*b)
-	}
 	return gu
 }
 
@@ -589,6 +590,11 @@ func (gu *GenerationUpdate) check() error {
 			return &ValidationError{Name: "status", err: fmt.Errorf(`ent: validator failed for field "Generation.status": %w`, err)}
 		}
 	}
+	if v, ok := gu.mutation.SourceType(); ok {
+		if err := generation.SourceTypeValidator(v); err != nil {
+			return &ValidationError{Name: "source_type", err: fmt.Errorf(`ent: validator failed for field "Generation.source_type": %w`, err)}
+		}
+	}
 	if _, ok := gu.mutation.DeviceInfoID(); gu.mutation.DeviceInfoCleared() && !ok {
 		return errors.New(`ent: clearing a required unique edge "Generation.device_info"`)
 	}
@@ -712,8 +718,8 @@ func (gu *GenerationUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if gu.mutation.StripeProductIDCleared() {
 		_spec.ClearField(generation.FieldStripeProductID, field.TypeString)
 	}
-	if value, ok := gu.mutation.FromDiscord(); ok {
-		_spec.SetField(generation.FieldFromDiscord, field.TypeBool, value)
+	if value, ok := gu.mutation.SourceType(); ok {
+		_spec.SetField(generation.FieldSourceType, field.TypeEnum, value)
 	}
 	if value, ok := gu.mutation.StartedAt(); ok {
 		_spec.SetField(generation.FieldStartedAt, field.TypeTime, value)
@@ -1277,6 +1283,20 @@ func (guo *GenerationUpdateOne) ClearStripeProductID() *GenerationUpdateOne {
 	return guo
 }
 
+// SetSourceType sets the "source_type" field.
+func (guo *GenerationUpdateOne) SetSourceType(et enttypes.SourceType) *GenerationUpdateOne {
+	guo.mutation.SetSourceType(et)
+	return guo
+}
+
+// SetNillableSourceType sets the "source_type" field if the given value is not nil.
+func (guo *GenerationUpdateOne) SetNillableSourceType(et *enttypes.SourceType) *GenerationUpdateOne {
+	if et != nil {
+		guo.SetSourceType(*et)
+	}
+	return guo
+}
+
 // SetPromptID sets the "prompt_id" field.
 func (guo *GenerationUpdateOne) SetPromptID(u uuid.UUID) *GenerationUpdateOne {
 	guo.mutation.SetPromptID(u)
@@ -1358,20 +1378,6 @@ func (guo *GenerationUpdateOne) SetNillableAPITokenID(u *uuid.UUID) *GenerationU
 // ClearAPITokenID clears the value of the "api_token_id" field.
 func (guo *GenerationUpdateOne) ClearAPITokenID() *GenerationUpdateOne {
 	guo.mutation.ClearAPITokenID()
-	return guo
-}
-
-// SetFromDiscord sets the "from_discord" field.
-func (guo *GenerationUpdateOne) SetFromDiscord(b bool) *GenerationUpdateOne {
-	guo.mutation.SetFromDiscord(b)
-	return guo
-}
-
-// SetNillableFromDiscord sets the "from_discord" field if the given value is not nil.
-func (guo *GenerationUpdateOne) SetNillableFromDiscord(b *bool) *GenerationUpdateOne {
-	if b != nil {
-		guo.SetFromDiscord(*b)
-	}
 	return guo
 }
 
@@ -1609,6 +1615,11 @@ func (guo *GenerationUpdateOne) check() error {
 			return &ValidationError{Name: "status", err: fmt.Errorf(`ent: validator failed for field "Generation.status": %w`, err)}
 		}
 	}
+	if v, ok := guo.mutation.SourceType(); ok {
+		if err := generation.SourceTypeValidator(v); err != nil {
+			return &ValidationError{Name: "source_type", err: fmt.Errorf(`ent: validator failed for field "Generation.source_type": %w`, err)}
+		}
+	}
 	if _, ok := guo.mutation.DeviceInfoID(); guo.mutation.DeviceInfoCleared() && !ok {
 		return errors.New(`ent: clearing a required unique edge "Generation.device_info"`)
 	}
@@ -1749,8 +1760,8 @@ func (guo *GenerationUpdateOne) sqlSave(ctx context.Context) (_node *Generation,
 	if guo.mutation.StripeProductIDCleared() {
 		_spec.ClearField(generation.FieldStripeProductID, field.TypeString)
 	}
-	if value, ok := guo.mutation.FromDiscord(); ok {
-		_spec.SetField(generation.FieldFromDiscord, field.TypeBool, value)
+	if value, ok := guo.mutation.SourceType(); ok {
+		_spec.SetField(generation.FieldSourceType, field.TypeEnum, value)
 	}
 	if value, ok := guo.mutation.StartedAt(); ok {
 		_spec.SetField(generation.FieldStartedAt, field.TypeTime, value)

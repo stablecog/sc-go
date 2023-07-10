@@ -21,6 +21,7 @@ import (
 	"github.com/stablecog/sc-go/database/ent/voiceovermodel"
 	"github.com/stablecog/sc-go/database/ent/voiceoveroutput"
 	"github.com/stablecog/sc-go/database/ent/voiceoverspeaker"
+	"github.com/stablecog/sc-go/database/enttypes"
 )
 
 // VoiceoverUpdate is the builder for updating Voiceover entities.
@@ -184,6 +185,20 @@ func (vu *VoiceoverUpdate) AddCost(i int32) *VoiceoverUpdate {
 	return vu
 }
 
+// SetSourceType sets the "source_type" field.
+func (vu *VoiceoverUpdate) SetSourceType(et enttypes.SourceType) *VoiceoverUpdate {
+	vu.mutation.SetSourceType(et)
+	return vu
+}
+
+// SetNillableSourceType sets the "source_type" field if the given value is not nil.
+func (vu *VoiceoverUpdate) SetNillableSourceType(et *enttypes.SourceType) *VoiceoverUpdate {
+	if et != nil {
+		vu.SetSourceType(*et)
+	}
+	return vu
+}
+
 // SetPromptID sets the "prompt_id" field.
 func (vu *VoiceoverUpdate) SetPromptID(u uuid.UUID) *VoiceoverUpdate {
 	vu.mutation.SetPromptID(u)
@@ -245,20 +260,6 @@ func (vu *VoiceoverUpdate) SetNillableAPITokenID(u *uuid.UUID) *VoiceoverUpdate 
 // ClearAPITokenID clears the value of the "api_token_id" field.
 func (vu *VoiceoverUpdate) ClearAPITokenID() *VoiceoverUpdate {
 	vu.mutation.ClearAPITokenID()
-	return vu
-}
-
-// SetFromDiscord sets the "from_discord" field.
-func (vu *VoiceoverUpdate) SetFromDiscord(b bool) *VoiceoverUpdate {
-	vu.mutation.SetFromDiscord(b)
-	return vu
-}
-
-// SetNillableFromDiscord sets the "from_discord" field if the given value is not nil.
-func (vu *VoiceoverUpdate) SetNillableFromDiscord(b *bool) *VoiceoverUpdate {
-	if b != nil {
-		vu.SetFromDiscord(*b)
-	}
 	return vu
 }
 
@@ -484,6 +485,11 @@ func (vu *VoiceoverUpdate) check() error {
 			return &ValidationError{Name: "status", err: fmt.Errorf(`ent: validator failed for field "Voiceover.status": %w`, err)}
 		}
 	}
+	if v, ok := vu.mutation.SourceType(); ok {
+		if err := voiceover.SourceTypeValidator(v); err != nil {
+			return &ValidationError{Name: "source_type", err: fmt.Errorf(`ent: validator failed for field "Voiceover.source_type": %w`, err)}
+		}
+	}
 	if _, ok := vu.mutation.UserID(); vu.mutation.UserCleared() && !ok {
 		return errors.New(`ent: clearing a required unique edge "Voiceover.user"`)
 	}
@@ -574,8 +580,8 @@ func (vu *VoiceoverUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if value, ok := vu.mutation.AddedCost(); ok {
 		_spec.AddField(voiceover.FieldCost, field.TypeInt32, value)
 	}
-	if value, ok := vu.mutation.FromDiscord(); ok {
-		_spec.SetField(voiceover.FieldFromDiscord, field.TypeBool, value)
+	if value, ok := vu.mutation.SourceType(); ok {
+		_spec.SetField(voiceover.FieldSourceType, field.TypeEnum, value)
 	}
 	if value, ok := vu.mutation.StartedAt(); ok {
 		_spec.SetField(voiceover.FieldStartedAt, field.TypeTime, value)
@@ -1025,6 +1031,20 @@ func (vuo *VoiceoverUpdateOne) AddCost(i int32) *VoiceoverUpdateOne {
 	return vuo
 }
 
+// SetSourceType sets the "source_type" field.
+func (vuo *VoiceoverUpdateOne) SetSourceType(et enttypes.SourceType) *VoiceoverUpdateOne {
+	vuo.mutation.SetSourceType(et)
+	return vuo
+}
+
+// SetNillableSourceType sets the "source_type" field if the given value is not nil.
+func (vuo *VoiceoverUpdateOne) SetNillableSourceType(et *enttypes.SourceType) *VoiceoverUpdateOne {
+	if et != nil {
+		vuo.SetSourceType(*et)
+	}
+	return vuo
+}
+
 // SetPromptID sets the "prompt_id" field.
 func (vuo *VoiceoverUpdateOne) SetPromptID(u uuid.UUID) *VoiceoverUpdateOne {
 	vuo.mutation.SetPromptID(u)
@@ -1086,20 +1106,6 @@ func (vuo *VoiceoverUpdateOne) SetNillableAPITokenID(u *uuid.UUID) *VoiceoverUpd
 // ClearAPITokenID clears the value of the "api_token_id" field.
 func (vuo *VoiceoverUpdateOne) ClearAPITokenID() *VoiceoverUpdateOne {
 	vuo.mutation.ClearAPITokenID()
-	return vuo
-}
-
-// SetFromDiscord sets the "from_discord" field.
-func (vuo *VoiceoverUpdateOne) SetFromDiscord(b bool) *VoiceoverUpdateOne {
-	vuo.mutation.SetFromDiscord(b)
-	return vuo
-}
-
-// SetNillableFromDiscord sets the "from_discord" field if the given value is not nil.
-func (vuo *VoiceoverUpdateOne) SetNillableFromDiscord(b *bool) *VoiceoverUpdateOne {
-	if b != nil {
-		vuo.SetFromDiscord(*b)
-	}
 	return vuo
 }
 
@@ -1332,6 +1338,11 @@ func (vuo *VoiceoverUpdateOne) check() error {
 			return &ValidationError{Name: "status", err: fmt.Errorf(`ent: validator failed for field "Voiceover.status": %w`, err)}
 		}
 	}
+	if v, ok := vuo.mutation.SourceType(); ok {
+		if err := voiceover.SourceTypeValidator(v); err != nil {
+			return &ValidationError{Name: "source_type", err: fmt.Errorf(`ent: validator failed for field "Voiceover.source_type": %w`, err)}
+		}
+	}
 	if _, ok := vuo.mutation.UserID(); vuo.mutation.UserCleared() && !ok {
 		return errors.New(`ent: clearing a required unique edge "Voiceover.user"`)
 	}
@@ -1439,8 +1450,8 @@ func (vuo *VoiceoverUpdateOne) sqlSave(ctx context.Context) (_node *Voiceover, e
 	if value, ok := vuo.mutation.AddedCost(); ok {
 		_spec.AddField(voiceover.FieldCost, field.TypeInt32, value)
 	}
-	if value, ok := vuo.mutation.FromDiscord(); ok {
-		_spec.SetField(voiceover.FieldFromDiscord, field.TypeBool, value)
+	if value, ok := vuo.mutation.SourceType(); ok {
+		_spec.SetField(voiceover.FieldSourceType, field.TypeEnum, value)
 	}
 	if value, ok := vuo.mutation.StartedAt(); ok {
 		_spec.SetField(voiceover.FieldStartedAt, field.TypeTime, value)

@@ -6,12 +6,12 @@ import (
 
 	"github.com/bwmarrin/discordgo"
 	"github.com/google/uuid"
+	"github.com/stablecog/sc-go/database/enttypes"
 	"github.com/stablecog/sc-go/discobot/components"
 	"github.com/stablecog/sc-go/discobot/responses"
 	"github.com/stablecog/sc-go/log"
 	"github.com/stablecog/sc-go/server/requests"
 	"github.com/stablecog/sc-go/server/scworker"
-	"github.com/stablecog/sc-go/shared"
 	"github.com/stablecog/sc-go/utils"
 )
 
@@ -62,7 +62,7 @@ func (c *DiscordInteractionWrapper) NewImageCommand() *DiscordInteraction {
 				ctx := context.Background()
 				res, err := scworker.CreateGeneration(
 					ctx,
-					shared.OperationSourceTypeDiscord,
+					enttypes.SourceTypeDiscord,
 					nil,
 					c.SafetyChecker,
 					c.Repo,
@@ -135,7 +135,7 @@ func (c *DiscordInteractionWrapper) HandleUpscale(s *discordgo.Session, i *disco
 		ctx := context.Background()
 		res, err := scworker.CreateUpscale(
 			ctx,
-			shared.OperationSourceTypeDiscord,
+			enttypes.SourceTypeDiscord,
 			nil,
 			c.Repo,
 			c.Redis,

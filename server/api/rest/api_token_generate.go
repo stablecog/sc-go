@@ -17,6 +17,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/stablecog/sc-go/database/ent"
 	"github.com/stablecog/sc-go/database/ent/upscale"
+	"github.com/stablecog/sc-go/database/enttypes"
 	"github.com/stablecog/sc-go/database/repository"
 	"github.com/stablecog/sc-go/log"
 	"github.com/stablecog/sc-go/server/requests"
@@ -332,7 +333,7 @@ func (c *RestAPI) HandleCreateGenerationToken(w http.ResponseWriter, r *http.Req
 			generateReq,
 			user.ActiveProductID,
 			&apiToken.ID,
-			false,
+			enttypes.SourceTypeAPI,
 			DB)
 		if err != nil {
 			log.Error("Error creating generation", "err", err)
@@ -354,7 +355,7 @@ func (c *RestAPI) HandleCreateGenerationToken(w http.ResponseWriter, r *http.Req
 			Height:           generateReq.Height,
 			CreatedAt:        g.CreatedAt,
 			ProductID:        user.ActiveProductID,
-			Source:           shared.OperationSourceTypeAPI,
+			Source:           enttypes.SourceTypeAPI,
 		}
 
 		cogReqBody = requests.CogQueueRequest{

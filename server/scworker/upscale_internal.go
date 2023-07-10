@@ -10,6 +10,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/stablecog/sc-go/database"
 	"github.com/stablecog/sc-go/database/ent"
+	"github.com/stablecog/sc-go/database/enttypes"
 	"github.com/stablecog/sc-go/database/repository"
 	"github.com/stablecog/sc-go/log"
 	"github.com/stablecog/sc-go/server/analytics"
@@ -66,7 +67,7 @@ func CreateUpscaleInternal(Track *analytics.AnalyticsService, Repo *repository.R
 			user.ActiveProductID,
 			true,
 			nil,
-			false,
+			enttypes.SourceTypeInternal,
 			DB)
 		if err != nil {
 			log.Error("Error creating upscale", "err", err)

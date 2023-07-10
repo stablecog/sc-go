@@ -6,6 +6,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/stablecog/sc-go/database/ent/generation"
 	"github.com/stablecog/sc-go/database/ent/prompt"
+	"github.com/stablecog/sc-go/database/enttypes"
 	"github.com/stablecog/sc-go/server/requests"
 	"github.com/stablecog/sc-go/utils"
 	"github.com/stretchr/testify/assert"
@@ -47,7 +48,7 @@ func TestGetUsersUniquePromptIds(t *testing.T) {
 	}
 	g2.ApplyDefaults()
 
-	gen1, err := MockRepo.CreateGeneration(uuid.MustParse(MOCK_ADMIN_UUID), "browser", "macos", "chrome", "DE", g1, nil, nil, false, nil)
+	gen1, err := MockRepo.CreateGeneration(uuid.MustParse(MOCK_ADMIN_UUID), "browser", "macos", "chrome", "DE", g1, nil, nil, enttypes.SourceTypeWebUI, nil)
 	assert.Nil(t, err)
 	assert.NotNil(t, gen1)
 	_, err = MockRepo.SetGenerationSucceeded(gen1.ID.String(), "TestGetUsersUniquePromptIds_1", "", requests.CogWebhookOutput{
@@ -58,7 +59,7 @@ func TestGetUsersUniquePromptIds(t *testing.T) {
 	assert.Nil(t, err)
 
 	// 2 different users, same prompt
-	gen2, err := MockRepo.CreateGeneration(uuid.MustParse(MOCK_NORMAL_UUID), "browser", "macos", "chrome", "DE", g2, nil, nil, false, nil)
+	gen2, err := MockRepo.CreateGeneration(uuid.MustParse(MOCK_NORMAL_UUID), "browser", "macos", "chrome", "DE", g2, nil, nil, enttypes.SourceTypeWebUI, nil)
 	assert.Nil(t, err)
 	assert.NotNil(t, gen2)
 	_, err = MockRepo.SetGenerationSucceeded(gen2.ID.String(), "TestGetUsersUniquePromptIds_2", "", requests.CogWebhookOutput{
@@ -68,7 +69,7 @@ func TestGetUsersUniquePromptIds(t *testing.T) {
 	}, 0)
 	assert.Nil(t, err)
 
-	gen3, err := MockRepo.CreateGeneration(uuid.MustParse(MOCK_ADMIN_UUID), "browser", "macos", "chrome", "DE", g2, nil, nil, false, nil)
+	gen3, err := MockRepo.CreateGeneration(uuid.MustParse(MOCK_ADMIN_UUID), "browser", "macos", "chrome", "DE", g2, nil, nil, enttypes.SourceTypeWebUI, nil)
 	assert.Nil(t, err)
 	assert.NotNil(t, gen3)
 	_, err = MockRepo.SetGenerationSucceeded(gen3.ID.String(), "TestGetUsersUniquePromptIds_2", "", requests.CogWebhookOutput{

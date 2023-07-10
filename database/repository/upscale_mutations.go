@@ -6,6 +6,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/stablecog/sc-go/database/ent"
 	"github.com/stablecog/sc-go/database/ent/upscale"
+	"github.com/stablecog/sc-go/database/enttypes"
 	"github.com/stablecog/sc-go/log"
 	"github.com/stablecog/sc-go/server/requests"
 	"github.com/stablecog/sc-go/shared"
@@ -14,7 +15,7 @@ import (
 
 // CreateUpscale creates the initial generation in the database
 // Takes in a userID (creator),  device info, countryCode, and a request body
-func (r *Repository) CreateUpscale(userID uuid.UUID, width, height int32, deviceType, deviceOs, deviceBrowser, countryCode string, req requests.CreateUpscaleRequest, productId *string, systemGenerated bool, apiTokenId *uuid.UUID, fromDiscord bool, DB *ent.Client) (*ent.Upscale, error) {
+func (r *Repository) CreateUpscale(userID uuid.UUID, width, height int32, deviceType, deviceOs, deviceBrowser, countryCode string, req requests.CreateUpscaleRequest, productId *string, systemGenerated bool, apiTokenId *uuid.UUID, sourceType enttypes.SourceType, DB *ent.Client) (*ent.Upscale, error) {
 	if DB == nil {
 		DB = r.DB
 	}
@@ -33,7 +34,7 @@ func (r *Repository) CreateUpscale(userID uuid.UUID, width, height int32, device
 		SetScale(shared.DEFAULT_UPSCALE_SCALE).
 		SetUserID(userID).
 		SetSystemGenerated(systemGenerated).
-		SetFromDiscord(fromDiscord)
+		SetSourceType(sourceType)
 	if productId != nil {
 		insert.SetStripeProductID(*productId)
 	}

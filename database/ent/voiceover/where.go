@@ -9,6 +9,7 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"github.com/google/uuid"
 	"github.com/stablecog/sc-go/database/ent/predicate"
+	"github.com/stablecog/sc-go/database/enttypes"
 )
 
 // ID filters vertices based on their ID field.
@@ -129,11 +130,6 @@ func SpeakerID(v uuid.UUID) predicate.Voiceover {
 // APITokenID applies equality check predicate on the "api_token_id" field. It's identical to APITokenIDEQ.
 func APITokenID(v uuid.UUID) predicate.Voiceover {
 	return predicate.Voiceover(sql.FieldEQ(FieldAPITokenID, v))
-}
-
-// FromDiscord applies equality check predicate on the "from_discord" field. It's identical to FromDiscordEQ.
-func FromDiscord(v bool) predicate.Voiceover {
-	return predicate.Voiceover(sql.FieldEQ(FieldFromDiscord, v))
 }
 
 // StartedAt applies equality check predicate on the "started_at" field. It's identical to StartedAtEQ.
@@ -551,6 +547,36 @@ func CostLTE(v int32) predicate.Voiceover {
 	return predicate.Voiceover(sql.FieldLTE(FieldCost, v))
 }
 
+// SourceTypeEQ applies the EQ predicate on the "source_type" field.
+func SourceTypeEQ(v enttypes.SourceType) predicate.Voiceover {
+	vc := v
+	return predicate.Voiceover(sql.FieldEQ(FieldSourceType, vc))
+}
+
+// SourceTypeNEQ applies the NEQ predicate on the "source_type" field.
+func SourceTypeNEQ(v enttypes.SourceType) predicate.Voiceover {
+	vc := v
+	return predicate.Voiceover(sql.FieldNEQ(FieldSourceType, vc))
+}
+
+// SourceTypeIn applies the In predicate on the "source_type" field.
+func SourceTypeIn(vs ...enttypes.SourceType) predicate.Voiceover {
+	v := make([]any, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.Voiceover(sql.FieldIn(FieldSourceType, v...))
+}
+
+// SourceTypeNotIn applies the NotIn predicate on the "source_type" field.
+func SourceTypeNotIn(vs ...enttypes.SourceType) predicate.Voiceover {
+	v := make([]any, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.Voiceover(sql.FieldNotIn(FieldSourceType, v...))
+}
+
 // PromptIDEQ applies the EQ predicate on the "prompt_id" field.
 func PromptIDEQ(v uuid.UUID) predicate.Voiceover {
 	return predicate.Voiceover(sql.FieldEQ(FieldPromptID, v))
@@ -689,16 +715,6 @@ func APITokenIDIsNil() predicate.Voiceover {
 // APITokenIDNotNil applies the NotNil predicate on the "api_token_id" field.
 func APITokenIDNotNil() predicate.Voiceover {
 	return predicate.Voiceover(sql.FieldNotNull(FieldAPITokenID))
-}
-
-// FromDiscordEQ applies the EQ predicate on the "from_discord" field.
-func FromDiscordEQ(v bool) predicate.Voiceover {
-	return predicate.Voiceover(sql.FieldEQ(FieldFromDiscord, v))
-}
-
-// FromDiscordNEQ applies the NEQ predicate on the "from_discord" field.
-func FromDiscordNEQ(v bool) predicate.Voiceover {
-	return predicate.Voiceover(sql.FieldNEQ(FieldFromDiscord, v))
 }
 
 // StartedAtEQ applies the EQ predicate on the "started_at" field.

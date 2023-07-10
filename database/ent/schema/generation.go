@@ -10,6 +10,7 @@ import (
 	"entgo.io/ent/schema/field"
 	"entgo.io/ent/schema/index"
 	"github.com/google/uuid"
+	"github.com/stablecog/sc-go/database/enttypes"
 )
 
 // Generation holds the schema definition for the Generation entity.
@@ -35,6 +36,7 @@ func (Generation) Fields() []ent.Field {
 		field.Float32("prompt_strength").Optional().Nillable(),
 		field.Bool("was_auto_submitted").Default(false),
 		field.Text("stripe_product_id").Optional().Nillable(),
+		field.Enum("source_type").GoType(enttypes.SourceType("")).Default(string(enttypes.SourceTypeWebUI)),
 		// ! Relationships / many-to-one
 		field.UUID("prompt_id", uuid.UUID{}).Optional().Nillable(),
 		field.UUID("negative_prompt_id", uuid.UUID{}).Optional().Nillable(),
@@ -43,7 +45,6 @@ func (Generation) Fields() []ent.Field {
 		field.UUID("user_id", uuid.UUID{}),
 		field.UUID("device_info_id", uuid.UUID{}),
 		field.UUID("api_token_id", uuid.UUID{}).Optional().Nillable(),
-		field.Bool("from_discord").Default(false),
 		// ! End relationships
 		field.Time("started_at").Optional().Nillable(),
 		field.Time("completed_at").Optional().Nillable(),

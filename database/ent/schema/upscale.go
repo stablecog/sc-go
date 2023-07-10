@@ -9,6 +9,7 @@ import (
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
+	"github.com/stablecog/sc-go/database/enttypes"
 )
 
 // Upscale holds the schema definition for the Upscale entity.
@@ -28,12 +29,12 @@ func (Upscale) Fields() []ent.Field {
 		field.Text("failure_reason").Optional().Nillable(),
 		field.Text("stripe_product_id").Optional().Nillable(),
 		field.Bool("system_generated").Default(false),
+		field.Enum("source_type").GoType(enttypes.SourceType("")).Default(string(enttypes.SourceTypeWebUI)),
 		// ! Relationships / many-to-one
 		field.UUID("user_id", uuid.UUID{}),
 		field.UUID("device_info_id", uuid.UUID{}),
 		field.UUID("model_id", uuid.UUID{}),
 		field.UUID("api_token_id", uuid.UUID{}).Optional().Nillable(),
-		field.Bool("from_discord").Default(false),
 		// ! End relationships
 		field.Time("started_at").Optional().Nillable(),
 		field.Time("completed_at").Optional().Nillable(),

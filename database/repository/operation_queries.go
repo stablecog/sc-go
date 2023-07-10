@@ -9,6 +9,7 @@ import (
 	"github.com/stablecog/sc-go/database/ent/generation"
 	"github.com/stablecog/sc-go/database/ent/upscale"
 	"github.com/stablecog/sc-go/database/ent/voiceover"
+	"github.com/stablecog/sc-go/database/enttypes"
 	"github.com/stablecog/sc-go/log"
 	"github.com/stablecog/sc-go/shared"
 )
@@ -25,7 +26,7 @@ func (r *Repository) QueryUserOperations(userId uuid.UUID, limit int, cursor *ti
 		generation.FieldCompletedAt,
 		generation.FieldAPITokenID,
 		generation.FieldNumOutputs,
-		generation.FieldFromDiscord,
+		generation.FieldSourceType,
 	).Where(generation.StatusEQ(generation.StatusSucceeded), generation.UserIDEQ(userId), generation.StartedAtNotNil(), generation.CompletedAtNotNil())
 	if cursor != nil {
 		query = query.Where(generation.CreatedAtLT(*cursor))
@@ -46,7 +47,7 @@ func (r *Repository) QueryUserOperations(userId uuid.UUID, limit int, cursor *ti
 		upscale.FieldStartedAt,
 		upscale.FieldCompletedAt,
 		upscale.FieldAPITokenID,
-		upscale.FieldFromDiscord,
+		upscale.FieldSourceType,
 	).Where(upscale.StatusEQ(upscale.StatusSucceeded), upscale.UserIDEQ(userId), upscale.StartedAtNotNil(), upscale.CompletedAtNotNil())
 	if cursor != nil {
 		uQuery = uQuery.Where(upscale.CreatedAtLT(*cursor))
@@ -67,8 +68,8 @@ func (r *Repository) QueryUserOperations(userId uuid.UUID, limit int, cursor *ti
 		voiceover.FieldStartedAt,
 		voiceover.FieldCompletedAt,
 		voiceover.FieldAPITokenID,
-		voiceover.FieldFromDiscord,
 		voiceover.FieldCost,
+		voiceover.FieldSourceType,
 	).Where(voiceover.StatusEQ(voiceover.StatusSucceeded), voiceover.UserIDEQ(userId), voiceover.StartedAtNotNil(), voiceover.CompletedAtNotNil())
 	if cursor != nil {
 		voQuery = voQuery.Where(voiceover.CreatedAtLT(*cursor))
@@ -82,31 +83,19 @@ func (r *Repository) QueryUserOperations(userId uuid.UUID, limit int, cursor *ti
 
 	operationQueryResult := []OperationQueryResult{}
 	for _, g := range gens {
-		source := shared.OperationSourceTypeWebUI
-		if g.APITokenID != nil {
-			source = shared.OperationSourceTypeAPI
-		} else if g.FromDiscord {
-			source = shared.OperationSourceTypeDiscord
-		}
 		operationQueryResult = append(operationQueryResult, OperationQueryResult{
 			ID:            g.ID,
 			OperationType: shared.GENERATE,
 			CreatedAt:     g.CreatedAt,
 			StartedAt:     *g.StartedAt,
 			CompletedAt:   *g.CompletedAt,
-			Source:        source,
+			Source:        g.SourceType,
 			NumOutputs:    int(g.NumOutputs),
 			Cost:          g.NumOutputs,
 		})
 	}
 
 	for _, u := range ups {
-		source := shared.OperationSourceTypeWebUI
-		if u.APITokenID != nil {
-			source = shared.OperationSourceTypeAPI
-		} else if u.FromDiscord {
-			source = shared.OperationSourceTypeDiscord
-		}
 		// Is upscale
 		operationQueryResult = append(operationQueryResult, OperationQueryResult{
 			ID:            u.ID,
@@ -114,19 +103,13 @@ func (r *Repository) QueryUserOperations(userId uuid.UUID, limit int, cursor *ti
 			CreatedAt:     u.CreatedAt,
 			StartedAt:     *u.StartedAt,
 			CompletedAt:   *u.CompletedAt,
-			Source:        source,
+			Source:        u.SourceType,
 			NumOutputs:    1, // ! Always 1 for now
 			Cost:          1,
 		})
 	}
 
 	for _, vo := range vos {
-		source := shared.OperationSourceTypeWebUI
-		if vo.APITokenID != nil {
-			source = shared.OperationSourceTypeAPI
-		} else if vo.FromDiscord {
-			source = shared.OperationSourceTypeDiscord
-		}
 		// Is voiceover
 		operationQueryResult = append(operationQueryResult, OperationQueryResult{
 			ID:            vo.ID,
@@ -134,7 +117,7 @@ func (r *Repository) QueryUserOperations(userId uuid.UUID, limit int, cursor *ti
 			CreatedAt:     vo.CreatedAt,
 			StartedAt:     *vo.StartedAt,
 			CompletedAt:   *vo.CompletedAt,
-			Source:        source,
+			Source:        vo.SourceType,
 			NumOutputs:    1, // ! Always 1 for now
 			Cost:          vo.Cost,
 		})
@@ -171,14 +154,14 @@ const (
 )
 
 type OperationQueryResult struct {
-	ID            uuid.UUID                  `json:"id"`
-	OperationType shared.ProcessType         `json:"operation_type"`
-	CreatedAt     time.Time                  `json:"created_at"`
-	StartedAt     time.Time                  `json:"started_at"`
-	CompletedAt   time.Time                  `json:"completed_at"`
-	NumOutputs    int                        `json:"num_outputs"`
-	Cost          int32                      `json:"cost"`
-	Source        shared.OperationSourceType `json:"source"`
+	ID            uuid.UUID           `json:"id"`
+	OperationType shared.ProcessType  `json:"operation_type"`
+	CreatedAt     time.Time           `json:"created_at"`
+	StartedAt     time.Time           `json:"started_at"`
+	CompletedAt   time.Time           `json:"completed_at"`
+	NumOutputs    int                 `json:"num_outputs"`
+	Cost          int32               `json:"cost"`
+	Source        enttypes.SourceType `json:"source"`
 }
 
 type OperationQueryResultMeta struct {

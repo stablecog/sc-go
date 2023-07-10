@@ -9,6 +9,7 @@ import (
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
+	"github.com/stablecog/sc-go/database/enttypes"
 )
 
 // Voiceover holds the schema definition for the Voiceover entity.
@@ -30,6 +31,7 @@ func (Voiceover) Fields() []ent.Field {
 		field.Bool("denoise_audio").Default(true),
 		field.Bool("remove_silence").Default(true),
 		field.Int32("cost"),
+		field.Enum("source_type").GoType(enttypes.SourceType("")).Default(string(enttypes.SourceTypeWebUI)),
 		// ! Relationships / many-to-one
 		field.UUID("prompt_id", uuid.UUID{}).Optional().Nillable(),
 		field.UUID("user_id", uuid.UUID{}),
@@ -37,7 +39,6 @@ func (Voiceover) Fields() []ent.Field {
 		field.UUID("model_id", uuid.UUID{}),
 		field.UUID("speaker_id", uuid.UUID{}),
 		field.UUID("api_token_id", uuid.UUID{}).Optional().Nillable(),
-		field.Bool("from_discord").Default(false),
 		// ! End relationships
 		field.Time("started_at").Optional().Nillable(),
 		field.Time("completed_at").Optional().Nillable(),

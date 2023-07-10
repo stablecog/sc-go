@@ -11,6 +11,7 @@ import (
 	"github.com/go-chi/render"
 	"github.com/google/uuid"
 	"github.com/stablecog/sc-go/database/ent"
+	"github.com/stablecog/sc-go/database/enttypes"
 	"github.com/stablecog/sc-go/database/repository"
 	"github.com/stablecog/sc-go/log"
 	"github.com/stablecog/sc-go/server/requests"
@@ -221,7 +222,7 @@ func (c *RestAPI) HandleUpscale(w http.ResponseWriter, r *http.Request) {
 			user.ActiveProductID,
 			false,
 			nil,
-			false,
+			enttypes.SourceTypeWebUI,
 			DB)
 		if err != nil {
 			log.Error("Error creating upscale", "err", err)
@@ -243,7 +244,7 @@ func (c *RestAPI) HandleUpscale(w http.ResponseWriter, r *http.Request) {
 			Height:           utils.ToPtr(height),
 			CreatedAt:        upscale.CreatedAt,
 			ProductID:        user.ActiveProductID,
-			Source:           shared.OperationSourceTypeWebUI,
+			Source:           enttypes.SourceTypeWebUI,
 		}
 
 		// Send to the cog

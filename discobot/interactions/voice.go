@@ -8,12 +8,12 @@ import (
 	"github.com/bwmarrin/discordgo"
 	"github.com/google/uuid"
 	"github.com/stablecog/sc-go/database/ent"
+	"github.com/stablecog/sc-go/database/enttypes"
 	"github.com/stablecog/sc-go/discobot/components"
 	"github.com/stablecog/sc-go/discobot/responses"
 	"github.com/stablecog/sc-go/log"
 	"github.com/stablecog/sc-go/server/requests"
 	"github.com/stablecog/sc-go/server/scworker"
-	"github.com/stablecog/sc-go/shared"
 	"github.com/stablecog/sc-go/utils"
 )
 
@@ -95,7 +95,7 @@ func (c *DiscordInteractionWrapper) NewVoiceoverCommand() *DiscordInteraction {
 				ctx := context.Background()
 				res, err := scworker.CreateVoiceover(
 					ctx,
-					shared.OperationSourceTypeDiscord,
+					enttypes.SourceTypeDiscord,
 					nil,
 					c.Repo,
 					c.Redis,

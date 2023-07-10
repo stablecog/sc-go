@@ -16,6 +16,7 @@ import (
 	"github.com/stablecog/sc-go/database/ent/voiceover"
 	"github.com/stablecog/sc-go/database/ent/voiceovermodel"
 	"github.com/stablecog/sc-go/database/ent/voiceoverspeaker"
+	"github.com/stablecog/sc-go/database/enttypes"
 )
 
 // Voiceover is the model entity for the Voiceover schema.
@@ -43,6 +44,8 @@ type Voiceover struct {
 	RemoveSilence bool `json:"remove_silence,omitempty"`
 	// Cost holds the value of the "cost" field.
 	Cost int32 `json:"cost,omitempty"`
+	// SourceType holds the value of the "source_type" field.
+	SourceType enttypes.SourceType `json:"source_type,omitempty"`
 	// PromptID holds the value of the "prompt_id" field.
 	PromptID *uuid.UUID `json:"prompt_id,omitempty"`
 	// UserID holds the value of the "user_id" field.
@@ -55,8 +58,6 @@ type Voiceover struct {
 	SpeakerID uuid.UUID `json:"speaker_id,omitempty"`
 	// APITokenID holds the value of the "api_token_id" field.
 	APITokenID *uuid.UUID `json:"api_token_id,omitempty"`
-	// FromDiscord holds the value of the "from_discord" field.
-	FromDiscord bool `json:"from_discord,omitempty"`
 	// StartedAt holds the value of the "started_at" field.
 	StartedAt *time.Time `json:"started_at,omitempty"`
 	// CompletedAt holds the value of the "completed_at" field.
@@ -185,13 +186,13 @@ func (*Voiceover) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case voiceover.FieldPromptID, voiceover.FieldAPITokenID:
 			values[i] = &sql.NullScanner{S: new(uuid.UUID)}
-		case voiceover.FieldWasAutoSubmitted, voiceover.FieldDenoiseAudio, voiceover.FieldRemoveSilence, voiceover.FieldFromDiscord:
+		case voiceover.FieldWasAutoSubmitted, voiceover.FieldDenoiseAudio, voiceover.FieldRemoveSilence:
 			values[i] = new(sql.NullBool)
 		case voiceover.FieldTemperature:
 			values[i] = new(sql.NullFloat64)
 		case voiceover.FieldSeed, voiceover.FieldCost:
 			values[i] = new(sql.NullInt64)
-		case voiceover.FieldCountryCode, voiceover.FieldStatus, voiceover.FieldFailureReason, voiceover.FieldStripeProductID:
+		case voiceover.FieldCountryCode, voiceover.FieldStatus, voiceover.FieldFailureReason, voiceover.FieldStripeProductID, voiceover.FieldSourceType:
 			values[i] = new(sql.NullString)
 		case voiceover.FieldStartedAt, voiceover.FieldCompletedAt, voiceover.FieldCreatedAt, voiceover.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
@@ -281,6 +282,12 @@ func (v *Voiceover) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				v.Cost = int32(value.Int64)
 			}
+		case voiceover.FieldSourceType:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field source_type", values[i])
+			} else if value.Valid {
+				v.SourceType = enttypes.SourceType(value.String)
+			}
 		case voiceover.FieldPromptID:
 			if value, ok := values[i].(*sql.NullScanner); !ok {
 				return fmt.Errorf("unexpected type %T for field prompt_id", values[i])
@@ -318,12 +325,6 @@ func (v *Voiceover) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				v.APITokenID = new(uuid.UUID)
 				*v.APITokenID = *value.S.(*uuid.UUID)
-			}
-		case voiceover.FieldFromDiscord:
-			if value, ok := values[i].(*sql.NullBool); !ok {
-				return fmt.Errorf("unexpected type %T for field from_discord", values[i])
-			} else if value.Valid {
-				v.FromDiscord = value.Bool
 			}
 		case voiceover.FieldStartedAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
@@ -450,6 +451,9 @@ func (v *Voiceover) String() string {
 	builder.WriteString("cost=")
 	builder.WriteString(fmt.Sprintf("%v", v.Cost))
 	builder.WriteString(", ")
+	builder.WriteString("source_type=")
+	builder.WriteString(fmt.Sprintf("%v", v.SourceType))
+	builder.WriteString(", ")
 	if v := v.PromptID; v != nil {
 		builder.WriteString("prompt_id=")
 		builder.WriteString(fmt.Sprintf("%v", *v))
@@ -471,9 +475,6 @@ func (v *Voiceover) String() string {
 		builder.WriteString("api_token_id=")
 		builder.WriteString(fmt.Sprintf("%v", *v))
 	}
-	builder.WriteString(", ")
-	builder.WriteString("from_discord=")
-	builder.WriteString(fmt.Sprintf("%v", v.FromDiscord))
 	builder.WriteString(", ")
 	if v := v.StartedAt; v != nil {
 		builder.WriteString("started_at=")

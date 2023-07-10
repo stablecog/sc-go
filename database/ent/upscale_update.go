@@ -19,6 +19,7 @@ import (
 	"github.com/stablecog/sc-go/database/ent/upscalemodel"
 	"github.com/stablecog/sc-go/database/ent/upscaleoutput"
 	"github.com/stablecog/sc-go/database/ent/user"
+	"github.com/stablecog/sc-go/database/enttypes"
 )
 
 // UpscaleUpdate is the builder for updating Upscale entities.
@@ -154,6 +155,20 @@ func (uu *UpscaleUpdate) SetNillableSystemGenerated(b *bool) *UpscaleUpdate {
 	return uu
 }
 
+// SetSourceType sets the "source_type" field.
+func (uu *UpscaleUpdate) SetSourceType(et enttypes.SourceType) *UpscaleUpdate {
+	uu.mutation.SetSourceType(et)
+	return uu
+}
+
+// SetNillableSourceType sets the "source_type" field if the given value is not nil.
+func (uu *UpscaleUpdate) SetNillableSourceType(et *enttypes.SourceType) *UpscaleUpdate {
+	if et != nil {
+		uu.SetSourceType(*et)
+	}
+	return uu
+}
+
 // SetUserID sets the "user_id" field.
 func (uu *UpscaleUpdate) SetUserID(u uuid.UUID) *UpscaleUpdate {
 	uu.mutation.SetUserID(u)
@@ -189,20 +204,6 @@ func (uu *UpscaleUpdate) SetNillableAPITokenID(u *uuid.UUID) *UpscaleUpdate {
 // ClearAPITokenID clears the value of the "api_token_id" field.
 func (uu *UpscaleUpdate) ClearAPITokenID() *UpscaleUpdate {
 	uu.mutation.ClearAPITokenID()
-	return uu
-}
-
-// SetFromDiscord sets the "from_discord" field.
-func (uu *UpscaleUpdate) SetFromDiscord(b bool) *UpscaleUpdate {
-	uu.mutation.SetFromDiscord(b)
-	return uu
-}
-
-// SetNillableFromDiscord sets the "from_discord" field if the given value is not nil.
-func (uu *UpscaleUpdate) SetNillableFromDiscord(b *bool) *UpscaleUpdate {
-	if b != nil {
-		uu.SetFromDiscord(*b)
-	}
 	return uu
 }
 
@@ -400,6 +401,11 @@ func (uu *UpscaleUpdate) check() error {
 			return &ValidationError{Name: "status", err: fmt.Errorf(`ent: validator failed for field "Upscale.status": %w`, err)}
 		}
 	}
+	if v, ok := uu.mutation.SourceType(); ok {
+		if err := upscale.SourceTypeValidator(v); err != nil {
+			return &ValidationError{Name: "source_type", err: fmt.Errorf(`ent: validator failed for field "Upscale.source_type": %w`, err)}
+		}
+	}
 	if _, ok := uu.mutation.UserID(); uu.mutation.UserCleared() && !ok {
 		return errors.New(`ent: clearing a required unique edge "Upscale.user"`)
 	}
@@ -481,8 +487,8 @@ func (uu *UpscaleUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if value, ok := uu.mutation.SystemGenerated(); ok {
 		_spec.SetField(upscale.FieldSystemGenerated, field.TypeBool, value)
 	}
-	if value, ok := uu.mutation.FromDiscord(); ok {
-		_spec.SetField(upscale.FieldFromDiscord, field.TypeBool, value)
+	if value, ok := uu.mutation.SourceType(); ok {
+		_spec.SetField(upscale.FieldSourceType, field.TypeEnum, value)
 	}
 	if value, ok := uu.mutation.StartedAt(); ok {
 		_spec.SetField(upscale.FieldStartedAt, field.TypeTime, value)
@@ -834,6 +840,20 @@ func (uuo *UpscaleUpdateOne) SetNillableSystemGenerated(b *bool) *UpscaleUpdateO
 	return uuo
 }
 
+// SetSourceType sets the "source_type" field.
+func (uuo *UpscaleUpdateOne) SetSourceType(et enttypes.SourceType) *UpscaleUpdateOne {
+	uuo.mutation.SetSourceType(et)
+	return uuo
+}
+
+// SetNillableSourceType sets the "source_type" field if the given value is not nil.
+func (uuo *UpscaleUpdateOne) SetNillableSourceType(et *enttypes.SourceType) *UpscaleUpdateOne {
+	if et != nil {
+		uuo.SetSourceType(*et)
+	}
+	return uuo
+}
+
 // SetUserID sets the "user_id" field.
 func (uuo *UpscaleUpdateOne) SetUserID(u uuid.UUID) *UpscaleUpdateOne {
 	uuo.mutation.SetUserID(u)
@@ -869,20 +889,6 @@ func (uuo *UpscaleUpdateOne) SetNillableAPITokenID(u *uuid.UUID) *UpscaleUpdateO
 // ClearAPITokenID clears the value of the "api_token_id" field.
 func (uuo *UpscaleUpdateOne) ClearAPITokenID() *UpscaleUpdateOne {
 	uuo.mutation.ClearAPITokenID()
-	return uuo
-}
-
-// SetFromDiscord sets the "from_discord" field.
-func (uuo *UpscaleUpdateOne) SetFromDiscord(b bool) *UpscaleUpdateOne {
-	uuo.mutation.SetFromDiscord(b)
-	return uuo
-}
-
-// SetNillableFromDiscord sets the "from_discord" field if the given value is not nil.
-func (uuo *UpscaleUpdateOne) SetNillableFromDiscord(b *bool) *UpscaleUpdateOne {
-	if b != nil {
-		uuo.SetFromDiscord(*b)
-	}
 	return uuo
 }
 
@@ -1087,6 +1093,11 @@ func (uuo *UpscaleUpdateOne) check() error {
 			return &ValidationError{Name: "status", err: fmt.Errorf(`ent: validator failed for field "Upscale.status": %w`, err)}
 		}
 	}
+	if v, ok := uuo.mutation.SourceType(); ok {
+		if err := upscale.SourceTypeValidator(v); err != nil {
+			return &ValidationError{Name: "source_type", err: fmt.Errorf(`ent: validator failed for field "Upscale.source_type": %w`, err)}
+		}
+	}
 	if _, ok := uuo.mutation.UserID(); uuo.mutation.UserCleared() && !ok {
 		return errors.New(`ent: clearing a required unique edge "Upscale.user"`)
 	}
@@ -1185,8 +1196,8 @@ func (uuo *UpscaleUpdateOne) sqlSave(ctx context.Context) (_node *Upscale, err e
 	if value, ok := uuo.mutation.SystemGenerated(); ok {
 		_spec.SetField(upscale.FieldSystemGenerated, field.TypeBool, value)
 	}
-	if value, ok := uuo.mutation.FromDiscord(); ok {
-		_spec.SetField(upscale.FieldFromDiscord, field.TypeBool, value)
+	if value, ok := uuo.mutation.SourceType(); ok {
+		_spec.SetField(upscale.FieldSourceType, field.TypeEnum, value)
 	}
 	if value, ok := uuo.mutation.StartedAt(); ok {
 		_spec.SetField(upscale.FieldStartedAt, field.TypeTime, value)

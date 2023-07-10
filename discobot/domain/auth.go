@@ -41,7 +41,7 @@ func (d *DiscoDomain) CheckAuthorization(s *discordgo.Session, i *discordgo.Inte
 		params.Add("platform_token", token)
 		params.Add("platform_user_id", i.Member.User.ID)
 		params.Add("platform_username", i.Member.User.Username)
-		params.Add("platform_avatar_url", url.QueryEscape(i.Member.AvatarURL("128")))
+		params.Add("platform_avatar_url", i.Member.AvatarURL("128"))
 
 		// Auth msg
 		err = responses.InitialInteractionResponse(s,

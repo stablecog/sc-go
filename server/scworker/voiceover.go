@@ -13,6 +13,7 @@ import (
 	"github.com/stablecog/sc-go/database"
 	"github.com/stablecog/sc-go/database/ent"
 	"github.com/stablecog/sc-go/database/ent/upscale"
+	"github.com/stablecog/sc-go/database/enttypes"
 	"github.com/stablecog/sc-go/database/repository"
 	"github.com/stablecog/sc-go/log"
 	"github.com/stablecog/sc-go/server/requests"
@@ -23,7 +24,7 @@ import (
 )
 
 func CreateVoiceover(ctx context.Context,
-	source shared.OperationSourceType,
+	source enttypes.SourceType,
 	r *http.Request,
 	repo *repository.Repository,
 	redis *database.RedisWrapper,
@@ -210,7 +211,7 @@ func CreateVoiceover(ctx context.Context,
 			voiceoverReq,
 			user.ActiveProductID,
 			nil,
-			source == shared.OperationSourceTypeDiscord,
+			source,
 			DB)
 		if err != nil {
 			log.Error("Error creating voiceover", "err", err)
