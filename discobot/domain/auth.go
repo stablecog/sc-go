@@ -52,7 +52,7 @@ func (d *DiscoDomain) CheckAuthorization(s *discordgo.Session, i *discordgo.Inte
 				EmbedFooter:  "By signing in you agree to our Terms of Service and Privacy Policy.",
 				ActionRowOne: []*components.SCDiscordComponent{
 					components.NewLinkButton("Sign in", fmt.Sprintf("https://stablecog.com/connect/discord?%s", params.Encode()), "🔑"),
-					components.NewLinkButton("Terms & Privacy", "https://stablecog.com/legal", ""),
+					components.NewLinkButton("Terms & Policies", "https://stablecog.com/legal", ""),
 				},
 				Privacy: responses.PRIVATE,
 			},
