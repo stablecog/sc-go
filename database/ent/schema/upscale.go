@@ -33,6 +33,7 @@ func (Upscale) Fields() []ent.Field {
 		field.UUID("device_info_id", uuid.UUID{}),
 		field.UUID("model_id", uuid.UUID{}),
 		field.UUID("api_token_id", uuid.UUID{}).Optional().Nillable(),
+		field.Bool("from_discord").Default(false),
 		// ! End relationships
 		field.Time("started_at").Optional().Nillable(),
 		field.Time("completed_at").Optional().Nillable(),

@@ -56,6 +56,8 @@ const (
 	FieldDeviceInfoID = "device_info_id"
 	// FieldAPITokenID holds the string denoting the api_token_id field in the database.
 	FieldAPITokenID = "api_token_id"
+	// FieldFromDiscord holds the string denoting the from_discord field in the database.
+	FieldFromDiscord = "from_discord"
 	// FieldStartedAt holds the string denoting the started_at field in the database.
 	FieldStartedAt = "started_at"
 	// FieldCompletedAt holds the string denoting the completed_at field in the database.
@@ -164,6 +166,7 @@ var Columns = []string{
 	FieldUserID,
 	FieldDeviceInfoID,
 	FieldAPITokenID,
+	FieldFromDiscord,
 	FieldStartedAt,
 	FieldCompletedAt,
 	FieldCreatedAt,
@@ -185,6 +188,8 @@ var (
 	DefaultNsfwCount int32
 	// DefaultWasAutoSubmitted holds the default value on creation for the "was_auto_submitted" field.
 	DefaultWasAutoSubmitted bool
+	// DefaultFromDiscord holds the default value on creation for the "from_discord" field.
+	DefaultFromDiscord bool
 	// DefaultCreatedAt holds the default value on creation for the "created_at" field.
 	DefaultCreatedAt func() time.Time
 	// DefaultUpdatedAt holds the default value on creation for the "updated_at" field.

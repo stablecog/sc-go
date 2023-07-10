@@ -7,18 +7,20 @@ import (
 	"github.com/stablecog/sc-go/discobot/domain"
 	"github.com/stablecog/sc-go/server/requests"
 	"github.com/stablecog/sc-go/shared"
+	"github.com/stablecog/sc-go/utils"
 )
 
 // Create new wrapper and register interactions
-func NewDiscordInteractionWrapper(repo *repository.Repository, redis *database.RedisWrapper, supabase *database.SupabaseAuth, sMap *shared.SyncMap[chan requests.CogWebhookMessage], qThrottler *shared.UserQueueThrottlerMap) *DiscordInteractionWrapper {
+func NewDiscordInteractionWrapper(repo *repository.Repository, redis *database.RedisWrapper, supabase *database.SupabaseAuth, sMap *shared.SyncMap[chan requests.CogWebhookMessage], qThrottler *shared.UserQueueThrottlerMap, safetyChecker *utils.TranslatorSafetyChecker) *DiscordInteractionWrapper {
 	// Create wrapper
 	wrapper := &DiscordInteractionWrapper{
-		Disco:       &domain.DiscoDomain{Repo: repo, Redis: redis, SupabaseAuth: supabase},
-		Repo:        repo,
-		SupabseAuth: supabase,
-		SMap:        sMap,
-		Redis:       redis,
-		QThrottler:  qThrottler,
+		Disco:         &domain.DiscoDomain{Repo: repo, Redis: redis, SupabaseAuth: supabase},
+		Repo:          repo,
+		SupabseAuth:   supabase,
+		SMap:          sMap,
+		Redis:         redis,
+		QThrottler:    qThrottler,
+		SafetyChecker: safetyChecker,
 	}
 	// Register commands
 	commands := []*DiscordInteraction{
@@ -37,14 +39,15 @@ func NewDiscordInteractionWrapper(repo *repository.Repository, redis *database.R
 
 // Wrapper for all interactions
 type DiscordInteractionWrapper struct {
-	Disco       *domain.DiscoDomain
-	Repo        *repository.Repository
-	SupabseAuth *database.SupabaseAuth
-	Redis       *database.RedisWrapper
-	SMap        *shared.SyncMap[chan requests.CogWebhookMessage]
-	QThrottler  *shared.UserQueueThrottlerMap
-	Commands    []*DiscordInteraction
-	Components  []*DiscordInteraction
+	Disco         *domain.DiscoDomain
+	Repo          *repository.Repository
+	SupabseAuth   *database.SupabaseAuth
+	Redis         *database.RedisWrapper
+	SMap          *shared.SyncMap[chan requests.CogWebhookMessage]
+	QThrottler    *shared.UserQueueThrottlerMap
+	Commands      []*DiscordInteraction
+	Components    []*DiscordInteraction
+	SafetyChecker *utils.TranslatorSafetyChecker
 }
 
 // Specification for specific interactions

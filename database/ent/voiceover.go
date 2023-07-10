@@ -55,6 +55,8 @@ type Voiceover struct {
 	SpeakerID uuid.UUID `json:"speaker_id,omitempty"`
 	// APITokenID holds the value of the "api_token_id" field.
 	APITokenID *uuid.UUID `json:"api_token_id,omitempty"`
+	// FromDiscord holds the value of the "from_discord" field.
+	FromDiscord bool `json:"from_discord,omitempty"`
 	// StartedAt holds the value of the "started_at" field.
 	StartedAt *time.Time `json:"started_at,omitempty"`
 	// CompletedAt holds the value of the "completed_at" field.
@@ -183,7 +185,7 @@ func (*Voiceover) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case voiceover.FieldPromptID, voiceover.FieldAPITokenID:
 			values[i] = &sql.NullScanner{S: new(uuid.UUID)}
-		case voiceover.FieldWasAutoSubmitted, voiceover.FieldDenoiseAudio, voiceover.FieldRemoveSilence:
+		case voiceover.FieldWasAutoSubmitted, voiceover.FieldDenoiseAudio, voiceover.FieldRemoveSilence, voiceover.FieldFromDiscord:
 			values[i] = new(sql.NullBool)
 		case voiceover.FieldTemperature:
 			values[i] = new(sql.NullFloat64)
@@ -316,6 +318,12 @@ func (v *Voiceover) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				v.APITokenID = new(uuid.UUID)
 				*v.APITokenID = *value.S.(*uuid.UUID)
+			}
+		case voiceover.FieldFromDiscord:
+			if value, ok := values[i].(*sql.NullBool); !ok {
+				return fmt.Errorf("unexpected type %T for field from_discord", values[i])
+			} else if value.Valid {
+				v.FromDiscord = value.Bool
 			}
 		case voiceover.FieldStartedAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
@@ -463,6 +471,9 @@ func (v *Voiceover) String() string {
 		builder.WriteString("api_token_id=")
 		builder.WriteString(fmt.Sprintf("%v", *v))
 	}
+	builder.WriteString(", ")
+	builder.WriteString("from_discord=")
+	builder.WriteString(fmt.Sprintf("%v", v.FromDiscord))
 	builder.WriteString(", ")
 	if v := v.StartedAt; v != nil {
 		builder.WriteString("started_at=")

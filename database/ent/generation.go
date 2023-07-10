@@ -66,6 +66,8 @@ type Generation struct {
 	DeviceInfoID uuid.UUID `json:"device_info_id,omitempty"`
 	// APITokenID holds the value of the "api_token_id" field.
 	APITokenID *uuid.UUID `json:"api_token_id,omitempty"`
+	// FromDiscord holds the value of the "from_discord" field.
+	FromDiscord bool `json:"from_discord,omitempty"`
 	// StartedAt holds the value of the "started_at" field.
 	StartedAt *time.Time `json:"started_at,omitempty"`
 	// CompletedAt holds the value of the "completed_at" field.
@@ -209,7 +211,7 @@ func (*Generation) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case generation.FieldPromptID, generation.FieldNegativePromptID, generation.FieldAPITokenID:
 			values[i] = &sql.NullScanner{S: new(uuid.UUID)}
-		case generation.FieldWasAutoSubmitted:
+		case generation.FieldWasAutoSubmitted, generation.FieldFromDiscord:
 			values[i] = new(sql.NullBool)
 		case generation.FieldGuidanceScale, generation.FieldPromptStrength:
 			values[i] = new(sql.NullFloat64)
@@ -375,6 +377,12 @@ func (ge *Generation) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				ge.APITokenID = new(uuid.UUID)
 				*ge.APITokenID = *value.S.(*uuid.UUID)
+			}
+		case generation.FieldFromDiscord:
+			if value, ok := values[i].(*sql.NullBool); !ok {
+				return fmt.Errorf("unexpected type %T for field from_discord", values[i])
+			} else if value.Valid {
+				ge.FromDiscord = value.Bool
 			}
 		case generation.FieldStartedAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
@@ -548,6 +556,9 @@ func (ge *Generation) String() string {
 		builder.WriteString("api_token_id=")
 		builder.WriteString(fmt.Sprintf("%v", *v))
 	}
+	builder.WriteString(", ")
+	builder.WriteString("from_discord=")
+	builder.WriteString(fmt.Sprintf("%v", ge.FromDiscord))
 	builder.WriteString(", ")
 	if v := ge.StartedAt; v != nil {
 		builder.WriteString("started_at=")

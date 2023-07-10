@@ -188,6 +188,20 @@ func (vc *VoiceoverCreate) SetNillableAPITokenID(u *uuid.UUID) *VoiceoverCreate 
 	return vc
 }
 
+// SetFromDiscord sets the "from_discord" field.
+func (vc *VoiceoverCreate) SetFromDiscord(b bool) *VoiceoverCreate {
+	vc.mutation.SetFromDiscord(b)
+	return vc
+}
+
+// SetNillableFromDiscord sets the "from_discord" field if the given value is not nil.
+func (vc *VoiceoverCreate) SetNillableFromDiscord(b *bool) *VoiceoverCreate {
+	if b != nil {
+		vc.SetFromDiscord(*b)
+	}
+	return vc
+}
+
 // SetStartedAt sets the "started_at" field.
 func (vc *VoiceoverCreate) SetStartedAt(t time.Time) *VoiceoverCreate {
 	vc.mutation.SetStartedAt(t)
@@ -376,6 +390,10 @@ func (vc *VoiceoverCreate) defaults() {
 		v := voiceover.DefaultRemoveSilence
 		vc.mutation.SetRemoveSilence(v)
 	}
+	if _, ok := vc.mutation.FromDiscord(); !ok {
+		v := voiceover.DefaultFromDiscord
+		vc.mutation.SetFromDiscord(v)
+	}
 	if _, ok := vc.mutation.CreatedAt(); !ok {
 		v := voiceover.DefaultCreatedAt()
 		vc.mutation.SetCreatedAt(v)
@@ -429,6 +447,9 @@ func (vc *VoiceoverCreate) check() error {
 	}
 	if _, ok := vc.mutation.SpeakerID(); !ok {
 		return &ValidationError{Name: "speaker_id", err: errors.New(`ent: missing required field "Voiceover.speaker_id"`)}
+	}
+	if _, ok := vc.mutation.FromDiscord(); !ok {
+		return &ValidationError{Name: "from_discord", err: errors.New(`ent: missing required field "Voiceover.from_discord"`)}
 	}
 	if _, ok := vc.mutation.CreatedAt(); !ok {
 		return &ValidationError{Name: "created_at", err: errors.New(`ent: missing required field "Voiceover.created_at"`)}
@@ -528,6 +549,10 @@ func (vc *VoiceoverCreate) createSpec() (*Voiceover, *sqlgraph.CreateSpec) {
 	if value, ok := vc.mutation.Cost(); ok {
 		_spec.SetField(voiceover.FieldCost, field.TypeInt32, value)
 		_node.Cost = value
+	}
+	if value, ok := vc.mutation.FromDiscord(); ok {
+		_spec.SetField(voiceover.FieldFromDiscord, field.TypeBool, value)
+		_node.FromDiscord = value
 	}
 	if value, ok := vc.mutation.StartedAt(); ok {
 		_spec.SetField(voiceover.FieldStartedAt, field.TypeTime, value)

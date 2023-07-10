@@ -23,6 +23,8 @@ import (
 )
 
 func CreateVoiceover(ctx context.Context,
+	source shared.OperationSourceType,
+	r *http.Request,
 	repo *repository.Repository,
 	redis *database.RedisWrapper,
 	SMap *shared.SyncMap[chan requests.CogWebhookMessage],
@@ -44,7 +46,7 @@ func CreateVoiceover(ctx context.Context,
 	roles, err := repo.GetRoles(user.ID)
 	if err != nil {
 		log.Error("Error getting roles for user", "err", err)
-		return nil, &WorkerError{http.StatusInternalServerError, err}
+		return nil, WorkerInternalServerError()
 	}
 	isSuperAdmin := slices.Contains(roles, "SUPER_ADMIN")
 	if isSuperAdmin {
@@ -65,14 +67,14 @@ func CreateVoiceover(ctx context.Context,
 	}
 
 	if user.BannedAt != nil {
-		return nil, &WorkerError{http.StatusForbidden, fmt.Errorf("user_banned")}
+		return nil, &WorkerError{http.StatusForbidden, fmt.Errorf("user_banned"), ""}
 	}
 
 	// Validation
 	if !isSuperAdmin {
 		err = voiceoverReq.Validate(true)
 		if err != nil {
-			return nil, &WorkerError{http.StatusBadRequest, err}
+			return nil, WorkerInternalServerError()
 		}
 	} else {
 		voiceoverReq.ApplyDefaults()
@@ -101,7 +103,7 @@ func CreateVoiceover(ctx context.Context,
 		}
 		// If overflow size is greater than max, return error
 		if overflowSize > shared.QUEUE_OVERFLOW_MAX {
-			return nil, &WorkerError{http.StatusBadRequest, fmt.Errorf("queue_limit_reached")}
+			return nil, &WorkerError{http.StatusBadRequest, fmt.Errorf("queue_limit_reached"), ""}
 		}
 		// Overflow size can be 0 so we need to add 1
 		overflowSize++
@@ -130,22 +132,34 @@ func CreateVoiceover(ctx context.Context,
 		voiceoverReq.SubmitToGallery = true
 	}
 	// Parse request headers
-	// ! TODO - add country code and device info
-	// countryCode := utils.GetCountryCode(r)
-	// deviceInfo := utils.GetClientDeviceInfo(r)
+	var countryCode string
+	var deviceInfo utils.ClientDeviceInfo
+	ipAddress := "internal"
+	if r != nil {
+		countryCode = utils.GetCountryCode(r)
+		deviceInfo = utils.GetClientDeviceInfo(r)
+		ipAddress = utils.GetIPAddress(r)
+	} else {
+		countryCode = "US"
+		deviceInfo = utils.ClientDeviceInfo{
+			DeviceType:    utils.Bot,
+			DeviceOs:      "Linux",
+			DeviceBrowser: "Discord",
+		}
+	}
 
 	// Get model name for cog
 	modelName := shared.GetCache().GetVoiceoverModelNameFromID(*voiceoverReq.ModelId)
 	if modelName == "" {
 		log.Error("Error getting model name", "model_name", modelName)
-		return nil, &WorkerError{http.StatusInternalServerError, err}
+		return nil, WorkerInternalServerError()
 	}
 
 	// Get speaker name for cog
 	speakerName := shared.GetCache().GetVoiceoverSpeakerNameFromID(*voiceoverReq.SpeakerId)
 	if speakerName == "" {
 		log.Error("Error getting speaker name", "speaker_name", speakerName)
-		return nil, &WorkerError{http.StatusInternalServerError, err}
+		return nil, WorkerInternalServerError()
 	}
 
 	// For live page update
@@ -189,10 +203,10 @@ func CreateVoiceover(ctx context.Context,
 		// Create voiceover
 		voiceover, err := repo.CreateVoiceover(
 			user.ID,
-			"unknown",
-			"Linux",
-			"Discord",
-			"US",
+			string(deviceInfo.DeviceType),
+			deviceInfo.DeviceOs,
+			deviceInfo.DeviceBrowser,
+			countryCode,
 			voiceoverReq,
 			user.ActiveProductID,
 			nil,
@@ -209,7 +223,7 @@ func CreateVoiceover(ctx context.Context,
 		livePageMsg = shared.LivePageMessage{
 			ProcessType:      shared.VOICEOVER,
 			ID:               utils.Sha256(requestId.String()),
-			CountryCode:      "US",
+			CountryCode:      countryCode,
 			Status:           shared.LivePageQueued,
 			TargetNumOutputs: 1,
 			CreatedAt:        voiceover.CreatedAt,
@@ -226,15 +240,11 @@ func CreateVoiceover(ctx context.Context,
 			WebhookEventsFilter: []requests.CogEventFilter{requests.CogEventFilterStart, requests.CogEventFilterStart},
 			WebhookUrl:          fmt.Sprintf("%s/v1/worker/webhook", utils.GetEnv("PUBLIC_API_URL", "")),
 			Input: requests.BaseCogRequest{
-				APIRequest: true,
-				ID:         requestId,
-				IP:         "internal",
-				UserID:     &user.ID,
-				DeviceInfo: utils.ClientDeviceInfo{
-					DeviceType:    utils.Bot,
-					DeviceOs:      "Linux",
-					DeviceBrowser: "Discord",
-				},
+				APIRequest:    true,
+				ID:            requestId,
+				IP:            ipAddress,
+				UserID:        &user.ID,
+				DeviceInfo:    deviceInfo,
 				LivePageData:  &livePageMsg,
 				ProcessType:   shared.VOICEOVER,
 				Model:         modelName,
@@ -259,8 +269,10 @@ func CreateVoiceover(ctx context.Context,
 		return nil
 	}); err != nil {
 		log.Error("Error in transaction", "err", err)
-		// ! TODO fine grain error handling
-		return nil, &WorkerError{http.StatusInternalServerError, err}
+		if errors.Is(err, responses.InsufficientCreditsErr) {
+			return nil, responses.InsufficientCreditsErr
+		}
+		return nil, WorkerInternalServerError()
 	}
 
 	// Add channel to sync array (basically a thread-safe map)
@@ -297,7 +309,7 @@ func CreateVoiceover(ctx context.Context,
 				err := repo.SetVoiceoverStarted(requestId.String())
 				if err != nil {
 					log.Error("Failed to set voiceover started", "id", requestId, "err", err)
-					return nil, &WorkerError{http.StatusInternalServerError, err}
+					return nil, WorkerInternalServerError()
 				}
 				// Send live page update
 				go func() {
@@ -322,7 +334,7 @@ func CreateVoiceover(ctx context.Context,
 				outputs, err := repo.SetVoiceoverSucceeded(requestId.String(), voiceoverReq.Prompt, cogMsg.Output)
 				if err != nil {
 					log.Error("Failed to set voiceover succeeded", "id", upscale.ID, "err", err)
-					return nil, &WorkerError{http.StatusInternalServerError, err}
+					return nil, WorkerInternalServerError()
 				}
 				// Send live page update
 				go func() {
@@ -421,7 +433,7 @@ func CreateVoiceover(ctx context.Context,
 					return nil
 				}); err != nil {
 					log.Error("Failed to set voiceover failed", "id", requestId, "err", err)
-					return nil, &WorkerError{http.StatusInternalServerError, err}
+					return nil, WorkerInternalServerError()
 				}
 
 				// ! TODO
@@ -430,7 +442,7 @@ func CreateVoiceover(ctx context.Context,
 				// 	Error:    cogMsg.Error,
 				// 	Settings: initSettings,
 				// })
-				return nil, &WorkerError{http.StatusInternalServerError, errors.New(cogMsg.Error)}
+				return nil, &WorkerError{http.StatusInternalServerError, fmt.Errorf(cogMsg.Error), ""}
 			}
 		case <-time.After(shared.REQUEST_COG_TIMEOUT_VOICEOVER):
 			if err := repo.WithTx(func(tx *ent.Tx) error {
@@ -448,10 +460,10 @@ func CreateVoiceover(ctx context.Context,
 				return nil
 			}); err != nil {
 				log.Error("Failed to set voiceover failed", "id", requestId, "err", err)
-				return nil, &WorkerError{http.StatusInternalServerError, err}
+				return nil, WorkerInternalServerError()
 			}
 
-			return nil, &WorkerError{http.StatusInternalServerError, errors.New(shared.TIMEOUT_ERROR)}
+			return nil, &WorkerError{http.StatusInternalServerError, fmt.Errorf(shared.TIMEOUT_ERROR), ""}
 		}
 	}
 }

@@ -235,6 +235,20 @@ func (gc *GenerationCreate) SetNillableAPITokenID(u *uuid.UUID) *GenerationCreat
 	return gc
 }
 
+// SetFromDiscord sets the "from_discord" field.
+func (gc *GenerationCreate) SetFromDiscord(b bool) *GenerationCreate {
+	gc.mutation.SetFromDiscord(b)
+	return gc
+}
+
+// SetNillableFromDiscord sets the "from_discord" field if the given value is not nil.
+func (gc *GenerationCreate) SetNillableFromDiscord(b *bool) *GenerationCreate {
+	if b != nil {
+		gc.SetFromDiscord(*b)
+	}
+	return gc
+}
+
 // SetStartedAt sets the "started_at" field.
 func (gc *GenerationCreate) SetStartedAt(t time.Time) *GenerationCreate {
 	gc.mutation.SetStartedAt(t)
@@ -418,6 +432,10 @@ func (gc *GenerationCreate) defaults() {
 		v := generation.DefaultWasAutoSubmitted
 		gc.mutation.SetWasAutoSubmitted(v)
 	}
+	if _, ok := gc.mutation.FromDiscord(); !ok {
+		v := generation.DefaultFromDiscord
+		gc.mutation.SetFromDiscord(v)
+	}
 	if _, ok := gc.mutation.CreatedAt(); !ok {
 		v := generation.DefaultCreatedAt()
 		gc.mutation.SetCreatedAt(v)
@@ -477,6 +495,9 @@ func (gc *GenerationCreate) check() error {
 	}
 	if _, ok := gc.mutation.DeviceInfoID(); !ok {
 		return &ValidationError{Name: "device_info_id", err: errors.New(`ent: missing required field "Generation.device_info_id"`)}
+	}
+	if _, ok := gc.mutation.FromDiscord(); !ok {
+		return &ValidationError{Name: "from_discord", err: errors.New(`ent: missing required field "Generation.from_discord"`)}
 	}
 	if _, ok := gc.mutation.CreatedAt(); !ok {
 		return &ValidationError{Name: "created_at", err: errors.New(`ent: missing required field "Generation.created_at"`)}
@@ -592,6 +613,10 @@ func (gc *GenerationCreate) createSpec() (*Generation, *sqlgraph.CreateSpec) {
 	if value, ok := gc.mutation.StripeProductID(); ok {
 		_spec.SetField(generation.FieldStripeProductID, field.TypeString, value)
 		_node.StripeProductID = &value
+	}
+	if value, ok := gc.mutation.FromDiscord(); ok {
+		_spec.SetField(generation.FieldFromDiscord, field.TypeBool, value)
+		_node.FromDiscord = value
 	}
 	if value, ok := gc.mutation.StartedAt(); ok {
 		_spec.SetField(generation.FieldStartedAt, field.TypeTime, value)

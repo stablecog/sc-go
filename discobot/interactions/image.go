@@ -11,6 +11,7 @@ import (
 	"github.com/stablecog/sc-go/log"
 	"github.com/stablecog/sc-go/server/requests"
 	"github.com/stablecog/sc-go/server/scworker"
+	"github.com/stablecog/sc-go/shared"
 	"github.com/stablecog/sc-go/utils"
 )
 
@@ -61,6 +62,9 @@ func (c *DiscordInteractionWrapper) NewImageCommand() *DiscordInteraction {
 				ctx := context.Background()
 				res, err := scworker.CreateGeneration(
 					ctx,
+					shared.OperationSourceTypeDiscord,
+					nil,
+					c.SafetyChecker,
 					c.Repo,
 					c.Redis,
 					c.SMap,
@@ -130,6 +134,8 @@ func (c *DiscordInteractionWrapper) HandleUpscale(s *discordgo.Session, i *disco
 		ctx := context.Background()
 		res, err := scworker.CreateUpscale(
 			ctx,
+			shared.OperationSourceTypeDiscord,
+			nil,
 			c.Repo,
 			c.Redis,
 			c.SMap,

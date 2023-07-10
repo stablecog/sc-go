@@ -1079,3 +1079,8 @@ ALTER TYPE public.prompt_type_enum OWNER TO postgres;
 
 alter table prompts add column type public.prompt_type_enum not null default 'image';
 alter table prompts alter column type drop default;
+
+-- Add from_discord
+alter table public.generations add column from_discord boolean not null default false;
+alter table public.upscales add column from_discord boolean not null default false;
+alter table public.voiceovers add column from_discord boolean not null default false;

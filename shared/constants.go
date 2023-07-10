@@ -81,8 +81,9 @@ const (
 type OperationSourceType string
 
 const (
-	OperationSourceTypeAPI   OperationSourceType = "api"
-	OperationSourceTypeWebUI OperationSourceType = "web-ui"
+	OperationSourceTypeAPI     OperationSourceType = "api"
+	OperationSourceTypeWebUI   OperationSourceType = "web-ui"
+	OperationSourceTypeDiscord OperationSourceType = "discord"
 )
 
 // Default image extension for generate

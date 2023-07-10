@@ -111,6 +111,11 @@ func APITokenID(v uuid.UUID) predicate.Upscale {
 	return predicate.Upscale(sql.FieldEQ(FieldAPITokenID, v))
 }
 
+// FromDiscord applies equality check predicate on the "from_discord" field. It's identical to FromDiscordEQ.
+func FromDiscord(v bool) predicate.Upscale {
+	return predicate.Upscale(sql.FieldEQ(FieldFromDiscord, v))
+}
+
 // StartedAt applies equality check predicate on the "started_at" field. It's identical to StartedAtEQ.
 func StartedAt(v time.Time) predicate.Upscale {
 	return predicate.Upscale(sql.FieldEQ(FieldStartedAt, v))
@@ -594,6 +599,16 @@ func APITokenIDIsNil() predicate.Upscale {
 // APITokenIDNotNil applies the NotNil predicate on the "api_token_id" field.
 func APITokenIDNotNil() predicate.Upscale {
 	return predicate.Upscale(sql.FieldNotNull(FieldAPITokenID))
+}
+
+// FromDiscordEQ applies the EQ predicate on the "from_discord" field.
+func FromDiscordEQ(v bool) predicate.Upscale {
+	return predicate.Upscale(sql.FieldEQ(FieldFromDiscord, v))
+}
+
+// FromDiscordNEQ applies the NEQ predicate on the "from_discord" field.
+func FromDiscordNEQ(v bool) predicate.Upscale {
+	return predicate.Upscale(sql.FieldNEQ(FieldFromDiscord, v))
 }
 
 // StartedAtEQ applies the EQ predicate on the "started_at" field.

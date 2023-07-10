@@ -156,6 +156,11 @@ func APITokenID(v uuid.UUID) predicate.Generation {
 	return predicate.Generation(sql.FieldEQ(FieldAPITokenID, v))
 }
 
+// FromDiscord applies equality check predicate on the "from_discord" field. It's identical to FromDiscordEQ.
+func FromDiscord(v bool) predicate.Generation {
+	return predicate.Generation(sql.FieldEQ(FieldFromDiscord, v))
+}
+
 // StartedAt applies equality check predicate on the "started_at" field. It's identical to StartedAtEQ.
 func StartedAt(v time.Time) predicate.Generation {
 	return predicate.Generation(sql.FieldEQ(FieldStartedAt, v))
@@ -1004,6 +1009,16 @@ func APITokenIDIsNil() predicate.Generation {
 // APITokenIDNotNil applies the NotNil predicate on the "api_token_id" field.
 func APITokenIDNotNil() predicate.Generation {
 	return predicate.Generation(sql.FieldNotNull(FieldAPITokenID))
+}
+
+// FromDiscordEQ applies the EQ predicate on the "from_discord" field.
+func FromDiscordEQ(v bool) predicate.Generation {
+	return predicate.Generation(sql.FieldEQ(FieldFromDiscord, v))
+}
+
+// FromDiscordNEQ applies the NEQ predicate on the "from_discord" field.
+func FromDiscordNEQ(v bool) predicate.Generation {
+	return predicate.Generation(sql.FieldNEQ(FieldFromDiscord, v))
 }
 
 // StartedAtEQ applies the EQ predicate on the "started_at" field.

@@ -4320,6 +4320,7 @@ type GenerationMutation struct {
 	addprompt_strength        *float32
 	was_auto_submitted        *bool
 	stripe_product_id         *string
+	from_discord              *bool
 	started_at                *time.Time
 	completed_at              *time.Time
 	created_at                *time.Time
@@ -5472,6 +5473,42 @@ func (m *GenerationMutation) ResetAPITokenID() {
 	delete(m.clearedFields, generation.FieldAPITokenID)
 }
 
+// SetFromDiscord sets the "from_discord" field.
+func (m *GenerationMutation) SetFromDiscord(b bool) {
+	m.from_discord = &b
+}
+
+// FromDiscord returns the value of the "from_discord" field in the mutation.
+func (m *GenerationMutation) FromDiscord() (r bool, exists bool) {
+	v := m.from_discord
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldFromDiscord returns the old "from_discord" field's value of the Generation entity.
+// If the Generation object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *GenerationMutation) OldFromDiscord(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldFromDiscord is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldFromDiscord requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldFromDiscord: %w", err)
+	}
+	return oldValue.FromDiscord, nil
+}
+
+// ResetFromDiscord resets all changes to the "from_discord" field.
+func (m *GenerationMutation) ResetFromDiscord() {
+	m.from_discord = nil
+}
+
 // SetStartedAt sets the "started_at" field.
 func (m *GenerationMutation) SetStartedAt(t time.Time) {
 	m.started_at = &t
@@ -5938,7 +5975,7 @@ func (m *GenerationMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *GenerationMutation) Fields() []string {
-	fields := make([]string, 0, 25)
+	fields := make([]string, 0, 26)
 	if m.width != nil {
 		fields = append(fields, generation.FieldWidth)
 	}
@@ -6002,6 +6039,9 @@ func (m *GenerationMutation) Fields() []string {
 	if m.api_tokens != nil {
 		fields = append(fields, generation.FieldAPITokenID)
 	}
+	if m.from_discord != nil {
+		fields = append(fields, generation.FieldFromDiscord)
+	}
 	if m.started_at != nil {
 		fields = append(fields, generation.FieldStartedAt)
 	}
@@ -6064,6 +6104,8 @@ func (m *GenerationMutation) Field(name string) (ent.Value, bool) {
 		return m.DeviceInfoID()
 	case generation.FieldAPITokenID:
 		return m.APITokenID()
+	case generation.FieldFromDiscord:
+		return m.FromDiscord()
 	case generation.FieldStartedAt:
 		return m.StartedAt()
 	case generation.FieldCompletedAt:
@@ -6123,6 +6165,8 @@ func (m *GenerationMutation) OldField(ctx context.Context, name string) (ent.Val
 		return m.OldDeviceInfoID(ctx)
 	case generation.FieldAPITokenID:
 		return m.OldAPITokenID(ctx)
+	case generation.FieldFromDiscord:
+		return m.OldFromDiscord(ctx)
 	case generation.FieldStartedAt:
 		return m.OldStartedAt(ctx)
 	case generation.FieldCompletedAt:
@@ -6286,6 +6330,13 @@ func (m *GenerationMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetAPITokenID(v)
+		return nil
+	case generation.FieldFromDiscord:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetFromDiscord(v)
 		return nil
 	case generation.FieldStartedAt:
 		v, ok := value.(time.Time)
@@ -6588,6 +6639,9 @@ func (m *GenerationMutation) ResetField(name string) error {
 		return nil
 	case generation.FieldAPITokenID:
 		m.ResetAPITokenID()
+		return nil
+	case generation.FieldFromDiscord:
+		m.ResetFromDiscord()
 		return nil
 	case generation.FieldStartedAt:
 		m.ResetStartedAt()
@@ -11307,6 +11361,7 @@ type UpscaleMutation struct {
 	failure_reason         *string
 	stripe_product_id      *string
 	system_generated       *bool
+	from_discord           *bool
 	started_at             *time.Time
 	completed_at           *time.Time
 	created_at             *time.Time
@@ -11976,6 +12031,42 @@ func (m *UpscaleMutation) ResetAPITokenID() {
 	delete(m.clearedFields, upscale.FieldAPITokenID)
 }
 
+// SetFromDiscord sets the "from_discord" field.
+func (m *UpscaleMutation) SetFromDiscord(b bool) {
+	m.from_discord = &b
+}
+
+// FromDiscord returns the value of the "from_discord" field in the mutation.
+func (m *UpscaleMutation) FromDiscord() (r bool, exists bool) {
+	v := m.from_discord
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldFromDiscord returns the old "from_discord" field's value of the Upscale entity.
+// If the Upscale object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UpscaleMutation) OldFromDiscord(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldFromDiscord is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldFromDiscord requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldFromDiscord: %w", err)
+	}
+	return oldValue.FromDiscord, nil
+}
+
+// ResetFromDiscord resets all changes to the "from_discord" field.
+func (m *UpscaleMutation) ResetFromDiscord() {
+	m.from_discord = nil
+}
+
 // SetStartedAt sets the "started_at" field.
 func (m *UpscaleMutation) SetStartedAt(t time.Time) {
 	m.started_at = &t
@@ -12364,7 +12455,7 @@ func (m *UpscaleMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *UpscaleMutation) Fields() []string {
-	fields := make([]string, 0, 16)
+	fields := make([]string, 0, 17)
 	if m.width != nil {
 		fields = append(fields, upscale.FieldWidth)
 	}
@@ -12400,6 +12491,9 @@ func (m *UpscaleMutation) Fields() []string {
 	}
 	if m.api_tokens != nil {
 		fields = append(fields, upscale.FieldAPITokenID)
+	}
+	if m.from_discord != nil {
+		fields = append(fields, upscale.FieldFromDiscord)
 	}
 	if m.started_at != nil {
 		fields = append(fields, upscale.FieldStartedAt)
@@ -12445,6 +12539,8 @@ func (m *UpscaleMutation) Field(name string) (ent.Value, bool) {
 		return m.ModelID()
 	case upscale.FieldAPITokenID:
 		return m.APITokenID()
+	case upscale.FieldFromDiscord:
+		return m.FromDiscord()
 	case upscale.FieldStartedAt:
 		return m.StartedAt()
 	case upscale.FieldCompletedAt:
@@ -12486,6 +12582,8 @@ func (m *UpscaleMutation) OldField(ctx context.Context, name string) (ent.Value,
 		return m.OldModelID(ctx)
 	case upscale.FieldAPITokenID:
 		return m.OldAPITokenID(ctx)
+	case upscale.FieldFromDiscord:
+		return m.OldFromDiscord(ctx)
 	case upscale.FieldStartedAt:
 		return m.OldStartedAt(ctx)
 	case upscale.FieldCompletedAt:
@@ -12586,6 +12684,13 @@ func (m *UpscaleMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetAPITokenID(v)
+		return nil
+	case upscale.FieldFromDiscord:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetFromDiscord(v)
 		return nil
 	case upscale.FieldStartedAt:
 		v, ok := value.(time.Time)
@@ -12777,6 +12882,9 @@ func (m *UpscaleMutation) ResetField(name string) error {
 		return nil
 	case upscale.FieldAPITokenID:
 		m.ResetAPITokenID()
+		return nil
+	case upscale.FieldFromDiscord:
+		m.ResetFromDiscord()
 		return nil
 	case upscale.FieldStartedAt:
 		m.ResetStartedAt()
@@ -16061,6 +16169,7 @@ type VoiceoverMutation struct {
 	remove_silence            *bool
 	cost                      *int32
 	addcost                   *int32
+	from_discord              *bool
 	started_at                *time.Time
 	completed_at              *time.Time
 	created_at                *time.Time
@@ -16891,6 +17000,42 @@ func (m *VoiceoverMutation) ResetAPITokenID() {
 	delete(m.clearedFields, voiceover.FieldAPITokenID)
 }
 
+// SetFromDiscord sets the "from_discord" field.
+func (m *VoiceoverMutation) SetFromDiscord(b bool) {
+	m.from_discord = &b
+}
+
+// FromDiscord returns the value of the "from_discord" field in the mutation.
+func (m *VoiceoverMutation) FromDiscord() (r bool, exists bool) {
+	v := m.from_discord
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldFromDiscord returns the old "from_discord" field's value of the Voiceover entity.
+// If the Voiceover object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *VoiceoverMutation) OldFromDiscord(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldFromDiscord is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldFromDiscord requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldFromDiscord: %w", err)
+	}
+	return oldValue.FromDiscord, nil
+}
+
+// ResetFromDiscord resets all changes to the "from_discord" field.
+func (m *VoiceoverMutation) ResetFromDiscord() {
+	m.from_discord = nil
+}
+
 // SetStartedAt sets the "started_at" field.
 func (m *VoiceoverMutation) SetStartedAt(t time.Time) {
 	m.started_at = &t
@@ -17344,7 +17489,7 @@ func (m *VoiceoverMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *VoiceoverMutation) Fields() []string {
-	fields := make([]string, 0, 20)
+	fields := make([]string, 0, 21)
 	if m.country_code != nil {
 		fields = append(fields, voiceover.FieldCountryCode)
 	}
@@ -17392,6 +17537,9 @@ func (m *VoiceoverMutation) Fields() []string {
 	}
 	if m.api_tokens != nil {
 		fields = append(fields, voiceover.FieldAPITokenID)
+	}
+	if m.from_discord != nil {
+		fields = append(fields, voiceover.FieldFromDiscord)
 	}
 	if m.started_at != nil {
 		fields = append(fields, voiceover.FieldStartedAt)
@@ -17445,6 +17593,8 @@ func (m *VoiceoverMutation) Field(name string) (ent.Value, bool) {
 		return m.SpeakerID()
 	case voiceover.FieldAPITokenID:
 		return m.APITokenID()
+	case voiceover.FieldFromDiscord:
+		return m.FromDiscord()
 	case voiceover.FieldStartedAt:
 		return m.StartedAt()
 	case voiceover.FieldCompletedAt:
@@ -17494,6 +17644,8 @@ func (m *VoiceoverMutation) OldField(ctx context.Context, name string) (ent.Valu
 		return m.OldSpeakerID(ctx)
 	case voiceover.FieldAPITokenID:
 		return m.OldAPITokenID(ctx)
+	case voiceover.FieldFromDiscord:
+		return m.OldFromDiscord(ctx)
 	case voiceover.FieldStartedAt:
 		return m.OldStartedAt(ctx)
 	case voiceover.FieldCompletedAt:
@@ -17622,6 +17774,13 @@ func (m *VoiceoverMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetAPITokenID(v)
+		return nil
+	case voiceover.FieldFromDiscord:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetFromDiscord(v)
 		return nil
 	case voiceover.FieldStartedAt:
 		v, ok := value.(time.Time)
@@ -17831,6 +17990,9 @@ func (m *VoiceoverMutation) ResetField(name string) error {
 		return nil
 	case voiceover.FieldAPITokenID:
 		m.ResetAPITokenID()
+		return nil
+	case voiceover.FieldFromDiscord:
+		m.ResetFromDiscord()
 		return nil
 	case voiceover.FieldStartedAt:
 		m.ResetStartedAt()

@@ -45,6 +45,8 @@ type Upscale struct {
 	ModelID uuid.UUID `json:"model_id,omitempty"`
 	// APITokenID holds the value of the "api_token_id" field.
 	APITokenID *uuid.UUID `json:"api_token_id,omitempty"`
+	// FromDiscord holds the value of the "from_discord" field.
+	FromDiscord bool `json:"from_discord,omitempty"`
 	// StartedAt holds the value of the "started_at" field.
 	StartedAt *time.Time `json:"started_at,omitempty"`
 	// CompletedAt holds the value of the "completed_at" field.
@@ -143,7 +145,7 @@ func (*Upscale) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case upscale.FieldAPITokenID:
 			values[i] = &sql.NullScanner{S: new(uuid.UUID)}
-		case upscale.FieldSystemGenerated:
+		case upscale.FieldSystemGenerated, upscale.FieldFromDiscord:
 			values[i] = new(sql.NullBool)
 		case upscale.FieldWidth, upscale.FieldHeight, upscale.FieldScale:
 			values[i] = new(sql.NullInt64)
@@ -249,6 +251,12 @@ func (u *Upscale) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				u.APITokenID = new(uuid.UUID)
 				*u.APITokenID = *value.S.(*uuid.UUID)
+			}
+		case upscale.FieldFromDiscord:
+			if value, ok := values[i].(*sql.NullBool); !ok {
+				return fmt.Errorf("unexpected type %T for field from_discord", values[i])
+			} else if value.Valid {
+				u.FromDiscord = value.Bool
 			}
 		case upscale.FieldStartedAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
@@ -372,6 +380,9 @@ func (u *Upscale) String() string {
 		builder.WriteString("api_token_id=")
 		builder.WriteString(fmt.Sprintf("%v", *v))
 	}
+	builder.WriteString(", ")
+	builder.WriteString("from_discord=")
+	builder.WriteString(fmt.Sprintf("%v", u.FromDiscord))
 	builder.WriteString(", ")
 	if v := u.StartedAt; v != nil {
 		builder.WriteString("started_at=")

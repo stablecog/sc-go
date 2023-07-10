@@ -37,6 +37,7 @@ func (Voiceover) Fields() []ent.Field {
 		field.UUID("model_id", uuid.UUID{}),
 		field.UUID("speaker_id", uuid.UUID{}),
 		field.UUID("api_token_id", uuid.UUID{}).Optional().Nillable(),
+		field.Bool("from_discord").Default(false),
 		// ! End relationships
 		field.Time("started_at").Optional().Nillable(),
 		field.Time("completed_at").Optional().Nillable(),

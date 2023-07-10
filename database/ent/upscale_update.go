@@ -192,6 +192,20 @@ func (uu *UpscaleUpdate) ClearAPITokenID() *UpscaleUpdate {
 	return uu
 }
 
+// SetFromDiscord sets the "from_discord" field.
+func (uu *UpscaleUpdate) SetFromDiscord(b bool) *UpscaleUpdate {
+	uu.mutation.SetFromDiscord(b)
+	return uu
+}
+
+// SetNillableFromDiscord sets the "from_discord" field if the given value is not nil.
+func (uu *UpscaleUpdate) SetNillableFromDiscord(b *bool) *UpscaleUpdate {
+	if b != nil {
+		uu.SetFromDiscord(*b)
+	}
+	return uu
+}
+
 // SetStartedAt sets the "started_at" field.
 func (uu *UpscaleUpdate) SetStartedAt(t time.Time) *UpscaleUpdate {
 	uu.mutation.SetStartedAt(t)
@@ -466,6 +480,9 @@ func (uu *UpscaleUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if value, ok := uu.mutation.SystemGenerated(); ok {
 		_spec.SetField(upscale.FieldSystemGenerated, field.TypeBool, value)
+	}
+	if value, ok := uu.mutation.FromDiscord(); ok {
+		_spec.SetField(upscale.FieldFromDiscord, field.TypeBool, value)
 	}
 	if value, ok := uu.mutation.StartedAt(); ok {
 		_spec.SetField(upscale.FieldStartedAt, field.TypeTime, value)
@@ -855,6 +872,20 @@ func (uuo *UpscaleUpdateOne) ClearAPITokenID() *UpscaleUpdateOne {
 	return uuo
 }
 
+// SetFromDiscord sets the "from_discord" field.
+func (uuo *UpscaleUpdateOne) SetFromDiscord(b bool) *UpscaleUpdateOne {
+	uuo.mutation.SetFromDiscord(b)
+	return uuo
+}
+
+// SetNillableFromDiscord sets the "from_discord" field if the given value is not nil.
+func (uuo *UpscaleUpdateOne) SetNillableFromDiscord(b *bool) *UpscaleUpdateOne {
+	if b != nil {
+		uuo.SetFromDiscord(*b)
+	}
+	return uuo
+}
+
 // SetStartedAt sets the "started_at" field.
 func (uuo *UpscaleUpdateOne) SetStartedAt(t time.Time) *UpscaleUpdateOne {
 	uuo.mutation.SetStartedAt(t)
@@ -1153,6 +1184,9 @@ func (uuo *UpscaleUpdateOne) sqlSave(ctx context.Context) (_node *Upscale, err e
 	}
 	if value, ok := uuo.mutation.SystemGenerated(); ok {
 		_spec.SetField(upscale.FieldSystemGenerated, field.TypeBool, value)
+	}
+	if value, ok := uuo.mutation.FromDiscord(); ok {
+		_spec.SetField(upscale.FieldFromDiscord, field.TypeBool, value)
 	}
 	if value, ok := uuo.mutation.StartedAt(); ok {
 		_spec.SetField(upscale.FieldStartedAt, field.TypeTime, value)

@@ -24,6 +24,9 @@ import (
 )
 
 func CreateGeneration(ctx context.Context,
+	source shared.OperationSourceType,
+	r *http.Request,
+	safetyChecker *utils.TranslatorSafetyChecker,
 	repo *repository.Repository,
 	redis *database.RedisWrapper,
 	SMap *shared.SyncMap[chan requests.CogWebhookMessage],
@@ -46,7 +49,7 @@ func CreateGeneration(ctx context.Context,
 	roles, err := repo.GetRoles(user.ID)
 	if err != nil {
 		log.Error("Error getting roles for user", "err", err)
-		return nil, &WorkerError{http.StatusInternalServerError, err}
+		return nil, WorkerInternalServerError()
 	}
 	isSuperAdmin := slices.Contains(roles, "SUPER_ADMIN")
 	if isSuperAdmin {
@@ -97,13 +100,13 @@ func CreateGeneration(ctx context.Context,
 	}
 
 	if user.BannedAt != nil {
-		return nil, &WorkerError{http.StatusForbidden, fmt.Errorf("user_banned")}
+		return nil, &WorkerError{http.StatusForbidden, fmt.Errorf("user_banned"), ""}
 	}
 
 	// Validation
 	err = generateReq.Validate(true)
 	if err != nil {
-		return nil, &WorkerError{http.StatusBadRequest, err}
+		return nil, &WorkerError{http.StatusBadRequest, err, ""}
 	}
 
 	// Set settings resp
@@ -187,7 +190,7 @@ func CreateGeneration(ctx context.Context,
 		}
 		// If overflow size is greater than max, return error
 		if overflowSize > shared.QUEUE_OVERFLOW_MAX {
-			return nil, &WorkerError{http.StatusBadRequest, fmt.Errorf("queue_limit_reached")}
+			return nil, &WorkerError{http.StatusBadRequest, fmt.Errorf("queue_limit_reached"), ""}
 		}
 		// Overflow size can be 0 so we need to add 1
 		overflowSize++
@@ -217,16 +220,27 @@ func CreateGeneration(ctx context.Context,
 	}
 
 	// Parse request headers
-	// ! TODO - add country code and device info
-	// countryCode := utils.GetCountryCode(r)
-	// deviceInfo := utils.GetClientDeviceInfo(r)
-
+	var countryCode string
+	var deviceInfo utils.ClientDeviceInfo
+	ipAddress := "internal"
+	if r != nil {
+		countryCode = utils.GetCountryCode(r)
+		deviceInfo = utils.GetClientDeviceInfo(r)
+		ipAddress = utils.GetIPAddress(r)
+	} else {
+		countryCode = "US"
+		deviceInfo = utils.ClientDeviceInfo{
+			DeviceType:    utils.Bot,
+			DeviceOs:      "Linux",
+			DeviceBrowser: "Discord",
+		}
+	}
 	// Get model and scheduler name for cog
 	modelName := shared.GetCache().GetGenerationModelNameFromID(*generateReq.ModelId)
 	schedulerName := shared.GetCache().GetSchedulerNameFromID(*generateReq.SchedulerId)
 	if modelName == "" || schedulerName == "" {
 		log.Error("Error getting model or scheduler name: %s - %s", modelName, schedulerName)
-		return nil, &WorkerError{http.StatusBadRequest, fmt.Errorf("invalid_model_or_scheduler")}
+		return nil, &WorkerError{http.StatusBadRequest, fmt.Errorf("invalid_model_or_scheduler"), ""}
 	}
 
 	// Format prompts
@@ -263,6 +277,24 @@ func CreateGeneration(ctx context.Context,
 			return responses.InsufficientCreditsErr
 		}
 
+		// Translate prompts
+		translatedPrompt, translatedNegativePrompt, err := safetyChecker.TranslatePrompt(generateReq.Prompt, generateReq.NegativePrompt)
+		if err != nil {
+			log.Error("Error translating prompt", "err", err)
+			return err
+		}
+		generateReq.Prompt = translatedPrompt
+		generateReq.NegativePrompt = translatedNegativePrompt
+		// Check NSFW
+		isNSFW, reason, err := safetyChecker.IsPromptNSFW(generateReq.Prompt)
+		if err != nil {
+			log.Error("Error checking prompt NSFW", "err", err)
+			return err
+		}
+		if isNSFW {
+			return fmt.Errorf("nsfw: %s", reason)
+		}
+
 		remainingCredits, err = repo.GetNonExpiredCreditTotalForUser(user.ID, DB)
 		if err != nil {
 			log.Error("Error getting remaining credits", "err", err)
@@ -272,10 +304,10 @@ func CreateGeneration(ctx context.Context,
 		// Create generation
 		g, err := repo.CreateGeneration(
 			user.ID,
-			"unknown",
-			"Linux",
-			"Discord",
-			"US",
+			string(deviceInfo.DeviceType),
+			deviceInfo.DeviceOs,
+			deviceInfo.DeviceBrowser,
+			countryCode,
 			generateReq,
 			user.ActiveProductID,
 			nil,
@@ -292,7 +324,7 @@ func CreateGeneration(ctx context.Context,
 		livePageMsg = shared.LivePageMessage{
 			ProcessType:      shared.GENERATE,
 			ID:               utils.Sha256(requestId.String()),
-			CountryCode:      "US",
+			CountryCode:      countryCode,
 			Status:           shared.LivePageQueued,
 			TargetNumOutputs: *generateReq.NumOutputs,
 			Width:            generateReq.Width,
@@ -306,15 +338,11 @@ func CreateGeneration(ctx context.Context,
 			WebhookEventsFilter: []requests.CogEventFilter{requests.CogEventFilterStart, requests.CogEventFilterStart},
 			WebhookUrl:          fmt.Sprintf("%s/v1/worker/webhook", utils.GetEnv("PUBLIC_API_URL", "")),
 			Input: requests.BaseCogRequest{
-				APIRequest: true,
-				ID:         requestId,
-				IP:         "internal",
-				UserID:     &user.ID,
-				DeviceInfo: utils.ClientDeviceInfo{
-					DeviceType:    utils.Bot,
-					DeviceOs:      "Linux",
-					DeviceBrowser: "Discord",
-				},
+				APIRequest:           true,
+				ID:                   requestId,
+				IP:                   ipAddress,
+				UserID:               &user.ID,
+				DeviceInfo:           deviceInfo,
 				LivePageData:         &livePageMsg,
 				Prompt:               generateReq.Prompt,
 				NegativePrompt:       generateReq.NegativePrompt,
@@ -351,8 +379,10 @@ func CreateGeneration(ctx context.Context,
 		return nil
 	}); err != nil {
 		log.Error("Error in transaction", "err", err)
-		// ! TODO fine grain error handling
-		return nil, &WorkerError{http.StatusInternalServerError, err}
+		if errors.Is(err, responses.InsufficientCreditsErr) {
+			return nil, responses.InsufficientCreditsErr
+		}
+		return nil, WorkerInternalServerError()
 	}
 
 	// Add channel to sync array (basically a thread-safe map)
@@ -390,7 +420,7 @@ func CreateGeneration(ctx context.Context,
 				err := repo.SetGenerationStarted(requestId.String())
 				if err != nil {
 					log.Error("Failed to set generate started", "id", requestId, "err", err)
-					return nil, &WorkerError{http.StatusInternalServerError, err}
+					return nil, WorkerInternalServerError()
 				}
 				// Send live page update
 				go func() {
@@ -415,7 +445,7 @@ func CreateGeneration(ctx context.Context,
 				outputs, err := repo.SetGenerationSucceeded(requestId.String(), generateReq.Prompt, generateReq.NegativePrompt, cogMsg.Output, cogMsg.NSFWCount)
 				if err != nil {
 					log.Error("Failed to set generation succeeded", "id", upscale.ID, "err", err)
-					return nil, &WorkerError{http.StatusInternalServerError, err}
+					return nil, WorkerInternalServerError()
 				}
 				// Send live page update
 				go func() {
@@ -512,7 +542,7 @@ func CreateGeneration(ctx context.Context,
 					return nil
 				}); err != nil {
 					log.Error("Failed to set generation failed", "id", requestId, "err", err)
-					return nil, &WorkerError{http.StatusInternalServerError, err}
+					return nil, WorkerInternalServerError()
 				}
 
 				// ! TODO
@@ -521,7 +551,7 @@ func CreateGeneration(ctx context.Context,
 				// 	Error:    cogMsg.Error,
 				// 	Settings: initSettings,
 				// })
-				return nil, &WorkerError{http.StatusInternalServerError, errors.New(cogMsg.Error)}
+				return nil, &WorkerError{http.StatusInternalServerError, fmt.Errorf(cogMsg.Error), ""}
 			}
 		case <-time.After(shared.REQUEST_COG_TIMEOUT):
 			if err := repo.WithTx(func(tx *ent.Tx) error {
@@ -539,10 +569,10 @@ func CreateGeneration(ctx context.Context,
 				return nil
 			}); err != nil {
 				log.Error("Failed to set generation failed", "id", requestId, "err", err)
-				return nil, &WorkerError{http.StatusInternalServerError, err}
+				return nil, WorkerInternalServerError()
 			}
 
-			return nil, &WorkerError{http.StatusInternalServerError, errors.New(shared.TIMEOUT_ERROR)}
+			return nil, &WorkerError{http.StatusInternalServerError, fmt.Errorf(shared.TIMEOUT_ERROR), ""}
 		}
 	}
 }

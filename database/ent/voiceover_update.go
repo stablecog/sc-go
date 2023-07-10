@@ -248,6 +248,20 @@ func (vu *VoiceoverUpdate) ClearAPITokenID() *VoiceoverUpdate {
 	return vu
 }
 
+// SetFromDiscord sets the "from_discord" field.
+func (vu *VoiceoverUpdate) SetFromDiscord(b bool) *VoiceoverUpdate {
+	vu.mutation.SetFromDiscord(b)
+	return vu
+}
+
+// SetNillableFromDiscord sets the "from_discord" field if the given value is not nil.
+func (vu *VoiceoverUpdate) SetNillableFromDiscord(b *bool) *VoiceoverUpdate {
+	if b != nil {
+		vu.SetFromDiscord(*b)
+	}
+	return vu
+}
+
 // SetStartedAt sets the "started_at" field.
 func (vu *VoiceoverUpdate) SetStartedAt(t time.Time) *VoiceoverUpdate {
 	vu.mutation.SetStartedAt(t)
@@ -559,6 +573,9 @@ func (vu *VoiceoverUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if value, ok := vu.mutation.AddedCost(); ok {
 		_spec.AddField(voiceover.FieldCost, field.TypeInt32, value)
+	}
+	if value, ok := vu.mutation.FromDiscord(); ok {
+		_spec.SetField(voiceover.FieldFromDiscord, field.TypeBool, value)
 	}
 	if value, ok := vu.mutation.StartedAt(); ok {
 		_spec.SetField(voiceover.FieldStartedAt, field.TypeTime, value)
@@ -1072,6 +1089,20 @@ func (vuo *VoiceoverUpdateOne) ClearAPITokenID() *VoiceoverUpdateOne {
 	return vuo
 }
 
+// SetFromDiscord sets the "from_discord" field.
+func (vuo *VoiceoverUpdateOne) SetFromDiscord(b bool) *VoiceoverUpdateOne {
+	vuo.mutation.SetFromDiscord(b)
+	return vuo
+}
+
+// SetNillableFromDiscord sets the "from_discord" field if the given value is not nil.
+func (vuo *VoiceoverUpdateOne) SetNillableFromDiscord(b *bool) *VoiceoverUpdateOne {
+	if b != nil {
+		vuo.SetFromDiscord(*b)
+	}
+	return vuo
+}
+
 // SetStartedAt sets the "started_at" field.
 func (vuo *VoiceoverUpdateOne) SetStartedAt(t time.Time) *VoiceoverUpdateOne {
 	vuo.mutation.SetStartedAt(t)
@@ -1407,6 +1438,9 @@ func (vuo *VoiceoverUpdateOne) sqlSave(ctx context.Context) (_node *Voiceover, e
 	}
 	if value, ok := vuo.mutation.AddedCost(); ok {
 		_spec.AddField(voiceover.FieldCost, field.TypeInt32, value)
+	}
+	if value, ok := vuo.mutation.FromDiscord(); ok {
+		_spec.SetField(voiceover.FieldFromDiscord, field.TypeBool, value)
 	}
 	if value, ok := vuo.mutation.StartedAt(); ok {
 		_spec.SetField(voiceover.FieldStartedAt, field.TypeTime, value)

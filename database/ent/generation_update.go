@@ -348,6 +348,20 @@ func (gu *GenerationUpdate) ClearAPITokenID() *GenerationUpdate {
 	return gu
 }
 
+// SetFromDiscord sets the "from_discord" field.
+func (gu *GenerationUpdate) SetFromDiscord(b bool) *GenerationUpdate {
+	gu.mutation.SetFromDiscord(b)
+	return gu
+}
+
+// SetNillableFromDiscord sets the "from_discord" field if the given value is not nil.
+func (gu *GenerationUpdate) SetNillableFromDiscord(b *bool) *GenerationUpdate {
+	if b != nil {
+		gu.SetFromDiscord(*b)
+	}
+	return gu
+}
+
 // SetStartedAt sets the "started_at" field.
 func (gu *GenerationUpdate) SetStartedAt(t time.Time) *GenerationUpdate {
 	gu.mutation.SetStartedAt(t)
@@ -697,6 +711,9 @@ func (gu *GenerationUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if gu.mutation.StripeProductIDCleared() {
 		_spec.ClearField(generation.FieldStripeProductID, field.TypeString)
+	}
+	if value, ok := gu.mutation.FromDiscord(); ok {
+		_spec.SetField(generation.FieldFromDiscord, field.TypeBool, value)
 	}
 	if value, ok := gu.mutation.StartedAt(); ok {
 		_spec.SetField(generation.FieldStartedAt, field.TypeTime, value)
@@ -1344,6 +1361,20 @@ func (guo *GenerationUpdateOne) ClearAPITokenID() *GenerationUpdateOne {
 	return guo
 }
 
+// SetFromDiscord sets the "from_discord" field.
+func (guo *GenerationUpdateOne) SetFromDiscord(b bool) *GenerationUpdateOne {
+	guo.mutation.SetFromDiscord(b)
+	return guo
+}
+
+// SetNillableFromDiscord sets the "from_discord" field if the given value is not nil.
+func (guo *GenerationUpdateOne) SetNillableFromDiscord(b *bool) *GenerationUpdateOne {
+	if b != nil {
+		guo.SetFromDiscord(*b)
+	}
+	return guo
+}
+
 // SetStartedAt sets the "started_at" field.
 func (guo *GenerationUpdateOne) SetStartedAt(t time.Time) *GenerationUpdateOne {
 	guo.mutation.SetStartedAt(t)
@@ -1717,6 +1748,9 @@ func (guo *GenerationUpdateOne) sqlSave(ctx context.Context) (_node *Generation,
 	}
 	if guo.mutation.StripeProductIDCleared() {
 		_spec.ClearField(generation.FieldStripeProductID, field.TypeString)
+	}
+	if value, ok := guo.mutation.FromDiscord(); ok {
+		_spec.SetField(generation.FieldFromDiscord, field.TypeBool, value)
 	}
 	if value, ok := guo.mutation.StartedAt(); ok {
 		_spec.SetField(generation.FieldStartedAt, field.TypeTime, value)

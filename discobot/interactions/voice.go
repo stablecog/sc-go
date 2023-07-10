@@ -13,6 +13,7 @@ import (
 	"github.com/stablecog/sc-go/log"
 	"github.com/stablecog/sc-go/server/requests"
 	"github.com/stablecog/sc-go/server/scworker"
+	"github.com/stablecog/sc-go/shared"
 	"github.com/stablecog/sc-go/utils"
 )
 
@@ -94,6 +95,8 @@ func (c *DiscordInteractionWrapper) NewVoiceoverCommand() *DiscordInteraction {
 				ctx := context.Background()
 				res, err := scworker.CreateVoiceover(
 					ctx,
+					shared.OperationSourceTypeDiscord,
+					nil,
 					c.Repo,
 					c.Redis,
 					c.SMap,

@@ -138,6 +138,20 @@ func (uc *UpscaleCreate) SetNillableAPITokenID(u *uuid.UUID) *UpscaleCreate {
 	return uc
 }
 
+// SetFromDiscord sets the "from_discord" field.
+func (uc *UpscaleCreate) SetFromDiscord(b bool) *UpscaleCreate {
+	uc.mutation.SetFromDiscord(b)
+	return uc
+}
+
+// SetNillableFromDiscord sets the "from_discord" field if the given value is not nil.
+func (uc *UpscaleCreate) SetNillableFromDiscord(b *bool) *UpscaleCreate {
+	if b != nil {
+		uc.SetFromDiscord(*b)
+	}
+	return uc
+}
+
 // SetStartedAt sets the "started_at" field.
 func (uc *UpscaleCreate) SetStartedAt(t time.Time) *UpscaleCreate {
 	uc.mutation.SetStartedAt(t)
@@ -302,6 +316,10 @@ func (uc *UpscaleCreate) defaults() {
 		v := upscale.DefaultSystemGenerated
 		uc.mutation.SetSystemGenerated(v)
 	}
+	if _, ok := uc.mutation.FromDiscord(); !ok {
+		v := upscale.DefaultFromDiscord
+		uc.mutation.SetFromDiscord(v)
+	}
 	if _, ok := uc.mutation.CreatedAt(); !ok {
 		v := upscale.DefaultCreatedAt()
 		uc.mutation.SetCreatedAt(v)
@@ -346,6 +364,9 @@ func (uc *UpscaleCreate) check() error {
 	}
 	if _, ok := uc.mutation.ModelID(); !ok {
 		return &ValidationError{Name: "model_id", err: errors.New(`ent: missing required field "Upscale.model_id"`)}
+	}
+	if _, ok := uc.mutation.FromDiscord(); !ok {
+		return &ValidationError{Name: "from_discord", err: errors.New(`ent: missing required field "Upscale.from_discord"`)}
 	}
 	if _, ok := uc.mutation.CreatedAt(); !ok {
 		return &ValidationError{Name: "created_at", err: errors.New(`ent: missing required field "Upscale.created_at"`)}
@@ -434,6 +455,10 @@ func (uc *UpscaleCreate) createSpec() (*Upscale, *sqlgraph.CreateSpec) {
 	if value, ok := uc.mutation.SystemGenerated(); ok {
 		_spec.SetField(upscale.FieldSystemGenerated, field.TypeBool, value)
 		_node.SystemGenerated = value
+	}
+	if value, ok := uc.mutation.FromDiscord(); ok {
+		_spec.SetField(upscale.FieldFromDiscord, field.TypeBool, value)
+		_node.FromDiscord = value
 	}
 	if value, ok := uc.mutation.StartedAt(); ok {
 		_spec.SetField(upscale.FieldStartedAt, field.TypeTime, value)
