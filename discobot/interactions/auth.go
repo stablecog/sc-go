@@ -14,8 +14,6 @@ func (c *DiscordInteractionWrapper) NewAuthenticateCommand() *DiscordInteraction
 		},
 		// The handler for the command
 		Handler: func(s *discordgo.Session, i *discordgo.InteractionCreate) {
-			// Always create an initial message
-			responses.InitialLoadingResponse(s, i, responses.PRIVATE)
 			if u := c.Disco.CheckAuthorization(s, i); u != nil {
 				// User is already authenticated
 				responses.InteractionEdit(s, i, &responses.InteractionResponseOptions{

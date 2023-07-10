@@ -42,7 +42,7 @@ func (c *RestAPI) HandleAuthorizeDiscord(w http.ResponseWriter, r *http.Request)
 			return
 		}
 	}
-	if token != authReq.Token {
+	if token != authReq.DiscordToken {
 		render.Status(r, http.StatusForbidden)
 		render.JSON(w, r, &responses.ErrorResponse{
 			Error: "invalid_token",
