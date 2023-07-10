@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"github.com/go-chi/render"
+	"github.com/redis/go-redis/v9"
 	"github.com/stablecog/sc-go/database/ent"
 	"github.com/stablecog/sc-go/log"
 	"github.com/stablecog/sc-go/server/requests"
@@ -30,20 +31,35 @@ func (c *RestAPI) HandleAuthorizeDiscord(w http.ResponseWriter, r *http.Request)
 	}
 
 	// Verify token exists in redis and is valid
-	token, _ := c.Redis.GetDiscordTokenFromID(authReq.DiscordID)
+	token, err := c.Redis.GetDiscordTokenFromID(authReq.DiscordID)
+	if err != nil {
+		if err == redis.Nil {
+			responses.ErrBadRequest(w, r, "invalid_token", "The token provided is invalid")
+			return
+		} else {
+			log.Errorf("Error getting discord token from redis: %v", err)
+			responses.ErrInternalServerError(w, r, "An unknown error has occured")
+			return
+		}
+	}
 	if token != authReq.Token {
-		responses.ErrUnauthorized(w, r)
+		render.Status(r, http.StatusForbidden)
+		render.JSON(w, r, &responses.ErrorResponse{
+			Error: "invalid_token",
+		})
 		return
 	}
 
 	// See if user already exists with this ID
-	_, err = c.Repo.GetUserByDiscordID(authReq.DiscordID)
-	if err != nil && ent.IsNotFound(err) {
-		responses.ErrBadRequest(w, r, "already_linked", "This discord account is already linked to a Stablecog account")
-		return
-	} else if err != nil {
+	u, err := c.Repo.GetUserByDiscordID(authReq.DiscordID)
+	if err != nil && !ent.IsNotFound(err) {
 		log.Errorf("Error checking for existing discord user: %v", err)
 		responses.ErrInternalServerError(w, r, "An unknown error has occured")
+		return
+	}
+
+	if u != nil {
+		responses.ErrBadRequest(w, r, "already_linked", "This discord account is already linked to a Stablecog account")
 		return
 	}
 
