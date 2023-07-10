@@ -16,7 +16,7 @@ func (c *DiscordInteractionWrapper) NewAuthenticateCommand() *DiscordInteraction
 		Handler: func(s *discordgo.Session, i *discordgo.InteractionCreate) {
 			if u := c.Disco.CheckAuthorization(s, i); u != nil {
 				// User is already authenticated
-				responses.InteractionEdit(s, i, &responses.InteractionResponseOptions{
+				responses.InitialInteractionResponse(s, i, &responses.InteractionResponseOptions{
 					EmbedTitle:   "👍",
 					EmbedContent: "Your Discord account is already authenticated with Stablecog.",
 				})

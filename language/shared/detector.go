@@ -7,13 +7,13 @@ import (
 	"time"
 
 	"github.com/pemistahl/lingua-go"
+	"github.com/stablecog/sc-go/utils"
 )
 
 const targetLangFlores = "eng_Latn"
-const targetLangMaxScore float64 = 0.9
-const targetLangAcceptableMinDif float64 = 0.1
-const targetLangAcceptableScore float64 = 0.2
-const targetLangMinDif float64 = 0.01
+const targetLang = lingua.English
+const targetLangMaxScore float64 = 0.88
+const detectedConfidenceScoreMin = 0.1
 const maxTextLength = 150
 
 type LanguageDetector struct {
@@ -55,32 +55,29 @@ func (ld *LanguageDetector) GetFloresCode(text string) string {
 		return targetLangFlores
 	}
 
-	detectedLang := strings.ToUpper(confidenceValues[0].Language().String())
-	detectedLangFlores, ok := LANG_TO_FLORES[detectedLang]
-	if !ok {
-		return targetLangFlores
-	}
-	detectedLangScore := confidenceValues[0].Value()
-
-	var targetLangScore float64 = 0
-	for _, confidenceValue := range confidenceValues {
-		lang := strings.ToUpper(confidenceValue.Language().String())
-		flores, ok := LANG_TO_FLORES[lang]
-		if !ok {
-			continue
+	var detectedLang *lingua.Language
+	var detectedLangScore *float64
+	var targetLangScore *float64
+	for i, curr := range confidenceValues {
+		if i == 0 {
+			detectedLang = utils.ToPtr(curr.Language())
+			detectedLangScore = utils.ToPtr(curr.Value())
 		}
-		if flores == targetLangFlores {
-			targetLangScore = confidenceValue.Value()
+		if strings.ToUpper(curr.Language().String()) == "ENGLISH" {
+			targetLangScore = utils.ToPtr(curr.Value())
 		}
 	}
 
-	if targetLangScore > targetLangMaxScore ||
-		(detectedLangScore-targetLangScore < targetLangMinDif) ||
-		(targetLangScore > targetLangAcceptableScore && detectedLangScore-targetLangScore < targetLangAcceptableMinDif) {
-		return targetLangFlores
+	langToFlores, _ := LANG_TO_FLORES[strings.ToUpper(detectedLang.String())]
+
+	if detectedLang != nil && *detectedLang != lingua.English &&
+		*detectedLang != targetLang && *detectedLangScore > detectedConfidenceScoreMin &&
+		(targetLangScore == nil || *targetLangScore < targetLangMaxScore) &&
+		langToFlores != "" {
+		return langToFlores
 	}
 
-	return detectedLangFlores
+	return targetLangFlores
 }
 
 var LANG_TO_FLORES = map[string]string{
