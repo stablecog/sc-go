@@ -1,6 +1,6 @@
 package requests
 
 type DiscordVerificationRequest struct {
-	Token  string `json:"token"`
-	UserID string `json:"user_id"`
+	Token  string `json:"platform_token"`
+	UserID string `json:"platform_user_id"`
 }
