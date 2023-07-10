@@ -77,15 +77,6 @@ const (
 	VOICEOVER            ProcessType = "voiceover"
 )
 
-// Source type for API requests
-type OperationSourceType string
-
-const (
-	OperationSourceTypeAPI     OperationSourceType = "api"
-	OperationSourceTypeWebUI   OperationSourceType = "web-ui"
-	OperationSourceTypeDiscord OperationSourceType = "discord"
-)
-
 // Default image extension for generate
 const DEFAULT_PROCESS_TYPE = GENERATE
 

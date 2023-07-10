@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/stablecog/sc-go/database/enttypes"
 )
 
 type LivePageStatus string
@@ -31,7 +32,7 @@ type LivePageMessage struct {
 	CompletedAt      *time.Time          `json:"completed_at,omitempty"`
 	ProductID        *string             `json:"product_id,omitempty"`
 	SystemGenerated  bool                `json:"system_generated"`
-	Source           OperationSourceType `json:"source,omitempty"`
+	Source           enttypes.SourceType `json:"source,omitempty"`
 	Temperature      *float32            `json:"temperature,omitempty"`
 	RemoveSilence    *bool               `json:"remove_silence,omitempty"`
 	DenoiseAudio     *bool               `json:"denoise_audio,omitempty"`

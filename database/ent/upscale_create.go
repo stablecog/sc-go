@@ -17,6 +17,7 @@ import (
 	"github.com/stablecog/sc-go/database/ent/upscalemodel"
 	"github.com/stablecog/sc-go/database/ent/upscaleoutput"
 	"github.com/stablecog/sc-go/database/ent/user"
+	"github.com/stablecog/sc-go/database/enttypes"
 )
 
 // UpscaleCreate is the builder for creating a Upscale entity.
@@ -106,6 +107,20 @@ func (uc *UpscaleCreate) SetNillableSystemGenerated(b *bool) *UpscaleCreate {
 	return uc
 }
 
+// SetSourceType sets the "source_type" field.
+func (uc *UpscaleCreate) SetSourceType(et enttypes.SourceType) *UpscaleCreate {
+	uc.mutation.SetSourceType(et)
+	return uc
+}
+
+// SetNillableSourceType sets the "source_type" field if the given value is not nil.
+func (uc *UpscaleCreate) SetNillableSourceType(et *enttypes.SourceType) *UpscaleCreate {
+	if et != nil {
+		uc.SetSourceType(*et)
+	}
+	return uc
+}
+
 // SetUserID sets the "user_id" field.
 func (uc *UpscaleCreate) SetUserID(u uuid.UUID) *UpscaleCreate {
 	uc.mutation.SetUserID(u)
@@ -134,20 +149,6 @@ func (uc *UpscaleCreate) SetAPITokenID(u uuid.UUID) *UpscaleCreate {
 func (uc *UpscaleCreate) SetNillableAPITokenID(u *uuid.UUID) *UpscaleCreate {
 	if u != nil {
 		uc.SetAPITokenID(*u)
-	}
-	return uc
-}
-
-// SetFromDiscord sets the "from_discord" field.
-func (uc *UpscaleCreate) SetFromDiscord(b bool) *UpscaleCreate {
-	uc.mutation.SetFromDiscord(b)
-	return uc
-}
-
-// SetNillableFromDiscord sets the "from_discord" field if the given value is not nil.
-func (uc *UpscaleCreate) SetNillableFromDiscord(b *bool) *UpscaleCreate {
-	if b != nil {
-		uc.SetFromDiscord(*b)
 	}
 	return uc
 }
@@ -316,9 +317,9 @@ func (uc *UpscaleCreate) defaults() {
 		v := upscale.DefaultSystemGenerated
 		uc.mutation.SetSystemGenerated(v)
 	}
-	if _, ok := uc.mutation.FromDiscord(); !ok {
-		v := upscale.DefaultFromDiscord
-		uc.mutation.SetFromDiscord(v)
+	if _, ok := uc.mutation.SourceType(); !ok {
+		v := upscale.DefaultSourceType
+		uc.mutation.SetSourceType(v)
 	}
 	if _, ok := uc.mutation.CreatedAt(); !ok {
 		v := upscale.DefaultCreatedAt()
@@ -356,6 +357,14 @@ func (uc *UpscaleCreate) check() error {
 	if _, ok := uc.mutation.SystemGenerated(); !ok {
 		return &ValidationError{Name: "system_generated", err: errors.New(`ent: missing required field "Upscale.system_generated"`)}
 	}
+	if _, ok := uc.mutation.SourceType(); !ok {
+		return &ValidationError{Name: "source_type", err: errors.New(`ent: missing required field "Upscale.source_type"`)}
+	}
+	if v, ok := uc.mutation.SourceType(); ok {
+		if err := upscale.SourceTypeValidator(v); err != nil {
+			return &ValidationError{Name: "source_type", err: fmt.Errorf(`ent: validator failed for field "Upscale.source_type": %w`, err)}
+		}
+	}
 	if _, ok := uc.mutation.UserID(); !ok {
 		return &ValidationError{Name: "user_id", err: errors.New(`ent: missing required field "Upscale.user_id"`)}
 	}
@@ -364,9 +373,6 @@ func (uc *UpscaleCreate) check() error {
 	}
 	if _, ok := uc.mutation.ModelID(); !ok {
 		return &ValidationError{Name: "model_id", err: errors.New(`ent: missing required field "Upscale.model_id"`)}
-	}
-	if _, ok := uc.mutation.FromDiscord(); !ok {
-		return &ValidationError{Name: "from_discord", err: errors.New(`ent: missing required field "Upscale.from_discord"`)}
 	}
 	if _, ok := uc.mutation.CreatedAt(); !ok {
 		return &ValidationError{Name: "created_at", err: errors.New(`ent: missing required field "Upscale.created_at"`)}
@@ -456,9 +462,9 @@ func (uc *UpscaleCreate) createSpec() (*Upscale, *sqlgraph.CreateSpec) {
 		_spec.SetField(upscale.FieldSystemGenerated, field.TypeBool, value)
 		_node.SystemGenerated = value
 	}
-	if value, ok := uc.mutation.FromDiscord(); ok {
-		_spec.SetField(upscale.FieldFromDiscord, field.TypeBool, value)
-		_node.FromDiscord = value
+	if value, ok := uc.mutation.SourceType(); ok {
+		_spec.SetField(upscale.FieldSourceType, field.TypeEnum, value)
+		_node.SourceType = value
 	}
 	if value, ok := uc.mutation.StartedAt(); ok {
 		_spec.SetField(upscale.FieldStartedAt, field.TypeTime, value)

@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/stablecog/sc-go/database/enttypes"
 )
 
 const (
@@ -42,6 +43,8 @@ const (
 	FieldWasAutoSubmitted = "was_auto_submitted"
 	// FieldStripeProductID holds the string denoting the stripe_product_id field in the database.
 	FieldStripeProductID = "stripe_product_id"
+	// FieldSourceType holds the string denoting the source_type field in the database.
+	FieldSourceType = "source_type"
 	// FieldPromptID holds the string denoting the prompt_id field in the database.
 	FieldPromptID = "prompt_id"
 	// FieldNegativePromptID holds the string denoting the negative_prompt_id field in the database.
@@ -56,8 +59,6 @@ const (
 	FieldDeviceInfoID = "device_info_id"
 	// FieldAPITokenID holds the string denoting the api_token_id field in the database.
 	FieldAPITokenID = "api_token_id"
-	// FieldFromDiscord holds the string denoting the from_discord field in the database.
-	FieldFromDiscord = "from_discord"
 	// FieldStartedAt holds the string denoting the started_at field in the database.
 	FieldStartedAt = "started_at"
 	// FieldCompletedAt holds the string denoting the completed_at field in the database.
@@ -159,6 +160,7 @@ var Columns = []string{
 	FieldPromptStrength,
 	FieldWasAutoSubmitted,
 	FieldStripeProductID,
+	FieldSourceType,
 	FieldPromptID,
 	FieldNegativePromptID,
 	FieldModelID,
@@ -166,7 +168,6 @@ var Columns = []string{
 	FieldUserID,
 	FieldDeviceInfoID,
 	FieldAPITokenID,
-	FieldFromDiscord,
 	FieldStartedAt,
 	FieldCompletedAt,
 	FieldCreatedAt,
@@ -188,8 +189,6 @@ var (
 	DefaultNsfwCount int32
 	// DefaultWasAutoSubmitted holds the default value on creation for the "was_auto_submitted" field.
 	DefaultWasAutoSubmitted bool
-	// DefaultFromDiscord holds the default value on creation for the "from_discord" field.
-	DefaultFromDiscord bool
 	// DefaultCreatedAt holds the default value on creation for the "created_at" field.
 	DefaultCreatedAt func() time.Time
 	// DefaultUpdatedAt holds the default value on creation for the "updated_at" field.
@@ -222,5 +221,17 @@ func StatusValidator(s Status) error {
 		return nil
 	default:
 		return fmt.Errorf("generation: invalid enum value for status field: %q", s)
+	}
+}
+
+const DefaultSourceType enttypes.SourceType = "web-ui"
+
+// SourceTypeValidator is a validator for the "source_type" field enum values. It is called by the builders before save.
+func SourceTypeValidator(st enttypes.SourceType) error {
+	switch st {
+	case "web-ui", "api", "discord", "internal":
+		return nil
+	default:
+		return fmt.Errorf("generation: invalid enum value for source_type field: %q", st)
 	}
 }

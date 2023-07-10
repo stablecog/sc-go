@@ -9,6 +9,7 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"github.com/google/uuid"
 	"github.com/stablecog/sc-go/database/ent/predicate"
+	"github.com/stablecog/sc-go/database/enttypes"
 )
 
 // ID filters vertices based on their ID field.
@@ -154,11 +155,6 @@ func DeviceInfoID(v uuid.UUID) predicate.Generation {
 // APITokenID applies equality check predicate on the "api_token_id" field. It's identical to APITokenIDEQ.
 func APITokenID(v uuid.UUID) predicate.Generation {
 	return predicate.Generation(sql.FieldEQ(FieldAPITokenID, v))
-}
-
-// FromDiscord applies equality check predicate on the "from_discord" field. It's identical to FromDiscordEQ.
-func FromDiscord(v bool) predicate.Generation {
-	return predicate.Generation(sql.FieldEQ(FieldFromDiscord, v))
 }
 
 // StartedAt applies equality check predicate on the "started_at" field. It's identical to StartedAtEQ.
@@ -841,6 +837,36 @@ func StripeProductIDContainsFold(v string) predicate.Generation {
 	return predicate.Generation(sql.FieldContainsFold(FieldStripeProductID, v))
 }
 
+// SourceTypeEQ applies the EQ predicate on the "source_type" field.
+func SourceTypeEQ(v enttypes.SourceType) predicate.Generation {
+	vc := v
+	return predicate.Generation(sql.FieldEQ(FieldSourceType, vc))
+}
+
+// SourceTypeNEQ applies the NEQ predicate on the "source_type" field.
+func SourceTypeNEQ(v enttypes.SourceType) predicate.Generation {
+	vc := v
+	return predicate.Generation(sql.FieldNEQ(FieldSourceType, vc))
+}
+
+// SourceTypeIn applies the In predicate on the "source_type" field.
+func SourceTypeIn(vs ...enttypes.SourceType) predicate.Generation {
+	v := make([]any, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.Generation(sql.FieldIn(FieldSourceType, v...))
+}
+
+// SourceTypeNotIn applies the NotIn predicate on the "source_type" field.
+func SourceTypeNotIn(vs ...enttypes.SourceType) predicate.Generation {
+	v := make([]any, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.Generation(sql.FieldNotIn(FieldSourceType, v...))
+}
+
 // PromptIDEQ applies the EQ predicate on the "prompt_id" field.
 func PromptIDEQ(v uuid.UUID) predicate.Generation {
 	return predicate.Generation(sql.FieldEQ(FieldPromptID, v))
@@ -1009,16 +1035,6 @@ func APITokenIDIsNil() predicate.Generation {
 // APITokenIDNotNil applies the NotNil predicate on the "api_token_id" field.
 func APITokenIDNotNil() predicate.Generation {
 	return predicate.Generation(sql.FieldNotNull(FieldAPITokenID))
-}
-
-// FromDiscordEQ applies the EQ predicate on the "from_discord" field.
-func FromDiscordEQ(v bool) predicate.Generation {
-	return predicate.Generation(sql.FieldEQ(FieldFromDiscord, v))
-}
-
-// FromDiscordNEQ applies the NEQ predicate on the "from_discord" field.
-func FromDiscordNEQ(v bool) predicate.Generation {
-	return predicate.Generation(sql.FieldNEQ(FieldFromDiscord, v))
 }
 
 // StartedAtEQ applies the EQ predicate on the "started_at" field.

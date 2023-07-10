@@ -17,6 +17,7 @@ import (
 	"github.com/stablecog/sc-go/database/ent/prompt"
 	"github.com/stablecog/sc-go/database/ent/scheduler"
 	"github.com/stablecog/sc-go/database/ent/user"
+	"github.com/stablecog/sc-go/database/enttypes"
 )
 
 // Generation is the model entity for the Generation schema.
@@ -52,6 +53,8 @@ type Generation struct {
 	WasAutoSubmitted bool `json:"was_auto_submitted,omitempty"`
 	// StripeProductID holds the value of the "stripe_product_id" field.
 	StripeProductID *string `json:"stripe_product_id,omitempty"`
+	// SourceType holds the value of the "source_type" field.
+	SourceType enttypes.SourceType `json:"source_type,omitempty"`
 	// PromptID holds the value of the "prompt_id" field.
 	PromptID *uuid.UUID `json:"prompt_id,omitempty"`
 	// NegativePromptID holds the value of the "negative_prompt_id" field.
@@ -66,8 +69,6 @@ type Generation struct {
 	DeviceInfoID uuid.UUID `json:"device_info_id,omitempty"`
 	// APITokenID holds the value of the "api_token_id" field.
 	APITokenID *uuid.UUID `json:"api_token_id,omitempty"`
-	// FromDiscord holds the value of the "from_discord" field.
-	FromDiscord bool `json:"from_discord,omitempty"`
 	// StartedAt holds the value of the "started_at" field.
 	StartedAt *time.Time `json:"started_at,omitempty"`
 	// CompletedAt holds the value of the "completed_at" field.
@@ -211,13 +212,13 @@ func (*Generation) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case generation.FieldPromptID, generation.FieldNegativePromptID, generation.FieldAPITokenID:
 			values[i] = &sql.NullScanner{S: new(uuid.UUID)}
-		case generation.FieldWasAutoSubmitted, generation.FieldFromDiscord:
+		case generation.FieldWasAutoSubmitted:
 			values[i] = new(sql.NullBool)
 		case generation.FieldGuidanceScale, generation.FieldPromptStrength:
 			values[i] = new(sql.NullFloat64)
 		case generation.FieldWidth, generation.FieldHeight, generation.FieldInferenceSteps, generation.FieldNumOutputs, generation.FieldNsfwCount, generation.FieldSeed:
 			values[i] = new(sql.NullInt64)
-		case generation.FieldStatus, generation.FieldFailureReason, generation.FieldCountryCode, generation.FieldInitImageURL, generation.FieldStripeProductID:
+		case generation.FieldStatus, generation.FieldFailureReason, generation.FieldCountryCode, generation.FieldInitImageURL, generation.FieldStripeProductID, generation.FieldSourceType:
 			values[i] = new(sql.NullString)
 		case generation.FieldStartedAt, generation.FieldCompletedAt, generation.FieldCreatedAt, generation.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
@@ -333,6 +334,12 @@ func (ge *Generation) assignValues(columns []string, values []any) error {
 				ge.StripeProductID = new(string)
 				*ge.StripeProductID = value.String
 			}
+		case generation.FieldSourceType:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field source_type", values[i])
+			} else if value.Valid {
+				ge.SourceType = enttypes.SourceType(value.String)
+			}
 		case generation.FieldPromptID:
 			if value, ok := values[i].(*sql.NullScanner); !ok {
 				return fmt.Errorf("unexpected type %T for field prompt_id", values[i])
@@ -377,12 +384,6 @@ func (ge *Generation) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				ge.APITokenID = new(uuid.UUID)
 				*ge.APITokenID = *value.S.(*uuid.UUID)
-			}
-		case generation.FieldFromDiscord:
-			if value, ok := values[i].(*sql.NullBool); !ok {
-				return fmt.Errorf("unexpected type %T for field from_discord", values[i])
-			} else if value.Valid {
-				ge.FromDiscord = value.Bool
 			}
 		case generation.FieldStartedAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
@@ -530,6 +531,9 @@ func (ge *Generation) String() string {
 		builder.WriteString(*v)
 	}
 	builder.WriteString(", ")
+	builder.WriteString("source_type=")
+	builder.WriteString(fmt.Sprintf("%v", ge.SourceType))
+	builder.WriteString(", ")
 	if v := ge.PromptID; v != nil {
 		builder.WriteString("prompt_id=")
 		builder.WriteString(fmt.Sprintf("%v", *v))
@@ -556,9 +560,6 @@ func (ge *Generation) String() string {
 		builder.WriteString("api_token_id=")
 		builder.WriteString(fmt.Sprintf("%v", *v))
 	}
-	builder.WriteString(", ")
-	builder.WriteString("from_discord=")
-	builder.WriteString(fmt.Sprintf("%v", ge.FromDiscord))
 	builder.WriteString(", ")
 	if v := ge.StartedAt; v != nil {
 		builder.WriteString("started_at=")

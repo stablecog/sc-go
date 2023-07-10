@@ -12,6 +12,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/stablecog/sc-go/database/ent"
 	"github.com/stablecog/sc-go/database/ent/upscale"
+	"github.com/stablecog/sc-go/database/enttypes"
 	"github.com/stablecog/sc-go/database/repository"
 	"github.com/stablecog/sc-go/log"
 	"github.com/stablecog/sc-go/server/requests"
@@ -282,7 +283,7 @@ func (c *RestAPI) HandleCreateUpscaleToken(w http.ResponseWriter, r *http.Reques
 			user.ActiveProductID,
 			false,
 			&apiToken.ID,
-			false,
+			enttypes.SourceTypeAPI,
 			DB)
 		if err != nil {
 			log.Error("Error creating upscale", "err", err)
@@ -304,7 +305,7 @@ func (c *RestAPI) HandleCreateUpscaleToken(w http.ResponseWriter, r *http.Reques
 			Height:           utils.ToPtr(height),
 			CreatedAt:        upscale.CreatedAt,
 			ProductID:        user.ActiveProductID,
-			Source:           shared.OperationSourceTypeAPI,
+			Source:           enttypes.SourceTypeAPI,
 		}
 
 		// Send to the cog

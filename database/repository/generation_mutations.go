@@ -8,6 +8,7 @@ import (
 	"github.com/stablecog/sc-go/database/ent/generation"
 	"github.com/stablecog/sc-go/database/ent/generationoutput"
 	"github.com/stablecog/sc-go/database/ent/prompt"
+	"github.com/stablecog/sc-go/database/enttypes"
 	"github.com/stablecog/sc-go/log"
 	"github.com/stablecog/sc-go/server/requests"
 	"github.com/stablecog/sc-go/utils"
@@ -15,7 +16,7 @@ import (
 
 // CreateGeneration creates the initial generation in the database
 // Takes in a userID (creator),  device info, countryCode, and a request body
-func (r *Repository) CreateGeneration(userID uuid.UUID, deviceType, deviceOs, deviceBrowser, countryCode string, req requests.CreateGenerationRequest, productId *string, apiTokenId *uuid.UUID, fromDiscord bool, DB *ent.Client) (*ent.Generation, error) {
+func (r *Repository) CreateGeneration(userID uuid.UUID, deviceType, deviceOs, deviceBrowser, countryCode string, req requests.CreateGenerationRequest, productId *string, apiTokenId *uuid.UUID, sourceType enttypes.SourceType, DB *ent.Client) (*ent.Generation, error) {
 	if DB == nil {
 		DB = r.DB
 	}
@@ -38,7 +39,7 @@ func (r *Repository) CreateGeneration(userID uuid.UUID, deviceType, deviceOs, de
 		SetUserID(userID).
 		SetWasAutoSubmitted(req.SubmitToGallery).
 		SetNumOutputs(*req.NumOutputs).
-		SetFromDiscord(fromDiscord)
+		SetSourceType(sourceType)
 	if productId != nil {
 		insert.SetStripeProductID(*productId)
 	}

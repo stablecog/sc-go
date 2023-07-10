@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/stablecog/sc-go/database/enttypes"
 )
 
 const (
@@ -30,6 +31,8 @@ const (
 	FieldStripeProductID = "stripe_product_id"
 	// FieldSystemGenerated holds the string denoting the system_generated field in the database.
 	FieldSystemGenerated = "system_generated"
+	// FieldSourceType holds the string denoting the source_type field in the database.
+	FieldSourceType = "source_type"
 	// FieldUserID holds the string denoting the user_id field in the database.
 	FieldUserID = "user_id"
 	// FieldDeviceInfoID holds the string denoting the device_info_id field in the database.
@@ -38,8 +41,6 @@ const (
 	FieldModelID = "model_id"
 	// FieldAPITokenID holds the string denoting the api_token_id field in the database.
 	FieldAPITokenID = "api_token_id"
-	// FieldFromDiscord holds the string denoting the from_discord field in the database.
-	FieldFromDiscord = "from_discord"
 	// FieldStartedAt holds the string denoting the started_at field in the database.
 	FieldStartedAt = "started_at"
 	// FieldCompletedAt holds the string denoting the completed_at field in the database.
@@ -108,11 +109,11 @@ var Columns = []string{
 	FieldFailureReason,
 	FieldStripeProductID,
 	FieldSystemGenerated,
+	FieldSourceType,
 	FieldUserID,
 	FieldDeviceInfoID,
 	FieldModelID,
 	FieldAPITokenID,
-	FieldFromDiscord,
 	FieldStartedAt,
 	FieldCompletedAt,
 	FieldCreatedAt,
@@ -132,8 +133,6 @@ func ValidColumn(column string) bool {
 var (
 	// DefaultSystemGenerated holds the default value on creation for the "system_generated" field.
 	DefaultSystemGenerated bool
-	// DefaultFromDiscord holds the default value on creation for the "from_discord" field.
-	DefaultFromDiscord bool
 	// DefaultCreatedAt holds the default value on creation for the "created_at" field.
 	DefaultCreatedAt func() time.Time
 	// DefaultUpdatedAt holds the default value on creation for the "updated_at" field.
@@ -166,5 +165,17 @@ func StatusValidator(s Status) error {
 		return nil
 	default:
 		return fmt.Errorf("upscale: invalid enum value for status field: %q", s)
+	}
+}
+
+const DefaultSourceType enttypes.SourceType = "web-ui"
+
+// SourceTypeValidator is a validator for the "source_type" field enum values. It is called by the builders before save.
+func SourceTypeValidator(st enttypes.SourceType) error {
+	switch st {
+	case "web-ui", "api", "discord", "internal":
+		return nil
+	default:
+		return fmt.Errorf("upscale: invalid enum value for source_type field: %q", st)
 	}
 }

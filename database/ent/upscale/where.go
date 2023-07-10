@@ -9,6 +9,7 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"github.com/google/uuid"
 	"github.com/stablecog/sc-go/database/ent/predicate"
+	"github.com/stablecog/sc-go/database/enttypes"
 )
 
 // ID filters vertices based on their ID field.
@@ -109,11 +110,6 @@ func ModelID(v uuid.UUID) predicate.Upscale {
 // APITokenID applies equality check predicate on the "api_token_id" field. It's identical to APITokenIDEQ.
 func APITokenID(v uuid.UUID) predicate.Upscale {
 	return predicate.Upscale(sql.FieldEQ(FieldAPITokenID, v))
-}
-
-// FromDiscord applies equality check predicate on the "from_discord" field. It's identical to FromDiscordEQ.
-func FromDiscord(v bool) predicate.Upscale {
-	return predicate.Upscale(sql.FieldEQ(FieldFromDiscord, v))
 }
 
 // StartedAt applies equality check predicate on the "started_at" field. It's identical to StartedAtEQ.
@@ -511,6 +507,36 @@ func SystemGeneratedNEQ(v bool) predicate.Upscale {
 	return predicate.Upscale(sql.FieldNEQ(FieldSystemGenerated, v))
 }
 
+// SourceTypeEQ applies the EQ predicate on the "source_type" field.
+func SourceTypeEQ(v enttypes.SourceType) predicate.Upscale {
+	vc := v
+	return predicate.Upscale(sql.FieldEQ(FieldSourceType, vc))
+}
+
+// SourceTypeNEQ applies the NEQ predicate on the "source_type" field.
+func SourceTypeNEQ(v enttypes.SourceType) predicate.Upscale {
+	vc := v
+	return predicate.Upscale(sql.FieldNEQ(FieldSourceType, vc))
+}
+
+// SourceTypeIn applies the In predicate on the "source_type" field.
+func SourceTypeIn(vs ...enttypes.SourceType) predicate.Upscale {
+	v := make([]any, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.Upscale(sql.FieldIn(FieldSourceType, v...))
+}
+
+// SourceTypeNotIn applies the NotIn predicate on the "source_type" field.
+func SourceTypeNotIn(vs ...enttypes.SourceType) predicate.Upscale {
+	v := make([]any, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.Upscale(sql.FieldNotIn(FieldSourceType, v...))
+}
+
 // UserIDEQ applies the EQ predicate on the "user_id" field.
 func UserIDEQ(v uuid.UUID) predicate.Upscale {
 	return predicate.Upscale(sql.FieldEQ(FieldUserID, v))
@@ -599,16 +625,6 @@ func APITokenIDIsNil() predicate.Upscale {
 // APITokenIDNotNil applies the NotNil predicate on the "api_token_id" field.
 func APITokenIDNotNil() predicate.Upscale {
 	return predicate.Upscale(sql.FieldNotNull(FieldAPITokenID))
-}
-
-// FromDiscordEQ applies the EQ predicate on the "from_discord" field.
-func FromDiscordEQ(v bool) predicate.Upscale {
-	return predicate.Upscale(sql.FieldEQ(FieldFromDiscord, v))
-}
-
-// FromDiscordNEQ applies the NEQ predicate on the "from_discord" field.
-func FromDiscordNEQ(v bool) predicate.Upscale {
-	return predicate.Upscale(sql.FieldNEQ(FieldFromDiscord, v))
 }
 
 // StartedAtEQ applies the EQ predicate on the "started_at" field.

@@ -31,6 +31,7 @@ import (
 	"github.com/stablecog/sc-go/database/ent/voiceovermodel"
 	"github.com/stablecog/sc-go/database/ent/voiceoveroutput"
 	"github.com/stablecog/sc-go/database/ent/voiceoverspeaker"
+	"github.com/stablecog/sc-go/database/enttypes"
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
@@ -4320,7 +4321,7 @@ type GenerationMutation struct {
 	addprompt_strength        *float32
 	was_auto_submitted        *bool
 	stripe_product_id         *string
-	from_discord              *bool
+	source_type               *enttypes.SourceType
 	started_at                *time.Time
 	completed_at              *time.Time
 	created_at                *time.Time
@@ -5182,6 +5183,42 @@ func (m *GenerationMutation) ResetStripeProductID() {
 	delete(m.clearedFields, generation.FieldStripeProductID)
 }
 
+// SetSourceType sets the "source_type" field.
+func (m *GenerationMutation) SetSourceType(et enttypes.SourceType) {
+	m.source_type = &et
+}
+
+// SourceType returns the value of the "source_type" field in the mutation.
+func (m *GenerationMutation) SourceType() (r enttypes.SourceType, exists bool) {
+	v := m.source_type
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSourceType returns the old "source_type" field's value of the Generation entity.
+// If the Generation object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *GenerationMutation) OldSourceType(ctx context.Context) (v enttypes.SourceType, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSourceType is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSourceType requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSourceType: %w", err)
+	}
+	return oldValue.SourceType, nil
+}
+
+// ResetSourceType resets all changes to the "source_type" field.
+func (m *GenerationMutation) ResetSourceType() {
+	m.source_type = nil
+}
+
 // SetPromptID sets the "prompt_id" field.
 func (m *GenerationMutation) SetPromptID(u uuid.UUID) {
 	m.prompt = &u
@@ -5471,42 +5508,6 @@ func (m *GenerationMutation) APITokenIDCleared() bool {
 func (m *GenerationMutation) ResetAPITokenID() {
 	m.api_tokens = nil
 	delete(m.clearedFields, generation.FieldAPITokenID)
-}
-
-// SetFromDiscord sets the "from_discord" field.
-func (m *GenerationMutation) SetFromDiscord(b bool) {
-	m.from_discord = &b
-}
-
-// FromDiscord returns the value of the "from_discord" field in the mutation.
-func (m *GenerationMutation) FromDiscord() (r bool, exists bool) {
-	v := m.from_discord
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldFromDiscord returns the old "from_discord" field's value of the Generation entity.
-// If the Generation object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *GenerationMutation) OldFromDiscord(ctx context.Context) (v bool, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldFromDiscord is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldFromDiscord requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldFromDiscord: %w", err)
-	}
-	return oldValue.FromDiscord, nil
-}
-
-// ResetFromDiscord resets all changes to the "from_discord" field.
-func (m *GenerationMutation) ResetFromDiscord() {
-	m.from_discord = nil
 }
 
 // SetStartedAt sets the "started_at" field.
@@ -6018,6 +6019,9 @@ func (m *GenerationMutation) Fields() []string {
 	if m.stripe_product_id != nil {
 		fields = append(fields, generation.FieldStripeProductID)
 	}
+	if m.source_type != nil {
+		fields = append(fields, generation.FieldSourceType)
+	}
 	if m.prompt != nil {
 		fields = append(fields, generation.FieldPromptID)
 	}
@@ -6038,9 +6042,6 @@ func (m *GenerationMutation) Fields() []string {
 	}
 	if m.api_tokens != nil {
 		fields = append(fields, generation.FieldAPITokenID)
-	}
-	if m.from_discord != nil {
-		fields = append(fields, generation.FieldFromDiscord)
 	}
 	if m.started_at != nil {
 		fields = append(fields, generation.FieldStartedAt)
@@ -6090,6 +6091,8 @@ func (m *GenerationMutation) Field(name string) (ent.Value, bool) {
 		return m.WasAutoSubmitted()
 	case generation.FieldStripeProductID:
 		return m.StripeProductID()
+	case generation.FieldSourceType:
+		return m.SourceType()
 	case generation.FieldPromptID:
 		return m.PromptID()
 	case generation.FieldNegativePromptID:
@@ -6104,8 +6107,6 @@ func (m *GenerationMutation) Field(name string) (ent.Value, bool) {
 		return m.DeviceInfoID()
 	case generation.FieldAPITokenID:
 		return m.APITokenID()
-	case generation.FieldFromDiscord:
-		return m.FromDiscord()
 	case generation.FieldStartedAt:
 		return m.StartedAt()
 	case generation.FieldCompletedAt:
@@ -6151,6 +6152,8 @@ func (m *GenerationMutation) OldField(ctx context.Context, name string) (ent.Val
 		return m.OldWasAutoSubmitted(ctx)
 	case generation.FieldStripeProductID:
 		return m.OldStripeProductID(ctx)
+	case generation.FieldSourceType:
+		return m.OldSourceType(ctx)
 	case generation.FieldPromptID:
 		return m.OldPromptID(ctx)
 	case generation.FieldNegativePromptID:
@@ -6165,8 +6168,6 @@ func (m *GenerationMutation) OldField(ctx context.Context, name string) (ent.Val
 		return m.OldDeviceInfoID(ctx)
 	case generation.FieldAPITokenID:
 		return m.OldAPITokenID(ctx)
-	case generation.FieldFromDiscord:
-		return m.OldFromDiscord(ctx)
 	case generation.FieldStartedAt:
 		return m.OldStartedAt(ctx)
 	case generation.FieldCompletedAt:
@@ -6282,6 +6283,13 @@ func (m *GenerationMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetStripeProductID(v)
 		return nil
+	case generation.FieldSourceType:
+		v, ok := value.(enttypes.SourceType)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSourceType(v)
+		return nil
 	case generation.FieldPromptID:
 		v, ok := value.(uuid.UUID)
 		if !ok {
@@ -6330,13 +6338,6 @@ func (m *GenerationMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetAPITokenID(v)
-		return nil
-	case generation.FieldFromDiscord:
-		v, ok := value.(bool)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetFromDiscord(v)
 		return nil
 	case generation.FieldStartedAt:
 		v, ok := value.(time.Time)
@@ -6619,6 +6620,9 @@ func (m *GenerationMutation) ResetField(name string) error {
 	case generation.FieldStripeProductID:
 		m.ResetStripeProductID()
 		return nil
+	case generation.FieldSourceType:
+		m.ResetSourceType()
+		return nil
 	case generation.FieldPromptID:
 		m.ResetPromptID()
 		return nil
@@ -6639,9 +6643,6 @@ func (m *GenerationMutation) ResetField(name string) error {
 		return nil
 	case generation.FieldAPITokenID:
 		m.ResetAPITokenID()
-		return nil
-	case generation.FieldFromDiscord:
-		m.ResetFromDiscord()
 		return nil
 	case generation.FieldStartedAt:
 		m.ResetStartedAt()
@@ -11361,7 +11362,7 @@ type UpscaleMutation struct {
 	failure_reason         *string
 	stripe_product_id      *string
 	system_generated       *bool
-	from_discord           *bool
+	source_type            *enttypes.SourceType
 	started_at             *time.Time
 	completed_at           *time.Time
 	created_at             *time.Time
@@ -11874,6 +11875,42 @@ func (m *UpscaleMutation) ResetSystemGenerated() {
 	m.system_generated = nil
 }
 
+// SetSourceType sets the "source_type" field.
+func (m *UpscaleMutation) SetSourceType(et enttypes.SourceType) {
+	m.source_type = &et
+}
+
+// SourceType returns the value of the "source_type" field in the mutation.
+func (m *UpscaleMutation) SourceType() (r enttypes.SourceType, exists bool) {
+	v := m.source_type
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSourceType returns the old "source_type" field's value of the Upscale entity.
+// If the Upscale object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UpscaleMutation) OldSourceType(ctx context.Context) (v enttypes.SourceType, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSourceType is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSourceType requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSourceType: %w", err)
+	}
+	return oldValue.SourceType, nil
+}
+
+// ResetSourceType resets all changes to the "source_type" field.
+func (m *UpscaleMutation) ResetSourceType() {
+	m.source_type = nil
+}
+
 // SetUserID sets the "user_id" field.
 func (m *UpscaleMutation) SetUserID(u uuid.UUID) {
 	m.user = &u
@@ -12029,42 +12066,6 @@ func (m *UpscaleMutation) APITokenIDCleared() bool {
 func (m *UpscaleMutation) ResetAPITokenID() {
 	m.api_tokens = nil
 	delete(m.clearedFields, upscale.FieldAPITokenID)
-}
-
-// SetFromDiscord sets the "from_discord" field.
-func (m *UpscaleMutation) SetFromDiscord(b bool) {
-	m.from_discord = &b
-}
-
-// FromDiscord returns the value of the "from_discord" field in the mutation.
-func (m *UpscaleMutation) FromDiscord() (r bool, exists bool) {
-	v := m.from_discord
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldFromDiscord returns the old "from_discord" field's value of the Upscale entity.
-// If the Upscale object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *UpscaleMutation) OldFromDiscord(ctx context.Context) (v bool, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldFromDiscord is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldFromDiscord requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldFromDiscord: %w", err)
-	}
-	return oldValue.FromDiscord, nil
-}
-
-// ResetFromDiscord resets all changes to the "from_discord" field.
-func (m *UpscaleMutation) ResetFromDiscord() {
-	m.from_discord = nil
 }
 
 // SetStartedAt sets the "started_at" field.
@@ -12480,6 +12481,9 @@ func (m *UpscaleMutation) Fields() []string {
 	if m.system_generated != nil {
 		fields = append(fields, upscale.FieldSystemGenerated)
 	}
+	if m.source_type != nil {
+		fields = append(fields, upscale.FieldSourceType)
+	}
 	if m.user != nil {
 		fields = append(fields, upscale.FieldUserID)
 	}
@@ -12491,9 +12495,6 @@ func (m *UpscaleMutation) Fields() []string {
 	}
 	if m.api_tokens != nil {
 		fields = append(fields, upscale.FieldAPITokenID)
-	}
-	if m.from_discord != nil {
-		fields = append(fields, upscale.FieldFromDiscord)
 	}
 	if m.started_at != nil {
 		fields = append(fields, upscale.FieldStartedAt)
@@ -12531,6 +12532,8 @@ func (m *UpscaleMutation) Field(name string) (ent.Value, bool) {
 		return m.StripeProductID()
 	case upscale.FieldSystemGenerated:
 		return m.SystemGenerated()
+	case upscale.FieldSourceType:
+		return m.SourceType()
 	case upscale.FieldUserID:
 		return m.UserID()
 	case upscale.FieldDeviceInfoID:
@@ -12539,8 +12542,6 @@ func (m *UpscaleMutation) Field(name string) (ent.Value, bool) {
 		return m.ModelID()
 	case upscale.FieldAPITokenID:
 		return m.APITokenID()
-	case upscale.FieldFromDiscord:
-		return m.FromDiscord()
 	case upscale.FieldStartedAt:
 		return m.StartedAt()
 	case upscale.FieldCompletedAt:
@@ -12574,6 +12575,8 @@ func (m *UpscaleMutation) OldField(ctx context.Context, name string) (ent.Value,
 		return m.OldStripeProductID(ctx)
 	case upscale.FieldSystemGenerated:
 		return m.OldSystemGenerated(ctx)
+	case upscale.FieldSourceType:
+		return m.OldSourceType(ctx)
 	case upscale.FieldUserID:
 		return m.OldUserID(ctx)
 	case upscale.FieldDeviceInfoID:
@@ -12582,8 +12585,6 @@ func (m *UpscaleMutation) OldField(ctx context.Context, name string) (ent.Value,
 		return m.OldModelID(ctx)
 	case upscale.FieldAPITokenID:
 		return m.OldAPITokenID(ctx)
-	case upscale.FieldFromDiscord:
-		return m.OldFromDiscord(ctx)
 	case upscale.FieldStartedAt:
 		return m.OldStartedAt(ctx)
 	case upscale.FieldCompletedAt:
@@ -12657,6 +12658,13 @@ func (m *UpscaleMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetSystemGenerated(v)
 		return nil
+	case upscale.FieldSourceType:
+		v, ok := value.(enttypes.SourceType)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSourceType(v)
+		return nil
 	case upscale.FieldUserID:
 		v, ok := value.(uuid.UUID)
 		if !ok {
@@ -12684,13 +12692,6 @@ func (m *UpscaleMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetAPITokenID(v)
-		return nil
-	case upscale.FieldFromDiscord:
-		v, ok := value.(bool)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetFromDiscord(v)
 		return nil
 	case upscale.FieldStartedAt:
 		v, ok := value.(time.Time)
@@ -12871,6 +12872,9 @@ func (m *UpscaleMutation) ResetField(name string) error {
 	case upscale.FieldSystemGenerated:
 		m.ResetSystemGenerated()
 		return nil
+	case upscale.FieldSourceType:
+		m.ResetSourceType()
+		return nil
 	case upscale.FieldUserID:
 		m.ResetUserID()
 		return nil
@@ -12882,9 +12886,6 @@ func (m *UpscaleMutation) ResetField(name string) error {
 		return nil
 	case upscale.FieldAPITokenID:
 		m.ResetAPITokenID()
-		return nil
-	case upscale.FieldFromDiscord:
-		m.ResetFromDiscord()
 		return nil
 	case upscale.FieldStartedAt:
 		m.ResetStartedAt()
@@ -16169,7 +16170,7 @@ type VoiceoverMutation struct {
 	remove_silence            *bool
 	cost                      *int32
 	addcost                   *int32
-	from_discord              *bool
+	source_type               *enttypes.SourceType
 	started_at                *time.Time
 	completed_at              *time.Time
 	created_at                *time.Time
@@ -16758,6 +16759,42 @@ func (m *VoiceoverMutation) ResetCost() {
 	m.addcost = nil
 }
 
+// SetSourceType sets the "source_type" field.
+func (m *VoiceoverMutation) SetSourceType(et enttypes.SourceType) {
+	m.source_type = &et
+}
+
+// SourceType returns the value of the "source_type" field in the mutation.
+func (m *VoiceoverMutation) SourceType() (r enttypes.SourceType, exists bool) {
+	v := m.source_type
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSourceType returns the old "source_type" field's value of the Voiceover entity.
+// If the Voiceover object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *VoiceoverMutation) OldSourceType(ctx context.Context) (v enttypes.SourceType, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSourceType is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSourceType requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSourceType: %w", err)
+	}
+	return oldValue.SourceType, nil
+}
+
+// ResetSourceType resets all changes to the "source_type" field.
+func (m *VoiceoverMutation) ResetSourceType() {
+	m.source_type = nil
+}
+
 // SetPromptID sets the "prompt_id" field.
 func (m *VoiceoverMutation) SetPromptID(u uuid.UUID) {
 	m.prompt = &u
@@ -16998,42 +17035,6 @@ func (m *VoiceoverMutation) APITokenIDCleared() bool {
 func (m *VoiceoverMutation) ResetAPITokenID() {
 	m.api_tokens = nil
 	delete(m.clearedFields, voiceover.FieldAPITokenID)
-}
-
-// SetFromDiscord sets the "from_discord" field.
-func (m *VoiceoverMutation) SetFromDiscord(b bool) {
-	m.from_discord = &b
-}
-
-// FromDiscord returns the value of the "from_discord" field in the mutation.
-func (m *VoiceoverMutation) FromDiscord() (r bool, exists bool) {
-	v := m.from_discord
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldFromDiscord returns the old "from_discord" field's value of the Voiceover entity.
-// If the Voiceover object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *VoiceoverMutation) OldFromDiscord(ctx context.Context) (v bool, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldFromDiscord is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldFromDiscord requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldFromDiscord: %w", err)
-	}
-	return oldValue.FromDiscord, nil
-}
-
-// ResetFromDiscord resets all changes to the "from_discord" field.
-func (m *VoiceoverMutation) ResetFromDiscord() {
-	m.from_discord = nil
 }
 
 // SetStartedAt sets the "started_at" field.
@@ -17520,6 +17521,9 @@ func (m *VoiceoverMutation) Fields() []string {
 	if m.cost != nil {
 		fields = append(fields, voiceover.FieldCost)
 	}
+	if m.source_type != nil {
+		fields = append(fields, voiceover.FieldSourceType)
+	}
 	if m.prompt != nil {
 		fields = append(fields, voiceover.FieldPromptID)
 	}
@@ -17537,9 +17541,6 @@ func (m *VoiceoverMutation) Fields() []string {
 	}
 	if m.api_tokens != nil {
 		fields = append(fields, voiceover.FieldAPITokenID)
-	}
-	if m.from_discord != nil {
-		fields = append(fields, voiceover.FieldFromDiscord)
 	}
 	if m.started_at != nil {
 		fields = append(fields, voiceover.FieldStartedAt)
@@ -17581,6 +17582,8 @@ func (m *VoiceoverMutation) Field(name string) (ent.Value, bool) {
 		return m.RemoveSilence()
 	case voiceover.FieldCost:
 		return m.Cost()
+	case voiceover.FieldSourceType:
+		return m.SourceType()
 	case voiceover.FieldPromptID:
 		return m.PromptID()
 	case voiceover.FieldUserID:
@@ -17593,8 +17596,6 @@ func (m *VoiceoverMutation) Field(name string) (ent.Value, bool) {
 		return m.SpeakerID()
 	case voiceover.FieldAPITokenID:
 		return m.APITokenID()
-	case voiceover.FieldFromDiscord:
-		return m.FromDiscord()
 	case voiceover.FieldStartedAt:
 		return m.StartedAt()
 	case voiceover.FieldCompletedAt:
@@ -17632,6 +17633,8 @@ func (m *VoiceoverMutation) OldField(ctx context.Context, name string) (ent.Valu
 		return m.OldRemoveSilence(ctx)
 	case voiceover.FieldCost:
 		return m.OldCost(ctx)
+	case voiceover.FieldSourceType:
+		return m.OldSourceType(ctx)
 	case voiceover.FieldPromptID:
 		return m.OldPromptID(ctx)
 	case voiceover.FieldUserID:
@@ -17644,8 +17647,6 @@ func (m *VoiceoverMutation) OldField(ctx context.Context, name string) (ent.Valu
 		return m.OldSpeakerID(ctx)
 	case voiceover.FieldAPITokenID:
 		return m.OldAPITokenID(ctx)
-	case voiceover.FieldFromDiscord:
-		return m.OldFromDiscord(ctx)
 	case voiceover.FieldStartedAt:
 		return m.OldStartedAt(ctx)
 	case voiceover.FieldCompletedAt:
@@ -17733,6 +17734,13 @@ func (m *VoiceoverMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetCost(v)
 		return nil
+	case voiceover.FieldSourceType:
+		v, ok := value.(enttypes.SourceType)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSourceType(v)
+		return nil
 	case voiceover.FieldPromptID:
 		v, ok := value.(uuid.UUID)
 		if !ok {
@@ -17774,13 +17782,6 @@ func (m *VoiceoverMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetAPITokenID(v)
-		return nil
-	case voiceover.FieldFromDiscord:
-		v, ok := value.(bool)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetFromDiscord(v)
 		return nil
 	case voiceover.FieldStartedAt:
 		v, ok := value.(time.Time)
@@ -17973,6 +17974,9 @@ func (m *VoiceoverMutation) ResetField(name string) error {
 	case voiceover.FieldCost:
 		m.ResetCost()
 		return nil
+	case voiceover.FieldSourceType:
+		m.ResetSourceType()
+		return nil
 	case voiceover.FieldPromptID:
 		m.ResetPromptID()
 		return nil
@@ -17990,9 +17994,6 @@ func (m *VoiceoverMutation) ResetField(name string) error {
 		return nil
 	case voiceover.FieldAPITokenID:
 		m.ResetAPITokenID()
-		return nil
-	case voiceover.FieldFromDiscord:
-		m.ResetFromDiscord()
 		return nil
 	case voiceover.FieldStartedAt:
 		m.ResetStartedAt()

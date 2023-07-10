@@ -8,6 +8,7 @@ import (
 	"github.com/stablecog/sc-go/database/ent/prompt"
 	"github.com/stablecog/sc-go/database/ent/voiceover"
 	"github.com/stablecog/sc-go/database/ent/voiceoveroutput"
+	"github.com/stablecog/sc-go/database/enttypes"
 	"github.com/stablecog/sc-go/log"
 	"github.com/stablecog/sc-go/server/requests"
 	"github.com/stablecog/sc-go/utils"
@@ -15,7 +16,7 @@ import (
 
 // CreateVoiceover creates the initial voiceover in the database
 // Takes in a userID (creator),  device info, countryCode, and a request body
-func (r *Repository) CreateVoiceover(userID uuid.UUID, deviceType, deviceOs, deviceBrowser, countryCode string, req requests.CreateVoiceoverRequest, productId *string, apiTokenId *uuid.UUID, fromDiscord bool, DB *ent.Client) (*ent.Voiceover, error) {
+func (r *Repository) CreateVoiceover(userID uuid.UUID, deviceType, deviceOs, deviceBrowser, countryCode string, req requests.CreateVoiceoverRequest, productId *string, apiTokenId *uuid.UUID, sourceType enttypes.SourceType, DB *ent.Client) (*ent.Voiceover, error) {
 	if DB == nil {
 		DB = r.DB
 	}
@@ -35,7 +36,7 @@ func (r *Repository) CreateVoiceover(userID uuid.UUID, deviceType, deviceOs, dev
 		SetSeed(*req.Seed).
 		SetWasAutoSubmitted(req.SubmitToGallery).
 		SetCost(utils.CalculateVoiceoverCredits(req.Prompt)).
-		SetFromDiscord(fromDiscord)
+		SetSourceType(sourceType)
 	if req.DenoiseAudio != nil {
 		insert.SetDenoiseAudio(*req.DenoiseAudio)
 	}

@@ -12,6 +12,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/stablecog/sc-go/database/ent"
 	"github.com/stablecog/sc-go/database/ent/upscale"
+	"github.com/stablecog/sc-go/database/enttypes"
 	"github.com/stablecog/sc-go/database/repository"
 	"github.com/stablecog/sc-go/log"
 	"github.com/stablecog/sc-go/server/requests"
@@ -221,7 +222,7 @@ func (c *RestAPI) HandleCreateVoiceoverToken(w http.ResponseWriter, r *http.Requ
 			voiceoverReq,
 			user.ActiveProductID,
 			&apiToken.ID,
-			false,
+			enttypes.SourceTypeAPI,
 			DB)
 		if err != nil {
 			log.Error("Error creating voiceover", "err", err)
@@ -241,7 +242,7 @@ func (c *RestAPI) HandleCreateVoiceoverToken(w http.ResponseWriter, r *http.Requ
 			TargetNumOutputs: 1,
 			CreatedAt:        voiceover.CreatedAt,
 			ProductID:        user.ActiveProductID,
-			Source:           shared.OperationSourceTypeAPI,
+			Source:           enttypes.SourceTypeAPI,
 			SpeakerID:        voiceoverReq.SpeakerId,
 			RemoveSilence:    voiceoverReq.RemoveSilence,
 			DenoiseAudio:     voiceoverReq.DenoiseAudio,

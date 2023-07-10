@@ -19,6 +19,7 @@ import (
 	"github.com/stablecog/sc-go/database/ent/voiceovermodel"
 	"github.com/stablecog/sc-go/database/ent/voiceoveroutput"
 	"github.com/stablecog/sc-go/database/ent/voiceoverspeaker"
+	"github.com/stablecog/sc-go/database/enttypes"
 )
 
 // VoiceoverCreate is the builder for creating a Voiceover entity.
@@ -136,6 +137,20 @@ func (vc *VoiceoverCreate) SetCost(i int32) *VoiceoverCreate {
 	return vc
 }
 
+// SetSourceType sets the "source_type" field.
+func (vc *VoiceoverCreate) SetSourceType(et enttypes.SourceType) *VoiceoverCreate {
+	vc.mutation.SetSourceType(et)
+	return vc
+}
+
+// SetNillableSourceType sets the "source_type" field if the given value is not nil.
+func (vc *VoiceoverCreate) SetNillableSourceType(et *enttypes.SourceType) *VoiceoverCreate {
+	if et != nil {
+		vc.SetSourceType(*et)
+	}
+	return vc
+}
+
 // SetPromptID sets the "prompt_id" field.
 func (vc *VoiceoverCreate) SetPromptID(u uuid.UUID) *VoiceoverCreate {
 	vc.mutation.SetPromptID(u)
@@ -184,20 +199,6 @@ func (vc *VoiceoverCreate) SetAPITokenID(u uuid.UUID) *VoiceoverCreate {
 func (vc *VoiceoverCreate) SetNillableAPITokenID(u *uuid.UUID) *VoiceoverCreate {
 	if u != nil {
 		vc.SetAPITokenID(*u)
-	}
-	return vc
-}
-
-// SetFromDiscord sets the "from_discord" field.
-func (vc *VoiceoverCreate) SetFromDiscord(b bool) *VoiceoverCreate {
-	vc.mutation.SetFromDiscord(b)
-	return vc
-}
-
-// SetNillableFromDiscord sets the "from_discord" field if the given value is not nil.
-func (vc *VoiceoverCreate) SetNillableFromDiscord(b *bool) *VoiceoverCreate {
-	if b != nil {
-		vc.SetFromDiscord(*b)
 	}
 	return vc
 }
@@ -390,9 +391,9 @@ func (vc *VoiceoverCreate) defaults() {
 		v := voiceover.DefaultRemoveSilence
 		vc.mutation.SetRemoveSilence(v)
 	}
-	if _, ok := vc.mutation.FromDiscord(); !ok {
-		v := voiceover.DefaultFromDiscord
-		vc.mutation.SetFromDiscord(v)
+	if _, ok := vc.mutation.SourceType(); !ok {
+		v := voiceover.DefaultSourceType
+		vc.mutation.SetSourceType(v)
 	}
 	if _, ok := vc.mutation.CreatedAt(); !ok {
 		v := voiceover.DefaultCreatedAt()
@@ -436,6 +437,14 @@ func (vc *VoiceoverCreate) check() error {
 	if _, ok := vc.mutation.Cost(); !ok {
 		return &ValidationError{Name: "cost", err: errors.New(`ent: missing required field "Voiceover.cost"`)}
 	}
+	if _, ok := vc.mutation.SourceType(); !ok {
+		return &ValidationError{Name: "source_type", err: errors.New(`ent: missing required field "Voiceover.source_type"`)}
+	}
+	if v, ok := vc.mutation.SourceType(); ok {
+		if err := voiceover.SourceTypeValidator(v); err != nil {
+			return &ValidationError{Name: "source_type", err: fmt.Errorf(`ent: validator failed for field "Voiceover.source_type": %w`, err)}
+		}
+	}
 	if _, ok := vc.mutation.UserID(); !ok {
 		return &ValidationError{Name: "user_id", err: errors.New(`ent: missing required field "Voiceover.user_id"`)}
 	}
@@ -447,9 +456,6 @@ func (vc *VoiceoverCreate) check() error {
 	}
 	if _, ok := vc.mutation.SpeakerID(); !ok {
 		return &ValidationError{Name: "speaker_id", err: errors.New(`ent: missing required field "Voiceover.speaker_id"`)}
-	}
-	if _, ok := vc.mutation.FromDiscord(); !ok {
-		return &ValidationError{Name: "from_discord", err: errors.New(`ent: missing required field "Voiceover.from_discord"`)}
 	}
 	if _, ok := vc.mutation.CreatedAt(); !ok {
 		return &ValidationError{Name: "created_at", err: errors.New(`ent: missing required field "Voiceover.created_at"`)}
@@ -550,9 +556,9 @@ func (vc *VoiceoverCreate) createSpec() (*Voiceover, *sqlgraph.CreateSpec) {
 		_spec.SetField(voiceover.FieldCost, field.TypeInt32, value)
 		_node.Cost = value
 	}
-	if value, ok := vc.mutation.FromDiscord(); ok {
-		_spec.SetField(voiceover.FieldFromDiscord, field.TypeBool, value)
-		_node.FromDiscord = value
+	if value, ok := vc.mutation.SourceType(); ok {
+		_spec.SetField(voiceover.FieldSourceType, field.TypeEnum, value)
+		_node.SourceType = value
 	}
 	if value, ok := vc.mutation.StartedAt(); ok {
 		_spec.SetField(voiceover.FieldStartedAt, field.TypeTime, value)

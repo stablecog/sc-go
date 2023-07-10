@@ -14,6 +14,7 @@ import (
 	"github.com/stablecog/sc-go/database/ent/upscale"
 	"github.com/stablecog/sc-go/database/ent/upscalemodel"
 	"github.com/stablecog/sc-go/database/ent/user"
+	"github.com/stablecog/sc-go/database/enttypes"
 )
 
 // Upscale is the model entity for the Upscale schema.
@@ -37,6 +38,8 @@ type Upscale struct {
 	StripeProductID *string `json:"stripe_product_id,omitempty"`
 	// SystemGenerated holds the value of the "system_generated" field.
 	SystemGenerated bool `json:"system_generated,omitempty"`
+	// SourceType holds the value of the "source_type" field.
+	SourceType enttypes.SourceType `json:"source_type,omitempty"`
 	// UserID holds the value of the "user_id" field.
 	UserID uuid.UUID `json:"user_id,omitempty"`
 	// DeviceInfoID holds the value of the "device_info_id" field.
@@ -45,8 +48,6 @@ type Upscale struct {
 	ModelID uuid.UUID `json:"model_id,omitempty"`
 	// APITokenID holds the value of the "api_token_id" field.
 	APITokenID *uuid.UUID `json:"api_token_id,omitempty"`
-	// FromDiscord holds the value of the "from_discord" field.
-	FromDiscord bool `json:"from_discord,omitempty"`
 	// StartedAt holds the value of the "started_at" field.
 	StartedAt *time.Time `json:"started_at,omitempty"`
 	// CompletedAt holds the value of the "completed_at" field.
@@ -145,11 +146,11 @@ func (*Upscale) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case upscale.FieldAPITokenID:
 			values[i] = &sql.NullScanner{S: new(uuid.UUID)}
-		case upscale.FieldSystemGenerated, upscale.FieldFromDiscord:
+		case upscale.FieldSystemGenerated:
 			values[i] = new(sql.NullBool)
 		case upscale.FieldWidth, upscale.FieldHeight, upscale.FieldScale:
 			values[i] = new(sql.NullInt64)
-		case upscale.FieldCountryCode, upscale.FieldStatus, upscale.FieldFailureReason, upscale.FieldStripeProductID:
+		case upscale.FieldCountryCode, upscale.FieldStatus, upscale.FieldFailureReason, upscale.FieldStripeProductID, upscale.FieldSourceType:
 			values[i] = new(sql.NullString)
 		case upscale.FieldStartedAt, upscale.FieldCompletedAt, upscale.FieldCreatedAt, upscale.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
@@ -227,6 +228,12 @@ func (u *Upscale) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				u.SystemGenerated = value.Bool
 			}
+		case upscale.FieldSourceType:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field source_type", values[i])
+			} else if value.Valid {
+				u.SourceType = enttypes.SourceType(value.String)
+			}
 		case upscale.FieldUserID:
 			if value, ok := values[i].(*uuid.UUID); !ok {
 				return fmt.Errorf("unexpected type %T for field user_id", values[i])
@@ -251,12 +258,6 @@ func (u *Upscale) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				u.APITokenID = new(uuid.UUID)
 				*u.APITokenID = *value.S.(*uuid.UUID)
-			}
-		case upscale.FieldFromDiscord:
-			if value, ok := values[i].(*sql.NullBool); !ok {
-				return fmt.Errorf("unexpected type %T for field from_discord", values[i])
-			} else if value.Valid {
-				u.FromDiscord = value.Bool
 			}
 		case upscale.FieldStartedAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
@@ -367,6 +368,9 @@ func (u *Upscale) String() string {
 	builder.WriteString("system_generated=")
 	builder.WriteString(fmt.Sprintf("%v", u.SystemGenerated))
 	builder.WriteString(", ")
+	builder.WriteString("source_type=")
+	builder.WriteString(fmt.Sprintf("%v", u.SourceType))
+	builder.WriteString(", ")
 	builder.WriteString("user_id=")
 	builder.WriteString(fmt.Sprintf("%v", u.UserID))
 	builder.WriteString(", ")
@@ -380,9 +384,6 @@ func (u *Upscale) String() string {
 		builder.WriteString("api_token_id=")
 		builder.WriteString(fmt.Sprintf("%v", *v))
 	}
-	builder.WriteString(", ")
-	builder.WriteString("from_discord=")
-	builder.WriteString(fmt.Sprintf("%v", u.FromDiscord))
 	builder.WriteString(", ")
 	if v := u.StartedAt; v != nil {
 		builder.WriteString("started_at=")

@@ -13,6 +13,7 @@ import (
 	"github.com/stablecog/sc-go/database"
 	"github.com/stablecog/sc-go/database/ent"
 	"github.com/stablecog/sc-go/database/ent/upscale"
+	"github.com/stablecog/sc-go/database/enttypes"
 	"github.com/stablecog/sc-go/database/repository"
 	"github.com/stablecog/sc-go/log"
 	"github.com/stablecog/sc-go/server/requests"
@@ -24,7 +25,7 @@ import (
 )
 
 func CreateGeneration(ctx context.Context,
-	source shared.OperationSourceType,
+	source enttypes.SourceType,
 	r *http.Request,
 	safetyChecker *utils.TranslatorSafetyChecker,
 	repo *repository.Repository,
@@ -311,7 +312,7 @@ func CreateGeneration(ctx context.Context,
 			generateReq,
 			user.ActiveProductID,
 			nil,
-			source == shared.OperationSourceTypeDiscord,
+			enttypes.SourceTypeDiscord,
 			DB)
 		if err != nil {
 			log.Error("Error creating generation", "err", err)

@@ -12,6 +12,7 @@ import (
 	"github.com/go-chi/render"
 	"github.com/google/uuid"
 	"github.com/stablecog/sc-go/database/ent"
+	"github.com/stablecog/sc-go/database/enttypes"
 	"github.com/stablecog/sc-go/database/repository"
 	"github.com/stablecog/sc-go/log"
 	"github.com/stablecog/sc-go/server/requests"
@@ -174,7 +175,7 @@ func (c *RestAPI) HandleVoiceover(w http.ResponseWriter, r *http.Request) {
 			voiceoverReq,
 			user.ActiveProductID,
 			nil,
-			false,
+			enttypes.SourceTypeWebUI,
 			DB)
 		if err != nil {
 			log.Error("Error creating voiceover", "err", err)
@@ -194,7 +195,7 @@ func (c *RestAPI) HandleVoiceover(w http.ResponseWriter, r *http.Request) {
 			TargetNumOutputs: 1,
 			CreatedAt:        voiceover.CreatedAt,
 			ProductID:        user.ActiveProductID,
-			Source:           shared.OperationSourceTypeWebUI,
+			Source:           enttypes.SourceTypeWebUI,
 			SpeakerID:        voiceoverReq.SpeakerId,
 			RemoveSilence:    voiceoverReq.RemoveSilence,
 			DenoiseAudio:     voiceoverReq.DenoiseAudio,

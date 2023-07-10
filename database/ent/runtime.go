@@ -139,10 +139,6 @@ func init() {
 	generationDescWasAutoSubmitted := generationFields[13].Descriptor()
 	// generation.DefaultWasAutoSubmitted holds the default value on creation for the was_auto_submitted field.
 	generation.DefaultWasAutoSubmitted = generationDescWasAutoSubmitted.Default.(bool)
-	// generationDescFromDiscord is the schema descriptor for from_discord field.
-	generationDescFromDiscord := generationFields[22].Descriptor()
-	// generation.DefaultFromDiscord holds the default value on creation for the from_discord field.
-	generation.DefaultFromDiscord = generationDescFromDiscord.Default.(bool)
 	// generationDescCreatedAt is the schema descriptor for created_at field.
 	generationDescCreatedAt := generationFields[25].Descriptor()
 	// generation.DefaultCreatedAt holds the default value on creation for the created_at field.
@@ -299,10 +295,6 @@ func init() {
 	upscaleDescSystemGenerated := upscaleFields[8].Descriptor()
 	// upscale.DefaultSystemGenerated holds the default value on creation for the system_generated field.
 	upscale.DefaultSystemGenerated = upscaleDescSystemGenerated.Default.(bool)
-	// upscaleDescFromDiscord is the schema descriptor for from_discord field.
-	upscaleDescFromDiscord := upscaleFields[13].Descriptor()
-	// upscale.DefaultFromDiscord holds the default value on creation for the from_discord field.
-	upscale.DefaultFromDiscord = upscaleDescFromDiscord.Default.(bool)
 	// upscaleDescCreatedAt is the schema descriptor for created_at field.
 	upscaleDescCreatedAt := upscaleFields[16].Descriptor()
 	// upscale.DefaultCreatedAt holds the default value on creation for the created_at field.
@@ -395,10 +387,6 @@ func init() {
 	voiceoverDescRemoveSilence := voiceoverFields[9].Descriptor()
 	// voiceover.DefaultRemoveSilence holds the default value on creation for the remove_silence field.
 	voiceover.DefaultRemoveSilence = voiceoverDescRemoveSilence.Default.(bool)
-	// voiceoverDescFromDiscord is the schema descriptor for from_discord field.
-	voiceoverDescFromDiscord := voiceoverFields[17].Descriptor()
-	// voiceover.DefaultFromDiscord holds the default value on creation for the from_discord field.
-	voiceover.DefaultFromDiscord = voiceoverDescFromDiscord.Default.(bool)
 	// voiceoverDescCreatedAt is the schema descriptor for created_at field.
 	voiceoverDescCreatedAt := voiceoverFields[20].Descriptor()
 	// voiceover.DefaultCreatedAt holds the default value on creation for the created_at field.

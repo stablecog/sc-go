@@ -20,6 +20,7 @@ import (
 	"github.com/stablecog/sc-go/database/ent/prompt"
 	"github.com/stablecog/sc-go/database/ent/scheduler"
 	"github.com/stablecog/sc-go/database/ent/user"
+	"github.com/stablecog/sc-go/database/enttypes"
 )
 
 // GenerationCreate is the builder for creating a Generation entity.
@@ -169,6 +170,20 @@ func (gc *GenerationCreate) SetNillableStripeProductID(s *string) *GenerationCre
 	return gc
 }
 
+// SetSourceType sets the "source_type" field.
+func (gc *GenerationCreate) SetSourceType(et enttypes.SourceType) *GenerationCreate {
+	gc.mutation.SetSourceType(et)
+	return gc
+}
+
+// SetNillableSourceType sets the "source_type" field if the given value is not nil.
+func (gc *GenerationCreate) SetNillableSourceType(et *enttypes.SourceType) *GenerationCreate {
+	if et != nil {
+		gc.SetSourceType(*et)
+	}
+	return gc
+}
+
 // SetPromptID sets the "prompt_id" field.
 func (gc *GenerationCreate) SetPromptID(u uuid.UUID) *GenerationCreate {
 	gc.mutation.SetPromptID(u)
@@ -231,20 +246,6 @@ func (gc *GenerationCreate) SetAPITokenID(u uuid.UUID) *GenerationCreate {
 func (gc *GenerationCreate) SetNillableAPITokenID(u *uuid.UUID) *GenerationCreate {
 	if u != nil {
 		gc.SetAPITokenID(*u)
-	}
-	return gc
-}
-
-// SetFromDiscord sets the "from_discord" field.
-func (gc *GenerationCreate) SetFromDiscord(b bool) *GenerationCreate {
-	gc.mutation.SetFromDiscord(b)
-	return gc
-}
-
-// SetNillableFromDiscord sets the "from_discord" field if the given value is not nil.
-func (gc *GenerationCreate) SetNillableFromDiscord(b *bool) *GenerationCreate {
-	if b != nil {
-		gc.SetFromDiscord(*b)
 	}
 	return gc
 }
@@ -432,9 +433,9 @@ func (gc *GenerationCreate) defaults() {
 		v := generation.DefaultWasAutoSubmitted
 		gc.mutation.SetWasAutoSubmitted(v)
 	}
-	if _, ok := gc.mutation.FromDiscord(); !ok {
-		v := generation.DefaultFromDiscord
-		gc.mutation.SetFromDiscord(v)
+	if _, ok := gc.mutation.SourceType(); !ok {
+		v := generation.DefaultSourceType
+		gc.mutation.SetSourceType(v)
 	}
 	if _, ok := gc.mutation.CreatedAt(); !ok {
 		v := generation.DefaultCreatedAt()
@@ -484,6 +485,14 @@ func (gc *GenerationCreate) check() error {
 	if _, ok := gc.mutation.WasAutoSubmitted(); !ok {
 		return &ValidationError{Name: "was_auto_submitted", err: errors.New(`ent: missing required field "Generation.was_auto_submitted"`)}
 	}
+	if _, ok := gc.mutation.SourceType(); !ok {
+		return &ValidationError{Name: "source_type", err: errors.New(`ent: missing required field "Generation.source_type"`)}
+	}
+	if v, ok := gc.mutation.SourceType(); ok {
+		if err := generation.SourceTypeValidator(v); err != nil {
+			return &ValidationError{Name: "source_type", err: fmt.Errorf(`ent: validator failed for field "Generation.source_type": %w`, err)}
+		}
+	}
 	if _, ok := gc.mutation.ModelID(); !ok {
 		return &ValidationError{Name: "model_id", err: errors.New(`ent: missing required field "Generation.model_id"`)}
 	}
@@ -495,9 +504,6 @@ func (gc *GenerationCreate) check() error {
 	}
 	if _, ok := gc.mutation.DeviceInfoID(); !ok {
 		return &ValidationError{Name: "device_info_id", err: errors.New(`ent: missing required field "Generation.device_info_id"`)}
-	}
-	if _, ok := gc.mutation.FromDiscord(); !ok {
-		return &ValidationError{Name: "from_discord", err: errors.New(`ent: missing required field "Generation.from_discord"`)}
 	}
 	if _, ok := gc.mutation.CreatedAt(); !ok {
 		return &ValidationError{Name: "created_at", err: errors.New(`ent: missing required field "Generation.created_at"`)}
@@ -614,9 +620,9 @@ func (gc *GenerationCreate) createSpec() (*Generation, *sqlgraph.CreateSpec) {
 		_spec.SetField(generation.FieldStripeProductID, field.TypeString, value)
 		_node.StripeProductID = &value
 	}
-	if value, ok := gc.mutation.FromDiscord(); ok {
-		_spec.SetField(generation.FieldFromDiscord, field.TypeBool, value)
-		_node.FromDiscord = value
+	if value, ok := gc.mutation.SourceType(); ok {
+		_spec.SetField(generation.FieldSourceType, field.TypeEnum, value)
+		_node.SourceType = value
 	}
 	if value, ok := gc.mutation.StartedAt(); ok {
 		_spec.SetField(generation.FieldStartedAt, field.TypeTime, value)
