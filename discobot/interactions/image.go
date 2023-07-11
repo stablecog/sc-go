@@ -85,8 +85,6 @@ func (c *DiscordInteractionWrapper) NewImageCommand() *DiscordInteraction {
 		// The handler for the command
 		Handler: func(s *discordgo.Session, i *discordgo.InteractionCreate) {
 			if u := c.Disco.CheckAuthorization(s, i); u != nil {
-				// Always create initial message
-				responses.InitialLoadingResponse(s, i, responses.PUBLIC)
 
 				// Access options in the order provided by the user.
 				options := i.ApplicationCommandData().Options
@@ -131,9 +129,12 @@ func (c *DiscordInteractionWrapper) NewImageCommand() *DiscordInteraction {
 				}
 				err := req.Validate(true)
 				if err != nil {
-					responses.ErrorResponseEditValidation(s, i, err.Error())
+					responses.ErrorResponseInitialValidation(s, i, err.Error(), responses.PRIVATE)
 					return
 				}
+
+				// Always create initial message
+				responses.InitialLoadingResponse(s, i, responses.PUBLIC)
 
 				// Create context
 				ctx := context.Background()

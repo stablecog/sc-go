@@ -221,6 +221,14 @@ func ErrorResponseEditValidation(s *discordgo.Session, i *discordgo.InteractionC
 	})
 }
 
+func ErrorResponseInitialValidation(s *discordgo.Session, i *discordgo.InteractionCreate, content string, privacy RESPONSE_PRIVACY) error {
+	return InitialInteractionResponse(s, i, &InteractionResponseOptions{
+		EmbedTitle:   "🚫",
+		EmbedContent: content,
+		Privacy:      privacy,
+	})
+}
+
 func InitialLoadingResponse(s *discordgo.Session, i *discordgo.InteractionCreate, privacy RESPONSE_PRIVACY) error {
 	return InitialInteractionResponse(s, i, &InteractionResponseOptions{
 		Privacy:    privacy,
