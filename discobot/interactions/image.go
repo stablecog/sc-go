@@ -122,7 +122,7 @@ func (c *DiscordInteractionWrapper) HandleUpscale(s *discordgo.Session, i *disco
 		if existingOutput.UpscaledImagePath != nil {
 			// Send the image
 			err = responses.InitialInteractionResponse(s, i, &responses.InteractionResponseOptions{
-				Content: utils.ToPtr(fmt.Sprintf("<@%s> ✨ Image has already been upscaled #%d ✅ \n%s", i.Member.User.ID, number, utils.GetURLFromImagePath(*existingOutput.UpscaledImagePath))),
+				Content: utils.ToPtr(fmt.Sprintf("<@%s> ✨ Image has already been upscaled #%d \n%s", i.Member.User.ID, number, utils.GetURLFromImagePath(*existingOutput.UpscaledImagePath))),
 				Embeds:  nil,
 				Privacy: responses.PRIVATE,
 			})
@@ -166,7 +166,7 @@ func (c *DiscordInteractionWrapper) HandleUpscale(s *discordgo.Session, i *disco
 
 		// Send the image
 		_, err = responses.InteractionEdit(s, i, &responses.InteractionResponseOptions{
-			Content: utils.ToPtr(fmt.Sprintf("<@%s> ✨ Upscaled #%d ✅ \n%s", i.Member.User.ID, number, upscaledImageUrl)),
+			Content: utils.ToPtr(fmt.Sprintf("<@%s> ✨ Upscaled #%d \n%s", i.Member.User.ID, number, upscaledImageUrl)),
 			Embeds:  nil,
 		},
 		)
