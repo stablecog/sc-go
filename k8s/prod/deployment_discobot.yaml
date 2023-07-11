@@ -8,7 +8,7 @@ metadata:
 spec:
   strategy:
     type: Recreate
-  replicas: 0
+  replicas: 1
   selector:
     matchLabels:
       app: sc-discordbot
@@ -91,3 +91,13 @@ spec:
                   key: QDRANT_COLLECTION_NAME
             - name: PRIVATE_LINGUA_API_URL
               value: http://lingua-service.prod-stablecog:13339/lingua
+            - name: TRANSLATOR_COG_URL
+              valueFrom:
+                secretKeyRef:
+                  name: sc-go
+                  key: TRANSLATOR_COG_URL
+            - name: OPENAI_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: sc-go
+                  key: OPENAI_API_KEY
