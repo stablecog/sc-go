@@ -47,12 +47,12 @@ func (d *DiscoDomain) CheckAuthorization(s *discordgo.Session, i *discordgo.Inte
 		err = responses.InitialInteractionResponse(s,
 			i,
 			&responses.InteractionResponseOptions{
-				EmbedTitle:   "🚀 Sign in to get started",
-				EmbedContent: "Create a new Stablecog account or sign in to your existing one to get started.\n\n",
+				EmbedTitle:   "🚀 Sign in to start",
+				EmbedContent: "Create a Stablecog account or sign in to your existing one to start using the bot.\n\n",
 				EmbedFooter:  "By signing in you agree to our Terms of Service and Privacy Policy.",
 				ActionRowOne: []*components.SCDiscordComponent{
 					components.NewLinkButton("Sign in", fmt.Sprintf("https://stablecog.com/connect/discord?%s", params.Encode()), "🔑"),
-					components.NewLinkButton("Terms & Policies", "https://stablecog.com/legal", ""),
+					components.NewLinkButton("Terms & Policies", "https://stablecog.com/legal", "📜"),
 				},
 				Privacy: responses.PRIVATE,
 			},
