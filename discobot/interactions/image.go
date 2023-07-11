@@ -168,7 +168,7 @@ func (c *DiscordInteractionWrapper) NewImageCommand() *DiscordInteraction {
 
 				// Send the image
 				_, err = responses.InteractionEdit(s, i, &responses.InteractionResponseOptions{
-					Content:      utils.ToPtr(fmt.Sprintf("<@%s> **%s**\n*%s*", i.Member.User.ID, prompt, shared.GetCache().GetGenerationModelNameFromID(*req.ModelId))),
+					Content:      utils.ToPtr(fmt.Sprintf("<@%s> **%s**\n*Model: %s*", i.Member.User.ID, prompt, shared.GetCache().GetGenerationModelNameFromID(*req.ModelId))),
 					ImageURLs:    imageUrls,
 					Embeds:       nil,
 					ActionRowOne: actionRowOne,
