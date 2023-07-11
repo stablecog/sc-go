@@ -324,7 +324,8 @@ func (r *Repository) QueryVoiceovers(per_page int, cursor *time.Time, filters *r
 }
 
 func (r *Repository) GetVoiceverSpeakersWithName(limit int) ([]*ent.VoiceoverSpeaker, error) {
-	return r.DB.VoiceoverSpeaker.Query().Where(voiceoverspeaker.NameNotNil(), voiceoverspeaker.IsActiveEQ(true)).Limit(limit).Order(ent.Desc(voiceoverspeaker.FieldIsDefault)).All(r.Ctx)
+	// Only get english for now
+	return r.DB.VoiceoverSpeaker.Query().Where(voiceoverspeaker.NameNotNil(), voiceoverspeaker.IsActiveEQ(true), voiceoverspeaker.LocaleEQ("en")).Limit(limit).Order(ent.Desc(voiceoverspeaker.FieldIsDefault)).All(r.Ctx)
 }
 
 type VoiceoverQueryWithOutputsResult struct {

@@ -12,9 +12,13 @@ func NewActionRow(components ...*SCDiscordComponent) (discordgo.MessageComponent
 		Type:       discordgo.ActionsRowComponent,
 		Components: components,
 	}
+	return urlComponent.AsMessageComponent()
+}
+
+func (ar *SCDiscordActionRow) AsMessageComponent() (discordgo.MessageComponent, error) {
 	// Marshal
 	var mErr *multierror.Error
-	b, err := json.Marshal(urlComponent)
+	b, err := json.Marshal(ar)
 	mErr = multierror.Append(mErr, err)
 	messageComponent, err := discordgo.MessageComponentFromJSON(b)
 	mErr = multierror.Append(mErr, err)

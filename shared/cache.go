@@ -297,3 +297,16 @@ func (f *Cache) GetCompatibleSchedulerIDsForModel(ctx context.Context, modelId u
 	}
 	return schedulerIds
 }
+
+func (f *Cache) GetDefaultSchedulerIDForModel(modelId uuid.UUID) uuid.UUID {
+	m := f.GetGenerationModelByID(modelId)
+	if m == nil {
+		return uuid.Nil
+	}
+	for _, scheduler := range m.Edges.Schedulers {
+		if scheduler.IsDefault {
+			return scheduler.ID
+		}
+	}
+	return m.Edges.Schedulers[0].ID
+}

@@ -52,7 +52,7 @@ func (t *CreateGenerationRequest) ApplyDefaults() {
 		t.ModelId = utils.ToPtr(shared.GetCache().GetDefaultGenerationModel().ID)
 	}
 	if t.SchedulerId == nil {
-		t.SchedulerId = utils.ToPtr(shared.GetCache().GetDefaultScheduler().ID)
+		t.SchedulerId = utils.ToPtr(shared.GetCache().GetDefaultSchedulerIDForModel(*t.ModelId))
 	}
 	if t.Width == nil {
 		t.Width = utils.ToPtr(shared.GetCache().GetGenerationModelByID(*t.ModelId).DefaultWidth)
