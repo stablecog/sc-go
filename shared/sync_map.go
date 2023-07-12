@@ -49,3 +49,10 @@ func (r *SyncMap[T]) Delete(key string) {
 	defer r.mu.Unlock()
 	delete(r.sMap, key)
 }
+
+// Get all keys and values
+func (r *SyncMap[T]) GetAll() map[string]T {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	return r.sMap
+}

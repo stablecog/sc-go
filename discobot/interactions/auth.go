@@ -1,9 +1,17 @@
 package interactions
 
 import (
+	"time"
+
 	"github.com/bwmarrin/discordgo"
 	"github.com/stablecog/sc-go/discobot/responses"
 )
+
+type LoginInteraction struct {
+	Session     *discordgo.Session
+	Interaction *discordgo.InteractionCreate
+	InsertedAt  time.Time
+}
 
 func (c *DiscordInteractionWrapper) NewAuthenticateCommand() *DiscordInteraction {
 	return &DiscordInteraction{
@@ -19,6 +27,12 @@ func (c *DiscordInteractionWrapper) NewAuthenticateCommand() *DiscordInteraction
 				responses.InitialInteractionResponse(s, i, &responses.InteractionResponseOptions{
 					EmbedTitle:   "👍",
 					EmbedContent: "Your Discord account is already authenticated with Stablecog.",
+				})
+			} else {
+				c.LoginInteractionMap.Put(i.Member.User.ID, LoginInteraction{
+					Session:     s,
+					Interaction: i,
+					InsertedAt:  time.Now(),
 				})
 			}
 		},

@@ -3,6 +3,7 @@ package interactions
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/bwmarrin/discordgo"
 	"github.com/google/uuid"
@@ -178,6 +179,12 @@ func (c *DiscordInteractionWrapper) NewImageCommand() *DiscordInteraction {
 					log.Error(err)
 					responses.ErrorResponseEdit(s, i)
 				}
+			} else {
+				c.LoginInteractionMap.Put(i.Member.User.ID, LoginInteraction{
+					Session:     s,
+					Interaction: i,
+					InsertedAt:  time.Now(),
+				})
 			}
 		},
 	}
@@ -291,5 +298,11 @@ func (c *DiscordInteractionWrapper) HandleUpscale(s *discordgo.Session, i *disco
 			log.Error(err)
 			responses.ErrorResponseEdit(s, i)
 		}
+	} else {
+		c.LoginInteractionMap.Put(i.Member.User.ID, LoginInteraction{
+			Session:     s,
+			Interaction: i,
+			InsertedAt:  time.Now(),
+		})
 	}
 }

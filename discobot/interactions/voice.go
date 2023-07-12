@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"sort"
+	"time"
 
 	"github.com/bwmarrin/discordgo"
 	"github.com/google/uuid"
@@ -139,6 +140,12 @@ func (c *DiscordInteractionWrapper) NewVoiceoverCommand() *DiscordInteraction {
 					log.Error(err)
 					responses.ErrorResponseEdit(s, i)
 				}
+			} else {
+				c.LoginInteractionMap.Put(i.Member.User.ID, LoginInteraction{
+					Session:     s,
+					Interaction: i,
+					InsertedAt:  time.Now(),
+				})
 			}
 		},
 	}

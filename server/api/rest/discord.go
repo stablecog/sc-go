@@ -11,6 +11,7 @@ import (
 	"github.com/stablecog/sc-go/log"
 	"github.com/stablecog/sc-go/server/requests"
 	"github.com/stablecog/sc-go/server/responses"
+	"github.com/stablecog/sc-go/shared"
 )
 
 // POST Discord Verification
@@ -75,6 +76,17 @@ func (c *RestAPI) HandleAuthorizeDiscord(w http.ResponseWriter, r *http.Request)
 	err = c.Redis.DeleteDiscordToken(authReq.UserID)
 	if err != nil {
 		log.Warnf("Error deleting discord token: %v", err)
+	}
+
+	// Publish connected message to disco bot
+	discordAuthMsg := responses.DiscordRedisStreamMessage{
+		DiscordId: authReq.UserID,
+	}
+	respBytes, err := json.Marshal(discordAuthMsg)
+	if err == nil {
+		c.Redis.Client.Publish(c.Redis.Ctx, shared.REDIS_DISCORD_COG_CHANNEL, respBytes)
+	} else {
+		log.Error("Error marshalling disco bot connection message", "err", err)
 	}
 
 	render.Status(r, http.StatusOK)

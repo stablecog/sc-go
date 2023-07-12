@@ -54,6 +54,9 @@ const REDIS_INTERNAL_COG_CHANNEL = "cog:internal_message"
 // This redis channel is when webhook sends a request from API token
 const REDIS_APITOKEN_COG_CHANNEL = "cog:apitoken_message"
 
+// This redis channel is for discord bot, when a user has connected their account
+const REDIS_DISCORD_COG_CHANNEL = "cog:discord_message"
+
 // Allowed image extensions used by various APIs
 type ImageExtension string
 

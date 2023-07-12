@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"os"
 	"os/signal"
 	"strconv"
@@ -17,8 +18,10 @@ import (
 	"github.com/stablecog/sc-go/database/qdrant"
 	"github.com/stablecog/sc-go/database/repository"
 	"github.com/stablecog/sc-go/discobot/interactions"
+	dresponses "github.com/stablecog/sc-go/discobot/responses"
 	"github.com/stablecog/sc-go/log"
 	"github.com/stablecog/sc-go/server/requests"
+	"github.com/stablecog/sc-go/server/responses"
 	"github.com/stablecog/sc-go/shared"
 	"github.com/stablecog/sc-go/utils"
 )
@@ -95,6 +98,9 @@ func main() {
 	// Sync map for tracking requests
 	sMap := shared.NewSyncMap[chan requests.CogWebhookMessage]()
 
+	// Make a sync map for tracking login requests
+	loginInteractionMap := shared.NewSyncMap[interactions.LoginInteraction]()
+
 	// Q Throttler
 	qThrottler := shared.NewQueueThrottler(ctx, redis.Client, shared.REQUEST_COG_TIMEOUT)
 
@@ -114,12 +120,20 @@ func main() {
 			log.Error("Error updating cache", "err", err)
 		}
 	})
-
+	// Also delete records older than 10 minutes from loginInteractionMap
+	cronSscheduler.Every(10).Minutes().Do(func() {
+		items := loginInteractionMap.GetAll()
+		for k, v := range items {
+			if time.Since(v.InsertedAt) > 10*time.Minute {
+				loginInteractionMap.Delete(k)
+			}
+		}
+	})
 	// Safety checker
 	safetyChecker := utils.NewTranslatorSafetyChecker(ctx, os.Getenv("OPENAI_API_KEY"), false)
 
 	// Setup interactions
-	cmdWrapper := interactions.NewDiscordInteractionWrapper(repo, redis, database.NewSupabaseAuth(), sMap, qThrottler, safetyChecker)
+	cmdWrapper := interactions.NewDiscordInteractionWrapper(repo, redis, database.NewSupabaseAuth(), sMap, qThrottler, safetyChecker, loginInteractionMap)
 
 	s.AddHandler(func(s *discordgo.Session, r *discordgo.Ready) {
 		log.Infof("Logged in as: %v#%v", s.State.User.Username, s.State.User.Discriminator)
@@ -200,6 +214,31 @@ func main() {
 			if chl := sMap.Get(cogMessage.Input.ID.String()); chl != nil {
 				chl <- cogMessage
 			}
+		}
+	}()
+
+	// This channel tells the bot when a user has authenticated with Stablecog
+	// so we can send them a message
+	stableCogAuthChannel := redis.Client.Subscribe(ctx, shared.REDIS_DISCORD_COG_CHANNEL)
+	defer stableCogAuthChannel.Close()
+
+	// Start SSE redis subscription
+	go func() {
+		log.Info("Listening for stablecog auth messages", "channel", shared.REDIS_DISCORD_COG_CHANNEL)
+		for msg := range stableCogAuthChannel.Channel() {
+			var authMsg responses.DiscordRedisStreamMessage
+			err := json.Unmarshal([]byte(msg.Payload), &authMsg)
+			if err != nil {
+				log.Error("Error unmarshalling sc auth message", "err", err)
+				continue
+			}
+
+			dmChannel, err := s.UserChannelCreate(authMsg.DiscordId)
+			if err != nil {
+				log.Error("Error creating dm channel", "err", err)
+				continue
+			}
+			s.ChannelMessageSendEmbed(dmChannel.ID, dresponses.NewEmbed(fmt.Sprintf("👋 Hi! <@%s>!", authMsg.DiscordId), "I'm Stuart, the Stablecog bot. I'm here to provide you a suite of AI tools to use right here on Discord.\nI'm still a work on progress, but you can interact with me in any channel where I am present.", ""))
 		}
 	}()
 
