@@ -64,6 +64,12 @@ func (c *DiscordInteractionWrapper) NewImageCommand() *DiscordInteraction {
 					Required:    true,
 				},
 				{
+					Type:        discordgo.ApplicationCommandOptionString,
+					Name:        "negative-prompt",
+					Description: "The negative prompt for the generation.",
+					Required:    false,
+				},
+				{
 					Type:        discordgo.ApplicationCommandOptionInteger,
 					Name:        "image-count",
 					Description: "The number of images to generate.",
@@ -99,6 +105,7 @@ func (c *DiscordInteractionWrapper) NewImageCommand() *DiscordInteraction {
 
 				// Parse options
 				var prompt string
+				var negativePrompt string
 				var modelId *uuid.UUID
 				var aspectRatio *aspectratio.AspectRatio
 				numOutputs := 4
@@ -107,6 +114,8 @@ func (c *DiscordInteractionWrapper) NewImageCommand() *DiscordInteraction {
 					switch option.Name {
 					case "prompt":
 						prompt = option.StringValue()
+					case "negative-prompt":
+						negativePrompt = option.StringValue()
 					case "image-count":
 						numOutputs = int(option.IntValue())
 					case "model":
@@ -126,9 +135,10 @@ func (c *DiscordInteractionWrapper) NewImageCommand() *DiscordInteraction {
 
 				// Validate req/apply defaults
 				req := requests.CreateGenerationRequest{
-					Prompt:     prompt,
-					ModelId:    modelId,
-					NumOutputs: utils.ToPtr[int32](int32(numOutputs)),
+					Prompt:         prompt,
+					NegativePrompt: negativePrompt,
+					ModelId:        modelId,
+					NumOutputs:     utils.ToPtr[int32](int32(numOutputs)),
 				}
 				if aspectRatio != nil {
 					width, height := aspectRatio.GetWidthHeightForModel(*modelId)
