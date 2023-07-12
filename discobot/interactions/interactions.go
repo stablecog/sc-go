@@ -18,7 +18,7 @@ func NewDiscordInteractionWrapper(
 	sMap *shared.SyncMap[chan requests.CogWebhookMessage],
 	qThrottler *shared.UserQueueThrottlerMap,
 	safetyChecker *utils.TranslatorSafetyChecker,
-	LoginInteractionMap *shared.SyncMap[LoginInteraction],
+	LoginInteractionMap *shared.SyncMap[*LoginInteraction],
 ) *DiscordInteractionWrapper {
 	// Create wrapper
 	wrapper := &DiscordInteractionWrapper{
@@ -53,7 +53,7 @@ type DiscordInteractionWrapper struct {
 	SupabseAuth         *database.SupabaseAuth
 	Redis               *database.RedisWrapper
 	SMap                *shared.SyncMap[chan requests.CogWebhookMessage]
-	LoginInteractionMap *shared.SyncMap[LoginInteraction]
+	LoginInteractionMap *shared.SyncMap[*LoginInteraction]
 	QThrottler          *shared.UserQueueThrottlerMap
 	Commands            []*DiscordInteraction
 	Components          []*DiscordInteraction

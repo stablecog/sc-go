@@ -29,7 +29,7 @@ func (c *DiscordInteractionWrapper) NewAuthenticateCommand() *DiscordInteraction
 					EmbedContent: "Your Discord account is already authenticated with Stablecog.",
 				})
 			} else {
-				c.LoginInteractionMap.Put(i.Member.User.ID, LoginInteraction{
+				c.LoginInteractionMap.Put(i.Member.User.ID, &LoginInteraction{
 					Session:     s,
 					Interaction: i,
 					InsertedAt:  time.Now(),

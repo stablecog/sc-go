@@ -180,7 +180,7 @@ func (c *DiscordInteractionWrapper) NewImageCommand() *DiscordInteraction {
 					responses.ErrorResponseEdit(s, i)
 				}
 			} else {
-				c.LoginInteractionMap.Put(i.Member.User.ID, LoginInteraction{
+				c.LoginInteractionMap.Put(i.Member.User.ID, &LoginInteraction{
 					Session:     s,
 					Interaction: i,
 					InsertedAt:  time.Now(),
@@ -299,7 +299,7 @@ func (c *DiscordInteractionWrapper) HandleUpscale(s *discordgo.Session, i *disco
 			responses.ErrorResponseEdit(s, i)
 		}
 	} else {
-		c.LoginInteractionMap.Put(i.Member.User.ID, LoginInteraction{
+		c.LoginInteractionMap.Put(i.Member.User.ID, &LoginInteraction{
 			Session:     s,
 			Interaction: i,
 			InsertedAt:  time.Now(),

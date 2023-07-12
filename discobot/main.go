@@ -99,7 +99,7 @@ func main() {
 	sMap := shared.NewSyncMap[chan requests.CogWebhookMessage]()
 
 	// Make a sync map for tracking login requests
-	loginInteractionMap := shared.NewSyncMap[interactions.LoginInteraction]()
+	loginInteractionMap := shared.NewSyncMap[*interactions.LoginInteraction]()
 
 	// Q Throttler
 	qThrottler := shared.NewQueueThrottler(ctx, redis.Client, shared.REQUEST_COG_TIMEOUT)
@@ -245,6 +245,19 @@ func main() {
 				continue
 			}
 			s.ChannelMessageSendEmbed(dmChannel.ID, dresponses.NewEmbed(fmt.Sprintf("👋 Hi! <@%s>!", dmUser.Username), "I'm Stuart, the Stablecog bot. I'm here to provide you a suite of AI tools to use right here on Discord.\n\nI'm still a work on progress, but you can interact with me in any channel where I am present.", ""))
+
+			// See if interaction exists in sync map too
+			i := loginInteractionMap.Get(authMsg.DiscordId)
+			if i != nil {
+				// Update interaction
+				dresponses.InteractionEdit(i.Session, i.Interaction, &dresponses.InteractionResponseOptions{
+					EmbedTitle:   "✅ Success!",
+					EmbedContent: "You have successfully authenticated with Stablecog! You can now use my AI tools in this server, or any server in which I am present.",
+				})
+
+				// Remove from sync map
+				loginInteractionMap.Delete(authMsg.DiscordId)
+			}
 		}
 	}()
 

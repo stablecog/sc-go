@@ -141,7 +141,7 @@ func (c *DiscordInteractionWrapper) NewVoiceoverCommand() *DiscordInteraction {
 					responses.ErrorResponseEdit(s, i)
 				}
 			} else {
-				c.LoginInteractionMap.Put(i.Member.User.ID, LoginInteraction{
+				c.LoginInteractionMap.Put(i.Member.User.ID, &LoginInteraction{
 					Session:     s,
 					Interaction: i,
 					InsertedAt:  time.Now(),
