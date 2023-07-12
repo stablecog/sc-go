@@ -62,9 +62,9 @@ func (a AspectRatio) GetWidthHeightForModel(modelId uuid.UUID) (width, height in
 	case AspectRatio_16_9:
 		switch modelId.String() {
 		case SDXL_ID:
-			return 720, 1280
+			return 1280, 720
 		case KANDINSKY_ID, LUNA_ID:
-			return 576, 1024
+			return 1024, 576
 		default:
 			return 768, 432
 		}
@@ -98,9 +98,9 @@ func (a AspectRatio) GetWidthHeightForModel(modelId uuid.UUID) (width, height in
 	case AspectRatio_9_16:
 		switch modelId.String() {
 		case SDXL_ID:
-			return 1280, 720
+			return 720, 1280
 		case KANDINSKY_ID, LUNA_ID:
-			return 1024, 576
+			return 576, 1024
 		default:
 			return 432, 768
 		}
