@@ -75,8 +75,8 @@ func (c *DiscordInteractionWrapper) NewUpscaleCommand() *DiscordInteraction {
 				if attachment.ContentType != "image/png" && attachment.ContentType != "image/jpeg" && attachment.ContentType != "image/jpg" && attachment.ContentType != "image/webp" {
 					responses.InitialInteractionResponse(s, i, &responses.InteractionResponseOptions{
 						Privacy:      responses.PRIVATE,
-						EmbedTitle:   "❌ Invalid Attachment",
-						EmbedContent: "The attachment must be a PNG, JPEG, or WEBP image.",
+						EmbedTitle:   "❌ Attachment type is not supported",
+						EmbedContent: "The attachment can be a PNG, JPEG, or WEBP image.",
 					})
 					return
 				}
@@ -84,8 +84,8 @@ func (c *DiscordInteractionWrapper) NewUpscaleCommand() *DiscordInteraction {
 				if attachment.Width > shared.MAX_UPSCALE_INITIAL_HEIGHT || attachment.Width > shared.MAX_UPSCALE_INITIAL_WIDTH {
 					responses.InitialInteractionResponse(s, i, &responses.InteractionResponseOptions{
 						Privacy:      responses.PRIVATE,
-						EmbedTitle:   "❌ Image Too Large",
-						EmbedContent: fmt.Sprintf("The width cannot exceed %dpx, the height cannot exceed %dpx.", shared.MAX_UPSCALE_INITIAL_WIDTH, shared.MAX_UPSCALE_INITIAL_HEIGHT),
+						EmbedTitle:   "❌ Image is too large",
+						EmbedContent: fmt.Sprintf("The width can't be higher than %dpx, and the height can't be higher than %dpx.", shared.MAX_UPSCALE_INITIAL_WIDTH, shared.MAX_UPSCALE_INITIAL_HEIGHT),
 					})
 					return
 				}
