@@ -84,8 +84,8 @@ func (c *DiscordInteractionWrapper) NewUpscaleCommand() *DiscordInteraction {
 				if attachment.Width > shared.MAX_UPSCALE_INITIAL_HEIGHT || attachment.Width > shared.MAX_UPSCALE_INITIAL_WIDTH {
 					responses.InitialInteractionResponse(s, i, &responses.InteractionResponseOptions{
 						Privacy:      responses.PRIVATE,
-						EmbedTitle:   "❌ Invalid Attachment",
-						EmbedContent: fmt.Sprintf("The attachment cannot be larger than %dx%d.", shared.MAX_UPSCALE_INITIAL_WIDTH, shared.MAX_UPSCALE_INITIAL_HEIGHT),
+						EmbedTitle:   "❌ Image Too Large",
+						EmbedContent: fmt.Sprintf("The width cannot exceed %dpx, the height cannot exceed %dpx.", shared.MAX_UPSCALE_INITIAL_WIDTH, shared.MAX_UPSCALE_INITIAL_HEIGHT),
 					})
 					return
 				}
