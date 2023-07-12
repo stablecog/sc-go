@@ -35,6 +35,7 @@ func NewDiscordInteractionWrapper(
 	commands := []*DiscordInteraction{
 		wrapper.NewHelpCommand(),
 		wrapper.NewAuthenticateCommand(),
+		wrapper.NewInfoCommand(),
 		wrapper.NewImageCommand(),
 		wrapper.NewUpscaleCommand(),
 		wrapper.NewVoiceoverCommand(),
