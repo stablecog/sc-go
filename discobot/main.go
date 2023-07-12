@@ -244,15 +244,15 @@ func main() {
 				log.Error("Error creating dm channel", "err", err)
 				continue
 			}
-			s.ChannelMessageSendEmbed(dmChannel.ID, dresponses.NewEmbed(fmt.Sprintf("👋 Hi, %s!", dmUser.Username), "I'm Stuart, the Stablecog bot. I'm here to provide you a suite of AI tools to use right here on Discord.\n\nTry one of the following commands:\n\n• /image\n• /voiceover", ""))
+			s.ChannelMessageSendEmbed(dmChannel.ID, dresponses.NewEmbed(fmt.Sprintf("👋 Hi, %s!", dmUser.Username), "I'm Stuart, the Stablecog bot. I'm here to provide you a suite of AI tools to use right here on Discord.\n\nTry one of the following commands:\n\n/image\n/voiceover", ""))
 
 			// See if interaction exists in sync map too
 			i := loginInteractionMap.Get(authMsg.DiscordId)
 			if i != nil {
 				// Update interaction
 				dresponses.InteractionEdit(i.Session, i.Interaction, &dresponses.InteractionResponseOptions{
-					EmbedTitle:   "✅ Success!",
-					EmbedContent: "You have successfully authenticated with Stablecog! You can now use my AI tools in this server, or any server in which I am present.",
+					EmbedTitle:   "✅ Authenticated!",
+					EmbedContent: "You have successfully authenticated with Stablecog! You can now use my AI tools.\n\nTry one of the following commands:\n\n/image\n/voiceover",
 				})
 
 				// Remove from sync map
