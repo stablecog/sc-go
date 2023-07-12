@@ -37,6 +37,10 @@ type CreateGenerationRequest struct {
 	OutputImageExtension shared.ImageExtension `json:"output_image_extension"`
 }
 
+func (t *CreateGenerationRequest) Cost() int32 {
+	return *t.NumOutputs
+}
+
 // Apply defaults for missing parameters
 func (t *CreateGenerationRequest) ApplyDefaults() {
 	if t.InferenceSteps == nil {

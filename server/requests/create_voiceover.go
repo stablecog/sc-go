@@ -25,6 +25,10 @@ type CreateVoiceoverRequest struct {
 	UIId            string     `json:"ui_id"` // Corresponds to UI identifier
 }
 
+func (t *CreateVoiceoverRequest) Cost() int32 {
+	return utils.CalculateVoiceoverCredits(t.Prompt)
+}
+
 func (t *CreateVoiceoverRequest) ApplyDefaults() {
 	if t.ModelId == nil {
 		t.ModelId = utils.ToPtr(shared.GetCache().GetDefaultVoiceoverModel().ID)

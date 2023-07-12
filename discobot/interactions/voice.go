@@ -2,6 +2,7 @@ package interactions
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"sort"
 	"time"
@@ -14,6 +15,7 @@ import (
 	"github.com/stablecog/sc-go/discobot/responses"
 	"github.com/stablecog/sc-go/log"
 	"github.com/stablecog/sc-go/server/requests"
+	srvresponses "github.com/stablecog/sc-go/server/responses"
 	"github.com/stablecog/sc-go/server/scworker"
 	"github.com/stablecog/sc-go/utils"
 )
@@ -79,9 +81,6 @@ func (c *DiscordInteractionWrapper) NewVoiceoverCommand() *DiscordInteraction {
 				discordUserId = i.User.ID
 			}
 			if u := c.Disco.CheckAuthorization(s, i); u != nil {
-				// Always create initial message
-				responses.InitialLoadingResponse(s, i, responses.PUBLIC)
-
 				// Access options in the order provided by the user.
 				options := i.ApplicationCommandData().Options
 
@@ -98,6 +97,24 @@ func (c *DiscordInteractionWrapper) NewVoiceoverCommand() *DiscordInteraction {
 					}
 				}
 
+				req := requests.CreateVoiceoverRequest{
+					Prompt:    prompt,
+					SpeakerId: speaker,
+				}
+				credits, err := c.Repo.GetNonExpiredCreditTotalForUser(u.ID, nil)
+				if err != nil {
+					log.Errorf("Error getting credits for user: %v", err)
+					responses.ErrorResponseInitial(s, i, responses.PRIVATE)
+					return
+				}
+				if credits < int(req.Cost()) {
+					responses.InitialInteractionResponse(s, i, responses.InsufficientCreditsResponseOptions(req.Cost(), int32(credits)))
+					return
+				}
+
+				// Always create initial message
+				responses.InitialLoadingResponse(s, i, responses.PUBLIC)
+
 				// Create context
 				ctx := context.Background()
 				res, err := scworker.CreateVoiceover(
@@ -109,12 +126,19 @@ func (c *DiscordInteractionWrapper) NewVoiceoverCommand() *DiscordInteraction {
 					c.SMap,
 					c.QThrottler,
 					u,
-					requests.CreateVoiceoverRequest{
-						Prompt:    prompt,
-						SpeakerId: speaker,
-					},
+					req,
 				)
 				if err != nil || len(res.Outputs) == 0 {
+					if errors.Is(err, srvresponses.InsufficientCreditsErr) {
+						credits, err := c.Repo.GetNonExpiredCreditTotalForUser(u.ID, nil)
+						if err != nil {
+							log.Errorf("Error getting credits for user: %v", err)
+							responses.ErrorResponseEdit(s, i)
+							return
+						}
+						responses.InteractionEdit(s, i, responses.InsufficientCreditsResponseOptions(req.Cost(), int32(credits)))
+						return
+					}
 					log.Errorf("Error creating voiceover: %v", err)
 					responses.ErrorResponseEdit(s, i)
 					return

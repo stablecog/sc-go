@@ -2,6 +2,7 @@ package interactions
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
@@ -10,6 +11,7 @@ import (
 	"github.com/stablecog/sc-go/discobot/responses"
 	"github.com/stablecog/sc-go/log"
 	"github.com/stablecog/sc-go/server/requests"
+	srvresponses "github.com/stablecog/sc-go/server/responses"
 	"github.com/stablecog/sc-go/server/scworker"
 	"github.com/stablecog/sc-go/shared"
 	"github.com/stablecog/sc-go/utils"
@@ -90,6 +92,21 @@ func (c *DiscordInteractionWrapper) NewUpscaleCommand() *DiscordInteraction {
 					return
 				}
 
+				req := requests.CreateUpscaleRequest{
+					Input: attachment.URL,
+				}
+
+				credits, err := c.Repo.GetNonExpiredCreditTotalForUser(u.ID, nil)
+				if err != nil {
+					log.Errorf("Error getting credits for user: %v", err)
+					responses.ErrorResponseInitial(s, i, responses.PRIVATE)
+					return
+				}
+				if credits < int(req.Cost()) {
+					responses.InitialInteractionResponse(s, i, responses.InsufficientCreditsResponseOptions(req.Cost(), int32(credits)))
+					return
+				}
+
 				// Do the upscale
 				// Always create initial message
 				responses.InitialLoadingResponse(s, i, responses.PUBLIC)
@@ -105,12 +122,20 @@ func (c *DiscordInteractionWrapper) NewUpscaleCommand() *DiscordInteraction {
 					c.SMap,
 					c.QThrottler,
 					u,
-					requests.CreateUpscaleRequest{
-						Input: attachment.URL,
-					},
+					req,
 				)
 				if err != nil {
-					log.Errorf("Error creating upscale: %v", err)
+					if errors.Is(err, srvresponses.InsufficientCreditsErr) {
+						credits, err := c.Repo.GetNonExpiredCreditTotalForUser(u.ID, nil)
+						if err != nil {
+							log.Errorf("Error getting credits for user: %v", err)
+							responses.ErrorResponseEdit(s, i)
+							return
+						}
+						responses.InteractionEdit(s, i, responses.InsufficientCreditsResponseOptions(req.Cost(), int32(credits)))
+						return
+					}
+					log.Errorf("Error creating voiceover: %v", err)
 					responses.ErrorResponseEdit(s, i)
 					return
 				}

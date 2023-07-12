@@ -27,6 +27,10 @@ type CreateUpscaleRequest struct {
 	OutputID *uuid.UUID
 }
 
+func (t *CreateUpscaleRequest) Cost() int32 {
+	return 1
+}
+
 func (t *CreateUpscaleRequest) ApplyDefaults() {
 	if t.ModelId == nil {
 		t.ModelId = utils.ToPtr(shared.GetCache().GetDefaultUpscaleModel().ID)

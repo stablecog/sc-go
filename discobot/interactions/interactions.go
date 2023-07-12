@@ -36,8 +36,8 @@ func NewDiscordInteractionWrapper(
 		wrapper.NewHelpCommand(),
 		wrapper.NewAuthenticateCommand(),
 		wrapper.NewImageCommand(),
-		wrapper.NewVoiceoverCommand(),
 		wrapper.NewUpscaleCommand(),
+		wrapper.NewVoiceoverCommand(),
 	}
 	// Register component responses
 	components := []*DiscordInteraction{}
