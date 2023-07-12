@@ -182,7 +182,7 @@ func main() {
 					log.Error("Invalid upscale custom id, parsing number", "custom_id", i.MessageComponentData().CustomID)
 					return
 				}
-				cmdWrapper.HandleUpscale(s, i, outputId, number)
+				cmdWrapper.HandleUpscaleGeneration(s, i, outputId, number)
 			} else {
 				handler := cmdWrapper.GetHandlerForComponent(i.MessageComponentData().CustomID)
 				if handler != nil {

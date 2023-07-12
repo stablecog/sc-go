@@ -196,7 +196,7 @@ func (c *DiscordInteractionWrapper) NewImageCommand() *DiscordInteraction {
 }
 
 // Handle upscaling
-func (c *DiscordInteractionWrapper) HandleUpscale(s *discordgo.Session, i *discordgo.InteractionCreate, outputId uuid.UUID, number int) {
+func (c *DiscordInteractionWrapper) HandleUpscaleGeneration(s *discordgo.Session, i *discordgo.InteractionCreate, outputId uuid.UUID, number int) {
 	var discordUserId string
 	if i.Member != nil {
 		discordUserId = i.Member.User.ID
