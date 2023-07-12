@@ -33,6 +33,7 @@ func NewDiscordInteractionWrapper(
 	}
 	// Register commands
 	commands := []*DiscordInteraction{
+		wrapper.NewHelpCommand(),
 		wrapper.NewAuthenticateCommand(),
 		wrapper.NewImageCommand(),
 		wrapper.NewVoiceoverCommand(),

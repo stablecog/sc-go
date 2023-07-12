@@ -43,3 +43,27 @@ func NewVideoEmbed(url string) *discordgo.MessageEmbed {
 		Video: video,
 	}
 }
+
+func NewHelpEmbed() *discordgo.MessageEmbed {
+	return &discordgo.MessageEmbed{
+		Color:       EMBED_PURPLE,
+		URL:         "https://stablecog.com",
+		Title:       "ℹ️ Help",
+		Description: "Hi, I'm Stuart - the official discord bot for Stablecog.com",
+		Fields: []*discordgo.MessageEmbedField{
+			{
+				Name:  "🌐 Website",
+				Value: "You can view all of your creations and account information on https://stablecog.com",
+			},
+			{
+				Name: "📚 Commands",
+				Value: "" +
+					"`/image` - Create an image with one of our generative AI models" + "\n" +
+					"`/upscale` - Upscale an image" + "\n" +
+					"`/voice` - Create a voiceover using a prompt" + "\n" +
+					"`/info` - Get information about your account" + "\n" +
+					"`/help` - Display this help message",
+			},
+		},
+	}
+}
