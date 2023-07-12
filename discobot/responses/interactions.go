@@ -232,6 +232,6 @@ func ErrorResponseInitialValidation(s *discordgo.Session, i *discordgo.Interacti
 func InitialLoadingResponse(s *discordgo.Session, i *discordgo.InteractionCreate, privacy RESPONSE_PRIVACY) error {
 	return InitialInteractionResponse(s, i, &InteractionResponseOptions{
 		Privacy:    privacy,
-		EmbedTitle: "<a:loading:1128524093994582046>  Working on it",
+		EmbedTitle: "<a:loading:1128598014597017680>  Working on it",
 	})
 }
