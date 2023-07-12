@@ -18,10 +18,19 @@ var ErrNotAuthorized = errors.New("not authorized")
 
 // Shared auth wrapper, returns nil if unauthorized
 func (d *DiscoDomain) CheckAuthorization(s *discordgo.Session, i *discordgo.InteractionCreate) *ent.User {
-	if i.Member == nil {
-		return nil
+	var discordId string
+	var discordUsername string
+	var avatarUrl string
+	if i.Member != nil {
+		discordId = i.Member.User.ID
+		discordUsername = i.Member.User.Username
+		avatarUrl = i.Member.AvatarURL("128")
+	} else {
+		discordId = i.User.ID
+		discordUsername = i.User.Username
+		avatarUrl = i.User.AvatarURL("128")
 	}
-	u, err := d.Repo.GetUserByDiscordID(i.Member.User.ID)
+	u, err := d.Repo.GetUserByDiscordID(discordId)
 	if err != nil && !ent.IsNotFound(err) {
 		log.Errorf("Failed to get user by discord ID %v", err)
 		responses.ErrorResponseInitial(s, i, responses.PRIVATE)
@@ -29,7 +38,7 @@ func (d *DiscoDomain) CheckAuthorization(s *discordgo.Session, i *discordgo.Inte
 	}
 	if err != nil && ent.IsNotFound(err) {
 		// Set token in redis
-		token, err := d.Redis.SetDiscordVerifyToken(i.Member.User.ID)
+		token, err := d.Redis.SetDiscordVerifyToken(discordId)
 		if err != nil {
 			log.Errorf("Failed to set discord verify token in redis %v", err)
 			responses.ErrorResponseInitial(s, i, responses.PRIVATE)
@@ -39,9 +48,9 @@ func (d *DiscoDomain) CheckAuthorization(s *discordgo.Session, i *discordgo.Inte
 		// Create URL params for login
 		params := url.Values{}
 		params.Add("platform_token", token)
-		params.Add("platform_user_id", i.Member.User.ID)
-		params.Add("platform_username", i.Member.User.Username)
-		params.Add("platform_avatar_url", i.Member.AvatarURL("128"))
+		params.Add("platform_user_id", discordId)
+		params.Add("platform_username", discordUsername)
+		params.Add("platform_avatar_url", avatarUrl)
 
 		// Auth msg
 		err = responses.InitialInteractionResponse(s,

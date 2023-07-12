@@ -85,8 +85,13 @@ func (c *DiscordInteractionWrapper) NewImageCommand() *DiscordInteraction {
 		},
 		// The handler for the command
 		Handler: func(s *discordgo.Session, i *discordgo.InteractionCreate) {
+			var discordUserId string
+			if i.Member != nil {
+				discordUserId = i.Member.User.ID
+			} else {
+				discordUserId = i.User.ID
+			}
 			if u := c.Disco.CheckAuthorization(s, i); u != nil {
-
 				// Access options in the order provided by the user.
 				options := i.ApplicationCommandData().Options
 
@@ -169,7 +174,7 @@ func (c *DiscordInteractionWrapper) NewImageCommand() *DiscordInteraction {
 
 				// Send the image
 				_, err = responses.InteractionEdit(s, i, &responses.InteractionResponseOptions{
-					Content:      utils.ToPtr(fmt.Sprintf("<@%s> **%s**\n*Model: %s*", i.Member.User.ID, prompt, shared.GetCache().GetGenerationModelNameFromID(*req.ModelId))),
+					Content:      utils.ToPtr(fmt.Sprintf("<@%s> **%s**\n*Model: %s*", discordUserId, prompt, shared.GetCache().GetGenerationModelNameFromID(*req.ModelId))),
 					ImageURLs:    imageUrls,
 					Embeds:       nil,
 					ActionRowOne: actionRowOne,
@@ -180,7 +185,7 @@ func (c *DiscordInteractionWrapper) NewImageCommand() *DiscordInteraction {
 					responses.ErrorResponseEdit(s, i)
 				}
 			} else {
-				c.LoginInteractionMap.Put(i.Member.User.ID, &LoginInteraction{
+				c.LoginInteractionMap.Put(discordUserId, &LoginInteraction{
 					Session:     s,
 					Interaction: i,
 					InsertedAt:  time.Now(),
@@ -192,6 +197,12 @@ func (c *DiscordInteractionWrapper) NewImageCommand() *DiscordInteraction {
 
 // Handle upscaling
 func (c *DiscordInteractionWrapper) HandleUpscale(s *discordgo.Session, i *discordgo.InteractionCreate, outputId uuid.UUID, number int) {
+	var discordUserId string
+	if i.Member != nil {
+		discordUserId = i.Member.User.ID
+	} else {
+		discordUserId = i.User.ID
+	}
 	if u := c.Disco.CheckAuthorization(s, i); u != nil {
 		// Disable the button
 		// if len(i.Message.Components) < 1 {
@@ -246,7 +257,7 @@ func (c *DiscordInteractionWrapper) HandleUpscale(s *discordgo.Session, i *disco
 		if existingOutput.UpscaledImagePath != nil {
 			// Send the image
 			err = responses.InitialInteractionResponse(s, i, &responses.InteractionResponseOptions{
-				Content: utils.ToPtr(fmt.Sprintf("<@%s> ✨ Image has already been upscaled #%d \n%s", i.Member.User.ID, number, utils.GetURLFromImagePath(*existingOutput.UpscaledImagePath))),
+				Content: utils.ToPtr(fmt.Sprintf("<@%s> ✨ Image has already been upscaled #%d \n%s", discordUserId, number, utils.GetURLFromImagePath(*existingOutput.UpscaledImagePath))),
 				Embeds:  nil,
 				Privacy: responses.PRIVATE,
 			})
@@ -290,7 +301,7 @@ func (c *DiscordInteractionWrapper) HandleUpscale(s *discordgo.Session, i *disco
 
 		// Send the image
 		_, err = responses.InteractionEdit(s, i, &responses.InteractionResponseOptions{
-			Content: utils.ToPtr(fmt.Sprintf("<@%s> ✨ Upscaled #%d \n%s", i.Member.User.ID, number, upscaledImageUrl)),
+			Content: utils.ToPtr(fmt.Sprintf("<@%s> ✨ Upscaled #%d \n%s", discordUserId, number, upscaledImageUrl)),
 			Embeds:  nil,
 		},
 		)
@@ -299,7 +310,7 @@ func (c *DiscordInteractionWrapper) HandleUpscale(s *discordgo.Session, i *disco
 			responses.ErrorResponseEdit(s, i)
 		}
 	} else {
-		c.LoginInteractionMap.Put(i.Member.User.ID, &LoginInteraction{
+		c.LoginInteractionMap.Put(discordUserId, &LoginInteraction{
 			Session:     s,
 			Interaction: i,
 			InsertedAt:  time.Now(),

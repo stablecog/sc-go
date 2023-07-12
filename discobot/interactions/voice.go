@@ -72,6 +72,12 @@ func (c *DiscordInteractionWrapper) NewVoiceoverCommand() *DiscordInteraction {
 		},
 		// The handler for the command
 		Handler: func(s *discordgo.Session, i *discordgo.InteractionCreate) {
+			var discordUserId string
+			if i.Member != nil {
+				discordUserId = i.Member.User.ID
+			} else {
+				discordUserId = i.User.ID
+			}
 			if u := c.Disco.CheckAuthorization(s, i); u != nil {
 				// Always create initial message
 				responses.InitialLoadingResponse(s, i, responses.PUBLIC)
@@ -128,7 +134,7 @@ func (c *DiscordInteractionWrapper) NewVoiceoverCommand() *DiscordInteraction {
 
 				// Send the image
 				_, err = responses.InteractionEdit(s, i, &responses.InteractionResponseOptions{
-					Content: utils.ToPtr(fmt.Sprintf("<@%s> **%s**\n%s", i.Member.User.ID, prompt, videoUrls[0])),
+					Content: utils.ToPtr(fmt.Sprintf("<@%s> **%s**\n%s", discordUserId, prompt, videoUrls[0])),
 					Embeds:  nil,
 					ActionRowOne: []*components.SCDiscordComponent{
 						components.NewLinkButton("MP3", *res.Outputs[0].AudioFileURL, "🎵"),
@@ -141,7 +147,7 @@ func (c *DiscordInteractionWrapper) NewVoiceoverCommand() *DiscordInteraction {
 					responses.ErrorResponseEdit(s, i)
 				}
 			} else {
-				c.LoginInteractionMap.Put(i.Member.User.ID, &LoginInteraction{
+				c.LoginInteractionMap.Put(discordUserId, &LoginInteraction{
 					Session:     s,
 					Interaction: i,
 					InsertedAt:  time.Now(),
