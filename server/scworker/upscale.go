@@ -187,8 +187,8 @@ func CreateUpscale(ctx context.Context,
 		if err != nil {
 			return nil, &WorkerError{http.StatusBadRequest, fmt.Errorf("image_url_width_height_error"), ""}
 		}
-		if width > shared.MAX_UPSCALE_INITIAL_WIDTH || height > shared.MAX_UPSCALE_INITIAL_HEIGHT {
-			return nil, &WorkerError{http.StatusBadRequest, fmt.Errorf("image_url_width_height_error"), "Image cannot exceed 1024x1024"}
+		if width*height > shared.MAX_UPSCALE_MEGAPIXELS {
+			return nil, &WorkerError{http.StatusBadRequest, fmt.Errorf("image_url_width_height_error"), fmt.Sprintf("Image cannot exceed %d megapixels", shared.MAX_UPSCALE_MEGAPIXELS/1000000)}
 		}
 	}
 

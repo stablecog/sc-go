@@ -197,8 +197,8 @@ func (c *RestAPI) HandleCreateUpscaleToken(w http.ResponseWriter, r *http.Reques
 			responses.ErrBadRequest(w, r, "image_url_width_height_error", "")
 			return
 		}
-		if width > shared.MAX_UPSCALE_INITIAL_WIDTH || height > shared.MAX_UPSCALE_INITIAL_HEIGHT {
-			responses.ErrBadRequest(w, r, "image_url_width_height_error", "Image cannot exceed 1024x1024")
+		if width*height > shared.MAX_UPSCALE_MEGAPIXELS {
+			responses.ErrBadRequest(w, r, "image_url_width_height_error", fmt.Sprintf("Image cannot exceed %d megapixels", shared.MAX_UPSCALE_MEGAPIXELS/1000000))
 			return
 		}
 	}

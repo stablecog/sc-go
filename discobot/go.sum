@@ -233,12 +233,12 @@ github.com/shurcooL/sanitized_anchor_name v1.0.0/go.mod h1:1NzhyTcUVG4SuEtjjoZeV
 github.com/sirupsen/logrus v1.4.1/go.mod h1:ni0Sbl8bgC9z8RoU9G6nDWqqs/fq4eDPysMBDgk/93Q=
 github.com/sirupsen/logrus v1.4.2/go.mod h1:tLMulIdttU9McNUspp0xgXVQah82FyeX6MwdIuYE2rE=
 github.com/spkg/bom v0.0.0-20160624110644-59b7046e48ad/go.mod h1:qLr4V1qq6nMqFKkMo8ZTx3f+BZEkzsRUY10Xsm2mwU0=
-github.com/stablecog/sc-go/database v0.0.0-20230626133428-7ae77435f829 h1:wpQUGXeqxlT/pwzE+ghYgwbo3b3viPjVWdGzzl3N+9g=
-github.com/stablecog/sc-go/database v0.0.0-20230626133428-7ae77435f829/go.mod h1:sG01DCst8XtczaSf8fN0kBucDao7iX8UdDWcW60b1sg=
+github.com/stablecog/sc-go/database v0.0.0-20230713032015-ef98fbf7e9e6 h1:XD8YzUgNgMON4lbJyDbyv7kUcT6wk10Yc0TbqghmwZ4=
+github.com/stablecog/sc-go/database v0.0.0-20230713032015-ef98fbf7e9e6/go.mod h1:sG01DCst8XtczaSf8fN0kBucDao7iX8UdDWcW60b1sg=
 github.com/stablecog/sc-go/log v0.0.0-20230626133428-7ae77435f829 h1:6yPzHY8/oMkuzS+QbGFum9Snm3rdARGSqUSmhl1CdDM=
 github.com/stablecog/sc-go/log v0.0.0-20230626133428-7ae77435f829/go.mod h1:7PXBXK3hUECOBkAeGtR6b9tV35379RvW9U0Ux1F3Cww=
-github.com/stablecog/sc-go/server v0.0.0-20230705193722-8932207f2324 h1:ttubb0r1TVtBgWK+Jy+lrIsJbf+paeF8BvmvfqU/Qoo=
-github.com/stablecog/sc-go/server v0.0.0-20230705193722-8932207f2324/go.mod h1:XoeFexlwuC7PR7rV7ObpnGlwdGRko4N4NwUYHvL5oyQ=
+github.com/stablecog/sc-go/server v0.0.0-20230713032015-ef98fbf7e9e6 h1:ZgD7jM1GlS2Vg6eRHT9XqNq8wEuIIMuea6RTVIQ8p7Y=
+github.com/stablecog/sc-go/server v0.0.0-20230713032015-ef98fbf7e9e6/go.mod h1:XoeFexlwuC7PR7rV7ObpnGlwdGRko4N4NwUYHvL5oyQ=
 github.com/stablecog/sc-go/shared v0.0.0-20230329211320-ea8e574b08f6 h1:ljxPGarLuVYKjnun3aDjYMBEbAY9b7VFXmjIP9d2F5k=
 github.com/stablecog/sc-go/shared v0.0.0-20230329211320-ea8e574b08f6/go.mod h1:li6+tO7wDw+gBJr6/SgwSBFVbDp5Gb3akASZs5mo1so=
 github.com/stablecog/sc-go/utils v0.0.0-20230329211320-ea8e574b08f6 h1:rbCJ3QSh5XBuAeFWN5FYfLwLKpetvOBFcVbJRg6Au7M=

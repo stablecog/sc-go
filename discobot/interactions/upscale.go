@@ -83,11 +83,11 @@ func (c *DiscordInteractionWrapper) NewUpscaleCommand() *DiscordInteraction {
 					return
 				}
 
-				if attachment.Width > shared.MAX_UPSCALE_INITIAL_HEIGHT || attachment.Width > shared.MAX_UPSCALE_INITIAL_WIDTH {
+				if attachment.Width*attachment.Width > shared.MAX_UPSCALE_MEGAPIXELS {
 					responses.InitialInteractionResponse(s, i, &responses.InteractionResponseOptions{
 						Privacy:      responses.PRIVATE,
 						EmbedTitle:   "❌ Image is too large",
-						EmbedContent: fmt.Sprintf("The width can't be higher than %dpx, and the height can't be higher than %dpx.", shared.MAX_UPSCALE_INITIAL_WIDTH, shared.MAX_UPSCALE_INITIAL_HEIGHT),
+						EmbedContent: fmt.Sprintf("The image can't be larger than %d megapixels.", shared.MAX_UPSCALE_MEGAPIXELS/1000000),
 					})
 					return
 				}
