@@ -87,7 +87,7 @@ func (c *DiscordInteractionWrapper) NewUpscaleCommand() *DiscordInteraction {
 					responses.InitialInteractionResponse(s, i, &responses.InteractionResponseOptions{
 						Privacy:      responses.PRIVATE,
 						EmbedTitle:   "❌ Image is too large",
-						EmbedContent: fmt.Sprintf("The image can't be larger than %d megapixels.", shared.MAX_UPSCALE_MEGAPIXELS/1000000),
+						EmbedContent: fmt.Sprintf("The image can't be larger than %.1f megapixels.", float64(shared.MAX_UPSCALE_MEGAPIXELS/1000000)),
 					})
 					return
 				}
