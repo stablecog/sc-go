@@ -83,7 +83,7 @@ func (c *DiscordInteractionWrapper) NewUpscaleCommand() *DiscordInteraction {
 					return
 				}
 
-				if attachment.Width*attachment.Width > shared.MAX_UPSCALE_MEGAPIXELS {
+				if attachment.Width*attachment.Height > shared.MAX_UPSCALE_MEGAPIXELS {
 					responses.InitialInteractionResponse(s, i, &responses.InteractionResponseOptions{
 						Privacy:      responses.PRIVATE,
 						EmbedTitle:   "❌ Image is too large",
