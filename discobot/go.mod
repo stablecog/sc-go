@@ -7,9 +7,7 @@ require (
 	github.com/go-co-op/gocron v1.18.0
 	github.com/hashicorp/go-multierror v1.1.1
 	github.com/joho/godotenv v1.5.1
-	github.com/stablecog/sc-go/database v0.0.0-20230626133428-7ae77435f829
 	github.com/stablecog/sc-go/log v0.0.0-20230626133428-7ae77435f829
-	github.com/stablecog/sc-go/server v0.0.0-20230705193722-8932207f2324
 	github.com/stablecog/sc-go/shared v0.0.0-20230329211320-ea8e574b08f6
 	github.com/stablecog/sc-go/utils v0.0.0-20230329211320-ea8e574b08f6
 )
@@ -57,6 +55,7 @@ require (
 	github.com/mitchellh/go-wordwrap v0.0.0-20150314170334-ad45545899c7 // indirect
 	github.com/muesli/reflow v0.3.0 // indirect
 	github.com/muesli/termenv v0.15.1 // indirect
+	github.com/olekukonko/tablewriter v0.0.5 // indirect
 	github.com/posthog/posthog-go v0.0.0-20221221115252-24dfed35d71a // indirect
 	github.com/redis/go-redis/v9 v9.0.2 // indirect
 	github.com/rivo/uniseg v0.2.0 // indirect
