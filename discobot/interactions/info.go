@@ -52,7 +52,11 @@ func (c *DiscordInteractionWrapper) NewInfoCommand() *DiscordInteraction {
 				// Group credits into groups that expire at the same time
 				creditGroups := make(map[time.Time][]*repository.UserCreditsQueryResult)
 				for _, credit := range creditsGT0 {
-					creditGroups[credit.ExpiresAt] = append(creditGroups[credit.ExpiresAt], credit)
+					if credit.ExpiresAt.Before(repository.NEVER_EXPIRE) {
+						creditGroups[credit.ExpiresAt] = append(creditGroups[credit.ExpiresAt], credit)
+					} else {
+						creditGroups[repository.NEVER_EXPIRE] = append(creditGroups[repository.NEVER_EXPIRE], credit)
+					}
 				}
 
 				var creditGroupArrays [][]*repository.UserCreditsQueryResult
