@@ -3,6 +3,7 @@ package aspectratio
 import "github.com/google/uuid"
 
 // Hacky hardcoded stuff but it gets the job done
+const KANDINSKY_2_2_ID = "9fa49c00-109d-430f-9ddd-449f02e2c71a"
 const SDXL_ID = "8002bc51-7260-468f-8840-cf1e6dbe3f8a"
 const KANDINSKY_ID = "22b0857d-7edc-4d00-9cd9-45aa509db093"
 const LUNA_ID = "b6c1372f-31a7-457c-907c-d292a6ffef97"
@@ -61,7 +62,7 @@ func (a AspectRatio) GetWidthHeightForModel(modelId uuid.UUID) (width, height in
 	switch a {
 	case AspectRatio_16_9:
 		switch modelId.String() {
-		case SDXL_ID:
+		case SDXL_ID, KANDINSKY_2_2_ID:
 			return 1280, 720
 		case KANDINSKY_ID, LUNA_ID:
 			return 1024, 576
@@ -70,7 +71,7 @@ func (a AspectRatio) GetWidthHeightForModel(modelId uuid.UUID) (width, height in
 		}
 	case AspectRatio_1_1:
 		switch modelId.String() {
-		case SDXL_ID:
+		case SDXL_ID, KANDINSKY_2_2_ID:
 			return 1024, 1024
 		case KANDINSKY_ID, LUNA_ID:
 			return 768, 768
@@ -79,7 +80,7 @@ func (a AspectRatio) GetWidthHeightForModel(modelId uuid.UUID) (width, height in
 		}
 	case AspectRatio_2_3:
 		switch modelId.String() {
-		case SDXL_ID:
+		case SDXL_ID, KANDINSKY_2_2_ID:
 			return 832, 1248
 		case KANDINSKY_ID, LUNA_ID:
 			return 608, 912
@@ -88,7 +89,7 @@ func (a AspectRatio) GetWidthHeightForModel(modelId uuid.UUID) (width, height in
 		}
 	case AspectRatio_3_2:
 		switch modelId.String() {
-		case SDXL_ID:
+		case SDXL_ID, KANDINSKY_2_2_ID:
 			return 1248, 832
 		case KANDINSKY_ID, LUNA_ID:
 			return 912, 608
@@ -97,7 +98,7 @@ func (a AspectRatio) GetWidthHeightForModel(modelId uuid.UUID) (width, height in
 		}
 	case AspectRatio_9_16:
 		switch modelId.String() {
-		case SDXL_ID:
+		case SDXL_ID, KANDINSKY_2_2_ID:
 			return 720, 1280
 		case KANDINSKY_ID, LUNA_ID:
 			return 576, 1024
@@ -106,7 +107,7 @@ func (a AspectRatio) GetWidthHeightForModel(modelId uuid.UUID) (width, height in
 		}
 	case AspectRatio_4_5:
 		switch modelId.String() {
-		case SDXL_ID:
+		case SDXL_ID, KANDINSKY_2_2_ID:
 			return 896, 1120
 		case KANDINSKY_ID, LUNA_ID:
 			return 672, 840
@@ -115,7 +116,7 @@ func (a AspectRatio) GetWidthHeightForModel(modelId uuid.UUID) (width, height in
 		}
 	case AspectRatio_2dot4_1:
 		switch modelId.String() {
-		case SDXL_ID:
+		case SDXL_ID, KANDINSKY_2_2_ID:
 			return 1536, 640
 		case KANDINSKY_ID, LUNA_ID:
 			return 1152, 480
