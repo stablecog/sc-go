@@ -114,7 +114,7 @@ func (t *CreateGenerationRequest) Validate(api bool) error {
 		return fmt.Errorf("Inference steps is too small, min is: %d", shared.MIN_INFERENCE_STEPS)
 	}
 
-	if (*t.Width)*(*t.Height)*(*t.InferenceSteps) >= shared.MAX_PRO_PIXEL_STEPS {
+	if (*t.Width)*(*t.Height)*(*t.InferenceSteps) > shared.MAX_PRO_PIXEL_STEPS {
 		return fmt.Errorf("Pick fewer inference steps or smaller dimensions: %d - %d - %d",
 			*t.Width,
 			*t.Height,
