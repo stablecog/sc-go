@@ -42,10 +42,11 @@ ALTER TYPE public.generation_output_gallery_status_enum OWNER TO postgres;
 --
 -- Name: credit_type_enum; Type: TYPE; Schema: public; Owner: postgres
 --
-CREATE TYPE public.credit_type_enum AS ENUM (
+CREATE TYPE public. AS ENUM (
     'free',
     'subscription',
-    'one_time'
+    'one_time',
+    'tippable'
 );
 
 ALTER TYPE public.credit_type_enum OWNER TO postgres;

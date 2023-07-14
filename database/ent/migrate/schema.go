@@ -83,7 +83,7 @@ var (
 		{Name: "description", Type: field.TypeString, Nullable: true, Size: 2147483647},
 		{Name: "amount", Type: field.TypeInt32},
 		{Name: "stripe_product_id", Type: field.TypeString, Nullable: true, Size: 2147483647},
-		{Name: "type", Type: field.TypeEnum, Enums: []string{"free", "subscription", "one_time"}},
+		{Name: "type", Type: field.TypeEnum, Enums: []string{"free", "subscription", "one_time", "tippable"}},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},
 	}
