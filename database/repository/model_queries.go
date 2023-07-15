@@ -2,11 +2,12 @@ package repository
 
 import (
 	"github.com/stablecog/sc-go/database/ent"
+	"github.com/stablecog/sc-go/database/ent/generationmodel"
 	"github.com/stablecog/sc-go/database/ent/upscalemodel"
 )
 
 func (r *Repository) GetAllGenerationModels() ([]*ent.GenerationModel, error) {
-	models, err := r.DB.GenerationModel.Query().WithSchedulers().All(r.Ctx)
+	models, err := r.DB.GenerationModel.Query().WithSchedulers().Order(ent.Desc(generationmodel.FieldCreatedAt)).All(r.Ctx)
 	if err != nil {
 		return nil, err
 	}

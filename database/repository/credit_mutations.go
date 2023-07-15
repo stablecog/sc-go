@@ -156,6 +156,8 @@ func (r *Repository) DeductCreditsFromUser(userID uuid.UUID, amount int32, DB *e
 							sql.EQ(t.C(credit.FieldUserID), userID),
 							// Has remaining amount
 							sql.GTE(t.C(credit.FieldRemainingAmount), amount),
+							// Not tippable type
+							sql.NEQ(t.C(credit.FieldCreditTypeID), uuid.MustParse(TIPPABLE_CREDIT_TYPE_ID)),
 						),
 					).OrderBy(sql.Asc(t.C(credit.FieldExpiresAt))).Limit(1),
 				),
@@ -172,7 +174,7 @@ func (r *Repository) DeductCreditsFromUser(userID uuid.UUID, amount int32, DB *e
 		}
 		if int32(totalCredits) >= amount {
 			// User has enough credits, deduct from lowest expiring types first
-			credits, err := DB.Credit.Query().Where(credit.UserID(userID), credit.RemainingAmountGT(0), credit.ExpiresAtGT(time.Now())).Order(ent.Asc(credit.FieldExpiresAt)).All(r.Ctx)
+			credits, err := DB.Credit.Query().Where(credit.UserID(userID), credit.RemainingAmountGT(0), credit.ExpiresAtGT(time.Now()), credit.CreditTypeIDNEQ(uuid.MustParse(TIPPABLE_CREDIT_TYPE_ID))).Order(ent.Asc(credit.FieldExpiresAt)).All(r.Ctx)
 			deducted := int32(0)
 			for _, c := range credits {
 				toDeduct := c.RemainingAmount - (amount - deducted)
