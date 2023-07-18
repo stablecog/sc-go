@@ -177,7 +177,6 @@ func (c *DiscordInteractionWrapper) NewImageCommand() *DiscordInteraction {
 					c.SMap,
 					c.QThrottler,
 					u,
-					true,
 					req,
 				)
 				if err != nil {

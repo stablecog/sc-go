@@ -33,7 +33,6 @@ func CreateGeneration(ctx context.Context,
 	SMap *shared.SyncMap[chan requests.CogWebhookMessage],
 	qThrottler *shared.UserQueueThrottlerMap,
 	user *ent.User,
-	overrideSubmitToGallery bool,
 	generateReq requests.CreateGenerationRequest) (*responses.ApiSucceededResponse, error) {
 	free := user.ActiveProductID == nil
 	if free {
@@ -216,7 +215,7 @@ func CreateGeneration(ctx context.Context,
 	}
 
 	// Enforce submit to gallery
-	if free || overrideSubmitToGallery {
+	if free {
 		generateReq.SubmitToGallery = true
 	}
 
