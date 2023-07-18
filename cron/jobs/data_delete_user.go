@@ -75,18 +75,34 @@ func (j *JobRunner) DeleteUserData(log Logger, dryRun bool) error {
 
 		// Delete S3 objects
 		if !dryRun && len(paths) > 0 {
-			o, err := j.S3.DeleteObjects(&s3.DeleteObjectsInput{
-				Bucket: aws.String(os.Getenv("S3_BUCKET_NAME")),
-				Delete: &s3.Delete{
-					Objects: paths,
-				},
-			})
-			if err != nil {
-				log.Errorf("Error deleting objects for user %s: %v", u.ID, err)
-				return err
+			// Can only delete 1k at a time, so make arrays 1k size
+			var chunks [][]*s3.ObjectIdentifier
+			for i := 0; i < len(paths); i += 1000 {
+				end := i + 1000
+
+				if end > len(paths) {
+					end = len(paths)
+				}
+
+				chunks = append(chunks, paths[i:end])
 			}
 
-			log.Infof("Deleted %d objects for user %s", len(o.Deleted), u.ID)
+			deleted := 0
+			for _, chunk := range chunks {
+				o, err := j.S3.DeleteObjects(&s3.DeleteObjectsInput{
+					Bucket: aws.String(os.Getenv("S3_BUCKET_NAME")),
+					Delete: &s3.Delete{
+						Objects: chunk,
+					},
+				})
+				if err != nil {
+					log.Errorf("Error deleting objects for user %s: %v", u.ID, err)
+					return err
+				}
+				deleted += len(o.Deleted)
+			}
+
+			log.Infof("Deleted %d objects for user %s", deleted, u.ID)
 		} else {
 			for _, path := range paths {
 				log.Infof("Would delete %s", *path.Key)
@@ -112,12 +128,27 @@ func (j *JobRunner) DeleteUserData(log Logger, dryRun bool) error {
 		if len(img2imgPaths) > 0 {
 			if !dryRun {
 				log.Infof("Deleting %d img2img objects for user %s", len(img2imgPaths), u.ID)
-				_, err = j.S3Img2Img.DeleteObjects(&s3.DeleteObjectsInput{
-					Bucket: aws.String(os.Getenv("S3_IMG2IMG_BUCKET_NAME")),
-					Delete: &s3.Delete{
-						Objects: img2imgPaths,
-					},
-				})
+				// Can only delete 1k at a time, so make arrays 1k size
+				var chunks [][]*s3.ObjectIdentifier
+				for i := 0; i < len(img2imgPaths); i += 1000 {
+					end := i + 1000
+
+					if end > len(img2imgPaths) {
+						end = len(img2imgPaths)
+					}
+
+					chunks = append(chunks, img2imgPaths[i:end])
+				}
+
+				for _, chunk := range chunks {
+					_, err = j.S3Img2Img.DeleteObjects(&s3.DeleteObjectsInput{
+						Bucket: aws.String(os.Getenv("S3_IMG2IMG_BUCKET_NAME")),
+						Delete: &s3.Delete{
+							Objects: chunk,
+						},
+					})
+				}
+
 				if err != nil {
 					log.Errorf("Error deleting img2img objects for user %s: %v", u.ID, err)
 					return err
