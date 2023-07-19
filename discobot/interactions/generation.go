@@ -89,6 +89,12 @@ func (c *DiscordInteractionWrapper) NewImageCommand() *DiscordInteraction {
 					Required:    false,
 					Choices:     aspectRatioChoices,
 				},
+				{
+					Type:        discordgo.ApplicationCommandOptionAttachment,
+					Name:        "image",
+					Description: "Use an initial image.",
+					Required:    true,
+				},
 			},
 		},
 		// The handler for the command
@@ -110,6 +116,10 @@ func (c *DiscordInteractionWrapper) NewImageCommand() *DiscordInteraction {
 				var aspectRatio *aspectratio.AspectRatio
 				numOutputs := 4
 
+				// Attachment of init image
+				var attachmentId string
+				var initImage string
+
 				for _, option := range options {
 					switch option.Name {
 					case "prompt":
@@ -122,6 +132,33 @@ func (c *DiscordInteractionWrapper) NewImageCommand() *DiscordInteraction {
 						modelId = utils.ToPtr[uuid.UUID](uuid.MustParse(option.StringValue()))
 					case "aspect-ratio":
 						aspectRatio = utils.ToPtr(aspectratio.AspectRatio(option.IntValue()))
+					case "image":
+						id, ok := option.Value.(string)
+						if !ok {
+							log.Errorf("Invalid image attachment for upscale command: %v", i.ApplicationCommandData())
+							responses.ErrorResponseInitial(s, i, responses.PRIVATE)
+							return
+						}
+						attachmentId = id
+					}
+				}
+
+				if attachmentId != "" {
+					attachment, ok := i.ApplicationCommandData().Resolved.Attachments[attachmentId]
+					if !ok {
+						log.Errorf("No image attachment for generate command: %v", i.ApplicationCommandData())
+						responses.ErrorResponseInitial(s, i, responses.PRIVATE)
+						return
+					}
+					initImage = attachment.URL
+
+					if attachment.ContentType != "image/png" && attachment.ContentType != "image/jpeg" && attachment.ContentType != "image/jpg" && attachment.ContentType != "image/webp" {
+						responses.InitialInteractionResponse(s, i, &responses.InteractionResponseOptions{
+							Privacy:      responses.PRIVATE,
+							EmbedTitle:   "❌ Attachment type is not supported",
+							EmbedContent: "The attachment can be a PNG, JPEG, or WEBP image.",
+						})
+						return
 					}
 				}
 
@@ -139,6 +176,7 @@ func (c *DiscordInteractionWrapper) NewImageCommand() *DiscordInteraction {
 					NegativePrompt: negativePrompt,
 					ModelId:        modelId,
 					NumOutputs:     utils.ToPtr[int32](int32(numOutputs)),
+					InitImageUrl:   initImage,
 				}
 				if aspectRatio != nil {
 					width, height := aspectRatio.GetWidthHeightForModel(*modelId)
@@ -177,6 +215,7 @@ func (c *DiscordInteractionWrapper) NewImageCommand() *DiscordInteraction {
 					c.SMap,
 					c.QThrottler,
 					u,
+					nil,
 					req,
 				)
 				if err != nil {
