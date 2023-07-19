@@ -93,7 +93,7 @@ func (c *DiscordInteractionWrapper) NewImageCommand() *DiscordInteraction {
 					Type:        discordgo.ApplicationCommandOptionAttachment,
 					Name:        "image",
 					Description: "Use an initial image.",
-					Required:    true,
+					Required:    false,
 				},
 			},
 		},
