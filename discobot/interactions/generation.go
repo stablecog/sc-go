@@ -91,8 +91,14 @@ func (c *DiscordInteractionWrapper) NewImageCommand() *DiscordInteraction {
 				},
 				{
 					Type:        discordgo.ApplicationCommandOptionAttachment,
-					Name:        "image",
+					Name:        "init-image",
 					Description: "Use an initial image.",
+					Required:    false,
+				},
+				{
+					Type:        discordgo.ApplicationCommandOptionInteger,
+					Name:        "seed",
+					Description: "The seed for the generation.",
 					Required:    false,
 				},
 			},
@@ -119,6 +125,7 @@ func (c *DiscordInteractionWrapper) NewImageCommand() *DiscordInteraction {
 				// Attachment of init image
 				var attachmentId string
 				var initImage string
+				var seed *int
 
 				for _, option := range options {
 					switch option.Name {
@@ -132,7 +139,7 @@ func (c *DiscordInteractionWrapper) NewImageCommand() *DiscordInteraction {
 						modelId = utils.ToPtr[uuid.UUID](uuid.MustParse(option.StringValue()))
 					case "aspect-ratio":
 						aspectRatio = utils.ToPtr(aspectratio.AspectRatio(option.IntValue()))
-					case "image":
+					case "init-image":
 						id, ok := option.Value.(string)
 						if !ok {
 							log.Errorf("Invalid image attachment for upscale command: %v", i.ApplicationCommandData())
@@ -140,6 +147,8 @@ func (c *DiscordInteractionWrapper) NewImageCommand() *DiscordInteraction {
 							return
 						}
 						attachmentId = id
+					case "seed":
+						seed = utils.ToPtr[int](int(option.IntValue()))
 					}
 				}
 
@@ -177,6 +186,7 @@ func (c *DiscordInteractionWrapper) NewImageCommand() *DiscordInteraction {
 					ModelId:        modelId,
 					NumOutputs:     utils.ToPtr[int32](int32(numOutputs)),
 					InitImageUrl:   initImage,
+					Seed:           seed,
 				}
 				if aspectRatio != nil {
 					width, height := aspectRatio.GetWidthHeightForModel(*modelId)
