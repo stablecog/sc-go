@@ -42,7 +42,7 @@ var (
 		{Name: "id", Type: field.TypeUUID},
 		{Name: "remaining_amount", Type: field.TypeInt32},
 		{Name: "expires_at", Type: field.TypeTime},
-		{Name: "stripe_line_item_id", Type: field.TypeString, Unique: true, Nullable: true},
+		{Name: "stripe_line_item_id", Type: field.TypeString, Nullable: true},
 		{Name: "replenished_at", Type: field.TypeTime},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},
@@ -73,6 +73,11 @@ var (
 				Name:    "credit_expires_at_user_id_remaining_amount",
 				Unique:  false,
 				Columns: []*schema.Column{CreditsColumns[2], CreditsColumns[8], CreditsColumns[1]},
+			},
+			{
+				Name:    "credit_stripe_line_item_id_credit_type_id",
+				Unique:  true,
+				Columns: []*schema.Column{CreditsColumns[3], CreditsColumns[7]},
 			},
 		},
 	}

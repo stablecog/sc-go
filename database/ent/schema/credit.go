@@ -23,7 +23,7 @@ func (Credit) Fields() []ent.Field {
 		field.UUID("id", uuid.UUID{}).Default(uuid.New),
 		field.Int32("remaining_amount"),
 		field.Time("expires_at"),
-		field.String("stripe_line_item_id").Optional().Unique().Nillable(),
+		field.String("stripe_line_item_id").Optional().Nillable(),
 		field.Time("replenished_at").Default(time.Now),
 		// ! Relationships / many-to-one
 		field.UUID("user_id", uuid.UUID{}),
@@ -63,5 +63,6 @@ func (Credit) Annotations() []schema.Annotation {
 func (Credit) Indexes() []ent.Index {
 	return []ent.Index{
 		index.Fields("expires_at", "user_id", "remaining_amount"),
+		index.Fields("stripe_line_item_id", "credit_type_id").Unique(),
 	}
 }
