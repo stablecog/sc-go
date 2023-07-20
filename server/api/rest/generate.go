@@ -151,6 +151,8 @@ func (c *RestAPI) HandleCreateGeneration(w http.ResponseWriter, r *http.Request)
 				OutputImageQuality:   fmt.Sprint(shared.DEFAULT_GENERATE_OUTPUT_QUALITY),
 				ProcessType:          generateReq.ProcessType,
 				SubmitToGallery:      generateReq.SubmitToGallery,
+				MaskImageUrl:         generateReq.MaskImageUrl,
+				InitImageUrl:         generateReq.InitImageUrl,
 			},
 		}
 
