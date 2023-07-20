@@ -154,7 +154,7 @@ func (r *Repository) QueryUsers(
 
 	// Include non-expired credits and type
 	query.WithCredits(func(s *ent.CreditQuery) {
-		s.Where(credit.ExpiresAtGT(time.Now())).WithCreditType().Order(ent.Asc(credit.FieldExpiresAt))
+		s.Where(credit.ExpiresAtGT(time.Now()), credit.CreditTypeIDNEQ(uuid.MustParse(TIPPABLE_CREDIT_TYPE_ID))).WithCreditType().Order(ent.Asc(credit.FieldExpiresAt))
 	})
 
 	if productIds != nil && len(productIds) > 0 {

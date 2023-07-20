@@ -73,11 +73,46 @@ func (r *Repository) AddCreditsIfEligible(creditType *ent.CreditType, userID uui
 		return false, err
 	}
 
+	// Create "tippable" credits
+	tippableCreditType, err := r.GetOrCreateTippableCreditType(DB)
+	if err != nil {
+		return false, err
+	}
+
+	tippableAmount := int32(float64(creditType.Amount) * shared.TIPPABLE_CREDIT_MULTIPLIER)
+	m = DB.Credit.Create().SetCreditTypeID(tippableCreditType.ID).SetUserID(userID).SetRemainingAmount(tippableAmount).SetExpiresAt(expiresAtBuffer)
+	if lineItemId != "" {
+		m = m.SetStripeLineItemID(lineItemId)
+	}
+	_, err = m.Save(r.Ctx)
+	if err != nil {
+		return false, err
+	}
+
 	// Expire any other credits of this type
 	if lineItemId != "" && creditType.Type == credittype.TypeSubscription {
+		// Query credits
+		creditsToExpire, err := DB.Credit.Query().Where(credit.UserIDEQ(userID), credit.CreditTypeIDEQ(creditType.ID), credit.StripeLineItemIDNEQ(lineItemId), credit.ExpiresAtGT(time.Now())).All(r.Ctx)
+		if err != nil {
+			return false, err
+		}
+		// Expire credits
 		err = DB.Credit.Update().Where(credit.UserIDEQ(userID), credit.CreditTypeIDEQ(creditType.ID), credit.StripeLineItemIDNEQ(lineItemId), credit.ExpiresAtGT(time.Now())).SetExpiresAt(time.Now()).Exec(r.Ctx)
 		if err != nil {
 			return false, err
+		}
+		// Find line item IDs and expire tippable type
+		lineItemIDs := []string{}
+		for _, c := range creditsToExpire {
+			if c.StripeLineItemID != nil {
+				lineItemIDs = append(lineItemIDs, *c.StripeLineItemID)
+			}
+		}
+		if len(lineItemIDs) > 0 {
+			err = DB.Credit.Update().Where(credit.UserIDEQ(userID), credit.CreditTypeIDEQ(tippableCreditType.ID), credit.StripeLineItemIDIn(lineItemIDs...), credit.ExpiresAtGT(time.Now())).SetExpiresAt(time.Now()).Exec(r.Ctx)
+			if err != nil {
+				return false, err
+			}
 		}
 	}
 

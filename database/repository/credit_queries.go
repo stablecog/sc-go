@@ -15,7 +15,7 @@ import (
 // Get credits for user that are not expired
 func (r *Repository) GetCreditsForUser(userID uuid.UUID) ([]*UserCreditsQueryResult, error) {
 	var res []*UserCreditsQueryResult
-	err := r.DB.Credit.Query().Select(credit.FieldID, credit.FieldRemainingAmount, credit.FieldExpiresAt).Where(credit.UserID(userID), credit.ExpiresAtGT(time.Now())).
+	err := r.DB.Credit.Query().Select(credit.FieldID, credit.FieldRemainingAmount, credit.FieldExpiresAt).Where(credit.UserID(userID), credit.ExpiresAtGT(time.Now()), credit.CreditTypeIDNEQ(uuid.MustParse(TIPPABLE_CREDIT_TYPE_ID))).
 		Modify(func(s *sql.Selector) {
 			ct := sql.Table(credittype.Table)
 			s.LeftJoin(ct).On(
