@@ -196,7 +196,8 @@ func CreateUpscale(ctx context.Context,
 	var outputIDStr string
 	if *upscaleReq.Type == requests.UpscaleRequestTypeOutput {
 		outputIDStr = upscaleReq.OutputID.String()
-		output, err := repo.GetPublicGenerationOutput(*upscaleReq.OutputID)
+		// ! TODO - do not allow this past discord
+		output, err := repo.GetGenerationOutput(*upscaleReq.OutputID)
 		if err != nil {
 			if ent.IsNotFound(err) {
 				return nil, &WorkerError{http.StatusBadRequest, fmt.Errorf("output_not_found"), ""}

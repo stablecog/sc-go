@@ -329,7 +329,7 @@ func (c *DiscordInteractionWrapper) HandleUpscaleGeneration(s *discordgo.Session
 		// })
 
 		// See if the output is already upscaled, send private response to avoid pollution
-		existingOutput, err := c.Repo.GetPublicGenerationOutput(outputId)
+		existingOutput, err := c.Repo.GetGenerationOutput(outputId)
 		if err != nil {
 			log.Errorf("Error getting output: %v", err)
 			responses.ErrorResponseInitial(s, i, responses.PRIVATE)
