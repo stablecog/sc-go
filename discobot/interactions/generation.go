@@ -89,6 +89,18 @@ func (c *DiscordInteractionWrapper) NewImageCommand() *DiscordInteraction {
 					Required:    false,
 					Choices:     aspectRatioChoices,
 				},
+				{
+					Type:        discordgo.ApplicationCommandOptionAttachment,
+					Name:        "init-image",
+					Description: "Use an initial image.",
+					Required:    false,
+				},
+				{
+					Type:        discordgo.ApplicationCommandOptionInteger,
+					Name:        "seed",
+					Description: "The seed for the generation.",
+					Required:    false,
+				},
 			},
 		},
 		// The handler for the command
@@ -110,6 +122,11 @@ func (c *DiscordInteractionWrapper) NewImageCommand() *DiscordInteraction {
 				var aspectRatio *aspectratio.AspectRatio
 				numOutputs := 4
 
+				// Attachment of init image
+				var attachmentId string
+				var initImage string
+				var seed *int
+
 				for _, option := range options {
 					switch option.Name {
 					case "prompt":
@@ -122,6 +139,35 @@ func (c *DiscordInteractionWrapper) NewImageCommand() *DiscordInteraction {
 						modelId = utils.ToPtr[uuid.UUID](uuid.MustParse(option.StringValue()))
 					case "aspect-ratio":
 						aspectRatio = utils.ToPtr(aspectratio.AspectRatio(option.IntValue()))
+					case "init-image":
+						id, ok := option.Value.(string)
+						if !ok {
+							log.Errorf("Invalid image attachment for upscale command: %v", i.ApplicationCommandData())
+							responses.ErrorResponseInitial(s, i, responses.PRIVATE)
+							return
+						}
+						attachmentId = id
+					case "seed":
+						seed = utils.ToPtr[int](int(option.IntValue()))
+					}
+				}
+
+				if attachmentId != "" {
+					attachment, ok := i.ApplicationCommandData().Resolved.Attachments[attachmentId]
+					if !ok {
+						log.Errorf("No image attachment for generate command: %v", i.ApplicationCommandData())
+						responses.ErrorResponseInitial(s, i, responses.PRIVATE)
+						return
+					}
+					initImage = attachment.URL
+
+					if attachment.ContentType != "image/png" && attachment.ContentType != "image/jpeg" && attachment.ContentType != "image/jpg" && attachment.ContentType != "image/webp" {
+						responses.InitialInteractionResponse(s, i, &responses.InteractionResponseOptions{
+							Privacy:      responses.PRIVATE,
+							EmbedTitle:   "❌ Attachment type is not supported",
+							EmbedContent: "The attachment can be a PNG, JPEG, or WEBP image.",
+						})
+						return
 					}
 				}
 
@@ -139,6 +185,8 @@ func (c *DiscordInteractionWrapper) NewImageCommand() *DiscordInteraction {
 					NegativePrompt: negativePrompt,
 					ModelId:        modelId,
 					NumOutputs:     utils.ToPtr[int32](int32(numOutputs)),
+					InitImageUrl:   initImage,
+					Seed:           seed,
 				}
 				if aspectRatio != nil {
 					width, height := aspectRatio.GetWidthHeightForModel(*modelId)
@@ -177,6 +225,7 @@ func (c *DiscordInteractionWrapper) NewImageCommand() *DiscordInteraction {
 					c.SMap,
 					c.QThrottler,
 					u,
+					nil,
 					req,
 				)
 				if err != nil {
@@ -282,7 +331,7 @@ func (c *DiscordInteractionWrapper) HandleUpscaleGeneration(s *discordgo.Session
 		// })
 
 		// See if the output is already upscaled, send private response to avoid pollution
-		existingOutput, err := c.Repo.GetPublicGenerationOutput(outputId)
+		existingOutput, err := c.Repo.GetGenerationOutput(outputId)
 		if err != nil {
 			log.Errorf("Error getting output: %v", err)
 			responses.ErrorResponseInitial(s, i, responses.PRIVATE)

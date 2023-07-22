@@ -7,8 +7,13 @@ import (
 	"fmt"
 	"math"
 	"net/http"
+	"os"
+	"strings"
 	"time"
 
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/awserr"
+	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/google/uuid"
 	"github.com/stablecog/sc-go/database"
 	"github.com/stablecog/sc-go/database/ent"
@@ -33,6 +38,7 @@ func CreateGeneration(ctx context.Context,
 	SMap *shared.SyncMap[chan requests.CogWebhookMessage],
 	qThrottler *shared.UserQueueThrottlerMap,
 	user *ent.User,
+	s3Client *s3.S3,
 	generateReq requests.CreateGenerationRequest) (*responses.ApiSucceededResponse, error) {
 	free := user.ActiveProductID == nil
 	if free {
@@ -126,56 +132,56 @@ func CreateGeneration(ctx context.Context,
 	// The URL we send worker
 	var signedInitImageUrl string
 	// See if init image specified, validate it belongs to user, validate it exists in bucket
-	// if generateReq.InitImageUrl != "" {
-	// 	if utils.IsValidHTTPURL(generateReq.InitImageUrl) {
-	// 		// Custom image, do some validation on size, format, etc.
-	// 		_, _, err = utils.GetImageWidthHeightFromUrl(generateReq.InitImageUrl, shared.MAX_GENERATE_IMAGE_SIZE)
-	// 		if err != nil {
-	// 			return &WorkerError{http.StatusBadRequest, fmt.Errorf("image_url_width_height_error")}
-	// 		}
-	// 		signedInitImageUrl = generateReq.InitImageUrl
-	// 	} else {
-	// 		// Remove s3 prefix
-	// 		signedInitImageUrl = strings.TrimPrefix(generateReq.InitImageUrl, "s3://")
-	// 		// Hash user ID to see if it belongs to this user
-	// 		uidHash := utils.Sha256(user.ID.String())
-	// 		if !strings.HasPrefix(signedInitImageUrl, fmt.Sprintf("%s/", uidHash)) {
-	// 			return &WorkerError{http.StatusUnauthorized, fmt.Errorf("init_image_not_owned")}
-	// 		}
-	// 		// Verify exists in bucket
-	// 		_, err := c.S3.HeadObject(&s3.HeadObjectInput{
-	// 			Bucket: aws.String(os.Getenv("S3_IMG2IMG_BUCKET_NAME")),
-	// 			Key:    aws.String(signedInitImageUrl),
-	// 		})
-	// 		if err != nil {
-	// 			if aerr, ok := err.(awserr.Error); ok {
-	// 				switch aerr.Code() {
-	// 				case "NotFound": // s3.ErrCodeNoSuchKey does not work, aws is missing this error code so we hardwire a string
-	// 					responses.ErrBadRequest(w, r, "init_image_not_found", "")
-	// 					return
-	// 				default:
-	// 					log.Error("Error checking if init image exists in bucket", "err", err)
-	// 					responses.ErrInternalServerError(w, r, "An unknown error has occured")
-	// 					return
-	// 				}
-	// 			}
-	// 			responses.ErrBadRequest(w, r, "init_image_not_found", "")
-	// 			return
-	// 		}
-	// 		// Sign object URL to pass to worker
-	// 		req, _ := c.S3.GetObjectRequest(&s3.GetObjectInput{
-	// 			Bucket: aws.String(os.Getenv("S3_IMG2IMG_BUCKET_NAME")),
-	// 			Key:    aws.String(signedInitImageUrl),
-	// 		})
-	// 		urlStr, err := req.Presign(5 * time.Minute)
-	// 		if err != nil {
-	// 			log.Error("Error signing init image URL", "err", err)
-	// 			responses.ErrInternalServerError(w, r, "An unknown error has occured")
-	// 			return
-	// 		}
-	// 		signedInitImageUrl = urlStr
-	// 	}
-	// }
+	if generateReq.InitImageUrl != "" {
+		if utils.IsValidHTTPURL(generateReq.InitImageUrl) {
+			// Custom image, do some validation on size, format, etc.
+			_, _, err = utils.GetImageWidthHeightFromUrl(generateReq.InitImageUrl, shared.MAX_GENERATE_IMAGE_SIZE)
+			if err != nil {
+				return nil, &WorkerError{http.StatusBadRequest, fmt.Errorf("image_url_width_height_error"), ""}
+			}
+			signedInitImageUrl = generateReq.InitImageUrl
+		} else if s3Client != nil {
+			// Remove s3 prefix
+			signedInitImageUrl = strings.TrimPrefix(generateReq.InitImageUrl, "s3://")
+			// Hash user ID to see if it belongs to this user
+			uidHash := utils.Sha256(user.ID.String())
+			if !strings.HasPrefix(signedInitImageUrl, fmt.Sprintf("%s/", uidHash)) {
+				return nil, &WorkerError{http.StatusUnauthorized, fmt.Errorf("init_image_not_owned"), ""}
+			}
+			// Verify exists in bucket
+			_, err := s3Client.HeadObject(&s3.HeadObjectInput{
+				Bucket: aws.String(os.Getenv("S3_IMG2IMG_BUCKET_NAME")),
+				Key:    aws.String(signedInitImageUrl),
+			})
+			if err != nil {
+				if aerr, ok := err.(awserr.Error); ok {
+					switch aerr.Code() {
+					case "NotFound": // s3.ErrCodeNoSuchKey does not work, aws is missing this error code so we hardwire a string
+						return nil, &WorkerError{http.StatusBadRequest, fmt.Errorf("init_image_not_found"), ""}
+					default:
+						log.Error("Error checking if init image exists in bucket", "err", err)
+						return nil, &WorkerError{http.StatusInternalServerError, fmt.Errorf("unknown_error"), ""}
+					}
+				}
+				return nil, &WorkerError{http.StatusBadRequest, fmt.Errorf("init_image_not_found"), ""}
+			}
+			// Sign object URL to pass to worker
+			req, _ := s3Client.GetObjectRequest(&s3.GetObjectInput{
+				Bucket: aws.String(os.Getenv("S3_IMG2IMG_BUCKET_NAME")),
+				Key:    aws.String(signedInitImageUrl),
+			})
+			urlStr, err := req.Presign(5 * time.Minute)
+			if err != nil {
+				log.Error("Error signing init image URL", "err", err)
+				return nil, &WorkerError{http.StatusInternalServerError, fmt.Errorf("unknown_error"), ""}
+			}
+			signedInitImageUrl = urlStr
+		}
+
+		if signedInitImageUrl == "" {
+			return nil, &WorkerError{http.StatusBadRequest, fmt.Errorf("invalid_image_url"), ""}
+		}
+	}
 
 	// Get queue count
 	nq, err := qThrottler.NumQueued(fmt.Sprintf("g:%s", user.ID.String()))
