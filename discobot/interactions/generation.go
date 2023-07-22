@@ -255,11 +255,11 @@ func (c *DiscordInteractionWrapper) NewImageCommand() *DiscordInteraction {
 
 				// Send the image
 				_, err = responses.InteractionEdit(s, i, &responses.InteractionResponseOptions{
-					Content:   utils.ToPtr(fmt.Sprintf("<@%s> **%s**", discordUserId, prompt)),
-					ImageURLs: imageUrls,
+					Content: utils.ToPtr(fmt.Sprintf("<@%s> **%s**", discordUserId, prompt)),
 					Embeds: []*discordgo.MessageEmbed{
 						responses.NewGenerationMetadataEmbed(shared.GetCache().GetGenerationModelNameFromID(*req.ModelId)),
 					},
+					ImageURLs:    imageUrls,
 					ActionRowOne: actionRowOne,
 				},
 				)
