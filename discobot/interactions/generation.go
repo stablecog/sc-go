@@ -256,7 +256,7 @@ func (c *DiscordInteractionWrapper) NewImageCommand() *DiscordInteraction {
 
 				// Send the image
 				_, err = responses.InteractionEdit(s, i, &responses.InteractionResponseOptions{
-					Content:      utils.ToPtr(fmt.Sprintf("<@%s> **%s**```Model: %s\nAspect Ratio: %s\nDimensions: %d × %d```", discordUserId, prompt, shared.GetCache().GetGenerationModelNameFromID(*req.ModelId), strings.Replace(aspectRatio.String(), " (default)", "", -1), req.Width, req.Height)),
+					Content:      utils.ToPtr(fmt.Sprintf("<@%s> **%s**```Model: %s\nAspect Ratio: %s\nDimensions: %d × %d```", discordUserId, prompt, shared.GetCache().GetGenerationModelNameFromID(*req.ModelId), strings.Replace(aspectRatio.String(), " (default)", "", -1), *req.Width, *req.Height)),
 					ImageURLs:    imageUrls,
 					ActionRowOne: actionRowOne,
 				},
