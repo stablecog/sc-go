@@ -70,16 +70,6 @@ func (m *Middleware) AuthMiddleware(level AuthLevel) func(next http.Handler) htt
 					responses.ErrUnauthorized(w, r)
 					return
 				}
-				// Remove + from email
-				email = utils.RemovePlusFromEmail(email)
-				publicUser, err := m.Repo.GetUserByEmail(email)
-				if err == nil {
-					userId = publicUser.ID.String()
-				} else if err != nil && !ent.IsNotFound(err) {
-					log.Error("Error getting user", "err", err)
-					responses.ErrInternalServerError(w, r, "An unknown error has occured")
-					return
-				}
 			}
 
 			// Set the user ID in the context
