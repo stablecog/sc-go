@@ -318,7 +318,7 @@ func (r *Repository) ReplenishFreeCreditsToEligibleUsers(userIDs []uuid.UUID) (i
 				credit.UserIDIn(userIDs...),
 				credit.CreditTypeID(creditTypeTippable.ID),
 				credit.StripeLineItemIDIsNil(),
-				credit.RemainingAmountLT(creditType.Amount),
+				credit.RemainingAmountLT(creditType.Amount/2),
 				credit.ReplenishedAtLT(updatedAtSince),
 			).
 			SetReplenishedAt(time.Now()).
