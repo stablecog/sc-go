@@ -317,18 +317,22 @@ func (r *Repository) GetUserByEmail(email string) (*ent.User, error) {
 }
 
 // Check if email already exists
-func (r *Repository) CheckIfEmailExists(email string) (bool, error) {
+func (r *Repository) CheckIfEmailExists(email string) (string, bool, error) {
 	noPlus := utils.RemovePlusFromEmail(email)
 	splitStr := strings.Split(noPlus, "@")
 	if len(splitStr) != 2 {
-		return false, errors.New("invalid email")
+		return "", false, errors.New("invalid email")
 	}
 
 	total, err := r.DB.User.Query().Where(func(s *sql.Selector) {
 		s.Where(sql.Like(user.FieldEmail, fmt.Sprintf("%s%%_%s", splitStr[0], splitStr[1])))
-	}).Count(r.Ctx)
+	}).All(r.Ctx)
 	if err != nil {
-		return false, err
+		return "", false, err
 	}
-	return total > 0, nil
+	var foundEmail string
+	if len(total) > 0 {
+		foundEmail = total[0].Email
+	}
+	return foundEmail, len(total) > 0, nil
 }

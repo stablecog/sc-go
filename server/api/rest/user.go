@@ -61,7 +61,7 @@ func (c *RestAPI) HandleGetUser(w http.ResponseWriter, r *http.Request) {
 		}
 
 		// See if email exists
-		exists, err := c.Repo.CheckIfEmailExists(email)
+		_, exists, err := c.Repo.CheckIfEmailExists(email)
 		if err != nil {
 			log.Error("Error checking if email exists", "err", err)
 			responses.ErrInternalServerError(w, r, "An unknown error has occurred")

@@ -152,10 +152,10 @@ func TestGetNSubscribers(t *testing.T) {
 
 func TestCheckIfEmailExists(t *testing.T) {
 	// Check if email exists
-	exists, err := MockRepo.CheckIfEmailExists("sdadsad@gmail.com")
+	_, exists, err := MockRepo.CheckIfEmailExists("sdadsad@gmail.com")
 	assert.Nil(t, err)
 	assert.False(t, exists)
-	exists, err = MockRepo.CheckIfEmailExists("mockadmin@stablecog.com")
+	_, exists, err = MockRepo.CheckIfEmailExists("mockadmin@stablecog.com")
 	assert.Nil(t, err)
 	assert.True(t, exists)
 
@@ -163,10 +163,10 @@ func TestCheckIfEmailExists(t *testing.T) {
 	MockRepo.DB.User.Create().SetEmail("testcheckemail+123@gmail.com").SetStripeCustomerID("1234").SaveX(context.Background())
 
 	// Check if email exists
-	exists, err = MockRepo.CheckIfEmailExists("testcheckemail@gmail.com")
+	_, exists, err = MockRepo.CheckIfEmailExists("testcheckemail@gmail.com")
 	assert.Nil(t, err)
 	assert.True(t, exists)
-	exists, err = MockRepo.CheckIfEmailExists("testcheckemail+abcdef@gmail.com")
+	_, exists, err = MockRepo.CheckIfEmailExists("testcheckemail+abcdef@gmail.com")
 	assert.Nil(t, err)
 	assert.True(t, exists)
 }
