@@ -137,7 +137,7 @@ func CreateVoiceover(ctx context.Context,
 	// Parse request headers
 	var countryCode string
 	var deviceInfo utils.ClientDeviceInfo
-	ipAddress := "internal"
+	ipAddress := "system"
 	if r != nil {
 		countryCode = utils.GetCountryCode(r)
 		deviceInfo = utils.GetClientDeviceInfo(r)
@@ -301,7 +301,7 @@ func CreateVoiceover(ctx context.Context,
 	}()
 
 	// Analytics
-	go track.VoiceoverStarted(user, cogReqBody.Input, source, utils.GetIPAddress(r))
+	go track.VoiceoverStarted(user, cogReqBody.Input, source, ipAddress)
 
 	// Wait for result
 	for {
@@ -371,7 +371,7 @@ func CreateVoiceover(ctx context.Context,
 				// Analytics
 				duration := time.Now().Sub(*voiceover.StartedAt).Seconds()
 				qDuration := (*voiceover.StartedAt).Sub(voiceover.CreatedAt).Seconds()
-				go track.VoiceoverSucceeded(user, cogMsg.Input, duration, qDuration, source, utils.GetIPAddress(r))
+				go track.VoiceoverSucceeded(user, cogMsg.Input, duration, qDuration, source, ipAddress)
 
 				// Format response
 				resOutputs := make([]responses.ApiOutput, 1)
@@ -426,7 +426,7 @@ func CreateVoiceover(ctx context.Context,
 					}()
 					// Analytics
 					duration := time.Now().Sub(cogMsg.Input.LivePageData.CreatedAt).Seconds()
-					go track.VoiceoverFailed(user, cogMsg.Input, duration, cogMsg.Error, source, utils.GetIPAddress(r))
+					go track.VoiceoverFailed(user, cogMsg.Input, duration, cogMsg.Error, source, ipAddress)
 					// Refund credits
 					_, err = repo.RefundCreditsToUser(user.ID, utils.CalculateVoiceoverCredits(voiceoverReq.Prompt), DB)
 					if err != nil {

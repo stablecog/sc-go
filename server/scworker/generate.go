@@ -230,7 +230,7 @@ func CreateGeneration(ctx context.Context,
 	// Parse request headers
 	var countryCode string
 	var deviceInfo utils.ClientDeviceInfo
-	ipAddress := "internal"
+	ipAddress := "system"
 	if r != nil {
 		countryCode = utils.GetCountryCode(r)
 		deviceInfo = utils.GetClientDeviceInfo(r)
@@ -417,7 +417,7 @@ func CreateGeneration(ctx context.Context,
 	}()
 
 	// Analytics
-	go track.GenerationStarted(user, cogReqBody.Input, source, utils.GetIPAddress(r))
+	go track.GenerationStarted(user, cogReqBody.Input, source, ipAddress)
 
 	// Wait for result
 	for {
@@ -488,7 +488,7 @@ func CreateGeneration(ctx context.Context,
 				// Analytics
 				duration := time.Now().Sub(*generation.StartedAt).Seconds()
 				qDuration := (*generation.StartedAt).Sub(generation.CreatedAt).Seconds()
-				go track.GenerationSucceeded(user, cogMsg.Input, duration, qDuration, source, utils.GetIPAddress(r))
+				go track.GenerationSucceeded(user, cogMsg.Input, duration, qDuration, source, ipAddress)
 
 				// Format response
 				resOutputs := make([]responses.ApiOutput, len(outputs))
@@ -541,7 +541,7 @@ func CreateGeneration(ctx context.Context,
 					}()
 					// Analytics
 					duration := time.Now().Sub(cogMsg.Input.LivePageData.CreatedAt).Seconds()
-					go track.GenerationFailed(user, cogMsg.Input, duration, cogMsg.Error, source, utils.GetIPAddress(r))
+					go track.GenerationFailed(user, cogMsg.Input, duration, cogMsg.Error, source, ipAddress)
 					// Refund credits
 					_, err = repo.RefundCreditsToUser(user.ID, *generateReq.NumOutputs, DB)
 					if err != nil {

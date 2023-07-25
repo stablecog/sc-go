@@ -156,7 +156,7 @@ func CreateUpscale(ctx context.Context,
 	// Parse request headers
 	var countryCode string
 	var deviceInfo utils.ClientDeviceInfo
-	ipAddress := "internal"
+	ipAddress := "system"
 	if r != nil {
 		countryCode = utils.GetCountryCode(r)
 		deviceInfo = utils.GetClientDeviceInfo(r)
@@ -375,7 +375,7 @@ func CreateUpscale(ctx context.Context,
 	}()
 
 	// Analytics
-	go track.UpscaleStarted(user, cogReqBody.Input, source, utils.GetIPAddress(r))
+	go track.UpscaleStarted(user, cogReqBody.Input, source, ipAddress)
 
 	// Wait for result
 	for {
@@ -445,7 +445,7 @@ func CreateUpscale(ctx context.Context,
 				// Analytics
 				duration := time.Now().Sub(*upscale.StartedAt).Seconds()
 				qDuration := (*upscale.StartedAt).Sub(upscale.CreatedAt).Seconds()
-				go track.UpscaleSucceeded(user, cogMsg.Input, duration, qDuration, source, utils.GetIPAddress(r))
+				go track.UpscaleSucceeded(user, cogMsg.Input, duration, qDuration, source, ipAddress)
 
 				// Format response
 				resOutputs := []responses.ApiOutput{
@@ -496,7 +496,7 @@ func CreateUpscale(ctx context.Context,
 					}()
 					//  Analytics
 					duration := time.Now().Sub(cogMsg.Input.LivePageData.CreatedAt).Seconds()
-					go track.UpscaleFailed(user, cogMsg.Input, duration, cogMsg.Error, source, utils.GetIPAddress(r))
+					go track.UpscaleFailed(user, cogMsg.Input, duration, cogMsg.Error, source, ipAddress)
 					// Refund credits
 					_, err = repo.RefundCreditsToUser(user.ID, int32(1), DB)
 					if err != nil {
