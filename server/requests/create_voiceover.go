@@ -1,7 +1,7 @@
 package requests
 
 import (
-	"errors"
+	"fmt"
 	"math"
 	"math/rand"
 	"time"
@@ -58,26 +58,26 @@ func (t *CreateVoiceoverRequest) ApplyDefaults() {
 
 func (t *CreateVoiceoverRequest) Validate(api bool) error {
 	if !api && !utils.IsSha256Hash(t.StreamID) {
-		return errors.New("invalid_stream_id")
+		return fmt.Errorf("invalid_stream_id")
 	}
 
 	// Apply default settings
 	t.ApplyDefaults()
 
 	if !shared.GetCache().IsValidVoiceoverModelID(*t.ModelId) {
-		return errors.New("invalid_model_id")
+		return fmt.Errorf("invalid_model_id")
 	}
 
 	if !shared.GetCache().IsValidVoiceoverSpeakerID(*t.SpeakerId, *t.ModelId) {
-		return errors.New("invalid_speaker_id")
+		return fmt.Errorf("invalid_speaker_id")
 	}
 
 	if *t.Temperature < 0.0 || *t.Temperature > 1.0 {
-		return errors.New("invalid_temp")
+		return fmt.Errorf("invalid_temp")
 	}
 
 	if utf8.RuneCountInString(t.Prompt) > shared.VOICEOVER_MAX_TEXT_LENGTH {
-		return errors.New("prompt_too_long")
+		return fmt.Errorf("prompt_too_long")
 	}
 
 	return nil

@@ -1,7 +1,6 @@
 package interactions
 
 import (
-	"context"
 	"errors"
 	"fmt"
 	"sort"
@@ -115,10 +114,8 @@ func (c *DiscordInteractionWrapper) NewVoiceoverCommand() *DiscordInteraction {
 				// Always create initial message
 				responses.InitialLoadingResponse(s, i, responses.PUBLIC)
 
-				// Create context
-				ctx := context.Background()
-				res, err := scworker.CreateVoiceover(
-					ctx,
+				// Create voiceover
+				res, _, err := scworker.CreateVoiceover(
 					enttypes.SourceTypeDiscord,
 					nil,
 					c.Repo,
@@ -127,6 +124,7 @@ func (c *DiscordInteractionWrapper) NewVoiceoverCommand() *DiscordInteraction {
 					c.QThrottler,
 					u,
 					c.Track,
+					nil,
 					req,
 				)
 				if err != nil || len(res.Outputs) == 0 {

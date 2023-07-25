@@ -1,7 +1,6 @@
 package scworker
 
 import (
-	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -24,8 +23,7 @@ import (
 	"golang.org/x/exp/slices"
 )
 
-func CreateVoiceover(ctx context.Context,
-	source enttypes.SourceType,
+func CreateVoiceover(source enttypes.SourceType,
 	r *http.Request,
 	repo *repository.Repository,
 	redis *database.RedisWrapper,
@@ -33,14 +31,15 @@ func CreateVoiceover(ctx context.Context,
 	qThrottler *shared.UserQueueThrottlerMap,
 	user *ent.User,
 	track *analytics.AnalyticsService,
-	voiceoverReq requests.CreateVoiceoverRequest) (*responses.ApiSucceededResponse, error) {
+	apiTokenId *uuid.UUID,
+	voiceoverReq requests.CreateVoiceoverRequest) (*responses.ApiSucceededResponse, *responses.VoiceoverSettingsResponse, *WorkerError) {
 	free := user.ActiveProductID == nil
 	if free {
 		// Re-evaluate if they have paid credits
 		count, err := repo.HasPaidCredits(user.ID)
 		if err != nil {
 			log.Error("Error getting paid credit sum for users", "err", err)
-			return nil, err
+			return nil, nil, WorkerInternalServerError()
 		}
 		free = count <= 0
 	}
@@ -49,7 +48,7 @@ func CreateVoiceover(ctx context.Context,
 	roles, err := repo.GetRoles(user.ID)
 	if err != nil {
 		log.Error("Error getting roles for user", "err", err)
-		return nil, WorkerInternalServerError()
+		return nil, nil, WorkerInternalServerError()
 	}
 	isSuperAdmin := slices.Contains(roles, "SUPER_ADMIN")
 	if isSuperAdmin {
@@ -70,14 +69,14 @@ func CreateVoiceover(ctx context.Context,
 	}
 
 	if user.BannedAt != nil {
-		return nil, &WorkerError{http.StatusForbidden, fmt.Errorf("user_banned"), ""}
+		return nil, nil, &WorkerError{http.StatusForbidden, fmt.Errorf("user_banned"), ""}
 	}
 
 	// Validation
 	if !isSuperAdmin {
 		err = voiceoverReq.Validate(true)
 		if err != nil {
-			return nil, WorkerInternalServerError()
+			return nil, nil, &WorkerError{http.StatusBadRequest, err, ""}
 		}
 	} else {
 		voiceoverReq.ApplyDefaults()
@@ -106,7 +105,7 @@ func CreateVoiceover(ctx context.Context,
 		}
 		// If overflow size is greater than max, return error
 		if overflowSize > shared.QUEUE_OVERFLOW_MAX {
-			return nil, &WorkerError{http.StatusBadRequest, fmt.Errorf("queue_limit_reached"), ""}
+			return nil, nil, &WorkerError{http.StatusBadRequest, fmt.Errorf("queue_limit_reached"), ""}
 		}
 		// Overflow size can be 0 so we need to add 1
 		overflowSize++
@@ -155,14 +154,14 @@ func CreateVoiceover(ctx context.Context,
 	modelName := shared.GetCache().GetVoiceoverModelNameFromID(*voiceoverReq.ModelId)
 	if modelName == "" {
 		log.Error("Error getting model name", "model_name", modelName)
-		return nil, WorkerInternalServerError()
+		return nil, nil, WorkerInternalServerError()
 	}
 
 	// Get speaker name for cog
 	speakerName := shared.GetCache().GetVoiceoverSpeakerNameFromID(*voiceoverReq.SpeakerId)
 	if speakerName == "" {
 		log.Error("Error getting speaker name", "speaker_name", speakerName)
-		return nil, WorkerInternalServerError()
+		return nil, nil, WorkerInternalServerError()
 	}
 
 	// For live page update
@@ -212,7 +211,7 @@ func CreateVoiceover(ctx context.Context,
 			countryCode,
 			voiceoverReq,
 			user.ActiveProductID,
-			nil,
+			apiTokenId,
 			source,
 			DB)
 		if err != nil {
@@ -262,7 +261,7 @@ func CreateVoiceover(ctx context.Context,
 			},
 		}
 
-		err = redis.EnqueueCogRequest(ctx, shared.COG_REDIS_VOICEOVER_QUEUE, cogReqBody)
+		err = redis.EnqueueCogRequest(redis.Ctx, shared.COG_REDIS_VOICEOVER_QUEUE, cogReqBody)
 		if err != nil {
 			log.Error("Failed to write request to queue", "id", requestId, "err", err)
 			return err
@@ -274,9 +273,9 @@ func CreateVoiceover(ctx context.Context,
 	}); err != nil {
 		log.Error("Error in transaction", "err", err)
 		if errors.Is(err, responses.InsufficientCreditsErr) {
-			return nil, responses.InsufficientCreditsErr
+			return nil, nil, &WorkerError{http.StatusBadRequest, responses.InsufficientCreditsErr, ""}
 		}
-		return nil, WorkerInternalServerError()
+		return nil, nil, WorkerInternalServerError()
 	}
 
 	// Add channel to sync array (basically a thread-safe map)
@@ -312,7 +311,7 @@ func CreateVoiceover(ctx context.Context,
 				err := repo.SetVoiceoverStarted(requestId.String())
 				if err != nil {
 					log.Error("Failed to set voiceover started", "id", requestId, "err", err)
-					return nil, WorkerInternalServerError()
+					return nil, nil, WorkerInternalServerError()
 				}
 				// Send live page update
 				go func() {
@@ -337,7 +336,7 @@ func CreateVoiceover(ctx context.Context,
 				outputs, err := repo.SetVoiceoverSucceeded(requestId.String(), voiceoverReq.Prompt, cogMsg.Output)
 				if err != nil {
 					log.Error("Failed to set voiceover succeeded", "id", upscale.ID, "err", err)
-					return nil, WorkerInternalServerError()
+					return nil, nil, WorkerInternalServerError()
 				}
 				// Send live page update
 				go func() {
@@ -386,17 +385,18 @@ func CreateVoiceover(ctx context.Context,
 				}
 
 				// Set token used
-				// ! TODO
-				// err = repo.SetTokenUsedAndIncrementCreditsSpent(int(utils.CalculateVoiceoverCredits(voiceoverReq.Prompt)), *voiceover.APITokenID)
-				// if err != nil {
-				// 	log.Error("Failed to set token used", "err", err)
-				// }
+				if voiceover.APITokenID != nil {
+					err = repo.SetTokenUsedAndIncrementCreditsSpent(int(utils.CalculateVoiceoverCredits(voiceoverReq.Prompt)), *voiceover.APITokenID)
+					if err != nil {
+						log.Error("Failed to set token used", "err", err)
+					}
+				}
 
 				return &responses.ApiSucceededResponse{
 					Outputs:          resOutputs,
 					RemainingCredits: remainingCredits,
 					Settings:         initSettings,
-				}, nil
+				}, &initSettings, nil
 			case requests.CogFailed:
 				if err := repo.WithTx(func(tx *ent.Tx) error {
 					DB := tx.Client()
@@ -436,16 +436,10 @@ func CreateVoiceover(ctx context.Context,
 					return nil
 				}); err != nil {
 					log.Error("Failed to set voiceover failed", "id", requestId, "err", err)
-					return nil, WorkerInternalServerError()
+					return nil, nil, WorkerInternalServerError()
 				}
 
-				// ! TODO
-				// render.Status(r, http.StatusInternalServerError)
-				// render.JSON(w, r, responses.ApiFailedResponse{
-				// 	Error:    cogMsg.Error,
-				// 	Settings: initSettings,
-				// })
-				return nil, &WorkerError{http.StatusInternalServerError, fmt.Errorf(cogMsg.Error), ""}
+				return nil, &initSettings, &WorkerError{http.StatusInternalServerError, fmt.Errorf(cogMsg.Error), ""}
 			}
 		case <-time.After(shared.REQUEST_COG_TIMEOUT_VOICEOVER):
 			if err := repo.WithTx(func(tx *ent.Tx) error {
@@ -463,10 +457,10 @@ func CreateVoiceover(ctx context.Context,
 				return nil
 			}); err != nil {
 				log.Error("Failed to set voiceover failed", "id", requestId, "err", err)
-				return nil, WorkerInternalServerError()
+				return nil, nil, WorkerInternalServerError()
 			}
 
-			return nil, &WorkerError{http.StatusInternalServerError, fmt.Errorf(shared.TIMEOUT_ERROR), ""}
+			return nil, nil, &WorkerError{http.StatusInternalServerError, fmt.Errorf(shared.TIMEOUT_ERROR), ""}
 		}
 	}
 }
