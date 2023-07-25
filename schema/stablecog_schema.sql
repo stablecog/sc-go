@@ -1093,3 +1093,8 @@ alter table public.upscales add column source_type public.operation_source_type_
 alter table public.voiceovers add column source_type public.operation_source_type_enum DEFAULT 'web-ui'::public.operation_source_type_enum NOT NULL;
 
 ALTER TYPE operation_source_type_enum ADD VALUE 'internal';
+
+DROP index credit_stripe_line_item_id_key;
+CREATE UNIQUE INDEX "credit_stripe_line_item_id_credit_type_id" ON "public"."credits" ("stripe_line_item_id", "credit_type_id");
+
+CREATE UNIQUE INDEX "user_email_idx" ON "public"."users" ("email");

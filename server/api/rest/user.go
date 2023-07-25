@@ -60,6 +60,17 @@ func (c *RestAPI) HandleGetUser(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
+		// See if email exists
+		_, exists, err := c.Repo.CheckIfEmailExists(email)
+		if err != nil {
+			log.Error("Error checking if email exists", "err", err)
+			responses.ErrInternalServerError(w, r, "An unknown error has occurred")
+			return
+		} else if exists {
+			responses.ErrUnauthorized(w, r)
+			return
+		}
+
 		var customer *stripe.Customer
 		if err := c.Repo.WithTx(func(tx *ent.Tx) error {
 			client := tx.Client()

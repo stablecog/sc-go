@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"context"
 	"testing"
 	"time"
 
@@ -147,4 +148,25 @@ func TestGetNSubscribers(t *testing.T) {
 	users, err := MockRepo.GetNSubscribers()
 	assert.Nil(t, err)
 	assert.Equal(t, 3, users)
+}
+
+func TestCheckIfEmailExists(t *testing.T) {
+	// Check if email exists
+	_, exists, err := MockRepo.CheckIfEmailExists("sdadsad@gmail.com")
+	assert.Nil(t, err)
+	assert.False(t, exists)
+	_, exists, err = MockRepo.CheckIfEmailExists("mockadmin@stablecog.com")
+	assert.Nil(t, err)
+	assert.True(t, exists)
+
+	// Create a user with + in email
+	MockRepo.DB.User.Create().SetEmail("testcheckemail+123@gmail.com").SetStripeCustomerID("1234").SaveX(context.Background())
+
+	// Check if email exists
+	_, exists, err = MockRepo.CheckIfEmailExists("testcheckemail@gmail.com")
+	assert.Nil(t, err)
+	assert.True(t, exists)
+	_, exists, err = MockRepo.CheckIfEmailExists("testcheckemail+abcdef@gmail.com")
+	assert.Nil(t, err)
+	assert.True(t, exists)
 }

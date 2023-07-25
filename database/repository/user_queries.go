@@ -1,15 +1,19 @@
 package repository
 
 import (
+	"errors"
+	"fmt"
 	"strings"
 	"time"
 
+	"entgo.io/ent/dialect/sql"
 	"github.com/google/uuid"
 	"github.com/stablecog/sc-go/database/ent"
 	"github.com/stablecog/sc-go/database/ent/credit"
 	"github.com/stablecog/sc-go/database/ent/role"
 	"github.com/stablecog/sc-go/database/ent/user"
 	"github.com/stablecog/sc-go/log"
+	"github.com/stablecog/sc-go/utils"
 )
 
 func (r *Repository) GetUser(id uuid.UUID) (*ent.User, error) {
@@ -154,7 +158,7 @@ func (r *Repository) QueryUsers(
 
 	// Include non-expired credits and type
 	query.WithCredits(func(s *ent.CreditQuery) {
-		s.Where(credit.ExpiresAtGT(time.Now())).WithCreditType().Order(ent.Asc(credit.FieldExpiresAt))
+		s.Where(credit.ExpiresAtGT(time.Now()), credit.CreditTypeIDNEQ(uuid.MustParse(TIPPABLE_CREDIT_TYPE_ID))).WithCreditType().Order(ent.Asc(credit.FieldExpiresAt))
 	})
 
 	if productIds != nil && len(productIds) > 0 {
@@ -310,4 +314,25 @@ func (r *Repository) GetUserByDiscordID(discordId string) (*ent.User, error) {
 // Get user by email
 func (r *Repository) GetUserByEmail(email string) (*ent.User, error) {
 	return r.DB.User.Query().Where(user.Email(strings.ToLower(email))).First(r.Ctx)
+}
+
+// Check if email already exists
+func (r *Repository) CheckIfEmailExists(email string) (string, bool, error) {
+	noPlus := utils.RemovePlusFromEmail(email)
+	splitStr := strings.Split(noPlus, "@")
+	if len(splitStr) != 2 {
+		return "", false, errors.New("invalid email")
+	}
+
+	total, err := r.DB.User.Query().Where(func(s *sql.Selector) {
+		s.Where(sql.Like(user.FieldEmail, fmt.Sprintf("%s%%_%s", splitStr[0], splitStr[1])))
+	}).All(r.Ctx)
+	if err != nil {
+		return "", false, err
+	}
+	var foundEmail string
+	if len(total) > 0 {
+		foundEmail = total[0].Email
+	}
+	return foundEmail, len(total) > 0, nil
 }

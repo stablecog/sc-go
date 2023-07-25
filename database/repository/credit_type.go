@@ -80,12 +80,15 @@ func (r *Repository) GetOrCreateRefundCreditType(db *ent.Client) (*ent.CreditTyp
 }
 
 // Tippable credit types can't be spent, but can be gifted to other users in social channels
-func (r *Repository) GetOrCreateTippableCreditType() (*ent.CreditType, error) {
+func (r *Repository) GetOrCreateTippableCreditType(DB *ent.Client) (*ent.CreditType, error) {
+	if DB == nil {
+		DB = r.DB
+	}
 	tippableId := uuid.MustParse(TIPPABLE_CREDIT_TYPE_ID)
-	creditType, err := r.DB.CreditType.Query().Where(credittype.IDEQ(tippableId)).Only(r.Ctx)
+	creditType, err := DB.CreditType.Query().Where(credittype.IDEQ(tippableId)).Only(r.Ctx)
 	if err != nil && ent.IsNotFound(err) {
 		// Create it
-		creditType, err := r.DB.CreditType.Create().SetID(tippableId).SetName("Tippable").SetAmount(-1).SetType(credittype.TypeTippable).Save(r.Ctx)
+		creditType, err := DB.CreditType.Create().SetID(tippableId).SetName("Tippable").SetAmount(-1).SetType(credittype.TypeTippable).Save(r.Ctx)
 		if err != nil {
 			return nil, err
 		}

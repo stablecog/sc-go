@@ -44,6 +44,18 @@ func NewVideoEmbed(url string) *discordgo.MessageEmbed {
 	}
 }
 
+func NewGenerationMetadataEmbed(modelName string) *discordgo.MessageEmbed {
+	return &discordgo.MessageEmbed{
+		Color: EMBED_PURPLE,
+		Fields: []*discordgo.MessageEmbedField{
+			{
+				Name:  "Model",
+				Value: modelName,
+			},
+		},
+	}
+}
+
 func NewHelpEmbed() *discordgo.MessageEmbed {
 	return &discordgo.MessageEmbed{
 		Color:       EMBED_PURPLE,

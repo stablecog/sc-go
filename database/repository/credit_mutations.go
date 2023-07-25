@@ -73,11 +73,46 @@ func (r *Repository) AddCreditsIfEligible(creditType *ent.CreditType, userID uui
 		return false, err
 	}
 
+	// Create "tippable" credits
+	tippableCreditType, err := r.GetOrCreateTippableCreditType(DB)
+	if err != nil {
+		return false, err
+	}
+
+	tippableAmount := int32(float64(creditType.Amount) * shared.TIPPABLE_CREDIT_MULTIPLIER)
+	m = DB.Credit.Create().SetCreditTypeID(tippableCreditType.ID).SetUserID(userID).SetRemainingAmount(tippableAmount).SetExpiresAt(expiresAtBuffer)
+	if lineItemId != "" {
+		m = m.SetStripeLineItemID(lineItemId)
+	}
+	_, err = m.Save(r.Ctx)
+	if err != nil {
+		return false, err
+	}
+
 	// Expire any other credits of this type
 	if lineItemId != "" && creditType.Type == credittype.TypeSubscription {
+		// Query credits
+		creditsToExpire, err := DB.Credit.Query().Where(credit.UserIDEQ(userID), credit.CreditTypeIDEQ(creditType.ID), credit.StripeLineItemIDNEQ(lineItemId), credit.ExpiresAtGT(time.Now())).All(r.Ctx)
+		if err != nil {
+			return false, err
+		}
+		// Expire credits
 		err = DB.Credit.Update().Where(credit.UserIDEQ(userID), credit.CreditTypeIDEQ(creditType.ID), credit.StripeLineItemIDNEQ(lineItemId), credit.ExpiresAtGT(time.Now())).SetExpiresAt(time.Now()).Exec(r.Ctx)
 		if err != nil {
 			return false, err
+		}
+		// Find line item IDs and expire tippable type
+		lineItemIDs := []string{}
+		for _, c := range creditsToExpire {
+			if c.StripeLineItemID != nil {
+				lineItemIDs = append(lineItemIDs, *c.StripeLineItemID)
+			}
+		}
+		if len(lineItemIDs) > 0 {
+			err = DB.Credit.Update().Where(credit.UserIDEQ(userID), credit.CreditTypeIDEQ(tippableCreditType.ID), credit.StripeLineItemIDIn(lineItemIDs...), credit.ExpiresAtGT(time.Now())).SetExpiresAt(time.Now()).Exec(r.Ctx)
+			if err != nil {
+				return false, err
+			}
 		}
 	}
 
@@ -114,6 +149,8 @@ func (r *Repository) GiveFreeCredits(userID uuid.UUID, DB *ent.Client) (added bo
 	return true, nil
 }
 
+// ! Change to unique_together constraint
+
 // Adds credits of creditType to user if they do not already have any belonging to stripe invoice line item
 func (r *Repository) AddAdhocCreditsIfEligible(creditType *ent.CreditType, userID uuid.UUID, lineItemID string) (added bool, err error) {
 	if creditType == nil {
@@ -132,6 +169,16 @@ func (r *Repository) AddAdhocCreditsIfEligible(creditType *ent.CreditType, userI
 
 	// Add credits
 	_, err = r.DB.Credit.Create().SetCreditTypeID(creditType.ID).SetUserID(userID).SetRemainingAmount(creditType.Amount).SetStripeLineItemID(lineItemID).SetExpiresAt(NEVER_EXPIRE).Save(r.Ctx)
+	if err != nil {
+		return false, err
+	}
+	// Also add tippable type
+	tippableCreditType, err := r.GetOrCreateTippableCreditType(nil)
+	if err != nil {
+		return false, err
+	}
+	tippableAmount := int32(float64(creditType.Amount) * shared.TIPPABLE_CREDIT_MULTIPLIER)
+	_, err = r.DB.Credit.Create().SetCreditTypeID(tippableCreditType.ID).SetUserID(userID).SetRemainingAmount(tippableAmount).SetStripeLineItemID(lineItemID).SetExpiresAt(NEVER_EXPIRE).Save(r.Ctx)
 	if err != nil {
 		return false, err
 	}
@@ -237,6 +284,12 @@ func (r *Repository) ReplenishFreeCreditsToEligibleUsers(userIDs []uuid.UUID) (i
 		log.Error("Error getting free credit type", "err", err)
 		return 0, err
 	}
+	// Get tippable credit type
+	creditTypeTippable, err := r.GetOrCreateTippableCreditType(nil)
+	if err != nil {
+		log.Error("Error getting tippable credit type", "err", err)
+		return 0, err
+	}
 
 	// Add where
 	// - user is in userIDs
@@ -245,6 +298,7 @@ func (r *Repository) ReplenishFreeCreditsToEligibleUsers(userIDs []uuid.UUID) (i
 	// - item was last updated more than FREE_CREDIT_REPLENISHMENT_INTERVAL ago
 	updatedAtSince := time.Now().Add(-shared.FREE_CREDIT_REPLENISHMENT_INTERVAL)
 	var updated int
+	var updatedTippable int
 	if err := r.WithTx(func(tx *ent.Tx) error {
 		updated, err = tx.Credit.Update().
 			Where(
@@ -258,6 +312,18 @@ func (r *Repository) ReplenishFreeCreditsToEligibleUsers(userIDs []uuid.UUID) (i
 		if err != nil {
 			return err
 		}
+		// Also update tippable credit type
+		updatedTippable, err = tx.Credit.Update().
+			Where(
+				credit.UserIDIn(userIDs...),
+				credit.CreditTypeID(creditTypeTippable.ID),
+				credit.StripeLineItemIDIsNil(),
+				credit.RemainingAmountLT(creditType.Amount/2),
+				credit.ReplenishedAtLT(updatedAtSince),
+			).
+			SetReplenishedAt(time.Now()).
+			AddRemainingAmount(shared.FREE_CREDIT_AMOUNT_DAILY).Save(r.Ctx)
+		// ! TODO re-enable?
 		// Ensure nothing is higher than the cap
 		// _, err = tx.Credit.Update().
 		// 	Where(
@@ -273,5 +339,5 @@ func (r *Repository) ReplenishFreeCreditsToEligibleUsers(userIDs []uuid.UUID) (i
 	}); err != nil {
 		return 0, err
 	}
-	return updated, nil
+	return updated + updatedTippable, nil
 }

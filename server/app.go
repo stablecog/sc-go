@@ -365,6 +365,12 @@ func main() {
 	app.Route("/v1", func(r chi.Router) {
 		r.Get("/health", hc.HandleHealth)
 
+		r.Route("/email", func(r chi.Router) {
+			r.Use(middleware.Logger)
+			r.Use(mw.RateLimit(5, "srv", 1*time.Second))
+			r.Post("/check", hc.HandleVerifyEmailDomain)
+		})
+
 		// SSE
 		r.Route("/sse", func(r chi.Router) {
 			r.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {

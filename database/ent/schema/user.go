@@ -8,6 +8,7 @@ import (
 	"entgo.io/ent/schema"
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
+	"entgo.io/ent/schema/index"
 	"github.com/google/uuid"
 )
 
@@ -73,5 +74,12 @@ func (User) Edges() []ent.Edge {
 func (User) Annotations() []schema.Annotation {
 	return []schema.Annotation{
 		entsql.Annotation{Table: "users"},
+	}
+}
+
+// Indexes of the User.
+func (User) Indexes() []ent.Index {
+	return []ent.Index{
+		index.Fields("email").Unique(),
 	}
 }

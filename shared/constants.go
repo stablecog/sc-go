@@ -169,3 +169,7 @@ const DEFAULT_VOICEOVER_REMOVE_SILENCE = true
 
 // Discord Bot/Connection
 const DISCORD_VERIFY_TOKEN_EXPIRY = 5 * time.Minute
+
+// Tippable credits
+// Give credits * TIPPABLE_CREDIT_MULTIPLIER as "tippable" type when replenishing subscription/adhoc purchases
+const TIPPABLE_CREDIT_MULTIPLIER = 0.2

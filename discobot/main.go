@@ -138,6 +138,34 @@ func main() {
 	s.AddHandler(func(s *discordgo.Session, r *discordgo.Ready) {
 		log.Infof("Logged in as: %v#%v", s.State.User.Username, s.State.User.Discriminator)
 	})
+
+	// Register messageCreate as a callback for the messageCreate events.
+	s.AddHandler(func(s *discordgo.Session, m *discordgo.MessageCreate) {
+		// Ignore all messages created by the bot itself
+		if m.Author.ID == s.State.User.ID {
+			return
+		}
+
+		// // check if the message is "!tip"
+		// if strings.HasPrefix(m.Content, "!tip") {
+		// 	// Find the channel that the message came from.
+		// 	c, err := s.State.Channel(m.ChannelID)
+		// 	if err != nil {
+		// 		// Could not find channel.
+		// 		return
+		// 	}
+		// 	if c.GuildID == "" {
+		// 		// Is a DM
+		// 		return
+		// 	}
+
+		// 	s.MessageReactionAdd(m.ChannelID, m.ID, "👍")
+		// }
+	})
+
+	// Intents
+	s.Identify.Intents = discordgo.IntentsGuilds | discordgo.IntentsGuildMessages
+
 	err = s.Open()
 	if err != nil {
 		log.Fatalf("Cannot open the session: %v", err)
