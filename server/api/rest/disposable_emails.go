@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"github.com/go-chi/render"
+	"github.com/stablecog/sc-go/log"
 	"github.com/stablecog/sc-go/server/responses"
 	"github.com/stablecog/sc-go/shared"
 )
@@ -28,6 +29,18 @@ func (c *RestAPI) HandleVerifyEmailDomain(w http.ResponseWriter, r *http.Request
 	valid := true
 	if emailReq.Email == "" || shared.GetCache().IsDisposableEmail(emailReq.Email) {
 		valid = false
+	}
+
+	if valid {
+		exists, err := c.Repo.CheckIfEmailExists(emailReq.Email)
+		if err != nil {
+			log.Errorf("Error checking if email exists: %v", err)
+			responses.ErrInternalServerError(w, r, "An unknown error has occured")
+			return
+		}
+		if exists {
+			valid = false
+		}
 	}
 
 	render.Status(r, http.StatusOK)
