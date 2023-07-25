@@ -136,7 +136,7 @@ func (c *DiscordInteractionWrapper) NewUpscaleCommand() *DiscordInteraction {
 						responses.InteractionEdit(s, i, responses.InsufficientCreditsResponseOptions(req.Cost(), int32(credits)))
 						return
 					}
-					log.Errorf("Error creating voiceover: %v", err)
+					log.Errorf("Error creating upscale: %v", err)
 					responses.ErrorResponseEdit(s, i)
 					return
 				}

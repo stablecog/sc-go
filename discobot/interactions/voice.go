@@ -115,7 +115,7 @@ func (c *DiscordInteractionWrapper) NewVoiceoverCommand() *DiscordInteraction {
 				responses.InitialLoadingResponse(s, i, responses.PUBLIC)
 
 				// Create voiceover
-				res, _, err := scworker.CreateVoiceover(
+				res, _, wErr := scworker.CreateVoiceover(
 					enttypes.SourceTypeDiscord,
 					nil,
 					c.Repo,
@@ -127,8 +127,8 @@ func (c *DiscordInteractionWrapper) NewVoiceoverCommand() *DiscordInteraction {
 					nil,
 					req,
 				)
-				if err != nil || len(res.Outputs) == 0 {
-					if errors.Is(err, srvresponses.InsufficientCreditsErr) {
+				if wErr != nil || len(res.Outputs) == 0 {
+					if errors.Is(wErr.Err, srvresponses.InsufficientCreditsErr) {
 						credits, err := c.Repo.GetNonExpiredCreditTotalForUser(u.ID, nil)
 						if err != nil {
 							log.Errorf("Error getting credits for user: %v", err)
@@ -138,7 +138,7 @@ func (c *DiscordInteractionWrapper) NewVoiceoverCommand() *DiscordInteraction {
 						responses.InteractionEdit(s, i, responses.InsufficientCreditsResponseOptions(req.Cost(), int32(credits)))
 						return
 					}
-					log.Errorf("Error creating voiceover: %v", err)
+					log.Errorf("Error creating voiceover: %v", wErr.Err)
 					responses.ErrorResponseEdit(s, i)
 					return
 				}
