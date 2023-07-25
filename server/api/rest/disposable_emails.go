@@ -25,13 +25,13 @@ func (c *RestAPI) HandleVerifyEmailDomain(w http.ResponseWriter, r *http.Request
 		return
 	}
 
+	valid := true
 	if emailReq.Email == "" || shared.GetCache().IsDisposableEmail(emailReq.Email) {
-		responses.ErrBadRequest(w, r, "invalid_email", "")
-		return
+		valid = false
 	}
 
 	render.Status(r, http.StatusOK)
 	render.JSON(w, r, map[string]interface{}{
-		"ok": true,
+		"ok": valid,
 	})
 }
