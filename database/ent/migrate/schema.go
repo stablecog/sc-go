@@ -490,6 +490,13 @@ var (
 		Name:       "users",
 		Columns:    UsersColumns,
 		PrimaryKey: []*schema.Column{UsersColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "user_email",
+				Unique:  true,
+				Columns: []*schema.Column{UsersColumns[1]},
+			},
+		},
 	}
 	// VoiceoversColumns holds the columns for the "voiceovers" table.
 	VoiceoversColumns = []*schema.Column{
