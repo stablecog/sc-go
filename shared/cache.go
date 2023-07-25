@@ -194,6 +194,15 @@ func (f *Cache) UpdateDisposableEmailDomains(domains []string) {
 }
 
 func (f *Cache) IsDisposableEmail(email string) bool {
+	if !strings.Contains(email, "@") {
+		for _, disposableDomain := range f.DisposableEmailDomains {
+			if email == disposableDomain {
+				return true
+			}
+		}
+		return false
+	}
+
 	segs := strings.Split(email, "@")
 	if len(segs) != 2 {
 		return false
