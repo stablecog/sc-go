@@ -16,6 +16,7 @@ import (
 	"github.com/stablecog/sc-go/database/enttypes"
 	"github.com/stablecog/sc-go/database/repository"
 	"github.com/stablecog/sc-go/log"
+	"github.com/stablecog/sc-go/server/analytics"
 	"github.com/stablecog/sc-go/server/requests"
 	"github.com/stablecog/sc-go/server/responses"
 	"github.com/stablecog/sc-go/server/stripe"
@@ -32,6 +33,7 @@ func CreateUpscale(ctx context.Context,
 	SMap *shared.SyncMap[chan requests.CogWebhookMessage],
 	qThrottler *shared.UserQueueThrottlerMap,
 	user *ent.User,
+	track *analytics.AnalyticsService,
 	upscaleReq requests.CreateUpscaleRequest) (*responses.ApiSucceededResponse, error) {
 	free := user.ActiveProductID == nil
 	if free {
@@ -373,8 +375,7 @@ func CreateUpscale(ctx context.Context,
 	}()
 
 	// Analytics
-	// ! TODO
-	// go c.Track.UpscaleStarted(user, cogReqBody.Input, utils.GetIPAddress(r))
+	go track.UpscaleStarted(user, cogReqBody.Input, source, utils.GetIPAddress(r))
 
 	// Wait for result
 	for {
@@ -441,10 +442,10 @@ func CreateUpscale(ctx context.Context,
 				if upscale.StartedAt == nil {
 					log.Error("Upscale started at is nil", "id", cogMsg.Input.ID)
 				}
-				// ! TODO
-				// duration := time.Now().Sub(*upscale.StartedAt).Seconds()
-				// qDuration := (*upscale.StartedAt).Sub(upscale.CreatedAt).Seconds()
-				// go c.Track.UpscaleSucceeded(user, cogMsg.Input, duration, qDuration, utils.GetIPAddress(r))
+				// Analytics
+				duration := time.Now().Sub(*upscale.StartedAt).Seconds()
+				qDuration := (*upscale.StartedAt).Sub(upscale.CreatedAt).Seconds()
+				go track.UpscaleSucceeded(user, cogMsg.Input, duration, qDuration, source, utils.GetIPAddress(r))
 
 				// Format response
 				resOutputs := []responses.ApiOutput{
@@ -493,9 +494,9 @@ func CreateUpscale(ctx context.Context,
 							log.Error("Failed to publish live page update", "err", err)
 						}
 					}()
-					// ! TODO Analytics
-					// duration := time.Now().Sub(cogMsg.Input.LivePageData.CreatedAt).Seconds()
-					// go c.Track.UpscaleFailed(user, cogMsg.Input, duration, cogMsg.Error, utils.GetIPAddress(r))
+					//  Analytics
+					duration := time.Now().Sub(cogMsg.Input.LivePageData.CreatedAt).Seconds()
+					go track.UpscaleFailed(user, cogMsg.Input, duration, cogMsg.Error, source, utils.GetIPAddress(r))
 					// Refund credits
 					_, err = repo.RefundCreditsToUser(user.ID, int32(1), DB)
 					if err != nil {

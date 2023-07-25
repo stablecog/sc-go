@@ -122,6 +122,7 @@ func (c *DiscordInteractionWrapper) NewUpscaleCommand() *DiscordInteraction {
 					c.SMap,
 					c.QThrottler,
 					u,
+					c.Track,
 					req,
 				)
 				if err != nil {

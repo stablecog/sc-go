@@ -16,6 +16,7 @@ import (
 	"github.com/stablecog/sc-go/database/enttypes"
 	"github.com/stablecog/sc-go/database/repository"
 	"github.com/stablecog/sc-go/log"
+	"github.com/stablecog/sc-go/server/analytics"
 	"github.com/stablecog/sc-go/server/requests"
 	"github.com/stablecog/sc-go/server/responses"
 	"github.com/stablecog/sc-go/shared"
@@ -31,6 +32,7 @@ func CreateVoiceover(ctx context.Context,
 	SMap *shared.SyncMap[chan requests.CogWebhookMessage],
 	qThrottler *shared.UserQueueThrottlerMap,
 	user *ent.User,
+	track *analytics.AnalyticsService,
 	voiceoverReq requests.CreateVoiceoverRequest) (*responses.ApiSucceededResponse, error) {
 	free := user.ActiveProductID == nil
 	if free {
@@ -299,8 +301,7 @@ func CreateVoiceover(ctx context.Context,
 	}()
 
 	// Analytics
-	// ! TODO
-	// go c.Track.VoiceoverStarted(user, cogReqBody.Input, utils.GetIPAddress(r))
+	go track.VoiceoverStarted(user, cogReqBody.Input, source, utils.GetIPAddress(r))
 
 	// Wait for result
 	for {
@@ -367,10 +368,10 @@ func CreateVoiceover(ctx context.Context,
 				if voiceover.StartedAt == nil {
 					log.Error("Voiceover started at is nil", "id", cogMsg.Input.ID)
 				}
-				// ! TODO
-				// duration := time.Now().Sub(*voiceover.StartedAt).Seconds()
-				// qDuration := (*voiceover.StartedAt).Sub(voiceover.CreatedAt).Seconds()
-				//go c.Track.VoiceoverSucceeded(user, cogMsg.Input, duration, qDuration, utils.GetIPAddress(r))
+				// Analytics
+				duration := time.Now().Sub(*voiceover.StartedAt).Seconds()
+				qDuration := (*voiceover.StartedAt).Sub(voiceover.CreatedAt).Seconds()
+				go track.VoiceoverSucceeded(user, cogMsg.Input, duration, qDuration, source, utils.GetIPAddress(r))
 
 				// Format response
 				resOutputs := make([]responses.ApiOutput, 1)
@@ -423,9 +424,9 @@ func CreateVoiceover(ctx context.Context,
 							log.Error("Failed to publish live page update", "err", err)
 						}
 					}()
-					// ! TODO Analytics
-					// duration := time.Now().Sub(cogMsg.Input.LivePageData.CreatedAt).Seconds()
-					// go c.Track.VoiceoverFailed(user, cogMsg.Input, duration, cogMsg.Error, utils.GetIPAddress(r))
+					// Analytics
+					duration := time.Now().Sub(cogMsg.Input.LivePageData.CreatedAt).Seconds()
+					go track.VoiceoverFailed(user, cogMsg.Input, duration, cogMsg.Error, source, utils.GetIPAddress(r))
 					// Refund credits
 					_, err = repo.RefundCreditsToUser(user.ID, utils.CalculateVoiceoverCredits(voiceoverReq.Prompt), DB)
 					if err != nil {

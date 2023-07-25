@@ -126,6 +126,7 @@ func (c *DiscordInteractionWrapper) NewVoiceoverCommand() *DiscordInteraction {
 					c.SMap,
 					c.QThrottler,
 					u,
+					c.Track,
 					req,
 				)
 				if err != nil || len(res.Outputs) == 0 {

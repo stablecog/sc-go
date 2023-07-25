@@ -375,6 +375,7 @@ func (c *DiscordInteractionWrapper) HandleUpscaleGeneration(s *discordgo.Session
 			c.SMap,
 			c.QThrottler,
 			u,
+			c.Track,
 			req,
 		)
 		if err != nil {
