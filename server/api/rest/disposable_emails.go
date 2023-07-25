@@ -32,6 +32,6 @@ func (c *RestAPI) HandleVerifyEmailDomain(w http.ResponseWriter, r *http.Request
 
 	render.Status(r, http.StatusOK)
 	render.JSON(w, r, map[string]interface{}{
-		"ok": valid,
+		"allowed": valid,
 	})
 }
