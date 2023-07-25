@@ -20,6 +20,7 @@ import (
 	"github.com/stablecog/sc-go/discobot/interactions"
 	dresponses "github.com/stablecog/sc-go/discobot/responses"
 	"github.com/stablecog/sc-go/log"
+	"github.com/stablecog/sc-go/server/analytics"
 	"github.com/stablecog/sc-go/server/requests"
 	"github.com/stablecog/sc-go/server/responses"
 	"github.com/stablecog/sc-go/shared"
@@ -132,8 +133,12 @@ func main() {
 	// Safety checker
 	safetyChecker := utils.NewTranslatorSafetyChecker(ctx, os.Getenv("OPENAI_API_KEY"), false)
 
+	// Create analytics service
+	analyticsService := analytics.NewAnalyticsService()
+	defer analyticsService.Close()
+
 	// Setup interactions
-	cmdWrapper := interactions.NewDiscordInteractionWrapper(repo, redis, database.NewSupabaseAuth(), sMap, qThrottler, safetyChecker, loginInteractionMap)
+	cmdWrapper := interactions.NewDiscordInteractionWrapper(repo, redis, database.NewSupabaseAuth(), sMap, qThrottler, safetyChecker, analyticsService, loginInteractionMap)
 
 	s.AddHandler(func(s *discordgo.Session, r *discordgo.Ready) {
 		log.Infof("Logged in as: %v#%v", s.State.User.Username, s.State.User.Discriminator)

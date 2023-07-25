@@ -432,7 +432,7 @@ func (c *RestAPI) HandleCreateGenerationToken(w http.ResponseWriter, r *http.Req
 	}()
 
 	// Analytics
-	go c.Track.GenerationStarted(user, cogReqBody.Input, utils.GetIPAddress(r))
+	go c.Track.GenerationStarted(user, cogReqBody.Input, enttypes.SourceTypeAPI, utils.GetIPAddress(r))
 
 	// Wait for result
 	for {
@@ -503,7 +503,7 @@ func (c *RestAPI) HandleCreateGenerationToken(w http.ResponseWriter, r *http.Req
 				}
 				duration := time.Now().Sub(*generation.StartedAt).Seconds()
 				qDuration := (*generation.StartedAt).Sub(generation.CreatedAt).Seconds()
-				go c.Track.GenerationSucceeded(user, cogMsg.Input, duration, qDuration, utils.GetIPAddress(r))
+				go c.Track.GenerationSucceeded(user, cogMsg.Input, duration, qDuration, enttypes.SourceTypeAPI, utils.GetIPAddress(r))
 
 				// Format response
 				resOutputs := make([]responses.ApiOutput, len(outputs))
@@ -558,7 +558,7 @@ func (c *RestAPI) HandleCreateGenerationToken(w http.ResponseWriter, r *http.Req
 					}()
 					// Analytics
 					duration := time.Now().Sub(cogMsg.Input.LivePageData.CreatedAt).Seconds()
-					go c.Track.GenerationFailed(user, cogMsg.Input, duration, cogMsg.Error, utils.GetIPAddress(r))
+					go c.Track.GenerationFailed(user, cogMsg.Input, duration, cogMsg.Error, enttypes.SourceTypeAPI, utils.GetIPAddress(r))
 					// Refund credits
 					_, err = c.Repo.RefundCreditsToUser(user.ID, *generateReq.NumOutputs, DB)
 					if err != nil {

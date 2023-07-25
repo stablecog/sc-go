@@ -5,6 +5,7 @@ import (
 	"github.com/stablecog/sc-go/database"
 	"github.com/stablecog/sc-go/database/repository"
 	"github.com/stablecog/sc-go/discobot/domain"
+	"github.com/stablecog/sc-go/server/analytics"
 	"github.com/stablecog/sc-go/server/requests"
 	"github.com/stablecog/sc-go/shared"
 	"github.com/stablecog/sc-go/utils"
@@ -18,6 +19,7 @@ func NewDiscordInteractionWrapper(
 	sMap *shared.SyncMap[chan requests.CogWebhookMessage],
 	qThrottler *shared.UserQueueThrottlerMap,
 	safetyChecker *utils.TranslatorSafetyChecker,
+	track *analytics.AnalyticsService,
 	LoginInteractionMap *shared.SyncMap[*LoginInteraction],
 ) *DiscordInteractionWrapper {
 	// Create wrapper
@@ -30,6 +32,7 @@ func NewDiscordInteractionWrapper(
 		QThrottler:          qThrottler,
 		SafetyChecker:       safetyChecker,
 		LoginInteractionMap: LoginInteractionMap,
+		Track:               track,
 	}
 	// Register commands
 	commands := []*DiscordInteraction{
@@ -61,6 +64,7 @@ type DiscordInteractionWrapper struct {
 	Commands            []*DiscordInteraction
 	Components          []*DiscordInteraction
 	SafetyChecker       *utils.TranslatorSafetyChecker
+	Track               *analytics.AnalyticsService
 }
 
 // Specification for specific interactions

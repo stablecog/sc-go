@@ -370,7 +370,7 @@ func (c *RestAPI) HandleCreateUpscaleToken(w http.ResponseWriter, r *http.Reques
 	}()
 
 	// Analytics
-	go c.Track.UpscaleStarted(user, cogReqBody.Input, utils.GetIPAddress(r))
+	go c.Track.UpscaleStarted(user, cogReqBody.Input, enttypes.SourceTypeAPI, utils.GetIPAddress(r))
 
 	// Wait for result
 	for {
@@ -441,7 +441,7 @@ func (c *RestAPI) HandleCreateUpscaleToken(w http.ResponseWriter, r *http.Reques
 				}
 				duration := time.Now().Sub(*upscale.StartedAt).Seconds()
 				qDuration := (*upscale.StartedAt).Sub(upscale.CreatedAt).Seconds()
-				go c.Track.UpscaleSucceeded(user, cogMsg.Input, duration, qDuration, utils.GetIPAddress(r))
+				go c.Track.UpscaleSucceeded(user, cogMsg.Input, duration, qDuration, enttypes.SourceTypeAPI, utils.GetIPAddress(r))
 
 				// Format response
 				resOutputs := []responses.ApiOutput{
@@ -495,7 +495,7 @@ func (c *RestAPI) HandleCreateUpscaleToken(w http.ResponseWriter, r *http.Reques
 					}()
 					// Analytics
 					duration := time.Now().Sub(cogMsg.Input.LivePageData.CreatedAt).Seconds()
-					go c.Track.UpscaleFailed(user, cogMsg.Input, duration, cogMsg.Error, utils.GetIPAddress(r))
+					go c.Track.UpscaleFailed(user, cogMsg.Input, duration, cogMsg.Error, enttypes.SourceTypeAPI, utils.GetIPAddress(r))
 					// Refund credits
 					_, err = c.Repo.RefundCreditsToUser(user.ID, int32(1), DB)
 					if err != nil {

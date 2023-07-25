@@ -309,7 +309,7 @@ func (c *RestAPI) HandleCreateVoiceoverToken(w http.ResponseWriter, r *http.Requ
 	}()
 
 	// Analytics
-	go c.Track.VoiceoverStarted(user, cogReqBody.Input, utils.GetIPAddress(r))
+	go c.Track.VoiceoverStarted(user, cogReqBody.Input, enttypes.SourceTypeAPI, utils.GetIPAddress(r))
 
 	// Wait for result
 	for {
@@ -380,7 +380,7 @@ func (c *RestAPI) HandleCreateVoiceoverToken(w http.ResponseWriter, r *http.Requ
 				}
 				duration := time.Now().Sub(*voiceover.StartedAt).Seconds()
 				qDuration := (*voiceover.StartedAt).Sub(voiceover.CreatedAt).Seconds()
-				go c.Track.VoiceoverSucceeded(user, cogMsg.Input, duration, qDuration, utils.GetIPAddress(r))
+				go c.Track.VoiceoverSucceeded(user, cogMsg.Input, duration, qDuration, enttypes.SourceTypeAPI, utils.GetIPAddress(r))
 
 				// Format response
 				resOutputs := make([]responses.ApiOutput, 1)
@@ -437,7 +437,7 @@ func (c *RestAPI) HandleCreateVoiceoverToken(w http.ResponseWriter, r *http.Requ
 					}()
 					// Analytics
 					duration := time.Now().Sub(cogMsg.Input.LivePageData.CreatedAt).Seconds()
-					go c.Track.VoiceoverFailed(user, cogMsg.Input, duration, cogMsg.Error, utils.GetIPAddress(r))
+					go c.Track.VoiceoverFailed(user, cogMsg.Input, duration, cogMsg.Error, enttypes.SourceTypeAPI, utils.GetIPAddress(r))
 					// Refund credits
 					_, err = c.Repo.RefundCreditsToUser(user.ID, utils.CalculateVoiceoverCredits(voiceoverReq.Prompt), DB)
 					if err != nil {

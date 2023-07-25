@@ -8,6 +8,7 @@ import (
 
 	"github.com/go-chi/render"
 	"github.com/stablecog/sc-go/database/ent"
+	"github.com/stablecog/sc-go/database/enttypes"
 	"github.com/stablecog/sc-go/database/repository"
 	"github.com/stablecog/sc-go/log"
 	"github.com/stablecog/sc-go/server/requests"
@@ -122,7 +123,7 @@ func (c *RestAPI) HandleSCWorkerWebhook(w http.ResponseWriter, r *http.Request) 
 				}
 				duration := time.Now().Sub(*generation.StartedAt).Seconds()
 				qDuration := (*generation.StartedAt).Sub(generation.CreatedAt).Seconds()
-				c.Track.GenerationSucceeded(u, cogMessage.Input, duration, qDuration, cogMessage.Input.IP)
+				c.Track.GenerationSucceeded(u, cogMessage.Input, duration, qDuration, enttypes.SourceTypeWebUI, cogMessage.Input.IP)
 			} else if cogMessage.Input.ProcessType == shared.UPSCALE {
 				// Get upscale
 				uid := cogMessage.Input.ID
@@ -138,7 +139,7 @@ func (c *RestAPI) HandleSCWorkerWebhook(w http.ResponseWriter, r *http.Request) 
 				}
 				duration := time.Now().Sub(*upscale.StartedAt).Seconds()
 				qDuration := (*upscale.StartedAt).Sub(upscale.CreatedAt).Seconds()
-				c.Track.UpscaleSucceeded(u, cogMessage.Input, duration, qDuration, cogMessage.Input.IP)
+				c.Track.UpscaleSucceeded(u, cogMessage.Input, duration, qDuration, enttypes.SourceTypeWebUI, cogMessage.Input.IP)
 			} else if cogMessage.Input.ProcessType == shared.VOICEOVER {
 				// Get upscale
 				uid := cogMessage.Input.ID
@@ -154,7 +155,7 @@ func (c *RestAPI) HandleSCWorkerWebhook(w http.ResponseWriter, r *http.Request) 
 				}
 				duration := time.Now().Sub(*voiceover.StartedAt).Seconds()
 				qDuration := (*voiceover.StartedAt).Sub(voiceover.CreatedAt).Seconds()
-				c.Track.VoiceoverSucceeded(u, cogMessage.Input, duration, qDuration, cogMessage.Input.IP)
+				c.Track.VoiceoverSucceeded(u, cogMessage.Input, duration, qDuration, enttypes.SourceTypeWebUI, cogMessage.Input.IP)
 			}
 		}
 
@@ -167,7 +168,7 @@ func (c *RestAPI) HandleSCWorkerWebhook(w http.ResponseWriter, r *http.Request) 
 			// Get duration in seconds
 			duration := time.Now().Sub(cogMessage.Input.LivePageData.CreatedAt).Seconds()
 			if cogMessage.Input.ProcessType == shared.GENERATE || cogMessage.Input.ProcessType == shared.GENERATE_AND_UPSCALE {
-				c.Track.GenerationFailedNSFW(u, cogMessage.Input, duration, cogMessage.Input.IP)
+				c.Track.GenerationFailedNSFW(u, cogMessage.Input, duration, enttypes.SourceTypeWebUI, cogMessage.Input.IP)
 			}
 		}
 
@@ -180,11 +181,11 @@ func (c *RestAPI) HandleSCWorkerWebhook(w http.ResponseWriter, r *http.Request) 
 			// Get duration in seconds
 			duration := time.Now().Sub(cogMessage.Input.LivePageData.CreatedAt).Seconds()
 			if cogMessage.Input.ProcessType == shared.GENERATE || cogMessage.Input.ProcessType == shared.GENERATE_AND_UPSCALE {
-				c.Track.GenerationFailed(u, cogMessage.Input, duration, cogMessage.Error, cogMessage.Input.IP)
+				c.Track.GenerationFailed(u, cogMessage.Input, duration, cogMessage.Error, enttypes.SourceTypeWebUI, cogMessage.Input.IP)
 			} else if cogMessage.Input.ProcessType == shared.UPSCALE {
-				c.Track.UpscaleFailed(u, cogMessage.Input, duration, cogMessage.Error, cogMessage.Input.IP)
+				c.Track.UpscaleFailed(u, cogMessage.Input, duration, cogMessage.Error, enttypes.SourceTypeWebUI, cogMessage.Input.IP)
 			} else if cogMessage.Input.ProcessType == shared.VOICEOVER {
-				c.Track.VoiceoverFailed(u, cogMessage.Input, duration, cogMessage.Error, cogMessage.Input.IP)
+				c.Track.VoiceoverFailed(u, cogMessage.Input, duration, cogMessage.Error, enttypes.SourceTypeWebUI, cogMessage.Input.IP)
 			}
 		}
 	}()
