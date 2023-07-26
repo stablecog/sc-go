@@ -268,26 +268,15 @@ func (w *SCWorker) CreateGeneration(source enttypes.SourceType,
 	// Wrap everything in a DB transaction
 	// We do this since we want our credit deduction to be atomic with the whole process
 	if err := w.Repo.WithTx(func(tx *ent.Tx) error {
-		if source == enttypes.SourceTypeAPI {
-			log.Warn("1")
-		}
 		// Bind a client to the transaction
 		DB := tx.Client()
-		if source == enttypes.SourceTypeAPI {
-			log.Warn("2")
-		}
+
 		// Deduct credits from user
 		deducted, err := w.Repo.DeductCreditsFromUser(user.ID, *generateReq.NumOutputs, DB)
-		if source == enttypes.SourceTypeAPI {
-			log.Warn("3")
-		}
 		if err != nil {
 			log.Error("Error deducting credits", "err", err)
 			return err
 		} else if !deducted {
-			if source == enttypes.SourceTypeAPI {
-				log.Warn("4")
-			}
 			return responses.InsufficientCreditsErr
 		}
 
@@ -297,25 +286,18 @@ func (w *SCWorker) CreateGeneration(source enttypes.SourceType,
 			log.Error("Error translating prompt", "err", err)
 			return err
 		}
-		if source == enttypes.SourceTypeAPI {
-			log.Warn("5")
-		}
 		generateReq.Prompt = translatedPrompt
 		generateReq.NegativePrompt = translatedNegativePrompt
+
 		// Check NSFW
 		isNSFW, reason, err := w.SafetyChecker.IsPromptNSFW(generateReq.Prompt)
 		if err != nil {
 			log.Error("Error checking prompt NSFW", "err", err)
 			return err
 		}
-		if source == enttypes.SourceTypeAPI {
-			log.Warn("6")
-		}
+
 		if isNSFW {
 			return fmt.Errorf("nsfw: %s", reason)
-		}
-		if source == enttypes.SourceTypeAPI {
-			log.Warn("7")
 		}
 
 		remainingCredits, err = w.Repo.GetNonExpiredCreditTotalForUser(user.ID, DB)
@@ -324,9 +306,6 @@ func (w *SCWorker) CreateGeneration(source enttypes.SourceType,
 			return err
 		}
 
-		if source == enttypes.SourceTypeAPI {
-			log.Warn("8")
-		}
 		// Create generation
 		g, err := w.Repo.CreateGeneration(
 			user.ID,
@@ -343,9 +322,7 @@ func (w *SCWorker) CreateGeneration(source enttypes.SourceType,
 			log.Error("Error creating generation", "err", err)
 			return err
 		}
-		if source == enttypes.SourceTypeAPI {
-			log.Warn("9")
-		}
+
 		// Request Id matches generation ID
 		requestId = g.ID
 
@@ -363,9 +340,6 @@ func (w *SCWorker) CreateGeneration(source enttypes.SourceType,
 			Source:           source,
 		}
 
-		if source == enttypes.SourceTypeAPI {
-			log.Warnf("Setting cog request body!")
-		}
 		cogReqBody = requests.CogQueueRequest{
 			WebhookEventsFilter: []requests.CogEventFilter{requests.CogEventFilterStart, requests.CogEventFilterStart},
 			WebhookUrl:          fmt.Sprintf("%s/v1/worker/webhook", utils.GetEnv("PUBLIC_API_URL", "")),
@@ -449,16 +423,7 @@ func (w *SCWorker) CreateGeneration(source enttypes.SourceType,
 	}()
 
 	// Analytics
-	if source != enttypes.SourceTypeAPI {
-		go w.Track.GenerationStarted(user, cogReqBody.Input, source, ipAddress)
-	} else {
-		log.Warnf("Guidance Scale %f", *generateReq.GuidanceScale)
-		if cogReqBody.Input.GuidanceScale == nil {
-			log.Warn("Guidance Scale is nil - cogReqBody")
-		}
-		log.Warnf("Prompt %s", cogReqBody.Input.Prompt)
-		log.Warnf("URL %s", cogReqBody.WebhookUrl)
-	}
+	go w.Track.GenerationStarted(user, cogReqBody.Input, source, ipAddress)
 	// Set timeout delay for UI
 	if source == enttypes.SourceTypeWebUI {
 		// Set timeout key
