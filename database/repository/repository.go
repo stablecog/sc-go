@@ -7,6 +7,7 @@ import (
 	"github.com/stablecog/sc-go/database"
 	"github.com/stablecog/sc-go/database/ent"
 	"github.com/stablecog/sc-go/database/qdrant"
+	"github.com/stablecog/sc-go/log"
 	"github.com/stablecog/sc-go/shared"
 )
 
@@ -38,6 +39,7 @@ func (r *Repository) WithTx(fn func(tx *ent.Tx) error) error {
 	}
 	defer func() {
 		if v := recover(); v != nil {
+			log.Errorf("Panic caught in WithTX: %v", v)
 			tx.Rollback()
 		}
 	}()
