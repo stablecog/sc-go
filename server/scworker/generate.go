@@ -420,7 +420,9 @@ func (w *SCWorker) CreateGeneration(source enttypes.SourceType,
 	}()
 
 	// Analytics
-	go w.Track.GenerationStarted(user, cogReqBody.Input, source, ipAddress)
+	if source != enttypes.SourceTypeAPI {
+		go w.Track.GenerationStarted(user, cogReqBody.Input, source, ipAddress)
+	}
 	// Set timeout delay for UI
 	if source == enttypes.SourceTypeWebUI {
 		// Set timeout key
