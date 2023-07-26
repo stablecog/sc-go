@@ -141,6 +141,7 @@ func (w *SCWorker) CreateGeneration(source enttypes.SourceType,
 			// Custom image, do some validation on size, format, etc.
 			_, _, err = utils.GetImageWidthHeightFromUrl(generateReq.InitImageUrl, shared.MAX_GENERATE_IMAGE_SIZE)
 			if err != nil {
+				log.Warn("Error getting image width/height", "err", err)
 				return nil, &initSettings, &WorkerError{http.StatusBadRequest, fmt.Errorf("image_url_width_height_error"), ""}
 			}
 			signedInitImageUrl = generateReq.InitImageUrl
