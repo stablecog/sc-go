@@ -337,6 +337,9 @@ func (w *SCWorker) CreateGeneration(source enttypes.SourceType,
 			Source:           source,
 		}
 
+		if source == enttypes.SourceTypeAPI {
+			log.Infof("Setting COG Req Body")
+		}
 		cogReqBody = requests.CogQueueRequest{
 			WebhookEventsFilter: []requests.CogEventFilter{requests.CogEventFilterStart, requests.CogEventFilterStart},
 			WebhookUrl:          fmt.Sprintf("%s/v1/worker/webhook", utils.GetEnv("PUBLIC_API_URL", "")),
@@ -368,6 +371,9 @@ func (w *SCWorker) CreateGeneration(source enttypes.SourceType,
 				InitImageUrl:         signedInitImageUrl,
 				PromptStrength:       generateReq.PromptStrength,
 			},
+		}
+		if source == enttypes.SourceTypeAPI {
+			log.Infof("PRompt Set %s", cogReqBody.Input.Prompt)
 		}
 
 		if source == enttypes.SourceTypeWebUI {
