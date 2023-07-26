@@ -336,7 +336,7 @@ func (w *SCWorker) CreateGeneration(source enttypes.SourceType,
 			countryCode,
 			generateReq,
 			user.ActiveProductID,
-			nil,
+			apiTokenId,
 			source,
 			DB)
 		if err != nil {
