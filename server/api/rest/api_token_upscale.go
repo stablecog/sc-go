@@ -10,7 +10,6 @@ import (
 	"github.com/stablecog/sc-go/database/enttypes"
 	"github.com/stablecog/sc-go/server/requests"
 	"github.com/stablecog/sc-go/server/responses"
-	"github.com/stablecog/sc-go/server/scworker"
 )
 
 // POST upscale endpoint
@@ -35,15 +34,10 @@ func (c *RestAPI) HandleCreateUpscaleToken(w http.ResponseWriter, r *http.Reques
 	}
 
 	// Create upscale
-	upscale, initSettings, workerErr := scworker.CreateUpscale(
+	upscale, initSettings, workerErr := c.SCWorker.CreateUpscale(
 		enttypes.SourceTypeAPI,
 		r,
-		c.Repo,
-		c.Redis,
-		c.SMap,
-		c.QueueThrottler,
 		user,
-		c.Track,
 		&apiToken.ID,
 		upscaleReq,
 	)

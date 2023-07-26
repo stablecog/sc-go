@@ -12,6 +12,7 @@ import (
 	"github.com/stablecog/sc-go/database/repository"
 	"github.com/stablecog/sc-go/server/analytics"
 	"github.com/stablecog/sc-go/server/api/sse"
+	"github.com/stablecog/sc-go/server/scworker"
 	"github.com/stablecog/sc-go/shared"
 	"github.com/stablecog/sc-go/utils"
 )
@@ -94,6 +95,13 @@ func testMainWrapper(m *testing.M) int {
 		Track:          analytics.NewAnalyticsService(),
 		QueueThrottler: qThrottler,
 		SafetyChecker:  utils.NewTranslatorSafetyChecker(ctx, "", true),
+		SCWorker: &scworker.SCWorker{
+			Repo:           repo,
+			Redis:          redis,
+			QueueThrottler: qThrottler,
+			Track:          analytics.NewAnalyticsService(),
+			SafetyChecker:  utils.NewTranslatorSafetyChecker(ctx, "", true),
+		},
 	}
 
 	return m.Run()

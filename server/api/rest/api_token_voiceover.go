@@ -10,7 +10,6 @@ import (
 	"github.com/stablecog/sc-go/database/enttypes"
 	"github.com/stablecog/sc-go/server/requests"
 	"github.com/stablecog/sc-go/server/responses"
-	"github.com/stablecog/sc-go/server/scworker"
 )
 
 func (c *RestAPI) HandleCreateVoiceoverToken(w http.ResponseWriter, r *http.Request) {
@@ -34,15 +33,10 @@ func (c *RestAPI) HandleCreateVoiceoverToken(w http.ResponseWriter, r *http.Requ
 
 	// Create voiceover
 
-	voiceover, initSettings, workerErr := scworker.CreateVoiceover(
+	voiceover, initSettings, workerErr := c.SCWorker.CreateVoiceover(
 		enttypes.SourceTypeAPI,
 		r,
-		c.Repo,
-		c.Redis,
-		c.SMap,
-		c.QueueThrottler,
 		user,
-		c.Track,
 		&apiToken.ID,
 		voiceoverReq,
 	)

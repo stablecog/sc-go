@@ -7,6 +7,7 @@ import (
 	"github.com/stablecog/sc-go/discobot/domain"
 	"github.com/stablecog/sc-go/server/analytics"
 	"github.com/stablecog/sc-go/server/requests"
+	"github.com/stablecog/sc-go/server/scworker"
 	"github.com/stablecog/sc-go/shared"
 	"github.com/stablecog/sc-go/utils"
 )
@@ -25,14 +26,17 @@ func NewDiscordInteractionWrapper(
 	// Create wrapper
 	wrapper := &DiscordInteractionWrapper{
 		Disco:               &domain.DiscoDomain{Repo: repo, Redis: redis, SupabaseAuth: supabase},
-		Repo:                repo,
 		SupabseAuth:         supabase,
-		SMap:                sMap,
-		Redis:               redis,
-		QThrottler:          qThrottler,
-		SafetyChecker:       safetyChecker,
 		LoginInteractionMap: LoginInteractionMap,
-		Track:               track,
+		SCWorker: &scworker.SCWorker{
+			Repo:           repo,
+			Redis:          redis,
+			QueueThrottler: qThrottler,
+			Track:          track,
+			SMap:           sMap,
+			SafetyChecker:  safetyChecker,
+		},
+		Repo: repo,
 	}
 	// Register commands
 	commands := []*DiscordInteraction{
@@ -55,16 +59,12 @@ func NewDiscordInteractionWrapper(
 // Wrapper for all interactions
 type DiscordInteractionWrapper struct {
 	Disco               *domain.DiscoDomain
-	Repo                *repository.Repository
 	SupabseAuth         *database.SupabaseAuth
-	Redis               *database.RedisWrapper
-	SMap                *shared.SyncMap[chan requests.CogWebhookMessage]
 	LoginInteractionMap *shared.SyncMap[*LoginInteraction]
-	QThrottler          *shared.UserQueueThrottlerMap
 	Commands            []*DiscordInteraction
 	Components          []*DiscordInteraction
-	SafetyChecker       *utils.TranslatorSafetyChecker
-	Track               *analytics.AnalyticsService
+	SCWorker            *scworker.SCWorker
+	Repo                *repository.Repository
 }
 
 // Specification for specific interactions

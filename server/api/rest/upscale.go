@@ -11,7 +11,6 @@ import (
 	"github.com/stablecog/sc-go/database/enttypes"
 	"github.com/stablecog/sc-go/server/requests"
 	"github.com/stablecog/sc-go/server/responses"
-	"github.com/stablecog/sc-go/server/scworker"
 )
 
 func (c *RestAPI) HandleUpscale(w http.ResponseWriter, r *http.Request) {
@@ -40,15 +39,10 @@ func (c *RestAPI) HandleUpscale(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	voiceover, initSettings, workerErr := scworker.CreateUpscale(
+	voiceover, initSettings, workerErr := c.SCWorker.CreateUpscale(
 		enttypes.SourceTypeWebUI,
 		r,
-		c.Repo,
-		c.Redis,
-		c.SMap,
-		c.QueueThrottler,
 		user,
-		c.Track,
 		nil,
 		upscaleReq,
 	)

@@ -36,6 +36,7 @@ import (
 	"github.com/stablecog/sc-go/server/discord"
 	"github.com/stablecog/sc-go/server/middleware"
 	"github.com/stablecog/sc-go/server/requests"
+	"github.com/stablecog/sc-go/server/scworker"
 	"github.com/stablecog/sc-go/shared"
 	uapi "github.com/stablecog/sc-go/uploadapi/api"
 	"github.com/stablecog/sc-go/utils"
@@ -275,6 +276,15 @@ func main() {
 		Clip:           clip.NewClipService(redis),
 		SMap:           apiTokenSmap,
 		SafetyChecker:  utils.NewTranslatorSafetyChecker(ctx, os.Getenv("OPENAI_API_KEY"), false),
+		SCWorker: &scworker.SCWorker{
+			Repo:           repo,
+			Redis:          redis,
+			QueueThrottler: qThrottler,
+			Track:          analyticsService,
+			SMap:           apiTokenSmap,
+			SafetyChecker:  utils.NewTranslatorSafetyChecker(ctx, os.Getenv("OPENAI_API_KEY"), false),
+			S3:             s3Client,
+		},
 	}
 
 	// Create upload controller

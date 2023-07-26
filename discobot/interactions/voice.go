@@ -15,7 +15,6 @@ import (
 	"github.com/stablecog/sc-go/log"
 	"github.com/stablecog/sc-go/server/requests"
 	srvresponses "github.com/stablecog/sc-go/server/responses"
-	"github.com/stablecog/sc-go/server/scworker"
 	"github.com/stablecog/sc-go/utils"
 )
 
@@ -115,15 +114,10 @@ func (c *DiscordInteractionWrapper) NewVoiceoverCommand() *DiscordInteraction {
 				responses.InitialLoadingResponse(s, i, responses.PUBLIC)
 
 				// Create voiceover
-				res, _, wErr := scworker.CreateVoiceover(
+				res, _, wErr := c.SCWorker.CreateVoiceover(
 					enttypes.SourceTypeDiscord,
 					nil,
-					c.Repo,
-					c.Redis,
-					c.SMap,
-					c.QThrottler,
 					u,
-					c.Track,
 					nil,
 					req,
 				)

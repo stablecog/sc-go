@@ -11,7 +11,6 @@ import (
 	"github.com/stablecog/sc-go/log"
 	"github.com/stablecog/sc-go/server/requests"
 	srvresponses "github.com/stablecog/sc-go/server/responses"
-	"github.com/stablecog/sc-go/server/scworker"
 	"github.com/stablecog/sc-go/shared"
 	"github.com/stablecog/sc-go/utils"
 )
@@ -111,15 +110,10 @@ func (c *DiscordInteractionWrapper) NewUpscaleCommand() *DiscordInteraction {
 				responses.InitialLoadingResponse(s, i, responses.PUBLIC)
 
 				// Create upscale
-				res, _, wErr := scworker.CreateUpscale(
+				res, _, wErr := c.SCWorker.CreateUpscale(
 					enttypes.SourceTypeDiscord,
 					nil,
-					c.Repo,
-					c.Redis,
-					c.SMap,
-					c.QThrottler,
 					u,
-					c.Track,
 					nil,
 					req,
 				)

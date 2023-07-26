@@ -15,7 +15,6 @@ import (
 	"github.com/stablecog/sc-go/log"
 	"github.com/stablecog/sc-go/server/requests"
 	"github.com/stablecog/sc-go/server/responses"
-	"github.com/stablecog/sc-go/server/scworker"
 	"github.com/stablecog/sc-go/utils"
 )
 
@@ -45,15 +44,10 @@ func (c *RestAPI) HandleVoiceover(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	voiceover, initSettings, workerErr := scworker.CreateVoiceover(
+	voiceover, initSettings, workerErr := c.SCWorker.CreateVoiceover(
 		enttypes.SourceTypeWebUI,
 		r,
-		c.Repo,
-		c.Redis,
-		c.SMap,
-		c.QueueThrottler,
 		user,
-		c.Track,
 		nil,
 		voiceoverReq,
 	)
