@@ -701,7 +701,6 @@ func (w *SCWorker) GetExpandImageUrlsFromOutput(userId uuid.UUID, output *ent.Ge
 
 	// Create a channel to receive errors from Goroutines
 	errCh := make(chan error, 2)
-	defer close(errCh)
 
 	// Use Goroutines to run the PutObject requests concurrently
 	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
@@ -729,7 +728,10 @@ func (w *SCWorker) GetExpandImageUrlsFromOutput(userId uuid.UUID, output *ent.Ge
 		errCh <- err
 	}()
 	// Wait for both Goroutines to finish
-	wg.Wait()
+	go func() {
+		wg.Wait()
+		close(errCh)
+	}()
 
 	// Check for errors in the channel
 	for err := range errCh {
