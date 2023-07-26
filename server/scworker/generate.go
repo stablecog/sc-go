@@ -1,18 +1,25 @@
 package scworker
 
 import (
+	"bytes"
 	"encoding/json"
 	"errors"
 	"fmt"
+	"image"
+	"image/jpeg"
+	"image/png"
 	"math"
 	"net/http"
 	"os"
+	"path/filepath"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/s3"
+	"github.com/chai2010/webp"
 	"github.com/google/uuid"
 	"github.com/stablecog/sc-go/database/ent"
 	"github.com/stablecog/sc-go/database/ent/upscale"
@@ -617,4 +624,144 @@ func (w *SCWorker) CreateGeneration(source enttypes.SourceType,
 			return nil, &initSettings, &WorkerError{http.StatusInternalServerError, fmt.Errorf(shared.TIMEOUT_ERROR), ""}
 		}
 	}
+}
+
+// Get expanded URLs from generation output
+func (w *SCWorker) GetExpandImageUrlsFromOutput(userId uuid.UUID, output *ent.GenerationOutput) (bgUrl string, maskUrl string, wErr *WorkerError) {
+	// Download image
+	imageUrl := utils.GetURLFromImagePath(output.ImagePath)
+	//Get the response bytes from the url
+	response, err := http.Get(imageUrl)
+	if err != nil {
+		log.Error("Error downloading image output", "err", err)
+		return "", "", WorkerInternalServerError()
+	}
+	defer response.Body.Close()
+
+	// Extract extension from image
+	extension := filepath.Ext(output.ImagePath)
+	var image image.Image
+	var contentType string
+	switch extension {
+	case ".jpg":
+		image, err = jpeg.Decode(response.Body)
+		if err != nil {
+			log.Error("Error decoding image", "err", err)
+			return "", "", WorkerInternalServerError()
+		}
+		contentType = "image/jpeg"
+	case ".webp":
+		image, err = webp.Decode(response.Body)
+		if err != nil {
+			log.Error("Error decoding image", "err", err)
+			return "", "", WorkerInternalServerError()
+		}
+		contentType = "image/webp"
+	case ".png":
+		image, err = png.Decode(response.Body)
+		if err != nil {
+			log.Error("Error decoding image", "err", err)
+			return "", "", WorkerInternalServerError()
+		}
+		contentType = "image/png"
+	default:
+		log.Error("Unsupported image format", "err", err)
+		return "", "", WorkerInternalServerError()
+	}
+
+	// Create mask and image input
+	bg, mask := utils.CreateExpandImageSet(image, 0.5, 0.02)
+	var bgBuf bytes.Buffer
+	var maskBuf bytes.Buffer
+	switch extension {
+	case ".jpg":
+		jpeg.Encode(&bgBuf, bg, nil)
+		jpeg.Encode(&maskBuf, mask, nil)
+	case ".webp":
+		webp.Encode(&bgBuf, bg, nil)
+		webp.Encode(&maskBuf, mask, nil)
+	case ".png":
+		png.Encode(&bgBuf, bg)
+		png.Encode(&maskBuf, mask)
+	default:
+		log.Error("Unsupported image format", "err", err)
+		return "", "", WorkerInternalServerError()
+	}
+
+	// Upload both images to img2img bucket
+	uidHash := utils.Sha256(userId.String())
+
+	bgObjKey := fmt.Sprintf("%s/%s%s", uidHash, uuid.New().String(), extension)
+	maskObjKey := fmt.Sprintf("%s/%s%s", uidHash, uuid.New().String(), extension)
+
+	// IN parallel
+	var wg sync.WaitGroup
+	wg.Add(2)
+
+	// Create a channel to receive errors from Goroutines
+	errCh := make(chan error, 2)
+	defer close(errCh)
+
+	// Use Goroutines to run the PutObject requests concurrently
+	go func() {
+		defer wg.Done()
+		err := func() error {
+			_, err = w.S3.PutObject(&s3.PutObjectInput{
+				Bucket:      aws.String(os.Getenv("S3_IMG2IMG_BUCKET_NAME")),
+				Key:         aws.String(bgObjKey),
+				Body:        bytes.NewReader(bgBuf.Bytes()),
+				ContentType: aws.String(contentType),
+			})
+			return err
+		}()
+		errCh <- err
+	}()
+
+	go func() {
+		defer wg.Done()
+		err := func() error {
+			_, err = w.S3.PutObject(&s3.PutObjectInput{
+				Bucket:      aws.String(os.Getenv("S3_IMG2IMG_BUCKET_NAME")),
+				Key:         aws.String(maskObjKey),
+				Body:        bytes.NewReader(bgBuf.Bytes()),
+				ContentType: aws.String(contentType),
+			})
+			return err
+		}()
+		errCh <- err
+	}()
+
+	// Wait for both Goroutines to finish
+	wg.Wait()
+
+	// Check for errors in the channel
+	for err := range errCh {
+		if err != nil {
+			log.Error("Error uploading object", "err", err)
+			return "", "", WorkerInternalServerError()
+		}
+	}
+
+	// Get signed URLs fro each object
+	req, _ := w.S3.GetObjectRequest(&s3.GetObjectInput{
+		Bucket: aws.String(os.Getenv("S3_IMG2IMG_BUCKET_NAME")),
+		Key:    aws.String(bgObjKey),
+	})
+	bgUrlStr, err := req.Presign(5 * time.Minute)
+	if err != nil {
+		log.Error("Error signing init image URL", "err", err)
+		return "", "", WorkerInternalServerError()
+	}
+
+	req, _ = w.S3.GetObjectRequest(&s3.GetObjectInput{
+		Bucket: aws.String(os.Getenv("S3_IMG2IMG_BUCKET_NAME")),
+		Key:    aws.String(maskObjKey),
+	})
+	maskUrlStr, err := req.Presign(5 * time.Minute)
+	if err != nil {
+		log.Error("Error signing mask image URL", "err", err)
+		return "", "", WorkerInternalServerError()
+	}
+
+	return bgUrlStr, maskUrlStr, nil
 }

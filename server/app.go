@@ -525,6 +525,16 @@ func main() {
 					r.Post("/", hc.HandleCreateGenerationAPI)
 				})
 			})
+
+			// Expand/zoom-out
+			r.Route("/generation/zoom-out", func(r chi.Router) {
+				r.Route("/", func(r chi.Router) {
+					r.Use(mw.AuthMiddleware(middleware.AuthLevelAPIToken))
+					r.Use(middleware.Logger)
+					r.Use(mw.RateLimit(5, "api", 1*time.Second))
+					r.Post("/", hc.HandleCreateGenerationZoomOutAPI)
+				})
+			})
 			// ! Deprecated
 			r.Route("/generate", func(r chi.Router) {
 				r.Route("/", func(r chi.Router) {
