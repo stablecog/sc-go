@@ -28,7 +28,7 @@ func TestGenerateUnauthorizedIfUserIdMissingInContext(t *testing.T) {
 	req := httptest.NewRequest("POST", "/", bytes.NewReader(body))
 	req.Header.Set("Content-Type", "application/json")
 
-	MockController.HandleCreateGeneration(w, req)
+	MockController.HandleCreateGenerationWebUI(w, req)
 	resp := w.Result()
 	defer resp.Body.Close()
 	assert.Equal(t, 401, resp.StatusCode)
@@ -53,7 +53,7 @@ func TestGenerateUnauthorizedIfUserIdNotUuid(t *testing.T) {
 	ctx := context.WithValue(req.Context(), "user_id", "not-uuid")
 	ctx = context.WithValue(ctx, "user_email", repository.MOCK_ADMIN_UUID)
 
-	MockController.HandleCreateGeneration(w, req.WithContext(ctx))
+	MockController.HandleCreateGenerationWebUI(w, req.WithContext(ctx))
 	resp := w.Result()
 	defer resp.Body.Close()
 	assert.Equal(t, 401, resp.StatusCode)
@@ -78,7 +78,7 @@ func TestGenerateFailsWithInvalidStreamID(t *testing.T) {
 	ctx := context.WithValue(req.Context(), "user_id", repository.MOCK_NORMAL_UUID)
 	ctx = context.WithValue(ctx, "user_email", repository.MOCK_NORMAL_UUID)
 
-	MockController.HandleCreateGeneration(w, req.WithContext(ctx))
+	MockController.HandleCreateGenerationWebUI(w, req.WithContext(ctx))
 	resp := w.Result()
 	defer resp.Body.Close()
 	assert.Equal(t, 400, resp.StatusCode)
@@ -109,7 +109,7 @@ func TestGenerateEnforcesNumOutputsChange(t *testing.T) {
 	ctx := context.WithValue(req.Context(), "user_id", repository.MOCK_NORMAL_UUID)
 	ctx = context.WithValue(ctx, "user_email", repository.MOCK_NORMAL_UUID)
 
-	MockController.HandleCreateGeneration(w, req.WithContext(ctx))
+	MockController.HandleCreateGenerationWebUI(w, req.WithContext(ctx))
 	resp := w.Result()
 	defer resp.Body.Close()
 	assert.Equal(t, 400, resp.StatusCode)
@@ -137,7 +137,7 @@ func TestGenerateEnforcesNumOutputsChange(t *testing.T) {
 	ctx = context.WithValue(req.Context(), "user_id", repository.MOCK_NORMAL_UUID)
 	ctx = context.WithValue(ctx, "user_email", repository.MOCK_NORMAL_UUID)
 
-	MockController.HandleCreateGeneration(w, req.WithContext(ctx))
+	MockController.HandleCreateGenerationWebUI(w, req.WithContext(ctx))
 	resp = w.Result()
 	defer resp.Body.Close()
 	assert.Equal(t, 400, resp.StatusCode)
@@ -164,7 +164,7 @@ func TestGenerateEnforcesMaxWidthMaxHeight(t *testing.T) {
 	ctx := context.WithValue(req.Context(), "user_id", repository.MOCK_NORMAL_UUID)
 	ctx = context.WithValue(ctx, "user_email", repository.MOCK_NORMAL_UUID)
 
-	MockController.HandleCreateGeneration(w, req.WithContext(ctx))
+	MockController.HandleCreateGenerationWebUI(w, req.WithContext(ctx))
 	resp := w.Result()
 	defer resp.Body.Close()
 	assert.Equal(t, 400, resp.StatusCode)
@@ -190,7 +190,7 @@ func TestGenerateEnforcesMaxWidthMaxHeight(t *testing.T) {
 	ctx = context.WithValue(req.Context(), "user_id", repository.MOCK_NORMAL_UUID)
 	ctx = context.WithValue(ctx, "user_email", repository.MOCK_NORMAL_UUID)
 
-	MockController.HandleCreateGeneration(w, req.WithContext(ctx))
+	MockController.HandleCreateGenerationWebUI(w, req.WithContext(ctx))
 	resp = w.Result()
 	defer resp.Body.Close()
 	assert.Equal(t, 400, resp.StatusCode)
@@ -218,7 +218,7 @@ func TestGenerateValidationsSkippedForSuperAdmin(t *testing.T) {
 	ctx := context.WithValue(req.Context(), "user_id", repository.MOCK_ADMIN_UUID)
 	ctx = context.WithValue(ctx, "user_email", repository.MOCK_ADMIN_UUID)
 
-	MockController.HandleCreateGeneration(w, req.WithContext(ctx))
+	MockController.HandleCreateGenerationWebUI(w, req.WithContext(ctx))
 	resp := w.Result()
 	defer resp.Body.Close()
 	assert.Equal(t, 400, resp.StatusCode)
@@ -245,7 +245,7 @@ func TestGenerateValidationsSkippedForSuperAdmin(t *testing.T) {
 	ctx = context.WithValue(req.Context(), "user_id", repository.MOCK_ADMIN_UUID)
 	ctx = context.WithValue(ctx, "user_email", repository.MOCK_ADMIN_UUID)
 
-	MockController.HandleCreateGeneration(w, req.WithContext(ctx))
+	MockController.HandleCreateGenerationWebUI(w, req.WithContext(ctx))
 	resp = w.Result()
 	defer resp.Body.Close()
 	assert.Equal(t, 400, resp.StatusCode)
@@ -276,7 +276,7 @@ func TestGenerateRejectsInvalidModelOrScheduler(t *testing.T) {
 	ctx := context.WithValue(req.Context(), "user_id", repository.MOCK_NORMAL_UUID)
 	ctx = context.WithValue(ctx, "user_email", repository.MOCK_NORMAL_UUID)
 
-	MockController.HandleCreateGeneration(w, req.WithContext(ctx))
+	MockController.HandleCreateGenerationWebUI(w, req.WithContext(ctx))
 	resp := w.Result()
 	defer resp.Body.Close()
 	assert.Equal(t, 400, resp.StatusCode)
@@ -306,7 +306,7 @@ func TestGenerateRejectsInvalidModelOrScheduler(t *testing.T) {
 	ctx = context.WithValue(req.Context(), "user_id", repository.MOCK_NORMAL_UUID)
 	ctx = context.WithValue(ctx, "user_email", repository.MOCK_NORMAL_UUID)
 
-	MockController.HandleCreateGeneration(w, req.WithContext(ctx))
+	MockController.HandleCreateGenerationWebUI(w, req.WithContext(ctx))
 	resp = w.Result()
 	defer resp.Body.Close()
 	assert.Equal(t, 400, resp.StatusCode)
@@ -339,7 +339,7 @@ func TestGenerateNoCredits(t *testing.T) {
 	ctx := context.WithValue(req.Context(), "user_id", repository.MOCK_NO_CREDITS_UUID)
 	ctx = context.WithValue(ctx, "user_email", repository.MOCK_ADMIN_UUID)
 
-	MockController.HandleCreateGeneration(w, req.WithContext(ctx))
+	MockController.HandleCreateGenerationWebUI(w, req.WithContext(ctx))
 	resp := w.Result()
 	defer resp.Body.Close()
 	assert.Equal(t, 400, resp.StatusCode)
@@ -372,7 +372,7 @@ func TestGenerateValidRequest(t *testing.T) {
 	ctx := context.WithValue(req.Context(), "user_id", repository.MOCK_NORMAL_UUID)
 	ctx = context.WithValue(ctx, "user_email", repository.MOCK_ADMIN_UUID)
 
-	MockController.HandleCreateGeneration(w, req.WithContext(ctx))
+	MockController.HandleCreateGenerationWebUI(w, req.WithContext(ctx))
 	resp := w.Result()
 	defer resp.Body.Close()
 	assert.Equal(t, 200, resp.StatusCode)

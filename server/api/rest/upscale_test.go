@@ -31,7 +31,7 @@ func TestUpscaleUnauthorizedIfUserIdMissingInContext(t *testing.T) {
 	req := httptest.NewRequest("POST", "/", bytes.NewReader(body))
 	req.Header.Set("Content-Type", "application/json")
 
-	MockController.HandleUpscale(w, req)
+	MockController.HandleCreateUpscaleWebUI(w, req)
 	resp := w.Result()
 	defer resp.Body.Close()
 	assert.Equal(t, 401, resp.StatusCode)
@@ -56,7 +56,7 @@ func TestUpscaleUnauthorizedIfUserIdNotUuid(t *testing.T) {
 	ctx := context.WithValue(req.Context(), "user_id", "not-uuid")
 	ctx = context.WithValue(ctx, "user_email", repository.MOCK_ADMIN_UUID)
 
-	MockController.HandleUpscale(w, req.WithContext(ctx))
+	MockController.HandleCreateUpscaleWebUI(w, req.WithContext(ctx))
 	resp := w.Result()
 	defer resp.Body.Close()
 	assert.Equal(t, 401, resp.StatusCode)
@@ -81,7 +81,7 @@ func TestUpscaleFailsWithInvalidStreamID(t *testing.T) {
 	ctx := context.WithValue(req.Context(), "user_id", repository.MOCK_NORMAL_UUID)
 	ctx = context.WithValue(ctx, "user_email", repository.MOCK_NORMAL_UUID)
 
-	MockController.HandleUpscale(w, req.WithContext(ctx))
+	MockController.HandleCreateUpscaleWebUI(w, req.WithContext(ctx))
 	resp := w.Result()
 	defer resp.Body.Close()
 	assert.Equal(t, 400, resp.StatusCode)
@@ -108,7 +108,7 @@ func TestUpscaleErrorsBadURL(t *testing.T) {
 	ctx := context.WithValue(req.Context(), "user_id", repository.MOCK_NORMAL_UUID)
 	ctx = context.WithValue(ctx, "user_email", repository.MOCK_NORMAL_UUID)
 
-	MockController.HandleUpscale(w, req.WithContext(ctx))
+	MockController.HandleCreateUpscaleWebUI(w, req.WithContext(ctx))
 	resp := w.Result()
 	defer resp.Body.Close()
 	assert.Equal(t, 400, resp.StatusCode)
@@ -135,7 +135,7 @@ func TestUpscaleErrorsBadOutputID(t *testing.T) {
 	ctx := context.WithValue(req.Context(), "user_id", repository.MOCK_NORMAL_UUID)
 	ctx = context.WithValue(ctx, "user_email", repository.MOCK_NORMAL_UUID)
 
-	MockController.HandleUpscale(w, req.WithContext(ctx))
+	MockController.HandleCreateUpscaleWebUI(w, req.WithContext(ctx))
 	resp := w.Result()
 	defer resp.Body.Close()
 	assert.Equal(t, 400, resp.StatusCode)
@@ -164,7 +164,7 @@ func TestUpscaleRejectsInvalidModel(t *testing.T) {
 	ctx := context.WithValue(req.Context(), "user_id", repository.MOCK_NORMAL_UUID)
 	ctx = context.WithValue(ctx, "user_email", repository.MOCK_NORMAL_UUID)
 
-	MockController.HandleUpscale(w, req.WithContext(ctx))
+	MockController.HandleCreateUpscaleWebUI(w, req.WithContext(ctx))
 	resp := w.Result()
 	defer resp.Body.Close()
 	assert.Equal(t, 400, resp.StatusCode)
@@ -216,7 +216,7 @@ func TestUpscaleFailsIfNoCredits(t *testing.T) {
 	ctx := context.WithValue(req.Context(), "user_id", repository.MOCK_NO_CREDITS_UUID)
 	ctx = context.WithValue(ctx, "user_email", repository.MOCK_ADMIN_UUID)
 
-	MockController.HandleUpscale(w, req.WithContext(ctx))
+	MockController.HandleCreateUpscaleWebUI(w, req.WithContext(ctx))
 	resp := w.Result()
 	defer resp.Body.Close()
 	assert.Equal(t, 400, resp.StatusCode)
@@ -268,7 +268,7 @@ func TestUpscaleFromURL(t *testing.T) {
 	ctx := context.WithValue(req.Context(), "user_id", repository.MOCK_ADMIN_UUID)
 	ctx = context.WithValue(ctx, "user_email", repository.MOCK_ADMIN_UUID)
 
-	MockController.HandleUpscale(w, req.WithContext(ctx))
+	MockController.HandleCreateUpscaleWebUI(w, req.WithContext(ctx))
 	resp := w.Result()
 	defer resp.Body.Close()
 	assert.Equal(t, 200, resp.StatusCode)
@@ -302,7 +302,7 @@ func TestUpscaleFromOutput(t *testing.T) {
 	ctx := context.WithValue(req.Context(), "user_id", repository.MOCK_ADMIN_UUID)
 	ctx = context.WithValue(ctx, "user_email", repository.MOCK_ADMIN_UUID)
 
-	MockController.HandleUpscale(w, req.WithContext(ctx))
+	MockController.HandleCreateUpscaleWebUI(w, req.WithContext(ctx))
 	resp := w.Result()
 	defer resp.Body.Close()
 	assert.Equal(t, 200, resp.StatusCode)

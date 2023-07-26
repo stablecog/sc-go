@@ -18,7 +18,8 @@ import (
 	"github.com/stablecog/sc-go/utils"
 )
 
-func (c *RestAPI) HandleVoiceover(w http.ResponseWriter, r *http.Request) {
+// POST - new voiceover from web UI
+func (c *RestAPI) HandleCreateVoiceoverWebUI(w http.ResponseWriter, r *http.Request) {
 	var user *ent.User
 	if user = c.GetUserIfAuthenticated(w, r); user == nil {
 		return
@@ -67,6 +68,53 @@ func (c *RestAPI) HandleVoiceover(w http.ResponseWriter, r *http.Request) {
 	// Return response
 	render.Status(r, http.StatusOK)
 	render.JSON(w, r, voiceover.QueuedResponse)
+}
+
+// HTTP Post - new voiceover from API
+func (c *RestAPI) HandleCreateVoiceoverAPI(w http.ResponseWriter, r *http.Request) {
+	var user *ent.User
+	if user = c.GetUserIfAuthenticated(w, r); user == nil {
+		return
+	}
+	var apiToken *ent.ApiToken
+	if apiToken = c.GetApiToken(w, r); apiToken == nil {
+		return
+	}
+
+	// Parse request body
+	reqBody, _ := io.ReadAll(r.Body)
+	var voiceoverReq requests.CreateVoiceoverRequest
+	err := json.Unmarshal(reqBody, &voiceoverReq)
+	if err != nil {
+		responses.ErrUnableToParseJson(w, r)
+		return
+	}
+
+	// Create voiceover
+
+	voiceover, initSettings, workerErr := c.SCWorker.CreateVoiceover(
+		enttypes.SourceTypeAPI,
+		r,
+		user,
+		&apiToken.ID,
+		voiceoverReq,
+	)
+
+	if workerErr != nil {
+		errResp := responses.ApiFailedResponse{
+			Error: workerErr.Err.Error(),
+		}
+		if initSettings != nil {
+			errResp.Settings = initSettings
+		}
+		render.Status(r, workerErr.StatusCode)
+		render.JSON(w, r, errResp)
+		return
+	}
+
+	// Return response
+	render.Status(r, http.StatusOK)
+	render.JSON(w, r, voiceover)
 }
 
 // HTTP Get - voiceovers for user

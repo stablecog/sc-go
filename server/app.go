@@ -372,6 +372,7 @@ func main() {
 	app.Get("/", hc.HandleHealth)
 	app.Handle("/metrics", middleware.BasicAuth(promhttp.Handler(), "user", "password", "Authentication required"))
 	app.Get("/clipq", hc.HandleClipQSearch)
+	app.Post("/zoom-out", hc.HandleCreateGenerationZoomOutWebUI)
 	app.Route("/v1", func(r chi.Router) {
 		r.Get("/health", hc.HandleHealth)
 
@@ -430,9 +431,9 @@ func main() {
 			r.Post("/connect/discord", hc.HandleAuthorizeDiscord)
 
 			// Create Generation
-			r.Post("/image/generation/create", hc.HandleCreateGeneration)
+			r.Post("/image/generation/create", hc.HandleCreateGenerationWebUI)
 			// ! Deprecated
-			r.Post("/generation", hc.HandleCreateGeneration)
+			r.Post("/generation", hc.HandleCreateGenerationWebUI)
 			// Mark generation for deletion
 			r.Delete("/image/generation", hc.HandleDeleteGenerationOutputForUser)
 			// ! Deprecated
@@ -449,12 +450,12 @@ func main() {
 			r.Post("/outputs/favorite", hc.HandleFavoriteGenerationOutputsForUser)
 
 			// Create upscale
-			r.Post("/image/upscale/create", hc.HandleUpscale)
+			r.Post("/image/upscale/create", hc.HandleCreateUpscaleWebUI)
 			// ! Deprecated
-			r.Post("/upscale", hc.HandleUpscale)
+			r.Post("/upscale", hc.HandleCreateUpscaleWebUI)
 
 			// Create voiceover
-			r.Post("/audio/voiceover/create", hc.HandleVoiceover)
+			r.Post("/audio/voiceover/create", hc.HandleCreateVoiceoverWebUI)
 
 			// Query voiceover outputs
 			r.Get("/audio/voiceover/outputs", hc.HandleQueryVoiceovers)
@@ -518,7 +519,7 @@ func main() {
 					r.Use(mw.AuthMiddleware(middleware.AuthLevelAPIToken))
 					r.Use(middleware.Logger)
 					r.Use(mw.RateLimit(5, "api", 1*time.Second))
-					r.Post("/", hc.HandleCreateGenerationToken)
+					r.Post("/", hc.HandleCreateGenerationAPI)
 				})
 			})
 			// ! Deprecated
@@ -527,7 +528,7 @@ func main() {
 					r.Use(mw.AuthMiddleware(middleware.AuthLevelAPIToken))
 					r.Use(middleware.Logger)
 					r.Use(mw.RateLimit(5, "api", 1*time.Second))
-					r.Post("/", hc.HandleCreateGenerationToken)
+					r.Post("/", hc.HandleCreateGenerationAPI)
 				})
 			})
 
@@ -536,7 +537,7 @@ func main() {
 					r.Use(mw.AuthMiddleware(middleware.AuthLevelAPIToken))
 					r.Use(middleware.Logger)
 					r.Use(mw.RateLimit(5, "api", 1*time.Second))
-					r.Post("/", hc.HandleCreateUpscaleToken)
+					r.Post("/", hc.HandleCreateUpscaleAPI)
 				})
 			})
 			// ! Deprecated
@@ -545,7 +546,7 @@ func main() {
 					r.Use(mw.AuthMiddleware(middleware.AuthLevelAPIToken))
 					r.Use(middleware.Logger)
 					r.Use(mw.RateLimit(5, "api", 1*time.Second))
-					r.Post("/", hc.HandleCreateUpscaleToken)
+					r.Post("/", hc.HandleCreateUpscaleAPI)
 				})
 			})
 
@@ -618,7 +619,7 @@ func main() {
 					r.Use(mw.AuthMiddleware(middleware.AuthLevelAPIToken))
 					r.Use(middleware.Logger)
 					r.Use(mw.RateLimit(5, "api", 1*time.Second))
-					r.Post("/", hc.HandleCreateVoiceoverToken)
+					r.Post("/", hc.HandleCreateVoiceoverAPI)
 				})
 			})
 
