@@ -209,8 +209,12 @@ func CreateUpscale(source enttypes.SourceType,
 	var outputIDStr string
 	if *upscaleReq.Type == requests.UpscaleRequestTypeOutput {
 		outputIDStr = upscaleReq.OutputID.String()
-		// ! TODO - do not allow this past discord
-		output, err := repo.GetGenerationOutput(*upscaleReq.OutputID)
+		var output *ent.GenerationOutput
+		if source == enttypes.SourceTypeDiscord {
+			output, err = repo.GetGenerationOutput(*upscaleReq.OutputID)
+		} else {
+			output, err = repo.GetGenerationOutputForUser(*upscaleReq.OutputID, user.ID)
+		}
 		if err != nil {
 			if ent.IsNotFound(err) {
 				return nil, &initSettings, &WorkerError{http.StatusBadRequest, fmt.Errorf("output_not_found"), ""}
