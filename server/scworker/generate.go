@@ -341,6 +341,8 @@ func (w *SCWorker) CreateGeneration(source enttypes.SourceType,
 			WebhookEventsFilter: []requests.CogEventFilter{requests.CogEventFilterStart, requests.CogEventFilterStart},
 			WebhookUrl:          fmt.Sprintf("%s/v1/worker/webhook", utils.GetEnv("PUBLIC_API_URL", "")),
 			Input: requests.BaseCogRequest{
+				SkipSafetyChecker:    true,
+				SkipTranslation:      true,
 				APIRequest:           source != enttypes.SourceTypeWebUI,
 				ID:                   requestId,
 				IP:                   ipAddress,
@@ -418,9 +420,7 @@ func (w *SCWorker) CreateGeneration(source enttypes.SourceType,
 	}()
 
 	// Analytics
-	if source != enttypes.SourceTypeAPI {
-		go w.Track.GenerationStarted(user, cogReqBody.Input, source, ipAddress)
-	}
+	go w.Track.GenerationStarted(user, cogReqBody.Input, source, ipAddress)
 	// Set timeout delay for UI
 	if source == enttypes.SourceTypeWebUI {
 		// Set timeout key
@@ -432,7 +432,7 @@ func (w *SCWorker) CreateGeneration(source enttypes.SourceType,
 			// Start the timeout timer
 			go func() {
 				// sleep
-				time.Sleep(shared.REQUEST_COG_TIMEOUT_VOICEOVER)
+				time.Sleep(shared.REQUEST_COG_TIMEOUT)
 				// this will trigger timeout if it hasnt been finished
 				w.Repo.FailCogMessageDueToTimeoutIfTimedOut(requests.CogWebhookMessage{
 					Input:  cogReqBody.Input,

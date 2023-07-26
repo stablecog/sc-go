@@ -403,7 +403,7 @@ func (w *SCWorker) CreateUpscale(source enttypes.SourceType,
 			// Start the timeout timer
 			go func() {
 				// sleep
-				time.Sleep(shared.REQUEST_COG_TIMEOUT_VOICEOVER)
+				time.Sleep(shared.REQUEST_COG_TIMEOUT)
 				// this will trigger timeout if it hasnt been finished
 				w.Repo.FailCogMessageDueToTimeoutIfTimedOut(requests.CogWebhookMessage{
 					Input:  cogReqBody.Input,
