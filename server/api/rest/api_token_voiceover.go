@@ -47,7 +47,7 @@ func (c *RestAPI) HandleCreateVoiceoverToken(w http.ResponseWriter, r *http.Requ
 		voiceoverReq,
 	)
 
-	if err != nil {
+	if workerErr != nil {
 		errResp := responses.ApiFailedResponse{
 			Error: workerErr.Err.Error(),
 		}

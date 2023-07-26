@@ -48,7 +48,7 @@ func (c *RestAPI) HandleCreateUpscaleToken(w http.ResponseWriter, r *http.Reques
 		upscaleReq,
 	)
 
-	if err != nil {
+	if workerErr != nil {
 		errResp := responses.ApiFailedResponse{
 			Error: workerErr.Err.Error(),
 		}
