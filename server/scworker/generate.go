@@ -418,14 +418,9 @@ func (w *SCWorker) CreateGeneration(source enttypes.SourceType,
 	}()
 
 	// Analytics
-	if generateReq.GuidanceScale == nil {
-		log.Warn("Guidance scale is nil")
+	if source != enttypes.SourceTypeAPI {
+		go w.Track.GenerationStarted(user, cogReqBody.Input, source, ipAddress)
 	}
-	if cogReqBody.Input.GuidanceScale == nil {
-		log.Warn("Guidance scale is nil -- cogReqBody")
-	}
-	go w.Track.GenerationStarted(user, cogReqBody.Input, source, ipAddress)
-
 	// Set timeout delay for UI
 	if source == enttypes.SourceTypeWebUI {
 		// Set timeout key
