@@ -198,6 +198,20 @@ func (gc *GenerationCreate) SetNillableSourceType(et *enttypes.SourceType) *Gene
 	return gc
 }
 
+// SetZoomOutScale sets the "zoom_out_scale" field.
+func (gc *GenerationCreate) SetZoomOutScale(f float32) *GenerationCreate {
+	gc.mutation.SetZoomOutScale(f)
+	return gc
+}
+
+// SetNillableZoomOutScale sets the "zoom_out_scale" field if the given value is not nil.
+func (gc *GenerationCreate) SetNillableZoomOutScale(f *float32) *GenerationCreate {
+	if f != nil {
+		gc.SetZoomOutScale(*f)
+	}
+	return gc
+}
+
 // SetPromptID sets the "prompt_id" field.
 func (gc *GenerationCreate) SetPromptID(u uuid.UUID) *GenerationCreate {
 	gc.mutation.SetPromptID(u)
@@ -674,6 +688,10 @@ func (gc *GenerationCreate) createSpec() (*Generation, *sqlgraph.CreateSpec) {
 	if value, ok := gc.mutation.SourceType(); ok {
 		_spec.SetField(generation.FieldSourceType, field.TypeEnum, value)
 		_node.SourceType = value
+	}
+	if value, ok := gc.mutation.ZoomOutScale(); ok {
+		_spec.SetField(generation.FieldZoomOutScale, field.TypeFloat32, value)
+		_node.ZoomOutScale = &value
 	}
 	if value, ok := gc.mutation.StartedAt(); ok {
 		_spec.SetField(generation.FieldStartedAt, field.TypeTime, value)

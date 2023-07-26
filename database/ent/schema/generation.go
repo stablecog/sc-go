@@ -38,6 +38,7 @@ func (Generation) Fields() []ent.Field {
 		field.Bool("was_auto_submitted").Default(false),
 		field.Text("stripe_product_id").Optional().Nillable(),
 		field.Enum("source_type").GoType(enttypes.SourceType("")).Default(string(enttypes.SourceTypeWebUI)),
+		field.Float32("zoom_out_scale").Optional().Nillable(),
 		// ! Relationships / many-to-one
 		field.UUID("prompt_id", uuid.UUID{}).Optional().Nillable(),
 		field.UUID("negative_prompt_id", uuid.UUID{}).Optional().Nillable(),

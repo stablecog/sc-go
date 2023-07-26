@@ -633,7 +633,7 @@ func (w *SCWorker) CreateGeneration(source enttypes.SourceType,
 }
 
 // Get expanded URLs from generation output
-func (w *SCWorker) GetExpandImageUrlsFromOutput(userId uuid.UUID, output *ent.GenerationOutput) (bgUrl string, maskUrl string, wErr *WorkerError) {
+func (w *SCWorker) GetExpandImageUrlsFromOutput(userId uuid.UUID, output *ent.GenerationOutput, zoomOutScale float64) (bgUrl string, maskUrl string, wErr *WorkerError) {
 	// Download image
 	imageUrl := utils.GetURLFromImagePath(output.ImagePath)
 	//Get the response bytes from the url
@@ -676,7 +676,7 @@ func (w *SCWorker) GetExpandImageUrlsFromOutput(userId uuid.UUID, output *ent.Ge
 	}
 
 	// Create mask and image input
-	bg, mask := utils.CreateExpandImageSet(image, 0.5, 0.02)
+	bg, mask := utils.CreateExpandImageSet(image, zoomOutScale, 0.02)
 	var bgBuf bytes.Buffer
 	var maskBuf bytes.Buffer
 	switch extension {

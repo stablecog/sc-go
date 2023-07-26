@@ -1107,3 +1107,4 @@ ALTER TABLE "public"."generations" ADD COLUMN "zoomed_from_output_id" uuid NULL,
 CREATE TABLE "public"."generation_output_zoomed_outputs" ("generation_output_id" uuid NOT NULL, "zoomed_from_output_id" uuid NOT NULL, PRIMARY KEY ("generation_output_id", "zoomed_from_output_id"), CONSTRAINT "generation_output_zoomed_outputs_generation_output_id" FOREIGN KEY ("generation_output_id") REFERENCES "public"."generation_outputs" ("id") ON UPDATE NO ACTION ON DELETE CASCADE, CONSTRAINT "generation_output_zoomed_outputs_zoomed_from_output_id" FOREIGN KEY ("zoomed_from_output_id") REFERENCES "public"."generation_outputs" ("id") ON UPDATE NO ACTION ON DELETE CASCADE);
 
 alter table public.generations add column mask_image_url text;
+alter table public.generations add column zoom_out_scale real;

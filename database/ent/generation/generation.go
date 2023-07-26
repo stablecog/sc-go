@@ -47,6 +47,8 @@ const (
 	FieldStripeProductID = "stripe_product_id"
 	// FieldSourceType holds the string denoting the source_type field in the database.
 	FieldSourceType = "source_type"
+	// FieldZoomOutScale holds the string denoting the zoom_out_scale field in the database.
+	FieldZoomOutScale = "zoom_out_scale"
 	// FieldPromptID holds the string denoting the prompt_id field in the database.
 	FieldPromptID = "prompt_id"
 	// FieldNegativePromptID holds the string denoting the negative_prompt_id field in the database.
@@ -175,6 +177,7 @@ var Columns = []string{
 	FieldWasAutoSubmitted,
 	FieldStripeProductID,
 	FieldSourceType,
+	FieldZoomOutScale,
 	FieldPromptID,
 	FieldNegativePromptID,
 	FieldModelID,

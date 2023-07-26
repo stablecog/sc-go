@@ -12,6 +12,7 @@ import (
 	"github.com/stablecog/sc-go/log"
 	"github.com/stablecog/sc-go/server/requests"
 	"github.com/stablecog/sc-go/server/responses"
+	"github.com/stablecog/sc-go/shared"
 	"github.com/stablecog/sc-go/utils"
 )
 
@@ -82,6 +83,7 @@ func (c *RestAPI) HandleCreateGenerationZoomOutWebUI(w http.ResponseWriter, r *h
 		UIId:                  generateReq.UIId,
 		PromptStrength:        generation.PromptStrength,
 		ZoomedOutFromOutputID: utils.ToPtr(output.ID),
+		ZoomOutScale:          utils.ToPtr(float32(shared.DEFAULT_GENERATE_ZOOM_OUT_SCALE)),
 	}
 
 	if generation.Edges.NegativePrompt != nil {
@@ -89,7 +91,7 @@ func (c *RestAPI) HandleCreateGenerationZoomOutWebUI(w http.ResponseWriter, r *h
 	}
 
 	// Get bg/mask url
-	bgUrlStr, maskUrlStr, wErr := c.SCWorker.GetExpandImageUrlsFromOutput(user.ID, output)
+	bgUrlStr, maskUrlStr, wErr := c.SCWorker.GetExpandImageUrlsFromOutput(user.ID, output, shared.DEFAULT_GENERATE_ZOOM_OUT_SCALE)
 	if wErr != nil {
 		errResp := responses.ApiFailedResponse{
 			Error: wErr.Err.Error(),
@@ -198,6 +200,7 @@ func (c *RestAPI) HandleCreateGenerationZoomOutAPI(w http.ResponseWriter, r *htt
 		UIId:                  generateReq.UIId,
 		PromptStrength:        generation.PromptStrength,
 		ZoomedOutFromOutputID: utils.ToPtr(output.ID),
+		ZoomOutScale:          utils.ToPtr(float32(shared.DEFAULT_GENERATE_ZOOM_OUT_SCALE)),
 	}
 
 	if generation.Edges.NegativePrompt != nil {
@@ -205,7 +208,7 @@ func (c *RestAPI) HandleCreateGenerationZoomOutAPI(w http.ResponseWriter, r *htt
 	}
 
 	// Get bg/mask url
-	bgUrlStr, maskUrlStr, wErr := c.SCWorker.GetExpandImageUrlsFromOutput(user.ID, output)
+	bgUrlStr, maskUrlStr, wErr := c.SCWorker.GetExpandImageUrlsFromOutput(user.ID, output, shared.DEFAULT_GENERATE_ZOOM_OUT_SCALE)
 	if wErr != nil {
 		errResp := responses.ApiFailedResponse{
 			Error: wErr.Err.Error(),

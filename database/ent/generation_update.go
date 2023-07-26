@@ -299,6 +299,33 @@ func (gu *GenerationUpdate) SetNillableSourceType(et *enttypes.SourceType) *Gene
 	return gu
 }
 
+// SetZoomOutScale sets the "zoom_out_scale" field.
+func (gu *GenerationUpdate) SetZoomOutScale(f float32) *GenerationUpdate {
+	gu.mutation.ResetZoomOutScale()
+	gu.mutation.SetZoomOutScale(f)
+	return gu
+}
+
+// SetNillableZoomOutScale sets the "zoom_out_scale" field if the given value is not nil.
+func (gu *GenerationUpdate) SetNillableZoomOutScale(f *float32) *GenerationUpdate {
+	if f != nil {
+		gu.SetZoomOutScale(*f)
+	}
+	return gu
+}
+
+// AddZoomOutScale adds f to the "zoom_out_scale" field.
+func (gu *GenerationUpdate) AddZoomOutScale(f float32) *GenerationUpdate {
+	gu.mutation.AddZoomOutScale(f)
+	return gu
+}
+
+// ClearZoomOutScale clears the value of the "zoom_out_scale" field.
+func (gu *GenerationUpdate) ClearZoomOutScale() *GenerationUpdate {
+	gu.mutation.ClearZoomOutScale()
+	return gu
+}
+
 // SetPromptID sets the "prompt_id" field.
 func (gu *GenerationUpdate) SetPromptID(u uuid.UUID) *GenerationUpdate {
 	gu.mutation.SetPromptID(u)
@@ -791,6 +818,15 @@ func (gu *GenerationUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if value, ok := gu.mutation.SourceType(); ok {
 		_spec.SetField(generation.FieldSourceType, field.TypeEnum, value)
+	}
+	if value, ok := gu.mutation.ZoomOutScale(); ok {
+		_spec.SetField(generation.FieldZoomOutScale, field.TypeFloat32, value)
+	}
+	if value, ok := gu.mutation.AddedZoomOutScale(); ok {
+		_spec.AddField(generation.FieldZoomOutScale, field.TypeFloat32, value)
+	}
+	if gu.mutation.ZoomOutScaleCleared() {
+		_spec.ClearField(generation.FieldZoomOutScale, field.TypeFloat32)
 	}
 	if value, ok := gu.mutation.StartedAt(); ok {
 		_spec.SetField(generation.FieldStartedAt, field.TypeTime, value)
@@ -1423,6 +1459,33 @@ func (guo *GenerationUpdateOne) SetNillableSourceType(et *enttypes.SourceType) *
 	return guo
 }
 
+// SetZoomOutScale sets the "zoom_out_scale" field.
+func (guo *GenerationUpdateOne) SetZoomOutScale(f float32) *GenerationUpdateOne {
+	guo.mutation.ResetZoomOutScale()
+	guo.mutation.SetZoomOutScale(f)
+	return guo
+}
+
+// SetNillableZoomOutScale sets the "zoom_out_scale" field if the given value is not nil.
+func (guo *GenerationUpdateOne) SetNillableZoomOutScale(f *float32) *GenerationUpdateOne {
+	if f != nil {
+		guo.SetZoomOutScale(*f)
+	}
+	return guo
+}
+
+// AddZoomOutScale adds f to the "zoom_out_scale" field.
+func (guo *GenerationUpdateOne) AddZoomOutScale(f float32) *GenerationUpdateOne {
+	guo.mutation.AddZoomOutScale(f)
+	return guo
+}
+
+// ClearZoomOutScale clears the value of the "zoom_out_scale" field.
+func (guo *GenerationUpdateOne) ClearZoomOutScale() *GenerationUpdateOne {
+	guo.mutation.ClearZoomOutScale()
+	return guo
+}
+
 // SetPromptID sets the "prompt_id" field.
 func (guo *GenerationUpdateOne) SetPromptID(u uuid.UUID) *GenerationUpdateOne {
 	guo.mutation.SetPromptID(u)
@@ -1939,6 +2002,15 @@ func (guo *GenerationUpdateOne) sqlSave(ctx context.Context) (_node *Generation,
 	}
 	if value, ok := guo.mutation.SourceType(); ok {
 		_spec.SetField(generation.FieldSourceType, field.TypeEnum, value)
+	}
+	if value, ok := guo.mutation.ZoomOutScale(); ok {
+		_spec.SetField(generation.FieldZoomOutScale, field.TypeFloat32, value)
+	}
+	if value, ok := guo.mutation.AddedZoomOutScale(); ok {
+		_spec.AddField(generation.FieldZoomOutScale, field.TypeFloat32, value)
+	}
+	if guo.mutation.ZoomOutScaleCleared() {
+		_spec.ClearField(generation.FieldZoomOutScale, field.TypeFloat32)
 	}
 	if value, ok := guo.mutation.StartedAt(); ok {
 		_spec.SetField(generation.FieldStartedAt, field.TypeTime, value)

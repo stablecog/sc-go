@@ -4323,6 +4323,8 @@ type GenerationMutation struct {
 	was_auto_submitted               *bool
 	stripe_product_id                *string
 	source_type                      *enttypes.SourceType
+	zoom_out_scale                   *float32
+	addzoom_out_scale                *float32
 	started_at                       *time.Time
 	completed_at                     *time.Time
 	created_at                       *time.Time
@@ -5271,6 +5273,76 @@ func (m *GenerationMutation) ResetSourceType() {
 	m.source_type = nil
 }
 
+// SetZoomOutScale sets the "zoom_out_scale" field.
+func (m *GenerationMutation) SetZoomOutScale(f float32) {
+	m.zoom_out_scale = &f
+	m.addzoom_out_scale = nil
+}
+
+// ZoomOutScale returns the value of the "zoom_out_scale" field in the mutation.
+func (m *GenerationMutation) ZoomOutScale() (r float32, exists bool) {
+	v := m.zoom_out_scale
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldZoomOutScale returns the old "zoom_out_scale" field's value of the Generation entity.
+// If the Generation object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *GenerationMutation) OldZoomOutScale(ctx context.Context) (v *float32, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldZoomOutScale is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldZoomOutScale requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldZoomOutScale: %w", err)
+	}
+	return oldValue.ZoomOutScale, nil
+}
+
+// AddZoomOutScale adds f to the "zoom_out_scale" field.
+func (m *GenerationMutation) AddZoomOutScale(f float32) {
+	if m.addzoom_out_scale != nil {
+		*m.addzoom_out_scale += f
+	} else {
+		m.addzoom_out_scale = &f
+	}
+}
+
+// AddedZoomOutScale returns the value that was added to the "zoom_out_scale" field in this mutation.
+func (m *GenerationMutation) AddedZoomOutScale() (r float32, exists bool) {
+	v := m.addzoom_out_scale
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ClearZoomOutScale clears the value of the "zoom_out_scale" field.
+func (m *GenerationMutation) ClearZoomOutScale() {
+	m.zoom_out_scale = nil
+	m.addzoom_out_scale = nil
+	m.clearedFields[generation.FieldZoomOutScale] = struct{}{}
+}
+
+// ZoomOutScaleCleared returns if the "zoom_out_scale" field was cleared in this mutation.
+func (m *GenerationMutation) ZoomOutScaleCleared() bool {
+	_, ok := m.clearedFields[generation.FieldZoomOutScale]
+	return ok
+}
+
+// ResetZoomOutScale resets all changes to the "zoom_out_scale" field.
+func (m *GenerationMutation) ResetZoomOutScale() {
+	m.zoom_out_scale = nil
+	m.addzoom_out_scale = nil
+	delete(m.clearedFields, generation.FieldZoomOutScale)
+}
+
 // SetPromptID sets the "prompt_id" field.
 func (m *GenerationMutation) SetPromptID(u uuid.UUID) {
 	m.prompt = &u
@@ -6116,7 +6188,7 @@ func (m *GenerationMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *GenerationMutation) Fields() []string {
-	fields := make([]string, 0, 28)
+	fields := make([]string, 0, 29)
 	if m.width != nil {
 		fields = append(fields, generation.FieldWidth)
 	}
@@ -6164,6 +6236,9 @@ func (m *GenerationMutation) Fields() []string {
 	}
 	if m.source_type != nil {
 		fields = append(fields, generation.FieldSourceType)
+	}
+	if m.zoom_out_scale != nil {
+		fields = append(fields, generation.FieldZoomOutScale)
 	}
 	if m.prompt != nil {
 		fields = append(fields, generation.FieldPromptID)
@@ -6241,6 +6316,8 @@ func (m *GenerationMutation) Field(name string) (ent.Value, bool) {
 		return m.StripeProductID()
 	case generation.FieldSourceType:
 		return m.SourceType()
+	case generation.FieldZoomOutScale:
+		return m.ZoomOutScale()
 	case generation.FieldPromptID:
 		return m.PromptID()
 	case generation.FieldNegativePromptID:
@@ -6306,6 +6383,8 @@ func (m *GenerationMutation) OldField(ctx context.Context, name string) (ent.Val
 		return m.OldStripeProductID(ctx)
 	case generation.FieldSourceType:
 		return m.OldSourceType(ctx)
+	case generation.FieldZoomOutScale:
+		return m.OldZoomOutScale(ctx)
 	case generation.FieldPromptID:
 		return m.OldPromptID(ctx)
 	case generation.FieldNegativePromptID:
@@ -6451,6 +6530,13 @@ func (m *GenerationMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetSourceType(v)
 		return nil
+	case generation.FieldZoomOutScale:
+		v, ok := value.(float32)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetZoomOutScale(v)
+		return nil
 	case generation.FieldPromptID:
 		v, ok := value.(uuid.UUID)
 		if !ok {
@@ -6567,6 +6653,9 @@ func (m *GenerationMutation) AddedFields() []string {
 	if m.addprompt_strength != nil {
 		fields = append(fields, generation.FieldPromptStrength)
 	}
+	if m.addzoom_out_scale != nil {
+		fields = append(fields, generation.FieldZoomOutScale)
+	}
 	return fields
 }
 
@@ -6591,6 +6680,8 @@ func (m *GenerationMutation) AddedField(name string) (ent.Value, bool) {
 		return m.AddedSeed()
 	case generation.FieldPromptStrength:
 		return m.AddedPromptStrength()
+	case generation.FieldZoomOutScale:
+		return m.AddedZoomOutScale()
 	}
 	return nil, false
 }
@@ -6656,6 +6747,13 @@ func (m *GenerationMutation) AddField(name string, value ent.Value) error {
 		}
 		m.AddPromptStrength(v)
 		return nil
+	case generation.FieldZoomOutScale:
+		v, ok := value.(float32)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddZoomOutScale(v)
+		return nil
 	}
 	return fmt.Errorf("unknown Generation numeric field %s", name)
 }
@@ -6681,6 +6779,9 @@ func (m *GenerationMutation) ClearedFields() []string {
 	}
 	if m.FieldCleared(generation.FieldStripeProductID) {
 		fields = append(fields, generation.FieldStripeProductID)
+	}
+	if m.FieldCleared(generation.FieldZoomOutScale) {
+		fields = append(fields, generation.FieldZoomOutScale)
 	}
 	if m.FieldCleared(generation.FieldPromptID) {
 		fields = append(fields, generation.FieldPromptID)
@@ -6731,6 +6832,9 @@ func (m *GenerationMutation) ClearField(name string) error {
 		return nil
 	case generation.FieldStripeProductID:
 		m.ClearStripeProductID()
+		return nil
+	case generation.FieldZoomOutScale:
+		m.ClearZoomOutScale()
 		return nil
 	case generation.FieldPromptID:
 		m.ClearPromptID()
@@ -6805,6 +6909,9 @@ func (m *GenerationMutation) ResetField(name string) error {
 		return nil
 	case generation.FieldSourceType:
 		m.ResetSourceType()
+		return nil
+	case generation.FieldZoomOutScale:
+		m.ResetZoomOutScale()
 		return nil
 	case generation.FieldPromptID:
 		m.ResetPromptID()

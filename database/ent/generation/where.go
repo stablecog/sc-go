@@ -127,6 +127,11 @@ func StripeProductID(v string) predicate.Generation {
 	return predicate.Generation(sql.FieldEQ(FieldStripeProductID, v))
 }
 
+// ZoomOutScale applies equality check predicate on the "zoom_out_scale" field. It's identical to ZoomOutScaleEQ.
+func ZoomOutScale(v float32) predicate.Generation {
+	return predicate.Generation(sql.FieldEQ(FieldZoomOutScale, v))
+}
+
 // PromptID applies equality check predicate on the "prompt_id" field. It's identical to PromptIDEQ.
 func PromptID(v uuid.UUID) predicate.Generation {
 	return predicate.Generation(sql.FieldEQ(FieldPromptID, v))
@@ -950,6 +955,56 @@ func SourceTypeNotIn(vs ...enttypes.SourceType) predicate.Generation {
 		v[i] = vs[i]
 	}
 	return predicate.Generation(sql.FieldNotIn(FieldSourceType, v...))
+}
+
+// ZoomOutScaleEQ applies the EQ predicate on the "zoom_out_scale" field.
+func ZoomOutScaleEQ(v float32) predicate.Generation {
+	return predicate.Generation(sql.FieldEQ(FieldZoomOutScale, v))
+}
+
+// ZoomOutScaleNEQ applies the NEQ predicate on the "zoom_out_scale" field.
+func ZoomOutScaleNEQ(v float32) predicate.Generation {
+	return predicate.Generation(sql.FieldNEQ(FieldZoomOutScale, v))
+}
+
+// ZoomOutScaleIn applies the In predicate on the "zoom_out_scale" field.
+func ZoomOutScaleIn(vs ...float32) predicate.Generation {
+	return predicate.Generation(sql.FieldIn(FieldZoomOutScale, vs...))
+}
+
+// ZoomOutScaleNotIn applies the NotIn predicate on the "zoom_out_scale" field.
+func ZoomOutScaleNotIn(vs ...float32) predicate.Generation {
+	return predicate.Generation(sql.FieldNotIn(FieldZoomOutScale, vs...))
+}
+
+// ZoomOutScaleGT applies the GT predicate on the "zoom_out_scale" field.
+func ZoomOutScaleGT(v float32) predicate.Generation {
+	return predicate.Generation(sql.FieldGT(FieldZoomOutScale, v))
+}
+
+// ZoomOutScaleGTE applies the GTE predicate on the "zoom_out_scale" field.
+func ZoomOutScaleGTE(v float32) predicate.Generation {
+	return predicate.Generation(sql.FieldGTE(FieldZoomOutScale, v))
+}
+
+// ZoomOutScaleLT applies the LT predicate on the "zoom_out_scale" field.
+func ZoomOutScaleLT(v float32) predicate.Generation {
+	return predicate.Generation(sql.FieldLT(FieldZoomOutScale, v))
+}
+
+// ZoomOutScaleLTE applies the LTE predicate on the "zoom_out_scale" field.
+func ZoomOutScaleLTE(v float32) predicate.Generation {
+	return predicate.Generation(sql.FieldLTE(FieldZoomOutScale, v))
+}
+
+// ZoomOutScaleIsNil applies the IsNil predicate on the "zoom_out_scale" field.
+func ZoomOutScaleIsNil() predicate.Generation {
+	return predicate.Generation(sql.FieldIsNull(FieldZoomOutScale))
+}
+
+// ZoomOutScaleNotNil applies the NotNil predicate on the "zoom_out_scale" field.
+func ZoomOutScaleNotNil() predicate.Generation {
+	return predicate.Generation(sql.FieldNotNull(FieldZoomOutScale))
 }
 
 // PromptIDEQ applies the EQ predicate on the "prompt_id" field.

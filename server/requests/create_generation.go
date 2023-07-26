@@ -37,6 +37,7 @@ type CreateGenerationRequest struct {
 	ProcessType           shared.ProcessType    `json:"process_type"`
 	OutputImageExtension  shared.ImageExtension `json:"output_image_extension"`
 	OutputID              *uuid.UUID            `json:"output_id,omitempty"`
+	ZoomOutScale          *float32              `json:"zoom_out_scale,omitempty"`
 }
 
 func (t *CreateGenerationRequest) Cost() int32 {

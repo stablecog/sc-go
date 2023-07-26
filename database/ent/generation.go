@@ -58,6 +58,8 @@ type Generation struct {
 	StripeProductID *string `json:"stripe_product_id,omitempty"`
 	// SourceType holds the value of the "source_type" field.
 	SourceType enttypes.SourceType `json:"source_type,omitempty"`
+	// ZoomOutScale holds the value of the "zoom_out_scale" field.
+	ZoomOutScale *float32 `json:"zoom_out_scale,omitempty"`
 	// PromptID holds the value of the "prompt_id" field.
 	PromptID *uuid.UUID `json:"prompt_id,omitempty"`
 	// NegativePromptID holds the value of the "negative_prompt_id" field.
@@ -234,7 +236,7 @@ func (*Generation) scanValues(columns []string) ([]any, error) {
 			values[i] = &sql.NullScanner{S: new(uuid.UUID)}
 		case generation.FieldWasAutoSubmitted:
 			values[i] = new(sql.NullBool)
-		case generation.FieldGuidanceScale, generation.FieldPromptStrength:
+		case generation.FieldGuidanceScale, generation.FieldPromptStrength, generation.FieldZoomOutScale:
 			values[i] = new(sql.NullFloat64)
 		case generation.FieldWidth, generation.FieldHeight, generation.FieldInferenceSteps, generation.FieldNumOutputs, generation.FieldNsfwCount, generation.FieldSeed:
 			values[i] = new(sql.NullInt64)
@@ -366,6 +368,13 @@ func (ge *Generation) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field source_type", values[i])
 			} else if value.Valid {
 				ge.SourceType = enttypes.SourceType(value.String)
+			}
+		case generation.FieldZoomOutScale:
+			if value, ok := values[i].(*sql.NullFloat64); !ok {
+				return fmt.Errorf("unexpected type %T for field zoom_out_scale", values[i])
+			} else if value.Valid {
+				ge.ZoomOutScale = new(float32)
+				*ge.ZoomOutScale = float32(value.Float64)
 			}
 		case generation.FieldPromptID:
 			if value, ok := values[i].(*sql.NullScanner); !ok {
@@ -577,6 +586,11 @@ func (ge *Generation) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("source_type=")
 	builder.WriteString(fmt.Sprintf("%v", ge.SourceType))
+	builder.WriteString(", ")
+	if v := ge.ZoomOutScale; v != nil {
+		builder.WriteString("zoom_out_scale=")
+		builder.WriteString(fmt.Sprintf("%v", *v))
+	}
 	builder.WriteString(", ")
 	if v := ge.PromptID; v != nil {
 		builder.WriteString("prompt_id=")

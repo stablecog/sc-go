@@ -58,6 +58,9 @@ func (r *Repository) CreateGeneration(userID uuid.UUID, deviceType, deviceOs, de
 	if req.ZoomedOutFromOutputID != nil {
 		insert.SetZoomedFromOutputID(*req.ZoomedOutFromOutputID)
 	}
+	if req.ZoomOutScale != nil {
+		insert.SetZoomOutScale(*req.ZoomOutScale)
+	}
 	return insert.Save(r.Ctx)
 }
 
