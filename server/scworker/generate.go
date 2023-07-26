@@ -186,6 +186,8 @@ func (w *SCWorker) CreateGeneration(source enttypes.SourceType,
 		if signedInitImageUrl == "" {
 			return nil, &initSettings, &WorkerError{http.StatusBadRequest, fmt.Errorf("invalid_image_url"), ""}
 		}
+	} else if generateReq.ZoomedOutFromOutputID != nil {
+		signedInitImageUrl = generateReq.InitImageUrl
 	}
 
 	// Get queue count
