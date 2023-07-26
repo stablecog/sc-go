@@ -2,6 +2,7 @@ package scworker
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -703,10 +704,13 @@ func (w *SCWorker) GetExpandImageUrlsFromOutput(userId uuid.UUID, output *ent.Ge
 	defer close(errCh)
 
 	// Use Goroutines to run the PutObject requests concurrently
+	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
+	defer cancel()
+
 	go func() {
 		defer wg.Done()
 		err := func() error {
-			_, err = w.S3.PutObject(&s3.PutObjectInput{
+			_, err := w.S3.PutObjectWithContext(ctx, &s3.PutObjectInput{
 				Bucket:      aws.String(os.Getenv("S3_IMG2IMG_BUCKET_NAME")),
 				Key:         aws.String(bgObjKey),
 				Body:        bytes.NewReader(bgBuf.Bytes()),
@@ -720,17 +724,16 @@ func (w *SCWorker) GetExpandImageUrlsFromOutput(userId uuid.UUID, output *ent.Ge
 	go func() {
 		defer wg.Done()
 		err := func() error {
-			_, err = w.S3.PutObject(&s3.PutObjectInput{
+			_, err := w.S3.PutObjectWithContext(ctx, &s3.PutObjectInput{
 				Bucket:      aws.String(os.Getenv("S3_IMG2IMG_BUCKET_NAME")),
 				Key:         aws.String(maskObjKey),
-				Body:        bytes.NewReader(bgBuf.Bytes()),
+				Body:        bytes.NewReader(maskBuf.Bytes()),
 				ContentType: aws.String(contentType),
 			})
 			return err
 		}()
 		errCh <- err
 	}()
-
 	// Wait for both Goroutines to finish
 	wg.Wait()
 
