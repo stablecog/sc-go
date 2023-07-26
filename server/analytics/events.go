@@ -4,7 +4,6 @@ import (
 	"github.com/google/uuid"
 	"github.com/stablecog/sc-go/database/ent"
 	"github.com/stablecog/sc-go/database/enttypes"
-	"github.com/stablecog/sc-go/log"
 	"github.com/stablecog/sc-go/server/requests"
 	"github.com/stablecog/sc-go/utils"
 )
@@ -26,18 +25,6 @@ func setDeviceInfo(dInfo utils.ClientDeviceInfo, properties map[string]interface
 
 // Generation | Started
 func (a *AnalyticsService) GenerationStarted(user *ent.User, cogReq requests.BaseCogRequest, source enttypes.SourceType, ip string) error {
-	if cogReq.GuidanceScale == nil {
-		log.Warn("Guidance Scale is nil")
-	}
-	if cogReq.Height == nil {
-		log.Warn("Height is nil")
-	}
-	if cogReq.Width == nil {
-		log.Warn("Width is nil")
-	}
-	if cogReq.NumInferenceSteps == nil {
-		log.Warn("NumInferenceSteps is nil")
-	}
 	properties := map[string]interface{}{
 		"SC - User Id":           user.ID,
 		"SC - Guidance Scale":    *cogReq.GuidanceScale,
