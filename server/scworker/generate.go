@@ -428,6 +428,7 @@ func (w *SCWorker) CreateGeneration(source enttypes.SourceType,
 			log.Warn("Guidance Scale is nil - cogReqBody")
 		}
 		log.Warnf("Prompt %s", cogReqBody.Input.Prompt)
+		log.Warnf("URL %s", cogReqBody.WebhookUrl)
 	}
 	// Set timeout delay for UI
 	if source == enttypes.SourceTypeWebUI {
