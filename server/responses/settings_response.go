@@ -35,6 +35,8 @@ type ImageGenerationSettingsResponse struct {
 	InferenceSteps int32     `json:"inference_steps"`
 	Seed           *int      `json:"seed,omitempty"`
 	InitImageURL   string    `json:"init_image_url,omitempty"`
+	MaskImageURL   string    `json:"mask_image_url,omitempty"`
+	ZoomOutScale   *float32  `json:"zoom_out_scale,omitempty"`
 	PromptStrength *float32  `json:"prompt_strength,omitempty"`
 }
 
