@@ -1101,10 +1101,9 @@ CREATE UNIQUE INDEX "user_email_idx" ON "public"."users" ("email");
 
 -- For zooming
 
--- Modify "generation_outputs" table
-ALTER TABLE "public"."generation_outputs" ADD COLUMN "generation_output_zoomed_outputs" uuid NULL, ADD CONSTRAINT "generation_outputs_generation_outputs_zoomed_outputs" FOREIGN KEY ("generation_output_zoomed_outputs") REFERENCES "public"."generation_outputs" ("id") ON UPDATE NO ACTION ON DELETE SET NULL;
-
 -- Modify "generations" table
 ALTER TABLE "public"."generations" ADD COLUMN "zoomed_from_output_id" uuid NULL, ADD CONSTRAINT "generations_generation_outputs_zoomed_from_generation" FOREIGN KEY ("zoomed_from_output_id") REFERENCES "public"."generation_outputs" ("id") ON UPDATE NO ACTION ON DELETE SET NULL;
+
+CREATE TABLE "public"."generation_output_zoomed_outputs" ("generation_output_id" uuid NOT NULL, "zoomed_from_output_id" uuid NOT NULL, PRIMARY KEY ("generation_output_id", "zoomed_from_output_id"), CONSTRAINT "generation_output_zoomed_outputs_generation_output_id" FOREIGN KEY ("generation_output_id") REFERENCES "public"."generation_outputs" ("id") ON UPDATE NO ACTION ON DELETE CASCADE, CONSTRAINT "generation_output_zoomed_outputs_zoomed_from_output_id" FOREIGN KEY ("zoomed_from_output_id") REFERENCES "public"."generation_outputs" ("id") ON UPDATE NO ACTION ON DELETE CASCADE);
 
 alter table public.generations add column mask_image_url text;

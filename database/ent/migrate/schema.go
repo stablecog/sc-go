@@ -272,7 +272,6 @@ var (
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},
 		{Name: "generation_id", Type: field.TypeUUID},
-		{Name: "generation_output_zoomed_outputs", Type: field.TypeUUID, Nullable: true},
 	}
 	// GenerationOutputsTable holds the schema information for the "generation_outputs" table.
 	GenerationOutputsTable = &schema.Table{
@@ -285,12 +284,6 @@ var (
 				Columns:    []*schema.Column{GenerationOutputsColumns[9]},
 				RefColumns: []*schema.Column{GenerationsColumns[0]},
 				OnDelete:   schema.Cascade,
-			},
-			{
-				Symbol:     "generation_outputs_generation_outputs_zoomed_outputs",
-				Columns:    []*schema.Column{GenerationOutputsColumns[10]},
-				RefColumns: []*schema.Column{GenerationOutputsColumns[0]},
-				OnDelete:   schema.SetNull,
 			},
 		},
 		Indexes: []*schema.Index{
@@ -692,6 +685,31 @@ var (
 			},
 		},
 	}
+	// GenerationOutputZoomedOutputsColumns holds the columns for the "generation_output_zoomed_outputs" table.
+	GenerationOutputZoomedOutputsColumns = []*schema.Column{
+		{Name: "generation_output_id", Type: field.TypeUUID},
+		{Name: "zoomed_from_output_id", Type: field.TypeUUID},
+	}
+	// GenerationOutputZoomedOutputsTable holds the schema information for the "generation_output_zoomed_outputs" table.
+	GenerationOutputZoomedOutputsTable = &schema.Table{
+		Name:       "generation_output_zoomed_outputs",
+		Columns:    GenerationOutputZoomedOutputsColumns,
+		PrimaryKey: []*schema.Column{GenerationOutputZoomedOutputsColumns[0], GenerationOutputZoomedOutputsColumns[1]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "generation_output_zoomed_outputs_generation_output_id",
+				Columns:    []*schema.Column{GenerationOutputZoomedOutputsColumns[0]},
+				RefColumns: []*schema.Column{GenerationOutputsColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+			{
+				Symbol:     "generation_output_zoomed_outputs_zoomed_from_output_id",
+				Columns:    []*schema.Column{GenerationOutputZoomedOutputsColumns[1]},
+				RefColumns: []*schema.Column{GenerationOutputsColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+		},
+	}
 	// UserRoleUsersColumns holds the columns for the "user_role_users" table.
 	UserRoleUsersColumns = []*schema.Column{
 		{Name: "role_id", Type: field.TypeUUID},
@@ -740,6 +758,7 @@ var (
 		VoiceoverOutputsTable,
 		VoiceoverSpeakersTable,
 		GenerationModelCompatibleSchedulersTable,
+		GenerationOutputZoomedOutputsTable,
 		UserRoleUsersTable,
 	}
 )
@@ -778,7 +797,6 @@ func init() {
 		Table: "generation_models",
 	}
 	GenerationOutputsTable.ForeignKeys[0].RefTable = GenerationsTable
-	GenerationOutputsTable.ForeignKeys[1].RefTable = GenerationOutputsTable
 	GenerationOutputsTable.Annotation = &entsql.Annotation{
 		Table: "generation_outputs",
 	}
@@ -834,6 +852,8 @@ func init() {
 	}
 	GenerationModelCompatibleSchedulersTable.ForeignKeys[0].RefTable = GenerationModelsTable
 	GenerationModelCompatibleSchedulersTable.ForeignKeys[1].RefTable = SchedulersTable
+	GenerationOutputZoomedOutputsTable.ForeignKeys[0].RefTable = GenerationOutputsTable
+	GenerationOutputZoomedOutputsTable.ForeignKeys[1].RefTable = GenerationOutputsTable
 	UserRoleUsersTable.ForeignKeys[0].RefTable = RolesTable
 	UserRoleUsersTable.ForeignKeys[1].RefTable = UsersTable
 }

@@ -38,8 +38,8 @@ const (
 	EdgeUpscaleOutputs = "upscale_outputs"
 	// EdgeZoomedFromGeneration holds the string denoting the zoomed_from_generation edge name in mutations.
 	EdgeZoomedFromGeneration = "zoomed_from_generation"
-	// EdgeGenerationOutputs holds the string denoting the generation_outputs edge name in mutations.
-	EdgeGenerationOutputs = "generation_outputs"
+	// EdgeZoomedFromOutput holds the string denoting the zoomed_from_output edge name in mutations.
+	EdgeZoomedFromOutput = "zoomed_from_output"
 	// EdgeZoomedOutputs holds the string denoting the zoomed_outputs edge name in mutations.
 	EdgeZoomedOutputs = "zoomed_outputs"
 	// Table holds the table name of the generationoutput in the database.
@@ -65,14 +65,10 @@ const (
 	ZoomedFromGenerationInverseTable = "generations"
 	// ZoomedFromGenerationColumn is the table column denoting the zoomed_from_generation relation/edge.
 	ZoomedFromGenerationColumn = "zoomed_from_output_id"
-	// GenerationOutputsTable is the table that holds the generation_outputs relation/edge.
-	GenerationOutputsTable = "generation_outputs"
-	// GenerationOutputsColumn is the table column denoting the generation_outputs relation/edge.
-	GenerationOutputsColumn = "generation_output_zoomed_outputs"
-	// ZoomedOutputsTable is the table that holds the zoomed_outputs relation/edge.
-	ZoomedOutputsTable = "generation_outputs"
-	// ZoomedOutputsColumn is the table column denoting the zoomed_outputs relation/edge.
-	ZoomedOutputsColumn = "generation_output_zoomed_outputs"
+	// ZoomedFromOutputTable is the table that holds the zoomed_from_output relation/edge. The primary key declared below.
+	ZoomedFromOutputTable = "generation_output_zoomed_outputs"
+	// ZoomedOutputsTable is the table that holds the zoomed_outputs relation/edge. The primary key declared below.
+	ZoomedOutputsTable = "generation_output_zoomed_outputs"
 )
 
 // Columns holds all SQL columns for generationoutput fields.
@@ -89,21 +85,19 @@ var Columns = []string{
 	FieldUpdatedAt,
 }
 
-// ForeignKeys holds the SQL foreign-keys that are owned by the "generation_outputs"
-// table and are not defined as standalone fields in the schema.
-var ForeignKeys = []string{
-	"generation_output_zoomed_outputs",
-}
+var (
+	// ZoomedFromOutputPrimaryKey and ZoomedFromOutputColumn2 are the table columns denoting the
+	// primary key for the zoomed_from_output relation (M2M).
+	ZoomedFromOutputPrimaryKey = []string{"generation_output_id", "zoomed_from_output_id"}
+	// ZoomedOutputsPrimaryKey and ZoomedOutputsColumn2 are the table columns denoting the
+	// primary key for the zoomed_outputs relation (M2M).
+	ZoomedOutputsPrimaryKey = []string{"generation_output_id", "zoomed_from_output_id"}
+)
 
 // ValidColumn reports if the column name is valid (part of the table columns).
 func ValidColumn(column string) bool {
 	for i := range Columns {
 		if column == Columns[i] {
-			return true
-		}
-	}
-	for i := range ForeignKeys {
-		if column == ForeignKeys[i] {
 			return true
 		}
 	}

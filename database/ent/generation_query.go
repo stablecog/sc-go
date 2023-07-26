@@ -1004,7 +1004,6 @@ func (gq *GenerationQuery) loadGenerationOutputs(ctx context.Context, query *Gen
 			init(nodes[i])
 		}
 	}
-	query.withFKs = true
 	query.Where(predicate.GenerationOutput(func(s *sql.Selector) {
 		s.Where(sql.InValues(generation.GenerationOutputsColumn, fks...))
 	}))

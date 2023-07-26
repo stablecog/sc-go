@@ -50,8 +50,7 @@ func (GenerationOutput) Edges() []ent.Edge {
 		edge.To("zoomed_from_generation", Generation.Type),
 		// O2M with self
 		edge.To("zoomed_outputs", GenerationOutput.Type).
-			From("generation_outputs").
-			Unique(),
+			From("zoomed_from_output"),
 	}
 }
 

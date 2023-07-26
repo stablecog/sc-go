@@ -28,9 +28,8 @@ type GenerationOutputQuery struct {
 	withGenerations          *GenerationQuery
 	withUpscaleOutputs       *UpscaleOutputQuery
 	withZoomedFromGeneration *GenerationQuery
-	withGenerationOutputs    *GenerationOutputQuery
+	withZoomedFromOutput     *GenerationOutputQuery
 	withZoomedOutputs        *GenerationOutputQuery
-	withFKs                  bool
 	modifiers                []func(*sql.Selector)
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
@@ -134,8 +133,8 @@ func (goq *GenerationOutputQuery) QueryZoomedFromGeneration() *GenerationQuery {
 	return query
 }
 
-// QueryGenerationOutputs chains the current query on the "generation_outputs" edge.
-func (goq *GenerationOutputQuery) QueryGenerationOutputs() *GenerationOutputQuery {
+// QueryZoomedFromOutput chains the current query on the "zoomed_from_output" edge.
+func (goq *GenerationOutputQuery) QueryZoomedFromOutput() *GenerationOutputQuery {
 	query := (&GenerationOutputClient{config: goq.config}).Query()
 	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
 		if err := goq.prepareQuery(ctx); err != nil {
@@ -148,7 +147,7 @@ func (goq *GenerationOutputQuery) QueryGenerationOutputs() *GenerationOutputQuer
 		step := sqlgraph.NewStep(
 			sqlgraph.From(generationoutput.Table, generationoutput.FieldID, selector),
 			sqlgraph.To(generationoutput.Table, generationoutput.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, generationoutput.GenerationOutputsTable, generationoutput.GenerationOutputsColumn),
+			sqlgraph.Edge(sqlgraph.M2M, true, generationoutput.ZoomedFromOutputTable, generationoutput.ZoomedFromOutputPrimaryKey...),
 		)
 		fromU = sqlgraph.SetNeighbors(goq.driver.Dialect(), step)
 		return fromU, nil
@@ -170,7 +169,7 @@ func (goq *GenerationOutputQuery) QueryZoomedOutputs() *GenerationOutputQuery {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(generationoutput.Table, generationoutput.FieldID, selector),
 			sqlgraph.To(generationoutput.Table, generationoutput.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, generationoutput.ZoomedOutputsTable, generationoutput.ZoomedOutputsColumn),
+			sqlgraph.Edge(sqlgraph.M2M, false, generationoutput.ZoomedOutputsTable, generationoutput.ZoomedOutputsPrimaryKey...),
 		)
 		fromU = sqlgraph.SetNeighbors(goq.driver.Dialect(), step)
 		return fromU, nil
@@ -371,7 +370,7 @@ func (goq *GenerationOutputQuery) Clone() *GenerationOutputQuery {
 		withGenerations:          goq.withGenerations.Clone(),
 		withUpscaleOutputs:       goq.withUpscaleOutputs.Clone(),
 		withZoomedFromGeneration: goq.withZoomedFromGeneration.Clone(),
-		withGenerationOutputs:    goq.withGenerationOutputs.Clone(),
+		withZoomedFromOutput:     goq.withZoomedFromOutput.Clone(),
 		withZoomedOutputs:        goq.withZoomedOutputs.Clone(),
 		// clone intermediate query.
 		sql:  goq.sql.Clone(),
@@ -412,14 +411,14 @@ func (goq *GenerationOutputQuery) WithZoomedFromGeneration(opts ...func(*Generat
 	return goq
 }
 
-// WithGenerationOutputs tells the query-builder to eager-load the nodes that are connected to
-// the "generation_outputs" edge. The optional arguments are used to configure the query builder of the edge.
-func (goq *GenerationOutputQuery) WithGenerationOutputs(opts ...func(*GenerationOutputQuery)) *GenerationOutputQuery {
+// WithZoomedFromOutput tells the query-builder to eager-load the nodes that are connected to
+// the "zoomed_from_output" edge. The optional arguments are used to configure the query builder of the edge.
+func (goq *GenerationOutputQuery) WithZoomedFromOutput(opts ...func(*GenerationOutputQuery)) *GenerationOutputQuery {
 	query := (&GenerationOutputClient{config: goq.config}).Query()
 	for _, opt := range opts {
 		opt(query)
 	}
-	goq.withGenerationOutputs = query
+	goq.withZoomedFromOutput = query
 	return goq
 }
 
@@ -511,22 +510,15 @@ func (goq *GenerationOutputQuery) prepareQuery(ctx context.Context) error {
 func (goq *GenerationOutputQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*GenerationOutput, error) {
 	var (
 		nodes       = []*GenerationOutput{}
-		withFKs     = goq.withFKs
 		_spec       = goq.querySpec()
 		loadedTypes = [5]bool{
 			goq.withGenerations != nil,
 			goq.withUpscaleOutputs != nil,
 			goq.withZoomedFromGeneration != nil,
-			goq.withGenerationOutputs != nil,
+			goq.withZoomedFromOutput != nil,
 			goq.withZoomedOutputs != nil,
 		}
 	)
-	if goq.withGenerations != nil || goq.withGenerationOutputs != nil {
-		withFKs = true
-	}
-	if withFKs {
-		_spec.Node.Columns = append(_spec.Node.Columns, generationoutput.ForeignKeys...)
-	}
 	_spec.ScanValues = func(columns []string) ([]any, error) {
 		return (*GenerationOutput).scanValues(nil, columns)
 	}
@@ -569,9 +561,12 @@ func (goq *GenerationOutputQuery) sqlAll(ctx context.Context, hooks ...queryHook
 			return nil, err
 		}
 	}
-	if query := goq.withGenerationOutputs; query != nil {
-		if err := goq.loadGenerationOutputs(ctx, query, nodes, nil,
-			func(n *GenerationOutput, e *GenerationOutput) { n.Edges.GenerationOutputs = e }); err != nil {
+	if query := goq.withZoomedFromOutput; query != nil {
+		if err := goq.loadZoomedFromOutput(ctx, query, nodes,
+			func(n *GenerationOutput) { n.Edges.ZoomedFromOutput = []*GenerationOutput{} },
+			func(n *GenerationOutput, e *GenerationOutput) {
+				n.Edges.ZoomedFromOutput = append(n.Edges.ZoomedFromOutput, e)
+			}); err != nil {
 			return nil, err
 		}
 	}
@@ -673,66 +668,119 @@ func (goq *GenerationOutputQuery) loadZoomedFromGeneration(ctx context.Context, 
 	}
 	return nil
 }
-func (goq *GenerationOutputQuery) loadGenerationOutputs(ctx context.Context, query *GenerationOutputQuery, nodes []*GenerationOutput, init func(*GenerationOutput), assign func(*GenerationOutput, *GenerationOutput)) error {
-	ids := make([]uuid.UUID, 0, len(nodes))
-	nodeids := make(map[uuid.UUID][]*GenerationOutput)
-	for i := range nodes {
-		if nodes[i].generation_output_zoomed_outputs == nil {
-			continue
+func (goq *GenerationOutputQuery) loadZoomedFromOutput(ctx context.Context, query *GenerationOutputQuery, nodes []*GenerationOutput, init func(*GenerationOutput), assign func(*GenerationOutput, *GenerationOutput)) error {
+	edgeIDs := make([]driver.Value, len(nodes))
+	byID := make(map[uuid.UUID]*GenerationOutput)
+	nids := make(map[uuid.UUID]map[*GenerationOutput]struct{})
+	for i, node := range nodes {
+		edgeIDs[i] = node.ID
+		byID[node.ID] = node
+		if init != nil {
+			init(node)
 		}
-		fk := *nodes[i].generation_output_zoomed_outputs
-		if _, ok := nodeids[fk]; !ok {
-			ids = append(ids, fk)
+	}
+	query.Where(func(s *sql.Selector) {
+		joinT := sql.Table(generationoutput.ZoomedFromOutputTable)
+		s.Join(joinT).On(s.C(generationoutput.FieldID), joinT.C(generationoutput.ZoomedFromOutputPrimaryKey[0]))
+		s.Where(sql.InValues(joinT.C(generationoutput.ZoomedFromOutputPrimaryKey[1]), edgeIDs...))
+		columns := s.SelectedColumns()
+		s.Select(joinT.C(generationoutput.ZoomedFromOutputPrimaryKey[1]))
+		s.AppendSelect(columns...)
+		s.SetDistinct(false)
+	})
+	if err := query.prepareQuery(ctx); err != nil {
+		return err
+	}
+	neighbors, err := query.sqlAll(ctx, func(_ context.Context, spec *sqlgraph.QuerySpec) {
+		assign := spec.Assign
+		values := spec.ScanValues
+		spec.ScanValues = func(columns []string) ([]any, error) {
+			values, err := values(columns[1:])
+			if err != nil {
+				return nil, err
+			}
+			return append([]any{new(uuid.UUID)}, values...), nil
 		}
-		nodeids[fk] = append(nodeids[fk], nodes[i])
-	}
-	if len(ids) == 0 {
-		return nil
-	}
-	query.Where(generationoutput.IDIn(ids...))
-	neighbors, err := query.All(ctx)
+		spec.Assign = func(columns []string, values []any) error {
+			outValue := *values[0].(*uuid.UUID)
+			inValue := *values[1].(*uuid.UUID)
+			if nids[inValue] == nil {
+				nids[inValue] = map[*GenerationOutput]struct{}{byID[outValue]: {}}
+				return assign(columns[1:], values[1:])
+			}
+			nids[inValue][byID[outValue]] = struct{}{}
+			return nil
+		}
+	})
 	if err != nil {
 		return err
 	}
 	for _, n := range neighbors {
-		nodes, ok := nodeids[n.ID]
+		nodes, ok := nids[n.ID]
 		if !ok {
-			return fmt.Errorf(`unexpected foreign-key "generation_output_zoomed_outputs" returned %v`, n.ID)
+			return fmt.Errorf(`unexpected "zoomed_from_output" node returned %v`, n.ID)
 		}
-		for i := range nodes {
-			assign(nodes[i], n)
+		for kn := range nodes {
+			assign(kn, n)
 		}
 	}
 	return nil
 }
 func (goq *GenerationOutputQuery) loadZoomedOutputs(ctx context.Context, query *GenerationOutputQuery, nodes []*GenerationOutput, init func(*GenerationOutput), assign func(*GenerationOutput, *GenerationOutput)) error {
-	fks := make([]driver.Value, 0, len(nodes))
-	nodeids := make(map[uuid.UUID]*GenerationOutput)
-	for i := range nodes {
-		fks = append(fks, nodes[i].ID)
-		nodeids[nodes[i].ID] = nodes[i]
+	edgeIDs := make([]driver.Value, len(nodes))
+	byID := make(map[uuid.UUID]*GenerationOutput)
+	nids := make(map[uuid.UUID]map[*GenerationOutput]struct{})
+	for i, node := range nodes {
+		edgeIDs[i] = node.ID
+		byID[node.ID] = node
 		if init != nil {
-			init(nodes[i])
+			init(node)
 		}
 	}
-	query.withFKs = true
-	query.Where(predicate.GenerationOutput(func(s *sql.Selector) {
-		s.Where(sql.InValues(generationoutput.ZoomedOutputsColumn, fks...))
-	}))
-	neighbors, err := query.All(ctx)
+	query.Where(func(s *sql.Selector) {
+		joinT := sql.Table(generationoutput.ZoomedOutputsTable)
+		s.Join(joinT).On(s.C(generationoutput.FieldID), joinT.C(generationoutput.ZoomedOutputsPrimaryKey[1]))
+		s.Where(sql.InValues(joinT.C(generationoutput.ZoomedOutputsPrimaryKey[0]), edgeIDs...))
+		columns := s.SelectedColumns()
+		s.Select(joinT.C(generationoutput.ZoomedOutputsPrimaryKey[0]))
+		s.AppendSelect(columns...)
+		s.SetDistinct(false)
+	})
+	if err := query.prepareQuery(ctx); err != nil {
+		return err
+	}
+	neighbors, err := query.sqlAll(ctx, func(_ context.Context, spec *sqlgraph.QuerySpec) {
+		assign := spec.Assign
+		values := spec.ScanValues
+		spec.ScanValues = func(columns []string) ([]any, error) {
+			values, err := values(columns[1:])
+			if err != nil {
+				return nil, err
+			}
+			return append([]any{new(uuid.UUID)}, values...), nil
+		}
+		spec.Assign = func(columns []string, values []any) error {
+			outValue := *values[0].(*uuid.UUID)
+			inValue := *values[1].(*uuid.UUID)
+			if nids[inValue] == nil {
+				nids[inValue] = map[*GenerationOutput]struct{}{byID[outValue]: {}}
+				return assign(columns[1:], values[1:])
+			}
+			nids[inValue][byID[outValue]] = struct{}{}
+			return nil
+		}
+	})
 	if err != nil {
 		return err
 	}
 	for _, n := range neighbors {
-		fk := n.generation_output_zoomed_outputs
-		if fk == nil {
-			return fmt.Errorf(`foreign-key "generation_output_zoomed_outputs" is nil for node %v`, n.ID)
-		}
-		node, ok := nodeids[*fk]
+		nodes, ok := nids[n.ID]
 		if !ok {
-			return fmt.Errorf(`unexpected foreign-key "generation_output_zoomed_outputs" returned %v for node %v`, *fk, n.ID)
+			return fmt.Errorf(`unexpected "zoomed_outputs" node returned %v`, n.ID)
 		}
-		assign(node, n)
+		for kn := range nodes {
+			assign(kn, n)
+		}
 	}
 	return nil
 }

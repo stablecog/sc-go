@@ -192,23 +192,19 @@ func (goc *GenerationOutputCreate) AddZoomedFromGeneration(g ...*Generation) *Ge
 	return goc.AddZoomedFromGenerationIDs(ids...)
 }
 
-// SetGenerationOutputsID sets the "generation_outputs" edge to the GenerationOutput entity by ID.
-func (goc *GenerationOutputCreate) SetGenerationOutputsID(id uuid.UUID) *GenerationOutputCreate {
-	goc.mutation.SetGenerationOutputsID(id)
+// AddZoomedFromOutputIDs adds the "zoomed_from_output" edge to the GenerationOutput entity by IDs.
+func (goc *GenerationOutputCreate) AddZoomedFromOutputIDs(ids ...uuid.UUID) *GenerationOutputCreate {
+	goc.mutation.AddZoomedFromOutputIDs(ids...)
 	return goc
 }
 
-// SetNillableGenerationOutputsID sets the "generation_outputs" edge to the GenerationOutput entity by ID if the given value is not nil.
-func (goc *GenerationOutputCreate) SetNillableGenerationOutputsID(id *uuid.UUID) *GenerationOutputCreate {
-	if id != nil {
-		goc = goc.SetGenerationOutputsID(*id)
+// AddZoomedFromOutput adds the "zoomed_from_output" edges to the GenerationOutput entity.
+func (goc *GenerationOutputCreate) AddZoomedFromOutput(g ...*GenerationOutput) *GenerationOutputCreate {
+	ids := make([]uuid.UUID, len(g))
+	for i := range g {
+		ids[i] = g[i].ID
 	}
-	return goc
-}
-
-// SetGenerationOutputs sets the "generation_outputs" edge to the GenerationOutput entity.
-func (goc *GenerationOutputCreate) SetGenerationOutputs(g *GenerationOutput) *GenerationOutputCreate {
-	return goc.SetGenerationOutputsID(g.ID)
+	return goc.AddZoomedFromOutputIDs(ids...)
 }
 
 // AddZoomedOutputIDs adds the "zoomed_outputs" edge to the GenerationOutput entity by IDs.
@@ -449,12 +445,12 @@ func (goc *GenerationOutputCreate) createSpec() (*GenerationOutput, *sqlgraph.Cr
 		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if nodes := goc.mutation.GenerationOutputsIDs(); len(nodes) > 0 {
+	if nodes := goc.mutation.ZoomedFromOutputIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
+			Rel:     sqlgraph.M2M,
 			Inverse: true,
-			Table:   generationoutput.GenerationOutputsTable,
-			Columns: []string{generationoutput.GenerationOutputsColumn},
+			Table:   generationoutput.ZoomedFromOutputTable,
+			Columns: generationoutput.ZoomedFromOutputPrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
@@ -466,15 +462,14 @@ func (goc *GenerationOutputCreate) createSpec() (*GenerationOutput, *sqlgraph.Cr
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		_node.generation_output_zoomed_outputs = &nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	if nodes := goc.mutation.ZoomedOutputsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
+			Rel:     sqlgraph.M2M,
 			Inverse: false,
 			Table:   generationoutput.ZoomedOutputsTable,
-			Columns: []string{generationoutput.ZoomedOutputsColumn},
+			Columns: generationoutput.ZoomedOutputsPrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
