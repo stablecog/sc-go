@@ -19,10 +19,19 @@ import (
 func (r *Repository) CreateGeneration(userID uuid.UUID, deviceType, deviceOs, deviceBrowser, countryCode string, req requests.CreateGenerationRequest, productId *string, apiTokenId *uuid.UUID, sourceType enttypes.SourceType, DB *ent.Client) (*ent.Generation, error) {
 	if DB == nil {
 		DB = r.DB
+		if apiTokenId != nil {
+			log.Warn("g_1")
+		}
 	}
 	// Get prompt, negative prompt, device info
 	deviceInfoId, err := r.GetOrCreateDeviceInfo(deviceType, deviceOs, deviceBrowser, DB)
+	if apiTokenId != nil {
+		log.Warn("g_2")
+	}
 	if err != nil {
+		if apiTokenId != nil {
+			log.Warn("g_3")
+		}
 		return nil, err
 	}
 	insert := DB.Generation.Create().
@@ -40,19 +49,41 @@ func (r *Repository) CreateGeneration(userID uuid.UUID, deviceType, deviceOs, de
 		SetWasAutoSubmitted(req.SubmitToGallery).
 		SetNumOutputs(*req.NumOutputs).
 		SetSourceType(sourceType)
+	if apiTokenId != nil {
+		log.Warn("g_4")
+	}
 	if productId != nil {
+		if apiTokenId != nil {
+			log.Warn("g_5")
+		}
 		insert.SetStripeProductID(*productId)
 	}
 	if req.InitImageUrl != "" {
+		if apiTokenId != nil {
+			log.Warn("g_6")
+		}
 		insert.SetInitImageURL(req.InitImageUrl)
 	}
 	if req.PromptStrength != nil {
+		if apiTokenId != nil {
+			log.Warn("g_7")
+		}
 		insert.SetPromptStrength(*req.PromptStrength)
 	}
 	if apiTokenId != nil {
+		if apiTokenId != nil {
+			log.Warn("g_8")
+		}
 		insert.SetAPITokenID(*apiTokenId)
 	}
-	return insert.Save(r.Ctx)
+	if apiTokenId != nil {
+		log.Warn("g_9")
+	}
+	saved, err := insert.Save(r.Ctx)
+	if apiTokenId != nil {
+		log.Warn("g_10")
+	}
+	return saved, err
 }
 
 func (r *Repository) SetGenerationStarted(generationID string) error {
