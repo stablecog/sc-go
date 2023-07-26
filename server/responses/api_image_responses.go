@@ -21,5 +21,5 @@ type ApiSucceededResponse struct {
 
 type ApiFailedResponse struct {
 	Error    string      `json:"error"`
-	Settings interface{} `json:"settings"`
+	Settings interface{} `json:"settings,omitempty"`
 }
