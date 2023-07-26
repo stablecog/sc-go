@@ -136,7 +136,7 @@ func (w *SCWorker) CreateGeneration(source enttypes.SourceType,
 	// The URL we send worker
 	var signedInitImageUrl string
 	// See if init image specified, validate it belongs to user, validate it exists in bucket
-	if generateReq.InitImageUrl != "" {
+	if generateReq.InitImageUrl != "" && generateReq.ZoomedOutFromOutputID == nil {
 		if utils.IsValidHTTPURL(generateReq.InitImageUrl) {
 			// Custom image, do some validation on size, format, etc.
 			_, _, err = utils.GetImageWidthHeightFromUrl(generateReq.InitImageUrl, shared.MAX_GENERATE_IMAGE_SIZE)
