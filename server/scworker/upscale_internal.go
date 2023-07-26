@@ -121,7 +121,7 @@ func CreateUpscaleInternal(Track *analytics.AnalyticsService, Repo *repository.R
 		}
 
 		// Analytics
-		go Track.UpscaleStarted(user, cogReqBody.Input, "system")
+		go Track.UpscaleStarted(user, cogReqBody.Input, enttypes.SourceTypeInternal, "system")
 
 		// Send live page update
 		go func() {
@@ -215,7 +215,7 @@ func CreateUpscaleInternal(Track *analytics.AnalyticsService, Repo *repository.R
 				}
 				duration := time.Now().Sub(*upscale.StartedAt).Seconds()
 				qDuration := (*upscale.StartedAt).Sub(upscale.CreatedAt).Seconds()
-				go Track.UpscaleSucceeded(user, cogMsg.Input, duration, qDuration, "system")
+				go Track.UpscaleSucceeded(user, cogMsg.Input, duration, qDuration, enttypes.SourceTypeInternal, "system")
 				return err
 			case requests.CogFailed:
 				err := Repo.SetUpscaleFailed(upscale.ID.String(), cogMsg.Error, nil)
@@ -243,7 +243,7 @@ func CreateUpscaleInternal(Track *analytics.AnalyticsService, Repo *repository.R
 				}()
 				// Analytics
 				duration := time.Now().Sub(cogMsg.Input.LivePageData.CreatedAt).Seconds()
-				go Track.UpscaleFailed(user, cogMsg.Input, duration, cogMsg.Error, "system")
+				go Track.UpscaleFailed(user, cogMsg.Input, duration, cogMsg.Error, enttypes.SourceTypeInternal, "system")
 				return err
 			}
 		case <-time.After(shared.REQUEST_COG_TIMEOUT):

@@ -67,6 +67,10 @@ func (t *CreateGenerationRequest) ApplyDefaults() {
 	if t.InitImageUrl != "" && t.PromptStrength == nil {
 		t.PromptStrength = utils.ToPtr(shared.DEFAULT_GENERATE_PROMPT_STRENGTH)
 	}
+	if t.Seed == nil || *t.Seed < 0 {
+		rand.Seed(time.Now().Unix())
+		t.Seed = utils.ToPtr(rand.Intn(math.MaxInt32))
+	}
 }
 
 func (t *CreateGenerationRequest) Validate(api bool) error {

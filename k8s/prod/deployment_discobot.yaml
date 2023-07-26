@@ -101,3 +101,23 @@ spec:
                 secretKeyRef:
                   name: sc-go
                   key: OPENAI_API_KEY
+            - name: MIXPANEL_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: sc-go
+                  key: MIXPANEL_API_KEY
+            - name: MIXPANEL_ENDPOINT
+              valueFrom:
+                secretKeyRef:
+                  name: sc-go
+                  key: MIXPANEL_ENDPOINT
+            - name: POSTHOG_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: sc-go
+                  key: POSTHOG_API_KEY
+            - name: POSTHOG_ENDPOINT
+              valueFrom:
+                secretKeyRef:
+                  name: sc-go
+                  key: POSTHOG_ENDPOINT

@@ -7,6 +7,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/stablecog/sc-go/database/ent/credit"
+	"github.com/stablecog/sc-go/database/ent/credittype"
 	"github.com/stablecog/sc-go/shared"
 	"github.com/stretchr/testify/assert"
 )
@@ -19,7 +20,7 @@ func TestCountPaidCreditsForUser(t *testing.T) {
 
 func TestCreditsForUser(t *testing.T) {
 	// Create more credits
-	creditType := MockRepo.DB.CreditType.Query().FirstX(MockRepo.Ctx)
+	creditType := MockRepo.DB.CreditType.Query().Where(credittype.IDNEQ(uuid.MustParse(TIPPABLE_CREDIT_TYPE_ID))).FirstX(MockRepo.Ctx)
 	_, err := MockRepo.DB.Credit.Create().SetCreditTypeID(creditType.ID).SetUserID(uuid.MustParse(MOCK_ADMIN_UUID)).SetRemainingAmount(1234).SetExpiresAt(time.Now().AddDate(1000, 0, 0)).Save(MockRepo.Ctx)
 	assert.Nil(t, err)
 

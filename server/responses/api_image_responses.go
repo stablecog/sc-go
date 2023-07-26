@@ -13,12 +13,13 @@ type ApiOutput struct {
 }
 
 type ApiSucceededResponse struct {
-	Outputs          []ApiOutput `json:"outputs"`
-	RemainingCredits int         `json:"remaining_credits"`
-	Settings         interface{} `json:"settings"`
+	Outputs          []ApiOutput         `json:"outputs"`
+	RemainingCredits int                 `json:"remaining_credits"`
+	Settings         interface{}         `json:"settings"`
+	QueuedResponse   *TaskQueuedResponse `json:"queued_response,omitempty"`
 }
 
 type ApiFailedResponse struct {
 	Error    string      `json:"error"`
-	Settings interface{} `json:"settings"`
+	Settings interface{} `json:"settings,omitempty"`
 }

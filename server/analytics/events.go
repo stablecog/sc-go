@@ -3,6 +3,7 @@ package analytics
 import (
 	"github.com/google/uuid"
 	"github.com/stablecog/sc-go/database/ent"
+	"github.com/stablecog/sc-go/database/enttypes"
 	"github.com/stablecog/sc-go/server/requests"
 	"github.com/stablecog/sc-go/utils"
 )
@@ -23,7 +24,7 @@ func setDeviceInfo(dInfo utils.ClientDeviceInfo, properties map[string]interface
 }
 
 // Generation | Started
-func (a *AnalyticsService) GenerationStarted(user *ent.User, cogReq requests.BaseCogRequest, ip string) error {
+func (a *AnalyticsService) GenerationStarted(user *ent.User, cogReq requests.BaseCogRequest, source enttypes.SourceType, ip string) error {
 	properties := map[string]interface{}{
 		"SC - User Id":           user.ID,
 		"SC - Guidance Scale":    *cogReq.GuidanceScale,
@@ -34,6 +35,7 @@ func (a *AnalyticsService) GenerationStarted(user *ent.User, cogReq requests.Bas
 		"SC - Scheduler Id":      cogReq.SchedulerId.String(),
 		"SC - Submit to Gallery": cogReq.SubmitToGallery,
 		"SC - Num Outputs":       cogReq.NumOutputs,
+		"SC - Source":            source,
 		"$ip":                    ip,
 		"email":                  user.Email,
 	}
@@ -57,7 +59,7 @@ func (a *AnalyticsService) GenerationStarted(user *ent.User, cogReq requests.Bas
 }
 
 // Generation | Succeeded
-func (a *AnalyticsService) GenerationSucceeded(user *ent.User, cogReq requests.BaseCogRequest, duration float64, qDuration float64, ip string) error {
+func (a *AnalyticsService) GenerationSucceeded(user *ent.User, cogReq requests.BaseCogRequest, duration float64, qDuration float64, source enttypes.SourceType, ip string) error {
 	properties := map[string]interface{}{
 		"SC - User Id":           user.ID,
 		"SC - Guidance Scale":    *cogReq.GuidanceScale,
@@ -70,6 +72,7 @@ func (a *AnalyticsService) GenerationSucceeded(user *ent.User, cogReq requests.B
 		"SC - Duration":          duration,
 		"SC - Duration in Queue": qDuration,
 		"SC - Num Outputs":       cogReq.NumOutputs,
+		"SC - Source":            source,
 		"$ip":                    ip,
 	}
 	if user.ActiveProductID != nil {
@@ -91,7 +94,7 @@ func (a *AnalyticsService) GenerationSucceeded(user *ent.User, cogReq requests.B
 }
 
 // Generation | Failed-NSFW
-func (a *AnalyticsService) GenerationFailedNSFW(user *ent.User, cogReq requests.BaseCogRequest, duration float64, ip string) error {
+func (a *AnalyticsService) GenerationFailedNSFW(user *ent.User, cogReq requests.BaseCogRequest, duration float64, source enttypes.SourceType, ip string) error {
 	properties := map[string]interface{}{
 		"SC - User Id":           user.ID,
 		"SC - Guidance Scale":    *cogReq.GuidanceScale,
@@ -103,6 +106,7 @@ func (a *AnalyticsService) GenerationFailedNSFW(user *ent.User, cogReq requests.
 		"SC - Submit to Gallery": cogReq.SubmitToGallery,
 		"SC - Duration":          duration,
 		"SC - Num Outputs":       cogReq.NumOutputs,
+		"SC - Source":            source,
 		"$ip":                    ip,
 	}
 	if user.ActiveProductID != nil {
@@ -124,7 +128,7 @@ func (a *AnalyticsService) GenerationFailedNSFW(user *ent.User, cogReq requests.
 }
 
 // Generation | Failed
-func (a *AnalyticsService) GenerationFailed(user *ent.User, cogReq requests.BaseCogRequest, duration float64, failureReason string, ip string) error {
+func (a *AnalyticsService) GenerationFailed(user *ent.User, cogReq requests.BaseCogRequest, duration float64, failureReason string, source enttypes.SourceType, ip string) error {
 	properties := map[string]interface{}{
 		"SC - User Id":           user.ID,
 		"SC - Guidance Scale":    *cogReq.GuidanceScale,
@@ -137,6 +141,7 @@ func (a *AnalyticsService) GenerationFailed(user *ent.User, cogReq requests.Base
 		"SC - Duration":          duration,
 		"SC - Num Outputs":       cogReq.NumOutputs,
 		"SC - Failure Reason":    failureReason,
+		"SC - Source":            source,
 		"$ip":                    ip,
 	}
 	if user.ActiveProductID != nil {
@@ -158,7 +163,7 @@ func (a *AnalyticsService) GenerationFailed(user *ent.User, cogReq requests.Base
 }
 
 // Upscale | Started
-func (a *AnalyticsService) UpscaleStarted(user *ent.User, cogReq requests.BaseCogRequest, ip string) error {
+func (a *AnalyticsService) UpscaleStarted(user *ent.User, cogReq requests.BaseCogRequest, source enttypes.SourceType, ip string) error {
 	properties := map[string]interface{}{
 		"SC - User Id":  user.ID,
 		"SC - Height":   *cogReq.Height,
@@ -167,6 +172,7 @@ func (a *AnalyticsService) UpscaleStarted(user *ent.User, cogReq requests.BaseCo
 		"SC - Scale":    4, // Always 4 for now
 		"SC - Image":    cogReq.Image,
 		"SC - Type":     cogReq.Type,
+		"SC - Source":   source,
 		"$ip":           ip,
 		"email":         user.Email,
 	}
@@ -187,7 +193,7 @@ func (a *AnalyticsService) UpscaleStarted(user *ent.User, cogReq requests.BaseCo
 }
 
 // Upscale | Succeeded
-func (a *AnalyticsService) UpscaleSucceeded(user *ent.User, cogReq requests.BaseCogRequest, duration float64, qDuration float64, ip string) error {
+func (a *AnalyticsService) UpscaleSucceeded(user *ent.User, cogReq requests.BaseCogRequest, duration float64, qDuration float64, source enttypes.SourceType, ip string) error {
 
 	properties := map[string]interface{}{
 		"SC - User Id":           user.ID,
@@ -199,6 +205,7 @@ func (a *AnalyticsService) UpscaleSucceeded(user *ent.User, cogReq requests.Base
 		"SC - Type":              cogReq.Type,
 		"SC - Duration":          duration,
 		"SC - Duration in Queue": qDuration,
+		"SC - Source":            source,
 		"$ip":                    ip,
 	}
 	if ip == "system" {
@@ -217,7 +224,7 @@ func (a *AnalyticsService) UpscaleSucceeded(user *ent.User, cogReq requests.Base
 }
 
 // Upscale | Failed
-func (a *AnalyticsService) UpscaleFailed(user *ent.User, cogReq requests.BaseCogRequest, duration float64, failureReason string, ip string) error {
+func (a *AnalyticsService) UpscaleFailed(user *ent.User, cogReq requests.BaseCogRequest, duration float64, failureReason string, source enttypes.SourceType, ip string) error {
 	properties := map[string]interface{}{
 		"SC - User Id":        user.ID,
 		"SC - Height":         *cogReq.Height,
@@ -227,6 +234,7 @@ func (a *AnalyticsService) UpscaleFailed(user *ent.User, cogReq requests.BaseCog
 		"SC - Image":          cogReq.Image,
 		"SC - Type":           cogReq.Type,
 		"SC - Duration":       duration,
+		"SC - Source":         source,
 		"$ip":                 ip,
 		"SC - Failure Reason": failureReason,
 	}
@@ -246,7 +254,7 @@ func (a *AnalyticsService) UpscaleFailed(user *ent.User, cogReq requests.BaseCog
 }
 
 // Voiceover | Started
-func (a *AnalyticsService) VoiceoverStarted(user *ent.User, cogReq requests.BaseCogRequest, ip string) error {
+func (a *AnalyticsService) VoiceoverStarted(user *ent.User, cogReq requests.BaseCogRequest, source enttypes.SourceType, ip string) error {
 	properties := map[string]interface{}{
 		"SC - User Id":        user.ID,
 		"SC - Model Id":       cogReq.ModelId.String(),
@@ -254,6 +262,7 @@ func (a *AnalyticsService) VoiceoverStarted(user *ent.User, cogReq requests.Base
 		"SC - Temperature":    *cogReq.Temp,
 		"SC - Denoise Audio":  *cogReq.DenoiseAudio,
 		"SC - Remove Silence": *cogReq.RemoveSilence,
+		"SC - Source":         source,
 		"$ip":                 ip,
 		"email":               user.Email,
 	}
@@ -271,7 +280,7 @@ func (a *AnalyticsService) VoiceoverStarted(user *ent.User, cogReq requests.Base
 }
 
 // Voiceover | Succeeded
-func (a *AnalyticsService) VoiceoverSucceeded(user *ent.User, cogReq requests.BaseCogRequest, duration float64, qDuration float64, ip string) error {
+func (a *AnalyticsService) VoiceoverSucceeded(user *ent.User, cogReq requests.BaseCogRequest, duration float64, qDuration float64, source enttypes.SourceType, ip string) error {
 
 	properties := map[string]interface{}{
 		"SC - User Id":           user.ID,
@@ -282,6 +291,7 @@ func (a *AnalyticsService) VoiceoverSucceeded(user *ent.User, cogReq requests.Ba
 		"SC - Remove Silence":    *cogReq.RemoveSilence,
 		"SC - Duration":          duration,
 		"SC - Duration in Queue": qDuration,
+		"SC - Source":            source,
 		"$ip":                    ip,
 	}
 	if user.ActiveProductID != nil {
@@ -297,7 +307,7 @@ func (a *AnalyticsService) VoiceoverSucceeded(user *ent.User, cogReq requests.Ba
 }
 
 // Voiceover | Failed
-func (a *AnalyticsService) VoiceoverFailed(user *ent.User, cogReq requests.BaseCogRequest, duration float64, failureReason string, ip string) error {
+func (a *AnalyticsService) VoiceoverFailed(user *ent.User, cogReq requests.BaseCogRequest, duration float64, failureReason string, source enttypes.SourceType, ip string) error {
 	properties := map[string]interface{}{
 		"SC - User Id":        user.ID,
 		"SC - Model Id":       cogReq.ModelId.String(),
@@ -308,6 +318,7 @@ func (a *AnalyticsService) VoiceoverFailed(user *ent.User, cogReq requests.BaseC
 		"SC - Duration":       duration,
 		"$ip":                 ip,
 		"SC - Failure Reason": failureReason,
+		"SC - Source":         source,
 	}
 	if user.ActiveProductID != nil {
 		properties["SC - Stripe Product Id"] = user.ActiveProductID

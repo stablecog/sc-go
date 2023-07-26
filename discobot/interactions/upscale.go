@@ -1,7 +1,6 @@
 package interactions
 
 import (
-	"context"
 	"errors"
 	"fmt"
 	"time"
@@ -12,7 +11,6 @@ import (
 	"github.com/stablecog/sc-go/log"
 	"github.com/stablecog/sc-go/server/requests"
 	srvresponses "github.com/stablecog/sc-go/server/responses"
-	"github.com/stablecog/sc-go/server/scworker"
 	"github.com/stablecog/sc-go/shared"
 	"github.com/stablecog/sc-go/utils"
 )
@@ -111,21 +109,16 @@ func (c *DiscordInteractionWrapper) NewUpscaleCommand() *DiscordInteraction {
 				// Always create initial message
 				responses.InitialLoadingResponse(s, i, responses.PUBLIC)
 
-				// Create context
-				ctx := context.Background()
-				res, err := scworker.CreateUpscale(
-					ctx,
+				// Create upscale
+				res, _, wErr := c.SCWorker.CreateUpscale(
 					enttypes.SourceTypeDiscord,
 					nil,
-					c.Repo,
-					c.Redis,
-					c.SMap,
-					c.QThrottler,
 					u,
+					nil,
 					req,
 				)
-				if err != nil {
-					if errors.Is(err, srvresponses.InsufficientCreditsErr) {
+				if wErr != nil {
+					if errors.Is(wErr.Err, srvresponses.InsufficientCreditsErr) {
 						credits, err := c.Repo.GetNonExpiredCreditTotalForUser(u.ID, nil)
 						if err != nil {
 							log.Errorf("Error getting credits for user: %v", err)
@@ -135,7 +128,7 @@ func (c *DiscordInteractionWrapper) NewUpscaleCommand() *DiscordInteraction {
 						responses.InteractionEdit(s, i, responses.InsufficientCreditsResponseOptions(req.Cost(), int32(credits)))
 						return
 					}
-					log.Errorf("Error creating voiceover: %v", err)
+					log.Errorf("Error creating upscale: %v", err)
 					responses.ErrorResponseEdit(s, i)
 					return
 				}

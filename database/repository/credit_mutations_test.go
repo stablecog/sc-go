@@ -19,11 +19,11 @@ func TestDeductCreditsFromUser(t *testing.T) {
 	assert.Equal(t, true, success)
 
 	// User should have 50 credits
-	userCredit := MockRepo.DB.Credit.Query().Where(credit.UserIDEQ(uuid.MustParse(MOCK_NORMAL_UUID))).FirstX(MockRepo.Ctx)
+	userCredit := MockRepo.DB.Credit.Query().Where(credit.UserIDEQ(uuid.MustParse(MOCK_NORMAL_UUID)), credit.CreditTypeIDNEQ(uuid.MustParse(TIPPABLE_CREDIT_TYPE_ID))).FirstX(MockRepo.Ctx)
 	assert.Equal(t, int32(50), userCredit.RemainingAmount)
 
 	// Create another row of non-expiring credits for user
-	creditType := MockRepo.DB.CreditType.Query().FirstX(MockRepo.Ctx)
+	creditType := MockRepo.DB.CreditType.Query().Where(credittype.IDNEQ(uuid.MustParse(TIPPABLE_CREDIT_TYPE_ID))).FirstX(MockRepo.Ctx)
 	_, err = MockRepo.DB.Credit.Create().SetCreditTypeID(creditType.ID).SetUserID(uuid.MustParse(MOCK_NORMAL_UUID)).SetRemainingAmount(1234).SetExpiresAt(time.Now().AddDate(1000, 0, 0)).Save(MockRepo.Ctx)
 	assert.Nil(t, err)
 
@@ -118,7 +118,7 @@ func TestRefundCreditsToUser(t *testing.T) {
 	_, err := MockRepo.DB.Credit.Delete().Where(credit.UserIDEQ(uuid.MustParse(MOCK_NORMAL_UUID))).Exec(MockRepo.Ctx)
 	assert.Nil(t, err)
 	// Create new credits
-	creditType := MockRepo.DB.CreditType.Query().FirstX(MockRepo.Ctx)
+	creditType := MockRepo.DB.CreditType.Query().Where(credittype.IDNEQ(uuid.MustParse(TIPPABLE_CREDIT_TYPE_ID))).FirstX(MockRepo.Ctx)
 	_, err = MockRepo.DB.Credit.Create().SetCreditTypeID(creditType.ID).SetUserID(uuid.MustParse(MOCK_NORMAL_UUID)).SetRemainingAmount(1234).SetExpiresAt(time.Now().AddDate(1, 0, 0)).Save(MockRepo.Ctx)
 
 	// Deduct
@@ -126,7 +126,7 @@ func TestRefundCreditsToUser(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Equal(t, true, success)
 
-	creditsStarted := MockRepo.DB.Credit.Query().Where(credit.UserIDEQ(uuid.MustParse(MOCK_NORMAL_UUID))).Order(ent.Desc(credit.FieldExpiresAt)).FirstX(MockRepo.Ctx)
+	creditsStarted := MockRepo.DB.Credit.Query().Where(credit.UserIDEQ(uuid.MustParse(MOCK_NORMAL_UUID)), credit.CreditTypeIDNEQ(uuid.MustParse(TIPPABLE_CREDIT_TYPE_ID))).Order(ent.Desc(credit.FieldExpiresAt)).FirstX(MockRepo.Ctx)
 	assert.Equal(t, int32(1234-50), creditsStarted.RemainingAmount)
 
 	// Refund
@@ -134,7 +134,7 @@ func TestRefundCreditsToUser(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Equal(t, true, success)
 
-	creditsStarted = MockRepo.DB.Credit.Query().Where(credit.IDEQ(creditsStarted.ID)).FirstX(MockRepo.Ctx)
+	creditsStarted = MockRepo.DB.Credit.Query().Where(credit.IDEQ(creditsStarted.ID), credit.CreditTypeIDNEQ(uuid.MustParse(TIPPABLE_CREDIT_TYPE_ID))).FirstX(MockRepo.Ctx)
 	assert.Equal(t, int32(1234-50), creditsStarted.RemainingAmount)
 
 	// Get refund credit type
