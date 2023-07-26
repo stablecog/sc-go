@@ -643,7 +643,7 @@ func (w *SCWorker) GetExpandImageUrlsFromOutput(userId uuid.UUID, output *ent.Ge
 	var image image.Image
 	var contentType string
 	switch extension {
-	case ".jpg":
+	case ".jpg", ".jpeg":
 		image, err = jpeg.Decode(response.Body)
 		if err != nil {
 			log.Error("Error decoding image", "err", err)
@@ -674,7 +674,7 @@ func (w *SCWorker) GetExpandImageUrlsFromOutput(userId uuid.UUID, output *ent.Ge
 	var bgBuf bytes.Buffer
 	var maskBuf bytes.Buffer
 	switch extension {
-	case ".jpg":
+	case ".jpg", ".jpeg":
 		jpeg.Encode(&bgBuf, bg, nil)
 		jpeg.Encode(&maskBuf, mask, nil)
 	case ".webp":
