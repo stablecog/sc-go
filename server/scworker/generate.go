@@ -130,6 +130,8 @@ func (w *SCWorker) CreateGeneration(source enttypes.SourceType,
 		InferenceSteps: *generateReq.InferenceSteps,
 		Seed:           generateReq.Seed,
 		InitImageURL:   generateReq.InitImageUrl,
+		MaskImageURL:   generateReq.MaskImageUrl,
+		ZoomOutScale:   generateReq.ZoomOutScale,
 		PromptStrength: generateReq.PromptStrength,
 	}
 

@@ -38,6 +38,11 @@ func (c *RestAPI) HandleCreateGenerationZoomOutWebUI(w http.ResponseWriter, r *h
 		return
 	}
 
+	if !utils.IsSha256Hash(generateReq.StreamID) {
+		responses.ErrBadRequest(w, r, "invalid_stream_id", generateReq.StreamID)
+		return
+	}
+
 	if user.BannedAt != nil {
 		remainingCredits, _ := c.Repo.GetNonExpiredCreditTotalForUser(user.ID, nil)
 		render.Status(r, http.StatusOK)
