@@ -23,7 +23,7 @@ func TestDeductCreditsFromUser(t *testing.T) {
 	assert.Equal(t, int32(50), userCredit.RemainingAmount)
 
 	// Create another row of non-expiring credits for user
-	creditType := MockRepo.DB.CreditType.Query().FirstX(MockRepo.Ctx)
+	creditType := MockRepo.DB.CreditType.Query().Where(credittype.IDNEQ(uuid.MustParse(TIPPABLE_CREDIT_TYPE_ID))).FirstX(MockRepo.Ctx)
 	_, err = MockRepo.DB.Credit.Create().SetCreditTypeID(creditType.ID).SetUserID(uuid.MustParse(MOCK_NORMAL_UUID)).SetRemainingAmount(1234).SetExpiresAt(time.Now().AddDate(1000, 0, 0)).Save(MockRepo.Ctx)
 	assert.Nil(t, err)
 
