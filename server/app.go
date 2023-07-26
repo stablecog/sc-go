@@ -372,7 +372,6 @@ func main() {
 	app.Get("/", hc.HandleHealth)
 	app.Handle("/metrics", middleware.BasicAuth(promhttp.Handler(), "user", "password", "Authentication required"))
 	app.Get("/clipq", hc.HandleClipQSearch)
-	app.Post("/zoom-out", hc.HandleCreateGenerationZoomOutWebUI)
 	app.Route("/v1", func(r chi.Router) {
 		r.Get("/health", hc.HandleHealth)
 
@@ -432,6 +431,10 @@ func main() {
 
 			// Create Generation
 			r.Post("/image/generation/create", hc.HandleCreateGenerationWebUI)
+
+			// expand/zoom-out
+			r.Post("/image/generation/zoom-out", hc.HandleCreateGenerationZoomOutWebUI)
+
 			// ! Deprecated
 			r.Post("/generation", hc.HandleCreateGenerationWebUI)
 			// Mark generation for deletion
