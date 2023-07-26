@@ -319,6 +319,9 @@ func CreateVoiceover(source enttypes.SourceType,
 		}
 	}()
 
+	// Analytics
+	go track.VoiceoverStarted(user, cogReqBody.Input, source, ipAddress)
+
 	// Set timeout delay for UI
 	if source == enttypes.SourceTypeWebUI {
 		// Set timeout key
@@ -351,9 +354,6 @@ func CreateVoiceover(source enttypes.SourceType,
 			},
 		}, &initSettings, nil
 	}
-
-	// Analytics
-	go track.VoiceoverStarted(user, cogReqBody.Input, source, ipAddress)
 
 	// Wait for result
 	for {

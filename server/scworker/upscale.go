@@ -1,7 +1,6 @@
 package scworker
 
 import (
-	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -25,8 +24,7 @@ import (
 	"golang.org/x/exp/slices"
 )
 
-func CreateUpscale(ctx context.Context,
-	source enttypes.SourceType,
+func CreateUpscale(source enttypes.SourceType,
 	r *http.Request,
 	repo *repository.Repository,
 	redis *database.RedisWrapper,
@@ -34,14 +32,15 @@ func CreateUpscale(ctx context.Context,
 	qThrottler *shared.UserQueueThrottlerMap,
 	user *ent.User,
 	track *analytics.AnalyticsService,
-	upscaleReq requests.CreateUpscaleRequest) (*responses.ApiSucceededResponse, error) {
+	apiTokenId *uuid.UUID,
+	upscaleReq requests.CreateUpscaleRequest) (*responses.ApiSucceededResponse, *responses.ImageUpscaleSettingsResponse, *WorkerError) {
 	free := user.ActiveProductID == nil
 	if free {
 		// Re-evaluate if they have paid credits
 		count, err := repo.HasPaidCredits(user.ID)
 		if err != nil {
 			log.Error("Error getting paid credit sum for users", "err", err)
-			return nil, err
+			return nil, nil, WorkerInternalServerError()
 		}
 		free = count <= 0
 	}
@@ -50,7 +49,7 @@ func CreateUpscale(ctx context.Context,
 	roles, err := repo.GetRoles(user.ID)
 	if err != nil {
 		log.Error("Error getting roles for user", "err", err)
-		return nil, err
+		return nil, nil, WorkerInternalServerError()
 	}
 	isSuperAdmin := slices.Contains(roles, "SUPER_ADMIN")
 	if isSuperAdmin {
@@ -101,13 +100,13 @@ func CreateUpscale(ctx context.Context,
 	}
 
 	if user.BannedAt != nil {
-		return nil, &WorkerError{http.StatusForbidden, fmt.Errorf("user_banned"), ""}
+		return nil, nil, &WorkerError{http.StatusForbidden, fmt.Errorf("user_banned"), ""}
 	}
 
 	// Validation
 	err = upscaleReq.Validate(source != enttypes.SourceTypeWebUI)
 	if err != nil {
-		return nil, &WorkerError{http.StatusBadRequest, err, ""}
+		return nil, nil, &WorkerError{http.StatusBadRequest, err, ""}
 	}
 
 	// Set settings resp
@@ -117,39 +116,51 @@ func CreateUpscale(ctx context.Context,
 	}
 
 	// Get queue count
-	nq, err := qThrottler.NumQueued(fmt.Sprintf("u:%s", user.ID.String()))
-	if err != nil {
-		log.Warn("Error getting queue count", "err", err, "user_id", user.ID.String())
-	}
-	if err == nil && nq > qMax {
-		// Get queue overflow size
-		overflowSize, err := qThrottler.NumQueued(fmt.Sprintf("of:%s", user.ID.String()))
+	// UI has no overflow so it's a different flow
+	if source == enttypes.SourceTypeWebUI {
+		// Get queue count
+		nq, err := qThrottler.NumQueued(fmt.Sprintf("u:%s", user.ID.String()))
 		if err != nil {
-			log.Warn("Error getting queue overflow count", "err", err, "user_id", user.ID.String())
+			log.Warn("Error getting queue count for user", "err", err, "user_id", user.ID)
 		}
-		// If overflow size is greater than max, return error
-		if overflowSize > shared.QUEUE_OVERFLOW_MAX {
-			return nil, &WorkerError{http.StatusBadRequest, fmt.Errorf("queue_limit_reached"), ""}
+		if err == nil && nq >= qMax {
+			return nil, nil, &WorkerError{http.StatusBadRequest, fmt.Errorf("queue_limit_reached"), ""}
 		}
-		// Overflow size can be 0 so we need to add 1
-		overflowSize++
-		qThrottler.IncrementBy(1, fmt.Sprintf("of:%s", user.ID.String()))
-		for {
-			time.Sleep(time.Duration(shared.QUEUE_OVERFLOW_PENALTY_MS*overflowSize) * time.Millisecond)
-			nq, err = qThrottler.NumQueued(fmt.Sprintf("u:%s", user.ID.String()))
-			if err != nil {
-				log.Warn("Error getting queue count", "err", err, "user_id", user.ID.String())
-			}
-			if err == nil && nq <= qMax {
-				qThrottler.DecrementBy(1, fmt.Sprintf("of:%s", user.ID.String()))
-				break
-			}
-			// Update overflow size
-			overflowSize, err = qThrottler.NumQueued(fmt.Sprintf("of:%s", user.ID.String()))
+	} else {
+		nq, err := qThrottler.NumQueued(fmt.Sprintf("u:%s", user.ID.String()))
+		if err != nil {
+			log.Warn("Error getting queue count", "err", err, "user_id", user.ID.String())
+		}
+		if err == nil && nq > qMax {
+			// Get queue overflow size
+			overflowSize, err := qThrottler.NumQueued(fmt.Sprintf("of:%s", user.ID.String()))
 			if err != nil {
 				log.Warn("Error getting queue overflow count", "err", err, "user_id", user.ID.String())
 			}
+			// If overflow size is greater than max, return error
+			if overflowSize > shared.QUEUE_OVERFLOW_MAX {
+				return nil, nil, &WorkerError{http.StatusBadRequest, fmt.Errorf("queue_limit_reached"), ""}
+			}
+			// Overflow size can be 0 so we need to add 1
 			overflowSize++
+			qThrottler.IncrementBy(1, fmt.Sprintf("of:%s", user.ID.String()))
+			for {
+				time.Sleep(time.Duration(shared.QUEUE_OVERFLOW_PENALTY_MS*overflowSize) * time.Millisecond)
+				nq, err = qThrottler.NumQueued(fmt.Sprintf("u:%s", user.ID.String()))
+				if err != nil {
+					log.Warn("Error getting queue count", "err", err, "user_id", user.ID.String())
+				}
+				if err == nil && nq <= qMax {
+					qThrottler.DecrementBy(1, fmt.Sprintf("of:%s", user.ID.String()))
+					break
+				}
+				// Update overflow size
+				overflowSize, err = qThrottler.NumQueued(fmt.Sprintf("of:%s", user.ID.String()))
+				if err != nil {
+					log.Warn("Error getting queue overflow count", "err", err, "user_id", user.ID.String())
+				}
+				overflowSize++
+			}
 		}
 	}
 
@@ -174,7 +185,7 @@ func CreateUpscale(ctx context.Context,
 	modelName := shared.GetCache().GetUpscaleModelNameFromID(*upscaleReq.ModelId)
 	if modelName == "" {
 		log.Error("Error getting model name", "model_name", modelName)
-		return nil, WorkerInternalServerError()
+		return nil, nil, WorkerInternalServerError()
 	}
 
 	// Initiate upscale
@@ -187,10 +198,10 @@ func CreateUpscale(ctx context.Context,
 	if *upscaleReq.Type == requests.UpscaleRequestTypeImage {
 		width, height, err = utils.GetImageWidthHeightFromUrl(imageUrl, shared.MAX_UPSCALE_IMAGE_SIZE)
 		if err != nil {
-			return nil, &WorkerError{http.StatusBadRequest, fmt.Errorf("image_url_width_height_error"), ""}
+			return nil, &initSettings, &WorkerError{http.StatusBadRequest, fmt.Errorf("image_url_width_height_error"), ""}
 		}
 		if width*height > shared.MAX_UPSCALE_MEGAPIXELS {
-			return nil, &WorkerError{http.StatusBadRequest, fmt.Errorf("image_url_width_height_error"), fmt.Sprintf("Image cannot exceed %d megapixels", shared.MAX_UPSCALE_MEGAPIXELS/1000000)}
+			return nil, &initSettings, &WorkerError{http.StatusBadRequest, fmt.Errorf("image_url_width_height_error"), fmt.Sprintf("Image cannot exceed %d megapixels", shared.MAX_UPSCALE_MEGAPIXELS/1000000)}
 		}
 	}
 
@@ -202,10 +213,10 @@ func CreateUpscale(ctx context.Context,
 		output, err := repo.GetGenerationOutput(*upscaleReq.OutputID)
 		if err != nil {
 			if ent.IsNotFound(err) {
-				return nil, &WorkerError{http.StatusBadRequest, fmt.Errorf("output_not_found"), ""}
+				return nil, &initSettings, &WorkerError{http.StatusBadRequest, fmt.Errorf("output_not_found"), ""}
 			}
 			log.Error("Error getting output", "err", err)
-			return nil, WorkerInternalServerError()
+			return nil, nil, WorkerInternalServerError()
 		}
 		if output.UpscaledImagePath != nil {
 			// Format response
@@ -220,21 +231,21 @@ func CreateUpscale(ctx context.Context,
 			remainingCredits, err := repo.GetNonExpiredCreditTotalForUser(user.ID, nil)
 			if err != nil {
 				log.Error("Error getting remaining credits", "err", err)
-				return nil, WorkerInternalServerError()
+				return nil, nil, WorkerInternalServerError()
 			}
 
 			return &responses.ApiSucceededResponse{
 				Outputs:          resOutputs,
 				RemainingCredits: remainingCredits,
 				Settings:         initSettings,
-			}, nil
+			}, &initSettings, nil
 		}
 		imageUrl = utils.GetURLFromImagePath(output.ImagePath)
 
 		// Get width/height of generation
 		width, height, err = repo.GetGenerationOutputWidthHeight(*upscaleReq.OutputID)
 		if err != nil {
-			return nil, WorkerInternalServerError()
+			return nil, &initSettings, WorkerInternalServerError()
 		}
 	}
 
@@ -286,7 +297,7 @@ func CreateUpscale(ctx context.Context,
 			upscaleReq,
 			user.ActiveProductID,
 			false,
-			nil,
+			apiTokenId,
 			source,
 			DB)
 		if err != nil {
@@ -342,7 +353,7 @@ func CreateUpscale(ctx context.Context,
 			cogReqBody.Input.StreamID = upscaleReq.StreamID
 		}
 
-		err = redis.EnqueueCogRequest(ctx, shared.COG_REDIS_QUEUE, cogReqBody)
+		err = redis.EnqueueCogRequest(redis.Ctx, shared.COG_REDIS_QUEUE, cogReqBody)
 		if err != nil {
 			log.Error("Failed to write request %s to queue: %v", requestId, err)
 			return err
@@ -353,9 +364,9 @@ func CreateUpscale(ctx context.Context,
 	}); err != nil {
 		log.Error("Error in transaction", "err", err)
 		if errors.Is(err, responses.InsufficientCreditsErr) {
-			return nil, responses.InsufficientCreditsErr
+			return nil, &initSettings, &WorkerError{http.StatusBadRequest, responses.InsufficientCreditsErr, ""}
 		}
-		return nil, WorkerInternalServerError()
+		return nil, &initSettings, WorkerInternalServerError()
 	}
 	// Add channel to sync array (basically a thread-safe map)
 	if source != enttypes.SourceTypeWebUI {
@@ -384,6 +395,39 @@ func CreateUpscale(ctx context.Context,
 	// Analytics
 	go track.UpscaleStarted(user, cogReqBody.Input, source, ipAddress)
 
+	// Set timeout delay for UI
+	if source == enttypes.SourceTypeWebUI {
+		// Set timeout key
+		err = redis.SetCogRequestStreamID(redis.Ctx, requestId.String(), upscaleReq.StreamID)
+		if err != nil {
+			// Don't time it out if this fails
+			log.Error("Failed to set timeout key", "err", err)
+		} else {
+			// Start the timeout timer
+			go func() {
+				// sleep
+				time.Sleep(shared.REQUEST_COG_TIMEOUT_VOICEOVER)
+				// this will trigger timeout if it hasnt been finished
+				repo.FailCogMessageDueToTimeoutIfTimedOut(requests.CogWebhookMessage{
+					Input:  cogReqBody.Input,
+					Error:  shared.TIMEOUT_ERROR,
+					Status: requests.CogFailed,
+				})
+			}()
+		}
+
+		// Return queued indication
+		return &responses.ApiSucceededResponse{
+			RemainingCredits: remainingCredits,
+			Settings:         initSettings,
+			QueuedResponse: &responses.TaskQueuedResponse{
+				ID:               requestId.String(),
+				UIId:             upscaleReq.UIId,
+				RemainingCredits: remainingCredits,
+			},
+		}, &initSettings, nil
+	}
+
 	// Wait for result
 	for {
 		select {
@@ -393,7 +437,7 @@ func CreateUpscale(ctx context.Context,
 				err := repo.SetUpscaleStarted(requestId.String())
 				if err != nil {
 					log.Error("Failed to set upscale started", "id", requestId, "err", err)
-					return nil, WorkerInternalServerError()
+					return nil, &initSettings, WorkerInternalServerError()
 				}
 				// Send live page update
 				go func() {
@@ -418,7 +462,7 @@ func CreateUpscale(ctx context.Context,
 				output, err := repo.SetUpscaleSucceeded(requestId.String(), outputIDStr, imageUrl, cogMsg.Output)
 				if err != nil {
 					log.Error("Failed to set upscale succeeded", "id", upscale.ID, "err", err)
-					return nil, WorkerInternalServerError()
+					return nil, &initSettings, WorkerInternalServerError()
 				}
 				// Send live page update
 				go func() {
@@ -463,17 +507,19 @@ func CreateUpscale(ctx context.Context,
 					},
 				}
 
-				// ! TODO Set token used
-				// err = c.Repo.SetTokenUsedAndIncrementCreditsSpent(1, *upscale.APITokenID)
-				// if err != nil {
-				// 	log.Error("Failed to set token used", "err", err)
-				// }
+				// Set token used
+				if upscale.APITokenID != nil {
+					err = repo.SetTokenUsedAndIncrementCreditsSpent(1, *upscale.APITokenID)
+					if err != nil {
+						log.Error("Failed to set token used", "err", err)
+					}
+				}
 
 				return &responses.ApiSucceededResponse{
 					Outputs:          resOutputs,
 					RemainingCredits: remainingCredits,
 					Settings:         initSettings,
-				}, nil
+				}, &initSettings, nil
 			case requests.CogFailed:
 				if err := repo.WithTx(func(tx *ent.Tx) error {
 					DB := tx.Client()
@@ -513,10 +559,10 @@ func CreateUpscale(ctx context.Context,
 					return nil
 				}); err != nil {
 					log.Error("Failed to set upscale failed", "id", requestId, "err", err)
-					return nil, WorkerInternalServerError()
+					return nil, &initSettings, WorkerInternalServerError()
 				}
 
-				return nil, WorkerInternalServerError()
+				return nil, &initSettings, WorkerInternalServerError()
 			}
 		case <-time.After(shared.REQUEST_COG_TIMEOUT):
 			if err := repo.WithTx(func(tx *ent.Tx) error {
@@ -534,10 +580,10 @@ func CreateUpscale(ctx context.Context,
 				return nil
 			}); err != nil {
 				log.Error("Failed to set upscale failed", "id", requestId, "err", err)
-				return nil, WorkerInternalServerError()
+				return nil, &initSettings, WorkerInternalServerError()
 			}
 
-			return nil, &WorkerError{http.StatusInternalServerError, fmt.Errorf(shared.TIMEOUT_ERROR), ""}
+			return nil, &initSettings, &WorkerError{http.StatusInternalServerError, fmt.Errorf(shared.TIMEOUT_ERROR), ""}
 		}
 	}
 }

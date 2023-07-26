@@ -364,10 +364,8 @@ func (c *DiscordInteractionWrapper) HandleUpscaleGeneration(s *discordgo.Session
 		// Always create initial message
 		responses.InitialLoadingResponse(s, i, responses.PUBLIC)
 
-		// Create context
-		ctx := context.Background()
-		res, err := scworker.CreateUpscale(
-			ctx,
+		// Create upscale
+		res, _, wErr := scworker.CreateUpscale(
 			enttypes.SourceTypeDiscord,
 			nil,
 			c.Repo,
@@ -376,10 +374,11 @@ func (c *DiscordInteractionWrapper) HandleUpscaleGeneration(s *discordgo.Session
 			c.QThrottler,
 			u,
 			c.Track,
+			nil,
 			req,
 		)
-		if err != nil {
-			if errors.Is(err, srvresponses.InsufficientCreditsErr) {
+		if wErr != nil {
+			if errors.Is(wErr.Err, srvresponses.InsufficientCreditsErr) {
 				credits, err := c.Repo.GetNonExpiredCreditTotalForUser(u.ID, nil)
 				if err != nil {
 					log.Errorf("Error getting credits for user: %v", err)
