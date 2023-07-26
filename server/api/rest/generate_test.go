@@ -221,12 +221,12 @@ func TestGenerateValidationsSkippedForSuperAdmin(t *testing.T) {
 	MockController.HandleCreateGeneration(w, req.WithContext(ctx))
 	resp := w.Result()
 	defer resp.Body.Close()
-	assert.Equal(t, 500, resp.StatusCode)
+	assert.Equal(t, 400, resp.StatusCode)
 	var respJson map[string]interface{}
 	respBody, _ := io.ReadAll(resp.Body)
 	json.Unmarshal(respBody, &respJson)
 
-	assert.Equal(t, "An unknown error has occurred", respJson["error"])
+	assert.Equal(t, "invalid_model_or_scheduler", respJson["error"])
 
 	// ! Width
 	reqBody = requests.CreateGenerationRequest{
@@ -248,11 +248,11 @@ func TestGenerateValidationsSkippedForSuperAdmin(t *testing.T) {
 	MockController.HandleCreateGeneration(w, req.WithContext(ctx))
 	resp = w.Result()
 	defer resp.Body.Close()
-	assert.Equal(t, 500, resp.StatusCode)
+	assert.Equal(t, 400, resp.StatusCode)
 	respBody, _ = io.ReadAll(resp.Body)
 	json.Unmarshal(respBody, &respJson)
 
-	assert.Equal(t, "An unknown error has occurred", respJson["error"])
+	assert.Equal(t, "invalid_model_or_scheduler", respJson["error"])
 }
 
 func TestGenerateRejectsInvalidModelOrScheduler(t *testing.T) {

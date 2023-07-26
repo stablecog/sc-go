@@ -102,9 +102,13 @@ func (w *SCWorker) CreateGeneration(source enttypes.SourceType,
 	}
 
 	// Validation
-	err = generateReq.Validate(source != enttypes.SourceTypeWebUI)
-	if err != nil {
-		return nil, nil, &WorkerError{http.StatusBadRequest, err, ""}
+	if !isSuperAdmin {
+		err = generateReq.Validate(source != enttypes.SourceTypeWebUI)
+		if err != nil {
+			return nil, nil, &WorkerError{http.StatusBadRequest, err, ""}
+		}
+	} else {
+		generateReq.ApplyDefaults()
 	}
 
 	// Set settings resp
@@ -415,6 +419,39 @@ func (w *SCWorker) CreateGeneration(source enttypes.SourceType,
 
 	// Analytics
 	go w.Track.GenerationStarted(user, cogReqBody.Input, source, ipAddress)
+
+	// Set timeout delay for UI
+	if source == enttypes.SourceTypeWebUI {
+		// Set timeout key
+		err = w.Redis.SetCogRequestStreamID(w.Redis.Ctx, requestId.String(), generateReq.StreamID)
+		if err != nil {
+			// Don't time it out if this fails
+			log.Error("Failed to set timeout key", "err", err)
+		} else {
+			// Start the timeout timer
+			go func() {
+				// sleep
+				time.Sleep(shared.REQUEST_COG_TIMEOUT_VOICEOVER)
+				// this will trigger timeout if it hasnt been finished
+				w.Repo.FailCogMessageDueToTimeoutIfTimedOut(requests.CogWebhookMessage{
+					Input:  cogReqBody.Input,
+					Error:  shared.TIMEOUT_ERROR,
+					Status: requests.CogFailed,
+				})
+			}()
+		}
+
+		// Return queued indication
+		return &responses.ApiSucceededResponse{
+			RemainingCredits: remainingCredits,
+			Settings:         initSettings,
+			QueuedResponse: &responses.TaskQueuedResponse{
+				ID:               requestId.String(),
+				UIId:             generateReq.UIId,
+				RemainingCredits: remainingCredits,
+			},
+		}, &initSettings, nil
+	}
 
 	// Wait for result
 	for {
