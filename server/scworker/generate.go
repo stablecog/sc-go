@@ -268,14 +268,26 @@ func (w *SCWorker) CreateGeneration(source enttypes.SourceType,
 	// Wrap everything in a DB transaction
 	// We do this since we want our credit deduction to be atomic with the whole process
 	if err := w.Repo.WithTx(func(tx *ent.Tx) error {
+		if source == enttypes.SourceTypeAPI {
+			log.Warn("1")
+		}
 		// Bind a client to the transaction
 		DB := tx.Client()
+		if source == enttypes.SourceTypeAPI {
+			log.Warn("2")
+		}
 		// Deduct credits from user
 		deducted, err := w.Repo.DeductCreditsFromUser(user.ID, *generateReq.NumOutputs, DB)
+		if source == enttypes.SourceTypeAPI {
+			log.Warn("3")
+		}
 		if err != nil {
 			log.Error("Error deducting credits", "err", err)
 			return err
 		} else if !deducted {
+			if source == enttypes.SourceTypeAPI {
+				log.Warn("4")
+			}
 			return responses.InsufficientCreditsErr
 		}
 
@@ -285,6 +297,9 @@ func (w *SCWorker) CreateGeneration(source enttypes.SourceType,
 			log.Error("Error translating prompt", "err", err)
 			return err
 		}
+		if source == enttypes.SourceTypeAPI {
+			log.Warn("5")
+		}
 		generateReq.Prompt = translatedPrompt
 		generateReq.NegativePrompt = translatedNegativePrompt
 		// Check NSFW
@@ -293,8 +308,14 @@ func (w *SCWorker) CreateGeneration(source enttypes.SourceType,
 			log.Error("Error checking prompt NSFW", "err", err)
 			return err
 		}
+		if source == enttypes.SourceTypeAPI {
+			log.Warn("6")
+		}
 		if isNSFW {
 			return fmt.Errorf("nsfw: %s", reason)
+		}
+		if source == enttypes.SourceTypeAPI {
+			log.Warn("7")
 		}
 
 		remainingCredits, err = w.Repo.GetNonExpiredCreditTotalForUser(user.ID, DB)
@@ -303,6 +324,9 @@ func (w *SCWorker) CreateGeneration(source enttypes.SourceType,
 			return err
 		}
 
+		if source == enttypes.SourceTypeAPI {
+			log.Warn("8")
+		}
 		// Create generation
 		g, err := w.Repo.CreateGeneration(
 			user.ID,
@@ -319,7 +343,9 @@ func (w *SCWorker) CreateGeneration(source enttypes.SourceType,
 			log.Error("Error creating generation", "err", err)
 			return err
 		}
-
+		if source == enttypes.SourceTypeAPI {
+			log.Warn("9")
+		}
 		// Request Id matches generation ID
 		requestId = g.ID
 
