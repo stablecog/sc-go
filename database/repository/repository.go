@@ -40,7 +40,7 @@ func (r *Repository) WithTx(fn func(tx *ent.Tx) error) error {
 	}
 	defer func() {
 		if v := recover(); v != nil {
-			log.Errorf("Panic caught in WithTX: %v", debug.Stack())
+			log.Errorf("Panic caught in WithTX: %v", string(debug.Stack()))
 			tx.Rollback()
 		}
 	}()
