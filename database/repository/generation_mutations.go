@@ -46,6 +46,9 @@ func (r *Repository) CreateGeneration(userID uuid.UUID, deviceType, deviceOs, de
 	if req.InitImageUrl != "" {
 		insert.SetInitImageURL(req.InitImageUrl)
 	}
+	if req.MaskImageUrl != "" {
+		insert.SetMaskImageURL(req.MaskImageUrl)
+	}
 	if req.PromptStrength != nil {
 		insert.SetPromptStrength(*req.PromptStrength)
 	}

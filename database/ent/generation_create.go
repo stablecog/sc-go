@@ -128,6 +128,20 @@ func (gc *GenerationCreate) SetNillableInitImageURL(s *string) *GenerationCreate
 	return gc
 }
 
+// SetMaskImageURL sets the "mask_image_url" field.
+func (gc *GenerationCreate) SetMaskImageURL(s string) *GenerationCreate {
+	gc.mutation.SetMaskImageURL(s)
+	return gc
+}
+
+// SetNillableMaskImageURL sets the "mask_image_url" field if the given value is not nil.
+func (gc *GenerationCreate) SetNillableMaskImageURL(s *string) *GenerationCreate {
+	if s != nil {
+		gc.SetMaskImageURL(*s)
+	}
+	return gc
+}
+
 // SetPromptStrength sets the "prompt_strength" field.
 func (gc *GenerationCreate) SetPromptStrength(f float32) *GenerationCreate {
 	gc.mutation.SetPromptStrength(f)
@@ -640,6 +654,10 @@ func (gc *GenerationCreate) createSpec() (*Generation, *sqlgraph.CreateSpec) {
 	if value, ok := gc.mutation.InitImageURL(); ok {
 		_spec.SetField(generation.FieldInitImageURL, field.TypeString, value)
 		_node.InitImageURL = &value
+	}
+	if value, ok := gc.mutation.MaskImageURL(); ok {
+		_spec.SetField(generation.FieldMaskImageURL, field.TypeString, value)
+		_node.MaskImageURL = &value
 	}
 	if value, ok := gc.mutation.PromptStrength(); ok {
 		_spec.SetField(generation.FieldPromptStrength, field.TypeFloat32, value)

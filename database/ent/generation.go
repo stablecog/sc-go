@@ -48,6 +48,8 @@ type Generation struct {
 	CountryCode *string `json:"country_code,omitempty"`
 	// InitImageURL holds the value of the "init_image_url" field.
 	InitImageURL *string `json:"init_image_url,omitempty"`
+	// MaskImageURL holds the value of the "mask_image_url" field.
+	MaskImageURL *string `json:"mask_image_url,omitempty"`
 	// PromptStrength holds the value of the "prompt_strength" field.
 	PromptStrength *float32 `json:"prompt_strength,omitempty"`
 	// WasAutoSubmitted holds the value of the "was_auto_submitted" field.
@@ -236,7 +238,7 @@ func (*Generation) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullFloat64)
 		case generation.FieldWidth, generation.FieldHeight, generation.FieldInferenceSteps, generation.FieldNumOutputs, generation.FieldNsfwCount, generation.FieldSeed:
 			values[i] = new(sql.NullInt64)
-		case generation.FieldStatus, generation.FieldFailureReason, generation.FieldCountryCode, generation.FieldInitImageURL, generation.FieldStripeProductID, generation.FieldSourceType:
+		case generation.FieldStatus, generation.FieldFailureReason, generation.FieldCountryCode, generation.FieldInitImageURL, generation.FieldMaskImageURL, generation.FieldStripeProductID, generation.FieldSourceType:
 			values[i] = new(sql.NullString)
 		case generation.FieldStartedAt, generation.FieldCompletedAt, generation.FieldCreatedAt, generation.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
@@ -331,6 +333,13 @@ func (ge *Generation) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				ge.InitImageURL = new(string)
 				*ge.InitImageURL = value.String
+			}
+		case generation.FieldMaskImageURL:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field mask_image_url", values[i])
+			} else if value.Valid {
+				ge.MaskImageURL = new(string)
+				*ge.MaskImageURL = value.String
 			}
 		case generation.FieldPromptStrength:
 			if value, ok := values[i].(*sql.NullFloat64); !ok {
@@ -545,6 +554,11 @@ func (ge *Generation) String() string {
 	builder.WriteString(", ")
 	if v := ge.InitImageURL; v != nil {
 		builder.WriteString("init_image_url=")
+		builder.WriteString(*v)
+	}
+	builder.WriteString(", ")
+	if v := ge.MaskImageURL; v != nil {
+		builder.WriteString("mask_image_url=")
 		builder.WriteString(*v)
 	}
 	builder.WriteString(", ")

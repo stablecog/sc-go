@@ -107,6 +107,11 @@ func InitImageURL(v string) predicate.Generation {
 	return predicate.Generation(sql.FieldEQ(FieldInitImageURL, v))
 }
 
+// MaskImageURL applies equality check predicate on the "mask_image_url" field. It's identical to MaskImageURLEQ.
+func MaskImageURL(v string) predicate.Generation {
+	return predicate.Generation(sql.FieldEQ(FieldMaskImageURL, v))
+}
+
 // PromptStrength applies equality check predicate on the "prompt_strength" field. It's identical to PromptStrengthEQ.
 func PromptStrength(v float32) predicate.Generation {
 	return predicate.Generation(sql.FieldEQ(FieldPromptStrength, v))
@@ -705,6 +710,81 @@ func InitImageURLEqualFold(v string) predicate.Generation {
 // InitImageURLContainsFold applies the ContainsFold predicate on the "init_image_url" field.
 func InitImageURLContainsFold(v string) predicate.Generation {
 	return predicate.Generation(sql.FieldContainsFold(FieldInitImageURL, v))
+}
+
+// MaskImageURLEQ applies the EQ predicate on the "mask_image_url" field.
+func MaskImageURLEQ(v string) predicate.Generation {
+	return predicate.Generation(sql.FieldEQ(FieldMaskImageURL, v))
+}
+
+// MaskImageURLNEQ applies the NEQ predicate on the "mask_image_url" field.
+func MaskImageURLNEQ(v string) predicate.Generation {
+	return predicate.Generation(sql.FieldNEQ(FieldMaskImageURL, v))
+}
+
+// MaskImageURLIn applies the In predicate on the "mask_image_url" field.
+func MaskImageURLIn(vs ...string) predicate.Generation {
+	return predicate.Generation(sql.FieldIn(FieldMaskImageURL, vs...))
+}
+
+// MaskImageURLNotIn applies the NotIn predicate on the "mask_image_url" field.
+func MaskImageURLNotIn(vs ...string) predicate.Generation {
+	return predicate.Generation(sql.FieldNotIn(FieldMaskImageURL, vs...))
+}
+
+// MaskImageURLGT applies the GT predicate on the "mask_image_url" field.
+func MaskImageURLGT(v string) predicate.Generation {
+	return predicate.Generation(sql.FieldGT(FieldMaskImageURL, v))
+}
+
+// MaskImageURLGTE applies the GTE predicate on the "mask_image_url" field.
+func MaskImageURLGTE(v string) predicate.Generation {
+	return predicate.Generation(sql.FieldGTE(FieldMaskImageURL, v))
+}
+
+// MaskImageURLLT applies the LT predicate on the "mask_image_url" field.
+func MaskImageURLLT(v string) predicate.Generation {
+	return predicate.Generation(sql.FieldLT(FieldMaskImageURL, v))
+}
+
+// MaskImageURLLTE applies the LTE predicate on the "mask_image_url" field.
+func MaskImageURLLTE(v string) predicate.Generation {
+	return predicate.Generation(sql.FieldLTE(FieldMaskImageURL, v))
+}
+
+// MaskImageURLContains applies the Contains predicate on the "mask_image_url" field.
+func MaskImageURLContains(v string) predicate.Generation {
+	return predicate.Generation(sql.FieldContains(FieldMaskImageURL, v))
+}
+
+// MaskImageURLHasPrefix applies the HasPrefix predicate on the "mask_image_url" field.
+func MaskImageURLHasPrefix(v string) predicate.Generation {
+	return predicate.Generation(sql.FieldHasPrefix(FieldMaskImageURL, v))
+}
+
+// MaskImageURLHasSuffix applies the HasSuffix predicate on the "mask_image_url" field.
+func MaskImageURLHasSuffix(v string) predicate.Generation {
+	return predicate.Generation(sql.FieldHasSuffix(FieldMaskImageURL, v))
+}
+
+// MaskImageURLIsNil applies the IsNil predicate on the "mask_image_url" field.
+func MaskImageURLIsNil() predicate.Generation {
+	return predicate.Generation(sql.FieldIsNull(FieldMaskImageURL))
+}
+
+// MaskImageURLNotNil applies the NotNil predicate on the "mask_image_url" field.
+func MaskImageURLNotNil() predicate.Generation {
+	return predicate.Generation(sql.FieldNotNull(FieldMaskImageURL))
+}
+
+// MaskImageURLEqualFold applies the EqualFold predicate on the "mask_image_url" field.
+func MaskImageURLEqualFold(v string) predicate.Generation {
+	return predicate.Generation(sql.FieldEqualFold(FieldMaskImageURL, v))
+}
+
+// MaskImageURLContainsFold applies the ContainsFold predicate on the "mask_image_url" field.
+func MaskImageURLContainsFold(v string) predicate.Generation {
+	return predicate.Generation(sql.FieldContainsFold(FieldMaskImageURL, v))
 }
 
 // PromptStrengthEQ applies the EQ predicate on the "prompt_strength" field.

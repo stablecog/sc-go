@@ -1106,3 +1106,5 @@ ALTER TABLE "public"."generation_outputs" ADD COLUMN "generation_output_zoomed_o
 
 -- Modify "generations" table
 ALTER TABLE "public"."generations" ADD COLUMN "zoomed_from_output_id" uuid NULL, ADD CONSTRAINT "generations_generation_outputs_zoomed_from_generation" FOREIGN KEY ("zoomed_from_output_id") REFERENCES "public"."generation_outputs" ("id") ON UPDATE NO ACTION ON DELETE SET NULL;
+
+alter table public.generations add column mask_image_url text;
