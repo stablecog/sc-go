@@ -105,7 +105,7 @@ func CreateUpscale(ctx context.Context,
 	}
 
 	// Validation
-	err = upscaleReq.Validate(true)
+	err = upscaleReq.Validate(source != enttypes.SourceTypeWebUI)
 	if err != nil {
 		return nil, &WorkerError{http.StatusBadRequest, err, ""}
 	}
@@ -316,7 +316,7 @@ func CreateUpscale(ctx context.Context,
 			WebhookEventsFilter: []requests.CogEventFilter{requests.CogEventFilterStart, requests.CogEventFilterStart},
 			WebhookUrl:          fmt.Sprintf("%s/v1/worker/webhook", utils.GetEnv("PUBLIC_API_URL", "")),
 			Input: requests.BaseCogRequest{
-				APIRequest:           true,
+				APIRequest:           source != enttypes.SourceTypeWebUI,
 				ID:                   requestId,
 				IP:                   ipAddress,
 				UIId:                 upscaleReq.UIId,
@@ -337,6 +337,11 @@ func CreateUpscale(ctx context.Context,
 			},
 		}
 
+		if source == enttypes.SourceTypeWebUI {
+			cogReqBody.Input.UIId = upscaleReq.UIId
+			cogReqBody.Input.StreamID = upscaleReq.StreamID
+		}
+
 		err = redis.EnqueueCogRequest(ctx, shared.COG_REDIS_QUEUE, cogReqBody)
 		if err != nil {
 			log.Error("Failed to write request %s to queue: %v", requestId, err)
@@ -353,9 +358,11 @@ func CreateUpscale(ctx context.Context,
 		return nil, WorkerInternalServerError()
 	}
 	// Add channel to sync array (basically a thread-safe map)
-	SMap.Put(requestId.String(), activeChl)
-	defer SMap.Delete(requestId.String())
-	defer qThrottler.DecrementBy(1, fmt.Sprintf("u:%s", user.ID.String()))
+	if source != enttypes.SourceTypeWebUI {
+		SMap.Put(requestId.String(), activeChl)
+		defer SMap.Delete(requestId.String())
+		defer qThrottler.DecrementBy(1, fmt.Sprintf("u:%s", user.ID.String()))
+	}
 
 	// Send live page update
 	go func() {

@@ -112,7 +112,7 @@ func CreateGeneration(ctx context.Context,
 	}
 
 	// Validation
-	err = generateReq.Validate(true)
+	err = generateReq.Validate(source != enttypes.SourceTypeWebUI)
 	if err != nil {
 		return nil, &WorkerError{http.StatusBadRequest, err, ""}
 	}
@@ -347,7 +347,7 @@ func CreateGeneration(ctx context.Context,
 			WebhookEventsFilter: []requests.CogEventFilter{requests.CogEventFilterStart, requests.CogEventFilterStart},
 			WebhookUrl:          fmt.Sprintf("%s/v1/worker/webhook", utils.GetEnv("PUBLIC_API_URL", "")),
 			Input: requests.BaseCogRequest{
-				APIRequest:           true,
+				APIRequest:           source != enttypes.SourceTypeWebUI,
 				ID:                   requestId,
 				IP:                   ipAddress,
 				UserID:               &user.ID,
@@ -374,6 +374,11 @@ func CreateGeneration(ctx context.Context,
 			},
 		}
 
+		if source == enttypes.SourceTypeWebUI {
+			cogReqBody.Input.UIId = generateReq.UIId
+			cogReqBody.Input.StreamID = generateReq.StreamID
+		}
+
 		if cogReqBody.Input.InitImageUrl != "" {
 			cogReqBody.Input.InitImageUrlS3 = generateReq.InitImageUrl
 		}
@@ -395,9 +400,11 @@ func CreateGeneration(ctx context.Context,
 	}
 
 	// Add channel to sync array (basically a thread-safe map)
-	SMap.Put(requestId.String(), activeChl)
-	defer SMap.Delete(requestId.String())
-	defer qThrottler.DecrementBy(1, fmt.Sprintf("g:%s", user.ID.String()))
+	if source != enttypes.SourceTypeWebUI {
+		SMap.Put(requestId.String(), activeChl)
+		defer SMap.Delete(requestId.String())
+		defer qThrottler.DecrementBy(1, fmt.Sprintf("g:%s", user.ID.String()))
+	}
 
 	// Send live page update
 	go func() {

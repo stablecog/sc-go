@@ -74,7 +74,7 @@ func CreateVoiceover(source enttypes.SourceType,
 
 	// Validation
 	if !isSuperAdmin {
-		err = voiceoverReq.Validate(true)
+		err = voiceoverReq.Validate(source != enttypes.SourceTypeWebUI)
 		if err != nil {
 			return nil, nil, &WorkerError{http.StatusBadRequest, err, ""}
 		}
@@ -93,39 +93,51 @@ func CreateVoiceover(source enttypes.SourceType,
 	}
 
 	// Get queue count
-	nq, err := qThrottler.NumQueued(fmt.Sprintf("v:%s", user.ID.String()))
-	if err != nil {
-		log.Warn("Error getting queue count for user", "err", err, "user_id", user.ID)
-	}
-	if err == nil && nq > qMax {
-		// Get queue overflow size
-		overflowSize, err := qThrottler.NumQueued(fmt.Sprintf("of:%s", user.ID.String()))
+	// UI has no overflow so it's a different flow
+	if source == enttypes.SourceTypeWebUI {
+		// Get queue count
+		nq, err := qThrottler.NumQueued(fmt.Sprintf("v:%s", user.ID.String()))
 		if err != nil {
-			log.Warn("Error getting queue overflow count", "err", err, "user_id", user.ID.String())
+			log.Warn("Error getting queue count for user", "err", err, "user_id", user.ID)
 		}
-		// If overflow size is greater than max, return error
-		if overflowSize > shared.QUEUE_OVERFLOW_MAX {
+		if err == nil && nq >= qMax {
 			return nil, nil, &WorkerError{http.StatusBadRequest, fmt.Errorf("queue_limit_reached"), ""}
 		}
-		// Overflow size can be 0 so we need to add 1
-		overflowSize++
-		qThrottler.IncrementBy(1, fmt.Sprintf("of:%s", user.ID.String()))
-		for {
-			time.Sleep(time.Duration(shared.QUEUE_OVERFLOW_PENALTY_MS*overflowSize) * time.Millisecond)
-			nq, err = qThrottler.NumQueued(fmt.Sprintf("v:%s", user.ID.String()))
-			if err != nil {
-				log.Warn("Error getting queue count", "err", err, "user_id", user.ID.String())
-			}
-			if err == nil && nq <= qMax {
-				qThrottler.DecrementBy(1, fmt.Sprintf("of:%s", user.ID.String()))
-				break
-			}
-			// Update overflow size
-			overflowSize, err = qThrottler.NumQueued(fmt.Sprintf("of:%s", user.ID.String()))
+	} else {
+		nq, err := qThrottler.NumQueued(fmt.Sprintf("v:%s", user.ID.String()))
+		if err != nil {
+			log.Warn("Error getting queue count for user", "err", err, "user_id", user.ID)
+		}
+		if err == nil && nq > qMax {
+			// Get queue overflow size
+			overflowSize, err := qThrottler.NumQueued(fmt.Sprintf("of:%s", user.ID.String()))
 			if err != nil {
 				log.Warn("Error getting queue overflow count", "err", err, "user_id", user.ID.String())
 			}
+			// If overflow size is greater than max, return error
+			if overflowSize > shared.QUEUE_OVERFLOW_MAX {
+				return nil, nil, &WorkerError{http.StatusBadRequest, fmt.Errorf("queue_limit_reached"), ""}
+			}
+			// Overflow size can be 0 so we need to add 1
 			overflowSize++
+			qThrottler.IncrementBy(1, fmt.Sprintf("of:%s", user.ID.String()))
+			for {
+				time.Sleep(time.Duration(shared.QUEUE_OVERFLOW_PENALTY_MS*overflowSize) * time.Millisecond)
+				nq, err = qThrottler.NumQueued(fmt.Sprintf("v:%s", user.ID.String()))
+				if err != nil {
+					log.Warn("Error getting queue count", "err", err, "user_id", user.ID.String())
+				}
+				if err == nil && nq <= qMax {
+					qThrottler.DecrementBy(1, fmt.Sprintf("of:%s", user.ID.String()))
+					break
+				}
+				// Update overflow size
+				overflowSize, err = qThrottler.NumQueued(fmt.Sprintf("of:%s", user.ID.String()))
+				if err != nil {
+					log.Warn("Error getting queue overflow count", "err", err, "user_id", user.ID.String())
+				}
+				overflowSize++
+			}
 		}
 	}
 
@@ -243,7 +255,7 @@ func CreateVoiceover(source enttypes.SourceType,
 			WebhookEventsFilter: []requests.CogEventFilter{requests.CogEventFilterStart, requests.CogEventFilterStart},
 			WebhookUrl:          fmt.Sprintf("%s/v1/worker/webhook", utils.GetEnv("PUBLIC_API_URL", "")),
 			Input: requests.BaseCogRequest{
-				APIRequest:    true,
+				APIRequest:    source != enttypes.SourceTypeWebUI,
 				ID:            requestId,
 				IP:            ipAddress,
 				UserID:        &user.ID,
@@ -259,6 +271,11 @@ func CreateVoiceover(source enttypes.SourceType,
 				RemoveSilence: voiceoverReq.RemoveSilence,
 				DenoiseAudio:  voiceoverReq.DenoiseAudio,
 			},
+		}
+
+		if source == enttypes.SourceTypeWebUI {
+			cogReqBody.Input.UIId = voiceoverReq.UIId
+			cogReqBody.Input.StreamID = voiceoverReq.StreamID
 		}
 
 		err = redis.EnqueueCogRequest(redis.Ctx, shared.COG_REDIS_VOICEOVER_QUEUE, cogReqBody)
@@ -279,8 +296,11 @@ func CreateVoiceover(source enttypes.SourceType,
 	}
 
 	// Add channel to sync array (basically a thread-safe map)
-	SMap.Put(requestId.String(), activeChl)
-	defer SMap.Delete(requestId.String())
+	if source != enttypes.SourceTypeWebUI {
+		SMap.Put(requestId.String(), activeChl)
+		defer SMap.Delete(requestId.String())
+		defer qThrottler.DecrementBy(1, fmt.Sprintf("v:%s", user.ID.String()))
+	}
 
 	// Send live page update
 	go func() {
@@ -298,6 +318,39 @@ func CreateVoiceover(source enttypes.SourceType,
 			log.Error("Failed to publish live page update", "err", err)
 		}
 	}()
+
+	// Set timeout delay for UI
+	if source == enttypes.SourceTypeWebUI {
+		// Set timeout key
+		err = redis.SetCogRequestStreamID(redis.Ctx, requestId.String(), voiceoverReq.StreamID)
+		if err != nil {
+			// Don't time it out if this fails
+			log.Error("Failed to set timeout key", "err", err)
+		} else {
+			// Start the timeout timer
+			go func() {
+				// sleep
+				time.Sleep(shared.REQUEST_COG_TIMEOUT_VOICEOVER)
+				// this will trigger timeout if it hasnt been finished
+				repo.FailCogMessageDueToTimeoutIfTimedOut(requests.CogWebhookMessage{
+					Input:  cogReqBody.Input,
+					Error:  shared.TIMEOUT_ERROR,
+					Status: requests.CogFailed,
+				})
+			}()
+		}
+
+		// Return queued indication
+		return &responses.ApiSucceededResponse{
+			RemainingCredits: remainingCredits,
+			Settings:         initSettings,
+			QueuedResponse: &responses.TaskQueuedResponse{
+				ID:               requestId.String(),
+				UIId:             voiceoverReq.UIId,
+				RemainingCredits: remainingCredits,
+			},
+		}, &initSettings, nil
+	}
 
 	// Analytics
 	go track.VoiceoverStarted(user, cogReqBody.Input, source, ipAddress)
