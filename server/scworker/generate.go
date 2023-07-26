@@ -422,6 +422,12 @@ func (w *SCWorker) CreateGeneration(source enttypes.SourceType,
 	// Analytics
 	if source != enttypes.SourceTypeAPI {
 		go w.Track.GenerationStarted(user, cogReqBody.Input, source, ipAddress)
+	} else {
+		log.Warnf("Guidance Scale %f", *generateReq.GuidanceScale)
+		if cogReqBody.Input.GuidanceScale == nil {
+			log.Warn("Guidance Scale is nil - cogReqBody")
+		}
+		log.Warnf("Prompt %s", cogReqBody.Input.Prompt)
 	}
 	// Set timeout delay for UI
 	if source == enttypes.SourceTypeWebUI {
