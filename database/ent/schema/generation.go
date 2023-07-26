@@ -45,6 +45,7 @@ func (Generation) Fields() []ent.Field {
 		field.UUID("user_id", uuid.UUID{}),
 		field.UUID("device_info_id", uuid.UUID{}),
 		field.UUID("api_token_id", uuid.UUID{}).Optional().Nillable(),
+		field.UUID("zoomed_from_output_id", uuid.UUID{}).Optional().Nillable(),
 		// ! End relationships
 		field.Time("started_at").Optional().Nillable(),
 		field.Time("completed_at").Optional().Nillable(),
@@ -94,6 +95,11 @@ func (Generation) Edges() []ent.Edge {
 		edge.From("api_tokens", ApiToken.Type).
 			Ref("generations").
 			Field("api_token_id").
+			Unique(),
+		// M2O with generation_outputs
+		edge.From("zoomed_generation_outputs", GenerationOutput.Type).
+			Ref("zoomed_from_generation").
+			Field("zoomed_from_output_id").
 			Unique(),
 		// O2M with generation_outputs
 		edge.To("generation_outputs", GenerationOutput.Type).

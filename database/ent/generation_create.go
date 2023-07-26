@@ -250,6 +250,20 @@ func (gc *GenerationCreate) SetNillableAPITokenID(u *uuid.UUID) *GenerationCreat
 	return gc
 }
 
+// SetZoomedFromOutputID sets the "zoomed_from_output_id" field.
+func (gc *GenerationCreate) SetZoomedFromOutputID(u uuid.UUID) *GenerationCreate {
+	gc.mutation.SetZoomedFromOutputID(u)
+	return gc
+}
+
+// SetNillableZoomedFromOutputID sets the "zoomed_from_output_id" field if the given value is not nil.
+func (gc *GenerationCreate) SetNillableZoomedFromOutputID(u *uuid.UUID) *GenerationCreate {
+	if u != nil {
+		gc.SetZoomedFromOutputID(*u)
+	}
+	return gc
+}
+
 // SetStartedAt sets the "started_at" field.
 func (gc *GenerationCreate) SetStartedAt(t time.Time) *GenerationCreate {
 	gc.mutation.SetStartedAt(t)
@@ -373,6 +387,25 @@ func (gc *GenerationCreate) SetNillableAPITokensID(id *uuid.UUID) *GenerationCre
 // SetAPITokens sets the "api_tokens" edge to the ApiToken entity.
 func (gc *GenerationCreate) SetAPITokens(a *ApiToken) *GenerationCreate {
 	return gc.SetAPITokensID(a.ID)
+}
+
+// SetZoomedGenerationOutputsID sets the "zoomed_generation_outputs" edge to the GenerationOutput entity by ID.
+func (gc *GenerationCreate) SetZoomedGenerationOutputsID(id uuid.UUID) *GenerationCreate {
+	gc.mutation.SetZoomedGenerationOutputsID(id)
+	return gc
+}
+
+// SetNillableZoomedGenerationOutputsID sets the "zoomed_generation_outputs" edge to the GenerationOutput entity by ID if the given value is not nil.
+func (gc *GenerationCreate) SetNillableZoomedGenerationOutputsID(id *uuid.UUID) *GenerationCreate {
+	if id != nil {
+		gc = gc.SetZoomedGenerationOutputsID(*id)
+	}
+	return gc
+}
+
+// SetZoomedGenerationOutputs sets the "zoomed_generation_outputs" edge to the GenerationOutput entity.
+func (gc *GenerationCreate) SetZoomedGenerationOutputs(g *GenerationOutput) *GenerationCreate {
+	return gc.SetZoomedGenerationOutputsID(g.ID)
 }
 
 // AddGenerationOutputIDs adds the "generation_outputs" edge to the GenerationOutput entity by IDs.
@@ -778,6 +811,26 @@ func (gc *GenerationCreate) createSpec() (*Generation, *sqlgraph.CreateSpec) {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_node.APITokenID = &nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := gc.mutation.ZoomedGenerationOutputsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   generation.ZoomedGenerationOutputsTable,
+			Columns: []string{generation.ZoomedGenerationOutputsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: generationoutput.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.ZoomedFromOutputID = &nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	if nodes := gc.mutation.GenerationOutputsIDs(); len(nodes) > 0 {

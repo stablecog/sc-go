@@ -157,6 +157,11 @@ func APITokenID(v uuid.UUID) predicate.Generation {
 	return predicate.Generation(sql.FieldEQ(FieldAPITokenID, v))
 }
 
+// ZoomedFromOutputID applies equality check predicate on the "zoomed_from_output_id" field. It's identical to ZoomedFromOutputIDEQ.
+func ZoomedFromOutputID(v uuid.UUID) predicate.Generation {
+	return predicate.Generation(sql.FieldEQ(FieldZoomedFromOutputID, v))
+}
+
 // StartedAt applies equality check predicate on the "started_at" field. It's identical to StartedAtEQ.
 func StartedAt(v time.Time) predicate.Generation {
 	return predicate.Generation(sql.FieldEQ(FieldStartedAt, v))
@@ -1037,6 +1042,36 @@ func APITokenIDNotNil() predicate.Generation {
 	return predicate.Generation(sql.FieldNotNull(FieldAPITokenID))
 }
 
+// ZoomedFromOutputIDEQ applies the EQ predicate on the "zoomed_from_output_id" field.
+func ZoomedFromOutputIDEQ(v uuid.UUID) predicate.Generation {
+	return predicate.Generation(sql.FieldEQ(FieldZoomedFromOutputID, v))
+}
+
+// ZoomedFromOutputIDNEQ applies the NEQ predicate on the "zoomed_from_output_id" field.
+func ZoomedFromOutputIDNEQ(v uuid.UUID) predicate.Generation {
+	return predicate.Generation(sql.FieldNEQ(FieldZoomedFromOutputID, v))
+}
+
+// ZoomedFromOutputIDIn applies the In predicate on the "zoomed_from_output_id" field.
+func ZoomedFromOutputIDIn(vs ...uuid.UUID) predicate.Generation {
+	return predicate.Generation(sql.FieldIn(FieldZoomedFromOutputID, vs...))
+}
+
+// ZoomedFromOutputIDNotIn applies the NotIn predicate on the "zoomed_from_output_id" field.
+func ZoomedFromOutputIDNotIn(vs ...uuid.UUID) predicate.Generation {
+	return predicate.Generation(sql.FieldNotIn(FieldZoomedFromOutputID, vs...))
+}
+
+// ZoomedFromOutputIDIsNil applies the IsNil predicate on the "zoomed_from_output_id" field.
+func ZoomedFromOutputIDIsNil() predicate.Generation {
+	return predicate.Generation(sql.FieldIsNull(FieldZoomedFromOutputID))
+}
+
+// ZoomedFromOutputIDNotNil applies the NotNil predicate on the "zoomed_from_output_id" field.
+func ZoomedFromOutputIDNotNil() predicate.Generation {
+	return predicate.Generation(sql.FieldNotNull(FieldZoomedFromOutputID))
+}
+
 // StartedAtEQ applies the EQ predicate on the "started_at" field.
 func StartedAtEQ(v time.Time) predicate.Generation {
 	return predicate.Generation(sql.FieldEQ(FieldStartedAt, v))
@@ -1397,6 +1432,33 @@ func HasAPITokensWith(preds ...predicate.ApiToken) predicate.Generation {
 			sqlgraph.From(Table, FieldID),
 			sqlgraph.To(APITokensInverseTable, FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, true, APITokensTable, APITokensColumn),
+		)
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasZoomedGenerationOutputs applies the HasEdge predicate on the "zoomed_generation_outputs" edge.
+func HasZoomedGenerationOutputs() predicate.Generation {
+	return predicate.Generation(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, ZoomedGenerationOutputsTable, ZoomedGenerationOutputsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasZoomedGenerationOutputsWith applies the HasEdge predicate on the "zoomed_generation_outputs" edge with a given conditions (other predicates).
+func HasZoomedGenerationOutputsWith(preds ...predicate.GenerationOutput) predicate.Generation {
+	return predicate.Generation(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(ZoomedGenerationOutputsInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, ZoomedGenerationOutputsTable, ZoomedGenerationOutputsColumn),
 		)
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {

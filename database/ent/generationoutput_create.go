@@ -177,6 +177,55 @@ func (goc *GenerationOutputCreate) SetUpscaleOutputs(u *UpscaleOutput) *Generati
 	return goc.SetUpscaleOutputsID(u.ID)
 }
 
+// AddZoomedFromGenerationIDs adds the "zoomed_from_generation" edge to the Generation entity by IDs.
+func (goc *GenerationOutputCreate) AddZoomedFromGenerationIDs(ids ...uuid.UUID) *GenerationOutputCreate {
+	goc.mutation.AddZoomedFromGenerationIDs(ids...)
+	return goc
+}
+
+// AddZoomedFromGeneration adds the "zoomed_from_generation" edges to the Generation entity.
+func (goc *GenerationOutputCreate) AddZoomedFromGeneration(g ...*Generation) *GenerationOutputCreate {
+	ids := make([]uuid.UUID, len(g))
+	for i := range g {
+		ids[i] = g[i].ID
+	}
+	return goc.AddZoomedFromGenerationIDs(ids...)
+}
+
+// SetGenerationOutputsID sets the "generation_outputs" edge to the GenerationOutput entity by ID.
+func (goc *GenerationOutputCreate) SetGenerationOutputsID(id uuid.UUID) *GenerationOutputCreate {
+	goc.mutation.SetGenerationOutputsID(id)
+	return goc
+}
+
+// SetNillableGenerationOutputsID sets the "generation_outputs" edge to the GenerationOutput entity by ID if the given value is not nil.
+func (goc *GenerationOutputCreate) SetNillableGenerationOutputsID(id *uuid.UUID) *GenerationOutputCreate {
+	if id != nil {
+		goc = goc.SetGenerationOutputsID(*id)
+	}
+	return goc
+}
+
+// SetGenerationOutputs sets the "generation_outputs" edge to the GenerationOutput entity.
+func (goc *GenerationOutputCreate) SetGenerationOutputs(g *GenerationOutput) *GenerationOutputCreate {
+	return goc.SetGenerationOutputsID(g.ID)
+}
+
+// AddZoomedOutputIDs adds the "zoomed_outputs" edge to the GenerationOutput entity by IDs.
+func (goc *GenerationOutputCreate) AddZoomedOutputIDs(ids ...uuid.UUID) *GenerationOutputCreate {
+	goc.mutation.AddZoomedOutputIDs(ids...)
+	return goc
+}
+
+// AddZoomedOutputs adds the "zoomed_outputs" edges to the GenerationOutput entity.
+func (goc *GenerationOutputCreate) AddZoomedOutputs(g ...*GenerationOutput) *GenerationOutputCreate {
+	ids := make([]uuid.UUID, len(g))
+	for i := range g {
+		ids[i] = g[i].ID
+	}
+	return goc.AddZoomedOutputIDs(ids...)
+}
+
 // Mutation returns the GenerationOutputMutation object of the builder.
 func (goc *GenerationOutputCreate) Mutation() *GenerationOutputMutation {
 	return goc.mutation
@@ -373,6 +422,64 @@ func (goc *GenerationOutputCreate) createSpec() (*GenerationOutput, *sqlgraph.Cr
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeUUID,
 					Column: upscaleoutput.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := goc.mutation.ZoomedFromGenerationIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   generationoutput.ZoomedFromGenerationTable,
+			Columns: []string{generationoutput.ZoomedFromGenerationColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: generation.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := goc.mutation.GenerationOutputsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   generationoutput.GenerationOutputsTable,
+			Columns: []string{generationoutput.GenerationOutputsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: generationoutput.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.generation_output_zoomed_outputs = &nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := goc.mutation.ZoomedOutputsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   generationoutput.ZoomedOutputsTable,
+			Columns: []string{generationoutput.ZoomedOutputsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: generationoutput.FieldID,
 				},
 			},
 		}

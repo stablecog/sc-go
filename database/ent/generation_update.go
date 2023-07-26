@@ -363,6 +363,26 @@ func (gu *GenerationUpdate) ClearAPITokenID() *GenerationUpdate {
 	return gu
 }
 
+// SetZoomedFromOutputID sets the "zoomed_from_output_id" field.
+func (gu *GenerationUpdate) SetZoomedFromOutputID(u uuid.UUID) *GenerationUpdate {
+	gu.mutation.SetZoomedFromOutputID(u)
+	return gu
+}
+
+// SetNillableZoomedFromOutputID sets the "zoomed_from_output_id" field if the given value is not nil.
+func (gu *GenerationUpdate) SetNillableZoomedFromOutputID(u *uuid.UUID) *GenerationUpdate {
+	if u != nil {
+		gu.SetZoomedFromOutputID(*u)
+	}
+	return gu
+}
+
+// ClearZoomedFromOutputID clears the value of the "zoomed_from_output_id" field.
+func (gu *GenerationUpdate) ClearZoomedFromOutputID() *GenerationUpdate {
+	gu.mutation.ClearZoomedFromOutputID()
+	return gu
+}
+
 // SetStartedAt sets the "started_at" field.
 func (gu *GenerationUpdate) SetStartedAt(t time.Time) *GenerationUpdate {
 	gu.mutation.SetStartedAt(t)
@@ -464,6 +484,25 @@ func (gu *GenerationUpdate) SetAPITokens(a *ApiToken) *GenerationUpdate {
 	return gu.SetAPITokensID(a.ID)
 }
 
+// SetZoomedGenerationOutputsID sets the "zoomed_generation_outputs" edge to the GenerationOutput entity by ID.
+func (gu *GenerationUpdate) SetZoomedGenerationOutputsID(id uuid.UUID) *GenerationUpdate {
+	gu.mutation.SetZoomedGenerationOutputsID(id)
+	return gu
+}
+
+// SetNillableZoomedGenerationOutputsID sets the "zoomed_generation_outputs" edge to the GenerationOutput entity by ID if the given value is not nil.
+func (gu *GenerationUpdate) SetNillableZoomedGenerationOutputsID(id *uuid.UUID) *GenerationUpdate {
+	if id != nil {
+		gu = gu.SetZoomedGenerationOutputsID(*id)
+	}
+	return gu
+}
+
+// SetZoomedGenerationOutputs sets the "zoomed_generation_outputs" edge to the GenerationOutput entity.
+func (gu *GenerationUpdate) SetZoomedGenerationOutputs(g *GenerationOutput) *GenerationUpdate {
+	return gu.SetZoomedGenerationOutputsID(g.ID)
+}
+
 // AddGenerationOutputIDs adds the "generation_outputs" edge to the GenerationOutput entity by IDs.
 func (gu *GenerationUpdate) AddGenerationOutputIDs(ids ...uuid.UUID) *GenerationUpdate {
 	gu.mutation.AddGenerationOutputIDs(ids...)
@@ -523,6 +562,12 @@ func (gu *GenerationUpdate) ClearUser() *GenerationUpdate {
 // ClearAPITokens clears the "api_tokens" edge to the ApiToken entity.
 func (gu *GenerationUpdate) ClearAPITokens() *GenerationUpdate {
 	gu.mutation.ClearAPITokens()
+	return gu
+}
+
+// ClearZoomedGenerationOutputs clears the "zoomed_generation_outputs" edge to the GenerationOutput entity.
+func (gu *GenerationUpdate) ClearZoomedGenerationOutputs() *GenerationUpdate {
+	gu.mutation.ClearZoomedGenerationOutputs()
 	return gu
 }
 
@@ -981,6 +1026,41 @@ func (gu *GenerationUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if gu.mutation.ZoomedGenerationOutputsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   generation.ZoomedGenerationOutputsTable,
+			Columns: []string{generation.ZoomedGenerationOutputsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: generationoutput.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := gu.mutation.ZoomedGenerationOutputsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   generation.ZoomedGenerationOutputsTable,
+			Columns: []string{generation.ZoomedGenerationOutputsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: generationoutput.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if gu.mutation.GenerationOutputsCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
@@ -1381,6 +1461,26 @@ func (guo *GenerationUpdateOne) ClearAPITokenID() *GenerationUpdateOne {
 	return guo
 }
 
+// SetZoomedFromOutputID sets the "zoomed_from_output_id" field.
+func (guo *GenerationUpdateOne) SetZoomedFromOutputID(u uuid.UUID) *GenerationUpdateOne {
+	guo.mutation.SetZoomedFromOutputID(u)
+	return guo
+}
+
+// SetNillableZoomedFromOutputID sets the "zoomed_from_output_id" field if the given value is not nil.
+func (guo *GenerationUpdateOne) SetNillableZoomedFromOutputID(u *uuid.UUID) *GenerationUpdateOne {
+	if u != nil {
+		guo.SetZoomedFromOutputID(*u)
+	}
+	return guo
+}
+
+// ClearZoomedFromOutputID clears the value of the "zoomed_from_output_id" field.
+func (guo *GenerationUpdateOne) ClearZoomedFromOutputID() *GenerationUpdateOne {
+	guo.mutation.ClearZoomedFromOutputID()
+	return guo
+}
+
 // SetStartedAt sets the "started_at" field.
 func (guo *GenerationUpdateOne) SetStartedAt(t time.Time) *GenerationUpdateOne {
 	guo.mutation.SetStartedAt(t)
@@ -1482,6 +1582,25 @@ func (guo *GenerationUpdateOne) SetAPITokens(a *ApiToken) *GenerationUpdateOne {
 	return guo.SetAPITokensID(a.ID)
 }
 
+// SetZoomedGenerationOutputsID sets the "zoomed_generation_outputs" edge to the GenerationOutput entity by ID.
+func (guo *GenerationUpdateOne) SetZoomedGenerationOutputsID(id uuid.UUID) *GenerationUpdateOne {
+	guo.mutation.SetZoomedGenerationOutputsID(id)
+	return guo
+}
+
+// SetNillableZoomedGenerationOutputsID sets the "zoomed_generation_outputs" edge to the GenerationOutput entity by ID if the given value is not nil.
+func (guo *GenerationUpdateOne) SetNillableZoomedGenerationOutputsID(id *uuid.UUID) *GenerationUpdateOne {
+	if id != nil {
+		guo = guo.SetZoomedGenerationOutputsID(*id)
+	}
+	return guo
+}
+
+// SetZoomedGenerationOutputs sets the "zoomed_generation_outputs" edge to the GenerationOutput entity.
+func (guo *GenerationUpdateOne) SetZoomedGenerationOutputs(g *GenerationOutput) *GenerationUpdateOne {
+	return guo.SetZoomedGenerationOutputsID(g.ID)
+}
+
 // AddGenerationOutputIDs adds the "generation_outputs" edge to the GenerationOutput entity by IDs.
 func (guo *GenerationUpdateOne) AddGenerationOutputIDs(ids ...uuid.UUID) *GenerationUpdateOne {
 	guo.mutation.AddGenerationOutputIDs(ids...)
@@ -1541,6 +1660,12 @@ func (guo *GenerationUpdateOne) ClearUser() *GenerationUpdateOne {
 // ClearAPITokens clears the "api_tokens" edge to the ApiToken entity.
 func (guo *GenerationUpdateOne) ClearAPITokens() *GenerationUpdateOne {
 	guo.mutation.ClearAPITokens()
+	return guo
+}
+
+// ClearZoomedGenerationOutputs clears the "zoomed_generation_outputs" edge to the GenerationOutput entity.
+func (guo *GenerationUpdateOne) ClearZoomedGenerationOutputs() *GenerationUpdateOne {
+	guo.mutation.ClearZoomedGenerationOutputs()
 	return guo
 }
 
@@ -2015,6 +2140,41 @@ func (guo *GenerationUpdateOne) sqlSave(ctx context.Context) (_node *Generation,
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeUUID,
 					Column: apitoken.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if guo.mutation.ZoomedGenerationOutputsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   generation.ZoomedGenerationOutputsTable,
+			Columns: []string{generation.ZoomedGenerationOutputsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: generationoutput.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := guo.mutation.ZoomedGenerationOutputsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   generation.ZoomedGenerationOutputsTable,
+			Columns: []string{generation.ZoomedGenerationOutputsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: generationoutput.FieldID,
 				},
 			},
 		}

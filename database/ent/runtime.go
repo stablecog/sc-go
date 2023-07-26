@@ -140,11 +140,11 @@ func init() {
 	// generation.DefaultWasAutoSubmitted holds the default value on creation for the was_auto_submitted field.
 	generation.DefaultWasAutoSubmitted = generationDescWasAutoSubmitted.Default.(bool)
 	// generationDescCreatedAt is the schema descriptor for created_at field.
-	generationDescCreatedAt := generationFields[25].Descriptor()
+	generationDescCreatedAt := generationFields[26].Descriptor()
 	// generation.DefaultCreatedAt holds the default value on creation for the created_at field.
 	generation.DefaultCreatedAt = generationDescCreatedAt.Default.(func() time.Time)
 	// generationDescUpdatedAt is the schema descriptor for updated_at field.
-	generationDescUpdatedAt := generationFields[26].Descriptor()
+	generationDescUpdatedAt := generationFields[27].Descriptor()
 	// generation.DefaultUpdatedAt holds the default value on creation for the updated_at field.
 	generation.DefaultUpdatedAt = generationDescUpdatedAt.Default.(func() time.Time)
 	// generation.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.

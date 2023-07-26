@@ -4296,57 +4296,59 @@ func (m *DisposableEmailMutation) ResetEdge(name string) error {
 // GenerationMutation represents an operation that mutates the Generation nodes in the graph.
 type GenerationMutation struct {
 	config
-	op                        Op
-	typ                       string
-	id                        *uuid.UUID
-	width                     *int32
-	addwidth                  *int32
-	height                    *int32
-	addheight                 *int32
-	inference_steps           *int32
-	addinference_steps        *int32
-	guidance_scale            *float32
-	addguidance_scale         *float32
-	num_outputs               *int32
-	addnum_outputs            *int32
-	nsfw_count                *int32
-	addnsfw_count             *int32
-	seed                      *int
-	addseed                   *int
-	status                    *generation.Status
-	failure_reason            *string
-	country_code              *string
-	init_image_url            *string
-	prompt_strength           *float32
-	addprompt_strength        *float32
-	was_auto_submitted        *bool
-	stripe_product_id         *string
-	source_type               *enttypes.SourceType
-	started_at                *time.Time
-	completed_at              *time.Time
-	created_at                *time.Time
-	updated_at                *time.Time
-	clearedFields             map[string]struct{}
-	device_info               *uuid.UUID
-	cleareddevice_info        bool
-	scheduler                 *uuid.UUID
-	clearedscheduler          bool
-	prompt                    *uuid.UUID
-	clearedprompt             bool
-	negative_prompt           *uuid.UUID
-	clearednegative_prompt    bool
-	generation_model          *uuid.UUID
-	clearedgeneration_model   bool
-	user                      *uuid.UUID
-	cleareduser               bool
-	api_tokens                *uuid.UUID
-	clearedapi_tokens         bool
-	generation_outputs        map[uuid.UUID]struct{}
-	removedgeneration_outputs map[uuid.UUID]struct{}
-	clearedgeneration_outputs bool
-	done                      bool
-	oldValue                  func(context.Context) (*Generation, error)
-	predicates                []predicate.Generation
+	op                               Op
+	typ                              string
+	id                               *uuid.UUID
+	width                            *int32
+	addwidth                         *int32
+	height                           *int32
+	addheight                        *int32
+	inference_steps                  *int32
+	addinference_steps               *int32
+	guidance_scale                   *float32
+	addguidance_scale                *float32
+	num_outputs                      *int32
+	addnum_outputs                   *int32
+	nsfw_count                       *int32
+	addnsfw_count                    *int32
+	seed                             *int
+	addseed                          *int
+	status                           *generation.Status
+	failure_reason                   *string
+	country_code                     *string
+	init_image_url                   *string
+	prompt_strength                  *float32
+	addprompt_strength               *float32
+	was_auto_submitted               *bool
+	stripe_product_id                *string
+	source_type                      *enttypes.SourceType
+	started_at                       *time.Time
+	completed_at                     *time.Time
+	created_at                       *time.Time
+	updated_at                       *time.Time
+	clearedFields                    map[string]struct{}
+	device_info                      *uuid.UUID
+	cleareddevice_info               bool
+	scheduler                        *uuid.UUID
+	clearedscheduler                 bool
+	prompt                           *uuid.UUID
+	clearedprompt                    bool
+	negative_prompt                  *uuid.UUID
+	clearednegative_prompt           bool
+	generation_model                 *uuid.UUID
+	clearedgeneration_model          bool
+	user                             *uuid.UUID
+	cleareduser                      bool
+	api_tokens                       *uuid.UUID
+	clearedapi_tokens                bool
+	zoomed_generation_outputs        *uuid.UUID
+	clearedzoomed_generation_outputs bool
+	generation_outputs               map[uuid.UUID]struct{}
+	removedgeneration_outputs        map[uuid.UUID]struct{}
+	clearedgeneration_outputs        bool
+	done                             bool
+	oldValue                         func(context.Context) (*Generation, error)
+	predicates                       []predicate.Generation
 }
 
 var _ ent.Mutation = (*GenerationMutation)(nil)
@@ -5510,6 +5512,55 @@ func (m *GenerationMutation) ResetAPITokenID() {
 	delete(m.clearedFields, generation.FieldAPITokenID)
 }
 
+// SetZoomedFromOutputID sets the "zoomed_from_output_id" field.
+func (m *GenerationMutation) SetZoomedFromOutputID(u uuid.UUID) {
+	m.zoomed_generation_outputs = &u
+}
+
+// ZoomedFromOutputID returns the value of the "zoomed_from_output_id" field in the mutation.
+func (m *GenerationMutation) ZoomedFromOutputID() (r uuid.UUID, exists bool) {
+	v := m.zoomed_generation_outputs
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldZoomedFromOutputID returns the old "zoomed_from_output_id" field's value of the Generation entity.
+// If the Generation object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *GenerationMutation) OldZoomedFromOutputID(ctx context.Context) (v *uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldZoomedFromOutputID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldZoomedFromOutputID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldZoomedFromOutputID: %w", err)
+	}
+	return oldValue.ZoomedFromOutputID, nil
+}
+
+// ClearZoomedFromOutputID clears the value of the "zoomed_from_output_id" field.
+func (m *GenerationMutation) ClearZoomedFromOutputID() {
+	m.zoomed_generation_outputs = nil
+	m.clearedFields[generation.FieldZoomedFromOutputID] = struct{}{}
+}
+
+// ZoomedFromOutputIDCleared returns if the "zoomed_from_output_id" field was cleared in this mutation.
+func (m *GenerationMutation) ZoomedFromOutputIDCleared() bool {
+	_, ok := m.clearedFields[generation.FieldZoomedFromOutputID]
+	return ok
+}
+
+// ResetZoomedFromOutputID resets all changes to the "zoomed_from_output_id" field.
+func (m *GenerationMutation) ResetZoomedFromOutputID() {
+	m.zoomed_generation_outputs = nil
+	delete(m.clearedFields, generation.FieldZoomedFromOutputID)
+}
+
 // SetStartedAt sets the "started_at" field.
 func (m *GenerationMutation) SetStartedAt(t time.Time) {
 	m.started_at = &t
@@ -5888,6 +5939,45 @@ func (m *GenerationMutation) ResetAPITokens() {
 	m.clearedapi_tokens = false
 }
 
+// SetZoomedGenerationOutputsID sets the "zoomed_generation_outputs" edge to the GenerationOutput entity by id.
+func (m *GenerationMutation) SetZoomedGenerationOutputsID(id uuid.UUID) {
+	m.zoomed_generation_outputs = &id
+}
+
+// ClearZoomedGenerationOutputs clears the "zoomed_generation_outputs" edge to the GenerationOutput entity.
+func (m *GenerationMutation) ClearZoomedGenerationOutputs() {
+	m.clearedzoomed_generation_outputs = true
+}
+
+// ZoomedGenerationOutputsCleared reports if the "zoomed_generation_outputs" edge to the GenerationOutput entity was cleared.
+func (m *GenerationMutation) ZoomedGenerationOutputsCleared() bool {
+	return m.ZoomedFromOutputIDCleared() || m.clearedzoomed_generation_outputs
+}
+
+// ZoomedGenerationOutputsID returns the "zoomed_generation_outputs" edge ID in the mutation.
+func (m *GenerationMutation) ZoomedGenerationOutputsID() (id uuid.UUID, exists bool) {
+	if m.zoomed_generation_outputs != nil {
+		return *m.zoomed_generation_outputs, true
+	}
+	return
+}
+
+// ZoomedGenerationOutputsIDs returns the "zoomed_generation_outputs" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// ZoomedGenerationOutputsID instead. It exists only for internal usage by the builders.
+func (m *GenerationMutation) ZoomedGenerationOutputsIDs() (ids []uuid.UUID) {
+	if id := m.zoomed_generation_outputs; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetZoomedGenerationOutputs resets all changes to the "zoomed_generation_outputs" edge.
+func (m *GenerationMutation) ResetZoomedGenerationOutputs() {
+	m.zoomed_generation_outputs = nil
+	m.clearedzoomed_generation_outputs = false
+}
+
 // AddGenerationOutputIDs adds the "generation_outputs" edge to the GenerationOutput entity by ids.
 func (m *GenerationMutation) AddGenerationOutputIDs(ids ...uuid.UUID) {
 	if m.generation_outputs == nil {
@@ -5976,7 +6066,7 @@ func (m *GenerationMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *GenerationMutation) Fields() []string {
-	fields := make([]string, 0, 26)
+	fields := make([]string, 0, 27)
 	if m.width != nil {
 		fields = append(fields, generation.FieldWidth)
 	}
@@ -6043,6 +6133,9 @@ func (m *GenerationMutation) Fields() []string {
 	if m.api_tokens != nil {
 		fields = append(fields, generation.FieldAPITokenID)
 	}
+	if m.zoomed_generation_outputs != nil {
+		fields = append(fields, generation.FieldZoomedFromOutputID)
+	}
 	if m.started_at != nil {
 		fields = append(fields, generation.FieldStartedAt)
 	}
@@ -6107,6 +6200,8 @@ func (m *GenerationMutation) Field(name string) (ent.Value, bool) {
 		return m.DeviceInfoID()
 	case generation.FieldAPITokenID:
 		return m.APITokenID()
+	case generation.FieldZoomedFromOutputID:
+		return m.ZoomedFromOutputID()
 	case generation.FieldStartedAt:
 		return m.StartedAt()
 	case generation.FieldCompletedAt:
@@ -6168,6 +6263,8 @@ func (m *GenerationMutation) OldField(ctx context.Context, name string) (ent.Val
 		return m.OldDeviceInfoID(ctx)
 	case generation.FieldAPITokenID:
 		return m.OldAPITokenID(ctx)
+	case generation.FieldZoomedFromOutputID:
+		return m.OldZoomedFromOutputID(ctx)
 	case generation.FieldStartedAt:
 		return m.OldStartedAt(ctx)
 	case generation.FieldCompletedAt:
@@ -6338,6 +6435,13 @@ func (m *GenerationMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetAPITokenID(v)
+		return nil
+	case generation.FieldZoomedFromOutputID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetZoomedFromOutputID(v)
 		return nil
 	case generation.FieldStartedAt:
 		v, ok := value.(time.Time)
@@ -6520,6 +6624,9 @@ func (m *GenerationMutation) ClearedFields() []string {
 	if m.FieldCleared(generation.FieldAPITokenID) {
 		fields = append(fields, generation.FieldAPITokenID)
 	}
+	if m.FieldCleared(generation.FieldZoomedFromOutputID) {
+		fields = append(fields, generation.FieldZoomedFromOutputID)
+	}
 	if m.FieldCleared(generation.FieldStartedAt) {
 		fields = append(fields, generation.FieldStartedAt)
 	}
@@ -6563,6 +6670,9 @@ func (m *GenerationMutation) ClearField(name string) error {
 		return nil
 	case generation.FieldAPITokenID:
 		m.ClearAPITokenID()
+		return nil
+	case generation.FieldZoomedFromOutputID:
+		m.ClearZoomedFromOutputID()
 		return nil
 	case generation.FieldStartedAt:
 		m.ClearStartedAt()
@@ -6644,6 +6754,9 @@ func (m *GenerationMutation) ResetField(name string) error {
 	case generation.FieldAPITokenID:
 		m.ResetAPITokenID()
 		return nil
+	case generation.FieldZoomedFromOutputID:
+		m.ResetZoomedFromOutputID()
+		return nil
 	case generation.FieldStartedAt:
 		m.ResetStartedAt()
 		return nil
@@ -6662,7 +6775,7 @@ func (m *GenerationMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *GenerationMutation) AddedEdges() []string {
-	edges := make([]string, 0, 8)
+	edges := make([]string, 0, 9)
 	if m.device_info != nil {
 		edges = append(edges, generation.EdgeDeviceInfo)
 	}
@@ -6683,6 +6796,9 @@ func (m *GenerationMutation) AddedEdges() []string {
 	}
 	if m.api_tokens != nil {
 		edges = append(edges, generation.EdgeAPITokens)
+	}
+	if m.zoomed_generation_outputs != nil {
+		edges = append(edges, generation.EdgeZoomedGenerationOutputs)
 	}
 	if m.generation_outputs != nil {
 		edges = append(edges, generation.EdgeGenerationOutputs)
@@ -6722,6 +6838,10 @@ func (m *GenerationMutation) AddedIDs(name string) []ent.Value {
 		if id := m.api_tokens; id != nil {
 			return []ent.Value{*id}
 		}
+	case generation.EdgeZoomedGenerationOutputs:
+		if id := m.zoomed_generation_outputs; id != nil {
+			return []ent.Value{*id}
+		}
 	case generation.EdgeGenerationOutputs:
 		ids := make([]ent.Value, 0, len(m.generation_outputs))
 		for id := range m.generation_outputs {
@@ -6734,7 +6854,7 @@ func (m *GenerationMutation) AddedIDs(name string) []ent.Value {
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *GenerationMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 8)
+	edges := make([]string, 0, 9)
 	if m.removedgeneration_outputs != nil {
 		edges = append(edges, generation.EdgeGenerationOutputs)
 	}
@@ -6757,7 +6877,7 @@ func (m *GenerationMutation) RemovedIDs(name string) []ent.Value {
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *GenerationMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 8)
+	edges := make([]string, 0, 9)
 	if m.cleareddevice_info {
 		edges = append(edges, generation.EdgeDeviceInfo)
 	}
@@ -6778,6 +6898,9 @@ func (m *GenerationMutation) ClearedEdges() []string {
 	}
 	if m.clearedapi_tokens {
 		edges = append(edges, generation.EdgeAPITokens)
+	}
+	if m.clearedzoomed_generation_outputs {
+		edges = append(edges, generation.EdgeZoomedGenerationOutputs)
 	}
 	if m.clearedgeneration_outputs {
 		edges = append(edges, generation.EdgeGenerationOutputs)
@@ -6803,6 +6926,8 @@ func (m *GenerationMutation) EdgeCleared(name string) bool {
 		return m.cleareduser
 	case generation.EdgeAPITokens:
 		return m.clearedapi_tokens
+	case generation.EdgeZoomedGenerationOutputs:
+		return m.clearedzoomed_generation_outputs
 	case generation.EdgeGenerationOutputs:
 		return m.clearedgeneration_outputs
 	}
@@ -6834,6 +6959,9 @@ func (m *GenerationMutation) ClearEdge(name string) error {
 	case generation.EdgeAPITokens:
 		m.ClearAPITokens()
 		return nil
+	case generation.EdgeZoomedGenerationOutputs:
+		m.ClearZoomedGenerationOutputs()
+		return nil
 	}
 	return fmt.Errorf("unknown Generation unique edge %s", name)
 }
@@ -6862,6 +6990,9 @@ func (m *GenerationMutation) ResetEdge(name string) error {
 		return nil
 	case generation.EdgeAPITokens:
 		m.ResetAPITokens()
+		return nil
+	case generation.EdgeZoomedGenerationOutputs:
+		m.ResetZoomedGenerationOutputs()
 		return nil
 	case generation.EdgeGenerationOutputs:
 		m.ResetGenerationOutputs()
@@ -7904,25 +8035,33 @@ func (m *GenerationModelMutation) ResetEdge(name string) error {
 // GenerationOutputMutation represents an operation that mutates the GenerationOutput nodes in the graph.
 type GenerationOutputMutation struct {
 	config
-	op                     Op
-	typ                    string
-	id                     *uuid.UUID
-	image_path             *string
-	upscaled_image_path    *string
-	gallery_status         *generationoutput.GalleryStatus
-	is_favorited           *bool
-	has_embeddings         *bool
-	deleted_at             *time.Time
-	created_at             *time.Time
-	updated_at             *time.Time
-	clearedFields          map[string]struct{}
-	generations            *uuid.UUID
-	clearedgenerations     bool
-	upscale_outputs        *uuid.UUID
-	clearedupscale_outputs bool
-	done                   bool
-	oldValue               func(context.Context) (*GenerationOutput, error)
-	predicates             []predicate.GenerationOutput
+	op                            Op
+	typ                           string
+	id                            *uuid.UUID
+	image_path                    *string
+	upscaled_image_path           *string
+	gallery_status                *generationoutput.GalleryStatus
+	is_favorited                  *bool
+	has_embeddings                *bool
+	deleted_at                    *time.Time
+	created_at                    *time.Time
+	updated_at                    *time.Time
+	clearedFields                 map[string]struct{}
+	generations                   *uuid.UUID
+	clearedgenerations            bool
+	upscale_outputs               *uuid.UUID
+	clearedupscale_outputs        bool
+	zoomed_from_generation        map[uuid.UUID]struct{}
+	removedzoomed_from_generation map[uuid.UUID]struct{}
+	clearedzoomed_from_generation bool
+	generation_outputs            *uuid.UUID
+	clearedgeneration_outputs     bool
+	zoomed_outputs                map[uuid.UUID]struct{}
+	removedzoomed_outputs         map[uuid.UUID]struct{}
+	clearedzoomed_outputs         bool
+	done                          bool
+	oldValue                      func(context.Context) (*GenerationOutput, error)
+	predicates                    []predicate.GenerationOutput
 }
 
 var _ ent.Mutation = (*GenerationOutputMutation)(nil)
@@ -8457,6 +8596,153 @@ func (m *GenerationOutputMutation) ResetUpscaleOutputs() {
 	m.clearedupscale_outputs = false
 }
 
+// AddZoomedFromGenerationIDs adds the "zoomed_from_generation" edge to the Generation entity by ids.
+func (m *GenerationOutputMutation) AddZoomedFromGenerationIDs(ids ...uuid.UUID) {
+	if m.zoomed_from_generation == nil {
+		m.zoomed_from_generation = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.zoomed_from_generation[ids[i]] = struct{}{}
+	}
+}
+
+// ClearZoomedFromGeneration clears the "zoomed_from_generation" edge to the Generation entity.
+func (m *GenerationOutputMutation) ClearZoomedFromGeneration() {
+	m.clearedzoomed_from_generation = true
+}
+
+// ZoomedFromGenerationCleared reports if the "zoomed_from_generation" edge to the Generation entity was cleared.
+func (m *GenerationOutputMutation) ZoomedFromGenerationCleared() bool {
+	return m.clearedzoomed_from_generation
+}
+
+// RemoveZoomedFromGenerationIDs removes the "zoomed_from_generation" edge to the Generation entity by IDs.
+func (m *GenerationOutputMutation) RemoveZoomedFromGenerationIDs(ids ...uuid.UUID) {
+	if m.removedzoomed_from_generation == nil {
+		m.removedzoomed_from_generation = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.zoomed_from_generation, ids[i])
+		m.removedzoomed_from_generation[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedZoomedFromGeneration returns the removed IDs of the "zoomed_from_generation" edge to the Generation entity.
+func (m *GenerationOutputMutation) RemovedZoomedFromGenerationIDs() (ids []uuid.UUID) {
+	for id := range m.removedzoomed_from_generation {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ZoomedFromGenerationIDs returns the "zoomed_from_generation" edge IDs in the mutation.
+func (m *GenerationOutputMutation) ZoomedFromGenerationIDs() (ids []uuid.UUID) {
+	for id := range m.zoomed_from_generation {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetZoomedFromGeneration resets all changes to the "zoomed_from_generation" edge.
+func (m *GenerationOutputMutation) ResetZoomedFromGeneration() {
+	m.zoomed_from_generation = nil
+	m.clearedzoomed_from_generation = false
+	m.removedzoomed_from_generation = nil
+}
+
+// SetGenerationOutputsID sets the "generation_outputs" edge to the GenerationOutput entity by id.
+func (m *GenerationOutputMutation) SetGenerationOutputsID(id uuid.UUID) {
+	m.generation_outputs = &id
+}
+
+// ClearGenerationOutputs clears the "generation_outputs" edge to the GenerationOutput entity.
+func (m *GenerationOutputMutation) ClearGenerationOutputs() {
+	m.clearedgeneration_outputs = true
+}
+
+// GenerationOutputsCleared reports if the "generation_outputs" edge to the GenerationOutput entity was cleared.
+func (m *GenerationOutputMutation) GenerationOutputsCleared() bool {
+	return m.clearedgeneration_outputs
+}
+
+// GenerationOutputsID returns the "generation_outputs" edge ID in the mutation.
+func (m *GenerationOutputMutation) GenerationOutputsID() (id uuid.UUID, exists bool) {
+	if m.generation_outputs != nil {
+		return *m.generation_outputs, true
+	}
+	return
+}
+
+// GenerationOutputsIDs returns the "generation_outputs" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// GenerationOutputsID instead. It exists only for internal usage by the builders.
+func (m *GenerationOutputMutation) GenerationOutputsIDs() (ids []uuid.UUID) {
+	if id := m.generation_outputs; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetGenerationOutputs resets all changes to the "generation_outputs" edge.
+func (m *GenerationOutputMutation) ResetGenerationOutputs() {
+	m.generation_outputs = nil
+	m.clearedgeneration_outputs = false
+}
+
+// AddZoomedOutputIDs adds the "zoomed_outputs" edge to the GenerationOutput entity by ids.
+func (m *GenerationOutputMutation) AddZoomedOutputIDs(ids ...uuid.UUID) {
+	if m.zoomed_outputs == nil {
+		m.zoomed_outputs = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.zoomed_outputs[ids[i]] = struct{}{}
+	}
+}
+
+// ClearZoomedOutputs clears the "zoomed_outputs" edge to the GenerationOutput entity.
+func (m *GenerationOutputMutation) ClearZoomedOutputs() {
+	m.clearedzoomed_outputs = true
+}
+
+// ZoomedOutputsCleared reports if the "zoomed_outputs" edge to the GenerationOutput entity was cleared.
+func (m *GenerationOutputMutation) ZoomedOutputsCleared() bool {
+	return m.clearedzoomed_outputs
+}
+
+// RemoveZoomedOutputIDs removes the "zoomed_outputs" edge to the GenerationOutput entity by IDs.
+func (m *GenerationOutputMutation) RemoveZoomedOutputIDs(ids ...uuid.UUID) {
+	if m.removedzoomed_outputs == nil {
+		m.removedzoomed_outputs = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.zoomed_outputs, ids[i])
+		m.removedzoomed_outputs[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedZoomedOutputs returns the removed IDs of the "zoomed_outputs" edge to the GenerationOutput entity.
+func (m *GenerationOutputMutation) RemovedZoomedOutputsIDs() (ids []uuid.UUID) {
+	for id := range m.removedzoomed_outputs {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ZoomedOutputsIDs returns the "zoomed_outputs" edge IDs in the mutation.
+func (m *GenerationOutputMutation) ZoomedOutputsIDs() (ids []uuid.UUID) {
+	for id := range m.zoomed_outputs {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetZoomedOutputs resets all changes to the "zoomed_outputs" edge.
+func (m *GenerationOutputMutation) ResetZoomedOutputs() {
+	m.zoomed_outputs = nil
+	m.clearedzoomed_outputs = false
+	m.removedzoomed_outputs = nil
+}
+
 // Where appends a list predicates to the GenerationOutputMutation builder.
 func (m *GenerationOutputMutation) Where(ps ...predicate.GenerationOutput) {
 	m.predicates = append(m.predicates, ps...)
@@ -8741,12 +9027,21 @@ func (m *GenerationOutputMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *GenerationOutputMutation) AddedEdges() []string {
-	edges := make([]string, 0, 2)
+	edges := make([]string, 0, 5)
 	if m.generations != nil {
 		edges = append(edges, generationoutput.EdgeGenerations)
 	}
 	if m.upscale_outputs != nil {
 		edges = append(edges, generationoutput.EdgeUpscaleOutputs)
+	}
+	if m.zoomed_from_generation != nil {
+		edges = append(edges, generationoutput.EdgeZoomedFromGeneration)
+	}
+	if m.generation_outputs != nil {
+		edges = append(edges, generationoutput.EdgeGenerationOutputs)
+	}
+	if m.zoomed_outputs != nil {
+		edges = append(edges, generationoutput.EdgeZoomedOutputs)
 	}
 	return edges
 }
@@ -8763,30 +9058,75 @@ func (m *GenerationOutputMutation) AddedIDs(name string) []ent.Value {
 		if id := m.upscale_outputs; id != nil {
 			return []ent.Value{*id}
 		}
+	case generationoutput.EdgeZoomedFromGeneration:
+		ids := make([]ent.Value, 0, len(m.zoomed_from_generation))
+		for id := range m.zoomed_from_generation {
+			ids = append(ids, id)
+		}
+		return ids
+	case generationoutput.EdgeGenerationOutputs:
+		if id := m.generation_outputs; id != nil {
+			return []ent.Value{*id}
+		}
+	case generationoutput.EdgeZoomedOutputs:
+		ids := make([]ent.Value, 0, len(m.zoomed_outputs))
+		for id := range m.zoomed_outputs {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *GenerationOutputMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 2)
+	edges := make([]string, 0, 5)
+	if m.removedzoomed_from_generation != nil {
+		edges = append(edges, generationoutput.EdgeZoomedFromGeneration)
+	}
+	if m.removedzoomed_outputs != nil {
+		edges = append(edges, generationoutput.EdgeZoomedOutputs)
+	}
 	return edges
 }
 
 // RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
 // the given name in this mutation.
 func (m *GenerationOutputMutation) RemovedIDs(name string) []ent.Value {
+	switch name {
+	case generationoutput.EdgeZoomedFromGeneration:
+		ids := make([]ent.Value, 0, len(m.removedzoomed_from_generation))
+		for id := range m.removedzoomed_from_generation {
+			ids = append(ids, id)
+		}
+		return ids
+	case generationoutput.EdgeZoomedOutputs:
+		ids := make([]ent.Value, 0, len(m.removedzoomed_outputs))
+		for id := range m.removedzoomed_outputs {
+			ids = append(ids, id)
+		}
+		return ids
+	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *GenerationOutputMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 2)
+	edges := make([]string, 0, 5)
 	if m.clearedgenerations {
 		edges = append(edges, generationoutput.EdgeGenerations)
 	}
 	if m.clearedupscale_outputs {
 		edges = append(edges, generationoutput.EdgeUpscaleOutputs)
+	}
+	if m.clearedzoomed_from_generation {
+		edges = append(edges, generationoutput.EdgeZoomedFromGeneration)
+	}
+	if m.clearedgeneration_outputs {
+		edges = append(edges, generationoutput.EdgeGenerationOutputs)
+	}
+	if m.clearedzoomed_outputs {
+		edges = append(edges, generationoutput.EdgeZoomedOutputs)
 	}
 	return edges
 }
@@ -8799,6 +9139,12 @@ func (m *GenerationOutputMutation) EdgeCleared(name string) bool {
 		return m.clearedgenerations
 	case generationoutput.EdgeUpscaleOutputs:
 		return m.clearedupscale_outputs
+	case generationoutput.EdgeZoomedFromGeneration:
+		return m.clearedzoomed_from_generation
+	case generationoutput.EdgeGenerationOutputs:
+		return m.clearedgeneration_outputs
+	case generationoutput.EdgeZoomedOutputs:
+		return m.clearedzoomed_outputs
 	}
 	return false
 }
@@ -8813,6 +9159,9 @@ func (m *GenerationOutputMutation) ClearEdge(name string) error {
 	case generationoutput.EdgeUpscaleOutputs:
 		m.ClearUpscaleOutputs()
 		return nil
+	case generationoutput.EdgeGenerationOutputs:
+		m.ClearGenerationOutputs()
+		return nil
 	}
 	return fmt.Errorf("unknown GenerationOutput unique edge %s", name)
 }
@@ -8826,6 +9175,15 @@ func (m *GenerationOutputMutation) ResetEdge(name string) error {
 		return nil
 	case generationoutput.EdgeUpscaleOutputs:
 		m.ResetUpscaleOutputs()
+		return nil
+	case generationoutput.EdgeZoomedFromGeneration:
+		m.ResetZoomedFromGeneration()
+		return nil
+	case generationoutput.EdgeGenerationOutputs:
+		m.ResetGenerationOutputs()
+		return nil
+	case generationoutput.EdgeZoomedOutputs:
+		m.ResetZoomedOutputs()
 		return nil
 	}
 	return fmt.Errorf("unknown GenerationOutput edge %s", name)

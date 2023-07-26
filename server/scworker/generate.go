@@ -377,7 +377,9 @@ func (w *SCWorker) CreateGeneration(source enttypes.SourceType,
 				ProcessType:          shared.GENERATE,
 				SubmitToGallery:      generateReq.SubmitToGallery,
 				InitImageUrl:         signedInitImageUrl,
+				MaskImageUrl:         generateReq.MaskImageUrl,
 				PromptStrength:       generateReq.PromptStrength,
+				ZoomedFromOutputId:   generateReq.ZoomedOutFromOutputID,
 			},
 		}
 
@@ -496,7 +498,7 @@ func (w *SCWorker) CreateGeneration(source enttypes.SourceType,
 					}
 				}()
 			case requests.CogSucceeded:
-				outputs, err := w.Repo.SetGenerationSucceeded(requestId.String(), generateReq.Prompt, generateReq.NegativePrompt, cogMsg.Output, cogMsg.NSFWCount)
+				outputs, err := w.Repo.SetGenerationSucceeded(requestId.String(), generateReq.Prompt, generateReq.NegativePrompt, generateReq.ZoomedOutFromOutputID, cogMsg.Output, cogMsg.NSFWCount)
 				if err != nil {
 					log.Error("Failed to set generation succeeded", "id", upscale.ID, "err", err)
 					return nil, &initSettings, WorkerInternalServerError()

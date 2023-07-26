@@ -52,6 +52,9 @@ func (r *Repository) CreateGeneration(userID uuid.UUID, deviceType, deviceOs, de
 	if apiTokenId != nil {
 		insert.SetAPITokenID(*apiTokenId)
 	}
+	if req.ZoomedOutFromOutputID != nil {
+		insert.SetZoomedFromOutputID(*req.ZoomedOutFromOutputID)
+	}
 	return insert.Save(r.Ctx)
 }
 
@@ -86,7 +89,7 @@ func (r *Repository) SetGenerationFailed(generationID string, reason string, nsf
 	return err
 }
 
-func (r *Repository) SetGenerationSucceeded(generationID string, promptStr string, negativePrompt string, whOutput requests.CogWebhookOutput, nsfwCount int32) ([]*ent.GenerationOutput, error) {
+func (r *Repository) SetGenerationSucceeded(generationID string, promptStr string, negativePrompt string, zoomedFromOutputId *uuid.UUID, whOutput requests.CogWebhookOutput, nsfwCount int32) ([]*ent.GenerationOutput, error) {
 	uid, err := uuid.Parse(generationID)
 	if err != nil {
 		log.Error("Error parsing generation id in SetGenerationSucceeded", "id", generationID, "err", err)
@@ -146,7 +149,11 @@ func (r *Repository) SetGenerationSucceeded(generationID string, promptStr strin
 				log.Error("Error parsing s3 url", "output", output, "err", err)
 				parsedS3 = output.Image
 			}
-			gOutput, err := db.GenerationOutput.Create().SetGenerationID(uid).SetImagePath(parsedS3).SetGalleryStatus(galleryStatus).SetHasEmbeddings(true).Save(r.Ctx)
+			gOutputInsert := db.GenerationOutput.Create().SetGenerationID(uid).SetImagePath(parsedS3).SetGalleryStatus(galleryStatus).SetHasEmbeddings(true)
+			if zoomedFromOutputId != nil {
+				gOutputInsert.AddZoomedOutputIDs(*zoomedFromOutputId)
+			}
+			gOutput, err := gOutputInsert.Save(r.Ctx)
 			if err != nil {
 				log.Error("Error inserting generation output", "id", generationID, "err", err)
 				return err

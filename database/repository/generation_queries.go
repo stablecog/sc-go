@@ -27,6 +27,11 @@ func (r *Repository) GetGeneration(id uuid.UUID) (*ent.Generation, error) {
 	return r.DB.Generation.Query().Where(generation.IDEQ(id)).First(r.Ctx)
 }
 
+// Get generation with prompt+negativeprompt
+func (r *Repository) GetGenerationWithPrompts(id uuid.UUID) (*ent.Generation, error) {
+	return r.DB.Generation.Query().Where(generation.IDEQ(id)).WithPrompt().WithNegativePrompt().First(r.Ctx)
+}
+
 // Get generation output by ID
 func (r *Repository) GetGenerationOutput(id uuid.UUID) (*ent.GenerationOutput, error) {
 	return r.DB.GenerationOutput.Query().Where(generationoutput.IDEQ(id)).First(r.Ctx)

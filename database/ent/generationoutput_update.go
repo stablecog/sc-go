@@ -162,6 +162,55 @@ func (gou *GenerationOutputUpdate) SetUpscaleOutputs(u *UpscaleOutput) *Generati
 	return gou.SetUpscaleOutputsID(u.ID)
 }
 
+// AddZoomedFromGenerationIDs adds the "zoomed_from_generation" edge to the Generation entity by IDs.
+func (gou *GenerationOutputUpdate) AddZoomedFromGenerationIDs(ids ...uuid.UUID) *GenerationOutputUpdate {
+	gou.mutation.AddZoomedFromGenerationIDs(ids...)
+	return gou
+}
+
+// AddZoomedFromGeneration adds the "zoomed_from_generation" edges to the Generation entity.
+func (gou *GenerationOutputUpdate) AddZoomedFromGeneration(g ...*Generation) *GenerationOutputUpdate {
+	ids := make([]uuid.UUID, len(g))
+	for i := range g {
+		ids[i] = g[i].ID
+	}
+	return gou.AddZoomedFromGenerationIDs(ids...)
+}
+
+// SetGenerationOutputsID sets the "generation_outputs" edge to the GenerationOutput entity by ID.
+func (gou *GenerationOutputUpdate) SetGenerationOutputsID(id uuid.UUID) *GenerationOutputUpdate {
+	gou.mutation.SetGenerationOutputsID(id)
+	return gou
+}
+
+// SetNillableGenerationOutputsID sets the "generation_outputs" edge to the GenerationOutput entity by ID if the given value is not nil.
+func (gou *GenerationOutputUpdate) SetNillableGenerationOutputsID(id *uuid.UUID) *GenerationOutputUpdate {
+	if id != nil {
+		gou = gou.SetGenerationOutputsID(*id)
+	}
+	return gou
+}
+
+// SetGenerationOutputs sets the "generation_outputs" edge to the GenerationOutput entity.
+func (gou *GenerationOutputUpdate) SetGenerationOutputs(g *GenerationOutput) *GenerationOutputUpdate {
+	return gou.SetGenerationOutputsID(g.ID)
+}
+
+// AddZoomedOutputIDs adds the "zoomed_outputs" edge to the GenerationOutput entity by IDs.
+func (gou *GenerationOutputUpdate) AddZoomedOutputIDs(ids ...uuid.UUID) *GenerationOutputUpdate {
+	gou.mutation.AddZoomedOutputIDs(ids...)
+	return gou
+}
+
+// AddZoomedOutputs adds the "zoomed_outputs" edges to the GenerationOutput entity.
+func (gou *GenerationOutputUpdate) AddZoomedOutputs(g ...*GenerationOutput) *GenerationOutputUpdate {
+	ids := make([]uuid.UUID, len(g))
+	for i := range g {
+		ids[i] = g[i].ID
+	}
+	return gou.AddZoomedOutputIDs(ids...)
+}
+
 // Mutation returns the GenerationOutputMutation object of the builder.
 func (gou *GenerationOutputUpdate) Mutation() *GenerationOutputMutation {
 	return gou.mutation
@@ -177,6 +226,54 @@ func (gou *GenerationOutputUpdate) ClearGenerations() *GenerationOutputUpdate {
 func (gou *GenerationOutputUpdate) ClearUpscaleOutputs() *GenerationOutputUpdate {
 	gou.mutation.ClearUpscaleOutputs()
 	return gou
+}
+
+// ClearZoomedFromGeneration clears all "zoomed_from_generation" edges to the Generation entity.
+func (gou *GenerationOutputUpdate) ClearZoomedFromGeneration() *GenerationOutputUpdate {
+	gou.mutation.ClearZoomedFromGeneration()
+	return gou
+}
+
+// RemoveZoomedFromGenerationIDs removes the "zoomed_from_generation" edge to Generation entities by IDs.
+func (gou *GenerationOutputUpdate) RemoveZoomedFromGenerationIDs(ids ...uuid.UUID) *GenerationOutputUpdate {
+	gou.mutation.RemoveZoomedFromGenerationIDs(ids...)
+	return gou
+}
+
+// RemoveZoomedFromGeneration removes "zoomed_from_generation" edges to Generation entities.
+func (gou *GenerationOutputUpdate) RemoveZoomedFromGeneration(g ...*Generation) *GenerationOutputUpdate {
+	ids := make([]uuid.UUID, len(g))
+	for i := range g {
+		ids[i] = g[i].ID
+	}
+	return gou.RemoveZoomedFromGenerationIDs(ids...)
+}
+
+// ClearGenerationOutputs clears the "generation_outputs" edge to the GenerationOutput entity.
+func (gou *GenerationOutputUpdate) ClearGenerationOutputs() *GenerationOutputUpdate {
+	gou.mutation.ClearGenerationOutputs()
+	return gou
+}
+
+// ClearZoomedOutputs clears all "zoomed_outputs" edges to the GenerationOutput entity.
+func (gou *GenerationOutputUpdate) ClearZoomedOutputs() *GenerationOutputUpdate {
+	gou.mutation.ClearZoomedOutputs()
+	return gou
+}
+
+// RemoveZoomedOutputIDs removes the "zoomed_outputs" edge to GenerationOutput entities by IDs.
+func (gou *GenerationOutputUpdate) RemoveZoomedOutputIDs(ids ...uuid.UUID) *GenerationOutputUpdate {
+	gou.mutation.RemoveZoomedOutputIDs(ids...)
+	return gou
+}
+
+// RemoveZoomedOutputs removes "zoomed_outputs" edges to GenerationOutput entities.
+func (gou *GenerationOutputUpdate) RemoveZoomedOutputs(g ...*GenerationOutput) *GenerationOutputUpdate {
+	ids := make([]uuid.UUID, len(g))
+	for i := range g {
+		ids[i] = g[i].ID
+	}
+	return gou.RemoveZoomedOutputIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -352,6 +449,149 @@ func (gou *GenerationOutputUpdate) sqlSave(ctx context.Context) (n int, err erro
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if gou.mutation.ZoomedFromGenerationCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   generationoutput.ZoomedFromGenerationTable,
+			Columns: []string{generationoutput.ZoomedFromGenerationColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: generation.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := gou.mutation.RemovedZoomedFromGenerationIDs(); len(nodes) > 0 && !gou.mutation.ZoomedFromGenerationCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   generationoutput.ZoomedFromGenerationTable,
+			Columns: []string{generationoutput.ZoomedFromGenerationColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: generation.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := gou.mutation.ZoomedFromGenerationIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   generationoutput.ZoomedFromGenerationTable,
+			Columns: []string{generationoutput.ZoomedFromGenerationColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: generation.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if gou.mutation.GenerationOutputsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   generationoutput.GenerationOutputsTable,
+			Columns: []string{generationoutput.GenerationOutputsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: generationoutput.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := gou.mutation.GenerationOutputsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   generationoutput.GenerationOutputsTable,
+			Columns: []string{generationoutput.GenerationOutputsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: generationoutput.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if gou.mutation.ZoomedOutputsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   generationoutput.ZoomedOutputsTable,
+			Columns: []string{generationoutput.ZoomedOutputsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: generationoutput.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := gou.mutation.RemovedZoomedOutputsIDs(); len(nodes) > 0 && !gou.mutation.ZoomedOutputsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   generationoutput.ZoomedOutputsTable,
+			Columns: []string{generationoutput.ZoomedOutputsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: generationoutput.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := gou.mutation.ZoomedOutputsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   generationoutput.ZoomedOutputsTable,
+			Columns: []string{generationoutput.ZoomedOutputsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: generationoutput.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	_spec.AddModifiers(gou.modifiers...)
 	if n, err = sqlgraph.UpdateNodes(ctx, gou.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
@@ -504,6 +744,55 @@ func (gouo *GenerationOutputUpdateOne) SetUpscaleOutputs(u *UpscaleOutput) *Gene
 	return gouo.SetUpscaleOutputsID(u.ID)
 }
 
+// AddZoomedFromGenerationIDs adds the "zoomed_from_generation" edge to the Generation entity by IDs.
+func (gouo *GenerationOutputUpdateOne) AddZoomedFromGenerationIDs(ids ...uuid.UUID) *GenerationOutputUpdateOne {
+	gouo.mutation.AddZoomedFromGenerationIDs(ids...)
+	return gouo
+}
+
+// AddZoomedFromGeneration adds the "zoomed_from_generation" edges to the Generation entity.
+func (gouo *GenerationOutputUpdateOne) AddZoomedFromGeneration(g ...*Generation) *GenerationOutputUpdateOne {
+	ids := make([]uuid.UUID, len(g))
+	for i := range g {
+		ids[i] = g[i].ID
+	}
+	return gouo.AddZoomedFromGenerationIDs(ids...)
+}
+
+// SetGenerationOutputsID sets the "generation_outputs" edge to the GenerationOutput entity by ID.
+func (gouo *GenerationOutputUpdateOne) SetGenerationOutputsID(id uuid.UUID) *GenerationOutputUpdateOne {
+	gouo.mutation.SetGenerationOutputsID(id)
+	return gouo
+}
+
+// SetNillableGenerationOutputsID sets the "generation_outputs" edge to the GenerationOutput entity by ID if the given value is not nil.
+func (gouo *GenerationOutputUpdateOne) SetNillableGenerationOutputsID(id *uuid.UUID) *GenerationOutputUpdateOne {
+	if id != nil {
+		gouo = gouo.SetGenerationOutputsID(*id)
+	}
+	return gouo
+}
+
+// SetGenerationOutputs sets the "generation_outputs" edge to the GenerationOutput entity.
+func (gouo *GenerationOutputUpdateOne) SetGenerationOutputs(g *GenerationOutput) *GenerationOutputUpdateOne {
+	return gouo.SetGenerationOutputsID(g.ID)
+}
+
+// AddZoomedOutputIDs adds the "zoomed_outputs" edge to the GenerationOutput entity by IDs.
+func (gouo *GenerationOutputUpdateOne) AddZoomedOutputIDs(ids ...uuid.UUID) *GenerationOutputUpdateOne {
+	gouo.mutation.AddZoomedOutputIDs(ids...)
+	return gouo
+}
+
+// AddZoomedOutputs adds the "zoomed_outputs" edges to the GenerationOutput entity.
+func (gouo *GenerationOutputUpdateOne) AddZoomedOutputs(g ...*GenerationOutput) *GenerationOutputUpdateOne {
+	ids := make([]uuid.UUID, len(g))
+	for i := range g {
+		ids[i] = g[i].ID
+	}
+	return gouo.AddZoomedOutputIDs(ids...)
+}
+
 // Mutation returns the GenerationOutputMutation object of the builder.
 func (gouo *GenerationOutputUpdateOne) Mutation() *GenerationOutputMutation {
 	return gouo.mutation
@@ -519,6 +808,54 @@ func (gouo *GenerationOutputUpdateOne) ClearGenerations() *GenerationOutputUpdat
 func (gouo *GenerationOutputUpdateOne) ClearUpscaleOutputs() *GenerationOutputUpdateOne {
 	gouo.mutation.ClearUpscaleOutputs()
 	return gouo
+}
+
+// ClearZoomedFromGeneration clears all "zoomed_from_generation" edges to the Generation entity.
+func (gouo *GenerationOutputUpdateOne) ClearZoomedFromGeneration() *GenerationOutputUpdateOne {
+	gouo.mutation.ClearZoomedFromGeneration()
+	return gouo
+}
+
+// RemoveZoomedFromGenerationIDs removes the "zoomed_from_generation" edge to Generation entities by IDs.
+func (gouo *GenerationOutputUpdateOne) RemoveZoomedFromGenerationIDs(ids ...uuid.UUID) *GenerationOutputUpdateOne {
+	gouo.mutation.RemoveZoomedFromGenerationIDs(ids...)
+	return gouo
+}
+
+// RemoveZoomedFromGeneration removes "zoomed_from_generation" edges to Generation entities.
+func (gouo *GenerationOutputUpdateOne) RemoveZoomedFromGeneration(g ...*Generation) *GenerationOutputUpdateOne {
+	ids := make([]uuid.UUID, len(g))
+	for i := range g {
+		ids[i] = g[i].ID
+	}
+	return gouo.RemoveZoomedFromGenerationIDs(ids...)
+}
+
+// ClearGenerationOutputs clears the "generation_outputs" edge to the GenerationOutput entity.
+func (gouo *GenerationOutputUpdateOne) ClearGenerationOutputs() *GenerationOutputUpdateOne {
+	gouo.mutation.ClearGenerationOutputs()
+	return gouo
+}
+
+// ClearZoomedOutputs clears all "zoomed_outputs" edges to the GenerationOutput entity.
+func (gouo *GenerationOutputUpdateOne) ClearZoomedOutputs() *GenerationOutputUpdateOne {
+	gouo.mutation.ClearZoomedOutputs()
+	return gouo
+}
+
+// RemoveZoomedOutputIDs removes the "zoomed_outputs" edge to GenerationOutput entities by IDs.
+func (gouo *GenerationOutputUpdateOne) RemoveZoomedOutputIDs(ids ...uuid.UUID) *GenerationOutputUpdateOne {
+	gouo.mutation.RemoveZoomedOutputIDs(ids...)
+	return gouo
+}
+
+// RemoveZoomedOutputs removes "zoomed_outputs" edges to GenerationOutput entities.
+func (gouo *GenerationOutputUpdateOne) RemoveZoomedOutputs(g ...*GenerationOutput) *GenerationOutputUpdateOne {
+	ids := make([]uuid.UUID, len(g))
+	for i := range g {
+		ids[i] = g[i].ID
+	}
+	return gouo.RemoveZoomedOutputIDs(ids...)
 }
 
 // Select allows selecting one or more fields (columns) of the returned entity.
@@ -710,6 +1047,149 @@ func (gouo *GenerationOutputUpdateOne) sqlSave(ctx context.Context) (_node *Gene
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeUUID,
 					Column: upscaleoutput.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if gouo.mutation.ZoomedFromGenerationCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   generationoutput.ZoomedFromGenerationTable,
+			Columns: []string{generationoutput.ZoomedFromGenerationColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: generation.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := gouo.mutation.RemovedZoomedFromGenerationIDs(); len(nodes) > 0 && !gouo.mutation.ZoomedFromGenerationCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   generationoutput.ZoomedFromGenerationTable,
+			Columns: []string{generationoutput.ZoomedFromGenerationColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: generation.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := gouo.mutation.ZoomedFromGenerationIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   generationoutput.ZoomedFromGenerationTable,
+			Columns: []string{generationoutput.ZoomedFromGenerationColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: generation.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if gouo.mutation.GenerationOutputsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   generationoutput.GenerationOutputsTable,
+			Columns: []string{generationoutput.GenerationOutputsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: generationoutput.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := gouo.mutation.GenerationOutputsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   generationoutput.GenerationOutputsTable,
+			Columns: []string{generationoutput.GenerationOutputsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: generationoutput.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if gouo.mutation.ZoomedOutputsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   generationoutput.ZoomedOutputsTable,
+			Columns: []string{generationoutput.ZoomedOutputsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: generationoutput.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := gouo.mutation.RemovedZoomedOutputsIDs(); len(nodes) > 0 && !gouo.mutation.ZoomedOutputsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   generationoutput.ZoomedOutputsTable,
+			Columns: []string{generationoutput.ZoomedOutputsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: generationoutput.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := gouo.mutation.ZoomedOutputsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   generationoutput.ZoomedOutputsTable,
+			Columns: []string{generationoutput.ZoomedOutputsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: generationoutput.FieldID,
 				},
 			},
 		}

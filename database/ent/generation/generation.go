@@ -59,6 +59,8 @@ const (
 	FieldDeviceInfoID = "device_info_id"
 	// FieldAPITokenID holds the string denoting the api_token_id field in the database.
 	FieldAPITokenID = "api_token_id"
+	// FieldZoomedFromOutputID holds the string denoting the zoomed_from_output_id field in the database.
+	FieldZoomedFromOutputID = "zoomed_from_output_id"
 	// FieldStartedAt holds the string denoting the started_at field in the database.
 	FieldStartedAt = "started_at"
 	// FieldCompletedAt holds the string denoting the completed_at field in the database.
@@ -81,6 +83,8 @@ const (
 	EdgeUser = "user"
 	// EdgeAPITokens holds the string denoting the api_tokens edge name in mutations.
 	EdgeAPITokens = "api_tokens"
+	// EdgeZoomedGenerationOutputs holds the string denoting the zoomed_generation_outputs edge name in mutations.
+	EdgeZoomedGenerationOutputs = "zoomed_generation_outputs"
 	// EdgeGenerationOutputs holds the string denoting the generation_outputs edge name in mutations.
 	EdgeGenerationOutputs = "generation_outputs"
 	// Table holds the table name of the generation in the database.
@@ -134,6 +138,13 @@ const (
 	APITokensInverseTable = "api_tokens"
 	// APITokensColumn is the table column denoting the api_tokens relation/edge.
 	APITokensColumn = "api_token_id"
+	// ZoomedGenerationOutputsTable is the table that holds the zoomed_generation_outputs relation/edge.
+	ZoomedGenerationOutputsTable = "generations"
+	// ZoomedGenerationOutputsInverseTable is the table name for the GenerationOutput entity.
+	// It exists in this package in order to avoid circular dependency with the "generationoutput" package.
+	ZoomedGenerationOutputsInverseTable = "generation_outputs"
+	// ZoomedGenerationOutputsColumn is the table column denoting the zoomed_generation_outputs relation/edge.
+	ZoomedGenerationOutputsColumn = "zoomed_from_output_id"
 	// GenerationOutputsTable is the table that holds the generation_outputs relation/edge.
 	GenerationOutputsTable = "generation_outputs"
 	// GenerationOutputsInverseTable is the table name for the GenerationOutput entity.
@@ -168,6 +179,7 @@ var Columns = []string{
 	FieldUserID,
 	FieldDeviceInfoID,
 	FieldAPITokenID,
+	FieldZoomedFromOutputID,
 	FieldStartedAt,
 	FieldCompletedAt,
 	FieldCreatedAt,

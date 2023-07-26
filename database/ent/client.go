@@ -1285,6 +1285,22 @@ func (c *GenerationClient) QueryAPITokens(ge *Generation) *ApiTokenQuery {
 	return query
 }
 
+// QueryZoomedGenerationOutputs queries the zoomed_generation_outputs edge of a Generation.
+func (c *GenerationClient) QueryZoomedGenerationOutputs(ge *Generation) *GenerationOutputQuery {
+	query := (&GenerationOutputClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := ge.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(generation.Table, generation.FieldID, id),
+			sqlgraph.To(generationoutput.Table, generationoutput.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, generation.ZoomedGenerationOutputsTable, generation.ZoomedGenerationOutputsColumn),
+		)
+		fromV = sqlgraph.Neighbors(ge.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // QueryGenerationOutputs queries the generation_outputs edge of a Generation.
 func (c *GenerationClient) QueryGenerationOutputs(ge *Generation) *GenerationOutputQuery {
 	query := (&GenerationOutputClient{config: c.config}).Query()
@@ -1594,6 +1610,54 @@ func (c *GenerationOutputClient) QueryUpscaleOutputs(_go *GenerationOutput) *Ups
 			sqlgraph.From(generationoutput.Table, generationoutput.FieldID, id),
 			sqlgraph.To(upscaleoutput.Table, upscaleoutput.FieldID),
 			sqlgraph.Edge(sqlgraph.O2O, false, generationoutput.UpscaleOutputsTable, generationoutput.UpscaleOutputsColumn),
+		)
+		fromV = sqlgraph.Neighbors(_go.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryZoomedFromGeneration queries the zoomed_from_generation edge of a GenerationOutput.
+func (c *GenerationOutputClient) QueryZoomedFromGeneration(_go *GenerationOutput) *GenerationQuery {
+	query := (&GenerationClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _go.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(generationoutput.Table, generationoutput.FieldID, id),
+			sqlgraph.To(generation.Table, generation.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, generationoutput.ZoomedFromGenerationTable, generationoutput.ZoomedFromGenerationColumn),
+		)
+		fromV = sqlgraph.Neighbors(_go.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryGenerationOutputs queries the generation_outputs edge of a GenerationOutput.
+func (c *GenerationOutputClient) QueryGenerationOutputs(_go *GenerationOutput) *GenerationOutputQuery {
+	query := (&GenerationOutputClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _go.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(generationoutput.Table, generationoutput.FieldID, id),
+			sqlgraph.To(generationoutput.Table, generationoutput.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, generationoutput.GenerationOutputsTable, generationoutput.GenerationOutputsColumn),
+		)
+		fromV = sqlgraph.Neighbors(_go.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryZoomedOutputs queries the zoomed_outputs edge of a GenerationOutput.
+func (c *GenerationOutputClient) QueryZoomedOutputs(_go *GenerationOutput) *GenerationOutputQuery {
+	query := (&GenerationOutputClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _go.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(generationoutput.Table, generationoutput.FieldID, id),
+			sqlgraph.To(generationoutput.Table, generationoutput.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, generationoutput.ZoomedOutputsTable, generationoutput.ZoomedOutputsColumn),
 		)
 		fromV = sqlgraph.Neighbors(_go.driver.Dialect(), step)
 		return fromV, nil

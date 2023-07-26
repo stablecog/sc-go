@@ -480,6 +480,87 @@ func HasUpscaleOutputsWith(preds ...predicate.UpscaleOutput) predicate.Generatio
 	})
 }
 
+// HasZoomedFromGeneration applies the HasEdge predicate on the "zoomed_from_generation" edge.
+func HasZoomedFromGeneration() predicate.GenerationOutput {
+	return predicate.GenerationOutput(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, ZoomedFromGenerationTable, ZoomedFromGenerationColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasZoomedFromGenerationWith applies the HasEdge predicate on the "zoomed_from_generation" edge with a given conditions (other predicates).
+func HasZoomedFromGenerationWith(preds ...predicate.Generation) predicate.GenerationOutput {
+	return predicate.GenerationOutput(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(ZoomedFromGenerationInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, ZoomedFromGenerationTable, ZoomedFromGenerationColumn),
+		)
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasGenerationOutputs applies the HasEdge predicate on the "generation_outputs" edge.
+func HasGenerationOutputs() predicate.GenerationOutput {
+	return predicate.GenerationOutput(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, GenerationOutputsTable, GenerationOutputsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasGenerationOutputsWith applies the HasEdge predicate on the "generation_outputs" edge with a given conditions (other predicates).
+func HasGenerationOutputsWith(preds ...predicate.GenerationOutput) predicate.GenerationOutput {
+	return predicate.GenerationOutput(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, GenerationOutputsTable, GenerationOutputsColumn),
+		)
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasZoomedOutputs applies the HasEdge predicate on the "zoomed_outputs" edge.
+func HasZoomedOutputs() predicate.GenerationOutput {
+	return predicate.GenerationOutput(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, ZoomedOutputsTable, ZoomedOutputsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasZoomedOutputsWith applies the HasEdge predicate on the "zoomed_outputs" edge with a given conditions (other predicates).
+func HasZoomedOutputsWith(preds ...predicate.GenerationOutput) predicate.GenerationOutput {
+	return predicate.GenerationOutput(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, ZoomedOutputsTable, ZoomedOutputsColumn),
+		)
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // And groups predicates with the AND operator between them.
 func And(predicates ...predicate.GenerationOutput) predicate.GenerationOutput {
 	return predicate.GenerationOutput(func(s *sql.Selector) {

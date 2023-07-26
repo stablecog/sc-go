@@ -39,7 +39,8 @@ type GenerationOutput struct {
 	UpdatedAt time.Time `json:"updated_at,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the GenerationOutputQuery when eager-loading is set.
-	Edges GenerationOutputEdges `json:"edges"`
+	Edges                            GenerationOutputEdges `json:"edges"`
+	generation_output_zoomed_outputs *uuid.UUID
 }
 
 // GenerationOutputEdges holds the relations/edges for other nodes in the graph.
@@ -48,9 +49,15 @@ type GenerationOutputEdges struct {
 	Generations *Generation `json:"generations,omitempty"`
 	// UpscaleOutputs holds the value of the upscale_outputs edge.
 	UpscaleOutputs *UpscaleOutput `json:"upscale_outputs,omitempty"`
+	// ZoomedFromGeneration holds the value of the zoomed_from_generation edge.
+	ZoomedFromGeneration []*Generation `json:"zoomed_from_generation,omitempty"`
+	// GenerationOutputs holds the value of the generation_outputs edge.
+	GenerationOutputs *GenerationOutput `json:"generation_outputs,omitempty"`
+	// ZoomedOutputs holds the value of the zoomed_outputs edge.
+	ZoomedOutputs []*GenerationOutput `json:"zoomed_outputs,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [2]bool
+	loadedTypes [5]bool
 }
 
 // GenerationsOrErr returns the Generations value or an error if the edge
@@ -79,6 +86,37 @@ func (e GenerationOutputEdges) UpscaleOutputsOrErr() (*UpscaleOutput, error) {
 	return nil, &NotLoadedError{edge: "upscale_outputs"}
 }
 
+// ZoomedFromGenerationOrErr returns the ZoomedFromGeneration value or an error if the edge
+// was not loaded in eager-loading.
+func (e GenerationOutputEdges) ZoomedFromGenerationOrErr() ([]*Generation, error) {
+	if e.loadedTypes[2] {
+		return e.ZoomedFromGeneration, nil
+	}
+	return nil, &NotLoadedError{edge: "zoomed_from_generation"}
+}
+
+// GenerationOutputsOrErr returns the GenerationOutputs value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e GenerationOutputEdges) GenerationOutputsOrErr() (*GenerationOutput, error) {
+	if e.loadedTypes[3] {
+		if e.GenerationOutputs == nil {
+			// Edge was loaded but was not found.
+			return nil, &NotFoundError{label: generationoutput.Label}
+		}
+		return e.GenerationOutputs, nil
+	}
+	return nil, &NotLoadedError{edge: "generation_outputs"}
+}
+
+// ZoomedOutputsOrErr returns the ZoomedOutputs value or an error if the edge
+// was not loaded in eager-loading.
+func (e GenerationOutputEdges) ZoomedOutputsOrErr() ([]*GenerationOutput, error) {
+	if e.loadedTypes[4] {
+		return e.ZoomedOutputs, nil
+	}
+	return nil, &NotLoadedError{edge: "zoomed_outputs"}
+}
+
 // scanValues returns the types for scanning values from sql.Rows.
 func (*GenerationOutput) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
@@ -92,6 +130,8 @@ func (*GenerationOutput) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullTime)
 		case generationoutput.FieldID, generationoutput.FieldGenerationID:
 			values[i] = new(uuid.UUID)
+		case generationoutput.ForeignKeys[0]: // generation_output_zoomed_outputs
+			values[i] = &sql.NullScanner{S: new(uuid.UUID)}
 		default:
 			return nil, fmt.Errorf("unexpected column %q for type GenerationOutput", columns[i])
 		}
@@ -169,6 +209,13 @@ func (_go *GenerationOutput) assignValues(columns []string, values []any) error 
 			} else if value.Valid {
 				_go.UpdatedAt = value.Time
 			}
+		case generationoutput.ForeignKeys[0]:
+			if value, ok := values[i].(*sql.NullScanner); !ok {
+				return fmt.Errorf("unexpected type %T for field generation_output_zoomed_outputs", values[i])
+			} else if value.Valid {
+				_go.generation_output_zoomed_outputs = new(uuid.UUID)
+				*_go.generation_output_zoomed_outputs = *value.S.(*uuid.UUID)
+			}
 		}
 	}
 	return nil
@@ -182,6 +229,21 @@ func (_go *GenerationOutput) QueryGenerations() *GenerationQuery {
 // QueryUpscaleOutputs queries the "upscale_outputs" edge of the GenerationOutput entity.
 func (_go *GenerationOutput) QueryUpscaleOutputs() *UpscaleOutputQuery {
 	return NewGenerationOutputClient(_go.config).QueryUpscaleOutputs(_go)
+}
+
+// QueryZoomedFromGeneration queries the "zoomed_from_generation" edge of the GenerationOutput entity.
+func (_go *GenerationOutput) QueryZoomedFromGeneration() *GenerationQuery {
+	return NewGenerationOutputClient(_go.config).QueryZoomedFromGeneration(_go)
+}
+
+// QueryGenerationOutputs queries the "generation_outputs" edge of the GenerationOutput entity.
+func (_go *GenerationOutput) QueryGenerationOutputs() *GenerationOutputQuery {
+	return NewGenerationOutputClient(_go.config).QueryGenerationOutputs(_go)
+}
+
+// QueryZoomedOutputs queries the "zoomed_outputs" edge of the GenerationOutput entity.
+func (_go *GenerationOutput) QueryZoomedOutputs() *GenerationOutputQuery {
+	return NewGenerationOutputClient(_go.config).QueryZoomedOutputs(_go)
 }
 
 // Update returns a builder for updating this GenerationOutput.

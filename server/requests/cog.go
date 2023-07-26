@@ -59,6 +59,8 @@ type BaseCogRequest struct {
 	PromptFlores         string             `json:"prompt_flores_200_code,omitempty"`
 	NegativePromptFlores string             `json:"negative_prompt_flores_200_code,omitempty"`
 	SubmitToGallery      bool               `json:"submit_to_gallery,omitempty"`
+	// Expand specific
+	ZoomedFromOutputId *uuid.UUID `json:"zoomed_from_output_id,omitempty"`
 	// Upscale specific
 	Image        string             `json:"image_to_upscale,omitempty"`
 	Type         UpscaleRequestType `json:"type,omitempty"`

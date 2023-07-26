@@ -27,19 +27,20 @@ import (
 // GenerationQuery is the builder for querying Generation entities.
 type GenerationQuery struct {
 	config
-	ctx                   *QueryContext
-	order                 []OrderFunc
-	inters                []Interceptor
-	predicates            []predicate.Generation
-	withDeviceInfo        *DeviceInfoQuery
-	withScheduler         *SchedulerQuery
-	withPrompt            *PromptQuery
-	withNegativePrompt    *NegativePromptQuery
-	withGenerationModel   *GenerationModelQuery
-	withUser              *UserQuery
-	withAPITokens         *ApiTokenQuery
-	withGenerationOutputs *GenerationOutputQuery
-	modifiers             []func(*sql.Selector)
+	ctx                         *QueryContext
+	order                       []OrderFunc
+	inters                      []Interceptor
+	predicates                  []predicate.Generation
+	withDeviceInfo              *DeviceInfoQuery
+	withScheduler               *SchedulerQuery
+	withPrompt                  *PromptQuery
+	withNegativePrompt          *NegativePromptQuery
+	withGenerationModel         *GenerationModelQuery
+	withUser                    *UserQuery
+	withAPITokens               *ApiTokenQuery
+	withZoomedGenerationOutputs *GenerationOutputQuery
+	withGenerationOutputs       *GenerationOutputQuery
+	modifiers                   []func(*sql.Selector)
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -223,6 +224,28 @@ func (gq *GenerationQuery) QueryAPITokens() *ApiTokenQuery {
 			sqlgraph.From(generation.Table, generation.FieldID, selector),
 			sqlgraph.To(apitoken.Table, apitoken.FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, true, generation.APITokensTable, generation.APITokensColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(gq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryZoomedGenerationOutputs chains the current query on the "zoomed_generation_outputs" edge.
+func (gq *GenerationQuery) QueryZoomedGenerationOutputs() *GenerationOutputQuery {
+	query := (&GenerationOutputClient{config: gq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := gq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := gq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(generation.Table, generation.FieldID, selector),
+			sqlgraph.To(generationoutput.Table, generationoutput.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, generation.ZoomedGenerationOutputsTable, generation.ZoomedGenerationOutputsColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(gq.driver.Dialect(), step)
 		return fromU, nil
@@ -437,19 +460,20 @@ func (gq *GenerationQuery) Clone() *GenerationQuery {
 		return nil
 	}
 	return &GenerationQuery{
-		config:                gq.config,
-		ctx:                   gq.ctx.Clone(),
-		order:                 append([]OrderFunc{}, gq.order...),
-		inters:                append([]Interceptor{}, gq.inters...),
-		predicates:            append([]predicate.Generation{}, gq.predicates...),
-		withDeviceInfo:        gq.withDeviceInfo.Clone(),
-		withScheduler:         gq.withScheduler.Clone(),
-		withPrompt:            gq.withPrompt.Clone(),
-		withNegativePrompt:    gq.withNegativePrompt.Clone(),
-		withGenerationModel:   gq.withGenerationModel.Clone(),
-		withUser:              gq.withUser.Clone(),
-		withAPITokens:         gq.withAPITokens.Clone(),
-		withGenerationOutputs: gq.withGenerationOutputs.Clone(),
+		config:                      gq.config,
+		ctx:                         gq.ctx.Clone(),
+		order:                       append([]OrderFunc{}, gq.order...),
+		inters:                      append([]Interceptor{}, gq.inters...),
+		predicates:                  append([]predicate.Generation{}, gq.predicates...),
+		withDeviceInfo:              gq.withDeviceInfo.Clone(),
+		withScheduler:               gq.withScheduler.Clone(),
+		withPrompt:                  gq.withPrompt.Clone(),
+		withNegativePrompt:          gq.withNegativePrompt.Clone(),
+		withGenerationModel:         gq.withGenerationModel.Clone(),
+		withUser:                    gq.withUser.Clone(),
+		withAPITokens:               gq.withAPITokens.Clone(),
+		withZoomedGenerationOutputs: gq.withZoomedGenerationOutputs.Clone(),
+		withGenerationOutputs:       gq.withGenerationOutputs.Clone(),
 		// clone intermediate query.
 		sql:  gq.sql.Clone(),
 		path: gq.path,
@@ -530,6 +554,17 @@ func (gq *GenerationQuery) WithAPITokens(opts ...func(*ApiTokenQuery)) *Generati
 		opt(query)
 	}
 	gq.withAPITokens = query
+	return gq
+}
+
+// WithZoomedGenerationOutputs tells the query-builder to eager-load the nodes that are connected to
+// the "zoomed_generation_outputs" edge. The optional arguments are used to configure the query builder of the edge.
+func (gq *GenerationQuery) WithZoomedGenerationOutputs(opts ...func(*GenerationOutputQuery)) *GenerationQuery {
+	query := (&GenerationOutputClient{config: gq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	gq.withZoomedGenerationOutputs = query
 	return gq
 }
 
@@ -622,7 +657,7 @@ func (gq *GenerationQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*G
 	var (
 		nodes       = []*Generation{}
 		_spec       = gq.querySpec()
-		loadedTypes = [8]bool{
+		loadedTypes = [9]bool{
 			gq.withDeviceInfo != nil,
 			gq.withScheduler != nil,
 			gq.withPrompt != nil,
@@ -630,6 +665,7 @@ func (gq *GenerationQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*G
 			gq.withGenerationModel != nil,
 			gq.withUser != nil,
 			gq.withAPITokens != nil,
+			gq.withZoomedGenerationOutputs != nil,
 			gq.withGenerationOutputs != nil,
 		}
 	)
@@ -693,6 +729,12 @@ func (gq *GenerationQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*G
 	if query := gq.withAPITokens; query != nil {
 		if err := gq.loadAPITokens(ctx, query, nodes, nil,
 			func(n *Generation, e *ApiToken) { n.Edges.APITokens = e }); err != nil {
+			return nil, err
+		}
+	}
+	if query := gq.withZoomedGenerationOutputs; query != nil {
+		if err := gq.loadZoomedGenerationOutputs(ctx, query, nodes, nil,
+			func(n *Generation, e *GenerationOutput) { n.Edges.ZoomedGenerationOutputs = e }); err != nil {
 			return nil, err
 		}
 	}
@@ -920,6 +962,38 @@ func (gq *GenerationQuery) loadAPITokens(ctx context.Context, query *ApiTokenQue
 	}
 	return nil
 }
+func (gq *GenerationQuery) loadZoomedGenerationOutputs(ctx context.Context, query *GenerationOutputQuery, nodes []*Generation, init func(*Generation), assign func(*Generation, *GenerationOutput)) error {
+	ids := make([]uuid.UUID, 0, len(nodes))
+	nodeids := make(map[uuid.UUID][]*Generation)
+	for i := range nodes {
+		if nodes[i].ZoomedFromOutputID == nil {
+			continue
+		}
+		fk := *nodes[i].ZoomedFromOutputID
+		if _, ok := nodeids[fk]; !ok {
+			ids = append(ids, fk)
+		}
+		nodeids[fk] = append(nodeids[fk], nodes[i])
+	}
+	if len(ids) == 0 {
+		return nil
+	}
+	query.Where(generationoutput.IDIn(ids...))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nodeids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "zoomed_from_output_id" returned %v`, n.ID)
+		}
+		for i := range nodes {
+			assign(nodes[i], n)
+		}
+	}
+	return nil
+}
 func (gq *GenerationQuery) loadGenerationOutputs(ctx context.Context, query *GenerationOutputQuery, nodes []*Generation, init func(*Generation), assign func(*Generation, *GenerationOutput)) error {
 	fks := make([]driver.Value, 0, len(nodes))
 	nodeids := make(map[uuid.UUID]*Generation)
@@ -930,6 +1004,7 @@ func (gq *GenerationQuery) loadGenerationOutputs(ctx context.Context, query *Gen
 			init(nodes[i])
 		}
 	}
+	query.withFKs = true
 	query.Where(predicate.GenerationOutput(func(s *sql.Selector) {
 		s.Where(sql.InValues(generation.GenerationOutputsColumn, fks...))
 	}))

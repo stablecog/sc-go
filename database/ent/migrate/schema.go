@@ -151,6 +151,7 @@ var (
 		{Name: "api_token_id", Type: field.TypeUUID, Nullable: true},
 		{Name: "device_info_id", Type: field.TypeUUID},
 		{Name: "model_id", Type: field.TypeUUID},
+		{Name: "zoomed_from_output_id", Type: field.TypeUUID, Nullable: true},
 		{Name: "negative_prompt_id", Type: field.TypeUUID, Nullable: true},
 		{Name: "prompt_id", Type: field.TypeUUID, Nullable: true},
 		{Name: "scheduler_id", Type: field.TypeUUID},
@@ -181,26 +182,32 @@ var (
 				OnDelete:   schema.Cascade,
 			},
 			{
-				Symbol:     "generations_negative_prompts_generations",
+				Symbol:     "generations_generation_outputs_zoomed_from_generation",
 				Columns:    []*schema.Column{GenerationsColumns[23]},
+				RefColumns: []*schema.Column{GenerationOutputsColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+			{
+				Symbol:     "generations_negative_prompts_generations",
+				Columns:    []*schema.Column{GenerationsColumns[24]},
 				RefColumns: []*schema.Column{NegativePromptsColumns[0]},
 				OnDelete:   schema.Cascade,
 			},
 			{
 				Symbol:     "generations_prompts_generations",
-				Columns:    []*schema.Column{GenerationsColumns[24]},
+				Columns:    []*schema.Column{GenerationsColumns[25]},
 				RefColumns: []*schema.Column{PromptsColumns[0]},
 				OnDelete:   schema.Cascade,
 			},
 			{
 				Symbol:     "generations_schedulers_generations",
-				Columns:    []*schema.Column{GenerationsColumns[25]},
+				Columns:    []*schema.Column{GenerationsColumns[26]},
 				RefColumns: []*schema.Column{SchedulersColumns[0]},
 				OnDelete:   schema.Cascade,
 			},
 			{
 				Symbol:     "generations_users_generations",
-				Columns:    []*schema.Column{GenerationsColumns[26]},
+				Columns:    []*schema.Column{GenerationsColumns[27]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.Cascade,
 			},
@@ -209,17 +216,17 @@ var (
 			{
 				Name:    "generation_user_id_created_at",
 				Unique:  false,
-				Columns: []*schema.Column{GenerationsColumns[26], GenerationsColumns[18]},
+				Columns: []*schema.Column{GenerationsColumns[27], GenerationsColumns[18]},
 			},
 			{
 				Name:    "generation_user_id_status_created_at",
 				Unique:  false,
-				Columns: []*schema.Column{GenerationsColumns[26], GenerationsColumns[8], GenerationsColumns[18]},
+				Columns: []*schema.Column{GenerationsColumns[27], GenerationsColumns[8], GenerationsColumns[18]},
 			},
 			{
 				Name:    "generation_user_id_status",
 				Unique:  false,
-				Columns: []*schema.Column{GenerationsColumns[26], GenerationsColumns[8]},
+				Columns: []*schema.Column{GenerationsColumns[27], GenerationsColumns[8]},
 			},
 			{
 				Name:    "generation_created_at",
@@ -264,6 +271,7 @@ var (
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},
 		{Name: "generation_id", Type: field.TypeUUID},
+		{Name: "generation_output_zoomed_outputs", Type: field.TypeUUID, Nullable: true},
 	}
 	// GenerationOutputsTable holds the schema information for the "generation_outputs" table.
 	GenerationOutputsTable = &schema.Table{
@@ -276,6 +284,12 @@ var (
 				Columns:    []*schema.Column{GenerationOutputsColumns[9]},
 				RefColumns: []*schema.Column{GenerationsColumns[0]},
 				OnDelete:   schema.Cascade,
+			},
+			{
+				Symbol:     "generation_outputs_generation_outputs_zoomed_outputs",
+				Columns:    []*schema.Column{GenerationOutputsColumns[10]},
+				RefColumns: []*schema.Column{GenerationOutputsColumns[0]},
+				OnDelete:   schema.SetNull,
 			},
 		},
 		Indexes: []*schema.Index{
@@ -751,10 +765,11 @@ func init() {
 	GenerationsTable.ForeignKeys[0].RefTable = APITokensTable
 	GenerationsTable.ForeignKeys[1].RefTable = DeviceInfoTable
 	GenerationsTable.ForeignKeys[2].RefTable = GenerationModelsTable
-	GenerationsTable.ForeignKeys[3].RefTable = NegativePromptsTable
-	GenerationsTable.ForeignKeys[4].RefTable = PromptsTable
-	GenerationsTable.ForeignKeys[5].RefTable = SchedulersTable
-	GenerationsTable.ForeignKeys[6].RefTable = UsersTable
+	GenerationsTable.ForeignKeys[3].RefTable = GenerationOutputsTable
+	GenerationsTable.ForeignKeys[4].RefTable = NegativePromptsTable
+	GenerationsTable.ForeignKeys[5].RefTable = PromptsTable
+	GenerationsTable.ForeignKeys[6].RefTable = SchedulersTable
+	GenerationsTable.ForeignKeys[7].RefTable = UsersTable
 	GenerationsTable.Annotation = &entsql.Annotation{
 		Table: "generations",
 	}
@@ -762,6 +777,7 @@ func init() {
 		Table: "generation_models",
 	}
 	GenerationOutputsTable.ForeignKeys[0].RefTable = GenerationsTable
+	GenerationOutputsTable.ForeignKeys[1].RefTable = GenerationOutputsTable
 	GenerationOutputsTable.Annotation = &entsql.Annotation{
 		Table: "generation_outputs",
 	}

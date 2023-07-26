@@ -17,25 +17,26 @@ import (
 
 // HTTP Request for creating a new generation
 type CreateGenerationRequest struct {
-	Prompt               string                `json:"prompt"`
-	NegativePrompt       string                `json:"negative_prompt,omitempty"`
-	Width                *int32                `json:"width,omitempty"`
-	Height               *int32                `json:"height,omitempty"`
-	InferenceSteps       *int32                `json:"inference_steps,omitempty"`
-	GuidanceScale        *float32              `json:"guidance_scale,omitempty"`
-	ModelId              *uuid.UUID            `json:"model_id,omitempty"`
-	SchedulerId          *uuid.UUID            `json:"scheduler_id,omitempty"`
-	Seed                 *int                  `json:"seed,omitempty"`
-	NumOutputs           *int32                `json:"num_outputs,omitempty"`
-	StreamID             string                `json:"stream_id"` // Corresponds to SSE stream
-	UIId                 string                `json:"ui_id"`     // Corresponds to UI identifier
-	InitImageUrl         string                `json:"init_image_url,omitempty"`
-	MaskImageUrl         string                `json:"mask_image_url,omitempty"`
-	PromptStrength       *float32              `json:"prompt_strength,omitempty"`
-	SubmitToGallery      bool                  `json:"submit_to_gallery"`
-	ProcessType          shared.ProcessType    `json:"process_type"`
-	OutputImageExtension shared.ImageExtension `json:"output_image_extension"`
-	OutputID             *uuid.UUID            `json:"output_id,omitempty"`
+	Prompt                string                `json:"prompt"`
+	NegativePrompt        string                `json:"negative_prompt,omitempty"`
+	Width                 *int32                `json:"width,omitempty"`
+	Height                *int32                `json:"height,omitempty"`
+	InferenceSteps        *int32                `json:"inference_steps,omitempty"`
+	GuidanceScale         *float32              `json:"guidance_scale,omitempty"`
+	ModelId               *uuid.UUID            `json:"model_id,omitempty"`
+	SchedulerId           *uuid.UUID            `json:"scheduler_id,omitempty"`
+	ZoomedOutFromOutputID *uuid.UUID            `json:"zoomed_out_from_output_id,omitempty"`
+	Seed                  *int                  `json:"seed,omitempty"`
+	NumOutputs            *int32                `json:"num_outputs,omitempty"`
+	StreamID              string                `json:"stream_id"` // Corresponds to SSE stream
+	UIId                  string                `json:"ui_id"`     // Corresponds to UI identifier
+	InitImageUrl          string                `json:"init_image_url,omitempty"`
+	MaskImageUrl          string                `json:"mask_image_url,omitempty"`
+	PromptStrength        *float32              `json:"prompt_strength,omitempty"`
+	SubmitToGallery       bool                  `json:"submit_to_gallery"`
+	ProcessType           shared.ProcessType    `json:"process_type"`
+	OutputImageExtension  shared.ImageExtension `json:"output_image_extension"`
+	OutputID              *uuid.UUID            `json:"output_id,omitempty"`
 }
 
 func (t *CreateGenerationRequest) Cost() int32 {

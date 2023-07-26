@@ -13,6 +13,7 @@ import (
 	"github.com/stablecog/sc-go/database/ent/deviceinfo"
 	"github.com/stablecog/sc-go/database/ent/generation"
 	"github.com/stablecog/sc-go/database/ent/generationmodel"
+	"github.com/stablecog/sc-go/database/ent/generationoutput"
 	"github.com/stablecog/sc-go/database/ent/negativeprompt"
 	"github.com/stablecog/sc-go/database/ent/prompt"
 	"github.com/stablecog/sc-go/database/ent/scheduler"
@@ -69,6 +70,8 @@ type Generation struct {
 	DeviceInfoID uuid.UUID `json:"device_info_id,omitempty"`
 	// APITokenID holds the value of the "api_token_id" field.
 	APITokenID *uuid.UUID `json:"api_token_id,omitempty"`
+	// ZoomedFromOutputID holds the value of the "zoomed_from_output_id" field.
+	ZoomedFromOutputID *uuid.UUID `json:"zoomed_from_output_id,omitempty"`
 	// StartedAt holds the value of the "started_at" field.
 	StartedAt *time.Time `json:"started_at,omitempty"`
 	// CompletedAt holds the value of the "completed_at" field.
@@ -98,11 +101,13 @@ type GenerationEdges struct {
 	User *User `json:"user,omitempty"`
 	// APITokens holds the value of the api_tokens edge.
 	APITokens *ApiToken `json:"api_tokens,omitempty"`
+	// ZoomedGenerationOutputs holds the value of the zoomed_generation_outputs edge.
+	ZoomedGenerationOutputs *GenerationOutput `json:"zoomed_generation_outputs,omitempty"`
 	// GenerationOutputs holds the value of the generation_outputs edge.
 	GenerationOutputs []*GenerationOutput `json:"generation_outputs,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [8]bool
+	loadedTypes [9]bool
 }
 
 // DeviceInfoOrErr returns the DeviceInfo value or an error if the edge
@@ -196,10 +201,23 @@ func (e GenerationEdges) APITokensOrErr() (*ApiToken, error) {
 	return nil, &NotLoadedError{edge: "api_tokens"}
 }
 
+// ZoomedGenerationOutputsOrErr returns the ZoomedGenerationOutputs value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e GenerationEdges) ZoomedGenerationOutputsOrErr() (*GenerationOutput, error) {
+	if e.loadedTypes[7] {
+		if e.ZoomedGenerationOutputs == nil {
+			// Edge was loaded but was not found.
+			return nil, &NotFoundError{label: generationoutput.Label}
+		}
+		return e.ZoomedGenerationOutputs, nil
+	}
+	return nil, &NotLoadedError{edge: "zoomed_generation_outputs"}
+}
+
 // GenerationOutputsOrErr returns the GenerationOutputs value or an error if the edge
 // was not loaded in eager-loading.
 func (e GenerationEdges) GenerationOutputsOrErr() ([]*GenerationOutput, error) {
-	if e.loadedTypes[7] {
+	if e.loadedTypes[8] {
 		return e.GenerationOutputs, nil
 	}
 	return nil, &NotLoadedError{edge: "generation_outputs"}
@@ -210,7 +228,7 @@ func (*Generation) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case generation.FieldPromptID, generation.FieldNegativePromptID, generation.FieldAPITokenID:
+		case generation.FieldPromptID, generation.FieldNegativePromptID, generation.FieldAPITokenID, generation.FieldZoomedFromOutputID:
 			values[i] = &sql.NullScanner{S: new(uuid.UUID)}
 		case generation.FieldWasAutoSubmitted:
 			values[i] = new(sql.NullBool)
@@ -385,6 +403,13 @@ func (ge *Generation) assignValues(columns []string, values []any) error {
 				ge.APITokenID = new(uuid.UUID)
 				*ge.APITokenID = *value.S.(*uuid.UUID)
 			}
+		case generation.FieldZoomedFromOutputID:
+			if value, ok := values[i].(*sql.NullScanner); !ok {
+				return fmt.Errorf("unexpected type %T for field zoomed_from_output_id", values[i])
+			} else if value.Valid {
+				ge.ZoomedFromOutputID = new(uuid.UUID)
+				*ge.ZoomedFromOutputID = *value.S.(*uuid.UUID)
+			}
 		case generation.FieldStartedAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
 				return fmt.Errorf("unexpected type %T for field started_at", values[i])
@@ -449,6 +474,11 @@ func (ge *Generation) QueryUser() *UserQuery {
 // QueryAPITokens queries the "api_tokens" edge of the Generation entity.
 func (ge *Generation) QueryAPITokens() *ApiTokenQuery {
 	return NewGenerationClient(ge.config).QueryAPITokens(ge)
+}
+
+// QueryZoomedGenerationOutputs queries the "zoomed_generation_outputs" edge of the Generation entity.
+func (ge *Generation) QueryZoomedGenerationOutputs() *GenerationOutputQuery {
+	return NewGenerationClient(ge.config).QueryZoomedGenerationOutputs(ge)
 }
 
 // QueryGenerationOutputs queries the "generation_outputs" edge of the Generation entity.
@@ -558,6 +588,11 @@ func (ge *Generation) String() string {
 	builder.WriteString(", ")
 	if v := ge.APITokenID; v != nil {
 		builder.WriteString("api_token_id=")
+		builder.WriteString(fmt.Sprintf("%v", *v))
+	}
+	builder.WriteString(", ")
+	if v := ge.ZoomedFromOutputID; v != nil {
+		builder.WriteString("zoomed_from_output_id=")
 		builder.WriteString(fmt.Sprintf("%v", *v))
 	}
 	builder.WriteString(", ")

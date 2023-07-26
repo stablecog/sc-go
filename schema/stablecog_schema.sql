@@ -1098,3 +1098,11 @@ DROP index credit_stripe_line_item_id_key;
 CREATE UNIQUE INDEX "credit_stripe_line_item_id_credit_type_id" ON "public"."credits" ("stripe_line_item_id", "credit_type_id");
 
 CREATE UNIQUE INDEX "user_email_idx" ON "public"."users" ("email");
+
+-- For zooming
+
+-- Modify "generation_outputs" table
+ALTER TABLE "public"."generation_outputs" ADD COLUMN "generation_output_zoomed_outputs" uuid NULL, ADD CONSTRAINT "generation_outputs_generation_outputs_zoomed_outputs" FOREIGN KEY ("generation_output_zoomed_outputs") REFERENCES "public"."generation_outputs" ("id") ON UPDATE NO ACTION ON DELETE SET NULL;
+
+-- Modify "generations" table
+ALTER TABLE "public"."generations" ADD COLUMN "zoomed_from_output_id" uuid NULL, ADD CONSTRAINT "generations_generation_outputs_zoomed_from_generation" FOREIGN KEY ("zoomed_from_output_id") REFERENCES "public"."generation_outputs" ("id") ON UPDATE NO ACTION ON DELETE SET NULL;

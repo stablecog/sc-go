@@ -46,6 +46,12 @@ func (GenerationOutput) Edges() []ent.Edge {
 			Unique(),
 		// O2O with upscale_outputs
 		edge.To("upscale_outputs", UpscaleOutput.Type).Unique(),
+		// O2M with generations
+		edge.To("zoomed_from_generation", Generation.Type),
+		// O2M with self
+		edge.To("zoomed_outputs", GenerationOutput.Type).
+			From("generation_outputs").
+			Unique(),
 	}
 }
 

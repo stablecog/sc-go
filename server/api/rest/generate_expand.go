@@ -8,9 +8,11 @@ import (
 	"github.com/go-chi/render"
 	"github.com/google/uuid"
 	"github.com/stablecog/sc-go/database/ent"
+	"github.com/stablecog/sc-go/database/enttypes"
 	"github.com/stablecog/sc-go/log"
 	"github.com/stablecog/sc-go/server/requests"
 	"github.com/stablecog/sc-go/server/responses"
+	"github.com/stablecog/sc-go/utils"
 )
 
 // POST generate expand (zooom-out)
@@ -58,6 +60,34 @@ func (c *RestAPI) HandleCreateGenerationZoomOutWebUI(w http.ResponseWriter, r *h
 		return
 	}
 
+	// Get generation
+	generation, err := c.Repo.GetGenerationWithPrompts(output.GenerationID)
+	if err != nil {
+		log.Error("Error getting generation with output", "err", err)
+		responses.ErrInternalServerError(w, r, "An unknown error has occured")
+		return
+	}
+
+	// Create a new generation request
+	expandGenerateReq := requests.CreateGenerationRequest{
+		Prompt:                generation.Edges.Prompt.Text,
+		Width:                 &generation.Width,
+		Height:                &generation.Height,
+		InferenceSteps:        &generation.InferenceSteps,
+		GuidanceScale:         &generation.GuidanceScale,
+		ModelId:               &generation.ModelID,
+		SchedulerId:           &generation.SchedulerID,
+		NumOutputs:            utils.ToPtr[int32](1),
+		StreamID:              generateReq.StreamID,
+		UIId:                  generateReq.UIId,
+		PromptStrength:        generation.PromptStrength,
+		ZoomedOutFromOutputID: utils.ToPtr(output.ID),
+	}
+
+	if generation.Edges.NegativePrompt != nil {
+		expandGenerateReq.NegativePrompt = generation.Edges.NegativePrompt.Text
+	}
+
 	// Get bg/mask url
 	bgUrlStr, maskUrlStr, wErr := c.SCWorker.GetExpandImageUrlsFromOutput(user.ID, output)
 	if wErr != nil {
@@ -69,11 +99,32 @@ func (c *RestAPI) HandleCreateGenerationZoomOutWebUI(w http.ResponseWriter, r *h
 		return
 	}
 
+	expandGenerateReq.InitImageUrl = bgUrlStr
+	expandGenerateReq.MaskImageUrl = maskUrlStr
+
+	newGeneration, initSettings, workerErr := c.SCWorker.CreateGeneration(
+		enttypes.SourceTypeWebUI,
+		r,
+		user,
+		nil,
+		expandGenerateReq,
+	)
+
+	if workerErr != nil {
+		errResp := responses.ApiFailedResponse{
+			Error: workerErr.Err.Error(),
+		}
+		if initSettings != nil {
+			errResp.Settings = initSettings
+		}
+		render.Status(r, workerErr.StatusCode)
+		render.JSON(w, r, errResp)
+		return
+	}
+
+	// Return response
 	render.Status(r, http.StatusOK)
-	render.JSON(w, r, map[string]interface{}{
-		"bg_url":   bgUrlStr,
-		"mask_url": maskUrlStr,
-	})
+	render.JSON(w, r, newGeneration.QueuedResponse)
 }
 
 // POST generate expand (zooom-out)
@@ -125,6 +176,34 @@ func (c *RestAPI) HandleCreateGenerationZoomOutAPI(w http.ResponseWriter, r *htt
 		return
 	}
 
+	// Get generation
+	generation, err := c.Repo.GetGenerationWithPrompts(output.GenerationID)
+	if err != nil {
+		log.Error("Error getting generation with output", "err", err)
+		responses.ErrInternalServerError(w, r, "An unknown error has occured")
+		return
+	}
+
+	// Create a new generation request
+	expandGenerateReq := requests.CreateGenerationRequest{
+		Prompt:                generation.Edges.Prompt.Text,
+		Width:                 &generation.Width,
+		Height:                &generation.Height,
+		InferenceSteps:        &generation.InferenceSteps,
+		GuidanceScale:         &generation.GuidanceScale,
+		ModelId:               &generation.ModelID,
+		SchedulerId:           &generation.SchedulerID,
+		NumOutputs:            utils.ToPtr[int32](1),
+		StreamID:              generateReq.StreamID,
+		UIId:                  generateReq.UIId,
+		PromptStrength:        generation.PromptStrength,
+		ZoomedOutFromOutputID: utils.ToPtr(output.ID),
+	}
+
+	if generation.Edges.NegativePrompt != nil {
+		expandGenerateReq.NegativePrompt = generation.Edges.NegativePrompt.Text
+	}
+
 	// Get bg/mask url
 	bgUrlStr, maskUrlStr, wErr := c.SCWorker.GetExpandImageUrlsFromOutput(user.ID, output)
 	if wErr != nil {
@@ -136,9 +215,30 @@ func (c *RestAPI) HandleCreateGenerationZoomOutAPI(w http.ResponseWriter, r *htt
 		return
 	}
 
+	expandGenerateReq.InitImageUrl = bgUrlStr
+	expandGenerateReq.MaskImageUrl = maskUrlStr
+
+	newGeneration, initSettings, workerErr := c.SCWorker.CreateGeneration(
+		enttypes.SourceTypeAPI,
+		r,
+		user,
+		nil,
+		expandGenerateReq,
+	)
+
+	if workerErr != nil {
+		errResp := responses.ApiFailedResponse{
+			Error: workerErr.Err.Error(),
+		}
+		if initSettings != nil {
+			errResp.Settings = initSettings
+		}
+		render.Status(r, workerErr.StatusCode)
+		render.JSON(w, r, errResp)
+		return
+	}
+
+	// Return response
 	render.Status(r, http.StatusOK)
-	render.JSON(w, r, map[string]interface{}{
-		"bg_url":   bgUrlStr,
-		"mask_url": maskUrlStr,
-	})
+	render.JSON(w, r, newGeneration)
 }
