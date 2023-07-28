@@ -153,9 +153,7 @@ func main() {
 
 		// check if the message is "!tip"
 		if strings.HasPrefix(m.Content, "!tip") {
-			if os.Getenv("DISABLE_TIPS") == "" {
-				cmdWrapper.HandleTip(s, m)
-			}
+			cmdWrapper.HandleTip(s, m)
 		}
 	})
 
