@@ -30,6 +30,8 @@ spec:
           args: ["/app/discobot"]
           imagePullPolicy: "Always"
           env:
+            - name: DISABLE_TIPS
+              value: "true"
             - name: PUBLIC_API_URL
               value: https://api.stablecog.com
             - name: PUBLIC_SUPABASE_REFERENCE_ID
