@@ -75,6 +75,9 @@ func (r *Repository) SetWantsEmail(userId uuid.UUID, wantsEmail bool) error {
 }
 
 // Set discord ID on user
-func (r *Repository) SetDiscordID(userId uuid.UUID, discordId string) error {
-	return r.DB.User.Update().Where(user.IDEQ(userId)).SetDiscordID(discordId).Exec(r.Ctx)
+func (r *Repository) SetDiscordID(userId uuid.UUID, discordId string, DB *ent.Client) error {
+	if DB == nil {
+		DB = r.DB
+	}
+	return DB.User.Update().Where(user.IDEQ(userId)).SetDiscordID(discordId).Exec(r.Ctx)
 }

@@ -2,7 +2,6 @@ package interactions
 
 import (
 	"errors"
-	"fmt"
 
 	"github.com/bwmarrin/discordgo"
 	"github.com/google/uuid"
@@ -11,6 +10,8 @@ import (
 	"github.com/stablecog/sc-go/log"
 	srvres "github.com/stablecog/sc-go/server/responses"
 	"github.com/stablecog/sc-go/utils"
+	"golang.org/x/text/language"
+	"golang.org/x/text/message"
 )
 
 func (c *DiscordInteractionWrapper) HandleTip(s *discordgo.Session, m *discordgo.MessageCreate) {
@@ -48,7 +49,23 @@ func (c *DiscordInteractionWrapper) HandleTip(s *discordgo.Session, m *discordgo
 			log.Error("Failed to create DM channel", "err", err)
 			return
 		}
-		_, err = s.ChannelMessageSend(dmChl.ID, "You can only tip 1 person at a time.")
+		if len(m.Mentions) > 1 {
+			_, err = s.ChannelMessageSend(dmChl.ID, "You can only tip 1 person at a time.")
+		} else {
+			_, err = s.ChannelMessageSend(dmChl.ID, "You need to mention the user you want to tip.")
+		}
+		return
+	}
+
+	if m.Mentions[0].Bot {
+		s.MessageReactionAdd(m.ChannelID, m.ID, "❌")
+		// Send DM
+		dmChl, err := s.UserChannelCreate(m.Author.ID)
+		if err != nil {
+			log.Error("Failed to create DM channel", "err", err)
+			return
+		}
+		_, err = s.ChannelMessageSend(dmChl.ID, "You can't tip bots.")
 		return
 	}
 
@@ -150,13 +167,29 @@ func (c *DiscordInteractionWrapper) HandleTip(s *discordgo.Session, m *discordgo
 	}
 
 	// Different flows if registered or not
+	prettyPrinter := message.NewPrinter(language.English)
 	if tippedToId != nil {
-
+		// Get total credits for user
+		remainingCredits, err := c.Repo.GetNonExpiredCreditTotalForUser(*tippedToId, nil)
+		if err != nil {
+			log.Error("Failed to get total credits for user", "err", err)
+			return
+		}
+		_, err = s.ChannelMessageSendComplex(dmChl.ID, &discordgo.MessageSend{
+			Embeds: []*discordgo.MessageEmbed{responses.NewEmbed(
+				"Tip Received!",
+				prettyPrinter.Sprintf("You received a tip of %d credits from %s! You now have %d credits available to spend.\n\nTry using `/image` or `/voice` to create AI art and voiceovers!", amt, m.Author.Username, remainingCredits),
+				"",
+			),
+			},
+		},
+		)
+		return
 	}
 	_, err = s.ChannelMessageSendComplex(dmChl.ID, &discordgo.MessageSend{
 		Embeds: []*discordgo.MessageEmbed{responses.NewEmbed(
-			"Stablecog Credits Received!",
-			fmt.Sprintf("You received %d credits from %s!", amt, m.Author.Username),
+			"Tip Received!",
+			prettyPrinter.Sprintf("You received %d credits from %s!\n\nThese can be used to create AI art, upscale images, or create voiceovers with Stablecog.\n\nTo claim this tip, sign up or connect your discord account to Stablecog using the `/authorize` command!", amt, m.Author.Username),
 			"",
 		),
 		},

@@ -4,6 +4,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/stablecog/sc-go/database/ent"
 	"github.com/stablecog/sc-go/database/ent/credit"
+	"github.com/stablecog/sc-go/database/ent/tiplog"
 	"github.com/stablecog/sc-go/log"
 	"github.com/stablecog/sc-go/server/responses"
 )
@@ -66,4 +67,52 @@ func (r *Repository) TipCreditsToUser(fromUser uuid.UUID, toUser *uuid.UUID, toU
 		return false, err
 	}
 	return true, nil
+}
+
+// Collect unclaimed tips
+func (r *Repository) CollectUnclaimedTips(toUserId uuid.UUID, toUserDiscordId string, DB *ent.Client) (claimted int32, err error) {
+	if DB == nil {
+		DB = r.DB
+	}
+
+	// Get all unclaimed tips
+	tips, err := DB.TipLog.Query().Where(tiplog.TippedToDiscordIDEQ(toUserDiscordId), tiplog.TippedToIsNil()).All(r.Ctx)
+	if err != nil {
+		return 0, err
+	}
+	var total int32
+	for _, tip := range tips {
+		total += tip.Amount
+	}
+
+	// Update all tips to be claimed
+	_, err = DB.TipLog.Update().Where(tiplog.TippedToDiscordIDEQ(toUserDiscordId), tiplog.TippedToIsNil()).SetTippedTo(toUserId).Save(r.Ctx)
+	if err != nil {
+		return 0, err
+	}
+
+	// Add credits to user, tipped type
+	tippedCreditType, err := r.GetOrCreateTippedCreditType(DB)
+	if err != nil {
+		return 0, err
+	}
+
+	// See if they have the tipped type already
+	tippedCredits, err := DB.Credit.Query().Where(credit.UserIDEQ(toUserId), credit.CreditTypeIDEQ(tippedCreditType.ID), credit.ExpiresAtEQ(NEVER_EXPIRE)).First(r.Ctx)
+	if err != nil && !ent.IsNotFound(err) {
+		return 0, err
+	}
+	if err != nil && ent.IsNotFound(err) {
+		// Create credit
+		_, err := DB.Credit.Create().SetCreditTypeID(tippedCreditType.ID).SetUserID(toUserId).SetRemainingAmount(total).SetExpiresAt(NEVER_EXPIRE).Save(r.Ctx)
+		if err != nil {
+			return 0, err
+		}
+	} else {
+		_, err = DB.Credit.Update().AddRemainingAmount(total).Where(credit.IDEQ(tippedCredits.ID)).Save(r.Ctx)
+		if err != nil {
+			return 0, err
+		}
+	}
+	return total, nil
 }

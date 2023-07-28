@@ -64,10 +64,22 @@ func (c *RestAPI) HandleAuthorizeDiscord(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	// Update user with discord ID
-	err = c.Repo.SetDiscordID(user.ID, authReq.UserID)
-	if err != nil {
-		log.Errorf("Error setting discord ID: %v", err)
+	// Update user with discord ID and collect unclaimed tips
+	var claimedTips int32
+	if err := c.Repo.WithTx(func(tx *ent.Tx) error {
+		db := tx.Client()
+		err = c.Repo.SetDiscordID(user.ID, authReq.UserID, db)
+		if err != nil {
+			return err
+		}
+
+		claimedTips, err = c.Repo.CollectUnclaimedTips(user.ID, authReq.UserID, db)
+		if err != nil {
+			return err
+		}
+		return nil
+	}); err != nil {
+		log.Errorf("Errir in discord verification transaction: %v", err)
 		responses.ErrInternalServerError(w, r, "An unknown error has occured")
 		return
 	}
@@ -90,5 +102,5 @@ func (c *RestAPI) HandleAuthorizeDiscord(w http.ResponseWriter, r *http.Request)
 	}
 
 	render.Status(r, http.StatusOK)
-	render.JSON(w, r, map[string]bool{"success": true})
+	render.JSON(w, r, map[string]interface{}{"success": true, "tips_claimed": claimedTips})
 }
