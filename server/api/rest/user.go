@@ -48,7 +48,7 @@ func (c *RestAPI) HandleGetUser(w http.ResponseWriter, r *http.Request) {
 		return
 	} else if user == nil {
 		// Handle create user flow
-		freeCreditType, err := c.Repo.GetOrCreateFreeCreditType()
+		freeCreditType, err := c.Repo.GetOrCreateFreeCreditType(nil)
 		if err != nil {
 			log.Error("Error getting free credit type", "err", err)
 			responses.ErrInternalServerError(w, r, "An unknown error has occurred")
@@ -56,6 +56,17 @@ func (c *RestAPI) HandleGetUser(w http.ResponseWriter, r *http.Request) {
 		}
 		if freeCreditType == nil {
 			log.Error("Server misconfiguration: a credit_type with the name 'free' must exist")
+			responses.ErrInternalServerError(w, r, "An unknown error has occurred")
+			return
+		}
+		tippableCreditType, err := c.Repo.GetOrCreateTippableCreditType(nil)
+		if err != nil {
+			log.Error("Error getting tippable credit type", "err", err)
+			responses.ErrInternalServerError(w, r, "An unknown error has occurred")
+			return
+		}
+		if tippableCreditType == nil {
+			log.Error("Server misconfiguration: a credit_type with the name 'tippable' must exist")
 			responses.ErrInternalServerError(w, r, "An unknown error has occurred")
 			return
 		}
@@ -98,6 +109,13 @@ func (c *RestAPI) HandleGetUser(w http.ResponseWriter, r *http.Request) {
 			added, err := c.Repo.GiveFreeCredits(u.ID, client)
 			if err != nil || !added {
 				log.Error("Error adding free credits", "err", err)
+				return err
+			}
+
+			// Add free tippable credits
+			added, err = c.Repo.GiveFreeTippableCredits(u.ID, client)
+			if err != nil || !added {
+				log.Error("Error adding free tippable credits", "err", err)
 				return err
 			}
 

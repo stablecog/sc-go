@@ -151,21 +151,10 @@ func main() {
 			return
 		}
 
-		// // check if the message is "!tip"
-		// if strings.HasPrefix(m.Content, "!tip") {
-		// 	// Find the channel that the message came from.
-		// 	c, err := s.State.Channel(m.ChannelID)
-		// 	if err != nil {
-		// 		// Could not find channel.
-		// 		return
-		// 	}
-		// 	if c.GuildID == "" {
-		// 		// Is a DM
-		// 		return
-		// 	}
-
-		// 	s.MessageReactionAdd(m.ChannelID, m.ID, "👍")
-		// }
+		// check if the message is "!tip"
+		if strings.HasPrefix(m.Content, "!tip") {
+			cmdWrapper.HandleTip(s, m)
+		}
 	})
 
 	// Intents

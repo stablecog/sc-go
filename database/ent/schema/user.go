@@ -64,6 +64,16 @@ func (User) Edges() []ent.Edge {
 			Annotations(entsql.Annotation{
 				OnDelete: entsql.Cascade,
 			}),
+		// O2M with tip_log
+		edge.To("tips_given", TipLog.Type).
+			Annotations(entsql.Annotation{
+				OnDelete: entsql.Cascade,
+			}),
+		// O2M with tip_log
+		edge.To("tips_received", TipLog.Type).
+			Annotations(entsql.Annotation{
+				OnDelete: entsql.Cascade,
+			}),
 		// M2M with roles
 		edge.From("roles", Role.Type).
 			Ref("users"),

@@ -23,6 +23,7 @@ import (
 	"github.com/stablecog/sc-go/database/ent/prompt"
 	"github.com/stablecog/sc-go/database/ent/role"
 	"github.com/stablecog/sc-go/database/ent/scheduler"
+	"github.com/stablecog/sc-go/database/ent/tiplog"
 	"github.com/stablecog/sc-go/database/ent/upscale"
 	"github.com/stablecog/sc-go/database/ent/upscalemodel"
 	"github.com/stablecog/sc-go/database/ent/upscaleoutput"
@@ -58,6 +59,7 @@ const (
 	TypePrompt           = "Prompt"
 	TypeRole             = "Role"
 	TypeScheduler        = "Scheduler"
+	TypeTipLog           = "TipLog"
 	TypeUpscale          = "Upscale"
 	TypeUpscaleModel     = "UpscaleModel"
 	TypeUpscaleOutput    = "UpscaleOutput"
@@ -11345,6 +11347,790 @@ func (m *SchedulerMutation) ResetEdge(name string) error {
 	return fmt.Errorf("unknown Scheduler edge %s", name)
 }
 
+// TipLogMutation represents an operation that mutates the TipLog nodes in the graph.
+type TipLogMutation struct {
+	config
+	op                   Op
+	typ                  string
+	id                   *uuid.UUID
+	amount               *int32
+	addamount            *int32
+	tipped_to_discord_id *string
+	created_at           *time.Time
+	updated_at           *time.Time
+	clearedFields        map[string]struct{}
+	tips_received        *uuid.UUID
+	clearedtips_received bool
+	tips_given           *uuid.UUID
+	clearedtips_given    bool
+	done                 bool
+	oldValue             func(context.Context) (*TipLog, error)
+	predicates           []predicate.TipLog
+}
+
+var _ ent.Mutation = (*TipLogMutation)(nil)
+
+// tiplogOption allows management of the mutation configuration using functional options.
+type tiplogOption func(*TipLogMutation)
+
+// newTipLogMutation creates new mutation for the TipLog entity.
+func newTipLogMutation(c config, op Op, opts ...tiplogOption) *TipLogMutation {
+	m := &TipLogMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeTipLog,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withTipLogID sets the ID field of the mutation.
+func withTipLogID(id uuid.UUID) tiplogOption {
+	return func(m *TipLogMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *TipLog
+		)
+		m.oldValue = func(ctx context.Context) (*TipLog, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().TipLog.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withTipLog sets the old TipLog of the mutation.
+func withTipLog(node *TipLog) tiplogOption {
+	return func(m *TipLogMutation) {
+		m.oldValue = func(context.Context) (*TipLog, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m TipLogMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m TipLogMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of TipLog entities.
+func (m *TipLogMutation) SetID(id uuid.UUID) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *TipLogMutation) ID() (id uuid.UUID, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *TipLogMutation) IDs(ctx context.Context) ([]uuid.UUID, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []uuid.UUID{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().TipLog.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetAmount sets the "amount" field.
+func (m *TipLogMutation) SetAmount(i int32) {
+	m.amount = &i
+	m.addamount = nil
+}
+
+// Amount returns the value of the "amount" field in the mutation.
+func (m *TipLogMutation) Amount() (r int32, exists bool) {
+	v := m.amount
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldAmount returns the old "amount" field's value of the TipLog entity.
+// If the TipLog object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *TipLogMutation) OldAmount(ctx context.Context) (v int32, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldAmount is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldAmount requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldAmount: %w", err)
+	}
+	return oldValue.Amount, nil
+}
+
+// AddAmount adds i to the "amount" field.
+func (m *TipLogMutation) AddAmount(i int32) {
+	if m.addamount != nil {
+		*m.addamount += i
+	} else {
+		m.addamount = &i
+	}
+}
+
+// AddedAmount returns the value that was added to the "amount" field in this mutation.
+func (m *TipLogMutation) AddedAmount() (r int32, exists bool) {
+	v := m.addamount
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetAmount resets all changes to the "amount" field.
+func (m *TipLogMutation) ResetAmount() {
+	m.amount = nil
+	m.addamount = nil
+}
+
+// SetTippedToDiscordID sets the "tipped_to_discord_id" field.
+func (m *TipLogMutation) SetTippedToDiscordID(s string) {
+	m.tipped_to_discord_id = &s
+}
+
+// TippedToDiscordID returns the value of the "tipped_to_discord_id" field in the mutation.
+func (m *TipLogMutation) TippedToDiscordID() (r string, exists bool) {
+	v := m.tipped_to_discord_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldTippedToDiscordID returns the old "tipped_to_discord_id" field's value of the TipLog entity.
+// If the TipLog object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *TipLogMutation) OldTippedToDiscordID(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldTippedToDiscordID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldTippedToDiscordID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldTippedToDiscordID: %w", err)
+	}
+	return oldValue.TippedToDiscordID, nil
+}
+
+// ResetTippedToDiscordID resets all changes to the "tipped_to_discord_id" field.
+func (m *TipLogMutation) ResetTippedToDiscordID() {
+	m.tipped_to_discord_id = nil
+}
+
+// SetTippedBy sets the "tipped_by" field.
+func (m *TipLogMutation) SetTippedBy(u uuid.UUID) {
+	m.tips_given = &u
+}
+
+// TippedBy returns the value of the "tipped_by" field in the mutation.
+func (m *TipLogMutation) TippedBy() (r uuid.UUID, exists bool) {
+	v := m.tips_given
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldTippedBy returns the old "tipped_by" field's value of the TipLog entity.
+// If the TipLog object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *TipLogMutation) OldTippedBy(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldTippedBy is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldTippedBy requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldTippedBy: %w", err)
+	}
+	return oldValue.TippedBy, nil
+}
+
+// ResetTippedBy resets all changes to the "tipped_by" field.
+func (m *TipLogMutation) ResetTippedBy() {
+	m.tips_given = nil
+}
+
+// SetTippedTo sets the "tipped_to" field.
+func (m *TipLogMutation) SetTippedTo(u uuid.UUID) {
+	m.tips_received = &u
+}
+
+// TippedTo returns the value of the "tipped_to" field in the mutation.
+func (m *TipLogMutation) TippedTo() (r uuid.UUID, exists bool) {
+	v := m.tips_received
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldTippedTo returns the old "tipped_to" field's value of the TipLog entity.
+// If the TipLog object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *TipLogMutation) OldTippedTo(ctx context.Context) (v *uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldTippedTo is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldTippedTo requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldTippedTo: %w", err)
+	}
+	return oldValue.TippedTo, nil
+}
+
+// ClearTippedTo clears the value of the "tipped_to" field.
+func (m *TipLogMutation) ClearTippedTo() {
+	m.tips_received = nil
+	m.clearedFields[tiplog.FieldTippedTo] = struct{}{}
+}
+
+// TippedToCleared returns if the "tipped_to" field was cleared in this mutation.
+func (m *TipLogMutation) TippedToCleared() bool {
+	_, ok := m.clearedFields[tiplog.FieldTippedTo]
+	return ok
+}
+
+// ResetTippedTo resets all changes to the "tipped_to" field.
+func (m *TipLogMutation) ResetTippedTo() {
+	m.tips_received = nil
+	delete(m.clearedFields, tiplog.FieldTippedTo)
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *TipLogMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *TipLogMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the TipLog entity.
+// If the TipLog object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *TipLogMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *TipLogMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (m *TipLogMutation) SetUpdatedAt(t time.Time) {
+	m.updated_at = &t
+}
+
+// UpdatedAt returns the value of the "updated_at" field in the mutation.
+func (m *TipLogMutation) UpdatedAt() (r time.Time, exists bool) {
+	v := m.updated_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedAt returns the old "updated_at" field's value of the TipLog entity.
+// If the TipLog object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *TipLogMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
+	}
+	return oldValue.UpdatedAt, nil
+}
+
+// ResetUpdatedAt resets all changes to the "updated_at" field.
+func (m *TipLogMutation) ResetUpdatedAt() {
+	m.updated_at = nil
+}
+
+// SetTipsReceivedID sets the "tips_received" edge to the User entity by id.
+func (m *TipLogMutation) SetTipsReceivedID(id uuid.UUID) {
+	m.tips_received = &id
+}
+
+// ClearTipsReceived clears the "tips_received" edge to the User entity.
+func (m *TipLogMutation) ClearTipsReceived() {
+	m.clearedtips_received = true
+}
+
+// TipsReceivedCleared reports if the "tips_received" edge to the User entity was cleared.
+func (m *TipLogMutation) TipsReceivedCleared() bool {
+	return m.TippedToCleared() || m.clearedtips_received
+}
+
+// TipsReceivedID returns the "tips_received" edge ID in the mutation.
+func (m *TipLogMutation) TipsReceivedID() (id uuid.UUID, exists bool) {
+	if m.tips_received != nil {
+		return *m.tips_received, true
+	}
+	return
+}
+
+// TipsReceivedIDs returns the "tips_received" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// TipsReceivedID instead. It exists only for internal usage by the builders.
+func (m *TipLogMutation) TipsReceivedIDs() (ids []uuid.UUID) {
+	if id := m.tips_received; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetTipsReceived resets all changes to the "tips_received" edge.
+func (m *TipLogMutation) ResetTipsReceived() {
+	m.tips_received = nil
+	m.clearedtips_received = false
+}
+
+// SetTipsGivenID sets the "tips_given" edge to the User entity by id.
+func (m *TipLogMutation) SetTipsGivenID(id uuid.UUID) {
+	m.tips_given = &id
+}
+
+// ClearTipsGiven clears the "tips_given" edge to the User entity.
+func (m *TipLogMutation) ClearTipsGiven() {
+	m.clearedtips_given = true
+}
+
+// TipsGivenCleared reports if the "tips_given" edge to the User entity was cleared.
+func (m *TipLogMutation) TipsGivenCleared() bool {
+	return m.clearedtips_given
+}
+
+// TipsGivenID returns the "tips_given" edge ID in the mutation.
+func (m *TipLogMutation) TipsGivenID() (id uuid.UUID, exists bool) {
+	if m.tips_given != nil {
+		return *m.tips_given, true
+	}
+	return
+}
+
+// TipsGivenIDs returns the "tips_given" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// TipsGivenID instead. It exists only for internal usage by the builders.
+func (m *TipLogMutation) TipsGivenIDs() (ids []uuid.UUID) {
+	if id := m.tips_given; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetTipsGiven resets all changes to the "tips_given" edge.
+func (m *TipLogMutation) ResetTipsGiven() {
+	m.tips_given = nil
+	m.clearedtips_given = false
+}
+
+// Where appends a list predicates to the TipLogMutation builder.
+func (m *TipLogMutation) Where(ps ...predicate.TipLog) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the TipLogMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *TipLogMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.TipLog, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *TipLogMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *TipLogMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (TipLog).
+func (m *TipLogMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *TipLogMutation) Fields() []string {
+	fields := make([]string, 0, 6)
+	if m.amount != nil {
+		fields = append(fields, tiplog.FieldAmount)
+	}
+	if m.tipped_to_discord_id != nil {
+		fields = append(fields, tiplog.FieldTippedToDiscordID)
+	}
+	if m.tips_given != nil {
+		fields = append(fields, tiplog.FieldTippedBy)
+	}
+	if m.tips_received != nil {
+		fields = append(fields, tiplog.FieldTippedTo)
+	}
+	if m.created_at != nil {
+		fields = append(fields, tiplog.FieldCreatedAt)
+	}
+	if m.updated_at != nil {
+		fields = append(fields, tiplog.FieldUpdatedAt)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *TipLogMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case tiplog.FieldAmount:
+		return m.Amount()
+	case tiplog.FieldTippedToDiscordID:
+		return m.TippedToDiscordID()
+	case tiplog.FieldTippedBy:
+		return m.TippedBy()
+	case tiplog.FieldTippedTo:
+		return m.TippedTo()
+	case tiplog.FieldCreatedAt:
+		return m.CreatedAt()
+	case tiplog.FieldUpdatedAt:
+		return m.UpdatedAt()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *TipLogMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case tiplog.FieldAmount:
+		return m.OldAmount(ctx)
+	case tiplog.FieldTippedToDiscordID:
+		return m.OldTippedToDiscordID(ctx)
+	case tiplog.FieldTippedBy:
+		return m.OldTippedBy(ctx)
+	case tiplog.FieldTippedTo:
+		return m.OldTippedTo(ctx)
+	case tiplog.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	case tiplog.FieldUpdatedAt:
+		return m.OldUpdatedAt(ctx)
+	}
+	return nil, fmt.Errorf("unknown TipLog field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *TipLogMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case tiplog.FieldAmount:
+		v, ok := value.(int32)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetAmount(v)
+		return nil
+	case tiplog.FieldTippedToDiscordID:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetTippedToDiscordID(v)
+		return nil
+	case tiplog.FieldTippedBy:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetTippedBy(v)
+		return nil
+	case tiplog.FieldTippedTo:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetTippedTo(v)
+		return nil
+	case tiplog.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	case tiplog.FieldUpdatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedAt(v)
+		return nil
+	}
+	return fmt.Errorf("unknown TipLog field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *TipLogMutation) AddedFields() []string {
+	var fields []string
+	if m.addamount != nil {
+		fields = append(fields, tiplog.FieldAmount)
+	}
+	return fields
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *TipLogMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case tiplog.FieldAmount:
+		return m.AddedAmount()
+	}
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *TipLogMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	case tiplog.FieldAmount:
+		v, ok := value.(int32)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddAmount(v)
+		return nil
+	}
+	return fmt.Errorf("unknown TipLog numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *TipLogMutation) ClearedFields() []string {
+	var fields []string
+	if m.FieldCleared(tiplog.FieldTippedTo) {
+		fields = append(fields, tiplog.FieldTippedTo)
+	}
+	return fields
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *TipLogMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *TipLogMutation) ClearField(name string) error {
+	switch name {
+	case tiplog.FieldTippedTo:
+		m.ClearTippedTo()
+		return nil
+	}
+	return fmt.Errorf("unknown TipLog nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *TipLogMutation) ResetField(name string) error {
+	switch name {
+	case tiplog.FieldAmount:
+		m.ResetAmount()
+		return nil
+	case tiplog.FieldTippedToDiscordID:
+		m.ResetTippedToDiscordID()
+		return nil
+	case tiplog.FieldTippedBy:
+		m.ResetTippedBy()
+		return nil
+	case tiplog.FieldTippedTo:
+		m.ResetTippedTo()
+		return nil
+	case tiplog.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	case tiplog.FieldUpdatedAt:
+		m.ResetUpdatedAt()
+		return nil
+	}
+	return fmt.Errorf("unknown TipLog field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *TipLogMutation) AddedEdges() []string {
+	edges := make([]string, 0, 2)
+	if m.tips_received != nil {
+		edges = append(edges, tiplog.EdgeTipsReceived)
+	}
+	if m.tips_given != nil {
+		edges = append(edges, tiplog.EdgeTipsGiven)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *TipLogMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case tiplog.EdgeTipsReceived:
+		if id := m.tips_received; id != nil {
+			return []ent.Value{*id}
+		}
+	case tiplog.EdgeTipsGiven:
+		if id := m.tips_given; id != nil {
+			return []ent.Value{*id}
+		}
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *TipLogMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 2)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *TipLogMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *TipLogMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 2)
+	if m.clearedtips_received {
+		edges = append(edges, tiplog.EdgeTipsReceived)
+	}
+	if m.clearedtips_given {
+		edges = append(edges, tiplog.EdgeTipsGiven)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *TipLogMutation) EdgeCleared(name string) bool {
+	switch name {
+	case tiplog.EdgeTipsReceived:
+		return m.clearedtips_received
+	case tiplog.EdgeTipsGiven:
+		return m.clearedtips_given
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *TipLogMutation) ClearEdge(name string) error {
+	switch name {
+	case tiplog.EdgeTipsReceived:
+		m.ClearTipsReceived()
+		return nil
+	case tiplog.EdgeTipsGiven:
+		m.ClearTipsGiven()
+		return nil
+	}
+	return fmt.Errorf("unknown TipLog unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *TipLogMutation) ResetEdge(name string) error {
+	switch name {
+	case tiplog.EdgeTipsReceived:
+		m.ResetTipsReceived()
+		return nil
+	case tiplog.EdgeTipsGiven:
+		m.ResetTipsGiven()
+		return nil
+	}
+	return fmt.Errorf("unknown TipLog edge %s", name)
+}
+
 // UpscaleMutation represents an operation that mutates the Upscale nodes in the graph.
 type UpscaleMutation struct {
 	config
@@ -14615,6 +15401,12 @@ type UserMutation struct {
 	api_tokens                map[uuid.UUID]struct{}
 	removedapi_tokens         map[uuid.UUID]struct{}
 	clearedapi_tokens         bool
+	tips_given                map[uuid.UUID]struct{}
+	removedtips_given         map[uuid.UUID]struct{}
+	clearedtips_given         bool
+	tips_received             map[uuid.UUID]struct{}
+	removedtips_received      map[uuid.UUID]struct{}
+	clearedtips_received      bool
 	roles                     map[uuid.UUID]struct{}
 	removedroles              map[uuid.UUID]struct{}
 	clearedroles              bool
@@ -15520,6 +16312,114 @@ func (m *UserMutation) ResetAPITokens() {
 	m.removedapi_tokens = nil
 }
 
+// AddTipsGivenIDs adds the "tips_given" edge to the TipLog entity by ids.
+func (m *UserMutation) AddTipsGivenIDs(ids ...uuid.UUID) {
+	if m.tips_given == nil {
+		m.tips_given = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.tips_given[ids[i]] = struct{}{}
+	}
+}
+
+// ClearTipsGiven clears the "tips_given" edge to the TipLog entity.
+func (m *UserMutation) ClearTipsGiven() {
+	m.clearedtips_given = true
+}
+
+// TipsGivenCleared reports if the "tips_given" edge to the TipLog entity was cleared.
+func (m *UserMutation) TipsGivenCleared() bool {
+	return m.clearedtips_given
+}
+
+// RemoveTipsGivenIDs removes the "tips_given" edge to the TipLog entity by IDs.
+func (m *UserMutation) RemoveTipsGivenIDs(ids ...uuid.UUID) {
+	if m.removedtips_given == nil {
+		m.removedtips_given = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.tips_given, ids[i])
+		m.removedtips_given[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedTipsGiven returns the removed IDs of the "tips_given" edge to the TipLog entity.
+func (m *UserMutation) RemovedTipsGivenIDs() (ids []uuid.UUID) {
+	for id := range m.removedtips_given {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// TipsGivenIDs returns the "tips_given" edge IDs in the mutation.
+func (m *UserMutation) TipsGivenIDs() (ids []uuid.UUID) {
+	for id := range m.tips_given {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetTipsGiven resets all changes to the "tips_given" edge.
+func (m *UserMutation) ResetTipsGiven() {
+	m.tips_given = nil
+	m.clearedtips_given = false
+	m.removedtips_given = nil
+}
+
+// AddTipsReceivedIDs adds the "tips_received" edge to the TipLog entity by ids.
+func (m *UserMutation) AddTipsReceivedIDs(ids ...uuid.UUID) {
+	if m.tips_received == nil {
+		m.tips_received = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.tips_received[ids[i]] = struct{}{}
+	}
+}
+
+// ClearTipsReceived clears the "tips_received" edge to the TipLog entity.
+func (m *UserMutation) ClearTipsReceived() {
+	m.clearedtips_received = true
+}
+
+// TipsReceivedCleared reports if the "tips_received" edge to the TipLog entity was cleared.
+func (m *UserMutation) TipsReceivedCleared() bool {
+	return m.clearedtips_received
+}
+
+// RemoveTipsReceivedIDs removes the "tips_received" edge to the TipLog entity by IDs.
+func (m *UserMutation) RemoveTipsReceivedIDs(ids ...uuid.UUID) {
+	if m.removedtips_received == nil {
+		m.removedtips_received = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.tips_received, ids[i])
+		m.removedtips_received[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedTipsReceived returns the removed IDs of the "tips_received" edge to the TipLog entity.
+func (m *UserMutation) RemovedTipsReceivedIDs() (ids []uuid.UUID) {
+	for id := range m.removedtips_received {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// TipsReceivedIDs returns the "tips_received" edge IDs in the mutation.
+func (m *UserMutation) TipsReceivedIDs() (ids []uuid.UUID) {
+	for id := range m.tips_received {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetTipsReceived resets all changes to the "tips_received" edge.
+func (m *UserMutation) ResetTipsReceived() {
+	m.tips_received = nil
+	m.clearedtips_received = false
+	m.removedtips_received = nil
+}
+
 // AddRoleIDs adds the "roles" edge to the Role entity by ids.
 func (m *UserMutation) AddRoleIDs(ids ...uuid.UUID) {
 	if m.roles == nil {
@@ -15939,7 +16839,7 @@ func (m *UserMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *UserMutation) AddedEdges() []string {
-	edges := make([]string, 0, 6)
+	edges := make([]string, 0, 8)
 	if m.generations != nil {
 		edges = append(edges, user.EdgeGenerations)
 	}
@@ -15954,6 +16854,12 @@ func (m *UserMutation) AddedEdges() []string {
 	}
 	if m.api_tokens != nil {
 		edges = append(edges, user.EdgeAPITokens)
+	}
+	if m.tips_given != nil {
+		edges = append(edges, user.EdgeTipsGiven)
+	}
+	if m.tips_received != nil {
+		edges = append(edges, user.EdgeTipsReceived)
 	}
 	if m.roles != nil {
 		edges = append(edges, user.EdgeRoles)
@@ -15995,6 +16901,18 @@ func (m *UserMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case user.EdgeTipsGiven:
+		ids := make([]ent.Value, 0, len(m.tips_given))
+		for id := range m.tips_given {
+			ids = append(ids, id)
+		}
+		return ids
+	case user.EdgeTipsReceived:
+		ids := make([]ent.Value, 0, len(m.tips_received))
+		for id := range m.tips_received {
+			ids = append(ids, id)
+		}
+		return ids
 	case user.EdgeRoles:
 		ids := make([]ent.Value, 0, len(m.roles))
 		for id := range m.roles {
@@ -16007,7 +16925,7 @@ func (m *UserMutation) AddedIDs(name string) []ent.Value {
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *UserMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 6)
+	edges := make([]string, 0, 8)
 	if m.removedgenerations != nil {
 		edges = append(edges, user.EdgeGenerations)
 	}
@@ -16022,6 +16940,12 @@ func (m *UserMutation) RemovedEdges() []string {
 	}
 	if m.removedapi_tokens != nil {
 		edges = append(edges, user.EdgeAPITokens)
+	}
+	if m.removedtips_given != nil {
+		edges = append(edges, user.EdgeTipsGiven)
+	}
+	if m.removedtips_received != nil {
+		edges = append(edges, user.EdgeTipsReceived)
 	}
 	if m.removedroles != nil {
 		edges = append(edges, user.EdgeRoles)
@@ -16063,6 +16987,18 @@ func (m *UserMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case user.EdgeTipsGiven:
+		ids := make([]ent.Value, 0, len(m.removedtips_given))
+		for id := range m.removedtips_given {
+			ids = append(ids, id)
+		}
+		return ids
+	case user.EdgeTipsReceived:
+		ids := make([]ent.Value, 0, len(m.removedtips_received))
+		for id := range m.removedtips_received {
+			ids = append(ids, id)
+		}
+		return ids
 	case user.EdgeRoles:
 		ids := make([]ent.Value, 0, len(m.removedroles))
 		for id := range m.removedroles {
@@ -16075,7 +17011,7 @@ func (m *UserMutation) RemovedIDs(name string) []ent.Value {
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *UserMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 6)
+	edges := make([]string, 0, 8)
 	if m.clearedgenerations {
 		edges = append(edges, user.EdgeGenerations)
 	}
@@ -16090,6 +17026,12 @@ func (m *UserMutation) ClearedEdges() []string {
 	}
 	if m.clearedapi_tokens {
 		edges = append(edges, user.EdgeAPITokens)
+	}
+	if m.clearedtips_given {
+		edges = append(edges, user.EdgeTipsGiven)
+	}
+	if m.clearedtips_received {
+		edges = append(edges, user.EdgeTipsReceived)
 	}
 	if m.clearedroles {
 		edges = append(edges, user.EdgeRoles)
@@ -16111,6 +17053,10 @@ func (m *UserMutation) EdgeCleared(name string) bool {
 		return m.clearedcredits
 	case user.EdgeAPITokens:
 		return m.clearedapi_tokens
+	case user.EdgeTipsGiven:
+		return m.clearedtips_given
+	case user.EdgeTipsReceived:
+		return m.clearedtips_received
 	case user.EdgeRoles:
 		return m.clearedroles
 	}
@@ -16143,6 +17089,12 @@ func (m *UserMutation) ResetEdge(name string) error {
 		return nil
 	case user.EdgeAPITokens:
 		m.ResetAPITokens()
+		return nil
+	case user.EdgeTipsGiven:
+		m.ResetTipsGiven()
+		return nil
+	case user.EdgeTipsReceived:
+		m.ResetTipsReceived()
 		return nil
 	case user.EdgeRoles:
 		m.ResetRoles()

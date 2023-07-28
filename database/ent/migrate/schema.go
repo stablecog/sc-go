@@ -362,6 +362,36 @@ var (
 		Columns:    SchedulersColumns,
 		PrimaryKey: []*schema.Column{SchedulersColumns[0]},
 	}
+	// TipLogColumns holds the columns for the "tip_log" table.
+	TipLogColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID},
+		{Name: "amount", Type: field.TypeInt32},
+		{Name: "tipped_to_discord_id", Type: field.TypeString, Size: 2147483647},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "tipped_by", Type: field.TypeUUID},
+		{Name: "tipped_to", Type: field.TypeUUID, Nullable: true},
+	}
+	// TipLogTable holds the schema information for the "tip_log" table.
+	TipLogTable = &schema.Table{
+		Name:       "tip_log",
+		Columns:    TipLogColumns,
+		PrimaryKey: []*schema.Column{TipLogColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "tip_log_users_tips_given",
+				Columns:    []*schema.Column{TipLogColumns[5]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+			{
+				Symbol:     "tip_log_users_tips_received",
+				Columns:    []*schema.Column{TipLogColumns[6]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+		},
+	}
 	// UpscalesColumns holds the columns for the "upscales" table.
 	UpscalesColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID},
@@ -716,6 +746,7 @@ var (
 		PromptsTable,
 		RolesTable,
 		SchedulersTable,
+		TipLogTable,
 		UpscalesTable,
 		UpscaleModelsTable,
 		UpscaleOutputsTable,
@@ -776,6 +807,11 @@ func init() {
 	}
 	SchedulersTable.Annotation = &entsql.Annotation{
 		Table: "schedulers",
+	}
+	TipLogTable.ForeignKeys[0].RefTable = UsersTable
+	TipLogTable.ForeignKeys[1].RefTable = UsersTable
+	TipLogTable.Annotation = &entsql.Annotation{
+		Table: "tip_log",
 	}
 	UpscalesTable.ForeignKeys[0].RefTable = APITokensTable
 	UpscalesTable.ForeignKeys[1].RefTable = DeviceInfoTable

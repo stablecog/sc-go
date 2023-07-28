@@ -42,6 +42,9 @@ type Role func(*sql.Selector)
 // Scheduler is the predicate function for scheduler builders.
 type Scheduler func(*sql.Selector)
 
+// TipLog is the predicate function for tiplog builders.
+type TipLog func(*sql.Selector)
+
 // Upscale is the predicate function for upscale builders.
 type Upscale func(*sql.Selector)
 

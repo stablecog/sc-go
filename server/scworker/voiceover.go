@@ -193,7 +193,7 @@ func (w *SCWorker) CreateVoiceover(source enttypes.SourceType,
 
 		// Charge credits
 		creditAmount := utils.CalculateVoiceoverCredits(voiceoverReq.Prompt)
-		deducted, err := w.Repo.DeductCreditsFromUser(user.ID, creditAmount, DB)
+		deducted, err := w.Repo.DeductCreditsFromUser(user.ID, creditAmount, false, DB)
 		if err != nil {
 			log.Error("Error deducting credits", "err", err)
 			return err

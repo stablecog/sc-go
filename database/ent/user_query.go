@@ -17,6 +17,7 @@ import (
 	"github.com/stablecog/sc-go/database/ent/generation"
 	"github.com/stablecog/sc-go/database/ent/predicate"
 	"github.com/stablecog/sc-go/database/ent/role"
+	"github.com/stablecog/sc-go/database/ent/tiplog"
 	"github.com/stablecog/sc-go/database/ent/upscale"
 	"github.com/stablecog/sc-go/database/ent/user"
 	"github.com/stablecog/sc-go/database/ent/voiceover"
@@ -25,17 +26,19 @@ import (
 // UserQuery is the builder for querying User entities.
 type UserQuery struct {
 	config
-	ctx             *QueryContext
-	order           []OrderFunc
-	inters          []Interceptor
-	predicates      []predicate.User
-	withGenerations *GenerationQuery
-	withUpscales    *UpscaleQuery
-	withVoiceovers  *VoiceoverQuery
-	withCredits     *CreditQuery
-	withAPITokens   *ApiTokenQuery
-	withRoles       *RoleQuery
-	modifiers       []func(*sql.Selector)
+	ctx              *QueryContext
+	order            []OrderFunc
+	inters           []Interceptor
+	predicates       []predicate.User
+	withGenerations  *GenerationQuery
+	withUpscales     *UpscaleQuery
+	withVoiceovers   *VoiceoverQuery
+	withCredits      *CreditQuery
+	withAPITokens    *ApiTokenQuery
+	withTipsGiven    *TipLogQuery
+	withTipsReceived *TipLogQuery
+	withRoles        *RoleQuery
+	modifiers        []func(*sql.Selector)
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -175,6 +178,50 @@ func (uq *UserQuery) QueryAPITokens() *ApiTokenQuery {
 			sqlgraph.From(user.Table, user.FieldID, selector),
 			sqlgraph.To(apitoken.Table, apitoken.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, user.APITokensTable, user.APITokensColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(uq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryTipsGiven chains the current query on the "tips_given" edge.
+func (uq *UserQuery) QueryTipsGiven() *TipLogQuery {
+	query := (&TipLogClient{config: uq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := uq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := uq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, selector),
+			sqlgraph.To(tiplog.Table, tiplog.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.TipsGivenTable, user.TipsGivenColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(uq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryTipsReceived chains the current query on the "tips_received" edge.
+func (uq *UserQuery) QueryTipsReceived() *TipLogQuery {
+	query := (&TipLogClient{config: uq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := uq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := uq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, selector),
+			sqlgraph.To(tiplog.Table, tiplog.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.TipsReceivedTable, user.TipsReceivedColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(uq.driver.Dialect(), step)
 		return fromU, nil
@@ -389,17 +436,19 @@ func (uq *UserQuery) Clone() *UserQuery {
 		return nil
 	}
 	return &UserQuery{
-		config:          uq.config,
-		ctx:             uq.ctx.Clone(),
-		order:           append([]OrderFunc{}, uq.order...),
-		inters:          append([]Interceptor{}, uq.inters...),
-		predicates:      append([]predicate.User{}, uq.predicates...),
-		withGenerations: uq.withGenerations.Clone(),
-		withUpscales:    uq.withUpscales.Clone(),
-		withVoiceovers:  uq.withVoiceovers.Clone(),
-		withCredits:     uq.withCredits.Clone(),
-		withAPITokens:   uq.withAPITokens.Clone(),
-		withRoles:       uq.withRoles.Clone(),
+		config:           uq.config,
+		ctx:              uq.ctx.Clone(),
+		order:            append([]OrderFunc{}, uq.order...),
+		inters:           append([]Interceptor{}, uq.inters...),
+		predicates:       append([]predicate.User{}, uq.predicates...),
+		withGenerations:  uq.withGenerations.Clone(),
+		withUpscales:     uq.withUpscales.Clone(),
+		withVoiceovers:   uq.withVoiceovers.Clone(),
+		withCredits:      uq.withCredits.Clone(),
+		withAPITokens:    uq.withAPITokens.Clone(),
+		withTipsGiven:    uq.withTipsGiven.Clone(),
+		withTipsReceived: uq.withTipsReceived.Clone(),
+		withRoles:        uq.withRoles.Clone(),
 		// clone intermediate query.
 		sql:  uq.sql.Clone(),
 		path: uq.path,
@@ -458,6 +507,28 @@ func (uq *UserQuery) WithAPITokens(opts ...func(*ApiTokenQuery)) *UserQuery {
 		opt(query)
 	}
 	uq.withAPITokens = query
+	return uq
+}
+
+// WithTipsGiven tells the query-builder to eager-load the nodes that are connected to
+// the "tips_given" edge. The optional arguments are used to configure the query builder of the edge.
+func (uq *UserQuery) WithTipsGiven(opts ...func(*TipLogQuery)) *UserQuery {
+	query := (&TipLogClient{config: uq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	uq.withTipsGiven = query
+	return uq
+}
+
+// WithTipsReceived tells the query-builder to eager-load the nodes that are connected to
+// the "tips_received" edge. The optional arguments are used to configure the query builder of the edge.
+func (uq *UserQuery) WithTipsReceived(opts ...func(*TipLogQuery)) *UserQuery {
+	query := (&TipLogClient{config: uq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	uq.withTipsReceived = query
 	return uq
 }
 
@@ -550,12 +621,14 @@ func (uq *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 	var (
 		nodes       = []*User{}
 		_spec       = uq.querySpec()
-		loadedTypes = [6]bool{
+		loadedTypes = [8]bool{
 			uq.withGenerations != nil,
 			uq.withUpscales != nil,
 			uq.withVoiceovers != nil,
 			uq.withCredits != nil,
 			uq.withAPITokens != nil,
+			uq.withTipsGiven != nil,
+			uq.withTipsReceived != nil,
 			uq.withRoles != nil,
 		}
 	)
@@ -612,6 +685,20 @@ func (uq *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 		if err := uq.loadAPITokens(ctx, query, nodes,
 			func(n *User) { n.Edges.APITokens = []*ApiToken{} },
 			func(n *User, e *ApiToken) { n.Edges.APITokens = append(n.Edges.APITokens, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := uq.withTipsGiven; query != nil {
+		if err := uq.loadTipsGiven(ctx, query, nodes,
+			func(n *User) { n.Edges.TipsGiven = []*TipLog{} },
+			func(n *User, e *TipLog) { n.Edges.TipsGiven = append(n.Edges.TipsGiven, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := uq.withTipsReceived; query != nil {
+		if err := uq.loadTipsReceived(ctx, query, nodes,
+			func(n *User) { n.Edges.TipsReceived = []*TipLog{} },
+			func(n *User, e *TipLog) { n.Edges.TipsReceived = append(n.Edges.TipsReceived, e) }); err != nil {
 			return nil, err
 		}
 	}
@@ -755,6 +842,63 @@ func (uq *UserQuery) loadAPITokens(ctx context.Context, query *ApiTokenQuery, no
 		node, ok := nodeids[fk]
 		if !ok {
 			return fmt.Errorf(`unexpected foreign-key "user_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (uq *UserQuery) loadTipsGiven(ctx context.Context, query *TipLogQuery, nodes []*User, init func(*User), assign func(*User, *TipLog)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*User)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	query.Where(predicate.TipLog(func(s *sql.Selector) {
+		s.Where(sql.InValues(user.TipsGivenColumn, fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.TippedBy
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "tipped_by" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (uq *UserQuery) loadTipsReceived(ctx context.Context, query *TipLogQuery, nodes []*User, init func(*User), assign func(*User, *TipLog)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*User)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	query.Where(predicate.TipLog(func(s *sql.Selector) {
+		s.Where(sql.InValues(user.TipsReceivedColumn, fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.TippedTo
+		if fk == nil {
+			return fmt.Errorf(`foreign-key "tipped_to" is nil for node %v`, n.ID)
+		}
+		node, ok := nodeids[*fk]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "tipped_to" returned %v for node %v`, *fk, n.ID)
 		}
 		assign(node, n)
 	}

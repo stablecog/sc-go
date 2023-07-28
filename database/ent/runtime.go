@@ -19,6 +19,7 @@ import (
 	"github.com/stablecog/sc-go/database/ent/role"
 	"github.com/stablecog/sc-go/database/ent/scheduler"
 	"github.com/stablecog/sc-go/database/ent/schema"
+	"github.com/stablecog/sc-go/database/ent/tiplog"
 	"github.com/stablecog/sc-go/database/ent/upscale"
 	"github.com/stablecog/sc-go/database/ent/upscalemodel"
 	"github.com/stablecog/sc-go/database/ent/upscaleoutput"
@@ -289,6 +290,22 @@ func init() {
 	schedulerDescID := schedulerFields[0].Descriptor()
 	// scheduler.DefaultID holds the default value on creation for the id field.
 	scheduler.DefaultID = schedulerDescID.Default.(func() uuid.UUID)
+	tiplogFields := schema.TipLog{}.Fields()
+	_ = tiplogFields
+	// tiplogDescCreatedAt is the schema descriptor for created_at field.
+	tiplogDescCreatedAt := tiplogFields[5].Descriptor()
+	// tiplog.DefaultCreatedAt holds the default value on creation for the created_at field.
+	tiplog.DefaultCreatedAt = tiplogDescCreatedAt.Default.(func() time.Time)
+	// tiplogDescUpdatedAt is the schema descriptor for updated_at field.
+	tiplogDescUpdatedAt := tiplogFields[6].Descriptor()
+	// tiplog.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	tiplog.DefaultUpdatedAt = tiplogDescUpdatedAt.Default.(func() time.Time)
+	// tiplog.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	tiplog.UpdateDefaultUpdatedAt = tiplogDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// tiplogDescID is the schema descriptor for id field.
+	tiplogDescID := tiplogFields[0].Descriptor()
+	// tiplog.DefaultID holds the default value on creation for the id field.
+	tiplog.DefaultID = tiplogDescID.Default.(func() uuid.UUID)
 	upscaleFields := schema.Upscale{}.Fields()
 	_ = upscaleFields
 	// upscaleDescSystemGenerated is the schema descriptor for system_generated field.

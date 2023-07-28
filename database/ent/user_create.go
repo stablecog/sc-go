@@ -15,6 +15,7 @@ import (
 	"github.com/stablecog/sc-go/database/ent/credit"
 	"github.com/stablecog/sc-go/database/ent/generation"
 	"github.com/stablecog/sc-go/database/ent/role"
+	"github.com/stablecog/sc-go/database/ent/tiplog"
 	"github.com/stablecog/sc-go/database/ent/upscale"
 	"github.com/stablecog/sc-go/database/ent/user"
 	"github.com/stablecog/sc-go/database/ent/voiceover"
@@ -266,6 +267,36 @@ func (uc *UserCreate) AddAPITokens(a ...*ApiToken) *UserCreate {
 		ids[i] = a[i].ID
 	}
 	return uc.AddAPITokenIDs(ids...)
+}
+
+// AddTipsGivenIDs adds the "tips_given" edge to the TipLog entity by IDs.
+func (uc *UserCreate) AddTipsGivenIDs(ids ...uuid.UUID) *UserCreate {
+	uc.mutation.AddTipsGivenIDs(ids...)
+	return uc
+}
+
+// AddTipsGiven adds the "tips_given" edges to the TipLog entity.
+func (uc *UserCreate) AddTipsGiven(t ...*TipLog) *UserCreate {
+	ids := make([]uuid.UUID, len(t))
+	for i := range t {
+		ids[i] = t[i].ID
+	}
+	return uc.AddTipsGivenIDs(ids...)
+}
+
+// AddTipsReceivedIDs adds the "tips_received" edge to the TipLog entity by IDs.
+func (uc *UserCreate) AddTipsReceivedIDs(ids ...uuid.UUID) *UserCreate {
+	uc.mutation.AddTipsReceivedIDs(ids...)
+	return uc
+}
+
+// AddTipsReceived adds the "tips_received" edges to the TipLog entity.
+func (uc *UserCreate) AddTipsReceived(t ...*TipLog) *UserCreate {
+	ids := make([]uuid.UUID, len(t))
+	for i := range t {
+		ids[i] = t[i].ID
+	}
+	return uc.AddTipsReceivedIDs(ids...)
 }
 
 // AddRoleIDs adds the "roles" edge to the Role entity by IDs.
@@ -529,6 +560,44 @@ func (uc *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeUUID,
 					Column: apitoken.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := uc.mutation.TipsGivenIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.TipsGivenTable,
+			Columns: []string{user.TipsGivenColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: tiplog.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := uc.mutation.TipsReceivedIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.TipsReceivedTable,
+			Columns: []string{user.TipsReceivedColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: tiplog.FieldID,
 				},
 			},
 		}

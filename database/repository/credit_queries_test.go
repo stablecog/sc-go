@@ -33,7 +33,7 @@ func TestCreditsForUser(t *testing.T) {
 }
 
 func TestGetOrCreateFreeCreditType(t *testing.T) {
-	ctype, err := MockRepo.GetOrCreateFreeCreditType()
+	ctype, err := MockRepo.GetOrCreateFreeCreditType(nil)
 	assert.Nil(t, err)
 	assert.Equal(t, "Free", ctype.Name)
 }
@@ -61,7 +61,7 @@ func TestGetFreeCreditReplenishesAtForUser(t *testing.T) {
 	_, err = MockRepo.GiveFreeCredits(u.ID, nil)
 	assert.Nil(t, err)
 	// Get credits
-	ctype, err := MockRepo.GetOrCreateFreeCreditType()
+	ctype, err := MockRepo.GetOrCreateFreeCreditType(nil)
 	assert.Nil(t, err)
 	credit := MockRepo.DB.Credit.Query().Where(credit.UserID(u.ID), credit.CreditTypeID(ctype.ID)).OnlyX(context.Background())
 	assert.NotNil(t, credit)

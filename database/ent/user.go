@@ -58,11 +58,15 @@ type UserEdges struct {
 	Credits []*Credit `json:"credits,omitempty"`
 	// APITokens holds the value of the api_tokens edge.
 	APITokens []*ApiToken `json:"api_tokens,omitempty"`
+	// TipsGiven holds the value of the tips_given edge.
+	TipsGiven []*TipLog `json:"tips_given,omitempty"`
+	// TipsReceived holds the value of the tips_received edge.
+	TipsReceived []*TipLog `json:"tips_received,omitempty"`
 	// Roles holds the value of the roles edge.
 	Roles []*Role `json:"roles,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [6]bool
+	loadedTypes [8]bool
 }
 
 // GenerationsOrErr returns the Generations value or an error if the edge
@@ -110,10 +114,28 @@ func (e UserEdges) APITokensOrErr() ([]*ApiToken, error) {
 	return nil, &NotLoadedError{edge: "api_tokens"}
 }
 
+// TipsGivenOrErr returns the TipsGiven value or an error if the edge
+// was not loaded in eager-loading.
+func (e UserEdges) TipsGivenOrErr() ([]*TipLog, error) {
+	if e.loadedTypes[5] {
+		return e.TipsGiven, nil
+	}
+	return nil, &NotLoadedError{edge: "tips_given"}
+}
+
+// TipsReceivedOrErr returns the TipsReceived value or an error if the edge
+// was not loaded in eager-loading.
+func (e UserEdges) TipsReceivedOrErr() ([]*TipLog, error) {
+	if e.loadedTypes[6] {
+		return e.TipsReceived, nil
+	}
+	return nil, &NotLoadedError{edge: "tips_received"}
+}
+
 // RolesOrErr returns the Roles value or an error if the edge
 // was not loaded in eager-loading.
 func (e UserEdges) RolesOrErr() ([]*Role, error) {
-	if e.loadedTypes[5] {
+	if e.loadedTypes[7] {
 		return e.Roles, nil
 	}
 	return nil, &NotLoadedError{edge: "roles"}
@@ -260,6 +282,16 @@ func (u *User) QueryCredits() *CreditQuery {
 // QueryAPITokens queries the "api_tokens" edge of the User entity.
 func (u *User) QueryAPITokens() *ApiTokenQuery {
 	return NewUserClient(u.config).QueryAPITokens(u)
+}
+
+// QueryTipsGiven queries the "tips_given" edge of the User entity.
+func (u *User) QueryTipsGiven() *TipLogQuery {
+	return NewUserClient(u.config).QueryTipsGiven(u)
+}
+
+// QueryTipsReceived queries the "tips_received" edge of the User entity.
+func (u *User) QueryTipsReceived() *TipLogQuery {
+	return NewUserClient(u.config).QueryTipsReceived(u)
 }
 
 // QueryRoles queries the "roles" edge of the User entity.

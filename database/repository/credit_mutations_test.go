@@ -14,7 +14,7 @@ import (
 
 func TestDeductCreditsFromUser(t *testing.T) {
 	// User should have 100 credits
-	success, err := MockRepo.DeductCreditsFromUser(uuid.MustParse(MOCK_NORMAL_UUID), 50, nil)
+	success, err := MockRepo.DeductCreditsFromUser(uuid.MustParse(MOCK_NORMAL_UUID), 50, false, nil)
 	assert.Nil(t, err)
 	assert.Equal(t, true, success)
 
@@ -28,7 +28,7 @@ func TestDeductCreditsFromUser(t *testing.T) {
 	assert.Nil(t, err)
 
 	// Deduct 50 credits
-	success, err = MockRepo.DeductCreditsFromUser(uuid.MustParse(MOCK_NORMAL_UUID), 50, nil)
+	success, err = MockRepo.DeductCreditsFromUser(uuid.MustParse(MOCK_NORMAL_UUID), 50, false, nil)
 	assert.Nil(t, err)
 	assert.Equal(t, true, success)
 
@@ -38,7 +38,7 @@ func TestDeductCreditsFromUser(t *testing.T) {
 	assert.Equal(t, int32(0), credits[1].RemainingAmount)
 
 	// Take again to ensure we get the next expiring credits
-	success, err = MockRepo.DeductCreditsFromUser(uuid.MustParse(MOCK_NORMAL_UUID), 50, nil)
+	success, err = MockRepo.DeductCreditsFromUser(uuid.MustParse(MOCK_NORMAL_UUID), 50, false, nil)
 	assert.Nil(t, err)
 	assert.Equal(t, true, success)
 
@@ -54,7 +54,7 @@ func TestDeductCreditsFromUser(t *testing.T) {
 	_, err = MockRepo.DB.Credit.Create().SetCreditTypeID(creditType.ID).SetUserID(uuid.MustParse(MOCK_NORMAL_UUID)).SetRemainingAmount(1234).SetExpiresAt(time.Now().AddDate(-1, 0, 0)).Save(MockRepo.Ctx)
 
 	// Try to deduct
-	success, err = MockRepo.DeductCreditsFromUser(uuid.MustParse(MOCK_NORMAL_UUID), 50, nil)
+	success, err = MockRepo.DeductCreditsFromUser(uuid.MustParse(MOCK_NORMAL_UUID), 50, false, nil)
 	assert.Nil(t, err)
 	assert.Equal(t, false, success)
 }
@@ -81,7 +81,7 @@ func TestDeductCreditsFromUserMultipart(t *testing.T) {
 	assert.Nil(t, err)
 
 	// Test deduct too many
-	success, err := MockRepo.DeductCreditsFromUser(uuid.MustParse("c66b47be-aa0b-4840-965b-f19c8847904e"), 4, nil)
+	success, err := MockRepo.DeductCreditsFromUser(uuid.MustParse("c66b47be-aa0b-4840-965b-f19c8847904e"), 4, false, nil)
 	assert.Nil(t, err)
 	assert.Equal(t, false, success)
 
@@ -91,7 +91,7 @@ func TestDeductCreditsFromUserMultipart(t *testing.T) {
 	assert.Equal(t, 3, userCredit)
 
 	// Test deduct
-	success, err = MockRepo.DeductCreditsFromUser(uuid.MustParse("c66b47be-aa0b-4840-965b-f19c8847904e"), 3, nil)
+	success, err = MockRepo.DeductCreditsFromUser(uuid.MustParse("c66b47be-aa0b-4840-965b-f19c8847904e"), 3, false, nil)
 	assert.Nil(t, err)
 	assert.Equal(t, true, success)
 
@@ -122,7 +122,7 @@ func TestRefundCreditsToUser(t *testing.T) {
 	_, err = MockRepo.DB.Credit.Create().SetCreditTypeID(creditType.ID).SetUserID(uuid.MustParse(MOCK_NORMAL_UUID)).SetRemainingAmount(1234).SetExpiresAt(time.Now().AddDate(1, 0, 0)).Save(MockRepo.Ctx)
 
 	// Deduct
-	success, err := MockRepo.DeductCreditsFromUser(uuid.MustParse(MOCK_NORMAL_UUID), 50, nil)
+	success, err := MockRepo.DeductCreditsFromUser(uuid.MustParse(MOCK_NORMAL_UUID), 50, false, nil)
 	assert.Nil(t, err)
 	assert.Equal(t, true, success)
 

@@ -43,6 +43,7 @@ type (
 		Prompt           []ent.Hook
 		Role             []ent.Hook
 		Scheduler        []ent.Hook
+		TipLog           []ent.Hook
 		Upscale          []ent.Hook
 		UpscaleModel     []ent.Hook
 		UpscaleOutput    []ent.Hook
@@ -65,6 +66,7 @@ type (
 		Prompt           []ent.Interceptor
 		Role             []ent.Interceptor
 		Scheduler        []ent.Interceptor
+		TipLog           []ent.Interceptor
 		Upscale          []ent.Interceptor
 		UpscaleModel     []ent.Interceptor
 		UpscaleOutput    []ent.Interceptor

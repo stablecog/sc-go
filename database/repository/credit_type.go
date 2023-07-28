@@ -42,7 +42,10 @@ func (r *Repository) GetCreditTypeByStripeProductID(stripeProductID string) (*en
 	return creditType, nil
 }
 
-func (r *Repository) GetOrCreateFreeCreditType() (*ent.CreditType, error) {
+func (r *Repository) GetOrCreateFreeCreditType(DB *ent.Client) (*ent.CreditType, error) {
+	if DB == nil {
+		DB = r.DB
+	}
 	freeId := uuid.MustParse(FREE_CREDIT_TYPE_ID)
 	creditType, err := r.DB.CreditType.Query().Where(credittype.IDEQ(freeId)).Only(r.Ctx)
 	if err != nil && ent.IsNotFound(err) {
@@ -100,12 +103,16 @@ func (r *Repository) GetOrCreateTippableCreditType(DB *ent.Client) (*ent.CreditT
 }
 
 // Tipped credit types are used to track credits that have been gifted to a user
-func (r *Repository) GetOrCreateTippedCreditType() (*ent.CreditType, error) {
+func (r *Repository) GetOrCreateTippedCreditType(DB *ent.Client) (*ent.CreditType, error) {
+	if DB == nil {
+		DB = r.DB
+	}
+
 	tippedId := uuid.MustParse(TIPPABLE_CREDIT_TYPE_ID)
-	creditType, err := r.DB.CreditType.Query().Where(credittype.IDEQ(tippedId)).Only(r.Ctx)
+	creditType, err := DB.CreditType.Query().Where(credittype.IDEQ(tippedId)).Only(r.Ctx)
 	if err != nil && ent.IsNotFound(err) {
 		// Create it
-		creditType, err := r.DB.CreditType.Create().SetID(tippedId).SetName("Tipped").SetAmount(-1).SetType(credittype.TypeOneTime).Save(r.Ctx)
+		creditType, err := DB.CreditType.Create().SetID(tippedId).SetName("Tipped").SetAmount(-1).SetType(credittype.TypeOneTime).Save(r.Ctx)
 		if err != nil {
 			return nil, err
 		}

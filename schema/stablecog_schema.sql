@@ -1098,3 +1098,23 @@ DROP index credit_stripe_line_item_id_key;
 CREATE UNIQUE INDEX "credit_stripe_line_item_id_credit_type_id" ON "public"."credits" ("stripe_line_item_id", "credit_type_id");
 
 CREATE UNIQUE INDEX "user_email_idx" ON "public"."users" ("email");
+
+-- Create "tip_log" table
+CREATE TABLE "public"."tip_log" (
+    "id"                UUID DEFAULT extensions.uuid_generate_v4() NOT NULL,
+  "amount" integer NOT NULL, 
+  "tipped_by" uuid NOT NULL, 
+  "tipped_to" uuid NULL, 
+    "tipped_to_discord_id" text NOT NULL, 
+    created_at timestamp with time zone DEFAULT (now() AT TIME ZONE 'utc'::text) NOT NULL,
+    updated_at timestamp with time zone DEFAULT (now() AT TIME ZONE 'utc'::text) NOT NULL,
+  PRIMARY KEY ("id"), 
+  CONSTRAINT "tip_log_users_tips_given" FOREIGN KEY ("tipped_by") REFERENCES "auth"."users" ("id") ON UPDATE NO ACTION ON DELETE CASCADE, 
+  CONSTRAINT "tip_log_users_tips_received" FOREIGN KEY ("tipped_to") REFERENCES "auth"."users" ("id") ON UPDATE NO ACTION ON DELETE CASCADE
+);
+
+CREATE trigger handle_updated_at before
+UPDATE
+    ON public.tip_log FOR each ROW EXECUTE PROCEDURE moddatetime (updated_at);
+
+ALTER TABLE public.tip_log ENABLE ROW LEVEL SECURITY;

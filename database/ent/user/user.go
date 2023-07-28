@@ -47,6 +47,10 @@ const (
 	EdgeCredits = "credits"
 	// EdgeAPITokens holds the string denoting the api_tokens edge name in mutations.
 	EdgeAPITokens = "api_tokens"
+	// EdgeTipsGiven holds the string denoting the tips_given edge name in mutations.
+	EdgeTipsGiven = "tips_given"
+	// EdgeTipsReceived holds the string denoting the tips_received edge name in mutations.
+	EdgeTipsReceived = "tips_received"
 	// EdgeRoles holds the string denoting the roles edge name in mutations.
 	EdgeRoles = "roles"
 	// Table holds the table name of the user in the database.
@@ -86,6 +90,20 @@ const (
 	APITokensInverseTable = "api_tokens"
 	// APITokensColumn is the table column denoting the api_tokens relation/edge.
 	APITokensColumn = "user_id"
+	// TipsGivenTable is the table that holds the tips_given relation/edge.
+	TipsGivenTable = "tip_log"
+	// TipsGivenInverseTable is the table name for the TipLog entity.
+	// It exists in this package in order to avoid circular dependency with the "tiplog" package.
+	TipsGivenInverseTable = "tip_log"
+	// TipsGivenColumn is the table column denoting the tips_given relation/edge.
+	TipsGivenColumn = "tipped_by"
+	// TipsReceivedTable is the table that holds the tips_received relation/edge.
+	TipsReceivedTable = "tip_log"
+	// TipsReceivedInverseTable is the table name for the TipLog entity.
+	// It exists in this package in order to avoid circular dependency with the "tiplog" package.
+	TipsReceivedInverseTable = "tip_log"
+	// TipsReceivedColumn is the table column denoting the tips_received relation/edge.
+	TipsReceivedColumn = "tipped_to"
 	// RolesTable is the table that holds the roles relation/edge. The primary key declared below.
 	RolesTable = "user_role_users"
 	// RolesInverseTable is the table name for the Role entity.
