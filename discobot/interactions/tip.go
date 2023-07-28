@@ -189,7 +189,7 @@ func (c *DiscordInteractionWrapper) HandleTip(s *discordgo.Session, m *discordgo
 	_, err = s.ChannelMessageSendComplex(dmChl.ID, &discordgo.MessageSend{
 		Embeds: []*discordgo.MessageEmbed{responses.NewEmbed(
 			"Tip Received!",
-			prettyPrinter.Sprintf("You received %d credits from %s!\n\nThese can be used to create AI art, upscale images, or create voiceovers with Stablecog.\n\nTo claim this tip, sign up or connect your discord account to Stablecog using the `/authorize` command!", amt, m.Author.Username),
+			prettyPrinter.Sprintf("You received %d credits from %s!\n\nThese can be used to create AI art, upscale images, or create voiceovers with Stablecog.\n\nTo claim this tip, sign up or connect your discord account to Stablecog using the `/authenticate` command!", amt, m.Author.Username),
 			"",
 		),
 		},
