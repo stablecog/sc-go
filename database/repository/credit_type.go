@@ -108,7 +108,7 @@ func (r *Repository) GetOrCreateTippedCreditType(DB *ent.Client) (*ent.CreditTyp
 		DB = r.DB
 	}
 
-	tippedId := uuid.MustParse(TIPPABLE_CREDIT_TYPE_ID)
+	tippedId := uuid.MustParse(TIPPED_CREDIT_TYPE_ID)
 	creditType, err := DB.CreditType.Query().Where(credittype.IDEQ(tippedId)).Only(r.Ctx)
 	if err != nil && ent.IsNotFound(err) {
 		// Create it
