@@ -146,7 +146,6 @@ func main() {
 
 	// Register messageCreate as a callback for the messageCreate events.
 	s.AddHandler(func(s *discordgo.Session, m *discordgo.MessageCreate) {
-		log.Infof("Received Message!")
 		// Ignore all messages created by the bot itself
 		if m.Author.ID == s.State.User.ID {
 			return
@@ -159,7 +158,7 @@ func main() {
 	})
 
 	// Intents
-	s.Identify.Intents = discordgo.IntentsGuilds | discordgo.IntentsGuildMessages
+	s.Identify.Intents = discordgo.IntentsGuilds | discordgo.IntentsGuildMessages | discordgo.IntentsMessageContent
 
 	err = s.Open()
 	if err != nil {
