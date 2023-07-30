@@ -67,6 +67,7 @@ func main() {
 	destUser := flag.String("dest-user", "", "destination user id")
 	cursorEmbeddings := flag.String("cursor-embeddings", "", "Cursor for loading embeddings")
 	syncPromptId := flag.Bool("sync-prompt-id", false, "Sync prompt_id to qdrant")
+	migrateUsername := flag.Bool("migrate-username", false, "Generate usernames for existing users")
 
 	flag.Parse()
 
@@ -192,6 +193,20 @@ func main() {
 			cur += len(gens)
 		}
 		log.Infof("Done, sync'd %d", cur)
+		os.Exit(0)
+	}
+
+	if *migrateUsername {
+		log.Info("🏡 Generating usernames...")
+		users, err := repo.DB.User.Query().All(ctx)
+		if err != nil {
+			log.Fatal("Failed to migrate usernames", "err", err)
+			os.Exit(1)
+		}
+		for _, user := range users {
+			repo.DB.User.UpdateOne(user).SetUsername(utils.GenerateUsername(nil)).SaveX(ctx)
+		}
+		log.Info("Done")
 		os.Exit(0)
 	}
 

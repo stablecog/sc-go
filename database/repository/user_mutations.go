@@ -7,13 +7,14 @@ import (
 	"github.com/stablecog/sc-go/database/ent"
 	"github.com/stablecog/sc-go/database/ent/user"
 	"github.com/stablecog/sc-go/shared"
+	"github.com/stablecog/sc-go/utils"
 )
 
 func (r *Repository) CreateUser(id uuid.UUID, email string, stripeCustomerId string, lastSignIn *time.Time, db *ent.Client) (*ent.User, error) {
 	if db == nil {
 		db = r.DB
 	}
-	cq := db.User.Create().SetID(id).SetStripeCustomerID(stripeCustomerId).SetEmail(email)
+	cq := db.User.Create().SetID(id).SetStripeCustomerID(stripeCustomerId).SetEmail(email).SetUsername(utils.GenerateUsername(nil))
 	if lastSignIn != nil {
 		cq.SetLastSignInAt(*lastSignIn)
 	}

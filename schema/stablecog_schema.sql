@@ -380,7 +380,8 @@ CREATE TABLE public.users (
     banned_at timestamp with time zone,
     data_deleted_at timestamp with time zone,
     scheduled_for_deletion_on timestamp with time zone,
-    wants_email,
+    wants_email boolean default false not null,
+    username text,
     created_at timestamp with time zone DEFAULT timezone('utc'::text, now()) NOT NULL,
     updated_at timestamp with time zone DEFAULT timezone('utc'::text, now()) NOT NULL
 );
