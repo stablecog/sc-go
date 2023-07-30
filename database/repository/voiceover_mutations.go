@@ -157,3 +157,40 @@ func (r *Repository) SetVoiceoverSucceeded(voiceoverId, promptStr string, output
 
 	return voiceoverOutput, nil
 }
+
+// Marks voiceovers for deletions by setting deleted_at
+func (r *Repository) MarkVoiceoverOutputsForDeletion(outputIDs []uuid.UUID) (int, error) {
+	var deleted int
+	var err error
+	deletedAt := time.Now()
+	// Start transaction
+	if err := r.WithTx(func(tx *ent.Tx) error {
+		db := tx.Client()
+		deleted, err = db.VoiceoverOutput.Update().Where(voiceoveroutput.IDIn(outputIDs...)).SetDeletedAt(deletedAt).Save(r.Ctx)
+		if err != nil {
+			return err
+		}
+		return nil
+	}); err != nil {
+		return 0, err
+	}
+	return deleted, nil
+}
+
+// Marks voiceovers for deletions by setting deleted_at, only if they belong to the user with ID userID
+func (r *Repository) MarkVoiceoverOutputsForDeletionForUser(outputIDs []uuid.UUID, userID uuid.UUID) (int, error) {
+	// Get outputs belonging to this user
+	outputs, err := r.DB.Voiceover.Query().Select().Where(voiceover.UserIDEQ(userID)).QueryVoiceoverOutputs().Select(voiceoveroutput.FieldID).Where(voiceoveroutput.IDIn(outputIDs...)).All(r.Ctx)
+	if err != nil {
+		return 0, err
+	}
+
+	// Filter out outputs that don't belong to the user
+	var userVoiceoverOutputIDs []uuid.UUID
+	for _, output := range outputs {
+		userVoiceoverOutputIDs = append(userVoiceoverOutputIDs, output.ID)
+	}
+
+	// Execute delete
+	return r.MarkVoiceoverOutputsForDeletion(userVoiceoverOutputIDs)
+}

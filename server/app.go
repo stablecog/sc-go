@@ -473,6 +473,7 @@ func main() {
 
 			// Query voiceover outputs
 			r.Get("/audio/voiceover/outputs", hc.HandleQueryVoiceovers)
+			r.Delete("/audio/voiceover", hc.HandleDeleteVoiceoverOutputForUser)
 
 			// Query credits
 			r.Get("/credits", hc.HandleQueryCredits)

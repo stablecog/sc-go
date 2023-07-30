@@ -586,6 +586,40 @@ func (c *RestAPI) HandleFavoriteGenerationOutputsForUser(w http.ResponseWriter, 
 	render.JSON(w, r, res)
 }
 
+// HTTP DELETE - delete voiceover
+func (c *RestAPI) HandleDeleteVoiceoverOutputForUser(w http.ResponseWriter, r *http.Request) {
+	var user *ent.User
+	if user = c.GetUserIfAuthenticated(w, r); user == nil {
+		return
+	}
+
+	if user.BannedAt != nil {
+		responses.ErrForbidden(w, r)
+		return
+	}
+
+	// Parse request body
+	reqBody, _ := io.ReadAll(r.Body)
+	var deleteReq requests.DeleteVoiceoverRequest
+	err := json.Unmarshal(reqBody, &deleteReq)
+	if err != nil {
+		responses.ErrUnableToParseJson(w, r)
+		return
+	}
+
+	count, err := c.Repo.MarkVoiceoverOutputsForDeletionForUser(deleteReq.OutputIDs, user.ID)
+	if err != nil {
+		responses.ErrInternalServerError(w, r, err.Error())
+		return
+	}
+
+	res := responses.DeletedResponse{
+		Deleted: count,
+	}
+	render.Status(r, http.StatusOK)
+	render.JSON(w, r, res)
+}
+
 // HTTP POST - set email preferences
 func (c *RestAPI) HandleUpdateEmailPreferences(w http.ResponseWriter, r *http.Request) {
 	var user *ent.User
