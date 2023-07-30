@@ -381,7 +381,6 @@ CREATE TABLE public.users (
     data_deleted_at timestamp with time zone,
     scheduled_for_deletion_on timestamp with time zone,
     wants_email boolean default false not null,
-    username text,
     created_at timestamp with time zone DEFAULT timezone('utc'::text, now()) NOT NULL,
     updated_at timestamp with time zone DEFAULT timezone('utc'::text, now()) NOT NULL
 );
@@ -1119,3 +1118,11 @@ UPDATE
     ON public.tip_log FOR each ROW EXECUTE PROCEDURE moddatetime (updated_at);
 
 ALTER TABLE public.tip_log ENABLE ROW LEVEL SECURITY;
+
+
+-- Usernames
+alter table public.users add column username text null;
+CREATE UNIQUE INDEX users_username_key ON public.users USING btree (username);
+
+-- Make usernames not null
+alter table public.users alter column username set not null;

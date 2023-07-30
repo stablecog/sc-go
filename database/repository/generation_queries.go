@@ -12,6 +12,7 @@ import (
 	"github.com/stablecog/sc-go/database/ent/generationoutput"
 	"github.com/stablecog/sc-go/database/ent/negativeprompt"
 	"github.com/stablecog/sc-go/database/ent/prompt"
+	"github.com/stablecog/sc-go/database/ent/user"
 	"github.com/stablecog/sc-go/log"
 	"github.com/stablecog/sc-go/server/requests"
 	"github.com/stablecog/sc-go/utils"
@@ -297,9 +298,7 @@ func (r *Repository) RetrieveGenerationsWithOutputIDs(outputIDs []uuid.UUID, adm
 	gQueryResult, err := r.DB.GenerationOutput.Query().Where(generationoutput.IDIn(outputIDs...)).WithGenerations(func(gq *ent.GenerationQuery) {
 		gq.WithPrompt()
 		gq.WithNegativePrompt()
-		if admin {
-			gq.WithUser()
-		}
+		gq.WithUser()
 	}).All(r.Ctx)
 	if err != nil {
 		log.Errorf("Error retrieving generation outputs %v", err)
@@ -373,8 +372,15 @@ func (r *Repository) RetrieveGenerationsWithOutputIDs(outputIDs []uuid.UUID, adm
 			}
 		}
 		if g.Edges.Generations.Edges.User != nil {
-			output.Generation.User = &UserType{
-				Email: g.Edges.Generations.Edges.User.Email,
+			if admin {
+				output.Generation.User = &UserType{
+					Email:    g.Edges.Generations.Edges.User.Email,
+					Username: g.Edges.Generations.Edges.User.Username,
+				}
+			} else {
+				output.Generation.User = &UserType{
+					Username: g.Edges.Generations.Edges.User.Username,
+				}
 			}
 		}
 		generationOutputMap[g.ID] = append(generationOutputMap[g.ID], gOutput)
@@ -453,13 +459,16 @@ func (r *Repository) QueryGenerations(per_page int, cursor *time.Time, filters *
 		npt := sql.Table(negativeprompt.Table)
 		pt := sql.Table(prompt.Table)
 		got := sql.Table(generationoutput.Table)
+		ut := sql.Table(user.Table)
 		s.LeftJoin(npt).On(
 			s.C(generation.FieldNegativePromptID), npt.C(negativeprompt.FieldID),
 		).LeftJoin(pt).On(
 			s.C(generation.FieldPromptID), pt.C(prompt.FieldID),
 		).LeftJoin(got).On(
 			s.C(generation.FieldID), got.C(generationoutput.FieldGenerationID),
-		).AppendSelect(sql.As(npt.C(negativeprompt.FieldText), "negative_prompt_text"), sql.As(pt.C(prompt.FieldText), "prompt_text"), sql.As(got.C(generationoutput.FieldID), "output_id"), sql.As(got.C(generationoutput.FieldGalleryStatus), "output_gallery_status"), sql.As(got.C(generationoutput.FieldImagePath), "image_path"), sql.As(got.C(generationoutput.FieldUpscaledImagePath), "upscaled_image_path"), sql.As(got.C(generationoutput.FieldDeletedAt), "deleted_at"), sql.As(got.C(generationoutput.FieldIsFavorited), "is_favorited")).
+		).LeftJoin(ut).On(
+			s.C(generation.FieldUserID), ut.C(user.FieldID),
+		).AppendSelect(sql.As(npt.C(negativeprompt.FieldText), "negative_prompt_text"), sql.As(pt.C(prompt.FieldText), "prompt_text"), sql.As(got.C(generationoutput.FieldID), "output_id"), sql.As(got.C(generationoutput.FieldGalleryStatus), "output_gallery_status"), sql.As(got.C(generationoutput.FieldImagePath), "image_path"), sql.As(got.C(generationoutput.FieldUpscaledImagePath), "upscaled_image_path"), sql.As(got.C(generationoutput.FieldDeletedAt), "deleted_at"), sql.As(got.C(generationoutput.FieldIsFavorited), "is_favorited"), sql.As(ut.C(user.FieldUsername), "username")).
 			GroupBy(s.C(generation.FieldID), npt.C(negativeprompt.FieldText), pt.C(prompt.FieldText),
 				got.C(generationoutput.FieldID), got.C(generationoutput.FieldGalleryStatus),
 				got.C(generationoutput.FieldImagePath), got.C(generationoutput.FieldUpscaledImagePath))
@@ -561,6 +570,9 @@ func (r *Repository) QueryGenerations(per_page int, cursor *time.Time, filters *
 				Prompt: PromptType{
 					Text: g.PromptText,
 					ID:   *g.PromptID,
+				},
+				User: &UserType{
+					Username: g.Username,
 				},
 				IsFavorited: gOutput.IsFavorited,
 			},
@@ -944,7 +956,8 @@ type PromptType struct {
 }
 
 type UserType struct {
-	Email string `json:"email"`
+	Email    string `json:"email,omitempty"`
+	Username string `json:"username"`
 }
 
 type GenerationQueryWithOutputsData struct {
@@ -965,6 +978,7 @@ type GenerationQueryWithOutputsData struct {
 	CompletedAt        *time.Time                `json:"completed_at,omitempty" sql:"completed_at"`
 	NegativePromptText string                    `json:"negative_prompt_text,omitempty" sql:"negative_prompt_text"`
 	PromptText         string                    `json:"prompt_text,omitempty" sql:"prompt_text"`
+	Username           string                    `json:"username,omitempty" sql:"username"`
 	IsFavorited        bool                      `json:"is_favorited" sql:"is_favorited"`
 	Outputs            []GenerationUpscaleOutput `json:"outputs"`
 	Prompt             PromptType                `json:"prompt"`

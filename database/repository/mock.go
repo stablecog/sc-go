@@ -57,7 +57,7 @@ func (repo *Repository) CreateMockData(ctx context.Context) error {
 
 	// ! Mock users
 	// Create a user
-	u, err := repo.DB.User.Create().SetEmail("mockadmin@stablecog.com").SetID(uuid.MustParse(MOCK_ADMIN_UUID)).SetStripeCustomerID("1").Save(ctx)
+	u, err := repo.DB.User.Create().SetEmail("mockadmin@stablecog.com").SetID(uuid.MustParse(MOCK_ADMIN_UUID)).SetStripeCustomerID("1").SetUsername("1").Save(ctx)
 	if err != nil {
 		return err
 	}
@@ -77,7 +77,7 @@ func (repo *Repository) CreateMockData(ctx context.Context) error {
 		return err
 	}
 	// Create another non-admin user
-	u, err = repo.DB.User.Create().SetEmail("mockuser@stablecog.com").SetID(uuid.MustParse(MOCK_NORMAL_UUID)).SetStripeCustomerID("2").Save(ctx)
+	u, err = repo.DB.User.Create().SetEmail("mockuser@stablecog.com").SetID(uuid.MustParse(MOCK_NORMAL_UUID)).SetStripeCustomerID("2").SetUsername("2").Save(ctx)
 	if err != nil {
 		return err
 	}
@@ -92,7 +92,7 @@ func (repo *Repository) CreateMockData(ctx context.Context) error {
 	}
 
 	// Create another non-admin user
-	u, err = repo.DB.User.Create().SetEmail("mockaltuser@stablecog.com").SetID(uuid.MustParse(MOCK_ALT_UUID)).SetStripeCustomerID("3").Save(ctx)
+	u, err = repo.DB.User.Create().SetEmail("mockaltuser@stablecog.com").SetID(uuid.MustParse(MOCK_ALT_UUID)).SetStripeCustomerID("3").SetUsername("3").Save(ctx)
 	if err != nil {
 		return err
 	}
@@ -112,7 +112,7 @@ func (repo *Repository) CreateMockData(ctx context.Context) error {
 	}
 
 	// Create another non-admin user with no credits
-	u, err = repo.DB.User.Create().SetEmail("mocknocredituser@stablecog.com").SetID(uuid.MustParse(MOCK_NO_CREDITS_UUID)).SetStripeCustomerID("4").SetLastSignInAt(time.Now()).Save(ctx)
+	u, err = repo.DB.User.Create().SetEmail("mocknocredituser@stablecog.com").SetID(uuid.MustParse(MOCK_NO_CREDITS_UUID)).SetStripeCustomerID("4").SetLastSignInAt(time.Now()).SetUsername("4").Save(ctx)
 	if err != nil {
 		return err
 	}

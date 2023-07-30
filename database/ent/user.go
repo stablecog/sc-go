@@ -38,7 +38,7 @@ type User struct {
 	// DiscordID holds the value of the "discord_id" field.
 	DiscordID *string `json:"discord_id,omitempty"`
 	// Username holds the value of the "username" field.
-	Username *string `json:"username,omitempty"`
+	Username string `json:"username,omitempty"`
 	// CreatedAt holds the value of the "created_at" field.
 	CreatedAt time.Time `json:"created_at,omitempty"`
 	// UpdatedAt holds the value of the "updated_at" field.
@@ -248,8 +248,7 @@ func (u *User) assignValues(columns []string, values []any) error {
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field username", values[i])
 			} else if value.Valid {
-				u.Username = new(string)
-				*u.Username = value.String
+				u.Username = value.String
 			}
 		case user.FieldCreatedAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
@@ -375,10 +374,8 @@ func (u *User) String() string {
 		builder.WriteString(*v)
 	}
 	builder.WriteString(", ")
-	if v := u.Username; v != nil {
-		builder.WriteString("username=")
-		builder.WriteString(*v)
-	}
+	builder.WriteString("username=")
+	builder.WriteString(u.Username)
 	builder.WriteString(", ")
 	builder.WriteString("created_at=")
 	builder.WriteString(u.CreatedAt.Format(time.ANSIC))

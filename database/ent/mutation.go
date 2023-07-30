@@ -15988,7 +15988,7 @@ func (m *UserMutation) Username() (r string, exists bool) {
 // OldUsername returns the old "username" field's value of the User entity.
 // If the User object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *UserMutation) OldUsername(ctx context.Context) (v *string, err error) {
+func (m *UserMutation) OldUsername(ctx context.Context) (v string, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldUsername is only allowed on UpdateOne operations")
 	}
@@ -16002,22 +16002,9 @@ func (m *UserMutation) OldUsername(ctx context.Context) (v *string, err error) {
 	return oldValue.Username, nil
 }
 
-// ClearUsername clears the value of the "username" field.
-func (m *UserMutation) ClearUsername() {
-	m.username = nil
-	m.clearedFields[user.FieldUsername] = struct{}{}
-}
-
-// UsernameCleared returns if the "username" field was cleared in this mutation.
-func (m *UserMutation) UsernameCleared() bool {
-	_, ok := m.clearedFields[user.FieldUsername]
-	return ok
-}
-
 // ResetUsername resets all changes to the "username" field.
 func (m *UserMutation) ResetUsername() {
 	m.username = nil
-	delete(m.clearedFields, user.FieldUsername)
 }
 
 // SetCreatedAt sets the "created_at" field.
@@ -16818,9 +16805,6 @@ func (m *UserMutation) ClearedFields() []string {
 	if m.FieldCleared(user.FieldDiscordID) {
 		fields = append(fields, user.FieldDiscordID)
 	}
-	if m.FieldCleared(user.FieldUsername) {
-		fields = append(fields, user.FieldUsername)
-	}
 	return fields
 }
 
@@ -16855,9 +16839,6 @@ func (m *UserMutation) ClearField(name string) error {
 		return nil
 	case user.FieldDiscordID:
 		m.ClearDiscordID()
-		return nil
-	case user.FieldUsername:
-		m.ClearUsername()
 		return nil
 	}
 	return fmt.Errorf("unknown User nullable field %s", name)

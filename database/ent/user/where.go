@@ -716,16 +716,6 @@ func UsernameHasSuffix(v string) predicate.User {
 	return predicate.User(sql.FieldHasSuffix(FieldUsername, v))
 }
 
-// UsernameIsNil applies the IsNil predicate on the "username" field.
-func UsernameIsNil() predicate.User {
-	return predicate.User(sql.FieldIsNull(FieldUsername))
-}
-
-// UsernameNotNil applies the NotNil predicate on the "username" field.
-func UsernameNotNil() predicate.User {
-	return predicate.User(sql.FieldNotNull(FieldUsername))
-}
-
 // UsernameEqualFold applies the EqualFold predicate on the "username" field.
 func UsernameEqualFold(v string) predicate.User {
 	return predicate.User(sql.FieldEqualFold(FieldUsername, v))
