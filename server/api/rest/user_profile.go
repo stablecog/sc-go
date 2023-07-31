@@ -2,7 +2,6 @@ package rest
 
 import (
 	"fmt"
-	"math/rand"
 	"net/http"
 	"strconv"
 	"strings"
@@ -205,24 +204,6 @@ func (c *RestAPI) HandleUserProfileSemanticSearch(w http.ResponseWriter, r *http
 			log.Error("Error querying gallery data from postgres", "err", err)
 			responses.ErrInternalServerError(w, r, "An unknown error occurred")
 			return
-		}
-	}
-
-	// Shuffle results if no search was specified
-	if search == "" {
-		// Get seed from query
-		seed := r.URL.Query().Get("seed")
-		if seed != "" {
-			seedInt, err := strconv.Atoi(seed)
-			if err != nil {
-				log.Error("Error parsing seed", "err", err)
-			} else {
-				rand.Seed(int64(seedInt))
-				rand.Shuffle(
-					len(galleryData),
-					func(i, j int) { galleryData[i], galleryData[j] = galleryData[j], galleryData[i] },
-				)
-			}
 		}
 	}
 
