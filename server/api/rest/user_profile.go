@@ -97,9 +97,17 @@ func (c *RestAPI) HandleUserProfileSemanticSearch(w http.ResponseWriter, r *http
 	// Parse as qdrant filters
 	qdrantFilters, scoreThreshold := filters.ToQdrantFilters(true)
 	// Append gallery status requirement
-	qdrantFilters.Must = append(qdrantFilters.Must, qdrant.SCMatchCondition{
+	qdrantFilters.Should = append(qdrantFilters.Should, qdrant.SCMatchCondition{
 		Key:   "gallery_status",
 		Match: &qdrant.SCValue{Value: generationoutput.GalleryStatusApproved},
+	})
+	qdrantFilters.Should = append(qdrantFilters.Should, qdrant.SCMatchCondition{
+		Key:   "gallery_status",
+		Match: &qdrant.SCValue{Value: generationoutput.GalleryStatusSubmitted},
+	})
+	qdrantFilters.Should = append(qdrantFilters.Should, qdrant.SCMatchCondition{
+		Key:   "gallery_status",
+		Match: &qdrant.SCValue{Value: generationoutput.GalleryStatusRejected},
 	})
 
 	// Leverage qdrant for semantic search
@@ -198,7 +206,7 @@ func (c *RestAPI) HandleUserProfileSemanticSearch(w http.ResponseWriter, r *http
 		}
 
 		// Retrieve from postgres
-		filters.GalleryStatus = []generationoutput.GalleryStatus{generationoutput.GalleryStatusApproved}
+		filters.GalleryStatus = []generationoutput.GalleryStatus{generationoutput.GalleryStatusApproved, generationoutput.GalleryStatusRejected, generationoutput.GalleryStatusSubmitted}
 		galleryData, nextCursorPostgres, err = c.Repo.RetrieveMostRecentGalleryData(filters, perPage, qCursor)
 		if err != nil {
 			log.Error("Error querying gallery data from postgres", "err", err)
