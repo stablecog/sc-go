@@ -699,9 +699,8 @@ func (c *RestAPI) HandleUpdateUsername(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	res := responses.UpdatedResponse{
-		Updated: 1,
-	}
 	render.Status(r, http.StatusOK)
-	render.JSON(w, r, res)
+	render.JSON(w, r, map[string]interface{}{
+		"username": usernameReq.Username,
+	})
 }
