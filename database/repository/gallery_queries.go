@@ -132,9 +132,6 @@ func (r *Repository) RetrieveMostRecentGalleryData(filters *requests.QueryGenera
 		s.WithNegativePrompt()
 		s.WithGenerationOutputs()
 		s.WithUser()
-		if filters != nil && filters.UserID != nil {
-			s.Where(generation.UserIDEQ(*filters.UserID))
-		}
 	})
 
 	// Limit

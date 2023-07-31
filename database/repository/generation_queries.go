@@ -243,6 +243,10 @@ func (r *Repository) ApplyUserGenerationsFilters(query *ent.GenerationQuery, fil
 		if filters.WasAutoSubmitted != nil {
 			resQuery = resQuery.Where(generation.WasAutoSubmittedEQ(*filters.WasAutoSubmitted))
 		}
+
+		if filters.UserID != nil {
+			resQuery = resQuery.Where(generation.UserIDEQ(*filters.UserID))
+		}
 	}
 	return resQuery
 }
@@ -435,9 +439,6 @@ func (r *Repository) QueryGenerations(per_page int, cursor *time.Time, filters *
 
 	query = r.DB.Generation.Query().Select(selectFields...).
 		Where(generation.StatusEQ(generation.StatusSucceeded))
-	if filters.UserID != nil {
-		query = query.Where(generation.UserID(*filters.UserID))
-	}
 	if cursor != nil {
 		query = query.Where(generation.CreatedAtLT(*cursor))
 	}
