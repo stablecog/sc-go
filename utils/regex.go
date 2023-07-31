@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	goaway "github.com/TwiN/go-away"
+	"github.com/stablecog/sc-go/shared"
 )
 
 // Remove + from email addresses
@@ -49,11 +50,11 @@ func ExtractAmountsFromString(str string) (int, error) {
 
 // Validate username
 var (
-	UsernameLengthError           = errors.New("username length must be between 3 and 25 characters")
-	UsernameStartsWithLetterError = errors.New("username must start with a letter")
-	UsernameCharError             = errors.New("username can only contain letters or numbers")
-	UsernameHyphenError           = errors.New("username can't contain both hyphens and underscores")
-	UsernameProfaneError          = errors.New("username contains profane words")
+	UsernameLengthError           = errors.New("username_length_error")
+	UsernameStartsWithLetterError = errors.New("username_must_start_with_a_letter")
+	UsernameCharError             = errors.New("username_can_only_contain_letters_numbers_hyphens")
+	UsernameProfaneError          = errors.New("username_profanity")
+	UsernameBlacklistedError      = errors.New("username_blacklisted")
 )
 
 func IsValidUsername(username string) error {
@@ -68,7 +69,7 @@ func IsValidUsername(username string) error {
 	}
 
 	// Rule 3: Must contain only letters or numbers
-	matched, err := regexp.MatchString("^[a-zA-Z0-9_-]+$", username)
+	matched, err := regexp.MatchString("^[a-zA-Z0-9-]+$", username)
 	if err != nil {
 		// If there's an error in regex matching, return a generic error
 		return errors.New("username validation failed")
@@ -77,23 +78,14 @@ func IsValidUsername(username string) error {
 		return UsernameCharError
 	}
 
-	// Rule 4: Can contain hyphens or underscores, but not both
-	hasHyphen := false
-	hasUnderscore := false
-	for _, char := range username {
-		if char == '-' {
-			hasHyphen = true
-		} else if char == '_' {
-			hasUnderscore = true
-		}
-	}
-
-	if hasHyphen && hasUnderscore {
-		return UsernameHyphenError
-	}
-
+	// Rule 4: Can't be profane
 	if goaway.IsProfane(username) {
 		return UsernameProfaneError
+	}
+
+	// Rule 5: Can't be blacklisted
+	if shared.IsBlacklisted(username) {
+		return UsernameBlacklistedError
 	}
 
 	return nil // Username is valid, return nil error

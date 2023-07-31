@@ -2,6 +2,7 @@ package rest
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -647,6 +648,52 @@ func (c *RestAPI) HandleUpdateEmailPreferences(w http.ResponseWriter, r *http.Re
 	err = c.Repo.SetWantsEmail(user.ID, emailReq.WantsEmail)
 	if err != nil {
 		log.Error("Error setting email preferences", "err", err)
+		responses.ErrInternalServerError(w, r, "An unknown error has occurred")
+		return
+	}
+
+	res := responses.UpdatedResponse{
+		Updated: 1,
+	}
+	render.Status(r, http.StatusOK)
+	render.JSON(w, r, res)
+}
+
+// HTTP POST - set email preferences
+func (c *RestAPI) HandleUpdateUsername(w http.ResponseWriter, r *http.Request) {
+	var user *ent.User
+	if user = c.GetUserIfAuthenticated(w, r); user == nil {
+		return
+	}
+
+	if user.BannedAt != nil {
+		responses.ErrForbidden(w, r)
+		return
+	}
+
+	// Parse request body
+	reqBody, _ := io.ReadAll(r.Body)
+	var usernameReq requests.ChangeUsernameRequest
+	err := json.Unmarshal(reqBody, &usernameReq)
+	if err != nil {
+		responses.ErrUnableToParseJson(w, r)
+		return
+	}
+
+	// Check if valid
+	if err := utils.IsValidUsername(usernameReq.Username); err != nil {
+		responses.ErrBadRequest(w, r, err.Error(), "")
+		return
+	}
+
+	// Update username
+	err = c.Repo.SetUsername(user.ID, usernameReq.Username)
+	if err != nil {
+		if errors.Is(err, repository.UsernameExistsErr) {
+			responses.ErrBadRequest(w, r, "username_taken", "")
+			return
+		}
+		log.Error("Error setting username", "err", err)
 		responses.ErrInternalServerError(w, r, "An unknown error has occurred")
 		return
 	}

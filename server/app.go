@@ -505,6 +505,9 @@ func main() {
 
 			// Email preferences
 			r.Post("/email", hc.HandleUpdateEmailPreferences)
+
+			// Username
+			r.Post("/username/change", hc.HandleUpdateUsername)
 		})
 
 		// Admin only routes
