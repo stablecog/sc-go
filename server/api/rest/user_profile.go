@@ -21,7 +21,8 @@ import (
 )
 
 type UserProfileMetadata struct {
-	CreatedAt time.Time `json:"created_at"`
+	CreatedAt       time.Time `json:"created_at"`
+	ActiveProductID *string   `json:"active_product_id,omitempty"`
 }
 
 // For v1/profile/{username}/metadata
@@ -41,7 +42,8 @@ func (c *RestAPI) HandleGetUserProfileMetadata(w http.ResponseWriter, r *http.Re
 
 	render.Status(r, http.StatusOK)
 	render.JSON(w, r, UserProfileMetadata{
-		CreatedAt: user.CreatedAt,
+		CreatedAt:       user.CreatedAt,
+		ActiveProductID: user.ActiveProductID,
 	})
 }
 
