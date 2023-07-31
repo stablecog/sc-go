@@ -436,7 +436,7 @@ func main() {
 			r.Use(middleware.Logger)
 			// 20 requests per second
 			r.Use(mw.RateLimit(20, "srv", 1*time.Second))
-			r.Get("/{username}", hc.HandleUserProfileSemanticSearch)
+			r.Get("/{username}/outputs", hc.HandleUserProfileSemanticSearch)
 		})
 
 		// Routes that require authentication
