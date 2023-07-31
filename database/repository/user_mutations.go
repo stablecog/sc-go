@@ -1,11 +1,15 @@
 package repository
 
 import (
+	"fmt"
+	"strings"
 	"time"
 
+	"entgo.io/ent/dialect/sql"
 	"github.com/google/uuid"
 	"github.com/stablecog/sc-go/database/ent"
 	"github.com/stablecog/sc-go/database/ent/user"
+	"github.com/stablecog/sc-go/log"
 	"github.com/stablecog/sc-go/shared"
 	"github.com/stablecog/sc-go/utils"
 )
@@ -81,4 +85,32 @@ func (r *Repository) SetDiscordID(userId uuid.UUID, discordId string, DB *ent.Cl
 		DB = r.DB
 	}
 	return DB.User.Update().Where(user.IDEQ(userId)).SetDiscordID(discordId).Exec(r.Ctx)
+}
+
+var UsernameExistsErr = fmt.Errorf("username_exists")
+
+func (r *Repository) SetUsername(userId uuid.UUID, username string) error {
+	if err := r.WithTx(func(tx *ent.Tx) error {
+		// See if username exists case insenstive
+		DB := tx.Client()
+
+		c, err := DB.User.Query().Where(func(s *sql.Selector) {
+			s.Where(sql.EQ(sql.Lower(user.FieldUsername), strings.ToLower(username)))
+			s.Where(sql.NEQ(user.FieldID, userId))
+		}).Count(r.Ctx)
+
+		if err != nil {
+			return err
+		}
+
+		if c > 0 {
+			return UsernameExistsErr
+		}
+
+		return DB.User.Update().Where(user.IDEQ(userId)).SetUsername(username).Exec(r.Ctx)
+	}); err != nil {
+		log.Errorf("Error setting username: %s", err)
+		return err
+	}
+	return nil
 }

@@ -850,7 +850,8 @@ func (r *Repository) QueryGenerationsAdmin(per_page int, cursor *time.Time, filt
 		}
 		if g.Edges.Generations.Edges.User != nil {
 			generationRoot.User = &UserType{
-				Email: g.Edges.Generations.Edges.User.Email,
+				Email:    g.Edges.Generations.Edges.User.Email,
+				Username: g.Edges.Generations.Edges.User.Username,
 			}
 		}
 

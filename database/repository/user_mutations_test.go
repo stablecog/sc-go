@@ -92,3 +92,14 @@ func TestUpdateLastSeenAt(t *testing.T) {
 	// Delete
 	MockRepo.DB.User.DeleteOne(u).ExecX(MockRepo.Ctx)
 }
+
+func TestSetUsername(t *testing.T) {
+	// Set username for mock admin
+	err := MockRepo.SetUsername(uuid.MustParse(MOCK_ADMIN_UUID), "hello123")
+	assert.Nil(t, err)
+	err = MockRepo.SetUsername(uuid.MustParse(MOCK_ALT_UUID), "hEllo123")
+	assert.ErrorIs(t, UsernameExistsErr, err)
+	// Admin can cahnge their own though
+	err = MockRepo.SetUsername(uuid.MustParse(MOCK_ADMIN_UUID), "hEllo123")
+	assert.Nil(t, err)
+}
