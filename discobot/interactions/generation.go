@@ -256,6 +256,11 @@ func (c *DiscordInteractionWrapper) NewImageCommand() *DiscordInteraction {
 					log.Error(err)
 					responses.ErrorResponseEdit(s, i)
 				}
+
+				err = c.Repo.UpdateLastSeenAt(u.ID)
+				if err != nil {
+					log.Warn("Error updating last seen at", "err", err, "user", u.ID.String())
+				}
 			} else {
 				c.LoginInteractionMap.Put(discordUserId, &LoginInteraction{
 					Session:     s,
@@ -399,6 +404,11 @@ func (c *DiscordInteractionWrapper) HandleUpscaleGeneration(s *discordgo.Session
 		if err != nil {
 			log.Error(err)
 			responses.ErrorResponseEdit(s, i)
+		}
+
+		err = c.Repo.UpdateLastSeenAt(u.ID)
+		if err != nil {
+			log.Warn("Error updating last seen at", "err", err, "user", u.ID.String())
 		}
 	} else {
 		c.LoginInteractionMap.Put(discordUserId, &LoginInteraction{

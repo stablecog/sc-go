@@ -163,6 +163,11 @@ func (c *DiscordInteractionWrapper) NewVoiceoverCommand() *DiscordInteraction {
 					log.Error(err)
 					responses.ErrorResponseEdit(s, i)
 				}
+
+				err = c.Repo.UpdateLastSeenAt(u.ID)
+				if err != nil {
+					log.Warn("Error updating last seen at", "err", err, "user", u.ID.String())
+				}
 			} else {
 				c.LoginInteractionMap.Put(discordUserId, &LoginInteraction{
 					Session:     s,

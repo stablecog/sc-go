@@ -257,6 +257,7 @@ func (c *RestAPI) HandleGetUser(w http.ResponseWriter, r *http.Request) {
 		Roles:                 roles,
 		MoreCreditsAt:         moreCreditsAt,
 		WantsEmail:            user.WantsEmail,
+		Username:              user.Username,
 	})
 }
 
