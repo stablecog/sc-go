@@ -437,6 +437,7 @@ func main() {
 			// 20 requests per second
 			r.Use(mw.RateLimit(20, "srv", 1*time.Second))
 			r.Get("/{username}/outputs", hc.HandleUserProfileSemanticSearch)
+			r.Get("/{username}/metadata", hc.HandleGetUserProfileMetadata)
 		})
 
 		// Routes that require authentication

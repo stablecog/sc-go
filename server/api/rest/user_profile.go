@@ -20,6 +20,32 @@ import (
 	"github.com/stablecog/sc-go/utils"
 )
 
+type UserProfileMetadata struct {
+	CreatedAt time.Time `json:"created_at"`
+}
+
+// For v1/profile/{username}/metadata
+func (c *RestAPI) HandleGetUserProfileMetadata(w http.ResponseWriter, r *http.Request) {
+	// Get username
+	username := chi.URLParam(r, "username")
+	user, err := c.Repo.GetUserByUsername(username)
+	if err != nil {
+		if ent.IsNotFound(err) {
+			responses.ErrNotFound(w, r, "user_not_found")
+			return
+		}
+		log.Error("Error retrieving user", "err", err)
+		responses.ErrInternalServerError(w, r, "An unknown error has occurred")
+		return
+	}
+
+	render.Status(r, http.StatusOK)
+	render.JSON(w, r, UserProfileMetadata{
+		CreatedAt: user.CreatedAt,
+	})
+}
+
+// For v1/profile/{username}/outputs
 func (c *RestAPI) HandleUserProfileSemanticSearch(w http.ResponseWriter, r *http.Request) {
 	// Get username
 	username := chi.URLParam(r, "username")
