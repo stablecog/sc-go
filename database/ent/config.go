@@ -39,6 +39,7 @@ type (
 		Generation       []ent.Hook
 		GenerationModel  []ent.Hook
 		GenerationOutput []ent.Hook
+		IPBlackList      []ent.Hook
 		NegativePrompt   []ent.Hook
 		Prompt           []ent.Hook
 		Role             []ent.Hook
@@ -62,6 +63,7 @@ type (
 		Generation       []ent.Interceptor
 		GenerationModel  []ent.Interceptor
 		GenerationOutput []ent.Interceptor
+		IPBlackList      []ent.Interceptor
 		NegativePrompt   []ent.Interceptor
 		Prompt           []ent.Interceptor
 		Role             []ent.Interceptor

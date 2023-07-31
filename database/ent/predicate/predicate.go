@@ -30,6 +30,9 @@ type GenerationModel func(*sql.Selector)
 // GenerationOutput is the predicate function for generationoutput builders.
 type GenerationOutput func(*sql.Selector)
 
+// IPBlackList is the predicate function for ipblacklist builders.
+type IPBlackList func(*sql.Selector)
+
 // NegativePrompt is the predicate function for negativeprompt builders.
 type NegativePrompt func(*sql.Selector)
 

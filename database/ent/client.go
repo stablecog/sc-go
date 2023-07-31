@@ -19,6 +19,7 @@ import (
 	"github.com/stablecog/sc-go/database/ent/generation"
 	"github.com/stablecog/sc-go/database/ent/generationmodel"
 	"github.com/stablecog/sc-go/database/ent/generationoutput"
+	"github.com/stablecog/sc-go/database/ent/ipblacklist"
 	"github.com/stablecog/sc-go/database/ent/negativeprompt"
 	"github.com/stablecog/sc-go/database/ent/prompt"
 	"github.com/stablecog/sc-go/database/ent/role"
@@ -59,6 +60,8 @@ type Client struct {
 	GenerationModel *GenerationModelClient
 	// GenerationOutput is the client for interacting with the GenerationOutput builders.
 	GenerationOutput *GenerationOutputClient
+	// IPBlackList is the client for interacting with the IPBlackList builders.
+	IPBlackList *IPBlackListClient
 	// NegativePrompt is the client for interacting with the NegativePrompt builders.
 	NegativePrompt *NegativePromptClient
 	// Prompt is the client for interacting with the Prompt builders.
@@ -106,6 +109,7 @@ func (c *Client) init() {
 	c.Generation = NewGenerationClient(c.config)
 	c.GenerationModel = NewGenerationModelClient(c.config)
 	c.GenerationOutput = NewGenerationOutputClient(c.config)
+	c.IPBlackList = NewIPBlackListClient(c.config)
 	c.NegativePrompt = NewNegativePromptClient(c.config)
 	c.Prompt = NewPromptClient(c.config)
 	c.Role = NewRoleClient(c.config)
@@ -160,6 +164,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		Generation:       NewGenerationClient(cfg),
 		GenerationModel:  NewGenerationModelClient(cfg),
 		GenerationOutput: NewGenerationOutputClient(cfg),
+		IPBlackList:      NewIPBlackListClient(cfg),
 		NegativePrompt:   NewNegativePromptClient(cfg),
 		Prompt:           NewPromptClient(cfg),
 		Role:             NewRoleClient(cfg),
@@ -200,6 +205,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		Generation:       NewGenerationClient(cfg),
 		GenerationModel:  NewGenerationModelClient(cfg),
 		GenerationOutput: NewGenerationOutputClient(cfg),
+		IPBlackList:      NewIPBlackListClient(cfg),
 		NegativePrompt:   NewNegativePromptClient(cfg),
 		Prompt:           NewPromptClient(cfg),
 		Role:             NewRoleClient(cfg),
@@ -249,6 +255,7 @@ func (c *Client) Use(hooks ...Hook) {
 	c.Generation.Use(hooks...)
 	c.GenerationModel.Use(hooks...)
 	c.GenerationOutput.Use(hooks...)
+	c.IPBlackList.Use(hooks...)
 	c.NegativePrompt.Use(hooks...)
 	c.Prompt.Use(hooks...)
 	c.Role.Use(hooks...)
@@ -275,6 +282,7 @@ func (c *Client) Intercept(interceptors ...Interceptor) {
 	c.Generation.Intercept(interceptors...)
 	c.GenerationModel.Intercept(interceptors...)
 	c.GenerationOutput.Intercept(interceptors...)
+	c.IPBlackList.Intercept(interceptors...)
 	c.NegativePrompt.Intercept(interceptors...)
 	c.Prompt.Intercept(interceptors...)
 	c.Role.Intercept(interceptors...)
@@ -309,6 +317,8 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.GenerationModel.mutate(ctx, m)
 	case *GenerationOutputMutation:
 		return c.GenerationOutput.mutate(ctx, m)
+	case *IPBlackListMutation:
+		return c.IPBlackList.mutate(ctx, m)
 	case *NegativePromptMutation:
 		return c.NegativePrompt.mutate(ctx, m)
 	case *PromptMutation:
@@ -1633,6 +1643,124 @@ func (c *GenerationOutputClient) mutate(ctx context.Context, m *GenerationOutput
 		return (&GenerationOutputDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("ent: unknown GenerationOutput mutation op: %q", m.Op())
+	}
+}
+
+// IPBlackListClient is a client for the IPBlackList schema.
+type IPBlackListClient struct {
+	config
+}
+
+// NewIPBlackListClient returns a client for the IPBlackList from the given config.
+func NewIPBlackListClient(c config) *IPBlackListClient {
+	return &IPBlackListClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `ipblacklist.Hooks(f(g(h())))`.
+func (c *IPBlackListClient) Use(hooks ...Hook) {
+	c.hooks.IPBlackList = append(c.hooks.IPBlackList, hooks...)
+}
+
+// Use adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `ipblacklist.Intercept(f(g(h())))`.
+func (c *IPBlackListClient) Intercept(interceptors ...Interceptor) {
+	c.inters.IPBlackList = append(c.inters.IPBlackList, interceptors...)
+}
+
+// Create returns a builder for creating a IPBlackList entity.
+func (c *IPBlackListClient) Create() *IPBlackListCreate {
+	mutation := newIPBlackListMutation(c.config, OpCreate)
+	return &IPBlackListCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of IPBlackList entities.
+func (c *IPBlackListClient) CreateBulk(builders ...*IPBlackListCreate) *IPBlackListCreateBulk {
+	return &IPBlackListCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for IPBlackList.
+func (c *IPBlackListClient) Update() *IPBlackListUpdate {
+	mutation := newIPBlackListMutation(c.config, OpUpdate)
+	return &IPBlackListUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *IPBlackListClient) UpdateOne(ibl *IPBlackList) *IPBlackListUpdateOne {
+	mutation := newIPBlackListMutation(c.config, OpUpdateOne, withIPBlackList(ibl))
+	return &IPBlackListUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *IPBlackListClient) UpdateOneID(id uuid.UUID) *IPBlackListUpdateOne {
+	mutation := newIPBlackListMutation(c.config, OpUpdateOne, withIPBlackListID(id))
+	return &IPBlackListUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for IPBlackList.
+func (c *IPBlackListClient) Delete() *IPBlackListDelete {
+	mutation := newIPBlackListMutation(c.config, OpDelete)
+	return &IPBlackListDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *IPBlackListClient) DeleteOne(ibl *IPBlackList) *IPBlackListDeleteOne {
+	return c.DeleteOneID(ibl.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *IPBlackListClient) DeleteOneID(id uuid.UUID) *IPBlackListDeleteOne {
+	builder := c.Delete().Where(ipblacklist.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &IPBlackListDeleteOne{builder}
+}
+
+// Query returns a query builder for IPBlackList.
+func (c *IPBlackListClient) Query() *IPBlackListQuery {
+	return &IPBlackListQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeIPBlackList},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a IPBlackList entity by its id.
+func (c *IPBlackListClient) Get(ctx context.Context, id uuid.UUID) (*IPBlackList, error) {
+	return c.Query().Where(ipblacklist.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *IPBlackListClient) GetX(ctx context.Context, id uuid.UUID) *IPBlackList {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *IPBlackListClient) Hooks() []Hook {
+	return c.hooks.IPBlackList
+}
+
+// Interceptors returns the client interceptors.
+func (c *IPBlackListClient) Interceptors() []Interceptor {
+	return c.inters.IPBlackList
+}
+
+func (c *IPBlackListClient) mutate(ctx context.Context, m *IPBlackListMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&IPBlackListCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&IPBlackListUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&IPBlackListUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&IPBlackListDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown IPBlackList mutation op: %q", m.Op())
 	}
 }
 

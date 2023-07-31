@@ -306,6 +306,19 @@ var (
 			},
 		},
 	}
+	// IPBlacklistColumns holds the columns for the "ip_blacklist" table.
+	IPBlacklistColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID},
+		{Name: "ip", Type: field.TypeString, Unique: true, Size: 2147483647},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+	}
+	// IPBlacklistTable holds the schema information for the "ip_blacklist" table.
+	IPBlacklistTable = &schema.Table{
+		Name:       "ip_blacklist",
+		Columns:    IPBlacklistColumns,
+		PrimaryKey: []*schema.Column{IPBlacklistColumns[0]},
+	}
 	// NegativePromptsColumns holds the columns for the "negative_prompts" table.
 	NegativePromptsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID},
@@ -743,6 +756,7 @@ var (
 		GenerationsTable,
 		GenerationModelsTable,
 		GenerationOutputsTable,
+		IPBlacklistTable,
 		NegativePromptsTable,
 		PromptsTable,
 		RolesTable,
@@ -796,6 +810,9 @@ func init() {
 	GenerationOutputsTable.ForeignKeys[0].RefTable = GenerationsTable
 	GenerationOutputsTable.Annotation = &entsql.Annotation{
 		Table: "generation_outputs",
+	}
+	IPBlacklistTable.Annotation = &entsql.Annotation{
+		Table: "ip_blacklist",
 	}
 	NegativePromptsTable.Annotation = &entsql.Annotation{
 		Table: "negative_prompts",

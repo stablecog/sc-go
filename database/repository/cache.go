@@ -2,6 +2,7 @@ package repository
 
 import (
 	"github.com/stablecog/sc-go/database/ent/disposableemail"
+	"github.com/stablecog/sc-go/database/ent/ipblacklist"
 	"github.com/stablecog/sc-go/log"
 	"github.com/stablecog/sc-go/shared"
 )
@@ -60,5 +61,17 @@ func (r *Repository) UpdateCache() error {
 		disposableEmailDomainsStr[i] = domain.Domain
 	}
 	shared.GetCache().UpdateDisposableEmailDomains(disposableEmailDomainsStr)
+
+	ipBlacklist, err := r.DB.IPBlackList.Query().Select(ipblacklist.FieldIP).All(r.Ctx)
+	if err != nil {
+		log.Error("Failed to get ip blacklist", "err", err)
+		return err
+	}
+	ipBlacklistStr := make([]string, len(ipBlacklist))
+	for i, ip := range ipBlacklist {
+		ipBlacklistStr[i] = ip.IP
+	}
+	shared.GetCache().UpdateIPBlacklist(ipBlacklistStr)
+
 	return nil
 }

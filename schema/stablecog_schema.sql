@@ -1126,3 +1126,18 @@ CREATE UNIQUE INDEX users_username_key ON public.users USING btree (username);
 
 -- Make usernames not null
 alter table public.users alter column username set not null;
+
+-- IP Blacklist
+
+CREATE TABLE public.ip_blacklist (
+    id uuid DEFAULT extensions.uuid_generate_v4() NOT NULL,
+    ip text NOT NULL,
+    created_at timestamp with time zone DEFAULT timezone('utc'::text, now()) NOT NULL,
+    updated_at timestamp with time zone DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+CREATE trigger handle_updated_at before
+UPDATE
+    ON public.ip_blacklist FOR each ROW EXECUTE PROCEDURE moddatetime (updated_at);
+
+ALTER TABLE public.ip_blacklist ENABLE ROW LEVEL SECURITY;

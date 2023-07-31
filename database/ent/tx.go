@@ -30,6 +30,8 @@ type Tx struct {
 	GenerationModel *GenerationModelClient
 	// GenerationOutput is the client for interacting with the GenerationOutput builders.
 	GenerationOutput *GenerationOutputClient
+	// IPBlackList is the client for interacting with the IPBlackList builders.
+	IPBlackList *IPBlackListClient
 	// NegativePrompt is the client for interacting with the NegativePrompt builders.
 	NegativePrompt *NegativePromptClient
 	// Prompt is the client for interacting with the Prompt builders.
@@ -195,6 +197,7 @@ func (tx *Tx) init() {
 	tx.Generation = NewGenerationClient(tx.config)
 	tx.GenerationModel = NewGenerationModelClient(tx.config)
 	tx.GenerationOutput = NewGenerationOutputClient(tx.config)
+	tx.IPBlackList = NewIPBlackListClient(tx.config)
 	tx.NegativePrompt = NewNegativePromptClient(tx.config)
 	tx.Prompt = NewPromptClient(tx.config)
 	tx.Role = NewRoleClient(tx.config)

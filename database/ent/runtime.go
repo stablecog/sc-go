@@ -14,6 +14,7 @@ import (
 	"github.com/stablecog/sc-go/database/ent/generation"
 	"github.com/stablecog/sc-go/database/ent/generationmodel"
 	"github.com/stablecog/sc-go/database/ent/generationoutput"
+	"github.com/stablecog/sc-go/database/ent/ipblacklist"
 	"github.com/stablecog/sc-go/database/ent/negativeprompt"
 	"github.com/stablecog/sc-go/database/ent/prompt"
 	"github.com/stablecog/sc-go/database/ent/role"
@@ -214,6 +215,22 @@ func init() {
 	generationoutputDescID := generationoutputFields[0].Descriptor()
 	// generationoutput.DefaultID holds the default value on creation for the id field.
 	generationoutput.DefaultID = generationoutputDescID.Default.(func() uuid.UUID)
+	ipblacklistFields := schema.IPBlackList{}.Fields()
+	_ = ipblacklistFields
+	// ipblacklistDescCreatedAt is the schema descriptor for created_at field.
+	ipblacklistDescCreatedAt := ipblacklistFields[2].Descriptor()
+	// ipblacklist.DefaultCreatedAt holds the default value on creation for the created_at field.
+	ipblacklist.DefaultCreatedAt = ipblacklistDescCreatedAt.Default.(func() time.Time)
+	// ipblacklistDescUpdatedAt is the schema descriptor for updated_at field.
+	ipblacklistDescUpdatedAt := ipblacklistFields[3].Descriptor()
+	// ipblacklist.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	ipblacklist.DefaultUpdatedAt = ipblacklistDescUpdatedAt.Default.(func() time.Time)
+	// ipblacklist.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	ipblacklist.UpdateDefaultUpdatedAt = ipblacklistDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// ipblacklistDescID is the schema descriptor for id field.
+	ipblacklistDescID := ipblacklistFields[0].Descriptor()
+	// ipblacklist.DefaultID holds the default value on creation for the id field.
+	ipblacklist.DefaultID = ipblacklistDescID.Default.(func() uuid.UUID)
 	negativepromptFields := schema.NegativePrompt{}.Fields()
 	_ = negativepromptFields
 	// negativepromptDescCreatedAt is the schema descriptor for created_at field.
