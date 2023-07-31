@@ -316,6 +316,11 @@ func (r *Repository) GetUserByEmail(email string) (*ent.User, error) {
 	return r.DB.User.Query().Where(user.Email(strings.ToLower(email))).First(r.Ctx)
 }
 
+// Get user by username
+func (r *Repository) GetUserByUsername(username string) (*ent.User, error) {
+	return r.DB.User.Query().Where(user.Username(strings.ToLower(username))).First(r.Ctx)
+}
+
 // Check if email already exists
 func (r *Repository) CheckIfEmailExists(email string) (string, bool, error) {
 	noPlus := utils.RemovePlusFromEmail(email)

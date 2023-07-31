@@ -431,6 +431,14 @@ func main() {
 			r.Get("/", hc.HandleSemanticSearchGallery)
 		})
 
+		// User profiles
+		r.Route("/profile", func(r chi.Router) {
+			r.Use(middleware.Logger)
+			// 20 requests per second
+			r.Use(mw.RateLimit(20, "srv", 1*time.Second))
+			r.Get("/{username}", hc.HandleUserProfileSemanticSearch)
+		})
+
 		// Routes that require authentication
 		r.Route("/user", func(r chi.Router) {
 			r.Use(mw.AuthMiddleware(middleware.AuthLevelAny))

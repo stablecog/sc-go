@@ -60,8 +60,11 @@ func (r *Repository) RetrieveGalleryData(limit int, updatedAtGT *time.Time) ([]G
 }
 
 // Retrieved a single generation output by ID, in GalleryData format
-func (r *Repository) RetrieveGalleryDataByID(id uuid.UUID) (*GalleryData, error) {
+func (r *Repository) RetrieveGalleryDataByID(id uuid.UUID, userId *uuid.UUID) (*GalleryData, error) {
 	output, err := r.DB.GenerationOutput.Query().Where(generationoutput.IDEQ(id), generationoutput.GalleryStatusEQ(generationoutput.GalleryStatusApproved)).WithGenerations(func(gq *ent.GenerationQuery) {
+		if userId != nil {
+			gq.Where(generation.UserIDEQ(*userId))
+		}
 		gq.WithPrompt()
 		gq.WithNegativePrompt()
 		gq.WithUser()
@@ -129,6 +132,9 @@ func (r *Repository) RetrieveMostRecentGalleryData(filters *requests.QueryGenera
 		s.WithNegativePrompt()
 		s.WithGenerationOutputs()
 		s.WithUser()
+		if filters != nil && filters.UserID != nil {
+			s.Where(generation.UserIDEQ(*filters.UserID))
+		}
 	})
 
 	// Limit

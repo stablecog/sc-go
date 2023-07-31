@@ -1,15 +1,14 @@
 package rest
 
 import (
-	"encoding/json"
 	"fmt"
-	"io"
 	"math/rand"
 	"net/http"
 	"strconv"
 	"strings"
 	"time"
 
+	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/render"
 	"github.com/google/uuid"
 	"github.com/stablecog/sc-go/database/ent"
@@ -22,9 +21,20 @@ import (
 	"github.com/stablecog/sc-go/utils"
 )
 
-const GALLERY_PER_PAGE = 50
+func (c *RestAPI) HandleUserProfileSemanticSearch(w http.ResponseWriter, r *http.Request) {
+	// Get username
+	username := chi.URLParam(r, "username")
+	user, err := c.Repo.GetUserByUsername(username)
+	if err != nil {
+		if ent.IsNotFound(err) {
+			responses.ErrNotFound(w, r, "user_not_found")
+			return
+		}
+		log.Error("Error retrieving user", "err", err)
+		responses.ErrInternalServerError(w, r, "An unknown error has occurred")
+		return
+	}
 
-func (c *RestAPI) HandleSemanticSearchGallery(w http.ResponseWriter, r *http.Request) {
 	// Get output_id param
 	outputId := r.URL.Query().Get("output_id")
 	if outputId != "" {
@@ -35,7 +45,7 @@ func (c *RestAPI) HandleSemanticSearchGallery(w http.ResponseWriter, r *http.Req
 			return
 		}
 
-		galleryData, err := c.Repo.RetrieveGalleryDataByID(uid, nil)
+		galleryData, err := c.Repo.RetrieveGalleryDataByID(uid, utils.ToPtr(user.ID))
 		if err != nil {
 			if ent.IsNotFound(err) {
 				responses.ErrNotFound(w, r, "generation_not_found")
@@ -62,7 +72,6 @@ func (c *RestAPI) HandleSemanticSearchGallery(w http.ResponseWriter, r *http.Req
 	galleryData := []repository.GalleryData{}
 	var nextCursorQdrant *uint
 	var nextCursorPostgres *time.Time
-	var err error
 
 	// Parse filters
 	filters := &requests.QueryGenerationFilters{}
@@ -71,6 +80,7 @@ func (c *RestAPI) HandleSemanticSearchGallery(w http.ResponseWriter, r *http.Req
 		responses.ErrBadRequest(w, r, err.Error(), "")
 		return
 	}
+	filters.UserID = utils.ToPtr(user.ID)
 
 	// Validate query parameters
 	perPage := GALLERY_PER_PAGE
@@ -234,51 +244,4 @@ func (c *RestAPI) HandleSemanticSearchGallery(w http.ResponseWriter, r *http.Req
 		Next: nextCursorQdrant,
 		Hits: galleryData,
 	})
-}
-
-type GalleryResponseCursor interface {
-	// ! TODO - remove int when meili is gone
-	*uint | *time.Time | int
-}
-
-type GalleryResponse[T GalleryResponseCursor] struct {
-	Next T                        `json:"next,omitempty"`
-	Page int                      `json:"page"`
-	Hits []repository.GalleryData `json:"hits"`
-}
-
-// HTTP PUT submit a generation to gallery - for user
-// Only allow submitting user's own gallery items.
-func (c *RestAPI) HandleSubmitGenerationToGallery(w http.ResponseWriter, r *http.Request) {
-	var user *ent.User
-	if user = c.GetUserIfAuthenticated(w, r); user == nil {
-		return
-	}
-
-	if user.BannedAt != nil {
-		responses.ErrForbidden(w, r)
-		return
-	}
-
-	// Parse request body
-	reqBody, _ := io.ReadAll(r.Body)
-	var submitToGalleryReq requests.SubmitGalleryRequest
-	err := json.Unmarshal(reqBody, &submitToGalleryReq)
-	if err != nil {
-		responses.ErrUnableToParseJson(w, r)
-		return
-	}
-
-	submitted, err := c.Repo.SubmitGenerationOutputsToGalleryForUser(submitToGalleryReq.GenerationOutputIDs, user.ID)
-	if err != nil {
-		responses.ErrInternalServerError(w, r, "Error submitting generation outputs to gallery")
-		return
-	}
-
-	res := responses.SubmitGalleryResponse{
-		Submitted: submitted,
-	}
-
-	render.Status(r, http.StatusOK)
-	render.JSON(w, r, res)
 }
