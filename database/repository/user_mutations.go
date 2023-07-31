@@ -107,7 +107,7 @@ func (r *Repository) SetUsername(userId uuid.UUID, username string) error {
 			return UsernameExistsErr
 		}
 
-		return DB.User.Update().Where(user.IDEQ(userId)).SetUsername(username).Exec(r.Ctx)
+		return DB.User.Update().Where(user.IDEQ(userId)).SetUsername(username).SetUsernameChangedAt(time.Now()).Exec(r.Ctx)
 	}); err != nil {
 		log.Errorf("Error setting username: %s", err)
 		return err

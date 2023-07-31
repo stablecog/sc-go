@@ -39,6 +39,8 @@ type User struct {
 	DiscordID *string `json:"discord_id,omitempty"`
 	// Username holds the value of the "username" field.
 	Username string `json:"username,omitempty"`
+	// UsernameChangedAt holds the value of the "username_changed_at" field.
+	UsernameChangedAt *time.Time `json:"username_changed_at,omitempty"`
 	// CreatedAt holds the value of the "created_at" field.
 	CreatedAt time.Time `json:"created_at,omitempty"`
 	// UpdatedAt holds the value of the "updated_at" field.
@@ -152,7 +154,7 @@ func (*User) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullBool)
 		case user.FieldEmail, user.FieldStripeCustomerID, user.FieldActiveProductID, user.FieldDiscordID, user.FieldUsername:
 			values[i] = new(sql.NullString)
-		case user.FieldLastSignInAt, user.FieldLastSeenAt, user.FieldBannedAt, user.FieldScheduledForDeletionOn, user.FieldDataDeletedAt, user.FieldCreatedAt, user.FieldUpdatedAt:
+		case user.FieldLastSignInAt, user.FieldLastSeenAt, user.FieldBannedAt, user.FieldScheduledForDeletionOn, user.FieldDataDeletedAt, user.FieldUsernameChangedAt, user.FieldCreatedAt, user.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
 		case user.FieldID:
 			values[i] = new(uuid.UUID)
@@ -249,6 +251,13 @@ func (u *User) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field username", values[i])
 			} else if value.Valid {
 				u.Username = value.String
+			}
+		case user.FieldUsernameChangedAt:
+			if value, ok := values[i].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field username_changed_at", values[i])
+			} else if value.Valid {
+				u.UsernameChangedAt = new(time.Time)
+				*u.UsernameChangedAt = value.Time
 			}
 		case user.FieldCreatedAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
@@ -376,6 +385,11 @@ func (u *User) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("username=")
 	builder.WriteString(u.Username)
+	builder.WriteString(", ")
+	if v := u.UsernameChangedAt; v != nil {
+		builder.WriteString("username_changed_at=")
+		builder.WriteString(v.Format(time.ANSIC))
+	}
 	builder.WriteString(", ")
 	builder.WriteString("created_at=")
 	builder.WriteString(u.CreatedAt.Format(time.ANSIC))

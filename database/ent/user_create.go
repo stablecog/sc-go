@@ -158,6 +158,20 @@ func (uc *UserCreate) SetUsername(s string) *UserCreate {
 	return uc
 }
 
+// SetUsernameChangedAt sets the "username_changed_at" field.
+func (uc *UserCreate) SetUsernameChangedAt(t time.Time) *UserCreate {
+	uc.mutation.SetUsernameChangedAt(t)
+	return uc
+}
+
+// SetNillableUsernameChangedAt sets the "username_changed_at" field if the given value is not nil.
+func (uc *UserCreate) SetNillableUsernameChangedAt(t *time.Time) *UserCreate {
+	if t != nil {
+		uc.SetUsernameChangedAt(*t)
+	}
+	return uc
+}
+
 // SetCreatedAt sets the "created_at" field.
 func (uc *UserCreate) SetCreatedAt(t time.Time) *UserCreate {
 	uc.mutation.SetCreatedAt(t)
@@ -477,6 +491,10 @@ func (uc *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 	if value, ok := uc.mutation.Username(); ok {
 		_spec.SetField(user.FieldUsername, field.TypeString, value)
 		_node.Username = value
+	}
+	if value, ok := uc.mutation.UsernameChangedAt(); ok {
+		_spec.SetField(user.FieldUsernameChangedAt, field.TypeTime, value)
+		_node.UsernameChangedAt = &value
 	}
 	if value, ok := uc.mutation.CreatedAt(); ok {
 		_spec.SetField(user.FieldCreatedAt, field.TypeTime, value)

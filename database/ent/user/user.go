@@ -35,6 +35,8 @@ const (
 	FieldDiscordID = "discord_id"
 	// FieldUsername holds the string denoting the username field in the database.
 	FieldUsername = "username"
+	// FieldUsernameChangedAt holds the string denoting the username_changed_at field in the database.
+	FieldUsernameChangedAt = "username_changed_at"
 	// FieldCreatedAt holds the string denoting the created_at field in the database.
 	FieldCreatedAt = "created_at"
 	// FieldUpdatedAt holds the string denoting the updated_at field in the database.
@@ -127,6 +129,7 @@ var Columns = []string{
 	FieldWantsEmail,
 	FieldDiscordID,
 	FieldUsername,
+	FieldUsernameChangedAt,
 	FieldCreatedAt,
 	FieldUpdatedAt,
 }

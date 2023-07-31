@@ -111,6 +111,11 @@ func Username(v string) predicate.User {
 	return predicate.User(sql.FieldEQ(FieldUsername, v))
 }
 
+// UsernameChangedAt applies equality check predicate on the "username_changed_at" field. It's identical to UsernameChangedAtEQ.
+func UsernameChangedAt(v time.Time) predicate.User {
+	return predicate.User(sql.FieldEQ(FieldUsernameChangedAt, v))
+}
+
 // CreatedAt applies equality check predicate on the "created_at" field. It's identical to CreatedAtEQ.
 func CreatedAt(v time.Time) predicate.User {
 	return predicate.User(sql.FieldEQ(FieldCreatedAt, v))
@@ -724,6 +729,56 @@ func UsernameEqualFold(v string) predicate.User {
 // UsernameContainsFold applies the ContainsFold predicate on the "username" field.
 func UsernameContainsFold(v string) predicate.User {
 	return predicate.User(sql.FieldContainsFold(FieldUsername, v))
+}
+
+// UsernameChangedAtEQ applies the EQ predicate on the "username_changed_at" field.
+func UsernameChangedAtEQ(v time.Time) predicate.User {
+	return predicate.User(sql.FieldEQ(FieldUsernameChangedAt, v))
+}
+
+// UsernameChangedAtNEQ applies the NEQ predicate on the "username_changed_at" field.
+func UsernameChangedAtNEQ(v time.Time) predicate.User {
+	return predicate.User(sql.FieldNEQ(FieldUsernameChangedAt, v))
+}
+
+// UsernameChangedAtIn applies the In predicate on the "username_changed_at" field.
+func UsernameChangedAtIn(vs ...time.Time) predicate.User {
+	return predicate.User(sql.FieldIn(FieldUsernameChangedAt, vs...))
+}
+
+// UsernameChangedAtNotIn applies the NotIn predicate on the "username_changed_at" field.
+func UsernameChangedAtNotIn(vs ...time.Time) predicate.User {
+	return predicate.User(sql.FieldNotIn(FieldUsernameChangedAt, vs...))
+}
+
+// UsernameChangedAtGT applies the GT predicate on the "username_changed_at" field.
+func UsernameChangedAtGT(v time.Time) predicate.User {
+	return predicate.User(sql.FieldGT(FieldUsernameChangedAt, v))
+}
+
+// UsernameChangedAtGTE applies the GTE predicate on the "username_changed_at" field.
+func UsernameChangedAtGTE(v time.Time) predicate.User {
+	return predicate.User(sql.FieldGTE(FieldUsernameChangedAt, v))
+}
+
+// UsernameChangedAtLT applies the LT predicate on the "username_changed_at" field.
+func UsernameChangedAtLT(v time.Time) predicate.User {
+	return predicate.User(sql.FieldLT(FieldUsernameChangedAt, v))
+}
+
+// UsernameChangedAtLTE applies the LTE predicate on the "username_changed_at" field.
+func UsernameChangedAtLTE(v time.Time) predicate.User {
+	return predicate.User(sql.FieldLTE(FieldUsernameChangedAt, v))
+}
+
+// UsernameChangedAtIsNil applies the IsNil predicate on the "username_changed_at" field.
+func UsernameChangedAtIsNil() predicate.User {
+	return predicate.User(sql.FieldIsNull(FieldUsernameChangedAt))
+}
+
+// UsernameChangedAtNotNil applies the NotNil predicate on the "username_changed_at" field.
+func UsernameChangedAtNotNil() predicate.User {
+	return predicate.User(sql.FieldNotNull(FieldUsernameChangedAt))
 }
 
 // CreatedAtEQ applies the EQ predicate on the "created_at" field.

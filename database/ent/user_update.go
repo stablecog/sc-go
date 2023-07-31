@@ -209,6 +209,26 @@ func (uu *UserUpdate) SetUsername(s string) *UserUpdate {
 	return uu
 }
 
+// SetUsernameChangedAt sets the "username_changed_at" field.
+func (uu *UserUpdate) SetUsernameChangedAt(t time.Time) *UserUpdate {
+	uu.mutation.SetUsernameChangedAt(t)
+	return uu
+}
+
+// SetNillableUsernameChangedAt sets the "username_changed_at" field if the given value is not nil.
+func (uu *UserUpdate) SetNillableUsernameChangedAt(t *time.Time) *UserUpdate {
+	if t != nil {
+		uu.SetUsernameChangedAt(*t)
+	}
+	return uu
+}
+
+// ClearUsernameChangedAt clears the value of the "username_changed_at" field.
+func (uu *UserUpdate) ClearUsernameChangedAt() *UserUpdate {
+	uu.mutation.ClearUsernameChangedAt()
+	return uu
+}
+
 // SetUpdatedAt sets the "updated_at" field.
 func (uu *UserUpdate) SetUpdatedAt(t time.Time) *UserUpdate {
 	uu.mutation.SetUpdatedAt(t)
@@ -621,6 +641,12 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if value, ok := uu.mutation.Username(); ok {
 		_spec.SetField(user.FieldUsername, field.TypeString, value)
+	}
+	if value, ok := uu.mutation.UsernameChangedAt(); ok {
+		_spec.SetField(user.FieldUsernameChangedAt, field.TypeTime, value)
+	}
+	if uu.mutation.UsernameChangedAtCleared() {
+		_spec.ClearField(user.FieldUsernameChangedAt, field.TypeTime)
 	}
 	if value, ok := uu.mutation.UpdatedAt(); ok {
 		_spec.SetField(user.FieldUpdatedAt, field.TypeTime, value)
@@ -1251,6 +1277,26 @@ func (uuo *UserUpdateOne) SetUsername(s string) *UserUpdateOne {
 	return uuo
 }
 
+// SetUsernameChangedAt sets the "username_changed_at" field.
+func (uuo *UserUpdateOne) SetUsernameChangedAt(t time.Time) *UserUpdateOne {
+	uuo.mutation.SetUsernameChangedAt(t)
+	return uuo
+}
+
+// SetNillableUsernameChangedAt sets the "username_changed_at" field if the given value is not nil.
+func (uuo *UserUpdateOne) SetNillableUsernameChangedAt(t *time.Time) *UserUpdateOne {
+	if t != nil {
+		uuo.SetUsernameChangedAt(*t)
+	}
+	return uuo
+}
+
+// ClearUsernameChangedAt clears the value of the "username_changed_at" field.
+func (uuo *UserUpdateOne) ClearUsernameChangedAt() *UserUpdateOne {
+	uuo.mutation.ClearUsernameChangedAt()
+	return uuo
+}
+
 // SetUpdatedAt sets the "updated_at" field.
 func (uuo *UserUpdateOne) SetUpdatedAt(t time.Time) *UserUpdateOne {
 	uuo.mutation.SetUpdatedAt(t)
@@ -1687,6 +1733,12 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 	}
 	if value, ok := uuo.mutation.Username(); ok {
 		_spec.SetField(user.FieldUsername, field.TypeString, value)
+	}
+	if value, ok := uuo.mutation.UsernameChangedAt(); ok {
+		_spec.SetField(user.FieldUsernameChangedAt, field.TypeTime, value)
+	}
+	if uuo.mutation.UsernameChangedAtCleared() {
+		_spec.ClearField(user.FieldUsernameChangedAt, field.TypeTime)
 	}
 	if value, ok := uuo.mutation.UpdatedAt(); ok {
 		_spec.SetField(user.FieldUpdatedAt, field.TypeTime, value)

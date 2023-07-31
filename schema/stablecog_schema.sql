@@ -1141,3 +1141,6 @@ UPDATE
     ON public.ip_blacklist FOR each ROW EXECUTE PROCEDURE moddatetime (updated_at);
 
 ALTER TABLE public.ip_blacklist ENABLE ROW LEVEL SECURITY;
+
+-- Add username_changed_at
+alter table public.users add column username_changed_at timestamp with time zone null;

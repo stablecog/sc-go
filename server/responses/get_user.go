@@ -15,6 +15,7 @@ type GetUserResponse struct {
 	WantsEmail            *bool      `json:"wants_email,omitempty"`
 	Username              string     `json:"username,omitempty"`
 	CreatedAt             time.Time  `json:"created_at"`
+	UsernameChangedAt     *time.Time `json:"username_changed_at,omitempty"`
 	// The current amoount of free credits server offers
 	FreeCreditAmount *int     `json:"free_credit_amount,omitempty"`
 	StripeHadError   bool     `json:"stripe_had_error"`

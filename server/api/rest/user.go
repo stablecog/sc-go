@@ -260,6 +260,7 @@ func (c *RestAPI) HandleGetUser(w http.ResponseWriter, r *http.Request) {
 		WantsEmail:            user.WantsEmail,
 		Username:              user.Username,
 		CreatedAt:             user.CreatedAt,
+		UsernameChangedAt:     user.UsernameChangedAt,
 	})
 }
 
