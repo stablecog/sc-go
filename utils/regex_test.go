@@ -38,6 +38,8 @@ func TestIsValidUsername(t *testing.T) {
 		"john-do_e",
 		"a",
 		"123456789123456789123456788999",
+		"fuckyou",
+		"This_sh1t",
 	}
 
 	assert.Nil(t, IsValidUsername(usernames[0]))
@@ -50,4 +52,7 @@ func TestIsValidUsername(t *testing.T) {
 	assert.ErrorIs(t, UsernameHyphenError, IsValidUsername(usernames[7]))
 	assert.ErrorIs(t, UsernameLengthError, IsValidUsername(usernames[8]))
 	assert.ErrorIs(t, UsernameLengthError, IsValidUsername(usernames[9]))
+	assert.ErrorIs(t, UsernameProfaneError, IsValidUsername(usernames[10]))
+	assert.ErrorIs(t, UsernameProfaneError, IsValidUsername(usernames[11]))
+
 }

@@ -6,6 +6,8 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+
+	goaway "github.com/TwiN/go-away"
 )
 
 // Remove + from email addresses
@@ -51,6 +53,7 @@ var (
 	UsernameStartsWithLetterError = errors.New("username must start with a letter")
 	UsernameCharError             = errors.New("username can only contain letters or numbers")
 	UsernameHyphenError           = errors.New("username can't contain both hyphens and underscores")
+	UsernameProfaneError          = errors.New("username contains profane words")
 )
 
 func IsValidUsername(username string) error {
@@ -87,6 +90,10 @@ func IsValidUsername(username string) error {
 
 	if hasHyphen && hasUnderscore {
 		return UsernameHyphenError
+	}
+
+	if goaway.IsProfane(username) {
+		return UsernameProfaneError
 	}
 
 	return nil // Username is valid, return nil error

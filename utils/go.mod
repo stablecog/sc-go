@@ -12,6 +12,7 @@ require (
 require (
 	ariga.io/atlas v0.9.1-0.20230119123307-a3ab6808892b // indirect
 	entgo.io/ent v0.11.6 // indirect
+	github.com/TwiN/go-away v1.6.10 // indirect
 	github.com/agext/levenshtein v1.2.1 // indirect
 	github.com/apparentlymart/go-textseg/v13 v13.0.0 // indirect
 	github.com/aymanbagabas/go-osc52/v2 v2.0.1 // indirect
@@ -34,7 +35,7 @@ require (
 	golang.org/x/exp v0.0.0-20230206171751-46f607a40771 // indirect
 	golang.org/x/mod v0.7.0 // indirect
 	golang.org/x/sys v0.6.0 // indirect
-	golang.org/x/text v0.6.0 // indirect
+	golang.org/x/text v0.7.0 // indirect
 )
 
 require (

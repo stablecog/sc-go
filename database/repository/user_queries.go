@@ -145,6 +145,7 @@ func (r *Repository) QueryUsers(
 		user.FieldBannedAt,
 		user.FieldDataDeletedAt,
 		user.FieldScheduledForDeletionOn,
+		user.FieldUsername,
 	}
 
 	var query *ent.UserQuery
@@ -212,6 +213,7 @@ func (r *Repository) QueryUsers(
 		formatted := UserQueryResult{
 			ID:                     user.ID,
 			Email:                  user.Email,
+			Username:               user.Username,
 			StripeCustomerID:       user.StripeCustomerID,
 			CreatedAt:              user.CreatedAt,
 			StripeProductID:        user.ActiveProductID,
@@ -268,6 +270,7 @@ type UserQueryCredits struct {
 type UserQueryResult struct {
 	ID                     uuid.UUID          `json:"id"`
 	Email                  string             `json:"email"`
+	Username               string             `json:"username"`
 	StripeCustomerID       string             `json:"stripe_customer_id"`
 	Roles                  []string           `json:"role,omitempty"`
 	CreatedAt              time.Time          `json:"created_at"`
