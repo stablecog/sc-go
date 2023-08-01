@@ -187,8 +187,14 @@ func (r *Repository) RetrieveMostRecentGalleryData(filters *requests.QueryGenera
 }
 
 // Retrieves data in gallery format given  output IDs
-func (r *Repository) RetrieveGalleryDataWithOutputIDs(outputIDs []uuid.UUID) ([]GalleryData, error) {
-	res, err := r.DB.GenerationOutput.Query().Where(generationoutput.IDIn(outputIDs...), generationoutput.GalleryStatusEQ(generationoutput.GalleryStatusApproved)).
+func (r *Repository) RetrieveGalleryDataWithOutputIDs(outputIDs []uuid.UUID, approvedOnly bool) ([]GalleryData, error) {
+	q := r.DB.GenerationOutput.Query().Where(generationoutput.IDIn(outputIDs...))
+	if !approvedOnly {
+		q = q.Where(generationoutput.GalleryStatusIn(generationoutput.GalleryStatusApproved, generationoutput.GalleryStatusRejected, generationoutput.GalleryStatusSubmitted))
+	} else {
+		q = q.Where(generationoutput.GalleryStatusEQ(generationoutput.GalleryStatusApproved))
+	}
+	res, err := q.
 		WithGenerations(func(gq *ent.GenerationQuery) {
 			gq.WithPrompt()
 			gq.WithNegativePrompt()

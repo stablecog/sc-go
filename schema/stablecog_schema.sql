@@ -631,6 +631,14 @@ CREATE INDEX generation_user_id_status ON public.generations USING btree (user_i
 CREATE INDEX generation_user_id_status_created_at ON public.generations USING btree (user_id, status, created_at);
 
 
+drop index generation_user_id_status_created_at;
+drop index generation_user_id_status;
+drop index generation_user_id_created_at;
+
+CREATE INDEX generation_user_id_status_created_at ON generations (user_id, created_at)
+   WHERE deleted_at is null AND status='succeeded';
+
+
 --
 -- Name: generationoutput_id_gallery_status; Type: INDEX; Schema: public; Owner: postgres
 --
