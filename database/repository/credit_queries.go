@@ -31,7 +31,7 @@ var Now = time.Now
 
 func (r *Repository) GetFreeCreditReplenishesAtForUser(userID uuid.UUID) (*time.Time, *ent.Credit, *ent.CreditType, error) {
 	// Free type
-	ctype, err := r.GetOrCreateFreeCreditType()
+	ctype, err := r.GetOrCreateFreeCreditType(nil)
 	if err != nil {
 		log.Error("Error getting free credit type", "err", err)
 		return nil, nil, nil, err

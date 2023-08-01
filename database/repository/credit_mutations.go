@@ -125,7 +125,7 @@ func (r *Repository) GiveFreeCredits(userID uuid.UUID, DB *ent.Client) (added bo
 		DB = r.DB
 	}
 
-	creditType, err := r.GetOrCreateFreeCreditType()
+	creditType, err := r.GetOrCreateFreeCreditType(DB)
 	if err != nil {
 		return false, err
 	}
@@ -146,6 +146,44 @@ func (r *Repository) GiveFreeCredits(userID uuid.UUID, DB *ent.Client) (added bo
 	if err != nil {
 		return false, err
 	}
+
+	return true, nil
+}
+
+// Give free credits if eligible
+func (r *Repository) GiveFreeTippableCredits(userID uuid.UUID, DB *ent.Client) (added bool, err error) {
+	if DB == nil {
+		DB = r.DB
+	}
+
+	freeCreditType, err := r.GetOrCreateFreeCreditType(DB)
+	if err != nil {
+		return false, err
+	}
+
+	creditType, err := r.GetOrCreateTippableCreditType(DB)
+	if err != nil {
+		return false, err
+	}
+
+	// See if user has any credits of this type
+	credits, err := DB.Credit.Query().Where(credit.UserID(userID), credit.CreditTypeID(creditType.ID)).First(r.Ctx)
+	if err != nil && !ent.IsNotFound(err) {
+		return false, err
+	}
+
+	if credits != nil {
+		// User already has credits of this type
+		return false, nil
+	}
+
+	// Add credits
+	tippableAmount := int32(float64(freeCreditType.Amount) * shared.TIPPABLE_CREDIT_MULTIPLIER)
+	credits, err = DB.Credit.Create().SetCreditTypeID(creditType.ID).SetUserID(userID).SetRemainingAmount(tippableAmount).SetExpiresAt(NEVER_EXPIRE).Save(r.Ctx)
+	if err != nil {
+		return false, err
+	}
+
 	return true, nil
 }
 
@@ -186,13 +224,22 @@ func (r *Repository) AddAdhocCreditsIfEligible(creditType *ent.CreditType, userI
 }
 
 // Deduct credits from user, starting with credits that expire soonest. Return true if deduction was successful
-func (r *Repository) DeductCreditsFromUser(userID uuid.UUID, amount int32, DB *ent.Client) (success bool, err error) {
+func (r *Repository) DeductCreditsFromUser(userID uuid.UUID, amount int32, forTip bool, DB *ent.Client) (success bool, err error) {
 	if DB == nil {
 		DB = r.DB
 	}
+
 	rowsAffected, err := DB.Credit.Update().
 		Where(func(s *sql.Selector) {
 			t := sql.Table(credit.Table)
+			var forTipPredict *sql.Predicate
+			if forTip {
+				// Tippable type
+				forTipPredict = sql.EQ(t.C(credit.FieldCreditTypeID), uuid.MustParse(TIPPABLE_CREDIT_TYPE_ID))
+			} else {
+				// Not tippable type
+				forTipPredict = sql.NEQ(t.C(credit.FieldCreditTypeID), uuid.MustParse(TIPPABLE_CREDIT_TYPE_ID))
+			}
 			s.Where(
 				sql.EQ(t.C(credit.FieldID),
 					sql.Select(credit.FieldID).From(t).Where(
@@ -203,8 +250,7 @@ func (r *Repository) DeductCreditsFromUser(userID uuid.UUID, amount int32, DB *e
 							sql.EQ(t.C(credit.FieldUserID), userID),
 							// Has remaining amount
 							sql.GTE(t.C(credit.FieldRemainingAmount), amount),
-							// Not tippable type
-							sql.NEQ(t.C(credit.FieldCreditTypeID), uuid.MustParse(TIPPABLE_CREDIT_TYPE_ID)),
+							forTipPredict,
 						),
 					).OrderBy(sql.Asc(t.C(credit.FieldExpiresAt))).Limit(1),
 				),
@@ -221,7 +267,13 @@ func (r *Repository) DeductCreditsFromUser(userID uuid.UUID, amount int32, DB *e
 		}
 		if int32(totalCredits) >= amount {
 			// User has enough credits, deduct from lowest expiring types first
-			credits, err := DB.Credit.Query().Where(credit.UserID(userID), credit.RemainingAmountGT(0), credit.ExpiresAtGT(time.Now()), credit.CreditTypeIDNEQ(uuid.MustParse(TIPPABLE_CREDIT_TYPE_ID))).Order(ent.Asc(credit.FieldExpiresAt)).All(r.Ctx)
+			creditQ := DB.Credit.Query().Where(credit.UserID(userID), credit.RemainingAmountGT(0), credit.ExpiresAtGT(time.Now()))
+			if forTip {
+				creditQ = creditQ.Where(credit.CreditTypeIDEQ(uuid.MustParse(TIPPABLE_CREDIT_TYPE_ID)))
+			} else {
+				creditQ = creditQ.Where(credit.CreditTypeIDNEQ(uuid.MustParse(TIPPABLE_CREDIT_TYPE_ID)))
+			}
+			credits, err := creditQ.Order(ent.Asc(credit.FieldExpiresAt)).All(r.Ctx)
 			deducted := int32(0)
 			for _, c := range credits {
 				toDeduct := c.RemainingAmount - (amount - deducted)
@@ -279,7 +331,7 @@ func (r *Repository) RefundCreditsToUser(userID uuid.UUID, amount int32, db *ent
 // Replenish free credits where eligible
 func (r *Repository) ReplenishFreeCreditsToEligibleUsers(userIDs []uuid.UUID) (int, error) {
 	// Get free credit type
-	creditType, err := r.GetOrCreateFreeCreditType()
+	creditType, err := r.GetOrCreateFreeCreditType(nil)
 	if err != nil {
 		log.Error("Error getting free credit type", "err", err)
 		return 0, err

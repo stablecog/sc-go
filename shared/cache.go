@@ -7,6 +7,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/stablecog/sc-go/database/ent"
+	"golang.org/x/exp/slices"
 )
 
 // A singleton that caches the features available to free users
@@ -20,6 +21,7 @@ type Cache struct {
 	VoiceoverModels        []*ent.VoiceoverModel
 	VoiceoverSpeakers      []*ent.VoiceoverSpeaker
 	AdminIDs               []uuid.UUID
+	IPBlacklist            []string
 	DisposableEmailDomains []string
 }
 
@@ -193,6 +195,12 @@ func (f *Cache) UpdateDisposableEmailDomains(domains []string) {
 	f.DisposableEmailDomains = domains
 }
 
+func (f *Cache) UpdateIPBlacklist(ips []string) {
+	lock.Lock()
+	defer lock.Unlock()
+	f.IPBlacklist = ips
+}
+
 func (f *Cache) IsDisposableEmail(email string) bool {
 	if !strings.Contains(email, "@") {
 		for _, disposableDomain := range f.DisposableEmailDomains {
@@ -214,6 +222,10 @@ func (f *Cache) IsDisposableEmail(email string) bool {
 		}
 	}
 	return false
+}
+
+func (f *Cache) IsIPBanned(ip string) bool {
+	return slices.Contains(f.IPBlacklist, ip)
 }
 
 func (f *Cache) GetDefaultGenerationModel() *ent.GenerationModel {

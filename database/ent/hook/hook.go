@@ -105,6 +105,18 @@ func (f GenerationOutputFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.V
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.GenerationOutputMutation", m)
 }
 
+// The IPBlackListFunc type is an adapter to allow the use of ordinary
+// function as IPBlackList mutator.
+type IPBlackListFunc func(context.Context, *ent.IPBlackListMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f IPBlackListFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.IPBlackListMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.IPBlackListMutation", m)
+}
+
 // The NegativePromptFunc type is an adapter to allow the use of ordinary
 // function as NegativePrompt mutator.
 type NegativePromptFunc func(context.Context, *ent.NegativePromptMutation) (ent.Value, error)
@@ -151,6 +163,18 @@ func (f SchedulerFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, e
 		return f(ctx, mv)
 	}
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.SchedulerMutation", m)
+}
+
+// The TipLogFunc type is an adapter to allow the use of ordinary
+// function as TipLog mutator.
+type TipLogFunc func(context.Context, *ent.TipLogMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f TipLogFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.TipLogMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.TipLogMutation", m)
 }
 
 // The UpscaleFunc type is an adapter to allow the use of ordinary

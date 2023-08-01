@@ -39,10 +39,12 @@ type (
 		Generation       []ent.Hook
 		GenerationModel  []ent.Hook
 		GenerationOutput []ent.Hook
+		IPBlackList      []ent.Hook
 		NegativePrompt   []ent.Hook
 		Prompt           []ent.Hook
 		Role             []ent.Hook
 		Scheduler        []ent.Hook
+		TipLog           []ent.Hook
 		Upscale          []ent.Hook
 		UpscaleModel     []ent.Hook
 		UpscaleOutput    []ent.Hook
@@ -61,10 +63,12 @@ type (
 		Generation       []ent.Interceptor
 		GenerationModel  []ent.Interceptor
 		GenerationOutput []ent.Interceptor
+		IPBlackList      []ent.Interceptor
 		NegativePrompt   []ent.Interceptor
 		Prompt           []ent.Interceptor
 		Role             []ent.Interceptor
 		Scheduler        []ent.Interceptor
+		TipLog           []ent.Interceptor
 		Upscale          []ent.Interceptor
 		UpscaleModel     []ent.Interceptor
 		UpscaleOutput    []ent.Interceptor

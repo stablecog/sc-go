@@ -19,10 +19,12 @@ import (
 	"github.com/stablecog/sc-go/database/ent/generation"
 	"github.com/stablecog/sc-go/database/ent/generationmodel"
 	"github.com/stablecog/sc-go/database/ent/generationoutput"
+	"github.com/stablecog/sc-go/database/ent/ipblacklist"
 	"github.com/stablecog/sc-go/database/ent/negativeprompt"
 	"github.com/stablecog/sc-go/database/ent/prompt"
 	"github.com/stablecog/sc-go/database/ent/role"
 	"github.com/stablecog/sc-go/database/ent/scheduler"
+	"github.com/stablecog/sc-go/database/ent/tiplog"
 	"github.com/stablecog/sc-go/database/ent/upscale"
 	"github.com/stablecog/sc-go/database/ent/upscalemodel"
 	"github.com/stablecog/sc-go/database/ent/upscaleoutput"
@@ -58,6 +60,8 @@ type Client struct {
 	GenerationModel *GenerationModelClient
 	// GenerationOutput is the client for interacting with the GenerationOutput builders.
 	GenerationOutput *GenerationOutputClient
+	// IPBlackList is the client for interacting with the IPBlackList builders.
+	IPBlackList *IPBlackListClient
 	// NegativePrompt is the client for interacting with the NegativePrompt builders.
 	NegativePrompt *NegativePromptClient
 	// Prompt is the client for interacting with the Prompt builders.
@@ -66,6 +70,8 @@ type Client struct {
 	Role *RoleClient
 	// Scheduler is the client for interacting with the Scheduler builders.
 	Scheduler *SchedulerClient
+	// TipLog is the client for interacting with the TipLog builders.
+	TipLog *TipLogClient
 	// Upscale is the client for interacting with the Upscale builders.
 	Upscale *UpscaleClient
 	// UpscaleModel is the client for interacting with the UpscaleModel builders.
@@ -103,10 +109,12 @@ func (c *Client) init() {
 	c.Generation = NewGenerationClient(c.config)
 	c.GenerationModel = NewGenerationModelClient(c.config)
 	c.GenerationOutput = NewGenerationOutputClient(c.config)
+	c.IPBlackList = NewIPBlackListClient(c.config)
 	c.NegativePrompt = NewNegativePromptClient(c.config)
 	c.Prompt = NewPromptClient(c.config)
 	c.Role = NewRoleClient(c.config)
 	c.Scheduler = NewSchedulerClient(c.config)
+	c.TipLog = NewTipLogClient(c.config)
 	c.Upscale = NewUpscaleClient(c.config)
 	c.UpscaleModel = NewUpscaleModelClient(c.config)
 	c.UpscaleOutput = NewUpscaleOutputClient(c.config)
@@ -156,10 +164,12 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		Generation:       NewGenerationClient(cfg),
 		GenerationModel:  NewGenerationModelClient(cfg),
 		GenerationOutput: NewGenerationOutputClient(cfg),
+		IPBlackList:      NewIPBlackListClient(cfg),
 		NegativePrompt:   NewNegativePromptClient(cfg),
 		Prompt:           NewPromptClient(cfg),
 		Role:             NewRoleClient(cfg),
 		Scheduler:        NewSchedulerClient(cfg),
+		TipLog:           NewTipLogClient(cfg),
 		Upscale:          NewUpscaleClient(cfg),
 		UpscaleModel:     NewUpscaleModelClient(cfg),
 		UpscaleOutput:    NewUpscaleOutputClient(cfg),
@@ -195,10 +205,12 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		Generation:       NewGenerationClient(cfg),
 		GenerationModel:  NewGenerationModelClient(cfg),
 		GenerationOutput: NewGenerationOutputClient(cfg),
+		IPBlackList:      NewIPBlackListClient(cfg),
 		NegativePrompt:   NewNegativePromptClient(cfg),
 		Prompt:           NewPromptClient(cfg),
 		Role:             NewRoleClient(cfg),
 		Scheduler:        NewSchedulerClient(cfg),
+		TipLog:           NewTipLogClient(cfg),
 		Upscale:          NewUpscaleClient(cfg),
 		UpscaleModel:     NewUpscaleModelClient(cfg),
 		UpscaleOutput:    NewUpscaleOutputClient(cfg),
@@ -243,10 +255,12 @@ func (c *Client) Use(hooks ...Hook) {
 	c.Generation.Use(hooks...)
 	c.GenerationModel.Use(hooks...)
 	c.GenerationOutput.Use(hooks...)
+	c.IPBlackList.Use(hooks...)
 	c.NegativePrompt.Use(hooks...)
 	c.Prompt.Use(hooks...)
 	c.Role.Use(hooks...)
 	c.Scheduler.Use(hooks...)
+	c.TipLog.Use(hooks...)
 	c.Upscale.Use(hooks...)
 	c.UpscaleModel.Use(hooks...)
 	c.UpscaleOutput.Use(hooks...)
@@ -268,10 +282,12 @@ func (c *Client) Intercept(interceptors ...Interceptor) {
 	c.Generation.Intercept(interceptors...)
 	c.GenerationModel.Intercept(interceptors...)
 	c.GenerationOutput.Intercept(interceptors...)
+	c.IPBlackList.Intercept(interceptors...)
 	c.NegativePrompt.Intercept(interceptors...)
 	c.Prompt.Intercept(interceptors...)
 	c.Role.Intercept(interceptors...)
 	c.Scheduler.Intercept(interceptors...)
+	c.TipLog.Intercept(interceptors...)
 	c.Upscale.Intercept(interceptors...)
 	c.UpscaleModel.Intercept(interceptors...)
 	c.UpscaleOutput.Intercept(interceptors...)
@@ -301,6 +317,8 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.GenerationModel.mutate(ctx, m)
 	case *GenerationOutputMutation:
 		return c.GenerationOutput.mutate(ctx, m)
+	case *IPBlackListMutation:
+		return c.IPBlackList.mutate(ctx, m)
 	case *NegativePromptMutation:
 		return c.NegativePrompt.mutate(ctx, m)
 	case *PromptMutation:
@@ -309,6 +327,8 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.Role.mutate(ctx, m)
 	case *SchedulerMutation:
 		return c.Scheduler.mutate(ctx, m)
+	case *TipLogMutation:
+		return c.TipLog.mutate(ctx, m)
 	case *UpscaleMutation:
 		return c.Upscale.mutate(ctx, m)
 	case *UpscaleModelMutation:
@@ -1690,6 +1710,124 @@ func (c *GenerationOutputClient) mutate(ctx context.Context, m *GenerationOutput
 	}
 }
 
+// IPBlackListClient is a client for the IPBlackList schema.
+type IPBlackListClient struct {
+	config
+}
+
+// NewIPBlackListClient returns a client for the IPBlackList from the given config.
+func NewIPBlackListClient(c config) *IPBlackListClient {
+	return &IPBlackListClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `ipblacklist.Hooks(f(g(h())))`.
+func (c *IPBlackListClient) Use(hooks ...Hook) {
+	c.hooks.IPBlackList = append(c.hooks.IPBlackList, hooks...)
+}
+
+// Use adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `ipblacklist.Intercept(f(g(h())))`.
+func (c *IPBlackListClient) Intercept(interceptors ...Interceptor) {
+	c.inters.IPBlackList = append(c.inters.IPBlackList, interceptors...)
+}
+
+// Create returns a builder for creating a IPBlackList entity.
+func (c *IPBlackListClient) Create() *IPBlackListCreate {
+	mutation := newIPBlackListMutation(c.config, OpCreate)
+	return &IPBlackListCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of IPBlackList entities.
+func (c *IPBlackListClient) CreateBulk(builders ...*IPBlackListCreate) *IPBlackListCreateBulk {
+	return &IPBlackListCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for IPBlackList.
+func (c *IPBlackListClient) Update() *IPBlackListUpdate {
+	mutation := newIPBlackListMutation(c.config, OpUpdate)
+	return &IPBlackListUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *IPBlackListClient) UpdateOne(ibl *IPBlackList) *IPBlackListUpdateOne {
+	mutation := newIPBlackListMutation(c.config, OpUpdateOne, withIPBlackList(ibl))
+	return &IPBlackListUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *IPBlackListClient) UpdateOneID(id uuid.UUID) *IPBlackListUpdateOne {
+	mutation := newIPBlackListMutation(c.config, OpUpdateOne, withIPBlackListID(id))
+	return &IPBlackListUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for IPBlackList.
+func (c *IPBlackListClient) Delete() *IPBlackListDelete {
+	mutation := newIPBlackListMutation(c.config, OpDelete)
+	return &IPBlackListDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *IPBlackListClient) DeleteOne(ibl *IPBlackList) *IPBlackListDeleteOne {
+	return c.DeleteOneID(ibl.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *IPBlackListClient) DeleteOneID(id uuid.UUID) *IPBlackListDeleteOne {
+	builder := c.Delete().Where(ipblacklist.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &IPBlackListDeleteOne{builder}
+}
+
+// Query returns a query builder for IPBlackList.
+func (c *IPBlackListClient) Query() *IPBlackListQuery {
+	return &IPBlackListQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeIPBlackList},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a IPBlackList entity by its id.
+func (c *IPBlackListClient) Get(ctx context.Context, id uuid.UUID) (*IPBlackList, error) {
+	return c.Query().Where(ipblacklist.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *IPBlackListClient) GetX(ctx context.Context, id uuid.UUID) *IPBlackList {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *IPBlackListClient) Hooks() []Hook {
+	return c.hooks.IPBlackList
+}
+
+// Interceptors returns the client interceptors.
+func (c *IPBlackListClient) Interceptors() []Interceptor {
+	return c.inters.IPBlackList
+}
+
+func (c *IPBlackListClient) mutate(ctx context.Context, m *IPBlackListMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&IPBlackListCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&IPBlackListUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&IPBlackListUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&IPBlackListDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown IPBlackList mutation op: %q", m.Op())
+	}
+}
+
 // NegativePromptClient is a client for the NegativePrompt schema.
 type NegativePromptClient struct {
 	config
@@ -2255,6 +2393,156 @@ func (c *SchedulerClient) mutate(ctx context.Context, m *SchedulerMutation) (Val
 		return (&SchedulerDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("ent: unknown Scheduler mutation op: %q", m.Op())
+	}
+}
+
+// TipLogClient is a client for the TipLog schema.
+type TipLogClient struct {
+	config
+}
+
+// NewTipLogClient returns a client for the TipLog from the given config.
+func NewTipLogClient(c config) *TipLogClient {
+	return &TipLogClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `tiplog.Hooks(f(g(h())))`.
+func (c *TipLogClient) Use(hooks ...Hook) {
+	c.hooks.TipLog = append(c.hooks.TipLog, hooks...)
+}
+
+// Use adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `tiplog.Intercept(f(g(h())))`.
+func (c *TipLogClient) Intercept(interceptors ...Interceptor) {
+	c.inters.TipLog = append(c.inters.TipLog, interceptors...)
+}
+
+// Create returns a builder for creating a TipLog entity.
+func (c *TipLogClient) Create() *TipLogCreate {
+	mutation := newTipLogMutation(c.config, OpCreate)
+	return &TipLogCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of TipLog entities.
+func (c *TipLogClient) CreateBulk(builders ...*TipLogCreate) *TipLogCreateBulk {
+	return &TipLogCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for TipLog.
+func (c *TipLogClient) Update() *TipLogUpdate {
+	mutation := newTipLogMutation(c.config, OpUpdate)
+	return &TipLogUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *TipLogClient) UpdateOne(tl *TipLog) *TipLogUpdateOne {
+	mutation := newTipLogMutation(c.config, OpUpdateOne, withTipLog(tl))
+	return &TipLogUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *TipLogClient) UpdateOneID(id uuid.UUID) *TipLogUpdateOne {
+	mutation := newTipLogMutation(c.config, OpUpdateOne, withTipLogID(id))
+	return &TipLogUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for TipLog.
+func (c *TipLogClient) Delete() *TipLogDelete {
+	mutation := newTipLogMutation(c.config, OpDelete)
+	return &TipLogDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *TipLogClient) DeleteOne(tl *TipLog) *TipLogDeleteOne {
+	return c.DeleteOneID(tl.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *TipLogClient) DeleteOneID(id uuid.UUID) *TipLogDeleteOne {
+	builder := c.Delete().Where(tiplog.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &TipLogDeleteOne{builder}
+}
+
+// Query returns a query builder for TipLog.
+func (c *TipLogClient) Query() *TipLogQuery {
+	return &TipLogQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeTipLog},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a TipLog entity by its id.
+func (c *TipLogClient) Get(ctx context.Context, id uuid.UUID) (*TipLog, error) {
+	return c.Query().Where(tiplog.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *TipLogClient) GetX(ctx context.Context, id uuid.UUID) *TipLog {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryTipsReceived queries the tips_received edge of a TipLog.
+func (c *TipLogClient) QueryTipsReceived(tl *TipLog) *UserQuery {
+	query := (&UserClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := tl.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(tiplog.Table, tiplog.FieldID, id),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, tiplog.TipsReceivedTable, tiplog.TipsReceivedColumn),
+		)
+		fromV = sqlgraph.Neighbors(tl.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryTipsGiven queries the tips_given edge of a TipLog.
+func (c *TipLogClient) QueryTipsGiven(tl *TipLog) *UserQuery {
+	query := (&UserClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := tl.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(tiplog.Table, tiplog.FieldID, id),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, tiplog.TipsGivenTable, tiplog.TipsGivenColumn),
+		)
+		fromV = sqlgraph.Neighbors(tl.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *TipLogClient) Hooks() []Hook {
+	return c.hooks.TipLog
+}
+
+// Interceptors returns the client interceptors.
+func (c *TipLogClient) Interceptors() []Interceptor {
+	return c.inters.TipLog
+}
+
+func (c *TipLogClient) mutate(ctx context.Context, m *TipLogMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&TipLogCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&TipLogUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&TipLogUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&TipLogDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown TipLog mutation op: %q", m.Op())
 	}
 }
 
@@ -2906,6 +3194,38 @@ func (c *UserClient) QueryAPITokens(u *User) *ApiTokenQuery {
 			sqlgraph.From(user.Table, user.FieldID, id),
 			sqlgraph.To(apitoken.Table, apitoken.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, user.APITokensTable, user.APITokensColumn),
+		)
+		fromV = sqlgraph.Neighbors(u.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryTipsGiven queries the tips_given edge of a User.
+func (c *UserClient) QueryTipsGiven(u *User) *TipLogQuery {
+	query := (&TipLogClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := u.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, id),
+			sqlgraph.To(tiplog.Table, tiplog.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.TipsGivenTable, user.TipsGivenColumn),
+		)
+		fromV = sqlgraph.Neighbors(u.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryTipsReceived queries the tips_received edge of a User.
+func (c *UserClient) QueryTipsReceived(u *User) *TipLogQuery {
+	query := (&TipLogClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := u.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, id),
+			sqlgraph.To(tiplog.Table, tiplog.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.TipsReceivedTable, user.TipsReceivedColumn),
 		)
 		fromV = sqlgraph.Neighbors(u.driver.Dialect(), step)
 		return fromV, nil

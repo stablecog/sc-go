@@ -410,6 +410,13 @@ func (filters *QueryGenerationFilters) ParseURLQueryParameters(urlValues url.Val
 func (filters *QueryGenerationFilters) ToQdrantFilters(ignoreGalleryStatus bool) (f *qdrant.SearchRequest_Filter, scoreThreshold *float32) {
 	f = &qdrant.SearchRequest_Filter{}
 
+	if filters.UserID != nil {
+		f.Must = append(f.Must, qdrant.SCMatchCondition{
+			Key:   "user_id",
+			Match: &qdrant.SCValue{Value: filters.UserID.String()},
+		})
+	}
+
 	if filters.PromptID != nil {
 		f.Must = append(f.Must, qdrant.SCMatchCondition{
 			Key:   "prompt_id",

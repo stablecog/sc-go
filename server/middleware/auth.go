@@ -11,6 +11,7 @@ import (
 	"github.com/stablecog/sc-go/database/ent"
 	"github.com/stablecog/sc-go/log"
 	"github.com/stablecog/sc-go/server/responses"
+	"github.com/stablecog/sc-go/shared"
 	"github.com/stablecog/sc-go/utils"
 )
 
@@ -29,6 +30,12 @@ func (m *Middleware) AuthMiddleware(level AuthLevel) func(next http.Handler) htt
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			authHeader := strings.Split(r.Header.Get("Authorization"), "Bearer ")
 			if len(authHeader) != 2 {
+				responses.ErrUnauthorized(w, r)
+				return
+			}
+
+			ip := utils.GetIPAddress(r)
+			if shared.GetCache().IsIPBanned(ip) {
 				responses.ErrUnauthorized(w, r)
 				return
 			}

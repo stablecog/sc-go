@@ -37,6 +37,7 @@ func (r *Repository) SubmitGenerationOutputsToGalleryForUser(outputIDs []uuid.UU
 	var qdrantIds []uuid.UUID
 	qdrantPayload := map[string]interface{}{
 		"gallery_status": generationoutput.GalleryStatusSubmitted,
+		"is_public":      true,
 	}
 	for _, output := range outputs {
 		ids = append(ids, output.ID)
@@ -49,7 +50,7 @@ func (r *Repository) SubmitGenerationOutputsToGalleryForUser(outputIDs []uuid.UU
 	if err := r.WithTx(func(tx *ent.Tx) error {
 		u, err := r.DB.GenerationOutput.Update().
 			Where(generationoutput.IDIn(ids...)).
-			SetGalleryStatus(generationoutput.GalleryStatusSubmitted).Save(r.Ctx)
+			SetGalleryStatus(generationoutput.GalleryStatusSubmitted).SetIsPublic(true).Save(r.Ctx)
 		if err != nil {
 			log.Error("Error updating generation outputs to gallery", "err", err)
 			return err

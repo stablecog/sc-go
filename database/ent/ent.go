@@ -19,10 +19,12 @@ import (
 	"github.com/stablecog/sc-go/database/ent/generation"
 	"github.com/stablecog/sc-go/database/ent/generationmodel"
 	"github.com/stablecog/sc-go/database/ent/generationoutput"
+	"github.com/stablecog/sc-go/database/ent/ipblacklist"
 	"github.com/stablecog/sc-go/database/ent/negativeprompt"
 	"github.com/stablecog/sc-go/database/ent/prompt"
 	"github.com/stablecog/sc-go/database/ent/role"
 	"github.com/stablecog/sc-go/database/ent/scheduler"
+	"github.com/stablecog/sc-go/database/ent/tiplog"
 	"github.com/stablecog/sc-go/database/ent/upscale"
 	"github.com/stablecog/sc-go/database/ent/upscalemodel"
 	"github.com/stablecog/sc-go/database/ent/upscaleoutput"
@@ -66,10 +68,12 @@ func columnChecker(table string) func(string) error {
 		generation.Table:       generation.ValidColumn,
 		generationmodel.Table:  generationmodel.ValidColumn,
 		generationoutput.Table: generationoutput.ValidColumn,
+		ipblacklist.Table:      ipblacklist.ValidColumn,
 		negativeprompt.Table:   negativeprompt.ValidColumn,
 		prompt.Table:           prompt.ValidColumn,
 		role.Table:             role.ValidColumn,
 		scheduler.Table:        scheduler.ValidColumn,
+		tiplog.Table:           tiplog.ValidColumn,
 		upscale.Table:          upscale.ValidColumn,
 		upscalemodel.Table:     upscalemodel.ValidColumn,
 		upscaleoutput.Table:    upscaleoutput.ValidColumn,

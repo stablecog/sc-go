@@ -37,6 +37,10 @@ type User struct {
 	WantsEmail *bool `json:"wants_email,omitempty"`
 	// DiscordID holds the value of the "discord_id" field.
 	DiscordID *string `json:"discord_id,omitempty"`
+	// Username holds the value of the "username" field.
+	Username string `json:"username,omitempty"`
+	// UsernameChangedAt holds the value of the "username_changed_at" field.
+	UsernameChangedAt *time.Time `json:"username_changed_at,omitempty"`
 	// CreatedAt holds the value of the "created_at" field.
 	CreatedAt time.Time `json:"created_at,omitempty"`
 	// UpdatedAt holds the value of the "updated_at" field.
@@ -58,11 +62,15 @@ type UserEdges struct {
 	Credits []*Credit `json:"credits,omitempty"`
 	// APITokens holds the value of the api_tokens edge.
 	APITokens []*ApiToken `json:"api_tokens,omitempty"`
+	// TipsGiven holds the value of the tips_given edge.
+	TipsGiven []*TipLog `json:"tips_given,omitempty"`
+	// TipsReceived holds the value of the tips_received edge.
+	TipsReceived []*TipLog `json:"tips_received,omitempty"`
 	// Roles holds the value of the roles edge.
 	Roles []*Role `json:"roles,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [6]bool
+	loadedTypes [8]bool
 }
 
 // GenerationsOrErr returns the Generations value or an error if the edge
@@ -110,10 +118,28 @@ func (e UserEdges) APITokensOrErr() ([]*ApiToken, error) {
 	return nil, &NotLoadedError{edge: "api_tokens"}
 }
 
+// TipsGivenOrErr returns the TipsGiven value or an error if the edge
+// was not loaded in eager-loading.
+func (e UserEdges) TipsGivenOrErr() ([]*TipLog, error) {
+	if e.loadedTypes[5] {
+		return e.TipsGiven, nil
+	}
+	return nil, &NotLoadedError{edge: "tips_given"}
+}
+
+// TipsReceivedOrErr returns the TipsReceived value or an error if the edge
+// was not loaded in eager-loading.
+func (e UserEdges) TipsReceivedOrErr() ([]*TipLog, error) {
+	if e.loadedTypes[6] {
+		return e.TipsReceived, nil
+	}
+	return nil, &NotLoadedError{edge: "tips_received"}
+}
+
 // RolesOrErr returns the Roles value or an error if the edge
 // was not loaded in eager-loading.
 func (e UserEdges) RolesOrErr() ([]*Role, error) {
-	if e.loadedTypes[5] {
+	if e.loadedTypes[7] {
 		return e.Roles, nil
 	}
 	return nil, &NotLoadedError{edge: "roles"}
@@ -126,9 +152,9 @@ func (*User) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case user.FieldWantsEmail:
 			values[i] = new(sql.NullBool)
-		case user.FieldEmail, user.FieldStripeCustomerID, user.FieldActiveProductID, user.FieldDiscordID:
+		case user.FieldEmail, user.FieldStripeCustomerID, user.FieldActiveProductID, user.FieldDiscordID, user.FieldUsername:
 			values[i] = new(sql.NullString)
-		case user.FieldLastSignInAt, user.FieldLastSeenAt, user.FieldBannedAt, user.FieldScheduledForDeletionOn, user.FieldDataDeletedAt, user.FieldCreatedAt, user.FieldUpdatedAt:
+		case user.FieldLastSignInAt, user.FieldLastSeenAt, user.FieldBannedAt, user.FieldScheduledForDeletionOn, user.FieldDataDeletedAt, user.FieldUsernameChangedAt, user.FieldCreatedAt, user.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
 		case user.FieldID:
 			values[i] = new(uuid.UUID)
@@ -220,6 +246,19 @@ func (u *User) assignValues(columns []string, values []any) error {
 				u.DiscordID = new(string)
 				*u.DiscordID = value.String
 			}
+		case user.FieldUsername:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field username", values[i])
+			} else if value.Valid {
+				u.Username = value.String
+			}
+		case user.FieldUsernameChangedAt:
+			if value, ok := values[i].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field username_changed_at", values[i])
+			} else if value.Valid {
+				u.UsernameChangedAt = new(time.Time)
+				*u.UsernameChangedAt = value.Time
+			}
 		case user.FieldCreatedAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
 				return fmt.Errorf("unexpected type %T for field created_at", values[i])
@@ -260,6 +299,16 @@ func (u *User) QueryCredits() *CreditQuery {
 // QueryAPITokens queries the "api_tokens" edge of the User entity.
 func (u *User) QueryAPITokens() *ApiTokenQuery {
 	return NewUserClient(u.config).QueryAPITokens(u)
+}
+
+// QueryTipsGiven queries the "tips_given" edge of the User entity.
+func (u *User) QueryTipsGiven() *TipLogQuery {
+	return NewUserClient(u.config).QueryTipsGiven(u)
+}
+
+// QueryTipsReceived queries the "tips_received" edge of the User entity.
+func (u *User) QueryTipsReceived() *TipLogQuery {
+	return NewUserClient(u.config).QueryTipsReceived(u)
 }
 
 // QueryRoles queries the "roles" edge of the User entity.
@@ -332,6 +381,14 @@ func (u *User) String() string {
 	if v := u.DiscordID; v != nil {
 		builder.WriteString("discord_id=")
 		builder.WriteString(*v)
+	}
+	builder.WriteString(", ")
+	builder.WriteString("username=")
+	builder.WriteString(u.Username)
+	builder.WriteString(", ")
+	if v := u.UsernameChangedAt; v != nil {
+		builder.WriteString("username_changed_at=")
+		builder.WriteString(v.Format(time.ANSIC))
 	}
 	builder.WriteString(", ")
 	builder.WriteString("created_at=")

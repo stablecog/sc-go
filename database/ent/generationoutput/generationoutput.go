@@ -24,6 +24,8 @@ const (
 	FieldIsFavorited = "is_favorited"
 	// FieldHasEmbeddings holds the string denoting the has_embeddings field in the database.
 	FieldHasEmbeddings = "has_embeddings"
+	// FieldIsPublic holds the string denoting the is_public field in the database.
+	FieldIsPublic = "is_public"
 	// FieldGenerationID holds the string denoting the generation_id field in the database.
 	FieldGenerationID = "generation_id"
 	// FieldDeletedAt holds the string denoting the deleted_at field in the database.
@@ -79,6 +81,7 @@ var Columns = []string{
 	FieldGalleryStatus,
 	FieldIsFavorited,
 	FieldHasEmbeddings,
+	FieldIsPublic,
 	FieldGenerationID,
 	FieldDeletedAt,
 	FieldCreatedAt,
@@ -109,6 +112,8 @@ var (
 	DefaultIsFavorited bool
 	// DefaultHasEmbeddings holds the default value on creation for the "has_embeddings" field.
 	DefaultHasEmbeddings bool
+	// DefaultIsPublic holds the default value on creation for the "is_public" field.
+	DefaultIsPublic bool
 	// DefaultCreatedAt holds the default value on creation for the "created_at" field.
 	DefaultCreatedAt func() time.Time
 	// DefaultUpdatedAt holds the default value on creation for the "updated_at" field.

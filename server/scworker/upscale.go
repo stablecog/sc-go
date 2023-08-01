@@ -268,7 +268,7 @@ func (w *SCWorker) CreateUpscale(source enttypes.SourceType,
 		// Bind a client to the transaction
 		DB := tx.Client()
 		// Deduct credits from user
-		deducted, err := w.Repo.DeductCreditsFromUser(user.ID, 1, DB)
+		deducted, err := w.Repo.DeductCreditsFromUser(user.ID, 1, false, DB)
 		if err != nil {
 			log.Error("Error deducting credits", "err", err)
 			return err

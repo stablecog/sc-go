@@ -67,6 +67,8 @@ func main() {
 	destUser := flag.String("dest-user", "", "destination user id")
 	cursorEmbeddings := flag.String("cursor-embeddings", "", "Cursor for loading embeddings")
 	syncPromptId := flag.Bool("sync-prompt-id", false, "Sync prompt_id to qdrant")
+	syncIsPublic := flag.Bool("sync-is-public", false, "Sync is_public to qdrant")
+	migrateUsername := flag.Bool("migrate-username", false, "Generate usernames for existing users")
 
 	flag.Parse()
 
@@ -192,6 +194,71 @@ func main() {
 			cur += len(gens)
 		}
 		log.Infof("Done, sync'd %d", cur)
+		os.Exit(0)
+	}
+
+	if *syncIsPublic {
+		log.Info("🏡 Loading qdrant data...")
+		each := 500
+		cur := 0
+		var cursor *time.Time
+		if *cursorEmbeddings != "" {
+			t, err := time.Parse(time.RFC3339, *cursorEmbeddings)
+			if err != nil {
+				log.Fatal("Failed to parse cursor", "err", err)
+			}
+			cursor = &t
+		}
+
+		for {
+			log.Info("Loading batch of embeddings", "cur", cur, "each", each)
+			start := time.Now()
+			q := repo.DB.GenerationOutput.Query().Where(generationoutput.HasEmbeddings(true), generationoutput.DeletedAtIsNil(), generationoutput.ImagePathNEQ("placeholder.webp"))
+			if cursor != nil {
+				q = q.Where(generationoutput.CreatedAtLT(*cursor))
+			}
+			gens, err := q.Order(ent.Desc(generationoutput.FieldCreatedAt)).Limit(each).All(ctx)
+			if err != nil {
+				if cursor != nil {
+					log.Info("Last cursor", "cursor", cursor.Format(time.RFC3339Nano))
+				}
+				log.Fatal("Failed to load generation outputs", "err", err)
+			}
+			log.Infof("Retreived generations in %s", time.Since(start))
+
+			if len(gens) == 0 {
+				break
+			}
+
+			for _, gen := range gens {
+				properties := make(map[string]interface{})
+				properties["is_public"] = gen.IsPublic
+				err = qdrantClient.SetPayload(properties, []uuid.UUID{gen.ID}, false)
+				if err != nil {
+					log.Fatal("Failed to set payload", "err", err)
+				}
+			}
+			// Update cursor
+			cursor = &gens[len(gens)-1].CreatedAt
+			log.Info("Last cursor", "cursor", cursor.Format(time.RFC3339Nano))
+			log.Infof("Loaded %d generations", len(gens))
+			cur += len(gens)
+		}
+		log.Infof("Done, sync'd %d", cur)
+		os.Exit(0)
+	}
+
+	if *migrateUsername {
+		log.Info("🏡 Generating usernames...")
+		users, err := repo.DB.User.Query().All(ctx)
+		if err != nil {
+			log.Fatal("Failed to migrate usernames", "err", err)
+			os.Exit(1)
+		}
+		for _, user := range users {
+			repo.DB.User.UpdateOne(user).SetUsername(utils.GenerateUsername(nil)).SaveX(ctx)
+		}
+		log.Info("Done")
 		os.Exit(0)
 	}
 
@@ -416,6 +483,15 @@ func main() {
 			r.Get("/", hc.HandleSemanticSearchGallery)
 		})
 
+		// User profiles
+		r.Route("/profile", func(r chi.Router) {
+			r.Use(middleware.Logger)
+			// 20 requests per second
+			r.Use(mw.RateLimit(20, "srv", 1*time.Second))
+			r.Get("/{username}/outputs", hc.HandleUserProfileSemanticSearch)
+			r.Get("/{username}/metadata", hc.HandleGetUserProfileMetadata)
+		})
+
 		// Routes that require authentication
 		r.Route("/user", func(r chi.Router) {
 			r.Use(mw.AuthMiddleware(middleware.AuthLevelAny))
@@ -462,6 +538,7 @@ func main() {
 
 			// Query voiceover outputs
 			r.Get("/audio/voiceover/outputs", hc.HandleQueryVoiceovers)
+			r.Delete("/audio/voiceover", hc.HandleDeleteVoiceoverOutputForUser)
 
 			// Query credits
 			r.Get("/credits", hc.HandleQueryCredits)
@@ -484,6 +561,9 @@ func main() {
 
 			// Email preferences
 			r.Post("/email", hc.HandleUpdateEmailPreferences)
+
+			// Username
+			r.Post("/username/change", hc.HandleUpdateUsername)
 		})
 
 		// Admin only routes

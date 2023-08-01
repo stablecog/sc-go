@@ -380,7 +380,7 @@ CREATE TABLE public.users (
     banned_at timestamp with time zone,
     data_deleted_at timestamp with time zone,
     scheduled_for_deletion_on timestamp with time zone,
-    wants_email,
+    wants_email boolean default false not null,
     created_at timestamp with time zone DEFAULT timezone('utc'::text, now()) NOT NULL,
     updated_at timestamp with time zone DEFAULT timezone('utc'::text, now()) NOT NULL
 );
@@ -628,7 +628,15 @@ CREATE INDEX generation_user_id_status ON public.generations USING btree (user_i
 -- Name: generation_user_id_status_created_at; Type: INDEX; Schema: public; Owner: postgres
 --
 
-CREATE INDEX generation_user_id_status_created_at ON public.generations USING btree (user_id, status, created_at);
+CREATE INDEX generation_user_id_status_created_at ON public.generations USING btree (status, user_id, created_at);
+
+
+drop index generation_user_id_status_created_at;
+drop index generation_user_id_status;
+drop index generation_user_id_created_at;
+
+CREATE INDEX generation_user_id_status_created_at ON generations (user_id, created_at)
+   WHERE deleted_at is null AND status='succeeded';
 
 
 --
@@ -1108,3 +1116,52 @@ CREATE TABLE "public"."generation_output_zoomed_outputs" ("generation_output_id"
 
 alter table public.generations add column mask_image_url text;
 alter table public.generations add column zoom_out_scale real;
+
+-- Create "tip_log" table
+CREATE TABLE "public"."tip_log" (
+    "id"                UUID DEFAULT extensions.uuid_generate_v4() NOT NULL,
+  "amount" integer NOT NULL, 
+  "tipped_by" uuid NOT NULL, 
+  "tipped_to" uuid NULL, 
+    "tipped_to_discord_id" text NOT NULL, 
+    created_at timestamp with time zone DEFAULT (now() AT TIME ZONE 'utc'::text) NOT NULL,
+    updated_at timestamp with time zone DEFAULT (now() AT TIME ZONE 'utc'::text) NOT NULL,
+  PRIMARY KEY ("id"), 
+  CONSTRAINT "tip_log_users_tips_given" FOREIGN KEY ("tipped_by") REFERENCES "auth"."users" ("id") ON UPDATE NO ACTION ON DELETE CASCADE, 
+  CONSTRAINT "tip_log_users_tips_received" FOREIGN KEY ("tipped_to") REFERENCES "auth"."users" ("id") ON UPDATE NO ACTION ON DELETE CASCADE
+);
+
+CREATE trigger handle_updated_at before
+UPDATE
+    ON public.tip_log FOR each ROW EXECUTE PROCEDURE moddatetime (updated_at);
+
+ALTER TABLE public.tip_log ENABLE ROW LEVEL SECURITY;
+
+
+-- Usernames
+alter table public.users add column username text null;
+CREATE UNIQUE INDEX users_username_key ON public.users USING btree (username);
+
+-- Make usernames not null
+alter table public.users alter column username set not null;
+
+-- IP Blacklist
+
+CREATE TABLE public.ip_blacklist (
+    id uuid DEFAULT extensions.uuid_generate_v4() NOT NULL,
+    ip text NOT NULL,
+    created_at timestamp with time zone DEFAULT timezone('utc'::text, now()) NOT NULL,
+    updated_at timestamp with time zone DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+CREATE trigger handle_updated_at before
+UPDATE
+    ON public.ip_blacklist FOR each ROW EXECUTE PROCEDURE moddatetime (updated_at);
+
+ALTER TABLE public.ip_blacklist ENABLE ROW LEVEL SECURITY;
+
+-- Add username_changed_at
+alter table public.users add column username_changed_at timestamp with time zone null;
+
+-- add is_public
+alter table public.generation_outputs add column is_public boolean not null default false;

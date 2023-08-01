@@ -2,6 +2,7 @@ package rest
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -48,7 +49,7 @@ func (c *RestAPI) HandleGetUser(w http.ResponseWriter, r *http.Request) {
 		return
 	} else if user == nil {
 		// Handle create user flow
-		freeCreditType, err := c.Repo.GetOrCreateFreeCreditType()
+		freeCreditType, err := c.Repo.GetOrCreateFreeCreditType(nil)
 		if err != nil {
 			log.Error("Error getting free credit type", "err", err)
 			responses.ErrInternalServerError(w, r, "An unknown error has occurred")
@@ -56,6 +57,17 @@ func (c *RestAPI) HandleGetUser(w http.ResponseWriter, r *http.Request) {
 		}
 		if freeCreditType == nil {
 			log.Error("Server misconfiguration: a credit_type with the name 'free' must exist")
+			responses.ErrInternalServerError(w, r, "An unknown error has occurred")
+			return
+		}
+		tippableCreditType, err := c.Repo.GetOrCreateTippableCreditType(nil)
+		if err != nil {
+			log.Error("Error getting tippable credit type", "err", err)
+			responses.ErrInternalServerError(w, r, "An unknown error has occurred")
+			return
+		}
+		if tippableCreditType == nil {
+			log.Error("Server misconfiguration: a credit_type with the name 'tippable' must exist")
 			responses.ErrInternalServerError(w, r, "An unknown error has occurred")
 			return
 		}
@@ -98,6 +110,13 @@ func (c *RestAPI) HandleGetUser(w http.ResponseWriter, r *http.Request) {
 			added, err := c.Repo.GiveFreeCredits(u.ID, client)
 			if err != nil || !added {
 				log.Error("Error adding free credits", "err", err)
+				return err
+			}
+
+			// Add free tippable credits
+			added, err = c.Repo.GiveFreeTippableCredits(u.ID, client)
+			if err != nil || !added {
+				log.Error("Error adding free tippable credits", "err", err)
 				return err
 			}
 
@@ -239,6 +258,9 @@ func (c *RestAPI) HandleGetUser(w http.ResponseWriter, r *http.Request) {
 		Roles:                 roles,
 		MoreCreditsAt:         moreCreditsAt,
 		WantsEmail:            user.WantsEmail,
+		Username:              user.Username,
+		CreatedAt:             user.CreatedAt,
+		UsernameChangedAt:     user.UsernameChangedAt,
 	})
 }
 
@@ -568,6 +590,40 @@ func (c *RestAPI) HandleFavoriteGenerationOutputsForUser(w http.ResponseWriter, 
 	render.JSON(w, r, res)
 }
 
+// HTTP DELETE - delete voiceover
+func (c *RestAPI) HandleDeleteVoiceoverOutputForUser(w http.ResponseWriter, r *http.Request) {
+	var user *ent.User
+	if user = c.GetUserIfAuthenticated(w, r); user == nil {
+		return
+	}
+
+	if user.BannedAt != nil {
+		responses.ErrForbidden(w, r)
+		return
+	}
+
+	// Parse request body
+	reqBody, _ := io.ReadAll(r.Body)
+	var deleteReq requests.DeleteVoiceoverRequest
+	err := json.Unmarshal(reqBody, &deleteReq)
+	if err != nil {
+		responses.ErrUnableToParseJson(w, r)
+		return
+	}
+
+	count, err := c.Repo.MarkVoiceoverOutputsForDeletionForUser(deleteReq.OutputIDs, user.ID)
+	if err != nil {
+		responses.ErrInternalServerError(w, r, err.Error())
+		return
+	}
+
+	res := responses.DeletedResponse{
+		Deleted: count,
+	}
+	render.Status(r, http.StatusOK)
+	render.JSON(w, r, res)
+}
+
 // HTTP POST - set email preferences
 func (c *RestAPI) HandleUpdateEmailPreferences(w http.ResponseWriter, r *http.Request) {
 	var user *ent.User
@@ -602,4 +658,49 @@ func (c *RestAPI) HandleUpdateEmailPreferences(w http.ResponseWriter, r *http.Re
 	}
 	render.Status(r, http.StatusOK)
 	render.JSON(w, r, res)
+}
+
+// HTTP POST - set email preferences
+func (c *RestAPI) HandleUpdateUsername(w http.ResponseWriter, r *http.Request) {
+	var user *ent.User
+	if user = c.GetUserIfAuthenticated(w, r); user == nil {
+		return
+	}
+
+	if user.BannedAt != nil {
+		responses.ErrForbidden(w, r)
+		return
+	}
+
+	// Parse request body
+	reqBody, _ := io.ReadAll(r.Body)
+	var usernameReq requests.ChangeUsernameRequest
+	err := json.Unmarshal(reqBody, &usernameReq)
+	if err != nil {
+		responses.ErrUnableToParseJson(w, r)
+		return
+	}
+
+	// Check if valid
+	if err := utils.IsValidUsername(usernameReq.Username); err != nil {
+		responses.ErrBadRequest(w, r, err.Error(), "")
+		return
+	}
+
+	// Update username
+	err = c.Repo.SetUsername(user.ID, usernameReq.Username)
+	if err != nil {
+		if errors.Is(err, repository.UsernameExistsErr) {
+			responses.ErrBadRequest(w, r, "username_taken", "")
+			return
+		}
+		log.Error("Error setting username", "err", err)
+		responses.ErrInternalServerError(w, r, "An unknown error has occurred")
+		return
+	}
+
+	render.Status(r, http.StatusOK)
+	render.JSON(w, r, map[string]interface{}{
+		"username": usernameReq.Username,
+	})
 }

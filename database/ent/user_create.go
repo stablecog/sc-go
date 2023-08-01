@@ -15,6 +15,7 @@ import (
 	"github.com/stablecog/sc-go/database/ent/credit"
 	"github.com/stablecog/sc-go/database/ent/generation"
 	"github.com/stablecog/sc-go/database/ent/role"
+	"github.com/stablecog/sc-go/database/ent/tiplog"
 	"github.com/stablecog/sc-go/database/ent/upscale"
 	"github.com/stablecog/sc-go/database/ent/user"
 	"github.com/stablecog/sc-go/database/ent/voiceover"
@@ -151,6 +152,26 @@ func (uc *UserCreate) SetNillableDiscordID(s *string) *UserCreate {
 	return uc
 }
 
+// SetUsername sets the "username" field.
+func (uc *UserCreate) SetUsername(s string) *UserCreate {
+	uc.mutation.SetUsername(s)
+	return uc
+}
+
+// SetUsernameChangedAt sets the "username_changed_at" field.
+func (uc *UserCreate) SetUsernameChangedAt(t time.Time) *UserCreate {
+	uc.mutation.SetUsernameChangedAt(t)
+	return uc
+}
+
+// SetNillableUsernameChangedAt sets the "username_changed_at" field if the given value is not nil.
+func (uc *UserCreate) SetNillableUsernameChangedAt(t *time.Time) *UserCreate {
+	if t != nil {
+		uc.SetUsernameChangedAt(*t)
+	}
+	return uc
+}
+
 // SetCreatedAt sets the "created_at" field.
 func (uc *UserCreate) SetCreatedAt(t time.Time) *UserCreate {
 	uc.mutation.SetCreatedAt(t)
@@ -268,6 +289,36 @@ func (uc *UserCreate) AddAPITokens(a ...*ApiToken) *UserCreate {
 	return uc.AddAPITokenIDs(ids...)
 }
 
+// AddTipsGivenIDs adds the "tips_given" edge to the TipLog entity by IDs.
+func (uc *UserCreate) AddTipsGivenIDs(ids ...uuid.UUID) *UserCreate {
+	uc.mutation.AddTipsGivenIDs(ids...)
+	return uc
+}
+
+// AddTipsGiven adds the "tips_given" edges to the TipLog entity.
+func (uc *UserCreate) AddTipsGiven(t ...*TipLog) *UserCreate {
+	ids := make([]uuid.UUID, len(t))
+	for i := range t {
+		ids[i] = t[i].ID
+	}
+	return uc.AddTipsGivenIDs(ids...)
+}
+
+// AddTipsReceivedIDs adds the "tips_received" edge to the TipLog entity by IDs.
+func (uc *UserCreate) AddTipsReceivedIDs(ids ...uuid.UUID) *UserCreate {
+	uc.mutation.AddTipsReceivedIDs(ids...)
+	return uc
+}
+
+// AddTipsReceived adds the "tips_received" edges to the TipLog entity.
+func (uc *UserCreate) AddTipsReceived(t ...*TipLog) *UserCreate {
+	ids := make([]uuid.UUID, len(t))
+	for i := range t {
+		ids[i] = t[i].ID
+	}
+	return uc.AddTipsReceivedIDs(ids...)
+}
+
 // AddRoleIDs adds the "roles" edge to the Role entity by IDs.
 func (uc *UserCreate) AddRoleIDs(ids ...uuid.UUID) *UserCreate {
 	uc.mutation.AddRoleIDs(ids...)
@@ -346,6 +397,9 @@ func (uc *UserCreate) check() error {
 	}
 	if _, ok := uc.mutation.LastSeenAt(); !ok {
 		return &ValidationError{Name: "last_seen_at", err: errors.New(`ent: missing required field "User.last_seen_at"`)}
+	}
+	if _, ok := uc.mutation.Username(); !ok {
+		return &ValidationError{Name: "username", err: errors.New(`ent: missing required field "User.username"`)}
 	}
 	if _, ok := uc.mutation.CreatedAt(); !ok {
 		return &ValidationError{Name: "created_at", err: errors.New(`ent: missing required field "User.created_at"`)}
@@ -433,6 +487,14 @@ func (uc *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 	if value, ok := uc.mutation.DiscordID(); ok {
 		_spec.SetField(user.FieldDiscordID, field.TypeString, value)
 		_node.DiscordID = &value
+	}
+	if value, ok := uc.mutation.Username(); ok {
+		_spec.SetField(user.FieldUsername, field.TypeString, value)
+		_node.Username = value
+	}
+	if value, ok := uc.mutation.UsernameChangedAt(); ok {
+		_spec.SetField(user.FieldUsernameChangedAt, field.TypeTime, value)
+		_node.UsernameChangedAt = &value
 	}
 	if value, ok := uc.mutation.CreatedAt(); ok {
 		_spec.SetField(user.FieldCreatedAt, field.TypeTime, value)
@@ -529,6 +591,44 @@ func (uc *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeUUID,
 					Column: apitoken.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := uc.mutation.TipsGivenIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.TipsGivenTable,
+			Columns: []string{user.TipsGivenColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: tiplog.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := uc.mutation.TipsReceivedIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.TipsReceivedTable,
+			Columns: []string{user.TipsReceivedColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: tiplog.FieldID,
 				},
 			},
 		}

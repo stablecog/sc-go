@@ -14,11 +14,13 @@ import (
 	"github.com/stablecog/sc-go/database/ent/generation"
 	"github.com/stablecog/sc-go/database/ent/generationmodel"
 	"github.com/stablecog/sc-go/database/ent/generationoutput"
+	"github.com/stablecog/sc-go/database/ent/ipblacklist"
 	"github.com/stablecog/sc-go/database/ent/negativeprompt"
 	"github.com/stablecog/sc-go/database/ent/prompt"
 	"github.com/stablecog/sc-go/database/ent/role"
 	"github.com/stablecog/sc-go/database/ent/scheduler"
 	"github.com/stablecog/sc-go/database/ent/schema"
+	"github.com/stablecog/sc-go/database/ent/tiplog"
 	"github.com/stablecog/sc-go/database/ent/upscale"
 	"github.com/stablecog/sc-go/database/ent/upscalemodel"
 	"github.com/stablecog/sc-go/database/ent/upscaleoutput"
@@ -199,12 +201,16 @@ func init() {
 	generationoutputDescHasEmbeddings := generationoutputFields[5].Descriptor()
 	// generationoutput.DefaultHasEmbeddings holds the default value on creation for the has_embeddings field.
 	generationoutput.DefaultHasEmbeddings = generationoutputDescHasEmbeddings.Default.(bool)
+	// generationoutputDescIsPublic is the schema descriptor for is_public field.
+	generationoutputDescIsPublic := generationoutputFields[6].Descriptor()
+	// generationoutput.DefaultIsPublic holds the default value on creation for the is_public field.
+	generationoutput.DefaultIsPublic = generationoutputDescIsPublic.Default.(bool)
 	// generationoutputDescCreatedAt is the schema descriptor for created_at field.
-	generationoutputDescCreatedAt := generationoutputFields[8].Descriptor()
+	generationoutputDescCreatedAt := generationoutputFields[9].Descriptor()
 	// generationoutput.DefaultCreatedAt holds the default value on creation for the created_at field.
 	generationoutput.DefaultCreatedAt = generationoutputDescCreatedAt.Default.(func() time.Time)
 	// generationoutputDescUpdatedAt is the schema descriptor for updated_at field.
-	generationoutputDescUpdatedAt := generationoutputFields[9].Descriptor()
+	generationoutputDescUpdatedAt := generationoutputFields[10].Descriptor()
 	// generationoutput.DefaultUpdatedAt holds the default value on creation for the updated_at field.
 	generationoutput.DefaultUpdatedAt = generationoutputDescUpdatedAt.Default.(func() time.Time)
 	// generationoutput.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
@@ -213,6 +219,22 @@ func init() {
 	generationoutputDescID := generationoutputFields[0].Descriptor()
 	// generationoutput.DefaultID holds the default value on creation for the id field.
 	generationoutput.DefaultID = generationoutputDescID.Default.(func() uuid.UUID)
+	ipblacklistFields := schema.IPBlackList{}.Fields()
+	_ = ipblacklistFields
+	// ipblacklistDescCreatedAt is the schema descriptor for created_at field.
+	ipblacklistDescCreatedAt := ipblacklistFields[2].Descriptor()
+	// ipblacklist.DefaultCreatedAt holds the default value on creation for the created_at field.
+	ipblacklist.DefaultCreatedAt = ipblacklistDescCreatedAt.Default.(func() time.Time)
+	// ipblacklistDescUpdatedAt is the schema descriptor for updated_at field.
+	ipblacklistDescUpdatedAt := ipblacklistFields[3].Descriptor()
+	// ipblacklist.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	ipblacklist.DefaultUpdatedAt = ipblacklistDescUpdatedAt.Default.(func() time.Time)
+	// ipblacklist.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	ipblacklist.UpdateDefaultUpdatedAt = ipblacklistDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// ipblacklistDescID is the schema descriptor for id field.
+	ipblacklistDescID := ipblacklistFields[0].Descriptor()
+	// ipblacklist.DefaultID holds the default value on creation for the id field.
+	ipblacklist.DefaultID = ipblacklistDescID.Default.(func() uuid.UUID)
 	negativepromptFields := schema.NegativePrompt{}.Fields()
 	_ = negativepromptFields
 	// negativepromptDescCreatedAt is the schema descriptor for created_at field.
@@ -289,6 +311,22 @@ func init() {
 	schedulerDescID := schedulerFields[0].Descriptor()
 	// scheduler.DefaultID holds the default value on creation for the id field.
 	scheduler.DefaultID = schedulerDescID.Default.(func() uuid.UUID)
+	tiplogFields := schema.TipLog{}.Fields()
+	_ = tiplogFields
+	// tiplogDescCreatedAt is the schema descriptor for created_at field.
+	tiplogDescCreatedAt := tiplogFields[5].Descriptor()
+	// tiplog.DefaultCreatedAt holds the default value on creation for the created_at field.
+	tiplog.DefaultCreatedAt = tiplogDescCreatedAt.Default.(func() time.Time)
+	// tiplogDescUpdatedAt is the schema descriptor for updated_at field.
+	tiplogDescUpdatedAt := tiplogFields[6].Descriptor()
+	// tiplog.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	tiplog.DefaultUpdatedAt = tiplogDescUpdatedAt.Default.(func() time.Time)
+	// tiplog.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	tiplog.UpdateDefaultUpdatedAt = tiplogDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// tiplogDescID is the schema descriptor for id field.
+	tiplogDescID := tiplogFields[0].Descriptor()
+	// tiplog.DefaultID holds the default value on creation for the id field.
+	tiplog.DefaultID = tiplogDescID.Default.(func() uuid.UUID)
 	upscaleFields := schema.Upscale{}.Fields()
 	_ = upscaleFields
 	// upscaleDescSystemGenerated is the schema descriptor for system_generated field.
@@ -360,11 +398,11 @@ func init() {
 	// user.DefaultLastSeenAt holds the default value on creation for the last_seen_at field.
 	user.DefaultLastSeenAt = userDescLastSeenAt.Default.(func() time.Time)
 	// userDescCreatedAt is the schema descriptor for created_at field.
-	userDescCreatedAt := userFields[11].Descriptor()
+	userDescCreatedAt := userFields[13].Descriptor()
 	// user.DefaultCreatedAt holds the default value on creation for the created_at field.
 	user.DefaultCreatedAt = userDescCreatedAt.Default.(func() time.Time)
 	// userDescUpdatedAt is the schema descriptor for updated_at field.
-	userDescUpdatedAt := userFields[12].Descriptor()
+	userDescUpdatedAt := userFields[14].Descriptor()
 	// user.DefaultUpdatedAt holds the default value on creation for the updated_at field.
 	user.DefaultUpdatedAt = userDescUpdatedAt.Default.(func() time.Time)
 	// user.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.

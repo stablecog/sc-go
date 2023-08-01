@@ -17,6 +17,7 @@ import (
 	"github.com/stablecog/sc-go/database/ent/generation"
 	"github.com/stablecog/sc-go/database/ent/predicate"
 	"github.com/stablecog/sc-go/database/ent/role"
+	"github.com/stablecog/sc-go/database/ent/tiplog"
 	"github.com/stablecog/sc-go/database/ent/upscale"
 	"github.com/stablecog/sc-go/database/ent/user"
 	"github.com/stablecog/sc-go/database/ent/voiceover"
@@ -202,6 +203,32 @@ func (uu *UserUpdate) ClearDiscordID() *UserUpdate {
 	return uu
 }
 
+// SetUsername sets the "username" field.
+func (uu *UserUpdate) SetUsername(s string) *UserUpdate {
+	uu.mutation.SetUsername(s)
+	return uu
+}
+
+// SetUsernameChangedAt sets the "username_changed_at" field.
+func (uu *UserUpdate) SetUsernameChangedAt(t time.Time) *UserUpdate {
+	uu.mutation.SetUsernameChangedAt(t)
+	return uu
+}
+
+// SetNillableUsernameChangedAt sets the "username_changed_at" field if the given value is not nil.
+func (uu *UserUpdate) SetNillableUsernameChangedAt(t *time.Time) *UserUpdate {
+	if t != nil {
+		uu.SetUsernameChangedAt(*t)
+	}
+	return uu
+}
+
+// ClearUsernameChangedAt clears the value of the "username_changed_at" field.
+func (uu *UserUpdate) ClearUsernameChangedAt() *UserUpdate {
+	uu.mutation.ClearUsernameChangedAt()
+	return uu
+}
+
 // SetUpdatedAt sets the "updated_at" field.
 func (uu *UserUpdate) SetUpdatedAt(t time.Time) *UserUpdate {
 	uu.mutation.SetUpdatedAt(t)
@@ -281,6 +308,36 @@ func (uu *UserUpdate) AddAPITokens(a ...*ApiToken) *UserUpdate {
 		ids[i] = a[i].ID
 	}
 	return uu.AddAPITokenIDs(ids...)
+}
+
+// AddTipsGivenIDs adds the "tips_given" edge to the TipLog entity by IDs.
+func (uu *UserUpdate) AddTipsGivenIDs(ids ...uuid.UUID) *UserUpdate {
+	uu.mutation.AddTipsGivenIDs(ids...)
+	return uu
+}
+
+// AddTipsGiven adds the "tips_given" edges to the TipLog entity.
+func (uu *UserUpdate) AddTipsGiven(t ...*TipLog) *UserUpdate {
+	ids := make([]uuid.UUID, len(t))
+	for i := range t {
+		ids[i] = t[i].ID
+	}
+	return uu.AddTipsGivenIDs(ids...)
+}
+
+// AddTipsReceivedIDs adds the "tips_received" edge to the TipLog entity by IDs.
+func (uu *UserUpdate) AddTipsReceivedIDs(ids ...uuid.UUID) *UserUpdate {
+	uu.mutation.AddTipsReceivedIDs(ids...)
+	return uu
+}
+
+// AddTipsReceived adds the "tips_received" edges to the TipLog entity.
+func (uu *UserUpdate) AddTipsReceived(t ...*TipLog) *UserUpdate {
+	ids := make([]uuid.UUID, len(t))
+	for i := range t {
+		ids[i] = t[i].ID
+	}
+	return uu.AddTipsReceivedIDs(ids...)
 }
 
 // AddRoleIDs adds the "roles" edge to the Role entity by IDs.
@@ -406,6 +463,48 @@ func (uu *UserUpdate) RemoveAPITokens(a ...*ApiToken) *UserUpdate {
 		ids[i] = a[i].ID
 	}
 	return uu.RemoveAPITokenIDs(ids...)
+}
+
+// ClearTipsGiven clears all "tips_given" edges to the TipLog entity.
+func (uu *UserUpdate) ClearTipsGiven() *UserUpdate {
+	uu.mutation.ClearTipsGiven()
+	return uu
+}
+
+// RemoveTipsGivenIDs removes the "tips_given" edge to TipLog entities by IDs.
+func (uu *UserUpdate) RemoveTipsGivenIDs(ids ...uuid.UUID) *UserUpdate {
+	uu.mutation.RemoveTipsGivenIDs(ids...)
+	return uu
+}
+
+// RemoveTipsGiven removes "tips_given" edges to TipLog entities.
+func (uu *UserUpdate) RemoveTipsGiven(t ...*TipLog) *UserUpdate {
+	ids := make([]uuid.UUID, len(t))
+	for i := range t {
+		ids[i] = t[i].ID
+	}
+	return uu.RemoveTipsGivenIDs(ids...)
+}
+
+// ClearTipsReceived clears all "tips_received" edges to the TipLog entity.
+func (uu *UserUpdate) ClearTipsReceived() *UserUpdate {
+	uu.mutation.ClearTipsReceived()
+	return uu
+}
+
+// RemoveTipsReceivedIDs removes the "tips_received" edge to TipLog entities by IDs.
+func (uu *UserUpdate) RemoveTipsReceivedIDs(ids ...uuid.UUID) *UserUpdate {
+	uu.mutation.RemoveTipsReceivedIDs(ids...)
+	return uu
+}
+
+// RemoveTipsReceived removes "tips_received" edges to TipLog entities.
+func (uu *UserUpdate) RemoveTipsReceived(t ...*TipLog) *UserUpdate {
+	ids := make([]uuid.UUID, len(t))
+	for i := range t {
+		ids[i] = t[i].ID
+	}
+	return uu.RemoveTipsReceivedIDs(ids...)
 }
 
 // ClearRoles clears all "roles" edges to the Role entity.
@@ -539,6 +638,15 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if uu.mutation.DiscordIDCleared() {
 		_spec.ClearField(user.FieldDiscordID, field.TypeString)
+	}
+	if value, ok := uu.mutation.Username(); ok {
+		_spec.SetField(user.FieldUsername, field.TypeString, value)
+	}
+	if value, ok := uu.mutation.UsernameChangedAt(); ok {
+		_spec.SetField(user.FieldUsernameChangedAt, field.TypeTime, value)
+	}
+	if uu.mutation.UsernameChangedAtCleared() {
+		_spec.ClearField(user.FieldUsernameChangedAt, field.TypeTime)
 	}
 	if value, ok := uu.mutation.UpdatedAt(); ok {
 		_spec.SetField(user.FieldUpdatedAt, field.TypeTime, value)
@@ -813,6 +921,114 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if uu.mutation.TipsGivenCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.TipsGivenTable,
+			Columns: []string{user.TipsGivenColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: tiplog.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uu.mutation.RemovedTipsGivenIDs(); len(nodes) > 0 && !uu.mutation.TipsGivenCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.TipsGivenTable,
+			Columns: []string{user.TipsGivenColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: tiplog.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uu.mutation.TipsGivenIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.TipsGivenTable,
+			Columns: []string{user.TipsGivenColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: tiplog.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if uu.mutation.TipsReceivedCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.TipsReceivedTable,
+			Columns: []string{user.TipsReceivedColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: tiplog.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uu.mutation.RemovedTipsReceivedIDs(); len(nodes) > 0 && !uu.mutation.TipsReceivedCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.TipsReceivedTable,
+			Columns: []string{user.TipsReceivedColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: tiplog.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uu.mutation.TipsReceivedIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.TipsReceivedTable,
+			Columns: []string{user.TipsReceivedColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: tiplog.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if uu.mutation.RolesCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2M,
@@ -1055,6 +1271,32 @@ func (uuo *UserUpdateOne) ClearDiscordID() *UserUpdateOne {
 	return uuo
 }
 
+// SetUsername sets the "username" field.
+func (uuo *UserUpdateOne) SetUsername(s string) *UserUpdateOne {
+	uuo.mutation.SetUsername(s)
+	return uuo
+}
+
+// SetUsernameChangedAt sets the "username_changed_at" field.
+func (uuo *UserUpdateOne) SetUsernameChangedAt(t time.Time) *UserUpdateOne {
+	uuo.mutation.SetUsernameChangedAt(t)
+	return uuo
+}
+
+// SetNillableUsernameChangedAt sets the "username_changed_at" field if the given value is not nil.
+func (uuo *UserUpdateOne) SetNillableUsernameChangedAt(t *time.Time) *UserUpdateOne {
+	if t != nil {
+		uuo.SetUsernameChangedAt(*t)
+	}
+	return uuo
+}
+
+// ClearUsernameChangedAt clears the value of the "username_changed_at" field.
+func (uuo *UserUpdateOne) ClearUsernameChangedAt() *UserUpdateOne {
+	uuo.mutation.ClearUsernameChangedAt()
+	return uuo
+}
+
 // SetUpdatedAt sets the "updated_at" field.
 func (uuo *UserUpdateOne) SetUpdatedAt(t time.Time) *UserUpdateOne {
 	uuo.mutation.SetUpdatedAt(t)
@@ -1134,6 +1376,36 @@ func (uuo *UserUpdateOne) AddAPITokens(a ...*ApiToken) *UserUpdateOne {
 		ids[i] = a[i].ID
 	}
 	return uuo.AddAPITokenIDs(ids...)
+}
+
+// AddTipsGivenIDs adds the "tips_given" edge to the TipLog entity by IDs.
+func (uuo *UserUpdateOne) AddTipsGivenIDs(ids ...uuid.UUID) *UserUpdateOne {
+	uuo.mutation.AddTipsGivenIDs(ids...)
+	return uuo
+}
+
+// AddTipsGiven adds the "tips_given" edges to the TipLog entity.
+func (uuo *UserUpdateOne) AddTipsGiven(t ...*TipLog) *UserUpdateOne {
+	ids := make([]uuid.UUID, len(t))
+	for i := range t {
+		ids[i] = t[i].ID
+	}
+	return uuo.AddTipsGivenIDs(ids...)
+}
+
+// AddTipsReceivedIDs adds the "tips_received" edge to the TipLog entity by IDs.
+func (uuo *UserUpdateOne) AddTipsReceivedIDs(ids ...uuid.UUID) *UserUpdateOne {
+	uuo.mutation.AddTipsReceivedIDs(ids...)
+	return uuo
+}
+
+// AddTipsReceived adds the "tips_received" edges to the TipLog entity.
+func (uuo *UserUpdateOne) AddTipsReceived(t ...*TipLog) *UserUpdateOne {
+	ids := make([]uuid.UUID, len(t))
+	for i := range t {
+		ids[i] = t[i].ID
+	}
+	return uuo.AddTipsReceivedIDs(ids...)
 }
 
 // AddRoleIDs adds the "roles" edge to the Role entity by IDs.
@@ -1259,6 +1531,48 @@ func (uuo *UserUpdateOne) RemoveAPITokens(a ...*ApiToken) *UserUpdateOne {
 		ids[i] = a[i].ID
 	}
 	return uuo.RemoveAPITokenIDs(ids...)
+}
+
+// ClearTipsGiven clears all "tips_given" edges to the TipLog entity.
+func (uuo *UserUpdateOne) ClearTipsGiven() *UserUpdateOne {
+	uuo.mutation.ClearTipsGiven()
+	return uuo
+}
+
+// RemoveTipsGivenIDs removes the "tips_given" edge to TipLog entities by IDs.
+func (uuo *UserUpdateOne) RemoveTipsGivenIDs(ids ...uuid.UUID) *UserUpdateOne {
+	uuo.mutation.RemoveTipsGivenIDs(ids...)
+	return uuo
+}
+
+// RemoveTipsGiven removes "tips_given" edges to TipLog entities.
+func (uuo *UserUpdateOne) RemoveTipsGiven(t ...*TipLog) *UserUpdateOne {
+	ids := make([]uuid.UUID, len(t))
+	for i := range t {
+		ids[i] = t[i].ID
+	}
+	return uuo.RemoveTipsGivenIDs(ids...)
+}
+
+// ClearTipsReceived clears all "tips_received" edges to the TipLog entity.
+func (uuo *UserUpdateOne) ClearTipsReceived() *UserUpdateOne {
+	uuo.mutation.ClearTipsReceived()
+	return uuo
+}
+
+// RemoveTipsReceivedIDs removes the "tips_received" edge to TipLog entities by IDs.
+func (uuo *UserUpdateOne) RemoveTipsReceivedIDs(ids ...uuid.UUID) *UserUpdateOne {
+	uuo.mutation.RemoveTipsReceivedIDs(ids...)
+	return uuo
+}
+
+// RemoveTipsReceived removes "tips_received" edges to TipLog entities.
+func (uuo *UserUpdateOne) RemoveTipsReceived(t ...*TipLog) *UserUpdateOne {
+	ids := make([]uuid.UUID, len(t))
+	for i := range t {
+		ids[i] = t[i].ID
+	}
+	return uuo.RemoveTipsReceivedIDs(ids...)
 }
 
 // ClearRoles clears all "roles" edges to the Role entity.
@@ -1416,6 +1730,15 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 	}
 	if uuo.mutation.DiscordIDCleared() {
 		_spec.ClearField(user.FieldDiscordID, field.TypeString)
+	}
+	if value, ok := uuo.mutation.Username(); ok {
+		_spec.SetField(user.FieldUsername, field.TypeString, value)
+	}
+	if value, ok := uuo.mutation.UsernameChangedAt(); ok {
+		_spec.SetField(user.FieldUsernameChangedAt, field.TypeTime, value)
+	}
+	if uuo.mutation.UsernameChangedAtCleared() {
+		_spec.ClearField(user.FieldUsernameChangedAt, field.TypeTime)
 	}
 	if value, ok := uuo.mutation.UpdatedAt(); ok {
 		_spec.SetField(user.FieldUpdatedAt, field.TypeTime, value)
@@ -1682,6 +2005,114 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeUUID,
 					Column: apitoken.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if uuo.mutation.TipsGivenCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.TipsGivenTable,
+			Columns: []string{user.TipsGivenColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: tiplog.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uuo.mutation.RemovedTipsGivenIDs(); len(nodes) > 0 && !uuo.mutation.TipsGivenCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.TipsGivenTable,
+			Columns: []string{user.TipsGivenColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: tiplog.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uuo.mutation.TipsGivenIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.TipsGivenTable,
+			Columns: []string{user.TipsGivenColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: tiplog.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if uuo.mutation.TipsReceivedCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.TipsReceivedTable,
+			Columns: []string{user.TipsReceivedColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: tiplog.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uuo.mutation.RemovedTipsReceivedIDs(); len(nodes) > 0 && !uuo.mutation.TipsReceivedCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.TipsReceivedTable,
+			Columns: []string{user.TipsReceivedColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: tiplog.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uuo.mutation.TipsReceivedIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.TipsReceivedTable,
+			Columns: []string{user.TipsReceivedColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: tiplog.FieldID,
 				},
 			},
 		}

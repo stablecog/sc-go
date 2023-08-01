@@ -30,6 +30,8 @@ type Tx struct {
 	GenerationModel *GenerationModelClient
 	// GenerationOutput is the client for interacting with the GenerationOutput builders.
 	GenerationOutput *GenerationOutputClient
+	// IPBlackList is the client for interacting with the IPBlackList builders.
+	IPBlackList *IPBlackListClient
 	// NegativePrompt is the client for interacting with the NegativePrompt builders.
 	NegativePrompt *NegativePromptClient
 	// Prompt is the client for interacting with the Prompt builders.
@@ -38,6 +40,8 @@ type Tx struct {
 	Role *RoleClient
 	// Scheduler is the client for interacting with the Scheduler builders.
 	Scheduler *SchedulerClient
+	// TipLog is the client for interacting with the TipLog builders.
+	TipLog *TipLogClient
 	// Upscale is the client for interacting with the Upscale builders.
 	Upscale *UpscaleClient
 	// UpscaleModel is the client for interacting with the UpscaleModel builders.
@@ -193,10 +197,12 @@ func (tx *Tx) init() {
 	tx.Generation = NewGenerationClient(tx.config)
 	tx.GenerationModel = NewGenerationModelClient(tx.config)
 	tx.GenerationOutput = NewGenerationOutputClient(tx.config)
+	tx.IPBlackList = NewIPBlackListClient(tx.config)
 	tx.NegativePrompt = NewNegativePromptClient(tx.config)
 	tx.Prompt = NewPromptClient(tx.config)
 	tx.Role = NewRoleClient(tx.config)
 	tx.Scheduler = NewSchedulerClient(tx.config)
+	tx.TipLog = NewTipLogClient(tx.config)
 	tx.Upscale = NewUpscaleClient(tx.config)
 	tx.UpscaleModel = NewUpscaleModelClient(tx.config)
 	tx.UpscaleOutput = NewUpscaleOutputClient(tx.config)

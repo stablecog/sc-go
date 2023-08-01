@@ -1,0 +1,103 @@
+kind: StatefulSet
+apiVersion: apps/v1
+metadata:
+  name: sc-worker-sts
+  namespace: sc-worker
+  labels:
+    app: sc-worker
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: sc-worker
+  template:
+    metadata:
+      labels:
+        app: sc-worker
+    spec:
+      containers:
+        - name: sc-worker
+          image: replaceme
+          resources:
+            limits:
+            nvidia.com/gpu: 1
+          tolerations:
+            - key: "sku"
+              operator: "Equal"
+              value: "gpu"
+              effect: "NoSchedule"
+          imagePullPolicy: "Always"
+          ports:
+            - containerPort: 13339
+          env:
+            - name: S3_BUCKET_NAME_MODELS
+              value: "smodels"
+            - name: S3_BUCKET_NAME_UPLOAD
+              value: "stablecog"
+            - name: S3_ENDPOINT_URL
+              value: "https://nyc3.digitaloceanspaces.com"
+            - name: REDIS_INPUT_QUEUE
+              value: "input_queue"
+            - name: MODELS
+              value: "all"
+            - name: USE_HF
+              value: "1"
+            - name: CLIPAPI_PORT
+              value: "13339"
+            - name: TOKENIZERS_PARALLELISM
+              value: "true"
+            - name: WORKER_TYPE
+              value: "image"
+            - name: HF_HUB_ENABLE_HF_TRANSFER
+              value: "True"
+            - name: WORKER_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: AWS_ACCESS_KEY_ID
+              valueFrom:
+                secretKeyRef:
+                  name: sc-worker
+                  key: AWS_ACCESS_KEY_ID
+            - name: AWS_SECRET_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: sc-worker
+                  key: AWS_SECRET_ACCESS_KEY
+            - name: HUGGINGFACE_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: sc-worker
+                  key: HUGGINGFACE_TOKEN
+            - name: TRANSLATOR_COG_URL
+              valueFrom:
+                secretKeyRef:
+                  name: sc-worker
+                  key: TRANSLATOR_COG_URL
+            - name: REDIS_URL
+              valueFrom:
+                secretKeyRef:
+                  name: sc-worker
+                  key: REDIS_URL
+            - name: WEBHOOK_SIGNATURE
+              valueFrom:
+                secretKeyRef:
+                  name: sc-worker
+                  key: WEBHOOK_SIGNATURE
+            - name: CLIPAPI_AUTH_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: sc-worker
+                  key: CLIPAPI_AUTH_TOKEN
+          volumeMounts:
+            - name: scw-volume
+              mountPath: /scw
+  volumeClaimTemplates:
+    - metadata:
+        name: scw-volume
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        storageClassName: managed-csi-premium
+        resources:
+          requests:
+            storage: 128Gi

@@ -72,6 +72,7 @@ func TestHandleQueryGenerationsDefaultParams(t *testing.T) {
 	assert.Equal(t, string(generation.StatusSucceeded), genResponse.Outputs[0].Generation.Status)
 	assert.NotNil(t, genResponse.Outputs[0].Generation.StartedAt)
 	assert.NotNil(t, genResponse.Outputs[0].Generation.CompletedAt)
+	assert.Equal(t, "1", genResponse.Outputs[0].Generation.User.Username)
 	assert.Nil(t, genResponse.Outputs[0].Generation.NegativePrompt)
 	assert.Equal(t, int32(30), genResponse.Outputs[0].Generation.InferenceSteps)
 	assert.Equal(t, float32(1.0), genResponse.Outputs[0].Generation.GuidanceScale)

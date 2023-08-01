@@ -12,6 +12,7 @@ import (
 	"github.com/stablecog/sc-go/database/ent/negativeprompt"
 	"github.com/stablecog/sc-go/database/ent/prompt"
 	"github.com/stablecog/sc-go/database/ent/scheduler"
+	"github.com/stablecog/sc-go/database/ent/user"
 	"github.com/stablecog/sc-go/log"
 	"github.com/stablecog/sc-go/server/requests"
 	"github.com/stablecog/sc-go/utils"
@@ -35,6 +36,7 @@ func (r *Repository) RetrieveGalleryData(limit int, updatedAtGT *time.Time) ([]G
 			npt := sql.Table(negativeprompt.Table)
 			mt := sql.Table(generationmodel.Table)
 			st := sql.Table(scheduler.Table)
+			ut := sql.Table(user.Table)
 			s.LeftJoin(g).On(
 				s.C(generationoutput.FieldGenerationID), g.C(generation.FieldID),
 			).LeftJoin(pt).On(
@@ -45,21 +47,33 @@ func (r *Repository) RetrieveGalleryData(limit int, updatedAtGT *time.Time) ([]G
 				g.C(generation.FieldModelID), mt.C(generationmodel.FieldID),
 			).LeftJoin(st).On(
 				g.C(generation.FieldSchedulerID), st.C(scheduler.FieldID),
+			).LeftJoin(ut).On(
+				g.C(generation.FieldUserID), ut.C(user.FieldID),
 			).AppendSelect(sql.As(g.C(generation.FieldWidth), "generation_width"), sql.As(g.C(generation.FieldHeight), "generation_height"),
 				sql.As(g.C(generation.FieldInferenceSteps), "generation_inference_steps"), sql.As(g.C(generation.FieldGuidanceScale), "generation_guidance_scale"),
 				sql.As(g.C(generation.FieldSeed), "generation_seed"), sql.As(mt.C(generationmodel.FieldID), "model_id"), sql.As(st.C(scheduler.FieldID), "scheduler_id"),
 				sql.As(pt.C(prompt.FieldText), "prompt_text"), sql.As(pt.C(prompt.FieldID), "prompt_id"), sql.As(npt.C(negativeprompt.FieldText), "negative_prompt_text"),
-				sql.As(npt.C(negativeprompt.FieldID), "negative_prompt_id"), sql.As(g.C(generation.FieldUserID), "user_id"))
+				sql.As(npt.C(negativeprompt.FieldID), "negative_prompt_id"), sql.As(g.C(generation.FieldUserID), "user_id"), sql.As(ut.C(user.FieldUsername), "username"))
 			s.OrderBy(sql.Desc(s.C(generationoutput.FieldCreatedAt)), sql.Desc(g.C(generation.FieldCreatedAt)))
 		}).Scan(r.Ctx, &res)
 	return res, err
 }
 
 // Retrieved a single generation output by ID, in GalleryData format
-func (r *Repository) RetrieveGalleryDataByID(id uuid.UUID) (*GalleryData, error) {
-	output, err := r.DB.GenerationOutput.Query().Where(generationoutput.IDEQ(id), generationoutput.GalleryStatusEQ(generationoutput.GalleryStatusApproved)).WithGenerations(func(gq *ent.GenerationQuery) {
+func (r *Repository) RetrieveGalleryDataByID(id uuid.UUID, userId *uuid.UUID, approvedOnly bool) (*GalleryData, error) {
+	q := r.DB.GenerationOutput.Query().Where(generationoutput.IDEQ(id))
+	if approvedOnly {
+		q = q.Where(generationoutput.GalleryStatusEQ(generationoutput.GalleryStatusApproved))
+	} else {
+		q = q.Where(generationoutput.GalleryStatusIn(generationoutput.GalleryStatusApproved, generationoutput.GalleryStatusSubmitted, generationoutput.GalleryStatusSubmitted))
+	}
+	output, err := q.WithGenerations(func(gq *ent.GenerationQuery) {
+		if userId != nil {
+			gq.Where(generation.UserIDEQ(*userId))
+		}
 		gq.WithPrompt()
 		gq.WithNegativePrompt()
+		gq.WithUser()
 	}).Only(r.Ctx)
 	if err != nil {
 		return nil, err
@@ -79,6 +93,9 @@ func (r *Repository) RetrieveGalleryDataByID(id uuid.UUID) (*GalleryData, error)
 		SchedulerID:    output.Edges.Generations.SchedulerID,
 		PromptID:       output.Edges.Generations.Edges.Prompt.ID,
 		PromptText:     output.Edges.Generations.Edges.Prompt.Text,
+		User: &UserType{
+			Username: output.Edges.Generations.Edges.User.Username,
+		},
 	}
 	if output.Edges.Generations.Edges.NegativePrompt != nil {
 		data.NegativePromptID = &output.Edges.Generations.Edges.NegativePrompt.ID
@@ -120,6 +137,7 @@ func (r *Repository) RetrieveMostRecentGalleryData(filters *requests.QueryGenera
 		s.WithPrompt()
 		s.WithNegativePrompt()
 		s.WithGenerationOutputs()
+		s.WithUser()
 	})
 
 	// Limit
@@ -156,6 +174,9 @@ func (r *Repository) RetrieveMostRecentGalleryData(filters *requests.QueryGenera
 			PromptText:     output.Edges.Generations.Edges.Prompt.Text,
 			PromptID:       output.Edges.Generations.Edges.Prompt.ID,
 			UserID:         &output.Edges.Generations.UserID,
+			User: &UserType{
+				Username: output.Edges.Generations.Edges.User.Username,
+			},
 		}
 		if output.UpscaledImagePath != nil {
 			data.UpscaledImagePath = *output.UpscaledImagePath
@@ -172,11 +193,18 @@ func (r *Repository) RetrieveMostRecentGalleryData(filters *requests.QueryGenera
 }
 
 // Retrieves data in gallery format given  output IDs
-func (r *Repository) RetrieveGalleryDataWithOutputIDs(outputIDs []uuid.UUID) ([]GalleryData, error) {
-	res, err := r.DB.GenerationOutput.Query().Where(generationoutput.IDIn(outputIDs...), generationoutput.GalleryStatusEQ(generationoutput.GalleryStatusApproved)).
+func (r *Repository) RetrieveGalleryDataWithOutputIDs(outputIDs []uuid.UUID, approvedOnly bool) ([]GalleryData, error) {
+	q := r.DB.GenerationOutput.Query().Where(generationoutput.IDIn(outputIDs...))
+	if !approvedOnly {
+		q = q.Where(generationoutput.GalleryStatusIn(generationoutput.GalleryStatusApproved, generationoutput.GalleryStatusRejected, generationoutput.GalleryStatusSubmitted))
+	} else {
+		q = q.Where(generationoutput.GalleryStatusEQ(generationoutput.GalleryStatusApproved))
+	}
+	res, err := q.
 		WithGenerations(func(gq *ent.GenerationQuery) {
 			gq.WithPrompt()
 			gq.WithNegativePrompt()
+			gq.WithUser()
 		},
 		).All(r.Ctx)
 	if err != nil {
@@ -201,6 +229,9 @@ func (r *Repository) RetrieveGalleryDataWithOutputIDs(outputIDs []uuid.UUID) ([]
 			PromptText:     output.Edges.Generations.Edges.Prompt.Text,
 			PromptID:       output.Edges.Generations.Edges.Prompt.ID,
 			UserID:         &output.Edges.Generations.UserID,
+			User: &UserType{
+				Username: output.Edges.Generations.Edges.User.Username,
+			},
 		}
 		if output.UpscaledImagePath != nil {
 			data.UpscaledImagePath = *output.UpscaledImagePath
@@ -236,4 +267,6 @@ type GalleryData struct {
 	NegativePromptID   *uuid.UUID `json:"negative_prompt_id,omitempty" sql:"negative_prompt_id"`
 	UserID             *uuid.UUID `json:"user_id,omitempty" sql:"user_id"`
 	Score              *float32   `json:"score,omitempty" sql:"score"`
+	Username           *string    `json:"username,omitempty" sql:"username"`
+	User               *UserType  `json:"user,omitempty" sql:"user"`
 }

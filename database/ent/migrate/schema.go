@@ -221,16 +221,6 @@ var (
 				Columns: []*schema.Column{GenerationsColumns[29], GenerationsColumns[20]},
 			},
 			{
-				Name:    "generation_user_id_status_created_at",
-				Unique:  false,
-				Columns: []*schema.Column{GenerationsColumns[29], GenerationsColumns[8], GenerationsColumns[20]},
-			},
-			{
-				Name:    "generation_user_id_status",
-				Unique:  false,
-				Columns: []*schema.Column{GenerationsColumns[29], GenerationsColumns[8]},
-			},
-			{
 				Name:    "generation_created_at",
 				Unique:  false,
 				Columns: []*schema.Column{GenerationsColumns[20]},
@@ -269,6 +259,7 @@ var (
 		{Name: "gallery_status", Type: field.TypeEnum, Enums: []string{"not_submitted", "submitted", "approved", "rejected"}, Default: "not_submitted"},
 		{Name: "is_favorited", Type: field.TypeBool, Default: false},
 		{Name: "has_embeddings", Type: field.TypeBool, Default: false},
+		{Name: "is_public", Type: field.TypeBool, Default: false},
 		{Name: "deleted_at", Type: field.TypeTime, Nullable: true},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},
@@ -282,7 +273,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "generation_outputs_generations_generation_outputs",
-				Columns:    []*schema.Column{GenerationOutputsColumns[9]},
+				Columns:    []*schema.Column{GenerationOutputsColumns[10]},
 				RefColumns: []*schema.Column{GenerationsColumns[0]},
 				OnDelete:   schema.Cascade,
 			},
@@ -301,19 +292,32 @@ var (
 			{
 				Name:    "generationoutput_created_at",
 				Unique:  false,
-				Columns: []*schema.Column{GenerationOutputsColumns[7]},
+				Columns: []*schema.Column{GenerationOutputsColumns[8]},
 			},
 			{
 				Name:    "generationoutput_updated_at",
 				Unique:  false,
-				Columns: []*schema.Column{GenerationOutputsColumns[8]},
+				Columns: []*schema.Column{GenerationOutputsColumns[9]},
 			},
 			{
 				Name:    "generationoutput_generation_id",
 				Unique:  false,
-				Columns: []*schema.Column{GenerationOutputsColumns[9]},
+				Columns: []*schema.Column{GenerationOutputsColumns[10]},
 			},
 		},
+	}
+	// IPBlacklistColumns holds the columns for the "ip_blacklist" table.
+	IPBlacklistColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID},
+		{Name: "ip", Type: field.TypeString, Unique: true, Size: 2147483647},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+	}
+	// IPBlacklistTable holds the schema information for the "ip_blacklist" table.
+	IPBlacklistTable = &schema.Table{
+		Name:       "ip_blacklist",
+		Columns:    IPBlacklistColumns,
+		PrimaryKey: []*schema.Column{IPBlacklistColumns[0]},
 	}
 	// NegativePromptsColumns holds the columns for the "negative_prompts" table.
 	NegativePromptsColumns = []*schema.Column{
@@ -370,6 +374,36 @@ var (
 		Name:       "schedulers",
 		Columns:    SchedulersColumns,
 		PrimaryKey: []*schema.Column{SchedulersColumns[0]},
+	}
+	// TipLogColumns holds the columns for the "tip_log" table.
+	TipLogColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID},
+		{Name: "amount", Type: field.TypeInt32},
+		{Name: "tipped_to_discord_id", Type: field.TypeString, Size: 2147483647},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "tipped_by", Type: field.TypeUUID},
+		{Name: "tipped_to", Type: field.TypeUUID, Nullable: true},
+	}
+	// TipLogTable holds the schema information for the "tip_log" table.
+	TipLogTable = &schema.Table{
+		Name:       "tip_log",
+		Columns:    TipLogColumns,
+		PrimaryKey: []*schema.Column{TipLogColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "tip_log_users_tips_given",
+				Columns:    []*schema.Column{TipLogColumns[5]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+			{
+				Symbol:     "tip_log_users_tips_received",
+				Columns:    []*schema.Column{TipLogColumns[6]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+		},
 	}
 	// UpscalesColumns holds the columns for the "upscales" table.
 	UpscalesColumns = []*schema.Column{
@@ -491,6 +525,8 @@ var (
 		{Name: "data_deleted_at", Type: field.TypeTime, Nullable: true},
 		{Name: "wants_email", Type: field.TypeBool, Nullable: true},
 		{Name: "discord_id", Type: field.TypeString, Nullable: true, Size: 2147483647},
+		{Name: "username", Type: field.TypeString, Unique: true, Size: 2147483647},
+		{Name: "username_changed_at", Type: field.TypeTime, Nullable: true},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},
 	}
@@ -746,10 +782,12 @@ var (
 		GenerationsTable,
 		GenerationModelsTable,
 		GenerationOutputsTable,
+		IPBlacklistTable,
 		NegativePromptsTable,
 		PromptsTable,
 		RolesTable,
 		SchedulersTable,
+		TipLogTable,
 		UpscalesTable,
 		UpscaleModelsTable,
 		UpscaleOutputsTable,
@@ -801,6 +839,9 @@ func init() {
 	GenerationOutputsTable.Annotation = &entsql.Annotation{
 		Table: "generation_outputs",
 	}
+	IPBlacklistTable.Annotation = &entsql.Annotation{
+		Table: "ip_blacklist",
+	}
 	NegativePromptsTable.Annotation = &entsql.Annotation{
 		Table: "negative_prompts",
 	}
@@ -812,6 +853,11 @@ func init() {
 	}
 	SchedulersTable.Annotation = &entsql.Annotation{
 		Table: "schedulers",
+	}
+	TipLogTable.ForeignKeys[0].RefTable = UsersTable
+	TipLogTable.ForeignKeys[1].RefTable = UsersTable
+	TipLogTable.Annotation = &entsql.Annotation{
+		Table: "tip_log",
 	}
 	UpscalesTable.ForeignKeys[0].RefTable = APITokensTable
 	UpscalesTable.ForeignKeys[1].RefTable = DeviceInfoTable
