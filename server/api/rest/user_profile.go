@@ -137,6 +137,9 @@ func (c *RestAPI) HandleUserProfileSemanticSearch(w http.ResponseWriter, r *http
 		Key:   "gallery_status",
 		Match: &qdrant.SCValue{Value: generationoutput.GalleryStatusRejected},
 	})
+	qdrantFilters.Must = append(qdrantFilters.Must, qdrant.SCMatchCondition{
+		IsEmpty: &qdrant.SCIsEmpty{Key: "deleted_at"},
+	})
 
 	// Leverage qdrant for semantic search
 	if search != "" {
