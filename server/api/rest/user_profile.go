@@ -72,7 +72,7 @@ func (c *RestAPI) HandleUserProfileSemanticSearch(w http.ResponseWriter, r *http
 			return
 		}
 
-		galleryData, err := c.Repo.RetrieveGalleryDataByID(uid, utils.ToPtr(user.ID))
+		galleryData, err := c.Repo.RetrieveGalleryDataByID(uid, utils.ToPtr(user.ID), false)
 		if err != nil {
 			if ent.IsNotFound(err) {
 				responses.ErrNotFound(w, r, "generation_not_found")

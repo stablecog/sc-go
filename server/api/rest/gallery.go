@@ -35,7 +35,7 @@ func (c *RestAPI) HandleSemanticSearchGallery(w http.ResponseWriter, r *http.Req
 			return
 		}
 
-		galleryData, err := c.Repo.RetrieveGalleryDataByID(uid, nil)
+		galleryData, err := c.Repo.RetrieveGalleryDataByID(uid, nil, true)
 		if err != nil {
 			if ent.IsNotFound(err) {
 				responses.ErrNotFound(w, r, "generation_not_found")
