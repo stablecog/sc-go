@@ -628,7 +628,7 @@ CREATE INDEX generation_user_id_status ON public.generations USING btree (user_i
 -- Name: generation_user_id_status_created_at; Type: INDEX; Schema: public; Owner: postgres
 --
 
-CREATE INDEX generation_user_id_status_created_at ON public.generations USING btree (user_id, status, created_at);
+CREATE INDEX generation_user_id_status_created_at ON public.generations USING btree (status, user_id, created_at);
 
 
 drop index generation_user_id_status_created_at;
@@ -1152,3 +1152,6 @@ ALTER TABLE public.ip_blacklist ENABLE ROW LEVEL SECURITY;
 
 -- Add username_changed_at
 alter table public.users add column username_changed_at timestamp with time zone null;
+
+-- add is_public
+alter table public.generation_outputs add column is_public boolean not null default false;

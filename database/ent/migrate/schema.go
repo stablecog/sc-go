@@ -212,16 +212,6 @@ var (
 				Columns: []*schema.Column{GenerationsColumns[26], GenerationsColumns[18]},
 			},
 			{
-				Name:    "generation_user_id_status_created_at",
-				Unique:  false,
-				Columns: []*schema.Column{GenerationsColumns[26], GenerationsColumns[8], GenerationsColumns[18]},
-			},
-			{
-				Name:    "generation_user_id_status",
-				Unique:  false,
-				Columns: []*schema.Column{GenerationsColumns[26], GenerationsColumns[8]},
-			},
-			{
 				Name:    "generation_created_at",
 				Unique:  false,
 				Columns: []*schema.Column{GenerationsColumns[18]},
@@ -260,6 +250,7 @@ var (
 		{Name: "gallery_status", Type: field.TypeEnum, Enums: []string{"not_submitted", "submitted", "approved", "rejected"}, Default: "not_submitted"},
 		{Name: "is_favorited", Type: field.TypeBool, Default: false},
 		{Name: "has_embeddings", Type: field.TypeBool, Default: false},
+		{Name: "is_public", Type: field.TypeBool, Default: false},
 		{Name: "deleted_at", Type: field.TypeTime, Nullable: true},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},
@@ -273,7 +264,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "generation_outputs_generations_generation_outputs",
-				Columns:    []*schema.Column{GenerationOutputsColumns[9]},
+				Columns:    []*schema.Column{GenerationOutputsColumns[10]},
 				RefColumns: []*schema.Column{GenerationsColumns[0]},
 				OnDelete:   schema.Cascade,
 			},
@@ -292,17 +283,17 @@ var (
 			{
 				Name:    "generationoutput_created_at",
 				Unique:  false,
-				Columns: []*schema.Column{GenerationOutputsColumns[7]},
+				Columns: []*schema.Column{GenerationOutputsColumns[8]},
 			},
 			{
 				Name:    "generationoutput_updated_at",
 				Unique:  false,
-				Columns: []*schema.Column{GenerationOutputsColumns[8]},
+				Columns: []*schema.Column{GenerationOutputsColumns[9]},
 			},
 			{
 				Name:    "generationoutput_generation_id",
 				Unique:  false,
-				Columns: []*schema.Column{GenerationOutputsColumns[9]},
+				Columns: []*schema.Column{GenerationOutputsColumns[10]},
 			},
 		},
 	}

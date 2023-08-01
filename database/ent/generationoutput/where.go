@@ -76,6 +76,11 @@ func HasEmbeddings(v bool) predicate.GenerationOutput {
 	return predicate.GenerationOutput(sql.FieldEQ(FieldHasEmbeddings, v))
 }
 
+// IsPublic applies equality check predicate on the "is_public" field. It's identical to IsPublicEQ.
+func IsPublic(v bool) predicate.GenerationOutput {
+	return predicate.GenerationOutput(sql.FieldEQ(FieldIsPublic, v))
+}
+
 // GenerationID applies equality check predicate on the "generation_id" field. It's identical to GenerationIDEQ.
 func GenerationID(v uuid.UUID) predicate.GenerationOutput {
 	return predicate.GenerationOutput(sql.FieldEQ(FieldGenerationID, v))
@@ -274,6 +279,16 @@ func HasEmbeddingsEQ(v bool) predicate.GenerationOutput {
 // HasEmbeddingsNEQ applies the NEQ predicate on the "has_embeddings" field.
 func HasEmbeddingsNEQ(v bool) predicate.GenerationOutput {
 	return predicate.GenerationOutput(sql.FieldNEQ(FieldHasEmbeddings, v))
+}
+
+// IsPublicEQ applies the EQ predicate on the "is_public" field.
+func IsPublicEQ(v bool) predicate.GenerationOutput {
+	return predicate.GenerationOutput(sql.FieldEQ(FieldIsPublic, v))
+}
+
+// IsPublicNEQ applies the NEQ predicate on the "is_public" field.
+func IsPublicNEQ(v bool) predicate.GenerationOutput {
+	return predicate.GenerationOutput(sql.FieldNEQ(FieldIsPublic, v))
 }
 
 // GenerationIDEQ applies the EQ predicate on the "generation_id" field.

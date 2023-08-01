@@ -100,6 +100,20 @@ func (gou *GenerationOutputUpdate) SetNillableHasEmbeddings(b *bool) *Generation
 	return gou
 }
 
+// SetIsPublic sets the "is_public" field.
+func (gou *GenerationOutputUpdate) SetIsPublic(b bool) *GenerationOutputUpdate {
+	gou.mutation.SetIsPublic(b)
+	return gou
+}
+
+// SetNillableIsPublic sets the "is_public" field if the given value is not nil.
+func (gou *GenerationOutputUpdate) SetNillableIsPublic(b *bool) *GenerationOutputUpdate {
+	if b != nil {
+		gou.SetIsPublic(*b)
+	}
+	return gou
+}
+
 // SetGenerationID sets the "generation_id" field.
 func (gou *GenerationOutputUpdate) SetGenerationID(u uuid.UUID) *GenerationOutputUpdate {
 	gou.mutation.SetGenerationID(u)
@@ -273,6 +287,9 @@ func (gou *GenerationOutputUpdate) sqlSave(ctx context.Context) (n int, err erro
 	if value, ok := gou.mutation.HasEmbeddings(); ok {
 		_spec.SetField(generationoutput.FieldHasEmbeddings, field.TypeBool, value)
 	}
+	if value, ok := gou.mutation.IsPublic(); ok {
+		_spec.SetField(generationoutput.FieldIsPublic, field.TypeBool, value)
+	}
 	if value, ok := gou.mutation.DeletedAt(); ok {
 		_spec.SetField(generationoutput.FieldDeletedAt, field.TypeTime, value)
 	}
@@ -438,6 +455,20 @@ func (gouo *GenerationOutputUpdateOne) SetHasEmbeddings(b bool) *GenerationOutpu
 func (gouo *GenerationOutputUpdateOne) SetNillableHasEmbeddings(b *bool) *GenerationOutputUpdateOne {
 	if b != nil {
 		gouo.SetHasEmbeddings(*b)
+	}
+	return gouo
+}
+
+// SetIsPublic sets the "is_public" field.
+func (gouo *GenerationOutputUpdateOne) SetIsPublic(b bool) *GenerationOutputUpdateOne {
+	gouo.mutation.SetIsPublic(b)
+	return gouo
+}
+
+// SetNillableIsPublic sets the "is_public" field if the given value is not nil.
+func (gouo *GenerationOutputUpdateOne) SetNillableIsPublic(b *bool) *GenerationOutputUpdateOne {
+	if b != nil {
+		gouo.SetIsPublic(*b)
 	}
 	return gouo
 }
@@ -638,6 +669,9 @@ func (gouo *GenerationOutputUpdateOne) sqlSave(ctx context.Context) (_node *Gene
 	}
 	if value, ok := gouo.mutation.HasEmbeddings(); ok {
 		_spec.SetField(generationoutput.FieldHasEmbeddings, field.TypeBool, value)
+	}
+	if value, ok := gouo.mutation.IsPublic(); ok {
+		_spec.SetField(generationoutput.FieldIsPublic, field.TypeBool, value)
 	}
 	if value, ok := gouo.mutation.DeletedAt(); ok {
 		_spec.SetField(generationoutput.FieldDeletedAt, field.TypeTime, value)

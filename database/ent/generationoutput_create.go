@@ -85,6 +85,20 @@ func (goc *GenerationOutputCreate) SetNillableHasEmbeddings(b *bool) *Generation
 	return goc
 }
 
+// SetIsPublic sets the "is_public" field.
+func (goc *GenerationOutputCreate) SetIsPublic(b bool) *GenerationOutputCreate {
+	goc.mutation.SetIsPublic(b)
+	return goc
+}
+
+// SetNillableIsPublic sets the "is_public" field if the given value is not nil.
+func (goc *GenerationOutputCreate) SetNillableIsPublic(b *bool) *GenerationOutputCreate {
+	if b != nil {
+		goc.SetIsPublic(*b)
+	}
+	return goc
+}
+
 // SetGenerationID sets the "generation_id" field.
 func (goc *GenerationOutputCreate) SetGenerationID(u uuid.UUID) *GenerationOutputCreate {
 	goc.mutation.SetGenerationID(u)
@@ -224,6 +238,10 @@ func (goc *GenerationOutputCreate) defaults() {
 		v := generationoutput.DefaultHasEmbeddings
 		goc.mutation.SetHasEmbeddings(v)
 	}
+	if _, ok := goc.mutation.IsPublic(); !ok {
+		v := generationoutput.DefaultIsPublic
+		goc.mutation.SetIsPublic(v)
+	}
 	if _, ok := goc.mutation.CreatedAt(); !ok {
 		v := generationoutput.DefaultCreatedAt()
 		goc.mutation.SetCreatedAt(v)
@@ -256,6 +274,9 @@ func (goc *GenerationOutputCreate) check() error {
 	}
 	if _, ok := goc.mutation.HasEmbeddings(); !ok {
 		return &ValidationError{Name: "has_embeddings", err: errors.New(`ent: missing required field "GenerationOutput.has_embeddings"`)}
+	}
+	if _, ok := goc.mutation.IsPublic(); !ok {
+		return &ValidationError{Name: "is_public", err: errors.New(`ent: missing required field "GenerationOutput.is_public"`)}
 	}
 	if _, ok := goc.mutation.GenerationID(); !ok {
 		return &ValidationError{Name: "generation_id", err: errors.New(`ent: missing required field "GenerationOutput.generation_id"`)}
@@ -329,6 +350,10 @@ func (goc *GenerationOutputCreate) createSpec() (*GenerationOutput, *sqlgraph.Cr
 	if value, ok := goc.mutation.HasEmbeddings(); ok {
 		_spec.SetField(generationoutput.FieldHasEmbeddings, field.TypeBool, value)
 		_node.HasEmbeddings = value
+	}
+	if value, ok := goc.mutation.IsPublic(); ok {
+		_spec.SetField(generationoutput.FieldIsPublic, field.TypeBool, value)
+		_node.IsPublic = value
 	}
 	if value, ok := goc.mutation.DeletedAt(); ok {
 		_spec.SetField(generationoutput.FieldDeletedAt, field.TypeTime, value)

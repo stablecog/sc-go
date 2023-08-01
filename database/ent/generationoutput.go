@@ -29,6 +29,8 @@ type GenerationOutput struct {
 	IsFavorited bool `json:"is_favorited,omitempty"`
 	// HasEmbeddings holds the value of the "has_embeddings" field.
 	HasEmbeddings bool `json:"has_embeddings,omitempty"`
+	// IsPublic holds the value of the "is_public" field.
+	IsPublic bool `json:"is_public,omitempty"`
 	// GenerationID holds the value of the "generation_id" field.
 	GenerationID uuid.UUID `json:"generation_id,omitempty"`
 	// DeletedAt holds the value of the "deleted_at" field.
@@ -84,7 +86,7 @@ func (*GenerationOutput) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case generationoutput.FieldIsFavorited, generationoutput.FieldHasEmbeddings:
+		case generationoutput.FieldIsFavorited, generationoutput.FieldHasEmbeddings, generationoutput.FieldIsPublic:
 			values[i] = new(sql.NullBool)
 		case generationoutput.FieldImagePath, generationoutput.FieldUpscaledImagePath, generationoutput.FieldGalleryStatus:
 			values[i] = new(sql.NullString)
@@ -143,6 +145,12 @@ func (_go *GenerationOutput) assignValues(columns []string, values []any) error 
 				return fmt.Errorf("unexpected type %T for field has_embeddings", values[i])
 			} else if value.Valid {
 				_go.HasEmbeddings = value.Bool
+			}
+		case generationoutput.FieldIsPublic:
+			if value, ok := values[i].(*sql.NullBool); !ok {
+				return fmt.Errorf("unexpected type %T for field is_public", values[i])
+			} else if value.Valid {
+				_go.IsPublic = value.Bool
 			}
 		case generationoutput.FieldGenerationID:
 			if value, ok := values[i].(*uuid.UUID); !ok {
@@ -223,6 +231,9 @@ func (_go *GenerationOutput) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("has_embeddings=")
 	builder.WriteString(fmt.Sprintf("%v", _go.HasEmbeddings))
+	builder.WriteString(", ")
+	builder.WriteString("is_public=")
+	builder.WriteString(fmt.Sprintf("%v", _go.IsPublic))
 	builder.WriteString(", ")
 	builder.WriteString("generation_id=")
 	builder.WriteString(fmt.Sprintf("%v", _go.GenerationID))
