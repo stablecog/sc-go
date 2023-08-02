@@ -190,7 +190,7 @@ func (r *Repository) MakeGenerationOutputsPrivateForUser(outputIDs []uuid.UUID, 
 
 		if r.Qdrant != nil && len(qdrantIdsChangeIsPublic) > 0 {
 			err = r.Qdrant.SetPayload(map[string]interface{}{
-				"is_public": true,
+				"is_public": false,
 			}, qdrantIdsChangeIsPublic, false)
 			if err != nil {
 				log.Error("Error updating generation outputs to gallery qdrant", "err", err)
