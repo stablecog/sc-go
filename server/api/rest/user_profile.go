@@ -11,7 +11,6 @@ import (
 	"github.com/go-chi/render"
 	"github.com/google/uuid"
 	"github.com/stablecog/sc-go/database/ent"
-	"github.com/stablecog/sc-go/database/ent/generationoutput"
 	"github.com/stablecog/sc-go/database/qdrant"
 	"github.com/stablecog/sc-go/database/repository"
 	"github.com/stablecog/sc-go/log"
@@ -72,7 +71,7 @@ func (c *RestAPI) HandleUserProfileSemanticSearch(w http.ResponseWriter, r *http
 			return
 		}
 
-		galleryData, err := c.Repo.RetrieveGalleryDataByID(uid, utils.ToPtr(user.ID), false)
+		galleryData, err := c.Repo.RetrieveGalleryDataByID(uid, utils.ToPtr(user.ID), true)
 		if err != nil {
 			if ent.IsNotFound(err) {
 				responses.ErrNotFound(w, r, "generation_not_found")
@@ -125,17 +124,9 @@ func (c *RestAPI) HandleUserProfileSemanticSearch(w http.ResponseWriter, r *http
 	// Parse as qdrant filters
 	qdrantFilters, scoreThreshold := filters.ToQdrantFilters(true)
 	// Append gallery status requirement
-	qdrantFilters.Should = append(qdrantFilters.Should, qdrant.SCMatchCondition{
-		Key:   "gallery_status",
-		Match: &qdrant.SCValue{Value: generationoutput.GalleryStatusApproved},
-	})
-	qdrantFilters.Should = append(qdrantFilters.Should, qdrant.SCMatchCondition{
-		Key:   "gallery_status",
-		Match: &qdrant.SCValue{Value: generationoutput.GalleryStatusSubmitted},
-	})
-	qdrantFilters.Should = append(qdrantFilters.Should, qdrant.SCMatchCondition{
-		Key:   "gallery_status",
-		Match: &qdrant.SCValue{Value: generationoutput.GalleryStatusRejected},
+	qdrantFilters.Must = append(qdrantFilters.Must, qdrant.SCMatchCondition{
+		Key:   "is_public",
+		Match: &qdrant.SCValue{Value: true},
 	})
 	qdrantFilters.Must = append(qdrantFilters.Must, qdrant.SCMatchCondition{
 		IsEmpty: &qdrant.SCIsEmpty{Key: "deleted_at"},
@@ -197,7 +188,7 @@ func (c *RestAPI) HandleUserProfileSemanticSearch(w http.ResponseWriter, r *http
 		}
 
 		// Get gallery data
-		galleryDataUnsorted, err := c.Repo.RetrieveGalleryDataWithOutputIDs(outputIds, false)
+		galleryDataUnsorted, err := c.Repo.RetrieveGalleryDataWithOutputIDs(outputIds, true)
 		if err != nil {
 			log.Error("Error querying gallery data", "err", err)
 			responses.ErrInternalServerError(w, r, "An unknown error occurred")
@@ -237,7 +228,7 @@ func (c *RestAPI) HandleUserProfileSemanticSearch(w http.ResponseWriter, r *http
 		}
 
 		// Retrieve from postgres
-		filters.GalleryStatus = []generationoutput.GalleryStatus{generationoutput.GalleryStatusApproved, generationoutput.GalleryStatusRejected, generationoutput.GalleryStatusSubmitted}
+		filters.IsPublic = utils.ToPtr(true)
 		galleryData, nextCursorPostgres, err = c.Repo.RetrieveMostRecentGalleryData(filters, perPage, qCursor)
 		if err != nil {
 			log.Error("Error querying gallery data from postgres", "err", err)

@@ -36,7 +36,7 @@ func (c *RestAPI) HandleSemanticSearchGallery(w http.ResponseWriter, r *http.Req
 			return
 		}
 
-		galleryData, err := c.Repo.RetrieveGalleryDataByID(uid, nil, true)
+		galleryData, err := c.Repo.RetrieveGalleryDataByID(uid, nil, false)
 		if err != nil {
 			if ent.IsNotFound(err) {
 				responses.ErrNotFound(w, r, "generation_not_found")
@@ -150,7 +150,7 @@ func (c *RestAPI) HandleSemanticSearchGallery(w http.ResponseWriter, r *http.Req
 		}
 
 		// Get gallery data
-		galleryDataUnsorted, err := c.Repo.RetrieveGalleryDataWithOutputIDs(outputIds, true)
+		galleryDataUnsorted, err := c.Repo.RetrieveGalleryDataWithOutputIDs(outputIds, false)
 		if err != nil {
 			log.Error("Error querying gallery data", "err", err)
 			responses.ErrInternalServerError(w, r, "An unknown error occurred")

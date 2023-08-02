@@ -60,12 +60,12 @@ func (r *Repository) RetrieveGalleryData(limit int, updatedAtGT *time.Time) ([]G
 }
 
 // Retrieved a single generation output by ID, in GalleryData format
-func (r *Repository) RetrieveGalleryDataByID(id uuid.UUID, userId *uuid.UUID, approvedOnly bool) (*GalleryData, error) {
+func (r *Repository) RetrieveGalleryDataByID(id uuid.UUID, userId *uuid.UUID, allIsPublic bool) (*GalleryData, error) {
 	q := r.DB.GenerationOutput.Query().Where(generationoutput.IDEQ(id))
-	if approvedOnly {
-		q = q.Where(generationoutput.GalleryStatusEQ(generationoutput.GalleryStatusApproved))
+	if allIsPublic {
+		q = q.Where(generationoutput.IsPublic(true))
 	} else {
-		q = q.Where(generationoutput.GalleryStatusIn(generationoutput.GalleryStatusApproved, generationoutput.GalleryStatusSubmitted, generationoutput.GalleryStatusSubmitted))
+		q = q.Where(generationoutput.GalleryStatusEQ(generationoutput.GalleryStatusApproved))
 	}
 	output, err := q.WithGenerations(func(gq *ent.GenerationQuery) {
 		if userId != nil {
@@ -96,6 +96,8 @@ func (r *Repository) RetrieveGalleryDataByID(id uuid.UUID, userId *uuid.UUID, ap
 		User: &UserType{
 			Username: output.Edges.Generations.Edges.User.Username,
 		},
+		WasAutoSubmitted: output.Edges.Generations.WasAutoSubmitted,
+		IsPublic:         output.IsPublic,
 	}
 	if output.Edges.Generations.Edges.NegativePrompt != nil {
 		data.NegativePromptID = &output.Edges.Generations.Edges.NegativePrompt.ID
@@ -131,6 +133,9 @@ func (r *Repository) RetrieveMostRecentGalleryData(filters *requests.QueryGenera
 		}
 		if len(filters.GalleryStatus) > 0 {
 			query = query.Where(generationoutput.GalleryStatusIn(filters.GalleryStatus...))
+		}
+		if filters.IsPublic != nil {
+			query = query.Where(generationoutput.IsPublic(*filters.IsPublic))
 		}
 	}
 	query = query.WithGenerations(func(s *ent.GenerationQuery) {
@@ -177,6 +182,8 @@ func (r *Repository) RetrieveMostRecentGalleryData(filters *requests.QueryGenera
 			User: &UserType{
 				Username: output.Edges.Generations.Edges.User.Username,
 			},
+			WasAutoSubmitted: output.Edges.Generations.WasAutoSubmitted,
+			IsPublic:         output.IsPublic,
 		}
 		if output.UpscaledImagePath != nil {
 			data.UpscaledImagePath = *output.UpscaledImagePath
@@ -193,10 +200,10 @@ func (r *Repository) RetrieveMostRecentGalleryData(filters *requests.QueryGenera
 }
 
 // Retrieves data in gallery format given  output IDs
-func (r *Repository) RetrieveGalleryDataWithOutputIDs(outputIDs []uuid.UUID, approvedOnly bool) ([]GalleryData, error) {
+func (r *Repository) RetrieveGalleryDataWithOutputIDs(outputIDs []uuid.UUID, allIsPublic bool) ([]GalleryData, error) {
 	q := r.DB.GenerationOutput.Query().Where(generationoutput.IDIn(outputIDs...))
-	if !approvedOnly {
-		q = q.Where(generationoutput.GalleryStatusIn(generationoutput.GalleryStatusApproved, generationoutput.GalleryStatusRejected, generationoutput.GalleryStatusSubmitted))
+	if allIsPublic {
+		q = q.Where(generationoutput.IsPublic(true))
 	} else {
 		q = q.Where(generationoutput.GalleryStatusEQ(generationoutput.GalleryStatusApproved))
 	}
@@ -269,4 +276,6 @@ type GalleryData struct {
 	Score              *float32   `json:"score,omitempty" sql:"score"`
 	Username           *string    `json:"username,omitempty" sql:"username"`
 	User               *UserType  `json:"user,omitempty" sql:"user"`
+	WasAutoSubmitted   bool       `json:"was_auto_submitted,omitempty" sql:"was_auto_submitted"`
+	IsPublic           bool       `json:"is_public,omitempty" sql:"is_public"`
 }

@@ -67,6 +67,7 @@ type QueryGenerationFilters struct {
 	IsFavorited       *bool                            `json:"is_favorited,omitempty"`
 	WasAutoSubmitted  *bool                            `json:"was_auto_submitted,omitempty"`
 	PromptID          *uuid.UUID                       `json:"prompt,omitempty"`
+	IsPublic          *bool                            `json:"is_public,omitempty"`
 }
 
 // Parse all filters into a QueryGenerationFilters struct
