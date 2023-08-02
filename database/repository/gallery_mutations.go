@@ -107,7 +107,7 @@ func (r *Repository) MakeGenerationOutputsPublicForUser(outputIDs []uuid.UUID, u
 // Sets is_public to false on the output IDs given by the user
 // If gallery status is not rejected or approved, sets gallery status to not_submitted
 // Only applies for outputs where was_auto_submitted is false
-func (r *Repository) MakeGenerationOutputsPrivateForUser(outputIDs []uuid.UUID, userID uuid.UUID) (int, error) {
+func (r *Repository) MakeGenerationOutputsPrivateForUser(outputIDs []uuid.UUID, userID uuid.UUID, isSubscriber bool) (int, error) {
 	// Make sure the user owns all the generations of these outputs
 	count, err := r.DB.GenerationOutput.Query().Where(generationoutput.IDIn(outputIDs...)).QueryGenerations().Where(generation.UserIDNEQ(userID)).Count(r.Ctx)
 	if err != nil {
@@ -139,7 +139,7 @@ func (r *Repository) MakeGenerationOutputsPrivateForUser(outputIDs []uuid.UUID, 
 	var qdrantIdsChangeIsPublic []uuid.UUID
 
 	for _, output := range outputsToChangeGalleryStatus {
-		if output.Edges.Generations.WasAutoSubmitted {
+		if output.Edges.Generations.WasAutoSubmitted && !isSubscriber {
 			continue
 		}
 		idsToChangeGalleryStatus = append(idsToChangeGalleryStatus, output.ID)
@@ -148,7 +148,7 @@ func (r *Repository) MakeGenerationOutputsPrivateForUser(outputIDs []uuid.UUID, 
 		}
 	}
 	for _, output := range outputsToChangeIsPublic {
-		if output.Edges.Generations.WasAutoSubmitted {
+		if output.Edges.Generations.WasAutoSubmitted && !isSubscriber {
 			continue
 		}
 		idsToChangeIsPublic = append(idsToChangeIsPublic, output.ID)

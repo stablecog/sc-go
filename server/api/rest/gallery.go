@@ -20,6 +20,7 @@ import (
 	"github.com/stablecog/sc-go/server/requests"
 	"github.com/stablecog/sc-go/server/responses"
 	"github.com/stablecog/sc-go/utils"
+	"golang.org/x/exp/slices"
 )
 
 const GALLERY_PER_PAGE = 50
@@ -332,21 +333,24 @@ func (c *RestAPI) HandleMakeGenerationOutputsPrivate(w http.ResponseWriter, r *h
 		return
 	}
 
-	if user.ActiveProductID == nil {
-		responses.ErrBadRequest(w, r, "not_subscriber", "You must be a subscriber to make generation outputs private")
+	roles, err := c.Repo.GetRoles(user.ID)
+	if err != nil {
+		log.Error("Error getting roles for user", "err", err)
+		responses.ErrInternalServerError(w, r, "Error getting roles for user")
 		return
 	}
+	isSuperAdmin := slices.Contains(roles, "SUPER_ADMIN")
 
 	// Parse request body
 	reqBody, _ := io.ReadAll(r.Body)
 	var submitToGalleryReq requests.SubmitGalleryRequest
-	err := json.Unmarshal(reqBody, &submitToGalleryReq)
+	err = json.Unmarshal(reqBody, &submitToGalleryReq)
 	if err != nil {
 		responses.ErrUnableToParseJson(w, r)
 		return
 	}
 
-	updated, err := c.Repo.MakeGenerationOutputsPrivateForUser(submitToGalleryReq.GenerationOutputIDs, user.ID)
+	updated, err := c.Repo.MakeGenerationOutputsPrivateForUser(submitToGalleryReq.GenerationOutputIDs, user.ID, user.ActiveProductID != nil || isSuperAdmin)
 	if err != nil {
 		responses.ErrInternalServerError(w, r, "Error submitting generation outputs to gallery")
 		return
