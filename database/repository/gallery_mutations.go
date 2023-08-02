@@ -170,7 +170,7 @@ func (r *Repository) MakeGenerationOutputsPrivateForUser(outputIDs []uuid.UUID, 
 
 		u, err = r.DB.GenerationOutput.Update().
 			Where(generationoutput.IDIn(idsToChangeIsPublic...)).
-			SetIsPublic(true).Save(r.Ctx)
+			SetIsPublic(false).Save(r.Ctx)
 		if err != nil {
 			log.Error("Error updating generation outputs to gallery", "err", err)
 			return err
