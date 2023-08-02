@@ -145,7 +145,7 @@ func (r *Repository) RetrieveMostRecentGalleryDataV2(filters *requests.QueryGene
 		orderByOutput = []string{generationoutput.FieldCreatedAt, generationoutput.FieldUpdatedAt}
 	}
 
-	query = r.DB.Debug().Generation.Query().Select(selectFields...).
+	query = r.DB.Generation.Query().Select(selectFields...).
 		Where(generation.StatusEQ(generation.StatusSucceeded))
 	if cursor != nil {
 		query = query.Where(generation.CreatedAtLT(*cursor))

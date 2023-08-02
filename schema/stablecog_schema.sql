@@ -598,6 +598,8 @@ CREATE INDEX generationoutput_created_at ON public.generation_outputs USING btre
 
 CREATE INDEX generationoutput_generation_id ON public.generation_outputs USING btree (generation_id);
 
+CREATE INDEX generationoutput_deleted_ispublic_generation_id on public.generation_outputs using btree(deleted_at, is_public, generation_id);
+
 --
 -- Name: generationoutput_updated_at; Type: INDEX; Schema: public; Owner: postgres
 --
