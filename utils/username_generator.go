@@ -1,43 +1,45 @@
 package utils
 
 import (
-	"math/rand"
-	"time"
+	cryptorand "crypto/rand"
+	"math/big"
 )
 
-// RandInt provides a common interface for random integer generation.
-type RandInt interface {
-	Intn(n int) int
+type RandReader interface {
+	Read([]byte) (int, error)
 }
 
-// MathRandInt is a RandInt that uses math/rand.
-type MathRandInt struct {
-	*rand.Rand
+type CryptoRandReader struct{}
+
+func (crr *CryptoRandReader) Read(b []byte) (int, error) {
+	return cryptorand.Read(b)
 }
 
-func NewMathRandInt(seed int64) *MathRandInt {
-	return &MathRandInt{rand.New(rand.NewSource(seed))}
+func randInt(randReader RandReader, n int) (int, error) {
+	val, err := cryptorand.Int(randReader, big.NewInt(int64(n)))
+	if err != nil {
+		return 0, err
+	}
+	return int(val.Int64()), nil
 }
 
-func randomString(randInt RandInt, length int) string {
-	// Generate a random string of length
+func randomString(randReader RandReader, length int) string {
 	const letterBytes = "abcdefghijklmnopqrstuvwxyz0123456789"
 	b := make([]byte, length)
 	for i := range b {
-		randomIndex := randInt.Intn(len(letterBytes))
+		randomIndex, _ := randInt(randReader, len(letterBytes))
 		b[i] = letterBytes[randomIndex]
 	}
 	return string(b)
 }
 
-func GenerateUsername(randInt RandInt) string {
-	if randInt == nil {
-		randInt = NewMathRandInt(time.Now().UnixNano())
+func GenerateUsername(randReader RandReader) string {
+	if randReader == nil {
+		randReader = &CryptoRandReader{}
 	}
-	// Generate random 12 character username that is allowed
-	username := randomString(randInt, 12)
+	username := randomString(randReader, 12)
 	for IsValidUsername(username) != nil {
-		username = randomString(randInt, 12)
+		username = randomString(randReader, 12)
 	}
 	return username
 }

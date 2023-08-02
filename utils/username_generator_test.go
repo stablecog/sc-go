@@ -6,10 +6,10 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-type MockRandInt struct{}
+type MockRandReader struct{}
 
-func (m *MockRandInt) Intn(n int) int {
-	return 1
+func (m *MockRandReader) Read(b []byte) (int, error) {
+	return 5, nil
 }
 
 func TestGenerateUsername(t *testing.T) {
@@ -20,6 +20,6 @@ func TestGenerateUsername(t *testing.T) {
 	assert.NotEqual(t, username1, username2)
 
 	// Test predictable
-	username := GenerateUsername(&MockRandInt{})
-	assert.Equal(t, "bbbbbbbbbbbb", username)
+	username := GenerateUsername(&MockRandReader{})
+	assert.Equal(t, "aaaaaaaaaaaa", username)
 }
