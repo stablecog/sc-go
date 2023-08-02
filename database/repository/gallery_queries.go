@@ -276,6 +276,6 @@ type GalleryData struct {
 	Score              *float32   `json:"score,omitempty" sql:"score"`
 	Username           *string    `json:"username,omitempty" sql:"username"`
 	User               *UserType  `json:"user,omitempty" sql:"user"`
-	WasAutoSubmitted   bool       `json:"was_auto_submitted,omitempty" sql:"was_auto_submitted"`
-	IsPublic           bool       `json:"is_public,omitempty" sql:"is_public"`
+	WasAutoSubmitted   bool       `json:"was_auto_submitted" sql:"was_auto_submitted"`
+	IsPublic           bool       `json:"is_public" sql:"is_public"`
 }
