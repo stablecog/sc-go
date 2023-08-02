@@ -223,6 +223,12 @@ func (r *Repository) ApplyUserGenerationsFilters(query *ent.GenerationQuery, fil
 					s.Where(sql.EQ(generationoutput.FieldIsFavorited, *filters.IsFavorited))
 				})
 			}
+
+			if filters.IsPublic != nil {
+				resQuery = resQuery.Where(func(s *sql.Selector) {
+					s.Where(sql.EQ(generationoutput.FieldIsPublic, *filters.IsPublic))
+				})
+			}
 		}
 
 		// prompt ID
