@@ -1,18 +1,25 @@
 package utils
 
 import (
-	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 )
 
+type MockRandInt struct{}
+
+func (m *MockRandInt) Intn(n int) int {
+	return 1
+}
+
 func TestGenerateUsername(t *testing.T) {
-	username := GenerateUsername(nil)
-	assert.Equal(t, 3, len(strings.Split(username, "-")))
+	username1 := GenerateUsername(nil)
+	assert.Equal(t, 12, len(username1))
+	username2 := GenerateUsername(nil)
+	assert.Equal(t, 12, len(username2))
+	assert.NotEqual(t, username1, username2)
 
 	// Test predictable
-	fixedReader := strings.NewReader("9f729340e07eee69abac049c2fdd4a3c4b50e4672a2fabdf1ae295f2b4f3040b")
-	username = GenerateUsername(fixedReader)
-	assert.Equal(t, "dull-emergence-3lll", username)
+	username := GenerateUsername(&MockRandInt{})
+	assert.Equal(t, "bbbbbbbbbbbb", username)
 }

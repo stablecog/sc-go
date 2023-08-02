@@ -26,6 +26,7 @@ import (
 	"github.com/stablecog/sc-go/database/ent"
 	"github.com/stablecog/sc-go/database/ent/generation"
 	"github.com/stablecog/sc-go/database/ent/generationoutput"
+	"github.com/stablecog/sc-go/database/ent/user"
 	"github.com/stablecog/sc-go/database/qdrant"
 	"github.com/stablecog/sc-go/database/repository"
 	"github.com/stablecog/sc-go/log"
@@ -250,7 +251,7 @@ func main() {
 
 	if *migrateUsername {
 		log.Info("🏡 Generating usernames...")
-		users, err := repo.DB.User.Query().All(ctx)
+		users, err := repo.DB.User.Query().Where(user.UsernameChangedAtIsNil()).All(ctx)
 		if err != nil {
 			log.Fatal("Failed to migrate usernames", "err", err)
 			os.Exit(1)
