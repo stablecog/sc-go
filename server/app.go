@@ -539,8 +539,13 @@ func main() {
 			// Query credits
 			r.Get("/credits", hc.HandleQueryCredits)
 
-			// Submit to gallery
+			// ! Deprecated Submit to gallery
 			r.Put("/gallery", hc.HandleSubmitGenerationToGallery)
+
+			// Make generations public
+			r.Put("/image/generation/outputs/make_public", hc.HandleMakeGenerationOutputsPublic)
+			// Make generations private
+			r.Put("/image/generation/outputs/make_private", hc.HandleMakeGenerationOutputsPrivate)
 
 			// Subscriptions
 			r.Post("/subscription/downgrade", hc.HandleSubscriptionDowngrade)

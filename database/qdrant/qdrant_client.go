@@ -75,6 +75,10 @@ var fieldsToIndex = []qdrantIndexField{
 		Type: PayloadSchemaTypeKeyword,
 	},
 	{
+		Name: "is_public",
+		Type: PayloadSchemaTypeKeyword,
+	},
+	{
 		Name: "prompt",
 		Type: PayloadSchemaTypeKeyword,
 	},

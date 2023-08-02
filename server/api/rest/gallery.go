@@ -282,3 +282,80 @@ func (c *RestAPI) HandleSubmitGenerationToGallery(w http.ResponseWriter, r *http
 	render.Status(r, http.StatusOK)
 	render.JSON(w, r, res)
 }
+
+// HTTP PUT make generation output public - for user
+// Only allow submitting user's own gallery items.
+func (c *RestAPI) HandleMakeGenerationOutputsPublic(w http.ResponseWriter, r *http.Request) {
+	var user *ent.User
+	if user = c.GetUserIfAuthenticated(w, r); user == nil {
+		return
+	}
+
+	if user.BannedAt != nil {
+		responses.ErrForbidden(w, r)
+		return
+	}
+
+	// Parse request body
+	reqBody, _ := io.ReadAll(r.Body)
+	var submitToGalleryReq requests.SubmitGalleryRequest
+	err := json.Unmarshal(reqBody, &submitToGalleryReq)
+	if err != nil {
+		responses.ErrUnableToParseJson(w, r)
+		return
+	}
+
+	updated, err := c.Repo.MakeGenerationOutputsPublicForUser(submitToGalleryReq.GenerationOutputIDs, user.ID)
+	if err != nil {
+		responses.ErrInternalServerError(w, r, "Error submitting generation outputs to gallery")
+		return
+	}
+
+	res := responses.UpdatedResponse{
+		Updated: updated,
+	}
+
+	render.Status(r, http.StatusOK)
+	render.JSON(w, r, res)
+}
+
+// HTTP PUT make generation output public - for user
+// Only allow submitting user's own gallery items.
+func (c *RestAPI) HandleMakeGenerationOutputsPrivate(w http.ResponseWriter, r *http.Request) {
+	var user *ent.User
+	if user = c.GetUserIfAuthenticated(w, r); user == nil {
+		return
+	}
+
+	if user.BannedAt != nil {
+		responses.ErrForbidden(w, r)
+		return
+	}
+
+	if user.ActiveProductID == nil {
+		responses.ErrBadRequest(w, r, "not_subscriber", "You must be a subscriber to make generation outputs private")
+		return
+	}
+
+	// Parse request body
+	reqBody, _ := io.ReadAll(r.Body)
+	var submitToGalleryReq requests.SubmitGalleryRequest
+	err := json.Unmarshal(reqBody, &submitToGalleryReq)
+	if err != nil {
+		responses.ErrUnableToParseJson(w, r)
+		return
+	}
+
+	updated, err := c.Repo.MakeGenerationOutputsPrivateForUser(submitToGalleryReq.GenerationOutputIDs, user.ID)
+	if err != nil {
+		responses.ErrInternalServerError(w, r, "Error submitting generation outputs to gallery")
+		return
+	}
+
+	res := responses.UpdatedResponse{
+		Updated: updated,
+	}
+
+	render.Status(r, http.StatusOK)
+	render.JSON(w, r, res)
+}
