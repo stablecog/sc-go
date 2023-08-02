@@ -239,6 +239,8 @@ func (r *Repository) RetrieveGalleryDataWithOutputIDs(outputIDs []uuid.UUID, all
 			User: &UserType{
 				Username: output.Edges.Generations.Edges.User.Username,
 			},
+			WasAutoSubmitted: output.Edges.Generations.WasAutoSubmitted,
+			IsPublic:         output.IsPublic,
 		}
 		if output.UpscaledImagePath != nil {
 			data.UpscaledImagePath = *output.UpscaledImagePath
