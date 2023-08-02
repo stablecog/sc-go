@@ -339,6 +339,7 @@ func (r *Repository) RetrieveGenerationsWithOutputIDs(outputIDs []uuid.UUID, adm
 			GalleryStatus:    g.GalleryStatus,
 			WasAutoSubmitted: g.Edges.Generations.WasAutoSubmitted,
 			IsFavorited:      g.IsFavorited,
+			IsPublic:         g.IsPublic,
 		}
 		if g.UpscaledImagePath != nil {
 			gOutput.UpscaledImageUrl = *g.UpscaledImagePath
@@ -364,6 +365,7 @@ func (r *Repository) RetrieveGenerationsWithOutputIDs(outputIDs []uuid.UUID, adm
 					ID:   *g.Edges.Generations.PromptID,
 				},
 				IsFavorited: gOutput.IsFavorited,
+				IsPublic:    gOutput.IsPublic,
 			},
 		}
 		if g.Edges.Generations.InitImageURL != nil {
@@ -469,7 +471,7 @@ func (r *Repository) QueryGenerations(per_page int, cursor *time.Time, filters *
 			s.C(generation.FieldID), got.C(generationoutput.FieldGenerationID),
 		).LeftJoin(ut).On(
 			s.C(generation.FieldUserID), ut.C(user.FieldID),
-		).AppendSelect(sql.As(npt.C(negativeprompt.FieldText), "negative_prompt_text"), sql.As(pt.C(prompt.FieldText), "prompt_text"), sql.As(got.C(generationoutput.FieldID), "output_id"), sql.As(got.C(generationoutput.FieldGalleryStatus), "output_gallery_status"), sql.As(got.C(generationoutput.FieldImagePath), "image_path"), sql.As(got.C(generationoutput.FieldUpscaledImagePath), "upscaled_image_path"), sql.As(got.C(generationoutput.FieldDeletedAt), "deleted_at"), sql.As(got.C(generationoutput.FieldIsFavorited), "is_favorited"), sql.As(ut.C(user.FieldUsername), "username")).
+		).AppendSelect(sql.As(npt.C(negativeprompt.FieldText), "negative_prompt_text"), sql.As(pt.C(prompt.FieldText), "prompt_text"), sql.As(got.C(generationoutput.FieldID), "output_id"), sql.As(got.C(generationoutput.FieldGalleryStatus), "output_gallery_status"), sql.As(got.C(generationoutput.FieldImagePath), "image_path"), sql.As(got.C(generationoutput.FieldUpscaledImagePath), "upscaled_image_path"), sql.As(got.C(generationoutput.FieldDeletedAt), "deleted_at"), sql.As(got.C(generationoutput.FieldIsFavorited), "is_favorited"), sql.As(ut.C(user.FieldUsername), "username"), sql.As(got.C(generationoutput.FieldIsPublic), "is_public")).
 			GroupBy(s.C(generation.FieldID), npt.C(negativeprompt.FieldText), pt.C(prompt.FieldText),
 				got.C(generationoutput.FieldID), got.C(generationoutput.FieldGalleryStatus),
 				got.C(generationoutput.FieldImagePath), got.C(generationoutput.FieldUpscaledImagePath),
@@ -549,6 +551,7 @@ func (r *Repository) QueryGenerations(per_page int, cursor *time.Time, filters *
 			GalleryStatus:    g.GalleryStatus,
 			WasAutoSubmitted: g.WasAutoSubmitted,
 			IsFavorited:      g.IsFavorited,
+			IsPublic:         g.IsPublic,
 		}
 		output := GenerationQueryWithOutputsResultFormatted{
 			GenerationUpscaleOutput: gOutput,
@@ -577,6 +580,7 @@ func (r *Repository) QueryGenerations(per_page int, cursor *time.Time, filters *
 					Username: g.Username,
 				},
 				IsFavorited: gOutput.IsFavorited,
+				IsPublic:    gOutput.IsPublic,
 			},
 		}
 		if g.NegativePromptID != nil {
@@ -832,6 +836,7 @@ func (r *Repository) QueryGenerationsAdmin(per_page int, cursor *time.Time, filt
 			CompletedAt:      g.Edges.Generations.CompletedAt,
 			WasAutoSubmitted: g.Edges.Generations.WasAutoSubmitted,
 			IsFavorited:      g.IsFavorited,
+			IsPublic:         g.IsPublic,
 		}
 		if g.Edges.Generations.InitImageURL != nil {
 			generationRoot.InitImageURL = *g.Edges.Generations.InitImageURL
@@ -863,6 +868,7 @@ func (r *Repository) QueryGenerationsAdmin(per_page int, cursor *time.Time, filt
 				GalleryStatus:    o.GalleryStatus,
 				CreatedAt:        &o.CreatedAt,
 				IsFavorited:      o.IsFavorited,
+				IsPublic:         o.IsPublic,
 				WasAutoSubmitted: generationRoot.WasAutoSubmitted,
 			}
 			if o.UpscaledImagePath != nil {
@@ -938,6 +944,7 @@ type GenerationUpscaleOutput struct {
 	IsFavorited      bool                           `json:"is_favorited"`
 	InitImageUrl     string                         `json:"init_image_url,omitempty"`
 	WasAutoSubmitted bool                           `json:"was_auto_submitted"`
+	IsPublic         bool                           `json:"is_public"`
 	DenoiseAudio     *bool                          `json:"denoise_audio,omitempty"`
 	RemoveSilence    *bool                          `json:"remove_silence,omitempty"`
 }
@@ -983,6 +990,7 @@ type GenerationQueryWithOutputsData struct {
 	PromptText         string                    `json:"prompt_text,omitempty" sql:"prompt_text"`
 	Username           string                    `json:"username,omitempty" sql:"username"`
 	IsFavorited        bool                      `json:"is_favorited" sql:"is_favorited"`
+	IsPublic           bool                      `json:"is_public" sql:"is_public"`
 	Outputs            []GenerationUpscaleOutput `json:"outputs"`
 	Prompt             PromptType                `json:"prompt"`
 	NegativePrompt     *PromptType               `json:"negative_prompt,omitempty"`
