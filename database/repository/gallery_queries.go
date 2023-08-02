@@ -60,17 +60,18 @@ func (r *Repository) RetrieveGalleryData(limit int, updatedAtGT *time.Time) ([]G
 }
 
 // Retrieved a single generation output by ID, in GalleryData format
-func (r *Repository) RetrieveGalleryDataByID(id uuid.UUID, userId *uuid.UUID, allIsPublic bool) (*GalleryData, error) {
-	q := r.DB.GenerationOutput.Query().Where(generationoutput.IDEQ(id))
-	if allIsPublic {
-		q = q.Where(generationoutput.IsPublic(true))
+func (r *Repository) RetrieveGalleryDataByID(id uuid.UUID, userId *uuid.UUID, all bool) (*GalleryData, error) {
+	var q *ent.GenerationOutputQuery
+	if userId != nil {
+		q = r.DB.Generation.Query().Where(generation.UserIDEQ(*userId)).QueryGenerationOutputs()
 	} else {
+		q = r.DB.GenerationOutput.Query()
+	}
+	q = q.Where(generationoutput.IDEQ(id))
+	if !all {
 		q = q.Where(generationoutput.GalleryStatusEQ(generationoutput.GalleryStatusApproved))
 	}
 	output, err := q.WithGenerations(func(gq *ent.GenerationQuery) {
-		if userId != nil {
-			gq.Where(generation.UserIDEQ(*userId))
-		}
 		gq.WithPrompt()
 		gq.WithNegativePrompt()
 		gq.WithUser()
