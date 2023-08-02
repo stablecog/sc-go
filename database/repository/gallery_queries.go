@@ -118,7 +118,6 @@ func (r *Repository) RetrieveMostRecentGalleryData(filters *requests.QueryGenera
 		generation.StatusEQ(generation.StatusSucceeded),
 	)
 	queryG = r.ApplyUserGenerationsFilters(queryG, filters, true)
-	queryG.Order(ent.Desc(generation.FieldCreatedAt)).Limit(100)
 	query := queryG.QueryGenerationOutputs().Where(
 		generationoutput.DeletedAtIsNil(),
 	)
