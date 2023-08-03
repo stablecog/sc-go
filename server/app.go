@@ -608,7 +608,7 @@ func main() {
 					r.Use(mw.AuthMiddleware(middleware.AuthLevelAPIToken))
 					r.Use(middleware.Logger)
 					r.Use(mw.RateLimit(5, "api", 1*time.Second))
-					r.Post("/", hc.HandleCreateGenerationAPI)
+					r.Post("/", hc.HandleCreateGenerationToken)
 				})
 			})
 
