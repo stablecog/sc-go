@@ -9,6 +9,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/stablecog/sc-go/database/ent"
 	"github.com/stablecog/sc-go/database/enttypes"
+	"github.com/stablecog/sc-go/log"
 	"github.com/stablecog/sc-go/server/requests"
 	"github.com/stablecog/sc-go/server/responses"
 )
@@ -68,7 +69,7 @@ func (c *RestAPI) HandleCreateGenerationWebUI(w http.ResponseWriter, r *http.Req
 
 // POST generate endpoint
 // Handles creating a generation with API token
-func (c *RestAPI) HandleCreateGenerationAPI(w http.ResponseWriter, r *http.Request) {
+func (c *RestAPI) HandleCreateGenerationToken(w http.ResponseWriter, r *http.Request) {
 	var user *ent.User
 	if user = c.GetUserIfAuthenticated(w, r); user == nil {
 		return
@@ -106,6 +107,12 @@ func (c *RestAPI) HandleCreateGenerationAPI(w http.ResponseWriter, r *http.Reque
 		render.Status(r, workerErr.StatusCode)
 		render.JSON(w, r, errResp)
 		return
+	}
+
+	// Update last seen at
+	err = c.Repo.UpdateLastSeenAt(user.ID)
+	if err != nil {
+		log.Warn("Error updating last seen at", "err", err, "user", user.ID.String())
 	}
 
 	// Return response

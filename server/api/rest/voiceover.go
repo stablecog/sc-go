@@ -71,7 +71,7 @@ func (c *RestAPI) HandleCreateVoiceoverWebUI(w http.ResponseWriter, r *http.Requ
 }
 
 // HTTP Post - new voiceover from API
-func (c *RestAPI) HandleCreateVoiceoverAPI(w http.ResponseWriter, r *http.Request) {
+func (c *RestAPI) HandleCreateVoiceoverToken(w http.ResponseWriter, r *http.Request) {
 	var user *ent.User
 	if user = c.GetUserIfAuthenticated(w, r); user == nil {
 		return
@@ -110,6 +110,11 @@ func (c *RestAPI) HandleCreateVoiceoverAPI(w http.ResponseWriter, r *http.Reques
 		render.Status(r, workerErr.StatusCode)
 		render.JSON(w, r, errResp)
 		return
+	}
+
+	err = c.Repo.UpdateLastSeenAt(user.ID)
+	if err != nil {
+		log.Warn("Error updating last seen at", "err", err, "user", user.ID.String())
 	}
 
 	// Return response

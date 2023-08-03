@@ -60,17 +60,18 @@ func (r *Repository) RetrieveGalleryData(limit int, updatedAtGT *time.Time) ([]G
 }
 
 // Retrieved a single generation output by ID, in GalleryData format
-func (r *Repository) RetrieveGalleryDataByID(id uuid.UUID, userId *uuid.UUID, approvedOnly bool) (*GalleryData, error) {
-	q := r.DB.GenerationOutput.Query().Where(generationoutput.IDEQ(id))
-	if approvedOnly {
-		q = q.Where(generationoutput.GalleryStatusEQ(generationoutput.GalleryStatusApproved))
+func (r *Repository) RetrieveGalleryDataByID(id uuid.UUID, userId *uuid.UUID, all bool) (*GalleryData, error) {
+	var q *ent.GenerationOutputQuery
+	if userId != nil {
+		q = r.DB.Generation.Query().Where(generation.UserIDEQ(*userId)).QueryGenerationOutputs()
 	} else {
-		q = q.Where(generationoutput.GalleryStatusIn(generationoutput.GalleryStatusApproved, generationoutput.GalleryStatusSubmitted, generationoutput.GalleryStatusSubmitted))
+		q = r.DB.GenerationOutput.Query()
+	}
+	q = q.Where(generationoutput.IDEQ(id))
+	if !all {
+		q = q.Where(generationoutput.GalleryStatusEQ(generationoutput.GalleryStatusApproved))
 	}
 	output, err := q.WithGenerations(func(gq *ent.GenerationQuery) {
-		if userId != nil {
-			gq.Where(generation.UserIDEQ(*userId))
-		}
 		gq.WithPrompt()
 		gq.WithNegativePrompt()
 		gq.WithUser()
@@ -96,6 +97,8 @@ func (r *Repository) RetrieveGalleryDataByID(id uuid.UUID, userId *uuid.UUID, ap
 		User: &UserType{
 			Username: output.Edges.Generations.Edges.User.Username,
 		},
+		WasAutoSubmitted: output.Edges.Generations.WasAutoSubmitted,
+		IsPublic:         output.IsPublic,
 	}
 	if output.Edges.Generations.Edges.NegativePrompt != nil {
 		data.NegativePromptID = &output.Edges.Generations.Edges.NegativePrompt.ID
@@ -106,6 +109,146 @@ func (r *Repository) RetrieveGalleryDataByID(id uuid.UUID, userId *uuid.UUID, ap
 		data.UpscaledImageURL = utils.GetURLFromImagePath(*output.UpscaledImagePath)
 	}
 	return &data, nil
+}
+
+func (r *Repository) RetrieveMostRecentGalleryDataV2(filters *requests.QueryGenerationFilters, per_page int, cursor *time.Time) ([]GalleryData, *time.Time, error) {
+	// Base fields to select in our query
+	selectFields := []string{
+		generation.FieldID,
+		generation.FieldWidth,
+		generation.FieldHeight,
+		generation.FieldInferenceSteps,
+		generation.FieldSeed,
+		generation.FieldStatus,
+		generation.FieldGuidanceScale,
+		generation.FieldSchedulerID,
+		generation.FieldModelID,
+		generation.FieldPromptID,
+		generation.FieldNegativePromptID,
+		generation.FieldCreatedAt,
+		generation.FieldUpdatedAt,
+		generation.FieldStartedAt,
+		generation.FieldCompletedAt,
+		generation.FieldWasAutoSubmitted,
+		generation.FieldInitImageURL,
+	}
+	var query *ent.GenerationQuery
+	var gQueryResult []GenerationQueryWithOutputsResult
+
+	// Figure out order bys
+	var orderByGeneration []string
+	var orderByOutput []string
+	if filters == nil || (filters != nil && filters.OrderBy == requests.OrderByCreatedAt) {
+		orderByGeneration = []string{generation.FieldCreatedAt}
+		orderByOutput = []string{generationoutput.FieldCreatedAt}
+	} else {
+		orderByGeneration = []string{generation.FieldCreatedAt, generation.FieldUpdatedAt}
+		orderByOutput = []string{generationoutput.FieldCreatedAt, generationoutput.FieldUpdatedAt}
+	}
+
+	query = r.DB.Generation.Query().Select(selectFields...).
+		Where(generation.StatusEQ(generation.StatusSucceeded))
+	if cursor != nil {
+		query = query.Where(generation.CreatedAtLT(*cursor))
+	}
+
+	// Exclude deleted at always
+	query = query.Where(func(s *sql.Selector) {
+		s.Where(sql.IsNull("deleted_at"))
+	})
+
+	// Apply filters
+	query = r.ApplyUserGenerationsFilters(query, filters, false)
+
+	// Limits is + 1 so we can check if there are more pages
+	query = query.Limit(per_page + 1)
+
+	// Join other data
+	err := query.Modify(func(s *sql.Selector) {
+		gt := sql.Table(generation.Table)
+		npt := sql.Table(negativeprompt.Table)
+		pt := sql.Table(prompt.Table)
+		got := sql.Table(generationoutput.Table)
+		ut := sql.Table(user.Table)
+		s.LeftJoin(npt).On(
+			s.C(generation.FieldNegativePromptID), npt.C(negativeprompt.FieldID),
+		).LeftJoin(pt).On(
+			s.C(generation.FieldPromptID), pt.C(prompt.FieldID),
+		).LeftJoin(got).On(
+			s.C(generation.FieldID), got.C(generationoutput.FieldGenerationID),
+		).LeftJoin(ut).On(
+			s.C(generation.FieldUserID), ut.C(user.FieldID),
+		).AppendSelect(sql.As(npt.C(negativeprompt.FieldText), "negative_prompt_text"), sql.As(pt.C(prompt.FieldText), "prompt_text"), sql.As(got.C(generationoutput.FieldID), "output_id"), sql.As(got.C(generationoutput.FieldGalleryStatus), "output_gallery_status"), sql.As(got.C(generationoutput.FieldImagePath), "image_path"), sql.As(got.C(generationoutput.FieldUpscaledImagePath), "upscaled_image_path"), sql.As(got.C(generationoutput.FieldDeletedAt), "deleted_at"), sql.As(got.C(generationoutput.FieldIsFavorited), "is_favorited"), sql.As(ut.C(user.FieldUsername), "username"), sql.As(got.C(generationoutput.FieldIsPublic), "is_public")).
+			GroupBy(s.C(generation.FieldID), npt.C(negativeprompt.FieldText), pt.C(prompt.FieldText),
+				got.C(generationoutput.FieldID), got.C(generationoutput.FieldGalleryStatus),
+				got.C(generationoutput.FieldImagePath), got.C(generationoutput.FieldUpscaledImagePath),
+				ut.C(user.FieldUsername))
+		orderDir := "asc"
+		if filters == nil || (filters != nil && filters.Order == requests.SortOrderDescending) {
+			orderDir = "desc"
+		}
+		var orderByGeneration2 []string
+		var orderByOutput2 []string
+		for _, o := range orderByGeneration {
+			if orderDir == "desc" {
+				orderByGeneration2 = append(orderByGeneration2, sql.Desc(gt.C(o)))
+			} else {
+				orderByGeneration2 = append(orderByGeneration2, sql.Asc(gt.C(o)))
+			}
+		}
+		for _, o := range orderByOutput {
+			if orderDir == "desc" {
+				orderByOutput2 = append(orderByOutput2, sql.Desc(got.C(o)))
+			} else {
+				orderByOutput2 = append(orderByOutput2, sql.Asc(got.C(o)))
+			}
+		}
+		// Order by generation, then output
+		orderByCombined := append(orderByGeneration2, orderByOutput2...)
+		s.OrderBy(orderByCombined...)
+	}).Scan(r.Ctx, &gQueryResult)
+
+	if err != nil {
+		log.Error("Error retrieving generations", "err", err)
+		return nil, nil, err
+	}
+
+	if len(gQueryResult) == 0 {
+		return []GalleryData{}, nil, nil
+	}
+
+	var nextCursor *time.Time
+	if len(gQueryResult) > per_page {
+		gQueryResult = gQueryResult[:len(gQueryResult)-1]
+		nextCursor = &gQueryResult[len(gQueryResult)-1].CreatedAt
+	}
+
+	galleryData := make([]GalleryData, len(gQueryResult))
+	for i, g := range gQueryResult {
+		galleryData[i] = GalleryData{
+			ID:             *g.OutputID,
+			ImagePath:      g.ImageUrl,
+			ImageURL:       utils.GetURLFromImagePath(g.ImageUrl),
+			CreatedAt:      g.CreatedAt,
+			UpdatedAt:      g.UpdatedAt,
+			Width:          g.Width,
+			Height:         g.Height,
+			InferenceSteps: g.InferenceSteps,
+			GuidanceScale:  g.GuidanceScale,
+			Seed:           g.Seed,
+			ModelID:        g.ModelID,
+			SchedulerID:    g.SchedulerID,
+			PromptText:     g.PromptText,
+			PromptID:       *g.PromptID,
+			User: &UserType{
+				Username: g.Username,
+			},
+			WasAutoSubmitted: g.WasAutoSubmitted,
+			IsPublic:         g.IsPublic,
+		}
+	}
+
+	return galleryData, nextCursor, nil
 }
 
 // Retrieves data in gallery format given  output IDs
@@ -131,6 +274,9 @@ func (r *Repository) RetrieveMostRecentGalleryData(filters *requests.QueryGenera
 		}
 		if len(filters.GalleryStatus) > 0 {
 			query = query.Where(generationoutput.GalleryStatusIn(filters.GalleryStatus...))
+		}
+		if filters.IsPublic != nil {
+			query = query.Where(generationoutput.IsPublic(*filters.IsPublic))
 		}
 	}
 	query = query.WithGenerations(func(s *ent.GenerationQuery) {
@@ -177,6 +323,8 @@ func (r *Repository) RetrieveMostRecentGalleryData(filters *requests.QueryGenera
 			User: &UserType{
 				Username: output.Edges.Generations.Edges.User.Username,
 			},
+			WasAutoSubmitted: output.Edges.Generations.WasAutoSubmitted,
+			IsPublic:         output.IsPublic,
 		}
 		if output.UpscaledImagePath != nil {
 			data.UpscaledImagePath = *output.UpscaledImagePath
@@ -193,10 +341,10 @@ func (r *Repository) RetrieveMostRecentGalleryData(filters *requests.QueryGenera
 }
 
 // Retrieves data in gallery format given  output IDs
-func (r *Repository) RetrieveGalleryDataWithOutputIDs(outputIDs []uuid.UUID, approvedOnly bool) ([]GalleryData, error) {
+func (r *Repository) RetrieveGalleryDataWithOutputIDs(outputIDs []uuid.UUID, allIsPublic bool) ([]GalleryData, error) {
 	q := r.DB.GenerationOutput.Query().Where(generationoutput.IDIn(outputIDs...))
-	if !approvedOnly {
-		q = q.Where(generationoutput.GalleryStatusIn(generationoutput.GalleryStatusApproved, generationoutput.GalleryStatusRejected, generationoutput.GalleryStatusSubmitted))
+	if allIsPublic {
+		q = q.Where(generationoutput.IsPublic(true))
 	} else {
 		q = q.Where(generationoutput.GalleryStatusEQ(generationoutput.GalleryStatusApproved))
 	}
@@ -232,6 +380,8 @@ func (r *Repository) RetrieveGalleryDataWithOutputIDs(outputIDs []uuid.UUID, app
 			User: &UserType{
 				Username: output.Edges.Generations.Edges.User.Username,
 			},
+			WasAutoSubmitted: output.Edges.Generations.WasAutoSubmitted,
+			IsPublic:         output.IsPublic,
 		}
 		if output.UpscaledImagePath != nil {
 			data.UpscaledImagePath = *output.UpscaledImagePath
@@ -269,4 +419,6 @@ type GalleryData struct {
 	Score              *float32   `json:"score,omitempty" sql:"score"`
 	Username           *string    `json:"username,omitempty" sql:"username"`
 	User               *UserType  `json:"user,omitempty" sql:"user"`
+	WasAutoSubmitted   bool       `json:"was_auto_submitted" sql:"was_auto_submitted"`
+	IsPublic           bool       `json:"is_public" sql:"is_public"`
 }

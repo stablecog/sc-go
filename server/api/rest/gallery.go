@@ -20,6 +20,7 @@ import (
 	"github.com/stablecog/sc-go/server/requests"
 	"github.com/stablecog/sc-go/server/responses"
 	"github.com/stablecog/sc-go/utils"
+	"golang.org/x/exp/slices"
 )
 
 const GALLERY_PER_PAGE = 50
@@ -35,7 +36,7 @@ func (c *RestAPI) HandleSemanticSearchGallery(w http.ResponseWriter, r *http.Req
 			return
 		}
 
-		galleryData, err := c.Repo.RetrieveGalleryDataByID(uid, nil, true)
+		galleryData, err := c.Repo.RetrieveGalleryDataByID(uid, nil, false)
 		if err != nil {
 			if ent.IsNotFound(err) {
 				responses.ErrNotFound(w, r, "generation_not_found")
@@ -149,7 +150,7 @@ func (c *RestAPI) HandleSemanticSearchGallery(w http.ResponseWriter, r *http.Req
 		}
 
 		// Get gallery data
-		galleryDataUnsorted, err := c.Repo.RetrieveGalleryDataWithOutputIDs(outputIds, true)
+		galleryDataUnsorted, err := c.Repo.RetrieveGalleryDataWithOutputIDs(outputIds, false)
 		if err != nil {
 			log.Error("Error querying gallery data", "err", err)
 			responses.ErrInternalServerError(w, r, "An unknown error occurred")
@@ -277,6 +278,86 @@ func (c *RestAPI) HandleSubmitGenerationToGallery(w http.ResponseWriter, r *http
 
 	res := responses.SubmitGalleryResponse{
 		Submitted: submitted,
+	}
+
+	render.Status(r, http.StatusOK)
+	render.JSON(w, r, res)
+}
+
+// HTTP PUT make generation output public - for user
+// Only allow submitting user's own gallery items.
+func (c *RestAPI) HandleMakeGenerationOutputsPublic(w http.ResponseWriter, r *http.Request) {
+	var user *ent.User
+	if user = c.GetUserIfAuthenticated(w, r); user == nil {
+		return
+	}
+
+	if user.BannedAt != nil {
+		responses.ErrForbidden(w, r)
+		return
+	}
+
+	// Parse request body
+	reqBody, _ := io.ReadAll(r.Body)
+	var submitToGalleryReq requests.SubmitGalleryRequest
+	err := json.Unmarshal(reqBody, &submitToGalleryReq)
+	if err != nil {
+		responses.ErrUnableToParseJson(w, r)
+		return
+	}
+
+	updated, err := c.Repo.MakeGenerationOutputsPublicForUser(submitToGalleryReq.GenerationOutputIDs, user.ID)
+	if err != nil {
+		responses.ErrInternalServerError(w, r, "Error submitting generation outputs to gallery")
+		return
+	}
+
+	res := responses.UpdatedResponse{
+		Updated: updated,
+	}
+
+	render.Status(r, http.StatusOK)
+	render.JSON(w, r, res)
+}
+
+// HTTP PUT make generation output public - for user
+// Only allow submitting user's own gallery items.
+func (c *RestAPI) HandleMakeGenerationOutputsPrivate(w http.ResponseWriter, r *http.Request) {
+	var user *ent.User
+	if user = c.GetUserIfAuthenticated(w, r); user == nil {
+		return
+	}
+
+	if user.BannedAt != nil {
+		responses.ErrForbidden(w, r)
+		return
+	}
+
+	roles, err := c.Repo.GetRoles(user.ID)
+	if err != nil {
+		log.Error("Error getting roles for user", "err", err)
+		responses.ErrInternalServerError(w, r, "Error getting roles for user")
+		return
+	}
+	isSuperAdmin := slices.Contains(roles, "SUPER_ADMIN")
+
+	// Parse request body
+	reqBody, _ := io.ReadAll(r.Body)
+	var submitToGalleryReq requests.SubmitGalleryRequest
+	err = json.Unmarshal(reqBody, &submitToGalleryReq)
+	if err != nil {
+		responses.ErrUnableToParseJson(w, r)
+		return
+	}
+
+	updated, err := c.Repo.MakeGenerationOutputsPrivateForUser(submitToGalleryReq.GenerationOutputIDs, user.ID, user.ActiveProductID != nil || isSuperAdmin)
+	if err != nil {
+		responses.ErrInternalServerError(w, r, "Error submitting generation outputs to gallery")
+		return
+	}
+
+	res := responses.UpdatedResponse{
+		Updated: updated,
 	}
 
 	render.Status(r, http.StatusOK)

@@ -124,5 +124,9 @@ func (Generation) Indexes() []ent.Index {
 		index.Fields("user_id", "created_at"),
 		index.Fields("created_at"),
 		index.Fields("updated_at"),
+		index.Fields("status"),
+		index.Fields("user_id"),
+		index.Fields("negative_prompt_id"),
+		index.Fields("prompt_id"),
 	}
 }

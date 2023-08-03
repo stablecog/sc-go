@@ -26,6 +26,7 @@ import (
 	"github.com/stablecog/sc-go/database/ent"
 	"github.com/stablecog/sc-go/database/ent/generation"
 	"github.com/stablecog/sc-go/database/ent/generationoutput"
+	"github.com/stablecog/sc-go/database/ent/user"
 	"github.com/stablecog/sc-go/database/qdrant"
 	"github.com/stablecog/sc-go/database/repository"
 	"github.com/stablecog/sc-go/log"
@@ -250,7 +251,7 @@ func main() {
 
 	if *migrateUsername {
 		log.Info("🏡 Generating usernames...")
-		users, err := repo.DB.User.Query().All(ctx)
+		users, err := repo.DB.User.Query().Where(user.UsernameChangedAtIsNil()).All(ctx)
 		if err != nil {
 			log.Fatal("Failed to migrate usernames", "err", err)
 			os.Exit(1)
@@ -543,8 +544,13 @@ func main() {
 			// Query credits
 			r.Get("/credits", hc.HandleQueryCredits)
 
-			// Submit to gallery
+			// ! Deprecated Submit to gallery
 			r.Put("/gallery", hc.HandleSubmitGenerationToGallery)
+
+			// Make generations public
+			r.Put("/image/generation/outputs/make_public", hc.HandleMakeGenerationOutputsPublic)
+			// Make generations private
+			r.Put("/image/generation/outputs/make_private", hc.HandleMakeGenerationOutputsPrivate)
 
 			// Subscriptions
 			r.Post("/subscription/downgrade", hc.HandleSubscriptionDowngrade)
@@ -621,7 +627,7 @@ func main() {
 					r.Use(mw.AuthMiddleware(middleware.AuthLevelAPIToken))
 					r.Use(middleware.Logger)
 					r.Use(mw.RateLimit(5, "api", 1*time.Second))
-					r.Post("/", hc.HandleCreateGenerationAPI)
+					r.Post("/", hc.HandleCreateGenerationToken)
 				})
 			})
 
@@ -630,7 +636,7 @@ func main() {
 					r.Use(mw.AuthMiddleware(middleware.AuthLevelAPIToken))
 					r.Use(middleware.Logger)
 					r.Use(mw.RateLimit(5, "api", 1*time.Second))
-					r.Post("/", hc.HandleCreateUpscaleAPI)
+					r.Post("/", hc.HandleCreateUpscaleToken)
 				})
 			})
 			// ! Deprecated
@@ -639,7 +645,7 @@ func main() {
 					r.Use(mw.AuthMiddleware(middleware.AuthLevelAPIToken))
 					r.Use(middleware.Logger)
 					r.Use(mw.RateLimit(5, "api", 1*time.Second))
-					r.Post("/", hc.HandleCreateUpscaleAPI)
+					r.Post("/", hc.HandleCreateUpscaleToken)
 				})
 			})
 
@@ -712,7 +718,7 @@ func main() {
 					r.Use(mw.AuthMiddleware(middleware.AuthLevelAPIToken))
 					r.Use(middleware.Logger)
 					r.Use(mw.RateLimit(5, "api", 1*time.Second))
-					r.Post("/", hc.HandleCreateVoiceoverAPI)
+					r.Post("/", hc.HandleCreateVoiceoverToken)
 				})
 			})
 

@@ -468,6 +468,8 @@ func (w *SCWorker) CreateGeneration(source enttypes.SourceType,
 				ID:               requestId.String(),
 				UIId:             generateReq.UIId,
 				RemainingCredits: remainingCredits,
+				WasAutoSubmitted: utils.ToPtr(generateReq.SubmitToGallery),
+				IsPublic:         utils.ToPtr(generateReq.SubmitToGallery),
 			},
 		}, &initSettings, nil
 	}

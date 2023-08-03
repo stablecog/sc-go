@@ -70,5 +70,6 @@ func (GenerationOutput) Indexes() []ent.Index {
 		index.Fields("created_at"),
 		index.Fields("updated_at"),
 		index.Fields("generation_id"),
+		index.Fields("deleted_at", "is_public"),
 	}
 }
