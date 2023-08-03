@@ -346,6 +346,7 @@ func (w *SCWorker) CreateGeneration(source enttypes.SourceType,
 			Input: requests.BaseCogRequest{
 				SkipSafetyChecker:    true,
 				SkipTranslation:      true,
+				WasAutoSubmitted:     generateReq.SubmitToGallery,
 				APIRequest:           source != enttypes.SourceTypeWebUI,
 				ID:                   requestId,
 				IP:                   ipAddress,
