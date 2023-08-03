@@ -316,7 +316,11 @@ func (c *RestAPI) HandleMakeGenerationOutputsPublic(w http.ResponseWriter, r *ht
 		Updated: updated,
 	}
 
-	render.Status(r, http.StatusOK)
+	if updated > 0 {
+		render.Status(r, http.StatusOK)
+	} else {
+		render.Status(r, http.StatusBadRequest)
+	}
 	render.JSON(w, r, res)
 }
 
@@ -360,6 +364,10 @@ func (c *RestAPI) HandleMakeGenerationOutputsPrivate(w http.ResponseWriter, r *h
 		Updated: updated,
 	}
 
-	render.Status(r, http.StatusOK)
+	if updated > 0 {
+		render.Status(r, http.StatusOK)
+	} else {
+		render.Status(r, http.StatusBadRequest)
+	}
 	render.JSON(w, r, res)
 }
