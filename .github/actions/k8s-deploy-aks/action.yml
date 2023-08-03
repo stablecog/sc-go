@@ -36,14 +36,6 @@ runs:
         embed-title: "${{ inputs.embed-title }}"
         embed-description: "```Deploy Started```"
 
-    - name: Configure AWS credentials
-      if: success()
-      uses: aws-actions/configure-aws-credentials@v1-node16
-      with:
-        aws-access-key-id: ${{ inputs.aws-access-key-id }}
-        aws-secret-access-key: ${{ inputs.aws-secret-access-key }}
-        aws-region: ${{ inputs.aws-region }}
-
     - uses: imranismail/setup-kustomize@v1
       with:
         kustomize-version: "3.5.4"
