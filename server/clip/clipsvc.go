@@ -16,6 +16,7 @@ import (
 	"github.com/stablecog/sc-go/log"
 	"github.com/stablecog/sc-go/server/responses"
 	"github.com/stablecog/sc-go/utils"
+	"golang.org/x/exp/slices"
 )
 
 type badUrl struct {
@@ -27,14 +28,12 @@ type ClipService struct {
 	redis *database.RedisWrapper
 	// Index for round robin
 	activeUrl int
-	badUrls   map[string]time.Time
+	badUrls   []badUrl
 	urls      []string
-	nextUrl   int
 	r         http.RoundTripper
 	secret    string
 	client    *http.Client
-	mu        sync.RWMutex
-	coolDown  time.Duration
+	mu        sync.Mutex
 }
 
 func (c *ClipService) RoundTrip(r *http.Request) (*http.Response, error) {
@@ -55,26 +54,61 @@ func (c *ClipService) getActiveUrl() string {
 	return active
 }
 
-// Unmark all bad URLs that are older than 5 minutes
-func (c *ClipService) unmarkUrls() {
+// Mark a URL as not working
+func (c *ClipService) markUrlBad(url string) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
-
-	for url, t := range c.badUrls {
-		if time.Since(t) > c.coolDown {
-			delete(c.badUrls, url)
+	var badUrlStr string
+	for _, u := range c.urls {
+		if u == url {
+			c.badUrls = append(c.badUrls, badUrl{
+				url:      u,
+				markedAt: time.Now(),
+			})
+			badUrlStr = u
 		}
 	}
+	if badUrlStr != "" {
+		// Remove from active urls
+		urls := make([]string, len(c.urls)-1)
+		for _, u := range c.urls {
+			if u != badUrlStr {
+				urls = append(urls, u)
+			}
+		}
+		c.urls = urls
+	}
+}
+
+// Unmark all bad URLs that are older than 5 minutes
+func (c *ClipService) unmarkBadUrls() {
+	if len(c.badUrls) == 0 {
+		return
+	}
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	toDelete := make([]string, 0)
+	for _, t := range c.badUrls {
+		if time.Since(t.markedAt) > 5*time.Minute {
+			c.urls = append(c.urls, t.url)
+			toDelete = append(toDelete, t.url)
+		}
+	}
+	var newBadUrls []badUrl
+	for _, t := range c.badUrls {
+		if !slices.Contains(toDelete, t.url) {
+			newBadUrls = append(newBadUrls, t)
+		}
+	}
+	c.badUrls = newBadUrls
 }
 
 func NewClipService(redis *database.RedisWrapper) *ClipService {
 	svc := &ClipService{
-		urls:     strings.Split(os.Getenv("CLIPAPI_URLS"), ","),
-		badUrls:  make(map[string]time.Time),
-		coolDown: 5 * time.Minute,
-		secret:   os.Getenv("CLIPAPI_SECRET"),
-		r:        http.DefaultTransport,
-		redis:    redis,
+		urls:   strings.Split(os.Getenv("CLIPAPI_URLS"), ","),
+		secret: os.Getenv("CLIPAPI_SECRET"),
+		r:      http.DefaultTransport,
+		redis:  redis,
 	}
 	svc.client = &http.Client{
 		Timeout:   10 * time.Second,
@@ -90,6 +124,7 @@ func (c *ClipService) GetEmbeddingFromText(text string, retries int) (embedding 
 	if err == nil && len(e) > 0 {
 		return e, nil
 	}
+	c.unmarkBadUrls()
 
 	req := []clipApiRequest{{
 		Text: text,
@@ -102,28 +137,21 @@ func (c *ClipService) GetEmbeddingFromText(text string, retries int) (embedding 
 		log.Errorf("Error marshalling req %v", err)
 		return nil, err
 	}
-	c.mu.RLock()
-	url := c.urls[c.nextUrl]
-	c.mu.RUnlock()
+	url := c.getActiveUrl()
 	request, _ := http.NewRequest(http.MethodPost, url, bytes.NewReader(b))
 	// Do
 	resp, err := c.client.Do(request)
 	if err != nil {
 		if os.IsTimeout(err) || strings.Contains(err.Error(), "connection refused") {
-			c.mu.Lock()
-			c.badUrls[url] = time.Now()
-			c.mu.Unlock()
+			// Mark this URL as bad
+			if len(c.urls) > 1 {
+				c.markUrlBad(url)
+			}
 		}
 		log.Errorf("Error getting response from clip api %v", err)
 		if retries <= 0 {
 			return nil, err
 		}
-		// Move to next URL
-		c.mu.Lock()
-		c.nextUrl = (c.nextUrl + 1) % len(c.urls)
-		c.mu.Unlock()
-
-		c.unmarkUrls()
 		return c.GetEmbeddingFromText(text, retries-1)
 	}
 	defer resp.Body.Close()
@@ -150,14 +178,6 @@ func (c *ClipService) GetEmbeddingFromText(text string, retries int) (embedding 
 	if err != nil {
 		log.Errorf("Error caching embeddings %v", err)
 	}
-
-	// Move to next URL
-	c.mu.Lock()
-	c.nextUrl = (c.nextUrl + 1) % len(c.urls)
-	c.mu.Unlock()
-
-	c.unmarkUrls()
-
 	return clipAPIResponse.Embeddings[0].Embedding, nil
 }
 
