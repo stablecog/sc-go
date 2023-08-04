@@ -2,7 +2,6 @@ package qdrant
 
 import (
 	"context"
-	"encoding/base64"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -90,44 +89,29 @@ var fieldsToIndex = []qdrantIndexField{
 
 type QdrantClient struct {
 	ActiveUrl      string
-	URLs           []string
-	token          string
-	r              http.RoundTripper
 	Client         *ClientWithResponses
 	Doer           HttpRequestDoer
 	Ctx            context.Context
 	CollectionName string
 }
 
-func (q QdrantClient) RoundTrip(r *http.Request) (*http.Response, error) {
-	r.Header.Add("Authorization", "Basic "+q.token)
-	return q.r.RoundTrip(r)
-}
-
 func NewQdrantClient(ctx context.Context) (*QdrantClient, error) {
 	// Get URLs from env, comma separated
-	urlEnv := os.Getenv("QDRANT_URLS")
+	urlEnv := os.Getenv("QDRANT_URL")
 	if urlEnv == "" {
-		log.Errorf("QDRANT_URLS not set")
-		return nil, errors.New("QDRANT_URLS not set")
+		log.Errorf("QDRANT_URL not set")
+		return nil, errors.New("QDRANT_URL not set")
 	}
-	// Split by comma
-	urls := strings.Split(urlEnv, ",")
-	// Token
-	auth := os.Getenv("QDRANT_USERNAME") + ":" + os.Getenv("QDRANT_PASSWORD")
 	// Create client
 	qClient := &QdrantClient{
-		URLs:           urls,
-		ActiveUrl:      urls[0],
-		token:          base64.StdEncoding.EncodeToString([]byte(auth)),
-		r:              http.DefaultTransport,
+		ActiveUrl:      urlEnv,
 		Ctx:            ctx,
 		CollectionName: utils.GetEnv("QDRANT_COLLECTION_NAME", "stablecog"),
 	}
 
 	c, doer, err := NewClientWithResponses(qClient.ActiveUrl, WithHTTPClient(&http.Client{
 		Timeout:   10 * time.Second,
-		Transport: qClient,
+		Transport: http.DefaultTransport,
 	}))
 	if err != nil {
 		log.Errorf("Error creating qdrant client %v", err)
@@ -139,45 +123,12 @@ func NewQdrantClient(ctx context.Context) (*QdrantClient, error) {
 	return qClient, nil
 }
 
-// Update the client if the active url is not responding
-func (q *QdrantClient) UpdateActiveClient() error {
-	var targetUrl string
-	for _, url := range q.URLs {
-		if url != q.ActiveUrl {
-			targetUrl = url
-			break
-		}
-	}
-	if targetUrl == "" {
-		log.Errorf("No other urls to try")
-		return errors.New("No other urls to try")
-	}
-
-	q.ActiveUrl = targetUrl
-
-	c, doer, err := NewClientWithResponses(q.ActiveUrl, WithHTTPClient(&http.Client{
-		Timeout:   10 * time.Second,
-		Transport: q,
-	}))
-	if err != nil {
-		log.Errorf("Error creating qdrant client %v", err)
-		return err
-	}
-
-	q.Client = c
-	q.Doer = doer
-	return nil
-}
-
 // Get all collections in qdrant
 func (q *QdrantClient) GetCollections(noRetry bool) (*CollectionsResponse, error) {
 	resp, err := q.Client.GetCollectionsWithResponse(q.Ctx)
 	if err != nil {
 		if !noRetry && (os.IsTimeout(err) || strings.Contains(err.Error(), "connection refused")) {
-			err = q.UpdateActiveClient()
-			if err == nil {
-				return q.GetCollections(true)
-			}
+			return q.GetCollections(true)
 		}
 		log.Errorf("Error getting collections %v", err)
 		return nil, err
@@ -218,10 +169,7 @@ func (q *QdrantClient) CreateIndex(fieldName string, schemaType PayloadSchemaTyp
 	})
 	if err != nil {
 		if !noRetry && (os.IsTimeout(err) || strings.Contains(err.Error(), "connection refused")) {
-			err = q.UpdateActiveClient()
-			if err == nil {
-				return q.CreateIndex(fieldName, schemaType, true)
-			}
+			return q.CreateIndex(fieldName, schemaType, true)
 		}
 		log.Errorf("Error creating index %v", err)
 		return err
@@ -314,10 +262,7 @@ func (q *QdrantClient) CreateCollectionIfNotExists(noRetry bool) error {
 
 	if err != nil {
 		if !noRetry && (os.IsTimeout(err) || strings.Contains(err.Error(), "connection refused")) {
-			err = q.UpdateActiveClient()
-			if err == nil {
-				return q.CreateCollectionIfNotExists(true)
-			}
+			return q.CreateCollectionIfNotExists(true)
 		}
 		log.Errorf("Error getting collections %v", err)
 		return err
@@ -371,10 +316,7 @@ func (q *QdrantClient) Upsert(id uuid.UUID, payload map[string]interface{}, imag
 	resp, err := q.Client.UpsertPointsWithResponse(q.Ctx, q.CollectionName, &UpsertPointsParams{}, b)
 	if err != nil {
 		if !noRetry && (os.IsTimeout(err) || strings.Contains(err.Error(), "connection refused")) {
-			err = q.UpdateActiveClient()
-			if err == nil {
-				return q.Upsert(id, payload, imageEmbedding, promptEmbedding, true)
-			}
+			return q.Upsert(id, payload, imageEmbedding, promptEmbedding, true)
 		}
 		log.Errorf("Error upserting to collection %v", err)
 		return err
@@ -405,10 +347,7 @@ func (q *QdrantClient) SetPayload(payload map[string]interface{}, ids []uuid.UUI
 	})
 	if err != nil {
 		if !noRetry && (os.IsTimeout(err) || strings.Contains(err.Error(), "connection refused")) {
-			err = q.UpdateActiveClient()
-			if err == nil {
-				return q.SetPayload(payload, ids, true)
-			}
+			return q.SetPayload(payload, ids, true)
 		}
 		log.Errorf("Error setting payload %v", err)
 		return err
@@ -436,10 +375,7 @@ func (q *QdrantClient) CountWithFilters(filters *SearchRequest_Filter, noRetry b
 	})
 	if err != nil {
 		if !noRetry && (os.IsTimeout(err) || strings.Contains(err.Error(), "connection refused")) {
-			err = q.UpdateActiveClient()
-			if err == nil {
-				q.CountWithFilters(filters, true)
-			}
+			q.CountWithFilters(filters, true)
 		}
 		log.Errorf("Error counting points %v", err)
 		return 0, err
@@ -456,10 +392,7 @@ func (q *QdrantClient) Count(noRetry bool) (uint, error) {
 	resp, err := q.Client.CountPointsWithResponse(q.Ctx, q.CollectionName, CountPointsJSONRequestBody{})
 	if err != nil {
 		if !noRetry && (os.IsTimeout(err) || strings.Contains(err.Error(), "connection refused")) {
-			err = q.UpdateActiveClient()
-			if err == nil {
-				q.Count(true)
-			}
+			q.Count(true)
 		}
 		log.Errorf("Error counting points %v", err)
 		return 0, err
@@ -528,10 +461,7 @@ func (q *QdrantClient) BatchUpsert(payload []map[string]interface{}, noRetry boo
 	resp, err := q.Client.UpsertPointsWithResponse(q.Ctx, q.CollectionName, &UpsertPointsParams{}, b)
 	if err != nil {
 		if !noRetry && (os.IsTimeout(err) || strings.Contains(err.Error(), "connection refused")) {
-			err = q.UpdateActiveClient()
-			if err == nil {
-				return q.BatchUpsert(payload, true)
-			}
+			return q.BatchUpsert(payload, true)
 		}
 		log.Errorf("Error upserting to collection %v", err)
 		return err
@@ -568,10 +498,7 @@ func (q *QdrantClient) GetPoint(id uuid.UUID, noRetry bool) (*GetPointResponseSC
 	resp, err := q.Client.GetPointWithResponse(q.Ctx, q.CollectionName, rId, &GetPointParams{})
 	if err != nil {
 		if !noRetry && (os.IsTimeout(err) || strings.Contains(err.Error(), "connection refused")) {
-			err = q.UpdateActiveClient()
-			if err == nil {
-				return q.GetPoint(id, true)
-			}
+			return q.GetPoint(id, true)
 		}
 		log.Errorf("Error getting point %v", err)
 		return nil, err
@@ -624,10 +551,7 @@ func (q *QdrantClient) Query(embedding []float32, noRetry bool) (*QResponse, err
 
 	if err != nil {
 		if !noRetry && (os.IsTimeout(err) || strings.Contains(err.Error(), "connection refused")) {
-			err = q.UpdateActiveClient()
-			if err == nil {
-				return q.Query(embedding, true)
-			}
+			return q.Query(embedding, true)
 		}
 		log.Errorf("Error getting collections %v", err)
 		return nil, err
@@ -659,10 +583,7 @@ func (q *QdrantClient) DeleteById(id uuid.UUID, noRetry bool) error {
 	resp, err := q.Client.DeletePointsWithResponse(q.Ctx, q.CollectionName, &DeletePointsParams{}, body)
 	if err != nil {
 		if !noRetry && (os.IsTimeout(err) || strings.Contains(err.Error(), "connection refused")) {
-			err = q.UpdateActiveClient()
-			if err == nil {
-				return q.DeleteById(id, true)
-			}
+			return q.DeleteById(id, true)
 		}
 		log.Errorf("Error deleting from collection %v", err)
 		return err
@@ -710,10 +631,7 @@ func (q *QdrantClient) QueryGenerations(embedding []float32, per_page int, offse
 
 	if err != nil {
 		if !noRetry && (os.IsTimeout(err) || strings.Contains(err.Error(), "connection refused")) {
-			err = q.UpdateActiveClient()
-			if err == nil {
-				return q.QueryGenerations(embedding, per_page, offset, scoreThreshold, filters, withPayload, true)
-			}
+			return q.QueryGenerations(embedding, per_page, offset, scoreThreshold, filters, withPayload, true)
 		}
 		log.Errorf("Error getting collections %v", err)
 		return nil, err
@@ -752,10 +670,7 @@ func (q *QdrantClient) GetIndexedPayloadFields(noRetry bool) ([]string, error) {
 	}
 	if err != nil {
 		if !noRetry && (os.IsTimeout(err) || strings.Contains(err.Error(), "connection refused")) {
-			err = q.UpdateActiveClient()
-			if err == nil {
-				return q.GetIndexedPayloadFields(true)
-			}
+			return q.GetIndexedPayloadFields(true)
 		}
 		log.Errorf("Error getting collections %v", err)
 		return nil, err
@@ -809,10 +724,7 @@ func (q *QdrantClient) DeleteAllIDs(ids []uuid.UUID, noRetry bool) error {
 	resp, err := q.Client.DeletePointsWithResponse(q.Ctx, q.CollectionName, p, body)
 	if err != nil {
 		if !noRetry && (os.IsTimeout(err) || strings.Contains(err.Error(), "connection refused")) {
-			err = q.UpdateActiveClient()
-			if err == nil {
-				return q.DeleteAllIDs(ids, true)
-			}
+			return q.DeleteAllIDs(ids, true)
 		}
 		log.Errorf("Error deleting multi points %v", err)
 		return err
