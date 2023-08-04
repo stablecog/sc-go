@@ -388,6 +388,8 @@ func (r *Repository) ProcessCogMessage(msg requests.CogWebhookMessage) error {
 					ImageUrl:         imageUrl,
 					UpscaledImageUrl: upscaledImageUrl,
 					GalleryStatus:    output.GalleryStatus,
+					WasAutoSubmitted: msg.Input.WasAutoSubmitted,
+					IsPublic:         msg.Input.WasAutoSubmitted,
 				}
 			}
 			resp.Outputs = generateOutputs
@@ -413,9 +415,11 @@ func (r *Repository) ProcessCogMessage(msg requests.CogWebhookMessage) error {
 			audioFileURL := utils.GetURLFromAudioFilePath(voiceoverOutput.AudioPath)
 			resp.Outputs = []GenerationUpscaleOutput{
 				{
-					ID:            voiceoverOutput.ID,
-					AudioFileUrl:  audioFileURL,
-					AudioDuration: &voiceoverOutput.AudioDuration,
+					ID:               voiceoverOutput.ID,
+					AudioFileUrl:     audioFileURL,
+					AudioDuration:    &voiceoverOutput.AudioDuration,
+					WasAutoSubmitted: msg.Input.WasAutoSubmitted,
+					IsPublic:         msg.Input.WasAutoSubmitted,
 				},
 			}
 		}

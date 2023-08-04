@@ -5,6 +5,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/stablecog/sc-go/database/ent/generationoutput"
+	"github.com/stablecog/sc-go/server/requests"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -19,7 +20,9 @@ func TestGetGalleryData(t *testing.T) {
 	assert.Nil(t, err)
 
 	// Check data
-	gData, err := MockRepo.RetrieveGalleryData(100, nil)
+	gData, _, err := MockRepo.RetrieveMostRecentGalleryDataV2(&requests.QueryGenerationFilters{
+		GalleryStatus: []generationoutput.GalleryStatus{generationoutput.GalleryStatusApproved},
+	}, 100, nil)
 	assert.Nil(t, err)
 	assert.Len(t, gData, 3)
 }

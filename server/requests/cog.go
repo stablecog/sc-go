@@ -34,6 +34,7 @@ type BaseCogRequest struct {
 	DeviceInfo         utils.ClientDeviceInfo  `json:"device_info,omitempty"`
 	Internal           bool                    `json:"internal,omitempty"`    // Used to indicate if the request is internal or not
 	APIRequest         bool                    `json:"api_request,omitempty"` // Used to indicate if the request is from token or not
+	WasAutoSubmitted   bool                    `json:"was_auto_submitted,omitempty"`
 	// Generate specific
 	UploadPathPrefix     string             `json:"upload_path_prefix,omitempty"`
 	Prompt               string             `json:"prompt,omitempty"`
