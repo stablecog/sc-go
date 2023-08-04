@@ -10,6 +10,7 @@ import (
 	"github.com/stablecog/sc-go/utils"
 )
 
+// Config
 const targetLangFlores = "eng_Latn"
 const targetLang = lingua.English
 const targetLangMaxScore float64 = 0.88
