@@ -230,7 +230,11 @@ func main() {
 			start := time.Now()
 			q := repo.DB.GenerationOutput.Query().Where(generationoutput.HasEmbeddings(false), generationoutput.ImagePathNEQ("placeholder.webp"))
 			if cursor != nil {
-				q = q.Where(generationoutput.CreatedAtLT(*cursor))
+				if *reverse {
+					q = q.Where(generationoutput.CreatedAtGT(*cursor))
+				} else {
+					q = q.Where(generationoutput.CreatedAtLT(*cursor))
+				}
 			}
 			if *reverse {
 				q.Order(ent.Asc(generationoutput.FieldCreatedAt))
