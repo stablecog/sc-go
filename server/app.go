@@ -73,6 +73,7 @@ func main() {
 	syncPromptId := flag.Bool("sync-prompt-id", false, "Sync prompt_id to qdrant")
 	syncIsPublic := flag.Bool("sync-is-public", false, "Sync is_public to qdrant")
 	loadQdrant := flag.Bool("load-qdrant", false, "Load qdrant with all data")
+	reverse := flag.Bool("reverse", false, "Reverse the order of the embeddings")
 	migrateUsername := flag.Bool("migrate-username", false, "Generate usernames for existing users")
 
 	flag.Parse()
@@ -227,7 +228,12 @@ func main() {
 			if cursor != nil {
 				q = q.Where(generationoutput.CreatedAtLT(*cursor))
 			}
-			gens, err := q.Order(ent.Desc(generationoutput.FieldCreatedAt)).WithGenerations(func(gq *ent.GenerationQuery) {
+			if *reverse {
+				q.Order(ent.Asc(generationoutput.FieldCreatedAt))
+			} else {
+				q.Order(ent.Desc(generationoutput.FieldCreatedAt))
+			}
+			gens, err := q.WithGenerations(func(gq *ent.GenerationQuery) {
 				gq.WithPrompt()
 				gq.WithNegativePrompt()
 			}).Limit(each).All(ctx)
