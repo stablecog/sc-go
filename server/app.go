@@ -205,7 +205,7 @@ func main() {
 	if *loadQdrant {
 		log.Info("🏡 Loading qdrant data...")
 		secret := os.Getenv("CLIPAPI_SECRET")
-		clipUrl := os.Getenv("CLIPAPI_URLS")
+		clipUrl := os.Getenv("CLIP_URL_TEMP")
 		each := 100
 		cur := 0
 		urlIdx := 0

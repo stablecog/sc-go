@@ -259,3 +259,8 @@ spec:
                 secretKeyRef:
                   name: sc-go
                   key: OPENAI_API_KEY
+            - name: CLIP_URL_TEMP
+              valueFrom:
+                secretKeyRef:
+                  name: sc-go
+                  key: CLIP_URL_TEMP
