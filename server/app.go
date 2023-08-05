@@ -74,6 +74,7 @@ func main() {
 	syncIsPublic := flag.Bool("sync-is-public", false, "Sync is_public to qdrant")
 	loadQdrant := flag.Bool("load-qdrant", false, "Load qdrant with all data")
 	reverse := flag.Bool("reverse", false, "Reverse the order of the embeddings")
+	clipUrlOverride := flag.String("clip-url", "", "Clip url to process")
 	migrateUsername := flag.Bool("migrate-username", false, "Generate usernames for existing users")
 
 	flag.Parse()
@@ -207,6 +208,9 @@ func main() {
 		log.Info("🏡 Loading qdrant data...")
 		secret := os.Getenv("CLIPAPI_SECRET")
 		clipUrl := os.Getenv("CLIP_URL_TEMP")
+		if *clipUrlOverride != "" {
+			clipUrl = *clipUrlOverride
+		}
 		each := 100
 		cur := 0
 		urlIdx := 0
