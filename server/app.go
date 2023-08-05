@@ -252,8 +252,8 @@ func main() {
 			for i, gen := range gens {
 				ids[i] = gen.ID
 				clipReq = append(clipReq, requests.ClipAPIImageRequest{
-					ID:    gen.ID,
-					Image: utils.GetURLFromImagePath(gen.ImagePath),
+					ID:      gen.ID,
+					ImageID: gen.ImagePath,
 				})
 				if _, ok := promptEmbeddings[gen.Edges.Generations.Edges.Prompt.Text]; !ok {
 					promptMap[gen.GenerationID] = gen.Edges.Generations.Edges.Prompt.Text
