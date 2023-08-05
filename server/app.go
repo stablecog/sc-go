@@ -1,10 +1,12 @@
 package main
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"flag"
 	"fmt"
+	"io"
 	"net/http"
 	"net/url"
 	"os"
@@ -37,6 +39,7 @@ import (
 	"github.com/stablecog/sc-go/server/discord"
 	"github.com/stablecog/sc-go/server/middleware"
 	"github.com/stablecog/sc-go/server/requests"
+	"github.com/stablecog/sc-go/server/responses"
 	"github.com/stablecog/sc-go/server/scworker"
 	"github.com/stablecog/sc-go/shared"
 	uapi "github.com/stablecog/sc-go/uploadapi/api"
@@ -69,6 +72,7 @@ func main() {
 	cursorEmbeddings := flag.String("cursor-embeddings", "", "Cursor for loading embeddings")
 	syncPromptId := flag.Bool("sync-prompt-id", false, "Sync prompt_id to qdrant")
 	syncIsPublic := flag.Bool("sync-is-public", false, "Sync is_public to qdrant")
+	loadQdrant := flag.Bool("load-qdrant", false, "Load qdrant with all data")
 	migrateUsername := flag.Bool("migrate-username", false, "Generate usernames for existing users")
 
 	flag.Parse()
@@ -195,6 +199,197 @@ func main() {
 			cur += len(gens)
 		}
 		log.Infof("Done, sync'd %d", cur)
+		os.Exit(0)
+	}
+
+	if *loadQdrant {
+		log.Info("🏡 Loading qdrant data...")
+		secret := os.Getenv("CLIPAPI_SECRET")
+		clipUrl := os.Getenv("CLIPAPI_URLS")
+		each := 100
+		cur := 0
+		urlIdx := 0
+		var cursor *time.Time
+		if *cursorEmbeddings != "" {
+			t, err := time.Parse(time.RFC3339, *cursorEmbeddings)
+			if err != nil {
+				log.Fatal("Failed to parse cursor", "err", err)
+			}
+			cursor = &t
+		}
+
+		promptEmbeddings := make(map[string][]float32)
+
+		for {
+			log.Info("Loading batch of embeddings", "cur", cur, "each", each)
+			start := time.Now()
+			q := repo.DB.GenerationOutput.Query().Where(generationoutput.HasEmbeddings(false), generationoutput.ImagePathNEQ("placeholder.webp"))
+			if cursor != nil {
+				q = q.Where(generationoutput.CreatedAtLT(*cursor))
+			}
+			gens, err := q.Order(ent.Desc(generationoutput.FieldCreatedAt)).WithGenerations(func(gq *ent.GenerationQuery) {
+				gq.WithPrompt()
+				gq.WithNegativePrompt()
+			}).Limit(each).All(ctx)
+			if err != nil {
+				if cursor != nil {
+					log.Info("Last cursor", "cursor", cursor.Format(time.RFC3339Nano))
+				}
+				log.Fatal("Failed to load generation outputs", "err", err)
+			}
+			log.Infof("Retreived generations in %s", time.Since(start))
+
+			// Update cursor
+			cursor = &gens[len(gens)-1].CreatedAt
+
+			if len(gens) == 0 {
+				break
+			}
+
+			ids := make([]uuid.UUID, len(gens))
+			var clipReq []requests.ClipAPIImageRequest
+			promptMap := make(map[uuid.UUID]string)
+			for i, gen := range gens {
+				ids[i] = gen.ID
+				clipReq = append(clipReq, requests.ClipAPIImageRequest{
+					ID:      gen.ID,
+					ImageID: gen.ImagePath,
+				})
+				if _, ok := promptEmbeddings[gen.Edges.Generations.Edges.Prompt.Text]; !ok {
+					promptMap[gen.GenerationID] = gen.Edges.Generations.Edges.Prompt.Text
+				}
+			}
+			for k, gen := range promptMap {
+				clipReq = append(clipReq, requests.ClipAPIImageRequest{
+					ID:   k,
+					Text: gen,
+				})
+			}
+
+			// Make API request to clip
+			start = time.Now()
+			b, err := json.Marshal(clipReq)
+			if err != nil {
+				log.Infof("Last cursor: %v", cursor.Format(time.RFC3339Nano))
+				log.Fatalf("Error marshalling req %v", err)
+			}
+			request, _ := http.NewRequest(http.MethodPost, clipUrl, bytes.NewReader(b))
+			urlIdx++
+			request.Header.Set("Authorization", secret)
+			request.Header.Set("Content-Type", "application/json")
+			// Do
+			resp, err := http.DefaultClient.Do(request)
+			if err != nil {
+				log.Infof("Last cursor: %v", cursor.Format(time.RFC3339Nano))
+				log.Warnf("Error making request %v", err)
+				time.Sleep(30 * time.Second)
+				continue
+			}
+			defer resp.Body.Close()
+
+			readAll, err := io.ReadAll(resp.Body)
+			if err != nil {
+				log.Infof("Last cursor: %v", cursor.Format(time.RFC3339Nano))
+				log.Fatal(err)
+			}
+			var clipAPIResponse responses.EmbeddingsResponse
+			err = json.Unmarshal(readAll, &clipAPIResponse)
+			if err != nil {
+				log.Infof("Last cursor: %v", cursor.Format(time.RFC3339Nano))
+				log.Fatalf("Error unmarshalling resp %v", err)
+				return
+			}
+
+			// Builds maps of embeddings
+			embeddings := make(map[uuid.UUID][]float32)
+			for _, embedding := range clipAPIResponse.Embeddings {
+				if embedding.Error != "" {
+					log.Warn("Error from clip api", "err", embedding.Error)
+					continue
+				}
+				embeddings[embedding.ID] = embedding.Embedding
+			}
+
+			log.Infof("Retreived embeddings in %s", time.Since(start))
+
+			// Build payloads for qdrant
+			var payloads []map[string]interface{}
+
+			start = time.Now()
+			for _, gOutput := range gens {
+				payload := map[string]interface{}{
+					"image_path":         gOutput.ImagePath,
+					"gallery_status":     gOutput.GalleryStatus,
+					"is_favorited":       gOutput.IsFavorited,
+					"was_auto_submitted": gOutput.Edges.Generations.WasAutoSubmitted,
+					"created_at":         gOutput.CreatedAt.Unix(),
+					"updated_at":         gOutput.UpdatedAt.Unix(),
+					"guidance_scale":     gOutput.Edges.Generations.GuidanceScale,
+					"inference_steps":    gOutput.Edges.Generations.InferenceSteps,
+					"prompt_strength":    gOutput.Edges.Generations.PromptStrength,
+					"height":             gOutput.Edges.Generations.Height,
+					"width":              gOutput.Edges.Generations.Width,
+					"model":              gOutput.Edges.Generations.ModelID.String(),
+					"scheduler":          gOutput.Edges.Generations.SchedulerID.String(),
+					"user_id":            gOutput.Edges.Generations.UserID.String(),
+					"prompt":             gOutput.Edges.Generations.Edges.Prompt.Text,
+					"is_public":          gOutput.IsPublic,
+				}
+				if gOutput.DeletedAt != nil {
+					payload["deleted_at"] = gOutput.DeletedAt.Unix()
+				}
+				var ok bool
+				payload["embedding"], ok = embeddings[gOutput.ID]
+				if !ok {
+					log.Warn("Missing embedding", "id", gOutput.ID)
+					continue
+				}
+				payload["text_embedding"], ok = embeddings[gOutput.Edges.Generations.ID]
+				if !ok {
+					payload["text_embedding"], ok = promptEmbeddings[gOutput.Edges.Generations.Edges.Prompt.Text]
+					if !ok {
+						log.Warn("Missing text embedding", "id", gOutput.Edges.Generations.ID)
+						continue
+					}
+				} else {
+					promptEmbeddings[gOutput.Edges.Generations.Edges.Prompt.Text] = embeddings[gOutput.Edges.Generations.ID]
+				}
+				payload["id"] = gOutput.ID.String()
+				if gOutput.UpscaledImagePath != nil {
+					payload["upscaled_image_path"] = *gOutput.UpscaledImagePath
+				}
+				if gOutput.Edges.Generations.InitImageURL != nil {
+					payload["init_image_url"] = *gOutput.Edges.Generations.InitImageURL
+				}
+				if gOutput.Edges.Generations.Edges.NegativePrompt != nil {
+					payload["negative_prompt"] = gOutput.Edges.Generations.Edges.NegativePrompt.Text
+				}
+				payloads = append(payloads, payload)
+			}
+
+			// QD Upsert
+			err = qdrantClient.BatchUpsert(payloads, false)
+			if err != nil {
+				log.Info("Last cursor", "cursor", cursor.Format(time.RFC3339Nano))
+				log.Warn("Failed to batch objects", "err", err)
+				continue
+			}
+
+			log.Infof("Batched objects for qdrant in %s", time.Since(start))
+
+			err = repo.DB.GenerationOutput.Update().Where(generationoutput.IDIn(ids...)).SetHasEmbeddings(true).Exec(ctx)
+			if err != nil {
+				log.Info("Last cursor", "cursor", cursor.Format(time.RFC3339Nano))
+				log.Fatal("Failed to update generation outputs", "err", err)
+			}
+			log.Info("Batched objects", "count", len(payloads))
+			cur += len(payloads)
+
+			// Log cursor
+			log.Info("Last cursor", "cursor", cursor.Format(time.RFC3339Nano))
+		}
+
+		log.Info("Loaded generation outputs", "count", cur)
 		os.Exit(0)
 	}
 
