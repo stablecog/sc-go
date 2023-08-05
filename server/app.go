@@ -324,6 +324,7 @@ func main() {
 					"was_auto_submitted": gOutput.Edges.Generations.WasAutoSubmitted,
 					"created_at":         gOutput.CreatedAt.Unix(),
 					"updated_at":         gOutput.UpdatedAt.Unix(),
+					"generation_id":      gOutput.Edges.Generations.ID.String(),
 					"guidance_scale":     gOutput.Edges.Generations.GuidanceScale,
 					"inference_steps":    gOutput.Edges.Generations.InferenceSteps,
 					"prompt_strength":    gOutput.Edges.Generations.PromptStrength,
