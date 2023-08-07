@@ -406,10 +406,17 @@ func (q *QdrantClient) Count(noRetry bool) (uint, error) {
 
 // Upsert
 func (q *QdrantClient) BatchUpsert(payload []map[string]interface{}, noRetry bool) error {
+	payloadCopy := make([]map[string]interface{}, len(payload))
+	copy(payloadCopy, payload)
 	var points []PointStruct
 	for _, p := range payload {
 		// See if ID in payload and remove it
-		id := uuid.MustParse(p["id"].(string))
+		idStr, hasId := p["id"].(string)
+		if !hasId {
+			log.Errorf("Error upserting point: no id")
+			return fmt.Errorf("Error upserting point: no id")
+		}
+		id, err := uuid.Parse(idStr)
 		delete(p, "id")
 		// Get embedding from payload and remove it
 		embedding, hasEmbedding := p["embedding"].([]float32)
@@ -422,7 +429,7 @@ func (q *QdrantClient) BatchUpsert(payload []map[string]interface{}, noRetry boo
 		}
 
 		rId := ExtendedPointId{}
-		err := rId.FromExtendedPointId1(id)
+		err = rId.FromExtendedPointId1(id)
 		if err != nil {
 			log.Errorf("Error creating id %v", err)
 			return err
@@ -461,7 +468,7 @@ func (q *QdrantClient) BatchUpsert(payload []map[string]interface{}, noRetry boo
 	resp, err := q.Client.UpsertPointsWithResponse(q.Ctx, q.CollectionName, &UpsertPointsParams{}, b)
 	if err != nil {
 		if !noRetry && (os.IsTimeout(err) || strings.Contains(err.Error(), "connection refused")) {
-			return q.BatchUpsert(payload, true)
+			return q.BatchUpsert(payloadCopy, true)
 		}
 		log.Errorf("Error upserting to collection %v", err)
 		return err

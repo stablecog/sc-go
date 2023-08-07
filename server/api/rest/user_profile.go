@@ -61,6 +61,15 @@ func (c *RestAPI) HandleUserProfileSemanticSearch(w http.ResponseWriter, r *http
 		return
 	}
 
+	if user.BannedAt != nil {
+		render.Status(r, http.StatusOK)
+		render.JSON(w, r, GalleryResponse[*uint]{
+			Next: nil,
+			Hits: []repository.GalleryData{},
+		})
+		return
+	}
+
 	// Get output_id param
 	outputId := r.URL.Query().Get("output_id")
 	if outputId != "" {
