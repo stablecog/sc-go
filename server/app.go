@@ -310,8 +310,8 @@ func main() {
 			err = json.Unmarshal(readAll, &clipAPIResponse)
 			if err != nil {
 				log.Infof("Last cursor: %v", cursor.Format(time.RFC3339Nano))
-				log.Fatalf("Error unmarshalling resp %v", err)
-				return
+				log.Warnf("Error unmarshalling resp clip %v", err)
+				continue
 			}
 
 			// Builds maps of embeddings
