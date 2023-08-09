@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"strings"
 	"sync"
 
 	openai "github.com/sashabaranov/go-openai"
@@ -196,6 +197,9 @@ func (t *TranslatorSafetyChecker) TranslatePrompt(prompt string, negativePrompt 
 func (t *TranslatorSafetyChecker) IsPromptNSFW(input string) (isNsfw bool, nsfwReason string, err error) {
 	if t.Disable {
 		return false, "", nil
+	}
+	if strings.Contains(input, "twink") && strings.Contains(input, "teen") {
+		return true, "sexual_minors", nil
 	}
 	res, err := t.OpenaiClient.Moderations(t.Ctx, openai.ModerationRequest{
 		Input: input,
