@@ -396,6 +396,15 @@ func (w *SCWorker) CreateGeneration(source enttypes.SourceType,
 		if errors.Is(err, responses.InsufficientCreditsErr) {
 			return nil, &initSettings, &WorkerError{http.StatusBadRequest, responses.InsufficientCreditsErr, ""}
 		}
+		if strings.Contains(err.Error(), "nsfw:") {
+			// Get reason
+			reason := ""
+			splitStr := strings.Split(err.Error(), "nsfw:")
+			if len(splitStr) > 1 {
+				reason = splitStr[1]
+			}
+			return nil, &initSettings, &WorkerError{http.StatusBadRequest, err, reason}
+		}
 		return nil, &initSettings, WorkerInternalServerError()
 	}
 
