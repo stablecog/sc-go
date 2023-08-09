@@ -286,11 +286,9 @@ func (w *SCWorker) CreateGeneration(source enttypes.SourceType,
 			log.Error("Error translating prompt", "err", err)
 			return err
 		}
-		generateReq.Prompt = translatedPrompt
-		generateReq.NegativePrompt = translatedNegativePrompt
 
 		// Check NSFW
-		isNSFW, reason, err := w.SafetyChecker.IsPromptNSFW(generateReq.Prompt)
+		isNSFW, reason, err := w.SafetyChecker.IsPromptNSFW(translatedPrompt)
 		if err != nil {
 			log.Error("Error checking prompt NSFW", "err", err)
 			return err
@@ -344,33 +342,35 @@ func (w *SCWorker) CreateGeneration(source enttypes.SourceType,
 			WebhookEventsFilter: []requests.CogEventFilter{requests.CogEventFilterStart, requests.CogEventFilterStart},
 			WebhookUrl:          fmt.Sprintf("%s/v1/worker/webhook", utils.GetEnv("PUBLIC_API_URL", "")),
 			Input: requests.BaseCogRequest{
-				SkipSafetyChecker:    true,
-				SkipTranslation:      true,
-				WasAutoSubmitted:     generateReq.SubmitToGallery,
-				APIRequest:           source != enttypes.SourceTypeWebUI,
-				ID:                   requestId,
-				IP:                   ipAddress,
-				UserID:               &user.ID,
-				DeviceInfo:           deviceInfo,
-				LivePageData:         &livePageMsg,
-				Prompt:               generateReq.Prompt,
-				NegativePrompt:       generateReq.NegativePrompt,
-				Width:                generateReq.Width,
-				Height:               generateReq.Height,
-				NumInferenceSteps:    generateReq.InferenceSteps,
-				GuidanceScale:        generateReq.GuidanceScale,
-				Model:                modelName,
-				ModelId:              *generateReq.ModelId,
-				Scheduler:            schedulerName,
-				SchedulerId:          *generateReq.SchedulerId,
-				Seed:                 generateReq.Seed,
-				NumOutputs:           generateReq.NumOutputs,
-				OutputImageExtension: string(shared.DEFAULT_GENERATE_OUTPUT_EXTENSION),
-				OutputImageQuality:   utils.ToPtr(shared.DEFAULT_GENERATE_OUTPUT_QUALITY),
-				ProcessType:          shared.GENERATE,
-				SubmitToGallery:      generateReq.SubmitToGallery,
-				InitImageUrl:         signedInitImageUrl,
-				PromptStrength:       generateReq.PromptStrength,
+				SkipSafetyChecker:      true,
+				SkipTranslation:        true,
+				WasAutoSubmitted:       generateReq.SubmitToGallery,
+				APIRequest:             source != enttypes.SourceTypeWebUI,
+				ID:                     requestId,
+				IP:                     ipAddress,
+				UserID:                 &user.ID,
+				DeviceInfo:             deviceInfo,
+				LivePageData:           &livePageMsg,
+				Prompt:                 translatedPrompt,
+				NegativePrompt:         translatedNegativePrompt,
+				OriginalPrompt:         generateReq.Prompt,
+				OriginalNegativePrompt: generateReq.NegativePrompt,
+				Width:                  generateReq.Width,
+				Height:                 generateReq.Height,
+				NumInferenceSteps:      generateReq.InferenceSteps,
+				GuidanceScale:          generateReq.GuidanceScale,
+				Model:                  modelName,
+				ModelId:                *generateReq.ModelId,
+				Scheduler:              schedulerName,
+				SchedulerId:            *generateReq.SchedulerId,
+				Seed:                   generateReq.Seed,
+				NumOutputs:             generateReq.NumOutputs,
+				OutputImageExtension:   string(shared.DEFAULT_GENERATE_OUTPUT_EXTENSION),
+				OutputImageQuality:     utils.ToPtr(shared.DEFAULT_GENERATE_OUTPUT_QUALITY),
+				ProcessType:            shared.GENERATE,
+				SubmitToGallery:        generateReq.SubmitToGallery,
+				InitImageUrl:           signedInitImageUrl,
+				PromptStrength:         generateReq.PromptStrength,
 			},
 		}
 

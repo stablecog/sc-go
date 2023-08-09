@@ -36,30 +36,32 @@ type BaseCogRequest struct {
 	APIRequest         bool                    `json:"api_request,omitempty"` // Used to indicate if the request is from token or not
 	WasAutoSubmitted   bool                    `json:"was_auto_submitted,omitempty"`
 	// Generate specific
-	UploadPathPrefix     string             `json:"upload_path_prefix,omitempty"`
-	Prompt               string             `json:"prompt,omitempty"`
-	NegativePrompt       string             `json:"negative_prompt,omitempty"`
-	Width                *int32             `json:"width,omitempty"`
-	Height               *int32             `json:"height,omitempty"`
-	OutputImageExtension string             `json:"output_image_extension,omitempty"`
-	OutputImageQuality   *int               `json:"output_image_quality,omitempty"`
-	NumInferenceSteps    *int32             `json:"num_inference_steps,omitempty"`
-	GuidanceScale        *float32           `json:"guidance_scale,omitempty"`
-	Model                string             `json:"model,omitempty"`
-	ModelId              uuid.UUID          `json:"model_id,omitempty"`
-	Scheduler            string             `json:"scheduler,omitempty"`
-	SchedulerId          uuid.UUID          `json:"scheduler_id,omitempty"`
-	InitImageUrl         string             `json:"init_image_url,omitempty"`
-	MaskImageUrl         string             `json:"mask_image_url,omitempty"`
-	InitImageUrlS3       string             `json:"init_image_url_s3,omitempty"`
-	PromptStrength       *float32           `json:"prompt_strength,omitempty"`
-	Mask                 string             `json:"mask,omitempty"`
-	Seed                 *int               `json:"seed,omitempty"`
-	NumOutputs           *int32             `json:"num_outputs,omitempty"`
-	ProcessType          shared.ProcessType `json:"process_type"`
-	PromptFlores         string             `json:"prompt_flores_200_code,omitempty"`
-	NegativePromptFlores string             `json:"negative_prompt_flores_200_code,omitempty"`
-	SubmitToGallery      bool               `json:"submit_to_gallery,omitempty"`
+	UploadPathPrefix       string             `json:"upload_path_prefix,omitempty"`
+	OriginalPrompt         string             `json:"original_prompt,omitempty"`
+	Prompt                 string             `json:"prompt,omitempty"`
+	OriginalNegativePrompt string             `json:"original_negative_prompt,omitempty"`
+	NegativePrompt         string             `json:"negative_prompt,omitempty"`
+	Width                  *int32             `json:"width,omitempty"`
+	Height                 *int32             `json:"height,omitempty"`
+	OutputImageExtension   string             `json:"output_image_extension,omitempty"`
+	OutputImageQuality     *int               `json:"output_image_quality,omitempty"`
+	NumInferenceSteps      *int32             `json:"num_inference_steps,omitempty"`
+	GuidanceScale          *float32           `json:"guidance_scale,omitempty"`
+	Model                  string             `json:"model,omitempty"`
+	ModelId                uuid.UUID          `json:"model_id,omitempty"`
+	Scheduler              string             `json:"scheduler,omitempty"`
+	SchedulerId            uuid.UUID          `json:"scheduler_id,omitempty"`
+	InitImageUrl           string             `json:"init_image_url,omitempty"`
+	MaskImageUrl           string             `json:"mask_image_url,omitempty"`
+	InitImageUrlS3         string             `json:"init_image_url_s3,omitempty"`
+	PromptStrength         *float32           `json:"prompt_strength,omitempty"`
+	Mask                   string             `json:"mask,omitempty"`
+	Seed                   *int               `json:"seed,omitempty"`
+	NumOutputs             *int32             `json:"num_outputs,omitempty"`
+	ProcessType            shared.ProcessType `json:"process_type"`
+	PromptFlores           string             `json:"prompt_flores_200_code,omitempty"`
+	NegativePromptFlores   string             `json:"negative_prompt_flores_200_code,omitempty"`
+	SubmitToGallery        bool               `json:"submit_to_gallery,omitempty"`
 	// Upscale specific
 	Image        string             `json:"image_to_upscale,omitempty"`
 	Type         UpscaleRequestType `json:"type,omitempty"`
