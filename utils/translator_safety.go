@@ -29,6 +29,18 @@ type TranslatorSafetyChecker struct {
 	mu      sync.Mutex
 }
 
+type TBannedPair struct {
+	reason string
+	words  []string
+}
+
+var bannedPairs []TBannedPair = []TBannedPair{
+	{
+		words:  []string{"teen", "twink"},
+		reason: "sexual_minors",
+	},
+}
+
 func NewTranslatorSafetyChecker(ctx context.Context, openaiKey string, disable bool) *TranslatorSafetyChecker {
 	return &TranslatorSafetyChecker{
 		Ctx:              ctx,
@@ -198,9 +210,20 @@ func (t *TranslatorSafetyChecker) IsPromptNSFW(input string) (isNsfw bool, nsfwR
 	if t.Disable {
 		return false, "", nil
 	}
-	if strings.Contains(input, "twink") && strings.Contains(input, "teen") {
-		return true, "sexual_minors", nil
+	// Word list check
+	for _, pair := range bannedPairs {
+		containsAll := true
+		for _, word := range pair.words {
+			if !strings.Contains(input, word) {
+				containsAll = false
+				break
+			}
+		}
+		if containsAll {
+			return true, pair.reason, nil
+		}
 	}
+	// API check
 	res, err := t.OpenaiClient.Moderations(t.Ctx, openai.ModerationRequest{
 		Input: input,
 	})
