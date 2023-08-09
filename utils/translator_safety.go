@@ -34,7 +34,6 @@ type TBannedPair struct {
 	words  []string
 }
 
-var defaultNSFWPromptError = "nsfw_prompt"
 var bannedPairs []TBannedPair = []TBannedPair{
 	{
 		words:  []string{"teen", "twink"},
@@ -221,7 +220,7 @@ func (t *TranslatorSafetyChecker) IsPromptNSFW(input string) (isNsfw bool, nsfwR
 			}
 		}
 		if containsAll {
-			return true, defaultNSFWPromptError, nil
+			return true, pair.reason, nil
 		}
 	}
 	// API check
@@ -239,6 +238,19 @@ func (t *TranslatorSafetyChecker) IsPromptNSFW(input string) (isNsfw bool, nsfwR
 	}
 
 	isNsfw = res.Results[0].Categories.Sexual || res.Results[0].Categories.SexualMinors || res.Results[0].CategoryScores.Sexual > 0.25 || res.Results[0].CategoryScores.SexualMinors > 0.25
-	nsfwReason = defaultNSFWPromptError
+	if isNsfw {
+		// Populate reason
+		if res.Results[0].Categories.Sexual {
+			if nsfwReason != "" {
+				nsfwReason += ","
+			}
+			nsfwReason = "sexual"
+		} else if res.Results[0].Categories.SexualMinors {
+			if nsfwReason != "" {
+				nsfwReason += ","
+			}
+			nsfwReason = "sexual_minors"
+		}
+	}
 	return
 }
