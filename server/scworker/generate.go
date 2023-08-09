@@ -403,7 +403,7 @@ func (w *SCWorker) CreateGeneration(source enttypes.SourceType,
 			if len(splitStr) > 1 {
 				reason = splitStr[1]
 			}
-			return nil, &initSettings, &WorkerError{http.StatusBadRequest, err, reason}
+			return nil, &initSettings, &WorkerError{http.StatusBadRequest, fmt.Errorf("nsfw_prompt"), reason}
 		}
 		return nil, &initSettings, WorkerInternalServerError()
 	}
