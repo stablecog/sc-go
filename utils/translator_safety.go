@@ -52,6 +52,10 @@ var bannedPairs []TBannedPair = []TBannedPair{
 		reason: "sexual_minors",
 	},
 	{
+		words:  []string{"teen", "model"},
+		reason: "sexual_minors",
+	},
+	{
 		words:  []string{"teen", "model", "fitness"},
 		reason: "sexual_minors",
 	},
