@@ -267,11 +267,6 @@ func (r *Repository) GetGenerationCount(filters *requests.QueryGenerationFilters
 		query = query.Where(generation.UserID(*filters.UserID))
 	}
 
-	// Exclude deleted at always
-	query = query.Where(func(s *sql.Selector) {
-		s.Where(sql.IsNull("deleted_at"))
-	})
-
 	// Apply filters
 	query = r.ApplyUserGenerationsFilters(query, filters, false, true)
 
@@ -286,13 +281,16 @@ func (r *Repository) GetGenerationCount(filters *requests.QueryGenerationFilters
 			s.C(generation.FieldNegativePromptID), npt.C(negativeprompt.FieldID),
 		).LeftJoin(pt).On(
 			s.C(generation.FieldPromptID), pt.C(prompt.FieldID),
-		).LeftJoin(got).On(
-			s.C(generation.FieldID), got.C(generationoutput.FieldGenerationID),
+		).Join(got).OnP(
+			sql.And(
+				sql.ColumnsEQ(s.C(generation.FieldID), got.C(generationoutput.FieldGenerationID)),
+				sql.IsNull(got.C(generationoutput.FieldDeletedAt)),
+			),
+		).LeftJoin(ut).On(
+			s.C(generation.FieldUserID), ut.C(user.FieldID),
 		)
 		if filters != nil && filters.UserID != nil {
-			ltj.LeftJoin(ut).Where(sql.EQ(ut.C(user.FieldID), *filters.UserID)).On(
-				s.C(generation.FieldUserID), ut.C(user.FieldID),
-			)
+			s.Where(sql.EQ(ut.C(user.FieldID), *filters.UserID))
 		}
 		ltj.Select(sql.As(sql.Count("*"), "total"))
 	}).Scan(r.Ctx, &res)
@@ -480,7 +478,7 @@ func (r *Repository) QueryGenerations(per_page int, cursor *time.Time, filters *
 			s.C(generation.FieldNegativePromptID), npt.C(negativeprompt.FieldID),
 		).LeftJoin(pt).On(
 			s.C(generation.FieldPromptID), pt.C(prompt.FieldID),
-		).LeftJoin(got).OnP(
+		).Join(got).OnP(
 			sql.And(
 				sql.ColumnsEQ(gt.C(generation.FieldID), got.C(generationoutput.FieldGenerationID)),
 				sql.IsNull(got.C(generationoutput.FieldDeletedAt)),

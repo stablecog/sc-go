@@ -124,7 +124,7 @@ func (r *Repository) RetrieveMostRecentGalleryDataV2(filters *requests.QueryGene
 			s.C(generation.FieldNegativePromptID), npt.C(negativeprompt.FieldID),
 		).LeftJoin(pt).On(
 			s.C(generation.FieldPromptID), pt.C(prompt.FieldID),
-		).LeftJoin(got).OnP(
+		).Join(got).OnP(
 			sql.And(
 				sql.ColumnsEQ(gt.C(generation.FieldID), got.C(generationoutput.FieldGenerationID)),
 				sql.IsNull(got.C(generationoutput.FieldDeletedAt)),
