@@ -8,6 +8,7 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"github.com/google/uuid"
 	"github.com/stablecog/sc-go/database/ent"
+	"github.com/stablecog/sc-go/database/ent/disposableemail"
 	"github.com/stablecog/sc-go/database/ent/user"
 	"github.com/stablecog/sc-go/log"
 	"github.com/stablecog/sc-go/shared"
@@ -99,6 +100,38 @@ func (r *Repository) BanDomains(domains []string) (int, error) {
 		return nil
 	}); err != nil {
 		log.Error("Error banning domains", "err", err)
+		return 0, err
+	}
+
+	return bannedUsers, nil
+}
+
+// Ban domains
+func (r *Repository) UnbanDomains(domains []string) (int, error) {
+	var bannedUsers int
+	if err := r.WithTx(func(tx *ent.Tx) error {
+		DB := tx.Client()
+
+		// Delete from disposable emails
+		_, err := DB.DisposableEmail.Delete().Where(disposableemail.DomainIn(domains...)).Exec(r.Ctx)
+		if err != nil {
+			return err
+		}
+
+		// Update users with domain like this
+		for _, domain := range domains {
+			updated, err := DB.User.Update().Where(func(s *sql.Selector) {
+				s.Where(sql.Like(user.FieldEmail, fmt.Sprintf("%%@%s", domain)))
+			}).ClearBannedAt().ClearScheduledForDeletionOn().Save(r.Ctx)
+			if err != nil {
+				return err
+			}
+			bannedUsers += updated
+		}
+
+		return nil
+	}); err != nil {
+		log.Error("Error unbanning domains", "err", err)
 		return 0, err
 	}
 
