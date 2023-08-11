@@ -525,7 +525,9 @@ func (r *Repository) QueryGenerations(per_page int, cursor *time.Time, filters *
 	}
 
 	end := time.Now()
-	fmt.Printf("000000 --- Q1 Took %f\n", end.Sub(begin).Seconds())
+	if filters != nil && filters.UserID != nil && cursor == nil {
+		fmt.Printf("--- Q1 Took %f -- %s\n", end.Sub(begin).Seconds(), (*filters.UserID).String())
+	}
 
 	if len(gQueryResult) == 0 {
 		meta := &GenerationQueryWithOutputsMeta[*time.Time]{
@@ -590,7 +592,9 @@ func (r *Repository) QueryGenerations(per_page int, cursor *time.Time, filters *
 		return nil, err
 	}
 	end = time.Now()
-	fmt.Printf("000000 --- Q2 Prompt Took %f\n", end.Sub(begin).Seconds())
+	if filters != nil && filters.UserID != nil && cursor == nil {
+		fmt.Printf("--- Q2 Took %f -- %s\n", end.Sub(begin).Seconds(), (*filters.UserID).String())
+	}
 	begin = time.Now()
 	negativePrompts, err := r.DB.NegativePrompt.Query().Select(negativeprompt.FieldText).Where(negativeprompt.IDIn(negativePromptId...)).All(r.Ctx)
 	if err != nil {
@@ -604,8 +608,9 @@ func (r *Repository) QueryGenerations(per_page int, cursor *time.Time, filters *
 		negativePromptIdsMap[p.ID] = p.Text
 	}
 	end = time.Now()
-	fmt.Printf("000000 --- Q3 Negative Prompt Took %f\n", end.Sub(begin).Seconds())
-
+	if filters != nil && filters.UserID != nil && cursor == nil {
+		fmt.Printf("--- Q3 Took %f -- %s\n", end.Sub(begin).Seconds(), (*filters.UserID).String())
+	}
 	// Format to GenerationQueryWithOutputsResultFormatted
 	generationOutputMap := make(map[uuid.UUID][]GenerationUpscaleOutput)
 	for _, g := range gQueryResult {
@@ -676,7 +681,9 @@ func (r *Repository) QueryGenerations(per_page int, cursor *time.Time, filters *
 			return nil, err
 		}
 		end = time.Now()
-		fmt.Printf("000000 --- Q4 Count Took %f\n", end.Sub(begin).Seconds())
+		if filters != nil && filters.UserID != nil && cursor == nil {
+			fmt.Printf("--- Q4 Took %f -- %s\n", end.Sub(begin).Seconds(), (*filters.UserID).String())
+		}
 		meta.Total = &total
 	}
 
