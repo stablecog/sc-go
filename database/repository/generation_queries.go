@@ -286,11 +286,18 @@ func (r *Repository) GetGenerationCount(filters *requests.QueryGenerationFilters
 				sql.ColumnsEQ(s.C(generation.FieldID), got.C(generationoutput.FieldGenerationID)),
 				sql.IsNull(got.C(generationoutput.FieldDeletedAt)),
 			),
-		).LeftJoin(ut).On(
-			s.C(generation.FieldUserID), ut.C(user.FieldID),
 		)
 		if filters != nil && filters.UserID != nil {
-			s.Where(sql.EQ(ut.C(user.FieldID), *filters.UserID))
+			ltj.Join(ut).OnP(
+				sql.And(
+					sql.ColumnsEQ(s.C(generation.FieldUserID), ut.C(user.FieldID)),
+					sql.EQ(ut.C(user.FieldID), *filters.UserID),
+				),
+			)
+		} else {
+			ltj.LeftJoin(ut).On(
+				s.C(generation.FieldUserID), ut.C(user.FieldID),
+			)
 		}
 		ltj.Select(sql.As(sql.Count("*"), "total"))
 	}).Scan(r.Ctx, &res)
