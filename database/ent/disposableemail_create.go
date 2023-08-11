@@ -8,6 +8,8 @@ import (
 	"fmt"
 	"time"
 
+	"entgo.io/ent/dialect"
+	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
@@ -19,6 +21,7 @@ type DisposableEmailCreate struct {
 	config
 	mutation *DisposableEmailMutation
 	hooks    []Hook
+	conflict []sql.ConflictOption
 }
 
 // SetDomain sets the "domain" field.
@@ -166,6 +169,7 @@ func (dec *DisposableEmailCreate) createSpec() (*DisposableEmail, *sqlgraph.Crea
 			},
 		}
 	)
+	_spec.OnConflict = dec.conflict
 	if id, ok := dec.mutation.ID(); ok {
 		_node.ID = id
 		_spec.ID.Value = &id
@@ -185,10 +189,201 @@ func (dec *DisposableEmailCreate) createSpec() (*DisposableEmail, *sqlgraph.Crea
 	return _node, _spec
 }
 
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.DisposableEmail.Create().
+//		SetDomain(v).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.DisposableEmailUpsert) {
+//			SetDomain(v+v).
+//		}).
+//		Exec(ctx)
+func (dec *DisposableEmailCreate) OnConflict(opts ...sql.ConflictOption) *DisposableEmailUpsertOne {
+	dec.conflict = opts
+	return &DisposableEmailUpsertOne{
+		create: dec,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.DisposableEmail.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (dec *DisposableEmailCreate) OnConflictColumns(columns ...string) *DisposableEmailUpsertOne {
+	dec.conflict = append(dec.conflict, sql.ConflictColumns(columns...))
+	return &DisposableEmailUpsertOne{
+		create: dec,
+	}
+}
+
+type (
+	// DisposableEmailUpsertOne is the builder for "upsert"-ing
+	//  one DisposableEmail node.
+	DisposableEmailUpsertOne struct {
+		create *DisposableEmailCreate
+	}
+
+	// DisposableEmailUpsert is the "OnConflict" setter.
+	DisposableEmailUpsert struct {
+		*sql.UpdateSet
+	}
+)
+
+// SetDomain sets the "domain" field.
+func (u *DisposableEmailUpsert) SetDomain(v string) *DisposableEmailUpsert {
+	u.Set(disposableemail.FieldDomain, v)
+	return u
+}
+
+// UpdateDomain sets the "domain" field to the value that was provided on create.
+func (u *DisposableEmailUpsert) UpdateDomain() *DisposableEmailUpsert {
+	u.SetExcluded(disposableemail.FieldDomain)
+	return u
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *DisposableEmailUpsert) SetUpdatedAt(v time.Time) *DisposableEmailUpsert {
+	u.Set(disposableemail.FieldUpdatedAt, v)
+	return u
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *DisposableEmailUpsert) UpdateUpdatedAt() *DisposableEmailUpsert {
+	u.SetExcluded(disposableemail.FieldUpdatedAt)
+	return u
+}
+
+// UpdateNewValues updates the mutable fields using the new values that were set on create except the ID field.
+// Using this option is equivalent to using:
+//
+//	client.DisposableEmail.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(disposableemail.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *DisposableEmailUpsertOne) UpdateNewValues() *DisposableEmailUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		if _, exists := u.create.mutation.ID(); exists {
+			s.SetIgnore(disposableemail.FieldID)
+		}
+		if _, exists := u.create.mutation.CreatedAt(); exists {
+			s.SetIgnore(disposableemail.FieldCreatedAt)
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.DisposableEmail.Create().
+//	    OnConflict(sql.ResolveWithIgnore()).
+//	    Exec(ctx)
+func (u *DisposableEmailUpsertOne) Ignore() *DisposableEmailUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *DisposableEmailUpsertOne) DoNothing() *DisposableEmailUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the DisposableEmailCreate.OnConflict
+// documentation for more info.
+func (u *DisposableEmailUpsertOne) Update(set func(*DisposableEmailUpsert)) *DisposableEmailUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&DisposableEmailUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetDomain sets the "domain" field.
+func (u *DisposableEmailUpsertOne) SetDomain(v string) *DisposableEmailUpsertOne {
+	return u.Update(func(s *DisposableEmailUpsert) {
+		s.SetDomain(v)
+	})
+}
+
+// UpdateDomain sets the "domain" field to the value that was provided on create.
+func (u *DisposableEmailUpsertOne) UpdateDomain() *DisposableEmailUpsertOne {
+	return u.Update(func(s *DisposableEmailUpsert) {
+		s.UpdateDomain()
+	})
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *DisposableEmailUpsertOne) SetUpdatedAt(v time.Time) *DisposableEmailUpsertOne {
+	return u.Update(func(s *DisposableEmailUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *DisposableEmailUpsertOne) UpdateUpdatedAt() *DisposableEmailUpsertOne {
+	return u.Update(func(s *DisposableEmailUpsert) {
+		s.UpdateUpdatedAt()
+	})
+}
+
+// Exec executes the query.
+func (u *DisposableEmailUpsertOne) Exec(ctx context.Context) error {
+	if len(u.create.conflict) == 0 {
+		return errors.New("ent: missing options for DisposableEmailCreate.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *DisposableEmailUpsertOne) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// Exec executes the UPSERT query and returns the inserted/updated ID.
+func (u *DisposableEmailUpsertOne) ID(ctx context.Context) (id uuid.UUID, err error) {
+	if u.create.driver.Dialect() == dialect.MySQL {
+		// In case of "ON CONFLICT", there is no way to get back non-numeric ID
+		// fields from the database since MySQL does not support the RETURNING clause.
+		return id, errors.New("ent: DisposableEmailUpsertOne.ID is not supported by MySQL driver. Use DisposableEmailUpsertOne.Exec instead")
+	}
+	node, err := u.create.Save(ctx)
+	if err != nil {
+		return id, err
+	}
+	return node.ID, nil
+}
+
+// IDX is like ID, but panics if an error occurs.
+func (u *DisposableEmailUpsertOne) IDX(ctx context.Context) uuid.UUID {
+	id, err := u.ID(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return id
+}
+
 // DisposableEmailCreateBulk is the builder for creating many DisposableEmail entities in bulk.
 type DisposableEmailCreateBulk struct {
 	config
 	builders []*DisposableEmailCreate
+	conflict []sql.ConflictOption
 }
 
 // Save creates the DisposableEmail entities in the database.
@@ -215,6 +410,7 @@ func (decb *DisposableEmailCreateBulk) Save(ctx context.Context) ([]*DisposableE
 					_, err = mutators[i+1].Mutate(root, decb.builders[i+1].mutation)
 				} else {
 					spec := &sqlgraph.BatchCreateSpec{Nodes: specs}
+					spec.OnConflict = decb.conflict
 					// Invoke the actual operation on the latest mutation in the chain.
 					if err = sqlgraph.BatchCreate(ctx, decb.driver, spec); err != nil {
 						if sqlgraph.IsConstraintError(err) {
@@ -261,6 +457,148 @@ func (decb *DisposableEmailCreateBulk) Exec(ctx context.Context) error {
 // ExecX is like Exec, but panics if an error occurs.
 func (decb *DisposableEmailCreateBulk) ExecX(ctx context.Context) {
 	if err := decb.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.DisposableEmail.CreateBulk(builders...).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.DisposableEmailUpsert) {
+//			SetDomain(v+v).
+//		}).
+//		Exec(ctx)
+func (decb *DisposableEmailCreateBulk) OnConflict(opts ...sql.ConflictOption) *DisposableEmailUpsertBulk {
+	decb.conflict = opts
+	return &DisposableEmailUpsertBulk{
+		create: decb,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.DisposableEmail.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (decb *DisposableEmailCreateBulk) OnConflictColumns(columns ...string) *DisposableEmailUpsertBulk {
+	decb.conflict = append(decb.conflict, sql.ConflictColumns(columns...))
+	return &DisposableEmailUpsertBulk{
+		create: decb,
+	}
+}
+
+// DisposableEmailUpsertBulk is the builder for "upsert"-ing
+// a bulk of DisposableEmail nodes.
+type DisposableEmailUpsertBulk struct {
+	create *DisposableEmailCreateBulk
+}
+
+// UpdateNewValues updates the mutable fields using the new values that
+// were set on create. Using this option is equivalent to using:
+//
+//	client.DisposableEmail.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(disposableemail.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *DisposableEmailUpsertBulk) UpdateNewValues() *DisposableEmailUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		for _, b := range u.create.builders {
+			if _, exists := b.mutation.ID(); exists {
+				s.SetIgnore(disposableemail.FieldID)
+			}
+			if _, exists := b.mutation.CreatedAt(); exists {
+				s.SetIgnore(disposableemail.FieldCreatedAt)
+			}
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.DisposableEmail.Create().
+//		OnConflict(sql.ResolveWithIgnore()).
+//		Exec(ctx)
+func (u *DisposableEmailUpsertBulk) Ignore() *DisposableEmailUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *DisposableEmailUpsertBulk) DoNothing() *DisposableEmailUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the DisposableEmailCreateBulk.OnConflict
+// documentation for more info.
+func (u *DisposableEmailUpsertBulk) Update(set func(*DisposableEmailUpsert)) *DisposableEmailUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&DisposableEmailUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetDomain sets the "domain" field.
+func (u *DisposableEmailUpsertBulk) SetDomain(v string) *DisposableEmailUpsertBulk {
+	return u.Update(func(s *DisposableEmailUpsert) {
+		s.SetDomain(v)
+	})
+}
+
+// UpdateDomain sets the "domain" field to the value that was provided on create.
+func (u *DisposableEmailUpsertBulk) UpdateDomain() *DisposableEmailUpsertBulk {
+	return u.Update(func(s *DisposableEmailUpsert) {
+		s.UpdateDomain()
+	})
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *DisposableEmailUpsertBulk) SetUpdatedAt(v time.Time) *DisposableEmailUpsertBulk {
+	return u.Update(func(s *DisposableEmailUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *DisposableEmailUpsertBulk) UpdateUpdatedAt() *DisposableEmailUpsertBulk {
+	return u.Update(func(s *DisposableEmailUpsert) {
+		s.UpdateUpdatedAt()
+	})
+}
+
+// Exec executes the query.
+func (u *DisposableEmailUpsertBulk) Exec(ctx context.Context) error {
+	for i, b := range u.create.builders {
+		if len(b.conflict) != 0 {
+			return fmt.Errorf("ent: OnConflict was set for builder %d. Set it on the DisposableEmailCreateBulk instead", i)
+		}
+	}
+	if len(u.create.conflict) == 0 {
+		return errors.New("ent: missing options for DisposableEmailCreateBulk.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *DisposableEmailUpsertBulk) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
 		panic(err)
 	}
 }

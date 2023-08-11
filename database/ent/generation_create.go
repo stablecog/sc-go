@@ -8,6 +8,8 @@ import (
 	"fmt"
 	"time"
 
+	"entgo.io/ent/dialect"
+	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
@@ -28,6 +30,7 @@ type GenerationCreate struct {
 	config
 	mutation *GenerationMutation
 	hooks    []Hook
+	conflict []sql.ConflictOption
 }
 
 // SetWidth sets the "width" field.
@@ -560,6 +563,7 @@ func (gc *GenerationCreate) createSpec() (*Generation, *sqlgraph.CreateSpec) {
 			},
 		}
 	)
+	_spec.OnConflict = gc.conflict
 	if id, ok := gc.mutation.ID(); ok {
 		_node.ID = id
 		_spec.ID.Value = &id
@@ -802,10 +806,1033 @@ func (gc *GenerationCreate) createSpec() (*Generation, *sqlgraph.CreateSpec) {
 	return _node, _spec
 }
 
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.Generation.Create().
+//		SetWidth(v).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.GenerationUpsert) {
+//			SetWidth(v+v).
+//		}).
+//		Exec(ctx)
+func (gc *GenerationCreate) OnConflict(opts ...sql.ConflictOption) *GenerationUpsertOne {
+	gc.conflict = opts
+	return &GenerationUpsertOne{
+		create: gc,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.Generation.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (gc *GenerationCreate) OnConflictColumns(columns ...string) *GenerationUpsertOne {
+	gc.conflict = append(gc.conflict, sql.ConflictColumns(columns...))
+	return &GenerationUpsertOne{
+		create: gc,
+	}
+}
+
+type (
+	// GenerationUpsertOne is the builder for "upsert"-ing
+	//  one Generation node.
+	GenerationUpsertOne struct {
+		create *GenerationCreate
+	}
+
+	// GenerationUpsert is the "OnConflict" setter.
+	GenerationUpsert struct {
+		*sql.UpdateSet
+	}
+)
+
+// SetWidth sets the "width" field.
+func (u *GenerationUpsert) SetWidth(v int32) *GenerationUpsert {
+	u.Set(generation.FieldWidth, v)
+	return u
+}
+
+// UpdateWidth sets the "width" field to the value that was provided on create.
+func (u *GenerationUpsert) UpdateWidth() *GenerationUpsert {
+	u.SetExcluded(generation.FieldWidth)
+	return u
+}
+
+// AddWidth adds v to the "width" field.
+func (u *GenerationUpsert) AddWidth(v int32) *GenerationUpsert {
+	u.Add(generation.FieldWidth, v)
+	return u
+}
+
+// SetHeight sets the "height" field.
+func (u *GenerationUpsert) SetHeight(v int32) *GenerationUpsert {
+	u.Set(generation.FieldHeight, v)
+	return u
+}
+
+// UpdateHeight sets the "height" field to the value that was provided on create.
+func (u *GenerationUpsert) UpdateHeight() *GenerationUpsert {
+	u.SetExcluded(generation.FieldHeight)
+	return u
+}
+
+// AddHeight adds v to the "height" field.
+func (u *GenerationUpsert) AddHeight(v int32) *GenerationUpsert {
+	u.Add(generation.FieldHeight, v)
+	return u
+}
+
+// SetInferenceSteps sets the "inference_steps" field.
+func (u *GenerationUpsert) SetInferenceSteps(v int32) *GenerationUpsert {
+	u.Set(generation.FieldInferenceSteps, v)
+	return u
+}
+
+// UpdateInferenceSteps sets the "inference_steps" field to the value that was provided on create.
+func (u *GenerationUpsert) UpdateInferenceSteps() *GenerationUpsert {
+	u.SetExcluded(generation.FieldInferenceSteps)
+	return u
+}
+
+// AddInferenceSteps adds v to the "inference_steps" field.
+func (u *GenerationUpsert) AddInferenceSteps(v int32) *GenerationUpsert {
+	u.Add(generation.FieldInferenceSteps, v)
+	return u
+}
+
+// SetGuidanceScale sets the "guidance_scale" field.
+func (u *GenerationUpsert) SetGuidanceScale(v float32) *GenerationUpsert {
+	u.Set(generation.FieldGuidanceScale, v)
+	return u
+}
+
+// UpdateGuidanceScale sets the "guidance_scale" field to the value that was provided on create.
+func (u *GenerationUpsert) UpdateGuidanceScale() *GenerationUpsert {
+	u.SetExcluded(generation.FieldGuidanceScale)
+	return u
+}
+
+// AddGuidanceScale adds v to the "guidance_scale" field.
+func (u *GenerationUpsert) AddGuidanceScale(v float32) *GenerationUpsert {
+	u.Add(generation.FieldGuidanceScale, v)
+	return u
+}
+
+// SetNumOutputs sets the "num_outputs" field.
+func (u *GenerationUpsert) SetNumOutputs(v int32) *GenerationUpsert {
+	u.Set(generation.FieldNumOutputs, v)
+	return u
+}
+
+// UpdateNumOutputs sets the "num_outputs" field to the value that was provided on create.
+func (u *GenerationUpsert) UpdateNumOutputs() *GenerationUpsert {
+	u.SetExcluded(generation.FieldNumOutputs)
+	return u
+}
+
+// AddNumOutputs adds v to the "num_outputs" field.
+func (u *GenerationUpsert) AddNumOutputs(v int32) *GenerationUpsert {
+	u.Add(generation.FieldNumOutputs, v)
+	return u
+}
+
+// SetNsfwCount sets the "nsfw_count" field.
+func (u *GenerationUpsert) SetNsfwCount(v int32) *GenerationUpsert {
+	u.Set(generation.FieldNsfwCount, v)
+	return u
+}
+
+// UpdateNsfwCount sets the "nsfw_count" field to the value that was provided on create.
+func (u *GenerationUpsert) UpdateNsfwCount() *GenerationUpsert {
+	u.SetExcluded(generation.FieldNsfwCount)
+	return u
+}
+
+// AddNsfwCount adds v to the "nsfw_count" field.
+func (u *GenerationUpsert) AddNsfwCount(v int32) *GenerationUpsert {
+	u.Add(generation.FieldNsfwCount, v)
+	return u
+}
+
+// SetSeed sets the "seed" field.
+func (u *GenerationUpsert) SetSeed(v int) *GenerationUpsert {
+	u.Set(generation.FieldSeed, v)
+	return u
+}
+
+// UpdateSeed sets the "seed" field to the value that was provided on create.
+func (u *GenerationUpsert) UpdateSeed() *GenerationUpsert {
+	u.SetExcluded(generation.FieldSeed)
+	return u
+}
+
+// AddSeed adds v to the "seed" field.
+func (u *GenerationUpsert) AddSeed(v int) *GenerationUpsert {
+	u.Add(generation.FieldSeed, v)
+	return u
+}
+
+// SetStatus sets the "status" field.
+func (u *GenerationUpsert) SetStatus(v generation.Status) *GenerationUpsert {
+	u.Set(generation.FieldStatus, v)
+	return u
+}
+
+// UpdateStatus sets the "status" field to the value that was provided on create.
+func (u *GenerationUpsert) UpdateStatus() *GenerationUpsert {
+	u.SetExcluded(generation.FieldStatus)
+	return u
+}
+
+// SetFailureReason sets the "failure_reason" field.
+func (u *GenerationUpsert) SetFailureReason(v string) *GenerationUpsert {
+	u.Set(generation.FieldFailureReason, v)
+	return u
+}
+
+// UpdateFailureReason sets the "failure_reason" field to the value that was provided on create.
+func (u *GenerationUpsert) UpdateFailureReason() *GenerationUpsert {
+	u.SetExcluded(generation.FieldFailureReason)
+	return u
+}
+
+// ClearFailureReason clears the value of the "failure_reason" field.
+func (u *GenerationUpsert) ClearFailureReason() *GenerationUpsert {
+	u.SetNull(generation.FieldFailureReason)
+	return u
+}
+
+// SetCountryCode sets the "country_code" field.
+func (u *GenerationUpsert) SetCountryCode(v string) *GenerationUpsert {
+	u.Set(generation.FieldCountryCode, v)
+	return u
+}
+
+// UpdateCountryCode sets the "country_code" field to the value that was provided on create.
+func (u *GenerationUpsert) UpdateCountryCode() *GenerationUpsert {
+	u.SetExcluded(generation.FieldCountryCode)
+	return u
+}
+
+// ClearCountryCode clears the value of the "country_code" field.
+func (u *GenerationUpsert) ClearCountryCode() *GenerationUpsert {
+	u.SetNull(generation.FieldCountryCode)
+	return u
+}
+
+// SetInitImageURL sets the "init_image_url" field.
+func (u *GenerationUpsert) SetInitImageURL(v string) *GenerationUpsert {
+	u.Set(generation.FieldInitImageURL, v)
+	return u
+}
+
+// UpdateInitImageURL sets the "init_image_url" field to the value that was provided on create.
+func (u *GenerationUpsert) UpdateInitImageURL() *GenerationUpsert {
+	u.SetExcluded(generation.FieldInitImageURL)
+	return u
+}
+
+// ClearInitImageURL clears the value of the "init_image_url" field.
+func (u *GenerationUpsert) ClearInitImageURL() *GenerationUpsert {
+	u.SetNull(generation.FieldInitImageURL)
+	return u
+}
+
+// SetPromptStrength sets the "prompt_strength" field.
+func (u *GenerationUpsert) SetPromptStrength(v float32) *GenerationUpsert {
+	u.Set(generation.FieldPromptStrength, v)
+	return u
+}
+
+// UpdatePromptStrength sets the "prompt_strength" field to the value that was provided on create.
+func (u *GenerationUpsert) UpdatePromptStrength() *GenerationUpsert {
+	u.SetExcluded(generation.FieldPromptStrength)
+	return u
+}
+
+// AddPromptStrength adds v to the "prompt_strength" field.
+func (u *GenerationUpsert) AddPromptStrength(v float32) *GenerationUpsert {
+	u.Add(generation.FieldPromptStrength, v)
+	return u
+}
+
+// ClearPromptStrength clears the value of the "prompt_strength" field.
+func (u *GenerationUpsert) ClearPromptStrength() *GenerationUpsert {
+	u.SetNull(generation.FieldPromptStrength)
+	return u
+}
+
+// SetWasAutoSubmitted sets the "was_auto_submitted" field.
+func (u *GenerationUpsert) SetWasAutoSubmitted(v bool) *GenerationUpsert {
+	u.Set(generation.FieldWasAutoSubmitted, v)
+	return u
+}
+
+// UpdateWasAutoSubmitted sets the "was_auto_submitted" field to the value that was provided on create.
+func (u *GenerationUpsert) UpdateWasAutoSubmitted() *GenerationUpsert {
+	u.SetExcluded(generation.FieldWasAutoSubmitted)
+	return u
+}
+
+// SetStripeProductID sets the "stripe_product_id" field.
+func (u *GenerationUpsert) SetStripeProductID(v string) *GenerationUpsert {
+	u.Set(generation.FieldStripeProductID, v)
+	return u
+}
+
+// UpdateStripeProductID sets the "stripe_product_id" field to the value that was provided on create.
+func (u *GenerationUpsert) UpdateStripeProductID() *GenerationUpsert {
+	u.SetExcluded(generation.FieldStripeProductID)
+	return u
+}
+
+// ClearStripeProductID clears the value of the "stripe_product_id" field.
+func (u *GenerationUpsert) ClearStripeProductID() *GenerationUpsert {
+	u.SetNull(generation.FieldStripeProductID)
+	return u
+}
+
+// SetSourceType sets the "source_type" field.
+func (u *GenerationUpsert) SetSourceType(v enttypes.SourceType) *GenerationUpsert {
+	u.Set(generation.FieldSourceType, v)
+	return u
+}
+
+// UpdateSourceType sets the "source_type" field to the value that was provided on create.
+func (u *GenerationUpsert) UpdateSourceType() *GenerationUpsert {
+	u.SetExcluded(generation.FieldSourceType)
+	return u
+}
+
+// SetPromptID sets the "prompt_id" field.
+func (u *GenerationUpsert) SetPromptID(v uuid.UUID) *GenerationUpsert {
+	u.Set(generation.FieldPromptID, v)
+	return u
+}
+
+// UpdatePromptID sets the "prompt_id" field to the value that was provided on create.
+func (u *GenerationUpsert) UpdatePromptID() *GenerationUpsert {
+	u.SetExcluded(generation.FieldPromptID)
+	return u
+}
+
+// ClearPromptID clears the value of the "prompt_id" field.
+func (u *GenerationUpsert) ClearPromptID() *GenerationUpsert {
+	u.SetNull(generation.FieldPromptID)
+	return u
+}
+
+// SetNegativePromptID sets the "negative_prompt_id" field.
+func (u *GenerationUpsert) SetNegativePromptID(v uuid.UUID) *GenerationUpsert {
+	u.Set(generation.FieldNegativePromptID, v)
+	return u
+}
+
+// UpdateNegativePromptID sets the "negative_prompt_id" field to the value that was provided on create.
+func (u *GenerationUpsert) UpdateNegativePromptID() *GenerationUpsert {
+	u.SetExcluded(generation.FieldNegativePromptID)
+	return u
+}
+
+// ClearNegativePromptID clears the value of the "negative_prompt_id" field.
+func (u *GenerationUpsert) ClearNegativePromptID() *GenerationUpsert {
+	u.SetNull(generation.FieldNegativePromptID)
+	return u
+}
+
+// SetModelID sets the "model_id" field.
+func (u *GenerationUpsert) SetModelID(v uuid.UUID) *GenerationUpsert {
+	u.Set(generation.FieldModelID, v)
+	return u
+}
+
+// UpdateModelID sets the "model_id" field to the value that was provided on create.
+func (u *GenerationUpsert) UpdateModelID() *GenerationUpsert {
+	u.SetExcluded(generation.FieldModelID)
+	return u
+}
+
+// SetSchedulerID sets the "scheduler_id" field.
+func (u *GenerationUpsert) SetSchedulerID(v uuid.UUID) *GenerationUpsert {
+	u.Set(generation.FieldSchedulerID, v)
+	return u
+}
+
+// UpdateSchedulerID sets the "scheduler_id" field to the value that was provided on create.
+func (u *GenerationUpsert) UpdateSchedulerID() *GenerationUpsert {
+	u.SetExcluded(generation.FieldSchedulerID)
+	return u
+}
+
+// SetUserID sets the "user_id" field.
+func (u *GenerationUpsert) SetUserID(v uuid.UUID) *GenerationUpsert {
+	u.Set(generation.FieldUserID, v)
+	return u
+}
+
+// UpdateUserID sets the "user_id" field to the value that was provided on create.
+func (u *GenerationUpsert) UpdateUserID() *GenerationUpsert {
+	u.SetExcluded(generation.FieldUserID)
+	return u
+}
+
+// SetDeviceInfoID sets the "device_info_id" field.
+func (u *GenerationUpsert) SetDeviceInfoID(v uuid.UUID) *GenerationUpsert {
+	u.Set(generation.FieldDeviceInfoID, v)
+	return u
+}
+
+// UpdateDeviceInfoID sets the "device_info_id" field to the value that was provided on create.
+func (u *GenerationUpsert) UpdateDeviceInfoID() *GenerationUpsert {
+	u.SetExcluded(generation.FieldDeviceInfoID)
+	return u
+}
+
+// SetAPITokenID sets the "api_token_id" field.
+func (u *GenerationUpsert) SetAPITokenID(v uuid.UUID) *GenerationUpsert {
+	u.Set(generation.FieldAPITokenID, v)
+	return u
+}
+
+// UpdateAPITokenID sets the "api_token_id" field to the value that was provided on create.
+func (u *GenerationUpsert) UpdateAPITokenID() *GenerationUpsert {
+	u.SetExcluded(generation.FieldAPITokenID)
+	return u
+}
+
+// ClearAPITokenID clears the value of the "api_token_id" field.
+func (u *GenerationUpsert) ClearAPITokenID() *GenerationUpsert {
+	u.SetNull(generation.FieldAPITokenID)
+	return u
+}
+
+// SetStartedAt sets the "started_at" field.
+func (u *GenerationUpsert) SetStartedAt(v time.Time) *GenerationUpsert {
+	u.Set(generation.FieldStartedAt, v)
+	return u
+}
+
+// UpdateStartedAt sets the "started_at" field to the value that was provided on create.
+func (u *GenerationUpsert) UpdateStartedAt() *GenerationUpsert {
+	u.SetExcluded(generation.FieldStartedAt)
+	return u
+}
+
+// ClearStartedAt clears the value of the "started_at" field.
+func (u *GenerationUpsert) ClearStartedAt() *GenerationUpsert {
+	u.SetNull(generation.FieldStartedAt)
+	return u
+}
+
+// SetCompletedAt sets the "completed_at" field.
+func (u *GenerationUpsert) SetCompletedAt(v time.Time) *GenerationUpsert {
+	u.Set(generation.FieldCompletedAt, v)
+	return u
+}
+
+// UpdateCompletedAt sets the "completed_at" field to the value that was provided on create.
+func (u *GenerationUpsert) UpdateCompletedAt() *GenerationUpsert {
+	u.SetExcluded(generation.FieldCompletedAt)
+	return u
+}
+
+// ClearCompletedAt clears the value of the "completed_at" field.
+func (u *GenerationUpsert) ClearCompletedAt() *GenerationUpsert {
+	u.SetNull(generation.FieldCompletedAt)
+	return u
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *GenerationUpsert) SetUpdatedAt(v time.Time) *GenerationUpsert {
+	u.Set(generation.FieldUpdatedAt, v)
+	return u
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *GenerationUpsert) UpdateUpdatedAt() *GenerationUpsert {
+	u.SetExcluded(generation.FieldUpdatedAt)
+	return u
+}
+
+// UpdateNewValues updates the mutable fields using the new values that were set on create except the ID field.
+// Using this option is equivalent to using:
+//
+//	client.Generation.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(generation.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *GenerationUpsertOne) UpdateNewValues() *GenerationUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		if _, exists := u.create.mutation.ID(); exists {
+			s.SetIgnore(generation.FieldID)
+		}
+		if _, exists := u.create.mutation.CreatedAt(); exists {
+			s.SetIgnore(generation.FieldCreatedAt)
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.Generation.Create().
+//	    OnConflict(sql.ResolveWithIgnore()).
+//	    Exec(ctx)
+func (u *GenerationUpsertOne) Ignore() *GenerationUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *GenerationUpsertOne) DoNothing() *GenerationUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the GenerationCreate.OnConflict
+// documentation for more info.
+func (u *GenerationUpsertOne) Update(set func(*GenerationUpsert)) *GenerationUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&GenerationUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetWidth sets the "width" field.
+func (u *GenerationUpsertOne) SetWidth(v int32) *GenerationUpsertOne {
+	return u.Update(func(s *GenerationUpsert) {
+		s.SetWidth(v)
+	})
+}
+
+// AddWidth adds v to the "width" field.
+func (u *GenerationUpsertOne) AddWidth(v int32) *GenerationUpsertOne {
+	return u.Update(func(s *GenerationUpsert) {
+		s.AddWidth(v)
+	})
+}
+
+// UpdateWidth sets the "width" field to the value that was provided on create.
+func (u *GenerationUpsertOne) UpdateWidth() *GenerationUpsertOne {
+	return u.Update(func(s *GenerationUpsert) {
+		s.UpdateWidth()
+	})
+}
+
+// SetHeight sets the "height" field.
+func (u *GenerationUpsertOne) SetHeight(v int32) *GenerationUpsertOne {
+	return u.Update(func(s *GenerationUpsert) {
+		s.SetHeight(v)
+	})
+}
+
+// AddHeight adds v to the "height" field.
+func (u *GenerationUpsertOne) AddHeight(v int32) *GenerationUpsertOne {
+	return u.Update(func(s *GenerationUpsert) {
+		s.AddHeight(v)
+	})
+}
+
+// UpdateHeight sets the "height" field to the value that was provided on create.
+func (u *GenerationUpsertOne) UpdateHeight() *GenerationUpsertOne {
+	return u.Update(func(s *GenerationUpsert) {
+		s.UpdateHeight()
+	})
+}
+
+// SetInferenceSteps sets the "inference_steps" field.
+func (u *GenerationUpsertOne) SetInferenceSteps(v int32) *GenerationUpsertOne {
+	return u.Update(func(s *GenerationUpsert) {
+		s.SetInferenceSteps(v)
+	})
+}
+
+// AddInferenceSteps adds v to the "inference_steps" field.
+func (u *GenerationUpsertOne) AddInferenceSteps(v int32) *GenerationUpsertOne {
+	return u.Update(func(s *GenerationUpsert) {
+		s.AddInferenceSteps(v)
+	})
+}
+
+// UpdateInferenceSteps sets the "inference_steps" field to the value that was provided on create.
+func (u *GenerationUpsertOne) UpdateInferenceSteps() *GenerationUpsertOne {
+	return u.Update(func(s *GenerationUpsert) {
+		s.UpdateInferenceSteps()
+	})
+}
+
+// SetGuidanceScale sets the "guidance_scale" field.
+func (u *GenerationUpsertOne) SetGuidanceScale(v float32) *GenerationUpsertOne {
+	return u.Update(func(s *GenerationUpsert) {
+		s.SetGuidanceScale(v)
+	})
+}
+
+// AddGuidanceScale adds v to the "guidance_scale" field.
+func (u *GenerationUpsertOne) AddGuidanceScale(v float32) *GenerationUpsertOne {
+	return u.Update(func(s *GenerationUpsert) {
+		s.AddGuidanceScale(v)
+	})
+}
+
+// UpdateGuidanceScale sets the "guidance_scale" field to the value that was provided on create.
+func (u *GenerationUpsertOne) UpdateGuidanceScale() *GenerationUpsertOne {
+	return u.Update(func(s *GenerationUpsert) {
+		s.UpdateGuidanceScale()
+	})
+}
+
+// SetNumOutputs sets the "num_outputs" field.
+func (u *GenerationUpsertOne) SetNumOutputs(v int32) *GenerationUpsertOne {
+	return u.Update(func(s *GenerationUpsert) {
+		s.SetNumOutputs(v)
+	})
+}
+
+// AddNumOutputs adds v to the "num_outputs" field.
+func (u *GenerationUpsertOne) AddNumOutputs(v int32) *GenerationUpsertOne {
+	return u.Update(func(s *GenerationUpsert) {
+		s.AddNumOutputs(v)
+	})
+}
+
+// UpdateNumOutputs sets the "num_outputs" field to the value that was provided on create.
+func (u *GenerationUpsertOne) UpdateNumOutputs() *GenerationUpsertOne {
+	return u.Update(func(s *GenerationUpsert) {
+		s.UpdateNumOutputs()
+	})
+}
+
+// SetNsfwCount sets the "nsfw_count" field.
+func (u *GenerationUpsertOne) SetNsfwCount(v int32) *GenerationUpsertOne {
+	return u.Update(func(s *GenerationUpsert) {
+		s.SetNsfwCount(v)
+	})
+}
+
+// AddNsfwCount adds v to the "nsfw_count" field.
+func (u *GenerationUpsertOne) AddNsfwCount(v int32) *GenerationUpsertOne {
+	return u.Update(func(s *GenerationUpsert) {
+		s.AddNsfwCount(v)
+	})
+}
+
+// UpdateNsfwCount sets the "nsfw_count" field to the value that was provided on create.
+func (u *GenerationUpsertOne) UpdateNsfwCount() *GenerationUpsertOne {
+	return u.Update(func(s *GenerationUpsert) {
+		s.UpdateNsfwCount()
+	})
+}
+
+// SetSeed sets the "seed" field.
+func (u *GenerationUpsertOne) SetSeed(v int) *GenerationUpsertOne {
+	return u.Update(func(s *GenerationUpsert) {
+		s.SetSeed(v)
+	})
+}
+
+// AddSeed adds v to the "seed" field.
+func (u *GenerationUpsertOne) AddSeed(v int) *GenerationUpsertOne {
+	return u.Update(func(s *GenerationUpsert) {
+		s.AddSeed(v)
+	})
+}
+
+// UpdateSeed sets the "seed" field to the value that was provided on create.
+func (u *GenerationUpsertOne) UpdateSeed() *GenerationUpsertOne {
+	return u.Update(func(s *GenerationUpsert) {
+		s.UpdateSeed()
+	})
+}
+
+// SetStatus sets the "status" field.
+func (u *GenerationUpsertOne) SetStatus(v generation.Status) *GenerationUpsertOne {
+	return u.Update(func(s *GenerationUpsert) {
+		s.SetStatus(v)
+	})
+}
+
+// UpdateStatus sets the "status" field to the value that was provided on create.
+func (u *GenerationUpsertOne) UpdateStatus() *GenerationUpsertOne {
+	return u.Update(func(s *GenerationUpsert) {
+		s.UpdateStatus()
+	})
+}
+
+// SetFailureReason sets the "failure_reason" field.
+func (u *GenerationUpsertOne) SetFailureReason(v string) *GenerationUpsertOne {
+	return u.Update(func(s *GenerationUpsert) {
+		s.SetFailureReason(v)
+	})
+}
+
+// UpdateFailureReason sets the "failure_reason" field to the value that was provided on create.
+func (u *GenerationUpsertOne) UpdateFailureReason() *GenerationUpsertOne {
+	return u.Update(func(s *GenerationUpsert) {
+		s.UpdateFailureReason()
+	})
+}
+
+// ClearFailureReason clears the value of the "failure_reason" field.
+func (u *GenerationUpsertOne) ClearFailureReason() *GenerationUpsertOne {
+	return u.Update(func(s *GenerationUpsert) {
+		s.ClearFailureReason()
+	})
+}
+
+// SetCountryCode sets the "country_code" field.
+func (u *GenerationUpsertOne) SetCountryCode(v string) *GenerationUpsertOne {
+	return u.Update(func(s *GenerationUpsert) {
+		s.SetCountryCode(v)
+	})
+}
+
+// UpdateCountryCode sets the "country_code" field to the value that was provided on create.
+func (u *GenerationUpsertOne) UpdateCountryCode() *GenerationUpsertOne {
+	return u.Update(func(s *GenerationUpsert) {
+		s.UpdateCountryCode()
+	})
+}
+
+// ClearCountryCode clears the value of the "country_code" field.
+func (u *GenerationUpsertOne) ClearCountryCode() *GenerationUpsertOne {
+	return u.Update(func(s *GenerationUpsert) {
+		s.ClearCountryCode()
+	})
+}
+
+// SetInitImageURL sets the "init_image_url" field.
+func (u *GenerationUpsertOne) SetInitImageURL(v string) *GenerationUpsertOne {
+	return u.Update(func(s *GenerationUpsert) {
+		s.SetInitImageURL(v)
+	})
+}
+
+// UpdateInitImageURL sets the "init_image_url" field to the value that was provided on create.
+func (u *GenerationUpsertOne) UpdateInitImageURL() *GenerationUpsertOne {
+	return u.Update(func(s *GenerationUpsert) {
+		s.UpdateInitImageURL()
+	})
+}
+
+// ClearInitImageURL clears the value of the "init_image_url" field.
+func (u *GenerationUpsertOne) ClearInitImageURL() *GenerationUpsertOne {
+	return u.Update(func(s *GenerationUpsert) {
+		s.ClearInitImageURL()
+	})
+}
+
+// SetPromptStrength sets the "prompt_strength" field.
+func (u *GenerationUpsertOne) SetPromptStrength(v float32) *GenerationUpsertOne {
+	return u.Update(func(s *GenerationUpsert) {
+		s.SetPromptStrength(v)
+	})
+}
+
+// AddPromptStrength adds v to the "prompt_strength" field.
+func (u *GenerationUpsertOne) AddPromptStrength(v float32) *GenerationUpsertOne {
+	return u.Update(func(s *GenerationUpsert) {
+		s.AddPromptStrength(v)
+	})
+}
+
+// UpdatePromptStrength sets the "prompt_strength" field to the value that was provided on create.
+func (u *GenerationUpsertOne) UpdatePromptStrength() *GenerationUpsertOne {
+	return u.Update(func(s *GenerationUpsert) {
+		s.UpdatePromptStrength()
+	})
+}
+
+// ClearPromptStrength clears the value of the "prompt_strength" field.
+func (u *GenerationUpsertOne) ClearPromptStrength() *GenerationUpsertOne {
+	return u.Update(func(s *GenerationUpsert) {
+		s.ClearPromptStrength()
+	})
+}
+
+// SetWasAutoSubmitted sets the "was_auto_submitted" field.
+func (u *GenerationUpsertOne) SetWasAutoSubmitted(v bool) *GenerationUpsertOne {
+	return u.Update(func(s *GenerationUpsert) {
+		s.SetWasAutoSubmitted(v)
+	})
+}
+
+// UpdateWasAutoSubmitted sets the "was_auto_submitted" field to the value that was provided on create.
+func (u *GenerationUpsertOne) UpdateWasAutoSubmitted() *GenerationUpsertOne {
+	return u.Update(func(s *GenerationUpsert) {
+		s.UpdateWasAutoSubmitted()
+	})
+}
+
+// SetStripeProductID sets the "stripe_product_id" field.
+func (u *GenerationUpsertOne) SetStripeProductID(v string) *GenerationUpsertOne {
+	return u.Update(func(s *GenerationUpsert) {
+		s.SetStripeProductID(v)
+	})
+}
+
+// UpdateStripeProductID sets the "stripe_product_id" field to the value that was provided on create.
+func (u *GenerationUpsertOne) UpdateStripeProductID() *GenerationUpsertOne {
+	return u.Update(func(s *GenerationUpsert) {
+		s.UpdateStripeProductID()
+	})
+}
+
+// ClearStripeProductID clears the value of the "stripe_product_id" field.
+func (u *GenerationUpsertOne) ClearStripeProductID() *GenerationUpsertOne {
+	return u.Update(func(s *GenerationUpsert) {
+		s.ClearStripeProductID()
+	})
+}
+
+// SetSourceType sets the "source_type" field.
+func (u *GenerationUpsertOne) SetSourceType(v enttypes.SourceType) *GenerationUpsertOne {
+	return u.Update(func(s *GenerationUpsert) {
+		s.SetSourceType(v)
+	})
+}
+
+// UpdateSourceType sets the "source_type" field to the value that was provided on create.
+func (u *GenerationUpsertOne) UpdateSourceType() *GenerationUpsertOne {
+	return u.Update(func(s *GenerationUpsert) {
+		s.UpdateSourceType()
+	})
+}
+
+// SetPromptID sets the "prompt_id" field.
+func (u *GenerationUpsertOne) SetPromptID(v uuid.UUID) *GenerationUpsertOne {
+	return u.Update(func(s *GenerationUpsert) {
+		s.SetPromptID(v)
+	})
+}
+
+// UpdatePromptID sets the "prompt_id" field to the value that was provided on create.
+func (u *GenerationUpsertOne) UpdatePromptID() *GenerationUpsertOne {
+	return u.Update(func(s *GenerationUpsert) {
+		s.UpdatePromptID()
+	})
+}
+
+// ClearPromptID clears the value of the "prompt_id" field.
+func (u *GenerationUpsertOne) ClearPromptID() *GenerationUpsertOne {
+	return u.Update(func(s *GenerationUpsert) {
+		s.ClearPromptID()
+	})
+}
+
+// SetNegativePromptID sets the "negative_prompt_id" field.
+func (u *GenerationUpsertOne) SetNegativePromptID(v uuid.UUID) *GenerationUpsertOne {
+	return u.Update(func(s *GenerationUpsert) {
+		s.SetNegativePromptID(v)
+	})
+}
+
+// UpdateNegativePromptID sets the "negative_prompt_id" field to the value that was provided on create.
+func (u *GenerationUpsertOne) UpdateNegativePromptID() *GenerationUpsertOne {
+	return u.Update(func(s *GenerationUpsert) {
+		s.UpdateNegativePromptID()
+	})
+}
+
+// ClearNegativePromptID clears the value of the "negative_prompt_id" field.
+func (u *GenerationUpsertOne) ClearNegativePromptID() *GenerationUpsertOne {
+	return u.Update(func(s *GenerationUpsert) {
+		s.ClearNegativePromptID()
+	})
+}
+
+// SetModelID sets the "model_id" field.
+func (u *GenerationUpsertOne) SetModelID(v uuid.UUID) *GenerationUpsertOne {
+	return u.Update(func(s *GenerationUpsert) {
+		s.SetModelID(v)
+	})
+}
+
+// UpdateModelID sets the "model_id" field to the value that was provided on create.
+func (u *GenerationUpsertOne) UpdateModelID() *GenerationUpsertOne {
+	return u.Update(func(s *GenerationUpsert) {
+		s.UpdateModelID()
+	})
+}
+
+// SetSchedulerID sets the "scheduler_id" field.
+func (u *GenerationUpsertOne) SetSchedulerID(v uuid.UUID) *GenerationUpsertOne {
+	return u.Update(func(s *GenerationUpsert) {
+		s.SetSchedulerID(v)
+	})
+}
+
+// UpdateSchedulerID sets the "scheduler_id" field to the value that was provided on create.
+func (u *GenerationUpsertOne) UpdateSchedulerID() *GenerationUpsertOne {
+	return u.Update(func(s *GenerationUpsert) {
+		s.UpdateSchedulerID()
+	})
+}
+
+// SetUserID sets the "user_id" field.
+func (u *GenerationUpsertOne) SetUserID(v uuid.UUID) *GenerationUpsertOne {
+	return u.Update(func(s *GenerationUpsert) {
+		s.SetUserID(v)
+	})
+}
+
+// UpdateUserID sets the "user_id" field to the value that was provided on create.
+func (u *GenerationUpsertOne) UpdateUserID() *GenerationUpsertOne {
+	return u.Update(func(s *GenerationUpsert) {
+		s.UpdateUserID()
+	})
+}
+
+// SetDeviceInfoID sets the "device_info_id" field.
+func (u *GenerationUpsertOne) SetDeviceInfoID(v uuid.UUID) *GenerationUpsertOne {
+	return u.Update(func(s *GenerationUpsert) {
+		s.SetDeviceInfoID(v)
+	})
+}
+
+// UpdateDeviceInfoID sets the "device_info_id" field to the value that was provided on create.
+func (u *GenerationUpsertOne) UpdateDeviceInfoID() *GenerationUpsertOne {
+	return u.Update(func(s *GenerationUpsert) {
+		s.UpdateDeviceInfoID()
+	})
+}
+
+// SetAPITokenID sets the "api_token_id" field.
+func (u *GenerationUpsertOne) SetAPITokenID(v uuid.UUID) *GenerationUpsertOne {
+	return u.Update(func(s *GenerationUpsert) {
+		s.SetAPITokenID(v)
+	})
+}
+
+// UpdateAPITokenID sets the "api_token_id" field to the value that was provided on create.
+func (u *GenerationUpsertOne) UpdateAPITokenID() *GenerationUpsertOne {
+	return u.Update(func(s *GenerationUpsert) {
+		s.UpdateAPITokenID()
+	})
+}
+
+// ClearAPITokenID clears the value of the "api_token_id" field.
+func (u *GenerationUpsertOne) ClearAPITokenID() *GenerationUpsertOne {
+	return u.Update(func(s *GenerationUpsert) {
+		s.ClearAPITokenID()
+	})
+}
+
+// SetStartedAt sets the "started_at" field.
+func (u *GenerationUpsertOne) SetStartedAt(v time.Time) *GenerationUpsertOne {
+	return u.Update(func(s *GenerationUpsert) {
+		s.SetStartedAt(v)
+	})
+}
+
+// UpdateStartedAt sets the "started_at" field to the value that was provided on create.
+func (u *GenerationUpsertOne) UpdateStartedAt() *GenerationUpsertOne {
+	return u.Update(func(s *GenerationUpsert) {
+		s.UpdateStartedAt()
+	})
+}
+
+// ClearStartedAt clears the value of the "started_at" field.
+func (u *GenerationUpsertOne) ClearStartedAt() *GenerationUpsertOne {
+	return u.Update(func(s *GenerationUpsert) {
+		s.ClearStartedAt()
+	})
+}
+
+// SetCompletedAt sets the "completed_at" field.
+func (u *GenerationUpsertOne) SetCompletedAt(v time.Time) *GenerationUpsertOne {
+	return u.Update(func(s *GenerationUpsert) {
+		s.SetCompletedAt(v)
+	})
+}
+
+// UpdateCompletedAt sets the "completed_at" field to the value that was provided on create.
+func (u *GenerationUpsertOne) UpdateCompletedAt() *GenerationUpsertOne {
+	return u.Update(func(s *GenerationUpsert) {
+		s.UpdateCompletedAt()
+	})
+}
+
+// ClearCompletedAt clears the value of the "completed_at" field.
+func (u *GenerationUpsertOne) ClearCompletedAt() *GenerationUpsertOne {
+	return u.Update(func(s *GenerationUpsert) {
+		s.ClearCompletedAt()
+	})
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *GenerationUpsertOne) SetUpdatedAt(v time.Time) *GenerationUpsertOne {
+	return u.Update(func(s *GenerationUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *GenerationUpsertOne) UpdateUpdatedAt() *GenerationUpsertOne {
+	return u.Update(func(s *GenerationUpsert) {
+		s.UpdateUpdatedAt()
+	})
+}
+
+// Exec executes the query.
+func (u *GenerationUpsertOne) Exec(ctx context.Context) error {
+	if len(u.create.conflict) == 0 {
+		return errors.New("ent: missing options for GenerationCreate.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *GenerationUpsertOne) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// Exec executes the UPSERT query and returns the inserted/updated ID.
+func (u *GenerationUpsertOne) ID(ctx context.Context) (id uuid.UUID, err error) {
+	if u.create.driver.Dialect() == dialect.MySQL {
+		// In case of "ON CONFLICT", there is no way to get back non-numeric ID
+		// fields from the database since MySQL does not support the RETURNING clause.
+		return id, errors.New("ent: GenerationUpsertOne.ID is not supported by MySQL driver. Use GenerationUpsertOne.Exec instead")
+	}
+	node, err := u.create.Save(ctx)
+	if err != nil {
+		return id, err
+	}
+	return node.ID, nil
+}
+
+// IDX is like ID, but panics if an error occurs.
+func (u *GenerationUpsertOne) IDX(ctx context.Context) uuid.UUID {
+	id, err := u.ID(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return id
+}
+
 // GenerationCreateBulk is the builder for creating many Generation entities in bulk.
 type GenerationCreateBulk struct {
 	config
 	builders []*GenerationCreate
+	conflict []sql.ConflictOption
 }
 
 // Save creates the Generation entities in the database.
@@ -832,6 +1859,7 @@ func (gcb *GenerationCreateBulk) Save(ctx context.Context) ([]*Generation, error
 					_, err = mutators[i+1].Mutate(root, gcb.builders[i+1].mutation)
 				} else {
 					spec := &sqlgraph.BatchCreateSpec{Nodes: specs}
+					spec.OnConflict = gcb.conflict
 					// Invoke the actual operation on the latest mutation in the chain.
 					if err = sqlgraph.BatchCreate(ctx, gcb.driver, spec); err != nil {
 						if sqlgraph.IsConstraintError(err) {
@@ -878,6 +1906,596 @@ func (gcb *GenerationCreateBulk) Exec(ctx context.Context) error {
 // ExecX is like Exec, but panics if an error occurs.
 func (gcb *GenerationCreateBulk) ExecX(ctx context.Context) {
 	if err := gcb.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.Generation.CreateBulk(builders...).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.GenerationUpsert) {
+//			SetWidth(v+v).
+//		}).
+//		Exec(ctx)
+func (gcb *GenerationCreateBulk) OnConflict(opts ...sql.ConflictOption) *GenerationUpsertBulk {
+	gcb.conflict = opts
+	return &GenerationUpsertBulk{
+		create: gcb,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.Generation.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (gcb *GenerationCreateBulk) OnConflictColumns(columns ...string) *GenerationUpsertBulk {
+	gcb.conflict = append(gcb.conflict, sql.ConflictColumns(columns...))
+	return &GenerationUpsertBulk{
+		create: gcb,
+	}
+}
+
+// GenerationUpsertBulk is the builder for "upsert"-ing
+// a bulk of Generation nodes.
+type GenerationUpsertBulk struct {
+	create *GenerationCreateBulk
+}
+
+// UpdateNewValues updates the mutable fields using the new values that
+// were set on create. Using this option is equivalent to using:
+//
+//	client.Generation.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(generation.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *GenerationUpsertBulk) UpdateNewValues() *GenerationUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		for _, b := range u.create.builders {
+			if _, exists := b.mutation.ID(); exists {
+				s.SetIgnore(generation.FieldID)
+			}
+			if _, exists := b.mutation.CreatedAt(); exists {
+				s.SetIgnore(generation.FieldCreatedAt)
+			}
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.Generation.Create().
+//		OnConflict(sql.ResolveWithIgnore()).
+//		Exec(ctx)
+func (u *GenerationUpsertBulk) Ignore() *GenerationUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *GenerationUpsertBulk) DoNothing() *GenerationUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the GenerationCreateBulk.OnConflict
+// documentation for more info.
+func (u *GenerationUpsertBulk) Update(set func(*GenerationUpsert)) *GenerationUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&GenerationUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetWidth sets the "width" field.
+func (u *GenerationUpsertBulk) SetWidth(v int32) *GenerationUpsertBulk {
+	return u.Update(func(s *GenerationUpsert) {
+		s.SetWidth(v)
+	})
+}
+
+// AddWidth adds v to the "width" field.
+func (u *GenerationUpsertBulk) AddWidth(v int32) *GenerationUpsertBulk {
+	return u.Update(func(s *GenerationUpsert) {
+		s.AddWidth(v)
+	})
+}
+
+// UpdateWidth sets the "width" field to the value that was provided on create.
+func (u *GenerationUpsertBulk) UpdateWidth() *GenerationUpsertBulk {
+	return u.Update(func(s *GenerationUpsert) {
+		s.UpdateWidth()
+	})
+}
+
+// SetHeight sets the "height" field.
+func (u *GenerationUpsertBulk) SetHeight(v int32) *GenerationUpsertBulk {
+	return u.Update(func(s *GenerationUpsert) {
+		s.SetHeight(v)
+	})
+}
+
+// AddHeight adds v to the "height" field.
+func (u *GenerationUpsertBulk) AddHeight(v int32) *GenerationUpsertBulk {
+	return u.Update(func(s *GenerationUpsert) {
+		s.AddHeight(v)
+	})
+}
+
+// UpdateHeight sets the "height" field to the value that was provided on create.
+func (u *GenerationUpsertBulk) UpdateHeight() *GenerationUpsertBulk {
+	return u.Update(func(s *GenerationUpsert) {
+		s.UpdateHeight()
+	})
+}
+
+// SetInferenceSteps sets the "inference_steps" field.
+func (u *GenerationUpsertBulk) SetInferenceSteps(v int32) *GenerationUpsertBulk {
+	return u.Update(func(s *GenerationUpsert) {
+		s.SetInferenceSteps(v)
+	})
+}
+
+// AddInferenceSteps adds v to the "inference_steps" field.
+func (u *GenerationUpsertBulk) AddInferenceSteps(v int32) *GenerationUpsertBulk {
+	return u.Update(func(s *GenerationUpsert) {
+		s.AddInferenceSteps(v)
+	})
+}
+
+// UpdateInferenceSteps sets the "inference_steps" field to the value that was provided on create.
+func (u *GenerationUpsertBulk) UpdateInferenceSteps() *GenerationUpsertBulk {
+	return u.Update(func(s *GenerationUpsert) {
+		s.UpdateInferenceSteps()
+	})
+}
+
+// SetGuidanceScale sets the "guidance_scale" field.
+func (u *GenerationUpsertBulk) SetGuidanceScale(v float32) *GenerationUpsertBulk {
+	return u.Update(func(s *GenerationUpsert) {
+		s.SetGuidanceScale(v)
+	})
+}
+
+// AddGuidanceScale adds v to the "guidance_scale" field.
+func (u *GenerationUpsertBulk) AddGuidanceScale(v float32) *GenerationUpsertBulk {
+	return u.Update(func(s *GenerationUpsert) {
+		s.AddGuidanceScale(v)
+	})
+}
+
+// UpdateGuidanceScale sets the "guidance_scale" field to the value that was provided on create.
+func (u *GenerationUpsertBulk) UpdateGuidanceScale() *GenerationUpsertBulk {
+	return u.Update(func(s *GenerationUpsert) {
+		s.UpdateGuidanceScale()
+	})
+}
+
+// SetNumOutputs sets the "num_outputs" field.
+func (u *GenerationUpsertBulk) SetNumOutputs(v int32) *GenerationUpsertBulk {
+	return u.Update(func(s *GenerationUpsert) {
+		s.SetNumOutputs(v)
+	})
+}
+
+// AddNumOutputs adds v to the "num_outputs" field.
+func (u *GenerationUpsertBulk) AddNumOutputs(v int32) *GenerationUpsertBulk {
+	return u.Update(func(s *GenerationUpsert) {
+		s.AddNumOutputs(v)
+	})
+}
+
+// UpdateNumOutputs sets the "num_outputs" field to the value that was provided on create.
+func (u *GenerationUpsertBulk) UpdateNumOutputs() *GenerationUpsertBulk {
+	return u.Update(func(s *GenerationUpsert) {
+		s.UpdateNumOutputs()
+	})
+}
+
+// SetNsfwCount sets the "nsfw_count" field.
+func (u *GenerationUpsertBulk) SetNsfwCount(v int32) *GenerationUpsertBulk {
+	return u.Update(func(s *GenerationUpsert) {
+		s.SetNsfwCount(v)
+	})
+}
+
+// AddNsfwCount adds v to the "nsfw_count" field.
+func (u *GenerationUpsertBulk) AddNsfwCount(v int32) *GenerationUpsertBulk {
+	return u.Update(func(s *GenerationUpsert) {
+		s.AddNsfwCount(v)
+	})
+}
+
+// UpdateNsfwCount sets the "nsfw_count" field to the value that was provided on create.
+func (u *GenerationUpsertBulk) UpdateNsfwCount() *GenerationUpsertBulk {
+	return u.Update(func(s *GenerationUpsert) {
+		s.UpdateNsfwCount()
+	})
+}
+
+// SetSeed sets the "seed" field.
+func (u *GenerationUpsertBulk) SetSeed(v int) *GenerationUpsertBulk {
+	return u.Update(func(s *GenerationUpsert) {
+		s.SetSeed(v)
+	})
+}
+
+// AddSeed adds v to the "seed" field.
+func (u *GenerationUpsertBulk) AddSeed(v int) *GenerationUpsertBulk {
+	return u.Update(func(s *GenerationUpsert) {
+		s.AddSeed(v)
+	})
+}
+
+// UpdateSeed sets the "seed" field to the value that was provided on create.
+func (u *GenerationUpsertBulk) UpdateSeed() *GenerationUpsertBulk {
+	return u.Update(func(s *GenerationUpsert) {
+		s.UpdateSeed()
+	})
+}
+
+// SetStatus sets the "status" field.
+func (u *GenerationUpsertBulk) SetStatus(v generation.Status) *GenerationUpsertBulk {
+	return u.Update(func(s *GenerationUpsert) {
+		s.SetStatus(v)
+	})
+}
+
+// UpdateStatus sets the "status" field to the value that was provided on create.
+func (u *GenerationUpsertBulk) UpdateStatus() *GenerationUpsertBulk {
+	return u.Update(func(s *GenerationUpsert) {
+		s.UpdateStatus()
+	})
+}
+
+// SetFailureReason sets the "failure_reason" field.
+func (u *GenerationUpsertBulk) SetFailureReason(v string) *GenerationUpsertBulk {
+	return u.Update(func(s *GenerationUpsert) {
+		s.SetFailureReason(v)
+	})
+}
+
+// UpdateFailureReason sets the "failure_reason" field to the value that was provided on create.
+func (u *GenerationUpsertBulk) UpdateFailureReason() *GenerationUpsertBulk {
+	return u.Update(func(s *GenerationUpsert) {
+		s.UpdateFailureReason()
+	})
+}
+
+// ClearFailureReason clears the value of the "failure_reason" field.
+func (u *GenerationUpsertBulk) ClearFailureReason() *GenerationUpsertBulk {
+	return u.Update(func(s *GenerationUpsert) {
+		s.ClearFailureReason()
+	})
+}
+
+// SetCountryCode sets the "country_code" field.
+func (u *GenerationUpsertBulk) SetCountryCode(v string) *GenerationUpsertBulk {
+	return u.Update(func(s *GenerationUpsert) {
+		s.SetCountryCode(v)
+	})
+}
+
+// UpdateCountryCode sets the "country_code" field to the value that was provided on create.
+func (u *GenerationUpsertBulk) UpdateCountryCode() *GenerationUpsertBulk {
+	return u.Update(func(s *GenerationUpsert) {
+		s.UpdateCountryCode()
+	})
+}
+
+// ClearCountryCode clears the value of the "country_code" field.
+func (u *GenerationUpsertBulk) ClearCountryCode() *GenerationUpsertBulk {
+	return u.Update(func(s *GenerationUpsert) {
+		s.ClearCountryCode()
+	})
+}
+
+// SetInitImageURL sets the "init_image_url" field.
+func (u *GenerationUpsertBulk) SetInitImageURL(v string) *GenerationUpsertBulk {
+	return u.Update(func(s *GenerationUpsert) {
+		s.SetInitImageURL(v)
+	})
+}
+
+// UpdateInitImageURL sets the "init_image_url" field to the value that was provided on create.
+func (u *GenerationUpsertBulk) UpdateInitImageURL() *GenerationUpsertBulk {
+	return u.Update(func(s *GenerationUpsert) {
+		s.UpdateInitImageURL()
+	})
+}
+
+// ClearInitImageURL clears the value of the "init_image_url" field.
+func (u *GenerationUpsertBulk) ClearInitImageURL() *GenerationUpsertBulk {
+	return u.Update(func(s *GenerationUpsert) {
+		s.ClearInitImageURL()
+	})
+}
+
+// SetPromptStrength sets the "prompt_strength" field.
+func (u *GenerationUpsertBulk) SetPromptStrength(v float32) *GenerationUpsertBulk {
+	return u.Update(func(s *GenerationUpsert) {
+		s.SetPromptStrength(v)
+	})
+}
+
+// AddPromptStrength adds v to the "prompt_strength" field.
+func (u *GenerationUpsertBulk) AddPromptStrength(v float32) *GenerationUpsertBulk {
+	return u.Update(func(s *GenerationUpsert) {
+		s.AddPromptStrength(v)
+	})
+}
+
+// UpdatePromptStrength sets the "prompt_strength" field to the value that was provided on create.
+func (u *GenerationUpsertBulk) UpdatePromptStrength() *GenerationUpsertBulk {
+	return u.Update(func(s *GenerationUpsert) {
+		s.UpdatePromptStrength()
+	})
+}
+
+// ClearPromptStrength clears the value of the "prompt_strength" field.
+func (u *GenerationUpsertBulk) ClearPromptStrength() *GenerationUpsertBulk {
+	return u.Update(func(s *GenerationUpsert) {
+		s.ClearPromptStrength()
+	})
+}
+
+// SetWasAutoSubmitted sets the "was_auto_submitted" field.
+func (u *GenerationUpsertBulk) SetWasAutoSubmitted(v bool) *GenerationUpsertBulk {
+	return u.Update(func(s *GenerationUpsert) {
+		s.SetWasAutoSubmitted(v)
+	})
+}
+
+// UpdateWasAutoSubmitted sets the "was_auto_submitted" field to the value that was provided on create.
+func (u *GenerationUpsertBulk) UpdateWasAutoSubmitted() *GenerationUpsertBulk {
+	return u.Update(func(s *GenerationUpsert) {
+		s.UpdateWasAutoSubmitted()
+	})
+}
+
+// SetStripeProductID sets the "stripe_product_id" field.
+func (u *GenerationUpsertBulk) SetStripeProductID(v string) *GenerationUpsertBulk {
+	return u.Update(func(s *GenerationUpsert) {
+		s.SetStripeProductID(v)
+	})
+}
+
+// UpdateStripeProductID sets the "stripe_product_id" field to the value that was provided on create.
+func (u *GenerationUpsertBulk) UpdateStripeProductID() *GenerationUpsertBulk {
+	return u.Update(func(s *GenerationUpsert) {
+		s.UpdateStripeProductID()
+	})
+}
+
+// ClearStripeProductID clears the value of the "stripe_product_id" field.
+func (u *GenerationUpsertBulk) ClearStripeProductID() *GenerationUpsertBulk {
+	return u.Update(func(s *GenerationUpsert) {
+		s.ClearStripeProductID()
+	})
+}
+
+// SetSourceType sets the "source_type" field.
+func (u *GenerationUpsertBulk) SetSourceType(v enttypes.SourceType) *GenerationUpsertBulk {
+	return u.Update(func(s *GenerationUpsert) {
+		s.SetSourceType(v)
+	})
+}
+
+// UpdateSourceType sets the "source_type" field to the value that was provided on create.
+func (u *GenerationUpsertBulk) UpdateSourceType() *GenerationUpsertBulk {
+	return u.Update(func(s *GenerationUpsert) {
+		s.UpdateSourceType()
+	})
+}
+
+// SetPromptID sets the "prompt_id" field.
+func (u *GenerationUpsertBulk) SetPromptID(v uuid.UUID) *GenerationUpsertBulk {
+	return u.Update(func(s *GenerationUpsert) {
+		s.SetPromptID(v)
+	})
+}
+
+// UpdatePromptID sets the "prompt_id" field to the value that was provided on create.
+func (u *GenerationUpsertBulk) UpdatePromptID() *GenerationUpsertBulk {
+	return u.Update(func(s *GenerationUpsert) {
+		s.UpdatePromptID()
+	})
+}
+
+// ClearPromptID clears the value of the "prompt_id" field.
+func (u *GenerationUpsertBulk) ClearPromptID() *GenerationUpsertBulk {
+	return u.Update(func(s *GenerationUpsert) {
+		s.ClearPromptID()
+	})
+}
+
+// SetNegativePromptID sets the "negative_prompt_id" field.
+func (u *GenerationUpsertBulk) SetNegativePromptID(v uuid.UUID) *GenerationUpsertBulk {
+	return u.Update(func(s *GenerationUpsert) {
+		s.SetNegativePromptID(v)
+	})
+}
+
+// UpdateNegativePromptID sets the "negative_prompt_id" field to the value that was provided on create.
+func (u *GenerationUpsertBulk) UpdateNegativePromptID() *GenerationUpsertBulk {
+	return u.Update(func(s *GenerationUpsert) {
+		s.UpdateNegativePromptID()
+	})
+}
+
+// ClearNegativePromptID clears the value of the "negative_prompt_id" field.
+func (u *GenerationUpsertBulk) ClearNegativePromptID() *GenerationUpsertBulk {
+	return u.Update(func(s *GenerationUpsert) {
+		s.ClearNegativePromptID()
+	})
+}
+
+// SetModelID sets the "model_id" field.
+func (u *GenerationUpsertBulk) SetModelID(v uuid.UUID) *GenerationUpsertBulk {
+	return u.Update(func(s *GenerationUpsert) {
+		s.SetModelID(v)
+	})
+}
+
+// UpdateModelID sets the "model_id" field to the value that was provided on create.
+func (u *GenerationUpsertBulk) UpdateModelID() *GenerationUpsertBulk {
+	return u.Update(func(s *GenerationUpsert) {
+		s.UpdateModelID()
+	})
+}
+
+// SetSchedulerID sets the "scheduler_id" field.
+func (u *GenerationUpsertBulk) SetSchedulerID(v uuid.UUID) *GenerationUpsertBulk {
+	return u.Update(func(s *GenerationUpsert) {
+		s.SetSchedulerID(v)
+	})
+}
+
+// UpdateSchedulerID sets the "scheduler_id" field to the value that was provided on create.
+func (u *GenerationUpsertBulk) UpdateSchedulerID() *GenerationUpsertBulk {
+	return u.Update(func(s *GenerationUpsert) {
+		s.UpdateSchedulerID()
+	})
+}
+
+// SetUserID sets the "user_id" field.
+func (u *GenerationUpsertBulk) SetUserID(v uuid.UUID) *GenerationUpsertBulk {
+	return u.Update(func(s *GenerationUpsert) {
+		s.SetUserID(v)
+	})
+}
+
+// UpdateUserID sets the "user_id" field to the value that was provided on create.
+func (u *GenerationUpsertBulk) UpdateUserID() *GenerationUpsertBulk {
+	return u.Update(func(s *GenerationUpsert) {
+		s.UpdateUserID()
+	})
+}
+
+// SetDeviceInfoID sets the "device_info_id" field.
+func (u *GenerationUpsertBulk) SetDeviceInfoID(v uuid.UUID) *GenerationUpsertBulk {
+	return u.Update(func(s *GenerationUpsert) {
+		s.SetDeviceInfoID(v)
+	})
+}
+
+// UpdateDeviceInfoID sets the "device_info_id" field to the value that was provided on create.
+func (u *GenerationUpsertBulk) UpdateDeviceInfoID() *GenerationUpsertBulk {
+	return u.Update(func(s *GenerationUpsert) {
+		s.UpdateDeviceInfoID()
+	})
+}
+
+// SetAPITokenID sets the "api_token_id" field.
+func (u *GenerationUpsertBulk) SetAPITokenID(v uuid.UUID) *GenerationUpsertBulk {
+	return u.Update(func(s *GenerationUpsert) {
+		s.SetAPITokenID(v)
+	})
+}
+
+// UpdateAPITokenID sets the "api_token_id" field to the value that was provided on create.
+func (u *GenerationUpsertBulk) UpdateAPITokenID() *GenerationUpsertBulk {
+	return u.Update(func(s *GenerationUpsert) {
+		s.UpdateAPITokenID()
+	})
+}
+
+// ClearAPITokenID clears the value of the "api_token_id" field.
+func (u *GenerationUpsertBulk) ClearAPITokenID() *GenerationUpsertBulk {
+	return u.Update(func(s *GenerationUpsert) {
+		s.ClearAPITokenID()
+	})
+}
+
+// SetStartedAt sets the "started_at" field.
+func (u *GenerationUpsertBulk) SetStartedAt(v time.Time) *GenerationUpsertBulk {
+	return u.Update(func(s *GenerationUpsert) {
+		s.SetStartedAt(v)
+	})
+}
+
+// UpdateStartedAt sets the "started_at" field to the value that was provided on create.
+func (u *GenerationUpsertBulk) UpdateStartedAt() *GenerationUpsertBulk {
+	return u.Update(func(s *GenerationUpsert) {
+		s.UpdateStartedAt()
+	})
+}
+
+// ClearStartedAt clears the value of the "started_at" field.
+func (u *GenerationUpsertBulk) ClearStartedAt() *GenerationUpsertBulk {
+	return u.Update(func(s *GenerationUpsert) {
+		s.ClearStartedAt()
+	})
+}
+
+// SetCompletedAt sets the "completed_at" field.
+func (u *GenerationUpsertBulk) SetCompletedAt(v time.Time) *GenerationUpsertBulk {
+	return u.Update(func(s *GenerationUpsert) {
+		s.SetCompletedAt(v)
+	})
+}
+
+// UpdateCompletedAt sets the "completed_at" field to the value that was provided on create.
+func (u *GenerationUpsertBulk) UpdateCompletedAt() *GenerationUpsertBulk {
+	return u.Update(func(s *GenerationUpsert) {
+		s.UpdateCompletedAt()
+	})
+}
+
+// ClearCompletedAt clears the value of the "completed_at" field.
+func (u *GenerationUpsertBulk) ClearCompletedAt() *GenerationUpsertBulk {
+	return u.Update(func(s *GenerationUpsert) {
+		s.ClearCompletedAt()
+	})
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *GenerationUpsertBulk) SetUpdatedAt(v time.Time) *GenerationUpsertBulk {
+	return u.Update(func(s *GenerationUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *GenerationUpsertBulk) UpdateUpdatedAt() *GenerationUpsertBulk {
+	return u.Update(func(s *GenerationUpsert) {
+		s.UpdateUpdatedAt()
+	})
+}
+
+// Exec executes the query.
+func (u *GenerationUpsertBulk) Exec(ctx context.Context) error {
+	for i, b := range u.create.builders {
+		if len(b.conflict) != 0 {
+			return fmt.Errorf("ent: OnConflict was set for builder %d. Set it on the GenerationCreateBulk instead", i)
+		}
+	}
+	if len(u.create.conflict) == 0 {
+		return errors.New("ent: missing options for GenerationCreateBulk.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *GenerationUpsertBulk) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
 		panic(err)
 	}
 }

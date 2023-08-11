@@ -69,6 +69,42 @@ func (r *Repository) BanUsers(userIDs []uuid.UUID) (int, error) {
 	return r.DB.User.Update().Where(user.IDIn(userIDs...)).SetBannedAt(time.Now()).SetScheduledForDeletionOn(time.Now().Add(shared.DELETE_BANNED_USER_DATA_AFTER)).Save(r.Ctx)
 }
 
+// Ban domains
+func (r *Repository) BanDomains(domains []string) (int, error) {
+	var bannedUsers int
+	if err := r.WithTx(func(tx *ent.Tx) error {
+		DB := tx.Client()
+
+		// Insert into disposable emails
+		bulk := make([]*ent.DisposableEmailCreate, len(domains))
+		for i, domain := range domains {
+			bulk[i] = DB.DisposableEmail.Create().SetDomain(domain)
+		}
+		err := DB.DisposableEmail.CreateBulk(bulk...).OnConflict().DoNothing().Exec(r.Ctx)
+		if err != nil {
+			return err
+		}
+
+		// Update users with domain like this
+		for _, domain := range domains {
+			updated, err := DB.User.Update().Where(func(s *sql.Selector) {
+				s.Where(sql.Like(user.FieldEmail, fmt.Sprintf("%%@%s", domain)))
+			}).SetBannedAt(time.Now()).SetScheduledForDeletionOn(time.Now().Add(3 * time.Hour)).Save(r.Ctx)
+			if err != nil {
+				return err
+			}
+			bannedUsers += updated
+		}
+
+		return nil
+	}); err != nil {
+		log.Error("Error banning domains", "err", err)
+		return 0, err
+	}
+
+	return bannedUsers, nil
+}
+
 // Unban users
 func (r *Repository) UnbanUsers(userIDs []uuid.UUID) (int, error) {
 	return r.DB.User.Update().Where(user.IDIn(userIDs...)).ClearBannedAt().ClearScheduledForDeletionOn().Save(r.Ctx)

@@ -8,6 +8,8 @@ import (
 	"fmt"
 	"time"
 
+	"entgo.io/ent/dialect"
+	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
@@ -21,6 +23,7 @@ type UpscaleOutputCreate struct {
 	config
 	mutation *UpscaleOutputMutation
 	hooks    []Hook
+	conflict []sql.ConflictOption
 }
 
 // SetImagePath sets the "image_path" field.
@@ -238,6 +241,7 @@ func (uoc *UpscaleOutputCreate) createSpec() (*UpscaleOutput, *sqlgraph.CreateSp
 			},
 		}
 	)
+	_spec.OnConflict = uoc.conflict
 	if id, ok := uoc.mutation.ID(); ok {
 		_node.ID = id
 		_spec.ID.Value = &id
@@ -305,10 +309,344 @@ func (uoc *UpscaleOutputCreate) createSpec() (*UpscaleOutput, *sqlgraph.CreateSp
 	return _node, _spec
 }
 
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.UpscaleOutput.Create().
+//		SetImagePath(v).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.UpscaleOutputUpsert) {
+//			SetImagePath(v+v).
+//		}).
+//		Exec(ctx)
+func (uoc *UpscaleOutputCreate) OnConflict(opts ...sql.ConflictOption) *UpscaleOutputUpsertOne {
+	uoc.conflict = opts
+	return &UpscaleOutputUpsertOne{
+		create: uoc,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.UpscaleOutput.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (uoc *UpscaleOutputCreate) OnConflictColumns(columns ...string) *UpscaleOutputUpsertOne {
+	uoc.conflict = append(uoc.conflict, sql.ConflictColumns(columns...))
+	return &UpscaleOutputUpsertOne{
+		create: uoc,
+	}
+}
+
+type (
+	// UpscaleOutputUpsertOne is the builder for "upsert"-ing
+	//  one UpscaleOutput node.
+	UpscaleOutputUpsertOne struct {
+		create *UpscaleOutputCreate
+	}
+
+	// UpscaleOutputUpsert is the "OnConflict" setter.
+	UpscaleOutputUpsert struct {
+		*sql.UpdateSet
+	}
+)
+
+// SetImagePath sets the "image_path" field.
+func (u *UpscaleOutputUpsert) SetImagePath(v string) *UpscaleOutputUpsert {
+	u.Set(upscaleoutput.FieldImagePath, v)
+	return u
+}
+
+// UpdateImagePath sets the "image_path" field to the value that was provided on create.
+func (u *UpscaleOutputUpsert) UpdateImagePath() *UpscaleOutputUpsert {
+	u.SetExcluded(upscaleoutput.FieldImagePath)
+	return u
+}
+
+// SetInputImageURL sets the "input_image_url" field.
+func (u *UpscaleOutputUpsert) SetInputImageURL(v string) *UpscaleOutputUpsert {
+	u.Set(upscaleoutput.FieldInputImageURL, v)
+	return u
+}
+
+// UpdateInputImageURL sets the "input_image_url" field to the value that was provided on create.
+func (u *UpscaleOutputUpsert) UpdateInputImageURL() *UpscaleOutputUpsert {
+	u.SetExcluded(upscaleoutput.FieldInputImageURL)
+	return u
+}
+
+// ClearInputImageURL clears the value of the "input_image_url" field.
+func (u *UpscaleOutputUpsert) ClearInputImageURL() *UpscaleOutputUpsert {
+	u.SetNull(upscaleoutput.FieldInputImageURL)
+	return u
+}
+
+// SetUpscaleID sets the "upscale_id" field.
+func (u *UpscaleOutputUpsert) SetUpscaleID(v uuid.UUID) *UpscaleOutputUpsert {
+	u.Set(upscaleoutput.FieldUpscaleID, v)
+	return u
+}
+
+// UpdateUpscaleID sets the "upscale_id" field to the value that was provided on create.
+func (u *UpscaleOutputUpsert) UpdateUpscaleID() *UpscaleOutputUpsert {
+	u.SetExcluded(upscaleoutput.FieldUpscaleID)
+	return u
+}
+
+// SetGenerationOutputID sets the "generation_output_id" field.
+func (u *UpscaleOutputUpsert) SetGenerationOutputID(v uuid.UUID) *UpscaleOutputUpsert {
+	u.Set(upscaleoutput.FieldGenerationOutputID, v)
+	return u
+}
+
+// UpdateGenerationOutputID sets the "generation_output_id" field to the value that was provided on create.
+func (u *UpscaleOutputUpsert) UpdateGenerationOutputID() *UpscaleOutputUpsert {
+	u.SetExcluded(upscaleoutput.FieldGenerationOutputID)
+	return u
+}
+
+// ClearGenerationOutputID clears the value of the "generation_output_id" field.
+func (u *UpscaleOutputUpsert) ClearGenerationOutputID() *UpscaleOutputUpsert {
+	u.SetNull(upscaleoutput.FieldGenerationOutputID)
+	return u
+}
+
+// SetDeletedAt sets the "deleted_at" field.
+func (u *UpscaleOutputUpsert) SetDeletedAt(v time.Time) *UpscaleOutputUpsert {
+	u.Set(upscaleoutput.FieldDeletedAt, v)
+	return u
+}
+
+// UpdateDeletedAt sets the "deleted_at" field to the value that was provided on create.
+func (u *UpscaleOutputUpsert) UpdateDeletedAt() *UpscaleOutputUpsert {
+	u.SetExcluded(upscaleoutput.FieldDeletedAt)
+	return u
+}
+
+// ClearDeletedAt clears the value of the "deleted_at" field.
+func (u *UpscaleOutputUpsert) ClearDeletedAt() *UpscaleOutputUpsert {
+	u.SetNull(upscaleoutput.FieldDeletedAt)
+	return u
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *UpscaleOutputUpsert) SetUpdatedAt(v time.Time) *UpscaleOutputUpsert {
+	u.Set(upscaleoutput.FieldUpdatedAt, v)
+	return u
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *UpscaleOutputUpsert) UpdateUpdatedAt() *UpscaleOutputUpsert {
+	u.SetExcluded(upscaleoutput.FieldUpdatedAt)
+	return u
+}
+
+// UpdateNewValues updates the mutable fields using the new values that were set on create except the ID field.
+// Using this option is equivalent to using:
+//
+//	client.UpscaleOutput.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(upscaleoutput.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *UpscaleOutputUpsertOne) UpdateNewValues() *UpscaleOutputUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		if _, exists := u.create.mutation.ID(); exists {
+			s.SetIgnore(upscaleoutput.FieldID)
+		}
+		if _, exists := u.create.mutation.CreatedAt(); exists {
+			s.SetIgnore(upscaleoutput.FieldCreatedAt)
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.UpscaleOutput.Create().
+//	    OnConflict(sql.ResolveWithIgnore()).
+//	    Exec(ctx)
+func (u *UpscaleOutputUpsertOne) Ignore() *UpscaleOutputUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *UpscaleOutputUpsertOne) DoNothing() *UpscaleOutputUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the UpscaleOutputCreate.OnConflict
+// documentation for more info.
+func (u *UpscaleOutputUpsertOne) Update(set func(*UpscaleOutputUpsert)) *UpscaleOutputUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&UpscaleOutputUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetImagePath sets the "image_path" field.
+func (u *UpscaleOutputUpsertOne) SetImagePath(v string) *UpscaleOutputUpsertOne {
+	return u.Update(func(s *UpscaleOutputUpsert) {
+		s.SetImagePath(v)
+	})
+}
+
+// UpdateImagePath sets the "image_path" field to the value that was provided on create.
+func (u *UpscaleOutputUpsertOne) UpdateImagePath() *UpscaleOutputUpsertOne {
+	return u.Update(func(s *UpscaleOutputUpsert) {
+		s.UpdateImagePath()
+	})
+}
+
+// SetInputImageURL sets the "input_image_url" field.
+func (u *UpscaleOutputUpsertOne) SetInputImageURL(v string) *UpscaleOutputUpsertOne {
+	return u.Update(func(s *UpscaleOutputUpsert) {
+		s.SetInputImageURL(v)
+	})
+}
+
+// UpdateInputImageURL sets the "input_image_url" field to the value that was provided on create.
+func (u *UpscaleOutputUpsertOne) UpdateInputImageURL() *UpscaleOutputUpsertOne {
+	return u.Update(func(s *UpscaleOutputUpsert) {
+		s.UpdateInputImageURL()
+	})
+}
+
+// ClearInputImageURL clears the value of the "input_image_url" field.
+func (u *UpscaleOutputUpsertOne) ClearInputImageURL() *UpscaleOutputUpsertOne {
+	return u.Update(func(s *UpscaleOutputUpsert) {
+		s.ClearInputImageURL()
+	})
+}
+
+// SetUpscaleID sets the "upscale_id" field.
+func (u *UpscaleOutputUpsertOne) SetUpscaleID(v uuid.UUID) *UpscaleOutputUpsertOne {
+	return u.Update(func(s *UpscaleOutputUpsert) {
+		s.SetUpscaleID(v)
+	})
+}
+
+// UpdateUpscaleID sets the "upscale_id" field to the value that was provided on create.
+func (u *UpscaleOutputUpsertOne) UpdateUpscaleID() *UpscaleOutputUpsertOne {
+	return u.Update(func(s *UpscaleOutputUpsert) {
+		s.UpdateUpscaleID()
+	})
+}
+
+// SetGenerationOutputID sets the "generation_output_id" field.
+func (u *UpscaleOutputUpsertOne) SetGenerationOutputID(v uuid.UUID) *UpscaleOutputUpsertOne {
+	return u.Update(func(s *UpscaleOutputUpsert) {
+		s.SetGenerationOutputID(v)
+	})
+}
+
+// UpdateGenerationOutputID sets the "generation_output_id" field to the value that was provided on create.
+func (u *UpscaleOutputUpsertOne) UpdateGenerationOutputID() *UpscaleOutputUpsertOne {
+	return u.Update(func(s *UpscaleOutputUpsert) {
+		s.UpdateGenerationOutputID()
+	})
+}
+
+// ClearGenerationOutputID clears the value of the "generation_output_id" field.
+func (u *UpscaleOutputUpsertOne) ClearGenerationOutputID() *UpscaleOutputUpsertOne {
+	return u.Update(func(s *UpscaleOutputUpsert) {
+		s.ClearGenerationOutputID()
+	})
+}
+
+// SetDeletedAt sets the "deleted_at" field.
+func (u *UpscaleOutputUpsertOne) SetDeletedAt(v time.Time) *UpscaleOutputUpsertOne {
+	return u.Update(func(s *UpscaleOutputUpsert) {
+		s.SetDeletedAt(v)
+	})
+}
+
+// UpdateDeletedAt sets the "deleted_at" field to the value that was provided on create.
+func (u *UpscaleOutputUpsertOne) UpdateDeletedAt() *UpscaleOutputUpsertOne {
+	return u.Update(func(s *UpscaleOutputUpsert) {
+		s.UpdateDeletedAt()
+	})
+}
+
+// ClearDeletedAt clears the value of the "deleted_at" field.
+func (u *UpscaleOutputUpsertOne) ClearDeletedAt() *UpscaleOutputUpsertOne {
+	return u.Update(func(s *UpscaleOutputUpsert) {
+		s.ClearDeletedAt()
+	})
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *UpscaleOutputUpsertOne) SetUpdatedAt(v time.Time) *UpscaleOutputUpsertOne {
+	return u.Update(func(s *UpscaleOutputUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *UpscaleOutputUpsertOne) UpdateUpdatedAt() *UpscaleOutputUpsertOne {
+	return u.Update(func(s *UpscaleOutputUpsert) {
+		s.UpdateUpdatedAt()
+	})
+}
+
+// Exec executes the query.
+func (u *UpscaleOutputUpsertOne) Exec(ctx context.Context) error {
+	if len(u.create.conflict) == 0 {
+		return errors.New("ent: missing options for UpscaleOutputCreate.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *UpscaleOutputUpsertOne) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// Exec executes the UPSERT query and returns the inserted/updated ID.
+func (u *UpscaleOutputUpsertOne) ID(ctx context.Context) (id uuid.UUID, err error) {
+	if u.create.driver.Dialect() == dialect.MySQL {
+		// In case of "ON CONFLICT", there is no way to get back non-numeric ID
+		// fields from the database since MySQL does not support the RETURNING clause.
+		return id, errors.New("ent: UpscaleOutputUpsertOne.ID is not supported by MySQL driver. Use UpscaleOutputUpsertOne.Exec instead")
+	}
+	node, err := u.create.Save(ctx)
+	if err != nil {
+		return id, err
+	}
+	return node.ID, nil
+}
+
+// IDX is like ID, but panics if an error occurs.
+func (u *UpscaleOutputUpsertOne) IDX(ctx context.Context) uuid.UUID {
+	id, err := u.ID(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return id
+}
+
 // UpscaleOutputCreateBulk is the builder for creating many UpscaleOutput entities in bulk.
 type UpscaleOutputCreateBulk struct {
 	config
 	builders []*UpscaleOutputCreate
+	conflict []sql.ConflictOption
 }
 
 // Save creates the UpscaleOutput entities in the database.
@@ -335,6 +673,7 @@ func (uocb *UpscaleOutputCreateBulk) Save(ctx context.Context) ([]*UpscaleOutput
 					_, err = mutators[i+1].Mutate(root, uocb.builders[i+1].mutation)
 				} else {
 					spec := &sqlgraph.BatchCreateSpec{Nodes: specs}
+					spec.OnConflict = uocb.conflict
 					// Invoke the actual operation on the latest mutation in the chain.
 					if err = sqlgraph.BatchCreate(ctx, uocb.driver, spec); err != nil {
 						if sqlgraph.IsConstraintError(err) {
@@ -381,6 +720,225 @@ func (uocb *UpscaleOutputCreateBulk) Exec(ctx context.Context) error {
 // ExecX is like Exec, but panics if an error occurs.
 func (uocb *UpscaleOutputCreateBulk) ExecX(ctx context.Context) {
 	if err := uocb.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.UpscaleOutput.CreateBulk(builders...).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.UpscaleOutputUpsert) {
+//			SetImagePath(v+v).
+//		}).
+//		Exec(ctx)
+func (uocb *UpscaleOutputCreateBulk) OnConflict(opts ...sql.ConflictOption) *UpscaleOutputUpsertBulk {
+	uocb.conflict = opts
+	return &UpscaleOutputUpsertBulk{
+		create: uocb,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.UpscaleOutput.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (uocb *UpscaleOutputCreateBulk) OnConflictColumns(columns ...string) *UpscaleOutputUpsertBulk {
+	uocb.conflict = append(uocb.conflict, sql.ConflictColumns(columns...))
+	return &UpscaleOutputUpsertBulk{
+		create: uocb,
+	}
+}
+
+// UpscaleOutputUpsertBulk is the builder for "upsert"-ing
+// a bulk of UpscaleOutput nodes.
+type UpscaleOutputUpsertBulk struct {
+	create *UpscaleOutputCreateBulk
+}
+
+// UpdateNewValues updates the mutable fields using the new values that
+// were set on create. Using this option is equivalent to using:
+//
+//	client.UpscaleOutput.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(upscaleoutput.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *UpscaleOutputUpsertBulk) UpdateNewValues() *UpscaleOutputUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		for _, b := range u.create.builders {
+			if _, exists := b.mutation.ID(); exists {
+				s.SetIgnore(upscaleoutput.FieldID)
+			}
+			if _, exists := b.mutation.CreatedAt(); exists {
+				s.SetIgnore(upscaleoutput.FieldCreatedAt)
+			}
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.UpscaleOutput.Create().
+//		OnConflict(sql.ResolveWithIgnore()).
+//		Exec(ctx)
+func (u *UpscaleOutputUpsertBulk) Ignore() *UpscaleOutputUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *UpscaleOutputUpsertBulk) DoNothing() *UpscaleOutputUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the UpscaleOutputCreateBulk.OnConflict
+// documentation for more info.
+func (u *UpscaleOutputUpsertBulk) Update(set func(*UpscaleOutputUpsert)) *UpscaleOutputUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&UpscaleOutputUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetImagePath sets the "image_path" field.
+func (u *UpscaleOutputUpsertBulk) SetImagePath(v string) *UpscaleOutputUpsertBulk {
+	return u.Update(func(s *UpscaleOutputUpsert) {
+		s.SetImagePath(v)
+	})
+}
+
+// UpdateImagePath sets the "image_path" field to the value that was provided on create.
+func (u *UpscaleOutputUpsertBulk) UpdateImagePath() *UpscaleOutputUpsertBulk {
+	return u.Update(func(s *UpscaleOutputUpsert) {
+		s.UpdateImagePath()
+	})
+}
+
+// SetInputImageURL sets the "input_image_url" field.
+func (u *UpscaleOutputUpsertBulk) SetInputImageURL(v string) *UpscaleOutputUpsertBulk {
+	return u.Update(func(s *UpscaleOutputUpsert) {
+		s.SetInputImageURL(v)
+	})
+}
+
+// UpdateInputImageURL sets the "input_image_url" field to the value that was provided on create.
+func (u *UpscaleOutputUpsertBulk) UpdateInputImageURL() *UpscaleOutputUpsertBulk {
+	return u.Update(func(s *UpscaleOutputUpsert) {
+		s.UpdateInputImageURL()
+	})
+}
+
+// ClearInputImageURL clears the value of the "input_image_url" field.
+func (u *UpscaleOutputUpsertBulk) ClearInputImageURL() *UpscaleOutputUpsertBulk {
+	return u.Update(func(s *UpscaleOutputUpsert) {
+		s.ClearInputImageURL()
+	})
+}
+
+// SetUpscaleID sets the "upscale_id" field.
+func (u *UpscaleOutputUpsertBulk) SetUpscaleID(v uuid.UUID) *UpscaleOutputUpsertBulk {
+	return u.Update(func(s *UpscaleOutputUpsert) {
+		s.SetUpscaleID(v)
+	})
+}
+
+// UpdateUpscaleID sets the "upscale_id" field to the value that was provided on create.
+func (u *UpscaleOutputUpsertBulk) UpdateUpscaleID() *UpscaleOutputUpsertBulk {
+	return u.Update(func(s *UpscaleOutputUpsert) {
+		s.UpdateUpscaleID()
+	})
+}
+
+// SetGenerationOutputID sets the "generation_output_id" field.
+func (u *UpscaleOutputUpsertBulk) SetGenerationOutputID(v uuid.UUID) *UpscaleOutputUpsertBulk {
+	return u.Update(func(s *UpscaleOutputUpsert) {
+		s.SetGenerationOutputID(v)
+	})
+}
+
+// UpdateGenerationOutputID sets the "generation_output_id" field to the value that was provided on create.
+func (u *UpscaleOutputUpsertBulk) UpdateGenerationOutputID() *UpscaleOutputUpsertBulk {
+	return u.Update(func(s *UpscaleOutputUpsert) {
+		s.UpdateGenerationOutputID()
+	})
+}
+
+// ClearGenerationOutputID clears the value of the "generation_output_id" field.
+func (u *UpscaleOutputUpsertBulk) ClearGenerationOutputID() *UpscaleOutputUpsertBulk {
+	return u.Update(func(s *UpscaleOutputUpsert) {
+		s.ClearGenerationOutputID()
+	})
+}
+
+// SetDeletedAt sets the "deleted_at" field.
+func (u *UpscaleOutputUpsertBulk) SetDeletedAt(v time.Time) *UpscaleOutputUpsertBulk {
+	return u.Update(func(s *UpscaleOutputUpsert) {
+		s.SetDeletedAt(v)
+	})
+}
+
+// UpdateDeletedAt sets the "deleted_at" field to the value that was provided on create.
+func (u *UpscaleOutputUpsertBulk) UpdateDeletedAt() *UpscaleOutputUpsertBulk {
+	return u.Update(func(s *UpscaleOutputUpsert) {
+		s.UpdateDeletedAt()
+	})
+}
+
+// ClearDeletedAt clears the value of the "deleted_at" field.
+func (u *UpscaleOutputUpsertBulk) ClearDeletedAt() *UpscaleOutputUpsertBulk {
+	return u.Update(func(s *UpscaleOutputUpsert) {
+		s.ClearDeletedAt()
+	})
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *UpscaleOutputUpsertBulk) SetUpdatedAt(v time.Time) *UpscaleOutputUpsertBulk {
+	return u.Update(func(s *UpscaleOutputUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *UpscaleOutputUpsertBulk) UpdateUpdatedAt() *UpscaleOutputUpsertBulk {
+	return u.Update(func(s *UpscaleOutputUpsert) {
+		s.UpdateUpdatedAt()
+	})
+}
+
+// Exec executes the query.
+func (u *UpscaleOutputUpsertBulk) Exec(ctx context.Context) error {
+	for i, b := range u.create.builders {
+		if len(b.conflict) != 0 {
+			return fmt.Errorf("ent: OnConflict was set for builder %d. Set it on the UpscaleOutputCreateBulk instead", i)
+		}
+	}
+	if len(u.create.conflict) == 0 {
+		return errors.New("ent: missing options for UpscaleOutputCreateBulk.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *UpscaleOutputUpsertBulk) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
 		panic(err)
 	}
 }

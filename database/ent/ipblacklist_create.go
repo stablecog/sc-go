@@ -8,6 +8,8 @@ import (
 	"fmt"
 	"time"
 
+	"entgo.io/ent/dialect"
+	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
@@ -19,6 +21,7 @@ type IPBlackListCreate struct {
 	config
 	mutation *IPBlackListMutation
 	hooks    []Hook
+	conflict []sql.ConflictOption
 }
 
 // SetIP sets the "ip" field.
@@ -166,6 +169,7 @@ func (iblc *IPBlackListCreate) createSpec() (*IPBlackList, *sqlgraph.CreateSpec)
 			},
 		}
 	)
+	_spec.OnConflict = iblc.conflict
 	if id, ok := iblc.mutation.ID(); ok {
 		_node.ID = id
 		_spec.ID.Value = &id
@@ -185,10 +189,201 @@ func (iblc *IPBlackListCreate) createSpec() (*IPBlackList, *sqlgraph.CreateSpec)
 	return _node, _spec
 }
 
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.IPBlackList.Create().
+//		SetIP(v).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.IPBlackListUpsert) {
+//			SetIP(v+v).
+//		}).
+//		Exec(ctx)
+func (iblc *IPBlackListCreate) OnConflict(opts ...sql.ConflictOption) *IPBlackListUpsertOne {
+	iblc.conflict = opts
+	return &IPBlackListUpsertOne{
+		create: iblc,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.IPBlackList.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (iblc *IPBlackListCreate) OnConflictColumns(columns ...string) *IPBlackListUpsertOne {
+	iblc.conflict = append(iblc.conflict, sql.ConflictColumns(columns...))
+	return &IPBlackListUpsertOne{
+		create: iblc,
+	}
+}
+
+type (
+	// IPBlackListUpsertOne is the builder for "upsert"-ing
+	//  one IPBlackList node.
+	IPBlackListUpsertOne struct {
+		create *IPBlackListCreate
+	}
+
+	// IPBlackListUpsert is the "OnConflict" setter.
+	IPBlackListUpsert struct {
+		*sql.UpdateSet
+	}
+)
+
+// SetIP sets the "ip" field.
+func (u *IPBlackListUpsert) SetIP(v string) *IPBlackListUpsert {
+	u.Set(ipblacklist.FieldIP, v)
+	return u
+}
+
+// UpdateIP sets the "ip" field to the value that was provided on create.
+func (u *IPBlackListUpsert) UpdateIP() *IPBlackListUpsert {
+	u.SetExcluded(ipblacklist.FieldIP)
+	return u
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *IPBlackListUpsert) SetUpdatedAt(v time.Time) *IPBlackListUpsert {
+	u.Set(ipblacklist.FieldUpdatedAt, v)
+	return u
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *IPBlackListUpsert) UpdateUpdatedAt() *IPBlackListUpsert {
+	u.SetExcluded(ipblacklist.FieldUpdatedAt)
+	return u
+}
+
+// UpdateNewValues updates the mutable fields using the new values that were set on create except the ID field.
+// Using this option is equivalent to using:
+//
+//	client.IPBlackList.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(ipblacklist.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *IPBlackListUpsertOne) UpdateNewValues() *IPBlackListUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		if _, exists := u.create.mutation.ID(); exists {
+			s.SetIgnore(ipblacklist.FieldID)
+		}
+		if _, exists := u.create.mutation.CreatedAt(); exists {
+			s.SetIgnore(ipblacklist.FieldCreatedAt)
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.IPBlackList.Create().
+//	    OnConflict(sql.ResolveWithIgnore()).
+//	    Exec(ctx)
+func (u *IPBlackListUpsertOne) Ignore() *IPBlackListUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *IPBlackListUpsertOne) DoNothing() *IPBlackListUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the IPBlackListCreate.OnConflict
+// documentation for more info.
+func (u *IPBlackListUpsertOne) Update(set func(*IPBlackListUpsert)) *IPBlackListUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&IPBlackListUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetIP sets the "ip" field.
+func (u *IPBlackListUpsertOne) SetIP(v string) *IPBlackListUpsertOne {
+	return u.Update(func(s *IPBlackListUpsert) {
+		s.SetIP(v)
+	})
+}
+
+// UpdateIP sets the "ip" field to the value that was provided on create.
+func (u *IPBlackListUpsertOne) UpdateIP() *IPBlackListUpsertOne {
+	return u.Update(func(s *IPBlackListUpsert) {
+		s.UpdateIP()
+	})
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *IPBlackListUpsertOne) SetUpdatedAt(v time.Time) *IPBlackListUpsertOne {
+	return u.Update(func(s *IPBlackListUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *IPBlackListUpsertOne) UpdateUpdatedAt() *IPBlackListUpsertOne {
+	return u.Update(func(s *IPBlackListUpsert) {
+		s.UpdateUpdatedAt()
+	})
+}
+
+// Exec executes the query.
+func (u *IPBlackListUpsertOne) Exec(ctx context.Context) error {
+	if len(u.create.conflict) == 0 {
+		return errors.New("ent: missing options for IPBlackListCreate.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *IPBlackListUpsertOne) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// Exec executes the UPSERT query and returns the inserted/updated ID.
+func (u *IPBlackListUpsertOne) ID(ctx context.Context) (id uuid.UUID, err error) {
+	if u.create.driver.Dialect() == dialect.MySQL {
+		// In case of "ON CONFLICT", there is no way to get back non-numeric ID
+		// fields from the database since MySQL does not support the RETURNING clause.
+		return id, errors.New("ent: IPBlackListUpsertOne.ID is not supported by MySQL driver. Use IPBlackListUpsertOne.Exec instead")
+	}
+	node, err := u.create.Save(ctx)
+	if err != nil {
+		return id, err
+	}
+	return node.ID, nil
+}
+
+// IDX is like ID, but panics if an error occurs.
+func (u *IPBlackListUpsertOne) IDX(ctx context.Context) uuid.UUID {
+	id, err := u.ID(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return id
+}
+
 // IPBlackListCreateBulk is the builder for creating many IPBlackList entities in bulk.
 type IPBlackListCreateBulk struct {
 	config
 	builders []*IPBlackListCreate
+	conflict []sql.ConflictOption
 }
 
 // Save creates the IPBlackList entities in the database.
@@ -215,6 +410,7 @@ func (iblcb *IPBlackListCreateBulk) Save(ctx context.Context) ([]*IPBlackList, e
 					_, err = mutators[i+1].Mutate(root, iblcb.builders[i+1].mutation)
 				} else {
 					spec := &sqlgraph.BatchCreateSpec{Nodes: specs}
+					spec.OnConflict = iblcb.conflict
 					// Invoke the actual operation on the latest mutation in the chain.
 					if err = sqlgraph.BatchCreate(ctx, iblcb.driver, spec); err != nil {
 						if sqlgraph.IsConstraintError(err) {
@@ -261,6 +457,148 @@ func (iblcb *IPBlackListCreateBulk) Exec(ctx context.Context) error {
 // ExecX is like Exec, but panics if an error occurs.
 func (iblcb *IPBlackListCreateBulk) ExecX(ctx context.Context) {
 	if err := iblcb.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.IPBlackList.CreateBulk(builders...).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.IPBlackListUpsert) {
+//			SetIP(v+v).
+//		}).
+//		Exec(ctx)
+func (iblcb *IPBlackListCreateBulk) OnConflict(opts ...sql.ConflictOption) *IPBlackListUpsertBulk {
+	iblcb.conflict = opts
+	return &IPBlackListUpsertBulk{
+		create: iblcb,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.IPBlackList.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (iblcb *IPBlackListCreateBulk) OnConflictColumns(columns ...string) *IPBlackListUpsertBulk {
+	iblcb.conflict = append(iblcb.conflict, sql.ConflictColumns(columns...))
+	return &IPBlackListUpsertBulk{
+		create: iblcb,
+	}
+}
+
+// IPBlackListUpsertBulk is the builder for "upsert"-ing
+// a bulk of IPBlackList nodes.
+type IPBlackListUpsertBulk struct {
+	create *IPBlackListCreateBulk
+}
+
+// UpdateNewValues updates the mutable fields using the new values that
+// were set on create. Using this option is equivalent to using:
+//
+//	client.IPBlackList.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(ipblacklist.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *IPBlackListUpsertBulk) UpdateNewValues() *IPBlackListUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		for _, b := range u.create.builders {
+			if _, exists := b.mutation.ID(); exists {
+				s.SetIgnore(ipblacklist.FieldID)
+			}
+			if _, exists := b.mutation.CreatedAt(); exists {
+				s.SetIgnore(ipblacklist.FieldCreatedAt)
+			}
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.IPBlackList.Create().
+//		OnConflict(sql.ResolveWithIgnore()).
+//		Exec(ctx)
+func (u *IPBlackListUpsertBulk) Ignore() *IPBlackListUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *IPBlackListUpsertBulk) DoNothing() *IPBlackListUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the IPBlackListCreateBulk.OnConflict
+// documentation for more info.
+func (u *IPBlackListUpsertBulk) Update(set func(*IPBlackListUpsert)) *IPBlackListUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&IPBlackListUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetIP sets the "ip" field.
+func (u *IPBlackListUpsertBulk) SetIP(v string) *IPBlackListUpsertBulk {
+	return u.Update(func(s *IPBlackListUpsert) {
+		s.SetIP(v)
+	})
+}
+
+// UpdateIP sets the "ip" field to the value that was provided on create.
+func (u *IPBlackListUpsertBulk) UpdateIP() *IPBlackListUpsertBulk {
+	return u.Update(func(s *IPBlackListUpsert) {
+		s.UpdateIP()
+	})
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *IPBlackListUpsertBulk) SetUpdatedAt(v time.Time) *IPBlackListUpsertBulk {
+	return u.Update(func(s *IPBlackListUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *IPBlackListUpsertBulk) UpdateUpdatedAt() *IPBlackListUpsertBulk {
+	return u.Update(func(s *IPBlackListUpsert) {
+		s.UpdateUpdatedAt()
+	})
+}
+
+// Exec executes the query.
+func (u *IPBlackListUpsertBulk) Exec(ctx context.Context) error {
+	for i, b := range u.create.builders {
+		if len(b.conflict) != 0 {
+			return fmt.Errorf("ent: OnConflict was set for builder %d. Set it on the IPBlackListCreateBulk instead", i)
+		}
+	}
+	if len(u.create.conflict) == 0 {
+		return errors.New("ent: missing options for IPBlackListCreateBulk.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *IPBlackListUpsertBulk) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
 		panic(err)
 	}
 }

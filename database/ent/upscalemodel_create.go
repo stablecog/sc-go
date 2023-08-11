@@ -8,6 +8,8 @@ import (
 	"fmt"
 	"time"
 
+	"entgo.io/ent/dialect"
+	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
@@ -20,6 +22,7 @@ type UpscaleModelCreate struct {
 	config
 	mutation *UpscaleModelMutation
 	hooks    []Hook
+	conflict []sql.ConflictOption
 }
 
 // SetNameInWorker sets the "name_in_worker" field.
@@ -245,6 +248,7 @@ func (umc *UpscaleModelCreate) createSpec() (*UpscaleModel, *sqlgraph.CreateSpec
 			},
 		}
 	)
+	_spec.OnConflict = umc.conflict
 	if id, ok := umc.mutation.ID(); ok {
 		_node.ID = id
 		_spec.ID.Value = &id
@@ -295,10 +299,279 @@ func (umc *UpscaleModelCreate) createSpec() (*UpscaleModel, *sqlgraph.CreateSpec
 	return _node, _spec
 }
 
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.UpscaleModel.Create().
+//		SetNameInWorker(v).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.UpscaleModelUpsert) {
+//			SetNameInWorker(v+v).
+//		}).
+//		Exec(ctx)
+func (umc *UpscaleModelCreate) OnConflict(opts ...sql.ConflictOption) *UpscaleModelUpsertOne {
+	umc.conflict = opts
+	return &UpscaleModelUpsertOne{
+		create: umc,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.UpscaleModel.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (umc *UpscaleModelCreate) OnConflictColumns(columns ...string) *UpscaleModelUpsertOne {
+	umc.conflict = append(umc.conflict, sql.ConflictColumns(columns...))
+	return &UpscaleModelUpsertOne{
+		create: umc,
+	}
+}
+
+type (
+	// UpscaleModelUpsertOne is the builder for "upsert"-ing
+	//  one UpscaleModel node.
+	UpscaleModelUpsertOne struct {
+		create *UpscaleModelCreate
+	}
+
+	// UpscaleModelUpsert is the "OnConflict" setter.
+	UpscaleModelUpsert struct {
+		*sql.UpdateSet
+	}
+)
+
+// SetNameInWorker sets the "name_in_worker" field.
+func (u *UpscaleModelUpsert) SetNameInWorker(v string) *UpscaleModelUpsert {
+	u.Set(upscalemodel.FieldNameInWorker, v)
+	return u
+}
+
+// UpdateNameInWorker sets the "name_in_worker" field to the value that was provided on create.
+func (u *UpscaleModelUpsert) UpdateNameInWorker() *UpscaleModelUpsert {
+	u.SetExcluded(upscalemodel.FieldNameInWorker)
+	return u
+}
+
+// SetIsActive sets the "is_active" field.
+func (u *UpscaleModelUpsert) SetIsActive(v bool) *UpscaleModelUpsert {
+	u.Set(upscalemodel.FieldIsActive, v)
+	return u
+}
+
+// UpdateIsActive sets the "is_active" field to the value that was provided on create.
+func (u *UpscaleModelUpsert) UpdateIsActive() *UpscaleModelUpsert {
+	u.SetExcluded(upscalemodel.FieldIsActive)
+	return u
+}
+
+// SetIsDefault sets the "is_default" field.
+func (u *UpscaleModelUpsert) SetIsDefault(v bool) *UpscaleModelUpsert {
+	u.Set(upscalemodel.FieldIsDefault, v)
+	return u
+}
+
+// UpdateIsDefault sets the "is_default" field to the value that was provided on create.
+func (u *UpscaleModelUpsert) UpdateIsDefault() *UpscaleModelUpsert {
+	u.SetExcluded(upscalemodel.FieldIsDefault)
+	return u
+}
+
+// SetIsHidden sets the "is_hidden" field.
+func (u *UpscaleModelUpsert) SetIsHidden(v bool) *UpscaleModelUpsert {
+	u.Set(upscalemodel.FieldIsHidden, v)
+	return u
+}
+
+// UpdateIsHidden sets the "is_hidden" field to the value that was provided on create.
+func (u *UpscaleModelUpsert) UpdateIsHidden() *UpscaleModelUpsert {
+	u.SetExcluded(upscalemodel.FieldIsHidden)
+	return u
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *UpscaleModelUpsert) SetUpdatedAt(v time.Time) *UpscaleModelUpsert {
+	u.Set(upscalemodel.FieldUpdatedAt, v)
+	return u
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *UpscaleModelUpsert) UpdateUpdatedAt() *UpscaleModelUpsert {
+	u.SetExcluded(upscalemodel.FieldUpdatedAt)
+	return u
+}
+
+// UpdateNewValues updates the mutable fields using the new values that were set on create except the ID field.
+// Using this option is equivalent to using:
+//
+//	client.UpscaleModel.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(upscalemodel.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *UpscaleModelUpsertOne) UpdateNewValues() *UpscaleModelUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		if _, exists := u.create.mutation.ID(); exists {
+			s.SetIgnore(upscalemodel.FieldID)
+		}
+		if _, exists := u.create.mutation.CreatedAt(); exists {
+			s.SetIgnore(upscalemodel.FieldCreatedAt)
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.UpscaleModel.Create().
+//	    OnConflict(sql.ResolveWithIgnore()).
+//	    Exec(ctx)
+func (u *UpscaleModelUpsertOne) Ignore() *UpscaleModelUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *UpscaleModelUpsertOne) DoNothing() *UpscaleModelUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the UpscaleModelCreate.OnConflict
+// documentation for more info.
+func (u *UpscaleModelUpsertOne) Update(set func(*UpscaleModelUpsert)) *UpscaleModelUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&UpscaleModelUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetNameInWorker sets the "name_in_worker" field.
+func (u *UpscaleModelUpsertOne) SetNameInWorker(v string) *UpscaleModelUpsertOne {
+	return u.Update(func(s *UpscaleModelUpsert) {
+		s.SetNameInWorker(v)
+	})
+}
+
+// UpdateNameInWorker sets the "name_in_worker" field to the value that was provided on create.
+func (u *UpscaleModelUpsertOne) UpdateNameInWorker() *UpscaleModelUpsertOne {
+	return u.Update(func(s *UpscaleModelUpsert) {
+		s.UpdateNameInWorker()
+	})
+}
+
+// SetIsActive sets the "is_active" field.
+func (u *UpscaleModelUpsertOne) SetIsActive(v bool) *UpscaleModelUpsertOne {
+	return u.Update(func(s *UpscaleModelUpsert) {
+		s.SetIsActive(v)
+	})
+}
+
+// UpdateIsActive sets the "is_active" field to the value that was provided on create.
+func (u *UpscaleModelUpsertOne) UpdateIsActive() *UpscaleModelUpsertOne {
+	return u.Update(func(s *UpscaleModelUpsert) {
+		s.UpdateIsActive()
+	})
+}
+
+// SetIsDefault sets the "is_default" field.
+func (u *UpscaleModelUpsertOne) SetIsDefault(v bool) *UpscaleModelUpsertOne {
+	return u.Update(func(s *UpscaleModelUpsert) {
+		s.SetIsDefault(v)
+	})
+}
+
+// UpdateIsDefault sets the "is_default" field to the value that was provided on create.
+func (u *UpscaleModelUpsertOne) UpdateIsDefault() *UpscaleModelUpsertOne {
+	return u.Update(func(s *UpscaleModelUpsert) {
+		s.UpdateIsDefault()
+	})
+}
+
+// SetIsHidden sets the "is_hidden" field.
+func (u *UpscaleModelUpsertOne) SetIsHidden(v bool) *UpscaleModelUpsertOne {
+	return u.Update(func(s *UpscaleModelUpsert) {
+		s.SetIsHidden(v)
+	})
+}
+
+// UpdateIsHidden sets the "is_hidden" field to the value that was provided on create.
+func (u *UpscaleModelUpsertOne) UpdateIsHidden() *UpscaleModelUpsertOne {
+	return u.Update(func(s *UpscaleModelUpsert) {
+		s.UpdateIsHidden()
+	})
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *UpscaleModelUpsertOne) SetUpdatedAt(v time.Time) *UpscaleModelUpsertOne {
+	return u.Update(func(s *UpscaleModelUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *UpscaleModelUpsertOne) UpdateUpdatedAt() *UpscaleModelUpsertOne {
+	return u.Update(func(s *UpscaleModelUpsert) {
+		s.UpdateUpdatedAt()
+	})
+}
+
+// Exec executes the query.
+func (u *UpscaleModelUpsertOne) Exec(ctx context.Context) error {
+	if len(u.create.conflict) == 0 {
+		return errors.New("ent: missing options for UpscaleModelCreate.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *UpscaleModelUpsertOne) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// Exec executes the UPSERT query and returns the inserted/updated ID.
+func (u *UpscaleModelUpsertOne) ID(ctx context.Context) (id uuid.UUID, err error) {
+	if u.create.driver.Dialect() == dialect.MySQL {
+		// In case of "ON CONFLICT", there is no way to get back non-numeric ID
+		// fields from the database since MySQL does not support the RETURNING clause.
+		return id, errors.New("ent: UpscaleModelUpsertOne.ID is not supported by MySQL driver. Use UpscaleModelUpsertOne.Exec instead")
+	}
+	node, err := u.create.Save(ctx)
+	if err != nil {
+		return id, err
+	}
+	return node.ID, nil
+}
+
+// IDX is like ID, but panics if an error occurs.
+func (u *UpscaleModelUpsertOne) IDX(ctx context.Context) uuid.UUID {
+	id, err := u.ID(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return id
+}
+
 // UpscaleModelCreateBulk is the builder for creating many UpscaleModel entities in bulk.
 type UpscaleModelCreateBulk struct {
 	config
 	builders []*UpscaleModelCreate
+	conflict []sql.ConflictOption
 }
 
 // Save creates the UpscaleModel entities in the database.
@@ -325,6 +598,7 @@ func (umcb *UpscaleModelCreateBulk) Save(ctx context.Context) ([]*UpscaleModel, 
 					_, err = mutators[i+1].Mutate(root, umcb.builders[i+1].mutation)
 				} else {
 					spec := &sqlgraph.BatchCreateSpec{Nodes: specs}
+					spec.OnConflict = umcb.conflict
 					// Invoke the actual operation on the latest mutation in the chain.
 					if err = sqlgraph.BatchCreate(ctx, umcb.driver, spec); err != nil {
 						if sqlgraph.IsConstraintError(err) {
@@ -371,6 +645,190 @@ func (umcb *UpscaleModelCreateBulk) Exec(ctx context.Context) error {
 // ExecX is like Exec, but panics if an error occurs.
 func (umcb *UpscaleModelCreateBulk) ExecX(ctx context.Context) {
 	if err := umcb.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.UpscaleModel.CreateBulk(builders...).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.UpscaleModelUpsert) {
+//			SetNameInWorker(v+v).
+//		}).
+//		Exec(ctx)
+func (umcb *UpscaleModelCreateBulk) OnConflict(opts ...sql.ConflictOption) *UpscaleModelUpsertBulk {
+	umcb.conflict = opts
+	return &UpscaleModelUpsertBulk{
+		create: umcb,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.UpscaleModel.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (umcb *UpscaleModelCreateBulk) OnConflictColumns(columns ...string) *UpscaleModelUpsertBulk {
+	umcb.conflict = append(umcb.conflict, sql.ConflictColumns(columns...))
+	return &UpscaleModelUpsertBulk{
+		create: umcb,
+	}
+}
+
+// UpscaleModelUpsertBulk is the builder for "upsert"-ing
+// a bulk of UpscaleModel nodes.
+type UpscaleModelUpsertBulk struct {
+	create *UpscaleModelCreateBulk
+}
+
+// UpdateNewValues updates the mutable fields using the new values that
+// were set on create. Using this option is equivalent to using:
+//
+//	client.UpscaleModel.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(upscalemodel.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *UpscaleModelUpsertBulk) UpdateNewValues() *UpscaleModelUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		for _, b := range u.create.builders {
+			if _, exists := b.mutation.ID(); exists {
+				s.SetIgnore(upscalemodel.FieldID)
+			}
+			if _, exists := b.mutation.CreatedAt(); exists {
+				s.SetIgnore(upscalemodel.FieldCreatedAt)
+			}
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.UpscaleModel.Create().
+//		OnConflict(sql.ResolveWithIgnore()).
+//		Exec(ctx)
+func (u *UpscaleModelUpsertBulk) Ignore() *UpscaleModelUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *UpscaleModelUpsertBulk) DoNothing() *UpscaleModelUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the UpscaleModelCreateBulk.OnConflict
+// documentation for more info.
+func (u *UpscaleModelUpsertBulk) Update(set func(*UpscaleModelUpsert)) *UpscaleModelUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&UpscaleModelUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetNameInWorker sets the "name_in_worker" field.
+func (u *UpscaleModelUpsertBulk) SetNameInWorker(v string) *UpscaleModelUpsertBulk {
+	return u.Update(func(s *UpscaleModelUpsert) {
+		s.SetNameInWorker(v)
+	})
+}
+
+// UpdateNameInWorker sets the "name_in_worker" field to the value that was provided on create.
+func (u *UpscaleModelUpsertBulk) UpdateNameInWorker() *UpscaleModelUpsertBulk {
+	return u.Update(func(s *UpscaleModelUpsert) {
+		s.UpdateNameInWorker()
+	})
+}
+
+// SetIsActive sets the "is_active" field.
+func (u *UpscaleModelUpsertBulk) SetIsActive(v bool) *UpscaleModelUpsertBulk {
+	return u.Update(func(s *UpscaleModelUpsert) {
+		s.SetIsActive(v)
+	})
+}
+
+// UpdateIsActive sets the "is_active" field to the value that was provided on create.
+func (u *UpscaleModelUpsertBulk) UpdateIsActive() *UpscaleModelUpsertBulk {
+	return u.Update(func(s *UpscaleModelUpsert) {
+		s.UpdateIsActive()
+	})
+}
+
+// SetIsDefault sets the "is_default" field.
+func (u *UpscaleModelUpsertBulk) SetIsDefault(v bool) *UpscaleModelUpsertBulk {
+	return u.Update(func(s *UpscaleModelUpsert) {
+		s.SetIsDefault(v)
+	})
+}
+
+// UpdateIsDefault sets the "is_default" field to the value that was provided on create.
+func (u *UpscaleModelUpsertBulk) UpdateIsDefault() *UpscaleModelUpsertBulk {
+	return u.Update(func(s *UpscaleModelUpsert) {
+		s.UpdateIsDefault()
+	})
+}
+
+// SetIsHidden sets the "is_hidden" field.
+func (u *UpscaleModelUpsertBulk) SetIsHidden(v bool) *UpscaleModelUpsertBulk {
+	return u.Update(func(s *UpscaleModelUpsert) {
+		s.SetIsHidden(v)
+	})
+}
+
+// UpdateIsHidden sets the "is_hidden" field to the value that was provided on create.
+func (u *UpscaleModelUpsertBulk) UpdateIsHidden() *UpscaleModelUpsertBulk {
+	return u.Update(func(s *UpscaleModelUpsert) {
+		s.UpdateIsHidden()
+	})
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *UpscaleModelUpsertBulk) SetUpdatedAt(v time.Time) *UpscaleModelUpsertBulk {
+	return u.Update(func(s *UpscaleModelUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *UpscaleModelUpsertBulk) UpdateUpdatedAt() *UpscaleModelUpsertBulk {
+	return u.Update(func(s *UpscaleModelUpsert) {
+		s.UpdateUpdatedAt()
+	})
+}
+
+// Exec executes the query.
+func (u *UpscaleModelUpsertBulk) Exec(ctx context.Context) error {
+	for i, b := range u.create.builders {
+		if len(b.conflict) != 0 {
+			return fmt.Errorf("ent: OnConflict was set for builder %d. Set it on the UpscaleModelCreateBulk instead", i)
+		}
+	}
+	if len(u.create.conflict) == 0 {
+		return errors.New("ent: missing options for UpscaleModelCreateBulk.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *UpscaleModelUpsertBulk) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
 		panic(err)
 	}
 }

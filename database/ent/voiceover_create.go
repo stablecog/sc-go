@@ -8,6 +8,8 @@ import (
 	"fmt"
 	"time"
 
+	"entgo.io/ent/dialect"
+	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
@@ -27,6 +29,7 @@ type VoiceoverCreate struct {
 	config
 	mutation *VoiceoverMutation
 	hooks    []Hook
+	conflict []sql.ConflictOption
 }
 
 // SetCountryCode sets the "country_code" field.
@@ -512,6 +515,7 @@ func (vc *VoiceoverCreate) createSpec() (*Voiceover, *sqlgraph.CreateSpec) {
 			},
 		}
 	)
+	_spec.OnConflict = vc.conflict
 	if id, ok := vc.mutation.ID(); ok {
 		_node.ID = id
 		_spec.ID.Value = &id
@@ -718,10 +722,799 @@ func (vc *VoiceoverCreate) createSpec() (*Voiceover, *sqlgraph.CreateSpec) {
 	return _node, _spec
 }
 
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.Voiceover.Create().
+//		SetCountryCode(v).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.VoiceoverUpsert) {
+//			SetCountryCode(v+v).
+//		}).
+//		Exec(ctx)
+func (vc *VoiceoverCreate) OnConflict(opts ...sql.ConflictOption) *VoiceoverUpsertOne {
+	vc.conflict = opts
+	return &VoiceoverUpsertOne{
+		create: vc,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.Voiceover.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (vc *VoiceoverCreate) OnConflictColumns(columns ...string) *VoiceoverUpsertOne {
+	vc.conflict = append(vc.conflict, sql.ConflictColumns(columns...))
+	return &VoiceoverUpsertOne{
+		create: vc,
+	}
+}
+
+type (
+	// VoiceoverUpsertOne is the builder for "upsert"-ing
+	//  one Voiceover node.
+	VoiceoverUpsertOne struct {
+		create *VoiceoverCreate
+	}
+
+	// VoiceoverUpsert is the "OnConflict" setter.
+	VoiceoverUpsert struct {
+		*sql.UpdateSet
+	}
+)
+
+// SetCountryCode sets the "country_code" field.
+func (u *VoiceoverUpsert) SetCountryCode(v string) *VoiceoverUpsert {
+	u.Set(voiceover.FieldCountryCode, v)
+	return u
+}
+
+// UpdateCountryCode sets the "country_code" field to the value that was provided on create.
+func (u *VoiceoverUpsert) UpdateCountryCode() *VoiceoverUpsert {
+	u.SetExcluded(voiceover.FieldCountryCode)
+	return u
+}
+
+// ClearCountryCode clears the value of the "country_code" field.
+func (u *VoiceoverUpsert) ClearCountryCode() *VoiceoverUpsert {
+	u.SetNull(voiceover.FieldCountryCode)
+	return u
+}
+
+// SetStatus sets the "status" field.
+func (u *VoiceoverUpsert) SetStatus(v voiceover.Status) *VoiceoverUpsert {
+	u.Set(voiceover.FieldStatus, v)
+	return u
+}
+
+// UpdateStatus sets the "status" field to the value that was provided on create.
+func (u *VoiceoverUpsert) UpdateStatus() *VoiceoverUpsert {
+	u.SetExcluded(voiceover.FieldStatus)
+	return u
+}
+
+// SetFailureReason sets the "failure_reason" field.
+func (u *VoiceoverUpsert) SetFailureReason(v string) *VoiceoverUpsert {
+	u.Set(voiceover.FieldFailureReason, v)
+	return u
+}
+
+// UpdateFailureReason sets the "failure_reason" field to the value that was provided on create.
+func (u *VoiceoverUpsert) UpdateFailureReason() *VoiceoverUpsert {
+	u.SetExcluded(voiceover.FieldFailureReason)
+	return u
+}
+
+// ClearFailureReason clears the value of the "failure_reason" field.
+func (u *VoiceoverUpsert) ClearFailureReason() *VoiceoverUpsert {
+	u.SetNull(voiceover.FieldFailureReason)
+	return u
+}
+
+// SetStripeProductID sets the "stripe_product_id" field.
+func (u *VoiceoverUpsert) SetStripeProductID(v string) *VoiceoverUpsert {
+	u.Set(voiceover.FieldStripeProductID, v)
+	return u
+}
+
+// UpdateStripeProductID sets the "stripe_product_id" field to the value that was provided on create.
+func (u *VoiceoverUpsert) UpdateStripeProductID() *VoiceoverUpsert {
+	u.SetExcluded(voiceover.FieldStripeProductID)
+	return u
+}
+
+// ClearStripeProductID clears the value of the "stripe_product_id" field.
+func (u *VoiceoverUpsert) ClearStripeProductID() *VoiceoverUpsert {
+	u.SetNull(voiceover.FieldStripeProductID)
+	return u
+}
+
+// SetTemperature sets the "temperature" field.
+func (u *VoiceoverUpsert) SetTemperature(v float32) *VoiceoverUpsert {
+	u.Set(voiceover.FieldTemperature, v)
+	return u
+}
+
+// UpdateTemperature sets the "temperature" field to the value that was provided on create.
+func (u *VoiceoverUpsert) UpdateTemperature() *VoiceoverUpsert {
+	u.SetExcluded(voiceover.FieldTemperature)
+	return u
+}
+
+// AddTemperature adds v to the "temperature" field.
+func (u *VoiceoverUpsert) AddTemperature(v float32) *VoiceoverUpsert {
+	u.Add(voiceover.FieldTemperature, v)
+	return u
+}
+
+// SetSeed sets the "seed" field.
+func (u *VoiceoverUpsert) SetSeed(v int) *VoiceoverUpsert {
+	u.Set(voiceover.FieldSeed, v)
+	return u
+}
+
+// UpdateSeed sets the "seed" field to the value that was provided on create.
+func (u *VoiceoverUpsert) UpdateSeed() *VoiceoverUpsert {
+	u.SetExcluded(voiceover.FieldSeed)
+	return u
+}
+
+// AddSeed adds v to the "seed" field.
+func (u *VoiceoverUpsert) AddSeed(v int) *VoiceoverUpsert {
+	u.Add(voiceover.FieldSeed, v)
+	return u
+}
+
+// SetWasAutoSubmitted sets the "was_auto_submitted" field.
+func (u *VoiceoverUpsert) SetWasAutoSubmitted(v bool) *VoiceoverUpsert {
+	u.Set(voiceover.FieldWasAutoSubmitted, v)
+	return u
+}
+
+// UpdateWasAutoSubmitted sets the "was_auto_submitted" field to the value that was provided on create.
+func (u *VoiceoverUpsert) UpdateWasAutoSubmitted() *VoiceoverUpsert {
+	u.SetExcluded(voiceover.FieldWasAutoSubmitted)
+	return u
+}
+
+// SetDenoiseAudio sets the "denoise_audio" field.
+func (u *VoiceoverUpsert) SetDenoiseAudio(v bool) *VoiceoverUpsert {
+	u.Set(voiceover.FieldDenoiseAudio, v)
+	return u
+}
+
+// UpdateDenoiseAudio sets the "denoise_audio" field to the value that was provided on create.
+func (u *VoiceoverUpsert) UpdateDenoiseAudio() *VoiceoverUpsert {
+	u.SetExcluded(voiceover.FieldDenoiseAudio)
+	return u
+}
+
+// SetRemoveSilence sets the "remove_silence" field.
+func (u *VoiceoverUpsert) SetRemoveSilence(v bool) *VoiceoverUpsert {
+	u.Set(voiceover.FieldRemoveSilence, v)
+	return u
+}
+
+// UpdateRemoveSilence sets the "remove_silence" field to the value that was provided on create.
+func (u *VoiceoverUpsert) UpdateRemoveSilence() *VoiceoverUpsert {
+	u.SetExcluded(voiceover.FieldRemoveSilence)
+	return u
+}
+
+// SetCost sets the "cost" field.
+func (u *VoiceoverUpsert) SetCost(v int32) *VoiceoverUpsert {
+	u.Set(voiceover.FieldCost, v)
+	return u
+}
+
+// UpdateCost sets the "cost" field to the value that was provided on create.
+func (u *VoiceoverUpsert) UpdateCost() *VoiceoverUpsert {
+	u.SetExcluded(voiceover.FieldCost)
+	return u
+}
+
+// AddCost adds v to the "cost" field.
+func (u *VoiceoverUpsert) AddCost(v int32) *VoiceoverUpsert {
+	u.Add(voiceover.FieldCost, v)
+	return u
+}
+
+// SetSourceType sets the "source_type" field.
+func (u *VoiceoverUpsert) SetSourceType(v enttypes.SourceType) *VoiceoverUpsert {
+	u.Set(voiceover.FieldSourceType, v)
+	return u
+}
+
+// UpdateSourceType sets the "source_type" field to the value that was provided on create.
+func (u *VoiceoverUpsert) UpdateSourceType() *VoiceoverUpsert {
+	u.SetExcluded(voiceover.FieldSourceType)
+	return u
+}
+
+// SetPromptID sets the "prompt_id" field.
+func (u *VoiceoverUpsert) SetPromptID(v uuid.UUID) *VoiceoverUpsert {
+	u.Set(voiceover.FieldPromptID, v)
+	return u
+}
+
+// UpdatePromptID sets the "prompt_id" field to the value that was provided on create.
+func (u *VoiceoverUpsert) UpdatePromptID() *VoiceoverUpsert {
+	u.SetExcluded(voiceover.FieldPromptID)
+	return u
+}
+
+// ClearPromptID clears the value of the "prompt_id" field.
+func (u *VoiceoverUpsert) ClearPromptID() *VoiceoverUpsert {
+	u.SetNull(voiceover.FieldPromptID)
+	return u
+}
+
+// SetUserID sets the "user_id" field.
+func (u *VoiceoverUpsert) SetUserID(v uuid.UUID) *VoiceoverUpsert {
+	u.Set(voiceover.FieldUserID, v)
+	return u
+}
+
+// UpdateUserID sets the "user_id" field to the value that was provided on create.
+func (u *VoiceoverUpsert) UpdateUserID() *VoiceoverUpsert {
+	u.SetExcluded(voiceover.FieldUserID)
+	return u
+}
+
+// SetDeviceInfoID sets the "device_info_id" field.
+func (u *VoiceoverUpsert) SetDeviceInfoID(v uuid.UUID) *VoiceoverUpsert {
+	u.Set(voiceover.FieldDeviceInfoID, v)
+	return u
+}
+
+// UpdateDeviceInfoID sets the "device_info_id" field to the value that was provided on create.
+func (u *VoiceoverUpsert) UpdateDeviceInfoID() *VoiceoverUpsert {
+	u.SetExcluded(voiceover.FieldDeviceInfoID)
+	return u
+}
+
+// SetModelID sets the "model_id" field.
+func (u *VoiceoverUpsert) SetModelID(v uuid.UUID) *VoiceoverUpsert {
+	u.Set(voiceover.FieldModelID, v)
+	return u
+}
+
+// UpdateModelID sets the "model_id" field to the value that was provided on create.
+func (u *VoiceoverUpsert) UpdateModelID() *VoiceoverUpsert {
+	u.SetExcluded(voiceover.FieldModelID)
+	return u
+}
+
+// SetSpeakerID sets the "speaker_id" field.
+func (u *VoiceoverUpsert) SetSpeakerID(v uuid.UUID) *VoiceoverUpsert {
+	u.Set(voiceover.FieldSpeakerID, v)
+	return u
+}
+
+// UpdateSpeakerID sets the "speaker_id" field to the value that was provided on create.
+func (u *VoiceoverUpsert) UpdateSpeakerID() *VoiceoverUpsert {
+	u.SetExcluded(voiceover.FieldSpeakerID)
+	return u
+}
+
+// SetAPITokenID sets the "api_token_id" field.
+func (u *VoiceoverUpsert) SetAPITokenID(v uuid.UUID) *VoiceoverUpsert {
+	u.Set(voiceover.FieldAPITokenID, v)
+	return u
+}
+
+// UpdateAPITokenID sets the "api_token_id" field to the value that was provided on create.
+func (u *VoiceoverUpsert) UpdateAPITokenID() *VoiceoverUpsert {
+	u.SetExcluded(voiceover.FieldAPITokenID)
+	return u
+}
+
+// ClearAPITokenID clears the value of the "api_token_id" field.
+func (u *VoiceoverUpsert) ClearAPITokenID() *VoiceoverUpsert {
+	u.SetNull(voiceover.FieldAPITokenID)
+	return u
+}
+
+// SetStartedAt sets the "started_at" field.
+func (u *VoiceoverUpsert) SetStartedAt(v time.Time) *VoiceoverUpsert {
+	u.Set(voiceover.FieldStartedAt, v)
+	return u
+}
+
+// UpdateStartedAt sets the "started_at" field to the value that was provided on create.
+func (u *VoiceoverUpsert) UpdateStartedAt() *VoiceoverUpsert {
+	u.SetExcluded(voiceover.FieldStartedAt)
+	return u
+}
+
+// ClearStartedAt clears the value of the "started_at" field.
+func (u *VoiceoverUpsert) ClearStartedAt() *VoiceoverUpsert {
+	u.SetNull(voiceover.FieldStartedAt)
+	return u
+}
+
+// SetCompletedAt sets the "completed_at" field.
+func (u *VoiceoverUpsert) SetCompletedAt(v time.Time) *VoiceoverUpsert {
+	u.Set(voiceover.FieldCompletedAt, v)
+	return u
+}
+
+// UpdateCompletedAt sets the "completed_at" field to the value that was provided on create.
+func (u *VoiceoverUpsert) UpdateCompletedAt() *VoiceoverUpsert {
+	u.SetExcluded(voiceover.FieldCompletedAt)
+	return u
+}
+
+// ClearCompletedAt clears the value of the "completed_at" field.
+func (u *VoiceoverUpsert) ClearCompletedAt() *VoiceoverUpsert {
+	u.SetNull(voiceover.FieldCompletedAt)
+	return u
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *VoiceoverUpsert) SetUpdatedAt(v time.Time) *VoiceoverUpsert {
+	u.Set(voiceover.FieldUpdatedAt, v)
+	return u
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *VoiceoverUpsert) UpdateUpdatedAt() *VoiceoverUpsert {
+	u.SetExcluded(voiceover.FieldUpdatedAt)
+	return u
+}
+
+// UpdateNewValues updates the mutable fields using the new values that were set on create except the ID field.
+// Using this option is equivalent to using:
+//
+//	client.Voiceover.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(voiceover.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *VoiceoverUpsertOne) UpdateNewValues() *VoiceoverUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		if _, exists := u.create.mutation.ID(); exists {
+			s.SetIgnore(voiceover.FieldID)
+		}
+		if _, exists := u.create.mutation.CreatedAt(); exists {
+			s.SetIgnore(voiceover.FieldCreatedAt)
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.Voiceover.Create().
+//	    OnConflict(sql.ResolveWithIgnore()).
+//	    Exec(ctx)
+func (u *VoiceoverUpsertOne) Ignore() *VoiceoverUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *VoiceoverUpsertOne) DoNothing() *VoiceoverUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the VoiceoverCreate.OnConflict
+// documentation for more info.
+func (u *VoiceoverUpsertOne) Update(set func(*VoiceoverUpsert)) *VoiceoverUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&VoiceoverUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetCountryCode sets the "country_code" field.
+func (u *VoiceoverUpsertOne) SetCountryCode(v string) *VoiceoverUpsertOne {
+	return u.Update(func(s *VoiceoverUpsert) {
+		s.SetCountryCode(v)
+	})
+}
+
+// UpdateCountryCode sets the "country_code" field to the value that was provided on create.
+func (u *VoiceoverUpsertOne) UpdateCountryCode() *VoiceoverUpsertOne {
+	return u.Update(func(s *VoiceoverUpsert) {
+		s.UpdateCountryCode()
+	})
+}
+
+// ClearCountryCode clears the value of the "country_code" field.
+func (u *VoiceoverUpsertOne) ClearCountryCode() *VoiceoverUpsertOne {
+	return u.Update(func(s *VoiceoverUpsert) {
+		s.ClearCountryCode()
+	})
+}
+
+// SetStatus sets the "status" field.
+func (u *VoiceoverUpsertOne) SetStatus(v voiceover.Status) *VoiceoverUpsertOne {
+	return u.Update(func(s *VoiceoverUpsert) {
+		s.SetStatus(v)
+	})
+}
+
+// UpdateStatus sets the "status" field to the value that was provided on create.
+func (u *VoiceoverUpsertOne) UpdateStatus() *VoiceoverUpsertOne {
+	return u.Update(func(s *VoiceoverUpsert) {
+		s.UpdateStatus()
+	})
+}
+
+// SetFailureReason sets the "failure_reason" field.
+func (u *VoiceoverUpsertOne) SetFailureReason(v string) *VoiceoverUpsertOne {
+	return u.Update(func(s *VoiceoverUpsert) {
+		s.SetFailureReason(v)
+	})
+}
+
+// UpdateFailureReason sets the "failure_reason" field to the value that was provided on create.
+func (u *VoiceoverUpsertOne) UpdateFailureReason() *VoiceoverUpsertOne {
+	return u.Update(func(s *VoiceoverUpsert) {
+		s.UpdateFailureReason()
+	})
+}
+
+// ClearFailureReason clears the value of the "failure_reason" field.
+func (u *VoiceoverUpsertOne) ClearFailureReason() *VoiceoverUpsertOne {
+	return u.Update(func(s *VoiceoverUpsert) {
+		s.ClearFailureReason()
+	})
+}
+
+// SetStripeProductID sets the "stripe_product_id" field.
+func (u *VoiceoverUpsertOne) SetStripeProductID(v string) *VoiceoverUpsertOne {
+	return u.Update(func(s *VoiceoverUpsert) {
+		s.SetStripeProductID(v)
+	})
+}
+
+// UpdateStripeProductID sets the "stripe_product_id" field to the value that was provided on create.
+func (u *VoiceoverUpsertOne) UpdateStripeProductID() *VoiceoverUpsertOne {
+	return u.Update(func(s *VoiceoverUpsert) {
+		s.UpdateStripeProductID()
+	})
+}
+
+// ClearStripeProductID clears the value of the "stripe_product_id" field.
+func (u *VoiceoverUpsertOne) ClearStripeProductID() *VoiceoverUpsertOne {
+	return u.Update(func(s *VoiceoverUpsert) {
+		s.ClearStripeProductID()
+	})
+}
+
+// SetTemperature sets the "temperature" field.
+func (u *VoiceoverUpsertOne) SetTemperature(v float32) *VoiceoverUpsertOne {
+	return u.Update(func(s *VoiceoverUpsert) {
+		s.SetTemperature(v)
+	})
+}
+
+// AddTemperature adds v to the "temperature" field.
+func (u *VoiceoverUpsertOne) AddTemperature(v float32) *VoiceoverUpsertOne {
+	return u.Update(func(s *VoiceoverUpsert) {
+		s.AddTemperature(v)
+	})
+}
+
+// UpdateTemperature sets the "temperature" field to the value that was provided on create.
+func (u *VoiceoverUpsertOne) UpdateTemperature() *VoiceoverUpsertOne {
+	return u.Update(func(s *VoiceoverUpsert) {
+		s.UpdateTemperature()
+	})
+}
+
+// SetSeed sets the "seed" field.
+func (u *VoiceoverUpsertOne) SetSeed(v int) *VoiceoverUpsertOne {
+	return u.Update(func(s *VoiceoverUpsert) {
+		s.SetSeed(v)
+	})
+}
+
+// AddSeed adds v to the "seed" field.
+func (u *VoiceoverUpsertOne) AddSeed(v int) *VoiceoverUpsertOne {
+	return u.Update(func(s *VoiceoverUpsert) {
+		s.AddSeed(v)
+	})
+}
+
+// UpdateSeed sets the "seed" field to the value that was provided on create.
+func (u *VoiceoverUpsertOne) UpdateSeed() *VoiceoverUpsertOne {
+	return u.Update(func(s *VoiceoverUpsert) {
+		s.UpdateSeed()
+	})
+}
+
+// SetWasAutoSubmitted sets the "was_auto_submitted" field.
+func (u *VoiceoverUpsertOne) SetWasAutoSubmitted(v bool) *VoiceoverUpsertOne {
+	return u.Update(func(s *VoiceoverUpsert) {
+		s.SetWasAutoSubmitted(v)
+	})
+}
+
+// UpdateWasAutoSubmitted sets the "was_auto_submitted" field to the value that was provided on create.
+func (u *VoiceoverUpsertOne) UpdateWasAutoSubmitted() *VoiceoverUpsertOne {
+	return u.Update(func(s *VoiceoverUpsert) {
+		s.UpdateWasAutoSubmitted()
+	})
+}
+
+// SetDenoiseAudio sets the "denoise_audio" field.
+func (u *VoiceoverUpsertOne) SetDenoiseAudio(v bool) *VoiceoverUpsertOne {
+	return u.Update(func(s *VoiceoverUpsert) {
+		s.SetDenoiseAudio(v)
+	})
+}
+
+// UpdateDenoiseAudio sets the "denoise_audio" field to the value that was provided on create.
+func (u *VoiceoverUpsertOne) UpdateDenoiseAudio() *VoiceoverUpsertOne {
+	return u.Update(func(s *VoiceoverUpsert) {
+		s.UpdateDenoiseAudio()
+	})
+}
+
+// SetRemoveSilence sets the "remove_silence" field.
+func (u *VoiceoverUpsertOne) SetRemoveSilence(v bool) *VoiceoverUpsertOne {
+	return u.Update(func(s *VoiceoverUpsert) {
+		s.SetRemoveSilence(v)
+	})
+}
+
+// UpdateRemoveSilence sets the "remove_silence" field to the value that was provided on create.
+func (u *VoiceoverUpsertOne) UpdateRemoveSilence() *VoiceoverUpsertOne {
+	return u.Update(func(s *VoiceoverUpsert) {
+		s.UpdateRemoveSilence()
+	})
+}
+
+// SetCost sets the "cost" field.
+func (u *VoiceoverUpsertOne) SetCost(v int32) *VoiceoverUpsertOne {
+	return u.Update(func(s *VoiceoverUpsert) {
+		s.SetCost(v)
+	})
+}
+
+// AddCost adds v to the "cost" field.
+func (u *VoiceoverUpsertOne) AddCost(v int32) *VoiceoverUpsertOne {
+	return u.Update(func(s *VoiceoverUpsert) {
+		s.AddCost(v)
+	})
+}
+
+// UpdateCost sets the "cost" field to the value that was provided on create.
+func (u *VoiceoverUpsertOne) UpdateCost() *VoiceoverUpsertOne {
+	return u.Update(func(s *VoiceoverUpsert) {
+		s.UpdateCost()
+	})
+}
+
+// SetSourceType sets the "source_type" field.
+func (u *VoiceoverUpsertOne) SetSourceType(v enttypes.SourceType) *VoiceoverUpsertOne {
+	return u.Update(func(s *VoiceoverUpsert) {
+		s.SetSourceType(v)
+	})
+}
+
+// UpdateSourceType sets the "source_type" field to the value that was provided on create.
+func (u *VoiceoverUpsertOne) UpdateSourceType() *VoiceoverUpsertOne {
+	return u.Update(func(s *VoiceoverUpsert) {
+		s.UpdateSourceType()
+	})
+}
+
+// SetPromptID sets the "prompt_id" field.
+func (u *VoiceoverUpsertOne) SetPromptID(v uuid.UUID) *VoiceoverUpsertOne {
+	return u.Update(func(s *VoiceoverUpsert) {
+		s.SetPromptID(v)
+	})
+}
+
+// UpdatePromptID sets the "prompt_id" field to the value that was provided on create.
+func (u *VoiceoverUpsertOne) UpdatePromptID() *VoiceoverUpsertOne {
+	return u.Update(func(s *VoiceoverUpsert) {
+		s.UpdatePromptID()
+	})
+}
+
+// ClearPromptID clears the value of the "prompt_id" field.
+func (u *VoiceoverUpsertOne) ClearPromptID() *VoiceoverUpsertOne {
+	return u.Update(func(s *VoiceoverUpsert) {
+		s.ClearPromptID()
+	})
+}
+
+// SetUserID sets the "user_id" field.
+func (u *VoiceoverUpsertOne) SetUserID(v uuid.UUID) *VoiceoverUpsertOne {
+	return u.Update(func(s *VoiceoverUpsert) {
+		s.SetUserID(v)
+	})
+}
+
+// UpdateUserID sets the "user_id" field to the value that was provided on create.
+func (u *VoiceoverUpsertOne) UpdateUserID() *VoiceoverUpsertOne {
+	return u.Update(func(s *VoiceoverUpsert) {
+		s.UpdateUserID()
+	})
+}
+
+// SetDeviceInfoID sets the "device_info_id" field.
+func (u *VoiceoverUpsertOne) SetDeviceInfoID(v uuid.UUID) *VoiceoverUpsertOne {
+	return u.Update(func(s *VoiceoverUpsert) {
+		s.SetDeviceInfoID(v)
+	})
+}
+
+// UpdateDeviceInfoID sets the "device_info_id" field to the value that was provided on create.
+func (u *VoiceoverUpsertOne) UpdateDeviceInfoID() *VoiceoverUpsertOne {
+	return u.Update(func(s *VoiceoverUpsert) {
+		s.UpdateDeviceInfoID()
+	})
+}
+
+// SetModelID sets the "model_id" field.
+func (u *VoiceoverUpsertOne) SetModelID(v uuid.UUID) *VoiceoverUpsertOne {
+	return u.Update(func(s *VoiceoverUpsert) {
+		s.SetModelID(v)
+	})
+}
+
+// UpdateModelID sets the "model_id" field to the value that was provided on create.
+func (u *VoiceoverUpsertOne) UpdateModelID() *VoiceoverUpsertOne {
+	return u.Update(func(s *VoiceoverUpsert) {
+		s.UpdateModelID()
+	})
+}
+
+// SetSpeakerID sets the "speaker_id" field.
+func (u *VoiceoverUpsertOne) SetSpeakerID(v uuid.UUID) *VoiceoverUpsertOne {
+	return u.Update(func(s *VoiceoverUpsert) {
+		s.SetSpeakerID(v)
+	})
+}
+
+// UpdateSpeakerID sets the "speaker_id" field to the value that was provided on create.
+func (u *VoiceoverUpsertOne) UpdateSpeakerID() *VoiceoverUpsertOne {
+	return u.Update(func(s *VoiceoverUpsert) {
+		s.UpdateSpeakerID()
+	})
+}
+
+// SetAPITokenID sets the "api_token_id" field.
+func (u *VoiceoverUpsertOne) SetAPITokenID(v uuid.UUID) *VoiceoverUpsertOne {
+	return u.Update(func(s *VoiceoverUpsert) {
+		s.SetAPITokenID(v)
+	})
+}
+
+// UpdateAPITokenID sets the "api_token_id" field to the value that was provided on create.
+func (u *VoiceoverUpsertOne) UpdateAPITokenID() *VoiceoverUpsertOne {
+	return u.Update(func(s *VoiceoverUpsert) {
+		s.UpdateAPITokenID()
+	})
+}
+
+// ClearAPITokenID clears the value of the "api_token_id" field.
+func (u *VoiceoverUpsertOne) ClearAPITokenID() *VoiceoverUpsertOne {
+	return u.Update(func(s *VoiceoverUpsert) {
+		s.ClearAPITokenID()
+	})
+}
+
+// SetStartedAt sets the "started_at" field.
+func (u *VoiceoverUpsertOne) SetStartedAt(v time.Time) *VoiceoverUpsertOne {
+	return u.Update(func(s *VoiceoverUpsert) {
+		s.SetStartedAt(v)
+	})
+}
+
+// UpdateStartedAt sets the "started_at" field to the value that was provided on create.
+func (u *VoiceoverUpsertOne) UpdateStartedAt() *VoiceoverUpsertOne {
+	return u.Update(func(s *VoiceoverUpsert) {
+		s.UpdateStartedAt()
+	})
+}
+
+// ClearStartedAt clears the value of the "started_at" field.
+func (u *VoiceoverUpsertOne) ClearStartedAt() *VoiceoverUpsertOne {
+	return u.Update(func(s *VoiceoverUpsert) {
+		s.ClearStartedAt()
+	})
+}
+
+// SetCompletedAt sets the "completed_at" field.
+func (u *VoiceoverUpsertOne) SetCompletedAt(v time.Time) *VoiceoverUpsertOne {
+	return u.Update(func(s *VoiceoverUpsert) {
+		s.SetCompletedAt(v)
+	})
+}
+
+// UpdateCompletedAt sets the "completed_at" field to the value that was provided on create.
+func (u *VoiceoverUpsertOne) UpdateCompletedAt() *VoiceoverUpsertOne {
+	return u.Update(func(s *VoiceoverUpsert) {
+		s.UpdateCompletedAt()
+	})
+}
+
+// ClearCompletedAt clears the value of the "completed_at" field.
+func (u *VoiceoverUpsertOne) ClearCompletedAt() *VoiceoverUpsertOne {
+	return u.Update(func(s *VoiceoverUpsert) {
+		s.ClearCompletedAt()
+	})
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *VoiceoverUpsertOne) SetUpdatedAt(v time.Time) *VoiceoverUpsertOne {
+	return u.Update(func(s *VoiceoverUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *VoiceoverUpsertOne) UpdateUpdatedAt() *VoiceoverUpsertOne {
+	return u.Update(func(s *VoiceoverUpsert) {
+		s.UpdateUpdatedAt()
+	})
+}
+
+// Exec executes the query.
+func (u *VoiceoverUpsertOne) Exec(ctx context.Context) error {
+	if len(u.create.conflict) == 0 {
+		return errors.New("ent: missing options for VoiceoverCreate.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *VoiceoverUpsertOne) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// Exec executes the UPSERT query and returns the inserted/updated ID.
+func (u *VoiceoverUpsertOne) ID(ctx context.Context) (id uuid.UUID, err error) {
+	if u.create.driver.Dialect() == dialect.MySQL {
+		// In case of "ON CONFLICT", there is no way to get back non-numeric ID
+		// fields from the database since MySQL does not support the RETURNING clause.
+		return id, errors.New("ent: VoiceoverUpsertOne.ID is not supported by MySQL driver. Use VoiceoverUpsertOne.Exec instead")
+	}
+	node, err := u.create.Save(ctx)
+	if err != nil {
+		return id, err
+	}
+	return node.ID, nil
+}
+
+// IDX is like ID, but panics if an error occurs.
+func (u *VoiceoverUpsertOne) IDX(ctx context.Context) uuid.UUID {
+	id, err := u.ID(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return id
+}
+
 // VoiceoverCreateBulk is the builder for creating many Voiceover entities in bulk.
 type VoiceoverCreateBulk struct {
 	config
 	builders []*VoiceoverCreate
+	conflict []sql.ConflictOption
 }
 
 // Save creates the Voiceover entities in the database.
@@ -748,6 +1541,7 @@ func (vcb *VoiceoverCreateBulk) Save(ctx context.Context) ([]*Voiceover, error) 
 					_, err = mutators[i+1].Mutate(root, vcb.builders[i+1].mutation)
 				} else {
 					spec := &sqlgraph.BatchCreateSpec{Nodes: specs}
+					spec.OnConflict = vcb.conflict
 					// Invoke the actual operation on the latest mutation in the chain.
 					if err = sqlgraph.BatchCreate(ctx, vcb.driver, spec); err != nil {
 						if sqlgraph.IsConstraintError(err) {
@@ -794,6 +1588,470 @@ func (vcb *VoiceoverCreateBulk) Exec(ctx context.Context) error {
 // ExecX is like Exec, but panics if an error occurs.
 func (vcb *VoiceoverCreateBulk) ExecX(ctx context.Context) {
 	if err := vcb.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.Voiceover.CreateBulk(builders...).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.VoiceoverUpsert) {
+//			SetCountryCode(v+v).
+//		}).
+//		Exec(ctx)
+func (vcb *VoiceoverCreateBulk) OnConflict(opts ...sql.ConflictOption) *VoiceoverUpsertBulk {
+	vcb.conflict = opts
+	return &VoiceoverUpsertBulk{
+		create: vcb,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.Voiceover.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (vcb *VoiceoverCreateBulk) OnConflictColumns(columns ...string) *VoiceoverUpsertBulk {
+	vcb.conflict = append(vcb.conflict, sql.ConflictColumns(columns...))
+	return &VoiceoverUpsertBulk{
+		create: vcb,
+	}
+}
+
+// VoiceoverUpsertBulk is the builder for "upsert"-ing
+// a bulk of Voiceover nodes.
+type VoiceoverUpsertBulk struct {
+	create *VoiceoverCreateBulk
+}
+
+// UpdateNewValues updates the mutable fields using the new values that
+// were set on create. Using this option is equivalent to using:
+//
+//	client.Voiceover.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(voiceover.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *VoiceoverUpsertBulk) UpdateNewValues() *VoiceoverUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		for _, b := range u.create.builders {
+			if _, exists := b.mutation.ID(); exists {
+				s.SetIgnore(voiceover.FieldID)
+			}
+			if _, exists := b.mutation.CreatedAt(); exists {
+				s.SetIgnore(voiceover.FieldCreatedAt)
+			}
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.Voiceover.Create().
+//		OnConflict(sql.ResolveWithIgnore()).
+//		Exec(ctx)
+func (u *VoiceoverUpsertBulk) Ignore() *VoiceoverUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *VoiceoverUpsertBulk) DoNothing() *VoiceoverUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the VoiceoverCreateBulk.OnConflict
+// documentation for more info.
+func (u *VoiceoverUpsertBulk) Update(set func(*VoiceoverUpsert)) *VoiceoverUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&VoiceoverUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetCountryCode sets the "country_code" field.
+func (u *VoiceoverUpsertBulk) SetCountryCode(v string) *VoiceoverUpsertBulk {
+	return u.Update(func(s *VoiceoverUpsert) {
+		s.SetCountryCode(v)
+	})
+}
+
+// UpdateCountryCode sets the "country_code" field to the value that was provided on create.
+func (u *VoiceoverUpsertBulk) UpdateCountryCode() *VoiceoverUpsertBulk {
+	return u.Update(func(s *VoiceoverUpsert) {
+		s.UpdateCountryCode()
+	})
+}
+
+// ClearCountryCode clears the value of the "country_code" field.
+func (u *VoiceoverUpsertBulk) ClearCountryCode() *VoiceoverUpsertBulk {
+	return u.Update(func(s *VoiceoverUpsert) {
+		s.ClearCountryCode()
+	})
+}
+
+// SetStatus sets the "status" field.
+func (u *VoiceoverUpsertBulk) SetStatus(v voiceover.Status) *VoiceoverUpsertBulk {
+	return u.Update(func(s *VoiceoverUpsert) {
+		s.SetStatus(v)
+	})
+}
+
+// UpdateStatus sets the "status" field to the value that was provided on create.
+func (u *VoiceoverUpsertBulk) UpdateStatus() *VoiceoverUpsertBulk {
+	return u.Update(func(s *VoiceoverUpsert) {
+		s.UpdateStatus()
+	})
+}
+
+// SetFailureReason sets the "failure_reason" field.
+func (u *VoiceoverUpsertBulk) SetFailureReason(v string) *VoiceoverUpsertBulk {
+	return u.Update(func(s *VoiceoverUpsert) {
+		s.SetFailureReason(v)
+	})
+}
+
+// UpdateFailureReason sets the "failure_reason" field to the value that was provided on create.
+func (u *VoiceoverUpsertBulk) UpdateFailureReason() *VoiceoverUpsertBulk {
+	return u.Update(func(s *VoiceoverUpsert) {
+		s.UpdateFailureReason()
+	})
+}
+
+// ClearFailureReason clears the value of the "failure_reason" field.
+func (u *VoiceoverUpsertBulk) ClearFailureReason() *VoiceoverUpsertBulk {
+	return u.Update(func(s *VoiceoverUpsert) {
+		s.ClearFailureReason()
+	})
+}
+
+// SetStripeProductID sets the "stripe_product_id" field.
+func (u *VoiceoverUpsertBulk) SetStripeProductID(v string) *VoiceoverUpsertBulk {
+	return u.Update(func(s *VoiceoverUpsert) {
+		s.SetStripeProductID(v)
+	})
+}
+
+// UpdateStripeProductID sets the "stripe_product_id" field to the value that was provided on create.
+func (u *VoiceoverUpsertBulk) UpdateStripeProductID() *VoiceoverUpsertBulk {
+	return u.Update(func(s *VoiceoverUpsert) {
+		s.UpdateStripeProductID()
+	})
+}
+
+// ClearStripeProductID clears the value of the "stripe_product_id" field.
+func (u *VoiceoverUpsertBulk) ClearStripeProductID() *VoiceoverUpsertBulk {
+	return u.Update(func(s *VoiceoverUpsert) {
+		s.ClearStripeProductID()
+	})
+}
+
+// SetTemperature sets the "temperature" field.
+func (u *VoiceoverUpsertBulk) SetTemperature(v float32) *VoiceoverUpsertBulk {
+	return u.Update(func(s *VoiceoverUpsert) {
+		s.SetTemperature(v)
+	})
+}
+
+// AddTemperature adds v to the "temperature" field.
+func (u *VoiceoverUpsertBulk) AddTemperature(v float32) *VoiceoverUpsertBulk {
+	return u.Update(func(s *VoiceoverUpsert) {
+		s.AddTemperature(v)
+	})
+}
+
+// UpdateTemperature sets the "temperature" field to the value that was provided on create.
+func (u *VoiceoverUpsertBulk) UpdateTemperature() *VoiceoverUpsertBulk {
+	return u.Update(func(s *VoiceoverUpsert) {
+		s.UpdateTemperature()
+	})
+}
+
+// SetSeed sets the "seed" field.
+func (u *VoiceoverUpsertBulk) SetSeed(v int) *VoiceoverUpsertBulk {
+	return u.Update(func(s *VoiceoverUpsert) {
+		s.SetSeed(v)
+	})
+}
+
+// AddSeed adds v to the "seed" field.
+func (u *VoiceoverUpsertBulk) AddSeed(v int) *VoiceoverUpsertBulk {
+	return u.Update(func(s *VoiceoverUpsert) {
+		s.AddSeed(v)
+	})
+}
+
+// UpdateSeed sets the "seed" field to the value that was provided on create.
+func (u *VoiceoverUpsertBulk) UpdateSeed() *VoiceoverUpsertBulk {
+	return u.Update(func(s *VoiceoverUpsert) {
+		s.UpdateSeed()
+	})
+}
+
+// SetWasAutoSubmitted sets the "was_auto_submitted" field.
+func (u *VoiceoverUpsertBulk) SetWasAutoSubmitted(v bool) *VoiceoverUpsertBulk {
+	return u.Update(func(s *VoiceoverUpsert) {
+		s.SetWasAutoSubmitted(v)
+	})
+}
+
+// UpdateWasAutoSubmitted sets the "was_auto_submitted" field to the value that was provided on create.
+func (u *VoiceoverUpsertBulk) UpdateWasAutoSubmitted() *VoiceoverUpsertBulk {
+	return u.Update(func(s *VoiceoverUpsert) {
+		s.UpdateWasAutoSubmitted()
+	})
+}
+
+// SetDenoiseAudio sets the "denoise_audio" field.
+func (u *VoiceoverUpsertBulk) SetDenoiseAudio(v bool) *VoiceoverUpsertBulk {
+	return u.Update(func(s *VoiceoverUpsert) {
+		s.SetDenoiseAudio(v)
+	})
+}
+
+// UpdateDenoiseAudio sets the "denoise_audio" field to the value that was provided on create.
+func (u *VoiceoverUpsertBulk) UpdateDenoiseAudio() *VoiceoverUpsertBulk {
+	return u.Update(func(s *VoiceoverUpsert) {
+		s.UpdateDenoiseAudio()
+	})
+}
+
+// SetRemoveSilence sets the "remove_silence" field.
+func (u *VoiceoverUpsertBulk) SetRemoveSilence(v bool) *VoiceoverUpsertBulk {
+	return u.Update(func(s *VoiceoverUpsert) {
+		s.SetRemoveSilence(v)
+	})
+}
+
+// UpdateRemoveSilence sets the "remove_silence" field to the value that was provided on create.
+func (u *VoiceoverUpsertBulk) UpdateRemoveSilence() *VoiceoverUpsertBulk {
+	return u.Update(func(s *VoiceoverUpsert) {
+		s.UpdateRemoveSilence()
+	})
+}
+
+// SetCost sets the "cost" field.
+func (u *VoiceoverUpsertBulk) SetCost(v int32) *VoiceoverUpsertBulk {
+	return u.Update(func(s *VoiceoverUpsert) {
+		s.SetCost(v)
+	})
+}
+
+// AddCost adds v to the "cost" field.
+func (u *VoiceoverUpsertBulk) AddCost(v int32) *VoiceoverUpsertBulk {
+	return u.Update(func(s *VoiceoverUpsert) {
+		s.AddCost(v)
+	})
+}
+
+// UpdateCost sets the "cost" field to the value that was provided on create.
+func (u *VoiceoverUpsertBulk) UpdateCost() *VoiceoverUpsertBulk {
+	return u.Update(func(s *VoiceoverUpsert) {
+		s.UpdateCost()
+	})
+}
+
+// SetSourceType sets the "source_type" field.
+func (u *VoiceoverUpsertBulk) SetSourceType(v enttypes.SourceType) *VoiceoverUpsertBulk {
+	return u.Update(func(s *VoiceoverUpsert) {
+		s.SetSourceType(v)
+	})
+}
+
+// UpdateSourceType sets the "source_type" field to the value that was provided on create.
+func (u *VoiceoverUpsertBulk) UpdateSourceType() *VoiceoverUpsertBulk {
+	return u.Update(func(s *VoiceoverUpsert) {
+		s.UpdateSourceType()
+	})
+}
+
+// SetPromptID sets the "prompt_id" field.
+func (u *VoiceoverUpsertBulk) SetPromptID(v uuid.UUID) *VoiceoverUpsertBulk {
+	return u.Update(func(s *VoiceoverUpsert) {
+		s.SetPromptID(v)
+	})
+}
+
+// UpdatePromptID sets the "prompt_id" field to the value that was provided on create.
+func (u *VoiceoverUpsertBulk) UpdatePromptID() *VoiceoverUpsertBulk {
+	return u.Update(func(s *VoiceoverUpsert) {
+		s.UpdatePromptID()
+	})
+}
+
+// ClearPromptID clears the value of the "prompt_id" field.
+func (u *VoiceoverUpsertBulk) ClearPromptID() *VoiceoverUpsertBulk {
+	return u.Update(func(s *VoiceoverUpsert) {
+		s.ClearPromptID()
+	})
+}
+
+// SetUserID sets the "user_id" field.
+func (u *VoiceoverUpsertBulk) SetUserID(v uuid.UUID) *VoiceoverUpsertBulk {
+	return u.Update(func(s *VoiceoverUpsert) {
+		s.SetUserID(v)
+	})
+}
+
+// UpdateUserID sets the "user_id" field to the value that was provided on create.
+func (u *VoiceoverUpsertBulk) UpdateUserID() *VoiceoverUpsertBulk {
+	return u.Update(func(s *VoiceoverUpsert) {
+		s.UpdateUserID()
+	})
+}
+
+// SetDeviceInfoID sets the "device_info_id" field.
+func (u *VoiceoverUpsertBulk) SetDeviceInfoID(v uuid.UUID) *VoiceoverUpsertBulk {
+	return u.Update(func(s *VoiceoverUpsert) {
+		s.SetDeviceInfoID(v)
+	})
+}
+
+// UpdateDeviceInfoID sets the "device_info_id" field to the value that was provided on create.
+func (u *VoiceoverUpsertBulk) UpdateDeviceInfoID() *VoiceoverUpsertBulk {
+	return u.Update(func(s *VoiceoverUpsert) {
+		s.UpdateDeviceInfoID()
+	})
+}
+
+// SetModelID sets the "model_id" field.
+func (u *VoiceoverUpsertBulk) SetModelID(v uuid.UUID) *VoiceoverUpsertBulk {
+	return u.Update(func(s *VoiceoverUpsert) {
+		s.SetModelID(v)
+	})
+}
+
+// UpdateModelID sets the "model_id" field to the value that was provided on create.
+func (u *VoiceoverUpsertBulk) UpdateModelID() *VoiceoverUpsertBulk {
+	return u.Update(func(s *VoiceoverUpsert) {
+		s.UpdateModelID()
+	})
+}
+
+// SetSpeakerID sets the "speaker_id" field.
+func (u *VoiceoverUpsertBulk) SetSpeakerID(v uuid.UUID) *VoiceoverUpsertBulk {
+	return u.Update(func(s *VoiceoverUpsert) {
+		s.SetSpeakerID(v)
+	})
+}
+
+// UpdateSpeakerID sets the "speaker_id" field to the value that was provided on create.
+func (u *VoiceoverUpsertBulk) UpdateSpeakerID() *VoiceoverUpsertBulk {
+	return u.Update(func(s *VoiceoverUpsert) {
+		s.UpdateSpeakerID()
+	})
+}
+
+// SetAPITokenID sets the "api_token_id" field.
+func (u *VoiceoverUpsertBulk) SetAPITokenID(v uuid.UUID) *VoiceoverUpsertBulk {
+	return u.Update(func(s *VoiceoverUpsert) {
+		s.SetAPITokenID(v)
+	})
+}
+
+// UpdateAPITokenID sets the "api_token_id" field to the value that was provided on create.
+func (u *VoiceoverUpsertBulk) UpdateAPITokenID() *VoiceoverUpsertBulk {
+	return u.Update(func(s *VoiceoverUpsert) {
+		s.UpdateAPITokenID()
+	})
+}
+
+// ClearAPITokenID clears the value of the "api_token_id" field.
+func (u *VoiceoverUpsertBulk) ClearAPITokenID() *VoiceoverUpsertBulk {
+	return u.Update(func(s *VoiceoverUpsert) {
+		s.ClearAPITokenID()
+	})
+}
+
+// SetStartedAt sets the "started_at" field.
+func (u *VoiceoverUpsertBulk) SetStartedAt(v time.Time) *VoiceoverUpsertBulk {
+	return u.Update(func(s *VoiceoverUpsert) {
+		s.SetStartedAt(v)
+	})
+}
+
+// UpdateStartedAt sets the "started_at" field to the value that was provided on create.
+func (u *VoiceoverUpsertBulk) UpdateStartedAt() *VoiceoverUpsertBulk {
+	return u.Update(func(s *VoiceoverUpsert) {
+		s.UpdateStartedAt()
+	})
+}
+
+// ClearStartedAt clears the value of the "started_at" field.
+func (u *VoiceoverUpsertBulk) ClearStartedAt() *VoiceoverUpsertBulk {
+	return u.Update(func(s *VoiceoverUpsert) {
+		s.ClearStartedAt()
+	})
+}
+
+// SetCompletedAt sets the "completed_at" field.
+func (u *VoiceoverUpsertBulk) SetCompletedAt(v time.Time) *VoiceoverUpsertBulk {
+	return u.Update(func(s *VoiceoverUpsert) {
+		s.SetCompletedAt(v)
+	})
+}
+
+// UpdateCompletedAt sets the "completed_at" field to the value that was provided on create.
+func (u *VoiceoverUpsertBulk) UpdateCompletedAt() *VoiceoverUpsertBulk {
+	return u.Update(func(s *VoiceoverUpsert) {
+		s.UpdateCompletedAt()
+	})
+}
+
+// ClearCompletedAt clears the value of the "completed_at" field.
+func (u *VoiceoverUpsertBulk) ClearCompletedAt() *VoiceoverUpsertBulk {
+	return u.Update(func(s *VoiceoverUpsert) {
+		s.ClearCompletedAt()
+	})
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *VoiceoverUpsertBulk) SetUpdatedAt(v time.Time) *VoiceoverUpsertBulk {
+	return u.Update(func(s *VoiceoverUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *VoiceoverUpsertBulk) UpdateUpdatedAt() *VoiceoverUpsertBulk {
+	return u.Update(func(s *VoiceoverUpsert) {
+		s.UpdateUpdatedAt()
+	})
+}
+
+// Exec executes the query.
+func (u *VoiceoverUpsertBulk) Exec(ctx context.Context) error {
+	for i, b := range u.create.builders {
+		if len(b.conflict) != 0 {
+			return fmt.Errorf("ent: OnConflict was set for builder %d. Set it on the VoiceoverCreateBulk instead", i)
+		}
+	}
+	if len(u.create.conflict) == 0 {
+		return errors.New("ent: missing options for VoiceoverCreateBulk.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *VoiceoverUpsertBulk) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
 		panic(err)
 	}
 }

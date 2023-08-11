@@ -8,6 +8,8 @@ import (
 	"fmt"
 	"time"
 
+	"entgo.io/ent/dialect"
+	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
@@ -21,6 +23,7 @@ type CreditCreate struct {
 	config
 	mutation *CreditMutation
 	hooks    []Hook
+	conflict []sql.ConflictOption
 }
 
 // SetRemainingAmount sets the "remaining_amount" field.
@@ -252,6 +255,7 @@ func (cc *CreditCreate) createSpec() (*Credit, *sqlgraph.CreateSpec) {
 			},
 		}
 	)
+	_spec.OnConflict = cc.conflict
 	if id, ok := cc.mutation.ID(); ok {
 		_node.ID = id
 		_spec.ID.Value = &id
@@ -323,10 +327,357 @@ func (cc *CreditCreate) createSpec() (*Credit, *sqlgraph.CreateSpec) {
 	return _node, _spec
 }
 
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.Credit.Create().
+//		SetRemainingAmount(v).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.CreditUpsert) {
+//			SetRemainingAmount(v+v).
+//		}).
+//		Exec(ctx)
+func (cc *CreditCreate) OnConflict(opts ...sql.ConflictOption) *CreditUpsertOne {
+	cc.conflict = opts
+	return &CreditUpsertOne{
+		create: cc,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.Credit.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (cc *CreditCreate) OnConflictColumns(columns ...string) *CreditUpsertOne {
+	cc.conflict = append(cc.conflict, sql.ConflictColumns(columns...))
+	return &CreditUpsertOne{
+		create: cc,
+	}
+}
+
+type (
+	// CreditUpsertOne is the builder for "upsert"-ing
+	//  one Credit node.
+	CreditUpsertOne struct {
+		create *CreditCreate
+	}
+
+	// CreditUpsert is the "OnConflict" setter.
+	CreditUpsert struct {
+		*sql.UpdateSet
+	}
+)
+
+// SetRemainingAmount sets the "remaining_amount" field.
+func (u *CreditUpsert) SetRemainingAmount(v int32) *CreditUpsert {
+	u.Set(credit.FieldRemainingAmount, v)
+	return u
+}
+
+// UpdateRemainingAmount sets the "remaining_amount" field to the value that was provided on create.
+func (u *CreditUpsert) UpdateRemainingAmount() *CreditUpsert {
+	u.SetExcluded(credit.FieldRemainingAmount)
+	return u
+}
+
+// AddRemainingAmount adds v to the "remaining_amount" field.
+func (u *CreditUpsert) AddRemainingAmount(v int32) *CreditUpsert {
+	u.Add(credit.FieldRemainingAmount, v)
+	return u
+}
+
+// SetExpiresAt sets the "expires_at" field.
+func (u *CreditUpsert) SetExpiresAt(v time.Time) *CreditUpsert {
+	u.Set(credit.FieldExpiresAt, v)
+	return u
+}
+
+// UpdateExpiresAt sets the "expires_at" field to the value that was provided on create.
+func (u *CreditUpsert) UpdateExpiresAt() *CreditUpsert {
+	u.SetExcluded(credit.FieldExpiresAt)
+	return u
+}
+
+// SetStripeLineItemID sets the "stripe_line_item_id" field.
+func (u *CreditUpsert) SetStripeLineItemID(v string) *CreditUpsert {
+	u.Set(credit.FieldStripeLineItemID, v)
+	return u
+}
+
+// UpdateStripeLineItemID sets the "stripe_line_item_id" field to the value that was provided on create.
+func (u *CreditUpsert) UpdateStripeLineItemID() *CreditUpsert {
+	u.SetExcluded(credit.FieldStripeLineItemID)
+	return u
+}
+
+// ClearStripeLineItemID clears the value of the "stripe_line_item_id" field.
+func (u *CreditUpsert) ClearStripeLineItemID() *CreditUpsert {
+	u.SetNull(credit.FieldStripeLineItemID)
+	return u
+}
+
+// SetReplenishedAt sets the "replenished_at" field.
+func (u *CreditUpsert) SetReplenishedAt(v time.Time) *CreditUpsert {
+	u.Set(credit.FieldReplenishedAt, v)
+	return u
+}
+
+// UpdateReplenishedAt sets the "replenished_at" field to the value that was provided on create.
+func (u *CreditUpsert) UpdateReplenishedAt() *CreditUpsert {
+	u.SetExcluded(credit.FieldReplenishedAt)
+	return u
+}
+
+// SetUserID sets the "user_id" field.
+func (u *CreditUpsert) SetUserID(v uuid.UUID) *CreditUpsert {
+	u.Set(credit.FieldUserID, v)
+	return u
+}
+
+// UpdateUserID sets the "user_id" field to the value that was provided on create.
+func (u *CreditUpsert) UpdateUserID() *CreditUpsert {
+	u.SetExcluded(credit.FieldUserID)
+	return u
+}
+
+// SetCreditTypeID sets the "credit_type_id" field.
+func (u *CreditUpsert) SetCreditTypeID(v uuid.UUID) *CreditUpsert {
+	u.Set(credit.FieldCreditTypeID, v)
+	return u
+}
+
+// UpdateCreditTypeID sets the "credit_type_id" field to the value that was provided on create.
+func (u *CreditUpsert) UpdateCreditTypeID() *CreditUpsert {
+	u.SetExcluded(credit.FieldCreditTypeID)
+	return u
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *CreditUpsert) SetUpdatedAt(v time.Time) *CreditUpsert {
+	u.Set(credit.FieldUpdatedAt, v)
+	return u
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *CreditUpsert) UpdateUpdatedAt() *CreditUpsert {
+	u.SetExcluded(credit.FieldUpdatedAt)
+	return u
+}
+
+// UpdateNewValues updates the mutable fields using the new values that were set on create except the ID field.
+// Using this option is equivalent to using:
+//
+//	client.Credit.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(credit.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *CreditUpsertOne) UpdateNewValues() *CreditUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		if _, exists := u.create.mutation.ID(); exists {
+			s.SetIgnore(credit.FieldID)
+		}
+		if _, exists := u.create.mutation.CreatedAt(); exists {
+			s.SetIgnore(credit.FieldCreatedAt)
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.Credit.Create().
+//	    OnConflict(sql.ResolveWithIgnore()).
+//	    Exec(ctx)
+func (u *CreditUpsertOne) Ignore() *CreditUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *CreditUpsertOne) DoNothing() *CreditUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the CreditCreate.OnConflict
+// documentation for more info.
+func (u *CreditUpsertOne) Update(set func(*CreditUpsert)) *CreditUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&CreditUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetRemainingAmount sets the "remaining_amount" field.
+func (u *CreditUpsertOne) SetRemainingAmount(v int32) *CreditUpsertOne {
+	return u.Update(func(s *CreditUpsert) {
+		s.SetRemainingAmount(v)
+	})
+}
+
+// AddRemainingAmount adds v to the "remaining_amount" field.
+func (u *CreditUpsertOne) AddRemainingAmount(v int32) *CreditUpsertOne {
+	return u.Update(func(s *CreditUpsert) {
+		s.AddRemainingAmount(v)
+	})
+}
+
+// UpdateRemainingAmount sets the "remaining_amount" field to the value that was provided on create.
+func (u *CreditUpsertOne) UpdateRemainingAmount() *CreditUpsertOne {
+	return u.Update(func(s *CreditUpsert) {
+		s.UpdateRemainingAmount()
+	})
+}
+
+// SetExpiresAt sets the "expires_at" field.
+func (u *CreditUpsertOne) SetExpiresAt(v time.Time) *CreditUpsertOne {
+	return u.Update(func(s *CreditUpsert) {
+		s.SetExpiresAt(v)
+	})
+}
+
+// UpdateExpiresAt sets the "expires_at" field to the value that was provided on create.
+func (u *CreditUpsertOne) UpdateExpiresAt() *CreditUpsertOne {
+	return u.Update(func(s *CreditUpsert) {
+		s.UpdateExpiresAt()
+	})
+}
+
+// SetStripeLineItemID sets the "stripe_line_item_id" field.
+func (u *CreditUpsertOne) SetStripeLineItemID(v string) *CreditUpsertOne {
+	return u.Update(func(s *CreditUpsert) {
+		s.SetStripeLineItemID(v)
+	})
+}
+
+// UpdateStripeLineItemID sets the "stripe_line_item_id" field to the value that was provided on create.
+func (u *CreditUpsertOne) UpdateStripeLineItemID() *CreditUpsertOne {
+	return u.Update(func(s *CreditUpsert) {
+		s.UpdateStripeLineItemID()
+	})
+}
+
+// ClearStripeLineItemID clears the value of the "stripe_line_item_id" field.
+func (u *CreditUpsertOne) ClearStripeLineItemID() *CreditUpsertOne {
+	return u.Update(func(s *CreditUpsert) {
+		s.ClearStripeLineItemID()
+	})
+}
+
+// SetReplenishedAt sets the "replenished_at" field.
+func (u *CreditUpsertOne) SetReplenishedAt(v time.Time) *CreditUpsertOne {
+	return u.Update(func(s *CreditUpsert) {
+		s.SetReplenishedAt(v)
+	})
+}
+
+// UpdateReplenishedAt sets the "replenished_at" field to the value that was provided on create.
+func (u *CreditUpsertOne) UpdateReplenishedAt() *CreditUpsertOne {
+	return u.Update(func(s *CreditUpsert) {
+		s.UpdateReplenishedAt()
+	})
+}
+
+// SetUserID sets the "user_id" field.
+func (u *CreditUpsertOne) SetUserID(v uuid.UUID) *CreditUpsertOne {
+	return u.Update(func(s *CreditUpsert) {
+		s.SetUserID(v)
+	})
+}
+
+// UpdateUserID sets the "user_id" field to the value that was provided on create.
+func (u *CreditUpsertOne) UpdateUserID() *CreditUpsertOne {
+	return u.Update(func(s *CreditUpsert) {
+		s.UpdateUserID()
+	})
+}
+
+// SetCreditTypeID sets the "credit_type_id" field.
+func (u *CreditUpsertOne) SetCreditTypeID(v uuid.UUID) *CreditUpsertOne {
+	return u.Update(func(s *CreditUpsert) {
+		s.SetCreditTypeID(v)
+	})
+}
+
+// UpdateCreditTypeID sets the "credit_type_id" field to the value that was provided on create.
+func (u *CreditUpsertOne) UpdateCreditTypeID() *CreditUpsertOne {
+	return u.Update(func(s *CreditUpsert) {
+		s.UpdateCreditTypeID()
+	})
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *CreditUpsertOne) SetUpdatedAt(v time.Time) *CreditUpsertOne {
+	return u.Update(func(s *CreditUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *CreditUpsertOne) UpdateUpdatedAt() *CreditUpsertOne {
+	return u.Update(func(s *CreditUpsert) {
+		s.UpdateUpdatedAt()
+	})
+}
+
+// Exec executes the query.
+func (u *CreditUpsertOne) Exec(ctx context.Context) error {
+	if len(u.create.conflict) == 0 {
+		return errors.New("ent: missing options for CreditCreate.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *CreditUpsertOne) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// Exec executes the UPSERT query and returns the inserted/updated ID.
+func (u *CreditUpsertOne) ID(ctx context.Context) (id uuid.UUID, err error) {
+	if u.create.driver.Dialect() == dialect.MySQL {
+		// In case of "ON CONFLICT", there is no way to get back non-numeric ID
+		// fields from the database since MySQL does not support the RETURNING clause.
+		return id, errors.New("ent: CreditUpsertOne.ID is not supported by MySQL driver. Use CreditUpsertOne.Exec instead")
+	}
+	node, err := u.create.Save(ctx)
+	if err != nil {
+		return id, err
+	}
+	return node.ID, nil
+}
+
+// IDX is like ID, but panics if an error occurs.
+func (u *CreditUpsertOne) IDX(ctx context.Context) uuid.UUID {
+	id, err := u.ID(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return id
+}
+
 // CreditCreateBulk is the builder for creating many Credit entities in bulk.
 type CreditCreateBulk struct {
 	config
 	builders []*CreditCreate
+	conflict []sql.ConflictOption
 }
 
 // Save creates the Credit entities in the database.
@@ -353,6 +704,7 @@ func (ccb *CreditCreateBulk) Save(ctx context.Context) ([]*Credit, error) {
 					_, err = mutators[i+1].Mutate(root, ccb.builders[i+1].mutation)
 				} else {
 					spec := &sqlgraph.BatchCreateSpec{Nodes: specs}
+					spec.OnConflict = ccb.conflict
 					// Invoke the actual operation on the latest mutation in the chain.
 					if err = sqlgraph.BatchCreate(ctx, ccb.driver, spec); err != nil {
 						if sqlgraph.IsConstraintError(err) {
@@ -399,6 +751,232 @@ func (ccb *CreditCreateBulk) Exec(ctx context.Context) error {
 // ExecX is like Exec, but panics if an error occurs.
 func (ccb *CreditCreateBulk) ExecX(ctx context.Context) {
 	if err := ccb.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.Credit.CreateBulk(builders...).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.CreditUpsert) {
+//			SetRemainingAmount(v+v).
+//		}).
+//		Exec(ctx)
+func (ccb *CreditCreateBulk) OnConflict(opts ...sql.ConflictOption) *CreditUpsertBulk {
+	ccb.conflict = opts
+	return &CreditUpsertBulk{
+		create: ccb,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.Credit.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (ccb *CreditCreateBulk) OnConflictColumns(columns ...string) *CreditUpsertBulk {
+	ccb.conflict = append(ccb.conflict, sql.ConflictColumns(columns...))
+	return &CreditUpsertBulk{
+		create: ccb,
+	}
+}
+
+// CreditUpsertBulk is the builder for "upsert"-ing
+// a bulk of Credit nodes.
+type CreditUpsertBulk struct {
+	create *CreditCreateBulk
+}
+
+// UpdateNewValues updates the mutable fields using the new values that
+// were set on create. Using this option is equivalent to using:
+//
+//	client.Credit.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(credit.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *CreditUpsertBulk) UpdateNewValues() *CreditUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		for _, b := range u.create.builders {
+			if _, exists := b.mutation.ID(); exists {
+				s.SetIgnore(credit.FieldID)
+			}
+			if _, exists := b.mutation.CreatedAt(); exists {
+				s.SetIgnore(credit.FieldCreatedAt)
+			}
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.Credit.Create().
+//		OnConflict(sql.ResolveWithIgnore()).
+//		Exec(ctx)
+func (u *CreditUpsertBulk) Ignore() *CreditUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *CreditUpsertBulk) DoNothing() *CreditUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the CreditCreateBulk.OnConflict
+// documentation for more info.
+func (u *CreditUpsertBulk) Update(set func(*CreditUpsert)) *CreditUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&CreditUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetRemainingAmount sets the "remaining_amount" field.
+func (u *CreditUpsertBulk) SetRemainingAmount(v int32) *CreditUpsertBulk {
+	return u.Update(func(s *CreditUpsert) {
+		s.SetRemainingAmount(v)
+	})
+}
+
+// AddRemainingAmount adds v to the "remaining_amount" field.
+func (u *CreditUpsertBulk) AddRemainingAmount(v int32) *CreditUpsertBulk {
+	return u.Update(func(s *CreditUpsert) {
+		s.AddRemainingAmount(v)
+	})
+}
+
+// UpdateRemainingAmount sets the "remaining_amount" field to the value that was provided on create.
+func (u *CreditUpsertBulk) UpdateRemainingAmount() *CreditUpsertBulk {
+	return u.Update(func(s *CreditUpsert) {
+		s.UpdateRemainingAmount()
+	})
+}
+
+// SetExpiresAt sets the "expires_at" field.
+func (u *CreditUpsertBulk) SetExpiresAt(v time.Time) *CreditUpsertBulk {
+	return u.Update(func(s *CreditUpsert) {
+		s.SetExpiresAt(v)
+	})
+}
+
+// UpdateExpiresAt sets the "expires_at" field to the value that was provided on create.
+func (u *CreditUpsertBulk) UpdateExpiresAt() *CreditUpsertBulk {
+	return u.Update(func(s *CreditUpsert) {
+		s.UpdateExpiresAt()
+	})
+}
+
+// SetStripeLineItemID sets the "stripe_line_item_id" field.
+func (u *CreditUpsertBulk) SetStripeLineItemID(v string) *CreditUpsertBulk {
+	return u.Update(func(s *CreditUpsert) {
+		s.SetStripeLineItemID(v)
+	})
+}
+
+// UpdateStripeLineItemID sets the "stripe_line_item_id" field to the value that was provided on create.
+func (u *CreditUpsertBulk) UpdateStripeLineItemID() *CreditUpsertBulk {
+	return u.Update(func(s *CreditUpsert) {
+		s.UpdateStripeLineItemID()
+	})
+}
+
+// ClearStripeLineItemID clears the value of the "stripe_line_item_id" field.
+func (u *CreditUpsertBulk) ClearStripeLineItemID() *CreditUpsertBulk {
+	return u.Update(func(s *CreditUpsert) {
+		s.ClearStripeLineItemID()
+	})
+}
+
+// SetReplenishedAt sets the "replenished_at" field.
+func (u *CreditUpsertBulk) SetReplenishedAt(v time.Time) *CreditUpsertBulk {
+	return u.Update(func(s *CreditUpsert) {
+		s.SetReplenishedAt(v)
+	})
+}
+
+// UpdateReplenishedAt sets the "replenished_at" field to the value that was provided on create.
+func (u *CreditUpsertBulk) UpdateReplenishedAt() *CreditUpsertBulk {
+	return u.Update(func(s *CreditUpsert) {
+		s.UpdateReplenishedAt()
+	})
+}
+
+// SetUserID sets the "user_id" field.
+func (u *CreditUpsertBulk) SetUserID(v uuid.UUID) *CreditUpsertBulk {
+	return u.Update(func(s *CreditUpsert) {
+		s.SetUserID(v)
+	})
+}
+
+// UpdateUserID sets the "user_id" field to the value that was provided on create.
+func (u *CreditUpsertBulk) UpdateUserID() *CreditUpsertBulk {
+	return u.Update(func(s *CreditUpsert) {
+		s.UpdateUserID()
+	})
+}
+
+// SetCreditTypeID sets the "credit_type_id" field.
+func (u *CreditUpsertBulk) SetCreditTypeID(v uuid.UUID) *CreditUpsertBulk {
+	return u.Update(func(s *CreditUpsert) {
+		s.SetCreditTypeID(v)
+	})
+}
+
+// UpdateCreditTypeID sets the "credit_type_id" field to the value that was provided on create.
+func (u *CreditUpsertBulk) UpdateCreditTypeID() *CreditUpsertBulk {
+	return u.Update(func(s *CreditUpsert) {
+		s.UpdateCreditTypeID()
+	})
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *CreditUpsertBulk) SetUpdatedAt(v time.Time) *CreditUpsertBulk {
+	return u.Update(func(s *CreditUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *CreditUpsertBulk) UpdateUpdatedAt() *CreditUpsertBulk {
+	return u.Update(func(s *CreditUpsert) {
+		s.UpdateUpdatedAt()
+	})
+}
+
+// Exec executes the query.
+func (u *CreditUpsertBulk) Exec(ctx context.Context) error {
+	for i, b := range u.create.builders {
+		if len(b.conflict) != 0 {
+			return fmt.Errorf("ent: OnConflict was set for builder %d. Set it on the CreditCreateBulk instead", i)
+		}
+	}
+	if len(u.create.conflict) == 0 {
+		return errors.New("ent: missing options for CreditCreateBulk.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *CreditUpsertBulk) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
 		panic(err)
 	}
 }

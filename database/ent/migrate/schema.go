@@ -221,6 +221,26 @@ var (
 				Unique:  false,
 				Columns: []*schema.Column{GenerationsColumns[19]},
 			},
+			{
+				Name:    "generation_status",
+				Unique:  false,
+				Columns: []*schema.Column{GenerationsColumns[8]},
+			},
+			{
+				Name:    "generation_user_id",
+				Unique:  false,
+				Columns: []*schema.Column{GenerationsColumns[26]},
+			},
+			{
+				Name:    "generation_negative_prompt_id",
+				Unique:  false,
+				Columns: []*schema.Column{GenerationsColumns[23]},
+			},
+			{
+				Name:    "generation_prompt_id",
+				Unique:  false,
+				Columns: []*schema.Column{GenerationsColumns[24]},
+			},
 		},
 	}
 	// GenerationModelsColumns holds the columns for the "generation_models" table.
@@ -294,6 +314,11 @@ var (
 				Name:    "generationoutput_generation_id",
 				Unique:  false,
 				Columns: []*schema.Column{GenerationOutputsColumns[10]},
+			},
+			{
+				Name:    "generationoutput_deleted_at_is_public",
+				Unique:  false,
+				Columns: []*schema.Column{GenerationOutputsColumns[7], GenerationOutputsColumns[6]},
 			},
 		},
 	}

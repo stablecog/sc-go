@@ -22,6 +22,42 @@ import (
 	"golang.org/x/exp/slices"
 )
 
+type BanDomainRequest struct {
+	Domains []string `json:"domains"`
+}
+
+type BannedResponse struct {
+	BannedUsers int `json:"banned_users"`
+}
+
+// Bulk ban email domains
+func (c *RestAPI) HandleBanDomains(w http.ResponseWriter, r *http.Request) {
+	if user, email := c.GetUserIDAndEmailIfAuthenticated(w, r); user == nil || email == "" {
+		return
+	}
+
+	// Parse request body
+	reqBody, _ := io.ReadAll(r.Body)
+	var banDomainsReq BanDomainRequest
+	err := json.Unmarshal(reqBody, &banDomainsReq)
+	if err != nil {
+		responses.ErrUnableToParseJson(w, r)
+		return
+	}
+
+	// Exec ban
+	affected, err := c.Repo.BanDomains(banDomainsReq.Domains)
+	if err != nil {
+		responses.ErrInternalServerError(w, r, err.Error())
+		return
+	}
+
+	render.Status(r, http.StatusOK)
+	render.JSON(w, r, BannedResponse{
+		BannedUsers: affected,
+	})
+}
+
 // Admin-related routes, these must be behind admin middleware and auth middleware
 // HTTP POST - admin ban user
 func (c *RestAPI) HandleBanUser(w http.ResponseWriter, r *http.Request) {

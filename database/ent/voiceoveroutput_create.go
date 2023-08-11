@@ -8,6 +8,8 @@ import (
 	"fmt"
 	"time"
 
+	"entgo.io/ent/dialect"
+	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
@@ -20,6 +22,7 @@ type VoiceoverOutputCreate struct {
 	config
 	mutation *VoiceoverOutputMutation
 	hooks    []Hook
+	conflict []sql.ConflictOption
 }
 
 // SetAudioPath sets the "audio_path" field.
@@ -280,6 +283,7 @@ func (voc *VoiceoverOutputCreate) createSpec() (*VoiceoverOutput, *sqlgraph.Crea
 			},
 		}
 	)
+	_spec.OnConflict = voc.conflict
 	if id, ok := voc.mutation.ID(); ok {
 		_node.ID = id
 		_spec.ID.Value = &id
@@ -343,10 +347,435 @@ func (voc *VoiceoverOutputCreate) createSpec() (*VoiceoverOutput, *sqlgraph.Crea
 	return _node, _spec
 }
 
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.VoiceoverOutput.Create().
+//		SetAudioPath(v).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.VoiceoverOutputUpsert) {
+//			SetAudioPath(v+v).
+//		}).
+//		Exec(ctx)
+func (voc *VoiceoverOutputCreate) OnConflict(opts ...sql.ConflictOption) *VoiceoverOutputUpsertOne {
+	voc.conflict = opts
+	return &VoiceoverOutputUpsertOne{
+		create: voc,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.VoiceoverOutput.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (voc *VoiceoverOutputCreate) OnConflictColumns(columns ...string) *VoiceoverOutputUpsertOne {
+	voc.conflict = append(voc.conflict, sql.ConflictColumns(columns...))
+	return &VoiceoverOutputUpsertOne{
+		create: voc,
+	}
+}
+
+type (
+	// VoiceoverOutputUpsertOne is the builder for "upsert"-ing
+	//  one VoiceoverOutput node.
+	VoiceoverOutputUpsertOne struct {
+		create *VoiceoverOutputCreate
+	}
+
+	// VoiceoverOutputUpsert is the "OnConflict" setter.
+	VoiceoverOutputUpsert struct {
+		*sql.UpdateSet
+	}
+)
+
+// SetAudioPath sets the "audio_path" field.
+func (u *VoiceoverOutputUpsert) SetAudioPath(v string) *VoiceoverOutputUpsert {
+	u.Set(voiceoveroutput.FieldAudioPath, v)
+	return u
+}
+
+// UpdateAudioPath sets the "audio_path" field to the value that was provided on create.
+func (u *VoiceoverOutputUpsert) UpdateAudioPath() *VoiceoverOutputUpsert {
+	u.SetExcluded(voiceoveroutput.FieldAudioPath)
+	return u
+}
+
+// SetVideoPath sets the "video_path" field.
+func (u *VoiceoverOutputUpsert) SetVideoPath(v string) *VoiceoverOutputUpsert {
+	u.Set(voiceoveroutput.FieldVideoPath, v)
+	return u
+}
+
+// UpdateVideoPath sets the "video_path" field to the value that was provided on create.
+func (u *VoiceoverOutputUpsert) UpdateVideoPath() *VoiceoverOutputUpsert {
+	u.SetExcluded(voiceoveroutput.FieldVideoPath)
+	return u
+}
+
+// ClearVideoPath clears the value of the "video_path" field.
+func (u *VoiceoverOutputUpsert) ClearVideoPath() *VoiceoverOutputUpsert {
+	u.SetNull(voiceoveroutput.FieldVideoPath)
+	return u
+}
+
+// SetAudioArray sets the "audio_array" field.
+func (u *VoiceoverOutputUpsert) SetAudioArray(v []float64) *VoiceoverOutputUpsert {
+	u.Set(voiceoveroutput.FieldAudioArray, v)
+	return u
+}
+
+// UpdateAudioArray sets the "audio_array" field to the value that was provided on create.
+func (u *VoiceoverOutputUpsert) UpdateAudioArray() *VoiceoverOutputUpsert {
+	u.SetExcluded(voiceoveroutput.FieldAudioArray)
+	return u
+}
+
+// ClearAudioArray clears the value of the "audio_array" field.
+func (u *VoiceoverOutputUpsert) ClearAudioArray() *VoiceoverOutputUpsert {
+	u.SetNull(voiceoveroutput.FieldAudioArray)
+	return u
+}
+
+// SetIsFavorited sets the "is_favorited" field.
+func (u *VoiceoverOutputUpsert) SetIsFavorited(v bool) *VoiceoverOutputUpsert {
+	u.Set(voiceoveroutput.FieldIsFavorited, v)
+	return u
+}
+
+// UpdateIsFavorited sets the "is_favorited" field to the value that was provided on create.
+func (u *VoiceoverOutputUpsert) UpdateIsFavorited() *VoiceoverOutputUpsert {
+	u.SetExcluded(voiceoveroutput.FieldIsFavorited)
+	return u
+}
+
+// SetAudioDuration sets the "audio_duration" field.
+func (u *VoiceoverOutputUpsert) SetAudioDuration(v float32) *VoiceoverOutputUpsert {
+	u.Set(voiceoveroutput.FieldAudioDuration, v)
+	return u
+}
+
+// UpdateAudioDuration sets the "audio_duration" field to the value that was provided on create.
+func (u *VoiceoverOutputUpsert) UpdateAudioDuration() *VoiceoverOutputUpsert {
+	u.SetExcluded(voiceoveroutput.FieldAudioDuration)
+	return u
+}
+
+// AddAudioDuration adds v to the "audio_duration" field.
+func (u *VoiceoverOutputUpsert) AddAudioDuration(v float32) *VoiceoverOutputUpsert {
+	u.Add(voiceoveroutput.FieldAudioDuration, v)
+	return u
+}
+
+// SetGalleryStatus sets the "gallery_status" field.
+func (u *VoiceoverOutputUpsert) SetGalleryStatus(v voiceoveroutput.GalleryStatus) *VoiceoverOutputUpsert {
+	u.Set(voiceoveroutput.FieldGalleryStatus, v)
+	return u
+}
+
+// UpdateGalleryStatus sets the "gallery_status" field to the value that was provided on create.
+func (u *VoiceoverOutputUpsert) UpdateGalleryStatus() *VoiceoverOutputUpsert {
+	u.SetExcluded(voiceoveroutput.FieldGalleryStatus)
+	return u
+}
+
+// SetVoiceoverID sets the "voiceover_id" field.
+func (u *VoiceoverOutputUpsert) SetVoiceoverID(v uuid.UUID) *VoiceoverOutputUpsert {
+	u.Set(voiceoveroutput.FieldVoiceoverID, v)
+	return u
+}
+
+// UpdateVoiceoverID sets the "voiceover_id" field to the value that was provided on create.
+func (u *VoiceoverOutputUpsert) UpdateVoiceoverID() *VoiceoverOutputUpsert {
+	u.SetExcluded(voiceoveroutput.FieldVoiceoverID)
+	return u
+}
+
+// SetDeletedAt sets the "deleted_at" field.
+func (u *VoiceoverOutputUpsert) SetDeletedAt(v time.Time) *VoiceoverOutputUpsert {
+	u.Set(voiceoveroutput.FieldDeletedAt, v)
+	return u
+}
+
+// UpdateDeletedAt sets the "deleted_at" field to the value that was provided on create.
+func (u *VoiceoverOutputUpsert) UpdateDeletedAt() *VoiceoverOutputUpsert {
+	u.SetExcluded(voiceoveroutput.FieldDeletedAt)
+	return u
+}
+
+// ClearDeletedAt clears the value of the "deleted_at" field.
+func (u *VoiceoverOutputUpsert) ClearDeletedAt() *VoiceoverOutputUpsert {
+	u.SetNull(voiceoveroutput.FieldDeletedAt)
+	return u
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *VoiceoverOutputUpsert) SetUpdatedAt(v time.Time) *VoiceoverOutputUpsert {
+	u.Set(voiceoveroutput.FieldUpdatedAt, v)
+	return u
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *VoiceoverOutputUpsert) UpdateUpdatedAt() *VoiceoverOutputUpsert {
+	u.SetExcluded(voiceoveroutput.FieldUpdatedAt)
+	return u
+}
+
+// UpdateNewValues updates the mutable fields using the new values that were set on create except the ID field.
+// Using this option is equivalent to using:
+//
+//	client.VoiceoverOutput.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(voiceoveroutput.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *VoiceoverOutputUpsertOne) UpdateNewValues() *VoiceoverOutputUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		if _, exists := u.create.mutation.ID(); exists {
+			s.SetIgnore(voiceoveroutput.FieldID)
+		}
+		if _, exists := u.create.mutation.CreatedAt(); exists {
+			s.SetIgnore(voiceoveroutput.FieldCreatedAt)
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.VoiceoverOutput.Create().
+//	    OnConflict(sql.ResolveWithIgnore()).
+//	    Exec(ctx)
+func (u *VoiceoverOutputUpsertOne) Ignore() *VoiceoverOutputUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *VoiceoverOutputUpsertOne) DoNothing() *VoiceoverOutputUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the VoiceoverOutputCreate.OnConflict
+// documentation for more info.
+func (u *VoiceoverOutputUpsertOne) Update(set func(*VoiceoverOutputUpsert)) *VoiceoverOutputUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&VoiceoverOutputUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetAudioPath sets the "audio_path" field.
+func (u *VoiceoverOutputUpsertOne) SetAudioPath(v string) *VoiceoverOutputUpsertOne {
+	return u.Update(func(s *VoiceoverOutputUpsert) {
+		s.SetAudioPath(v)
+	})
+}
+
+// UpdateAudioPath sets the "audio_path" field to the value that was provided on create.
+func (u *VoiceoverOutputUpsertOne) UpdateAudioPath() *VoiceoverOutputUpsertOne {
+	return u.Update(func(s *VoiceoverOutputUpsert) {
+		s.UpdateAudioPath()
+	})
+}
+
+// SetVideoPath sets the "video_path" field.
+func (u *VoiceoverOutputUpsertOne) SetVideoPath(v string) *VoiceoverOutputUpsertOne {
+	return u.Update(func(s *VoiceoverOutputUpsert) {
+		s.SetVideoPath(v)
+	})
+}
+
+// UpdateVideoPath sets the "video_path" field to the value that was provided on create.
+func (u *VoiceoverOutputUpsertOne) UpdateVideoPath() *VoiceoverOutputUpsertOne {
+	return u.Update(func(s *VoiceoverOutputUpsert) {
+		s.UpdateVideoPath()
+	})
+}
+
+// ClearVideoPath clears the value of the "video_path" field.
+func (u *VoiceoverOutputUpsertOne) ClearVideoPath() *VoiceoverOutputUpsertOne {
+	return u.Update(func(s *VoiceoverOutputUpsert) {
+		s.ClearVideoPath()
+	})
+}
+
+// SetAudioArray sets the "audio_array" field.
+func (u *VoiceoverOutputUpsertOne) SetAudioArray(v []float64) *VoiceoverOutputUpsertOne {
+	return u.Update(func(s *VoiceoverOutputUpsert) {
+		s.SetAudioArray(v)
+	})
+}
+
+// UpdateAudioArray sets the "audio_array" field to the value that was provided on create.
+func (u *VoiceoverOutputUpsertOne) UpdateAudioArray() *VoiceoverOutputUpsertOne {
+	return u.Update(func(s *VoiceoverOutputUpsert) {
+		s.UpdateAudioArray()
+	})
+}
+
+// ClearAudioArray clears the value of the "audio_array" field.
+func (u *VoiceoverOutputUpsertOne) ClearAudioArray() *VoiceoverOutputUpsertOne {
+	return u.Update(func(s *VoiceoverOutputUpsert) {
+		s.ClearAudioArray()
+	})
+}
+
+// SetIsFavorited sets the "is_favorited" field.
+func (u *VoiceoverOutputUpsertOne) SetIsFavorited(v bool) *VoiceoverOutputUpsertOne {
+	return u.Update(func(s *VoiceoverOutputUpsert) {
+		s.SetIsFavorited(v)
+	})
+}
+
+// UpdateIsFavorited sets the "is_favorited" field to the value that was provided on create.
+func (u *VoiceoverOutputUpsertOne) UpdateIsFavorited() *VoiceoverOutputUpsertOne {
+	return u.Update(func(s *VoiceoverOutputUpsert) {
+		s.UpdateIsFavorited()
+	})
+}
+
+// SetAudioDuration sets the "audio_duration" field.
+func (u *VoiceoverOutputUpsertOne) SetAudioDuration(v float32) *VoiceoverOutputUpsertOne {
+	return u.Update(func(s *VoiceoverOutputUpsert) {
+		s.SetAudioDuration(v)
+	})
+}
+
+// AddAudioDuration adds v to the "audio_duration" field.
+func (u *VoiceoverOutputUpsertOne) AddAudioDuration(v float32) *VoiceoverOutputUpsertOne {
+	return u.Update(func(s *VoiceoverOutputUpsert) {
+		s.AddAudioDuration(v)
+	})
+}
+
+// UpdateAudioDuration sets the "audio_duration" field to the value that was provided on create.
+func (u *VoiceoverOutputUpsertOne) UpdateAudioDuration() *VoiceoverOutputUpsertOne {
+	return u.Update(func(s *VoiceoverOutputUpsert) {
+		s.UpdateAudioDuration()
+	})
+}
+
+// SetGalleryStatus sets the "gallery_status" field.
+func (u *VoiceoverOutputUpsertOne) SetGalleryStatus(v voiceoveroutput.GalleryStatus) *VoiceoverOutputUpsertOne {
+	return u.Update(func(s *VoiceoverOutputUpsert) {
+		s.SetGalleryStatus(v)
+	})
+}
+
+// UpdateGalleryStatus sets the "gallery_status" field to the value that was provided on create.
+func (u *VoiceoverOutputUpsertOne) UpdateGalleryStatus() *VoiceoverOutputUpsertOne {
+	return u.Update(func(s *VoiceoverOutputUpsert) {
+		s.UpdateGalleryStatus()
+	})
+}
+
+// SetVoiceoverID sets the "voiceover_id" field.
+func (u *VoiceoverOutputUpsertOne) SetVoiceoverID(v uuid.UUID) *VoiceoverOutputUpsertOne {
+	return u.Update(func(s *VoiceoverOutputUpsert) {
+		s.SetVoiceoverID(v)
+	})
+}
+
+// UpdateVoiceoverID sets the "voiceover_id" field to the value that was provided on create.
+func (u *VoiceoverOutputUpsertOne) UpdateVoiceoverID() *VoiceoverOutputUpsertOne {
+	return u.Update(func(s *VoiceoverOutputUpsert) {
+		s.UpdateVoiceoverID()
+	})
+}
+
+// SetDeletedAt sets the "deleted_at" field.
+func (u *VoiceoverOutputUpsertOne) SetDeletedAt(v time.Time) *VoiceoverOutputUpsertOne {
+	return u.Update(func(s *VoiceoverOutputUpsert) {
+		s.SetDeletedAt(v)
+	})
+}
+
+// UpdateDeletedAt sets the "deleted_at" field to the value that was provided on create.
+func (u *VoiceoverOutputUpsertOne) UpdateDeletedAt() *VoiceoverOutputUpsertOne {
+	return u.Update(func(s *VoiceoverOutputUpsert) {
+		s.UpdateDeletedAt()
+	})
+}
+
+// ClearDeletedAt clears the value of the "deleted_at" field.
+func (u *VoiceoverOutputUpsertOne) ClearDeletedAt() *VoiceoverOutputUpsertOne {
+	return u.Update(func(s *VoiceoverOutputUpsert) {
+		s.ClearDeletedAt()
+	})
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *VoiceoverOutputUpsertOne) SetUpdatedAt(v time.Time) *VoiceoverOutputUpsertOne {
+	return u.Update(func(s *VoiceoverOutputUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *VoiceoverOutputUpsertOne) UpdateUpdatedAt() *VoiceoverOutputUpsertOne {
+	return u.Update(func(s *VoiceoverOutputUpsert) {
+		s.UpdateUpdatedAt()
+	})
+}
+
+// Exec executes the query.
+func (u *VoiceoverOutputUpsertOne) Exec(ctx context.Context) error {
+	if len(u.create.conflict) == 0 {
+		return errors.New("ent: missing options for VoiceoverOutputCreate.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *VoiceoverOutputUpsertOne) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// Exec executes the UPSERT query and returns the inserted/updated ID.
+func (u *VoiceoverOutputUpsertOne) ID(ctx context.Context) (id uuid.UUID, err error) {
+	if u.create.driver.Dialect() == dialect.MySQL {
+		// In case of "ON CONFLICT", there is no way to get back non-numeric ID
+		// fields from the database since MySQL does not support the RETURNING clause.
+		return id, errors.New("ent: VoiceoverOutputUpsertOne.ID is not supported by MySQL driver. Use VoiceoverOutputUpsertOne.Exec instead")
+	}
+	node, err := u.create.Save(ctx)
+	if err != nil {
+		return id, err
+	}
+	return node.ID, nil
+}
+
+// IDX is like ID, but panics if an error occurs.
+func (u *VoiceoverOutputUpsertOne) IDX(ctx context.Context) uuid.UUID {
+	id, err := u.ID(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return id
+}
+
 // VoiceoverOutputCreateBulk is the builder for creating many VoiceoverOutput entities in bulk.
 type VoiceoverOutputCreateBulk struct {
 	config
 	builders []*VoiceoverOutputCreate
+	conflict []sql.ConflictOption
 }
 
 // Save creates the VoiceoverOutput entities in the database.
@@ -373,6 +802,7 @@ func (vocb *VoiceoverOutputCreateBulk) Save(ctx context.Context) ([]*VoiceoverOu
 					_, err = mutators[i+1].Mutate(root, vocb.builders[i+1].mutation)
 				} else {
 					spec := &sqlgraph.BatchCreateSpec{Nodes: specs}
+					spec.OnConflict = vocb.conflict
 					// Invoke the actual operation on the latest mutation in the chain.
 					if err = sqlgraph.BatchCreate(ctx, vocb.driver, spec); err != nil {
 						if sqlgraph.IsConstraintError(err) {
@@ -419,6 +849,274 @@ func (vocb *VoiceoverOutputCreateBulk) Exec(ctx context.Context) error {
 // ExecX is like Exec, but panics if an error occurs.
 func (vocb *VoiceoverOutputCreateBulk) ExecX(ctx context.Context) {
 	if err := vocb.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.VoiceoverOutput.CreateBulk(builders...).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.VoiceoverOutputUpsert) {
+//			SetAudioPath(v+v).
+//		}).
+//		Exec(ctx)
+func (vocb *VoiceoverOutputCreateBulk) OnConflict(opts ...sql.ConflictOption) *VoiceoverOutputUpsertBulk {
+	vocb.conflict = opts
+	return &VoiceoverOutputUpsertBulk{
+		create: vocb,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.VoiceoverOutput.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (vocb *VoiceoverOutputCreateBulk) OnConflictColumns(columns ...string) *VoiceoverOutputUpsertBulk {
+	vocb.conflict = append(vocb.conflict, sql.ConflictColumns(columns...))
+	return &VoiceoverOutputUpsertBulk{
+		create: vocb,
+	}
+}
+
+// VoiceoverOutputUpsertBulk is the builder for "upsert"-ing
+// a bulk of VoiceoverOutput nodes.
+type VoiceoverOutputUpsertBulk struct {
+	create *VoiceoverOutputCreateBulk
+}
+
+// UpdateNewValues updates the mutable fields using the new values that
+// were set on create. Using this option is equivalent to using:
+//
+//	client.VoiceoverOutput.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(voiceoveroutput.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *VoiceoverOutputUpsertBulk) UpdateNewValues() *VoiceoverOutputUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		for _, b := range u.create.builders {
+			if _, exists := b.mutation.ID(); exists {
+				s.SetIgnore(voiceoveroutput.FieldID)
+			}
+			if _, exists := b.mutation.CreatedAt(); exists {
+				s.SetIgnore(voiceoveroutput.FieldCreatedAt)
+			}
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.VoiceoverOutput.Create().
+//		OnConflict(sql.ResolveWithIgnore()).
+//		Exec(ctx)
+func (u *VoiceoverOutputUpsertBulk) Ignore() *VoiceoverOutputUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *VoiceoverOutputUpsertBulk) DoNothing() *VoiceoverOutputUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the VoiceoverOutputCreateBulk.OnConflict
+// documentation for more info.
+func (u *VoiceoverOutputUpsertBulk) Update(set func(*VoiceoverOutputUpsert)) *VoiceoverOutputUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&VoiceoverOutputUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetAudioPath sets the "audio_path" field.
+func (u *VoiceoverOutputUpsertBulk) SetAudioPath(v string) *VoiceoverOutputUpsertBulk {
+	return u.Update(func(s *VoiceoverOutputUpsert) {
+		s.SetAudioPath(v)
+	})
+}
+
+// UpdateAudioPath sets the "audio_path" field to the value that was provided on create.
+func (u *VoiceoverOutputUpsertBulk) UpdateAudioPath() *VoiceoverOutputUpsertBulk {
+	return u.Update(func(s *VoiceoverOutputUpsert) {
+		s.UpdateAudioPath()
+	})
+}
+
+// SetVideoPath sets the "video_path" field.
+func (u *VoiceoverOutputUpsertBulk) SetVideoPath(v string) *VoiceoverOutputUpsertBulk {
+	return u.Update(func(s *VoiceoverOutputUpsert) {
+		s.SetVideoPath(v)
+	})
+}
+
+// UpdateVideoPath sets the "video_path" field to the value that was provided on create.
+func (u *VoiceoverOutputUpsertBulk) UpdateVideoPath() *VoiceoverOutputUpsertBulk {
+	return u.Update(func(s *VoiceoverOutputUpsert) {
+		s.UpdateVideoPath()
+	})
+}
+
+// ClearVideoPath clears the value of the "video_path" field.
+func (u *VoiceoverOutputUpsertBulk) ClearVideoPath() *VoiceoverOutputUpsertBulk {
+	return u.Update(func(s *VoiceoverOutputUpsert) {
+		s.ClearVideoPath()
+	})
+}
+
+// SetAudioArray sets the "audio_array" field.
+func (u *VoiceoverOutputUpsertBulk) SetAudioArray(v []float64) *VoiceoverOutputUpsertBulk {
+	return u.Update(func(s *VoiceoverOutputUpsert) {
+		s.SetAudioArray(v)
+	})
+}
+
+// UpdateAudioArray sets the "audio_array" field to the value that was provided on create.
+func (u *VoiceoverOutputUpsertBulk) UpdateAudioArray() *VoiceoverOutputUpsertBulk {
+	return u.Update(func(s *VoiceoverOutputUpsert) {
+		s.UpdateAudioArray()
+	})
+}
+
+// ClearAudioArray clears the value of the "audio_array" field.
+func (u *VoiceoverOutputUpsertBulk) ClearAudioArray() *VoiceoverOutputUpsertBulk {
+	return u.Update(func(s *VoiceoverOutputUpsert) {
+		s.ClearAudioArray()
+	})
+}
+
+// SetIsFavorited sets the "is_favorited" field.
+func (u *VoiceoverOutputUpsertBulk) SetIsFavorited(v bool) *VoiceoverOutputUpsertBulk {
+	return u.Update(func(s *VoiceoverOutputUpsert) {
+		s.SetIsFavorited(v)
+	})
+}
+
+// UpdateIsFavorited sets the "is_favorited" field to the value that was provided on create.
+func (u *VoiceoverOutputUpsertBulk) UpdateIsFavorited() *VoiceoverOutputUpsertBulk {
+	return u.Update(func(s *VoiceoverOutputUpsert) {
+		s.UpdateIsFavorited()
+	})
+}
+
+// SetAudioDuration sets the "audio_duration" field.
+func (u *VoiceoverOutputUpsertBulk) SetAudioDuration(v float32) *VoiceoverOutputUpsertBulk {
+	return u.Update(func(s *VoiceoverOutputUpsert) {
+		s.SetAudioDuration(v)
+	})
+}
+
+// AddAudioDuration adds v to the "audio_duration" field.
+func (u *VoiceoverOutputUpsertBulk) AddAudioDuration(v float32) *VoiceoverOutputUpsertBulk {
+	return u.Update(func(s *VoiceoverOutputUpsert) {
+		s.AddAudioDuration(v)
+	})
+}
+
+// UpdateAudioDuration sets the "audio_duration" field to the value that was provided on create.
+func (u *VoiceoverOutputUpsertBulk) UpdateAudioDuration() *VoiceoverOutputUpsertBulk {
+	return u.Update(func(s *VoiceoverOutputUpsert) {
+		s.UpdateAudioDuration()
+	})
+}
+
+// SetGalleryStatus sets the "gallery_status" field.
+func (u *VoiceoverOutputUpsertBulk) SetGalleryStatus(v voiceoveroutput.GalleryStatus) *VoiceoverOutputUpsertBulk {
+	return u.Update(func(s *VoiceoverOutputUpsert) {
+		s.SetGalleryStatus(v)
+	})
+}
+
+// UpdateGalleryStatus sets the "gallery_status" field to the value that was provided on create.
+func (u *VoiceoverOutputUpsertBulk) UpdateGalleryStatus() *VoiceoverOutputUpsertBulk {
+	return u.Update(func(s *VoiceoverOutputUpsert) {
+		s.UpdateGalleryStatus()
+	})
+}
+
+// SetVoiceoverID sets the "voiceover_id" field.
+func (u *VoiceoverOutputUpsertBulk) SetVoiceoverID(v uuid.UUID) *VoiceoverOutputUpsertBulk {
+	return u.Update(func(s *VoiceoverOutputUpsert) {
+		s.SetVoiceoverID(v)
+	})
+}
+
+// UpdateVoiceoverID sets the "voiceover_id" field to the value that was provided on create.
+func (u *VoiceoverOutputUpsertBulk) UpdateVoiceoverID() *VoiceoverOutputUpsertBulk {
+	return u.Update(func(s *VoiceoverOutputUpsert) {
+		s.UpdateVoiceoverID()
+	})
+}
+
+// SetDeletedAt sets the "deleted_at" field.
+func (u *VoiceoverOutputUpsertBulk) SetDeletedAt(v time.Time) *VoiceoverOutputUpsertBulk {
+	return u.Update(func(s *VoiceoverOutputUpsert) {
+		s.SetDeletedAt(v)
+	})
+}
+
+// UpdateDeletedAt sets the "deleted_at" field to the value that was provided on create.
+func (u *VoiceoverOutputUpsertBulk) UpdateDeletedAt() *VoiceoverOutputUpsertBulk {
+	return u.Update(func(s *VoiceoverOutputUpsert) {
+		s.UpdateDeletedAt()
+	})
+}
+
+// ClearDeletedAt clears the value of the "deleted_at" field.
+func (u *VoiceoverOutputUpsertBulk) ClearDeletedAt() *VoiceoverOutputUpsertBulk {
+	return u.Update(func(s *VoiceoverOutputUpsert) {
+		s.ClearDeletedAt()
+	})
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *VoiceoverOutputUpsertBulk) SetUpdatedAt(v time.Time) *VoiceoverOutputUpsertBulk {
+	return u.Update(func(s *VoiceoverOutputUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *VoiceoverOutputUpsertBulk) UpdateUpdatedAt() *VoiceoverOutputUpsertBulk {
+	return u.Update(func(s *VoiceoverOutputUpsert) {
+		s.UpdateUpdatedAt()
+	})
+}
+
+// Exec executes the query.
+func (u *VoiceoverOutputUpsertBulk) Exec(ctx context.Context) error {
+	for i, b := range u.create.builders {
+		if len(b.conflict) != 0 {
+			return fmt.Errorf("ent: OnConflict was set for builder %d. Set it on the VoiceoverOutputCreateBulk instead", i)
+		}
+	}
+	if len(u.create.conflict) == 0 {
+		return errors.New("ent: missing options for VoiceoverOutputCreateBulk.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *VoiceoverOutputUpsertBulk) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
 		panic(err)
 	}
 }

@@ -8,6 +8,8 @@ import (
 	"fmt"
 	"time"
 
+	"entgo.io/ent/dialect"
+	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
@@ -20,6 +22,7 @@ type TipLogCreate struct {
 	config
 	mutation *TipLogMutation
 	hooks    []Hook
+	conflict []sql.ConflictOption
 }
 
 // SetAmount sets the "amount" field.
@@ -232,6 +235,7 @@ func (tlc *TipLogCreate) createSpec() (*TipLog, *sqlgraph.CreateSpec) {
 			},
 		}
 	)
+	_spec.OnConflict = tlc.conflict
 	if id, ok := tlc.mutation.ID(); ok {
 		_node.ID = id
 		_spec.ID.Value = &id
@@ -295,10 +299,305 @@ func (tlc *TipLogCreate) createSpec() (*TipLog, *sqlgraph.CreateSpec) {
 	return _node, _spec
 }
 
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.TipLog.Create().
+//		SetAmount(v).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.TipLogUpsert) {
+//			SetAmount(v+v).
+//		}).
+//		Exec(ctx)
+func (tlc *TipLogCreate) OnConflict(opts ...sql.ConflictOption) *TipLogUpsertOne {
+	tlc.conflict = opts
+	return &TipLogUpsertOne{
+		create: tlc,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.TipLog.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (tlc *TipLogCreate) OnConflictColumns(columns ...string) *TipLogUpsertOne {
+	tlc.conflict = append(tlc.conflict, sql.ConflictColumns(columns...))
+	return &TipLogUpsertOne{
+		create: tlc,
+	}
+}
+
+type (
+	// TipLogUpsertOne is the builder for "upsert"-ing
+	//  one TipLog node.
+	TipLogUpsertOne struct {
+		create *TipLogCreate
+	}
+
+	// TipLogUpsert is the "OnConflict" setter.
+	TipLogUpsert struct {
+		*sql.UpdateSet
+	}
+)
+
+// SetAmount sets the "amount" field.
+func (u *TipLogUpsert) SetAmount(v int32) *TipLogUpsert {
+	u.Set(tiplog.FieldAmount, v)
+	return u
+}
+
+// UpdateAmount sets the "amount" field to the value that was provided on create.
+func (u *TipLogUpsert) UpdateAmount() *TipLogUpsert {
+	u.SetExcluded(tiplog.FieldAmount)
+	return u
+}
+
+// AddAmount adds v to the "amount" field.
+func (u *TipLogUpsert) AddAmount(v int32) *TipLogUpsert {
+	u.Add(tiplog.FieldAmount, v)
+	return u
+}
+
+// SetTippedToDiscordID sets the "tipped_to_discord_id" field.
+func (u *TipLogUpsert) SetTippedToDiscordID(v string) *TipLogUpsert {
+	u.Set(tiplog.FieldTippedToDiscordID, v)
+	return u
+}
+
+// UpdateTippedToDiscordID sets the "tipped_to_discord_id" field to the value that was provided on create.
+func (u *TipLogUpsert) UpdateTippedToDiscordID() *TipLogUpsert {
+	u.SetExcluded(tiplog.FieldTippedToDiscordID)
+	return u
+}
+
+// SetTippedBy sets the "tipped_by" field.
+func (u *TipLogUpsert) SetTippedBy(v uuid.UUID) *TipLogUpsert {
+	u.Set(tiplog.FieldTippedBy, v)
+	return u
+}
+
+// UpdateTippedBy sets the "tipped_by" field to the value that was provided on create.
+func (u *TipLogUpsert) UpdateTippedBy() *TipLogUpsert {
+	u.SetExcluded(tiplog.FieldTippedBy)
+	return u
+}
+
+// SetTippedTo sets the "tipped_to" field.
+func (u *TipLogUpsert) SetTippedTo(v uuid.UUID) *TipLogUpsert {
+	u.Set(tiplog.FieldTippedTo, v)
+	return u
+}
+
+// UpdateTippedTo sets the "tipped_to" field to the value that was provided on create.
+func (u *TipLogUpsert) UpdateTippedTo() *TipLogUpsert {
+	u.SetExcluded(tiplog.FieldTippedTo)
+	return u
+}
+
+// ClearTippedTo clears the value of the "tipped_to" field.
+func (u *TipLogUpsert) ClearTippedTo() *TipLogUpsert {
+	u.SetNull(tiplog.FieldTippedTo)
+	return u
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *TipLogUpsert) SetUpdatedAt(v time.Time) *TipLogUpsert {
+	u.Set(tiplog.FieldUpdatedAt, v)
+	return u
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *TipLogUpsert) UpdateUpdatedAt() *TipLogUpsert {
+	u.SetExcluded(tiplog.FieldUpdatedAt)
+	return u
+}
+
+// UpdateNewValues updates the mutable fields using the new values that were set on create except the ID field.
+// Using this option is equivalent to using:
+//
+//	client.TipLog.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(tiplog.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *TipLogUpsertOne) UpdateNewValues() *TipLogUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		if _, exists := u.create.mutation.ID(); exists {
+			s.SetIgnore(tiplog.FieldID)
+		}
+		if _, exists := u.create.mutation.CreatedAt(); exists {
+			s.SetIgnore(tiplog.FieldCreatedAt)
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.TipLog.Create().
+//	    OnConflict(sql.ResolveWithIgnore()).
+//	    Exec(ctx)
+func (u *TipLogUpsertOne) Ignore() *TipLogUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *TipLogUpsertOne) DoNothing() *TipLogUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the TipLogCreate.OnConflict
+// documentation for more info.
+func (u *TipLogUpsertOne) Update(set func(*TipLogUpsert)) *TipLogUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&TipLogUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetAmount sets the "amount" field.
+func (u *TipLogUpsertOne) SetAmount(v int32) *TipLogUpsertOne {
+	return u.Update(func(s *TipLogUpsert) {
+		s.SetAmount(v)
+	})
+}
+
+// AddAmount adds v to the "amount" field.
+func (u *TipLogUpsertOne) AddAmount(v int32) *TipLogUpsertOne {
+	return u.Update(func(s *TipLogUpsert) {
+		s.AddAmount(v)
+	})
+}
+
+// UpdateAmount sets the "amount" field to the value that was provided on create.
+func (u *TipLogUpsertOne) UpdateAmount() *TipLogUpsertOne {
+	return u.Update(func(s *TipLogUpsert) {
+		s.UpdateAmount()
+	})
+}
+
+// SetTippedToDiscordID sets the "tipped_to_discord_id" field.
+func (u *TipLogUpsertOne) SetTippedToDiscordID(v string) *TipLogUpsertOne {
+	return u.Update(func(s *TipLogUpsert) {
+		s.SetTippedToDiscordID(v)
+	})
+}
+
+// UpdateTippedToDiscordID sets the "tipped_to_discord_id" field to the value that was provided on create.
+func (u *TipLogUpsertOne) UpdateTippedToDiscordID() *TipLogUpsertOne {
+	return u.Update(func(s *TipLogUpsert) {
+		s.UpdateTippedToDiscordID()
+	})
+}
+
+// SetTippedBy sets the "tipped_by" field.
+func (u *TipLogUpsertOne) SetTippedBy(v uuid.UUID) *TipLogUpsertOne {
+	return u.Update(func(s *TipLogUpsert) {
+		s.SetTippedBy(v)
+	})
+}
+
+// UpdateTippedBy sets the "tipped_by" field to the value that was provided on create.
+func (u *TipLogUpsertOne) UpdateTippedBy() *TipLogUpsertOne {
+	return u.Update(func(s *TipLogUpsert) {
+		s.UpdateTippedBy()
+	})
+}
+
+// SetTippedTo sets the "tipped_to" field.
+func (u *TipLogUpsertOne) SetTippedTo(v uuid.UUID) *TipLogUpsertOne {
+	return u.Update(func(s *TipLogUpsert) {
+		s.SetTippedTo(v)
+	})
+}
+
+// UpdateTippedTo sets the "tipped_to" field to the value that was provided on create.
+func (u *TipLogUpsertOne) UpdateTippedTo() *TipLogUpsertOne {
+	return u.Update(func(s *TipLogUpsert) {
+		s.UpdateTippedTo()
+	})
+}
+
+// ClearTippedTo clears the value of the "tipped_to" field.
+func (u *TipLogUpsertOne) ClearTippedTo() *TipLogUpsertOne {
+	return u.Update(func(s *TipLogUpsert) {
+		s.ClearTippedTo()
+	})
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *TipLogUpsertOne) SetUpdatedAt(v time.Time) *TipLogUpsertOne {
+	return u.Update(func(s *TipLogUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *TipLogUpsertOne) UpdateUpdatedAt() *TipLogUpsertOne {
+	return u.Update(func(s *TipLogUpsert) {
+		s.UpdateUpdatedAt()
+	})
+}
+
+// Exec executes the query.
+func (u *TipLogUpsertOne) Exec(ctx context.Context) error {
+	if len(u.create.conflict) == 0 {
+		return errors.New("ent: missing options for TipLogCreate.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *TipLogUpsertOne) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// Exec executes the UPSERT query and returns the inserted/updated ID.
+func (u *TipLogUpsertOne) ID(ctx context.Context) (id uuid.UUID, err error) {
+	if u.create.driver.Dialect() == dialect.MySQL {
+		// In case of "ON CONFLICT", there is no way to get back non-numeric ID
+		// fields from the database since MySQL does not support the RETURNING clause.
+		return id, errors.New("ent: TipLogUpsertOne.ID is not supported by MySQL driver. Use TipLogUpsertOne.Exec instead")
+	}
+	node, err := u.create.Save(ctx)
+	if err != nil {
+		return id, err
+	}
+	return node.ID, nil
+}
+
+// IDX is like ID, but panics if an error occurs.
+func (u *TipLogUpsertOne) IDX(ctx context.Context) uuid.UUID {
+	id, err := u.ID(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return id
+}
+
 // TipLogCreateBulk is the builder for creating many TipLog entities in bulk.
 type TipLogCreateBulk struct {
 	config
 	builders []*TipLogCreate
+	conflict []sql.ConflictOption
 }
 
 // Save creates the TipLog entities in the database.
@@ -325,6 +624,7 @@ func (tlcb *TipLogCreateBulk) Save(ctx context.Context) ([]*TipLog, error) {
 					_, err = mutators[i+1].Mutate(root, tlcb.builders[i+1].mutation)
 				} else {
 					spec := &sqlgraph.BatchCreateSpec{Nodes: specs}
+					spec.OnConflict = tlcb.conflict
 					// Invoke the actual operation on the latest mutation in the chain.
 					if err = sqlgraph.BatchCreate(ctx, tlcb.driver, spec); err != nil {
 						if sqlgraph.IsConstraintError(err) {
@@ -371,6 +671,204 @@ func (tlcb *TipLogCreateBulk) Exec(ctx context.Context) error {
 // ExecX is like Exec, but panics if an error occurs.
 func (tlcb *TipLogCreateBulk) ExecX(ctx context.Context) {
 	if err := tlcb.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.TipLog.CreateBulk(builders...).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.TipLogUpsert) {
+//			SetAmount(v+v).
+//		}).
+//		Exec(ctx)
+func (tlcb *TipLogCreateBulk) OnConflict(opts ...sql.ConflictOption) *TipLogUpsertBulk {
+	tlcb.conflict = opts
+	return &TipLogUpsertBulk{
+		create: tlcb,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.TipLog.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (tlcb *TipLogCreateBulk) OnConflictColumns(columns ...string) *TipLogUpsertBulk {
+	tlcb.conflict = append(tlcb.conflict, sql.ConflictColumns(columns...))
+	return &TipLogUpsertBulk{
+		create: tlcb,
+	}
+}
+
+// TipLogUpsertBulk is the builder for "upsert"-ing
+// a bulk of TipLog nodes.
+type TipLogUpsertBulk struct {
+	create *TipLogCreateBulk
+}
+
+// UpdateNewValues updates the mutable fields using the new values that
+// were set on create. Using this option is equivalent to using:
+//
+//	client.TipLog.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(tiplog.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *TipLogUpsertBulk) UpdateNewValues() *TipLogUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		for _, b := range u.create.builders {
+			if _, exists := b.mutation.ID(); exists {
+				s.SetIgnore(tiplog.FieldID)
+			}
+			if _, exists := b.mutation.CreatedAt(); exists {
+				s.SetIgnore(tiplog.FieldCreatedAt)
+			}
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.TipLog.Create().
+//		OnConflict(sql.ResolveWithIgnore()).
+//		Exec(ctx)
+func (u *TipLogUpsertBulk) Ignore() *TipLogUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *TipLogUpsertBulk) DoNothing() *TipLogUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the TipLogCreateBulk.OnConflict
+// documentation for more info.
+func (u *TipLogUpsertBulk) Update(set func(*TipLogUpsert)) *TipLogUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&TipLogUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetAmount sets the "amount" field.
+func (u *TipLogUpsertBulk) SetAmount(v int32) *TipLogUpsertBulk {
+	return u.Update(func(s *TipLogUpsert) {
+		s.SetAmount(v)
+	})
+}
+
+// AddAmount adds v to the "amount" field.
+func (u *TipLogUpsertBulk) AddAmount(v int32) *TipLogUpsertBulk {
+	return u.Update(func(s *TipLogUpsert) {
+		s.AddAmount(v)
+	})
+}
+
+// UpdateAmount sets the "amount" field to the value that was provided on create.
+func (u *TipLogUpsertBulk) UpdateAmount() *TipLogUpsertBulk {
+	return u.Update(func(s *TipLogUpsert) {
+		s.UpdateAmount()
+	})
+}
+
+// SetTippedToDiscordID sets the "tipped_to_discord_id" field.
+func (u *TipLogUpsertBulk) SetTippedToDiscordID(v string) *TipLogUpsertBulk {
+	return u.Update(func(s *TipLogUpsert) {
+		s.SetTippedToDiscordID(v)
+	})
+}
+
+// UpdateTippedToDiscordID sets the "tipped_to_discord_id" field to the value that was provided on create.
+func (u *TipLogUpsertBulk) UpdateTippedToDiscordID() *TipLogUpsertBulk {
+	return u.Update(func(s *TipLogUpsert) {
+		s.UpdateTippedToDiscordID()
+	})
+}
+
+// SetTippedBy sets the "tipped_by" field.
+func (u *TipLogUpsertBulk) SetTippedBy(v uuid.UUID) *TipLogUpsertBulk {
+	return u.Update(func(s *TipLogUpsert) {
+		s.SetTippedBy(v)
+	})
+}
+
+// UpdateTippedBy sets the "tipped_by" field to the value that was provided on create.
+func (u *TipLogUpsertBulk) UpdateTippedBy() *TipLogUpsertBulk {
+	return u.Update(func(s *TipLogUpsert) {
+		s.UpdateTippedBy()
+	})
+}
+
+// SetTippedTo sets the "tipped_to" field.
+func (u *TipLogUpsertBulk) SetTippedTo(v uuid.UUID) *TipLogUpsertBulk {
+	return u.Update(func(s *TipLogUpsert) {
+		s.SetTippedTo(v)
+	})
+}
+
+// UpdateTippedTo sets the "tipped_to" field to the value that was provided on create.
+func (u *TipLogUpsertBulk) UpdateTippedTo() *TipLogUpsertBulk {
+	return u.Update(func(s *TipLogUpsert) {
+		s.UpdateTippedTo()
+	})
+}
+
+// ClearTippedTo clears the value of the "tipped_to" field.
+func (u *TipLogUpsertBulk) ClearTippedTo() *TipLogUpsertBulk {
+	return u.Update(func(s *TipLogUpsert) {
+		s.ClearTippedTo()
+	})
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *TipLogUpsertBulk) SetUpdatedAt(v time.Time) *TipLogUpsertBulk {
+	return u.Update(func(s *TipLogUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *TipLogUpsertBulk) UpdateUpdatedAt() *TipLogUpsertBulk {
+	return u.Update(func(s *TipLogUpsert) {
+		s.UpdateUpdatedAt()
+	})
+}
+
+// Exec executes the query.
+func (u *TipLogUpsertBulk) Exec(ctx context.Context) error {
+	for i, b := range u.create.builders {
+		if len(b.conflict) != 0 {
+			return fmt.Errorf("ent: OnConflict was set for builder %d. Set it on the TipLogCreateBulk instead", i)
+		}
+	}
+	if len(u.create.conflict) == 0 {
+		return errors.New("ent: missing options for TipLogCreateBulk.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *TipLogUpsertBulk) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
 		panic(err)
 	}
 }

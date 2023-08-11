@@ -8,6 +8,8 @@ import (
 	"fmt"
 	"time"
 
+	"entgo.io/ent/dialect"
+	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
@@ -20,6 +22,7 @@ type NegativePromptCreate struct {
 	config
 	mutation *NegativePromptMutation
 	hooks    []Hook
+	conflict []sql.ConflictOption
 }
 
 // SetText sets the "text" field.
@@ -182,6 +185,7 @@ func (npc *NegativePromptCreate) createSpec() (*NegativePrompt, *sqlgraph.Create
 			},
 		}
 	)
+	_spec.OnConflict = npc.conflict
 	if id, ok := npc.mutation.ID(); ok {
 		_node.ID = id
 		_spec.ID.Value = &id
@@ -220,10 +224,201 @@ func (npc *NegativePromptCreate) createSpec() (*NegativePrompt, *sqlgraph.Create
 	return _node, _spec
 }
 
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.NegativePrompt.Create().
+//		SetText(v).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.NegativePromptUpsert) {
+//			SetText(v+v).
+//		}).
+//		Exec(ctx)
+func (npc *NegativePromptCreate) OnConflict(opts ...sql.ConflictOption) *NegativePromptUpsertOne {
+	npc.conflict = opts
+	return &NegativePromptUpsertOne{
+		create: npc,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.NegativePrompt.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (npc *NegativePromptCreate) OnConflictColumns(columns ...string) *NegativePromptUpsertOne {
+	npc.conflict = append(npc.conflict, sql.ConflictColumns(columns...))
+	return &NegativePromptUpsertOne{
+		create: npc,
+	}
+}
+
+type (
+	// NegativePromptUpsertOne is the builder for "upsert"-ing
+	//  one NegativePrompt node.
+	NegativePromptUpsertOne struct {
+		create *NegativePromptCreate
+	}
+
+	// NegativePromptUpsert is the "OnConflict" setter.
+	NegativePromptUpsert struct {
+		*sql.UpdateSet
+	}
+)
+
+// SetText sets the "text" field.
+func (u *NegativePromptUpsert) SetText(v string) *NegativePromptUpsert {
+	u.Set(negativeprompt.FieldText, v)
+	return u
+}
+
+// UpdateText sets the "text" field to the value that was provided on create.
+func (u *NegativePromptUpsert) UpdateText() *NegativePromptUpsert {
+	u.SetExcluded(negativeprompt.FieldText)
+	return u
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *NegativePromptUpsert) SetUpdatedAt(v time.Time) *NegativePromptUpsert {
+	u.Set(negativeprompt.FieldUpdatedAt, v)
+	return u
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *NegativePromptUpsert) UpdateUpdatedAt() *NegativePromptUpsert {
+	u.SetExcluded(negativeprompt.FieldUpdatedAt)
+	return u
+}
+
+// UpdateNewValues updates the mutable fields using the new values that were set on create except the ID field.
+// Using this option is equivalent to using:
+//
+//	client.NegativePrompt.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(negativeprompt.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *NegativePromptUpsertOne) UpdateNewValues() *NegativePromptUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		if _, exists := u.create.mutation.ID(); exists {
+			s.SetIgnore(negativeprompt.FieldID)
+		}
+		if _, exists := u.create.mutation.CreatedAt(); exists {
+			s.SetIgnore(negativeprompt.FieldCreatedAt)
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.NegativePrompt.Create().
+//	    OnConflict(sql.ResolveWithIgnore()).
+//	    Exec(ctx)
+func (u *NegativePromptUpsertOne) Ignore() *NegativePromptUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *NegativePromptUpsertOne) DoNothing() *NegativePromptUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the NegativePromptCreate.OnConflict
+// documentation for more info.
+func (u *NegativePromptUpsertOne) Update(set func(*NegativePromptUpsert)) *NegativePromptUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&NegativePromptUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetText sets the "text" field.
+func (u *NegativePromptUpsertOne) SetText(v string) *NegativePromptUpsertOne {
+	return u.Update(func(s *NegativePromptUpsert) {
+		s.SetText(v)
+	})
+}
+
+// UpdateText sets the "text" field to the value that was provided on create.
+func (u *NegativePromptUpsertOne) UpdateText() *NegativePromptUpsertOne {
+	return u.Update(func(s *NegativePromptUpsert) {
+		s.UpdateText()
+	})
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *NegativePromptUpsertOne) SetUpdatedAt(v time.Time) *NegativePromptUpsertOne {
+	return u.Update(func(s *NegativePromptUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *NegativePromptUpsertOne) UpdateUpdatedAt() *NegativePromptUpsertOne {
+	return u.Update(func(s *NegativePromptUpsert) {
+		s.UpdateUpdatedAt()
+	})
+}
+
+// Exec executes the query.
+func (u *NegativePromptUpsertOne) Exec(ctx context.Context) error {
+	if len(u.create.conflict) == 0 {
+		return errors.New("ent: missing options for NegativePromptCreate.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *NegativePromptUpsertOne) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// Exec executes the UPSERT query and returns the inserted/updated ID.
+func (u *NegativePromptUpsertOne) ID(ctx context.Context) (id uuid.UUID, err error) {
+	if u.create.driver.Dialect() == dialect.MySQL {
+		// In case of "ON CONFLICT", there is no way to get back non-numeric ID
+		// fields from the database since MySQL does not support the RETURNING clause.
+		return id, errors.New("ent: NegativePromptUpsertOne.ID is not supported by MySQL driver. Use NegativePromptUpsertOne.Exec instead")
+	}
+	node, err := u.create.Save(ctx)
+	if err != nil {
+		return id, err
+	}
+	return node.ID, nil
+}
+
+// IDX is like ID, but panics if an error occurs.
+func (u *NegativePromptUpsertOne) IDX(ctx context.Context) uuid.UUID {
+	id, err := u.ID(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return id
+}
+
 // NegativePromptCreateBulk is the builder for creating many NegativePrompt entities in bulk.
 type NegativePromptCreateBulk struct {
 	config
 	builders []*NegativePromptCreate
+	conflict []sql.ConflictOption
 }
 
 // Save creates the NegativePrompt entities in the database.
@@ -250,6 +445,7 @@ func (npcb *NegativePromptCreateBulk) Save(ctx context.Context) ([]*NegativeProm
 					_, err = mutators[i+1].Mutate(root, npcb.builders[i+1].mutation)
 				} else {
 					spec := &sqlgraph.BatchCreateSpec{Nodes: specs}
+					spec.OnConflict = npcb.conflict
 					// Invoke the actual operation on the latest mutation in the chain.
 					if err = sqlgraph.BatchCreate(ctx, npcb.driver, spec); err != nil {
 						if sqlgraph.IsConstraintError(err) {
@@ -296,6 +492,148 @@ func (npcb *NegativePromptCreateBulk) Exec(ctx context.Context) error {
 // ExecX is like Exec, but panics if an error occurs.
 func (npcb *NegativePromptCreateBulk) ExecX(ctx context.Context) {
 	if err := npcb.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.NegativePrompt.CreateBulk(builders...).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.NegativePromptUpsert) {
+//			SetText(v+v).
+//		}).
+//		Exec(ctx)
+func (npcb *NegativePromptCreateBulk) OnConflict(opts ...sql.ConflictOption) *NegativePromptUpsertBulk {
+	npcb.conflict = opts
+	return &NegativePromptUpsertBulk{
+		create: npcb,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.NegativePrompt.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (npcb *NegativePromptCreateBulk) OnConflictColumns(columns ...string) *NegativePromptUpsertBulk {
+	npcb.conflict = append(npcb.conflict, sql.ConflictColumns(columns...))
+	return &NegativePromptUpsertBulk{
+		create: npcb,
+	}
+}
+
+// NegativePromptUpsertBulk is the builder for "upsert"-ing
+// a bulk of NegativePrompt nodes.
+type NegativePromptUpsertBulk struct {
+	create *NegativePromptCreateBulk
+}
+
+// UpdateNewValues updates the mutable fields using the new values that
+// were set on create. Using this option is equivalent to using:
+//
+//	client.NegativePrompt.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(negativeprompt.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *NegativePromptUpsertBulk) UpdateNewValues() *NegativePromptUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		for _, b := range u.create.builders {
+			if _, exists := b.mutation.ID(); exists {
+				s.SetIgnore(negativeprompt.FieldID)
+			}
+			if _, exists := b.mutation.CreatedAt(); exists {
+				s.SetIgnore(negativeprompt.FieldCreatedAt)
+			}
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.NegativePrompt.Create().
+//		OnConflict(sql.ResolveWithIgnore()).
+//		Exec(ctx)
+func (u *NegativePromptUpsertBulk) Ignore() *NegativePromptUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *NegativePromptUpsertBulk) DoNothing() *NegativePromptUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the NegativePromptCreateBulk.OnConflict
+// documentation for more info.
+func (u *NegativePromptUpsertBulk) Update(set func(*NegativePromptUpsert)) *NegativePromptUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&NegativePromptUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetText sets the "text" field.
+func (u *NegativePromptUpsertBulk) SetText(v string) *NegativePromptUpsertBulk {
+	return u.Update(func(s *NegativePromptUpsert) {
+		s.SetText(v)
+	})
+}
+
+// UpdateText sets the "text" field to the value that was provided on create.
+func (u *NegativePromptUpsertBulk) UpdateText() *NegativePromptUpsertBulk {
+	return u.Update(func(s *NegativePromptUpsert) {
+		s.UpdateText()
+	})
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *NegativePromptUpsertBulk) SetUpdatedAt(v time.Time) *NegativePromptUpsertBulk {
+	return u.Update(func(s *NegativePromptUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *NegativePromptUpsertBulk) UpdateUpdatedAt() *NegativePromptUpsertBulk {
+	return u.Update(func(s *NegativePromptUpsert) {
+		s.UpdateUpdatedAt()
+	})
+}
+
+// Exec executes the query.
+func (u *NegativePromptUpsertBulk) Exec(ctx context.Context) error {
+	for i, b := range u.create.builders {
+		if len(b.conflict) != 0 {
+			return fmt.Errorf("ent: OnConflict was set for builder %d. Set it on the NegativePromptCreateBulk instead", i)
+		}
+	}
+	if len(u.create.conflict) == 0 {
+		return errors.New("ent: missing options for NegativePromptCreateBulk.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *NegativePromptUpsertBulk) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
 		panic(err)
 	}
 }

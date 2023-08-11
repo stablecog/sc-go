@@ -8,6 +8,8 @@ import (
 	"fmt"
 	"time"
 
+	"entgo.io/ent/dialect"
+	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
@@ -21,6 +23,7 @@ type SchedulerCreate struct {
 	config
 	mutation *SchedulerMutation
 	hooks    []Hook
+	conflict []sql.ConflictOption
 }
 
 // SetNameInWorker sets the "name_in_worker" field.
@@ -261,6 +264,7 @@ func (sc *SchedulerCreate) createSpec() (*Scheduler, *sqlgraph.CreateSpec) {
 			},
 		}
 	)
+	_spec.OnConflict = sc.conflict
 	if id, ok := sc.mutation.ID(); ok {
 		_node.ID = id
 		_spec.ID.Value = &id
@@ -330,10 +334,279 @@ func (sc *SchedulerCreate) createSpec() (*Scheduler, *sqlgraph.CreateSpec) {
 	return _node, _spec
 }
 
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.Scheduler.Create().
+//		SetNameInWorker(v).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.SchedulerUpsert) {
+//			SetNameInWorker(v+v).
+//		}).
+//		Exec(ctx)
+func (sc *SchedulerCreate) OnConflict(opts ...sql.ConflictOption) *SchedulerUpsertOne {
+	sc.conflict = opts
+	return &SchedulerUpsertOne{
+		create: sc,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.Scheduler.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (sc *SchedulerCreate) OnConflictColumns(columns ...string) *SchedulerUpsertOne {
+	sc.conflict = append(sc.conflict, sql.ConflictColumns(columns...))
+	return &SchedulerUpsertOne{
+		create: sc,
+	}
+}
+
+type (
+	// SchedulerUpsertOne is the builder for "upsert"-ing
+	//  one Scheduler node.
+	SchedulerUpsertOne struct {
+		create *SchedulerCreate
+	}
+
+	// SchedulerUpsert is the "OnConflict" setter.
+	SchedulerUpsert struct {
+		*sql.UpdateSet
+	}
+)
+
+// SetNameInWorker sets the "name_in_worker" field.
+func (u *SchedulerUpsert) SetNameInWorker(v string) *SchedulerUpsert {
+	u.Set(scheduler.FieldNameInWorker, v)
+	return u
+}
+
+// UpdateNameInWorker sets the "name_in_worker" field to the value that was provided on create.
+func (u *SchedulerUpsert) UpdateNameInWorker() *SchedulerUpsert {
+	u.SetExcluded(scheduler.FieldNameInWorker)
+	return u
+}
+
+// SetIsActive sets the "is_active" field.
+func (u *SchedulerUpsert) SetIsActive(v bool) *SchedulerUpsert {
+	u.Set(scheduler.FieldIsActive, v)
+	return u
+}
+
+// UpdateIsActive sets the "is_active" field to the value that was provided on create.
+func (u *SchedulerUpsert) UpdateIsActive() *SchedulerUpsert {
+	u.SetExcluded(scheduler.FieldIsActive)
+	return u
+}
+
+// SetIsDefault sets the "is_default" field.
+func (u *SchedulerUpsert) SetIsDefault(v bool) *SchedulerUpsert {
+	u.Set(scheduler.FieldIsDefault, v)
+	return u
+}
+
+// UpdateIsDefault sets the "is_default" field to the value that was provided on create.
+func (u *SchedulerUpsert) UpdateIsDefault() *SchedulerUpsert {
+	u.SetExcluded(scheduler.FieldIsDefault)
+	return u
+}
+
+// SetIsHidden sets the "is_hidden" field.
+func (u *SchedulerUpsert) SetIsHidden(v bool) *SchedulerUpsert {
+	u.Set(scheduler.FieldIsHidden, v)
+	return u
+}
+
+// UpdateIsHidden sets the "is_hidden" field to the value that was provided on create.
+func (u *SchedulerUpsert) UpdateIsHidden() *SchedulerUpsert {
+	u.SetExcluded(scheduler.FieldIsHidden)
+	return u
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *SchedulerUpsert) SetUpdatedAt(v time.Time) *SchedulerUpsert {
+	u.Set(scheduler.FieldUpdatedAt, v)
+	return u
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *SchedulerUpsert) UpdateUpdatedAt() *SchedulerUpsert {
+	u.SetExcluded(scheduler.FieldUpdatedAt)
+	return u
+}
+
+// UpdateNewValues updates the mutable fields using the new values that were set on create except the ID field.
+// Using this option is equivalent to using:
+//
+//	client.Scheduler.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(scheduler.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *SchedulerUpsertOne) UpdateNewValues() *SchedulerUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		if _, exists := u.create.mutation.ID(); exists {
+			s.SetIgnore(scheduler.FieldID)
+		}
+		if _, exists := u.create.mutation.CreatedAt(); exists {
+			s.SetIgnore(scheduler.FieldCreatedAt)
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.Scheduler.Create().
+//	    OnConflict(sql.ResolveWithIgnore()).
+//	    Exec(ctx)
+func (u *SchedulerUpsertOne) Ignore() *SchedulerUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *SchedulerUpsertOne) DoNothing() *SchedulerUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the SchedulerCreate.OnConflict
+// documentation for more info.
+func (u *SchedulerUpsertOne) Update(set func(*SchedulerUpsert)) *SchedulerUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&SchedulerUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetNameInWorker sets the "name_in_worker" field.
+func (u *SchedulerUpsertOne) SetNameInWorker(v string) *SchedulerUpsertOne {
+	return u.Update(func(s *SchedulerUpsert) {
+		s.SetNameInWorker(v)
+	})
+}
+
+// UpdateNameInWorker sets the "name_in_worker" field to the value that was provided on create.
+func (u *SchedulerUpsertOne) UpdateNameInWorker() *SchedulerUpsertOne {
+	return u.Update(func(s *SchedulerUpsert) {
+		s.UpdateNameInWorker()
+	})
+}
+
+// SetIsActive sets the "is_active" field.
+func (u *SchedulerUpsertOne) SetIsActive(v bool) *SchedulerUpsertOne {
+	return u.Update(func(s *SchedulerUpsert) {
+		s.SetIsActive(v)
+	})
+}
+
+// UpdateIsActive sets the "is_active" field to the value that was provided on create.
+func (u *SchedulerUpsertOne) UpdateIsActive() *SchedulerUpsertOne {
+	return u.Update(func(s *SchedulerUpsert) {
+		s.UpdateIsActive()
+	})
+}
+
+// SetIsDefault sets the "is_default" field.
+func (u *SchedulerUpsertOne) SetIsDefault(v bool) *SchedulerUpsertOne {
+	return u.Update(func(s *SchedulerUpsert) {
+		s.SetIsDefault(v)
+	})
+}
+
+// UpdateIsDefault sets the "is_default" field to the value that was provided on create.
+func (u *SchedulerUpsertOne) UpdateIsDefault() *SchedulerUpsertOne {
+	return u.Update(func(s *SchedulerUpsert) {
+		s.UpdateIsDefault()
+	})
+}
+
+// SetIsHidden sets the "is_hidden" field.
+func (u *SchedulerUpsertOne) SetIsHidden(v bool) *SchedulerUpsertOne {
+	return u.Update(func(s *SchedulerUpsert) {
+		s.SetIsHidden(v)
+	})
+}
+
+// UpdateIsHidden sets the "is_hidden" field to the value that was provided on create.
+func (u *SchedulerUpsertOne) UpdateIsHidden() *SchedulerUpsertOne {
+	return u.Update(func(s *SchedulerUpsert) {
+		s.UpdateIsHidden()
+	})
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *SchedulerUpsertOne) SetUpdatedAt(v time.Time) *SchedulerUpsertOne {
+	return u.Update(func(s *SchedulerUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *SchedulerUpsertOne) UpdateUpdatedAt() *SchedulerUpsertOne {
+	return u.Update(func(s *SchedulerUpsert) {
+		s.UpdateUpdatedAt()
+	})
+}
+
+// Exec executes the query.
+func (u *SchedulerUpsertOne) Exec(ctx context.Context) error {
+	if len(u.create.conflict) == 0 {
+		return errors.New("ent: missing options for SchedulerCreate.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *SchedulerUpsertOne) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// Exec executes the UPSERT query and returns the inserted/updated ID.
+func (u *SchedulerUpsertOne) ID(ctx context.Context) (id uuid.UUID, err error) {
+	if u.create.driver.Dialect() == dialect.MySQL {
+		// In case of "ON CONFLICT", there is no way to get back non-numeric ID
+		// fields from the database since MySQL does not support the RETURNING clause.
+		return id, errors.New("ent: SchedulerUpsertOne.ID is not supported by MySQL driver. Use SchedulerUpsertOne.Exec instead")
+	}
+	node, err := u.create.Save(ctx)
+	if err != nil {
+		return id, err
+	}
+	return node.ID, nil
+}
+
+// IDX is like ID, but panics if an error occurs.
+func (u *SchedulerUpsertOne) IDX(ctx context.Context) uuid.UUID {
+	id, err := u.ID(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return id
+}
+
 // SchedulerCreateBulk is the builder for creating many Scheduler entities in bulk.
 type SchedulerCreateBulk struct {
 	config
 	builders []*SchedulerCreate
+	conflict []sql.ConflictOption
 }
 
 // Save creates the Scheduler entities in the database.
@@ -360,6 +633,7 @@ func (scb *SchedulerCreateBulk) Save(ctx context.Context) ([]*Scheduler, error) 
 					_, err = mutators[i+1].Mutate(root, scb.builders[i+1].mutation)
 				} else {
 					spec := &sqlgraph.BatchCreateSpec{Nodes: specs}
+					spec.OnConflict = scb.conflict
 					// Invoke the actual operation on the latest mutation in the chain.
 					if err = sqlgraph.BatchCreate(ctx, scb.driver, spec); err != nil {
 						if sqlgraph.IsConstraintError(err) {
@@ -406,6 +680,190 @@ func (scb *SchedulerCreateBulk) Exec(ctx context.Context) error {
 // ExecX is like Exec, but panics if an error occurs.
 func (scb *SchedulerCreateBulk) ExecX(ctx context.Context) {
 	if err := scb.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.Scheduler.CreateBulk(builders...).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.SchedulerUpsert) {
+//			SetNameInWorker(v+v).
+//		}).
+//		Exec(ctx)
+func (scb *SchedulerCreateBulk) OnConflict(opts ...sql.ConflictOption) *SchedulerUpsertBulk {
+	scb.conflict = opts
+	return &SchedulerUpsertBulk{
+		create: scb,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.Scheduler.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (scb *SchedulerCreateBulk) OnConflictColumns(columns ...string) *SchedulerUpsertBulk {
+	scb.conflict = append(scb.conflict, sql.ConflictColumns(columns...))
+	return &SchedulerUpsertBulk{
+		create: scb,
+	}
+}
+
+// SchedulerUpsertBulk is the builder for "upsert"-ing
+// a bulk of Scheduler nodes.
+type SchedulerUpsertBulk struct {
+	create *SchedulerCreateBulk
+}
+
+// UpdateNewValues updates the mutable fields using the new values that
+// were set on create. Using this option is equivalent to using:
+//
+//	client.Scheduler.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(scheduler.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *SchedulerUpsertBulk) UpdateNewValues() *SchedulerUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		for _, b := range u.create.builders {
+			if _, exists := b.mutation.ID(); exists {
+				s.SetIgnore(scheduler.FieldID)
+			}
+			if _, exists := b.mutation.CreatedAt(); exists {
+				s.SetIgnore(scheduler.FieldCreatedAt)
+			}
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.Scheduler.Create().
+//		OnConflict(sql.ResolveWithIgnore()).
+//		Exec(ctx)
+func (u *SchedulerUpsertBulk) Ignore() *SchedulerUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *SchedulerUpsertBulk) DoNothing() *SchedulerUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the SchedulerCreateBulk.OnConflict
+// documentation for more info.
+func (u *SchedulerUpsertBulk) Update(set func(*SchedulerUpsert)) *SchedulerUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&SchedulerUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetNameInWorker sets the "name_in_worker" field.
+func (u *SchedulerUpsertBulk) SetNameInWorker(v string) *SchedulerUpsertBulk {
+	return u.Update(func(s *SchedulerUpsert) {
+		s.SetNameInWorker(v)
+	})
+}
+
+// UpdateNameInWorker sets the "name_in_worker" field to the value that was provided on create.
+func (u *SchedulerUpsertBulk) UpdateNameInWorker() *SchedulerUpsertBulk {
+	return u.Update(func(s *SchedulerUpsert) {
+		s.UpdateNameInWorker()
+	})
+}
+
+// SetIsActive sets the "is_active" field.
+func (u *SchedulerUpsertBulk) SetIsActive(v bool) *SchedulerUpsertBulk {
+	return u.Update(func(s *SchedulerUpsert) {
+		s.SetIsActive(v)
+	})
+}
+
+// UpdateIsActive sets the "is_active" field to the value that was provided on create.
+func (u *SchedulerUpsertBulk) UpdateIsActive() *SchedulerUpsertBulk {
+	return u.Update(func(s *SchedulerUpsert) {
+		s.UpdateIsActive()
+	})
+}
+
+// SetIsDefault sets the "is_default" field.
+func (u *SchedulerUpsertBulk) SetIsDefault(v bool) *SchedulerUpsertBulk {
+	return u.Update(func(s *SchedulerUpsert) {
+		s.SetIsDefault(v)
+	})
+}
+
+// UpdateIsDefault sets the "is_default" field to the value that was provided on create.
+func (u *SchedulerUpsertBulk) UpdateIsDefault() *SchedulerUpsertBulk {
+	return u.Update(func(s *SchedulerUpsert) {
+		s.UpdateIsDefault()
+	})
+}
+
+// SetIsHidden sets the "is_hidden" field.
+func (u *SchedulerUpsertBulk) SetIsHidden(v bool) *SchedulerUpsertBulk {
+	return u.Update(func(s *SchedulerUpsert) {
+		s.SetIsHidden(v)
+	})
+}
+
+// UpdateIsHidden sets the "is_hidden" field to the value that was provided on create.
+func (u *SchedulerUpsertBulk) UpdateIsHidden() *SchedulerUpsertBulk {
+	return u.Update(func(s *SchedulerUpsert) {
+		s.UpdateIsHidden()
+	})
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *SchedulerUpsertBulk) SetUpdatedAt(v time.Time) *SchedulerUpsertBulk {
+	return u.Update(func(s *SchedulerUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *SchedulerUpsertBulk) UpdateUpdatedAt() *SchedulerUpsertBulk {
+	return u.Update(func(s *SchedulerUpsert) {
+		s.UpdateUpdatedAt()
+	})
+}
+
+// Exec executes the query.
+func (u *SchedulerUpsertBulk) Exec(ctx context.Context) error {
+	for i, b := range u.create.builders {
+		if len(b.conflict) != 0 {
+			return fmt.Errorf("ent: OnConflict was set for builder %d. Set it on the SchedulerCreateBulk instead", i)
+		}
+	}
+	if len(u.create.conflict) == 0 {
+		return errors.New("ent: missing options for SchedulerCreateBulk.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *SchedulerUpsertBulk) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
 		panic(err)
 	}
 }

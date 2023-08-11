@@ -8,6 +8,8 @@ import (
 	"fmt"
 	"time"
 
+	"entgo.io/ent/dialect"
+	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
@@ -20,6 +22,7 @@ type CreditTypeCreate struct {
 	config
 	mutation *CreditTypeMutation
 	hooks    []Hook
+	conflict []sql.ConflictOption
 }
 
 // SetName sets the "name" field.
@@ -233,6 +236,7 @@ func (ctc *CreditTypeCreate) createSpec() (*CreditType, *sqlgraph.CreateSpec) {
 			},
 		}
 	)
+	_spec.OnConflict = ctc.conflict
 	if id, ok := ctc.mutation.ID(); ok {
 		_node.ID = id
 		_spec.ID.Value = &id
@@ -287,10 +291,344 @@ func (ctc *CreditTypeCreate) createSpec() (*CreditType, *sqlgraph.CreateSpec) {
 	return _node, _spec
 }
 
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.CreditType.Create().
+//		SetName(v).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.CreditTypeUpsert) {
+//			SetName(v+v).
+//		}).
+//		Exec(ctx)
+func (ctc *CreditTypeCreate) OnConflict(opts ...sql.ConflictOption) *CreditTypeUpsertOne {
+	ctc.conflict = opts
+	return &CreditTypeUpsertOne{
+		create: ctc,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.CreditType.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (ctc *CreditTypeCreate) OnConflictColumns(columns ...string) *CreditTypeUpsertOne {
+	ctc.conflict = append(ctc.conflict, sql.ConflictColumns(columns...))
+	return &CreditTypeUpsertOne{
+		create: ctc,
+	}
+}
+
+type (
+	// CreditTypeUpsertOne is the builder for "upsert"-ing
+	//  one CreditType node.
+	CreditTypeUpsertOne struct {
+		create *CreditTypeCreate
+	}
+
+	// CreditTypeUpsert is the "OnConflict" setter.
+	CreditTypeUpsert struct {
+		*sql.UpdateSet
+	}
+)
+
+// SetName sets the "name" field.
+func (u *CreditTypeUpsert) SetName(v string) *CreditTypeUpsert {
+	u.Set(credittype.FieldName, v)
+	return u
+}
+
+// UpdateName sets the "name" field to the value that was provided on create.
+func (u *CreditTypeUpsert) UpdateName() *CreditTypeUpsert {
+	u.SetExcluded(credittype.FieldName)
+	return u
+}
+
+// SetDescription sets the "description" field.
+func (u *CreditTypeUpsert) SetDescription(v string) *CreditTypeUpsert {
+	u.Set(credittype.FieldDescription, v)
+	return u
+}
+
+// UpdateDescription sets the "description" field to the value that was provided on create.
+func (u *CreditTypeUpsert) UpdateDescription() *CreditTypeUpsert {
+	u.SetExcluded(credittype.FieldDescription)
+	return u
+}
+
+// ClearDescription clears the value of the "description" field.
+func (u *CreditTypeUpsert) ClearDescription() *CreditTypeUpsert {
+	u.SetNull(credittype.FieldDescription)
+	return u
+}
+
+// SetAmount sets the "amount" field.
+func (u *CreditTypeUpsert) SetAmount(v int32) *CreditTypeUpsert {
+	u.Set(credittype.FieldAmount, v)
+	return u
+}
+
+// UpdateAmount sets the "amount" field to the value that was provided on create.
+func (u *CreditTypeUpsert) UpdateAmount() *CreditTypeUpsert {
+	u.SetExcluded(credittype.FieldAmount)
+	return u
+}
+
+// AddAmount adds v to the "amount" field.
+func (u *CreditTypeUpsert) AddAmount(v int32) *CreditTypeUpsert {
+	u.Add(credittype.FieldAmount, v)
+	return u
+}
+
+// SetStripeProductID sets the "stripe_product_id" field.
+func (u *CreditTypeUpsert) SetStripeProductID(v string) *CreditTypeUpsert {
+	u.Set(credittype.FieldStripeProductID, v)
+	return u
+}
+
+// UpdateStripeProductID sets the "stripe_product_id" field to the value that was provided on create.
+func (u *CreditTypeUpsert) UpdateStripeProductID() *CreditTypeUpsert {
+	u.SetExcluded(credittype.FieldStripeProductID)
+	return u
+}
+
+// ClearStripeProductID clears the value of the "stripe_product_id" field.
+func (u *CreditTypeUpsert) ClearStripeProductID() *CreditTypeUpsert {
+	u.SetNull(credittype.FieldStripeProductID)
+	return u
+}
+
+// SetType sets the "type" field.
+func (u *CreditTypeUpsert) SetType(v credittype.Type) *CreditTypeUpsert {
+	u.Set(credittype.FieldType, v)
+	return u
+}
+
+// UpdateType sets the "type" field to the value that was provided on create.
+func (u *CreditTypeUpsert) UpdateType() *CreditTypeUpsert {
+	u.SetExcluded(credittype.FieldType)
+	return u
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *CreditTypeUpsert) SetUpdatedAt(v time.Time) *CreditTypeUpsert {
+	u.Set(credittype.FieldUpdatedAt, v)
+	return u
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *CreditTypeUpsert) UpdateUpdatedAt() *CreditTypeUpsert {
+	u.SetExcluded(credittype.FieldUpdatedAt)
+	return u
+}
+
+// UpdateNewValues updates the mutable fields using the new values that were set on create except the ID field.
+// Using this option is equivalent to using:
+//
+//	client.CreditType.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(credittype.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *CreditTypeUpsertOne) UpdateNewValues() *CreditTypeUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		if _, exists := u.create.mutation.ID(); exists {
+			s.SetIgnore(credittype.FieldID)
+		}
+		if _, exists := u.create.mutation.CreatedAt(); exists {
+			s.SetIgnore(credittype.FieldCreatedAt)
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.CreditType.Create().
+//	    OnConflict(sql.ResolveWithIgnore()).
+//	    Exec(ctx)
+func (u *CreditTypeUpsertOne) Ignore() *CreditTypeUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *CreditTypeUpsertOne) DoNothing() *CreditTypeUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the CreditTypeCreate.OnConflict
+// documentation for more info.
+func (u *CreditTypeUpsertOne) Update(set func(*CreditTypeUpsert)) *CreditTypeUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&CreditTypeUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetName sets the "name" field.
+func (u *CreditTypeUpsertOne) SetName(v string) *CreditTypeUpsertOne {
+	return u.Update(func(s *CreditTypeUpsert) {
+		s.SetName(v)
+	})
+}
+
+// UpdateName sets the "name" field to the value that was provided on create.
+func (u *CreditTypeUpsertOne) UpdateName() *CreditTypeUpsertOne {
+	return u.Update(func(s *CreditTypeUpsert) {
+		s.UpdateName()
+	})
+}
+
+// SetDescription sets the "description" field.
+func (u *CreditTypeUpsertOne) SetDescription(v string) *CreditTypeUpsertOne {
+	return u.Update(func(s *CreditTypeUpsert) {
+		s.SetDescription(v)
+	})
+}
+
+// UpdateDescription sets the "description" field to the value that was provided on create.
+func (u *CreditTypeUpsertOne) UpdateDescription() *CreditTypeUpsertOne {
+	return u.Update(func(s *CreditTypeUpsert) {
+		s.UpdateDescription()
+	})
+}
+
+// ClearDescription clears the value of the "description" field.
+func (u *CreditTypeUpsertOne) ClearDescription() *CreditTypeUpsertOne {
+	return u.Update(func(s *CreditTypeUpsert) {
+		s.ClearDescription()
+	})
+}
+
+// SetAmount sets the "amount" field.
+func (u *CreditTypeUpsertOne) SetAmount(v int32) *CreditTypeUpsertOne {
+	return u.Update(func(s *CreditTypeUpsert) {
+		s.SetAmount(v)
+	})
+}
+
+// AddAmount adds v to the "amount" field.
+func (u *CreditTypeUpsertOne) AddAmount(v int32) *CreditTypeUpsertOne {
+	return u.Update(func(s *CreditTypeUpsert) {
+		s.AddAmount(v)
+	})
+}
+
+// UpdateAmount sets the "amount" field to the value that was provided on create.
+func (u *CreditTypeUpsertOne) UpdateAmount() *CreditTypeUpsertOne {
+	return u.Update(func(s *CreditTypeUpsert) {
+		s.UpdateAmount()
+	})
+}
+
+// SetStripeProductID sets the "stripe_product_id" field.
+func (u *CreditTypeUpsertOne) SetStripeProductID(v string) *CreditTypeUpsertOne {
+	return u.Update(func(s *CreditTypeUpsert) {
+		s.SetStripeProductID(v)
+	})
+}
+
+// UpdateStripeProductID sets the "stripe_product_id" field to the value that was provided on create.
+func (u *CreditTypeUpsertOne) UpdateStripeProductID() *CreditTypeUpsertOne {
+	return u.Update(func(s *CreditTypeUpsert) {
+		s.UpdateStripeProductID()
+	})
+}
+
+// ClearStripeProductID clears the value of the "stripe_product_id" field.
+func (u *CreditTypeUpsertOne) ClearStripeProductID() *CreditTypeUpsertOne {
+	return u.Update(func(s *CreditTypeUpsert) {
+		s.ClearStripeProductID()
+	})
+}
+
+// SetType sets the "type" field.
+func (u *CreditTypeUpsertOne) SetType(v credittype.Type) *CreditTypeUpsertOne {
+	return u.Update(func(s *CreditTypeUpsert) {
+		s.SetType(v)
+	})
+}
+
+// UpdateType sets the "type" field to the value that was provided on create.
+func (u *CreditTypeUpsertOne) UpdateType() *CreditTypeUpsertOne {
+	return u.Update(func(s *CreditTypeUpsert) {
+		s.UpdateType()
+	})
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *CreditTypeUpsertOne) SetUpdatedAt(v time.Time) *CreditTypeUpsertOne {
+	return u.Update(func(s *CreditTypeUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *CreditTypeUpsertOne) UpdateUpdatedAt() *CreditTypeUpsertOne {
+	return u.Update(func(s *CreditTypeUpsert) {
+		s.UpdateUpdatedAt()
+	})
+}
+
+// Exec executes the query.
+func (u *CreditTypeUpsertOne) Exec(ctx context.Context) error {
+	if len(u.create.conflict) == 0 {
+		return errors.New("ent: missing options for CreditTypeCreate.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *CreditTypeUpsertOne) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// Exec executes the UPSERT query and returns the inserted/updated ID.
+func (u *CreditTypeUpsertOne) ID(ctx context.Context) (id uuid.UUID, err error) {
+	if u.create.driver.Dialect() == dialect.MySQL {
+		// In case of "ON CONFLICT", there is no way to get back non-numeric ID
+		// fields from the database since MySQL does not support the RETURNING clause.
+		return id, errors.New("ent: CreditTypeUpsertOne.ID is not supported by MySQL driver. Use CreditTypeUpsertOne.Exec instead")
+	}
+	node, err := u.create.Save(ctx)
+	if err != nil {
+		return id, err
+	}
+	return node.ID, nil
+}
+
+// IDX is like ID, but panics if an error occurs.
+func (u *CreditTypeUpsertOne) IDX(ctx context.Context) uuid.UUID {
+	id, err := u.ID(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return id
+}
+
 // CreditTypeCreateBulk is the builder for creating many CreditType entities in bulk.
 type CreditTypeCreateBulk struct {
 	config
 	builders []*CreditTypeCreate
+	conflict []sql.ConflictOption
 }
 
 // Save creates the CreditType entities in the database.
@@ -317,6 +655,7 @@ func (ctcb *CreditTypeCreateBulk) Save(ctx context.Context) ([]*CreditType, erro
 					_, err = mutators[i+1].Mutate(root, ctcb.builders[i+1].mutation)
 				} else {
 					spec := &sqlgraph.BatchCreateSpec{Nodes: specs}
+					spec.OnConflict = ctcb.conflict
 					// Invoke the actual operation on the latest mutation in the chain.
 					if err = sqlgraph.BatchCreate(ctx, ctcb.driver, spec); err != nil {
 						if sqlgraph.IsConstraintError(err) {
@@ -363,6 +702,225 @@ func (ctcb *CreditTypeCreateBulk) Exec(ctx context.Context) error {
 // ExecX is like Exec, but panics if an error occurs.
 func (ctcb *CreditTypeCreateBulk) ExecX(ctx context.Context) {
 	if err := ctcb.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.CreditType.CreateBulk(builders...).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.CreditTypeUpsert) {
+//			SetName(v+v).
+//		}).
+//		Exec(ctx)
+func (ctcb *CreditTypeCreateBulk) OnConflict(opts ...sql.ConflictOption) *CreditTypeUpsertBulk {
+	ctcb.conflict = opts
+	return &CreditTypeUpsertBulk{
+		create: ctcb,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.CreditType.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (ctcb *CreditTypeCreateBulk) OnConflictColumns(columns ...string) *CreditTypeUpsertBulk {
+	ctcb.conflict = append(ctcb.conflict, sql.ConflictColumns(columns...))
+	return &CreditTypeUpsertBulk{
+		create: ctcb,
+	}
+}
+
+// CreditTypeUpsertBulk is the builder for "upsert"-ing
+// a bulk of CreditType nodes.
+type CreditTypeUpsertBulk struct {
+	create *CreditTypeCreateBulk
+}
+
+// UpdateNewValues updates the mutable fields using the new values that
+// were set on create. Using this option is equivalent to using:
+//
+//	client.CreditType.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(credittype.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *CreditTypeUpsertBulk) UpdateNewValues() *CreditTypeUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		for _, b := range u.create.builders {
+			if _, exists := b.mutation.ID(); exists {
+				s.SetIgnore(credittype.FieldID)
+			}
+			if _, exists := b.mutation.CreatedAt(); exists {
+				s.SetIgnore(credittype.FieldCreatedAt)
+			}
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.CreditType.Create().
+//		OnConflict(sql.ResolveWithIgnore()).
+//		Exec(ctx)
+func (u *CreditTypeUpsertBulk) Ignore() *CreditTypeUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *CreditTypeUpsertBulk) DoNothing() *CreditTypeUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the CreditTypeCreateBulk.OnConflict
+// documentation for more info.
+func (u *CreditTypeUpsertBulk) Update(set func(*CreditTypeUpsert)) *CreditTypeUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&CreditTypeUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetName sets the "name" field.
+func (u *CreditTypeUpsertBulk) SetName(v string) *CreditTypeUpsertBulk {
+	return u.Update(func(s *CreditTypeUpsert) {
+		s.SetName(v)
+	})
+}
+
+// UpdateName sets the "name" field to the value that was provided on create.
+func (u *CreditTypeUpsertBulk) UpdateName() *CreditTypeUpsertBulk {
+	return u.Update(func(s *CreditTypeUpsert) {
+		s.UpdateName()
+	})
+}
+
+// SetDescription sets the "description" field.
+func (u *CreditTypeUpsertBulk) SetDescription(v string) *CreditTypeUpsertBulk {
+	return u.Update(func(s *CreditTypeUpsert) {
+		s.SetDescription(v)
+	})
+}
+
+// UpdateDescription sets the "description" field to the value that was provided on create.
+func (u *CreditTypeUpsertBulk) UpdateDescription() *CreditTypeUpsertBulk {
+	return u.Update(func(s *CreditTypeUpsert) {
+		s.UpdateDescription()
+	})
+}
+
+// ClearDescription clears the value of the "description" field.
+func (u *CreditTypeUpsertBulk) ClearDescription() *CreditTypeUpsertBulk {
+	return u.Update(func(s *CreditTypeUpsert) {
+		s.ClearDescription()
+	})
+}
+
+// SetAmount sets the "amount" field.
+func (u *CreditTypeUpsertBulk) SetAmount(v int32) *CreditTypeUpsertBulk {
+	return u.Update(func(s *CreditTypeUpsert) {
+		s.SetAmount(v)
+	})
+}
+
+// AddAmount adds v to the "amount" field.
+func (u *CreditTypeUpsertBulk) AddAmount(v int32) *CreditTypeUpsertBulk {
+	return u.Update(func(s *CreditTypeUpsert) {
+		s.AddAmount(v)
+	})
+}
+
+// UpdateAmount sets the "amount" field to the value that was provided on create.
+func (u *CreditTypeUpsertBulk) UpdateAmount() *CreditTypeUpsertBulk {
+	return u.Update(func(s *CreditTypeUpsert) {
+		s.UpdateAmount()
+	})
+}
+
+// SetStripeProductID sets the "stripe_product_id" field.
+func (u *CreditTypeUpsertBulk) SetStripeProductID(v string) *CreditTypeUpsertBulk {
+	return u.Update(func(s *CreditTypeUpsert) {
+		s.SetStripeProductID(v)
+	})
+}
+
+// UpdateStripeProductID sets the "stripe_product_id" field to the value that was provided on create.
+func (u *CreditTypeUpsertBulk) UpdateStripeProductID() *CreditTypeUpsertBulk {
+	return u.Update(func(s *CreditTypeUpsert) {
+		s.UpdateStripeProductID()
+	})
+}
+
+// ClearStripeProductID clears the value of the "stripe_product_id" field.
+func (u *CreditTypeUpsertBulk) ClearStripeProductID() *CreditTypeUpsertBulk {
+	return u.Update(func(s *CreditTypeUpsert) {
+		s.ClearStripeProductID()
+	})
+}
+
+// SetType sets the "type" field.
+func (u *CreditTypeUpsertBulk) SetType(v credittype.Type) *CreditTypeUpsertBulk {
+	return u.Update(func(s *CreditTypeUpsert) {
+		s.SetType(v)
+	})
+}
+
+// UpdateType sets the "type" field to the value that was provided on create.
+func (u *CreditTypeUpsertBulk) UpdateType() *CreditTypeUpsertBulk {
+	return u.Update(func(s *CreditTypeUpsert) {
+		s.UpdateType()
+	})
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *CreditTypeUpsertBulk) SetUpdatedAt(v time.Time) *CreditTypeUpsertBulk {
+	return u.Update(func(s *CreditTypeUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *CreditTypeUpsertBulk) UpdateUpdatedAt() *CreditTypeUpsertBulk {
+	return u.Update(func(s *CreditTypeUpsert) {
+		s.UpdateUpdatedAt()
+	})
+}
+
+// Exec executes the query.
+func (u *CreditTypeUpsertBulk) Exec(ctx context.Context) error {
+	for i, b := range u.create.builders {
+		if len(b.conflict) != 0 {
+			return fmt.Errorf("ent: OnConflict was set for builder %d. Set it on the CreditTypeCreateBulk instead", i)
+		}
+	}
+	if len(u.create.conflict) == 0 {
+		return errors.New("ent: missing options for CreditTypeCreateBulk.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *CreditTypeUpsertBulk) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
 		panic(err)
 	}
 }

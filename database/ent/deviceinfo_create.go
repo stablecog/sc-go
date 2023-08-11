@@ -8,6 +8,8 @@ import (
 	"fmt"
 	"time"
 
+	"entgo.io/ent/dialect"
+	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
@@ -22,6 +24,7 @@ type DeviceInfoCreate struct {
 	config
 	mutation *DeviceInfoMutation
 	hooks    []Hook
+	conflict []sql.ConflictOption
 }
 
 // SetType sets the "type" field.
@@ -247,6 +250,7 @@ func (dic *DeviceInfoCreate) createSpec() (*DeviceInfo, *sqlgraph.CreateSpec) {
 			},
 		}
 	)
+	_spec.OnConflict = dic.conflict
 	if id, ok := dic.mutation.ID(); ok {
 		_node.ID = id
 		_spec.ID.Value = &id
@@ -331,10 +335,292 @@ func (dic *DeviceInfoCreate) createSpec() (*DeviceInfo, *sqlgraph.CreateSpec) {
 	return _node, _spec
 }
 
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.DeviceInfo.Create().
+//		SetType(v).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.DeviceInfoUpsert) {
+//			SetType(v+v).
+//		}).
+//		Exec(ctx)
+func (dic *DeviceInfoCreate) OnConflict(opts ...sql.ConflictOption) *DeviceInfoUpsertOne {
+	dic.conflict = opts
+	return &DeviceInfoUpsertOne{
+		create: dic,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.DeviceInfo.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (dic *DeviceInfoCreate) OnConflictColumns(columns ...string) *DeviceInfoUpsertOne {
+	dic.conflict = append(dic.conflict, sql.ConflictColumns(columns...))
+	return &DeviceInfoUpsertOne{
+		create: dic,
+	}
+}
+
+type (
+	// DeviceInfoUpsertOne is the builder for "upsert"-ing
+	//  one DeviceInfo node.
+	DeviceInfoUpsertOne struct {
+		create *DeviceInfoCreate
+	}
+
+	// DeviceInfoUpsert is the "OnConflict" setter.
+	DeviceInfoUpsert struct {
+		*sql.UpdateSet
+	}
+)
+
+// SetType sets the "type" field.
+func (u *DeviceInfoUpsert) SetType(v string) *DeviceInfoUpsert {
+	u.Set(deviceinfo.FieldType, v)
+	return u
+}
+
+// UpdateType sets the "type" field to the value that was provided on create.
+func (u *DeviceInfoUpsert) UpdateType() *DeviceInfoUpsert {
+	u.SetExcluded(deviceinfo.FieldType)
+	return u
+}
+
+// ClearType clears the value of the "type" field.
+func (u *DeviceInfoUpsert) ClearType() *DeviceInfoUpsert {
+	u.SetNull(deviceinfo.FieldType)
+	return u
+}
+
+// SetOs sets the "os" field.
+func (u *DeviceInfoUpsert) SetOs(v string) *DeviceInfoUpsert {
+	u.Set(deviceinfo.FieldOs, v)
+	return u
+}
+
+// UpdateOs sets the "os" field to the value that was provided on create.
+func (u *DeviceInfoUpsert) UpdateOs() *DeviceInfoUpsert {
+	u.SetExcluded(deviceinfo.FieldOs)
+	return u
+}
+
+// ClearOs clears the value of the "os" field.
+func (u *DeviceInfoUpsert) ClearOs() *DeviceInfoUpsert {
+	u.SetNull(deviceinfo.FieldOs)
+	return u
+}
+
+// SetBrowser sets the "browser" field.
+func (u *DeviceInfoUpsert) SetBrowser(v string) *DeviceInfoUpsert {
+	u.Set(deviceinfo.FieldBrowser, v)
+	return u
+}
+
+// UpdateBrowser sets the "browser" field to the value that was provided on create.
+func (u *DeviceInfoUpsert) UpdateBrowser() *DeviceInfoUpsert {
+	u.SetExcluded(deviceinfo.FieldBrowser)
+	return u
+}
+
+// ClearBrowser clears the value of the "browser" field.
+func (u *DeviceInfoUpsert) ClearBrowser() *DeviceInfoUpsert {
+	u.SetNull(deviceinfo.FieldBrowser)
+	return u
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *DeviceInfoUpsert) SetUpdatedAt(v time.Time) *DeviceInfoUpsert {
+	u.Set(deviceinfo.FieldUpdatedAt, v)
+	return u
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *DeviceInfoUpsert) UpdateUpdatedAt() *DeviceInfoUpsert {
+	u.SetExcluded(deviceinfo.FieldUpdatedAt)
+	return u
+}
+
+// UpdateNewValues updates the mutable fields using the new values that were set on create except the ID field.
+// Using this option is equivalent to using:
+//
+//	client.DeviceInfo.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(deviceinfo.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *DeviceInfoUpsertOne) UpdateNewValues() *DeviceInfoUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		if _, exists := u.create.mutation.ID(); exists {
+			s.SetIgnore(deviceinfo.FieldID)
+		}
+		if _, exists := u.create.mutation.CreatedAt(); exists {
+			s.SetIgnore(deviceinfo.FieldCreatedAt)
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.DeviceInfo.Create().
+//	    OnConflict(sql.ResolveWithIgnore()).
+//	    Exec(ctx)
+func (u *DeviceInfoUpsertOne) Ignore() *DeviceInfoUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *DeviceInfoUpsertOne) DoNothing() *DeviceInfoUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the DeviceInfoCreate.OnConflict
+// documentation for more info.
+func (u *DeviceInfoUpsertOne) Update(set func(*DeviceInfoUpsert)) *DeviceInfoUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&DeviceInfoUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetType sets the "type" field.
+func (u *DeviceInfoUpsertOne) SetType(v string) *DeviceInfoUpsertOne {
+	return u.Update(func(s *DeviceInfoUpsert) {
+		s.SetType(v)
+	})
+}
+
+// UpdateType sets the "type" field to the value that was provided on create.
+func (u *DeviceInfoUpsertOne) UpdateType() *DeviceInfoUpsertOne {
+	return u.Update(func(s *DeviceInfoUpsert) {
+		s.UpdateType()
+	})
+}
+
+// ClearType clears the value of the "type" field.
+func (u *DeviceInfoUpsertOne) ClearType() *DeviceInfoUpsertOne {
+	return u.Update(func(s *DeviceInfoUpsert) {
+		s.ClearType()
+	})
+}
+
+// SetOs sets the "os" field.
+func (u *DeviceInfoUpsertOne) SetOs(v string) *DeviceInfoUpsertOne {
+	return u.Update(func(s *DeviceInfoUpsert) {
+		s.SetOs(v)
+	})
+}
+
+// UpdateOs sets the "os" field to the value that was provided on create.
+func (u *DeviceInfoUpsertOne) UpdateOs() *DeviceInfoUpsertOne {
+	return u.Update(func(s *DeviceInfoUpsert) {
+		s.UpdateOs()
+	})
+}
+
+// ClearOs clears the value of the "os" field.
+func (u *DeviceInfoUpsertOne) ClearOs() *DeviceInfoUpsertOne {
+	return u.Update(func(s *DeviceInfoUpsert) {
+		s.ClearOs()
+	})
+}
+
+// SetBrowser sets the "browser" field.
+func (u *DeviceInfoUpsertOne) SetBrowser(v string) *DeviceInfoUpsertOne {
+	return u.Update(func(s *DeviceInfoUpsert) {
+		s.SetBrowser(v)
+	})
+}
+
+// UpdateBrowser sets the "browser" field to the value that was provided on create.
+func (u *DeviceInfoUpsertOne) UpdateBrowser() *DeviceInfoUpsertOne {
+	return u.Update(func(s *DeviceInfoUpsert) {
+		s.UpdateBrowser()
+	})
+}
+
+// ClearBrowser clears the value of the "browser" field.
+func (u *DeviceInfoUpsertOne) ClearBrowser() *DeviceInfoUpsertOne {
+	return u.Update(func(s *DeviceInfoUpsert) {
+		s.ClearBrowser()
+	})
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *DeviceInfoUpsertOne) SetUpdatedAt(v time.Time) *DeviceInfoUpsertOne {
+	return u.Update(func(s *DeviceInfoUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *DeviceInfoUpsertOne) UpdateUpdatedAt() *DeviceInfoUpsertOne {
+	return u.Update(func(s *DeviceInfoUpsert) {
+		s.UpdateUpdatedAt()
+	})
+}
+
+// Exec executes the query.
+func (u *DeviceInfoUpsertOne) Exec(ctx context.Context) error {
+	if len(u.create.conflict) == 0 {
+		return errors.New("ent: missing options for DeviceInfoCreate.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *DeviceInfoUpsertOne) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// Exec executes the UPSERT query and returns the inserted/updated ID.
+func (u *DeviceInfoUpsertOne) ID(ctx context.Context) (id uuid.UUID, err error) {
+	if u.create.driver.Dialect() == dialect.MySQL {
+		// In case of "ON CONFLICT", there is no way to get back non-numeric ID
+		// fields from the database since MySQL does not support the RETURNING clause.
+		return id, errors.New("ent: DeviceInfoUpsertOne.ID is not supported by MySQL driver. Use DeviceInfoUpsertOne.Exec instead")
+	}
+	node, err := u.create.Save(ctx)
+	if err != nil {
+		return id, err
+	}
+	return node.ID, nil
+}
+
+// IDX is like ID, but panics if an error occurs.
+func (u *DeviceInfoUpsertOne) IDX(ctx context.Context) uuid.UUID {
+	id, err := u.ID(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return id
+}
+
 // DeviceInfoCreateBulk is the builder for creating many DeviceInfo entities in bulk.
 type DeviceInfoCreateBulk struct {
 	config
 	builders []*DeviceInfoCreate
+	conflict []sql.ConflictOption
 }
 
 // Save creates the DeviceInfo entities in the database.
@@ -361,6 +647,7 @@ func (dicb *DeviceInfoCreateBulk) Save(ctx context.Context) ([]*DeviceInfo, erro
 					_, err = mutators[i+1].Mutate(root, dicb.builders[i+1].mutation)
 				} else {
 					spec := &sqlgraph.BatchCreateSpec{Nodes: specs}
+					spec.OnConflict = dicb.conflict
 					// Invoke the actual operation on the latest mutation in the chain.
 					if err = sqlgraph.BatchCreate(ctx, dicb.driver, spec); err != nil {
 						if sqlgraph.IsConstraintError(err) {
@@ -407,6 +694,197 @@ func (dicb *DeviceInfoCreateBulk) Exec(ctx context.Context) error {
 // ExecX is like Exec, but panics if an error occurs.
 func (dicb *DeviceInfoCreateBulk) ExecX(ctx context.Context) {
 	if err := dicb.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.DeviceInfo.CreateBulk(builders...).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.DeviceInfoUpsert) {
+//			SetType(v+v).
+//		}).
+//		Exec(ctx)
+func (dicb *DeviceInfoCreateBulk) OnConflict(opts ...sql.ConflictOption) *DeviceInfoUpsertBulk {
+	dicb.conflict = opts
+	return &DeviceInfoUpsertBulk{
+		create: dicb,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.DeviceInfo.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (dicb *DeviceInfoCreateBulk) OnConflictColumns(columns ...string) *DeviceInfoUpsertBulk {
+	dicb.conflict = append(dicb.conflict, sql.ConflictColumns(columns...))
+	return &DeviceInfoUpsertBulk{
+		create: dicb,
+	}
+}
+
+// DeviceInfoUpsertBulk is the builder for "upsert"-ing
+// a bulk of DeviceInfo nodes.
+type DeviceInfoUpsertBulk struct {
+	create *DeviceInfoCreateBulk
+}
+
+// UpdateNewValues updates the mutable fields using the new values that
+// were set on create. Using this option is equivalent to using:
+//
+//	client.DeviceInfo.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(deviceinfo.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *DeviceInfoUpsertBulk) UpdateNewValues() *DeviceInfoUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		for _, b := range u.create.builders {
+			if _, exists := b.mutation.ID(); exists {
+				s.SetIgnore(deviceinfo.FieldID)
+			}
+			if _, exists := b.mutation.CreatedAt(); exists {
+				s.SetIgnore(deviceinfo.FieldCreatedAt)
+			}
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.DeviceInfo.Create().
+//		OnConflict(sql.ResolveWithIgnore()).
+//		Exec(ctx)
+func (u *DeviceInfoUpsertBulk) Ignore() *DeviceInfoUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *DeviceInfoUpsertBulk) DoNothing() *DeviceInfoUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the DeviceInfoCreateBulk.OnConflict
+// documentation for more info.
+func (u *DeviceInfoUpsertBulk) Update(set func(*DeviceInfoUpsert)) *DeviceInfoUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&DeviceInfoUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetType sets the "type" field.
+func (u *DeviceInfoUpsertBulk) SetType(v string) *DeviceInfoUpsertBulk {
+	return u.Update(func(s *DeviceInfoUpsert) {
+		s.SetType(v)
+	})
+}
+
+// UpdateType sets the "type" field to the value that was provided on create.
+func (u *DeviceInfoUpsertBulk) UpdateType() *DeviceInfoUpsertBulk {
+	return u.Update(func(s *DeviceInfoUpsert) {
+		s.UpdateType()
+	})
+}
+
+// ClearType clears the value of the "type" field.
+func (u *DeviceInfoUpsertBulk) ClearType() *DeviceInfoUpsertBulk {
+	return u.Update(func(s *DeviceInfoUpsert) {
+		s.ClearType()
+	})
+}
+
+// SetOs sets the "os" field.
+func (u *DeviceInfoUpsertBulk) SetOs(v string) *DeviceInfoUpsertBulk {
+	return u.Update(func(s *DeviceInfoUpsert) {
+		s.SetOs(v)
+	})
+}
+
+// UpdateOs sets the "os" field to the value that was provided on create.
+func (u *DeviceInfoUpsertBulk) UpdateOs() *DeviceInfoUpsertBulk {
+	return u.Update(func(s *DeviceInfoUpsert) {
+		s.UpdateOs()
+	})
+}
+
+// ClearOs clears the value of the "os" field.
+func (u *DeviceInfoUpsertBulk) ClearOs() *DeviceInfoUpsertBulk {
+	return u.Update(func(s *DeviceInfoUpsert) {
+		s.ClearOs()
+	})
+}
+
+// SetBrowser sets the "browser" field.
+func (u *DeviceInfoUpsertBulk) SetBrowser(v string) *DeviceInfoUpsertBulk {
+	return u.Update(func(s *DeviceInfoUpsert) {
+		s.SetBrowser(v)
+	})
+}
+
+// UpdateBrowser sets the "browser" field to the value that was provided on create.
+func (u *DeviceInfoUpsertBulk) UpdateBrowser() *DeviceInfoUpsertBulk {
+	return u.Update(func(s *DeviceInfoUpsert) {
+		s.UpdateBrowser()
+	})
+}
+
+// ClearBrowser clears the value of the "browser" field.
+func (u *DeviceInfoUpsertBulk) ClearBrowser() *DeviceInfoUpsertBulk {
+	return u.Update(func(s *DeviceInfoUpsert) {
+		s.ClearBrowser()
+	})
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *DeviceInfoUpsertBulk) SetUpdatedAt(v time.Time) *DeviceInfoUpsertBulk {
+	return u.Update(func(s *DeviceInfoUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *DeviceInfoUpsertBulk) UpdateUpdatedAt() *DeviceInfoUpsertBulk {
+	return u.Update(func(s *DeviceInfoUpsert) {
+		s.UpdateUpdatedAt()
+	})
+}
+
+// Exec executes the query.
+func (u *DeviceInfoUpsertBulk) Exec(ctx context.Context) error {
+	for i, b := range u.create.builders {
+		if len(b.conflict) != 0 {
+			return fmt.Errorf("ent: OnConflict was set for builder %d. Set it on the DeviceInfoCreateBulk instead", i)
+		}
+	}
+	if len(u.create.conflict) == 0 {
+		return errors.New("ent: missing options for DeviceInfoCreateBulk.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *DeviceInfoUpsertBulk) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
 		panic(err)
 	}
 }

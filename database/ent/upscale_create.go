@@ -8,6 +8,8 @@ import (
 	"fmt"
 	"time"
 
+	"entgo.io/ent/dialect"
+	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
@@ -25,6 +27,7 @@ type UpscaleCreate struct {
 	config
 	mutation *UpscaleMutation
 	hooks    []Hook
+	conflict []sql.ConflictOption
 }
 
 // SetWidth sets the "width" field.
@@ -426,6 +429,7 @@ func (uc *UpscaleCreate) createSpec() (*Upscale, *sqlgraph.CreateSpec) {
 			},
 		}
 	)
+	_spec.OnConflict = uc.conflict
 	if id, ok := uc.mutation.ID(); ok {
 		_node.ID = id
 		_spec.ID.Value = &id
@@ -584,10 +588,682 @@ func (uc *UpscaleCreate) createSpec() (*Upscale, *sqlgraph.CreateSpec) {
 	return _node, _spec
 }
 
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.Upscale.Create().
+//		SetWidth(v).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.UpscaleUpsert) {
+//			SetWidth(v+v).
+//		}).
+//		Exec(ctx)
+func (uc *UpscaleCreate) OnConflict(opts ...sql.ConflictOption) *UpscaleUpsertOne {
+	uc.conflict = opts
+	return &UpscaleUpsertOne{
+		create: uc,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.Upscale.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (uc *UpscaleCreate) OnConflictColumns(columns ...string) *UpscaleUpsertOne {
+	uc.conflict = append(uc.conflict, sql.ConflictColumns(columns...))
+	return &UpscaleUpsertOne{
+		create: uc,
+	}
+}
+
+type (
+	// UpscaleUpsertOne is the builder for "upsert"-ing
+	//  one Upscale node.
+	UpscaleUpsertOne struct {
+		create *UpscaleCreate
+	}
+
+	// UpscaleUpsert is the "OnConflict" setter.
+	UpscaleUpsert struct {
+		*sql.UpdateSet
+	}
+)
+
+// SetWidth sets the "width" field.
+func (u *UpscaleUpsert) SetWidth(v int32) *UpscaleUpsert {
+	u.Set(upscale.FieldWidth, v)
+	return u
+}
+
+// UpdateWidth sets the "width" field to the value that was provided on create.
+func (u *UpscaleUpsert) UpdateWidth() *UpscaleUpsert {
+	u.SetExcluded(upscale.FieldWidth)
+	return u
+}
+
+// AddWidth adds v to the "width" field.
+func (u *UpscaleUpsert) AddWidth(v int32) *UpscaleUpsert {
+	u.Add(upscale.FieldWidth, v)
+	return u
+}
+
+// SetHeight sets the "height" field.
+func (u *UpscaleUpsert) SetHeight(v int32) *UpscaleUpsert {
+	u.Set(upscale.FieldHeight, v)
+	return u
+}
+
+// UpdateHeight sets the "height" field to the value that was provided on create.
+func (u *UpscaleUpsert) UpdateHeight() *UpscaleUpsert {
+	u.SetExcluded(upscale.FieldHeight)
+	return u
+}
+
+// AddHeight adds v to the "height" field.
+func (u *UpscaleUpsert) AddHeight(v int32) *UpscaleUpsert {
+	u.Add(upscale.FieldHeight, v)
+	return u
+}
+
+// SetScale sets the "scale" field.
+func (u *UpscaleUpsert) SetScale(v int32) *UpscaleUpsert {
+	u.Set(upscale.FieldScale, v)
+	return u
+}
+
+// UpdateScale sets the "scale" field to the value that was provided on create.
+func (u *UpscaleUpsert) UpdateScale() *UpscaleUpsert {
+	u.SetExcluded(upscale.FieldScale)
+	return u
+}
+
+// AddScale adds v to the "scale" field.
+func (u *UpscaleUpsert) AddScale(v int32) *UpscaleUpsert {
+	u.Add(upscale.FieldScale, v)
+	return u
+}
+
+// SetCountryCode sets the "country_code" field.
+func (u *UpscaleUpsert) SetCountryCode(v string) *UpscaleUpsert {
+	u.Set(upscale.FieldCountryCode, v)
+	return u
+}
+
+// UpdateCountryCode sets the "country_code" field to the value that was provided on create.
+func (u *UpscaleUpsert) UpdateCountryCode() *UpscaleUpsert {
+	u.SetExcluded(upscale.FieldCountryCode)
+	return u
+}
+
+// ClearCountryCode clears the value of the "country_code" field.
+func (u *UpscaleUpsert) ClearCountryCode() *UpscaleUpsert {
+	u.SetNull(upscale.FieldCountryCode)
+	return u
+}
+
+// SetStatus sets the "status" field.
+func (u *UpscaleUpsert) SetStatus(v upscale.Status) *UpscaleUpsert {
+	u.Set(upscale.FieldStatus, v)
+	return u
+}
+
+// UpdateStatus sets the "status" field to the value that was provided on create.
+func (u *UpscaleUpsert) UpdateStatus() *UpscaleUpsert {
+	u.SetExcluded(upscale.FieldStatus)
+	return u
+}
+
+// SetFailureReason sets the "failure_reason" field.
+func (u *UpscaleUpsert) SetFailureReason(v string) *UpscaleUpsert {
+	u.Set(upscale.FieldFailureReason, v)
+	return u
+}
+
+// UpdateFailureReason sets the "failure_reason" field to the value that was provided on create.
+func (u *UpscaleUpsert) UpdateFailureReason() *UpscaleUpsert {
+	u.SetExcluded(upscale.FieldFailureReason)
+	return u
+}
+
+// ClearFailureReason clears the value of the "failure_reason" field.
+func (u *UpscaleUpsert) ClearFailureReason() *UpscaleUpsert {
+	u.SetNull(upscale.FieldFailureReason)
+	return u
+}
+
+// SetStripeProductID sets the "stripe_product_id" field.
+func (u *UpscaleUpsert) SetStripeProductID(v string) *UpscaleUpsert {
+	u.Set(upscale.FieldStripeProductID, v)
+	return u
+}
+
+// UpdateStripeProductID sets the "stripe_product_id" field to the value that was provided on create.
+func (u *UpscaleUpsert) UpdateStripeProductID() *UpscaleUpsert {
+	u.SetExcluded(upscale.FieldStripeProductID)
+	return u
+}
+
+// ClearStripeProductID clears the value of the "stripe_product_id" field.
+func (u *UpscaleUpsert) ClearStripeProductID() *UpscaleUpsert {
+	u.SetNull(upscale.FieldStripeProductID)
+	return u
+}
+
+// SetSystemGenerated sets the "system_generated" field.
+func (u *UpscaleUpsert) SetSystemGenerated(v bool) *UpscaleUpsert {
+	u.Set(upscale.FieldSystemGenerated, v)
+	return u
+}
+
+// UpdateSystemGenerated sets the "system_generated" field to the value that was provided on create.
+func (u *UpscaleUpsert) UpdateSystemGenerated() *UpscaleUpsert {
+	u.SetExcluded(upscale.FieldSystemGenerated)
+	return u
+}
+
+// SetSourceType sets the "source_type" field.
+func (u *UpscaleUpsert) SetSourceType(v enttypes.SourceType) *UpscaleUpsert {
+	u.Set(upscale.FieldSourceType, v)
+	return u
+}
+
+// UpdateSourceType sets the "source_type" field to the value that was provided on create.
+func (u *UpscaleUpsert) UpdateSourceType() *UpscaleUpsert {
+	u.SetExcluded(upscale.FieldSourceType)
+	return u
+}
+
+// SetUserID sets the "user_id" field.
+func (u *UpscaleUpsert) SetUserID(v uuid.UUID) *UpscaleUpsert {
+	u.Set(upscale.FieldUserID, v)
+	return u
+}
+
+// UpdateUserID sets the "user_id" field to the value that was provided on create.
+func (u *UpscaleUpsert) UpdateUserID() *UpscaleUpsert {
+	u.SetExcluded(upscale.FieldUserID)
+	return u
+}
+
+// SetDeviceInfoID sets the "device_info_id" field.
+func (u *UpscaleUpsert) SetDeviceInfoID(v uuid.UUID) *UpscaleUpsert {
+	u.Set(upscale.FieldDeviceInfoID, v)
+	return u
+}
+
+// UpdateDeviceInfoID sets the "device_info_id" field to the value that was provided on create.
+func (u *UpscaleUpsert) UpdateDeviceInfoID() *UpscaleUpsert {
+	u.SetExcluded(upscale.FieldDeviceInfoID)
+	return u
+}
+
+// SetModelID sets the "model_id" field.
+func (u *UpscaleUpsert) SetModelID(v uuid.UUID) *UpscaleUpsert {
+	u.Set(upscale.FieldModelID, v)
+	return u
+}
+
+// UpdateModelID sets the "model_id" field to the value that was provided on create.
+func (u *UpscaleUpsert) UpdateModelID() *UpscaleUpsert {
+	u.SetExcluded(upscale.FieldModelID)
+	return u
+}
+
+// SetAPITokenID sets the "api_token_id" field.
+func (u *UpscaleUpsert) SetAPITokenID(v uuid.UUID) *UpscaleUpsert {
+	u.Set(upscale.FieldAPITokenID, v)
+	return u
+}
+
+// UpdateAPITokenID sets the "api_token_id" field to the value that was provided on create.
+func (u *UpscaleUpsert) UpdateAPITokenID() *UpscaleUpsert {
+	u.SetExcluded(upscale.FieldAPITokenID)
+	return u
+}
+
+// ClearAPITokenID clears the value of the "api_token_id" field.
+func (u *UpscaleUpsert) ClearAPITokenID() *UpscaleUpsert {
+	u.SetNull(upscale.FieldAPITokenID)
+	return u
+}
+
+// SetStartedAt sets the "started_at" field.
+func (u *UpscaleUpsert) SetStartedAt(v time.Time) *UpscaleUpsert {
+	u.Set(upscale.FieldStartedAt, v)
+	return u
+}
+
+// UpdateStartedAt sets the "started_at" field to the value that was provided on create.
+func (u *UpscaleUpsert) UpdateStartedAt() *UpscaleUpsert {
+	u.SetExcluded(upscale.FieldStartedAt)
+	return u
+}
+
+// ClearStartedAt clears the value of the "started_at" field.
+func (u *UpscaleUpsert) ClearStartedAt() *UpscaleUpsert {
+	u.SetNull(upscale.FieldStartedAt)
+	return u
+}
+
+// SetCompletedAt sets the "completed_at" field.
+func (u *UpscaleUpsert) SetCompletedAt(v time.Time) *UpscaleUpsert {
+	u.Set(upscale.FieldCompletedAt, v)
+	return u
+}
+
+// UpdateCompletedAt sets the "completed_at" field to the value that was provided on create.
+func (u *UpscaleUpsert) UpdateCompletedAt() *UpscaleUpsert {
+	u.SetExcluded(upscale.FieldCompletedAt)
+	return u
+}
+
+// ClearCompletedAt clears the value of the "completed_at" field.
+func (u *UpscaleUpsert) ClearCompletedAt() *UpscaleUpsert {
+	u.SetNull(upscale.FieldCompletedAt)
+	return u
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *UpscaleUpsert) SetUpdatedAt(v time.Time) *UpscaleUpsert {
+	u.Set(upscale.FieldUpdatedAt, v)
+	return u
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *UpscaleUpsert) UpdateUpdatedAt() *UpscaleUpsert {
+	u.SetExcluded(upscale.FieldUpdatedAt)
+	return u
+}
+
+// UpdateNewValues updates the mutable fields using the new values that were set on create except the ID field.
+// Using this option is equivalent to using:
+//
+//	client.Upscale.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(upscale.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *UpscaleUpsertOne) UpdateNewValues() *UpscaleUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		if _, exists := u.create.mutation.ID(); exists {
+			s.SetIgnore(upscale.FieldID)
+		}
+		if _, exists := u.create.mutation.CreatedAt(); exists {
+			s.SetIgnore(upscale.FieldCreatedAt)
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.Upscale.Create().
+//	    OnConflict(sql.ResolveWithIgnore()).
+//	    Exec(ctx)
+func (u *UpscaleUpsertOne) Ignore() *UpscaleUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *UpscaleUpsertOne) DoNothing() *UpscaleUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the UpscaleCreate.OnConflict
+// documentation for more info.
+func (u *UpscaleUpsertOne) Update(set func(*UpscaleUpsert)) *UpscaleUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&UpscaleUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetWidth sets the "width" field.
+func (u *UpscaleUpsertOne) SetWidth(v int32) *UpscaleUpsertOne {
+	return u.Update(func(s *UpscaleUpsert) {
+		s.SetWidth(v)
+	})
+}
+
+// AddWidth adds v to the "width" field.
+func (u *UpscaleUpsertOne) AddWidth(v int32) *UpscaleUpsertOne {
+	return u.Update(func(s *UpscaleUpsert) {
+		s.AddWidth(v)
+	})
+}
+
+// UpdateWidth sets the "width" field to the value that was provided on create.
+func (u *UpscaleUpsertOne) UpdateWidth() *UpscaleUpsertOne {
+	return u.Update(func(s *UpscaleUpsert) {
+		s.UpdateWidth()
+	})
+}
+
+// SetHeight sets the "height" field.
+func (u *UpscaleUpsertOne) SetHeight(v int32) *UpscaleUpsertOne {
+	return u.Update(func(s *UpscaleUpsert) {
+		s.SetHeight(v)
+	})
+}
+
+// AddHeight adds v to the "height" field.
+func (u *UpscaleUpsertOne) AddHeight(v int32) *UpscaleUpsertOne {
+	return u.Update(func(s *UpscaleUpsert) {
+		s.AddHeight(v)
+	})
+}
+
+// UpdateHeight sets the "height" field to the value that was provided on create.
+func (u *UpscaleUpsertOne) UpdateHeight() *UpscaleUpsertOne {
+	return u.Update(func(s *UpscaleUpsert) {
+		s.UpdateHeight()
+	})
+}
+
+// SetScale sets the "scale" field.
+func (u *UpscaleUpsertOne) SetScale(v int32) *UpscaleUpsertOne {
+	return u.Update(func(s *UpscaleUpsert) {
+		s.SetScale(v)
+	})
+}
+
+// AddScale adds v to the "scale" field.
+func (u *UpscaleUpsertOne) AddScale(v int32) *UpscaleUpsertOne {
+	return u.Update(func(s *UpscaleUpsert) {
+		s.AddScale(v)
+	})
+}
+
+// UpdateScale sets the "scale" field to the value that was provided on create.
+func (u *UpscaleUpsertOne) UpdateScale() *UpscaleUpsertOne {
+	return u.Update(func(s *UpscaleUpsert) {
+		s.UpdateScale()
+	})
+}
+
+// SetCountryCode sets the "country_code" field.
+func (u *UpscaleUpsertOne) SetCountryCode(v string) *UpscaleUpsertOne {
+	return u.Update(func(s *UpscaleUpsert) {
+		s.SetCountryCode(v)
+	})
+}
+
+// UpdateCountryCode sets the "country_code" field to the value that was provided on create.
+func (u *UpscaleUpsertOne) UpdateCountryCode() *UpscaleUpsertOne {
+	return u.Update(func(s *UpscaleUpsert) {
+		s.UpdateCountryCode()
+	})
+}
+
+// ClearCountryCode clears the value of the "country_code" field.
+func (u *UpscaleUpsertOne) ClearCountryCode() *UpscaleUpsertOne {
+	return u.Update(func(s *UpscaleUpsert) {
+		s.ClearCountryCode()
+	})
+}
+
+// SetStatus sets the "status" field.
+func (u *UpscaleUpsertOne) SetStatus(v upscale.Status) *UpscaleUpsertOne {
+	return u.Update(func(s *UpscaleUpsert) {
+		s.SetStatus(v)
+	})
+}
+
+// UpdateStatus sets the "status" field to the value that was provided on create.
+func (u *UpscaleUpsertOne) UpdateStatus() *UpscaleUpsertOne {
+	return u.Update(func(s *UpscaleUpsert) {
+		s.UpdateStatus()
+	})
+}
+
+// SetFailureReason sets the "failure_reason" field.
+func (u *UpscaleUpsertOne) SetFailureReason(v string) *UpscaleUpsertOne {
+	return u.Update(func(s *UpscaleUpsert) {
+		s.SetFailureReason(v)
+	})
+}
+
+// UpdateFailureReason sets the "failure_reason" field to the value that was provided on create.
+func (u *UpscaleUpsertOne) UpdateFailureReason() *UpscaleUpsertOne {
+	return u.Update(func(s *UpscaleUpsert) {
+		s.UpdateFailureReason()
+	})
+}
+
+// ClearFailureReason clears the value of the "failure_reason" field.
+func (u *UpscaleUpsertOne) ClearFailureReason() *UpscaleUpsertOne {
+	return u.Update(func(s *UpscaleUpsert) {
+		s.ClearFailureReason()
+	})
+}
+
+// SetStripeProductID sets the "stripe_product_id" field.
+func (u *UpscaleUpsertOne) SetStripeProductID(v string) *UpscaleUpsertOne {
+	return u.Update(func(s *UpscaleUpsert) {
+		s.SetStripeProductID(v)
+	})
+}
+
+// UpdateStripeProductID sets the "stripe_product_id" field to the value that was provided on create.
+func (u *UpscaleUpsertOne) UpdateStripeProductID() *UpscaleUpsertOne {
+	return u.Update(func(s *UpscaleUpsert) {
+		s.UpdateStripeProductID()
+	})
+}
+
+// ClearStripeProductID clears the value of the "stripe_product_id" field.
+func (u *UpscaleUpsertOne) ClearStripeProductID() *UpscaleUpsertOne {
+	return u.Update(func(s *UpscaleUpsert) {
+		s.ClearStripeProductID()
+	})
+}
+
+// SetSystemGenerated sets the "system_generated" field.
+func (u *UpscaleUpsertOne) SetSystemGenerated(v bool) *UpscaleUpsertOne {
+	return u.Update(func(s *UpscaleUpsert) {
+		s.SetSystemGenerated(v)
+	})
+}
+
+// UpdateSystemGenerated sets the "system_generated" field to the value that was provided on create.
+func (u *UpscaleUpsertOne) UpdateSystemGenerated() *UpscaleUpsertOne {
+	return u.Update(func(s *UpscaleUpsert) {
+		s.UpdateSystemGenerated()
+	})
+}
+
+// SetSourceType sets the "source_type" field.
+func (u *UpscaleUpsertOne) SetSourceType(v enttypes.SourceType) *UpscaleUpsertOne {
+	return u.Update(func(s *UpscaleUpsert) {
+		s.SetSourceType(v)
+	})
+}
+
+// UpdateSourceType sets the "source_type" field to the value that was provided on create.
+func (u *UpscaleUpsertOne) UpdateSourceType() *UpscaleUpsertOne {
+	return u.Update(func(s *UpscaleUpsert) {
+		s.UpdateSourceType()
+	})
+}
+
+// SetUserID sets the "user_id" field.
+func (u *UpscaleUpsertOne) SetUserID(v uuid.UUID) *UpscaleUpsertOne {
+	return u.Update(func(s *UpscaleUpsert) {
+		s.SetUserID(v)
+	})
+}
+
+// UpdateUserID sets the "user_id" field to the value that was provided on create.
+func (u *UpscaleUpsertOne) UpdateUserID() *UpscaleUpsertOne {
+	return u.Update(func(s *UpscaleUpsert) {
+		s.UpdateUserID()
+	})
+}
+
+// SetDeviceInfoID sets the "device_info_id" field.
+func (u *UpscaleUpsertOne) SetDeviceInfoID(v uuid.UUID) *UpscaleUpsertOne {
+	return u.Update(func(s *UpscaleUpsert) {
+		s.SetDeviceInfoID(v)
+	})
+}
+
+// UpdateDeviceInfoID sets the "device_info_id" field to the value that was provided on create.
+func (u *UpscaleUpsertOne) UpdateDeviceInfoID() *UpscaleUpsertOne {
+	return u.Update(func(s *UpscaleUpsert) {
+		s.UpdateDeviceInfoID()
+	})
+}
+
+// SetModelID sets the "model_id" field.
+func (u *UpscaleUpsertOne) SetModelID(v uuid.UUID) *UpscaleUpsertOne {
+	return u.Update(func(s *UpscaleUpsert) {
+		s.SetModelID(v)
+	})
+}
+
+// UpdateModelID sets the "model_id" field to the value that was provided on create.
+func (u *UpscaleUpsertOne) UpdateModelID() *UpscaleUpsertOne {
+	return u.Update(func(s *UpscaleUpsert) {
+		s.UpdateModelID()
+	})
+}
+
+// SetAPITokenID sets the "api_token_id" field.
+func (u *UpscaleUpsertOne) SetAPITokenID(v uuid.UUID) *UpscaleUpsertOne {
+	return u.Update(func(s *UpscaleUpsert) {
+		s.SetAPITokenID(v)
+	})
+}
+
+// UpdateAPITokenID sets the "api_token_id" field to the value that was provided on create.
+func (u *UpscaleUpsertOne) UpdateAPITokenID() *UpscaleUpsertOne {
+	return u.Update(func(s *UpscaleUpsert) {
+		s.UpdateAPITokenID()
+	})
+}
+
+// ClearAPITokenID clears the value of the "api_token_id" field.
+func (u *UpscaleUpsertOne) ClearAPITokenID() *UpscaleUpsertOne {
+	return u.Update(func(s *UpscaleUpsert) {
+		s.ClearAPITokenID()
+	})
+}
+
+// SetStartedAt sets the "started_at" field.
+func (u *UpscaleUpsertOne) SetStartedAt(v time.Time) *UpscaleUpsertOne {
+	return u.Update(func(s *UpscaleUpsert) {
+		s.SetStartedAt(v)
+	})
+}
+
+// UpdateStartedAt sets the "started_at" field to the value that was provided on create.
+func (u *UpscaleUpsertOne) UpdateStartedAt() *UpscaleUpsertOne {
+	return u.Update(func(s *UpscaleUpsert) {
+		s.UpdateStartedAt()
+	})
+}
+
+// ClearStartedAt clears the value of the "started_at" field.
+func (u *UpscaleUpsertOne) ClearStartedAt() *UpscaleUpsertOne {
+	return u.Update(func(s *UpscaleUpsert) {
+		s.ClearStartedAt()
+	})
+}
+
+// SetCompletedAt sets the "completed_at" field.
+func (u *UpscaleUpsertOne) SetCompletedAt(v time.Time) *UpscaleUpsertOne {
+	return u.Update(func(s *UpscaleUpsert) {
+		s.SetCompletedAt(v)
+	})
+}
+
+// UpdateCompletedAt sets the "completed_at" field to the value that was provided on create.
+func (u *UpscaleUpsertOne) UpdateCompletedAt() *UpscaleUpsertOne {
+	return u.Update(func(s *UpscaleUpsert) {
+		s.UpdateCompletedAt()
+	})
+}
+
+// ClearCompletedAt clears the value of the "completed_at" field.
+func (u *UpscaleUpsertOne) ClearCompletedAt() *UpscaleUpsertOne {
+	return u.Update(func(s *UpscaleUpsert) {
+		s.ClearCompletedAt()
+	})
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *UpscaleUpsertOne) SetUpdatedAt(v time.Time) *UpscaleUpsertOne {
+	return u.Update(func(s *UpscaleUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *UpscaleUpsertOne) UpdateUpdatedAt() *UpscaleUpsertOne {
+	return u.Update(func(s *UpscaleUpsert) {
+		s.UpdateUpdatedAt()
+	})
+}
+
+// Exec executes the query.
+func (u *UpscaleUpsertOne) Exec(ctx context.Context) error {
+	if len(u.create.conflict) == 0 {
+		return errors.New("ent: missing options for UpscaleCreate.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *UpscaleUpsertOne) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// Exec executes the UPSERT query and returns the inserted/updated ID.
+func (u *UpscaleUpsertOne) ID(ctx context.Context) (id uuid.UUID, err error) {
+	if u.create.driver.Dialect() == dialect.MySQL {
+		// In case of "ON CONFLICT", there is no way to get back non-numeric ID
+		// fields from the database since MySQL does not support the RETURNING clause.
+		return id, errors.New("ent: UpscaleUpsertOne.ID is not supported by MySQL driver. Use UpscaleUpsertOne.Exec instead")
+	}
+	node, err := u.create.Save(ctx)
+	if err != nil {
+		return id, err
+	}
+	return node.ID, nil
+}
+
+// IDX is like ID, but panics if an error occurs.
+func (u *UpscaleUpsertOne) IDX(ctx context.Context) uuid.UUID {
+	id, err := u.ID(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return id
+}
+
 // UpscaleCreateBulk is the builder for creating many Upscale entities in bulk.
 type UpscaleCreateBulk struct {
 	config
 	builders []*UpscaleCreate
+	conflict []sql.ConflictOption
 }
 
 // Save creates the Upscale entities in the database.
@@ -614,6 +1290,7 @@ func (ucb *UpscaleCreateBulk) Save(ctx context.Context) ([]*Upscale, error) {
 					_, err = mutators[i+1].Mutate(root, ucb.builders[i+1].mutation)
 				} else {
 					spec := &sqlgraph.BatchCreateSpec{Nodes: specs}
+					spec.OnConflict = ucb.conflict
 					// Invoke the actual operation on the latest mutation in the chain.
 					if err = sqlgraph.BatchCreate(ctx, ucb.driver, spec); err != nil {
 						if sqlgraph.IsConstraintError(err) {
@@ -660,6 +1337,407 @@ func (ucb *UpscaleCreateBulk) Exec(ctx context.Context) error {
 // ExecX is like Exec, but panics if an error occurs.
 func (ucb *UpscaleCreateBulk) ExecX(ctx context.Context) {
 	if err := ucb.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.Upscale.CreateBulk(builders...).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.UpscaleUpsert) {
+//			SetWidth(v+v).
+//		}).
+//		Exec(ctx)
+func (ucb *UpscaleCreateBulk) OnConflict(opts ...sql.ConflictOption) *UpscaleUpsertBulk {
+	ucb.conflict = opts
+	return &UpscaleUpsertBulk{
+		create: ucb,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.Upscale.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (ucb *UpscaleCreateBulk) OnConflictColumns(columns ...string) *UpscaleUpsertBulk {
+	ucb.conflict = append(ucb.conflict, sql.ConflictColumns(columns...))
+	return &UpscaleUpsertBulk{
+		create: ucb,
+	}
+}
+
+// UpscaleUpsertBulk is the builder for "upsert"-ing
+// a bulk of Upscale nodes.
+type UpscaleUpsertBulk struct {
+	create *UpscaleCreateBulk
+}
+
+// UpdateNewValues updates the mutable fields using the new values that
+// were set on create. Using this option is equivalent to using:
+//
+//	client.Upscale.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(upscale.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *UpscaleUpsertBulk) UpdateNewValues() *UpscaleUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		for _, b := range u.create.builders {
+			if _, exists := b.mutation.ID(); exists {
+				s.SetIgnore(upscale.FieldID)
+			}
+			if _, exists := b.mutation.CreatedAt(); exists {
+				s.SetIgnore(upscale.FieldCreatedAt)
+			}
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.Upscale.Create().
+//		OnConflict(sql.ResolveWithIgnore()).
+//		Exec(ctx)
+func (u *UpscaleUpsertBulk) Ignore() *UpscaleUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *UpscaleUpsertBulk) DoNothing() *UpscaleUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the UpscaleCreateBulk.OnConflict
+// documentation for more info.
+func (u *UpscaleUpsertBulk) Update(set func(*UpscaleUpsert)) *UpscaleUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&UpscaleUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetWidth sets the "width" field.
+func (u *UpscaleUpsertBulk) SetWidth(v int32) *UpscaleUpsertBulk {
+	return u.Update(func(s *UpscaleUpsert) {
+		s.SetWidth(v)
+	})
+}
+
+// AddWidth adds v to the "width" field.
+func (u *UpscaleUpsertBulk) AddWidth(v int32) *UpscaleUpsertBulk {
+	return u.Update(func(s *UpscaleUpsert) {
+		s.AddWidth(v)
+	})
+}
+
+// UpdateWidth sets the "width" field to the value that was provided on create.
+func (u *UpscaleUpsertBulk) UpdateWidth() *UpscaleUpsertBulk {
+	return u.Update(func(s *UpscaleUpsert) {
+		s.UpdateWidth()
+	})
+}
+
+// SetHeight sets the "height" field.
+func (u *UpscaleUpsertBulk) SetHeight(v int32) *UpscaleUpsertBulk {
+	return u.Update(func(s *UpscaleUpsert) {
+		s.SetHeight(v)
+	})
+}
+
+// AddHeight adds v to the "height" field.
+func (u *UpscaleUpsertBulk) AddHeight(v int32) *UpscaleUpsertBulk {
+	return u.Update(func(s *UpscaleUpsert) {
+		s.AddHeight(v)
+	})
+}
+
+// UpdateHeight sets the "height" field to the value that was provided on create.
+func (u *UpscaleUpsertBulk) UpdateHeight() *UpscaleUpsertBulk {
+	return u.Update(func(s *UpscaleUpsert) {
+		s.UpdateHeight()
+	})
+}
+
+// SetScale sets the "scale" field.
+func (u *UpscaleUpsertBulk) SetScale(v int32) *UpscaleUpsertBulk {
+	return u.Update(func(s *UpscaleUpsert) {
+		s.SetScale(v)
+	})
+}
+
+// AddScale adds v to the "scale" field.
+func (u *UpscaleUpsertBulk) AddScale(v int32) *UpscaleUpsertBulk {
+	return u.Update(func(s *UpscaleUpsert) {
+		s.AddScale(v)
+	})
+}
+
+// UpdateScale sets the "scale" field to the value that was provided on create.
+func (u *UpscaleUpsertBulk) UpdateScale() *UpscaleUpsertBulk {
+	return u.Update(func(s *UpscaleUpsert) {
+		s.UpdateScale()
+	})
+}
+
+// SetCountryCode sets the "country_code" field.
+func (u *UpscaleUpsertBulk) SetCountryCode(v string) *UpscaleUpsertBulk {
+	return u.Update(func(s *UpscaleUpsert) {
+		s.SetCountryCode(v)
+	})
+}
+
+// UpdateCountryCode sets the "country_code" field to the value that was provided on create.
+func (u *UpscaleUpsertBulk) UpdateCountryCode() *UpscaleUpsertBulk {
+	return u.Update(func(s *UpscaleUpsert) {
+		s.UpdateCountryCode()
+	})
+}
+
+// ClearCountryCode clears the value of the "country_code" field.
+func (u *UpscaleUpsertBulk) ClearCountryCode() *UpscaleUpsertBulk {
+	return u.Update(func(s *UpscaleUpsert) {
+		s.ClearCountryCode()
+	})
+}
+
+// SetStatus sets the "status" field.
+func (u *UpscaleUpsertBulk) SetStatus(v upscale.Status) *UpscaleUpsertBulk {
+	return u.Update(func(s *UpscaleUpsert) {
+		s.SetStatus(v)
+	})
+}
+
+// UpdateStatus sets the "status" field to the value that was provided on create.
+func (u *UpscaleUpsertBulk) UpdateStatus() *UpscaleUpsertBulk {
+	return u.Update(func(s *UpscaleUpsert) {
+		s.UpdateStatus()
+	})
+}
+
+// SetFailureReason sets the "failure_reason" field.
+func (u *UpscaleUpsertBulk) SetFailureReason(v string) *UpscaleUpsertBulk {
+	return u.Update(func(s *UpscaleUpsert) {
+		s.SetFailureReason(v)
+	})
+}
+
+// UpdateFailureReason sets the "failure_reason" field to the value that was provided on create.
+func (u *UpscaleUpsertBulk) UpdateFailureReason() *UpscaleUpsertBulk {
+	return u.Update(func(s *UpscaleUpsert) {
+		s.UpdateFailureReason()
+	})
+}
+
+// ClearFailureReason clears the value of the "failure_reason" field.
+func (u *UpscaleUpsertBulk) ClearFailureReason() *UpscaleUpsertBulk {
+	return u.Update(func(s *UpscaleUpsert) {
+		s.ClearFailureReason()
+	})
+}
+
+// SetStripeProductID sets the "stripe_product_id" field.
+func (u *UpscaleUpsertBulk) SetStripeProductID(v string) *UpscaleUpsertBulk {
+	return u.Update(func(s *UpscaleUpsert) {
+		s.SetStripeProductID(v)
+	})
+}
+
+// UpdateStripeProductID sets the "stripe_product_id" field to the value that was provided on create.
+func (u *UpscaleUpsertBulk) UpdateStripeProductID() *UpscaleUpsertBulk {
+	return u.Update(func(s *UpscaleUpsert) {
+		s.UpdateStripeProductID()
+	})
+}
+
+// ClearStripeProductID clears the value of the "stripe_product_id" field.
+func (u *UpscaleUpsertBulk) ClearStripeProductID() *UpscaleUpsertBulk {
+	return u.Update(func(s *UpscaleUpsert) {
+		s.ClearStripeProductID()
+	})
+}
+
+// SetSystemGenerated sets the "system_generated" field.
+func (u *UpscaleUpsertBulk) SetSystemGenerated(v bool) *UpscaleUpsertBulk {
+	return u.Update(func(s *UpscaleUpsert) {
+		s.SetSystemGenerated(v)
+	})
+}
+
+// UpdateSystemGenerated sets the "system_generated" field to the value that was provided on create.
+func (u *UpscaleUpsertBulk) UpdateSystemGenerated() *UpscaleUpsertBulk {
+	return u.Update(func(s *UpscaleUpsert) {
+		s.UpdateSystemGenerated()
+	})
+}
+
+// SetSourceType sets the "source_type" field.
+func (u *UpscaleUpsertBulk) SetSourceType(v enttypes.SourceType) *UpscaleUpsertBulk {
+	return u.Update(func(s *UpscaleUpsert) {
+		s.SetSourceType(v)
+	})
+}
+
+// UpdateSourceType sets the "source_type" field to the value that was provided on create.
+func (u *UpscaleUpsertBulk) UpdateSourceType() *UpscaleUpsertBulk {
+	return u.Update(func(s *UpscaleUpsert) {
+		s.UpdateSourceType()
+	})
+}
+
+// SetUserID sets the "user_id" field.
+func (u *UpscaleUpsertBulk) SetUserID(v uuid.UUID) *UpscaleUpsertBulk {
+	return u.Update(func(s *UpscaleUpsert) {
+		s.SetUserID(v)
+	})
+}
+
+// UpdateUserID sets the "user_id" field to the value that was provided on create.
+func (u *UpscaleUpsertBulk) UpdateUserID() *UpscaleUpsertBulk {
+	return u.Update(func(s *UpscaleUpsert) {
+		s.UpdateUserID()
+	})
+}
+
+// SetDeviceInfoID sets the "device_info_id" field.
+func (u *UpscaleUpsertBulk) SetDeviceInfoID(v uuid.UUID) *UpscaleUpsertBulk {
+	return u.Update(func(s *UpscaleUpsert) {
+		s.SetDeviceInfoID(v)
+	})
+}
+
+// UpdateDeviceInfoID sets the "device_info_id" field to the value that was provided on create.
+func (u *UpscaleUpsertBulk) UpdateDeviceInfoID() *UpscaleUpsertBulk {
+	return u.Update(func(s *UpscaleUpsert) {
+		s.UpdateDeviceInfoID()
+	})
+}
+
+// SetModelID sets the "model_id" field.
+func (u *UpscaleUpsertBulk) SetModelID(v uuid.UUID) *UpscaleUpsertBulk {
+	return u.Update(func(s *UpscaleUpsert) {
+		s.SetModelID(v)
+	})
+}
+
+// UpdateModelID sets the "model_id" field to the value that was provided on create.
+func (u *UpscaleUpsertBulk) UpdateModelID() *UpscaleUpsertBulk {
+	return u.Update(func(s *UpscaleUpsert) {
+		s.UpdateModelID()
+	})
+}
+
+// SetAPITokenID sets the "api_token_id" field.
+func (u *UpscaleUpsertBulk) SetAPITokenID(v uuid.UUID) *UpscaleUpsertBulk {
+	return u.Update(func(s *UpscaleUpsert) {
+		s.SetAPITokenID(v)
+	})
+}
+
+// UpdateAPITokenID sets the "api_token_id" field to the value that was provided on create.
+func (u *UpscaleUpsertBulk) UpdateAPITokenID() *UpscaleUpsertBulk {
+	return u.Update(func(s *UpscaleUpsert) {
+		s.UpdateAPITokenID()
+	})
+}
+
+// ClearAPITokenID clears the value of the "api_token_id" field.
+func (u *UpscaleUpsertBulk) ClearAPITokenID() *UpscaleUpsertBulk {
+	return u.Update(func(s *UpscaleUpsert) {
+		s.ClearAPITokenID()
+	})
+}
+
+// SetStartedAt sets the "started_at" field.
+func (u *UpscaleUpsertBulk) SetStartedAt(v time.Time) *UpscaleUpsertBulk {
+	return u.Update(func(s *UpscaleUpsert) {
+		s.SetStartedAt(v)
+	})
+}
+
+// UpdateStartedAt sets the "started_at" field to the value that was provided on create.
+func (u *UpscaleUpsertBulk) UpdateStartedAt() *UpscaleUpsertBulk {
+	return u.Update(func(s *UpscaleUpsert) {
+		s.UpdateStartedAt()
+	})
+}
+
+// ClearStartedAt clears the value of the "started_at" field.
+func (u *UpscaleUpsertBulk) ClearStartedAt() *UpscaleUpsertBulk {
+	return u.Update(func(s *UpscaleUpsert) {
+		s.ClearStartedAt()
+	})
+}
+
+// SetCompletedAt sets the "completed_at" field.
+func (u *UpscaleUpsertBulk) SetCompletedAt(v time.Time) *UpscaleUpsertBulk {
+	return u.Update(func(s *UpscaleUpsert) {
+		s.SetCompletedAt(v)
+	})
+}
+
+// UpdateCompletedAt sets the "completed_at" field to the value that was provided on create.
+func (u *UpscaleUpsertBulk) UpdateCompletedAt() *UpscaleUpsertBulk {
+	return u.Update(func(s *UpscaleUpsert) {
+		s.UpdateCompletedAt()
+	})
+}
+
+// ClearCompletedAt clears the value of the "completed_at" field.
+func (u *UpscaleUpsertBulk) ClearCompletedAt() *UpscaleUpsertBulk {
+	return u.Update(func(s *UpscaleUpsert) {
+		s.ClearCompletedAt()
+	})
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *UpscaleUpsertBulk) SetUpdatedAt(v time.Time) *UpscaleUpsertBulk {
+	return u.Update(func(s *UpscaleUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *UpscaleUpsertBulk) UpdateUpdatedAt() *UpscaleUpsertBulk {
+	return u.Update(func(s *UpscaleUpsert) {
+		s.UpdateUpdatedAt()
+	})
+}
+
+// Exec executes the query.
+func (u *UpscaleUpsertBulk) Exec(ctx context.Context) error {
+	for i, b := range u.create.builders {
+		if len(b.conflict) != 0 {
+			return fmt.Errorf("ent: OnConflict was set for builder %d. Set it on the UpscaleCreateBulk instead", i)
+		}
+	}
+	if len(u.create.conflict) == 0 {
+		return errors.New("ent: missing options for UpscaleCreateBulk.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *UpscaleUpsertBulk) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
 		panic(err)
 	}
 }

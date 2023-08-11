@@ -8,6 +8,8 @@ import (
 	"fmt"
 	"time"
 
+	"entgo.io/ent/dialect"
+	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
@@ -21,6 +23,7 @@ type GenerationOutputCreate struct {
 	config
 	mutation *GenerationOutputMutation
 	hooks    []Hook
+	conflict []sql.ConflictOption
 }
 
 // SetImagePath sets the "image_path" field.
@@ -327,6 +330,7 @@ func (goc *GenerationOutputCreate) createSpec() (*GenerationOutput, *sqlgraph.Cr
 			},
 		}
 	)
+	_spec.OnConflict = goc.conflict
 	if id, ok := goc.mutation.ID(); ok {
 		_node.ID = id
 		_spec.ID.Value = &id
@@ -409,10 +413,409 @@ func (goc *GenerationOutputCreate) createSpec() (*GenerationOutput, *sqlgraph.Cr
 	return _node, _spec
 }
 
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.GenerationOutput.Create().
+//		SetImagePath(v).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.GenerationOutputUpsert) {
+//			SetImagePath(v+v).
+//		}).
+//		Exec(ctx)
+func (goc *GenerationOutputCreate) OnConflict(opts ...sql.ConflictOption) *GenerationOutputUpsertOne {
+	goc.conflict = opts
+	return &GenerationOutputUpsertOne{
+		create: goc,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.GenerationOutput.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (goc *GenerationOutputCreate) OnConflictColumns(columns ...string) *GenerationOutputUpsertOne {
+	goc.conflict = append(goc.conflict, sql.ConflictColumns(columns...))
+	return &GenerationOutputUpsertOne{
+		create: goc,
+	}
+}
+
+type (
+	// GenerationOutputUpsertOne is the builder for "upsert"-ing
+	//  one GenerationOutput node.
+	GenerationOutputUpsertOne struct {
+		create *GenerationOutputCreate
+	}
+
+	// GenerationOutputUpsert is the "OnConflict" setter.
+	GenerationOutputUpsert struct {
+		*sql.UpdateSet
+	}
+)
+
+// SetImagePath sets the "image_path" field.
+func (u *GenerationOutputUpsert) SetImagePath(v string) *GenerationOutputUpsert {
+	u.Set(generationoutput.FieldImagePath, v)
+	return u
+}
+
+// UpdateImagePath sets the "image_path" field to the value that was provided on create.
+func (u *GenerationOutputUpsert) UpdateImagePath() *GenerationOutputUpsert {
+	u.SetExcluded(generationoutput.FieldImagePath)
+	return u
+}
+
+// SetUpscaledImagePath sets the "upscaled_image_path" field.
+func (u *GenerationOutputUpsert) SetUpscaledImagePath(v string) *GenerationOutputUpsert {
+	u.Set(generationoutput.FieldUpscaledImagePath, v)
+	return u
+}
+
+// UpdateUpscaledImagePath sets the "upscaled_image_path" field to the value that was provided on create.
+func (u *GenerationOutputUpsert) UpdateUpscaledImagePath() *GenerationOutputUpsert {
+	u.SetExcluded(generationoutput.FieldUpscaledImagePath)
+	return u
+}
+
+// ClearUpscaledImagePath clears the value of the "upscaled_image_path" field.
+func (u *GenerationOutputUpsert) ClearUpscaledImagePath() *GenerationOutputUpsert {
+	u.SetNull(generationoutput.FieldUpscaledImagePath)
+	return u
+}
+
+// SetGalleryStatus sets the "gallery_status" field.
+func (u *GenerationOutputUpsert) SetGalleryStatus(v generationoutput.GalleryStatus) *GenerationOutputUpsert {
+	u.Set(generationoutput.FieldGalleryStatus, v)
+	return u
+}
+
+// UpdateGalleryStatus sets the "gallery_status" field to the value that was provided on create.
+func (u *GenerationOutputUpsert) UpdateGalleryStatus() *GenerationOutputUpsert {
+	u.SetExcluded(generationoutput.FieldGalleryStatus)
+	return u
+}
+
+// SetIsFavorited sets the "is_favorited" field.
+func (u *GenerationOutputUpsert) SetIsFavorited(v bool) *GenerationOutputUpsert {
+	u.Set(generationoutput.FieldIsFavorited, v)
+	return u
+}
+
+// UpdateIsFavorited sets the "is_favorited" field to the value that was provided on create.
+func (u *GenerationOutputUpsert) UpdateIsFavorited() *GenerationOutputUpsert {
+	u.SetExcluded(generationoutput.FieldIsFavorited)
+	return u
+}
+
+// SetHasEmbeddings sets the "has_embeddings" field.
+func (u *GenerationOutputUpsert) SetHasEmbeddings(v bool) *GenerationOutputUpsert {
+	u.Set(generationoutput.FieldHasEmbeddings, v)
+	return u
+}
+
+// UpdateHasEmbeddings sets the "has_embeddings" field to the value that was provided on create.
+func (u *GenerationOutputUpsert) UpdateHasEmbeddings() *GenerationOutputUpsert {
+	u.SetExcluded(generationoutput.FieldHasEmbeddings)
+	return u
+}
+
+// SetIsPublic sets the "is_public" field.
+func (u *GenerationOutputUpsert) SetIsPublic(v bool) *GenerationOutputUpsert {
+	u.Set(generationoutput.FieldIsPublic, v)
+	return u
+}
+
+// UpdateIsPublic sets the "is_public" field to the value that was provided on create.
+func (u *GenerationOutputUpsert) UpdateIsPublic() *GenerationOutputUpsert {
+	u.SetExcluded(generationoutput.FieldIsPublic)
+	return u
+}
+
+// SetGenerationID sets the "generation_id" field.
+func (u *GenerationOutputUpsert) SetGenerationID(v uuid.UUID) *GenerationOutputUpsert {
+	u.Set(generationoutput.FieldGenerationID, v)
+	return u
+}
+
+// UpdateGenerationID sets the "generation_id" field to the value that was provided on create.
+func (u *GenerationOutputUpsert) UpdateGenerationID() *GenerationOutputUpsert {
+	u.SetExcluded(generationoutput.FieldGenerationID)
+	return u
+}
+
+// SetDeletedAt sets the "deleted_at" field.
+func (u *GenerationOutputUpsert) SetDeletedAt(v time.Time) *GenerationOutputUpsert {
+	u.Set(generationoutput.FieldDeletedAt, v)
+	return u
+}
+
+// UpdateDeletedAt sets the "deleted_at" field to the value that was provided on create.
+func (u *GenerationOutputUpsert) UpdateDeletedAt() *GenerationOutputUpsert {
+	u.SetExcluded(generationoutput.FieldDeletedAt)
+	return u
+}
+
+// ClearDeletedAt clears the value of the "deleted_at" field.
+func (u *GenerationOutputUpsert) ClearDeletedAt() *GenerationOutputUpsert {
+	u.SetNull(generationoutput.FieldDeletedAt)
+	return u
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *GenerationOutputUpsert) SetUpdatedAt(v time.Time) *GenerationOutputUpsert {
+	u.Set(generationoutput.FieldUpdatedAt, v)
+	return u
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *GenerationOutputUpsert) UpdateUpdatedAt() *GenerationOutputUpsert {
+	u.SetExcluded(generationoutput.FieldUpdatedAt)
+	return u
+}
+
+// UpdateNewValues updates the mutable fields using the new values that were set on create except the ID field.
+// Using this option is equivalent to using:
+//
+//	client.GenerationOutput.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(generationoutput.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *GenerationOutputUpsertOne) UpdateNewValues() *GenerationOutputUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		if _, exists := u.create.mutation.ID(); exists {
+			s.SetIgnore(generationoutput.FieldID)
+		}
+		if _, exists := u.create.mutation.CreatedAt(); exists {
+			s.SetIgnore(generationoutput.FieldCreatedAt)
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.GenerationOutput.Create().
+//	    OnConflict(sql.ResolveWithIgnore()).
+//	    Exec(ctx)
+func (u *GenerationOutputUpsertOne) Ignore() *GenerationOutputUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *GenerationOutputUpsertOne) DoNothing() *GenerationOutputUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the GenerationOutputCreate.OnConflict
+// documentation for more info.
+func (u *GenerationOutputUpsertOne) Update(set func(*GenerationOutputUpsert)) *GenerationOutputUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&GenerationOutputUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetImagePath sets the "image_path" field.
+func (u *GenerationOutputUpsertOne) SetImagePath(v string) *GenerationOutputUpsertOne {
+	return u.Update(func(s *GenerationOutputUpsert) {
+		s.SetImagePath(v)
+	})
+}
+
+// UpdateImagePath sets the "image_path" field to the value that was provided on create.
+func (u *GenerationOutputUpsertOne) UpdateImagePath() *GenerationOutputUpsertOne {
+	return u.Update(func(s *GenerationOutputUpsert) {
+		s.UpdateImagePath()
+	})
+}
+
+// SetUpscaledImagePath sets the "upscaled_image_path" field.
+func (u *GenerationOutputUpsertOne) SetUpscaledImagePath(v string) *GenerationOutputUpsertOne {
+	return u.Update(func(s *GenerationOutputUpsert) {
+		s.SetUpscaledImagePath(v)
+	})
+}
+
+// UpdateUpscaledImagePath sets the "upscaled_image_path" field to the value that was provided on create.
+func (u *GenerationOutputUpsertOne) UpdateUpscaledImagePath() *GenerationOutputUpsertOne {
+	return u.Update(func(s *GenerationOutputUpsert) {
+		s.UpdateUpscaledImagePath()
+	})
+}
+
+// ClearUpscaledImagePath clears the value of the "upscaled_image_path" field.
+func (u *GenerationOutputUpsertOne) ClearUpscaledImagePath() *GenerationOutputUpsertOne {
+	return u.Update(func(s *GenerationOutputUpsert) {
+		s.ClearUpscaledImagePath()
+	})
+}
+
+// SetGalleryStatus sets the "gallery_status" field.
+func (u *GenerationOutputUpsertOne) SetGalleryStatus(v generationoutput.GalleryStatus) *GenerationOutputUpsertOne {
+	return u.Update(func(s *GenerationOutputUpsert) {
+		s.SetGalleryStatus(v)
+	})
+}
+
+// UpdateGalleryStatus sets the "gallery_status" field to the value that was provided on create.
+func (u *GenerationOutputUpsertOne) UpdateGalleryStatus() *GenerationOutputUpsertOne {
+	return u.Update(func(s *GenerationOutputUpsert) {
+		s.UpdateGalleryStatus()
+	})
+}
+
+// SetIsFavorited sets the "is_favorited" field.
+func (u *GenerationOutputUpsertOne) SetIsFavorited(v bool) *GenerationOutputUpsertOne {
+	return u.Update(func(s *GenerationOutputUpsert) {
+		s.SetIsFavorited(v)
+	})
+}
+
+// UpdateIsFavorited sets the "is_favorited" field to the value that was provided on create.
+func (u *GenerationOutputUpsertOne) UpdateIsFavorited() *GenerationOutputUpsertOne {
+	return u.Update(func(s *GenerationOutputUpsert) {
+		s.UpdateIsFavorited()
+	})
+}
+
+// SetHasEmbeddings sets the "has_embeddings" field.
+func (u *GenerationOutputUpsertOne) SetHasEmbeddings(v bool) *GenerationOutputUpsertOne {
+	return u.Update(func(s *GenerationOutputUpsert) {
+		s.SetHasEmbeddings(v)
+	})
+}
+
+// UpdateHasEmbeddings sets the "has_embeddings" field to the value that was provided on create.
+func (u *GenerationOutputUpsertOne) UpdateHasEmbeddings() *GenerationOutputUpsertOne {
+	return u.Update(func(s *GenerationOutputUpsert) {
+		s.UpdateHasEmbeddings()
+	})
+}
+
+// SetIsPublic sets the "is_public" field.
+func (u *GenerationOutputUpsertOne) SetIsPublic(v bool) *GenerationOutputUpsertOne {
+	return u.Update(func(s *GenerationOutputUpsert) {
+		s.SetIsPublic(v)
+	})
+}
+
+// UpdateIsPublic sets the "is_public" field to the value that was provided on create.
+func (u *GenerationOutputUpsertOne) UpdateIsPublic() *GenerationOutputUpsertOne {
+	return u.Update(func(s *GenerationOutputUpsert) {
+		s.UpdateIsPublic()
+	})
+}
+
+// SetGenerationID sets the "generation_id" field.
+func (u *GenerationOutputUpsertOne) SetGenerationID(v uuid.UUID) *GenerationOutputUpsertOne {
+	return u.Update(func(s *GenerationOutputUpsert) {
+		s.SetGenerationID(v)
+	})
+}
+
+// UpdateGenerationID sets the "generation_id" field to the value that was provided on create.
+func (u *GenerationOutputUpsertOne) UpdateGenerationID() *GenerationOutputUpsertOne {
+	return u.Update(func(s *GenerationOutputUpsert) {
+		s.UpdateGenerationID()
+	})
+}
+
+// SetDeletedAt sets the "deleted_at" field.
+func (u *GenerationOutputUpsertOne) SetDeletedAt(v time.Time) *GenerationOutputUpsertOne {
+	return u.Update(func(s *GenerationOutputUpsert) {
+		s.SetDeletedAt(v)
+	})
+}
+
+// UpdateDeletedAt sets the "deleted_at" field to the value that was provided on create.
+func (u *GenerationOutputUpsertOne) UpdateDeletedAt() *GenerationOutputUpsertOne {
+	return u.Update(func(s *GenerationOutputUpsert) {
+		s.UpdateDeletedAt()
+	})
+}
+
+// ClearDeletedAt clears the value of the "deleted_at" field.
+func (u *GenerationOutputUpsertOne) ClearDeletedAt() *GenerationOutputUpsertOne {
+	return u.Update(func(s *GenerationOutputUpsert) {
+		s.ClearDeletedAt()
+	})
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *GenerationOutputUpsertOne) SetUpdatedAt(v time.Time) *GenerationOutputUpsertOne {
+	return u.Update(func(s *GenerationOutputUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *GenerationOutputUpsertOne) UpdateUpdatedAt() *GenerationOutputUpsertOne {
+	return u.Update(func(s *GenerationOutputUpsert) {
+		s.UpdateUpdatedAt()
+	})
+}
+
+// Exec executes the query.
+func (u *GenerationOutputUpsertOne) Exec(ctx context.Context) error {
+	if len(u.create.conflict) == 0 {
+		return errors.New("ent: missing options for GenerationOutputCreate.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *GenerationOutputUpsertOne) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// Exec executes the UPSERT query and returns the inserted/updated ID.
+func (u *GenerationOutputUpsertOne) ID(ctx context.Context) (id uuid.UUID, err error) {
+	if u.create.driver.Dialect() == dialect.MySQL {
+		// In case of "ON CONFLICT", there is no way to get back non-numeric ID
+		// fields from the database since MySQL does not support the RETURNING clause.
+		return id, errors.New("ent: GenerationOutputUpsertOne.ID is not supported by MySQL driver. Use GenerationOutputUpsertOne.Exec instead")
+	}
+	node, err := u.create.Save(ctx)
+	if err != nil {
+		return id, err
+	}
+	return node.ID, nil
+}
+
+// IDX is like ID, but panics if an error occurs.
+func (u *GenerationOutputUpsertOne) IDX(ctx context.Context) uuid.UUID {
+	id, err := u.ID(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return id
+}
+
 // GenerationOutputCreateBulk is the builder for creating many GenerationOutput entities in bulk.
 type GenerationOutputCreateBulk struct {
 	config
 	builders []*GenerationOutputCreate
+	conflict []sql.ConflictOption
 }
 
 // Save creates the GenerationOutput entities in the database.
@@ -439,6 +842,7 @@ func (gocb *GenerationOutputCreateBulk) Save(ctx context.Context) ([]*Generation
 					_, err = mutators[i+1].Mutate(root, gocb.builders[i+1].mutation)
 				} else {
 					spec := &sqlgraph.BatchCreateSpec{Nodes: specs}
+					spec.OnConflict = gocb.conflict
 					// Invoke the actual operation on the latest mutation in the chain.
 					if err = sqlgraph.BatchCreate(ctx, gocb.driver, spec); err != nil {
 						if sqlgraph.IsConstraintError(err) {
@@ -485,6 +889,260 @@ func (gocb *GenerationOutputCreateBulk) Exec(ctx context.Context) error {
 // ExecX is like Exec, but panics if an error occurs.
 func (gocb *GenerationOutputCreateBulk) ExecX(ctx context.Context) {
 	if err := gocb.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.GenerationOutput.CreateBulk(builders...).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.GenerationOutputUpsert) {
+//			SetImagePath(v+v).
+//		}).
+//		Exec(ctx)
+func (gocb *GenerationOutputCreateBulk) OnConflict(opts ...sql.ConflictOption) *GenerationOutputUpsertBulk {
+	gocb.conflict = opts
+	return &GenerationOutputUpsertBulk{
+		create: gocb,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.GenerationOutput.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (gocb *GenerationOutputCreateBulk) OnConflictColumns(columns ...string) *GenerationOutputUpsertBulk {
+	gocb.conflict = append(gocb.conflict, sql.ConflictColumns(columns...))
+	return &GenerationOutputUpsertBulk{
+		create: gocb,
+	}
+}
+
+// GenerationOutputUpsertBulk is the builder for "upsert"-ing
+// a bulk of GenerationOutput nodes.
+type GenerationOutputUpsertBulk struct {
+	create *GenerationOutputCreateBulk
+}
+
+// UpdateNewValues updates the mutable fields using the new values that
+// were set on create. Using this option is equivalent to using:
+//
+//	client.GenerationOutput.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(generationoutput.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *GenerationOutputUpsertBulk) UpdateNewValues() *GenerationOutputUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		for _, b := range u.create.builders {
+			if _, exists := b.mutation.ID(); exists {
+				s.SetIgnore(generationoutput.FieldID)
+			}
+			if _, exists := b.mutation.CreatedAt(); exists {
+				s.SetIgnore(generationoutput.FieldCreatedAt)
+			}
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.GenerationOutput.Create().
+//		OnConflict(sql.ResolveWithIgnore()).
+//		Exec(ctx)
+func (u *GenerationOutputUpsertBulk) Ignore() *GenerationOutputUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *GenerationOutputUpsertBulk) DoNothing() *GenerationOutputUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the GenerationOutputCreateBulk.OnConflict
+// documentation for more info.
+func (u *GenerationOutputUpsertBulk) Update(set func(*GenerationOutputUpsert)) *GenerationOutputUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&GenerationOutputUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetImagePath sets the "image_path" field.
+func (u *GenerationOutputUpsertBulk) SetImagePath(v string) *GenerationOutputUpsertBulk {
+	return u.Update(func(s *GenerationOutputUpsert) {
+		s.SetImagePath(v)
+	})
+}
+
+// UpdateImagePath sets the "image_path" field to the value that was provided on create.
+func (u *GenerationOutputUpsertBulk) UpdateImagePath() *GenerationOutputUpsertBulk {
+	return u.Update(func(s *GenerationOutputUpsert) {
+		s.UpdateImagePath()
+	})
+}
+
+// SetUpscaledImagePath sets the "upscaled_image_path" field.
+func (u *GenerationOutputUpsertBulk) SetUpscaledImagePath(v string) *GenerationOutputUpsertBulk {
+	return u.Update(func(s *GenerationOutputUpsert) {
+		s.SetUpscaledImagePath(v)
+	})
+}
+
+// UpdateUpscaledImagePath sets the "upscaled_image_path" field to the value that was provided on create.
+func (u *GenerationOutputUpsertBulk) UpdateUpscaledImagePath() *GenerationOutputUpsertBulk {
+	return u.Update(func(s *GenerationOutputUpsert) {
+		s.UpdateUpscaledImagePath()
+	})
+}
+
+// ClearUpscaledImagePath clears the value of the "upscaled_image_path" field.
+func (u *GenerationOutputUpsertBulk) ClearUpscaledImagePath() *GenerationOutputUpsertBulk {
+	return u.Update(func(s *GenerationOutputUpsert) {
+		s.ClearUpscaledImagePath()
+	})
+}
+
+// SetGalleryStatus sets the "gallery_status" field.
+func (u *GenerationOutputUpsertBulk) SetGalleryStatus(v generationoutput.GalleryStatus) *GenerationOutputUpsertBulk {
+	return u.Update(func(s *GenerationOutputUpsert) {
+		s.SetGalleryStatus(v)
+	})
+}
+
+// UpdateGalleryStatus sets the "gallery_status" field to the value that was provided on create.
+func (u *GenerationOutputUpsertBulk) UpdateGalleryStatus() *GenerationOutputUpsertBulk {
+	return u.Update(func(s *GenerationOutputUpsert) {
+		s.UpdateGalleryStatus()
+	})
+}
+
+// SetIsFavorited sets the "is_favorited" field.
+func (u *GenerationOutputUpsertBulk) SetIsFavorited(v bool) *GenerationOutputUpsertBulk {
+	return u.Update(func(s *GenerationOutputUpsert) {
+		s.SetIsFavorited(v)
+	})
+}
+
+// UpdateIsFavorited sets the "is_favorited" field to the value that was provided on create.
+func (u *GenerationOutputUpsertBulk) UpdateIsFavorited() *GenerationOutputUpsertBulk {
+	return u.Update(func(s *GenerationOutputUpsert) {
+		s.UpdateIsFavorited()
+	})
+}
+
+// SetHasEmbeddings sets the "has_embeddings" field.
+func (u *GenerationOutputUpsertBulk) SetHasEmbeddings(v bool) *GenerationOutputUpsertBulk {
+	return u.Update(func(s *GenerationOutputUpsert) {
+		s.SetHasEmbeddings(v)
+	})
+}
+
+// UpdateHasEmbeddings sets the "has_embeddings" field to the value that was provided on create.
+func (u *GenerationOutputUpsertBulk) UpdateHasEmbeddings() *GenerationOutputUpsertBulk {
+	return u.Update(func(s *GenerationOutputUpsert) {
+		s.UpdateHasEmbeddings()
+	})
+}
+
+// SetIsPublic sets the "is_public" field.
+func (u *GenerationOutputUpsertBulk) SetIsPublic(v bool) *GenerationOutputUpsertBulk {
+	return u.Update(func(s *GenerationOutputUpsert) {
+		s.SetIsPublic(v)
+	})
+}
+
+// UpdateIsPublic sets the "is_public" field to the value that was provided on create.
+func (u *GenerationOutputUpsertBulk) UpdateIsPublic() *GenerationOutputUpsertBulk {
+	return u.Update(func(s *GenerationOutputUpsert) {
+		s.UpdateIsPublic()
+	})
+}
+
+// SetGenerationID sets the "generation_id" field.
+func (u *GenerationOutputUpsertBulk) SetGenerationID(v uuid.UUID) *GenerationOutputUpsertBulk {
+	return u.Update(func(s *GenerationOutputUpsert) {
+		s.SetGenerationID(v)
+	})
+}
+
+// UpdateGenerationID sets the "generation_id" field to the value that was provided on create.
+func (u *GenerationOutputUpsertBulk) UpdateGenerationID() *GenerationOutputUpsertBulk {
+	return u.Update(func(s *GenerationOutputUpsert) {
+		s.UpdateGenerationID()
+	})
+}
+
+// SetDeletedAt sets the "deleted_at" field.
+func (u *GenerationOutputUpsertBulk) SetDeletedAt(v time.Time) *GenerationOutputUpsertBulk {
+	return u.Update(func(s *GenerationOutputUpsert) {
+		s.SetDeletedAt(v)
+	})
+}
+
+// UpdateDeletedAt sets the "deleted_at" field to the value that was provided on create.
+func (u *GenerationOutputUpsertBulk) UpdateDeletedAt() *GenerationOutputUpsertBulk {
+	return u.Update(func(s *GenerationOutputUpsert) {
+		s.UpdateDeletedAt()
+	})
+}
+
+// ClearDeletedAt clears the value of the "deleted_at" field.
+func (u *GenerationOutputUpsertBulk) ClearDeletedAt() *GenerationOutputUpsertBulk {
+	return u.Update(func(s *GenerationOutputUpsert) {
+		s.ClearDeletedAt()
+	})
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *GenerationOutputUpsertBulk) SetUpdatedAt(v time.Time) *GenerationOutputUpsertBulk {
+	return u.Update(func(s *GenerationOutputUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *GenerationOutputUpsertBulk) UpdateUpdatedAt() *GenerationOutputUpsertBulk {
+	return u.Update(func(s *GenerationOutputUpsert) {
+		s.UpdateUpdatedAt()
+	})
+}
+
+// Exec executes the query.
+func (u *GenerationOutputUpsertBulk) Exec(ctx context.Context) error {
+	for i, b := range u.create.builders {
+		if len(b.conflict) != 0 {
+			return fmt.Errorf("ent: OnConflict was set for builder %d. Set it on the GenerationOutputCreateBulk instead", i)
+		}
+	}
+	if len(u.create.conflict) == 0 {
+		return errors.New("ent: missing options for GenerationOutputCreateBulk.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *GenerationOutputUpsertBulk) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
 		panic(err)
 	}
 }
