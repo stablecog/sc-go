@@ -466,6 +466,7 @@ func (r *Repository) QueryGenerations(per_page int, cursor *time.Time, filters *
 	query = query.Limit(per_page + 1)
 
 	// Join other data
+	begin := time.Now()
 	err := query.Modify(func(s *sql.Selector) {
 		gt := sql.Table(generation.Table)
 		got := sql.Table(generationoutput.Table)
@@ -523,6 +524,9 @@ func (r *Repository) QueryGenerations(per_page int, cursor *time.Time, filters *
 		return nil, err
 	}
 
+	end := time.Now()
+	fmt.Printf("000000 --- Q1 Took %f\n", end.Sub(begin).Seconds())
+
 	if len(gQueryResult) == 0 {
 		meta := &GenerationQueryWithOutputsMeta[*time.Time]{
 			Outputs: []GenerationQueryWithOutputsResultFormatted{},
@@ -579,11 +583,15 @@ func (r *Repository) QueryGenerations(per_page int, cursor *time.Time, filters *
 		i++
 	}
 
+	begin = time.Now()
 	prompts, err := r.DB.Prompt.Query().Select(prompt.FieldText).Where(prompt.IDIn(promptIDs...)).All(r.Ctx)
 	if err != nil {
 		log.Error("Error retrieving prompts", "err", err)
 		return nil, err
 	}
+	end = time.Now()
+	fmt.Printf("000000 --- Q2 Prompt Took %f\n", end.Sub(begin).Seconds())
+	begin = time.Now()
 	negativePrompts, err := r.DB.NegativePrompt.Query().Select(negativeprompt.FieldText).Where(negativeprompt.IDIn(negativePromptId...)).All(r.Ctx)
 	if err != nil {
 		log.Error("Error retrieving prompts", "err", err)
@@ -595,6 +603,8 @@ func (r *Repository) QueryGenerations(per_page int, cursor *time.Time, filters *
 	for _, p := range negativePrompts {
 		negativePromptIdsMap[p.ID] = p.Text
 	}
+	end = time.Now()
+	fmt.Printf("000000 --- Q3 Negative Prompt Took %f\n", end.Sub(begin).Seconds())
 
 	// Format to GenerationQueryWithOutputsResultFormatted
 	generationOutputMap := make(map[uuid.UUID][]GenerationUpscaleOutput)
@@ -659,11 +669,14 @@ func (r *Repository) QueryGenerations(per_page int, cursor *time.Time, filters *
 	}
 
 	if cursor == nil {
+		begin = time.Now()
 		total, err := r.GetGenerationCount(filters)
 		if err != nil {
 			log.Error("Error getting user generation count", "err", err)
 			return nil, err
 		}
+		end = time.Now()
+		fmt.Printf("000000 --- Q4 Count Took %f\n", end.Sub(begin).Seconds())
 		meta.Total = &total
 	}
 
