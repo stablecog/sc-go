@@ -606,7 +606,7 @@ CREATE INDEX generation_outputs_deleted_at_is_public_idx ON generation_outputs (
 CREATE INDEX idx_generations_status_user_id ON generations (status, user_id);
 CREATE INDEX idx_generation_outputs_generation_id_includes ON generation_outputs (generation_id) INCLUDE (deleted_at, is_public);
 CREATE INDEX idx_generation_outputs_generation_id_is_public ON generation_outputs (generation_id, is_public);
-CREATE INDEX generations_status_user_id_idx on public.generations(user_id, status);
+CREATE INDEX generations_status_user_id_idx on public.generations(status, user_id);
 
 
 

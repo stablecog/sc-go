@@ -468,15 +468,9 @@ func (r *Repository) QueryGenerations(per_page int, cursor *time.Time, filters *
 	// Join other data
 	err := query.Modify(func(s *sql.Selector) {
 		gt := sql.Table(generation.Table)
-		npt := sql.Table(negativeprompt.Table)
-		pt := sql.Table(prompt.Table)
 		got := sql.Table(generationoutput.Table)
 		ut := sql.Table(user.Table)
-		ltj := s.LeftJoin(npt).On(
-			s.C(generation.FieldNegativePromptID), npt.C(negativeprompt.FieldID),
-		).LeftJoin(pt).On(
-			s.C(generation.FieldPromptID), pt.C(prompt.FieldID),
-		).Join(got).OnP(
+		ltj := s.Join(got).OnP(
 			sql.And(
 				sql.ColumnsEQ(gt.C(generation.FieldID), got.C(generationoutput.FieldGenerationID)),
 				sql.IsNull(got.C(generationoutput.FieldDeletedAt)),
@@ -494,8 +488,8 @@ func (r *Repository) QueryGenerations(per_page int, cursor *time.Time, filters *
 				s.C(generation.FieldUserID), ut.C(user.FieldID),
 			)
 		}
-		ltj.AppendSelect(sql.As(npt.C(negativeprompt.FieldText), "negative_prompt_text"), sql.As(pt.C(prompt.FieldText), "prompt_text"), sql.As(got.C(generationoutput.FieldID), "output_id"), sql.As(got.C(generationoutput.FieldGalleryStatus), "output_gallery_status"), sql.As(got.C(generationoutput.FieldImagePath), "image_path"), sql.As(got.C(generationoutput.FieldUpscaledImagePath), "upscaled_image_path"), sql.As(got.C(generationoutput.FieldDeletedAt), "deleted_at"), sql.As(got.C(generationoutput.FieldIsFavorited), "is_favorited"), sql.As(ut.C(user.FieldUsername), "username"), sql.As(got.C(generationoutput.FieldIsPublic), "is_public")).
-			GroupBy(s.C(generation.FieldID), npt.C(negativeprompt.FieldText), pt.C(prompt.FieldText),
+		ltj.AppendSelect(sql.As(got.C(generationoutput.FieldID), "output_id"), sql.As(got.C(generationoutput.FieldGalleryStatus), "output_gallery_status"), sql.As(got.C(generationoutput.FieldImagePath), "image_path"), sql.As(got.C(generationoutput.FieldUpscaledImagePath), "upscaled_image_path"), sql.As(got.C(generationoutput.FieldDeletedAt), "deleted_at"), sql.As(got.C(generationoutput.FieldIsFavorited), "is_favorited"), sql.As(ut.C(user.FieldUsername), "username"), sql.As(got.C(generationoutput.FieldIsPublic), "is_public")).
+			GroupBy(s.C(generation.FieldID),
 				got.C(generationoutput.FieldID), got.C(generationoutput.FieldGalleryStatus),
 				got.C(generationoutput.FieldImagePath), got.C(generationoutput.FieldUpscaledImagePath),
 				ut.C(user.FieldUsername))
@@ -560,6 +554,48 @@ func (r *Repository) QueryGenerations(per_page int, cursor *time.Time, filters *
 		}
 	}
 
+	// Get prompt text
+	promptIDsMap := make(map[uuid.UUID]string)
+	negativePromptIdsMap := make(map[uuid.UUID]string)
+	for _, g := range gQueryResult {
+		if g.PromptID != nil {
+			promptIDsMap[*g.PromptID] = ""
+		}
+		if g.NegativePromptID != nil {
+			negativePromptIdsMap[*g.NegativePromptID] = ""
+		}
+	}
+	promptIDs := make([]uuid.UUID, len(promptIDsMap))
+	negativePromptId := make([]uuid.UUID, len(negativePromptIdsMap))
+
+	i := 0
+	for k := range promptIDsMap {
+		promptIDs[i] = k
+		i++
+	}
+	i = 0
+	for k := range negativePromptIdsMap {
+		negativePromptId[i] = k
+		i++
+	}
+
+	prompts, err := r.DB.Prompt.Query().Select(prompt.FieldText).Where(prompt.IDIn(promptIDs...)).All(r.Ctx)
+	if err != nil {
+		log.Error("Error retrieving prompts", "err", err)
+		return nil, err
+	}
+	negativePrompts, err := r.DB.NegativePrompt.Query().Select(negativeprompt.FieldText).Where(negativeprompt.IDIn(negativePromptId...)).All(r.Ctx)
+	if err != nil {
+		log.Error("Error retrieving prompts", "err", err)
+		return nil, err
+	}
+	for _, p := range prompts {
+		promptIDsMap[p.ID] = p.Text
+	}
+	for _, p := range negativePrompts {
+		negativePromptIdsMap[p.ID] = p.Text
+	}
+
 	// Format to GenerationQueryWithOutputsResultFormatted
 	generationOutputMap := make(map[uuid.UUID][]GenerationUpscaleOutput)
 	for _, g := range gQueryResult {
@@ -576,6 +612,7 @@ func (r *Repository) QueryGenerations(per_page int, cursor *time.Time, filters *
 			IsFavorited:      g.IsFavorited,
 			IsPublic:         g.IsPublic,
 		}
+		promptText, _ := promptIDsMap[*g.PromptID]
 		output := GenerationQueryWithOutputsResultFormatted{
 			GenerationUpscaleOutput: gOutput,
 			Generation: GenerationQueryWithOutputsData{
@@ -596,7 +633,7 @@ func (r *Repository) QueryGenerations(per_page int, cursor *time.Time, filters *
 				CompletedAt:      g.CompletedAt,
 				InitImageURL:     g.InitImageURL,
 				Prompt: PromptType{
-					Text: g.PromptText,
+					Text: promptText,
 					ID:   *g.PromptID,
 				},
 				User: &UserType{
@@ -607,8 +644,9 @@ func (r *Repository) QueryGenerations(per_page int, cursor *time.Time, filters *
 			},
 		}
 		if g.NegativePromptID != nil {
+			negativePromptText, _ := negativePromptIdsMap[*g.NegativePromptID]
 			output.Generation.NegativePrompt = &PromptType{
-				Text: g.NegativePromptText,
+				Text: negativePromptText,
 				ID:   *g.NegativePromptID,
 			}
 		}
@@ -1009,8 +1047,6 @@ type GenerationQueryWithOutputsData struct {
 	UpdatedAt          time.Time                 `json:"updated_at" sql:"updated_at"`
 	StartedAt          *time.Time                `json:"started_at,omitempty" sql:"started_at"`
 	CompletedAt        *time.Time                `json:"completed_at,omitempty" sql:"completed_at"`
-	NegativePromptText string                    `json:"negative_prompt_text,omitempty" sql:"negative_prompt_text"`
-	PromptText         string                    `json:"prompt_text,omitempty" sql:"prompt_text"`
 	Username           string                    `json:"username,omitempty" sql:"username"`
 	IsFavorited        bool                      `json:"is_favorited" sql:"is_favorited"`
 	IsPublic           bool                      `json:"is_public" sql:"is_public"`

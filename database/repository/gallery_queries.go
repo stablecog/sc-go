@@ -116,15 +116,9 @@ func (r *Repository) RetrieveMostRecentGalleryDataV2(filters *requests.QueryGene
 	// Join other data
 	err := query.Modify(func(s *sql.Selector) {
 		gt := sql.Table(generation.Table)
-		npt := sql.Table(negativeprompt.Table)
-		pt := sql.Table(prompt.Table)
 		got := sql.Table(generationoutput.Table)
 		ut := sql.Table(user.Table)
-		ltj := s.LeftJoin(npt).On(
-			s.C(generation.FieldNegativePromptID), npt.C(negativeprompt.FieldID),
-		).LeftJoin(pt).On(
-			s.C(generation.FieldPromptID), pt.C(prompt.FieldID),
-		).Join(got).OnP(
+		ltj := s.Join(got).OnP(
 			sql.And(
 				sql.ColumnsEQ(gt.C(generation.FieldID), got.C(generationoutput.FieldGenerationID)),
 				sql.IsNull(got.C(generationoutput.FieldDeletedAt)),
@@ -142,8 +136,8 @@ func (r *Repository) RetrieveMostRecentGalleryDataV2(filters *requests.QueryGene
 				s.C(generation.FieldUserID), ut.C(user.FieldID),
 			)
 		}
-		ltj.AppendSelect(sql.As(npt.C(negativeprompt.FieldText), "negative_prompt_text"), sql.As(pt.C(prompt.FieldText), "prompt_text"), sql.As(got.C(generationoutput.FieldID), "output_id"), sql.As(got.C(generationoutput.FieldGalleryStatus), "output_gallery_status"), sql.As(got.C(generationoutput.FieldImagePath), "image_path"), sql.As(got.C(generationoutput.FieldUpscaledImagePath), "upscaled_image_path"), sql.As(got.C(generationoutput.FieldDeletedAt), "deleted_at"), sql.As(got.C(generationoutput.FieldIsFavorited), "is_favorited"), sql.As(ut.C(user.FieldUsername), "username"), sql.As(got.C(generationoutput.FieldIsPublic), "is_public")).
-			GroupBy(s.C(generation.FieldID), npt.C(negativeprompt.FieldText), pt.C(prompt.FieldText),
+		ltj.AppendSelect(sql.As(got.C(generationoutput.FieldID), "output_id"), sql.As(got.C(generationoutput.FieldGalleryStatus), "output_gallery_status"), sql.As(got.C(generationoutput.FieldImagePath), "image_path"), sql.As(got.C(generationoutput.FieldUpscaledImagePath), "upscaled_image_path"), sql.As(got.C(generationoutput.FieldDeletedAt), "deleted_at"), sql.As(got.C(generationoutput.FieldIsFavorited), "is_favorited"), sql.As(ut.C(user.FieldUsername), "username"), sql.As(got.C(generationoutput.FieldIsPublic), "is_public")).
+			GroupBy(s.C(generation.FieldID),
 				got.C(generationoutput.FieldID), got.C(generationoutput.FieldGalleryStatus),
 				got.C(generationoutput.FieldImagePath), got.C(generationoutput.FieldUpscaledImagePath),
 				ut.C(user.FieldUsername))
@@ -181,6 +175,48 @@ func (r *Repository) RetrieveMostRecentGalleryDataV2(filters *requests.QueryGene
 		return []GalleryData{}, nil, nil
 	}
 
+	// Get prompt texts
+	promptIDsMap := make(map[uuid.UUID]string)
+	negativePromptIdsMap := make(map[uuid.UUID]string)
+	for _, g := range gQueryResult {
+		if g.PromptID != nil {
+			promptIDsMap[*g.PromptID] = ""
+		}
+		if g.NegativePromptID != nil {
+			negativePromptIdsMap[*g.NegativePromptID] = ""
+		}
+	}
+	promptIDs := make([]uuid.UUID, len(promptIDsMap))
+	negativePromptId := make([]uuid.UUID, len(negativePromptIdsMap))
+
+	i := 0
+	for k := range promptIDsMap {
+		promptIDs[i] = k
+		i++
+	}
+	i = 0
+	for k := range negativePromptIdsMap {
+		negativePromptId[i] = k
+		i++
+	}
+
+	prompts, err := r.DB.Prompt.Query().Select(prompt.FieldText).Where(prompt.IDIn(promptIDs...)).All(r.Ctx)
+	if err != nil {
+		log.Error("Error retrieving prompts", "err", err)
+		return nil, nil, err
+	}
+	negativePrompts, err := r.DB.NegativePrompt.Query().Select(negativeprompt.FieldText).Where(negativeprompt.IDIn(negativePromptId...)).All(r.Ctx)
+	if err != nil {
+		log.Error("Error retrieving prompts", "err", err)
+		return nil, nil, err
+	}
+	for _, p := range prompts {
+		promptIDsMap[p.ID] = p.Text
+	}
+	for _, p := range negativePrompts {
+		negativePromptIdsMap[p.ID] = p.Text
+	}
+
 	var nextCursor *time.Time
 	if len(gQueryResult) > per_page {
 		gQueryResult = gQueryResult[:len(gQueryResult)-1]
@@ -189,6 +225,7 @@ func (r *Repository) RetrieveMostRecentGalleryDataV2(filters *requests.QueryGene
 
 	galleryData := make([]GalleryData, len(gQueryResult))
 	for i, g := range gQueryResult {
+		promptText, _ := promptIDsMap[*g.PromptID]
 		galleryData[i] = GalleryData{
 			ID:             *g.OutputID,
 			ImageURL:       utils.GetURLFromImagePath(g.ImageUrl),
@@ -201,7 +238,7 @@ func (r *Repository) RetrieveMostRecentGalleryDataV2(filters *requests.QueryGene
 			Seed:           g.Seed,
 			ModelID:        g.ModelID,
 			SchedulerID:    g.SchedulerID,
-			PromptText:     g.PromptText,
+			PromptText:     promptText,
 			PromptID:       *g.PromptID,
 			User: &UserType{
 				Username: g.Username,
@@ -211,7 +248,7 @@ func (r *Repository) RetrieveMostRecentGalleryDataV2(filters *requests.QueryGene
 		}
 
 		if g.NegativePromptID != nil {
-			galleryData[i].NegativePromptText = g.NegativePromptText
+			galleryData[i].NegativePromptText, _ = negativePromptIdsMap[*g.NegativePromptID]
 			galleryData[i].NegativePromptID = g.NegativePromptID
 		}
 
