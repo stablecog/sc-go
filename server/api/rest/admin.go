@@ -18,6 +18,7 @@ import (
 	"github.com/stablecog/sc-go/log"
 	"github.com/stablecog/sc-go/server/requests"
 	"github.com/stablecog/sc-go/server/responses"
+	"github.com/stablecog/sc-go/shared"
 	"github.com/stablecog/sc-go/utils"
 	"golang.org/x/exp/slices"
 )
@@ -28,6 +29,18 @@ type BanDomainRequest struct {
 
 type BannedResponse struct {
 	BannedUsers int `json:"banned_users"`
+}
+
+// Get disposable domains
+func (c *RestAPI) HandleGetDisposableDomains(w http.ResponseWriter, r *http.Request) {
+	if user, email := c.GetUserIDAndEmailIfAuthenticated(w, r); user == nil || email == "" {
+		return
+	}
+
+	render.Status(r, http.StatusOK)
+	render.JSON(w, r, BanDomainRequest{
+		Domains: shared.GetCache().DisposableEmailDomains,
+	})
 }
 
 // Bulk ban email domains
