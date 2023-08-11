@@ -809,7 +809,6 @@ func main() {
 				r.Use(middleware.Logger)
 				r.Get("/disposable", hc.HandleGetDisposableDomains)
 				r.Post("/ban", hc.HandleBanDomains)
-				r.Post("/unban", hc.HandleUnbanDomains)
 			})
 		})
 

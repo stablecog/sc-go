@@ -24,11 +24,12 @@ import (
 )
 
 type BanDomainRequest struct {
+	Action  string   `json:"action"`
 	Domains []string `json:"domains"`
 }
 
 type BannedResponse struct {
-	BannedUsers int `json:"banned_users"`
+	AffectedUsers int `json:"affected_users"`
 }
 
 // Get disposable domains
@@ -58,35 +59,27 @@ func (c *RestAPI) HandleBanDomains(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Exec ban
-	affected, err := c.Repo.BanDomains(banDomainsReq.Domains)
-	if err != nil {
-		responses.ErrInternalServerError(w, r, err.Error())
-		return
-	}
-
-	render.Status(r, http.StatusOK)
-	render.JSON(w, r, BannedResponse{
-		BannedUsers: affected,
-	})
-}
-
-// Bulk unban email domains
-func (c *RestAPI) HandleUnbanDomains(w http.ResponseWriter, r *http.Request) {
-	if user, email := c.GetUserIDAndEmailIfAuthenticated(w, r); user == nil || email == "" {
-		return
-	}
-
-	// Parse request body
-	reqBody, _ := io.ReadAll(r.Body)
-	var banDomainsReq BanDomainRequest
-	err := json.Unmarshal(reqBody, &banDomainsReq)
-	if err != nil {
-		responses.ErrUnableToParseJson(w, r)
+	if banDomainsReq.Action != "ban" && banDomainsReq.Action != "unban" {
+		responses.ErrBadRequest(w, r, fmt.Sprintf("Unsupported action %s", banDomainsReq.Action), "")
 		return
 	}
 
 	// Exec ban
+	if banDomainsReq.Action == "ban" {
+		affected, err := c.Repo.BanDomains(banDomainsReq.Domains)
+		if err != nil {
+			responses.ErrInternalServerError(w, r, err.Error())
+			return
+		}
+
+		render.Status(r, http.StatusOK)
+		render.JSON(w, r, BannedResponse{
+			AffectedUsers: affected,
+		})
+		return
+	}
+
+	// Unban
 	affected, err := c.Repo.UnbanDomains(banDomainsReq.Domains)
 	if err != nil {
 		responses.ErrInternalServerError(w, r, err.Error())
@@ -94,8 +87,8 @@ func (c *RestAPI) HandleUnbanDomains(w http.ResponseWriter, r *http.Request) {
 	}
 
 	render.Status(r, http.StatusOK)
-	render.JSON(w, r, responses.UpdatedResponse{
-		Updated: affected,
+	render.JSON(w, r, BannedResponse{
+		AffectedUsers: affected,
 	})
 }
 
