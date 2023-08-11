@@ -480,17 +480,16 @@ func (r *Repository) QueryGenerations(per_page int, cursor *time.Time, filters *
 			s.C(generation.FieldNegativePromptID), npt.C(negativeprompt.FieldID),
 		).LeftJoin(pt).On(
 			s.C(generation.FieldPromptID), pt.C(prompt.FieldID),
-		).LeftJoin(got).Where(sql.IsNull(got.C(generationoutput.FieldDeletedAt))).On(
-			s.C(generation.FieldID), got.C(generationoutput.FieldGenerationID),
+		).LeftJoin(got).OnP(
+			sql.And(
+				sql.ColumnsEQ(gt.C(generation.FieldID), got.C(generationoutput.FieldGenerationID)),
+				sql.IsNull(got.C(generationoutput.FieldDeletedAt)),
+			),
+		).LeftJoin(ut).On(
+			s.C(generation.FieldUserID), ut.C(user.FieldID),
 		)
 		if filters != nil && filters.UserID != nil {
-			ltj.LeftJoin(ut).Where(sql.EQ(ut.C(user.FieldID), *filters.UserID)).On(
-				s.C(generation.FieldUserID), ut.C(user.FieldID),
-			)
-		} else {
-			ltj.LeftJoin(ut).On(
-				s.C(generation.FieldUserID), ut.C(user.FieldID),
-			)
+			s.Where(sql.EQ(ut.C(user.FieldID), *filters.UserID))
 		}
 		ltj.AppendSelect(sql.As(npt.C(negativeprompt.FieldText), "negative_prompt_text"), sql.As(pt.C(prompt.FieldText), "prompt_text"), sql.As(got.C(generationoutput.FieldID), "output_id"), sql.As(got.C(generationoutput.FieldGalleryStatus), "output_gallery_status"), sql.As(got.C(generationoutput.FieldImagePath), "image_path"), sql.As(got.C(generationoutput.FieldUpscaledImagePath), "upscaled_image_path"), sql.As(got.C(generationoutput.FieldDeletedAt), "deleted_at"), sql.As(got.C(generationoutput.FieldIsFavorited), "is_favorited"), sql.As(ut.C(user.FieldUsername), "username"), sql.As(got.C(generationoutput.FieldIsPublic), "is_public")).
 			GroupBy(s.C(generation.FieldID), npt.C(negativeprompt.FieldText), pt.C(prompt.FieldText),
