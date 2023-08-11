@@ -108,7 +108,7 @@ func (r *Repository) RetrieveMostRecentGalleryDataV2(filters *requests.QueryGene
 	}
 
 	// Apply filters
-	query = r.ApplyUserGenerationsFilters(query, filters, false, true)
+	query = r.ApplyUserGenerationsFilters(query, filters, false)
 
 	// Limits is + 1 so we can check if there are more pages
 	query = query.Limit(per_page + 1)
@@ -223,7 +223,7 @@ func (r *Repository) RetrieveMostRecentGalleryData(filters *requests.QueryGenera
 	queryG := r.DB.Generation.Query().Where(
 		generation.StatusEQ(generation.StatusSucceeded),
 	)
-	queryG = r.ApplyUserGenerationsFilters(queryG, filters, true, false)
+	queryG = r.ApplyUserGenerationsFilters(queryG, filters, true)
 	query := queryG.QueryGenerationOutputs().Where(
 		generationoutput.DeletedAtIsNil(),
 	)

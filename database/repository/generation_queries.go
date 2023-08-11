@@ -99,7 +99,7 @@ func (r *Repository) GetAvgGenerationQueueTime(since time.Time, limit int) (floa
 }
 
 // Apply all filters to root ent query
-func (r *Repository) ApplyUserGenerationsFilters(query *ent.GenerationQuery, filters *requests.QueryGenerationFilters, omitEdges bool, omitUserId bool) *ent.GenerationQuery {
+func (r *Repository) ApplyUserGenerationsFilters(query *ent.GenerationQuery, filters *requests.QueryGenerationFilters, omitEdges bool) *ent.GenerationQuery {
 	resQuery := query
 	if filters != nil {
 		// Apply filters
@@ -250,7 +250,7 @@ func (r *Repository) ApplyUserGenerationsFilters(query *ent.GenerationQuery, fil
 			resQuery = resQuery.Where(generation.WasAutoSubmittedEQ(*filters.WasAutoSubmitted))
 		}
 
-		if filters.UserID != nil && !omitUserId {
+		if filters.UserID != nil {
 			resQuery = resQuery.Where(generation.UserIDEQ(*filters.UserID))
 		}
 	}
@@ -268,7 +268,7 @@ func (r *Repository) GetGenerationCount(filters *requests.QueryGenerationFilters
 	}
 
 	// Apply filters
-	query = r.ApplyUserGenerationsFilters(query, filters, false, true)
+	query = r.ApplyUserGenerationsFilters(query, filters, false)
 
 	// Join other data
 	var res []UserGenCount
@@ -462,7 +462,7 @@ func (r *Repository) QueryGenerations(per_page int, cursor *time.Time, filters *
 	// })
 
 	// Apply filters
-	query = r.ApplyUserGenerationsFilters(query, filters, false, true)
+	query = r.ApplyUserGenerationsFilters(query, filters, false)
 
 	// Limits is + 1 so we can check if there are more pages
 	query = query.Limit(per_page + 1)
@@ -639,7 +639,7 @@ func (r *Repository) UpdateGenerationCountCacheAdmin(filters *requests.QueryGene
 	queryG := r.DB.Generation.Query().Select(generation.FieldID).Where(
 		generation.StatusEQ(generation.StatusSucceeded),
 	)
-	queryG = r.ApplyUserGenerationsFilters(queryG, filters, false, false)
+	queryG = r.ApplyUserGenerationsFilters(queryG, filters, false)
 	queryG = queryG.Where(func(s *sql.Selector) {
 		s.Where(sql.IsNull("deleted_at"))
 	})
@@ -731,7 +731,7 @@ func (r *Repository) QueryGenerationsAdmin(per_page int, cursor *time.Time, filt
 	queryG := r.DB.Generation.Query().Select(generation.FieldID).Where(
 		generation.StatusEQ(generation.StatusSucceeded),
 	)
-	queryG = r.ApplyUserGenerationsFilters(queryG, filters, false, false)
+	queryG = r.ApplyUserGenerationsFilters(queryG, filters, false)
 	queryG = queryG.Where(func(s *sql.Selector) {
 		got := sql.Table(generationoutput.Table).As("t1")
 		if cursor != nil {
