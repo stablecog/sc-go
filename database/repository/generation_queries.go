@@ -99,7 +99,7 @@ func (r *Repository) GetAvgGenerationQueueTime(since time.Time, limit int) (floa
 }
 
 // Apply all filters to root ent query
-func (r *Repository) ApplyUserGenerationsFilters(query *ent.GenerationQuery, filters *requests.QueryGenerationFilters, omitEdges bool) *ent.GenerationQuery {
+func (r *Repository) ApplyUserGenerationsFilters(query *ent.GenerationQuery, filters *requests.QueryGenerationFilters, omitEdges bool, omitUserId bool) *ent.GenerationQuery {
 	resQuery := query
 	if filters != nil {
 		// Apply filters
@@ -250,7 +250,7 @@ func (r *Repository) ApplyUserGenerationsFilters(query *ent.GenerationQuery, fil
 			resQuery = resQuery.Where(generation.WasAutoSubmittedEQ(*filters.WasAutoSubmitted))
 		}
 
-		if filters.UserID != nil {
+		if filters.UserID != nil && !omitUserId {
 			resQuery = resQuery.Where(generation.UserIDEQ(*filters.UserID))
 		}
 	}
@@ -273,7 +273,7 @@ func (r *Repository) GetGenerationCount(filters *requests.QueryGenerationFilters
 	})
 
 	// Apply filters
-	query = r.ApplyUserGenerationsFilters(query, filters, false)
+	query = r.ApplyUserGenerationsFilters(query, filters, false, true)
 
 	// Join other data
 	var res []UserGenCount
@@ -281,13 +281,20 @@ func (r *Repository) GetGenerationCount(filters *requests.QueryGenerationFilters
 		npt := sql.Table(negativeprompt.Table)
 		pt := sql.Table(prompt.Table)
 		got := sql.Table(generationoutput.Table)
-		s.LeftJoin(npt).On(
+		ut := sql.Table(user.Table)
+		ltj := s.LeftJoin(npt).On(
 			s.C(generation.FieldNegativePromptID), npt.C(negativeprompt.FieldID),
 		).LeftJoin(pt).On(
 			s.C(generation.FieldPromptID), pt.C(prompt.FieldID),
 		).LeftJoin(got).On(
 			s.C(generation.FieldID), got.C(generationoutput.FieldGenerationID),
-		).Select(sql.As(sql.Count("*"), "total"))
+		)
+		if filters != nil && filters.UserID != nil {
+			ltj.LeftJoin(ut).Where(sql.EQ(ut.C(user.FieldID), *filters.UserID)).On(
+				s.C(generation.FieldUserID), ut.C(user.FieldID),
+			)
+		}
+		ltj.Select(sql.As(sql.Count("*"), "total"))
 	}).Scan(r.Ctx, &res)
 	if err != nil {
 		return 0, err
@@ -452,12 +459,12 @@ func (r *Repository) QueryGenerations(per_page int, cursor *time.Time, filters *
 	}
 
 	// Exclude deleted at always
-	query = query.Where(func(s *sql.Selector) {
-		s.Where(sql.IsNull("deleted_at"))
-	})
+	// query = query.Where(func(s *sql.Selector) {
+	// 	s.Where(sql.IsNull("deleted_at"))
+	// })
 
 	// Apply filters
-	query = r.ApplyUserGenerationsFilters(query, filters, false)
+	query = r.ApplyUserGenerationsFilters(query, filters, false, true)
 
 	// Limits is + 1 so we can check if there are more pages
 	query = query.Limit(per_page + 1)
@@ -469,15 +476,23 @@ func (r *Repository) QueryGenerations(per_page int, cursor *time.Time, filters *
 		pt := sql.Table(prompt.Table)
 		got := sql.Table(generationoutput.Table)
 		ut := sql.Table(user.Table)
-		s.LeftJoin(npt).On(
+		ltj := s.LeftJoin(npt).On(
 			s.C(generation.FieldNegativePromptID), npt.C(negativeprompt.FieldID),
 		).LeftJoin(pt).On(
 			s.C(generation.FieldPromptID), pt.C(prompt.FieldID),
-		).LeftJoin(got).On(
+		).LeftJoin(got).Where(sql.IsNull(got.C(generationoutput.FieldDeletedAt))).On(
 			s.C(generation.FieldID), got.C(generationoutput.FieldGenerationID),
-		).LeftJoin(ut).On(
-			s.C(generation.FieldUserID), ut.C(user.FieldID),
-		).AppendSelect(sql.As(npt.C(negativeprompt.FieldText), "negative_prompt_text"), sql.As(pt.C(prompt.FieldText), "prompt_text"), sql.As(got.C(generationoutput.FieldID), "output_id"), sql.As(got.C(generationoutput.FieldGalleryStatus), "output_gallery_status"), sql.As(got.C(generationoutput.FieldImagePath), "image_path"), sql.As(got.C(generationoutput.FieldUpscaledImagePath), "upscaled_image_path"), sql.As(got.C(generationoutput.FieldDeletedAt), "deleted_at"), sql.As(got.C(generationoutput.FieldIsFavorited), "is_favorited"), sql.As(ut.C(user.FieldUsername), "username"), sql.As(got.C(generationoutput.FieldIsPublic), "is_public")).
+		)
+		if filters != nil && filters.UserID != nil {
+			ltj.LeftJoin(ut).Where(sql.EQ(ut.C(user.FieldID), *filters.UserID)).On(
+				s.C(generation.FieldUserID), ut.C(user.FieldID),
+			)
+		} else {
+			ltj.LeftJoin(ut).On(
+				s.C(generation.FieldUserID), ut.C(user.FieldID),
+			)
+		}
+		ltj.AppendSelect(sql.As(npt.C(negativeprompt.FieldText), "negative_prompt_text"), sql.As(pt.C(prompt.FieldText), "prompt_text"), sql.As(got.C(generationoutput.FieldID), "output_id"), sql.As(got.C(generationoutput.FieldGalleryStatus), "output_gallery_status"), sql.As(got.C(generationoutput.FieldImagePath), "image_path"), sql.As(got.C(generationoutput.FieldUpscaledImagePath), "upscaled_image_path"), sql.As(got.C(generationoutput.FieldDeletedAt), "deleted_at"), sql.As(got.C(generationoutput.FieldIsFavorited), "is_favorited"), sql.As(ut.C(user.FieldUsername), "username"), sql.As(got.C(generationoutput.FieldIsPublic), "is_public")).
 			GroupBy(s.C(generation.FieldID), npt.C(negativeprompt.FieldText), pt.C(prompt.FieldText),
 				got.C(generationoutput.FieldID), got.C(generationoutput.FieldGalleryStatus),
 				got.C(generationoutput.FieldImagePath), got.C(generationoutput.FieldUpscaledImagePath),
@@ -627,7 +642,7 @@ func (r *Repository) UpdateGenerationCountCacheAdmin(filters *requests.QueryGene
 	queryG := r.DB.Generation.Query().Select(generation.FieldID).Where(
 		generation.StatusEQ(generation.StatusSucceeded),
 	)
-	queryG = r.ApplyUserGenerationsFilters(queryG, filters, false)
+	queryG = r.ApplyUserGenerationsFilters(queryG, filters, false, false)
 	queryG = queryG.Where(func(s *sql.Selector) {
 		s.Where(sql.IsNull("deleted_at"))
 	})
@@ -719,7 +734,7 @@ func (r *Repository) QueryGenerationsAdmin(per_page int, cursor *time.Time, filt
 	queryG := r.DB.Generation.Query().Select(generation.FieldID).Where(
 		generation.StatusEQ(generation.StatusSucceeded),
 	)
-	queryG = r.ApplyUserGenerationsFilters(queryG, filters, false)
+	queryG = r.ApplyUserGenerationsFilters(queryG, filters, false, false)
 	queryG = queryG.Where(func(s *sql.Selector) {
 		got := sql.Table(generationoutput.Table).As("t1")
 		if cursor != nil {
