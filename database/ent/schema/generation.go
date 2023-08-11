@@ -119,6 +119,7 @@ func (Generation) Indexes() []ent.Index {
 		index.Fields("status"),
 		index.Fields("user_id"),
 		index.Fields("negative_prompt_id"),
+		index.Fields("status", "user_id"),
 		index.Fields("prompt_id"),
 	}
 }

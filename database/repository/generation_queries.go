@@ -263,9 +263,6 @@ func (r *Repository) GetGenerationCount(filters *requests.QueryGenerationFilters
 
 	query = r.DB.Generation.Query().
 		Where(generation.StatusEQ(generation.StatusSucceeded))
-	if filters.UserID != nil {
-		query = query.Where(generation.UserID(*filters.UserID))
-	}
 
 	// Apply filters
 	query = r.ApplyUserGenerationsFilters(query, filters, false)
@@ -273,15 +270,9 @@ func (r *Repository) GetGenerationCount(filters *requests.QueryGenerationFilters
 	// Join other data
 	var res []UserGenCount
 	err := query.Modify(func(s *sql.Selector) {
-		npt := sql.Table(negativeprompt.Table)
-		pt := sql.Table(prompt.Table)
 		got := sql.Table(generationoutput.Table)
 		ut := sql.Table(user.Table)
-		ltj := s.LeftJoin(npt).On(
-			s.C(generation.FieldNegativePromptID), npt.C(negativeprompt.FieldID),
-		).LeftJoin(pt).On(
-			s.C(generation.FieldPromptID), pt.C(prompt.FieldID),
-		).Join(got).OnP(
+		ltj := s.Join(got).OnP(
 			sql.And(
 				sql.ColumnsEQ(s.C(generation.FieldID), got.C(generationoutput.FieldGenerationID)),
 				sql.IsNull(got.C(generationoutput.FieldDeletedAt)),
