@@ -12,6 +12,7 @@ These are the standalone applications in this repository, they have more details
 - [Server](https://github.com/stablecog/sc-go/server) - The primary backend server and APIs.
 - [Cron](https://github.com/stablecog/sc-go/cron) - Various cron jobs utilized by stablecog
 - [Upload API](https://github.com/stablecog/sc-go/uploadapi) - API for user uploaded images
+- [Discord Bot](https://github.com/stablecog/sc-go/discobot) - Stuart, the stablecog Discord bot
 
 ### Shared Modules
 These are modules referenced by both applications.
