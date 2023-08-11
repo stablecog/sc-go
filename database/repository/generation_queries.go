@@ -461,8 +461,6 @@ func (r *Repository) QueryGenerations(per_page int, cursor *time.Time, filters *
 		Where(generation.StatusEQ(generation.StatusSucceeded))
 	if cursor != nil {
 		query = query.Where(generation.CreatedAtLT(*cursor))
-	} else {
-		query = query.Where(generation.CreatedAtLT(time.Now()))
 	}
 
 	// Exclude deleted at always
