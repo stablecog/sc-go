@@ -105,6 +105,8 @@ func (r *Repository) RetrieveMostRecentGalleryDataV2(filters *requests.QueryGene
 		Where(generation.StatusEQ(generation.StatusSucceeded))
 	if cursor != nil {
 		query = query.Where(generation.CreatedAtLT(*cursor))
+	} else {
+		query = query.Where(generation.CreatedAtLT(time.Now()))
 	}
 
 	// Apply filters
