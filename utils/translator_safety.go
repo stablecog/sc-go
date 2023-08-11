@@ -30,8 +30,9 @@ type TranslatorSafetyChecker struct {
 }
 
 type TBannedPair struct {
-	reason string
-	words  []string
+	reason     string
+	words      []string
+	splitMatch bool
 }
 
 var bannedPairs []TBannedPair = []TBannedPair{
@@ -52,12 +53,17 @@ var bannedPairs []TBannedPair = []TBannedPair{
 		reason: "sexual_minors",
 	},
 	{
-		words:  []string{"teen", "model"},
+		words:  []string{"teen", "muscular"},
 		reason: "sexual_minors",
 	},
 	{
 		words:  []string{"teen", "model", "fitness"},
 		reason: "sexual_minors",
+	},
+	{
+		words:      []string{"teen", "model"},
+		reason:     "sexual_minors",
+		splitMatch: true,
 	},
 }
 
@@ -232,15 +238,28 @@ func (t *TranslatorSafetyChecker) IsPromptNSFW(input string) (isNsfw bool, nsfwR
 	}
 	// Word list check
 	for _, pair := range bannedPairs {
-		containsAll := true
-		for _, word := range pair.words {
-			if !strings.Contains(input, word) {
-				containsAll = false
-				break
+		if pair.splitMatch {
+			matchingCount := 0
+			promptWords := strings.Split(input, " ")
+			for _, word := range pair.words {
+				if includes(word, promptWords) {
+					matchingCount++
+				}
 			}
-		}
-		if containsAll {
-			return true, pair.reason, nil
+			if matchingCount == len(pair.words) {
+				return true, pair.reason, nil
+			}
+		} else {
+			containsAll := true
+			for _, word := range pair.words {
+				if !strings.Contains(input, word) {
+					containsAll = false
+					break
+				}
+			}
+			if containsAll {
+				return true, pair.reason, nil
+			}
 		}
 	}
 	// API check
@@ -273,4 +292,14 @@ func (t *TranslatorSafetyChecker) IsPromptNSFW(input string) (isNsfw bool, nsfwR
 		}
 	}
 	return
+}
+
+// Write a function to check if a given array includes the given value
+func includes(value string, array []string) bool {
+	for _, item := range array {
+		if item == value {
+			return true
+		}
+	}
+	return false
 }
