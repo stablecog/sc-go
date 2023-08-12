@@ -7,6 +7,11 @@ metadata:
     app: sc-uploadapi
 spec:
   replicas: 2
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0
+      maxSurge: 1
   selector:
     matchLabels:
       app: sc-uploadapi
@@ -28,11 +33,17 @@ spec:
           args: ["/app/uploadapi"]
           ports:
             - containerPort: 13338
+          startupProbe:
+            httpGet:
+              path: /upload/health
+              port: 13338
+            failureThreshold: 30
+            periodSeconds: 10
           readinessProbe:
             httpGet:
               path: /upload/health
               port: 13338
-            initialDelaySeconds: 3
+            initialDelaySeconds: 0
             periodSeconds: 3
           livenessProbe:
             httpGet:
