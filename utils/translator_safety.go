@@ -75,6 +75,11 @@ var bannedPairs []TBannedPair = []TBannedPair{
 		reason:     "sexual_minors",
 		splitMatch: true,
 	},
+	{
+		words:      []string{"jacked", "young"},
+		reason:     "sexual_minors",
+		splitMatch: true,
+	},
 }
 
 func NewTranslatorSafetyChecker(ctx context.Context, openaiKey string, disable bool) *TranslatorSafetyChecker {
