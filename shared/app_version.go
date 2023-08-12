@@ -1,4 +1,4 @@
 package shared
 
 // App version
-const APP_VERSION = "5.21"
+const APP_VERSION = "5.22"
