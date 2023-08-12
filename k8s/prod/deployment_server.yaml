@@ -7,6 +7,11 @@ metadata:
     app: sc-server
 spec:
   replicas: 2
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0
+      maxSurge: 1
   selector:
     matchLabels:
       app: sc-server
@@ -27,11 +32,17 @@ spec:
           ports:
             - containerPort: 13337
           imagePullPolicy: "Always"
+          startupProbe:
+            httpGet:
+              path: /v1/health
+              port: 13337
+            failureThreshold: 30
+            periodSeconds: 10
           readinessProbe:
             httpGet:
               path: /v1/health
               port: 13337
-            initialDelaySeconds: 3
+            initialDelaySeconds: 0
             periodSeconds: 3
           livenessProbe:
             httpGet:
