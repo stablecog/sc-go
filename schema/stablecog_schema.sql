@@ -1168,3 +1168,20 @@ alter table public.users add column username_changed_at timestamp with time zone
 
 -- add is_public
 alter table public.generation_outputs add column is_public boolean not null default false;
+
+-- Banned words
+
+CREATE TABLE public.banned_words (
+    id uuid DEFAULT extensions.uuid_generate_v4() NOT NULL,
+    words jsonb not null,
+    reason text not null,
+    split_match boolean not null default false,
+    created_at timestamp with time zone DEFAULT timezone('utc'::text, now()) NOT NULL,
+    updated_at timestamp with time zone DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+CREATE trigger handle_updated_at before
+UPDATE
+    ON public.banned_words FOR each ROW EXECUTE PROCEDURE moddatetime (updated_at);
+
+ALTER TABLE public.banned_words ENABLE ROW LEVEL SECURITY;

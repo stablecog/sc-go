@@ -12,6 +12,7 @@ import (
 	"github.com/stablecog/sc-go/database/ent/migrate"
 
 	"github.com/stablecog/sc-go/database/ent/apitoken"
+	"github.com/stablecog/sc-go/database/ent/bannedwords"
 	"github.com/stablecog/sc-go/database/ent/credit"
 	"github.com/stablecog/sc-go/database/ent/credittype"
 	"github.com/stablecog/sc-go/database/ent/deviceinfo"
@@ -46,6 +47,8 @@ type Client struct {
 	Schema *migrate.Schema
 	// ApiToken is the client for interacting with the ApiToken builders.
 	ApiToken *ApiTokenClient
+	// BannedWords is the client for interacting with the BannedWords builders.
+	BannedWords *BannedWordsClient
 	// Credit is the client for interacting with the Credit builders.
 	Credit *CreditClient
 	// CreditType is the client for interacting with the CreditType builders.
@@ -102,6 +105,7 @@ func NewClient(opts ...Option) *Client {
 func (c *Client) init() {
 	c.Schema = migrate.NewSchema(c.driver)
 	c.ApiToken = NewApiTokenClient(c.config)
+	c.BannedWords = NewBannedWordsClient(c.config)
 	c.Credit = NewCreditClient(c.config)
 	c.CreditType = NewCreditTypeClient(c.config)
 	c.DeviceInfo = NewDeviceInfoClient(c.config)
@@ -157,6 +161,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		ctx:              ctx,
 		config:           cfg,
 		ApiToken:         NewApiTokenClient(cfg),
+		BannedWords:      NewBannedWordsClient(cfg),
 		Credit:           NewCreditClient(cfg),
 		CreditType:       NewCreditTypeClient(cfg),
 		DeviceInfo:       NewDeviceInfoClient(cfg),
@@ -198,6 +203,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		ctx:              ctx,
 		config:           cfg,
 		ApiToken:         NewApiTokenClient(cfg),
+		BannedWords:      NewBannedWordsClient(cfg),
 		Credit:           NewCreditClient(cfg),
 		CreditType:       NewCreditTypeClient(cfg),
 		DeviceInfo:       NewDeviceInfoClient(cfg),
@@ -248,6 +254,7 @@ func (c *Client) Close() error {
 // In order to add hooks to a specific client, call: `client.Node.Use(...)`.
 func (c *Client) Use(hooks ...Hook) {
 	c.ApiToken.Use(hooks...)
+	c.BannedWords.Use(hooks...)
 	c.Credit.Use(hooks...)
 	c.CreditType.Use(hooks...)
 	c.DeviceInfo.Use(hooks...)
@@ -275,6 +282,7 @@ func (c *Client) Use(hooks ...Hook) {
 // In order to add interceptors to a specific client, call: `client.Node.Intercept(...)`.
 func (c *Client) Intercept(interceptors ...Interceptor) {
 	c.ApiToken.Intercept(interceptors...)
+	c.BannedWords.Intercept(interceptors...)
 	c.Credit.Intercept(interceptors...)
 	c.CreditType.Intercept(interceptors...)
 	c.DeviceInfo.Intercept(interceptors...)
@@ -303,6 +311,8 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 	switch m := m.(type) {
 	case *ApiTokenMutation:
 		return c.ApiToken.mutate(ctx, m)
+	case *BannedWordsMutation:
+		return c.BannedWords.mutate(ctx, m)
 	case *CreditMutation:
 		return c.Credit.mutate(ctx, m)
 	case *CreditTypeMutation:
@@ -529,6 +539,124 @@ func (c *ApiTokenClient) mutate(ctx context.Context, m *ApiTokenMutation) (Value
 		return (&ApiTokenDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("ent: unknown ApiToken mutation op: %q", m.Op())
+	}
+}
+
+// BannedWordsClient is a client for the BannedWords schema.
+type BannedWordsClient struct {
+	config
+}
+
+// NewBannedWordsClient returns a client for the BannedWords from the given config.
+func NewBannedWordsClient(c config) *BannedWordsClient {
+	return &BannedWordsClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `bannedwords.Hooks(f(g(h())))`.
+func (c *BannedWordsClient) Use(hooks ...Hook) {
+	c.hooks.BannedWords = append(c.hooks.BannedWords, hooks...)
+}
+
+// Use adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `bannedwords.Intercept(f(g(h())))`.
+func (c *BannedWordsClient) Intercept(interceptors ...Interceptor) {
+	c.inters.BannedWords = append(c.inters.BannedWords, interceptors...)
+}
+
+// Create returns a builder for creating a BannedWords entity.
+func (c *BannedWordsClient) Create() *BannedWordsCreate {
+	mutation := newBannedWordsMutation(c.config, OpCreate)
+	return &BannedWordsCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of BannedWords entities.
+func (c *BannedWordsClient) CreateBulk(builders ...*BannedWordsCreate) *BannedWordsCreateBulk {
+	return &BannedWordsCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for BannedWords.
+func (c *BannedWordsClient) Update() *BannedWordsUpdate {
+	mutation := newBannedWordsMutation(c.config, OpUpdate)
+	return &BannedWordsUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *BannedWordsClient) UpdateOne(bw *BannedWords) *BannedWordsUpdateOne {
+	mutation := newBannedWordsMutation(c.config, OpUpdateOne, withBannedWords(bw))
+	return &BannedWordsUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *BannedWordsClient) UpdateOneID(id uuid.UUID) *BannedWordsUpdateOne {
+	mutation := newBannedWordsMutation(c.config, OpUpdateOne, withBannedWordsID(id))
+	return &BannedWordsUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for BannedWords.
+func (c *BannedWordsClient) Delete() *BannedWordsDelete {
+	mutation := newBannedWordsMutation(c.config, OpDelete)
+	return &BannedWordsDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *BannedWordsClient) DeleteOne(bw *BannedWords) *BannedWordsDeleteOne {
+	return c.DeleteOneID(bw.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *BannedWordsClient) DeleteOneID(id uuid.UUID) *BannedWordsDeleteOne {
+	builder := c.Delete().Where(bannedwords.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &BannedWordsDeleteOne{builder}
+}
+
+// Query returns a query builder for BannedWords.
+func (c *BannedWordsClient) Query() *BannedWordsQuery {
+	return &BannedWordsQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeBannedWords},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a BannedWords entity by its id.
+func (c *BannedWordsClient) Get(ctx context.Context, id uuid.UUID) (*BannedWords, error) {
+	return c.Query().Where(bannedwords.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *BannedWordsClient) GetX(ctx context.Context, id uuid.UUID) *BannedWords {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *BannedWordsClient) Hooks() []Hook {
+	return c.hooks.BannedWords
+}
+
+// Interceptors returns the client interceptors.
+func (c *BannedWordsClient) Interceptors() []Interceptor {
+	return c.inters.BannedWords
+}
+
+func (c *BannedWordsClient) mutate(ctx context.Context, m *BannedWordsMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&BannedWordsCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&BannedWordsUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&BannedWordsUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&BannedWordsDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown BannedWords mutation op: %q", m.Op())
 	}
 }
 

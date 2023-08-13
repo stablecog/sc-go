@@ -13,6 +13,7 @@ import (
 
 	openai "github.com/sashabaranov/go-openai"
 	"github.com/stablecog/sc-go/log"
+	"github.com/stablecog/sc-go/shared"
 )
 
 const TARGET_FLORES_CODE = "eng_Latn"
@@ -27,70 +28,6 @@ type TranslatorSafetyChecker struct {
 	// TODO - mock better for testing, this just disables
 	Disable bool
 	mu      sync.Mutex
-}
-
-type TBannedPair struct {
-	reason     string
-	words      []string
-	splitMatch bool
-}
-
-var bannedPairs []TBannedPair = []TBannedPair{
-	{
-		words:  []string{"teen", "twink"},
-		reason: "sexual_minors",
-	},
-	{
-		words:  []string{"young", "twink"},
-		reason: "sexual_minors",
-	},
-	{
-		words:      []string{"twink", "mirror"},
-		reason:     "sexual_minors",
-		splitMatch: true,
-	},
-	{
-		words:  []string{"teenage", "model"},
-		reason: "sexual_minors",
-	},
-	{
-		words:      []string{"teen", "jacked"},
-		reason:     "sexual_minors",
-		splitMatch: true,
-	},
-	{
-		words:      []string{"teenager", "jacked"},
-		reason:     "sexual_minors",
-		splitMatch: true,
-	},
-	{
-		words:      []string{"jacked", "youth"},
-		reason:     "sexual_minors",
-		splitMatch: true,
-	},
-	{
-		words:      []string{"jacked", "schoolboy"},
-		reason:     "sexual_minors",
-		splitMatch: true,
-	},
-	{
-		words:  []string{"teen", "muscular"},
-		reason: "sexual_minors",
-	},
-	{
-		words:  []string{"teen", "model", "fitness"},
-		reason: "sexual_minors",
-	},
-	{
-		words:      []string{"teen", "model"},
-		reason:     "sexual_minors",
-		splitMatch: true,
-	},
-	{
-		words:      []string{"jacked", "young"},
-		reason:     "sexual_minors",
-		splitMatch: true,
-	},
 }
 
 func NewTranslatorSafetyChecker(ctx context.Context, openaiKey string, disable bool) *TranslatorSafetyChecker {
@@ -263,28 +200,28 @@ func (t *TranslatorSafetyChecker) IsPromptNSFW(input string) (isNsfw bool, nsfwR
 		return false, "", nil
 	}
 	// Word list check
-	for _, pair := range bannedPairs {
-		if pair.splitMatch {
+	for _, pair := range shared.GetCache().BannedWords {
+		if pair.SplitMatch {
 			matchingCount := 0
 			promptWords := strings.Split(input, " ")
-			for _, word := range pair.words {
+			for _, word := range pair.Words {
 				if includes(word, promptWords) {
 					matchingCount++
 				}
 			}
-			if matchingCount == len(pair.words) {
-				return true, pair.reason, nil
+			if matchingCount == len(pair.Words) {
+				return true, pair.Reason, nil
 			}
 		} else {
 			containsAll := true
-			for _, word := range pair.words {
+			for _, word := range pair.Words {
 				if !strings.Contains(input, word) {
 					containsAll = false
 					break
 				}
 			}
 			if containsAll {
-				return true, pair.reason, nil
+				return true, pair.Reason, nil
 			}
 		}
 	}

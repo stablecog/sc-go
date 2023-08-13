@@ -32,6 +32,7 @@ type config struct {
 type (
 	hooks struct {
 		ApiToken         []ent.Hook
+		BannedWords      []ent.Hook
 		Credit           []ent.Hook
 		CreditType       []ent.Hook
 		DeviceInfo       []ent.Hook
@@ -56,6 +57,7 @@ type (
 	}
 	inters struct {
 		ApiToken         []ent.Interceptor
+		BannedWords      []ent.Interceptor
 		Credit           []ent.Interceptor
 		CreditType       []ent.Interceptor
 		DeviceInfo       []ent.Interceptor

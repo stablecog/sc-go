@@ -12,7 +12,6 @@ import (
 
 // A singleton that caches the features available to free users
 // Avoids having to query the database every time a user requests the features
-
 type Cache struct {
 	// Models and options available to free users
 	GenerateModels         []*ent.GenerationModel
@@ -23,6 +22,7 @@ type Cache struct {
 	AdminIDs               []uuid.UUID
 	IPBlacklist            []string
 	DisposableEmailDomains []string
+	BannedWords            []*ent.BannedWords
 }
 
 var lock = &sync.Mutex{}
@@ -72,6 +72,12 @@ func (f *Cache) UpdateVoiceoverSpeakers(speakers []*ent.VoiceoverSpeaker) {
 	lock.Lock()
 	defer lock.Unlock()
 	f.VoiceoverSpeakers = speakers
+}
+
+func (f *Cache) UpdateBannedWords(bannedWords []*ent.BannedWords) {
+	lock.Lock()
+	defer lock.Unlock()
+	f.BannedWords = bannedWords
 }
 
 func (f *Cache) IsValidGenerationModelID(id uuid.UUID) bool {

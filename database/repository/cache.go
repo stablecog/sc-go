@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"github.com/stablecog/sc-go/database/ent/bannedwords"
 	"github.com/stablecog/sc-go/database/ent/disposableemail"
 	"github.com/stablecog/sc-go/database/ent/ipblacklist"
 	"github.com/stablecog/sc-go/log"
@@ -72,6 +73,13 @@ func (r *Repository) UpdateCache() error {
 		ipBlacklistStr[i] = ip.IP
 	}
 	shared.GetCache().UpdateIPBlacklist(ipBlacklistStr)
+
+	bannedWords, err := r.DB.BannedWords.Query().Select(bannedwords.FieldReason, bannedwords.FieldSplitMatch, bannedwords.FieldWords).All(r.Ctx)
+	if err != nil {
+		log.Error("Failed to get banned words", "err", err)
+		return err
+	}
+	shared.GetCache().UpdateBannedWords(bannedWords)
 
 	return nil
 }

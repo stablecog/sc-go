@@ -16,6 +16,8 @@ type Tx struct {
 	config
 	// ApiToken is the client for interacting with the ApiToken builders.
 	ApiToken *ApiTokenClient
+	// BannedWords is the client for interacting with the BannedWords builders.
+	BannedWords *BannedWordsClient
 	// Credit is the client for interacting with the Credit builders.
 	Credit *CreditClient
 	// CreditType is the client for interacting with the CreditType builders.
@@ -190,6 +192,7 @@ func (tx *Tx) Client() *Client {
 
 func (tx *Tx) init() {
 	tx.ApiToken = NewApiTokenClient(tx.config)
+	tx.BannedWords = NewBannedWordsClient(tx.config)
 	tx.Credit = NewCreditClient(tx.config)
 	tx.CreditType = NewCreditTypeClient(tx.config)
 	tx.DeviceInfo = NewDeviceInfoClient(tx.config)

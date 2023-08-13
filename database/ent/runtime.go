@@ -7,6 +7,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/stablecog/sc-go/database/ent/apitoken"
+	"github.com/stablecog/sc-go/database/ent/bannedwords"
 	"github.com/stablecog/sc-go/database/ent/credit"
 	"github.com/stablecog/sc-go/database/ent/credittype"
 	"github.com/stablecog/sc-go/database/ent/deviceinfo"
@@ -63,6 +64,26 @@ func init() {
 	apitokenDescID := apitokenFields[0].Descriptor()
 	// apitoken.DefaultID holds the default value on creation for the id field.
 	apitoken.DefaultID = apitokenDescID.Default.(func() uuid.UUID)
+	bannedwordsFields := schema.BannedWords{}.Fields()
+	_ = bannedwordsFields
+	// bannedwordsDescSplitMatch is the schema descriptor for split_match field.
+	bannedwordsDescSplitMatch := bannedwordsFields[3].Descriptor()
+	// bannedwords.DefaultSplitMatch holds the default value on creation for the split_match field.
+	bannedwords.DefaultSplitMatch = bannedwordsDescSplitMatch.Default.(bool)
+	// bannedwordsDescCreatedAt is the schema descriptor for created_at field.
+	bannedwordsDescCreatedAt := bannedwordsFields[4].Descriptor()
+	// bannedwords.DefaultCreatedAt holds the default value on creation for the created_at field.
+	bannedwords.DefaultCreatedAt = bannedwordsDescCreatedAt.Default.(func() time.Time)
+	// bannedwordsDescUpdatedAt is the schema descriptor for updated_at field.
+	bannedwordsDescUpdatedAt := bannedwordsFields[5].Descriptor()
+	// bannedwords.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	bannedwords.DefaultUpdatedAt = bannedwordsDescUpdatedAt.Default.(func() time.Time)
+	// bannedwords.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	bannedwords.UpdateDefaultUpdatedAt = bannedwordsDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// bannedwordsDescID is the schema descriptor for id field.
+	bannedwordsDescID := bannedwordsFields[0].Descriptor()
+	// bannedwords.DefaultID holds the default value on creation for the id field.
+	bannedwords.DefaultID = bannedwordsDescID.Default.(func() uuid.UUID)
 	creditFields := schema.Credit{}.Fields()
 	_ = creditFields
 	// creditDescReplenishedAt is the schema descriptor for replenished_at field.

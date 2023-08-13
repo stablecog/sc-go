@@ -2,6 +2,7 @@ package qdrant
 
 import (
 	"context"
+	"encoding/base64"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -89,10 +90,17 @@ var fieldsToIndex = []qdrantIndexField{
 
 type QdrantClient struct {
 	ActiveUrl      string
+	token          string
+	r              http.RoundTripper
 	Client         *ClientWithResponses
 	Doer           HttpRequestDoer
 	Ctx            context.Context
 	CollectionName string
+}
+
+func (q QdrantClient) RoundTrip(r *http.Request) (*http.Response, error) {
+	r.Header.Add("Authorization", "Basic "+q.token)
+	return q.r.RoundTrip(r)
 }
 
 func NewQdrantClient(ctx context.Context) (*QdrantClient, error) {
@@ -102,16 +110,27 @@ func NewQdrantClient(ctx context.Context) (*QdrantClient, error) {
 		log.Errorf("QDRANT_URL not set")
 		return nil, errors.New("QDRANT_URL not set")
 	}
+	var auth string
+	if os.Getenv("QDRANT_USERNAME") != "" && os.Getenv("QDRANT_PASSWORD") != "" {
+		auth = base64.StdEncoding.EncodeToString([]byte(os.Getenv("QDRANT_USERNAME") + ":" + os.Getenv("QDRANT_PASSWORD")))
+	}
 	// Create client
 	qClient := &QdrantClient{
 		ActiveUrl:      urlEnv,
 		Ctx:            ctx,
+		token:          auth,
+		r:              http.DefaultTransport,
 		CollectionName: utils.GetEnv("QDRANT_COLLECTION_NAME", "stablecog"),
+	}
+
+	transport := http.DefaultTransport
+	if auth != "" {
+		transport = qClient
 	}
 
 	c, doer, err := NewClientWithResponses(qClient.ActiveUrl, WithHTTPClient(&http.Client{
 		Timeout:   10 * time.Second,
-		Transport: http.DefaultTransport,
+		Transport: transport,
 	}))
 	if err != nil {
 		log.Errorf("Error creating qdrant client %v", err)

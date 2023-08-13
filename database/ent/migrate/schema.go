@@ -37,6 +37,21 @@ var (
 			},
 		},
 	}
+	// BannedWordsColumns holds the columns for the "banned_words" table.
+	BannedWordsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID},
+		{Name: "words", Type: field.TypeJSON},
+		{Name: "reason", Type: field.TypeString, Size: 2147483647},
+		{Name: "split_match", Type: field.TypeBool, Default: false},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+	}
+	// BannedWordsTable holds the schema information for the "banned_words" table.
+	BannedWordsTable = &schema.Table{
+		Name:       "banned_words",
+		Columns:    BannedWordsColumns,
+		PrimaryKey: []*schema.Column{BannedWordsColumns[0]},
+	}
 	// CreditsColumns holds the columns for the "credits" table.
 	CreditsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID},
@@ -235,6 +250,11 @@ var (
 				Name:    "generation_negative_prompt_id",
 				Unique:  false,
 				Columns: []*schema.Column{GenerationsColumns[23]},
+			},
+			{
+				Name:    "generation_status_user_id",
+				Unique:  false,
+				Columns: []*schema.Column{GenerationsColumns[8], GenerationsColumns[26]},
 			},
 			{
 				Name:    "generation_prompt_id",
@@ -766,6 +786,7 @@ var (
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
 		APITokensTable,
+		BannedWordsTable,
 		CreditsTable,
 		CreditTypesTable,
 		DeviceInfoTable,
@@ -796,6 +817,9 @@ func init() {
 	APITokensTable.ForeignKeys[0].RefTable = UsersTable
 	APITokensTable.Annotation = &entsql.Annotation{
 		Table: "api_tokens",
+	}
+	BannedWordsTable.Annotation = &entsql.Annotation{
+		Table: "banned_words",
 	}
 	CreditsTable.ForeignKeys[0].RefTable = CreditTypesTable
 	CreditsTable.ForeignKeys[1].RefTable = UsersTable

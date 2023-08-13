@@ -9,6 +9,9 @@ import (
 // ApiToken is the predicate function for apitoken builders.
 type ApiToken func(*sql.Selector)
 
+// BannedWords is the predicate function for bannedwords builders.
+type BannedWords func(*sql.Selector)
+
 // Credit is the predicate function for credit builders.
 type Credit func(*sql.Selector)
 
