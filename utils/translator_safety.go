@@ -69,6 +69,11 @@ var bannedPairs []TBannedPair = []TBannedPair{
 		splitMatch: true,
 	},
 	{
+		words:      []string{"jacked", "schoolboy"},
+		reason:     "sexual_minors",
+		splitMatch: true,
+	},
+	{
 		words:  []string{"teen", "muscular"},
 		reason: "sexual_minors",
 	},
