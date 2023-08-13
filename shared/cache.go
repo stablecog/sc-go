@@ -14,19 +14,19 @@ import (
 // Avoids having to query the database every time a user requests the features
 type Cache struct {
 	// Models and options available to free users
-	GenerateModels         []*ent.GenerationModel
-	UpscaleModels          []*ent.UpscaleModel
-	Schedulers             []*ent.Scheduler
-	VoiceoverModels        []*ent.VoiceoverModel
-	VoiceoverSpeakers      []*ent.VoiceoverSpeaker
-	AdminIDs               []uuid.UUID
-	IPBlacklist            []string
-	DisposableEmailDomains []string
-	BannedWords            []*ent.BannedWords
+	generateModels         []*ent.GenerationModel
+	upscaleModels          []*ent.UpscaleModel
+	schedulers             []*ent.Scheduler
+	voiceoverModels        []*ent.VoiceoverModel
+	voiceoverSpeakers      []*ent.VoiceoverSpeaker
+	adminIDs               []uuid.UUID
+	iPBlacklist            []string
+	disposableEmailDomains []string
+	bannedWords            []*ent.BannedWords
+	sync.RWMutex
 }
 
 var lock = &sync.Mutex{}
-
 var singleCache *Cache
 
 func newCache() *Cache {
@@ -45,43 +45,79 @@ func GetCache() *Cache {
 }
 
 func (f *Cache) UpdateGenerationModels(models []*ent.GenerationModel) {
-	lock.Lock()
-	defer lock.Unlock()
-	f.GenerateModels = models
+	f.Lock()
+	defer f.Unlock()
+	f.generateModels = models
+}
+
+func (f *Cache) GenerationModels() []*ent.GenerationModel {
+	f.RLock()
+	defer f.RUnlock()
+	return f.generateModels
 }
 
 func (f *Cache) UpdateUpscaleModels(models []*ent.UpscaleModel) {
-	lock.Lock()
-	defer lock.Unlock()
-	f.UpscaleModels = models
+	f.Lock()
+	defer f.Unlock()
+	f.upscaleModels = models
+}
+
+func (f *Cache) UpscaleModels() []*ent.UpscaleModel {
+	f.RLock()
+	defer f.RUnlock()
+	return f.upscaleModels
 }
 
 func (f *Cache) UpdateSchedulers(schedulers []*ent.Scheduler) {
-	lock.Lock()
-	defer lock.Unlock()
-	f.Schedulers = schedulers
+	f.Lock()
+	defer f.Unlock()
+	f.schedulers = schedulers
+}
+
+func (f *Cache) Schedulers() []*ent.Scheduler {
+	f.RLock()
+	defer f.RUnlock()
+	return f.schedulers
 }
 
 func (f *Cache) UpdateVoiceoverModels(models []*ent.VoiceoverModel) {
-	lock.Lock()
-	defer lock.Unlock()
-	f.VoiceoverModels = models
+	f.Lock()
+	defer f.Unlock()
+	f.voiceoverModels = models
+}
+
+func (f *Cache) VoiceoverModels() []*ent.VoiceoverModel {
+	f.RLock()
+	defer f.RUnlock()
+	return f.voiceoverModels
 }
 
 func (f *Cache) UpdateVoiceoverSpeakers(speakers []*ent.VoiceoverSpeaker) {
-	lock.Lock()
-	defer lock.Unlock()
-	f.VoiceoverSpeakers = speakers
+	f.Lock()
+	defer f.Unlock()
+	f.voiceoverSpeakers = speakers
+}
+
+func (f *Cache) VoiceoverSpeakers() []*ent.VoiceoverSpeaker {
+	f.RLock()
+	defer f.RUnlock()
+	return f.voiceoverSpeakers
 }
 
 func (f *Cache) UpdateBannedWords(bannedWords []*ent.BannedWords) {
-	lock.Lock()
-	defer lock.Unlock()
-	f.BannedWords = bannedWords
+	f.Lock()
+	defer f.Unlock()
+	f.bannedWords = bannedWords
+}
+
+func (f *Cache) BannedWords() []*ent.BannedWords {
+	f.RLock()
+	defer f.RUnlock()
+	return f.bannedWords
 }
 
 func (f *Cache) IsValidGenerationModelID(id uuid.UUID) bool {
-	for _, model := range f.GenerateModels {
+	for _, model := range f.GenerationModels() {
 		if model.ID == id {
 			return true
 		}
@@ -90,7 +126,7 @@ func (f *Cache) IsValidGenerationModelID(id uuid.UUID) bool {
 }
 
 func (f *Cache) IsValidUpscaleModelID(id uuid.UUID) bool {
-	for _, model := range f.UpscaleModels {
+	for _, model := range f.UpscaleModels() {
 		if model.ID == id {
 			return true
 		}
@@ -99,7 +135,7 @@ func (f *Cache) IsValidUpscaleModelID(id uuid.UUID) bool {
 }
 
 func (f *Cache) IsValidShedulerID(id uuid.UUID) bool {
-	for _, scheduler := range f.Schedulers {
+	for _, scheduler := range f.Schedulers() {
 		if scheduler.ID == id {
 			return true
 		}
@@ -108,7 +144,7 @@ func (f *Cache) IsValidShedulerID(id uuid.UUID) bool {
 }
 
 func (f *Cache) IsValidVoiceoverModelID(id uuid.UUID) bool {
-	for _, model := range f.VoiceoverModels {
+	for _, model := range f.VoiceoverModels() {
 		if model.ID == id {
 			return true
 		}
@@ -117,7 +153,7 @@ func (f *Cache) IsValidVoiceoverModelID(id uuid.UUID) bool {
 }
 
 func (f *Cache) IsValidVoiceoverSpeakerID(speakerId uuid.UUID, modelId uuid.UUID) bool {
-	for _, speaker := range f.VoiceoverSpeakers {
+	for _, speaker := range f.VoiceoverSpeakers() {
 		if speaker.ID == speakerId && speaker.ModelID == modelId {
 			return true
 		}
@@ -127,7 +163,7 @@ func (f *Cache) IsValidVoiceoverSpeakerID(speakerId uuid.UUID, modelId uuid.UUID
 
 func (f *Cache) GetVoiceoverSpeakersForModel(modelId uuid.UUID) []*ent.VoiceoverSpeaker {
 	speakers := []*ent.VoiceoverSpeaker{}
-	for _, speaker := range f.VoiceoverSpeakers {
+	for _, speaker := range f.VoiceoverSpeakers() {
 		if speaker.ModelID == modelId {
 			speakers = append(speakers, speaker)
 		}
@@ -136,7 +172,7 @@ func (f *Cache) GetVoiceoverSpeakersForModel(modelId uuid.UUID) []*ent.Voiceover
 }
 
 func (f *Cache) GetGenerationModelNameFromID(id uuid.UUID) string {
-	for _, model := range f.GenerateModels {
+	for _, model := range f.GenerationModels() {
 		if model.ID == id {
 			return model.NameInWorker
 		}
@@ -145,7 +181,7 @@ func (f *Cache) GetGenerationModelNameFromID(id uuid.UUID) string {
 }
 
 func (f *Cache) GetUpscaleModelNameFromID(id uuid.UUID) string {
-	for _, model := range f.UpscaleModels {
+	for _, model := range f.UpscaleModels() {
 		if model.ID == id {
 			return model.NameInWorker
 		}
@@ -154,7 +190,7 @@ func (f *Cache) GetUpscaleModelNameFromID(id uuid.UUID) string {
 }
 
 func (f *Cache) GetSchedulerNameFromID(id uuid.UUID) string {
-	for _, scheduler := range f.Schedulers {
+	for _, scheduler := range f.Schedulers() {
 		if scheduler.ID == id {
 			return scheduler.NameInWorker
 		}
@@ -163,7 +199,7 @@ func (f *Cache) GetSchedulerNameFromID(id uuid.UUID) string {
 }
 
 func (f *Cache) GetVoiceoverModelNameFromID(id uuid.UUID) string {
-	for _, model := range f.VoiceoverModels {
+	for _, model := range f.VoiceoverModels() {
 		if model.ID == id {
 			return model.NameInWorker
 		}
@@ -172,7 +208,7 @@ func (f *Cache) GetVoiceoverModelNameFromID(id uuid.UUID) string {
 }
 
 func (f *Cache) GetVoiceoverSpeakerNameFromID(speakerId uuid.UUID) string {
-	for _, speaker := range f.VoiceoverSpeakers {
+	for _, speaker := range f.VoiceoverSpeakers() {
 		if speaker.ID == speakerId {
 			return speaker.NameInWorker
 		}
@@ -181,7 +217,7 @@ func (f *Cache) GetVoiceoverSpeakerNameFromID(speakerId uuid.UUID) string {
 }
 
 func (f *Cache) IsAdmin(id uuid.UUID) bool {
-	for _, adminID := range f.AdminIDs {
+	for _, adminID := range f.AdminIDs() {
 		if adminID == id {
 			return true
 		}
@@ -190,26 +226,45 @@ func (f *Cache) IsAdmin(id uuid.UUID) bool {
 }
 
 func (f *Cache) SetAdminUUIDs(ids []uuid.UUID) {
-	lock.Lock()
-	defer lock.Unlock()
-	f.AdminIDs = ids
+	f.Lock()
+	defer f.Unlock()
+	f.adminIDs = ids
+}
+
+func (f *Cache) AdminIDs() []uuid.UUID {
+	f.RLock()
+	defer f.RUnlock()
+	return f.adminIDs
 }
 
 func (f *Cache) UpdateDisposableEmailDomains(domains []string) {
-	lock.Lock()
-	defer lock.Unlock()
-	f.DisposableEmailDomains = domains
+	f.Lock()
+	defer f.Unlock()
+	f.disposableEmailDomains = domains
+}
+
+func (f *Cache) DisposableEmailDomains() []string {
+	f.RLock()
+	defer f.RUnlock()
+	return f.disposableEmailDomains
 }
 
 func (f *Cache) UpdateIPBlacklist(ips []string) {
-	lock.Lock()
-	defer lock.Unlock()
-	f.IPBlacklist = ips
+	f.Lock()
+	defer f.Unlock()
+	f.iPBlacklist = ips
+}
+
+func (f *Cache) IPBlacklist() []string {
+	f.RLock()
+	defer f.RUnlock()
+	return f.iPBlacklist
 }
 
 func (f *Cache) IsDisposableEmail(email string) bool {
+	disposableEmailDomains := f.DisposableEmailDomains()
 	if !strings.Contains(email, "@") {
-		for _, disposableDomain := range f.DisposableEmailDomains {
+		for _, disposableDomain := range disposableEmailDomains {
 			if email == disposableDomain {
 				return true
 			}
@@ -222,7 +277,7 @@ func (f *Cache) IsDisposableEmail(email string) bool {
 		return false
 	}
 	domain := strings.ToLower(segs[1])
-	for _, disposableDomain := range f.DisposableEmailDomains {
+	for _, disposableDomain := range disposableEmailDomains {
 		if domain == disposableDomain {
 			return true
 		}
@@ -231,12 +286,12 @@ func (f *Cache) IsDisposableEmail(email string) bool {
 }
 
 func (f *Cache) IsIPBanned(ip string) bool {
-	return slices.Contains(f.IPBlacklist, ip)
+	return slices.Contains(f.IPBlacklist(), ip)
 }
 
 func (f *Cache) GetDefaultGenerationModel() *ent.GenerationModel {
 	var defaultModel *ent.GenerationModel
-	for _, model := range f.GenerateModels {
+	for _, model := range f.GenerationModels() {
 		// always set at least 1 as default
 		if defaultModel == nil {
 			defaultModel = model
@@ -250,7 +305,7 @@ func (f *Cache) GetDefaultGenerationModel() *ent.GenerationModel {
 
 func (f *Cache) GetDefaultUpscaleModel() *ent.UpscaleModel {
 	var defaultModel *ent.UpscaleModel
-	for _, model := range f.UpscaleModels {
+	for _, model := range f.UpscaleModels() {
 		// always set at least 1 as default
 		if defaultModel == nil {
 			defaultModel = model
@@ -264,7 +319,7 @@ func (f *Cache) GetDefaultUpscaleModel() *ent.UpscaleModel {
 
 func (f *Cache) GetDefaultVoiceoverModel() *ent.VoiceoverModel {
 	var defaultModel *ent.VoiceoverModel
-	for _, model := range f.VoiceoverModels {
+	for _, model := range f.VoiceoverModels() {
 		// always set at least 1 as default
 		if defaultModel == nil {
 			defaultModel = model
@@ -278,7 +333,7 @@ func (f *Cache) GetDefaultVoiceoverModel() *ent.VoiceoverModel {
 
 func (f *Cache) GetDefaultVoiceoverSpeaker() *ent.VoiceoverSpeaker {
 	var defaultSpeaker *ent.VoiceoverSpeaker
-	for _, speaker := range f.VoiceoverSpeakers {
+	for _, speaker := range f.VoiceoverSpeakers() {
 		// always set at least 1 as default
 		if defaultSpeaker == nil {
 			defaultSpeaker = speaker
@@ -292,7 +347,7 @@ func (f *Cache) GetDefaultVoiceoverSpeaker() *ent.VoiceoverSpeaker {
 
 func (f *Cache) GetDefaultScheduler() *ent.Scheduler {
 	var defaultScheduler *ent.Scheduler
-	for _, scheduler := range f.Schedulers {
+	for _, scheduler := range f.Schedulers() {
 		// always set at least 1 as default
 		if defaultScheduler == nil {
 			defaultScheduler = scheduler
@@ -305,7 +360,7 @@ func (f *Cache) GetDefaultScheduler() *ent.Scheduler {
 }
 
 func (f *Cache) GetGenerationModelByID(id uuid.UUID) *ent.GenerationModel {
-	for _, model := range f.GenerateModels {
+	for _, model := range f.GenerationModels() {
 		if model.ID == id {
 			return model
 		}

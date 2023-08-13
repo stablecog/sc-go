@@ -200,7 +200,7 @@ func (t *TranslatorSafetyChecker) IsPromptNSFW(input string) (isNsfw bool, nsfwR
 		return false, "", nil
 	}
 	// Word list check
-	for _, pair := range shared.GetCache().BannedWords {
+	for _, pair := range shared.GetCache().BannedWords() {
 		if pair.SplitMatch {
 			matchingCount := 0
 			promptWords := strings.Split(input, " ")

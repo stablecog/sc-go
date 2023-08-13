@@ -29,7 +29,7 @@ func (c *DiscordInteractionWrapper) NewImageCommand() *DiscordInteraction {
 			Value: defaultModel.ID.String(),
 		},
 	}
-	for _, model := range shared.GetCache().GenerateModels {
+	for _, model := range shared.GetCache().GenerationModels() {
 		if model.ID == defaultModel.ID {
 			continue
 		}

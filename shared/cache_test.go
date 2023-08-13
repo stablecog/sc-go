@@ -15,45 +15,45 @@ func resetCache() {
 func TestGetCacheReturnsSameInstance(t *testing.T) {
 	resetCache()
 	fc1 := GetCache()
-	fc1.AdminIDs = []uuid.UUID{uuid.New()}
+	fc1.adminIDs = []uuid.UUID{uuid.New()}
 	fc2 := GetCache()
-	assert.Len(t, fc2.AdminIDs, 1)
+	assert.Len(t, fc2.AdminIDs(), 1)
 }
 
 func TestUpdateGenerateModels(t *testing.T) {
 	resetCache()
 	fc := GetCache()
-	assert.Len(t, fc.GenerateModels, 0)
+	assert.Len(t, fc.GenerationModels(), 0)
 	models := []*ent.GenerationModel{
 		{NameInWorker: "test"},
 	}
 	fc.UpdateGenerationModels(models)
-	assert.Equal(t, 1, len(fc.GenerateModels))
-	assert.Equal(t, "test", fc.GenerateModels[0].NameInWorker)
+	assert.Equal(t, 1, len(fc.GenerationModels()))
+	assert.Equal(t, "test", fc.GenerationModels()[0].NameInWorker)
 }
 
 func TestUpdateUpscaleModels(t *testing.T) {
 	resetCache()
 	fc := GetCache()
-	assert.Len(t, fc.UpscaleModels, 0)
+	assert.Len(t, fc.UpscaleModels(), 0)
 	models := []*ent.UpscaleModel{
 		{NameInWorker: "test"},
 	}
 	fc.UpdateUpscaleModels(models)
-	assert.Equal(t, 1, len(fc.UpscaleModels))
-	assert.Equal(t, "test", fc.UpscaleModels[0].NameInWorker)
+	assert.Equal(t, 1, len(fc.UpscaleModels()))
+	assert.Equal(t, "test", fc.UpscaleModels()[0].NameInWorker)
 }
 
 func TestUpdateSchedulers(t *testing.T) {
 	resetCache()
 	fc := GetCache()
-	assert.Len(t, fc.Schedulers, 0)
+	assert.Len(t, fc.Schedulers(), 0)
 	schedulrs := []*ent.Scheduler{
 		{NameInWorker: "test"},
 	}
 	fc.UpdateSchedulers(schedulrs)
-	assert.Equal(t, 1, len(fc.Schedulers))
-	assert.Equal(t, "test", fc.Schedulers[0].NameInWorker)
+	assert.Equal(t, 1, len(fc.Schedulers()))
+	assert.Equal(t, "test", fc.Schedulers()[0].NameInWorker)
 }
 
 func TestIsValidGenerationModelID(t *testing.T) {
@@ -159,11 +159,11 @@ func TestIsAdmin(t *testing.T) {
 func TestUpdateDisposableEmails(t *testing.T) {
 	resetCache()
 	fc := GetCache()
-	assert.Len(t, fc.DisposableEmailDomains, 0)
+	assert.Len(t, fc.DisposableEmailDomains(), 0)
 	emails := []string{"test"}
 	fc.UpdateDisposableEmailDomains(emails)
-	assert.Equal(t, 1, len(fc.DisposableEmailDomains))
-	assert.Equal(t, "test", fc.DisposableEmailDomains[0])
+	assert.Equal(t, 1, len(fc.DisposableEmailDomains()))
+	assert.Equal(t, "test", fc.DisposableEmailDomains()[0])
 }
 
 func TestIsDisposableEmail(t *testing.T) {
