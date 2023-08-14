@@ -1163,6 +1163,9 @@ UPDATE
 
 ALTER TABLE public.ip_blacklist ENABLE ROW LEVEL SECURITY;
 
+ALTER TABLE ONLY public.ip_blacklist
+    ADD CONSTRAINT ip_blacklist_pkey PRIMARY KEY (id);
+
 -- Add username_changed_at
 alter table public.users add column username_changed_at timestamp with time zone null;
 
@@ -1185,3 +1188,5 @@ UPDATE
     ON public.banned_words FOR each ROW EXECUTE PROCEDURE moddatetime (updated_at);
 
 ALTER TABLE public.banned_words ENABLE ROW LEVEL SECURITY;
+
+ALTER TABLE ONLY public.banned_words ADD CONSTRAINT banned_words_pkey PRIMARY KEY (id);

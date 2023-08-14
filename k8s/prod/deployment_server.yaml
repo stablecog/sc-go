@@ -275,3 +275,8 @@ spec:
                 secretKeyRef:
                   name: sc-go
                   key: CLIP_URL_TEMP
+            - name: GEOIP2_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: sc-go
+                  key: GEOIP2_KEY

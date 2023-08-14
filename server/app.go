@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"path"
 	"strings"
 	"time"
 
@@ -540,6 +541,32 @@ func main() {
 	newSession := session.New(s3Config)
 	s3Client := s3.New(newSession)
 
+	// Download geoip2 database from img2img bucket
+	geoip2key := os.Getenv("GEOIP2_KEY")
+	out, err := s3Client.GetObject(&s3.GetObjectInput{
+		Bucket: aws.String(os.Getenv("S3_IMG2IMG_BUCKET_NAME")),
+		Key:    aws.String(geoip2key),
+	})
+	if err != nil {
+		log.Fatal("Error downloading geoip2 database", "err", err)
+	}
+	defer out.Body.Close()
+	// Write to GeoLite2-Country.mmdb
+	f, err := os.Create(path.Join(utils.RootDir(), "utils", "GeoLite2-Country.mmdb"))
+	if err != nil {
+		log.Fatal("Error creating geoip2 database", "err", err)
+	}
+	defer f.Close()
+	_, err = io.Copy(f, out.Body)
+	if err != nil {
+		log.Fatal("Error writing geoip2 database", "err", err)
+	}
+
+	geoip2, err := utils.NewGeoIPService(false)
+	if err != nil {
+		log.Fatal("Error creating geoip2 service", "err", err)
+	}
+
 	// Create controller
 	apiTokenSmap := shared.NewSyncMap[chan requests.CogWebhookMessage]()
 	hc := rest.RestAPI{
@@ -577,6 +604,7 @@ func main() {
 		SupabaseAuth: database.NewSupabaseAuth(),
 		Repo:         repo,
 		Redis:        redis,
+		GeoIP:        geoip2,
 	}
 
 	if *transferUserData {
@@ -707,6 +735,7 @@ func main() {
 		r.Route("/user", func(r chi.Router) {
 			r.Use(mw.AuthMiddleware(middleware.AuthLevelAny))
 			r.Use(middleware.Logger)
+			r.Use(mw.GeoIPMiddleware())
 			// 10 requests per second
 			r.Use(mw.RateLimit(10, "srv", 1*time.Second))
 
@@ -819,6 +848,7 @@ func main() {
 				r.Route("/", func(r chi.Router) {
 					r.Use(mw.AuthMiddleware(middleware.AuthLevelAPIToken))
 					r.Use(middleware.Logger)
+					r.Use(mw.GeoIPMiddleware())
 					r.Use(mw.RateLimit(5, "api", 1*time.Second))
 					r.Post("/", hc.HandleCreateGenerationToken)
 				})

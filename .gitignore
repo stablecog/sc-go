@@ -22,3 +22,5 @@
 # vendor/
 
 tmp
+
+GeoLite2-Country.mmdb

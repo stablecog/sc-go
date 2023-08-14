@@ -231,3 +231,8 @@ spec:
                 secretKeyRef:
                   name: sc-go
                   key: OPENAI_API_KEY
+            - name: GEOIP2_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: sc-go
+                  key: GEOIP2_KEY

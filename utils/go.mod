@@ -6,7 +6,7 @@ require (
 	github.com/mileusna/useragent v1.2.1
 	github.com/stablecog/sc-go/log v0.0.0-20230707184738-0a320ed9f214
 	github.com/stablecog/sc-go/shared v0.0.0-20230212171313-d3dc468134f0
-	github.com/stretchr/testify v1.8.2
+	github.com/stretchr/testify v1.8.4
 )
 
 require (
@@ -29,12 +29,14 @@ require (
 	github.com/mitchellh/go-wordwrap v0.0.0-20150314170334-ad45545899c7 // indirect
 	github.com/muesli/reflow v0.3.0 // indirect
 	github.com/muesli/termenv v0.15.1 // indirect
+	github.com/oschwald/geoip2-golang v1.9.0 // indirect
+	github.com/oschwald/maxminddb-golang v1.11.0 // indirect
 	github.com/rivo/uniseg v0.2.0 // indirect
 	github.com/stablecog/sc-go/database v0.0.0-20230212171313-d3dc468134f0 // indirect
 	github.com/zclconf/go-cty v1.8.0 // indirect
 	golang.org/x/exp v0.0.0-20230206171751-46f607a40771 // indirect
 	golang.org/x/mod v0.7.0 // indirect
-	golang.org/x/sys v0.6.0 // indirect
+	golang.org/x/sys v0.9.0 // indirect
 	golang.org/x/text v0.7.0 // indirect
 )
 
