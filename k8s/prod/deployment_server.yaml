@@ -280,3 +280,8 @@ spec:
                 secretKeyRef:
                   name: sc-go
                   key: GEOIP2_KEY
+            - name: GEOIP_WEBHOOK
+              valueFrom:
+                secretKeyRef:
+                  name: sc-go
+                  key: GEOIP_WEBHOOK
