@@ -3,6 +3,7 @@ package middleware
 import (
 	"net/http"
 
+	"github.com/stablecog/sc-go/log"
 	"github.com/stablecog/sc-go/server/discord"
 	"github.com/stablecog/sc-go/utils"
 )
@@ -15,6 +16,8 @@ func (m *Middleware) GeoIPMiddleware() func(next http.Handler) http.Handler {
 			if utils.GetCountryCode(r) == "TR" {
 				// Webhook
 				discord.FireGeoIPWebhook(utils.GetIPAddress(r), email, userIDStr)
+			} else {
+				log.Infof("Received request from %s", utils.GetCountryCode(r))
 			}
 
 			next.ServeHTTP(w, r)
