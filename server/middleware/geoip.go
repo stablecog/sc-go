@@ -17,7 +17,7 @@ func (m *Middleware) GeoIPMiddleware() func(next http.Handler) http.Handler {
 			if err != nil {
 				log.Warn("Error getting country from IP", "err", err)
 			} else {
-				if country == "NZ" {
+				if country == "TR" {
 					// Webhook
 					discord.FireGeoIPWebhook(utils.GetIPAddress(r), email, userIDStr)
 				}
