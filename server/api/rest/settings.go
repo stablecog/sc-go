@@ -27,7 +27,7 @@ func (c *RestAPI) HandleGetGenerationDefaults(w http.ResponseWriter, r *http.Req
 func (c *RestAPI) HandleGetGenerationModels(w http.ResponseWriter, r *http.Request) {
 	var generationModels []responses.SettingsResponseItem
 
-	for _, model := range shared.GetCache().GenerateModels {
+	for _, model := range shared.GetCache().GenerationModels() {
 		if model.IsActive && !model.IsHidden {
 			m := responses.SettingsResponseItem{
 				ID:            model.ID,
@@ -64,7 +64,7 @@ func (c *RestAPI) HandleGetUpscaleDefaults(w http.ResponseWriter, r *http.Reques
 func (c *RestAPI) HandleGetUpscaleModels(w http.ResponseWriter, r *http.Request) {
 	var upscaleModels []responses.SettingsResponseItem
 
-	for _, model := range shared.GetCache().UpscaleModels {
+	for _, model := range shared.GetCache().UpscaleModels() {
 		if model.IsActive && !model.IsHidden {
 			upscaleModels = append(upscaleModels, responses.SettingsResponseItem{
 				ID:        model.ID,
@@ -95,7 +95,7 @@ func (c *RestAPI) HandleGetVoiceoverDefaults(w http.ResponseWriter, r *http.Requ
 func (c *RestAPI) HandleGetVoiceoverModels(w http.ResponseWriter, r *http.Request) {
 	var voiceoverModels []responses.SettingsResponseItem
 
-	for _, model := range shared.GetCache().VoiceoverModels {
+	for _, model := range shared.GetCache().VoiceoverModels() {
 		if model.IsActive && !model.IsHidden {
 			speakers := shared.GetCache().GetVoiceoverSpeakersForModel(model.ID)
 			availableSpeakers := make([]responses.AvailableSpeaker, len(speakers))

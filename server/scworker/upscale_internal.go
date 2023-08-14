@@ -22,11 +22,11 @@ import (
 // Create an Upscale in sc-worker, wait for result
 // ! TODO - clean this up and merge with CreateUpscale method
 func CreateUpscaleInternal(Track *analytics.AnalyticsService, Repo *repository.Repository, Redis *database.RedisWrapper, sMap *shared.SyncMap[chan requests.CogWebhookMessage], generation *ent.Generation, output *ent.GenerationOutput) error {
-	if len(shared.GetCache().UpscaleModels) == 0 {
+	if len(shared.GetCache().UpscaleModels()) == 0 {
 		log.Error("No upscale models available")
 		return fmt.Errorf("No upscale models available")
 	}
-	upscaleModel := shared.GetCache().UpscaleModels[0]
+	upscaleModel := shared.GetCache().UpscaleModels()[0]
 	// Create req
 	upscaleReq := requests.CreateUpscaleRequest{
 		Type:    utils.ToPtr(requests.UpscaleRequestTypeOutput),

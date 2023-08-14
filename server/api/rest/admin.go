@@ -40,7 +40,7 @@ func (c *RestAPI) HandleGetDisposableDomains(w http.ResponseWriter, r *http.Requ
 
 	render.Status(r, http.StatusOK)
 	render.JSON(w, r, BanDomainRequest{
-		Domains: shared.GetCache().DisposableEmailDomains,
+		Domains: shared.GetCache().DisposableEmailDomains(),
 	})
 }
 
