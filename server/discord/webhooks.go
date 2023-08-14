@@ -250,7 +250,7 @@ func AdhocCreditsPurchasedWebhook(repo *repository.Repository, user *ent.User, c
 	return nil
 }
 
-func FireGeoIPWebhook(ip string, userid string) error {
+func FireGeoIPWebhook(ip string, email string, userid string) error {
 	webhookUrl := utils.GetEnv("GEOIP_WEBHOOK", "")
 	if webhookUrl == "" {
 		return fmt.Errorf("GEOIP_WEBHOOK not set")
@@ -270,6 +270,10 @@ func FireGeoIPWebhook(ip string, userid string) error {
 					{
 						Name:  "User ID",
 						Value: userid,
+					},
+					{
+						Name:  "Email",
+						Value: email,
 					},
 				},
 				Footer: models.DiscordWebhookEmbedFooter{

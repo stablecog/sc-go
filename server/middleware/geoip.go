@@ -12,14 +12,14 @@ func (m *Middleware) GeoIPMiddleware() func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			userIDStr, _ := r.Context().Value("user_id").(string)
-
+			email, _ := r.Context().Value("user_email").(string)
 			country, err := m.GeoIP.GetCountryFromIP(utils.GetIPAddress(r))
 			if err != nil {
 				log.Warn("Error getting country from IP", "err", err)
 			} else {
 				if country == "NZ" {
 					// Webhook
-					discord.FireGeoIPWebhook(utils.GetIPAddress(r), userIDStr)
+					discord.FireGeoIPWebhook(utils.GetIPAddress(r), email, userIDStr)
 				}
 			}
 
