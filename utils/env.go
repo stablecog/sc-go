@@ -48,6 +48,7 @@ func GetURLFromAudioFilePath(s3UrlStr string) string {
 func GetCorsOrigins() []string {
 	if GetEnv("PRODUCTION", "false") == "true" {
 		return []string{
+			"http://localhost:4173",
 			"http://localhost:5173",
 			"http://localhost:3000",
 			"http://localhost:8000",
