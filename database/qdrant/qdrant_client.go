@@ -243,17 +243,6 @@ func (q *QdrantClient) CreateCollectionIfNotExists(noRetry bool) error {
 		return err
 	}
 
-	var initFrom *CreateCollection_InitFrom
-	if os.Getenv("QDRANT_COLLECTION_INIT_FROM") != "" {
-		initFrom = &CreateCollection_InitFrom{}
-		err = initFrom.FromInitFrom(InitFrom{
-			Collection: os.Getenv("QDRANT_COLLECTION_INIT_FROM"),
-		})
-		if err != nil {
-			log.Errorf("Error creating init from %v", err)
-			return err
-		}
-	}
 	// Create vectors config
 	vectorsConfig := VectorsConfig{}
 	vectorsConfigMulti := VectorsConfig1{}
@@ -289,7 +278,6 @@ func (q *QdrantClient) CreateCollectionIfNotExists(noRetry bool) error {
 		OptimizersConfig:   optimizersConfig,
 		QuantizationConfig: createCollectionQuantizationConfig,
 		Vectors:            vectorsConfig,
-		InitFrom:           initFrom,
 		ShardNumber:        utils.ToPtr[uint32](2),
 	})
 
