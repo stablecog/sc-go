@@ -184,16 +184,6 @@ spec:
                 secretKeyRef:
                   name: sc-go
                   key: QDRANT_URL
-            - name: QDRANT_USERNAME
-              valueFrom:
-                secretKeyRef:
-                  name: sc-go
-                  key: QDRANT_USERNAME
-            - name: QDRANT_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: sc-go
-                  key: QDRANT_PASSWORD
             - name: QDRANT_COLLECTION_NAME
               valueFrom:
                 secretKeyRef:
