@@ -1129,6 +1129,8 @@ CREATE TABLE "public"."generation_output_zoomed_outputs" ("generation_output_id"
 alter table public.generations add column mask_image_url text;
 alter table public.generations add column zoom_out_scale real;
 
+alter table "public"."generation_output_zoomed_outputs" ENABLE ROW LEVEL SECURITY;
+
 -- Create "tip_log" table
 CREATE TABLE "public"."tip_log" (
     "id"                UUID DEFAULT extensions.uuid_generate_v4() NOT NULL,
