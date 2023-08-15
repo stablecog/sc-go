@@ -68,15 +68,15 @@ var fieldsToIndex = []qdrantIndexField{
 	},
 	{
 		Name: "is_favorited",
-		Type: PayloadSchemaTypeKeyword,
+		Type: PayloadSchemaTypeBool,
 	},
 	{
 		Name: "was_auto_submitted",
-		Type: PayloadSchemaTypeKeyword,
+		Type: PayloadSchemaTypeBool,
 	},
 	{
 		Name: "is_public",
-		Type: PayloadSchemaTypeKeyword,
+		Type: PayloadSchemaTypeBool,
 	},
 	{
 		Name: "prompt",
@@ -243,6 +243,17 @@ func (q *QdrantClient) CreateCollectionIfNotExists(noRetry bool) error {
 		return err
 	}
 
+	var initFrom *CreateCollection_InitFrom
+	if os.Getenv("QDRANT_COLLECTION_INIT_FROM") != "" {
+		initFrom = &CreateCollection_InitFrom{}
+		err = initFrom.FromInitFrom(InitFrom{
+			Collection: os.Getenv("QDRANT_COLLECTION_INIT_FROM"),
+		})
+		if err != nil {
+			log.Errorf("Error creating init from %v", err)
+			return err
+		}
+	}
 	// Create vectors config
 	vectorsConfig := VectorsConfig{}
 	vectorsConfigMulti := VectorsConfig1{}
@@ -264,6 +275,7 @@ func (q *QdrantClient) CreateCollectionIfNotExists(noRetry bool) error {
 		OptimizersConfig:   optimizersConfig,
 		QuantizationConfig: createCollectionQuantizationConfig,
 		Vectors:            vectorsConfig,
+		ShardNumber:        utils.ToPtr[uint32](2),
 	}
 	// Marshal and print as json
 	json, err := json.Marshal(test)
@@ -277,6 +289,8 @@ func (q *QdrantClient) CreateCollectionIfNotExists(noRetry bool) error {
 		OptimizersConfig:   optimizersConfig,
 		QuantizationConfig: createCollectionQuantizationConfig,
 		Vectors:            vectorsConfig,
+		InitFrom:           initFrom,
+		ShardNumber:        utils.ToPtr[uint32](2),
 	})
 
 	if err != nil {
