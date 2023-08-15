@@ -51,6 +51,8 @@ spec:
             initialDelaySeconds: 15
             periodSeconds: 10
           env:
+            - name: GOTRUE_URL
+              value: http://supabase-supabase-auth.prod-supabase:9999
             - name: PUBLIC_SUPABASE_REFERENCE_ID
               value: jaqefzjqokaemzyvjcew
             - name: PRODUCTION
@@ -230,16 +232,6 @@ spec:
                 secretKeyRef:
                   name: sc-go
                   key: QDRANT_URL
-            - name: QDRANT_USERNAME
-              valueFrom:
-                secretKeyRef:
-                  name: sc-go
-                  key: QDRANT_USERNAME
-            - name: QDRANT_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: sc-go
-                  key: QDRANT_PASSWORD
             - name: QDRANT_COLLECTION_NAME
               valueFrom:
                 secretKeyRef:

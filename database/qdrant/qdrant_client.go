@@ -68,15 +68,15 @@ var fieldsToIndex = []qdrantIndexField{
 	},
 	{
 		Name: "is_favorited",
-		Type: PayloadSchemaTypeKeyword,
+		Type: PayloadSchemaTypeBool,
 	},
 	{
 		Name: "was_auto_submitted",
-		Type: PayloadSchemaTypeKeyword,
+		Type: PayloadSchemaTypeBool,
 	},
 	{
 		Name: "is_public",
-		Type: PayloadSchemaTypeKeyword,
+		Type: PayloadSchemaTypeBool,
 	},
 	{
 		Name: "prompt",
@@ -264,6 +264,7 @@ func (q *QdrantClient) CreateCollectionIfNotExists(noRetry bool) error {
 		OptimizersConfig:   optimizersConfig,
 		QuantizationConfig: createCollectionQuantizationConfig,
 		Vectors:            vectorsConfig,
+		ShardNumber:        utils.ToPtr[uint32](2),
 	}
 	// Marshal and print as json
 	json, err := json.Marshal(test)
@@ -277,6 +278,7 @@ func (q *QdrantClient) CreateCollectionIfNotExists(noRetry bool) error {
 		OptimizersConfig:   optimizersConfig,
 		QuantizationConfig: createCollectionQuantizationConfig,
 		Vectors:            vectorsConfig,
+		ShardNumber:        utils.ToPtr[uint32](2),
 	})
 
 	if err != nil {

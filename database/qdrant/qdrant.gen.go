@@ -45,6 +45,7 @@ const (
 	PayloadSchemaTypeInteger PayloadSchemaType = "integer"
 	PayloadSchemaTypeKeyword PayloadSchemaType = "keyword"
 	PayloadSchemaTypeText    PayloadSchemaType = "text"
+	PayloadSchemaTypeBool 	PayloadSchemaType = "bool"
 )
 
 // Defines values for ReadConsistencyType.
