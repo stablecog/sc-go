@@ -48,6 +48,7 @@ func GetURLFromAudioFilePath(s3UrlStr string) string {
 func GetCorsOrigins() []string {
 	if GetEnv("PRODUCTION", "false") == "true" {
 		return []string{
+			"http://localhost:4173",
 			"http://localhost:5173",
 			"http://localhost:3000",
 			"http://localhost:8000",
@@ -58,6 +59,7 @@ func GetCorsOrigins() []string {
 	}
 	return []string{
 		"http://localhost:3000",
+		"http://localhost:4173",
 		"http://localhost:5173",
 		"http://localhost:8000",
 		"https://stablecog-git-v21-stablecog.vercel.app",
