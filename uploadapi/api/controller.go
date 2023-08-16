@@ -41,7 +41,6 @@ func (c *Controller) HandleHealth(w http.ResponseWriter, r *http.Request) {
 
 // Handle upload
 func (c *Controller) HandleUpload(w http.ResponseWriter, r *http.Request) {
-	log.Info("///////////////// UPLOAD REQUEST")
 	// See if authenticated
 	userIDStr, authenticated := r.Context().Value("user_id").(string)
 	// This should always be true because of the auth middleware, but check it anyway
@@ -55,7 +54,6 @@ func (c *Controller) HandleUpload(w http.ResponseWriter, r *http.Request) {
 		responses.ErrUnauthorized(w, r)
 		return
 	}
-	log.Info("///////////////// USER IS VALID")
 
 	// See if banned
 	banned, err := c.Repo.IsBanned(userID)
@@ -68,8 +66,6 @@ func (c *Controller) HandleUpload(w http.ResponseWriter, r *http.Request) {
 		responses.ErrForbidden(w, r)
 		return
 	}
-
-	log.Info("///////////////// USER ISNT BANNED")
 
 	// Hash user ID to protect leaking it
 	uidHash := utils.Sha256(userID.String())
@@ -86,8 +82,6 @@ func (c *Controller) HandleUpload(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	log.Info("///////////////// BEFORE ENFORCE MAX UPLOAD SIZE")
-
 	// Enforce max upload size
 	r.Body = http.MaxBytesReader(w, r.Body, MAX_UPLOAD_SIZE_MB*1024*1024)
 	if err := r.ParseMultipartForm(MAX_UPLOAD_SIZE_MB * 1024 * 1024); err != nil {
@@ -97,8 +91,6 @@ func (c *Controller) HandleUpload(w http.ResponseWriter, r *http.Request) {
 	}
 	defer r.Body.Close()
 
-	log.Info("///////////////// PASSED ENFORCE MAX UPLOAD SIZE")
-
 	file, _, err := r.FormFile("file")
 	if err != nil {
 		log.Error("Error in FormFile", "err", err)
@@ -107,8 +99,6 @@ func (c *Controller) HandleUpload(w http.ResponseWriter, r *http.Request) {
 	}
 
 	defer file.Close()
-
-	log.Info("///////////////// BEFORE LIST OBJECTS")
 
 	// Prune files in this users folder, if they have more than MAX_FILES_PER_USER
 	out, err := c.S3.ListObjects(&s3.ListObjectsInput{
@@ -121,10 +111,6 @@ func (c *Controller) HandleUpload(w http.ResponseWriter, r *http.Request) {
 		responses.ErrInternalServerError(w, r, "An unknown error has occurred")
 		return
 	}
-
-	log.Info("///////////////// AFTER LIST OBJECTS")
-
-	log.Info("///////////////// BEFORE MAX FILES PER USER")
 
 	// If there are more than MAX_FILES_PER_USER, delete the oldest ones
 	if len(out.Contents) > MAX_FILES_PER_USER {
@@ -145,10 +131,6 @@ func (c *Controller) HandleUpload(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 	}
-
-	log.Info("///////////////// AFTER MAX FILES PER USER")
-
-	log.Info("///////////////// BEFORE UPLOAD")
 
 	// Upload the file to S3
 	buf, err := io.ReadAll(file)
@@ -186,8 +168,6 @@ func (c *Controller) HandleUpload(w http.ResponseWriter, r *http.Request) {
 		responses.ErrInternalServerError(w, r, "An unknown error has occurred")
 		return
 	}
-
-	log.Info("///////////////// AFTER UPLOAD")
 
 	render.JSON(w, r, map[string]string{
 		"object": fmt.Sprintf("s3://%s", objKey),
