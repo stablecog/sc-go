@@ -29,90 +29,13 @@ spec:
           command: ["/bin/sh", "-c"]
           args: ["/app/discobot"]
           imagePullPolicy: "Always"
+          envFrom:
+            - secretRef:
+                name: sc-go
           env:
             - name: PUBLIC_API_URL
               value: https://api.stablecog.com
             - name: PUBLIC_SUPABASE_REFERENCE_ID
               value: jaqefzjqokaemzyvjcew
-            - name: SUPABASE_ADMIN_KEY
-              valueFrom:
-                secretKeyRef:
-                  name: sc-go
-                  key: SUPABASE_ADMIN_KEY
-            - name: DISCORD_BOT_TOKEN
-              valueFrom:
-                secretKeyRef:
-                  name: sc-go
-                  key: DISCORD_BOT_TOKEN
-            - name: POSTGRES_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: sc-go
-                  key: POSTGRES_PASSWORD
-            - name: POSTGRES_USER
-              valueFrom:
-                secretKeyRef:
-                  name: sc-go
-                  key: POSTGRES_USER
-            - name: POSTGRES_HOST
-              valueFrom:
-                secretKeyRef:
-                  name: sc-go
-                  key: POSTGRES_HOST
-            - name: POSTGRES_DB
-              valueFrom:
-                secretKeyRef:
-                  name: sc-go
-                  key: POSTGRES_DB
-            - name: REDIS_CONNECTION_STRING
-              valueFrom:
-                secretKeyRef:
-                  name: sc-go
-                  key: REDIS_CONNECTION_STRING
-            - name: QDRANT_URLS
-              valueFrom:
-                secretKeyRef:
-                  name: sc-go
-                  key: QDRANT_URLS
-            - name: QDRANT_URL
-              valueFrom:
-                secretKeyRef:
-                  name: sc-go
-                  key: QDRANT_URL
-            - name: QDRANT_COLLECTION_NAME
-              valueFrom:
-                secretKeyRef:
-                  name: sc-go
-                  key: QDRANT_COLLECTION_NAME
             - name: PRIVATE_LINGUA_API_URL
               value: http://lingua-service.prod-stablecog:13339/lingua
-            - name: TRANSLATOR_COG_URL
-              valueFrom:
-                secretKeyRef:
-                  name: sc-go
-                  key: TRANSLATOR_COG_URL
-            - name: OPENAI_API_KEY
-              valueFrom:
-                secretKeyRef:
-                  name: sc-go
-                  key: OPENAI_API_KEY
-            - name: MIXPANEL_API_KEY
-              valueFrom:
-                secretKeyRef:
-                  name: sc-go
-                  key: MIXPANEL_API_KEY
-            - name: MIXPANEL_ENDPOINT
-              valueFrom:
-                secretKeyRef:
-                  name: sc-go
-                  key: MIXPANEL_ENDPOINT
-            - name: POSTHOG_API_KEY
-              valueFrom:
-                secretKeyRef:
-                  name: sc-go
-                  key: POSTHOG_API_KEY
-            - name: POSTHOG_ENDPOINT
-              valueFrom:
-                secretKeyRef:
-                  name: sc-go
-                  key: POSTHOG_ENDPOINT

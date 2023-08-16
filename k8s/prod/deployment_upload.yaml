@@ -52,6 +52,9 @@ spec:
             initialDelaySeconds: 15
             periodSeconds: 10
           imagePullPolicy: "Always"
+          envFrom:
+            - secretRef:
+                name: sc-go
           env:
             - name: GOTRUE_URL
               value: http://supabase-supabase-auth.prod-supabase:9999
@@ -59,63 +62,3 @@ spec:
               value: "true"
             - name: PUBLIC_SUPABASE_REFERENCE_ID
               value: jaqefzjqokaemzyvjcew
-            - name: SUPABASE_ADMIN_KEY
-              valueFrom:
-                secretKeyRef:
-                  name: sc-go
-                  key: SUPABASE_ADMIN_KEY
-            - name: POSTGRES_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: sc-go
-                  key: POSTGRES_PASSWORD
-            - name: POSTGRES_USER
-              valueFrom:
-                secretKeyRef:
-                  name: sc-go
-                  key: POSTGRES_USER
-            - name: POSTGRES_HOST
-              valueFrom:
-                secretKeyRef:
-                  name: sc-go
-                  key: POSTGRES_HOST
-            - name: POSTGRES_DB
-              valueFrom:
-                secretKeyRef:
-                  name: sc-go
-                  key: POSTGRES_DB
-            - name: REDIS_CONNECTION_STRING
-              valueFrom:
-                secretKeyRef:
-                  name: sc-go
-                  key: REDIS_CONNECTION_STRING
-            - name: SC_WORKER_WEBHOOK_SECRET
-              valueFrom:
-                secretKeyRef:
-                  name: sc-go
-                  key: SC_WORKER_WEBHOOK_SECRET
-            - name: S3_IMG2IMG_ACCESS_KEY
-              valueFrom:
-                secretKeyRef:
-                  name: sc-go
-                  key: S3_IMG2IMG_ACCESS_KEY
-            - name: S3_IMG2IMG_BUCKET_NAME
-              valueFrom:
-                secretKeyRef:
-                  name: sc-go
-                  key: S3_IMG2IMG_BUCKET_NAME
-            - name: S3_IMG2IMG_ENDPOINT
-              valueFrom:
-                secretKeyRef:
-                  name: sc-go
-                  key: S3_IMG2IMG_ENDPOINT
-            - name: S3_IMG2IMG_REGION
-              valueFrom:
-                secretKeyRef:
-                  name: sc-go
-                  key: S3_IMG2IMG_REGION
-            - name: S3_IMG2IMG_SECRET_KEY
-              valueFrom:
-                secretKeyRef:
-                  name: sc-go
-                  key: S3_IMG2IMG_SECRET_KEY
