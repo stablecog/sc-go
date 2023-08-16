@@ -53,6 +53,8 @@ spec:
             periodSeconds: 10
           imagePullPolicy: "Always"
           env:
+            - name: GOTRUE_URL
+              value: http://supabase-supabase-auth.prod-supabase:9999
             - name: PRODUCTION
               value: "true"
             - name: PUBLIC_SUPABASE_REFERENCE_ID
