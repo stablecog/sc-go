@@ -41,6 +41,7 @@ func (c *Controller) HandleHealth(w http.ResponseWriter, r *http.Request) {
 
 // Handle upload
 func (c *Controller) HandleUpload(w http.ResponseWriter, r *http.Request) {
+	log.Info("///////////////// UPLOAD REQUEST")
 	// See if authenticated
 	userIDStr, authenticated := r.Context().Value("user_id").(string)
 	// This should always be true because of the auth middleware, but check it anyway
@@ -54,6 +55,7 @@ func (c *Controller) HandleUpload(w http.ResponseWriter, r *http.Request) {
 		responses.ErrUnauthorized(w, r)
 		return
 	}
+	log.Info("///////////////// USER IS VALID")
 
 	// See if banned
 	banned, err := c.Repo.IsBanned(userID)
@@ -66,6 +68,8 @@ func (c *Controller) HandleUpload(w http.ResponseWriter, r *http.Request) {
 		responses.ErrForbidden(w, r)
 		return
 	}
+
+	log.Info("///////////////// USER ISNT BANNED")
 
 	// Hash user ID to protect leaking it
 	uidHash := utils.Sha256(userID.String())
@@ -81,6 +85,8 @@ func (c *Controller) HandleUpload(w http.ResponseWriter, r *http.Request) {
 		responses.ErrInsufficientCredits(w, r)
 		return
 	}
+
+	log.Info("///////////////// BEFORE ENFORCE MAX UPLOAD SIZE")
 
 	// Enforce max upload size
 	r.Body = http.MaxBytesReader(w, r.Body, MAX_UPLOAD_SIZE_MB*1024*1024)
