@@ -3,7 +3,7 @@ name: 💫 CI (Lingua API)
 on:
   push:
     branches: [master]
-    paths: ["language/**"]
+    paths: ["language/**", "k8s/lingua/**"]
 
 concurrency:
   group: environment-lingua-${{ github.ref }}
