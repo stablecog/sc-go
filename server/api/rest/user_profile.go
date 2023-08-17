@@ -63,12 +63,18 @@ func (c *RestAPI) HandleUserProfileSemanticSearch(w http.ResponseWriter, r *http
 		return
 	}
 
+	metadata := &UserProfileMetadata{
+		CreatedAt:       user.CreatedAt,
+		ActiveProductID: user.ActiveProductID,
+		Username:        user.Username,
+	}
+
 	if user.BannedAt != nil {
 		render.Status(r, http.StatusOK)
 		render.JSON(w, r, GalleryResponse[*uint]{
 			Next:     nil,
 			Hits:     []repository.GalleryData{},
-			Username: user.Username,
+			Metadata: metadata,
 		})
 		return
 	}
@@ -101,7 +107,7 @@ func (c *RestAPI) HandleUserProfileSemanticSearch(w http.ResponseWriter, r *http
 		render.JSON(w, r, GalleryResponse[int]{
 			Page:     1,
 			Hits:     []repository.GalleryData{*galleryData},
-			Username: user.Username,
+			Metadata: metadata,
 		})
 		return
 	}
@@ -260,7 +266,7 @@ func (c *RestAPI) HandleUserProfileSemanticSearch(w http.ResponseWriter, r *http
 		render.JSON(w, r, GalleryResponse[*time.Time]{
 			Next:     nextCursorPostgres,
 			Hits:     galleryData,
-			Username: user.Username,
+			Metadata: metadata,
 		})
 		return
 	}
@@ -268,6 +274,6 @@ func (c *RestAPI) HandleUserProfileSemanticSearch(w http.ResponseWriter, r *http
 	render.JSON(w, r, GalleryResponse[*uint]{
 		Next:     nextCursorQdrant,
 		Hits:     galleryData,
-		Username: user.Username,
+		Metadata: metadata,
 	})
 }
