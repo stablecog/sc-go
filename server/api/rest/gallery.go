@@ -243,9 +243,10 @@ type GalleryResponseCursor interface {
 }
 
 type GalleryResponse[T GalleryResponseCursor] struct {
-	Next T                        `json:"next,omitempty"`
-	Page int                      `json:"page"`
-	Hits []repository.GalleryData `json:"hits"`
+	Next     T                        `json:"next,omitempty"`
+	Page     int                      `json:"page"`
+	Hits     []repository.GalleryData `json:"hits"`
+	Username string                   `json:"username,omitempty"`
 }
 
 // HTTP PUT submit a generation to gallery - for user
