@@ -330,9 +330,9 @@ func (r *Repository) ProcessCogMessage(msg requests.CogWebhookMessage) error {
 				// ! Currently we are only assuming 1 output per upscale request
 				upscaleOutput, err = r.SetUpscaleSucceeded(msg.Input.ID.String(), msg.Input.GenerationOutputID, msg.Input.Image, msg.Output)
 			} else if msg.Input.ProcessType == shared.VOICEOVER {
-				voiceoverOutput, err = r.SetVoiceoverSucceeded(msg.Input.ID.String(), msg.Input.Prompt, msg.Output)
+				voiceoverOutput, err = r.SetVoiceoverSucceeded(msg.Input.ID.String(), msg.Input.Prompt, msg.Input.SubmitToGallery, msg.Output)
 			} else {
-				generationOutputs, err = r.SetGenerationSucceeded(msg.Input.ID.String(), msg.Input.OriginalPrompt, msg.Input.OriginalNegativePrompt, msg.Output, msg.NSFWCount)
+				generationOutputs, err = r.SetGenerationSucceeded(msg.Input.ID.String(), msg.Input.OriginalPrompt, msg.Input.OriginalNegativePrompt, msg.Input.SubmitToGallery, msg.Output, msg.NSFWCount)
 			}
 			if err != nil {
 				log.Error("Error setting process succeeded", "process_type", msg.Input.ProcessType, "id", msg.Input.ID, "err", err)

@@ -136,6 +136,7 @@ func (w *SCWorker) CreateVoiceover(source enttypes.SourceType,
 
 	// Enforce submit to gallery
 	if free {
+		voiceoverReq.WasAutoSubmitted = true
 		voiceoverReq.SubmitToGallery = true
 	}
 	// Parse request headers
@@ -251,7 +252,8 @@ func (w *SCWorker) CreateVoiceover(source enttypes.SourceType,
 				APIRequest:       source != enttypes.SourceTypeWebUI,
 				ID:               requestId,
 				IP:               ipAddress,
-				WasAutoSubmitted: voiceoverReq.SubmitToGallery,
+				WasAutoSubmitted: voiceoverReq.WasAutoSubmitted,
+				SubmitToGallery:  voiceoverReq.SubmitToGallery,
 				UserID:           &user.ID,
 				DeviceInfo:       deviceInfo,
 				LivePageData:     &livePageMsg,
@@ -380,7 +382,7 @@ func (w *SCWorker) CreateVoiceover(source enttypes.SourceType,
 					}
 				}()
 			case requests.CogSucceeded:
-				outputs, err := w.Repo.SetVoiceoverSucceeded(requestId.String(), voiceoverReq.Prompt, cogMsg.Output)
+				outputs, err := w.Repo.SetVoiceoverSucceeded(requestId.String(), voiceoverReq.Prompt, voiceoverReq.SubmitToGallery, cogMsg.Output)
 				if err != nil {
 					log.Error("Failed to set voiceover succeeded", "id", upscale.ID, "err", err)
 					return nil, nil, WorkerInternalServerError()

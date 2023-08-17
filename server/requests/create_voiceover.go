@@ -13,16 +13,17 @@ import (
 )
 
 type CreateVoiceoverRequest struct {
-	Prompt          string     `json:"prompt"`
-	ModelId         *uuid.UUID `json:"model_id,omitempty"`
-	SpeakerId       *uuid.UUID `json:"speaker_id,omitempty"`
-	Seed            *int       `json:"seed,omitempty"`
-	Temperature     *float32   `json:"temperature,omitempty"`
-	DenoiseAudio    *bool      `json:"denoise_audio,omitempty"`
-	RemoveSilence   *bool      `json:"remove_silence,omitempty"`
-	StreamID        string     `json:"stream_id"`
-	SubmitToGallery bool       `json:"submit_to_gallery"`
-	UIId            string     `json:"ui_id"` // Corresponds to UI identifier
+	Prompt           string     `json:"prompt"`
+	ModelId          *uuid.UUID `json:"model_id,omitempty"`
+	SpeakerId        *uuid.UUID `json:"speaker_id,omitempty"`
+	Seed             *int       `json:"seed,omitempty"`
+	Temperature      *float32   `json:"temperature,omitempty"`
+	DenoiseAudio     *bool      `json:"denoise_audio,omitempty"`
+	RemoveSilence    *bool      `json:"remove_silence,omitempty"`
+	StreamID         string     `json:"stream_id"`
+	SubmitToGallery  bool       `json:"submit_to_gallery"`
+	UIId             string     `json:"ui_id"` // Corresponds to UI identifier
+	WasAutoSubmitted bool
 }
 
 func (t *CreateVoiceoverRequest) Cost() int32 {

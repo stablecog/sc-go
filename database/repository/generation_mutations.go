@@ -37,7 +37,7 @@ func (r *Repository) CreateGeneration(userID uuid.UUID, deviceType, deviceOs, de
 		SetDeviceInfoID(deviceInfoId).
 		SetCountryCode(countryCode).
 		SetUserID(userID).
-		SetWasAutoSubmitted(req.SubmitToGallery).
+		SetWasAutoSubmitted(req.WasAutoSubmitted).
 		SetNumOutputs(*req.NumOutputs).
 		SetSourceType(sourceType)
 	if productId != nil {
@@ -86,7 +86,7 @@ func (r *Repository) SetGenerationFailed(generationID string, reason string, nsf
 	return err
 }
 
-func (r *Repository) SetGenerationSucceeded(generationID string, promptStr string, negativePrompt string, whOutput requests.CogWebhookOutput, nsfwCount int32) ([]*ent.GenerationOutput, error) {
+func (r *Repository) SetGenerationSucceeded(generationID string, promptStr string, negativePrompt string, submitToGallery bool, whOutput requests.CogWebhookOutput, nsfwCount int32) ([]*ent.GenerationOutput, error) {
 	uid, err := uuid.Parse(generationID)
 	if err != nil {
 		log.Error("Error parsing generation id in SetGenerationSucceeded", "id", generationID, "err", err)
@@ -102,13 +102,6 @@ func (r *Repository) SetGenerationSucceeded(generationID string, promptStr strin
 			return err
 		}
 		db := tx.Client()
-
-		// Retrieve the generation
-		g, err := r.GetGeneration(uid)
-		if err != nil {
-			log.Error("Error retrieving generation", "id", generationID, "err", err)
-			return err
-		}
 
 		// Get prompt IDs
 		promptId, negativePromptId, err := r.GetOrCreatePrompts(promptStr, negativePrompt, prompt.TypeImage, db)
@@ -134,7 +127,7 @@ func (r *Repository) SetGenerationSucceeded(generationID string, promptStr strin
 		// If this generation was created with "submit_to_gallery", then submit all outputs to gallery
 		var galleryStatus generationoutput.GalleryStatus
 		isPublic := false
-		if g.WasAutoSubmitted {
+		if submitToGallery {
 			galleryStatus = generationoutput.GalleryStatusSubmitted
 			isPublic = true
 		} else {

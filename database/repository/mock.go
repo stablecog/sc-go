@@ -169,7 +169,7 @@ func (repo *Repository) CreateMockData(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	_, err = repo.SetGenerationSucceeded(gen.ID.String(), "This is a prompt", "This is a negative prompt",
+	_, err = repo.SetGenerationSucceeded(gen.ID.String(), "This is a prompt", "This is a negative prompt", false,
 		requests.CogWebhookOutput{
 			Images: []requests.CogWebhookOutputImage{
 				{
@@ -207,7 +207,7 @@ func (repo *Repository) CreateMockData(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	_, err = repo.SetGenerationSucceeded(gen.ID.String(), "This is a prompt 2", "", requests.CogWebhookOutput{
+	_, err = repo.SetGenerationSucceeded(gen.ID.String(), "This is a prompt 2", "", true, requests.CogWebhookOutput{
 		Images: []requests.CogWebhookOutputImage{
 			{
 				Image: "output_4",
@@ -285,7 +285,7 @@ func (repo *Repository) CreateMockData(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	_, err = repo.SetVoiceoverSucceeded(vo.ID.String(), "This is a prompt",
+	_, err = repo.SetVoiceoverSucceeded(vo.ID.String(), "This is a prompt", true,
 		requests.CogWebhookOutput{
 			AudioFiles: []requests.CogWebhookOutputAudio{
 				{
@@ -319,7 +319,7 @@ func (repo *Repository) CreateMockGenerationForDeletion(ctx context.Context) (*e
 	if err != nil {
 		return nil, err
 	}
-	_, err = repo.SetGenerationSucceeded(gen.ID.String(), "to_delete", "", requests.CogWebhookOutput{
+	_, err = repo.SetGenerationSucceeded(gen.ID.String(), "to_delete", "", true, requests.CogWebhookOutput{
 		Images: []requests.CogWebhookOutputImage{
 			{
 				Image: "output_4",

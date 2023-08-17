@@ -34,7 +34,7 @@ func (r *Repository) CreateVoiceover(userID uuid.UUID, deviceType, deviceOs, dev
 		SetTemperature(*req.Temperature).
 		SetUserID(userID).
 		SetSeed(*req.Seed).
-		SetWasAutoSubmitted(req.SubmitToGallery).
+		SetWasAutoSubmitted(req.WasAutoSubmitted).
 		SetCost(utils.CalculateVoiceoverCredits(req.Prompt)).
 		SetSourceType(sourceType)
 	if req.DenoiseAudio != nil {
@@ -84,7 +84,7 @@ func (r *Repository) SetVoiceoverFailed(voiceoverId string, reason string, db *e
 }
 
 // ! Currently supports 1 output
-func (r *Repository) SetVoiceoverSucceeded(voiceoverId, promptStr string, output requests.CogWebhookOutput) (*ent.VoiceoverOutput, error) {
+func (r *Repository) SetVoiceoverSucceeded(voiceoverId, promptStr string, submitToGallery bool, output requests.CogWebhookOutput) (*ent.VoiceoverOutput, error) {
 	uid, err := uuid.Parse(voiceoverId)
 	if err != nil {
 		log.Error("Error parsing voiceover id in SetVoiceoverSucceeded", "id", voiceoverId, "err", err)
@@ -120,7 +120,7 @@ func (r *Repository) SetVoiceoverSucceeded(voiceoverId, promptStr string, output
 
 		// If this voiceover was created with "submit_to_gallery", then submit all outputs to gallery
 		var galleryStatus voiceoveroutput.GalleryStatus
-		if u.WasAutoSubmitted {
+		if submitToGallery {
 			galleryStatus = voiceoveroutput.GalleryStatusSubmitted
 		} else {
 			galleryStatus = voiceoveroutput.GalleryStatusNotSubmitted
