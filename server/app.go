@@ -502,7 +502,8 @@ func main() {
 	}
 	// Update periodically
 	s := gocron.NewScheduler(time.UTC)
-	s.Every(5).Minutes().StartAt(time.Now().Add(5 * time.Minute)).Do(func() {
+	const cacheIntervalSec = 30
+	s.Every(cacheIntervalSec).Seconds().StartAt(time.Now().Add(cacheIntervalSec * time.Second)).Do(func() {
 		log.Info("📦 Updating cache...")
 		err = repo.UpdateCache()
 		if err != nil {
