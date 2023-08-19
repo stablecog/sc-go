@@ -200,10 +200,11 @@ func (t *TranslatorSafetyChecker) IsPromptNSFW(input string) (isNsfw bool, nsfwR
 		return false, "", nil
 	}
 	// Word list check
+	modifiedInput := removeChars(input, `.,?!:;'()[]{}"`)
 	for _, pair := range shared.GetCache().BannedWords() {
 		if pair.SplitMatch {
 			matchingCount := 0
-			promptWords := strings.Split(strings.ToLower(input), " ")
+			promptWords := strings.Split(strings.ToLower(modifiedInput), " ")
 			for _, word := range pair.Words {
 				if includes(word, promptWords) {
 					matchingCount++
@@ -215,7 +216,7 @@ func (t *TranslatorSafetyChecker) IsPromptNSFW(input string) (isNsfw bool, nsfwR
 		} else {
 			containsAll := true
 			for _, word := range pair.Words {
-				if !strings.Contains(strings.ToLower(input), word) {
+				if !strings.Contains(strings.ToLower(modifiedInput), word) {
 					containsAll = false
 					break
 				}
@@ -265,4 +266,22 @@ func includes(value string, array []string) bool {
 		}
 	}
 	return false
+}
+
+func removeChars(s string, charsToRemove string) string {
+	// Convert the charsToRemove string to a map for O(1) lookup
+	charMap := make(map[rune]bool)
+	for _, c := range charsToRemove {
+		charMap[c] = true
+	}
+
+	// Use a strings.Builder for efficient string manipulation
+	var builder strings.Builder
+	for _, c := range s {
+		if !charMap[c] { // If the character is not in the map, append it to the result
+			builder.WriteRune(c)
+		}
+	}
+
+	return builder.String()
 }
