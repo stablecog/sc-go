@@ -91,7 +91,7 @@ func (r *Repository) GetRoles(userID uuid.UUID) ([]string, error) {
 func (r *Repository) QueryUsersCount(emailSearch string) (totalCount int, totalCountByProduct map[string]int, err error) {
 	query := r.DB.User.Query()
 	if emailSearch != "" {
-		query = query.Where(user.EmailContains(emailSearch))
+		query = query.Where(user.Or(user.EmailContains(emailSearch), user.UsernameContains(emailSearch)))
 	}
 	count, err := query.Count(r.Ctx)
 	if err != nil {
@@ -175,7 +175,7 @@ func (r *Repository) QueryUsers(
 	}
 
 	if emailSearch != "" {
-		query = query.Where(user.EmailContains(emailSearch))
+		query = query.Where(user.Or(user.EmailContains(emailSearch), user.UsernameContains(emailSearch)))
 	}
 
 	// Include user roles
