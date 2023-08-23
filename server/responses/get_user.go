@@ -2,9 +2,12 @@ package responses
 
 import (
 	"time"
+
+	"github.com/google/uuid"
 )
 
 type GetUserResponse struct {
+	UserID                *uuid.UUID `json:"user_id,omitempty"`
 	TotalRemainingCredits int        `json:"total_remaining_credits"`
 	HasNonfreeCredits     bool       `json:"has_nonfree_credits"`
 	ProductID             string     `json:"product_id,omitempty"`

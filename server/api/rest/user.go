@@ -247,6 +247,7 @@ func (c *RestAPI) HandleGetUser(w http.ResponseWriter, r *http.Request) {
 
 	render.Status(r, http.StatusOK)
 	render.JSON(w, r, responses.GetUserResponse{
+		UserID:                userID,
 		TotalRemainingCredits: totalRemaining,
 		HasNonfreeCredits:     paidCreditCount > 0,
 		ProductID:             highestProduct,
