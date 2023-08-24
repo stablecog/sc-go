@@ -50,6 +50,26 @@ func (c *DiscordInteractionWrapper) NewImageCommand() *DiscordInteraction {
 		})
 	}
 
+	// Build image strenght choices
+	imageStrengths := []int{
+		10,
+		20,
+		30,
+		40,
+		50,
+		60,
+		70,
+		80,
+		90,
+	}
+	imageStrengthChoices := make([]*discordgo.ApplicationCommandOptionChoice, len(imageStrengths))
+	for i, strength := range imageStrengths {
+		imageStrengthChoices[i] = &discordgo.ApplicationCommandOptionChoice{
+			Name:  fmt.Sprintf("%d%%", strength),
+			Value: strength,
+		}
+	}
+
 	return &DiscordInteraction{
 		// Command spec
 		ApplicationCommand: &discordgo.ApplicationCommand{
@@ -99,8 +119,7 @@ func (c *DiscordInteractionWrapper) NewImageCommand() *DiscordInteraction {
 					Name:        "image-strength",
 					Description: "Control influence of the initial image, the bigger the value the more influence the image has.",
 					Required:    false,
-					MinValue:    utils.ToPtr(10.0),
-					MaxValue:    90.0,
+					Choices:     imageStrengthChoices,
 				},
 				{
 					Type:        discordgo.ApplicationCommandOptionInteger,
