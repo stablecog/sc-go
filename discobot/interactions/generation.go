@@ -117,7 +117,7 @@ func (c *DiscordInteractionWrapper) NewImageCommand() *DiscordInteraction {
 				{
 					Type:        discordgo.ApplicationCommandOptionInteger,
 					Name:        "image-strength",
-					Description: "Control influence of the initial image, the bigger the value the more influence the image has.",
+					Description: "The influence of the initial image. The bigger the value the more influence the image has.",
 					Required:    false,
 					Choices:     imageStrengthChoices,
 				},
