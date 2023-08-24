@@ -96,6 +96,14 @@ func (c *DiscordInteractionWrapper) NewImageCommand() *DiscordInteraction {
 				},
 				{
 					Type:        discordgo.ApplicationCommandOptionInteger,
+					Name:        "image-strength",
+					Description: "Control influence of the initial image, the bigger the value the more influence the image has.",
+					Required:    false,
+					MinValue:    utils.ToPtr(10.0),
+					MaxValue:    90.0,
+				},
+				{
+					Type:        discordgo.ApplicationCommandOptionInteger,
 					Name:        "seed",
 					Description: "The seed for the generation.",
 					Required:    false,
@@ -125,6 +133,7 @@ func (c *DiscordInteractionWrapper) NewImageCommand() *DiscordInteraction {
 				var attachmentId string
 				var initImage string
 				var seed *int
+				var promptStrength *float32
 
 				for _, option := range options {
 					switch option.Name {
@@ -146,6 +155,10 @@ func (c *DiscordInteractionWrapper) NewImageCommand() *DiscordInteraction {
 							return
 						}
 						attachmentId = id
+					case "image-strength":
+						// Prompt strength is (1 - initImageStrength/100) as float32
+						imageStrength := float32(option.IntValue()) / 100
+						promptStrength = utils.ToPtr(1 - imageStrength)
 					case "seed":
 						seed = utils.ToPtr[int](int(option.IntValue()))
 					}
@@ -186,6 +199,7 @@ func (c *DiscordInteractionWrapper) NewImageCommand() *DiscordInteraction {
 					NumOutputs:     utils.ToPtr[int32](int32(numOutputs)),
 					InitImageUrl:   initImage,
 					Seed:           seed,
+					PromptStrength: promptStrength,
 				}
 				if aspectRatio != nil {
 					width, height := aspectRatio.GetWidthHeightForModel(*modelId)
