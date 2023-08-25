@@ -212,6 +212,7 @@ func (c *RestAPI) HandleGetUser(w http.ResponseWriter, r *http.Request) {
 
 	// Figure out when free credits will be replenished
 	var moreCreditsAt *time.Time
+	var moreCreditsAtAmount *int
 	var fcredit *ent.Credit
 	var ctype *ent.CreditType
 	var freeCreditAmount *int
@@ -220,6 +221,7 @@ func (c *RestAPI) HandleGetUser(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			log.Error("Error getting next free credit replenishment time", "err", err, "user", userID.String())
 		}
+		moreCreditsAtAmount = utils.ToPtr(shared.FREE_CREDIT_AMOUNT_DAILY)
 
 		if fcredit != nil && ctype != nil {
 			if shared.FREE_CREDIT_AMOUNT_DAILY+fcredit.RemainingAmount > ctype.Amount {
@@ -229,6 +231,14 @@ func (c *RestAPI) HandleGetUser(w http.ResponseWriter, r *http.Request) {
 				am := shared.FREE_CREDIT_AMOUNT_DAILY
 				freeCreditAmount = &am
 			}
+		}
+	} else if !stripeHadError && renewsAt != nil {
+		moreCreditsAt = renewsAt
+		creditType, err := c.Repo.GetCreditTypeByStripeProductID(highestProduct)
+		if err != nil {
+			log.Warnf("Error getting credit type from product id '%s' %v", highestProduct, err)
+		} else {
+			moreCreditsAtAmount = utils.ToPtr(int(creditType.Amount))
 		}
 	}
 
@@ -258,6 +268,7 @@ func (c *RestAPI) HandleGetUser(w http.ResponseWriter, r *http.Request) {
 		StripeHadError:        stripeHadError,
 		Roles:                 roles,
 		MoreCreditsAt:         moreCreditsAt,
+		MoreCreditsAtAmount:   moreCreditsAtAmount,
 		WantsEmail:            user.WantsEmail,
 		Username:              user.Username,
 		CreatedAt:             user.CreatedAt,

@@ -15,6 +15,7 @@ type GetUserResponse struct {
 	CancelsAt             *time.Time `json:"cancels_at,omitempty"`
 	RenewsAt              *time.Time `json:"renews_at,omitempty"`
 	MoreCreditsAt         *time.Time `json:"more_credits_at,omitempty"`
+	MoreCreditsAtAmount   *int       `json:"more_credits_at_amount,omitempty"`
 	WantsEmail            *bool      `json:"wants_email,omitempty"`
 	Username              string     `json:"username,omitempty"`
 	CreatedAt             time.Time  `json:"created_at"`
