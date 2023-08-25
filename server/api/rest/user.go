@@ -213,6 +213,7 @@ func (c *RestAPI) HandleGetUser(w http.ResponseWriter, r *http.Request) {
 	// Figure out when free credits will be replenished
 	var moreCreditsAt *time.Time
 	var moreCreditsAtAmount *int
+	var renewsAtAmount *int
 	var fcredit *ent.Credit
 	var ctype *ent.CreditType
 	var freeCreditAmount *int
@@ -233,12 +234,11 @@ func (c *RestAPI) HandleGetUser(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 	} else if !stripeHadError && renewsAt != nil {
-		moreCreditsAt = renewsAt
 		creditType, err := c.Repo.GetCreditTypeByStripeProductID(highestProduct)
 		if err != nil {
 			log.Warnf("Error getting credit type from product id '%s' %v", highestProduct, err)
 		} else {
-			moreCreditsAtAmount = utils.ToPtr(int(creditType.Amount))
+			renewsAtAmount = utils.ToPtr(int(creditType.Amount))
 		}
 	}
 
@@ -264,6 +264,7 @@ func (c *RestAPI) HandleGetUser(w http.ResponseWriter, r *http.Request) {
 		PriceID:               highestPrice,
 		CancelsAt:             cancelsAt,
 		RenewsAt:              renewsAt,
+		RenewsAtAmount:        renewsAtAmount,
 		FreeCreditAmount:      freeCreditAmount,
 		StripeHadError:        stripeHadError,
 		Roles:                 roles,
