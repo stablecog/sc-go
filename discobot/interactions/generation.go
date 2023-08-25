@@ -111,13 +111,13 @@ func (c *DiscordInteractionWrapper) NewImageCommand() *DiscordInteraction {
 				{
 					Type:        discordgo.ApplicationCommandOptionAttachment,
 					Name:        "init-image",
-					Description: "Use an initial image.",
+					Description: "Use an initial image to base the generation on.",
 					Required:    false,
 				},
 				{
 					Type:        discordgo.ApplicationCommandOptionInteger,
 					Name:        "image-strength",
-					Description: "Control influence of the initial image, the bigger the value the more influence the image has.",
+					Description: "The influence of the initial image. The bigger the value the more influence the image has.",
 					Required:    false,
 					Choices:     imageStrengthChoices,
 				},
