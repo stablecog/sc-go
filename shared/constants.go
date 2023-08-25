@@ -103,7 +103,7 @@ const DEFAULT_UPSCALE_OUTPUT_QUALITY = 85
 
 // Free credit replenishments
 // How much to give per day
-const FREE_CREDIT_AMOUNT_DAILY = 8
+const FREE_CREDIT_AMOUNT_DAILY = 10
 
 // How often to replenish (related to updated_at on credits)
 // They get up to FREE_CREDIT_AMOUNT_DAILY in this time period
