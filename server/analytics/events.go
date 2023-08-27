@@ -439,3 +439,33 @@ func (a *AnalyticsService) FreeCreditsReplenished(userId uuid.UUID, email string
 		},
 	})
 }
+
+func (a *AnalyticsService) BannedPromptTried(
+	user *ent.User,
+	cogReq requests.BaseCogRequest,
+	translatedPrompt string,
+	similarToBannedPromptId string,
+	similarityScore float64,
+	source enttypes.SourceType,
+	ip string,
+) error {
+	properties := map[string]interface{}{
+		"SC - Original Prompt":             cogReq.Prompt,
+		"SC - Translated Prompt":           translatedPrompt,
+		"SC - Similar to Banned Prompt Id": similarToBannedPromptId,
+		"SC - Similarity Score":            similarityScore,
+		"SC - User Id":                     user.ID,
+		"SC - Source":                      source,
+		"$ip":                              ip,
+	}
+	if user.ActiveProductID != nil {
+		properties["SC - Stripe Product Id"] = user.ActiveProductID
+	}
+	setDeviceInfo(cogReq.DeviceInfo, properties)
+
+	return a.Dispatch(Event{
+		DistinctId: user.ID.String(),
+		EventName:  "Banned Prompt | Prompt Tried",
+		Properties: properties,
+	})
+}
