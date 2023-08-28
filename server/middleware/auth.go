@@ -13,6 +13,7 @@ import (
 	"github.com/stablecog/sc-go/server/responses"
 	"github.com/stablecog/sc-go/shared"
 	"github.com/stablecog/sc-go/utils"
+	"golang.org/x/exp/slices"
 )
 
 type AuthLevel int
@@ -25,7 +26,7 @@ const (
 )
 
 // Enforces authorization at specific level
-func (m *Middleware) AuthMiddleware(level AuthLevel) func(next http.Handler) http.Handler {
+func (m *Middleware) AuthMiddleware(levels ...AuthLevel) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			authHeader := strings.Split(r.Header.Get("Authorization"), "Bearer ")
@@ -46,7 +47,7 @@ func (m *Middleware) AuthMiddleware(level AuthLevel) func(next http.Handler) htt
 			ctx := r.Context()
 
 			// Separe flow for API tokens
-			if level == AuthLevelAPIToken {
+			if slices.Contains(levels, AuthLevelAPIToken) {
 				// Hash token
 				hashed := utils.Sha256(authHeader[1])
 				// Validate
@@ -66,6 +67,33 @@ func (m *Middleware) AuthMiddleware(level AuthLevel) func(next http.Handler) htt
 					responses.ErrInternalServerError(w, r, "An unknown error has occured")
 					return
 				}
+
+				if slices.Contains(levels, AuthLevelGalleryAdmin) || slices.Contains(levels, AuthLevelSuperAdmin) {
+					authorized := false
+					roles, err := m.Repo.GetRoles(user.ID)
+					if err != nil {
+						responses.ErrUnauthorized(w, r)
+						return
+					}
+					for _, role := range roles {
+						// Super admin always authorized
+						if role == "SUPER_ADMIN" {
+							authorized = true
+							ctx = context.WithValue(ctx, "user_role", "SUPER_ADMIN")
+							break
+						} else if role == "GALLERY_ADMIN" && slices.Contains(levels, AuthLevelGalleryAdmin) {
+							// Gallery admin only authorized if we're checking for gallery admin
+							authorized = true
+							ctx = context.WithValue(ctx, "user_role", "GALLERY_ADMIN")
+						}
+					}
+
+					if !authorized {
+						responses.ErrUnauthorized(w, r)
+						return
+					}
+				}
+
 				userId = user.ID.String()
 				email = user.Email
 				lastSignIn = user.LastSignInAt
@@ -98,7 +126,7 @@ func (m *Middleware) AuthMiddleware(level AuthLevel) func(next http.Handler) htt
 			authorized := true
 
 			// If level is more than any, check if they have the appropriate role
-			if level == AuthLevelGalleryAdmin || level == AuthLevelSuperAdmin {
+			if slices.Contains(levels, AuthLevelGalleryAdmin) || slices.Contains(levels, AuthLevelSuperAdmin) {
 				authorized = false
 				roles, err := m.Repo.GetRoles(userIDParsed)
 				if err != nil {
@@ -111,7 +139,7 @@ func (m *Middleware) AuthMiddleware(level AuthLevel) func(next http.Handler) htt
 						authorized = true
 						ctx = context.WithValue(ctx, "user_role", "SUPER_ADMIN")
 						break
-					} else if role == "GALLERY_ADMIN" && level == AuthLevelGalleryAdmin {
+					} else if role == "GALLERY_ADMIN" && slices.Contains(levels, AuthLevelGalleryAdmin) {
 						// Gallery admin only authorized if we're checking for gallery admin
 						authorized = true
 						ctx = context.WithValue(ctx, "user_role", "GALLERY_ADMIN")

@@ -819,7 +819,7 @@ func main() {
 				r.Post("/ban", hc.HandleBanDomains)
 			})
 			r.Route("/clip", func(r chi.Router) {
-				r.Use(mw.AuthMiddleware(middleware.AuthLevelSuperAdmin))
+				r.Use(mw.AuthMiddleware(middleware.AuthLevelSuperAdmin, middleware.AuthLevelAPIToken))
 				r.Use(middleware.Logger)
 				r.Post("/text", hc.HandleEmbedText)
 			})
