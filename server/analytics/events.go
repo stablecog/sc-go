@@ -453,14 +453,6 @@ func (a *AnalyticsService) GenerationFailedNSFWPrompt(
 ) error {
 	properties := map[string]interface{}{
 		"SC - User Id":           user.ID,
-		"SC - Guidance Scale":    *cogReq.GuidanceScale,
-		"SC - Height":            *cogReq.Height,
-		"SC - Width":             *cogReq.Width,
-		"SC - Inference Steps":   *cogReq.NumInferenceSteps,
-		"SC - Model Id":          cogReq.ModelId.String(),
-		"SC - Scheduler Id":      cogReq.SchedulerId.String(),
-		"SC - Submit to Gallery": cogReq.SubmitToGallery,
-		"SC - Num Outputs":       cogReq.NumOutputs,
 		"SC - FailureSource":     failureSource,
 		"SC - Source":            source,
 		"SC - Original Prompt":   cogReq.Prompt,
