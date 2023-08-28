@@ -251,6 +251,7 @@ func (c *DiscordInteractionWrapper) NewImageCommand() *DiscordInteraction {
 					nil,
 					u,
 					nil,
+					c.Clip,
 					req,
 				)
 				if wErr != nil {

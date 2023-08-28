@@ -19,6 +19,7 @@ import (
 	"github.com/stablecog/sc-go/database/enttypes"
 	"github.com/stablecog/sc-go/database/repository"
 	"github.com/stablecog/sc-go/log"
+	"github.com/stablecog/sc-go/server/clip"
 	"github.com/stablecog/sc-go/server/requests"
 	"github.com/stablecog/sc-go/server/responses"
 	"github.com/stablecog/sc-go/server/stripe"
@@ -31,6 +32,7 @@ func (w *SCWorker) CreateGeneration(source enttypes.SourceType,
 	r *http.Request,
 	user *ent.User,
 	apiTokenId *uuid.UUID,
+	clipSvc *clip.ClipService,
 	generateReq requests.CreateGenerationRequest) (*responses.ApiSucceededResponse, *responses.ImageGenerationSettingsResponse, *WorkerError) {
 	free := user.ActiveProductID == nil
 	if free {
@@ -297,6 +299,20 @@ func (w *SCWorker) CreateGeneration(source enttypes.SourceType,
 
 		if isNSFW {
 			return fmt.Errorf("nsfw: %s", reason)
+		}
+
+		// Check banned embedding
+		embedding, err := clipSvc.GetEmbeddingFromText(translatedPrompt, 3, false)
+		if err != nil {
+			return err
+		}
+		bannedMatches, err := w.Repo.IsBannedPromptEmbedding(embedding, DB)
+		if err != nil {
+			log.Error("Error checking banned embedding", "err", err)
+		}
+		if len(bannedMatches) > 0 {
+			w.Track.BannedPromptTried(user, cogReqBody.Input, translatedPrompt, bannedMatches[0].Prompt, float64(bannedMatches[0].Similarity), source, ipAddress)
+			return fmt.Errorf("nsfw: %s", "sexual_minors")
 		}
 
 		remainingCredits, err = w.Repo.GetNonExpiredCreditTotalForUser(user.ID, DB)

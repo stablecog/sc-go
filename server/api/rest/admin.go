@@ -265,7 +265,7 @@ func (c *RestAPI) HandleQueryGenerationsForAdmin(w http.ResponseWriter, r *http.
 	// For search, use qdrant semantic search
 	if search != "" {
 		// get embeddings from clip service
-		e, err := c.Clip.GetEmbeddingFromText(search, 2)
+		e, err := c.Clip.GetEmbeddingFromText(search, 2, true)
 		if err != nil {
 			log.Error("Error getting embedding from clip service", "err", err)
 			responses.ErrInternalServerError(w, r, "An unknown error has occurred")

@@ -6,6 +6,7 @@ import (
 	"github.com/stablecog/sc-go/database/repository"
 	"github.com/stablecog/sc-go/discobot/domain"
 	"github.com/stablecog/sc-go/server/analytics"
+	"github.com/stablecog/sc-go/server/clip"
 	"github.com/stablecog/sc-go/server/requests"
 	"github.com/stablecog/sc-go/server/scworker"
 	"github.com/stablecog/sc-go/shared"
@@ -36,6 +37,7 @@ func NewDiscordInteractionWrapper(
 			SMap:           sMap,
 			SafetyChecker:  safetyChecker,
 		},
+		Clip: clip.NewClipService(redis, safetyChecker),
 		Repo: repo,
 	}
 	// Register commands
@@ -65,6 +67,7 @@ type DiscordInteractionWrapper struct {
 	Components          []*DiscordInteraction
 	SCWorker            *scworker.SCWorker
 	Repo                *repository.Repository
+	Clip                *clip.ClipService
 }
 
 // Specification for specific interactions

@@ -13,7 +13,6 @@ import (
 
 	openai "github.com/sashabaranov/go-openai"
 	"github.com/stablecog/sc-go/log"
-	"github.com/stablecog/sc-go/shared"
 )
 
 const TARGET_FLORES_CODE = "eng_Latn"
@@ -198,33 +197,6 @@ func (t *TranslatorSafetyChecker) TranslatePrompt(prompt string, negativePrompt 
 func (t *TranslatorSafetyChecker) IsPromptNSFW(input string) (isNsfw bool, nsfwReason string, err error) {
 	if t.Disable {
 		return false, "", nil
-	}
-	// Word list check
-	modifiedInput := removeChars(input, `.,?!:;'()[]{}"`)
-	for _, pair := range shared.GetCache().BannedWords() {
-		if pair.SplitMatch {
-			matchingCount := 0
-			promptWords := strings.Split(strings.ToLower(modifiedInput), " ")
-			for _, word := range pair.Words {
-				if includes(word, promptWords) {
-					matchingCount++
-				}
-			}
-			if matchingCount == len(pair.Words) {
-				return true, pair.Reason, nil
-			}
-		} else {
-			containsAll := true
-			for _, word := range pair.Words {
-				if !strings.Contains(strings.ToLower(modifiedInput), word) {
-					containsAll = false
-					break
-				}
-			}
-			if containsAll {
-				return true, pair.Reason, nil
-			}
-		}
 	}
 	// API check
 	res, err := t.OpenaiClient.Moderations(t.Ctx, openai.ModerationRequest{

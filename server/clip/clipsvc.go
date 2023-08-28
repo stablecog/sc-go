@@ -57,7 +57,7 @@ func NewClipService(redis *database.RedisWrapper, safetyChecker *utils.Translato
 }
 
 // GetEmbeddingFromText, retry up to retries times
-func (c *ClipService) GetEmbeddingFromText(text string, retries int) (embedding []float32, err error) {
+func (c *ClipService) GetEmbeddingFromText(text string, retries int, translate bool) (embedding []float32, err error) {
 	// Check cache first
 	e, err := c.redis.GetEmbeddings(c.redis.Ctx, utils.Sha256(text))
 	if err == nil && len(e) > 0 {
@@ -65,10 +65,17 @@ func (c *ClipService) GetEmbeddingFromText(text string, retries int) (embedding 
 	}
 
 	// Translate text
-	text_translated, _, err := c.SafetyChecker.TranslatePrompt(text, "")
+	textTranslated := text
+	if translate {
+		textTranslated, _, err = c.SafetyChecker.TranslatePrompt(text, "")
+		if err != nil {
+			log.Errorf("Error translating text %v", err)
+			return nil, err
+		}
+	}
 
 	req := []clipApiRequest{{
-		Text: text_translated,
+		Text: textTranslated,
 	}}
 
 	// Http POST to endpoint with secret
@@ -93,7 +100,7 @@ func (c *ClipService) GetEmbeddingFromText(text string, retries int) (embedding 
 		c.mu.Lock()
 		c.activeUrl = (c.activeUrl + 1) % len(c.urls)
 		c.mu.Unlock()
-		return c.GetEmbeddingFromText(text, retries-1)
+		return c.GetEmbeddingFromText(text, retries-1, translate)
 	}
 	defer resp.Body.Close()
 

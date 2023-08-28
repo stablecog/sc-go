@@ -123,7 +123,7 @@ func (c *RestAPI) HandleSemanticSearchGallery(w http.ResponseWriter, r *http.Req
 			}
 			embeddings = getPointRes.Result.Vector.Image
 		} else {
-			embeddings, err = c.Clip.GetEmbeddingFromText(search, 3)
+			embeddings, err = c.Clip.GetEmbeddingFromText(search, 3, true)
 			if err != nil {
 				log.Error("Error getting embeddings from clip service", "err", err)
 				responses.ErrInternalServerError(w, r, "An unknown error occurred")

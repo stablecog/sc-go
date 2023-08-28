@@ -47,6 +47,7 @@ func (c *RestAPI) HandleCreateGeneration(w http.ResponseWriter, r *http.Request)
 		r,
 		user,
 		nil,
+		c.Clip,
 		generateReq,
 	)
 
@@ -94,6 +95,7 @@ func (c *RestAPI) HandleCreateGenerationToken(w http.ResponseWriter, r *http.Req
 		r,
 		user,
 		&apiToken.ID,
+		c.Clip,
 		generateReq,
 	)
 
