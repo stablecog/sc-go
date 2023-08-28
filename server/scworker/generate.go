@@ -290,55 +290,84 @@ func (w *SCWorker) CreateGeneration(source enttypes.SourceType,
 			return err
 		}
 
-		// Check NSFW
-		isNSFW, reason, err := w.SafetyChecker.IsPromptNSFW(translatedPrompt)
-		if err != nil {
-			log.Error("Error checking prompt NSFW", "err", err)
-			return err
-		}
+		nsfwModerationAPIResultChan := make(chan bool)
+		bannedPromptResultChan := make(chan bool)
+		errChan := make(chan error)
 
-		if isNSFW {
-			w.Track.GenerationFailedNSFWPrompt(
-				user,
-				requests.BaseCogRequest{
-					Prompt: generateReq.Prompt,
-				},
-				"Moderation API",
-				source,
-				translatedPrompt,
-				"",
-				0.0,
-				reason,
-				ipAddress,
-			)
-			return fmt.Errorf("nsfw: %s", reason)
-		}
-
-		// Check banned embedding
-		if clipSvc != nil {
-			embedding, err := clipSvc.GetEmbeddingFromText(translatedPrompt, 3, false)
+		// Goroutine to check NSFW
+		go func() {
+			isNSFW, reason, err := w.SafetyChecker.IsPromptNSFW(translatedPrompt)
 			if err != nil {
-				return err
+				log.Error("Error checking prompt NSFW", "err", err)
+				errChan <- err
+				return
 			}
-			bannedMatches, err := w.Repo.IsBannedPromptEmbedding(embedding, DB)
-			if err != nil {
-				log.Error("Error checking banned embedding", "err", err)
-			}
-			if len(bannedMatches) > 0 {
+			if isNSFW {
 				w.Track.GenerationFailedNSFWPrompt(
 					user,
 					requests.BaseCogRequest{
 						Prompt: generateReq.Prompt,
 					},
-					"Banned Prompt Embedding",
+					"Moderation API",
 					source,
 					translatedPrompt,
-					bannedMatches[0].ID.String(),
-					float64(bannedMatches[0].Similarity),
 					"",
+					0.0,
+					reason,
 					ipAddress,
 				)
-				return fmt.Errorf("nsfw: %s", "sexual_minors")
+				errChan <- fmt.Errorf("nsfw: %s", reason)
+				return
+			}
+			nsfwModerationAPIResultChan <- true
+		}()
+
+		// Goroutine to check banned embedding
+		if clipSvc != nil {
+			go func() {
+				embedding, err := clipSvc.GetEmbeddingFromText(translatedPrompt, 3, false)
+				if err != nil {
+					log.Error("Error fetching embedding", "err", err)
+					errChan <- err
+					return
+				}
+				bannedMatches, err := w.Repo.IsBannedPromptEmbedding(embedding, DB)
+				if err != nil {
+					log.Error("Error checking banned embedding", "err", err)
+					errChan <- err
+					return
+				}
+				if len(bannedMatches) > 0 {
+					w.Track.GenerationFailedNSFWPrompt(
+						user,
+						requests.BaseCogRequest{
+							Prompt: generateReq.Prompt,
+						},
+						"Banned Prompt Embedding",
+						source,
+						translatedPrompt,
+						bannedMatches[0].ID.String(),
+						float64(bannedMatches[0].Similarity),
+						"",
+						ipAddress,
+					)
+					errChan <- fmt.Errorf("nsfw: %s", "sexual_minors")
+					return
+				}
+				bannedPromptResultChan <- true
+			}()
+		}
+
+		// Wait for either of the two to complete successfully or fail
+		nsfwModerationAPIDone, bannedPromptDone := false, clipSvc == nil // If clipSvc is nil, mark bannedPromptDone as true
+		for !(nsfwModerationAPIDone && bannedPromptDone) {
+			select {
+			case <-nsfwModerationAPIResultChan:
+				nsfwModerationAPIDone = true
+			case <-bannedPromptResultChan:
+				bannedPromptDone = true
+			case err := <-errChan:
+				return err
 			}
 		}
 
