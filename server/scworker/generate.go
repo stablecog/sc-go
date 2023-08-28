@@ -312,7 +312,9 @@ func (w *SCWorker) CreateGeneration(source enttypes.SourceType,
 				log.Error("Error checking banned embedding", "err", err)
 			}
 			if len(bannedMatches) > 0 {
-				w.Track.BannedPromptTried(user, cogReqBody.Input, translatedPrompt, bannedMatches[0].Prompt, float64(bannedMatches[0].Similarity), source, ipAddress)
+				w.Track.BannedPromptTried(user, requests.BaseCogRequest{
+					Prompt: generateReq.Prompt,
+				}, translatedPrompt, bannedMatches[0].ID.String(), float64(bannedMatches[0].Similarity), source, ipAddress)
 				return fmt.Errorf("nsfw: %s", "sexual_minors")
 			}
 		}
