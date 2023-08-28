@@ -26,12 +26,13 @@ type badUrl struct {
 type ClipService struct {
 	redis *database.RedisWrapper
 	// Index for round robin
-	activeUrl int
-	urls      []string
-	r         http.RoundTripper
-	secret    string
-	client    *http.Client
-	mu        sync.RWMutex
+	activeUrl     int
+	urls          []string
+	r             http.RoundTripper
+	secret        string
+	client        *http.Client
+	mu            sync.RWMutex
+	SafetyChecker *utils.TranslatorSafetyChecker
 }
 
 func (c *ClipService) RoundTrip(r *http.Request) (*http.Response, error) {
@@ -40,12 +41,13 @@ func (c *ClipService) RoundTrip(r *http.Request) (*http.Response, error) {
 	return c.r.RoundTrip(r)
 }
 
-func NewClipService(redis *database.RedisWrapper) *ClipService {
+func NewClipService(redis *database.RedisWrapper, safetyChecker *utils.TranslatorSafetyChecker) *ClipService {
 	svc := &ClipService{
-		urls:   strings.Split(os.Getenv("CLIPAPI_URLS"), ","),
-		secret: os.Getenv("CLIPAPI_SECRET"),
-		r:      http.DefaultTransport,
-		redis:  redis,
+		urls:          strings.Split(os.Getenv("CLIPAPI_URLS"), ","),
+		secret:        os.Getenv("CLIPAPI_SECRET"),
+		r:             http.DefaultTransport,
+		redis:         redis,
+		SafetyChecker: safetyChecker,
 	}
 	svc.client = &http.Client{
 		Timeout:   10 * time.Second,
@@ -62,8 +64,11 @@ func (c *ClipService) GetEmbeddingFromText(text string, retries int) (embedding 
 		return e, nil
 	}
 
+	// Translate text
+	text_translated, _, err := c.SafetyChecker.TranslatePrompt(text, "")
+
 	req := []clipApiRequest{{
-		Text: text,
+		Text: text_translated,
 	}}
 
 	// Http POST to endpoint with secret

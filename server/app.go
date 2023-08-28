@@ -543,6 +543,7 @@ func main() {
 
 	// Create controller
 	apiTokenSmap := shared.NewSyncMap[chan requests.CogWebhookMessage]()
+	safetyChecker := utils.NewTranslatorSafetyChecker(ctx, os.Getenv("OPENAI_API_KEY"), false)
 	hc := rest.RestAPI{
 		Repo:           repo,
 		Redis:          redis,
@@ -552,16 +553,16 @@ func main() {
 		QueueThrottler: qThrottler,
 		S3:             s3Client,
 		Qdrant:         qdrantClient,
-		Clip:           clip.NewClipService(redis),
+		Clip:           clip.NewClipService(redis, safetyChecker),
 		SMap:           apiTokenSmap,
-		SafetyChecker:  utils.NewTranslatorSafetyChecker(ctx, os.Getenv("OPENAI_API_KEY"), false),
+		SafetyChecker:  safetyChecker,
 		SCWorker: &scworker.SCWorker{
 			Repo:           repo,
 			Redis:          redis,
 			QueueThrottler: qThrottler,
 			Track:          analyticsService,
 			SMap:           apiTokenSmap,
-			SafetyChecker:  utils.NewTranslatorSafetyChecker(ctx, os.Getenv("OPENAI_API_KEY"), false),
+			SafetyChecker:  safetyChecker,
 			S3:             s3Client,
 		},
 	}
