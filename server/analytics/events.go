@@ -453,7 +453,7 @@ func (a *AnalyticsService) GenerationFailedNSFWPrompt(
 ) error {
 	properties := map[string]interface{}{
 		"SC - User Id":           user.ID,
-		"SC - FailureSource":     failureSource,
+		"SC - Failure Source":    failureSource,
 		"SC - Source":            source,
 		"SC - Original Prompt":   cogReq.Prompt,
 		"SC - Translated Prompt": translatedPrompt,
