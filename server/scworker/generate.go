@@ -302,17 +302,19 @@ func (w *SCWorker) CreateGeneration(source enttypes.SourceType,
 		}
 
 		// Check banned embedding
-		embedding, err := clipSvc.GetEmbeddingFromText(translatedPrompt, 3, false)
-		if err != nil {
-			return err
-		}
-		bannedMatches, err := w.Repo.IsBannedPromptEmbedding(embedding, DB)
-		if err != nil {
-			log.Error("Error checking banned embedding", "err", err)
-		}
-		if len(bannedMatches) > 0 {
-			w.Track.BannedPromptTried(user, cogReqBody.Input, translatedPrompt, bannedMatches[0].Prompt, float64(bannedMatches[0].Similarity), source, ipAddress)
-			return fmt.Errorf("nsfw: %s", "sexual_minors")
+		if clipSvc != nil {
+			embedding, err := clipSvc.GetEmbeddingFromText(translatedPrompt, 3, false)
+			if err != nil {
+				return err
+			}
+			bannedMatches, err := w.Repo.IsBannedPromptEmbedding(embedding, DB)
+			if err != nil {
+				log.Error("Error checking banned embedding", "err", err)
+			}
+			if len(bannedMatches) > 0 {
+				w.Track.BannedPromptTried(user, cogReqBody.Input, translatedPrompt, bannedMatches[0].Prompt, float64(bannedMatches[0].Similarity), source, ipAddress)
+				return fmt.Errorf("nsfw: %s", "sexual_minors")
+			}
 		}
 
 		remainingCredits, err = w.Repo.GetNonExpiredCreditTotalForUser(user.ID, DB)
