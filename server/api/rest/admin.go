@@ -519,7 +519,7 @@ type EmbedTextRequest struct {
 }
 
 type EmbedTextResponse struct {
-	Embeddings []float32 `json:"embeddings"`
+	Embedding []float32 `json:"embedding"`
 }
 
 func (c *RestAPI) HandleEmbedText(w http.ResponseWriter, r *http.Request) {
@@ -545,6 +545,6 @@ func (c *RestAPI) HandleEmbedText(w http.ResponseWriter, r *http.Request) {
 
 	render.Status(r, http.StatusOK)
 	render.JSON(w, r, EmbedTextResponse{
-		Embeddings: embeddings,
+		Embedding: embeddings,
 	})
 }
