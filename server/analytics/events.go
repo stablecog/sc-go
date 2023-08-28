@@ -440,23 +440,37 @@ func (a *AnalyticsService) FreeCreditsReplenished(userId uuid.UUID, email string
 	})
 }
 
-func (a *AnalyticsService) BannedPromptTried(
+func (a *AnalyticsService) GenerationFailedNSFWPrompt(
 	user *ent.User,
 	cogReq requests.BaseCogRequest,
+	failureSource string,
+	source enttypes.SourceType,
 	translatedPrompt string,
 	similarToBannedPromptId string,
 	similarityScore float64,
-	source enttypes.SourceType,
 	ip string,
 ) error {
 	properties := map[string]interface{}{
-		"SC - Original Prompt":             cogReq.Prompt,
-		"SC - Translated Prompt":           translatedPrompt,
-		"SC - Similar to Banned Prompt Id": similarToBannedPromptId,
-		"SC - Similarity Score":            similarityScore,
-		"SC - User Id":                     user.ID,
-		"SC - Source":                      source,
-		"$ip":                              ip,
+		"SC - User Id":           user.ID,
+		"SC - Guidance Scale":    *cogReq.GuidanceScale,
+		"SC - Height":            *cogReq.Height,
+		"SC - Width":             *cogReq.Width,
+		"SC - Inference Steps":   *cogReq.NumInferenceSteps,
+		"SC - Model Id":          cogReq.ModelId.String(),
+		"SC - Scheduler Id":      cogReq.SchedulerId.String(),
+		"SC - Submit to Gallery": cogReq.SubmitToGallery,
+		"SC - Num Outputs":       cogReq.NumOutputs,
+		"SC - FailureSource":     failureSource,
+		"SC - Source":            source,
+		"SC - Original Prompt":   cogReq.Prompt,
+		"SC - Translated Prompt": translatedPrompt,
+		"$ip":                    ip,
+	}
+	if similarToBannedPromptId != "" {
+		properties["SC - Similar to Banned Prompt Id"] = similarToBannedPromptId
+	}
+	if similarityScore > 0 {
+		properties["SC - Similarity Score"] = similarityScore
 	}
 	if user.ActiveProductID != nil {
 		properties["SC - Stripe Product Id"] = user.ActiveProductID
@@ -465,7 +479,7 @@ func (a *AnalyticsService) BannedPromptTried(
 
 	return a.Dispatch(Event{
 		DistinctId: user.ID.String(),
-		EventName:  "Banned Prompt | Prompt Tried",
+		EventName:  "Generation | Failed (NSFW Prompt)",
 		Properties: properties,
 	})
 }

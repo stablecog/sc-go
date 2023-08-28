@@ -298,6 +298,18 @@ func (w *SCWorker) CreateGeneration(source enttypes.SourceType,
 		}
 
 		if isNSFW {
+			w.Track.GenerationFailedNSFWPrompt(
+				user,
+				requests.BaseCogRequest{
+					Prompt: generateReq.Prompt,
+				},
+				"Moderation API",
+				source,
+				translatedPrompt,
+				"",
+				0,
+				ipAddress,
+			)
 			return fmt.Errorf("nsfw: %s", reason)
 		}
 
@@ -312,9 +324,18 @@ func (w *SCWorker) CreateGeneration(source enttypes.SourceType,
 				log.Error("Error checking banned embedding", "err", err)
 			}
 			if len(bannedMatches) > 0 {
-				w.Track.BannedPromptTried(user, requests.BaseCogRequest{
-					Prompt: generateReq.Prompt,
-				}, translatedPrompt, bannedMatches[0].ID.String(), float64(bannedMatches[0].Similarity), source, ipAddress)
+				w.Track.GenerationFailedNSFWPrompt(
+					user,
+					requests.BaseCogRequest{
+						Prompt: generateReq.Prompt,
+					},
+					"Banned Prompt Embedding",
+					source,
+					translatedPrompt,
+					bannedMatches[0].ID.String(),
+					float64(bannedMatches[0].Similarity),
+					ipAddress,
+				)
 				return fmt.Errorf("nsfw: %s", "sexual_minors")
 			}
 		}
