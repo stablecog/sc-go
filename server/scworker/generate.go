@@ -308,6 +308,7 @@ func (w *SCWorker) CreateGeneration(source enttypes.SourceType,
 				translatedPrompt,
 				"",
 				0,
+				reason,
 				ipAddress,
 			)
 			return fmt.Errorf("nsfw: %s", reason)
@@ -334,6 +335,7 @@ func (w *SCWorker) CreateGeneration(source enttypes.SourceType,
 					translatedPrompt,
 					bannedMatches[0].ID.String(),
 					float64(bannedMatches[0].Similarity),
+					"",
 					ipAddress,
 				)
 				return fmt.Errorf("nsfw: %s", "sexual_minors")
