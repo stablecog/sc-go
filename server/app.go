@@ -818,6 +818,11 @@ func main() {
 				r.Get("/disposable", hc.HandleGetDisposableDomains)
 				r.Post("/ban", hc.HandleBanDomains)
 			})
+			r.Route("/clip", func(r chi.Router) {
+				r.Use(mw.AuthMiddleware(middleware.AuthLevelSuperAdmin))
+				r.Use(middleware.Logger)
+				r.Post("/text", hc.HandleEmbedText)
+			})
 		})
 
 		// For API tokens

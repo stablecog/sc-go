@@ -511,3 +511,40 @@ func (c *RestAPI) HandleAddCreditsToUser(w http.ResponseWriter, r *http.Request)
 		"added": true,
 	})
 }
+
+// Embed text
+type EmbedTextRequest struct {
+	Text      string `json:"text"`
+	Translate bool   `json:"translate"`
+}
+
+type EmbedTextResponse struct {
+	Embeddings []float32 `json:"embeddings"`
+}
+
+func (c *RestAPI) HandleEmbedText(w http.ResponseWriter, r *http.Request) {
+	if user, email := c.GetUserIDAndEmailIfAuthenticated(w, r); user == nil || email == "" {
+		return
+	}
+
+	// Parse request body
+	reqBody, _ := io.ReadAll(r.Body)
+	var embedReq EmbedTextRequest
+	err := json.Unmarshal(reqBody, &embedReq)
+	if err != nil {
+		responses.ErrUnableToParseJson(w, r)
+		return
+	}
+
+	embeddings, err := c.Clip.GetEmbeddingFromText(embedReq.Text, 2, embedReq.Translate)
+	if err != nil {
+		log.Errorf("Error getting embeddings %v", err)
+		responses.ErrInternalServerError(w, r, "An unknown error has occured")
+		return
+	}
+
+	render.Status(r, http.StatusOK)
+	render.JSON(w, r, EmbedTextResponse{
+		Embeddings: embeddings,
+	})
+}
