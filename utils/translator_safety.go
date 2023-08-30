@@ -212,10 +212,12 @@ func (t *TranslatorSafetyChecker) IsPromptNSFW(input string) (isNsfw bool, nsfwR
 		return
 	}
 
-	isNsfw = res.Results[0].Categories.Sexual || res.Results[0].Categories.SexualMinors || res.Results[0].CategoryScores.Sexual > 0.3 || res.Results[0].CategoryScores.SexualMinors > 0.25
+	isMinors := res.Results[0].Categories.SexualMinors || res.Results[0].CategoryScores.SexualMinors > 0.25
+	isSexual := res.Results[0].Categories.Sexual || res.Results[0].CategoryScores.Sexual > 0.3
+	isNsfw = isMinors || isSexual
 	if isNsfw {
 		// Populate reason
-		if res.Results[0].Categories.SexualMinors {
+		if isMinors {
 			nsfwReason = "sexual_minors"
 			score = res.Results[0].CategoryScores.SexualMinors
 		} else {
