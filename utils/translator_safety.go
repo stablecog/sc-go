@@ -194,9 +194,9 @@ func (t *TranslatorSafetyChecker) TranslatePrompt(prompt string, negativePrompt 
 }
 
 // Safety check
-func (t *TranslatorSafetyChecker) IsPromptNSFW(input string) (isNsfw bool, nsfwReason string, err error) {
+func (t *TranslatorSafetyChecker) IsPromptNSFW(input string) (isNsfw bool, nsfwReason string, score float32, err error) {
 	if t.Disable {
-		return false, "", nil
+		return false, "", 0, nil
 	}
 	// API check
 	res, err := t.OpenaiClient.Moderations(t.Ctx, openai.ModerationRequest{
@@ -215,16 +215,12 @@ func (t *TranslatorSafetyChecker) IsPromptNSFW(input string) (isNsfw bool, nsfwR
 	isNsfw = res.Results[0].Categories.Sexual || res.Results[0].Categories.SexualMinors || res.Results[0].CategoryScores.Sexual > 0.3 || res.Results[0].CategoryScores.SexualMinors > 0.25
 	if isNsfw {
 		// Populate reason
-		if res.Results[0].Categories.Sexual {
-			if nsfwReason != "" {
-				nsfwReason += ","
-			}
-			nsfwReason = "sexual"
-		} else if res.Results[0].Categories.SexualMinors {
-			if nsfwReason != "" {
-				nsfwReason += ","
-			}
+		if res.Results[0].Categories.SexualMinors {
 			nsfwReason = "sexual_minors"
+			score = res.Results[0].CategoryScores.SexualMinors
+		} else {
+			nsfwReason = "sexual"
+			score = res.Results[0].CategoryScores.Sexual
 		}
 	}
 	return

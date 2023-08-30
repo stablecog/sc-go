@@ -296,7 +296,7 @@ func (w *SCWorker) CreateGeneration(source enttypes.SourceType,
 
 		// Goroutine to check NSFW
 		go func() {
-			isNSFW, reason, err := w.SafetyChecker.IsPromptNSFW(translatedPrompt)
+			isNSFW, reason, score, err := w.SafetyChecker.IsPromptNSFW(translatedPrompt)
 			if err != nil {
 				log.Error("Error checking prompt NSFW", "err", err)
 				errChan <- err
@@ -314,6 +314,7 @@ func (w *SCWorker) CreateGeneration(source enttypes.SourceType,
 					"",
 					0.0,
 					reason,
+					score,
 					ipAddress,
 				)
 				errChan <- fmt.Errorf("nsfw: %s", reason)
@@ -349,6 +350,7 @@ func (w *SCWorker) CreateGeneration(source enttypes.SourceType,
 						bannedMatches[0].ID.String(),
 						float64(bannedMatches[0].Similarity),
 						"",
+						0,
 						ipAddress,
 					)
 					errChan <- fmt.Errorf("nsfw: %s", "sexual_minors")

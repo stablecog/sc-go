@@ -449,6 +449,7 @@ func (a *AnalyticsService) GenerationFailedNSFWPrompt(
 	similarToBannedPromptId string,
 	similarityScore float64,
 	moderationAPIReason string,
+	moderationAPIScore float32,
 	ip string,
 ) error {
 	properties := map[string]interface{}{
@@ -467,6 +468,9 @@ func (a *AnalyticsService) GenerationFailedNSFWPrompt(
 	}
 	if moderationAPIReason != "" {
 		properties["SC - Moderation API Reason"] = moderationAPIReason
+	}
+	if moderationAPIScore > 0 {
+		properties["SC - Moderation API Score"] = moderationAPIScore
 	}
 	if user.ActiveProductID != nil {
 		properties["SC - Stripe Product Id"] = user.ActiveProductID
