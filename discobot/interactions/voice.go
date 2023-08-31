@@ -52,7 +52,7 @@ func (c *DiscordInteractionWrapper) NewVoiceoverCommand() *DiscordInteraction {
 	return &DiscordInteraction{
 		// Command spec
 		ApplicationCommand: &discordgo.ApplicationCommand{
-			Name:        "voice",
+			Name:        "speak",
 			Description: "Create a voiceover with Stablecog.",
 			Options: []*discordgo.ApplicationCommandOption{
 				{

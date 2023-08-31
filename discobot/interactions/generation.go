@@ -73,7 +73,7 @@ func (c *DiscordInteractionWrapper) NewImageCommand() *DiscordInteraction {
 	return &DiscordInteraction{
 		// Command spec
 		ApplicationCommand: &discordgo.ApplicationCommand{
-			Name:        "image",
+			Name:        "imagine",
 			Description: "Create an image with Stablecog.",
 			Options: []*discordgo.ApplicationCommandOption{
 				{
