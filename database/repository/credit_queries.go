@@ -12,6 +12,17 @@ import (
 	"github.com/stablecog/sc-go/shared"
 )
 
+func (r *Repository) GetTippableSumForUser(userID uuid.UUID) (int, error) {
+	return r.DB.Credit.Query().
+		Where(
+			credit.UserID(userID), credit.ExpiresAtGT(time.Now()), credit.CreditTypeIDEQ(uuid.MustParse(TIPPABLE_CREDIT_TYPE_ID)),
+		).
+		Aggregate(
+			ent.Sum(credit.FieldRemainingAmount),
+		).
+		Int(r.Ctx)
+}
+
 // Get credits for user that are not expired
 func (r *Repository) GetCreditsForUser(userID uuid.UUID) ([]*UserCreditsQueryResult, error) {
 	var res []*UserCreditsQueryResult

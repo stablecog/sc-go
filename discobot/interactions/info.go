@@ -39,6 +39,14 @@ func (c *DiscordInteractionWrapper) NewInfoCommand() *DiscordInteraction {
 					return
 				}
 
+				// Get tippable credits
+				tippableSum, err := c.Repo.GetTippableSumForUser(u.ID)
+				if err != nil {
+					log.Errorf("Error getting tippable sum for user %v", err)
+					responses.ErrorResponseInitial(s, i, responses.PRIVATE)
+					return
+				}
+
 				var creditsGT0 []*repository.UserCreditsQueryResult
 				totalCredits := 0
 				for _, credit := range credits {
@@ -105,8 +113,10 @@ func (c *DiscordInteractionWrapper) NewInfoCommand() *DiscordInteraction {
 					EmbedContent: prettyPrinter.Sprintf(
 						"*Member Since %s*\n\n"+
 							"**Total Credits:** %d\n\n%s",
+						"**Credits Available to Tip:** %d\n\n%s",
 						u.CreatedAt.Format("January 2, 2006"),
 						totalCredits,
+						tippableSum,
 						creditDetailString,
 					),
 					Privacy: responses.PRIVATE,
