@@ -166,6 +166,18 @@ func main() {
 		log.Fatalf("Cannot open the session: %v", err)
 	}
 
+	// Remove stale commands
+	existingCommands, err := s.ApplicationCommands(s.State.User.ID, "")
+	if err != nil {
+		log.Fatalf("Cannot get existing commands: %v", err)
+	}
+	for _, v := range existingCommands {
+		err := s.ApplicationCommandDelete(s.State.User.ID, "", v.ID)
+		if err != nil {
+			log.Fatalf("Cannot delete '%v' command: %v", v.Name, err)
+		}
+	}
+
 	log.Info("Adding commands...")
 	registeredCommands := make([]*discordgo.ApplicationCommand, len(cmdWrapper.Commands))
 	for i, v := range cmdWrapper.Commands {
