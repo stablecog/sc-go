@@ -111,11 +111,11 @@ func (c *DiscordInteractionWrapper) NewInfoCommand() *DiscordInteraction {
 				responses.InitialInteractionResponse(s, i, &responses.InteractionResponseOptions{
 					EmbedTitle: "ℹ️ Account Information",
 					EmbedContent: prettyPrinter.Sprintf(
-						"**Username:** **@%s**\n"+
-							"**Email:** **%s**\n"+
+						"**Username:** @%s\n"+
+							"**Email:** %s\n"+
 							"**Member since:** %s\n"+
 							"**Total Credits:** %d\n"+
-							"**Credits Available to Tip:** %d\n\n%s",
+							"**Total Tippable Credits:** %d\n\n%s",
 						u.Username,
 						u.Email,
 						u.CreatedAt.Format("January 2, 2006"),
