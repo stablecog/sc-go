@@ -26,6 +26,7 @@ import (
 	"github.com/stablecog/sc-go/server/responses"
 	"github.com/stablecog/sc-go/shared"
 	"github.com/stablecog/sc-go/utils"
+	"golang.org/x/exp/slices"
 )
 
 var Version = "dev"
@@ -171,7 +172,14 @@ func main() {
 	if err != nil {
 		log.Fatalf("Cannot get existing commands: %v", err)
 	}
+	wantedCommandNames := make([]string, len(cmdWrapper.Commands))
+	for i, v := range cmdWrapper.Commands {
+		wantedCommandNames[i] = v.ApplicationCommand.Name
+	}
 	for _, v := range existingCommands {
+		if slices.Contains(wantedCommandNames, v.Name) {
+			continue
+		}
 		err := s.ApplicationCommandDelete(s.State.User.ID, "", v.ID)
 		if err != nil {
 			log.Fatalf("Cannot delete '%v' command: %v", v.Name, err)
@@ -300,14 +308,6 @@ func main() {
 	signal.Notify(stop, os.Interrupt, syscall.SIGTERM, syscall.SIGKILL)
 	log.Info("Press Ctrl+C to exit")
 	<-stop
-
-	log.Info("Removing commands...")
-	for _, v := range registeredCommands {
-		err := s.ApplicationCommandDelete(s.State.User.ID, "", v.ID)
-		if err != nil {
-			log.Fatalf("Cannot delete '%v' command: %v", v.Name, err)
-		}
-	}
 
 	log.Info("Gracefully shutting down.")
 }
