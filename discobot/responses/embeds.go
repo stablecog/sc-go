@@ -70,9 +70,9 @@ func NewHelpEmbed() *discordgo.MessageEmbed {
 			{
 				Name: "📚 Commands",
 				Value: "" +
-					"`/image` - Create an image with one of our generative AI models" + "\n" +
+					"`/imagine` - Create an image with one of our generative AI models" + "\n" +
 					"`/upscale` - Upscale an image" + "\n" +
-					"`/voice` - Create a voiceover using a prompt" + "\n" +
+					"`/speak` - Create a voiceover using a prompt" + "\n" +
 					"`/info` - Get information about your account" + "\n" +
 					"`/help` - Display this help message",
 			},
