@@ -165,6 +165,10 @@ func main() {
 		log.Fatalf("Cannot open the session: %v", err)
 	}
 
+	// Remove old commands
+	s.ApplicationCommandDelete(s.State.User.ID, "", "1128118537416867970")
+	s.ApplicationCommandDelete(s.State.User.ID, "", "1128118539111374938")
+
 	log.Info("Adding commands...")
 	registeredCommands := make([]*discordgo.ApplicationCommand, len(cmdWrapper.Commands))
 	for i, v := range cmdWrapper.Commands {
