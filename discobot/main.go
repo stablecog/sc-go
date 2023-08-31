@@ -8,6 +8,7 @@ import (
 	"os/signal"
 	"strconv"
 	"strings"
+	"syscall"
 	"time"
 
 	"github.com/bwmarrin/discordgo"
@@ -165,10 +166,6 @@ func main() {
 		log.Fatalf("Cannot open the session: %v", err)
 	}
 
-	// Remove old commands
-	s.ApplicationCommandDelete(s.State.User.ID, "", "1128118537416867970")
-	s.ApplicationCommandDelete(s.State.User.ID, "", "1128118539111374938")
-
 	log.Info("Adding commands...")
 	registeredCommands := make([]*discordgo.ApplicationCommand, len(cmdWrapper.Commands))
 	for i, v := range cmdWrapper.Commands {
@@ -288,7 +285,7 @@ func main() {
 	}()
 
 	stop := make(chan os.Signal, 1)
-	signal.Notify(stop, os.Interrupt)
+	signal.Notify(stop, os.Interrupt, syscall.SIGTERM, syscall.SIGKILL)
 	log.Info("Press Ctrl+C to exit")
 	<-stop
 
