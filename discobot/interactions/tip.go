@@ -148,7 +148,7 @@ func (c *DiscordInteractionWrapper) HandleTip(s *discordgo.Session, m *discordgo
 				log.Error("Failed to create DM channel", "err", err)
 				return
 			}
-			_, err = s.ChannelMessageSend(dmChl.ID, "You don't have enough credits to send that tip. Use /info to see your available credits!")
+			_, err = s.ChannelMessageSend(dmChl.ID, "You don't have enough tippable credits to send that tip. Use /info to see your total tippable credits!")
 			return
 		}
 		log.Error("Failed to tip credits to user", "err", err)
