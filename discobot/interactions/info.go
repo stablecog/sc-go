@@ -113,7 +113,7 @@ func (c *DiscordInteractionWrapper) NewInfoCommand() *DiscordInteraction {
 					EmbedContent: prettyPrinter.Sprintf(
 						"**@%s**\n\n",
 						"*Member Since %s*\n\n"+
-							"**Total Credits:** %d\n\n%s",
+							"**Total Credits:** %d\n\n",
 						"**Credits Available to Tip:** %d\n\n%s",
 						u.Username,
 						u.CreatedAt.Format("January 2, 2006"),
