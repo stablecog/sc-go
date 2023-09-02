@@ -19,7 +19,10 @@ func RelativeTimeStr(t time.Time) string {
 	if diffInSeconds < 60*60 {
 		return fmt.Sprint(diffInSeconds/60, "m ago")
 	}
-	return fmt.Sprint(diffInSeconds/60/60, "h ago")
+	if diffInSeconds < 60*60*24 {
+		return fmt.Sprint(diffInSeconds/(60*60), "h ago")
+	}
+	return fmt.Sprint(diffInSeconds/(60*60*24), "d ago")
 }
 
 // Parse an iso string into a time.Time

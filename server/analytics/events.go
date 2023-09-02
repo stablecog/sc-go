@@ -483,3 +483,35 @@ func (a *AnalyticsService) GenerationFailedNSFWPrompt(
 		Properties: properties,
 	})
 }
+
+func (a *AnalyticsService) AutoBannedForBannedPromptEmbeddingViolation(
+	user *ent.User,
+	cogReq requests.BaseCogRequest,
+	source enttypes.SourceType,
+	translatedPrompt string,
+	similarToBannedPromptId string,
+	similarityScore float64,
+	violationCount int,
+	ip string,
+) error {
+	properties := map[string]interface{}{
+		"SC - User Id":                     user.ID,
+		"SC - Source":                      source,
+		"SC - Original Prompt":             cogReq.Prompt,
+		"SC - Translated Prompt":           translatedPrompt,
+		"SC - Violation Count":             violationCount,
+		"SC - Similar to Banned Prompt Id": similarToBannedPromptId,
+		"SC - Similarity Score":            similarityScore,
+		"$ip":                              ip,
+	}
+	if user.ActiveProductID != nil {
+		properties["SC - Stripe Product Id"] = user.ActiveProductID
+	}
+	setDeviceInfo(cogReq.DeviceInfo, properties)
+
+	return a.Dispatch(Event{
+		DistinctId: user.ID.String(),
+		EventName:  "Auto Banned | Banned Prompt Embedding Violation",
+		Properties: properties,
+	})
+}
