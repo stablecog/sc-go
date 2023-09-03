@@ -110,14 +110,14 @@ func (c *DiscordInteractionWrapper) NewImageCommand() *DiscordInteraction {
 				},
 				{
 					Type:        discordgo.ApplicationCommandOptionAttachment,
-					Name:        "init-image",
-					Description: "Use an initial image to base the generation on.",
+					Name:        "upload-image",
+					Description: "Upload an image to base the generation on.",
 					Required:    false,
 				},
 				{
 					Type:        discordgo.ApplicationCommandOptionInteger,
 					Name:        "image-strength",
-					Description: "The influence of the initial image. The bigger the value the more influence the image has.",
+					Description: "The influence of the uploaded image. The bigger the value the more influence the image has.",
 					Required:    false,
 					Choices:     imageStrengthChoices,
 				},
@@ -166,7 +166,7 @@ func (c *DiscordInteractionWrapper) NewImageCommand() *DiscordInteraction {
 						modelId = utils.ToPtr[uuid.UUID](uuid.MustParse(option.StringValue()))
 					case "aspect-ratio":
 						aspectRatio = utils.ToPtr(aspectratio.AspectRatio(option.IntValue()))
-					case "init-image":
+					case "upload-image":
 						id, ok := option.Value.(string)
 						if !ok {
 							log.Errorf("Invalid image attachment for upscale command: %v", i.ApplicationCommandData())
