@@ -433,6 +433,7 @@ func (r *Repository) QueryGenerations(per_page int, cursor *time.Time, filters *
 		generation.FieldCompletedAt,
 		generation.FieldWasAutoSubmitted,
 		generation.FieldInitImageURL,
+		generation.FieldPromptStrength,
 	}
 	var query *ent.GenerationQuery
 	var gQueryResult []GenerationQueryWithOutputsResult

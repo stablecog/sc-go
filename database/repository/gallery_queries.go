@@ -86,6 +86,7 @@ func (r *Repository) RetrieveMostRecentGalleryDataV2(filters *requests.QueryGene
 		generation.FieldCompletedAt,
 		generation.FieldWasAutoSubmitted,
 		generation.FieldInitImageURL,
+		generation.FieldPromptStrength,
 	}
 	var query *ent.GenerationQuery
 	var gQueryResult []GenerationQueryWithOutputsResult
