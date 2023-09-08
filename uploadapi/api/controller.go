@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"io"
+	"math"
 	"net/http"
 	"os"
 	"sort"
@@ -23,7 +24,7 @@ import (
 const MAX_UPLOAD_SIZE_MB = 10
 
 // The max number of files a user can have in the bucket under their folder at any time
-const MAX_FILES_PER_USER = 100
+const MAX_FILES_PER_USER = math.MaxInt
 
 type Controller struct {
 	Repo  *repository.Repository
