@@ -50,6 +50,7 @@ func (r *Repository) RetrieveGalleryDataByID(id uuid.UUID, userId *uuid.UUID, al
 		SchedulerID:    output.Edges.Generations.SchedulerID,
 		PromptID:       output.Edges.Generations.Edges.Prompt.ID,
 		PromptText:     output.Edges.Generations.Edges.Prompt.Text,
+		PromptStrength: output.Edges.Generations.PromptStrength,
 		User: &UserType{
 			Username: output.Edges.Generations.Edges.User.Username,
 		},
@@ -239,6 +240,7 @@ func (r *Repository) RetrieveMostRecentGalleryDataV2(filters *requests.QueryGene
 			SchedulerID:    g.SchedulerID,
 			PromptText:     promptText,
 			PromptID:       *g.PromptID,
+			PromptStrength: g.PromptStrength,
 			User: &UserType{
 				Username: g.Username,
 			},
@@ -415,4 +417,5 @@ type GalleryData struct {
 	Score              *float32   `json:"score,omitempty" sql:"score"`
 	Username           *string    `json:"username,omitempty" sql:"username"`
 	User               *UserType  `json:"user,omitempty" sql:"user"`
+	PromptStrength     *float32   `json:"prompt_strength,omitempty" sql:"prompt_strength"`
 }

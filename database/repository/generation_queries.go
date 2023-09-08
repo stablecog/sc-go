@@ -655,8 +655,9 @@ func (r *Repository) QueryGenerations(per_page int, cursor *time.Time, filters *
 				User: &UserType{
 					Username: g.Username,
 				},
-				IsFavorited: gOutput.IsFavorited,
-				IsPublic:    gOutput.IsPublic,
+				IsFavorited:    gOutput.IsFavorited,
+				IsPublic:       gOutput.IsPublic,
+				PromptStrength: g.PromptStrength,
 			},
 		}
 		if g.NegativePromptID != nil {
@@ -1078,6 +1079,7 @@ type GenerationQueryWithOutputsData struct {
 	InitImageURL       string                    `json:"init_image_url,omitempty" sql:"init_image_url"`
 	InitImageURLSigned string                    `json:"init_image_url_signed,omitempty"`
 	User               *UserType                 `json:"user,omitempty"`
+	PromptStrength     *float32                  `json:"prompt_strength,omitempty" sql:"prompt_strength"`
 }
 
 type GenerationQueryWithOutputsResult struct {
