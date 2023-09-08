@@ -53,8 +53,6 @@ func (r *Repository) RetrieveGalleryDataByID(id uuid.UUID, userId *uuid.UUID, al
 		User: &UserType{
 			Username: output.Edges.Generations.Edges.User.Username,
 		},
-		WasAutoSubmitted: output.Edges.Generations.WasAutoSubmitted,
-		IsPublic:         output.IsPublic,
 	}
 	if output.Edges.Generations.Edges.NegativePrompt != nil {
 		data.NegativePromptID = &output.Edges.Generations.Edges.NegativePrompt.ID
@@ -244,8 +242,6 @@ func (r *Repository) RetrieveMostRecentGalleryDataV2(filters *requests.QueryGene
 			User: &UserType{
 				Username: g.Username,
 			},
-			WasAutoSubmitted: g.WasAutoSubmitted,
-			IsPublic:         g.IsPublic,
 		}
 
 		if g.NegativePromptID != nil {
@@ -332,8 +328,6 @@ func (r *Repository) RetrieveMostRecentGalleryData(filters *requests.QueryGenera
 			User: &UserType{
 				Username: output.Edges.Generations.Edges.User.Username,
 			},
-			WasAutoSubmitted: output.Edges.Generations.WasAutoSubmitted,
-			IsPublic:         output.IsPublic,
 		}
 		if output.UpscaledImagePath != nil {
 			data.UpscaledImageURL = utils.GetURLFromImagePath(*output.UpscaledImagePath)
@@ -387,8 +381,6 @@ func (r *Repository) RetrieveGalleryDataWithOutputIDs(outputIDs []uuid.UUID, all
 			User: &UserType{
 				Username: output.Edges.Generations.Edges.User.Username,
 			},
-			WasAutoSubmitted: output.Edges.Generations.WasAutoSubmitted,
-			IsPublic:         output.IsPublic,
 		}
 		if output.UpscaledImagePath != nil {
 			data.UpscaledImageURL = utils.GetURLFromImagePath(*output.UpscaledImagePath)
@@ -423,6 +415,4 @@ type GalleryData struct {
 	Score              *float32   `json:"score,omitempty" sql:"score"`
 	Username           *string    `json:"username,omitempty" sql:"username"`
 	User               *UserType  `json:"user,omitempty" sql:"user"`
-	WasAutoSubmitted   bool       `json:"was_auto_submitted" sql:"was_auto_submitted"`
-	IsPublic           bool       `json:"is_public" sql:"is_public"`
 }
