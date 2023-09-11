@@ -3,6 +3,7 @@ package requests
 import (
 	"errors"
 	"fmt"
+	"strings"
 
 	"github.com/google/uuid"
 	"github.com/stablecog/sc-go/shared"
@@ -57,7 +58,7 @@ func (t *CreateUpscaleRequest) Validate(api bool) error {
 		return fmt.Errorf("Invalid upscale type, should be %s or %s", UpscaleRequestTypeImage, UpscaleRequestTypeOutput)
 	}
 
-	if *t.Type == UpscaleRequestTypeImage && !utils.IsValidHTTPURL(t.Input) {
+	if *t.Type == UpscaleRequestTypeImage && !utils.IsValidHTTPURL(t.Input) && !strings.HasPrefix(t.Input, "s3://") {
 		return errors.New("invalid_image_url")
 	} else if *t.Type == UpscaleRequestTypeOutput {
 		outputID, err := uuid.Parse(t.Input)
