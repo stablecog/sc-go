@@ -137,7 +137,7 @@ func (c *RestAPI) HandleCreateUpscaleToken(w http.ResponseWriter, r *http.Reques
 					extension = "webp"
 				}
 
-				imageKey = fmt.Sprintf("%s/%s.%s", user.ID.String(), uuid.New().String(), extension)
+				imageKey = fmt.Sprintf("%s/%s.%s", utils.Sha256(user.ID.String()), uuid.New().String(), extension)
 				_, err = c.S3.PutObject(&s3.PutObjectInput{
 					Bucket:      aws.String(os.Getenv("S3_IMG2IMG_BUCKET_NAME")),
 					Key:         aws.String(imageKey),
