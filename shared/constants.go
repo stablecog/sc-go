@@ -173,6 +173,3 @@ const DISCORD_VERIFY_TOKEN_EXPIRY = 5 * time.Minute
 // Tippable credits
 // Give credits * TIPPABLE_CREDIT_MULTIPLIER as "tippable" type when replenishing subscription/adhoc purchases
 const TIPPABLE_CREDIT_MULTIPLIER = 0.2
-
-// Max upload size allowed for img2img/upscale
-const MAX_UPLOAD_SIZE_MB = 10
