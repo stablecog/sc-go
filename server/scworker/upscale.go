@@ -237,6 +237,7 @@ func (w *SCWorker) CreateUpscale(source enttypes.SourceType,
 	if *upscaleReq.Type == requests.UpscaleRequestTypeImage {
 		width, height, err = utils.GetImageWidthHeightFromUrl(imageUrl, shared.MAX_UPSCALE_IMAGE_SIZE)
 		if err != nil {
+			log.Errorf("Error getting image width/height from URL %s , err: %v", imageUrl, err)
 			return nil, &initSettings, &WorkerError{http.StatusBadRequest, fmt.Errorf("image_url_width_height_error"), ""}
 		}
 		if width*height > shared.MAX_UPSCALE_MEGAPIXELS {
