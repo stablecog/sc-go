@@ -7,6 +7,7 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"strings"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/s3"
@@ -86,8 +87,7 @@ func (c *RestAPI) HandleCreateUpscaleToken(w http.ResponseWriter, r *http.Reques
 	var upscaleReq *requests.CreateUpscaleRequest
 
 	// See if multipart request
-	if r.Header.Get("Content-Type") == "multipart/form-data" {
-		log.Info("---- Is multipart req...")
+	if strings.Contains(r.Header.Get("Content-Type"), "multipart/form-data") {
 		// Image key in S3
 		var imageKey string
 		// Enforce max upload size
@@ -155,7 +155,6 @@ func (c *RestAPI) HandleCreateUpscaleToken(w http.ResponseWriter, r *http.Reques
 				reqBody, _ := io.ReadAll(part)
 				err := json.Unmarshal(reqBody, &upscaleReqB)
 				if err != nil {
-					log.Errorf("Error unmarshalling json: %v", err)
 					responses.ErrUnableToParseJson(w, r)
 					return
 				}
