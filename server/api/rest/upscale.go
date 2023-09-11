@@ -166,6 +166,9 @@ func (c *RestAPI) HandleCreateUpscaleToken(w http.ResponseWriter, r *http.Reques
 				Type:  utils.ToPtr(requests.UpscaleRequestTypeImage),
 				Input: fmt.Sprintf("s3://%s", imageKey),
 			}
+		} else {
+			upscaleReq.Input = fmt.Sprintf("s3://%s", imageKey)
+			upscaleReq.Type = utils.ToPtr(requests.UpscaleRequestTypeImage)
 		}
 
 	} else {
