@@ -61,7 +61,7 @@ func TestGetImageWidthHeightFromUrlFailsIfTooLarge(t *testing.T) {
 		},
 	)
 
-	_, _, err := GetImageWidthHeightFromUrl("http://localhost:123456/image.jpeg", shared.MAX_UPSCALE_IMAGE_SIZE)
+	_, _, err := GetImageWidthHeightFromUrl("http://localhost:123456/image.jpeg", "", shared.MAX_UPSCALE_IMAGE_SIZE)
 	assert.NotNil(t, err)
 	assert.Equal(t, "Image too large", err.Error())
 }
@@ -95,7 +95,7 @@ func TestGetImageWidthHeightFromUrlJPEGSpoofContentLength(t *testing.T) {
 	// Content-Length Tells us 1 byte
 	// We don't want more than 2 bytes (that should be ok)
 	// This should still fail since the actual body is more than 2 byte
-	_, _, err := GetImageWidthHeightFromUrl("http://localhost:123456/image.jpeg", 2)
+	_, _, err := GetImageWidthHeightFromUrl("http://localhost:123456/image.jpeg", "", 2)
 	assert.NotNil(t, err)
 	assert.Equal(t, "unexpected EOF", err.Error())
 }
@@ -124,7 +124,7 @@ func TestGetImageWidthHeightFromUrlJPEG(t *testing.T) {
 		},
 	)
 
-	width, height, err := GetImageWidthHeightFromUrl("http://localhost:123456/image.jpeg", shared.MAX_UPSCALE_IMAGE_SIZE)
+	width, height, err := GetImageWidthHeightFromUrl("http://localhost:123456/image.jpeg", "", shared.MAX_UPSCALE_IMAGE_SIZE)
 	assert.Nil(t, err)
 	assert.Equal(t, int32(1), width)
 	assert.Equal(t, int32(1), height)
@@ -154,7 +154,7 @@ func TestGetImageWidthHeightFromUrlPNG(t *testing.T) {
 		},
 	)
 
-	width, height, err := GetImageWidthHeightFromUrl("http://localhost:123456/image.png", shared.MAX_UPSCALE_IMAGE_SIZE)
+	width, height, err := GetImageWidthHeightFromUrl("http://localhost:123456/image.png", "", shared.MAX_UPSCALE_IMAGE_SIZE)
 	assert.Nil(t, err)
 	assert.Equal(t, int32(1), width)
 	assert.Equal(t, int32(1), height)
@@ -184,7 +184,7 @@ func TestGetImageWidthHeightFromUrlWEBP(t *testing.T) {
 		},
 	)
 
-	width, height, err := GetImageWidthHeightFromUrl("http://localhost:123456/image.webp", shared.MAX_UPSCALE_IMAGE_SIZE)
+	width, height, err := GetImageWidthHeightFromUrl("http://localhost:123456/image.webp", "", shared.MAX_UPSCALE_IMAGE_SIZE)
 	assert.Nil(t, err)
 	assert.Equal(t, int32(1), width)
 	assert.Equal(t, int32(1), height)
