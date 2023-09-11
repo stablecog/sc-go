@@ -193,6 +193,7 @@ func (w *SCWorker) CreateUpscale(source enttypes.SourceType,
 
 	// Image Type
 	var imageUrl string
+	var headUrl string
 	if strings.HasPrefix(upscaleReq.Input, "s3://") {
 		// Remove prefix
 		imageUrl = upscaleReq.Input[5:]
@@ -229,15 +230,24 @@ func (w *SCWorker) CreateUpscale(source enttypes.SourceType,
 			log.Error("Error signing init image URL", "err", err)
 			return nil, &initSettings, &WorkerError{http.StatusInternalServerError, fmt.Errorf("unknown_error"), ""}
 		}
+		// Presign URL for head request
+		headReq, _ := w.S3.HeadObjectRequest(&s3.HeadObjectInput{
+			Bucket: aws.String(os.Getenv("S3_IMG2IMG_BUCKET_NAME")),
+			Key:    aws.String(imageUrl),
+		})
+		headUrl, err = headReq.Presign(168 * time.Hour)
+		if err != nil {
+			log.Error("Error signing init image URL", "err", err)
+			return nil, &initSettings, &WorkerError{http.StatusInternalServerError, fmt.Errorf("unknown_error"), ""}
+		}
 		imageUrl = urlStr
 	} else {
 		imageUrl = upscaleReq.Input
 	}
 
 	if *upscaleReq.Type == requests.UpscaleRequestTypeImage {
-		width, height, err = utils.GetImageWidthHeightFromUrl(imageUrl, shared.MAX_UPSCALE_IMAGE_SIZE)
+		width, height, err = utils.GetImageWidthHeightFromUrl(imageUrl, headUrl, shared.MAX_UPSCALE_IMAGE_SIZE)
 		if err != nil {
-			log.Errorf("Error getting image width/height from URL %s , err: %v", imageUrl, err)
 			return nil, &initSettings, &WorkerError{http.StatusBadRequest, fmt.Errorf("image_url_width_height_error"), ""}
 		}
 		if width*height > shared.MAX_UPSCALE_MEGAPIXELS {

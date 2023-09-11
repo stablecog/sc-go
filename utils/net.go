@@ -35,9 +35,12 @@ func GetImageSizeFromUrl(imageUrl string) (bytes int64, err error) {
 	return int64(size), nil
 }
 
-func GetImageWidthHeightFromUrl(imageUrl string, maxSizeBytes int64) (width, height int32, err error) {
+func GetImageWidthHeightFromUrl(imageUrl string, headUrl string, maxSizeBytes int64) (width, height int32, err error) {
+	if headUrl == "" {
+		headUrl = imageUrl
+	}
 	// Make sure the size isn't too large
-	size, err := GetImageSizeFromUrl(imageUrl)
+	size, err := GetImageSizeFromUrl(headUrl)
 	if err != nil {
 		return 0, 0, err
 	}
