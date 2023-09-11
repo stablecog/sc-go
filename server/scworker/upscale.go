@@ -253,13 +253,11 @@ func (w *SCWorker) CreateUpscale(source enttypes.SourceType,
 		if width*height > shared.MAX_UPSCALE_MEGAPIXELS {
 			return nil, &initSettings, &WorkerError{http.StatusBadRequest, fmt.Errorf("image_url_width_height_error"), fmt.Sprintf("Image cannot exceed %d megapixels", shared.MAX_UPSCALE_MEGAPIXELS/1000000)}
 		}
-		log.Infof("---- width %d height %d", width, height)
 	}
 
 	// Output Type
 	var outputIDStr string
 	if *upscaleReq.Type == requests.UpscaleRequestTypeOutput {
-		log.Infof("--- output type")
 		outputIDStr = upscaleReq.OutputID.String()
 		var output *ent.GenerationOutput
 		if source == enttypes.SourceTypeDiscord {
@@ -322,9 +320,12 @@ func (w *SCWorker) CreateUpscale(source enttypes.SourceType,
 	// Cleanup
 	defer close(activeChl)
 
+	log.Infof("--- made channel")
+
 	// Wrap everything in a DB transaction
 	// We do this since we want our credit deduction to be atomic with the whole process
 	if err := w.Repo.WithTx(func(tx *ent.Tx) error {
+		log.Infof("--- 02 in TX")
 		// Bind a client to the transaction
 		DB := tx.Client()
 		// Deduct credits from user
@@ -336,11 +337,15 @@ func (w *SCWorker) CreateUpscale(source enttypes.SourceType,
 			return responses.InsufficientCreditsErr
 		}
 
+		log.Infof("--- 03 deducted credits")
+
 		remainingCredits, err = w.Repo.GetNonExpiredCreditTotalForUser(user.ID, DB)
 		if err != nil {
 			log.Error("Error getting remaining credits", "err", err)
 			return err
 		}
+
+		log.Infof("--- 04 in TX")
 
 		// Create upscale
 		upscale, err := w.Repo.CreateUpscale(
@@ -361,6 +366,8 @@ func (w *SCWorker) CreateUpscale(source enttypes.SourceType,
 			log.Error("Error creating upscale", "err", err)
 			return err
 		}
+
+		log.Infof("--- 05 made upscale")
 
 		// Request Id matches upscale ID
 		requestId = upscale.ID
