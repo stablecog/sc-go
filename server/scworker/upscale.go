@@ -6,8 +6,13 @@ import (
 	"fmt"
 	"math"
 	"net/http"
+	"os"
+	"strings"
 	"time"
 
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/awserr"
+	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/google/uuid"
 	"github.com/stablecog/sc-go/database/ent"
 	"github.com/stablecog/sc-go/database/ent/upscale"
@@ -187,7 +192,48 @@ func (w *SCWorker) CreateUpscale(source enttypes.SourceType,
 	var height int32
 
 	// Image Type
-	imageUrl := upscaleReq.Input
+	var imageUrl string
+	if strings.HasPrefix(upscaleReq.Input, "s3://") {
+		// Remove prefix
+		imageUrl = upscaleReq.Input[5:]
+		// Get signed URL from s3
+		// Hash user ID to see if it belongs to this user
+		uidHash := utils.Sha256(user.ID.String())
+		if !strings.HasPrefix(imageUrl, fmt.Sprintf("%s/", uidHash)) {
+			return nil, &initSettings, &WorkerError{http.StatusUnauthorized, fmt.Errorf("image_not_owned"), ""}
+		}
+		// Verify exists in bucket
+		_, err := w.S3.HeadObject(&s3.HeadObjectInput{
+			Bucket: aws.String(os.Getenv("S3_IMG2IMG_BUCKET_NAME")),
+			Key:    aws.String(imageUrl),
+		})
+		if err != nil {
+			if aerr, ok := err.(awserr.Error); ok {
+				switch aerr.Code() {
+				case "NotFound": // s3.ErrCodeNoSuchKey does not work, aws is missing this error code so we hardwire a string
+					return nil, &initSettings, &WorkerError{http.StatusBadRequest, fmt.Errorf("init_image_not_found"), ""}
+				default:
+					log.Error("Error checking if init image exists in bucket", "err", err)
+					return nil, &initSettings, &WorkerError{http.StatusInternalServerError, fmt.Errorf("unknown_error"), ""}
+				}
+			}
+			return nil, &initSettings, &WorkerError{http.StatusBadRequest, fmt.Errorf("init_image_not_found"), ""}
+		}
+		// Sign object URL to pass to worker
+		req, _ := w.S3.GetObjectRequest(&s3.GetObjectInput{
+			Bucket: aws.String(os.Getenv("S3_IMG2IMG_BUCKET_NAME")),
+			Key:    aws.String(imageUrl),
+		})
+		urlStr, err := req.Presign(168 * time.Hour)
+		if err != nil {
+			log.Error("Error signing init image URL", "err", err)
+			return nil, &initSettings, &WorkerError{http.StatusInternalServerError, fmt.Errorf("unknown_error"), ""}
+		}
+		imageUrl = urlStr
+	} else {
+		imageUrl = upscaleReq.Input
+	}
+
 	if *upscaleReq.Type == requests.UpscaleRequestTypeImage {
 		width, height, err = utils.GetImageWidthHeightFromUrl(imageUrl, shared.MAX_UPSCALE_IMAGE_SIZE)
 		if err != nil {

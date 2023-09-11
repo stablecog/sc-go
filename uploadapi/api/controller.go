@@ -17,11 +17,9 @@ import (
 	"github.com/stablecog/sc-go/database/repository"
 	"github.com/stablecog/sc-go/log"
 	"github.com/stablecog/sc-go/server/responses"
+	"github.com/stablecog/sc-go/shared"
 	"github.com/stablecog/sc-go/utils"
 )
-
-// Max upload size allowed for img2img
-const MAX_UPLOAD_SIZE_MB = 10
 
 // The max number of files a user can have in the bucket under their folder at any time
 const MAX_FILES_PER_USER = math.MaxInt
@@ -84,8 +82,8 @@ func (c *Controller) HandleUpload(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Enforce max upload size
-	r.Body = http.MaxBytesReader(w, r.Body, MAX_UPLOAD_SIZE_MB*1024*1024)
-	if err := r.ParseMultipartForm(MAX_UPLOAD_SIZE_MB * 1024 * 1024); err != nil {
+	r.Body = http.MaxBytesReader(w, r.Body, shared.MAX_UPLOAD_SIZE_MB*1024*1024)
+	if err := r.ParseMultipartForm(shared.MAX_UPLOAD_SIZE_MB * 1024 * 1024); err != nil {
 		log.Error("Error parsing multipart form", "err", err)
 		responses.ErrBadRequest(w, r, "parse_error", err.Error())
 		return
