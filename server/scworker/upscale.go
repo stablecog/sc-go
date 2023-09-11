@@ -320,12 +320,9 @@ func (w *SCWorker) CreateUpscale(source enttypes.SourceType,
 	// Cleanup
 	defer close(activeChl)
 
-	log.Infof("--- made channel")
-
 	// Wrap everything in a DB transaction
 	// We do this since we want our credit deduction to be atomic with the whole process
 	if err := w.Repo.WithTx(func(tx *ent.Tx) error {
-		log.Infof("--- 02 in TX")
 		// Bind a client to the transaction
 		DB := tx.Client()
 		// Deduct credits from user
@@ -337,15 +334,11 @@ func (w *SCWorker) CreateUpscale(source enttypes.SourceType,
 			return responses.InsufficientCreditsErr
 		}
 
-		log.Infof("--- 03 deducted credits")
-
 		remainingCredits, err = w.Repo.GetNonExpiredCreditTotalForUser(user.ID, DB)
 		if err != nil {
 			log.Error("Error getting remaining credits", "err", err)
 			return err
 		}
-
-		log.Infof("--- 04 in TX")
 
 		// Create upscale
 		upscale, err := w.Repo.CreateUpscale(
@@ -366,8 +359,6 @@ func (w *SCWorker) CreateUpscale(source enttypes.SourceType,
 			log.Error("Error creating upscale", "err", err)
 			return err
 		}
-
-		log.Infof("--- 05 made upscale")
 
 		// Request Id matches upscale ID
 		requestId = upscale.ID
