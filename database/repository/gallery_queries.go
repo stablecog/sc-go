@@ -55,6 +55,10 @@ func (r *Repository) RetrieveGalleryDataByID(id uuid.UUID, userId *uuid.UUID, al
 			Username: output.Edges.Generations.Edges.User.Username,
 		},
 	}
+	if all {
+		data.IsPublic = output.IsPublic
+		data.WasAutoSubmitted = output.Edges.Generations.WasAutoSubmitted
+	}
 	if output.Edges.Generations.Edges.NegativePrompt != nil {
 		data.NegativePromptID = &output.Edges.Generations.Edges.NegativePrompt.ID
 		data.NegativePromptText = output.Edges.Generations.Edges.NegativePrompt.Text
@@ -244,6 +248,8 @@ func (r *Repository) RetrieveMostRecentGalleryDataV2(filters *requests.QueryGene
 			User: &UserType{
 				Username: g.Username,
 			},
+			WasAutoSubmitted: g.WasAutoSubmitted,
+			IsPublic:         g.IsPublic,
 		}
 
 		if g.NegativePromptID != nil {
@@ -418,4 +424,6 @@ type GalleryData struct {
 	Username           *string    `json:"username,omitempty" sql:"username"`
 	User               *UserType  `json:"user,omitempty" sql:"user"`
 	PromptStrength     *float32   `json:"prompt_strength,omitempty" sql:"prompt_strength"`
+	WasAutoSubmitted   bool       `json:"was_auto_submitted" sql:"was_auto_submitted"`
+	IsPublic           bool       `json:"is_public" sql:"is_public"`
 }
