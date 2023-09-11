@@ -248,17 +248,18 @@ func (w *SCWorker) CreateUpscale(source enttypes.SourceType,
 	if *upscaleReq.Type == requests.UpscaleRequestTypeImage {
 		width, height, err = utils.GetImageWidthHeightFromUrl(imageUrl, headUrl, shared.MAX_UPSCALE_IMAGE_SIZE)
 		if err != nil {
-			log.Errorf("Error getting image width/height from URLs %s  %s err=%v", imageUrl, headUrl, err)
 			return nil, &initSettings, &WorkerError{http.StatusBadRequest, fmt.Errorf("image_url_width_height_error"), ""}
 		}
 		if width*height > shared.MAX_UPSCALE_MEGAPIXELS {
 			return nil, &initSettings, &WorkerError{http.StatusBadRequest, fmt.Errorf("image_url_width_height_error"), fmt.Sprintf("Image cannot exceed %d megapixels", shared.MAX_UPSCALE_MEGAPIXELS/1000000)}
 		}
+		log.Infof("---- width %d height %d", width, height)
 	}
 
 	// Output Type
 	var outputIDStr string
 	if *upscaleReq.Type == requests.UpscaleRequestTypeOutput {
+		log.Infof("--- output type")
 		outputIDStr = upscaleReq.OutputID.String()
 		var output *ent.GenerationOutput
 		if source == enttypes.SourceTypeDiscord {
@@ -300,6 +301,7 @@ func (w *SCWorker) CreateUpscale(source enttypes.SourceType,
 		// Get width/height of generation
 		width, height, err = w.Repo.GetGenerationOutputWidthHeight(*upscaleReq.OutputID)
 		if err != nil {
+			log.Errorf("Error getting generation output width/height %v", err)
 			return nil, &initSettings, WorkerInternalServerError()
 		}
 	}
