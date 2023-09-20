@@ -76,6 +76,8 @@ func main() {
 	})
 
 	http.HandleFunc("/oauth/token", func(w http.ResponseWriter, r *http.Request) {
+		_ = dumpRequest(os.Stdout, "oauthTokenRequest", r) // Ignore the error
+
 		srv.HandleTokenRequest(w, r)
 	})
 

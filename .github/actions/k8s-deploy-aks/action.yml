@@ -64,6 +64,14 @@ runs:
         kustomize edit set image replaceme=${{ inputs.image }}
         kustomize build . > ../ci-deployment.yaml
 
+    - name: Set image (Auth)
+      if: ${{ inputs.env == 'auth' }}
+      working-directory: ./k8s/auth
+      shell: bash
+      run: |
+        kustomize edit set image replaceme=${{ inputs.image }}
+        kustomize build . > ../ci-deployment.yaml
+
     - name: Deploy image to k8s cluster
       uses: bbedward/kubectl@master
       env:
