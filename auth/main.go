@@ -6,6 +6,7 @@ import (
 	"io"
 	"net/http"
 	"net/http/httputil"
+	"net/url"
 	"os"
 	"time"
 
@@ -102,9 +103,27 @@ func dumpRequest(writer io.Writer, header string, r *http.Request) error {
 func userAuthorizeHandler(w http.ResponseWriter, r *http.Request) (userID string, err error) {
 	// _ = dumpRequest(os.Stdout, "userAuthorizeHandler", r) // Ignore the error
 	redirectURI := r.FormValue("redirect_uri")
+	if redirectURI == "" {
+		log.Infof("redirect uri is empty")
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	state := r.FormValue("state")
+	if state == "" {
+		log.Infof("state is empty")
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
 	log.Infof("redirect uri %s", redirectURI)
 
-	w.Header().Set("Location", fmt.Sprintf("%s&code=%s", redirectURI, "000000"))
+	redirectLocation, err := addQueryParam(redirectURI, QueryParam{"state", state}, QueryParam{"code", "000000"})
+	if err != nil {
+		log.Errorf("Error adding query param: %v", err.Error())
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Location", redirectLocation)
 	w.WriteHeader(http.StatusFound)
 	return
 
@@ -140,4 +159,29 @@ func authHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Location", fmt.Sprintf("%s&code=%s", redirectURI, "000000"))
 	w.WriteHeader(http.StatusFound)
 	return
+}
+
+type QueryParam struct {
+	key   string
+	value string
+}
+
+func addQueryParam(rawURL string, queryParam ...QueryParam) (string, error) {
+	u, err := url.Parse(rawURL)
+	if err != nil {
+		return "", err
+	}
+
+	// Extract existing query parameters
+	q := u.Query()
+
+	// Add new query parameter
+	for _, param := range queryParam {
+		q.Add(param.key, param.value)
+	}
+
+	// Update the URL with the new query parameters
+	u.RawQuery = q.Encode()
+
+	return u.String(), nil
 }
