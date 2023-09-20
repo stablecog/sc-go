@@ -76,7 +76,7 @@ func main() {
 	})
 
 	http.HandleFunc("/oauth/token", func(w http.ResponseWriter, r *http.Request) {
-		_ = dumpRequest(os.Stdout, "oauthTokenRequest", r) // Ignore the error
+		// _ = dumpRequest(os.Stdout, "oauthTokenRequest", r) // Ignore the error
 
 		srv.HandleTokenRequest(w, r)
 	})
@@ -100,7 +100,14 @@ func dumpRequest(writer io.Writer, header string, r *http.Request) error {
 }
 
 func userAuthorizeHandler(w http.ResponseWriter, r *http.Request) (userID string, err error) {
-	_ = dumpRequest(os.Stdout, "userAuthorizeHandler", r) // Ignore the error
+	// _ = dumpRequest(os.Stdout, "userAuthorizeHandler", r) // Ignore the error
+	redirectURI := r.FormValue("redirect_uri")
+	log.Infof("redirect uri %s", redirectURI)
+
+	w.Header().Set("Location", fmt.Sprintf("%s&code=%s", redirectURI, "000000"))
+	w.WriteHeader(http.StatusFound)
+	return
+
 	// store, err := session.Start(r.Context(), w, r)
 	// if err != nil {
 	// 	return
@@ -127,8 +134,9 @@ func userAuthorizeHandler(w http.ResponseWriter, r *http.Request) (userID string
 }
 
 func authHandler(w http.ResponseWriter, r *http.Request) {
-	_ = dumpRequest(os.Stdout, "auth", r) // Ignore the error
+	// _ = dumpRequest(os.Stdout, "auth", r) // Ignore the error
 	redirectURI := r.FormValue("redirect_uri")
+	log.Infof()
 
 	w.Header().Set("Location", fmt.Sprintf("%s&code=%s", redirectURI, "000000"))
 	w.WriteHeader(http.StatusFound)
