@@ -136,7 +136,6 @@ func userAuthorizeHandler(w http.ResponseWriter, r *http.Request) (userID string
 func authHandler(w http.ResponseWriter, r *http.Request) {
 	// _ = dumpRequest(os.Stdout, "auth", r) // Ignore the error
 	redirectURI := r.FormValue("redirect_uri")
-	log.Infof()
 
 	w.Header().Set("Location", fmt.Sprintf("%s&code=%s", redirectURI, "000000"))
 	w.WriteHeader(http.StatusFound)
