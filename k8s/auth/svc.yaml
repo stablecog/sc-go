@@ -1,0 +1,12 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name: auth-service
+  namespace: prod-stablecog
+spec:
+  selector:
+    app: sc-auth
+  type: ClusterIP
+  ports:
+    - port: 9096
+      targetPort: 9096
