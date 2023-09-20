@@ -12,8 +12,11 @@ import (
 
 	"github.com/jackc/pgx/v4"
 	"github.com/joho/godotenv"
+	"github.com/stablecog/sc-go/auth/secure"
+	"github.com/stablecog/sc-go/auth/store"
 	"github.com/stablecog/sc-go/database"
 	"github.com/stablecog/sc-go/log"
+	"github.com/stablecog/sc-go/utils"
 	pg "github.com/vgarvardt/go-oauth2-pg/v4"
 	"github.com/vgarvardt/go-pg-adapter/pgx4adapter"
 
@@ -21,6 +24,12 @@ import (
 	"github.com/go-oauth2/oauth2/v4/manage"
 	"github.com/go-oauth2/oauth2/v4/server"
 )
+
+const REDIRECT_BASE = "https://stablecog.com/account/oauth/authorize"
+
+type ApiWrapper struct {
+	RedisStore *store.RedisStore
+}
 
 func main() {
 	// Load .env
@@ -53,7 +62,13 @@ func main() {
 	cfg.ForcePKCE = true
 	srv := server.NewServer(cfg, manager)
 
-	srv.SetUserAuthorizationHandler(userAuthorizeHandler)
+	ctx := context.Background()
+	redisStore := store.NewRedisStore(ctx)
+	apiWrapper := &ApiWrapper{
+		RedisStore: redisStore,
+	}
+
+	srv.SetUserAuthorizationHandler(apiWrapper.userAuthorizeHandler)
 
 	srv.SetInternalErrorHandler(func(err error) (re *errors.Response) {
 		log.Infof("Internal Error: %v", err.Error())
@@ -100,11 +115,16 @@ func dumpRequest(writer io.Writer, header string, r *http.Request) error {
 	return nil
 }
 
-func userAuthorizeHandler(w http.ResponseWriter, r *http.Request) (userID string, err error) {
+func (a *ApiWrapper) userAuthorizeHandler(w http.ResponseWriter, r *http.Request) (userID string, err error) {
 	// _ = dumpRequest(os.Stdout, "userAuthorizeHandler", r) // Ignore the error
 	redirectURI := r.FormValue("redirect_uri")
 	if redirectURI == "" {
 		log.Infof("redirect uri is empty")
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	if !utils.IsValidHTTPURL(redirectURI) {
+		log.Infof("redirect uri is not valid")
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
@@ -116,39 +136,39 @@ func userAuthorizeHandler(w http.ResponseWriter, r *http.Request) (userID string
 	}
 	log.Infof("redirect uri %s", redirectURI)
 
-	redirectLocation, err := addQueryParam(redirectURI, QueryParam{"state", state}, QueryParam{"code", "000000"})
+	// Generate secure auth code
+	code, err := secure.GenerateAuthCode(32)
 	if err != nil {
-		log.Errorf("Error adding query param: %v", err.Error())
+		log.Errorf("Error generating auth code: %v", err.Error())
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	// Create request to store
+	authReq := store.AuthorizationRequest{
+		Code:        code,
+		RedirectURI: redirectURI,
+		State:       state,
+	}
+
+	// Save auth request in cache
+	err = a.RedisStore.SaveAuthRequestInCache(&authReq)
+	if err != nil {
+		log.Errorf("Error saving auth request in cache: %v", err.Error())
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	// add query params to redirect uri
+	redirectLocation, err := addQueryParam(REDIRECT_BASE, QueryParam{key: "code", value: code}, QueryParam{key: "app_id", value: "raycast"})
+	if err != nil {
+		log.Errorf("Error adding query params to redirect uri: %v", err.Error())
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
 	w.Header().Set("Location", redirectLocation)
 	w.WriteHeader(http.StatusFound)
-	return
-
-	// store, err := session.Start(r.Context(), w, r)
-	// if err != nil {
-	// 	return
-	// }
-
-	// uid, ok := store.Get("LoggedInUserID")
-	// if !ok {
-	// 	if r.Form == nil {
-	// 		r.ParseForm()
-	// 	}
-
-	// 	store.Set("ReturnUri", r.Form)
-	// 	store.Save()
-
-	// 	w.Header().Set("Location", "/login")
-	// 	w.WriteHeader(http.StatusFound)
-	// 	return
-	// }
-
-	// userID = uid.(string)
-	// store.Delete("LoggedInUserID")
-	// store.Save()
 	return
 }
 
