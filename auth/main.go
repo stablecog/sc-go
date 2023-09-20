@@ -128,17 +128,9 @@ func userAuthorizeHandler(w http.ResponseWriter, r *http.Request) (userID string
 
 func authHandler(w http.ResponseWriter, r *http.Request) {
 	_ = dumpRequest(os.Stdout, "auth", r) // Ignore the error
-	// store, err := session.Start(nil, w, r)
-	// if err != nil {
-	// 	http.Error(w, err.Error(), http.StatusInternalServerError)
-	// 	return
-	// }
+	redirectURI := r.FormValue("redirect_uri")
 
-	// if _, ok := store.Get("LoggedInUserID"); !ok {
-	// 	w.Header().Set("Location", "/login")
-	// 	w.WriteHeader(http.StatusFound)
-	// 	return
-	// }
-
-	// outputHTML(w, r, "static/auth.html")
+	w.Header().Set("Location", fmt.Sprintf("%s&code=%s", redirectURI, "000000"))
+	w.WriteHeader(http.StatusFound)
+	return
 }
