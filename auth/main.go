@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/cors"
 	"github.com/go-chi/render"
 	"github.com/jackc/pgx/v4"
 	"github.com/joho/godotenv"
@@ -81,6 +82,17 @@ func main() {
 
 	// Create router
 	app := chi.NewRouter()
+
+	// Cors middleware
+	app.Use(cors.Handler(cors.Options{
+		AllowedOrigins: utils.GetCorsOrigins(),
+		// AllowOriginFunc:  func(r *http.Request, origin string) bool { return true },
+		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowedHeaders:   []string{"*"},
+		ExposedHeaders:   []string{"Link"},
+		AllowCredentials: true,
+		MaxAge:           300, // Maximum value not ignored by any of major browsers
+	}))
 
 	// Health check endpoint
 	app.Get("/health", func(w http.ResponseWriter, r *http.Request) {
