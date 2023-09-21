@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
@@ -120,7 +121,20 @@ func main() {
 		})
 
 		r.HandleFunc("/token", func(w http.ResponseWriter, r *http.Request) {
-			_ = dumpRequest(os.Stdout, "oauthTokenRequest", r) // Ignore the error
+			var jsonBody map[string]interface{}
+			err := json.NewDecoder(r.Body).Decode(&jsonBody)
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusBadRequest)
+				return
+			}
+			// Json to string
+			jsonBodyStr, err := json.Marshal(jsonBody)
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusBadRequest)
+				return
+			}
+			// Log body
+			log.Info("📦 Request body", "body", string(jsonBodyStr))
 
 			srv.HandleTokenRequest(w, r)
 		})
