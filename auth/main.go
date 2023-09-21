@@ -136,6 +136,7 @@ func main() {
 		r.Handle("/token", middleware.JsonToFormMiddleware(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			gt, tgr, err := srv.ValidationTokenRequest(r)
 			if err != nil {
+				log.Errorf("Error validating token request %v", err)
 				data, statusCode, header := srv.GetErrorData(err)
 				w.Header().Set("Content-Type", "application/json;charset=UTF-8")
 				w.Header().Set("Cache-Control", "no-store")
@@ -153,6 +154,7 @@ func main() {
 			// Get access token
 			ti, err := apiWrapper.GetAccessToken(ctx, srv, gt, tgr)
 			if err != nil {
+				log.Errorf("Error getting access token %v", err)
 				data, statusCode, header := srv.GetErrorData(err)
 				w.Header().Set("Content-Type", "application/json;charset=UTF-8")
 				w.Header().Set("Cache-Control", "no-store")

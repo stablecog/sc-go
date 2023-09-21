@@ -12,6 +12,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/redis/go-redis/v9"
 	"github.com/stablecog/sc-go/auth/store"
+	"github.com/stablecog/sc-go/log"
 )
 
 func ClientFormHandler(r *http.Request) (string, string, error) {
@@ -42,12 +43,15 @@ func (a *ApiWrapper) GetAccessToken(ctx context.Context, s *server.Server, gt oa
 		// Check store for valid code
 		authApproval, err := a.RedisStore.GetAuthApproval(tgr.Code)
 		if err != nil && err != redis.Nil {
+			log.Errorf("Error getting auth approval from redis %v", err)
 			return nil, errors.ErrServerError
 		} else if err == redis.Nil {
+			log.Errorf("Auth code not found in redis %s", tgr.Code)
 			return nil, errors.ErrInvalidAuthorizeCode
 		}
 		userId, err := uuid.Parse(authApproval)
 		if err != nil {
+			log.Errorf("Error parsing auth approval uuid %v", err)
 			return nil, errors.ErrInvalidAuthorizeCode
 		}
 
