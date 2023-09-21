@@ -14,7 +14,6 @@ import (
 	"github.com/go-chi/cors"
 	"github.com/go-chi/render"
 	"github.com/go-co-op/gocron"
-	"github.com/jackc/pgx/v4"
 	"github.com/joho/godotenv"
 	"github.com/stablecog/sc-go/auth/api"
 	"github.com/stablecog/sc-go/auth/store"
@@ -23,10 +22,10 @@ import (
 	"github.com/stablecog/sc-go/log"
 	"github.com/stablecog/sc-go/server/middleware"
 	"github.com/stablecog/sc-go/utils"
-	pg "github.com/vgarvardt/go-oauth2-pg/v4"
-	"github.com/vgarvardt/go-pg-adapter/pgx4adapter"
 	"golang.org/x/net/http2"
 	"golang.org/x/net/http2/h2c"
+
+	authStore "github.com/go-oauth2/oauth2/v4/store"
 
 	"github.com/go-oauth2/oauth2/v4/errors"
 	"github.com/go-oauth2/oauth2/v4/manage"
@@ -64,18 +63,12 @@ func main() {
 		Ctx:      ctx,
 	}
 
-	pgxConn, _ := pgx.Connect(context.TODO(), dbconn.DSN())
-
 	manager := manage.NewDefaultManager()
+	// token memory store
+	manager.MustTokenStorage(authStore.NewMemoryTokenStore())
 
-	// use PostgreSQL token store with pgx.Connection adapter
-	adapter := pgx4adapter.NewConn(pgxConn)
-	tokenStore, _ := pg.NewTokenStore(adapter, pg.WithTokenStoreGCInterval(time.Minute))
-	defer tokenStore.Close()
-
-	clientStore, _ := pg.NewClientStore(adapter)
-
-	manager.MapTokenStorage(tokenStore)
+	// client memory store
+	clientStore := authStore.NewClientStore()
 	manager.MapClientStorage(clientStore)
 	// manager.MapAccessGenerate()
 
