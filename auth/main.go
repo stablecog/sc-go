@@ -6,30 +6,28 @@ import (
 	"io"
 	"net/http"
 	"net/http/httputil"
-	"net/url"
 	"os"
 	"time"
 
+	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/render"
 	"github.com/jackc/pgx/v4"
 	"github.com/joho/godotenv"
-	"github.com/stablecog/sc-go/auth/secure"
+	"github.com/stablecog/sc-go/auth/api"
 	"github.com/stablecog/sc-go/auth/store"
 	"github.com/stablecog/sc-go/database"
 	"github.com/stablecog/sc-go/log"
+	"github.com/stablecog/sc-go/server/middleware"
 	"github.com/stablecog/sc-go/utils"
 	pg "github.com/vgarvardt/go-oauth2-pg/v4"
 	"github.com/vgarvardt/go-pg-adapter/pgx4adapter"
+	"golang.org/x/net/http2"
+	"golang.org/x/net/http2/h2c"
 
 	"github.com/go-oauth2/oauth2/v4/errors"
 	"github.com/go-oauth2/oauth2/v4/manage"
 	"github.com/go-oauth2/oauth2/v4/server"
 )
-
-const REDIRECT_BASE = "https://stablecog.com/account/oauth/authorize"
-
-type ApiWrapper struct {
-	RedisStore *store.RedisStore
-}
 
 func main() {
 	// Load .env
@@ -64,11 +62,13 @@ func main() {
 
 	ctx := context.Background()
 	redisStore := store.NewRedisStore(ctx)
-	apiWrapper := &ApiWrapper{
-		RedisStore: redisStore,
+	apiWrapper := &api.ApiWrapper{
+		RedisStore:   redisStore,
+		SupabaseAuth: database.NewSupabaseAuth(),
+		AesCrypt:     utils.NewAesCrypt(os.Getenv("DATA_ENCRYPTION_PASSWORD")),
 	}
 
-	srv.SetUserAuthorizationHandler(apiWrapper.userAuthorizeHandler)
+	srv.SetUserAuthorizationHandler(apiWrapper.UserAuthorizeHandler)
 
 	srv.SetInternalErrorHandler(func(err error) (re *errors.Response) {
 		log.Infof("Internal Error: %v", err.Error())
@@ -79,30 +79,45 @@ func main() {
 		log.Infof("Response Error: %v", re.Error.Error())
 	})
 
+	// Create router
+	app := chi.NewRouter()
+
 	// Health check endpoint
-	http.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(http.StatusOK)
+	app.Get("/health", func(w http.ResponseWriter, r *http.Request) {
+		render.Status(r, http.StatusOK)
+		render.PlainText(w, r, "OK")
 	})
 
-	http.HandleFunc("/oauth/authorize", func(w http.ResponseWriter, r *http.Request) {
-		err := srv.HandleAuthorizeRequest(w, r)
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusBadRequest)
-		}
+	app.Route("/oauth", func(r chi.Router) {
+		r.Use(middleware.Logger)
+
+		r.HandleFunc("/authorize", func(w http.ResponseWriter, r *http.Request) {
+			err := srv.HandleAuthorizeRequest(w, r)
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusBadRequest)
+			}
+		})
+
+		r.HandleFunc("/token", func(w http.ResponseWriter, r *http.Request) {
+			_ = dumpRequest(os.Stdout, "oauthTokenRequest", r) // Ignore the error
+
+			srv.HandleTokenRequest(w, r)
+		})
+
+		r.Post("/approve", apiWrapper.ApproveAuthorization)
 	})
 
-	http.HandleFunc("/oauth/token", func(w http.ResponseWriter, r *http.Request) {
-		_ = dumpRequest(os.Stdout, "oauthTokenRequest", r) // Ignore the error
+	// Start server
+	port := utils.GetEnv("PORT", "9096")
+	log.Info("Starting language server", "port", port)
 
-		srv.HandleTokenRequest(w, r)
-	})
+	h2s := &http2.Server{}
+	authSrv := &http.Server{
+		Addr:    fmt.Sprintf(":%s", port),
+		Handler: h2c.NewHandler(app, h2s),
+	}
 
-	portvar := 9096
-
-	log.Infof("Server is running at %d port.\n", portvar)
-	log.Infof("Point your OAuth client Auth endpoint to %s:%d%s", "http://localhost", portvar, "/oauth/authorize")
-	log.Infof("Point your OAuth client Token endpoint to %s:%d%s", "http://localhost", portvar, "/oauth/token")
-	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", portvar), nil))
+	log.Info(authSrv.ListenAndServe())
 }
 
 func dumpRequest(writer io.Writer, header string, r *http.Request) error {
@@ -115,63 +130,6 @@ func dumpRequest(writer io.Writer, header string, r *http.Request) error {
 	return nil
 }
 
-func (a *ApiWrapper) userAuthorizeHandler(w http.ResponseWriter, r *http.Request) (userID string, err error) {
-	// _ = dumpRequest(os.Stdout, "userAuthorizeHandler", r) // Ignore the error
-	redirectURI := r.FormValue("redirect_uri")
-	if redirectURI == "" {
-		log.Infof("redirect uri is empty")
-		w.WriteHeader(http.StatusBadRequest)
-		return
-	}
-	if !utils.IsValidHTTPURL(redirectURI) {
-		log.Infof("redirect uri is not valid")
-		w.WriteHeader(http.StatusBadRequest)
-		return
-	}
-	state := r.FormValue("state")
-	if state == "" {
-		log.Infof("state is empty")
-		w.WriteHeader(http.StatusBadRequest)
-		return
-	}
-	log.Infof("redirect uri %s", redirectURI)
-
-	// Generate secure auth code
-	code, err := secure.GenerateAuthCode(32)
-	if err != nil {
-		log.Errorf("Error generating auth code: %v", err.Error())
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
-
-	// Create request to store
-	authReq := store.AuthorizationRequest{
-		Code:        code,
-		RedirectURI: redirectURI,
-		State:       state,
-	}
-
-	// Save auth request in cache
-	err = a.RedisStore.SaveAuthRequestInCache(&authReq)
-	if err != nil {
-		log.Errorf("Error saving auth request in cache: %v", err.Error())
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
-
-	// add query params to redirect uri
-	redirectLocation, err := addQueryParam(REDIRECT_BASE, QueryParam{key: "code", value: code}, QueryParam{key: "app_id", value: "raycast"})
-	if err != nil {
-		log.Errorf("Error adding query params to redirect uri: %v", err.Error())
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
-
-	w.Header().Set("Location", redirectLocation)
-	w.WriteHeader(http.StatusFound)
-	return
-}
-
 func authHandler(w http.ResponseWriter, r *http.Request) {
 	// _ = dumpRequest(os.Stdout, "auth", r) // Ignore the error
 	redirectURI := r.FormValue("redirect_uri")
@@ -179,29 +137,4 @@ func authHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Location", fmt.Sprintf("%s&code=%s", redirectURI, "000000"))
 	w.WriteHeader(http.StatusFound)
 	return
-}
-
-type QueryParam struct {
-	key   string
-	value string
-}
-
-func addQueryParam(rawURL string, queryParam ...QueryParam) (string, error) {
-	u, err := url.Parse(rawURL)
-	if err != nil {
-		return "", err
-	}
-
-	// Extract existing query parameters
-	q := u.Query()
-
-	// Add new query parameter
-	for _, param := range queryParam {
-		q.Add(param.key, param.value)
-	}
-
-	// Update the URL with the new query parameters
-	u.RawQuery = q.Encode()
-
-	return u.String(), nil
 }

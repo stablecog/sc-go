@@ -66,3 +66,7 @@ func (s *SupabaseAuth) GetSupabaseUserIdFromAccessToken(accessToken string) (id,
 
 	return user.ID.String(), user.Email, user.LastSignInAt, nil
 }
+
+func (s *SupabaseAuth) LoginWithRefreshToken(refreshToken string) (*types.TokenResponse, error) {
+	return s.client.RefreshToken(refreshToken)
+}

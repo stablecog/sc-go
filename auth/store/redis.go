@@ -57,3 +57,12 @@ func (s *RedisStore) GetAuthRequestFromCache(code string) (*AuthorizationRequest
 	}
 	return &authReq, nil
 }
+
+func (s *RedisStore) ClearAuthRequestFromCache(code string) error {
+	return s.RedisClient.Client.Del(s.Ctx, code).Err()
+}
+
+// Store access tokens
+func (s *RedisStore) StoreAccessToken(code string, encryptedRefreshToken string) error {
+	return s.RedisClient.Client.Set(s.Ctx, code, encryptedRefreshToken, 10*time.Minute).Err()
+}
