@@ -92,6 +92,7 @@ func main() {
 	}
 
 	srv.SetUserAuthorizationHandler(apiWrapper.UserAuthorizeHandler)
+	srv.SetClientInfoHandler(api.ClientFormHandler)
 
 	srv.SetInternalErrorHandler(func(err error) (re *errors.Response) {
 		log.Infof("Internal Error: %v", err.Error())
@@ -133,9 +134,6 @@ func main() {
 		})
 
 		r.Handle("/token", middleware.JsonToFormMiddleware(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			log.Info("-----------")
-			log.Infof(r.FormValue("grant_type"))
-
 			gt, tgr, err := srv.ValidationTokenRequest(r)
 			if err != nil {
 				data, statusCode, header := srv.GetErrorData(err)
