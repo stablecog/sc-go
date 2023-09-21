@@ -39,7 +39,7 @@ func (a *ApiWrapper) UserAuthorizeHandler(w http.ResponseWriter, r *http.Request
 	log.Infof("redirect uri %s", redirectURI)
 
 	// Generate secure auth code
-	code, err := secure.GenerateAuthCode(32)
+	code, err := secure.GenerateAuthCode(64)
 	if err != nil {
 		log.Errorf("Error generating auth code: %v", err.Error())
 		w.WriteHeader(http.StatusInternalServerError)
