@@ -14,7 +14,7 @@ import (
 
 type ApproveAuthorizationRequest struct {
 	// The authorization code
-	Code string `json:"code"`
+	Code string `json:"app_code"`
 }
 
 type ApproveAuthorizationResponse struct {
