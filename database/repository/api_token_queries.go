@@ -20,7 +20,7 @@ func (r *Repository) GetTokensByUserID(userID uuid.UUID, activeOnly bool) ([]*en
 }
 
 func (r *Repository) GetTokenCountByUserID(userID uuid.UUID) (int, error) {
-	return r.DB.ApiToken.Query().Where(apitoken.UserIDEQ(userID), apitoken.IsActive(true)).Count(r.Ctx)
+	return r.DB.ApiToken.Query().Where(apitoken.UserIDEQ(userID), apitoken.IsActive(true), apitoken.AuthClientIDIsNil()).Count(r.Ctx)
 }
 
 func (r *Repository) GetTokenByHashedToken(hashedToken string) (*ent.ApiToken, error) {
