@@ -36,6 +36,27 @@ func (r *Repository) NewAPIToken(userId uuid.UUID, name string) (dbToken *ent.Ap
 	return dbToken, token, nil
 }
 
+func (r *Repository) NewAPITokenForAuthClient(userId uuid.UUID, authClient *ent.AuthClient) (dbToken *ent.ApiToken, token string, err error) {
+	// Create a new random 64 character token
+	token, err = utils.GenerateRandomHex(nil, 32)
+	if err != nil {
+		return nil, "", err
+	}
+
+	// Set prefix
+	token = fmt.Sprintf("%s%s", shared.API_TOKEN_PREFIX, token)
+
+	// Get token short string as 3...3
+	tokenShortString := fmt.Sprintf("%s...%s", token[0:3], token[len(token)-4:])
+
+	// Create in DB
+	dbToken, err = r.DB.ApiToken.Create().SetHashedToken(utils.Sha256(token)).SetUserID(userId).SetName(authClient.Name).SetAuthClientID(authClient.ID).SetShortString(tokenShortString).SetIsActive(true).SetUses(0).Save(r.Ctx)
+	if err != nil {
+		return nil, "", err
+	}
+	return dbToken, token, nil
+}
+
 func (r *Repository) SetTokenUsedAndIncrementCreditsSpent(creditsSpent int, tokenId uuid.UUID) error {
 	return r.DB.ApiToken.Update().Where(apitoken.IDEQ(tokenId)).AddUses(1).AddCreditsSpent(creditsSpent).SetLastUsedAt(time.Now()).Exec(r.Ctx)
 }

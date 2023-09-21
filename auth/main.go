@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
@@ -18,6 +19,7 @@ import (
 	"github.com/stablecog/sc-go/auth/api"
 	"github.com/stablecog/sc-go/auth/store"
 	"github.com/stablecog/sc-go/database"
+	"github.com/stablecog/sc-go/database/repository"
 	"github.com/stablecog/sc-go/log"
 	"github.com/stablecog/sc-go/server/middleware"
 	"github.com/stablecog/sc-go/utils"
@@ -51,6 +53,17 @@ func main() {
 	}
 	defer entClient.Close()
 
+	ctx := context.Background()
+	redisStore := store.NewRedisStore(ctx)
+
+	// Create repository (database access)
+	repo := &repository.Repository{
+		DB:       entClient,
+		ConnInfo: dbconn,
+		Redis:    redisStore.RedisClient,
+		Ctx:      ctx,
+	}
+
 	pgxConn, _ := pgx.Connect(context.TODO(), dbconn.DSN())
 
 	manager := manage.NewDefaultManager()
@@ -64,18 +77,18 @@ func main() {
 
 	manager.MapTokenStorage(tokenStore)
 	manager.MapClientStorage(clientStore)
+	// manager.MapAccessGenerate()
 
 	cfg := server.NewConfig()
 	cfg.ForcePKCE = true
 	srv := server.NewServer(cfg, manager)
 
-	ctx := context.Background()
-	redisStore := store.NewRedisStore(ctx)
 	apiWrapper := &api.ApiWrapper{
 		RedisStore:   redisStore,
 		SupabaseAuth: database.NewSupabaseAuth(),
 		AesCrypt:     utils.NewAesCrypt(os.Getenv("DATA_ENCRYPTION_PASSWORD")),
 		DB:           entClient,
+		Repo:         repo,
 	}
 
 	srv.SetUserAuthorizationHandler(apiWrapper.UserAuthorizeHandler)
@@ -123,7 +136,46 @@ func main() {
 			log.Info("-----------")
 			log.Infof(r.FormValue("grant_type"))
 
-			srv.HandleTokenRequest(w, r)
+			gt, tgr, err := srv.ValidationTokenRequest(r)
+			if err != nil {
+				data, statusCode, header := srv.GetErrorData(err)
+				w.Header().Set("Content-Type", "application/json;charset=UTF-8")
+				w.Header().Set("Cache-Control", "no-store")
+				w.Header().Set("Pragma", "no-cache")
+
+				for key := range header {
+					w.Header().Set(key, header.Get(key))
+				}
+
+				w.WriteHeader(statusCode)
+				json.NewEncoder(w).Encode(data)
+				return
+			}
+
+			// Get access token
+			ti, err := apiWrapper.GetAccessToken(ctx, srv, gt, tgr)
+			if err != nil {
+				data, statusCode, header := srv.GetErrorData(err)
+				w.Header().Set("Content-Type", "application/json;charset=UTF-8")
+				w.Header().Set("Cache-Control", "no-store")
+				w.Header().Set("Pragma", "no-cache")
+
+				for key := range header {
+					w.Header().Set(key, header.Get(key))
+				}
+
+				w.WriteHeader(statusCode)
+				json.NewEncoder(w).Encode(data)
+				return
+			}
+
+			w.Header().Set("Content-Type", "application/json;charset=UTF-8")
+			w.Header().Set("Cache-Control", "no-store")
+			w.Header().Set("Pragma", "no-cache")
+
+			w.WriteHeader(http.StatusOK)
+			json.NewEncoder(w).Encode(srv.GetTokenData(ti))
+			return
 		})))
 
 		r.Post("/approve", apiWrapper.ApproveAuthorization)

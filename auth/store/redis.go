@@ -67,3 +67,13 @@ func (s *RedisStore) ClearAuthRequestFromCache(code string) error {
 func (s *RedisStore) StoreAuthApproval(code string, encryptedUserID string) error {
 	return s.RedisClient.Client.Set(s.Ctx, fmt.Sprintf("approval_%s", code), encryptedUserID, 10*time.Minute).Err()
 }
+
+// Get auth approval
+func (s *RedisStore) GetAuthApproval(code string) (string, error) {
+	return s.RedisClient.Client.Get(s.Ctx, fmt.Sprintf("approval_%s", code)).Result()
+}
+
+// Clear auth approval
+func (s *RedisStore) ClearAuthApproval(code string) error {
+	return s.RedisClient.Client.Del(s.Ctx, fmt.Sprintf("approval_%s", code)).Err()
+}

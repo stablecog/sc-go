@@ -13,7 +13,8 @@ import (
 func (a *ApiWrapper) UserAuthorizeHandler(w http.ResponseWriter, r *http.Request) (userID string, err error) {
 	// Verify client id
 	clientId := r.FormValue("client_id")
-	if store.GetCache().IsValidClientID(clientId) != nil {
+	_, err = store.GetCache().IsValidClientID(clientId)
+	if err != nil {
 		log.Infof("invalid client id")
 		w.WriteHeader(http.StatusBadRequest)
 		return

@@ -45,17 +45,17 @@ func (f *Cache) AuthClients() []*ent.AuthClient {
 	return f.authClients
 }
 
-func (f *Cache) IsValidClientID(clientId string) error {
+func (f *Cache) IsValidClientID(clientId string) (*ent.AuthClient, error) {
 	uuidParsed, err := uuid.Parse(clientId)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	f.RLock()
 	defer f.RUnlock()
 	for _, client := range f.authClients {
 		if client.ID == uuidParsed {
-			return nil
+			return client, nil
 		}
 	}
-	return fmt.Errorf("not_found")
+	return nil, fmt.Errorf("not_found")
 }
