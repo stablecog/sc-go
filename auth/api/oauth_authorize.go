@@ -62,7 +62,7 @@ func (a *ApiWrapper) UserAuthorizeHandler(w http.ResponseWriter, r *http.Request
 	}
 
 	// add query params to redirect uri
-	redirectLocation, err := utils.AddQueryParam(os.Getenv("OAUTH_REDIRECT_BASE"), utils.QueryParam{Key: "app_code", Value: code}, utils.QueryParam{Key: "app_id", Value: "raycast"})
+	redirectLocation, err := utils.AddQueryParam(os.Getenv("OAUTH_REDIRECT_BASE"), utils.QueryParam{Key: "app_code", Value: code}, utils.QueryParam{Key: "app_id", Value: clientId})
 	if err != nil {
 		log.Errorf("Error adding query params to redirect uri: %v", err.Error())
 		w.WriteHeader(http.StatusInternalServerError)
