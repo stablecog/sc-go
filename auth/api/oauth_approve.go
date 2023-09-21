@@ -8,6 +8,7 @@ import (
 
 	"github.com/go-chi/render"
 	"github.com/redis/go-redis/v9"
+	"github.com/stablecog/sc-go/log"
 	"github.com/stablecog/sc-go/server/responses"
 	"github.com/stablecog/sc-go/utils"
 )
@@ -38,6 +39,7 @@ func (a *ApiWrapper) ApproveAuthorization(w http.ResponseWriter, r *http.Request
 		responses.ErrInternalServerError(w, r, "An unknown error has occured")
 		return
 	} else if err == redis.Nil {
+		log.Error("Invalid auth code", "code", approveReq.Code)
 		responses.ErrUnauthorized(w, r)
 		return
 	}
@@ -54,6 +56,7 @@ func (a *ApiWrapper) ApproveAuthorization(w http.ResponseWriter, r *http.Request
 	// Verify token
 	tr, err := a.SupabaseAuth.LoginWithRefreshToken(refreshToken)
 	if err != nil {
+		log.Errorf("Error logging into supabase %v", err)
 		responses.ErrUnauthorized(w, r)
 		return
 	}
