@@ -69,15 +69,15 @@ jobs:
           cache-dependency-path: |
             **/go.sum
 
+      - name: Build GO auth API Binary
+        run: |
+          cd auth && go build -ldflags "-s -w -X main.Version=${{ needs.setup_env.outputs.short_sha }}" -o authapi && cd ..
+
       - name: Login to registry
         uses: docker/login-action@v2
         with:
           username: ${{ secrets.DOCKER_USER }}
           password: ${{ secrets.DOCKER_PASSWORD }}
-
-      - name: Build GO auth API Binary
-        run: |
-          cd auth && go build -ldflags "-s -w -X main.Version=${{ needs.setup_env.outputs.short_sha }}" -o authapi && cd ..
 
       - name: Build and push image
         if: success()

@@ -129,12 +129,6 @@ jobs:
           cache-dependency-path: |
             **/go.sum
 
-      - name: Login to registry
-        uses: docker/login-action@v2
-        with:
-          username: ${{ secrets.DOCKER_USER }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
-
       - name: Build GO Server Binary
         run: |
           cd server && go build -ldflags "-s -w -X main.Version=${{ needs.setup_env.outputs.short_sha }} -X \"main.CommitMsg=${{ needs.setup_env.outputs.commit_msg }}\" -X main.BuildStart=${{ env.BUILD_START }}" -o server && cd ..
@@ -154,6 +148,12 @@ jobs:
       - name: Build GO Discord Bot Binary
         run: |
           cd discobot && go build -ldflags "-s -w -X main.Version=${{ needs.setup_env.outputs.short_sha }}" -o discobot && cd ..
+
+      - name: Login to registry
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKER_USER }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
 
       - name: Build and push image
         if: success()

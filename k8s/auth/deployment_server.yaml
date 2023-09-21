@@ -44,4 +44,4 @@ spec:
             - name: PRODUCTION
               value: "true"
             - name: OAUTH_REDIRECT_BASE
-              value: https://stablecog.com/account/oauth/authorize
+              value: https://stablecog.com/account/apps/authorize
