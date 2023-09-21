@@ -21,6 +21,7 @@ var (
 		{Name: "last_used_at", Type: field.TypeTime, Nullable: true},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "auth_client_id", Type: field.TypeUUID, Nullable: true},
 		{Name: "user_id", Type: field.TypeUUID},
 	}
 	// APITokensTable holds the schema information for the "api_tokens" table.
@@ -30,12 +31,31 @@ var (
 		PrimaryKey: []*schema.Column{APITokensColumns[0]},
 		ForeignKeys: []*schema.ForeignKey{
 			{
-				Symbol:     "api_tokens_users_api_tokens",
+				Symbol:     "api_tokens_auth_clients_api_tokens",
 				Columns:    []*schema.Column{APITokensColumns[10]},
+				RefColumns: []*schema.Column{AuthClientsColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+			{
+				Symbol:     "api_tokens_users_api_tokens",
+				Columns:    []*schema.Column{APITokensColumns[11]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.Cascade,
 			},
 		},
+	}
+	// AuthClientsColumns holds the columns for the "auth_clients" table.
+	AuthClientsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID},
+		{Name: "name", Type: field.TypeString, Size: 2147483647},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+	}
+	// AuthClientsTable holds the schema information for the "auth_clients" table.
+	AuthClientsTable = &schema.Table{
+		Name:       "auth_clients",
+		Columns:    AuthClientsColumns,
+		PrimaryKey: []*schema.Column{AuthClientsColumns[0]},
 	}
 	// BannedWordsColumns holds the columns for the "banned_words" table.
 	BannedWordsColumns = []*schema.Column{
@@ -786,6 +806,7 @@ var (
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
 		APITokensTable,
+		AuthClientsTable,
 		BannedWordsTable,
 		CreditsTable,
 		CreditTypesTable,
@@ -814,9 +835,13 @@ var (
 )
 
 func init() {
-	APITokensTable.ForeignKeys[0].RefTable = UsersTable
+	APITokensTable.ForeignKeys[0].RefTable = AuthClientsTable
+	APITokensTable.ForeignKeys[1].RefTable = UsersTable
 	APITokensTable.Annotation = &entsql.Annotation{
 		Table: "api_tokens",
+	}
+	AuthClientsTable.Annotation = &entsql.Annotation{
+		Table: "auth_clients",
 	}
 	BannedWordsTable.Annotation = &entsql.Annotation{
 		Table: "banned_words",

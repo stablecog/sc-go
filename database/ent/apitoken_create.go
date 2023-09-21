@@ -14,6 +14,7 @@ import (
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
 	"github.com/stablecog/sc-go/database/ent/apitoken"
+	"github.com/stablecog/sc-go/database/ent/authclient"
 	"github.com/stablecog/sc-go/database/ent/generation"
 	"github.com/stablecog/sc-go/database/ent/upscale"
 	"github.com/stablecog/sc-go/database/ent/user"
@@ -91,6 +92,20 @@ func (atc *ApiTokenCreate) SetNillableCreditsSpent(i *int) *ApiTokenCreate {
 // SetUserID sets the "user_id" field.
 func (atc *ApiTokenCreate) SetUserID(u uuid.UUID) *ApiTokenCreate {
 	atc.mutation.SetUserID(u)
+	return atc
+}
+
+// SetAuthClientID sets the "auth_client_id" field.
+func (atc *ApiTokenCreate) SetAuthClientID(u uuid.UUID) *ApiTokenCreate {
+	atc.mutation.SetAuthClientID(u)
+	return atc
+}
+
+// SetNillableAuthClientID sets the "auth_client_id" field if the given value is not nil.
+func (atc *ApiTokenCreate) SetNillableAuthClientID(u *uuid.UUID) *ApiTokenCreate {
+	if u != nil {
+		atc.SetAuthClientID(*u)
+	}
 	return atc
 }
 
@@ -198,6 +213,25 @@ func (atc *ApiTokenCreate) AddVoiceovers(v ...*Voiceover) *ApiTokenCreate {
 		ids[i] = v[i].ID
 	}
 	return atc.AddVoiceoverIDs(ids...)
+}
+
+// SetAuthClientsID sets the "auth_clients" edge to the AuthClient entity by ID.
+func (atc *ApiTokenCreate) SetAuthClientsID(id uuid.UUID) *ApiTokenCreate {
+	atc.mutation.SetAuthClientsID(id)
+	return atc
+}
+
+// SetNillableAuthClientsID sets the "auth_clients" edge to the AuthClient entity by ID if the given value is not nil.
+func (atc *ApiTokenCreate) SetNillableAuthClientsID(id *uuid.UUID) *ApiTokenCreate {
+	if id != nil {
+		atc = atc.SetAuthClientsID(*id)
+	}
+	return atc
+}
+
+// SetAuthClients sets the "auth_clients" edge to the AuthClient entity.
+func (atc *ApiTokenCreate) SetAuthClients(a *AuthClient) *ApiTokenCreate {
+	return atc.SetAuthClientsID(a.ID)
 }
 
 // Mutation returns the ApiTokenMutation object of the builder.
@@ -448,6 +482,26 @@ func (atc *ApiTokenCreate) createSpec() (*ApiToken, *sqlgraph.CreateSpec) {
 		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
+	if nodes := atc.mutation.AuthClientsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   apitoken.AuthClientsTable,
+			Columns: []string{apitoken.AuthClientsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: authclient.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.AuthClientID = &nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
 	return _node, _spec
 }
 
@@ -593,6 +647,24 @@ func (u *ApiTokenUpsert) SetUserID(v uuid.UUID) *ApiTokenUpsert {
 // UpdateUserID sets the "user_id" field to the value that was provided on create.
 func (u *ApiTokenUpsert) UpdateUserID() *ApiTokenUpsert {
 	u.SetExcluded(apitoken.FieldUserID)
+	return u
+}
+
+// SetAuthClientID sets the "auth_client_id" field.
+func (u *ApiTokenUpsert) SetAuthClientID(v uuid.UUID) *ApiTokenUpsert {
+	u.Set(apitoken.FieldAuthClientID, v)
+	return u
+}
+
+// UpdateAuthClientID sets the "auth_client_id" field to the value that was provided on create.
+func (u *ApiTokenUpsert) UpdateAuthClientID() *ApiTokenUpsert {
+	u.SetExcluded(apitoken.FieldAuthClientID)
+	return u
+}
+
+// ClearAuthClientID clears the value of the "auth_client_id" field.
+func (u *ApiTokenUpsert) ClearAuthClientID() *ApiTokenUpsert {
+	u.SetNull(apitoken.FieldAuthClientID)
 	return u
 }
 
@@ -786,6 +858,27 @@ func (u *ApiTokenUpsertOne) SetUserID(v uuid.UUID) *ApiTokenUpsertOne {
 func (u *ApiTokenUpsertOne) UpdateUserID() *ApiTokenUpsertOne {
 	return u.Update(func(s *ApiTokenUpsert) {
 		s.UpdateUserID()
+	})
+}
+
+// SetAuthClientID sets the "auth_client_id" field.
+func (u *ApiTokenUpsertOne) SetAuthClientID(v uuid.UUID) *ApiTokenUpsertOne {
+	return u.Update(func(s *ApiTokenUpsert) {
+		s.SetAuthClientID(v)
+	})
+}
+
+// UpdateAuthClientID sets the "auth_client_id" field to the value that was provided on create.
+func (u *ApiTokenUpsertOne) UpdateAuthClientID() *ApiTokenUpsertOne {
+	return u.Update(func(s *ApiTokenUpsert) {
+		s.UpdateAuthClientID()
+	})
+}
+
+// ClearAuthClientID clears the value of the "auth_client_id" field.
+func (u *ApiTokenUpsertOne) ClearAuthClientID() *ApiTokenUpsertOne {
+	return u.Update(func(s *ApiTokenUpsert) {
+		s.ClearAuthClientID()
 	})
 }
 
@@ -1147,6 +1240,27 @@ func (u *ApiTokenUpsertBulk) SetUserID(v uuid.UUID) *ApiTokenUpsertBulk {
 func (u *ApiTokenUpsertBulk) UpdateUserID() *ApiTokenUpsertBulk {
 	return u.Update(func(s *ApiTokenUpsert) {
 		s.UpdateUserID()
+	})
+}
+
+// SetAuthClientID sets the "auth_client_id" field.
+func (u *ApiTokenUpsertBulk) SetAuthClientID(v uuid.UUID) *ApiTokenUpsertBulk {
+	return u.Update(func(s *ApiTokenUpsert) {
+		s.SetAuthClientID(v)
+	})
+}
+
+// UpdateAuthClientID sets the "auth_client_id" field to the value that was provided on create.
+func (u *ApiTokenUpsertBulk) UpdateAuthClientID() *ApiTokenUpsertBulk {
+	return u.Update(func(s *ApiTokenUpsert) {
+		s.UpdateAuthClientID()
+	})
+}
+
+// ClearAuthClientID clears the value of the "auth_client_id" field.
+func (u *ApiTokenUpsertBulk) ClearAuthClientID() *ApiTokenUpsertBulk {
+	return u.Update(func(s *ApiTokenUpsert) {
+		s.ClearAuthClientID()
 	})
 }
 

@@ -12,6 +12,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/cors"
 	"github.com/go-chi/render"
+	"github.com/go-co-op/gocron"
 	"github.com/jackc/pgx/v4"
 	"github.com/joho/godotenv"
 	"github.com/stablecog/sc-go/auth/api"
@@ -43,6 +44,13 @@ func main() {
 		os.Exit(1)
 	}
 
+	entClient, err := database.NewEntClient(dbconn)
+	if err != nil {
+		log.Fatal("Failed to create ent client", "err", err)
+		os.Exit(1)
+	}
+	defer entClient.Close()
+
 	pgxConn, _ := pgx.Connect(context.TODO(), dbconn.DSN())
 
 	manager := manage.NewDefaultManager()
@@ -67,6 +75,7 @@ func main() {
 		RedisStore:   redisStore,
 		SupabaseAuth: database.NewSupabaseAuth(),
 		AesCrypt:     utils.NewAesCrypt(os.Getenv("DATA_ENCRYPTION_PASSWORD")),
+		DB:           entClient,
 	}
 
 	srv.SetUserAuthorizationHandler(apiWrapper.UserAuthorizeHandler)
@@ -118,6 +127,27 @@ func main() {
 
 		r.Post("/approve", apiWrapper.ApproveAuthorization)
 	})
+
+	// Cron auth client update
+	clients, err := entClient.AuthClient.Query().All(ctx)
+	if err != nil {
+		log.Fatal("Error querying clients", "err", err)
+		return
+	}
+	store.GetCache().UpdateAuthClients(clients)
+
+	s := gocron.NewScheduler(time.UTC)
+	const cacheIntervalSec = 300
+	s.Every(cacheIntervalSec).Seconds().StartAt(time.Now().Add(cacheIntervalSec * time.Second)).Do(func() {
+		log.Info("📦 Updating cache...")
+		clients, err := entClient.AuthClient.Query().All(ctx)
+		if err != nil {
+			log.Error("Error querying clients", "err", err)
+			return
+		}
+		store.GetCache().UpdateAuthClients(clients)
+	})
+	s.StartAsync()
 
 	// Start server
 	port := utils.GetEnv("PORT", "9096")

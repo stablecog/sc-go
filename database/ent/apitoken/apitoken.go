@@ -27,6 +27,8 @@ const (
 	FieldCreditsSpent = "credits_spent"
 	// FieldUserID holds the string denoting the user_id field in the database.
 	FieldUserID = "user_id"
+	// FieldAuthClientID holds the string denoting the auth_client_id field in the database.
+	FieldAuthClientID = "auth_client_id"
 	// FieldLastUsedAt holds the string denoting the last_used_at field in the database.
 	FieldLastUsedAt = "last_used_at"
 	// FieldCreatedAt holds the string denoting the created_at field in the database.
@@ -41,6 +43,8 @@ const (
 	EdgeUpscales = "upscales"
 	// EdgeVoiceovers holds the string denoting the voiceovers edge name in mutations.
 	EdgeVoiceovers = "voiceovers"
+	// EdgeAuthClients holds the string denoting the auth_clients edge name in mutations.
+	EdgeAuthClients = "auth_clients"
 	// Table holds the table name of the apitoken in the database.
 	Table = "api_tokens"
 	// UserTable is the table that holds the user relation/edge.
@@ -71,6 +75,13 @@ const (
 	VoiceoversInverseTable = "voiceovers"
 	// VoiceoversColumn is the table column denoting the voiceovers relation/edge.
 	VoiceoversColumn = "api_token_id"
+	// AuthClientsTable is the table that holds the auth_clients relation/edge.
+	AuthClientsTable = "api_tokens"
+	// AuthClientsInverseTable is the table name for the AuthClient entity.
+	// It exists in this package in order to avoid circular dependency with the "authclient" package.
+	AuthClientsInverseTable = "auth_clients"
+	// AuthClientsColumn is the table column denoting the auth_clients relation/edge.
+	AuthClientsColumn = "auth_client_id"
 )
 
 // Columns holds all SQL columns for apitoken fields.
@@ -83,6 +94,7 @@ var Columns = []string{
 	FieldUses,
 	FieldCreditsSpent,
 	FieldUserID,
+	FieldAuthClientID,
 	FieldLastUsedAt,
 	FieldCreatedAt,
 	FieldUpdatedAt,

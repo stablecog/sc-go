@@ -7,6 +7,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/stablecog/sc-go/database/ent/apitoken"
+	"github.com/stablecog/sc-go/database/ent/authclient"
 	"github.com/stablecog/sc-go/database/ent/bannedwords"
 	"github.com/stablecog/sc-go/database/ent/credit"
 	"github.com/stablecog/sc-go/database/ent/credittype"
@@ -51,11 +52,11 @@ func init() {
 	// apitoken.DefaultCreditsSpent holds the default value on creation for the credits_spent field.
 	apitoken.DefaultCreditsSpent = apitokenDescCreditsSpent.Default.(int)
 	// apitokenDescCreatedAt is the schema descriptor for created_at field.
-	apitokenDescCreatedAt := apitokenFields[9].Descriptor()
+	apitokenDescCreatedAt := apitokenFields[10].Descriptor()
 	// apitoken.DefaultCreatedAt holds the default value on creation for the created_at field.
 	apitoken.DefaultCreatedAt = apitokenDescCreatedAt.Default.(func() time.Time)
 	// apitokenDescUpdatedAt is the schema descriptor for updated_at field.
-	apitokenDescUpdatedAt := apitokenFields[10].Descriptor()
+	apitokenDescUpdatedAt := apitokenFields[11].Descriptor()
 	// apitoken.DefaultUpdatedAt holds the default value on creation for the updated_at field.
 	apitoken.DefaultUpdatedAt = apitokenDescUpdatedAt.Default.(func() time.Time)
 	// apitoken.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
@@ -64,6 +65,22 @@ func init() {
 	apitokenDescID := apitokenFields[0].Descriptor()
 	// apitoken.DefaultID holds the default value on creation for the id field.
 	apitoken.DefaultID = apitokenDescID.Default.(func() uuid.UUID)
+	authclientFields := schema.AuthClient{}.Fields()
+	_ = authclientFields
+	// authclientDescCreatedAt is the schema descriptor for created_at field.
+	authclientDescCreatedAt := authclientFields[2].Descriptor()
+	// authclient.DefaultCreatedAt holds the default value on creation for the created_at field.
+	authclient.DefaultCreatedAt = authclientDescCreatedAt.Default.(func() time.Time)
+	// authclientDescUpdatedAt is the schema descriptor for updated_at field.
+	authclientDescUpdatedAt := authclientFields[3].Descriptor()
+	// authclient.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	authclient.DefaultUpdatedAt = authclientDescUpdatedAt.Default.(func() time.Time)
+	// authclient.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	authclient.UpdateDefaultUpdatedAt = authclientDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// authclientDescID is the schema descriptor for id field.
+	authclientDescID := authclientFields[0].Descriptor()
+	// authclient.DefaultID holds the default value on creation for the id field.
+	authclient.DefaultID = authclientDescID.Default.(func() uuid.UUID)
 	bannedwordsFields := schema.BannedWords{}.Fields()
 	_ = bannedwordsFields
 	// bannedwordsDescSplitMatch is the schema descriptor for split_match field.

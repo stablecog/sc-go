@@ -13,6 +13,7 @@ import (
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
 	"github.com/stablecog/sc-go/database/ent/apitoken"
+	"github.com/stablecog/sc-go/database/ent/authclient"
 	"github.com/stablecog/sc-go/database/ent/generation"
 	"github.com/stablecog/sc-go/database/ent/predicate"
 	"github.com/stablecog/sc-go/database/ent/upscale"
@@ -31,6 +32,7 @@ type ApiTokenQuery struct {
 	withGenerations *GenerationQuery
 	withUpscales    *UpscaleQuery
 	withVoiceovers  *VoiceoverQuery
+	withAuthClients *AuthClientQuery
 	modifiers       []func(*sql.Selector)
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
@@ -149,6 +151,28 @@ func (atq *ApiTokenQuery) QueryVoiceovers() *VoiceoverQuery {
 			sqlgraph.From(apitoken.Table, apitoken.FieldID, selector),
 			sqlgraph.To(voiceover.Table, voiceover.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, apitoken.VoiceoversTable, apitoken.VoiceoversColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(atq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryAuthClients chains the current query on the "auth_clients" edge.
+func (atq *ApiTokenQuery) QueryAuthClients() *AuthClientQuery {
+	query := (&AuthClientClient{config: atq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := atq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := atq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(apitoken.Table, apitoken.FieldID, selector),
+			sqlgraph.To(authclient.Table, authclient.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, apitoken.AuthClientsTable, apitoken.AuthClientsColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(atq.driver.Dialect(), step)
 		return fromU, nil
@@ -350,6 +374,7 @@ func (atq *ApiTokenQuery) Clone() *ApiTokenQuery {
 		withGenerations: atq.withGenerations.Clone(),
 		withUpscales:    atq.withUpscales.Clone(),
 		withVoiceovers:  atq.withVoiceovers.Clone(),
+		withAuthClients: atq.withAuthClients.Clone(),
 		// clone intermediate query.
 		sql:  atq.sql.Clone(),
 		path: atq.path,
@@ -397,6 +422,17 @@ func (atq *ApiTokenQuery) WithVoiceovers(opts ...func(*VoiceoverQuery)) *ApiToke
 		opt(query)
 	}
 	atq.withVoiceovers = query
+	return atq
+}
+
+// WithAuthClients tells the query-builder to eager-load the nodes that are connected to
+// the "auth_clients" edge. The optional arguments are used to configure the query builder of the edge.
+func (atq *ApiTokenQuery) WithAuthClients(opts ...func(*AuthClientQuery)) *ApiTokenQuery {
+	query := (&AuthClientClient{config: atq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	atq.withAuthClients = query
 	return atq
 }
 
@@ -478,11 +514,12 @@ func (atq *ApiTokenQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Ap
 	var (
 		nodes       = []*ApiToken{}
 		_spec       = atq.querySpec()
-		loadedTypes = [4]bool{
+		loadedTypes = [5]bool{
 			atq.withUser != nil,
 			atq.withGenerations != nil,
 			atq.withUpscales != nil,
 			atq.withVoiceovers != nil,
+			atq.withAuthClients != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -530,6 +567,12 @@ func (atq *ApiTokenQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Ap
 		if err := atq.loadVoiceovers(ctx, query, nodes,
 			func(n *ApiToken) { n.Edges.Voiceovers = []*Voiceover{} },
 			func(n *ApiToken, e *Voiceover) { n.Edges.Voiceovers = append(n.Edges.Voiceovers, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := atq.withAuthClients; query != nil {
+		if err := atq.loadAuthClients(ctx, query, nodes, nil,
+			func(n *ApiToken, e *AuthClient) { n.Edges.AuthClients = e }); err != nil {
 			return nil, err
 		}
 	}
@@ -652,6 +695,38 @@ func (atq *ApiTokenQuery) loadVoiceovers(ctx context.Context, query *VoiceoverQu
 			return fmt.Errorf(`unexpected foreign-key "api_token_id" returned %v for node %v`, *fk, n.ID)
 		}
 		assign(node, n)
+	}
+	return nil
+}
+func (atq *ApiTokenQuery) loadAuthClients(ctx context.Context, query *AuthClientQuery, nodes []*ApiToken, init func(*ApiToken), assign func(*ApiToken, *AuthClient)) error {
+	ids := make([]uuid.UUID, 0, len(nodes))
+	nodeids := make(map[uuid.UUID][]*ApiToken)
+	for i := range nodes {
+		if nodes[i].AuthClientID == nil {
+			continue
+		}
+		fk := *nodes[i].AuthClientID
+		if _, ok := nodeids[fk]; !ok {
+			ids = append(ids, fk)
+		}
+		nodeids[fk] = append(nodeids[fk], nodes[i])
+	}
+	if len(ids) == 0 {
+		return nil
+	}
+	query.Where(authclient.IDIn(ids...))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nodeids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "auth_client_id" returned %v`, n.ID)
+		}
+		for i := range nodes {
+			assign(nodes[i], n)
+		}
 	}
 	return nil
 }

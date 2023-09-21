@@ -3,6 +3,7 @@ package store
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"log"
 	"os"
 	"time"
@@ -63,6 +64,6 @@ func (s *RedisStore) ClearAuthRequestFromCache(code string) error {
 }
 
 // Store access tokens
-func (s *RedisStore) StoreAccessToken(code string, encryptedRefreshToken string) error {
-	return s.RedisClient.Client.Set(s.Ctx, code, encryptedRefreshToken, 10*time.Minute).Err()
+func (s *RedisStore) StoreAuthApproval(code string, encryptedUserID string) error {
+	return s.RedisClient.Client.Set(s.Ctx, fmt.Sprintf("approval_%s", code), encryptedUserID, 10*time.Minute).Err()
 }

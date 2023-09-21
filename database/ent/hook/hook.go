@@ -21,6 +21,18 @@ func (f ApiTokenFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, er
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.ApiTokenMutation", m)
 }
 
+// The AuthClientFunc type is an adapter to allow the use of ordinary
+// function as AuthClient mutator.
+type AuthClientFunc func(context.Context, *ent.AuthClientMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f AuthClientFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.AuthClientMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.AuthClientMutation", m)
+}
+
 // The BannedWordsFunc type is an adapter to allow the use of ordinary
 // function as BannedWords mutator.
 type BannedWordsFunc func(context.Context, *ent.BannedWordsMutation) (ent.Value, error)

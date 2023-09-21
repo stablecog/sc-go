@@ -13,6 +13,7 @@ import (
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
 	"github.com/stablecog/sc-go/database/ent/apitoken"
+	"github.com/stablecog/sc-go/database/ent/authclient"
 	"github.com/stablecog/sc-go/database/ent/generation"
 	"github.com/stablecog/sc-go/database/ent/predicate"
 	"github.com/stablecog/sc-go/database/ent/upscale"
@@ -114,6 +115,26 @@ func (atu *ApiTokenUpdate) SetUserID(u uuid.UUID) *ApiTokenUpdate {
 	return atu
 }
 
+// SetAuthClientID sets the "auth_client_id" field.
+func (atu *ApiTokenUpdate) SetAuthClientID(u uuid.UUID) *ApiTokenUpdate {
+	atu.mutation.SetAuthClientID(u)
+	return atu
+}
+
+// SetNillableAuthClientID sets the "auth_client_id" field if the given value is not nil.
+func (atu *ApiTokenUpdate) SetNillableAuthClientID(u *uuid.UUID) *ApiTokenUpdate {
+	if u != nil {
+		atu.SetAuthClientID(*u)
+	}
+	return atu
+}
+
+// ClearAuthClientID clears the value of the "auth_client_id" field.
+func (atu *ApiTokenUpdate) ClearAuthClientID() *ApiTokenUpdate {
+	atu.mutation.ClearAuthClientID()
+	return atu
+}
+
 // SetLastUsedAt sets the "last_used_at" field.
 func (atu *ApiTokenUpdate) SetLastUsedAt(t time.Time) *ApiTokenUpdate {
 	atu.mutation.SetLastUsedAt(t)
@@ -190,6 +211,25 @@ func (atu *ApiTokenUpdate) AddVoiceovers(v ...*Voiceover) *ApiTokenUpdate {
 	return atu.AddVoiceoverIDs(ids...)
 }
 
+// SetAuthClientsID sets the "auth_clients" edge to the AuthClient entity by ID.
+func (atu *ApiTokenUpdate) SetAuthClientsID(id uuid.UUID) *ApiTokenUpdate {
+	atu.mutation.SetAuthClientsID(id)
+	return atu
+}
+
+// SetNillableAuthClientsID sets the "auth_clients" edge to the AuthClient entity by ID if the given value is not nil.
+func (atu *ApiTokenUpdate) SetNillableAuthClientsID(id *uuid.UUID) *ApiTokenUpdate {
+	if id != nil {
+		atu = atu.SetAuthClientsID(*id)
+	}
+	return atu
+}
+
+// SetAuthClients sets the "auth_clients" edge to the AuthClient entity.
+func (atu *ApiTokenUpdate) SetAuthClients(a *AuthClient) *ApiTokenUpdate {
+	return atu.SetAuthClientsID(a.ID)
+}
+
 // Mutation returns the ApiTokenMutation object of the builder.
 func (atu *ApiTokenUpdate) Mutation() *ApiTokenMutation {
 	return atu.mutation
@@ -262,6 +302,12 @@ func (atu *ApiTokenUpdate) RemoveVoiceovers(v ...*Voiceover) *ApiTokenUpdate {
 		ids[i] = v[i].ID
 	}
 	return atu.RemoveVoiceoverIDs(ids...)
+}
+
+// ClearAuthClients clears the "auth_clients" edge to the AuthClient entity.
+func (atu *ApiTokenUpdate) ClearAuthClients() *ApiTokenUpdate {
+	atu.mutation.ClearAuthClients()
+	return atu
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -565,6 +611,41 @@ func (atu *ApiTokenUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if atu.mutation.AuthClientsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   apitoken.AuthClientsTable,
+			Columns: []string{apitoken.AuthClientsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: authclient.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := atu.mutation.AuthClientsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   apitoken.AuthClientsTable,
+			Columns: []string{apitoken.AuthClientsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: authclient.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	_spec.AddModifiers(atu.modifiers...)
 	if n, err = sqlgraph.UpdateNodes(ctx, atu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
@@ -667,6 +748,26 @@ func (atuo *ApiTokenUpdateOne) SetUserID(u uuid.UUID) *ApiTokenUpdateOne {
 	return atuo
 }
 
+// SetAuthClientID sets the "auth_client_id" field.
+func (atuo *ApiTokenUpdateOne) SetAuthClientID(u uuid.UUID) *ApiTokenUpdateOne {
+	atuo.mutation.SetAuthClientID(u)
+	return atuo
+}
+
+// SetNillableAuthClientID sets the "auth_client_id" field if the given value is not nil.
+func (atuo *ApiTokenUpdateOne) SetNillableAuthClientID(u *uuid.UUID) *ApiTokenUpdateOne {
+	if u != nil {
+		atuo.SetAuthClientID(*u)
+	}
+	return atuo
+}
+
+// ClearAuthClientID clears the value of the "auth_client_id" field.
+func (atuo *ApiTokenUpdateOne) ClearAuthClientID() *ApiTokenUpdateOne {
+	atuo.mutation.ClearAuthClientID()
+	return atuo
+}
+
 // SetLastUsedAt sets the "last_used_at" field.
 func (atuo *ApiTokenUpdateOne) SetLastUsedAt(t time.Time) *ApiTokenUpdateOne {
 	atuo.mutation.SetLastUsedAt(t)
@@ -743,6 +844,25 @@ func (atuo *ApiTokenUpdateOne) AddVoiceovers(v ...*Voiceover) *ApiTokenUpdateOne
 	return atuo.AddVoiceoverIDs(ids...)
 }
 
+// SetAuthClientsID sets the "auth_clients" edge to the AuthClient entity by ID.
+func (atuo *ApiTokenUpdateOne) SetAuthClientsID(id uuid.UUID) *ApiTokenUpdateOne {
+	atuo.mutation.SetAuthClientsID(id)
+	return atuo
+}
+
+// SetNillableAuthClientsID sets the "auth_clients" edge to the AuthClient entity by ID if the given value is not nil.
+func (atuo *ApiTokenUpdateOne) SetNillableAuthClientsID(id *uuid.UUID) *ApiTokenUpdateOne {
+	if id != nil {
+		atuo = atuo.SetAuthClientsID(*id)
+	}
+	return atuo
+}
+
+// SetAuthClients sets the "auth_clients" edge to the AuthClient entity.
+func (atuo *ApiTokenUpdateOne) SetAuthClients(a *AuthClient) *ApiTokenUpdateOne {
+	return atuo.SetAuthClientsID(a.ID)
+}
+
 // Mutation returns the ApiTokenMutation object of the builder.
 func (atuo *ApiTokenUpdateOne) Mutation() *ApiTokenMutation {
 	return atuo.mutation
@@ -815,6 +935,12 @@ func (atuo *ApiTokenUpdateOne) RemoveVoiceovers(v ...*Voiceover) *ApiTokenUpdate
 		ids[i] = v[i].ID
 	}
 	return atuo.RemoveVoiceoverIDs(ids...)
+}
+
+// ClearAuthClients clears the "auth_clients" edge to the AuthClient entity.
+func (atuo *ApiTokenUpdateOne) ClearAuthClients() *ApiTokenUpdateOne {
+	atuo.mutation.ClearAuthClients()
+	return atuo
 }
 
 // Select allows selecting one or more fields (columns) of the returned entity.
@@ -1134,6 +1260,41 @@ func (atuo *ApiTokenUpdateOne) sqlSave(ctx context.Context) (_node *ApiToken, er
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeUUID,
 					Column: voiceover.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if atuo.mutation.AuthClientsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   apitoken.AuthClientsTable,
+			Columns: []string{apitoken.AuthClientsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: authclient.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := atuo.mutation.AuthClientsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   apitoken.AuthClientsTable,
+			Columns: []string{apitoken.AuthClientsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: authclient.FieldID,
 				},
 			},
 		}

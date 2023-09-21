@@ -1190,3 +1190,20 @@ UPDATE
 ALTER TABLE public.banned_words ENABLE ROW LEVEL SECURITY;
 
 ALTER TABLE ONLY public.banned_words ADD CONSTRAINT banned_words_pkey PRIMARY KEY (id);
+
+--
+-- Name: auth_clients; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public.auth_clients (
+    id uuid DEFAULT extensions.uuid_generate_v4() NOT NULL,
+    name text NOT NULL,
+    created_at timestamp with time zone DEFAULT (now() AT TIME ZONE 'utc'::text) NOT NULL,
+    updated_at timestamp with time zone DEFAULT (now() AT TIME ZONE 'utc'::text) NOT NULL
+);
+
+ALTER TABLE public.api_tokens add column auth_client_id uuid;
+
+
+ALTER TABLE ONLY public.api_tokens
+    ADD CONSTRAINT api_tokens_auth_clients_api_tokens FOREIGN KEY (auth_client_id) REFERENCES public.auth_tokens(id) ON DELETE CASCADE;

@@ -91,6 +91,11 @@ func UserID(v uuid.UUID) predicate.ApiToken {
 	return predicate.ApiToken(sql.FieldEQ(FieldUserID, v))
 }
 
+// AuthClientID applies equality check predicate on the "auth_client_id" field. It's identical to AuthClientIDEQ.
+func AuthClientID(v uuid.UUID) predicate.ApiToken {
+	return predicate.ApiToken(sql.FieldEQ(FieldAuthClientID, v))
+}
+
 // LastUsedAt applies equality check predicate on the "last_used_at" field. It's identical to LastUsedAtEQ.
 func LastUsedAt(v time.Time) predicate.ApiToken {
 	return predicate.ApiToken(sql.FieldEQ(FieldLastUsedAt, v))
@@ -411,6 +416,36 @@ func UserIDNotIn(vs ...uuid.UUID) predicate.ApiToken {
 	return predicate.ApiToken(sql.FieldNotIn(FieldUserID, vs...))
 }
 
+// AuthClientIDEQ applies the EQ predicate on the "auth_client_id" field.
+func AuthClientIDEQ(v uuid.UUID) predicate.ApiToken {
+	return predicate.ApiToken(sql.FieldEQ(FieldAuthClientID, v))
+}
+
+// AuthClientIDNEQ applies the NEQ predicate on the "auth_client_id" field.
+func AuthClientIDNEQ(v uuid.UUID) predicate.ApiToken {
+	return predicate.ApiToken(sql.FieldNEQ(FieldAuthClientID, v))
+}
+
+// AuthClientIDIn applies the In predicate on the "auth_client_id" field.
+func AuthClientIDIn(vs ...uuid.UUID) predicate.ApiToken {
+	return predicate.ApiToken(sql.FieldIn(FieldAuthClientID, vs...))
+}
+
+// AuthClientIDNotIn applies the NotIn predicate on the "auth_client_id" field.
+func AuthClientIDNotIn(vs ...uuid.UUID) predicate.ApiToken {
+	return predicate.ApiToken(sql.FieldNotIn(FieldAuthClientID, vs...))
+}
+
+// AuthClientIDIsNil applies the IsNil predicate on the "auth_client_id" field.
+func AuthClientIDIsNil() predicate.ApiToken {
+	return predicate.ApiToken(sql.FieldIsNull(FieldAuthClientID))
+}
+
+// AuthClientIDNotNil applies the NotNil predicate on the "auth_client_id" field.
+func AuthClientIDNotNil() predicate.ApiToken {
+	return predicate.ApiToken(sql.FieldNotNull(FieldAuthClientID))
+}
+
 // LastUsedAtEQ applies the EQ predicate on the "last_used_at" field.
 func LastUsedAtEQ(v time.Time) predicate.ApiToken {
 	return predicate.ApiToken(sql.FieldEQ(FieldLastUsedAt, v))
@@ -640,6 +675,33 @@ func HasVoiceoversWith(preds ...predicate.Voiceover) predicate.ApiToken {
 			sqlgraph.From(Table, FieldID),
 			sqlgraph.To(VoiceoversInverseTable, FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, VoiceoversTable, VoiceoversColumn),
+		)
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasAuthClients applies the HasEdge predicate on the "auth_clients" edge.
+func HasAuthClients() predicate.ApiToken {
+	return predicate.ApiToken(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, AuthClientsTable, AuthClientsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasAuthClientsWith applies the HasEdge predicate on the "auth_clients" edge with a given conditions (other predicates).
+func HasAuthClientsWith(preds ...predicate.AuthClient) predicate.ApiToken {
+	return predicate.ApiToken(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(AuthClientsInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, AuthClientsTable, AuthClientsColumn),
 		)
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {

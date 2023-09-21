@@ -12,6 +12,7 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"github.com/stablecog/sc-go/database/ent/apitoken"
+	"github.com/stablecog/sc-go/database/ent/authclient"
 	"github.com/stablecog/sc-go/database/ent/bannedwords"
 	"github.com/stablecog/sc-go/database/ent/credit"
 	"github.com/stablecog/sc-go/database/ent/credittype"
@@ -62,6 +63,7 @@ type OrderFunc func(*sql.Selector)
 func columnChecker(table string) func(string) error {
 	checks := map[string]func(string) bool{
 		apitoken.Table:         apitoken.ValidColumn,
+		authclient.Table:       authclient.ValidColumn,
 		bannedwords.Table:      bannedwords.ValidColumn,
 		credit.Table:           credit.ValidColumn,
 		credittype.Table:       credittype.ValidColumn,

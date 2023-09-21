@@ -51,24 +51,24 @@ func (a *ApiWrapper) ApproveAuthorization(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	refreshToken := authHeader[1]
+	accessToken := authHeader[1]
 
 	// Verify token
-	tr, err := a.SupabaseAuth.LoginWithRefreshToken(refreshToken)
+	id, _, _, err := a.SupabaseAuth.GetSupabaseUserIdFromAccessToken(accessToken)
 	if err != nil {
 		log.Errorf("Error logging into supabase %v", err)
 		responses.ErrUnauthorized(w, r)
 		return
 	}
 
-	// Store encrypted tokens
-	encryptedRefreshToken, err := a.AesCrypt.Encrypt(tr.RefreshToken)
+	// Store encrypted user_id
+	encryptedUserId, err := a.AesCrypt.Encrypt(id)
 	if err != nil {
 		responses.ErrInternalServerError(w, r, "An unknown error has occured")
 		return
 	}
 
-	err = a.RedisStore.StoreAccessToken(authReq.Code, encryptedRefreshToken)
+	err = a.RedisStore.StoreAuthApproval(authReq.Code, encryptedUserId)
 
 	// Return redirect url
 	redirectUrl, err := utils.AddQueryParam(authReq.RedirectURI, utils.QueryParam{Key: "code", Value: authReq.Code}, utils.QueryParam{Key: "state", Value: authReq.State})

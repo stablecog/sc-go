@@ -10,6 +10,7 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"github.com/google/uuid"
 	"github.com/stablecog/sc-go/database/ent/apitoken"
+	"github.com/stablecog/sc-go/database/ent/authclient"
 	"github.com/stablecog/sc-go/database/ent/user"
 )
 
@@ -32,6 +33,8 @@ type ApiToken struct {
 	CreditsSpent int `json:"credits_spent,omitempty"`
 	// UserID holds the value of the "user_id" field.
 	UserID uuid.UUID `json:"user_id,omitempty"`
+	// AuthClientID holds the value of the "auth_client_id" field.
+	AuthClientID *uuid.UUID `json:"auth_client_id,omitempty"`
 	// LastUsedAt holds the value of the "last_used_at" field.
 	LastUsedAt *time.Time `json:"last_used_at,omitempty"`
 	// CreatedAt holds the value of the "created_at" field.
@@ -53,9 +56,11 @@ type ApiTokenEdges struct {
 	Upscales []*Upscale `json:"upscales,omitempty"`
 	// Voiceovers holds the value of the voiceovers edge.
 	Voiceovers []*Voiceover `json:"voiceovers,omitempty"`
+	// AuthClients holds the value of the auth_clients edge.
+	AuthClients *AuthClient `json:"auth_clients,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [4]bool
+	loadedTypes [5]bool
 }
 
 // UserOrErr returns the User value or an error if the edge
@@ -98,11 +103,26 @@ func (e ApiTokenEdges) VoiceoversOrErr() ([]*Voiceover, error) {
 	return nil, &NotLoadedError{edge: "voiceovers"}
 }
 
+// AuthClientsOrErr returns the AuthClients value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e ApiTokenEdges) AuthClientsOrErr() (*AuthClient, error) {
+	if e.loadedTypes[4] {
+		if e.AuthClients == nil {
+			// Edge was loaded but was not found.
+			return nil, &NotFoundError{label: authclient.Label}
+		}
+		return e.AuthClients, nil
+	}
+	return nil, &NotLoadedError{edge: "auth_clients"}
+}
+
 // scanValues returns the types for scanning values from sql.Rows.
 func (*ApiToken) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
+		case apitoken.FieldAuthClientID:
+			values[i] = &sql.NullScanner{S: new(uuid.UUID)}
 		case apitoken.FieldIsActive:
 			values[i] = new(sql.NullBool)
 		case apitoken.FieldUses, apitoken.FieldCreditsSpent:
@@ -176,6 +196,13 @@ func (at *ApiToken) assignValues(columns []string, values []any) error {
 			} else if value != nil {
 				at.UserID = *value
 			}
+		case apitoken.FieldAuthClientID:
+			if value, ok := values[i].(*sql.NullScanner); !ok {
+				return fmt.Errorf("unexpected type %T for field auth_client_id", values[i])
+			} else if value.Valid {
+				at.AuthClientID = new(uuid.UUID)
+				*at.AuthClientID = *value.S.(*uuid.UUID)
+			}
 		case apitoken.FieldLastUsedAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
 				return fmt.Errorf("unexpected type %T for field last_used_at", values[i])
@@ -218,6 +245,11 @@ func (at *ApiToken) QueryUpscales() *UpscaleQuery {
 // QueryVoiceovers queries the "voiceovers" edge of the ApiToken entity.
 func (at *ApiToken) QueryVoiceovers() *VoiceoverQuery {
 	return NewApiTokenClient(at.config).QueryVoiceovers(at)
+}
+
+// QueryAuthClients queries the "auth_clients" edge of the ApiToken entity.
+func (at *ApiToken) QueryAuthClients() *AuthClientQuery {
+	return NewApiTokenClient(at.config).QueryAuthClients(at)
 }
 
 // Update returns a builder for updating this ApiToken.
@@ -263,6 +295,11 @@ func (at *ApiToken) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("user_id=")
 	builder.WriteString(fmt.Sprintf("%v", at.UserID))
+	builder.WriteString(", ")
+	if v := at.AuthClientID; v != nil {
+		builder.WriteString("auth_client_id=")
+		builder.WriteString(fmt.Sprintf("%v", *v))
+	}
 	builder.WriteString(", ")
 	if v := at.LastUsedAt; v != nil {
 		builder.WriteString("last_used_at=")

@@ -28,6 +28,7 @@ func (ApiToken) Fields() []ent.Field {
 		field.Int("credits_spent").Default(0),
 		// ! Relationships
 		field.UUID("user_id", uuid.UUID{}),
+		field.UUID("auth_client_id", uuid.UUID{}).Optional().Nillable(),
 		// ! End Relationships
 		field.Time("last_used_at").Optional().Nillable(),
 		field.Time("created_at").Default(time.Now).Immutable(),
@@ -59,6 +60,11 @@ func (ApiToken) Edges() []ent.Edge {
 			Annotations(entsql.Annotation{
 				OnDelete: entsql.Cascade,
 			}),
+		// M2O with auth_clients
+		edge.From("auth_clients", AuthClient.Type).
+			Ref("api_tokens").
+			Field("auth_client_id").
+			Unique(),
 	}
 }
 

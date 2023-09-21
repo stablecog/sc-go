@@ -12,6 +12,7 @@ import (
 	"github.com/stablecog/sc-go/database/ent/migrate"
 
 	"github.com/stablecog/sc-go/database/ent/apitoken"
+	"github.com/stablecog/sc-go/database/ent/authclient"
 	"github.com/stablecog/sc-go/database/ent/bannedwords"
 	"github.com/stablecog/sc-go/database/ent/credit"
 	"github.com/stablecog/sc-go/database/ent/credittype"
@@ -47,6 +48,8 @@ type Client struct {
 	Schema *migrate.Schema
 	// ApiToken is the client for interacting with the ApiToken builders.
 	ApiToken *ApiTokenClient
+	// AuthClient is the client for interacting with the AuthClient builders.
+	AuthClient *AuthClientClient
 	// BannedWords is the client for interacting with the BannedWords builders.
 	BannedWords *BannedWordsClient
 	// Credit is the client for interacting with the Credit builders.
@@ -105,6 +108,7 @@ func NewClient(opts ...Option) *Client {
 func (c *Client) init() {
 	c.Schema = migrate.NewSchema(c.driver)
 	c.ApiToken = NewApiTokenClient(c.config)
+	c.AuthClient = NewAuthClientClient(c.config)
 	c.BannedWords = NewBannedWordsClient(c.config)
 	c.Credit = NewCreditClient(c.config)
 	c.CreditType = NewCreditTypeClient(c.config)
@@ -161,6 +165,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		ctx:              ctx,
 		config:           cfg,
 		ApiToken:         NewApiTokenClient(cfg),
+		AuthClient:       NewAuthClientClient(cfg),
 		BannedWords:      NewBannedWordsClient(cfg),
 		Credit:           NewCreditClient(cfg),
 		CreditType:       NewCreditTypeClient(cfg),
@@ -203,6 +208,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		ctx:              ctx,
 		config:           cfg,
 		ApiToken:         NewApiTokenClient(cfg),
+		AuthClient:       NewAuthClientClient(cfg),
 		BannedWords:      NewBannedWordsClient(cfg),
 		Credit:           NewCreditClient(cfg),
 		CreditType:       NewCreditTypeClient(cfg),
@@ -254,6 +260,7 @@ func (c *Client) Close() error {
 // In order to add hooks to a specific client, call: `client.Node.Use(...)`.
 func (c *Client) Use(hooks ...Hook) {
 	c.ApiToken.Use(hooks...)
+	c.AuthClient.Use(hooks...)
 	c.BannedWords.Use(hooks...)
 	c.Credit.Use(hooks...)
 	c.CreditType.Use(hooks...)
@@ -282,6 +289,7 @@ func (c *Client) Use(hooks ...Hook) {
 // In order to add interceptors to a specific client, call: `client.Node.Intercept(...)`.
 func (c *Client) Intercept(interceptors ...Interceptor) {
 	c.ApiToken.Intercept(interceptors...)
+	c.AuthClient.Intercept(interceptors...)
 	c.BannedWords.Intercept(interceptors...)
 	c.Credit.Intercept(interceptors...)
 	c.CreditType.Intercept(interceptors...)
@@ -311,6 +319,8 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 	switch m := m.(type) {
 	case *ApiTokenMutation:
 		return c.ApiToken.mutate(ctx, m)
+	case *AuthClientMutation:
+		return c.AuthClient.mutate(ctx, m)
 	case *BannedWordsMutation:
 		return c.BannedWords.mutate(ctx, m)
 	case *CreditMutation:
@@ -517,6 +527,22 @@ func (c *ApiTokenClient) QueryVoiceovers(at *ApiToken) *VoiceoverQuery {
 	return query
 }
 
+// QueryAuthClients queries the auth_clients edge of a ApiToken.
+func (c *ApiTokenClient) QueryAuthClients(at *ApiToken) *AuthClientQuery {
+	query := (&AuthClientClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := at.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(apitoken.Table, apitoken.FieldID, id),
+			sqlgraph.To(authclient.Table, authclient.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, apitoken.AuthClientsTable, apitoken.AuthClientsColumn),
+		)
+		fromV = sqlgraph.Neighbors(at.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *ApiTokenClient) Hooks() []Hook {
 	return c.hooks.ApiToken
@@ -539,6 +565,140 @@ func (c *ApiTokenClient) mutate(ctx context.Context, m *ApiTokenMutation) (Value
 		return (&ApiTokenDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("ent: unknown ApiToken mutation op: %q", m.Op())
+	}
+}
+
+// AuthClientClient is a client for the AuthClient schema.
+type AuthClientClient struct {
+	config
+}
+
+// NewAuthClientClient returns a client for the AuthClient from the given config.
+func NewAuthClientClient(c config) *AuthClientClient {
+	return &AuthClientClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `authclient.Hooks(f(g(h())))`.
+func (c *AuthClientClient) Use(hooks ...Hook) {
+	c.hooks.AuthClient = append(c.hooks.AuthClient, hooks...)
+}
+
+// Use adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `authclient.Intercept(f(g(h())))`.
+func (c *AuthClientClient) Intercept(interceptors ...Interceptor) {
+	c.inters.AuthClient = append(c.inters.AuthClient, interceptors...)
+}
+
+// Create returns a builder for creating a AuthClient entity.
+func (c *AuthClientClient) Create() *AuthClientCreate {
+	mutation := newAuthClientMutation(c.config, OpCreate)
+	return &AuthClientCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of AuthClient entities.
+func (c *AuthClientClient) CreateBulk(builders ...*AuthClientCreate) *AuthClientCreateBulk {
+	return &AuthClientCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for AuthClient.
+func (c *AuthClientClient) Update() *AuthClientUpdate {
+	mutation := newAuthClientMutation(c.config, OpUpdate)
+	return &AuthClientUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *AuthClientClient) UpdateOne(ac *AuthClient) *AuthClientUpdateOne {
+	mutation := newAuthClientMutation(c.config, OpUpdateOne, withAuthClient(ac))
+	return &AuthClientUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *AuthClientClient) UpdateOneID(id uuid.UUID) *AuthClientUpdateOne {
+	mutation := newAuthClientMutation(c.config, OpUpdateOne, withAuthClientID(id))
+	return &AuthClientUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for AuthClient.
+func (c *AuthClientClient) Delete() *AuthClientDelete {
+	mutation := newAuthClientMutation(c.config, OpDelete)
+	return &AuthClientDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *AuthClientClient) DeleteOne(ac *AuthClient) *AuthClientDeleteOne {
+	return c.DeleteOneID(ac.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *AuthClientClient) DeleteOneID(id uuid.UUID) *AuthClientDeleteOne {
+	builder := c.Delete().Where(authclient.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &AuthClientDeleteOne{builder}
+}
+
+// Query returns a query builder for AuthClient.
+func (c *AuthClientClient) Query() *AuthClientQuery {
+	return &AuthClientQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeAuthClient},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a AuthClient entity by its id.
+func (c *AuthClientClient) Get(ctx context.Context, id uuid.UUID) (*AuthClient, error) {
+	return c.Query().Where(authclient.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *AuthClientClient) GetX(ctx context.Context, id uuid.UUID) *AuthClient {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryAPITokens queries the api_tokens edge of a AuthClient.
+func (c *AuthClientClient) QueryAPITokens(ac *AuthClient) *ApiTokenQuery {
+	query := (&ApiTokenClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := ac.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(authclient.Table, authclient.FieldID, id),
+			sqlgraph.To(apitoken.Table, apitoken.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, authclient.APITokensTable, authclient.APITokensColumn),
+		)
+		fromV = sqlgraph.Neighbors(ac.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *AuthClientClient) Hooks() []Hook {
+	return c.hooks.AuthClient
+}
+
+// Interceptors returns the client interceptors.
+func (c *AuthClientClient) Interceptors() []Interceptor {
+	return c.inters.AuthClient
+}
+
+func (c *AuthClientClient) mutate(ctx context.Context, m *AuthClientMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&AuthClientCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&AuthClientUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&AuthClientUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&AuthClientDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown AuthClient mutation op: %q", m.Op())
 	}
 }
 
