@@ -49,7 +49,15 @@ func (a *ApiWrapper) GetAccessToken(ctx context.Context, s *server.Server, gt oa
 			log.Errorf("Auth code not found in redis %s", tgr.Code)
 			return nil, errors.ErrInvalidAuthorizeCode
 		}
-		userId, err := uuid.Parse(authApproval)
+
+		// Decrypt
+		decryptedAuthApproval, err := a.AesCrypt.Decrypt(authApproval)
+		if err != nil {
+			log.Errorf("Error decrypting auth approval %v", err)
+			return nil, errors.ErrInvalidAuthorizeCode
+		}
+
+		userId, err := uuid.Parse(decryptedAuthApproval)
 		if err != nil {
 			log.Errorf("Error parsing auth approval uuid %v", err)
 			return nil, errors.ErrInvalidAuthorizeCode
