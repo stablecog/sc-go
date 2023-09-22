@@ -22,7 +22,15 @@ func (c *RestAPI) HandleGetAPITokens(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	tokens, err := c.Repo.GetTokensByUserID(user.ID, true)
+	// Filters
+	filters := &requests.ApiTokenQueryFilters{}
+	err := filters.ParseURLQueryParameters(r.URL.Query())
+	if err != nil {
+		responses.ErrBadRequest(w, r, err.Error(), "")
+		return
+	}
+
+	tokens, err := c.Repo.GetTokensByUserID(user.ID, filters)
 	if err != nil {
 		log.Error("Error getting tokens", "err", err)
 		responses.ErrInternalServerError(w, r, "An unknown error has occured")
@@ -40,6 +48,7 @@ func (c *RestAPI) HandleGetAPITokens(w http.ResponseWriter, r *http.Request) {
 			IsActive:     token.IsActive,
 			LastUsedAt:   token.LastUsedAt,
 			CreatedAt:    token.CreatedAt,
+			AuthClientID: token.AuthClientID,
 		}
 	}
 
