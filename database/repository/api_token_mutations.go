@@ -49,8 +49,20 @@ func (r *Repository) NewAPITokenForAuthClient(userId uuid.UUID, authClient *ent.
 	// Get token short string as 3...3
 	tokenShortString := fmt.Sprintf("%s...%s", token[0:3], token[len(token)-4:])
 
+	// Get count of tokens for this user with name
+	count, err := r.DB.ApiToken.Query().Where(apitoken.UserIDEQ(userId), apitoken.Or(apitoken.NameEQ(authClient.Name), apitoken.And(apitoken.NameHasPrefix(fmt.Sprintf("%s (", authClient.Name)), apitoken.NameHasSuffix(")"))), apitoken.IsActive(true)).Count(r.Ctx)
+	if err != nil {
+		return nil, "", err
+	}
+
+	// Token names
+	tokenname := authClient.Name
+	if count > 0 {
+		tokenname = fmt.Sprintf("%s (%d)", tokenname, count+1)
+	}
+
 	// Create in DB
-	dbToken, err = r.DB.ApiToken.Create().SetHashedToken(utils.Sha256(token)).SetUserID(userId).SetName(authClient.Name).SetAuthClientID(authClient.ID).SetShortString(tokenShortString).SetIsActive(true).SetUses(0).Save(r.Ctx)
+	dbToken, err = r.DB.ApiToken.Create().SetHashedToken(utils.Sha256(token)).SetUserID(userId).SetName(tokenname).SetAuthClientID(authClient.ID).SetShortString(tokenShortString).SetIsActive(true).SetUses(0).Save(r.Ctx)
 	if err != nil {
 		return nil, "", err
 	}
