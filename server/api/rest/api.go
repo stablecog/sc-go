@@ -23,7 +23,7 @@ import (
 
 // Shared pagination defaults
 const DEFAULT_PER_PAGE = 50
-const MAX_PER_PAGE = 100
+const MAX_PER_PAGE = 300
 
 type RestAPI struct {
 	Repo           *repository.Repository
