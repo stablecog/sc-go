@@ -321,11 +321,11 @@ func TestHandleQueryGenerationsBadPerPage(t *testing.T) {
 	respBody, _ = io.ReadAll(resp.Body)
 	json.Unmarshal(respBody, &errorResp)
 
-	assert.Equal(t, "per_page must be between 1 and 100", errorResp["error"])
+	assert.Equal(t, fmt.Sprintf("per_page must be between 1 and %d", MAX_PER_PAGE), errorResp["error"])
 
 	w = httptest.NewRecorder()
 	// Build request
-	req = httptest.NewRequest("GET", "/gens?per_page=101", nil)
+	req = httptest.NewRequest("GET", fmt.Sprintf("/gens?per_page=%d", MAX_PER_PAGE+1), nil)
 	req.Header.Set("Content-Type", "application/json")
 
 	ctx = context.WithValue(req.Context(), "user_id", repository.MOCK_NORMAL_UUID)
@@ -338,7 +338,7 @@ func TestHandleQueryGenerationsBadPerPage(t *testing.T) {
 	respBody, _ = io.ReadAll(resp.Body)
 	json.Unmarshal(respBody, &errorResp)
 
-	assert.Equal(t, "per_page must be between 1 and 100", errorResp["error"])
+	assert.Equal(t, fmt.Sprintf("per_page must be between 1 and %d", MAX_PER_PAGE), errorResp["error"])
 }
 
 func TestHandleQueryGenerationsBadCursor(t *testing.T) {
