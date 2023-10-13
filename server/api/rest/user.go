@@ -255,6 +255,17 @@ func (c *RestAPI) HandleGetUser(w http.ResponseWriter, r *http.Request) {
 		roles[i] = role.Name
 	}
 
+	paymentsMadeByCustomer := 0
+	paymentIntents := c.StripeClient.PaymentIntents.List(&stripe.PaymentIntentListParams{
+		Customer: stripe.String(user.StripeCustomerID),
+	})
+	for paymentIntents.Next() {
+		intent := paymentIntents.PaymentIntent()
+		if intent != nil && intent.Status == stripe.PaymentIntentStatusSucceeded {
+			paymentsMadeByCustomer++
+		}
+	}
+
 	render.Status(r, http.StatusOK)
 	render.JSON(w, r, responses.GetUserResponse{
 		UserID:                  userID,
@@ -276,6 +287,7 @@ func (c *RestAPI) HandleGetUser(w http.ResponseWriter, r *http.Request) {
 		Username:                user.Username,
 		CreatedAt:               user.CreatedAt,
 		UsernameChangedAt:       user.UsernameChangedAt,
+		PurchaseCount:           paymentsMadeByCustomer,
 	})
 }
 
