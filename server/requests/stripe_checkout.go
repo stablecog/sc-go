@@ -5,4 +5,5 @@ type StripeCheckoutRequest struct {
 	Currency      string `json:"currency,omitempty"`
 	SuccessUrl    string `json:"success_url"`
 	CancelUrl     string `json:"cancel_url"`
+	CouponID      string `json:"coupon_id,omitempty"`
 }

@@ -194,6 +194,13 @@ func (c *RestAPI) HandleCreateCheckoutSession(w http.ResponseWriter, r *http.Req
 			},
 		}
 	}
+	if stripeReq.CouponID != "" {
+		params.Discounts = []*stripe.CheckoutSessionDiscountParams{
+			{
+				Coupon: stripe.String(stripeReq.CouponID),
+			},
+		}
+	}
 
 	session, err := c.StripeClient.CheckoutSessions.New(params)
 	if err != nil {
