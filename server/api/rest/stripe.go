@@ -193,10 +193,10 @@ func (c *RestAPI) HandleCreateCheckoutSession(w http.ResponseWriter, r *http.Req
 			},
 		}
 	}
-	if stripeReq.CouponID != "" {
+	if stripeReq.PromotionCodeID != "" {
 		params.Discounts = []*stripe.CheckoutSessionDiscountParams{
 			{
-				Coupon: stripe.String(stripeReq.CouponID),
+				PromotionCode: stripe.String(stripeReq.PromotionCodeID),
 			},
 		}
 	} else {
