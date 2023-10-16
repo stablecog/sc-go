@@ -206,6 +206,10 @@ func (c *RestAPI) HandleCreateCheckoutSession(w http.ResponseWriter, r *http.Req
 	session, err := c.StripeClient.CheckoutSessions.New(params)
 	if err != nil {
 		log.Error("Error creating checkout session", "err", err)
+		if stripeErr, ok := err.(*stripe.Error); ok {
+			responses.ErrInternalServerError(w, r, string(stripeErr.Code))
+			return
+		}
 		responses.ErrInternalServerError(w, r, "An unknown error has occurred")
 		return
 	}
