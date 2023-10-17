@@ -34,6 +34,9 @@ func (w *SCWorker) CreateGeneration(source enttypes.SourceType,
 	apiTokenId *uuid.UUID,
 	clipSvc *clip.ClipService,
 	generateReq requests.CreateGenerationRequest) (*responses.ApiSucceededResponse, *responses.ImageGenerationSettingsResponse, *WorkerError) {
+	// Queue priority for MQ
+	var queuePriority uint8 = 2
+
 	free := user.ActiveProductID == nil
 	if free {
 		// Re-evaluate if they have paid credits
@@ -97,6 +100,10 @@ func (w *SCWorker) CreateGeneration(source enttypes.SourceType,
 				qMax = shared.MAX_QUEUED_ITEMS_STARTER
 			}
 		}
+	}
+
+	if !free || isSuperAdmin {
+		queuePriority = 3
 	}
 
 	if user.BannedAt != nil {
@@ -458,7 +465,7 @@ func (w *SCWorker) CreateGeneration(source enttypes.SourceType,
 			cogReqBody.Input.InitImageUrlS3 = generateReq.InitImageUrl
 		}
 
-		err = w.MQClient.Publish(generateReq.ModelId.String(), cogReqBody, 1)
+		err = w.MQClient.Publish(generateReq.ModelId.String(), cogReqBody, queuePriority)
 		if err != nil {
 			log.Error("Failed to write request %s to exchange: %v", requestId, err)
 			return err

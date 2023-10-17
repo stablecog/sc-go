@@ -32,6 +32,9 @@ func (w *SCWorker) CreateUpscale(source enttypes.SourceType,
 	user *ent.User,
 	apiTokenId *uuid.UUID,
 	upscaleReq requests.CreateUpscaleRequest) (*responses.ApiSucceededResponse, *responses.ImageUpscaleSettingsResponse, *WorkerError) {
+	// Queue priority for MQ
+	var queuePriority uint8 = 2
+
 	free := user.ActiveProductID == nil
 	if free {
 		// Re-evaluate if they have paid credits
@@ -95,6 +98,10 @@ func (w *SCWorker) CreateUpscale(source enttypes.SourceType,
 				qMax = shared.MAX_QUEUED_ITEMS_STARTER
 			}
 		}
+	}
+
+	if !free || isSuperAdmin {
+		queuePriority = 3
 	}
 
 	if user.BannedAt != nil {
@@ -408,7 +415,7 @@ func (w *SCWorker) CreateUpscale(source enttypes.SourceType,
 			cogReqBody.Input.StreamID = upscaleReq.StreamID
 		}
 
-		err = w.MQClient.Publish(upscaleReq.ModelId.String(), cogReqBody, 1)
+		err = w.MQClient.Publish(upscaleReq.ModelId.String(), cogReqBody, queuePriority)
 		if err != nil {
 			log.Error("Failed to write request %s to queue: %v", requestId, err)
 			return err
