@@ -14,6 +14,7 @@ import (
 	"github.com/stablecog/sc-go/server/api/sse"
 	"github.com/stablecog/sc-go/server/scworker"
 	"github.com/stablecog/sc-go/shared"
+	"github.com/stablecog/sc-go/shared/queue"
 	"github.com/stablecog/sc-go/utils"
 )
 
@@ -87,6 +88,13 @@ func testMainWrapper(m *testing.M) int {
 		Send: make(chan []byte, 256),
 	}
 
+	// Create mock client
+	mockClient := &queue.MockRabbitMQClient{
+		PublishFunc: func(routingKey string, msg any, priority uint8) error {
+			return nil
+		},
+	}
+
 	// Setup controller
 	MockController = &RestAPI{
 		Repo:           repo,
@@ -101,6 +109,7 @@ func testMainWrapper(m *testing.M) int {
 			QueueThrottler: qThrottler,
 			Track:          analytics.NewAnalyticsService(),
 			SafetyChecker:  utils.NewTranslatorSafetyChecker(ctx, "", true),
+			MQClient:       mockClient,
 		},
 	}
 

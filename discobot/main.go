@@ -25,6 +25,7 @@ import (
 	"github.com/stablecog/sc-go/server/requests"
 	"github.com/stablecog/sc-go/server/responses"
 	"github.com/stablecog/sc-go/shared"
+	"github.com/stablecog/sc-go/shared/queue"
 	"github.com/stablecog/sc-go/utils"
 	"golang.org/x/exp/slices"
 )
@@ -139,8 +140,15 @@ func main() {
 	analyticsService := analytics.NewAnalyticsService()
 	defer analyticsService.Close()
 
+	// Setup rabbitmq client
+	rabbitmqClient, err := queue.NewRabbitMQClient(ctx, os.Getenv("RABBITMQ_AMQP_URL"))
+	if err != nil {
+		log.Fatalf("Error connecting to rabbitmq: %v", err)
+	}
+	defer rabbitmqClient.Close()
+
 	// Setup interactions
-	cmdWrapper := interactions.NewDiscordInteractionWrapper(repo, redis, database.NewSupabaseAuth(), sMap, qThrottler, safetyChecker, analyticsService, loginInteractionMap)
+	cmdWrapper := interactions.NewDiscordInteractionWrapper(repo, redis, database.NewSupabaseAuth(), sMap, qThrottler, safetyChecker, analyticsService, loginInteractionMap, rabbitmqClient)
 
 	s.AddHandler(func(s *discordgo.Session, r *discordgo.Ready) {
 		log.Infof("Logged in as: %v#%v", s.State.User.Username, s.State.User.Discriminator)

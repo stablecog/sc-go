@@ -42,6 +42,7 @@ import (
 	"github.com/stablecog/sc-go/server/responses"
 	"github.com/stablecog/sc-go/server/scworker"
 	"github.com/stablecog/sc-go/shared"
+	"github.com/stablecog/sc-go/shared/queue"
 	uapi "github.com/stablecog/sc-go/uploadapi/api"
 	"github.com/stablecog/sc-go/utils"
 	stripe "github.com/stripe/stripe-go/v74/client"
@@ -541,6 +542,13 @@ func main() {
 	newSession := session.New(s3Config)
 	s3Client := s3.New(newSession)
 
+	// Setup rabbitmq client
+	rabbitmqClient, err := queue.NewRabbitMQClient(ctx, os.Getenv("RABBITMQ_AMQP_URL"))
+	if err != nil {
+		log.Fatalf("Error connecting to rabbitmq: %v", err)
+	}
+	defer rabbitmqClient.Close()
+
 	// Create controller
 	apiTokenSmap := shared.NewSyncMap[chan requests.CogWebhookMessage]()
 	safetyChecker := utils.NewTranslatorSafetyChecker(ctx, os.Getenv("OPENAI_API_KEY"), false)
@@ -564,6 +572,7 @@ func main() {
 			SMap:           apiTokenSmap,
 			SafetyChecker:  safetyChecker,
 			S3:             s3Client,
+			MQClient:       rabbitmqClient,
 		},
 	}
 

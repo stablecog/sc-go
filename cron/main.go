@@ -21,6 +21,7 @@ import (
 	"github.com/stablecog/sc-go/database/repository"
 	"github.com/stablecog/sc-go/log"
 	"github.com/stablecog/sc-go/server/analytics"
+	"github.com/stablecog/sc-go/shared/queue"
 	"github.com/stablecog/sc-go/utils"
 	stripe "github.com/stripe/stripe-go/v74/client"
 )
@@ -130,6 +131,13 @@ func main() {
 		os.Exit(1)
 	}
 
+	// Setup rabbitmq client
+	rabbitmqClient, err := queue.NewRabbitMQClient(ctx, os.Getenv("RABBITMQ_AMQP_URL"))
+	if err != nil {
+		log.Fatalf("Error connecting to rabbitmq: %v", err)
+	}
+	defer rabbitmqClient.Close()
+
 	// Create a job runner
 	jobRunner := jobs.JobRunner{
 		Repo:      repo,
@@ -141,6 +149,7 @@ func main() {
 		S3:        s3Client,
 		S3Img2Img: s3Img2ImgClient,
 		Qdrant:    qdrantClient,
+		MQClient:  rabbitmqClient,
 	}
 
 	if *healthCheck {

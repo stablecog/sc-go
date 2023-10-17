@@ -66,6 +66,7 @@ require (
 	github.com/jackc/pgx/v4 v4.17.2
 	github.com/mattn/go-sqlite3 v1.14.16
 	github.com/mitchellh/go-wordwrap v0.0.0-20150314170334-ad45545899c7 // indirect
+	github.com/rabbitmq/amqp091-go v1.9.0
 	github.com/supabase-community/gotrue-go v1.0.1
 	github.com/zclconf/go-cty v1.8.0 // indirect
 	golang.org/x/mod v0.8.0 // indirect

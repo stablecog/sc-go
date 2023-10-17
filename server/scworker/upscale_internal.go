@@ -16,12 +16,13 @@ import (
 	"github.com/stablecog/sc-go/server/analytics"
 	"github.com/stablecog/sc-go/server/requests"
 	"github.com/stablecog/sc-go/shared"
+	"github.com/stablecog/sc-go/shared/queue"
 	"github.com/stablecog/sc-go/utils"
 )
 
 // Create an Upscale in sc-worker, wait for result
 // ! TODO - clean this up and merge with CreateUpscale method
-func CreateUpscaleInternal(Track *analytics.AnalyticsService, Repo *repository.Repository, Redis *database.RedisWrapper, sMap *shared.SyncMap[chan requests.CogWebhookMessage], generation *ent.Generation, output *ent.GenerationOutput) error {
+func CreateUpscaleInternal(Track *analytics.AnalyticsService, Repo *repository.Repository, Redis *database.RedisWrapper, MQClient queue.MQClient, sMap *shared.SyncMap[chan requests.CogWebhookMessage], generation *ent.Generation, output *ent.GenerationOutput) error {
 	if len(shared.GetCache().UpscaleModels()) == 0 {
 		log.Error("No upscale models available")
 		return fmt.Errorf("No upscale models available")
@@ -114,7 +115,7 @@ func CreateUpscaleInternal(Track *analytics.AnalyticsService, Repo *repository.R
 			},
 		}
 
-		err = Redis.EnqueueCogRequest(Redis.Ctx, shared.COG_REDIS_QUEUE, cogReqBody)
+		err = MQClient.Publish("all", cogReqBody, 1)
 		if err != nil {
 			log.Error("Failed to write request to queue", "id", upscale.ID, "err", err)
 			return err

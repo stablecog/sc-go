@@ -458,9 +458,9 @@ func (w *SCWorker) CreateGeneration(source enttypes.SourceType,
 			cogReqBody.Input.InitImageUrlS3 = generateReq.InitImageUrl
 		}
 
-		err = w.Redis.EnqueueCogRequest(w.Redis.Ctx, shared.COG_REDIS_QUEUE, cogReqBody)
+		err = w.MQClient.Publish("all", cogReqBody, 1)
 		if err != nil {
-			log.Error("Failed to write request %s to queue: %v", requestId, err)
+			log.Error("Failed to write request %s to exchange: %v", requestId, err)
 			return err
 		}
 

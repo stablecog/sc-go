@@ -7,6 +7,7 @@ import (
 	"github.com/stablecog/sc-go/server/analytics"
 	"github.com/stablecog/sc-go/server/requests"
 	"github.com/stablecog/sc-go/shared"
+	"github.com/stablecog/sc-go/shared/queue"
 	"github.com/stablecog/sc-go/utils"
 )
 
@@ -18,4 +19,5 @@ type SCWorker struct {
 	Track          *analytics.AnalyticsService
 	SafetyChecker  *utils.TranslatorSafetyChecker
 	S3             *s3.S3
+	MQClient       queue.MQClient
 }

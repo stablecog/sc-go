@@ -10,6 +10,7 @@ import (
 	"github.com/stablecog/sc-go/server/requests"
 	"github.com/stablecog/sc-go/server/scworker"
 	"github.com/stablecog/sc-go/shared"
+	"github.com/stablecog/sc-go/shared/queue"
 	"github.com/stablecog/sc-go/utils"
 )
 
@@ -23,6 +24,7 @@ func NewDiscordInteractionWrapper(
 	safetyChecker *utils.TranslatorSafetyChecker,
 	track *analytics.AnalyticsService,
 	LoginInteractionMap *shared.SyncMap[*LoginInteraction],
+	MQClient queue.MQClient,
 ) *DiscordInteractionWrapper {
 	// Create wrapper
 	wrapper := &DiscordInteractionWrapper{
@@ -36,6 +38,7 @@ func NewDiscordInteractionWrapper(
 			Track:          track,
 			SMap:           sMap,
 			SafetyChecker:  safetyChecker,
+			MQClient:       MQClient,
 		},
 		Clip: clip.NewClipService(redis, safetyChecker),
 		Repo: repo,

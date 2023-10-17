@@ -408,7 +408,7 @@ func (w *SCWorker) CreateUpscale(source enttypes.SourceType,
 			cogReqBody.Input.StreamID = upscaleReq.StreamID
 		}
 
-		err = w.Redis.EnqueueCogRequest(w.Redis.Ctx, shared.COG_REDIS_QUEUE, cogReqBody)
+		err = w.MQClient.Publish("all", cogReqBody, 1)
 		if err != nil {
 			log.Error("Failed to write request %s to queue: %v", requestId, err)
 			return err
