@@ -415,7 +415,7 @@ func (w *SCWorker) CreateUpscale(source enttypes.SourceType,
 			cogReqBody.Input.StreamID = upscaleReq.StreamID
 		}
 
-		err = w.MQClient.Publish(upscaleReq.ModelId.String(), cogReqBody, queuePriority)
+		err = w.MQClient.Publish(upscaleReq.ModelId.String(), requestId.String(), cogReqBody, queuePriority)
 		if err != nil {
 			log.Error("Failed to write request %s to queue: %v", requestId, err)
 			return err

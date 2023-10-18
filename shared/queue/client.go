@@ -11,7 +11,7 @@ import (
 
 type MQClient interface {
 	Close()
-	Publish(routingKey string, msg any, priority uint8) error
+	Publish(routingKey string, id string, msg any, priority uint8) error
 }
 
 type RabbitMQClient struct {
@@ -65,7 +65,7 @@ func (c *RabbitMQClient) Close() {
 	c.Channel.Close()
 }
 
-func (c *RabbitMQClient) Publish(routingKey string, msg any, priority uint8) error {
+func (c *RabbitMQClient) Publish(routingKey string, id string, msg any, priority uint8) error {
 	marshalled, err := json.Marshal(msg)
 	if err != nil {
 		return err
@@ -77,6 +77,7 @@ func (c *RabbitMQClient) Publish(routingKey string, msg any, priority uint8) err
 		false,      // mandatory
 		false,      // immediate
 		amqp.Publishing{
+			MessageId:    id,
 			DeliveryMode: amqp.Persistent,
 			Priority:     priority,
 			ContentType:  "text/plain",

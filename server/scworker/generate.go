@@ -465,7 +465,7 @@ func (w *SCWorker) CreateGeneration(source enttypes.SourceType,
 			cogReqBody.Input.InitImageUrlS3 = generateReq.InitImageUrl
 		}
 
-		err = w.MQClient.Publish(generateReq.ModelId.String(), cogReqBody, queuePriority)
+		err = w.MQClient.Publish(generateReq.ModelId.String(), requestId.String(), cogReqBody, queuePriority)
 		if err != nil {
 			log.Error("Failed to write request %s to exchange: %v", requestId, err)
 			return err
