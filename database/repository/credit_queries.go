@@ -73,12 +73,22 @@ func (r *Repository) GetFreeCreditReplenishesAtForUser(userID uuid.UUID) (*time.
 
 // Determine if a user has paid credits or not
 func (r *Repository) GetPaidCreditSum(userID uuid.UUID) (int, error) {
-	return r.DB.Credit.Query().
+	var v []struct {
+		Sum *int
+	}
+	err := r.DB.Credit.Query().
 		Where(credit.UserIDEQ(userID), credit.CreditTypeIDNEQ(uuid.MustParse(FREE_CREDIT_TYPE_ID)), credit.CreditTypeIDNEQ(uuid.MustParse(TIPPABLE_CREDIT_TYPE_ID))).
 		Aggregate(
 			ent.Sum(credit.FieldRemainingAmount),
 		).
-		Int(r.Ctx)
+		Scan(r.Ctx, &v)
+	if err != nil {
+		return 0, err
+	}
+	if len(v) == 0 || v[0].Sum == nil {
+		return 0, nil
+	}
+	return *v[0].Sum, nil
 }
 
 func (r *Repository) GetNonExpiredCreditTotalForUser(userID uuid.UUID, DB *ent.Client) (int, error) {
