@@ -90,7 +90,7 @@ func testMainWrapper(m *testing.M) int {
 
 	// Create mock client
 	mockClient := &queue.MockRabbitMQClient{
-		PublishFunc: func(routingKey string, id string, msg any, priority uint8) error {
+		PublishFunc: func(id string, msg any, priority uint8) error {
 			return nil
 		},
 	}
