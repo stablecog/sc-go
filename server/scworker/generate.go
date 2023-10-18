@@ -40,7 +40,7 @@ func (w *SCWorker) CreateGeneration(source enttypes.SourceType,
 	free := user.ActiveProductID == nil
 	if free {
 		// Re-evaluate if they have paid credits
-		count, err := w.Repo.HasPaidCredits(user.ID)
+		count, err := w.Repo.GetPaidCreditSum(user.ID)
 		if err != nil {
 			log.Error("Error getting paid credit sum for users", "err", err)
 			return nil, nil, WorkerInternalServerError()

@@ -72,7 +72,7 @@ func (r *Repository) GetFreeCreditReplenishesAtForUser(userID uuid.UUID) (*time.
 }
 
 // Determine if a user has paid credits or not
-func (r *Repository) HasPaidCredits(userID uuid.UUID) (int, error) {
+func (r *Repository) GetPaidCreditSum(userID uuid.UUID) (int, error) {
 	return r.DB.Credit.Query().
 		Where(credit.UserIDEQ(userID), credit.CreditTypeIDNEQ(uuid.MustParse(FREE_CREDIT_TYPE_ID)), credit.CreditTypeIDNEQ(uuid.MustParse(TIPPABLE_CREDIT_TYPE_ID))).
 		Aggregate(
