@@ -102,7 +102,7 @@ func (w *SCWorker) CreateGeneration(source enttypes.SourceType,
 		}
 	}
 
-	if !free || isSuperAdmin {
+	if isSuperAdmin {
 		queuePriority = 3
 	}
 
