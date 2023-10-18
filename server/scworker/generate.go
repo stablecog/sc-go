@@ -35,7 +35,7 @@ func (w *SCWorker) CreateGeneration(source enttypes.SourceType,
 	clipSvc *clip.ClipService,
 	generateReq requests.CreateGenerationRequest) (*responses.ApiSucceededResponse, *responses.ImageGenerationSettingsResponse, *WorkerError) {
 	// Queue priority for MQ
-	var queuePriority uint8 = 1
+	var queuePriority uint8 = 2
 
 	free := user.ActiveProductID == nil
 	if free {
@@ -102,8 +102,8 @@ func (w *SCWorker) CreateGeneration(source enttypes.SourceType,
 		}
 	}
 
-	if !free || isSuperAdmin {
-		queuePriority = 2
+	if isSuperAdmin {
+		queuePriority = 3
 	}
 
 	if user.BannedAt != nil {
