@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"math"
+	"math/rand"
 	"net/http"
 	"os"
 	"strings"
@@ -105,6 +106,9 @@ func (w *SCWorker) CreateGeneration(source enttypes.SourceType,
 	if isSuperAdmin {
 		queuePriority = 3
 	}
+
+	// ! TEsting, pick random queue priority between 1 and 5
+	queuePriority = uint8(rand.Intn(5) + 1)
 
 	if user.BannedAt != nil {
 		return nil, nil, &WorkerError{http.StatusForbidden, fmt.Errorf("user_banned"), ""}
