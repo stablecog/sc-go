@@ -22,6 +22,7 @@ import (
 	"github.com/stablecog/sc-go/database/ent/generationmodel"
 	"github.com/stablecog/sc-go/database/ent/generationoutput"
 	"github.com/stablecog/sc-go/database/ent/ipblacklist"
+	"github.com/stablecog/sc-go/database/ent/mqlog"
 	"github.com/stablecog/sc-go/database/ent/negativeprompt"
 	"github.com/stablecog/sc-go/database/ent/prompt"
 	"github.com/stablecog/sc-go/database/ent/role"
@@ -68,6 +69,8 @@ type Client struct {
 	GenerationOutput *GenerationOutputClient
 	// IPBlackList is the client for interacting with the IPBlackList builders.
 	IPBlackList *IPBlackListClient
+	// MqLog is the client for interacting with the MqLog builders.
+	MqLog *MqLogClient
 	// NegativePrompt is the client for interacting with the NegativePrompt builders.
 	NegativePrompt *NegativePromptClient
 	// Prompt is the client for interacting with the Prompt builders.
@@ -118,6 +121,7 @@ func (c *Client) init() {
 	c.GenerationModel = NewGenerationModelClient(c.config)
 	c.GenerationOutput = NewGenerationOutputClient(c.config)
 	c.IPBlackList = NewIPBlackListClient(c.config)
+	c.MqLog = NewMqLogClient(c.config)
 	c.NegativePrompt = NewNegativePromptClient(c.config)
 	c.Prompt = NewPromptClient(c.config)
 	c.Role = NewRoleClient(c.config)
@@ -175,6 +179,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		GenerationModel:  NewGenerationModelClient(cfg),
 		GenerationOutput: NewGenerationOutputClient(cfg),
 		IPBlackList:      NewIPBlackListClient(cfg),
+		MqLog:            NewMqLogClient(cfg),
 		NegativePrompt:   NewNegativePromptClient(cfg),
 		Prompt:           NewPromptClient(cfg),
 		Role:             NewRoleClient(cfg),
@@ -218,6 +223,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		GenerationModel:  NewGenerationModelClient(cfg),
 		GenerationOutput: NewGenerationOutputClient(cfg),
 		IPBlackList:      NewIPBlackListClient(cfg),
+		MqLog:            NewMqLogClient(cfg),
 		NegativePrompt:   NewNegativePromptClient(cfg),
 		Prompt:           NewPromptClient(cfg),
 		Role:             NewRoleClient(cfg),
@@ -270,6 +276,7 @@ func (c *Client) Use(hooks ...Hook) {
 	c.GenerationModel.Use(hooks...)
 	c.GenerationOutput.Use(hooks...)
 	c.IPBlackList.Use(hooks...)
+	c.MqLog.Use(hooks...)
 	c.NegativePrompt.Use(hooks...)
 	c.Prompt.Use(hooks...)
 	c.Role.Use(hooks...)
@@ -299,6 +306,7 @@ func (c *Client) Intercept(interceptors ...Interceptor) {
 	c.GenerationModel.Intercept(interceptors...)
 	c.GenerationOutput.Intercept(interceptors...)
 	c.IPBlackList.Intercept(interceptors...)
+	c.MqLog.Intercept(interceptors...)
 	c.NegativePrompt.Intercept(interceptors...)
 	c.Prompt.Intercept(interceptors...)
 	c.Role.Intercept(interceptors...)
@@ -339,6 +347,8 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.GenerationOutput.mutate(ctx, m)
 	case *IPBlackListMutation:
 		return c.IPBlackList.mutate(ctx, m)
+	case *MqLogMutation:
+		return c.MqLog.mutate(ctx, m)
 	case *NegativePromptMutation:
 		return c.NegativePrompt.mutate(ctx, m)
 	case *PromptMutation:
@@ -2049,6 +2059,124 @@ func (c *IPBlackListClient) mutate(ctx context.Context, m *IPBlackListMutation) 
 		return (&IPBlackListDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("ent: unknown IPBlackList mutation op: %q", m.Op())
+	}
+}
+
+// MqLogClient is a client for the MqLog schema.
+type MqLogClient struct {
+	config
+}
+
+// NewMqLogClient returns a client for the MqLog from the given config.
+func NewMqLogClient(c config) *MqLogClient {
+	return &MqLogClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `mqlog.Hooks(f(g(h())))`.
+func (c *MqLogClient) Use(hooks ...Hook) {
+	c.hooks.MqLog = append(c.hooks.MqLog, hooks...)
+}
+
+// Use adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `mqlog.Intercept(f(g(h())))`.
+func (c *MqLogClient) Intercept(interceptors ...Interceptor) {
+	c.inters.MqLog = append(c.inters.MqLog, interceptors...)
+}
+
+// Create returns a builder for creating a MqLog entity.
+func (c *MqLogClient) Create() *MqLogCreate {
+	mutation := newMqLogMutation(c.config, OpCreate)
+	return &MqLogCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of MqLog entities.
+func (c *MqLogClient) CreateBulk(builders ...*MqLogCreate) *MqLogCreateBulk {
+	return &MqLogCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for MqLog.
+func (c *MqLogClient) Update() *MqLogUpdate {
+	mutation := newMqLogMutation(c.config, OpUpdate)
+	return &MqLogUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *MqLogClient) UpdateOne(ml *MqLog) *MqLogUpdateOne {
+	mutation := newMqLogMutation(c.config, OpUpdateOne, withMqLog(ml))
+	return &MqLogUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *MqLogClient) UpdateOneID(id uuid.UUID) *MqLogUpdateOne {
+	mutation := newMqLogMutation(c.config, OpUpdateOne, withMqLogID(id))
+	return &MqLogUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for MqLog.
+func (c *MqLogClient) Delete() *MqLogDelete {
+	mutation := newMqLogMutation(c.config, OpDelete)
+	return &MqLogDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *MqLogClient) DeleteOne(ml *MqLog) *MqLogDeleteOne {
+	return c.DeleteOneID(ml.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *MqLogClient) DeleteOneID(id uuid.UUID) *MqLogDeleteOne {
+	builder := c.Delete().Where(mqlog.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &MqLogDeleteOne{builder}
+}
+
+// Query returns a query builder for MqLog.
+func (c *MqLogClient) Query() *MqLogQuery {
+	return &MqLogQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeMqLog},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a MqLog entity by its id.
+func (c *MqLogClient) Get(ctx context.Context, id uuid.UUID) (*MqLog, error) {
+	return c.Query().Where(mqlog.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *MqLogClient) GetX(ctx context.Context, id uuid.UUID) *MqLog {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *MqLogClient) Hooks() []Hook {
+	return c.hooks.MqLog
+}
+
+// Interceptors returns the client interceptors.
+func (c *MqLogClient) Interceptors() []Interceptor {
+	return c.inters.MqLog
+}
+
+func (c *MqLogClient) mutate(ctx context.Context, m *MqLogMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&MqLogCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&MqLogUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&MqLogUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&MqLogDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown MqLog mutation op: %q", m.Op())
 	}
 }
 

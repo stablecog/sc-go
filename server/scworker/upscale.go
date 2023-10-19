@@ -415,6 +415,12 @@ func (w *SCWorker) CreateUpscale(source enttypes.SourceType,
 			cogReqBody.Input.StreamID = upscaleReq.StreamID
 		}
 
+		_, err = w.Repo.AddToQueueLog(requestId, int(queuePriority), nil)
+		if err != nil {
+			log.Error("Error adding to queue log", "err", err)
+			return err
+		}
+
 		err = w.MQClient.Publish(requestId.String(), cogReqBody, queuePriority)
 		if err != nil {
 			log.Error("Failed to write request %s to queue: %v", requestId, err)
@@ -478,6 +484,12 @@ func (w *SCWorker) CreateUpscale(source enttypes.SourceType,
 			}()
 		}
 
+		// Get queued position
+		queuedPosition, err := w.Repo.GetQueuePosition(requestId)
+		if err != nil {
+			log.Error("Error getting queue position", "err", err)
+		}
+
 		// Return queued indication
 		return &responses.ApiSucceededResponse{
 			RemainingCredits: remainingCredits,
@@ -486,6 +498,7 @@ func (w *SCWorker) CreateUpscale(source enttypes.SourceType,
 				ID:               requestId.String(),
 				UIId:             upscaleReq.UIId,
 				RemainingCredits: remainingCredits,
+				QueuePosition:    queuedPosition,
 			},
 		}, &initSettings, nil
 	}

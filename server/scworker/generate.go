@@ -465,6 +465,12 @@ func (w *SCWorker) CreateGeneration(source enttypes.SourceType,
 			cogReqBody.Input.InitImageUrlS3 = generateReq.InitImageUrl
 		}
 
+		_, err = w.Repo.AddToQueueLog(requestId, int(queuePriority), nil)
+		if err != nil {
+			log.Error("Error adding to queue log", "err", err)
+			return err
+		}
+
 		err = w.MQClient.Publish(requestId.String(), cogReqBody, queuePriority)
 		if err != nil {
 			log.Error("Failed to write request %s to exchange: %v", requestId, err)
@@ -537,6 +543,12 @@ func (w *SCWorker) CreateGeneration(source enttypes.SourceType,
 			}()
 		}
 
+		// Get queued position
+		queuedPosition, err := w.Repo.GetQueuePosition(requestId)
+		if err != nil {
+			log.Error("Error getting queue position", "err", err)
+		}
+
 		// Return queued indication
 		return &responses.ApiSucceededResponse{
 			RemainingCredits: remainingCredits,
@@ -547,6 +559,7 @@ func (w *SCWorker) CreateGeneration(source enttypes.SourceType,
 				RemainingCredits: remainingCredits,
 				WasAutoSubmitted: generateReq.SubmitToGallery,
 				IsPublic:         generateReq.SubmitToGallery,
+				QueuePosition:    queuedPosition,
 			},
 		}, &initSettings, nil
 	}

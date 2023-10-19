@@ -42,6 +42,7 @@ type (
 		GenerationModel  []ent.Hook
 		GenerationOutput []ent.Hook
 		IPBlackList      []ent.Hook
+		MqLog            []ent.Hook
 		NegativePrompt   []ent.Hook
 		Prompt           []ent.Hook
 		Role             []ent.Hook
@@ -68,6 +69,7 @@ type (
 		GenerationModel  []ent.Interceptor
 		GenerationOutput []ent.Interceptor
 		IPBlackList      []ent.Interceptor
+		MqLog            []ent.Interceptor
 		NegativePrompt   []ent.Interceptor
 		Prompt           []ent.Interceptor
 		Role             []ent.Interceptor

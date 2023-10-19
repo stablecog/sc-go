@@ -141,6 +141,18 @@ func (f IPBlackListFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value,
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.IPBlackListMutation", m)
 }
 
+// The MqLogFunc type is an adapter to allow the use of ordinary
+// function as MqLog mutator.
+type MqLogFunc func(context.Context, *ent.MqLogMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f MqLogFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.MqLogMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.MqLogMutation", m)
+}
+
 // The NegativePromptFunc type is an adapter to allow the use of ordinary
 // function as NegativePrompt mutator.
 type NegativePromptFunc func(context.Context, *ent.NegativePromptMutation) (ent.Value, error)

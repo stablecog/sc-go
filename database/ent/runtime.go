@@ -17,6 +17,7 @@ import (
 	"github.com/stablecog/sc-go/database/ent/generationmodel"
 	"github.com/stablecog/sc-go/database/ent/generationoutput"
 	"github.com/stablecog/sc-go/database/ent/ipblacklist"
+	"github.com/stablecog/sc-go/database/ent/mqlog"
 	"github.com/stablecog/sc-go/database/ent/negativeprompt"
 	"github.com/stablecog/sc-go/database/ent/prompt"
 	"github.com/stablecog/sc-go/database/ent/role"
@@ -273,6 +274,26 @@ func init() {
 	ipblacklistDescID := ipblacklistFields[0].Descriptor()
 	// ipblacklist.DefaultID holds the default value on creation for the id field.
 	ipblacklist.DefaultID = ipblacklistDescID.Default.(func() uuid.UUID)
+	mqlogFields := schema.MqLog{}.Fields()
+	_ = mqlogFields
+	// mqlogDescIsProcessing is the schema descriptor for is_processing field.
+	mqlogDescIsProcessing := mqlogFields[3].Descriptor()
+	// mqlog.DefaultIsProcessing holds the default value on creation for the is_processing field.
+	mqlog.DefaultIsProcessing = mqlogDescIsProcessing.Default.(bool)
+	// mqlogDescCreatedAt is the schema descriptor for created_at field.
+	mqlogDescCreatedAt := mqlogFields[4].Descriptor()
+	// mqlog.DefaultCreatedAt holds the default value on creation for the created_at field.
+	mqlog.DefaultCreatedAt = mqlogDescCreatedAt.Default.(func() time.Time)
+	// mqlogDescUpdatedAt is the schema descriptor for updated_at field.
+	mqlogDescUpdatedAt := mqlogFields[5].Descriptor()
+	// mqlog.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	mqlog.DefaultUpdatedAt = mqlogDescUpdatedAt.Default.(func() time.Time)
+	// mqlog.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	mqlog.UpdateDefaultUpdatedAt = mqlogDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// mqlogDescID is the schema descriptor for id field.
+	mqlogDescID := mqlogFields[0].Descriptor()
+	// mqlog.DefaultID holds the default value on creation for the id field.
+	mqlog.DefaultID = mqlogDescID.Default.(func() uuid.UUID)
 	negativepromptFields := schema.NegativePrompt{}.Fields()
 	_ = negativepromptFields
 	// negativepromptDescCreatedAt is the schema descriptor for created_at field.

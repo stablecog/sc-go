@@ -375,6 +375,21 @@ var (
 		Columns:    IPBlacklistColumns,
 		PrimaryKey: []*schema.Column{IPBlacklistColumns[0]},
 	}
+	// MqLogColumns holds the columns for the "mq_log" table.
+	MqLogColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID},
+		{Name: "message_id", Type: field.TypeUUID, Unique: true},
+		{Name: "priority", Type: field.TypeInt},
+		{Name: "is_processing", Type: field.TypeBool, Default: false},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+	}
+	// MqLogTable holds the schema information for the "mq_log" table.
+	MqLogTable = &schema.Table{
+		Name:       "mq_log",
+		Columns:    MqLogColumns,
+		PrimaryKey: []*schema.Column{MqLogColumns[0]},
+	}
 	// NegativePromptsColumns holds the columns for the "negative_prompts" table.
 	NegativePromptsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID},
@@ -816,6 +831,7 @@ var (
 		GenerationModelsTable,
 		GenerationOutputsTable,
 		IPBlacklistTable,
+		MqLogTable,
 		NegativePromptsTable,
 		PromptsTable,
 		RolesTable,
@@ -879,6 +895,9 @@ func init() {
 	}
 	IPBlacklistTable.Annotation = &entsql.Annotation{
 		Table: "ip_blacklist",
+	}
+	MqLogTable.Annotation = &entsql.Annotation{
+		Table: "mq_log",
 	}
 	NegativePromptsTable.Annotation = &entsql.Annotation{
 		Table: "negative_prompts",

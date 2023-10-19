@@ -7,4 +7,5 @@ type TaskQueuedResponse struct {
 	RemainingCredits int    `json:"total_remaining_credits"`
 	WasAutoSubmitted bool   `json:"was_auto_submitted,omitempty"`
 	IsPublic         bool   `json:"is_public,omitempty"`
+	QueuePosition    int    `json:"queue_position,omitempty"`
 }

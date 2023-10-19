@@ -36,6 +36,8 @@ type Tx struct {
 	GenerationOutput *GenerationOutputClient
 	// IPBlackList is the client for interacting with the IPBlackList builders.
 	IPBlackList *IPBlackListClient
+	// MqLog is the client for interacting with the MqLog builders.
+	MqLog *MqLogClient
 	// NegativePrompt is the client for interacting with the NegativePrompt builders.
 	NegativePrompt *NegativePromptClient
 	// Prompt is the client for interacting with the Prompt builders.
@@ -204,6 +206,7 @@ func (tx *Tx) init() {
 	tx.GenerationModel = NewGenerationModelClient(tx.config)
 	tx.GenerationOutput = NewGenerationOutputClient(tx.config)
 	tx.IPBlackList = NewIPBlackListClient(tx.config)
+	tx.MqLog = NewMqLogClient(tx.config)
 	tx.NegativePrompt = NewNegativePromptClient(tx.config)
 	tx.Prompt = NewPromptClient(tx.config)
 	tx.Role = NewRoleClient(tx.config)

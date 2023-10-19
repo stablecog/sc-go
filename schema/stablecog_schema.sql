@@ -1202,8 +1202,30 @@ CREATE TABLE public.auth_clients (
     updated_at timestamp with time zone DEFAULT (now() AT TIME ZONE 'utc'::text) NOT NULL
 );
 
+ALTER TABLE ONLY public.auth_clients
+    ADD CONSTRAINT auth_clients_pkey PRIMARY KEY (id);
+
 ALTER TABLE public.api_tokens add column auth_client_id uuid;
 
 
 ALTER TABLE ONLY public.api_tokens
-    ADD CONSTRAINT api_tokens_auth_clients_api_tokens FOREIGN KEY (auth_client_id) REFERENCES public.auth_tokens(id) ON DELETE CASCADE;
+    ADD CONSTRAINT api_tokens_auth_clients_api_tokens FOREIGN KEY (auth_client_id) REFERENCES public.auth_clients(id) ON DELETE CASCADE;
+
+ALTER TABLE public.auth_clients ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: mq_log; Type: TABLE; Schema: public; Owner: postgres
+--
+CREATE TABLE public.mq_log (
+    id uuid DEFAULT extensions.uuid_generate_v4() NOT NULL,
+    message_id uuid not null,
+    priority bigint NOT NULL,
+    is_processing boolean default false not null,
+    created_at timestamp with time zone DEFAULT (now() AT TIME ZONE 'utc'::text) NOT NULL,
+    updated_at timestamp with time zone DEFAULT (now() AT TIME ZONE 'utc'::text) NOT NULL
+);
+
+ALTER TABLE ONLY public.mq_log
+    ADD CONSTRAINT mq_log_pkey PRIMARY KEY (id);
+
+ALTER TABLE public.mq_log ENABLE ROW LEVEL SECURITY;

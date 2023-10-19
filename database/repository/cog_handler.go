@@ -171,7 +171,16 @@ func (r *Repository) ProcessCogMessage(msg requests.CogWebhookMessage) error {
 		} else {
 			go r.SetGenerationStarted(msg.Input.ID.String())
 		}
+		_, err := r.SetIsProcessingInQueueLog(msg.Input.ID, true, nil)
+		if err != nil {
+			log.Errorf("Error setting is_processing in queue log: %v", err)
+		}
 	} else if msg.Status == requests.CogFailed {
+		// Delete from queue log
+		_, err := r.DeleteFromQueueLog(msg.Input.ID, nil)
+		if err != nil {
+			log.Errorf("Error deleting from queue log: %v", err)
+		}
 		// ! Failures for reasons other than NSFW,
 		// ! We need to refund the credits
 		if err := r.WithTx(func(tx *ent.Tx) error {
@@ -231,6 +240,10 @@ func (r *Repository) ProcessCogMessage(msg requests.CogWebhookMessage) error {
 			return err
 		}
 	} else if msg.Status == requests.CogSucceeded {
+		_, err := r.DeleteFromQueueLog(msg.Input.ID, nil)
+		if err != nil {
+			log.Errorf("Error deleting from queue log: %v", err)
+		}
 		if len(msg.Output.Images) == 0 && msg.Input.ProcessType != shared.VOICEOVER {
 			if err := r.WithTx(func(tx *ent.Tx) error {
 				db := tx.Client()

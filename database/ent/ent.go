@@ -22,6 +22,7 @@ import (
 	"github.com/stablecog/sc-go/database/ent/generationmodel"
 	"github.com/stablecog/sc-go/database/ent/generationoutput"
 	"github.com/stablecog/sc-go/database/ent/ipblacklist"
+	"github.com/stablecog/sc-go/database/ent/mqlog"
 	"github.com/stablecog/sc-go/database/ent/negativeprompt"
 	"github.com/stablecog/sc-go/database/ent/prompt"
 	"github.com/stablecog/sc-go/database/ent/role"
@@ -73,6 +74,7 @@ func columnChecker(table string) func(string) error {
 		generationmodel.Table:  generationmodel.ValidColumn,
 		generationoutput.Table: generationoutput.ValidColumn,
 		ipblacklist.Table:      ipblacklist.ValidColumn,
+		mqlog.Table:            mqlog.ValidColumn,
 		negativeprompt.Table:   negativeprompt.ValidColumn,
 		prompt.Table:           prompt.ValidColumn,
 		role.Table:             role.ValidColumn,
