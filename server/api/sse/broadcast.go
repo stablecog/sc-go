@@ -3,7 +3,6 @@ package sse
 import (
 	"encoding/json"
 
-	"github.com/stablecog/sc-go/database/ent"
 	"github.com/stablecog/sc-go/database/repository"
 	"github.com/stablecog/sc-go/log"
 	"github.com/stablecog/sc-go/shared"
@@ -41,10 +40,10 @@ func (h *Hub) BroadcastLivePageMessage(req shared.LivePageMessage) {
 
 // Broadcast a message to all clients
 type QueueUpdate struct {
-	QueueStatus []*ent.MqLog `json:"queue_status"`
+	QueueStatus []*repository.QueueLog `json:"queue_status"`
 }
 
-func (h *Hub) BroadcastQueueUpdate(msg []*ent.MqLog) {
+func (h *Hub) BroadcastQueueUpdate(msg []*repository.QueueLog) {
 	queueUpdate := QueueUpdate{
 		QueueStatus: msg,
 	}
