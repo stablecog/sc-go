@@ -6,13 +6,13 @@ import (
 	"github.com/stablecog/sc-go/database/ent/mqlog"
 )
 
-func (r *Repository) GetQueuePosition(messageId uuid.UUID) (int, error) {
-	// Figure out where this message lands based on priority and created_at
+func (r *Repository) GetQueuePosition(messageId uuid.UUID) (position int, total int, err error) {
 	query := `
-	SELECT row_num
+	SELECT row_num, total
 	FROM (
 			SELECT message_id,
-						 ROW_NUMBER() OVER (ORDER BY priority DESC, created_at ASC) as row_num
+						 ROW_NUMBER() OVER (ORDER BY priority DESC, created_at ASC) as row_num,
+						 COUNT(*) OVER () as total
 			FROM mq_log
 	) AS subquery
 	WHERE message_id = $1
@@ -20,27 +20,31 @@ func (r *Repository) GetQueuePosition(messageId uuid.UUID) (int, error) {
 
 	rows, err := r.DB.QueryContext(r.Ctx, query, messageId)
 	if err != nil {
-		return 0, err
+		return 0, 0, err
 	}
 	defer rows.Close()
 
-	var position int
 	if rows.Next() {
-		err = rows.Scan(&position)
+		err = rows.Scan(&position, &total)
 		if err != nil {
-			return 0, err
+			return 0, 0, err
 		}
 	} else {
-		// No rows means not in the queue
-		return 0, nil
+		// No rows for the given message ID means not in the queue
+		// For the total, we need another query
+		count, err := r.DB.MqLog.Query().Count(r.Ctx)
+		if err != nil {
+			return 0, 0, err
+		}
+		return 0, count, nil
 	}
 
 	// Check for any errors from iterating over rows.
 	if err = rows.Err(); err != nil {
-		return 0, err
+		return 0, 0, err
 	}
 
-	return position, nil
+	return position, total, nil
 }
 
 // Add to queue log

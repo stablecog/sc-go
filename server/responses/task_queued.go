@@ -8,4 +8,5 @@ type TaskQueuedResponse struct {
 	WasAutoSubmitted bool   `json:"was_auto_submitted,omitempty"`
 	IsPublic         bool   `json:"is_public,omitempty"`
 	QueuePosition    int    `json:"queue_position,omitempty"`
+	QueueSize        int    `json:"queue_size,omitempty"`
 }
