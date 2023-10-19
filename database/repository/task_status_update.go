@@ -7,6 +7,7 @@ import (
 
 // Represents an update to a generation/upscale in our database
 type TaskStatusUpdateResponse struct {
+	MessageType      string                    `json:"message_type"`
 	Status           requests.CogTaskStatus    `json:"status"`
 	ProcessType      shared.ProcessType        `json:"process_type"`
 	Id               string                    `json:"id"`

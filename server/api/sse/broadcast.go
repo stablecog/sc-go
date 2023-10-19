@@ -11,6 +11,7 @@ import (
 // Broadcasts message from sc-worker to client(s) SSE stream(s)
 // It's published by our repository, after we do database-y stuff with out cog message
 func (h *Hub) BroadcastStatusUpdate(msg repository.TaskStatusUpdateResponse) {
+	msg.MessageType = "creation_process"
 	// Marshal
 	respBytes, err := json.Marshal(msg)
 	if err != nil {
