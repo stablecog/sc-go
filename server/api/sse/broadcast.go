@@ -40,11 +40,13 @@ func (h *Hub) BroadcastLivePageMessage(req shared.LivePageMessage) {
 
 // Broadcast a message to all clients
 type QueueUpdate struct {
+	MessageType string                 `json:"message_type"`
 	QueueStatus []*repository.QueueLog `json:"queue_status"`
 }
 
 func (h *Hub) BroadcastQueueUpdate(msg []*repository.QueueLog) {
 	queueUpdate := QueueUpdate{
+		MessageType: "queue",
 		QueueStatus: msg,
 	}
 	// Marshal
