@@ -5,6 +5,7 @@ import (
 
 	"github.com/stablecog/sc-go/database/repository"
 	"github.com/stablecog/sc-go/log"
+	"github.com/stablecog/sc-go/server/responses"
 	"github.com/stablecog/sc-go/shared"
 )
 
@@ -41,11 +42,11 @@ func (h *Hub) BroadcastLivePageMessage(req shared.LivePageMessage) {
 
 // Broadcast a message to all clients
 type QueueUpdate struct {
-	MessageType string                 `json:"message_type"`
-	QueueStatus []*repository.QueueLog `json:"queue_status"`
+	MessageType string                `json:"message_type"`
+	QueueStatus []*responses.QueueLog `json:"queue_status"`
 }
 
-func (h *Hub) BroadcastQueueUpdate(msg []*repository.QueueLog) {
+func (h *Hub) BroadcastQueueUpdate(msg []*responses.QueueLog) {
 	queueUpdate := QueueUpdate{
 		MessageType: "queue",
 		QueueStatus: msg,

@@ -1,10 +1,19 @@
 package responses
 
+import (
+	"time"
+)
+
+type QueueLog struct {
+	QueueId   string    `json:"queue_id"`
+	Priority  int       `json:"priority"`
+	CreatedAt time.Time `json:"created_at"`
+}
+
 // For queue details
 type TaskQueueInfo struct {
-	ID       string `json:"id"`
-	Position int    `json:"position"`
-	Size     int    `json:"size"`
+	ID     string      `json:"id"`
+	Status []*QueueLog `json:"status"`
 }
 
 // When UI queues a request

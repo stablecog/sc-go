@@ -547,9 +547,9 @@ func (w *SCWorker) CreateGeneration(source enttypes.SourceType,
 		}
 
 		// Get queued position
-		queuedPosition, queueSize, err := w.Repo.GetQueuePosition(queueId)
+		queueLog, err := w.Repo.GetQueueLog(nil)
 		if err != nil {
-			log.Error("Error getting queue position", "err", err)
+			log.Error("Error getting queue log", "err", err)
 		}
 
 		// Return queued indication
@@ -563,9 +563,8 @@ func (w *SCWorker) CreateGeneration(source enttypes.SourceType,
 				WasAutoSubmitted: generateReq.SubmitToGallery,
 				IsPublic:         generateReq.SubmitToGallery,
 				QueueInfo: &responses.TaskQueueInfo{
-					ID:       queueId,
-					Position: queuedPosition,
-					Size:     queueSize,
+					ID:     queueId,
+					Status: queueLog,
 				},
 			},
 		}, &initSettings, nil

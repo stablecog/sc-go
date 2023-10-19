@@ -1,10 +1,9 @@
 package repository
 
 import (
-	"time"
-
 	"github.com/stablecog/sc-go/database/ent"
 	"github.com/stablecog/sc-go/database/ent/mqlog"
+	"github.com/stablecog/sc-go/server/responses"
 )
 
 func (r *Repository) GetQueuePosition(messageId string) (position int, total int, err error) {
@@ -72,14 +71,8 @@ func (r *Repository) SetIsProcessingInQueueLog(messageId string, isProcessing bo
 	return DB.MqLog.Update().Where(mqlog.MessageIDEQ(messageId)).SetIsProcessing(isProcessing).Save(r.Ctx)
 }
 
-type QueueLog struct {
-	QueueId   string    `json:"queue_id"`
-	Priority  int       `json:"priority"`
-	CreatedAt time.Time `json:"created_at"`
-}
-
 // Get entire queuee ordered by created_at and priority
-func (r *Repository) GetQueueLog(DB *ent.Client) ([]*QueueLog, error) {
+func (r *Repository) GetQueueLog(DB *ent.Client) ([]*responses.QueueLog, error) {
 	if DB == nil {
 		DB = r.DB
 	}
@@ -92,9 +85,9 @@ func (r *Repository) GetQueueLog(DB *ent.Client) ([]*QueueLog, error) {
 		return nil, err
 	}
 
-	queueLog := make([]*QueueLog, len(mqlog))
+	queueLog := make([]*responses.QueueLog, len(mqlog))
 	for i, log := range mqlog {
-		queueLog[i] = &QueueLog{
+		queueLog[i] = &responses.QueueLog{
 			QueueId:   log.MessageID,
 			Priority:  log.Priority,
 			CreatedAt: log.CreatedAt,
