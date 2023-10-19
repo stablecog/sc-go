@@ -1006,6 +1006,14 @@ func main() {
 			sseMessage.LivePageMessage = nil
 			// The hub will broadcast this to our clients if it's supposed to
 			sseHub.BroadcastStatusUpdate(sseMessage)
+
+			// Broadcast queue update
+			queueLog, err := repo.GetQueueLog(nil)
+			if err != nil {
+				log.Error("Error getting queue log", "err", err)
+				continue
+			}
+			sseHub.BroadcastQueueUpdate(queueLog)
 		}
 	}()
 

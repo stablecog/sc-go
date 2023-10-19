@@ -3,6 +3,7 @@ package sse
 import (
 	"encoding/json"
 
+	"github.com/stablecog/sc-go/database/ent"
 	"github.com/stablecog/sc-go/database/repository"
 	"github.com/stablecog/sc-go/log"
 	"github.com/stablecog/sc-go/shared"
@@ -35,5 +36,21 @@ func (h *Hub) BroadcastLivePageMessage(req shared.LivePageMessage) {
 	h.Broadcast <- BroadcastPayload{
 		ID:      "live",
 		Message: bytes,
+	}
+}
+
+// Broadcast a message to all clients
+func (h *Hub) BroadcastQueueUpdate(msg []*ent.MqLog) {
+	// Marshal
+	respBytes, err := json.Marshal(msg)
+	if err != nil {
+		log.Error("Error marshalling sse response", "err", err)
+		return
+	}
+
+	// Broadcast to all clients subcribed to this stream
+	h.Broadcast <- BroadcastPayload{
+		ID:      ALL_CLIENTS_ID,
+		Message: respBytes,
 	}
 }

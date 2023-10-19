@@ -18,7 +18,7 @@ type MqLog struct {
 	// ID of the ent.
 	ID uuid.UUID `json:"id,omitempty"`
 	// MessageID holds the value of the "message_id" field.
-	MessageID uuid.UUID `json:"message_id,omitempty"`
+	MessageID string `json:"message_id,omitempty"`
 	// Priority holds the value of the "priority" field.
 	Priority int `json:"priority,omitempty"`
 	// IsProcessing holds the value of the "is_processing" field.
@@ -38,9 +38,11 @@ func (*MqLog) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullBool)
 		case mqlog.FieldPriority:
 			values[i] = new(sql.NullInt64)
+		case mqlog.FieldMessageID:
+			values[i] = new(sql.NullString)
 		case mqlog.FieldCreatedAt, mqlog.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
-		case mqlog.FieldID, mqlog.FieldMessageID:
+		case mqlog.FieldID:
 			values[i] = new(uuid.UUID)
 		default:
 			return nil, fmt.Errorf("unexpected column %q for type MqLog", columns[i])
@@ -64,10 +66,10 @@ func (ml *MqLog) assignValues(columns []string, values []any) error {
 				ml.ID = *value
 			}
 		case mqlog.FieldMessageID:
-			if value, ok := values[i].(*uuid.UUID); !ok {
+			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field message_id", values[i])
-			} else if value != nil {
-				ml.MessageID = *value
+			} else if value.Valid {
+				ml.MessageID = value.String
 			}
 		case mqlog.FieldPriority:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
@@ -122,7 +124,7 @@ func (ml *MqLog) String() string {
 	builder.WriteString("MqLog(")
 	builder.WriteString(fmt.Sprintf("id=%v, ", ml.ID))
 	builder.WriteString("message_id=")
-	builder.WriteString(fmt.Sprintf("%v", ml.MessageID))
+	builder.WriteString(ml.MessageID)
 	builder.WriteString(", ")
 	builder.WriteString("priority=")
 	builder.WriteString(fmt.Sprintf("%v", ml.Priority))

@@ -315,6 +315,7 @@ func (w *SCWorker) CreateUpscale(source enttypes.SourceType,
 	var livePageMsg shared.LivePageMessage
 	// For keeping track of this request as it gets sent to the worker
 	var requestId uuid.UUID
+	var queueId string
 	// Cog request
 	var cogReqBody requests.CogQueueRequest
 
@@ -369,6 +370,8 @@ func (w *SCWorker) CreateUpscale(source enttypes.SourceType,
 
 		// Request Id matches upscale ID
 		requestId = upscale.ID
+		// queueId is message_id in amqp
+		queueId = utils.Sha256(requestId.String())
 
 		// For live page update
 		livePageMsg = shared.LivePageMessage{
@@ -415,15 +418,15 @@ func (w *SCWorker) CreateUpscale(source enttypes.SourceType,
 			cogReqBody.Input.StreamID = upscaleReq.StreamID
 		}
 
-		_, err = w.Repo.AddToQueueLog(requestId, int(queuePriority), nil)
+		_, err = w.Repo.AddToQueueLog(queueId, int(queuePriority), nil)
 		if err != nil {
 			log.Error("Error adding to queue log", "err", err)
 			return err
 		}
 
-		err = w.MQClient.Publish(requestId.String(), cogReqBody, queuePriority)
+		err = w.MQClient.Publish(queueId, cogReqBody, queuePriority)
 		if err != nil {
-			log.Error("Failed to write request %s to queue: %v", requestId, err)
+			log.Error("Failed to write request %s to queue: %v", queueId, err)
 			return err
 		}
 
@@ -498,8 +501,11 @@ func (w *SCWorker) CreateUpscale(source enttypes.SourceType,
 				ID:               requestId.String(),
 				UIId:             upscaleReq.UIId,
 				RemainingCredits: remainingCredits,
-				QueuePosition:    queuedPosition,
-				QueueSize:        queueSize,
+				QueueInfo: &responses.TaskQueueInfo{
+					ID:       queueId,
+					Position: queuedPosition,
+					Size:     queueSize,
+				},
 			},
 		}, &initSettings, nil
 	}

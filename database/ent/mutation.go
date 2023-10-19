@@ -10569,7 +10569,7 @@ type MqLogMutation struct {
 	op            Op
 	typ           string
 	id            *uuid.UUID
-	message_id    *uuid.UUID
+	message_id    *string
 	priority      *int
 	addpriority   *int
 	is_processing *bool
@@ -10686,12 +10686,12 @@ func (m *MqLogMutation) IDs(ctx context.Context) ([]uuid.UUID, error) {
 }
 
 // SetMessageID sets the "message_id" field.
-func (m *MqLogMutation) SetMessageID(u uuid.UUID) {
-	m.message_id = &u
+func (m *MqLogMutation) SetMessageID(s string) {
+	m.message_id = &s
 }
 
 // MessageID returns the value of the "message_id" field in the mutation.
-func (m *MqLogMutation) MessageID() (r uuid.UUID, exists bool) {
+func (m *MqLogMutation) MessageID() (r string, exists bool) {
 	v := m.message_id
 	if v == nil {
 		return
@@ -10702,7 +10702,7 @@ func (m *MqLogMutation) MessageID() (r uuid.UUID, exists bool) {
 // OldMessageID returns the old "message_id" field's value of the MqLog entity.
 // If the MqLog object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *MqLogMutation) OldMessageID(ctx context.Context) (v uuid.UUID, err error) {
+func (m *MqLogMutation) OldMessageID(ctx context.Context) (v string, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldMessageID is only allowed on UpdateOne operations")
 	}
@@ -10982,7 +10982,7 @@ func (m *MqLogMutation) OldField(ctx context.Context, name string) (ent.Value, e
 func (m *MqLogMutation) SetField(name string, value ent.Value) error {
 	switch name {
 	case mqlog.FieldMessageID:
-		v, ok := value.(uuid.UUID)
+		v, ok := value.(string)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}

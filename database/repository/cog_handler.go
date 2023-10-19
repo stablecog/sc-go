@@ -171,13 +171,13 @@ func (r *Repository) ProcessCogMessage(msg requests.CogWebhookMessage) error {
 		} else {
 			go r.SetGenerationStarted(msg.Input.ID.String())
 		}
-		_, err := r.DeleteFromQueueLog(msg.Input.ID, nil)
+		_, err := r.DeleteFromQueueLog(utils.Sha256(msg.Input.ID.String()), nil)
 		if err != nil {
 			log.Errorf("Error deleting from queue log: %v", err)
 		}
 	} else if msg.Status == requests.CogFailed {
 		// Delete from queue log
-		_, err := r.DeleteFromQueueLog(msg.Input.ID, nil)
+		_, err := r.DeleteFromQueueLog(utils.Sha256(msg.Input.ID.String()), nil)
 		if err != nil {
 			log.Errorf("Error deleting from queue log: %v", err)
 		}
@@ -240,7 +240,7 @@ func (r *Repository) ProcessCogMessage(msg requests.CogWebhookMessage) error {
 			return err
 		}
 	} else if msg.Status == requests.CogSucceeded {
-		_, err := r.DeleteFromQueueLog(msg.Input.ID, nil)
+		_, err := r.DeleteFromQueueLog(utils.Sha256(msg.Input.ID.String()), nil)
 		if err != nil {
 			log.Errorf("Error deleting from queue log: %v", err)
 		}

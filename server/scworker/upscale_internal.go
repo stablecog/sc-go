@@ -77,6 +77,7 @@ func CreateUpscaleInternal(Track *analytics.AnalyticsService, Repo *repository.R
 
 		// Send to the cog
 		requestId = upscale.ID
+		queueId := utils.Sha256(requestId.String())
 
 		// Live page
 		livePageMsg := &shared.LivePageMessage{
@@ -115,15 +116,15 @@ func CreateUpscaleInternal(Track *analytics.AnalyticsService, Repo *repository.R
 			},
 		}
 
-		_, err = Repo.AddToQueueLog(requestId, 1, nil)
+		_, err = Repo.AddToQueueLog(queueId, 1, nil)
 		if err != nil {
 			log.Error("Error adding to queue log", "err", err)
 			return err
 		}
 
-		err = MQClient.Publish(requestId.String(), cogReqBody, 1)
+		err = MQClient.Publish(queueId, cogReqBody, 1)
 		if err != nil {
-			log.Error("Failed to write request to queue", "id", upscale.ID, "err", err)
+			log.Error("Failed to write request to queue", "id", queueId, "err", err)
 			return err
 		}
 

@@ -8,6 +8,8 @@ import (
 	"github.com/stablecog/sc-go/shared"
 )
 
+const ALL_CLIENTS_ID = "all"
+
 type BroadcastPayload struct {
 	ID      string `json:"id"`
 	Message []byte `json:"message"`
@@ -72,7 +74,15 @@ func (h *Hub) Run() {
 			}
 		case payload := <-h.Broadcast:
 			for client := range h.clients {
-				if client.Uid == payload.ID {
+				if payload.ID == ALL_CLIENTS_ID {
+					select {
+					case client.Send <- payload.Message:
+					default:
+						close(client.Send)
+						delete(h.clients, client)
+					}
+					continue
+				} else if client.Uid == payload.ID {
 					select {
 					case client.Send <- payload.Message:
 					default:

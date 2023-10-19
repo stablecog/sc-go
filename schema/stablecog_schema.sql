@@ -1218,7 +1218,7 @@ ALTER TABLE public.auth_clients ENABLE ROW LEVEL SECURITY;
 --
 CREATE TABLE public.mq_log (
     id uuid DEFAULT extensions.uuid_generate_v4() NOT NULL,
-    message_id uuid not null,
+    message_id text not null unique,
     priority bigint NOT NULL,
     is_processing boolean default false not null,
     created_at timestamp with time zone DEFAULT (now() AT TIME ZONE 'utc'::text) NOT NULL,

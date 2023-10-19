@@ -25,8 +25,8 @@ type MqLogCreate struct {
 }
 
 // SetMessageID sets the "message_id" field.
-func (mlc *MqLogCreate) SetMessageID(u uuid.UUID) *MqLogCreate {
-	mlc.mutation.SetMessageID(u)
+func (mlc *MqLogCreate) SetMessageID(s string) *MqLogCreate {
+	mlc.mutation.SetMessageID(s)
 	return mlc
 }
 
@@ -205,7 +205,7 @@ func (mlc *MqLogCreate) createSpec() (*MqLog, *sqlgraph.CreateSpec) {
 		_spec.ID.Value = &id
 	}
 	if value, ok := mlc.mutation.MessageID(); ok {
-		_spec.SetField(mqlog.FieldMessageID, field.TypeUUID, value)
+		_spec.SetField(mqlog.FieldMessageID, field.TypeString, value)
 		_node.MessageID = value
 	}
 	if value, ok := mlc.mutation.Priority(); ok {
@@ -277,7 +277,7 @@ type (
 )
 
 // SetMessageID sets the "message_id" field.
-func (u *MqLogUpsert) SetMessageID(v uuid.UUID) *MqLogUpsert {
+func (u *MqLogUpsert) SetMessageID(v string) *MqLogUpsert {
 	u.Set(mqlog.FieldMessageID, v)
 	return u
 }
@@ -382,7 +382,7 @@ func (u *MqLogUpsertOne) Update(set func(*MqLogUpsert)) *MqLogUpsertOne {
 }
 
 // SetMessageID sets the "message_id" field.
-func (u *MqLogUpsertOne) SetMessageID(v uuid.UUID) *MqLogUpsertOne {
+func (u *MqLogUpsertOne) SetMessageID(v string) *MqLogUpsertOne {
 	return u.Update(func(s *MqLogUpsert) {
 		s.SetMessageID(v)
 	})
@@ -659,7 +659,7 @@ func (u *MqLogUpsertBulk) Update(set func(*MqLogUpsert)) *MqLogUpsertBulk {
 }
 
 // SetMessageID sets the "message_id" field.
-func (u *MqLogUpsertBulk) SetMessageID(v uuid.UUID) *MqLogUpsertBulk {
+func (u *MqLogUpsertBulk) SetMessageID(v string) *MqLogUpsertBulk {
 	return u.Update(func(s *MqLogUpsert) {
 		s.SetMessageID(v)
 	})

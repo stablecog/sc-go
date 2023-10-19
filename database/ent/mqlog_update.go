@@ -11,7 +11,6 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
-	"github.com/google/uuid"
 	"github.com/stablecog/sc-go/database/ent/mqlog"
 	"github.com/stablecog/sc-go/database/ent/predicate"
 )
@@ -31,8 +30,8 @@ func (mlu *MqLogUpdate) Where(ps ...predicate.MqLog) *MqLogUpdate {
 }
 
 // SetMessageID sets the "message_id" field.
-func (mlu *MqLogUpdate) SetMessageID(u uuid.UUID) *MqLogUpdate {
-	mlu.mutation.SetMessageID(u)
+func (mlu *MqLogUpdate) SetMessageID(s string) *MqLogUpdate {
+	mlu.mutation.SetMessageID(s)
 	return mlu
 }
 
@@ -135,7 +134,7 @@ func (mlu *MqLogUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 	}
 	if value, ok := mlu.mutation.MessageID(); ok {
-		_spec.SetField(mqlog.FieldMessageID, field.TypeUUID, value)
+		_spec.SetField(mqlog.FieldMessageID, field.TypeString, value)
 	}
 	if value, ok := mlu.mutation.Priority(); ok {
 		_spec.SetField(mqlog.FieldPriority, field.TypeInt, value)
@@ -172,8 +171,8 @@ type MqLogUpdateOne struct {
 }
 
 // SetMessageID sets the "message_id" field.
-func (mluo *MqLogUpdateOne) SetMessageID(u uuid.UUID) *MqLogUpdateOne {
-	mluo.mutation.SetMessageID(u)
+func (mluo *MqLogUpdateOne) SetMessageID(s string) *MqLogUpdateOne {
+	mluo.mutation.SetMessageID(s)
 	return mluo
 }
 
@@ -300,7 +299,7 @@ func (mluo *MqLogUpdateOne) sqlSave(ctx context.Context) (_node *MqLog, err erro
 		}
 	}
 	if value, ok := mluo.mutation.MessageID(); ok {
-		_spec.SetField(mqlog.FieldMessageID, field.TypeUUID, value)
+		_spec.SetField(mqlog.FieldMessageID, field.TypeString, value)
 	}
 	if value, ok := mluo.mutation.Priority(); ok {
 		_spec.SetField(mqlog.FieldPriority, field.TypeInt, value)

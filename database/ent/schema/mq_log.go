@@ -19,7 +19,7 @@ type MqLog struct {
 func (MqLog) Fields() []ent.Field {
 	return []ent.Field{
 		field.UUID("id", uuid.UUID{}).Default(uuid.New),
-		field.UUID("message_id", uuid.UUID{}).Unique(),
+		field.Text("message_id").Unique(),
 		field.Int("priority"),
 		field.Bool("is_processing").Default(false),
 		field.Time("created_at").Default(time.Now).Immutable(),

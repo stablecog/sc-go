@@ -261,7 +261,7 @@ func (mlq *MqLogQuery) Clone() *MqLogQuery {
 // Example:
 //
 //	var v []struct {
-//		MessageID uuid.UUID `json:"message_id,omitempty"`
+//		MessageID string `json:"message_id,omitempty"`
 //		Count int `json:"count,omitempty"`
 //	}
 //
@@ -284,7 +284,7 @@ func (mlq *MqLogQuery) GroupBy(field string, fields ...string) *MqLogGroupBy {
 // Example:
 //
 //	var v []struct {
-//		MessageID uuid.UUID `json:"message_id,omitempty"`
+//		MessageID string `json:"message_id,omitempty"`
 //	}
 //
 //	client.MqLog.Query().

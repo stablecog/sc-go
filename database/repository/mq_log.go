@@ -48,7 +48,7 @@ func (r *Repository) GetQueuePosition(messageId uuid.UUID) (position int, total 
 }
 
 // Add to queue log
-func (r *Repository) AddToQueueLog(messageId uuid.UUID, priority int, DB *ent.Client) (*ent.MqLog, error) {
+func (r *Repository) AddToQueueLog(messageId string, priority int, DB *ent.Client) (*ent.MqLog, error) {
 	if DB == nil {
 		DB = r.DB
 	}
@@ -56,7 +56,7 @@ func (r *Repository) AddToQueueLog(messageId uuid.UUID, priority int, DB *ent.Cl
 }
 
 // Delete from queue log
-func (r *Repository) DeleteFromQueueLog(messageId uuid.UUID, DB *ent.Client) (int, error) {
+func (r *Repository) DeleteFromQueueLog(messageId string, DB *ent.Client) (int, error) {
 	if DB == nil {
 		DB = r.DB
 	}
@@ -64,9 +64,21 @@ func (r *Repository) DeleteFromQueueLog(messageId uuid.UUID, DB *ent.Client) (in
 }
 
 // Set is_processing
-func (r *Repository) SetIsProcessingInQueueLog(messageId uuid.UUID, isProcessing bool, DB *ent.Client) (int, error) {
+func (r *Repository) SetIsProcessingInQueueLog(messageId string, isProcessing bool, DB *ent.Client) (int, error) {
 	if DB == nil {
 		DB = r.DB
 	}
 	return DB.MqLog.Update().Where(mqlog.MessageIDEQ(messageId)).SetIsProcessing(isProcessing).Save(r.Ctx)
+}
+
+// Get entire queuee ordered by created_at and priority
+func (r *Repository) GetQueueLog(DB *ent.Client) ([]*ent.MqLog, error) {
+	if DB == nil {
+		DB = r.DB
+	}
+	return DB.MqLog.
+		Query().
+		Select(mqlog.FieldMessageID, mqlog.FieldPriority, mqlog.FieldCreatedAt).
+		Order(ent.Desc(mqlog.FieldPriority), ent.Asc(mqlog.FieldCreatedAt)).
+		All(r.Ctx)
 }
