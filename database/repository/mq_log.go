@@ -1,12 +1,11 @@
 package repository
 
 import (
-	"github.com/google/uuid"
 	"github.com/stablecog/sc-go/database/ent"
 	"github.com/stablecog/sc-go/database/ent/mqlog"
 )
 
-func (r *Repository) GetQueuePosition(messageId uuid.UUID) (position int, total int, err error) {
+func (r *Repository) GetQueuePosition(messageId string) (position int, total int, err error) {
 	query := `
 	SELECT row_num, total
 	FROM (
