@@ -547,7 +547,7 @@ func (w *SCWorker) CreateGeneration(source enttypes.SourceType,
 		}
 
 		// Get queued position
-		queuedPosition, queueSize, err := w.Repo.GetQueuePosition(requestId)
+		queuedPosition, queueSize, err := w.Repo.GetQueuePosition(queueId)
 		if err != nil {
 			log.Error("Error getting queue position", "err", err)
 		}
