@@ -73,7 +73,7 @@ func (r *Repository) SetIsProcessingInQueueLog(messageId string, isProcessing bo
 }
 
 type QueueLog struct {
-	MessageID string    `json:"message_id"`
+	QueueId   string    `json:"queue_id"`
 	Priority  int       `json:"priority"`
 	CreatedAt time.Time `json:"created_at"`
 }
@@ -95,7 +95,7 @@ func (r *Repository) GetQueueLog(DB *ent.Client) ([]*QueueLog, error) {
 	queueLog := make([]*QueueLog, len(mqlog))
 	for i, log := range mqlog {
 		queueLog[i] = &QueueLog{
-			MessageID: log.MessageID,
+			QueueId:   log.MessageID,
 			Priority:  log.Priority,
 			CreatedAt: log.CreatedAt,
 		}
