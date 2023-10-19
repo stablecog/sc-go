@@ -40,9 +40,16 @@ func (h *Hub) BroadcastLivePageMessage(req shared.LivePageMessage) {
 }
 
 // Broadcast a message to all clients
+type QueueUpdate struct {
+	QueueStatus []*ent.MqLog `json:"queue_status"`
+}
+
 func (h *Hub) BroadcastQueueUpdate(msg []*ent.MqLog) {
+	queueUpdate := QueueUpdate{
+		QueueStatus: msg,
+	}
 	// Marshal
-	respBytes, err := json.Marshal(msg)
+	respBytes, err := json.Marshal(queueUpdate)
 	if err != nil {
 		log.Error("Error marshalling sse response", "err", err)
 		return
