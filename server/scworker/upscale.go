@@ -488,7 +488,7 @@ func (w *SCWorker) CreateUpscale(source enttypes.SourceType,
 		}
 
 		// Get queued position
-		queueLog, err := w.Repo.GetQueueLog(nil)
+		queueLog, err := w.Repo.GetQueuedItems(nil)
 		if err != nil {
 			log.Error("Error getting queue log", "err", err)
 		}
@@ -501,10 +501,8 @@ func (w *SCWorker) CreateUpscale(source enttypes.SourceType,
 				ID:               requestId.String(),
 				UIId:             upscaleReq.UIId,
 				RemainingCredits: remainingCredits,
-				QueueInfo: &responses.TaskQueueInfo{
-					ID:     queueId,
-					Status: queueLog,
-				},
+				QueuedId:         queueId,
+				QueueItems:       queueLog,
 			},
 		}, &initSettings, nil
 	}

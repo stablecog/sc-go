@@ -1008,7 +1008,7 @@ func main() {
 			sseHub.BroadcastStatusUpdate(sseMessage)
 
 			// Broadcast queue update
-			queueLog, err := repo.GetQueueLog(nil)
+			queueLog, err := repo.GetQueuedItems(nil)
 			if err != nil {
 				log.Error("Error getting queue log", "err", err)
 				continue

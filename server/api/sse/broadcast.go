@@ -42,14 +42,14 @@ func (h *Hub) BroadcastLivePageMessage(req shared.LivePageMessage) {
 
 // Broadcast a message to all clients
 type QueueUpdate struct {
-	MessageType string                `json:"message_type"`
-	QueueStatus []*responses.QueueLog `json:"queue_status"`
+	MessageType string                  `json:"message_type"`
+	QueueItems  []*responses.QueuedItem `json:"queue_items"`
 }
 
-func (h *Hub) BroadcastQueueUpdate(msg []*responses.QueueLog) {
+func (h *Hub) BroadcastQueueUpdate(msg []*responses.QueuedItem) {
 	queueUpdate := QueueUpdate{
 		MessageType: "queue",
-		QueueStatus: msg,
+		QueueItems:  msg,
 	}
 	// Marshal
 	respBytes, err := json.Marshal(queueUpdate)

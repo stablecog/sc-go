@@ -72,7 +72,7 @@ func (r *Repository) SetIsProcessingInQueueLog(messageId string, isProcessing bo
 }
 
 // Get entire queuee ordered by created_at and priority
-func (r *Repository) GetQueueLog(DB *ent.Client) ([]*responses.QueueLog, error) {
+func (r *Repository) GetQueuedItems(DB *ent.Client) ([]*responses.QueuedItem, error) {
 	if DB == nil {
 		DB = r.DB
 	}
@@ -85,10 +85,10 @@ func (r *Repository) GetQueueLog(DB *ent.Client) ([]*responses.QueueLog, error) 
 		return nil, err
 	}
 
-	queueLog := make([]*responses.QueueLog, len(mqlog))
+	queueLog := make([]*responses.QueuedItem, len(mqlog))
 	for i, log := range mqlog {
-		queueLog[i] = &responses.QueueLog{
-			QueueId:   log.MessageID,
+		queueLog[i] = &responses.QueuedItem{
+			Id:        log.MessageID,
 			Priority:  log.Priority,
 			CreatedAt: log.CreatedAt,
 		}
