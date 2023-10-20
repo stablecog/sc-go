@@ -648,6 +648,10 @@ func (w *SCWorker) CreateUpscale(source enttypes.SourceType,
 				return nil, &initSettings, WorkerInternalServerError()
 			}
 		case <-time.After(shared.REQUEST_COG_TIMEOUT):
+			_, err := w.Repo.DeleteFromQueueLog(queueId, nil)
+			if err != nil {
+				log.Error("Error deleting from queue log", "err", err)
+			}
 			if err := w.Repo.WithTx(func(tx *ent.Tx) error {
 				DB := tx.Client()
 				err := w.Repo.SetUpscaleFailed(requestId.String(), shared.TIMEOUT_ERROR, DB)
