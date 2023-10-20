@@ -476,6 +476,7 @@ func (w *SCWorker) CreateGeneration(source enttypes.SourceType,
 		redisOrMq := rand.Intn(2) + 1
 
 		if redisOrMq == 1 {
+			log.Infof("Publishing to RABBITMQ")
 			_, err = w.Repo.AddToQueueLog(queueId, int(queuePriority), nil)
 			if err != nil {
 				log.Error("Error adding to queue log", "err", err)
@@ -488,6 +489,7 @@ func (w *SCWorker) CreateGeneration(source enttypes.SourceType,
 				return err
 			}
 		} else {
+			log.Infof("Publishing to REDIS")
 			w.Redis.EnqueueCogRequest(r.Context(), shared.COG_REDIS_QUEUE, cogReqBody)
 		}
 
