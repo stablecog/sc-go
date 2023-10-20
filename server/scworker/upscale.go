@@ -33,17 +33,20 @@ func (w *SCWorker) CreateUpscale(source enttypes.SourceType,
 	apiTokenId *uuid.UUID,
 	upscaleReq requests.CreateUpscaleRequest) (*responses.ApiSucceededResponse, *responses.ImageUpscaleSettingsResponse, *WorkerError) {
 	// Queue priority for MQ
-	var queuePriority uint8 = 2
+	var queuePriority uint8 = shared.QUEUE_PRIORITY_2
 
 	free := user.ActiveProductID == nil
 	if free {
 		// Re-evaluate if they have paid credits
-		count, err := w.Repo.GetPaidCreditSum(user.ID)
+		count, err := w.Repo.GetNonFreeCreditSum(user.ID)
 		if err != nil {
 			log.Error("Error getting paid credit sum for users", "err", err)
 			return nil, nil, WorkerInternalServerError()
 		}
 		free = count <= 0
+		if !free {
+			queuePriority = shared.QUEUE_PRIORITY_3
+		}
 	}
 
 	var qMax int
@@ -63,12 +66,15 @@ func (w *SCWorker) CreateUpscale(source enttypes.SourceType,
 		// Starter
 		case stripe.GetProductIDs()[1]:
 			qMax = shared.MAX_QUEUED_ITEMS_STARTER
+			queuePriority = shared.QUEUE_PRIORITY_5
 			// Pro
 		case stripe.GetProductIDs()[2]:
 			qMax = shared.MAX_QUEUED_ITEMS_PRO
+			queuePriority = shared.QUEUE_PRIORITY_5
 		// Ultimate
 		case stripe.GetProductIDs()[3]:
 			qMax = shared.MAX_QUEUED_ITEMS_ULTIMATE
+			queuePriority = shared.QUEUE_PRIORITY_5
 		default:
 			log.Warn("Unknown product ID", "product_id", *user.ActiveProductID)
 		}
@@ -100,8 +106,21 @@ func (w *SCWorker) CreateUpscale(source enttypes.SourceType,
 		}
 	}
 
-	if !free || isSuperAdmin {
-		queuePriority = 3
+	if isSuperAdmin {
+		queuePriority = shared.QUEUE_PRIORITY_4
+	}
+
+	// With gift credits, give them a priority in between super admins and paid credits
+	if !free && queuePriority < shared.QUEUE_PRIORITY_5 {
+		// Re-evaluate if they have paid credits
+		paidCount, err := w.Repo.GetPaidCreditSum(user.ID)
+		if err != nil {
+			log.Error("Error getting paid credit sum for users", "err", err)
+			return nil, nil, WorkerInternalServerError()
+		}
+		if paidCount > 0 {
+			queuePriority = shared.QUEUE_PRIORITY_5
+		}
 	}
 
 	if user.BannedAt != nil {

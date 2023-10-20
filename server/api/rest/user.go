@@ -243,7 +243,7 @@ func (c *RestAPI) HandleGetUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Get paid credits for user
-	paidCreditCount, err := c.Repo.GetPaidCreditSum(*userID)
+	paidCreditCount, err := c.Repo.GetNonFreeCreditSum(*userID)
 	if err != nil {
 		log.Error("Error getting paid credits for user", "err", err)
 		responses.ErrInternalServerError(w, r, "An unknown error has occurred")

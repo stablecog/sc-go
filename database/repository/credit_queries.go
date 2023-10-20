@@ -71,13 +71,33 @@ func (r *Repository) GetFreeCreditReplenishesAtForUser(userID uuid.UUID) (*time.
 	return &replenishesAt, credit, ctype, nil
 }
 
-// Determine if a user has paid credits or not
-func (r *Repository) GetPaidCreditSum(userID uuid.UUID) (int, error) {
+// Determine if a user has non-free credits or not
+func (r *Repository) GetNonFreeCreditSum(userID uuid.UUID) (int, error) {
 	var v []struct {
 		Sum *int
 	}
 	err := r.DB.Credit.Query().
 		Where(credit.UserIDEQ(userID), credit.CreditTypeIDNEQ(uuid.MustParse(FREE_CREDIT_TYPE_ID)), credit.CreditTypeIDNEQ(uuid.MustParse(TIPPABLE_CREDIT_TYPE_ID))).
+		Aggregate(
+			ent.Sum(credit.FieldRemainingAmount),
+		).
+		Scan(r.Ctx, &v)
+	if err != nil {
+		return 0, err
+	}
+	if len(v) == 0 || v[0].Sum == nil {
+		return 0, nil
+	}
+	return *v[0].Sum, nil
+}
+
+// Determine if user has paid credits, with a non null stripe line item ID
+func (r *Repository) GetPaidCreditSum(userID uuid.UUID) (int, error) {
+	var v []struct {
+		Sum *int
+	}
+	err := r.DB.Credit.Query().
+		Where(credit.UserIDEQ(userID), credit.StripeLineItemIDNotNil(), credit.CreditTypeIDNEQ(uuid.MustParse(FREE_CREDIT_TYPE_ID)), credit.CreditTypeIDNEQ(uuid.MustParse(TIPPABLE_CREDIT_TYPE_ID))).
 		Aggregate(
 			ent.Sum(credit.FieldRemainingAmount),
 		).

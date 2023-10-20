@@ -122,7 +122,7 @@ func CreateUpscaleInternal(Track *analytics.AnalyticsService, Repo *repository.R
 			return err
 		}
 
-		err = MQClient.Publish(queueId, cogReqBody, 1)
+		err = MQClient.Publish(queueId, cogReqBody, shared.QUEUE_PRIORITY_1)
 		if err != nil {
 			log.Error("Failed to write request to queue", "id", queueId, "err", err)
 			return err
