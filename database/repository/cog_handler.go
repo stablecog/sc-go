@@ -45,6 +45,12 @@ func (r *Repository) FailCogMessageDueToTimeoutIfTimedOut(msg requests.CogWebhoo
 		}
 	}
 
+	// Remove from mq_log
+	_, err = r.DeleteFromQueueLog(utils.Sha256(msg.Input.ID.String()), nil)
+	if err != nil {
+		log.Errorf("Error deleting from queue log: %v", err)
+	}
+
 	// ! Execute timeout failure
 	// Get process type
 	if msg.Input.ProcessType != shared.GENERATE && msg.Input.ProcessType != shared.UPSCALE && msg.Input.ProcessType != shared.GENERATE_AND_UPSCALE && msg.Input.ProcessType != shared.VOICEOVER {
