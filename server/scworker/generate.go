@@ -490,7 +490,11 @@ func (w *SCWorker) CreateGeneration(source enttypes.SourceType,
 			}
 		} else {
 			log.Infof("Publishing to REDIS")
-			w.Redis.EnqueueCogRequest(r.Context(), shared.COG_REDIS_QUEUE, cogReqBody)
+			err = w.Redis.EnqueueCogRequest(w.Redis.Ctx, shared.COG_REDIS_QUEUE, cogReqBody)
+			if err != nil {
+				log.Error("Failed to write request %s to redis: %v", queueId, err)
+				return err
+			}
 		}
 
 		w.QueueThrottler.IncrementBy(1, fmt.Sprintf("g:%s", user.ID.String()))
