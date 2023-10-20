@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"math"
-	"math/rand"
 	"net/http"
 	"os"
 	"strings"
@@ -469,29 +468,16 @@ func (w *SCWorker) CreateGeneration(source enttypes.SourceType,
 			cogReqBody.Input.InitImageUrlS3 = generateReq.InitImageUrl
 		}
 
-		// Get random number between 1 and 2
-		redisOrMq := rand.Intn(2) + 1
+		_, err = w.Repo.AddToQueueLog(queueId, int(queuePriority), nil)
+		if err != nil {
+			log.Error("Error adding to queue log", "err", err)
+			return err
+		}
 
-		if redisOrMq == 1 {
-			log.Infof("Publishing to RABBITMQ")
-			_, err = w.Repo.AddToQueueLog(queueId, int(queuePriority), nil)
-			if err != nil {
-				log.Error("Error adding to queue log", "err", err)
-				return err
-			}
-
-			err = w.MQClient.Publish(queueId, cogReqBody, queuePriority)
-			if err != nil {
-				log.Error("Failed to write request %s to exchange: %v", queueId, err)
-				return err
-			}
-		} else {
-			log.Infof("Publishing to REDIS")
-			err = w.Redis.EnqueueCogRequest(w.Redis.Ctx, shared.COG_REDIS_QUEUE, cogReqBody)
-			if err != nil {
-				log.Error("Failed to write request %s to redis: %v", queueId, err)
-				return err
-			}
+		err = w.MQClient.Publish(queueId, cogReqBody, queuePriority)
+		if err != nil {
+			log.Error("Failed to write request %s to exchange: %v", queueId, err)
+			return err
 		}
 
 		w.QueueThrottler.IncrementBy(1, fmt.Sprintf("g:%s", user.ID.String()))
