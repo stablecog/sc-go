@@ -240,9 +240,9 @@ func InitialLoadingResponse(s *discordgo.Session, i *discordgo.InteractionCreate
 // When a user does not have enough credits to perform an action
 func InsufficientCreditsResponseOptions(needed, have int32) *InteractionResponseOptions {
 	return &InteractionResponseOptions{
-		EmbedTitle:   "🚫 Insufficient credits",
+		EmbedTitle:   "Insufficient credits",
 		EmbedContent: fmt.Sprintf("You need %d credits to perform this action, but you only have %d. ", needed, have),
-		EmbedFooter:  "You may subscribe or purchase addtional credits at any time.",
+		EmbedFooter:  "You can subscribe or purchase additional credits at any time.",
 		ActionRowOne: []*components.SCDiscordComponent{
 			components.NewLinkButton("Pricing Page", "https://stablecog.com/pricing", "🪙"),
 		},
