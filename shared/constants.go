@@ -17,7 +17,7 @@ const TIMEOUT_ERROR = "TIMEOUT"
 
 // After this period, a request will timeout and a user will be refunded
 // But the generation/upscale may still go through, if it takes longer than this
-const REQUEST_COG_TIMEOUT = 60 * time.Second
+const REQUEST_COG_TIMEOUT = 180 * time.Second
 
 const REQUEST_COG_TIMEOUT_VOICEOVER = 180 * time.Second
 
@@ -113,15 +113,6 @@ const FREE_CREDIT_REPLENISHMENT_INTERVAL = 12 * time.Hour
 const FREE_CREDIT_LAST_ACTIVITY_REQUIREMENT = 168 * time.Hour
 
 // ! Auto-upscale
-// Only trigger upscale if queue length is not greater than this
-const AUTO_UPSCALE_QUEUE_SIZE_QSIZE_REQUIRED = 1
-
-// Evaluate time in queue over this period
-const AUTO_UPSCALE_AVG_TIME_IN_QUEUE_SINCE = 5 * time.Minute
-
-// Only trigger upscale if avg time in queue is less than this
-const AUTO_UPSCALE_AVG_TIME_IN_QUEUE_REQUIRED = 0.8
-
 // If criteria not met for auto-upscale, retry after this period
 const AUTO_UPSCALE_RETRY_DURATION = 30 * time.Second
 

@@ -254,7 +254,8 @@ func CreateUpscaleInternal(Track *analytics.AnalyticsService, Repo *repository.R
 				go Track.UpscaleFailed(user, cogMsg.Input, duration, cogMsg.Error, enttypes.SourceTypeInternal, "system")
 				return err
 			}
-		case <-time.After(shared.REQUEST_COG_TIMEOUT):
+		// Make ~30 minute timeouts, the TTL of MQ messages
+		case <-time.After(30 * time.Minute):
 			err := Repo.SetUpscaleFailed(upscale.ID.String(), shared.TIMEOUT_ERROR, nil)
 			if err != nil {
 				log.Error("Failed to set upscale failed", "id", upscale.ID, "err", err)
