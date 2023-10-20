@@ -572,6 +572,11 @@ func (w *SCWorker) CreateGeneration(source enttypes.SourceType,
 	for {
 		select {
 		case cogMsg := <-activeChl:
+			// Always remove from queue log
+			_, err := w.Repo.DeleteFromQueueLog(queueId, nil)
+			if err != nil {
+				log.Error("Error deleting from queue log", "err", err)
+			}
 			switch cogMsg.Status {
 			case requests.CogProcessing:
 				err := w.Repo.SetGenerationStarted(requestId.String())

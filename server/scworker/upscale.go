@@ -511,6 +511,10 @@ func (w *SCWorker) CreateUpscale(source enttypes.SourceType,
 	for {
 		select {
 		case cogMsg := <-activeChl:
+			_, err := w.Repo.DeleteFromQueueLog(queueId, nil)
+			if err != nil {
+				log.Error("Error deleting from queue log", "err", err)
+			}
 			switch cogMsg.Status {
 			case requests.CogProcessing:
 				err := w.Repo.SetUpscaleStarted(requestId.String())
