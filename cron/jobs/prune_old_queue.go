@@ -2,6 +2,8 @@ package jobs
 
 import (
 	"time"
+
+	"github.com/stablecog/sc-go/database/ent/mqlog"
 )
 
 // Prune messages older than this time
@@ -42,7 +44,15 @@ func (j *JobRunner) PruneOldQueueItems(log Logger) error {
 		return err
 	}
 
+	// For new mq_log, delete stuff older than 30 minutes
+	deletedPg, err := j.Repo.DB.MqLog.Delete().Where(mqlog.CreatedAtLT(time.Now().Add(-30 * time.Minute))).Exec(j.Repo.Ctx)
+	if err != nil {
+		log.Errorf("Couldn't delete old queue items from mq_log %v", err)
+		return err
+	}
+
 	log.Infof("Deleted %d old queue items", deleted)
+	log.Infof("Deleted %d old queue items from mq_log", deletedPg)
 	log.Infof("Finished checking for old queue items in %dms", time.Now().Sub(start).Milliseconds())
 	return nil
 }
