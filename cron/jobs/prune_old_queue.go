@@ -16,6 +16,13 @@ func (j *JobRunner) PruneOldQueueItems(log Logger) error {
 	start := time.Now()
 	log.Infof("Checking for old queue items...")
 
+	// For new mq_log, delete stuff older than 30 minutes
+	deletedPg, err := j.Repo.DB.MqLog.Delete().Where(mqlog.CreatedAtLT(time.Now().Add(-30 * time.Minute))).Exec(j.Repo.Ctx)
+	if err != nil {
+		log.Errorf("Couldn't delete old queue items from mq_log %v", err)
+		return err
+	}
+
 	generations, upscales, err := j.Redis.GetPendingGenerationAndUpscaleIDs(PRUNE_OLDER_THAN)
 	if err != nil {
 		log.Errorf("Couldn't get xrange from redis %v", err)
@@ -41,13 +48,6 @@ func (j *JobRunner) PruneOldQueueItems(log Logger) error {
 	deleted, err := j.Redis.XDelListOfIDs(idsToRemove)
 	if err != nil {
 		log.Errorf("Couldn't delete old queue items %v", err)
-		return err
-	}
-
-	// For new mq_log, delete stuff older than 30 minutes
-	deletedPg, err := j.Repo.DB.MqLog.Delete().Where(mqlog.CreatedAtLT(time.Now().Add(-30 * time.Minute))).Exec(j.Repo.Ctx)
-	if err != nil {
-		log.Errorf("Couldn't delete old queue items from mq_log %v", err)
 		return err
 	}
 
