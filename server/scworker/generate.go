@@ -486,7 +486,7 @@ func (w *SCWorker) CreateGeneration(source enttypes.SourceType,
 			cogReqBody.Input.InitImageUrlS3 = generateReq.InitImageUrl
 		}
 
-		_, err = w.Repo.AddToQueueLog(queueId, int(queuePriority), nil)
+		_, err = w.Repo.AddToQueueLog(queueId, int(queuePriority), DB)
 		if err != nil {
 			log.Error("Error adding to queue log", "err", err)
 			return err

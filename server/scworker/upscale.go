@@ -436,7 +436,7 @@ func (w *SCWorker) CreateUpscale(source enttypes.SourceType,
 			cogReqBody.Input.StreamID = upscaleReq.StreamID
 		}
 
-		_, err = w.Repo.AddToQueueLog(queueId, int(queuePriority), nil)
+		_, err = w.Repo.AddToQueueLog(queueId, int(queuePriority), DB)
 		if err != nil {
 			log.Error("Error adding to queue log", "err", err)
 			return err

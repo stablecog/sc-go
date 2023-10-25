@@ -116,7 +116,7 @@ func CreateUpscaleInternal(Track *analytics.AnalyticsService, Repo *repository.R
 			},
 		}
 
-		_, err = Repo.AddToQueueLog(queueId, 1, nil)
+		_, err = Repo.AddToQueueLog(queueId, 1, DB)
 		if err != nil {
 			log.Error("Error adding to queue log", "err", err)
 			return err
