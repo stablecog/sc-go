@@ -5,19 +5,19 @@ import (
 	"encoding/json"
 	"io"
 	"net/http"
-	"os"
 
 	"github.com/go-chi/render"
 	"github.com/stablecog/sc-go/database/ent/generationoutput"
 	"github.com/stablecog/sc-go/log"
 	"github.com/stablecog/sc-go/server/requests"
 	"github.com/stablecog/sc-go/server/responses"
+	"github.com/stablecog/sc-go/utils"
 )
 
 func (c *RestAPI) HandleClipQSearch(w http.ResponseWriter, r *http.Request) {
 	// Get Authorization header
 	auth := r.Header.Get("Authorization")
-	if auth != os.Getenv("CLIPAPI_SECRET") {
+	if auth != utils.GetEnv().ClipAPISecret {
 		responses.ErrUnauthorized(w, r)
 		return
 	}
@@ -34,8 +34,8 @@ func (c *RestAPI) HandleClipQSearch(w http.ResponseWriter, r *http.Request) {
 		Text: query,
 	}}
 
-	secret := os.Getenv("CLIPAPI_SECRET")
-	endpoint := os.Getenv("CLIPAPI_ENDPOINT")
+	secret := utils.GetEnv().ClipAPISecret
+	endpoint := utils.GetEnv().ClipAPIEndpoint
 
 	// Http POST to endpoint with secret
 	// Marshal req

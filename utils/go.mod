@@ -16,6 +16,7 @@ require (
 	github.com/agext/levenshtein v1.2.1 // indirect
 	github.com/apparentlymart/go-textseg/v13 v13.0.0 // indirect
 	github.com/aymanbagabas/go-osc52/v2 v2.0.1 // indirect
+	github.com/caarlos0/env/v9 v9.0.0 // indirect
 	github.com/charmbracelet/lipgloss v0.7.1 // indirect
 	github.com/charmbracelet/log v0.2.1 // indirect
 	github.com/go-logfmt/logfmt v0.6.0 // indirect

@@ -380,7 +380,7 @@ func (r *Repository) ProcessCogMessage(msg requests.CogWebhookMessage) error {
 		}
 		// Upscale
 		if msg.Status == requests.CogSucceeded && msg.Input.ProcessType == shared.UPSCALE {
-			imageUrl := utils.GetURLFromImagePath(upscaleOutput.ImagePath)
+			imageUrl := utils.GetEnv().GetURLFromImagePath(upscaleOutput.ImagePath)
 			resp.Outputs = []GenerationUpscaleOutput{
 				{
 					ID:           upscaleOutput.ID,
@@ -397,10 +397,10 @@ func (r *Repository) ProcessCogMessage(msg requests.CogWebhookMessage) error {
 			generateOutputs := make([]GenerationUpscaleOutput, len(generationOutputs))
 			for i, output := range generationOutputs {
 				// Parse S3 URLs to usable URLs
-				imageUrl := utils.GetURLFromImagePath(output.ImagePath)
+				imageUrl := utils.GetEnv().GetURLFromImagePath(output.ImagePath)
 				var upscaledImageUrl string
 				if output.UpscaledImagePath != nil {
-					upscaledImageUrl = utils.GetURLFromImagePath(*output.UpscaledImagePath)
+					upscaledImageUrl = utils.GetEnv().GetURLFromImagePath(*output.UpscaledImagePath)
 				}
 				generateOutputs[i] = GenerationUpscaleOutput{
 					ID:               output.ID,
@@ -431,7 +431,7 @@ func (r *Repository) ProcessCogMessage(msg requests.CogWebhookMessage) error {
 			RemainingCredits: remainingCredits,
 		}
 		if msg.Status == requests.CogSucceeded {
-			audioFileURL := utils.GetURLFromAudioFilePath(voiceoverOutput.AudioPath)
+			audioFileURL := utils.GetEnv().GetURLFromAudioFilePath(voiceoverOutput.AudioPath)
 			resp.Outputs = []GenerationUpscaleOutput{
 				{
 					ID:               voiceoverOutput.ID,

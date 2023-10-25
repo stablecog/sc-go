@@ -38,7 +38,7 @@ func NewRabbitMQClient(context context.Context, connUrl string) (*RabbitMQClient
 		conn:    conn,
 		Ctx:     context,
 		Channel: channel,
-		Queue:   utils.GetEnv("RABBITMQ_QUEUE_NAME", "TEST.Q"),
+		Queue:   utils.GetEnv().RabbitMQQueueName,
 	}
 	err = client.createQueue()
 	if err != nil {

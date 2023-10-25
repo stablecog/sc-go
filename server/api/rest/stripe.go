@@ -367,7 +367,7 @@ func (c *RestAPI) HandleStripeWebhook(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Verify signature
-	endpointSecret := utils.GetEnv("STRIPE_ENDPOINT_SECRET", "")
+	endpointSecret := utils.GetEnv().StripeEndpointSecret
 
 	event, err := webhook.ConstructEvent(reqBody, r.Header.Get("Stripe-Signature"), endpointSecret)
 	if err != nil {

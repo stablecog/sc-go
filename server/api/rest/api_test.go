@@ -29,7 +29,7 @@ func TestMain(m *testing.M) {
 
 func testMainWrapper(m *testing.M) int {
 	ctx := context.Background()
-	dbconn, err := database.GetSqlDbConn(utils.GetEnv("GITHUB_ACTIONS", "") != "true")
+	dbconn, err := database.GetSqlDbConn(!utils.GetEnv().GithubActions)
 	if err != nil {
 		log.Fatal("Failed to connect to database", "err", err)
 		os.Exit(1)
@@ -42,8 +42,11 @@ func testMainWrapper(m *testing.M) int {
 	}
 
 	// Redis setup
-	os.Setenv("MOCK_REDIS", "true")
-	defer os.Unsetenv("MOCK_REDIS")
+	origMockRedis := utils.GetEnv().MockRedis
+	utils.GetEnv().MockRedis = true
+	defer func() {
+		utils.GetEnv().MockRedis = origMockRedis
+	}()
 
 	redis, err := database.NewRedis(ctx)
 	if err != nil {

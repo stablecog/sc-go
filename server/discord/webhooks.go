@@ -17,7 +17,7 @@ import (
 
 // Sends a discord notification on either the healthy/unhealthy interval depending on status
 func FireServerReadyWebhook(version string, msg string, buildStart string) error {
-	webhookUrl := utils.GetEnv("DISCORD_WEBHOOK_URL_DEPLOY", "")
+	webhookUrl := utils.GetEnv().DiscordWebhookUrlDeploy
 	if webhookUrl == "" {
 		return fmt.Errorf("DISCORD_WEBHOOK_URL_DEPLOY not set")
 	}
@@ -52,7 +52,7 @@ func FireServerReadyWebhook(version string, msg string, buildStart string) error
 		log.Error("Error marshalling webhook body", "err", err)
 		return err
 	}
-	res, postErr := http.Post(utils.GetEnv("DISCORD_WEBHOOK_URL_DEPLOY", ""), "application/json", bytes.NewBuffer(reqBody))
+	res, postErr := http.Post(webhookUrl, "application/json", bytes.NewBuffer(reqBody))
 	if postErr != nil {
 		log.Error("Error sending webhook", "err", postErr)
 		return postErr
@@ -64,7 +64,7 @@ func FireServerReadyWebhook(version string, msg string, buildStart string) error
 
 // Sends a discord notification when a new subscriber signs up
 func NewSubscriberWebhook(repo *repository.Repository, user *ent.User, productId string) error {
-	webhookUrl := utils.GetEnv("DISCORD_WEBHOOK_URL_NEWSUB", "")
+	webhookUrl := utils.GetEnv().DiscordWebhookUrlNewSub
 	if webhookUrl == "" {
 		return fmt.Errorf("DISCORD_WEBHOOK_URL_NEWSUB not set")
 	}
@@ -115,7 +115,7 @@ func NewSubscriberWebhook(repo *repository.Repository, user *ent.User, productId
 		log.Error("Error marshalling webhook body", "err", err)
 		return err
 	}
-	res, postErr := http.Post(utils.GetEnv("DISCORD_WEBHOOK_URL_NEWSUB", ""), "application/json", bytes.NewBuffer(reqBody))
+	res, postErr := http.Post(webhookUrl, "application/json", bytes.NewBuffer(reqBody))
 	if postErr != nil {
 		log.Error("Error sending webhook", "err", postErr)
 		return postErr
@@ -131,7 +131,7 @@ func SubscriptionUpgradeWebhook(
 	productIdOld string,
 	productIdNew string,
 ) error {
-	webhookUrl := utils.GetEnv("DISCORD_WEBHOOK_URL_NEWSUB", "")
+	webhookUrl := utils.GetEnv().DiscordWebhookUrlNewSub
 	if webhookUrl == "" {
 		return fmt.Errorf("DISCORD_WEBHOOK_URL_NEWSUB not set")
 	}
@@ -188,7 +188,7 @@ func SubscriptionUpgradeWebhook(
 		log.Error("Error marshalling webhook body", "err", err)
 		return err
 	}
-	res, postErr := http.Post(utils.GetEnv("DISCORD_WEBHOOK_URL_NEWSUB", ""), "application/json", bytes.NewBuffer(reqBody))
+	res, postErr := http.Post(webhookUrl, "application/json", bytes.NewBuffer(reqBody))
 	if postErr != nil {
 		log.Error("Error sending webhook", "err", postErr)
 		return postErr
@@ -200,7 +200,7 @@ func SubscriptionUpgradeWebhook(
 
 // Sends a discord notification when adhoc credits purchased
 func AdhocCreditsPurchasedWebhook(repo *repository.Repository, user *ent.User, creditType *ent.CreditType) error {
-	webhookUrl := utils.GetEnv("DISCORD_WEBHOOK_URL_NEWSUB", "")
+	webhookUrl := utils.GetEnv().DiscordWebhookUrlNewSub
 	if webhookUrl == "" {
 		return fmt.Errorf("DISCORD_WEBHOOK_URL_NEWSUB not set")
 	}
@@ -240,7 +240,7 @@ func AdhocCreditsPurchasedWebhook(repo *repository.Repository, user *ent.User, c
 		log.Error("Error marshalling webhook body", "err", err)
 		return err
 	}
-	res, postErr := http.Post(utils.GetEnv("DISCORD_WEBHOOK_URL_NEWSUB", ""), "application/json", bytes.NewBuffer(reqBody))
+	res, postErr := http.Post(webhookUrl, "application/json", bytes.NewBuffer(reqBody))
 	if postErr != nil {
 		log.Error("Error sending webhook", "err", postErr)
 		return postErr
@@ -251,7 +251,7 @@ func AdhocCreditsPurchasedWebhook(repo *repository.Repository, user *ent.User, c
 }
 
 func FireGeoIPWebhook(ip string, email string, userid string) error {
-	webhookUrl := utils.GetEnv("GEOIP_WEBHOOK", "")
+	webhookUrl := utils.GetEnv().GeoIpWebhook
 	if webhookUrl == "" {
 		return fmt.Errorf("GEOIP_WEBHOOK not set")
 	}
@@ -288,74 +288,7 @@ func FireGeoIPWebhook(ip string, email string, userid string) error {
 		log.Error("Error marshalling webhook body", "err", err)
 		return err
 	}
-	res, postErr := http.Post(utils.GetEnv("GEOIP_WEBHOOK", ""), "application/json", bytes.NewBuffer(reqBody))
-	if postErr != nil {
-		log.Error("Error sending webhook", "err", postErr)
-		return postErr
-	}
-	defer res.Body.Close()
-
-	return nil
-}
-
-func FireAutoBannedWebhook(
-	ip string,
-	email string,
-	userid string,
-	reason string,
-	violationCount int,
-	accountCreatedAt time.Time,
-) error {
-	webhookUrl := utils.GetEnv("DISCORD_WEBHOOK_URL_AUTO_BANNED", "")
-	if webhookUrl == "" {
-		return fmt.Errorf("DISCORD_WEBHOOK_URL_AUTOBANNED not set")
-	}
-
-	// Build webhook body
-	body := models.DiscordWebhookBody{
-		Embeds: []models.DiscordWebhookEmbed{
-			{
-				Title: "Auto Banned",
-				Color: 11437567,
-				Fields: []models.DiscordWebhookField{
-					{
-						Name:  "Email",
-						Value: email,
-					},
-					{
-						Name:  "User ID",
-						Value: userid,
-					},
-					{
-						Name:  "Reason",
-						Value: reason,
-					},
-					{
-						Name:  "Violation Count",
-						Value: fmt.Sprintf("%d", violationCount),
-					},
-					{
-						Name:  "Account Creation",
-						Value: utils.RelativeTimeStr(accountCreatedAt),
-					},
-					{
-						Name:  "IP",
-						Value: ip,
-					},
-				},
-				Footer: models.DiscordWebhookEmbedFooter{
-					Text: fmt.Sprintf("%s", time.Now().Format(time.RFC1123)),
-				},
-			},
-		},
-		Attachments: []models.DiscordWebhookAttachment{},
-	}
-	reqBody, err := json.Marshal(body)
-	if err != nil {
-		log.Error("Error marshalling webhook body", "err", err)
-		return err
-	}
-	res, postErr := http.Post(utils.GetEnv("GEOIP_WEBHOOK", ""), "application/json", bytes.NewBuffer(reqBody))
+	res, postErr := http.Post(webhookUrl, "application/json", bytes.NewBuffer(reqBody))
 	if postErr != nil {
 		log.Error("Error sending webhook", "err", postErr)
 		return postErr

@@ -49,12 +49,12 @@ func main() {
 	})
 
 	// Start server
-	port := utils.GetEnv("PORT", "13339")
+	port := utils.GetEnv().Port
 	log.Info("Starting language server", "port", port)
 
 	h2s := &http2.Server{}
 	srv := &http.Server{
-		Addr:    fmt.Sprintf(":%s", port),
+		Addr:    fmt.Sprintf(":%d", port),
 		Handler: h2c.NewHandler(app, h2s),
 	}
 

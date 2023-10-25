@@ -39,6 +39,8 @@ spec:
             - secretRef:
                 name: sc-go
           env:
+            - name: PORT
+              value: "9096"
             - name: GOTRUE_URL
               value: http://supabase-supabase-auth.prod-supabase:9999
             - name: PUBLIC_SUPABASE_REFERENCE_ID

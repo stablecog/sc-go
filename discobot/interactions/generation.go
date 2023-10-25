@@ -368,7 +368,7 @@ func (c *DiscordInteractionWrapper) HandleUpscaleGeneration(s *discordgo.Session
 		if existingOutput.UpscaledImagePath != nil {
 			// Send the image
 			err = responses.InitialInteractionResponse(s, i, &responses.InteractionResponseOptions{
-				Content: utils.ToPtr(fmt.Sprintf("<@%s> ✨ Image has already been upscaled #%d \n%s", discordUserId, number, utils.GetURLFromImagePath(*existingOutput.UpscaledImagePath))),
+				Content: utils.ToPtr(fmt.Sprintf("<@%s> ✨ Image has already been upscaled #%d \n%s", discordUserId, number, utils.GetEnv().GetURLFromImagePath(*existingOutput.UpscaledImagePath))),
 				Embeds:  nil,
 				Privacy: responses.PRIVATE,
 			})

@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"os"
 	"strconv"
 	"strings"
 	"time"
@@ -469,7 +468,7 @@ func (c *RestAPI) HandleQueryGenerations(w http.ResponseWriter, r *http.Request)
 				prefixRemoved := g.Generation.InitImageURL[5:]
 				// Sign object URL to pass to worker
 				req, _ := c.S3.GetObjectRequest(&s3.GetObjectInput{
-					Bucket: aws.String(os.Getenv("S3_IMG2IMG_BUCKET_NAME")),
+					Bucket: aws.String(utils.GetEnv().S3Img2ImgBucketName),
 					Key:    aws.String(prefixRemoved),
 				})
 				urlStr, err := req.Presign(1 * time.Hour)

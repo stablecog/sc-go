@@ -8,7 +8,7 @@ import (
 )
 
 func TestNewEntClient(t *testing.T) {
-	dbconn, _ := GetSqlDbConn(utils.GetEnv("GITHUB_ACTIONS", "") != "true")
+	dbconn, _ := GetSqlDbConn(!utils.GetEnv().GithubActions)
 
 	client, err := NewEntClient(dbconn)
 	assert.Nil(t, err)

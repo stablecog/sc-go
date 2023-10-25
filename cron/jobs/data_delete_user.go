@@ -2,7 +2,6 @@ package jobs
 
 import (
 	"fmt"
-	"os"
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -90,7 +89,7 @@ func (j *JobRunner) DeleteUserData(log Logger, dryRun bool) error {
 			deleted := 0
 			for _, chunk := range chunks {
 				o, err := j.S3.DeleteObjects(&s3.DeleteObjectsInput{
-					Bucket: aws.String(os.Getenv("S3_BUCKET_NAME")),
+					Bucket: aws.String(utils.GetEnv().S3BucketName),
 					Delete: &s3.Delete{
 						Objects: chunk,
 					},
@@ -112,7 +111,7 @@ func (j *JobRunner) DeleteUserData(log Logger, dryRun bool) error {
 		// Delete all uploaded objects
 		hashedId := utils.Sha256(u.ID.String())
 		out, err := j.S3Img2Img.ListObjects(&s3.ListObjectsInput{
-			Bucket: aws.String(os.Getenv("S3_IMG2IMG_BUCKET_NAME")),
+			Bucket: aws.String(utils.GetEnv().S3Img2ImgBucketName),
 			Prefix: aws.String(fmt.Sprintf("%s/", hashedId)),
 		})
 		if err != nil {
@@ -142,7 +141,7 @@ func (j *JobRunner) DeleteUserData(log Logger, dryRun bool) error {
 
 				for _, chunk := range chunks {
 					_, err = j.S3Img2Img.DeleteObjects(&s3.DeleteObjectsInput{
-						Bucket: aws.String(os.Getenv("S3_IMG2IMG_BUCKET_NAME")),
+						Bucket: aws.String(utils.GetEnv().S3Img2ImgBucketName),
 						Delete: &s3.Delete{
 							Objects: chunk,
 						},

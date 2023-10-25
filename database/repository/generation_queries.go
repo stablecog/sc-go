@@ -330,11 +330,11 @@ func (r *Repository) RetrieveGenerationsWithOutputIDs(outputIDs []uuid.UUID, adm
 	// Get real image URLs for each
 	for i, g := range gQueryResult {
 		if g.ImagePath != "" {
-			parsed := utils.GetURLFromImagePath(g.ImagePath)
+			parsed := utils.GetEnv().GetURLFromImagePath(g.ImagePath)
 			gQueryResult[i].ImagePath = parsed
 		}
 		if g.UpscaledImagePath != nil {
-			parsed := utils.GetURLFromImagePath(*g.UpscaledImagePath)
+			parsed := utils.GetEnv().GetURLFromImagePath(*g.UpscaledImagePath)
 			gQueryResult[i].UpscaledImagePath = &parsed
 		}
 	}
@@ -552,11 +552,11 @@ func (r *Repository) QueryGenerations(per_page int, cursor *time.Time, filters *
 	// Get real image URLs for each
 	for i, g := range gQueryResult {
 		if g.ImageUrl != "" {
-			parsed := utils.GetURLFromImagePath(g.ImageUrl)
+			parsed := utils.GetEnv().GetURLFromImagePath(g.ImageUrl)
 			gQueryResult[i].ImageUrl = parsed
 		}
 		if g.UpscaledImageUrl != "" {
-			parsed := utils.GetURLFromImagePath(g.UpscaledImageUrl)
+			parsed := utils.GetEnv().GetURLFromImagePath(g.UpscaledImageUrl)
 			gQueryResult[i].UpscaledImageUrl = parsed
 		}
 	}
@@ -947,7 +947,7 @@ func (r *Repository) QueryGenerationsAdmin(per_page int, cursor *time.Time, filt
 		for _, o := range g.Edges.Generations.Edges.GenerationOutputs {
 			output := GenerationUpscaleOutput{
 				ID:               o.ID,
-				ImageUrl:         utils.GetURLFromImagePath(o.ImagePath),
+				ImageUrl:         utils.GetEnv().GetURLFromImagePath(o.ImagePath),
 				GalleryStatus:    o.GalleryStatus,
 				CreatedAt:        &o.CreatedAt,
 				IsFavorited:      o.IsFavorited,
@@ -955,20 +955,20 @@ func (r *Repository) QueryGenerationsAdmin(per_page int, cursor *time.Time, filt
 				WasAutoSubmitted: generationRoot.WasAutoSubmitted,
 			}
 			if o.UpscaledImagePath != nil {
-				output.UpscaledImageUrl = utils.GetURLFromImagePath(*o.UpscaledImagePath)
+				output.UpscaledImageUrl = utils.GetEnv().GetURLFromImagePath(*o.UpscaledImagePath)
 			}
 			generationRoot.Outputs = append(generationRoot.Outputs, output)
 		}
 
 		ret := GenerationQueryWithOutputsResult{
 			OutputID:                       &g.ID,
-			ImageUrl:                       utils.GetURLFromImagePath(g.ImagePath),
+			ImageUrl:                       utils.GetEnv().GetURLFromImagePath(g.ImagePath),
 			GalleryStatus:                  g.GalleryStatus,
 			DeletedAt:                      g.DeletedAt,
 			GenerationQueryWithOutputsData: generationRoot,
 		}
 		if g.UpscaledImagePath != nil {
-			ret.UpscaledImageUrl = utils.GetURLFromImagePath(*g.UpscaledImagePath)
+			ret.UpscaledImageUrl = utils.GetEnv().GetURLFromImagePath(*g.UpscaledImagePath)
 		}
 
 		gQueryResult = append(gQueryResult, ret)

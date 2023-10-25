@@ -55,7 +55,7 @@ type DiscordHealthTracker struct {
 func NewDiscordHealthTracker(ctx context.Context) *DiscordHealthTracker {
 	return &DiscordHealthTracker{
 		ctx:        ctx,
-		webhookUrl: utils.GetEnv("DISCORD_WEBHOOK_URL", ""),
+		webhookUrl: utils.GetEnv().DiscordWebhookUrl,
 		// Init last status as UNKNOWN
 		lastStatus: UNKNOWN,
 	}

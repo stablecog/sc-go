@@ -98,7 +98,7 @@ func main() {
 	defer entClient.Close()
 	// Run migrations
 	// We can't run on supabase, :(
-	if utils.GetEnv("RUN_MIGRATIONS", "") == "true" {
+	if utils.GetEnv().RunMigrations {
 		log.Info("🦋 Running migrations...")
 		if err := entClient.Schema.Create(ctx); err != nil {
 			log.Fatal("Failed to run migrations", "err", err)
@@ -207,8 +207,8 @@ func main() {
 
 	if *loadQdrant {
 		log.Info("🏡 Loading qdrant data...")
-		secret := os.Getenv("CLIPAPI_SECRET")
-		clipUrl := os.Getenv("CLIP_URL_TEMP")
+		secret := utils.GetEnv().ClipAPISecret
+		clipUrl := utils.GetEnv().ClipAPIEndpoint
 		if *clipUrlOverride != "" {
 			clipUrl = *clipUrlOverride
 		}
@@ -475,7 +475,7 @@ func main() {
 	}
 
 	// Create stripe client
-	stripeClient := stripe.New(utils.GetEnv("STRIPE_SECRET_KEY", ""), nil)
+	stripeClient := stripe.New(utils.GetEnv().StripeSecretKey, nil)
 
 	app := chi.NewRouter()
 
@@ -485,7 +485,7 @@ func main() {
 
 	// Cors middleware
 	app.Use(cors.Handler(cors.Options{
-		AllowedOrigins: utils.GetCorsOrigins(),
+		AllowedOrigins: utils.GetEnv().GetCorsOrigins(),
 		// AllowOriginFunc:  func(r *http.Request, origin string) bool { return true },
 		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
 		AllowedHeaders:   []string{"*"},
@@ -529,13 +529,13 @@ func main() {
 	defer analyticsService.Close()
 
 	// Setup S3 Client
-	region := os.Getenv("S3_IMG2IMG_REGION")
-	accessKey := os.Getenv("S3_IMG2IMG_ACCESS_KEY")
-	secretKey := os.Getenv("S3_IMG2IMG_SECRET_KEY")
+	region := utils.GetEnv().S3Img2ImgRegion
+	accessKey := utils.GetEnv().S3Img2ImgAccessKey
+	secretKey := utils.GetEnv().S3Img2ImgSecretKey
 
 	s3Config := &aws.Config{
 		Credentials: credentials.NewStaticCredentials(accessKey, secretKey, ""),
-		Endpoint:    aws.String(os.Getenv("S3_IMG2IMG_ENDPOINT")),
+		Endpoint:    aws.String(utils.GetEnv().S3Img2ImgEndpoint),
 		Region:      aws.String(region),
 	}
 
@@ -543,7 +543,7 @@ func main() {
 	s3Client := s3.New(newSession)
 
 	// Setup rabbitmq client
-	rabbitmqClient, err := queue.NewRabbitMQClient(ctx, os.Getenv("RABBITMQ_AMQP_URL"))
+	rabbitmqClient, err := queue.NewRabbitMQClient(ctx, utils.GetEnv().RabbitMQAMQPUrl)
 	if err != nil {
 		log.Fatalf("Error connecting to rabbitmq: %v", err)
 	}
@@ -551,7 +551,7 @@ func main() {
 
 	// Create controller
 	apiTokenSmap := shared.NewSyncMap[chan requests.CogWebhookMessage]()
-	safetyChecker := utils.NewTranslatorSafetyChecker(ctx, os.Getenv("OPENAI_API_KEY"), false)
+	safetyChecker := utils.NewTranslatorSafetyChecker(ctx, utils.GetEnv().OpenAIApiKey, false)
 	hc := rest.RestAPI{
 		Repo:           repo,
 		Redis:          redis,
@@ -615,13 +615,13 @@ func main() {
 		log.Infof("Sync'd qdrant")
 
 		// Setup S3 Client
-		region := os.Getenv("S3_IMG2IMG_REGION")
-		accessKey := os.Getenv("S3_IMG2IMG_ACCESS_KEY")
-		secretKey := os.Getenv("S3_IMG2IMG_SECRET_KEY")
+		region := utils.GetEnv().S3Img2ImgRegion
+		accessKey := utils.GetEnv().S3Img2ImgAccessKey
+		secretKey := utils.GetEnv().S3Img2ImgSecretKey
 
 		s3Config := &aws.Config{
 			Credentials: credentials.NewStaticCredentials(accessKey, secretKey, ""),
-			Endpoint:    aws.String(os.Getenv("S3_IMG2IMG_ENDPOINT")),
+			Endpoint:    aws.String(utils.GetEnv().S3Img2ImgEndpoint),
 			Region:      aws.String(region),
 		}
 
@@ -632,7 +632,7 @@ func main() {
 		targetHash := utils.Sha256(targetID.String())
 
 		out, err := s3Client.ListObjects(&s3.ListObjectsInput{
-			Bucket: aws.String(os.Getenv("S3_IMG2IMG_BUCKET_NAME")),
+			Bucket: aws.String(utils.GetEnv().S3Img2ImgBucketName),
 			Prefix: aws.String(fmt.Sprintf("%s/", sourceHash)),
 		})
 		if err != nil {
@@ -644,8 +644,8 @@ func main() {
 			src := *o.Key
 			dst := strings.Replace(src, sourceHash, targetHash, 1)
 			_, err := s3Client.CopyObject(&s3.CopyObjectInput{
-				Bucket:     aws.String(os.Getenv("S3_IMG2IMG_BUCKET_NAME")),
-				CopySource: aws.String(url.QueryEscape(fmt.Sprintf("%s/%s", os.Getenv("S3_IMG2IMG_BUCKET_NAME"), src))),
+				Bucket:     aws.String(utils.GetEnv().S3Img2ImgBucketName),
+				CopySource: aws.String(url.QueryEscape(fmt.Sprintf("%s/%s", utils.GetEnv().S3Img2ImgBucketName, src))),
 				Key:        aws.String(dst),
 			})
 			if err != nil {
@@ -1041,12 +1041,12 @@ func main() {
 	}()
 
 	// Start server
-	port := utils.GetEnv("PORT", "13337")
+	port := utils.GetEnv().Port
 	log.Info("Starting server", "port", port)
 
 	h2s := &http2.Server{}
 	srv := &http.Server{
-		Addr:    fmt.Sprintf(":%s", port),
+		Addr:    fmt.Sprintf(":%d", port),
 		Handler: h2c.NewHandler(app, h2s),
 	}
 

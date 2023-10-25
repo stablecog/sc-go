@@ -44,6 +44,8 @@ spec:
             - secretRef:
                 name: sc-go
           env:
+            - name: PORT
+              value: "13337"
             - name: GOTRUE_URL
               value: http://supabase-supabase-auth.qa-supabase:9999
             - name: BUCKET_BASE_URL

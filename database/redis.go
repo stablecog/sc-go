@@ -25,14 +25,14 @@ type RedisWrapper struct {
 
 // Should return render redis url if render is set
 func getRedisURL() string {
-	return utils.GetEnv("REDIS_CONNECTION_STRING", "")
+	return utils.GetEnv().RedisConnectionString
 }
 
 // Returns our *RedisWrapper, since we wrap some useful methods with the redis client
 func NewRedis(ctx context.Context) (*RedisWrapper, error) {
 	var opts *redis.Options
 	var err error
-	if utils.GetEnv("MOCK_REDIS", "false") == "true" {
+	if utils.GetEnv().MockRedis {
 		logInfo("Using mock redis client because MOCK_REDIS=true is set in environment")
 		mr, _ := miniredis.Run()
 		opts = &redis.Options{

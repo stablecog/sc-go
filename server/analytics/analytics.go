@@ -18,8 +18,8 @@ type AnalyticsService struct {
 func NewAnalyticsService() *AnalyticsService {
 	service := &AnalyticsService{}
 	// Setup posthog
-	posthogAPIKey := utils.GetEnv("POSTHOG_API_KEY", "")
-	posthogEndpoint := utils.GetEnv("POSTHOG_ENDPOINT", "")
+	posthogAPIKey := utils.GetEnv().PosthogApiKey
+	posthogEndpoint := utils.GetEnv().PosthogEndpoint
 	if posthogAPIKey != "" && posthogEndpoint != "" {
 		client, err := posthog.NewWithConfig(
 			posthogAPIKey,
@@ -37,7 +37,7 @@ func NewAnalyticsService() *AnalyticsService {
 	}
 
 	// Setup mixpanel
-	mixpanelAPIKey := utils.GetEnv("MIXPANEL_API_KEY", "")
+	mixpanelAPIKey := utils.GetEnv().MixpanelApiKey
 	if mixpanelAPIKey != "" {
 		mixpanelClient := mixpanel.New(mixpanelAPIKey, "")
 		service.Mixpanel = mixpanelClient

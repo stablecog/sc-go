@@ -71,7 +71,7 @@ func main() {
 
 	// Cors middleware
 	app.Use(cors.Handler(cors.Options{
-		AllowedOrigins: utils.GetCorsOrigins(),
+		AllowedOrigins: utils.GetEnv().GetCorsOrigins(),
 		// AllowOriginFunc:  func(r *http.Request, origin string) bool { return true },
 		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
 		AllowedHeaders:   []string{"*"},
@@ -81,13 +81,13 @@ func main() {
 	}))
 
 	// Setup S3 Client
-	region := os.Getenv("S3_IMG2IMG_REGION")
-	accessKey := os.Getenv("S3_IMG2IMG_ACCESS_KEY")
-	secretKey := os.Getenv("S3_IMG2IMG_SECRET_KEY")
+	region := utils.GetEnv().S3Img2ImgRegion
+	accessKey := utils.GetEnv().S3Img2ImgAccessKey
+	secretKey := utils.GetEnv().S3Img2ImgSecretKey
 
 	s3Config := &aws.Config{
 		Credentials: credentials.NewStaticCredentials(accessKey, secretKey, ""),
-		Endpoint:    aws.String(os.Getenv("S3_IMG2IMG_ENDPOINT")),
+		Endpoint:    aws.String(utils.GetEnv().S3Img2ImgEndpoint),
 		Region:      aws.String(region),
 	}
 
@@ -123,12 +123,12 @@ func main() {
 	})
 
 	// Start server
-	port := utils.GetEnv("PORT", "13338")
+	port := utils.GetEnv().Port
 	log.Info("Starting server", "port", port)
 
 	h2s := &http2.Server{}
 	srv := &http.Server{
-		Addr:    fmt.Sprintf(":%s", port),
+		Addr:    fmt.Sprintf(":%d", port),
 		Handler: h2c.NewHandler(app, h2s),
 	}
 

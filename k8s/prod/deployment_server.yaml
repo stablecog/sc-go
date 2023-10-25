@@ -60,6 +60,8 @@ spec:
               value: jaqefzjqokaemzyvjcew
             - name: PRODUCTION
               value: "true"
+            - name: PORT
+              value: "13337"
             - name: BUCKET_BASE_URL
               value: https://b.stablecog.com
             - name: PUBLIC_API_URL

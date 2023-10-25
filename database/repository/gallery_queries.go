@@ -38,7 +38,7 @@ func (r *Repository) RetrieveGalleryDataByID(id uuid.UUID, userId *uuid.UUID, al
 	}
 	data := GalleryData{
 		ID:             output.ID,
-		ImageURL:       utils.GetURLFromImagePath(output.ImagePath),
+		ImageURL:       utils.GetEnv().GetURLFromImagePath(output.ImagePath),
 		CreatedAt:      output.CreatedAt,
 		UpdatedAt:      output.UpdatedAt,
 		Width:          output.Edges.Generations.Width,
@@ -64,7 +64,7 @@ func (r *Repository) RetrieveGalleryDataByID(id uuid.UUID, userId *uuid.UUID, al
 		data.NegativePromptText = output.Edges.Generations.Edges.NegativePrompt.Text
 	}
 	if output.UpscaledImagePath != nil {
-		data.UpscaledImageURL = utils.GetURLFromImagePath(*output.UpscaledImagePath)
+		data.UpscaledImageURL = utils.GetEnv().GetURLFromImagePath(*output.UpscaledImagePath)
 	}
 	return &data, nil
 }
@@ -232,7 +232,7 @@ func (r *Repository) RetrieveMostRecentGalleryDataV2(filters *requests.QueryGene
 		promptText, _ := promptIDsMap[*g.PromptID]
 		galleryData[i] = GalleryData{
 			ID:             *g.OutputID,
-			ImageURL:       utils.GetURLFromImagePath(g.ImageUrl),
+			ImageURL:       utils.GetEnv().GetURLFromImagePath(g.ImageUrl),
 			CreatedAt:      g.CreatedAt,
 			UpdatedAt:      g.UpdatedAt,
 			Width:          g.Width,
@@ -258,7 +258,7 @@ func (r *Repository) RetrieveMostRecentGalleryDataV2(filters *requests.QueryGene
 		}
 
 		if g.UpscaledImageUrl != "" {
-			galleryData[i].UpscaledImageURL = utils.GetURLFromImagePath(g.UpscaledImageUrl)
+			galleryData[i].UpscaledImageURL = utils.GetEnv().GetURLFromImagePath(g.UpscaledImageUrl)
 		}
 	}
 
@@ -320,7 +320,7 @@ func (r *Repository) RetrieveMostRecentGalleryData(filters *requests.QueryGenera
 	for i, output := range res {
 		data := GalleryData{
 			ID:             output.ID,
-			ImageURL:       utils.GetURLFromImagePath(output.ImagePath),
+			ImageURL:       utils.GetEnv().GetURLFromImagePath(output.ImagePath),
 			CreatedAt:      output.CreatedAt,
 			UpdatedAt:      output.UpdatedAt,
 			Width:          output.Edges.Generations.Width,
@@ -338,7 +338,7 @@ func (r *Repository) RetrieveMostRecentGalleryData(filters *requests.QueryGenera
 			},
 		}
 		if output.UpscaledImagePath != nil {
-			data.UpscaledImageURL = utils.GetURLFromImagePath(*output.UpscaledImagePath)
+			data.UpscaledImageURL = utils.GetEnv().GetURLFromImagePath(*output.UpscaledImagePath)
 		}
 		if output.Edges.Generations.Edges.NegativePrompt != nil {
 			data.NegativePromptText = output.Edges.Generations.Edges.NegativePrompt.Text
@@ -373,7 +373,7 @@ func (r *Repository) RetrieveGalleryDataWithOutputIDs(outputIDs []uuid.UUID, all
 	for i, output := range res {
 		data := GalleryData{
 			ID:             output.ID,
-			ImageURL:       utils.GetURLFromImagePath(output.ImagePath),
+			ImageURL:       utils.GetEnv().GetURLFromImagePath(output.ImagePath),
 			CreatedAt:      output.CreatedAt,
 			UpdatedAt:      output.UpdatedAt,
 			Width:          output.Edges.Generations.Width,
@@ -391,7 +391,7 @@ func (r *Repository) RetrieveGalleryDataWithOutputIDs(outputIDs []uuid.UUID, all
 			},
 		}
 		if output.UpscaledImagePath != nil {
-			data.UpscaledImageURL = utils.GetURLFromImagePath(*output.UpscaledImagePath)
+			data.UpscaledImageURL = utils.GetEnv().GetURLFromImagePath(*output.UpscaledImagePath)
 		}
 		if output.Edges.Generations.Edges.NegativePrompt != nil {
 			data.NegativePromptText = output.Edges.Generations.Edges.NegativePrompt.Text

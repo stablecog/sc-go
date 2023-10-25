@@ -7,7 +7,6 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
-	"os"
 	"strings"
 	"sync"
 
@@ -32,8 +31,8 @@ type TranslatorSafetyChecker struct {
 func NewTranslatorSafetyChecker(ctx context.Context, openaiKey string, disable bool) *TranslatorSafetyChecker {
 	return &TranslatorSafetyChecker{
 		Ctx:              ctx,
-		TargetFloresUrl:  os.Getenv("PRIVATE_LINGUA_API_URL"),
-		TranslatorCogUrl: os.Getenv("TRANSLATOR_COG_URL"),
+		TargetFloresUrl:  GetEnv().PrivateLinguaAPIUrl,
+		TranslatorCogUrl: GetEnv().TranslatorCogURL,
 		OpenaiClient:     openai.NewClient(openaiKey),
 		Disable:          disable,
 	}
