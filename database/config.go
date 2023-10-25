@@ -48,7 +48,6 @@ func GetSqlDbConn(mock bool) (SqlDBConn, error) {
 	if mock {
 		return &SqliteConn{FileName: "testing", Mode: "memory"}, nil
 	}
-	panic("not sqlite")
 	// Use postgres
 	postgresDb := utils.GetEnv().PostgresDB
 	postgresUser := utils.GetEnv().PostgresUser
