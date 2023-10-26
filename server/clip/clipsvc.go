@@ -6,8 +6,6 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"os"
-	"strings"
 	"sync"
 	"time"
 
@@ -43,8 +41,8 @@ func (c *ClipService) RoundTrip(r *http.Request) (*http.Response, error) {
 
 func NewClipService(redis *database.RedisWrapper, safetyChecker *utils.TranslatorSafetyChecker) *ClipService {
 	svc := &ClipService{
-		urls:          strings.Split(os.Getenv("CLIPAPI_URLS"), ","),
-		secret:        os.Getenv("CLIPAPI_SECRET"),
+		urls:          utils.GetEnv().ClipAPIURLs,
+		secret:        utils.GetEnv().ClipAPISecret,
 		r:             http.DefaultTransport,
 		redis:         redis,
 		SafetyChecker: safetyChecker,

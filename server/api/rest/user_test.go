@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"io"
 	"net/http/httptest"
-	"os"
 	"testing"
 	"time"
 
@@ -44,8 +43,11 @@ func TestHandleQueryGenerationsDontExist(t *testing.T) {
 }
 
 func TestHandleQueryGenerationsDefaultParams(t *testing.T) {
-	os.Setenv("BUCKET_BASE_URL", "http://test.com/")
-	defer os.Unsetenv("BUCKET_BASE_URL")
+	origBucketBaseUrl := utils.GetEnv().BucketBaseUrl
+	utils.GetEnv().BucketBaseUrl = "http://test.com/"
+	defer func() {
+		utils.GetEnv().BucketBaseUrl = origBucketBaseUrl
+	}()
 
 	w := httptest.NewRecorder()
 	// Build request
@@ -131,8 +133,11 @@ func TestHandleQueryGenerationsDefaultParams(t *testing.T) {
 }
 
 func TestHandleQueryGenerationsCursor(t *testing.T) {
-	os.Setenv("BUCKET_BASE_URL", "http://test.com/")
-	defer os.Unsetenv("BUCKET_BASE_URL")
+	origBucketBaseUrl := utils.GetEnv().BucketBaseUrl
+	utils.GetEnv().BucketBaseUrl = "http://test.com/"
+	defer func() {
+		utils.GetEnv().BucketBaseUrl = origBucketBaseUrl
+	}()
 
 	w := httptest.NewRecorder()
 	// Build request
@@ -191,8 +196,11 @@ func TestHandleQueryGenerationsCursor(t *testing.T) {
 
 // Test per page param
 func TestHandleQueryGenerationsPerPage(t *testing.T) {
-	os.Setenv("BUCKET_BASE_URL", "http://test.com/")
-	defer os.Unsetenv("BUCKET_BASE_URL")
+	origBucketBaseUrl := utils.GetEnv().BucketBaseUrl
+	utils.GetEnv().BucketBaseUrl = "http://test.com/"
+	defer func() {
+		utils.GetEnv().BucketBaseUrl = origBucketBaseUrl
+	}()
 	w := httptest.NewRecorder()
 	// Build request
 	req := httptest.NewRequest("GET", "/gens?per_page=1", nil)
@@ -229,8 +237,11 @@ func TestHandleQueryGenerationsPerPage(t *testing.T) {
 
 // Test some filter params
 func TestHandleQueryGenerationsFilters(t *testing.T) {
-	os.Setenv("BUCKET_BASE_URL", "http://test.com/")
-	defer os.Unsetenv("BUCKET_BASE_URL")
+	origBucketBaseUrl := utils.GetEnv().BucketBaseUrl
+	utils.GetEnv().BucketBaseUrl = "http://test.com/"
+	defer func() {
+		utils.GetEnv().BucketBaseUrl = origBucketBaseUrl
+	}()
 
 	w := httptest.NewRecorder()
 	// Build request

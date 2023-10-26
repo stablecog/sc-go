@@ -14,6 +14,7 @@ import (
 	"github.com/stablecog/sc-go/cron/models"
 	"github.com/stablecog/sc-go/database/ent"
 	"github.com/stablecog/sc-go/database/ent/generation"
+	"github.com/stablecog/sc-go/utils"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -25,8 +26,9 @@ func TestMain(m *testing.M) {
 
 func testMainWrapper(m *testing.M) int {
 	// Setup
-	os.Setenv("DISCORD_WEBHOOK_URL", "http://localhost:123456")
-	defer os.Unsetenv("DISCORD_WEBHOOK_URL")
+	oldWebhookUrl := utils.GetEnv().DiscordWebhookUrl
+	utils.GetEnv().DiscordWebhookUrl = "http://localhost:123456"
+	defer func() { utils.GetEnv().DiscordWebhookUrl = oldWebhookUrl }()
 
 	MockDiscordHealthTracker = NewDiscordHealthTracker(context.Background())
 

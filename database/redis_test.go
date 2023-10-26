@@ -3,27 +3,33 @@ package database
 import (
 	"context"
 	"fmt"
-	"os"
 	"testing"
 
 	"github.com/google/uuid"
 	"github.com/stablecog/sc-go/server/requests"
 	"github.com/stablecog/sc-go/shared"
+	"github.com/stablecog/sc-go/utils"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestGetRedisURL(t *testing.T) {
 	// Setup
-	os.Setenv("REDIS_CONNECTION_STRING", "wewantthis")
-	defer os.Unsetenv("REDIS_CONNECTION_STRING")
+	origRedisConnectionString := utils.GetEnv().RedisConnectionString
+	utils.GetEnv().RedisConnectionString = "wewantthis"
+	defer func() {
+		utils.GetEnv().RedisConnectionString = origRedisConnectionString
+	}()
 
 	// Assert
 	assert.Equal(t, "wewantthis", getRedisURL())
 }
 
 func TestMockRedis(t *testing.T) {
-	os.Setenv("MOCK_REDIS", "true")
-	defer os.Unsetenv("MOCK_REDIS")
+	origMockRedis := utils.GetEnv().MockRedis
+	utils.GetEnv().MockRedis = true
+	defer func() {
+		utils.GetEnv().MockRedis = origMockRedis
+	}()
 
 	// Mock logger
 	orgLogInfo := logInfo
@@ -42,7 +48,11 @@ func TestMockRedis(t *testing.T) {
 
 func TestInvalidConnUrlFails(t *testing.T) {
 	// Setup
-	os.Setenv("REDIS_CONNECTION_STRING", "invalidredisurl")
+	origRedisConnectionString := utils.GetEnv().RedisConnectionString
+	utils.GetEnv().RedisConnectionString = "invalidredisurl"
+	defer func() {
+		utils.GetEnv().RedisConnectionString = origRedisConnectionString
+	}()
 
 	// Mock logger
 	orgLogError := logError
@@ -61,7 +71,11 @@ func TestInvalidConnUrlFails(t *testing.T) {
 
 func TestPingErrorIfCantConnect(t *testing.T) {
 	// Setup
-	os.Setenv("REDIS_CONNECTION_STRING", "redis://notarealredishost:1234")
+	origRedisConnectionString := utils.GetEnv().RedisConnectionString
+	utils.GetEnv().RedisConnectionString = "redis://notarealredishost:1234"
+	defer func() {
+		utils.GetEnv().RedisConnectionString = origRedisConnectionString
+	}()
 
 	// Mock logger
 	orgLogError := logError
@@ -80,8 +94,11 @@ func TestPingErrorIfCantConnect(t *testing.T) {
 
 func TestGetPendingGenerationAndUpscaleIDs(t *testing.T) {
 	// Create redis
-	os.Setenv("MOCK_REDIS", "true")
-	defer os.Unsetenv("MOCK_REDIS")
+	origMockRedis := utils.GetEnv().MockRedis
+	utils.GetEnv().MockRedis = true
+	defer func() {
+		utils.GetEnv().MockRedis = origMockRedis
+	}()
 	redis, err := NewRedis(context.TODO())
 	assert.Nil(t, err)
 	// MKStream

@@ -95,7 +95,7 @@ func CreateUpscaleInternal(Track *analytics.AnalyticsService, Repo *repository.R
 
 		cogReqBody := requests.CogQueueRequest{
 			WebhookEventsFilter: []requests.CogEventFilter{requests.CogEventFilterStart, requests.CogEventFilterStart},
-			WebhookUrl:          fmt.Sprintf("%s/v1/worker/webhook", utils.GetEnv("PUBLIC_API_URL", "")),
+			WebhookUrl:          fmt.Sprintf("%s/v1/worker/webhook", utils.GetEnv().PublicApiUrl),
 			Input: requests.BaseCogRequest{
 				Internal:             true,
 				ID:                   requestId,
@@ -104,7 +104,7 @@ func CreateUpscaleInternal(Track *analytics.AnalyticsService, Repo *repository.R
 				StreamID:             upscaleReq.StreamID,
 				GenerationOutputID:   output.ID.String(),
 				LivePageData:         livePageMsg,
-				Image:                utils.GetURLFromImagePath(output.ImagePath),
+				Image:                utils.GetEnv().GetURLFromImagePath(output.ImagePath),
 				ProcessType:          shared.UPSCALE,
 				Width:                utils.ToPtr(generation.Width),
 				Height:               utils.ToPtr(generation.Height),
@@ -116,7 +116,7 @@ func CreateUpscaleInternal(Track *analytics.AnalyticsService, Repo *repository.R
 			},
 		}
 
-		_, err = Repo.AddToQueueLog(queueId, 1, nil)
+		_, err = Repo.AddToQueueLog(queueId, 1, DB)
 		if err != nil {
 			log.Error("Error adding to queue log", "err", err)
 			return err

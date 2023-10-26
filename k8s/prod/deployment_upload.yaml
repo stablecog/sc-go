@@ -56,6 +56,8 @@ spec:
             - secretRef:
                 name: sc-go
           env:
+            - name: PORT
+              value: "13338"
             - name: GOTRUE_URL
               value: http://supabase-supabase-auth.prod-supabase:9999
             - name: PRODUCTION

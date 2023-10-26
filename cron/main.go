@@ -95,16 +95,16 @@ func main() {
 	defer analyticsService.Close()
 
 	// Create stripe client
-	stripeClient := stripe.New(utils.GetEnv("STRIPE_SECRET_KEY", ""), nil)
+	stripeClient := stripe.New(utils.GetEnv().StripeSecretKey, nil)
 
 	// Setup S3 Client img2img
-	region := os.Getenv("S3_IMG2IMG_REGION")
-	accessKey := os.Getenv("S3_IMG2IMG_ACCESS_KEY")
-	secretKey := os.Getenv("S3_IMG2IMG_SECRET_KEY")
+	region := utils.GetEnv().S3Img2ImgRegion
+	accessKey := utils.GetEnv().S3Img2ImgAccessKey
+	secretKey := utils.GetEnv().S3Img2ImgSecretKey
 
 	s3ConfigI2I := &aws.Config{
 		Credentials: credentials.NewStaticCredentials(accessKey, secretKey, ""),
-		Endpoint:    aws.String(os.Getenv("S3_IMG2IMG_ENDPOINT")),
+		Endpoint:    aws.String(utils.GetEnv().S3Img2ImgEndpoint),
 		Region:      aws.String(region),
 	}
 
@@ -112,13 +112,13 @@ func main() {
 	s3Img2ImgClient := s3.New(newSessionI2i)
 
 	// Setup S3 Client regular
-	region = os.Getenv("S3_REGION")
-	accessKey = os.Getenv("S3_ACCESS_KEY")
-	secretKey = os.Getenv("S3_SECRET_KEY")
+	region = utils.GetEnv().S3Region
+	accessKey = utils.GetEnv().S3AccessKey
+	secretKey = utils.GetEnv().S3SecretKey
 
 	s3Config := &aws.Config{
 		Credentials: credentials.NewStaticCredentials(accessKey, secretKey, ""),
-		Endpoint:    aws.String(os.Getenv("S3_ENDPOINT")),
+		Endpoint:    aws.String(utils.GetEnv().S3Endpoint),
 		Region:      aws.String(region),
 	}
 
@@ -132,7 +132,7 @@ func main() {
 	}
 
 	// Setup rabbitmq client
-	rabbitmqClient, err := queue.NewRabbitMQClient(ctx, os.Getenv("RABBITMQ_AMQP_URL"))
+	rabbitmqClient, err := queue.NewRabbitMQClient(ctx, utils.GetEnv().RabbitMQAMQPUrl)
 	if err != nil {
 		log.Fatalf("Error connecting to rabbitmq: %v", err)
 	}
@@ -199,7 +199,7 @@ func main() {
 		log.Info("🏡 Starting all jobs...")
 		s := gocron.NewScheduler(time.UTC)
 		s.Every(60).Seconds().Do(jobRunner.GetAndSetStats, jobs.NewJobLogger("STATS"))
-		if utils.GetEnv("DISCORD_WEBHOOK_URL", "") != "" {
+		if utils.GetEnv().DiscordWebhookUrl != "" {
 			s.Every(60).Seconds().Do(jobRunner.CheckHealth, jobs.NewJobLogger("HEALTH"))
 		}
 		s.Every(60).Seconds().Do(jobRunner.AddFreeCreditsToEligibleUsers, jobs.NewJobLogger("FREE_CREDITS"))

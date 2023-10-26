@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"math"
 	"net/http"
-	"os"
 	"strings"
 	"time"
 
@@ -174,7 +173,7 @@ func (w *SCWorker) CreateGeneration(source enttypes.SourceType,
 			}
 			// Verify exists in bucket
 			_, err := w.S3.HeadObject(&s3.HeadObjectInput{
-				Bucket: aws.String(os.Getenv("S3_IMG2IMG_BUCKET_NAME")),
+				Bucket: aws.String(utils.GetEnv().S3Img2ImgBucketName),
 				Key:    aws.String(signedInitImageUrl),
 			})
 			if err != nil {
@@ -191,7 +190,7 @@ func (w *SCWorker) CreateGeneration(source enttypes.SourceType,
 			}
 			// Sign object URL to pass to worker
 			req, _ := w.S3.GetObjectRequest(&s3.GetObjectInput{
-				Bucket: aws.String(os.Getenv("S3_IMG2IMG_BUCKET_NAME")),
+				Bucket: aws.String(utils.GetEnv().S3Img2ImgBucketName),
 				Key:    aws.String(signedInitImageUrl),
 			})
 			urlStr, err := req.Presign(5 * time.Minute)
@@ -444,7 +443,7 @@ func (w *SCWorker) CreateGeneration(source enttypes.SourceType,
 
 		cogReqBody = requests.CogQueueRequest{
 			WebhookEventsFilter: []requests.CogEventFilter{requests.CogEventFilterStart, requests.CogEventFilterStart},
-			WebhookUrl:          fmt.Sprintf("%s/v1/worker/webhook", utils.GetEnv("PUBLIC_API_URL", "")),
+			WebhookUrl:          fmt.Sprintf("%s/v1/worker/webhook", utils.GetEnv().PublicApiUrl),
 			Input: requests.BaseCogRequest{
 				SkipSafetyChecker:      true,
 				SkipTranslation:        true,
@@ -487,7 +486,7 @@ func (w *SCWorker) CreateGeneration(source enttypes.SourceType,
 			cogReqBody.Input.InitImageUrlS3 = generateReq.InitImageUrl
 		}
 
-		_, err = w.Repo.AddToQueueLog(queueId, int(queuePriority), nil)
+		_, err = w.Repo.AddToQueueLog(queueId, int(queuePriority), DB)
 		if err != nil {
 			log.Error("Error adding to queue log", "err", err)
 			return err
@@ -667,8 +666,8 @@ func (w *SCWorker) CreateGeneration(source enttypes.SourceType,
 				resOutputs := make([]responses.ApiOutput, len(outputs))
 				for i, output := range outputs {
 					resOutputs[i] = responses.ApiOutput{
-						URL:      utils.GetURLFromImagePath(output.ImagePath),
-						ImageURL: utils.ToPtr(utils.GetURLFromImagePath(output.ImagePath)),
+						URL:      utils.GetEnv().GetURLFromImagePath(output.ImagePath),
+						ImageURL: utils.ToPtr(utils.GetEnv().GetURLFromImagePath(output.ImagePath)),
 						ID:       output.ID,
 					}
 				}

@@ -2,7 +2,6 @@ package api
 
 import (
 	"net/http"
-	"os"
 
 	"github.com/stablecog/sc-go/auth/secure"
 	"github.com/stablecog/sc-go/auth/store"
@@ -63,7 +62,7 @@ func (a *ApiWrapper) UserAuthorizeHandler(w http.ResponseWriter, r *http.Request
 	}
 
 	// add query params to redirect uri
-	redirectLocation, err := utils.AddQueryParam(os.Getenv("OAUTH_REDIRECT_BASE"), utils.QueryParam{Key: "app_code", Value: code}, utils.QueryParam{Key: "app_id", Value: clientId})
+	redirectLocation, err := utils.AddQueryParam(utils.GetEnv().OauthRedirectBase, utils.QueryParam{Key: "app_code", Value: code}, utils.QueryParam{Key: "app_id", Value: clientId})
 	if err != nil {
 		log.Errorf("Error adding query params to redirect uri: %v", err.Error())
 		w.WriteHeader(http.StatusInternalServerError)

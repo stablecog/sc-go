@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"io"
 	"net/http/httptest"
-	"os"
 	"testing"
 	"time"
 
@@ -158,8 +157,11 @@ func TestHandleDeleteGeneration(t *testing.T) {
 }
 
 func TestHandleQueryGenerationsForAdminDefaultParams(t *testing.T) {
-	os.Setenv("BUCKET_BASE_URL", "http://test.com/")
-	defer os.Unsetenv("BUCKET_BASE_URL")
+	origBucketBaseUrl := utils.GetEnv().BucketBaseUrl
+	utils.GetEnv().BucketBaseUrl = "http://test.com/"
+	defer func() {
+		utils.GetEnv().BucketBaseUrl = origBucketBaseUrl
+	}()
 
 	w := httptest.NewRecorder()
 	// Build request
@@ -245,8 +247,11 @@ func TestHandleQueryGenerationsForAdminDefaultParams(t *testing.T) {
 }
 
 func TestHandleQueryGenerationsAdminCursor(t *testing.T) {
-	os.Setenv("BUCKET_BASE_URL", "http://test.com/")
-	defer os.Unsetenv("BUCKET_BASE_URL")
+	origBucketBaseUrl := utils.GetEnv().BucketBaseUrl
+	utils.GetEnv().BucketBaseUrl = "http://test.com/"
+	defer func() {
+		utils.GetEnv().BucketBaseUrl = origBucketBaseUrl
+	}()
 
 	w := httptest.NewRecorder()
 	// Build request
@@ -307,8 +312,11 @@ func TestHandleQueryGenerationsAdminCursor(t *testing.T) {
 
 // Test per page param
 func TestHandleQueryGenerationsAdminPerPage(t *testing.T) {
-	os.Setenv("BUCKET_BASE_URL", "http://test.com/")
-	defer os.Unsetenv("BUCKET_BASE_URL")
+	origBucketBaseUrl := utils.GetEnv().BucketBaseUrl
+	utils.GetEnv().BucketBaseUrl = "http://test.com/"
+	defer func() {
+		utils.GetEnv().BucketBaseUrl = origBucketBaseUrl
+	}()
 	w := httptest.NewRecorder()
 	// Build request
 	req := httptest.NewRequest("GET", "/gens?per_page=1", nil)
@@ -346,8 +354,11 @@ func TestHandleQueryGenerationsAdminPerPage(t *testing.T) {
 
 // Gallery admin can query
 func TestHandleQueryGenerationsAdminGalleryLevel(t *testing.T) {
-	os.Setenv("BUCKET_BASE_URL", "http://test.com/")
-	defer os.Unsetenv("BUCKET_BASE_URL")
+	origBucketBaseUrl := utils.GetEnv().BucketBaseUrl
+	utils.GetEnv().BucketBaseUrl = "http://test.com/"
+	defer func() {
+		utils.GetEnv().BucketBaseUrl = origBucketBaseUrl
+	}()
 	w := httptest.NewRecorder()
 	// Build request
 	req := httptest.NewRequest("GET", "/gens?per_page=1", nil)
@@ -385,8 +396,11 @@ func TestHandleQueryGenerationsAdminGalleryLevel(t *testing.T) {
 
 // Gallery admin cannot query private
 func TestHandleQueryGenerationsAdminGalleryLevelCannotGetPrivate(t *testing.T) {
-	os.Setenv("BUCKET_BASE_URL", "http://test.com/")
-	defer os.Unsetenv("BUCKET_BASE_URL")
+	origBucketBaseUrl := utils.GetEnv().BucketBaseUrl
+	utils.GetEnv().BucketBaseUrl = "http://test.com/"
+	defer func() {
+		utils.GetEnv().BucketBaseUrl = origBucketBaseUrl
+	}()
 	w := httptest.NewRecorder()
 	// Build request
 	req := httptest.NewRequest("GET", "/gens?per_page=1&gallery_status=not_submitted", nil)

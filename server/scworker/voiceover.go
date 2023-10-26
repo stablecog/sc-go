@@ -247,7 +247,7 @@ func (w *SCWorker) CreateVoiceover(source enttypes.SourceType,
 		// Send to the cog
 		cogReqBody = requests.CogQueueRequest{
 			WebhookEventsFilter: []requests.CogEventFilter{requests.CogEventFilterStart, requests.CogEventFilterStart},
-			WebhookUrl:          fmt.Sprintf("%s/v1/worker/webhook", utils.GetEnv("PUBLIC_API_URL", "")),
+			WebhookUrl:          fmt.Sprintf("%s/v1/worker/webhook", utils.GetEnv().PublicApiUrl),
 			Input: requests.BaseCogRequest{
 				APIRequest:       source != enttypes.SourceTypeWebUI,
 				ID:               requestId,
@@ -424,13 +424,13 @@ func (w *SCWorker) CreateVoiceover(source enttypes.SourceType,
 				// Format response
 				resOutputs := make([]responses.ApiOutput, 1)
 				resOutputs[0] = responses.ApiOutput{
-					URL:           utils.GetURLFromAudioFilePath(outputs.AudioPath),
-					AudioFileURL:  utils.ToPtr(utils.GetURLFromAudioFilePath(outputs.AudioPath)),
+					URL:           utils.GetEnv().GetURLFromAudioFilePath(outputs.AudioPath),
+					AudioFileURL:  utils.ToPtr(utils.GetEnv().GetURLFromAudioFilePath(outputs.AudioPath)),
 					ID:            outputs.ID,
 					AudioDuration: utils.ToPtr(outputs.AudioDuration),
 				}
 				if outputs.VideoPath != nil {
-					resOutputs[0].VideoFileURL = utils.ToPtr(utils.GetURLFromAudioFilePath(*outputs.VideoPath))
+					resOutputs[0].VideoFileURL = utils.ToPtr(utils.GetEnv().GetURLFromAudioFilePath(*outputs.VideoPath))
 				}
 
 				// Set token used

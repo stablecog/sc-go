@@ -21,7 +21,7 @@ import (
 func (c *RestAPI) HandleSCWorkerWebhook(w http.ResponseWriter, r *http.Request) {
 	// Verify signature of request
 	sig := r.Header.Get("signature")
-	expectedSig := utils.GetEnv("SC_WORKER_WEBHOOK_SECRET", "invalid")
+	expectedSig := utils.GetEnv().ScWorkerWebhookSecret
 	if sig != expectedSig {
 		responses.ErrUnauthorized(w, r)
 		return

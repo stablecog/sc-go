@@ -6,7 +6,6 @@ import (
 	"io"
 	"math"
 	"net/http"
-	"os"
 	"sort"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -101,7 +100,7 @@ func (c *Controller) HandleUpload(w http.ResponseWriter, r *http.Request) {
 
 	// Prune files in this users folder, if they have more than MAX_FILES_PER_USER
 	out, err := c.S3.ListObjects(&s3.ListObjectsInput{
-		Bucket: aws.String(os.Getenv("S3_IMG2IMG_BUCKET_NAME")),
+		Bucket: aws.String(utils.GetEnv().S3Img2ImgBucketName),
 		Prefix: aws.String(fmt.Sprintf("%s/", uidHash)),
 	})
 
@@ -120,7 +119,7 @@ func (c *Controller) HandleUpload(w http.ResponseWriter, r *http.Request) {
 		// Delete oldest
 		for _, content := range out.Contents[MAX_FILES_PER_USER:] {
 			_, err := c.S3.DeleteObject(&s3.DeleteObjectInput{
-				Bucket: aws.String(os.Getenv("S3_IMG2IMG_BUCKET_NAME")),
+				Bucket: aws.String(utils.GetEnv().S3Img2ImgBucketName),
 				Key:    content.Key,
 			})
 			if err != nil {
@@ -157,7 +156,7 @@ func (c *Controller) HandleUpload(w http.ResponseWriter, r *http.Request) {
 
 	objKey := fmt.Sprintf("%s/%s.%s", uidHash, uuid.New().String(), extension)
 	_, err = c.S3.PutObject(&s3.PutObjectInput{
-		Bucket:      aws.String(os.Getenv("S3_IMG2IMG_BUCKET_NAME")),
+		Bucket:      aws.String(utils.GetEnv().S3Img2ImgBucketName),
 		Key:         aws.String(objKey),
 		Body:        bytes.NewReader(buf),
 		ContentType: aws.String(contentType),

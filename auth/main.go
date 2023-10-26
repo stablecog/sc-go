@@ -79,7 +79,7 @@ func main() {
 	apiWrapper := &api.ApiWrapper{
 		RedisStore:   redisStore,
 		SupabaseAuth: database.NewSupabaseAuth(),
-		AesCrypt:     utils.NewAesCrypt(os.Getenv("DATA_ENCRYPTION_PASSWORD")),
+		AesCrypt:     utils.NewAesCrypt(utils.GetEnv().DataEncryptionPassword),
 		DB:           entClient,
 		Repo:         repo,
 	}
@@ -101,7 +101,7 @@ func main() {
 
 	// Cors middleware
 	app.Use(cors.Handler(cors.Options{
-		AllowedOrigins: utils.GetCorsOrigins(),
+		AllowedOrigins: utils.GetEnv().GetCorsOrigins(),
 		// AllowOriginFunc:  func(r *http.Request, origin string) bool { return true },
 		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
 		AllowedHeaders:   []string{"*"},
@@ -196,12 +196,12 @@ func main() {
 	s.StartAsync()
 
 	// Start server
-	port := utils.GetEnv("PORT", "9096")
+	port := utils.GetEnv().Port
 	log.Info("Starting language server", "port", port)
 
 	h2s := &http2.Server{}
 	authSrv := &http.Server{
-		Addr:    fmt.Sprintf(":%s", port),
+		Addr:    fmt.Sprintf(":%d", port),
 		Handler: h2c.NewHandler(app, h2s),
 	}
 

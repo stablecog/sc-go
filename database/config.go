@@ -16,14 +16,14 @@ type SqlDBConn interface {
 
 type PostgresConn struct {
 	Host     string
-	Port     string
+	Port     int
 	Password string
 	User     string
 	DBName   string
 }
 
 func (c *PostgresConn) DSN() string {
-	return fmt.Sprintf("postgres://%s:%s@%s:%s/%s", c.User, c.Password, c.Host, c.Port, c.DBName)
+	return fmt.Sprintf("postgres://%s:%s@%s:%d/%s", c.User, c.Password, c.Host, c.Port, c.DBName)
 }
 
 func (c *PostgresConn) Dialect() string {
@@ -49,17 +49,17 @@ func GetSqlDbConn(mock bool) (SqlDBConn, error) {
 		return &SqliteConn{FileName: "testing", Mode: "memory"}, nil
 	}
 	// Use postgres
-	postgresDb := utils.GetEnv("POSTGRES_DB", "")
-	postgresUser := utils.GetEnv("POSTGRES_USER", "")
-	postgresPassword := utils.GetEnv("POSTGRES_PASSWORD", "")
-	postgresHost := utils.GetEnv("POSTGRES_HOST", "127.0.0.1")
-	postgresPort := utils.GetEnv("POSTGRES_PORT", "5432")
+	postgresDb := utils.GetEnv().PostgresDB
+	postgresUser := utils.GetEnv().PostgresUser
+	postgresPassword := utils.GetEnv().PostgresPassword
+	postgresHost := utils.GetEnv().PostgresHost
+	postgresPort := utils.GetEnv().PostgresPort
 
 	if postgresDb == "" || postgresUser == "" || postgresPassword == "" {
 		log.Error("Postgres environment variables not set, not sure what to do? so exiting")
 		os.Exit(1)
 	}
-	log.Infof("Using PostgreSQL database %s@%s:%s", postgresUser, postgresHost, postgresPort)
+	log.Infof("Using PostgreSQL database %s@%s:%d", postgresUser, postgresHost, postgresPort)
 	return &PostgresConn{
 		Host:     postgresHost,
 		Port:     postgresPort,

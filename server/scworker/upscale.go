@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"math"
 	"net/http"
-	"os"
 	"strings"
 	"time"
 
@@ -231,7 +230,7 @@ func (w *SCWorker) CreateUpscale(source enttypes.SourceType,
 		}
 		// Verify exists in bucket
 		_, err := w.S3.HeadObject(&s3.HeadObjectInput{
-			Bucket: aws.String(os.Getenv("S3_IMG2IMG_BUCKET_NAME")),
+			Bucket: aws.String(utils.GetEnv().S3Img2ImgBucketName),
 			Key:    aws.String(imageUrl),
 		})
 		if err != nil {
@@ -248,7 +247,7 @@ func (w *SCWorker) CreateUpscale(source enttypes.SourceType,
 		}
 		// Sign object URL to pass to worker
 		req, _ := w.S3.GetObjectRequest(&s3.GetObjectInput{
-			Bucket: aws.String(os.Getenv("S3_IMG2IMG_BUCKET_NAME")),
+			Bucket: aws.String(utils.GetEnv().S3Img2ImgBucketName),
 			Key:    aws.String(imageUrl),
 		})
 		urlStr, err := req.Presign(168 * time.Hour)
@@ -258,7 +257,7 @@ func (w *SCWorker) CreateUpscale(source enttypes.SourceType,
 		}
 		// Presign URL for head request
 		headReq, _ := w.S3.HeadObjectRequest(&s3.HeadObjectInput{
-			Bucket: aws.String(os.Getenv("S3_IMG2IMG_BUCKET_NAME")),
+			Bucket: aws.String(utils.GetEnv().S3Img2ImgBucketName),
 			Key:    aws.String(imageUrl),
 		})
 		headUrl, err = headReq.Presign(168 * time.Hour)
@@ -302,8 +301,8 @@ func (w *SCWorker) CreateUpscale(source enttypes.SourceType,
 			// Format response
 			resOutputs := []responses.ApiOutput{
 				{
-					URL:              utils.GetURLFromImagePath(output.ImagePath),
-					UpscaledImageURL: utils.ToPtr(utils.GetURLFromImagePath(*output.UpscaledImagePath)),
+					URL:              utils.GetEnv().GetURLFromImagePath(output.ImagePath),
+					UpscaledImageURL: utils.ToPtr(utils.GetEnv().GetURLFromImagePath(*output.UpscaledImagePath)),
 					ID:               output.ID,
 				},
 			}
@@ -320,7 +319,7 @@ func (w *SCWorker) CreateUpscale(source enttypes.SourceType,
 				Settings:         initSettings,
 			}, &initSettings, nil
 		}
-		imageUrl = utils.GetURLFromImagePath(output.ImagePath)
+		imageUrl = utils.GetEnv().GetURLFromImagePath(output.ImagePath)
 
 		// Get width/height of generation
 		width, height, err = w.Repo.GetGenerationOutputWidthHeight(*upscaleReq.OutputID)
@@ -409,7 +408,7 @@ func (w *SCWorker) CreateUpscale(source enttypes.SourceType,
 		// Send to the cog
 		cogReqBody = requests.CogQueueRequest{
 			WebhookEventsFilter: []requests.CogEventFilter{requests.CogEventFilterStart, requests.CogEventFilterStart},
-			WebhookUrl:          fmt.Sprintf("%s/v1/worker/webhook", utils.GetEnv("PUBLIC_API_URL", "")),
+			WebhookUrl:          fmt.Sprintf("%s/v1/worker/webhook", utils.GetEnv().PublicApiUrl),
 			Input: requests.BaseCogRequest{
 				APIRequest:           source != enttypes.SourceTypeWebUI,
 				ID:                   requestId,
@@ -437,7 +436,7 @@ func (w *SCWorker) CreateUpscale(source enttypes.SourceType,
 			cogReqBody.Input.StreamID = upscaleReq.StreamID
 		}
 
-		_, err = w.Repo.AddToQueueLog(queueId, int(queuePriority), nil)
+		_, err = w.Repo.AddToQueueLog(queueId, int(queuePriority), DB)
 		if err != nil {
 			log.Error("Error adding to queue log", "err", err)
 			return err
@@ -603,8 +602,8 @@ func (w *SCWorker) CreateUpscale(source enttypes.SourceType,
 				// Format response
 				resOutputs := []responses.ApiOutput{
 					{
-						URL:              utils.GetURLFromImagePath(output.ImagePath),
-						UpscaledImageURL: utils.ToPtr(utils.GetURLFromImagePath(output.ImagePath)),
+						URL:              utils.GetEnv().GetURLFromImagePath(output.ImagePath),
+						UpscaledImageURL: utils.ToPtr(utils.GetEnv().GetURLFromImagePath(output.ImagePath)),
 						ID:               output.ID,
 					},
 				}

@@ -105,22 +105,21 @@ func (q QdrantClient) RoundTrip(r *http.Request) (*http.Response, error) {
 
 func NewQdrantClient(ctx context.Context) (*QdrantClient, error) {
 	// Get URLs from env, comma separated
-	urlEnv := os.Getenv("QDRANT_URL")
-	if urlEnv == "" {
+	if utils.GetEnv().QdrantUrl == "" {
 		log.Errorf("QDRANT_URL not set")
 		return nil, errors.New("QDRANT_URL not set")
 	}
 	var auth string
-	if os.Getenv("QDRANT_USERNAME") != "" && os.Getenv("QDRANT_PASSWORD") != "" {
-		auth = base64.StdEncoding.EncodeToString([]byte(os.Getenv("QDRANT_USERNAME") + ":" + os.Getenv("QDRANT_PASSWORD")))
+	if utils.GetEnv().QdrantUsername != "" && utils.GetEnv().QdrantPassword != "" {
+		auth = base64.StdEncoding.EncodeToString([]byte(utils.GetEnv().QdrantUsername + ":" + utils.GetEnv().QdrantPassword))
 	}
 	// Create client
 	qClient := &QdrantClient{
-		ActiveUrl:      urlEnv,
+		ActiveUrl:      utils.GetEnv().QdrantUrl,
 		Ctx:            ctx,
 		token:          auth,
 		r:              http.DefaultTransport,
-		CollectionName: utils.GetEnv("QDRANT_COLLECTION_NAME", "stablecog"),
+		CollectionName: utils.GetEnv().QdrantCollectionName,
 	}
 
 	transport := http.DefaultTransport

@@ -46,7 +46,7 @@ func main() {
 		log.Warn("Error loading .env file (this is fine)", "err", err)
 	}
 
-	s, err := discordgo.New("Bot " + os.Getenv("DISCORD_BOT_TOKEN"))
+	s, err := discordgo.New("Bot " + utils.GetEnv().DiscordBotToken)
 	if err != nil {
 		log.Fatalf("Invalid bot parameters: %v", err)
 	}
@@ -75,7 +75,7 @@ func main() {
 	defer entClient.Close()
 	// Run migrations
 	// We can't run on supabase, :(
-	if utils.GetEnv("RUN_MIGRATIONS", "") == "true" {
+	if utils.GetEnv().RunMigrations {
 		log.Info("🦋 Running migrations...")
 		if err := entClient.Schema.Create(ctx); err != nil {
 			log.Fatal("Failed to run migrations", "err", err)
@@ -134,14 +134,14 @@ func main() {
 		}
 	})
 	// Safety checker
-	safetyChecker := utils.NewTranslatorSafetyChecker(ctx, os.Getenv("OPENAI_API_KEY"), false)
+	safetyChecker := utils.NewTranslatorSafetyChecker(ctx, utils.GetEnv().OpenAIApiKey, false)
 
 	// Create analytics service
 	analyticsService := analytics.NewAnalyticsService()
 	defer analyticsService.Close()
 
 	// Setup rabbitmq client
-	rabbitmqClient, err := queue.NewRabbitMQClient(ctx, os.Getenv("RABBITMQ_AMQP_URL"))
+	rabbitmqClient, err := queue.NewRabbitMQClient(ctx, utils.GetEnv().RabbitMQAMQPUrl)
 	if err != nil {
 		log.Fatalf("Error connecting to rabbitmq: %v", err)
 	}

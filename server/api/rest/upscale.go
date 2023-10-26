@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"os"
 	"strings"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -139,7 +138,7 @@ func (c *RestAPI) HandleCreateUpscaleToken(w http.ResponseWriter, r *http.Reques
 
 				imageKey = fmt.Sprintf("%s/%s.%s", utils.Sha256(user.ID.String()), uuid.New().String(), extension)
 				_, err = c.S3.PutObject(&s3.PutObjectInput{
-					Bucket:      aws.String(os.Getenv("S3_IMG2IMG_BUCKET_NAME")),
+					Bucket:      aws.String(utils.GetEnv().S3Img2ImgBucketName),
 					Key:         aws.String(imageKey),
 					Body:        bytes.NewReader(buf),
 					ContentType: aws.String(contentType),

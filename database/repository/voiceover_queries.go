@@ -248,11 +248,11 @@ func (r *Repository) QueryVoiceovers(per_page int, cursor *time.Time, filters *r
 	// Get real URLs for each
 	for i, v := range vQueryResult {
 		if v.AudioFileUrl != "" {
-			parsed := utils.GetURLFromAudioFilePath(v.AudioFileUrl)
+			parsed := utils.GetEnv().GetURLFromAudioFilePath(v.AudioFileUrl)
 			vQueryResult[i].AudioFileUrl = parsed
 		}
 		if v.VideoFileUrl != "" {
-			parsed := utils.GetURLFromAudioFilePath(v.VideoFileUrl)
+			parsed := utils.GetEnv().GetURLFromAudioFilePath(v.VideoFileUrl)
 			vQueryResult[i].VideoFileUrl = parsed
 		}
 	}
