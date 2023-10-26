@@ -146,7 +146,7 @@ func (c *DiscordInteractionWrapper) NewImageCommand() *DiscordInteraction {
 				var negativePrompt string
 				var modelId *uuid.UUID
 				var aspectRatio *aspectratio.AspectRatio
-				numOutputs := 2
+				numOutputs := shared.DEFAULT_GENERATE_NUM_OUTPUTS
 
 				// Attachment of init image
 				var attachmentId string
