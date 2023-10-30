@@ -1077,6 +1077,33 @@ func HasRolesWith(preds ...predicate.Role) predicate.User {
 	})
 }
 
+// HasGenerationOutputLikes applies the HasEdge predicate on the "generation_output_likes" edge.
+func HasGenerationOutputLikes() predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, GenerationOutputLikesTable, GenerationOutputLikesColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasGenerationOutputLikesWith applies the HasEdge predicate on the "generation_output_likes" edge with a given conditions (other predicates).
+func HasGenerationOutputLikesWith(preds ...predicate.GenerationOutputLike) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(GenerationOutputLikesInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, GenerationOutputLikesTable, GenerationOutputLikesColumn),
+		)
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // And groups predicates with the AND operator between them.
 func And(predicates ...predicate.User) predicate.User {
 	return predicate.User(func(s *sql.Selector) {

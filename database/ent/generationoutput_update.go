@@ -14,6 +14,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/stablecog/sc-go/database/ent/generation"
 	"github.com/stablecog/sc-go/database/ent/generationoutput"
+	"github.com/stablecog/sc-go/database/ent/generationoutputlike"
 	"github.com/stablecog/sc-go/database/ent/predicate"
 	"github.com/stablecog/sc-go/database/ent/upscaleoutput"
 )
@@ -114,6 +115,27 @@ func (gou *GenerationOutputUpdate) SetNillableIsPublic(b *bool) *GenerationOutpu
 	return gou
 }
 
+// SetLikeCount sets the "like_count" field.
+func (gou *GenerationOutputUpdate) SetLikeCount(i int) *GenerationOutputUpdate {
+	gou.mutation.ResetLikeCount()
+	gou.mutation.SetLikeCount(i)
+	return gou
+}
+
+// SetNillableLikeCount sets the "like_count" field if the given value is not nil.
+func (gou *GenerationOutputUpdate) SetNillableLikeCount(i *int) *GenerationOutputUpdate {
+	if i != nil {
+		gou.SetLikeCount(*i)
+	}
+	return gou
+}
+
+// AddLikeCount adds i to the "like_count" field.
+func (gou *GenerationOutputUpdate) AddLikeCount(i int) *GenerationOutputUpdate {
+	gou.mutation.AddLikeCount(i)
+	return gou
+}
+
 // SetGenerationID sets the "generation_id" field.
 func (gou *GenerationOutputUpdate) SetGenerationID(u uuid.UUID) *GenerationOutputUpdate {
 	gou.mutation.SetGenerationID(u)
@@ -176,6 +198,21 @@ func (gou *GenerationOutputUpdate) SetUpscaleOutputs(u *UpscaleOutput) *Generati
 	return gou.SetUpscaleOutputsID(u.ID)
 }
 
+// AddGenerationOutputLikeIDs adds the "generation_output_likes" edge to the GenerationOutputLike entity by IDs.
+func (gou *GenerationOutputUpdate) AddGenerationOutputLikeIDs(ids ...uuid.UUID) *GenerationOutputUpdate {
+	gou.mutation.AddGenerationOutputLikeIDs(ids...)
+	return gou
+}
+
+// AddGenerationOutputLikes adds the "generation_output_likes" edges to the GenerationOutputLike entity.
+func (gou *GenerationOutputUpdate) AddGenerationOutputLikes(g ...*GenerationOutputLike) *GenerationOutputUpdate {
+	ids := make([]uuid.UUID, len(g))
+	for i := range g {
+		ids[i] = g[i].ID
+	}
+	return gou.AddGenerationOutputLikeIDs(ids...)
+}
+
 // Mutation returns the GenerationOutputMutation object of the builder.
 func (gou *GenerationOutputUpdate) Mutation() *GenerationOutputMutation {
 	return gou.mutation
@@ -191,6 +228,27 @@ func (gou *GenerationOutputUpdate) ClearGenerations() *GenerationOutputUpdate {
 func (gou *GenerationOutputUpdate) ClearUpscaleOutputs() *GenerationOutputUpdate {
 	gou.mutation.ClearUpscaleOutputs()
 	return gou
+}
+
+// ClearGenerationOutputLikes clears all "generation_output_likes" edges to the GenerationOutputLike entity.
+func (gou *GenerationOutputUpdate) ClearGenerationOutputLikes() *GenerationOutputUpdate {
+	gou.mutation.ClearGenerationOutputLikes()
+	return gou
+}
+
+// RemoveGenerationOutputLikeIDs removes the "generation_output_likes" edge to GenerationOutputLike entities by IDs.
+func (gou *GenerationOutputUpdate) RemoveGenerationOutputLikeIDs(ids ...uuid.UUID) *GenerationOutputUpdate {
+	gou.mutation.RemoveGenerationOutputLikeIDs(ids...)
+	return gou
+}
+
+// RemoveGenerationOutputLikes removes "generation_output_likes" edges to GenerationOutputLike entities.
+func (gou *GenerationOutputUpdate) RemoveGenerationOutputLikes(g ...*GenerationOutputLike) *GenerationOutputUpdate {
+	ids := make([]uuid.UUID, len(g))
+	for i := range g {
+		ids[i] = g[i].ID
+	}
+	return gou.RemoveGenerationOutputLikeIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -290,6 +348,12 @@ func (gou *GenerationOutputUpdate) sqlSave(ctx context.Context) (n int, err erro
 	if value, ok := gou.mutation.IsPublic(); ok {
 		_spec.SetField(generationoutput.FieldIsPublic, field.TypeBool, value)
 	}
+	if value, ok := gou.mutation.LikeCount(); ok {
+		_spec.SetField(generationoutput.FieldLikeCount, field.TypeInt, value)
+	}
+	if value, ok := gou.mutation.AddedLikeCount(); ok {
+		_spec.AddField(generationoutput.FieldLikeCount, field.TypeInt, value)
+	}
 	if value, ok := gou.mutation.DeletedAt(); ok {
 		_spec.SetField(generationoutput.FieldDeletedAt, field.TypeTime, value)
 	}
@@ -361,6 +425,60 @@ func (gou *GenerationOutputUpdate) sqlSave(ctx context.Context) (n int, err erro
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeUUID,
 					Column: upscaleoutput.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if gou.mutation.GenerationOutputLikesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   generationoutput.GenerationOutputLikesTable,
+			Columns: []string{generationoutput.GenerationOutputLikesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: generationoutputlike.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := gou.mutation.RemovedGenerationOutputLikesIDs(); len(nodes) > 0 && !gou.mutation.GenerationOutputLikesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   generationoutput.GenerationOutputLikesTable,
+			Columns: []string{generationoutput.GenerationOutputLikesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: generationoutputlike.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := gou.mutation.GenerationOutputLikesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   generationoutput.GenerationOutputLikesTable,
+			Columns: []string{generationoutput.GenerationOutputLikesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: generationoutputlike.FieldID,
 				},
 			},
 		}
@@ -473,6 +591,27 @@ func (gouo *GenerationOutputUpdateOne) SetNillableIsPublic(b *bool) *GenerationO
 	return gouo
 }
 
+// SetLikeCount sets the "like_count" field.
+func (gouo *GenerationOutputUpdateOne) SetLikeCount(i int) *GenerationOutputUpdateOne {
+	gouo.mutation.ResetLikeCount()
+	gouo.mutation.SetLikeCount(i)
+	return gouo
+}
+
+// SetNillableLikeCount sets the "like_count" field if the given value is not nil.
+func (gouo *GenerationOutputUpdateOne) SetNillableLikeCount(i *int) *GenerationOutputUpdateOne {
+	if i != nil {
+		gouo.SetLikeCount(*i)
+	}
+	return gouo
+}
+
+// AddLikeCount adds i to the "like_count" field.
+func (gouo *GenerationOutputUpdateOne) AddLikeCount(i int) *GenerationOutputUpdateOne {
+	gouo.mutation.AddLikeCount(i)
+	return gouo
+}
+
 // SetGenerationID sets the "generation_id" field.
 func (gouo *GenerationOutputUpdateOne) SetGenerationID(u uuid.UUID) *GenerationOutputUpdateOne {
 	gouo.mutation.SetGenerationID(u)
@@ -535,6 +674,21 @@ func (gouo *GenerationOutputUpdateOne) SetUpscaleOutputs(u *UpscaleOutput) *Gene
 	return gouo.SetUpscaleOutputsID(u.ID)
 }
 
+// AddGenerationOutputLikeIDs adds the "generation_output_likes" edge to the GenerationOutputLike entity by IDs.
+func (gouo *GenerationOutputUpdateOne) AddGenerationOutputLikeIDs(ids ...uuid.UUID) *GenerationOutputUpdateOne {
+	gouo.mutation.AddGenerationOutputLikeIDs(ids...)
+	return gouo
+}
+
+// AddGenerationOutputLikes adds the "generation_output_likes" edges to the GenerationOutputLike entity.
+func (gouo *GenerationOutputUpdateOne) AddGenerationOutputLikes(g ...*GenerationOutputLike) *GenerationOutputUpdateOne {
+	ids := make([]uuid.UUID, len(g))
+	for i := range g {
+		ids[i] = g[i].ID
+	}
+	return gouo.AddGenerationOutputLikeIDs(ids...)
+}
+
 // Mutation returns the GenerationOutputMutation object of the builder.
 func (gouo *GenerationOutputUpdateOne) Mutation() *GenerationOutputMutation {
 	return gouo.mutation
@@ -550,6 +704,27 @@ func (gouo *GenerationOutputUpdateOne) ClearGenerations() *GenerationOutputUpdat
 func (gouo *GenerationOutputUpdateOne) ClearUpscaleOutputs() *GenerationOutputUpdateOne {
 	gouo.mutation.ClearUpscaleOutputs()
 	return gouo
+}
+
+// ClearGenerationOutputLikes clears all "generation_output_likes" edges to the GenerationOutputLike entity.
+func (gouo *GenerationOutputUpdateOne) ClearGenerationOutputLikes() *GenerationOutputUpdateOne {
+	gouo.mutation.ClearGenerationOutputLikes()
+	return gouo
+}
+
+// RemoveGenerationOutputLikeIDs removes the "generation_output_likes" edge to GenerationOutputLike entities by IDs.
+func (gouo *GenerationOutputUpdateOne) RemoveGenerationOutputLikeIDs(ids ...uuid.UUID) *GenerationOutputUpdateOne {
+	gouo.mutation.RemoveGenerationOutputLikeIDs(ids...)
+	return gouo
+}
+
+// RemoveGenerationOutputLikes removes "generation_output_likes" edges to GenerationOutputLike entities.
+func (gouo *GenerationOutputUpdateOne) RemoveGenerationOutputLikes(g ...*GenerationOutputLike) *GenerationOutputUpdateOne {
+	ids := make([]uuid.UUID, len(g))
+	for i := range g {
+		ids[i] = g[i].ID
+	}
+	return gouo.RemoveGenerationOutputLikeIDs(ids...)
 }
 
 // Select allows selecting one or more fields (columns) of the returned entity.
@@ -673,6 +848,12 @@ func (gouo *GenerationOutputUpdateOne) sqlSave(ctx context.Context) (_node *Gene
 	if value, ok := gouo.mutation.IsPublic(); ok {
 		_spec.SetField(generationoutput.FieldIsPublic, field.TypeBool, value)
 	}
+	if value, ok := gouo.mutation.LikeCount(); ok {
+		_spec.SetField(generationoutput.FieldLikeCount, field.TypeInt, value)
+	}
+	if value, ok := gouo.mutation.AddedLikeCount(); ok {
+		_spec.AddField(generationoutput.FieldLikeCount, field.TypeInt, value)
+	}
 	if value, ok := gouo.mutation.DeletedAt(); ok {
 		_spec.SetField(generationoutput.FieldDeletedAt, field.TypeTime, value)
 	}
@@ -744,6 +925,60 @@ func (gouo *GenerationOutputUpdateOne) sqlSave(ctx context.Context) (_node *Gene
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeUUID,
 					Column: upscaleoutput.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if gouo.mutation.GenerationOutputLikesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   generationoutput.GenerationOutputLikesTable,
+			Columns: []string{generationoutput.GenerationOutputLikesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: generationoutputlike.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := gouo.mutation.RemovedGenerationOutputLikesIDs(); len(nodes) > 0 && !gouo.mutation.GenerationOutputLikesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   generationoutput.GenerationOutputLikesTable,
+			Columns: []string{generationoutput.GenerationOutputLikesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: generationoutputlike.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := gouo.mutation.GenerationOutputLikesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   generationoutput.GenerationOutputLikesTable,
+			Columns: []string{generationoutput.GenerationOutputLikesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: generationoutputlike.FieldID,
 				},
 			},
 		}

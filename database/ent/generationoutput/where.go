@@ -81,6 +81,11 @@ func IsPublic(v bool) predicate.GenerationOutput {
 	return predicate.GenerationOutput(sql.FieldEQ(FieldIsPublic, v))
 }
 
+// LikeCount applies equality check predicate on the "like_count" field. It's identical to LikeCountEQ.
+func LikeCount(v int) predicate.GenerationOutput {
+	return predicate.GenerationOutput(sql.FieldEQ(FieldLikeCount, v))
+}
+
 // GenerationID applies equality check predicate on the "generation_id" field. It's identical to GenerationIDEQ.
 func GenerationID(v uuid.UUID) predicate.GenerationOutput {
 	return predicate.GenerationOutput(sql.FieldEQ(FieldGenerationID, v))
@@ -291,6 +296,46 @@ func IsPublicNEQ(v bool) predicate.GenerationOutput {
 	return predicate.GenerationOutput(sql.FieldNEQ(FieldIsPublic, v))
 }
 
+// LikeCountEQ applies the EQ predicate on the "like_count" field.
+func LikeCountEQ(v int) predicate.GenerationOutput {
+	return predicate.GenerationOutput(sql.FieldEQ(FieldLikeCount, v))
+}
+
+// LikeCountNEQ applies the NEQ predicate on the "like_count" field.
+func LikeCountNEQ(v int) predicate.GenerationOutput {
+	return predicate.GenerationOutput(sql.FieldNEQ(FieldLikeCount, v))
+}
+
+// LikeCountIn applies the In predicate on the "like_count" field.
+func LikeCountIn(vs ...int) predicate.GenerationOutput {
+	return predicate.GenerationOutput(sql.FieldIn(FieldLikeCount, vs...))
+}
+
+// LikeCountNotIn applies the NotIn predicate on the "like_count" field.
+func LikeCountNotIn(vs ...int) predicate.GenerationOutput {
+	return predicate.GenerationOutput(sql.FieldNotIn(FieldLikeCount, vs...))
+}
+
+// LikeCountGT applies the GT predicate on the "like_count" field.
+func LikeCountGT(v int) predicate.GenerationOutput {
+	return predicate.GenerationOutput(sql.FieldGT(FieldLikeCount, v))
+}
+
+// LikeCountGTE applies the GTE predicate on the "like_count" field.
+func LikeCountGTE(v int) predicate.GenerationOutput {
+	return predicate.GenerationOutput(sql.FieldGTE(FieldLikeCount, v))
+}
+
+// LikeCountLT applies the LT predicate on the "like_count" field.
+func LikeCountLT(v int) predicate.GenerationOutput {
+	return predicate.GenerationOutput(sql.FieldLT(FieldLikeCount, v))
+}
+
+// LikeCountLTE applies the LTE predicate on the "like_count" field.
+func LikeCountLTE(v int) predicate.GenerationOutput {
+	return predicate.GenerationOutput(sql.FieldLTE(FieldLikeCount, v))
+}
+
 // GenerationIDEQ applies the EQ predicate on the "generation_id" field.
 func GenerationIDEQ(v uuid.UUID) predicate.GenerationOutput {
 	return predicate.GenerationOutput(sql.FieldEQ(FieldGenerationID, v))
@@ -486,6 +531,33 @@ func HasUpscaleOutputsWith(preds ...predicate.UpscaleOutput) predicate.Generatio
 			sqlgraph.From(Table, FieldID),
 			sqlgraph.To(UpscaleOutputsInverseTable, FieldID),
 			sqlgraph.Edge(sqlgraph.O2O, false, UpscaleOutputsTable, UpscaleOutputsColumn),
+		)
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasGenerationOutputLikes applies the HasEdge predicate on the "generation_output_likes" edge.
+func HasGenerationOutputLikes() predicate.GenerationOutput {
+	return predicate.GenerationOutput(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, GenerationOutputLikesTable, GenerationOutputLikesColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasGenerationOutputLikesWith applies the HasEdge predicate on the "generation_output_likes" edge with a given conditions (other predicates).
+func HasGenerationOutputLikesWith(preds ...predicate.GenerationOutputLike) predicate.GenerationOutput {
+	return predicate.GenerationOutput(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(GenerationOutputLikesInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, GenerationOutputLikesTable, GenerationOutputLikesColumn),
 		)
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {

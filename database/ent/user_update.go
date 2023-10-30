@@ -15,6 +15,7 @@ import (
 	"github.com/stablecog/sc-go/database/ent/apitoken"
 	"github.com/stablecog/sc-go/database/ent/credit"
 	"github.com/stablecog/sc-go/database/ent/generation"
+	"github.com/stablecog/sc-go/database/ent/generationoutputlike"
 	"github.com/stablecog/sc-go/database/ent/predicate"
 	"github.com/stablecog/sc-go/database/ent/role"
 	"github.com/stablecog/sc-go/database/ent/tiplog"
@@ -355,6 +356,21 @@ func (uu *UserUpdate) AddRoles(r ...*Role) *UserUpdate {
 	return uu.AddRoleIDs(ids...)
 }
 
+// AddGenerationOutputLikeIDs adds the "generation_output_likes" edge to the GenerationOutputLike entity by IDs.
+func (uu *UserUpdate) AddGenerationOutputLikeIDs(ids ...uuid.UUID) *UserUpdate {
+	uu.mutation.AddGenerationOutputLikeIDs(ids...)
+	return uu
+}
+
+// AddGenerationOutputLikes adds the "generation_output_likes" edges to the GenerationOutputLike entity.
+func (uu *UserUpdate) AddGenerationOutputLikes(g ...*GenerationOutputLike) *UserUpdate {
+	ids := make([]uuid.UUID, len(g))
+	for i := range g {
+		ids[i] = g[i].ID
+	}
+	return uu.AddGenerationOutputLikeIDs(ids...)
+}
+
 // Mutation returns the UserMutation object of the builder.
 func (uu *UserUpdate) Mutation() *UserMutation {
 	return uu.mutation
@@ -526,6 +542,27 @@ func (uu *UserUpdate) RemoveRoles(r ...*Role) *UserUpdate {
 		ids[i] = r[i].ID
 	}
 	return uu.RemoveRoleIDs(ids...)
+}
+
+// ClearGenerationOutputLikes clears all "generation_output_likes" edges to the GenerationOutputLike entity.
+func (uu *UserUpdate) ClearGenerationOutputLikes() *UserUpdate {
+	uu.mutation.ClearGenerationOutputLikes()
+	return uu
+}
+
+// RemoveGenerationOutputLikeIDs removes the "generation_output_likes" edge to GenerationOutputLike entities by IDs.
+func (uu *UserUpdate) RemoveGenerationOutputLikeIDs(ids ...uuid.UUID) *UserUpdate {
+	uu.mutation.RemoveGenerationOutputLikeIDs(ids...)
+	return uu
+}
+
+// RemoveGenerationOutputLikes removes "generation_output_likes" edges to GenerationOutputLike entities.
+func (uu *UserUpdate) RemoveGenerationOutputLikes(g ...*GenerationOutputLike) *UserUpdate {
+	ids := make([]uuid.UUID, len(g))
+	for i := range g {
+		ids[i] = g[i].ID
+	}
+	return uu.RemoveGenerationOutputLikeIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -1083,6 +1120,60 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if uu.mutation.GenerationOutputLikesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.GenerationOutputLikesTable,
+			Columns: []string{user.GenerationOutputLikesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: generationoutputlike.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uu.mutation.RemovedGenerationOutputLikesIDs(); len(nodes) > 0 && !uu.mutation.GenerationOutputLikesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.GenerationOutputLikesTable,
+			Columns: []string{user.GenerationOutputLikesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: generationoutputlike.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uu.mutation.GenerationOutputLikesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.GenerationOutputLikesTable,
+			Columns: []string{user.GenerationOutputLikesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: generationoutputlike.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	_spec.AddModifiers(uu.modifiers...)
 	if n, err = sqlgraph.UpdateNodes(ctx, uu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
@@ -1423,6 +1514,21 @@ func (uuo *UserUpdateOne) AddRoles(r ...*Role) *UserUpdateOne {
 	return uuo.AddRoleIDs(ids...)
 }
 
+// AddGenerationOutputLikeIDs adds the "generation_output_likes" edge to the GenerationOutputLike entity by IDs.
+func (uuo *UserUpdateOne) AddGenerationOutputLikeIDs(ids ...uuid.UUID) *UserUpdateOne {
+	uuo.mutation.AddGenerationOutputLikeIDs(ids...)
+	return uuo
+}
+
+// AddGenerationOutputLikes adds the "generation_output_likes" edges to the GenerationOutputLike entity.
+func (uuo *UserUpdateOne) AddGenerationOutputLikes(g ...*GenerationOutputLike) *UserUpdateOne {
+	ids := make([]uuid.UUID, len(g))
+	for i := range g {
+		ids[i] = g[i].ID
+	}
+	return uuo.AddGenerationOutputLikeIDs(ids...)
+}
+
 // Mutation returns the UserMutation object of the builder.
 func (uuo *UserUpdateOne) Mutation() *UserMutation {
 	return uuo.mutation
@@ -1594,6 +1700,27 @@ func (uuo *UserUpdateOne) RemoveRoles(r ...*Role) *UserUpdateOne {
 		ids[i] = r[i].ID
 	}
 	return uuo.RemoveRoleIDs(ids...)
+}
+
+// ClearGenerationOutputLikes clears all "generation_output_likes" edges to the GenerationOutputLike entity.
+func (uuo *UserUpdateOne) ClearGenerationOutputLikes() *UserUpdateOne {
+	uuo.mutation.ClearGenerationOutputLikes()
+	return uuo
+}
+
+// RemoveGenerationOutputLikeIDs removes the "generation_output_likes" edge to GenerationOutputLike entities by IDs.
+func (uuo *UserUpdateOne) RemoveGenerationOutputLikeIDs(ids ...uuid.UUID) *UserUpdateOne {
+	uuo.mutation.RemoveGenerationOutputLikeIDs(ids...)
+	return uuo
+}
+
+// RemoveGenerationOutputLikes removes "generation_output_likes" edges to GenerationOutputLike entities.
+func (uuo *UserUpdateOne) RemoveGenerationOutputLikes(g ...*GenerationOutputLike) *UserUpdateOne {
+	ids := make([]uuid.UUID, len(g))
+	for i := range g {
+		ids[i] = g[i].ID
+	}
+	return uuo.RemoveGenerationOutputLikeIDs(ids...)
 }
 
 // Select allows selecting one or more fields (columns) of the returned entity.
@@ -2167,6 +2294,60 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeUUID,
 					Column: role.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if uuo.mutation.GenerationOutputLikesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.GenerationOutputLikesTable,
+			Columns: []string{user.GenerationOutputLikesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: generationoutputlike.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uuo.mutation.RemovedGenerationOutputLikesIDs(); len(nodes) > 0 && !uuo.mutation.GenerationOutputLikesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.GenerationOutputLikesTable,
+			Columns: []string{user.GenerationOutputLikesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: generationoutputlike.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uuo.mutation.GenerationOutputLikesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.GenerationOutputLikesTable,
+			Columns: []string{user.GenerationOutputLikesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: generationoutputlike.FieldID,
 				},
 			},
 		}

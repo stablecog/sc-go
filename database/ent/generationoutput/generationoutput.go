@@ -26,6 +26,8 @@ const (
 	FieldHasEmbeddings = "has_embeddings"
 	// FieldIsPublic holds the string denoting the is_public field in the database.
 	FieldIsPublic = "is_public"
+	// FieldLikeCount holds the string denoting the like_count field in the database.
+	FieldLikeCount = "like_count"
 	// FieldGenerationID holds the string denoting the generation_id field in the database.
 	FieldGenerationID = "generation_id"
 	// FieldDeletedAt holds the string denoting the deleted_at field in the database.
@@ -38,6 +40,8 @@ const (
 	EdgeGenerations = "generations"
 	// EdgeUpscaleOutputs holds the string denoting the upscale_outputs edge name in mutations.
 	EdgeUpscaleOutputs = "upscale_outputs"
+	// EdgeGenerationOutputLikes holds the string denoting the generation_output_likes edge name in mutations.
+	EdgeGenerationOutputLikes = "generation_output_likes"
 	// Table holds the table name of the generationoutput in the database.
 	Table = "generation_outputs"
 	// GenerationsTable is the table that holds the generations relation/edge.
@@ -54,6 +58,13 @@ const (
 	UpscaleOutputsInverseTable = "upscale_outputs"
 	// UpscaleOutputsColumn is the table column denoting the upscale_outputs relation/edge.
 	UpscaleOutputsColumn = "generation_output_id"
+	// GenerationOutputLikesTable is the table that holds the generation_output_likes relation/edge.
+	GenerationOutputLikesTable = "generation_output_likes"
+	// GenerationOutputLikesInverseTable is the table name for the GenerationOutputLike entity.
+	// It exists in this package in order to avoid circular dependency with the "generationoutputlike" package.
+	GenerationOutputLikesInverseTable = "generation_output_likes"
+	// GenerationOutputLikesColumn is the table column denoting the generation_output_likes relation/edge.
+	GenerationOutputLikesColumn = "output_id"
 )
 
 // Columns holds all SQL columns for generationoutput fields.
@@ -65,6 +76,7 @@ var Columns = []string{
 	FieldIsFavorited,
 	FieldHasEmbeddings,
 	FieldIsPublic,
+	FieldLikeCount,
 	FieldGenerationID,
 	FieldDeletedAt,
 	FieldCreatedAt,
@@ -88,6 +100,8 @@ var (
 	DefaultHasEmbeddings bool
 	// DefaultIsPublic holds the default value on creation for the "is_public" field.
 	DefaultIsPublic bool
+	// DefaultLikeCount holds the default value on creation for the "like_count" field.
+	DefaultLikeCount int
 	// DefaultCreatedAt holds the default value on creation for the "created_at" field.
 	DefaultCreatedAt func() time.Time
 	// DefaultUpdatedAt holds the default value on creation for the "updated_at" field.

@@ -21,6 +21,7 @@ import (
 	"github.com/stablecog/sc-go/database/ent/generation"
 	"github.com/stablecog/sc-go/database/ent/generationmodel"
 	"github.com/stablecog/sc-go/database/ent/generationoutput"
+	"github.com/stablecog/sc-go/database/ent/generationoutputlike"
 	"github.com/stablecog/sc-go/database/ent/ipblacklist"
 	"github.com/stablecog/sc-go/database/ent/mqlog"
 	"github.com/stablecog/sc-go/database/ent/negativeprompt"
@@ -67,6 +68,8 @@ type Client struct {
 	GenerationModel *GenerationModelClient
 	// GenerationOutput is the client for interacting with the GenerationOutput builders.
 	GenerationOutput *GenerationOutputClient
+	// GenerationOutputLike is the client for interacting with the GenerationOutputLike builders.
+	GenerationOutputLike *GenerationOutputLikeClient
 	// IPBlackList is the client for interacting with the IPBlackList builders.
 	IPBlackList *IPBlackListClient
 	// MqLog is the client for interacting with the MqLog builders.
@@ -120,6 +123,7 @@ func (c *Client) init() {
 	c.Generation = NewGenerationClient(c.config)
 	c.GenerationModel = NewGenerationModelClient(c.config)
 	c.GenerationOutput = NewGenerationOutputClient(c.config)
+	c.GenerationOutputLike = NewGenerationOutputLikeClient(c.config)
 	c.IPBlackList = NewIPBlackListClient(c.config)
 	c.MqLog = NewMqLogClient(c.config)
 	c.NegativePrompt = NewNegativePromptClient(c.config)
@@ -166,33 +170,34 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 	cfg := c.config
 	cfg.driver = tx
 	return &Tx{
-		ctx:              ctx,
-		config:           cfg,
-		ApiToken:         NewApiTokenClient(cfg),
-		AuthClient:       NewAuthClientClient(cfg),
-		BannedWords:      NewBannedWordsClient(cfg),
-		Credit:           NewCreditClient(cfg),
-		CreditType:       NewCreditTypeClient(cfg),
-		DeviceInfo:       NewDeviceInfoClient(cfg),
-		DisposableEmail:  NewDisposableEmailClient(cfg),
-		Generation:       NewGenerationClient(cfg),
-		GenerationModel:  NewGenerationModelClient(cfg),
-		GenerationOutput: NewGenerationOutputClient(cfg),
-		IPBlackList:      NewIPBlackListClient(cfg),
-		MqLog:            NewMqLogClient(cfg),
-		NegativePrompt:   NewNegativePromptClient(cfg),
-		Prompt:           NewPromptClient(cfg),
-		Role:             NewRoleClient(cfg),
-		Scheduler:        NewSchedulerClient(cfg),
-		TipLog:           NewTipLogClient(cfg),
-		Upscale:          NewUpscaleClient(cfg),
-		UpscaleModel:     NewUpscaleModelClient(cfg),
-		UpscaleOutput:    NewUpscaleOutputClient(cfg),
-		User:             NewUserClient(cfg),
-		Voiceover:        NewVoiceoverClient(cfg),
-		VoiceoverModel:   NewVoiceoverModelClient(cfg),
-		VoiceoverOutput:  NewVoiceoverOutputClient(cfg),
-		VoiceoverSpeaker: NewVoiceoverSpeakerClient(cfg),
+		ctx:                  ctx,
+		config:               cfg,
+		ApiToken:             NewApiTokenClient(cfg),
+		AuthClient:           NewAuthClientClient(cfg),
+		BannedWords:          NewBannedWordsClient(cfg),
+		Credit:               NewCreditClient(cfg),
+		CreditType:           NewCreditTypeClient(cfg),
+		DeviceInfo:           NewDeviceInfoClient(cfg),
+		DisposableEmail:      NewDisposableEmailClient(cfg),
+		Generation:           NewGenerationClient(cfg),
+		GenerationModel:      NewGenerationModelClient(cfg),
+		GenerationOutput:     NewGenerationOutputClient(cfg),
+		GenerationOutputLike: NewGenerationOutputLikeClient(cfg),
+		IPBlackList:          NewIPBlackListClient(cfg),
+		MqLog:                NewMqLogClient(cfg),
+		NegativePrompt:       NewNegativePromptClient(cfg),
+		Prompt:               NewPromptClient(cfg),
+		Role:                 NewRoleClient(cfg),
+		Scheduler:            NewSchedulerClient(cfg),
+		TipLog:               NewTipLogClient(cfg),
+		Upscale:              NewUpscaleClient(cfg),
+		UpscaleModel:         NewUpscaleModelClient(cfg),
+		UpscaleOutput:        NewUpscaleOutputClient(cfg),
+		User:                 NewUserClient(cfg),
+		Voiceover:            NewVoiceoverClient(cfg),
+		VoiceoverModel:       NewVoiceoverModelClient(cfg),
+		VoiceoverOutput:      NewVoiceoverOutputClient(cfg),
+		VoiceoverSpeaker:     NewVoiceoverSpeakerClient(cfg),
 	}, nil
 }
 
@@ -210,33 +215,34 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 	cfg := c.config
 	cfg.driver = &txDriver{tx: tx, drv: c.driver}
 	return &Tx{
-		ctx:              ctx,
-		config:           cfg,
-		ApiToken:         NewApiTokenClient(cfg),
-		AuthClient:       NewAuthClientClient(cfg),
-		BannedWords:      NewBannedWordsClient(cfg),
-		Credit:           NewCreditClient(cfg),
-		CreditType:       NewCreditTypeClient(cfg),
-		DeviceInfo:       NewDeviceInfoClient(cfg),
-		DisposableEmail:  NewDisposableEmailClient(cfg),
-		Generation:       NewGenerationClient(cfg),
-		GenerationModel:  NewGenerationModelClient(cfg),
-		GenerationOutput: NewGenerationOutputClient(cfg),
-		IPBlackList:      NewIPBlackListClient(cfg),
-		MqLog:            NewMqLogClient(cfg),
-		NegativePrompt:   NewNegativePromptClient(cfg),
-		Prompt:           NewPromptClient(cfg),
-		Role:             NewRoleClient(cfg),
-		Scheduler:        NewSchedulerClient(cfg),
-		TipLog:           NewTipLogClient(cfg),
-		Upscale:          NewUpscaleClient(cfg),
-		UpscaleModel:     NewUpscaleModelClient(cfg),
-		UpscaleOutput:    NewUpscaleOutputClient(cfg),
-		User:             NewUserClient(cfg),
-		Voiceover:        NewVoiceoverClient(cfg),
-		VoiceoverModel:   NewVoiceoverModelClient(cfg),
-		VoiceoverOutput:  NewVoiceoverOutputClient(cfg),
-		VoiceoverSpeaker: NewVoiceoverSpeakerClient(cfg),
+		ctx:                  ctx,
+		config:               cfg,
+		ApiToken:             NewApiTokenClient(cfg),
+		AuthClient:           NewAuthClientClient(cfg),
+		BannedWords:          NewBannedWordsClient(cfg),
+		Credit:               NewCreditClient(cfg),
+		CreditType:           NewCreditTypeClient(cfg),
+		DeviceInfo:           NewDeviceInfoClient(cfg),
+		DisposableEmail:      NewDisposableEmailClient(cfg),
+		Generation:           NewGenerationClient(cfg),
+		GenerationModel:      NewGenerationModelClient(cfg),
+		GenerationOutput:     NewGenerationOutputClient(cfg),
+		GenerationOutputLike: NewGenerationOutputLikeClient(cfg),
+		IPBlackList:          NewIPBlackListClient(cfg),
+		MqLog:                NewMqLogClient(cfg),
+		NegativePrompt:       NewNegativePromptClient(cfg),
+		Prompt:               NewPromptClient(cfg),
+		Role:                 NewRoleClient(cfg),
+		Scheduler:            NewSchedulerClient(cfg),
+		TipLog:               NewTipLogClient(cfg),
+		Upscale:              NewUpscaleClient(cfg),
+		UpscaleModel:         NewUpscaleModelClient(cfg),
+		UpscaleOutput:        NewUpscaleOutputClient(cfg),
+		User:                 NewUserClient(cfg),
+		Voiceover:            NewVoiceoverClient(cfg),
+		VoiceoverModel:       NewVoiceoverModelClient(cfg),
+		VoiceoverOutput:      NewVoiceoverOutputClient(cfg),
+		VoiceoverSpeaker:     NewVoiceoverSpeakerClient(cfg),
 	}, nil
 }
 
@@ -275,6 +281,7 @@ func (c *Client) Use(hooks ...Hook) {
 	c.Generation.Use(hooks...)
 	c.GenerationModel.Use(hooks...)
 	c.GenerationOutput.Use(hooks...)
+	c.GenerationOutputLike.Use(hooks...)
 	c.IPBlackList.Use(hooks...)
 	c.MqLog.Use(hooks...)
 	c.NegativePrompt.Use(hooks...)
@@ -305,6 +312,7 @@ func (c *Client) Intercept(interceptors ...Interceptor) {
 	c.Generation.Intercept(interceptors...)
 	c.GenerationModel.Intercept(interceptors...)
 	c.GenerationOutput.Intercept(interceptors...)
+	c.GenerationOutputLike.Intercept(interceptors...)
 	c.IPBlackList.Intercept(interceptors...)
 	c.MqLog.Intercept(interceptors...)
 	c.NegativePrompt.Intercept(interceptors...)
@@ -345,6 +353,8 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.GenerationModel.mutate(ctx, m)
 	case *GenerationOutputMutation:
 		return c.GenerationOutput.mutate(ctx, m)
+	case *GenerationOutputLikeMutation:
+		return c.GenerationOutputLike.mutate(ctx, m)
 	case *IPBlackListMutation:
 		return c.IPBlackList.mutate(ctx, m)
 	case *MqLogMutation:
@@ -1919,6 +1929,22 @@ func (c *GenerationOutputClient) QueryUpscaleOutputs(_go *GenerationOutput) *Ups
 	return query
 }
 
+// QueryGenerationOutputLikes queries the generation_output_likes edge of a GenerationOutput.
+func (c *GenerationOutputClient) QueryGenerationOutputLikes(_go *GenerationOutput) *GenerationOutputLikeQuery {
+	query := (&GenerationOutputLikeClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _go.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(generationoutput.Table, generationoutput.FieldID, id),
+			sqlgraph.To(generationoutputlike.Table, generationoutputlike.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, generationoutput.GenerationOutputLikesTable, generationoutput.GenerationOutputLikesColumn),
+		)
+		fromV = sqlgraph.Neighbors(_go.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *GenerationOutputClient) Hooks() []Hook {
 	return c.hooks.GenerationOutput
@@ -1941,6 +1967,156 @@ func (c *GenerationOutputClient) mutate(ctx context.Context, m *GenerationOutput
 		return (&GenerationOutputDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("ent: unknown GenerationOutput mutation op: %q", m.Op())
+	}
+}
+
+// GenerationOutputLikeClient is a client for the GenerationOutputLike schema.
+type GenerationOutputLikeClient struct {
+	config
+}
+
+// NewGenerationOutputLikeClient returns a client for the GenerationOutputLike from the given config.
+func NewGenerationOutputLikeClient(c config) *GenerationOutputLikeClient {
+	return &GenerationOutputLikeClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `generationoutputlike.Hooks(f(g(h())))`.
+func (c *GenerationOutputLikeClient) Use(hooks ...Hook) {
+	c.hooks.GenerationOutputLike = append(c.hooks.GenerationOutputLike, hooks...)
+}
+
+// Use adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `generationoutputlike.Intercept(f(g(h())))`.
+func (c *GenerationOutputLikeClient) Intercept(interceptors ...Interceptor) {
+	c.inters.GenerationOutputLike = append(c.inters.GenerationOutputLike, interceptors...)
+}
+
+// Create returns a builder for creating a GenerationOutputLike entity.
+func (c *GenerationOutputLikeClient) Create() *GenerationOutputLikeCreate {
+	mutation := newGenerationOutputLikeMutation(c.config, OpCreate)
+	return &GenerationOutputLikeCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of GenerationOutputLike entities.
+func (c *GenerationOutputLikeClient) CreateBulk(builders ...*GenerationOutputLikeCreate) *GenerationOutputLikeCreateBulk {
+	return &GenerationOutputLikeCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for GenerationOutputLike.
+func (c *GenerationOutputLikeClient) Update() *GenerationOutputLikeUpdate {
+	mutation := newGenerationOutputLikeMutation(c.config, OpUpdate)
+	return &GenerationOutputLikeUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *GenerationOutputLikeClient) UpdateOne(gol *GenerationOutputLike) *GenerationOutputLikeUpdateOne {
+	mutation := newGenerationOutputLikeMutation(c.config, OpUpdateOne, withGenerationOutputLike(gol))
+	return &GenerationOutputLikeUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *GenerationOutputLikeClient) UpdateOneID(id uuid.UUID) *GenerationOutputLikeUpdateOne {
+	mutation := newGenerationOutputLikeMutation(c.config, OpUpdateOne, withGenerationOutputLikeID(id))
+	return &GenerationOutputLikeUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for GenerationOutputLike.
+func (c *GenerationOutputLikeClient) Delete() *GenerationOutputLikeDelete {
+	mutation := newGenerationOutputLikeMutation(c.config, OpDelete)
+	return &GenerationOutputLikeDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *GenerationOutputLikeClient) DeleteOne(gol *GenerationOutputLike) *GenerationOutputLikeDeleteOne {
+	return c.DeleteOneID(gol.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *GenerationOutputLikeClient) DeleteOneID(id uuid.UUID) *GenerationOutputLikeDeleteOne {
+	builder := c.Delete().Where(generationoutputlike.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &GenerationOutputLikeDeleteOne{builder}
+}
+
+// Query returns a query builder for GenerationOutputLike.
+func (c *GenerationOutputLikeClient) Query() *GenerationOutputLikeQuery {
+	return &GenerationOutputLikeQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeGenerationOutputLike},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a GenerationOutputLike entity by its id.
+func (c *GenerationOutputLikeClient) Get(ctx context.Context, id uuid.UUID) (*GenerationOutputLike, error) {
+	return c.Query().Where(generationoutputlike.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *GenerationOutputLikeClient) GetX(ctx context.Context, id uuid.UUID) *GenerationOutputLike {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryGenerationOutputs queries the generation_outputs edge of a GenerationOutputLike.
+func (c *GenerationOutputLikeClient) QueryGenerationOutputs(gol *GenerationOutputLike) *GenerationOutputQuery {
+	query := (&GenerationOutputClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := gol.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(generationoutputlike.Table, generationoutputlike.FieldID, id),
+			sqlgraph.To(generationoutput.Table, generationoutput.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, generationoutputlike.GenerationOutputsTable, generationoutputlike.GenerationOutputsColumn),
+		)
+		fromV = sqlgraph.Neighbors(gol.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryUsers queries the users edge of a GenerationOutputLike.
+func (c *GenerationOutputLikeClient) QueryUsers(gol *GenerationOutputLike) *UserQuery {
+	query := (&UserClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := gol.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(generationoutputlike.Table, generationoutputlike.FieldID, id),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, generationoutputlike.UsersTable, generationoutputlike.UsersColumn),
+		)
+		fromV = sqlgraph.Neighbors(gol.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *GenerationOutputLikeClient) Hooks() []Hook {
+	return c.hooks.GenerationOutputLike
+}
+
+// Interceptors returns the client interceptors.
+func (c *GenerationOutputLikeClient) Interceptors() []Interceptor {
+	return c.inters.GenerationOutputLike
+}
+
+func (c *GenerationOutputLikeClient) mutate(ctx context.Context, m *GenerationOutputLikeMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&GenerationOutputLikeCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&GenerationOutputLikeUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&GenerationOutputLikeUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&GenerationOutputLikeDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown GenerationOutputLike mutation op: %q", m.Op())
 	}
 }
 
@@ -3594,6 +3770,22 @@ func (c *UserClient) QueryRoles(u *User) *RoleQuery {
 			sqlgraph.From(user.Table, user.FieldID, id),
 			sqlgraph.To(role.Table, role.FieldID),
 			sqlgraph.Edge(sqlgraph.M2M, true, user.RolesTable, user.RolesPrimaryKey...),
+		)
+		fromV = sqlgraph.Neighbors(u.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryGenerationOutputLikes queries the generation_output_likes edge of a User.
+func (c *UserClient) QueryGenerationOutputLikes(u *User) *GenerationOutputLikeQuery {
+	query := (&GenerationOutputLikeClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := u.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, id),
+			sqlgraph.To(generationoutputlike.Table, generationoutputlike.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.GenerationOutputLikesTable, user.GenerationOutputLikesColumn),
 		)
 		fromV = sqlgraph.Neighbors(u.driver.Dialect(), step)
 		return fromV, nil

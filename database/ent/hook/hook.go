@@ -129,6 +129,18 @@ func (f GenerationOutputFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.V
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.GenerationOutputMutation", m)
 }
 
+// The GenerationOutputLikeFunc type is an adapter to allow the use of ordinary
+// function as GenerationOutputLike mutator.
+type GenerationOutputLikeFunc func(context.Context, *ent.GenerationOutputLikeMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f GenerationOutputLikeFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.GenerationOutputLikeMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.GenerationOutputLikeMutation", m)
+}
+
 // The IPBlackListFunc type is an adapter to allow the use of ordinary
 // function as IPBlackList mutator.
 type IPBlackListFunc func(context.Context, *ent.IPBlackListMutation) (ent.Value, error)

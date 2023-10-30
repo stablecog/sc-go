@@ -312,6 +312,7 @@ var (
 		{Name: "is_favorited", Type: field.TypeBool, Default: false},
 		{Name: "has_embeddings", Type: field.TypeBool, Default: false},
 		{Name: "is_public", Type: field.TypeBool, Default: false},
+		{Name: "like_count", Type: field.TypeInt, Default: 0},
 		{Name: "deleted_at", Type: field.TypeTime, Nullable: true},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},
@@ -325,7 +326,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "generation_outputs_generations_generation_outputs",
-				Columns:    []*schema.Column{GenerationOutputsColumns[10]},
+				Columns:    []*schema.Column{GenerationOutputsColumns[11]},
 				RefColumns: []*schema.Column{GenerationsColumns[0]},
 				OnDelete:   schema.Cascade,
 			},
@@ -344,22 +345,56 @@ var (
 			{
 				Name:    "generationoutput_created_at",
 				Unique:  false,
-				Columns: []*schema.Column{GenerationOutputsColumns[8]},
+				Columns: []*schema.Column{GenerationOutputsColumns[9]},
 			},
 			{
 				Name:    "generationoutput_updated_at",
 				Unique:  false,
-				Columns: []*schema.Column{GenerationOutputsColumns[9]},
+				Columns: []*schema.Column{GenerationOutputsColumns[10]},
 			},
 			{
 				Name:    "generationoutput_generation_id",
 				Unique:  false,
-				Columns: []*schema.Column{GenerationOutputsColumns[10]},
+				Columns: []*schema.Column{GenerationOutputsColumns[11]},
 			},
 			{
 				Name:    "generationoutput_deleted_at_is_public",
 				Unique:  false,
-				Columns: []*schema.Column{GenerationOutputsColumns[7], GenerationOutputsColumns[6]},
+				Columns: []*schema.Column{GenerationOutputsColumns[8], GenerationOutputsColumns[6]},
+			},
+		},
+	}
+	// GenerationOutputLikesColumns holds the columns for the "generation_output_likes" table.
+	GenerationOutputLikesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "output_id", Type: field.TypeUUID},
+		{Name: "liked_by_user_id", Type: field.TypeUUID},
+	}
+	// GenerationOutputLikesTable holds the schema information for the "generation_output_likes" table.
+	GenerationOutputLikesTable = &schema.Table{
+		Name:       "generation_output_likes",
+		Columns:    GenerationOutputLikesColumns,
+		PrimaryKey: []*schema.Column{GenerationOutputLikesColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "generation_output_likes_generation_outputs_generation_output_likes",
+				Columns:    []*schema.Column{GenerationOutputLikesColumns[2]},
+				RefColumns: []*schema.Column{GenerationOutputsColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+			{
+				Symbol:     "generation_output_likes_users_generation_output_likes",
+				Columns:    []*schema.Column{GenerationOutputLikesColumns[3]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "generationoutputlike_output_id_liked_by_user_id",
+				Unique:  true,
+				Columns: []*schema.Column{GenerationOutputLikesColumns[2], GenerationOutputLikesColumns[3]},
 			},
 		},
 	}
@@ -831,6 +866,7 @@ var (
 		GenerationsTable,
 		GenerationModelsTable,
 		GenerationOutputsTable,
+		GenerationOutputLikesTable,
 		IPBlacklistTable,
 		MqLogTable,
 		NegativePromptsTable,
@@ -893,6 +929,11 @@ func init() {
 	GenerationOutputsTable.ForeignKeys[0].RefTable = GenerationsTable
 	GenerationOutputsTable.Annotation = &entsql.Annotation{
 		Table: "generation_outputs",
+	}
+	GenerationOutputLikesTable.ForeignKeys[0].RefTable = GenerationOutputsTable
+	GenerationOutputLikesTable.ForeignKeys[1].RefTable = UsersTable
+	GenerationOutputLikesTable.Annotation = &entsql.Annotation{
+		Table: "generation_output_likes",
 	}
 	IPBlacklistTable.Annotation = &entsql.Annotation{
 		Table: "ip_blacklist",

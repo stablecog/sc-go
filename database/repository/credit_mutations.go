@@ -9,6 +9,7 @@ import (
 	"github.com/stablecog/sc-go/database/ent"
 	"github.com/stablecog/sc-go/database/ent/credit"
 	"github.com/stablecog/sc-go/database/ent/credittype"
+	"github.com/stablecog/sc-go/database/ent/user"
 	"github.com/stablecog/sc-go/log"
 	"github.com/stablecog/sc-go/shared"
 )
@@ -329,7 +330,7 @@ func (r *Repository) RefundCreditsToUser(userID uuid.UUID, amount int32, db *ent
 }
 
 // Replenish free credits where eligible
-func (r *Repository) ReplenishFreeCreditsToEligibleUsers(userIDs []uuid.UUID) (int, error) {
+func (r *Repository) ReplenishFreeCreditsToEligibleUsers() (int, error) {
 	// Get free credit type
 	creditType, err := r.GetOrCreateFreeCreditType(nil)
 	if err != nil {
@@ -354,10 +355,10 @@ func (r *Repository) ReplenishFreeCreditsToEligibleUsers(userIDs []uuid.UUID) (i
 	if err := r.WithTx(func(tx *ent.Tx) error {
 		updated, err = tx.Credit.Update().
 			Where(
-				credit.UserIDIn(userIDs...),
 				credit.CreditTypeID(creditType.ID),
 				credit.RemainingAmountLT(creditType.Amount),
 				credit.ReplenishedAtLT(updatedAtSince),
+				credit.HasUsersWith(user.ActiveProductIDIsNil()),
 			).
 			SetReplenishedAt(time.Now()).
 			AddRemainingAmount(shared.FREE_CREDIT_AMOUNT_DAILY).Save(r.Ctx)
@@ -367,11 +368,11 @@ func (r *Repository) ReplenishFreeCreditsToEligibleUsers(userIDs []uuid.UUID) (i
 		// Also update tippable credit type
 		updatedTippable, err = tx.Credit.Update().
 			Where(
-				credit.UserIDIn(userIDs...),
 				credit.CreditTypeID(creditTypeTippable.ID),
 				credit.StripeLineItemIDIsNil(),
 				credit.RemainingAmountLT(creditType.Amount/2),
 				credit.ReplenishedAtLT(updatedAtSince),
+				credit.HasUsersWith(user.ActiveProductIDIsNil()),
 			).
 			SetReplenishedAt(time.Now()).
 			AddRemainingAmount(shared.FREE_CREDIT_AMOUNT_DAILY).Save(r.Ctx)

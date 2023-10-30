@@ -79,6 +79,11 @@ func (User) Edges() []ent.Edge {
 		// M2M with roles
 		edge.From("roles", Role.Type).
 			Ref("users"),
+		// O2M with generation_output_likes
+		edge.To("generation_output_likes", GenerationOutputLike.Type).
+			Annotations(entsql.Annotation{
+				OnDelete: entsql.Cascade,
+			}),
 	}
 }
 

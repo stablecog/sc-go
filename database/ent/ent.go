@@ -21,6 +21,7 @@ import (
 	"github.com/stablecog/sc-go/database/ent/generation"
 	"github.com/stablecog/sc-go/database/ent/generationmodel"
 	"github.com/stablecog/sc-go/database/ent/generationoutput"
+	"github.com/stablecog/sc-go/database/ent/generationoutputlike"
 	"github.com/stablecog/sc-go/database/ent/ipblacklist"
 	"github.com/stablecog/sc-go/database/ent/mqlog"
 	"github.com/stablecog/sc-go/database/ent/negativeprompt"
@@ -63,31 +64,32 @@ type OrderFunc func(*sql.Selector)
 // columnChecker returns a function indicates if the column exists in the given column.
 func columnChecker(table string) func(string) error {
 	checks := map[string]func(string) bool{
-		apitoken.Table:         apitoken.ValidColumn,
-		authclient.Table:       authclient.ValidColumn,
-		bannedwords.Table:      bannedwords.ValidColumn,
-		credit.Table:           credit.ValidColumn,
-		credittype.Table:       credittype.ValidColumn,
-		deviceinfo.Table:       deviceinfo.ValidColumn,
-		disposableemail.Table:  disposableemail.ValidColumn,
-		generation.Table:       generation.ValidColumn,
-		generationmodel.Table:  generationmodel.ValidColumn,
-		generationoutput.Table: generationoutput.ValidColumn,
-		ipblacklist.Table:      ipblacklist.ValidColumn,
-		mqlog.Table:            mqlog.ValidColumn,
-		negativeprompt.Table:   negativeprompt.ValidColumn,
-		prompt.Table:           prompt.ValidColumn,
-		role.Table:             role.ValidColumn,
-		scheduler.Table:        scheduler.ValidColumn,
-		tiplog.Table:           tiplog.ValidColumn,
-		upscale.Table:          upscale.ValidColumn,
-		upscalemodel.Table:     upscalemodel.ValidColumn,
-		upscaleoutput.Table:    upscaleoutput.ValidColumn,
-		user.Table:             user.ValidColumn,
-		voiceover.Table:        voiceover.ValidColumn,
-		voiceovermodel.Table:   voiceovermodel.ValidColumn,
-		voiceoveroutput.Table:  voiceoveroutput.ValidColumn,
-		voiceoverspeaker.Table: voiceoverspeaker.ValidColumn,
+		apitoken.Table:             apitoken.ValidColumn,
+		authclient.Table:           authclient.ValidColumn,
+		bannedwords.Table:          bannedwords.ValidColumn,
+		credit.Table:               credit.ValidColumn,
+		credittype.Table:           credittype.ValidColumn,
+		deviceinfo.Table:           deviceinfo.ValidColumn,
+		disposableemail.Table:      disposableemail.ValidColumn,
+		generation.Table:           generation.ValidColumn,
+		generationmodel.Table:      generationmodel.ValidColumn,
+		generationoutput.Table:     generationoutput.ValidColumn,
+		generationoutputlike.Table: generationoutputlike.ValidColumn,
+		ipblacklist.Table:          ipblacklist.ValidColumn,
+		mqlog.Table:                mqlog.ValidColumn,
+		negativeprompt.Table:       negativeprompt.ValidColumn,
+		prompt.Table:               prompt.ValidColumn,
+		role.Table:                 role.ValidColumn,
+		scheduler.Table:            scheduler.ValidColumn,
+		tiplog.Table:               tiplog.ValidColumn,
+		upscale.Table:              upscale.ValidColumn,
+		upscalemodel.Table:         upscalemodel.ValidColumn,
+		upscaleoutput.Table:        upscaleoutput.ValidColumn,
+		user.Table:                 user.ValidColumn,
+		voiceover.Table:            voiceover.ValidColumn,
+		voiceovermodel.Table:       voiceovermodel.ValidColumn,
+		voiceoveroutput.Table:      voiceoveroutput.ValidColumn,
+		voiceoverspeaker.Table:     voiceoverspeaker.ValidColumn,
 	}
 	check, ok := checks[table]
 	if !ok {

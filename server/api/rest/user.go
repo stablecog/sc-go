@@ -589,31 +589,21 @@ func (c *RestAPI) HandleFavoriteGenerationOutputsForUser(w http.ResponseWriter, 
 		return
 	}
 
-	// Parse request body
-	reqBody, _ := io.ReadAll(r.Body)
-	var favReq requests.FavoriteGenerationRequest
-	err := json.Unmarshal(reqBody, &favReq)
-	if err != nil {
-		responses.ErrUnableToParseJson(w, r)
-		return
-	}
+	// // Parse request body
+	// reqBody, _ := io.ReadAll(r.Body)
+	// var likeReq requests.LikeUnlikeActionRequest
+	// err := json.Unmarshal(reqBody, &likeReq)
+	// if err != nil {
+	// 	responses.ErrUnableToParseJson(w, r)
+	// 	return
+	// }
 
-	if favReq.Action != requests.AddFavoriteAction && favReq.Action != requests.RemoveFavoriteAction {
-		responses.ErrBadRequest(w, r, "action must be either 'add' or 'remove'", "")
-		return
-	}
+	// if likeReq.Action != requests.LikeAction && likeReq.Action != requests.UnlikeAction {
+	// 	responses.ErrBadRequest(w, r, "action must be either 'like' or 'unlike'", "")
+	// 	return
+	// }
 
-	count, err := c.Repo.SetFavoriteGenerationOutputsForUser(favReq.GenerationOutputIDs, user.ID, favReq.Action)
-	if err != nil {
-		responses.ErrInternalServerError(w, r, err.Error())
-		return
-	}
-
-	res := responses.FavoritedResponse{
-		Favorited: count,
-	}
 	render.Status(r, http.StatusOK)
-	render.JSON(w, r, res)
 }
 
 // HTTP DELETE - delete voiceover
@@ -729,4 +719,43 @@ func (c *RestAPI) HandleUpdateUsername(w http.ResponseWriter, r *http.Request) {
 	render.JSON(w, r, map[string]interface{}{
 		"username": usernameReq.Username,
 	})
+}
+
+// HTTP POST - like/unlike generation
+func (c *RestAPI) HandleLikeGenerationOutputsForUser(w http.ResponseWriter, r *http.Request) {
+	var user *ent.User
+	if user = c.GetUserIfAuthenticated(w, r); user == nil {
+		return
+	}
+
+	if user.BannedAt != nil {
+		responses.ErrForbidden(w, r)
+		return
+	}
+
+	// Parse request body
+	reqBody, _ := io.ReadAll(r.Body)
+	var favReq requests.FavoriteGenerationRequest
+	err := json.Unmarshal(reqBody, &favReq)
+	if err != nil {
+		responses.ErrUnableToParseJson(w, r)
+		return
+	}
+
+	if favReq.Action != requests.AddFavoriteAction && favReq.Action != requests.RemoveFavoriteAction {
+		responses.ErrBadRequest(w, r, "action must be either 'add' or 'remove'", "")
+		return
+	}
+
+	count, err := c.Repo.SetFavoriteGenerationOutputsForUser(favReq.GenerationOutputIDs, user.ID, favReq.Action)
+	if err != nil {
+		responses.ErrInternalServerError(w, r, err.Error())
+		return
+	}
+
+	res := responses.FavoritedResponse{
+		Favorited: count,
+	}
+	render.Status(r, http.StatusOK)
+	render.JSON(w, r, res)
 }

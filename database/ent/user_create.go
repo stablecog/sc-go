@@ -16,6 +16,7 @@ import (
 	"github.com/stablecog/sc-go/database/ent/apitoken"
 	"github.com/stablecog/sc-go/database/ent/credit"
 	"github.com/stablecog/sc-go/database/ent/generation"
+	"github.com/stablecog/sc-go/database/ent/generationoutputlike"
 	"github.com/stablecog/sc-go/database/ent/role"
 	"github.com/stablecog/sc-go/database/ent/tiplog"
 	"github.com/stablecog/sc-go/database/ent/upscale"
@@ -337,6 +338,21 @@ func (uc *UserCreate) AddRoles(r ...*Role) *UserCreate {
 	return uc.AddRoleIDs(ids...)
 }
 
+// AddGenerationOutputLikeIDs adds the "generation_output_likes" edge to the GenerationOutputLike entity by IDs.
+func (uc *UserCreate) AddGenerationOutputLikeIDs(ids ...uuid.UUID) *UserCreate {
+	uc.mutation.AddGenerationOutputLikeIDs(ids...)
+	return uc
+}
+
+// AddGenerationOutputLikes adds the "generation_output_likes" edges to the GenerationOutputLike entity.
+func (uc *UserCreate) AddGenerationOutputLikes(g ...*GenerationOutputLike) *UserCreate {
+	ids := make([]uuid.UUID, len(g))
+	for i := range g {
+		ids[i] = g[i].ID
+	}
+	return uc.AddGenerationOutputLikeIDs(ids...)
+}
+
 // Mutation returns the UserMutation object of the builder.
 func (uc *UserCreate) Mutation() *UserMutation {
 	return uc.mutation
@@ -652,6 +668,25 @@ func (uc *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeUUID,
 					Column: role.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := uc.mutation.GenerationOutputLikesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.GenerationOutputLikesTable,
+			Columns: []string{user.GenerationOutputLikesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: generationoutputlike.FieldID,
 				},
 			},
 		}

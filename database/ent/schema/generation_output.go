@@ -27,6 +27,8 @@ func (GenerationOutput) Fields() []ent.Field {
 		field.Bool("is_favorited").Default(false),
 		field.Bool("has_embeddings").Default(false),
 		field.Bool("is_public").Default(false),
+		// Populated by the triggers based on generation_output_likes.
+		field.Int("like_count").Default(0),
 		// ! Relationships / many-to-one
 		field.UUID("generation_id", uuid.UUID{}),
 		// ! End relationships
@@ -47,6 +49,11 @@ func (GenerationOutput) Edges() []ent.Edge {
 			Unique(),
 		// O2O with upscale_outputs
 		edge.To("upscale_outputs", UpscaleOutput.Type).Unique(),
+		// O2M with generation_output_likes
+		edge.To("generation_output_likes", GenerationOutputLike.Type).
+			Annotations(entsql.Annotation{
+				OnDelete: entsql.Cascade,
+			}),
 	}
 }
 

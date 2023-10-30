@@ -68,9 +68,11 @@ type UserEdges struct {
 	TipsReceived []*TipLog `json:"tips_received,omitempty"`
 	// Roles holds the value of the roles edge.
 	Roles []*Role `json:"roles,omitempty"`
+	// GenerationOutputLikes holds the value of the generation_output_likes edge.
+	GenerationOutputLikes []*GenerationOutputLike `json:"generation_output_likes,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [8]bool
+	loadedTypes [9]bool
 }
 
 // GenerationsOrErr returns the Generations value or an error if the edge
@@ -143,6 +145,15 @@ func (e UserEdges) RolesOrErr() ([]*Role, error) {
 		return e.Roles, nil
 	}
 	return nil, &NotLoadedError{edge: "roles"}
+}
+
+// GenerationOutputLikesOrErr returns the GenerationOutputLikes value or an error if the edge
+// was not loaded in eager-loading.
+func (e UserEdges) GenerationOutputLikesOrErr() ([]*GenerationOutputLike, error) {
+	if e.loadedTypes[8] {
+		return e.GenerationOutputLikes, nil
+	}
+	return nil, &NotLoadedError{edge: "generation_output_likes"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -314,6 +325,11 @@ func (u *User) QueryTipsReceived() *TipLogQuery {
 // QueryRoles queries the "roles" edge of the User entity.
 func (u *User) QueryRoles() *RoleQuery {
 	return NewUserClient(u.config).QueryRoles(u)
+}
+
+// QueryGenerationOutputLikes queries the "generation_output_likes" edge of the User entity.
+func (u *User) QueryGenerationOutputLikes() *GenerationOutputLikeQuery {
+	return NewUserClient(u.config).QueryGenerationOutputLikes(u)
 }
 
 // Update returns a builder for updating this User.

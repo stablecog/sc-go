@@ -20,6 +20,7 @@ import (
 	"github.com/stablecog/sc-go/database/ent/generation"
 	"github.com/stablecog/sc-go/database/ent/generationmodel"
 	"github.com/stablecog/sc-go/database/ent/generationoutput"
+	"github.com/stablecog/sc-go/database/ent/generationoutputlike"
 	"github.com/stablecog/sc-go/database/ent/ipblacklist"
 	"github.com/stablecog/sc-go/database/ent/mqlog"
 	"github.com/stablecog/sc-go/database/ent/negativeprompt"
@@ -51,31 +52,32 @@ const (
 	OpUpdateOne = ent.OpUpdateOne
 
 	// Node types.
-	TypeApiToken         = "ApiToken"
-	TypeAuthClient       = "AuthClient"
-	TypeBannedWords      = "BannedWords"
-	TypeCredit           = "Credit"
-	TypeCreditType       = "CreditType"
-	TypeDeviceInfo       = "DeviceInfo"
-	TypeDisposableEmail  = "DisposableEmail"
-	TypeGeneration       = "Generation"
-	TypeGenerationModel  = "GenerationModel"
-	TypeGenerationOutput = "GenerationOutput"
-	TypeIPBlackList      = "IPBlackList"
-	TypeMqLog            = "MqLog"
-	TypeNegativePrompt   = "NegativePrompt"
-	TypePrompt           = "Prompt"
-	TypeRole             = "Role"
-	TypeScheduler        = "Scheduler"
-	TypeTipLog           = "TipLog"
-	TypeUpscale          = "Upscale"
-	TypeUpscaleModel     = "UpscaleModel"
-	TypeUpscaleOutput    = "UpscaleOutput"
-	TypeUser             = "User"
-	TypeVoiceover        = "Voiceover"
-	TypeVoiceoverModel   = "VoiceoverModel"
-	TypeVoiceoverOutput  = "VoiceoverOutput"
-	TypeVoiceoverSpeaker = "VoiceoverSpeaker"
+	TypeApiToken             = "ApiToken"
+	TypeAuthClient           = "AuthClient"
+	TypeBannedWords          = "BannedWords"
+	TypeCredit               = "Credit"
+	TypeCreditType           = "CreditType"
+	TypeDeviceInfo           = "DeviceInfo"
+	TypeDisposableEmail      = "DisposableEmail"
+	TypeGeneration           = "Generation"
+	TypeGenerationModel      = "GenerationModel"
+	TypeGenerationOutput     = "GenerationOutput"
+	TypeGenerationOutputLike = "GenerationOutputLike"
+	TypeIPBlackList          = "IPBlackList"
+	TypeMqLog                = "MqLog"
+	TypeNegativePrompt       = "NegativePrompt"
+	TypePrompt               = "Prompt"
+	TypeRole                 = "Role"
+	TypeScheduler            = "Scheduler"
+	TypeTipLog               = "TipLog"
+	TypeUpscale              = "Upscale"
+	TypeUpscaleModel         = "UpscaleModel"
+	TypeUpscaleOutput        = "UpscaleOutput"
+	TypeUser                 = "User"
+	TypeVoiceover            = "Voiceover"
+	TypeVoiceoverModel       = "VoiceoverModel"
+	TypeVoiceoverOutput      = "VoiceoverOutput"
+	TypeVoiceoverSpeaker     = "VoiceoverSpeaker"
 )
 
 // ApiTokenMutation represents an operation that mutates the ApiToken nodes in the graph.
@@ -9229,26 +9231,31 @@ func (m *GenerationModelMutation) ResetEdge(name string) error {
 // GenerationOutputMutation represents an operation that mutates the GenerationOutput nodes in the graph.
 type GenerationOutputMutation struct {
 	config
-	op                     Op
-	typ                    string
-	id                     *uuid.UUID
-	image_path             *string
-	upscaled_image_path    *string
-	gallery_status         *generationoutput.GalleryStatus
-	is_favorited           *bool
-	has_embeddings         *bool
-	is_public              *bool
-	deleted_at             *time.Time
-	created_at             *time.Time
-	updated_at             *time.Time
-	clearedFields          map[string]struct{}
-	generations            *uuid.UUID
-	clearedgenerations     bool
-	upscale_outputs        *uuid.UUID
-	clearedupscale_outputs bool
-	done                   bool
-	oldValue               func(context.Context) (*GenerationOutput, error)
-	predicates             []predicate.GenerationOutput
+	op                             Op
+	typ                            string
+	id                             *uuid.UUID
+	image_path                     *string
+	upscaled_image_path            *string
+	gallery_status                 *generationoutput.GalleryStatus
+	is_favorited                   *bool
+	has_embeddings                 *bool
+	is_public                      *bool
+	like_count                     *int
+	addlike_count                  *int
+	deleted_at                     *time.Time
+	created_at                     *time.Time
+	updated_at                     *time.Time
+	clearedFields                  map[string]struct{}
+	generations                    *uuid.UUID
+	clearedgenerations             bool
+	upscale_outputs                *uuid.UUID
+	clearedupscale_outputs         bool
+	generation_output_likes        map[uuid.UUID]struct{}
+	removedgeneration_output_likes map[uuid.UUID]struct{}
+	clearedgeneration_output_likes bool
+	done                           bool
+	oldValue                       func(context.Context) (*GenerationOutput, error)
+	predicates                     []predicate.GenerationOutput
 }
 
 var _ ent.Mutation = (*GenerationOutputMutation)(nil)
@@ -9584,6 +9591,62 @@ func (m *GenerationOutputMutation) ResetIsPublic() {
 	m.is_public = nil
 }
 
+// SetLikeCount sets the "like_count" field.
+func (m *GenerationOutputMutation) SetLikeCount(i int) {
+	m.like_count = &i
+	m.addlike_count = nil
+}
+
+// LikeCount returns the value of the "like_count" field in the mutation.
+func (m *GenerationOutputMutation) LikeCount() (r int, exists bool) {
+	v := m.like_count
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldLikeCount returns the old "like_count" field's value of the GenerationOutput entity.
+// If the GenerationOutput object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *GenerationOutputMutation) OldLikeCount(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldLikeCount is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldLikeCount requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldLikeCount: %w", err)
+	}
+	return oldValue.LikeCount, nil
+}
+
+// AddLikeCount adds i to the "like_count" field.
+func (m *GenerationOutputMutation) AddLikeCount(i int) {
+	if m.addlike_count != nil {
+		*m.addlike_count += i
+	} else {
+		m.addlike_count = &i
+	}
+}
+
+// AddedLikeCount returns the value that was added to the "like_count" field in this mutation.
+func (m *GenerationOutputMutation) AddedLikeCount() (r int, exists bool) {
+	v := m.addlike_count
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetLikeCount resets all changes to the "like_count" field.
+func (m *GenerationOutputMutation) ResetLikeCount() {
+	m.like_count = nil
+	m.addlike_count = nil
+}
+
 // SetGenerationID sets the "generation_id" field.
 func (m *GenerationOutputMutation) SetGenerationID(u uuid.UUID) {
 	m.generations = &u
@@ -9819,6 +9882,60 @@ func (m *GenerationOutputMutation) ResetUpscaleOutputs() {
 	m.clearedupscale_outputs = false
 }
 
+// AddGenerationOutputLikeIDs adds the "generation_output_likes" edge to the GenerationOutputLike entity by ids.
+func (m *GenerationOutputMutation) AddGenerationOutputLikeIDs(ids ...uuid.UUID) {
+	if m.generation_output_likes == nil {
+		m.generation_output_likes = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.generation_output_likes[ids[i]] = struct{}{}
+	}
+}
+
+// ClearGenerationOutputLikes clears the "generation_output_likes" edge to the GenerationOutputLike entity.
+func (m *GenerationOutputMutation) ClearGenerationOutputLikes() {
+	m.clearedgeneration_output_likes = true
+}
+
+// GenerationOutputLikesCleared reports if the "generation_output_likes" edge to the GenerationOutputLike entity was cleared.
+func (m *GenerationOutputMutation) GenerationOutputLikesCleared() bool {
+	return m.clearedgeneration_output_likes
+}
+
+// RemoveGenerationOutputLikeIDs removes the "generation_output_likes" edge to the GenerationOutputLike entity by IDs.
+func (m *GenerationOutputMutation) RemoveGenerationOutputLikeIDs(ids ...uuid.UUID) {
+	if m.removedgeneration_output_likes == nil {
+		m.removedgeneration_output_likes = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.generation_output_likes, ids[i])
+		m.removedgeneration_output_likes[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedGenerationOutputLikes returns the removed IDs of the "generation_output_likes" edge to the GenerationOutputLike entity.
+func (m *GenerationOutputMutation) RemovedGenerationOutputLikesIDs() (ids []uuid.UUID) {
+	for id := range m.removedgeneration_output_likes {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// GenerationOutputLikesIDs returns the "generation_output_likes" edge IDs in the mutation.
+func (m *GenerationOutputMutation) GenerationOutputLikesIDs() (ids []uuid.UUID) {
+	for id := range m.generation_output_likes {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetGenerationOutputLikes resets all changes to the "generation_output_likes" edge.
+func (m *GenerationOutputMutation) ResetGenerationOutputLikes() {
+	m.generation_output_likes = nil
+	m.clearedgeneration_output_likes = false
+	m.removedgeneration_output_likes = nil
+}
+
 // Where appends a list predicates to the GenerationOutputMutation builder.
 func (m *GenerationOutputMutation) Where(ps ...predicate.GenerationOutput) {
 	m.predicates = append(m.predicates, ps...)
@@ -9853,7 +9970,7 @@ func (m *GenerationOutputMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *GenerationOutputMutation) Fields() []string {
-	fields := make([]string, 0, 10)
+	fields := make([]string, 0, 11)
 	if m.image_path != nil {
 		fields = append(fields, generationoutput.FieldImagePath)
 	}
@@ -9871,6 +9988,9 @@ func (m *GenerationOutputMutation) Fields() []string {
 	}
 	if m.is_public != nil {
 		fields = append(fields, generationoutput.FieldIsPublic)
+	}
+	if m.like_count != nil {
+		fields = append(fields, generationoutput.FieldLikeCount)
 	}
 	if m.generations != nil {
 		fields = append(fields, generationoutput.FieldGenerationID)
@@ -9904,6 +10024,8 @@ func (m *GenerationOutputMutation) Field(name string) (ent.Value, bool) {
 		return m.HasEmbeddings()
 	case generationoutput.FieldIsPublic:
 		return m.IsPublic()
+	case generationoutput.FieldLikeCount:
+		return m.LikeCount()
 	case generationoutput.FieldGenerationID:
 		return m.GenerationID()
 	case generationoutput.FieldDeletedAt:
@@ -9933,6 +10055,8 @@ func (m *GenerationOutputMutation) OldField(ctx context.Context, name string) (e
 		return m.OldHasEmbeddings(ctx)
 	case generationoutput.FieldIsPublic:
 		return m.OldIsPublic(ctx)
+	case generationoutput.FieldLikeCount:
+		return m.OldLikeCount(ctx)
 	case generationoutput.FieldGenerationID:
 		return m.OldGenerationID(ctx)
 	case generationoutput.FieldDeletedAt:
@@ -9992,6 +10116,13 @@ func (m *GenerationOutputMutation) SetField(name string, value ent.Value) error 
 		}
 		m.SetIsPublic(v)
 		return nil
+	case generationoutput.FieldLikeCount:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetLikeCount(v)
+		return nil
 	case generationoutput.FieldGenerationID:
 		v, ok := value.(uuid.UUID)
 		if !ok {
@@ -10027,13 +10158,21 @@ func (m *GenerationOutputMutation) SetField(name string, value ent.Value) error 
 // AddedFields returns all numeric fields that were incremented/decremented during
 // this mutation.
 func (m *GenerationOutputMutation) AddedFields() []string {
-	return nil
+	var fields []string
+	if m.addlike_count != nil {
+		fields = append(fields, generationoutput.FieldLikeCount)
+	}
+	return fields
 }
 
 // AddedField returns the numeric value that was incremented/decremented on a field
 // with the given name. The second boolean return value indicates that this field
 // was not set, or was not defined in the schema.
 func (m *GenerationOutputMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case generationoutput.FieldLikeCount:
+		return m.AddedLikeCount()
+	}
 	return nil, false
 }
 
@@ -10042,6 +10181,13 @@ func (m *GenerationOutputMutation) AddedField(name string) (ent.Value, bool) {
 // type.
 func (m *GenerationOutputMutation) AddField(name string, value ent.Value) error {
 	switch name {
+	case generationoutput.FieldLikeCount:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddLikeCount(v)
+		return nil
 	}
 	return fmt.Errorf("unknown GenerationOutput numeric field %s", name)
 }
@@ -10102,6 +10248,9 @@ func (m *GenerationOutputMutation) ResetField(name string) error {
 	case generationoutput.FieldIsPublic:
 		m.ResetIsPublic()
 		return nil
+	case generationoutput.FieldLikeCount:
+		m.ResetLikeCount()
+		return nil
 	case generationoutput.FieldGenerationID:
 		m.ResetGenerationID()
 		return nil
@@ -10120,12 +10269,15 @@ func (m *GenerationOutputMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *GenerationOutputMutation) AddedEdges() []string {
-	edges := make([]string, 0, 2)
+	edges := make([]string, 0, 3)
 	if m.generations != nil {
 		edges = append(edges, generationoutput.EdgeGenerations)
 	}
 	if m.upscale_outputs != nil {
 		edges = append(edges, generationoutput.EdgeUpscaleOutputs)
+	}
+	if m.generation_output_likes != nil {
+		edges = append(edges, generationoutput.EdgeGenerationOutputLikes)
 	}
 	return edges
 }
@@ -10142,30 +10294,50 @@ func (m *GenerationOutputMutation) AddedIDs(name string) []ent.Value {
 		if id := m.upscale_outputs; id != nil {
 			return []ent.Value{*id}
 		}
+	case generationoutput.EdgeGenerationOutputLikes:
+		ids := make([]ent.Value, 0, len(m.generation_output_likes))
+		for id := range m.generation_output_likes {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *GenerationOutputMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 2)
+	edges := make([]string, 0, 3)
+	if m.removedgeneration_output_likes != nil {
+		edges = append(edges, generationoutput.EdgeGenerationOutputLikes)
+	}
 	return edges
 }
 
 // RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
 // the given name in this mutation.
 func (m *GenerationOutputMutation) RemovedIDs(name string) []ent.Value {
+	switch name {
+	case generationoutput.EdgeGenerationOutputLikes:
+		ids := make([]ent.Value, 0, len(m.removedgeneration_output_likes))
+		for id := range m.removedgeneration_output_likes {
+			ids = append(ids, id)
+		}
+		return ids
+	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *GenerationOutputMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 2)
+	edges := make([]string, 0, 3)
 	if m.clearedgenerations {
 		edges = append(edges, generationoutput.EdgeGenerations)
 	}
 	if m.clearedupscale_outputs {
 		edges = append(edges, generationoutput.EdgeUpscaleOutputs)
+	}
+	if m.clearedgeneration_output_likes {
+		edges = append(edges, generationoutput.EdgeGenerationOutputLikes)
 	}
 	return edges
 }
@@ -10178,6 +10350,8 @@ func (m *GenerationOutputMutation) EdgeCleared(name string) bool {
 		return m.clearedgenerations
 	case generationoutput.EdgeUpscaleOutputs:
 		return m.clearedupscale_outputs
+	case generationoutput.EdgeGenerationOutputLikes:
+		return m.clearedgeneration_output_likes
 	}
 	return false
 }
@@ -10206,8 +10380,575 @@ func (m *GenerationOutputMutation) ResetEdge(name string) error {
 	case generationoutput.EdgeUpscaleOutputs:
 		m.ResetUpscaleOutputs()
 		return nil
+	case generationoutput.EdgeGenerationOutputLikes:
+		m.ResetGenerationOutputLikes()
+		return nil
 	}
 	return fmt.Errorf("unknown GenerationOutput edge %s", name)
+}
+
+// GenerationOutputLikeMutation represents an operation that mutates the GenerationOutputLike nodes in the graph.
+type GenerationOutputLikeMutation struct {
+	config
+	op                        Op
+	typ                       string
+	id                        *uuid.UUID
+	created_at                *time.Time
+	clearedFields             map[string]struct{}
+	generation_outputs        *uuid.UUID
+	clearedgeneration_outputs bool
+	users                     *uuid.UUID
+	clearedusers              bool
+	done                      bool
+	oldValue                  func(context.Context) (*GenerationOutputLike, error)
+	predicates                []predicate.GenerationOutputLike
+}
+
+var _ ent.Mutation = (*GenerationOutputLikeMutation)(nil)
+
+// generationoutputlikeOption allows management of the mutation configuration using functional options.
+type generationoutputlikeOption func(*GenerationOutputLikeMutation)
+
+// newGenerationOutputLikeMutation creates new mutation for the GenerationOutputLike entity.
+func newGenerationOutputLikeMutation(c config, op Op, opts ...generationoutputlikeOption) *GenerationOutputLikeMutation {
+	m := &GenerationOutputLikeMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeGenerationOutputLike,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withGenerationOutputLikeID sets the ID field of the mutation.
+func withGenerationOutputLikeID(id uuid.UUID) generationoutputlikeOption {
+	return func(m *GenerationOutputLikeMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *GenerationOutputLike
+		)
+		m.oldValue = func(ctx context.Context) (*GenerationOutputLike, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().GenerationOutputLike.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withGenerationOutputLike sets the old GenerationOutputLike of the mutation.
+func withGenerationOutputLike(node *GenerationOutputLike) generationoutputlikeOption {
+	return func(m *GenerationOutputLikeMutation) {
+		m.oldValue = func(context.Context) (*GenerationOutputLike, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m GenerationOutputLikeMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m GenerationOutputLikeMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of GenerationOutputLike entities.
+func (m *GenerationOutputLikeMutation) SetID(id uuid.UUID) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *GenerationOutputLikeMutation) ID() (id uuid.UUID, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *GenerationOutputLikeMutation) IDs(ctx context.Context) ([]uuid.UUID, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []uuid.UUID{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().GenerationOutputLike.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetOutputID sets the "output_id" field.
+func (m *GenerationOutputLikeMutation) SetOutputID(u uuid.UUID) {
+	m.generation_outputs = &u
+}
+
+// OutputID returns the value of the "output_id" field in the mutation.
+func (m *GenerationOutputLikeMutation) OutputID() (r uuid.UUID, exists bool) {
+	v := m.generation_outputs
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldOutputID returns the old "output_id" field's value of the GenerationOutputLike entity.
+// If the GenerationOutputLike object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *GenerationOutputLikeMutation) OldOutputID(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldOutputID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldOutputID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldOutputID: %w", err)
+	}
+	return oldValue.OutputID, nil
+}
+
+// ResetOutputID resets all changes to the "output_id" field.
+func (m *GenerationOutputLikeMutation) ResetOutputID() {
+	m.generation_outputs = nil
+}
+
+// SetLikedByUserID sets the "liked_by_user_id" field.
+func (m *GenerationOutputLikeMutation) SetLikedByUserID(u uuid.UUID) {
+	m.users = &u
+}
+
+// LikedByUserID returns the value of the "liked_by_user_id" field in the mutation.
+func (m *GenerationOutputLikeMutation) LikedByUserID() (r uuid.UUID, exists bool) {
+	v := m.users
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldLikedByUserID returns the old "liked_by_user_id" field's value of the GenerationOutputLike entity.
+// If the GenerationOutputLike object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *GenerationOutputLikeMutation) OldLikedByUserID(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldLikedByUserID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldLikedByUserID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldLikedByUserID: %w", err)
+	}
+	return oldValue.LikedByUserID, nil
+}
+
+// ResetLikedByUserID resets all changes to the "liked_by_user_id" field.
+func (m *GenerationOutputLikeMutation) ResetLikedByUserID() {
+	m.users = nil
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *GenerationOutputLikeMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *GenerationOutputLikeMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the GenerationOutputLike entity.
+// If the GenerationOutputLike object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *GenerationOutputLikeMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *GenerationOutputLikeMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// SetGenerationOutputsID sets the "generation_outputs" edge to the GenerationOutput entity by id.
+func (m *GenerationOutputLikeMutation) SetGenerationOutputsID(id uuid.UUID) {
+	m.generation_outputs = &id
+}
+
+// ClearGenerationOutputs clears the "generation_outputs" edge to the GenerationOutput entity.
+func (m *GenerationOutputLikeMutation) ClearGenerationOutputs() {
+	m.clearedgeneration_outputs = true
+}
+
+// GenerationOutputsCleared reports if the "generation_outputs" edge to the GenerationOutput entity was cleared.
+func (m *GenerationOutputLikeMutation) GenerationOutputsCleared() bool {
+	return m.clearedgeneration_outputs
+}
+
+// GenerationOutputsID returns the "generation_outputs" edge ID in the mutation.
+func (m *GenerationOutputLikeMutation) GenerationOutputsID() (id uuid.UUID, exists bool) {
+	if m.generation_outputs != nil {
+		return *m.generation_outputs, true
+	}
+	return
+}
+
+// GenerationOutputsIDs returns the "generation_outputs" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// GenerationOutputsID instead. It exists only for internal usage by the builders.
+func (m *GenerationOutputLikeMutation) GenerationOutputsIDs() (ids []uuid.UUID) {
+	if id := m.generation_outputs; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetGenerationOutputs resets all changes to the "generation_outputs" edge.
+func (m *GenerationOutputLikeMutation) ResetGenerationOutputs() {
+	m.generation_outputs = nil
+	m.clearedgeneration_outputs = false
+}
+
+// SetUsersID sets the "users" edge to the User entity by id.
+func (m *GenerationOutputLikeMutation) SetUsersID(id uuid.UUID) {
+	m.users = &id
+}
+
+// ClearUsers clears the "users" edge to the User entity.
+func (m *GenerationOutputLikeMutation) ClearUsers() {
+	m.clearedusers = true
+}
+
+// UsersCleared reports if the "users" edge to the User entity was cleared.
+func (m *GenerationOutputLikeMutation) UsersCleared() bool {
+	return m.clearedusers
+}
+
+// UsersID returns the "users" edge ID in the mutation.
+func (m *GenerationOutputLikeMutation) UsersID() (id uuid.UUID, exists bool) {
+	if m.users != nil {
+		return *m.users, true
+	}
+	return
+}
+
+// UsersIDs returns the "users" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// UsersID instead. It exists only for internal usage by the builders.
+func (m *GenerationOutputLikeMutation) UsersIDs() (ids []uuid.UUID) {
+	if id := m.users; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetUsers resets all changes to the "users" edge.
+func (m *GenerationOutputLikeMutation) ResetUsers() {
+	m.users = nil
+	m.clearedusers = false
+}
+
+// Where appends a list predicates to the GenerationOutputLikeMutation builder.
+func (m *GenerationOutputLikeMutation) Where(ps ...predicate.GenerationOutputLike) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the GenerationOutputLikeMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *GenerationOutputLikeMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.GenerationOutputLike, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *GenerationOutputLikeMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *GenerationOutputLikeMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (GenerationOutputLike).
+func (m *GenerationOutputLikeMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *GenerationOutputLikeMutation) Fields() []string {
+	fields := make([]string, 0, 3)
+	if m.generation_outputs != nil {
+		fields = append(fields, generationoutputlike.FieldOutputID)
+	}
+	if m.users != nil {
+		fields = append(fields, generationoutputlike.FieldLikedByUserID)
+	}
+	if m.created_at != nil {
+		fields = append(fields, generationoutputlike.FieldCreatedAt)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *GenerationOutputLikeMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case generationoutputlike.FieldOutputID:
+		return m.OutputID()
+	case generationoutputlike.FieldLikedByUserID:
+		return m.LikedByUserID()
+	case generationoutputlike.FieldCreatedAt:
+		return m.CreatedAt()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *GenerationOutputLikeMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case generationoutputlike.FieldOutputID:
+		return m.OldOutputID(ctx)
+	case generationoutputlike.FieldLikedByUserID:
+		return m.OldLikedByUserID(ctx)
+	case generationoutputlike.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	}
+	return nil, fmt.Errorf("unknown GenerationOutputLike field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *GenerationOutputLikeMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case generationoutputlike.FieldOutputID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetOutputID(v)
+		return nil
+	case generationoutputlike.FieldLikedByUserID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetLikedByUserID(v)
+		return nil
+	case generationoutputlike.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	}
+	return fmt.Errorf("unknown GenerationOutputLike field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *GenerationOutputLikeMutation) AddedFields() []string {
+	return nil
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *GenerationOutputLikeMutation) AddedField(name string) (ent.Value, bool) {
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *GenerationOutputLikeMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown GenerationOutputLike numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *GenerationOutputLikeMutation) ClearedFields() []string {
+	return nil
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *GenerationOutputLikeMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *GenerationOutputLikeMutation) ClearField(name string) error {
+	return fmt.Errorf("unknown GenerationOutputLike nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *GenerationOutputLikeMutation) ResetField(name string) error {
+	switch name {
+	case generationoutputlike.FieldOutputID:
+		m.ResetOutputID()
+		return nil
+	case generationoutputlike.FieldLikedByUserID:
+		m.ResetLikedByUserID()
+		return nil
+	case generationoutputlike.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	}
+	return fmt.Errorf("unknown GenerationOutputLike field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *GenerationOutputLikeMutation) AddedEdges() []string {
+	edges := make([]string, 0, 2)
+	if m.generation_outputs != nil {
+		edges = append(edges, generationoutputlike.EdgeGenerationOutputs)
+	}
+	if m.users != nil {
+		edges = append(edges, generationoutputlike.EdgeUsers)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *GenerationOutputLikeMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case generationoutputlike.EdgeGenerationOutputs:
+		if id := m.generation_outputs; id != nil {
+			return []ent.Value{*id}
+		}
+	case generationoutputlike.EdgeUsers:
+		if id := m.users; id != nil {
+			return []ent.Value{*id}
+		}
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *GenerationOutputLikeMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 2)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *GenerationOutputLikeMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *GenerationOutputLikeMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 2)
+	if m.clearedgeneration_outputs {
+		edges = append(edges, generationoutputlike.EdgeGenerationOutputs)
+	}
+	if m.clearedusers {
+		edges = append(edges, generationoutputlike.EdgeUsers)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *GenerationOutputLikeMutation) EdgeCleared(name string) bool {
+	switch name {
+	case generationoutputlike.EdgeGenerationOutputs:
+		return m.clearedgeneration_outputs
+	case generationoutputlike.EdgeUsers:
+		return m.clearedusers
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *GenerationOutputLikeMutation) ClearEdge(name string) error {
+	switch name {
+	case generationoutputlike.EdgeGenerationOutputs:
+		m.ClearGenerationOutputs()
+		return nil
+	case generationoutputlike.EdgeUsers:
+		m.ClearUsers()
+		return nil
+	}
+	return fmt.Errorf("unknown GenerationOutputLike unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *GenerationOutputLikeMutation) ResetEdge(name string) error {
+	switch name {
+	case generationoutputlike.EdgeGenerationOutputs:
+		m.ResetGenerationOutputs()
+		return nil
+	case generationoutputlike.EdgeUsers:
+		m.ResetUsers()
+		return nil
+	}
+	return fmt.Errorf("unknown GenerationOutputLike edge %s", name)
 }
 
 // IPBlackListMutation represents an operation that mutates the IPBlackList nodes in the graph.
@@ -17771,51 +18512,54 @@ func (m *UpscaleOutputMutation) ResetEdge(name string) error {
 // UserMutation represents an operation that mutates the User nodes in the graph.
 type UserMutation struct {
 	config
-	op                        Op
-	typ                       string
-	id                        *uuid.UUID
-	email                     *string
-	stripe_customer_id        *string
-	active_product_id         *string
-	last_sign_in_at           *time.Time
-	last_seen_at              *time.Time
-	banned_at                 *time.Time
-	scheduled_for_deletion_on *time.Time
-	data_deleted_at           *time.Time
-	wants_email               *bool
-	discord_id                *string
-	username                  *string
-	username_changed_at       *time.Time
-	created_at                *time.Time
-	updated_at                *time.Time
-	clearedFields             map[string]struct{}
-	generations               map[uuid.UUID]struct{}
-	removedgenerations        map[uuid.UUID]struct{}
-	clearedgenerations        bool
-	upscales                  map[uuid.UUID]struct{}
-	removedupscales           map[uuid.UUID]struct{}
-	clearedupscales           bool
-	voiceovers                map[uuid.UUID]struct{}
-	removedvoiceovers         map[uuid.UUID]struct{}
-	clearedvoiceovers         bool
-	credits                   map[uuid.UUID]struct{}
-	removedcredits            map[uuid.UUID]struct{}
-	clearedcredits            bool
-	api_tokens                map[uuid.UUID]struct{}
-	removedapi_tokens         map[uuid.UUID]struct{}
-	clearedapi_tokens         bool
-	tips_given                map[uuid.UUID]struct{}
-	removedtips_given         map[uuid.UUID]struct{}
-	clearedtips_given         bool
-	tips_received             map[uuid.UUID]struct{}
-	removedtips_received      map[uuid.UUID]struct{}
-	clearedtips_received      bool
-	roles                     map[uuid.UUID]struct{}
-	removedroles              map[uuid.UUID]struct{}
-	clearedroles              bool
-	done                      bool
-	oldValue                  func(context.Context) (*User, error)
-	predicates                []predicate.User
+	op                             Op
+	typ                            string
+	id                             *uuid.UUID
+	email                          *string
+	stripe_customer_id             *string
+	active_product_id              *string
+	last_sign_in_at                *time.Time
+	last_seen_at                   *time.Time
+	banned_at                      *time.Time
+	scheduled_for_deletion_on      *time.Time
+	data_deleted_at                *time.Time
+	wants_email                    *bool
+	discord_id                     *string
+	username                       *string
+	username_changed_at            *time.Time
+	created_at                     *time.Time
+	updated_at                     *time.Time
+	clearedFields                  map[string]struct{}
+	generations                    map[uuid.UUID]struct{}
+	removedgenerations             map[uuid.UUID]struct{}
+	clearedgenerations             bool
+	upscales                       map[uuid.UUID]struct{}
+	removedupscales                map[uuid.UUID]struct{}
+	clearedupscales                bool
+	voiceovers                     map[uuid.UUID]struct{}
+	removedvoiceovers              map[uuid.UUID]struct{}
+	clearedvoiceovers              bool
+	credits                        map[uuid.UUID]struct{}
+	removedcredits                 map[uuid.UUID]struct{}
+	clearedcredits                 bool
+	api_tokens                     map[uuid.UUID]struct{}
+	removedapi_tokens              map[uuid.UUID]struct{}
+	clearedapi_tokens              bool
+	tips_given                     map[uuid.UUID]struct{}
+	removedtips_given              map[uuid.UUID]struct{}
+	clearedtips_given              bool
+	tips_received                  map[uuid.UUID]struct{}
+	removedtips_received           map[uuid.UUID]struct{}
+	clearedtips_received           bool
+	roles                          map[uuid.UUID]struct{}
+	removedroles                   map[uuid.UUID]struct{}
+	clearedroles                   bool
+	generation_output_likes        map[uuid.UUID]struct{}
+	removedgeneration_output_likes map[uuid.UUID]struct{}
+	clearedgeneration_output_likes bool
+	done                           bool
+	oldValue                       func(context.Context) (*User, error)
+	predicates                     []predicate.User
 }
 
 var _ ent.Mutation = (*UserMutation)(nil)
@@ -18962,6 +19706,60 @@ func (m *UserMutation) ResetRoles() {
 	m.removedroles = nil
 }
 
+// AddGenerationOutputLikeIDs adds the "generation_output_likes" edge to the GenerationOutputLike entity by ids.
+func (m *UserMutation) AddGenerationOutputLikeIDs(ids ...uuid.UUID) {
+	if m.generation_output_likes == nil {
+		m.generation_output_likes = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.generation_output_likes[ids[i]] = struct{}{}
+	}
+}
+
+// ClearGenerationOutputLikes clears the "generation_output_likes" edge to the GenerationOutputLike entity.
+func (m *UserMutation) ClearGenerationOutputLikes() {
+	m.clearedgeneration_output_likes = true
+}
+
+// GenerationOutputLikesCleared reports if the "generation_output_likes" edge to the GenerationOutputLike entity was cleared.
+func (m *UserMutation) GenerationOutputLikesCleared() bool {
+	return m.clearedgeneration_output_likes
+}
+
+// RemoveGenerationOutputLikeIDs removes the "generation_output_likes" edge to the GenerationOutputLike entity by IDs.
+func (m *UserMutation) RemoveGenerationOutputLikeIDs(ids ...uuid.UUID) {
+	if m.removedgeneration_output_likes == nil {
+		m.removedgeneration_output_likes = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.generation_output_likes, ids[i])
+		m.removedgeneration_output_likes[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedGenerationOutputLikes returns the removed IDs of the "generation_output_likes" edge to the GenerationOutputLike entity.
+func (m *UserMutation) RemovedGenerationOutputLikesIDs() (ids []uuid.UUID) {
+	for id := range m.removedgeneration_output_likes {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// GenerationOutputLikesIDs returns the "generation_output_likes" edge IDs in the mutation.
+func (m *UserMutation) GenerationOutputLikesIDs() (ids []uuid.UUID) {
+	for id := range m.generation_output_likes {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetGenerationOutputLikes resets all changes to the "generation_output_likes" edge.
+func (m *UserMutation) ResetGenerationOutputLikes() {
+	m.generation_output_likes = nil
+	m.clearedgeneration_output_likes = false
+	m.removedgeneration_output_likes = nil
+}
+
 // Where appends a list predicates to the UserMutation builder.
 func (m *UserMutation) Where(ps ...predicate.User) {
 	m.predicates = append(m.predicates, ps...)
@@ -19367,7 +20165,7 @@ func (m *UserMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *UserMutation) AddedEdges() []string {
-	edges := make([]string, 0, 8)
+	edges := make([]string, 0, 9)
 	if m.generations != nil {
 		edges = append(edges, user.EdgeGenerations)
 	}
@@ -19391,6 +20189,9 @@ func (m *UserMutation) AddedEdges() []string {
 	}
 	if m.roles != nil {
 		edges = append(edges, user.EdgeRoles)
+	}
+	if m.generation_output_likes != nil {
+		edges = append(edges, user.EdgeGenerationOutputLikes)
 	}
 	return edges
 }
@@ -19447,13 +20248,19 @@ func (m *UserMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case user.EdgeGenerationOutputLikes:
+		ids := make([]ent.Value, 0, len(m.generation_output_likes))
+		for id := range m.generation_output_likes {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *UserMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 8)
+	edges := make([]string, 0, 9)
 	if m.removedgenerations != nil {
 		edges = append(edges, user.EdgeGenerations)
 	}
@@ -19477,6 +20284,9 @@ func (m *UserMutation) RemovedEdges() []string {
 	}
 	if m.removedroles != nil {
 		edges = append(edges, user.EdgeRoles)
+	}
+	if m.removedgeneration_output_likes != nil {
+		edges = append(edges, user.EdgeGenerationOutputLikes)
 	}
 	return edges
 }
@@ -19533,13 +20343,19 @@ func (m *UserMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case user.EdgeGenerationOutputLikes:
+		ids := make([]ent.Value, 0, len(m.removedgeneration_output_likes))
+		for id := range m.removedgeneration_output_likes {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *UserMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 8)
+	edges := make([]string, 0, 9)
 	if m.clearedgenerations {
 		edges = append(edges, user.EdgeGenerations)
 	}
@@ -19564,6 +20380,9 @@ func (m *UserMutation) ClearedEdges() []string {
 	if m.clearedroles {
 		edges = append(edges, user.EdgeRoles)
 	}
+	if m.clearedgeneration_output_likes {
+		edges = append(edges, user.EdgeGenerationOutputLikes)
+	}
 	return edges
 }
 
@@ -19587,6 +20406,8 @@ func (m *UserMutation) EdgeCleared(name string) bool {
 		return m.clearedtips_received
 	case user.EdgeRoles:
 		return m.clearedroles
+	case user.EdgeGenerationOutputLikes:
+		return m.clearedgeneration_output_likes
 	}
 	return false
 }
@@ -19626,6 +20447,9 @@ func (m *UserMutation) ResetEdge(name string) error {
 		return nil
 	case user.EdgeRoles:
 		m.ResetRoles()
+		return nil
+	case user.EdgeGenerationOutputLikes:
+		m.ResetGenerationOutputLikes()
 		return nil
 	}
 	return fmt.Errorf("unknown User edge %s", name)

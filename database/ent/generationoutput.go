@@ -31,6 +31,8 @@ type GenerationOutput struct {
 	HasEmbeddings bool `json:"has_embeddings,omitempty"`
 	// IsPublic holds the value of the "is_public" field.
 	IsPublic bool `json:"is_public,omitempty"`
+	// LikeCount holds the value of the "like_count" field.
+	LikeCount int `json:"like_count,omitempty"`
 	// GenerationID holds the value of the "generation_id" field.
 	GenerationID uuid.UUID `json:"generation_id,omitempty"`
 	// DeletedAt holds the value of the "deleted_at" field.
@@ -50,9 +52,11 @@ type GenerationOutputEdges struct {
 	Generations *Generation `json:"generations,omitempty"`
 	// UpscaleOutputs holds the value of the upscale_outputs edge.
 	UpscaleOutputs *UpscaleOutput `json:"upscale_outputs,omitempty"`
+	// GenerationOutputLikes holds the value of the generation_output_likes edge.
+	GenerationOutputLikes []*GenerationOutputLike `json:"generation_output_likes,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [2]bool
+	loadedTypes [3]bool
 }
 
 // GenerationsOrErr returns the Generations value or an error if the edge
@@ -81,6 +85,15 @@ func (e GenerationOutputEdges) UpscaleOutputsOrErr() (*UpscaleOutput, error) {
 	return nil, &NotLoadedError{edge: "upscale_outputs"}
 }
 
+// GenerationOutputLikesOrErr returns the GenerationOutputLikes value or an error if the edge
+// was not loaded in eager-loading.
+func (e GenerationOutputEdges) GenerationOutputLikesOrErr() ([]*GenerationOutputLike, error) {
+	if e.loadedTypes[2] {
+		return e.GenerationOutputLikes, nil
+	}
+	return nil, &NotLoadedError{edge: "generation_output_likes"}
+}
+
 // scanValues returns the types for scanning values from sql.Rows.
 func (*GenerationOutput) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
@@ -88,6 +101,8 @@ func (*GenerationOutput) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case generationoutput.FieldIsFavorited, generationoutput.FieldHasEmbeddings, generationoutput.FieldIsPublic:
 			values[i] = new(sql.NullBool)
+		case generationoutput.FieldLikeCount:
+			values[i] = new(sql.NullInt64)
 		case generationoutput.FieldImagePath, generationoutput.FieldUpscaledImagePath, generationoutput.FieldGalleryStatus:
 			values[i] = new(sql.NullString)
 		case generationoutput.FieldDeletedAt, generationoutput.FieldCreatedAt, generationoutput.FieldUpdatedAt:
@@ -152,6 +167,12 @@ func (_go *GenerationOutput) assignValues(columns []string, values []any) error 
 			} else if value.Valid {
 				_go.IsPublic = value.Bool
 			}
+		case generationoutput.FieldLikeCount:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field like_count", values[i])
+			} else if value.Valid {
+				_go.LikeCount = int(value.Int64)
+			}
 		case generationoutput.FieldGenerationID:
 			if value, ok := values[i].(*uuid.UUID); !ok {
 				return fmt.Errorf("unexpected type %T for field generation_id", values[i])
@@ -190,6 +211,11 @@ func (_go *GenerationOutput) QueryGenerations() *GenerationQuery {
 // QueryUpscaleOutputs queries the "upscale_outputs" edge of the GenerationOutput entity.
 func (_go *GenerationOutput) QueryUpscaleOutputs() *UpscaleOutputQuery {
 	return NewGenerationOutputClient(_go.config).QueryUpscaleOutputs(_go)
+}
+
+// QueryGenerationOutputLikes queries the "generation_output_likes" edge of the GenerationOutput entity.
+func (_go *GenerationOutput) QueryGenerationOutputLikes() *GenerationOutputLikeQuery {
+	return NewGenerationOutputClient(_go.config).QueryGenerationOutputLikes(_go)
 }
 
 // Update returns a builder for updating this GenerationOutput.
@@ -234,6 +260,9 @@ func (_go *GenerationOutput) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("is_public=")
 	builder.WriteString(fmt.Sprintf("%v", _go.IsPublic))
+	builder.WriteString(", ")
+	builder.WriteString("like_count=")
+	builder.WriteString(fmt.Sprintf("%v", _go.LikeCount))
 	builder.WriteString(", ")
 	builder.WriteString("generation_id=")
 	builder.WriteString(fmt.Sprintf("%v", _go.GenerationID))

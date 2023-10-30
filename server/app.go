@@ -752,6 +752,9 @@ func main() {
 			// ! Deprecated
 			r.Post("/outputs/favorite", hc.HandleFavoriteGenerationOutputsForUser)
 
+			// Like
+			r.Post("/like", hc.HandleLikeGenerationOutputsForUser)
+
 			// Create upscale
 			r.Post("/image/upscale/create", hc.HandleUpscale)
 			// ! Deprecated

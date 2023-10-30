@@ -1232,3 +1232,52 @@ ALTER TABLE public.mq_log ENABLE ROW LEVEL SECURITY;
 
 -- Display weight
 ALTER TABLE generation_models ADD COLUMN display_weight int DEFAULT 0;
+
+-- Likes
+CREATE TABLE public.generation_output_likes (
+    id uuid DEFAULT extensions.uuid_generate_v4() NOT NULL,
+    output_id uuid NOT NULL REFERENCES public.generation_outputs(id) ON DELETE CASCADE,
+    liked_by_user_id uuid NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+    created_at timestamp with time zone DEFAULT (now() AT TIME ZONE 'utc'::text) NOT NULL
+);
+
+ALTER TABLE ONLY public.generation_output_likes
+    ADD CONSTRAINT generation_output_likes_pkey PRIMARY KEY (id);
+
+CREATE UNIQUE INDEX "generation_output_likes_output_id_liked_by_user_id" ON "public"."generation_output_likes" ("output_id", "liked_by_user_id");
+
+
+ALTER TABLE public.generation_output_likes ENABLE ROW LEVEL SECURITY;
+
+alter table public.generation_outputs add column like_count bigint not null default 0;
+
+CREATE OR REPLACE FUNCTION increment_like_count() RETURNS TRIGGER AS $$
+BEGIN
+    UPDATE generation_outputs 
+    SET like_count = like_count + 1
+    WHERE id = NEW.output_id;
+
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+
+CREATE OR REPLACE FUNCTION decrement_like_count() RETURNS TRIGGER AS $$
+BEGIN
+    UPDATE generation_outputs 
+    SET like_count = like_count - 1
+    WHERE id = OLD.output_id;
+
+    RETURN OLD;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trigger_increment_like_count
+AFTER INSERT ON generation_output_likes
+FOR EACH ROW
+EXECUTE FUNCTION increment_like_count();
+
+CREATE TRIGGER trigger_decrement_like_count
+AFTER DELETE ON generation_output_likes
+FOR EACH ROW
+EXECUTE FUNCTION decrement_like_count();

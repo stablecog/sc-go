@@ -15,6 +15,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/stablecog/sc-go/database/ent/generation"
 	"github.com/stablecog/sc-go/database/ent/generationoutput"
+	"github.com/stablecog/sc-go/database/ent/generationoutputlike"
 	"github.com/stablecog/sc-go/database/ent/upscaleoutput"
 )
 
@@ -98,6 +99,20 @@ func (goc *GenerationOutputCreate) SetIsPublic(b bool) *GenerationOutputCreate {
 func (goc *GenerationOutputCreate) SetNillableIsPublic(b *bool) *GenerationOutputCreate {
 	if b != nil {
 		goc.SetIsPublic(*b)
+	}
+	return goc
+}
+
+// SetLikeCount sets the "like_count" field.
+func (goc *GenerationOutputCreate) SetLikeCount(i int) *GenerationOutputCreate {
+	goc.mutation.SetLikeCount(i)
+	return goc
+}
+
+// SetNillableLikeCount sets the "like_count" field if the given value is not nil.
+func (goc *GenerationOutputCreate) SetNillableLikeCount(i *int) *GenerationOutputCreate {
+	if i != nil {
+		goc.SetLikeCount(*i)
 	}
 	return goc
 }
@@ -194,6 +209,21 @@ func (goc *GenerationOutputCreate) SetUpscaleOutputs(u *UpscaleOutput) *Generati
 	return goc.SetUpscaleOutputsID(u.ID)
 }
 
+// AddGenerationOutputLikeIDs adds the "generation_output_likes" edge to the GenerationOutputLike entity by IDs.
+func (goc *GenerationOutputCreate) AddGenerationOutputLikeIDs(ids ...uuid.UUID) *GenerationOutputCreate {
+	goc.mutation.AddGenerationOutputLikeIDs(ids...)
+	return goc
+}
+
+// AddGenerationOutputLikes adds the "generation_output_likes" edges to the GenerationOutputLike entity.
+func (goc *GenerationOutputCreate) AddGenerationOutputLikes(g ...*GenerationOutputLike) *GenerationOutputCreate {
+	ids := make([]uuid.UUID, len(g))
+	for i := range g {
+		ids[i] = g[i].ID
+	}
+	return goc.AddGenerationOutputLikeIDs(ids...)
+}
+
 // Mutation returns the GenerationOutputMutation object of the builder.
 func (goc *GenerationOutputCreate) Mutation() *GenerationOutputMutation {
 	return goc.mutation
@@ -245,6 +275,10 @@ func (goc *GenerationOutputCreate) defaults() {
 		v := generationoutput.DefaultIsPublic
 		goc.mutation.SetIsPublic(v)
 	}
+	if _, ok := goc.mutation.LikeCount(); !ok {
+		v := generationoutput.DefaultLikeCount
+		goc.mutation.SetLikeCount(v)
+	}
 	if _, ok := goc.mutation.CreatedAt(); !ok {
 		v := generationoutput.DefaultCreatedAt()
 		goc.mutation.SetCreatedAt(v)
@@ -280,6 +314,9 @@ func (goc *GenerationOutputCreate) check() error {
 	}
 	if _, ok := goc.mutation.IsPublic(); !ok {
 		return &ValidationError{Name: "is_public", err: errors.New(`ent: missing required field "GenerationOutput.is_public"`)}
+	}
+	if _, ok := goc.mutation.LikeCount(); !ok {
+		return &ValidationError{Name: "like_count", err: errors.New(`ent: missing required field "GenerationOutput.like_count"`)}
 	}
 	if _, ok := goc.mutation.GenerationID(); !ok {
 		return &ValidationError{Name: "generation_id", err: errors.New(`ent: missing required field "GenerationOutput.generation_id"`)}
@@ -359,6 +396,10 @@ func (goc *GenerationOutputCreate) createSpec() (*GenerationOutput, *sqlgraph.Cr
 		_spec.SetField(generationoutput.FieldIsPublic, field.TypeBool, value)
 		_node.IsPublic = value
 	}
+	if value, ok := goc.mutation.LikeCount(); ok {
+		_spec.SetField(generationoutput.FieldLikeCount, field.TypeInt, value)
+		_node.LikeCount = value
+	}
 	if value, ok := goc.mutation.DeletedAt(); ok {
 		_spec.SetField(generationoutput.FieldDeletedAt, field.TypeTime, value)
 		_node.DeletedAt = &value
@@ -402,6 +443,25 @@ func (goc *GenerationOutputCreate) createSpec() (*GenerationOutput, *sqlgraph.Cr
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeUUID,
 					Column: upscaleoutput.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := goc.mutation.GenerationOutputLikesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   generationoutput.GenerationOutputLikesTable,
+			Columns: []string{generationoutput.GenerationOutputLikesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: generationoutputlike.FieldID,
 				},
 			},
 		}
@@ -537,6 +597,24 @@ func (u *GenerationOutputUpsert) SetIsPublic(v bool) *GenerationOutputUpsert {
 // UpdateIsPublic sets the "is_public" field to the value that was provided on create.
 func (u *GenerationOutputUpsert) UpdateIsPublic() *GenerationOutputUpsert {
 	u.SetExcluded(generationoutput.FieldIsPublic)
+	return u
+}
+
+// SetLikeCount sets the "like_count" field.
+func (u *GenerationOutputUpsert) SetLikeCount(v int) *GenerationOutputUpsert {
+	u.Set(generationoutput.FieldLikeCount, v)
+	return u
+}
+
+// UpdateLikeCount sets the "like_count" field to the value that was provided on create.
+func (u *GenerationOutputUpsert) UpdateLikeCount() *GenerationOutputUpsert {
+	u.SetExcluded(generationoutput.FieldLikeCount)
+	return u
+}
+
+// AddLikeCount adds v to the "like_count" field.
+func (u *GenerationOutputUpsert) AddLikeCount(v int) *GenerationOutputUpsert {
+	u.Add(generationoutput.FieldLikeCount, v)
 	return u
 }
 
@@ -721,6 +799,27 @@ func (u *GenerationOutputUpsertOne) SetIsPublic(v bool) *GenerationOutputUpsertO
 func (u *GenerationOutputUpsertOne) UpdateIsPublic() *GenerationOutputUpsertOne {
 	return u.Update(func(s *GenerationOutputUpsert) {
 		s.UpdateIsPublic()
+	})
+}
+
+// SetLikeCount sets the "like_count" field.
+func (u *GenerationOutputUpsertOne) SetLikeCount(v int) *GenerationOutputUpsertOne {
+	return u.Update(func(s *GenerationOutputUpsert) {
+		s.SetLikeCount(v)
+	})
+}
+
+// AddLikeCount adds v to the "like_count" field.
+func (u *GenerationOutputUpsertOne) AddLikeCount(v int) *GenerationOutputUpsertOne {
+	return u.Update(func(s *GenerationOutputUpsert) {
+		s.AddLikeCount(v)
+	})
+}
+
+// UpdateLikeCount sets the "like_count" field to the value that was provided on create.
+func (u *GenerationOutputUpsertOne) UpdateLikeCount() *GenerationOutputUpsertOne {
+	return u.Update(func(s *GenerationOutputUpsert) {
+		s.UpdateLikeCount()
 	})
 }
 
@@ -1075,6 +1174,27 @@ func (u *GenerationOutputUpsertBulk) SetIsPublic(v bool) *GenerationOutputUpsert
 func (u *GenerationOutputUpsertBulk) UpdateIsPublic() *GenerationOutputUpsertBulk {
 	return u.Update(func(s *GenerationOutputUpsert) {
 		s.UpdateIsPublic()
+	})
+}
+
+// SetLikeCount sets the "like_count" field.
+func (u *GenerationOutputUpsertBulk) SetLikeCount(v int) *GenerationOutputUpsertBulk {
+	return u.Update(func(s *GenerationOutputUpsert) {
+		s.SetLikeCount(v)
+	})
+}
+
+// AddLikeCount adds v to the "like_count" field.
+func (u *GenerationOutputUpsertBulk) AddLikeCount(v int) *GenerationOutputUpsertBulk {
+	return u.Update(func(s *GenerationOutputUpsert) {
+		s.AddLikeCount(v)
+	})
+}
+
+// UpdateLikeCount sets the "like_count" field to the value that was provided on create.
+func (u *GenerationOutputUpsertBulk) UpdateLikeCount() *GenerationOutputUpsertBulk {
+	return u.Update(func(s *GenerationOutputUpsert) {
+		s.UpdateLikeCount()
 	})
 }
 

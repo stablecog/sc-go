@@ -57,6 +57,8 @@ const (
 	EdgeTipsReceived = "tips_received"
 	// EdgeRoles holds the string denoting the roles edge name in mutations.
 	EdgeRoles = "roles"
+	// EdgeGenerationOutputLikes holds the string denoting the generation_output_likes edge name in mutations.
+	EdgeGenerationOutputLikes = "generation_output_likes"
 	// Table holds the table name of the user in the database.
 	Table = "users"
 	// GenerationsTable is the table that holds the generations relation/edge.
@@ -113,6 +115,13 @@ const (
 	// RolesInverseTable is the table name for the Role entity.
 	// It exists in this package in order to avoid circular dependency with the "role" package.
 	RolesInverseTable = "roles"
+	// GenerationOutputLikesTable is the table that holds the generation_output_likes relation/edge.
+	GenerationOutputLikesTable = "generation_output_likes"
+	// GenerationOutputLikesInverseTable is the table name for the GenerationOutputLike entity.
+	// It exists in this package in order to avoid circular dependency with the "generationoutputlike" package.
+	GenerationOutputLikesInverseTable = "generation_output_likes"
+	// GenerationOutputLikesColumn is the table column denoting the generation_output_likes relation/edge.
+	GenerationOutputLikesColumn = "liked_by_user_id"
 )
 
 // Columns holds all SQL columns for user fields.

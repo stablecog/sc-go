@@ -15,6 +15,7 @@ import (
 	"github.com/stablecog/sc-go/database/ent/apitoken"
 	"github.com/stablecog/sc-go/database/ent/credit"
 	"github.com/stablecog/sc-go/database/ent/generation"
+	"github.com/stablecog/sc-go/database/ent/generationoutputlike"
 	"github.com/stablecog/sc-go/database/ent/predicate"
 	"github.com/stablecog/sc-go/database/ent/role"
 	"github.com/stablecog/sc-go/database/ent/tiplog"
@@ -26,19 +27,20 @@ import (
 // UserQuery is the builder for querying User entities.
 type UserQuery struct {
 	config
-	ctx              *QueryContext
-	order            []OrderFunc
-	inters           []Interceptor
-	predicates       []predicate.User
-	withGenerations  *GenerationQuery
-	withUpscales     *UpscaleQuery
-	withVoiceovers   *VoiceoverQuery
-	withCredits      *CreditQuery
-	withAPITokens    *ApiTokenQuery
-	withTipsGiven    *TipLogQuery
-	withTipsReceived *TipLogQuery
-	withRoles        *RoleQuery
-	modifiers        []func(*sql.Selector)
+	ctx                       *QueryContext
+	order                     []OrderFunc
+	inters                    []Interceptor
+	predicates                []predicate.User
+	withGenerations           *GenerationQuery
+	withUpscales              *UpscaleQuery
+	withVoiceovers            *VoiceoverQuery
+	withCredits               *CreditQuery
+	withAPITokens             *ApiTokenQuery
+	withTipsGiven             *TipLogQuery
+	withTipsReceived          *TipLogQuery
+	withRoles                 *RoleQuery
+	withGenerationOutputLikes *GenerationOutputLikeQuery
+	modifiers                 []func(*sql.Selector)
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -251,6 +253,28 @@ func (uq *UserQuery) QueryRoles() *RoleQuery {
 	return query
 }
 
+// QueryGenerationOutputLikes chains the current query on the "generation_output_likes" edge.
+func (uq *UserQuery) QueryGenerationOutputLikes() *GenerationOutputLikeQuery {
+	query := (&GenerationOutputLikeClient{config: uq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := uq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := uq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, selector),
+			sqlgraph.To(generationoutputlike.Table, generationoutputlike.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.GenerationOutputLikesTable, user.GenerationOutputLikesColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(uq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
 // First returns the first User entity from the query.
 // Returns a *NotFoundError when no User was found.
 func (uq *UserQuery) First(ctx context.Context) (*User, error) {
@@ -436,19 +460,20 @@ func (uq *UserQuery) Clone() *UserQuery {
 		return nil
 	}
 	return &UserQuery{
-		config:           uq.config,
-		ctx:              uq.ctx.Clone(),
-		order:            append([]OrderFunc{}, uq.order...),
-		inters:           append([]Interceptor{}, uq.inters...),
-		predicates:       append([]predicate.User{}, uq.predicates...),
-		withGenerations:  uq.withGenerations.Clone(),
-		withUpscales:     uq.withUpscales.Clone(),
-		withVoiceovers:   uq.withVoiceovers.Clone(),
-		withCredits:      uq.withCredits.Clone(),
-		withAPITokens:    uq.withAPITokens.Clone(),
-		withTipsGiven:    uq.withTipsGiven.Clone(),
-		withTipsReceived: uq.withTipsReceived.Clone(),
-		withRoles:        uq.withRoles.Clone(),
+		config:                    uq.config,
+		ctx:                       uq.ctx.Clone(),
+		order:                     append([]OrderFunc{}, uq.order...),
+		inters:                    append([]Interceptor{}, uq.inters...),
+		predicates:                append([]predicate.User{}, uq.predicates...),
+		withGenerations:           uq.withGenerations.Clone(),
+		withUpscales:              uq.withUpscales.Clone(),
+		withVoiceovers:            uq.withVoiceovers.Clone(),
+		withCredits:               uq.withCredits.Clone(),
+		withAPITokens:             uq.withAPITokens.Clone(),
+		withTipsGiven:             uq.withTipsGiven.Clone(),
+		withTipsReceived:          uq.withTipsReceived.Clone(),
+		withRoles:                 uq.withRoles.Clone(),
+		withGenerationOutputLikes: uq.withGenerationOutputLikes.Clone(),
 		// clone intermediate query.
 		sql:  uq.sql.Clone(),
 		path: uq.path,
@@ -543,6 +568,17 @@ func (uq *UserQuery) WithRoles(opts ...func(*RoleQuery)) *UserQuery {
 	return uq
 }
 
+// WithGenerationOutputLikes tells the query-builder to eager-load the nodes that are connected to
+// the "generation_output_likes" edge. The optional arguments are used to configure the query builder of the edge.
+func (uq *UserQuery) WithGenerationOutputLikes(opts ...func(*GenerationOutputLikeQuery)) *UserQuery {
+	query := (&GenerationOutputLikeClient{config: uq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	uq.withGenerationOutputLikes = query
+	return uq
+}
+
 // GroupBy is used to group vertices by one or more fields/columns.
 // It is often used with aggregate functions, like: count, max, mean, min, sum.
 //
@@ -621,7 +657,7 @@ func (uq *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 	var (
 		nodes       = []*User{}
 		_spec       = uq.querySpec()
-		loadedTypes = [8]bool{
+		loadedTypes = [9]bool{
 			uq.withGenerations != nil,
 			uq.withUpscales != nil,
 			uq.withVoiceovers != nil,
@@ -630,6 +666,7 @@ func (uq *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 			uq.withTipsGiven != nil,
 			uq.withTipsReceived != nil,
 			uq.withRoles != nil,
+			uq.withGenerationOutputLikes != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -706,6 +743,15 @@ func (uq *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 		if err := uq.loadRoles(ctx, query, nodes,
 			func(n *User) { n.Edges.Roles = []*Role{} },
 			func(n *User, e *Role) { n.Edges.Roles = append(n.Edges.Roles, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := uq.withGenerationOutputLikes; query != nil {
+		if err := uq.loadGenerationOutputLikes(ctx, query, nodes,
+			func(n *User) { n.Edges.GenerationOutputLikes = []*GenerationOutputLike{} },
+			func(n *User, e *GenerationOutputLike) {
+				n.Edges.GenerationOutputLikes = append(n.Edges.GenerationOutputLikes, e)
+			}); err != nil {
 			return nil, err
 		}
 	}
@@ -959,6 +1005,33 @@ func (uq *UserQuery) loadRoles(ctx context.Context, query *RoleQuery, nodes []*U
 		for kn := range nodes {
 			assign(kn, n)
 		}
+	}
+	return nil
+}
+func (uq *UserQuery) loadGenerationOutputLikes(ctx context.Context, query *GenerationOutputLikeQuery, nodes []*User, init func(*User), assign func(*User, *GenerationOutputLike)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*User)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	query.Where(predicate.GenerationOutputLike(func(s *sql.Selector) {
+		s.Where(sql.InValues(user.GenerationOutputLikesColumn, fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.LikedByUserID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "liked_by_user_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
 	}
 	return nil
 }
