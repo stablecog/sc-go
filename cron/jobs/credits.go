@@ -9,7 +9,7 @@ const FREE_JOB_NAME = "FREE_CREDITS_JOB"
 
 func (j *JobRunner) AddFreeCreditsToEligibleUsers(log Logger) error {
 	log.Infof("Running free credit job...")
-	users, err := j.Repo.GetUsersThatSignedInSince(shared.FREE_CREDIT_LAST_ACTIVITY_REQUIREMENT)
+	users, err := j.Repo.GetFreeUsers()
 	if err != nil {
 		log.Errorf("Error getting users eligible for free credits %v", err)
 		return err

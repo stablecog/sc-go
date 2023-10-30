@@ -110,7 +110,7 @@ const FREE_CREDIT_AMOUNT_DAILY = 10
 const FREE_CREDIT_REPLENISHMENT_INTERVAL = 12 * time.Hour
 
 // Last sign in within 7 days
-const FREE_CREDIT_LAST_ACTIVITY_REQUIREMENT = 168 * time.Hour
+// const FREE_CREDIT_LAST_ACTIVITY_REQUIREMENT = 168 * time.Hour
 
 // ! Auto-upscale
 // If criteria not met for auto-upscale, retry after this period

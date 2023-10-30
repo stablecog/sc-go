@@ -3,7 +3,6 @@ package repository
 import (
 	"context"
 	"testing"
-	"time"
 
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
@@ -136,9 +135,9 @@ func TestQueryUsers(t *testing.T) {
 	assert.NotNil(t, users.Next)
 }
 
-func TestGetUsersThatSignedInSince(t *testing.T) {
+func TestGetFreeUsers(t *testing.T) {
 	// Get users
-	users, err := MockRepo.GetUsersThatSignedInSince(1 * time.Hour)
+	users, err := MockRepo.GetFreeUsers()
 	assert.Nil(t, err)
 	assert.Len(t, users, 1)
 }
