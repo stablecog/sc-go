@@ -1229,3 +1229,6 @@ ALTER TABLE ONLY public.mq_log
     ADD CONSTRAINT mq_log_pkey PRIMARY KEY (id);
 
 ALTER TABLE public.mq_log ENABLE ROW LEVEL SECURITY;
+
+-- Display weight
+ALTER TABLE generation_models ADD COLUMN display_weight int DEFAULT 0;

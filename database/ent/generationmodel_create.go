@@ -74,6 +74,20 @@ func (gmc *GenerationModelCreate) SetNillableIsHidden(b *bool) *GenerationModelC
 	return gmc
 }
 
+// SetDisplayWeight sets the "display_weight" field.
+func (gmc *GenerationModelCreate) SetDisplayWeight(i int32) *GenerationModelCreate {
+	gmc.mutation.SetDisplayWeight(i)
+	return gmc
+}
+
+// SetNillableDisplayWeight sets the "display_weight" field if the given value is not nil.
+func (gmc *GenerationModelCreate) SetNillableDisplayWeight(i *int32) *GenerationModelCreate {
+	if i != nil {
+		gmc.SetDisplayWeight(*i)
+	}
+	return gmc
+}
+
 // SetDefaultSchedulerID sets the "default_scheduler_id" field.
 func (gmc *GenerationModelCreate) SetDefaultSchedulerID(u uuid.UUID) *GenerationModelCreate {
 	gmc.mutation.SetDefaultSchedulerID(u)
@@ -235,6 +249,10 @@ func (gmc *GenerationModelCreate) defaults() {
 		v := generationmodel.DefaultIsHidden
 		gmc.mutation.SetIsHidden(v)
 	}
+	if _, ok := gmc.mutation.DisplayWeight(); !ok {
+		v := generationmodel.DefaultDisplayWeight
+		gmc.mutation.SetDisplayWeight(v)
+	}
 	if _, ok := gmc.mutation.DefaultWidth(); !ok {
 		v := generationmodel.DefaultDefaultWidth
 		gmc.mutation.SetDefaultWidth(v)
@@ -270,6 +288,9 @@ func (gmc *GenerationModelCreate) check() error {
 	}
 	if _, ok := gmc.mutation.IsHidden(); !ok {
 		return &ValidationError{Name: "is_hidden", err: errors.New(`ent: missing required field "GenerationModel.is_hidden"`)}
+	}
+	if _, ok := gmc.mutation.DisplayWeight(); !ok {
+		return &ValidationError{Name: "display_weight", err: errors.New(`ent: missing required field "GenerationModel.display_weight"`)}
 	}
 	if _, ok := gmc.mutation.DefaultWidth(); !ok {
 		return &ValidationError{Name: "default_width", err: errors.New(`ent: missing required field "GenerationModel.default_width"`)}
@@ -340,6 +361,10 @@ func (gmc *GenerationModelCreate) createSpec() (*GenerationModel, *sqlgraph.Crea
 	if value, ok := gmc.mutation.IsHidden(); ok {
 		_spec.SetField(generationmodel.FieldIsHidden, field.TypeBool, value)
 		_node.IsHidden = value
+	}
+	if value, ok := gmc.mutation.DisplayWeight(); ok {
+		_spec.SetField(generationmodel.FieldDisplayWeight, field.TypeInt32, value)
+		_node.DisplayWeight = value
 	}
 	if value, ok := gmc.mutation.DefaultSchedulerID(); ok {
 		_spec.SetField(generationmodel.FieldDefaultSchedulerID, field.TypeUUID, value)
@@ -496,6 +521,24 @@ func (u *GenerationModelUpsert) SetIsHidden(v bool) *GenerationModelUpsert {
 // UpdateIsHidden sets the "is_hidden" field to the value that was provided on create.
 func (u *GenerationModelUpsert) UpdateIsHidden() *GenerationModelUpsert {
 	u.SetExcluded(generationmodel.FieldIsHidden)
+	return u
+}
+
+// SetDisplayWeight sets the "display_weight" field.
+func (u *GenerationModelUpsert) SetDisplayWeight(v int32) *GenerationModelUpsert {
+	u.Set(generationmodel.FieldDisplayWeight, v)
+	return u
+}
+
+// UpdateDisplayWeight sets the "display_weight" field to the value that was provided on create.
+func (u *GenerationModelUpsert) UpdateDisplayWeight() *GenerationModelUpsert {
+	u.SetExcluded(generationmodel.FieldDisplayWeight)
+	return u
+}
+
+// AddDisplayWeight adds v to the "display_weight" field.
+func (u *GenerationModelUpsert) AddDisplayWeight(v int32) *GenerationModelUpsert {
+	u.Add(generationmodel.FieldDisplayWeight, v)
 	return u
 }
 
@@ -669,6 +712,27 @@ func (u *GenerationModelUpsertOne) SetIsHidden(v bool) *GenerationModelUpsertOne
 func (u *GenerationModelUpsertOne) UpdateIsHidden() *GenerationModelUpsertOne {
 	return u.Update(func(s *GenerationModelUpsert) {
 		s.UpdateIsHidden()
+	})
+}
+
+// SetDisplayWeight sets the "display_weight" field.
+func (u *GenerationModelUpsertOne) SetDisplayWeight(v int32) *GenerationModelUpsertOne {
+	return u.Update(func(s *GenerationModelUpsert) {
+		s.SetDisplayWeight(v)
+	})
+}
+
+// AddDisplayWeight adds v to the "display_weight" field.
+func (u *GenerationModelUpsertOne) AddDisplayWeight(v int32) *GenerationModelUpsertOne {
+	return u.Update(func(s *GenerationModelUpsert) {
+		s.AddDisplayWeight(v)
+	})
+}
+
+// UpdateDisplayWeight sets the "display_weight" field to the value that was provided on create.
+func (u *GenerationModelUpsertOne) UpdateDisplayWeight() *GenerationModelUpsertOne {
+	return u.Update(func(s *GenerationModelUpsert) {
+		s.UpdateDisplayWeight()
 	})
 }
 
@@ -1016,6 +1080,27 @@ func (u *GenerationModelUpsertBulk) SetIsHidden(v bool) *GenerationModelUpsertBu
 func (u *GenerationModelUpsertBulk) UpdateIsHidden() *GenerationModelUpsertBulk {
 	return u.Update(func(s *GenerationModelUpsert) {
 		s.UpdateIsHidden()
+	})
+}
+
+// SetDisplayWeight sets the "display_weight" field.
+func (u *GenerationModelUpsertBulk) SetDisplayWeight(v int32) *GenerationModelUpsertBulk {
+	return u.Update(func(s *GenerationModelUpsert) {
+		s.SetDisplayWeight(v)
+	})
+}
+
+// AddDisplayWeight adds v to the "display_weight" field.
+func (u *GenerationModelUpsertBulk) AddDisplayWeight(v int32) *GenerationModelUpsertBulk {
+	return u.Update(func(s *GenerationModelUpsert) {
+		s.AddDisplayWeight(v)
+	})
+}
+
+// UpdateDisplayWeight sets the "display_weight" field to the value that was provided on create.
+func (u *GenerationModelUpsertBulk) UpdateDisplayWeight() *GenerationModelUpsertBulk {
+	return u.Update(func(s *GenerationModelUpsert) {
+		s.UpdateDisplayWeight()
 	})
 }
 

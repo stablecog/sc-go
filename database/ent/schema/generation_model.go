@@ -24,6 +24,7 @@ func (GenerationModel) Fields() []ent.Field {
 		field.Bool("is_active").Default(true),
 		field.Bool("is_default").Default(false),
 		field.Bool("is_hidden").Default(false),
+		field.Int32("display_weight").Default(0),
 		field.UUID("default_scheduler_id", uuid.UUID{}).Optional().Nillable(),
 		field.Int32("default_width").Default(512),
 		field.Int32("default_height").Default(512),

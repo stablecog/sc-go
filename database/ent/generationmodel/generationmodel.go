@@ -21,6 +21,8 @@ const (
 	FieldIsDefault = "is_default"
 	// FieldIsHidden holds the string denoting the is_hidden field in the database.
 	FieldIsHidden = "is_hidden"
+	// FieldDisplayWeight holds the string denoting the display_weight field in the database.
+	FieldDisplayWeight = "display_weight"
 	// FieldDefaultSchedulerID holds the string denoting the default_scheduler_id field in the database.
 	FieldDefaultSchedulerID = "default_scheduler_id"
 	// FieldDefaultWidth holds the string denoting the default_width field in the database.
@@ -58,6 +60,7 @@ var Columns = []string{
 	FieldIsActive,
 	FieldIsDefault,
 	FieldIsHidden,
+	FieldDisplayWeight,
 	FieldDefaultSchedulerID,
 	FieldDefaultWidth,
 	FieldDefaultHeight,
@@ -88,6 +91,8 @@ var (
 	DefaultIsDefault bool
 	// DefaultIsHidden holds the default value on creation for the "is_hidden" field.
 	DefaultIsHidden bool
+	// DefaultDisplayWeight holds the default value on creation for the "display_weight" field.
+	DefaultDisplayWeight int32
 	// DefaultDefaultWidth holds the default value on creation for the "default_width" field.
 	DefaultDefaultWidth int32
 	// DefaultDefaultHeight holds the default value on creation for the "default_height" field.

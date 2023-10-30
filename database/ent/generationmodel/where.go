@@ -76,6 +76,11 @@ func IsHidden(v bool) predicate.GenerationModel {
 	return predicate.GenerationModel(sql.FieldEQ(FieldIsHidden, v))
 }
 
+// DisplayWeight applies equality check predicate on the "display_weight" field. It's identical to DisplayWeightEQ.
+func DisplayWeight(v int32) predicate.GenerationModel {
+	return predicate.GenerationModel(sql.FieldEQ(FieldDisplayWeight, v))
+}
+
 // DefaultSchedulerID applies equality check predicate on the "default_scheduler_id" field. It's identical to DefaultSchedulerIDEQ.
 func DefaultSchedulerID(v uuid.UUID) predicate.GenerationModel {
 	return predicate.GenerationModel(sql.FieldEQ(FieldDefaultSchedulerID, v))
@@ -194,6 +199,46 @@ func IsHiddenEQ(v bool) predicate.GenerationModel {
 // IsHiddenNEQ applies the NEQ predicate on the "is_hidden" field.
 func IsHiddenNEQ(v bool) predicate.GenerationModel {
 	return predicate.GenerationModel(sql.FieldNEQ(FieldIsHidden, v))
+}
+
+// DisplayWeightEQ applies the EQ predicate on the "display_weight" field.
+func DisplayWeightEQ(v int32) predicate.GenerationModel {
+	return predicate.GenerationModel(sql.FieldEQ(FieldDisplayWeight, v))
+}
+
+// DisplayWeightNEQ applies the NEQ predicate on the "display_weight" field.
+func DisplayWeightNEQ(v int32) predicate.GenerationModel {
+	return predicate.GenerationModel(sql.FieldNEQ(FieldDisplayWeight, v))
+}
+
+// DisplayWeightIn applies the In predicate on the "display_weight" field.
+func DisplayWeightIn(vs ...int32) predicate.GenerationModel {
+	return predicate.GenerationModel(sql.FieldIn(FieldDisplayWeight, vs...))
+}
+
+// DisplayWeightNotIn applies the NotIn predicate on the "display_weight" field.
+func DisplayWeightNotIn(vs ...int32) predicate.GenerationModel {
+	return predicate.GenerationModel(sql.FieldNotIn(FieldDisplayWeight, vs...))
+}
+
+// DisplayWeightGT applies the GT predicate on the "display_weight" field.
+func DisplayWeightGT(v int32) predicate.GenerationModel {
+	return predicate.GenerationModel(sql.FieldGT(FieldDisplayWeight, v))
+}
+
+// DisplayWeightGTE applies the GTE predicate on the "display_weight" field.
+func DisplayWeightGTE(v int32) predicate.GenerationModel {
+	return predicate.GenerationModel(sql.FieldGTE(FieldDisplayWeight, v))
+}
+
+// DisplayWeightLT applies the LT predicate on the "display_weight" field.
+func DisplayWeightLT(v int32) predicate.GenerationModel {
+	return predicate.GenerationModel(sql.FieldLT(FieldDisplayWeight, v))
+}
+
+// DisplayWeightLTE applies the LTE predicate on the "display_weight" field.
+func DisplayWeightLTE(v int32) predicate.GenerationModel {
+	return predicate.GenerationModel(sql.FieldLTE(FieldDisplayWeight, v))
 }
 
 // DefaultSchedulerIDEQ applies the EQ predicate on the "default_scheduler_id" field.

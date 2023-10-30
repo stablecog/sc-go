@@ -7,7 +7,7 @@ import (
 )
 
 func (r *Repository) GetAllGenerationModels() ([]*ent.GenerationModel, error) {
-	models, err := r.DB.GenerationModel.Query().WithSchedulers().Order(ent.Desc(generationmodel.FieldCreatedAt)).All(r.Ctx)
+	models, err := r.DB.GenerationModel.Query().WithSchedulers().Order(ent.Desc(generationmodel.FieldDisplayWeight)).All(r.Ctx)
 	if err != nil {
 		return nil, err
 	}

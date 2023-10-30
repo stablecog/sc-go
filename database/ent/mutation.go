@@ -8118,6 +8118,8 @@ type GenerationModelMutation struct {
 	is_active            *bool
 	is_default           *bool
 	is_hidden            *bool
+	display_weight       *int32
+	adddisplay_weight    *int32
 	default_scheduler_id *uuid.UUID
 	default_width        *int32
 	adddefault_width     *int32
@@ -8383,6 +8385,62 @@ func (m *GenerationModelMutation) OldIsHidden(ctx context.Context) (v bool, err 
 // ResetIsHidden resets all changes to the "is_hidden" field.
 func (m *GenerationModelMutation) ResetIsHidden() {
 	m.is_hidden = nil
+}
+
+// SetDisplayWeight sets the "display_weight" field.
+func (m *GenerationModelMutation) SetDisplayWeight(i int32) {
+	m.display_weight = &i
+	m.adddisplay_weight = nil
+}
+
+// DisplayWeight returns the value of the "display_weight" field in the mutation.
+func (m *GenerationModelMutation) DisplayWeight() (r int32, exists bool) {
+	v := m.display_weight
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDisplayWeight returns the old "display_weight" field's value of the GenerationModel entity.
+// If the GenerationModel object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *GenerationModelMutation) OldDisplayWeight(ctx context.Context) (v int32, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDisplayWeight is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDisplayWeight requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDisplayWeight: %w", err)
+	}
+	return oldValue.DisplayWeight, nil
+}
+
+// AddDisplayWeight adds i to the "display_weight" field.
+func (m *GenerationModelMutation) AddDisplayWeight(i int32) {
+	if m.adddisplay_weight != nil {
+		*m.adddisplay_weight += i
+	} else {
+		m.adddisplay_weight = &i
+	}
+}
+
+// AddedDisplayWeight returns the value that was added to the "display_weight" field in this mutation.
+func (m *GenerationModelMutation) AddedDisplayWeight() (r int32, exists bool) {
+	v := m.adddisplay_weight
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetDisplayWeight resets all changes to the "display_weight" field.
+func (m *GenerationModelMutation) ResetDisplayWeight() {
+	m.display_weight = nil
+	m.adddisplay_weight = nil
 }
 
 // SetDefaultSchedulerID sets the "default_scheduler_id" field.
@@ -8760,7 +8818,7 @@ func (m *GenerationModelMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *GenerationModelMutation) Fields() []string {
-	fields := make([]string, 0, 9)
+	fields := make([]string, 0, 10)
 	if m.name_in_worker != nil {
 		fields = append(fields, generationmodel.FieldNameInWorker)
 	}
@@ -8772,6 +8830,9 @@ func (m *GenerationModelMutation) Fields() []string {
 	}
 	if m.is_hidden != nil {
 		fields = append(fields, generationmodel.FieldIsHidden)
+	}
+	if m.display_weight != nil {
+		fields = append(fields, generationmodel.FieldDisplayWeight)
 	}
 	if m.default_scheduler_id != nil {
 		fields = append(fields, generationmodel.FieldDefaultSchedulerID)
@@ -8804,6 +8865,8 @@ func (m *GenerationModelMutation) Field(name string) (ent.Value, bool) {
 		return m.IsDefault()
 	case generationmodel.FieldIsHidden:
 		return m.IsHidden()
+	case generationmodel.FieldDisplayWeight:
+		return m.DisplayWeight()
 	case generationmodel.FieldDefaultSchedulerID:
 		return m.DefaultSchedulerID()
 	case generationmodel.FieldDefaultWidth:
@@ -8831,6 +8894,8 @@ func (m *GenerationModelMutation) OldField(ctx context.Context, name string) (en
 		return m.OldIsDefault(ctx)
 	case generationmodel.FieldIsHidden:
 		return m.OldIsHidden(ctx)
+	case generationmodel.FieldDisplayWeight:
+		return m.OldDisplayWeight(ctx)
 	case generationmodel.FieldDefaultSchedulerID:
 		return m.OldDefaultSchedulerID(ctx)
 	case generationmodel.FieldDefaultWidth:
@@ -8878,6 +8943,13 @@ func (m *GenerationModelMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetIsHidden(v)
 		return nil
+	case generationmodel.FieldDisplayWeight:
+		v, ok := value.(int32)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDisplayWeight(v)
+		return nil
 	case generationmodel.FieldDefaultSchedulerID:
 		v, ok := value.(uuid.UUID)
 		if !ok {
@@ -8921,6 +8993,9 @@ func (m *GenerationModelMutation) SetField(name string, value ent.Value) error {
 // this mutation.
 func (m *GenerationModelMutation) AddedFields() []string {
 	var fields []string
+	if m.adddisplay_weight != nil {
+		fields = append(fields, generationmodel.FieldDisplayWeight)
+	}
 	if m.adddefault_width != nil {
 		fields = append(fields, generationmodel.FieldDefaultWidth)
 	}
@@ -8935,6 +9010,8 @@ func (m *GenerationModelMutation) AddedFields() []string {
 // was not set, or was not defined in the schema.
 func (m *GenerationModelMutation) AddedField(name string) (ent.Value, bool) {
 	switch name {
+	case generationmodel.FieldDisplayWeight:
+		return m.AddedDisplayWeight()
 	case generationmodel.FieldDefaultWidth:
 		return m.AddedDefaultWidth()
 	case generationmodel.FieldDefaultHeight:
@@ -8948,6 +9025,13 @@ func (m *GenerationModelMutation) AddedField(name string) (ent.Value, bool) {
 // type.
 func (m *GenerationModelMutation) AddField(name string, value ent.Value) error {
 	switch name {
+	case generationmodel.FieldDisplayWeight:
+		v, ok := value.(int32)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddDisplayWeight(v)
+		return nil
 	case generationmodel.FieldDefaultWidth:
 		v, ok := value.(int32)
 		if !ok {
@@ -9009,6 +9093,9 @@ func (m *GenerationModelMutation) ResetField(name string) error {
 		return nil
 	case generationmodel.FieldIsHidden:
 		m.ResetIsHidden()
+		return nil
+	case generationmodel.FieldDisplayWeight:
+		m.ResetDisplayWeight()
 		return nil
 	case generationmodel.FieldDefaultSchedulerID:
 		m.ResetDefaultSchedulerID()

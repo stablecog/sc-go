@@ -25,6 +25,8 @@ type GenerationModel struct {
 	IsDefault bool `json:"is_default,omitempty"`
 	// IsHidden holds the value of the "is_hidden" field.
 	IsHidden bool `json:"is_hidden,omitempty"`
+	// DisplayWeight holds the value of the "display_weight" field.
+	DisplayWeight int32 `json:"display_weight,omitempty"`
 	// DefaultSchedulerID holds the value of the "default_scheduler_id" field.
 	DefaultSchedulerID *uuid.UUID `json:"default_scheduler_id,omitempty"`
 	// DefaultWidth holds the value of the "default_width" field.
@@ -78,7 +80,7 @@ func (*GenerationModel) scanValues(columns []string) ([]any, error) {
 			values[i] = &sql.NullScanner{S: new(uuid.UUID)}
 		case generationmodel.FieldIsActive, generationmodel.FieldIsDefault, generationmodel.FieldIsHidden:
 			values[i] = new(sql.NullBool)
-		case generationmodel.FieldDefaultWidth, generationmodel.FieldDefaultHeight:
+		case generationmodel.FieldDisplayWeight, generationmodel.FieldDefaultWidth, generationmodel.FieldDefaultHeight:
 			values[i] = new(sql.NullInt64)
 		case generationmodel.FieldNameInWorker:
 			values[i] = new(sql.NullString)
@@ -130,6 +132,12 @@ func (gm *GenerationModel) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field is_hidden", values[i])
 			} else if value.Valid {
 				gm.IsHidden = value.Bool
+			}
+		case generationmodel.FieldDisplayWeight:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field display_weight", values[i])
+			} else if value.Valid {
+				gm.DisplayWeight = int32(value.Int64)
 			}
 		case generationmodel.FieldDefaultSchedulerID:
 			if value, ok := values[i].(*sql.NullScanner); !ok {
@@ -211,6 +219,9 @@ func (gm *GenerationModel) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("is_hidden=")
 	builder.WriteString(fmt.Sprintf("%v", gm.IsHidden))
+	builder.WriteString(", ")
+	builder.WriteString("display_weight=")
+	builder.WriteString(fmt.Sprintf("%v", gm.DisplayWeight))
 	builder.WriteString(", ")
 	if v := gm.DefaultSchedulerID; v != nil {
 		builder.WriteString("default_scheduler_id=")

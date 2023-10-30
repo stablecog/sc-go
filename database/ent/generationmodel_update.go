@@ -80,6 +80,27 @@ func (gmu *GenerationModelUpdate) SetNillableIsHidden(b *bool) *GenerationModelU
 	return gmu
 }
 
+// SetDisplayWeight sets the "display_weight" field.
+func (gmu *GenerationModelUpdate) SetDisplayWeight(i int32) *GenerationModelUpdate {
+	gmu.mutation.ResetDisplayWeight()
+	gmu.mutation.SetDisplayWeight(i)
+	return gmu
+}
+
+// SetNillableDisplayWeight sets the "display_weight" field if the given value is not nil.
+func (gmu *GenerationModelUpdate) SetNillableDisplayWeight(i *int32) *GenerationModelUpdate {
+	if i != nil {
+		gmu.SetDisplayWeight(*i)
+	}
+	return gmu
+}
+
+// AddDisplayWeight adds i to the "display_weight" field.
+func (gmu *GenerationModelUpdate) AddDisplayWeight(i int32) *GenerationModelUpdate {
+	gmu.mutation.AddDisplayWeight(i)
+	return gmu
+}
+
 // SetDefaultSchedulerID sets the "default_scheduler_id" field.
 func (gmu *GenerationModelUpdate) SetDefaultSchedulerID(u uuid.UUID) *GenerationModelUpdate {
 	gmu.mutation.SetDefaultSchedulerID(u)
@@ -297,6 +318,12 @@ func (gmu *GenerationModelUpdate) sqlSave(ctx context.Context) (n int, err error
 	if value, ok := gmu.mutation.IsHidden(); ok {
 		_spec.SetField(generationmodel.FieldIsHidden, field.TypeBool, value)
 	}
+	if value, ok := gmu.mutation.DisplayWeight(); ok {
+		_spec.SetField(generationmodel.FieldDisplayWeight, field.TypeInt32, value)
+	}
+	if value, ok := gmu.mutation.AddedDisplayWeight(); ok {
+		_spec.AddField(generationmodel.FieldDisplayWeight, field.TypeInt32, value)
+	}
 	if value, ok := gmu.mutation.DefaultSchedulerID(); ok {
 		_spec.SetField(generationmodel.FieldDefaultSchedulerID, field.TypeUUID, value)
 	}
@@ -493,6 +520,27 @@ func (gmuo *GenerationModelUpdateOne) SetNillableIsHidden(b *bool) *GenerationMo
 	if b != nil {
 		gmuo.SetIsHidden(*b)
 	}
+	return gmuo
+}
+
+// SetDisplayWeight sets the "display_weight" field.
+func (gmuo *GenerationModelUpdateOne) SetDisplayWeight(i int32) *GenerationModelUpdateOne {
+	gmuo.mutation.ResetDisplayWeight()
+	gmuo.mutation.SetDisplayWeight(i)
+	return gmuo
+}
+
+// SetNillableDisplayWeight sets the "display_weight" field if the given value is not nil.
+func (gmuo *GenerationModelUpdateOne) SetNillableDisplayWeight(i *int32) *GenerationModelUpdateOne {
+	if i != nil {
+		gmuo.SetDisplayWeight(*i)
+	}
+	return gmuo
+}
+
+// AddDisplayWeight adds i to the "display_weight" field.
+func (gmuo *GenerationModelUpdateOne) AddDisplayWeight(i int32) *GenerationModelUpdateOne {
+	gmuo.mutation.AddDisplayWeight(i)
 	return gmuo
 }
 
@@ -736,6 +784,12 @@ func (gmuo *GenerationModelUpdateOne) sqlSave(ctx context.Context) (_node *Gener
 	}
 	if value, ok := gmuo.mutation.IsHidden(); ok {
 		_spec.SetField(generationmodel.FieldIsHidden, field.TypeBool, value)
+	}
+	if value, ok := gmuo.mutation.DisplayWeight(); ok {
+		_spec.SetField(generationmodel.FieldDisplayWeight, field.TypeInt32, value)
+	}
+	if value, ok := gmuo.mutation.AddedDisplayWeight(); ok {
+		_spec.AddField(generationmodel.FieldDisplayWeight, field.TypeInt32, value)
 	}
 	if value, ok := gmuo.mutation.DefaultSchedulerID(); ok {
 		_spec.SetField(generationmodel.FieldDefaultSchedulerID, field.TypeUUID, value)
