@@ -23,6 +23,7 @@ const (
 	AuthLevelGalleryAdmin
 	AuthLevelSuperAdmin
 	AuthLevelAPIToken
+	AuthLevelOptional
 )
 
 // Enforces authorization at specific level
@@ -31,6 +32,10 @@ func (m *Middleware) AuthMiddleware(levels ...AuthLevel) func(next http.Handler)
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			authHeader := strings.Split(r.Header.Get("Authorization"), "Bearer ")
 			if len(authHeader) != 2 {
+				if slices.Contains(levels, AuthLevelOptional) {
+					next.ServeHTTP(w, r)
+					return
+				}
 				responses.ErrUnauthorized(w, r)
 				return
 			}

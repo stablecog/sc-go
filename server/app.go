@@ -700,6 +700,7 @@ func main() {
 		// Gallery search
 		r.Route("/gallery", func(r chi.Router) {
 			r.Use(middleware.Logger)
+			r.Use(mw.AuthMiddleware(middleware.AuthLevelOptional))
 			// 20 requests per second
 			r.Use(mw.RateLimit(20, "srv", 1*time.Second))
 			r.Get("/", hc.HandleSemanticSearchGallery)
@@ -708,6 +709,7 @@ func main() {
 		// User profiles
 		r.Route("/profile", func(r chi.Router) {
 			r.Use(middleware.Logger)
+			r.Use(mw.AuthMiddleware(middleware.AuthLevelOptional))
 			// 20 requests per second
 			r.Use(mw.RateLimit(20, "srv", 1*time.Second))
 			r.Get("/{username}/outputs", hc.HandleUserProfileSemanticSearch)

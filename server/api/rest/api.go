@@ -90,6 +90,29 @@ func (c *RestAPI) GetUserIfAuthenticated(w http.ResponseWriter, r *http.Request)
 	return user
 }
 
+// Does not write to response, only returns user
+func (c *RestAPI) GetUserIfAuthenticatedOnly(w http.ResponseWriter, r *http.Request) (user *ent.User, err error) {
+	// See if authenticated
+	userIDStr, authenticated := r.Context().Value("user_id").(string)
+	// This should always be true because of the auth middleware, but check it anyway
+	if !authenticated || userIDStr == "" {
+		return nil, nil
+	}
+	// Ensure valid uuid
+	userID, err := uuid.Parse(userIDStr)
+	if err != nil {
+		return nil, err
+	}
+
+	// Get user
+	user, err = c.Repo.GetUser(userID)
+	if err != nil || user == nil {
+		log.Error("Error getting user", "err", err)
+		return nil, err
+	}
+	return user, nil
+}
+
 func (c *RestAPI) GetUserIDAndEmailIfAuthenticated(w http.ResponseWriter, r *http.Request) (id *uuid.UUID, email string) {
 	// See if authenticated
 	userIDStr, authenticated := r.Context().Value("user_id").(string)

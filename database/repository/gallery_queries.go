@@ -8,6 +8,7 @@ import (
 	"github.com/stablecog/sc-go/database/ent"
 	"github.com/stablecog/sc-go/database/ent/generation"
 	"github.com/stablecog/sc-go/database/ent/generationoutput"
+	"github.com/stablecog/sc-go/database/ent/generationoutputlike"
 	"github.com/stablecog/sc-go/database/ent/negativeprompt"
 	"github.com/stablecog/sc-go/database/ent/prompt"
 	"github.com/stablecog/sc-go/database/ent/user"
@@ -17,7 +18,7 @@ import (
 )
 
 // Retrieved a single generation output by ID, in GalleryData format
-func (r *Repository) RetrieveGalleryDataByID(id uuid.UUID, userId *uuid.UUID, all bool) (*GalleryData, error) {
+func (r *Repository) RetrieveGalleryDataByID(id uuid.UUID, userId *uuid.UUID, callingUserId *uuid.UUID, all bool) (*GalleryData, error) {
 	var q *ent.GenerationOutputQuery
 	if userId != nil {
 		q = r.DB.Generation.Query().Where(generation.UserIDEQ(*userId)).QueryGenerationOutputs()
@@ -28,6 +29,11 @@ func (r *Repository) RetrieveGalleryDataByID(id uuid.UUID, userId *uuid.UUID, al
 	if !all {
 		q = q.Where(generationoutput.GalleryStatusEQ(generationoutput.GalleryStatusApproved))
 	}
+	if callingUserId != nil {
+		q = q.WithGenerationOutputLikes(func(gql *ent.GenerationOutputLikeQuery) {
+			gql.Where(generationoutputlike.LikedByUserID(*callingUserId))
+		})
+	}
 	output, err := q.WithGenerations(func(gq *ent.GenerationQuery) {
 		gq.WithPrompt()
 		gq.WithNegativePrompt()
@@ -35,6 +41,15 @@ func (r *Repository) RetrieveGalleryDataByID(id uuid.UUID, userId *uuid.UUID, al
 	}).Only(r.Ctx)
 	if err != nil {
 		return nil, err
+	}
+	likedByUser := false
+	if callingUserId != nil {
+		for _, like := range output.Edges.GenerationOutputLikes {
+			if like.LikedByUserID == *userId {
+				likedByUser = true
+				break
+			}
+		}
 	}
 	data := GalleryData{
 		ID:             output.ID,
@@ -54,6 +69,8 @@ func (r *Repository) RetrieveGalleryDataByID(id uuid.UUID, userId *uuid.UUID, al
 		User: &UserType{
 			Username: output.Edges.Generations.Edges.User.Username,
 		},
+		LikeCount:   output.LikeCount,
+		LikedByUser: utils.ToPtr(likedByUser),
 	}
 	if all {
 		data.IsPublic = output.IsPublic
@@ -426,4 +443,6 @@ type GalleryData struct {
 	PromptStrength     *float32   `json:"prompt_strength,omitempty" sql:"prompt_strength"`
 	WasAutoSubmitted   bool       `json:"was_auto_submitted" sql:"was_auto_submitted"`
 	IsPublic           bool       `json:"is_public" sql:"is_public"`
+	LikeCount          int        `json:"like_count" sql:"like_count"`
+	LikedByUser        *bool      `json:"liked_by_user,omitempty" sql:"liked_by_user"`
 }
