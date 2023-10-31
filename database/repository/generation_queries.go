@@ -490,7 +490,7 @@ func (r *Repository) QueryGenerations(per_page int, cursor *time.Time, filters *
 				s.C(generation.FieldUserID), ut.C(user.FieldID),
 			)
 		}
-		ltj.AppendSelect(sql.As(got.C(generationoutput.FieldID), "output_id"), sql.As(got.C(generationoutput.FieldGalleryStatus), "output_gallery_status"), sql.As(got.C(generationoutput.FieldImagePath), "image_path"), sql.As(got.C(generationoutput.FieldUpscaledImagePath), "upscaled_image_path"), sql.As(got.C(generationoutput.FieldDeletedAt), "deleted_at"), sql.As(got.C(generationoutput.FieldIsFavorited), "is_favorited"), sql.As(ut.C(user.FieldUsername), "username"), sql.As(got.C(generationoutput.FieldIsPublic), "is_public")).
+		ltj.AppendSelect(sql.As(got.C(generationoutput.FieldID), "output_id"), sql.As(got.C(generationoutput.FieldLikeCount), "like_count"), sql.As(got.C(generationoutput.FieldGalleryStatus), "output_gallery_status"), sql.As(got.C(generationoutput.FieldImagePath), "image_path"), sql.As(got.C(generationoutput.FieldUpscaledImagePath), "upscaled_image_path"), sql.As(got.C(generationoutput.FieldDeletedAt), "deleted_at"), sql.As(got.C(generationoutput.FieldIsFavorited), "is_favorited"), sql.As(ut.C(user.FieldUsername), "username"), sql.As(got.C(generationoutput.FieldIsPublic), "is_public")).
 			GroupBy(s.C(generation.FieldID),
 				got.C(generationoutput.FieldID), got.C(generationoutput.FieldGalleryStatus),
 				got.C(generationoutput.FieldImagePath), got.C(generationoutput.FieldUpscaledImagePath),
@@ -787,6 +787,7 @@ func (r *Repository) QueryGenerationsAdmin(per_page int, cursor *time.Time, filt
 	var rawQ []struct {
 		ID                uuid.UUID  `json:"id" sql:"id"`
 		OutputID          uuid.UUID  `json:"output_id" sql:"output_id"`
+		LikeCount         int        `json:"like_count" sql:"like_count"`
 		OutputCreatedAt   time.Time  `json:"output_created_at" sql:"output_created_at"`
 		DeletedAt         *time.Time `json:"deleted_at" sql:"deleted_at"`
 		UpscaledImagePath *string    `json:"upscaled_image_path" sql:"upscaled_image_path"`
@@ -807,7 +808,7 @@ func (r *Repository) QueryGenerationsAdmin(per_page int, cursor *time.Time, filt
 	err := queryG.Limit(per_page+1).Modify(func(s *sql.Selector) {
 		got := sql.Table(generationoutput.Table).As("t1")
 		s.LeftJoin(got).On(s.C(generation.FieldID), got.C(generationoutput.FieldGenerationID))
-		s.AppendSelect(sql.As(got.C(generationoutput.FieldID), "output_id"), sql.As(got.C(generationoutput.FieldCreatedAt), "output_created_at"), sql.As(got.C(generationoutput.FieldDeletedAt), "deleted_at"),
+		s.AppendSelect(sql.As(got.C(generationoutput.FieldID), "output_id"), sql.As(got.C(generationoutput.FieldLikeCount), "like_count"), sql.As(got.C(generationoutput.FieldCreatedAt), "output_created_at"), sql.As(got.C(generationoutput.FieldDeletedAt), "deleted_at"),
 			sql.As(got.C(generationoutput.FieldUpscaledImagePath), "upscaled_image_path"), sql.As(got.C(generationoutput.FieldGalleryStatus), "gallery_status"))
 		orderDir := "asc"
 		if filters == nil || (filters != nil && filters.Order == requests.SortOrderDescending) {
@@ -961,6 +962,7 @@ func (r *Repository) QueryGenerationsAdmin(per_page int, cursor *time.Time, filt
 		}
 
 		ret := GenerationQueryWithOutputsResult{
+			LikeCount:                      g.LikeCount,
 			OutputID:                       &g.ID,
 			ImageUrl:                       utils.GetEnv().GetURLFromImagePath(g.ImagePath),
 			GalleryStatus:                  g.GalleryStatus,
@@ -1084,6 +1086,7 @@ type GenerationQueryWithOutputsData struct {
 
 type GenerationQueryWithOutputsResult struct {
 	OutputID         *uuid.UUID                     `json:"output_id,omitempty" sql:"output_id"`
+	LikeCount        int                            `json:"like_count,omitempty" sql:"like_count"`
 	ImageUrl         string                         `json:"image_url,omitempty" sql:"image_path"`
 	UpscaledImageUrl string                         `json:"upscaled_image_url,omitempty" sql:"upscaled_image_path"`
 	GalleryStatus    generationoutput.GalleryStatus `json:"gallery_status,omitempty" sql:"output_gallery_status"`

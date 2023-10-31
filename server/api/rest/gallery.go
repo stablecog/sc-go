@@ -26,6 +26,18 @@ import (
 const GALLERY_PER_PAGE = 50
 
 func (c *RestAPI) HandleSemanticSearchGallery(w http.ResponseWriter, r *http.Request) {
+	// Get user for like data, if authenticated
+	callingUser, err := c.GetUserIfAuthenticatedOnly(w, r)
+	if err != nil {
+		log.Error("Error getting user", "err", err)
+		responses.ErrInternalServerError(w, r, "An unknown error has occurred")
+		return
+	}
+	var callingUserId *uuid.UUID
+	if callingUser != nil {
+		callingUserId = utils.ToPtr(callingUser.ID)
+	}
+
 	// Get output_id param
 	outputId := r.URL.Query().Get("output_id")
 	if outputId != "" {
@@ -36,7 +48,7 @@ func (c *RestAPI) HandleSemanticSearchGallery(w http.ResponseWriter, r *http.Req
 			return
 		}
 
-		galleryData, err := c.Repo.RetrieveGalleryDataByID(uid, nil, nil, false)
+		galleryData, err := c.Repo.RetrieveGalleryDataByID(uid, nil, callingUserId, false)
 		if err != nil {
 			if ent.IsNotFound(err) {
 				responses.ErrNotFound(w, r, "generation_not_found")
@@ -63,7 +75,6 @@ func (c *RestAPI) HandleSemanticSearchGallery(w http.ResponseWriter, r *http.Req
 	galleryData := []repository.GalleryData{}
 	var nextCursorQdrant *uint
 	var nextCursorPostgres *time.Time
-	var err error
 
 	// Parse filters
 	filters := &requests.QueryGenerationFilters{}
@@ -150,7 +161,7 @@ func (c *RestAPI) HandleSemanticSearchGallery(w http.ResponseWriter, r *http.Req
 		}
 
 		// Get gallery data
-		galleryDataUnsorted, err := c.Repo.RetrieveGalleryDataWithOutputIDs(outputIds, false)
+		galleryDataUnsorted, err := c.Repo.RetrieveGalleryDataWithOutputIDs(outputIds, callingUserId, false)
 		if err != nil {
 			log.Error("Error querying gallery data", "err", err)
 			responses.ErrInternalServerError(w, r, "An unknown error occurred")
@@ -191,7 +202,7 @@ func (c *RestAPI) HandleSemanticSearchGallery(w http.ResponseWriter, r *http.Req
 
 		// Retrieve from postgres
 		filters.GalleryStatus = []generationoutput.GalleryStatus{generationoutput.GalleryStatusApproved}
-		galleryData, nextCursorPostgres, err = c.Repo.RetrieveMostRecentGalleryData(filters, perPage, qCursor)
+		galleryData, nextCursorPostgres, err = c.Repo.RetrieveMostRecentGalleryData(filters, callingUserId, perPage, qCursor)
 		if err != nil {
 			log.Error("Error querying gallery data from postgres", "err", err)
 			responses.ErrInternalServerError(w, r, "An unknown error occurred")

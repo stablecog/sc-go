@@ -6,6 +6,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/stablecog/sc-go/database/ent/generationoutput"
 	"github.com/stablecog/sc-go/server/requests"
+	"github.com/stablecog/sc-go/utils"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -22,7 +23,14 @@ func TestGetGalleryData(t *testing.T) {
 	// Check data
 	gData, _, err := MockRepo.RetrieveMostRecentGalleryDataV2(&requests.QueryGenerationFilters{
 		GalleryStatus: []generationoutput.GalleryStatus{generationoutput.GalleryStatusApproved},
-	}, 100, nil)
+	}, nil, 100, nil)
+	assert.Nil(t, err)
+	assert.Len(t, gData, 3)
+
+	// Check data with calling user ID
+	gData, _, err = MockRepo.RetrieveMostRecentGalleryDataV2(&requests.QueryGenerationFilters{
+		GalleryStatus: []generationoutput.GalleryStatus{generationoutput.GalleryStatusApproved},
+	}, utils.ToPtr(uuid.MustParse(MOCK_ADMIN_UUID)), 100, nil)
 	assert.Nil(t, err)
 	assert.Len(t, gData, 3)
 }
