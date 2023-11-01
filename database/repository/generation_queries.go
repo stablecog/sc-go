@@ -480,6 +480,7 @@ func (r *Repository) QueryGenerations(per_page int, cursor *time.Time, filters *
 	err := query.Modify(func(s *sql.Selector) {
 		gt := sql.Table(generation.Table)
 		got := sql.Table(generationoutput.Table)
+		golikesT := sql.Table(generationoutputlike.Table)
 		ut := sql.Table(user.Table)
 		ltj := s.Join(got).OnP(
 			sql.And(
@@ -497,6 +498,14 @@ func (r *Repository) QueryGenerations(per_page int, cursor *time.Time, filters *
 		} else {
 			ltj.LeftJoin(ut).On(
 				s.C(generation.FieldUserID), ut.C(user.FieldID),
+			)
+		}
+		if filters != nil && filters.UserID != nil && filters.IsLiked != nil {
+			ltj.Join(golikesT).OnP(
+				sql.And(
+					sql.ColumnsEQ(got.C(generationoutput.FieldID), golikesT.C(generationoutputlike.FieldOutputID)),
+					sql.EQ(golikesT.C(generationoutputlike.FieldLikedByUserID), *filters.UserID),
+				),
 			)
 		}
 		ltj.AppendSelect(sql.As(got.C(generationoutput.FieldID), "output_id"), sql.As(got.C(generationoutput.FieldLikeCount), "like_count"), sql.As(got.C(generationoutput.FieldGalleryStatus), "output_gallery_status"), sql.As(got.C(generationoutput.FieldImagePath), "image_path"), sql.As(got.C(generationoutput.FieldUpscaledImagePath), "upscaled_image_path"), sql.As(got.C(generationoutput.FieldDeletedAt), "deleted_at"), sql.As(got.C(generationoutput.FieldIsFavorited), "is_favorited"), sql.As(ut.C(user.FieldUsername), "username"), sql.As(got.C(generationoutput.FieldIsPublic), "is_public")).

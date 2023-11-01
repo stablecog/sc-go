@@ -68,6 +68,7 @@ type QueryGenerationFilters struct {
 	WasAutoSubmitted  *bool                            `json:"was_auto_submitted,omitempty"`
 	PromptID          *uuid.UUID                       `json:"prompt,omitempty"`
 	IsPublic          *bool                            `json:"is_public,omitempty"`
+	IsLiked           *bool                            `json:"is_liked,omitempty"`
 }
 
 // Parse all filters into a QueryGenerationFilters struct
@@ -373,6 +374,19 @@ func (filters *QueryGenerationFilters) ParseURLQueryParameters(urlValues url.Val
 				filters.WasAutoSubmitted = &f
 			} else {
 				return fmt.Errorf("invalid was_auto_submitted: '%s' expected 'true' or 'false'", value[0])
+			}
+		}
+
+		// Liked
+		if key == "is_liked" {
+			if strings.ToLower(value[0]) == "true" {
+				t := true
+				filters.IsLiked = &t
+			} else if strings.ToLower(value[0]) == "false" {
+				f := false
+				filters.IsLiked = &f
+			} else {
+				return fmt.Errorf("invalid is_liked: '%s' expected 'true' or 'false'", value[0])
 			}
 		}
 
