@@ -387,7 +387,7 @@ func (c *RestAPI) HandleQueryGenerations(w http.ResponseWriter, r *http.Request)
 		}
 
 		// Get user generation data in correct format
-		generationsUnsorted, err := c.Repo.RetrieveGenerationsWithOutputIDs(outputIds, false)
+		generationsUnsorted, err := c.Repo.RetrieveGenerationsWithOutputIDs(outputIds, utils.ToPtr(user.ID), false)
 		if err != nil {
 			log.Error("Error getting generations", "err", err)
 			responses.ErrInternalServerError(w, r, "An unknown error has occurred")

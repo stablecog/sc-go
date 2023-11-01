@@ -10,6 +10,7 @@ import (
 	"github.com/stablecog/sc-go/database/ent"
 	"github.com/stablecog/sc-go/database/ent/generation"
 	"github.com/stablecog/sc-go/database/ent/generationoutput"
+	"github.com/stablecog/sc-go/database/ent/generationoutputlike"
 	"github.com/stablecog/sc-go/database/ent/negativeprompt"
 	"github.com/stablecog/sc-go/database/ent/prompt"
 	"github.com/stablecog/sc-go/database/ent/user"
@@ -307,8 +308,14 @@ type UserGenCount struct {
 // Get user generations in the *GenerationQueryWithOutputsMeta format
 // Using a list of generation_output ids
 // For when we semantic search against our vector db
-func (r *Repository) RetrieveGenerationsWithOutputIDs(outputIDs []uuid.UUID, admin bool) (*GenerationQueryWithOutputsMeta[*uint], error) {
-	gQueryResult, err := r.DB.GenerationOutput.Query().Where(generationoutput.IDIn(outputIDs...)).WithGenerations(func(gq *ent.GenerationQuery) {
+func (r *Repository) RetrieveGenerationsWithOutputIDs(outputIDs []uuid.UUID, callingUserId *uuid.UUID, admin bool) (*GenerationQueryWithOutputsMeta[*uint], error) {
+	query := r.DB.GenerationOutput.Query().Where(generationoutput.IDIn(outputIDs...))
+	if callingUserId != nil {
+		query = query.WithGenerationOutputLikes(func(gql *ent.GenerationOutputLikeQuery) {
+			gql.Where(generationoutputlike.LikedByUserID(*callingUserId))
+		})
+	}
+	gQueryResult, err := query.WithGenerations(func(gq *ent.GenerationQuery) {
 		gq.WithPrompt()
 		gq.WithNegativePrompt()
 		gq.WithUser()
@@ -349,6 +356,8 @@ func (r *Repository) RetrieveGenerationsWithOutputIDs(outputIDs []uuid.UUID, adm
 			WasAutoSubmitted: g.Edges.Generations.WasAutoSubmitted,
 			IsFavorited:      g.IsFavorited,
 			IsPublic:         g.IsPublic,
+			LikeCount:        utils.ToPtr(g.LikeCount),
+			LikedByUser:      utils.ToPtr(len(g.Edges.GenerationOutputLikes) > 0),
 		}
 		if g.UpscaledImagePath != nil {
 			gOutput.UpscaledImageUrl = *g.UpscaledImagePath
@@ -612,12 +621,31 @@ func (r *Repository) QueryGenerations(per_page int, cursor *time.Time, filters *
 	if filters != nil && filters.UserID != nil && cursor == nil {
 		fmt.Printf("--- Q3 Took %f -- %s\n", end.Sub(begin).Seconds(), (*filters.UserID).String())
 	}
+
+	// Figure out liked by
+	likedByMap := make(map[uuid.UUID]struct{})
+	if filters.UserID != nil {
+		outputIds := make([]uuid.UUID, len(gQueryResult))
+		for i, g := range gQueryResult {
+			outputIds[i] = *g.OutputID
+		}
+		likedByMap, err = r.GetGenerationOutputsLikedByUser(*filters.UserID, outputIds)
+		if err != nil {
+			log.Error("Error getting liked by map", "err", err)
+			return nil, err
+		}
+	}
+
 	// Format to GenerationQueryWithOutputsResultFormatted
 	generationOutputMap := make(map[uuid.UUID][]GenerationUpscaleOutput)
 	for _, g := range gQueryResult {
 		if g.OutputID == nil {
 			log.Warn("Output ID is nil for generation, cannot include in result", "id", g.ID)
 			continue
+		}
+		likedByUser := false
+		if _, ok := likedByMap[*g.OutputID]; ok {
+			likedByUser = true
 		}
 		gOutput := GenerationUpscaleOutput{
 			ID:               *g.OutputID,
@@ -627,6 +655,8 @@ func (r *Repository) QueryGenerations(per_page int, cursor *time.Time, filters *
 			WasAutoSubmitted: g.WasAutoSubmitted,
 			IsFavorited:      g.IsFavorited,
 			IsPublic:         g.IsPublic,
+			LikeCount:        utils.ToPtr(g.LikeCount),
+			LikedByUser:      utils.ToPtr(likedByUser),
 		}
 		promptText, _ := promptIDsMap[*g.PromptID]
 		output := GenerationQueryWithOutputsResultFormatted{
@@ -1032,6 +1062,8 @@ type GenerationUpscaleOutput struct {
 	IsPublic         bool                           `json:"is_public"`
 	DenoiseAudio     *bool                          `json:"denoise_audio,omitempty"`
 	RemoveSilence    *bool                          `json:"remove_silence,omitempty"`
+	LikeCount        *int                           `json:"like_count,omitempty"`
+	LikedByUser      *bool                          `json:"liked_by_user,omitempty"`
 }
 
 type GenerationQueryWithOutputsMetaCursor interface {

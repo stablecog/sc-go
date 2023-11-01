@@ -212,7 +212,8 @@ func (c *RestAPI) HandleDeleteGenerationOutput(w http.ResponseWriter, r *http.Re
 
 // HTTP Get - generations for admin
 func (c *RestAPI) HandleQueryGenerationsForAdmin(w http.ResponseWriter, r *http.Request) {
-	if user, email := c.GetUserIDAndEmailIfAuthenticated(w, r); user == nil || email == "" {
+	user, email := c.GetUserIDAndEmailIfAuthenticated(w, r)
+	if user == nil || email == "" {
 		return
 	}
 
@@ -320,7 +321,7 @@ func (c *RestAPI) HandleQueryGenerationsForAdmin(w http.ResponseWriter, r *http.
 		}
 
 		// Get user generation data in correct format
-		generationsUnsorted, err := c.Repo.RetrieveGenerationsWithOutputIDs(outputIds, true)
+		generationsUnsorted, err := c.Repo.RetrieveGenerationsWithOutputIDs(outputIds, user, true)
 		if err != nil {
 			log.Error("Error getting generations", "err", err)
 			responses.ErrInternalServerError(w, r, "An unknown error has occurred")
