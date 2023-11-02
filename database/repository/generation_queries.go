@@ -251,7 +251,7 @@ func (r *Repository) ApplyUserGenerationsFilters(query *ent.GenerationQuery, fil
 			resQuery = resQuery.Where(generation.WasAutoSubmittedEQ(*filters.WasAutoSubmitted))
 		}
 
-		if filters.UserID != nil {
+		if filters.UserID != nil && filters.IsLiked == nil {
 			resQuery = resQuery.Where(generation.UserIDEQ(*filters.UserID))
 		}
 	}
