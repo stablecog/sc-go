@@ -60,8 +60,8 @@ func (r *Repository) RetrieveGalleryDataByID(id uuid.UUID, userId *uuid.UUID, ca
 		User: &UserType{
 			Username: output.Edges.Generations.Edges.User.Username,
 		},
-		LikeCount:   output.LikeCount,
-		LikedByUser: utils.ToPtr(len(output.Edges.GenerationOutputLikes) > 0),
+		LikeCount: output.LikeCount,
+		IsLiked:   utils.ToPtr(len(output.Edges.GenerationOutputLikes) > 0),
 	}
 	if all {
 		data.IsPublic = output.IsPublic
@@ -277,7 +277,7 @@ func (r *Repository) RetrieveMostRecentGalleryDataV2(filters *requests.QueryGene
 			WasAutoSubmitted: g.WasAutoSubmitted,
 			IsPublic:         g.IsPublic,
 			LikeCount:        g.LikeCount,
-			LikedByUser:      utils.ToPtr(likedByUser),
+			IsLiked:          utils.ToPtr(likedByUser),
 		}
 
 		if g.NegativePromptID != nil {
@@ -369,8 +369,8 @@ func (r *Repository) RetrieveMostRecentGalleryData(filters *requests.QueryGenera
 			User: &UserType{
 				Username: output.Edges.Generations.Edges.User.Username,
 			},
-			LikeCount:   output.LikeCount,
-			LikedByUser: utils.ToPtr(len(output.Edges.GenerationOutputLikes) > 0),
+			LikeCount: output.LikeCount,
+			IsLiked:   utils.ToPtr(len(output.Edges.GenerationOutputLikes) > 0),
 		}
 		if output.UpscaledImagePath != nil {
 			data.UpscaledImageURL = utils.GetEnv().GetURLFromImagePath(*output.UpscaledImagePath)
@@ -429,8 +429,8 @@ func (r *Repository) RetrieveGalleryDataWithOutputIDs(outputIDs []uuid.UUID, cal
 			User: &UserType{
 				Username: output.Edges.Generations.Edges.User.Username,
 			},
-			LikeCount:   output.LikeCount,
-			LikedByUser: utils.ToPtr(len(output.Edges.GenerationOutputLikes) > 0),
+			LikeCount: output.LikeCount,
+			IsLiked:   utils.ToPtr(len(output.Edges.GenerationOutputLikes) > 0),
 		}
 		if output.UpscaledImagePath != nil {
 			data.UpscaledImageURL = utils.GetEnv().GetURLFromImagePath(*output.UpscaledImagePath)
@@ -469,5 +469,5 @@ type GalleryData struct {
 	WasAutoSubmitted   bool       `json:"was_auto_submitted" sql:"was_auto_submitted"`
 	IsPublic           bool       `json:"is_public" sql:"is_public"`
 	LikeCount          int        `json:"like_count" sql:"like_count"`
-	LikedByUser        *bool      `json:"liked_by_user,omitempty" sql:"liked_by_user"`
+	IsLiked            *bool      `json:"is_liked,omitempty" sql:"liked_by_user"`
 }

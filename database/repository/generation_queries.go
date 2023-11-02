@@ -357,7 +357,7 @@ func (r *Repository) RetrieveGenerationsWithOutputIDs(outputIDs []uuid.UUID, cal
 			IsFavorited:      g.IsFavorited,
 			IsPublic:         g.IsPublic,
 			LikeCount:        utils.ToPtr(g.LikeCount),
-			LikedByUser:      utils.ToPtr(len(g.Edges.GenerationOutputLikes) > 0),
+			IsLiked:          utils.ToPtr(len(g.Edges.GenerationOutputLikes) > 0),
 		}
 		if g.UpscaledImagePath != nil {
 			gOutput.UpscaledImageUrl = *g.UpscaledImagePath
@@ -476,7 +476,6 @@ func (r *Repository) QueryGenerations(per_page int, cursor *time.Time, filters *
 	query = query.Limit(per_page + 1)
 
 	// Join other data
-	begin := time.Now()
 	err := query.Modify(func(s *sql.Selector) {
 		gt := sql.Table(generation.Table)
 		got := sql.Table(generationoutput.Table)
@@ -543,11 +542,6 @@ func (r *Repository) QueryGenerations(per_page int, cursor *time.Time, filters *
 		return nil, err
 	}
 
-	end := time.Now()
-	if filters != nil && filters.UserID != nil && cursor == nil {
-		fmt.Printf("--- Q1 Took %f -- %s\n", end.Sub(begin).Seconds(), (*filters.UserID).String())
-	}
-
 	if len(gQueryResult) == 0 {
 		meta := &GenerationQueryWithOutputsMeta[*time.Time]{
 			Outputs: []GenerationQueryWithOutputsResultFormatted{},
@@ -604,17 +598,12 @@ func (r *Repository) QueryGenerations(per_page int, cursor *time.Time, filters *
 		i++
 	}
 
-	begin = time.Now()
 	prompts, err := r.DB.Prompt.Query().Select(prompt.FieldText).Where(prompt.IDIn(promptIDs...)).All(r.Ctx)
 	if err != nil {
 		log.Error("Error retrieving prompts", "err", err)
 		return nil, err
 	}
-	end = time.Now()
-	if filters != nil && filters.UserID != nil && cursor == nil {
-		fmt.Printf("--- Q2 Took %f -- %s\n", end.Sub(begin).Seconds(), (*filters.UserID).String())
-	}
-	begin = time.Now()
+
 	negativePrompts, err := r.DB.NegativePrompt.Query().Select(negativeprompt.FieldText).Where(negativeprompt.IDIn(negativePromptId...)).All(r.Ctx)
 	if err != nil {
 		log.Error("Error retrieving prompts", "err", err)
@@ -625,10 +614,6 @@ func (r *Repository) QueryGenerations(per_page int, cursor *time.Time, filters *
 	}
 	for _, p := range negativePrompts {
 		negativePromptIdsMap[p.ID] = p.Text
-	}
-	end = time.Now()
-	if filters != nil && filters.UserID != nil && cursor == nil {
-		fmt.Printf("--- Q3 Took %f -- %s\n", end.Sub(begin).Seconds(), (*filters.UserID).String())
 	}
 
 	// Figure out liked by
@@ -665,7 +650,7 @@ func (r *Repository) QueryGenerations(per_page int, cursor *time.Time, filters *
 			IsFavorited:      g.IsFavorited,
 			IsPublic:         g.IsPublic,
 			LikeCount:        utils.ToPtr(g.LikeCount),
-			LikedByUser:      utils.ToPtr(likedByUser),
+			IsLiked:          utils.ToPtr(likedByUser),
 		}
 		promptText, _ := promptIDsMap[*g.PromptID]
 		output := GenerationQueryWithOutputsResultFormatted{
@@ -715,15 +700,10 @@ func (r *Repository) QueryGenerations(per_page int, cursor *time.Time, filters *
 	}
 
 	if cursor == nil {
-		begin = time.Now()
 		total, err := r.GetGenerationCount(filters)
 		if err != nil {
 			log.Error("Error getting user generation count", "err", err)
 			return nil, err
-		}
-		end = time.Now()
-		if filters != nil && filters.UserID != nil && cursor == nil {
-			fmt.Printf("--- Q4 Took %f -- %s\n", end.Sub(begin).Seconds(), (*filters.UserID).String())
 		}
 		meta.Total = &total
 	}
@@ -1072,7 +1052,7 @@ type GenerationUpscaleOutput struct {
 	DenoiseAudio     *bool                          `json:"denoise_audio,omitempty"`
 	RemoveSilence    *bool                          `json:"remove_silence,omitempty"`
 	LikeCount        *int                           `json:"like_count,omitempty"`
-	LikedByUser      *bool                          `json:"liked_by_user,omitempty"`
+	IsLiked          *bool                          `json:"is_liked,omitempty"`
 }
 
 type GenerationQueryWithOutputsMetaCursor interface {
