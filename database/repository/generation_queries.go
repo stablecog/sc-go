@@ -788,7 +788,7 @@ func (r *Repository) GetGenerationCountAdmin(filters *requests.QueryGenerationFi
 }
 
 // Alternate version for performance when we can't index by user_id
-func (r *Repository) QueryGenerationsAdmin(per_page int, cursor *time.Time, filters *requests.QueryGenerationFilters) (*GenerationQueryWithOutputsMeta[*time.Time], error) {
+func (r *Repository) QueryGenerationsAdmin(per_page int, cursor *time.Time, callingUserId *uuid.UUID, filters *requests.QueryGenerationFilters) (*GenerationQueryWithOutputsMeta[*time.Time], error) {
 	var gQueryResult []GenerationQueryWithOutputsResult
 
 	// Figure out order bys
@@ -917,6 +917,20 @@ func (r *Repository) QueryGenerationsAdmin(per_page int, cursor *time.Time, filt
 		meta.Next = &res[len(res)-1].CreatedAt
 	}
 
+	// Figure out liked by in another query, if calling user is provided
+	likedByMap := make(map[uuid.UUID]struct{})
+	if callingUserId != nil {
+		outputIds := make([]uuid.UUID, len(gQueryResult))
+		for i, g := range outputIDs {
+			outputIds[i] = g
+		}
+		likedByMap, err = r.GetGenerationOutputsLikedByUser(*callingUserId, outputIds)
+		if err != nil {
+			log.Error("Error getting liked by map", "err", err)
+			return nil, err
+		}
+	}
+
 	// Get real image URLs for each
 	// Since we do this weird format need to cap at per page
 	for _, g := range res {
@@ -965,6 +979,10 @@ func (r *Repository) QueryGenerationsAdmin(per_page int, cursor *time.Time, filt
 
 		// Add outputs
 		for _, o := range g.Edges.Generations.Edges.GenerationOutputs {
+			likedByUser := false
+			if _, ok := likedByMap[o.ID]; ok {
+				likedByUser = true
+			}
 			output := GenerationUpscaleOutput{
 				ID:               o.ID,
 				ImageUrl:         utils.GetEnv().GetURLFromImagePath(o.ImagePath),
@@ -974,6 +992,7 @@ func (r *Repository) QueryGenerationsAdmin(per_page int, cursor *time.Time, filt
 				IsPublic:         o.IsPublic,
 				WasAutoSubmitted: generationRoot.WasAutoSubmitted,
 				LikeCount:        utils.ToPtr(o.LikeCount),
+				IsLiked:          utils.ToPtr(likedByUser),
 			}
 			if o.UpscaledImagePath != nil {
 				output.UpscaledImageUrl = utils.GetEnv().GetURLFromImagePath(*o.UpscaledImagePath)
