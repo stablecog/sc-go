@@ -1000,8 +1000,14 @@ func (r *Repository) QueryGenerationsAdmin(per_page int, cursor *time.Time, call
 			generationRoot.Outputs = append(generationRoot.Outputs, output)
 		}
 
+		likedByUser := false
+		if _, ok := likedByMap[g.ID]; ok {
+			likedByUser = true
+		}
+
 		ret := GenerationQueryWithOutputsResult{
 			LikeCount:                      g.LikeCount,
+			IsLiked:                        utils.ToPtr(likedByUser),
 			OutputID:                       &g.ID,
 			ImageUrl:                       utils.GetEnv().GetURLFromImagePath(g.ImagePath),
 			GalleryStatus:                  g.GalleryStatus,
@@ -1127,7 +1133,8 @@ type GenerationQueryWithOutputsData struct {
 
 type GenerationQueryWithOutputsResult struct {
 	OutputID         *uuid.UUID                     `json:"output_id,omitempty" sql:"output_id"`
-	LikeCount        int                            `json:"like_count,omitempty" sql:"like_count"`
+	IsLiked          *bool                          `json:"is_liked,omitempty" sql:"is_liked"`
+	LikeCount        int                            `json:"like_count" sql:"like_count"`
 	ImageUrl         string                         `json:"image_url,omitempty" sql:"image_path"`
 	UpscaledImageUrl string                         `json:"upscaled_image_url,omitempty" sql:"upscaled_image_path"`
 	GalleryStatus    generationoutput.GalleryStatus `json:"gallery_status,omitempty" sql:"output_gallery_status"`
