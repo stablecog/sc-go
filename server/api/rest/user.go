@@ -336,11 +336,24 @@ func (c *RestAPI) HandleQueryGenerations(w http.ResponseWriter, r *http.Request)
 
 		// Parse as qdrant filters
 		qdrantFilters, scoreThreshold := filters.ToQdrantFilters(false)
-		// Append user_id requirement
-		qdrantFilters.Must = append(qdrantFilters.Must, qdrant.SCMatchCondition{
-			Key:   "user_id",
-			Match: &qdrant.SCValue{Value: user.ID.String()},
-		})
+		// Append user_id requirement, unless liked
+		if filters.IsLiked == nil {
+			qdrantFilters.Must = append(qdrantFilters.Must, qdrant.SCMatchCondition{
+				Key:   "user_id",
+				Match: &qdrant.SCValue{Value: user.ID.String()},
+			})
+		} else {
+			// Get this users likes
+			likedIds, err := c.Repo.GetGenerationOutputIDsLikedByUser(user.ID, 30000)
+			if err != nil {
+				log.Error("Error getting liked ids", "err", err)
+				responses.ErrInternalServerError(w, r, "An unknown error has occurred")
+				return
+			}
+			qdrantFilters.Must = append(qdrantFilters.Must, qdrant.SCMatchCondition{
+				HasId: likedIds,
+			})
+		}
 		// Deleted at not empty
 		qdrantFilters.Must = append(qdrantFilters.Must, qdrant.SCMatchCondition{
 			IsEmpty: &qdrant.SCIsEmpty{Key: "deleted_at"},

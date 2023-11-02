@@ -16,6 +16,7 @@ import (
 
 	"github.com/deepmap/oapi-codegen/pkg/runtime"
 	openapi_types "github.com/deepmap/oapi-codegen/pkg/types"
+	"github.com/google/uuid"
 	"golang.org/x/exp/constraints"
 )
 
@@ -1657,6 +1658,8 @@ type SCMatchCondition struct {
 	Key  string `json:"key,omitempty"`
 	Match *SCValue `json:"match,omitempty"`
 	IsEmpty *SCIsEmpty `json:"is_empty,omitempty"`
+	// { has_id: [1, 2, 3, 3]}
+	HasId []uuid.UUID `json:"has_id,omitempty"`
 	// ! TODO Interface since we can't embed a generic struct?
 	Range interface{} `json:"range,omitempty"`
 }

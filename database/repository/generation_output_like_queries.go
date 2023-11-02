@@ -2,6 +2,7 @@ package repository
 
 import (
 	"github.com/google/uuid"
+	"github.com/stablecog/sc-go/database/ent"
 	"github.com/stablecog/sc-go/database/ent/generationoutputlike"
 )
 
@@ -16,4 +17,17 @@ func (r *Repository) GetGenerationOutputsLikedByUser(userID uuid.UUID, generatio
 		liked[like.OutputID] = struct{}{}
 	}
 	return liked, nil
+}
+
+// Take user ID and limit, return array of output_ids they have liked in descending order of created_at
+func (r *Repository) GetGenerationOutputIDsLikedByUser(userID uuid.UUID, limit int) ([]uuid.UUID, error) {
+	likedByUser, err := r.DB.GenerationOutputLike.Query().Where(generationoutputlike.LikedByUserID(userID)).Order(ent.Desc(generationoutputlike.FieldCreatedAt)).Limit(limit).All(r.Ctx)
+	if err != nil {
+		return nil, err
+	}
+	outputIDs := make([]uuid.UUID, len(likedByUser))
+	for i, like := range likedByUser {
+		outputIDs[i] = like.OutputID
+	}
+	return outputIDs, nil
 }
