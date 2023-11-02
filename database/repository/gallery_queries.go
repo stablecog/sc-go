@@ -237,7 +237,7 @@ func (r *Repository) RetrieveMostRecentGalleryDataV2(filters *requests.QueryGene
 
 	// Figure out liked by in another query, if calling user is provided
 	likedByMap := make(map[uuid.UUID]struct{})
-	if callingUserId != nil {
+	if callingUserId != nil && len(gQueryResult) > 0 {
 		outputIds := make([]uuid.UUID, len(gQueryResult))
 		for i, g := range gQueryResult {
 			outputIds[i] = *g.OutputID
