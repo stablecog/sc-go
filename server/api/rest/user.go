@@ -344,7 +344,7 @@ func (c *RestAPI) HandleQueryGenerations(w http.ResponseWriter, r *http.Request)
 			})
 		} else {
 			// Get this users likes
-			likedIds, err := c.Repo.GetGenerationOutputIDsLikedByUser(user.ID, 30000)
+			likedIds, err := c.Repo.GetGenerationOutputIDsLikedByUser(user.ID, 10000)
 			if err != nil {
 				log.Error("Error getting liked ids", "err", err)
 				responses.ErrInternalServerError(w, r, "An unknown error has occurred")
