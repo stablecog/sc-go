@@ -487,7 +487,7 @@ func (r *Repository) QueryGenerations(per_page int, cursor *time.Time, filters *
 				sql.IsNull(got.C(generationoutput.FieldDeletedAt)),
 			),
 		)
-		if filters != nil && filters.UserID != nil {
+		if filters != nil && filters.UserID != nil && filters.IsLiked == nil {
 			ltj.Join(ut).OnP(
 				sql.And(
 					sql.ColumnsEQ(s.C(generation.FieldUserID), ut.C(user.FieldID)),
@@ -973,6 +973,7 @@ func (r *Repository) QueryGenerationsAdmin(per_page int, cursor *time.Time, filt
 				IsFavorited:      o.IsFavorited,
 				IsPublic:         o.IsPublic,
 				WasAutoSubmitted: generationRoot.WasAutoSubmitted,
+				LikeCount:        utils.ToPtr(o.LikeCount),
 			}
 			if o.UpscaledImagePath != nil {
 				output.UpscaledImageUrl = utils.GetEnv().GetURLFromImagePath(*o.UpscaledImagePath)
