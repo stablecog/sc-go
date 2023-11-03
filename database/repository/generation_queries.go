@@ -407,12 +407,14 @@ func (r *Repository) RetrieveGenerationsWithOutputIDs(outputIDs []uuid.UUID, cal
 		if g.Edges.Generations.Edges.User != nil {
 			if admin {
 				output.Generation.User = &UserType{
-					Email:    g.Edges.Generations.Edges.User.Email,
-					Username: g.Edges.Generations.Edges.User.Username,
+					Email:      g.Edges.Generations.Edges.User.Email,
+					Username:   g.Edges.Generations.Edges.User.Username,
+					Identifier: utils.Sha256(g.Edges.Generations.Edges.User.ID.String()),
 				}
 			} else {
 				output.Generation.User = &UserType{
-					Username: g.Edges.Generations.Edges.User.Username,
+					Username:   g.Edges.Generations.Edges.User.Username,
+					Identifier: utils.Sha256(g.Edges.Generations.Edges.User.ID.String()),
 				}
 			}
 		}
@@ -516,7 +518,7 @@ func (r *Repository) QueryGenerations(per_page int, cursor *time.Time, filters *
 				),
 			)
 		}
-		ltj.AppendSelect(sql.As(got.C(generationoutput.FieldID), "output_id"), sql.As(got.C(generationoutput.FieldLikeCount), "like_count"), sql.As(got.C(generationoutput.FieldGalleryStatus), "output_gallery_status"), sql.As(got.C(generationoutput.FieldImagePath), "image_path"), sql.As(got.C(generationoutput.FieldUpscaledImagePath), "upscaled_image_path"), sql.As(got.C(generationoutput.FieldDeletedAt), "deleted_at"), sql.As(got.C(generationoutput.FieldIsFavorited), "is_favorited"), sql.As(ut.C(user.FieldUsername), "username"), sql.As(got.C(generationoutput.FieldIsPublic), "is_public")).
+		ltj.AppendSelect(sql.As(got.C(generationoutput.FieldID), "output_id"), sql.As(got.C(generationoutput.FieldLikeCount), "like_count"), sql.As(got.C(generationoutput.FieldGalleryStatus), "output_gallery_status"), sql.As(got.C(generationoutput.FieldImagePath), "image_path"), sql.As(got.C(generationoutput.FieldUpscaledImagePath), "upscaled_image_path"), sql.As(got.C(generationoutput.FieldDeletedAt), "deleted_at"), sql.As(got.C(generationoutput.FieldIsFavorited), "is_favorited"), sql.As(ut.C(user.FieldUsername), "username"), sql.As(ut.C(user.FieldID), "user_id"), sql.As(got.C(generationoutput.FieldIsPublic), "is_public")).
 			GroupBy(s.C(generation.FieldID),
 				got.C(generationoutput.FieldID), got.C(generationoutput.FieldGalleryStatus),
 				got.C(generationoutput.FieldImagePath), got.C(generationoutput.FieldUpscaledImagePath),
@@ -688,7 +690,8 @@ func (r *Repository) QueryGenerations(per_page int, cursor *time.Time, filters *
 					ID:   *g.PromptID,
 				},
 				User: &UserType{
-					Username: g.Username,
+					Username:   g.Username,
+					Identifier: utils.Sha256(g.UserID.String()),
 				},
 				IsFavorited:    gOutput.IsFavorited,
 				IsPublic:       gOutput.IsPublic,
@@ -983,8 +986,9 @@ func (r *Repository) QueryGenerationsAdmin(per_page int, cursor *time.Time, call
 		}
 		if g.Edges.Generations.Edges.User != nil {
 			generationRoot.User = &UserType{
-				Email:    g.Edges.Generations.Edges.User.Email,
-				Username: g.Edges.Generations.Edges.User.Username,
+				Email:      g.Edges.Generations.Edges.User.Email,
+				Username:   g.Edges.Generations.Edges.User.Username,
+				Identifier: utils.Sha256(g.Edges.Generations.Edges.User.ID.String()),
 			}
 		}
 
@@ -1110,8 +1114,9 @@ type PromptType struct {
 }
 
 type UserType struct {
-	Email    string `json:"email,omitempty"`
-	Username string `json:"username"`
+	Email      string `json:"email,omitempty"`
+	Username   string `json:"username"`
+	Identifier string `json:"identifier,omitempty"`
 }
 
 type GenerationQueryWithOutputsData struct {
@@ -1131,6 +1136,7 @@ type GenerationQueryWithOutputsData struct {
 	StartedAt          *time.Time                `json:"started_at,omitempty" sql:"started_at"`
 	CompletedAt        *time.Time                `json:"completed_at,omitempty" sql:"completed_at"`
 	Username           string                    `json:"username,omitempty" sql:"username"`
+	UserID             uuid.UUID                 `json:"user_id,omitempty" sql:"user_id"`
 	IsFavorited        bool                      `json:"is_favorited" sql:"is_favorited"`
 	IsPublic           bool                      `json:"is_public" sql:"is_public"`
 	Outputs            []GenerationUpscaleOutput `json:"outputs"`

@@ -58,7 +58,8 @@ func (r *Repository) RetrieveGalleryDataByID(id uuid.UUID, userId *uuid.UUID, ca
 		PromptText:     output.Edges.Generations.Edges.Prompt.Text,
 		PromptStrength: output.Edges.Generations.PromptStrength,
 		User: &UserType{
-			Username: output.Edges.Generations.Edges.User.Username,
+			Username:   output.Edges.Generations.Edges.User.Username,
+			Identifier: utils.Sha256(output.Edges.Generations.Edges.User.ID.String()),
 		},
 		LikeCount: output.LikeCount,
 		IsLiked:   utils.ToPtr(len(output.Edges.GenerationOutputLikes) > 0),
@@ -148,7 +149,7 @@ func (r *Repository) RetrieveMostRecentGalleryDataV2(filters *requests.QueryGene
 				s.C(generation.FieldUserID), ut.C(user.FieldID),
 			)
 		}
-		ltj.AppendSelect(sql.As(got.C(generationoutput.FieldID), "output_id"), sql.As(got.C(generationoutput.FieldLikeCount), "like_count"), sql.As(got.C(generationoutput.FieldGalleryStatus), "output_gallery_status"), sql.As(got.C(generationoutput.FieldImagePath), "image_path"), sql.As(got.C(generationoutput.FieldUpscaledImagePath), "upscaled_image_path"), sql.As(got.C(generationoutput.FieldDeletedAt), "deleted_at"), sql.As(got.C(generationoutput.FieldIsFavorited), "is_favorited"), sql.As(ut.C(user.FieldUsername), "username"), sql.As(got.C(generationoutput.FieldIsPublic), "is_public")).
+		ltj.AppendSelect(sql.As(got.C(generationoutput.FieldID), "output_id"), sql.As(got.C(generationoutput.FieldLikeCount), "like_count"), sql.As(got.C(generationoutput.FieldGalleryStatus), "output_gallery_status"), sql.As(got.C(generationoutput.FieldImagePath), "image_path"), sql.As(got.C(generationoutput.FieldUpscaledImagePath), "upscaled_image_path"), sql.As(got.C(generationoutput.FieldDeletedAt), "deleted_at"), sql.As(got.C(generationoutput.FieldIsFavorited), "is_favorited"), sql.As(ut.C(user.FieldUsername), "username"), sql.As(ut.C(user.FieldID), "user_id"), sql.As(got.C(generationoutput.FieldIsPublic), "is_public")).
 			GroupBy(s.C(generation.FieldID),
 				got.C(generationoutput.FieldID), got.C(generationoutput.FieldGalleryStatus),
 				got.C(generationoutput.FieldImagePath), got.C(generationoutput.FieldUpscaledImagePath),
@@ -272,7 +273,8 @@ func (r *Repository) RetrieveMostRecentGalleryDataV2(filters *requests.QueryGene
 			PromptID:       *g.PromptID,
 			PromptStrength: g.PromptStrength,
 			User: &UserType{
-				Username: g.Username,
+				Username:   g.Username,
+				Identifier: utils.Sha256(g.UserID.String()),
 			},
 			WasAutoSubmitted: g.WasAutoSubmitted,
 			IsPublic:         g.IsPublic,
@@ -367,7 +369,8 @@ func (r *Repository) RetrieveMostRecentGalleryData(filters *requests.QueryGenera
 			PromptID:       output.Edges.Generations.Edges.Prompt.ID,
 			UserID:         &output.Edges.Generations.UserID,
 			User: &UserType{
-				Username: output.Edges.Generations.Edges.User.Username,
+				Username:   output.Edges.Generations.Edges.User.Username,
+				Identifier: utils.Sha256(output.Edges.Generations.Edges.User.ID.String()),
 			},
 			LikeCount: output.LikeCount,
 			IsLiked:   utils.ToPtr(len(output.Edges.GenerationOutputLikes) > 0),
@@ -427,7 +430,8 @@ func (r *Repository) RetrieveGalleryDataWithOutputIDs(outputIDs []uuid.UUID, cal
 			PromptID:       output.Edges.Generations.Edges.Prompt.ID,
 			UserID:         &output.Edges.Generations.UserID,
 			User: &UserType{
-				Username: output.Edges.Generations.Edges.User.Username,
+				Username:   output.Edges.Generations.Edges.User.Username,
+				Identifier: utils.Sha256(output.Edges.Generations.Edges.User.ID.String()),
 			},
 			LikeCount: output.LikeCount,
 			IsLiked:   utils.ToPtr(len(output.Edges.GenerationOutputLikes) > 0),
