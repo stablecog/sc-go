@@ -518,7 +518,6 @@ func (r *Repository) QueryGenerations(per_page int, cursor *time.Time, filters *
 				),
 			)
 			ltj.AppendSelect(sql.As(golikesT.C(generationoutputlike.FieldCreatedAt), "liked_at"))
-			ltj.GroupBy(golikesT.C(generationoutputlike.FieldCreatedAt))
 		}
 		ltj.AppendSelect(sql.As(got.C(generationoutput.FieldID), "output_id"), sql.As(got.C(generationoutput.FieldLikeCount), "like_count"), sql.As(got.C(generationoutput.FieldGalleryStatus), "output_gallery_status"), sql.As(got.C(generationoutput.FieldImagePath), "image_path"), sql.As(got.C(generationoutput.FieldUpscaledImagePath), "upscaled_image_path"), sql.As(got.C(generationoutput.FieldDeletedAt), "deleted_at"), sql.As(got.C(generationoutput.FieldIsFavorited), "is_favorited"), sql.As(ut.C(user.FieldUsername), "username"), sql.As(ut.C(user.FieldID), "user_id"), sql.As(got.C(generationoutput.FieldIsPublic), "is_public")).
 			GroupBy(s.C(generation.FieldID),
@@ -1165,6 +1164,7 @@ type GenerationQueryWithOutputsData struct {
 type GenerationQueryWithOutputsResult struct {
 	OutputID         *uuid.UUID                     `json:"output_id,omitempty" sql:"output_id"`
 	IsLiked          *bool                          `json:"is_liked,omitempty" sql:"is_liked"`
+	LikedAt          *time.Time                     `json:"liked_at,omitempty" sql:"liked_at"`
 	LikeCount        int                            `json:"like_count" sql:"like_count"`
 	ImageUrl         string                         `json:"image_url,omitempty" sql:"image_path"`
 	UpscaledImageUrl string                         `json:"upscaled_image_url,omitempty" sql:"upscaled_image_path"`
