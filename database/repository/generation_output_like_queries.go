@@ -52,3 +52,9 @@ func (r *Repository) GetGenerationOutputLikeCountForUser(userID uuid.UUID) (int,
 	}
 	return *v[0].Sum, nil
 }
+
+// Get how many likes a user has received for their generation outputs excluding self
+func (r *Repository) GetGenerationOutputLikeCountForUserExcludingSelfLikes(userID uuid.UUID) (int, error) {
+	return r.DB.GenerationOutputLike.Query().Where(generationoutputlike.LikedByUserIDNEQ(userID),
+		generationoutputlike.HasGenerationOutputsWith(generationoutput.HasGenerationsWith(generation.UserID(userID)))).Count(r.Ctx)
+}

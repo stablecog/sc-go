@@ -42,7 +42,7 @@ func (c *RestAPI) HandleGetUserProfileMetadata(w http.ResponseWriter, r *http.Re
 	}
 
 	// Get like count
-	likes, err := c.Repo.GetGenerationOutputLikeCountForUser(user.ID)
+	likes, err := c.Repo.GetGenerationOutputLikeCountForUserExcludingSelfLikes(user.ID)
 	if err != nil {
 		log.Error("Error getting like count", "err", err)
 		responses.ErrInternalServerError(w, r, "An unknown error has occurred")
