@@ -153,7 +153,7 @@ func (r *Repository) RetrieveMostRecentGalleryDataV2(filters *requests.QueryGene
 			GroupBy(s.C(generation.FieldID),
 				got.C(generationoutput.FieldID), got.C(generationoutput.FieldGalleryStatus),
 				got.C(generationoutput.FieldImagePath), got.C(generationoutput.FieldUpscaledImagePath),
-				ut.C(user.FieldUsername))
+				ut.C(user.FieldUsername), ut.C(user.FieldID))
 		orderDir := "asc"
 		if filters == nil || (filters != nil && filters.Order == requests.SortOrderDescending) {
 			orderDir = "desc"
