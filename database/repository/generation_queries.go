@@ -510,6 +510,7 @@ func (r *Repository) QueryGenerations(per_page int, cursor *time.Time, filters *
 				s.C(generation.FieldUserID), ut.C(user.FieldID),
 			)
 		}
+		groupByFields := []string{}
 		if filters != nil && filters.UserID != nil && filters.IsLiked != nil {
 			ltj.Join(golikesT).OnP(
 				sql.And(
@@ -518,12 +519,14 @@ func (r *Repository) QueryGenerations(per_page int, cursor *time.Time, filters *
 				),
 			)
 			ltj.AppendSelect(sql.As(golikesT.C(generationoutputlike.FieldCreatedAt), "liked_at"))
+			groupByFields = append(groupByFields, golikesT.C(generationoutputlike.FieldCreatedAt))
 		}
+		groupByFields = append(groupByFields, []string{s.C(generation.FieldID),
+			got.C(generationoutput.FieldID), got.C(generationoutput.FieldGalleryStatus),
+			got.C(generationoutput.FieldImagePath), got.C(generationoutput.FieldUpscaledImagePath),
+			ut.C(user.FieldUsername), ut.C(user.FieldID)}...)
 		ltj.AppendSelect(sql.As(got.C(generationoutput.FieldID), "output_id"), sql.As(got.C(generationoutput.FieldLikeCount), "like_count"), sql.As(got.C(generationoutput.FieldGalleryStatus), "output_gallery_status"), sql.As(got.C(generationoutput.FieldImagePath), "image_path"), sql.As(got.C(generationoutput.FieldUpscaledImagePath), "upscaled_image_path"), sql.As(got.C(generationoutput.FieldDeletedAt), "deleted_at"), sql.As(got.C(generationoutput.FieldIsFavorited), "is_favorited"), sql.As(ut.C(user.FieldUsername), "username"), sql.As(ut.C(user.FieldID), "user_id"), sql.As(got.C(generationoutput.FieldIsPublic), "is_public")).
-			GroupBy(s.C(generation.FieldID),
-				got.C(generationoutput.FieldID), got.C(generationoutput.FieldGalleryStatus),
-				got.C(generationoutput.FieldImagePath), got.C(generationoutput.FieldUpscaledImagePath),
-				ut.C(user.FieldUsername), ut.C(user.FieldID))
+			GroupBy(groupByFields...)
 		orderDir := "asc"
 		if filters == nil || (filters != nil && filters.Order == requests.SortOrderDescending) {
 			orderDir = "desc"
