@@ -988,10 +988,6 @@ func (r *Repository) QueryGenerationsAdmin(per_page int, cursor *time.Time, call
 
 		// Add outputs
 		for _, o := range g.Edges.Generations.Edges.GenerationOutputs {
-			likedByUser := false
-			if _, ok := likedByMap[o.ID]; ok {
-				likedByUser = true
-			}
 			output := GenerationUpscaleOutput{
 				ID:               o.ID,
 				ImageUrl:         utils.GetEnv().GetURLFromImagePath(o.ImagePath),
@@ -1000,8 +996,6 @@ func (r *Repository) QueryGenerationsAdmin(per_page int, cursor *time.Time, call
 				IsFavorited:      o.IsFavorited,
 				IsPublic:         o.IsPublic,
 				WasAutoSubmitted: generationRoot.WasAutoSubmitted,
-				LikeCount:        utils.ToPtr(o.LikeCount),
-				IsLiked:          utils.ToPtr(likedByUser),
 			}
 			if o.UpscaledImagePath != nil {
 				output.UpscaledImageUrl = utils.GetEnv().GetURLFromImagePath(*o.UpscaledImagePath)
@@ -1036,11 +1030,18 @@ func (r *Repository) QueryGenerationsAdmin(per_page int, cursor *time.Time, call
 			log.Warn("Output ID is nil for generation, cannot include in result", "id", g.ID)
 			continue
 		}
+		likedByUser := false
+		if _, ok := likedByMap[g.ID]; ok {
+			likedByUser = true
+		}
+
 		gOutput := GenerationUpscaleOutput{
 			ID:               *g.OutputID,
 			ImageUrl:         g.ImageUrl,
 			UpscaledImageUrl: g.UpscaledImageUrl,
 			GalleryStatus:    g.GalleryStatus,
+			LikeCount:        utils.ToPtr(g.LikeCount),
+			IsLiked:          utils.ToPtr(likedByUser),
 		}
 		for _, o := range g.Outputs {
 			if o.ID == *g.OutputID {
