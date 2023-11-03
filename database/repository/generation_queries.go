@@ -527,24 +527,35 @@ func (r *Repository) QueryGenerations(per_page int, cursor *time.Time, filters *
 		if filters == nil || (filters != nil && filters.Order == requests.SortOrderDescending) {
 			orderDir = "desc"
 		}
-		var orderByGeneration2 []string
-		var orderByOutput2 []string
+
+		var orderByCombined []string
+
+		// Check if the IsLiked filter is set and prepend the order by from golikesT.
+		if filters.IsLiked != nil {
+			// Assuming "liked" is the column you want to order by in the golikesT table.
+			// You may need to adjust this to fit the actual column you're interested in.
+			if *filters.IsLiked {
+				orderByCombined = append(orderByCombined, sql.Desc(golikesT.C(generationoutputlike.FieldCreatedAt)))
+			} else {
+				orderByCombined = append(orderByCombined, sql.Asc(golikesT.C(generationoutputlike.FieldCreatedAt)))
+			}
+		}
+
 		for _, o := range orderByGeneration {
 			if orderDir == "desc" {
-				orderByGeneration2 = append(orderByGeneration2, sql.Desc(gt.C(o)))
+				orderByCombined = append(orderByCombined, sql.Desc(gt.C(o)))
 			} else {
-				orderByGeneration2 = append(orderByGeneration2, sql.Asc(gt.C(o)))
+				orderByCombined = append(orderByCombined, sql.Asc(gt.C(o)))
 			}
 		}
 		for _, o := range orderByOutput {
 			if orderDir == "desc" {
-				orderByOutput2 = append(orderByOutput2, sql.Desc(got.C(o)))
+				orderByCombined = append(orderByCombined, sql.Desc(got.C(o)))
 			} else {
-				orderByOutput2 = append(orderByOutput2, sql.Asc(got.C(o)))
+				orderByCombined = append(orderByCombined, sql.Asc(got.C(o)))
 			}
 		}
 		// Order by generation, then output
-		orderByCombined := append(orderByGeneration2, orderByOutput2...)
 		s.OrderBy(orderByCombined...)
 	}).Scan(r.Ctx, &gQueryResult)
 
