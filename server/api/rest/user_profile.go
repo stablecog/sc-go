@@ -23,6 +23,7 @@ type UserProfileMetadata struct {
 	CreatedAt       time.Time `json:"created_at"`
 	ActiveProductID *string   `json:"active_product_id,omitempty"`
 	Username        string    `json:"username"`
+	Likes           int       `json:"likes"`
 }
 
 // For v1/profile/{username}/metadata
@@ -40,11 +41,20 @@ func (c *RestAPI) HandleGetUserProfileMetadata(w http.ResponseWriter, r *http.Re
 		return
 	}
 
+	// Get like count
+	likes, err := c.Repo.GetGenerationOutputLikeCountForUser(user.ID)
+	if err != nil {
+		log.Error("Error getting like count", "err", err)
+		responses.ErrInternalServerError(w, r, "An unknown error has occurred")
+		return
+	}
+
 	render.Status(r, http.StatusOK)
 	render.JSON(w, r, UserProfileMetadata{
 		CreatedAt:       user.CreatedAt,
 		ActiveProductID: user.ActiveProductID,
 		Username:        user.Username,
+		Likes:           likes,
 	})
 }
 

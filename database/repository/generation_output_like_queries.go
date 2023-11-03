@@ -3,6 +3,8 @@ package repository
 import (
 	"github.com/google/uuid"
 	"github.com/stablecog/sc-go/database/ent"
+	"github.com/stablecog/sc-go/database/ent/generation"
+	"github.com/stablecog/sc-go/database/ent/generationoutput"
 	"github.com/stablecog/sc-go/database/ent/generationoutputlike"
 )
 
@@ -30,4 +32,23 @@ func (r *Repository) GetGenerationOutputIDsLikedByUser(userID uuid.UUID, limit i
 		outputIDs[i] = like.OutputID
 	}
 	return outputIDs, nil
+}
+
+// Get how many likes a user has received for their generation outputs
+func (r *Repository) GetGenerationOutputLikeCountForUser(userID uuid.UUID) (int, error) {
+	var v []struct {
+		Sum *int
+	}
+	err := r.DB.GenerationOutput.Query().
+		Where(generationoutput.HasGenerationsWith(generation.UserID(userID))).
+		Aggregate(
+			ent.Sum(generationoutput.FieldLikeCount),
+		).Scan(r.Ctx, &v)
+	if err != nil {
+		return 0, err
+	}
+	if len(v) == 0 || v[0].Sum == nil {
+		return 0, nil
+	}
+	return *v[0].Sum, nil
 }
