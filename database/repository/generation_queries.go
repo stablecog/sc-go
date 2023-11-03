@@ -627,10 +627,12 @@ func (r *Repository) QueryGenerations(per_page int, cursor *time.Time, filters *
 
 	// Figure out liked by
 	likedByMap := make(map[uuid.UUID]struct{})
-	if filters.UserID != nil && filters.IsLiked != nil && len(gQueryResult) > 0 {
+	if filters.UserID != nil && len(gQueryResult) > 0 {
 		outputIds := make([]uuid.UUID, len(gQueryResult))
 		for i, g := range gQueryResult {
-			outputIds[i] = *g.OutputID
+			if g.OutputID != nil {
+				outputIds[i] = *g.OutputID
+			}
 		}
 		likedByMap, err = r.GetGenerationOutputsLikedByUser(*filters.UserID, outputIds)
 		if err != nil {
