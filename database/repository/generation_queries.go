@@ -272,6 +272,7 @@ func (r *Repository) GetGenerationCount(filters *requests.QueryGenerationFilters
 	var res []UserGenCount
 	err := query.Modify(func(s *sql.Selector) {
 		got := sql.Table(generationoutput.Table)
+		golikesT := sql.Table(generationoutputlike.Table)
 		ut := sql.Table(user.Table)
 		ltj := s.Join(got).OnP(
 			sql.And(
@@ -279,7 +280,7 @@ func (r *Repository) GetGenerationCount(filters *requests.QueryGenerationFilters
 				sql.IsNull(got.C(generationoutput.FieldDeletedAt)),
 			),
 		)
-		if filters != nil && filters.UserID != nil {
+		if filters != nil && filters.UserID != nil && filters.IsLiked == nil {
 			ltj.Join(ut).OnP(
 				sql.And(
 					sql.ColumnsEQ(s.C(generation.FieldUserID), ut.C(user.FieldID)),
@@ -289,6 +290,14 @@ func (r *Repository) GetGenerationCount(filters *requests.QueryGenerationFilters
 		} else {
 			ltj.LeftJoin(ut).On(
 				s.C(generation.FieldUserID), ut.C(user.FieldID),
+			)
+		}
+		if filters != nil && filters.UserID != nil && filters.IsLiked != nil {
+			ltj.Join(golikesT).OnP(
+				sql.And(
+					sql.ColumnsEQ(got.C(generationoutput.FieldID), golikesT.C(generationoutputlike.FieldOutputID)),
+					sql.EQ(golikesT.C(generationoutputlike.FieldLikedByUserID), *filters.UserID),
+				),
 			)
 		}
 		ltj.Select(sql.As(sql.Count("*"), "total"))
