@@ -19,6 +19,12 @@ import (
 )
 
 func (c *RestAPI) HandleVoiceover(w http.ResponseWriter, r *http.Request) {
+	render.Status(r, http.StatusBadRequest)
+	render.JSON(w, r, map[string]interface{}{
+		"error": "This feature is deprecated",
+	})
+	return
+
 	var user *ent.User
 	if user = c.GetUserIfAuthenticated(w, r); user == nil {
 		return
@@ -70,6 +76,12 @@ func (c *RestAPI) HandleVoiceover(w http.ResponseWriter, r *http.Request) {
 }
 
 func (c *RestAPI) HandleCreateVoiceoverToken(w http.ResponseWriter, r *http.Request) {
+	render.Status(r, http.StatusBadRequest)
+	render.JSON(w, r, map[string]interface{}{
+		"error": "This feature is deprecated",
+	})
+	return
+
 	var user *ent.User
 	if user = c.GetUserIfAuthenticated(w, r); user == nil {
 		return
