@@ -1014,13 +1014,15 @@ func (r *Repository) QueryGenerationsAdmin(per_page int, cursor *time.Time, call
 		// Add outputs
 		for _, o := range g.Edges.Generations.Edges.GenerationOutputs {
 			output := GenerationUpscaleOutput{
-				ID:               o.ID,
-				ImageUrl:         utils.GetEnv().GetURLFromImagePath(o.ImagePath),
-				GalleryStatus:    o.GalleryStatus,
-				CreatedAt:        &o.CreatedAt,
-				IsFavorited:      o.IsFavorited,
-				IsPublic:         o.IsPublic,
-				WasAutoSubmitted: generationRoot.WasAutoSubmitted,
+				ID:                     o.ID,
+				ImageUrl:               utils.GetEnv().GetURLFromImagePath(o.ImagePath),
+				GalleryStatus:          o.GalleryStatus,
+				CreatedAt:              &o.CreatedAt,
+				IsFavorited:            o.IsFavorited,
+				IsPublic:               o.IsPublic,
+				WasAutoSubmitted:       generationRoot.WasAutoSubmitted,
+				AestheticRatingScore:   utils.ToPtr(o.AestheticRatingScore),
+				AestheticArtifactScore: utils.ToPtr(o.AestheticArtifactScore),
 			}
 			if o.UpscaledImagePath != nil {
 				output.UpscaledImageUrl = utils.GetEnv().GetURLFromImagePath(*o.UpscaledImagePath)
