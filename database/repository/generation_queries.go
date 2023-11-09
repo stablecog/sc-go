@@ -967,26 +967,24 @@ func (r *Repository) QueryGenerationsAdmin(per_page int, cursor *time.Time, call
 	for _, g := range res {
 		// root generation data
 		generationRoot := GenerationQueryWithOutputsData{
-			ID:                     g.ID,
-			Width:                  g.Edges.Generations.Width,
-			Height:                 g.Edges.Generations.Height,
-			InferenceSteps:         g.Edges.Generations.InferenceSteps,
-			Seed:                   g.Edges.Generations.Seed,
-			Status:                 string(g.Edges.Generations.Status),
-			GuidanceScale:          g.Edges.Generations.GuidanceScale,
-			SchedulerID:            g.Edges.Generations.SchedulerID,
-			ModelID:                g.Edges.Generations.ModelID,
-			PromptID:               g.Edges.Generations.PromptID,
-			NegativePromptID:       g.Edges.Generations.NegativePromptID,
-			CreatedAt:              g.Edges.Generations.CreatedAt,
-			UpdatedAt:              g.Edges.Generations.UpdatedAt,
-			StartedAt:              g.Edges.Generations.StartedAt,
-			CompletedAt:            g.Edges.Generations.CompletedAt,
-			WasAutoSubmitted:       g.Edges.Generations.WasAutoSubmitted,
-			IsFavorited:            g.IsFavorited,
-			IsPublic:               g.IsPublic,
-			AestheticRatingScore:   utils.ToPtr(g.AestheticRatingScore),
-			AestheticArtifactScore: utils.ToPtr(g.AestheticArtifactScore),
+			ID:               g.ID,
+			Width:            g.Edges.Generations.Width,
+			Height:           g.Edges.Generations.Height,
+			InferenceSteps:   g.Edges.Generations.InferenceSteps,
+			Seed:             g.Edges.Generations.Seed,
+			Status:           string(g.Edges.Generations.Status),
+			GuidanceScale:    g.Edges.Generations.GuidanceScale,
+			SchedulerID:      g.Edges.Generations.SchedulerID,
+			ModelID:          g.Edges.Generations.ModelID,
+			PromptID:         g.Edges.Generations.PromptID,
+			NegativePromptID: g.Edges.Generations.NegativePromptID,
+			CreatedAt:        g.Edges.Generations.CreatedAt,
+			UpdatedAt:        g.Edges.Generations.UpdatedAt,
+			StartedAt:        g.Edges.Generations.StartedAt,
+			CompletedAt:      g.Edges.Generations.CompletedAt,
+			WasAutoSubmitted: g.Edges.Generations.WasAutoSubmitted,
+			IsFavorited:      g.IsFavorited,
+			IsPublic:         g.IsPublic,
 		}
 		if g.Edges.Generations.InitImageURL != nil {
 			generationRoot.InitImageURL = *g.Edges.Generations.InitImageURL
@@ -1022,7 +1020,7 @@ func (r *Repository) QueryGenerationsAdmin(per_page int, cursor *time.Time, call
 				IsPublic:               o.IsPublic,
 				WasAutoSubmitted:       generationRoot.WasAutoSubmitted,
 				AestheticRatingScore:   utils.ToPtr(o.AestheticRatingScore),
-				AestheticArtifactScore: utils.ToPtr(o.AestheticArtifactScore),
+				AestheticArtifactScore: utils.ToPtr((o.AestheticArtifactScore)),
 			}
 			if o.UpscaledImagePath != nil {
 				output.UpscaledImageUrl = utils.GetEnv().GetURLFromImagePath(*o.UpscaledImagePath)
@@ -1063,12 +1061,14 @@ func (r *Repository) QueryGenerationsAdmin(per_page int, cursor *time.Time, call
 		}
 
 		gOutput := GenerationUpscaleOutput{
-			ID:               *g.OutputID,
-			ImageUrl:         g.ImageUrl,
-			UpscaledImageUrl: g.UpscaledImageUrl,
-			GalleryStatus:    g.GalleryStatus,
-			LikeCount:        utils.ToPtr(g.LikeCount),
-			IsLiked:          utils.ToPtr(likedByUser),
+			ID:                     *g.OutputID,
+			ImageUrl:               g.ImageUrl,
+			UpscaledImageUrl:       g.UpscaledImageUrl,
+			GalleryStatus:          g.GalleryStatus,
+			LikeCount:              utils.ToPtr(g.LikeCount),
+			IsLiked:                utils.ToPtr(likedByUser),
+			AestheticRatingScore:   g.AestheticRatingScore,
+			AestheticArtifactScore: g.AestheticArtifactScore,
 		}
 		for _, o := range g.Outputs {
 			if o.ID == *g.OutputID {
@@ -1175,14 +1175,16 @@ type GenerationQueryWithOutputsData struct {
 }
 
 type GenerationQueryWithOutputsResult struct {
-	OutputID         *uuid.UUID                     `json:"output_id,omitempty" sql:"output_id"`
-	IsLiked          *bool                          `json:"is_liked,omitempty" sql:"is_liked"`
-	LikedAt          *time.Time                     `json:"liked_at,omitempty" sql:"liked_at"`
-	LikeCount        int                            `json:"like_count" sql:"like_count"`
-	ImageUrl         string                         `json:"image_url,omitempty" sql:"image_path"`
-	UpscaledImageUrl string                         `json:"upscaled_image_url,omitempty" sql:"upscaled_image_path"`
-	GalleryStatus    generationoutput.GalleryStatus `json:"gallery_status,omitempty" sql:"output_gallery_status"`
-	DeletedAt        *time.Time                     `json:"deleted_at,omitempty" sql:"deleted_at"`
+	OutputID               *uuid.UUID                     `json:"output_id,omitempty" sql:"output_id"`
+	IsLiked                *bool                          `json:"is_liked,omitempty" sql:"is_liked"`
+	LikedAt                *time.Time                     `json:"liked_at,omitempty" sql:"liked_at"`
+	AestheticArtifactScore *float32                       `json:"aesthetic_artifact_score,omitempty"`
+	AestheticRatingScore   *float32                       `json:"aesthetic_rating_score,omitempty"`
+	LikeCount              int                            `json:"like_count" sql:"like_count"`
+	ImageUrl               string                         `json:"image_url,omitempty" sql:"image_path"`
+	UpscaledImageUrl       string                         `json:"upscaled_image_url,omitempty" sql:"upscaled_image_path"`
+	GalleryStatus          generationoutput.GalleryStatus `json:"gallery_status,omitempty" sql:"output_gallery_status"`
+	DeletedAt              *time.Time                     `json:"deleted_at,omitempty" sql:"deleted_at"`
 	GenerationQueryWithOutputsData
 }
 
