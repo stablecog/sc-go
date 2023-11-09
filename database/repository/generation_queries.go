@@ -359,14 +359,16 @@ func (r *Repository) RetrieveGenerationsWithOutputIDs(outputIDs []uuid.UUID, cal
 	generationOutputMap := make(map[uuid.UUID][]GenerationUpscaleOutput)
 	for _, g := range gQueryResult {
 		gOutput := GenerationUpscaleOutput{
-			ID:               g.ID,
-			ImageUrl:         g.ImagePath,
-			GalleryStatus:    g.GalleryStatus,
-			WasAutoSubmitted: g.Edges.Generations.WasAutoSubmitted,
-			IsFavorited:      g.IsFavorited,
-			IsPublic:         g.IsPublic,
-			LikeCount:        utils.ToPtr(g.LikeCount),
-			IsLiked:          utils.ToPtr(len(g.Edges.GenerationOutputLikes) > 0),
+			ID:                     g.ID,
+			ImageUrl:               g.ImagePath,
+			GalleryStatus:          g.GalleryStatus,
+			WasAutoSubmitted:       g.Edges.Generations.WasAutoSubmitted,
+			IsFavorited:            g.IsFavorited,
+			IsPublic:               g.IsPublic,
+			LikeCount:              utils.ToPtr(g.LikeCount),
+			IsLiked:                utils.ToPtr(len(g.Edges.GenerationOutputLikes) > 0),
+			AestheticRatingScore:   utils.ToPtr(g.AestheticRatingScore),
+			AestheticArtifactScore: utils.ToPtr(g.AestheticArtifactScore),
 		}
 		if g.UpscaledImagePath != nil {
 			gOutput.UpscaledImageUrl = *g.UpscaledImagePath
@@ -965,24 +967,26 @@ func (r *Repository) QueryGenerationsAdmin(per_page int, cursor *time.Time, call
 	for _, g := range res {
 		// root generation data
 		generationRoot := GenerationQueryWithOutputsData{
-			ID:               g.ID,
-			Width:            g.Edges.Generations.Width,
-			Height:           g.Edges.Generations.Height,
-			InferenceSteps:   g.Edges.Generations.InferenceSteps,
-			Seed:             g.Edges.Generations.Seed,
-			Status:           string(g.Edges.Generations.Status),
-			GuidanceScale:    g.Edges.Generations.GuidanceScale,
-			SchedulerID:      g.Edges.Generations.SchedulerID,
-			ModelID:          g.Edges.Generations.ModelID,
-			PromptID:         g.Edges.Generations.PromptID,
-			NegativePromptID: g.Edges.Generations.NegativePromptID,
-			CreatedAt:        g.Edges.Generations.CreatedAt,
-			UpdatedAt:        g.Edges.Generations.UpdatedAt,
-			StartedAt:        g.Edges.Generations.StartedAt,
-			CompletedAt:      g.Edges.Generations.CompletedAt,
-			WasAutoSubmitted: g.Edges.Generations.WasAutoSubmitted,
-			IsFavorited:      g.IsFavorited,
-			IsPublic:         g.IsPublic,
+			ID:                     g.ID,
+			Width:                  g.Edges.Generations.Width,
+			Height:                 g.Edges.Generations.Height,
+			InferenceSteps:         g.Edges.Generations.InferenceSteps,
+			Seed:                   g.Edges.Generations.Seed,
+			Status:                 string(g.Edges.Generations.Status),
+			GuidanceScale:          g.Edges.Generations.GuidanceScale,
+			SchedulerID:            g.Edges.Generations.SchedulerID,
+			ModelID:                g.Edges.Generations.ModelID,
+			PromptID:               g.Edges.Generations.PromptID,
+			NegativePromptID:       g.Edges.Generations.NegativePromptID,
+			CreatedAt:              g.Edges.Generations.CreatedAt,
+			UpdatedAt:              g.Edges.Generations.UpdatedAt,
+			StartedAt:              g.Edges.Generations.StartedAt,
+			CompletedAt:            g.Edges.Generations.CompletedAt,
+			WasAutoSubmitted:       g.Edges.Generations.WasAutoSubmitted,
+			IsFavorited:            g.IsFavorited,
+			IsPublic:               g.IsPublic,
+			AestheticRatingScore:   utils.ToPtr(g.AestheticRatingScore),
+			AestheticArtifactScore: utils.ToPtr(g.AestheticArtifactScore),
 		}
 		if g.Edges.Generations.InitImageURL != nil {
 			generationRoot.InitImageURL = *g.Edges.Generations.InitImageURL
@@ -1092,24 +1096,26 @@ func (r *Repository) QueryGenerationsAdmin(per_page int, cursor *time.Time, call
 }
 
 type GenerationUpscaleOutput struct {
-	ID               uuid.UUID                      `json:"id"`
-	ImageUrl         string                         `json:"image_url,omitempty"`
-	AudioFileUrl     string                         `json:"audio_file_url,omitempty"`
-	VideoFileUrl     string                         `json:"video_file_url,omitempty"`
-	AudioArray       []float64                      `json:"audio_array,omitempty"`
-	AudioDuration    *float32                       `json:"audio_duration,omitempty"`
-	UpscaledImageUrl string                         `json:"upscaled_image_url,omitempty"`
-	GalleryStatus    generationoutput.GalleryStatus `json:"gallery_status,omitempty"`
-	OutputID         *uuid.UUID                     `json:"output_id,omitempty"`
-	CreatedAt        *time.Time                     `json:"created_at,omitempty"`
-	IsFavorited      bool                           `json:"is_favorited"`
-	InitImageUrl     string                         `json:"init_image_url,omitempty"`
-	WasAutoSubmitted bool                           `json:"was_auto_submitted"`
-	IsPublic         bool                           `json:"is_public"`
-	DenoiseAudio     *bool                          `json:"denoise_audio,omitempty"`
-	RemoveSilence    *bool                          `json:"remove_silence,omitempty"`
-	LikeCount        *int                           `json:"like_count,omitempty"`
-	IsLiked          *bool                          `json:"is_liked,omitempty"`
+	ID                     uuid.UUID                      `json:"id"`
+	ImageUrl               string                         `json:"image_url,omitempty"`
+	AudioFileUrl           string                         `json:"audio_file_url,omitempty"`
+	VideoFileUrl           string                         `json:"video_file_url,omitempty"`
+	AudioArray             []float64                      `json:"audio_array,omitempty"`
+	AudioDuration          *float32                       `json:"audio_duration,omitempty"`
+	UpscaledImageUrl       string                         `json:"upscaled_image_url,omitempty"`
+	GalleryStatus          generationoutput.GalleryStatus `json:"gallery_status,omitempty"`
+	OutputID               *uuid.UUID                     `json:"output_id,omitempty"`
+	CreatedAt              *time.Time                     `json:"created_at,omitempty"`
+	IsFavorited            bool                           `json:"is_favorited"`
+	InitImageUrl           string                         `json:"init_image_url,omitempty"`
+	WasAutoSubmitted       bool                           `json:"was_auto_submitted"`
+	IsPublic               bool                           `json:"is_public"`
+	DenoiseAudio           *bool                          `json:"denoise_audio,omitempty"`
+	RemoveSilence          *bool                          `json:"remove_silence,omitempty"`
+	LikeCount              *int                           `json:"like_count,omitempty"`
+	IsLiked                *bool                          `json:"is_liked,omitempty"`
+	AestheticRatingScore   *float32                       `json:"aesthetic_rating_score,omitempty"`
+	AestheticArtifactScore *float32                       `json:"aesthetic_artifact_score,omitempty"`
 }
 
 type GenerationQueryWithOutputsMetaCursor interface {
@@ -1135,33 +1141,35 @@ type UserType struct {
 }
 
 type GenerationQueryWithOutputsData struct {
-	ID                 uuid.UUID                 `json:"id" sql:"id"`
-	Height             int32                     `json:"height" sql:"height"`
-	Width              int32                     `json:"width" sql:"width"`
-	InferenceSteps     int32                     `json:"inference_steps" sql:"inference_steps"`
-	Seed               int                       `json:"seed" sql:"seed"`
-	Status             string                    `json:"status" sql:"status"`
-	GuidanceScale      float32                   `json:"guidance_scale" sql:"guidance_scale"`
-	SchedulerID        uuid.UUID                 `json:"scheduler_id" sql:"scheduler_id"`
-	ModelID            uuid.UUID                 `json:"model_id" sql:"model_id"`
-	PromptID           *uuid.UUID                `json:"prompt_id,omitempty" sql:"prompt_id"`
-	NegativePromptID   *uuid.UUID                `json:"negative_prompt_id,omitempty" sql:"negative_prompt_id"`
-	CreatedAt          time.Time                 `json:"created_at" sql:"created_at"`
-	UpdatedAt          time.Time                 `json:"updated_at" sql:"updated_at"`
-	StartedAt          *time.Time                `json:"started_at,omitempty" sql:"started_at"`
-	CompletedAt        *time.Time                `json:"completed_at,omitempty" sql:"completed_at"`
-	Username           string                    `json:"username,omitempty" sql:"username"`
-	UserID             uuid.UUID                 `json:"user_id,omitempty" sql:"user_id"`
-	IsFavorited        bool                      `json:"is_favorited" sql:"is_favorited"`
-	IsPublic           bool                      `json:"is_public" sql:"is_public"`
-	Outputs            []GenerationUpscaleOutput `json:"outputs"`
-	Prompt             PromptType                `json:"prompt"`
-	NegativePrompt     *PromptType               `json:"negative_prompt,omitempty"`
-	WasAutoSubmitted   bool                      `json:"was_auto_submitted" sql:"was_auto_submitted"`
-	InitImageURL       string                    `json:"init_image_url,omitempty" sql:"init_image_url"`
-	InitImageURLSigned string                    `json:"init_image_url_signed,omitempty"`
-	User               *UserType                 `json:"user,omitempty"`
-	PromptStrength     *float32                  `json:"prompt_strength,omitempty" sql:"prompt_strength"`
+	ID                     uuid.UUID                 `json:"id" sql:"id"`
+	Height                 int32                     `json:"height" sql:"height"`
+	Width                  int32                     `json:"width" sql:"width"`
+	InferenceSteps         int32                     `json:"inference_steps" sql:"inference_steps"`
+	Seed                   int                       `json:"seed" sql:"seed"`
+	Status                 string                    `json:"status" sql:"status"`
+	GuidanceScale          float32                   `json:"guidance_scale" sql:"guidance_scale"`
+	SchedulerID            uuid.UUID                 `json:"scheduler_id" sql:"scheduler_id"`
+	ModelID                uuid.UUID                 `json:"model_id" sql:"model_id"`
+	PromptID               *uuid.UUID                `json:"prompt_id,omitempty" sql:"prompt_id"`
+	NegativePromptID       *uuid.UUID                `json:"negative_prompt_id,omitempty" sql:"negative_prompt_id"`
+	CreatedAt              time.Time                 `json:"created_at" sql:"created_at"`
+	UpdatedAt              time.Time                 `json:"updated_at" sql:"updated_at"`
+	StartedAt              *time.Time                `json:"started_at,omitempty" sql:"started_at"`
+	CompletedAt            *time.Time                `json:"completed_at,omitempty" sql:"completed_at"`
+	Username               string                    `json:"username,omitempty" sql:"username"`
+	UserID                 uuid.UUID                 `json:"user_id,omitempty" sql:"user_id"`
+	IsFavorited            bool                      `json:"is_favorited" sql:"is_favorited"`
+	IsPublic               bool                      `json:"is_public" sql:"is_public"`
+	Outputs                []GenerationUpscaleOutput `json:"outputs"`
+	Prompt                 PromptType                `json:"prompt"`
+	NegativePrompt         *PromptType               `json:"negative_prompt,omitempty"`
+	WasAutoSubmitted       bool                      `json:"was_auto_submitted" sql:"was_auto_submitted"`
+	InitImageURL           string                    `json:"init_image_url,omitempty" sql:"init_image_url"`
+	InitImageURLSigned     string                    `json:"init_image_url_signed,omitempty"`
+	User                   *UserType                 `json:"user,omitempty"`
+	PromptStrength         *float32                  `json:"prompt_strength,omitempty" sql:"prompt_strength"`
+	AestheticRatingScore   *float32                  `json:"aesthetic_rating_score,omitempty"`
+	AestheticArtifactScore *float32                  `json:"aesthetic_artifact_score,omitempty"`
 }
 
 type GenerationQueryWithOutputsResult struct {

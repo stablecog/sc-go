@@ -103,6 +103,34 @@ func (goc *GenerationOutputCreate) SetNillableIsPublic(b *bool) *GenerationOutpu
 	return goc
 }
 
+// SetAestheticRatingScore sets the "aesthetic_rating_score" field.
+func (goc *GenerationOutputCreate) SetAestheticRatingScore(f float32) *GenerationOutputCreate {
+	goc.mutation.SetAestheticRatingScore(f)
+	return goc
+}
+
+// SetNillableAestheticRatingScore sets the "aesthetic_rating_score" field if the given value is not nil.
+func (goc *GenerationOutputCreate) SetNillableAestheticRatingScore(f *float32) *GenerationOutputCreate {
+	if f != nil {
+		goc.SetAestheticRatingScore(*f)
+	}
+	return goc
+}
+
+// SetAestheticArtifactScore sets the "aesthetic_artifact_score" field.
+func (goc *GenerationOutputCreate) SetAestheticArtifactScore(f float32) *GenerationOutputCreate {
+	goc.mutation.SetAestheticArtifactScore(f)
+	return goc
+}
+
+// SetNillableAestheticArtifactScore sets the "aesthetic_artifact_score" field if the given value is not nil.
+func (goc *GenerationOutputCreate) SetNillableAestheticArtifactScore(f *float32) *GenerationOutputCreate {
+	if f != nil {
+		goc.SetAestheticArtifactScore(*f)
+	}
+	return goc
+}
+
 // SetLikeCount sets the "like_count" field.
 func (goc *GenerationOutputCreate) SetLikeCount(i int) *GenerationOutputCreate {
 	goc.mutation.SetLikeCount(i)
@@ -275,6 +303,14 @@ func (goc *GenerationOutputCreate) defaults() {
 		v := generationoutput.DefaultIsPublic
 		goc.mutation.SetIsPublic(v)
 	}
+	if _, ok := goc.mutation.AestheticRatingScore(); !ok {
+		v := generationoutput.DefaultAestheticRatingScore
+		goc.mutation.SetAestheticRatingScore(v)
+	}
+	if _, ok := goc.mutation.AestheticArtifactScore(); !ok {
+		v := generationoutput.DefaultAestheticArtifactScore
+		goc.mutation.SetAestheticArtifactScore(v)
+	}
 	if _, ok := goc.mutation.LikeCount(); !ok {
 		v := generationoutput.DefaultLikeCount
 		goc.mutation.SetLikeCount(v)
@@ -314,6 +350,12 @@ func (goc *GenerationOutputCreate) check() error {
 	}
 	if _, ok := goc.mutation.IsPublic(); !ok {
 		return &ValidationError{Name: "is_public", err: errors.New(`ent: missing required field "GenerationOutput.is_public"`)}
+	}
+	if _, ok := goc.mutation.AestheticRatingScore(); !ok {
+		return &ValidationError{Name: "aesthetic_rating_score", err: errors.New(`ent: missing required field "GenerationOutput.aesthetic_rating_score"`)}
+	}
+	if _, ok := goc.mutation.AestheticArtifactScore(); !ok {
+		return &ValidationError{Name: "aesthetic_artifact_score", err: errors.New(`ent: missing required field "GenerationOutput.aesthetic_artifact_score"`)}
 	}
 	if _, ok := goc.mutation.LikeCount(); !ok {
 		return &ValidationError{Name: "like_count", err: errors.New(`ent: missing required field "GenerationOutput.like_count"`)}
@@ -395,6 +437,14 @@ func (goc *GenerationOutputCreate) createSpec() (*GenerationOutput, *sqlgraph.Cr
 	if value, ok := goc.mutation.IsPublic(); ok {
 		_spec.SetField(generationoutput.FieldIsPublic, field.TypeBool, value)
 		_node.IsPublic = value
+	}
+	if value, ok := goc.mutation.AestheticRatingScore(); ok {
+		_spec.SetField(generationoutput.FieldAestheticRatingScore, field.TypeFloat32, value)
+		_node.AestheticRatingScore = value
+	}
+	if value, ok := goc.mutation.AestheticArtifactScore(); ok {
+		_spec.SetField(generationoutput.FieldAestheticArtifactScore, field.TypeFloat32, value)
+		_node.AestheticArtifactScore = value
 	}
 	if value, ok := goc.mutation.LikeCount(); ok {
 		_spec.SetField(generationoutput.FieldLikeCount, field.TypeInt, value)
@@ -600,6 +650,42 @@ func (u *GenerationOutputUpsert) UpdateIsPublic() *GenerationOutputUpsert {
 	return u
 }
 
+// SetAestheticRatingScore sets the "aesthetic_rating_score" field.
+func (u *GenerationOutputUpsert) SetAestheticRatingScore(v float32) *GenerationOutputUpsert {
+	u.Set(generationoutput.FieldAestheticRatingScore, v)
+	return u
+}
+
+// UpdateAestheticRatingScore sets the "aesthetic_rating_score" field to the value that was provided on create.
+func (u *GenerationOutputUpsert) UpdateAestheticRatingScore() *GenerationOutputUpsert {
+	u.SetExcluded(generationoutput.FieldAestheticRatingScore)
+	return u
+}
+
+// AddAestheticRatingScore adds v to the "aesthetic_rating_score" field.
+func (u *GenerationOutputUpsert) AddAestheticRatingScore(v float32) *GenerationOutputUpsert {
+	u.Add(generationoutput.FieldAestheticRatingScore, v)
+	return u
+}
+
+// SetAestheticArtifactScore sets the "aesthetic_artifact_score" field.
+func (u *GenerationOutputUpsert) SetAestheticArtifactScore(v float32) *GenerationOutputUpsert {
+	u.Set(generationoutput.FieldAestheticArtifactScore, v)
+	return u
+}
+
+// UpdateAestheticArtifactScore sets the "aesthetic_artifact_score" field to the value that was provided on create.
+func (u *GenerationOutputUpsert) UpdateAestheticArtifactScore() *GenerationOutputUpsert {
+	u.SetExcluded(generationoutput.FieldAestheticArtifactScore)
+	return u
+}
+
+// AddAestheticArtifactScore adds v to the "aesthetic_artifact_score" field.
+func (u *GenerationOutputUpsert) AddAestheticArtifactScore(v float32) *GenerationOutputUpsert {
+	u.Add(generationoutput.FieldAestheticArtifactScore, v)
+	return u
+}
+
 // SetLikeCount sets the "like_count" field.
 func (u *GenerationOutputUpsert) SetLikeCount(v int) *GenerationOutputUpsert {
 	u.Set(generationoutput.FieldLikeCount, v)
@@ -799,6 +885,48 @@ func (u *GenerationOutputUpsertOne) SetIsPublic(v bool) *GenerationOutputUpsertO
 func (u *GenerationOutputUpsertOne) UpdateIsPublic() *GenerationOutputUpsertOne {
 	return u.Update(func(s *GenerationOutputUpsert) {
 		s.UpdateIsPublic()
+	})
+}
+
+// SetAestheticRatingScore sets the "aesthetic_rating_score" field.
+func (u *GenerationOutputUpsertOne) SetAestheticRatingScore(v float32) *GenerationOutputUpsertOne {
+	return u.Update(func(s *GenerationOutputUpsert) {
+		s.SetAestheticRatingScore(v)
+	})
+}
+
+// AddAestheticRatingScore adds v to the "aesthetic_rating_score" field.
+func (u *GenerationOutputUpsertOne) AddAestheticRatingScore(v float32) *GenerationOutputUpsertOne {
+	return u.Update(func(s *GenerationOutputUpsert) {
+		s.AddAestheticRatingScore(v)
+	})
+}
+
+// UpdateAestheticRatingScore sets the "aesthetic_rating_score" field to the value that was provided on create.
+func (u *GenerationOutputUpsertOne) UpdateAestheticRatingScore() *GenerationOutputUpsertOne {
+	return u.Update(func(s *GenerationOutputUpsert) {
+		s.UpdateAestheticRatingScore()
+	})
+}
+
+// SetAestheticArtifactScore sets the "aesthetic_artifact_score" field.
+func (u *GenerationOutputUpsertOne) SetAestheticArtifactScore(v float32) *GenerationOutputUpsertOne {
+	return u.Update(func(s *GenerationOutputUpsert) {
+		s.SetAestheticArtifactScore(v)
+	})
+}
+
+// AddAestheticArtifactScore adds v to the "aesthetic_artifact_score" field.
+func (u *GenerationOutputUpsertOne) AddAestheticArtifactScore(v float32) *GenerationOutputUpsertOne {
+	return u.Update(func(s *GenerationOutputUpsert) {
+		s.AddAestheticArtifactScore(v)
+	})
+}
+
+// UpdateAestheticArtifactScore sets the "aesthetic_artifact_score" field to the value that was provided on create.
+func (u *GenerationOutputUpsertOne) UpdateAestheticArtifactScore() *GenerationOutputUpsertOne {
+	return u.Update(func(s *GenerationOutputUpsert) {
+		s.UpdateAestheticArtifactScore()
 	})
 }
 
@@ -1174,6 +1302,48 @@ func (u *GenerationOutputUpsertBulk) SetIsPublic(v bool) *GenerationOutputUpsert
 func (u *GenerationOutputUpsertBulk) UpdateIsPublic() *GenerationOutputUpsertBulk {
 	return u.Update(func(s *GenerationOutputUpsert) {
 		s.UpdateIsPublic()
+	})
+}
+
+// SetAestheticRatingScore sets the "aesthetic_rating_score" field.
+func (u *GenerationOutputUpsertBulk) SetAestheticRatingScore(v float32) *GenerationOutputUpsertBulk {
+	return u.Update(func(s *GenerationOutputUpsert) {
+		s.SetAestheticRatingScore(v)
+	})
+}
+
+// AddAestheticRatingScore adds v to the "aesthetic_rating_score" field.
+func (u *GenerationOutputUpsertBulk) AddAestheticRatingScore(v float32) *GenerationOutputUpsertBulk {
+	return u.Update(func(s *GenerationOutputUpsert) {
+		s.AddAestheticRatingScore(v)
+	})
+}
+
+// UpdateAestheticRatingScore sets the "aesthetic_rating_score" field to the value that was provided on create.
+func (u *GenerationOutputUpsertBulk) UpdateAestheticRatingScore() *GenerationOutputUpsertBulk {
+	return u.Update(func(s *GenerationOutputUpsert) {
+		s.UpdateAestheticRatingScore()
+	})
+}
+
+// SetAestheticArtifactScore sets the "aesthetic_artifact_score" field.
+func (u *GenerationOutputUpsertBulk) SetAestheticArtifactScore(v float32) *GenerationOutputUpsertBulk {
+	return u.Update(func(s *GenerationOutputUpsert) {
+		s.SetAestheticArtifactScore(v)
+	})
+}
+
+// AddAestheticArtifactScore adds v to the "aesthetic_artifact_score" field.
+func (u *GenerationOutputUpsertBulk) AddAestheticArtifactScore(v float32) *GenerationOutputUpsertBulk {
+	return u.Update(func(s *GenerationOutputUpsert) {
+		s.AddAestheticArtifactScore(v)
+	})
+}
+
+// UpdateAestheticArtifactScore sets the "aesthetic_artifact_score" field to the value that was provided on create.
+func (u *GenerationOutputUpsertBulk) UpdateAestheticArtifactScore() *GenerationOutputUpsertBulk {
+	return u.Update(func(s *GenerationOutputUpsert) {
+		s.UpdateAestheticArtifactScore()
 	})
 }
 

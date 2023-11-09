@@ -1281,3 +1281,7 @@ CREATE TRIGGER trigger_decrement_like_count
 AFTER DELETE ON generation_output_likes
 FOR EACH ROW
 EXECUTE FUNCTION decrement_like_count();
+
+-- Add aeshtetic scores
+alter table public.generation_outputs add column aesthetic_rating_score real not null default 0;
+alter table public.generation_outputs add column aesthetic_artifact_score real not null default 0;

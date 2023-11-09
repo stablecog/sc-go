@@ -141,7 +141,15 @@ func (r *Repository) SetGenerationSucceeded(generationID string, promptStr strin
 				log.Error("Error parsing s3 url", "output", output, "err", err)
 				parsedS3 = output.Image
 			}
-			gOutput, err := db.GenerationOutput.Create().SetGenerationID(uid).SetImagePath(parsedS3).SetGalleryStatus(galleryStatus).SetHasEmbeddings(true).SetIsPublic(isPublic).Save(r.Ctx)
+			gOutput, err := db.GenerationOutput.Create().
+				SetGenerationID(uid).
+				SetImagePath(parsedS3).
+				SetGalleryStatus(galleryStatus).
+				SetHasEmbeddings(true).
+				SetIsPublic(isPublic).
+				SetAestheticArtifactScore(output.AestheticArtifactScore).
+				SetAestheticRatingScore(output.AestheticRatingScore).
+				Save(r.Ctx)
 			if err != nil {
 				log.Error("Error inserting generation output", "id", generationID, "err", err)
 				return err

@@ -9240,6 +9240,10 @@ type GenerationOutputMutation struct {
 	is_favorited                   *bool
 	has_embeddings                 *bool
 	is_public                      *bool
+	aesthetic_rating_score         *float32
+	addaesthetic_rating_score      *float32
+	aesthetic_artifact_score       *float32
+	addaesthetic_artifact_score    *float32
 	like_count                     *int
 	addlike_count                  *int
 	deleted_at                     *time.Time
@@ -9589,6 +9593,118 @@ func (m *GenerationOutputMutation) OldIsPublic(ctx context.Context) (v bool, err
 // ResetIsPublic resets all changes to the "is_public" field.
 func (m *GenerationOutputMutation) ResetIsPublic() {
 	m.is_public = nil
+}
+
+// SetAestheticRatingScore sets the "aesthetic_rating_score" field.
+func (m *GenerationOutputMutation) SetAestheticRatingScore(f float32) {
+	m.aesthetic_rating_score = &f
+	m.addaesthetic_rating_score = nil
+}
+
+// AestheticRatingScore returns the value of the "aesthetic_rating_score" field in the mutation.
+func (m *GenerationOutputMutation) AestheticRatingScore() (r float32, exists bool) {
+	v := m.aesthetic_rating_score
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldAestheticRatingScore returns the old "aesthetic_rating_score" field's value of the GenerationOutput entity.
+// If the GenerationOutput object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *GenerationOutputMutation) OldAestheticRatingScore(ctx context.Context) (v float32, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldAestheticRatingScore is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldAestheticRatingScore requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldAestheticRatingScore: %w", err)
+	}
+	return oldValue.AestheticRatingScore, nil
+}
+
+// AddAestheticRatingScore adds f to the "aesthetic_rating_score" field.
+func (m *GenerationOutputMutation) AddAestheticRatingScore(f float32) {
+	if m.addaesthetic_rating_score != nil {
+		*m.addaesthetic_rating_score += f
+	} else {
+		m.addaesthetic_rating_score = &f
+	}
+}
+
+// AddedAestheticRatingScore returns the value that was added to the "aesthetic_rating_score" field in this mutation.
+func (m *GenerationOutputMutation) AddedAestheticRatingScore() (r float32, exists bool) {
+	v := m.addaesthetic_rating_score
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetAestheticRatingScore resets all changes to the "aesthetic_rating_score" field.
+func (m *GenerationOutputMutation) ResetAestheticRatingScore() {
+	m.aesthetic_rating_score = nil
+	m.addaesthetic_rating_score = nil
+}
+
+// SetAestheticArtifactScore sets the "aesthetic_artifact_score" field.
+func (m *GenerationOutputMutation) SetAestheticArtifactScore(f float32) {
+	m.aesthetic_artifact_score = &f
+	m.addaesthetic_artifact_score = nil
+}
+
+// AestheticArtifactScore returns the value of the "aesthetic_artifact_score" field in the mutation.
+func (m *GenerationOutputMutation) AestheticArtifactScore() (r float32, exists bool) {
+	v := m.aesthetic_artifact_score
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldAestheticArtifactScore returns the old "aesthetic_artifact_score" field's value of the GenerationOutput entity.
+// If the GenerationOutput object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *GenerationOutputMutation) OldAestheticArtifactScore(ctx context.Context) (v float32, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldAestheticArtifactScore is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldAestheticArtifactScore requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldAestheticArtifactScore: %w", err)
+	}
+	return oldValue.AestheticArtifactScore, nil
+}
+
+// AddAestheticArtifactScore adds f to the "aesthetic_artifact_score" field.
+func (m *GenerationOutputMutation) AddAestheticArtifactScore(f float32) {
+	if m.addaesthetic_artifact_score != nil {
+		*m.addaesthetic_artifact_score += f
+	} else {
+		m.addaesthetic_artifact_score = &f
+	}
+}
+
+// AddedAestheticArtifactScore returns the value that was added to the "aesthetic_artifact_score" field in this mutation.
+func (m *GenerationOutputMutation) AddedAestheticArtifactScore() (r float32, exists bool) {
+	v := m.addaesthetic_artifact_score
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetAestheticArtifactScore resets all changes to the "aesthetic_artifact_score" field.
+func (m *GenerationOutputMutation) ResetAestheticArtifactScore() {
+	m.aesthetic_artifact_score = nil
+	m.addaesthetic_artifact_score = nil
 }
 
 // SetLikeCount sets the "like_count" field.
@@ -9970,7 +10086,7 @@ func (m *GenerationOutputMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *GenerationOutputMutation) Fields() []string {
-	fields := make([]string, 0, 11)
+	fields := make([]string, 0, 13)
 	if m.image_path != nil {
 		fields = append(fields, generationoutput.FieldImagePath)
 	}
@@ -9988,6 +10104,12 @@ func (m *GenerationOutputMutation) Fields() []string {
 	}
 	if m.is_public != nil {
 		fields = append(fields, generationoutput.FieldIsPublic)
+	}
+	if m.aesthetic_rating_score != nil {
+		fields = append(fields, generationoutput.FieldAestheticRatingScore)
+	}
+	if m.aesthetic_artifact_score != nil {
+		fields = append(fields, generationoutput.FieldAestheticArtifactScore)
 	}
 	if m.like_count != nil {
 		fields = append(fields, generationoutput.FieldLikeCount)
@@ -10024,6 +10146,10 @@ func (m *GenerationOutputMutation) Field(name string) (ent.Value, bool) {
 		return m.HasEmbeddings()
 	case generationoutput.FieldIsPublic:
 		return m.IsPublic()
+	case generationoutput.FieldAestheticRatingScore:
+		return m.AestheticRatingScore()
+	case generationoutput.FieldAestheticArtifactScore:
+		return m.AestheticArtifactScore()
 	case generationoutput.FieldLikeCount:
 		return m.LikeCount()
 	case generationoutput.FieldGenerationID:
@@ -10055,6 +10181,10 @@ func (m *GenerationOutputMutation) OldField(ctx context.Context, name string) (e
 		return m.OldHasEmbeddings(ctx)
 	case generationoutput.FieldIsPublic:
 		return m.OldIsPublic(ctx)
+	case generationoutput.FieldAestheticRatingScore:
+		return m.OldAestheticRatingScore(ctx)
+	case generationoutput.FieldAestheticArtifactScore:
+		return m.OldAestheticArtifactScore(ctx)
 	case generationoutput.FieldLikeCount:
 		return m.OldLikeCount(ctx)
 	case generationoutput.FieldGenerationID:
@@ -10116,6 +10246,20 @@ func (m *GenerationOutputMutation) SetField(name string, value ent.Value) error 
 		}
 		m.SetIsPublic(v)
 		return nil
+	case generationoutput.FieldAestheticRatingScore:
+		v, ok := value.(float32)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetAestheticRatingScore(v)
+		return nil
+	case generationoutput.FieldAestheticArtifactScore:
+		v, ok := value.(float32)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetAestheticArtifactScore(v)
+		return nil
 	case generationoutput.FieldLikeCount:
 		v, ok := value.(int)
 		if !ok {
@@ -10159,6 +10303,12 @@ func (m *GenerationOutputMutation) SetField(name string, value ent.Value) error 
 // this mutation.
 func (m *GenerationOutputMutation) AddedFields() []string {
 	var fields []string
+	if m.addaesthetic_rating_score != nil {
+		fields = append(fields, generationoutput.FieldAestheticRatingScore)
+	}
+	if m.addaesthetic_artifact_score != nil {
+		fields = append(fields, generationoutput.FieldAestheticArtifactScore)
+	}
 	if m.addlike_count != nil {
 		fields = append(fields, generationoutput.FieldLikeCount)
 	}
@@ -10170,6 +10320,10 @@ func (m *GenerationOutputMutation) AddedFields() []string {
 // was not set, or was not defined in the schema.
 func (m *GenerationOutputMutation) AddedField(name string) (ent.Value, bool) {
 	switch name {
+	case generationoutput.FieldAestheticRatingScore:
+		return m.AddedAestheticRatingScore()
+	case generationoutput.FieldAestheticArtifactScore:
+		return m.AddedAestheticArtifactScore()
 	case generationoutput.FieldLikeCount:
 		return m.AddedLikeCount()
 	}
@@ -10181,6 +10335,20 @@ func (m *GenerationOutputMutation) AddedField(name string) (ent.Value, bool) {
 // type.
 func (m *GenerationOutputMutation) AddField(name string, value ent.Value) error {
 	switch name {
+	case generationoutput.FieldAestheticRatingScore:
+		v, ok := value.(float32)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddAestheticRatingScore(v)
+		return nil
+	case generationoutput.FieldAestheticArtifactScore:
+		v, ok := value.(float32)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddAestheticArtifactScore(v)
+		return nil
 	case generationoutput.FieldLikeCount:
 		v, ok := value.(int)
 		if !ok {
@@ -10247,6 +10415,12 @@ func (m *GenerationOutputMutation) ResetField(name string) error {
 		return nil
 	case generationoutput.FieldIsPublic:
 		m.ResetIsPublic()
+		return nil
+	case generationoutput.FieldAestheticRatingScore:
+		m.ResetAestheticRatingScore()
+		return nil
+	case generationoutput.FieldAestheticArtifactScore:
+		m.ResetAestheticArtifactScore()
 		return nil
 	case generationoutput.FieldLikeCount:
 		m.ResetLikeCount()

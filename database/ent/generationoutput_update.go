@@ -115,6 +115,48 @@ func (gou *GenerationOutputUpdate) SetNillableIsPublic(b *bool) *GenerationOutpu
 	return gou
 }
 
+// SetAestheticRatingScore sets the "aesthetic_rating_score" field.
+func (gou *GenerationOutputUpdate) SetAestheticRatingScore(f float32) *GenerationOutputUpdate {
+	gou.mutation.ResetAestheticRatingScore()
+	gou.mutation.SetAestheticRatingScore(f)
+	return gou
+}
+
+// SetNillableAestheticRatingScore sets the "aesthetic_rating_score" field if the given value is not nil.
+func (gou *GenerationOutputUpdate) SetNillableAestheticRatingScore(f *float32) *GenerationOutputUpdate {
+	if f != nil {
+		gou.SetAestheticRatingScore(*f)
+	}
+	return gou
+}
+
+// AddAestheticRatingScore adds f to the "aesthetic_rating_score" field.
+func (gou *GenerationOutputUpdate) AddAestheticRatingScore(f float32) *GenerationOutputUpdate {
+	gou.mutation.AddAestheticRatingScore(f)
+	return gou
+}
+
+// SetAestheticArtifactScore sets the "aesthetic_artifact_score" field.
+func (gou *GenerationOutputUpdate) SetAestheticArtifactScore(f float32) *GenerationOutputUpdate {
+	gou.mutation.ResetAestheticArtifactScore()
+	gou.mutation.SetAestheticArtifactScore(f)
+	return gou
+}
+
+// SetNillableAestheticArtifactScore sets the "aesthetic_artifact_score" field if the given value is not nil.
+func (gou *GenerationOutputUpdate) SetNillableAestheticArtifactScore(f *float32) *GenerationOutputUpdate {
+	if f != nil {
+		gou.SetAestheticArtifactScore(*f)
+	}
+	return gou
+}
+
+// AddAestheticArtifactScore adds f to the "aesthetic_artifact_score" field.
+func (gou *GenerationOutputUpdate) AddAestheticArtifactScore(f float32) *GenerationOutputUpdate {
+	gou.mutation.AddAestheticArtifactScore(f)
+	return gou
+}
+
 // SetLikeCount sets the "like_count" field.
 func (gou *GenerationOutputUpdate) SetLikeCount(i int) *GenerationOutputUpdate {
 	gou.mutation.ResetLikeCount()
@@ -347,6 +389,18 @@ func (gou *GenerationOutputUpdate) sqlSave(ctx context.Context) (n int, err erro
 	}
 	if value, ok := gou.mutation.IsPublic(); ok {
 		_spec.SetField(generationoutput.FieldIsPublic, field.TypeBool, value)
+	}
+	if value, ok := gou.mutation.AestheticRatingScore(); ok {
+		_spec.SetField(generationoutput.FieldAestheticRatingScore, field.TypeFloat32, value)
+	}
+	if value, ok := gou.mutation.AddedAestheticRatingScore(); ok {
+		_spec.AddField(generationoutput.FieldAestheticRatingScore, field.TypeFloat32, value)
+	}
+	if value, ok := gou.mutation.AestheticArtifactScore(); ok {
+		_spec.SetField(generationoutput.FieldAestheticArtifactScore, field.TypeFloat32, value)
+	}
+	if value, ok := gou.mutation.AddedAestheticArtifactScore(); ok {
+		_spec.AddField(generationoutput.FieldAestheticArtifactScore, field.TypeFloat32, value)
 	}
 	if value, ok := gou.mutation.LikeCount(); ok {
 		_spec.SetField(generationoutput.FieldLikeCount, field.TypeInt, value)
@@ -588,6 +642,48 @@ func (gouo *GenerationOutputUpdateOne) SetNillableIsPublic(b *bool) *GenerationO
 	if b != nil {
 		gouo.SetIsPublic(*b)
 	}
+	return gouo
+}
+
+// SetAestheticRatingScore sets the "aesthetic_rating_score" field.
+func (gouo *GenerationOutputUpdateOne) SetAestheticRatingScore(f float32) *GenerationOutputUpdateOne {
+	gouo.mutation.ResetAestheticRatingScore()
+	gouo.mutation.SetAestheticRatingScore(f)
+	return gouo
+}
+
+// SetNillableAestheticRatingScore sets the "aesthetic_rating_score" field if the given value is not nil.
+func (gouo *GenerationOutputUpdateOne) SetNillableAestheticRatingScore(f *float32) *GenerationOutputUpdateOne {
+	if f != nil {
+		gouo.SetAestheticRatingScore(*f)
+	}
+	return gouo
+}
+
+// AddAestheticRatingScore adds f to the "aesthetic_rating_score" field.
+func (gouo *GenerationOutputUpdateOne) AddAestheticRatingScore(f float32) *GenerationOutputUpdateOne {
+	gouo.mutation.AddAestheticRatingScore(f)
+	return gouo
+}
+
+// SetAestheticArtifactScore sets the "aesthetic_artifact_score" field.
+func (gouo *GenerationOutputUpdateOne) SetAestheticArtifactScore(f float32) *GenerationOutputUpdateOne {
+	gouo.mutation.ResetAestheticArtifactScore()
+	gouo.mutation.SetAestheticArtifactScore(f)
+	return gouo
+}
+
+// SetNillableAestheticArtifactScore sets the "aesthetic_artifact_score" field if the given value is not nil.
+func (gouo *GenerationOutputUpdateOne) SetNillableAestheticArtifactScore(f *float32) *GenerationOutputUpdateOne {
+	if f != nil {
+		gouo.SetAestheticArtifactScore(*f)
+	}
+	return gouo
+}
+
+// AddAestheticArtifactScore adds f to the "aesthetic_artifact_score" field.
+func (gouo *GenerationOutputUpdateOne) AddAestheticArtifactScore(f float32) *GenerationOutputUpdateOne {
+	gouo.mutation.AddAestheticArtifactScore(f)
 	return gouo
 }
 
@@ -847,6 +943,18 @@ func (gouo *GenerationOutputUpdateOne) sqlSave(ctx context.Context) (_node *Gene
 	}
 	if value, ok := gouo.mutation.IsPublic(); ok {
 		_spec.SetField(generationoutput.FieldIsPublic, field.TypeBool, value)
+	}
+	if value, ok := gouo.mutation.AestheticRatingScore(); ok {
+		_spec.SetField(generationoutput.FieldAestheticRatingScore, field.TypeFloat32, value)
+	}
+	if value, ok := gouo.mutation.AddedAestheticRatingScore(); ok {
+		_spec.AddField(generationoutput.FieldAestheticRatingScore, field.TypeFloat32, value)
+	}
+	if value, ok := gouo.mutation.AestheticArtifactScore(); ok {
+		_spec.SetField(generationoutput.FieldAestheticArtifactScore, field.TypeFloat32, value)
+	}
+	if value, ok := gouo.mutation.AddedAestheticArtifactScore(); ok {
+		_spec.AddField(generationoutput.FieldAestheticArtifactScore, field.TypeFloat32, value)
 	}
 	if value, ok := gouo.mutation.LikeCount(); ok {
 		_spec.SetField(generationoutput.FieldLikeCount, field.TypeInt, value)

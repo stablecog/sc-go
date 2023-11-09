@@ -31,6 +31,10 @@ type GenerationOutput struct {
 	HasEmbeddings bool `json:"has_embeddings,omitempty"`
 	// IsPublic holds the value of the "is_public" field.
 	IsPublic bool `json:"is_public,omitempty"`
+	// AestheticRatingScore holds the value of the "aesthetic_rating_score" field.
+	AestheticRatingScore float32 `json:"aesthetic_rating_score,omitempty"`
+	// AestheticArtifactScore holds the value of the "aesthetic_artifact_score" field.
+	AestheticArtifactScore float32 `json:"aesthetic_artifact_score,omitempty"`
 	// LikeCount holds the value of the "like_count" field.
 	LikeCount int `json:"like_count,omitempty"`
 	// GenerationID holds the value of the "generation_id" field.
@@ -101,6 +105,8 @@ func (*GenerationOutput) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case generationoutput.FieldIsFavorited, generationoutput.FieldHasEmbeddings, generationoutput.FieldIsPublic:
 			values[i] = new(sql.NullBool)
+		case generationoutput.FieldAestheticRatingScore, generationoutput.FieldAestheticArtifactScore:
+			values[i] = new(sql.NullFloat64)
 		case generationoutput.FieldLikeCount:
 			values[i] = new(sql.NullInt64)
 		case generationoutput.FieldImagePath, generationoutput.FieldUpscaledImagePath, generationoutput.FieldGalleryStatus:
@@ -166,6 +172,18 @@ func (_go *GenerationOutput) assignValues(columns []string, values []any) error 
 				return fmt.Errorf("unexpected type %T for field is_public", values[i])
 			} else if value.Valid {
 				_go.IsPublic = value.Bool
+			}
+		case generationoutput.FieldAestheticRatingScore:
+			if value, ok := values[i].(*sql.NullFloat64); !ok {
+				return fmt.Errorf("unexpected type %T for field aesthetic_rating_score", values[i])
+			} else if value.Valid {
+				_go.AestheticRatingScore = float32(value.Float64)
+			}
+		case generationoutput.FieldAestheticArtifactScore:
+			if value, ok := values[i].(*sql.NullFloat64); !ok {
+				return fmt.Errorf("unexpected type %T for field aesthetic_artifact_score", values[i])
+			} else if value.Valid {
+				_go.AestheticArtifactScore = float32(value.Float64)
 			}
 		case generationoutput.FieldLikeCount:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
@@ -260,6 +278,12 @@ func (_go *GenerationOutput) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("is_public=")
 	builder.WriteString(fmt.Sprintf("%v", _go.IsPublic))
+	builder.WriteString(", ")
+	builder.WriteString("aesthetic_rating_score=")
+	builder.WriteString(fmt.Sprintf("%v", _go.AestheticRatingScore))
+	builder.WriteString(", ")
+	builder.WriteString("aesthetic_artifact_score=")
+	builder.WriteString(fmt.Sprintf("%v", _go.AestheticArtifactScore))
 	builder.WriteString(", ")
 	builder.WriteString("like_count=")
 	builder.WriteString(fmt.Sprintf("%v", _go.LikeCount))

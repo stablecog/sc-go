@@ -26,6 +26,10 @@ const (
 	FieldHasEmbeddings = "has_embeddings"
 	// FieldIsPublic holds the string denoting the is_public field in the database.
 	FieldIsPublic = "is_public"
+	// FieldAestheticRatingScore holds the string denoting the aesthetic_rating_score field in the database.
+	FieldAestheticRatingScore = "aesthetic_rating_score"
+	// FieldAestheticArtifactScore holds the string denoting the aesthetic_artifact_score field in the database.
+	FieldAestheticArtifactScore = "aesthetic_artifact_score"
 	// FieldLikeCount holds the string denoting the like_count field in the database.
 	FieldLikeCount = "like_count"
 	// FieldGenerationID holds the string denoting the generation_id field in the database.
@@ -76,6 +80,8 @@ var Columns = []string{
 	FieldIsFavorited,
 	FieldHasEmbeddings,
 	FieldIsPublic,
+	FieldAestheticRatingScore,
+	FieldAestheticArtifactScore,
 	FieldLikeCount,
 	FieldGenerationID,
 	FieldDeletedAt,
@@ -100,6 +106,10 @@ var (
 	DefaultHasEmbeddings bool
 	// DefaultIsPublic holds the default value on creation for the "is_public" field.
 	DefaultIsPublic bool
+	// DefaultAestheticRatingScore holds the default value on creation for the "aesthetic_rating_score" field.
+	DefaultAestheticRatingScore float32
+	// DefaultAestheticArtifactScore holds the default value on creation for the "aesthetic_artifact_score" field.
+	DefaultAestheticArtifactScore float32
 	// DefaultLikeCount holds the default value on creation for the "like_count" field.
 	DefaultLikeCount int
 	// DefaultCreatedAt holds the default value on creation for the "created_at" field.

@@ -27,6 +27,8 @@ func (GenerationOutput) Fields() []ent.Field {
 		field.Bool("is_favorited").Default(false),
 		field.Bool("has_embeddings").Default(false),
 		field.Bool("is_public").Default(false),
+		field.Float32("aesthetic_rating_score").Default(0),
+		field.Float32("aesthetic_artifact_score").Default(0),
 		// Populated by the triggers based on generation_output_likes.
 		field.Int("like_count").Default(0),
 		// ! Relationships / many-to-one

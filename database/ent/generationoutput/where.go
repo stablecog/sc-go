@@ -81,6 +81,16 @@ func IsPublic(v bool) predicate.GenerationOutput {
 	return predicate.GenerationOutput(sql.FieldEQ(FieldIsPublic, v))
 }
 
+// AestheticRatingScore applies equality check predicate on the "aesthetic_rating_score" field. It's identical to AestheticRatingScoreEQ.
+func AestheticRatingScore(v float32) predicate.GenerationOutput {
+	return predicate.GenerationOutput(sql.FieldEQ(FieldAestheticRatingScore, v))
+}
+
+// AestheticArtifactScore applies equality check predicate on the "aesthetic_artifact_score" field. It's identical to AestheticArtifactScoreEQ.
+func AestheticArtifactScore(v float32) predicate.GenerationOutput {
+	return predicate.GenerationOutput(sql.FieldEQ(FieldAestheticArtifactScore, v))
+}
+
 // LikeCount applies equality check predicate on the "like_count" field. It's identical to LikeCountEQ.
 func LikeCount(v int) predicate.GenerationOutput {
 	return predicate.GenerationOutput(sql.FieldEQ(FieldLikeCount, v))
@@ -294,6 +304,86 @@ func IsPublicEQ(v bool) predicate.GenerationOutput {
 // IsPublicNEQ applies the NEQ predicate on the "is_public" field.
 func IsPublicNEQ(v bool) predicate.GenerationOutput {
 	return predicate.GenerationOutput(sql.FieldNEQ(FieldIsPublic, v))
+}
+
+// AestheticRatingScoreEQ applies the EQ predicate on the "aesthetic_rating_score" field.
+func AestheticRatingScoreEQ(v float32) predicate.GenerationOutput {
+	return predicate.GenerationOutput(sql.FieldEQ(FieldAestheticRatingScore, v))
+}
+
+// AestheticRatingScoreNEQ applies the NEQ predicate on the "aesthetic_rating_score" field.
+func AestheticRatingScoreNEQ(v float32) predicate.GenerationOutput {
+	return predicate.GenerationOutput(sql.FieldNEQ(FieldAestheticRatingScore, v))
+}
+
+// AestheticRatingScoreIn applies the In predicate on the "aesthetic_rating_score" field.
+func AestheticRatingScoreIn(vs ...float32) predicate.GenerationOutput {
+	return predicate.GenerationOutput(sql.FieldIn(FieldAestheticRatingScore, vs...))
+}
+
+// AestheticRatingScoreNotIn applies the NotIn predicate on the "aesthetic_rating_score" field.
+func AestheticRatingScoreNotIn(vs ...float32) predicate.GenerationOutput {
+	return predicate.GenerationOutput(sql.FieldNotIn(FieldAestheticRatingScore, vs...))
+}
+
+// AestheticRatingScoreGT applies the GT predicate on the "aesthetic_rating_score" field.
+func AestheticRatingScoreGT(v float32) predicate.GenerationOutput {
+	return predicate.GenerationOutput(sql.FieldGT(FieldAestheticRatingScore, v))
+}
+
+// AestheticRatingScoreGTE applies the GTE predicate on the "aesthetic_rating_score" field.
+func AestheticRatingScoreGTE(v float32) predicate.GenerationOutput {
+	return predicate.GenerationOutput(sql.FieldGTE(FieldAestheticRatingScore, v))
+}
+
+// AestheticRatingScoreLT applies the LT predicate on the "aesthetic_rating_score" field.
+func AestheticRatingScoreLT(v float32) predicate.GenerationOutput {
+	return predicate.GenerationOutput(sql.FieldLT(FieldAestheticRatingScore, v))
+}
+
+// AestheticRatingScoreLTE applies the LTE predicate on the "aesthetic_rating_score" field.
+func AestheticRatingScoreLTE(v float32) predicate.GenerationOutput {
+	return predicate.GenerationOutput(sql.FieldLTE(FieldAestheticRatingScore, v))
+}
+
+// AestheticArtifactScoreEQ applies the EQ predicate on the "aesthetic_artifact_score" field.
+func AestheticArtifactScoreEQ(v float32) predicate.GenerationOutput {
+	return predicate.GenerationOutput(sql.FieldEQ(FieldAestheticArtifactScore, v))
+}
+
+// AestheticArtifactScoreNEQ applies the NEQ predicate on the "aesthetic_artifact_score" field.
+func AestheticArtifactScoreNEQ(v float32) predicate.GenerationOutput {
+	return predicate.GenerationOutput(sql.FieldNEQ(FieldAestheticArtifactScore, v))
+}
+
+// AestheticArtifactScoreIn applies the In predicate on the "aesthetic_artifact_score" field.
+func AestheticArtifactScoreIn(vs ...float32) predicate.GenerationOutput {
+	return predicate.GenerationOutput(sql.FieldIn(FieldAestheticArtifactScore, vs...))
+}
+
+// AestheticArtifactScoreNotIn applies the NotIn predicate on the "aesthetic_artifact_score" field.
+func AestheticArtifactScoreNotIn(vs ...float32) predicate.GenerationOutput {
+	return predicate.GenerationOutput(sql.FieldNotIn(FieldAestheticArtifactScore, vs...))
+}
+
+// AestheticArtifactScoreGT applies the GT predicate on the "aesthetic_artifact_score" field.
+func AestheticArtifactScoreGT(v float32) predicate.GenerationOutput {
+	return predicate.GenerationOutput(sql.FieldGT(FieldAestheticArtifactScore, v))
+}
+
+// AestheticArtifactScoreGTE applies the GTE predicate on the "aesthetic_artifact_score" field.
+func AestheticArtifactScoreGTE(v float32) predicate.GenerationOutput {
+	return predicate.GenerationOutput(sql.FieldGTE(FieldAestheticArtifactScore, v))
+}
+
+// AestheticArtifactScoreLT applies the LT predicate on the "aesthetic_artifact_score" field.
+func AestheticArtifactScoreLT(v float32) predicate.GenerationOutput {
+	return predicate.GenerationOutput(sql.FieldLT(FieldAestheticArtifactScore, v))
+}
+
+// AestheticArtifactScoreLTE applies the LTE predicate on the "aesthetic_artifact_score" field.
+func AestheticArtifactScoreLTE(v float32) predicate.GenerationOutput {
+	return predicate.GenerationOutput(sql.FieldLTE(FieldAestheticArtifactScore, v))
 }
 
 // LikeCountEQ applies the EQ predicate on the "like_count" field.
