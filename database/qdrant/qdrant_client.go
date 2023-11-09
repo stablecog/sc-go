@@ -86,6 +86,14 @@ var fieldsToIndex = []qdrantIndexField{
 		Name: "prompt_id",
 		Type: PayloadSchemaTypeKeyword,
 	},
+	{
+		Name: "aesthetic_rating_score",
+		Type: PayloadSchemaTypeFloat,
+	},
+	{
+		Name: "aesthetic_artifact_score",
+		Type: PayloadSchemaTypeFloat,
+	},
 }
 
 type QdrantClient struct {
