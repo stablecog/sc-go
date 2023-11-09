@@ -1041,6 +1041,8 @@ func (r *Repository) QueryGenerationsAdmin(per_page int, cursor *time.Time, call
 			GalleryStatus:                  g.GalleryStatus,
 			DeletedAt:                      g.DeletedAt,
 			GenerationQueryWithOutputsData: generationRoot,
+			AestheticArtifactScore:         utils.ToPtr(g.AestheticArtifactScore),
+			AestheticRatingScore:           utils.ToPtr(g.AestheticRatingScore),
 		}
 		if g.UpscaledImagePath != nil {
 			ret.UpscaledImageUrl = utils.GetEnv().GetURLFromImagePath(*g.UpscaledImagePath)
