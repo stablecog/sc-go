@@ -15,6 +15,7 @@ type MQClient interface {
 }
 
 type RabbitMQClient struct {
+	connUrl string
 	conn    *amqp.Connection
 	Ctx     context.Context
 	Channel *amqp.Channel
@@ -22,30 +23,32 @@ type RabbitMQClient struct {
 }
 
 // Create new RabbitMQ amqp client, using amqp:// connection string
-func NewRabbitMQClient(context context.Context, connUrl string) (*RabbitMQClient, error) {
-	conn, err := amqp.Dial(connUrl)
-	if err != nil {
-		log.Errorf("Error connecting to RabbitMQ %v", err)
-		return nil, err
-	}
-	channel, err := conn.Channel()
-	if err != nil {
-		log.Errorf("Error creating RabbitMQ channel %v", err)
-		return nil, err
-	}
-
+func NewRabbitMQClient(ctx context.Context, connUrl string) (*RabbitMQClient, error) {
 	client := &RabbitMQClient{
-		conn:    conn,
-		Ctx:     context,
-		Channel: channel,
+		connUrl: connUrl,
+		Ctx:     ctx,
 		Queue:   utils.GetEnv().RabbitMQQueueName,
 	}
-	err = client.createQueue()
+	err := client.connect()
 	if err != nil {
-		log.Errorf("Error creating RabbitMQ queue %v", err)
 		return nil, err
 	}
 	return client, nil
+}
+
+func (c *RabbitMQClient) connect() error {
+	var err error
+	c.conn, err = amqp.Dial(c.connUrl)
+	if err != nil {
+		return err
+	}
+
+	c.Channel, err = c.conn.Channel()
+	if err != nil {
+		return err
+	}
+
+	return c.createQueue()
 }
 
 func (c *RabbitMQClient) createQueue() error {
@@ -64,8 +67,20 @@ func (c *RabbitMQClient) createQueue() error {
 }
 
 func (c *RabbitMQClient) Close() {
-	c.conn.Close()
-	c.Channel.Close()
+	if c.Channel != nil {
+		c.Channel.Close()
+	}
+	if c.conn != nil {
+		c.conn.Close()
+	}
+}
+
+// Reconnect reconnects the connection
+func (c *RabbitMQClient) Reconnect() error {
+	if err := c.connect(); err != nil {
+		return err
+	}
+	return nil
 }
 
 func (c *RabbitMQClient) Publish(id string, msg any, priority uint8) error {
@@ -73,7 +88,7 @@ func (c *RabbitMQClient) Publish(id string, msg any, priority uint8) error {
 	if err != nil {
 		return err
 	}
-	return c.Channel.PublishWithContext(
+	err = c.Channel.PublishWithContext(
 		c.Ctx,
 		"",      // exchange
 		c.Queue, // routing key
@@ -86,4 +101,19 @@ func (c *RabbitMQClient) Publish(id string, msg any, priority uint8) error {
 			ContentType:  "text/plain",
 			Body:         marshalled,
 		})
+	// Handle reconnect if conn closed
+	if err != nil {
+		if c.conn.IsClosed() {
+			log.Info("Connection to RabbitMQ lost. Attempting to reconnect...")
+			reconnectErr := c.Reconnect()
+			if reconnectErr != nil {
+				log.Errorf("Failed to reconnect to RabbitMQ: %v", reconnectErr)
+				return reconnectErr
+			}
+			// Re-publish
+			return c.Publish(id, msg, priority)
+		}
+		return err
+	}
+	return nil
 }

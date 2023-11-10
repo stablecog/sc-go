@@ -2,6 +2,7 @@ package database
 
 import (
 	"database/sql"
+	"time"
 
 	"ariga.io/sqlcomment"
 	"entgo.io/ent/dialect"
@@ -14,6 +15,16 @@ import (
 func NewEntClient(connInfo SqlDBConn) (*ent.Client, error) {
 	db, err := sql.Open(connInfo.Dialect(), connInfo.DSN())
 	if err != nil {
+		return nil, err
+	}
+
+	// Set up connection pool and configure it
+	db.SetMaxOpenConns(25) // Adjust the max open connections according to your needs
+	db.SetMaxIdleConns(25) // Adjust the max idle connections
+	db.SetConnMaxLifetime(5 * time.Minute)
+
+	// Ping the database to verify connection is established
+	if err := db.Ping(); err != nil {
 		return nil, err
 	}
 
