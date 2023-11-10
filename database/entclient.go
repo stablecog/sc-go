@@ -23,11 +23,6 @@ func NewEntClient(connInfo SqlDBConn) (*ent.Client, error) {
 	db.SetMaxIdleConns(25) // Adjust the max idle connections
 	db.SetConnMaxLifetime(5 * time.Minute)
 
-	// Ping the database to verify connection is established
-	if err := db.Ping(); err != nil {
-		return nil, err
-	}
-
 	// For some reason, ent doesn't recognize pgx as a valid dialect
 	entDialect := connInfo.Dialect()
 	if entDialect == "pgx" {
