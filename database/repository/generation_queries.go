@@ -230,6 +230,30 @@ func (r *Repository) ApplyUserGenerationsFilters(query *ent.GenerationQuery, fil
 					s.Where(sql.EQ(generationoutput.FieldIsPublic, *filters.IsPublic))
 				})
 			}
+
+			if filters.AestheticArtifactScoreGTE != nil {
+				resQuery = resQuery.Where(func(s *sql.Selector) {
+					s.Where(sql.GTE(generationoutput.FieldAestheticArtifactScore, *filters.AestheticArtifactScoreGTE))
+				})
+			}
+
+			if filters.AestheticArtifactScoreLTE != nil {
+				resQuery = resQuery.Where(func(s *sql.Selector) {
+					s.Where(sql.LTE(generationoutput.FieldAestheticArtifactScore, *filters.AestheticArtifactScoreLTE))
+				})
+			}
+
+			if filters.AestheticRatingScoreGTE != nil {
+				resQuery = resQuery.Where(func(s *sql.Selector) {
+					s.Where(sql.GTE(generationoutput.FieldAestheticRatingScore, *filters.AestheticRatingScoreGTE))
+				})
+			}
+
+			if filters.AestheticRatingScoreLTE != nil {
+				resQuery = resQuery.Where(func(s *sql.Selector) {
+					s.Where(sql.LTE(generationoutput.FieldAestheticRatingScore, *filters.AestheticRatingScoreLTE))
+				})
+			}
 		}
 
 		// prompt ID

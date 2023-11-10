@@ -42,33 +42,37 @@ const (
 )
 
 type QueryGenerationFilters struct {
-	ModelIDs          []uuid.UUID                      `json:"model_ids"`
-	SchedulerIDs      []uuid.UUID                      `json:"scheduler_ids"`
-	MinHeight         int32                            `json:"min_height"`
-	MaxHeight         int32                            `json:"max_height"`
-	MinWidth          int32                            `json:"min_width"`
-	MaxWidth          int32                            `json:"max_width"`
-	Widths            []int32                          `json:"widths"`
-	Heights           []int32                          `json:"heights"`
-	MaxInferenceSteps int32                            `json:"max_inference_steps"`
-	MinInferenceSteps int32                            `json:"min_inference_steps"`
-	InferenceSteps    []int32                          `json:"inference_steps"`
-	MaxGuidanceScale  float32                          `json:"max_guidance_scale"`
-	MinGuidanceScale  float32                          `json:"min_guidance_scale"`
-	GuidanceScales    []float32                        `json:"guidance_scales"`
-	UpscaleStatus     UpscaleStatus                    `json:"upscale_status"`
-	GalleryStatus     []generationoutput.GalleryStatus `json:"gallery_status"`
-	Order             SortOrder                        `json:"order"`
-	StartDt           *time.Time                       `json:"start_dt"`
-	EndDt             *time.Time                       `json:"end_dt"`
-	UserID            *uuid.UUID                       `json:"user_id"`
-	OrderBy           OrderBy                          `json:"order_by"`
-	ScoreThreshold    *float32                         `json:"score_threshold,omitempty"`
-	IsFavorited       *bool                            `json:"is_favorited,omitempty"`
-	WasAutoSubmitted  *bool                            `json:"was_auto_submitted,omitempty"`
-	PromptID          *uuid.UUID                       `json:"prompt,omitempty"`
-	IsPublic          *bool                            `json:"is_public,omitempty"`
-	IsLiked           *bool                            `json:"is_liked,omitempty"`
+	ModelIDs                  []uuid.UUID                      `json:"model_ids"`
+	SchedulerIDs              []uuid.UUID                      `json:"scheduler_ids"`
+	MinHeight                 int32                            `json:"min_height"`
+	MaxHeight                 int32                            `json:"max_height"`
+	MinWidth                  int32                            `json:"min_width"`
+	MaxWidth                  int32                            `json:"max_width"`
+	Widths                    []int32                          `json:"widths"`
+	Heights                   []int32                          `json:"heights"`
+	MaxInferenceSteps         int32                            `json:"max_inference_steps"`
+	MinInferenceSteps         int32                            `json:"min_inference_steps"`
+	InferenceSteps            []int32                          `json:"inference_steps"`
+	MaxGuidanceScale          float32                          `json:"max_guidance_scale"`
+	MinGuidanceScale          float32                          `json:"min_guidance_scale"`
+	GuidanceScales            []float32                        `json:"guidance_scales"`
+	UpscaleStatus             UpscaleStatus                    `json:"upscale_status"`
+	GalleryStatus             []generationoutput.GalleryStatus `json:"gallery_status"`
+	Order                     SortOrder                        `json:"order"`
+	StartDt                   *time.Time                       `json:"start_dt"`
+	EndDt                     *time.Time                       `json:"end_dt"`
+	UserID                    *uuid.UUID                       `json:"user_id"`
+	OrderBy                   OrderBy                          `json:"order_by"`
+	ScoreThreshold            *float32                         `json:"score_threshold,omitempty"`
+	IsFavorited               *bool                            `json:"is_favorited,omitempty"`
+	WasAutoSubmitted          *bool                            `json:"was_auto_submitted,omitempty"`
+	PromptID                  *uuid.UUID                       `json:"prompt,omitempty"`
+	IsPublic                  *bool                            `json:"is_public,omitempty"`
+	IsLiked                   *bool                            `json:"is_liked,omitempty"`
+	AestheticArtifactScoreLTE *float32                         `json:"aesthetic_artifact_score_lte,omitempty"`
+	AestheticArtifactScoreGTE *float32                         `json:"aesthetic_artifact_score_gte,omitempty"`
+	AestheticRatingScoreLTE   *float32                         `json:"aesthetic_rating_score_lte,omitempty"`
+	AestheticRatingScoreGTE   *float32                         `json:"aesthetic_rating_score_gte,omitempty"`
 }
 
 // Parse all filters into a QueryGenerationFilters struct
@@ -403,6 +407,36 @@ func (filters *QueryGenerationFilters) ParseURLQueryParameters(urlValues url.Val
 			}
 			filters.PromptID = &parsed
 		}
+
+		// Aesthetic scores
+		if key == "aesthetic_artifact_score_lte" {
+			parsed, err := strconv.ParseFloat(value[0], 32)
+			if err != nil {
+				return fmt.Errorf("invalid aesthetic_artifact_score_lte: %s", value[0])
+			}
+			filters.AestheticArtifactScoreLTE = utils.ToPtr(float32(parsed))
+		}
+		if key == "aesthetic_artifact_score_gte" {
+			parsed, err := strconv.ParseFloat(value[0], 32)
+			if err != nil {
+				return fmt.Errorf("invalid aesthetic_artifact_score_gte: %s", value[0])
+			}
+			filters.AestheticArtifactScoreGTE = utils.ToPtr(float32(parsed))
+		}
+		if key == "aesthetic_rating_score_lte" {
+			parsed, err := strconv.ParseFloat(value[0], 32)
+			if err != nil {
+				return fmt.Errorf("invalid aesthetic_rating_score_lte: %s", value[0])
+			}
+			filters.AestheticRatingScoreLTE = utils.ToPtr(float32(parsed))
+		}
+		if key == "aesthetic_rating_score_gte" {
+			parsed, err := strconv.ParseFloat(value[0], 32)
+			if err != nil {
+				return fmt.Errorf("invalid aesthetic_rating_score_gte: %s", value[0])
+			}
+			filters.AestheticRatingScoreGTE = utils.ToPtr(float32(parsed))
+		}
 	}
 	// Descending default
 	if filters.Order == "" {
@@ -518,6 +552,40 @@ func (filters *QueryGenerationFilters) ToQdrantFilters(ignoreGalleryStatus bool)
 			Key: "width",
 			Range: qdrant.SCRange[float32]{
 				Lte: utils.ToPtr(filters.MaxGuidanceScale),
+			},
+		})
+	}
+
+	// Aestheti cscores
+	if filters.AestheticArtifactScoreLTE != nil {
+		f.Must = append(f.Must, qdrant.SCMatchCondition{
+			Key: "aesthetic_artifact_score",
+			Range: qdrant.SCRange[float32]{
+				Lte: filters.AestheticArtifactScoreLTE,
+			},
+		})
+	}
+	if filters.AestheticArtifactScoreGTE != nil {
+		f.Must = append(f.Must, qdrant.SCMatchCondition{
+			Key: "aesthetic_artifact_score",
+			Range: qdrant.SCRange[float32]{
+				Gte: filters.AestheticArtifactScoreGTE,
+			},
+		})
+	}
+	if filters.AestheticRatingScoreLTE != nil {
+		f.Must = append(f.Must, qdrant.SCMatchCondition{
+			Key: "aesthetic_rating_score",
+			Range: qdrant.SCRange[float32]{
+				Lte: filters.AestheticRatingScoreLTE,
+			},
+		})
+	}
+	if filters.AestheticRatingScoreGTE != nil {
+		f.Must = append(f.Must, qdrant.SCMatchCondition{
+			Key: "aesthetic_rating_score",
+			Range: qdrant.SCRange[float32]{
+				Gte: filters.AestheticRatingScoreGTE,
 			},
 		})
 	}
