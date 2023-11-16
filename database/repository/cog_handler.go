@@ -409,6 +409,7 @@ func (r *Repository) ProcessCogMessage(msg requests.CogWebhookMessage) error {
 					GalleryStatus:    output.GalleryStatus,
 					WasAutoSubmitted: msg.Input.WasAutoSubmitted,
 					IsPublic:         msg.Input.WasAutoSubmitted,
+					CreatedAt:        utils.ToPtr(output.CreatedAt),
 				}
 			}
 			resp.Outputs = generateOutputs
@@ -439,6 +440,7 @@ func (r *Repository) ProcessCogMessage(msg requests.CogWebhookMessage) error {
 					AudioDuration:    &voiceoverOutput.AudioDuration,
 					WasAutoSubmitted: msg.Input.WasAutoSubmitted,
 					IsPublic:         msg.Input.WasAutoSubmitted,
+					CreatedAt:        utils.ToPtr(voiceoverOutput.CreatedAt),
 				},
 			}
 		}
