@@ -1285,3 +1285,7 @@ EXECUTE FUNCTION decrement_like_count();
 -- Add aeshtetic scores
 alter table public.generation_outputs add column aesthetic_rating_score real not null default 0;
 alter table public.generation_outputs add column aesthetic_artifact_score real not null default 0;
+
+-- Create indexes on aesthetic scores
+CREATE INDEX generation_outputs_aesthetic_rating_score_idx ON generation_outputs (aesthetic_rating_score);
+CREATE INDEX generation_outputs_aesthetic_artifact_score_idx ON generation_outputs (aesthetic_artifact_score);
