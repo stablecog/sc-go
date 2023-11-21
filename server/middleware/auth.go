@@ -54,8 +54,6 @@ func (m *Middleware) AuthMiddleware(levels ...AuthLevel) func(next http.Handler)
 			// Separate flow for API tokens
 			if slices.Contains(levels, AuthLevelOptional) {
 				if strings.HasPrefix(authHeader[1], "sc-") && len(authHeader[1]) == 67 {
-					// show first 10 chars of token
-					log.Infof("Bearer token hit condition %s", authHeader[1][:10])
 					levels = append(levels, AuthLevelAPIToken)
 				}
 			}
@@ -69,6 +67,7 @@ func (m *Middleware) AuthMiddleware(levels ...AuthLevel) func(next http.Handler)
 					responses.ErrInternalServerError(w, r, "An unknown error has occured")
 					return
 				} else if ent.IsNotFound(err) || !token.IsActive {
+					log.Infof("Invalid token 1")
 					responses.ErrUnauthorized(w, r)
 					return
 				}
@@ -84,6 +83,7 @@ func (m *Middleware) AuthMiddleware(levels ...AuthLevel) func(next http.Handler)
 					authorized := false
 					roles, err := m.Repo.GetRoles(user.ID)
 					if err != nil {
+						log.Error("Error getting roles", "err", err)
 						responses.ErrUnauthorized(w, r)
 						return
 					}
@@ -101,6 +101,7 @@ func (m *Middleware) AuthMiddleware(levels ...AuthLevel) func(next http.Handler)
 					}
 
 					if !authorized {
+						log.Infof("Invalid token 2")
 						responses.ErrUnauthorized(w, r)
 						return
 					}
@@ -114,6 +115,7 @@ func (m *Middleware) AuthMiddleware(levels ...AuthLevel) func(next http.Handler)
 				// Check supabase to see if it's all good
 				userId, email, lastSignIn, err = m.SupabaseAuth.GetSupabaseUserIdFromAccessToken(authHeader[1])
 				if err != nil {
+					log.Error("Error getting user id from access token", "err", err)
 					responses.ErrUnauthorized(w, r)
 					return
 				}
@@ -130,6 +132,8 @@ func (m *Middleware) AuthMiddleware(levels ...AuthLevel) func(next http.Handler)
 
 			userIDParsed, err := uuid.Parse(userId)
 			if err != nil {
+				// This should never happen
+				log.Error("Error parsing user ID", "err", err)
 				responses.ErrUnauthorized(w, r)
 				return
 			}
@@ -142,6 +146,7 @@ func (m *Middleware) AuthMiddleware(levels ...AuthLevel) func(next http.Handler)
 				authorized = false
 				roles, err := m.Repo.GetRoles(userIDParsed)
 				if err != nil {
+					log.Error("Error getting roles - 2", "err", err)
 					responses.ErrUnauthorized(w, r)
 					return
 				}
@@ -160,6 +165,7 @@ func (m *Middleware) AuthMiddleware(levels ...AuthLevel) func(next http.Handler)
 			}
 
 			if !authorized {
+				log.Infof("Invalid token 3")
 				responses.ErrUnauthorized(w, r)
 				return
 			}
