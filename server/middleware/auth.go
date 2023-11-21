@@ -52,11 +52,13 @@ func (m *Middleware) AuthMiddleware(levels ...AuthLevel) func(next http.Handler)
 			ctx := r.Context()
 
 			// Separate flow for API tokens
-			// if slices.Contains(levels, AuthLevelOptional) {
-			// 	if strings.HasPrefix(authHeader[1], "sc-") && len(authHeader[1]) == 67 {
-			// 		levels = append(levels, AuthLevelAPIToken)
-			// 	}
-			// }
+			if slices.Contains(levels, AuthLevelOptional) {
+				if strings.HasPrefix(authHeader[1], "sc-") && len(authHeader[1]) == 67 {
+					// show first 10 chars of token
+					log.Infof("Bearer token hit condition %s", authHeader[1][:10])
+					levels = append(levels, AuthLevelAPIToken)
+				}
+			}
 			if slices.Contains(levels, AuthLevelAPIToken) {
 				// Hash token
 				hashed := utils.Sha256(authHeader[1])
