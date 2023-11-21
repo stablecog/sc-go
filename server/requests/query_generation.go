@@ -386,6 +386,7 @@ func (filters *QueryGenerationFilters) ParseURLQueryParameters(urlValues url.Val
 			if strings.ToLower(value[0]) == "true" {
 				t := true
 				filters.IsLiked = &t
+				filters.IsPublic = &t
 			} else {
 				return fmt.Errorf("invalid is_liked: '%s' expected 'true'", value[0])
 			}
