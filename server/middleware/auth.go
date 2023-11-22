@@ -30,9 +30,12 @@ const (
 func (m *Middleware) AuthMiddleware(levels ...AuthLevel) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			// Copy the levels array
+			levelsCopy := make([]AuthLevel, len(levels))
+			copy(levelsCopy, levels)
 			authHeader := strings.Split(r.Header.Get("Authorization"), "Bearer ")
 			if len(authHeader) != 2 {
-				if slices.Contains(levels, AuthLevelOptional) {
+				if slices.Contains(levelsCopy, AuthLevelOptional) {
 					next.ServeHTTP(w, r)
 					return
 				}
@@ -52,14 +55,12 @@ func (m *Middleware) AuthMiddleware(levels ...AuthLevel) func(next http.Handler)
 			ctx := r.Context()
 
 			// Separate flow for API tokens
-			if slices.Contains(levels, AuthLevelOptional) {
+			if slices.Contains(levelsCopy, AuthLevelOptional) {
 				if strings.HasPrefix(authHeader[1], "sc-") && len(authHeader[1]) == 67 {
-					// Show first 10 chars of token
-					log.Infof("API token auth %s", authHeader[1][:10])
-					levels = append(levels, AuthLevelAPIToken)
+					levelsCopy = append(levelsCopy, AuthLevelAPIToken)
 				}
 			}
-			if slices.Contains(levels, AuthLevelAPIToken) {
+			if slices.Contains(levelsCopy, AuthLevelAPIToken) {
 				// Hash token
 				hashed := utils.Sha256(authHeader[1])
 				// Validate
@@ -69,7 +70,6 @@ func (m *Middleware) AuthMiddleware(levels ...AuthLevel) func(next http.Handler)
 					responses.ErrInternalServerError(w, r, "An unknown error has occured")
 					return
 				} else if ent.IsNotFound(err) || !token.IsActive {
-					log.Infof("Invalid token 1")
 					responses.ErrUnauthorized(w, r)
 					return
 				}
@@ -81,7 +81,7 @@ func (m *Middleware) AuthMiddleware(levels ...AuthLevel) func(next http.Handler)
 					return
 				}
 
-				if slices.Contains(levels, AuthLevelGalleryAdmin) || slices.Contains(levels, AuthLevelSuperAdmin) {
+				if slices.Contains(levelsCopy, AuthLevelGalleryAdmin) || slices.Contains(levelsCopy, AuthLevelSuperAdmin) {
 					authorized := false
 					roles, err := m.Repo.GetRoles(user.ID)
 					if err != nil {
@@ -103,7 +103,6 @@ func (m *Middleware) AuthMiddleware(levels ...AuthLevel) func(next http.Handler)
 					}
 
 					if !authorized {
-						log.Infof("Invalid token 2")
 						responses.ErrUnauthorized(w, r)
 						return
 					}
@@ -144,7 +143,7 @@ func (m *Middleware) AuthMiddleware(levels ...AuthLevel) func(next http.Handler)
 			authorized := true
 
 			// If level is more than any, check if they have the appropriate role
-			if slices.Contains(levels, AuthLevelGalleryAdmin) || slices.Contains(levels, AuthLevelSuperAdmin) {
+			if slices.Contains(levelsCopy, AuthLevelGalleryAdmin) || slices.Contains(levelsCopy, AuthLevelSuperAdmin) {
 				authorized = false
 				roles, err := m.Repo.GetRoles(userIDParsed)
 				if err != nil {
@@ -158,7 +157,7 @@ func (m *Middleware) AuthMiddleware(levels ...AuthLevel) func(next http.Handler)
 						authorized = true
 						ctx = context.WithValue(ctx, "user_role", "SUPER_ADMIN")
 						break
-					} else if role == "GALLERY_ADMIN" && slices.Contains(levels, AuthLevelGalleryAdmin) {
+					} else if role == "GALLERY_ADMIN" && slices.Contains(levelsCopy, AuthLevelGalleryAdmin) {
 						// Gallery admin only authorized if we're checking for gallery admin
 						authorized = true
 						ctx = context.WithValue(ctx, "user_role", "GALLERY_ADMIN")
@@ -167,7 +166,6 @@ func (m *Middleware) AuthMiddleware(levels ...AuthLevel) func(next http.Handler)
 			}
 
 			if !authorized {
-				log.Infof("Invalid token 3")
 				responses.ErrUnauthorized(w, r)
 				return
 			}
