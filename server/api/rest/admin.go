@@ -24,8 +24,9 @@ import (
 )
 
 type BanDomainRequest struct {
-	Action  string   `json:"action"`
-	Domains []string `json:"domains"`
+	Action     string   `json:"action"`
+	DeleteData bool     `json:"delete_data"`
+	Domains    []string `json:"domains"`
 }
 
 type BannedResponse struct {
@@ -66,7 +67,7 @@ func (c *RestAPI) HandleBanDomains(w http.ResponseWriter, r *http.Request) {
 
 	// Exec ban
 	if banDomainsReq.Action == "ban" {
-		affected, err := c.Repo.BanDomains(banDomainsReq.Domains)
+		affected, err := c.Repo.BanDomains(banDomainsReq.Domains, banDomainsReq.DeleteData)
 		if err != nil {
 			responses.ErrInternalServerError(w, r, err.Error())
 			return

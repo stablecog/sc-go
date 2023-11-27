@@ -75,7 +75,7 @@ func (r *Repository) BanUsers(userIDs []uuid.UUID, deleteData bool) (int, error)
 }
 
 // Ban domains
-func (r *Repository) BanDomains(domains []string) (int, error) {
+func (r *Repository) BanDomains(domains []string, deleteData bool) (int, error) {
 	var bannedUsers int
 	if err := r.WithTx(func(tx *ent.Tx) error {
 		DB := tx.Client()
@@ -92,9 +92,13 @@ func (r *Repository) BanDomains(domains []string) (int, error) {
 
 		// Update users with domain like this
 		for _, domain := range domains {
-			updated, err := DB.User.Update().Where(func(s *sql.Selector) {
+			upd := DB.User.Update().Where(func(s *sql.Selector) {
 				s.Where(sql.Like(user.FieldEmail, fmt.Sprintf("%%@%s", domain)))
-			}).SetBannedAt(time.Now()).SetScheduledForDeletionOn(time.Now().Add(3 * time.Hour)).Save(r.Ctx)
+			}).SetBannedAt(time.Now())
+			if deleteData {
+				upd.SetScheduledForDeletionOn(time.Now().Add(shared.DELETE_BANNED_USER_DATA_AFTER))
+			}
+			updated, err := upd.Save(r.Ctx)
 			if err != nil {
 				return err
 			}
