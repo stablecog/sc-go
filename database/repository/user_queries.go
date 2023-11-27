@@ -301,12 +301,12 @@ func (r *Repository) IsBanned(userId uuid.UUID) (bool, error) {
 
 // Get banned users to delete
 func (r *Repository) GetBannedUsersToDelete() ([]*ent.User, error) {
-	return r.DB.User.Query().Where(user.BannedAtNotNil(), user.DataDeletedAtIsNil(), user.ScheduledForDeletionOnLT(time.Now())).All(r.Ctx)
+	return r.DB.User.Query().Where(user.BannedAtNotNil(), user.DataDeletedAtIsNil(), user.ScheduledForDeletionOnNotNil(), user.ScheduledForDeletionOnLT(time.Now())).All(r.Ctx)
 }
 
 // Get non-banned users to delete
 func (r *Repository) GetUsersToDelete() ([]*ent.User, error) {
-	return r.DB.User.Query().Where(user.DataDeletedAtIsNil(), user.ScheduledForDeletionOnLT(time.Now())).All(r.Ctx)
+	return r.DB.User.Query().Where(user.DataDeletedAtIsNil(), user.ScheduledForDeletionOnNotNil(), user.ScheduledForDeletionOnLT(time.Now())).All(r.Ctx)
 }
 
 // Get user by discord ID
