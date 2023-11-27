@@ -10,6 +10,7 @@ const (
 )
 
 type BanUsersRequest struct {
-	Action  BanAction   `json:"action"`
-	UserIDs []uuid.UUID `json:"user_ids"`
+	Action     BanAction   `json:"action"`
+	DeleteData bool        `json:"delete_data"`
+	UserIDs    []uuid.UUID `json:"user_ids"`
 }

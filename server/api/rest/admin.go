@@ -115,7 +115,7 @@ func (c *RestAPI) HandleBanUser(w http.ResponseWriter, r *http.Request) {
 
 	var affected int
 	if banUsersReq.Action == requests.BanActionBan {
-		affected, err = c.Repo.BanUsers(banUsersReq.UserIDs)
+		affected, err = c.Repo.BanUsers(banUsersReq.UserIDs, banUsersReq.DeleteData)
 		if err != nil {
 			responses.ErrInternalServerError(w, r, err.Error())
 			return

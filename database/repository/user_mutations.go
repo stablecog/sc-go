@@ -66,8 +66,12 @@ func (r *Repository) SyncStripeProductIDs(productCustomerIDMap map[string][]stri
 }
 
 // Ban users
-func (r *Repository) BanUsers(userIDs []uuid.UUID) (int, error) {
-	return r.DB.User.Update().Where(user.IDIn(userIDs...)).SetBannedAt(time.Now()).SetScheduledForDeletionOn(time.Now().Add(shared.DELETE_BANNED_USER_DATA_AFTER)).Save(r.Ctx)
+func (r *Repository) BanUsers(userIDs []uuid.UUID, deleteData bool) (int, error) {
+	upd := r.DB.User.Update().Where(user.IDIn(userIDs...)).SetBannedAt(time.Now())
+	if deleteData {
+		upd.SetScheduledForDeletionOn(time.Now().Add(shared.DELETE_BANNED_USER_DATA_AFTER))
+	}
+	return upd.Save(r.Ctx)
 }
 
 // Ban domains
