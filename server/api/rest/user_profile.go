@@ -91,7 +91,12 @@ func (c *RestAPI) HandleUserProfileSemanticSearch(w http.ResponseWriter, r *http
 		Username:        user.Username,
 	}
 
-	if user.BannedAt != nil {
+	isSuperAdmin := false
+	if callingUserId != nil {
+		isSuperAdmin, _ = c.Repo.IsSuperAdmin(*callingUserId)
+	}
+
+	if user.BannedAt != nil && !isSuperAdmin {
 		render.Status(r, http.StatusOK)
 		render.JSON(w, r, GalleryResponse[*uint]{
 			Next:     nil,
