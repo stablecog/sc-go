@@ -13,9 +13,9 @@ func (m *Middleware) GeoIPMiddleware() func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			userIDStr, _ := r.Context().Value("user_id").(string)
 			email, _ := r.Context().Value("user_email").(string)
-			if utils.GetCountryCode(r) == "NZ" && !strings.HasSuffix(email, "@gmail.com") {
+			if utils.GetCountryCode(r) == "BD" && !strings.HasSuffix(email, "@gmail.com") {
 				// Webhook
-				discord.FireGeoIPWebhook(utils.GetIPAddress(r), email, userIDStr)
+				discord.FireGeoIPWebhook(utils.GetIPAddress(r), email, userIDStr, utils.GetCountryCode(r))
 			}
 
 			next.ServeHTTP(w, r)

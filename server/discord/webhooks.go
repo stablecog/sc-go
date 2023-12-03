@@ -250,7 +250,7 @@ func AdhocCreditsPurchasedWebhook(repo *repository.Repository, user *ent.User, c
 	return nil
 }
 
-func FireGeoIPWebhook(ip string, email string, userid string) error {
+func FireGeoIPWebhook(ip string, email string, userid string, countryCode string) error {
 	webhookUrl := utils.GetEnv().GeoIpWebhook
 	if webhookUrl == "" {
 		return fmt.Errorf("GEOIP_WEBHOOK not set")
@@ -260,7 +260,7 @@ func FireGeoIPWebhook(ip string, email string, userid string) error {
 	body := models.DiscordWebhookBody{
 		Embeds: []models.DiscordWebhookEmbed{
 			{
-				Title: "NZ IP",
+				Title: fmt.Sprintf("%s IP", countryCode),
 				Color: 11437567,
 				Fields: []models.DiscordWebhookField{
 					{
