@@ -22,6 +22,7 @@ type Cache struct {
 	adminIDs               []uuid.UUID
 	iPBlacklist            []string
 	disposableEmailDomains []string
+	usernameBlacklist      []string
 	bannedWords            []*ent.BannedWords
 	sync.RWMutex
 }
@@ -259,6 +260,23 @@ func (f *Cache) IPBlacklist() []string {
 	f.RLock()
 	defer f.RUnlock()
 	return f.iPBlacklist
+}
+
+func (f *Cache) UpdateUsernameBlacklist(blacklist []string) {
+	f.Lock()
+	defer f.Unlock()
+	f.usernameBlacklist = blacklist
+}
+
+func (f *Cache) IsUsernameBlacklisted(username string) bool {
+	f.RLock()
+	defer f.RUnlock()
+	for _, blacklistedUsername := range f.usernameBlacklist {
+		if username == blacklistedUsername {
+			return true
+		}
+	}
+	return false
 }
 
 func (f *Cache) IsDisposableEmail(email string) bool {

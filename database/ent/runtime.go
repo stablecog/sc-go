@@ -29,6 +29,7 @@ import (
 	"github.com/stablecog/sc-go/database/ent/upscalemodel"
 	"github.com/stablecog/sc-go/database/ent/upscaleoutput"
 	"github.com/stablecog/sc-go/database/ent/user"
+	"github.com/stablecog/sc-go/database/ent/usernameblacklist"
 	"github.com/stablecog/sc-go/database/ent/voiceover"
 	"github.com/stablecog/sc-go/database/ent/voiceovermodel"
 	"github.com/stablecog/sc-go/database/ent/voiceoveroutput"
@@ -497,6 +498,22 @@ func init() {
 	userDescID := userFields[0].Descriptor()
 	// user.DefaultID holds the default value on creation for the id field.
 	user.DefaultID = userDescID.Default.(func() uuid.UUID)
+	usernameblacklistFields := schema.UsernameBlacklist{}.Fields()
+	_ = usernameblacklistFields
+	// usernameblacklistDescCreatedAt is the schema descriptor for created_at field.
+	usernameblacklistDescCreatedAt := usernameblacklistFields[2].Descriptor()
+	// usernameblacklist.DefaultCreatedAt holds the default value on creation for the created_at field.
+	usernameblacklist.DefaultCreatedAt = usernameblacklistDescCreatedAt.Default.(func() time.Time)
+	// usernameblacklistDescUpdatedAt is the schema descriptor for updated_at field.
+	usernameblacklistDescUpdatedAt := usernameblacklistFields[3].Descriptor()
+	// usernameblacklist.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	usernameblacklist.DefaultUpdatedAt = usernameblacklistDescUpdatedAt.Default.(func() time.Time)
+	// usernameblacklist.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	usernameblacklist.UpdateDefaultUpdatedAt = usernameblacklistDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// usernameblacklistDescID is the schema descriptor for id field.
+	usernameblacklistDescID := usernameblacklistFields[0].Descriptor()
+	// usernameblacklist.DefaultID holds the default value on creation for the id field.
+	usernameblacklist.DefaultID = usernameblacklistDescID.Default.(func() uuid.UUID)
 	voiceoverFields := schema.Voiceover{}.Fields()
 	_ = voiceoverFields
 	// voiceoverDescWasAutoSubmitted is the schema descriptor for was_auto_submitted field.

@@ -33,6 +33,7 @@ import (
 	"github.com/stablecog/sc-go/database/ent/upscalemodel"
 	"github.com/stablecog/sc-go/database/ent/upscaleoutput"
 	"github.com/stablecog/sc-go/database/ent/user"
+	"github.com/stablecog/sc-go/database/ent/usernameblacklist"
 	"github.com/stablecog/sc-go/database/ent/voiceover"
 	"github.com/stablecog/sc-go/database/ent/voiceovermodel"
 	"github.com/stablecog/sc-go/database/ent/voiceoveroutput"
@@ -86,6 +87,7 @@ func columnChecker(table string) func(string) error {
 		upscalemodel.Table:         upscalemodel.ValidColumn,
 		upscaleoutput.Table:        upscaleoutput.ValidColumn,
 		user.Table:                 user.ValidColumn,
+		usernameblacklist.Table:    usernameblacklist.ValidColumn,
 		voiceover.Table:            voiceover.ValidColumn,
 		voiceovermodel.Table:       voiceovermodel.ValidColumn,
 		voiceoveroutput.Table:      voiceoveroutput.ValidColumn,

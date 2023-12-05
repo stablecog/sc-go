@@ -273,6 +273,18 @@ func (f UserFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error)
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.UserMutation", m)
 }
 
+// The UsernameBlacklistFunc type is an adapter to allow the use of ordinary
+// function as UsernameBlacklist mutator.
+type UsernameBlacklistFunc func(context.Context, *ent.UsernameBlacklistMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f UsernameBlacklistFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.UsernameBlacklistMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.UsernameBlacklistMutation", m)
+}
+
 // The VoiceoverFunc type is an adapter to allow the use of ordinary
 // function as Voiceover mutator.
 type VoiceoverFunc func(context.Context, *ent.VoiceoverMutation) (ent.Value, error)

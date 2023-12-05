@@ -1289,3 +1289,21 @@ alter table public.generation_outputs add column aesthetic_artifact_score real n
 -- Create indexes on aesthetic scores
 CREATE INDEX generation_outputs_aesthetic_rating_score_idx ON generation_outputs (aesthetic_rating_score);
 CREATE INDEX generation_outputs_aesthetic_artifact_score_idx ON generation_outputs (aesthetic_artifact_score);
+
+-- Username Blacklist
+
+CREATE TABLE public.username_blacklist (
+    id uuid DEFAULT extensions.uuid_generate_v4() NOT NULL,
+    username text NOT NULL,
+    created_at timestamp with time zone DEFAULT timezone('utc'::text, now()) NOT NULL,
+    updated_at timestamp with time zone DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+CREATE trigger handle_updated_at before
+UPDATE
+    ON public.username_blacklist FOR each ROW EXECUTE PROCEDURE moddatetime (updated_at);
+
+ALTER TABLE public.username_blacklist ENABLE ROW LEVEL SECURITY;
+
+ALTER TABLE ONLY public.username_blacklist
+    ADD CONSTRAINT username_blacklist_pkey PRIMARY KEY (id);

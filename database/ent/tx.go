@@ -58,6 +58,8 @@ type Tx struct {
 	UpscaleOutput *UpscaleOutputClient
 	// User is the client for interacting with the User builders.
 	User *UserClient
+	// UsernameBlacklist is the client for interacting with the UsernameBlacklist builders.
+	UsernameBlacklist *UsernameBlacklistClient
 	// Voiceover is the client for interacting with the Voiceover builders.
 	Voiceover *VoiceoverClient
 	// VoiceoverModel is the client for interacting with the VoiceoverModel builders.
@@ -219,6 +221,7 @@ func (tx *Tx) init() {
 	tx.UpscaleModel = NewUpscaleModelClient(tx.config)
 	tx.UpscaleOutput = NewUpscaleOutputClient(tx.config)
 	tx.User = NewUserClient(tx.config)
+	tx.UsernameBlacklist = NewUsernameBlacklistClient(tx.config)
 	tx.Voiceover = NewVoiceoverClient(tx.config)
 	tx.VoiceoverModel = NewVoiceoverModelClient(tx.config)
 	tx.VoiceoverOutput = NewVoiceoverOutputClient(tx.config)

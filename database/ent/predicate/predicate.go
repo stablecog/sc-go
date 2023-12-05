@@ -72,6 +72,9 @@ type UpscaleOutput func(*sql.Selector)
 // User is the predicate function for user builders.
 type User func(*sql.Selector)
 
+// UsernameBlacklist is the predicate function for usernameblacklist builders.
+type UsernameBlacklist func(*sql.Selector)
+
 // Voiceover is the predicate function for voiceover builders.
 type Voiceover func(*sql.Selector)
 

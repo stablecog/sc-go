@@ -33,6 +33,7 @@ import (
 	"github.com/stablecog/sc-go/database/ent/upscalemodel"
 	"github.com/stablecog/sc-go/database/ent/upscaleoutput"
 	"github.com/stablecog/sc-go/database/ent/user"
+	"github.com/stablecog/sc-go/database/ent/usernameblacklist"
 	"github.com/stablecog/sc-go/database/ent/voiceover"
 	"github.com/stablecog/sc-go/database/ent/voiceovermodel"
 	"github.com/stablecog/sc-go/database/ent/voiceoveroutput"
@@ -92,6 +93,8 @@ type Client struct {
 	UpscaleOutput *UpscaleOutputClient
 	// User is the client for interacting with the User builders.
 	User *UserClient
+	// UsernameBlacklist is the client for interacting with the UsernameBlacklist builders.
+	UsernameBlacklist *UsernameBlacklistClient
 	// Voiceover is the client for interacting with the Voiceover builders.
 	Voiceover *VoiceoverClient
 	// VoiceoverModel is the client for interacting with the VoiceoverModel builders.
@@ -135,6 +138,7 @@ func (c *Client) init() {
 	c.UpscaleModel = NewUpscaleModelClient(c.config)
 	c.UpscaleOutput = NewUpscaleOutputClient(c.config)
 	c.User = NewUserClient(c.config)
+	c.UsernameBlacklist = NewUsernameBlacklistClient(c.config)
 	c.Voiceover = NewVoiceoverClient(c.config)
 	c.VoiceoverModel = NewVoiceoverModelClient(c.config)
 	c.VoiceoverOutput = NewVoiceoverOutputClient(c.config)
@@ -194,6 +198,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		UpscaleModel:         NewUpscaleModelClient(cfg),
 		UpscaleOutput:        NewUpscaleOutputClient(cfg),
 		User:                 NewUserClient(cfg),
+		UsernameBlacklist:    NewUsernameBlacklistClient(cfg),
 		Voiceover:            NewVoiceoverClient(cfg),
 		VoiceoverModel:       NewVoiceoverModelClient(cfg),
 		VoiceoverOutput:      NewVoiceoverOutputClient(cfg),
@@ -239,6 +244,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		UpscaleModel:         NewUpscaleModelClient(cfg),
 		UpscaleOutput:        NewUpscaleOutputClient(cfg),
 		User:                 NewUserClient(cfg),
+		UsernameBlacklist:    NewUsernameBlacklistClient(cfg),
 		Voiceover:            NewVoiceoverClient(cfg),
 		VoiceoverModel:       NewVoiceoverModelClient(cfg),
 		VoiceoverOutput:      NewVoiceoverOutputClient(cfg),
@@ -293,6 +299,7 @@ func (c *Client) Use(hooks ...Hook) {
 	c.UpscaleModel.Use(hooks...)
 	c.UpscaleOutput.Use(hooks...)
 	c.User.Use(hooks...)
+	c.UsernameBlacklist.Use(hooks...)
 	c.Voiceover.Use(hooks...)
 	c.VoiceoverModel.Use(hooks...)
 	c.VoiceoverOutput.Use(hooks...)
@@ -324,6 +331,7 @@ func (c *Client) Intercept(interceptors ...Interceptor) {
 	c.UpscaleModel.Intercept(interceptors...)
 	c.UpscaleOutput.Intercept(interceptors...)
 	c.User.Intercept(interceptors...)
+	c.UsernameBlacklist.Intercept(interceptors...)
 	c.Voiceover.Intercept(interceptors...)
 	c.VoiceoverModel.Intercept(interceptors...)
 	c.VoiceoverOutput.Intercept(interceptors...)
@@ -377,6 +385,8 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.UpscaleOutput.mutate(ctx, m)
 	case *UserMutation:
 		return c.User.mutate(ctx, m)
+	case *UsernameBlacklistMutation:
+		return c.UsernameBlacklist.mutate(ctx, m)
 	case *VoiceoverMutation:
 		return c.Voiceover.mutate(ctx, m)
 	case *VoiceoverModelMutation:
@@ -3815,6 +3825,124 @@ func (c *UserClient) mutate(ctx context.Context, m *UserMutation) (Value, error)
 		return (&UserDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("ent: unknown User mutation op: %q", m.Op())
+	}
+}
+
+// UsernameBlacklistClient is a client for the UsernameBlacklist schema.
+type UsernameBlacklistClient struct {
+	config
+}
+
+// NewUsernameBlacklistClient returns a client for the UsernameBlacklist from the given config.
+func NewUsernameBlacklistClient(c config) *UsernameBlacklistClient {
+	return &UsernameBlacklistClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `usernameblacklist.Hooks(f(g(h())))`.
+func (c *UsernameBlacklistClient) Use(hooks ...Hook) {
+	c.hooks.UsernameBlacklist = append(c.hooks.UsernameBlacklist, hooks...)
+}
+
+// Use adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `usernameblacklist.Intercept(f(g(h())))`.
+func (c *UsernameBlacklistClient) Intercept(interceptors ...Interceptor) {
+	c.inters.UsernameBlacklist = append(c.inters.UsernameBlacklist, interceptors...)
+}
+
+// Create returns a builder for creating a UsernameBlacklist entity.
+func (c *UsernameBlacklistClient) Create() *UsernameBlacklistCreate {
+	mutation := newUsernameBlacklistMutation(c.config, OpCreate)
+	return &UsernameBlacklistCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of UsernameBlacklist entities.
+func (c *UsernameBlacklistClient) CreateBulk(builders ...*UsernameBlacklistCreate) *UsernameBlacklistCreateBulk {
+	return &UsernameBlacklistCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for UsernameBlacklist.
+func (c *UsernameBlacklistClient) Update() *UsernameBlacklistUpdate {
+	mutation := newUsernameBlacklistMutation(c.config, OpUpdate)
+	return &UsernameBlacklistUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *UsernameBlacklistClient) UpdateOne(ub *UsernameBlacklist) *UsernameBlacklistUpdateOne {
+	mutation := newUsernameBlacklistMutation(c.config, OpUpdateOne, withUsernameBlacklist(ub))
+	return &UsernameBlacklistUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *UsernameBlacklistClient) UpdateOneID(id uuid.UUID) *UsernameBlacklistUpdateOne {
+	mutation := newUsernameBlacklistMutation(c.config, OpUpdateOne, withUsernameBlacklistID(id))
+	return &UsernameBlacklistUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for UsernameBlacklist.
+func (c *UsernameBlacklistClient) Delete() *UsernameBlacklistDelete {
+	mutation := newUsernameBlacklistMutation(c.config, OpDelete)
+	return &UsernameBlacklistDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *UsernameBlacklistClient) DeleteOne(ub *UsernameBlacklist) *UsernameBlacklistDeleteOne {
+	return c.DeleteOneID(ub.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *UsernameBlacklistClient) DeleteOneID(id uuid.UUID) *UsernameBlacklistDeleteOne {
+	builder := c.Delete().Where(usernameblacklist.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &UsernameBlacklistDeleteOne{builder}
+}
+
+// Query returns a query builder for UsernameBlacklist.
+func (c *UsernameBlacklistClient) Query() *UsernameBlacklistQuery {
+	return &UsernameBlacklistQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeUsernameBlacklist},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a UsernameBlacklist entity by its id.
+func (c *UsernameBlacklistClient) Get(ctx context.Context, id uuid.UUID) (*UsernameBlacklist, error) {
+	return c.Query().Where(usernameblacklist.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *UsernameBlacklistClient) GetX(ctx context.Context, id uuid.UUID) *UsernameBlacklist {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *UsernameBlacklistClient) Hooks() []Hook {
+	return c.hooks.UsernameBlacklist
+}
+
+// Interceptors returns the client interceptors.
+func (c *UsernameBlacklistClient) Interceptors() []Interceptor {
+	return c.inters.UsernameBlacklist
+}
+
+func (c *UsernameBlacklistClient) mutate(ctx context.Context, m *UsernameBlacklistMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&UsernameBlacklistCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&UsernameBlacklistUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&UsernameBlacklistUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&UsernameBlacklistDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown UsernameBlacklist mutation op: %q", m.Op())
 	}
 }
 

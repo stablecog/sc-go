@@ -4,6 +4,7 @@ import (
 	"github.com/stablecog/sc-go/database/ent/bannedwords"
 	"github.com/stablecog/sc-go/database/ent/disposableemail"
 	"github.com/stablecog/sc-go/database/ent/ipblacklist"
+	"github.com/stablecog/sc-go/database/ent/usernameblacklist"
 	"github.com/stablecog/sc-go/log"
 	"github.com/stablecog/sc-go/shared"
 )
@@ -80,6 +81,18 @@ func (r *Repository) UpdateCache() error {
 		return err
 	}
 	shared.GetCache().UpdateBannedWords(bannedWords)
+
+	// Username
+	usernameBlacklist, err := r.DB.UsernameBlacklist.Query().Select(usernameblacklist.FieldUsername).All(r.Ctx)
+	if err != nil {
+		log.Error("Failed to get username blacklist", "err", err)
+		return err
+	}
+	usernameBlacklistStr := make([]string, len(usernameBlacklist))
+	for i, username := range usernameBlacklist {
+		usernameBlacklistStr[i] = username.Username
+	}
+	shared.GetCache().UpdateUsernameBlacklist(usernameBlacklistStr)
 
 	return nil
 }

@@ -53,6 +53,7 @@ type (
 		UpscaleModel         []ent.Hook
 		UpscaleOutput        []ent.Hook
 		User                 []ent.Hook
+		UsernameBlacklist    []ent.Hook
 		Voiceover            []ent.Hook
 		VoiceoverModel       []ent.Hook
 		VoiceoverOutput      []ent.Hook
@@ -81,6 +82,7 @@ type (
 		UpscaleModel         []ent.Interceptor
 		UpscaleOutput        []ent.Interceptor
 		User                 []ent.Interceptor
+		UsernameBlacklist    []ent.Interceptor
 		Voiceover            []ent.Interceptor
 		VoiceoverModel       []ent.Interceptor
 		VoiceoverOutput      []ent.Interceptor

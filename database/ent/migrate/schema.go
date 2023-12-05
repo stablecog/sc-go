@@ -652,6 +652,19 @@ var (
 			},
 		},
 	}
+	// UsernameBlacklistColumns holds the columns for the "username_blacklist" table.
+	UsernameBlacklistColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID},
+		{Name: "username", Type: field.TypeString, Unique: true, Size: 2147483647},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+	}
+	// UsernameBlacklistTable holds the schema information for the "username_blacklist" table.
+	UsernameBlacklistTable = &schema.Table{
+		Name:       "username_blacklist",
+		Columns:    UsernameBlacklistColumns,
+		PrimaryKey: []*schema.Column{UsernameBlacklistColumns[0]},
+	}
 	// VoiceoversColumns holds the columns for the "voiceovers" table.
 	VoiceoversColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID},
@@ -880,6 +893,7 @@ var (
 		UpscaleModelsTable,
 		UpscaleOutputsTable,
 		UsersTable,
+		UsernameBlacklistTable,
 		VoiceoversTable,
 		VoiceoverModelsTable,
 		VoiceoverOutputsTable,
@@ -977,6 +991,9 @@ func init() {
 	}
 	UsersTable.Annotation = &entsql.Annotation{
 		Table: "users",
+	}
+	UsernameBlacklistTable.Annotation = &entsql.Annotation{
+		Table: "username_blacklist",
 	}
 	VoiceoversTable.ForeignKeys[0].RefTable = APITokensTable
 	VoiceoversTable.ForeignKeys[1].RefTable = DeviceInfoTable
