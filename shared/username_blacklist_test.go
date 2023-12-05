@@ -542,6 +542,9 @@ var usernameBlacklist = []string{
 
 func TestIsBlacklisted(t *testing.T) {
 	GetCache().UpdateUsernameBlacklist(usernameBlacklist)
+	defer func() {
+		GetCache().UpdateUsernameBlacklist([]string{})
+	}()
 	assert.True(t, IsBlacklisted("admin"))
 	assert.True(t, IsBlacklisted("root"))
 	assert.True(t, IsBlacklisted("administrator"))
