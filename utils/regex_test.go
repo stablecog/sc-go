@@ -3,6 +3,7 @@ package utils
 import (
 	"testing"
 
+	"github.com/stablecog/sc-go/shared"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -27,6 +28,10 @@ func TestExtractAmountsFromString(t *testing.T) {
 }
 
 func TestIsValidUsername(t *testing.T) {
+	shared.GetCache().UpdateUsernameBlacklist([]string{"admin"})
+	defer func() {
+		shared.GetCache().UpdateUsernameBlacklist([]string{})
+	}()
 	usernames := []string{
 		"john-doe",
 		"johndoe123",
