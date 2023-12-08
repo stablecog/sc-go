@@ -361,7 +361,8 @@ func (w *SCWorker) CreateGeneration(source enttypes.SourceType,
 				bannedMatches, err := w.Repo.IsBannedPromptEmbedding(embedding, DB)
 				if err != nil {
 					log.Error("Error checking banned embedding", "err", err)
-					errChan <- err
+					// errChan <- err
+					bannedPromptResultChan <- true
 					return
 				}
 				if len(bannedMatches) > 0 {

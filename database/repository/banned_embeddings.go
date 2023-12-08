@@ -21,6 +21,7 @@ func (r *Repository) IsBannedPromptEmbedding(embedding []float32, DB *ent.Client
 	rows, err := r.DB.QueryContext(r.Ctx, "SELECT * from match_banned_prompts($1, 0.61, 1)", pgvector.NewVector(embedding))
 	if err != nil {
 		log.Errorf("Error querying for banned prompt embeddings: %v", err)
+		return nil, err
 	}
 
 	var bannedPrompts []MatchBannedPrompts
