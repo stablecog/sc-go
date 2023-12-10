@@ -204,6 +204,26 @@ func (gu *GenerationUpdate) ClearInitImageURL() *GenerationUpdate {
 	return gu
 }
 
+// SetMaskImageURL sets the "mask_image_url" field.
+func (gu *GenerationUpdate) SetMaskImageURL(s string) *GenerationUpdate {
+	gu.mutation.SetMaskImageURL(s)
+	return gu
+}
+
+// SetNillableMaskImageURL sets the "mask_image_url" field if the given value is not nil.
+func (gu *GenerationUpdate) SetNillableMaskImageURL(s *string) *GenerationUpdate {
+	if s != nil {
+		gu.SetMaskImageURL(*s)
+	}
+	return gu
+}
+
+// ClearMaskImageURL clears the value of the "mask_image_url" field.
+func (gu *GenerationUpdate) ClearMaskImageURL() *GenerationUpdate {
+	gu.mutation.ClearMaskImageURL()
+	return gu
+}
+
 // SetPromptStrength sets the "prompt_strength" field.
 func (gu *GenerationUpdate) SetPromptStrength(f float32) *GenerationUpdate {
 	gu.mutation.ResetPromptStrength()
@@ -699,6 +719,12 @@ func (gu *GenerationUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if gu.mutation.InitImageURLCleared() {
 		_spec.ClearField(generation.FieldInitImageURL, field.TypeString)
+	}
+	if value, ok := gu.mutation.MaskImageURL(); ok {
+		_spec.SetField(generation.FieldMaskImageURL, field.TypeString, value)
+	}
+	if gu.mutation.MaskImageURLCleared() {
+		_spec.ClearField(generation.FieldMaskImageURL, field.TypeString)
 	}
 	if value, ok := gu.mutation.PromptStrength(); ok {
 		_spec.SetField(generation.FieldPromptStrength, field.TypeFloat32, value)
@@ -1222,6 +1248,26 @@ func (guo *GenerationUpdateOne) ClearInitImageURL() *GenerationUpdateOne {
 	return guo
 }
 
+// SetMaskImageURL sets the "mask_image_url" field.
+func (guo *GenerationUpdateOne) SetMaskImageURL(s string) *GenerationUpdateOne {
+	guo.mutation.SetMaskImageURL(s)
+	return guo
+}
+
+// SetNillableMaskImageURL sets the "mask_image_url" field if the given value is not nil.
+func (guo *GenerationUpdateOne) SetNillableMaskImageURL(s *string) *GenerationUpdateOne {
+	if s != nil {
+		guo.SetMaskImageURL(*s)
+	}
+	return guo
+}
+
+// ClearMaskImageURL clears the value of the "mask_image_url" field.
+func (guo *GenerationUpdateOne) ClearMaskImageURL() *GenerationUpdateOne {
+	guo.mutation.ClearMaskImageURL()
+	return guo
+}
+
 // SetPromptStrength sets the "prompt_strength" field.
 func (guo *GenerationUpdateOne) SetPromptStrength(f float32) *GenerationUpdateOne {
 	guo.mutation.ResetPromptStrength()
@@ -1741,6 +1787,12 @@ func (guo *GenerationUpdateOne) sqlSave(ctx context.Context) (_node *Generation,
 	}
 	if guo.mutation.InitImageURLCleared() {
 		_spec.ClearField(generation.FieldInitImageURL, field.TypeString)
+	}
+	if value, ok := guo.mutation.MaskImageURL(); ok {
+		_spec.SetField(generation.FieldMaskImageURL, field.TypeString, value)
+	}
+	if guo.mutation.MaskImageURLCleared() {
+		_spec.ClearField(generation.FieldMaskImageURL, field.TypeString)
 	}
 	if value, ok := guo.mutation.PromptStrength(); ok {
 		_spec.SetField(generation.FieldPromptStrength, field.TypeFloat32, value)

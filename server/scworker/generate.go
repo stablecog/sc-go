@@ -149,6 +149,7 @@ func (w *SCWorker) CreateGeneration(source enttypes.SourceType,
 		InferenceSteps: *generateReq.InferenceSteps,
 		Seed:           generateReq.Seed,
 		InitImageURL:   generateReq.InitImageUrl,
+		MaskImageURL:   generateReq.MaskImageUrl,
 		PromptStrength: generateReq.PromptStrength,
 	}
 
@@ -203,6 +204,60 @@ func (w *SCWorker) CreateGeneration(source enttypes.SourceType,
 
 		if signedInitImageUrl == "" {
 			return nil, &initSettings, &WorkerError{http.StatusBadRequest, fmt.Errorf("invalid_image_url"), ""}
+		}
+	}
+
+	// The URL we send worker
+	var signedMaskImageUrl string
+	// See if init image specified, validate it belongs to user, validate it exists in bucket
+	if generateReq.MaskImageUrl != "" {
+		if utils.IsValidHTTPURL(generateReq.MaskImageUrl) {
+			// Custom image, do some validation on size, format, etc.
+			_, _, err = utils.GetImageWidthHeightFromUrl(generateReq.MaskImageUrl, "", shared.MAX_GENERATE_IMAGE_SIZE)
+			if err != nil {
+				return nil, &initSettings, &WorkerError{http.StatusBadRequest, fmt.Errorf("image_url_width_height_error"), ""}
+			}
+			signedMaskImageUrl = generateReq.MaskImageUrl
+		} else if w.S3 != nil {
+			// Remove s3 prefix
+			signedMaskImageUrl = strings.TrimPrefix(generateReq.MaskImageUrl, "s3://")
+			// Hash user ID to see if it belongs to this user
+			uidHash := utils.Sha256(user.ID.String())
+			if !strings.HasPrefix(signedMaskImageUrl, fmt.Sprintf("%s/", uidHash)) {
+				return nil, &initSettings, &WorkerError{http.StatusUnauthorized, fmt.Errorf("init_image_not_owned"), ""}
+			}
+			// Verify exists in bucket
+			_, err := w.S3.HeadObject(&s3.HeadObjectInput{
+				Bucket: aws.String(utils.GetEnv().S3Img2ImgBucketName),
+				Key:    aws.String(signedMaskImageUrl),
+			})
+			if err != nil {
+				if aerr, ok := err.(awserr.Error); ok {
+					switch aerr.Code() {
+					case "NotFound": // s3.ErrCodeNoSuchKey does not work, aws is missing this error code so we hardwire a string
+						return nil, &initSettings, &WorkerError{http.StatusBadRequest, fmt.Errorf("mask_image_not_found"), ""}
+					default:
+						log.Error("Error checking if mask image exists in bucket", "err", err)
+						return nil, &initSettings, &WorkerError{http.StatusInternalServerError, fmt.Errorf("unknown_error"), ""}
+					}
+				}
+				return nil, &initSettings, &WorkerError{http.StatusBadRequest, fmt.Errorf("mask_image_not_found"), ""}
+			}
+			// Sign object URL to pass to worker
+			req, _ := w.S3.GetObjectRequest(&s3.GetObjectInput{
+				Bucket: aws.String(utils.GetEnv().S3Img2ImgBucketName),
+				Key:    aws.String(signedMaskImageUrl),
+			})
+			urlStr, err := req.Presign(5 * time.Minute)
+			if err != nil {
+				log.Error("Error signing init image URL", "err", err)
+				return nil, &initSettings, &WorkerError{http.StatusInternalServerError, fmt.Errorf("unknown_error"), ""}
+			}
+			signedMaskImageUrl = urlStr
+		}
+
+		if signedMaskImageUrl == "" {
+			return nil, &initSettings, &WorkerError{http.StatusBadRequest, fmt.Errorf("invalid_mask_image_url"), ""}
 		}
 	}
 
@@ -474,6 +529,7 @@ func (w *SCWorker) CreateGeneration(source enttypes.SourceType,
 				ProcessType:            shared.GENERATE,
 				SubmitToGallery:        generateReq.SubmitToGallery,
 				InitImageUrl:           signedInitImageUrl,
+				MaskImageUrl:           signedMaskImageUrl,
 				PromptStrength:         generateReq.PromptStrength,
 			},
 		}
@@ -485,6 +541,10 @@ func (w *SCWorker) CreateGeneration(source enttypes.SourceType,
 
 		if cogReqBody.Input.InitImageUrl != "" {
 			cogReqBody.Input.InitImageUrlS3 = generateReq.InitImageUrl
+		}
+
+		if cogReqBody.Input.MaskImageUrl != "" {
+			cogReqBody.Input.MaskImageUrlS3 = generateReq.MaskImageUrl
 		}
 
 		_, err = w.Repo.AddToQueueLog(queueId, int(queuePriority), DB)

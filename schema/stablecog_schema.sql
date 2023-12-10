@@ -1307,3 +1307,6 @@ ALTER TABLE public.username_blacklist ENABLE ROW LEVEL SECURITY;
 
 ALTER TABLE ONLY public.username_blacklist
     ADD CONSTRAINT username_blacklist_pkey PRIMARY KEY (id);
+
+-- Mask
+alter table public.generations add column mask_image_url text;

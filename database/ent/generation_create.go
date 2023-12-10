@@ -131,6 +131,20 @@ func (gc *GenerationCreate) SetNillableInitImageURL(s *string) *GenerationCreate
 	return gc
 }
 
+// SetMaskImageURL sets the "mask_image_url" field.
+func (gc *GenerationCreate) SetMaskImageURL(s string) *GenerationCreate {
+	gc.mutation.SetMaskImageURL(s)
+	return gc
+}
+
+// SetNillableMaskImageURL sets the "mask_image_url" field if the given value is not nil.
+func (gc *GenerationCreate) SetNillableMaskImageURL(s *string) *GenerationCreate {
+	if s != nil {
+		gc.SetMaskImageURL(*s)
+	}
+	return gc
+}
+
 // SetPromptStrength sets the "prompt_strength" field.
 func (gc *GenerationCreate) SetPromptStrength(f float32) *GenerationCreate {
 	gc.mutation.SetPromptStrength(f)
@@ -612,6 +626,10 @@ func (gc *GenerationCreate) createSpec() (*Generation, *sqlgraph.CreateSpec) {
 		_spec.SetField(generation.FieldInitImageURL, field.TypeString, value)
 		_node.InitImageURL = &value
 	}
+	if value, ok := gc.mutation.MaskImageURL(); ok {
+		_spec.SetField(generation.FieldMaskImageURL, field.TypeString, value)
+		_node.MaskImageURL = &value
+	}
 	if value, ok := gc.mutation.PromptStrength(); ok {
 		_spec.SetField(generation.FieldPromptStrength, field.TypeFloat32, value)
 		_node.PromptStrength = &value
@@ -1044,6 +1062,24 @@ func (u *GenerationUpsert) UpdateInitImageURL() *GenerationUpsert {
 // ClearInitImageURL clears the value of the "init_image_url" field.
 func (u *GenerationUpsert) ClearInitImageURL() *GenerationUpsert {
 	u.SetNull(generation.FieldInitImageURL)
+	return u
+}
+
+// SetMaskImageURL sets the "mask_image_url" field.
+func (u *GenerationUpsert) SetMaskImageURL(v string) *GenerationUpsert {
+	u.Set(generation.FieldMaskImageURL, v)
+	return u
+}
+
+// UpdateMaskImageURL sets the "mask_image_url" field to the value that was provided on create.
+func (u *GenerationUpsert) UpdateMaskImageURL() *GenerationUpsert {
+	u.SetExcluded(generation.FieldMaskImageURL)
+	return u
+}
+
+// ClearMaskImageURL clears the value of the "mask_image_url" field.
+func (u *GenerationUpsert) ClearMaskImageURL() *GenerationUpsert {
+	u.SetNull(generation.FieldMaskImageURL)
 	return u
 }
 
@@ -1535,6 +1571,27 @@ func (u *GenerationUpsertOne) UpdateInitImageURL() *GenerationUpsertOne {
 func (u *GenerationUpsertOne) ClearInitImageURL() *GenerationUpsertOne {
 	return u.Update(func(s *GenerationUpsert) {
 		s.ClearInitImageURL()
+	})
+}
+
+// SetMaskImageURL sets the "mask_image_url" field.
+func (u *GenerationUpsertOne) SetMaskImageURL(v string) *GenerationUpsertOne {
+	return u.Update(func(s *GenerationUpsert) {
+		s.SetMaskImageURL(v)
+	})
+}
+
+// UpdateMaskImageURL sets the "mask_image_url" field to the value that was provided on create.
+func (u *GenerationUpsertOne) UpdateMaskImageURL() *GenerationUpsertOne {
+	return u.Update(func(s *GenerationUpsert) {
+		s.UpdateMaskImageURL()
+	})
+}
+
+// ClearMaskImageURL clears the value of the "mask_image_url" field.
+func (u *GenerationUpsertOne) ClearMaskImageURL() *GenerationUpsertOne {
+	return u.Update(func(s *GenerationUpsert) {
+		s.ClearMaskImageURL()
 	})
 }
 
@@ -2225,6 +2282,27 @@ func (u *GenerationUpsertBulk) UpdateInitImageURL() *GenerationUpsertBulk {
 func (u *GenerationUpsertBulk) ClearInitImageURL() *GenerationUpsertBulk {
 	return u.Update(func(s *GenerationUpsert) {
 		s.ClearInitImageURL()
+	})
+}
+
+// SetMaskImageURL sets the "mask_image_url" field.
+func (u *GenerationUpsertBulk) SetMaskImageURL(v string) *GenerationUpsertBulk {
+	return u.Update(func(s *GenerationUpsert) {
+		s.SetMaskImageURL(v)
+	})
+}
+
+// UpdateMaskImageURL sets the "mask_image_url" field to the value that was provided on create.
+func (u *GenerationUpsertBulk) UpdateMaskImageURL() *GenerationUpsertBulk {
+	return u.Update(func(s *GenerationUpsert) {
+		s.UpdateMaskImageURL()
+	})
+}
+
+// ClearMaskImageURL clears the value of the "mask_image_url" field.
+func (u *GenerationUpsertBulk) ClearMaskImageURL() *GenerationUpsertBulk {
+	return u.Update(func(s *GenerationUpsert) {
+		s.ClearMaskImageURL()
 	})
 }
 

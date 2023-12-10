@@ -33,6 +33,7 @@ func (Generation) Fields() []ent.Field {
 		field.Text("failure_reason").Optional().Nillable(),
 		field.Text("country_code").Optional().Nillable(),
 		field.Text("init_image_url").Optional().Nillable(),
+		field.Text("mask_image_url").Optional().Nillable(),
 		field.Float32("prompt_strength").Optional().Nillable(),
 		field.Bool("was_auto_submitted").Default(false),
 		field.Text("stripe_product_id").Optional().Nillable(),

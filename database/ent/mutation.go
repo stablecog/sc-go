@@ -5559,6 +5559,7 @@ type GenerationMutation struct {
 	failure_reason            *string
 	country_code              *string
 	init_image_url            *string
+	mask_image_url            *string
 	prompt_strength           *float32
 	addprompt_strength        *float32
 	was_auto_submitted        *bool
@@ -6268,6 +6269,55 @@ func (m *GenerationMutation) InitImageURLCleared() bool {
 func (m *GenerationMutation) ResetInitImageURL() {
 	m.init_image_url = nil
 	delete(m.clearedFields, generation.FieldInitImageURL)
+}
+
+// SetMaskImageURL sets the "mask_image_url" field.
+func (m *GenerationMutation) SetMaskImageURL(s string) {
+	m.mask_image_url = &s
+}
+
+// MaskImageURL returns the value of the "mask_image_url" field in the mutation.
+func (m *GenerationMutation) MaskImageURL() (r string, exists bool) {
+	v := m.mask_image_url
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldMaskImageURL returns the old "mask_image_url" field's value of the Generation entity.
+// If the Generation object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *GenerationMutation) OldMaskImageURL(ctx context.Context) (v *string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldMaskImageURL is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldMaskImageURL requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldMaskImageURL: %w", err)
+	}
+	return oldValue.MaskImageURL, nil
+}
+
+// ClearMaskImageURL clears the value of the "mask_image_url" field.
+func (m *GenerationMutation) ClearMaskImageURL() {
+	m.mask_image_url = nil
+	m.clearedFields[generation.FieldMaskImageURL] = struct{}{}
+}
+
+// MaskImageURLCleared returns if the "mask_image_url" field was cleared in this mutation.
+func (m *GenerationMutation) MaskImageURLCleared() bool {
+	_, ok := m.clearedFields[generation.FieldMaskImageURL]
+	return ok
+}
+
+// ResetMaskImageURL resets all changes to the "mask_image_url" field.
+func (m *GenerationMutation) ResetMaskImageURL() {
+	m.mask_image_url = nil
+	delete(m.clearedFields, generation.FieldMaskImageURL)
 }
 
 // SetPromptStrength sets the "prompt_strength" field.
@@ -7218,7 +7268,7 @@ func (m *GenerationMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *GenerationMutation) Fields() []string {
-	fields := make([]string, 0, 26)
+	fields := make([]string, 0, 27)
 	if m.width != nil {
 		fields = append(fields, generation.FieldWidth)
 	}
@@ -7251,6 +7301,9 @@ func (m *GenerationMutation) Fields() []string {
 	}
 	if m.init_image_url != nil {
 		fields = append(fields, generation.FieldInitImageURL)
+	}
+	if m.mask_image_url != nil {
+		fields = append(fields, generation.FieldMaskImageURL)
 	}
 	if m.prompt_strength != nil {
 		fields = append(fields, generation.FieldPromptStrength)
@@ -7327,6 +7380,8 @@ func (m *GenerationMutation) Field(name string) (ent.Value, bool) {
 		return m.CountryCode()
 	case generation.FieldInitImageURL:
 		return m.InitImageURL()
+	case generation.FieldMaskImageURL:
+		return m.MaskImageURL()
 	case generation.FieldPromptStrength:
 		return m.PromptStrength()
 	case generation.FieldWasAutoSubmitted:
@@ -7388,6 +7443,8 @@ func (m *GenerationMutation) OldField(ctx context.Context, name string) (ent.Val
 		return m.OldCountryCode(ctx)
 	case generation.FieldInitImageURL:
 		return m.OldInitImageURL(ctx)
+	case generation.FieldMaskImageURL:
+		return m.OldMaskImageURL(ctx)
 	case generation.FieldPromptStrength:
 		return m.OldPromptStrength(ctx)
 	case generation.FieldWasAutoSubmitted:
@@ -7503,6 +7560,13 @@ func (m *GenerationMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetInitImageURL(v)
+		return nil
+	case generation.FieldMaskImageURL:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetMaskImageURL(v)
 		return nil
 	case generation.FieldPromptStrength:
 		v, ok := value.(float32)
@@ -7747,6 +7811,9 @@ func (m *GenerationMutation) ClearedFields() []string {
 	if m.FieldCleared(generation.FieldInitImageURL) {
 		fields = append(fields, generation.FieldInitImageURL)
 	}
+	if m.FieldCleared(generation.FieldMaskImageURL) {
+		fields = append(fields, generation.FieldMaskImageURL)
+	}
 	if m.FieldCleared(generation.FieldPromptStrength) {
 		fields = append(fields, generation.FieldPromptStrength)
 	}
@@ -7790,6 +7857,9 @@ func (m *GenerationMutation) ClearField(name string) error {
 		return nil
 	case generation.FieldInitImageURL:
 		m.ClearInitImageURL()
+		return nil
+	case generation.FieldMaskImageURL:
+		m.ClearMaskImageURL()
 		return nil
 	case generation.FieldPromptStrength:
 		m.ClearPromptStrength()
@@ -7852,6 +7922,9 @@ func (m *GenerationMutation) ResetField(name string) error {
 		return nil
 	case generation.FieldInitImageURL:
 		m.ResetInitImageURL()
+		return nil
+	case generation.FieldMaskImageURL:
+		m.ResetMaskImageURL()
 		return nil
 	case generation.FieldPromptStrength:
 		m.ResetPromptStrength()

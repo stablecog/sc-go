@@ -175,6 +175,7 @@ var (
 		{Name: "failure_reason", Type: field.TypeString, Nullable: true, Size: 2147483647},
 		{Name: "country_code", Type: field.TypeString, Nullable: true, Size: 2147483647},
 		{Name: "init_image_url", Type: field.TypeString, Nullable: true, Size: 2147483647},
+		{Name: "mask_image_url", Type: field.TypeString, Nullable: true, Size: 2147483647},
 		{Name: "prompt_strength", Type: field.TypeFloat32, Nullable: true},
 		{Name: "was_auto_submitted", Type: field.TypeBool, Default: false},
 		{Name: "stripe_product_id", Type: field.TypeString, Nullable: true, Size: 2147483647},
@@ -199,43 +200,43 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "generations_api_tokens_generations",
-				Columns:    []*schema.Column{GenerationsColumns[20]},
+				Columns:    []*schema.Column{GenerationsColumns[21]},
 				RefColumns: []*schema.Column{APITokensColumns[0]},
 				OnDelete:   schema.Cascade,
 			},
 			{
 				Symbol:     "generations_device_info_generations",
-				Columns:    []*schema.Column{GenerationsColumns[21]},
+				Columns:    []*schema.Column{GenerationsColumns[22]},
 				RefColumns: []*schema.Column{DeviceInfoColumns[0]},
 				OnDelete:   schema.Cascade,
 			},
 			{
 				Symbol:     "generations_generation_models_generations",
-				Columns:    []*schema.Column{GenerationsColumns[22]},
+				Columns:    []*schema.Column{GenerationsColumns[23]},
 				RefColumns: []*schema.Column{GenerationModelsColumns[0]},
 				OnDelete:   schema.Cascade,
 			},
 			{
 				Symbol:     "generations_negative_prompts_generations",
-				Columns:    []*schema.Column{GenerationsColumns[23]},
+				Columns:    []*schema.Column{GenerationsColumns[24]},
 				RefColumns: []*schema.Column{NegativePromptsColumns[0]},
 				OnDelete:   schema.Cascade,
 			},
 			{
 				Symbol:     "generations_prompts_generations",
-				Columns:    []*schema.Column{GenerationsColumns[24]},
+				Columns:    []*schema.Column{GenerationsColumns[25]},
 				RefColumns: []*schema.Column{PromptsColumns[0]},
 				OnDelete:   schema.Cascade,
 			},
 			{
 				Symbol:     "generations_schedulers_generations",
-				Columns:    []*schema.Column{GenerationsColumns[25]},
+				Columns:    []*schema.Column{GenerationsColumns[26]},
 				RefColumns: []*schema.Column{SchedulersColumns[0]},
 				OnDelete:   schema.Cascade,
 			},
 			{
 				Symbol:     "generations_users_generations",
-				Columns:    []*schema.Column{GenerationsColumns[26]},
+				Columns:    []*schema.Column{GenerationsColumns[27]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.Cascade,
 			},
@@ -244,17 +245,17 @@ var (
 			{
 				Name:    "generation_user_id_created_at",
 				Unique:  false,
-				Columns: []*schema.Column{GenerationsColumns[26], GenerationsColumns[18]},
+				Columns: []*schema.Column{GenerationsColumns[27], GenerationsColumns[19]},
 			},
 			{
 				Name:    "generation_created_at",
 				Unique:  false,
-				Columns: []*schema.Column{GenerationsColumns[18]},
+				Columns: []*schema.Column{GenerationsColumns[19]},
 			},
 			{
 				Name:    "generation_updated_at",
 				Unique:  false,
-				Columns: []*schema.Column{GenerationsColumns[19]},
+				Columns: []*schema.Column{GenerationsColumns[20]},
 			},
 			{
 				Name:    "generation_status",
@@ -264,22 +265,22 @@ var (
 			{
 				Name:    "generation_user_id",
 				Unique:  false,
-				Columns: []*schema.Column{GenerationsColumns[26]},
+				Columns: []*schema.Column{GenerationsColumns[27]},
 			},
 			{
 				Name:    "generation_negative_prompt_id",
 				Unique:  false,
-				Columns: []*schema.Column{GenerationsColumns[23]},
+				Columns: []*schema.Column{GenerationsColumns[24]},
 			},
 			{
 				Name:    "generation_status_user_id",
 				Unique:  false,
-				Columns: []*schema.Column{GenerationsColumns[8], GenerationsColumns[26]},
+				Columns: []*schema.Column{GenerationsColumns[8], GenerationsColumns[27]},
 			},
 			{
 				Name:    "generation_prompt_id",
 				Unique:  false,
-				Columns: []*schema.Column{GenerationsColumns[24]},
+				Columns: []*schema.Column{GenerationsColumns[25]},
 			},
 		},
 	}

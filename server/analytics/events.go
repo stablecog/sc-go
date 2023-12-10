@@ -45,6 +45,9 @@ func (a *AnalyticsService) GenerationStarted(user *ent.User, cogReq requests.Bas
 	if cogReq.InitImageUrlS3 != "" {
 		properties["SC - Init Image Url"] = cogReq.InitImageUrlS3
 	}
+	if cogReq.MaskImageUrlS3 != "" {
+		properties["SC - Mask Image Url"] = cogReq.MaskImageUrlS3
+	}
 	if cogReq.PromptStrength != nil {
 		properties["SC - Prompt Strength"] = *cogReq.PromptStrength
 	}
@@ -81,6 +84,9 @@ func (a *AnalyticsService) GenerationSucceeded(user *ent.User, cogReq requests.B
 	if cogReq.InitImageUrlS3 != "" {
 		properties["SC - Init Image Url"] = cogReq.InitImageUrlS3
 	}
+	if cogReq.MaskImageUrlS3 != "" {
+		properties["SC - Mask Image Url"] = cogReq.MaskImageUrlS3
+	}
 	if cogReq.PromptStrength != nil {
 		properties["SC - Prompt Strength"] = *cogReq.PromptStrength
 	}
@@ -114,6 +120,9 @@ func (a *AnalyticsService) GenerationFailedNSFW(user *ent.User, cogReq requests.
 	}
 	if cogReq.InitImageUrlS3 != "" {
 		properties["SC - Init Image Url"] = cogReq.InitImageUrlS3
+	}
+	if cogReq.MaskImageUrlS3 != "" {
+		properties["SC - Mask Image Url"] = cogReq.MaskImageUrlS3
 	}
 	if cogReq.PromptStrength != nil {
 		properties["SC - Prompt Strength"] = *cogReq.PromptStrength
@@ -149,6 +158,9 @@ func (a *AnalyticsService) GenerationFailed(user *ent.User, cogReq requests.Base
 	}
 	if cogReq.InitImageUrlS3 != "" {
 		properties["SC - Init Image Url"] = cogReq.InitImageUrlS3
+	}
+	if cogReq.MaskImageUrlS3 != "" {
+		properties["SC - Mask Image Url"] = cogReq.MaskImageUrlS3
 	}
 	if cogReq.PromptStrength != nil {
 		properties["SC - Prompt Strength"] = *cogReq.PromptStrength

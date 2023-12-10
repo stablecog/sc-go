@@ -147,6 +147,11 @@ func (t *CreateGenerationRequest) Validate(api bool) error {
 		return errors.New("invalid_init_image_url")
 	}
 
+	// Valid mask image url
+	if t.MaskImageUrl != "" && !strings.HasPrefix(t.MaskImageUrl, "s3://") && !strings.HasPrefix(t.MaskImageUrl, "http://") && !strings.HasPrefix(t.MaskImageUrl, "https://") {
+		return errors.New("invalid_mask_image_url")
+	}
+
 	if t.Seed == nil || *t.Seed < 0 {
 		rand.Seed(time.Now().Unix())
 		t.Seed = utils.ToPtr(rand.Intn(math.MaxInt32))

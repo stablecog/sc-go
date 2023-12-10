@@ -37,6 +37,8 @@ const (
 	FieldCountryCode = "country_code"
 	// FieldInitImageURL holds the string denoting the init_image_url field in the database.
 	FieldInitImageURL = "init_image_url"
+	// FieldMaskImageURL holds the string denoting the mask_image_url field in the database.
+	FieldMaskImageURL = "mask_image_url"
 	// FieldPromptStrength holds the string denoting the prompt_strength field in the database.
 	FieldPromptStrength = "prompt_strength"
 	// FieldWasAutoSubmitted holds the string denoting the was_auto_submitted field in the database.
@@ -157,6 +159,7 @@ var Columns = []string{
 	FieldFailureReason,
 	FieldCountryCode,
 	FieldInitImageURL,
+	FieldMaskImageURL,
 	FieldPromptStrength,
 	FieldWasAutoSubmitted,
 	FieldStripeProductID,
