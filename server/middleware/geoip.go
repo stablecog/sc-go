@@ -66,6 +66,13 @@ func (m *Middleware) GeoIPMiddleware() func(next http.Handler) http.Handler {
 						return
 					}
 					domain := strings.ToLower(segs[1])
+					// Webhook
+					err = discord.FireGeoIPWebhook(utils.GetIPAddress(r), email, domain, userIDStr, utils.GetCountryCode(r))
+					if err != nil {
+						log.Errorf("Error firing GeoIP webhook: %s", err.Error())
+						next.ServeHTTP(w, r)
+						return
+					}
 					// Insert into disposable email domains
 					_, err := m.Repo.DB.DisposableEmail.Create().SetDomain(domain).Save(r.Context())
 					if err != nil {
@@ -79,8 +86,6 @@ func (m *Middleware) GeoIPMiddleware() func(next http.Handler) http.Handler {
 					}
 					// Ban users with this domain
 					m.Repo.BanUsers([]uuid.UUID{userID}, false)
-					// Webhook
-					discord.FireGeoIPWebhook(utils.GetIPAddress(r), email, domain, userIDStr, utils.GetCountryCode(r))
 				}
 			}
 
