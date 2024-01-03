@@ -3,9 +3,8 @@ package middleware
 import (
 	"net/http"
 	"strings"
+	"time"
 
-	"github.com/google/uuid"
-	"github.com/stablecog/sc-go/database/ent"
 	"github.com/stablecog/sc-go/log"
 	"github.com/stablecog/sc-go/server/discord"
 	"github.com/stablecog/sc-go/shared"
@@ -41,12 +40,6 @@ func (m *Middleware) GeoIPMiddleware() func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			userIDStr, _ := r.Context().Value("user_id").(string)
-			userID, err := uuid.Parse(userIDStr)
-			if err != nil {
-				log.Errorf("Error parsing user ID: %s", err.Error())
-				next.ServeHTTP(w, r)
-				return
-			}
 			email, _ := r.Context().Value("user_email").(string)
 			if utils.GetCountryCode(r) == "BD" {
 				// See if not in whitelist
@@ -67,25 +60,22 @@ func (m *Middleware) GeoIPMiddleware() func(next http.Handler) http.Handler {
 					}
 					domain := strings.ToLower(segs[1])
 					// Webhook
-					err = discord.FireGeoIPWebhook(utils.GetIPAddress(r), email, domain, userIDStr, utils.GetCountryCode(r))
+					err := discord.FireGeoIPWebhook(utils.GetIPAddress(r), email, domain, userIDStr, utils.GetCountryCode(r))
 					if err != nil {
 						log.Errorf("Error firing GeoIP webhook: %s", err.Error())
 						next.ServeHTTP(w, r)
 						return
 					}
 					// Insert into disposable email domains
-					_, err := m.Repo.DB.DisposableEmail.Create().SetDomain(domain).Save(r.Context())
+					_, err = m.Repo.BanDomains([]string{domain}, false)
 					if err != nil {
-						// Ignore unique constriant error
-						if !ent.IsConstraintError(err) {
-							log.Errorf("Error inserting disposable email domain: %s", err.Error())
-						}
+						log.Errorf("Error inserting disposable email domain: %s", err.Error())
 					} else {
 						// Update in cache immediately
 						shared.GetCache().UpdateDisposableEmailDomains(append(shared.GetCache().DisposableEmailDomains(), domain))
 					}
-					// Ban users with this domain
-					m.Repo.BanUsers([]uuid.UUID{userID}, false)
+					// Sleep 30 seconds
+					time.Sleep(30 * time.Second)
 				}
 			}
 
