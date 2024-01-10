@@ -58,12 +58,11 @@ func NewRedis(ctx context.Context) (*RedisWrapper, error) {
 }
 
 // Set generate and upscale count stats
-func (r *RedisWrapper) SetOutputCount(generationOutputCount, upscaleOutputCount, voiceoverOutputCount, mrr int) error {
+func (r *RedisWrapper) SetOutputCount(generationOutputCount, upscaleOutputCount, voiceoverOutputCount int) error {
 	stats := RedisStats{
 		GenerationOutputCount: generationOutputCount,
 		VoiceoverOutputCount:  voiceoverOutputCount,
 		UpscaleOutputCount:    upscaleOutputCount,
-		Mrr:                   mrr,
 	}
 	statsJSON, err := json.Marshal(stats)
 	if err != nil {
@@ -89,7 +88,6 @@ type RedisStats struct {
 	GenerationOutputCount int `json:"generation_output_count"`
 	UpscaleOutputCount    int `json:"upscale_output_count"`
 	VoiceoverOutputCount  int `json:"voiceover_output_count"`
-	Mrr                   int `json:"mrr"`
 }
 
 // Enqueues a request to sc-worker
