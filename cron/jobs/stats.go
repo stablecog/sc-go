@@ -1,6 +1,7 @@
 package jobs
 
 import (
+	"fmt"
 	"sync"
 	"time"
 
@@ -20,6 +21,7 @@ func (j *JobRunner) GetVoiceoverOutputCount() (int, error) {
 }
 
 func (j *JobRunner) GetMRR() (int, error) {
+	fmt.Print("***** Getting MRR...")
 	var totalMRR int = 0
 	params := &stripe.SubscriptionListParams{}
 	params.Filters.AddFilter("status", "", "active")
@@ -27,10 +29,11 @@ func (j *JobRunner) GetMRR() (int, error) {
 	i := j.Stripe.Subscriptions.List(params)
 
 	for i.Next() {
+		fmt.Print("***** Getting Subscription...")
 		s := i.Subscription()
 		// Assuming all subscriptions are monthly. Adjust logic for other billing cycles
 		for _, item := range s.Items.Data {
-			totalMRR += int(item.Price.UnitAmount * int64(item.Quantity))
+			totalMRR += int(item.Price.UnitAmount * item.Quantity)
 		}
 	}
 
