@@ -3,9 +3,6 @@ package jobs
 import (
 	"sync"
 	"time"
-
-	"github.com/stablecog/sc-go/log"
-	"github.com/stripe/stripe-go/v74"
 )
 
 func (j *JobRunner) GetUpscaleOutputCount() (int, error) {
@@ -18,32 +15,6 @@ func (j *JobRunner) GetGenerationOutputCount() (int, error) {
 
 func (j *JobRunner) GetVoiceoverOutputCount() (int, error) {
 	return j.Repo.DB.VoiceoverOutput.Query().Count(j.Ctx)
-}
-
-func (j *JobRunner) GetMRR() (int, error) {
-	log.Infof("Getting MRR...")
-	var totalMRR int = 0
-	params := &stripe.SubscriptionListParams{}
-	params.Filters.AddFilter("status", "", "active")
-	params.AddExpand("data.default_payment_method")
-	i := j.Stripe.Subscriptions.List(params)
-
-	for i.Next() {
-		log.Infof("Getting Subscription...")
-		s := i.Subscription()
-		// Assuming all subscriptions are monthly. Adjust logic for other billing cycles
-		for _, item := range s.Items.Data {
-			addition := int(item.Price.UnitAmount * item.Quantity)
-			log.Infof("MRR %d", addition)
-			totalMRR += addition
-		}
-	}
-
-	if err := i.Err(); err != nil {
-		return 0, err
-	}
-
-	return totalMRR, nil
 }
 
 func (j *JobRunner) GetAndSetStats(log Logger) error {
@@ -91,19 +62,6 @@ func (j *JobRunner) GetAndSetStats(log Logger) error {
 		}
 	}()
 
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
-		amount, err := j.GetMRR()
-		if err != nil {
-			errors <- err
-			return
-		}
-		results <- map[string]int{
-			"mrr": amount,
-		}
-	}()
-
 	// Wait all jobs and close channels
 	go func() {
 		wg.Wait()
@@ -117,7 +75,7 @@ func (j *JobRunner) GetAndSetStats(log Logger) error {
 		}
 	}
 
-	var generationOutputCount, upscaleOutputCount, voiceoverOutputCount, mrr int
+	var generationOutputCount, upscaleOutputCount, voiceoverOutputCount int
 	for result := range results {
 		resStat, ok := result["generation_output_count"]
 		if ok {
@@ -131,13 +89,9 @@ func (j *JobRunner) GetAndSetStats(log Logger) error {
 		if ok {
 			voiceoverOutputCount = resStat
 		}
-		resStat, ok = result["mrr"]
-		if ok {
-			mrr = resStat
-		}
 	}
 
-	err := j.Redis.SetOutputCount(generationOutputCount, upscaleOutputCount, voiceoverOutputCount, mrr)
+	err := j.Redis.SetOutputCount(generationOutputCount, upscaleOutputCount, voiceoverOutputCount)
 	if err != nil {
 		return err
 	}
@@ -146,7 +100,6 @@ func (j *JobRunner) GetAndSetStats(log Logger) error {
 	log.Infof("--- upscales %d", upscaleOutputCount)
 	log.Infof("--- generations %d", generationOutputCount)
 	log.Infof("--- voiceovers %d", voiceoverOutputCount)
-	log.Infof("--- mrr %d", mrr)
 	log.Infof("--- Got stats in %dms", end.Sub(start).Milliseconds())
 	return nil
 }
