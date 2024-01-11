@@ -435,6 +435,7 @@ func (r *Repository) RetrieveGalleryDataWithOutputIDs(outputIDs []uuid.UUID, cal
 			},
 			LikeCount: output.LikeCount,
 			IsLiked:   utils.ToPtr(len(output.Edges.GenerationOutputLikes) > 0),
+			IsPublic:  output.IsPublic,
 		}
 		if output.UpscaledImagePath != nil {
 			data.UpscaledImageURL = utils.GetEnv().GetURLFromImagePath(*output.UpscaledImagePath)
