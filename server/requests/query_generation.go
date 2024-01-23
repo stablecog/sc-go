@@ -73,11 +73,17 @@ type QueryGenerationFilters struct {
 	AestheticArtifactScoreGTE *float32                         `json:"aesthetic_artifact_score_gte,omitempty"`
 	AestheticRatingScoreLTE   *float32                         `json:"aesthetic_rating_score_lte,omitempty"`
 	AestheticRatingScoreGTE   *float32                         `json:"aesthetic_rating_score_gte,omitempty"`
+	Experimental              bool                             `json:"experimental"`
 }
 
 // Parse all filters into a QueryGenerationFilters struct
 func (filters *QueryGenerationFilters) ParseURLQueryParameters(urlValues url.Values) error {
 	for key, value := range urlValues {
+		if key == "experimental" {
+			if strings.ToLower(value[0]) == "true" {
+				filters.Experimental = true
+			}
+		}
 		// model_ids
 		if key == "model_ids" {
 			if strings.Contains(value[0], ",") {

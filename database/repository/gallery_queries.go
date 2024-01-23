@@ -126,17 +126,40 @@ func (r *Repository) RetrieveMostRecentGalleryDataV2(filters *requests.QueryGene
 	// Limits is + 1 so we can check if there are more pages
 	query = query.Limit(per_page + 1)
 
+	// Create the subquery for likes count within last 7 days
+	likeT := sql.Table(generationoutputlike.Table)
+	var likeSubQuery *sql.Selector
+	if filters != nil && filters.Experimental {
+		likeSubQuery = sql.Select(
+			sql.As(likeT.C(generationoutputlike.FieldOutputID), "output_id"),
+			sql.As(sql.Count("*"), "like_count_7days"),
+		).From(likeT).
+			Where(
+				sql.GT(likeT.C(generationoutputlike.FieldCreatedAt), time.Now().AddDate(0, 0, -7)),
+			).
+			GroupBy(likeT.C(generationoutputlike.FieldOutputID))
+	}
+
 	// Join other data
 	err := query.Modify(func(s *sql.Selector) {
 		gt := sql.Table(generation.Table)
 		got := sql.Table(generationoutput.Table)
 		ut := sql.Table(user.Table)
+
 		ltj := s.Join(got).OnP(
 			sql.And(
 				sql.ColumnsEQ(gt.C(generation.FieldID), got.C(generationoutput.FieldGenerationID)),
 				sql.IsNull(got.C(generationoutput.FieldDeletedAt)),
 			),
 		)
+
+		// Join the subquery
+		if filters != nil && filters.Experimental {
+			ltj.LeftJoin(likeSubQuery.As("like_subquery")).OnP(
+				sql.ColumnsEQ(got.C(generationoutput.FieldID), sql.Table("like_subquery").C("output_id")),
+			)
+		}
+
 		if filters != nil && filters.UserID != nil {
 			ltj.Join(ut).OnP(
 				sql.And(
@@ -149,11 +172,14 @@ func (r *Repository) RetrieveMostRecentGalleryDataV2(filters *requests.QueryGene
 				s.C(generation.FieldUserID), ut.C(user.FieldID),
 			)
 		}
-		ltj.AppendSelect(sql.As(got.C(generationoutput.FieldID), "output_id"), sql.As(got.C(generationoutput.FieldLikeCount), "like_count"), sql.As(got.C(generationoutput.FieldGalleryStatus), "output_gallery_status"), sql.As(got.C(generationoutput.FieldImagePath), "image_path"), sql.As(got.C(generationoutput.FieldUpscaledImagePath), "upscaled_image_path"), sql.As(got.C(generationoutput.FieldDeletedAt), "deleted_at"), sql.As(got.C(generationoutput.FieldIsFavorited), "is_favorited"), sql.As(ut.C(user.FieldUsername), "username"), sql.As(ut.C(user.FieldID), "user_id"), sql.As(got.C(generationoutput.FieldIsPublic), "is_public")).
-			GroupBy(s.C(generation.FieldID),
-				got.C(generationoutput.FieldID), got.C(generationoutput.FieldGalleryStatus),
-				got.C(generationoutput.FieldImagePath), got.C(generationoutput.FieldUpscaledImagePath),
-				ut.C(user.FieldUsername), ut.C(user.FieldID))
+		ltj.AppendSelect(sql.As(got.C(generationoutput.FieldID), "output_id"), sql.As(got.C(generationoutput.FieldLikeCount), "like_count"), sql.As(got.C(generationoutput.FieldGalleryStatus), "output_gallery_status"), sql.As(got.C(generationoutput.FieldImagePath), "image_path"), sql.As(got.C(generationoutput.FieldUpscaledImagePath), "upscaled_image_path"), sql.As(got.C(generationoutput.FieldDeletedAt), "deleted_at"), sql.As(got.C(generationoutput.FieldIsFavorited), "is_favorited"), sql.As(ut.C(user.FieldUsername), "username"), sql.As(ut.C(user.FieldID), "user_id"), sql.As(got.C(generationoutput.FieldIsPublic), "is_public"))
+		if filters != nil && filters.Experimental {
+			ltj.AppendSelect(sql.As(sql.Table("like_subquery").C("like_count_7days"), "like_count_7days"))
+		}
+		ltj.GroupBy(s.C(generation.FieldID),
+			got.C(generationoutput.FieldID), got.C(generationoutput.FieldGalleryStatus),
+			got.C(generationoutput.FieldImagePath), got.C(generationoutput.FieldUpscaledImagePath),
+			ut.C(user.FieldUsername), ut.C(user.FieldID))
 		orderDir := "asc"
 		if filters == nil || (filters != nil && filters.Order == requests.SortOrderDescending) {
 			orderDir = "desc"
