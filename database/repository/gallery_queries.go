@@ -305,6 +305,7 @@ func (r *Repository) RetrieveMostRecentGalleryDataV2(filters *requests.QueryGene
 			WasAutoSubmitted: g.WasAutoSubmitted,
 			IsPublic:         g.IsPublic,
 			LikeCount:        g.LikeCount,
+			LikeCount7Days:   g.LikeCount7Days,
 			IsLiked:          utils.ToPtr(likedByUser),
 		}
 
@@ -500,5 +501,6 @@ type GalleryData struct {
 	WasAutoSubmitted   bool       `json:"was_auto_submitted" sql:"was_auto_submitted"`
 	IsPublic           bool       `json:"is_public" sql:"is_public"`
 	LikeCount          int        `json:"like_count" sql:"like_count"`
+	LikeCount7Days     *int       `json:"like_count_7days,omitempty" sql:"like_count_7days"`
 	IsLiked            *bool      `json:"is_liked,omitempty" sql:"liked_by_user"`
 }
