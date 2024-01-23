@@ -104,6 +104,11 @@ func (c *RestAPI) HandleSemanticSearchGallery(w http.ResponseWriter, r *http.Req
 		Key:   "gallery_status",
 		Match: &qdrant.SCValue{Value: generationoutput.GalleryStatusApproved},
 	})
+	// Append public requirement
+	qdrantFilters.Must = append(qdrantFilters.Must, qdrant.SCMatchCondition{
+		Key:   "is_public",
+		Match: &qdrant.SCValue{Value: true},
+	})
 
 	// Leverage qdrant for semantic search
 	if search != "" {
@@ -202,7 +207,12 @@ func (c *RestAPI) HandleSemanticSearchGallery(w http.ResponseWriter, r *http.Req
 
 		// Retrieve from postgres
 		filters.GalleryStatus = []generationoutput.GalleryStatus{generationoutput.GalleryStatusApproved}
-		galleryData, nextCursorPostgres, err = c.Repo.RetrieveMostRecentGalleryData(filters, callingUserId, perPage, qCursor)
+		filters.IsPublic = utils.ToPtr(true)
+		if filters.Experimental {
+			galleryData, nextCursorPostgres, err = c.Repo.RetrieveMostRecentGalleryDataV2(filters, callingUserId, perPage, qCursor)
+		} else {
+			galleryData, nextCursorPostgres, err = c.Repo.RetrieveMostRecentGalleryData(filters, callingUserId, perPage, qCursor)
+		}
 		if err != nil {
 			log.Error("Error querying gallery data from postgres", "err", err)
 			responses.ErrInternalServerError(w, r, "An unknown error occurred")
