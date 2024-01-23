@@ -180,6 +180,9 @@ func (r *Repository) RetrieveMostRecentGalleryDataV2(filters *requests.QueryGene
 			got.C(generationoutput.FieldID), got.C(generationoutput.FieldGalleryStatus),
 			got.C(generationoutput.FieldImagePath), got.C(generationoutput.FieldUpscaledImagePath),
 			ut.C(user.FieldUsername), ut.C(user.FieldID))
+		if filters != nil && filters.Experimental {
+			ltj.GroupBy(sql.Table("like_subquery").C("like_count_7days"))
+		}
 		orderDir := "asc"
 		if filters == nil || (filters != nil && filters.Order == requests.SortOrderDescending) {
 			orderDir = "desc"
