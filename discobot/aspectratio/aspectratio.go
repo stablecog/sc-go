@@ -65,19 +65,19 @@ func (a AspectRatio) String() string {
 func (a AspectRatio) SimpleString() string {
 	switch a {
 	case AspectRatio_16_9:
-		return "desktop"
+		return "16_9"
 	case AspectRatio_1_1:
-		return "square"
+		return "1_1"
 	case AspectRatio_2_3:
-		return "portrait"
+		return "2_3"
 	case AspectRatio_3_2:
-		return "landscape"
+		return "3_2"
 	case AspectRatio_9_16:
-		return "mobile"
+		return "9_16"
 	case AspectRatio_4_5:
-		return "squarish"
+		return "4_5"
 	case AspectRatio_2dot4_1:
-		return "anamorphic"
+		return "2_4_1"
 	default:
 		return "unknown"
 	}
@@ -85,19 +85,19 @@ func (a AspectRatio) SimpleString() string {
 
 func GetAspectRatioBySimpleString(simpleString string) (AspectRatio, error) {
 	switch simpleString {
-	case "desktop":
+	case "16_9":
 		return AspectRatio_16_9, nil
-	case "square":
+	case "1_1":
 		return AspectRatio_1_1, nil
-	case "portrait":
+	case "2_3":
 		return AspectRatio_2_3, nil
-	case "landscape":
+	case "3_2":
 		return AspectRatio_3_2, nil
-	case "mobile":
+	case "9_16":
 		return AspectRatio_9_16, nil
-	case "squarish":
+	case "4_5":
 		return AspectRatio_4_5, nil
-	case "anamorphic":
+	case "2_4_1":
 		return AspectRatio_2dot4_1, nil
 	default:
 		return DefaultAspectRatio, errors.New("unknown aspect ratio")

@@ -12,6 +12,7 @@ import (
 	"github.com/stablecog/sc-go/database/ent/generationoutput"
 	"github.com/stablecog/sc-go/database/ent/generationoutputlike"
 	"github.com/stablecog/sc-go/database/ent/negativeprompt"
+	"github.com/stablecog/sc-go/database/ent/predicate"
 	"github.com/stablecog/sc-go/database/ent/prompt"
 	"github.com/stablecog/sc-go/database/ent/user"
 	"github.com/stablecog/sc-go/log"
@@ -153,6 +154,36 @@ func (r *Repository) ApplyUserGenerationsFilters(query *ent.GenerationQuery, fil
 			if filters.MinHeight != 0 {
 				resQuery = resQuery.Where(generation.HeightGTE(filters.MinHeight))
 			}
+		}
+
+		// Aspect ratios
+		if len(filters.AspectRatio) > 0 {
+			var widthHeightConditions []predicate.Generation
+
+			for _, aspectRatio := range filters.AspectRatio {
+				widths, heights := aspectRatio.GetAllWidthHeightCombos()
+				for i := 0; i < len(widths); i++ {
+					// Ensure that there is a corresponding height for each width
+					if i < len(heights) {
+						// Create an AND condition for each width-height pair
+						widthHeightCondition := generation.And(
+							generation.WidthEQ(widths[i]),
+							generation.HeightEQ(heights[i]),
+						)
+						widthHeightConditions = append(widthHeightConditions, widthHeightCondition)
+					}
+				}
+			}
+
+			// Combine all the width-height conditions using OR
+			if len(widthHeightConditions) > 0 {
+				combinedCondition := widthHeightConditions[0]
+				for _, cond := range widthHeightConditions[1:] {
+					combinedCondition = generation.Or(combinedCondition, cond)
+				}
+				resQuery = resQuery.Where(combinedCondition)
+			}
+
 		}
 
 		// Inference steps
