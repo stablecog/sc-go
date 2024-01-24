@@ -136,8 +136,11 @@ func (r *Repository) RetrieveMostRecentGalleryDataV2(filters *requests.QueryGene
 	).From(likeT).
 		Where(
 			sql.GT(likeT.C(generationoutputlike.FieldCreatedAt), time.Now().AddDate(0, 0, -7)),
-		).
-		GroupBy(likeT.C(generationoutputlike.FieldOutputID))
+		)
+	if cursor != nil {
+		likeSubQuery = likeSubQuery.Where(sql.LT(likeT.C(generationoutputlike.FieldCreatedAt), *cursor))
+	}
+	likeSubQuery = likeSubQuery.GroupBy(likeT.C(generationoutputlike.FieldOutputID))
 
 	// Join other data
 	err := query.Modify(func(s *sql.Selector) {
