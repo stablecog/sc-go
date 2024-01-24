@@ -112,6 +112,28 @@ func (c *RestAPI) HandleSemanticSearchGallery(w http.ResponseWriter, r *http.Req
 
 	// Leverage qdrant for semantic search
 	if search != "" {
+		// Check username filter
+		if filters != nil && len(filters.Username) > 0 {
+			userIDs, err := c.Repo.GetUserIDsByUsernames(filters.Username)
+			if err != nil {
+				log.Error("Error getting user ids by usernames", "err", err)
+				responses.ErrInternalServerError(w, r, "An unknown error occurred")
+				return
+			}
+			shouldFilter := []qdrant.SCMatchCondition{}
+			for _, userID := range userIDs {
+				shouldFilter = append(shouldFilter, qdrant.SCMatchCondition{
+					Key:   "user_id",
+					Match: &qdrant.SCValue{Value: userID.String()},
+				})
+			}
+			if len(shouldFilter) > 0 {
+				qdrantFilters.Must = append(qdrantFilters.Must, qdrant.SCMatchCondition{
+					Should: shouldFilter,
+				})
+			}
+		}
+
 		var offset *uint
 		if cursor != "" {
 			cursoru64, err := strconv.ParseUint(cursor, 10, 64)

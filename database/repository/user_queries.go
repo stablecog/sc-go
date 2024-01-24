@@ -346,3 +346,16 @@ func (r *Repository) CheckIfEmailExists(email string) (string, bool, error) {
 	}
 	return foundEmail, len(total) > 0, nil
 }
+
+// Get user ids by usernames
+func (r *Repository) GetUserIDsByUsernames(usernames []string) ([]uuid.UUID, error) {
+	var ids []uuid.UUID
+	users, err := r.DB.User.Query().Select(user.FieldID).Where(user.UsernameIn(usernames...)).All(r.Ctx)
+	if err != nil {
+		return nil, err
+	}
+	for _, user := range users {
+		ids = append(ids, user.ID)
+	}
+	return ids, nil
+}
