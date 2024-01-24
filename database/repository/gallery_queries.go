@@ -2,7 +2,6 @@ package repository
 
 import (
 	"fmt"
-	"strings"
 	"time"
 
 	"entgo.io/ent/dialect/sql"
@@ -165,11 +164,11 @@ func (r *Repository) RetrieveMostRecentGalleryDataV2(filters *requests.QueryGene
 					sql.EQ(ut.C(user.FieldID), *filters.UserID),
 				),
 			)
-		} else if filters != nil && filters.Username != "" {
+		} else if filters != nil && len(filters.Username) > 0 {
 			ltj.Join(ut).OnP(
 				sql.And(
 					sql.ColumnsEQ(s.C(generation.FieldUserID), ut.C(user.FieldID)),
-					sql.EQ(sql.Lower(ut.C(user.FieldUsername)), strings.ToLower(filters.Username)),
+					sql.In(sql.Lower(ut.C(user.FieldUsername)), filters.Username),
 				),
 			)
 		} else {
