@@ -75,6 +75,7 @@ func (c *RestAPI) HandleSemanticSearchGallery(w http.ResponseWriter, r *http.Req
 	galleryData := []repository.GalleryData{}
 	var nextCursorQdrant *uint
 	var nextCursorPostgres *time.Time
+	var nextOffsetPostgres *int
 
 	// Parse filters
 	filters := &requests.QueryGenerationFilters{}
@@ -218,7 +219,15 @@ func (c *RestAPI) HandleSemanticSearchGallery(w http.ResponseWriter, r *http.Req
 	} else {
 		// Get most recent gallery data
 		var qCursor *time.Time
-		if cursor != "" {
+		var qOffset *int
+		if cursor != "" && filters != nil && (filters.OrderBy == requests.OrderByLikeCountTrending || filters.OrderBy == requests.OrderByLikeCount) {
+			offset, err := strconv.Atoi(cursor)
+			if err != nil {
+				responses.ErrBadRequest(w, r, "cursor must be a valid uint", "")
+				return
+			}
+			qOffset = &offset
+		} else if cursor != "" {
 			cursorTime, err := utils.ParseIsoTime(cursor)
 			if err != nil {
 				responses.ErrBadRequest(w, r, "cursor must be a valid iso time string", "")
@@ -230,7 +239,7 @@ func (c *RestAPI) HandleSemanticSearchGallery(w http.ResponseWriter, r *http.Req
 		// Retrieve from postgres
 		filters.GalleryStatus = []generationoutput.GalleryStatus{generationoutput.GalleryStatusApproved}
 		filters.IsPublic = utils.ToPtr(true)
-		galleryData, nextCursorPostgres, err = c.Repo.RetrieveMostRecentGalleryDataV2(filters, callingUserId, perPage, qCursor)
+		galleryData, nextCursorPostgres, nextOffsetPostgres, err = c.Repo.RetrieveMostRecentGalleryDataV2(filters, callingUserId, perPage, qCursor, qOffset)
 		if err != nil {
 			log.Error("Error querying gallery data from postgres", "err", err)
 			responses.ErrInternalServerError(w, r, "An unknown error occurred")
@@ -263,6 +272,13 @@ func (c *RestAPI) HandleSemanticSearchGallery(w http.ResponseWriter, r *http.Req
 
 	if search == "" {
 		render.Status(r, http.StatusOK)
+		if filters.OrderBy != requests.OrderByLikeCount && filters.OrderBy != requests.OrderByLikeCountTrending {
+			render.JSON(w, r, GalleryResponse[*int]{
+				Next: nextOffsetPostgres,
+				Hits: galleryData,
+			})
+			return
+		}
 		render.JSON(w, r, GalleryResponse[*time.Time]{
 			Next: nextCursorPostgres,
 			Hits: galleryData,
@@ -277,8 +293,7 @@ func (c *RestAPI) HandleSemanticSearchGallery(w http.ResponseWriter, r *http.Req
 }
 
 type GalleryResponseCursor interface {
-	// ! TODO - remove int when meili is gone
-	*uint | *time.Time | int
+	*uint | *time.Time | int | *int
 }
 
 type GalleryResponse[T GalleryResponseCursor] struct {

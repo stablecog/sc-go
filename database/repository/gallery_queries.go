@@ -79,7 +79,7 @@ func (r *Repository) RetrieveGalleryDataByID(id uuid.UUID, userId *uuid.UUID, ca
 	return &data, nil
 }
 
-func (r *Repository) RetrieveMostRecentGalleryDataV2(filters *requests.QueryGenerationFilters, callingUserId *uuid.UUID, per_page int, cursor *time.Time) ([]GalleryData, *time.Time, error) {
+func (r *Repository) RetrieveMostRecentGalleryDataV2(filters *requests.QueryGenerationFilters, callingUserId *uuid.UUID, per_page int, cursor *time.Time, offset *int) ([]GalleryData, *time.Time, *int, error) {
 	// Base fields to select in our query
 	selectFields := []string{
 		generation.FieldID,
@@ -119,6 +119,9 @@ func (r *Repository) RetrieveMostRecentGalleryDataV2(filters *requests.QueryGene
 		Where(generation.StatusEQ(generation.StatusSucceeded))
 	if cursor != nil {
 		query = query.Where(generation.CreatedAtLT(*cursor))
+	}
+	if offset != nil {
+		query = query.Offset(*offset)
 	}
 
 	// Apply filters
@@ -230,11 +233,11 @@ func (r *Repository) RetrieveMostRecentGalleryDataV2(filters *requests.QueryGene
 
 	if err != nil {
 		log.Error("Error retrieving generations", "err", err)
-		return nil, nil, err
+		return nil, nil, nil, err
 	}
 
 	if len(gQueryResult) == 0 {
-		return []GalleryData{}, nil, nil
+		return []GalleryData{}, nil, nil, nil
 	}
 
 	// Get prompt texts
@@ -265,12 +268,12 @@ func (r *Repository) RetrieveMostRecentGalleryDataV2(filters *requests.QueryGene
 	prompts, err := r.DB.Prompt.Query().Select(prompt.FieldText).Where(prompt.IDIn(promptIDs...)).All(r.Ctx)
 	if err != nil {
 		log.Error("Error retrieving prompts", "err", err)
-		return nil, nil, err
+		return nil, nil, nil, err
 	}
 	negativePrompts, err := r.DB.NegativePrompt.Query().Select(negativeprompt.FieldText).Where(negativeprompt.IDIn(negativePromptId...)).All(r.Ctx)
 	if err != nil {
 		log.Error("Error retrieving prompts", "err", err)
-		return nil, nil, err
+		return nil, nil, nil, err
 	}
 	for _, p := range prompts {
 		promptIDsMap[p.ID] = p.Text
@@ -280,7 +283,17 @@ func (r *Repository) RetrieveMostRecentGalleryDataV2(filters *requests.QueryGene
 	}
 
 	var nextCursor *time.Time
-	if len(gQueryResult) > per_page {
+	var nextOffset *int
+	if filters != nil && (filters.OrderBy == requests.OrderByLikeCountTrending || filters.OrderBy == requests.OrderByLikeCount) && len(gQueryResult) > per_page {
+		if offset == nil {
+			nextOffset = utils.ToPtr(len(gQueryResult))
+		} else {
+			// Max offset
+			if *offset < 50000 {
+				nextOffset = utils.ToPtr(*offset + len(gQueryResult))
+			}
+		}
+	} else if len(gQueryResult) > per_page {
 		gQueryResult = gQueryResult[:len(gQueryResult)-1]
 		nextCursor = &gQueryResult[len(gQueryResult)-1].CreatedAt
 	}
@@ -295,7 +308,7 @@ func (r *Repository) RetrieveMostRecentGalleryDataV2(filters *requests.QueryGene
 		likedByMap, err = r.GetGenerationOutputsLikedByUser(*callingUserId, outputIds)
 		if err != nil {
 			log.Error("Error getting liked by map", "err", err)
-			return nil, nil, err
+			return nil, nil, nil, err
 		}
 	}
 
@@ -342,7 +355,7 @@ func (r *Repository) RetrieveMostRecentGalleryDataV2(filters *requests.QueryGene
 		}
 	}
 
-	return galleryData, nextCursor, nil
+	return galleryData, nextCursor, nextOffset, nil
 }
 
 // Retrieves data in gallery format given  output IDs

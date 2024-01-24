@@ -21,16 +21,16 @@ func TestGetGalleryData(t *testing.T) {
 	assert.Nil(t, err)
 
 	// Check data
-	gData, _, err := MockRepo.RetrieveMostRecentGalleryDataV2(&requests.QueryGenerationFilters{
+	gData, _, _, err := MockRepo.RetrieveMostRecentGalleryDataV2(&requests.QueryGenerationFilters{
 		GalleryStatus: []generationoutput.GalleryStatus{generationoutput.GalleryStatusApproved},
-	}, nil, 100, nil)
+	}, nil, 100, nil, nil)
 	assert.Nil(t, err)
 	assert.Len(t, gData, 3)
 
 	// Check data with calling user ID
-	gData, _, err = MockRepo.RetrieveMostRecentGalleryDataV2(&requests.QueryGenerationFilters{
+	gData, _, _, err = MockRepo.RetrieveMostRecentGalleryDataV2(&requests.QueryGenerationFilters{
 		GalleryStatus: []generationoutput.GalleryStatus{generationoutput.GalleryStatusApproved},
-	}, utils.ToPtr(uuid.MustParse(MOCK_ADMIN_UUID)), 100, nil)
+	}, utils.ToPtr(uuid.MustParse(MOCK_ADMIN_UUID)), 100, nil, nil)
 	assert.Nil(t, err)
 	assert.Len(t, gData, 3)
 }
