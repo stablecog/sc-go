@@ -220,8 +220,8 @@ func (c *RestAPI) HandleSemanticSearchGallery(w http.ResponseWriter, r *http.Req
 		}
 	}
 
-	// Shuffle results if no search was specified
-	if search == "" {
+	// Shuffle results if no search was specified and we're not sorting by likes
+	if search == "" && filters.OrderBy != requests.OrderByLikeCount && filters.OrderBy != requests.OrderByLikeCountTrending {
 		// Get seed from query
 		seed := r.URL.Query().Get("seed")
 		if seed != "" {
