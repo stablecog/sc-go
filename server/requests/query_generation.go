@@ -671,9 +671,10 @@ func (filters *QueryGenerationFilters) ToQdrantFilters(ignoreGalleryStatus bool)
 				})
 			}
 		}
-		f.Should = append(f.Should, qdrant.SCMatchCondition{
+		should := qdrant.SCMatchCondition{
 			Must: mustConditions,
-		})
+		}
+		f.Must = append(f.Must, should)
 	}
 
 	// Inference steps/guidance scales
