@@ -107,15 +107,9 @@ func (r *Repository) RetrieveMostRecentGalleryDataV2(filters *requests.QueryGene
 	// Figure out order bys
 	var orderByGeneration []string
 	var orderByOutput []string
-	if filters == nil || (filters != nil && filters.OrderBy == requests.OrderByCreatedAt) {
+	if filters == nil || (filters != nil && (filters.OrderBy == requests.OrderByCreatedAt || filters.OrderBy == requests.OrderByLikeCount || filters.OrderBy == requests.OrderByLikeCountTrending)) {
 		orderByGeneration = []string{generation.FieldCreatedAt}
 		orderByOutput = []string{generationoutput.FieldCreatedAt}
-	} else if filters != nil && filters.OrderBy == requests.OrderByLikeCount {
-		orderByGeneration = []string{generation.FieldCreatedAt}
-		orderByOutput = []string{generationoutput.FieldLikeCount, generationoutput.FieldCreatedAt}
-	} else if filters != nil && filters.OrderBy == requests.OrderByLikeCountTrending {
-		orderByGeneration = []string{generation.FieldCreatedAt}
-		orderByOutput = []string{"like_count_trending", generationoutput.FieldCreatedAt}
 	} else {
 		orderByGeneration = []string{generation.FieldCreatedAt, generation.FieldUpdatedAt}
 		orderByOutput = []string{generationoutput.FieldCreatedAt, generationoutput.FieldUpdatedAt}
@@ -210,8 +204,24 @@ func (r *Repository) RetrieveMostRecentGalleryDataV2(filters *requests.QueryGene
 				orderByOutput2 = append(orderByOutput2, sql.Asc(got.C(o)))
 			}
 		}
-		// Order by generation, then output
-		orderByCombined := append(orderByGeneration2, orderByOutput2...)
+		orderByLikes := []string{}
+		if filters != nil && filters.OrderBy == requests.OrderByLikeCount {
+			if orderDir == "desc" {
+				orderByLikes = append(orderByLikes, sql.Desc(got.C(generationoutput.FieldLikeCount)))
+			} else {
+				orderByLikes = append(orderByLikes, sql.Asc(got.C(generationoutput.FieldLikeCount)))
+			}
+		}
+		if filters != nil && filters.OrderBy == requests.OrderByLikeCountTrending {
+			if orderDir == "desc" {
+				orderByLikes = append(orderByLikes, sql.Desc(sql.Table("like_subquery").C("like_count_trending")))
+			} else {
+				orderByLikes = append(orderByLikes, sql.Asc(sql.Table("like_subquery").C("like_count_trending")))
+			}
+		}
+		// Order by likes, generation, then output
+		orderByCombined := append(orderByLikes, orderByGeneration2...)
+		orderByCombined = append(orderByCombined, orderByOutput2...)
 		s.OrderBy(orderByCombined...)
 	}).Scan(r.Ctx, &gQueryResult)
 
