@@ -1662,6 +1662,11 @@ type SCMatchCondition struct {
 	HasId []uuid.UUID `json:"has_id,omitempty"`
 	// ! TODO Interface since we can't embed a generic struct?
 	Range interface{} `json:"range,omitempty"`
+	// We can also have a nested condition
+	// { must: [ { key: "name", match: { value: "John" } } ] }
+	Must []SCMatchCondition `json:"must,omitempty"`
+	MustNot []SCMatchCondition `json:"must_not,omitempty"`
+	Should []SCMatchCondition `json:"should,omitempty"`
 }
 
 type SearchRequest_Filter struct {

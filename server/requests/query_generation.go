@@ -12,6 +12,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/stablecog/sc-go/database/ent/generationoutput"
 	"github.com/stablecog/sc-go/database/qdrant"
+	"github.com/stablecog/sc-go/discobot/aspectratio"
 	"github.com/stablecog/sc-go/utils"
 )
 
@@ -76,6 +77,7 @@ type QueryGenerationFilters struct {
 	AestheticRatingScoreLTE   *float32                         `json:"aesthetic_rating_score_lte,omitempty"`
 	AestheticRatingScoreGTE   *float32                         `json:"aesthetic_rating_score_gte,omitempty"`
 	Username                  []string                         `json:"username,omitempty"`
+	AspectRatio               *aspectratio.AspectRatio         `json:"aspect_ratio,omitempty"`
 }
 
 // Parse all filters into a QueryGenerationFilters struct
@@ -461,6 +463,15 @@ func (filters *QueryGenerationFilters) ParseURLQueryParameters(urlValues url.Val
 				filters.Username[i] = strings.ToLower(str)
 			}
 		}
+
+		// aspect ratio
+		if key == "aspect_ratio" {
+			ratio, err := aspectratio.GetAspectRatioBySimpleString(value[0])
+			if err != nil {
+				return fmt.Errorf("invalid aspect_ratio: %s", value[0])
+			}
+			filters.AspectRatio = utils.ToPtr(ratio)
+		}
 	}
 	// Descending default
 	if filters.Order == "" {
@@ -628,6 +639,31 @@ func (filters *QueryGenerationFilters) ToQdrantFilters(ignoreGalleryStatus bool)
 			f.Should = append(f.Should, qdrant.SCMatchCondition{
 				Key:   "width",
 				Match: &qdrant.SCValue{Value: width},
+			})
+		}
+	}
+
+	// Aspect ratio
+	if filters.AspectRatio != nil {
+		// With aspect ratio must be like
+		// (width=width_1 and height=height_1) or (width=width_2 and height=height_2) or ...
+		widths, heights := filters.AspectRatio.GetAllWidthHeightCombos()
+		for i := 0; i < len(widths); i++ {
+			should := make([]qdrant.SCMatchCondition, 2)
+			should[0] = qdrant.SCMatchCondition{
+				Key: "width",
+				Match: &qdrant.SCValue{
+					Value: widths[i],
+				},
+			}
+			should[1] = qdrant.SCMatchCondition{
+				Key: "height",
+				Match: &qdrant.SCValue{
+					Value: heights[i],
+				},
+			}
+			f.Must = append(f.Must, qdrant.SCMatchCondition{
+				Should: should,
 			})
 		}
 	}

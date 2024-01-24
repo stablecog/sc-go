@@ -1,6 +1,10 @@
 package aspectratio
 
-import "github.com/google/uuid"
+import (
+	"errors"
+
+	"github.com/google/uuid"
+)
 
 // Hacky hardcoded stuff but it gets the job done
 const KANDINSKY_2_2_ID = "9fa49c00-109d-430f-9ddd-449f02e2c71a"
@@ -56,6 +60,69 @@ func (a AspectRatio) String() string {
 		return ratio + " (default)"
 	}
 	return ratio
+}
+
+func (a AspectRatio) SimpleString() string {
+	switch a {
+	case AspectRatio_16_9:
+		return "desktop"
+	case AspectRatio_1_1:
+		return "square"
+	case AspectRatio_2_3:
+		return "portrait"
+	case AspectRatio_3_2:
+		return "landscape"
+	case AspectRatio_9_16:
+		return "mobile"
+	case AspectRatio_4_5:
+		return "squarish"
+	case AspectRatio_2dot4_1:
+		return "anamorphic"
+	default:
+		return "unknown"
+	}
+}
+
+func GetAspectRatioBySimpleString(simpleString string) (AspectRatio, error) {
+	switch simpleString {
+	case "desktop":
+		return AspectRatio_16_9, nil
+	case "square":
+		return AspectRatio_1_1, nil
+	case "portrait":
+		return AspectRatio_2_3, nil
+	case "landscape":
+		return AspectRatio_3_2, nil
+	case "mobile":
+		return AspectRatio_9_16, nil
+	case "squarish":
+		return AspectRatio_4_5, nil
+	case "anamorphic":
+		return AspectRatio_2dot4_1, nil
+	default:
+		return DefaultAspectRatio, errors.New("unknown aspect ratio")
+	}
+}
+
+func (a AspectRatio) GetAllWidthHeightCombos() (widths, heights []int32) {
+	switch a {
+	case AspectRatio_16_9:
+		return []int32{1280, 1024, 768}, []int32{720, 576, 432}
+	case AspectRatio_1_1:
+		return []int32{1024, 768, 512}, []int32{1024, 768, 512}
+	case AspectRatio_2_3:
+		return []int32{832, 608, 512}, []int32{1248, 912, 768}
+	case AspectRatio_3_2:
+		return []int32{1248, 912, 768}, []int32{832, 608, 512}
+	case AspectRatio_9_16:
+		return []int32{720, 576, 432}, []int32{1280, 1024, 768}
+	case AspectRatio_4_5:
+		return []int32{896, 672, 512}, []int32{1120, 840, 640}
+	case AspectRatio_2dot4_1:
+		return []int32{1536, 1152, 768}, []int32{640, 480, 320}
+	default:
+		return
+	}
 }
 
 func (a AspectRatio) GetWidthHeightForModel(modelId uuid.UUID) (width, height int32) {
