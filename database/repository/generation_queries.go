@@ -1207,7 +1207,7 @@ type GenerationQueryWithOutputsResult struct {
 	AestheticArtifactScore *float32                       `json:"aesthetic_artifact_score,omitempty"`
 	AestheticRatingScore   *float32                       `json:"aesthetic_rating_score,omitempty"`
 	LikeCount              int                            `json:"like_count" sql:"like_count"`
-	LikeCount7Days         *int                           `json:"like_count_7days,omitempty"`
+	LikeCountTrending      *int                           `json:"like_count_trending,omitempty"`
 	ImageUrl               string                         `json:"image_url,omitempty" sql:"image_path"`
 	UpscaledImageUrl       string                         `json:"upscaled_image_url,omitempty" sql:"upscaled_image_path"`
 	GalleryStatus          generationoutput.GalleryStatus `json:"gallery_status,omitempty" sql:"output_gallery_status"`

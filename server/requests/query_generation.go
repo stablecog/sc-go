@@ -26,8 +26,10 @@ const (
 type OrderBy string
 
 const (
-	OrderByCreatedAt OrderBy = "created_at"
-	OrderByUpdatedAt OrderBy = "updated_at"
+	OrderByCreatedAt         OrderBy = "created_at"
+	OrderByUpdatedAt         OrderBy = "updated_at"
+	OrderByLikeCount         OrderBy = "like_count"
+	OrderByLikeCountTrending OrderBy = "like_count_trending"
 )
 
 type UpscaleStatus string
@@ -358,6 +360,18 @@ func (filters *QueryGenerationFilters) ParseURLQueryParameters(urlValues url.Val
 				filters.OrderBy = OrderByCreatedAt
 			} else {
 				return fmt.Errorf("invalid order_by: '%s' expected '%s' or '%s'", value[0], OrderByUpdatedAt, OrderByCreatedAt)
+			}
+		}
+
+		if key == "sort" {
+			if strings.ToLower(value[0]) == "trending" {
+				filters.OrderBy = OrderByLikeCountTrending
+			} else if strings.ToLower(value[0]) == "new" {
+				filters.OrderBy = OrderByCreatedAt
+			} else if strings.ToLower(value[0]) == "top" {
+				filters.OrderBy = OrderByLikeCount
+			} else {
+				return fmt.Errorf("invalid sort: '%s' expected 'trending', 'new', or 'top'", value[0])
 			}
 		}
 

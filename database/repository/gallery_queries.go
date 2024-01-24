@@ -110,6 +110,12 @@ func (r *Repository) RetrieveMostRecentGalleryDataV2(filters *requests.QueryGene
 	if filters == nil || (filters != nil && filters.OrderBy == requests.OrderByCreatedAt) {
 		orderByGeneration = []string{generation.FieldCreatedAt}
 		orderByOutput = []string{generationoutput.FieldCreatedAt}
+	} else if filters != nil && filters.OrderBy == requests.OrderByLikeCount {
+		orderByGeneration = []string{generation.FieldCreatedAt}
+		orderByOutput = []string{generationoutput.FieldLikeCount, generationoutput.FieldCreatedAt}
+	} else if filters != nil && filters.OrderBy == requests.OrderByLikeCountTrending {
+		orderByGeneration = []string{generation.FieldCreatedAt}
+		orderByOutput = []string{"like_count_trending", generationoutput.FieldCreatedAt}
 	} else {
 		orderByGeneration = []string{generation.FieldCreatedAt, generation.FieldUpdatedAt}
 		orderByOutput = []string{generationoutput.FieldCreatedAt, generationoutput.FieldUpdatedAt}
@@ -133,7 +139,7 @@ func (r *Repository) RetrieveMostRecentGalleryDataV2(filters *requests.QueryGene
 	if filters != nil && filters.Experimental {
 		likeSubQuery = sql.Select(
 			sql.As(likeT.C(generationoutputlike.FieldOutputID), "output_id"),
-			sql.As(sql.Count("*"), "like_count_7days"),
+			sql.As(sql.Count("*"), "like_count_trending"),
 		).From(likeT).
 			Where(
 				sql.GT(likeT.C(generationoutputlike.FieldCreatedAt), time.Now().AddDate(0, 0, -7)),
@@ -175,14 +181,14 @@ func (r *Repository) RetrieveMostRecentGalleryDataV2(filters *requests.QueryGene
 		}
 		ltj.AppendSelect(sql.As(got.C(generationoutput.FieldID), "output_id"), sql.As(got.C(generationoutput.FieldLikeCount), "like_count"), sql.As(got.C(generationoutput.FieldGalleryStatus), "output_gallery_status"), sql.As(got.C(generationoutput.FieldImagePath), "image_path"), sql.As(got.C(generationoutput.FieldUpscaledImagePath), "upscaled_image_path"), sql.As(got.C(generationoutput.FieldDeletedAt), "deleted_at"), sql.As(got.C(generationoutput.FieldIsFavorited), "is_favorited"), sql.As(ut.C(user.FieldUsername), "username"), sql.As(ut.C(user.FieldID), "user_id"), sql.As(got.C(generationoutput.FieldIsPublic), "is_public"))
 		if filters != nil && filters.Experimental {
-			ltj.AppendSelect(sql.As(fmt.Sprintf("coalesce(%s, 0)", sql.Table("like_subquery").C("like_count_7days")), "like_count_7days"))
+			ltj.AppendSelect(sql.As(fmt.Sprintf("coalesce(%s, 0)", sql.Table("like_subquery").C("like_count_trending")), "like_count_trending"))
 		}
 		ltj.GroupBy(s.C(generation.FieldID),
 			got.C(generationoutput.FieldID), got.C(generationoutput.FieldGalleryStatus),
 			got.C(generationoutput.FieldImagePath), got.C(generationoutput.FieldUpscaledImagePath),
 			ut.C(user.FieldUsername), ut.C(user.FieldID))
 		if filters != nil && filters.Experimental {
-			ltj.GroupBy(sql.Table("like_subquery").C("like_count_7days"))
+			ltj.GroupBy(sql.Table("like_subquery").C("like_count_trending"))
 		}
 		orderDir := "asc"
 		if filters == nil || (filters != nil && filters.Order == requests.SortOrderDescending) {
@@ -306,11 +312,11 @@ func (r *Repository) RetrieveMostRecentGalleryDataV2(filters *requests.QueryGene
 				Username:   g.Username,
 				Identifier: utils.Sha256(g.UserID.String()),
 			},
-			WasAutoSubmitted: g.WasAutoSubmitted,
-			IsPublic:         g.IsPublic,
-			LikeCount:        g.LikeCount,
-			LikeCount7Days:   g.LikeCount7Days,
-			IsLiked:          utils.ToPtr(likedByUser),
+			WasAutoSubmitted:  g.WasAutoSubmitted,
+			IsPublic:          g.IsPublic,
+			LikeCount:         g.LikeCount,
+			LikeCountTrending: g.LikeCountTrending,
+			IsLiked:           utils.ToPtr(likedByUser),
 		}
 
 		if g.NegativePromptID != nil {
@@ -505,6 +511,6 @@ type GalleryData struct {
 	WasAutoSubmitted   bool       `json:"was_auto_submitted" sql:"was_auto_submitted"`
 	IsPublic           bool       `json:"is_public" sql:"is_public"`
 	LikeCount          int        `json:"like_count" sql:"like_count"`
-	LikeCount7Days     *int       `json:"like_count_7days,omitempty" sql:"like_count_7days"`
+	LikeCountTrending  *int       `json:"like_count_trending,omitempty" sql:"like_count_trending"`
 	IsLiked            *bool      `json:"is_liked,omitempty" sql:"liked_by_user"`
 }
