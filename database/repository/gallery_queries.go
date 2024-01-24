@@ -214,9 +214,9 @@ func (r *Repository) RetrieveMostRecentGalleryDataV2(filters *requests.QueryGene
 		}
 		if filters != nil && filters.OrderBy == requests.OrderByLikeCountTrending {
 			if orderDir == "desc" {
-				orderByLikes = append(orderByLikes, sql.Desc(sql.Table("like_subquery").C("like_count_trending")))
+				orderByLikes = append(orderByLikes, sql.Desc("like_count_trending"))
 			} else {
-				orderByLikes = append(orderByLikes, sql.Asc(sql.Table("like_subquery").C("like_count_trending")))
+				orderByLikes = append(orderByLikes, sql.Asc("like_count_trending"))
 			}
 		}
 		// Order by likes, generation, then output
