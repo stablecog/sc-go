@@ -165,10 +165,14 @@ func (r *Repository) RetrieveMostRecentGalleryDataV2(filters *requests.QueryGene
 				),
 			)
 		} else if filters != nil && len(filters.Username) > 0 {
+			v := make([]any, len(filters.Username))
+			for i := range v {
+				v[i] = filters.Username[i]
+			}
 			ltj.Join(ut).OnP(
 				sql.And(
 					sql.ColumnsEQ(s.C(generation.FieldUserID), ut.C(user.FieldID)),
-					sql.In(sql.Lower(ut.C(user.FieldUsername)), filters.Username),
+					sql.In(sql.Lower(ut.C(user.FieldUsername)), v...),
 				),
 			)
 		} else {
