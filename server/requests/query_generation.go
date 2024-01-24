@@ -653,28 +653,40 @@ func (filters *QueryGenerationFilters) ToQdrantFilters(ignoreGalleryStatus bool)
 		// (width=width_1 and height=height_1) or (width=width_2 and height=height_2) or ...
 		// In qdrant this is represented as
 		// should = [ must = [ width=width_1, height=height_1 ], must = [ width=width_2, height=height_2 ], ...
-		mustConditions := []qdrant.SCMatchCondition{}
+		shouldConditions := []qdrant.SCMatchCondition{}
+
 		for _, ratio := range filters.AspectRatio {
 			widths, heights := ratio.GetAllWidthHeightCombos()
 			for i := 0; i < len(widths); i++ {
-				mustConditions = append(mustConditions, qdrant.SCMatchCondition{
-					Key: "width",
-					Match: &qdrant.SCValue{
-						Value: widths[i],
+				// Create a new must condition for each width-height pair
+				widthHeightMust := []qdrant.SCMatchCondition{
+					{
+						Key: "width",
+						Match: &qdrant.SCValue{
+							Value: widths[i],
+						},
 					},
-				})
-				mustConditions = append(mustConditions, qdrant.SCMatchCondition{
-					Key: "height",
-					Match: &qdrant.SCValue{
-						Value: heights[i],
+					{
+						Key: "height",
+						Match: &qdrant.SCValue{
+							Value: heights[i],
+						},
 					},
+				}
+
+				// Append the must condition to should conditions
+				shouldConditions = append(shouldConditions, qdrant.SCMatchCondition{
+					Must: widthHeightMust,
 				})
 			}
 		}
-		should := qdrant.SCMatchCondition{
-			Must: mustConditions,
+
+		// Create the final must condition that includes the should conditions
+		finalMust := qdrant.SCMatchCondition{
+			Should: shouldConditions,
 		}
-		f.Must = append(f.Must, should)
+
+		f.Must = append(f.Must, finalMust)
 	}
 
 	// Inference steps/guidance scales
