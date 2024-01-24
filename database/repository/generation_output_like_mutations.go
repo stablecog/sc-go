@@ -20,7 +20,7 @@ func (r *Repository) SetOutputsLikedForUser(generationOutputIDs []uuid.UUID, use
 		if !removeLikes {
 			for _, id := range generationOutputIDs {
 				if !removeLikes {
-					err := tx.GenerationOutputLike.Create().SetOutputID(id).SetLikedByUserID(userID).OnConflict().DoNothing().Exec(r.Ctx)
+					err := tx.GenerationOutputLike.Create().SetOutputID(id).SetLikedByUserID(userID).OnConflict().Ignore().Exec(r.Ctx)
 					if err != nil {
 						return err
 					}
