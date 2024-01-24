@@ -272,7 +272,7 @@ func (c *RestAPI) HandleSemanticSearchGallery(w http.ResponseWriter, r *http.Req
 
 	if search == "" {
 		render.Status(r, http.StatusOK)
-		if filters.OrderBy != requests.OrderByLikeCount && filters.OrderBy != requests.OrderByLikeCountTrending {
+		if filters.OrderBy == requests.OrderByLikeCount || filters.OrderBy == requests.OrderByLikeCountTrending {
 			render.JSON(w, r, GalleryResponse[*int]{
 				Next: nextOffsetPostgres,
 				Hits: galleryData,

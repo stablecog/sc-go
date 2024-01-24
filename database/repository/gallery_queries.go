@@ -286,10 +286,12 @@ func (r *Repository) RetrieveMostRecentGalleryDataV2(filters *requests.QueryGene
 	var nextOffset *int
 	if filters != nil && (filters.OrderBy == requests.OrderByLikeCountTrending || filters.OrderBy == requests.OrderByLikeCount) && len(gQueryResult) > per_page {
 		if offset == nil {
+			gQueryResult = gQueryResult[:len(gQueryResult)-1]
 			nextOffset = utils.ToPtr(len(gQueryResult))
 		} else {
 			// Max offset
 			if *offset < 50000 {
+				gQueryResult = gQueryResult[:len(gQueryResult)-1]
 				nextOffset = utils.ToPtr(*offset + len(gQueryResult))
 			}
 		}
