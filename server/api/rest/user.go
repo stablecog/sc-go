@@ -1,6 +1,7 @@
 package rest
 
 import (
+	"database/sql"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -771,7 +772,9 @@ func (c *RestAPI) HandleLikeGenerationOutputsForUser(w http.ResponseWriter, r *h
 	}
 
 	err = c.Repo.SetOutputsLikedForUser(likeReq.GenerationOutputIDs, user.ID, likeReq.Action)
-	if err != nil {
+	// Error check required due to https://github.com/ent/ent/issues/2176
+	// This shouldn't return an error if it fails, due to on conflict do nothing behavior
+	if err != nil && !errors.Is(err, sql.ErrNoRows) {
 		log.Error("Error setting outputs liked for user", "err", err)
 		responses.ErrInternalServerError(w, r, "An unknown error has occurred")
 		return
