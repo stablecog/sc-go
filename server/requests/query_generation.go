@@ -75,6 +75,7 @@ type QueryGenerationFilters struct {
 	AestheticArtifactScoreGTE *float32                         `json:"aesthetic_artifact_score_gte,omitempty"`
 	AestheticRatingScoreLTE   *float32                         `json:"aesthetic_rating_score_lte,omitempty"`
 	AestheticRatingScoreGTE   *float32                         `json:"aesthetic_rating_score_gte,omitempty"`
+	Username                  string                           `json:"username,omitempty"`
 }
 
 // Parse all filters into a QueryGenerationFilters struct
@@ -451,6 +452,11 @@ func (filters *QueryGenerationFilters) ParseURLQueryParameters(urlValues url.Val
 				return fmt.Errorf("invalid aesthetic_rating_score_gte: %s", value[0])
 			}
 			filters.AestheticRatingScoreGTE = utils.ToPtr(float32(parsed))
+		}
+
+		// username
+		if key == "username" {
+			filters.Username = value[0]
 		}
 	}
 	// Descending default
