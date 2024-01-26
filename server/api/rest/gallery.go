@@ -247,21 +247,18 @@ func (c *RestAPI) HandleSemanticSearchGallery(w http.ResponseWriter, r *http.Req
 		}
 	}
 
-	// Shuffle results if no search was specified and we're not sorting by likes
-	if search == "" && filters.OrderBy != requests.OrderByLikeCount && filters.OrderBy != requests.OrderByLikeCountTrending {
-		// Get seed from query
-		seed := r.URL.Query().Get("seed")
-		if seed != "" {
-			seedInt, err := strconv.Atoi(seed)
-			if err != nil {
-				log.Error("Error parsing seed", "err", err)
-			} else {
-				rand.Seed(int64(seedInt))
-				rand.Shuffle(
-					len(galleryData),
-					func(i, j int) { galleryData[i], galleryData[j] = galleryData[j], galleryData[i] },
-				)
-			}
+	// Shuffle results if no search was specified and no seed was specified
+	seed := r.URL.Query().Get("seed")
+	if search == "" && seed != "" {
+		seedInt, err := strconv.Atoi(seed)
+		if err != nil {
+			log.Error("Error parsing seed", "err", err)
+		} else {
+			seededRand := rand.New(rand.NewSource(int64(seedInt)))
+			seededRand.Shuffle(
+				len(galleryData),
+				func(i, j int) { galleryData[i], galleryData[j] = galleryData[j], galleryData[i] },
+			)
 		}
 	}
 
