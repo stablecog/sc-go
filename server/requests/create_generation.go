@@ -69,8 +69,8 @@ func (t *CreateGenerationRequest) ApplyDefaults() {
 		t.PromptStrength = utils.ToPtr(shared.DEFAULT_GENERATE_PROMPT_STRENGTH)
 	}
 	if t.Seed == nil || *t.Seed < 0 {
-		rand.Seed(time.Now().Unix())
-		t.Seed = utils.ToPtr(rand.Intn(math.MaxInt32))
+		seededRand := rand.New(rand.NewSource(time.Now().UnixNano()))
+		t.Seed = utils.ToPtr(seededRand.Intn(math.MaxInt32))
 	}
 }
 
@@ -153,8 +153,8 @@ func (t *CreateGenerationRequest) Validate(api bool) error {
 	}
 
 	if t.Seed == nil || *t.Seed < 0 {
-		rand.Seed(time.Now().Unix())
-		t.Seed = utils.ToPtr(rand.Intn(math.MaxInt32))
+		seededRand := rand.New(rand.NewSource(time.Now().UnixNano()))
+		t.Seed = utils.ToPtr(seededRand.Intn(math.MaxInt32))
 	}
 
 	if t.PromptStrength != nil {
