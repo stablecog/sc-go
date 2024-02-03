@@ -112,7 +112,6 @@ func (c *RestAPI) HandleSemanticSearchGallery(w http.ResponseWriter, r *http.Req
 	})
 
 	// Leverage qdrant for semantic search
-	doLog := false
 	if search != "" {
 		// Check username filter
 		if filters != nil && len(filters.Username) > 0 {
@@ -141,7 +140,6 @@ func (c *RestAPI) HandleSemanticSearchGallery(w http.ResponseWriter, r *http.Req
 				qdrantFilters.Must = append(qdrantFilters.Must, qdrant.SCMatchCondition{
 					Should: shouldFilter,
 				})
-				doLog = true
 			}
 		}
 
@@ -180,7 +178,7 @@ func (c *RestAPI) HandleSemanticSearchGallery(w http.ResponseWriter, r *http.Req
 			}
 		}
 
-		res, err := c.Qdrant.QueryGenerations(embeddings, perPage, offset, scoreThreshold, qdrantFilters, false, false, doLog)
+		res, err := c.Qdrant.QueryGenerations(embeddings, perPage, offset, scoreThreshold, qdrantFilters, false, false)
 		if err != nil {
 			log.Error("Error querying qdrant", "err", err)
 			responses.ErrInternalServerError(w, r, "An unknown error occurred")
