@@ -60,6 +60,11 @@ func (m *Middleware) AuthMiddleware(levels ...AuthLevel) func(next http.Handler)
 					levelsCopy = append(levelsCopy, AuthLevelAPIToken)
 				}
 			}
+			if slices.Contains(levelsCopy, AuthLevelGalleryAdmin) || slices.Contains(levelsCopy, AuthLevelSuperAdmin) {
+				if strings.HasPrefix(authHeader[1], "sc-") && len(authHeader[1]) == 67 {
+					levelsCopy = append(levelsCopy, AuthLevelAPIToken)
+				}
+			}
 			if slices.Contains(levelsCopy, AuthLevelAPIToken) {
 				// Hash token
 				hashed := utils.Sha256(authHeader[1])

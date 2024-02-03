@@ -855,7 +855,7 @@ func main() {
 		// Admin only routes
 		r.Route("/admin", func(r chi.Router) {
 			r.Route("/gallery", func(r chi.Router) {
-				r.Use(mw.AuthMiddleware(middleware.AuthLevelGalleryAdmin, middleware.AuthLevelAPIToken))
+				r.Use(mw.AuthMiddleware(middleware.AuthLevelGalleryAdmin))
 				r.Use(middleware.Logger)
 				r.Put("/", hc.HandleReviewGallerySubmission)
 			})
