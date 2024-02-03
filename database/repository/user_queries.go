@@ -350,7 +350,13 @@ func (r *Repository) CheckIfEmailExists(email string) (string, bool, error) {
 // Get user ids by usernames
 func (r *Repository) GetUserIDsByUsernames(usernames []string) ([]uuid.UUID, error) {
 	var ids []uuid.UUID
-	users, err := r.DB.User.Query().Select(user.FieldID).Where(user.UsernameIn(usernames...)).All(r.Ctx)
+	users, err := r.DB.User.Query().Where(func(s *sql.Selector) {
+		v := make([]any, len(usernames))
+		for i := range v {
+			v[i] = usernames[i]
+		}
+		s.Where(sql.In(sql.Lower(user.FieldUsername), v...))
+	}).All(r.Ctx)
 	if err != nil {
 		return nil, err
 	}
