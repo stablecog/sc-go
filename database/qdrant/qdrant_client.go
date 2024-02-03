@@ -632,7 +632,7 @@ func (q *QdrantClient) DeleteById(id uuid.UUID, noRetry bool) error {
 }
 
 // Public gallery search
-func (q *QdrantClient) QueryGenerations(embedding []float32, per_page int, offset *uint, scoreThreshold *float32, filters *SearchRequest_Filter, withPayload bool, noRetry bool) (*QResponse, error) {
+func (q *QdrantClient) QueryGenerations(embedding []float32, per_page int, offset *uint, scoreThreshold *float32, filters *SearchRequest_Filter, withPayload bool, noRetry bool, doLog bool) (*QResponse, error) {
 	qParams := &SearchParams_Quantization{}
 	qParams.FromQuantizationSearchParams(QuantizationSearchParams{
 		Ignore:  utils.ToPtr(false),
@@ -665,11 +665,13 @@ func (q *QdrantClient) QueryGenerations(embedding []float32, per_page int, offse
 	}
 
 	// Log json body
-	jsonBodyMarshalled, err := json.Marshal(jsonBody)
-	if err != nil {
-		log.Errorf("Error marshalling json body %v", err)
-	} else {
-		log.Infof("QueryGenerations json body %v", string(jsonBodyMarshalled))
+	if doLog {
+		jsonBodyMarshalled, err := json.Marshal(jsonBody)
+		if err != nil {
+			log.Errorf("Error marshalling json body %v", err)
+		} else {
+			log.Infof("QueryGenerations json body %v", string(jsonBodyMarshalled))
+		}
 	}
 
 	resp, err := q.Client.SearchPointsWithResponse(q.Ctx, q.CollectionName, &SearchPointsParams{}, SearchPointsJSONRequestBody{
@@ -684,7 +686,7 @@ func (q *QdrantClient) QueryGenerations(embedding []float32, per_page int, offse
 
 	if err != nil {
 		if !noRetry && (os.IsTimeout(err) || strings.Contains(err.Error(), "connection refused")) {
-			return q.QueryGenerations(embedding, per_page, offset, scoreThreshold, filters, withPayload, true)
+			return q.QueryGenerations(embedding, per_page, offset, scoreThreshold, filters, withPayload, true, doLog)
 		}
 		log.Errorf("Error getting collections %v", err)
 		return nil, err

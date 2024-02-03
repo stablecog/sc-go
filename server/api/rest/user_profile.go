@@ -215,7 +215,7 @@ func (c *RestAPI) HandleUserProfileSemanticSearch(w http.ResponseWriter, r *http
 			}
 		}
 
-		res, err := c.Qdrant.QueryGenerations(embeddings, perPage, offset, scoreThreshold, qdrantFilters, false, false)
+		res, err := c.Qdrant.QueryGenerations(embeddings, perPage, offset, scoreThreshold, qdrantFilters, false, false, false)
 		if err != nil {
 			log.Error("Error querying qdrant", "err", err)
 			responses.ErrInternalServerError(w, r, "An unknown error occurred")
