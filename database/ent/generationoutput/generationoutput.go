@@ -130,10 +130,11 @@ const DefaultGalleryStatus = GalleryStatusNotSubmitted
 
 // GalleryStatus values.
 const (
-	GalleryStatusNotSubmitted GalleryStatus = "not_submitted"
-	GalleryStatusSubmitted    GalleryStatus = "submitted"
-	GalleryStatusApproved     GalleryStatus = "approved"
-	GalleryStatusRejected     GalleryStatus = "rejected"
+	GalleryStatusNotSubmitted     GalleryStatus = "not_submitted"
+	GalleryStatusSubmitted        GalleryStatus = "submitted"
+	GalleryStatusApproved         GalleryStatus = "approved"
+	GalleryStatusRejected         GalleryStatus = "rejected"
+	GalleryStatusWaitingToApprove GalleryStatus = "waiting_to_approve"
 )
 
 func (gs GalleryStatus) String() string {
@@ -143,7 +144,7 @@ func (gs GalleryStatus) String() string {
 // GalleryStatusValidator is a validator for the "gallery_status" field enum values. It is called by the builders before save.
 func GalleryStatusValidator(gs GalleryStatus) error {
 	switch gs {
-	case GalleryStatusNotSubmitted, GalleryStatusSubmitted, GalleryStatusApproved, GalleryStatusRejected:
+	case GalleryStatusNotSubmitted, GalleryStatusSubmitted, GalleryStatusApproved, GalleryStatusRejected, GalleryStatusWaitingToApprove:
 		return nil
 	default:
 		return fmt.Errorf("generationoutput: invalid enum value for gallery_status field: %q", gs)

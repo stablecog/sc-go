@@ -329,8 +329,10 @@ func (filters *QueryGenerationFilters) ParseURLQueryParameters(urlValues url.Val
 					filters.GalleryStatus = append(filters.GalleryStatus, generationoutput.GalleryStatusSubmitted)
 				} else if strings.ToLower(status) == string(generationoutput.GalleryStatusNotSubmitted) {
 					filters.GalleryStatus = append(filters.GalleryStatus, generationoutput.GalleryStatusNotSubmitted)
+				} else if strings.ToLower(status) == string(generationoutput.GalleryStatusWaitingToApprove) {
+					filters.GalleryStatus = append(filters.GalleryStatus, generationoutput.GalleryStatusWaitingToApprove)
 				} else {
-					return fmt.Errorf("invalid gallery_status: '%s' expected '%s', '%s', '%s', or '%s'", value[0], generationoutput.GalleryStatusApproved, generationoutput.GalleryStatusRejected, generationoutput.GalleryStatusSubmitted, generationoutput.GalleryStatusNotSubmitted)
+					return fmt.Errorf("invalid gallery_status: '%s' expected '%s', '%s', '%s', %s, or '%s'", value[0], generationoutput.GalleryStatusApproved, generationoutput.GalleryStatusRejected, generationoutput.GalleryStatusSubmitted, generationoutput.GalleryStatusNotSubmitted, generationoutput.GalleryStatusWaitingToApprove)
 				}
 			}
 		}

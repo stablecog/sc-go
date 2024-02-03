@@ -42,7 +42,7 @@ ALTER TYPE public.generation_output_gallery_status_enum OWNER TO postgres;
 --
 -- Name: credit_type_enum; Type: TYPE; Schema: public; Owner: postgres
 --
-CREATE TYPE public. AS ENUM (
+CREATE TYPE public.credit_type_enum AS ENUM (
     'free',
     'subscription',
     'one_time',
@@ -1310,3 +1310,6 @@ ALTER TABLE ONLY public.username_blacklist
 
 -- Mask
 alter table public.generations add column mask_image_url text;
+
+-- Alter to add waiting_to_approve to gallery_status_enum
+ALTER TYPE public.generation_output_gallery_status_enum ADD VALUE 'waiting_to_approve';

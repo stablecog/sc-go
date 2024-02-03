@@ -38,7 +38,7 @@ func (r *Repository) GetGenerationOutput(id uuid.UUID) (*ent.GenerationOutput, e
 // Get public generation output by ID
 // Get generation output by ID
 func (r *Repository) GetPublicGenerationOutput(id uuid.UUID) (*ent.GenerationOutput, error) {
-	return r.DB.GenerationOutput.Query().Where(generationoutput.IDEQ(id), generationoutput.GalleryStatusIn(generationoutput.GalleryStatusApproved, generationoutput.GalleryStatusSubmitted)).First(r.Ctx)
+	return r.DB.GenerationOutput.Query().Where(generationoutput.IDEQ(id), generationoutput.GalleryStatusIn(generationoutput.GalleryStatusApproved, generationoutput.GalleryStatusSubmitted, generationoutput.GalleryStatusWaitingToApprove)).First(r.Ctx)
 }
 
 // Get generation output for user
@@ -183,7 +183,6 @@ func (r *Repository) ApplyUserGenerationsFilters(query *ent.GenerationQuery, fil
 				}
 				resQuery = resQuery.Where(combinedCondition)
 			}
-
 		}
 
 		// Inference steps

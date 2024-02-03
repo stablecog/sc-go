@@ -257,6 +257,7 @@ func (c *RestAPI) HandleQueryGenerationsForAdmin(w http.ResponseWriter, r *http.
 				generationoutput.GalleryStatusApproved,
 				generationoutput.GalleryStatusRejected,
 				generationoutput.GalleryStatusSubmitted,
+				generationoutput.GalleryStatusWaitingToApprove,
 			}
 		} else if slices.Contains(filters.GalleryStatus, generationoutput.GalleryStatusNotSubmitted) {
 			responses.ErrUnauthorized(w, r)
