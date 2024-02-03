@@ -654,6 +654,24 @@ func (q *QdrantClient) QueryGenerations(embedding []float32, per_page int, offse
 		return nil, err
 	}
 
+	jsonBody := SearchPointsJSONRequestBody{
+		Limit:          uint(per_page + 1),
+		WithPayload:    withPayload,
+		Vector:         namedVectorParams,
+		Offset:         offset,
+		Filter:         filters,
+		Params:         params,
+		ScoreThreshold: scoreThreshold,
+	}
+
+	// Log json body
+	jsonBodyMarshalled, err := json.Marshal(jsonBody)
+	if err != nil {
+		log.Errorf("Error marshalling json body %v", err)
+	} else {
+		log.Infof("QueryGenerations json body %v", string(jsonBodyMarshalled))
+	}
+
 	resp, err := q.Client.SearchPointsWithResponse(q.Ctx, q.CollectionName, &SearchPointsParams{}, SearchPointsJSONRequestBody{
 		Limit:          uint(per_page + 1),
 		WithPayload:    withPayload,
