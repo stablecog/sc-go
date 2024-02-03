@@ -121,6 +121,10 @@ func (c *RestAPI) HandleSemanticSearchGallery(w http.ResponseWriter, r *http.Req
 				responses.ErrInternalServerError(w, r, "An unknown error occurred")
 				return
 			}
+			if len(filters.Username) != len(userIDs) {
+				responses.ErrBadRequest(w, r, "invalid_username", "")
+				return
+			}
 			shouldFilter := []qdrant.SCMatchCondition{}
 			for _, userID := range userIDs {
 				shouldFilter = append(shouldFilter, qdrant.SCMatchCondition{
