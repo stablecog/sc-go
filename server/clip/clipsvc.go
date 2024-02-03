@@ -56,12 +56,6 @@ func NewClipService(redis *database.RedisWrapper, safetyChecker *utils.Translato
 
 // GetEmbeddingFromText, retry up to retries times
 func (c *ClipService) GetEmbeddingFromText(text string, retries int, translate bool) (embedding []float32, err error) {
-	// Check cache first
-	e, err := c.redis.GetEmbeddings(c.redis.Ctx, utils.Sha256(text))
-	if err == nil && len(e) > 0 {
-		return e, nil
-	}
-
 	// Translate text
 	textTranslated := text
 	if translate {
@@ -70,6 +64,12 @@ func (c *ClipService) GetEmbeddingFromText(text string, retries int, translate b
 			log.Errorf("Error translating text %v", err)
 			return nil, err
 		}
+	}
+
+	// Check cache first
+	e, err := c.redis.GetEmbeddings(c.redis.Ctx, utils.Sha256(textTranslated))
+	if err == nil && len(e) > 0 {
+		return e, nil
 	}
 
 	req := []clipApiRequest{{
@@ -120,7 +120,7 @@ func (c *ClipService) GetEmbeddingFromText(text string, retries int, translate b
 	}
 
 	// Cache
-	err = c.redis.CacheEmbeddings(c.redis.Ctx, utils.Sha256(text), clipAPIResponse.Embeddings[0].Embedding)
+	err = c.redis.CacheEmbeddings(c.redis.Ctx, utils.Sha256(textTranslated), clipAPIResponse.Embeddings[0].Embedding)
 	if err != nil {
 		log.Errorf("Error caching embeddings %v", err)
 	}
