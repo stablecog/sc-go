@@ -73,6 +73,7 @@ func main() {
 	cursorEmbeddings := flag.String("cursor-embeddings", "", "Cursor for loading embeddings")
 	syncPromptId := flag.Bool("sync-prompt-id", false, "Sync prompt_id to qdrant")
 	syncIsPublic := flag.Bool("sync-is-public", false, "Sync is_public to qdrant")
+	syncGalleryStatus := flag.Bool("sync-gallery-status", false, "Sync gallery_status to qdrant")
 	loadQdrant := flag.Bool("load-qdrant", false, "Load qdrant with all data")
 	reverse := flag.Bool("reverse", false, "Reverse the order of the embeddings")
 	clipUrlOverride := flag.String("clip-url", "", "Clip url to process")
@@ -445,6 +446,57 @@ func main() {
 			for _, gen := range gens {
 				properties := make(map[string]interface{})
 				properties["is_public"] = gen.IsPublic
+				err = qdrantClient.SetPayload(properties, []uuid.UUID{gen.ID}, false)
+				if err != nil {
+					log.Fatal("Failed to set payload", "err", err)
+				}
+			}
+			// Update cursor
+			cursor = &gens[len(gens)-1].CreatedAt
+			log.Info("Last cursor", "cursor", cursor.Format(time.RFC3339Nano))
+			log.Infof("Loaded %d generations", len(gens))
+			cur += len(gens)
+		}
+		log.Infof("Done, sync'd %d", cur)
+		os.Exit(0)
+	}
+
+	if *syncGalleryStatus {
+		log.Info("🏡 Loading qdrant data...")
+		each := 500
+		cur := 0
+		var cursor *time.Time
+		if *cursorEmbeddings != "" {
+			t, err := time.Parse(time.RFC3339, *cursorEmbeddings)
+			if err != nil {
+				log.Fatal("Failed to parse cursor", "err", err)
+			}
+			cursor = &t
+		}
+
+		for {
+			log.Info("Loading batch of embeddings", "cur", cur, "each", each)
+			start := time.Now()
+			q := repo.DB.GenerationOutput.Query().Where(generationoutput.HasEmbeddings(true), generationoutput.DeletedAtIsNil(), generationoutput.ImagePathNEQ("placeholder.webp"), generationoutput.GalleryStatusEQ(generationoutput.GalleryStatusApproved), generationoutput.CreatedAtGT(time.Now().AddDate(0, -4, 0)))
+			if cursor != nil {
+				q = q.Where(generationoutput.CreatedAtLT(*cursor))
+			}
+			gens, err := q.Order(ent.Desc(generationoutput.FieldCreatedAt)).Limit(each).All(ctx)
+			if err != nil {
+				if cursor != nil {
+					log.Info("Last cursor", "cursor", cursor.Format(time.RFC3339Nano))
+				}
+				log.Fatal("Failed to load generation outputs", "err", err)
+			}
+			log.Infof("Retreived generations in %s", time.Since(start))
+
+			if len(gens) == 0 {
+				break
+			}
+
+			for _, gen := range gens {
+				properties := make(map[string]interface{})
+				properties["gallery_status"] = gen.GalleryStatus
 				err = qdrantClient.SetPayload(properties, []uuid.UUID{gen.ID}, false)
 				if err != nil {
 					log.Fatal("Failed to set payload", "err", err)
