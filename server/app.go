@@ -13,6 +13,7 @@ import (
 	"strings"
 	"time"
 
+	"entgo.io/ent/dialect/sql"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
@@ -22,12 +23,14 @@ import (
 	"github.com/go-co-op/gocron"
 	"github.com/google/uuid"
 	"github.com/joho/godotenv"
+	"github.com/pgvector/pgvector-go"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	chiprometheus "github.com/stablecog/chi-prometheus"
 	"github.com/stablecog/sc-go/database"
 	"github.com/stablecog/sc-go/database/ent"
 	"github.com/stablecog/sc-go/database/ent/generation"
 	"github.com/stablecog/sc-go/database/ent/generationoutput"
+	"github.com/stablecog/sc-go/database/ent/generationoutputembed"
 	"github.com/stablecog/sc-go/database/ent/user"
 	"github.com/stablecog/sc-go/database/qdrant"
 	"github.com/stablecog/sc-go/database/repository"
@@ -78,6 +81,7 @@ func main() {
 	reverse := flag.Bool("reverse", false, "Reverse the order of the embeddings")
 	clipUrlOverride := flag.String("clip-url", "", "Clip url to process")
 	migrateUsername := flag.Bool("migrate-username", false, "Generate usernames for existing users")
+	loadPgVector := flag.Bool("load-pg-vector", false, "Load pg_vector for existing generations")
 
 	flag.Parse()
 
@@ -407,6 +411,72 @@ func main() {
 		}
 
 		log.Info("Loaded generation outputs", "count", cur)
+		os.Exit(0)
+	}
+
+	if *loadPgVector {
+		each := 500
+		cur := 0
+		var cursor *time.Time
+		if *cursorEmbeddings != "" {
+			t, err := time.Parse(time.RFC3339, *cursorEmbeddings)
+			if err != nil {
+				log.Fatal("Failed to parse cursor", "err", err)
+			}
+			cursor = &t
+		}
+
+		for {
+			log.Info("Loading batch of embeddings", "cur", cur, "each", each)
+			start := time.Now()
+			q := repo.DB.GenerationOutput.Query().Where(generationoutput.HasEmbeddings(true), generationoutput.DeletedAtIsNil(), generationoutput.ImagePathNEQ("placeholder.webp")).Where(
+				func(s *sql.Selector) {
+					t := sql.Table(generationoutputembed.Table)
+					s.Where(
+						sql.NotIn(
+							s.C(generationoutput.FieldID),
+							sql.Select(t.C(generationoutputembed.FieldOutputID)).From(t),
+						),
+					)
+				},
+			)
+			if cursor != nil {
+				q = q.Where(generationoutput.CreatedAtLT(*cursor))
+			}
+			gens, err := q.Order(ent.Desc(generationoutput.FieldCreatedAt)).Limit(each).All(ctx)
+			if err != nil {
+				if cursor != nil {
+					log.Info("Last cursor", "cursor", cursor.Format(time.RFC3339Nano))
+				}
+				log.Fatal("Failed to load generation outputs", "err", err)
+			}
+			log.Infof("Retreived generations in %s", time.Since(start))
+
+			if len(gens) == 0 {
+				break
+			}
+
+			ids := make([]uuid.UUID, len(gens))
+
+			for i, gen := range gens {
+				ids[i] = gen.ID
+			}
+
+			// get from qdrant
+			embeddings, err := qdrantClient.GetPoints(ids, true)
+			if err != nil {
+				log.Fatal("Failed to get points", "err", err)
+			}
+			for _, embed := range embeddings.Result {
+				repo.DB.GenerationOutputEmbed.Create().SetOutputID(embed.ID).SetImageEmbedding(pgvector.NewVector(embed.Vector.Image)).SetPromptEmbedding(pgvector.NewVector(embed.Vector.Text)).SaveX(ctx)
+			}
+			// Update cursor
+			cursor = &gens[len(gens)-1].CreatedAt
+			log.Info("Last cursor", "cursor", cursor.Format(time.RFC3339Nano))
+			log.Infof("Loaded %d generations", len(gens))
+			cur += len(gens)
+		}
+		log.Infof("Done, sync'd %d", cur)
 		os.Exit(0)
 	}
 
