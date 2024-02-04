@@ -17,7 +17,7 @@ func TestGetGalleryData(t *testing.T) {
 	for i, gOutput := range gOutputs {
 		gOutputIDs[i] = gOutput.ID
 	}
-	_, err := MockRepo.ApproveOrRejectGenerationOutputs(gOutputIDs, true)
+	_, err := MockRepo.BulkUpdateGalleryStatusForOutputs(gOutputIDs, generationoutput.GalleryStatusApproved)
 	assert.Nil(t, err)
 
 	// Check data
