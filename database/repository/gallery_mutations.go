@@ -32,7 +32,7 @@ func (r *Repository) MakeGenerationOutputsPublicForUser(outputIDs []uuid.UUID, u
 		return 0, err
 	}
 	// Get the outputs where gallery status is approved/rejected
-	outputsToChangeIsPublic, err := r.DB.GenerationOutput.Query().Where(generationoutput.IDIn(outputIDs...), generationoutput.GalleryStatusIn(generationoutput.GalleryStatusApproved, generationoutput.GalleryStatusRejected, generationoutput.GalleryStatusWaitingToApprove)).All(r.Ctx)
+	outputsToChangeIsPublic, err := r.DB.GenerationOutput.Query().Where(generationoutput.IDIn(outputIDs...), generationoutput.GalleryStatusIn(generationoutput.GalleryStatusApproved, generationoutput.GalleryStatusRejected, generationoutput.GalleryStatusWaitingForApproval)).All(r.Ctx)
 	if err != nil {
 		log.Error("Error getting generation outputs SubmitGenerationOutputsToGalleryForUser", "err", err)
 		return 0, err
@@ -121,7 +121,7 @@ func (r *Repository) MakeGenerationOutputsPrivateForUser(outputIDs []uuid.UUID, 
 
 	// Get the IDs to update exactly so we can accurately sync with qdrant
 	// Get the outputs without gallery status approved/rejected
-	outputsToChangeGalleryStatus, err := r.DB.GenerationOutput.Query().Where(generationoutput.IDIn(outputIDs...), generationoutput.GalleryStatusIn(generationoutput.GalleryStatusSubmitted, generationoutput.GalleryStatusNotSubmitted, generationoutput.GalleryStatusWaitingToApprove)).WithGenerations().All(r.Ctx)
+	outputsToChangeGalleryStatus, err := r.DB.GenerationOutput.Query().Where(generationoutput.IDIn(outputIDs...), generationoutput.GalleryStatusIn(generationoutput.GalleryStatusSubmitted, generationoutput.GalleryStatusNotSubmitted, generationoutput.GalleryStatusWaitingForApproval)).WithGenerations().All(r.Ctx)
 	if err != nil {
 		log.Error("Error getting generation outputs SubmitGenerationOutputsToGalleryForUser", "err", err)
 		return 0, err
@@ -223,7 +223,7 @@ func (r *Repository) SubmitGenerationOutputsToGalleryForUser(outputIDs []uuid.UU
 	}
 
 	// Get the IDs to update exactly so we can accurately sync with qdrant
-	outputs, err := r.DB.GenerationOutput.Query().Where(generationoutput.IDIn(outputIDs...), generationoutput.GalleryStatusNotIn(generationoutput.GalleryStatusApproved, generationoutput.GalleryStatusRejected, generationoutput.GalleryStatusSubmitted, generationoutput.GalleryStatusWaitingToApprove)).All(r.Ctx)
+	outputs, err := r.DB.GenerationOutput.Query().Where(generationoutput.IDIn(outputIDs...), generationoutput.GalleryStatusNotIn(generationoutput.GalleryStatusApproved, generationoutput.GalleryStatusRejected, generationoutput.GalleryStatusSubmitted, generationoutput.GalleryStatusWaitingForApproval)).All(r.Ctx)
 	if err != nil {
 		log.Error("Error getting generation outputs SubmitGenerationOutputsToGalleryForUser", "err", err)
 		return 0, err
