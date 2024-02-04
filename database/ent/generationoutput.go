@@ -58,9 +58,11 @@ type GenerationOutputEdges struct {
 	UpscaleOutputs *UpscaleOutput `json:"upscale_outputs,omitempty"`
 	// GenerationOutputLikes holds the value of the generation_output_likes edge.
 	GenerationOutputLikes []*GenerationOutputLike `json:"generation_output_likes,omitempty"`
+	// GenerationOutputEmbeds holds the value of the generation_output_embeds edge.
+	GenerationOutputEmbeds []*GenerationOutputEmbed `json:"generation_output_embeds,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [3]bool
+	loadedTypes [4]bool
 }
 
 // GenerationsOrErr returns the Generations value or an error if the edge
@@ -96,6 +98,15 @@ func (e GenerationOutputEdges) GenerationOutputLikesOrErr() ([]*GenerationOutput
 		return e.GenerationOutputLikes, nil
 	}
 	return nil, &NotLoadedError{edge: "generation_output_likes"}
+}
+
+// GenerationOutputEmbedsOrErr returns the GenerationOutputEmbeds value or an error if the edge
+// was not loaded in eager-loading.
+func (e GenerationOutputEdges) GenerationOutputEmbedsOrErr() ([]*GenerationOutputEmbed, error) {
+	if e.loadedTypes[3] {
+		return e.GenerationOutputEmbeds, nil
+	}
+	return nil, &NotLoadedError{edge: "generation_output_embeds"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -234,6 +245,11 @@ func (_go *GenerationOutput) QueryUpscaleOutputs() *UpscaleOutputQuery {
 // QueryGenerationOutputLikes queries the "generation_output_likes" edge of the GenerationOutput entity.
 func (_go *GenerationOutput) QueryGenerationOutputLikes() *GenerationOutputLikeQuery {
 	return NewGenerationOutputClient(_go.config).QueryGenerationOutputLikes(_go)
+}
+
+// QueryGenerationOutputEmbeds queries the "generation_output_embeds" edge of the GenerationOutput entity.
+func (_go *GenerationOutput) QueryGenerationOutputEmbeds() *GenerationOutputEmbedQuery {
+	return NewGenerationOutputClient(_go.config).QueryGenerationOutputEmbeds(_go)
 }
 
 // Update returns a builder for updating this GenerationOutput.

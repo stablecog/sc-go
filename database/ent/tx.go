@@ -34,6 +34,8 @@ type Tx struct {
 	GenerationModel *GenerationModelClient
 	// GenerationOutput is the client for interacting with the GenerationOutput builders.
 	GenerationOutput *GenerationOutputClient
+	// GenerationOutputEmbed is the client for interacting with the GenerationOutputEmbed builders.
+	GenerationOutputEmbed *GenerationOutputEmbedClient
 	// GenerationOutputLike is the client for interacting with the GenerationOutputLike builders.
 	GenerationOutputLike *GenerationOutputLikeClient
 	// IPBlackList is the client for interacting with the IPBlackList builders.
@@ -209,6 +211,7 @@ func (tx *Tx) init() {
 	tx.Generation = NewGenerationClient(tx.config)
 	tx.GenerationModel = NewGenerationModelClient(tx.config)
 	tx.GenerationOutput = NewGenerationOutputClient(tx.config)
+	tx.GenerationOutputEmbed = NewGenerationOutputEmbedClient(tx.config)
 	tx.GenerationOutputLike = NewGenerationOutputLikeClient(tx.config)
 	tx.IPBlackList = NewIPBlackListClient(tx.config)
 	tx.MqLog = NewMqLogClient(tx.config)

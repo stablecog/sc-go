@@ -14,6 +14,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/stablecog/sc-go/database/ent/generation"
 	"github.com/stablecog/sc-go/database/ent/generationoutput"
+	"github.com/stablecog/sc-go/database/ent/generationoutputembed"
 	"github.com/stablecog/sc-go/database/ent/generationoutputlike"
 	"github.com/stablecog/sc-go/database/ent/predicate"
 	"github.com/stablecog/sc-go/database/ent/upscaleoutput"
@@ -255,6 +256,21 @@ func (gou *GenerationOutputUpdate) AddGenerationOutputLikes(g ...*GenerationOutp
 	return gou.AddGenerationOutputLikeIDs(ids...)
 }
 
+// AddGenerationOutputEmbedIDs adds the "generation_output_embeds" edge to the GenerationOutputEmbed entity by IDs.
+func (gou *GenerationOutputUpdate) AddGenerationOutputEmbedIDs(ids ...uuid.UUID) *GenerationOutputUpdate {
+	gou.mutation.AddGenerationOutputEmbedIDs(ids...)
+	return gou
+}
+
+// AddGenerationOutputEmbeds adds the "generation_output_embeds" edges to the GenerationOutputEmbed entity.
+func (gou *GenerationOutputUpdate) AddGenerationOutputEmbeds(g ...*GenerationOutputEmbed) *GenerationOutputUpdate {
+	ids := make([]uuid.UUID, len(g))
+	for i := range g {
+		ids[i] = g[i].ID
+	}
+	return gou.AddGenerationOutputEmbedIDs(ids...)
+}
+
 // Mutation returns the GenerationOutputMutation object of the builder.
 func (gou *GenerationOutputUpdate) Mutation() *GenerationOutputMutation {
 	return gou.mutation
@@ -291,6 +307,27 @@ func (gou *GenerationOutputUpdate) RemoveGenerationOutputLikes(g ...*GenerationO
 		ids[i] = g[i].ID
 	}
 	return gou.RemoveGenerationOutputLikeIDs(ids...)
+}
+
+// ClearGenerationOutputEmbeds clears all "generation_output_embeds" edges to the GenerationOutputEmbed entity.
+func (gou *GenerationOutputUpdate) ClearGenerationOutputEmbeds() *GenerationOutputUpdate {
+	gou.mutation.ClearGenerationOutputEmbeds()
+	return gou
+}
+
+// RemoveGenerationOutputEmbedIDs removes the "generation_output_embeds" edge to GenerationOutputEmbed entities by IDs.
+func (gou *GenerationOutputUpdate) RemoveGenerationOutputEmbedIDs(ids ...uuid.UUID) *GenerationOutputUpdate {
+	gou.mutation.RemoveGenerationOutputEmbedIDs(ids...)
+	return gou
+}
+
+// RemoveGenerationOutputEmbeds removes "generation_output_embeds" edges to GenerationOutputEmbed entities.
+func (gou *GenerationOutputUpdate) RemoveGenerationOutputEmbeds(g ...*GenerationOutputEmbed) *GenerationOutputUpdate {
+	ids := make([]uuid.UUID, len(g))
+	for i := range g {
+		ids[i] = g[i].ID
+	}
+	return gou.RemoveGenerationOutputEmbedIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -533,6 +570,60 @@ func (gou *GenerationOutputUpdate) sqlSave(ctx context.Context) (n int, err erro
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeUUID,
 					Column: generationoutputlike.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if gou.mutation.GenerationOutputEmbedsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   generationoutput.GenerationOutputEmbedsTable,
+			Columns: []string{generationoutput.GenerationOutputEmbedsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: generationoutputembed.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := gou.mutation.RemovedGenerationOutputEmbedsIDs(); len(nodes) > 0 && !gou.mutation.GenerationOutputEmbedsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   generationoutput.GenerationOutputEmbedsTable,
+			Columns: []string{generationoutput.GenerationOutputEmbedsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: generationoutputembed.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := gou.mutation.GenerationOutputEmbedsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   generationoutput.GenerationOutputEmbedsTable,
+			Columns: []string{generationoutput.GenerationOutputEmbedsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: generationoutputembed.FieldID,
 				},
 			},
 		}
@@ -785,6 +876,21 @@ func (gouo *GenerationOutputUpdateOne) AddGenerationOutputLikes(g ...*Generation
 	return gouo.AddGenerationOutputLikeIDs(ids...)
 }
 
+// AddGenerationOutputEmbedIDs adds the "generation_output_embeds" edge to the GenerationOutputEmbed entity by IDs.
+func (gouo *GenerationOutputUpdateOne) AddGenerationOutputEmbedIDs(ids ...uuid.UUID) *GenerationOutputUpdateOne {
+	gouo.mutation.AddGenerationOutputEmbedIDs(ids...)
+	return gouo
+}
+
+// AddGenerationOutputEmbeds adds the "generation_output_embeds" edges to the GenerationOutputEmbed entity.
+func (gouo *GenerationOutputUpdateOne) AddGenerationOutputEmbeds(g ...*GenerationOutputEmbed) *GenerationOutputUpdateOne {
+	ids := make([]uuid.UUID, len(g))
+	for i := range g {
+		ids[i] = g[i].ID
+	}
+	return gouo.AddGenerationOutputEmbedIDs(ids...)
+}
+
 // Mutation returns the GenerationOutputMutation object of the builder.
 func (gouo *GenerationOutputUpdateOne) Mutation() *GenerationOutputMutation {
 	return gouo.mutation
@@ -821,6 +927,27 @@ func (gouo *GenerationOutputUpdateOne) RemoveGenerationOutputLikes(g ...*Generat
 		ids[i] = g[i].ID
 	}
 	return gouo.RemoveGenerationOutputLikeIDs(ids...)
+}
+
+// ClearGenerationOutputEmbeds clears all "generation_output_embeds" edges to the GenerationOutputEmbed entity.
+func (gouo *GenerationOutputUpdateOne) ClearGenerationOutputEmbeds() *GenerationOutputUpdateOne {
+	gouo.mutation.ClearGenerationOutputEmbeds()
+	return gouo
+}
+
+// RemoveGenerationOutputEmbedIDs removes the "generation_output_embeds" edge to GenerationOutputEmbed entities by IDs.
+func (gouo *GenerationOutputUpdateOne) RemoveGenerationOutputEmbedIDs(ids ...uuid.UUID) *GenerationOutputUpdateOne {
+	gouo.mutation.RemoveGenerationOutputEmbedIDs(ids...)
+	return gouo
+}
+
+// RemoveGenerationOutputEmbeds removes "generation_output_embeds" edges to GenerationOutputEmbed entities.
+func (gouo *GenerationOutputUpdateOne) RemoveGenerationOutputEmbeds(g ...*GenerationOutputEmbed) *GenerationOutputUpdateOne {
+	ids := make([]uuid.UUID, len(g))
+	for i := range g {
+		ids[i] = g[i].ID
+	}
+	return gouo.RemoveGenerationOutputEmbedIDs(ids...)
 }
 
 // Select allows selecting one or more fields (columns) of the returned entity.
@@ -1087,6 +1214,60 @@ func (gouo *GenerationOutputUpdateOne) sqlSave(ctx context.Context) (_node *Gene
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeUUID,
 					Column: generationoutputlike.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if gouo.mutation.GenerationOutputEmbedsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   generationoutput.GenerationOutputEmbedsTable,
+			Columns: []string{generationoutput.GenerationOutputEmbedsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: generationoutputembed.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := gouo.mutation.RemovedGenerationOutputEmbedsIDs(); len(nodes) > 0 && !gouo.mutation.GenerationOutputEmbedsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   generationoutput.GenerationOutputEmbedsTable,
+			Columns: []string{generationoutput.GenerationOutputEmbedsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: generationoutputembed.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := gouo.mutation.GenerationOutputEmbedsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   generationoutput.GenerationOutputEmbedsTable,
+			Columns: []string{generationoutput.GenerationOutputEmbedsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: generationoutputembed.FieldID,
 				},
 			},
 		}

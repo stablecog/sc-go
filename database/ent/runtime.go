@@ -16,6 +16,7 @@ import (
 	"github.com/stablecog/sc-go/database/ent/generation"
 	"github.com/stablecog/sc-go/database/ent/generationmodel"
 	"github.com/stablecog/sc-go/database/ent/generationoutput"
+	"github.com/stablecog/sc-go/database/ent/generationoutputembed"
 	"github.com/stablecog/sc-go/database/ent/generationoutputlike"
 	"github.com/stablecog/sc-go/database/ent/ipblacklist"
 	"github.com/stablecog/sc-go/database/ent/mqlog"
@@ -276,6 +277,22 @@ func init() {
 	generationoutputDescID := generationoutputFields[0].Descriptor()
 	// generationoutput.DefaultID holds the default value on creation for the id field.
 	generationoutput.DefaultID = generationoutputDescID.Default.(func() uuid.UUID)
+	generationoutputembedFields := schema.GenerationOutputEmbed{}.Fields()
+	_ = generationoutputembedFields
+	// generationoutputembedDescCreatedAt is the schema descriptor for created_at field.
+	generationoutputembedDescCreatedAt := generationoutputembedFields[4].Descriptor()
+	// generationoutputembed.DefaultCreatedAt holds the default value on creation for the created_at field.
+	generationoutputembed.DefaultCreatedAt = generationoutputembedDescCreatedAt.Default.(func() time.Time)
+	// generationoutputembedDescUpdatedAt is the schema descriptor for updated_at field.
+	generationoutputembedDescUpdatedAt := generationoutputembedFields[5].Descriptor()
+	// generationoutputembed.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	generationoutputembed.DefaultUpdatedAt = generationoutputembedDescUpdatedAt.Default.(func() time.Time)
+	// generationoutputembed.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	generationoutputembed.UpdateDefaultUpdatedAt = generationoutputembedDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// generationoutputembedDescID is the schema descriptor for id field.
+	generationoutputembedDescID := generationoutputembedFields[0].Descriptor()
+	// generationoutputembed.DefaultID holds the default value on creation for the id field.
+	generationoutputembed.DefaultID = generationoutputembedDescID.Default.(func() uuid.UUID)
 	generationoutputlikeFields := schema.GenerationOutputLike{}.Fields()
 	_ = generationoutputlikeFields
 	// generationoutputlikeDescCreatedAt is the schema descriptor for created_at field.

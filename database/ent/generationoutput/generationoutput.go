@@ -46,6 +46,8 @@ const (
 	EdgeUpscaleOutputs = "upscale_outputs"
 	// EdgeGenerationOutputLikes holds the string denoting the generation_output_likes edge name in mutations.
 	EdgeGenerationOutputLikes = "generation_output_likes"
+	// EdgeGenerationOutputEmbeds holds the string denoting the generation_output_embeds edge name in mutations.
+	EdgeGenerationOutputEmbeds = "generation_output_embeds"
 	// Table holds the table name of the generationoutput in the database.
 	Table = "generation_outputs"
 	// GenerationsTable is the table that holds the generations relation/edge.
@@ -69,6 +71,13 @@ const (
 	GenerationOutputLikesInverseTable = "generation_output_likes"
 	// GenerationOutputLikesColumn is the table column denoting the generation_output_likes relation/edge.
 	GenerationOutputLikesColumn = "output_id"
+	// GenerationOutputEmbedsTable is the table that holds the generation_output_embeds relation/edge.
+	GenerationOutputEmbedsTable = "generation_output_embeds"
+	// GenerationOutputEmbedsInverseTable is the table name for the GenerationOutputEmbed entity.
+	// It exists in this package in order to avoid circular dependency with the "generationoutputembed" package.
+	GenerationOutputEmbedsInverseTable = "generation_output_embeds"
+	// GenerationOutputEmbedsColumn is the table column denoting the generation_output_embeds relation/edge.
+	GenerationOutputEmbedsColumn = "output_id"
 )
 
 // Columns holds all SQL columns for generationoutput fields.

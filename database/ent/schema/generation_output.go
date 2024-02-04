@@ -56,6 +56,11 @@ func (GenerationOutput) Edges() []ent.Edge {
 			Annotations(entsql.Annotation{
 				OnDelete: entsql.Cascade,
 			}),
+		// O2M with generation_output_embeds
+		edge.To("generation_output_embeds", GenerationOutputEmbed.Type).
+			Annotations(entsql.Annotation{
+				OnDelete: entsql.Cascade,
+			}),
 	}
 }
 

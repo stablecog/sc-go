@@ -15,6 +15,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/stablecog/sc-go/database/ent/generation"
 	"github.com/stablecog/sc-go/database/ent/generationoutput"
+	"github.com/stablecog/sc-go/database/ent/generationoutputembed"
 	"github.com/stablecog/sc-go/database/ent/generationoutputlike"
 	"github.com/stablecog/sc-go/database/ent/upscaleoutput"
 )
@@ -250,6 +251,21 @@ func (goc *GenerationOutputCreate) AddGenerationOutputLikes(g ...*GenerationOutp
 		ids[i] = g[i].ID
 	}
 	return goc.AddGenerationOutputLikeIDs(ids...)
+}
+
+// AddGenerationOutputEmbedIDs adds the "generation_output_embeds" edge to the GenerationOutputEmbed entity by IDs.
+func (goc *GenerationOutputCreate) AddGenerationOutputEmbedIDs(ids ...uuid.UUID) *GenerationOutputCreate {
+	goc.mutation.AddGenerationOutputEmbedIDs(ids...)
+	return goc
+}
+
+// AddGenerationOutputEmbeds adds the "generation_output_embeds" edges to the GenerationOutputEmbed entity.
+func (goc *GenerationOutputCreate) AddGenerationOutputEmbeds(g ...*GenerationOutputEmbed) *GenerationOutputCreate {
+	ids := make([]uuid.UUID, len(g))
+	for i := range g {
+		ids[i] = g[i].ID
+	}
+	return goc.AddGenerationOutputEmbedIDs(ids...)
 }
 
 // Mutation returns the GenerationOutputMutation object of the builder.
@@ -512,6 +528,25 @@ func (goc *GenerationOutputCreate) createSpec() (*GenerationOutput, *sqlgraph.Cr
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeUUID,
 					Column: generationoutputlike.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := goc.mutation.GenerationOutputEmbedsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   generationoutput.GenerationOutputEmbedsTable,
+			Columns: []string{generationoutput.GenerationOutputEmbedsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: generationoutputembed.FieldID,
 				},
 			},
 		}

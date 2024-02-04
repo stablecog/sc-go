@@ -21,6 +21,7 @@ import (
 	"github.com/stablecog/sc-go/database/ent/generation"
 	"github.com/stablecog/sc-go/database/ent/generationmodel"
 	"github.com/stablecog/sc-go/database/ent/generationoutput"
+	"github.com/stablecog/sc-go/database/ent/generationoutputembed"
 	"github.com/stablecog/sc-go/database/ent/generationoutputlike"
 	"github.com/stablecog/sc-go/database/ent/ipblacklist"
 	"github.com/stablecog/sc-go/database/ent/mqlog"
@@ -69,6 +70,8 @@ type Client struct {
 	GenerationModel *GenerationModelClient
 	// GenerationOutput is the client for interacting with the GenerationOutput builders.
 	GenerationOutput *GenerationOutputClient
+	// GenerationOutputEmbed is the client for interacting with the GenerationOutputEmbed builders.
+	GenerationOutputEmbed *GenerationOutputEmbedClient
 	// GenerationOutputLike is the client for interacting with the GenerationOutputLike builders.
 	GenerationOutputLike *GenerationOutputLikeClient
 	// IPBlackList is the client for interacting with the IPBlackList builders.
@@ -126,6 +129,7 @@ func (c *Client) init() {
 	c.Generation = NewGenerationClient(c.config)
 	c.GenerationModel = NewGenerationModelClient(c.config)
 	c.GenerationOutput = NewGenerationOutputClient(c.config)
+	c.GenerationOutputEmbed = NewGenerationOutputEmbedClient(c.config)
 	c.GenerationOutputLike = NewGenerationOutputLikeClient(c.config)
 	c.IPBlackList = NewIPBlackListClient(c.config)
 	c.MqLog = NewMqLogClient(c.config)
@@ -174,35 +178,36 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 	cfg := c.config
 	cfg.driver = tx
 	return &Tx{
-		ctx:                  ctx,
-		config:               cfg,
-		ApiToken:             NewApiTokenClient(cfg),
-		AuthClient:           NewAuthClientClient(cfg),
-		BannedWords:          NewBannedWordsClient(cfg),
-		Credit:               NewCreditClient(cfg),
-		CreditType:           NewCreditTypeClient(cfg),
-		DeviceInfo:           NewDeviceInfoClient(cfg),
-		DisposableEmail:      NewDisposableEmailClient(cfg),
-		Generation:           NewGenerationClient(cfg),
-		GenerationModel:      NewGenerationModelClient(cfg),
-		GenerationOutput:     NewGenerationOutputClient(cfg),
-		GenerationOutputLike: NewGenerationOutputLikeClient(cfg),
-		IPBlackList:          NewIPBlackListClient(cfg),
-		MqLog:                NewMqLogClient(cfg),
-		NegativePrompt:       NewNegativePromptClient(cfg),
-		Prompt:               NewPromptClient(cfg),
-		Role:                 NewRoleClient(cfg),
-		Scheduler:            NewSchedulerClient(cfg),
-		TipLog:               NewTipLogClient(cfg),
-		Upscale:              NewUpscaleClient(cfg),
-		UpscaleModel:         NewUpscaleModelClient(cfg),
-		UpscaleOutput:        NewUpscaleOutputClient(cfg),
-		User:                 NewUserClient(cfg),
-		UsernameBlacklist:    NewUsernameBlacklistClient(cfg),
-		Voiceover:            NewVoiceoverClient(cfg),
-		VoiceoverModel:       NewVoiceoverModelClient(cfg),
-		VoiceoverOutput:      NewVoiceoverOutputClient(cfg),
-		VoiceoverSpeaker:     NewVoiceoverSpeakerClient(cfg),
+		ctx:                   ctx,
+		config:                cfg,
+		ApiToken:              NewApiTokenClient(cfg),
+		AuthClient:            NewAuthClientClient(cfg),
+		BannedWords:           NewBannedWordsClient(cfg),
+		Credit:                NewCreditClient(cfg),
+		CreditType:            NewCreditTypeClient(cfg),
+		DeviceInfo:            NewDeviceInfoClient(cfg),
+		DisposableEmail:       NewDisposableEmailClient(cfg),
+		Generation:            NewGenerationClient(cfg),
+		GenerationModel:       NewGenerationModelClient(cfg),
+		GenerationOutput:      NewGenerationOutputClient(cfg),
+		GenerationOutputEmbed: NewGenerationOutputEmbedClient(cfg),
+		GenerationOutputLike:  NewGenerationOutputLikeClient(cfg),
+		IPBlackList:           NewIPBlackListClient(cfg),
+		MqLog:                 NewMqLogClient(cfg),
+		NegativePrompt:        NewNegativePromptClient(cfg),
+		Prompt:                NewPromptClient(cfg),
+		Role:                  NewRoleClient(cfg),
+		Scheduler:             NewSchedulerClient(cfg),
+		TipLog:                NewTipLogClient(cfg),
+		Upscale:               NewUpscaleClient(cfg),
+		UpscaleModel:          NewUpscaleModelClient(cfg),
+		UpscaleOutput:         NewUpscaleOutputClient(cfg),
+		User:                  NewUserClient(cfg),
+		UsernameBlacklist:     NewUsernameBlacklistClient(cfg),
+		Voiceover:             NewVoiceoverClient(cfg),
+		VoiceoverModel:        NewVoiceoverModelClient(cfg),
+		VoiceoverOutput:       NewVoiceoverOutputClient(cfg),
+		VoiceoverSpeaker:      NewVoiceoverSpeakerClient(cfg),
 	}, nil
 }
 
@@ -220,35 +225,36 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 	cfg := c.config
 	cfg.driver = &txDriver{tx: tx, drv: c.driver}
 	return &Tx{
-		ctx:                  ctx,
-		config:               cfg,
-		ApiToken:             NewApiTokenClient(cfg),
-		AuthClient:           NewAuthClientClient(cfg),
-		BannedWords:          NewBannedWordsClient(cfg),
-		Credit:               NewCreditClient(cfg),
-		CreditType:           NewCreditTypeClient(cfg),
-		DeviceInfo:           NewDeviceInfoClient(cfg),
-		DisposableEmail:      NewDisposableEmailClient(cfg),
-		Generation:           NewGenerationClient(cfg),
-		GenerationModel:      NewGenerationModelClient(cfg),
-		GenerationOutput:     NewGenerationOutputClient(cfg),
-		GenerationOutputLike: NewGenerationOutputLikeClient(cfg),
-		IPBlackList:          NewIPBlackListClient(cfg),
-		MqLog:                NewMqLogClient(cfg),
-		NegativePrompt:       NewNegativePromptClient(cfg),
-		Prompt:               NewPromptClient(cfg),
-		Role:                 NewRoleClient(cfg),
-		Scheduler:            NewSchedulerClient(cfg),
-		TipLog:               NewTipLogClient(cfg),
-		Upscale:              NewUpscaleClient(cfg),
-		UpscaleModel:         NewUpscaleModelClient(cfg),
-		UpscaleOutput:        NewUpscaleOutputClient(cfg),
-		User:                 NewUserClient(cfg),
-		UsernameBlacklist:    NewUsernameBlacklistClient(cfg),
-		Voiceover:            NewVoiceoverClient(cfg),
-		VoiceoverModel:       NewVoiceoverModelClient(cfg),
-		VoiceoverOutput:      NewVoiceoverOutputClient(cfg),
-		VoiceoverSpeaker:     NewVoiceoverSpeakerClient(cfg),
+		ctx:                   ctx,
+		config:                cfg,
+		ApiToken:              NewApiTokenClient(cfg),
+		AuthClient:            NewAuthClientClient(cfg),
+		BannedWords:           NewBannedWordsClient(cfg),
+		Credit:                NewCreditClient(cfg),
+		CreditType:            NewCreditTypeClient(cfg),
+		DeviceInfo:            NewDeviceInfoClient(cfg),
+		DisposableEmail:       NewDisposableEmailClient(cfg),
+		Generation:            NewGenerationClient(cfg),
+		GenerationModel:       NewGenerationModelClient(cfg),
+		GenerationOutput:      NewGenerationOutputClient(cfg),
+		GenerationOutputEmbed: NewGenerationOutputEmbedClient(cfg),
+		GenerationOutputLike:  NewGenerationOutputLikeClient(cfg),
+		IPBlackList:           NewIPBlackListClient(cfg),
+		MqLog:                 NewMqLogClient(cfg),
+		NegativePrompt:        NewNegativePromptClient(cfg),
+		Prompt:                NewPromptClient(cfg),
+		Role:                  NewRoleClient(cfg),
+		Scheduler:             NewSchedulerClient(cfg),
+		TipLog:                NewTipLogClient(cfg),
+		Upscale:               NewUpscaleClient(cfg),
+		UpscaleModel:          NewUpscaleModelClient(cfg),
+		UpscaleOutput:         NewUpscaleOutputClient(cfg),
+		User:                  NewUserClient(cfg),
+		UsernameBlacklist:     NewUsernameBlacklistClient(cfg),
+		Voiceover:             NewVoiceoverClient(cfg),
+		VoiceoverModel:        NewVoiceoverModelClient(cfg),
+		VoiceoverOutput:       NewVoiceoverOutputClient(cfg),
+		VoiceoverSpeaker:      NewVoiceoverSpeakerClient(cfg),
 	}, nil
 }
 
@@ -287,6 +293,7 @@ func (c *Client) Use(hooks ...Hook) {
 	c.Generation.Use(hooks...)
 	c.GenerationModel.Use(hooks...)
 	c.GenerationOutput.Use(hooks...)
+	c.GenerationOutputEmbed.Use(hooks...)
 	c.GenerationOutputLike.Use(hooks...)
 	c.IPBlackList.Use(hooks...)
 	c.MqLog.Use(hooks...)
@@ -319,6 +326,7 @@ func (c *Client) Intercept(interceptors ...Interceptor) {
 	c.Generation.Intercept(interceptors...)
 	c.GenerationModel.Intercept(interceptors...)
 	c.GenerationOutput.Intercept(interceptors...)
+	c.GenerationOutputEmbed.Intercept(interceptors...)
 	c.GenerationOutputLike.Intercept(interceptors...)
 	c.IPBlackList.Intercept(interceptors...)
 	c.MqLog.Intercept(interceptors...)
@@ -361,6 +369,8 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.GenerationModel.mutate(ctx, m)
 	case *GenerationOutputMutation:
 		return c.GenerationOutput.mutate(ctx, m)
+	case *GenerationOutputEmbedMutation:
+		return c.GenerationOutputEmbed.mutate(ctx, m)
 	case *GenerationOutputLikeMutation:
 		return c.GenerationOutputLike.mutate(ctx, m)
 	case *IPBlackListMutation:
@@ -1955,6 +1965,22 @@ func (c *GenerationOutputClient) QueryGenerationOutputLikes(_go *GenerationOutpu
 	return query
 }
 
+// QueryGenerationOutputEmbeds queries the generation_output_embeds edge of a GenerationOutput.
+func (c *GenerationOutputClient) QueryGenerationOutputEmbeds(_go *GenerationOutput) *GenerationOutputEmbedQuery {
+	query := (&GenerationOutputEmbedClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _go.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(generationoutput.Table, generationoutput.FieldID, id),
+			sqlgraph.To(generationoutputembed.Table, generationoutputembed.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, generationoutput.GenerationOutputEmbedsTable, generationoutput.GenerationOutputEmbedsColumn),
+		)
+		fromV = sqlgraph.Neighbors(_go.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *GenerationOutputClient) Hooks() []Hook {
 	return c.hooks.GenerationOutput
@@ -1977,6 +2003,140 @@ func (c *GenerationOutputClient) mutate(ctx context.Context, m *GenerationOutput
 		return (&GenerationOutputDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("ent: unknown GenerationOutput mutation op: %q", m.Op())
+	}
+}
+
+// GenerationOutputEmbedClient is a client for the GenerationOutputEmbed schema.
+type GenerationOutputEmbedClient struct {
+	config
+}
+
+// NewGenerationOutputEmbedClient returns a client for the GenerationOutputEmbed from the given config.
+func NewGenerationOutputEmbedClient(c config) *GenerationOutputEmbedClient {
+	return &GenerationOutputEmbedClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `generationoutputembed.Hooks(f(g(h())))`.
+func (c *GenerationOutputEmbedClient) Use(hooks ...Hook) {
+	c.hooks.GenerationOutputEmbed = append(c.hooks.GenerationOutputEmbed, hooks...)
+}
+
+// Use adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `generationoutputembed.Intercept(f(g(h())))`.
+func (c *GenerationOutputEmbedClient) Intercept(interceptors ...Interceptor) {
+	c.inters.GenerationOutputEmbed = append(c.inters.GenerationOutputEmbed, interceptors...)
+}
+
+// Create returns a builder for creating a GenerationOutputEmbed entity.
+func (c *GenerationOutputEmbedClient) Create() *GenerationOutputEmbedCreate {
+	mutation := newGenerationOutputEmbedMutation(c.config, OpCreate)
+	return &GenerationOutputEmbedCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of GenerationOutputEmbed entities.
+func (c *GenerationOutputEmbedClient) CreateBulk(builders ...*GenerationOutputEmbedCreate) *GenerationOutputEmbedCreateBulk {
+	return &GenerationOutputEmbedCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for GenerationOutputEmbed.
+func (c *GenerationOutputEmbedClient) Update() *GenerationOutputEmbedUpdate {
+	mutation := newGenerationOutputEmbedMutation(c.config, OpUpdate)
+	return &GenerationOutputEmbedUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *GenerationOutputEmbedClient) UpdateOne(goe *GenerationOutputEmbed) *GenerationOutputEmbedUpdateOne {
+	mutation := newGenerationOutputEmbedMutation(c.config, OpUpdateOne, withGenerationOutputEmbed(goe))
+	return &GenerationOutputEmbedUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *GenerationOutputEmbedClient) UpdateOneID(id uuid.UUID) *GenerationOutputEmbedUpdateOne {
+	mutation := newGenerationOutputEmbedMutation(c.config, OpUpdateOne, withGenerationOutputEmbedID(id))
+	return &GenerationOutputEmbedUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for GenerationOutputEmbed.
+func (c *GenerationOutputEmbedClient) Delete() *GenerationOutputEmbedDelete {
+	mutation := newGenerationOutputEmbedMutation(c.config, OpDelete)
+	return &GenerationOutputEmbedDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *GenerationOutputEmbedClient) DeleteOne(goe *GenerationOutputEmbed) *GenerationOutputEmbedDeleteOne {
+	return c.DeleteOneID(goe.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *GenerationOutputEmbedClient) DeleteOneID(id uuid.UUID) *GenerationOutputEmbedDeleteOne {
+	builder := c.Delete().Where(generationoutputembed.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &GenerationOutputEmbedDeleteOne{builder}
+}
+
+// Query returns a query builder for GenerationOutputEmbed.
+func (c *GenerationOutputEmbedClient) Query() *GenerationOutputEmbedQuery {
+	return &GenerationOutputEmbedQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeGenerationOutputEmbed},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a GenerationOutputEmbed entity by its id.
+func (c *GenerationOutputEmbedClient) Get(ctx context.Context, id uuid.UUID) (*GenerationOutputEmbed, error) {
+	return c.Query().Where(generationoutputembed.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *GenerationOutputEmbedClient) GetX(ctx context.Context, id uuid.UUID) *GenerationOutputEmbed {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryGenerationOutputs queries the generation_outputs edge of a GenerationOutputEmbed.
+func (c *GenerationOutputEmbedClient) QueryGenerationOutputs(goe *GenerationOutputEmbed) *GenerationOutputQuery {
+	query := (&GenerationOutputClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := goe.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(generationoutputembed.Table, generationoutputembed.FieldID, id),
+			sqlgraph.To(generationoutput.Table, generationoutput.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, generationoutputembed.GenerationOutputsTable, generationoutputembed.GenerationOutputsColumn),
+		)
+		fromV = sqlgraph.Neighbors(goe.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *GenerationOutputEmbedClient) Hooks() []Hook {
+	return c.hooks.GenerationOutputEmbed
+}
+
+// Interceptors returns the client interceptors.
+func (c *GenerationOutputEmbedClient) Interceptors() []Interceptor {
+	return c.inters.GenerationOutputEmbed
+}
+
+func (c *GenerationOutputEmbedClient) mutate(ctx context.Context, m *GenerationOutputEmbedMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&GenerationOutputEmbedCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&GenerationOutputEmbedUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&GenerationOutputEmbedUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&GenerationOutputEmbedDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown GenerationOutputEmbed mutation op: %q", m.Op())
 	}
 }
 

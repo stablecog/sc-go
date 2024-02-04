@@ -1313,3 +1313,24 @@ alter table public.generations add column mask_image_url text;
 
 -- Alter to add waiting_to_approve to gallery_status_enum
 ALTER TYPE public.generation_output_gallery_status_enum ADD VALUE 'waiting_to_approve';
+
+-- pgvector
+
+CREATE TABLE public.generation_output_embeds (
+    id uuid DEFAULT extensions.uuid_generate_v4() NOT NULL,
+    prompt_embedding vector(1024) NOT NULL,
+    image_embedding vector(1024) NOT NULL,
+    output_id uuid NOT NULL REFERENCES public.generation_outputs(id) ON DELETE CASCADE,
+    created_at timestamp with time zone DEFAULT (now() AT TIME ZONE 'utc'::text) NOT NULL
+);
+
+ALTER TABLE ONLY public.generation_output_embeds
+    ADD CONSTRAINT generation_output_embeds_pkey PRIMARY KEY (id);
+
+CREATE UNIQUE INDEX "generation_output_embeds_output_id" ON "public"."generation_output_embeds" ("output_id");
+
+
+CREATE INDEX ON public.generation_output_embeds USING hnsw (prompt_embedding vector_l2_ops) with (m=24, ef_construction=56);
+CREATE INDEX ON public.generation_output_embeds USING hnsw (image_embedding vector_l2_ops) with (m=24, ef_construction=56);
+
+ALTER TABLE public.generation_output_embeds ENABLE ROW LEVEL SECURITY;

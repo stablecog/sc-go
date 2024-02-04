@@ -129,6 +129,18 @@ func (f GenerationOutputFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.V
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.GenerationOutputMutation", m)
 }
 
+// The GenerationOutputEmbedFunc type is an adapter to allow the use of ordinary
+// function as GenerationOutputEmbed mutator.
+type GenerationOutputEmbedFunc func(context.Context, *ent.GenerationOutputEmbedMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f GenerationOutputEmbedFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.GenerationOutputEmbedMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.GenerationOutputEmbedMutation", m)
+}
+
 // The GenerationOutputLikeFunc type is an adapter to allow the use of ordinary
 // function as GenerationOutputLike mutator.
 type GenerationOutputLikeFunc func(context.Context, *ent.GenerationOutputLikeMutation) (ent.Value, error)

@@ -14,6 +14,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/stablecog/sc-go/database/ent/generation"
 	"github.com/stablecog/sc-go/database/ent/generationoutput"
+	"github.com/stablecog/sc-go/database/ent/generationoutputembed"
 	"github.com/stablecog/sc-go/database/ent/generationoutputlike"
 	"github.com/stablecog/sc-go/database/ent/predicate"
 	"github.com/stablecog/sc-go/database/ent/upscaleoutput"
@@ -22,14 +23,15 @@ import (
 // GenerationOutputQuery is the builder for querying GenerationOutput entities.
 type GenerationOutputQuery struct {
 	config
-	ctx                       *QueryContext
-	order                     []OrderFunc
-	inters                    []Interceptor
-	predicates                []predicate.GenerationOutput
-	withGenerations           *GenerationQuery
-	withUpscaleOutputs        *UpscaleOutputQuery
-	withGenerationOutputLikes *GenerationOutputLikeQuery
-	modifiers                 []func(*sql.Selector)
+	ctx                        *QueryContext
+	order                      []OrderFunc
+	inters                     []Interceptor
+	predicates                 []predicate.GenerationOutput
+	withGenerations            *GenerationQuery
+	withUpscaleOutputs         *UpscaleOutputQuery
+	withGenerationOutputLikes  *GenerationOutputLikeQuery
+	withGenerationOutputEmbeds *GenerationOutputEmbedQuery
+	modifiers                  []func(*sql.Selector)
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -125,6 +127,28 @@ func (goq *GenerationOutputQuery) QueryGenerationOutputLikes() *GenerationOutput
 			sqlgraph.From(generationoutput.Table, generationoutput.FieldID, selector),
 			sqlgraph.To(generationoutputlike.Table, generationoutputlike.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, generationoutput.GenerationOutputLikesTable, generationoutput.GenerationOutputLikesColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(goq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryGenerationOutputEmbeds chains the current query on the "generation_output_embeds" edge.
+func (goq *GenerationOutputQuery) QueryGenerationOutputEmbeds() *GenerationOutputEmbedQuery {
+	query := (&GenerationOutputEmbedClient{config: goq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := goq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := goq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(generationoutput.Table, generationoutput.FieldID, selector),
+			sqlgraph.To(generationoutputembed.Table, generationoutputembed.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, generationoutput.GenerationOutputEmbedsTable, generationoutput.GenerationOutputEmbedsColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(goq.driver.Dialect(), step)
 		return fromU, nil
@@ -317,14 +341,15 @@ func (goq *GenerationOutputQuery) Clone() *GenerationOutputQuery {
 		return nil
 	}
 	return &GenerationOutputQuery{
-		config:                    goq.config,
-		ctx:                       goq.ctx.Clone(),
-		order:                     append([]OrderFunc{}, goq.order...),
-		inters:                    append([]Interceptor{}, goq.inters...),
-		predicates:                append([]predicate.GenerationOutput{}, goq.predicates...),
-		withGenerations:           goq.withGenerations.Clone(),
-		withUpscaleOutputs:        goq.withUpscaleOutputs.Clone(),
-		withGenerationOutputLikes: goq.withGenerationOutputLikes.Clone(),
+		config:                     goq.config,
+		ctx:                        goq.ctx.Clone(),
+		order:                      append([]OrderFunc{}, goq.order...),
+		inters:                     append([]Interceptor{}, goq.inters...),
+		predicates:                 append([]predicate.GenerationOutput{}, goq.predicates...),
+		withGenerations:            goq.withGenerations.Clone(),
+		withUpscaleOutputs:         goq.withUpscaleOutputs.Clone(),
+		withGenerationOutputLikes:  goq.withGenerationOutputLikes.Clone(),
+		withGenerationOutputEmbeds: goq.withGenerationOutputEmbeds.Clone(),
 		// clone intermediate query.
 		sql:  goq.sql.Clone(),
 		path: goq.path,
@@ -361,6 +386,17 @@ func (goq *GenerationOutputQuery) WithGenerationOutputLikes(opts ...func(*Genera
 		opt(query)
 	}
 	goq.withGenerationOutputLikes = query
+	return goq
+}
+
+// WithGenerationOutputEmbeds tells the query-builder to eager-load the nodes that are connected to
+// the "generation_output_embeds" edge. The optional arguments are used to configure the query builder of the edge.
+func (goq *GenerationOutputQuery) WithGenerationOutputEmbeds(opts ...func(*GenerationOutputEmbedQuery)) *GenerationOutputQuery {
+	query := (&GenerationOutputEmbedClient{config: goq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	goq.withGenerationOutputEmbeds = query
 	return goq
 }
 
@@ -442,10 +478,11 @@ func (goq *GenerationOutputQuery) sqlAll(ctx context.Context, hooks ...queryHook
 	var (
 		nodes       = []*GenerationOutput{}
 		_spec       = goq.querySpec()
-		loadedTypes = [3]bool{
+		loadedTypes = [4]bool{
 			goq.withGenerations != nil,
 			goq.withUpscaleOutputs != nil,
 			goq.withGenerationOutputLikes != nil,
+			goq.withGenerationOutputEmbeds != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -486,6 +523,15 @@ func (goq *GenerationOutputQuery) sqlAll(ctx context.Context, hooks ...queryHook
 			func(n *GenerationOutput) { n.Edges.GenerationOutputLikes = []*GenerationOutputLike{} },
 			func(n *GenerationOutput, e *GenerationOutputLike) {
 				n.Edges.GenerationOutputLikes = append(n.Edges.GenerationOutputLikes, e)
+			}); err != nil {
+			return nil, err
+		}
+	}
+	if query := goq.withGenerationOutputEmbeds; query != nil {
+		if err := goq.loadGenerationOutputEmbeds(ctx, query, nodes,
+			func(n *GenerationOutput) { n.Edges.GenerationOutputEmbeds = []*GenerationOutputEmbed{} },
+			func(n *GenerationOutput, e *GenerationOutputEmbed) {
+				n.Edges.GenerationOutputEmbeds = append(n.Edges.GenerationOutputEmbeds, e)
 			}); err != nil {
 			return nil, err
 		}
@@ -561,6 +607,33 @@ func (goq *GenerationOutputQuery) loadGenerationOutputLikes(ctx context.Context,
 	}
 	query.Where(predicate.GenerationOutputLike(func(s *sql.Selector) {
 		s.Where(sql.InValues(generationoutput.GenerationOutputLikesColumn, fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.OutputID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "output_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (goq *GenerationOutputQuery) loadGenerationOutputEmbeds(ctx context.Context, query *GenerationOutputEmbedQuery, nodes []*GenerationOutput, init func(*GenerationOutput), assign func(*GenerationOutput, *GenerationOutputEmbed)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*GenerationOutput)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	query.Where(predicate.GenerationOutputEmbed(func(s *sql.Selector) {
+		s.Where(sql.InValues(generationoutput.GenerationOutputEmbedsColumn, fks...))
 	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {

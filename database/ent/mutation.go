@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	pgvector "github.com/pgvector/pgvector-go"
 	"github.com/stablecog/sc-go/database/ent/apitoken"
 	"github.com/stablecog/sc-go/database/ent/authclient"
 	"github.com/stablecog/sc-go/database/ent/bannedwords"
@@ -20,6 +21,7 @@ import (
 	"github.com/stablecog/sc-go/database/ent/generation"
 	"github.com/stablecog/sc-go/database/ent/generationmodel"
 	"github.com/stablecog/sc-go/database/ent/generationoutput"
+	"github.com/stablecog/sc-go/database/ent/generationoutputembed"
 	"github.com/stablecog/sc-go/database/ent/generationoutputlike"
 	"github.com/stablecog/sc-go/database/ent/ipblacklist"
 	"github.com/stablecog/sc-go/database/ent/mqlog"
@@ -53,33 +55,34 @@ const (
 	OpUpdateOne = ent.OpUpdateOne
 
 	// Node types.
-	TypeApiToken             = "ApiToken"
-	TypeAuthClient           = "AuthClient"
-	TypeBannedWords          = "BannedWords"
-	TypeCredit               = "Credit"
-	TypeCreditType           = "CreditType"
-	TypeDeviceInfo           = "DeviceInfo"
-	TypeDisposableEmail      = "DisposableEmail"
-	TypeGeneration           = "Generation"
-	TypeGenerationModel      = "GenerationModel"
-	TypeGenerationOutput     = "GenerationOutput"
-	TypeGenerationOutputLike = "GenerationOutputLike"
-	TypeIPBlackList          = "IPBlackList"
-	TypeMqLog                = "MqLog"
-	TypeNegativePrompt       = "NegativePrompt"
-	TypePrompt               = "Prompt"
-	TypeRole                 = "Role"
-	TypeScheduler            = "Scheduler"
-	TypeTipLog               = "TipLog"
-	TypeUpscale              = "Upscale"
-	TypeUpscaleModel         = "UpscaleModel"
-	TypeUpscaleOutput        = "UpscaleOutput"
-	TypeUser                 = "User"
-	TypeUsernameBlacklist    = "UsernameBlacklist"
-	TypeVoiceover            = "Voiceover"
-	TypeVoiceoverModel       = "VoiceoverModel"
-	TypeVoiceoverOutput      = "VoiceoverOutput"
-	TypeVoiceoverSpeaker     = "VoiceoverSpeaker"
+	TypeApiToken              = "ApiToken"
+	TypeAuthClient            = "AuthClient"
+	TypeBannedWords           = "BannedWords"
+	TypeCredit                = "Credit"
+	TypeCreditType            = "CreditType"
+	TypeDeviceInfo            = "DeviceInfo"
+	TypeDisposableEmail       = "DisposableEmail"
+	TypeGeneration            = "Generation"
+	TypeGenerationModel       = "GenerationModel"
+	TypeGenerationOutput      = "GenerationOutput"
+	TypeGenerationOutputEmbed = "GenerationOutputEmbed"
+	TypeGenerationOutputLike  = "GenerationOutputLike"
+	TypeIPBlackList           = "IPBlackList"
+	TypeMqLog                 = "MqLog"
+	TypeNegativePrompt        = "NegativePrompt"
+	TypePrompt                = "Prompt"
+	TypeRole                  = "Role"
+	TypeScheduler             = "Scheduler"
+	TypeTipLog                = "TipLog"
+	TypeUpscale               = "Upscale"
+	TypeUpscaleModel          = "UpscaleModel"
+	TypeUpscaleOutput         = "UpscaleOutput"
+	TypeUser                  = "User"
+	TypeUsernameBlacklist     = "UsernameBlacklist"
+	TypeVoiceover             = "Voiceover"
+	TypeVoiceoverModel        = "VoiceoverModel"
+	TypeVoiceoverOutput       = "VoiceoverOutput"
+	TypeVoiceoverSpeaker      = "VoiceoverSpeaker"
 )
 
 // ApiTokenMutation represents an operation that mutates the ApiToken nodes in the graph.
@@ -9306,35 +9309,38 @@ func (m *GenerationModelMutation) ResetEdge(name string) error {
 // GenerationOutputMutation represents an operation that mutates the GenerationOutput nodes in the graph.
 type GenerationOutputMutation struct {
 	config
-	op                             Op
-	typ                            string
-	id                             *uuid.UUID
-	image_path                     *string
-	upscaled_image_path            *string
-	gallery_status                 *generationoutput.GalleryStatus
-	is_favorited                   *bool
-	has_embeddings                 *bool
-	is_public                      *bool
-	aesthetic_rating_score         *float32
-	addaesthetic_rating_score      *float32
-	aesthetic_artifact_score       *float32
-	addaesthetic_artifact_score    *float32
-	like_count                     *int
-	addlike_count                  *int
-	deleted_at                     *time.Time
-	created_at                     *time.Time
-	updated_at                     *time.Time
-	clearedFields                  map[string]struct{}
-	generations                    *uuid.UUID
-	clearedgenerations             bool
-	upscale_outputs                *uuid.UUID
-	clearedupscale_outputs         bool
-	generation_output_likes        map[uuid.UUID]struct{}
-	removedgeneration_output_likes map[uuid.UUID]struct{}
-	clearedgeneration_output_likes bool
-	done                           bool
-	oldValue                       func(context.Context) (*GenerationOutput, error)
-	predicates                     []predicate.GenerationOutput
+	op                              Op
+	typ                             string
+	id                              *uuid.UUID
+	image_path                      *string
+	upscaled_image_path             *string
+	gallery_status                  *generationoutput.GalleryStatus
+	is_favorited                    *bool
+	has_embeddings                  *bool
+	is_public                       *bool
+	aesthetic_rating_score          *float32
+	addaesthetic_rating_score       *float32
+	aesthetic_artifact_score        *float32
+	addaesthetic_artifact_score     *float32
+	like_count                      *int
+	addlike_count                   *int
+	deleted_at                      *time.Time
+	created_at                      *time.Time
+	updated_at                      *time.Time
+	clearedFields                   map[string]struct{}
+	generations                     *uuid.UUID
+	clearedgenerations              bool
+	upscale_outputs                 *uuid.UUID
+	clearedupscale_outputs          bool
+	generation_output_likes         map[uuid.UUID]struct{}
+	removedgeneration_output_likes  map[uuid.UUID]struct{}
+	clearedgeneration_output_likes  bool
+	generation_output_embeds        map[uuid.UUID]struct{}
+	removedgeneration_output_embeds map[uuid.UUID]struct{}
+	clearedgeneration_output_embeds bool
+	done                            bool
+	oldValue                        func(context.Context) (*GenerationOutput, error)
+	predicates                      []predicate.GenerationOutput
 }
 
 var _ ent.Mutation = (*GenerationOutputMutation)(nil)
@@ -10127,6 +10133,60 @@ func (m *GenerationOutputMutation) ResetGenerationOutputLikes() {
 	m.removedgeneration_output_likes = nil
 }
 
+// AddGenerationOutputEmbedIDs adds the "generation_output_embeds" edge to the GenerationOutputEmbed entity by ids.
+func (m *GenerationOutputMutation) AddGenerationOutputEmbedIDs(ids ...uuid.UUID) {
+	if m.generation_output_embeds == nil {
+		m.generation_output_embeds = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.generation_output_embeds[ids[i]] = struct{}{}
+	}
+}
+
+// ClearGenerationOutputEmbeds clears the "generation_output_embeds" edge to the GenerationOutputEmbed entity.
+func (m *GenerationOutputMutation) ClearGenerationOutputEmbeds() {
+	m.clearedgeneration_output_embeds = true
+}
+
+// GenerationOutputEmbedsCleared reports if the "generation_output_embeds" edge to the GenerationOutputEmbed entity was cleared.
+func (m *GenerationOutputMutation) GenerationOutputEmbedsCleared() bool {
+	return m.clearedgeneration_output_embeds
+}
+
+// RemoveGenerationOutputEmbedIDs removes the "generation_output_embeds" edge to the GenerationOutputEmbed entity by IDs.
+func (m *GenerationOutputMutation) RemoveGenerationOutputEmbedIDs(ids ...uuid.UUID) {
+	if m.removedgeneration_output_embeds == nil {
+		m.removedgeneration_output_embeds = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.generation_output_embeds, ids[i])
+		m.removedgeneration_output_embeds[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedGenerationOutputEmbeds returns the removed IDs of the "generation_output_embeds" edge to the GenerationOutputEmbed entity.
+func (m *GenerationOutputMutation) RemovedGenerationOutputEmbedsIDs() (ids []uuid.UUID) {
+	for id := range m.removedgeneration_output_embeds {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// GenerationOutputEmbedsIDs returns the "generation_output_embeds" edge IDs in the mutation.
+func (m *GenerationOutputMutation) GenerationOutputEmbedsIDs() (ids []uuid.UUID) {
+	for id := range m.generation_output_embeds {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetGenerationOutputEmbeds resets all changes to the "generation_output_embeds" edge.
+func (m *GenerationOutputMutation) ResetGenerationOutputEmbeds() {
+	m.generation_output_embeds = nil
+	m.clearedgeneration_output_embeds = false
+	m.removedgeneration_output_embeds = nil
+}
+
 // Where appends a list predicates to the GenerationOutputMutation builder.
 func (m *GenerationOutputMutation) Where(ps ...predicate.GenerationOutput) {
 	m.predicates = append(m.predicates, ps...)
@@ -10518,7 +10578,7 @@ func (m *GenerationOutputMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *GenerationOutputMutation) AddedEdges() []string {
-	edges := make([]string, 0, 3)
+	edges := make([]string, 0, 4)
 	if m.generations != nil {
 		edges = append(edges, generationoutput.EdgeGenerations)
 	}
@@ -10527,6 +10587,9 @@ func (m *GenerationOutputMutation) AddedEdges() []string {
 	}
 	if m.generation_output_likes != nil {
 		edges = append(edges, generationoutput.EdgeGenerationOutputLikes)
+	}
+	if m.generation_output_embeds != nil {
+		edges = append(edges, generationoutput.EdgeGenerationOutputEmbeds)
 	}
 	return edges
 }
@@ -10549,15 +10612,24 @@ func (m *GenerationOutputMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case generationoutput.EdgeGenerationOutputEmbeds:
+		ids := make([]ent.Value, 0, len(m.generation_output_embeds))
+		for id := range m.generation_output_embeds {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *GenerationOutputMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 3)
+	edges := make([]string, 0, 4)
 	if m.removedgeneration_output_likes != nil {
 		edges = append(edges, generationoutput.EdgeGenerationOutputLikes)
+	}
+	if m.removedgeneration_output_embeds != nil {
+		edges = append(edges, generationoutput.EdgeGenerationOutputEmbeds)
 	}
 	return edges
 }
@@ -10572,13 +10644,19 @@ func (m *GenerationOutputMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case generationoutput.EdgeGenerationOutputEmbeds:
+		ids := make([]ent.Value, 0, len(m.removedgeneration_output_embeds))
+		for id := range m.removedgeneration_output_embeds {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *GenerationOutputMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 3)
+	edges := make([]string, 0, 4)
 	if m.clearedgenerations {
 		edges = append(edges, generationoutput.EdgeGenerations)
 	}
@@ -10587,6 +10665,9 @@ func (m *GenerationOutputMutation) ClearedEdges() []string {
 	}
 	if m.clearedgeneration_output_likes {
 		edges = append(edges, generationoutput.EdgeGenerationOutputLikes)
+	}
+	if m.clearedgeneration_output_embeds {
+		edges = append(edges, generationoutput.EdgeGenerationOutputEmbeds)
 	}
 	return edges
 }
@@ -10601,6 +10682,8 @@ func (m *GenerationOutputMutation) EdgeCleared(name string) bool {
 		return m.clearedupscale_outputs
 	case generationoutput.EdgeGenerationOutputLikes:
 		return m.clearedgeneration_output_likes
+	case generationoutput.EdgeGenerationOutputEmbeds:
+		return m.clearedgeneration_output_embeds
 	}
 	return false
 }
@@ -10632,8 +10715,625 @@ func (m *GenerationOutputMutation) ResetEdge(name string) error {
 	case generationoutput.EdgeGenerationOutputLikes:
 		m.ResetGenerationOutputLikes()
 		return nil
+	case generationoutput.EdgeGenerationOutputEmbeds:
+		m.ResetGenerationOutputEmbeds()
+		return nil
 	}
 	return fmt.Errorf("unknown GenerationOutput edge %s", name)
+}
+
+// GenerationOutputEmbedMutation represents an operation that mutates the GenerationOutputEmbed nodes in the graph.
+type GenerationOutputEmbedMutation struct {
+	config
+	op                        Op
+	typ                       string
+	id                        *uuid.UUID
+	prompt_embedding          *pgvector.Vector
+	image_embedding           *pgvector.Vector
+	created_at                *time.Time
+	updated_at                *time.Time
+	clearedFields             map[string]struct{}
+	generation_outputs        *uuid.UUID
+	clearedgeneration_outputs bool
+	done                      bool
+	oldValue                  func(context.Context) (*GenerationOutputEmbed, error)
+	predicates                []predicate.GenerationOutputEmbed
+}
+
+var _ ent.Mutation = (*GenerationOutputEmbedMutation)(nil)
+
+// generationoutputembedOption allows management of the mutation configuration using functional options.
+type generationoutputembedOption func(*GenerationOutputEmbedMutation)
+
+// newGenerationOutputEmbedMutation creates new mutation for the GenerationOutputEmbed entity.
+func newGenerationOutputEmbedMutation(c config, op Op, opts ...generationoutputembedOption) *GenerationOutputEmbedMutation {
+	m := &GenerationOutputEmbedMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeGenerationOutputEmbed,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withGenerationOutputEmbedID sets the ID field of the mutation.
+func withGenerationOutputEmbedID(id uuid.UUID) generationoutputembedOption {
+	return func(m *GenerationOutputEmbedMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *GenerationOutputEmbed
+		)
+		m.oldValue = func(ctx context.Context) (*GenerationOutputEmbed, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().GenerationOutputEmbed.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withGenerationOutputEmbed sets the old GenerationOutputEmbed of the mutation.
+func withGenerationOutputEmbed(node *GenerationOutputEmbed) generationoutputembedOption {
+	return func(m *GenerationOutputEmbedMutation) {
+		m.oldValue = func(context.Context) (*GenerationOutputEmbed, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m GenerationOutputEmbedMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m GenerationOutputEmbedMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of GenerationOutputEmbed entities.
+func (m *GenerationOutputEmbedMutation) SetID(id uuid.UUID) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *GenerationOutputEmbedMutation) ID() (id uuid.UUID, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *GenerationOutputEmbedMutation) IDs(ctx context.Context) ([]uuid.UUID, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []uuid.UUID{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().GenerationOutputEmbed.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetPromptEmbedding sets the "prompt_embedding" field.
+func (m *GenerationOutputEmbedMutation) SetPromptEmbedding(pg pgvector.Vector) {
+	m.prompt_embedding = &pg
+}
+
+// PromptEmbedding returns the value of the "prompt_embedding" field in the mutation.
+func (m *GenerationOutputEmbedMutation) PromptEmbedding() (r pgvector.Vector, exists bool) {
+	v := m.prompt_embedding
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldPromptEmbedding returns the old "prompt_embedding" field's value of the GenerationOutputEmbed entity.
+// If the GenerationOutputEmbed object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *GenerationOutputEmbedMutation) OldPromptEmbedding(ctx context.Context) (v pgvector.Vector, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldPromptEmbedding is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldPromptEmbedding requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldPromptEmbedding: %w", err)
+	}
+	return oldValue.PromptEmbedding, nil
+}
+
+// ResetPromptEmbedding resets all changes to the "prompt_embedding" field.
+func (m *GenerationOutputEmbedMutation) ResetPromptEmbedding() {
+	m.prompt_embedding = nil
+}
+
+// SetImageEmbedding sets the "image_embedding" field.
+func (m *GenerationOutputEmbedMutation) SetImageEmbedding(pg pgvector.Vector) {
+	m.image_embedding = &pg
+}
+
+// ImageEmbedding returns the value of the "image_embedding" field in the mutation.
+func (m *GenerationOutputEmbedMutation) ImageEmbedding() (r pgvector.Vector, exists bool) {
+	v := m.image_embedding
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldImageEmbedding returns the old "image_embedding" field's value of the GenerationOutputEmbed entity.
+// If the GenerationOutputEmbed object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *GenerationOutputEmbedMutation) OldImageEmbedding(ctx context.Context) (v pgvector.Vector, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldImageEmbedding is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldImageEmbedding requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldImageEmbedding: %w", err)
+	}
+	return oldValue.ImageEmbedding, nil
+}
+
+// ResetImageEmbedding resets all changes to the "image_embedding" field.
+func (m *GenerationOutputEmbedMutation) ResetImageEmbedding() {
+	m.image_embedding = nil
+}
+
+// SetOutputID sets the "output_id" field.
+func (m *GenerationOutputEmbedMutation) SetOutputID(u uuid.UUID) {
+	m.generation_outputs = &u
+}
+
+// OutputID returns the value of the "output_id" field in the mutation.
+func (m *GenerationOutputEmbedMutation) OutputID() (r uuid.UUID, exists bool) {
+	v := m.generation_outputs
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldOutputID returns the old "output_id" field's value of the GenerationOutputEmbed entity.
+// If the GenerationOutputEmbed object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *GenerationOutputEmbedMutation) OldOutputID(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldOutputID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldOutputID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldOutputID: %w", err)
+	}
+	return oldValue.OutputID, nil
+}
+
+// ResetOutputID resets all changes to the "output_id" field.
+func (m *GenerationOutputEmbedMutation) ResetOutputID() {
+	m.generation_outputs = nil
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *GenerationOutputEmbedMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *GenerationOutputEmbedMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the GenerationOutputEmbed entity.
+// If the GenerationOutputEmbed object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *GenerationOutputEmbedMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *GenerationOutputEmbedMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (m *GenerationOutputEmbedMutation) SetUpdatedAt(t time.Time) {
+	m.updated_at = &t
+}
+
+// UpdatedAt returns the value of the "updated_at" field in the mutation.
+func (m *GenerationOutputEmbedMutation) UpdatedAt() (r time.Time, exists bool) {
+	v := m.updated_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedAt returns the old "updated_at" field's value of the GenerationOutputEmbed entity.
+// If the GenerationOutputEmbed object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *GenerationOutputEmbedMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
+	}
+	return oldValue.UpdatedAt, nil
+}
+
+// ResetUpdatedAt resets all changes to the "updated_at" field.
+func (m *GenerationOutputEmbedMutation) ResetUpdatedAt() {
+	m.updated_at = nil
+}
+
+// SetGenerationOutputsID sets the "generation_outputs" edge to the GenerationOutput entity by id.
+func (m *GenerationOutputEmbedMutation) SetGenerationOutputsID(id uuid.UUID) {
+	m.generation_outputs = &id
+}
+
+// ClearGenerationOutputs clears the "generation_outputs" edge to the GenerationOutput entity.
+func (m *GenerationOutputEmbedMutation) ClearGenerationOutputs() {
+	m.clearedgeneration_outputs = true
+}
+
+// GenerationOutputsCleared reports if the "generation_outputs" edge to the GenerationOutput entity was cleared.
+func (m *GenerationOutputEmbedMutation) GenerationOutputsCleared() bool {
+	return m.clearedgeneration_outputs
+}
+
+// GenerationOutputsID returns the "generation_outputs" edge ID in the mutation.
+func (m *GenerationOutputEmbedMutation) GenerationOutputsID() (id uuid.UUID, exists bool) {
+	if m.generation_outputs != nil {
+		return *m.generation_outputs, true
+	}
+	return
+}
+
+// GenerationOutputsIDs returns the "generation_outputs" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// GenerationOutputsID instead. It exists only for internal usage by the builders.
+func (m *GenerationOutputEmbedMutation) GenerationOutputsIDs() (ids []uuid.UUID) {
+	if id := m.generation_outputs; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetGenerationOutputs resets all changes to the "generation_outputs" edge.
+func (m *GenerationOutputEmbedMutation) ResetGenerationOutputs() {
+	m.generation_outputs = nil
+	m.clearedgeneration_outputs = false
+}
+
+// Where appends a list predicates to the GenerationOutputEmbedMutation builder.
+func (m *GenerationOutputEmbedMutation) Where(ps ...predicate.GenerationOutputEmbed) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the GenerationOutputEmbedMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *GenerationOutputEmbedMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.GenerationOutputEmbed, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *GenerationOutputEmbedMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *GenerationOutputEmbedMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (GenerationOutputEmbed).
+func (m *GenerationOutputEmbedMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *GenerationOutputEmbedMutation) Fields() []string {
+	fields := make([]string, 0, 5)
+	if m.prompt_embedding != nil {
+		fields = append(fields, generationoutputembed.FieldPromptEmbedding)
+	}
+	if m.image_embedding != nil {
+		fields = append(fields, generationoutputembed.FieldImageEmbedding)
+	}
+	if m.generation_outputs != nil {
+		fields = append(fields, generationoutputembed.FieldOutputID)
+	}
+	if m.created_at != nil {
+		fields = append(fields, generationoutputembed.FieldCreatedAt)
+	}
+	if m.updated_at != nil {
+		fields = append(fields, generationoutputembed.FieldUpdatedAt)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *GenerationOutputEmbedMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case generationoutputembed.FieldPromptEmbedding:
+		return m.PromptEmbedding()
+	case generationoutputembed.FieldImageEmbedding:
+		return m.ImageEmbedding()
+	case generationoutputembed.FieldOutputID:
+		return m.OutputID()
+	case generationoutputembed.FieldCreatedAt:
+		return m.CreatedAt()
+	case generationoutputembed.FieldUpdatedAt:
+		return m.UpdatedAt()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *GenerationOutputEmbedMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case generationoutputembed.FieldPromptEmbedding:
+		return m.OldPromptEmbedding(ctx)
+	case generationoutputembed.FieldImageEmbedding:
+		return m.OldImageEmbedding(ctx)
+	case generationoutputembed.FieldOutputID:
+		return m.OldOutputID(ctx)
+	case generationoutputembed.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	case generationoutputembed.FieldUpdatedAt:
+		return m.OldUpdatedAt(ctx)
+	}
+	return nil, fmt.Errorf("unknown GenerationOutputEmbed field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *GenerationOutputEmbedMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case generationoutputembed.FieldPromptEmbedding:
+		v, ok := value.(pgvector.Vector)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetPromptEmbedding(v)
+		return nil
+	case generationoutputembed.FieldImageEmbedding:
+		v, ok := value.(pgvector.Vector)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetImageEmbedding(v)
+		return nil
+	case generationoutputembed.FieldOutputID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetOutputID(v)
+		return nil
+	case generationoutputembed.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	case generationoutputembed.FieldUpdatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedAt(v)
+		return nil
+	}
+	return fmt.Errorf("unknown GenerationOutputEmbed field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *GenerationOutputEmbedMutation) AddedFields() []string {
+	return nil
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *GenerationOutputEmbedMutation) AddedField(name string) (ent.Value, bool) {
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *GenerationOutputEmbedMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown GenerationOutputEmbed numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *GenerationOutputEmbedMutation) ClearedFields() []string {
+	return nil
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *GenerationOutputEmbedMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *GenerationOutputEmbedMutation) ClearField(name string) error {
+	return fmt.Errorf("unknown GenerationOutputEmbed nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *GenerationOutputEmbedMutation) ResetField(name string) error {
+	switch name {
+	case generationoutputembed.FieldPromptEmbedding:
+		m.ResetPromptEmbedding()
+		return nil
+	case generationoutputembed.FieldImageEmbedding:
+		m.ResetImageEmbedding()
+		return nil
+	case generationoutputembed.FieldOutputID:
+		m.ResetOutputID()
+		return nil
+	case generationoutputembed.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	case generationoutputembed.FieldUpdatedAt:
+		m.ResetUpdatedAt()
+		return nil
+	}
+	return fmt.Errorf("unknown GenerationOutputEmbed field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *GenerationOutputEmbedMutation) AddedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.generation_outputs != nil {
+		edges = append(edges, generationoutputembed.EdgeGenerationOutputs)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *GenerationOutputEmbedMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case generationoutputembed.EdgeGenerationOutputs:
+		if id := m.generation_outputs; id != nil {
+			return []ent.Value{*id}
+		}
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *GenerationOutputEmbedMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 1)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *GenerationOutputEmbedMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *GenerationOutputEmbedMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.clearedgeneration_outputs {
+		edges = append(edges, generationoutputembed.EdgeGenerationOutputs)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *GenerationOutputEmbedMutation) EdgeCleared(name string) bool {
+	switch name {
+	case generationoutputembed.EdgeGenerationOutputs:
+		return m.clearedgeneration_outputs
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *GenerationOutputEmbedMutation) ClearEdge(name string) error {
+	switch name {
+	case generationoutputembed.EdgeGenerationOutputs:
+		m.ClearGenerationOutputs()
+		return nil
+	}
+	return fmt.Errorf("unknown GenerationOutputEmbed unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *GenerationOutputEmbedMutation) ResetEdge(name string) error {
+	switch name {
+	case generationoutputembed.EdgeGenerationOutputs:
+		m.ResetGenerationOutputs()
+		return nil
+	}
+	return fmt.Errorf("unknown GenerationOutputEmbed edge %s", name)
 }
 
 // GenerationOutputLikeMutation represents an operation that mutates the GenerationOutputLike nodes in the graph.

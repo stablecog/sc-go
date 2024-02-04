@@ -367,6 +367,54 @@ var (
 			},
 		},
 	}
+	// GenerationOutputEmbedsColumns holds the columns for the "generation_output_embeds" table.
+	GenerationOutputEmbedsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID},
+		{Name: "prompt_embedding", Type: field.TypeOther, SchemaType: map[string]string{"postgres": "vector(1024)"}},
+		{Name: "image_embedding", Type: field.TypeOther, SchemaType: map[string]string{"postgres": "vector(1024)"}},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "output_id", Type: field.TypeUUID},
+	}
+	// GenerationOutputEmbedsTable holds the schema information for the "generation_output_embeds" table.
+	GenerationOutputEmbedsTable = &schema.Table{
+		Name:       "generation_output_embeds",
+		Columns:    GenerationOutputEmbedsColumns,
+		PrimaryKey: []*schema.Column{GenerationOutputEmbedsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "generation_output_embeds_generation_outputs_generation_output_embeds",
+				Columns:    []*schema.Column{GenerationOutputEmbedsColumns[5]},
+				RefColumns: []*schema.Column{GenerationOutputsColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "generationoutputembed_output_id",
+				Unique:  true,
+				Columns: []*schema.Column{GenerationOutputEmbedsColumns[5]},
+			},
+			{
+				Name:    "generationoutputembed_prompt_embedding",
+				Unique:  false,
+				Columns: []*schema.Column{GenerationOutputEmbedsColumns[1]},
+				Annotation: &entsql.IndexAnnotation{
+					OpClass: "vector_l2_ops",
+					Type:    "hnsw",
+				},
+			},
+			{
+				Name:    "generationoutputembed_image_embedding",
+				Unique:  false,
+				Columns: []*schema.Column{GenerationOutputEmbedsColumns[2]},
+				Annotation: &entsql.IndexAnnotation{
+					OpClass: "vector_l2_ops",
+					Type:    "hnsw",
+				},
+			},
+		},
+	}
 	// GenerationOutputLikesColumns holds the columns for the "generation_output_likes" table.
 	GenerationOutputLikesColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID},
@@ -882,6 +930,7 @@ var (
 		GenerationsTable,
 		GenerationModelsTable,
 		GenerationOutputsTable,
+		GenerationOutputEmbedsTable,
 		GenerationOutputLikesTable,
 		IPBlacklistTable,
 		MqLogTable,
@@ -946,6 +995,10 @@ func init() {
 	GenerationOutputsTable.ForeignKeys[0].RefTable = GenerationsTable
 	GenerationOutputsTable.Annotation = &entsql.Annotation{
 		Table: "generation_outputs",
+	}
+	GenerationOutputEmbedsTable.ForeignKeys[0].RefTable = GenerationOutputsTable
+	GenerationOutputEmbedsTable.Annotation = &entsql.Annotation{
+		Table: "generation_output_embeds",
 	}
 	GenerationOutputLikesTable.ForeignKeys[0].RefTable = GenerationOutputsTable
 	GenerationOutputLikesTable.ForeignKeys[1].RefTable = UsersTable
