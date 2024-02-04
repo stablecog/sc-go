@@ -82,6 +82,7 @@ func main() {
 	clipUrlOverride := flag.String("clip-url", "", "Clip url to process")
 	migrateUsername := flag.Bool("migrate-username", false, "Generate usernames for existing users")
 	loadPgVector := flag.Bool("load-pg-vector", false, "Load pg_vector for existing generations")
+	approved := flag.Bool("approved", false, "Only load approved generations")
 
 	flag.Parse()
 
@@ -440,6 +441,9 @@ func main() {
 					)
 				},
 			)
+			if *approved {
+				q = q.Where(generationoutput.GalleryStatusEQ(generationoutput.GalleryStatusApproved))
+			}
 			if cursor != nil {
 				q = q.Where(generationoutput.CreatedAtLT(*cursor))
 			}
