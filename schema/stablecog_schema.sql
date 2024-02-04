@@ -1321,8 +1321,13 @@ CREATE TABLE public.generation_output_embeds (
     prompt_embedding vector(1024) NOT NULL,
     image_embedding vector(1024) NOT NULL,
     output_id uuid NOT NULL REFERENCES public.generation_outputs(id) ON DELETE CASCADE,
-    created_at timestamp with time zone DEFAULT (now() AT TIME ZONE 'utc'::text) NOT NULL
+    created_at timestamp with time zone DEFAULT (now() AT TIME ZONE 'utc'::text) NOT NULL,
+    updated_at timestamp with time zone DEFAULT (now() AT TIME ZONE 'utc'::text) NOT NULL
 );
+
+CREATE trigger handle_updated_at before
+UPDATE
+    ON public.generation_output_embeds FOR each ROW EXECUTE PROCEDURE moddatetime (updated_at);
 
 ALTER TABLE ONLY public.generation_output_embeds
     ADD CONSTRAINT generation_output_embeds_pkey PRIMARY KEY (id);

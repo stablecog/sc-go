@@ -476,6 +476,13 @@ func main() {
 			log.Info("Last cursor", "cursor", cursor.Format(time.RFC3339Nano))
 			log.Infof("Loaded %d generations", len(gens))
 			cur += len(gens)
+
+			// Get count of output embed table
+			count, err := repo.DB.GenerationOutputEmbed.Query().Count(ctx)
+			if count > 1000000 {
+				log.Info("Loaded 1M outputs, stopping")
+				break
+			}
 		}
 		log.Infof("Done, sync'd %d", cur)
 		os.Exit(0)
