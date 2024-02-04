@@ -568,6 +568,9 @@ func (q *QdrantClient) GetPoints(ids []uuid.UUID, noRetry bool) (*GetPointsRespo
 		extendedPointIds[i].FromExtendedPointId1(id)
 	}
 	rId.Ids = extendedPointIds
+	withVector := WithVector{}
+	withVector.FromWithVector0(true)
+	rId.WithVector = &withVector
 	resp, err := q.Client.GetPointsWithResponse(q.Ctx, os.Getenv("QDRANT_COLLECTION_NAME_PROD"), &GetPointsParams{}, rId)
 	if err != nil {
 		if !noRetry && (os.IsTimeout(err) || strings.Contains(err.Error(), "connection refused")) {
