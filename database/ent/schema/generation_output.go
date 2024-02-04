@@ -23,7 +23,7 @@ func (GenerationOutput) Fields() []ent.Field {
 		field.UUID("id", uuid.UUID{}).Default(uuid.New),
 		field.Text("image_path"),
 		field.Text("upscaled_image_path").Optional().Nillable(),
-		field.Enum("gallery_status").Values("not_submitted", "submitted", "approved", "rejected", "waiting_to_approve").Default("not_submitted"),
+		field.Enum("gallery_status").Values("not_submitted", "submitted", "approved", "rejected", "waiting_for_approval").Default("not_submitted"),
 		field.Bool("is_favorited").Default(false),
 		field.Bool("has_embeddings").Default(false),
 		field.Bool("is_public").Default(false),

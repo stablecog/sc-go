@@ -1334,3 +1334,7 @@ CREATE INDEX ON public.generation_output_embeds USING hnsw (prompt_embedding vec
 CREATE INDEX ON public.generation_output_embeds USING hnsw (image_embedding vector_l2_ops) with (m=24, ef_construction=56);
 
 ALTER TABLE public.generation_output_embeds ENABLE ROW LEVEL SECURITY;
+
+-- Alter to add waiting_to_approve to gallery_status_enum
+ALTER TYPE generation_output_gallery_status_enum
+RENAME VALUE 'waiting_to_approve' TO 'waiting_for_approval';

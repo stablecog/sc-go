@@ -151,20 +151,34 @@ func (c *RestAPI) HandleReviewGallerySubmission(w http.ResponseWriter, r *http.R
 		return
 	}
 
+	galleryStatus := adminGalleryReq.GalleryStatus
+
 	var updateCount int
-	switch adminGalleryReq.Action {
-	case requests.GalleryApproveAction, requests.GalleryRejectAction:
-		updateCount, err = c.Repo.ApproveOrRejectGenerationOutputs(adminGalleryReq.GenerationOutputIDs, adminGalleryReq.Action == requests.GalleryApproveAction)
-		if err != nil {
-			if ent.IsNotFound(err) {
-				responses.ErrBadRequest(w, r, "Generation not found", "")
-				return
-			}
-			responses.ErrInternalServerError(w, r, err.Error())
+	if galleryStatus == "" {
+		switch adminGalleryReq.Action {
+		case requests.GalleryApproveAction:
+			galleryStatus = generationoutput.GalleryStatusApproved
+		case requests.GalleryRejectAction:
+			galleryStatus = generationoutput.GalleryStatusRejected
+		}
+	}
+
+	if galleryStatus != generationoutput.GalleryStatusApproved &&
+		galleryStatus != generationoutput.GalleryStatusRejected &&
+		galleryStatus != generationoutput.GalleryStatusWaitingForApproval &&
+		galleryStatus != generationoutput.GalleryStatusSubmitted &&
+		galleryStatus != generationoutput.GalleryStatusNotSubmitted {
+		responses.ErrBadRequest(w, r, "invalid_gallery_status", galleryStatus.String())
+		return
+	}
+
+	updateCount, err = c.Repo.BulkUpdateGalleryStatusForOutputs(adminGalleryReq.GenerationOutputIDs, galleryStatus)
+	if err != nil {
+		if ent.IsNotFound(err) {
+			responses.ErrBadRequest(w, r, "Generation not found", "")
 			return
 		}
-	default:
-		responses.ErrBadRequest(w, r, fmt.Sprintf("Unsupported action %s", adminGalleryReq.Action), "")
+		responses.ErrInternalServerError(w, r, err.Error())
 		return
 	}
 
@@ -257,7 +271,7 @@ func (c *RestAPI) HandleQueryGenerationsForAdmin(w http.ResponseWriter, r *http.
 				generationoutput.GalleryStatusApproved,
 				generationoutput.GalleryStatusRejected,
 				generationoutput.GalleryStatusSubmitted,
-				generationoutput.GalleryStatusWaitingToApprove,
+				generationoutput.GalleryStatusWaitingForApproval,
 			}
 		} else if slices.Contains(filters.GalleryStatus, generationoutput.GalleryStatusNotSubmitted) {
 			responses.ErrUnauthorized(w, r)

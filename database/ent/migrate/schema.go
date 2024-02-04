@@ -309,7 +309,7 @@ var (
 		{Name: "id", Type: field.TypeUUID},
 		{Name: "image_path", Type: field.TypeString, Size: 2147483647},
 		{Name: "upscaled_image_path", Type: field.TypeString, Nullable: true, Size: 2147483647},
-		{Name: "gallery_status", Type: field.TypeEnum, Enums: []string{"not_submitted", "submitted", "approved", "rejected", "waiting_to_approve"}, Default: "not_submitted"},
+		{Name: "gallery_status", Type: field.TypeEnum, Enums: []string{"not_submitted", "submitted", "approved", "rejected", "waiting_for_approval"}, Default: "not_submitted"},
 		{Name: "is_favorited", Type: field.TypeBool, Default: false},
 		{Name: "has_embeddings", Type: field.TypeBool, Default: false},
 		{Name: "is_public", Type: field.TypeBool, Default: false},

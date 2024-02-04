@@ -3,6 +3,7 @@ package requests
 
 import (
 	"github.com/google/uuid"
+	"github.com/stablecog/sc-go/database/ent/generationoutput"
 )
 
 type ReviewGalleryAction string
@@ -13,6 +14,8 @@ const (
 )
 
 type ReviewGalleryRequest struct {
-	Action              ReviewGalleryAction `json:"action"`
-	GenerationOutputIDs []uuid.UUID         `json:"generation_output_ids"`
+	// ! Deprecated, use gallery_status instead
+	Action              ReviewGalleryAction            `json:"action"`
+	GenerationOutputIDs []uuid.UUID                    `json:"generation_output_ids"`
+	GalleryStatus       generationoutput.GalleryStatus `json:"gallery_status"`
 }

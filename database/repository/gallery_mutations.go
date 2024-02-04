@@ -32,7 +32,7 @@ func (r *Repository) MakeGenerationOutputsPublicForUser(outputIDs []uuid.UUID, u
 		return 0, err
 	}
 	// Get the outputs where gallery status is approved/rejected
-	outputsToChangeIsPublic, err := r.DB.GenerationOutput.Query().Where(generationoutput.IDIn(outputIDs...), generationoutput.GalleryStatusIn(generationoutput.GalleryStatusApproved, generationoutput.GalleryStatusRejected, generationoutput.GalleryStatusWaitingToApprove)).All(r.Ctx)
+	outputsToChangeIsPublic, err := r.DB.GenerationOutput.Query().Where(generationoutput.IDIn(outputIDs...), generationoutput.GalleryStatusIn(generationoutput.GalleryStatusApproved, generationoutput.GalleryStatusRejected, generationoutput.GalleryStatusWaitingForApproval)).All(r.Ctx)
 	if err != nil {
 		log.Error("Error getting generation outputs SubmitGenerationOutputsToGalleryForUser", "err", err)
 		return 0, err
@@ -121,7 +121,7 @@ func (r *Repository) MakeGenerationOutputsPrivateForUser(outputIDs []uuid.UUID, 
 
 	// Get the IDs to update exactly so we can accurately sync with qdrant
 	// Get the outputs without gallery status approved/rejected
-	outputsToChangeGalleryStatus, err := r.DB.GenerationOutput.Query().Where(generationoutput.IDIn(outputIDs...), generationoutput.GalleryStatusIn(generationoutput.GalleryStatusSubmitted, generationoutput.GalleryStatusNotSubmitted, generationoutput.GalleryStatusWaitingToApprove)).WithGenerations().All(r.Ctx)
+	outputsToChangeGalleryStatus, err := r.DB.GenerationOutput.Query().Where(generationoutput.IDIn(outputIDs...), generationoutput.GalleryStatusIn(generationoutput.GalleryStatusSubmitted, generationoutput.GalleryStatusNotSubmitted, generationoutput.GalleryStatusWaitingForApproval)).WithGenerations().All(r.Ctx)
 	if err != nil {
 		log.Error("Error getting generation outputs SubmitGenerationOutputsToGalleryForUser", "err", err)
 		return 0, err
@@ -223,7 +223,7 @@ func (r *Repository) SubmitGenerationOutputsToGalleryForUser(outputIDs []uuid.UU
 	}
 
 	// Get the IDs to update exactly so we can accurately sync with qdrant
-	outputs, err := r.DB.GenerationOutput.Query().Where(generationoutput.IDIn(outputIDs...), generationoutput.GalleryStatusNotIn(generationoutput.GalleryStatusApproved, generationoutput.GalleryStatusRejected, generationoutput.GalleryStatusSubmitted, generationoutput.GalleryStatusWaitingToApprove)).All(r.Ctx)
+	outputs, err := r.DB.GenerationOutput.Query().Where(generationoutput.IDIn(outputIDs...), generationoutput.GalleryStatusNotIn(generationoutput.GalleryStatusApproved, generationoutput.GalleryStatusRejected, generationoutput.GalleryStatusSubmitted, generationoutput.GalleryStatusWaitingForApproval)).All(r.Ctx)
 	if err != nil {
 		log.Error("Error getting generation outputs SubmitGenerationOutputsToGalleryForUser", "err", err)
 		return 0, err
@@ -268,24 +268,17 @@ func (r *Repository) SubmitGenerationOutputsToGalleryForUser(outputIDs []uuid.UU
 	return updated, nil
 }
 
-// Approve or reject a generation outputs for gallery
-func (r *Repository) ApproveOrRejectGenerationOutputs(outputIDs []uuid.UUID, approved bool) (int, error) {
-	var status generationoutput.GalleryStatus
-	if approved {
-		status = generationoutput.GalleryStatusApproved
-	} else {
-		status = generationoutput.GalleryStatusRejected
-	}
-
+// Bulk change gallery status
+func (r *Repository) BulkUpdateGalleryStatusForOutputs(outputIDs []uuid.UUID, galleryStatus generationoutput.GalleryStatus) (int, error) {
 	// ! TODO temporary query since some stuff doesnt have embeddings
 	outputs, err := r.DB.GenerationOutput.Query().Where(generationoutput.IDIn(outputIDs...)).All(r.Ctx)
 	if err != nil {
-		log.Error("Error getting generation outputs ApproveOrRejectGenerationOutputs", "err", err)
+		log.Error("Error getting generation outputs BulkUpdateGalleryStatusForOutputs", "err", err)
 		return 0, err
 	}
 
 	qdrantPayload := map[string]interface{}{
-		"gallery_status": status,
+		"gallery_status": galleryStatus,
 	}
 	var qdrantIds []uuid.UUID
 	for _, o := range outputs {
@@ -296,7 +289,7 @@ func (r *Repository) ApproveOrRejectGenerationOutputs(outputIDs []uuid.UUID, app
 
 	var updated int
 	if err := r.WithTx(func(tx *ent.Tx) error {
-		u, err := r.DB.GenerationOutput.Update().Where(generationoutput.IDIn(outputIDs...)).SetGalleryStatus(status).Save(r.Ctx)
+		u, err := r.DB.GenerationOutput.Update().Where(generationoutput.IDIn(outputIDs...)).SetGalleryStatus(galleryStatus).Save(r.Ctx)
 		if err != nil {
 			log.Error("Error updating generation outputs to gallery", "err", err)
 			return err
