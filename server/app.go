@@ -468,6 +468,7 @@ func main() {
 				log.Fatal("Failed to get points", "err", err)
 			}
 			for _, embed := range embeddings.Result {
+				log.Info("Creating pg vector", "id", embed.ID, "image_length", len(embed.Vector.Image), "text_length", len(embed.Vector.Text))
 				repo.DB.GenerationOutputEmbed.Create().SetOutputID(embed.ID).SetImageEmbedding(pgvector.NewVector(embed.Vector.Image)).SetPromptEmbedding(pgvector.NewVector(embed.Vector.Text)).SaveX(ctx)
 			}
 			// Update cursor
