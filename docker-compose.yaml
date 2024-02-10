@@ -22,6 +22,15 @@ services:
       - .data/postgres:/var/lib/postgresql/data:delegated # Delegated indicates the containers view of the volume takes priority
     networks: [ 'app-network' ]
 
+  rabbitmq:
+    container_name: stablecog_go_rabbitmq
+    image: rabbitmq:3.12.6
+    restart: unless-stopped
+    ports:
+      - '127.0.0.1:5672:5672'
+    networks: [ 'app-network' ]
+
+
   app:
     container_name: stablecog_go_dev
     image: appditto/go-vscode-dev:latest
@@ -31,6 +40,7 @@ services:
       - GOPRIVATE=github.com/stablecog
       - PORT=13337
       - REDIS_CONNECTION_STRING=redis://redis:6379
+      - RABBITMQ_AMQP_URL=amqp://guest:guest@rabbitmq:5672/
     ports:
       - '127.0.0.1:13337:13337'
     volumes:
