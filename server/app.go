@@ -271,9 +271,9 @@ func main() {
 				ID   uuid.UUID
 				Text string
 			}
-			prompts := make([]utils.PromptGen, len(gens))
+			prompts := make([]PromptGen, len(gens))
 			for i, gen := range gens {
-				prompts[i] = utils.PromptGen{
+				prompts[i] = PromptGen{
 					ID:   gen.GenerationID,
 					Text: gen.Edges.Generations.Edges.Prompt.Text,
 				}
