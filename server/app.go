@@ -225,8 +225,6 @@ func main() {
 			cursor = &t
 		}
 
-		promptEmbeddings := make(map[string][]float32)
-
 		for {
 			log.Info("Loading batch of embeddings", "cur", cur, "each", each)
 			start := time.Now()
@@ -264,21 +262,11 @@ func main() {
 
 			ids := make([]uuid.UUID, len(gens))
 			var clipReq []requests.ClipAPIImageRequest
-			promptMap := make(map[uuid.UUID]string)
 			for i, gen := range gens {
 				ids[i] = gen.ID
 				clipReq = append(clipReq, requests.ClipAPIImageRequest{
 					ID:      gen.ID,
 					ImageID: gen.ImagePath,
-				})
-				if _, ok := promptEmbeddings[gen.Edges.Generations.Edges.Prompt.Text]; !ok {
-					promptMap[gen.GenerationID] = gen.Edges.Generations.Edges.Prompt.Text
-				}
-			}
-			for k, gen := range promptMap {
-				clipReq = append(clipReq, requests.ClipAPIImageRequest{
-					ID:   k,
-					Text: gen,
 				})
 			}
 
@@ -363,16 +351,6 @@ func main() {
 				if !ok {
 					log.Warn("Missing embedding", "id", gOutput.ID)
 					continue
-				}
-				payload["text_embedding"], ok = embeddings[gOutput.Edges.Generations.ID]
-				if !ok {
-					payload["text_embedding"], ok = promptEmbeddings[gOutput.Edges.Generations.Edges.Prompt.Text]
-					if !ok {
-						log.Warn("Missing text embedding", "id", gOutput.Edges.Generations.ID)
-						continue
-					}
-				} else {
-					promptEmbeddings[gOutput.Edges.Generations.Edges.Prompt.Text] = embeddings[gOutput.Edges.Generations.ID]
 				}
 				payload["id"] = gOutput.ID.String()
 				if gOutput.UpscaledImagePath != nil {
