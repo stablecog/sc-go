@@ -1964,6 +1964,8 @@ type VectorParams struct {
 
 	// Size Size of a vectors used
 	Size uint64 `json:"size"`
+
+	OnDisk *bool `json:"on_disk,omitempty"`
 }
 
 // VectorStruct Full vector data per point separator with single and multiple vector modes

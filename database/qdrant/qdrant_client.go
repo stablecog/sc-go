@@ -234,7 +234,7 @@ func (q *QdrantClient) CreateCollectionIfNotExists(noRetry bool) error {
 	quantizationConfig := QuantizationConfig{}
 	err = quantizationConfig.FromBinaryQuantization(BinaryQuantization{
 		Binary: BinaryQuantizationConfig{
-			AlwaysRam: utils.ToPtr(false),
+			AlwaysRam: utils.ToPtr(true),
 		},
 	})
 	if err != nil {
@@ -254,6 +254,7 @@ func (q *QdrantClient) CreateCollectionIfNotExists(noRetry bool) error {
 	vectorsConfigMulti["image"] = VectorParams{
 		Size:     uint64(1024),
 		Distance: "Dot",
+		OnDisk:   utils.ToPtr(true),
 	}
 	vectorsConfig.FromVectorsConfig1(vectorsConfigMulti)
 	if err != nil {
@@ -547,7 +548,7 @@ func (q *QdrantClient) Query(embedding []float32, noRetry bool) (*QResponse, err
 	qParams := &SearchParams_Quantization{}
 	qParams.FromQuantizationSearchParams(QuantizationSearchParams{
 		Ignore:  utils.ToPtr(false),
-		Rescore: utils.ToPtr(false),
+		Rescore: utils.ToPtr(true),
 	})
 	params := &SearchRequest_Params{}
 	params.FromSearchParams(SearchParams{
@@ -623,7 +624,7 @@ func (q *QdrantClient) QueryGenerations(embedding []float32, per_page int, offse
 	qParams := &SearchParams_Quantization{}
 	qParams.FromQuantizationSearchParams(QuantizationSearchParams{
 		Ignore:  utils.ToPtr(false),
-		Rescore: utils.ToPtr(false),
+		Rescore: utils.ToPtr(true),
 	})
 	params := &SearchRequest_Params{}
 	params.FromSearchParams(SearchParams{
