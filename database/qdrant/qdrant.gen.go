@@ -1473,6 +1473,10 @@ type ScalarQuantization struct {
 	Scalar ScalarQuantizationConfig `json:"scalar"`
 }
 
+type BinaryQuantization struct {
+	Binary BinaryQuantizationConfig `json:"binary"`
+}
+
 // ScalarQuantizationConfig defines model for ScalarQuantizationConfig.
 type ScalarQuantizationConfig struct {
 	// AlwaysRam If true - quantized vectors always will be stored in RAM, ignoring the config of main storage
@@ -1481,6 +1485,11 @@ type ScalarQuantizationConfig struct {
 	// Quantile Quantile for quantization. Expected value range in (0, 1.0]. If not set - use the whole range of values
 	Quantile *float32   `json:"quantile"`
 	Type     ScalarType `json:"type"`
+}
+
+type BinaryQuantizationConfig struct {
+	// AlwaysRam If true - quantized vectors always will be stored in RAM, ignoring the config of main storage
+	AlwaysRam *bool `json:"always_ram"`
 }
 
 // ScalarType defines model for ScalarType.
@@ -5038,6 +5047,12 @@ func (t QuantizationConfig) AsScalarQuantization() (ScalarQuantization, error) {
 
 // FromScalarQuantization overwrites any union data inside the QuantizationConfig as the provided ScalarQuantization
 func (t *QuantizationConfig) FromScalarQuantization(v ScalarQuantization) error {
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+func (t *QuantizationConfig) FromBinaryQuantization(v BinaryQuantization) error {
 	b, err := json.Marshal(v)
 	t.union = b
 	return err

@@ -453,6 +453,7 @@ func (r *Repository) RetrieveGenerationsWithOutputIDs(outputIDs []uuid.UUID, cal
 		}
 		if g.Edges.Generations.InitImageURL != nil {
 			output.Generation.InitImageURL = *g.Edges.Generations.InitImageURL
+			output.Generation.PromptStrength = g.Edges.Generations.PromptStrength
 		}
 		if g.Edges.Generations.Edges.NegativePrompt != nil {
 			output.Generation.NegativePrompt = &PromptType{
@@ -1042,6 +1043,7 @@ func (r *Repository) QueryGenerationsAdmin(per_page int, cursor *time.Time, call
 		}
 		if g.Edges.Generations.InitImageURL != nil {
 			generationRoot.InitImageURL = *g.Edges.Generations.InitImageURL
+			generationRoot.PromptStrength = g.Edges.Generations.PromptStrength
 		}
 		if g.Edges.Generations.Edges.NegativePrompt != nil {
 			generationRoot.NegativePrompt = &PromptType{
