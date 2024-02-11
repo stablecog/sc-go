@@ -178,7 +178,7 @@ func (c *RestAPI) HandleSemanticSearchGallery(w http.ResponseWriter, r *http.Req
 			}
 		}
 
-		res, err := c.Qdrant.QueryGenerations(embeddings, perPage, offset, scoreThreshold, qdrantFilters, false, false)
+		res, err := c.Qdrant.QueryGenerations(embeddings, perPage, offset, scoreThreshold, filters.Oversampling, qdrantFilters, false, false)
 		if err != nil {
 			log.Error("Error querying qdrant", "err", err)
 			responses.ErrInternalServerError(w, r, "An unknown error occurred")

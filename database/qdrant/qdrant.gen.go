@@ -1197,6 +1197,8 @@ type QuantizationSearchParams struct {
 
 	// Rescore If true, use original vectors to re-score top-k results. Might require more time in case if original vectors are stored on disk. Default is false.
 	Rescore *bool `json:"rescore,omitempty"`
+
+	Oversampling *float32 `json:"oversampling,omitempty"`
 }
 
 // RaftInfo Summary information about the current raft state

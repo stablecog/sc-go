@@ -78,6 +78,7 @@ type QueryGenerationFilters struct {
 	AestheticRatingScoreGTE   *float32                         `json:"aesthetic_rating_score_gte,omitempty"`
 	Username                  []string                         `json:"username,omitempty"`
 	AspectRatio               []aspectratio.AspectRatio        `json:"aspect_ratio,omitempty"`
+	Oversampling              *float32                         `json:"oversampling,omitempty"`
 }
 
 // Parse all filters into a QueryGenerationFilters struct
@@ -310,6 +311,14 @@ func (filters *QueryGenerationFilters) ParseURLQueryParameters(urlValues url.Val
 			} else {
 				return fmt.Errorf("invalid upscaled: '%s' expected '%s', '%s', or '%s'", value[0], UpscaleStatusAny, UpscaleStatusNot, UpscaleStatusOnly)
 			}
+		}
+
+		if key == "oversampling" {
+			parsed, err := strconv.ParseFloat(value[0], 32)
+			if err != nil {
+				return fmt.Errorf("invalid oversampling: %s", value[0])
+			}
+			filters.Oversampling = utils.ToPtr(float32(parsed))
 		}
 
 		// Gallery status
