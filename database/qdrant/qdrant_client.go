@@ -643,11 +643,11 @@ func (q *QdrantClient) QueryGenerations(embedding []float32, per_page int, offse
 		return nil, err
 	}
 
-	if scoreThreshold != nil {
+	if oversampling != nil {
 		jsonBody := SearchPointsJSONRequestBody{
-			Limit:          uint(per_page + 1),
-			WithPayload:    withPayload,
-			Vector:         namedVectorParams,
+			Limit:       uint(per_page + 1),
+			WithPayload: withPayload,
+			// Vector:         namedVectorParams,
 			Offset:         offset,
 			Filter:         filters,
 			Params:         params,
