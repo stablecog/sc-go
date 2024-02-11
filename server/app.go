@@ -75,6 +75,7 @@ func main() {
 	syncIsPublic := flag.Bool("sync-is-public", false, "Sync is_public to qdrant")
 	syncGalleryStatus := flag.Bool("sync-gallery-status", false, "Sync gallery_status to qdrant")
 	loadQdrant := flag.Bool("load-qdrant", false, "Load qdrant with all data")
+	batchSize := flag.Int("batch-size", 100, "Batch size for loading qdrant")
 	reverse := flag.Bool("reverse", false, "Reverse the order of the embeddings")
 	clipUrlOverride := flag.String("clip-url", "", "Clip url to process")
 	migrateUsername := flag.Bool("migrate-username", false, "Generate usernames for existing users")
@@ -213,7 +214,7 @@ func main() {
 		if *clipUrlOverride != "" {
 			clipUrl = *clipUrlOverride
 		}
-		each := 100
+		each := *batchSize
 		cur := 0
 		urlIdx := 0
 		var cursor *time.Time
