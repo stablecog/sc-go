@@ -255,10 +255,6 @@ func (q *QdrantClient) CreateCollectionIfNotExists(noRetry bool) error {
 		Size:     uint64(1024),
 		Distance: "Dot",
 	}
-	vectorsConfigMulti["text"] = VectorParams{
-		Size:     uint64(1024),
-		Distance: "Cosine",
-	}
 	vectorsConfig.FromVectorsConfig1(vectorsConfigMulti)
 	if err != nil {
 		log.Errorf("Error creating vectors config %v", err)
@@ -302,7 +298,7 @@ func (q *QdrantClient) CreateCollectionIfNotExists(noRetry bool) error {
 }
 
 // Upsert
-func (q *QdrantClient) Upsert(id uuid.UUID, payload map[string]interface{}, imageEmbedding []float32, promptEmbedding []float32, noRetry bool) error {
+func (q *QdrantClient) Upsert(id uuid.UUID, payload map[string]interface{}, imageEmbedding []float32, noRetry bool) error {
 	// id
 	rId := ExtendedPointId{}
 	err := rId.FromExtendedPointId1(id)
@@ -321,7 +317,6 @@ func (q *QdrantClient) Upsert(id uuid.UUID, payload map[string]interface{}, imag
 	v := VectorStruct{}
 	err = v.FromVectorStruct1(VectorStruct1{
 		"image": imageEmbedding,
-		"text":  promptEmbedding,
 	})
 	if err != nil {
 		log.Errorf("Error creating vector %v", err)
@@ -342,7 +337,7 @@ func (q *QdrantClient) Upsert(id uuid.UUID, payload map[string]interface{}, imag
 	resp, err := q.Client.UpsertPointsWithResponse(q.Ctx, q.CollectionName, &UpsertPointsParams{}, b)
 	if err != nil {
 		if !noRetry && (os.IsTimeout(err) || strings.Contains(err.Error(), "connection refused")) {
-			return q.Upsert(id, payload, imageEmbedding, promptEmbedding, true)
+			return q.Upsert(id, payload, imageEmbedding, true)
 		}
 		log.Errorf("Error upserting to collection %v", err)
 		return err
@@ -449,10 +444,6 @@ func (q *QdrantClient) BatchUpsert(payload []map[string]interface{}, noRetry boo
 		if hasEmbedding {
 			delete(p, "embedding")
 		}
-		textEmbedding, hasTextEmbedding := p["text_embedding"].([]float32)
-		if hasTextEmbedding {
-			delete(p, "text_embedding")
-		}
 
 		rId := ExtendedPointId{}
 		err = rId.FromExtendedPointId1(id)
@@ -473,7 +464,6 @@ func (q *QdrantClient) BatchUpsert(payload []map[string]interface{}, noRetry boo
 		v := VectorStruct{}
 		vMulti := VectorStruct1{}
 		vMulti["image"] = embedding
-		vMulti["text"] = textEmbedding
 		err = v.FromVectorStruct1(vMulti)
 		if err != nil {
 			log.Errorf("Error creating vector %v", err)
@@ -510,7 +500,6 @@ func (q *QdrantClient) BatchUpsert(payload []map[string]interface{}, noRetry boo
 // Type for vector result
 type GetPointVector struct {
 	Image []float32 `json:"image"`
-	Text  []float32 `json:"text"`
 }
 
 // Type for GetPoint response

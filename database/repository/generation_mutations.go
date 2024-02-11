@@ -194,7 +194,6 @@ func (r *Repository) SetGenerationSucceeded(generationID string, promptStr strin
 					gOutput.ID,
 					payload,
 					output.ImageEmbed,
-					whOutput.PromptEmbed,
 					false,
 				)
 				if err != nil {
