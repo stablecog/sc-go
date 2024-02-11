@@ -631,7 +631,7 @@ func (q *QdrantClient) QueryGenerations(embedding []float32, per_page int, offse
 	params.FromSearchParams(SearchParams{
 		HnswEf:       utils.ToPtr[uint](128),
 		Exact:        utils.ToPtr(false),
-		Quantization: &SearchParams_Quantization{},
+		Quantization: qParams,
 	})
 	namedVectorParams := NamedVectorStruct{}
 	err := namedVectorParams.FromNamedVector(NamedVector{
