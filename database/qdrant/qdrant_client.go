@@ -232,11 +232,9 @@ func (q *QdrantClient) CreateCollectionIfNotExists(noRetry bool) error {
 
 	// create quantization config
 	quantizationConfig := QuantizationConfig{}
-	err = quantizationConfig.FromScalarQuantization(ScalarQuantization{
-		Scalar: ScalarQuantizationConfig{
+	err = quantizationConfig.FromBinaryQuantization(BinaryQuantization{
+		Binary: BinaryQuantizationConfig{
 			AlwaysRam: utils.ToPtr(false),
-			Quantile:  utils.ToPtr[float32](0.99),
-			Type:      ScalarType("int8"),
 		},
 	})
 	if err != nil {
