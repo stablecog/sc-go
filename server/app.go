@@ -208,7 +208,6 @@ func main() {
 
 	if *loadQdrant {
 		log.Info("🏡 Loading qdrant data...")
-		safetyChecker := NewTranslatorSafetyChecker(ctx, redis, utils.GetEnv().OpenAIApiKey, false)
 		secret := utils.GetEnv().ClipAPISecret
 		clipUrl := utils.GetEnv().ClipAPIEndpoint
 		if *clipUrlOverride != "" {
@@ -266,30 +265,14 @@ func main() {
 			ids := make([]uuid.UUID, len(gens))
 			var clipReq []requests.ClipAPIImageRequest
 			promptMap := make(map[uuid.UUID]string)
-
-			type promptGen struct {
-				ID   uuid.UUID
-				Text string
-			}
-			prompts := make([]PromptGen, len(gens))
-			for i, gen := range gens {
-				prompts[i] = PromptGen{
-					ID:   gen.GenerationID,
-					Text: gen.Edges.Generations.Edges.Prompt.Text,
-				}
-			}
-			translatedPrompts, _ := safetyChecker.TranslatePromptsBulk(prompts)
-
 			for i, gen := range gens {
 				ids[i] = gen.ID
 				clipReq = append(clipReq, requests.ClipAPIImageRequest{
 					ID:      gen.ID,
 					ImageID: gen.ImagePath,
 				})
-			}
-			for _, promptText := range translatedPrompts {
-				if _, ok := promptEmbeddings[promptText.Text]; !ok {
-					promptMap[promptText.ID] = promptText.Text
+				if _, ok := promptEmbeddings[gen.Edges.Generations.Edges.Prompt.Text]; !ok {
+					promptMap[gen.GenerationID] = gen.Edges.Generations.Edges.Prompt.Text
 				}
 			}
 			for k, gen := range promptMap {
