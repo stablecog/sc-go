@@ -395,7 +395,7 @@ func main() {
 	}
 
 	if *testClipService {
-		log.Info("🏡 Loading qdrant data...")
+		log.Info("🏡 Comparing clip...")
 		secret := utils.GetEnv().ClipAPISecret
 		clipUrl := utils.GetEnv().ClipAPIEndpoint
 		clipUrl2 := *clipUrl2
@@ -527,7 +527,7 @@ func main() {
 				log.Fatal(err)
 			}
 			var clipAPIResponse2 responses.EmbeddingsResponse
-			err = json.Unmarshal(readAll2, &clipAPIResponse)
+			err = json.Unmarshal(readAll2, &clipAPIResponse2)
 			if err != nil {
 				log.Infof("Last cursor: %v", cursor.Format(time.RFC3339Nano))
 				log.Warnf("Error unmarshalling resp clip %v", err)
@@ -554,7 +554,7 @@ func main() {
 				}
 				embedding2, ok := embeddings2[gOutput.ID]
 				if !ok {
-					log.Warn("Missing embedding", "id", gOutput.ID)
+					log.Warn("Missing embedding 2", "id", gOutput.ID)
 					continue
 				}
 
