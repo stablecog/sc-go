@@ -75,9 +75,11 @@ func main() {
 	syncIsPublic := flag.Bool("sync-is-public", false, "Sync is_public to qdrant")
 	syncGalleryStatus := flag.Bool("sync-gallery-status", false, "Sync gallery_status to qdrant")
 	loadQdrant := flag.Bool("load-qdrant", false, "Load qdrant with all data")
+	testClipService := flag.Bool("test-clip-service", false, "Test clip service")
 	batchSize := flag.Int("batch-size", 100, "Batch size for loading qdrant")
 	reverse := flag.Bool("reverse", false, "Reverse the order of the embeddings")
 	clipUrlOverride := flag.String("clip-url", "", "Clip url to process")
+	clipUrl2 := flag.String("clip-url-2", "", "Clip url to process")
 	migrateUsername := flag.Bool("migrate-username", false, "Generate usernames for existing users")
 
 	flag.Parse()
@@ -389,6 +391,192 @@ func main() {
 		}
 
 		log.Info("Loaded generation outputs", "count", cur)
+		os.Exit(0)
+	}
+
+	if *testClipService {
+		log.Info("🏡 Loading qdrant data...")
+		secret := utils.GetEnv().ClipAPISecret
+		clipUrl := utils.GetEnv().ClipAPIEndpoint
+		clipUrl2 := *clipUrl2
+		if *clipUrlOverride != "" {
+			clipUrl = *clipUrlOverride
+		}
+		if clipUrl2 == "" && *clipUrlOverride == "" {
+			log.Fatal("Both clip URLs is required")
+		}
+		each := *batchSize
+		cur := 0
+		urlIdx := 0
+		var cursor *time.Time
+		if *cursorEmbeddings != "" {
+			t, err := time.Parse(time.RFC3339, *cursorEmbeddings)
+			if err != nil {
+				log.Fatal("Failed to parse cursor", "err", err)
+			}
+			cursor = &t
+		}
+
+		for {
+			log.Info("Loading batch of embeddings", "cur", cur, "each", each)
+			start := time.Now()
+			q := repo.DB.GenerationOutput.Query().Where(generationoutput.HasEmbeddings(false), generationoutput.ImagePathNEQ("placeholder.webp"))
+			if cursor != nil {
+				if *reverse {
+					q = q.Where(generationoutput.CreatedAtGT(*cursor))
+				} else {
+					q = q.Where(generationoutput.CreatedAtLT(*cursor))
+				}
+			}
+			if *reverse {
+				q.Order(ent.Asc(generationoutput.FieldCreatedAt))
+			} else {
+				q.Order(ent.Desc(generationoutput.FieldCreatedAt))
+			}
+			gens, err := q.WithGenerations(func(gq *ent.GenerationQuery) {
+				gq.WithPrompt()
+				gq.WithNegativePrompt()
+			}).Limit(each).All(ctx)
+			if err != nil {
+				if cursor != nil {
+					log.Info("Last cursor", "cursor", cursor.Format(time.RFC3339Nano))
+				}
+				log.Fatal("Failed to load generation outputs", "err", err)
+			}
+			log.Infof("Retreived generations in %s", time.Since(start))
+
+			// Update cursor
+			cursor = &gens[len(gens)-1].CreatedAt
+
+			if len(gens) == 0 {
+				break
+			}
+
+			ids := make([]uuid.UUID, len(gens))
+			var clipReq []requests.ClipAPIImageRequest
+			for i, gen := range gens {
+				ids[i] = gen.ID
+				clipReq = append(clipReq, requests.ClipAPIImageRequest{
+					ID:      gen.ID,
+					ImageID: gen.ImagePath,
+				})
+			}
+
+			// Make API request to clip
+			start = time.Now()
+			b, err := json.Marshal(clipReq)
+			if err != nil {
+				log.Infof("Last cursor: %v", cursor.Format(time.RFC3339Nano))
+				log.Fatalf("Error marshalling req %v", err)
+			}
+			request, _ := http.NewRequest(http.MethodPost, clipUrl, bytes.NewReader(b))
+			urlIdx++
+			request.Header.Set("Authorization", secret)
+			request.Header.Set("Content-Type", "application/json")
+			// Do
+			resp, err := http.DefaultClient.Do(request)
+			if err != nil {
+				log.Infof("Last cursor: %v", cursor.Format(time.RFC3339Nano))
+				log.Warnf("Error making request %v", err)
+				time.Sleep(30 * time.Second)
+				continue
+			}
+			defer resp.Body.Close()
+
+			readAll, err := io.ReadAll(resp.Body)
+			if err != nil {
+				log.Infof("Last cursor: %v", cursor.Format(time.RFC3339Nano))
+				log.Fatal(err)
+			}
+			var clipAPIResponse responses.EmbeddingsResponse
+			err = json.Unmarshal(readAll, &clipAPIResponse)
+			if err != nil {
+				log.Infof("Last cursor: %v", cursor.Format(time.RFC3339Nano))
+				log.Warnf("Error unmarshalling resp clip %v", err)
+				continue
+			}
+
+			// Builds maps of embeddings
+			embeddings := make(map[uuid.UUID][]float32)
+			for _, embedding := range clipAPIResponse.Embeddings {
+				if embedding.Error != "" {
+					log.Warn("Error from clip api", "err", embedding.Error)
+					continue
+				}
+				embeddings[embedding.ID] = embedding.Embedding
+			}
+
+			// Clip 2 request
+			request2, _ := http.NewRequest(http.MethodPost, clipUrl2, bytes.NewReader(b))
+			urlIdx++
+			request2.Header.Set("Authorization", secret)
+			request2.Header.Set("Content-Type", "application/json")
+			// Do
+			resp2, err := http.DefaultClient.Do(request2)
+			if err != nil {
+				log.Infof("Last cursor: %v", cursor.Format(time.RFC3339Nano))
+				log.Warnf("Error making request %v", err)
+				time.Sleep(30 * time.Second)
+				continue
+			}
+			defer resp2.Body.Close()
+
+			readAll2, err := io.ReadAll(resp2.Body)
+			if err != nil {
+				log.Infof("Last cursor: %v", cursor.Format(time.RFC3339Nano))
+				log.Fatal(err)
+			}
+			var clipAPIResponse2 responses.EmbeddingsResponse
+			err = json.Unmarshal(readAll2, &clipAPIResponse)
+			if err != nil {
+				log.Infof("Last cursor: %v", cursor.Format(time.RFC3339Nano))
+				log.Warnf("Error unmarshalling resp clip %v", err)
+				continue
+			}
+
+			// Builds maps of embeddings
+			embeddings2 := make(map[uuid.UUID][]float32)
+			for _, embedding := range clipAPIResponse2.Embeddings {
+				if embedding.Error != "" {
+					log.Warn("Error from clip api", "err", embedding.Error)
+					continue
+				}
+				embeddings2[embedding.ID] = embedding.Embedding
+			}
+
+			start = time.Now()
+			for _, gOutput := range gens {
+
+				embedding, ok := embeddings[gOutput.ID]
+				if !ok {
+					log.Warn("Missing embedding", "id", gOutput.ID)
+					continue
+				}
+				embedding2, ok := embeddings2[gOutput.ID]
+				if !ok {
+					log.Warn("Missing embedding", "id", gOutput.ID)
+					continue
+				}
+
+				// Compare embeddings
+				if len(embedding) != len(embedding2) {
+					log.Warn("Embeddings are different lengths", "id", gOutput.ID)
+					continue
+				}
+
+				for i, v := range embedding {
+					if v != embedding2[i] {
+						log.Warn("Embeddings are different", "id", gOutput.ID)
+						break
+					}
+				}
+			}
+
+			// Log cursor
+			log.Info("Last cursor", "cursor", cursor.Format(time.RFC3339Nano))
+		}
+
+		log.Info("Done", "count", cur)
 		os.Exit(0)
 	}
 
