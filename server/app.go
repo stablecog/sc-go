@@ -46,6 +46,7 @@ import (
 	uapi "github.com/stablecog/sc-go/uploadapi/api"
 	"github.com/stablecog/sc-go/utils"
 	stripe "github.com/stripe/stripe-go/v74/client"
+	"golang.org/x/exp/slices"
 	"golang.org/x/net/http2"
 	"golang.org/x/net/http2/h2c"
 )
@@ -545,30 +546,17 @@ func main() {
 			}
 
 			start = time.Now()
-			for _, gOutput := range gens {
-
-				embedding, ok := embeddings[gOutput.ID]
-				if !ok {
-					log.Warn("Missing embedding", "id", gOutput.ID)
+			for i, embedding := range embeddings {
+				if _, ok := embeddings2[i]; !ok {
+					log.Warn("Missing embedding 2", "id", i)
 					continue
 				}
-				embedding2, ok := embeddings2[gOutput.ID]
-				if !ok {
-					log.Warn("Missing embedding 2", "id", gOutput.ID)
+				if len(embedding) != len(embeddings2[i]) {
+					log.Warn("Embeddings are different lengths", "id", i)
 					continue
 				}
-
-				// Compare embeddings
-				if len(embedding) != len(embedding2) {
-					log.Warn("Embeddings are different lengths", "id", gOutput.ID)
-					continue
-				}
-
-				for i, v := range embedding {
-					if v != embedding2[i] {
-						log.Warn("Embeddings are different", "id", gOutput.ID)
-						break
-					}
+				if slices.Compare(embedding, embeddings2[i]) != 0 {
+					log.Warn("Embeddings are different", "id", i)
 				}
 			}
 
