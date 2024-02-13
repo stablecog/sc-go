@@ -170,10 +170,13 @@ func (c *RestAPI) HandleUserProfileSemanticSearch(w http.ResponseWriter, r *http
 	// Parse as qdrant filters
 	qdrantFilters, scoreThreshold := filters.ToQdrantFilters(true)
 	// Append gallery status requirement
-	qdrantFilters.Must = append(qdrantFilters.Must, qdrant.SCMatchCondition{
-		Key:   "is_public",
-		Match: &qdrant.SCValue{Value: true},
-	})
+	// Don't apply if super admin and filters.AdminMode is true
+	if !isSuperAdmin || filters.AdminMode == nil || !*filters.AdminMode {
+		qdrantFilters.Must = append(qdrantFilters.Must, qdrant.SCMatchCondition{
+			Key:   "is_public",
+			Match: &qdrant.SCValue{Value: true},
+		})
+	}
 	qdrantFilters.Must = append(qdrantFilters.Must, qdrant.SCMatchCondition{
 		IsEmpty: &qdrant.SCIsEmpty{Key: "deleted_at"},
 	})
@@ -274,7 +277,11 @@ func (c *RestAPI) HandleUserProfileSemanticSearch(w http.ResponseWriter, r *http
 		}
 
 		// Retrieve from postgres
-		filters.IsPublic = utils.ToPtr(true)
+		if !isSuperAdmin || filters.AdminMode == nil || !*filters.AdminMode {
+			filters.IsPublic = utils.ToPtr(true)
+		} else if isSuperAdmin && filters.AdminMode != nil && *filters.AdminMode {
+			filters.IsPublic = nil
+		}
 		galleryData, nextCursorPostgres, _, err = c.Repo.RetrieveMostRecentGalleryDataV2(filters, callingUserId, perPage, qCursor, nil)
 		if err != nil {
 			log.Error("Error querying gallery data from postgres", "err", err)

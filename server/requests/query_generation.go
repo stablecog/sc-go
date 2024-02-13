@@ -79,11 +79,24 @@ type QueryGenerationFilters struct {
 	Username                  []string                         `json:"username,omitempty"`
 	AspectRatio               []aspectratio.AspectRatio        `json:"aspect_ratio,omitempty"`
 	Oversampling              *float32                         `json:"oversampling,omitempty"`
+	AdminMode                 *bool                            `json:"admin_mode,omitempty"`
 }
 
 // Parse all filters into a QueryGenerationFilters struct
 func (filters *QueryGenerationFilters) ParseURLQueryParameters(urlValues url.Values) error {
 	for key, value := range urlValues {
+		// admin_mode
+		if key == "admin_mode" {
+			if strings.ToLower(value[0]) == "true" {
+				t := true
+				filters.AdminMode = &t
+			} else if strings.ToLower(value[0]) == "false" {
+				f := false
+				filters.AdminMode = &f
+			} else {
+				return fmt.Errorf("invalid admin_mode: '%s' expected 'true' or 'false'", value[0])
+			}
+		}
 		// model_ids
 		if key == "model_ids" {
 			if strings.Contains(value[0], ",") {
