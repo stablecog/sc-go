@@ -96,7 +96,23 @@ func (c *RestAPI) HandleUserProfileSemanticSearch(w http.ResponseWriter, r *http
 		isSuperAdmin, _ = c.Repo.IsSuperAdmin(*callingUserId)
 	}
 
-	if user.BannedAt != nil && user.ScheduledForDeletionOn != nil && !isSuperAdmin {
+	search := r.URL.Query().Get("search")
+	cursor := r.URL.Query().Get("cursor")
+	galleryData := []repository.GalleryData{}
+	var nextCursorQdrant *uint
+	var nextCursorPostgres *time.Time
+
+	// Parse filters
+	filters := &requests.QueryGenerationFilters{}
+	err = filters.ParseURLQueryParameters(r.URL.Query())
+	if err != nil {
+		responses.ErrBadRequest(w, r, err.Error(), "")
+		return
+	}
+	filters.UserID = utils.ToPtr(user.ID)
+
+	// Only don't do this if super admin and admin mode is true
+	if user.BannedAt != nil && user.ScheduledForDeletionOn != nil && !isSuperAdmin && (filters.AdminMode == nil || !*filters.AdminMode) {
 		render.Status(r, http.StatusOK)
 		render.JSON(w, r, GalleryResponse[*uint]{
 			Next:     nil,
@@ -138,21 +154,6 @@ func (c *RestAPI) HandleUserProfileSemanticSearch(w http.ResponseWriter, r *http
 		})
 		return
 	}
-
-	search := r.URL.Query().Get("search")
-	cursor := r.URL.Query().Get("cursor")
-	galleryData := []repository.GalleryData{}
-	var nextCursorQdrant *uint
-	var nextCursorPostgres *time.Time
-
-	// Parse filters
-	filters := &requests.QueryGenerationFilters{}
-	err = filters.ParseURLQueryParameters(r.URL.Query())
-	if err != nil {
-		responses.ErrBadRequest(w, r, err.Error(), "")
-		return
-	}
-	filters.UserID = utils.ToPtr(user.ID)
 
 	// Validate query parameters
 	perPage := GALLERY_PER_PAGE
