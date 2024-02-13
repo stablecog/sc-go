@@ -902,6 +902,9 @@ func (r *Repository) QueryGenerationsAdmin(per_page int, cursor *time.Time, call
 	queryG := r.DB.Generation.Query().Select(generation.FieldID).Where(
 		generation.StatusEQ(generation.StatusSucceeded),
 	)
+	if filters != nil && len(filters.Username) > 0 {
+		queryG = queryG.Where(generation.HasUserWith(user.UsernameIn(filters.Username...)))
+	}
 	queryG = r.ApplyUserGenerationsFilters(queryG, filters, false)
 	queryG = queryG.Where(func(s *sql.Selector) {
 		got := sql.Table(generationoutput.Table).As("t1")
