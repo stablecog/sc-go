@@ -899,7 +899,7 @@ func (r *Repository) QueryGenerationsAdmin(per_page int, cursor *time.Time, call
 		GalleryStatus     string     `json:"gallery_status" sql:"gallery_status"`
 	}
 
-	queryG := r.DB.Generation.Query().Select(generation.FieldID).Where(
+	queryG := r.DB.Debug().Generation.Query().Select(generation.FieldID).Where(
 		generation.StatusEQ(generation.StatusSucceeded),
 	)
 	if filters != nil && len(filters.Username) > 0 {
