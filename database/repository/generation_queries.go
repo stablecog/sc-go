@@ -903,7 +903,15 @@ func (r *Repository) QueryGenerationsAdmin(per_page int, cursor *time.Time, call
 		generation.StatusEQ(generation.StatusSucceeded),
 	)
 	if filters != nil && len(filters.Username) > 0 {
-		queryG = queryG.Where(generation.HasUserWith(user.UsernameIn(filters.Username...)))
+		queryG = queryG.Where(func(s *sql.Selector) {
+			uT := sql.Table(user.Table)
+			v := make([]any, len(filters.Username))
+			for i := range v {
+				v[i] = filters.Username[i]
+			}
+			s.Where(sql.In(s.C(generation.FieldUserID), sql.Select(user.FieldID).From(uT).Where(sql.In(user.FieldUsername, v...))))
+
+		})
 	}
 	queryG = r.ApplyUserGenerationsFilters(queryG, filters, false)
 	queryG = queryG.Where(func(s *sql.Selector) {
