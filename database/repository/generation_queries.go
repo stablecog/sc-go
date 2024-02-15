@@ -909,7 +909,7 @@ func (r *Repository) QueryGenerationsAdmin(per_page int, cursor *time.Time, call
 			for i := range v {
 				v[i] = filters.Username[i]
 			}
-			s.Where(sql.In(s.C(generation.FieldUserID), sql.Select(user.FieldID).From(uT).Where(sql.In(user.FieldUsername, v...))))
+			s.Where(sql.In(s.C(generation.FieldUserID), sql.Select(user.FieldID).From(uT).Where(sql.In(sql.Lower(user.FieldUsername), v...))))
 
 		})
 	}
