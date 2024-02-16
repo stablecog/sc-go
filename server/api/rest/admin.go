@@ -561,6 +561,10 @@ type EmbedTextRequest struct {
 	Translate bool   `json:"translate"`
 }
 
+type EmbedImagePathRequest struct {
+	ImagePath string `json:"image_path"`
+}
+
 type EmbedTextResponse struct {
 	Embedding []float32 `json:"embedding"`
 }
@@ -580,6 +584,33 @@ func (c *RestAPI) HandleEmbedText(w http.ResponseWriter, r *http.Request) {
 	}
 
 	embeddings, err := c.Clip.GetEmbeddingFromText(embedReq.Text, 2, embedReq.Translate)
+	if err != nil {
+		log.Errorf("Error getting embeddings %v", err)
+		responses.ErrInternalServerError(w, r, "An unknown error has occured")
+		return
+	}
+
+	render.Status(r, http.StatusOK)
+	render.JSON(w, r, EmbedTextResponse{
+		Embedding: embeddings,
+	})
+}
+
+func (c *RestAPI) HandleEmbedImagePath(w http.ResponseWriter, r *http.Request) {
+	if user, email := c.GetUserIDAndEmailIfAuthenticated(w, r); user == nil || email == "" {
+		return
+	}
+
+	// Parse request body
+	reqBody, _ := io.ReadAll(r.Body)
+	var embedReq EmbedImagePathRequest
+	err := json.Unmarshal(reqBody, &embedReq)
+	if err != nil {
+		responses.ErrUnableToParseJson(w, r)
+		return
+	}
+
+	embeddings, err := c.Clip.GetEmbeddingFromImagePath(embedReq.ImagePath, 2)
 	if err != nil {
 		log.Errorf("Error getting embeddings %v", err)
 		responses.ErrInternalServerError(w, r, "An unknown error has occured")

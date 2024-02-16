@@ -1046,6 +1046,7 @@ func main() {
 				r.Use(mw.AuthMiddleware(middleware.AuthLevelSuperAdmin, middleware.AuthLevelAPIToken))
 				r.Use(middleware.Logger)
 				r.Post("/text", hc.HandleEmbedText)
+				r.Post("/imageID", hc.HandleEmbedImagePath)
 			})
 		})
 

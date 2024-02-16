@@ -132,6 +132,74 @@ func (c *ClipService) GetEmbeddingFromText(text string, retries int, translate b
 	return clipAPIResponse.Embeddings[0].Embedding, nil
 }
 
+// GetEmbeddingFromImagePath, retry up to retries times
+func (c *ClipService) GetEmbeddingFromImagePath(imagePath string, retries int) (embedding []float32, err error) {
+	// Check cache first
+	e, err := c.redis.GetEmbeddings(c.redis.Ctx, utils.Sha256(imagePath))
+	if err == nil && len(e) > 0 {
+		return e, nil
+	}
+
+	req := []clipApiRequest{{
+		ImageID: imagePath,
+	}}
+
+	// Http POST to endpoint with secret
+	// Marshal req
+	b, err := json.Marshal(req)
+	if err != nil {
+		log.Errorf("Error marshalling req %v", err)
+		return nil, err
+	}
+	c.mu.RLock()
+	url := c.urls[c.activeUrl]
+	c.mu.RUnlock()
+	request, _ := http.NewRequest(http.MethodPost, url, bytes.NewReader(b))
+	// Do
+	resp, err := c.client.Do(request)
+	if err != nil {
+		log.Errorf("Error getting response from clip api %v", err)
+		if retries <= 0 {
+			return nil, err
+		}
+		// Set next active index
+		c.mu.Lock()
+		c.activeUrl = (c.activeUrl + 1) % len(c.urls)
+		c.mu.Unlock()
+		return c.GetEmbeddingFromImagePath(imagePath, retries-1)
+	}
+	defer resp.Body.Close()
+
+	readAll, err := io.ReadAll(resp.Body)
+	if err != nil {
+		log.Errorf("Error reading resposne body in clip API %v", err)
+		return nil, err
+	}
+	var clipAPIResponse responses.EmbeddingsResponse
+	err = json.Unmarshal(readAll, &clipAPIResponse)
+	if err != nil {
+		log.Errorf("Error unmarshalling resp %v", err)
+		return nil, err
+	}
+
+	if len(clipAPIResponse.Embeddings) == 0 {
+		log.Errorf("No embeddings returned from clip API")
+		return nil, fmt.Errorf("no embeddings returned from clip API")
+	}
+
+	// Cache
+	err = c.redis.CacheEmbeddings(c.redis.Ctx, utils.Sha256(imagePath), clipAPIResponse.Embeddings[0].Embedding)
+	if err != nil {
+		log.Errorf("Error caching embeddings %v", err)
+	}
+
+	c.mu.Lock()
+	c.activeUrl = (c.activeUrl + 1) % len(c.urls)
+	c.mu.Unlock()
+
+	return clipAPIResponse.Embeddings[0].Embedding, nil
+}
+
 type clipApiRequest struct {
 	Text    string `json:"text,omitempty"`
 	Image   string `json:"image,omitempty"`
