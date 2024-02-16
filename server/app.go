@@ -76,6 +76,7 @@ func main() {
 	syncIsPublic := flag.Bool("sync-is-public", false, "Sync is_public to qdrant")
 	syncGalleryStatus := flag.Bool("sync-gallery-status", false, "Sync gallery_status to qdrant")
 	loadQdrant := flag.Bool("load-qdrant", false, "Load qdrant with all data")
+	testEmbeddings := flag.Bool("test-embeddings", false, "Test embeddings API")
 	testClipService := flag.Bool("test-clip-service", false, "Test clip service")
 	batchSize := flag.Int("batch-size", 100, "Batch size for loading qdrant")
 	reverse := flag.Bool("reverse", false, "Reverse the order of the embeddings")
@@ -392,6 +393,108 @@ func main() {
 		}
 
 		log.Info("Loaded generation outputs", "count", cur)
+		os.Exit(0)
+	}
+
+	if *testEmbeddings {
+		log.Info("🏡 Test test...")
+		secret := utils.GetEnv().ClipAPISecret
+		clipUrl := utils.GetEnv().ClipAPIEndpoint
+		if *clipUrlOverride != "" {
+			clipUrl = *clipUrlOverride
+		}
+		each := *batchSize
+		cur := 0
+		urlIdx := 0
+		var cursor *time.Time
+
+		for {
+			log.Info("Fetching batch of embeddings", "cur", cur, "each", each)
+			start := time.Now()
+			q := repo.DB.GenerationOutput.Query().Where(generationoutput.ImagePathNEQ("placeholder.webp"))
+			if cursor != nil {
+				if *reverse {
+					q = q.Where(generationoutput.CreatedAtGT(*cursor))
+				} else {
+					q = q.Where(generationoutput.CreatedAtLT(*cursor))
+				}
+			}
+			if *reverse {
+				q.Order(ent.Asc(generationoutput.FieldCreatedAt))
+			} else {
+				q.Order(ent.Desc(generationoutput.FieldCreatedAt))
+			}
+			gens, err := q.WithGenerations(func(gq *ent.GenerationQuery) {
+			}).Limit(each).All(ctx)
+			if err != nil {
+				if cursor != nil {
+					log.Info("Last cursor", "cursor", cursor.Format(time.RFC3339Nano))
+				}
+				log.Fatal("Failed to load generation outputs", "err", err)
+			}
+			log.Infof("Retreived generations in %s", time.Since(start))
+
+			// Update cursor
+			cursor = &gens[len(gens)-1].CreatedAt
+
+			if len(gens) == 0 {
+				break
+			}
+
+			ids := make([]uuid.UUID, len(gens))
+			var clipReq []requests.ClipAPIImageRequest
+			for i, gen := range gens {
+				ids[i] = gen.ID
+				clipReq = append(clipReq, requests.ClipAPIImageRequest{
+					ID:      gen.ID,
+					ImageID: gen.ImagePath,
+				})
+			}
+
+			// Make API request to clip
+			start = time.Now()
+			b, err := json.Marshal(clipReq)
+			if err != nil {
+				log.Infof("Last cursor: %v", cursor.Format(time.RFC3339Nano))
+				log.Fatalf("Error marshalling req %v", err)
+			}
+			request, _ := http.NewRequest(http.MethodPost, clipUrl, bytes.NewReader(b))
+			urlIdx++
+			request.Header.Set("Authorization", secret)
+			request.Header.Set("Content-Type", "application/json")
+			// Do
+			resp, err := http.DefaultClient.Do(request)
+			if err != nil {
+				log.Infof("Last cursor: %v", cursor.Format(time.RFC3339Nano))
+				log.Warnf("Error making request %v", err)
+				time.Sleep(30 * time.Second)
+				continue
+			}
+			defer resp.Body.Close()
+
+			readAll, err := io.ReadAll(resp.Body)
+			if err != nil {
+				log.Infof("Last cursor: %v", cursor.Format(time.RFC3339Nano))
+				log.Fatal(err)
+			}
+			var clipAPIResponse responses.EmbeddingsResponse
+			err = json.Unmarshal(readAll, &clipAPIResponse)
+			if err != nil {
+				log.Infof("Last cursor: %v", cursor.Format(time.RFC3339Nano))
+				log.Warnf("Error unmarshalling resp clip %v", err)
+				continue
+			}
+
+			log.Infof("Retreived embeddings in %s", time.Since(start))
+
+			log.Info("Batched objects", "count", len(clipAPIResponse.Embeddings))
+			cur += len(clipAPIResponse.Embeddings)
+
+			// Log cursor
+			log.Info("Last cursor", "cursor", cursor.Format(time.RFC3339Nano))
+		}
+
+		log.Info("Hit API this many times", "count", cur)
 		os.Exit(0)
 	}
 
