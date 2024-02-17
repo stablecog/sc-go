@@ -61,7 +61,7 @@ var BuildStart = ""
 
 // roundFloat rounds a float32 value to a specified number of decimal places
 func roundFloat(val float32) float32 {
-	return float32(math.Round(float64(val)*10) / 10)
+	return float32(math.Trunc(float64(val)*10) / 10)
 }
 
 // compareSelectedElements compares the first and last 3 elements of three float32 arrays up to a specific number of decimal places
