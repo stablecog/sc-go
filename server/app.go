@@ -283,15 +283,6 @@ func main() {
 				})
 			}
 
-			// Log this json
-			marshalled, err := json.Marshal(clipReq)
-			if err != nil {
-				log.Infof("Last cursor: %v", cursor.Format(time.RFC3339Nano))
-				log.Fatalf("Error marshalling req %v", err)
-			}
-			fmt.Printf("%s\n", string(marshalled))
-			os.Exit(0)
-
 			// Make API request to clip
 			start = time.Now()
 			b, err := json.Marshal(clipReq)
@@ -357,7 +348,8 @@ func main() {
 					indexesChosen[index] = true
 				}
 			}
-			for i, gOutput := range gens {
+			mismatchCount := 0
+			for _, gOutput := range gens {
 				payload := map[string]interface{}{
 					"image_path":               gOutput.ImagePath,
 					"gallery_status":           gOutput.GalleryStatus,
@@ -389,20 +381,18 @@ func main() {
 					log.Warn("Missing embedding", "id", gOutput.ID)
 					continue
 				}
-				_, shouldTest := indexesChosen[i]
-				if shouldTest {
+				if true {
 					embedding, err := existingClip.GetEmbeddingFromImagePath(gOutput.ImagePath, false, 3)
 					if err != nil {
 						log.Warn("Error getting embedding from existing clip service", "err", err)
 					} else {
 						if slices.Compare(embedding, embeddings[gOutput.ID]) != 0 {
 							log.Error("Embeddings don't match", "id", gOutput.ID)
-							log.Infof("Existing: %v", embedding)
-							log.Infof("New: %v", embeddings[gOutput.ID])
-							os.Exit(1)
+							mismatchCount++
 						}
 					}
 				}
+				continue
 				payload["id"] = gOutput.ID.String()
 				if gOutput.UpscaledImagePath != nil {
 					payload["upscaled_image_path"] = *gOutput.UpscaledImagePath
@@ -415,6 +405,9 @@ func main() {
 				}
 				payloads = append(payloads, payload)
 			}
+
+			log.Infof("Mismatch count %d", mismatchCount)
+			os.Exit(0)
 
 			// QD Upsert
 			err = qdrantClient.BatchUpsert(payloads, false)
