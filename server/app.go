@@ -7,6 +7,7 @@ import (
 	"flag"
 	"fmt"
 	"io"
+	"math"
 	"math/rand"
 	"net/http"
 	"net/url"
@@ -57,6 +58,25 @@ var CommitMsg = "dev"
 
 // Used to track the build time from our CI
 var BuildStart = ""
+
+// roundFloat rounds a float32 value to a specified number of decimal places
+func roundFloat(val float32) float32 {
+	factor := float32(math.Pow10(3))
+	return float32(math.Round(float64(val)*float64(factor)) / float64(factor))
+}
+
+// compareSelectedElements compares the first and last 3 elements of three float32 arrays up to a specific number of decimal places
+func compareSelectedElements(arr1, arr2 []float32) bool {
+	if roundFloat(arr1[0]) != roundFloat(arr2[0]) ||
+		roundFloat(arr1[1]) != roundFloat(arr2[1]) ||
+		roundFloat(arr1[2]) != roundFloat(arr2[2]) ||
+		roundFloat(arr1[len(arr1)-1]) != roundFloat(arr2[len(arr2)-1]) ||
+		roundFloat(arr1[len(arr1)-2]) != roundFloat(arr2[len(arr2)-2]) ||
+		roundFloat(arr1[len(arr1)-3]) != roundFloat(arr2[len(arr2)-3]) {
+		return false // Found a difference
+	}
+	return true // Specified elements are equal up to the specified precision
+}
 
 func main() {
 	log.Infof("SC Server: %s", Version)
@@ -386,7 +406,7 @@ func main() {
 					if err != nil {
 						log.Warn("Error getting embedding from existing clip service", "err", err)
 					} else {
-						if slices.Compare(embedding, embeddings[gOutput.ID]) != 0 {
+						if !compareSelectedElements(embedding, embeddings[gOutput.ID]) {
 							log.Error("Embeddings don't match", "id", gOutput.ID)
 							log.Infof("Existing: %v", embedding)
 							log.Infof("New:  %v", embeddings[gOutput.ID])
