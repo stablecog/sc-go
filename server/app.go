@@ -7,8 +7,6 @@ import (
 	"flag"
 	"fmt"
 	"io"
-	"math"
-	"math/rand"
 	"net/http"
 	"net/url"
 	"os"
@@ -58,31 +56,6 @@ var CommitMsg = "dev"
 
 // Used to track the build time from our CI
 var BuildStart = ""
-
-// roundFloat rounds a float32 value to a specified number of decimal places
-func roundFloat(val float32) float32 {
-	return float32(math.Trunc(float64(val)*10) / 10)
-}
-
-// compareSelectedElements compares the first and last 3 elements of three float32 arrays up to a specific number of decimal places
-func compareSelectedElements(arr1, arr2 []float32) bool {
-	if arr1[0] > 0 && arr2[0] < 0 ||
-		arr1[0] < 0 && arr2[0] > 0 ||
-		arr1[1] > 0 && arr2[1] < 0 ||
-		arr1[1] < 0 && arr2[1] > 0 ||
-		arr1[2] > 0 && arr2[2] < 0 ||
-		arr1[2] < 0 && arr2[2] > 0 ||
-		arr1[len(arr1)-1] > 0 && arr2[len(arr2)-1] < 0 ||
-		arr1[len(arr1)-1] < 0 && arr2[len(arr2)-1] > 0 ||
-		arr1[len(arr1)-2] > 0 && arr2[len(arr2)-2] < 0 ||
-		arr1[len(arr1)-2] < 0 && arr2[len(arr2)-2] > 0 ||
-		arr1[len(arr1)-3] > 0 && arr2[len(arr2)-3] < 0 ||
-		arr1[len(arr1)-3] < 0 && arr2[len(arr2)-3] > 0 {
-		return false // Found a difference
-	}
-
-	return true // Specified elements are equal up to the specified precision
-}
 
 func main() {
 	log.Infof("SC Server: %s", Version)
@@ -241,8 +214,6 @@ func main() {
 
 	if *loadQdrant {
 		log.Info("🏡 Loading qdrant data...")
-		safetyChecker := utils.NewTranslatorSafetyChecker(ctx, utils.GetEnv().OpenAIApiKey, false)
-		existingClip := clip.NewClipService(redis, safetyChecker)
 		secret := utils.GetEnv().ClipAPISecret
 		clipUrl := utils.GetEnv().ClipAPIEndpoint
 		if *clipUrlOverride != "" {
@@ -359,22 +330,7 @@ func main() {
 			var payloads []map[string]interface{}
 
 			start = time.Now()
-			toTest := int(0.01 * float64(len(gens)))
-			// Randomly assign to test indexes between 0 and len(gens) - 1
-			// Seed the random number generator
-			sRand := rand.New(rand.NewSource(time.Now().UnixNano()))
-
-			testIndexes := make([]int, 0, toTest)
-			indexesChosen := make(map[int]bool)
-
-			for len(testIndexes) < toTest {
-				index := sRand.Intn(len(gens))
-				if _, exists := indexesChosen[index]; !exists {
-					testIndexes = append(testIndexes, index)
-					indexesChosen[index] = true
-				}
-			}
-			for i, gOutput := range gens {
+			for _, gOutput := range gens {
 				payload := map[string]interface{}{
 					"image_path":               gOutput.ImagePath,
 					"gallery_status":           gOutput.GalleryStatus,
@@ -405,20 +361,6 @@ func main() {
 				if !ok {
 					log.Warn("Missing embedding", "id", gOutput.ID)
 					continue
-				}
-				_, shouldTest := indexesChosen[i]
-				if shouldTest {
-					embedding, err := existingClip.GetEmbeddingFromImagePath(gOutput.ImagePath, false, 3)
-					if err != nil {
-						log.Warn("Error getting embedding from existing clip service", "err", err)
-					} else {
-						if !compareSelectedElements(embedding, embeddings[gOutput.ID]) {
-							log.Error("Embeddings don't match", "id", gOutput.ID)
-							log.Infof("Existing: %v", embedding)
-							log.Infof("New:  %v", embeddings[gOutput.ID])
-							os.Exit(1)
-						}
-					}
 				}
 				payload["id"] = gOutput.ID.String()
 				if gOutput.UpscaledImagePath != nil {
