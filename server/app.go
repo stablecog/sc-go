@@ -77,6 +77,7 @@ func main() {
 	syncIsPublic := flag.Bool("sync-is-public", false, "Sync is_public to qdrant")
 	syncGalleryStatus := flag.Bool("sync-gallery-status", false, "Sync gallery_status to qdrant")
 	loadQdrant := flag.Bool("load-qdrant", false, "Load qdrant with all data")
+	loadQdrantStop := flag.Int("load-qdrant-stop", 0, "Stop loading qdrant at this many")
 	testEmbeddings := flag.Bool("test-embeddings", false, "Test embeddings API")
 	testClipService := flag.Bool("test-clip-service", false, "Test clip service")
 	batchSize := flag.Int("batch-size", 100, "Batch size for loading qdrant")
@@ -234,9 +235,13 @@ func main() {
 		}
 
 		for {
+			if *loadQdrantStop > 0 && cur >= *loadQdrantStop {
+				log.Info("Reached stop limit", "stop", *loadQdrantStop)
+				break
+			}
 			log.Info("Loading batch of embeddings", "cur", cur, "each", each)
 			start := time.Now()
-			q := repo.DB.GenerationOutput.Query().Where(generationoutput.HasEmbeddings(true), generationoutput.ImagePathNEQ("placeholder.webp"))
+			q := repo.DB.GenerationOutput.Query().Where(generationoutput.HasEmbeddingsNew(false), generationoutput.ImagePathNEQ("placeholder.webp"))
 			if cursor != nil {
 				if *reverse {
 					q = q.Where(generationoutput.CreatedAtGT(*cursor))
@@ -412,7 +417,7 @@ func main() {
 
 			log.Infof("Batched objects for qdrant in %s", time.Since(start))
 
-			err = repo.DB.GenerationOutput.Update().Where(generationoutput.IDIn(ids...)).SetHasEmbeddings(true).Exec(ctx)
+			err = repo.DB.GenerationOutput.Update().Where(generationoutput.IDIn(ids...)).SetHasEmbeddingsNew(true).Exec(ctx)
 			if err != nil {
 				log.Info("Last cursor", "cursor", cursor.Format(time.RFC3339Nano))
 				log.Fatal("Failed to update generation outputs", "err", err)

@@ -9314,6 +9314,7 @@ type GenerationOutputMutation struct {
 	gallery_status                 *generationoutput.GalleryStatus
 	is_favorited                   *bool
 	has_embeddings                 *bool
+	has_embeddings_new             *bool
 	is_public                      *bool
 	aesthetic_rating_score         *float32
 	addaesthetic_rating_score      *float32
@@ -9632,6 +9633,42 @@ func (m *GenerationOutputMutation) OldHasEmbeddings(ctx context.Context) (v bool
 // ResetHasEmbeddings resets all changes to the "has_embeddings" field.
 func (m *GenerationOutputMutation) ResetHasEmbeddings() {
 	m.has_embeddings = nil
+}
+
+// SetHasEmbeddingsNew sets the "has_embeddings_new" field.
+func (m *GenerationOutputMutation) SetHasEmbeddingsNew(b bool) {
+	m.has_embeddings_new = &b
+}
+
+// HasEmbeddingsNew returns the value of the "has_embeddings_new" field in the mutation.
+func (m *GenerationOutputMutation) HasEmbeddingsNew() (r bool, exists bool) {
+	v := m.has_embeddings_new
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldHasEmbeddingsNew returns the old "has_embeddings_new" field's value of the GenerationOutput entity.
+// If the GenerationOutput object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *GenerationOutputMutation) OldHasEmbeddingsNew(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldHasEmbeddingsNew is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldHasEmbeddingsNew requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldHasEmbeddingsNew: %w", err)
+	}
+	return oldValue.HasEmbeddingsNew, nil
+}
+
+// ResetHasEmbeddingsNew resets all changes to the "has_embeddings_new" field.
+func (m *GenerationOutputMutation) ResetHasEmbeddingsNew() {
+	m.has_embeddings_new = nil
 }
 
 // SetIsPublic sets the "is_public" field.
@@ -10161,7 +10198,7 @@ func (m *GenerationOutputMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *GenerationOutputMutation) Fields() []string {
-	fields := make([]string, 0, 13)
+	fields := make([]string, 0, 14)
 	if m.image_path != nil {
 		fields = append(fields, generationoutput.FieldImagePath)
 	}
@@ -10176,6 +10213,9 @@ func (m *GenerationOutputMutation) Fields() []string {
 	}
 	if m.has_embeddings != nil {
 		fields = append(fields, generationoutput.FieldHasEmbeddings)
+	}
+	if m.has_embeddings_new != nil {
+		fields = append(fields, generationoutput.FieldHasEmbeddingsNew)
 	}
 	if m.is_public != nil {
 		fields = append(fields, generationoutput.FieldIsPublic)
@@ -10219,6 +10259,8 @@ func (m *GenerationOutputMutation) Field(name string) (ent.Value, bool) {
 		return m.IsFavorited()
 	case generationoutput.FieldHasEmbeddings:
 		return m.HasEmbeddings()
+	case generationoutput.FieldHasEmbeddingsNew:
+		return m.HasEmbeddingsNew()
 	case generationoutput.FieldIsPublic:
 		return m.IsPublic()
 	case generationoutput.FieldAestheticRatingScore:
@@ -10254,6 +10296,8 @@ func (m *GenerationOutputMutation) OldField(ctx context.Context, name string) (e
 		return m.OldIsFavorited(ctx)
 	case generationoutput.FieldHasEmbeddings:
 		return m.OldHasEmbeddings(ctx)
+	case generationoutput.FieldHasEmbeddingsNew:
+		return m.OldHasEmbeddingsNew(ctx)
 	case generationoutput.FieldIsPublic:
 		return m.OldIsPublic(ctx)
 	case generationoutput.FieldAestheticRatingScore:
@@ -10313,6 +10357,13 @@ func (m *GenerationOutputMutation) SetField(name string, value ent.Value) error 
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetHasEmbeddings(v)
+		return nil
+	case generationoutput.FieldHasEmbeddingsNew:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetHasEmbeddingsNew(v)
 		return nil
 	case generationoutput.FieldIsPublic:
 		v, ok := value.(bool)
@@ -10487,6 +10538,9 @@ func (m *GenerationOutputMutation) ResetField(name string) error {
 		return nil
 	case generationoutput.FieldHasEmbeddings:
 		m.ResetHasEmbeddings()
+		return nil
+	case generationoutput.FieldHasEmbeddingsNew:
+		m.ResetHasEmbeddingsNew()
 		return nil
 	case generationoutput.FieldIsPublic:
 		m.ResetIsPublic()
