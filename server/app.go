@@ -283,15 +283,6 @@ func main() {
 				})
 			}
 
-			// Log this json
-			marshalled, err := json.Marshal(clipReq)
-			if err != nil {
-				log.Infof("Last cursor: %v", cursor.Format(time.RFC3339Nano))
-				log.Fatalf("Error marshalling req %v", err)
-			}
-			fmt.Printf("%s\n", string(marshalled))
-			os.Exit(0)
-
 			// Make API request to clip
 			start = time.Now()
 			b, err := json.Marshal(clipReq)
