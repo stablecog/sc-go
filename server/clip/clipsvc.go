@@ -168,7 +168,7 @@ func (c *ClipService) GetEmbeddingFromImagePath(imagePath string, noCache bool, 
 		c.mu.Lock()
 		c.activeUrl = (c.activeUrl + 1) % len(c.urls)
 		c.mu.Unlock()
-		return c.GetEmbeddingFromImagePath(imagePath, retries-1)
+		return c.GetEmbeddingFromImagePath(imagePath, noCache, retries-1)
 	}
 	defer resp.Body.Close()
 
