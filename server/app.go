@@ -398,7 +398,7 @@ func main() {
 						if slices.Compare(embedding, embeddings[gOutput.ID]) != 0 {
 							log.Error("Embeddings don't match", "id", gOutput.ID)
 							log.Infof("Existing: %v", embedding)
-							log.Infof("New: %v", embeddings[gOutput.ID])
+							log.Infof("New:  %v", embeddings[gOutput.ID])
 							os.Exit(1)
 						}
 					}
