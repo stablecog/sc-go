@@ -7,6 +7,7 @@ import (
 	"flag"
 	"fmt"
 	"io"
+	"math/rand"
 	"net/http"
 	"net/url"
 	"os"
@@ -213,6 +214,8 @@ func main() {
 
 	if *loadQdrant {
 		log.Info("🏡 Loading qdrant data...")
+		safetyChecker := utils.NewTranslatorSafetyChecker(ctx, utils.GetEnv().OpenAIApiKey, false)
+		existingClip := clip.NewClipService(redis, safetyChecker)
 		secret := utils.GetEnv().ClipAPISecret
 		clipUrl := utils.GetEnv().ClipAPIEndpoint
 		if *clipUrlOverride != "" {
@@ -325,7 +328,22 @@ func main() {
 			var payloads []map[string]interface{}
 
 			start = time.Now()
-			for _, gOutput := range gens {
+			toTest := int(0.01 * float64(len(gens)))
+			// Randomly assign to test indexes between 0 and len(gens) - 1
+			// Seed the random number generator
+			sRand := rand.New(rand.NewSource(time.Now().UnixNano()))
+
+			testIndexes := make([]int, 0, toTest)
+			indexesChosen := make(map[int]bool)
+
+			for len(testIndexes) < toTest {
+				index := sRand.Intn(len(gens))
+				if _, exists := indexesChosen[index]; !exists {
+					testIndexes = append(testIndexes, index)
+					indexesChosen[index] = true
+				}
+			}
+			for i, gOutput := range gens {
 				payload := map[string]interface{}{
 					"image_path":               gOutput.ImagePath,
 					"gallery_status":           gOutput.GalleryStatus,
@@ -356,6 +374,20 @@ func main() {
 				if !ok {
 					log.Warn("Missing embedding", "id", gOutput.ID)
 					continue
+				}
+				_, shouldTest := indexesChosen[i]
+				if shouldTest {
+					embedding, err := existingClip.GetEmbeddingFromImagePath(gOutput.ImagePath, false, 3)
+					if err != nil {
+						log.Warn("Error getting embedding from existing clip service", "err", err)
+					} else {
+						if slices.Compare(embedding, embeddings[gOutput.ID]) != 0 {
+							log.Error("Embeddings don't match", "id", gOutput.ID)
+							log.Infof("Existing: %v", embedding)
+							log.Infof("New: %v", embeddings[gOutput.ID])
+							os.Exit(1)
+						}
+					}
 				}
 				payload["id"] = gOutput.ID.String()
 				if gOutput.UpscaledImagePath != nil {
