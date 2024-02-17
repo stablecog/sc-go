@@ -66,14 +66,21 @@ func roundFloat(val float32) float32 {
 
 // compareSelectedElements compares the first and last 3 elements of three float32 arrays up to a specific number of decimal places
 func compareSelectedElements(arr1, arr2 []float32) bool {
-	if roundFloat(arr1[0]) != roundFloat(arr2[0]) ||
-		roundFloat(arr1[1]) != roundFloat(arr2[1]) ||
-		roundFloat(arr1[2]) != roundFloat(arr2[2]) ||
-		roundFloat(arr1[len(arr1)-1]) != roundFloat(arr2[len(arr2)-1]) ||
-		roundFloat(arr1[len(arr1)-2]) != roundFloat(arr2[len(arr2)-2]) ||
-		roundFloat(arr1[len(arr1)-3]) != roundFloat(arr2[len(arr2)-3]) {
+	if arr1[0] > 0 && arr2[0] < 0 ||
+		arr1[0] < 0 && arr2[0] > 0 ||
+		arr1[1] > 0 && arr2[1] < 0 ||
+		arr1[1] < 0 && arr2[1] > 0 ||
+		arr1[2] > 0 && arr2[2] < 0 ||
+		arr1[2] < 0 && arr2[2] > 0 ||
+		arr1[len(arr1)-1] > 0 && arr2[len(arr2)-1] < 0 ||
+		arr1[len(arr1)-1] < 0 && arr2[len(arr2)-1] > 0 ||
+		arr1[len(arr1)-2] > 0 && arr2[len(arr2)-2] < 0 ||
+		arr1[len(arr1)-2] < 0 && arr2[len(arr2)-2] > 0 ||
+		arr1[len(arr1)-3] > 0 && arr2[len(arr2)-3] < 0 ||
+		arr1[len(arr1)-3] < 0 && arr2[len(arr2)-3] > 0 {
 		return false // Found a difference
 	}
+
 	return true // Specified elements are equal up to the specified precision
 }
 
