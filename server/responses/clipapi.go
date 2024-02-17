@@ -10,8 +10,20 @@ type EmbeddingObject struct {
 	Error          string    `json:"error,omitempty"`
 }
 
+type EmbeddingObject64 struct {
+	Embedding      []float64 `json:"embedding"`
+	InputText      string    `json:"input_text"`
+	TranslatedText string    `json:"translated_text,omitempty"`
+	ID             uuid.UUID `json:"id,omitempty"`
+	Error          string    `json:"error,omitempty"`
+}
+
 type EmbeddingsResponse struct {
 	Embeddings []EmbeddingObject `json:"embeddings"`
+}
+
+type EmbeddingsResponse64 struct {
+	Embeddings []EmbeddingObject64 `json:"embeddings"`
 }
 
 type QResponse struct {
