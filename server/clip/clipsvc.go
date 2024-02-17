@@ -133,10 +133,10 @@ func (c *ClipService) GetEmbeddingFromText(text string, retries int, translate b
 }
 
 // GetEmbeddingFromImagePath, retry up to retries times
-func (c *ClipService) GetEmbeddingFromImagePath(imagePath string, noCache bool, retries int) (embedding []float64, err error) {
+func (c *ClipService) GetEmbeddingFromImagePath(imagePath string, noCache bool, retries int) (embedding []float32, err error) {
 	// Check cache first
 	if !noCache {
-		e, err := c.redis.GetEmbeddings64(c.redis.Ctx, utils.Sha256(imagePath))
+		e, err := c.redis.GetEmbeddings(c.redis.Ctx, utils.Sha256(imagePath))
 		if err == nil && len(e) > 0 {
 			return e, nil
 		}
@@ -177,7 +177,7 @@ func (c *ClipService) GetEmbeddingFromImagePath(imagePath string, noCache bool, 
 		log.Errorf("Error reading resposne body in clip API %v", err)
 		return nil, err
 	}
-	var clipAPIResponse responses.EmbeddingsResponse64
+	var clipAPIResponse responses.EmbeddingsResponse
 	err = json.Unmarshal(readAll, &clipAPIResponse)
 	if err != nil {
 		log.Errorf("Error unmarshalling resp %v", err)
@@ -191,7 +191,7 @@ func (c *ClipService) GetEmbeddingFromImagePath(imagePath string, noCache bool, 
 
 	// Cache
 	if !noCache {
-		err = c.redis.CacheEmbeddings64(c.redis.Ctx, utils.Sha256(imagePath), clipAPIResponse.Embeddings[0].Embedding)
+		err = c.redis.CacheEmbeddings(c.redis.Ctx, utils.Sha256(imagePath), clipAPIResponse.Embeddings[0].Embedding)
 		if err != nil {
 			log.Errorf("Error caching embeddings %v", err)
 		}

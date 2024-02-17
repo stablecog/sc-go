@@ -566,8 +566,8 @@ type EmbedImagePathRequest struct {
 	NoCache   bool   `json:"no_cache"`
 }
 
-type EmbedTextResponse[T float32 | float64] struct {
-	Embedding []T `json:"embedding"`
+type EmbedTextResponse struct {
+	Embedding []float32 `json:"embedding"`
 }
 
 func (c *RestAPI) HandleEmbedText(w http.ResponseWriter, r *http.Request) {
@@ -592,7 +592,7 @@ func (c *RestAPI) HandleEmbedText(w http.ResponseWriter, r *http.Request) {
 	}
 
 	render.Status(r, http.StatusOK)
-	render.JSON(w, r, EmbedTextResponse[float32]{
+	render.JSON(w, r, EmbedTextResponse{
 		Embedding: embeddings,
 	})
 }
@@ -619,7 +619,7 @@ func (c *RestAPI) HandleEmbedImagePath(w http.ResponseWriter, r *http.Request) {
 	}
 
 	render.Status(r, http.StatusOK)
-	render.JSON(w, r, EmbedTextResponse[float64]{
+	render.JSON(w, r, EmbedTextResponse{
 		Embedding: embeddings,
 	})
 }
