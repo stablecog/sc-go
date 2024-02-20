@@ -238,7 +238,7 @@ func main() {
 			}
 			log.Info("Loading batch of embeddings", "cur", cur, "each", each)
 			start := time.Now()
-			q := repo.DB.GenerationOutput.Query().Where(generationoutput.HasEmbeddingsNew(false), generationoutput.ImagePathNEQ("placeholder.webp"))
+			q := repo.DB.GenerationOutput.Query().Where(generationoutput.HasEmbeddingsNew(true), generationoutput.ImagePathNEQ("placeholder.webp"))
 			if cursor != nil {
 				if *reverse {
 					q = q.Where(generationoutput.CreatedAtGT(*cursor))
