@@ -93,6 +93,8 @@ type SCEnv struct {
 	// Oauth service, used by services such as Raycast
 	DataEncryptionPassword string `env:"DATA_ENCRYPTION_PASSWORD" envDefault:"insecurePassword"` // Data encryption password
 	OauthRedirectBase      string `env:"OAUTH_REDIRECT_BASE" envDefault:"http://localhost:3000"` // Oauth redirect base
+	// Og Service Token for bypassing rate limits
+	OgPreviewServiceToken string `env:"OG_PREVIEW_SERVICE_TOKEN" envDefault:""` // Og Service Token for preview service
 }
 
 // The package-level instance and its initialization controls.

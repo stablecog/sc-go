@@ -36,6 +36,11 @@ func (m *Middleware) RateLimit(requestLimit int, customKey string, windowLength 
 					}
 				}
 			}
+			// Get X-OG-Service-Token header
+			serviceToken := r.Header.Get("X-OG-Service-Token")
+			if utils.GetEnv().OgPreviewServiceToken != "" && serviceToken == utils.GetEnv().OgPreviewServiceToken {
+				return fmt.Sprintf("%s:%s", customKey, uuid.NewString()), nil
+			}
 			return fmt.Sprintf("%s:%s", customKey, utils.GetIPAddress(r)), nil
 		}),
 		httprate.WithLimitCounter(&redisCounter{redis: m.Redis}),
