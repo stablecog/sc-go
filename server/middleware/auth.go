@@ -127,12 +127,9 @@ func (m *Middleware) AuthMiddleware(levels ...AuthLevel) func(next http.Handler)
 				}
 			}
 
-			thumbmarkId := r.Header.Get("X-Thumbmark-ID")
-
 			// Set the user ID in the context
 			ctx = context.WithValue(ctx, "user_id", userId)
 			ctx = context.WithValue(ctx, "user_email", email)
-			ctx = context.WithValue(ctx, "thumbmark_id", thumbmarkId)
 
 			// Set the last sign in time in the context, if not null
 			if lastSignIn != nil {

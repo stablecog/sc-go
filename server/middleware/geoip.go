@@ -52,7 +52,6 @@ func (m *Middleware) GeoIPMiddleware() func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			userIDStr, _ := r.Context().Value("user_id").(string)
 			email, _ := r.Context().Value("user_email").(string)
-			thumbmarkID, _ := r.Context().Value("thumbmark_id").(string)
 			if utils.GetCountryCode(r) == "BD" {
 				// See if not in whitelist
 				whitelisted := false
@@ -72,7 +71,7 @@ func (m *Middleware) GeoIPMiddleware() func(next http.Handler) http.Handler {
 					}
 					domain := strings.ToLower(segs[1])
 					// Webhook
-					err := discord.FireGeoIPBannedUserWebhook(utils.GetIPAddress(r), email, domain, userIDStr, utils.GetCountryCode(r), thumbmarkID)
+					err := discord.FireGeoIPBannedUserWebhook(utils.GetIPAddress(r), email, domain, userIDStr, utils.GetCountryCode(r))
 					if err != nil {
 						log.Errorf("Error firing GeoIP webhook: %s", err.Error())
 						next.ServeHTTP(w, r)
@@ -99,7 +98,7 @@ func (m *Middleware) GeoIPMiddleware() func(next http.Handler) http.Handler {
 					return
 				}
 				domain := strings.ToLower(segs[1])
-				err := discord.FireGeoIPSuspiciousUserWebhook(utils.GetIPAddress(r), email, domain, userIDStr, utils.GetCountryCode(r), thumbmarkID)
+				err := discord.FireGeoIPSuspiciousUserWebhook(utils.GetIPAddress(r), email, domain, userIDStr, utils.GetCountryCode(r))
 				if err != nil {
 					log.Errorf("Error firing GeoIP webhook: %s", err.Error())
 					next.ServeHTTP(w, r)
