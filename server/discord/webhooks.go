@@ -250,10 +250,15 @@ func AdhocCreditsPurchasedWebhook(repo *repository.Repository, user *ent.User, c
 	return nil
 }
 
-func FireGeoIPBannedUserWebhook(ip string, email string, domain string, userid string, countryCode string) error {
+func FireGeoIPBannedUserWebhook(ip string, email string, domain string, userid string, countryCode string, thumbmarkId string) error {
 	webhookUrl := utils.GetEnv().GeoIpWebhook
 	if webhookUrl == "" {
 		return fmt.Errorf("GEOIP_WEBHOOK not set")
+	}
+
+	thumbmark := "Unknown"
+	if thumbmarkId != "" {
+		thumbmark = thumbmarkId
 	}
 
 	// Build webhook body
@@ -279,6 +284,10 @@ func FireGeoIPBannedUserWebhook(ip string, email string, domain string, userid s
 						Name:  "BANNED Domain",
 						Value: domain,
 					},
+					{
+						Name:  "Thumbmark ID",
+						Value: thumbmark,
+					},
 				},
 				Footer: models.DiscordWebhookEmbedFooter{
 					Text: fmt.Sprintf("%s", time.Now().Format(time.RFC1123)),
@@ -302,10 +311,15 @@ func FireGeoIPBannedUserWebhook(ip string, email string, domain string, userid s
 	return nil
 }
 
-func FireGeoIPSuspiciousUserWebhook(ip string, email string, domain string, userid string, countryCode string) error {
+func FireGeoIPSuspiciousUserWebhook(ip string, email string, domain string, userid string, countryCode string, thumbmarkId string) error {
 	webhookUrl := utils.GetEnv().GeoIpWebhook
 	if webhookUrl == "" {
 		return fmt.Errorf("GEOIP_WEBHOOK not set")
+	}
+
+	thumbmark := "Unknown"
+	if thumbmarkId != "" {
+		thumbmark = thumbmarkId
 	}
 
 	// Build webhook body
@@ -330,6 +344,10 @@ func FireGeoIPSuspiciousUserWebhook(ip string, email string, domain string, user
 					{
 						Name:  "Domain",
 						Value: domain,
+					},
+					{
+						Name:  "Thumbmark ID",
+						Value: thumbmark,
 					},
 				},
 				Footer: models.DiscordWebhookEmbedFooter{
