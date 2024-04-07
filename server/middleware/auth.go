@@ -127,7 +127,7 @@ func (m *Middleware) AuthMiddleware(levels ...AuthLevel) func(next http.Handler)
 				}
 			}
 
-			thumbmarkId := r.Header.Get("X-Thumbmark-Id")
+			thumbmarkId := r.Header.Get("X-Thumbmark-ID")
 
 			// Set the user ID in the context
 			ctx = context.WithValue(ctx, "user_id", userId)
