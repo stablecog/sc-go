@@ -89,6 +89,20 @@ func (goc *GenerationOutputCreate) SetNillableHasEmbeddings(b *bool) *Generation
 	return goc
 }
 
+// SetHasEmbeddingsNew sets the "has_embeddings_new" field.
+func (goc *GenerationOutputCreate) SetHasEmbeddingsNew(b bool) *GenerationOutputCreate {
+	goc.mutation.SetHasEmbeddingsNew(b)
+	return goc
+}
+
+// SetNillableHasEmbeddingsNew sets the "has_embeddings_new" field if the given value is not nil.
+func (goc *GenerationOutputCreate) SetNillableHasEmbeddingsNew(b *bool) *GenerationOutputCreate {
+	if b != nil {
+		goc.SetHasEmbeddingsNew(*b)
+	}
+	return goc
+}
+
 // SetIsPublic sets the "is_public" field.
 func (goc *GenerationOutputCreate) SetIsPublic(b bool) *GenerationOutputCreate {
 	goc.mutation.SetIsPublic(b)
@@ -299,6 +313,10 @@ func (goc *GenerationOutputCreate) defaults() {
 		v := generationoutput.DefaultHasEmbeddings
 		goc.mutation.SetHasEmbeddings(v)
 	}
+	if _, ok := goc.mutation.HasEmbeddingsNew(); !ok {
+		v := generationoutput.DefaultHasEmbeddingsNew
+		goc.mutation.SetHasEmbeddingsNew(v)
+	}
 	if _, ok := goc.mutation.IsPublic(); !ok {
 		v := generationoutput.DefaultIsPublic
 		goc.mutation.SetIsPublic(v)
@@ -347,6 +365,9 @@ func (goc *GenerationOutputCreate) check() error {
 	}
 	if _, ok := goc.mutation.HasEmbeddings(); !ok {
 		return &ValidationError{Name: "has_embeddings", err: errors.New(`ent: missing required field "GenerationOutput.has_embeddings"`)}
+	}
+	if _, ok := goc.mutation.HasEmbeddingsNew(); !ok {
+		return &ValidationError{Name: "has_embeddings_new", err: errors.New(`ent: missing required field "GenerationOutput.has_embeddings_new"`)}
 	}
 	if _, ok := goc.mutation.IsPublic(); !ok {
 		return &ValidationError{Name: "is_public", err: errors.New(`ent: missing required field "GenerationOutput.is_public"`)}
@@ -433,6 +454,10 @@ func (goc *GenerationOutputCreate) createSpec() (*GenerationOutput, *sqlgraph.Cr
 	if value, ok := goc.mutation.HasEmbeddings(); ok {
 		_spec.SetField(generationoutput.FieldHasEmbeddings, field.TypeBool, value)
 		_node.HasEmbeddings = value
+	}
+	if value, ok := goc.mutation.HasEmbeddingsNew(); ok {
+		_spec.SetField(generationoutput.FieldHasEmbeddingsNew, field.TypeBool, value)
+		_node.HasEmbeddingsNew = value
 	}
 	if value, ok := goc.mutation.IsPublic(); ok {
 		_spec.SetField(generationoutput.FieldIsPublic, field.TypeBool, value)
@@ -635,6 +660,18 @@ func (u *GenerationOutputUpsert) SetHasEmbeddings(v bool) *GenerationOutputUpser
 // UpdateHasEmbeddings sets the "has_embeddings" field to the value that was provided on create.
 func (u *GenerationOutputUpsert) UpdateHasEmbeddings() *GenerationOutputUpsert {
 	u.SetExcluded(generationoutput.FieldHasEmbeddings)
+	return u
+}
+
+// SetHasEmbeddingsNew sets the "has_embeddings_new" field.
+func (u *GenerationOutputUpsert) SetHasEmbeddingsNew(v bool) *GenerationOutputUpsert {
+	u.Set(generationoutput.FieldHasEmbeddingsNew, v)
+	return u
+}
+
+// UpdateHasEmbeddingsNew sets the "has_embeddings_new" field to the value that was provided on create.
+func (u *GenerationOutputUpsert) UpdateHasEmbeddingsNew() *GenerationOutputUpsert {
+	u.SetExcluded(generationoutput.FieldHasEmbeddingsNew)
 	return u
 }
 
@@ -871,6 +908,20 @@ func (u *GenerationOutputUpsertOne) SetHasEmbeddings(v bool) *GenerationOutputUp
 func (u *GenerationOutputUpsertOne) UpdateHasEmbeddings() *GenerationOutputUpsertOne {
 	return u.Update(func(s *GenerationOutputUpsert) {
 		s.UpdateHasEmbeddings()
+	})
+}
+
+// SetHasEmbeddingsNew sets the "has_embeddings_new" field.
+func (u *GenerationOutputUpsertOne) SetHasEmbeddingsNew(v bool) *GenerationOutputUpsertOne {
+	return u.Update(func(s *GenerationOutputUpsert) {
+		s.SetHasEmbeddingsNew(v)
+	})
+}
+
+// UpdateHasEmbeddingsNew sets the "has_embeddings_new" field to the value that was provided on create.
+func (u *GenerationOutputUpsertOne) UpdateHasEmbeddingsNew() *GenerationOutputUpsertOne {
+	return u.Update(func(s *GenerationOutputUpsert) {
+		s.UpdateHasEmbeddingsNew()
 	})
 }
 
@@ -1288,6 +1339,20 @@ func (u *GenerationOutputUpsertBulk) SetHasEmbeddings(v bool) *GenerationOutputU
 func (u *GenerationOutputUpsertBulk) UpdateHasEmbeddings() *GenerationOutputUpsertBulk {
 	return u.Update(func(s *GenerationOutputUpsert) {
 		s.UpdateHasEmbeddings()
+	})
+}
+
+// SetHasEmbeddingsNew sets the "has_embeddings_new" field.
+func (u *GenerationOutputUpsertBulk) SetHasEmbeddingsNew(v bool) *GenerationOutputUpsertBulk {
+	return u.Update(func(s *GenerationOutputUpsert) {
+		s.SetHasEmbeddingsNew(v)
+	})
+}
+
+// UpdateHasEmbeddingsNew sets the "has_embeddings_new" field to the value that was provided on create.
+func (u *GenerationOutputUpsertBulk) UpdateHasEmbeddingsNew() *GenerationOutputUpsertBulk {
+	return u.Update(func(s *GenerationOutputUpsert) {
+		s.UpdateHasEmbeddingsNew()
 	})
 }
 

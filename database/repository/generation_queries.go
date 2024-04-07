@@ -917,7 +917,11 @@ func (r *Repository) QueryGenerationsAdmin(per_page int, cursor *time.Time, call
 	queryG = queryG.Where(func(s *sql.Selector) {
 		got := sql.Table(generationoutput.Table).As("t1")
 		if cursor != nil {
-			s.Where(sql.LT(got.C(generationoutput.FieldCreatedAt), *cursor))
+			if filters != nil && filters.Order == requests.SortOrderAscending {
+				s.Where(sql.GT(got.C(generationoutput.FieldCreatedAt), *cursor))
+			} else {
+				s.Where(sql.LT(got.C(generationoutput.FieldCreatedAt), *cursor))
+			}
 		}
 		s.Where(sql.IsNull("deleted_at"))
 	})

@@ -133,11 +133,13 @@ func (c *ClipService) GetEmbeddingFromText(text string, retries int, translate b
 }
 
 // GetEmbeddingFromImagePath, retry up to retries times
-func (c *ClipService) GetEmbeddingFromImagePath(imagePath string, retries int) (embedding []float32, err error) {
+func (c *ClipService) GetEmbeddingFromImagePath(imagePath string, noCache bool, retries int) (embedding []float32, err error) {
 	// Check cache first
-	e, err := c.redis.GetEmbeddings(c.redis.Ctx, utils.Sha256(imagePath))
-	if err == nil && len(e) > 0 {
-		return e, nil
+	if !noCache {
+		e, err := c.redis.GetEmbeddings(c.redis.Ctx, utils.Sha256(imagePath))
+		if err == nil && len(e) > 0 {
+			return e, nil
+		}
 	}
 
 	req := []clipApiRequest{{
@@ -166,7 +168,7 @@ func (c *ClipService) GetEmbeddingFromImagePath(imagePath string, retries int) (
 		c.mu.Lock()
 		c.activeUrl = (c.activeUrl + 1) % len(c.urls)
 		c.mu.Unlock()
-		return c.GetEmbeddingFromImagePath(imagePath, retries-1)
+		return c.GetEmbeddingFromImagePath(imagePath, noCache, retries-1)
 	}
 	defer resp.Body.Close()
 
@@ -188,9 +190,11 @@ func (c *ClipService) GetEmbeddingFromImagePath(imagePath string, retries int) (
 	}
 
 	// Cache
-	err = c.redis.CacheEmbeddings(c.redis.Ctx, utils.Sha256(imagePath), clipAPIResponse.Embeddings[0].Embedding)
-	if err != nil {
-		log.Errorf("Error caching embeddings %v", err)
+	if !noCache {
+		err = c.redis.CacheEmbeddings(c.redis.Ctx, utils.Sha256(imagePath), clipAPIResponse.Embeddings[0].Embedding)
+		if err != nil {
+			log.Errorf("Error caching embeddings %v", err)
+		}
 	}
 
 	c.mu.Lock()

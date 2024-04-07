@@ -101,6 +101,20 @@ func (gou *GenerationOutputUpdate) SetNillableHasEmbeddings(b *bool) *Generation
 	return gou
 }
 
+// SetHasEmbeddingsNew sets the "has_embeddings_new" field.
+func (gou *GenerationOutputUpdate) SetHasEmbeddingsNew(b bool) *GenerationOutputUpdate {
+	gou.mutation.SetHasEmbeddingsNew(b)
+	return gou
+}
+
+// SetNillableHasEmbeddingsNew sets the "has_embeddings_new" field if the given value is not nil.
+func (gou *GenerationOutputUpdate) SetNillableHasEmbeddingsNew(b *bool) *GenerationOutputUpdate {
+	if b != nil {
+		gou.SetHasEmbeddingsNew(*b)
+	}
+	return gou
+}
+
 // SetIsPublic sets the "is_public" field.
 func (gou *GenerationOutputUpdate) SetIsPublic(b bool) *GenerationOutputUpdate {
 	gou.mutation.SetIsPublic(b)
@@ -387,6 +401,9 @@ func (gou *GenerationOutputUpdate) sqlSave(ctx context.Context) (n int, err erro
 	if value, ok := gou.mutation.HasEmbeddings(); ok {
 		_spec.SetField(generationoutput.FieldHasEmbeddings, field.TypeBool, value)
 	}
+	if value, ok := gou.mutation.HasEmbeddingsNew(); ok {
+		_spec.SetField(generationoutput.FieldHasEmbeddingsNew, field.TypeBool, value)
+	}
 	if value, ok := gou.mutation.IsPublic(); ok {
 		_spec.SetField(generationoutput.FieldIsPublic, field.TypeBool, value)
 	}
@@ -627,6 +644,20 @@ func (gouo *GenerationOutputUpdateOne) SetHasEmbeddings(b bool) *GenerationOutpu
 func (gouo *GenerationOutputUpdateOne) SetNillableHasEmbeddings(b *bool) *GenerationOutputUpdateOne {
 	if b != nil {
 		gouo.SetHasEmbeddings(*b)
+	}
+	return gouo
+}
+
+// SetHasEmbeddingsNew sets the "has_embeddings_new" field.
+func (gouo *GenerationOutputUpdateOne) SetHasEmbeddingsNew(b bool) *GenerationOutputUpdateOne {
+	gouo.mutation.SetHasEmbeddingsNew(b)
+	return gouo
+}
+
+// SetNillableHasEmbeddingsNew sets the "has_embeddings_new" field if the given value is not nil.
+func (gouo *GenerationOutputUpdateOne) SetNillableHasEmbeddingsNew(b *bool) *GenerationOutputUpdateOne {
+	if b != nil {
+		gouo.SetHasEmbeddingsNew(*b)
 	}
 	return gouo
 }
@@ -940,6 +971,9 @@ func (gouo *GenerationOutputUpdateOne) sqlSave(ctx context.Context) (_node *Gene
 	}
 	if value, ok := gouo.mutation.HasEmbeddings(); ok {
 		_spec.SetField(generationoutput.FieldHasEmbeddings, field.TypeBool, value)
+	}
+	if value, ok := gouo.mutation.HasEmbeddingsNew(); ok {
+		_spec.SetField(generationoutput.FieldHasEmbeddingsNew, field.TypeBool, value)
 	}
 	if value, ok := gouo.mutation.IsPublic(); ok {
 		_spec.SetField(generationoutput.FieldIsPublic, field.TypeBool, value)

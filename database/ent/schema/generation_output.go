@@ -26,6 +26,7 @@ func (GenerationOutput) Fields() []ent.Field {
 		field.Enum("gallery_status").Values("not_submitted", "submitted", "approved", "rejected", "waiting_for_approval").Default("not_submitted"),
 		field.Bool("is_favorited").Default(false),
 		field.Bool("has_embeddings").Default(false),
+		field.Bool("has_embeddings_new").Default(false),
 		field.Bool("is_public").Default(false),
 		field.Float32("aesthetic_rating_score").Default(0),
 		field.Float32("aesthetic_artifact_score").Default(0),

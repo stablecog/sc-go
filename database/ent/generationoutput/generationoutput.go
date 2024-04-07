@@ -24,6 +24,8 @@ const (
 	FieldIsFavorited = "is_favorited"
 	// FieldHasEmbeddings holds the string denoting the has_embeddings field in the database.
 	FieldHasEmbeddings = "has_embeddings"
+	// FieldHasEmbeddingsNew holds the string denoting the has_embeddings_new field in the database.
+	FieldHasEmbeddingsNew = "has_embeddings_new"
 	// FieldIsPublic holds the string denoting the is_public field in the database.
 	FieldIsPublic = "is_public"
 	// FieldAestheticRatingScore holds the string denoting the aesthetic_rating_score field in the database.
@@ -79,6 +81,7 @@ var Columns = []string{
 	FieldGalleryStatus,
 	FieldIsFavorited,
 	FieldHasEmbeddings,
+	FieldHasEmbeddingsNew,
 	FieldIsPublic,
 	FieldAestheticRatingScore,
 	FieldAestheticArtifactScore,
@@ -104,6 +107,8 @@ var (
 	DefaultIsFavorited bool
 	// DefaultHasEmbeddings holds the default value on creation for the "has_embeddings" field.
 	DefaultHasEmbeddings bool
+	// DefaultHasEmbeddingsNew holds the default value on creation for the "has_embeddings_new" field.
+	DefaultHasEmbeddingsNew bool
 	// DefaultIsPublic holds the default value on creation for the "is_public" field.
 	DefaultIsPublic bool
 	// DefaultAestheticRatingScore holds the default value on creation for the "aesthetic_rating_score" field.

@@ -563,6 +563,7 @@ type EmbedTextRequest struct {
 
 type EmbedImagePathRequest struct {
 	ImagePath string `json:"image_path"`
+	NoCache   bool   `json:"no_cache"`
 }
 
 type EmbedTextResponse struct {
@@ -610,7 +611,7 @@ func (c *RestAPI) HandleEmbedImagePath(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	embeddings, err := c.Clip.GetEmbeddingFromImagePath(embedReq.ImagePath, 2)
+	embeddings, err := c.Clip.GetEmbeddingFromImagePath(embedReq.ImagePath, embedReq.NoCache, 2)
 	if err != nil {
 		log.Errorf("Error getting embeddings %v", err)
 		responses.ErrInternalServerError(w, r, "An unknown error has occured")
