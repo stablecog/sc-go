@@ -250,15 +250,15 @@ func AdhocCreditsPurchasedWebhook(repo *repository.Repository, user *ent.User, c
 	return nil
 }
 
-func FireGeoIPBannedUserWebhook(ip string, email string, domain string, userid string, countryCode string, thumbmarkId string) error {
+func FireGeoIPBannedUserWebhook(ip string, email string, domain string, userid string, countryCode string, thumbmarkID string) error {
 	webhookUrl := utils.GetEnv().GeoIpWebhook
 	if webhookUrl == "" {
 		return fmt.Errorf("GEOIP_WEBHOOK not set")
 	}
 
 	thumbmark := "Unknown"
-	if thumbmarkId != "" {
-		thumbmark = thumbmarkId
+	if thumbmarkID != "" {
+		thumbmark = thumbmarkID
 	}
 
 	// Build webhook body
@@ -311,15 +311,15 @@ func FireGeoIPBannedUserWebhook(ip string, email string, domain string, userid s
 	return nil
 }
 
-func FireGeoIPSuspiciousUserWebhook(ip string, email string, domain string, userid string, countryCode string, thumbmarkId string) error {
+func FireGeoIPSuspiciousUserWebhook(ip string, email string, domain string, userid string, countryCode string, thumbmarkID string) error {
 	webhookUrl := utils.GetEnv().GeoIpWebhook
 	if webhookUrl == "" {
 		return fmt.Errorf("GEOIP_WEBHOOK not set")
 	}
 
 	thumbmark := "Unknown"
-	if thumbmarkId != "" {
-		thumbmark = thumbmarkId
+	if thumbmarkID != "" {
+		thumbmark = thumbmarkID
 	}
 
 	// Build webhook body
