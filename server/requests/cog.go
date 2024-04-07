@@ -27,6 +27,7 @@ type BaseCogRequest struct {
 	ID                 uuid.UUID               `json:"id"`
 	UserID             *uuid.UUID              `json:"user_id,omitempty"`
 	IP                 string                  `json:"ip,omitempty"`
+	ThumbmarkID        string                  `json:"thumbmark_id,omitempty"`
 	UIId               string                  `json:"ui_id,omitempty"`
 	GenerationOutputID string                  `json:"generation_output_id,omitempty"` // Specific to upscale requests
 	LivePageData       *shared.LivePageMessage `json:"live_page_data,omitempty"`

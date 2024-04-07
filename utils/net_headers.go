@@ -69,3 +69,8 @@ func GetIPAddress(r *http.Request) string {
 	}
 	return IPAddress
 }
+
+func GetThumbmarkID(r *http.Request) string {
+	thumbmarkID := r.Header.Get("X-Thumbmark-ID")
+	return thumbmarkID
+}

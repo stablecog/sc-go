@@ -320,6 +320,7 @@ func (w *SCWorker) CreateGeneration(source enttypes.SourceType,
 			DeviceBrowser: "Discord",
 		}
 	}
+	thumbmarkID := utils.GetThumbmarkID(r)
 	// Get model and scheduler name for cog
 	modelName := shared.GetCache().GetGenerationModelNameFromID(*generateReq.ModelId)
 	schedulerName := shared.GetCache().GetSchedulerNameFromID(*generateReq.SchedulerId)
@@ -507,6 +508,7 @@ func (w *SCWorker) CreateGeneration(source enttypes.SourceType,
 				APIRequest:             source != enttypes.SourceTypeWebUI,
 				ID:                     requestId,
 				IP:                     ipAddress,
+				ThumbmarkID:            thumbmarkID,
 				UserID:                 &user.ID,
 				DeviceInfo:             deviceInfo,
 				LivePageData:           &livePageMsg,

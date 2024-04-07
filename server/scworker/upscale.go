@@ -203,6 +203,7 @@ func (w *SCWorker) CreateUpscale(source enttypes.SourceType,
 			DeviceBrowser: "Discord",
 		}
 	}
+	thumbmarkID := utils.GetThumbmarkID(r)
 
 	// Get model name for cog
 	modelName := shared.GetCache().GetUpscaleModelNameFromID(*upscaleReq.ModelId)
@@ -413,6 +414,7 @@ func (w *SCWorker) CreateUpscale(source enttypes.SourceType,
 				APIRequest:           source != enttypes.SourceTypeWebUI,
 				ID:                   requestId,
 				IP:                   ipAddress,
+				ThumbmarkID:          thumbmarkID,
 				UIId:                 upscaleReq.UIId,
 				UserID:               &user.ID,
 				DeviceInfo:           deviceInfo,

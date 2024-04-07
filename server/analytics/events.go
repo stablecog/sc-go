@@ -36,6 +36,7 @@ func (a *AnalyticsService) GenerationStarted(user *ent.User, cogReq requests.Bas
 		"SC - Submit to Gallery": cogReq.SubmitToGallery,
 		"SC - Num Outputs":       cogReq.NumOutputs,
 		"SC - Source":            source,
+		"SC - Thumbmark ID":      cogReq.ThumbmarkID,
 		"$ip":                    ip,
 		"email":                  user.Email,
 	}
@@ -76,6 +77,7 @@ func (a *AnalyticsService) GenerationSucceeded(user *ent.User, cogReq requests.B
 		"SC - Duration in Queue": qDuration,
 		"SC - Num Outputs":       cogReq.NumOutputs,
 		"SC - Source":            source,
+		"SC - Thumbmark ID":      cogReq.ThumbmarkID,
 		"$ip":                    ip,
 	}
 	if user.ActiveProductID != nil {
@@ -113,6 +115,7 @@ func (a *AnalyticsService) GenerationFailedNSFW(user *ent.User, cogReq requests.
 		"SC - Duration":          duration,
 		"SC - Num Outputs":       cogReq.NumOutputs,
 		"SC - Source":            source,
+		"SC - Thumbmark ID":      cogReq.ThumbmarkID,
 		"$ip":                    ip,
 	}
 	if user.ActiveProductID != nil {
@@ -151,6 +154,7 @@ func (a *AnalyticsService) GenerationFailed(user *ent.User, cogReq requests.Base
 		"SC - Num Outputs":       cogReq.NumOutputs,
 		"SC - Failure Reason":    failureReason,
 		"SC - Source":            source,
+		"SC - Thumbmark ID":      cogReq.ThumbmarkID,
 		"$ip":                    ip,
 	}
 	if user.ActiveProductID != nil {
