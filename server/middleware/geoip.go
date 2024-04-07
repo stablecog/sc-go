@@ -71,7 +71,7 @@ func (m *Middleware) GeoIPMiddleware() func(next http.Handler) http.Handler {
 					}
 					domain := strings.ToLower(segs[1])
 					// Webhook
-					err := discord.FireGeoIPWebhook(utils.GetIPAddress(r), email, domain, userIDStr, utils.GetCountryCode(r))
+					err := discord.FireGeoIPBannedUserWebhook(utils.GetIPAddress(r), email, domain, userIDStr, utils.GetCountryCode(r))
 					if err != nil {
 						log.Errorf("Error firing GeoIP webhook: %s", err.Error())
 						next.ServeHTTP(w, r)
@@ -87,6 +87,22 @@ func (m *Middleware) GeoIPMiddleware() func(next http.Handler) http.Handler {
 					}
 					// Sleep 30 seconds
 					time.Sleep(30 * time.Second)
+				}
+			}
+
+			if utils.GetCountryCode(r) == "TR" {
+				segs := strings.Split(email, "@")
+				if len(segs) != 2 {
+					log.Warnf("Invalid email encountered in GeoIP: %s", email)
+					next.ServeHTTP(w, r)
+					return
+				}
+				domain := strings.ToLower(segs[1])
+				err := discord.FireGeoIPSuspiciousUserWebhook(utils.GetIPAddress(r), email, domain, userIDStr, utils.GetCountryCode(r))
+				if err != nil {
+					log.Errorf("Error firing GeoIP webhook: %s", err.Error())
+					next.ServeHTTP(w, r)
+					return
 				}
 			}
 

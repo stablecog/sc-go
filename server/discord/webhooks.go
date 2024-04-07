@@ -250,7 +250,7 @@ func AdhocCreditsPurchasedWebhook(repo *repository.Repository, user *ent.User, c
 	return nil
 }
 
-func FireGeoIPWebhook(ip string, email string, domain string, userid string, countryCode string) error {
+func FireGeoIPBannedUserWebhook(ip string, email string, domain string, userid string, countryCode string) error {
 	webhookUrl := utils.GetEnv().GeoIpWebhook
 	if webhookUrl == "" {
 		return fmt.Errorf("GEOIP_WEBHOOK not set")
@@ -277,6 +277,58 @@ func FireGeoIPWebhook(ip string, email string, domain string, userid string, cou
 					},
 					{
 						Name:  "BANNED Domain",
+						Value: domain,
+					},
+				},
+				Footer: models.DiscordWebhookEmbedFooter{
+					Text: fmt.Sprintf("%s", time.Now().Format(time.RFC1123)),
+				},
+			},
+		},
+		Attachments: []models.DiscordWebhookAttachment{},
+	}
+	reqBody, err := json.Marshal(body)
+	if err != nil {
+		log.Error("Error marshalling webhook body", "err", err)
+		return err
+	}
+	res, postErr := http.Post(webhookUrl, "application/json", bytes.NewBuffer(reqBody))
+	if postErr != nil {
+		log.Error("Error sending webhook", "err", postErr)
+		return postErr
+	}
+	defer res.Body.Close()
+
+	return nil
+}
+
+func FireGeoIPSuspiciousUserWebhook(ip string, email string, domain string, userid string, countryCode string) error {
+	webhookUrl := utils.GetEnv().GeoIpWebhook
+	if webhookUrl == "" {
+		return fmt.Errorf("GEOIP_WEBHOOK not set")
+	}
+
+	// Build webhook body
+	body := models.DiscordWebhookBody{
+		Embeds: []models.DiscordWebhookEmbed{
+			{
+				Title: fmt.Sprintf("%s IP (Suspicious)", countryCode),
+				Color: 11437567,
+				Fields: []models.DiscordWebhookField{
+					{
+						Name:  "IP",
+						Value: ip,
+					},
+					{
+						Name:  "User ID",
+						Value: userid,
+					},
+					{
+						Name:  "Email",
+						Value: email,
+					},
+					{
+						Name:  "Domain",
 						Value: domain,
 					},
 				},
