@@ -91,7 +91,7 @@ func (m *Middleware) GeoIPMiddleware() func(next http.Handler) http.Handler {
 				}
 			}
 
-			if utils.GetCountryCode(r) == "TR" {
+			/* if utils.GetCountryCode(r) == "TR" {
 				segs := strings.Split(email, "@")
 				if len(segs) != 2 {
 					log.Warnf("Invalid email encountered in GeoIP: %s", email)
@@ -105,7 +105,7 @@ func (m *Middleware) GeoIPMiddleware() func(next http.Handler) http.Handler {
 					next.ServeHTTP(w, r)
 					return
 				}
-			}
+			} */
 
 			next.ServeHTTP(w, r)
 		})
