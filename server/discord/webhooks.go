@@ -273,15 +273,15 @@ func FireGeoIPBannedUserWebhook(ip string, email string, domain string, userid s
 						Value: ip,
 					},
 					{
-						Name:  "BANNED User ID",
+						Name:  "Banned User ID",
 						Value: userid,
 					},
 					{
-						Name:  "BANNED Email",
+						Name:  "Banned Email",
 						Value: email,
 					},
 					{
-						Name:  "BANNED Domain",
+						Name:  "Banned Domain",
 						Value: domain,
 					},
 					{
@@ -397,15 +397,15 @@ func FireBannedUserWebhook(ip string, email string, domain string, userid string
 	body := models.DiscordWebhookBody{
 		Embeds: []models.DiscordWebhookEmbed{
 			{
-				Title: fmt.Sprintf("Banned User: %s", email),
+				Title: fmt.Sprintf("Banned User!"),
 				Color: 11437567,
 				Fields: []models.DiscordWebhookField{
 					{
-						Name:  "BANNED Email",
+						Name:  "Banned Email",
 						Value: email,
 					},
 					{
-						Name:  "BANNED User ID",
+						Name:  "Banned User ID",
 						Value: userid,
 					},
 					{
