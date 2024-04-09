@@ -22,11 +22,10 @@ var shouldBanRules []ShouldBanRule = []ShouldBanRule{
 	{
 		Reason: "Free, Gmail, and 3 dots in the address.",
 		Func: func(r *http.Request) bool {
-			userIsPaying := r.Context().Value("user_is_paying").(bool)
 			email, _ := r.Context().Value("user_email").(string)
 			hasThreeDots := strings.Count(email, ".") >= 4
 			isGoogleMail := strings.HasSuffix(email, "@googlemail.com") || strings.HasSuffix(email, "@gmail.com")
-			shouldBan := hasThreeDots && isGoogleMail && !userIsPaying
+			shouldBan := hasThreeDots && isGoogleMail
 			return shouldBan
 		},
 	},

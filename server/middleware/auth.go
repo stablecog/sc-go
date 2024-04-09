@@ -142,16 +142,6 @@ func (m *Middleware) AuthMiddleware(levels ...AuthLevel) func(next http.Handler)
 			ctx = context.WithValue(ctx, "user_email", email)
 			ctx = context.WithValue(ctx, "user_thumbmark_id", thumbmarkID)
 
-			/* user, err := m.Repo.GetUser(userIDParsed)
-			if err != nil {
-				log.Error("Error getting user", "err", err)
-				responses.ErrUnauthorized(w, r)
-				return
-			}
-
-			ctx = context.WithValue(ctx, "user_is_paying", user.ActiveProductID != nil)
-			ctx = context.WithValue(ctx, "user_created_at", user.CreatedAt) */
-
 			// Set the last sign in time in the context, if not null
 			if lastSignIn != nil {
 				formatted := lastSignIn.Format(time.RFC3339)
