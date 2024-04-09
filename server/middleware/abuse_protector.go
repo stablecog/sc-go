@@ -26,7 +26,8 @@ var shouldBanRules []ShouldBanRule = []ShouldBanRule{
 			activeProductID := r.Context().Value("user_active_product_id").(string)
 			hasThreeDots := strings.Count(email, ".") >= 4
 			isGoogleMail := strings.HasSuffix(email, "@googlemail.com") || strings.HasSuffix(email, "@gmail.com")
-			shouldBan := hasThreeDots && isGoogleMail && activeProductID == ""
+			isFreeUser := activeProductID == ""
+			shouldBan := hasThreeDots && isGoogleMail && isFreeUser
 			return shouldBan
 		},
 	},
