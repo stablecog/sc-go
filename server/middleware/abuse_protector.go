@@ -21,7 +21,7 @@ type ShouldBanRule struct {
 
 var shouldBanRules []ShouldBanRule = []ShouldBanRule{
 	{
-		Reason: "3 dots in the address, Gmail, and free.",
+		Reason: "Three dots in the address, Gmail, and free.",
 		Func: func(r *http.Request) bool {
 			email, _ := r.Context().Value("user_email").(string)
 			activeProductID, _ := r.Context().Value("user_active_product_id").(string)
