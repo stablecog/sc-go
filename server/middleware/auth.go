@@ -128,7 +128,6 @@ func (m *Middleware) AuthMiddleware(levels ...AuthLevel) func(next http.Handler)
 			}
 
 			userIDParsed, err := uuid.Parse(userId)
-			log.Warn("user_id", "user_id", userId, "user_id_parsed", userIDParsed)
 			if err != nil {
 				// This should never happen
 				log.Error("Error parsing user ID", "err", err)
@@ -138,14 +137,16 @@ func (m *Middleware) AuthMiddleware(levels ...AuthLevel) func(next http.Handler)
 
 			thumbmarkID := utils.GetThumbmarkID(r)
 
-			/* user, err := m.Repo.GetUser(userIDParsed)
+			user, err := m.Repo.GetUser(userIDParsed)
 			if err != nil {
 				log.Error("Error getting user", "err", err)
 				responses.ErrInternalServerError(w, r, "An unknown error has occured")
 				return
 			}
 
-			activeProductIDStr := ""
+			log.Warn("user", user)
+
+			/* activeProductIDStr := ""
 
 			if user.ActiveProductID != nil {
 				activeProductIDStr = *user.ActiveProductID
