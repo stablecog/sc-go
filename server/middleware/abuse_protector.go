@@ -61,6 +61,10 @@ var shouldBanRules []ShouldBanRule = []ShouldBanRule{
 			}
 			isFreeUser := activeProductID == ""
 
+			log.Warn("isBannedThumbmarkID", isBannedThumbmarkID)
+			log.Warn("isNew", isNew)
+			log.Warn("isFreeUser", isFreeUser)
+
 			shouldBan := isBannedThumbmarkID && isFreeUser && isNew
 			return shouldBan
 		},
