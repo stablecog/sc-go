@@ -137,7 +137,7 @@ func (m *Middleware) AuthMiddleware(levels ...AuthLevel) func(next http.Handler)
 
 			thumbmarkID := utils.GetThumbmarkID(r)
 
-			user, err := m.Repo.GetUser(userIDParsed)
+			/* user, err := m.Repo.GetUser(userIDParsed)
 			if err != nil {
 				log.Error("Error getting user", "err", err)
 				responses.ErrInternalServerError(w, r, "An unknown error has occured")
@@ -150,14 +150,14 @@ func (m *Middleware) AuthMiddleware(levels ...AuthLevel) func(next http.Handler)
 				activeProductIDStr = *user.ActiveProductID
 			}
 
-			createdAt := user.CreatedAt.Format(time.RFC3339)
+			createdAt := user.CreatedAt.Format(time.RFC3339) */
 
 			// Set the user ID in the context
 			ctx = context.WithValue(ctx, "user_id", userId)
 			ctx = context.WithValue(ctx, "user_email", email)
 			ctx = context.WithValue(ctx, "user_thumbmark_id", thumbmarkID)
-			ctx = context.WithValue(ctx, "user_active_product_id", activeProductIDStr)
-			ctx = context.WithValue(ctx, "user_created_at", createdAt)
+			/* ctx = context.WithValue(ctx, "user_active_product_id", activeProductIDStr)
+			ctx = context.WithValue(ctx, "user_created_at", createdAt) */
 
 			// Set the last sign in time in the context, if not null
 			if lastSignIn != nil {
