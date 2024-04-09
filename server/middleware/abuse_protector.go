@@ -23,7 +23,7 @@ var shouldBanRules []RuleFunc = []RuleFunc{
 	},
 }
 
-func (m *Middleware) BanUserMiddleware() func(next http.Handler) http.Handler {
+func (m *Middleware) AbuseProtectorMiddleware() func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			userIDStr, _ := r.Context().Value("user_id").(string)
