@@ -39,7 +39,7 @@ func (m *Middleware) BanUserMiddleware() func(next http.Handler) http.Handler {
 			// Get domain
 			segs := strings.Split(email, "@")
 			if len(segs) != 2 {
-				log.Warnf("Invalid email encountered in GeoIP: %s", email)
+				log.Warnf("Invalid email encountered while banning user: %s", email)
 				next.ServeHTTP(w, r)
 				return
 			}
