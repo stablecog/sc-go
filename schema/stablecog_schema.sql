@@ -1166,6 +1166,23 @@ ALTER TABLE public.ip_blacklist ENABLE ROW LEVEL SECURITY;
 ALTER TABLE ONLY public.ip_blacklist
     ADD CONSTRAINT ip_blacklist_pkey PRIMARY KEY (id);
 
+-- Thumbmark ID Blacklist
+CREATE TABLE public.thumbmark_id_blacklist (
+    id uuid DEFAULT extensions.uuid_generate_v4() NOT NULL,
+    thumbmark_id text NOT NULL,
+    created_at timestamp with time zone DEFAULT timezone('utc'::text, now()) NOT NULL,
+    updated_at timestamp with time zone DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+CREATE trigger handle_updated_at before
+UPDATE
+    ON public.thumbmark_id_blacklist FOR each ROW EXECUTE PROCEDURE moddatetime (updated_at);
+
+ALTER TABLE public.thumbmark_id_blacklist ENABLE ROW LEVEL SECURITY;
+
+ALTER TABLE ONLY public.thumbmark_id_blacklist
+    ADD CONSTRAINT thumbmark_id_blacklist_pkey PRIMARY KEY (id);
+
 -- Add username_changed_at
 alter table public.users add column username_changed_at timestamp with time zone null;
 

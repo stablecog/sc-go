@@ -48,6 +48,8 @@ type Tx struct {
 	Role *RoleClient
 	// Scheduler is the client for interacting with the Scheduler builders.
 	Scheduler *SchedulerClient
+	// ThumbmarkIdBlackList is the client for interacting with the ThumbmarkIdBlackList builders.
+	ThumbmarkIdBlackList *ThumbmarkIdBlackListClient
 	// TipLog is the client for interacting with the TipLog builders.
 	TipLog *TipLogClient
 	// Upscale is the client for interacting with the Upscale builders.
@@ -216,6 +218,7 @@ func (tx *Tx) init() {
 	tx.Prompt = NewPromptClient(tx.config)
 	tx.Role = NewRoleClient(tx.config)
 	tx.Scheduler = NewSchedulerClient(tx.config)
+	tx.ThumbmarkIdBlackList = NewThumbmarkIdBlackListClient(tx.config)
 	tx.TipLog = NewTipLogClient(tx.config)
 	tx.Upscale = NewUpscaleClient(tx.config)
 	tx.UpscaleModel = NewUpscaleModelClient(tx.config)

@@ -486,6 +486,19 @@ var (
 		Columns:    SchedulersColumns,
 		PrimaryKey: []*schema.Column{SchedulersColumns[0]},
 	}
+	// ThumbmarkIDBlacklistColumns holds the columns for the "thumbmark_id_blacklist" table.
+	ThumbmarkIDBlacklistColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID},
+		{Name: "thumbmark_id", Type: field.TypeString, Unique: true, Size: 2147483647},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+	}
+	// ThumbmarkIDBlacklistTable holds the schema information for the "thumbmark_id_blacklist" table.
+	ThumbmarkIDBlacklistTable = &schema.Table{
+		Name:       "thumbmark_id_blacklist",
+		Columns:    ThumbmarkIDBlacklistColumns,
+		PrimaryKey: []*schema.Column{ThumbmarkIDBlacklistColumns[0]},
+	}
 	// TipLogColumns holds the columns for the "tip_log" table.
 	TipLogColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID},
@@ -890,6 +903,7 @@ var (
 		PromptsTable,
 		RolesTable,
 		SchedulersTable,
+		ThumbmarkIDBlacklistTable,
 		TipLogTable,
 		UpscalesTable,
 		UpscaleModelsTable,
@@ -970,6 +984,9 @@ func init() {
 	}
 	SchedulersTable.Annotation = &entsql.Annotation{
 		Table: "schedulers",
+	}
+	ThumbmarkIDBlacklistTable.Annotation = &entsql.Annotation{
+		Table: "thumbmark_id_blacklist",
 	}
 	TipLogTable.ForeignKeys[0].RefTable = UsersTable
 	TipLogTable.ForeignKeys[1].RefTable = UsersTable

@@ -48,6 +48,7 @@ type (
 		Prompt               []ent.Hook
 		Role                 []ent.Hook
 		Scheduler            []ent.Hook
+		ThumbmarkIdBlackList []ent.Hook
 		TipLog               []ent.Hook
 		Upscale              []ent.Hook
 		UpscaleModel         []ent.Hook
@@ -77,6 +78,7 @@ type (
 		Prompt               []ent.Interceptor
 		Role                 []ent.Interceptor
 		Scheduler            []ent.Interceptor
+		ThumbmarkIdBlackList []ent.Interceptor
 		TipLog               []ent.Interceptor
 		Upscale              []ent.Interceptor
 		UpscaleModel         []ent.Interceptor

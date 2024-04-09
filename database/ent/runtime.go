@@ -24,6 +24,7 @@ import (
 	"github.com/stablecog/sc-go/database/ent/role"
 	"github.com/stablecog/sc-go/database/ent/scheduler"
 	"github.com/stablecog/sc-go/database/ent/schema"
+	"github.com/stablecog/sc-go/database/ent/thumbmarkidblacklist"
 	"github.com/stablecog/sc-go/database/ent/tiplog"
 	"github.com/stablecog/sc-go/database/ent/upscale"
 	"github.com/stablecog/sc-go/database/ent/upscalemodel"
@@ -402,6 +403,22 @@ func init() {
 	schedulerDescID := schedulerFields[0].Descriptor()
 	// scheduler.DefaultID holds the default value on creation for the id field.
 	scheduler.DefaultID = schedulerDescID.Default.(func() uuid.UUID)
+	thumbmarkidblacklistFields := schema.ThumbmarkIdBlackList{}.Fields()
+	_ = thumbmarkidblacklistFields
+	// thumbmarkidblacklistDescCreatedAt is the schema descriptor for created_at field.
+	thumbmarkidblacklistDescCreatedAt := thumbmarkidblacklistFields[2].Descriptor()
+	// thumbmarkidblacklist.DefaultCreatedAt holds the default value on creation for the created_at field.
+	thumbmarkidblacklist.DefaultCreatedAt = thumbmarkidblacklistDescCreatedAt.Default.(func() time.Time)
+	// thumbmarkidblacklistDescUpdatedAt is the schema descriptor for updated_at field.
+	thumbmarkidblacklistDescUpdatedAt := thumbmarkidblacklistFields[3].Descriptor()
+	// thumbmarkidblacklist.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	thumbmarkidblacklist.DefaultUpdatedAt = thumbmarkidblacklistDescUpdatedAt.Default.(func() time.Time)
+	// thumbmarkidblacklist.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	thumbmarkidblacklist.UpdateDefaultUpdatedAt = thumbmarkidblacklistDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// thumbmarkidblacklistDescID is the schema descriptor for id field.
+	thumbmarkidblacklistDescID := thumbmarkidblacklistFields[0].Descriptor()
+	// thumbmarkidblacklist.DefaultID holds the default value on creation for the id field.
+	thumbmarkidblacklist.DefaultID = thumbmarkidblacklistDescID.Default.(func() uuid.UUID)
 	tiplogFields := schema.TipLog{}.Fields()
 	_ = tiplogFields
 	// tiplogDescCreatedAt is the schema descriptor for created_at field.

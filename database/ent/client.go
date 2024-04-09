@@ -28,6 +28,7 @@ import (
 	"github.com/stablecog/sc-go/database/ent/prompt"
 	"github.com/stablecog/sc-go/database/ent/role"
 	"github.com/stablecog/sc-go/database/ent/scheduler"
+	"github.com/stablecog/sc-go/database/ent/thumbmarkidblacklist"
 	"github.com/stablecog/sc-go/database/ent/tiplog"
 	"github.com/stablecog/sc-go/database/ent/upscale"
 	"github.com/stablecog/sc-go/database/ent/upscalemodel"
@@ -83,6 +84,8 @@ type Client struct {
 	Role *RoleClient
 	// Scheduler is the client for interacting with the Scheduler builders.
 	Scheduler *SchedulerClient
+	// ThumbmarkIdBlackList is the client for interacting with the ThumbmarkIdBlackList builders.
+	ThumbmarkIdBlackList *ThumbmarkIdBlackListClient
 	// TipLog is the client for interacting with the TipLog builders.
 	TipLog *TipLogClient
 	// Upscale is the client for interacting with the Upscale builders.
@@ -133,6 +136,7 @@ func (c *Client) init() {
 	c.Prompt = NewPromptClient(c.config)
 	c.Role = NewRoleClient(c.config)
 	c.Scheduler = NewSchedulerClient(c.config)
+	c.ThumbmarkIdBlackList = NewThumbmarkIdBlackListClient(c.config)
 	c.TipLog = NewTipLogClient(c.config)
 	c.Upscale = NewUpscaleClient(c.config)
 	c.UpscaleModel = NewUpscaleModelClient(c.config)
@@ -193,6 +197,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		Prompt:               NewPromptClient(cfg),
 		Role:                 NewRoleClient(cfg),
 		Scheduler:            NewSchedulerClient(cfg),
+		ThumbmarkIdBlackList: NewThumbmarkIdBlackListClient(cfg),
 		TipLog:               NewTipLogClient(cfg),
 		Upscale:              NewUpscaleClient(cfg),
 		UpscaleModel:         NewUpscaleModelClient(cfg),
@@ -239,6 +244,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		Prompt:               NewPromptClient(cfg),
 		Role:                 NewRoleClient(cfg),
 		Scheduler:            NewSchedulerClient(cfg),
+		ThumbmarkIdBlackList: NewThumbmarkIdBlackListClient(cfg),
 		TipLog:               NewTipLogClient(cfg),
 		Upscale:              NewUpscaleClient(cfg),
 		UpscaleModel:         NewUpscaleModelClient(cfg),
@@ -294,6 +300,7 @@ func (c *Client) Use(hooks ...Hook) {
 	c.Prompt.Use(hooks...)
 	c.Role.Use(hooks...)
 	c.Scheduler.Use(hooks...)
+	c.ThumbmarkIdBlackList.Use(hooks...)
 	c.TipLog.Use(hooks...)
 	c.Upscale.Use(hooks...)
 	c.UpscaleModel.Use(hooks...)
@@ -326,6 +333,7 @@ func (c *Client) Intercept(interceptors ...Interceptor) {
 	c.Prompt.Intercept(interceptors...)
 	c.Role.Intercept(interceptors...)
 	c.Scheduler.Intercept(interceptors...)
+	c.ThumbmarkIdBlackList.Intercept(interceptors...)
 	c.TipLog.Intercept(interceptors...)
 	c.Upscale.Intercept(interceptors...)
 	c.UpscaleModel.Intercept(interceptors...)
@@ -375,6 +383,8 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.Role.mutate(ctx, m)
 	case *SchedulerMutation:
 		return c.Scheduler.mutate(ctx, m)
+	case *ThumbmarkIdBlackListMutation:
+		return c.ThumbmarkIdBlackList.mutate(ctx, m)
 	case *TipLogMutation:
 		return c.TipLog.mutate(ctx, m)
 	case *UpscaleMutation:
@@ -2931,6 +2941,124 @@ func (c *SchedulerClient) mutate(ctx context.Context, m *SchedulerMutation) (Val
 		return (&SchedulerDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("ent: unknown Scheduler mutation op: %q", m.Op())
+	}
+}
+
+// ThumbmarkIdBlackListClient is a client for the ThumbmarkIdBlackList schema.
+type ThumbmarkIdBlackListClient struct {
+	config
+}
+
+// NewThumbmarkIdBlackListClient returns a client for the ThumbmarkIdBlackList from the given config.
+func NewThumbmarkIdBlackListClient(c config) *ThumbmarkIdBlackListClient {
+	return &ThumbmarkIdBlackListClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `thumbmarkidblacklist.Hooks(f(g(h())))`.
+func (c *ThumbmarkIdBlackListClient) Use(hooks ...Hook) {
+	c.hooks.ThumbmarkIdBlackList = append(c.hooks.ThumbmarkIdBlackList, hooks...)
+}
+
+// Use adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `thumbmarkidblacklist.Intercept(f(g(h())))`.
+func (c *ThumbmarkIdBlackListClient) Intercept(interceptors ...Interceptor) {
+	c.inters.ThumbmarkIdBlackList = append(c.inters.ThumbmarkIdBlackList, interceptors...)
+}
+
+// Create returns a builder for creating a ThumbmarkIdBlackList entity.
+func (c *ThumbmarkIdBlackListClient) Create() *ThumbmarkIdBlackListCreate {
+	mutation := newThumbmarkIdBlackListMutation(c.config, OpCreate)
+	return &ThumbmarkIdBlackListCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of ThumbmarkIdBlackList entities.
+func (c *ThumbmarkIdBlackListClient) CreateBulk(builders ...*ThumbmarkIdBlackListCreate) *ThumbmarkIdBlackListCreateBulk {
+	return &ThumbmarkIdBlackListCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for ThumbmarkIdBlackList.
+func (c *ThumbmarkIdBlackListClient) Update() *ThumbmarkIdBlackListUpdate {
+	mutation := newThumbmarkIdBlackListMutation(c.config, OpUpdate)
+	return &ThumbmarkIdBlackListUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *ThumbmarkIdBlackListClient) UpdateOne(tibl *ThumbmarkIdBlackList) *ThumbmarkIdBlackListUpdateOne {
+	mutation := newThumbmarkIdBlackListMutation(c.config, OpUpdateOne, withThumbmarkIdBlackList(tibl))
+	return &ThumbmarkIdBlackListUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *ThumbmarkIdBlackListClient) UpdateOneID(id uuid.UUID) *ThumbmarkIdBlackListUpdateOne {
+	mutation := newThumbmarkIdBlackListMutation(c.config, OpUpdateOne, withThumbmarkIdBlackListID(id))
+	return &ThumbmarkIdBlackListUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for ThumbmarkIdBlackList.
+func (c *ThumbmarkIdBlackListClient) Delete() *ThumbmarkIdBlackListDelete {
+	mutation := newThumbmarkIdBlackListMutation(c.config, OpDelete)
+	return &ThumbmarkIdBlackListDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *ThumbmarkIdBlackListClient) DeleteOne(tibl *ThumbmarkIdBlackList) *ThumbmarkIdBlackListDeleteOne {
+	return c.DeleteOneID(tibl.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *ThumbmarkIdBlackListClient) DeleteOneID(id uuid.UUID) *ThumbmarkIdBlackListDeleteOne {
+	builder := c.Delete().Where(thumbmarkidblacklist.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &ThumbmarkIdBlackListDeleteOne{builder}
+}
+
+// Query returns a query builder for ThumbmarkIdBlackList.
+func (c *ThumbmarkIdBlackListClient) Query() *ThumbmarkIdBlackListQuery {
+	return &ThumbmarkIdBlackListQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeThumbmarkIdBlackList},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a ThumbmarkIdBlackList entity by its id.
+func (c *ThumbmarkIdBlackListClient) Get(ctx context.Context, id uuid.UUID) (*ThumbmarkIdBlackList, error) {
+	return c.Query().Where(thumbmarkidblacklist.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *ThumbmarkIdBlackListClient) GetX(ctx context.Context, id uuid.UUID) *ThumbmarkIdBlackList {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *ThumbmarkIdBlackListClient) Hooks() []Hook {
+	return c.hooks.ThumbmarkIdBlackList
+}
+
+// Interceptors returns the client interceptors.
+func (c *ThumbmarkIdBlackListClient) Interceptors() []Interceptor {
+	return c.inters.ThumbmarkIdBlackList
+}
+
+func (c *ThumbmarkIdBlackListClient) mutate(ctx context.Context, m *ThumbmarkIdBlackListMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&ThumbmarkIdBlackListCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&ThumbmarkIdBlackListUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&ThumbmarkIdBlackListUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&ThumbmarkIdBlackListDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown ThumbmarkIdBlackList mutation op: %q", m.Op())
 	}
 }
 

@@ -213,6 +213,18 @@ func (f SchedulerFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, e
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.SchedulerMutation", m)
 }
 
+// The ThumbmarkIdBlackListFunc type is an adapter to allow the use of ordinary
+// function as ThumbmarkIdBlackList mutator.
+type ThumbmarkIdBlackListFunc func(context.Context, *ent.ThumbmarkIdBlackListMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f ThumbmarkIdBlackListFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.ThumbmarkIdBlackListMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.ThumbmarkIdBlackListMutation", m)
+}
+
 // The TipLogFunc type is an adapter to allow the use of ordinary
 // function as TipLog mutator.
 type TipLogFunc func(context.Context, *ent.TipLogMutation) (ent.Value, error)

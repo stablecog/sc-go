@@ -28,6 +28,7 @@ import (
 	"github.com/stablecog/sc-go/database/ent/prompt"
 	"github.com/stablecog/sc-go/database/ent/role"
 	"github.com/stablecog/sc-go/database/ent/scheduler"
+	"github.com/stablecog/sc-go/database/ent/thumbmarkidblacklist"
 	"github.com/stablecog/sc-go/database/ent/tiplog"
 	"github.com/stablecog/sc-go/database/ent/upscale"
 	"github.com/stablecog/sc-go/database/ent/upscalemodel"
@@ -82,6 +83,7 @@ func columnChecker(table string) func(string) error {
 		prompt.Table:               prompt.ValidColumn,
 		role.Table:                 role.ValidColumn,
 		scheduler.Table:            scheduler.ValidColumn,
+		thumbmarkidblacklist.Table: thumbmarkidblacklist.ValidColumn,
 		tiplog.Table:               tiplog.ValidColumn,
 		upscale.Table:              upscale.ValidColumn,
 		upscalemodel.Table:         upscalemodel.ValidColumn,

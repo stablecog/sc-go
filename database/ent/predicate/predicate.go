@@ -57,6 +57,9 @@ type Role func(*sql.Selector)
 // Scheduler is the predicate function for scheduler builders.
 type Scheduler func(*sql.Selector)
 
+// ThumbmarkIdBlackList is the predicate function for thumbmarkidblacklist builders.
+type ThumbmarkIdBlackList func(*sql.Selector)
+
 // TipLog is the predicate function for tiplog builders.
 type TipLog func(*sql.Selector)
 
