@@ -17,7 +17,7 @@ var shouldBanRules []RuleFunc = []RuleFunc{
 	func(r *http.Request) bool {
 		email, _ := r.Context().Value("user_email").(string)
 		hasThreeDots := strings.Count(email, ".") >= 4
-		isGoogleMail := strings.HasSuffix(email, "@googlemail.com")
+		isGoogleMail := strings.HasSuffix(email, "@googlemail.com") || strings.HasSuffix(email, "@gmail.com")
 		shouldBan := hasThreeDots && isGoogleMail
 		return shouldBan
 	},
