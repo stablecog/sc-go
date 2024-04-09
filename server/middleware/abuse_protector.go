@@ -8,6 +8,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/stablecog/sc-go/log"
 	"github.com/stablecog/sc-go/server/discord"
+	"github.com/stablecog/sc-go/shared"
 	"github.com/stablecog/sc-go/utils"
 )
 
@@ -20,7 +21,7 @@ type ShouldBanRule struct {
 
 var shouldBanRules []ShouldBanRule = []ShouldBanRule{
 	{
-		Reason: "Free, Gmail, and 3 dots in the address.",
+		Reason: "Gmail, 3 dots in the address, and free.",
 		Func: func(r *http.Request) bool {
 			email, _ := r.Context().Value("user_email").(string)
 			activeProductID, _ := r.Context().Value("user_active_product_id").(string)
@@ -30,6 +31,36 @@ var shouldBanRules []ShouldBanRule = []ShouldBanRule{
 			isFreeUser := activeProductID == ""
 
 			shouldBan := hasThreeDots && isGoogleMail && isFreeUser
+			return shouldBan
+		},
+	},
+	{
+		Reason: "Banned Thumbmark ID, new, and free.",
+		Func: func(r *http.Request) bool {
+			bannedThumbmarkIDs := shared.GetCache().ThumbmarkIDBlacklist()
+			thumbmarkID, _ := r.Context().Value("user_thumbmark_id").(string)
+			activeProductID, _ := r.Context().Value("user_active_product_id").(string)
+			createdAtStr := r.Context().Value("user_created_at").(string)
+
+			isNew := false
+			createdAt, err := time.Parse(time.RFC3339, createdAtStr)
+			if err != nil {
+				log.Errorf("Error parsing user created at: %s", err.Error())
+			} else if time.Since(createdAt) < 24*time.Hour*7 {
+				isNew = true
+			}
+			isBannedThumbmarkID := false
+			if thumbmarkID != "" {
+				for _, bannedThumbmarkID := range bannedThumbmarkIDs {
+					if bannedThumbmarkID == thumbmarkID {
+						isBannedThumbmarkID = true
+						break
+					}
+				}
+			}
+			isFreeUser := activeProductID == ""
+
+			shouldBan := isBannedThumbmarkID && isFreeUser && isNew
 			return shouldBan
 		},
 	},
