@@ -386,7 +386,7 @@ func FireBannedUserWebhook(ip string, email string, domain string, userid string
 	banReasonsString := ""
 	for i, reason := range banReasons {
 		number := i + 1
-		str := fmt.Sprintf("%d. %s", number, reason)
+		str := fmt.Sprintf("%d- %s", number, reason)
 		if i != 0 {
 			str = fmt.Sprintf("\n%s", str)
 		}
