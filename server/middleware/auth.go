@@ -144,22 +144,23 @@ func (m *Middleware) AuthMiddleware(levels ...AuthLevel) func(next http.Handler)
 				return
 			}
 
-			log.Warn("user", user)
+			activeProductIDStr := ""
+			createdAtStr := ""
 
-			/* activeProductIDStr := ""
-
-			if user.ActiveProductID != nil {
+			if user != nil && user.ActiveProductID != nil {
 				activeProductIDStr = *user.ActiveProductID
 			}
 
-			createdAt := user.CreatedAt.Format(time.RFC3339) */
+			if user != nil {
+				createdAtStr = user.CreatedAt.Format(time.RFC3339)
+			}
 
 			// Set the user ID in the context
 			ctx = context.WithValue(ctx, "user_id", userId)
 			ctx = context.WithValue(ctx, "user_email", email)
 			ctx = context.WithValue(ctx, "user_thumbmark_id", thumbmarkID)
-			/* ctx = context.WithValue(ctx, "user_active_product_id", activeProductIDStr)
-			ctx = context.WithValue(ctx, "user_created_at", createdAt) */
+			ctx = context.WithValue(ctx, "user_active_product_id", activeProductIDStr)
+			ctx = context.WithValue(ctx, "user_created_at", createdAtStr)
 
 			// Set the last sign in time in the context, if not null
 			if lastSignIn != nil {
