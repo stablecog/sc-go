@@ -4,6 +4,7 @@ import (
 	"github.com/stablecog/sc-go/database/ent/bannedwords"
 	"github.com/stablecog/sc-go/database/ent/disposableemail"
 	"github.com/stablecog/sc-go/database/ent/ipblacklist"
+	"github.com/stablecog/sc-go/database/ent/thumbmarkidblacklist"
 	"github.com/stablecog/sc-go/database/ent/usernameblacklist"
 	"github.com/stablecog/sc-go/log"
 	"github.com/stablecog/sc-go/shared"
@@ -74,6 +75,17 @@ func (r *Repository) UpdateCache() error {
 		ipBlacklistStr[i] = ip.IP
 	}
 	shared.GetCache().UpdateIPBlacklist(ipBlacklistStr)
+
+	thumbmarkIDBlacklist, err := r.DB.ThumbmarkIdBlackList.Query().Select(thumbmarkidblacklist.FieldThumbmarkID).All(r.Ctx)
+	if err != nil {
+		log.Error("Failed to get thumbmark id blacklist", "err", err)
+		return err
+	}
+	thumbmarkIDBlacklistStr := make([]string, len(thumbmarkIDBlacklist))
+	for i, thumbmarkID := range thumbmarkIDBlacklist {
+		thumbmarkIDBlacklistStr[i] = thumbmarkID.ThumbmarkID
+	}
+	shared.GetCache().UpdateIPBlacklist(thumbmarkIDBlacklistStr)
 
 	bannedWords, err := r.DB.BannedWords.Query().Select(bannedwords.FieldReason, bannedwords.FieldSplitMatch, bannedwords.FieldWords).All(r.Ctx)
 	if err != nil {

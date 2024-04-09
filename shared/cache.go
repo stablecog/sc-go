@@ -21,6 +21,7 @@ type Cache struct {
 	voiceoverSpeakers      []*ent.VoiceoverSpeaker
 	adminIDs               []uuid.UUID
 	iPBlacklist            []string
+	thumbmarkIDBlacklist   []string
 	disposableEmailDomains []string
 	usernameBlacklist      []string
 	bannedWords            []*ent.BannedWords
@@ -262,6 +263,18 @@ func (f *Cache) IPBlacklist() []string {
 	return f.iPBlacklist
 }
 
+func (f *Cache) UpdateThumbmarkIDBlacklist(tm []string) {
+	f.Lock()
+	defer f.Unlock()
+	f.thumbmarkIDBlacklist = tm
+}
+
+func (f *Cache) ThumbmarkIDBlacklist() []string {
+	f.RLock()
+	defer f.RUnlock()
+	return f.thumbmarkIDBlacklist
+}
+
 func (f *Cache) UpdateUsernameBlacklist(blacklist []string) {
 	f.Lock()
 	defer f.Unlock()
@@ -305,6 +318,10 @@ func (f *Cache) IsDisposableEmail(email string) bool {
 
 func (f *Cache) IsIPBanned(ip string) bool {
 	return slices.Contains(f.IPBlacklist(), ip)
+}
+
+func (f *Cache) IsThumbmarkIDBanned(ip string) bool {
+	return slices.Contains(f.ThumbmarkIDBlacklist(), ip)
 }
 
 func (f *Cache) GetDefaultGenerationModel() *ent.GenerationModel {
