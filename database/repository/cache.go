@@ -85,7 +85,7 @@ func (r *Repository) UpdateCache() error {
 	for i, thumbmarkID := range thumbmarkIDBlacklist {
 		thumbmarkIDBlacklistStr[i] = thumbmarkID.ThumbmarkID
 	}
-	shared.GetCache().UpdateIPBlacklist(thumbmarkIDBlacklistStr)
+	shared.GetCache().UpdateThumbmarkIDBlacklist(thumbmarkIDBlacklistStr)
 
 	bannedWords, err := r.DB.BannedWords.Query().Select(bannedwords.FieldReason, bannedwords.FieldSplitMatch, bannedwords.FieldWords).All(r.Ctx)
 	if err != nil {
