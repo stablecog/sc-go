@@ -127,6 +127,14 @@ func (m *Middleware) AuthMiddleware(levels ...AuthLevel) func(next http.Handler)
 				}
 			}
 
+			userIDParsed, err := uuid.Parse(userId)
+			if err != nil {
+				// This should never happen
+				log.Error("Error parsing user ID", "err", err)
+				responses.ErrUnauthorized(w, r)
+				return
+			}
+
 			thumbmarkID := utils.GetThumbmarkID(r)
 
 			// Set the user ID in the context
@@ -134,18 +142,19 @@ func (m *Middleware) AuthMiddleware(levels ...AuthLevel) func(next http.Handler)
 			ctx = context.WithValue(ctx, "user_email", email)
 			ctx = context.WithValue(ctx, "user_thumbmark_id", thumbmarkID)
 
+			user, err := m.Repo.GetUser(userIDParsed)
+			if err != nil {
+				log.Error("Error getting user", "err", err)
+				responses.ErrUnauthorized(w, r)
+				return
+			}
+
+			ctx = context.WithValue(ctx, "user_is_paying", user.ActiveProductID != nil)
+
 			// Set the last sign in time in the context, if not null
 			if lastSignIn != nil {
 				formatted := lastSignIn.Format(time.RFC3339)
 				ctx = context.WithValue(ctx, "user_last_sign_in", formatted)
-			}
-
-			userIDParsed, err := uuid.Parse(userId)
-			if err != nil {
-				// This should never happen
-				log.Error("Error parsing user ID", "err", err)
-				responses.ErrUnauthorized(w, r)
-				return
 			}
 
 			// They do have an appropriate auth token
