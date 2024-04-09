@@ -63,7 +63,7 @@ func (m *Middleware) BanUserMiddleware() func(next http.Handler) http.Handler {
 				// Ban the user
 				_, err = m.Repo.BanUsers([]uuid.UUID{userID}, false)
 				if err != nil {
-					log.Errorf("Error inserting user into banned users: %s", err.Error())
+					log.Errorf("Error updating user as banned: %s", err.Error())
 				}
 				time.Sleep(30 * time.Second)
 			}
