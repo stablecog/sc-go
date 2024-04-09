@@ -128,6 +128,7 @@ func (m *Middleware) AuthMiddleware(levels ...AuthLevel) func(next http.Handler)
 			}
 
 			userIDParsed, err := uuid.Parse(userId)
+			log.Warn("user_id", "user_id", userId, "user_id_parsed", userIDParsed)
 			if err != nil {
 				// This should never happen
 				log.Error("Error parsing user ID", "err", err)
