@@ -371,3 +371,64 @@ func FireGeoIPSuspiciousUserWebhook(ip string, email string, domain string, user
 
 	return nil
 }
+
+func FireBannedUserWebhook(ip string, email string, domain string, userid string, countryCode string, thumbmarkID string) error {
+	webhookUrl := utils.GetEnv().GeoIpWebhook
+	if webhookUrl == "" {
+		return fmt.Errorf("GEOIP_WEBHOOK not set")
+	}
+
+	thumbmark := "Unknown"
+	if thumbmarkID != "" {
+		thumbmark = thumbmarkID
+	}
+
+	// Build webhook body
+	body := models.DiscordWebhookBody{
+		Embeds: []models.DiscordWebhookEmbed{
+			{
+				Title: fmt.Sprintf("Banned User: %s", email),
+				Color: 11437567,
+				Fields: []models.DiscordWebhookField{
+					{
+						Name:  "BANNED Email",
+						Value: email,
+					},
+					{
+						Name:  "BANNED User ID",
+						Value: userid,
+					},
+					{
+						Name:  "IP",
+						Value: ip,
+					},
+					{
+						Name:  "Domain",
+						Value: domain,
+					},
+					{
+						Name:  "Thumbmark ID",
+						Value: thumbmark,
+					},
+				},
+				Footer: models.DiscordWebhookEmbedFooter{
+					Text: fmt.Sprintf("%s", time.Now().Format(time.RFC1123)),
+				},
+			},
+		},
+		Attachments: []models.DiscordWebhookAttachment{},
+	}
+	reqBody, err := json.Marshal(body)
+	if err != nil {
+		log.Error("Error marshalling webhook body", "err", err)
+		return err
+	}
+	res, postErr := http.Post(webhookUrl, "application/json", bytes.NewBuffer(reqBody))
+	if postErr != nil {
+		log.Error("Error sending webhook", "err", postErr)
+		return postErr
+	}
+	defer res.Body.Close()
+
+	return nil
+}

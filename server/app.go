@@ -1050,11 +1050,13 @@ func main() {
 			// Create Generation
 			r.Route("/image/generation/create", func(r chi.Router) {
 				r.Use(mw.GeoIPMiddleware())
+				r.Use(mw.BanUserMiddleware())
 				r.Post("/", hc.HandleCreateGeneration)
 			})
 			// ! Deprecated
 			r.Route("/generation", func(r chi.Router) {
 				r.Use(mw.GeoIPMiddleware())
+				r.Use(mw.BanUserMiddleware())
 				r.Post("/", hc.HandleCreateGeneration)
 			})
 			// Mark generation for deletion
@@ -1166,6 +1168,7 @@ func main() {
 					r.Use(mw.AuthMiddleware(middleware.AuthLevelAPIToken))
 					r.Use(middleware.Logger)
 					r.Use(mw.GeoIPMiddleware())
+					r.Use(mw.BanUserMiddleware())
 					r.Use(mw.RateLimit(5, "api", 1*time.Second))
 					r.Post("/", hc.HandleCreateGenerationToken)
 				})
