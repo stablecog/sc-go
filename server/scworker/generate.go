@@ -430,6 +430,8 @@ func (w *SCWorker) CreateGeneration(source enttypes.SourceType,
 							_, err = w.Repo.BanUsers([]uuid.UUID{user.ID}, false)
 							if err != nil {
 								log.Error("Error banning user", "err", err)
+							} else {
+								time.Sleep(30 * time.Second)
 							}
 						}
 					}
