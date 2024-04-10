@@ -38,7 +38,6 @@ var shouldBanRules []ShouldBanRule = []ShouldBanRule{
 		Reason: "Banned Thumbmark ID, new, and free.",
 		Func: func(r *http.Request) bool {
 			bannedThumbmarkIDs := shared.GetCache().ThumbmarkIDBlacklist()
-			log.Warn("bannedThumbmarkIDs", bannedThumbmarkIDs)
 			thumbmarkID, _ := r.Context().Value("user_thumbmark_id").(string)
 			activeProductID, _ := r.Context().Value("user_active_product_id").(string)
 			createdAtStr := r.Context().Value("user_created_at").(string)
@@ -60,10 +59,6 @@ var shouldBanRules []ShouldBanRule = []ShouldBanRule{
 				}
 			}
 			isFreeUser := activeProductID == ""
-
-			log.Warn("isBannedThumbmarkID", isBannedThumbmarkID)
-			log.Warn("isNew", isNew)
-			log.Warn("isFreeUser", isFreeUser)
 
 			shouldBan := isBannedThumbmarkID && isFreeUser && isNew
 			return shouldBan
