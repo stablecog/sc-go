@@ -8,9 +8,10 @@ import (
 )
 
 type MatchBannedPrompts struct {
-	ID         uuid.UUID `json:"id" sql:"id"`
-	Prompt     string    `json:"prompt" sql:"prompt"`
-	Similarity float32   `json:"similarity" sql:"similarity"`
+	ID            uuid.UUID `json:"id" sql:"id"`
+	Prompt        string    `json:"prompt" sql:"prompt"`
+	Similarity    float32   `json:"similarity" sql:"similarity"`
+	ShouldBanUser bool      `json:"should_ban_user" sql:"should_ban_user"`
 }
 
 func (r *Repository) IsBannedPromptEmbedding(embedding []float32, DB *ent.Client) ([]MatchBannedPrompts, error) {
@@ -27,7 +28,7 @@ func (r *Repository) IsBannedPromptEmbedding(embedding []float32, DB *ent.Client
 	var bannedPrompts []MatchBannedPrompts
 	for rows.Next() {
 		var bannedPrompt MatchBannedPrompts
-		err = rows.Scan(&bannedPrompt.ID, &bannedPrompt.Prompt, &bannedPrompt.Similarity)
+		err = rows.Scan(&bannedPrompt.ID, &bannedPrompt.Prompt, &bannedPrompt.Similarity, &bannedPrompt.ShouldBanUser)
 		if err != nil {
 			log.Errorf("Error scanning banned prompt row: %v", err)
 		}

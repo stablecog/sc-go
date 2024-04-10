@@ -19,6 +19,7 @@ import (
 	"github.com/stablecog/sc-go/database/repository"
 	"github.com/stablecog/sc-go/log"
 	"github.com/stablecog/sc-go/server/clip"
+	"github.com/stablecog/sc-go/server/discord"
 	"github.com/stablecog/sc-go/server/requests"
 	"github.com/stablecog/sc-go/server/responses"
 	"github.com/stablecog/sc-go/server/stripe"
@@ -422,6 +423,16 @@ func (w *SCWorker) CreateGeneration(source enttypes.SourceType,
 					return
 				}
 				if len(bannedMatches) > 0 {
+					// Special case for prompts that should also cause a user ban
+					if bannedMatches[0].ShouldBanUser {
+						err := discord.FireBannedUserWebhook(ipAddress, user.Email, user.Email, user.ID.String(), countryCode, thumbmarkID, []string{"Used special banned prompt."})
+						if err == nil {
+							_, err = w.Repo.BanUsers([]uuid.UUID{user.ID}, false)
+							if err != nil {
+								log.Error("Error banning user", "err", err)
+							}
+						}
+					}
 					w.Track.GenerationFailedNSFWPrompt(
 						user,
 						requests.BaseCogRequest{
