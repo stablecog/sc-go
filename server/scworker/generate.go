@@ -431,7 +431,7 @@ func (w *SCWorker) CreateGeneration(source enttypes.SourceType,
 							break
 						}
 					}
-					isNewAccount := time.Since(user.CreatedAt) < 24*time.Hour*7
+					isNewAccount := time.Since(user.CreatedAt) < 24*time.Hour
 					if hasShouldBanUser && isNewAccount {
 						err := discord.FireBannedUserWebhook(ipAddress, user.Email, user.Email, user.ID.String(), countryCode, thumbmarkID, []string{"New account used special banned prompt."})
 						if err == nil {
