@@ -67,7 +67,7 @@ var shouldBanRules []ShouldBanRule = []ShouldBanRule{
 		},
 	},
 	{
-		Reason: "Has plus, two numbers, Outlook, new, and free.",
+		Reason: "Has plus, three numbers, Outlook, new, and free.",
 		Func: func(r *http.Request) bool {
 			activeProductID, _ := r.Context().Value("user_active_product_id").(string)
 			createdAtStr, _ := r.Context().Value("user_created_at").(string)
@@ -77,17 +77,17 @@ var shouldBanRules []ShouldBanRule = []ShouldBanRule{
 			hasPlus := strings.Contains(email, "+")
 			isNew := isAccountNew(createdAtStr)
 			isFreeUser := activeProductID == ""
-			hasTwoNumbers := false
+			hasThreeNumbers := false
 
-			regexPattern := `(?s)(.*\d.*){2,}`
+			regexPattern := `(?s)(.*\d.*){3,}`
 			reg, err := regexp.Compile(regexPattern)
 			if err != nil {
 				log.Warnf("There was an error compiling the regex: %s", err.Error())
 			} else {
-				hasTwoNumbers = reg.MatchString(email)
+				hasThreeNumbers = reg.MatchString(email)
 			}
 
-			shouldBan := isOutlook && hasPlus && hasTwoNumbers && isFreeUser && isNew
+			shouldBan := isOutlook && hasPlus && hasThreeNumbers && isFreeUser && isNew
 			return shouldBan
 		},
 	},
