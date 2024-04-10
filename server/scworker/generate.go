@@ -424,17 +424,24 @@ func (w *SCWorker) CreateGeneration(source enttypes.SourceType,
 				}
 				if len(bannedMatches) > 0 {
 					// Special case for prompts that should also cause a user ban
+					hasShouldBanUser := false
 					for _, match := range bannedMatches {
 						log.Warnf("Banned prompt: %s, similarity: %f, should ban user: %t", match.Prompt, match.Similarity, match.ShouldBanUser)
+						if match.ShouldBanUser {
+							hasShouldBanUser = true
+							break
+						}
 					}
-					if bannedMatches[0].ShouldBanUser {
+					if hasShouldBanUser {
 						err := discord.FireBannedUserWebhook(ipAddress, user.Email, user.Email, user.ID.String(), countryCode, thumbmarkID, []string{"Used special banned prompt."})
 						if err == nil {
 							_, err = w.Repo.BanUsers([]uuid.UUID{user.ID}, false)
 							if err != nil {
 								log.Error("Error banning user", "err", err)
 							} else {
-								time.Sleep(30 * time.Second)
+								time.Sleep(150 * time.Second)
+								errChan <- fmt.Errorf("error: unknown")
+								return
 							}
 						}
 					}
