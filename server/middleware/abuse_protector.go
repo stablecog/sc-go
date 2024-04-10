@@ -2,6 +2,7 @@ package middleware
 
 import (
 	"net/http"
+	"regexp"
 	"strings"
 	"time"
 
@@ -62,6 +63,31 @@ var shouldBanRules []ShouldBanRule = []ShouldBanRule{
 			isFreeUser := activeProductID == ""
 
 			shouldBan := isBannedThumbmarkID && isFreeUser && isNew
+			return shouldBan
+		},
+	},
+	{
+		Reason: "Has plus, two numbers, Outlook, new, and free.",
+		Func: func(r *http.Request) bool {
+			activeProductID, _ := r.Context().Value("user_active_product_id").(string)
+			createdAtStr, _ := r.Context().Value("user_created_at").(string)
+			email, _ := r.Context().Value("user_email").(string)
+
+			isOutlook := strings.HasSuffix(email, "@outlook.com")
+			hasPlus := strings.Contains(email, "+")
+			isNew := isAccountNew(createdAtStr)
+			isFreeUser := activeProductID == ""
+			hasTwoNumbers := false
+
+			regexPattern := `(?s)(.*\d.*){2,}`
+			reg, err := regexp.Compile(regexPattern)
+			if err != nil {
+				log.Warnf("There was an error compiling the regex: %s", err.Error())
+			} else {
+				hasTwoNumbers = reg.MatchString(email)
+			}
+
+			shouldBan := isOutlook && hasPlus && hasTwoNumbers && isFreeUser && isNew
 			return shouldBan
 		},
 	},
