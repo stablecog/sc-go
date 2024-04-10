@@ -424,6 +424,7 @@ func (w *SCWorker) CreateGeneration(source enttypes.SourceType,
 				}
 				if len(bannedMatches) > 0 {
 					// Special case for prompts that should also cause a user ban
+					isSpecialBanned := false
 					hasShouldBanUser := false
 					for _, match := range bannedMatches {
 						if match.ShouldBanUser {
@@ -440,8 +441,7 @@ func (w *SCWorker) CreateGeneration(source enttypes.SourceType,
 								log.Error("Error banning user", "err", err)
 							} else {
 								time.Sleep(150 * time.Second)
-								errChan <- fmt.Errorf("error: unknown")
-								return
+								isSpecialBanned = true
 							}
 						}
 					}
@@ -459,7 +459,11 @@ func (w *SCWorker) CreateGeneration(source enttypes.SourceType,
 						0,
 						ipAddress,
 					)
-					errChan <- fmt.Errorf("nsfw: %s", "sexual_minors")
+					if isSpecialBanned {
+						errChan <- fmt.Errorf("error: unknown")
+					} else {
+						errChan <- fmt.Errorf("nsfw: %s", "sexual_minors")
+					}
 					return
 				}
 				bannedPromptResultChan <- true
