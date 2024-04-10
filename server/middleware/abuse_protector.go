@@ -10,6 +10,7 @@ import (
 	"github.com/stablecog/sc-go/server/discord"
 	"github.com/stablecog/sc-go/shared"
 	"github.com/stablecog/sc-go/utils"
+	"golang.org/x/exp/slices"
 )
 
 type RuleFunc func(*http.Request) bool
@@ -19,18 +20,29 @@ type ShouldBanRule struct {
 	Func   RuleFunc
 }
 
+func isAccountNew(createdAtStr string) bool {
+	createdAt, err := time.Parse(time.RFC3339, createdAtStr)
+	if err != nil {
+		log.Errorf("Error parsing user created at: %s", err.Error())
+		return false
+	}
+	return time.Since(createdAt) < 24*time.Hour*7
+}
+
 var shouldBanRules []ShouldBanRule = []ShouldBanRule{
 	{
-		Reason: "Three dots in the address, Gmail, and free.",
+		Reason: "Three dots in the address, Gmail, new, and free.",
 		Func: func(r *http.Request) bool {
 			email, _ := r.Context().Value("user_email").(string)
 			activeProductID, _ := r.Context().Value("user_active_product_id").(string)
+			createdAtStr, _ := r.Context().Value("user_created_at").(string)
 
 			hasThreeDots := strings.Count(email, ".") >= 4
 			isGoogleMail := strings.HasSuffix(email, "@googlemail.com") || strings.HasSuffix(email, "@gmail.com")
 			isFreeUser := activeProductID == ""
+			isNew := isAccountNew(createdAtStr)
 
-			shouldBan := hasThreeDots && isGoogleMail && isFreeUser
+			shouldBan := hasThreeDots && isGoogleMail && isFreeUser && isNew
 			return shouldBan
 		},
 	},
@@ -40,23 +52,12 @@ var shouldBanRules []ShouldBanRule = []ShouldBanRule{
 			bannedThumbmarkIDs := shared.GetCache().ThumbmarkIDBlacklist()
 			thumbmarkID, _ := r.Context().Value("user_thumbmark_id").(string)
 			activeProductID, _ := r.Context().Value("user_active_product_id").(string)
-			createdAtStr := r.Context().Value("user_created_at").(string)
+			createdAtStr, _ := r.Context().Value("user_created_at").(string)
 
-			isNew := false
-			createdAt, err := time.Parse(time.RFC3339, createdAtStr)
-			if err != nil {
-				log.Errorf("Error parsing user created at: %s", err.Error())
-			} else if time.Since(createdAt) < 24*time.Hour*7 {
-				isNew = true
-			}
+			isNew := isAccountNew(createdAtStr)
 			isBannedThumbmarkID := false
-			if thumbmarkID != "" {
-				for _, bannedThumbmarkID := range bannedThumbmarkIDs {
-					if bannedThumbmarkID == thumbmarkID {
-						isBannedThumbmarkID = true
-						break
-					}
-				}
+			if thumbmarkID != "" && slices.Contains(bannedThumbmarkIDs, thumbmarkID) {
+				isBannedThumbmarkID = true
 			}
 			isFreeUser := activeProductID == ""
 
