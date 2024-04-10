@@ -426,7 +426,6 @@ func (w *SCWorker) CreateGeneration(source enttypes.SourceType,
 					// Special case for prompts that should also cause a user ban
 					hasShouldBanUser := false
 					for _, match := range bannedMatches {
-						log.Warnf("Banned prompt: %s, similarity: %f, should ban user: %t", match.Prompt, match.Similarity, match.ShouldBanUser)
 						if match.ShouldBanUser {
 							hasShouldBanUser = true
 							break
