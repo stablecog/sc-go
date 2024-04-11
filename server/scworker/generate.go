@@ -440,6 +440,19 @@ func (w *SCWorker) CreateGeneration(source enttypes.SourceType,
 							if err != nil {
 								log.Error("Error banning user", "err", err)
 							} else {
+								go w.Track.AutoBannedForSpecialBannedPromptEmbedding(
+									user,
+									requests.BaseCogRequest{
+										Prompt:     generateReq.Prompt,
+										DeviceInfo: deviceInfo,
+									},
+									source,
+									translatedPrompt,
+									bannedMatches[0].ID.String(),
+									float64(bannedMatches[0].Similarity),
+									0,
+									ipAddress,
+								)
 								time.Sleep(150 * time.Second)
 								isSpecialBanned = true
 							}

@@ -161,6 +161,7 @@ func (m *Middleware) AuthMiddleware(levels ...AuthLevel) func(next http.Handler)
 			ctx = context.WithValue(ctx, "user_thumbmark_id", thumbmarkID)
 			ctx = context.WithValue(ctx, "user_active_product_id", activeProductIDStr)
 			ctx = context.WithValue(ctx, "user_created_at", createdAtStr)
+			ctx = context.WithValue(ctx, "user_ip", ip)
 
 			// Set the last sign in time in the context, if not null
 			if lastSignIn != nil {
