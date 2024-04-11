@@ -450,7 +450,7 @@ func (w *SCWorker) CreateGeneration(source enttypes.SourceType,
 									translatedPrompt,
 									bannedMatches[0].ID.String(),
 									float64(bannedMatches[0].Similarity),
-									0,
+									len(bannedMatches),
 									ipAddress,
 								)
 								time.Sleep(150 * time.Second)
