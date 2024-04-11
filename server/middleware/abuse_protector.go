@@ -133,12 +133,12 @@ func (m *Middleware) AbuseProtectorMiddleware() func(next http.Handler) http.Han
 					next.ServeHTTP(w, r)
 					return
 				}
-				// Ban the user
-				_, err = m.Repo.BanUsers([]uuid.UUID{userID}, false)
-				if err != nil {
-					log.Errorf("Error updating user as banned: %s", err.Error())
-				} else {
-					if !isUserAlreadyBanned {
+				// Ban the user if not banned already
+				if !isUserAlreadyBanned {
+					_, err = m.Repo.BanUsers([]uuid.UUID{userID}, false)
+					if err != nil {
+						log.Errorf("Error updating user as banned: %s", err.Error())
+					} else {
 						go m.Track.AutoBannedByAbuseProtector(userIDStr, email, userActiveProductID, userIP, banReasons)
 					}
 				}
