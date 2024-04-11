@@ -146,6 +146,7 @@ func (m *Middleware) AuthMiddleware(levels ...AuthLevel) func(next http.Handler)
 
 			activeProductIDStr := ""
 			createdAtStr := ""
+			userBannedAt := ""
 
 			if user != nil && user.ActiveProductID != nil {
 				activeProductIDStr = *user.ActiveProductID
@@ -155,6 +156,10 @@ func (m *Middleware) AuthMiddleware(levels ...AuthLevel) func(next http.Handler)
 				createdAtStr = user.CreatedAt.Format(time.RFC3339)
 			}
 
+			if user != nil && user.BannedAt != nil {
+				userBannedAt = user.BannedAt.Format(time.RFC3339)
+			}
+
 			// Set the user ID in the context
 			ctx = context.WithValue(ctx, "user_id", userId)
 			ctx = context.WithValue(ctx, "user_email", email)
@@ -162,6 +167,7 @@ func (m *Middleware) AuthMiddleware(levels ...AuthLevel) func(next http.Handler)
 			ctx = context.WithValue(ctx, "user_active_product_id", activeProductIDStr)
 			ctx = context.WithValue(ctx, "user_created_at", createdAtStr)
 			ctx = context.WithValue(ctx, "user_ip", ip)
+			ctx = context.WithValue(ctx, "user_banned_at", userBannedAt)
 
 			// Set the last sign in time in the context, if not null
 			if lastSignIn != nil {

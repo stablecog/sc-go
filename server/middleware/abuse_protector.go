@@ -107,6 +107,8 @@ func (m *Middleware) AbuseProtectorMiddleware() func(next http.Handler) http.Han
 			email, _ := r.Context().Value("user_email").(string)
 			thumbmarkID, _ := r.Context().Value("user_thumbmark_id").(string)
 			userActiveProductID, _ := r.Context().Value("user_active_product_id").(string)
+			userBannedAt := r.Context().Value("user_banned_at").(string)
+			isUserAlreadyBanned := userBannedAt != ""
 
 			// Get domain
 			segs := strings.Split(email, "@")
@@ -125,8 +127,7 @@ func (m *Middleware) AbuseProtectorMiddleware() func(next http.Handler) http.Han
 			}
 
 			if len(banReasons) > 0 {
-				// Webhook
-				err := discord.FireBannedUserWebhook(utils.GetIPAddress(r), email, domain, userIDStr, utils.GetCountryCode(r), thumbmarkID, banReasons)
+				err = discord.FireBannedUserWebhook(utils.GetIPAddress(r), email, domain, userIDStr, utils.GetCountryCode(r), thumbmarkID, banReasons)
 				if err != nil {
 					log.Errorf("Error firing BannedUser webhook: %s", err.Error())
 					next.ServeHTTP(w, r)
@@ -137,7 +138,9 @@ func (m *Middleware) AbuseProtectorMiddleware() func(next http.Handler) http.Han
 				if err != nil {
 					log.Errorf("Error updating user as banned: %s", err.Error())
 				} else {
-					go m.Track.AutoBannedByAbuseProtector(userIDStr, email, userActiveProductID, userIP, banReasons)
+					if !isUserAlreadyBanned {
+						go m.Track.AutoBannedByAbuseProtector(userIDStr, email, userActiveProductID, userIP, banReasons)
+					}
 				}
 				time.Sleep(30 * time.Second)
 			}
