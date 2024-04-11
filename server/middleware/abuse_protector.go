@@ -98,7 +98,6 @@ func (m *Middleware) AbuseProtectorMiddleware() func(next http.Handler) http.Han
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			userIDStr, _ := r.Context().Value("user_id").(string)
 			userID, err := uuid.Parse(userIDStr)
-			userIP := r.Context().Value("user_ip").(string)
 			if err != nil {
 				log.Errorf("Error parsing user ID: %s", err.Error())
 				next.ServeHTTP(w, r)
@@ -106,9 +105,6 @@ func (m *Middleware) AbuseProtectorMiddleware() func(next http.Handler) http.Han
 			}
 			email, _ := r.Context().Value("user_email").(string)
 			thumbmarkID, _ := r.Context().Value("user_thumbmark_id").(string)
-			userActiveProductID, _ := r.Context().Value("user_active_product_id").(string)
-			userBannedAt := r.Context().Value("user_banned_at").(string)
-			isUserAlreadyBanned := userBannedAt != ""
 
 			// Get domain
 			segs := strings.Split(email, "@")
@@ -133,14 +129,10 @@ func (m *Middleware) AbuseProtectorMiddleware() func(next http.Handler) http.Han
 					next.ServeHTTP(w, r)
 					return
 				}
-				// Ban the user if not banned already
-				if !isUserAlreadyBanned {
-					_, err = m.Repo.BanUsers([]uuid.UUID{userID}, false)
-					if err != nil {
-						log.Errorf("Error updating user as banned: %s", err.Error())
-					} else {
-						go m.Track.AutoBannedByAbuseProtector(userIDStr, email, userActiveProductID, userIP, banReasons)
-					}
+				// Ban the user
+				_, err = m.Repo.BanUsers([]uuid.UUID{userID}, false)
+				if err != nil {
+					log.Errorf("Error updating user as banned: %s", err.Error())
 				}
 				time.Sleep(30 * time.Second)
 			}
