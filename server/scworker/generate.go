@@ -307,9 +307,11 @@ func (w *SCWorker) CreateGeneration(source enttypes.SourceType,
 
 	// Parse request headers
 	var countryCode string
+	var thumbmarkID string
 	var deviceInfo utils.ClientDeviceInfo
 	ipAddress := "system"
 	if r != nil {
+		thumbmarkID = utils.GetThumbmarkID(r)
 		countryCode = utils.GetCountryCode(r)
 		deviceInfo = utils.GetClientDeviceInfo(r)
 		ipAddress = utils.GetIPAddress(r)
@@ -321,7 +323,6 @@ func (w *SCWorker) CreateGeneration(source enttypes.SourceType,
 			DeviceBrowser: "Discord",
 		}
 	}
-	thumbmarkID := utils.GetThumbmarkID(r)
 	// Get model and scheduler name for cog
 	modelName := shared.GetCache().GetGenerationModelNameFromID(*generateReq.ModelId)
 	schedulerName := shared.GetCache().GetSchedulerNameFromID(*generateReq.SchedulerId)

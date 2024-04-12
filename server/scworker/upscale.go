@@ -189,12 +189,14 @@ func (w *SCWorker) CreateUpscale(source enttypes.SourceType,
 
 	// Parse request headers
 	var countryCode string
+	var thumbmarkID string
 	var deviceInfo utils.ClientDeviceInfo
 	ipAddress := "system"
 	if r != nil {
 		countryCode = utils.GetCountryCode(r)
 		deviceInfo = utils.GetClientDeviceInfo(r)
 		ipAddress = utils.GetIPAddress(r)
+		thumbmarkID = utils.GetThumbmarkID(r)
 	} else {
 		countryCode = "US"
 		deviceInfo = utils.ClientDeviceInfo{
@@ -203,7 +205,6 @@ func (w *SCWorker) CreateUpscale(source enttypes.SourceType,
 			DeviceBrowser: "Discord",
 		}
 	}
-	thumbmarkID := utils.GetThumbmarkID(r)
 
 	// Get model name for cog
 	modelName := shared.GetCache().GetUpscaleModelNameFromID(*upscaleReq.ModelId)
