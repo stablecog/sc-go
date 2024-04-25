@@ -31,7 +31,7 @@ func isAccountNew(createdAtStr string) bool {
 }
 
 var shouldBanRules []ShouldBanRule = []ShouldBanRule{
-	{
+	/* {
 		Reason: "Three dots in the address, Gmail, new, and free.",
 		Func: func(r *http.Request) bool {
 			email, _ := r.Context().Value("user_email").(string)
@@ -46,7 +46,7 @@ var shouldBanRules []ShouldBanRule = []ShouldBanRule{
 			shouldBan := hasThreeDots && isGoogleMail && isFreeUser && isNew
 			return shouldBan
 		},
-	},
+	}, */
 	{
 		Reason: "Banned Thumbmark ID, new, and free.",
 		Func: func(r *http.Request) bool {
