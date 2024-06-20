@@ -234,7 +234,7 @@ func (q *QdrantClient) CreateCollectionIfNotExists(noRetry bool) error {
 	quantizationConfig := QuantizationConfig{}
 	err = quantizationConfig.FromBinaryQuantization(BinaryQuantization{
 		Binary: BinaryQuantizationConfig{
-			AlwaysRam: utils.ToPtr(true),
+			AlwaysRam: utils.ToPtr(false),
 		},
 	})
 	if err != nil {
@@ -266,7 +266,7 @@ func (q *QdrantClient) CreateCollectionIfNotExists(noRetry bool) error {
 		OptimizersConfig:   optimizersConfig,
 		QuantizationConfig: createCollectionQuantizationConfig,
 		Vectors:            vectorsConfig,
-		ShardNumber:        utils.ToPtr[uint32](2),
+		ShardNumber:        utils.ToPtr[uint32](4),
 	}
 	// Marshal and print as json
 	json, err := json.Marshal(test)

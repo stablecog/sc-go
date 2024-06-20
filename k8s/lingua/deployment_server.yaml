@@ -20,10 +20,10 @@ spec:
           requiredDuringSchedulingIgnoredDuringExecution:
             nodeSelectorTerms:
               - matchExpressions:
-                  - key: agentpool
+                  - key: agennode.kubernetes.io/memory
                     operator: In
                     values:
-                      - a100
+                      - 32Gi
       containers:
         - name: sc-lingua
           image: replaceme

@@ -2,7 +2,7 @@ name: 💫 CI (Auth API)
 
 on:
   push:
-    branches: [master]
+    branches: [arm]
     paths: ["auth/**", "k8s/auth/**"]
 
 concurrency:
@@ -12,7 +12,7 @@ concurrency:
 jobs:
   setup_env:
     name: ⚙️ Setup environment
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
     steps:
       - name: Add SHORT_SHA env property
         run: echo "SHORT_SHA=`echo ${GITHUB_SHA::7}`" >> $GITHUB_ENV
@@ -41,7 +41,7 @@ jobs:
 
   build:
     name: 🔨 Build Binaries and Docker Image
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
     needs: setup_env
 
     env:
@@ -71,7 +71,7 @@ jobs:
 
       - name: Build GO auth API Binary
         run: |
-          cd auth && go build -ldflags "-s -w -X main.Version=${{ needs.setup_env.outputs.short_sha }}" -o authapi && cd ..
+          cd auth && GOARCH=arm64 go build -ldflags "-s -w -X main.Version=${{ needs.setup_env.outputs.short_sha }}" -o authapi && cd ..
 
       - name: Login to registry
         uses: docker/login-action@v2
@@ -84,7 +84,7 @@ jobs:
         uses: docker/build-push-action@v3
         with:
           context: .
-          platforms: linux/amd64
+          platforms: linux/arm64
           push: true
           file: ./Dockerfile.auth
           tags: stablecog/sc-auth:${{ needs.setup_env.outputs.branch_name }}-${{ env.GITHUB_RUN_ID }}
@@ -102,7 +102,7 @@ jobs:
 
   deploy_prod:
     name: 🚀 Deploy Auth API (PROD)
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
     needs:
       - setup_env
       - build
@@ -112,11 +112,11 @@ jobs:
       - uses: actions/checkout@v3
 
       - name: Deploy
-        uses: ./.github/actions/k8s-deploy-aks
+        uses: ./.github/actions/k3s-deploy
         with:
           image: stablecog/sc-auth:${{ needs.setup_env.outputs.branch_name}}-${{ env.GITHUB_RUN_ID }}
           embed-title: ""
           prod-webhook-url: ${{ secrets.DISCORD_WEBHOOK_PROD }}
           qa-webhook-url: ${{ secrets.DISCORD_WEBHOOK }}
-          kube_config: ${{ secrets.AKS_KUBE_CONFIG }}
+          kube_config: ${{ secrets.K3S_KUBE_CONFIG }}
           env: auth
