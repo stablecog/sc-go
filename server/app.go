@@ -404,7 +404,7 @@ func main() {
 
 	if *migrateQdrant {
 		log.Info("🏡 Loading qdrant data...")
-		each := 50
+		each := *batchSize
 		cur := 0
 		var cursor *time.Time
 		if *cursorEmbeddings != "" {
