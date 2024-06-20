@@ -280,7 +280,7 @@ func (q *QdrantClient) CreateCollectionIfNotExists(noRetry bool) error {
 		OptimizersConfig:   optimizersConfig,
 		QuantizationConfig: createCollectionQuantizationConfig,
 		Vectors:            vectorsConfig,
-		ShardNumber:        utils.ToPtr[uint32](2),
+		ShardNumber:        utils.ToPtr[uint32](4),
 	})
 
 	if err != nil {
