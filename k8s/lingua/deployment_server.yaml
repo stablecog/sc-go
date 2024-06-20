@@ -20,7 +20,7 @@ spec:
           requiredDuringSchedulingIgnoredDuringExecution:
             nodeSelectorTerms:
               - matchExpressions:
-                  - key: agennode.kubernetes.io/memory
+                  - key: node.kubernetes.io/memory
                     operator: In
                     values:
                       - 32Gi
