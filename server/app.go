@@ -482,7 +482,6 @@ func main() {
 			}
 
 			req.Header.Set("Content-Type", "application/json")
-			req.SetBasicAuth(os.Getenv("NEW_QDRANT_USERNAME"), os.Getenv("NEW_QDRANT_PASSWORD"))
 
 			client := &http.Client{}
 			resp, err := client.Do(req)
