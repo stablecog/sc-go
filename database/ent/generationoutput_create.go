@@ -103,6 +103,20 @@ func (goc *GenerationOutputCreate) SetNillableHasEmbeddingsNew(b *bool) *Generat
 	return goc
 }
 
+// SetIsMigrated sets the "is_migrated" field.
+func (goc *GenerationOutputCreate) SetIsMigrated(b bool) *GenerationOutputCreate {
+	goc.mutation.SetIsMigrated(b)
+	return goc
+}
+
+// SetNillableIsMigrated sets the "is_migrated" field if the given value is not nil.
+func (goc *GenerationOutputCreate) SetNillableIsMigrated(b *bool) *GenerationOutputCreate {
+	if b != nil {
+		goc.SetIsMigrated(*b)
+	}
+	return goc
+}
+
 // SetIsPublic sets the "is_public" field.
 func (goc *GenerationOutputCreate) SetIsPublic(b bool) *GenerationOutputCreate {
 	goc.mutation.SetIsPublic(b)
@@ -317,6 +331,10 @@ func (goc *GenerationOutputCreate) defaults() {
 		v := generationoutput.DefaultHasEmbeddingsNew
 		goc.mutation.SetHasEmbeddingsNew(v)
 	}
+	if _, ok := goc.mutation.IsMigrated(); !ok {
+		v := generationoutput.DefaultIsMigrated
+		goc.mutation.SetIsMigrated(v)
+	}
 	if _, ok := goc.mutation.IsPublic(); !ok {
 		v := generationoutput.DefaultIsPublic
 		goc.mutation.SetIsPublic(v)
@@ -368,6 +386,9 @@ func (goc *GenerationOutputCreate) check() error {
 	}
 	if _, ok := goc.mutation.HasEmbeddingsNew(); !ok {
 		return &ValidationError{Name: "has_embeddings_new", err: errors.New(`ent: missing required field "GenerationOutput.has_embeddings_new"`)}
+	}
+	if _, ok := goc.mutation.IsMigrated(); !ok {
+		return &ValidationError{Name: "is_migrated", err: errors.New(`ent: missing required field "GenerationOutput.is_migrated"`)}
 	}
 	if _, ok := goc.mutation.IsPublic(); !ok {
 		return &ValidationError{Name: "is_public", err: errors.New(`ent: missing required field "GenerationOutput.is_public"`)}
@@ -458,6 +479,10 @@ func (goc *GenerationOutputCreate) createSpec() (*GenerationOutput, *sqlgraph.Cr
 	if value, ok := goc.mutation.HasEmbeddingsNew(); ok {
 		_spec.SetField(generationoutput.FieldHasEmbeddingsNew, field.TypeBool, value)
 		_node.HasEmbeddingsNew = value
+	}
+	if value, ok := goc.mutation.IsMigrated(); ok {
+		_spec.SetField(generationoutput.FieldIsMigrated, field.TypeBool, value)
+		_node.IsMigrated = value
 	}
 	if value, ok := goc.mutation.IsPublic(); ok {
 		_spec.SetField(generationoutput.FieldIsPublic, field.TypeBool, value)
@@ -672,6 +697,18 @@ func (u *GenerationOutputUpsert) SetHasEmbeddingsNew(v bool) *GenerationOutputUp
 // UpdateHasEmbeddingsNew sets the "has_embeddings_new" field to the value that was provided on create.
 func (u *GenerationOutputUpsert) UpdateHasEmbeddingsNew() *GenerationOutputUpsert {
 	u.SetExcluded(generationoutput.FieldHasEmbeddingsNew)
+	return u
+}
+
+// SetIsMigrated sets the "is_migrated" field.
+func (u *GenerationOutputUpsert) SetIsMigrated(v bool) *GenerationOutputUpsert {
+	u.Set(generationoutput.FieldIsMigrated, v)
+	return u
+}
+
+// UpdateIsMigrated sets the "is_migrated" field to the value that was provided on create.
+func (u *GenerationOutputUpsert) UpdateIsMigrated() *GenerationOutputUpsert {
+	u.SetExcluded(generationoutput.FieldIsMigrated)
 	return u
 }
 
@@ -922,6 +959,20 @@ func (u *GenerationOutputUpsertOne) SetHasEmbeddingsNew(v bool) *GenerationOutpu
 func (u *GenerationOutputUpsertOne) UpdateHasEmbeddingsNew() *GenerationOutputUpsertOne {
 	return u.Update(func(s *GenerationOutputUpsert) {
 		s.UpdateHasEmbeddingsNew()
+	})
+}
+
+// SetIsMigrated sets the "is_migrated" field.
+func (u *GenerationOutputUpsertOne) SetIsMigrated(v bool) *GenerationOutputUpsertOne {
+	return u.Update(func(s *GenerationOutputUpsert) {
+		s.SetIsMigrated(v)
+	})
+}
+
+// UpdateIsMigrated sets the "is_migrated" field to the value that was provided on create.
+func (u *GenerationOutputUpsertOne) UpdateIsMigrated() *GenerationOutputUpsertOne {
+	return u.Update(func(s *GenerationOutputUpsert) {
+		s.UpdateIsMigrated()
 	})
 }
 
@@ -1353,6 +1404,20 @@ func (u *GenerationOutputUpsertBulk) SetHasEmbeddingsNew(v bool) *GenerationOutp
 func (u *GenerationOutputUpsertBulk) UpdateHasEmbeddingsNew() *GenerationOutputUpsertBulk {
 	return u.Update(func(s *GenerationOutputUpsert) {
 		s.UpdateHasEmbeddingsNew()
+	})
+}
+
+// SetIsMigrated sets the "is_migrated" field.
+func (u *GenerationOutputUpsertBulk) SetIsMigrated(v bool) *GenerationOutputUpsertBulk {
+	return u.Update(func(s *GenerationOutputUpsert) {
+		s.SetIsMigrated(v)
+	})
+}
+
+// UpdateIsMigrated sets the "is_migrated" field to the value that was provided on create.
+func (u *GenerationOutputUpsertBulk) UpdateIsMigrated() *GenerationOutputUpsertBulk {
+	return u.Update(func(s *GenerationOutputUpsert) {
+		s.UpdateIsMigrated()
 	})
 }
 

@@ -115,6 +115,20 @@ func (gou *GenerationOutputUpdate) SetNillableHasEmbeddingsNew(b *bool) *Generat
 	return gou
 }
 
+// SetIsMigrated sets the "is_migrated" field.
+func (gou *GenerationOutputUpdate) SetIsMigrated(b bool) *GenerationOutputUpdate {
+	gou.mutation.SetIsMigrated(b)
+	return gou
+}
+
+// SetNillableIsMigrated sets the "is_migrated" field if the given value is not nil.
+func (gou *GenerationOutputUpdate) SetNillableIsMigrated(b *bool) *GenerationOutputUpdate {
+	if b != nil {
+		gou.SetIsMigrated(*b)
+	}
+	return gou
+}
+
 // SetIsPublic sets the "is_public" field.
 func (gou *GenerationOutputUpdate) SetIsPublic(b bool) *GenerationOutputUpdate {
 	gou.mutation.SetIsPublic(b)
@@ -404,6 +418,9 @@ func (gou *GenerationOutputUpdate) sqlSave(ctx context.Context) (n int, err erro
 	if value, ok := gou.mutation.HasEmbeddingsNew(); ok {
 		_spec.SetField(generationoutput.FieldHasEmbeddingsNew, field.TypeBool, value)
 	}
+	if value, ok := gou.mutation.IsMigrated(); ok {
+		_spec.SetField(generationoutput.FieldIsMigrated, field.TypeBool, value)
+	}
 	if value, ok := gou.mutation.IsPublic(); ok {
 		_spec.SetField(generationoutput.FieldIsPublic, field.TypeBool, value)
 	}
@@ -658,6 +675,20 @@ func (gouo *GenerationOutputUpdateOne) SetHasEmbeddingsNew(b bool) *GenerationOu
 func (gouo *GenerationOutputUpdateOne) SetNillableHasEmbeddingsNew(b *bool) *GenerationOutputUpdateOne {
 	if b != nil {
 		gouo.SetHasEmbeddingsNew(*b)
+	}
+	return gouo
+}
+
+// SetIsMigrated sets the "is_migrated" field.
+func (gouo *GenerationOutputUpdateOne) SetIsMigrated(b bool) *GenerationOutputUpdateOne {
+	gouo.mutation.SetIsMigrated(b)
+	return gouo
+}
+
+// SetNillableIsMigrated sets the "is_migrated" field if the given value is not nil.
+func (gouo *GenerationOutputUpdateOne) SetNillableIsMigrated(b *bool) *GenerationOutputUpdateOne {
+	if b != nil {
+		gouo.SetIsMigrated(*b)
 	}
 	return gouo
 }
@@ -974,6 +1005,9 @@ func (gouo *GenerationOutputUpdateOne) sqlSave(ctx context.Context) (_node *Gene
 	}
 	if value, ok := gouo.mutation.HasEmbeddingsNew(); ok {
 		_spec.SetField(generationoutput.FieldHasEmbeddingsNew, field.TypeBool, value)
+	}
+	if value, ok := gouo.mutation.IsMigrated(); ok {
+		_spec.SetField(generationoutput.FieldIsMigrated, field.TypeBool, value)
 	}
 	if value, ok := gouo.mutation.IsPublic(); ok {
 		_spec.SetField(generationoutput.FieldIsPublic, field.TypeBool, value)

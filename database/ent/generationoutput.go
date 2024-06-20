@@ -31,6 +31,8 @@ type GenerationOutput struct {
 	HasEmbeddings bool `json:"has_embeddings,omitempty"`
 	// HasEmbeddingsNew holds the value of the "has_embeddings_new" field.
 	HasEmbeddingsNew bool `json:"has_embeddings_new,omitempty"`
+	// IsMigrated holds the value of the "is_migrated" field.
+	IsMigrated bool `json:"is_migrated,omitempty"`
 	// IsPublic holds the value of the "is_public" field.
 	IsPublic bool `json:"is_public,omitempty"`
 	// AestheticRatingScore holds the value of the "aesthetic_rating_score" field.
@@ -105,7 +107,7 @@ func (*GenerationOutput) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case generationoutput.FieldIsFavorited, generationoutput.FieldHasEmbeddings, generationoutput.FieldHasEmbeddingsNew, generationoutput.FieldIsPublic:
+		case generationoutput.FieldIsFavorited, generationoutput.FieldHasEmbeddings, generationoutput.FieldHasEmbeddingsNew, generationoutput.FieldIsMigrated, generationoutput.FieldIsPublic:
 			values[i] = new(sql.NullBool)
 		case generationoutput.FieldAestheticRatingScore, generationoutput.FieldAestheticArtifactScore:
 			values[i] = new(sql.NullFloat64)
@@ -174,6 +176,12 @@ func (_go *GenerationOutput) assignValues(columns []string, values []any) error 
 				return fmt.Errorf("unexpected type %T for field has_embeddings_new", values[i])
 			} else if value.Valid {
 				_go.HasEmbeddingsNew = value.Bool
+			}
+		case generationoutput.FieldIsMigrated:
+			if value, ok := values[i].(*sql.NullBool); !ok {
+				return fmt.Errorf("unexpected type %T for field is_migrated", values[i])
+			} else if value.Valid {
+				_go.IsMigrated = value.Bool
 			}
 		case generationoutput.FieldIsPublic:
 			if value, ok := values[i].(*sql.NullBool); !ok {
@@ -286,6 +294,9 @@ func (_go *GenerationOutput) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("has_embeddings_new=")
 	builder.WriteString(fmt.Sprintf("%v", _go.HasEmbeddingsNew))
+	builder.WriteString(", ")
+	builder.WriteString("is_migrated=")
+	builder.WriteString(fmt.Sprintf("%v", _go.IsMigrated))
 	builder.WriteString(", ")
 	builder.WriteString("is_public=")
 	builder.WriteString(fmt.Sprintf("%v", _go.IsPublic))

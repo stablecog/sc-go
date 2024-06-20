@@ -313,6 +313,7 @@ var (
 		{Name: "is_favorited", Type: field.TypeBool, Default: false},
 		{Name: "has_embeddings", Type: field.TypeBool, Default: false},
 		{Name: "has_embeddings_new", Type: field.TypeBool, Default: false},
+		{Name: "is_migrated", Type: field.TypeBool, Default: false},
 		{Name: "is_public", Type: field.TypeBool, Default: false},
 		{Name: "aesthetic_rating_score", Type: field.TypeFloat32, Default: 0},
 		{Name: "aesthetic_artifact_score", Type: field.TypeFloat32, Default: 0},
@@ -330,7 +331,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "generation_outputs_generations_generation_outputs",
-				Columns:    []*schema.Column{GenerationOutputsColumns[14]},
+				Columns:    []*schema.Column{GenerationOutputsColumns[15]},
 				RefColumns: []*schema.Column{GenerationsColumns[0]},
 				OnDelete:   schema.Cascade,
 			},
@@ -349,22 +350,22 @@ var (
 			{
 				Name:    "generationoutput_created_at",
 				Unique:  false,
-				Columns: []*schema.Column{GenerationOutputsColumns[12]},
+				Columns: []*schema.Column{GenerationOutputsColumns[13]},
 			},
 			{
 				Name:    "generationoutput_updated_at",
 				Unique:  false,
-				Columns: []*schema.Column{GenerationOutputsColumns[13]},
+				Columns: []*schema.Column{GenerationOutputsColumns[14]},
 			},
 			{
 				Name:    "generationoutput_generation_id",
 				Unique:  false,
-				Columns: []*schema.Column{GenerationOutputsColumns[14]},
+				Columns: []*schema.Column{GenerationOutputsColumns[15]},
 			},
 			{
 				Name:    "generationoutput_deleted_at_is_public",
 				Unique:  false,
-				Columns: []*schema.Column{GenerationOutputsColumns[11], GenerationOutputsColumns[7]},
+				Columns: []*schema.Column{GenerationOutputsColumns[12], GenerationOutputsColumns[8]},
 			},
 		},
 	}

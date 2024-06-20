@@ -9317,6 +9317,7 @@ type GenerationOutputMutation struct {
 	is_favorited                   *bool
 	has_embeddings                 *bool
 	has_embeddings_new             *bool
+	is_migrated                    *bool
 	is_public                      *bool
 	aesthetic_rating_score         *float32
 	addaesthetic_rating_score      *float32
@@ -9671,6 +9672,42 @@ func (m *GenerationOutputMutation) OldHasEmbeddingsNew(ctx context.Context) (v b
 // ResetHasEmbeddingsNew resets all changes to the "has_embeddings_new" field.
 func (m *GenerationOutputMutation) ResetHasEmbeddingsNew() {
 	m.has_embeddings_new = nil
+}
+
+// SetIsMigrated sets the "is_migrated" field.
+func (m *GenerationOutputMutation) SetIsMigrated(b bool) {
+	m.is_migrated = &b
+}
+
+// IsMigrated returns the value of the "is_migrated" field in the mutation.
+func (m *GenerationOutputMutation) IsMigrated() (r bool, exists bool) {
+	v := m.is_migrated
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldIsMigrated returns the old "is_migrated" field's value of the GenerationOutput entity.
+// If the GenerationOutput object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *GenerationOutputMutation) OldIsMigrated(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldIsMigrated is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldIsMigrated requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldIsMigrated: %w", err)
+	}
+	return oldValue.IsMigrated, nil
+}
+
+// ResetIsMigrated resets all changes to the "is_migrated" field.
+func (m *GenerationOutputMutation) ResetIsMigrated() {
+	m.is_migrated = nil
 }
 
 // SetIsPublic sets the "is_public" field.
@@ -10200,7 +10237,7 @@ func (m *GenerationOutputMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *GenerationOutputMutation) Fields() []string {
-	fields := make([]string, 0, 14)
+	fields := make([]string, 0, 15)
 	if m.image_path != nil {
 		fields = append(fields, generationoutput.FieldImagePath)
 	}
@@ -10218,6 +10255,9 @@ func (m *GenerationOutputMutation) Fields() []string {
 	}
 	if m.has_embeddings_new != nil {
 		fields = append(fields, generationoutput.FieldHasEmbeddingsNew)
+	}
+	if m.is_migrated != nil {
+		fields = append(fields, generationoutput.FieldIsMigrated)
 	}
 	if m.is_public != nil {
 		fields = append(fields, generationoutput.FieldIsPublic)
@@ -10263,6 +10303,8 @@ func (m *GenerationOutputMutation) Field(name string) (ent.Value, bool) {
 		return m.HasEmbeddings()
 	case generationoutput.FieldHasEmbeddingsNew:
 		return m.HasEmbeddingsNew()
+	case generationoutput.FieldIsMigrated:
+		return m.IsMigrated()
 	case generationoutput.FieldIsPublic:
 		return m.IsPublic()
 	case generationoutput.FieldAestheticRatingScore:
@@ -10300,6 +10342,8 @@ func (m *GenerationOutputMutation) OldField(ctx context.Context, name string) (e
 		return m.OldHasEmbeddings(ctx)
 	case generationoutput.FieldHasEmbeddingsNew:
 		return m.OldHasEmbeddingsNew(ctx)
+	case generationoutput.FieldIsMigrated:
+		return m.OldIsMigrated(ctx)
 	case generationoutput.FieldIsPublic:
 		return m.OldIsPublic(ctx)
 	case generationoutput.FieldAestheticRatingScore:
@@ -10366,6 +10410,13 @@ func (m *GenerationOutputMutation) SetField(name string, value ent.Value) error 
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetHasEmbeddingsNew(v)
+		return nil
+	case generationoutput.FieldIsMigrated:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetIsMigrated(v)
 		return nil
 	case generationoutput.FieldIsPublic:
 		v, ok := value.(bool)
@@ -10543,6 +10594,9 @@ func (m *GenerationOutputMutation) ResetField(name string) error {
 		return nil
 	case generationoutput.FieldHasEmbeddingsNew:
 		m.ResetHasEmbeddingsNew()
+		return nil
+	case generationoutput.FieldIsMigrated:
+		m.ResetIsMigrated()
 		return nil
 	case generationoutput.FieldIsPublic:
 		m.ResetIsPublic()
