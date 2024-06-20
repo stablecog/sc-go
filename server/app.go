@@ -442,17 +442,16 @@ func main() {
 				}
 				log.Fatal("Failed to load generation outputs", "err", err)
 			}
-			log.Infof("Retreived generations in %s", time.Since(start))
-
-			// Update cursor
-			cursor = &gens[len(gens)-1].CreatedAt
+			log.Infof("Retrieved generations in %s", time.Since(start))
 
 			if len(gens) == 0 {
 				break
 			}
 
-			ids := make([]uuid.UUID, len(gens))
+			// Update cursor
+			cursor = &gens[len(gens)-1].CreatedAt
 
+			ids := make([]uuid.UUID, len(gens))
 			for i, gen := range gens {
 				ids[i] = gen.ID
 			}
@@ -471,14 +470,14 @@ func main() {
 			requestBody, err := json.Marshal(qdrant.UpsertPointRequest{Points: res.Result})
 			if err != nil {
 				log.Info("Last cursor", "cursor", cursor.Format(time.RFC3339Nano))
-				log.Warn("Failed to marshal upsert rquest", "err", err)
+				log.Warn("Failed to marshal upsert request", "err", err)
 				continue
 			}
 
 			req, err := http.NewRequest("PUT", url, bytes.NewBuffer(requestBody))
 			if err != nil {
 				log.Info("Last cursor", "cursor", cursor.Format(time.RFC3339Nano))
-				log.Warn("Failed to get upset points to new qdrant", "err", err)
+				log.Warn("Failed to create request to upsert points to new qdrant", "err", err)
 				continue
 			}
 
@@ -492,13 +491,16 @@ func main() {
 				log.Warn("Failed to execute upsert in qdrant", "err", err)
 				continue
 			}
-			defer resp.Body.Close()
 
-			if resp.StatusCode != http.StatusOK {
-				log.Info("Last cursor", "cursor", cursor.Format(time.RFC3339Nano))
-				log.Warn("Received non-200 status code from new qdrant", "code", resp.StatusCode)
-				continue
-			}
+			// Close the response body immediately after reading
+			func() {
+				defer resp.Body.Close()
+				if resp.StatusCode != http.StatusOK {
+					log.Info("Last cursor", "cursor", cursor.Format(time.RFC3339Nano))
+					log.Warn("Received non-200 status code from new qdrant", "code", resp.StatusCode)
+					return
+				}
+			}()
 
 			log.Infof("Batched objects for qdrant in %s", time.Since(start))
 
