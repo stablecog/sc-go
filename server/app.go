@@ -133,10 +133,10 @@ func main() {
 	}
 
 	// Create indexes in Qdrant
-	// err = qdrantClient.CreateAllIndexes()
-	// if err != nil {
-	// 	log.Warn("Error creating qdrant indexes", "err", err)
-	// }
+	err = qdrantClient.CreateAllIndexes()
+	if err != nil {
+		log.Warn("Error creating qdrant indexes", "err", err)
+	}
 
 	// Q Throttler
 	qThrottler := shared.NewQueueThrottler(ctx, redis.Client, shared.REQUEST_COG_TIMEOUT)

@@ -526,13 +526,6 @@ func (filters *QueryGenerationFilters) ToQdrantFilters(ignoreGalleryStatus bool)
 		})
 	}
 
-	if filters.PromptID != nil {
-		f.Must = append(f.Must, qdrant.SCMatchCondition{
-			Key:   "prompt_id",
-			Match: &qdrant.SCValue{Value: filters.PromptID.String()},
-		})
-	}
-
 	if len(filters.ModelIDs) > 0 {
 		for _, modelID := range filters.ModelIDs {
 			f.Should = append(f.Should, qdrant.SCMatchCondition{
@@ -581,40 +574,6 @@ func (filters *QueryGenerationFilters) ToQdrantFilters(ignoreGalleryStatus bool)
 			Key: "width",
 			Range: qdrant.SCRange[int32]{
 				Lte: utils.ToPtr(filters.MaxWidth),
-			},
-		})
-	}
-
-	// Guidance scale/inference steps
-	if filters.MinInferenceSteps > 0 {
-		f.Must = append(f.Must, qdrant.SCMatchCondition{
-			Key: "inference_steps",
-			Range: qdrant.SCRange[int32]{
-				Gte: utils.ToPtr(filters.MinInferenceSteps),
-			},
-		})
-	}
-	if filters.MaxInferenceSteps > 0 {
-		f.Must = append(f.Must, qdrant.SCMatchCondition{
-			Key: "inference_steps",
-			Range: qdrant.SCRange[int32]{
-				Lte: utils.ToPtr(filters.MaxInferenceSteps),
-			},
-		})
-	}
-	if filters.MinGuidanceScale > 0 {
-		f.Must = append(f.Must, qdrant.SCMatchCondition{
-			Key: "guidance_scale",
-			Range: qdrant.SCRange[float32]{
-				Gte: utils.ToPtr(filters.MinGuidanceScale),
-			},
-		})
-	}
-	if filters.MaxGuidanceScale > 0 {
-		f.Must = append(f.Must, qdrant.SCMatchCondition{
-			Key: "width",
-			Range: qdrant.SCRange[float32]{
-				Lte: utils.ToPtr(filters.MaxGuidanceScale),
 			},
 		})
 	}
@@ -711,35 +670,6 @@ func (filters *QueryGenerationFilters) ToQdrantFilters(ignoreGalleryStatus bool)
 		}
 
 		f.Must = append(f.Must, finalMust)
-	}
-
-	// Inference steps/guidance scales
-	if len(filters.InferenceSteps) > 0 {
-		for _, inferenceStep := range filters.InferenceSteps {
-			f.Should = append(f.Should, qdrant.SCMatchCondition{
-				Key:   "inference_steps",
-				Match: &qdrant.SCValue{Value: inferenceStep},
-			})
-		}
-	}
-	if len(filters.GuidanceScales) > 0 {
-		for _, guidanceScale := range filters.GuidanceScales {
-			f.Should = append(f.Should, qdrant.SCMatchCondition{
-				Key:   "guidance_scale",
-				Match: &qdrant.SCValue{Value: guidanceScale},
-			})
-		}
-	}
-
-	// Upscaled or not
-	if filters.UpscaleStatus == UpscaleStatusNot {
-		f.Must = append(f.Must, qdrant.SCMatchCondition{
-			IsEmpty: &qdrant.SCIsEmpty{Key: "upscaled_image_path"},
-		})
-	} else if filters.UpscaleStatus == UpscaleStatusOnly {
-		f.MustNot = append(f.MustNot, qdrant.SCMatchCondition{
-			IsEmpty: &qdrant.SCIsEmpty{Key: "upscaled_image_path"},
-		})
 	}
 
 	// Gallery status

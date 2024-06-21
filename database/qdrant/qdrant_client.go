@@ -43,14 +43,6 @@ var fieldsToIndex = []qdrantIndexField{
 		Type: PayloadSchemaTypeInteger,
 	},
 	{
-		Name: "inference_steps",
-		Type: PayloadSchemaTypeInteger,
-	},
-	{
-		Name: "guidance_scale",
-		Type: PayloadSchemaTypeFloat,
-	},
-	{
 		Name: "created_at",
 		Type: PayloadSchemaTypeInteger,
 	},
@@ -77,14 +69,6 @@ var fieldsToIndex = []qdrantIndexField{
 	{
 		Name: "is_public",
 		Type: PayloadSchemaTypeBool,
-	},
-	{
-		Name: "prompt",
-		Type: PayloadSchemaTypeKeyword,
-	},
-	{
-		Name: "prompt_id",
-		Type: PayloadSchemaTypeKeyword,
 	},
 	{
 		Name: "aesthetic_rating_score",
