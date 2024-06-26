@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/favadi/osinfo"
 	"github.com/google/uuid"
 	"github.com/stablecog/sc-go/database"
@@ -22,7 +24,7 @@ import (
 
 // Create an Upscale in sc-worker, wait for result
 // ! TODO - clean this up and merge with CreateUpscale method
-func CreateUpscaleInternal(Track *analytics.AnalyticsService, Repo *repository.Repository, Redis *database.RedisWrapper, MQClient queue.MQClient, sMap *shared.SyncMap[chan requests.CogWebhookMessage], generation *ent.Generation, output *ent.GenerationOutput) error {
+func CreateUpscaleInternal(S3 *s3.S3, Track *analytics.AnalyticsService, Repo *repository.Repository, Redis *database.RedisWrapper, MQClient queue.MQClient, sMap *shared.SyncMap[chan requests.CogWebhookMessage], generation *ent.Generation, output *ent.GenerationOutput) error {
 	if len(shared.GetCache().UpscaleModels()) == 0 {
 		log.Error("No upscale models available")
 		return fmt.Errorf("No upscale models available")
@@ -115,6 +117,22 @@ func CreateUpscaleInternal(Track *analytics.AnalyticsService, Repo *repository.R
 				Type:                 *upscaleReq.Type,
 			},
 		}
+
+		cogReqBody.Input.SignedUrls = make([]string, 1)
+		imgId := uuid.NewString() + ".jpeg"
+		// Sign the URL and append to array
+		// If the file does not exist, generate a pre-signed URL
+		req, _ := S3.PutObjectRequest(&s3.PutObjectInput{
+			Bucket: aws.String(utils.GetEnv().S3BucketName),
+			Key:    aws.String(imgId),
+		})
+		urlStr, err := req.Presign(10 * time.Minute) // URL is valid for 15 minutes
+		if err != nil {
+			log.Errorf("Failed to sign request: %v\n", err)
+			return err
+		}
+
+		cogReqBody.Input.SignedUrls[0] = urlStr
 
 		_, err = Repo.AddToQueueLog(queueId, 1, DB)
 		if err != nil {

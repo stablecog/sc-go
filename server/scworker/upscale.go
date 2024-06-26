@@ -231,7 +231,7 @@ func (w *SCWorker) CreateUpscale(source enttypes.SourceType,
 			return nil, &initSettings, &WorkerError{http.StatusUnauthorized, fmt.Errorf("image_not_owned"), ""}
 		}
 		// Verify exists in bucket
-		_, err := w.S3.HeadObject(&s3.HeadObjectInput{
+		_, err := w.S3Img.HeadObject(&s3.HeadObjectInput{
 			Bucket: aws.String(utils.GetEnv().S3Img2ImgBucketName),
 			Key:    aws.String(imageUrl),
 		})
@@ -248,7 +248,7 @@ func (w *SCWorker) CreateUpscale(source enttypes.SourceType,
 			return nil, &initSettings, &WorkerError{http.StatusBadRequest, fmt.Errorf("init_image_not_found"), ""}
 		}
 		// Sign object URL to pass to worker
-		req, _ := w.S3.GetObjectRequest(&s3.GetObjectInput{
+		req, _ := w.S3Img.GetObjectRequest(&s3.GetObjectInput{
 			Bucket: aws.String(utils.GetEnv().S3Img2ImgBucketName),
 			Key:    aws.String(imageUrl),
 		})
@@ -258,7 +258,7 @@ func (w *SCWorker) CreateUpscale(source enttypes.SourceType,
 			return nil, &initSettings, &WorkerError{http.StatusInternalServerError, fmt.Errorf("unknown_error"), ""}
 		}
 		// Presign URL for head request
-		headReq, _ := w.S3.HeadObjectRequest(&s3.HeadObjectInput{
+		headReq, _ := w.S3Img.HeadObjectRequest(&s3.HeadObjectInput{
 			Bucket: aws.String(utils.GetEnv().S3Img2ImgBucketName),
 			Key:    aws.String(imageUrl),
 		})
@@ -433,6 +433,22 @@ func (w *SCWorker) CreateUpscale(source enttypes.SourceType,
 				Type:                 *upscaleReq.Type,
 			},
 		}
+
+		cogReqBody.Input.SignedUrls = make([]string, 1)
+		imgId := uuid.NewString() + ".jpeg"
+		// Sign the URL and append to array
+		// If the file does not exist, generate a pre-signed URL
+		req, _ := w.S3.PutObjectRequest(&s3.PutObjectInput{
+			Bucket: aws.String(utils.GetEnv().S3BucketName),
+			Key:    aws.String(imgId),
+		})
+		urlStr, err := req.Presign(10 * time.Minute) // URL is valid for 15 minutes
+		if err != nil {
+			log.Errorf("Failed to sign request: %v\n", err)
+			return err
+		}
+
+		cogReqBody.Input.SignedUrls[0] = urlStr
 
 		if source == enttypes.SourceTypeWebUI {
 			cogReqBody.Input.UIId = upscaleReq.UIId

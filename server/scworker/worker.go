@@ -18,6 +18,7 @@ type SCWorker struct {
 	QueueThrottler *shared.UserQueueThrottlerMap
 	Track          *analytics.AnalyticsService
 	SafetyChecker  *utils.TranslatorSafetyChecker
+	S3Img          *s3.S3
 	S3             *s3.S3
 	MQClient       queue.MQClient
 }

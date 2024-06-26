@@ -969,9 +969,23 @@ func main() {
 	accessKey := utils.GetEnv().S3Img2ImgAccessKey
 	secretKey := utils.GetEnv().S3Img2ImgSecretKey
 
-	s3Config := &aws.Config{
+	s3ConfigImg := &aws.Config{
 		Credentials: credentials.NewStaticCredentials(accessKey, secretKey, ""),
 		Endpoint:    aws.String(utils.GetEnv().S3Img2ImgEndpoint),
+		Region:      aws.String(region),
+	}
+
+	newSessionImg := session.New(s3ConfigImg)
+	s3ClientImg := s3.New(newSessionImg)
+
+	// Setup S3 Client regular
+	region = utils.GetEnv().S3Region
+	accessKey = utils.GetEnv().S3AccessKey
+	secretKey = utils.GetEnv().S3SecretKey
+
+	s3Config := &aws.Config{
+		Credentials: credentials.NewStaticCredentials(accessKey, secretKey, ""),
+		Endpoint:    aws.String(utils.GetEnv().S3Endpoint),
 		Region:      aws.String(region),
 	}
 
@@ -995,7 +1009,7 @@ func main() {
 		StripeClient:   stripeClient,
 		Track:          analyticsService,
 		QueueThrottler: qThrottler,
-		S3:             s3Client,
+		S3:             s3ClientImg,
 		Qdrant:         qdrantClient,
 		Clip:           clip.NewClipService(redis, safetyChecker),
 		SMap:           apiTokenSmap,
@@ -1007,6 +1021,7 @@ func main() {
 			Track:          analyticsService,
 			SMap:           apiTokenSmap,
 			SafetyChecker:  safetyChecker,
+			S3Img:          s3ClientImg,
 			S3:             s3Client,
 			MQClient:       rabbitmqClient,
 		},
