@@ -64,7 +64,7 @@ func TestIsValidGenerationModelID(t *testing.T) {
 	assert.False(t, fc.IsValidGenerationModelID(uid))
 	// Add to models
 	fc.UpdateGenerationModels([]*ent.GenerationModel{
-		{ID: uid},
+		{ID: uid, IsActive: true},
 	})
 	// Assert nil err
 	assert.True(t, fc.IsValidGenerationModelID(uid))
