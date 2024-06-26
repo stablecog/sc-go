@@ -566,7 +566,7 @@ func (w *SCWorker) CreateGeneration(source enttypes.SourceType,
 		if generateReq.NumOutputs != nil {
 			cogReqBody.Input.SignedUrls = make([]string, *generateReq.NumOutputs)
 			for i := 0; i < int(*generateReq.NumOutputs); i++ {
-				imgId := uuid.NewString() + ".jpeg"
+				imgId := fmt.Sprintf("%s.%s", uuid.NewString(), cogReqBody.Input.OutputImageExtension)
 				// Sign the URL and append to array
 				// If the file does not exist, generate a pre-signed URL
 				req, _ := w.S3.PutObjectRequest(&s3.PutObjectInput{
