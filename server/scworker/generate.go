@@ -568,12 +568,14 @@ func (w *SCWorker) CreateGeneration(source enttypes.SourceType,
 			cogReqBody.Input.SignedUrls = make([]string, *generateReq.NumOutputs)
 			for i := 0; i < int(*generateReq.NumOutputs); i++ {
 				imgId := fmt.Sprintf("%s.%s", uuid.NewString(), cogReqBody.Input.OutputImageExtension)
+
 				// Sign the URL and append to array
 				// If the file does not exist, generate a pre-signed URL
 				req, _ := w.S3.PutObjectRequest(&s3.PutObjectInput{
 					Bucket: aws.String(utils.GetEnv().S3BucketName),
 					Key:    aws.String(imgId),
 				})
+
 				urlStr, err := req.Presign(10 * time.Minute) // URL is valid for 15 minutes
 				if err != nil {
 					log.Errorf("Failed to sign request: %v\n", err)

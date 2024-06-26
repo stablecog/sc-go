@@ -1,6 +1,7 @@
 package scworker
 
 import (
+	"encoding/base64"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -437,12 +438,32 @@ func (w *SCWorker) CreateUpscale(source enttypes.SourceType,
 
 		cogReqBody.Input.SignedUrls = make([]string, 1)
 		imgId := fmt.Sprintf("%s.%s", uuid.NewString(), cogReqBody.Input.OutputImageExtension)
+		// Create a policy that limits the size of the upload
+		expiration := time.Now().Add(10 * time.Minute).UTC().Format("2006-01-02T15:04:05.000Z")
+		var maxUploadSize int64 = 512 * 1024 // 512Kb
+		policy := map[string]interface{}{
+			"expiration": expiration,
+			"conditions": []map[string]interface{}{
+				{"bucket": utils.GetEnv().S3BucketName},
+				{"key": imgId},
+				{"content-length-range": []int64{0, maxUploadSize}},
+			},
+		}
+
+		policyBytes, err := json.Marshal(policy)
+		if err != nil {
+			fmt.Println("Failed to marshal policy:", err)
+			return err
+		}
+
+		policyBase64 := base64.StdEncoding.EncodeToString(policyBytes)
 		// Sign the URL and append to array
 		// If the file does not exist, generate a pre-signed URL
 		req, _ := w.S3.PutObjectRequest(&s3.PutObjectInput{
 			Bucket: aws.String(utils.GetEnv().S3BucketName),
 			Key:    aws.String(imgId),
 		})
+		req.HTTPRequest.Header.Set("x-amz-meta-policy", policyBase64)
 		urlStr, err := req.Presign(10 * time.Minute) // URL is valid for 15 minutes
 		if err != nil {
 			log.Errorf("Failed to sign request: %v\n", err)
