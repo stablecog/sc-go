@@ -112,6 +112,7 @@ func CreateUpscaleInternal(S3 *s3.S3, Track *analytics.AnalyticsService, Repo *r
 				Height:               utils.ToPtr(generation.Height),
 				UpscaleModel:         upscaleModel.NameInWorker,
 				ModelId:              *upscaleReq.ModelId,
+				WebhookToken:         upscale.WebhookToken,
 				OutputImageExtension: string(shared.DEFAULT_UPSCALE_OUTPUT_EXTENSION),
 				OutputImageQuality:   utils.ToPtr(shared.DEFAULT_UPSCALE_OUTPUT_QUALITY),
 				Type:                 *upscaleReq.Type,
@@ -119,7 +120,7 @@ func CreateUpscaleInternal(S3 *s3.S3, Track *analytics.AnalyticsService, Repo *r
 		}
 
 		cogReqBody.Input.SignedUrls = make([]string, 1)
-		imgId := uuid.NewString() + ".jpeg"
+		imgId := fmt.Sprintf("%s.%s", uuid.NewString(), cogReqBody.Input.OutputImageExtension)
 		// Sign the URL and append to array
 		// If the file does not exist, generate a pre-signed URL
 		req, _ := S3.PutObjectRequest(&s3.PutObjectInput{

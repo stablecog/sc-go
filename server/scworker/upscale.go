@@ -428,6 +428,7 @@ func (w *SCWorker) CreateUpscale(source enttypes.SourceType,
 				Height:               utils.ToPtr(height),
 				UpscaleModel:         modelName,
 				ModelId:              *upscaleReq.ModelId,
+				WebhookToken:         upscale.WebhookToken,
 				OutputImageExtension: string(shared.DEFAULT_UPSCALE_OUTPUT_EXTENSION),
 				OutputImageQuality:   utils.ToPtr(shared.DEFAULT_UPSCALE_OUTPUT_QUALITY),
 				Type:                 *upscaleReq.Type,
@@ -435,7 +436,7 @@ func (w *SCWorker) CreateUpscale(source enttypes.SourceType,
 		}
 
 		cogReqBody.Input.SignedUrls = make([]string, 1)
-		imgId := uuid.NewString() + ".jpeg"
+		imgId := fmt.Sprintf("%s.%s", uuid.NewString(), cogReqBody.Input.OutputImageExtension)
 		// Sign the URL and append to array
 		// If the file does not exist, generate a pre-signed URL
 		req, _ := w.S3.PutObjectRequest(&s3.PutObjectInput{

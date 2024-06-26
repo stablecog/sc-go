@@ -127,6 +127,11 @@ func StripeProductID(v string) predicate.Generation {
 	return predicate.Generation(sql.FieldEQ(FieldStripeProductID, v))
 }
 
+// WebhookToken applies equality check predicate on the "webhook_token" field. It's identical to WebhookTokenEQ.
+func WebhookToken(v uuid.UUID) predicate.Generation {
+	return predicate.Generation(sql.FieldEQ(FieldWebhookToken, v))
+}
+
 // PromptID applies equality check predicate on the "prompt_id" field. It's identical to PromptIDEQ.
 func PromptID(v uuid.UUID) predicate.Generation {
 	return predicate.Generation(sql.FieldEQ(FieldPromptID, v))
@@ -945,6 +950,46 @@ func SourceTypeNotIn(vs ...enttypes.SourceType) predicate.Generation {
 		v[i] = vs[i]
 	}
 	return predicate.Generation(sql.FieldNotIn(FieldSourceType, v...))
+}
+
+// WebhookTokenEQ applies the EQ predicate on the "webhook_token" field.
+func WebhookTokenEQ(v uuid.UUID) predicate.Generation {
+	return predicate.Generation(sql.FieldEQ(FieldWebhookToken, v))
+}
+
+// WebhookTokenNEQ applies the NEQ predicate on the "webhook_token" field.
+func WebhookTokenNEQ(v uuid.UUID) predicate.Generation {
+	return predicate.Generation(sql.FieldNEQ(FieldWebhookToken, v))
+}
+
+// WebhookTokenIn applies the In predicate on the "webhook_token" field.
+func WebhookTokenIn(vs ...uuid.UUID) predicate.Generation {
+	return predicate.Generation(sql.FieldIn(FieldWebhookToken, vs...))
+}
+
+// WebhookTokenNotIn applies the NotIn predicate on the "webhook_token" field.
+func WebhookTokenNotIn(vs ...uuid.UUID) predicate.Generation {
+	return predicate.Generation(sql.FieldNotIn(FieldWebhookToken, vs...))
+}
+
+// WebhookTokenGT applies the GT predicate on the "webhook_token" field.
+func WebhookTokenGT(v uuid.UUID) predicate.Generation {
+	return predicate.Generation(sql.FieldGT(FieldWebhookToken, v))
+}
+
+// WebhookTokenGTE applies the GTE predicate on the "webhook_token" field.
+func WebhookTokenGTE(v uuid.UUID) predicate.Generation {
+	return predicate.Generation(sql.FieldGTE(FieldWebhookToken, v))
+}
+
+// WebhookTokenLT applies the LT predicate on the "webhook_token" field.
+func WebhookTokenLT(v uuid.UUID) predicate.Generation {
+	return predicate.Generation(sql.FieldLT(FieldWebhookToken, v))
+}
+
+// WebhookTokenLTE applies the LTE predicate on the "webhook_token" field.
+func WebhookTokenLTE(v uuid.UUID) predicate.Generation {
+	return predicate.Generation(sql.FieldLTE(FieldWebhookToken, v))
 }
 
 // PromptIDEQ applies the EQ predicate on the "prompt_id" field.

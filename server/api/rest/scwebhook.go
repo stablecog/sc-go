@@ -46,6 +46,44 @@ func (c *RestAPI) HandleSCWorkerWebhook(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
+	var generation *ent.Generation
+	var upscale *ent.Upscale
+	if cogMessage.Input.ProcessType == shared.GENERATE || cogMessage.Input.ProcessType == shared.GENERATE_AND_UPSCALE {
+		// Get generation
+		uid := cogMessage.Input.ID
+		generation, err = c.Repo.GetGeneration(uid)
+		if err != nil && ent.IsNotFound(err) {
+			log.Error("Generation not found", "id", uid)
+			responses.ErrNotFound(w, r, "generation not found")
+			return
+		} else if err != nil {
+			log.Error("Error getting generation for webhook", "err", err)
+			responses.ErrInternalServerError(w, r, "server error")
+			return
+		} else if generation.WebhookToken != cogMessage.Input.WebhookToken {
+			log.Error("Invalid webhook token", "id", uid)
+			responses.ErrUnauthorized(w, r)
+			return
+		}
+	} else if cogMessage.Input.ProcessType == shared.UPSCALE {
+		// Get upscale
+		uid := cogMessage.Input.ID
+		upscale, err = c.Repo.GetUpscale(uid)
+		if err != nil && ent.IsNotFound(err) {
+			log.Error("Upscale not found", "id", uid)
+			responses.ErrNotFound(w, r, "Upscale not found")
+			return
+		} else if err != nil {
+			log.Error("Error getting Upscale for webhook", "err", err)
+			responses.ErrInternalServerError(w, r, "server error")
+			return
+		} else if upscale.WebhookToken != cogMessage.Input.WebhookToken {
+			log.Error("Invalid webhook token", "id", uid)
+			responses.ErrUnauthorized(w, r)
+			return
+		}
+	}
+
 	if cogMessage.Input.Internal {
 		// Internal request handled in a separate flow
 		err = c.Redis.Client.Publish(c.Redis.Ctx, shared.REDIS_INTERNAL_COG_CHANNEL, reqBody).Err()
@@ -109,13 +147,6 @@ func (c *RestAPI) HandleSCWorkerWebhook(w http.ResponseWriter, r *http.Request) 
 				return
 			}
 			if cogMessage.Input.ProcessType == shared.GENERATE || cogMessage.Input.ProcessType == shared.GENERATE_AND_UPSCALE {
-				// Get generation
-				uid := cogMessage.Input.ID
-				generation, err := c.Repo.GetGeneration(uid)
-				if err != nil {
-					log.Error("Error getting generation for analytics", "err", err)
-					return
-				}
 				// Get durations in seconds
 				if generation.StartedAt == nil {
 					log.Error("Generation started at is nil", "id", cogMessage.Input.ID)
@@ -125,13 +156,6 @@ func (c *RestAPI) HandleSCWorkerWebhook(w http.ResponseWriter, r *http.Request) 
 				qDuration := (*generation.StartedAt).Sub(generation.CreatedAt).Seconds()
 				c.Track.GenerationSucceeded(u, cogMessage.Input, duration, qDuration, enttypes.SourceTypeWebUI, cogMessage.Input.IP)
 			} else if cogMessage.Input.ProcessType == shared.UPSCALE {
-				// Get upscale
-				uid := cogMessage.Input.ID
-				upscale, err := c.Repo.GetUpscale(uid)
-				if err != nil {
-					log.Error("Error getting upscale for analytics", "err", err)
-					return
-				}
 				// Get durations in seconds
 				if upscale.StartedAt == nil {
 					log.Error("Upscale started at is nil", "id", cogMessage.Input.ID)

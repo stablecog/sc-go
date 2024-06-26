@@ -124,6 +124,20 @@ func (uc *UpscaleCreate) SetNillableSourceType(et *enttypes.SourceType) *Upscale
 	return uc
 }
 
+// SetWebhookToken sets the "webhook_token" field.
+func (uc *UpscaleCreate) SetWebhookToken(u uuid.UUID) *UpscaleCreate {
+	uc.mutation.SetWebhookToken(u)
+	return uc
+}
+
+// SetNillableWebhookToken sets the "webhook_token" field if the given value is not nil.
+func (uc *UpscaleCreate) SetNillableWebhookToken(u *uuid.UUID) *UpscaleCreate {
+	if u != nil {
+		uc.SetWebhookToken(*u)
+	}
+	return uc
+}
+
 // SetUserID sets the "user_id" field.
 func (uc *UpscaleCreate) SetUserID(u uuid.UUID) *UpscaleCreate {
 	uc.mutation.SetUserID(u)
@@ -324,6 +338,10 @@ func (uc *UpscaleCreate) defaults() {
 		v := upscale.DefaultSourceType
 		uc.mutation.SetSourceType(v)
 	}
+	if _, ok := uc.mutation.WebhookToken(); !ok {
+		v := upscale.DefaultWebhookToken()
+		uc.mutation.SetWebhookToken(v)
+	}
 	if _, ok := uc.mutation.CreatedAt(); !ok {
 		v := upscale.DefaultCreatedAt()
 		uc.mutation.SetCreatedAt(v)
@@ -367,6 +385,9 @@ func (uc *UpscaleCreate) check() error {
 		if err := upscale.SourceTypeValidator(v); err != nil {
 			return &ValidationError{Name: "source_type", err: fmt.Errorf(`ent: validator failed for field "Upscale.source_type": %w`, err)}
 		}
+	}
+	if _, ok := uc.mutation.WebhookToken(); !ok {
+		return &ValidationError{Name: "webhook_token", err: errors.New(`ent: missing required field "Upscale.webhook_token"`)}
 	}
 	if _, ok := uc.mutation.UserID(); !ok {
 		return &ValidationError{Name: "user_id", err: errors.New(`ent: missing required field "Upscale.user_id"`)}
@@ -469,6 +490,10 @@ func (uc *UpscaleCreate) createSpec() (*Upscale, *sqlgraph.CreateSpec) {
 	if value, ok := uc.mutation.SourceType(); ok {
 		_spec.SetField(upscale.FieldSourceType, field.TypeEnum, value)
 		_node.SourceType = value
+	}
+	if value, ok := uc.mutation.WebhookToken(); ok {
+		_spec.SetField(upscale.FieldWebhookToken, field.TypeUUID, value)
+		_node.WebhookToken = value
 	}
 	if value, ok := uc.mutation.StartedAt(); ok {
 		_spec.SetField(upscale.FieldStartedAt, field.TypeTime, value)
@@ -778,6 +803,18 @@ func (u *UpscaleUpsert) SetSourceType(v enttypes.SourceType) *UpscaleUpsert {
 // UpdateSourceType sets the "source_type" field to the value that was provided on create.
 func (u *UpscaleUpsert) UpdateSourceType() *UpscaleUpsert {
 	u.SetExcluded(upscale.FieldSourceType)
+	return u
+}
+
+// SetWebhookToken sets the "webhook_token" field.
+func (u *UpscaleUpsert) SetWebhookToken(v uuid.UUID) *UpscaleUpsert {
+	u.Set(upscale.FieldWebhookToken, v)
+	return u
+}
+
+// UpdateWebhookToken sets the "webhook_token" field to the value that was provided on create.
+func (u *UpscaleUpsert) UpdateWebhookToken() *UpscaleUpsert {
+	u.SetExcluded(upscale.FieldWebhookToken)
 	return u
 }
 
@@ -1099,6 +1136,20 @@ func (u *UpscaleUpsertOne) SetSourceType(v enttypes.SourceType) *UpscaleUpsertOn
 func (u *UpscaleUpsertOne) UpdateSourceType() *UpscaleUpsertOne {
 	return u.Update(func(s *UpscaleUpsert) {
 		s.UpdateSourceType()
+	})
+}
+
+// SetWebhookToken sets the "webhook_token" field.
+func (u *UpscaleUpsertOne) SetWebhookToken(v uuid.UUID) *UpscaleUpsertOne {
+	return u.Update(func(s *UpscaleUpsert) {
+		s.SetWebhookToken(v)
+	})
+}
+
+// UpdateWebhookToken sets the "webhook_token" field to the value that was provided on create.
+func (u *UpscaleUpsertOne) UpdateWebhookToken() *UpscaleUpsertOne {
+	return u.Update(func(s *UpscaleUpsert) {
+		s.UpdateWebhookToken()
 	})
 }
 
@@ -1600,6 +1651,20 @@ func (u *UpscaleUpsertBulk) SetSourceType(v enttypes.SourceType) *UpscaleUpsertB
 func (u *UpscaleUpsertBulk) UpdateSourceType() *UpscaleUpsertBulk {
 	return u.Update(func(s *UpscaleUpsert) {
 		s.UpdateSourceType()
+	})
+}
+
+// SetWebhookToken sets the "webhook_token" field.
+func (u *UpscaleUpsertBulk) SetWebhookToken(v uuid.UUID) *UpscaleUpsertBulk {
+	return u.Update(func(s *UpscaleUpsert) {
+		s.SetWebhookToken(v)
+	})
+}
+
+// UpdateWebhookToken sets the "webhook_token" field to the value that was provided on create.
+func (u *UpscaleUpsertBulk) UpdateWebhookToken() *UpscaleUpsertBulk {
+	return u.Update(func(s *UpscaleUpsert) {
+		s.UpdateWebhookToken()
 	})
 }
 
