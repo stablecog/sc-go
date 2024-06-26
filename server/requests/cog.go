@@ -64,6 +64,7 @@ type BaseCogRequest struct {
 	PromptFlores           string             `json:"prompt_flores_200_code,omitempty"`
 	NegativePromptFlores   string             `json:"negative_prompt_flores_200_code,omitempty"`
 	SubmitToGallery        bool               `json:"submit_to_gallery,omitempty"`
+	WebhookToken           uuid.UUID          `json:"webhook_token"`
 	// Upscale specific
 	Image        string             `json:"image_to_upscale,omitempty"`
 	Type         UpscaleRequestType `json:"type,omitempty"`

@@ -33,6 +33,8 @@ const (
 	FieldSystemGenerated = "system_generated"
 	// FieldSourceType holds the string denoting the source_type field in the database.
 	FieldSourceType = "source_type"
+	// FieldWebhookToken holds the string denoting the webhook_token field in the database.
+	FieldWebhookToken = "webhook_token"
 	// FieldUserID holds the string denoting the user_id field in the database.
 	FieldUserID = "user_id"
 	// FieldDeviceInfoID holds the string denoting the device_info_id field in the database.
@@ -110,6 +112,7 @@ var Columns = []string{
 	FieldStripeProductID,
 	FieldSystemGenerated,
 	FieldSourceType,
+	FieldWebhookToken,
 	FieldUserID,
 	FieldDeviceInfoID,
 	FieldModelID,
@@ -133,6 +136,8 @@ func ValidColumn(column string) bool {
 var (
 	// DefaultSystemGenerated holds the default value on creation for the "system_generated" field.
 	DefaultSystemGenerated bool
+	// DefaultWebhookToken holds the default value on creation for the "webhook_token" field.
+	DefaultWebhookToken func() uuid.UUID
 	// DefaultCreatedAt holds the default value on creation for the "created_at" field.
 	DefaultCreatedAt func() time.Time
 	// DefaultUpdatedAt holds the default value on creation for the "updated_at" field.

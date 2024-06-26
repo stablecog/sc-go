@@ -183,12 +183,16 @@ func init() {
 	generationDescWasAutoSubmitted := generationFields[14].Descriptor()
 	// generation.DefaultWasAutoSubmitted holds the default value on creation for the was_auto_submitted field.
 	generation.DefaultWasAutoSubmitted = generationDescWasAutoSubmitted.Default.(bool)
+	// generationDescWebhookToken is the schema descriptor for webhook_token field.
+	generationDescWebhookToken := generationFields[17].Descriptor()
+	// generation.DefaultWebhookToken holds the default value on creation for the webhook_token field.
+	generation.DefaultWebhookToken = generationDescWebhookToken.Default.(func() uuid.UUID)
 	// generationDescCreatedAt is the schema descriptor for created_at field.
-	generationDescCreatedAt := generationFields[26].Descriptor()
+	generationDescCreatedAt := generationFields[27].Descriptor()
 	// generation.DefaultCreatedAt holds the default value on creation for the created_at field.
 	generation.DefaultCreatedAt = generationDescCreatedAt.Default.(func() time.Time)
 	// generationDescUpdatedAt is the schema descriptor for updated_at field.
-	generationDescUpdatedAt := generationFields[27].Descriptor()
+	generationDescUpdatedAt := generationFields[28].Descriptor()
 	// generation.DefaultUpdatedAt holds the default value on creation for the updated_at field.
 	generation.DefaultUpdatedAt = generationDescUpdatedAt.Default.(func() time.Time)
 	// generation.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
@@ -445,12 +449,16 @@ func init() {
 	upscaleDescSystemGenerated := upscaleFields[8].Descriptor()
 	// upscale.DefaultSystemGenerated holds the default value on creation for the system_generated field.
 	upscale.DefaultSystemGenerated = upscaleDescSystemGenerated.Default.(bool)
+	// upscaleDescWebhookToken is the schema descriptor for webhook_token field.
+	upscaleDescWebhookToken := upscaleFields[10].Descriptor()
+	// upscale.DefaultWebhookToken holds the default value on creation for the webhook_token field.
+	upscale.DefaultWebhookToken = upscaleDescWebhookToken.Default.(func() uuid.UUID)
 	// upscaleDescCreatedAt is the schema descriptor for created_at field.
-	upscaleDescCreatedAt := upscaleFields[16].Descriptor()
+	upscaleDescCreatedAt := upscaleFields[17].Descriptor()
 	// upscale.DefaultCreatedAt holds the default value on creation for the created_at field.
 	upscale.DefaultCreatedAt = upscaleDescCreatedAt.Default.(func() time.Time)
 	// upscaleDescUpdatedAt is the schema descriptor for updated_at field.
-	upscaleDescUpdatedAt := upscaleFields[17].Descriptor()
+	upscaleDescUpdatedAt := upscaleFields[18].Descriptor()
 	// upscale.DefaultUpdatedAt holds the default value on creation for the updated_at field.
 	upscale.DefaultUpdatedAt = upscaleDescUpdatedAt.Default.(func() time.Time)
 	// upscale.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.

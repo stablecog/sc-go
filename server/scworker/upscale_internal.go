@@ -112,6 +112,7 @@ func CreateUpscaleInternal(S3 *s3.S3, Track *analytics.AnalyticsService, Repo *r
 				Height:               utils.ToPtr(generation.Height),
 				UpscaleModel:         upscaleModel.NameInWorker,
 				ModelId:              *upscaleReq.ModelId,
+				WebhookToken:         upscale.WebhookToken,
 				OutputImageExtension: string(shared.DEFAULT_UPSCALE_OUTPUT_EXTENSION),
 				OutputImageQuality:   utils.ToPtr(shared.DEFAULT_UPSCALE_OUTPUT_QUALITY),
 				Type:                 *upscaleReq.Type,

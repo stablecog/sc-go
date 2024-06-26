@@ -57,6 +57,8 @@ type Generation struct {
 	StripeProductID *string `json:"stripe_product_id,omitempty"`
 	// SourceType holds the value of the "source_type" field.
 	SourceType enttypes.SourceType `json:"source_type,omitempty"`
+	// WebhookToken holds the value of the "webhook_token" field.
+	WebhookToken uuid.UUID `json:"webhook_token,omitempty"`
 	// PromptID holds the value of the "prompt_id" field.
 	PromptID *uuid.UUID `json:"prompt_id,omitempty"`
 	// NegativePromptID holds the value of the "negative_prompt_id" field.
@@ -224,7 +226,7 @@ func (*Generation) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullString)
 		case generation.FieldStartedAt, generation.FieldCompletedAt, generation.FieldCreatedAt, generation.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
-		case generation.FieldID, generation.FieldModelID, generation.FieldSchedulerID, generation.FieldUserID, generation.FieldDeviceInfoID:
+		case generation.FieldID, generation.FieldWebhookToken, generation.FieldModelID, generation.FieldSchedulerID, generation.FieldUserID, generation.FieldDeviceInfoID:
 			values[i] = new(uuid.UUID)
 		default:
 			return nil, fmt.Errorf("unexpected column %q for type Generation", columns[i])
@@ -348,6 +350,12 @@ func (ge *Generation) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field source_type", values[i])
 			} else if value.Valid {
 				ge.SourceType = enttypes.SourceType(value.String)
+			}
+		case generation.FieldWebhookToken:
+			if value, ok := values[i].(*uuid.UUID); !ok {
+				return fmt.Errorf("unexpected type %T for field webhook_token", values[i])
+			} else if value != nil {
+				ge.WebhookToken = *value
 			}
 		case generation.FieldPromptID:
 			if value, ok := values[i].(*sql.NullScanner); !ok {
@@ -547,6 +555,9 @@ func (ge *Generation) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("source_type=")
 	builder.WriteString(fmt.Sprintf("%v", ge.SourceType))
+	builder.WriteString(", ")
+	builder.WriteString("webhook_token=")
+	builder.WriteString(fmt.Sprintf("%v", ge.WebhookToken))
 	builder.WriteString(", ")
 	if v := ge.PromptID; v != nil {
 		builder.WriteString("prompt_id=")
