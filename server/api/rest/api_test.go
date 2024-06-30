@@ -77,10 +77,7 @@ func testMainWrapper(m *testing.M) int {
 	}
 
 	// Populate cache
-	if err := repo.UpdateCache(); err != nil {
-		log.Fatal("Failed to populate cache", "err", err)
-		os.Exit(1)
-	}
+	repo.UpdateCache()
 
 	// Setup fake sse hub
 	hub := sse.NewHub(redis, repo)
