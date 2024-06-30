@@ -34,7 +34,7 @@ spec:
                 name: sc-go
           env:
             - name: PUBLIC_API_URL
-              value: https://api.stablecog.com
+              value: https://apik3s.stablecog.com
             - name: PUBLIC_SUPABASE_REFERENCE_ID
               value: jaqefzjqokaemzyvjcew
             - name: PRIVATE_LINGUA_API_URL
