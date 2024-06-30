@@ -487,10 +487,10 @@ func (f *Cache) UpdateWorkerURL(vastAiKey string) error {
 	clipUrls := []string{}
 	for _, instance := range vastInstances.Instances {
 		if len(instance.Ports.One3349TCP) > 0 {
-			nllbUrls = append(nllbUrls, fmt.Sprintf("http://%s:%s/predictions", instance.PublicIP, instance.Ports.One3339TCP[0].HostPort))
+			nllbUrls = append(nllbUrls, fmt.Sprintf("http://%s:%s/predictions", instance.PublicIP, instance.Ports.One3349TCP[0].HostPort))
 		}
 		if len(instance.Ports.One3339TCP) > 0 {
-			clipUrls = append(clipUrls, fmt.Sprintf("http://%s:%s/clip/embed", instance.PublicIP, instance.Ports.One3349TCP[0].HostPort))
+			clipUrls = append(clipUrls, fmt.Sprintf("http://%s:%s/clip/embed", instance.PublicIP, instance.Ports.One3339TCP[0].HostPort))
 		}
 	}
 
