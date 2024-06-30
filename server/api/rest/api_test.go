@@ -79,7 +79,7 @@ func testMainWrapper(m *testing.M) int {
 	// Populate cache
 	os.Setenv("SKIP_VAST", "true")
 	defer os.Unsetenv("SKIP_VAST")
-	repo.UpdateCache(); err != nil {
+	if err := repo.UpdateCache(); err != nil {
 		log.Fatal("Failed to populate cache", "err", err)
 		os.Exit(1)
 	}

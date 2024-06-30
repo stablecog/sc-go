@@ -499,6 +499,9 @@ func (f *Cache) UpdateWorkerURL(vastAiKey string) error {
 	f.nllbUrls = nllbUrls
 	f.clipUrls = clipUrls
 
+	// Log URLs for debugging
+	log.Info("Updated worker URLs", "nllbUrls", f.nllbUrls, "clipUrls", f.clipUrls)
+
 	return nil
 }
 
