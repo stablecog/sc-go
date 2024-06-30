@@ -216,9 +216,12 @@ func main() {
 	if *loadQdrant {
 		log.Info("🏡 Loading qdrant data...")
 		secret := utils.GetEnv().ClipAPISecret
-		clipUrl := utils.GetEnv().ClipAPIEndpoint
+		var clipUrl string
 		if *clipUrlOverride != "" {
 			clipUrl = *clipUrlOverride
+		}
+		if clipUrl == "" {
+			clipUrl = shared.GetCache().GetClipUrls()[0]
 		}
 		each := *batchSize
 		cur := 0
@@ -522,9 +525,12 @@ func main() {
 	if *testEmbeddings {
 		log.Info("🏡 Test test...")
 		secret := utils.GetEnv().ClipAPISecret
-		clipUrl := utils.GetEnv().ClipAPIEndpoint
+		var clipUrl string
 		if *clipUrlOverride != "" {
 			clipUrl = *clipUrlOverride
+		}
+		if clipUrl == "" {
+			clipUrl = shared.GetCache().GetClipUrls()[0]
 		}
 		each := *batchSize
 		cur := 0
@@ -624,7 +630,7 @@ func main() {
 	if *testClipService {
 		log.Info("🏡 Comparing clip...")
 		secret := utils.GetEnv().ClipAPISecret
-		clipUrl := utils.GetEnv().ClipAPIEndpoint
+		clipUrl := *clipUrlOverride
 		clipUrl2 := *clipUrl2
 		if *clipUrlOverride != "" {
 			clipUrl = *clipUrlOverride
@@ -1111,7 +1117,7 @@ func main() {
 	// Routes
 	app.Get("/", hc.HandleHealth)
 	app.Handle("/metrics", middleware.BasicAuth(promhttp.Handler(), "user", "password", "Authentication required"))
-	app.Get("/clipq", hc.HandleClipQSearch)
+	// app.Get("/clipq", hc.HandleClipQSearch)
 	app.Route("/v1", func(r chi.Router) {
 		r.Get("/health", hc.HandleHealth)
 
