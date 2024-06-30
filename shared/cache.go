@@ -500,7 +500,6 @@ func (f *Cache) UpdateWorkerURL(vastAiKey string) error {
 	f.clipUrls = clipUrls
 
 	// Log URLs for debugging
-	log.Info("Updated worker URLs", "nllbUrls", f.nllbUrls, "clipUrls", f.clipUrls)
 
 	return nil
 }

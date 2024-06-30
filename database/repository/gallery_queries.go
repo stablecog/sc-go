@@ -115,7 +115,7 @@ func (r *Repository) RetrieveMostRecentGalleryDataV2(filters *requests.QueryGene
 		orderByOutput = []string{generationoutput.FieldCreatedAt, generationoutput.FieldUpdatedAt}
 	}
 
-	query = r.DB.Generation.Query().Select(selectFields...).
+	query = r.DB.Debug().Generation.Query().Select(selectFields...).
 		Where(generation.StatusEQ(generation.StatusSucceeded))
 	if cursor != nil {
 		query = query.Where(generation.CreatedAtLT(*cursor))
@@ -455,7 +455,7 @@ func (r *Repository) RetrieveMostRecentGalleryData(filters *requests.QueryGenera
 
 // Retrieves data in gallery format given  output IDs
 func (r *Repository) RetrieveGalleryDataWithOutputIDs(outputIDs []uuid.UUID, callingUserId *uuid.UUID, allIsPublic bool) ([]GalleryData, error) {
-	q := r.DB.Debug().GenerationOutput.Query().Where(generationoutput.IDIn(outputIDs...))
+	q := r.DB.GenerationOutput.Query().Where(generationoutput.IDIn(outputIDs...))
 	if allIsPublic {
 		q = q.Where(generationoutput.IsPublic(true))
 	} else {
