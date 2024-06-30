@@ -9,17 +9,15 @@ import (
 	"sync"
 	"time"
 
+	"golang.org/x/exp/slices"
+
 	"github.com/google/uuid"
 	"github.com/stablecog/sc-go/database"
 	"github.com/stablecog/sc-go/log"
 	"github.com/stablecog/sc-go/server/responses"
+	"github.com/stablecog/sc-go/shared"
 	"github.com/stablecog/sc-go/utils"
 )
-
-type badUrl struct {
-	url      string
-	markedAt time.Time
-}
 
 type ClipService struct {
 	redis *database.RedisWrapper
@@ -41,7 +39,6 @@ func (c *ClipService) RoundTrip(r *http.Request) (*http.Response, error) {
 
 func NewClipService(redis *database.RedisWrapper, safetyChecker *utils.TranslatorSafetyChecker) *ClipService {
 	svc := &ClipService{
-		urls:          utils.GetEnv().ClipAPIURLs,
 		secret:        utils.GetEnv().ClipAPISecret,
 		r:             http.DefaultTransport,
 		redis:         redis,
@@ -54,8 +51,19 @@ func NewClipService(redis *database.RedisWrapper, safetyChecker *utils.Translato
 	return svc
 }
 
+func (c *ClipService) UpdateURLsFromCache() {
+	urls := shared.GetCache().GetClipUrls()
+	// Compare existing slice
+	if slices.Compare(urls, c.urls) != 0 {
+		c.mu.Lock()
+		defer c.mu.Unlock()
+		c.urls = urls
+	}
+}
+
 // GetEmbeddingFromText, retry up to retries times
 func (c *ClipService) GetEmbeddingFromText(text string, retries int, translate bool) (embedding []float32, err error) {
+	c.UpdateURLsFromCache()
 	// Translate text
 	textTranslated := text
 	if translate {
@@ -134,6 +142,7 @@ func (c *ClipService) GetEmbeddingFromText(text string, retries int, translate b
 
 // GetEmbeddingFromImagePath, retry up to retries times
 func (c *ClipService) GetEmbeddingFromImagePath(imagePath string, noCache bool, retries int) (embedding []float32, err error) {
+	c.UpdateURLsFromCache()
 	// Check cache first
 	if !noCache {
 		e, err := c.redis.GetEmbeddings(c.redis.Ctx, utils.Sha256(imagePath))

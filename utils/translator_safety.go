@@ -9,9 +9,13 @@ import (
 	"net/http"
 	"strings"
 	"sync"
+	"time"
+
+	"golang.org/x/exp/slices"
 
 	openai "github.com/sashabaranov/go-openai"
 	"github.com/stablecog/sc-go/log"
+	"github.com/stablecog/sc-go/shared"
 )
 
 const TARGET_FLORES_CODE = "eng_Latn"
@@ -19,22 +23,49 @@ const TARGET_LANG_SCORE_MAX = 0.88
 const DETECTED_CONFIDENCE_SCORE_MIN = 0.1
 
 type TranslatorSafetyChecker struct {
-	Ctx              context.Context
-	TargetFloresUrl  string
-	TranslatorCogUrl string
-	OpenaiClient     *openai.Client
+	Ctx             context.Context
+	TargetFloresUrl string
+	OpenaiClient    *openai.Client
 	// TODO - mock better for testing, this just disables
-	Disable bool
-	mu      sync.Mutex
+	Disable   bool
+	activeUrl int
+	urls      []string
+	r         http.RoundTripper
+	secret    string
+	client    *http.Client
+	mu        sync.Mutex
+	rwmu      sync.RWMutex
+}
+
+func (t *TranslatorSafetyChecker) RoundTrip(r *http.Request) (*http.Response, error) {
+	r.Header.Add("Authorization", t.secret)
+	r.Header.Add("Content-Type", "application/json")
+	return t.r.RoundTrip(r)
 }
 
 func NewTranslatorSafetyChecker(ctx context.Context, openaiKey string, disable bool) *TranslatorSafetyChecker {
-	return &TranslatorSafetyChecker{
-		Ctx:              ctx,
-		TargetFloresUrl:  GetEnv().PrivateLinguaAPIUrl,
-		TranslatorCogUrl: GetEnv().TranslatorCogURL,
-		OpenaiClient:     openai.NewClient(openaiKey),
-		Disable:          disable,
+	checker := &TranslatorSafetyChecker{
+		Ctx:             ctx,
+		TargetFloresUrl: GetEnv().PrivateLinguaAPIUrl,
+		OpenaiClient:    openai.NewClient(openaiKey),
+		Disable:         disable,
+		secret:          GetEnv().NllbAPISecret,
+		r:               http.DefaultTransport,
+	}
+	checker.client = &http.Client{
+		Timeout:   10 * time.Second,
+		Transport: checker,
+	}
+	return checker
+}
+
+func (t *TranslatorSafetyChecker) UpdateURLsFromCache() {
+	urls := shared.GetCache().GetNLLBUrls()
+	// Compare existing slice
+	if slices.Compare(urls, t.urls) != 0 {
+		t.rwmu.Lock()
+		defer t.rwmu.Unlock()
+		t.urls = urls
 	}
 }
 
@@ -102,6 +133,9 @@ type TranslatorCogResponse struct {
 
 // Send translation to the translator cog
 func (t *TranslatorSafetyChecker) TranslatePrompt(prompt string, negativePrompt string) (translatedPrompt string, translatedNegativePrompt string, err error) {
+	t.UpdateURLsFromCache()
+
+	// Prevent many calls to the translator cog
 	t.mu.Lock()
 	defer t.mu.Unlock()
 
@@ -159,6 +193,11 @@ func (t *TranslatorSafetyChecker) TranslatePrompt(prompt string, negativePrompt 
 		},
 	}
 
+	// Get URL to request to
+	t.rwmu.RLock()
+	url := t.urls[t.activeUrl]
+	t.rwmu.RUnlock()
+
 	// Marshal
 	reqBody, err := json.Marshal(translatorRequest)
 	if err != nil {
@@ -166,7 +205,7 @@ func (t *TranslatorSafetyChecker) TranslatePrompt(prompt string, negativePrompt 
 		return "", "", err
 	}
 	// Make HTTP post to target flores API
-	res, postErr := http.Post(fmt.Sprintf("%s/predictions", t.TranslatorCogUrl), "application/json", bytes.NewBuffer(reqBody))
+	res, postErr := t.client.Post(fmt.Sprintf("%s/predictions", url), "application/json", bytes.NewBuffer(reqBody))
 	if postErr != nil {
 		log.Error("Error sending translator cog request", "err", postErr)
 		return "", "", postErr
@@ -188,6 +227,11 @@ func (t *TranslatorSafetyChecker) TranslatePrompt(prompt string, negativePrompt 
 			translatedNegativePrompt = output
 		}
 	}
+
+	// Update URL
+	t.rwmu.Lock()
+	t.activeUrl = (t.activeUrl + 1) % len(t.urls)
+	t.rwmu.Unlock()
 
 	return translatedPrompt, translatedNegativePrompt, nil
 }

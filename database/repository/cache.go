@@ -8,6 +8,7 @@ import (
 	"github.com/stablecog/sc-go/database/ent/usernameblacklist"
 	"github.com/stablecog/sc-go/log"
 	"github.com/stablecog/sc-go/shared"
+	"github.com/stablecog/sc-go/utils"
 )
 
 // Update the cache from the database
@@ -105,6 +106,13 @@ func (r *Repository) UpdateCache() error {
 		usernameBlacklistStr[i] = username.Username
 	}
 	shared.GetCache().UpdateUsernameBlacklist(usernameBlacklistStr)
+
+	// URLs
+	err = shared.GetCache().UpdateWorkerURL(utils.GetEnv().VastAiKey)
+	if err != nil {
+		log.Error("Failed to update worker URL", "err", err)
+		return err
+	}
 
 	return nil
 }

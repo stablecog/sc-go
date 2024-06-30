@@ -15,11 +15,10 @@ type SCEnv struct {
 	// Content moderation and translator
 	OpenAIApiKey        string `env:"OPENAI_API_KEY"`
 	PrivateLinguaAPIUrl string `env:"PRIVATE_LINGUA_API_URL"` // Corresponds to sc-go/language server
-	TranslatorCogURL    string `env:"TRANSLATOR_COG_URL"`     // Corresponds to translation service/cog
 	// CLIP Service, built into sc-worker
-	ClipAPISecret   string   `env:"CLIPAPI_SECRET"` // required
-	ClipAPIURLs     []string `env:"CLIPAPI_URLS" envSeparator:","`
-	ClipAPIEndpoint string   `env:"CLIPAPI_ENDPOINT"` // Probably not necessary for most uses, used for internal stuff
+	ClipAPISecret string `env:"CLIPAPI_SECRET"` // required
+	// NLLB Service
+	NllbAPISecret string `env:"NLLB_SECRET"` // required
 	// Shared secret between sc-worker and sc-server
 	ScWorkerWebhookSecret string `env:"SC_WORKER_WEBHOOK_SECRET" envDefault:"invalid"`
 	// Whether to run DB migrations on startup, can only be done in the local environment (not on a supabase database)
@@ -95,6 +94,8 @@ type SCEnv struct {
 	OauthRedirectBase      string `env:"OAUTH_REDIRECT_BASE" envDefault:"http://localhost:3000"` // Oauth redirect base
 	// Og Service Token for bypassing rate limits
 	OgPreviewServiceToken string `env:"OG_PREVIEW_SERVICE_TOKEN" envDefault:""` // Og Service Token for preview service
+	// Vast.ai API Key
+	VastAiKey string `env:"VASTAI_KEY"` // Vast.ai Key
 }
 
 // The package-level instance and its initialization controls.
