@@ -1,6 +1,8 @@
 package repository
 
 import (
+	"os"
+
 	"github.com/stablecog/sc-go/database/ent/bannedwords"
 	"github.com/stablecog/sc-go/database/ent/disposableemail"
 	"github.com/stablecog/sc-go/database/ent/ipblacklist"
@@ -108,10 +110,12 @@ func (r *Repository) UpdateCache() error {
 	shared.GetCache().UpdateUsernameBlacklist(usernameBlacklistStr)
 
 	// URLs
-	err = shared.GetCache().UpdateWorkerURL(utils.GetEnv().VastAiKey)
-	if err != nil {
-		log.Error("Failed to update worker URL", "err", err)
-		return err
+	if os.Getenv("SKIP_VAST") != "true" {
+		err = shared.GetCache().UpdateWorkerURL(utils.GetEnv().VastAiKey)
+		if err != nil {
+			log.Error("Failed to update worker URL", "err", err)
+			return err
+		}
 	}
 
 	return nil

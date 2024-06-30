@@ -77,7 +77,12 @@ func testMainWrapper(m *testing.M) int {
 	}
 
 	// Populate cache
-	repo.UpdateCache()
+	os.Setenv("SKIP_VAST", "true")
+	defer os.Unsetenv("SKIP_VAST")
+	repo.UpdateCache(); err != nil {
+		log.Fatal("Failed to populate cache", "err", err)
+		os.Exit(1)
+	}
 
 	// Setup fake sse hub
 	hub := sse.NewHub(redis, repo)
