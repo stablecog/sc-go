@@ -3,6 +3,7 @@ package clip
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -109,6 +110,10 @@ func (c *ClipService) GetEmbeddingFromText(text string, retries int, translate b
 		return c.GetEmbeddingFromText(text, retries-1, translate)
 	}
 	defer resp.Body.Close()
+	if resp.StatusCode != http.StatusOK {
+		log.Error("Error sending clip request", "status", resp.StatusCode, "url", url, "response", resp.Body)
+		return nil, errors.New("clip request failed")
+	}
 
 	readAll, err := io.ReadAll(resp.Body)
 	if err != nil {

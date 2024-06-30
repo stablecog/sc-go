@@ -211,6 +211,10 @@ func (t *TranslatorSafetyChecker) TranslatePrompt(prompt string, negativePrompt 
 		return "", "", postErr
 	}
 	defer res.Body.Close()
+	if res.StatusCode != http.StatusOK {
+		log.Error("Error sending translator cog request", "status", res.StatusCode, "url", url, "response", res.Body)
+		return "", "", errors.New("translator cog request failed")
+	}
 
 	var translatorResponse TranslatorCogResponse
 	decoder := json.NewDecoder(res.Body)
