@@ -1136,10 +1136,10 @@ type PointRequest struct {
 	Ids []ExtendedPointId `json:"ids"`
 
 	// WithPayload Select which payload to return with the response. Default: All
-	WithPayload *PointRequest_WithPayload `json:"with_payload,omitempty"`
+	WithPayload *bool `json:"with_payload,omitempty"`
 
 	// WithVector Options for specifying which vector to include
-	WithVector *WithVector `json:"with_vector,omitempty"`
+	WithVector *bool `json:"with_vector,omitempty"`
 }
 
 // PointRequestWithPayload1 defines model for .

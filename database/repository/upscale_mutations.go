@@ -34,7 +34,8 @@ func (r *Repository) CreateUpscale(userID uuid.UUID, width, height int32, device
 		SetScale(shared.DEFAULT_UPSCALE_SCALE).
 		SetUserID(userID).
 		SetSystemGenerated(systemGenerated).
-		SetSourceType(sourceType)
+		SetSourceType(sourceType).
+		SetWebhookToken(uuid.New())
 	if productId != nil {
 		insert.SetStripeProductID(*productId)
 	}
@@ -68,7 +69,7 @@ func (r *Repository) SetUpscaleFailed(upscaleID string, reason string, db *ent.C
 		log.Error("Error parsing generation id in SetUpscaleFailed", "id", upscaleID, "err", err)
 		return err
 	}
-	_, err = db.Upscale.UpdateOneID(uid).SetStatus(upscale.StatusFailed).SetFailureReason(reason).SetCompletedAt(time.Now()).Save(r.Ctx)
+	_, err = db.Upscale.UpdateOneID(uid).SetStatus(upscale.StatusFailed).SetFailureReason(reason).SetCompletedAt(time.Now()).SetWebhookToken(uuid.New()).Save(r.Ctx)
 	if err != nil {
 		log.Error("Error setting upscale failed", "id", upscaleID, "err", err)
 	}
@@ -102,7 +103,7 @@ func (r *Repository) SetUpscaleSucceeded(upscaleID, generationOutputID, inputIma
 		}
 
 		// Update the upscale
-		_, err = tx.Upscale.UpdateOneID(u.ID).SetStatus(upscale.StatusSucceeded).SetCompletedAt(time.Now()).Save(r.Ctx)
+		_, err = tx.Upscale.UpdateOneID(u.ID).SetStatus(upscale.StatusSucceeded).SetCompletedAt(time.Now()).SetWebhookToken(uuid.New()).Save(r.Ctx)
 		if err != nil {
 			log.Error("Error setting upscale succeeded", "id", upscaleID, "err", err)
 			return err

@@ -40,6 +40,8 @@ type Upscale struct {
 	SystemGenerated bool `json:"system_generated,omitempty"`
 	// SourceType holds the value of the "source_type" field.
 	SourceType enttypes.SourceType `json:"source_type,omitempty"`
+	// WebhookToken holds the value of the "webhook_token" field.
+	WebhookToken uuid.UUID `json:"webhook_token,omitempty"`
 	// UserID holds the value of the "user_id" field.
 	UserID uuid.UUID `json:"user_id,omitempty"`
 	// DeviceInfoID holds the value of the "device_info_id" field.
@@ -154,7 +156,7 @@ func (*Upscale) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullString)
 		case upscale.FieldStartedAt, upscale.FieldCompletedAt, upscale.FieldCreatedAt, upscale.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
-		case upscale.FieldID, upscale.FieldUserID, upscale.FieldDeviceInfoID, upscale.FieldModelID:
+		case upscale.FieldID, upscale.FieldWebhookToken, upscale.FieldUserID, upscale.FieldDeviceInfoID, upscale.FieldModelID:
 			values[i] = new(uuid.UUID)
 		default:
 			return nil, fmt.Errorf("unexpected column %q for type Upscale", columns[i])
@@ -233,6 +235,12 @@ func (u *Upscale) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field source_type", values[i])
 			} else if value.Valid {
 				u.SourceType = enttypes.SourceType(value.String)
+			}
+		case upscale.FieldWebhookToken:
+			if value, ok := values[i].(*uuid.UUID); !ok {
+				return fmt.Errorf("unexpected type %T for field webhook_token", values[i])
+			} else if value != nil {
+				u.WebhookToken = *value
 			}
 		case upscale.FieldUserID:
 			if value, ok := values[i].(*uuid.UUID); !ok {
@@ -370,6 +378,9 @@ func (u *Upscale) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("source_type=")
 	builder.WriteString(fmt.Sprintf("%v", u.SourceType))
+	builder.WriteString(", ")
+	builder.WriteString("webhook_token=")
+	builder.WriteString(fmt.Sprintf("%v", u.WebhookToken))
 	builder.WriteString(", ")
 	builder.WriteString("user_id=")
 	builder.WriteString(fmt.Sprintf("%v", u.UserID))

@@ -64,6 +64,7 @@ type BaseCogRequest struct {
 	PromptFlores           string             `json:"prompt_flores_200_code,omitempty"`
 	NegativePromptFlores   string             `json:"negative_prompt_flores_200_code,omitempty"`
 	SubmitToGallery        bool               `json:"submit_to_gallery,omitempty"`
+	WebhookToken           uuid.UUID          `json:"webhook_token"`
 	// Upscale specific
 	Image        string             `json:"image_to_upscale,omitempty"`
 	Type         UpscaleRequestType `json:"type,omitempty"`
@@ -74,6 +75,7 @@ type BaseCogRequest struct {
 	DenoiseAudio  *bool     `json:"denoise_audio,omitempty"`
 	RemoveSilence *bool     `json:"remove_silence,omitempty"`
 	SpeakerId     uuid.UUID `json:"speaker_id,omitempty"`
+	SignedUrls    []string  `json:"signed_urls,omitempty"`
 }
 
 // Data type is what we actually send to the cog, includes some additional metadata beyond BaseCogRequest

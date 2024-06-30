@@ -119,12 +119,12 @@ func (repo *Repository) CreateMockData(ctx context.Context) error {
 
 	// ! Mock generation models
 	// Create a generation model for the free user
-	_, err = repo.DB.GenerationModel.Create().SetID(uuid.MustParse(MOCK_GENERATION_MODEL_ID)).SetNameInWorker("mockfreemodel").Save(ctx)
+	_, err = repo.DB.GenerationModel.Create().SetID(uuid.MustParse(MOCK_GENERATION_MODEL_ID)).SetNameInWorker("mockfreemodel").SetIsActive(true).Save(ctx)
 	if err != nil {
 		return err
 	}
 	// ! Mock upscale models
-	_, err = repo.DB.UpscaleModel.Create().SetID(uuid.MustParse(MOCK_UPSCALE_MODEL_ID)).SetNameInWorker("mockupscalemodel").Save(ctx)
+	_, err = repo.DB.UpscaleModel.Create().SetID(uuid.MustParse(MOCK_UPSCALE_MODEL_ID)).SetNameInWorker("mockupscalemodel").SetIsActive(true).Save(ctx)
 	if err != nil {
 		return err
 	}

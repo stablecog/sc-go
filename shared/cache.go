@@ -120,7 +120,7 @@ func (f *Cache) BannedWords() []*ent.BannedWords {
 
 func (f *Cache) IsValidGenerationModelID(id uuid.UUID) bool {
 	for _, model := range f.GenerationModels() {
-		if model.ID == id {
+		if model.ID == id && model.IsActive {
 			return true
 		}
 	}

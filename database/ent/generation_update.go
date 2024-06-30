@@ -299,6 +299,20 @@ func (gu *GenerationUpdate) SetNillableSourceType(et *enttypes.SourceType) *Gene
 	return gu
 }
 
+// SetWebhookToken sets the "webhook_token" field.
+func (gu *GenerationUpdate) SetWebhookToken(u uuid.UUID) *GenerationUpdate {
+	gu.mutation.SetWebhookToken(u)
+	return gu
+}
+
+// SetNillableWebhookToken sets the "webhook_token" field if the given value is not nil.
+func (gu *GenerationUpdate) SetNillableWebhookToken(u *uuid.UUID) *GenerationUpdate {
+	if u != nil {
+		gu.SetWebhookToken(*u)
+	}
+	return gu
+}
+
 // SetPromptID sets the "prompt_id" field.
 func (gu *GenerationUpdate) SetPromptID(u uuid.UUID) *GenerationUpdate {
 	gu.mutation.SetPromptID(u)
@@ -746,6 +760,9 @@ func (gu *GenerationUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if value, ok := gu.mutation.SourceType(); ok {
 		_spec.SetField(generation.FieldSourceType, field.TypeEnum, value)
+	}
+	if value, ok := gu.mutation.WebhookToken(); ok {
+		_spec.SetField(generation.FieldWebhookToken, field.TypeUUID, value)
 	}
 	if value, ok := gu.mutation.StartedAt(); ok {
 		_spec.SetField(generation.FieldStartedAt, field.TypeTime, value)
@@ -1343,6 +1360,20 @@ func (guo *GenerationUpdateOne) SetNillableSourceType(et *enttypes.SourceType) *
 	return guo
 }
 
+// SetWebhookToken sets the "webhook_token" field.
+func (guo *GenerationUpdateOne) SetWebhookToken(u uuid.UUID) *GenerationUpdateOne {
+	guo.mutation.SetWebhookToken(u)
+	return guo
+}
+
+// SetNillableWebhookToken sets the "webhook_token" field if the given value is not nil.
+func (guo *GenerationUpdateOne) SetNillableWebhookToken(u *uuid.UUID) *GenerationUpdateOne {
+	if u != nil {
+		guo.SetWebhookToken(*u)
+	}
+	return guo
+}
+
 // SetPromptID sets the "prompt_id" field.
 func (guo *GenerationUpdateOne) SetPromptID(u uuid.UUID) *GenerationUpdateOne {
 	guo.mutation.SetPromptID(u)
@@ -1814,6 +1845,9 @@ func (guo *GenerationUpdateOne) sqlSave(ctx context.Context) (_node *Generation,
 	}
 	if value, ok := guo.mutation.SourceType(); ok {
 		_spec.SetField(generation.FieldSourceType, field.TypeEnum, value)
+	}
+	if value, ok := guo.mutation.WebhookToken(); ok {
+		_spec.SetField(generation.FieldWebhookToken, field.TypeUUID, value)
 	}
 	if value, ok := guo.mutation.StartedAt(); ok {
 		_spec.SetField(generation.FieldStartedAt, field.TypeTime, value)

@@ -39,7 +39,8 @@ func (r *Repository) CreateGeneration(userID uuid.UUID, deviceType, deviceOs, de
 		SetUserID(userID).
 		SetWasAutoSubmitted(req.WasAutoSubmitted).
 		SetNumOutputs(*req.NumOutputs).
-		SetSourceType(sourceType)
+		SetSourceType(sourceType).
+		SetWebhookToken(uuid.New())
 	if productId != nil {
 		insert.SetStripeProductID(*productId)
 	}
@@ -82,7 +83,7 @@ func (r *Repository) SetGenerationFailed(generationID string, reason string, nsf
 		log.Error("Error parsing generation id in SetGenerationFailed", "id", generationID, "err", err)
 		return err
 	}
-	_, err = db.Generation.UpdateOneID(uid).SetStatus(generation.StatusFailed).SetFailureReason(reason).SetNsfwCount(nsfwCount).SetCompletedAt(time.Now()).Save(r.Ctx)
+	_, err = db.Generation.UpdateOneID(uid).SetStatus(generation.StatusFailed).SetFailureReason(reason).SetNsfwCount(nsfwCount).SetCompletedAt(time.Now()).SetWebhookToken(uuid.New()).Save(r.Ctx)
 	if err != nil {
 		log.Error("Error setting generation failed", "id", generationID, "err", err)
 	}
@@ -114,7 +115,7 @@ func (r *Repository) SetGenerationSucceeded(generationID string, promptStr strin
 		}
 
 		// Update the generation
-		genUpdate := db.Generation.UpdateOneID(uid).SetStatus(generation.StatusSucceeded).SetCompletedAt(time.Now()).SetNsfwCount(nsfwCount)
+		genUpdate := db.Generation.UpdateOneID(uid).SetStatus(generation.StatusSucceeded).SetCompletedAt(time.Now()).SetWebhookToken(uuid.New()).SetNsfwCount(nsfwCount)
 		if promptId != nil {
 			genUpdate.SetPromptID(*promptId)
 		}

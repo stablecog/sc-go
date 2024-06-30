@@ -77,6 +77,7 @@ func main() {
 	syncGalleryStatus := flag.Bool("sync-gallery-status", false, "Sync gallery_status to qdrant")
 	loadQdrant := flag.Bool("load-qdrant", false, "Load qdrant with all data")
 	loadQdrantStop := flag.Int("load-qdrant-stop", 0, "Stop loading qdrant at this many")
+	migrateQdrant := flag.Bool("migrate-qdrant", false, "Migrate qdrant data")
 	testEmbeddings := flag.Bool("test-embeddings", false, "Test embeddings API")
 	testClipService := flag.Bool("test-clip-service", false, "Test clip service")
 	batchSize := flag.Int("batch-size", 100, "Batch size for loading qdrant")
@@ -392,6 +393,123 @@ func main() {
 			}
 			log.Info("Batched objects", "count", len(payloads))
 			cur += len(payloads)
+
+			// Log cursor
+			log.Info("Last cursor", "cursor", cursor.Format(time.RFC3339Nano))
+		}
+
+		log.Info("Loaded generation outputs", "count", cur)
+		os.Exit(0)
+	}
+
+	if *migrateQdrant {
+		log.Info("🏡 Loading qdrant data...")
+		each := *batchSize
+		cur := 0
+		var cursor *time.Time
+		if *cursorEmbeddings != "" {
+			t, err := time.Parse(time.RFC3339, *cursorEmbeddings)
+			if err != nil {
+				log.Fatal("Failed to parse cursor", "err", err)
+			}
+			cursor = &t
+		}
+
+		for {
+			if *loadQdrantStop > 0 && cur >= *loadQdrantStop {
+				log.Info("Reached stop limit", "stop", *loadQdrantStop)
+				break
+			}
+			log.Info("Loading batch of embeddings", "cur", cur, "each", each)
+			start := time.Now()
+			q := repo.DB.GenerationOutput.Query().Select(generationoutput.FieldID, generationoutput.FieldCreatedAt).Where(generationoutput.IsMigratedEQ(false), generationoutput.ImagePathNEQ("placeholder.webp"))
+			if cursor != nil {
+				if *reverse {
+					q = q.Where(generationoutput.CreatedAtGT(*cursor))
+				} else {
+					q = q.Where(generationoutput.CreatedAtLT(*cursor))
+				}
+			}
+			if *reverse {
+				q.Order(ent.Asc(generationoutput.FieldCreatedAt))
+			} else {
+				q.Order(ent.Desc(generationoutput.FieldCreatedAt))
+			}
+			gens, err := q.Limit(each).All(ctx)
+			if err != nil {
+				if cursor != nil {
+					log.Info("Last cursor", "cursor", cursor.Format(time.RFC3339Nano))
+				}
+				log.Fatal("Failed to load generation outputs", "err", err)
+			}
+			log.Infof("Retrieved generations in %s", time.Since(start))
+
+			if len(gens) == 0 {
+				break
+			}
+
+			// Update cursor
+			cursor = &gens[len(gens)-1].CreatedAt
+
+			ids := make([]uuid.UUID, len(gens))
+			for i, gen := range gens {
+				ids[i] = gen.ID
+			}
+
+			// Get points from qdrant
+			res, err := qdrantClient.GetPoints(ids, false)
+			if err != nil || res == nil {
+				log.Info("Last cursor", "cursor", cursor.Format(time.RFC3339Nano))
+				log.Warn("Failed to get points from qdrant", "err", err)
+				continue
+			}
+
+			// New QD Upsert
+			url := fmt.Sprintf("%s/collections/%s/points", os.Getenv("NEW_QDRANT_URL"), qdrantClient.CollectionName)
+
+			requestBody, err := json.Marshal(qdrant.UpsertPointRequest{Points: res.Result})
+			if err != nil {
+				log.Info("Last cursor", "cursor", cursor.Format(time.RFC3339Nano))
+				log.Warn("Failed to marshal upsert request", "err", err)
+				continue
+			}
+
+			req, err := http.NewRequest("PUT", url, bytes.NewBuffer(requestBody))
+			if err != nil {
+				log.Info("Last cursor", "cursor", cursor.Format(time.RFC3339Nano))
+				log.Warn("Failed to create request to upsert points to new qdrant", "err", err)
+				continue
+			}
+
+			req.Header.Set("Content-Type", "application/json")
+
+			client := &http.Client{}
+			resp, err := client.Do(req)
+			if err != nil {
+				log.Info("Last cursor", "cursor", cursor.Format(time.RFC3339Nano))
+				log.Warn("Failed to execute upsert in qdrant", "err", err)
+				continue
+			}
+
+			// Close the response body immediately after reading
+			func() {
+				defer resp.Body.Close()
+				if resp.StatusCode != http.StatusOK {
+					log.Info("Last cursor", "cursor", cursor.Format(time.RFC3339Nano))
+					log.Warn("Received non-200 status code from new qdrant", "code", resp.StatusCode)
+					return
+				}
+			}()
+
+			log.Infof("Batched objects for qdrant in %s", time.Since(start))
+
+			err = repo.DB.GenerationOutput.Update().Where(generationoutput.IDIn(ids...)).SetIsMigrated(true).Exec(ctx)
+			if err != nil {
+				log.Info("Last cursor", "cursor", cursor.Format(time.RFC3339Nano))
+				log.Fatal("Failed to update generation outputs", "err", err)
+			}
+			log.Info("Batched objects", "count", len(ids))
+			cur += len(ids)
 
 			// Log cursor
 			log.Info("Last cursor", "cursor", cursor.Format(time.RFC3339Nano))
@@ -851,9 +969,23 @@ func main() {
 	accessKey := utils.GetEnv().S3Img2ImgAccessKey
 	secretKey := utils.GetEnv().S3Img2ImgSecretKey
 
-	s3Config := &aws.Config{
+	s3ConfigImg := &aws.Config{
 		Credentials: credentials.NewStaticCredentials(accessKey, secretKey, ""),
 		Endpoint:    aws.String(utils.GetEnv().S3Img2ImgEndpoint),
+		Region:      aws.String(region),
+	}
+
+	newSessionImg := session.New(s3ConfigImg)
+	s3ClientImg := s3.New(newSessionImg)
+
+	// Setup S3 Client regular
+	region = utils.GetEnv().S3Region
+	accessKey = utils.GetEnv().S3AccessKey
+	secretKey = utils.GetEnv().S3SecretKey
+
+	s3Config := &aws.Config{
+		Credentials: credentials.NewStaticCredentials(accessKey, secretKey, ""),
+		Endpoint:    aws.String(utils.GetEnv().S3Endpoint),
 		Region:      aws.String(region),
 	}
 
@@ -877,7 +1009,7 @@ func main() {
 		StripeClient:   stripeClient,
 		Track:          analyticsService,
 		QueueThrottler: qThrottler,
-		S3:             s3Client,
+		S3:             s3ClientImg,
 		Qdrant:         qdrantClient,
 		Clip:           clip.NewClipService(redis, safetyChecker),
 		SMap:           apiTokenSmap,
@@ -889,6 +1021,7 @@ func main() {
 			Track:          analyticsService,
 			SMap:           apiTokenSmap,
 			SafetyChecker:  safetyChecker,
+			S3Img:          s3ClientImg,
 			S3:             s3Client,
 			MQClient:       rabbitmqClient,
 		},

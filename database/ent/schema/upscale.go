@@ -30,6 +30,7 @@ func (Upscale) Fields() []ent.Field {
 		field.Text("stripe_product_id").Optional().Nillable(),
 		field.Bool("system_generated").Default(false),
 		field.Enum("source_type").GoType(enttypes.SourceType("")).Default(string(enttypes.SourceTypeWebUI)),
+		field.UUID("webhook_token", uuid.UUID{}).Default(uuid.New),
 		// ! Relationships / many-to-one
 		field.UUID("user_id", uuid.UUID{}),
 		field.UUID("device_info_id", uuid.UUID{}),

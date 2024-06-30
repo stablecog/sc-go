@@ -5567,6 +5567,7 @@ type GenerationMutation struct {
 	was_auto_submitted        *bool
 	stripe_product_id         *string
 	source_type               *enttypes.SourceType
+	webhook_token             *uuid.UUID
 	started_at                *time.Time
 	completed_at              *time.Time
 	created_at                *time.Time
@@ -6513,6 +6514,42 @@ func (m *GenerationMutation) ResetSourceType() {
 	m.source_type = nil
 }
 
+// SetWebhookToken sets the "webhook_token" field.
+func (m *GenerationMutation) SetWebhookToken(u uuid.UUID) {
+	m.webhook_token = &u
+}
+
+// WebhookToken returns the value of the "webhook_token" field in the mutation.
+func (m *GenerationMutation) WebhookToken() (r uuid.UUID, exists bool) {
+	v := m.webhook_token
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldWebhookToken returns the old "webhook_token" field's value of the Generation entity.
+// If the Generation object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *GenerationMutation) OldWebhookToken(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldWebhookToken is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldWebhookToken requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldWebhookToken: %w", err)
+	}
+	return oldValue.WebhookToken, nil
+}
+
+// ResetWebhookToken resets all changes to the "webhook_token" field.
+func (m *GenerationMutation) ResetWebhookToken() {
+	m.webhook_token = nil
+}
+
 // SetPromptID sets the "prompt_id" field.
 func (m *GenerationMutation) SetPromptID(u uuid.UUID) {
 	m.prompt = &u
@@ -7270,7 +7307,7 @@ func (m *GenerationMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *GenerationMutation) Fields() []string {
-	fields := make([]string, 0, 27)
+	fields := make([]string, 0, 28)
 	if m.width != nil {
 		fields = append(fields, generation.FieldWidth)
 	}
@@ -7318,6 +7355,9 @@ func (m *GenerationMutation) Fields() []string {
 	}
 	if m.source_type != nil {
 		fields = append(fields, generation.FieldSourceType)
+	}
+	if m.webhook_token != nil {
+		fields = append(fields, generation.FieldWebhookToken)
 	}
 	if m.prompt != nil {
 		fields = append(fields, generation.FieldPromptID)
@@ -7392,6 +7432,8 @@ func (m *GenerationMutation) Field(name string) (ent.Value, bool) {
 		return m.StripeProductID()
 	case generation.FieldSourceType:
 		return m.SourceType()
+	case generation.FieldWebhookToken:
+		return m.WebhookToken()
 	case generation.FieldPromptID:
 		return m.PromptID()
 	case generation.FieldNegativePromptID:
@@ -7455,6 +7497,8 @@ func (m *GenerationMutation) OldField(ctx context.Context, name string) (ent.Val
 		return m.OldStripeProductID(ctx)
 	case generation.FieldSourceType:
 		return m.OldSourceType(ctx)
+	case generation.FieldWebhookToken:
+		return m.OldWebhookToken(ctx)
 	case generation.FieldPromptID:
 		return m.OldPromptID(ctx)
 	case generation.FieldNegativePromptID:
@@ -7597,6 +7641,13 @@ func (m *GenerationMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetSourceType(v)
+		return nil
+	case generation.FieldWebhookToken:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetWebhookToken(v)
 		return nil
 	case generation.FieldPromptID:
 		v, ok := value.(uuid.UUID)
@@ -7939,6 +7990,9 @@ func (m *GenerationMutation) ResetField(name string) error {
 		return nil
 	case generation.FieldSourceType:
 		m.ResetSourceType()
+		return nil
+	case generation.FieldWebhookToken:
+		m.ResetWebhookToken()
 		return nil
 	case generation.FieldPromptID:
 		m.ResetPromptID()
@@ -9317,6 +9371,7 @@ type GenerationOutputMutation struct {
 	is_favorited                   *bool
 	has_embeddings                 *bool
 	has_embeddings_new             *bool
+	is_migrated                    *bool
 	is_public                      *bool
 	aesthetic_rating_score         *float32
 	addaesthetic_rating_score      *float32
@@ -9671,6 +9726,42 @@ func (m *GenerationOutputMutation) OldHasEmbeddingsNew(ctx context.Context) (v b
 // ResetHasEmbeddingsNew resets all changes to the "has_embeddings_new" field.
 func (m *GenerationOutputMutation) ResetHasEmbeddingsNew() {
 	m.has_embeddings_new = nil
+}
+
+// SetIsMigrated sets the "is_migrated" field.
+func (m *GenerationOutputMutation) SetIsMigrated(b bool) {
+	m.is_migrated = &b
+}
+
+// IsMigrated returns the value of the "is_migrated" field in the mutation.
+func (m *GenerationOutputMutation) IsMigrated() (r bool, exists bool) {
+	v := m.is_migrated
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldIsMigrated returns the old "is_migrated" field's value of the GenerationOutput entity.
+// If the GenerationOutput object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *GenerationOutputMutation) OldIsMigrated(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldIsMigrated is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldIsMigrated requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldIsMigrated: %w", err)
+	}
+	return oldValue.IsMigrated, nil
+}
+
+// ResetIsMigrated resets all changes to the "is_migrated" field.
+func (m *GenerationOutputMutation) ResetIsMigrated() {
+	m.is_migrated = nil
 }
 
 // SetIsPublic sets the "is_public" field.
@@ -10200,7 +10291,7 @@ func (m *GenerationOutputMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *GenerationOutputMutation) Fields() []string {
-	fields := make([]string, 0, 14)
+	fields := make([]string, 0, 15)
 	if m.image_path != nil {
 		fields = append(fields, generationoutput.FieldImagePath)
 	}
@@ -10218,6 +10309,9 @@ func (m *GenerationOutputMutation) Fields() []string {
 	}
 	if m.has_embeddings_new != nil {
 		fields = append(fields, generationoutput.FieldHasEmbeddingsNew)
+	}
+	if m.is_migrated != nil {
+		fields = append(fields, generationoutput.FieldIsMigrated)
 	}
 	if m.is_public != nil {
 		fields = append(fields, generationoutput.FieldIsPublic)
@@ -10263,6 +10357,8 @@ func (m *GenerationOutputMutation) Field(name string) (ent.Value, bool) {
 		return m.HasEmbeddings()
 	case generationoutput.FieldHasEmbeddingsNew:
 		return m.HasEmbeddingsNew()
+	case generationoutput.FieldIsMigrated:
+		return m.IsMigrated()
 	case generationoutput.FieldIsPublic:
 		return m.IsPublic()
 	case generationoutput.FieldAestheticRatingScore:
@@ -10300,6 +10396,8 @@ func (m *GenerationOutputMutation) OldField(ctx context.Context, name string) (e
 		return m.OldHasEmbeddings(ctx)
 	case generationoutput.FieldHasEmbeddingsNew:
 		return m.OldHasEmbeddingsNew(ctx)
+	case generationoutput.FieldIsMigrated:
+		return m.OldIsMigrated(ctx)
 	case generationoutput.FieldIsPublic:
 		return m.OldIsPublic(ctx)
 	case generationoutput.FieldAestheticRatingScore:
@@ -10366,6 +10464,13 @@ func (m *GenerationOutputMutation) SetField(name string, value ent.Value) error 
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetHasEmbeddingsNew(v)
+		return nil
+	case generationoutput.FieldIsMigrated:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetIsMigrated(v)
 		return nil
 	case generationoutput.FieldIsPublic:
 		v, ok := value.(bool)
@@ -10543,6 +10648,9 @@ func (m *GenerationOutputMutation) ResetField(name string) error {
 		return nil
 	case generationoutput.FieldHasEmbeddingsNew:
 		m.ResetHasEmbeddingsNew()
+		return nil
+	case generationoutput.FieldIsMigrated:
+		m.ResetIsMigrated()
 		return nil
 	case generationoutput.FieldIsPublic:
 		m.ResetIsPublic()
@@ -16036,6 +16144,7 @@ type UpscaleMutation struct {
 	stripe_product_id      *string
 	system_generated       *bool
 	source_type            *enttypes.SourceType
+	webhook_token          *uuid.UUID
 	started_at             *time.Time
 	completed_at           *time.Time
 	created_at             *time.Time
@@ -16584,6 +16693,42 @@ func (m *UpscaleMutation) ResetSourceType() {
 	m.source_type = nil
 }
 
+// SetWebhookToken sets the "webhook_token" field.
+func (m *UpscaleMutation) SetWebhookToken(u uuid.UUID) {
+	m.webhook_token = &u
+}
+
+// WebhookToken returns the value of the "webhook_token" field in the mutation.
+func (m *UpscaleMutation) WebhookToken() (r uuid.UUID, exists bool) {
+	v := m.webhook_token
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldWebhookToken returns the old "webhook_token" field's value of the Upscale entity.
+// If the Upscale object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UpscaleMutation) OldWebhookToken(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldWebhookToken is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldWebhookToken requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldWebhookToken: %w", err)
+	}
+	return oldValue.WebhookToken, nil
+}
+
+// ResetWebhookToken resets all changes to the "webhook_token" field.
+func (m *UpscaleMutation) ResetWebhookToken() {
+	m.webhook_token = nil
+}
+
 // SetUserID sets the "user_id" field.
 func (m *UpscaleMutation) SetUserID(u uuid.UUID) {
 	m.user = &u
@@ -17129,7 +17274,7 @@ func (m *UpscaleMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *UpscaleMutation) Fields() []string {
-	fields := make([]string, 0, 17)
+	fields := make([]string, 0, 18)
 	if m.width != nil {
 		fields = append(fields, upscale.FieldWidth)
 	}
@@ -17156,6 +17301,9 @@ func (m *UpscaleMutation) Fields() []string {
 	}
 	if m.source_type != nil {
 		fields = append(fields, upscale.FieldSourceType)
+	}
+	if m.webhook_token != nil {
+		fields = append(fields, upscale.FieldWebhookToken)
 	}
 	if m.user != nil {
 		fields = append(fields, upscale.FieldUserID)
@@ -17207,6 +17355,8 @@ func (m *UpscaleMutation) Field(name string) (ent.Value, bool) {
 		return m.SystemGenerated()
 	case upscale.FieldSourceType:
 		return m.SourceType()
+	case upscale.FieldWebhookToken:
+		return m.WebhookToken()
 	case upscale.FieldUserID:
 		return m.UserID()
 	case upscale.FieldDeviceInfoID:
@@ -17250,6 +17400,8 @@ func (m *UpscaleMutation) OldField(ctx context.Context, name string) (ent.Value,
 		return m.OldSystemGenerated(ctx)
 	case upscale.FieldSourceType:
 		return m.OldSourceType(ctx)
+	case upscale.FieldWebhookToken:
+		return m.OldWebhookToken(ctx)
 	case upscale.FieldUserID:
 		return m.OldUserID(ctx)
 	case upscale.FieldDeviceInfoID:
@@ -17337,6 +17489,13 @@ func (m *UpscaleMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetSourceType(v)
+		return nil
+	case upscale.FieldWebhookToken:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetWebhookToken(v)
 		return nil
 	case upscale.FieldUserID:
 		v, ok := value.(uuid.UUID)
@@ -17547,6 +17706,9 @@ func (m *UpscaleMutation) ResetField(name string) error {
 		return nil
 	case upscale.FieldSourceType:
 		m.ResetSourceType()
+		return nil
+	case upscale.FieldWebhookToken:
+		m.ResetWebhookToken()
 		return nil
 	case upscale.FieldUserID:
 		m.ResetUserID()

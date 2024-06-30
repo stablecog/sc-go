@@ -180,6 +180,7 @@ var (
 		{Name: "was_auto_submitted", Type: field.TypeBool, Default: false},
 		{Name: "stripe_product_id", Type: field.TypeString, Nullable: true, Size: 2147483647},
 		{Name: "source_type", Type: field.TypeEnum, Enums: []string{"web-ui", "api", "discord", "internal"}, Default: "web-ui"},
+		{Name: "webhook_token", Type: field.TypeUUID},
 		{Name: "started_at", Type: field.TypeTime, Nullable: true},
 		{Name: "completed_at", Type: field.TypeTime, Nullable: true},
 		{Name: "created_at", Type: field.TypeTime},
@@ -200,43 +201,43 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "generations_api_tokens_generations",
-				Columns:    []*schema.Column{GenerationsColumns[21]},
+				Columns:    []*schema.Column{GenerationsColumns[22]},
 				RefColumns: []*schema.Column{APITokensColumns[0]},
 				OnDelete:   schema.Cascade,
 			},
 			{
 				Symbol:     "generations_device_info_generations",
-				Columns:    []*schema.Column{GenerationsColumns[22]},
+				Columns:    []*schema.Column{GenerationsColumns[23]},
 				RefColumns: []*schema.Column{DeviceInfoColumns[0]},
 				OnDelete:   schema.Cascade,
 			},
 			{
 				Symbol:     "generations_generation_models_generations",
-				Columns:    []*schema.Column{GenerationsColumns[23]},
+				Columns:    []*schema.Column{GenerationsColumns[24]},
 				RefColumns: []*schema.Column{GenerationModelsColumns[0]},
 				OnDelete:   schema.Cascade,
 			},
 			{
 				Symbol:     "generations_negative_prompts_generations",
-				Columns:    []*schema.Column{GenerationsColumns[24]},
+				Columns:    []*schema.Column{GenerationsColumns[25]},
 				RefColumns: []*schema.Column{NegativePromptsColumns[0]},
 				OnDelete:   schema.Cascade,
 			},
 			{
 				Symbol:     "generations_prompts_generations",
-				Columns:    []*schema.Column{GenerationsColumns[25]},
+				Columns:    []*schema.Column{GenerationsColumns[26]},
 				RefColumns: []*schema.Column{PromptsColumns[0]},
 				OnDelete:   schema.Cascade,
 			},
 			{
 				Symbol:     "generations_schedulers_generations",
-				Columns:    []*schema.Column{GenerationsColumns[26]},
+				Columns:    []*schema.Column{GenerationsColumns[27]},
 				RefColumns: []*schema.Column{SchedulersColumns[0]},
 				OnDelete:   schema.Cascade,
 			},
 			{
 				Symbol:     "generations_users_generations",
-				Columns:    []*schema.Column{GenerationsColumns[27]},
+				Columns:    []*schema.Column{GenerationsColumns[28]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.Cascade,
 			},
@@ -245,17 +246,17 @@ var (
 			{
 				Name:    "generation_user_id_created_at",
 				Unique:  false,
-				Columns: []*schema.Column{GenerationsColumns[27], GenerationsColumns[19]},
+				Columns: []*schema.Column{GenerationsColumns[28], GenerationsColumns[20]},
 			},
 			{
 				Name:    "generation_created_at",
 				Unique:  false,
-				Columns: []*schema.Column{GenerationsColumns[19]},
+				Columns: []*schema.Column{GenerationsColumns[20]},
 			},
 			{
 				Name:    "generation_updated_at",
 				Unique:  false,
-				Columns: []*schema.Column{GenerationsColumns[20]},
+				Columns: []*schema.Column{GenerationsColumns[21]},
 			},
 			{
 				Name:    "generation_status",
@@ -265,22 +266,22 @@ var (
 			{
 				Name:    "generation_user_id",
 				Unique:  false,
-				Columns: []*schema.Column{GenerationsColumns[27]},
+				Columns: []*schema.Column{GenerationsColumns[28]},
 			},
 			{
 				Name:    "generation_negative_prompt_id",
 				Unique:  false,
-				Columns: []*schema.Column{GenerationsColumns[24]},
+				Columns: []*schema.Column{GenerationsColumns[25]},
 			},
 			{
 				Name:    "generation_status_user_id",
 				Unique:  false,
-				Columns: []*schema.Column{GenerationsColumns[8], GenerationsColumns[27]},
+				Columns: []*schema.Column{GenerationsColumns[8], GenerationsColumns[28]},
 			},
 			{
 				Name:    "generation_prompt_id",
 				Unique:  false,
-				Columns: []*schema.Column{GenerationsColumns[25]},
+				Columns: []*schema.Column{GenerationsColumns[26]},
 			},
 		},
 	}
@@ -313,6 +314,7 @@ var (
 		{Name: "is_favorited", Type: field.TypeBool, Default: false},
 		{Name: "has_embeddings", Type: field.TypeBool, Default: false},
 		{Name: "has_embeddings_new", Type: field.TypeBool, Default: false},
+		{Name: "is_migrated", Type: field.TypeBool, Default: false},
 		{Name: "is_public", Type: field.TypeBool, Default: false},
 		{Name: "aesthetic_rating_score", Type: field.TypeFloat32, Default: 0},
 		{Name: "aesthetic_artifact_score", Type: field.TypeFloat32, Default: 0},
@@ -330,7 +332,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "generation_outputs_generations_generation_outputs",
-				Columns:    []*schema.Column{GenerationOutputsColumns[14]},
+				Columns:    []*schema.Column{GenerationOutputsColumns[15]},
 				RefColumns: []*schema.Column{GenerationsColumns[0]},
 				OnDelete:   schema.Cascade,
 			},
@@ -349,22 +351,22 @@ var (
 			{
 				Name:    "generationoutput_created_at",
 				Unique:  false,
-				Columns: []*schema.Column{GenerationOutputsColumns[12]},
+				Columns: []*schema.Column{GenerationOutputsColumns[13]},
 			},
 			{
 				Name:    "generationoutput_updated_at",
 				Unique:  false,
-				Columns: []*schema.Column{GenerationOutputsColumns[13]},
+				Columns: []*schema.Column{GenerationOutputsColumns[14]},
 			},
 			{
 				Name:    "generationoutput_generation_id",
 				Unique:  false,
-				Columns: []*schema.Column{GenerationOutputsColumns[14]},
+				Columns: []*schema.Column{GenerationOutputsColumns[15]},
 			},
 			{
 				Name:    "generationoutput_deleted_at_is_public",
 				Unique:  false,
-				Columns: []*schema.Column{GenerationOutputsColumns[11], GenerationOutputsColumns[7]},
+				Columns: []*schema.Column{GenerationOutputsColumns[12], GenerationOutputsColumns[8]},
 			},
 		},
 	}
@@ -541,6 +543,7 @@ var (
 		{Name: "stripe_product_id", Type: field.TypeString, Nullable: true, Size: 2147483647},
 		{Name: "system_generated", Type: field.TypeBool, Default: false},
 		{Name: "source_type", Type: field.TypeEnum, Enums: []string{"web-ui", "api", "discord", "internal"}, Default: "web-ui"},
+		{Name: "webhook_token", Type: field.TypeUUID},
 		{Name: "started_at", Type: field.TypeTime, Nullable: true},
 		{Name: "completed_at", Type: field.TypeTime, Nullable: true},
 		{Name: "created_at", Type: field.TypeTime},
@@ -558,25 +561,25 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "upscales_api_tokens_upscales",
-				Columns:    []*schema.Column{UpscalesColumns[14]},
+				Columns:    []*schema.Column{UpscalesColumns[15]},
 				RefColumns: []*schema.Column{APITokensColumns[0]},
 				OnDelete:   schema.Cascade,
 			},
 			{
 				Symbol:     "upscales_device_info_upscales",
-				Columns:    []*schema.Column{UpscalesColumns[15]},
+				Columns:    []*schema.Column{UpscalesColumns[16]},
 				RefColumns: []*schema.Column{DeviceInfoColumns[0]},
 				OnDelete:   schema.Cascade,
 			},
 			{
 				Symbol:     "upscales_upscale_models_upscales",
-				Columns:    []*schema.Column{UpscalesColumns[16]},
+				Columns:    []*schema.Column{UpscalesColumns[17]},
 				RefColumns: []*schema.Column{UpscaleModelsColumns[0]},
 				OnDelete:   schema.Cascade,
 			},
 			{
 				Symbol:     "upscales_users_upscales",
-				Columns:    []*schema.Column{UpscalesColumns[17]},
+				Columns:    []*schema.Column{UpscalesColumns[18]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.Cascade,
 			},

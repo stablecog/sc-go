@@ -47,6 +47,8 @@ const (
 	FieldStripeProductID = "stripe_product_id"
 	// FieldSourceType holds the string denoting the source_type field in the database.
 	FieldSourceType = "source_type"
+	// FieldWebhookToken holds the string denoting the webhook_token field in the database.
+	FieldWebhookToken = "webhook_token"
 	// FieldPromptID holds the string denoting the prompt_id field in the database.
 	FieldPromptID = "prompt_id"
 	// FieldNegativePromptID holds the string denoting the negative_prompt_id field in the database.
@@ -164,6 +166,7 @@ var Columns = []string{
 	FieldWasAutoSubmitted,
 	FieldStripeProductID,
 	FieldSourceType,
+	FieldWebhookToken,
 	FieldPromptID,
 	FieldNegativePromptID,
 	FieldModelID,
@@ -192,6 +195,8 @@ var (
 	DefaultNsfwCount int32
 	// DefaultWasAutoSubmitted holds the default value on creation for the "was_auto_submitted" field.
 	DefaultWasAutoSubmitted bool
+	// DefaultWebhookToken holds the default value on creation for the "webhook_token" field.
+	DefaultWebhookToken func() uuid.UUID
 	// DefaultCreatedAt holds the default value on creation for the "created_at" field.
 	DefaultCreatedAt func() time.Time
 	// DefaultUpdatedAt holds the default value on creation for the "updated_at" field.

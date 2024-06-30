@@ -201,6 +201,20 @@ func (gc *GenerationCreate) SetNillableSourceType(et *enttypes.SourceType) *Gene
 	return gc
 }
 
+// SetWebhookToken sets the "webhook_token" field.
+func (gc *GenerationCreate) SetWebhookToken(u uuid.UUID) *GenerationCreate {
+	gc.mutation.SetWebhookToken(u)
+	return gc
+}
+
+// SetNillableWebhookToken sets the "webhook_token" field if the given value is not nil.
+func (gc *GenerationCreate) SetNillableWebhookToken(u *uuid.UUID) *GenerationCreate {
+	if u != nil {
+		gc.SetWebhookToken(*u)
+	}
+	return gc
+}
+
 // SetPromptID sets the "prompt_id" field.
 func (gc *GenerationCreate) SetPromptID(u uuid.UUID) *GenerationCreate {
 	gc.mutation.SetPromptID(u)
@@ -454,6 +468,10 @@ func (gc *GenerationCreate) defaults() {
 		v := generation.DefaultSourceType
 		gc.mutation.SetSourceType(v)
 	}
+	if _, ok := gc.mutation.WebhookToken(); !ok {
+		v := generation.DefaultWebhookToken()
+		gc.mutation.SetWebhookToken(v)
+	}
 	if _, ok := gc.mutation.CreatedAt(); !ok {
 		v := generation.DefaultCreatedAt()
 		gc.mutation.SetCreatedAt(v)
@@ -509,6 +527,9 @@ func (gc *GenerationCreate) check() error {
 		if err := generation.SourceTypeValidator(v); err != nil {
 			return &ValidationError{Name: "source_type", err: fmt.Errorf(`ent: validator failed for field "Generation.source_type": %w`, err)}
 		}
+	}
+	if _, ok := gc.mutation.WebhookToken(); !ok {
+		return &ValidationError{Name: "webhook_token", err: errors.New(`ent: missing required field "Generation.webhook_token"`)}
 	}
 	if _, ok := gc.mutation.ModelID(); !ok {
 		return &ValidationError{Name: "model_id", err: errors.New(`ent: missing required field "Generation.model_id"`)}
@@ -645,6 +666,10 @@ func (gc *GenerationCreate) createSpec() (*Generation, *sqlgraph.CreateSpec) {
 	if value, ok := gc.mutation.SourceType(); ok {
 		_spec.SetField(generation.FieldSourceType, field.TypeEnum, value)
 		_node.SourceType = value
+	}
+	if value, ok := gc.mutation.WebhookToken(); ok {
+		_spec.SetField(generation.FieldWebhookToken, field.TypeUUID, value)
+		_node.WebhookToken = value
 	}
 	if value, ok := gc.mutation.StartedAt(); ok {
 		_spec.SetField(generation.FieldStartedAt, field.TypeTime, value)
@@ -1146,6 +1171,18 @@ func (u *GenerationUpsert) SetSourceType(v enttypes.SourceType) *GenerationUpser
 // UpdateSourceType sets the "source_type" field to the value that was provided on create.
 func (u *GenerationUpsert) UpdateSourceType() *GenerationUpsert {
 	u.SetExcluded(generation.FieldSourceType)
+	return u
+}
+
+// SetWebhookToken sets the "webhook_token" field.
+func (u *GenerationUpsert) SetWebhookToken(v uuid.UUID) *GenerationUpsert {
+	u.Set(generation.FieldWebhookToken, v)
+	return u
+}
+
+// UpdateWebhookToken sets the "webhook_token" field to the value that was provided on create.
+func (u *GenerationUpsert) UpdateWebhookToken() *GenerationUpsert {
+	u.SetExcluded(generation.FieldWebhookToken)
 	return u
 }
 
@@ -1669,6 +1706,20 @@ func (u *GenerationUpsertOne) SetSourceType(v enttypes.SourceType) *GenerationUp
 func (u *GenerationUpsertOne) UpdateSourceType() *GenerationUpsertOne {
 	return u.Update(func(s *GenerationUpsert) {
 		s.UpdateSourceType()
+	})
+}
+
+// SetWebhookToken sets the "webhook_token" field.
+func (u *GenerationUpsertOne) SetWebhookToken(v uuid.UUID) *GenerationUpsertOne {
+	return u.Update(func(s *GenerationUpsert) {
+		s.SetWebhookToken(v)
+	})
+}
+
+// UpdateWebhookToken sets the "webhook_token" field to the value that was provided on create.
+func (u *GenerationUpsertOne) UpdateWebhookToken() *GenerationUpsertOne {
+	return u.Update(func(s *GenerationUpsert) {
+		s.UpdateWebhookToken()
 	})
 }
 
@@ -2380,6 +2431,20 @@ func (u *GenerationUpsertBulk) SetSourceType(v enttypes.SourceType) *GenerationU
 func (u *GenerationUpsertBulk) UpdateSourceType() *GenerationUpsertBulk {
 	return u.Update(func(s *GenerationUpsert) {
 		s.UpdateSourceType()
+	})
+}
+
+// SetWebhookToken sets the "webhook_token" field.
+func (u *GenerationUpsertBulk) SetWebhookToken(v uuid.UUID) *GenerationUpsertBulk {
+	return u.Update(func(s *GenerationUpsert) {
+		s.SetWebhookToken(v)
+	})
+}
+
+// UpdateWebhookToken sets the "webhook_token" field to the value that was provided on create.
+func (u *GenerationUpsertBulk) UpdateWebhookToken() *GenerationUpsertBulk {
+	return u.Update(func(s *GenerationUpsert) {
+		s.UpdateWebhookToken()
 	})
 }
 

@@ -165,7 +165,7 @@ func (w *SCWorker) CreateGeneration(source enttypes.SourceType,
 				return nil, &initSettings, &WorkerError{http.StatusBadRequest, fmt.Errorf("image_url_width_height_error"), ""}
 			}
 			signedInitImageUrl = generateReq.InitImageUrl
-		} else if w.S3 != nil {
+		} else if w.S3Img != nil {
 			// Remove s3 prefix
 			signedInitImageUrl = strings.TrimPrefix(generateReq.InitImageUrl, "s3://")
 			// Hash user ID to see if it belongs to this user
@@ -174,7 +174,7 @@ func (w *SCWorker) CreateGeneration(source enttypes.SourceType,
 				return nil, &initSettings, &WorkerError{http.StatusUnauthorized, fmt.Errorf("init_image_not_owned"), ""}
 			}
 			// Verify exists in bucket
-			_, err := w.S3.HeadObject(&s3.HeadObjectInput{
+			_, err := w.S3Img.HeadObject(&s3.HeadObjectInput{
 				Bucket: aws.String(utils.GetEnv().S3Img2ImgBucketName),
 				Key:    aws.String(signedInitImageUrl),
 			})
@@ -191,7 +191,7 @@ func (w *SCWorker) CreateGeneration(source enttypes.SourceType,
 				return nil, &initSettings, &WorkerError{http.StatusBadRequest, fmt.Errorf("init_image_not_found"), ""}
 			}
 			// Sign object URL to pass to worker
-			req, _ := w.S3.GetObjectRequest(&s3.GetObjectInput{
+			req, _ := w.S3Img.GetObjectRequest(&s3.GetObjectInput{
 				Bucket: aws.String(utils.GetEnv().S3Img2ImgBucketName),
 				Key:    aws.String(signedInitImageUrl),
 			})
@@ -219,7 +219,7 @@ func (w *SCWorker) CreateGeneration(source enttypes.SourceType,
 				return nil, &initSettings, &WorkerError{http.StatusBadRequest, fmt.Errorf("image_url_width_height_error"), ""}
 			}
 			signedMaskImageUrl = generateReq.MaskImageUrl
-		} else if w.S3 != nil {
+		} else if w.S3Img != nil {
 			// Remove s3 prefix
 			signedMaskImageUrl = strings.TrimPrefix(generateReq.MaskImageUrl, "s3://")
 			// Hash user ID to see if it belongs to this user
@@ -228,7 +228,7 @@ func (w *SCWorker) CreateGeneration(source enttypes.SourceType,
 				return nil, &initSettings, &WorkerError{http.StatusUnauthorized, fmt.Errorf("init_image_not_owned"), ""}
 			}
 			// Verify exists in bucket
-			_, err := w.S3.HeadObject(&s3.HeadObjectInput{
+			_, err := w.S3Img.HeadObject(&s3.HeadObjectInput{
 				Bucket: aws.String(utils.GetEnv().S3Img2ImgBucketName),
 				Key:    aws.String(signedMaskImageUrl),
 			})
@@ -245,7 +245,7 @@ func (w *SCWorker) CreateGeneration(source enttypes.SourceType,
 				return nil, &initSettings, &WorkerError{http.StatusBadRequest, fmt.Errorf("mask_image_not_found"), ""}
 			}
 			// Sign object URL to pass to worker
-			req, _ := w.S3.GetObjectRequest(&s3.GetObjectInput{
+			req, _ := w.S3Img.GetObjectRequest(&s3.GetObjectInput{
 				Bucket: aws.String(utils.GetEnv().S3Img2ImgBucketName),
 				Key:    aws.String(signedMaskImageUrl),
 			})
@@ -553,6 +553,7 @@ func (w *SCWorker) CreateGeneration(source enttypes.SourceType,
 				SchedulerId:            *generateReq.SchedulerId,
 				Seed:                   generateReq.Seed,
 				NumOutputs:             generateReq.NumOutputs,
+				WebhookToken:           g.WebhookToken,
 				OutputImageExtension:   string(shared.DEFAULT_GENERATE_OUTPUT_EXTENSION),
 				OutputImageQuality:     utils.ToPtr(shared.DEFAULT_GENERATE_OUTPUT_QUALITY),
 				ProcessType:            shared.GENERATE,
@@ -561,6 +562,26 @@ func (w *SCWorker) CreateGeneration(source enttypes.SourceType,
 				MaskImageUrl:           signedMaskImageUrl,
 				PromptStrength:         generateReq.PromptStrength,
 			},
+		}
+
+		if generateReq.NumOutputs != nil {
+			cogReqBody.Input.SignedUrls = make([]string, *generateReq.NumOutputs)
+			for i := 0; i < int(*generateReq.NumOutputs); i++ {
+				imgId := fmt.Sprintf("%s.%s", uuid.NewString(), cogReqBody.Input.OutputImageExtension)
+				// Sign the URL and append to array
+				// If the file does not exist, generate a pre-signed URL
+				req, _ := w.S3.PutObjectRequest(&s3.PutObjectInput{
+					Bucket: aws.String(utils.GetEnv().S3BucketName),
+					Key:    aws.String(imgId),
+				})
+				urlStr, err := req.Presign(10 * time.Minute) // URL is valid for 15 minutes
+				if err != nil {
+					log.Errorf("Failed to sign request: %v\n", err)
+					return err
+				}
+
+				cogReqBody.Input.SignedUrls[i] = urlStr
+			}
 		}
 
 		if source == enttypes.SourceTypeWebUI {

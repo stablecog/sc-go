@@ -183,12 +183,16 @@ func init() {
 	generationDescWasAutoSubmitted := generationFields[14].Descriptor()
 	// generation.DefaultWasAutoSubmitted holds the default value on creation for the was_auto_submitted field.
 	generation.DefaultWasAutoSubmitted = generationDescWasAutoSubmitted.Default.(bool)
+	// generationDescWebhookToken is the schema descriptor for webhook_token field.
+	generationDescWebhookToken := generationFields[17].Descriptor()
+	// generation.DefaultWebhookToken holds the default value on creation for the webhook_token field.
+	generation.DefaultWebhookToken = generationDescWebhookToken.Default.(func() uuid.UUID)
 	// generationDescCreatedAt is the schema descriptor for created_at field.
-	generationDescCreatedAt := generationFields[26].Descriptor()
+	generationDescCreatedAt := generationFields[27].Descriptor()
 	// generation.DefaultCreatedAt holds the default value on creation for the created_at field.
 	generation.DefaultCreatedAt = generationDescCreatedAt.Default.(func() time.Time)
 	// generationDescUpdatedAt is the schema descriptor for updated_at field.
-	generationDescUpdatedAt := generationFields[27].Descriptor()
+	generationDescUpdatedAt := generationFields[28].Descriptor()
 	// generation.DefaultUpdatedAt holds the default value on creation for the updated_at field.
 	generation.DefaultUpdatedAt = generationDescUpdatedAt.Default.(func() time.Time)
 	// generation.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
@@ -251,28 +255,32 @@ func init() {
 	generationoutputDescHasEmbeddingsNew := generationoutputFields[6].Descriptor()
 	// generationoutput.DefaultHasEmbeddingsNew holds the default value on creation for the has_embeddings_new field.
 	generationoutput.DefaultHasEmbeddingsNew = generationoutputDescHasEmbeddingsNew.Default.(bool)
+	// generationoutputDescIsMigrated is the schema descriptor for is_migrated field.
+	generationoutputDescIsMigrated := generationoutputFields[7].Descriptor()
+	// generationoutput.DefaultIsMigrated holds the default value on creation for the is_migrated field.
+	generationoutput.DefaultIsMigrated = generationoutputDescIsMigrated.Default.(bool)
 	// generationoutputDescIsPublic is the schema descriptor for is_public field.
-	generationoutputDescIsPublic := generationoutputFields[7].Descriptor()
+	generationoutputDescIsPublic := generationoutputFields[8].Descriptor()
 	// generationoutput.DefaultIsPublic holds the default value on creation for the is_public field.
 	generationoutput.DefaultIsPublic = generationoutputDescIsPublic.Default.(bool)
 	// generationoutputDescAestheticRatingScore is the schema descriptor for aesthetic_rating_score field.
-	generationoutputDescAestheticRatingScore := generationoutputFields[8].Descriptor()
+	generationoutputDescAestheticRatingScore := generationoutputFields[9].Descriptor()
 	// generationoutput.DefaultAestheticRatingScore holds the default value on creation for the aesthetic_rating_score field.
 	generationoutput.DefaultAestheticRatingScore = generationoutputDescAestheticRatingScore.Default.(float32)
 	// generationoutputDescAestheticArtifactScore is the schema descriptor for aesthetic_artifact_score field.
-	generationoutputDescAestheticArtifactScore := generationoutputFields[9].Descriptor()
+	generationoutputDescAestheticArtifactScore := generationoutputFields[10].Descriptor()
 	// generationoutput.DefaultAestheticArtifactScore holds the default value on creation for the aesthetic_artifact_score field.
 	generationoutput.DefaultAestheticArtifactScore = generationoutputDescAestheticArtifactScore.Default.(float32)
 	// generationoutputDescLikeCount is the schema descriptor for like_count field.
-	generationoutputDescLikeCount := generationoutputFields[10].Descriptor()
+	generationoutputDescLikeCount := generationoutputFields[11].Descriptor()
 	// generationoutput.DefaultLikeCount holds the default value on creation for the like_count field.
 	generationoutput.DefaultLikeCount = generationoutputDescLikeCount.Default.(int)
 	// generationoutputDescCreatedAt is the schema descriptor for created_at field.
-	generationoutputDescCreatedAt := generationoutputFields[13].Descriptor()
+	generationoutputDescCreatedAt := generationoutputFields[14].Descriptor()
 	// generationoutput.DefaultCreatedAt holds the default value on creation for the created_at field.
 	generationoutput.DefaultCreatedAt = generationoutputDescCreatedAt.Default.(func() time.Time)
 	// generationoutputDescUpdatedAt is the schema descriptor for updated_at field.
-	generationoutputDescUpdatedAt := generationoutputFields[14].Descriptor()
+	generationoutputDescUpdatedAt := generationoutputFields[15].Descriptor()
 	// generationoutput.DefaultUpdatedAt holds the default value on creation for the updated_at field.
 	generationoutput.DefaultUpdatedAt = generationoutputDescUpdatedAt.Default.(func() time.Time)
 	// generationoutput.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
@@ -441,12 +449,16 @@ func init() {
 	upscaleDescSystemGenerated := upscaleFields[8].Descriptor()
 	// upscale.DefaultSystemGenerated holds the default value on creation for the system_generated field.
 	upscale.DefaultSystemGenerated = upscaleDescSystemGenerated.Default.(bool)
+	// upscaleDescWebhookToken is the schema descriptor for webhook_token field.
+	upscaleDescWebhookToken := upscaleFields[10].Descriptor()
+	// upscale.DefaultWebhookToken holds the default value on creation for the webhook_token field.
+	upscale.DefaultWebhookToken = upscaleDescWebhookToken.Default.(func() uuid.UUID)
 	// upscaleDescCreatedAt is the schema descriptor for created_at field.
-	upscaleDescCreatedAt := upscaleFields[16].Descriptor()
+	upscaleDescCreatedAt := upscaleFields[17].Descriptor()
 	// upscale.DefaultCreatedAt holds the default value on creation for the created_at field.
 	upscale.DefaultCreatedAt = upscaleDescCreatedAt.Default.(func() time.Time)
 	// upscaleDescUpdatedAt is the schema descriptor for updated_at field.
-	upscaleDescUpdatedAt := upscaleFields[17].Descriptor()
+	upscaleDescUpdatedAt := upscaleFields[18].Descriptor()
 	// upscale.DefaultUpdatedAt holds the default value on creation for the updated_at field.
 	upscale.DefaultUpdatedAt = upscaleDescUpdatedAt.Default.(func() time.Time)
 	// upscale.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.

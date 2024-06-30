@@ -26,6 +26,8 @@ const (
 	FieldHasEmbeddings = "has_embeddings"
 	// FieldHasEmbeddingsNew holds the string denoting the has_embeddings_new field in the database.
 	FieldHasEmbeddingsNew = "has_embeddings_new"
+	// FieldIsMigrated holds the string denoting the is_migrated field in the database.
+	FieldIsMigrated = "is_migrated"
 	// FieldIsPublic holds the string denoting the is_public field in the database.
 	FieldIsPublic = "is_public"
 	// FieldAestheticRatingScore holds the string denoting the aesthetic_rating_score field in the database.
@@ -82,6 +84,7 @@ var Columns = []string{
 	FieldIsFavorited,
 	FieldHasEmbeddings,
 	FieldHasEmbeddingsNew,
+	FieldIsMigrated,
 	FieldIsPublic,
 	FieldAestheticRatingScore,
 	FieldAestheticArtifactScore,
@@ -109,6 +112,8 @@ var (
 	DefaultHasEmbeddings bool
 	// DefaultHasEmbeddingsNew holds the default value on creation for the "has_embeddings_new" field.
 	DefaultHasEmbeddingsNew bool
+	// DefaultIsMigrated holds the default value on creation for the "is_migrated" field.
+	DefaultIsMigrated bool
 	// DefaultIsPublic holds the default value on creation for the "is_public" field.
 	DefaultIsPublic bool
 	// DefaultAestheticRatingScore holds the default value on creation for the "aesthetic_rating_score" field.

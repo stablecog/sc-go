@@ -169,6 +169,20 @@ func (uu *UpscaleUpdate) SetNillableSourceType(et *enttypes.SourceType) *Upscale
 	return uu
 }
 
+// SetWebhookToken sets the "webhook_token" field.
+func (uu *UpscaleUpdate) SetWebhookToken(u uuid.UUID) *UpscaleUpdate {
+	uu.mutation.SetWebhookToken(u)
+	return uu
+}
+
+// SetNillableWebhookToken sets the "webhook_token" field if the given value is not nil.
+func (uu *UpscaleUpdate) SetNillableWebhookToken(u *uuid.UUID) *UpscaleUpdate {
+	if u != nil {
+		uu.SetWebhookToken(*u)
+	}
+	return uu
+}
+
 // SetUserID sets the "user_id" field.
 func (uu *UpscaleUpdate) SetUserID(u uuid.UUID) *UpscaleUpdate {
 	uu.mutation.SetUserID(u)
@@ -489,6 +503,9 @@ func (uu *UpscaleUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if value, ok := uu.mutation.SourceType(); ok {
 		_spec.SetField(upscale.FieldSourceType, field.TypeEnum, value)
+	}
+	if value, ok := uu.mutation.WebhookToken(); ok {
+		_spec.SetField(upscale.FieldWebhookToken, field.TypeUUID, value)
 	}
 	if value, ok := uu.mutation.StartedAt(); ok {
 		_spec.SetField(upscale.FieldStartedAt, field.TypeTime, value)
@@ -854,6 +871,20 @@ func (uuo *UpscaleUpdateOne) SetNillableSourceType(et *enttypes.SourceType) *Ups
 	return uuo
 }
 
+// SetWebhookToken sets the "webhook_token" field.
+func (uuo *UpscaleUpdateOne) SetWebhookToken(u uuid.UUID) *UpscaleUpdateOne {
+	uuo.mutation.SetWebhookToken(u)
+	return uuo
+}
+
+// SetNillableWebhookToken sets the "webhook_token" field if the given value is not nil.
+func (uuo *UpscaleUpdateOne) SetNillableWebhookToken(u *uuid.UUID) *UpscaleUpdateOne {
+	if u != nil {
+		uuo.SetWebhookToken(*u)
+	}
+	return uuo
+}
+
 // SetUserID sets the "user_id" field.
 func (uuo *UpscaleUpdateOne) SetUserID(u uuid.UUID) *UpscaleUpdateOne {
 	uuo.mutation.SetUserID(u)
@@ -1198,6 +1229,9 @@ func (uuo *UpscaleUpdateOne) sqlSave(ctx context.Context) (_node *Upscale, err e
 	}
 	if value, ok := uuo.mutation.SourceType(); ok {
 		_spec.SetField(upscale.FieldSourceType, field.TypeEnum, value)
+	}
+	if value, ok := uuo.mutation.WebhookToken(); ok {
+		_spec.SetField(upscale.FieldWebhookToken, field.TypeUUID, value)
 	}
 	if value, ok := uuo.mutation.StartedAt(); ok {
 		_spec.SetField(upscale.FieldStartedAt, field.TypeTime, value)

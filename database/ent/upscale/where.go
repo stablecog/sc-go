@@ -92,6 +92,11 @@ func SystemGenerated(v bool) predicate.Upscale {
 	return predicate.Upscale(sql.FieldEQ(FieldSystemGenerated, v))
 }
 
+// WebhookToken applies equality check predicate on the "webhook_token" field. It's identical to WebhookTokenEQ.
+func WebhookToken(v uuid.UUID) predicate.Upscale {
+	return predicate.Upscale(sql.FieldEQ(FieldWebhookToken, v))
+}
+
 // UserID applies equality check predicate on the "user_id" field. It's identical to UserIDEQ.
 func UserID(v uuid.UUID) predicate.Upscale {
 	return predicate.Upscale(sql.FieldEQ(FieldUserID, v))
@@ -535,6 +540,46 @@ func SourceTypeNotIn(vs ...enttypes.SourceType) predicate.Upscale {
 		v[i] = vs[i]
 	}
 	return predicate.Upscale(sql.FieldNotIn(FieldSourceType, v...))
+}
+
+// WebhookTokenEQ applies the EQ predicate on the "webhook_token" field.
+func WebhookTokenEQ(v uuid.UUID) predicate.Upscale {
+	return predicate.Upscale(sql.FieldEQ(FieldWebhookToken, v))
+}
+
+// WebhookTokenNEQ applies the NEQ predicate on the "webhook_token" field.
+func WebhookTokenNEQ(v uuid.UUID) predicate.Upscale {
+	return predicate.Upscale(sql.FieldNEQ(FieldWebhookToken, v))
+}
+
+// WebhookTokenIn applies the In predicate on the "webhook_token" field.
+func WebhookTokenIn(vs ...uuid.UUID) predicate.Upscale {
+	return predicate.Upscale(sql.FieldIn(FieldWebhookToken, vs...))
+}
+
+// WebhookTokenNotIn applies the NotIn predicate on the "webhook_token" field.
+func WebhookTokenNotIn(vs ...uuid.UUID) predicate.Upscale {
+	return predicate.Upscale(sql.FieldNotIn(FieldWebhookToken, vs...))
+}
+
+// WebhookTokenGT applies the GT predicate on the "webhook_token" field.
+func WebhookTokenGT(v uuid.UUID) predicate.Upscale {
+	return predicate.Upscale(sql.FieldGT(FieldWebhookToken, v))
+}
+
+// WebhookTokenGTE applies the GTE predicate on the "webhook_token" field.
+func WebhookTokenGTE(v uuid.UUID) predicate.Upscale {
+	return predicate.Upscale(sql.FieldGTE(FieldWebhookToken, v))
+}
+
+// WebhookTokenLT applies the LT predicate on the "webhook_token" field.
+func WebhookTokenLT(v uuid.UUID) predicate.Upscale {
+	return predicate.Upscale(sql.FieldLT(FieldWebhookToken, v))
+}
+
+// WebhookTokenLTE applies the LTE predicate on the "webhook_token" field.
+func WebhookTokenLTE(v uuid.UUID) predicate.Upscale {
+	return predicate.Upscale(sql.FieldLTE(FieldWebhookToken, v))
 }
 
 // UserIDEQ applies the EQ predicate on the "user_id" field.
