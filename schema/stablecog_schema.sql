@@ -1,5 +1,7 @@
 CREATE extension IF NOT EXISTS moddatetime schema extensions;
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp" schema extensions;
+CREATE EXTENSION IF NOT EXISTS pg_net schema extensions;
+
 
 --
 -- Name: generate_upscale_status_enum; Type: TYPE; Schema: public; Owner: postgres
