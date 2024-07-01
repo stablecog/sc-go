@@ -186,10 +186,17 @@ func (r *Repository) RetrieveMostRecentGalleryDataV2(filters *requests.QueryGene
 		ltj.AppendSelect(sql.As(got.C(generationoutput.FieldID), "output_id"), sql.As(got.C(generationoutput.FieldLikeCount), "like_count"), sql.As(got.C(generationoutput.FieldGalleryStatus), "output_gallery_status"), sql.As(got.C(generationoutput.FieldImagePath), "image_path"), sql.As(got.C(generationoutput.FieldUpscaledImagePath), "upscaled_image_path"), sql.As(got.C(generationoutput.FieldDeletedAt), "deleted_at"), sql.As(got.C(generationoutput.FieldIsFavorited), "is_favorited"), sql.As(ut.C(user.FieldUsername), "username"), sql.As(ut.C(user.FieldID), "user_id"), sql.As(got.C(generationoutput.FieldIsPublic), "is_public"))
 		ltj.AppendSelect(sql.As(fmt.Sprintf("coalesce(%s, 0)", sql.Table("like_subquery").C("like_count_trending")), "like_count_trending"))
 		ltj.GroupBy(s.C(generation.FieldID),
+			s.C(generation.FieldWidth), s.C(generation.FieldHeight), s.C(generation.FieldInferenceSteps),
+			s.C(generation.FieldSeed), s.C(generation.FieldStatus), s.C(generation.FieldGuidanceScale),
+			s.C(generation.FieldSchedulerID), s.C(generation.FieldModelID), s.C(generation.FieldPromptID),
+			s.C(generation.FieldNegativePromptID), s.C(generation.FieldCreatedAt), s.C(generation.FieldUpdatedAt),
+			s.C(generation.FieldStartedAt), s.C(generation.FieldCompletedAt), s.C(generation.FieldWasAutoSubmitted),
+			s.C(generation.FieldInitImageURL), s.C(generation.FieldPromptStrength),
 			got.C(generationoutput.FieldID), got.C(generationoutput.FieldGalleryStatus),
 			got.C(generationoutput.FieldImagePath), got.C(generationoutput.FieldUpscaledImagePath),
-			ut.C(user.FieldUsername), ut.C(user.FieldID))
-		ltj.GroupBy(sql.Table("like_subquery").C("like_count_trending"))
+			ut.C(user.FieldUsername), ut.C(user.FieldID),
+			sql.Table("like_subquery").C("like_count_trending"))
+
 		orderDir := "asc"
 		if filters == nil || (filters != nil && filters.Order == requests.SortOrderDescending) {
 			orderDir = "desc"
