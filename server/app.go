@@ -43,7 +43,6 @@ import (
 	"github.com/stablecog/sc-go/server/scworker"
 	"github.com/stablecog/sc-go/shared"
 	"github.com/stablecog/sc-go/shared/queue"
-	uapi "github.com/stablecog/sc-go/uploadapi/api"
 	"github.com/stablecog/sc-go/utils"
 	stripe "github.com/stripe/stripe-go/v74/client"
 	"golang.org/x/exp/slices"
@@ -1028,11 +1027,6 @@ func main() {
 	}
 
 	// Create upload controller
-	uploadHc := uapi.Controller{
-		Repo:  repo,
-		Redis: redis,
-		S3:    s3Client,
-	}
 
 	// Create middleware
 	mw := middleware.Middleware{
@@ -1128,17 +1122,17 @@ func main() {
 			})
 		})
 
-		// Stripe
-		r.Route("/stripe", func(r chi.Router) {
-			r.Use(middleware.Logger)
-			r.Post("/webhook", hc.HandleStripeWebhook)
-		})
+		// // Stripe
+		// r.Route("/stripe", func(r chi.Router) {
+		// 	r.Use(middleware.Logger)
+		// 	r.Post("/webhook", hc.HandleStripeWebhook)
+		// })
 
 		// SCWorker
-		r.Route("/worker", func(r chi.Router) {
-			r.Use(middleware.Logger)
-			r.Post("/webhook", hc.HandleSCWorkerWebhook)
-		})
+		// r.Route("/worker", func(r chi.Router) {
+		// 	r.Use(middleware.Logger)
+		// 	r.Post("/webhook", hc.HandleSCWorkerWebhook)
+		// })
 
 		// Stats
 		r.Route("/stats", func(r chi.Router) {
@@ -1174,265 +1168,6 @@ func main() {
 			// 10 requests per second
 			r.Use(mw.RateLimit(10, "srv", 1*time.Second))
 
-			// Get user summary
-			r.Get("/", hc.HandleGetUser)
-
-			// Link to discord
-			r.Post("/connect/discord", hc.HandleAuthorizeDiscord)
-
-			// Create Generation
-			r.Route("/image/generation/create", func(r chi.Router) {
-				r.Use(mw.GeoIPMiddleware())
-				r.Use(mw.AbuseProtectorMiddleware())
-				r.Post("/", hc.HandleCreateGeneration)
-			})
-			// ! Deprecated
-			r.Route("/generation", func(r chi.Router) {
-				r.Use(mw.GeoIPMiddleware())
-				r.Use(mw.AbuseProtectorMiddleware())
-				r.Post("/", hc.HandleCreateGeneration)
-			})
-			// Mark generation for deletion
-			r.Delete("/image/generation", hc.HandleDeleteGenerationOutputForUser)
-			// ! Deprecated
-			r.Delete("/generation", hc.HandleDeleteGenerationOutputForUser)
-
-			// Query Generation (outputs + generations)
-			r.Get("/image/generation/outputs", hc.HandleQueryGenerations)
-			// ! Deprecated
-			r.Get("/outputs", hc.HandleQueryGenerations)
-
-			// Favorite
-			r.Post("/image/generation/outputs/favorite", hc.HandleFavoriteGenerationOutputsForUser)
-			// ! Deprecated
-			r.Post("/outputs/favorite", hc.HandleFavoriteGenerationOutputsForUser)
-
-			// Like
-			r.Post("/like", hc.HandleLikeGenerationOutputsForUser)
-
-			// Create upscale
-			r.Post("/image/upscale/create", hc.HandleUpscale)
-			// ! Deprecated
-			r.Post("/upscale", hc.HandleUpscale)
-
-			// Create voiceover
-			r.Post("/audio/voiceover/create", hc.HandleVoiceover)
-
-			// Query voiceover outputs
-			r.Get("/audio/voiceover/outputs", hc.HandleQueryVoiceovers)
-			r.Delete("/audio/voiceover", hc.HandleDeleteVoiceoverOutputForUser)
-
-			// Query credits
-			r.Get("/credits", hc.HandleQueryCredits)
-
-			// ! Deprecated Submit to gallery
-			r.Put("/gallery", hc.HandleSubmitGenerationToGallery)
-
-			// Make generations public
-			r.Put("/image/generation/outputs/make_public", hc.HandleMakeGenerationOutputsPublic)
-			// Make generations private
-			r.Put("/image/generation/outputs/make_private", hc.HandleMakeGenerationOutputsPrivate)
-
-			// Subscriptions
-			r.Post("/subscription/downgrade", hc.HandleSubscriptionDowngrade)
-			r.Post("/subscription/checkout", hc.HandleCreateCheckoutSession)
-			r.Post("/subscription/portal", hc.HandleCreatePortalSession)
-
-			// API Tokens
-			r.Post("/tokens", hc.HandleNewAPIToken)
-			r.Get("/tokens", hc.HandleGetAPITokens)
-			r.Delete("/tokens", hc.HandleDeactivateAPIToken)
-
-			// Operations
-			r.Get("/operations", hc.HandleQueryOperations)
-
-			// Email preferences
-			r.Post("/email", hc.HandleUpdateEmailPreferences)
-
-			// Username
-			r.Post("/username/change", hc.HandleUpdateUsername)
-		})
-
-		// Admin only routes
-		r.Route("/admin", func(r chi.Router) {
-			r.Route("/gallery", func(r chi.Router) {
-				r.Use(mw.AuthMiddleware(middleware.AuthLevelGalleryAdmin))
-				r.Use(middleware.Logger)
-				r.Put("/", hc.HandleReviewGallerySubmission)
-			})
-			r.Route("/outputs", func(r chi.Router) {
-				// TODO - this is auth level gallery admin, but delete route manually enforces super admin
-				r.Use(mw.AuthMiddleware(middleware.AuthLevelGalleryAdmin))
-				r.Use(middleware.Logger)
-				r.Delete("/", hc.HandleDeleteGenerationOutput)
-				r.Get("/", hc.HandleQueryGenerationsForAdmin)
-			})
-			r.Route("/users", func(r chi.Router) {
-				r.Use(mw.AuthMiddleware(middleware.AuthLevelSuperAdmin))
-				r.Use(middleware.Logger)
-				r.Get("/", hc.HandleQueryUsers)
-				r.Post("/ban", hc.HandleBanUser)
-			})
-			r.Route("/credit", func(r chi.Router) {
-				r.Use(mw.AuthMiddleware(middleware.AuthLevelSuperAdmin))
-				r.Use(middleware.Logger)
-				r.Get("/types", hc.HandleQueryCreditTypes)
-				r.Post("/add", hc.HandleAddCreditsToUser)
-			})
-			r.Route("/domains", func(r chi.Router) {
-				r.Use(mw.AuthMiddleware(middleware.AuthLevelSuperAdmin))
-				r.Use(middleware.Logger)
-				r.Get("/disposable", hc.HandleGetDisposableDomains)
-				r.Post("/ban", hc.HandleBanDomains)
-			})
-			r.Route("/clip", func(r chi.Router) {
-				r.Use(mw.AuthMiddleware(middleware.AuthLevelSuperAdmin, middleware.AuthLevelAPIToken))
-				r.Use(middleware.Logger)
-				r.Post("/text", hc.HandleEmbedText)
-				r.Post("/imageID", hc.HandleEmbedImagePath)
-			})
-		})
-
-		// For API tokens
-		r.Route("/image", func(r chi.Router) {
-			// txt2img/img2img
-			r.Route("/generation/create", func(r chi.Router) {
-				r.Route("/", func(r chi.Router) {
-					r.Use(mw.AuthMiddleware(middleware.AuthLevelAPIToken))
-					r.Use(middleware.Logger)
-					r.Use(mw.GeoIPMiddleware())
-					r.Use(mw.AbuseProtectorMiddleware())
-					r.Use(mw.RateLimit(5, "api", 1*time.Second))
-					r.Post("/", hc.HandleCreateGenerationToken)
-				})
-			})
-			// ! Deprecated
-			r.Route("/generate", func(r chi.Router) {
-				r.Route("/", func(r chi.Router) {
-					r.Use(mw.AuthMiddleware(middleware.AuthLevelAPIToken))
-					r.Use(middleware.Logger)
-					r.Use(mw.RateLimit(5, "api", 1*time.Second))
-					r.Post("/", hc.HandleCreateGenerationToken)
-				})
-			})
-
-			r.Route("/upscale/create", func(r chi.Router) {
-				r.Route("/", func(r chi.Router) {
-					r.Use(mw.AuthMiddleware(middleware.AuthLevelAPIToken))
-					r.Use(middleware.Logger)
-					r.Use(mw.RateLimit(5, "api", 1*time.Second))
-					r.Post("/", hc.HandleCreateUpscaleToken)
-				})
-			})
-			// ! Deprecated
-			r.Route("/upscale", func(r chi.Router) {
-				r.Route("/", func(r chi.Router) {
-					r.Use(mw.AuthMiddleware(middleware.AuthLevelAPIToken))
-					r.Use(middleware.Logger)
-					r.Use(mw.RateLimit(5, "api", 1*time.Second))
-					r.Post("/", hc.HandleCreateUpscaleToken)
-				})
-			})
-
-			// Model info
-			r.Route("/upscale/models", func(r chi.Router) {
-				r.Use(middleware.Logger)
-				r.Use(mw.RateLimit(10, "api", 1*time.Second))
-				r.Get("/", hc.HandleGetUpscaleModels)
-			})
-			r.Route("/generation/models", func(r chi.Router) {
-				r.Use(middleware.Logger)
-				r.Use(mw.RateLimit(10, "api", 1*time.Second))
-				r.Get("/", hc.HandleGetGenerationModels)
-			})
-			// ! Deprecated
-			r.Route("/models", func(r chi.Router) {
-				r.Use(middleware.Logger)
-				r.Use(mw.RateLimit(10, "api", 1*time.Second))
-				r.Get("/generate", hc.HandleGetGenerationModels)
-				r.Get("/upscale", hc.HandleGetUpscaleModels)
-			})
-
-			// Defaults
-			r.Route("/upscale/defaults", func(r chi.Router) {
-				r.Use(middleware.Logger)
-				r.Use(mw.RateLimit(10, "api", 1*time.Second))
-				r.Get("/", hc.HandleGetUpscaleDefaults)
-			})
-			r.Route("/generation/defaults", func(r chi.Router) {
-				r.Use(middleware.Logger)
-				r.Use(mw.RateLimit(10, "api", 1*time.Second))
-				r.Get("/", hc.HandleGetGenerationDefaults)
-			})
-
-			// ! Deprecated
-			r.Route("/defaults", func(r chi.Router) {
-				r.Use(middleware.Logger)
-				r.Use(mw.RateLimit(10, "api", 1*time.Second))
-				r.Get("/generate", hc.HandleGetGenerationDefaults)
-				r.Get("/upscale", hc.HandleGetUpscaleDefaults)
-			})
-
-			// upload
-			r.Route("/upload", func(r chi.Router) {
-				r.Use(middleware.Logger)
-				r.Use(mw.RateLimit(2, "uapi", 1*time.Second))
-				r.Use(mw.AuthMiddleware(middleware.AuthLevelAPIToken))
-				r.Post("/", uploadHc.HandleUpload)
-			})
-
-			// Querying user outputs
-			r.Route("/generation/outputs", func(r chi.Router) {
-				r.Use(middleware.Logger)
-				r.Use(mw.RateLimit(10, "api", 1*time.Second))
-				r.Use(mw.AuthMiddleware(middleware.AuthLevelAPIToken))
-				r.Get("/", hc.HandleQueryGenerations)
-			})
-			// ! Deprecated
-			r.Route("/outputs", func(r chi.Router) {
-				r.Use(middleware.Logger)
-				r.Use(mw.RateLimit(10, "api", 1*time.Second))
-				r.Use(mw.AuthMiddleware(middleware.AuthLevelAPIToken))
-				r.Get("/", hc.HandleQueryGenerations)
-			})
-		})
-
-		r.Route("/audio", func(r chi.Router) {
-			r.Route("/voiceover/create", func(r chi.Router) {
-				r.Route("/", func(r chi.Router) {
-					r.Use(mw.AuthMiddleware(middleware.AuthLevelAPIToken))
-					r.Use(middleware.Logger)
-					r.Use(mw.RateLimit(5, "api", 1*time.Second))
-					r.Post("/", hc.HandleCreateVoiceoverToken)
-				})
-			})
-
-			// Querying user outputs
-			r.Route("/voiceover/outputs", func(r chi.Router) {
-				r.Use(middleware.Logger)
-				r.Use(mw.RateLimit(10, "api", 1*time.Second))
-				r.Use(mw.AuthMiddleware(middleware.AuthLevelAPIToken))
-				r.Get("/", hc.HandleQueryVoiceovers)
-			})
-
-			r.Route("/voiceover/defaults", func(r chi.Router) {
-				r.Use(middleware.Logger)
-				r.Use(mw.RateLimit(10, "api", 1*time.Second))
-				r.Get("/", hc.HandleGetVoiceoverDefaults)
-			})
-
-			r.Route("/voiceover/models", func(r chi.Router) {
-				r.Use(middleware.Logger)
-				r.Use(mw.RateLimit(10, "api", 1*time.Second))
-				r.Get("/", hc.HandleGetVoiceoverModels)
-			})
-		})
-
-		r.Route("/credits", func(r chi.Router) {
-			r.Use(middleware.Logger)
-			r.Use(mw.RateLimit(10, "api", 1*time.Second))
-			r.Use(mw.AuthMiddleware(middleware.AuthLevelAPIToken))
-			r.Get("/", hc.HandleQueryCredits)
 		})
 	})
 
