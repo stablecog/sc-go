@@ -2,7 +2,7 @@ name: 💫 CI (Lingua API)
 
 on:
   push:
-    branches: [arm]
+    branches: [master]
     paths: ["language/**", "k8s/lingua/**"]
 
 concurrency:
