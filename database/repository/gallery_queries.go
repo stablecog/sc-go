@@ -194,7 +194,7 @@ func (r *Repository) RetrieveMostRecentGalleryDataV2(filters *requests.QueryGene
 			s.C(generation.FieldInitImageURL), s.C(generation.FieldPromptStrength),
 			got.C(generationoutput.FieldID), got.C(generationoutput.FieldGalleryStatus),
 			got.C(generationoutput.FieldImagePath), got.C(generationoutput.FieldUpscaledImagePath),
-			got.C(generationoutput.FieldLikeCount),
+			got.C(generationoutput.FieldLikeCount), got.C(generationoutput.FieldDeletedAt),
 			ut.C(user.FieldUsername), ut.C(user.FieldID),
 			sql.Table("like_subquery").C("like_count_trending"))
 
