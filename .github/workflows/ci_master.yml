@@ -64,12 +64,20 @@ jobs:
       - name: Check out code
         uses: actions/checkout@v3
 
-      - name: Setup Go with cache
+      - name: Cache Go modules
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cache/go-build
+            ~/go/pkg/mod
+          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-go-
+
+      - name: Setup Go
         uses: actions/setup-go@v3
         with:
           go-version-file: ./go.work
-          cache-dependency-path: |
-            **/go.sum
 
       - name: Run Tests
         env:
@@ -122,12 +130,20 @@ jobs:
           embed-title: "${{ needs.setup_env.outputs.commit_msg }}  •  ${{ needs.setup_env.outputs.short_sha }}"
           embed-description: "```Build Started```"
 
+      - name: Cache Go modules
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cache/go-build
+            ~/go/pkg/mod
+          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-go-
+
       - name: Setup Go with cache
         uses: actions/setup-go@v3
         with:
           go-version-file: ./go.work
-          cache-dependency-path: |
-            **/go.sum
 
       - name: Login to registry
         uses: docker/login-action@v2
