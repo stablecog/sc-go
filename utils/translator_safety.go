@@ -203,8 +203,13 @@ func (t *TranslatorSafetyChecker) TranslatePrompt(prompt string, negativePrompt 
 		log.Error("Error marshalling webhook body", "err", err)
 		return "", "", err
 	}
-	// Make HTTP post to translate API
-	res, postErr := t.client.Post(url, "application/json", bytes.NewBuffer(reqBody))
+	request, err := http.NewRequest(http.MethodPost, url, bytes.NewReader(reqBody))
+	if err != nil {
+		log.Error("Error creating translator cog request", "err", err)
+		return "", "", err
+	}
+	// Do
+	res, postErr := t.client.Do(request)
 	if postErr != nil {
 		log.Error("Error sending translator cog request", "err", postErr)
 		return "", "", postErr
