@@ -39,6 +39,6 @@ spec:
             - name: PRODUCTION
               value: "true"
             - name: PUBLIC_API_URL
-              value: https://apik3s.stablecog.com
+              value: https://api.stablecog.com
             - name: BUCKET_BASE_URL
               value: https://b.stablecog.com

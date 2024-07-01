@@ -23,10 +23,10 @@ metadata:
 spec:
   tls:
     - hosts:
-        - apik3s.stablecog.com
-      secretName: apik3s-stablecog-com-server-secret-3
+        - api.stablecog.com
+      secretName: api-stablecog-com-server-secret-3
   rules:
-    - host: apik3s.stablecog.com
+    - host: api.stablecog.com
       http:
         paths:
           - path: /

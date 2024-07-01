@@ -65,7 +65,7 @@ spec:
             - name: BUCKET_BASE_URL
               value: https://b.stablecog.com
             - name: PUBLIC_API_URL
-              value: https://apik3s.stablecog.com
+              value: https://api.stablecog.com
             - name: PRIVATE_LINGUA_API_URL
               value: http://lingua-service.prod-stablecog:13339/lingua
             - name: STRIPE_STARTER_PRODUCT_ID

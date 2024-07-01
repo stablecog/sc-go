@@ -57,7 +57,7 @@ spec:
             - name: BUCKET_BASE_URL
               value: https://b.stablecog.com
             - name: PUBLIC_API_URL
-              value: https://apik3s.stablecog.com
+              value: https://api.stablecog.com
             - name: STRIPE_STARTER_PRODUCT_ID
               value: prod_NTzD6l0KByWfLm
             - name: STRIPE_PRO_PRODUCT_ID
