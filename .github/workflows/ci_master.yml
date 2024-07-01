@@ -46,7 +46,7 @@ jobs:
     # Setup postgres service for tests
     services:
       db:
-        image: postgres:14
+        image: postgres:15
         env:
           POSTGRES_DB: testing
           POSTGRES_PASSWORD: postgres
