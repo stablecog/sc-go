@@ -5,7 +5,6 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"net/http"
 	"strings"
 	"sync"
@@ -204,15 +203,15 @@ func (t *TranslatorSafetyChecker) TranslatePrompt(prompt string, negativePrompt 
 		log.Error("Error marshalling webhook body", "err", err)
 		return "", "", err
 	}
-	// Make HTTP post to target flores API
-	res, postErr := t.client.Post(fmt.Sprintf("%s/predictions", url), "application/json", bytes.NewBuffer(reqBody))
+	// Make HTTP post to translate API
+	res, postErr := t.client.Post(url, "application/json", bytes.NewBuffer(reqBody))
 	if postErr != nil {
 		log.Error("Error sending translator cog request", "err", postErr)
 		return "", "", postErr
 	}
 	defer res.Body.Close()
 	if res.StatusCode != http.StatusOK {
-		log.Error("Error sending translator cog request", "status", res.StatusCode, "url", url, "response", res.Body, "request", reqBody)
+		log.Error("Error sending translator cog request", "status", res.StatusCode, "url", url, "response", res.Body, "request", string(reqBody))
 		return "", "", errors.New("translator cog request failed")
 	}
 
