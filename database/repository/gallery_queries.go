@@ -259,7 +259,7 @@ func (r *Repository) RetrieveMostRecentGalleryDataV3(filters *requests.QueryGene
 		if err := rows.Scan(
 			&data.ID,
 			&data.ImageURL,
-			&data.UpscaledImageURL,
+			&upscaledImageUrl,
 			&data.CreatedAt,
 			&data.UpdatedAt,
 			&data.Width,
