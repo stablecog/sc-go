@@ -229,7 +229,7 @@ func (r *Repository) RetrieveMostRecentGalleryDataV3(filters *requests.QueryGene
 	args = append(args, per_page+1) // +1 to check if there's more data for pagination
 
 	// Apply cursor for pagination if ordering by created_at
-	if filters == nil || (filters != nil && (filters.OrderBy != requests.OrderByLikeCount && filters.OrderBy != requests.OrderByLikeCountTrending)) {
+	if filters == nil || (filters.OrderBy != requests.OrderByLikeCount && filters.OrderBy != requests.OrderByLikeCountTrending) {
 		if cursor != nil {
 			baseQuery += " AND g.created_at < $5"
 			args = append(args, *cursor)
@@ -285,7 +285,12 @@ func (r *Repository) RetrieveMostRecentGalleryDataV3(filters *requests.QueryGene
 		}
 
 		if username.Valid {
-			data.Username = &username.String
+			data.User = &UserType{
+				Username:   username.String,
+				Identifier: utils.Sha256(userID.String()),
+			}
+			data.Username = nil
+			data.UserID = nil
 		}
 
 		if likeCountTrending.Valid {
