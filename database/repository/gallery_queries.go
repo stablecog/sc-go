@@ -132,8 +132,7 @@ func (r *Repository) RetrieveMostRecentGalleryDataV2(filters *requests.QueryGene
 
 	// Create the subquery for likes count within last 7 days
 	likeT := sql.Table(generationoutputlike.Table)
-	var likeSubQuery *sql.Selector
-	likeSubQuery = sql.Select(
+	likeSubQuery := sql.Select(
 		sql.As(likeT.C(generationoutputlike.FieldOutputID), "output_id"),
 		sql.As(sql.Count("*"), "like_count_trending"),
 	).From(likeT).
@@ -142,28 +141,30 @@ func (r *Repository) RetrieveMostRecentGalleryDataV2(filters *requests.QueryGene
 		).
 		GroupBy(likeT.C(generationoutputlike.FieldOutputID))
 
-	// Join other data
+	// Modify the main query to use the CTE
 	err := query.Modify(func(s *sql.Selector) {
 		gt := sql.Table(generation.Table)
 		got := sql.Table(generationoutput.Table)
 		ut := sql.Table(user.Table)
 
-		ltj := s.Join(got).OnP(
+		// Join generation_outputs table
+		s.Join(got).OnP(
 			sql.And(
 				sql.ColumnsEQ(gt.C(generation.FieldID), got.C(generationoutput.FieldGenerationID)),
 				sql.IsNull(got.C(generationoutput.FieldDeletedAt)),
 			),
 		)
 
-		// Join the subquery
-		ltj.LeftJoin(likeSubQuery.As("like_subquery")).OnP(
+		// Left join the like_subquery
+		s.LeftJoin(likeSubQuery.As("like_subquery")).OnP(
 			sql.ColumnsEQ(got.C(generationoutput.FieldID), sql.Table("like_subquery").C("output_id")),
 		)
 
+		// Join users table if filters are applied
 		if filters != nil && filters.UserID != nil {
-			ltj.Join(ut).OnP(
+			s.Join(ut).OnP(
 				sql.And(
-					sql.ColumnsEQ(s.C(generation.FieldUserID), ut.C(user.FieldID)),
+					sql.ColumnsEQ(gt.C(generation.FieldUserID), ut.C(user.FieldID)),
 					sql.EQ(ut.C(user.FieldID), *filters.UserID),
 				),
 			)
@@ -172,34 +173,69 @@ func (r *Repository) RetrieveMostRecentGalleryDataV2(filters *requests.QueryGene
 			for i := range v {
 				v[i] = filters.Username[i]
 			}
-			ltj.Join(ut).OnP(
+			s.Join(ut).OnP(
 				sql.And(
-					sql.ColumnsEQ(s.C(generation.FieldUserID), ut.C(user.FieldID)),
+					sql.ColumnsEQ(gt.C(generation.FieldUserID), ut.C(user.FieldID)),
 					sql.In(sql.Lower(ut.C(user.FieldUsername)), v...),
 				),
 			)
 		} else {
-			ltj.LeftJoin(ut).On(
-				s.C(generation.FieldUserID), ut.C(user.FieldID),
+			s.LeftJoin(ut).OnP(
+				sql.ColumnsEQ(gt.C(generation.FieldUserID), ut.C(user.FieldID)),
 			)
 		}
-		ltj.AppendSelect(sql.As(got.C(generationoutput.FieldID), "output_id"), sql.As(got.C(generationoutput.FieldLikeCount), "like_count"), sql.As(got.C(generationoutput.FieldGalleryStatus), "output_gallery_status"), sql.As(got.C(generationoutput.FieldImagePath), "image_path"), sql.As(got.C(generationoutput.FieldUpscaledImagePath), "upscaled_image_path"), sql.As(got.C(generationoutput.FieldDeletedAt), "deleted_at"), sql.As(got.C(generationoutput.FieldIsFavorited), "is_favorited"), sql.As(ut.C(user.FieldUsername), "username"), sql.As(ut.C(user.FieldID), "user_id"), sql.As(got.C(generationoutput.FieldIsPublic), "is_public"))
-		ltj.AppendSelect(sql.As(fmt.Sprintf("coalesce(%s, 0)", sql.Table("like_subquery").C("like_count_trending")), "like_count_trending"))
-		ltj.GroupBy(s.C(generation.FieldID),
-			s.C(generation.FieldWidth), s.C(generation.FieldHeight), s.C(generation.FieldInferenceSteps),
-			s.C(generation.FieldSeed), s.C(generation.FieldStatus), s.C(generation.FieldGuidanceScale),
-			s.C(generation.FieldSchedulerID), s.C(generation.FieldModelID), s.C(generation.FieldPromptID),
-			s.C(generation.FieldNegativePromptID), s.C(generation.FieldCreatedAt), s.C(generation.FieldUpdatedAt),
-			s.C(generation.FieldStartedAt), s.C(generation.FieldCompletedAt), s.C(generation.FieldWasAutoSubmitted),
-			s.C(generation.FieldInitImageURL), s.C(generation.FieldPromptStrength),
-			got.C(generationoutput.FieldID), got.C(generationoutput.FieldGalleryStatus),
-			got.C(generationoutput.FieldImagePath), got.C(generationoutput.FieldUpscaledImagePath),
-			got.C(generationoutput.FieldLikeCount), got.C(generationoutput.FieldDeletedAt),
-			got.C(generationoutput.FieldIsFavorited), got.C(generationoutput.FieldIsPublic),
-			got.C(generationoutput.FieldCreatedAt), got.C(generationoutput.FieldUpdatedAt),
-			ut.C(user.FieldUsername), ut.C(user.FieldID),
-			sql.Table("like_subquery").C("like_count_trending"))
 
+		// Append necessary select fields
+		s.AppendSelect(
+			sql.As(got.C(generationoutput.FieldID), "output_id"),
+			sql.As(got.C(generationoutput.FieldLikeCount), "like_count"),
+			sql.As(got.C(generationoutput.FieldGalleryStatus), "output_gallery_status"),
+			sql.As(got.C(generationoutput.FieldImagePath), "image_path"),
+			sql.As(got.C(generationoutput.FieldUpscaledImagePath), "upscaled_image_path"),
+			sql.As(got.C(generationoutput.FieldDeletedAt), "deleted_at"),
+			sql.As(got.C(generationoutput.FieldIsFavorited), "is_favorited"),
+			sql.As(ut.C(user.FieldUsername), "username"),
+			sql.As(ut.C(user.FieldID), "user_id"),
+			sql.As(got.C(generationoutput.FieldIsPublic), "is_public"),
+			sql.As(fmt.Sprintf("coalesce(%s, 0)", sql.Table("like_subquery").C("like_count_trending")), "like_count_trending"),
+		)
+
+		// Group by necessary fields
+		s.GroupBy(
+			gt.C(generation.FieldID),
+			gt.C(generation.FieldWidth),
+			gt.C(generation.FieldHeight),
+			gt.C(generation.FieldInferenceSteps),
+			gt.C(generation.FieldSeed),
+			gt.C(generation.FieldStatus),
+			gt.C(generation.FieldGuidanceScale),
+			gt.C(generation.FieldSchedulerID),
+			gt.C(generation.FieldModelID),
+			gt.C(generation.FieldPromptID),
+			gt.C(generation.FieldNegativePromptID),
+			gt.C(generation.FieldCreatedAt),
+			gt.C(generation.FieldUpdatedAt),
+			gt.C(generation.FieldStartedAt),
+			gt.C(generation.FieldCompletedAt),
+			gt.C(generation.FieldWasAutoSubmitted),
+			gt.C(generation.FieldInitImageURL),
+			gt.C(generation.FieldPromptStrength),
+			got.C(generationoutput.FieldID),
+			got.C(generationoutput.FieldGalleryStatus),
+			got.C(generationoutput.FieldImagePath),
+			got.C(generationoutput.FieldUpscaledImagePath),
+			got.C(generationoutput.FieldLikeCount),
+			got.C(generationoutput.FieldDeletedAt),
+			got.C(generationoutput.FieldIsFavorited),
+			got.C(generationoutput.FieldIsPublic),
+			got.C(generationoutput.FieldCreatedAt),
+			got.C(generationoutput.FieldUpdatedAt),
+			ut.C(user.FieldUsername),
+			ut.C(user.FieldID),
+			sql.Table("like_subquery").C("like_count_trending"),
+		)
+
+		// Define ordering
 		orderDir := "asc"
 		if filters == nil || (filters != nil && filters.Order == requests.SortOrderDescending) {
 			orderDir = "desc"
