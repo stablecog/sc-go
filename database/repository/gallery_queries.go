@@ -232,13 +232,17 @@ func (r *Repository) RetrieveMostRecentGalleryDataV3(filters *requests.QueryGene
 	}
 
 	// Add the ORDER BY clause and LIMIT
-	baseQuery += fmt.Sprintf(" %s LIMIT $4", orderByClause)
+	if cursor == nil {
+		baseQuery += fmt.Sprintf(" %s LIMIT $4", orderByClause)
+	} else {
+		baseQuery += fmt.Sprintf(" %s LIMIT $5", orderByClause)
+	}
 
 	// Add the limit argument
 	args = append(args, per_page+1) // +1 to check if there's more data for pagination
 
 	// Apply offset if not using timestamp cursor
-	if offset != nil {
+	if cursor == nil && offset != nil {
 		baseQuery += " OFFSET $5"
 		args = append(args, *offset)
 	}
