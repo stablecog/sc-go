@@ -401,8 +401,8 @@ func (r *Repository) RetrieveMostRecentGalleryDataV2(filters *requests.QueryGene
 		)
 
 		// Left join the like_subquery
-		s.LeftJoin(likeSubQuery.As("like_counts")).OnP(
-			sql.ColumnsEQ(got.C(generationoutput.FieldID), sql.Table("like_counts").C("output_id")),
+		s.LeftJoin(likeSubQuery.As("like_subquery")).OnP(
+			sql.ColumnsEQ(got.C(generationoutput.FieldID), sql.Table("like_subquery").C("output_id")),
 		)
 
 		// Join users table if filters are applied
