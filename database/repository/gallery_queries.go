@@ -251,6 +251,7 @@ func (r *Repository) RetrieveMostRecentGalleryDataV3(filters *requests.QueryGene
 		var data GalleryData
 		var userID, promptID, negativePromptID uuid.UUID
 		var username sql.NullString
+		var negativePromptText sql.NullString
 		var likeCountTrending sql.NullInt64
 		var promptStrength sql.NullFloat64
 
@@ -269,7 +270,7 @@ func (r *Repository) RetrieveMostRecentGalleryDataV3(filters *requests.QueryGene
 			&data.SchedulerID,
 			&data.PromptText,
 			&promptID,
-			&data.NegativePromptText,
+			&negativePromptText,
 			&negativePromptID,
 			&userID,
 			&username,
@@ -294,6 +295,10 @@ func (r *Repository) RetrieveMostRecentGalleryDataV3(filters *requests.QueryGene
 		if promptStrength.Valid {
 			strength := float32(promptStrength.Float64)
 			data.PromptStrength = &strength
+		}
+
+		if negativePromptText.Valid {
+			data.NegativePromptText = negativePromptText.String
 		}
 
 		data.PromptID = promptID
