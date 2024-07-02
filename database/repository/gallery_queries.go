@@ -257,7 +257,8 @@ func (r *Repository) RetrieveMostRecentGalleryDataV3(filters *requests.QueryGene
 	var results []GalleryData
 	for rows.Next() {
 		var data GalleryData
-		var userID, promptID, negativePromptID uuid.UUID
+		var userID, promptID uuid.UUID
+		var negativePromptID sql.NullString
 		var username sql.NullString
 		var negativePromptText sql.NullString
 		var likeCountTrending sql.NullInt64
@@ -310,6 +311,15 @@ func (r *Repository) RetrieveMostRecentGalleryDataV3(filters *requests.QueryGene
 			strength := float32(promptStrength.Float64)
 			data.PromptStrength = &strength
 		}
+		if negativePromptID.Valid {
+			NegativePromptID, err := uuid.Parse(negativePromptID.String)
+			if err != nil {
+				return nil, nil, nil, fmt.Errorf("failed to parse negative_prompt_id: %w", err)
+			}
+			data.NegativePromptID = &NegativePromptID
+		} else {
+			data.NegativePromptID = nil
+		}
 
 		if negativePromptText.Valid {
 			data.NegativePromptText = negativePromptText.String
@@ -320,7 +330,6 @@ func (r *Repository) RetrieveMostRecentGalleryDataV3(filters *requests.QueryGene
 		}
 
 		data.PromptID = promptID
-		data.NegativePromptID = &negativePromptID
 		data.UserID = &userID
 		data.ImageURL = utils.GetEnv().GetURLFromImagePath(data.ImageURL)
 
