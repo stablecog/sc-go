@@ -3,6 +3,7 @@ package queue
 import (
 	"context"
 	"encoding/json"
+	"time"
 
 	amqp "github.com/rabbitmq/amqp091-go"
 	"github.com/stablecog/sc-go/log"
@@ -38,11 +39,16 @@ func NewRabbitMQClient(ctx context.Context, connUrl string) (*RabbitMQClient, er
 
 func (c *RabbitMQClient) connect() error {
 	var err error
-	c.conn, err = amqp.Dial(c.connUrl)
+	if c.conn == nil || c.conn.IsClosed() {
+		c.conn, err = amqp.Dial(c.connUrl)
+	}
 	if err != nil {
 		return err
 	}
 
+	if c.Channel != nil {
+		c.Channel.Close()
+	}
 	c.Channel, err = c.conn.Channel()
 	if err != nil {
 		return err
@@ -77,10 +83,16 @@ func (c *RabbitMQClient) Close() {
 
 // Reconnect reconnects the connection
 func (c *RabbitMQClient) Reconnect() error {
-	if err := c.connect(); err != nil {
-		return err
+	for attempts := 0; attempts < 5; attempts++ {
+		if err := c.connect(); err != nil {
+			log.Errorf("Failed to reconnect to RabbitMQ: %v", err)
+			time.Sleep(2 * time.Second) // Wait before retrying
+			continue
+		}
+		log.Info("Successfully reconnected to RabbitMQ")
+		return nil
 	}
-	return nil
+	return amqp.ErrClosed
 }
 
 func (c *RabbitMQClient) Publish(id string, msg any, priority uint8) error {
@@ -103,7 +115,7 @@ func (c *RabbitMQClient) Publish(id string, msg any, priority uint8) error {
 		})
 	// Handle reconnect if conn closed
 	if err != nil {
-		if c.conn.IsClosed() {
+		if c.conn.IsClosed() || c.Channel == nil || c.Channel.IsClosed() {
 			log.Info("Connection to RabbitMQ lost. Attempting to reconnect...")
 			reconnectErr := c.Reconnect()
 			if reconnectErr != nil {
