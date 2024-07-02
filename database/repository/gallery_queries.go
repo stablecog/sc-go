@@ -254,6 +254,7 @@ func (r *Repository) RetrieveMostRecentGalleryDataV3(filters *requests.QueryGene
 		var negativePromptText sql.NullString
 		var likeCountTrending sql.NullInt64
 		var promptStrength sql.NullFloat64
+		var upscaledImageUrl sql.NullString
 
 		if err := rows.Scan(
 			&data.ID,
@@ -301,9 +302,14 @@ func (r *Repository) RetrieveMostRecentGalleryDataV3(filters *requests.QueryGene
 			data.NegativePromptText = negativePromptText.String
 		}
 
+		if upscaledImageUrl.Valid {
+			data.UpscaledImageURL = utils.GetEnv().GetURLFromImagePath(upscaledImageUrl.String)
+		}
+
 		data.PromptID = promptID
 		data.NegativePromptID = &negativePromptID
 		data.UserID = &userID
+		data.ImageURL = utils.GetEnv().GetURLFromImagePath(data.ImageURL)
 
 		results = append(results, data)
 	}
