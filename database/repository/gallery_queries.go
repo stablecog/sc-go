@@ -149,11 +149,14 @@ func (r *Repository) RetrieveMostRecentGalleryDataV3(filters *requests.QueryGene
 		"approved",                   // gallery_status
 	}
 
+	argPos := len(args) + 1
+
 	// Apply the username filter if it exists
 	if len(filters.Username) > 0 {
 		placeholders := make([]string, len(filters.Username))
 		for i := range placeholders {
-			placeholders[i] = fmt.Sprintf("$%d", len(args)+i+1)
+			placeholders[i] = fmt.Sprintf("$%d", argPos)
+			argPos++
 		}
 		baseQuery += fmt.Sprintf(" AND u.username IN (%s)", strings.Join(placeholders, ","))
 		for _, username := range filters.Username {
@@ -165,7 +168,8 @@ func (r *Repository) RetrieveMostRecentGalleryDataV3(filters *requests.QueryGene
 	if len(filters.ModelIDs) > 0 {
 		placeholders := make([]string, len(filters.ModelIDs))
 		for i := range placeholders {
-			placeholders[i] = fmt.Sprintf("$%d", len(args)+i+1)
+			placeholders[i] = fmt.Sprintf("$%d", argPos)
+			argPos++
 		}
 		baseQuery += fmt.Sprintf(" AND g.model_id IN (%s)", strings.Join(placeholders, ","))
 		for _, modelID := range filters.ModelIDs {
@@ -177,7 +181,8 @@ func (r *Repository) RetrieveMostRecentGalleryDataV3(filters *requests.QueryGene
 	if len(filters.SchedulerIDs) > 0 {
 		placeholders := make([]string, len(filters.SchedulerIDs))
 		for i := range placeholders {
-			placeholders[i] = fmt.Sprintf("$%d", len(args)+i+1)
+			placeholders[i] = fmt.Sprintf("$%d", argPos)
+			argPos++
 		}
 		baseQuery += fmt.Sprintf(" AND g.scheduler_id IN (%s)", strings.Join(placeholders, ","))
 		for _, schedulerID := range filters.SchedulerIDs {
@@ -202,6 +207,7 @@ func (r *Repository) RetrieveMostRecentGalleryDataV3(filters *requests.QueryGene
 		}
 	}
 
+	// Determine the order direction
 	orderDir := "desc"
 	if filters == nil || (filters.Order == requests.SortOrderAscending) {
 		orderDir = "asc"
@@ -210,11 +216,12 @@ func (r *Repository) RetrieveMostRecentGalleryDataV3(filters *requests.QueryGene
 	// Apply the cursor if timestamp
 	if cursor != nil {
 		if orderDir == "desc" {
-			baseQuery += " AND go.created_at < $4"
+			baseQuery += fmt.Sprintf(" AND g.created_at < $%d", argPos)
 		} else {
-			baseQuery += " AND go.created_at > $4"
+			baseQuery += fmt.Sprintf(" AND g.created_at > $%d", argPos)
 		}
 		args = append(args, *cursor)
+		argPos++
 	}
 
 	// Construct the ORDER BY clause
@@ -232,18 +239,13 @@ func (r *Repository) RetrieveMostRecentGalleryDataV3(filters *requests.QueryGene
 	}
 
 	// Add the ORDER BY clause and LIMIT
-	if cursor == nil {
-		baseQuery += fmt.Sprintf(" %s LIMIT $4", orderByClause)
-	} else {
-		baseQuery += fmt.Sprintf(" %s LIMIT $5", orderByClause)
-	}
-
-	// Add the limit argument
+	baseQuery += fmt.Sprintf(" %s LIMIT $%d", orderByClause, argPos)
+	argPos++
 	args = append(args, per_page+1) // +1 to check if there's more data for pagination
 
 	// Apply offset if not using timestamp cursor
 	if cursor == nil && offset != nil {
-		baseQuery += " OFFSET $5"
+		baseQuery += fmt.Sprintf(" OFFSET $%d", argPos)
 		args = append(args, *offset)
 	}
 
