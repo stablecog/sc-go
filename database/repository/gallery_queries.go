@@ -202,10 +202,19 @@ func (r *Repository) RetrieveMostRecentGalleryDataV3(filters *requests.QueryGene
 		}
 	}
 
-	// Determine the order direction
-	orderDir := "asc"
-	if filters == nil || (filters != nil && filters.Order == requests.SortOrderDescending) {
-		orderDir = "desc"
+	orderDir := "desc"
+	if filters == nil || (filters.Order == requests.SortOrderAscending) {
+		orderDir = "asc"
+	}
+
+	// Apply the cursor if timestamp
+	if cursor != nil {
+		if orderDir == "desc" {
+			baseQuery += " AND go.created_at < $4"
+		} else {
+			baseQuery += " AND go.created_at > $4"
+		}
+		args = append(args, *cursor)
 	}
 
 	// Construct the ORDER BY clause
@@ -228,13 +237,8 @@ func (r *Repository) RetrieveMostRecentGalleryDataV3(filters *requests.QueryGene
 	// Add the limit argument
 	args = append(args, per_page+1) // +1 to check if there's more data for pagination
 
-	// Apply cursor for pagination if ordering by created_at
-	if filters == nil || (filters.OrderBy != requests.OrderByLikeCount && filters.OrderBy != requests.OrderByLikeCountTrending) {
-		if cursor != nil {
-			baseQuery += " AND g.created_at < $5"
-			args = append(args, *cursor)
-		}
-	} else if offset != nil {
+	// Apply offset if not using timestamp cursor
+	if offset != nil {
 		baseQuery += " OFFSET $5"
 		args = append(args, *offset)
 	}
