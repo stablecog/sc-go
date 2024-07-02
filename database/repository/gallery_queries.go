@@ -1,7 +1,9 @@
 package repository
 
 import (
+	"context"
 	"fmt"
+	"strings"
 	"time"
 
 	"entgo.io/ent/dialect/sql"
@@ -77,6 +79,249 @@ func (r *Repository) RetrieveGalleryDataByID(id uuid.UUID, userId *uuid.UUID, ca
 		data.UpscaledImageURL = utils.GetEnv().GetURLFromImagePath(*output.UpscaledImagePath)
 	}
 	return &data, nil
+}
+
+func (r *Repository) RetrieveMostRecentGalleryDataV3(filters *requests.QueryGenerationFilters, callingUserId *uuid.UUID, per_page int, cursor *time.Time, offset *int) ([]GalleryData, *time.Time, *int, error) {
+	// Base query parts
+	baseQuery := `
+    WITH like_counts AS (
+        SELECT 
+            output_id, 
+            COUNT(*) AS like_count_trending 
+        FROM 
+            generation_output_likes 
+        WHERE 
+            created_at > $1 
+        GROUP BY 
+            output_id
+    )
+    SELECT 
+        go.id AS id, 
+        go.image_path AS image_url,
+        go.upscaled_image_path AS upscaled_image_url,
+        go.created_at,
+        go.updated_at,
+        g.width, 
+        g.height, 
+        g.inference_steps, 
+        g.guidance_scale, 
+        g.seed, 
+        g.model_id, 
+        g.scheduler_id, 
+        p.text AS prompt_text,
+        g.prompt_id,
+        np.text AS negative_prompt_text,
+        g.negative_prompt_id,
+        u.id AS user_id,
+        u.username,
+        g.prompt_strength, 
+        g.was_auto_submitted, 
+        go.is_public, 
+        go.like_count, 
+        COALESCE(lc.like_count_trending, 0) AS like_count_trending 
+    FROM 
+        generations g
+    JOIN 
+        generation_outputs go 
+        ON g.id = go.generation_id 
+        AND go.deleted_at IS NULL 
+    LEFT JOIN 
+        like_counts lc 
+        ON go.id = lc.output_id 
+    LEFT JOIN 
+        users u 
+        ON g.user_id = u.id 
+    LEFT JOIN 
+        prompts p
+        ON g.prompt_id = p.id
+    LEFT JOIN 
+        negative_prompts np
+        ON g.negative_prompt_id = np.id
+    WHERE 
+        g.status = $2 
+        AND go.gallery_status = $3 
+        AND go.is_public`
+
+	// Arguments for the query
+	args := []interface{}{
+		time.Now().AddDate(0, 0, -7), // for like_counts CTE
+		"succeeded",                  // status
+		"approved",                   // gallery_status
+	}
+
+	// Apply the username filter if it exists
+	if len(filters.Username) > 0 {
+		placeholders := make([]string, len(filters.Username))
+		for i := range placeholders {
+			placeholders[i] = fmt.Sprintf("$%d", len(args)+i+1)
+		}
+		baseQuery += fmt.Sprintf(" AND u.username IN (%s)", strings.Join(placeholders, ","))
+		for _, username := range filters.Username {
+			args = append(args, username)
+		}
+	}
+
+	// Apply the model_ids filter if it exists
+	if len(filters.ModelIDs) > 0 {
+		placeholders := make([]string, len(filters.ModelIDs))
+		for i := range placeholders {
+			placeholders[i] = fmt.Sprintf("$%d", len(args)+i+1)
+		}
+		baseQuery += fmt.Sprintf(" AND g.model_id IN (%s)", strings.Join(placeholders, ","))
+		for _, modelID := range filters.ModelIDs {
+			args = append(args, modelID)
+		}
+	}
+
+	// Apply the scheduler_ids filter if it exists
+	if len(filters.SchedulerIDs) > 0 {
+		placeholders := make([]string, len(filters.SchedulerIDs))
+		for i := range placeholders {
+			placeholders[i] = fmt.Sprintf("$%d", len(args)+i+1)
+		}
+		baseQuery += fmt.Sprintf(" AND g.scheduler_id IN (%s)", strings.Join(placeholders, ","))
+		for _, schedulerID := range filters.SchedulerIDs {
+			args = append(args, schedulerID)
+		}
+	}
+
+	// Apply the aspect ratio filter if it exists
+	if len(filters.AspectRatio) > 0 {
+		var widthHeightConditions []string
+		for _, aspectRatio := range filters.AspectRatio {
+			widths, heights := aspectRatio.GetAllWidthHeightCombos()
+			for i := 0; i < len(widths); i++ {
+				if i < len(heights) {
+					condition := fmt.Sprintf("(g.width = %d AND g.height = %d)", widths[i], heights[i])
+					widthHeightConditions = append(widthHeightConditions, condition)
+				}
+			}
+		}
+		if len(widthHeightConditions) > 0 {
+			baseQuery += " AND (" + strings.Join(widthHeightConditions, " OR ") + ")"
+		}
+	}
+
+	// Determine the order direction
+	orderDir := "asc"
+	if filters == nil || (filters != nil && filters.Order == requests.SortOrderDescending) {
+		orderDir = "desc"
+	}
+
+	// Construct the ORDER BY clause
+	orderByClause := ""
+	if filters != nil {
+		if filters.OrderBy == requests.OrderByLikeCount {
+			orderByClause = fmt.Sprintf("ORDER BY go.like_count %s", orderDir)
+		} else if filters.OrderBy == requests.OrderByLikeCountTrending {
+			orderByClause = fmt.Sprintf("ORDER BY like_count_trending %s", orderDir)
+		} else {
+			orderByClause = fmt.Sprintf("ORDER BY g.created_at %s, go.created_at %s", orderDir, orderDir)
+		}
+	} else {
+		orderByClause = fmt.Sprintf("ORDER BY g.created_at %s, go.created_at %s", orderDir, orderDir)
+	}
+
+	// Add the ORDER BY clause and LIMIT
+	baseQuery += fmt.Sprintf(" %s LIMIT $4", orderByClause)
+
+	// Add the limit argument
+	args = append(args, per_page+1) // +1 to check if there's more data for pagination
+
+	// Apply cursor for pagination if ordering by created_at
+	if filters == nil || (filters != nil && (filters.OrderBy != requests.OrderByLikeCount && filters.OrderBy != requests.OrderByLikeCountTrending)) {
+		if cursor != nil {
+			baseQuery += " AND g.created_at < $5"
+			args = append(args, *cursor)
+		}
+	} else if offset != nil {
+		baseQuery += " OFFSET $5"
+		args = append(args, *offset)
+	}
+
+	// Execute the query
+	rows, err := r.DB.QueryContext(context.Background(), baseQuery, args...)
+	if err != nil {
+		return nil, nil, nil, fmt.Errorf("failed to execute query: %w", err)
+	}
+	defer rows.Close()
+
+	var results []GalleryData
+	for rows.Next() {
+		var data GalleryData
+		var userID, promptID, negativePromptID uuid.UUID
+		var username sql.NullString
+		var likeCountTrending sql.NullInt64
+		var promptStrength sql.NullFloat64
+
+		if err := rows.Scan(
+			&data.ID,
+			&data.ImageURL,
+			&data.UpscaledImageURL,
+			&data.CreatedAt,
+			&data.UpdatedAt,
+			&data.Width,
+			&data.Height,
+			&data.InferenceSteps,
+			&data.GuidanceScale,
+			&data.Seed,
+			&data.ModelID,
+			&data.SchedulerID,
+			&data.PromptText,
+			&promptID,
+			&data.NegativePromptText,
+			&negativePromptID,
+			&userID,
+			&username,
+			&promptStrength,
+			&data.WasAutoSubmitted,
+			&data.IsPublic,
+			&data.LikeCount,
+			&likeCountTrending,
+		); err != nil {
+			return nil, nil, nil, fmt.Errorf("failed to scan row: %w", err)
+		}
+
+		if username.Valid {
+			data.Username = &username.String
+		}
+
+		if likeCountTrending.Valid {
+			count := int(likeCountTrending.Int64)
+			data.LikeCountTrending = &count
+		}
+
+		if promptStrength.Valid {
+			strength := float32(promptStrength.Float64)
+			data.PromptStrength = &strength
+		}
+
+		data.PromptID = promptID
+		data.NegativePromptID = &negativePromptID
+		data.UserID = &userID
+
+		results = append(results, data)
+	}
+
+	// Handle pagination
+	var nextCursor *time.Time
+	var nextOffset *int
+	if len(results) > per_page {
+		results = results[:len(results)-1]
+		if filters != nil && (filters.OrderBy == requests.OrderByLikeCount || filters.OrderBy == requests.OrderByLikeCountTrending) {
+			if offset == nil {
+				nextOffset = new(int)
+				*nextOffset = len(results)
+			} else {
+				nextOffset = new(int)
+				*nextOffset = *offset + len(results)
+			}
+		} else {
+			nextCursor = &results[len(results)-1].CreatedAt
+		}
+	}
+
+	return results, nextCursor, nextOffset, nil
 }
 
 func (r *Repository) RetrieveMostRecentGalleryDataV2(filters *requests.QueryGenerationFilters, callingUserId *uuid.UUID, per_page int, cursor *time.Time, offset *int) ([]GalleryData, *time.Time, *int, error) {
@@ -156,8 +401,8 @@ func (r *Repository) RetrieveMostRecentGalleryDataV2(filters *requests.QueryGene
 		)
 
 		// Left join the like_subquery
-		s.LeftJoin(likeSubQuery.As("like_subquery")).OnP(
-			sql.ColumnsEQ(got.C(generationoutput.FieldID), sql.Table("like_subquery").C("output_id")),
+		s.LeftJoin(likeSubQuery.As("like_counts")).OnP(
+			sql.ColumnsEQ(got.C(generationoutput.FieldID), sql.Table("like_counts").C("output_id")),
 		)
 
 		// Join users table if filters are applied
