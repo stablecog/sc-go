@@ -238,7 +238,7 @@ func (c *RestAPI) HandleUserProfileSemanticSearch(w http.ResponseWriter, r *http
 		}
 
 		// Get gallery data
-		galleryDataUnsorted, err := c.Repo.RetrieveGalleryDataWithOutputIDs(outputIds, callingUserId, true)
+		galleryDataUnsorted, err := c.Repo.RetrieveGalleryDataWithOutputIDs(outputIds, callingUserId, repository.GalleryDataFromProfile)
 		if err != nil {
 			log.Error("Error querying gallery data", "err", err)
 			responses.ErrInternalServerError(w, r, "An unknown error occurred")

@@ -373,7 +373,7 @@ func (c *RestAPI) HandleQueryGenerationsForAdminTest(w http.ResponseWriter, r *h
 		}
 
 		// Get user generation data in correct format
-		generationsUnsorted, err := c.Repo.RetrieveGalleryDataWithOutputIDs(outputIds, user, false)
+		generationsUnsorted, err := c.Repo.RetrieveGalleryDataWithOutputIDs(outputIds, user, repository.GalleryDataFromHistory)
 		if err != nil {
 			log.Error("Error getting generations", "err", err)
 			responses.ErrInternalServerError(w, r, "An unknown error has occurred")

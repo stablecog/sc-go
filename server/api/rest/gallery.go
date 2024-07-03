@@ -197,7 +197,7 @@ func (c *RestAPI) HandleSemanticSearchGallery(w http.ResponseWriter, r *http.Req
 		}
 
 		// Get gallery data
-		galleryDataUnsorted, err := c.Repo.RetrieveGalleryDataWithOutputIDs(outputIds, callingUserId, false)
+		galleryDataUnsorted, err := c.Repo.RetrieveGalleryDataWithOutputIDs(outputIds, callingUserId, repository.GalleryDataFromGallery)
 		if err != nil {
 			log.Error("Error querying gallery data", "err", err)
 			responses.ErrInternalServerError(w, r, "An unknown error occurred")

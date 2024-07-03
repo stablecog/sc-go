@@ -907,13 +907,23 @@ func (r *Repository) RetrieveMostRecentGalleryData(filters *requests.QueryGenera
 }
 
 // Retrieves data in gallery format given  output IDs
-func (r *Repository) RetrieveGalleryDataWithOutputIDs(outputIDs []uuid.UUID, callingUserId *uuid.UUID, allIsPublic bool) ([]GalleryData, error) {
+type GalleryDataSource int
+
+const (
+	GalleryDataFromGallery GalleryDataSource = iota
+	GalleryDataFromProfile
+	GalleryDataFromHistory
+)
+
+func (r *Repository) RetrieveGalleryDataWithOutputIDs(outputIDs []uuid.UUID, callingUserId *uuid.UUID, source GalleryDataSource) ([]GalleryData, error) {
 	q := r.DB.GenerationOutput.Query().Where(generationoutput.IDIn(outputIDs...))
-	if allIsPublic {
+	switch source {
+	case GalleryDataFromProfile:
 		q = q.Where(generationoutput.IsPublic(true))
-	} else {
+	case GalleryDataFromGallery:
 		q = q.Where(generationoutput.GalleryStatusEQ(generationoutput.GalleryStatusApproved))
 	}
+
 	if callingUserId != nil {
 		q = q.WithGenerationOutputLikes(func(gql *ent.GenerationOutputLikeQuery) {
 			gql.Where(generationoutputlike.LikedByUserID(*callingUserId))
