@@ -1204,11 +1204,9 @@ func main() {
 			r.Delete("/generation", hc.HandleDeleteGenerationOutputForUser)
 
 			// Query Generation (outputs + generations)
-			r.Get("/image/generation/outputs", hc.HandleQueryGenerations)
-			r.Get("/image/generation/outputstest", hc.HandleQueryGenerationsTest)
+			r.Get("/image/generation/outputs", hc.HandleQueryGenerationsTemp)
 			// ! Deprecated
-			r.Get("/outputs", hc.HandleQueryGenerations)
-			r.Get("/outputstest", hc.HandleQueryGenerationsTest)
+			r.Get("/outputs", hc.HandleQueryGenerationsTemp)
 
 			// Favorite
 			r.Post("/image/generation/outputs/favorite", hc.HandleFavoriteGenerationOutputsForUser)
@@ -1394,13 +1392,7 @@ func main() {
 				r.Use(middleware.Logger)
 				r.Use(mw.RateLimit(10, "api", 1*time.Second))
 				r.Use(mw.AuthMiddleware(middleware.AuthLevelAPIToken))
-				r.Get("/", hc.HandleQueryGenerations)
-			})
-			r.Route("/generation/outputstest", func(r chi.Router) {
-				r.Use(middleware.Logger)
-				r.Use(mw.RateLimit(10, "api", 1*time.Second))
-				r.Use(mw.AuthMiddleware(middleware.AuthLevelAPIToken))
-				r.Get("/", hc.HandleQueryGenerationsTest)
+				r.Get("/", hc.HandleQueryGenerationsTemp)
 			})
 			// ! Deprecated
 			r.Route("/outputs", func(r chi.Router) {

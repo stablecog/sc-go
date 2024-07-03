@@ -291,6 +291,15 @@ func (c *RestAPI) HandleGetUser(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
+func (c *RestAPI) HandleQueryGenerationsTemp(w http.ResponseWriter, r *http.Request) {
+	test := r.URL.Query().Get("test") == "true"
+	if test {
+		c.HandleQueryGenerationsTest(w, r)
+	} else {
+		c.HandleQueryGenerations(w, r)
+	}
+}
+
 // HTTP Get - generations for user
 // Takes query paramers for pagination
 // per_page: number of generations to return
