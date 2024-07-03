@@ -1271,7 +1271,7 @@ func main() {
 				r.Use(mw.AuthMiddleware(middleware.AuthLevelGalleryAdmin))
 				r.Use(middleware.Logger)
 				r.Delete("/", hc.HandleDeleteGenerationOutput)
-				r.Get("/", hc.HandleQueryGenerationsForAdmin)
+				r.Get("/", hc.HandleQueryGenerationsForAdminTemp)
 			})
 			r.Route("/users", func(r chi.Router) {
 				r.Use(mw.AuthMiddleware(middleware.AuthLevelSuperAdmin))

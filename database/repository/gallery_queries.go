@@ -270,6 +270,30 @@ func (r *Repository) RetrieveMostRecentGalleryDataV3(filters *requests.QueryGene
 		}
 	}
 
+	// Apply the aesthetic artifact score filters
+	if filters.AestheticArtifactScoreLTE != nil {
+		baseQuery += fmt.Sprintf(" AND go.aesthetic_artifact_score <= $%d", argPos)
+		args = append(args, *filters.AestheticArtifactScoreLTE)
+		argPos++
+	}
+	if filters.AestheticArtifactScoreGTE != nil {
+		baseQuery += fmt.Sprintf(" AND go.aesthetic_artifact_score >= $%d", argPos)
+		args = append(args, *filters.AestheticArtifactScoreGTE)
+		argPos++
+	}
+
+	// Apply the aesthetic rating score filters
+	if filters.AestheticRatingScoreLTE != nil {
+		baseQuery += fmt.Sprintf(" AND go.aesthetic_rating_score <= $%d", argPos)
+		args = append(args, *filters.AestheticRatingScoreLTE)
+		argPos++
+	}
+	if filters.AestheticRatingScoreGTE != nil {
+		baseQuery += fmt.Sprintf(" AND go.aesthetic_rating_score >= $%d", argPos)
+		args = append(args, *filters.AestheticRatingScoreGTE)
+		argPos++
+	}
+
 	// Determine the order direction
 	orderDir := "desc"
 	if filters == nil || (filters.Order == requests.SortOrderAscending) {

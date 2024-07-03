@@ -9,6 +9,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/go-chi/render"
 	"github.com/google/uuid"
 	"github.com/stablecog/sc-go/database/ent"
@@ -223,6 +225,263 @@ func (c *RestAPI) HandleDeleteGenerationOutput(w http.ResponseWriter, r *http.Re
 	}
 	render.Status(r, http.StatusOK)
 	render.JSON(w, r, res)
+}
+
+func (c *RestAPI) HandleQueryGenerationsForAdminTemp(w http.ResponseWriter, r *http.Request) {
+	test := r.URL.Query().Get("test") == "true"
+	if test {
+		c.HandleQueryGenerationsForAdminTest(w, r)
+		return
+	}
+	c.HandleQueryGenerationsForAdmin(w, r)
+}
+
+func (c *RestAPI) HandleQueryGenerationsForAdminTest(w http.ResponseWriter, r *http.Request) {
+	user, email := c.GetUserIDAndEmailIfAuthenticated(w, r)
+	if user == nil || email == "" {
+		return
+	}
+
+	// Get user_role from context
+	userRole, ok := r.Context().Value("user_role").(string)
+	if !ok {
+		responses.ErrUnauthorized(w, r)
+		return
+	}
+	superAdmin := userRole == "SUPER_ADMIN"
+
+	// Validate query parameters
+	perPage := DEFAULT_PER_PAGE
+	var err error
+	if perPageStr := r.URL.Query().Get("per_page"); perPageStr != "" {
+		perPage, err = strconv.Atoi(perPageStr)
+		if err != nil {
+			responses.ErrBadRequest(w, r, "per_page must be an integer", "")
+			return
+		} else if perPage < 1 || perPage > MAX_PER_PAGE {
+			responses.ErrBadRequest(w, r, fmt.Sprintf("per_page must be between 1 and %d", MAX_PER_PAGE), "")
+			return
+		}
+	}
+
+	cursorStr := r.URL.Query().Get("cursor")
+	search := r.URL.Query().Get("search")
+
+	filters := &requests.QueryGenerationFilters{}
+	err = filters.ParseURLQueryParameters(r.URL.Query())
+	if err != nil {
+		responses.ErrBadRequest(w, r, err.Error(), "")
+		return
+	}
+
+	// Make sure non-super admin can't get private generations
+	if !superAdmin {
+		if len(filters.GalleryStatus) == 0 {
+			filters.GalleryStatus = []generationoutput.GalleryStatus{
+				generationoutput.GalleryStatusApproved,
+				generationoutput.GalleryStatusRejected,
+				generationoutput.GalleryStatusSubmitted,
+				generationoutput.GalleryStatusWaitingForApproval,
+			}
+		} else if slices.Contains(filters.GalleryStatus, generationoutput.GalleryStatusNotSubmitted) {
+			responses.ErrUnauthorized(w, r)
+			return
+		}
+	}
+
+	// For search, use qdrant semantic search
+	if search != "" {
+		// get embeddings from clip service
+		e, err := c.Clip.GetEmbeddingFromText(search, 2, true)
+		if err != nil {
+			log.Error("Error getting embedding from clip service", "err", err)
+			responses.ErrInternalServerError(w, r, "An unknown error has occurred")
+			return
+		}
+
+		// Parse as qdrant filters
+		qdrantFilters, scoreThreshold := filters.ToQdrantFilters(false)
+		// Deleted at not empty
+		qdrantFilters.Must = append(qdrantFilters.Must, qdrant.SCMatchCondition{
+			IsEmpty: &qdrant.SCIsEmpty{Key: "deleted_at"},
+		})
+
+		// Get cursor str as uint
+		var offset *uint
+		var total *uint
+		if cursorStr != "" {
+			cursoru64, err := strconv.ParseUint(cursorStr, 10, 64)
+			if err != nil {
+				responses.ErrBadRequest(w, r, "cursor must be a valid uint", "")
+				return
+			}
+			cursoru := uint(cursoru64)
+			offset = &cursoru
+		} else {
+			count, err := c.Qdrant.CountWithFilters(qdrantFilters, false)
+			if err != nil {
+				log.Error("Error counting qdrant", "err", err)
+				responses.ErrInternalServerError(w, r, "An unknown error has occurred")
+				return
+			}
+			total = &count
+		}
+
+		if filters != nil && len(filters.Username) > 0 {
+			userIDs, err := c.Repo.GetUserIDsByUsernames(filters.Username)
+			if err != nil {
+				log.Error("Error getting user ids by usernames", "err", err)
+				responses.ErrInternalServerError(w, r, "An unknown error occurred")
+				return
+			}
+			if len(userIDs) == 0 {
+				render.Status(r, http.StatusOK)
+				render.JSON(w, r, repository.GenerationQueryWithOutputsMeta[*uint]{})
+				return
+			}
+			shouldFilter := []qdrant.SCMatchCondition{}
+			for _, userID := range userIDs {
+				shouldFilter = append(shouldFilter, qdrant.SCMatchCondition{
+					Key:   "user_id",
+					Match: &qdrant.SCValue{Value: userID.String()},
+				})
+			}
+			if len(shouldFilter) > 0 {
+				qdrantFilters.Must = append(qdrantFilters.Must, qdrant.SCMatchCondition{
+					Should: shouldFilter,
+				})
+			}
+		}
+
+		// Query qdrant
+		qdrantRes, err := c.Qdrant.QueryGenerations(e, perPage, offset, scoreThreshold, filters.Oversampling, qdrantFilters, false, false)
+		if err != nil {
+			log.Error("Error querying qdrant", "err", err)
+			responses.ErrInternalServerError(w, r, "An unknown error has occurred")
+			return
+		}
+
+		// Get generation output ids
+		var outputIds []uuid.UUID
+		for _, hit := range qdrantRes.Result {
+			outputId, err := uuid.Parse(hit.Id)
+			if err != nil {
+				log.Error("Error parsing uuid", "err", err)
+				continue
+			}
+			outputIds = append(outputIds, outputId)
+		}
+
+		// Get user generation data in correct format
+		generationsUnsorted, err := c.Repo.RetrieveGalleryDataWithOutputIDs(outputIds, user, false)
+		if err != nil {
+			log.Error("Error getting generations", "err", err)
+			responses.ErrInternalServerError(w, r, "An unknown error has occurred")
+			return
+		}
+
+		gDataMap := make(map[uuid.UUID]repository.GalleryData)
+		for _, gData := range generationsUnsorted {
+			gDataMap[gData.ID] = gData
+		}
+		generationsSorted := make([]repository.GalleryData, len(qdrantRes.Result))
+
+		for i, hit := range qdrantRes.Result {
+			outputId, err := uuid.Parse(hit.Id)
+			if err != nil {
+				log.Error("Error parsing uuid", "err", err)
+				continue
+			}
+			item, ok := gDataMap[outputId]
+			if !ok {
+				log.Error("Error retrieving gallery data", "output_id", outputId)
+				continue
+			}
+			generationsSorted[i] = item
+		}
+
+		// Return generations
+		render.Status(r, http.StatusOK)
+		render.JSON(w, r, GalleryResponseV3[*uint]{
+			Next:    qdrantRes.Next,
+			Outputs: c.Repo.ConvertRawGalleryDataToV3Results(generationsSorted),
+			Total:   total,
+		})
+		return
+	}
+
+	// Otherwise, query postgres
+	var cursor *time.Time
+	if cursorStr := r.URL.Query().Get("cursor"); cursorStr != "" {
+		cursorTime, err := utils.ParseIsoTime(cursorStr)
+		if err != nil {
+			responses.ErrBadRequest(w, r, "cursor must be a valid iso time string", "")
+			return
+		}
+		cursor = &cursorTime
+	}
+
+	filters.ForHistory = true
+
+	// Test flag
+	generations, nextCursor, _, err := c.Repo.RetrieveMostRecentGalleryDataV3(filters, filters.UserID, perPage, cursor, nil)
+	if err != nil {
+		log.Error("Error getting generations for user", "err", err)
+		responses.ErrInternalServerError(w, r, "Error getting generations")
+		return
+	}
+
+	// Presign init image URLs
+	signedMap := make(map[string]string)
+	for _, g := range generations {
+		if g.InitImageURL != nil {
+			// See if we have already signed this URL
+			signedInitImageUrl, ok := signedMap[*g.InitImageURL]
+			if !ok {
+				g.InitImageURLSigned = &signedInitImageUrl
+				continue
+			}
+			// remove s3:// prefix
+			if strings.HasPrefix(*g.InitImageURL, "s3://") {
+				prefixRemoved := (*g.InitImageURL)[5:]
+				// Sign object URL to pass to worker
+				req, _ := c.S3.GetObjectRequest(&s3.GetObjectInput{
+					Bucket: aws.String(utils.GetEnv().S3Img2ImgBucketName),
+					Key:    aws.String(prefixRemoved),
+				})
+				urlStr, err := req.Presign(1 * time.Hour)
+				if err != nil {
+					log.Error("Error signing init image URL", "err", err)
+					continue
+				}
+				// Add to map
+				signedMap[*g.InitImageURL] = urlStr
+				g.InitImageURLSigned = &urlStr
+			}
+		}
+	}
+
+	// Get total if no cursor
+	var total *uint
+	if cursor == nil {
+		totalI, err := c.Repo.GetGenerationCount(filters)
+		if err != nil {
+			log.Error("Error getting user generation count", "err", err)
+			responses.ErrInternalServerError(w, r, "Error getting generations")
+			return
+		}
+		// Convert int to uint
+		totalUInt := uint(totalI)
+		// Assign the address of the uint to the total pointer
+		total = &totalUInt
+	}
+
+	render.Status(r, http.StatusOK)
+	render.JSON(w, r, GalleryResponseV3[*time.Time]{
+		Next:    nextCursor,
+		Outputs: c.Repo.ConvertRawGalleryDataToV3Results(generations),
+		Total:   total,
+	})
 }
 
 // HTTP Get - generations for admin
