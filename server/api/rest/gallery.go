@@ -321,7 +321,7 @@ type GalleryResponseV4[T GalleryResponseCursor] struct {
 	Total    *uint                                 `json:"total,omitempty"`
 	Next     T                                     `json:"next,omitempty"`
 	Page     int                                   `json:"page"`
-	Outputs  []repository.V3GenerationOutputResult `json:"hits"`
+	Outputs  []repository.V3GenerationOutputResult `json:"outputs"`
 	Metadata *UserProfileMetadata                  `json:"metadata,omitempty"`
 }
 
