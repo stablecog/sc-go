@@ -197,8 +197,10 @@ func (r *Repository) RetrieveMostRecentGalleryDataV3(filters *requests.QueryGene
 			widths, heights := aspectRatio.GetAllWidthHeightCombos()
 			for i := 0; i < len(widths); i++ {
 				if i < len(heights) {
-					condition := fmt.Sprintf("(g.width = %d AND g.height = %d)", widths[i], heights[i])
+					condition := fmt.Sprintf("(g.width = $%d AND g.height = $%d)", argPos, argPos+1)
 					widthHeightConditions = append(widthHeightConditions, condition)
+					args = append(args, widths[i], heights[i])
+					argPos += 2
 				}
 			}
 		}
