@@ -400,6 +400,29 @@ func (r *Repository) RetrieveMostRecentGalleryDataV3(filters *requests.QueryGene
 		results = append(results, data)
 	}
 
+	// Populate is_liked
+	// Figure out liked by in another query, if calling user is provided
+	likedByMap := make(map[uuid.UUID]struct{})
+	if callingUserId != nil && len(results) > 0 {
+		outputIds := make([]uuid.UUID, len(results))
+		for i, g := range results {
+			outputIds[i] = g.ID
+		}
+		likedByMap, err = r.GetGenerationOutputsLikedByUser(*callingUserId, outputIds)
+		if err != nil {
+			log.Error("Error getting liked by map", "err", err)
+			return nil, nil, nil, err
+		}
+	}
+
+	for _, g := range results {
+		likedByUser := false
+		if _, ok := likedByMap[g.ID]; ok {
+			likedByUser = true
+		}
+		g.IsLiked = utils.ToPtr(likedByUser)
+	}
+
 	// Handle pagination
 	var nextCursor *time.Time
 	var nextOffset *int
