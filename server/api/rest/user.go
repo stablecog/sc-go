@@ -643,8 +643,9 @@ func (c *RestAPI) HandleQueryGenerationsTest(w http.ResponseWriter, r *http.Requ
 		// Return generations
 		render.Status(r, http.StatusOK)
 		render.JSON(w, r, GalleryResponse[*uint]{
-			Next: qdrantRes.Next,
-			Hits: generationsSorted,
+			Next:  qdrantRes.Next,
+			Hits:  generationsSorted,
+			Total: total,
 		})
 		return
 	}

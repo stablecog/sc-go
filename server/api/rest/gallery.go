@@ -306,6 +306,7 @@ type GalleryResponse[T GalleryResponseCursor] struct {
 	Page     int                      `json:"page"`
 	Hits     []repository.GalleryData `json:"hits"`
 	Metadata *UserProfileMetadata     `json:"metadata,omitempty"`
+	Total    *uint                    `json:"total,omitempty"`
 }
 
 // HTTP PUT submit a generation to gallery - for user
