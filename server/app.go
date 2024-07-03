@@ -1396,6 +1396,12 @@ func main() {
 				r.Use(mw.AuthMiddleware(middleware.AuthLevelAPIToken))
 				r.Get("/", hc.HandleQueryGenerations)
 			})
+			r.Route("/generation/outputstest", func(r chi.Router) {
+				r.Use(middleware.Logger)
+				r.Use(mw.RateLimit(10, "api", 1*time.Second))
+				r.Use(mw.AuthMiddleware(middleware.AuthLevelAPIToken))
+				r.Get("/", hc.HandleQueryGenerationsTest)
+			})
 			// ! Deprecated
 			r.Route("/outputs", func(r chi.Router) {
 				r.Use(middleware.Logger)
