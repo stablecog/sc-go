@@ -198,6 +198,20 @@ func (r *Repository) RetrieveMostRecentGalleryDataV3(filters *requests.QueryGene
 		argPos++
 	}
 
+	// Apply favorited filter if it exists
+	if filters != nil && filters.IsFavorited != nil {
+		baseQuery += fmt.Sprintf(" AND go.is_favorited = $%d", argPos)
+		args = append(args, *filters.IsFavorited)
+		argPos++
+	}
+
+	// Apply is_liked filter if it exists
+	if filters != nil && filters.ForHistory && filters.IsLiked != nil && *filters.IsLiked && filters.UserID != nil {
+		baseQuery += fmt.Sprintf(" AND EXISTS (SELECT 1 FROM generation_output_likes gol WHERE gol.output_id = go.id AND gol.liked_by_user_id = $%d)", argPos)
+		args = append(args, *filters.UserID)
+		argPos++
+	}
+
 	// Apply the model_ids filter if it exists
 	if len(filters.ModelIDs) > 0 {
 		placeholders := make([]string, len(filters.ModelIDs))
