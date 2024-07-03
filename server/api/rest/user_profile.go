@@ -296,16 +296,33 @@ func (c *RestAPI) HandleUserProfileSemanticSearch(w http.ResponseWriter, r *http
 		galleryData[i].UserID = nil
 	}
 
+	test := r.URL.Query().Get("test") == "true"
 	if search == "" {
 		render.Status(r, http.StatusOK)
-		render.JSON(w, r, GalleryResponse[*time.Time]{
-			Next:     nextCursorPostgres,
-			Hits:     galleryData,
+		if test {
+			render.JSON(w, r, GalleryResponseV3[*time.Time]{
+				Next:     nextCursorPostgres,
+				Outputs:  c.Repo.ConvertRawGalleryDataToV3Results(galleryData),
+				Metadata: metadata,
+			})
+		} else {
+			render.JSON(w, r, GalleryResponse[*time.Time]{
+				Next:     nextCursorPostgres,
+				Hits:     galleryData,
+				Metadata: metadata,
+			})
+		}
+		return
+	}
+	render.Status(r, http.StatusOK)
+	if test {
+		render.JSON(w, r, GalleryResponseV3[*uint]{
+			Next:     nextCursorQdrant,
+			Outputs:  c.Repo.ConvertRawGalleryDataToV3Results(galleryData),
 			Metadata: metadata,
 		})
 		return
 	}
-	render.Status(r, http.StatusOK)
 	render.JSON(w, r, GalleryResponse[*uint]{
 		Next:     nextCursorQdrant,
 		Hits:     galleryData,
