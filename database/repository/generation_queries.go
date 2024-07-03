@@ -60,6 +60,11 @@ func (r *Repository) GetGenerations(limit int) ([]*ent.Generation, error) {
 	return r.DB.Generation.Query().Order(ent.Desc(generation.FieldCreatedAt)).Limit(limit).All(r.Ctx)
 }
 
+// Get successful generations
+func (r *Repository) GetSuccessfulGenerations(limit int) ([]*ent.Generation, error) {
+	return r.DB.Generation.Query().Where(generation.StatusEQ(generation.StatusSucceeded)).Order(ent.Desc(generation.FieldCreatedAt)).Limit(limit).All(r.Ctx)
+}
+
 // Get avg(started_at - created_at) over a time period with limit
 func (r *Repository) GetAvgGenerationQueueTime(since time.Time, limit int) (float64, error) {
 	var rawQ []struct {
