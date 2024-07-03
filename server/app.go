@@ -1205,8 +1205,10 @@ func main() {
 
 			// Query Generation (outputs + generations)
 			r.Get("/image/generation/outputs", hc.HandleQueryGenerations)
+			r.Get("/image/generation/outputstest", hc.HandleQueryGenerationsTest)
 			// ! Deprecated
 			r.Get("/outputs", hc.HandleQueryGenerations)
+			r.Get("/outputstest", hc.HandleQueryGenerationsTest)
 
 			// Favorite
 			r.Post("/image/generation/outputs/favorite", hc.HandleFavoriteGenerationOutputsForUser)
