@@ -70,14 +70,26 @@ func (d *DiscordHealthTracker) SendDiscordNotificationIfNeeded(
 	sinceHealthyNotification := time.Since(d.lastHealthyNotificationTime)
 	sinceUnhealthyNotification := time.Since(d.lastUnhealthyNotificationTime)
 
+	shouldSkip := false
+	statusUnchanged := status == d.lastStatus
+
 	// The first time we run (UNKNOWN) we skip notification
-	// Otherwise, we sent it if unhealthy and it's been more than unhealthyNotificationInterval
-	// Or if healthy and it's been more than healthyNotificationInterval
-	if d.lastStatus == UNKNOWN || (status == d.lastStatus &&
-		((status == UNHEALTHY && sinceUnhealthyNotification < unhealthyNotificationInterval) ||
-			(status == HEALTHY && sinceHealthyNotification < healthyNotificationInterval))) {
+	if d.lastStatus == UNKNOWN {
+		shouldSkip = true
+	}
+
+	// If status didn't change and healthy notification interval hasn't passed, skip
+	if statusUnchanged && status == HEALTHY && sinceHealthyNotification < healthyNotificationInterval {
+		shouldSkip = true
+	}
+
+	// If status didn't change and unhealthy notification interval hasn't passed, skip
+	if statusUnchanged && status == UNHEALTHY && sinceUnhealthyNotification < unhealthyNotificationInterval {
+		shouldSkip = true
+	}
+
+	if shouldSkip {
 		logInfo("Skipping Discord notification, not needed")
-		// Set last status
 		d.lastStatus = status
 		return nil
 	}

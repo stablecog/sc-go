@@ -46,7 +46,12 @@ func (j *JobRunner) CheckHealth(log Logger) error {
 	// Figure out if we're healthy
 	healthStatus := discord.HEALTHY
 	failRate := float64(failedGenerations) / float64(len(generations))
+	// Regular fail
 	if failRate > maxGenerationFailWithoutNSFWRate {
+		healthStatus = discord.UNHEALTHY
+	}
+	// Last generation is too old, fail
+	if time.Now().Sub(lastGenerationTime).Minutes() > 10 {
 		healthStatus = discord.UNHEALTHY
 	}
 
