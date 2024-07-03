@@ -642,10 +642,10 @@ func (c *RestAPI) HandleQueryGenerationsTest(w http.ResponseWriter, r *http.Requ
 
 		// Return generations
 		render.Status(r, http.StatusOK)
-		render.JSON(w, r, GalleryResponseV3[*uint]{
-			Next:  qdrantRes.Next,
-			Hits:  c.Repo.ConvertRawGalleryDataToV3Results(generationsSorted),
-			Total: total,
+		render.JSON(w, r, GalleryResponseV4[*uint]{
+			Next:    qdrantRes.Next,
+			Outputs: c.Repo.ConvertRawGalleryDataToV3Results(generationsSorted),
+			Total:   total,
 		})
 		return
 	}

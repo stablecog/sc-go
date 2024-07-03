@@ -317,6 +317,14 @@ type GalleryResponseV3[T GalleryResponseCursor] struct {
 	Metadata *UserProfileMetadata                  `json:"metadata,omitempty"`
 }
 
+type GalleryResponseV4[T GalleryResponseCursor] struct {
+	Total    *uint                                 `json:"total,omitempty"`
+	Next     T                                     `json:"next,omitempty"`
+	Page     int                                   `json:"page"`
+	Outputs  []repository.V3GenerationOutputResult `json:"hits"`
+	Metadata *UserProfileMetadata                  `json:"metadata,omitempty"`
+}
+
 // HTTP PUT submit a generation to gallery - for user
 // Only allow submitting user's own gallery items.
 func (c *RestAPI) HandleSubmitGenerationToGallery(w http.ResponseWriter, r *http.Request) {
