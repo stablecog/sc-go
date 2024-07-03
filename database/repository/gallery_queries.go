@@ -150,10 +150,8 @@ func (r *Repository) RetrieveMostRecentGalleryDataV3(filters *requests.QueryGene
 	var galleryStatusFilter []generationoutput.GalleryStatus
 
 	if filters != nil && filters.ForHistory {
-		args = append(args, false)
 		galleryStatusFilter = filters.GalleryStatus
 	} else {
-		args = append(args, true)
 		galleryStatusFilter = []generationoutput.GalleryStatus{generationoutput.GalleryStatusApproved}
 	}
 
