@@ -433,12 +433,12 @@ func (r *Repository) RetrieveMostRecentGalleryDataV3(filters *requests.QueryGene
 		}
 	}
 
-	for _, g := range results {
+	for i := range results {
 		likedByUser := false
-		if _, ok := likedByMap[g.ID]; ok {
+		if _, ok := likedByMap[results[i].ID]; ok {
 			likedByUser = true
 		}
-		g.IsLiked = utils.ToPtr(likedByUser)
+		results[i].IsLiked = utils.ToPtr(likedByUser)
 	}
 
 	// Handle pagination
