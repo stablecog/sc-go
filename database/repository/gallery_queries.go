@@ -162,7 +162,10 @@ func (r *Repository) RetrieveMostRecentGalleryDataV3(filters *requests.QueryGene
 		baseQuery += fmt.Sprintf(" AND go.is_public = $%d", argPos)
 		args = append(args, true)
 		argPos++
-
+	} else if filters != nil && filters.ForHistory && filters.IsLiked != nil && *filters.IsLiked {
+		baseQuery += fmt.Sprintf(" AND go.is_public = $%d", argPos)
+		args = append(args, true)
+		argPos++
 	}
 
 	// Apply the gallery status filter if it exists
@@ -199,7 +202,7 @@ func (r *Repository) RetrieveMostRecentGalleryDataV3(filters *requests.QueryGene
 	}
 
 	// Apply favorited filter if it exists
-	if filters != nil && filters.IsFavorited != nil {
+	if filters != nil && filters.ForHistory && filters.IsFavorited != nil {
 		baseQuery += fmt.Sprintf(" AND go.is_favorited = $%d", argPos)
 		args = append(args, *filters.IsFavorited)
 		argPos++
