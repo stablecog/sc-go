@@ -703,10 +703,26 @@ func (c *RestAPI) HandleQueryGenerationsTest(w http.ResponseWriter, r *http.Requ
 		}
 	}
 
+	// Get total if no cursor
+	var total *uint
+	if cursor == nil {
+		totalI, err := c.Repo.GetGenerationCount(filters)
+		if err != nil {
+			log.Error("Error getting user generation count", "err", err)
+			responses.ErrInternalServerError(w, r, "Error getting generations")
+			return
+		}
+		// Convert int to uint
+		totalUInt := uint(totalI)
+		// Assign the address of the uint to the total pointer
+		total = &totalUInt
+	}
+
 	render.Status(r, http.StatusOK)
 	render.JSON(w, r, GalleryResponse[*time.Time]{
-		Next: nextCursor,
-		Hits: generations,
+		Next:  nextCursor,
+		Hits:  generations,
+		Total: total,
 	})
 }
 
