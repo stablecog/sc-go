@@ -613,21 +613,20 @@ func (c *RestAPI) HandleQueryGenerationsTest(w http.ResponseWriter, r *http.Requ
 		}
 
 		// Get user generation data in correct format
-		generationsUnsorted, err := c.Repo.RetrieveGenerationsWithOutputIDs(outputIds, utils.ToPtr(user.ID), false)
+		generationsUnsorted, err := c.Repo.RetrieveGalleryDataWithOutputIDs(outputIds, utils.ToPtr(user.ID), false)
 		if err != nil {
 			log.Error("Error getting generations", "err", err)
 			responses.ErrInternalServerError(w, r, "An unknown error has occurred")
 			return
 		}
 
-		// Need to re-sort to preserve qdrant ordering
-		gDataMap := make(map[uuid.UUID]repository.GenerationQueryWithOutputsResultFormatted)
-		for _, gData := range generationsUnsorted.Outputs {
+		gDataMap := make(map[uuid.UUID]repository.GalleryData)
+		for _, gData := range generationsUnsorted {
 			gDataMap[gData.ID] = gData
 		}
+		generationsSorted := make([]repository.GalleryData, len(qdrantRes.Result))
 
-		generations := []repository.GenerationQueryWithOutputsResultFormatted{}
-		for _, hit := range qdrantRes.Result {
+		for i, hit := range qdrantRes.Result {
 			outputId, err := uuid.Parse(hit.Id)
 			if err != nil {
 				log.Error("Error parsing uuid", "err", err)
@@ -638,22 +637,15 @@ func (c *RestAPI) HandleQueryGenerationsTest(w http.ResponseWriter, r *http.Requ
 				log.Error("Error retrieving gallery data", "output_id", outputId)
 				continue
 			}
-			generations = append(generations, item)
+			generationsSorted[i] = item
 		}
-		generationsUnsorted.Outputs = generations
-
-		if total != nil {
-			// uint to int
-			totalInt := int(*total)
-			generationsUnsorted.Total = &totalInt
-		}
-
-		// Get next cursor
-		generationsUnsorted.Next = qdrantRes.Next
 
 		// Return generations
 		render.Status(r, http.StatusOK)
-		render.JSON(w, r, generationsUnsorted)
+		render.JSON(w, r, GalleryResponse[*uint]{
+			Next: qdrantRes.Next,
+			Hits: generationsSorted,
+		})
 		return
 	}
 
