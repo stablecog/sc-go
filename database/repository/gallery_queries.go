@@ -211,6 +211,13 @@ func (r *Repository) RetrieveMostRecentGalleryDataV3(filters *requests.QueryGene
 		}
 	}
 
+	// Apply user_id filter for profile
+	if filters != nil && filters.ForProfile && filters.UserID != nil {
+		baseQuery += fmt.Sprintf(" AND u.id = $%d", argPos)
+		args = append(args, *filters.UserID)
+		argPos++
+	}
+
 	// Apply favorited filter if it exists
 	if filters != nil && filters.ForHistory && filters.IsFavorited != nil {
 		baseQuery += fmt.Sprintf(" AND go.is_favorited = $%d", argPos)

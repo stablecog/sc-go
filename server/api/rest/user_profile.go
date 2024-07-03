@@ -283,6 +283,7 @@ func (c *RestAPI) HandleUserProfileSemanticSearch(w http.ResponseWriter, r *http
 		} else if isSuperAdmin && filters.AdminMode != nil && *filters.AdminMode {
 			filters.IsPublic = nil
 		}
+		filters.ForProfile = true
 		galleryData, nextCursorPostgres, _, err = c.Repo.RetrieveMostRecentGalleryDataV3(filters, callingUserId, perPage, qCursor, nil)
 		if err != nil {
 			log.Error("Error querying gallery data from postgres", "err", err)
