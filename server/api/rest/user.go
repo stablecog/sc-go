@@ -458,6 +458,55 @@ func (c *RestAPI) HandleQueryGenerations(w http.ResponseWriter, r *http.Request)
 
 	// Ensure user ID is set to only include this users generations
 	filters.UserID = &user.ID
+	filters.ForHistory = true
+
+	// Test flag
+	test := r.URL.Query().Get("test") == "true"
+	if test {
+		generations, nextCursor, _, err := c.Repo.RetrieveMostRecentGalleryDataV3(filters, filters.UserID, perPage, cursor, nil)
+		if err != nil {
+			log.Error("Error getting generations for user", "err", err)
+			responses.ErrInternalServerError(w, r, "Error getting generations")
+			return
+		}
+
+		// Presign init image URLs
+		signedMap := make(map[string]string)
+		for _, g := range generations {
+			if g.InitImageURL != nil {
+				// See if we have already signed this URL
+				signedInitImageUrl, ok := signedMap[*g.InitImageURL]
+				if !ok {
+					g.InitImageURLSigned = &signedInitImageUrl
+					continue
+				}
+				// remove s3:// prefix
+				if strings.HasPrefix(*g.InitImageURL, "s3://") {
+					prefixRemoved := (*g.InitImageURL)[5:]
+					// Sign object URL to pass to worker
+					req, _ := c.S3.GetObjectRequest(&s3.GetObjectInput{
+						Bucket: aws.String(utils.GetEnv().S3Img2ImgBucketName),
+						Key:    aws.String(prefixRemoved),
+					})
+					urlStr, err := req.Presign(1 * time.Hour)
+					if err != nil {
+						log.Error("Error signing init image URL", "err", err)
+						continue
+					}
+					// Add to map
+					signedMap[*g.InitImageURL] = urlStr
+					g.InitImageURLSigned = &urlStr
+				}
+			}
+
+			render.Status(r, http.StatusOK)
+			render.JSON(w, r, GalleryResponse[*time.Time]{
+				Next: nextCursor,
+				Hits: generations,
+			})
+			return
+		}
+	}
 
 	// Get generaions
 	generations, err := c.Repo.QueryGenerations(perPage, cursor, filters)

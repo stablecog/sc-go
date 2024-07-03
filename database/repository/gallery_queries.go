@@ -101,7 +101,8 @@ func (r *Repository) RetrieveMostRecentGalleryDataV3(filters *requests.QueryGene
         go.upscaled_image_path AS upscaled_image_url,
         go.created_at,
         go.updated_at,
-        g.width, 
+				g.init_image_url as init_image_url,
+				g.width, 
         g.height, 
         g.inference_steps, 
         g.guidance_scale, 
@@ -138,18 +139,46 @@ func (r *Repository) RetrieveMostRecentGalleryDataV3(filters *requests.QueryGene
         negative_prompts np
         ON g.negative_prompt_id = np.id
     WHERE 
-        g.status = $2 
-        AND go.gallery_status = $3 
-        AND go.is_public`
+        g.status = $2`
 
 	// Arguments for the query
 	args := []interface{}{
 		time.Now().AddDate(0, 0, -7), // for like_counts CTE
 		"succeeded",                  // status
-		"approved",                   // gallery_status
+	}
+
+	var galleryStatusFilter []generationoutput.GalleryStatus
+
+	if filters != nil && filters.ForHistory {
+		args = append(args, false)
+		galleryStatusFilter = filters.GalleryStatus
+	} else {
+		args = append(args, true)
+		galleryStatusFilter = []generationoutput.GalleryStatus{generationoutput.GalleryStatusApproved}
 	}
 
 	argPos := len(args) + 1
+
+	// Apply is is_public filter if not for history
+	if filters == nil || !filters.ForHistory {
+		baseQuery += fmt.Sprintf(" AND go.is_public = $%d", argPos)
+		args = append(args, true)
+		argPos++
+
+	}
+
+	// Apply the gallery status filter if it exists
+	if len(galleryStatusFilter) > 0 {
+		placeholders := make([]string, len(galleryStatusFilter))
+		for i := range placeholders {
+			placeholders[i] = fmt.Sprintf("$%d", argPos)
+			argPos++
+		}
+		baseQuery += fmt.Sprintf(" AND go.gallery_status IN (%s)", strings.Join(placeholders, ","))
+		for _, status := range galleryStatusFilter {
+			args = append(args, status)
+		}
+	}
 
 	// Apply the username filter if it exists
 	if len(filters.Username) > 0 {
@@ -162,6 +191,13 @@ func (r *Repository) RetrieveMostRecentGalleryDataV3(filters *requests.QueryGene
 		for _, username := range filters.Username {
 			args = append(args, username)
 		}
+	}
+
+	// Apply the user_id filter if it exists
+	if filters != nil && filters.UserID != nil {
+		baseQuery += fmt.Sprintf(" AND u.id = $%d", argPos)
+		args = append(args, *filters.UserID)
+		argPos++
 	}
 
 	// Apply the model_ids filter if it exists
@@ -268,6 +304,7 @@ func (r *Repository) RetrieveMostRecentGalleryDataV3(filters *requests.QueryGene
 		var likeCountTrending sql.NullInt64
 		var promptStrength sql.NullFloat64
 		var upscaledImageUrl sql.NullString
+		var initImageUrl sql.NullString
 
 		if err := rows.Scan(
 			&data.ID,
@@ -275,6 +312,7 @@ func (r *Repository) RetrieveMostRecentGalleryDataV3(filters *requests.QueryGene
 			&upscaledImageUrl,
 			&data.CreatedAt,
 			&data.UpdatedAt,
+			&initImageUrl,
 			&data.Width,
 			&data.Height,
 			&data.InferenceSteps,
@@ -331,6 +369,10 @@ func (r *Repository) RetrieveMostRecentGalleryDataV3(filters *requests.QueryGene
 
 		if upscaledImageUrl.Valid {
 			data.UpscaledImageURL = utils.GetEnv().GetURLFromImagePath(upscaledImageUrl.String)
+		}
+
+		if initImageUrl.Valid {
+			data.InitImageURL = &initImageUrl.String
 		}
 
 		data.PromptID = promptID
@@ -848,6 +890,8 @@ type GalleryData struct {
 	UpscaledImageURL   string     `json:"upscaled_image_url,omitempty"`
 	CreatedAt          time.Time  `json:"created_at" sql:"created_at"`
 	UpdatedAt          time.Time  `json:"updated_at" sql:"updated_at"`
+	InitImageURL       *string    `json:"-" sql:"init_image_url"`
+	InitImageURLSigned *string    `json:"init_image_url,omitempty"`
 	Width              int32      `json:"width" sql:"generation_width"`
 	Height             int32      `json:"height" sql:"generation_height"`
 	InferenceSteps     int32      `json:"inference_steps" sql:"generation_inference_steps"`

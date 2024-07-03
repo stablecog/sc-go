@@ -45,6 +45,7 @@ const (
 )
 
 type QueryGenerationFilters struct {
+	ForHistory                bool                             `json:"-"`
 	ModelIDs                  []uuid.UUID                      `json:"model_ids"`
 	SchedulerIDs              []uuid.UUID                      `json:"scheduler_ids"`
 	MinHeight                 int32                            `json:"min_height"`
