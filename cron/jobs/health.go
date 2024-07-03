@@ -30,6 +30,15 @@ func (j *JobRunner) CheckHealth(log Logger) error {
 	nsfwGenerations := 0
 	failedGenerations := 0
 	lastGenerationTime := generations[0].CreatedAt
+	lastSuccessfulGenerationTime := time.Time{}
+
+	// Find the last successful generation
+	for _, g := range generations {
+		if g.Status == "succeeded" {
+			lastSuccessfulGenerationTime = g.CreatedAt
+			break
+		}
+	}
 
 	// Count the number of failed generations distinguishing between NSFW and other failures
 	for _, g := range generations {
@@ -46,12 +55,14 @@ func (j *JobRunner) CheckHealth(log Logger) error {
 	// Figure out if we're healthy
 	healthStatus := discord.HEALTHY
 	failRate := float64(failedGenerations) / float64(len(generations))
-	// Regular fail
+
+	// Fail rate is too high, fail
 	if failRate > maxGenerationFailWithoutNSFWRate {
 		healthStatus = discord.UNHEALTHY
 	}
-	// Last generation is too old, fail
-	if time.Now().Sub(lastGenerationTime).Minutes() > 10 {
+
+	// Last successful generation is too old, fail
+	if time.Now().Sub(lastSuccessfulGenerationTime).Minutes() > 10 {
 		healthStatus = discord.UNHEALTHY
 	}
 
