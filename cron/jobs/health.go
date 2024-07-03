@@ -13,6 +13,7 @@ const maxGenerationFailWithoutNSFWRate = 0.5
 
 // Get this number of generations on each check, sorted by created_at DESC
 const generationCountToCheck = 10
+const successfulGenerationCountToCheck = 1
 
 const HEALTH_JOB_NAME = "HEALTH_JOB"
 
@@ -27,18 +28,16 @@ func (j *JobRunner) CheckHealth(log Logger) error {
 		return err
 	}
 
+	successfulGenerations, err := j.Repo.GetSuccessfulGenerations(successfulGenerationCountToCheck)
+	if err != nil || len(generations) == 0 {
+		log.Errorf("Couldn't get successful generations %v", err)
+		return err
+	}
+
 	nsfwGenerations := 0
 	failedGenerations := 0
 	lastGenerationTime := generations[0].CreatedAt
-	lastSuccessfulGenerationTime := time.Time{}
-
-	// Find the last successful generation
-	for _, g := range generations {
-		if g.Status == "succeeded" {
-			lastSuccessfulGenerationTime = g.CreatedAt
-			break
-		}
-	}
+	lastSuccessfulGenerationTime := successfulGenerations[0].CreatedAt
 
 	// Count the number of failed generations distinguishing between NSFW and other failures
 	for _, g := range generations {
