@@ -101,6 +101,11 @@ func (r *Repository) RetrieveMostRecentGalleryDataV3(filters *requests.QueryGene
         go.upscaled_image_path AS upscaled_image_url,
         go.created_at,
         go.updated_at,
+				g.id as generation_id,
+				g.created_at as generation_created_at,
+				g.started_at,
+				g.completed_at,
+				g.num_outputs,
 				g.init_image_url as init_image_url,
 				g.width, 
         g.height, 
@@ -118,7 +123,9 @@ func (r *Repository) RetrieveMostRecentGalleryDataV3(filters *requests.QueryGene
         g.prompt_strength, 
         g.was_auto_submitted, 
         go.is_public, 
-        go.like_count, 
+        go.like_count,
+				go.is_favorited,
+				go.gallery_status,
         COALESCE(lc.like_count_trending, 0) AS like_count_trending 
     FROM 
         generations g
@@ -330,6 +337,11 @@ func (r *Repository) RetrieveMostRecentGalleryDataV3(filters *requests.QueryGene
 			&upscaledImageUrl,
 			&data.CreatedAt,
 			&data.UpdatedAt,
+			&data.GenerationID,
+			&data.GenerationCreatedAt,
+			&data.StartedAt,
+			&data.CompletedAt,
+			&data.NumOutputs,
 			&initImageUrl,
 			&data.Width,
 			&data.Height,
@@ -348,6 +360,8 @@ func (r *Repository) RetrieveMostRecentGalleryDataV3(filters *requests.QueryGene
 			&data.WasAutoSubmitted,
 			&data.IsPublic,
 			&data.LikeCount,
+			&data.IsFavorited,
+			&data.GalleryStatus,
 			&likeCountTrending,
 		); err != nil {
 			return nil, nil, nil, fmt.Errorf("failed to scan row: %w", err)
@@ -391,6 +405,10 @@ func (r *Repository) RetrieveMostRecentGalleryDataV3(filters *requests.QueryGene
 
 		if initImageUrl.Valid {
 			data.InitImageURL = &initImageUrl.String
+		}
+
+		if filters == nil || !filters.ForHistory {
+			data.IsFavorited = nil
 		}
 
 		data.PromptID = promptID
@@ -926,32 +944,118 @@ func (r *Repository) RetrieveGalleryDataWithOutputIDs(outputIDs []uuid.UUID, cal
 }
 
 type GalleryData struct {
-	ID                 uuid.UUID  `json:"id,omitempty" sql:"id"`
-	ImageURL           string     `json:"image_url"`
-	UpscaledImageURL   string     `json:"upscaled_image_url,omitempty"`
-	CreatedAt          time.Time  `json:"created_at" sql:"created_at"`
-	UpdatedAt          time.Time  `json:"updated_at" sql:"updated_at"`
-	InitImageURL       *string    `json:"-" sql:"init_image_url"`
-	InitImageURLSigned *string    `json:"init_image_url,omitempty"`
-	Width              int32      `json:"width" sql:"generation_width"`
-	Height             int32      `json:"height" sql:"generation_height"`
-	InferenceSteps     int32      `json:"inference_steps" sql:"generation_inference_steps"`
-	GuidanceScale      float32    `json:"guidance_scale" sql:"generation_guidance_scale"`
-	Seed               int        `json:"seed,omitempty" sql:"generation_seed"`
-	ModelID            uuid.UUID  `json:"model_id" sql:"model_id"`
-	SchedulerID        uuid.UUID  `json:"scheduler_id" sql:"scheduler_id"`
-	PromptText         string     `json:"prompt_text" sql:"prompt_text"`
-	PromptID           uuid.UUID  `json:"prompt_id" sql:"prompt_id"`
-	NegativePromptText string     `json:"negative_prompt_text,omitempty" sql:"negative_prompt_text"`
-	NegativePromptID   *uuid.UUID `json:"negative_prompt_id,omitempty" sql:"negative_prompt_id"`
-	UserID             *uuid.UUID `json:"user_id,omitempty" sql:"user_id"`
-	Score              *float32   `json:"score,omitempty" sql:"score"`
-	Username           *string    `json:"username,omitempty" sql:"username"`
-	User               *UserType  `json:"user,omitempty" sql:"user"`
-	PromptStrength     *float32   `json:"prompt_strength,omitempty" sql:"prompt_strength"`
-	WasAutoSubmitted   bool       `json:"was_auto_submitted" sql:"was_auto_submitted"`
-	IsPublic           bool       `json:"is_public" sql:"is_public"`
-	LikeCount          int        `json:"like_count" sql:"like_count"`
-	LikeCountTrending  *int       `json:"like_count_trending,omitempty" sql:"like_count_trending"`
-	IsLiked            *bool      `json:"is_liked,omitempty" sql:"liked_by_user"`
+	ID                  uuid.UUID                      `json:"id,omitempty" sql:"id"`
+	GenerationID        uuid.UUID                      `json:"generation_id,omitempty" sql:"generation_id"`
+	ImageURL            string                         `json:"image_url"`
+	UpscaledImageURL    string                         `json:"upscaled_image_url,omitempty"`
+	CreatedAt           time.Time                      `json:"created_at" sql:"created_at"`
+	UpdatedAt           time.Time                      `json:"updated_at" sql:"updated_at"`
+	InitImageURL        *string                        `json:"-" sql:"init_image_url"`
+	InitImageURLSigned  *string                        `json:"init_image_url,omitempty"`
+	Width               int32                          `json:"width" sql:"generation_width"`
+	Height              int32                          `json:"height" sql:"generation_height"`
+	InferenceSteps      int32                          `json:"inference_steps" sql:"generation_inference_steps"`
+	GuidanceScale       float32                        `json:"guidance_scale" sql:"generation_guidance_scale"`
+	Seed                int                            `json:"seed,omitempty" sql:"generation_seed"`
+	ModelID             uuid.UUID                      `json:"model_id" sql:"model_id"`
+	SchedulerID         uuid.UUID                      `json:"scheduler_id" sql:"scheduler_id"`
+	PromptText          string                         `json:"prompt_text" sql:"prompt_text"`
+	PromptID            uuid.UUID                      `json:"prompt_id" sql:"prompt_id"`
+	NegativePromptText  string                         `json:"negative_prompt_text,omitempty" sql:"negative_prompt_text"`
+	NegativePromptID    *uuid.UUID                     `json:"negative_prompt_id,omitempty" sql:"negative_prompt_id"`
+	UserID              *uuid.UUID                     `json:"user_id,omitempty" sql:"user_id"`
+	Score               *float32                       `json:"score,omitempty" sql:"score"`
+	Username            *string                        `json:"username,omitempty" sql:"username"`
+	User                *UserType                      `json:"user,omitempty" sql:"user"`
+	PromptStrength      *float32                       `json:"prompt_strength,omitempty" sql:"prompt_strength"`
+	WasAutoSubmitted    bool                           `json:"was_auto_submitted" sql:"was_auto_submitted"`
+	IsPublic            bool                           `json:"is_public" sql:"is_public"`
+	LikeCount           int                            `json:"like_count" sql:"like_count"`
+	LikeCountTrending   *int                           `json:"like_count_trending,omitempty" sql:"like_count_trending"`
+	IsLiked             *bool                          `json:"is_liked,omitempty" sql:"liked_by_user"`
+	IsFavorited         *bool                          `json:"is_favorited,omitempty" sql:"is_favorited"`
+	GalleryStatus       generationoutput.GalleryStatus `json:"gallery_status" sql:"gallery_status"`
+	StartedAt           *time.Time                     `json:"started_at,omitempty" sql:"started_at"`
+	CompletedAt         *time.Time                     `json:"completed_at,omitempty" sql:"completed_at"`
+	GenerationCreatedAt time.Time                      `json:"generation_created_at" sql:"generation_created_at"`
+	NumOutputs          int                            `json:"num_outputs,omitempty" sql:"num_outputs"`
+}
+
+// Consistent struct formats with the UI
+type V3GenerationResult struct {
+	ID                 uuid.UUID   `json:"id"`
+	StartedAt          *time.Time  `json:"started_at,omitempty"`
+	CompletedAt        *time.Time  `json:"completed_at,omitempty"`
+	CreatedAt          time.Time   `json:"created_at"`
+	User               *UserType   `json:"user"`
+	Prompt             PromptType  `json:"prompt"`
+	NegativePrompt     *PromptType `json:"negative_prompt,omitempty"`
+	ModelID            uuid.UUID   `json:"model_id"`
+	SchedulerID        uuid.UUID   `json:"scheduler_id"`
+	Width              int32       `json:"width"`
+	Height             int32       `json:"height"`
+	Seed               int         `json:"seed"`
+	InferenceSteps     int32       `json:"inference_steps"`
+	GuidanceScale      float32     `json:"guidance_scale"`
+	NumOutputs         int         `json:"num_outputs"`
+	InitImageURL       *string     `json:"-"`
+	InitImageURLSigned *string     `json:"init_image_url,omitempty"`
+	PromptStrength     *float32    `json:"prompt_strength,omitempty"`
+}
+
+type V3GenerationOutputResult struct {
+	ID               uuid.UUID                      `json:"id"`
+	ImageURL         string                         `json:"image_url"`
+	UpscaledImageUrl string                         `json:"upscaled_image_url,omitempty"`
+	CreatedAt        time.Time                      `json:"created_at"`
+	UpdatedAt        time.Time                      `json:"updated_at"`
+	IsFavorited      *bool                          `json:"is_favorited,omitempty"`
+	GalleryStatus    generationoutput.GalleryStatus `json:"gallery_status"`
+	WasAutoSubmitted bool                           `json:"was_auto_submitted"`
+	IsPublic         bool                           `json:"is_public"`
+	LikeCount        int                            `json:"like_count"`
+	IsLiked          *bool                          `json:"is_liked,omitempty"`
+	Generation       *V3GenerationResult            `json:"generation"`
+}
+
+func (r *Repository) ConvertRawGalleryDataToV3Results(data []GalleryData) []V3GenerationOutputResult {
+	results := make([]V3GenerationOutputResult, len(data))
+	for i, gd := range data {
+		results[i] = V3GenerationOutputResult{
+			ID:               gd.ID,
+			ImageURL:         gd.ImageURL,
+			UpscaledImageUrl: gd.UpscaledImageURL,
+			CreatedAt:        gd.CreatedAt,
+			UpdatedAt:        gd.UpdatedAt,
+			IsFavorited:      gd.IsFavorited,
+			GalleryStatus:    gd.GalleryStatus,
+			WasAutoSubmitted: gd.WasAutoSubmitted,
+			IsPublic:         gd.IsPublic,
+			LikeCount:        gd.LikeCount,
+			IsLiked:          gd.IsLiked,
+			Generation: &V3GenerationResult{
+				ID:                 gd.GenerationID,
+				StartedAt:          gd.StartedAt,
+				CompletedAt:        gd.CompletedAt,
+				CreatedAt:          gd.GenerationCreatedAt,
+				User:               gd.User,
+				Prompt:             PromptType{Text: gd.PromptText, ID: gd.PromptID},
+				ModelID:            gd.ModelID,
+				SchedulerID:        gd.SchedulerID,
+				Width:              gd.Width,
+				Height:             gd.Height,
+				Seed:               gd.Seed,
+				InferenceSteps:     gd.InferenceSteps,
+				GuidanceScale:      gd.GuidanceScale,
+				NumOutputs:         gd.NumOutputs,
+				InitImageURL:       gd.InitImageURL,
+				InitImageURLSigned: gd.InitImageURLSigned,
+				PromptStrength:     gd.PromptStrength,
+			},
+		}
+		if gd.NegativePromptID != nil && gd.NegativePromptText != "" {
+			results[i].Generation.NegativePrompt = &PromptType{Text: gd.NegativePromptText, ID: *gd.NegativePromptID}
+		}
+	}
+	return results
 }
