@@ -138,6 +138,9 @@ func (r *Repository) RetrieveMostRecentGalleryDataV3(filters *requests.QueryGene
     LEFT JOIN 
         negative_prompts np
         ON g.negative_prompt_id = np.id
+    LEFT JOIN 
+        generation_output_likes gol 
+        ON go.id = gol.output_id				
     WHERE 
         g.status = $2`
 
@@ -162,7 +165,7 @@ func (r *Repository) RetrieveMostRecentGalleryDataV3(filters *requests.QueryGene
 		baseQuery += fmt.Sprintf(" AND go.is_public = $%d", argPos)
 		args = append(args, true)
 		argPos++
-	} else if filters != nil && filters.ForHistory && filters.IsLiked != nil && *filters.IsLiked {
+	} else if filters.ForHistory && filters.IsLiked != nil && *filters.IsLiked {
 		baseQuery += fmt.Sprintf(" AND go.is_public = $%d", argPos)
 		args = append(args, true)
 		argPos++
@@ -210,7 +213,7 @@ func (r *Repository) RetrieveMostRecentGalleryDataV3(filters *requests.QueryGene
 
 	// Apply is_liked filter if it exists
 	if filters != nil && filters.ForHistory && filters.IsLiked != nil && *filters.IsLiked && filters.UserID != nil {
-		baseQuery += fmt.Sprintf(" AND EXISTS (SELECT 1 FROM generation_output_likes gol WHERE gol.output_id = go.id AND gol.liked_by_user_id = $%d)", argPos)
+		baseQuery += fmt.Sprintf(" AND gol.liked_by_user_id = $%d)", argPos)
 		args = append(args, *filters.UserID)
 		argPos++
 	}
