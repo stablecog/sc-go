@@ -195,12 +195,7 @@ func (r *Repository) RetrieveMostRecentGalleryDataV3(filters *requests.QueryGene
 			placeholders[i] = fmt.Sprintf("$%d", argPos)
 			argPos++
 		}
-		lowercasePlaceholders := make([]string, len(filters.Username))
-		for i, username := range filters.Username {
-			lowercasePlaceholders[i] = strings.ToLower(username)
-		}
-
-		baseQuery += fmt.Sprintf(" AND lower(u.username) IN (%s)", strings.Join(lowercasePlaceholders, ","))
+		baseQuery += fmt.Sprintf(" AND u.username IN (%s)", strings.Join(placeholders, ","))
 		for _, username := range filters.Username {
 			args = append(args, username)
 		}
