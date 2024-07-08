@@ -2,6 +2,7 @@ package utils
 
 import (
 	"net/url"
+	"strings"
 	"sync"
 
 	"github.com/caarlos0/env/v9"
@@ -87,7 +88,8 @@ type SCEnv struct {
 	PosthogApiKey   string `env:"POSTHOG_API_KEY"`  // Posthog API Key, Optional
 	PosthogEndpoint string `env:"POSTHOG_ENDPOINT"` // Posthog Endpoint, Optional
 	// Discord bot
-	DiscordBotToken string `env:"DISCORD_BOT_TOKEN"` // Discord bot token, only required for discobot
+	DiscordBotToken        string `env:"DISCORD_BOT_TOKEN"`                        // Discord bot token, only required for discobot
+	DiscordUserIdsToNotify string `env:"DISCORD_USER_IDS_TO_NOTIFY" envDefault:""` // Discord user IDs to notify
 	// Oauth service, used by services such as Raycast
 	DataEncryptionPassword string `env:"DATA_ENCRYPTION_PASSWORD" envDefault:"insecurePassword"` // Data encryption password
 	OauthRedirectBase      string `env:"OAUTH_REDIRECT_BASE" envDefault:"http://localhost:3000"` // Oauth redirect base
@@ -128,6 +130,14 @@ func (e *SCEnv) GetURLFromImagePath(s3UrlStr string) string {
 	baseUrl := EnsureTrailingSlash(e.BucketBaseUrl)
 
 	return baseUrl + s3UrlStr
+}
+
+func (e *SCEnv) GetDiscordUserIdsToNotify() []string {
+	userIdsStr := e.DiscordUserIdsToNotify
+	if userIdsStr == "" {
+		return []string{}
+	}
+	return strings.Split(userIdsStr, ",")
 }
 
 func (e *SCEnv) GetURLFromAudioFilePath(s3UrlStr string) string {

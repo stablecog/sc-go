@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"os"
 	"strings"
 	"time"
 
@@ -133,11 +132,7 @@ func getDiscordWebhookBody(
 	generationsStr := ""
 	generationsStrArr := []string{}
 
-	discordUserIdsStr := os.Getenv("DISCORD_USER_IDS")
-	var discordUserIds []string = []string{}
-	if discordUserIdsStr != "" {
-		discordUserIds = strings.Split(discordUserIdsStr, ",")
-	}
+	discordUserIds := utils.GetEnv().GetDiscordUserIdsToNotify()
 
 	for _, g := range generations {
 		if g.Status == generation.StatusFailed && g.FailureReason != nil && *g.FailureReason == shared.NSFW_ERROR {
