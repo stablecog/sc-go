@@ -83,6 +83,7 @@ func (j *JobRunner) CheckSCWorkerHealth(log Logger) error {
 		} else {
 			err := CreateTestGeneration(log, apiKey)
 			if err != nil {
+				log.Infof("SC Worker test generation failed -> Assuming unhealthy")
 				workerHealthStatus = discord.UNHEALTHY
 			}
 		}
