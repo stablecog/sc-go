@@ -17,6 +17,12 @@ const successfulGenerationCountToCheck = 1
 
 const HEALTH_JOB_NAME = "HEALTH_JOB"
 
+var workerHealthStatus = discord.HEALTHY
+
+func GetWorkerHealthStatus() discord.HEALTH_STATUS {
+	return workerHealthStatus
+}
+
 // CheckHealth cron job
 func (j *JobRunner) CheckHealth(log Logger) error {
 	start := time.Now()
@@ -52,23 +58,22 @@ func (j *JobRunner) CheckHealth(log Logger) error {
 	log.Infof("Generation fail rate other %d/%d", failedGenerations, len(generations))
 
 	// Figure out if we're healthy
-	healthStatus := discord.HEALTHY
 	failRate := float64(failedGenerations) / float64(len(generations))
 
 	// Fail rate is too high, fail
 	if failRate > maxGenerationFailWithoutNSFWRate {
-		healthStatus = discord.UNHEALTHY
+		workerHealthStatus = discord.UNHEALTHY
 	}
 
 	// Last successful generation is too old, fail
 	if time.Now().Sub(lastSuccessfulGenerationTime).Minutes() > 10 {
-		healthStatus = discord.UNHEALTHY
+		workerHealthStatus = discord.UNHEALTHY
 	}
 
 	log.Infof("Done checking health in %dms", time.Now().Sub(start).Milliseconds())
 
 	return j.Discord.SendDiscordNotificationIfNeeded(
-		healthStatus,
+		workerHealthStatus,
 		generations,
 		lastGenerationTime,
 	)

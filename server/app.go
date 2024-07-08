@@ -1121,6 +1121,11 @@ func main() {
 	app.Route("/v1", func(r chi.Router) {
 		r.Get("/health", hc.HandleHealth)
 
+		// Worker
+		r.Route("/worker", func(r chi.Router) {
+			r.Get("/health", hc.HandleWorkerHealth)
+		})
+
 		r.Route("/email", func(r chi.Router) {
 			r.Use(middleware.Logger)
 			r.Use(mw.RateLimit(5, "srv", 1*time.Second))
