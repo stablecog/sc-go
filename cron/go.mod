@@ -23,7 +23,6 @@ require (
 	github.com/charmbracelet/log v0.1.2 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/deepmap/oapi-codegen v1.12.4 // indirect
-	github.com/dukex/mixpanel v1.0.1 // indirect
 	github.com/go-logfmt/logfmt v0.6.0 // indirect
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
 	github.com/hashicorp/errwrap v1.0.0 // indirect

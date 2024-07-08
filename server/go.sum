@@ -98,8 +98,6 @@ github.com/deepmap/oapi-codegen v1.12.4 h1:pPmn6qI9MuOtCz82WY2Xaw46EQjgvxednXXrP
 github.com/deepmap/oapi-codegen v1.12.4/go.mod h1:3lgHGMu6myQ2vqbbTXH2H1o4eXFTGnFiDaOaKKl5yas=
 github.com/dgryski/go-rendezvous v0.0.0-20200823014737-9f7001d12a5f h1:lO4WD4F/rVNCu3HqELle0jiPLLBs70cWOduZpkS1E78=
 github.com/dgryski/go-rendezvous v0.0.0-20200823014737-9f7001d12a5f/go.mod h1:cuUVRXasLTGF7a8hSLbxyZXjz+1KgoB3wDUb6vlszIc=
-github.com/dukex/mixpanel v1.0.1 h1:IQ3qBjtgltF044jU9+i6MubdDdpc8PKpK9yvfawRgeE=
-github.com/dukex/mixpanel v1.0.1/go.mod h1:080BDsRRMzAxViWT3OjlQaMW9nhaIEXDHHtGeDK60b8=
 github.com/envoyproxy/go-control-plane v0.9.0/go.mod h1:YTl/9mNaCwkRvm6d1a2C3ymFceY/DCBVvsKhRF0iEA4=
 github.com/envoyproxy/go-control-plane v0.9.1-0.20191026205805-5f8ba28d4473/go.mod h1:YTl/9mNaCwkRvm6d1a2C3ymFceY/DCBVvsKhRF0iEA4=
 github.com/envoyproxy/go-control-plane v0.9.4/go.mod h1:6rpuAdCZL397s3pYoYcLgu1mIlRU8Am5FuJP05cCM98=

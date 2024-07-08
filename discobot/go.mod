@@ -33,7 +33,6 @@ require (
 	github.com/charmbracelet/log v0.2.1 // indirect
 	github.com/deepmap/oapi-codegen v1.12.4 // indirect
 	github.com/dgryski/go-rendezvous v0.0.0-20200823014737-9f7001d12a5f // indirect
-	github.com/dukex/mixpanel v1.0.1 // indirect
 	github.com/favadi/osinfo v0.0.0-20200812114956-6c7e8ee533c0 // indirect
 	github.com/go-chi/render v1.0.2 // indirect
 	github.com/go-logfmt/logfmt v0.6.0 // indirect

@@ -86,7 +86,6 @@ type SCEnv struct {
 	// Analytics (Optional group)
 	PosthogApiKey   string `env:"POSTHOG_API_KEY"`  // Posthog API Key, Optional
 	PosthogEndpoint string `env:"POSTHOG_ENDPOINT"` // Posthog Endpoint, Optional
-	MixpanelApiKey  string `env:"MIXPANEL_API_KEY"` // Mixpanel API Key, Optional
 	// Discord bot
 	DiscordBotToken string `env:"DISCORD_BOT_TOKEN"` // Discord bot token, only required for discobot
 	// Oauth service, used by services such as Raycast
