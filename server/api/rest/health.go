@@ -16,8 +16,8 @@ func (c *RestAPI) HandleHealth(w http.ResponseWriter, r *http.Request) {
 	render.Status(r, http.StatusOK)
 }
 
-func (c *RestAPI) HandleWorkerHealth(w http.ResponseWriter, r *http.Request) {
-	healthStatus := jobs.GetWorkerHealthStatus()
+func (c *RestAPI) HandleSCWorkerHealth(w http.ResponseWriter, r *http.Request) {
+	healthStatus := jobs.GetSCWorkerHealthStatus()
 	status := "ok"
 	if healthStatus != discord.HEALTHY {
 		status = "unhealthy"

@@ -1143,7 +1143,7 @@ func main() {
 		// SCWorker
 		r.Route("/worker", func(r chi.Router) {
 			r.Use(middleware.Logger)
-			r.Get("/health", hc.HandleWorkerHealth)
+			r.Get("/health", hc.HandleSCWorkerHealth)
 			r.Post("/webhook", hc.HandleSCWorkerWebhook)
 		})
 

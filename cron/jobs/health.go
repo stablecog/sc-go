@@ -25,12 +25,12 @@ const HEALTH_JOB_NAME = "HEALTH_JOB"
 
 var workerHealthStatus = discord.HEALTHY
 
-func GetWorkerHealthStatus() discord.HEALTH_STATUS {
+func GetSCWorkerHealthStatus() discord.HEALTH_STATUS {
 	return workerHealthStatus
 }
 
 // CheckHealth cron job
-func (j *JobRunner) CheckHealth(log Logger) error {
+func (j *JobRunner) CheckSCWorkerHealth(log Logger) error {
 	start := time.Now()
 	log.Infof("Checking health...")
 

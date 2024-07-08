@@ -153,7 +153,7 @@ func main() {
 	}
 
 	if *healthCheck {
-		err := jobRunner.CheckHealth(jobs.NewJobLogger("HEALTH"))
+		err := jobRunner.CheckSCWorkerHealth(jobs.NewJobLogger("HEALTH"))
 		if err != nil {
 			log.Fatal("Error running health check", "err", err)
 			os.Exit(1)
@@ -200,7 +200,7 @@ func main() {
 		s := gocron.NewScheduler(time.UTC)
 		s.Every(60).Seconds().Do(jobRunner.GetAndSetStats, jobs.NewJobLogger("STATS"))
 		if utils.GetEnv().DiscordWebhookUrl != "" {
-			s.Every(60).Seconds().Do(jobRunner.CheckHealth, jobs.NewJobLogger("HEALTH"))
+			s.Every(60).Seconds().Do(jobRunner.CheckSCWorkerHealth, jobs.NewJobLogger("HEALTH"))
 		}
 		s.Every(60).Seconds().Do(jobRunner.AddFreeCreditsToEligibleUsers, jobs.NewJobLogger("FREE_CREDITS"))
 		// Sync stripe
