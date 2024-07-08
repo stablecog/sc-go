@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"os"
 	"strings"
 	"time"
 
@@ -131,6 +132,13 @@ func getDiscordWebhookBody(
 ) models.DiscordWebhookBody {
 	generationsStr := ""
 	generationsStrArr := []string{}
+
+	discordUserIdsStr := os.Getenv("DISCORD_USER_IDS")
+	var discordUserIds []string = []string{}
+	if discordUserIdsStr != "" {
+		discordUserIds = strings.Split(discordUserIdsStr, ",")
+	}
+
 	for _, g := range generations {
 		if g.Status == generation.StatusFailed && g.FailureReason != nil && *g.FailureReason == shared.NSFW_ERROR {
 			generationsStrArr = append(generationsStrArr, "🌶️")
@@ -145,7 +153,18 @@ func getDiscordWebhookBody(
 		}
 	}
 	generationsStr = strings.Join(generationsStrArr, "")
+
+	var content *string
+	if status != HEALTHY && len(discordUserIds) > 0 {
+		mentionStr := ""
+		for _, userId := range discordUserIds {
+			mentionStr += fmt.Sprintf("<@%s> ", userId)
+		}
+		content = &mentionStr
+	}
+
 	body := models.DiscordWebhookBody{
+		Content: content,
 		Embeds: []models.DiscordWebhookEmbed{
 			{
 				Color: 11437547,
