@@ -95,6 +95,8 @@ type SCEnv struct {
 	OgPreviewServiceToken string `env:"OG_PREVIEW_SERVICE_TOKEN" envDefault:""` // Og Service Token for preview service
 	// Vast.ai API Key
 	VastAiKey string `env:"VASTAI_KEY"` // Vast.ai Key
+	// SC Worker Tester API Key
+	ScWorkerTesterApiKey string `env:"SC_WORKER_TESTER_API_KEY" envDefault:""` // SC Worker Tester API Key
 }
 
 // The package-level instance and its initialization controls.

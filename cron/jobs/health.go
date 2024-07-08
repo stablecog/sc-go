@@ -6,12 +6,13 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"io"
+	"net/http"
+
 	"github.com/stablecog/sc-go/cron/discord"
 	"github.com/stablecog/sc-go/database/ent/generation"
 	"github.com/stablecog/sc-go/shared"
-	"io"
-	"net/http"
-	"os"
+	"github.com/stablecog/sc-go/utils"
 )
 
 // Considered failed if len(failures)/len(generations) > maxGenerationFailWithoutNSFWRate
@@ -72,10 +73,18 @@ func (j *JobRunner) CheckSCWorkerHealth(log Logger) error {
 	}
 
 	// Last successful generation is too old, do a test generation
-	if time.Now().Sub(lastSuccessfulGenerationTime).Minutes() > 5 {
-		err := CreateTestGeneration(log)
-		if err != nil {
+	apiKey := utils.GetEnv().ScWorkerTesterApiKey
+	var durationMinutes float64 = 5
+	if time.Now().Sub(lastSuccessfulGenerationTime).Minutes() > durationMinutes {
+		log.Infof(fmt.Sprintf("%f minutes since last successful generation", durationMinutes))
+		if apiKey == "" {
+			log.Infof("SC Worker tester API key not found -> Assuming unhealthy")
 			workerHealthStatus = discord.UNHEALTHY
+		} else {
+			err := CreateTestGeneration(log, apiKey)
+			if err != nil {
+				workerHealthStatus = discord.UNHEALTHY
+			}
 		}
 	}
 
@@ -103,8 +112,8 @@ type ResponseBody struct {
 	} `json:"outputs"`
 }
 
-func CreateTestGeneration(log Logger) error {
-	log.Infof("Creating test generation to check sc-worker health...")
+func CreateTestGeneration(log Logger, apiKey string) error {
+	log.Infof("Creating test generation to check SC Worker health...")
 
 	url := "https://api.stablecog.com/v1/image/generation/create"
 	prompt := "Sarı bir kedi"
@@ -121,42 +130,42 @@ func CreateTestGeneration(log Logger) error {
 
 	jsonData, err := json.Marshal(requestBody)
 	if err != nil {
-		log.Errorf("Test generation: Couldn't marshal json %v", err)
+		log.Errorf("SC Worker test generation: Couldn't marshal json %v", err)
 		return err
 	}
 
 	req, err := http.NewRequest("POST", url, bytes.NewBuffer(jsonData))
 	if err != nil {
-		log.Errorf("Test generation: Couldn't create request %v", err)
+		log.Errorf("SC Worker test generation: Couldn't create request %v", err)
 		return err
 	}
 
-	req.Header.Set("Authorization", "Bearer "+os.Getenv("SC_WORKER_TESTER_API_KEY"))
+	req.Header.Set("Authorization", "Bearer "+apiKey)
 
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
-		log.Errorf("Test generation: Couldn't send request %v", err)
+		log.Errorf("SC Worker test generation: Couldn't send request %v", err)
 		return err
 	}
 	defer resp.Body.Close()
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		log.Errorf("Test generation: Couldn't read response body %v", err)
+		log.Errorf("SC Worker test generation: Couldn't read response body %v", err)
 		return err
 	}
 
 	var responseBody ResponseBody
 	err = json.Unmarshal(body, &responseBody)
 	if err != nil {
-		log.Errorf("Test generation: Couldn't unmarshal response body %v", err)
+		log.Errorf("SC Worker test generation: Couldn't unmarshal response body %v", err)
 		return err
 	}
 
 	if len(responseBody.Outputs) == 0 {
-		log.Errorf("Test generation: No outputs in response")
-		return fmt.Errorf("Test generation: No outputs in response")
+		log.Errorf("SC Worker test generation: No outputs in response")
+		return fmt.Errorf("SC Worker test generation: No outputs in response")
 	}
 
 	return nil
