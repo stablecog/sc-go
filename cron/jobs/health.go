@@ -66,10 +66,12 @@ func (j *JobRunner) CheckSCWorkerHealth(log Logger) error {
 
 	// Figure out if we're healthy
 	failRate := float64(failedGenerations) / float64(len(generations))
+	unhealthyReasonCount := 0
 
 	// Fail rate is too high, fail
 	if failRate > maxGenerationFailWithoutNSFWRate {
 		workerHealthStatus = discord.UNHEALTHY
+		unhealthyReasonCount++
 	}
 
 	// Last successful generation is too old, do a test generation
@@ -87,6 +89,11 @@ func (j *JobRunner) CheckSCWorkerHealth(log Logger) error {
 				workerHealthStatus = discord.UNHEALTHY
 			}
 		}
+		unhealthyReasonCount++
+	}
+
+	if unhealthyReasonCount == 0 {
+		workerHealthStatus = discord.HEALTHY
 	}
 
 	log.Infof("Done checking health in %dms", time.Now().Sub(start).Milliseconds())
