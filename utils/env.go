@@ -137,7 +137,11 @@ func (e *SCEnv) GetDiscordUserIdsToNotify() []string {
 	if userIdsStr == "" {
 		return []string{}
 	}
-	return strings.Split(userIdsStr, ",")
+	ids := strings.Split(userIdsStr, ",")
+	for i := range ids {
+		ids[i] = strings.TrimSpace(ids[i])
+	}
+	return ids
 }
 
 func (e *SCEnv) GetURLFromAudioFilePath(s3UrlStr string) string {
