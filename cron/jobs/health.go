@@ -24,16 +24,12 @@ const successfulGenerationCountToCheck = 1
 
 const HEALTH_JOB_NAME = "HEALTH_JOB"
 
-var workerHealthStatus = discord.HEALTHY
-
-func GetSCWorkerHealthStatus() discord.HEALTH_STATUS {
-	return workerHealthStatus
-}
-
 // CheckHealth cron job
 func (j *JobRunner) CheckSCWorkerHealth(log Logger) error {
 	start := time.Now()
 	log.Infof("Checking health...")
+
+	workerHealthStatus := discord.HEALTHY
 
 	generations, err := j.Repo.GetGenerations(generationCountToCheck)
 	if err != nil || len(generations) == 0 {
@@ -66,12 +62,10 @@ func (j *JobRunner) CheckSCWorkerHealth(log Logger) error {
 
 	// Figure out if we're healthy
 	failRate := float64(failedGenerations) / float64(len(generations))
-	unhealthyReasonCount := 0
 
 	// Fail rate is too high, fail
 	if failRate > maxGenerationFailWithoutNSFWRate {
 		workerHealthStatus = discord.UNHEALTHY
-		unhealthyReasonCount++
 	}
 
 	// Last successful generation is too old, do a test generation
@@ -89,11 +83,6 @@ func (j *JobRunner) CheckSCWorkerHealth(log Logger) error {
 				workerHealthStatus = discord.UNHEALTHY
 			}
 		}
-		unhealthyReasonCount++
-	}
-
-	if unhealthyReasonCount == 0 {
-		workerHealthStatus = discord.HEALTHY
 	}
 
 	log.Infof("Done checking health in %dms", time.Now().Sub(start).Milliseconds())

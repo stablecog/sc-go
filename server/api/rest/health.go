@@ -5,8 +5,9 @@ import (
 
 	"github.com/go-chi/render"
 	"github.com/stablecog/sc-go/cron/discord"
-	"github.com/stablecog/sc-go/cron/jobs"
 )
+
+var healthTracker *discord.DiscordHealthTracker
 
 // GET health endpoint
 func (c *RestAPI) HandleHealth(w http.ResponseWriter, r *http.Request) {
@@ -17,11 +18,7 @@ func (c *RestAPI) HandleHealth(w http.ResponseWriter, r *http.Request) {
 }
 
 func (c *RestAPI) HandleSCWorkerHealth(w http.ResponseWriter, r *http.Request) {
-	healthStatus := jobs.GetSCWorkerHealthStatus()
 	status := "ok"
-	if healthStatus != discord.HEALTHY {
-		status = "unhealthy"
-	}
 	render.JSON(w, r, map[string]string{
 		"status": status,
 	})
