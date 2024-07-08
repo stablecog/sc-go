@@ -57,6 +57,8 @@ const REDIS_APITOKEN_COG_CHANNEL = "cog:apitoken_message"
 // This redis channel is for discord bot, when a user has connected their account
 const REDIS_DISCORD_COG_CHANNEL = "cog:discord_message"
 
+const REDIS_SC_WORKER_HEALTH_KEY = "sc_worker:health"
+
 // Allowed image extensions used by various APIs
 type ImageExtension string
 

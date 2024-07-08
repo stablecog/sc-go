@@ -87,6 +87,12 @@ func (j *JobRunner) CheckSCWorkerHealth(log Logger) error {
 
 	log.Infof("Done checking health in %dms", time.Now().Sub(start).Milliseconds())
 
+	// Write health status to redis
+	errRedis := j.Redis.Client.Set(j.Redis.Ctx, shared.REDIS_SC_WORKER_HEALTH_KEY, int(workerHealthStatus), 0).Err()
+	if errRedis != nil {
+		log.Errorf("Couldn't write SC Worker health status to Redis: %v", errRedis)
+	}
+
 	return j.Discord.SendDiscordNotificationIfNeeded(
 		workerHealthStatus,
 		generations,
