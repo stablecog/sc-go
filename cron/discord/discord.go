@@ -73,7 +73,7 @@ func (d *DiscordHealthTracker) SendDiscordNotificationIfNeeded(
 	shouldSkip := false
 	statusUnchanged := status == d.lastStatus
 
-	// The first time we run (UNKNOWN) we skip notification
+	// The first time we run we skip notification
 	if d.lastStatus == UNKNOWN {
 		shouldSkip = true
 	}
