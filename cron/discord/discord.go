@@ -88,9 +88,10 @@ func (d *DiscordHealthTracker) SendDiscordNotificationIfNeeded(
 		shouldSkip = true
 	}
 
+	d.lastStatus = status
+
 	if shouldSkip {
 		logInfo("Skipping Discord notification, not needed")
-		d.lastStatus = status
 		return nil
 	}
 
