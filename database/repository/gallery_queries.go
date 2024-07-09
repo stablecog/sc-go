@@ -348,7 +348,11 @@ func (r *Repository) RetrieveMostRecentGalleryDataV3(filters *requests.QueryGene
 	}
 
 	// Execute the query
-	rows, err := r.DB.QueryContext(context.Background(), baseQuery, args...)
+	db := r.DB
+	if filters.ForAdmin {
+		db = db.Debug()
+	}
+	rows, err := db.QueryContext(context.Background(), baseQuery, args...)
 	if err != nil {
 		return nil, nil, nil, fmt.Errorf("failed to execute query: %w", err)
 	}

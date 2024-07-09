@@ -422,6 +422,7 @@ func (c *RestAPI) HandleQueryGenerationsForAdminTest(w http.ResponseWriter, r *h
 	}
 
 	filters.ForHistory = true
+	filters.ForAdmin = true
 
 	// Test flag
 	generations, nextCursor, _, err := c.Repo.RetrieveMostRecentGalleryDataV3(filters, filters.UserID, perPage, cursor, nil)
