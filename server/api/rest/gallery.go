@@ -275,48 +275,26 @@ func (c *RestAPI) HandleSemanticSearchGallery(w http.ResponseWriter, r *http.Req
 		galleryData[i].UserID = nil
 	}
 
-	test := r.URL.Query().Get("test") == "true"
 	if search == "" {
 		render.Status(r, http.StatusOK)
 		if filters.OrderBy == requests.OrderByLikeCount || filters.OrderBy == requests.OrderByLikeCountTrending {
-			if test {
-				render.JSON(w, r, GalleryResponseV3[*int]{
-					Next:    nextOffsetPostgres,
-					Outputs: c.Repo.ConvertRawGalleryDataToV3Results(galleryData),
-				})
-			} else {
-				render.JSON(w, r, GalleryResponse[*int]{
-					Next: nextOffsetPostgres,
-					Hits: galleryData,
-				})
-			}
-			return
-		}
-		if test {
-			render.JSON(w, r, GalleryResponseV3[*time.Time]{
-				Next:    nextCursorPostgres,
+			render.JSON(w, r, GalleryResponseV3[*int]{
+				Next:    nextOffsetPostgres,
 				Outputs: c.Repo.ConvertRawGalleryDataToV3Results(galleryData),
 			})
-		} else {
-			render.JSON(w, r, GalleryResponse[*time.Time]{
-				Next: nextCursorPostgres,
-				Hits: galleryData,
-			})
+			return
 		}
+		render.JSON(w, r, GalleryResponseV3[*time.Time]{
+			Next:    nextCursorPostgres,
+			Outputs: c.Repo.ConvertRawGalleryDataToV3Results(galleryData),
+		})
 		return
 	}
 	render.Status(r, http.StatusOK)
-	if test {
-		render.JSON(w, r, GalleryResponseV3[*uint]{
-			Next:    nextCursorQdrant,
-			Outputs: c.Repo.ConvertRawGalleryDataToV3Results(galleryData),
-		})
-	} else {
-		render.JSON(w, r, GalleryResponse[*uint]{
-			Next: nextCursorQdrant,
-			Hits: galleryData,
-		})
-	}
+	render.JSON(w, r, GalleryResponseV3[*uint]{
+		Next:    nextCursorQdrant,
+		Outputs: c.Repo.ConvertRawGalleryDataToV3Results(galleryData),
+	})
 }
 
 type GalleryResponseCursor interface {
