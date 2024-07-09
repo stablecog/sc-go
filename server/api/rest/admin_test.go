@@ -11,7 +11,6 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/stablecog/sc-go/database/ent/generation"
 	"github.com/stablecog/sc-go/database/ent/generationoutput"
 	"github.com/stablecog/sc-go/database/repository"
 	"github.com/stablecog/sc-go/server/requests"
@@ -176,17 +175,16 @@ func TestHandleQueryGenerationsForAdminDefaultParams(t *testing.T) {
 	resp := w.Result()
 	defer resp.Body.Close()
 	assert.Equal(t, 200, resp.StatusCode)
-	var genResponse repository.GenerationQueryWithOutputsMeta[*time.Time]
+	var genResponse GalleryResponseV3[*time.Time]
 	respBody, _ := io.ReadAll(resp.Body)
 	json.Unmarshal(respBody, &genResponse)
 
-	assert.Equal(t, 6, *genResponse.Total)
+	assert.Equal(t, uint(6), *genResponse.Total)
 	assert.Len(t, genResponse.Outputs, 6)
 	assert.Nil(t, genResponse.Next)
 
 	// They should be in order of how we mocked them (descending)
 	assert.Equal(t, "This is a prompt 2", genResponse.Outputs[0].Generation.Prompt.Text)
-	assert.Equal(t, string(generation.StatusSucceeded), genResponse.Outputs[0].Generation.Status)
 	assert.NotNil(t, genResponse.Outputs[0].Generation.StartedAt)
 	assert.NotNil(t, genResponse.Outputs[0].Generation.CompletedAt)
 	assert.Nil(t, genResponse.Outputs[0].Generation.NegativePrompt)
@@ -196,15 +194,10 @@ func TestHandleQueryGenerationsForAdminDefaultParams(t *testing.T) {
 	assert.Equal(t, uuid.MustParse(repository.MOCK_SCHEDULER_ID), genResponse.Outputs[0].Generation.SchedulerID)
 	assert.Equal(t, int32(512), genResponse.Outputs[0].Generation.Width)
 	assert.Equal(t, int32(512), genResponse.Outputs[0].Generation.Height)
-	assert.Equal(t, "http://test.com/output_6", genResponse.Outputs[0].ImageUrl)
+	assert.Equal(t, "http://test.com/output_6", genResponse.Outputs[0].ImageURL)
 	assert.Equal(t, 1234, genResponse.Outputs[0].Generation.Seed)
-	assert.Len(t, genResponse.Outputs[0].Generation.Outputs, 3)
-	assert.Equal(t, "http://test.com/output_6", genResponse.Outputs[0].Generation.Outputs[0].ImageUrl)
-	assert.Equal(t, "http://test.com/output_5", genResponse.Outputs[0].Generation.Outputs[1].ImageUrl)
-	assert.Equal(t, "http://test.com/output_4", genResponse.Outputs[0].Generation.Outputs[2].ImageUrl)
 
 	assert.Equal(t, "This is a prompt 2", genResponse.Outputs[1].Generation.Prompt.Text)
-	assert.Equal(t, string(generation.StatusSucceeded), genResponse.Outputs[1].Generation.Status)
 	assert.NotNil(t, genResponse.Outputs[1].Generation.StartedAt)
 	assert.NotNil(t, genResponse.Outputs[1].Generation.CompletedAt)
 	assert.Nil(t, genResponse.Outputs[1].Generation.NegativePrompt)
@@ -214,11 +207,10 @@ func TestHandleQueryGenerationsForAdminDefaultParams(t *testing.T) {
 	assert.Equal(t, uuid.MustParse(repository.MOCK_SCHEDULER_ID), genResponse.Outputs[1].Generation.SchedulerID)
 	assert.Equal(t, int32(512), genResponse.Outputs[1].Generation.Width)
 	assert.Equal(t, int32(512), genResponse.Outputs[1].Generation.Height)
-	assert.Equal(t, "http://test.com/output_5", genResponse.Outputs[1].ImageUrl)
+	assert.Equal(t, "http://test.com/output_5", genResponse.Outputs[1].ImageURL)
 	assert.Equal(t, 1234, genResponse.Outputs[1].Generation.Seed)
 
 	assert.Equal(t, "This is a prompt 2", genResponse.Outputs[2].Generation.Prompt.Text)
-	assert.Equal(t, string(generation.StatusSucceeded), genResponse.Outputs[2].Generation.Status)
 	assert.NotNil(t, genResponse.Outputs[2].Generation.StartedAt)
 	assert.NotNil(t, genResponse.Outputs[2].Generation.CompletedAt)
 	assert.Nil(t, genResponse.Outputs[2].Generation.NegativePrompt)
@@ -228,11 +220,10 @@ func TestHandleQueryGenerationsForAdminDefaultParams(t *testing.T) {
 	assert.Equal(t, uuid.MustParse(repository.MOCK_SCHEDULER_ID), genResponse.Outputs[2].Generation.SchedulerID)
 	assert.Equal(t, int32(512), genResponse.Outputs[2].Generation.Width)
 	assert.Equal(t, int32(512), genResponse.Outputs[2].Generation.Height)
-	assert.Equal(t, "http://test.com/output_4", genResponse.Outputs[2].ImageUrl)
+	assert.Equal(t, "http://test.com/output_4", genResponse.Outputs[2].ImageURL)
 	assert.Equal(t, 1234, genResponse.Outputs[2].Generation.Seed)
 
 	assert.Equal(t, "This is a prompt", genResponse.Outputs[3].Generation.Prompt.Text)
-	assert.Equal(t, string(generation.StatusSucceeded), genResponse.Outputs[3].Generation.Status)
 	assert.NotNil(t, genResponse.Outputs[3].Generation.StartedAt)
 	assert.NotNil(t, genResponse.Outputs[3].Generation.CompletedAt)
 	assert.Equal(t, "This is a negative prompt", genResponse.Outputs[3].Generation.NegativePrompt.Text)
@@ -242,7 +233,7 @@ func TestHandleQueryGenerationsForAdminDefaultParams(t *testing.T) {
 	assert.Equal(t, uuid.MustParse(repository.MOCK_SCHEDULER_ID), genResponse.Outputs[3].Generation.SchedulerID)
 	assert.Equal(t, int32(512), genResponse.Outputs[3].Generation.Width)
 	assert.Equal(t, int32(512), genResponse.Outputs[3].Generation.Height)
-	assert.Equal(t, "http://test.com/output_3", genResponse.Outputs[3].ImageUrl)
+	assert.Equal(t, "http://test.com/output_3", genResponse.Outputs[3].ImageURL)
 	assert.Equal(t, 1234, genResponse.Outputs[3].Generation.Seed)
 }
 
@@ -266,7 +257,7 @@ func TestHandleQueryGenerationsAdminCursor(t *testing.T) {
 	resp := w.Result()
 	defer resp.Body.Close()
 	assert.Equal(t, 200, resp.StatusCode)
-	var genResponse repository.GenerationQueryWithOutputsMeta[*time.Time]
+	var genResponse GalleryResponseV3[*time.Time]
 	respBody, _ := io.ReadAll(resp.Body)
 	json.Unmarshal(respBody, &genResponse)
 
@@ -275,7 +266,6 @@ func TestHandleQueryGenerationsAdminCursor(t *testing.T) {
 
 	// Get tiemstamp of first item so we can exclude it in "second page"
 	assert.Equal(t, "This is a prompt 2", genResponse.Outputs[0].Generation.Prompt.Text)
-	assert.Equal(t, string(generation.StatusSucceeded), genResponse.Outputs[0].Generation.Status)
 	assert.NotNil(t, genResponse.Outputs[0].Generation.StartedAt)
 	assert.NotNil(t, genResponse.Outputs[0].Generation.CompletedAt)
 	assert.Nil(t, genResponse.Outputs[0].Generation.NegativePrompt)
@@ -285,7 +275,7 @@ func TestHandleQueryGenerationsAdminCursor(t *testing.T) {
 	assert.Equal(t, uuid.MustParse(repository.MOCK_SCHEDULER_ID), genResponse.Outputs[0].Generation.SchedulerID)
 	assert.Equal(t, int32(512), genResponse.Outputs[0].Generation.Width)
 	assert.Equal(t, int32(512), genResponse.Outputs[0].Generation.Height)
-	assert.Equal(t, "http://test.com/output_6", genResponse.Outputs[0].ImageUrl)
+	assert.Equal(t, "http://test.com/output_6", genResponse.Outputs[0].ImageURL)
 	assert.Equal(t, 1234, genResponse.Outputs[0].Generation.Seed)
 
 	// With cursor off most recent item, we should get next items
@@ -302,7 +292,7 @@ func TestHandleQueryGenerationsAdminCursor(t *testing.T) {
 	defer resp.Body.Close()
 	assert.Equal(t, 200, resp.StatusCode)
 	respBody, _ = io.ReadAll(resp.Body)
-	genResponse = repository.GenerationQueryWithOutputsMeta[*time.Time]{}
+	genResponse = GalleryResponseV3[*time.Time]{}
 	json.Unmarshal(respBody, &genResponse)
 
 	assert.Nil(t, genResponse.Total)
@@ -330,15 +320,14 @@ func TestHandleQueryGenerationsAdminPerPage(t *testing.T) {
 	resp := w.Result()
 	defer resp.Body.Close()
 	assert.Equal(t, 200, resp.StatusCode)
-	var genResponse repository.GenerationQueryWithOutputsMeta[*time.Time]
+	var genResponse GalleryResponseV3[*time.Time]
 	respBody, _ := io.ReadAll(resp.Body)
 	json.Unmarshal(respBody, &genResponse)
 
 	assert.Len(t, genResponse.Outputs, 1)
-	assert.Equal(t, *genResponse.Next, *genResponse.Outputs[0].CreatedAt)
+	assert.Equal(t, *genResponse.Next, genResponse.Outputs[0].CreatedAt)
 
 	assert.Equal(t, "This is a prompt 2", genResponse.Outputs[0].Generation.Prompt.Text)
-	assert.Equal(t, string(generation.StatusSucceeded), genResponse.Outputs[0].Generation.Status)
 	assert.NotNil(t, genResponse.Outputs[0].Generation.StartedAt)
 	assert.NotNil(t, genResponse.Outputs[0].Generation.CompletedAt)
 	assert.Nil(t, genResponse.Outputs[0].Generation.NegativePrompt)
@@ -348,7 +337,7 @@ func TestHandleQueryGenerationsAdminPerPage(t *testing.T) {
 	assert.Equal(t, uuid.MustParse(repository.MOCK_SCHEDULER_ID), genResponse.Outputs[0].Generation.SchedulerID)
 	assert.Equal(t, int32(512), genResponse.Outputs[0].Generation.Width)
 	assert.Equal(t, int32(512), genResponse.Outputs[0].Generation.Height)
-	assert.Equal(t, "http://test.com/output_6", genResponse.Outputs[0].ImageUrl)
+	assert.Equal(t, "http://test.com/output_6", genResponse.Outputs[0].ImageURL)
 	assert.Equal(t, 1234, genResponse.Outputs[0].Generation.Seed)
 }
 
@@ -372,15 +361,14 @@ func TestHandleQueryGenerationsAdminGalleryLevel(t *testing.T) {
 	resp := w.Result()
 	defer resp.Body.Close()
 	assert.Equal(t, 200, resp.StatusCode)
-	var genResponse repository.GenerationQueryWithOutputsMeta[*time.Time]
+	var genResponse GalleryResponseV3[*time.Time]
 	respBody, _ := io.ReadAll(resp.Body)
 	json.Unmarshal(respBody, &genResponse)
 
 	assert.Len(t, genResponse.Outputs, 1)
-	assert.Equal(t, *genResponse.Next, *genResponse.Outputs[0].CreatedAt)
+	assert.Equal(t, *genResponse.Next, genResponse.Outputs[0].CreatedAt)
 
 	assert.Equal(t, "This is a prompt 2", genResponse.Outputs[0].Generation.Prompt.Text)
-	assert.Equal(t, string(generation.StatusSucceeded), genResponse.Outputs[0].Generation.Status)
 	assert.NotNil(t, genResponse.Outputs[0].Generation.StartedAt)
 	assert.NotNil(t, genResponse.Outputs[0].Generation.CompletedAt)
 	assert.Nil(t, genResponse.Outputs[0].Generation.NegativePrompt)
@@ -390,7 +378,7 @@ func TestHandleQueryGenerationsAdminGalleryLevel(t *testing.T) {
 	assert.Equal(t, uuid.MustParse(repository.MOCK_SCHEDULER_ID), genResponse.Outputs[0].Generation.SchedulerID)
 	assert.Equal(t, int32(512), genResponse.Outputs[0].Generation.Width)
 	assert.Equal(t, int32(512), genResponse.Outputs[0].Generation.Height)
-	assert.Equal(t, "http://test.com/output_6", genResponse.Outputs[0].ImageUrl)
+	assert.Equal(t, "http://test.com/output_6", genResponse.Outputs[0].ImageURL)
 	assert.Equal(t, 1234, genResponse.Outputs[0].Generation.Seed)
 }
 
