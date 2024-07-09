@@ -490,7 +490,8 @@ func (r *Repository) RetrieveMostRecentGalleryDataV3(filters *requests.QueryGene
 				*nextOffset = *offset + len(results)
 			}
 		} else {
-			nextCursor = &results[len(results)-1].CreatedAt
+			next := results[len(results)-1].CreatedAt
+			nextCursor = &next
 		}
 	}
 
