@@ -310,9 +310,9 @@ func (r *Repository) RetrieveMostRecentGalleryDataV3(filters *requests.QueryGene
 	// Apply the cursor if timestamp
 	if cursor != nil {
 		if orderDir == "desc" {
-			baseQuery += fmt.Sprintf(" AND g.created_at < $%d", argPos)
+			baseQuery += fmt.Sprintf(" AND go.created_at < $%d", argPos)
 		} else {
-			baseQuery += fmt.Sprintf(" AND g.created_at > $%d", argPos)
+			baseQuery += fmt.Sprintf(" AND go.created_at > $%d", argPos)
 		}
 		args = append(args, *cursor)
 		argPos++
@@ -340,6 +340,10 @@ func (r *Repository) RetrieveMostRecentGalleryDataV3(filters *requests.QueryGene
 	// Apply offset if not using timestamp cursor
 	if cursor == nil && offset != nil {
 		baseQuery += fmt.Sprintf(" OFFSET $%d", argPos)
+		if *offset > 50000 {
+			// Limit offset to 50k
+			*offset = 50000
+		}
 		args = append(args, *offset)
 	}
 
