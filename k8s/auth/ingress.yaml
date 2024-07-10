@@ -23,10 +23,10 @@ metadata:
 spec:
   tls:
     - hosts:
-        - authk3s.stablecog.com
-      secretName: authk3s-stablecog-com-auth-secret-3
+        - auth.stablecog.com
+      secretName: auth-stablecog-com-auth-secret-3
   rules:
-    - host: authk3s.stablecog.com
+    - host: auth.stablecog.com
       http:
         paths:
           - path: /
