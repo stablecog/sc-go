@@ -133,6 +133,9 @@ func main() {
 			}
 		}
 	})
+	// Start cron
+	cronSscheduler.StartAsync()
+
 	// Safety checker
 	safetyChecker := utils.NewTranslatorSafetyChecker(ctx, utils.GetEnv().OpenAIApiKey, false)
 
