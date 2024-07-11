@@ -156,7 +156,7 @@ func (r *Repository) RetrieveMostRecentGalleryDataV3(filters *requests.QueryGene
 
 	var galleryStatusFilter []generationoutput.GalleryStatus
 
-	if filters != nil && filters.ForHistory {
+	if filters != nil && (filters.ForHistory || filters.ForProfile) {
 		galleryStatusFilter = filters.GalleryStatus
 	} else {
 		galleryStatusFilter = []generationoutput.GalleryStatus{generationoutput.GalleryStatusApproved}
