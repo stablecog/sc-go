@@ -63,9 +63,8 @@ func (c *RestAPI) HandleSemanticSearchGallery(w http.ResponseWriter, r *http.Req
 		galleryData.UserID = nil
 
 		render.Status(r, http.StatusOK)
-		render.JSON(w, r, GalleryResponse[int]{
-			Page: 1,
-			Hits: []repository.GalleryData{*galleryData},
+		render.JSON(w, r, GalleryResponseV3[int]{
+			Outputs: c.Repo.ConvertRawGalleryDataToV3Results([]repository.GalleryData{*galleryData}),
 		})
 		return
 	}
@@ -123,9 +122,9 @@ func (c *RestAPI) HandleSemanticSearchGallery(w http.ResponseWriter, r *http.Req
 			}
 			if len(userIDs) == 0 {
 				render.Status(r, http.StatusOK)
-				render.JSON(w, r, GalleryResponse[*uint]{
-					Next: nextCursorQdrant,
-					Hits: galleryData,
+				render.JSON(w, r, GalleryResponseV3[*uint]{
+					Next:    nextCursorQdrant,
+					Outputs: c.Repo.ConvertRawGalleryDataToV3Results(galleryData),
 				})
 				return
 			}
@@ -299,14 +298,6 @@ func (c *RestAPI) HandleSemanticSearchGallery(w http.ResponseWriter, r *http.Req
 
 type GalleryResponseCursor interface {
 	*uint | *time.Time | int | *int
-}
-
-type GalleryResponse[T GalleryResponseCursor] struct {
-	Total    *uint                    `json:"total,omitempty"`
-	Next     T                        `json:"next,omitempty"`
-	Page     int                      `json:"page"`
-	Hits     []repository.GalleryData `json:"hits"`
-	Metadata *UserProfileMetadata     `json:"metadata,omitempty"`
 }
 
 type GalleryResponseV3[T GalleryResponseCursor] struct {

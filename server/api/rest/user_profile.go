@@ -114,9 +114,9 @@ func (c *RestAPI) HandleUserProfileSemanticSearch(w http.ResponseWriter, r *http
 	// Only don't do this if super admin and admin mode is true
 	if user.BannedAt != nil && user.ScheduledForDeletionOn != nil && !isSuperAdmin && (filters.AdminMode == nil || !*filters.AdminMode) {
 		render.Status(r, http.StatusOK)
-		render.JSON(w, r, GalleryResponse[*uint]{
+		render.JSON(w, r, GalleryResponseV3[*uint]{
 			Next:     nil,
-			Hits:     []repository.GalleryData{},
+			Outputs:  []repository.V3GenerationOutputResult{},
 			Metadata: metadata,
 		})
 		return
@@ -147,9 +147,8 @@ func (c *RestAPI) HandleUserProfileSemanticSearch(w http.ResponseWriter, r *http
 		galleryData.UserID = nil
 
 		render.Status(r, http.StatusOK)
-		render.JSON(w, r, GalleryResponse[int]{
-			Page:     1,
-			Hits:     []repository.GalleryData{*galleryData},
+		render.JSON(w, r, GalleryResponseV3[int]{
+			Outputs:  c.Repo.ConvertRawGalleryDataToV3Results([]repository.GalleryData{*galleryData}),
 			Metadata: metadata,
 		})
 		return
@@ -297,36 +296,19 @@ func (c *RestAPI) HandleUserProfileSemanticSearch(w http.ResponseWriter, r *http
 		galleryData[i].UserID = nil
 	}
 
-	test := r.URL.Query().Get("test") == "true"
 	if search == "" {
 		render.Status(r, http.StatusOK)
-		if test {
-			render.JSON(w, r, GalleryResponseV3[*time.Time]{
-				Next:     nextCursorPostgres,
-				Outputs:  c.Repo.ConvertRawGalleryDataToV3Results(galleryData),
-				Metadata: metadata,
-			})
-		} else {
-			render.JSON(w, r, GalleryResponse[*time.Time]{
-				Next:     nextCursorPostgres,
-				Hits:     galleryData,
-				Metadata: metadata,
-			})
-		}
-		return
-	}
-	render.Status(r, http.StatusOK)
-	if test {
-		render.JSON(w, r, GalleryResponseV3[*uint]{
-			Next:     nextCursorQdrant,
+		render.JSON(w, r, GalleryResponseV3[*time.Time]{
+			Next:     nextCursorPostgres,
 			Outputs:  c.Repo.ConvertRawGalleryDataToV3Results(galleryData),
 			Metadata: metadata,
 		})
 		return
 	}
-	render.JSON(w, r, GalleryResponse[*uint]{
+	render.Status(r, http.StatusOK)
+	render.JSON(w, r, GalleryResponseV3[*uint]{
 		Next:     nextCursorQdrant,
-		Hits:     galleryData,
+		Outputs:  c.Repo.ConvertRawGalleryDataToV3Results(galleryData),
 		Metadata: metadata,
 	})
 }
