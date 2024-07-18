@@ -1338,3 +1338,5 @@ ALTER TYPE public.generation_output_gallery_status_enum ADD VALUE 'waiting_to_ap
 -- Alter to add waiting_to_approve to gallery_status_enum
 ALTER TYPE generation_output_gallery_status_enum
 RENAME VALUE 'waiting_to_approve' TO 'waiting_for_approval';
+
+create index generation_width_height_idx on generations(width, height);
