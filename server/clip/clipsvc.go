@@ -55,6 +55,9 @@ func NewClipService(redis *database.RedisWrapper, safetyChecker *utils.Translato
 func (c *ClipService) UpdateURLsFromCache() {
 	urls := shared.GetCache().GetClipUrls()
 	// Compare existing slice
+	if len(urls) == 0 {
+		return
+	}
 	if slices.Compare(urls, c.urls) != 0 {
 		c.mu.Lock()
 		defer c.mu.Unlock()
@@ -93,6 +96,14 @@ func (c *ClipService) GetEmbeddingFromText(text string, retries int, translate b
 		return nil, err
 	}
 	c.mu.RLock()
+	if len(c.urls) == 0 {
+		c.mu.RUnlock()
+		return nil, errors.New("no URLs available")
+	}
+	// Ensure activeUrl isn't out of range
+	if c.activeUrl >= len(c.urls) {
+		c.activeUrl = 0
+	}
 	url := c.urls[c.activeUrl]
 	c.mu.RUnlock()
 	request, _ := http.NewRequest(http.MethodPost, url, bytes.NewReader(b))
