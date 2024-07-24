@@ -60,6 +60,9 @@ func NewTranslatorSafetyChecker(ctx context.Context, openaiKey string, disable b
 
 func (t *TranslatorSafetyChecker) UpdateURLsFromCache() {
 	urls := shared.GetCache().GetNLLBUrls()
+	if len(urls) == 0 {
+		return
+	}
 	// Compare existing slice
 	if slices.Compare(urls, t.urls) != 0 {
 		t.rwmu.Lock()
@@ -194,6 +197,14 @@ func (t *TranslatorSafetyChecker) TranslatePrompt(prompt string, negativePrompt 
 
 	// Get URL to request to
 	t.rwmu.RLock()
+	if len(t.urls) == 0 {
+		t.rwmu.RUnlock()
+		return "", "", errors.New("no URLs available")
+	}
+	// Ensure activeUrl isn't out of range
+	if t.activeUrl >= len(t.urls) {
+		t.activeUrl = 0
+	}
 	url := t.urls[t.activeUrl]
 	t.rwmu.RUnlock()
 
