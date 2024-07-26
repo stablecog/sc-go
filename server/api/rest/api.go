@@ -16,8 +16,8 @@ import (
 	"github.com/stablecog/sc-go/server/requests"
 	"github.com/stablecog/sc-go/server/responses"
 	"github.com/stablecog/sc-go/server/scworker"
+	"github.com/stablecog/sc-go/server/translator"
 	"github.com/stablecog/sc-go/shared"
-	"github.com/stablecog/sc-go/utils"
 	stripe "github.com/stripe/stripe-go/v74/client"
 )
 
@@ -35,7 +35,7 @@ type RestAPI struct {
 	S3             *s3.S3
 	Qdrant         *qdrant.QdrantClient
 	Clip           *clip.ClipService
-	SafetyChecker  *utils.TranslatorSafetyChecker
+	SafetyChecker  *translator.TranslatorSafetyChecker
 	SCWorker       *scworker.SCWorker
 	// For API key requests to track them
 	SMap *shared.SyncMap[chan requests.CogWebhookMessage]

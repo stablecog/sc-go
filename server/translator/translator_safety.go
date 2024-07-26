@@ -1,4 +1,4 @@
-package utils
+package translator
 
 import (
 	"bytes"
@@ -13,8 +13,10 @@ import (
 	"golang.org/x/exp/slices"
 
 	openai "github.com/sashabaranov/go-openai"
+	"github.com/stablecog/sc-go/database"
 	"github.com/stablecog/sc-go/log"
 	"github.com/stablecog/sc-go/shared"
+	"github.com/stablecog/sc-go/utils"
 )
 
 const TARGET_FLORES_CODE = "eng_Latn"
@@ -25,6 +27,7 @@ type TranslatorSafetyChecker struct {
 	Ctx             context.Context
 	TargetFloresUrl string
 	OpenaiClient    *openai.Client
+	Redis           *database.RedisWrapper
 	// TODO - mock better for testing, this just disables
 	Disable   bool
 	activeUrl int
@@ -42,14 +45,15 @@ func (t *TranslatorSafetyChecker) RoundTrip(r *http.Request) (*http.Response, er
 	return t.r.RoundTrip(r)
 }
 
-func NewTranslatorSafetyChecker(ctx context.Context, openaiKey string, disable bool) *TranslatorSafetyChecker {
+func NewTranslatorSafetyChecker(ctx context.Context, openaiKey string, disable bool, redis *database.RedisWrapper) *TranslatorSafetyChecker {
 	checker := &TranslatorSafetyChecker{
 		Ctx:             ctx,
-		TargetFloresUrl: GetEnv().PrivateLinguaAPIUrl,
+		TargetFloresUrl: utils.GetEnv().PrivateLinguaAPIUrl,
 		OpenaiClient:    openai.NewClient(openaiKey),
 		Disable:         disable,
-		secret:          GetEnv().NllbAPISecret,
+		secret:          utils.GetEnv().NllbAPISecret,
 		r:               http.DefaultTransport,
+		Redis:           redis,
 	}
 	checker.client = &http.Client{
 		Timeout:   10 * time.Second,
@@ -135,6 +139,23 @@ type TranslatorCogResponse struct {
 
 // Send translation to the translator cog
 func (t *TranslatorSafetyChecker) TranslatePrompt(prompt string, negativePrompt string) (translatedPrompt string, translatedNegativePrompt string, err error) {
+	// See if we can get the translation from cache
+	var translatedNegativePromptCacheKey string
+	translatedPromptCacheKey := utils.Sha256(prompt)
+	if negativePrompt != "" {
+		translatedNegativePromptCacheKey = utils.Sha256(negativePrompt)
+	}
+	var cacheErr error
+	translatedPrompt, cacheErr = t.Redis.GetTranslation(t.Ctx, translatedPromptCacheKey)
+	if cacheErr == nil {
+		if negativePrompt != "" {
+			translatedNegativePrompt, cacheErr = t.Redis.GetTranslation(t.Ctx, translatedNegativePromptCacheKey)
+		}
+		if cacheErr == nil {
+			return translatedPrompt, translatedNegativePrompt, nil
+		}
+	}
+
 	t.UpdateURLsFromCache()
 
 	// Prevent many calls to the translator cog
@@ -244,6 +265,18 @@ func (t *TranslatorSafetyChecker) TranslatePrompt(prompt string, negativePrompt 
 			translatedPrompt = output
 		} else {
 			translatedNegativePrompt = output
+		}
+	}
+
+	// Update in cache
+	err = t.Redis.CacheTranslation(t.Ctx, translatedPromptCacheKey, translatedPrompt)
+	if err != nil {
+		log.Error("Error caching translated prompt", "err", err)
+	}
+	if negativePrompt != "" {
+		err = t.Redis.CacheTranslation(t.Ctx, translatedNegativePromptCacheKey, translatedNegativePrompt)
+		if err != nil {
+			log.Error("Error caching translated negative prompt", "err", err)
 		}
 	}
 

@@ -41,6 +41,7 @@ import (
 	"github.com/stablecog/sc-go/server/requests"
 	"github.com/stablecog/sc-go/server/responses"
 	"github.com/stablecog/sc-go/server/scworker"
+	"github.com/stablecog/sc-go/server/translator"
 	"github.com/stablecog/sc-go/shared"
 	"github.com/stablecog/sc-go/shared/queue"
 	uapi "github.com/stablecog/sc-go/uploadapi/api"
@@ -1007,7 +1008,7 @@ func main() {
 
 	// Create controller
 	apiTokenSmap := shared.NewSyncMap[chan requests.CogWebhookMessage]()
-	safetyChecker := utils.NewTranslatorSafetyChecker(ctx, utils.GetEnv().OpenAIApiKey, false)
+	safetyChecker := translator.NewTranslatorSafetyChecker(ctx, utils.GetEnv().OpenAIApiKey, false, redis)
 	hc := rest.RestAPI{
 		Repo:           repo,
 		Redis:          redis,

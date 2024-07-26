@@ -24,6 +24,7 @@ import (
 	"github.com/stablecog/sc-go/server/analytics"
 	"github.com/stablecog/sc-go/server/requests"
 	"github.com/stablecog/sc-go/server/responses"
+	"github.com/stablecog/sc-go/server/translator"
 	"github.com/stablecog/sc-go/shared"
 	"github.com/stablecog/sc-go/shared/queue"
 	"github.com/stablecog/sc-go/utils"
@@ -137,7 +138,7 @@ func main() {
 	cronSscheduler.StartAsync()
 
 	// Safety checker
-	safetyChecker := utils.NewTranslatorSafetyChecker(ctx, utils.GetEnv().OpenAIApiKey, false)
+	safetyChecker := translator.NewTranslatorSafetyChecker(ctx, utils.GetEnv().OpenAIApiKey, false, redis)
 
 	// Create analytics service
 	analyticsService := analytics.NewAnalyticsService()

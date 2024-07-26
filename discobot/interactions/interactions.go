@@ -13,6 +13,7 @@ import (
 	"github.com/stablecog/sc-go/server/clip"
 	"github.com/stablecog/sc-go/server/requests"
 	"github.com/stablecog/sc-go/server/scworker"
+	"github.com/stablecog/sc-go/server/translator"
 	"github.com/stablecog/sc-go/shared"
 	"github.com/stablecog/sc-go/shared/queue"
 	"github.com/stablecog/sc-go/utils"
@@ -25,7 +26,7 @@ func NewDiscordInteractionWrapper(
 	supabase *database.SupabaseAuth,
 	sMap *shared.SyncMap[chan requests.CogWebhookMessage],
 	qThrottler *shared.UserQueueThrottlerMap,
-	safetyChecker *utils.TranslatorSafetyChecker,
+	safetyChecker *translator.TranslatorSafetyChecker,
 	track *analytics.AnalyticsService,
 	LoginInteractionMap *shared.SyncMap[*LoginInteraction],
 	MQClient queue.MQClient,

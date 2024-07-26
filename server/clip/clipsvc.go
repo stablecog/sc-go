@@ -16,6 +16,7 @@ import (
 	"github.com/stablecog/sc-go/database"
 	"github.com/stablecog/sc-go/log"
 	"github.com/stablecog/sc-go/server/responses"
+	"github.com/stablecog/sc-go/server/translator"
 	"github.com/stablecog/sc-go/shared"
 	"github.com/stablecog/sc-go/utils"
 )
@@ -29,7 +30,7 @@ type ClipService struct {
 	secret        string
 	client        *http.Client
 	mu            sync.RWMutex
-	SafetyChecker *utils.TranslatorSafetyChecker
+	SafetyChecker *translator.TranslatorSafetyChecker
 }
 
 func (c *ClipService) RoundTrip(r *http.Request) (*http.Response, error) {
@@ -38,7 +39,7 @@ func (c *ClipService) RoundTrip(r *http.Request) (*http.Response, error) {
 	return c.r.RoundTrip(r)
 }
 
-func NewClipService(redis *database.RedisWrapper, safetyChecker *utils.TranslatorSafetyChecker) *ClipService {
+func NewClipService(redis *database.RedisWrapper, safetyChecker *translator.TranslatorSafetyChecker) *ClipService {
 	svc := &ClipService{
 		secret:        utils.GetEnv().ClipAPISecret,
 		r:             http.DefaultTransport,

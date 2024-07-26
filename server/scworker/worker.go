@@ -6,9 +6,9 @@ import (
 	"github.com/stablecog/sc-go/database/repository"
 	"github.com/stablecog/sc-go/server/analytics"
 	"github.com/stablecog/sc-go/server/requests"
+	"github.com/stablecog/sc-go/server/translator"
 	"github.com/stablecog/sc-go/shared"
 	"github.com/stablecog/sc-go/shared/queue"
-	"github.com/stablecog/sc-go/utils"
 )
 
 type SCWorker struct {
@@ -17,7 +17,7 @@ type SCWorker struct {
 	SMap           *shared.SyncMap[chan requests.CogWebhookMessage]
 	QueueThrottler *shared.UserQueueThrottlerMap
 	Track          *analytics.AnalyticsService
-	SafetyChecker  *utils.TranslatorSafetyChecker
+	SafetyChecker  *translator.TranslatorSafetyChecker
 	S3Img          *s3.S3
 	S3             *s3.S3
 	MQClient       queue.MQClient

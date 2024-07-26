@@ -228,6 +228,30 @@ func (r *RedisWrapper) GetEmbeddings(ctx context.Context, key string) ([]float32
 	return embedding, nil
 }
 
+// Caching translations
+func (r *RedisWrapper) CacheTranslation(ctx context.Context, key string, translation string) error {
+	// Set translation in redis
+	err := r.Client.Set(ctx, fmt.Sprintf("translate:%s", key), translation, 24*time.Hour).Err()
+	if err != nil {
+		log.Error("Error caching embedding", "err", err)
+		return err
+	}
+	return nil
+}
+
+// Retrieve from cache
+func (r *RedisWrapper) GetTranslation(ctx context.Context, key string) (string, error) {
+	// Get embedding from redis
+	b, err := r.Client.Get(ctx, fmt.Sprintf("translate:%s", key)).Bytes()
+	if err != nil {
+		if err != redis.Nil {
+			log.Error("Error getting embedding from cache", "err", err)
+		}
+		return "", err
+	}
+	return string(b), nil
+}
+
 // Discord bot
 
 // Set verify token and return token

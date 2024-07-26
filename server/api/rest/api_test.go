@@ -13,6 +13,7 @@ import (
 	"github.com/stablecog/sc-go/server/analytics"
 	"github.com/stablecog/sc-go/server/api/sse"
 	"github.com/stablecog/sc-go/server/scworker"
+	"github.com/stablecog/sc-go/server/translator"
 	"github.com/stablecog/sc-go/shared"
 	"github.com/stablecog/sc-go/shared/queue"
 	"github.com/stablecog/sc-go/utils"
@@ -107,13 +108,13 @@ func testMainWrapper(m *testing.M) int {
 		Hub:            hub,
 		Track:          analytics.NewAnalyticsService(),
 		QueueThrottler: qThrottler,
-		SafetyChecker:  utils.NewTranslatorSafetyChecker(ctx, "", true),
+		SafetyChecker:  translator.NewTranslatorSafetyChecker(ctx, "", true, redis),
 		SCWorker: &scworker.SCWorker{
 			Repo:           repo,
 			Redis:          redis,
 			QueueThrottler: qThrottler,
 			Track:          analytics.NewAnalyticsService(),
-			SafetyChecker:  utils.NewTranslatorSafetyChecker(ctx, "", true),
+			SafetyChecker:  translator.NewTranslatorSafetyChecker(ctx, "", true, redis),
 			MQClient:       mockClient,
 		},
 	}
