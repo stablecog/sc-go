@@ -164,17 +164,21 @@ func (t *TranslatorSafetyChecker) TranslatePrompt(prompt string, negativePrompt 
 
 	// Cache hit for prompt and negative prompt
 	if promptCacheErr == nil && negativePromptCacheErr == nil {
+		log.Infof("🈳🟢 Cache hit for prompt and negative prompt, returning: %s • %s /// %s • %s", prompt, promptCacheRes, negativePrompt, negativePromptCacheRes)
 		return promptCacheRes, negativePromptCacheRes, nil
 	}
 	// Cache hit for prompt, no negative prompt
 	if promptCacheErr == nil && (negativePrompt == "") {
+		log.Infof("🈳🟢 Cache hit for prompt, no negative prompt, returning: %s • %s", prompt, promptCacheRes)
 		return promptCacheRes, negativePrompt, nil
 	}
 
 	if promptCacheErr == nil {
+		log.Infof("🈳🟠 Partial cache hit for prompt: %s • %s", prompt, promptCacheRes)
 		translatedPrompt = promptCacheRes
 	}
 	if negativePromptCacheErr == nil {
+		log.Infof("🈳🟠 Partial cache hit for negative prompt: %s • %s", prompt, promptCacheRes)
 		translatedNegativePrompt = negativePromptCacheRes
 	}
 
@@ -231,7 +235,8 @@ func (t *TranslatorSafetyChecker) TranslatePrompt(prompt string, negativePrompt 
 			return prompt, negativePrompt, promptErr
 		} else {
 			translatedPrompt = promptRes.Choices[0].Message.Content
-			// Update in cache
+			log.Infof("🈳✅ Translated prompt: %s • %s", prompt, translatedPrompt)
+			// Update cache
 			err = t.Redis.CacheTranslation(t.Ctx, promptCacheKey, translatedPrompt)
 			if err != nil {
 				log.Error("Error caching translated prompt", "err", err)
@@ -261,6 +266,8 @@ func (t *TranslatorSafetyChecker) TranslatePrompt(prompt string, negativePrompt 
 			return prompt, negativePrompt, negativePromptErr
 		} else {
 			translatedNegativePrompt = negativePromptRes.Choices[0].Message.Content
+			log.Infof("🈳✅ Translated negative prompt: %s • %s", negativePrompt, translatedNegativePrompt)
+			// Update cache
 			if negativePrompt != "" {
 				err = t.Redis.CacheTranslation(t.Ctx, negativePromptCacheKey, translatedNegativePrompt)
 				if err != nil {
