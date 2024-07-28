@@ -7,15 +7,10 @@ import (
 	"errors"
 	"net/http"
 	"strings"
-	"sync"
-	"time"
-
-	"golang.org/x/exp/slices"
 
 	openai "github.com/sashabaranov/go-openai"
 	"github.com/stablecog/sc-go/database"
 	"github.com/stablecog/sc-go/log"
-	"github.com/stablecog/sc-go/shared"
 	"github.com/stablecog/sc-go/utils"
 )
 
@@ -30,49 +25,20 @@ type TranslatorSafetyChecker struct {
 	OpenaiClient    *openai.Client
 	Redis           *database.RedisWrapper
 	// TODO - mock better for testing, this just disables
-	Disable   bool
-	activeUrl int
-	urls      []string
-	r         http.RoundTripper
-	secret    string
-	client    *http.Client
-	mu        sync.Mutex
-	rwmu      sync.RWMutex
-}
-
-func (t *TranslatorSafetyChecker) RoundTrip(r *http.Request) (*http.Response, error) {
-	r.Header.Add("Authorization", t.secret)
-	r.Header.Add("Content-Type", "application/json")
-	return t.r.RoundTrip(r)
+	Disable    bool
+	activeUrl  int
+	urls       []string
+	HTTPClient *http.Client
 }
 
 func NewTranslatorSafetyChecker(ctx context.Context, openaiKey string, disable bool, redis *database.RedisWrapper) *TranslatorSafetyChecker {
-	checker := &TranslatorSafetyChecker{
+	return &TranslatorSafetyChecker{
 		Ctx:             ctx,
 		TargetFloresUrl: utils.GetEnv().PrivateLinguaAPIUrl,
 		OpenaiClient:    openai.NewClient(openaiKey),
 		Disable:         disable,
-		secret:          utils.GetEnv().NllbAPISecret,
-		r:               http.DefaultTransport,
 		Redis:           redis,
-	}
-	checker.client = &http.Client{
-		Timeout:   10 * time.Second,
-		Transport: checker,
-	}
-	return checker
-}
-
-func (t *TranslatorSafetyChecker) UpdateURLsFromCache() {
-	urls := shared.GetCache().GetNLLBUrls()
-	if len(urls) == 0 {
-		return
-	}
-	// Compare existing slice
-	if slices.Compare(urls, t.urls) != 0 {
-		t.rwmu.Lock()
-		defer t.rwmu.Unlock()
-		t.urls = urls
+		HTTPClient:      &http.Client{}, // Initialize a reusable HTTP client
 	}
 }
 
@@ -98,10 +64,17 @@ func (t *TranslatorSafetyChecker) GetTargetFloresCode(inputs []string) ([]string
 		return nil, err
 	}
 	// Make HTTP post to target flores API
-	res, postErr := http.Post(t.TargetFloresUrl, "application/json", bytes.NewBuffer(reqBody))
-	if postErr != nil {
-		log.Error("Error sending target flores request", "err", postErr)
-		return nil, postErr
+	req, err := http.NewRequest("POST", t.TargetFloresUrl, bytes.NewBuffer(reqBody))
+	if err != nil {
+		log.Error("Error creating request", "err", err)
+		return nil, err
+	}
+	req.Header.Set("Content-Type", "application/json")
+
+	res, err := t.HTTPClient.Do(req)
+	if err != nil {
+		log.Error("Error sending request", "err", err)
+		return nil, err
 	}
 	defer res.Body.Close()
 

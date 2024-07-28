@@ -31,7 +31,6 @@ type Cache struct {
 	disposableEmailDomains []string
 	usernameBlacklist      []string
 	bannedWords            []*ent.BannedWords
-	nllbUrls               []string
 	clipUrls               []string
 	httpClient             *http.Client
 	sync.RWMutex
@@ -483,12 +482,8 @@ func (f *Cache) UpdateWorkerURL(vastAiKey string) error {
 	}
 
 	// Update the vast ai worker urls
-	nllbUrls := []string{}
 	clipUrls := []string{}
 	for _, instance := range vastInstances.Instances {
-		if len(instance.Ports.One3349TCP) > 0 {
-			nllbUrls = append(nllbUrls, fmt.Sprintf("http://%s:%s/predictions", instance.PublicIP, instance.Ports.One3349TCP[0].HostPort))
-		}
 		if len(instance.Ports.One3339TCP) > 0 {
 			clipUrls = append(clipUrls, fmt.Sprintf("http://%s:%s/clip/embed", instance.PublicIP, instance.Ports.One3339TCP[0].HostPort))
 		}
@@ -496,18 +491,11 @@ func (f *Cache) UpdateWorkerURL(vastAiKey string) error {
 
 	f.Lock()
 	defer f.Unlock()
-	f.nllbUrls = nllbUrls
 	f.clipUrls = clipUrls
 
 	// Log URLs for debugging
 
 	return nil
-}
-
-func (f *Cache) GetNLLBUrls() []string {
-	f.RLock()
-	defer f.RUnlock()
-	return f.nllbUrls
 }
 
 func (f *Cache) GetClipUrls() []string {

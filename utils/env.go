@@ -18,8 +18,6 @@ type SCEnv struct {
 	PrivateLinguaAPIUrl string `env:"PRIVATE_LINGUA_API_URL"` // Corresponds to sc-go/language server
 	// CLIP Service, built into sc-worker
 	ClipAPISecret string `env:"CLIPAPI_SECRET"` // required
-	// NLLB Service
-	NllbAPISecret string `env:"NLLB_SECRET"` // required
 	// Shared secret between sc-worker and sc-server
 	ScWorkerWebhookSecret string `env:"SC_WORKER_WEBHOOK_SECRET" envDefault:"invalid"`
 	// Whether to run DB migrations on startup, can only be done in the local environment (not on a supabase database)
