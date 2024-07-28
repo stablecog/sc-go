@@ -178,7 +178,7 @@ func (t *TranslatorSafetyChecker) TranslatePrompt(prompt string, negativePrompt 
 		translatedPrompt = promptCacheRes
 	}
 	if negativePromptCacheErr == nil {
-		log.Infof("🈳🟠 Partial cache hit for negative prompt: %s • %s", prompt, promptCacheRes)
+		log.Infof("🈳🟠 Partial cache hit for negative prompt: %s • %s", negativePrompt, negativePromptCacheRes)
 		translatedNegativePrompt = negativePromptCacheRes
 	}
 
