@@ -22,6 +22,7 @@ import (
 const TARGET_FLORES_CODE = "eng_Latn"
 const TARGET_LANG_SCORE_MAX = 0.88
 const DETECTED_CONFIDENCE_SCORE_MIN = 0.1
+const TRANSLATOR_SYSTEM_MESSAGE = "You are a helpful translator. You always translate the entire message to English. If the message is already in English, just respond with the message untouched. Only answer with the translation."
 
 type TranslatorSafetyChecker struct {
 	Ctx             context.Context
@@ -140,37 +141,46 @@ type TranslatorCogResponse struct {
 // Send translation to the translator cog
 func (t *TranslatorSafetyChecker) TranslatePrompt(prompt string, negativePrompt string) (translatedPrompt string, translatedNegativePrompt string, err error) {
 	// See if we can get the translation from cache
-	var translatedNegativePromptCacheKey string
-	translatedPromptCacheKey := utils.Sha256(prompt)
+	var promptCacheKey string
+	var negativePromptCacheKey string
+
+	promptCacheKey = utils.Sha256(prompt)
 	if negativePrompt != "" {
-		translatedNegativePromptCacheKey = utils.Sha256(negativePrompt)
-	}
-	var cacheErr error
-	translatedPrompt, cacheErr = t.Redis.GetTranslation(t.Ctx, translatedPromptCacheKey)
-	if cacheErr == nil {
-		if negativePrompt != "" {
-			translatedNegativePrompt, cacheErr = t.Redis.GetTranslation(t.Ctx, translatedNegativePromptCacheKey)
-		}
-		if cacheErr == nil {
-			return translatedPrompt, translatedNegativePrompt, nil
-		}
+		negativePromptCacheKey = utils.Sha256(negativePrompt)
 	}
 
-	t.UpdateURLsFromCache()
+	var promptCacheRes string
+	var negativePromptCacheRes string
+	var promptCacheErr error
+	var negativePromptCacheErr error
 
-	// Prevent many calls to the translator cog
-	t.mu.Lock()
-	defer t.mu.Unlock()
+	promptCacheRes, promptCacheErr = t.Redis.GetTranslation(t.Ctx, promptCacheKey)
+	if negativePromptCacheKey != "" {
+		negativePromptCacheRes, negativePromptCacheErr = t.Redis.GetTranslation(t.Ctx, negativePromptCacheKey)
+	}
 
-	if t.Disable {
-		return prompt, negativePrompt, nil
+	// Cache hit for prompt and negative prompt
+	if promptCacheErr == nil && negativePromptCacheErr == nil {
+		return promptCacheRes, negativePromptCacheRes, nil
+	}
+	// Cache hit for prompt, no negative prompt
+	if promptCacheErr == nil && (negativePrompt == "") {
+		return promptCacheRes, negativePrompt, nil
+	}
+
+	if promptCacheErr == nil {
+		translatedPrompt = promptCacheRes
+	}
+	if negativePromptCacheErr == nil {
+		translatedNegativePrompt = negativePromptCacheRes
 	}
 
 	var inputs []string
-	if negativePrompt == "" {
-		inputs = []string{prompt}
-	} else {
-		inputs = []string{prompt, negativePrompt}
+	if promptCacheErr != nil {
+		inputs = append(inputs, prompt)
+	}
+	if negativePrompt != "" && negativePromptCacheErr != nil {
+		inputs = append(inputs, negativePrompt)
 	}
 
 	targetCodes, err := t.GetTargetFloresCode(inputs)
@@ -186,104 +196,81 @@ func (t *TranslatorSafetyChecker) TranslatePrompt(prompt string, negativePrompt 
 			}
 		}
 		if allTargetFlores {
+			if promptCacheErr == nil {
+				return translatedPrompt, negativePrompt, nil
+			}
+			if negativePromptCacheErr == nil {
+				return prompt, translatedNegativePrompt, nil
+			}
 			return prompt, negativePrompt, nil
 		}
 	}
 
-	var textFlores1 string
-	var textFlores2 string
-	for i, floresCode := range targetCodes {
-		if i == 0 {
-			textFlores1 = floresCode
+	if promptCacheErr != nil {
+		promptRes, promptErr := t.OpenaiClient.CreateChatCompletion(
+			t.Ctx,
+			openai.ChatCompletionRequest{
+				Model: openai.GPT4oMini,
+				Messages: []openai.ChatCompletionMessage{
+					{
+						Role:    openai.ChatMessageRoleSystem,
+						Content: TRANSLATOR_SYSTEM_MESSAGE,
+					},
+					{
+						Role:    openai.ChatMessageRoleUser,
+						Content: prompt,
+					},
+				},
+			},
+		)
+		if promptErr != nil {
+			log.Error("Error calling OpenAI translator for prompt", "err", promptErr)
+			return prompt, negativePrompt, promptErr
 		} else {
-			textFlores2 = floresCode
+			translatedPrompt = promptRes.Choices[0].Message.Content
 		}
 	}
 
-	// Build request for translator cog
-	translatorRequest := TranslatorCogRequest{
-		Input: TranslatorCogInput{
-			Text1:                       prompt,
-			TextFlores1:                 textFlores1,
-			TargetFlores1:               TARGET_FLORES_CODE,
-			TargetScoreMax1:             TARGET_LANG_SCORE_MAX,
-			DetectedConfidenceScoreMin1: DETECTED_CONFIDENCE_SCORE_MIN,
-			Text2:                       negativePrompt,
-			TextFlores2:                 textFlores2,
-			TargetFlores2:               TARGET_FLORES_CODE,
-			TargetScoreMax2:             TARGET_LANG_SCORE_MAX,
-			DetectedConfidenceScoreMin2: DETECTED_CONFIDENCE_SCORE_MIN,
-		},
-	}
-
-	// Get URL to request to
-	t.rwmu.RLock()
-	if len(t.urls) == 0 {
-		t.rwmu.RUnlock()
-		return "", "", errors.New("no URLs available")
-	}
-	// Ensure activeUrl isn't out of range
-	if t.activeUrl >= len(t.urls) {
-		t.activeUrl = 0
-	}
-	url := t.urls[t.activeUrl]
-	t.rwmu.RUnlock()
-
-	// Marshal
-	reqBody, err := json.Marshal(translatorRequest)
-	if err != nil {
-		log.Error("Error marshalling webhook body", "err", err)
-		return "", "", err
-	}
-	request, err := http.NewRequest(http.MethodPost, url, bytes.NewReader(reqBody))
-	if err != nil {
-		log.Error("Error creating translator cog request", "err", err)
-		return "", "", err
-	}
-	// Do
-	res, postErr := t.client.Do(request)
-	if postErr != nil {
-		log.Error("Error sending translator cog request", "err", postErr)
-		return "", "", postErr
-	}
-	defer res.Body.Close()
-	if res.StatusCode != http.StatusOK {
-		log.Error("Error sending translator cog request", "status", res.StatusCode, "url", url, "response", res.Body, "request", string(reqBody))
-		return "", "", errors.New("translator cog request failed")
-	}
-
-	var translatorResponse TranslatorCogResponse
-	decoder := json.NewDecoder(res.Body)
-	decodeErr := decoder.Decode(&translatorResponse)
-	if decodeErr != nil {
-		log.Error("Error decoding translator cog response", "err", decodeErr)
-		return "", "", decodeErr
-	}
-
-	for i, output := range translatorResponse.Output {
-		if i == 0 {
-			translatedPrompt = output
+	if negativePrompt != "" && negativePromptCacheErr != nil {
+		negativePromptRes, negativePromptErr := t.OpenaiClient.CreateChatCompletion(
+			t.Ctx,
+			openai.ChatCompletionRequest{
+				Model: openai.GPT4oMini,
+				Messages: []openai.ChatCompletionMessage{
+					{
+						Role:    openai.ChatMessageRoleSystem,
+						Content: TRANSLATOR_SYSTEM_MESSAGE,
+					},
+					{
+						Role:    openai.ChatMessageRoleUser,
+						Content: negativePrompt,
+					},
+				},
+			},
+		)
+		if negativePromptErr != nil {
+			log.Error("Error calling OpenAI translator for negative prompt", "err", negativePromptErr)
+			return prompt, negativePrompt, negativePromptErr
 		} else {
-			translatedNegativePrompt = output
+			translatedNegativePrompt = negativePromptRes.Choices[0].Message.Content
 		}
+	}
+
+	if negativePrompt == "" {
+		translatedNegativePrompt = negativePrompt
 	}
 
 	// Update in cache
-	err = t.Redis.CacheTranslation(t.Ctx, translatedPromptCacheKey, translatedPrompt)
+	err = t.Redis.CacheTranslation(t.Ctx, promptCacheKey, translatedPrompt)
 	if err != nil {
 		log.Error("Error caching translated prompt", "err", err)
 	}
 	if negativePrompt != "" {
-		err = t.Redis.CacheTranslation(t.Ctx, translatedNegativePromptCacheKey, translatedNegativePrompt)
+		err = t.Redis.CacheTranslation(t.Ctx, negativePromptCacheKey, translatedNegativePrompt)
 		if err != nil {
 			log.Error("Error caching translated negative prompt", "err", err)
 		}
 	}
-
-	// Update URL
-	t.rwmu.Lock()
-	t.activeUrl = (t.activeUrl + 1) % len(t.urls)
-	t.rwmu.Unlock()
 
 	return translatedPrompt, translatedNegativePrompt, nil
 }
