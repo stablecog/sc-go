@@ -162,22 +162,23 @@ func (t *TranslatorSafetyChecker) TranslatePrompt(prompt string, negativePrompt 
 		negativePromptCacheRes, negativePromptCacheErr = t.Redis.GetTranslation(t.Ctx, negativePromptCacheKey)
 	}
 
-	// Cache hit for prompt and negative prompt
-	if promptCacheErr == nil && negativePromptCacheErr == nil {
+	hasPromptCache := promptCacheErr == nil
+	hasNegativePromptCache := negativePromptCacheKey != "" && negativePromptCacheErr == nil
+
+	if hasPromptCache && hasNegativePromptCache {
 		log.Infof("🈳🟢 Cache hit for prompt and negative prompt, returning: %s • %s /// %s • %s", prompt, promptCacheRes, negativePrompt, negativePromptCacheRes)
 		return promptCacheRes, negativePromptCacheRes, nil
 	}
-	// Cache hit for prompt, no negative prompt
-	if promptCacheErr == nil && (negativePrompt == "") {
+	if hasPromptCache && (negativePrompt == "") {
 		log.Infof("🈳🟢 Cache hit for prompt, no negative prompt, returning: %s • %s", prompt, promptCacheRes)
 		return promptCacheRes, negativePrompt, nil
 	}
 
-	if promptCacheErr == nil {
+	if hasPromptCache {
 		log.Infof("🈳🟠 Partial cache hit for prompt: %s • %s", prompt, promptCacheRes)
 		translatedPrompt = promptCacheRes
 	}
-	if negativePromptCacheErr == nil {
+	if hasNegativePromptCache {
 		log.Infof("🈳🟠 Partial cache hit for negative prompt: %s • %s", negativePrompt, negativePromptCacheRes)
 		translatedNegativePrompt = negativePromptCacheRes
 	}
@@ -203,17 +204,23 @@ func (t *TranslatorSafetyChecker) TranslatePrompt(prompt string, negativePrompt 
 			}
 		}
 		if allTargetFlores {
-			if promptCacheErr == nil {
-				return translatedPrompt, negativePrompt, nil
+			var promptToReturn string
+			var negativePromptToReturn string
+			if hasPromptCache {
+				promptToReturn = promptCacheRes
+			} else {
+				promptToReturn = prompt
 			}
-			if negativePromptCacheErr == nil {
-				return prompt, translatedNegativePrompt, nil
+			if hasNegativePromptCache {
+				negativePromptToReturn = negativePromptCacheRes
+			} else {
+				negativePromptToReturn = negativePrompt
 			}
-			return prompt, negativePrompt, nil
+			return promptToReturn, negativePromptToReturn, nil
 		}
 	}
 
-	if promptCacheErr != nil {
+	if !hasPromptCache {
 		promptRes, promptErr := t.OpenaiClient.CreateChatCompletion(
 			t.Ctx,
 			openai.ChatCompletionRequest{
