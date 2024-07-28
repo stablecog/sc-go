@@ -108,13 +108,13 @@ func testMainWrapper(m *testing.M) int {
 		Hub:            hub,
 		Track:          analytics.NewAnalyticsService(),
 		QueueThrottler: qThrottler,
-		SafetyChecker:  translator.NewTranslatorSafetyChecker(ctx, utils.GetEnv().OpenAIApiKey, true, redis),
+		SafetyChecker:  translator.NewTranslatorSafetyChecker(ctx, "", true, redis),
 		SCWorker: &scworker.SCWorker{
 			Repo:           repo,
 			Redis:          redis,
 			QueueThrottler: qThrottler,
 			Track:          analytics.NewAnalyticsService(),
-			SafetyChecker:  translator.NewTranslatorSafetyChecker(ctx, utils.GetEnv().OpenAIApiKey, true, redis),
+			SafetyChecker:  translator.NewTranslatorSafetyChecker(ctx, "", true, redis),
 			MQClient:       mockClient,
 		},
 	}

@@ -140,6 +140,9 @@ type TranslatorCogResponse struct {
 
 // Send translation to the translator cog
 func (t *TranslatorSafetyChecker) TranslatePrompt(prompt string, negativePrompt string) (translatedPrompt string, translatedNegativePrompt string, err error) {
+	if t.Disable {
+		return prompt, negativePrompt, nil
+	}
 	// See if we can get the translation from cache
 	var promptCacheKey string
 	var negativePromptCacheKey string
