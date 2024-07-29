@@ -89,28 +89,6 @@ func (t *TranslatorSafetyChecker) GetTargetFloresCode(inputs []string) ([]string
 	return targetFloresResponse.Outputs, nil
 }
 
-// Translator cog types
-type TranslatorCogInput struct {
-	Text1                       string  `json:"text_1"`
-	TextFlores1                 string  `json:"text_flores_1"`
-	TargetFlores1               string  `json:"target_flores_1"`
-	TargetScoreMax1             float64 `json:"target_score_max_1"`
-	DetectedConfidenceScoreMin1 float64 `json:"detected_confidence_score_min_1"`
-	Text2                       string  `json:"text_2"`
-	TextFlores2                 string  `json:"text_flores_2"`
-	TargetFlores2               string  `json:"target_flores_2"`
-	TargetScoreMax2             float64 `json:"target_score_max_2"`
-	DetectedConfidenceScoreMin2 float64 `json:"detected_confidence_score_min_2"`
-}
-
-type TranslatorCogRequest struct {
-	Input TranslatorCogInput `json:"input"`
-}
-
-type TranslatorCogResponse struct {
-	Output []string `json:"output"`
-}
-
 // Send translation to the translator cog
 func (t *TranslatorSafetyChecker) TranslatePrompt(prompt string, negativePrompt string) (translatedPrompt string, translatedNegativePrompt string, err error) {
 	if t.Disable {
@@ -139,20 +117,20 @@ func (t *TranslatorSafetyChecker) TranslatePrompt(prompt string, negativePrompt 
 	hasNegativePromptCache := negativePromptCacheKey != "" && negativePromptCacheErr == nil
 
 	if hasPromptCache && hasNegativePromptCache {
-		log.Infof("🈳🟢 Cache hit for prompt and negative prompt, returning: %s • %s /// %s • %s", prompt, promptCacheRes, negativePrompt, negativePromptCacheRes)
+		log.Infof("<> 🟢 Cache hit for prompt and negative prompt, returning: %s • %s /// %s • %s", prompt, promptCacheRes, negativePrompt, negativePromptCacheRes)
 		return promptCacheRes, negativePromptCacheRes, nil
 	}
 	if hasPromptCache && (negativePrompt == "") {
-		log.Infof("🈳🟢 Cache hit for prompt, no negative prompt, returning: %s • %s", prompt, promptCacheRes)
+		log.Infof("<> 🟢 Cache hit for prompt, no negative prompt, returning: %s • %s", prompt, promptCacheRes)
 		return promptCacheRes, negativePrompt, nil
 	}
 
 	if hasPromptCache {
-		log.Infof("🈳🟠 Partial cache hit for prompt: %s • %s", prompt, promptCacheRes)
+		log.Infof("<> 🟠 Partial cache hit for prompt: %s • %s", prompt, promptCacheRes)
 		translatedPrompt = promptCacheRes
 	}
 	if hasNegativePromptCache {
-		log.Infof("🈳🟠 Partial cache hit for negative prompt: %s • %s", negativePrompt, negativePromptCacheRes)
+		log.Infof("<> 🟠 Partial cache hit for negative prompt: %s • %s", negativePrompt, negativePromptCacheRes)
 		translatedNegativePrompt = negativePromptCacheRes
 	}
 
@@ -215,7 +193,7 @@ func (t *TranslatorSafetyChecker) TranslatePrompt(prompt string, negativePrompt 
 			return prompt, negativePrompt, promptErr
 		} else {
 			translatedPrompt = promptRes.Choices[0].Message.Content
-			log.Infof("🈳✅ Translated prompt: %s • %s", prompt, translatedPrompt)
+			log.Infof("<> ✅ Translated prompt: %s • %s", prompt, translatedPrompt)
 			// Update cache
 			err = t.Redis.CacheTranslation(t.Ctx, promptCacheKey, translatedPrompt)
 			if err != nil {
@@ -246,7 +224,7 @@ func (t *TranslatorSafetyChecker) TranslatePrompt(prompt string, negativePrompt 
 			return prompt, negativePrompt, negativePromptErr
 		} else {
 			translatedNegativePrompt = negativePromptRes.Choices[0].Message.Content
-			log.Infof("🈳✅ Translated negative prompt: %s • %s", negativePrompt, translatedNegativePrompt)
+			log.Infof("<> ✅ Translated negative prompt: %s • %s", negativePrompt, translatedNegativePrompt)
 			// Update cache
 			if negativePrompt != "" {
 				err = t.Redis.CacheTranslation(t.Ctx, negativePromptCacheKey, translatedNegativePrompt)
