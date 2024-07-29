@@ -195,7 +195,7 @@ func (w *SCWorker) CreateGeneration(source enttypes.SourceType,
 				Bucket: aws.String(utils.GetEnv().S3Img2ImgBucketName),
 				Key:    aws.String(signedInitImageUrl),
 			})
-			urlStr, err := req.Presign(5 * time.Minute)
+			urlStr, err := req.Presign(15 * time.Minute)
 			if err != nil {
 				log.Error("Error signing init image URL", "err", err)
 				return nil, &initSettings, &WorkerError{http.StatusInternalServerError, fmt.Errorf("unknown_error"), ""}
