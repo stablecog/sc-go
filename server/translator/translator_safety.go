@@ -17,8 +17,8 @@ import (
 const TARGET_FLORES_CODE = "eng_Latn"
 const TARGET_LANG_SCORE_MAX = 0.88
 const DETECTED_CONFIDENCE_SCORE_MIN = 0.1
-const TRANSLATOR_SYSTEM_MESSAGE = "You are a helpful translator. You always translate the entire message to English. If the message is already in English, just respond with the message untouched. Only answer with the translation."
-const MAX_TOKENS = 500
+const OPENAI_TRANSLATOR_SYSTEM_MESSAGE = "You are a helpful translator. You always translate the entire message to English. If the message is already in English, just respond with the message untouched. Only answer with the translation."
+const OPENAI_TRANSLATOR_MAX_TOKENS = 500
 
 type TranslatorSafetyChecker struct {
 	Ctx             context.Context
@@ -253,11 +253,11 @@ func TranslateViaOpenAI(prompt string, client *openai.Client, ctx context.Contex
 		ctx,
 		openai.ChatCompletionRequest{
 			Model:     openai.GPT4oMini,
-			MaxTokens: MAX_TOKENS,
+			MaxTokens: OPENAI_TRANSLATOR_MAX_TOKENS,
 			Messages: []openai.ChatCompletionMessage{
 				{
 					Role:    openai.ChatMessageRoleSystem,
-					Content: TRANSLATOR_SYSTEM_MESSAGE,
+					Content: OPENAI_TRANSLATOR_SYSTEM_MESSAGE,
 				},
 				{
 					Role:    openai.ChatMessageRoleUser,
