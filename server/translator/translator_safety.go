@@ -18,6 +18,7 @@ const TARGET_FLORES_CODE = "eng_Latn"
 const TARGET_LANG_SCORE_MAX = 0.88
 const DETECTED_CONFIDENCE_SCORE_MIN = 0.1
 const TRANSLATOR_SYSTEM_MESSAGE = "You are a helpful translator. You always translate the entire message to English. If the message is already in English, just respond with the message untouched. Only answer with the translation."
+const MAX_TOKENS = 500
 
 type TranslatorSafetyChecker struct {
 	Ctx             context.Context
@@ -172,22 +173,7 @@ func (t *TranslatorSafetyChecker) TranslatePrompt(prompt string, negativePrompt 
 	}
 
 	if !hasPromptCache {
-		promptRes, promptErr := t.OpenaiClient.CreateChatCompletion(
-			t.Ctx,
-			openai.ChatCompletionRequest{
-				Model: openai.GPT4oMini,
-				Messages: []openai.ChatCompletionMessage{
-					{
-						Role:    openai.ChatMessageRoleSystem,
-						Content: TRANSLATOR_SYSTEM_MESSAGE,
-					},
-					{
-						Role:    openai.ChatMessageRoleUser,
-						Content: prompt,
-					},
-				},
-			},
-		)
+		promptRes, promptErr := TranslateViaOpenAI(prompt, t.OpenaiClient, t.Ctx)
 		if promptErr != nil {
 			log.Error("Error calling OpenAI translator for prompt", "err", promptErr)
 			return prompt, negativePrompt, promptErr
@@ -203,22 +189,7 @@ func (t *TranslatorSafetyChecker) TranslatePrompt(prompt string, negativePrompt 
 	}
 
 	if negativePrompt != "" && negativePromptCacheErr != nil {
-		negativePromptRes, negativePromptErr := t.OpenaiClient.CreateChatCompletion(
-			t.Ctx,
-			openai.ChatCompletionRequest{
-				Model: openai.GPT4oMini,
-				Messages: []openai.ChatCompletionMessage{
-					{
-						Role:    openai.ChatMessageRoleSystem,
-						Content: TRANSLATOR_SYSTEM_MESSAGE,
-					},
-					{
-						Role:    openai.ChatMessageRoleUser,
-						Content: negativePrompt,
-					},
-				},
-			},
-		)
+		negativePromptRes, negativePromptErr := TranslateViaOpenAI(negativePrompt, t.OpenaiClient, t.Ctx)
 		if negativePromptErr != nil {
 			log.Error("Error calling OpenAI translator for negative prompt", "err", negativePromptErr)
 			return prompt, negativePrompt, negativePromptErr
@@ -275,6 +246,27 @@ func (t *TranslatorSafetyChecker) IsPromptNSFW(input string) (isNsfw bool, nsfwR
 		}
 	}
 	return
+}
+
+func TranslateViaOpenAI(prompt string, client *openai.Client, ctx context.Context) (openai.ChatCompletionResponse, error) {
+	promptRes, promptErr := client.CreateChatCompletion(
+		ctx,
+		openai.ChatCompletionRequest{
+			Model:     openai.GPT4oMini,
+			MaxTokens: MAX_TOKENS,
+			Messages: []openai.ChatCompletionMessage{
+				{
+					Role:    openai.ChatMessageRoleSystem,
+					Content: TRANSLATOR_SYSTEM_MESSAGE,
+				},
+				{
+					Role:    openai.ChatMessageRoleUser,
+					Content: prompt,
+				},
+			},
+		},
+	)
+	return promptRes, promptErr
 }
 
 // Write a function to check if a given array includes the given value
