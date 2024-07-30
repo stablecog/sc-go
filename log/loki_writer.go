@@ -27,6 +27,7 @@ func (lw *LokiWriter) Write(p []byte) (n int, err error) {
 	if lw.Client != nil {
 		labels := model.LabelSet{
 			"application": model.LabelValue(lw.LokiApplicationLabel),
+			"logger":      "root",
 		}
 		err = lw.Client.Handle(labels, time.Now(), string(p))
 		if err != nil {
