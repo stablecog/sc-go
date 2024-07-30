@@ -1,5 +1,5 @@
 # Should be built from root directory of the workspace
-FROM golang:1.20-buster as builder
+FROM golang:1.22-buster as builder
 
 WORKDIR /app
 
