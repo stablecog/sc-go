@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/charmbracelet/lipgloss"
 	"github.com/charmbracelet/log"
 	"github.com/stablecog/loki-client-go/loki"
 )
@@ -46,10 +47,16 @@ func getLogger(level log.Level) *log.Logger {
 		}
 	}
 
+	styles := log.DefaultStyles()
+	styles.Levels[log.InfoLevel] = lipgloss.NewStyle().SetString("")
+	styles.Levels[log.WarnLevel] = lipgloss.NewStyle().SetString("🟨")
+	styles.Levels[log.ErrorLevel] = lipgloss.NewStyle().SetString("🟥")
+	styles.Levels[log.FatalLevel] = lipgloss.NewStyle().SetString("☠️🟥☠️")
+
 	if level == log.FatalLevel {
 		if fatalLogger == nil {
 			fatalLogger = log.New(lokiWriter)
-			fatalLogger.SetPrefix("☠️🟥☠️")
+			fatalLogger.SetStyles(styles)
 			/* fatalLogger.SetReportTimestamp(true) */
 		}
 		return fatalLogger
@@ -57,7 +64,7 @@ func getLogger(level log.Level) *log.Logger {
 	if level == log.ErrorLevel {
 		if errorLogger == nil {
 			errorLogger = log.New(lokiWriter)
-			errorLogger.SetPrefix("🟥")
+			errorLogger.SetStyles(styles)
 			/* errorLogger.SetReportTimestamp(true) */
 		}
 		return errorLogger
@@ -65,14 +72,14 @@ func getLogger(level log.Level) *log.Logger {
 	if level == log.WarnLevel {
 		if warnLogger == nil {
 			warnLogger = log.New(lokiWriter)
-			warnLogger.SetPrefix("🟨")
+			warnLogger.SetStyles(styles)
 			/* warnLogger.SetReportTimestamp(true) */
 		}
 		return warnLogger
 	}
 	if infoLogger == nil {
 		infoLogger = log.New(lokiWriter)
-		infoLogger.SetPrefix("🟦")
+		infoLogger.SetStyles(styles)
 		/* infoLogger.SetReportTimestamp(true) */
 	}
 	return infoLogger
