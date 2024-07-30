@@ -40,6 +40,7 @@ func main() {
 	app.Route("/lingua", func(r chi.Router) {
 		// Lingua API
 		r.Route("/", func(r chi.Router) {
+			// For k8s health check
 			r.Get("/health", hc.HandleHealth)
 			r.Route("/", func(r chi.Router) {
 				r.Use(middleware.Logger)

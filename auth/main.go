@@ -64,6 +64,7 @@ func main() {
 	}
 
 	manager := manage.NewDefaultManager()
+
 	// token memory store
 	manager.MustTokenStorage(authStore.NewMemoryTokenStore())
 
