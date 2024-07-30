@@ -20,6 +20,12 @@ func CloseLoki() {
 	}
 }
 
+func getCustomStyles() log.Styles {
+	styles := log.DefaultStyles()
+	styles.Levels[log.InfoLevel] = lipgloss.NewStyle().SetString("")
+	return styles
+}
+
 func getLogger(level log.Level) *log.Logger {
 	if lokiWriter == nil {
 		lokiApplicationLabel := os.Getenv("LOKI_APPLICATION_LABEL")
@@ -66,12 +72,14 @@ func getLogger(level log.Level) *log.Logger {
 		if warnLogger == nil {
 			warnLogger = log.New(lokiWriter)
 			warnLogger.SetPrefix("🟨")
+			warnLogger.
 			/* warnLogger.SetReportTimestamp(true) */
 		}
 		return warnLogger
 	}
 	if infoLogger == nil {
 		infoLogger = log.New(lokiWriter)
+		infoLogger.SetStyles(getCustomStyles())
 		/* infoLogger.SetPrefix("🟦") */
 		/* infoLogger.SetReportTimestamp(true) */
 	}
