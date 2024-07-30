@@ -574,7 +574,7 @@ func (w *SCWorker) CreateGeneration(source enttypes.SourceType,
 					Bucket: aws.String(utils.GetEnv().S3BucketName),
 					Key:    aws.String(imgId),
 				})
-				urlStr, err := req.Presign(10 * time.Minute) // URL is valid for 15 minutes
+				urlStr, err := req.Presign(24 * time.Hour) // URL is valid for 15 minutes
 				if err != nil {
 					log.Errorf("Failed to sign request: %v\n", err)
 					return err
