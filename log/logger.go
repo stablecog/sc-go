@@ -50,7 +50,7 @@ func getLogger(level log.Level) *log.Logger {
 		if fatalLogger == nil {
 			fatalLogger = log.New(lokiWriter)
 			fatalLogger.SetPrefix("☠️🟥☠️")
-			fatalLogger.SetReportTimestamp(true)
+			/* fatalLogger.SetReportTimestamp(true) */
 		}
 		return fatalLogger
 	}
@@ -58,7 +58,7 @@ func getLogger(level log.Level) *log.Logger {
 		if errorLogger == nil {
 			errorLogger = log.New(lokiWriter)
 			errorLogger.SetPrefix("🟥")
-			errorLogger.SetReportTimestamp(true)
+			/* errorLogger.SetReportTimestamp(true) */
 		}
 		return errorLogger
 	}
@@ -66,14 +66,14 @@ func getLogger(level log.Level) *log.Logger {
 		if warnLogger == nil {
 			warnLogger = log.New(lokiWriter)
 			warnLogger.SetPrefix("🟨")
-			warnLogger.SetReportTimestamp(true)
+			/* warnLogger.SetReportTimestamp(true) */
 		}
 		return warnLogger
 	}
 	if infoLogger == nil {
 		infoLogger = log.New(lokiWriter)
-		infoLogger.SetPrefix("🟦")
-		infoLogger.SetReportTimestamp(true)
+		/* infoLogger.SetPrefix("🟦") */
+		/* infoLogger.SetReportTimestamp(true) */
 	}
 	return infoLogger
 }
