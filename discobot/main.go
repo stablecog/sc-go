@@ -41,6 +41,10 @@ var (
 
 func main() {
 	log.Infof("Starting SC Discobot v%v", Version)
+
+	// Close loki if exists
+	defer log.CloseLoki()
+
 	// Load .env
 	err := godotenv.Load("../.env")
 	if err != nil {

@@ -11,10 +11,10 @@ require (
 	github.com/google/uuid v1.6.0
 	github.com/joho/godotenv v1.5.1
 	github.com/redis/go-redis/v9 v9.6.1
-	github.com/stablecog/sc-go/database v0.0.0-20240729163134-c9bbf61a62cb
-	github.com/stablecog/sc-go/log v0.0.0-20240729163134-c9bbf61a62cb
-	github.com/stablecog/sc-go/server v0.0.0-20240729163134-c9bbf61a62cb
-	github.com/stablecog/sc-go/utils v0.0.0-20240729163134-c9bbf61a62cb
+	github.com/stablecog/sc-go/database v0.0.0-20240730134204-acbd6cb32aac
+	github.com/stablecog/sc-go/log v0.0.0-20240730134204-acbd6cb32aac
+	github.com/stablecog/sc-go/server v0.0.0-20240730134204-acbd6cb32aac
+	github.com/stablecog/sc-go/utils v0.0.0-20240730134204-acbd6cb32aac
 	golang.org/x/net v0.27.0
 )
 
@@ -67,7 +67,7 @@ require (
 	github.com/golang-jwt/jwt v3.2.2+incompatible // indirect
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
 	github.com/golang/snappy v0.0.4 // indirect
-	github.com/gomarkdown/markdown v0.0.0-20240730131326-880ee61d5f68 // indirect
+	github.com/gomarkdown/markdown v0.0.0-20240730132007-0acb1f16a436 // indirect
 	github.com/google/go-cmp v0.6.0 // indirect
 	github.com/gorilla/css v1.0.1 // indirect
 	github.com/hashicorp/errwrap v1.1.0 // indirect
@@ -109,9 +109,9 @@ require (
 	github.com/russross/blackfriday/v2 v2.1.0 // indirect
 	github.com/schollz/closestmatch v2.1.0+incompatible // indirect
 	github.com/sirupsen/logrus v1.9.3 // indirect
-	github.com/stablecog/sc-go/cron v0.0.0-20240729163134-c9bbf61a62cb // indirect
-	github.com/stablecog/sc-go/discobot v0.0.0-20240729163134-c9bbf61a62cb // indirect
-	github.com/stablecog/sc-go/shared v0.0.0-20240729163134-c9bbf61a62cb // indirect
+	github.com/stablecog/sc-go/cron v0.0.0-20240730134204-acbd6cb32aac // indirect
+	github.com/stablecog/sc-go/discobot v0.0.0-20240730134204-acbd6cb32aac // indirect
+	github.com/stablecog/sc-go/shared v0.0.0-20240730134204-acbd6cb32aac // indirect
 	github.com/supabase-community/gotrue-go v1.2.1 // indirect
 	github.com/tdewolff/minify/v2 v2.20.37 // indirect
 	github.com/tdewolff/parse/v2 v2.7.15 // indirect

@@ -5,17 +5,45 @@ import (
 	"os"
 
 	"github.com/charmbracelet/log"
+	"github.com/grafana/loki-client-go/loki"
 )
 
 var infoLogger *log.Logger
 var warnLogger *log.Logger
 var errorLogger *log.Logger
 var fatalLogger *log.Logger
+var lokiWriter *LokiWriter
+
+func CloseLoki() {
+	if lokiWriter != nil && lokiWriter.Client != nil {
+		lokiWriter.Client.Stop()
+	}
+}
 
 func getLogger(level log.Level) *log.Logger {
+	if lokiWriter == nil {
+		lokiPushUrl := os.Getenv("LOKI_PUSH_URL")
+		if lokiPushUrl != "" {
+			config, _ := loki.NewDefaultConfig(lokiPushUrl)
+			lokiClient, err := loki.New(config)
+			if err != nil {
+				fmt.Fprintf(os.Stderr, "failed to create loki client: %v", err)
+				panic(err)
+			}
+			lokiWriter = &LokiWriter{
+				Stderr: os.Stderr,
+				Client: lokiClient,
+			}
+		} else {
+			lokiWriter = &LokiWriter{
+				Stderr: os.Stderr,
+			}
+		}
+	}
+
 	if level == log.FatalLevel {
 		if fatalLogger == nil {
-			fatalLogger = log.New(os.Stderr)
+			fatalLogger = log.New(lokiWriter)
 			fatalLogger.SetPrefix("☠️🟥☠️")
 			fatalLogger.SetReportTimestamp(true)
 		}
@@ -23,7 +51,7 @@ func getLogger(level log.Level) *log.Logger {
 	}
 	if level == log.ErrorLevel {
 		if errorLogger == nil {
-			errorLogger = log.New(os.Stderr)
+			errorLogger = log.New(lokiWriter)
 			errorLogger.SetPrefix("🟥")
 			errorLogger.SetReportTimestamp(true)
 		}
@@ -31,14 +59,14 @@ func getLogger(level log.Level) *log.Logger {
 	}
 	if level == log.WarnLevel {
 		if warnLogger == nil {
-			warnLogger = log.New(os.Stderr)
+			warnLogger = log.New(lokiWriter)
 			warnLogger.SetPrefix("🟨")
 			warnLogger.SetReportTimestamp(true)
 		}
 		return warnLogger
 	}
 	if infoLogger == nil {
-		infoLogger = log.New(os.Stderr)
+		infoLogger = log.New(lokiWriter)
 		infoLogger.SetPrefix("🟦")
 		infoLogger.SetReportTimestamp(true)
 	}

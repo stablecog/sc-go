@@ -37,6 +37,10 @@ func usage() {
 
 func main() {
 	log.Infof("SC Cron %s", Version)
+
+	// Close loki if exists
+	defer log.CloseLoki()
+
 	showHelp := flag.Bool("help", false, "Show help")
 	healthCheck := flag.Bool("healthCheck", false, "Run the health check job")
 	stats := flag.Bool("stats", false, "Run the stats job")

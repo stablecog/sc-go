@@ -20,6 +20,9 @@ var Version = "dev"
 func main() {
 	log.Infof("SC Language API: %s", Version)
 
+	// Close loki if exists
+	defer log.CloseLoki()
+
 	// Load .env
 	err := godotenv.Load("../.env")
 	if err != nil {
