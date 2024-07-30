@@ -52,6 +52,22 @@ type redisCounter struct {
 	windowLength time.Duration
 }
 
+// IncrementBy implements httprate.LimitCounter.
+func (c *redisCounter) IncrementBy(key string, currentWindow time.Time, amount int) error {
+	hkey := limitCounterKey(key, currentWindow)
+
+	err := c.redis.Client.IncrBy(c.redis.Ctx, hkey, int64(amount)).Err()
+	if err != nil {
+		return err
+	}
+	err = c.redis.Client.Expire(c.redis.Ctx, hkey, c.windowLength*3).Err()
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 var _ httprate.LimitCounter = &redisCounter{}
 
 func (c *redisCounter) Config(requestLimit int, windowLength time.Duration) {
