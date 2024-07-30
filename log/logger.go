@@ -66,7 +66,6 @@ func getLogger(level log.Level) *log.Logger {
 		if warnLogger == nil {
 			warnLogger = log.New(lokiWriter)
 			warnLogger.SetPrefix("🟨")
-			warnLogger.
 			/* warnLogger.SetReportTimestamp(true) */
 		}
 		return warnLogger
