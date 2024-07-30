@@ -42,3 +42,5 @@ spec:
               value: https://api.stablecog.com
             - name: BUCKET_BASE_URL
               value: https://b.stablecog.com
+            - name: LOKI_APPLICATION_LABEL
+              value: sc-cron

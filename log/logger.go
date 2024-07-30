@@ -5,7 +5,7 @@ import (
 	"os"
 
 	"github.com/charmbracelet/log"
-	"github.com/grafana/loki-client-go/loki"
+	"github.com/stablecog/loki-client-go/loki"
 )
 
 var infoLogger *log.Logger
@@ -22,6 +22,10 @@ func CloseLoki() {
 
 func getLogger(level log.Level) *log.Logger {
 	if lokiWriter == nil {
+		lokiApplicationLabel := os.Getenv("LOKI_APPLICATION_LABEL")
+		if lokiApplicationLabel == "" {
+			lokiApplicationLabel = "sc-go"
+		}
 		lokiPushUrl := os.Getenv("LOKI_PUSH_URL")
 		if lokiPushUrl != "" {
 			config, _ := loki.NewDefaultConfig(lokiPushUrl)
@@ -31,8 +35,9 @@ func getLogger(level log.Level) *log.Logger {
 				panic(err)
 			}
 			lokiWriter = &LokiWriter{
-				Stderr: os.Stderr,
-				Client: lokiClient,
+				Stderr:               os.Stderr,
+				Client:               lokiClient,
+				LokiApplicationLabel: lokiApplicationLabel,
 			}
 		} else {
 			lokiWriter = &LokiWriter{

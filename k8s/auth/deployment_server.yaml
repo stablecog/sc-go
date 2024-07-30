@@ -49,3 +49,5 @@ spec:
               value: "true"
             - name: OAUTH_REDIRECT_BASE
               value: https://stablecog.com/account/apps/authorize
+            - name: LOKI_APPLICATION_LABEL
+              value: sc-auth

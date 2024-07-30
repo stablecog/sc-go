@@ -64,3 +64,5 @@ spec:
               value: "true"
             - name: PUBLIC_SUPABASE_REFERENCE_ID
               value: jaqefzjqokaemzyvjcew
+            - name: LOKI_APPLICATION_LABEL
+              value: sc-uuploadapi
