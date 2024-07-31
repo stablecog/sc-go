@@ -29,6 +29,13 @@ func (j *JobRunner) CheckSCWorkerHealth(log Logger) error {
 	start := time.Now()
 	log.Infof("Checking health...")
 
+	apiKey := utils.GetEnv().ScWorkerTesterApiKey
+	generationErr := CreateTestGeneration(log, apiKey)
+	if generationErr != nil {
+		log.Errorf("Couldn't create test generation %v", generationErr)
+		return generationErr
+	}
+
 	workerHealthStatus := discord.HEALTHY
 
 	generations, err := j.Repo.GetGenerations(generationCountToCheck)
@@ -69,7 +76,6 @@ func (j *JobRunner) CheckSCWorkerHealth(log Logger) error {
 	}
 
 	// Last successful generation is too old, do a test generation
-	apiKey := utils.GetEnv().ScWorkerTesterApiKey
 	var durationMinutes float64 = 5
 	if time.Now().Sub(lastSuccessfulGenerationTime).Minutes() > durationMinutes {
 		log.Infof(fmt.Sprintf("%f minutes since last successful generation", durationMinutes))
@@ -122,8 +128,8 @@ func CreateTestGeneration(log Logger, apiKey string) error {
 
 	url := "https://api.stablecog.com/v1/image/generation/create"
 	prompt := "Sarı bir kedi"
-	width := 512
-	height := 512
+	width := 256
+	height := 256
 	numOutputs := 1
 
 	requestBody := RequestBody{
@@ -172,6 +178,8 @@ func CreateTestGeneration(log Logger, apiKey string) error {
 		log.Errorf("SC Worker test generation: No outputs in response")
 		return fmt.Errorf("SC Worker test generation: No outputs in response")
 	}
+
+	log.Infof("SC Worker test generation url: %s", responseBody.Outputs[0].ImageURL)
 
 	return nil
 }
