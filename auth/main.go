@@ -33,7 +33,7 @@ import (
 )
 
 func main() {
-	// Close loki if exists
+	// Close loki if  exists
 	defer log.CloseLoki()
 
 	// Load .env
