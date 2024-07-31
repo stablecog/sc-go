@@ -28,13 +28,7 @@ const HEALTH_JOB_NAME = "HEALTH_JOB"
 func (j *JobRunner) CheckSCWorkerHealth(log Logger) error {
 	start := time.Now()
 	log.Infof("Checking health...")
-
 	apiKey := utils.GetEnv().ScWorkerTesterApiKey
-	generationErr := CreateTestGeneration(log, apiKey)
-	if generationErr != nil {
-		log.Errorf("Couldn't create test generation %v", generationErr)
-		return generationErr
-	}
 
 	workerHealthStatus := discord.HEALTHY
 
@@ -127,9 +121,9 @@ func CreateTestGeneration(log Logger, apiKey string) error {
 	log.Infof("Creating test generation to check SC Worker health...")
 
 	url := "https://api.stablecog.com/v1/image/generation/create"
-	prompt := "Sarı bir kedi"
-	width := 256
-	height := 256
+	prompt := "Mavi bir kedi"
+	width := 1024
+	height := 1024
 	numOutputs := 1
 
 	requestBody := RequestBody{
