@@ -121,7 +121,7 @@ func CreateTestGeneration(log Logger, apiKey string) error {
 	log.Infof("Creating test generation to check SC Worker health...")
 
 	url := "https://api.stablecog.com/v1/image/generation/create"
-	prompt := "Mavi bir kedi"
+	prompt := "Mavi renkli bir bina"
 	width := 1024
 	height := 1024
 	numOutputs := 1
