@@ -178,7 +178,7 @@ func (t *TranslatorSafetyChecker) TranslatePrompt(prompt string, negativePrompt 
 			log.Error("Error calling OpenAI translator for prompt", "err", promptErr)
 			return prompt, negativePrompt, promptErr
 		} else {
-			translatedPrompt = promptRes.Choices[0].Message.Content
+			translatedPrompt = promptRes
 			log.Infof("<> ✅ Translated prompt: %s • %s", prompt, translatedPrompt)
 			// Update cache
 			err = t.Redis.CacheTranslation(t.Ctx, promptCacheKey, translatedPrompt)
@@ -194,14 +194,12 @@ func (t *TranslatorSafetyChecker) TranslatePrompt(prompt string, negativePrompt 
 			log.Error("Error calling OpenAI translator for negative prompt", "err", negativePromptErr)
 			return prompt, negativePrompt, negativePromptErr
 		} else {
-			translatedNegativePrompt = negativePromptRes.Choices[0].Message.Content
+			translatedNegativePrompt = negativePromptRes
 			log.Infof("<> ✅ Translated negative prompt: %s • %s", negativePrompt, translatedNegativePrompt)
 			// Update cache
-			if negativePrompt != "" {
-				err = t.Redis.CacheTranslation(t.Ctx, negativePromptCacheKey, translatedNegativePrompt)
-				if err != nil {
-					log.Error("Error caching translated negative prompt", "err", err)
-				}
+			err = t.Redis.CacheTranslation(t.Ctx, negativePromptCacheKey, translatedNegativePrompt)
+			if err != nil {
+				log.Error("Error caching translated negative prompt", "err", err)
 			}
 		}
 	}
@@ -248,8 +246,8 @@ func (t *TranslatorSafetyChecker) IsPromptNSFW(input string) (isNsfw bool, nsfwR
 	return
 }
 
-func TranslateViaOpenAI(prompt string, client *openai.Client, ctx context.Context) (openai.ChatCompletionResponse, error) {
-	promptRes, promptErr := client.CreateChatCompletion(
+func TranslateViaOpenAI(prompt string, client *openai.Client, ctx context.Context) (string, error) {
+	res, err := client.CreateChatCompletion(
 		ctx,
 		openai.ChatCompletionRequest{
 			Model:     openai.GPT4oMini,
@@ -266,7 +264,10 @@ func TranslateViaOpenAI(prompt string, client *openai.Client, ctx context.Contex
 			},
 		},
 	)
-	return promptRes, promptErr
+	if err != nil {
+		return "", err
+	}
+	return res.Choices[0].Message.Content, err
 }
 
 // Write a function to check if a given array includes the given value
