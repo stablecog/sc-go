@@ -122,8 +122,8 @@ func CreateTestGeneration(log Logger, apiKey string) error {
 
 	url := "https://api.stablecog.com/v1/image/generation/create"
 	prompt := "Sarı bir kedi"
-	width := 256
-	height := 256
+	width := 512
+	height := 512
 	numOutputs := 1
 
 	requestBody := RequestBody{
