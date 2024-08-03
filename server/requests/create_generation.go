@@ -37,7 +37,6 @@ type CreateGenerationRequest struct {
 	ProcessType          shared.ProcessType    `json:"process_type"`
 	OutputImageExtension shared.ImageExtension `json:"output_image_extension"`
 	WasAutoSubmitted     bool
-	IsTest               bool
 }
 
 func (t *CreateGenerationRequest) Cost() int32 {
@@ -83,14 +82,12 @@ func (t *CreateGenerationRequest) Validate(api bool) error {
 
 	t.ApplyDefaults()
 
-	if !t.IsTest {
-		compatibleSchedulerIds := shared.GetCache().GetCompatibleSchedulerIDsForModel(context.TODO(), *t.ModelId)
-		if !slices.Contains(compatibleSchedulerIds, *t.SchedulerId) {
-			log.Errorf("Model ID %s", (*t.ModelId).String())
-			log.Errorf("Scheduler ID %s", (*t.SchedulerId).String())
-			// set default scheduler if scheduler
-			t.SchedulerId = utils.ToPtr(shared.GetCache().GetDefaultSchedulerIDForModel(*t.ModelId))
-		}
+	compatibleSchedulerIds := shared.GetCache().GetCompatibleSchedulerIDsForModel(context.TODO(), *t.ModelId)
+	if !slices.Contains(compatibleSchedulerIds, *t.SchedulerId) {
+		log.Errorf("Model ID %s", (*t.ModelId).String())
+		log.Errorf("Scheduler ID %s", (*t.SchedulerId).String())
+		// set default scheduler if scheduler
+		t.SchedulerId = utils.ToPtr(shared.GetCache().GetDefaultSchedulerIDForModel(*t.ModelId))
 	}
 
 	var err error
