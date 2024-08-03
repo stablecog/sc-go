@@ -117,21 +117,21 @@ func (repo *Repository) CreateMockData(ctx context.Context) error {
 		return err
 	}
 
+	// ! Mock schedulers
+	// Create a scheduler for the free user
+	_, err = repo.DB.Scheduler.Create().SetID(uuid.MustParse(MOCK_SCHEDULER_ID)).SetNameInWorker("mockfreescheduler").Save(ctx)
+	if err != nil {
+		return err
+	}
+
 	// ! Mock generation models
 	// Create a generation model for the free user
-	_, err = repo.DB.GenerationModel.Create().SetID(uuid.MustParse(MOCK_GENERATION_MODEL_ID)).SetNameInWorker("mockfreemodel").SetIsActive(true).Save(ctx)
+	_, err = repo.DB.GenerationModel.Create().SetID(uuid.MustParse(MOCK_GENERATION_MODEL_ID)).SetNameInWorker("mockfreemodel").AddSchedulerIDs(uuid.MustParse(MOCK_SCHEDULER_ID)).SetIsActive(true).Save(ctx)
 	if err != nil {
 		return err
 	}
 	// ! Mock upscale models
 	_, err = repo.DB.UpscaleModel.Create().SetID(uuid.MustParse(MOCK_UPSCALE_MODEL_ID)).SetNameInWorker("mockupscalemodel").SetIsActive(true).Save(ctx)
-	if err != nil {
-		return err
-	}
-
-	// ! Mock schedulers
-	// Create a scheduler for the free user
-	_, err = repo.DB.Scheduler.Create().SetID(uuid.MustParse(MOCK_SCHEDULER_ID)).SetNameInWorker("mockfreescheduler").Save(ctx)
 	if err != nil {
 		return err
 	}
