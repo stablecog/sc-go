@@ -325,7 +325,7 @@ func TestGenerateNoCredits(t *testing.T) {
 		SchedulerId:    utils.ToPtr(uuid.MustParse(repository.MOCK_SCHEDULER_ID)),
 		ModelId:        utils.ToPtr(uuid.MustParse(repository.MOCK_GENERATION_MODEL_ID)),
 		NumOutputs:     utils.ToPtr[int32](1),
-		InferenceSteps: utils.ToPtr[int32](shared.MAX_GENERATE_INTERFERENCE_STEPS_FREE),
+		InferenceSteps: utils.ToPtr[int32](shared.MAX_GENERATE_INTERFERENCE_STEPS_FREE + 1),
 		GuidanceScale:  utils.ToPtr[float32](7),
 		Prompt:         "A portrait of a cat by Van Gogh",
 	}
@@ -359,7 +359,7 @@ func TestGenerateValidRequest(t *testing.T) {
 		ModelId:        utils.ToPtr(uuid.MustParse(repository.MOCK_GENERATION_MODEL_ID)),
 		NumOutputs:     utils.ToPtr[int32](1),
 		GuidanceScale:  utils.ToPtr[float32](7),
-		InferenceSteps: utils.ToPtr[int32](shared.MAX_GENERATE_INTERFERENCE_STEPS_FREE),
+		InferenceSteps: utils.ToPtr[int32](shared.MAX_GENERATE_INTERFERENCE_STEPS_FREE + 1),
 		Prompt:         "A portrait of a cat by Van Gogh",
 	}
 	body, _ := json.Marshal(reqBody)
