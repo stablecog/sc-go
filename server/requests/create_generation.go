@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/stablecog/sc-go/log"
 	"github.com/stablecog/sc-go/shared"
 	"github.com/stablecog/sc-go/utils"
 	"golang.org/x/exp/slices"
@@ -81,75 +82,104 @@ func (t *CreateGenerationRequest) Validate(api bool) error {
 
 	t.ApplyDefaults()
 
+	var err error
+
 	// Only apply scheduler check to API for now
 	if api {
 		compatibleSchedulerIds := shared.GetCache().GetCompatibleSchedulerIDsForModel(context.TODO(), *t.ModelId)
 		if !slices.Contains(compatibleSchedulerIds, *t.SchedulerId) {
-			fmt.Printf("Model ID %s", (*t.ModelId).String())
-			fmt.Printf("Scheduler ID %s", (*t.SchedulerId).String())
+			log.Infof("Model ID %s", (*t.ModelId).String())
+			log.Infof("Scheduler ID %s", (*t.SchedulerId).String())
 			return errors.New("invalid_scheduler_id")
 		}
 	}
 
 	if *t.Height > shared.MAX_GENERATE_HEIGHT {
-		return fmt.Errorf("Height is too large, max is: %d", shared.MAX_GENERATE_HEIGHT)
+		err = fmt.Errorf("Height is too large, max is: %d", shared.MAX_GENERATE_HEIGHT)
+		log.Error(err)
+		return err
 	}
 
 	if *t.Height < shared.MIN_GENERATE_HEIGHT {
-		return fmt.Errorf("Height is too small, min is: %d", shared.MIN_GENERATE_HEIGHT)
+		err = fmt.Errorf("Height is too small, min is: %d", shared.MIN_GENERATE_HEIGHT)
+		log.Error(err)
+		return err
 	}
 
 	if *t.Width > shared.MAX_GENERATE_WIDTH {
-		return fmt.Errorf("Width is too large, max is: %d", shared.MAX_GENERATE_WIDTH)
+		err = fmt.Errorf("Width is too large, max is: %d", shared.MAX_GENERATE_WIDTH)
+		log.Error(err)
+		return err
 	}
 
 	if *t.Width < shared.MIN_GENERATE_WIDTH {
-		return fmt.Errorf("Width is too small, min is: %d", shared.MIN_GENERATE_WIDTH)
+		err = fmt.Errorf("Width is too small, min is: %d", shared.MIN_GENERATE_WIDTH)
+		log.Error(err)
+		return err
 	}
 
 	if *t.GuidanceScale < shared.MIN_GUIDANCE_SCALE {
-		return fmt.Errorf("Guidance scale is too small, min is: %f", shared.MIN_GUIDANCE_SCALE)
+		err = fmt.Errorf("Guidance scale is too small, min is: %f", shared.MIN_GUIDANCE_SCALE)
+		log.Error(err)
+		return err
 	}
 
 	if *t.GuidanceScale > shared.MAX_GUIDANCE_SCALE {
-		return fmt.Errorf("Guidance scale is too large, max is: %f", shared.MAX_GUIDANCE_SCALE)
+		err = fmt.Errorf("Guidance scale is too large, max is: %f", shared.MAX_GUIDANCE_SCALE)
+		log.Error(err)
+		return err
 	}
 
 	if *t.InferenceSteps < shared.MIN_INFERENCE_STEPS {
-		return fmt.Errorf("Inference steps is too small, min is: %d", shared.MIN_INFERENCE_STEPS)
+		err = fmt.Errorf("Inference steps is too small, min is: %d", shared.MIN_INFERENCE_STEPS)
+		log.Error(err)
+		return err
 	}
 
 	if (*t.Width)*(*t.Height)*(*t.InferenceSteps) > shared.MAX_PRO_PIXEL_STEPS {
-		return fmt.Errorf("Pick fewer inference steps or smaller dimensions: %d - %d - %d",
+		err = fmt.Errorf("Pick fewer inference steps or smaller dimensions: %d - %d - %d",
+
 			*t.Width,
 			*t.Height,
 			*t.InferenceSteps,
 		)
+		log.Error(err)
+		return err
 	}
 
 	if *t.NumOutputs < 0 {
 		t.NumOutputs = utils.ToPtr(shared.DEFAULT_GENERATE_NUM_OUTPUTS)
 	}
 	if *t.NumOutputs > shared.MAX_GENERATE_NUM_OUTPUTS {
-		return fmt.Errorf("Number of outputs can't be more than %d", shared.MAX_GENERATE_NUM_OUTPUTS)
+		err = fmt.Errorf("Number of outputs can't be more than %d", shared.MAX_GENERATE_NUM_OUTPUTS)
+		log.Error(err)
+		return err
 	}
 
 	if !shared.GetCache().IsValidGenerationModelID(*t.ModelId) {
-		return errors.New("invalid_model_id")
+		err = errors.New("invalid_model_id")
+		log.Error(err)
+		return err
 	}
 
 	if !shared.GetCache().IsValidShedulerID(*t.SchedulerId) {
-		return errors.New("invalid_scheduler_id")
+		err = errors.New("invalid_scheduler_id")
+		log.Error(err)
+		return err
 	}
 
 	// Ensure http, https, or s3
 	if t.InitImageUrl != "" && !strings.HasPrefix(t.InitImageUrl, "s3://") && !strings.HasPrefix(t.InitImageUrl, "http://") && !strings.HasPrefix(t.InitImageUrl, "https://") {
-		return errors.New("invalid_init_image_url")
+		err = errors.New("invalid_init_image_url")
+		log.Error(err)
+		return err
 	}
 
 	// Valid mask image url
 	if t.MaskImageUrl != "" && !strings.HasPrefix(t.MaskImageUrl, "s3://") && !strings.HasPrefix(t.MaskImageUrl, "http://") && !strings.HasPrefix(t.MaskImageUrl, "https://") {
-		return errors.New("invalid_mask_image_url")
+		err = errors.New("invalid_mask_image_url")
+		log.Error(err)
+		return err
 	}
 
 	if t.Seed == nil || *t.Seed < 0 {
