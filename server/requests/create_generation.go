@@ -84,14 +84,11 @@ func (t *CreateGenerationRequest) Validate(api bool) error {
 
 	var err error
 
-	// Only apply scheduler check to API for now
-	if api {
-		compatibleSchedulerIds := shared.GetCache().GetCompatibleSchedulerIDsForModel(context.TODO(), *t.ModelId)
-		if !slices.Contains(compatibleSchedulerIds, *t.SchedulerId) {
-			log.Infof("Model ID %s", (*t.ModelId).String())
-			log.Infof("Scheduler ID %s", (*t.SchedulerId).String())
-			return errors.New("invalid_scheduler_id")
-		}
+	compatibleSchedulerIds := shared.GetCache().GetCompatibleSchedulerIDsForModel(context.TODO(), *t.ModelId)
+	if !slices.Contains(compatibleSchedulerIds, *t.SchedulerId) {
+		defaultSchedulerId := shared.GetCache().GetDefaultSchedulerIDForModel(*t.ModelId)
+		log.Infof("Invalid Model ID & Scheduler ID Combo, setting default: %s, %s, %s", (*t.ModelId).String(), (*t.SchedulerId).String(), defaultSchedulerId.String())
+		t.SchedulerId = utils.ToPtr(defaultSchedulerId)
 	}
 
 	if *t.Height > shared.MAX_GENERATE_HEIGHT {
