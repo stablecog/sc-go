@@ -19,7 +19,7 @@ import (
 // A singleton that caches the features available to free users
 // Avoids having to query the database every time a user requests the features
 type Cache struct {
-	// Models and options available to free users
+	// Models and options available to free users //
 	generateModels         []*ent.GenerationModel
 	upscaleModels          []*ent.UpscaleModel
 	schedulers             []*ent.Scheduler
