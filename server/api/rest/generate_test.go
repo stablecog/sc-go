@@ -320,8 +320,8 @@ func TestGenerateNoCredits(t *testing.T) {
 	// ! Perfectly valid request
 	reqBody := requests.CreateGenerationRequest{
 		StreamID:       MockSSEId,
-		Height:         utils.ToPtr[int32](1024),
-		Width:          utils.ToPtr[int32](1024),
+		Height:         utils.ToPtr[int32](512),
+		Width:          utils.ToPtr[int32](512),
 		SchedulerId:    utils.ToPtr(uuid.MustParse(repository.MOCK_SCHEDULER_ID)),
 		ModelId:        utils.ToPtr(uuid.MustParse(repository.MOCK_GENERATION_MODEL_ID)),
 		NumOutputs:     utils.ToPtr[int32](1),
