@@ -300,6 +300,7 @@ func TestGenerateNoCredits(t *testing.T) {
 		InferenceSteps: utils.ToPtr[int32](shared.MAX_GENERATE_INTERFERENCE_STEPS_FREE),
 		GuidanceScale:  utils.ToPtr[float32](7),
 		Prompt:         "A portrait of a cat by Van Gogh",
+		IsTest:         true,
 	}
 	body, _ := json.Marshal(reqBody)
 	w := httptest.NewRecorder()
@@ -333,6 +334,7 @@ func TestGenerateValidRequest(t *testing.T) {
 		GuidanceScale:  utils.ToPtr[float32](7),
 		InferenceSteps: utils.ToPtr[int32](shared.MAX_GENERATE_INTERFERENCE_STEPS_FREE),
 		Prompt:         "A portrait of a cat by Van Gogh",
+		IsTest:         true,
 	}
 	body, _ := json.Marshal(reqBody)
 	w := httptest.NewRecorder()
