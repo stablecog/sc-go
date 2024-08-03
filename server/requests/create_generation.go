@@ -85,7 +85,7 @@ func (t *CreateGenerationRequest) Validate(api bool) error {
 	if api {
 		compatibleSchedulerIds := shared.GetCache().GetCompatibleSchedulerIDsForModel(context.TODO(), *t.ModelId)
 		if !slices.Contains(compatibleSchedulerIds, *t.SchedulerId) {
-			fmt.Printf("MOdel ID %s", (*t.ModelId).String())
+			fmt.Printf("Model ID %s", (*t.ModelId).String())
 			fmt.Printf("Scheduler ID %s", (*t.SchedulerId).String())
 			return errors.New("invalid_scheduler_id")
 		}
