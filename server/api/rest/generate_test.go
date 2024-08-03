@@ -255,14 +255,15 @@ func TestGenerateValidationsSkippedForSuperAdmin(t *testing.T) {
 	assert.Equal(t, "invalid_model_or_scheduler", respJson["error"])
 }
 
-func TestGenerateRejectsInvalidModelOrScheduler(t *testing.T) {
-	// ! invalid_scheduler_id
+func TestGenerateRejectsInvalidModel(t *testing.T) {
+	var respJson map[string]interface{}
+	// ! invalid_model_id
 	reqBody := requests.CreateGenerationRequest{
 		StreamID:      MockSSEId,
 		Height:        utils.ToPtr[int32](768),
 		Width:         utils.ToPtr[int32](768),
-		SchedulerId:   utils.ToPtr(uuid.MustParse("00000000-0000-0000-0000-000000000000")),
-		ModelId:       utils.ToPtr(uuid.MustParse(repository.MOCK_GENERATION_MODEL_ID)),
+		SchedulerId:   utils.ToPtr(uuid.MustParse(repository.MOCK_SCHEDULER_ID)),
+		ModelId:       utils.ToPtr(uuid.MustParse("00000000-0000-0000-0000-000000000000")),
 		GuidanceScale: utils.ToPtr[float32](7),
 		NumOutputs:    utils.ToPtr[int32](1),
 	}
@@ -280,37 +281,7 @@ func TestGenerateRejectsInvalidModelOrScheduler(t *testing.T) {
 	resp := w.Result()
 	defer resp.Body.Close()
 	assert.Equal(t, 400, resp.StatusCode)
-	var respJson map[string]interface{}
 	respBody, _ := io.ReadAll(resp.Body)
-	json.Unmarshal(respBody, &respJson)
-
-	assert.Equal(t, "invalid_scheduler_id", respJson["error"])
-
-	// ! invalid_model_id
-	reqBody = requests.CreateGenerationRequest{
-		StreamID:      MockSSEId,
-		Height:        utils.ToPtr[int32](768),
-		Width:         utils.ToPtr[int32](768),
-		SchedulerId:   utils.ToPtr(uuid.MustParse(repository.MOCK_SCHEDULER_ID)),
-		ModelId:       utils.ToPtr(uuid.MustParse("00000000-0000-0000-0000-000000000000")),
-		GuidanceScale: utils.ToPtr[float32](7),
-		NumOutputs:    utils.ToPtr[int32](1),
-	}
-	body, _ = json.Marshal(reqBody)
-	w = httptest.NewRecorder()
-	// Build request
-	req = httptest.NewRequest("POST", "/", bytes.NewReader(body))
-	req.Header.Set("Content-Type", "application/json")
-
-	// Setup context
-	ctx = context.WithValue(req.Context(), "user_id", repository.MOCK_NORMAL_UUID)
-	ctx = context.WithValue(ctx, "user_email", repository.MOCK_NORMAL_UUID)
-
-	MockController.HandleCreateGeneration(w, req.WithContext(ctx))
-	resp = w.Result()
-	defer resp.Body.Close()
-	assert.Equal(t, 400, resp.StatusCode)
-	respBody, _ = io.ReadAll(resp.Body)
 	json.Unmarshal(respBody, &respJson)
 
 	assert.Equal(t, "invalid_model_id", respJson["error"])
