@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 	"github.com/google/uuid"
 	"github.com/stablecog/sc-go/database/ent/credittype"
@@ -33,7 +34,8 @@ type CreditType struct {
 	UpdatedAt time.Time `json:"updated_at,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the CreditTypeQuery when eager-loading is set.
-	Edges CreditTypeEdges `json:"edges"`
+	Edges        CreditTypeEdges `json:"edges"`
+	selectValues sql.SelectValues
 }
 
 // CreditTypeEdges holds the relations/edges for other nodes in the graph.
@@ -68,7 +70,7 @@ func (*CreditType) scanValues(columns []string) ([]any, error) {
 		case credittype.FieldID:
 			values[i] = new(uuid.UUID)
 		default:
-			return nil, fmt.Errorf("unexpected column %q for type CreditType", columns[i])
+			values[i] = new(sql.UnknownType)
 		}
 	}
 	return values, nil
@@ -132,9 +134,17 @@ func (ct *CreditType) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				ct.UpdatedAt = value.Time
 			}
+		default:
+			ct.selectValues.Set(columns[i], values[i])
 		}
 	}
 	return nil
+}
+
+// Value returns the ent.Value that was dynamically selected and assigned to the CreditType.
+// This includes values selected through modifiers, order, etc.
+func (ct *CreditType) Value(name string) (ent.Value, error) {
+	return ct.selectValues.Get(name)
 }
 
 // QueryCredits queries the "credits" edge of the CreditType entity.
@@ -195,9 +205,3 @@ func (ct *CreditType) String() string {
 
 // CreditTypes is a parsable slice of CreditType.
 type CreditTypes []*CreditType
-
-func (ct CreditTypes) config(cfg config) {
-	for _i := range ct {
-		ct[_i].config = cfg
-	}
-}

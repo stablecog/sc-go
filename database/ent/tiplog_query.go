@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"math"
 
+	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
@@ -20,7 +21,7 @@ import (
 type TipLogQuery struct {
 	config
 	ctx              *QueryContext
-	order            []OrderFunc
+	order            []tiplog.OrderOption
 	inters           []Interceptor
 	predicates       []predicate.TipLog
 	withTipsReceived *UserQuery
@@ -57,7 +58,7 @@ func (tlq *TipLogQuery) Unique(unique bool) *TipLogQuery {
 }
 
 // Order specifies how the records should be ordered.
-func (tlq *TipLogQuery) Order(o ...OrderFunc) *TipLogQuery {
+func (tlq *TipLogQuery) Order(o ...tiplog.OrderOption) *TipLogQuery {
 	tlq.order = append(tlq.order, o...)
 	return tlq
 }
@@ -109,7 +110,7 @@ func (tlq *TipLogQuery) QueryTipsGiven() *UserQuery {
 // First returns the first TipLog entity from the query.
 // Returns a *NotFoundError when no TipLog was found.
 func (tlq *TipLogQuery) First(ctx context.Context) (*TipLog, error) {
-	nodes, err := tlq.Limit(1).All(setContextOp(ctx, tlq.ctx, "First"))
+	nodes, err := tlq.Limit(1).All(setContextOp(ctx, tlq.ctx, ent.OpQueryFirst))
 	if err != nil {
 		return nil, err
 	}
@@ -132,7 +133,7 @@ func (tlq *TipLogQuery) FirstX(ctx context.Context) *TipLog {
 // Returns a *NotFoundError when no TipLog ID was found.
 func (tlq *TipLogQuery) FirstID(ctx context.Context) (id uuid.UUID, err error) {
 	var ids []uuid.UUID
-	if ids, err = tlq.Limit(1).IDs(setContextOp(ctx, tlq.ctx, "FirstID")); err != nil {
+	if ids, err = tlq.Limit(1).IDs(setContextOp(ctx, tlq.ctx, ent.OpQueryFirstID)); err != nil {
 		return
 	}
 	if len(ids) == 0 {
@@ -155,7 +156,7 @@ func (tlq *TipLogQuery) FirstIDX(ctx context.Context) uuid.UUID {
 // Returns a *NotSingularError when more than one TipLog entity is found.
 // Returns a *NotFoundError when no TipLog entities are found.
 func (tlq *TipLogQuery) Only(ctx context.Context) (*TipLog, error) {
-	nodes, err := tlq.Limit(2).All(setContextOp(ctx, tlq.ctx, "Only"))
+	nodes, err := tlq.Limit(2).All(setContextOp(ctx, tlq.ctx, ent.OpQueryOnly))
 	if err != nil {
 		return nil, err
 	}
@@ -183,7 +184,7 @@ func (tlq *TipLogQuery) OnlyX(ctx context.Context) *TipLog {
 // Returns a *NotFoundError when no entities are found.
 func (tlq *TipLogQuery) OnlyID(ctx context.Context) (id uuid.UUID, err error) {
 	var ids []uuid.UUID
-	if ids, err = tlq.Limit(2).IDs(setContextOp(ctx, tlq.ctx, "OnlyID")); err != nil {
+	if ids, err = tlq.Limit(2).IDs(setContextOp(ctx, tlq.ctx, ent.OpQueryOnlyID)); err != nil {
 		return
 	}
 	switch len(ids) {
@@ -208,7 +209,7 @@ func (tlq *TipLogQuery) OnlyIDX(ctx context.Context) uuid.UUID {
 
 // All executes the query and returns a list of TipLogs.
 func (tlq *TipLogQuery) All(ctx context.Context) ([]*TipLog, error) {
-	ctx = setContextOp(ctx, tlq.ctx, "All")
+	ctx = setContextOp(ctx, tlq.ctx, ent.OpQueryAll)
 	if err := tlq.prepareQuery(ctx); err != nil {
 		return nil, err
 	}
@@ -226,10 +227,12 @@ func (tlq *TipLogQuery) AllX(ctx context.Context) []*TipLog {
 }
 
 // IDs executes the query and returns a list of TipLog IDs.
-func (tlq *TipLogQuery) IDs(ctx context.Context) ([]uuid.UUID, error) {
-	var ids []uuid.UUID
-	ctx = setContextOp(ctx, tlq.ctx, "IDs")
-	if err := tlq.Select(tiplog.FieldID).Scan(ctx, &ids); err != nil {
+func (tlq *TipLogQuery) IDs(ctx context.Context) (ids []uuid.UUID, err error) {
+	if tlq.ctx.Unique == nil && tlq.path != nil {
+		tlq.Unique(true)
+	}
+	ctx = setContextOp(ctx, tlq.ctx, ent.OpQueryIDs)
+	if err = tlq.Select(tiplog.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
 	return ids, nil
@@ -246,7 +249,7 @@ func (tlq *TipLogQuery) IDsX(ctx context.Context) []uuid.UUID {
 
 // Count returns the count of the given query.
 func (tlq *TipLogQuery) Count(ctx context.Context) (int, error) {
-	ctx = setContextOp(ctx, tlq.ctx, "Count")
+	ctx = setContextOp(ctx, tlq.ctx, ent.OpQueryCount)
 	if err := tlq.prepareQuery(ctx); err != nil {
 		return 0, err
 	}
@@ -264,7 +267,7 @@ func (tlq *TipLogQuery) CountX(ctx context.Context) int {
 
 // Exist returns true if the query has elements in the graph.
 func (tlq *TipLogQuery) Exist(ctx context.Context) (bool, error) {
-	ctx = setContextOp(ctx, tlq.ctx, "Exist")
+	ctx = setContextOp(ctx, tlq.ctx, ent.OpQueryExist)
 	switch _, err := tlq.FirstID(ctx); {
 	case IsNotFound(err):
 		return false, nil
@@ -293,7 +296,7 @@ func (tlq *TipLogQuery) Clone() *TipLogQuery {
 	return &TipLogQuery{
 		config:           tlq.config,
 		ctx:              tlq.ctx.Clone(),
-		order:            append([]OrderFunc{}, tlq.order...),
+		order:            append([]tiplog.OrderOption{}, tlq.order...),
 		inters:           append([]Interceptor{}, tlq.inters...),
 		predicates:       append([]predicate.TipLog{}, tlq.predicates...),
 		withTipsReceived: tlq.withTipsReceived.Clone(),
@@ -520,20 +523,12 @@ func (tlq *TipLogQuery) sqlCount(ctx context.Context) (int, error) {
 }
 
 func (tlq *TipLogQuery) querySpec() *sqlgraph.QuerySpec {
-	_spec := &sqlgraph.QuerySpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   tiplog.Table,
-			Columns: tiplog.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeUUID,
-				Column: tiplog.FieldID,
-			},
-		},
-		From:   tlq.sql,
-		Unique: true,
-	}
+	_spec := sqlgraph.NewQuerySpec(tiplog.Table, tiplog.Columns, sqlgraph.NewFieldSpec(tiplog.FieldID, field.TypeUUID))
+	_spec.From = tlq.sql
 	if unique := tlq.ctx.Unique; unique != nil {
 		_spec.Unique = *unique
+	} else if tlq.path != nil {
+		_spec.Unique = true
 	}
 	if fields := tlq.ctx.Fields; len(fields) > 0 {
 		_spec.Node.Columns = make([]string, 0, len(fields))
@@ -542,6 +537,12 @@ func (tlq *TipLogQuery) querySpec() *sqlgraph.QuerySpec {
 			if fields[i] != tiplog.FieldID {
 				_spec.Node.Columns = append(_spec.Node.Columns, fields[i])
 			}
+		}
+		if tlq.withTipsReceived != nil {
+			_spec.Node.AddColumnOnce(tiplog.FieldTippedTo)
+		}
+		if tlq.withTipsGiven != nil {
+			_spec.Node.AddColumnOnce(tiplog.FieldTippedBy)
 		}
 	}
 	if ps := tlq.predicates; len(ps) > 0 {
@@ -622,7 +623,7 @@ func (tlgb *TipLogGroupBy) Aggregate(fns ...AggregateFunc) *TipLogGroupBy {
 
 // Scan applies the selector query and scans the result into the given value.
 func (tlgb *TipLogGroupBy) Scan(ctx context.Context, v any) error {
-	ctx = setContextOp(ctx, tlgb.build.ctx, "GroupBy")
+	ctx = setContextOp(ctx, tlgb.build.ctx, ent.OpQueryGroupBy)
 	if err := tlgb.build.prepareQuery(ctx); err != nil {
 		return err
 	}
@@ -670,7 +671,7 @@ func (tls *TipLogSelect) Aggregate(fns ...AggregateFunc) *TipLogSelect {
 
 // Scan applies the selector query and scans the result into the given value.
 func (tls *TipLogSelect) Scan(ctx context.Context, v any) error {
-	ctx = setContextOp(ctx, tls.ctx, "Select")
+	ctx = setContextOp(ctx, tls.ctx, ent.OpQuerySelect)
 	if err := tls.prepareQuery(ctx); err != nil {
 		return err
 	}

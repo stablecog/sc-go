@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"math"
 
+	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
@@ -19,7 +20,7 @@ import (
 type IPBlackListQuery struct {
 	config
 	ctx        *QueryContext
-	order      []OrderFunc
+	order      []ipblacklist.OrderOption
 	inters     []Interceptor
 	predicates []predicate.IPBlackList
 	modifiers  []func(*sql.Selector)
@@ -54,7 +55,7 @@ func (iblq *IPBlackListQuery) Unique(unique bool) *IPBlackListQuery {
 }
 
 // Order specifies how the records should be ordered.
-func (iblq *IPBlackListQuery) Order(o ...OrderFunc) *IPBlackListQuery {
+func (iblq *IPBlackListQuery) Order(o ...ipblacklist.OrderOption) *IPBlackListQuery {
 	iblq.order = append(iblq.order, o...)
 	return iblq
 }
@@ -62,7 +63,7 @@ func (iblq *IPBlackListQuery) Order(o ...OrderFunc) *IPBlackListQuery {
 // First returns the first IPBlackList entity from the query.
 // Returns a *NotFoundError when no IPBlackList was found.
 func (iblq *IPBlackListQuery) First(ctx context.Context) (*IPBlackList, error) {
-	nodes, err := iblq.Limit(1).All(setContextOp(ctx, iblq.ctx, "First"))
+	nodes, err := iblq.Limit(1).All(setContextOp(ctx, iblq.ctx, ent.OpQueryFirst))
 	if err != nil {
 		return nil, err
 	}
@@ -85,7 +86,7 @@ func (iblq *IPBlackListQuery) FirstX(ctx context.Context) *IPBlackList {
 // Returns a *NotFoundError when no IPBlackList ID was found.
 func (iblq *IPBlackListQuery) FirstID(ctx context.Context) (id uuid.UUID, err error) {
 	var ids []uuid.UUID
-	if ids, err = iblq.Limit(1).IDs(setContextOp(ctx, iblq.ctx, "FirstID")); err != nil {
+	if ids, err = iblq.Limit(1).IDs(setContextOp(ctx, iblq.ctx, ent.OpQueryFirstID)); err != nil {
 		return
 	}
 	if len(ids) == 0 {
@@ -108,7 +109,7 @@ func (iblq *IPBlackListQuery) FirstIDX(ctx context.Context) uuid.UUID {
 // Returns a *NotSingularError when more than one IPBlackList entity is found.
 // Returns a *NotFoundError when no IPBlackList entities are found.
 func (iblq *IPBlackListQuery) Only(ctx context.Context) (*IPBlackList, error) {
-	nodes, err := iblq.Limit(2).All(setContextOp(ctx, iblq.ctx, "Only"))
+	nodes, err := iblq.Limit(2).All(setContextOp(ctx, iblq.ctx, ent.OpQueryOnly))
 	if err != nil {
 		return nil, err
 	}
@@ -136,7 +137,7 @@ func (iblq *IPBlackListQuery) OnlyX(ctx context.Context) *IPBlackList {
 // Returns a *NotFoundError when no entities are found.
 func (iblq *IPBlackListQuery) OnlyID(ctx context.Context) (id uuid.UUID, err error) {
 	var ids []uuid.UUID
-	if ids, err = iblq.Limit(2).IDs(setContextOp(ctx, iblq.ctx, "OnlyID")); err != nil {
+	if ids, err = iblq.Limit(2).IDs(setContextOp(ctx, iblq.ctx, ent.OpQueryOnlyID)); err != nil {
 		return
 	}
 	switch len(ids) {
@@ -161,7 +162,7 @@ func (iblq *IPBlackListQuery) OnlyIDX(ctx context.Context) uuid.UUID {
 
 // All executes the query and returns a list of IPBlackLists.
 func (iblq *IPBlackListQuery) All(ctx context.Context) ([]*IPBlackList, error) {
-	ctx = setContextOp(ctx, iblq.ctx, "All")
+	ctx = setContextOp(ctx, iblq.ctx, ent.OpQueryAll)
 	if err := iblq.prepareQuery(ctx); err != nil {
 		return nil, err
 	}
@@ -179,10 +180,12 @@ func (iblq *IPBlackListQuery) AllX(ctx context.Context) []*IPBlackList {
 }
 
 // IDs executes the query and returns a list of IPBlackList IDs.
-func (iblq *IPBlackListQuery) IDs(ctx context.Context) ([]uuid.UUID, error) {
-	var ids []uuid.UUID
-	ctx = setContextOp(ctx, iblq.ctx, "IDs")
-	if err := iblq.Select(ipblacklist.FieldID).Scan(ctx, &ids); err != nil {
+func (iblq *IPBlackListQuery) IDs(ctx context.Context) (ids []uuid.UUID, err error) {
+	if iblq.ctx.Unique == nil && iblq.path != nil {
+		iblq.Unique(true)
+	}
+	ctx = setContextOp(ctx, iblq.ctx, ent.OpQueryIDs)
+	if err = iblq.Select(ipblacklist.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
 	return ids, nil
@@ -199,7 +202,7 @@ func (iblq *IPBlackListQuery) IDsX(ctx context.Context) []uuid.UUID {
 
 // Count returns the count of the given query.
 func (iblq *IPBlackListQuery) Count(ctx context.Context) (int, error) {
-	ctx = setContextOp(ctx, iblq.ctx, "Count")
+	ctx = setContextOp(ctx, iblq.ctx, ent.OpQueryCount)
 	if err := iblq.prepareQuery(ctx); err != nil {
 		return 0, err
 	}
@@ -217,7 +220,7 @@ func (iblq *IPBlackListQuery) CountX(ctx context.Context) int {
 
 // Exist returns true if the query has elements in the graph.
 func (iblq *IPBlackListQuery) Exist(ctx context.Context) (bool, error) {
-	ctx = setContextOp(ctx, iblq.ctx, "Exist")
+	ctx = setContextOp(ctx, iblq.ctx, ent.OpQueryExist)
 	switch _, err := iblq.FirstID(ctx); {
 	case IsNotFound(err):
 		return false, nil
@@ -246,7 +249,7 @@ func (iblq *IPBlackListQuery) Clone() *IPBlackListQuery {
 	return &IPBlackListQuery{
 		config:     iblq.config,
 		ctx:        iblq.ctx.Clone(),
-		order:      append([]OrderFunc{}, iblq.order...),
+		order:      append([]ipblacklist.OrderOption{}, iblq.order...),
 		inters:     append([]Interceptor{}, iblq.inters...),
 		predicates: append([]predicate.IPBlackList{}, iblq.predicates...),
 		// clone intermediate query.
@@ -370,20 +373,12 @@ func (iblq *IPBlackListQuery) sqlCount(ctx context.Context) (int, error) {
 }
 
 func (iblq *IPBlackListQuery) querySpec() *sqlgraph.QuerySpec {
-	_spec := &sqlgraph.QuerySpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   ipblacklist.Table,
-			Columns: ipblacklist.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeUUID,
-				Column: ipblacklist.FieldID,
-			},
-		},
-		From:   iblq.sql,
-		Unique: true,
-	}
+	_spec := sqlgraph.NewQuerySpec(ipblacklist.Table, ipblacklist.Columns, sqlgraph.NewFieldSpec(ipblacklist.FieldID, field.TypeUUID))
+	_spec.From = iblq.sql
 	if unique := iblq.ctx.Unique; unique != nil {
 		_spec.Unique = *unique
+	} else if iblq.path != nil {
+		_spec.Unique = true
 	}
 	if fields := iblq.ctx.Fields; len(fields) > 0 {
 		_spec.Node.Columns = make([]string, 0, len(fields))
@@ -472,7 +467,7 @@ func (iblgb *IPBlackListGroupBy) Aggregate(fns ...AggregateFunc) *IPBlackListGro
 
 // Scan applies the selector query and scans the result into the given value.
 func (iblgb *IPBlackListGroupBy) Scan(ctx context.Context, v any) error {
-	ctx = setContextOp(ctx, iblgb.build.ctx, "GroupBy")
+	ctx = setContextOp(ctx, iblgb.build.ctx, ent.OpQueryGroupBy)
 	if err := iblgb.build.prepareQuery(ctx); err != nil {
 		return err
 	}
@@ -520,7 +515,7 @@ func (ibls *IPBlackListSelect) Aggregate(fns ...AggregateFunc) *IPBlackListSelec
 
 // Scan applies the selector query and scans the result into the given value.
 func (ibls *IPBlackListSelect) Scan(ctx context.Context, v any) error {
-	ctx = setContextOp(ctx, ibls.ctx, "Select")
+	ctx = setContextOp(ctx, ibls.ctx, ent.OpQuerySelect)
 	if err := ibls.prepareQuery(ctx); err != nil {
 		return err
 	}

@@ -198,8 +198,10 @@ github.com/scaleway/scaleway-sdk-go v1.0.0-beta.27/go.mod h1:fCa7OJZ/9DRTnOKmxvT
 github.com/shirou/gopsutil/v3 v3.24.3/go.mod h1:JpND7O217xa72ewWz9zN2eIIkPWsDN/3pl0H8Qt0uwg=
 github.com/shoenig/go-m1cpu v0.1.6/go.mod h1:1JJMcUBvfNwpq05QDQVAnx3gUHr9IYF7GNg9SUEw2VQ=
 github.com/shurcooL/httpfs v0.0.0-20230704072500-f1e31cf0ba5c/go.mod h1:owqhoLW1qZoYLZzLnBw+QkPP9WZnjlSWihhxAJC1+/M=
+github.com/spf13/cobra v1.7.0 h1:hyqWnYt1ZQShIddO5kBpj3vu05/++x6tJ6dg8EC572I=
 github.com/spf13/cobra v1.7.0/go.mod h1:uLxZILRyS/50WlhOIKD7W6V5bgeIt+4sICxh6uRMrb0=
 github.com/spf13/pflag v1.0.2/go.mod h1:DYY7MBk1bdzusC3SYhjObp+wFpr4gzcvqqNjLnInEg4=
+github.com/spf13/pflag v1.0.5 h1:iy+VFUOCP1a+8yFto/drg2CJ5u0yRoB7fZw3DKv/JXA=
 github.com/stablecog/sc-go/database v0.0.0-20230212171313-d3dc468134f0/go.mod h1:gIeaeRDf8APoFEjaj7Wx4Ox+9JYaFoncDPOh8lBry0c=
 github.com/stablecog/sc-go/log v0.0.0-20230707184738-0a320ed9f214/go.mod h1:7PXBXK3hUECOBkAeGtR6b9tV35379RvW9U0Ux1F3Cww=
 github.com/stablecog/sc-go/shared v0.0.0-20230212171313-d3dc468134f0/go.mod h1:d+lPtoaVGtBwAPa00RsO5zqzXAtXywqKMiETnsNjWTc=

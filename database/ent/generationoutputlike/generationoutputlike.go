@@ -5,6 +5,8 @@ package generationoutputlike
 import (
 	"time"
 
+	"entgo.io/ent/dialect/sql"
+	"entgo.io/ent/dialect/sql/sqlgraph"
 	"github.com/google/uuid"
 )
 
@@ -65,3 +67,54 @@ var (
 	// DefaultID holds the default value on creation for the "id" field.
 	DefaultID func() uuid.UUID
 )
+
+// OrderOption defines the ordering options for the GenerationOutputLike queries.
+type OrderOption func(*sql.Selector)
+
+// ByID orders the results by the id field.
+func ByID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldID, opts...).ToFunc()
+}
+
+// ByOutputID orders the results by the output_id field.
+func ByOutputID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldOutputID, opts...).ToFunc()
+}
+
+// ByLikedByUserID orders the results by the liked_by_user_id field.
+func ByLikedByUserID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldLikedByUserID, opts...).ToFunc()
+}
+
+// ByCreatedAt orders the results by the created_at field.
+func ByCreatedAt(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldCreatedAt, opts...).ToFunc()
+}
+
+// ByGenerationOutputsField orders the results by generation_outputs field.
+func ByGenerationOutputsField(field string, opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newGenerationOutputsStep(), sql.OrderByField(field, opts...))
+	}
+}
+
+// ByUsersField orders the results by users field.
+func ByUsersField(field string, opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newUsersStep(), sql.OrderByField(field, opts...))
+	}
+}
+func newGenerationOutputsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(GenerationOutputsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, true, GenerationOutputsTable, GenerationOutputsColumn),
+	)
+}
+func newUsersStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(UsersInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, true, UsersTable, UsersColumn),
+	)
+}

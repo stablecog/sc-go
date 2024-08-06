@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 	"github.com/google/uuid"
 	"github.com/stablecog/sc-go/database/ent/deviceinfo"
@@ -29,7 +30,8 @@ type DeviceInfo struct {
 	UpdatedAt time.Time `json:"updated_at,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the DeviceInfoQuery when eager-loading is set.
-	Edges DeviceInfoEdges `json:"edges"`
+	Edges        DeviceInfoEdges `json:"edges"`
+	selectValues sql.SelectValues
 }
 
 // DeviceInfoEdges holds the relations/edges for other nodes in the graph.
@@ -84,7 +86,7 @@ func (*DeviceInfo) scanValues(columns []string) ([]any, error) {
 		case deviceinfo.FieldID:
 			values[i] = new(uuid.UUID)
 		default:
-			return nil, fmt.Errorf("unexpected column %q for type DeviceInfo", columns[i])
+			values[i] = new(sql.UnknownType)
 		}
 	}
 	return values, nil
@@ -137,9 +139,17 @@ func (di *DeviceInfo) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				di.UpdatedAt = value.Time
 			}
+		default:
+			di.selectValues.Set(columns[i], values[i])
 		}
 	}
 	return nil
+}
+
+// Value returns the ent.Value that was dynamically selected and assigned to the DeviceInfo.
+// This includes values selected through modifiers, order, etc.
+func (di *DeviceInfo) Value(name string) (ent.Value, error) {
+	return di.selectValues.Get(name)
 }
 
 // QueryGenerations queries the "generations" edge of the DeviceInfo entity.
@@ -206,9 +216,3 @@ func (di *DeviceInfo) String() string {
 
 // DeviceInfos is a parsable slice of DeviceInfo.
 type DeviceInfos []*DeviceInfo
-
-func (di DeviceInfos) config(cfg config) {
-	for _i := range di {
-		di[_i].config = cfg
-	}
-}

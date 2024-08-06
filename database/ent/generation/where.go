@@ -1356,11 +1356,7 @@ func HasDeviceInfo() predicate.Generation {
 // HasDeviceInfoWith applies the HasEdge predicate on the "device_info" edge with a given conditions (other predicates).
 func HasDeviceInfoWith(preds ...predicate.DeviceInfo) predicate.Generation {
 	return predicate.Generation(func(s *sql.Selector) {
-		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(DeviceInfoInverseTable, FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, DeviceInfoTable, DeviceInfoColumn),
-		)
+		step := newDeviceInfoStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)
@@ -1383,11 +1379,7 @@ func HasScheduler() predicate.Generation {
 // HasSchedulerWith applies the HasEdge predicate on the "scheduler" edge with a given conditions (other predicates).
 func HasSchedulerWith(preds ...predicate.Scheduler) predicate.Generation {
 	return predicate.Generation(func(s *sql.Selector) {
-		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(SchedulerInverseTable, FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, SchedulerTable, SchedulerColumn),
-		)
+		step := newSchedulerStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)
@@ -1410,11 +1402,7 @@ func HasPrompt() predicate.Generation {
 // HasPromptWith applies the HasEdge predicate on the "prompt" edge with a given conditions (other predicates).
 func HasPromptWith(preds ...predicate.Prompt) predicate.Generation {
 	return predicate.Generation(func(s *sql.Selector) {
-		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(PromptInverseTable, FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, PromptTable, PromptColumn),
-		)
+		step := newPromptStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)
@@ -1437,11 +1425,7 @@ func HasNegativePrompt() predicate.Generation {
 // HasNegativePromptWith applies the HasEdge predicate on the "negative_prompt" edge with a given conditions (other predicates).
 func HasNegativePromptWith(preds ...predicate.NegativePrompt) predicate.Generation {
 	return predicate.Generation(func(s *sql.Selector) {
-		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(NegativePromptInverseTable, FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, NegativePromptTable, NegativePromptColumn),
-		)
+		step := newNegativePromptStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)
@@ -1464,11 +1448,7 @@ func HasGenerationModel() predicate.Generation {
 // HasGenerationModelWith applies the HasEdge predicate on the "generation_model" edge with a given conditions (other predicates).
 func HasGenerationModelWith(preds ...predicate.GenerationModel) predicate.Generation {
 	return predicate.Generation(func(s *sql.Selector) {
-		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(GenerationModelInverseTable, FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, GenerationModelTable, GenerationModelColumn),
-		)
+		step := newGenerationModelStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)
@@ -1491,11 +1471,7 @@ func HasUser() predicate.Generation {
 // HasUserWith applies the HasEdge predicate on the "user" edge with a given conditions (other predicates).
 func HasUserWith(preds ...predicate.User) predicate.Generation {
 	return predicate.Generation(func(s *sql.Selector) {
-		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(UserInverseTable, FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, UserTable, UserColumn),
-		)
+		step := newUserStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)
@@ -1518,11 +1494,7 @@ func HasAPITokens() predicate.Generation {
 // HasAPITokensWith applies the HasEdge predicate on the "api_tokens" edge with a given conditions (other predicates).
 func HasAPITokensWith(preds ...predicate.ApiToken) predicate.Generation {
 	return predicate.Generation(func(s *sql.Selector) {
-		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(APITokensInverseTable, FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, APITokensTable, APITokensColumn),
-		)
+		step := newAPITokensStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)
@@ -1545,11 +1517,7 @@ func HasGenerationOutputs() predicate.Generation {
 // HasGenerationOutputsWith applies the HasEdge predicate on the "generation_outputs" edge with a given conditions (other predicates).
 func HasGenerationOutputsWith(preds ...predicate.GenerationOutput) predicate.Generation {
 	return predicate.Generation(func(s *sql.Selector) {
-		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(GenerationOutputsInverseTable, FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, GenerationOutputsTable, GenerationOutputsColumn),
-		)
+		step := newGenerationOutputsStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)
@@ -1560,32 +1528,15 @@ func HasGenerationOutputsWith(preds ...predicate.GenerationOutput) predicate.Gen
 
 // And groups predicates with the AND operator between them.
 func And(predicates ...predicate.Generation) predicate.Generation {
-	return predicate.Generation(func(s *sql.Selector) {
-		s1 := s.Clone().SetP(nil)
-		for _, p := range predicates {
-			p(s1)
-		}
-		s.Where(s1.P())
-	})
+	return predicate.Generation(sql.AndPredicates(predicates...))
 }
 
 // Or groups predicates with the OR operator between them.
 func Or(predicates ...predicate.Generation) predicate.Generation {
-	return predicate.Generation(func(s *sql.Selector) {
-		s1 := s.Clone().SetP(nil)
-		for i, p := range predicates {
-			if i > 0 {
-				s1.Or()
-			}
-			p(s1)
-		}
-		s.Where(s1.P())
-	})
+	return predicate.Generation(sql.OrPredicates(predicates...))
 }
 
 // Not applies the not operator on the given predicate.
 func Not(p predicate.Generation) predicate.Generation {
-	return predicate.Generation(func(s *sql.Selector) {
-		p(s.Not())
-	})
+	return predicate.Generation(sql.NotPredicates(p))
 }

@@ -96,7 +96,7 @@ func (acc *AuthClientCreate) Mutation() *AuthClientMutation {
 // Save creates the AuthClient in the database.
 func (acc *AuthClientCreate) Save(ctx context.Context) (*AuthClient, error) {
 	acc.defaults()
-	return withHooks[*AuthClient, AuthClientMutation](ctx, acc.sqlSave, acc.mutation, acc.hooks)
+	return withHooks(ctx, acc.sqlSave, acc.mutation, acc.hooks)
 }
 
 // SaveX calls Save and panics if Save returns an error.
@@ -177,13 +177,7 @@ func (acc *AuthClientCreate) sqlSave(ctx context.Context) (*AuthClient, error) {
 func (acc *AuthClientCreate) createSpec() (*AuthClient, *sqlgraph.CreateSpec) {
 	var (
 		_node = &AuthClient{config: acc.config}
-		_spec = &sqlgraph.CreateSpec{
-			Table: authclient.Table,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeUUID,
-				Column: authclient.FieldID,
-			},
-		}
+		_spec = sqlgraph.NewCreateSpec(authclient.Table, sqlgraph.NewFieldSpec(authclient.FieldID, field.TypeUUID))
 	)
 	_spec.OnConflict = acc.conflict
 	if id, ok := acc.mutation.ID(); ok {
@@ -210,10 +204,7 @@ func (acc *AuthClientCreate) createSpec() (*AuthClient, *sqlgraph.CreateSpec) {
 			Columns: []string{authclient.APITokensColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: apitoken.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(apitoken.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -417,12 +408,16 @@ func (u *AuthClientUpsertOne) IDX(ctx context.Context) uuid.UUID {
 // AuthClientCreateBulk is the builder for creating many AuthClient entities in bulk.
 type AuthClientCreateBulk struct {
 	config
+	err      error
 	builders []*AuthClientCreate
 	conflict []sql.ConflictOption
 }
 
 // Save creates the AuthClient entities in the database.
 func (accb *AuthClientCreateBulk) Save(ctx context.Context) ([]*AuthClient, error) {
+	if accb.err != nil {
+		return nil, accb.err
+	}
 	specs := make([]*sqlgraph.CreateSpec, len(accb.builders))
 	nodes := make([]*AuthClient, len(accb.builders))
 	mutators := make([]Mutator, len(accb.builders))
@@ -439,8 +434,8 @@ func (accb *AuthClientCreateBulk) Save(ctx context.Context) ([]*AuthClient, erro
 					return nil, err
 				}
 				builder.mutation = mutation
-				nodes[i], specs[i] = builder.createSpec()
 				var err error
+				nodes[i], specs[i] = builder.createSpec()
 				if i < len(mutators)-1 {
 					_, err = mutators[i+1].Mutate(root, accb.builders[i+1].mutation)
 				} else {
@@ -620,6 +615,9 @@ func (u *AuthClientUpsertBulk) UpdateUpdatedAt() *AuthClientUpsertBulk {
 
 // Exec executes the query.
 func (u *AuthClientUpsertBulk) Exec(ctx context.Context) error {
+	if u.create.err != nil {
+		return u.create.err
+	}
 	for i, b := range u.create.builders {
 		if len(b.conflict) != 0 {
 			return fmt.Errorf("ent: OnConflict was set for builder %d. Set it on the AuthClientCreateBulk instead", i)

@@ -164,7 +164,7 @@ func (dic *DeviceInfoCreate) Mutation() *DeviceInfoMutation {
 // Save creates the DeviceInfo in the database.
 func (dic *DeviceInfoCreate) Save(ctx context.Context) (*DeviceInfo, error) {
 	dic.defaults()
-	return withHooks[*DeviceInfo, DeviceInfoMutation](ctx, dic.sqlSave, dic.mutation, dic.hooks)
+	return withHooks(ctx, dic.sqlSave, dic.mutation, dic.hooks)
 }
 
 // SaveX calls Save and panics if Save returns an error.
@@ -242,13 +242,7 @@ func (dic *DeviceInfoCreate) sqlSave(ctx context.Context) (*DeviceInfo, error) {
 func (dic *DeviceInfoCreate) createSpec() (*DeviceInfo, *sqlgraph.CreateSpec) {
 	var (
 		_node = &DeviceInfo{config: dic.config}
-		_spec = &sqlgraph.CreateSpec{
-			Table: deviceinfo.Table,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeUUID,
-				Column: deviceinfo.FieldID,
-			},
-		}
+		_spec = sqlgraph.NewCreateSpec(deviceinfo.Table, sqlgraph.NewFieldSpec(deviceinfo.FieldID, field.TypeUUID))
 	)
 	_spec.OnConflict = dic.conflict
 	if id, ok := dic.mutation.ID(); ok {
@@ -283,10 +277,7 @@ func (dic *DeviceInfoCreate) createSpec() (*DeviceInfo, *sqlgraph.CreateSpec) {
 			Columns: []string{deviceinfo.GenerationsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: generation.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(generation.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -302,10 +293,7 @@ func (dic *DeviceInfoCreate) createSpec() (*DeviceInfo, *sqlgraph.CreateSpec) {
 			Columns: []string{deviceinfo.UpscalesColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: upscale.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(upscale.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -321,10 +309,7 @@ func (dic *DeviceInfoCreate) createSpec() (*DeviceInfo, *sqlgraph.CreateSpec) {
 			Columns: []string{deviceinfo.VoiceoversColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: voiceover.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(voiceover.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -619,12 +604,16 @@ func (u *DeviceInfoUpsertOne) IDX(ctx context.Context) uuid.UUID {
 // DeviceInfoCreateBulk is the builder for creating many DeviceInfo entities in bulk.
 type DeviceInfoCreateBulk struct {
 	config
+	err      error
 	builders []*DeviceInfoCreate
 	conflict []sql.ConflictOption
 }
 
 // Save creates the DeviceInfo entities in the database.
 func (dicb *DeviceInfoCreateBulk) Save(ctx context.Context) ([]*DeviceInfo, error) {
+	if dicb.err != nil {
+		return nil, dicb.err
+	}
 	specs := make([]*sqlgraph.CreateSpec, len(dicb.builders))
 	nodes := make([]*DeviceInfo, len(dicb.builders))
 	mutators := make([]Mutator, len(dicb.builders))
@@ -641,8 +630,8 @@ func (dicb *DeviceInfoCreateBulk) Save(ctx context.Context) ([]*DeviceInfo, erro
 					return nil, err
 				}
 				builder.mutation = mutation
-				nodes[i], specs[i] = builder.createSpec()
 				var err error
+				nodes[i], specs[i] = builder.createSpec()
 				if i < len(mutators)-1 {
 					_, err = mutators[i+1].Mutate(root, dicb.builders[i+1].mutation)
 				} else {
@@ -871,6 +860,9 @@ func (u *DeviceInfoUpsertBulk) UpdateUpdatedAt() *DeviceInfoUpsertBulk {
 
 // Exec executes the query.
 func (u *DeviceInfoUpsertBulk) Exec(ctx context.Context) error {
+	if u.create.err != nil {
+		return u.create.err
+	}
 	for i, b := range u.create.builders {
 		if len(b.conflict) != 0 {
 			return fmt.Errorf("ent: OnConflict was set for builder %d. Set it on the DeviceInfoCreateBulk instead", i)

@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 	"github.com/google/uuid"
 	"github.com/stablecog/sc-go/database/ent/mqlog"
@@ -26,7 +27,8 @@ type MqLog struct {
 	// CreatedAt holds the value of the "created_at" field.
 	CreatedAt time.Time `json:"created_at,omitempty"`
 	// UpdatedAt holds the value of the "updated_at" field.
-	UpdatedAt time.Time `json:"updated_at,omitempty"`
+	UpdatedAt    time.Time `json:"updated_at,omitempty"`
+	selectValues sql.SelectValues
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -45,7 +47,7 @@ func (*MqLog) scanValues(columns []string) ([]any, error) {
 		case mqlog.FieldID:
 			values[i] = new(uuid.UUID)
 		default:
-			return nil, fmt.Errorf("unexpected column %q for type MqLog", columns[i])
+			values[i] = new(sql.UnknownType)
 		}
 	}
 	return values, nil
@@ -95,9 +97,17 @@ func (ml *MqLog) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				ml.UpdatedAt = value.Time
 			}
+		default:
+			ml.selectValues.Set(columns[i], values[i])
 		}
 	}
 	return nil
+}
+
+// Value returns the ent.Value that was dynamically selected and assigned to the MqLog.
+// This includes values selected through modifiers, order, etc.
+func (ml *MqLog) Value(name string) (ent.Value, error) {
+	return ml.selectValues.Get(name)
 }
 
 // Update returns a builder for updating this MqLog.
@@ -143,9 +153,3 @@ func (ml *MqLog) String() string {
 
 // MqLogs is a parsable slice of MqLog.
 type MqLogs []*MqLog
-
-func (ml MqLogs) config(cfg config) {
-	for _i := range ml {
-		ml[_i].config = cfg
-	}
-}

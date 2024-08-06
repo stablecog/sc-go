@@ -38,6 +38,14 @@ func (tlu *TipLogUpdate) SetAmount(i int32) *TipLogUpdate {
 	return tlu
 }
 
+// SetNillableAmount sets the "amount" field if the given value is not nil.
+func (tlu *TipLogUpdate) SetNillableAmount(i *int32) *TipLogUpdate {
+	if i != nil {
+		tlu.SetAmount(*i)
+	}
+	return tlu
+}
+
 // AddAmount adds i to the "amount" field.
 func (tlu *TipLogUpdate) AddAmount(i int32) *TipLogUpdate {
 	tlu.mutation.AddAmount(i)
@@ -50,9 +58,25 @@ func (tlu *TipLogUpdate) SetTippedToDiscordID(s string) *TipLogUpdate {
 	return tlu
 }
 
+// SetNillableTippedToDiscordID sets the "tipped_to_discord_id" field if the given value is not nil.
+func (tlu *TipLogUpdate) SetNillableTippedToDiscordID(s *string) *TipLogUpdate {
+	if s != nil {
+		tlu.SetTippedToDiscordID(*s)
+	}
+	return tlu
+}
+
 // SetTippedBy sets the "tipped_by" field.
 func (tlu *TipLogUpdate) SetTippedBy(u uuid.UUID) *TipLogUpdate {
 	tlu.mutation.SetTippedBy(u)
+	return tlu
+}
+
+// SetNillableTippedBy sets the "tipped_by" field if the given value is not nil.
+func (tlu *TipLogUpdate) SetNillableTippedBy(u *uuid.UUID) *TipLogUpdate {
+	if u != nil {
+		tlu.SetTippedBy(*u)
+	}
 	return tlu
 }
 
@@ -132,7 +156,7 @@ func (tlu *TipLogUpdate) ClearTipsGiven() *TipLogUpdate {
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (tlu *TipLogUpdate) Save(ctx context.Context) (int, error) {
 	tlu.defaults()
-	return withHooks[int, TipLogMutation](ctx, tlu.sqlSave, tlu.mutation, tlu.hooks)
+	return withHooks(ctx, tlu.sqlSave, tlu.mutation, tlu.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -167,7 +191,7 @@ func (tlu *TipLogUpdate) defaults() {
 
 // check runs all checks and user-defined validators on the builder.
 func (tlu *TipLogUpdate) check() error {
-	if _, ok := tlu.mutation.TipsGivenID(); tlu.mutation.TipsGivenCleared() && !ok {
+	if tlu.mutation.TipsGivenCleared() && len(tlu.mutation.TipsGivenIDs()) > 0 {
 		return errors.New(`ent: clearing a required unique edge "TipLog.tips_given"`)
 	}
 	return nil
@@ -183,16 +207,7 @@ func (tlu *TipLogUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if err := tlu.check(); err != nil {
 		return n, err
 	}
-	_spec := &sqlgraph.UpdateSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   tiplog.Table,
-			Columns: tiplog.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeUUID,
-				Column: tiplog.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewUpdateSpec(tiplog.Table, tiplog.Columns, sqlgraph.NewFieldSpec(tiplog.FieldID, field.TypeUUID))
 	if ps := tlu.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
@@ -220,10 +235,7 @@ func (tlu *TipLogUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: []string{tiplog.TipsReceivedColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: user.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeUUID),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -236,10 +248,7 @@ func (tlu *TipLogUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: []string{tiplog.TipsReceivedColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: user.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -255,10 +264,7 @@ func (tlu *TipLogUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: []string{tiplog.TipsGivenColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: user.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeUUID),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -271,10 +277,7 @@ func (tlu *TipLogUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: []string{tiplog.TipsGivenColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: user.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -311,6 +314,14 @@ func (tluo *TipLogUpdateOne) SetAmount(i int32) *TipLogUpdateOne {
 	return tluo
 }
 
+// SetNillableAmount sets the "amount" field if the given value is not nil.
+func (tluo *TipLogUpdateOne) SetNillableAmount(i *int32) *TipLogUpdateOne {
+	if i != nil {
+		tluo.SetAmount(*i)
+	}
+	return tluo
+}
+
 // AddAmount adds i to the "amount" field.
 func (tluo *TipLogUpdateOne) AddAmount(i int32) *TipLogUpdateOne {
 	tluo.mutation.AddAmount(i)
@@ -323,9 +334,25 @@ func (tluo *TipLogUpdateOne) SetTippedToDiscordID(s string) *TipLogUpdateOne {
 	return tluo
 }
 
+// SetNillableTippedToDiscordID sets the "tipped_to_discord_id" field if the given value is not nil.
+func (tluo *TipLogUpdateOne) SetNillableTippedToDiscordID(s *string) *TipLogUpdateOne {
+	if s != nil {
+		tluo.SetTippedToDiscordID(*s)
+	}
+	return tluo
+}
+
 // SetTippedBy sets the "tipped_by" field.
 func (tluo *TipLogUpdateOne) SetTippedBy(u uuid.UUID) *TipLogUpdateOne {
 	tluo.mutation.SetTippedBy(u)
+	return tluo
+}
+
+// SetNillableTippedBy sets the "tipped_by" field if the given value is not nil.
+func (tluo *TipLogUpdateOne) SetNillableTippedBy(u *uuid.UUID) *TipLogUpdateOne {
+	if u != nil {
+		tluo.SetTippedBy(*u)
+	}
 	return tluo
 }
 
@@ -402,6 +429,12 @@ func (tluo *TipLogUpdateOne) ClearTipsGiven() *TipLogUpdateOne {
 	return tluo
 }
 
+// Where appends a list predicates to the TipLogUpdate builder.
+func (tluo *TipLogUpdateOne) Where(ps ...predicate.TipLog) *TipLogUpdateOne {
+	tluo.mutation.Where(ps...)
+	return tluo
+}
+
 // Select allows selecting one or more fields (columns) of the returned entity.
 // The default is selecting all fields defined in the entity schema.
 func (tluo *TipLogUpdateOne) Select(field string, fields ...string) *TipLogUpdateOne {
@@ -412,7 +445,7 @@ func (tluo *TipLogUpdateOne) Select(field string, fields ...string) *TipLogUpdat
 // Save executes the query and returns the updated TipLog entity.
 func (tluo *TipLogUpdateOne) Save(ctx context.Context) (*TipLog, error) {
 	tluo.defaults()
-	return withHooks[*TipLog, TipLogMutation](ctx, tluo.sqlSave, tluo.mutation, tluo.hooks)
+	return withHooks(ctx, tluo.sqlSave, tluo.mutation, tluo.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -447,7 +480,7 @@ func (tluo *TipLogUpdateOne) defaults() {
 
 // check runs all checks and user-defined validators on the builder.
 func (tluo *TipLogUpdateOne) check() error {
-	if _, ok := tluo.mutation.TipsGivenID(); tluo.mutation.TipsGivenCleared() && !ok {
+	if tluo.mutation.TipsGivenCleared() && len(tluo.mutation.TipsGivenIDs()) > 0 {
 		return errors.New(`ent: clearing a required unique edge "TipLog.tips_given"`)
 	}
 	return nil
@@ -463,16 +496,7 @@ func (tluo *TipLogUpdateOne) sqlSave(ctx context.Context) (_node *TipLog, err er
 	if err := tluo.check(); err != nil {
 		return _node, err
 	}
-	_spec := &sqlgraph.UpdateSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   tiplog.Table,
-			Columns: tiplog.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeUUID,
-				Column: tiplog.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewUpdateSpec(tiplog.Table, tiplog.Columns, sqlgraph.NewFieldSpec(tiplog.FieldID, field.TypeUUID))
 	id, ok := tluo.mutation.ID()
 	if !ok {
 		return nil, &ValidationError{Name: "id", err: errors.New(`ent: missing "TipLog.id" for update`)}
@@ -517,10 +541,7 @@ func (tluo *TipLogUpdateOne) sqlSave(ctx context.Context) (_node *TipLog, err er
 			Columns: []string{tiplog.TipsReceivedColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: user.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeUUID),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -533,10 +554,7 @@ func (tluo *TipLogUpdateOne) sqlSave(ctx context.Context) (_node *TipLog, err er
 			Columns: []string{tiplog.TipsReceivedColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: user.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -552,10 +570,7 @@ func (tluo *TipLogUpdateOne) sqlSave(ctx context.Context) (_node *TipLog, err er
 			Columns: []string{tiplog.TipsGivenColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: user.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeUUID),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -568,10 +583,7 @@ func (tluo *TipLogUpdateOne) sqlSave(ctx context.Context) (_node *TipLog, err er
 			Columns: []string{tiplog.TipsGivenColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: user.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

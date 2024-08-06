@@ -27,7 +27,7 @@ func (ctd *CreditTypeDelete) Where(ps ...predicate.CreditType) *CreditTypeDelete
 
 // Exec executes the deletion query and returns how many vertices were deleted.
 func (ctd *CreditTypeDelete) Exec(ctx context.Context) (int, error) {
-	return withHooks[int, CreditTypeMutation](ctx, ctd.sqlExec, ctd.mutation, ctd.hooks)
+	return withHooks(ctx, ctd.sqlExec, ctd.mutation, ctd.hooks)
 }
 
 // ExecX is like Exec, but panics if an error occurs.
@@ -40,15 +40,7 @@ func (ctd *CreditTypeDelete) ExecX(ctx context.Context) int {
 }
 
 func (ctd *CreditTypeDelete) sqlExec(ctx context.Context) (int, error) {
-	_spec := &sqlgraph.DeleteSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table: credittype.Table,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeUUID,
-				Column: credittype.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewDeleteSpec(credittype.Table, sqlgraph.NewFieldSpec(credittype.FieldID, field.TypeUUID))
 	if ps := ctd.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
@@ -69,6 +61,12 @@ type CreditTypeDeleteOne struct {
 	ctd *CreditTypeDelete
 }
 
+// Where appends a list predicates to the CreditTypeDelete builder.
+func (ctdo *CreditTypeDeleteOne) Where(ps ...predicate.CreditType) *CreditTypeDeleteOne {
+	ctdo.ctd.mutation.Where(ps...)
+	return ctdo
+}
+
 // Exec executes the deletion query.
 func (ctdo *CreditTypeDeleteOne) Exec(ctx context.Context) error {
 	n, err := ctdo.ctd.Exec(ctx)
@@ -84,5 +82,7 @@ func (ctdo *CreditTypeDeleteOne) Exec(ctx context.Context) error {
 
 // ExecX is like Exec, but panics if an error occurs.
 func (ctdo *CreditTypeDeleteOne) ExecX(ctx context.Context) {
-	ctdo.ctd.ExecX(ctx)
+	if err := ctdo.Exec(ctx); err != nil {
+		panic(err)
+	}
 }

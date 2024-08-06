@@ -27,7 +27,7 @@ func (vd *VoiceoverDelete) Where(ps ...predicate.Voiceover) *VoiceoverDelete {
 
 // Exec executes the deletion query and returns how many vertices were deleted.
 func (vd *VoiceoverDelete) Exec(ctx context.Context) (int, error) {
-	return withHooks[int, VoiceoverMutation](ctx, vd.sqlExec, vd.mutation, vd.hooks)
+	return withHooks(ctx, vd.sqlExec, vd.mutation, vd.hooks)
 }
 
 // ExecX is like Exec, but panics if an error occurs.
@@ -40,15 +40,7 @@ func (vd *VoiceoverDelete) ExecX(ctx context.Context) int {
 }
 
 func (vd *VoiceoverDelete) sqlExec(ctx context.Context) (int, error) {
-	_spec := &sqlgraph.DeleteSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table: voiceover.Table,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeUUID,
-				Column: voiceover.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewDeleteSpec(voiceover.Table, sqlgraph.NewFieldSpec(voiceover.FieldID, field.TypeUUID))
 	if ps := vd.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
@@ -69,6 +61,12 @@ type VoiceoverDeleteOne struct {
 	vd *VoiceoverDelete
 }
 
+// Where appends a list predicates to the VoiceoverDelete builder.
+func (vdo *VoiceoverDeleteOne) Where(ps ...predicate.Voiceover) *VoiceoverDeleteOne {
+	vdo.vd.mutation.Where(ps...)
+	return vdo
+}
+
 // Exec executes the deletion query.
 func (vdo *VoiceoverDeleteOne) Exec(ctx context.Context) error {
 	n, err := vdo.vd.Exec(ctx)
@@ -84,5 +82,7 @@ func (vdo *VoiceoverDeleteOne) Exec(ctx context.Context) error {
 
 // ExecX is like Exec, but panics if an error occurs.
 func (vdo *VoiceoverDeleteOne) ExecX(ctx context.Context) {
-	vdo.vd.ExecX(ctx)
+	if err := vdo.Exec(ctx); err != nil {
+		panic(err)
+	}
 }

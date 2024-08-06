@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"time"
 
+	"entgo.io/ent/dialect/sql"
+	"entgo.io/ent/dialect/sql/sqlgraph"
 	"github.com/google/uuid"
 )
 
@@ -159,4 +161,136 @@ func GalleryStatusValidator(gs GalleryStatus) error {
 	default:
 		return fmt.Errorf("generationoutput: invalid enum value for gallery_status field: %q", gs)
 	}
+}
+
+// OrderOption defines the ordering options for the GenerationOutput queries.
+type OrderOption func(*sql.Selector)
+
+// ByID orders the results by the id field.
+func ByID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldID, opts...).ToFunc()
+}
+
+// ByImagePath orders the results by the image_path field.
+func ByImagePath(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldImagePath, opts...).ToFunc()
+}
+
+// ByUpscaledImagePath orders the results by the upscaled_image_path field.
+func ByUpscaledImagePath(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldUpscaledImagePath, opts...).ToFunc()
+}
+
+// ByGalleryStatus orders the results by the gallery_status field.
+func ByGalleryStatus(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldGalleryStatus, opts...).ToFunc()
+}
+
+// ByIsFavorited orders the results by the is_favorited field.
+func ByIsFavorited(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldIsFavorited, opts...).ToFunc()
+}
+
+// ByHasEmbeddings orders the results by the has_embeddings field.
+func ByHasEmbeddings(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldHasEmbeddings, opts...).ToFunc()
+}
+
+// ByHasEmbeddingsNew orders the results by the has_embeddings_new field.
+func ByHasEmbeddingsNew(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldHasEmbeddingsNew, opts...).ToFunc()
+}
+
+// ByIsMigrated orders the results by the is_migrated field.
+func ByIsMigrated(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldIsMigrated, opts...).ToFunc()
+}
+
+// ByIsPublic orders the results by the is_public field.
+func ByIsPublic(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldIsPublic, opts...).ToFunc()
+}
+
+// ByAestheticRatingScore orders the results by the aesthetic_rating_score field.
+func ByAestheticRatingScore(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldAestheticRatingScore, opts...).ToFunc()
+}
+
+// ByAestheticArtifactScore orders the results by the aesthetic_artifact_score field.
+func ByAestheticArtifactScore(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldAestheticArtifactScore, opts...).ToFunc()
+}
+
+// ByLikeCount orders the results by the like_count field.
+func ByLikeCount(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldLikeCount, opts...).ToFunc()
+}
+
+// ByGenerationID orders the results by the generation_id field.
+func ByGenerationID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldGenerationID, opts...).ToFunc()
+}
+
+// ByDeletedAt orders the results by the deleted_at field.
+func ByDeletedAt(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldDeletedAt, opts...).ToFunc()
+}
+
+// ByCreatedAt orders the results by the created_at field.
+func ByCreatedAt(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldCreatedAt, opts...).ToFunc()
+}
+
+// ByUpdatedAt orders the results by the updated_at field.
+func ByUpdatedAt(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldUpdatedAt, opts...).ToFunc()
+}
+
+// ByGenerationsField orders the results by generations field.
+func ByGenerationsField(field string, opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newGenerationsStep(), sql.OrderByField(field, opts...))
+	}
+}
+
+// ByUpscaleOutputsField orders the results by upscale_outputs field.
+func ByUpscaleOutputsField(field string, opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newUpscaleOutputsStep(), sql.OrderByField(field, opts...))
+	}
+}
+
+// ByGenerationOutputLikesCount orders the results by generation_output_likes count.
+func ByGenerationOutputLikesCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newGenerationOutputLikesStep(), opts...)
+	}
+}
+
+// ByGenerationOutputLikes orders the results by generation_output_likes terms.
+func ByGenerationOutputLikes(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newGenerationOutputLikesStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+func newGenerationsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(GenerationsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, true, GenerationsTable, GenerationsColumn),
+	)
+}
+func newUpscaleOutputsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(UpscaleOutputsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2O, false, UpscaleOutputsTable, UpscaleOutputsColumn),
+	)
+}
+func newGenerationOutputLikesStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(GenerationOutputLikesInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, GenerationOutputLikesTable, GenerationOutputLikesColumn),
+	)
 }

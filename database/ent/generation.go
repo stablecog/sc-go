@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 	"github.com/google/uuid"
 	"github.com/stablecog/sc-go/database/ent/apitoken"
@@ -83,7 +84,8 @@ type Generation struct {
 	UpdatedAt time.Time `json:"updated_at,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the GenerationQuery when eager-loading is set.
-	Edges GenerationEdges `json:"edges"`
+	Edges        GenerationEdges `json:"edges"`
+	selectValues sql.SelectValues
 }
 
 // GenerationEdges holds the relations/edges for other nodes in the graph.
@@ -112,12 +114,10 @@ type GenerationEdges struct {
 // DeviceInfoOrErr returns the DeviceInfo value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
 func (e GenerationEdges) DeviceInfoOrErr() (*DeviceInfo, error) {
-	if e.loadedTypes[0] {
-		if e.DeviceInfo == nil {
-			// Edge was loaded but was not found.
-			return nil, &NotFoundError{label: deviceinfo.Label}
-		}
+	if e.DeviceInfo != nil {
 		return e.DeviceInfo, nil
+	} else if e.loadedTypes[0] {
+		return nil, &NotFoundError{label: deviceinfo.Label}
 	}
 	return nil, &NotLoadedError{edge: "device_info"}
 }
@@ -125,12 +125,10 @@ func (e GenerationEdges) DeviceInfoOrErr() (*DeviceInfo, error) {
 // SchedulerOrErr returns the Scheduler value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
 func (e GenerationEdges) SchedulerOrErr() (*Scheduler, error) {
-	if e.loadedTypes[1] {
-		if e.Scheduler == nil {
-			// Edge was loaded but was not found.
-			return nil, &NotFoundError{label: scheduler.Label}
-		}
+	if e.Scheduler != nil {
 		return e.Scheduler, nil
+	} else if e.loadedTypes[1] {
+		return nil, &NotFoundError{label: scheduler.Label}
 	}
 	return nil, &NotLoadedError{edge: "scheduler"}
 }
@@ -138,12 +136,10 @@ func (e GenerationEdges) SchedulerOrErr() (*Scheduler, error) {
 // PromptOrErr returns the Prompt value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
 func (e GenerationEdges) PromptOrErr() (*Prompt, error) {
-	if e.loadedTypes[2] {
-		if e.Prompt == nil {
-			// Edge was loaded but was not found.
-			return nil, &NotFoundError{label: prompt.Label}
-		}
+	if e.Prompt != nil {
 		return e.Prompt, nil
+	} else if e.loadedTypes[2] {
+		return nil, &NotFoundError{label: prompt.Label}
 	}
 	return nil, &NotLoadedError{edge: "prompt"}
 }
@@ -151,12 +147,10 @@ func (e GenerationEdges) PromptOrErr() (*Prompt, error) {
 // NegativePromptOrErr returns the NegativePrompt value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
 func (e GenerationEdges) NegativePromptOrErr() (*NegativePrompt, error) {
-	if e.loadedTypes[3] {
-		if e.NegativePrompt == nil {
-			// Edge was loaded but was not found.
-			return nil, &NotFoundError{label: negativeprompt.Label}
-		}
+	if e.NegativePrompt != nil {
 		return e.NegativePrompt, nil
+	} else if e.loadedTypes[3] {
+		return nil, &NotFoundError{label: negativeprompt.Label}
 	}
 	return nil, &NotLoadedError{edge: "negative_prompt"}
 }
@@ -164,12 +158,10 @@ func (e GenerationEdges) NegativePromptOrErr() (*NegativePrompt, error) {
 // GenerationModelOrErr returns the GenerationModel value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
 func (e GenerationEdges) GenerationModelOrErr() (*GenerationModel, error) {
-	if e.loadedTypes[4] {
-		if e.GenerationModel == nil {
-			// Edge was loaded but was not found.
-			return nil, &NotFoundError{label: generationmodel.Label}
-		}
+	if e.GenerationModel != nil {
 		return e.GenerationModel, nil
+	} else if e.loadedTypes[4] {
+		return nil, &NotFoundError{label: generationmodel.Label}
 	}
 	return nil, &NotLoadedError{edge: "generation_model"}
 }
@@ -177,12 +169,10 @@ func (e GenerationEdges) GenerationModelOrErr() (*GenerationModel, error) {
 // UserOrErr returns the User value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
 func (e GenerationEdges) UserOrErr() (*User, error) {
-	if e.loadedTypes[5] {
-		if e.User == nil {
-			// Edge was loaded but was not found.
-			return nil, &NotFoundError{label: user.Label}
-		}
+	if e.User != nil {
 		return e.User, nil
+	} else if e.loadedTypes[5] {
+		return nil, &NotFoundError{label: user.Label}
 	}
 	return nil, &NotLoadedError{edge: "user"}
 }
@@ -190,12 +180,10 @@ func (e GenerationEdges) UserOrErr() (*User, error) {
 // APITokensOrErr returns the APITokens value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
 func (e GenerationEdges) APITokensOrErr() (*ApiToken, error) {
-	if e.loadedTypes[6] {
-		if e.APITokens == nil {
-			// Edge was loaded but was not found.
-			return nil, &NotFoundError{label: apitoken.Label}
-		}
+	if e.APITokens != nil {
 		return e.APITokens, nil
+	} else if e.loadedTypes[6] {
+		return nil, &NotFoundError{label: apitoken.Label}
 	}
 	return nil, &NotLoadedError{edge: "api_tokens"}
 }
@@ -229,7 +217,7 @@ func (*Generation) scanValues(columns []string) ([]any, error) {
 		case generation.FieldID, generation.FieldWebhookToken, generation.FieldModelID, generation.FieldSchedulerID, generation.FieldUserID, generation.FieldDeviceInfoID:
 			values[i] = new(uuid.UUID)
 		default:
-			return nil, fmt.Errorf("unexpected column %q for type Generation", columns[i])
+			values[i] = new(sql.UnknownType)
 		}
 	}
 	return values, nil
@@ -428,9 +416,17 @@ func (ge *Generation) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				ge.UpdatedAt = value.Time
 			}
+		default:
+			ge.selectValues.Set(columns[i], values[i])
 		}
 	}
 	return nil
+}
+
+// Value returns the ent.Value that was dynamically selected and assigned to the Generation.
+// This includes values selected through modifiers, order, etc.
+func (ge *Generation) Value(name string) (ent.Value, error) {
+	return ge.selectValues.Get(name)
 }
 
 // QueryDeviceInfo queries the "device_info" edge of the Generation entity.
@@ -607,9 +603,3 @@ func (ge *Generation) String() string {
 
 // Generations is a parsable slice of Generation.
 type Generations []*Generation
-
-func (ge Generations) config(cfg config) {
-	for _i := range ge {
-		ge[_i].config = cfg
-	}
-}

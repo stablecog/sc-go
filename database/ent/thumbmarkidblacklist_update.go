@@ -35,6 +35,14 @@ func (tiblu *ThumbmarkIdBlackListUpdate) SetThumbmarkID(s string) *ThumbmarkIdBl
 	return tiblu
 }
 
+// SetNillableThumbmarkID sets the "thumbmark_id" field if the given value is not nil.
+func (tiblu *ThumbmarkIdBlackListUpdate) SetNillableThumbmarkID(s *string) *ThumbmarkIdBlackListUpdate {
+	if s != nil {
+		tiblu.SetThumbmarkID(*s)
+	}
+	return tiblu
+}
+
 // SetUpdatedAt sets the "updated_at" field.
 func (tiblu *ThumbmarkIdBlackListUpdate) SetUpdatedAt(t time.Time) *ThumbmarkIdBlackListUpdate {
 	tiblu.mutation.SetUpdatedAt(t)
@@ -49,7 +57,7 @@ func (tiblu *ThumbmarkIdBlackListUpdate) Mutation() *ThumbmarkIdBlackListMutatio
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (tiblu *ThumbmarkIdBlackListUpdate) Save(ctx context.Context) (int, error) {
 	tiblu.defaults()
-	return withHooks[int, ThumbmarkIdBlackListMutation](ctx, tiblu.sqlSave, tiblu.mutation, tiblu.hooks)
+	return withHooks(ctx, tiblu.sqlSave, tiblu.mutation, tiblu.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -89,16 +97,7 @@ func (tiblu *ThumbmarkIdBlackListUpdate) Modify(modifiers ...func(u *sql.UpdateB
 }
 
 func (tiblu *ThumbmarkIdBlackListUpdate) sqlSave(ctx context.Context) (n int, err error) {
-	_spec := &sqlgraph.UpdateSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   thumbmarkidblacklist.Table,
-			Columns: thumbmarkidblacklist.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeUUID,
-				Column: thumbmarkidblacklist.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewUpdateSpec(thumbmarkidblacklist.Table, thumbmarkidblacklist.Columns, sqlgraph.NewFieldSpec(thumbmarkidblacklist.FieldID, field.TypeUUID))
 	if ps := tiblu.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
@@ -140,6 +139,14 @@ func (tibluo *ThumbmarkIdBlackListUpdateOne) SetThumbmarkID(s string) *Thumbmark
 	return tibluo
 }
 
+// SetNillableThumbmarkID sets the "thumbmark_id" field if the given value is not nil.
+func (tibluo *ThumbmarkIdBlackListUpdateOne) SetNillableThumbmarkID(s *string) *ThumbmarkIdBlackListUpdateOne {
+	if s != nil {
+		tibluo.SetThumbmarkID(*s)
+	}
+	return tibluo
+}
+
 // SetUpdatedAt sets the "updated_at" field.
 func (tibluo *ThumbmarkIdBlackListUpdateOne) SetUpdatedAt(t time.Time) *ThumbmarkIdBlackListUpdateOne {
 	tibluo.mutation.SetUpdatedAt(t)
@@ -149,6 +156,12 @@ func (tibluo *ThumbmarkIdBlackListUpdateOne) SetUpdatedAt(t time.Time) *Thumbmar
 // Mutation returns the ThumbmarkIdBlackListMutation object of the builder.
 func (tibluo *ThumbmarkIdBlackListUpdateOne) Mutation() *ThumbmarkIdBlackListMutation {
 	return tibluo.mutation
+}
+
+// Where appends a list predicates to the ThumbmarkIdBlackListUpdate builder.
+func (tibluo *ThumbmarkIdBlackListUpdateOne) Where(ps ...predicate.ThumbmarkIdBlackList) *ThumbmarkIdBlackListUpdateOne {
+	tibluo.mutation.Where(ps...)
+	return tibluo
 }
 
 // Select allows selecting one or more fields (columns) of the returned entity.
@@ -161,7 +174,7 @@ func (tibluo *ThumbmarkIdBlackListUpdateOne) Select(field string, fields ...stri
 // Save executes the query and returns the updated ThumbmarkIdBlackList entity.
 func (tibluo *ThumbmarkIdBlackListUpdateOne) Save(ctx context.Context) (*ThumbmarkIdBlackList, error) {
 	tibluo.defaults()
-	return withHooks[*ThumbmarkIdBlackList, ThumbmarkIdBlackListMutation](ctx, tibluo.sqlSave, tibluo.mutation, tibluo.hooks)
+	return withHooks(ctx, tibluo.sqlSave, tibluo.mutation, tibluo.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -201,16 +214,7 @@ func (tibluo *ThumbmarkIdBlackListUpdateOne) Modify(modifiers ...func(u *sql.Upd
 }
 
 func (tibluo *ThumbmarkIdBlackListUpdateOne) sqlSave(ctx context.Context) (_node *ThumbmarkIdBlackList, err error) {
-	_spec := &sqlgraph.UpdateSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   thumbmarkidblacklist.Table,
-			Columns: thumbmarkidblacklist.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeUUID,
-				Column: thumbmarkidblacklist.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewUpdateSpec(thumbmarkidblacklist.Table, thumbmarkidblacklist.Columns, sqlgraph.NewFieldSpec(thumbmarkidblacklist.FieldID, field.TypeUUID))
 	id, ok := tibluo.mutation.ID()
 	if !ok {
 		return nil, &ValidationError{Name: "id", err: errors.New(`ent: missing "ThumbmarkIdBlackList.id" for update`)}

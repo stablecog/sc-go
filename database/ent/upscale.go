@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 	"github.com/google/uuid"
 	"github.com/stablecog/sc-go/database/ent/apitoken"
@@ -60,7 +61,8 @@ type Upscale struct {
 	UpdatedAt time.Time `json:"updated_at,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the UpscaleQuery when eager-loading is set.
-	Edges UpscaleEdges `json:"edges"`
+	Edges        UpscaleEdges `json:"edges"`
+	selectValues sql.SelectValues
 }
 
 // UpscaleEdges holds the relations/edges for other nodes in the graph.
@@ -83,12 +85,10 @@ type UpscaleEdges struct {
 // UserOrErr returns the User value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
 func (e UpscaleEdges) UserOrErr() (*User, error) {
-	if e.loadedTypes[0] {
-		if e.User == nil {
-			// Edge was loaded but was not found.
-			return nil, &NotFoundError{label: user.Label}
-		}
+	if e.User != nil {
 		return e.User, nil
+	} else if e.loadedTypes[0] {
+		return nil, &NotFoundError{label: user.Label}
 	}
 	return nil, &NotLoadedError{edge: "user"}
 }
@@ -96,12 +96,10 @@ func (e UpscaleEdges) UserOrErr() (*User, error) {
 // DeviceInfoOrErr returns the DeviceInfo value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
 func (e UpscaleEdges) DeviceInfoOrErr() (*DeviceInfo, error) {
-	if e.loadedTypes[1] {
-		if e.DeviceInfo == nil {
-			// Edge was loaded but was not found.
-			return nil, &NotFoundError{label: deviceinfo.Label}
-		}
+	if e.DeviceInfo != nil {
 		return e.DeviceInfo, nil
+	} else if e.loadedTypes[1] {
+		return nil, &NotFoundError{label: deviceinfo.Label}
 	}
 	return nil, &NotLoadedError{edge: "device_info"}
 }
@@ -109,12 +107,10 @@ func (e UpscaleEdges) DeviceInfoOrErr() (*DeviceInfo, error) {
 // UpscaleModelsOrErr returns the UpscaleModels value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
 func (e UpscaleEdges) UpscaleModelsOrErr() (*UpscaleModel, error) {
-	if e.loadedTypes[2] {
-		if e.UpscaleModels == nil {
-			// Edge was loaded but was not found.
-			return nil, &NotFoundError{label: upscalemodel.Label}
-		}
+	if e.UpscaleModels != nil {
 		return e.UpscaleModels, nil
+	} else if e.loadedTypes[2] {
+		return nil, &NotFoundError{label: upscalemodel.Label}
 	}
 	return nil, &NotLoadedError{edge: "upscale_models"}
 }
@@ -122,12 +118,10 @@ func (e UpscaleEdges) UpscaleModelsOrErr() (*UpscaleModel, error) {
 // APITokensOrErr returns the APITokens value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
 func (e UpscaleEdges) APITokensOrErr() (*ApiToken, error) {
-	if e.loadedTypes[3] {
-		if e.APITokens == nil {
-			// Edge was loaded but was not found.
-			return nil, &NotFoundError{label: apitoken.Label}
-		}
+	if e.APITokens != nil {
 		return e.APITokens, nil
+	} else if e.loadedTypes[3] {
+		return nil, &NotFoundError{label: apitoken.Label}
 	}
 	return nil, &NotLoadedError{edge: "api_tokens"}
 }
@@ -159,7 +153,7 @@ func (*Upscale) scanValues(columns []string) ([]any, error) {
 		case upscale.FieldID, upscale.FieldWebhookToken, upscale.FieldUserID, upscale.FieldDeviceInfoID, upscale.FieldModelID:
 			values[i] = new(uuid.UUID)
 		default:
-			return nil, fmt.Errorf("unexpected column %q for type Upscale", columns[i])
+			values[i] = new(sql.UnknownType)
 		}
 	}
 	return values, nil
@@ -293,9 +287,17 @@ func (u *Upscale) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				u.UpdatedAt = value.Time
 			}
+		default:
+			u.selectValues.Set(columns[i], values[i])
 		}
 	}
 	return nil
+}
+
+// Value returns the ent.Value that was dynamically selected and assigned to the Upscale.
+// This includes values selected through modifiers, order, etc.
+func (u *Upscale) Value(name string) (ent.Value, error) {
+	return u.selectValues.Get(name)
 }
 
 // QueryUser queries the "user" edge of the Upscale entity.
@@ -417,9 +419,3 @@ func (u *Upscale) String() string {
 
 // Upscales is a parsable slice of Upscale.
 type Upscales []*Upscale
-
-func (u Upscales) config(cfg config) {
-	for _i := range u {
-		u[_i].config = cfg
-	}
-}

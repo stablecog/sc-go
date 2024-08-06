@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 	"github.com/google/uuid"
 	"github.com/stablecog/sc-go/database/ent/authclient"
@@ -25,7 +26,8 @@ type AuthClient struct {
 	UpdatedAt time.Time `json:"updated_at,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the AuthClientQuery when eager-loading is set.
-	Edges AuthClientEdges `json:"edges"`
+	Edges        AuthClientEdges `json:"edges"`
+	selectValues sql.SelectValues
 }
 
 // AuthClientEdges holds the relations/edges for other nodes in the graph.
@@ -58,7 +60,7 @@ func (*AuthClient) scanValues(columns []string) ([]any, error) {
 		case authclient.FieldID:
 			values[i] = new(uuid.UUID)
 		default:
-			return nil, fmt.Errorf("unexpected column %q for type AuthClient", columns[i])
+			values[i] = new(sql.UnknownType)
 		}
 	}
 	return values, nil
@@ -96,9 +98,17 @@ func (ac *AuthClient) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				ac.UpdatedAt = value.Time
 			}
+		default:
+			ac.selectValues.Set(columns[i], values[i])
 		}
 	}
 	return nil
+}
+
+// Value returns the ent.Value that was dynamically selected and assigned to the AuthClient.
+// This includes values selected through modifiers, order, etc.
+func (ac *AuthClient) Value(name string) (ent.Value, error) {
+	return ac.selectValues.Get(name)
 }
 
 // QueryAPITokens queries the "api_tokens" edge of the AuthClient entity.
@@ -143,9 +153,3 @@ func (ac *AuthClient) String() string {
 
 // AuthClients is a parsable slice of AuthClient.
 type AuthClients []*AuthClient
-
-func (ac AuthClients) config(cfg config) {
-	for _i := range ac {
-		ac[_i].config = cfg
-	}
-}

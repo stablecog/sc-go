@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 	"github.com/google/uuid"
 	"github.com/stablecog/sc-go/database/ent/voiceovermodel"
@@ -38,7 +39,8 @@ type VoiceoverSpeaker struct {
 	UpdatedAt time.Time `json:"updated_at,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the VoiceoverSpeakerQuery when eager-loading is set.
-	Edges VoiceoverSpeakerEdges `json:"edges"`
+	Edges        VoiceoverSpeakerEdges `json:"edges"`
+	selectValues sql.SelectValues
 }
 
 // VoiceoverSpeakerEdges holds the relations/edges for other nodes in the graph.
@@ -64,12 +66,10 @@ func (e VoiceoverSpeakerEdges) VoiceoversOrErr() ([]*Voiceover, error) {
 // VoiceoverModelsOrErr returns the VoiceoverModels value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
 func (e VoiceoverSpeakerEdges) VoiceoverModelsOrErr() (*VoiceoverModel, error) {
-	if e.loadedTypes[1] {
-		if e.VoiceoverModels == nil {
-			// Edge was loaded but was not found.
-			return nil, &NotFoundError{label: voiceovermodel.Label}
-		}
+	if e.VoiceoverModels != nil {
 		return e.VoiceoverModels, nil
+	} else if e.loadedTypes[1] {
+		return nil, &NotFoundError{label: voiceovermodel.Label}
 	}
 	return nil, &NotLoadedError{edge: "voiceover_models"}
 }
@@ -88,7 +88,7 @@ func (*VoiceoverSpeaker) scanValues(columns []string) ([]any, error) {
 		case voiceoverspeaker.FieldID, voiceoverspeaker.FieldModelID:
 			values[i] = new(uuid.UUID)
 		default:
-			return nil, fmt.Errorf("unexpected column %q for type VoiceoverSpeaker", columns[i])
+			values[i] = new(sql.UnknownType)
 		}
 	}
 	return values, nil
@@ -163,9 +163,17 @@ func (vs *VoiceoverSpeaker) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				vs.UpdatedAt = value.Time
 			}
+		default:
+			vs.selectValues.Set(columns[i], values[i])
 		}
 	}
 	return nil
+}
+
+// Value returns the ent.Value that was dynamically selected and assigned to the VoiceoverSpeaker.
+// This includes values selected through modifiers, order, etc.
+func (vs *VoiceoverSpeaker) Value(name string) (ent.Value, error) {
+	return vs.selectValues.Get(name)
 }
 
 // QueryVoiceovers queries the "voiceovers" edge of the VoiceoverSpeaker entity.
@@ -235,9 +243,3 @@ func (vs *VoiceoverSpeaker) String() string {
 
 // VoiceoverSpeakers is a parsable slice of VoiceoverSpeaker.
 type VoiceoverSpeakers []*VoiceoverSpeaker
-
-func (vs VoiceoverSpeakers) config(cfg config) {
-	for _i := range vs {
-		vs[_i].config = cfg
-	}
-}

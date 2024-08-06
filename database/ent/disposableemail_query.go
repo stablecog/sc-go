@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"math"
 
+	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
@@ -19,7 +20,7 @@ import (
 type DisposableEmailQuery struct {
 	config
 	ctx        *QueryContext
-	order      []OrderFunc
+	order      []disposableemail.OrderOption
 	inters     []Interceptor
 	predicates []predicate.DisposableEmail
 	modifiers  []func(*sql.Selector)
@@ -54,7 +55,7 @@ func (deq *DisposableEmailQuery) Unique(unique bool) *DisposableEmailQuery {
 }
 
 // Order specifies how the records should be ordered.
-func (deq *DisposableEmailQuery) Order(o ...OrderFunc) *DisposableEmailQuery {
+func (deq *DisposableEmailQuery) Order(o ...disposableemail.OrderOption) *DisposableEmailQuery {
 	deq.order = append(deq.order, o...)
 	return deq
 }
@@ -62,7 +63,7 @@ func (deq *DisposableEmailQuery) Order(o ...OrderFunc) *DisposableEmailQuery {
 // First returns the first DisposableEmail entity from the query.
 // Returns a *NotFoundError when no DisposableEmail was found.
 func (deq *DisposableEmailQuery) First(ctx context.Context) (*DisposableEmail, error) {
-	nodes, err := deq.Limit(1).All(setContextOp(ctx, deq.ctx, "First"))
+	nodes, err := deq.Limit(1).All(setContextOp(ctx, deq.ctx, ent.OpQueryFirst))
 	if err != nil {
 		return nil, err
 	}
@@ -85,7 +86,7 @@ func (deq *DisposableEmailQuery) FirstX(ctx context.Context) *DisposableEmail {
 // Returns a *NotFoundError when no DisposableEmail ID was found.
 func (deq *DisposableEmailQuery) FirstID(ctx context.Context) (id uuid.UUID, err error) {
 	var ids []uuid.UUID
-	if ids, err = deq.Limit(1).IDs(setContextOp(ctx, deq.ctx, "FirstID")); err != nil {
+	if ids, err = deq.Limit(1).IDs(setContextOp(ctx, deq.ctx, ent.OpQueryFirstID)); err != nil {
 		return
 	}
 	if len(ids) == 0 {
@@ -108,7 +109,7 @@ func (deq *DisposableEmailQuery) FirstIDX(ctx context.Context) uuid.UUID {
 // Returns a *NotSingularError when more than one DisposableEmail entity is found.
 // Returns a *NotFoundError when no DisposableEmail entities are found.
 func (deq *DisposableEmailQuery) Only(ctx context.Context) (*DisposableEmail, error) {
-	nodes, err := deq.Limit(2).All(setContextOp(ctx, deq.ctx, "Only"))
+	nodes, err := deq.Limit(2).All(setContextOp(ctx, deq.ctx, ent.OpQueryOnly))
 	if err != nil {
 		return nil, err
 	}
@@ -136,7 +137,7 @@ func (deq *DisposableEmailQuery) OnlyX(ctx context.Context) *DisposableEmail {
 // Returns a *NotFoundError when no entities are found.
 func (deq *DisposableEmailQuery) OnlyID(ctx context.Context) (id uuid.UUID, err error) {
 	var ids []uuid.UUID
-	if ids, err = deq.Limit(2).IDs(setContextOp(ctx, deq.ctx, "OnlyID")); err != nil {
+	if ids, err = deq.Limit(2).IDs(setContextOp(ctx, deq.ctx, ent.OpQueryOnlyID)); err != nil {
 		return
 	}
 	switch len(ids) {
@@ -161,7 +162,7 @@ func (deq *DisposableEmailQuery) OnlyIDX(ctx context.Context) uuid.UUID {
 
 // All executes the query and returns a list of DisposableEmails.
 func (deq *DisposableEmailQuery) All(ctx context.Context) ([]*DisposableEmail, error) {
-	ctx = setContextOp(ctx, deq.ctx, "All")
+	ctx = setContextOp(ctx, deq.ctx, ent.OpQueryAll)
 	if err := deq.prepareQuery(ctx); err != nil {
 		return nil, err
 	}
@@ -179,10 +180,12 @@ func (deq *DisposableEmailQuery) AllX(ctx context.Context) []*DisposableEmail {
 }
 
 // IDs executes the query and returns a list of DisposableEmail IDs.
-func (deq *DisposableEmailQuery) IDs(ctx context.Context) ([]uuid.UUID, error) {
-	var ids []uuid.UUID
-	ctx = setContextOp(ctx, deq.ctx, "IDs")
-	if err := deq.Select(disposableemail.FieldID).Scan(ctx, &ids); err != nil {
+func (deq *DisposableEmailQuery) IDs(ctx context.Context) (ids []uuid.UUID, err error) {
+	if deq.ctx.Unique == nil && deq.path != nil {
+		deq.Unique(true)
+	}
+	ctx = setContextOp(ctx, deq.ctx, ent.OpQueryIDs)
+	if err = deq.Select(disposableemail.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
 	return ids, nil
@@ -199,7 +202,7 @@ func (deq *DisposableEmailQuery) IDsX(ctx context.Context) []uuid.UUID {
 
 // Count returns the count of the given query.
 func (deq *DisposableEmailQuery) Count(ctx context.Context) (int, error) {
-	ctx = setContextOp(ctx, deq.ctx, "Count")
+	ctx = setContextOp(ctx, deq.ctx, ent.OpQueryCount)
 	if err := deq.prepareQuery(ctx); err != nil {
 		return 0, err
 	}
@@ -217,7 +220,7 @@ func (deq *DisposableEmailQuery) CountX(ctx context.Context) int {
 
 // Exist returns true if the query has elements in the graph.
 func (deq *DisposableEmailQuery) Exist(ctx context.Context) (bool, error) {
-	ctx = setContextOp(ctx, deq.ctx, "Exist")
+	ctx = setContextOp(ctx, deq.ctx, ent.OpQueryExist)
 	switch _, err := deq.FirstID(ctx); {
 	case IsNotFound(err):
 		return false, nil
@@ -246,7 +249,7 @@ func (deq *DisposableEmailQuery) Clone() *DisposableEmailQuery {
 	return &DisposableEmailQuery{
 		config:     deq.config,
 		ctx:        deq.ctx.Clone(),
-		order:      append([]OrderFunc{}, deq.order...),
+		order:      append([]disposableemail.OrderOption{}, deq.order...),
 		inters:     append([]Interceptor{}, deq.inters...),
 		predicates: append([]predicate.DisposableEmail{}, deq.predicates...),
 		// clone intermediate query.
@@ -370,20 +373,12 @@ func (deq *DisposableEmailQuery) sqlCount(ctx context.Context) (int, error) {
 }
 
 func (deq *DisposableEmailQuery) querySpec() *sqlgraph.QuerySpec {
-	_spec := &sqlgraph.QuerySpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   disposableemail.Table,
-			Columns: disposableemail.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeUUID,
-				Column: disposableemail.FieldID,
-			},
-		},
-		From:   deq.sql,
-		Unique: true,
-	}
+	_spec := sqlgraph.NewQuerySpec(disposableemail.Table, disposableemail.Columns, sqlgraph.NewFieldSpec(disposableemail.FieldID, field.TypeUUID))
+	_spec.From = deq.sql
 	if unique := deq.ctx.Unique; unique != nil {
 		_spec.Unique = *unique
+	} else if deq.path != nil {
+		_spec.Unique = true
 	}
 	if fields := deq.ctx.Fields; len(fields) > 0 {
 		_spec.Node.Columns = make([]string, 0, len(fields))
@@ -472,7 +467,7 @@ func (degb *DisposableEmailGroupBy) Aggregate(fns ...AggregateFunc) *DisposableE
 
 // Scan applies the selector query and scans the result into the given value.
 func (degb *DisposableEmailGroupBy) Scan(ctx context.Context, v any) error {
-	ctx = setContextOp(ctx, degb.build.ctx, "GroupBy")
+	ctx = setContextOp(ctx, degb.build.ctx, ent.OpQueryGroupBy)
 	if err := degb.build.prepareQuery(ctx); err != nil {
 		return err
 	}
@@ -520,7 +515,7 @@ func (des *DisposableEmailSelect) Aggregate(fns ...AggregateFunc) *DisposableEma
 
 // Scan applies the selector query and scans the result into the given value.
 func (des *DisposableEmailSelect) Scan(ctx context.Context, v any) error {
-	ctx = setContextOp(ctx, des.ctx, "Select")
+	ctx = setContextOp(ctx, des.ctx, ent.OpQuerySelect)
 	if err := des.prepareQuery(ctx); err != nil {
 		return err
 	}

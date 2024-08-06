@@ -154,7 +154,7 @@ func (sc *SchedulerCreate) Mutation() *SchedulerMutation {
 // Save creates the Scheduler in the database.
 func (sc *SchedulerCreate) Save(ctx context.Context) (*Scheduler, error) {
 	sc.defaults()
-	return withHooks[*Scheduler, SchedulerMutation](ctx, sc.sqlSave, sc.mutation, sc.hooks)
+	return withHooks(ctx, sc.sqlSave, sc.mutation, sc.hooks)
 }
 
 // SaveX calls Save and panics if Save returns an error.
@@ -256,13 +256,7 @@ func (sc *SchedulerCreate) sqlSave(ctx context.Context) (*Scheduler, error) {
 func (sc *SchedulerCreate) createSpec() (*Scheduler, *sqlgraph.CreateSpec) {
 	var (
 		_node = &Scheduler{config: sc.config}
-		_spec = &sqlgraph.CreateSpec{
-			Table: scheduler.Table,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeUUID,
-				Column: scheduler.FieldID,
-			},
-		}
+		_spec = sqlgraph.NewCreateSpec(scheduler.Table, sqlgraph.NewFieldSpec(scheduler.FieldID, field.TypeUUID))
 	)
 	_spec.OnConflict = sc.conflict
 	if id, ok := sc.mutation.ID(); ok {
@@ -301,10 +295,7 @@ func (sc *SchedulerCreate) createSpec() (*Scheduler, *sqlgraph.CreateSpec) {
 			Columns: []string{scheduler.GenerationsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: generation.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(generation.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -320,10 +311,7 @@ func (sc *SchedulerCreate) createSpec() (*Scheduler, *sqlgraph.CreateSpec) {
 			Columns: scheduler.GenerationModelsPrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: generationmodel.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(generationmodel.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -605,12 +593,16 @@ func (u *SchedulerUpsertOne) IDX(ctx context.Context) uuid.UUID {
 // SchedulerCreateBulk is the builder for creating many Scheduler entities in bulk.
 type SchedulerCreateBulk struct {
 	config
+	err      error
 	builders []*SchedulerCreate
 	conflict []sql.ConflictOption
 }
 
 // Save creates the Scheduler entities in the database.
 func (scb *SchedulerCreateBulk) Save(ctx context.Context) ([]*Scheduler, error) {
+	if scb.err != nil {
+		return nil, scb.err
+	}
 	specs := make([]*sqlgraph.CreateSpec, len(scb.builders))
 	nodes := make([]*Scheduler, len(scb.builders))
 	mutators := make([]Mutator, len(scb.builders))
@@ -627,8 +619,8 @@ func (scb *SchedulerCreateBulk) Save(ctx context.Context) ([]*Scheduler, error) 
 					return nil, err
 				}
 				builder.mutation = mutation
-				nodes[i], specs[i] = builder.createSpec()
 				var err error
+				nodes[i], specs[i] = builder.createSpec()
 				if i < len(mutators)-1 {
 					_, err = mutators[i+1].Mutate(root, scb.builders[i+1].mutation)
 				} else {
@@ -850,6 +842,9 @@ func (u *SchedulerUpsertBulk) UpdateUpdatedAt() *SchedulerUpsertBulk {
 
 // Exec executes the query.
 func (u *SchedulerUpsertBulk) Exec(ctx context.Context) error {
+	if u.create.err != nil {
+		return u.create.err
+	}
 	for i, b := range u.create.builders {
 		if len(b.conflict) != 0 {
 			return fmt.Errorf("ent: OnConflict was set for builder %d. Set it on the SchedulerCreateBulk instead", i)

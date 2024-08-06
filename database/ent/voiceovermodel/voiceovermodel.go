@@ -5,6 +5,8 @@ package voiceovermodel
 import (
 	"time"
 
+	"entgo.io/ent/dialect/sql"
+	"entgo.io/ent/dialect/sql/sqlgraph"
 	"github.com/google/uuid"
 )
 
@@ -84,3 +86,83 @@ var (
 	// DefaultID holds the default value on creation for the "id" field.
 	DefaultID func() uuid.UUID
 )
+
+// OrderOption defines the ordering options for the VoiceoverModel queries.
+type OrderOption func(*sql.Selector)
+
+// ByID orders the results by the id field.
+func ByID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldID, opts...).ToFunc()
+}
+
+// ByNameInWorker orders the results by the name_in_worker field.
+func ByNameInWorker(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldNameInWorker, opts...).ToFunc()
+}
+
+// ByIsActive orders the results by the is_active field.
+func ByIsActive(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldIsActive, opts...).ToFunc()
+}
+
+// ByIsDefault orders the results by the is_default field.
+func ByIsDefault(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldIsDefault, opts...).ToFunc()
+}
+
+// ByIsHidden orders the results by the is_hidden field.
+func ByIsHidden(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldIsHidden, opts...).ToFunc()
+}
+
+// ByCreatedAt orders the results by the created_at field.
+func ByCreatedAt(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldCreatedAt, opts...).ToFunc()
+}
+
+// ByUpdatedAt orders the results by the updated_at field.
+func ByUpdatedAt(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldUpdatedAt, opts...).ToFunc()
+}
+
+// ByVoiceoversCount orders the results by voiceovers count.
+func ByVoiceoversCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newVoiceoversStep(), opts...)
+	}
+}
+
+// ByVoiceovers orders the results by voiceovers terms.
+func ByVoiceovers(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newVoiceoversStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// ByVoiceoverSpeakersCount orders the results by voiceover_speakers count.
+func ByVoiceoverSpeakersCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newVoiceoverSpeakersStep(), opts...)
+	}
+}
+
+// ByVoiceoverSpeakers orders the results by voiceover_speakers terms.
+func ByVoiceoverSpeakers(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newVoiceoverSpeakersStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+func newVoiceoversStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(VoiceoversInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, VoiceoversTable, VoiceoversColumn),
+	)
+}
+func newVoiceoverSpeakersStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(VoiceoverSpeakersInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, VoiceoverSpeakersTable, VoiceoverSpeakersColumn),
+	)
+}

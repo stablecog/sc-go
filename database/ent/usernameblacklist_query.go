@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"math"
 
+	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
@@ -19,7 +20,7 @@ import (
 type UsernameBlacklistQuery struct {
 	config
 	ctx        *QueryContext
-	order      []OrderFunc
+	order      []usernameblacklist.OrderOption
 	inters     []Interceptor
 	predicates []predicate.UsernameBlacklist
 	modifiers  []func(*sql.Selector)
@@ -54,7 +55,7 @@ func (ubq *UsernameBlacklistQuery) Unique(unique bool) *UsernameBlacklistQuery {
 }
 
 // Order specifies how the records should be ordered.
-func (ubq *UsernameBlacklistQuery) Order(o ...OrderFunc) *UsernameBlacklistQuery {
+func (ubq *UsernameBlacklistQuery) Order(o ...usernameblacklist.OrderOption) *UsernameBlacklistQuery {
 	ubq.order = append(ubq.order, o...)
 	return ubq
 }
@@ -62,7 +63,7 @@ func (ubq *UsernameBlacklistQuery) Order(o ...OrderFunc) *UsernameBlacklistQuery
 // First returns the first UsernameBlacklist entity from the query.
 // Returns a *NotFoundError when no UsernameBlacklist was found.
 func (ubq *UsernameBlacklistQuery) First(ctx context.Context) (*UsernameBlacklist, error) {
-	nodes, err := ubq.Limit(1).All(setContextOp(ctx, ubq.ctx, "First"))
+	nodes, err := ubq.Limit(1).All(setContextOp(ctx, ubq.ctx, ent.OpQueryFirst))
 	if err != nil {
 		return nil, err
 	}
@@ -85,7 +86,7 @@ func (ubq *UsernameBlacklistQuery) FirstX(ctx context.Context) *UsernameBlacklis
 // Returns a *NotFoundError when no UsernameBlacklist ID was found.
 func (ubq *UsernameBlacklistQuery) FirstID(ctx context.Context) (id uuid.UUID, err error) {
 	var ids []uuid.UUID
-	if ids, err = ubq.Limit(1).IDs(setContextOp(ctx, ubq.ctx, "FirstID")); err != nil {
+	if ids, err = ubq.Limit(1).IDs(setContextOp(ctx, ubq.ctx, ent.OpQueryFirstID)); err != nil {
 		return
 	}
 	if len(ids) == 0 {
@@ -108,7 +109,7 @@ func (ubq *UsernameBlacklistQuery) FirstIDX(ctx context.Context) uuid.UUID {
 // Returns a *NotSingularError when more than one UsernameBlacklist entity is found.
 // Returns a *NotFoundError when no UsernameBlacklist entities are found.
 func (ubq *UsernameBlacklistQuery) Only(ctx context.Context) (*UsernameBlacklist, error) {
-	nodes, err := ubq.Limit(2).All(setContextOp(ctx, ubq.ctx, "Only"))
+	nodes, err := ubq.Limit(2).All(setContextOp(ctx, ubq.ctx, ent.OpQueryOnly))
 	if err != nil {
 		return nil, err
 	}
@@ -136,7 +137,7 @@ func (ubq *UsernameBlacklistQuery) OnlyX(ctx context.Context) *UsernameBlacklist
 // Returns a *NotFoundError when no entities are found.
 func (ubq *UsernameBlacklistQuery) OnlyID(ctx context.Context) (id uuid.UUID, err error) {
 	var ids []uuid.UUID
-	if ids, err = ubq.Limit(2).IDs(setContextOp(ctx, ubq.ctx, "OnlyID")); err != nil {
+	if ids, err = ubq.Limit(2).IDs(setContextOp(ctx, ubq.ctx, ent.OpQueryOnlyID)); err != nil {
 		return
 	}
 	switch len(ids) {
@@ -161,7 +162,7 @@ func (ubq *UsernameBlacklistQuery) OnlyIDX(ctx context.Context) uuid.UUID {
 
 // All executes the query and returns a list of UsernameBlacklists.
 func (ubq *UsernameBlacklistQuery) All(ctx context.Context) ([]*UsernameBlacklist, error) {
-	ctx = setContextOp(ctx, ubq.ctx, "All")
+	ctx = setContextOp(ctx, ubq.ctx, ent.OpQueryAll)
 	if err := ubq.prepareQuery(ctx); err != nil {
 		return nil, err
 	}
@@ -179,10 +180,12 @@ func (ubq *UsernameBlacklistQuery) AllX(ctx context.Context) []*UsernameBlacklis
 }
 
 // IDs executes the query and returns a list of UsernameBlacklist IDs.
-func (ubq *UsernameBlacklistQuery) IDs(ctx context.Context) ([]uuid.UUID, error) {
-	var ids []uuid.UUID
-	ctx = setContextOp(ctx, ubq.ctx, "IDs")
-	if err := ubq.Select(usernameblacklist.FieldID).Scan(ctx, &ids); err != nil {
+func (ubq *UsernameBlacklistQuery) IDs(ctx context.Context) (ids []uuid.UUID, err error) {
+	if ubq.ctx.Unique == nil && ubq.path != nil {
+		ubq.Unique(true)
+	}
+	ctx = setContextOp(ctx, ubq.ctx, ent.OpQueryIDs)
+	if err = ubq.Select(usernameblacklist.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
 	return ids, nil
@@ -199,7 +202,7 @@ func (ubq *UsernameBlacklistQuery) IDsX(ctx context.Context) []uuid.UUID {
 
 // Count returns the count of the given query.
 func (ubq *UsernameBlacklistQuery) Count(ctx context.Context) (int, error) {
-	ctx = setContextOp(ctx, ubq.ctx, "Count")
+	ctx = setContextOp(ctx, ubq.ctx, ent.OpQueryCount)
 	if err := ubq.prepareQuery(ctx); err != nil {
 		return 0, err
 	}
@@ -217,7 +220,7 @@ func (ubq *UsernameBlacklistQuery) CountX(ctx context.Context) int {
 
 // Exist returns true if the query has elements in the graph.
 func (ubq *UsernameBlacklistQuery) Exist(ctx context.Context) (bool, error) {
-	ctx = setContextOp(ctx, ubq.ctx, "Exist")
+	ctx = setContextOp(ctx, ubq.ctx, ent.OpQueryExist)
 	switch _, err := ubq.FirstID(ctx); {
 	case IsNotFound(err):
 		return false, nil
@@ -246,7 +249,7 @@ func (ubq *UsernameBlacklistQuery) Clone() *UsernameBlacklistQuery {
 	return &UsernameBlacklistQuery{
 		config:     ubq.config,
 		ctx:        ubq.ctx.Clone(),
-		order:      append([]OrderFunc{}, ubq.order...),
+		order:      append([]usernameblacklist.OrderOption{}, ubq.order...),
 		inters:     append([]Interceptor{}, ubq.inters...),
 		predicates: append([]predicate.UsernameBlacklist{}, ubq.predicates...),
 		// clone intermediate query.
@@ -370,20 +373,12 @@ func (ubq *UsernameBlacklistQuery) sqlCount(ctx context.Context) (int, error) {
 }
 
 func (ubq *UsernameBlacklistQuery) querySpec() *sqlgraph.QuerySpec {
-	_spec := &sqlgraph.QuerySpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   usernameblacklist.Table,
-			Columns: usernameblacklist.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeUUID,
-				Column: usernameblacklist.FieldID,
-			},
-		},
-		From:   ubq.sql,
-		Unique: true,
-	}
+	_spec := sqlgraph.NewQuerySpec(usernameblacklist.Table, usernameblacklist.Columns, sqlgraph.NewFieldSpec(usernameblacklist.FieldID, field.TypeUUID))
+	_spec.From = ubq.sql
 	if unique := ubq.ctx.Unique; unique != nil {
 		_spec.Unique = *unique
+	} else if ubq.path != nil {
+		_spec.Unique = true
 	}
 	if fields := ubq.ctx.Fields; len(fields) > 0 {
 		_spec.Node.Columns = make([]string, 0, len(fields))
@@ -472,7 +467,7 @@ func (ubgb *UsernameBlacklistGroupBy) Aggregate(fns ...AggregateFunc) *UsernameB
 
 // Scan applies the selector query and scans the result into the given value.
 func (ubgb *UsernameBlacklistGroupBy) Scan(ctx context.Context, v any) error {
-	ctx = setContextOp(ctx, ubgb.build.ctx, "GroupBy")
+	ctx = setContextOp(ctx, ubgb.build.ctx, ent.OpQueryGroupBy)
 	if err := ubgb.build.prepareQuery(ctx); err != nil {
 		return err
 	}
@@ -520,7 +515,7 @@ func (ubs *UsernameBlacklistSelect) Aggregate(fns ...AggregateFunc) *UsernameBla
 
 // Scan applies the selector query and scans the result into the given value.
 func (ubs *UsernameBlacklistSelect) Scan(ctx context.Context, v any) error {
-	ctx = setContextOp(ctx, ubs.ctx, "Select")
+	ctx = setContextOp(ctx, ubs.ctx, ent.OpQuerySelect)
 	if err := ubs.prepareQuery(ctx); err != nil {
 		return err
 	}

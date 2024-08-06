@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 	"github.com/google/uuid"
 	"github.com/stablecog/sc-go/database/ent/upscalemodel"
@@ -31,7 +32,8 @@ type UpscaleModel struct {
 	UpdatedAt time.Time `json:"updated_at,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the UpscaleModelQuery when eager-loading is set.
-	Edges UpscaleModelEdges `json:"edges"`
+	Edges        UpscaleModelEdges `json:"edges"`
+	selectValues sql.SelectValues
 }
 
 // UpscaleModelEdges holds the relations/edges for other nodes in the graph.
@@ -66,7 +68,7 @@ func (*UpscaleModel) scanValues(columns []string) ([]any, error) {
 		case upscalemodel.FieldID:
 			values[i] = new(uuid.UUID)
 		default:
-			return nil, fmt.Errorf("unexpected column %q for type UpscaleModel", columns[i])
+			values[i] = new(sql.UnknownType)
 		}
 	}
 	return values, nil
@@ -122,9 +124,17 @@ func (um *UpscaleModel) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				um.UpdatedAt = value.Time
 			}
+		default:
+			um.selectValues.Set(columns[i], values[i])
 		}
 	}
 	return nil
+}
+
+// Value returns the ent.Value that was dynamically selected and assigned to the UpscaleModel.
+// This includes values selected through modifiers, order, etc.
+func (um *UpscaleModel) Value(name string) (ent.Value, error) {
+	return um.selectValues.Get(name)
 }
 
 // QueryUpscales queries the "upscales" edge of the UpscaleModel entity.
@@ -178,9 +188,3 @@ func (um *UpscaleModel) String() string {
 
 // UpscaleModels is a parsable slice of UpscaleModel.
 type UpscaleModels []*UpscaleModel
-
-func (um UpscaleModels) config(cfg config) {
-	for _i := range um {
-		um[_i].config = cfg
-	}
-}

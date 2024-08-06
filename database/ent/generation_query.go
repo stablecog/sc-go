@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"math"
 
+	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
@@ -28,7 +29,7 @@ import (
 type GenerationQuery struct {
 	config
 	ctx                   *QueryContext
-	order                 []OrderFunc
+	order                 []generation.OrderOption
 	inters                []Interceptor
 	predicates            []predicate.Generation
 	withDeviceInfo        *DeviceInfoQuery
@@ -71,7 +72,7 @@ func (gq *GenerationQuery) Unique(unique bool) *GenerationQuery {
 }
 
 // Order specifies how the records should be ordered.
-func (gq *GenerationQuery) Order(o ...OrderFunc) *GenerationQuery {
+func (gq *GenerationQuery) Order(o ...generation.OrderOption) *GenerationQuery {
 	gq.order = append(gq.order, o...)
 	return gq
 }
@@ -255,7 +256,7 @@ func (gq *GenerationQuery) QueryGenerationOutputs() *GenerationOutputQuery {
 // First returns the first Generation entity from the query.
 // Returns a *NotFoundError when no Generation was found.
 func (gq *GenerationQuery) First(ctx context.Context) (*Generation, error) {
-	nodes, err := gq.Limit(1).All(setContextOp(ctx, gq.ctx, "First"))
+	nodes, err := gq.Limit(1).All(setContextOp(ctx, gq.ctx, ent.OpQueryFirst))
 	if err != nil {
 		return nil, err
 	}
@@ -278,7 +279,7 @@ func (gq *GenerationQuery) FirstX(ctx context.Context) *Generation {
 // Returns a *NotFoundError when no Generation ID was found.
 func (gq *GenerationQuery) FirstID(ctx context.Context) (id uuid.UUID, err error) {
 	var ids []uuid.UUID
-	if ids, err = gq.Limit(1).IDs(setContextOp(ctx, gq.ctx, "FirstID")); err != nil {
+	if ids, err = gq.Limit(1).IDs(setContextOp(ctx, gq.ctx, ent.OpQueryFirstID)); err != nil {
 		return
 	}
 	if len(ids) == 0 {
@@ -301,7 +302,7 @@ func (gq *GenerationQuery) FirstIDX(ctx context.Context) uuid.UUID {
 // Returns a *NotSingularError when more than one Generation entity is found.
 // Returns a *NotFoundError when no Generation entities are found.
 func (gq *GenerationQuery) Only(ctx context.Context) (*Generation, error) {
-	nodes, err := gq.Limit(2).All(setContextOp(ctx, gq.ctx, "Only"))
+	nodes, err := gq.Limit(2).All(setContextOp(ctx, gq.ctx, ent.OpQueryOnly))
 	if err != nil {
 		return nil, err
 	}
@@ -329,7 +330,7 @@ func (gq *GenerationQuery) OnlyX(ctx context.Context) *Generation {
 // Returns a *NotFoundError when no entities are found.
 func (gq *GenerationQuery) OnlyID(ctx context.Context) (id uuid.UUID, err error) {
 	var ids []uuid.UUID
-	if ids, err = gq.Limit(2).IDs(setContextOp(ctx, gq.ctx, "OnlyID")); err != nil {
+	if ids, err = gq.Limit(2).IDs(setContextOp(ctx, gq.ctx, ent.OpQueryOnlyID)); err != nil {
 		return
 	}
 	switch len(ids) {
@@ -354,7 +355,7 @@ func (gq *GenerationQuery) OnlyIDX(ctx context.Context) uuid.UUID {
 
 // All executes the query and returns a list of Generations.
 func (gq *GenerationQuery) All(ctx context.Context) ([]*Generation, error) {
-	ctx = setContextOp(ctx, gq.ctx, "All")
+	ctx = setContextOp(ctx, gq.ctx, ent.OpQueryAll)
 	if err := gq.prepareQuery(ctx); err != nil {
 		return nil, err
 	}
@@ -372,10 +373,12 @@ func (gq *GenerationQuery) AllX(ctx context.Context) []*Generation {
 }
 
 // IDs executes the query and returns a list of Generation IDs.
-func (gq *GenerationQuery) IDs(ctx context.Context) ([]uuid.UUID, error) {
-	var ids []uuid.UUID
-	ctx = setContextOp(ctx, gq.ctx, "IDs")
-	if err := gq.Select(generation.FieldID).Scan(ctx, &ids); err != nil {
+func (gq *GenerationQuery) IDs(ctx context.Context) (ids []uuid.UUID, err error) {
+	if gq.ctx.Unique == nil && gq.path != nil {
+		gq.Unique(true)
+	}
+	ctx = setContextOp(ctx, gq.ctx, ent.OpQueryIDs)
+	if err = gq.Select(generation.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
 	return ids, nil
@@ -392,7 +395,7 @@ func (gq *GenerationQuery) IDsX(ctx context.Context) []uuid.UUID {
 
 // Count returns the count of the given query.
 func (gq *GenerationQuery) Count(ctx context.Context) (int, error) {
-	ctx = setContextOp(ctx, gq.ctx, "Count")
+	ctx = setContextOp(ctx, gq.ctx, ent.OpQueryCount)
 	if err := gq.prepareQuery(ctx); err != nil {
 		return 0, err
 	}
@@ -410,7 +413,7 @@ func (gq *GenerationQuery) CountX(ctx context.Context) int {
 
 // Exist returns true if the query has elements in the graph.
 func (gq *GenerationQuery) Exist(ctx context.Context) (bool, error) {
-	ctx = setContextOp(ctx, gq.ctx, "Exist")
+	ctx = setContextOp(ctx, gq.ctx, ent.OpQueryExist)
 	switch _, err := gq.FirstID(ctx); {
 	case IsNotFound(err):
 		return false, nil
@@ -439,7 +442,7 @@ func (gq *GenerationQuery) Clone() *GenerationQuery {
 	return &GenerationQuery{
 		config:                gq.config,
 		ctx:                   gq.ctx.Clone(),
-		order:                 append([]OrderFunc{}, gq.order...),
+		order:                 append([]generation.OrderOption{}, gq.order...),
 		inters:                append([]Interceptor{}, gq.inters...),
 		predicates:            append([]predicate.Generation{}, gq.predicates...),
 		withDeviceInfo:        gq.withDeviceInfo.Clone(),
@@ -930,8 +933,11 @@ func (gq *GenerationQuery) loadGenerationOutputs(ctx context.Context, query *Gen
 			init(nodes[i])
 		}
 	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(generationoutput.FieldGenerationID)
+	}
 	query.Where(predicate.GenerationOutput(func(s *sql.Selector) {
-		s.Where(sql.InValues(generation.GenerationOutputsColumn, fks...))
+		s.Where(sql.InValues(s.C(generation.GenerationOutputsColumn), fks...))
 	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {
@@ -941,7 +947,7 @@ func (gq *GenerationQuery) loadGenerationOutputs(ctx context.Context, query *Gen
 		fk := n.GenerationID
 		node, ok := nodeids[fk]
 		if !ok {
-			return fmt.Errorf(`unexpected foreign-key "generation_id" returned %v for node %v`, fk, n.ID)
+			return fmt.Errorf(`unexpected referenced foreign-key "generation_id" returned %v for node %v`, fk, n.ID)
 		}
 		assign(node, n)
 	}
@@ -961,20 +967,12 @@ func (gq *GenerationQuery) sqlCount(ctx context.Context) (int, error) {
 }
 
 func (gq *GenerationQuery) querySpec() *sqlgraph.QuerySpec {
-	_spec := &sqlgraph.QuerySpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   generation.Table,
-			Columns: generation.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeUUID,
-				Column: generation.FieldID,
-			},
-		},
-		From:   gq.sql,
-		Unique: true,
-	}
+	_spec := sqlgraph.NewQuerySpec(generation.Table, generation.Columns, sqlgraph.NewFieldSpec(generation.FieldID, field.TypeUUID))
+	_spec.From = gq.sql
 	if unique := gq.ctx.Unique; unique != nil {
 		_spec.Unique = *unique
+	} else if gq.path != nil {
+		_spec.Unique = true
 	}
 	if fields := gq.ctx.Fields; len(fields) > 0 {
 		_spec.Node.Columns = make([]string, 0, len(fields))
@@ -983,6 +981,27 @@ func (gq *GenerationQuery) querySpec() *sqlgraph.QuerySpec {
 			if fields[i] != generation.FieldID {
 				_spec.Node.Columns = append(_spec.Node.Columns, fields[i])
 			}
+		}
+		if gq.withDeviceInfo != nil {
+			_spec.Node.AddColumnOnce(generation.FieldDeviceInfoID)
+		}
+		if gq.withScheduler != nil {
+			_spec.Node.AddColumnOnce(generation.FieldSchedulerID)
+		}
+		if gq.withPrompt != nil {
+			_spec.Node.AddColumnOnce(generation.FieldPromptID)
+		}
+		if gq.withNegativePrompt != nil {
+			_spec.Node.AddColumnOnce(generation.FieldNegativePromptID)
+		}
+		if gq.withGenerationModel != nil {
+			_spec.Node.AddColumnOnce(generation.FieldModelID)
+		}
+		if gq.withUser != nil {
+			_spec.Node.AddColumnOnce(generation.FieldUserID)
+		}
+		if gq.withAPITokens != nil {
+			_spec.Node.AddColumnOnce(generation.FieldAPITokenID)
 		}
 	}
 	if ps := gq.predicates; len(ps) > 0 {
@@ -1063,7 +1082,7 @@ func (ggb *GenerationGroupBy) Aggregate(fns ...AggregateFunc) *GenerationGroupBy
 
 // Scan applies the selector query and scans the result into the given value.
 func (ggb *GenerationGroupBy) Scan(ctx context.Context, v any) error {
-	ctx = setContextOp(ctx, ggb.build.ctx, "GroupBy")
+	ctx = setContextOp(ctx, ggb.build.ctx, ent.OpQueryGroupBy)
 	if err := ggb.build.prepareQuery(ctx); err != nil {
 		return err
 	}
@@ -1111,7 +1130,7 @@ func (gs *GenerationSelect) Aggregate(fns ...AggregateFunc) *GenerationSelect {
 
 // Scan applies the selector query and scans the result into the given value.
 func (gs *GenerationSelect) Scan(ctx context.Context, v any) error {
-	ctx = setContextOp(ctx, gs.ctx, "Select")
+	ctx = setContextOp(ctx, gs.ctx, ent.OpQuerySelect)
 	if err := gs.prepareQuery(ctx); err != nil {
 		return err
 	}

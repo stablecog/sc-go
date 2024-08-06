@@ -80,7 +80,7 @@ func (ubc *UsernameBlacklistCreate) Mutation() *UsernameBlacklistMutation {
 // Save creates the UsernameBlacklist in the database.
 func (ubc *UsernameBlacklistCreate) Save(ctx context.Context) (*UsernameBlacklist, error) {
 	ubc.defaults()
-	return withHooks[*UsernameBlacklist, UsernameBlacklistMutation](ctx, ubc.sqlSave, ubc.mutation, ubc.hooks)
+	return withHooks(ctx, ubc.sqlSave, ubc.mutation, ubc.hooks)
 }
 
 // SaveX calls Save and panics if Save returns an error.
@@ -161,13 +161,7 @@ func (ubc *UsernameBlacklistCreate) sqlSave(ctx context.Context) (*UsernameBlack
 func (ubc *UsernameBlacklistCreate) createSpec() (*UsernameBlacklist, *sqlgraph.CreateSpec) {
 	var (
 		_node = &UsernameBlacklist{config: ubc.config}
-		_spec = &sqlgraph.CreateSpec{
-			Table: usernameblacklist.Table,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeUUID,
-				Column: usernameblacklist.FieldID,
-			},
-		}
+		_spec = sqlgraph.NewCreateSpec(usernameblacklist.Table, sqlgraph.NewFieldSpec(usernameblacklist.FieldID, field.TypeUUID))
 	)
 	_spec.OnConflict = ubc.conflict
 	if id, ok := ubc.mutation.ID(); ok {
@@ -382,12 +376,16 @@ func (u *UsernameBlacklistUpsertOne) IDX(ctx context.Context) uuid.UUID {
 // UsernameBlacklistCreateBulk is the builder for creating many UsernameBlacklist entities in bulk.
 type UsernameBlacklistCreateBulk struct {
 	config
+	err      error
 	builders []*UsernameBlacklistCreate
 	conflict []sql.ConflictOption
 }
 
 // Save creates the UsernameBlacklist entities in the database.
 func (ubcb *UsernameBlacklistCreateBulk) Save(ctx context.Context) ([]*UsernameBlacklist, error) {
+	if ubcb.err != nil {
+		return nil, ubcb.err
+	}
 	specs := make([]*sqlgraph.CreateSpec, len(ubcb.builders))
 	nodes := make([]*UsernameBlacklist, len(ubcb.builders))
 	mutators := make([]Mutator, len(ubcb.builders))
@@ -404,8 +402,8 @@ func (ubcb *UsernameBlacklistCreateBulk) Save(ctx context.Context) ([]*UsernameB
 					return nil, err
 				}
 				builder.mutation = mutation
-				nodes[i], specs[i] = builder.createSpec()
 				var err error
+				nodes[i], specs[i] = builder.createSpec()
 				if i < len(mutators)-1 {
 					_, err = mutators[i+1].Mutate(root, ubcb.builders[i+1].mutation)
 				} else {
@@ -585,6 +583,9 @@ func (u *UsernameBlacklistUpsertBulk) UpdateUpdatedAt() *UsernameBlacklistUpsert
 
 // Exec executes the query.
 func (u *UsernameBlacklistUpsertBulk) Exec(ctx context.Context) error {
+	if u.create.err != nil {
+		return u.create.err
+	}
 	for i, b := range u.create.builders {
 		if len(b.conflict) != 0 {
 			return fmt.Errorf("ent: OnConflict was set for builder %d. Set it on the UsernameBlacklistCreateBulk instead", i)

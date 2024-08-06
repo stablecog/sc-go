@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"math"
 
+	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
@@ -21,7 +22,7 @@ import (
 type GenerationOutputLikeQuery struct {
 	config
 	ctx                   *QueryContext
-	order                 []OrderFunc
+	order                 []generationoutputlike.OrderOption
 	inters                []Interceptor
 	predicates            []predicate.GenerationOutputLike
 	withGenerationOutputs *GenerationOutputQuery
@@ -58,7 +59,7 @@ func (golq *GenerationOutputLikeQuery) Unique(unique bool) *GenerationOutputLike
 }
 
 // Order specifies how the records should be ordered.
-func (golq *GenerationOutputLikeQuery) Order(o ...OrderFunc) *GenerationOutputLikeQuery {
+func (golq *GenerationOutputLikeQuery) Order(o ...generationoutputlike.OrderOption) *GenerationOutputLikeQuery {
 	golq.order = append(golq.order, o...)
 	return golq
 }
@@ -110,7 +111,7 @@ func (golq *GenerationOutputLikeQuery) QueryUsers() *UserQuery {
 // First returns the first GenerationOutputLike entity from the query.
 // Returns a *NotFoundError when no GenerationOutputLike was found.
 func (golq *GenerationOutputLikeQuery) First(ctx context.Context) (*GenerationOutputLike, error) {
-	nodes, err := golq.Limit(1).All(setContextOp(ctx, golq.ctx, "First"))
+	nodes, err := golq.Limit(1).All(setContextOp(ctx, golq.ctx, ent.OpQueryFirst))
 	if err != nil {
 		return nil, err
 	}
@@ -133,7 +134,7 @@ func (golq *GenerationOutputLikeQuery) FirstX(ctx context.Context) *GenerationOu
 // Returns a *NotFoundError when no GenerationOutputLike ID was found.
 func (golq *GenerationOutputLikeQuery) FirstID(ctx context.Context) (id uuid.UUID, err error) {
 	var ids []uuid.UUID
-	if ids, err = golq.Limit(1).IDs(setContextOp(ctx, golq.ctx, "FirstID")); err != nil {
+	if ids, err = golq.Limit(1).IDs(setContextOp(ctx, golq.ctx, ent.OpQueryFirstID)); err != nil {
 		return
 	}
 	if len(ids) == 0 {
@@ -156,7 +157,7 @@ func (golq *GenerationOutputLikeQuery) FirstIDX(ctx context.Context) uuid.UUID {
 // Returns a *NotSingularError when more than one GenerationOutputLike entity is found.
 // Returns a *NotFoundError when no GenerationOutputLike entities are found.
 func (golq *GenerationOutputLikeQuery) Only(ctx context.Context) (*GenerationOutputLike, error) {
-	nodes, err := golq.Limit(2).All(setContextOp(ctx, golq.ctx, "Only"))
+	nodes, err := golq.Limit(2).All(setContextOp(ctx, golq.ctx, ent.OpQueryOnly))
 	if err != nil {
 		return nil, err
 	}
@@ -184,7 +185,7 @@ func (golq *GenerationOutputLikeQuery) OnlyX(ctx context.Context) *GenerationOut
 // Returns a *NotFoundError when no entities are found.
 func (golq *GenerationOutputLikeQuery) OnlyID(ctx context.Context) (id uuid.UUID, err error) {
 	var ids []uuid.UUID
-	if ids, err = golq.Limit(2).IDs(setContextOp(ctx, golq.ctx, "OnlyID")); err != nil {
+	if ids, err = golq.Limit(2).IDs(setContextOp(ctx, golq.ctx, ent.OpQueryOnlyID)); err != nil {
 		return
 	}
 	switch len(ids) {
@@ -209,7 +210,7 @@ func (golq *GenerationOutputLikeQuery) OnlyIDX(ctx context.Context) uuid.UUID {
 
 // All executes the query and returns a list of GenerationOutputLikes.
 func (golq *GenerationOutputLikeQuery) All(ctx context.Context) ([]*GenerationOutputLike, error) {
-	ctx = setContextOp(ctx, golq.ctx, "All")
+	ctx = setContextOp(ctx, golq.ctx, ent.OpQueryAll)
 	if err := golq.prepareQuery(ctx); err != nil {
 		return nil, err
 	}
@@ -227,10 +228,12 @@ func (golq *GenerationOutputLikeQuery) AllX(ctx context.Context) []*GenerationOu
 }
 
 // IDs executes the query and returns a list of GenerationOutputLike IDs.
-func (golq *GenerationOutputLikeQuery) IDs(ctx context.Context) ([]uuid.UUID, error) {
-	var ids []uuid.UUID
-	ctx = setContextOp(ctx, golq.ctx, "IDs")
-	if err := golq.Select(generationoutputlike.FieldID).Scan(ctx, &ids); err != nil {
+func (golq *GenerationOutputLikeQuery) IDs(ctx context.Context) (ids []uuid.UUID, err error) {
+	if golq.ctx.Unique == nil && golq.path != nil {
+		golq.Unique(true)
+	}
+	ctx = setContextOp(ctx, golq.ctx, ent.OpQueryIDs)
+	if err = golq.Select(generationoutputlike.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
 	return ids, nil
@@ -247,7 +250,7 @@ func (golq *GenerationOutputLikeQuery) IDsX(ctx context.Context) []uuid.UUID {
 
 // Count returns the count of the given query.
 func (golq *GenerationOutputLikeQuery) Count(ctx context.Context) (int, error) {
-	ctx = setContextOp(ctx, golq.ctx, "Count")
+	ctx = setContextOp(ctx, golq.ctx, ent.OpQueryCount)
 	if err := golq.prepareQuery(ctx); err != nil {
 		return 0, err
 	}
@@ -265,7 +268,7 @@ func (golq *GenerationOutputLikeQuery) CountX(ctx context.Context) int {
 
 // Exist returns true if the query has elements in the graph.
 func (golq *GenerationOutputLikeQuery) Exist(ctx context.Context) (bool, error) {
-	ctx = setContextOp(ctx, golq.ctx, "Exist")
+	ctx = setContextOp(ctx, golq.ctx, ent.OpQueryExist)
 	switch _, err := golq.FirstID(ctx); {
 	case IsNotFound(err):
 		return false, nil
@@ -294,7 +297,7 @@ func (golq *GenerationOutputLikeQuery) Clone() *GenerationOutputLikeQuery {
 	return &GenerationOutputLikeQuery{
 		config:                golq.config,
 		ctx:                   golq.ctx.Clone(),
-		order:                 append([]OrderFunc{}, golq.order...),
+		order:                 append([]generationoutputlike.OrderOption{}, golq.order...),
 		inters:                append([]Interceptor{}, golq.inters...),
 		predicates:            append([]predicate.GenerationOutputLike{}, golq.predicates...),
 		withGenerationOutputs: golq.withGenerationOutputs.Clone(),
@@ -518,20 +521,12 @@ func (golq *GenerationOutputLikeQuery) sqlCount(ctx context.Context) (int, error
 }
 
 func (golq *GenerationOutputLikeQuery) querySpec() *sqlgraph.QuerySpec {
-	_spec := &sqlgraph.QuerySpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   generationoutputlike.Table,
-			Columns: generationoutputlike.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeUUID,
-				Column: generationoutputlike.FieldID,
-			},
-		},
-		From:   golq.sql,
-		Unique: true,
-	}
+	_spec := sqlgraph.NewQuerySpec(generationoutputlike.Table, generationoutputlike.Columns, sqlgraph.NewFieldSpec(generationoutputlike.FieldID, field.TypeUUID))
+	_spec.From = golq.sql
 	if unique := golq.ctx.Unique; unique != nil {
 		_spec.Unique = *unique
+	} else if golq.path != nil {
+		_spec.Unique = true
 	}
 	if fields := golq.ctx.Fields; len(fields) > 0 {
 		_spec.Node.Columns = make([]string, 0, len(fields))
@@ -540,6 +535,12 @@ func (golq *GenerationOutputLikeQuery) querySpec() *sqlgraph.QuerySpec {
 			if fields[i] != generationoutputlike.FieldID {
 				_spec.Node.Columns = append(_spec.Node.Columns, fields[i])
 			}
+		}
+		if golq.withGenerationOutputs != nil {
+			_spec.Node.AddColumnOnce(generationoutputlike.FieldOutputID)
+		}
+		if golq.withUsers != nil {
+			_spec.Node.AddColumnOnce(generationoutputlike.FieldLikedByUserID)
 		}
 	}
 	if ps := golq.predicates; len(ps) > 0 {
@@ -620,7 +621,7 @@ func (golgb *GenerationOutputLikeGroupBy) Aggregate(fns ...AggregateFunc) *Gener
 
 // Scan applies the selector query and scans the result into the given value.
 func (golgb *GenerationOutputLikeGroupBy) Scan(ctx context.Context, v any) error {
-	ctx = setContextOp(ctx, golgb.build.ctx, "GroupBy")
+	ctx = setContextOp(ctx, golgb.build.ctx, ent.OpQueryGroupBy)
 	if err := golgb.build.prepareQuery(ctx); err != nil {
 		return err
 	}
@@ -668,7 +669,7 @@ func (gols *GenerationOutputLikeSelect) Aggregate(fns ...AggregateFunc) *Generat
 
 // Scan applies the selector query and scans the result into the given value.
 func (gols *GenerationOutputLikeSelect) Scan(ctx context.Context, v any) error {
-	ctx = setContextOp(ctx, gols.ctx, "Select")
+	ctx = setContextOp(ctx, gols.ctx, ent.OpQuerySelect)
 	if err := gols.prepareQuery(ctx); err != nil {
 		return err
 	}

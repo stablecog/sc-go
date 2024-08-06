@@ -165,11 +165,7 @@ func HasGenerationOutputs() predicate.GenerationOutputLike {
 // HasGenerationOutputsWith applies the HasEdge predicate on the "generation_outputs" edge with a given conditions (other predicates).
 func HasGenerationOutputsWith(preds ...predicate.GenerationOutput) predicate.GenerationOutputLike {
 	return predicate.GenerationOutputLike(func(s *sql.Selector) {
-		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(GenerationOutputsInverseTable, FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, GenerationOutputsTable, GenerationOutputsColumn),
-		)
+		step := newGenerationOutputsStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)
@@ -192,11 +188,7 @@ func HasUsers() predicate.GenerationOutputLike {
 // HasUsersWith applies the HasEdge predicate on the "users" edge with a given conditions (other predicates).
 func HasUsersWith(preds ...predicate.User) predicate.GenerationOutputLike {
 	return predicate.GenerationOutputLike(func(s *sql.Selector) {
-		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(UsersInverseTable, FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, UsersTable, UsersColumn),
-		)
+		step := newUsersStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)
@@ -207,32 +199,15 @@ func HasUsersWith(preds ...predicate.User) predicate.GenerationOutputLike {
 
 // And groups predicates with the AND operator between them.
 func And(predicates ...predicate.GenerationOutputLike) predicate.GenerationOutputLike {
-	return predicate.GenerationOutputLike(func(s *sql.Selector) {
-		s1 := s.Clone().SetP(nil)
-		for _, p := range predicates {
-			p(s1)
-		}
-		s.Where(s1.P())
-	})
+	return predicate.GenerationOutputLike(sql.AndPredicates(predicates...))
 }
 
 // Or groups predicates with the OR operator between them.
 func Or(predicates ...predicate.GenerationOutputLike) predicate.GenerationOutputLike {
-	return predicate.GenerationOutputLike(func(s *sql.Selector) {
-		s1 := s.Clone().SetP(nil)
-		for i, p := range predicates {
-			if i > 0 {
-				s1.Or()
-			}
-			p(s1)
-		}
-		s.Where(s1.P())
-	})
+	return predicate.GenerationOutputLike(sql.OrPredicates(predicates...))
 }
 
 // Not applies the not operator on the given predicate.
 func Not(p predicate.GenerationOutputLike) predicate.GenerationOutputLike {
-	return predicate.GenerationOutputLike(func(s *sql.Selector) {
-		p(s.Not())
-	})
+	return predicate.GenerationOutputLike(sql.NotPredicates(p))
 }

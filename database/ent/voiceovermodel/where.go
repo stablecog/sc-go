@@ -275,11 +275,7 @@ func HasVoiceovers() predicate.VoiceoverModel {
 // HasVoiceoversWith applies the HasEdge predicate on the "voiceovers" edge with a given conditions (other predicates).
 func HasVoiceoversWith(preds ...predicate.Voiceover) predicate.VoiceoverModel {
 	return predicate.VoiceoverModel(func(s *sql.Selector) {
-		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(VoiceoversInverseTable, FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, VoiceoversTable, VoiceoversColumn),
-		)
+		step := newVoiceoversStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)
@@ -302,11 +298,7 @@ func HasVoiceoverSpeakers() predicate.VoiceoverModel {
 // HasVoiceoverSpeakersWith applies the HasEdge predicate on the "voiceover_speakers" edge with a given conditions (other predicates).
 func HasVoiceoverSpeakersWith(preds ...predicate.VoiceoverSpeaker) predicate.VoiceoverModel {
 	return predicate.VoiceoverModel(func(s *sql.Selector) {
-		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(VoiceoverSpeakersInverseTable, FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, VoiceoverSpeakersTable, VoiceoverSpeakersColumn),
-		)
+		step := newVoiceoverSpeakersStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)
@@ -317,32 +309,15 @@ func HasVoiceoverSpeakersWith(preds ...predicate.VoiceoverSpeaker) predicate.Voi
 
 // And groups predicates with the AND operator between them.
 func And(predicates ...predicate.VoiceoverModel) predicate.VoiceoverModel {
-	return predicate.VoiceoverModel(func(s *sql.Selector) {
-		s1 := s.Clone().SetP(nil)
-		for _, p := range predicates {
-			p(s1)
-		}
-		s.Where(s1.P())
-	})
+	return predicate.VoiceoverModel(sql.AndPredicates(predicates...))
 }
 
 // Or groups predicates with the OR operator between them.
 func Or(predicates ...predicate.VoiceoverModel) predicate.VoiceoverModel {
-	return predicate.VoiceoverModel(func(s *sql.Selector) {
-		s1 := s.Clone().SetP(nil)
-		for i, p := range predicates {
-			if i > 0 {
-				s1.Or()
-			}
-			p(s1)
-		}
-		s.Where(s1.P())
-	})
+	return predicate.VoiceoverModel(sql.OrPredicates(predicates...))
 }
 
 // Not applies the not operator on the given predicate.
 func Not(p predicate.VoiceoverModel) predicate.VoiceoverModel {
-	return predicate.VoiceoverModel(func(s *sql.Selector) {
-		p(s.Not())
-	})
+	return predicate.VoiceoverModel(sql.NotPredicates(p))
 }

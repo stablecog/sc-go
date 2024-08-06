@@ -38,9 +38,59 @@ func (pu *PromptUpdate) SetText(s string) *PromptUpdate {
 	return pu
 }
 
+// SetNillableText sets the "text" field if the given value is not nil.
+func (pu *PromptUpdate) SetNillableText(s *string) *PromptUpdate {
+	if s != nil {
+		pu.SetText(*s)
+	}
+	return pu
+}
+
+// SetTranslatedText sets the "translated_text" field.
+func (pu *PromptUpdate) SetTranslatedText(s string) *PromptUpdate {
+	pu.mutation.SetTranslatedText(s)
+	return pu
+}
+
+// SetNillableTranslatedText sets the "translated_text" field if the given value is not nil.
+func (pu *PromptUpdate) SetNillableTranslatedText(s *string) *PromptUpdate {
+	if s != nil {
+		pu.SetTranslatedText(*s)
+	}
+	return pu
+}
+
+// ClearTranslatedText clears the value of the "translated_text" field.
+func (pu *PromptUpdate) ClearTranslatedText() *PromptUpdate {
+	pu.mutation.ClearTranslatedText()
+	return pu
+}
+
+// SetRanTranslation sets the "ran_translation" field.
+func (pu *PromptUpdate) SetRanTranslation(b bool) *PromptUpdate {
+	pu.mutation.SetRanTranslation(b)
+	return pu
+}
+
+// SetNillableRanTranslation sets the "ran_translation" field if the given value is not nil.
+func (pu *PromptUpdate) SetNillableRanTranslation(b *bool) *PromptUpdate {
+	if b != nil {
+		pu.SetRanTranslation(*b)
+	}
+	return pu
+}
+
 // SetType sets the "type" field.
 func (pu *PromptUpdate) SetType(pr prompt.Type) *PromptUpdate {
 	pu.mutation.SetType(pr)
+	return pu
+}
+
+// SetNillableType sets the "type" field if the given value is not nil.
+func (pu *PromptUpdate) SetNillableType(pr *prompt.Type) *PromptUpdate {
+	if pr != nil {
+		pu.SetType(*pr)
+	}
 	return pu
 }
 
@@ -130,7 +180,7 @@ func (pu *PromptUpdate) RemoveVoiceovers(v ...*Voiceover) *PromptUpdate {
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (pu *PromptUpdate) Save(ctx context.Context) (int, error) {
 	pu.defaults()
-	return withHooks[int, PromptMutation](ctx, pu.sqlSave, pu.mutation, pu.hooks)
+	return withHooks(ctx, pu.sqlSave, pu.mutation, pu.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -183,16 +233,7 @@ func (pu *PromptUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if err := pu.check(); err != nil {
 		return n, err
 	}
-	_spec := &sqlgraph.UpdateSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   prompt.Table,
-			Columns: prompt.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeUUID,
-				Column: prompt.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewUpdateSpec(prompt.Table, prompt.Columns, sqlgraph.NewFieldSpec(prompt.FieldID, field.TypeUUID))
 	if ps := pu.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
@@ -202,6 +243,15 @@ func (pu *PromptUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if value, ok := pu.mutation.Text(); ok {
 		_spec.SetField(prompt.FieldText, field.TypeString, value)
+	}
+	if value, ok := pu.mutation.TranslatedText(); ok {
+		_spec.SetField(prompt.FieldTranslatedText, field.TypeString, value)
+	}
+	if pu.mutation.TranslatedTextCleared() {
+		_spec.ClearField(prompt.FieldTranslatedText, field.TypeString)
+	}
+	if value, ok := pu.mutation.RanTranslation(); ok {
+		_spec.SetField(prompt.FieldRanTranslation, field.TypeBool, value)
 	}
 	if value, ok := pu.mutation.GetType(); ok {
 		_spec.SetField(prompt.FieldType, field.TypeEnum, value)
@@ -217,10 +267,7 @@ func (pu *PromptUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: []string{prompt.GenerationsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: generation.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(generation.FieldID, field.TypeUUID),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -233,10 +280,7 @@ func (pu *PromptUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: []string{prompt.GenerationsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: generation.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(generation.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -252,10 +296,7 @@ func (pu *PromptUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: []string{prompt.GenerationsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: generation.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(generation.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -271,10 +312,7 @@ func (pu *PromptUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: []string{prompt.VoiceoversColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: voiceover.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(voiceover.FieldID, field.TypeUUID),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -287,10 +325,7 @@ func (pu *PromptUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: []string{prompt.VoiceoversColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: voiceover.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(voiceover.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -306,10 +341,7 @@ func (pu *PromptUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: []string{prompt.VoiceoversColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: voiceover.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(voiceover.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -345,9 +377,59 @@ func (puo *PromptUpdateOne) SetText(s string) *PromptUpdateOne {
 	return puo
 }
 
+// SetNillableText sets the "text" field if the given value is not nil.
+func (puo *PromptUpdateOne) SetNillableText(s *string) *PromptUpdateOne {
+	if s != nil {
+		puo.SetText(*s)
+	}
+	return puo
+}
+
+// SetTranslatedText sets the "translated_text" field.
+func (puo *PromptUpdateOne) SetTranslatedText(s string) *PromptUpdateOne {
+	puo.mutation.SetTranslatedText(s)
+	return puo
+}
+
+// SetNillableTranslatedText sets the "translated_text" field if the given value is not nil.
+func (puo *PromptUpdateOne) SetNillableTranslatedText(s *string) *PromptUpdateOne {
+	if s != nil {
+		puo.SetTranslatedText(*s)
+	}
+	return puo
+}
+
+// ClearTranslatedText clears the value of the "translated_text" field.
+func (puo *PromptUpdateOne) ClearTranslatedText() *PromptUpdateOne {
+	puo.mutation.ClearTranslatedText()
+	return puo
+}
+
+// SetRanTranslation sets the "ran_translation" field.
+func (puo *PromptUpdateOne) SetRanTranslation(b bool) *PromptUpdateOne {
+	puo.mutation.SetRanTranslation(b)
+	return puo
+}
+
+// SetNillableRanTranslation sets the "ran_translation" field if the given value is not nil.
+func (puo *PromptUpdateOne) SetNillableRanTranslation(b *bool) *PromptUpdateOne {
+	if b != nil {
+		puo.SetRanTranslation(*b)
+	}
+	return puo
+}
+
 // SetType sets the "type" field.
 func (puo *PromptUpdateOne) SetType(pr prompt.Type) *PromptUpdateOne {
 	puo.mutation.SetType(pr)
+	return puo
+}
+
+// SetNillableType sets the "type" field if the given value is not nil.
+func (puo *PromptUpdateOne) SetNillableType(pr *prompt.Type) *PromptUpdateOne {
+	if pr != nil {
+		puo.SetType(*pr)
+	}
 	return puo
 }
 
@@ -434,6 +516,12 @@ func (puo *PromptUpdateOne) RemoveVoiceovers(v ...*Voiceover) *PromptUpdateOne {
 	return puo.RemoveVoiceoverIDs(ids...)
 }
 
+// Where appends a list predicates to the PromptUpdate builder.
+func (puo *PromptUpdateOne) Where(ps ...predicate.Prompt) *PromptUpdateOne {
+	puo.mutation.Where(ps...)
+	return puo
+}
+
 // Select allows selecting one or more fields (columns) of the returned entity.
 // The default is selecting all fields defined in the entity schema.
 func (puo *PromptUpdateOne) Select(field string, fields ...string) *PromptUpdateOne {
@@ -444,7 +532,7 @@ func (puo *PromptUpdateOne) Select(field string, fields ...string) *PromptUpdate
 // Save executes the query and returns the updated Prompt entity.
 func (puo *PromptUpdateOne) Save(ctx context.Context) (*Prompt, error) {
 	puo.defaults()
-	return withHooks[*Prompt, PromptMutation](ctx, puo.sqlSave, puo.mutation, puo.hooks)
+	return withHooks(ctx, puo.sqlSave, puo.mutation, puo.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -497,16 +585,7 @@ func (puo *PromptUpdateOne) sqlSave(ctx context.Context) (_node *Prompt, err err
 	if err := puo.check(); err != nil {
 		return _node, err
 	}
-	_spec := &sqlgraph.UpdateSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   prompt.Table,
-			Columns: prompt.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeUUID,
-				Column: prompt.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewUpdateSpec(prompt.Table, prompt.Columns, sqlgraph.NewFieldSpec(prompt.FieldID, field.TypeUUID))
 	id, ok := puo.mutation.ID()
 	if !ok {
 		return nil, &ValidationError{Name: "id", err: errors.New(`ent: missing "Prompt.id" for update`)}
@@ -534,6 +613,15 @@ func (puo *PromptUpdateOne) sqlSave(ctx context.Context) (_node *Prompt, err err
 	if value, ok := puo.mutation.Text(); ok {
 		_spec.SetField(prompt.FieldText, field.TypeString, value)
 	}
+	if value, ok := puo.mutation.TranslatedText(); ok {
+		_spec.SetField(prompt.FieldTranslatedText, field.TypeString, value)
+	}
+	if puo.mutation.TranslatedTextCleared() {
+		_spec.ClearField(prompt.FieldTranslatedText, field.TypeString)
+	}
+	if value, ok := puo.mutation.RanTranslation(); ok {
+		_spec.SetField(prompt.FieldRanTranslation, field.TypeBool, value)
+	}
 	if value, ok := puo.mutation.GetType(); ok {
 		_spec.SetField(prompt.FieldType, field.TypeEnum, value)
 	}
@@ -548,10 +636,7 @@ func (puo *PromptUpdateOne) sqlSave(ctx context.Context) (_node *Prompt, err err
 			Columns: []string{prompt.GenerationsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: generation.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(generation.FieldID, field.TypeUUID),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -564,10 +649,7 @@ func (puo *PromptUpdateOne) sqlSave(ctx context.Context) (_node *Prompt, err err
 			Columns: []string{prompt.GenerationsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: generation.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(generation.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -583,10 +665,7 @@ func (puo *PromptUpdateOne) sqlSave(ctx context.Context) (_node *Prompt, err err
 			Columns: []string{prompt.GenerationsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: generation.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(generation.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -602,10 +681,7 @@ func (puo *PromptUpdateOne) sqlSave(ctx context.Context) (_node *Prompt, err err
 			Columns: []string{prompt.VoiceoversColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: voiceover.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(voiceover.FieldID, field.TypeUUID),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -618,10 +694,7 @@ func (puo *PromptUpdateOne) sqlSave(ctx context.Context) (_node *Prompt, err err
 			Columns: []string{prompt.VoiceoversColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: voiceover.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(voiceover.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -637,10 +710,7 @@ func (puo *PromptUpdateOne) sqlSave(ctx context.Context) (_node *Prompt, err err
 			Columns: []string{prompt.VoiceoversColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: voiceover.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(voiceover.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

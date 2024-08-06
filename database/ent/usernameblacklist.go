@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 	"github.com/google/uuid"
 	"github.com/stablecog/sc-go/database/ent/usernameblacklist"
@@ -22,7 +23,8 @@ type UsernameBlacklist struct {
 	// CreatedAt holds the value of the "created_at" field.
 	CreatedAt time.Time `json:"created_at,omitempty"`
 	// UpdatedAt holds the value of the "updated_at" field.
-	UpdatedAt time.Time `json:"updated_at,omitempty"`
+	UpdatedAt    time.Time `json:"updated_at,omitempty"`
+	selectValues sql.SelectValues
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -37,7 +39,7 @@ func (*UsernameBlacklist) scanValues(columns []string) ([]any, error) {
 		case usernameblacklist.FieldID:
 			values[i] = new(uuid.UUID)
 		default:
-			return nil, fmt.Errorf("unexpected column %q for type UsernameBlacklist", columns[i])
+			values[i] = new(sql.UnknownType)
 		}
 	}
 	return values, nil
@@ -75,9 +77,17 @@ func (ub *UsernameBlacklist) assignValues(columns []string, values []any) error 
 			} else if value.Valid {
 				ub.UpdatedAt = value.Time
 			}
+		default:
+			ub.selectValues.Set(columns[i], values[i])
 		}
 	}
 	return nil
+}
+
+// Value returns the ent.Value that was dynamically selected and assigned to the UsernameBlacklist.
+// This includes values selected through modifiers, order, etc.
+func (ub *UsernameBlacklist) Value(name string) (ent.Value, error) {
+	return ub.selectValues.Get(name)
 }
 
 // Update returns a builder for updating this UsernameBlacklist.
@@ -117,9 +127,3 @@ func (ub *UsernameBlacklist) String() string {
 
 // UsernameBlacklists is a parsable slice of UsernameBlacklist.
 type UsernameBlacklists []*UsernameBlacklist
-
-func (ub UsernameBlacklists) config(cfg config) {
-	for _i := range ub {
-		ub[_i].config = cfg
-	}
-}

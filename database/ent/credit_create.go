@@ -144,7 +144,7 @@ func (cc *CreditCreate) Mutation() *CreditMutation {
 // Save creates the Credit in the database.
 func (cc *CreditCreate) Save(ctx context.Context) (*Credit, error) {
 	cc.defaults()
-	return withHooks[*Credit, CreditMutation](ctx, cc.sqlSave, cc.mutation, cc.hooks)
+	return withHooks(ctx, cc.sqlSave, cc.mutation, cc.hooks)
 }
 
 // SaveX calls Save and panics if Save returns an error.
@@ -212,10 +212,10 @@ func (cc *CreditCreate) check() error {
 	if _, ok := cc.mutation.UpdatedAt(); !ok {
 		return &ValidationError{Name: "updated_at", err: errors.New(`ent: missing required field "Credit.updated_at"`)}
 	}
-	if _, ok := cc.mutation.UsersID(); !ok {
+	if len(cc.mutation.UsersIDs()) == 0 {
 		return &ValidationError{Name: "users", err: errors.New(`ent: missing required edge "Credit.users"`)}
 	}
-	if _, ok := cc.mutation.CreditTypeID(); !ok {
+	if len(cc.mutation.CreditTypeIDs()) == 0 {
 		return &ValidationError{Name: "credit_type", err: errors.New(`ent: missing required edge "Credit.credit_type"`)}
 	}
 	return nil
@@ -247,13 +247,7 @@ func (cc *CreditCreate) sqlSave(ctx context.Context) (*Credit, error) {
 func (cc *CreditCreate) createSpec() (*Credit, *sqlgraph.CreateSpec) {
 	var (
 		_node = &Credit{config: cc.config}
-		_spec = &sqlgraph.CreateSpec{
-			Table: credit.Table,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeUUID,
-				Column: credit.FieldID,
-			},
-		}
+		_spec = sqlgraph.NewCreateSpec(credit.Table, sqlgraph.NewFieldSpec(credit.FieldID, field.TypeUUID))
 	)
 	_spec.OnConflict = cc.conflict
 	if id, ok := cc.mutation.ID(); ok {
@@ -292,10 +286,7 @@ func (cc *CreditCreate) createSpec() (*Credit, *sqlgraph.CreateSpec) {
 			Columns: []string{credit.UsersColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: user.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -312,10 +303,7 @@ func (cc *CreditCreate) createSpec() (*Credit, *sqlgraph.CreateSpec) {
 			Columns: []string{credit.CreditTypeColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: credittype.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(credittype.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -676,12 +664,16 @@ func (u *CreditUpsertOne) IDX(ctx context.Context) uuid.UUID {
 // CreditCreateBulk is the builder for creating many Credit entities in bulk.
 type CreditCreateBulk struct {
 	config
+	err      error
 	builders []*CreditCreate
 	conflict []sql.ConflictOption
 }
 
 // Save creates the Credit entities in the database.
 func (ccb *CreditCreateBulk) Save(ctx context.Context) ([]*Credit, error) {
+	if ccb.err != nil {
+		return nil, ccb.err
+	}
 	specs := make([]*sqlgraph.CreateSpec, len(ccb.builders))
 	nodes := make([]*Credit, len(ccb.builders))
 	mutators := make([]Mutator, len(ccb.builders))
@@ -698,8 +690,8 @@ func (ccb *CreditCreateBulk) Save(ctx context.Context) ([]*Credit, error) {
 					return nil, err
 				}
 				builder.mutation = mutation
-				nodes[i], specs[i] = builder.createSpec()
 				var err error
+				nodes[i], specs[i] = builder.createSpec()
 				if i < len(mutators)-1 {
 					_, err = mutators[i+1].Mutate(root, ccb.builders[i+1].mutation)
 				} else {
@@ -963,6 +955,9 @@ func (u *CreditUpsertBulk) UpdateUpdatedAt() *CreditUpsertBulk {
 
 // Exec executes the query.
 func (u *CreditUpsertBulk) Exec(ctx context.Context) error {
+	if u.create.err != nil {
+		return u.create.err
+	}
 	for i, b := range u.create.builders {
 		if len(b.conflict) != 0 {
 			return fmt.Errorf("ent: OnConflict was set for builder %d. Set it on the CreditCreateBulk instead", i)

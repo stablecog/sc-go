@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"time"
 
+	"entgo.io/ent/dialect/sql"
+	"entgo.io/ent/dialect/sql/sqlgraph"
 	"github.com/google/uuid"
 	"github.com/stablecog/sc-go/database/enttypes"
 )
@@ -183,4 +185,179 @@ func SourceTypeValidator(st enttypes.SourceType) error {
 	default:
 		return fmt.Errorf("upscale: invalid enum value for source_type field: %q", st)
 	}
+}
+
+// OrderOption defines the ordering options for the Upscale queries.
+type OrderOption func(*sql.Selector)
+
+// ByID orders the results by the id field.
+func ByID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldID, opts...).ToFunc()
+}
+
+// ByWidth orders the results by the width field.
+func ByWidth(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldWidth, opts...).ToFunc()
+}
+
+// ByHeight orders the results by the height field.
+func ByHeight(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldHeight, opts...).ToFunc()
+}
+
+// ByScale orders the results by the scale field.
+func ByScale(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldScale, opts...).ToFunc()
+}
+
+// ByCountryCode orders the results by the country_code field.
+func ByCountryCode(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldCountryCode, opts...).ToFunc()
+}
+
+// ByStatus orders the results by the status field.
+func ByStatus(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldStatus, opts...).ToFunc()
+}
+
+// ByFailureReason orders the results by the failure_reason field.
+func ByFailureReason(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldFailureReason, opts...).ToFunc()
+}
+
+// ByStripeProductID orders the results by the stripe_product_id field.
+func ByStripeProductID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldStripeProductID, opts...).ToFunc()
+}
+
+// BySystemGenerated orders the results by the system_generated field.
+func BySystemGenerated(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldSystemGenerated, opts...).ToFunc()
+}
+
+// BySourceType orders the results by the source_type field.
+func BySourceType(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldSourceType, opts...).ToFunc()
+}
+
+// ByWebhookToken orders the results by the webhook_token field.
+func ByWebhookToken(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldWebhookToken, opts...).ToFunc()
+}
+
+// ByUserID orders the results by the user_id field.
+func ByUserID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldUserID, opts...).ToFunc()
+}
+
+// ByDeviceInfoID orders the results by the device_info_id field.
+func ByDeviceInfoID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldDeviceInfoID, opts...).ToFunc()
+}
+
+// ByModelID orders the results by the model_id field.
+func ByModelID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldModelID, opts...).ToFunc()
+}
+
+// ByAPITokenID orders the results by the api_token_id field.
+func ByAPITokenID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldAPITokenID, opts...).ToFunc()
+}
+
+// ByStartedAt orders the results by the started_at field.
+func ByStartedAt(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldStartedAt, opts...).ToFunc()
+}
+
+// ByCompletedAt orders the results by the completed_at field.
+func ByCompletedAt(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldCompletedAt, opts...).ToFunc()
+}
+
+// ByCreatedAt orders the results by the created_at field.
+func ByCreatedAt(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldCreatedAt, opts...).ToFunc()
+}
+
+// ByUpdatedAt orders the results by the updated_at field.
+func ByUpdatedAt(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldUpdatedAt, opts...).ToFunc()
+}
+
+// ByUserField orders the results by user field.
+func ByUserField(field string, opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newUserStep(), sql.OrderByField(field, opts...))
+	}
+}
+
+// ByDeviceInfoField orders the results by device_info field.
+func ByDeviceInfoField(field string, opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newDeviceInfoStep(), sql.OrderByField(field, opts...))
+	}
+}
+
+// ByUpscaleModelsField orders the results by upscale_models field.
+func ByUpscaleModelsField(field string, opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newUpscaleModelsStep(), sql.OrderByField(field, opts...))
+	}
+}
+
+// ByAPITokensField orders the results by api_tokens field.
+func ByAPITokensField(field string, opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newAPITokensStep(), sql.OrderByField(field, opts...))
+	}
+}
+
+// ByUpscaleOutputsCount orders the results by upscale_outputs count.
+func ByUpscaleOutputsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newUpscaleOutputsStep(), opts...)
+	}
+}
+
+// ByUpscaleOutputs orders the results by upscale_outputs terms.
+func ByUpscaleOutputs(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newUpscaleOutputsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+func newUserStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(UserInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, true, UserTable, UserColumn),
+	)
+}
+func newDeviceInfoStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(DeviceInfoInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, true, DeviceInfoTable, DeviceInfoColumn),
+	)
+}
+func newUpscaleModelsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(UpscaleModelsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, true, UpscaleModelsTable, UpscaleModelsColumn),
+	)
+}
+func newAPITokensStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(APITokensInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, true, APITokensTable, APITokensColumn),
+	)
+}
+func newUpscaleOutputsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(UpscaleOutputsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, UpscaleOutputsTable, UpscaleOutputsColumn),
+	)
 }

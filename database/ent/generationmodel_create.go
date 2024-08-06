@@ -210,7 +210,7 @@ func (gmc *GenerationModelCreate) Mutation() *GenerationModelMutation {
 // Save creates the GenerationModel in the database.
 func (gmc *GenerationModelCreate) Save(ctx context.Context) (*GenerationModel, error) {
 	gmc.defaults()
-	return withHooks[*GenerationModel, GenerationModelMutation](ctx, gmc.sqlSave, gmc.mutation, gmc.hooks)
+	return withHooks(ctx, gmc.sqlSave, gmc.mutation, gmc.hooks)
 }
 
 // SaveX calls Save and panics if Save returns an error.
@@ -333,13 +333,7 @@ func (gmc *GenerationModelCreate) sqlSave(ctx context.Context) (*GenerationModel
 func (gmc *GenerationModelCreate) createSpec() (*GenerationModel, *sqlgraph.CreateSpec) {
 	var (
 		_node = &GenerationModel{config: gmc.config}
-		_spec = &sqlgraph.CreateSpec{
-			Table: generationmodel.Table,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeUUID,
-				Column: generationmodel.FieldID,
-			},
-		}
+		_spec = sqlgraph.NewCreateSpec(generationmodel.Table, sqlgraph.NewFieldSpec(generationmodel.FieldID, field.TypeUUID))
 	)
 	_spec.OnConflict = gmc.conflict
 	if id, ok := gmc.mutation.ID(); ok {
@@ -394,10 +388,7 @@ func (gmc *GenerationModelCreate) createSpec() (*GenerationModel, *sqlgraph.Crea
 			Columns: []string{generationmodel.GenerationsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: generation.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(generation.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -413,10 +404,7 @@ func (gmc *GenerationModelCreate) createSpec() (*GenerationModel, *sqlgraph.Crea
 			Columns: generationmodel.SchedulersPrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: scheduler.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(scheduler.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -854,12 +842,16 @@ func (u *GenerationModelUpsertOne) IDX(ctx context.Context) uuid.UUID {
 // GenerationModelCreateBulk is the builder for creating many GenerationModel entities in bulk.
 type GenerationModelCreateBulk struct {
 	config
+	err      error
 	builders []*GenerationModelCreate
 	conflict []sql.ConflictOption
 }
 
 // Save creates the GenerationModel entities in the database.
 func (gmcb *GenerationModelCreateBulk) Save(ctx context.Context) ([]*GenerationModel, error) {
+	if gmcb.err != nil {
+		return nil, gmcb.err
+	}
 	specs := make([]*sqlgraph.CreateSpec, len(gmcb.builders))
 	nodes := make([]*GenerationModel, len(gmcb.builders))
 	mutators := make([]Mutator, len(gmcb.builders))
@@ -876,8 +868,8 @@ func (gmcb *GenerationModelCreateBulk) Save(ctx context.Context) ([]*GenerationM
 					return nil, err
 				}
 				builder.mutation = mutation
-				nodes[i], specs[i] = builder.createSpec()
 				var err error
+				nodes[i], specs[i] = builder.createSpec()
 				if i < len(mutators)-1 {
 					_, err = mutators[i+1].Mutate(root, gmcb.builders[i+1].mutation)
 				} else {
@@ -1183,6 +1175,9 @@ func (u *GenerationModelUpsertBulk) UpdateUpdatedAt() *GenerationModelUpsertBulk
 
 // Exec executes the query.
 func (u *GenerationModelUpsertBulk) Exec(ctx context.Context) error {
+	if u.create.err != nil {
+		return u.create.err
+	}
 	for i, b := range u.create.builders {
 		if len(b.conflict) != 0 {
 			return fmt.Errorf("ent: OnConflict was set for builder %d. Set it on the GenerationModelCreateBulk instead", i)

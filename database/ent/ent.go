@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"reflect"
+	"sync"
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
@@ -60,61 +61,83 @@ type (
 	MutateFunc    = ent.MutateFunc
 )
 
+type clientCtxKey struct{}
+
+// FromContext returns a Client stored inside a context, or nil if there isn't one.
+func FromContext(ctx context.Context) *Client {
+	c, _ := ctx.Value(clientCtxKey{}).(*Client)
+	return c
+}
+
+// NewContext returns a new context with the given Client attached.
+func NewContext(parent context.Context, c *Client) context.Context {
+	return context.WithValue(parent, clientCtxKey{}, c)
+}
+
+type txCtxKey struct{}
+
+// TxFromContext returns a Tx stored inside a context, or nil if there isn't one.
+func TxFromContext(ctx context.Context) *Tx {
+	tx, _ := ctx.Value(txCtxKey{}).(*Tx)
+	return tx
+}
+
+// NewTxContext returns a new context with the given Tx attached.
+func NewTxContext(parent context.Context, tx *Tx) context.Context {
+	return context.WithValue(parent, txCtxKey{}, tx)
+}
+
 // OrderFunc applies an ordering on the sql selector.
+// Deprecated: Use Asc/Desc functions or the package builders instead.
 type OrderFunc func(*sql.Selector)
 
-// columnChecker returns a function indicates if the column exists in the given column.
-func columnChecker(table string) func(string) error {
-	checks := map[string]func(string) bool{
-		apitoken.Table:             apitoken.ValidColumn,
-		authclient.Table:           authclient.ValidColumn,
-		bannedwords.Table:          bannedwords.ValidColumn,
-		credit.Table:               credit.ValidColumn,
-		credittype.Table:           credittype.ValidColumn,
-		deviceinfo.Table:           deviceinfo.ValidColumn,
-		disposableemail.Table:      disposableemail.ValidColumn,
-		generation.Table:           generation.ValidColumn,
-		generationmodel.Table:      generationmodel.ValidColumn,
-		generationoutput.Table:     generationoutput.ValidColumn,
-		generationoutputlike.Table: generationoutputlike.ValidColumn,
-		ipblacklist.Table:          ipblacklist.ValidColumn,
-		mqlog.Table:                mqlog.ValidColumn,
-		negativeprompt.Table:       negativeprompt.ValidColumn,
-		prompt.Table:               prompt.ValidColumn,
-		role.Table:                 role.ValidColumn,
-		scheduler.Table:            scheduler.ValidColumn,
-		thumbmarkidblacklist.Table: thumbmarkidblacklist.ValidColumn,
-		tiplog.Table:               tiplog.ValidColumn,
-		upscale.Table:              upscale.ValidColumn,
-		upscalemodel.Table:         upscalemodel.ValidColumn,
-		upscaleoutput.Table:        upscaleoutput.ValidColumn,
-		user.Table:                 user.ValidColumn,
-		usernameblacklist.Table:    usernameblacklist.ValidColumn,
-		voiceover.Table:            voiceover.ValidColumn,
-		voiceovermodel.Table:       voiceovermodel.ValidColumn,
-		voiceoveroutput.Table:      voiceoveroutput.ValidColumn,
-		voiceoverspeaker.Table:     voiceoverspeaker.ValidColumn,
-	}
-	check, ok := checks[table]
-	if !ok {
-		return func(string) error {
-			return fmt.Errorf("unknown table %q", table)
-		}
-	}
-	return func(column string) error {
-		if !check(column) {
-			return fmt.Errorf("unknown column %q for table %q", column, table)
-		}
-		return nil
-	}
+var (
+	initCheck   sync.Once
+	columnCheck sql.ColumnCheck
+)
+
+// checkColumn checks if the column exists in the given table.
+func checkColumn(table, column string) error {
+	initCheck.Do(func() {
+		columnCheck = sql.NewColumnCheck(map[string]func(string) bool{
+			apitoken.Table:             apitoken.ValidColumn,
+			authclient.Table:           authclient.ValidColumn,
+			bannedwords.Table:          bannedwords.ValidColumn,
+			credit.Table:               credit.ValidColumn,
+			credittype.Table:           credittype.ValidColumn,
+			deviceinfo.Table:           deviceinfo.ValidColumn,
+			disposableemail.Table:      disposableemail.ValidColumn,
+			generation.Table:           generation.ValidColumn,
+			generationmodel.Table:      generationmodel.ValidColumn,
+			generationoutput.Table:     generationoutput.ValidColumn,
+			generationoutputlike.Table: generationoutputlike.ValidColumn,
+			ipblacklist.Table:          ipblacklist.ValidColumn,
+			mqlog.Table:                mqlog.ValidColumn,
+			negativeprompt.Table:       negativeprompt.ValidColumn,
+			prompt.Table:               prompt.ValidColumn,
+			role.Table:                 role.ValidColumn,
+			scheduler.Table:            scheduler.ValidColumn,
+			thumbmarkidblacklist.Table: thumbmarkidblacklist.ValidColumn,
+			tiplog.Table:               tiplog.ValidColumn,
+			upscale.Table:              upscale.ValidColumn,
+			upscalemodel.Table:         upscalemodel.ValidColumn,
+			upscaleoutput.Table:        upscaleoutput.ValidColumn,
+			user.Table:                 user.ValidColumn,
+			usernameblacklist.Table:    usernameblacklist.ValidColumn,
+			voiceover.Table:            voiceover.ValidColumn,
+			voiceovermodel.Table:       voiceovermodel.ValidColumn,
+			voiceoveroutput.Table:      voiceoveroutput.ValidColumn,
+			voiceoverspeaker.Table:     voiceoverspeaker.ValidColumn,
+		})
+	})
+	return columnCheck(table, column)
 }
 
 // Asc applies the given fields in ASC order.
-func Asc(fields ...string) OrderFunc {
+func Asc(fields ...string) func(*sql.Selector) {
 	return func(s *sql.Selector) {
-		check := columnChecker(s.TableName())
 		for _, f := range fields {
-			if err := check(f); err != nil {
+			if err := checkColumn(s.TableName(), f); err != nil {
 				s.AddError(&ValidationError{Name: f, err: fmt.Errorf("ent: %w", err)})
 			}
 			s.OrderBy(sql.Asc(s.C(f)))
@@ -123,11 +146,10 @@ func Asc(fields ...string) OrderFunc {
 }
 
 // Desc applies the given fields in DESC order.
-func Desc(fields ...string) OrderFunc {
+func Desc(fields ...string) func(*sql.Selector) {
 	return func(s *sql.Selector) {
-		check := columnChecker(s.TableName())
 		for _, f := range fields {
-			if err := check(f); err != nil {
+			if err := checkColumn(s.TableName(), f); err != nil {
 				s.AddError(&ValidationError{Name: f, err: fmt.Errorf("ent: %w", err)})
 			}
 			s.OrderBy(sql.Desc(s.C(f)))
@@ -159,8 +181,7 @@ func Count() AggregateFunc {
 // Max applies the "max" aggregation function on the given field of each group.
 func Max(field string) AggregateFunc {
 	return func(s *sql.Selector) string {
-		check := columnChecker(s.TableName())
-		if err := check(field); err != nil {
+		if err := checkColumn(s.TableName(), field); err != nil {
 			s.AddError(&ValidationError{Name: field, err: fmt.Errorf("ent: %w", err)})
 			return ""
 		}
@@ -171,8 +192,7 @@ func Max(field string) AggregateFunc {
 // Mean applies the "mean" aggregation function on the given field of each group.
 func Mean(field string) AggregateFunc {
 	return func(s *sql.Selector) string {
-		check := columnChecker(s.TableName())
-		if err := check(field); err != nil {
+		if err := checkColumn(s.TableName(), field); err != nil {
 			s.AddError(&ValidationError{Name: field, err: fmt.Errorf("ent: %w", err)})
 			return ""
 		}
@@ -183,8 +203,7 @@ func Mean(field string) AggregateFunc {
 // Min applies the "min" aggregation function on the given field of each group.
 func Min(field string) AggregateFunc {
 	return func(s *sql.Selector) string {
-		check := columnChecker(s.TableName())
-		if err := check(field); err != nil {
+		if err := checkColumn(s.TableName(), field); err != nil {
 			s.AddError(&ValidationError{Name: field, err: fmt.Errorf("ent: %w", err)})
 			return ""
 		}
@@ -195,8 +214,7 @@ func Min(field string) AggregateFunc {
 // Sum applies the "sum" aggregation function on the given field of each group.
 func Sum(field string) AggregateFunc {
 	return func(s *sql.Selector) string {
-		check := columnChecker(s.TableName())
-		if err := check(field); err != nil {
+		if err := checkColumn(s.TableName(), field); err != nil {
 			s.AddError(&ValidationError{Name: field, err: fmt.Errorf("ent: %w", err)})
 			return ""
 		}
@@ -533,7 +551,7 @@ func withHooks[V Value, M any, PM interface {
 		return exec(ctx)
 	}
 	var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-		mutationT, ok := m.(PM)
+		mutationT, ok := any(m).(PM)
 		if !ok {
 			return nil, fmt.Errorf("unexpected mutation type %T", m)
 		}

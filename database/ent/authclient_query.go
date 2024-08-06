@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"math"
 
+	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
@@ -21,7 +22,7 @@ import (
 type AuthClientQuery struct {
 	config
 	ctx           *QueryContext
-	order         []OrderFunc
+	order         []authclient.OrderOption
 	inters        []Interceptor
 	predicates    []predicate.AuthClient
 	withAPITokens *ApiTokenQuery
@@ -57,7 +58,7 @@ func (acq *AuthClientQuery) Unique(unique bool) *AuthClientQuery {
 }
 
 // Order specifies how the records should be ordered.
-func (acq *AuthClientQuery) Order(o ...OrderFunc) *AuthClientQuery {
+func (acq *AuthClientQuery) Order(o ...authclient.OrderOption) *AuthClientQuery {
 	acq.order = append(acq.order, o...)
 	return acq
 }
@@ -87,7 +88,7 @@ func (acq *AuthClientQuery) QueryAPITokens() *ApiTokenQuery {
 // First returns the first AuthClient entity from the query.
 // Returns a *NotFoundError when no AuthClient was found.
 func (acq *AuthClientQuery) First(ctx context.Context) (*AuthClient, error) {
-	nodes, err := acq.Limit(1).All(setContextOp(ctx, acq.ctx, "First"))
+	nodes, err := acq.Limit(1).All(setContextOp(ctx, acq.ctx, ent.OpQueryFirst))
 	if err != nil {
 		return nil, err
 	}
@@ -110,7 +111,7 @@ func (acq *AuthClientQuery) FirstX(ctx context.Context) *AuthClient {
 // Returns a *NotFoundError when no AuthClient ID was found.
 func (acq *AuthClientQuery) FirstID(ctx context.Context) (id uuid.UUID, err error) {
 	var ids []uuid.UUID
-	if ids, err = acq.Limit(1).IDs(setContextOp(ctx, acq.ctx, "FirstID")); err != nil {
+	if ids, err = acq.Limit(1).IDs(setContextOp(ctx, acq.ctx, ent.OpQueryFirstID)); err != nil {
 		return
 	}
 	if len(ids) == 0 {
@@ -133,7 +134,7 @@ func (acq *AuthClientQuery) FirstIDX(ctx context.Context) uuid.UUID {
 // Returns a *NotSingularError when more than one AuthClient entity is found.
 // Returns a *NotFoundError when no AuthClient entities are found.
 func (acq *AuthClientQuery) Only(ctx context.Context) (*AuthClient, error) {
-	nodes, err := acq.Limit(2).All(setContextOp(ctx, acq.ctx, "Only"))
+	nodes, err := acq.Limit(2).All(setContextOp(ctx, acq.ctx, ent.OpQueryOnly))
 	if err != nil {
 		return nil, err
 	}
@@ -161,7 +162,7 @@ func (acq *AuthClientQuery) OnlyX(ctx context.Context) *AuthClient {
 // Returns a *NotFoundError when no entities are found.
 func (acq *AuthClientQuery) OnlyID(ctx context.Context) (id uuid.UUID, err error) {
 	var ids []uuid.UUID
-	if ids, err = acq.Limit(2).IDs(setContextOp(ctx, acq.ctx, "OnlyID")); err != nil {
+	if ids, err = acq.Limit(2).IDs(setContextOp(ctx, acq.ctx, ent.OpQueryOnlyID)); err != nil {
 		return
 	}
 	switch len(ids) {
@@ -186,7 +187,7 @@ func (acq *AuthClientQuery) OnlyIDX(ctx context.Context) uuid.UUID {
 
 // All executes the query and returns a list of AuthClients.
 func (acq *AuthClientQuery) All(ctx context.Context) ([]*AuthClient, error) {
-	ctx = setContextOp(ctx, acq.ctx, "All")
+	ctx = setContextOp(ctx, acq.ctx, ent.OpQueryAll)
 	if err := acq.prepareQuery(ctx); err != nil {
 		return nil, err
 	}
@@ -204,10 +205,12 @@ func (acq *AuthClientQuery) AllX(ctx context.Context) []*AuthClient {
 }
 
 // IDs executes the query and returns a list of AuthClient IDs.
-func (acq *AuthClientQuery) IDs(ctx context.Context) ([]uuid.UUID, error) {
-	var ids []uuid.UUID
-	ctx = setContextOp(ctx, acq.ctx, "IDs")
-	if err := acq.Select(authclient.FieldID).Scan(ctx, &ids); err != nil {
+func (acq *AuthClientQuery) IDs(ctx context.Context) (ids []uuid.UUID, err error) {
+	if acq.ctx.Unique == nil && acq.path != nil {
+		acq.Unique(true)
+	}
+	ctx = setContextOp(ctx, acq.ctx, ent.OpQueryIDs)
+	if err = acq.Select(authclient.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
 	return ids, nil
@@ -224,7 +227,7 @@ func (acq *AuthClientQuery) IDsX(ctx context.Context) []uuid.UUID {
 
 // Count returns the count of the given query.
 func (acq *AuthClientQuery) Count(ctx context.Context) (int, error) {
-	ctx = setContextOp(ctx, acq.ctx, "Count")
+	ctx = setContextOp(ctx, acq.ctx, ent.OpQueryCount)
 	if err := acq.prepareQuery(ctx); err != nil {
 		return 0, err
 	}
@@ -242,7 +245,7 @@ func (acq *AuthClientQuery) CountX(ctx context.Context) int {
 
 // Exist returns true if the query has elements in the graph.
 func (acq *AuthClientQuery) Exist(ctx context.Context) (bool, error) {
-	ctx = setContextOp(ctx, acq.ctx, "Exist")
+	ctx = setContextOp(ctx, acq.ctx, ent.OpQueryExist)
 	switch _, err := acq.FirstID(ctx); {
 	case IsNotFound(err):
 		return false, nil
@@ -271,7 +274,7 @@ func (acq *AuthClientQuery) Clone() *AuthClientQuery {
 	return &AuthClientQuery{
 		config:        acq.config,
 		ctx:           acq.ctx.Clone(),
-		order:         append([]OrderFunc{}, acq.order...),
+		order:         append([]authclient.OrderOption{}, acq.order...),
 		inters:        append([]Interceptor{}, acq.inters...),
 		predicates:    append([]predicate.AuthClient{}, acq.predicates...),
 		withAPITokens: acq.withAPITokens.Clone(),
@@ -415,8 +418,11 @@ func (acq *AuthClientQuery) loadAPITokens(ctx context.Context, query *ApiTokenQu
 			init(nodes[i])
 		}
 	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(apitoken.FieldAuthClientID)
+	}
 	query.Where(predicate.ApiToken(func(s *sql.Selector) {
-		s.Where(sql.InValues(authclient.APITokensColumn, fks...))
+		s.Where(sql.InValues(s.C(authclient.APITokensColumn), fks...))
 	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {
@@ -429,7 +435,7 @@ func (acq *AuthClientQuery) loadAPITokens(ctx context.Context, query *ApiTokenQu
 		}
 		node, ok := nodeids[*fk]
 		if !ok {
-			return fmt.Errorf(`unexpected foreign-key "auth_client_id" returned %v for node %v`, *fk, n.ID)
+			return fmt.Errorf(`unexpected referenced foreign-key "auth_client_id" returned %v for node %v`, *fk, n.ID)
 		}
 		assign(node, n)
 	}
@@ -449,20 +455,12 @@ func (acq *AuthClientQuery) sqlCount(ctx context.Context) (int, error) {
 }
 
 func (acq *AuthClientQuery) querySpec() *sqlgraph.QuerySpec {
-	_spec := &sqlgraph.QuerySpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   authclient.Table,
-			Columns: authclient.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeUUID,
-				Column: authclient.FieldID,
-			},
-		},
-		From:   acq.sql,
-		Unique: true,
-	}
+	_spec := sqlgraph.NewQuerySpec(authclient.Table, authclient.Columns, sqlgraph.NewFieldSpec(authclient.FieldID, field.TypeUUID))
+	_spec.From = acq.sql
 	if unique := acq.ctx.Unique; unique != nil {
 		_spec.Unique = *unique
+	} else if acq.path != nil {
+		_spec.Unique = true
 	}
 	if fields := acq.ctx.Fields; len(fields) > 0 {
 		_spec.Node.Columns = make([]string, 0, len(fields))
@@ -551,7 +549,7 @@ func (acgb *AuthClientGroupBy) Aggregate(fns ...AggregateFunc) *AuthClientGroupB
 
 // Scan applies the selector query and scans the result into the given value.
 func (acgb *AuthClientGroupBy) Scan(ctx context.Context, v any) error {
-	ctx = setContextOp(ctx, acgb.build.ctx, "GroupBy")
+	ctx = setContextOp(ctx, acgb.build.ctx, ent.OpQueryGroupBy)
 	if err := acgb.build.prepareQuery(ctx); err != nil {
 		return err
 	}
@@ -599,7 +597,7 @@ func (acs *AuthClientSelect) Aggregate(fns ...AggregateFunc) *AuthClientSelect {
 
 // Scan applies the selector query and scans the result into the given value.
 func (acs *AuthClientSelect) Scan(ctx context.Context, v any) error {
-	ctx = setContextOp(ctx, acs.ctx, "Select")
+	ctx = setContextOp(ctx, acs.ctx, ent.OpQuerySelect)
 	if err := acs.prepareQuery(ctx); err != nil {
 		return err
 	}

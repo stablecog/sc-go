@@ -35,6 +35,14 @@ func (ubu *UsernameBlacklistUpdate) SetUsername(s string) *UsernameBlacklistUpda
 	return ubu
 }
 
+// SetNillableUsername sets the "username" field if the given value is not nil.
+func (ubu *UsernameBlacklistUpdate) SetNillableUsername(s *string) *UsernameBlacklistUpdate {
+	if s != nil {
+		ubu.SetUsername(*s)
+	}
+	return ubu
+}
+
 // SetUpdatedAt sets the "updated_at" field.
 func (ubu *UsernameBlacklistUpdate) SetUpdatedAt(t time.Time) *UsernameBlacklistUpdate {
 	ubu.mutation.SetUpdatedAt(t)
@@ -49,7 +57,7 @@ func (ubu *UsernameBlacklistUpdate) Mutation() *UsernameBlacklistMutation {
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (ubu *UsernameBlacklistUpdate) Save(ctx context.Context) (int, error) {
 	ubu.defaults()
-	return withHooks[int, UsernameBlacklistMutation](ctx, ubu.sqlSave, ubu.mutation, ubu.hooks)
+	return withHooks(ctx, ubu.sqlSave, ubu.mutation, ubu.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -89,16 +97,7 @@ func (ubu *UsernameBlacklistUpdate) Modify(modifiers ...func(u *sql.UpdateBuilde
 }
 
 func (ubu *UsernameBlacklistUpdate) sqlSave(ctx context.Context) (n int, err error) {
-	_spec := &sqlgraph.UpdateSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   usernameblacklist.Table,
-			Columns: usernameblacklist.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeUUID,
-				Column: usernameblacklist.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewUpdateSpec(usernameblacklist.Table, usernameblacklist.Columns, sqlgraph.NewFieldSpec(usernameblacklist.FieldID, field.TypeUUID))
 	if ps := ubu.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
@@ -140,6 +139,14 @@ func (ubuo *UsernameBlacklistUpdateOne) SetUsername(s string) *UsernameBlacklist
 	return ubuo
 }
 
+// SetNillableUsername sets the "username" field if the given value is not nil.
+func (ubuo *UsernameBlacklistUpdateOne) SetNillableUsername(s *string) *UsernameBlacklistUpdateOne {
+	if s != nil {
+		ubuo.SetUsername(*s)
+	}
+	return ubuo
+}
+
 // SetUpdatedAt sets the "updated_at" field.
 func (ubuo *UsernameBlacklistUpdateOne) SetUpdatedAt(t time.Time) *UsernameBlacklistUpdateOne {
 	ubuo.mutation.SetUpdatedAt(t)
@@ -149,6 +156,12 @@ func (ubuo *UsernameBlacklistUpdateOne) SetUpdatedAt(t time.Time) *UsernameBlack
 // Mutation returns the UsernameBlacklistMutation object of the builder.
 func (ubuo *UsernameBlacklistUpdateOne) Mutation() *UsernameBlacklistMutation {
 	return ubuo.mutation
+}
+
+// Where appends a list predicates to the UsernameBlacklistUpdate builder.
+func (ubuo *UsernameBlacklistUpdateOne) Where(ps ...predicate.UsernameBlacklist) *UsernameBlacklistUpdateOne {
+	ubuo.mutation.Where(ps...)
+	return ubuo
 }
 
 // Select allows selecting one or more fields (columns) of the returned entity.
@@ -161,7 +174,7 @@ func (ubuo *UsernameBlacklistUpdateOne) Select(field string, fields ...string) *
 // Save executes the query and returns the updated UsernameBlacklist entity.
 func (ubuo *UsernameBlacklistUpdateOne) Save(ctx context.Context) (*UsernameBlacklist, error) {
 	ubuo.defaults()
-	return withHooks[*UsernameBlacklist, UsernameBlacklistMutation](ctx, ubuo.sqlSave, ubuo.mutation, ubuo.hooks)
+	return withHooks(ctx, ubuo.sqlSave, ubuo.mutation, ubuo.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -201,16 +214,7 @@ func (ubuo *UsernameBlacklistUpdateOne) Modify(modifiers ...func(u *sql.UpdateBu
 }
 
 func (ubuo *UsernameBlacklistUpdateOne) sqlSave(ctx context.Context) (_node *UsernameBlacklist, err error) {
-	_spec := &sqlgraph.UpdateSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   usernameblacklist.Table,
-			Columns: usernameblacklist.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeUUID,
-				Column: usernameblacklist.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewUpdateSpec(usernameblacklist.Table, usernameblacklist.Columns, sqlgraph.NewFieldSpec(usernameblacklist.FieldID, field.TypeUUID))
 	id, ok := ubuo.mutation.ID()
 	if !ok {
 		return nil, &ValidationError{Name: "id", err: errors.New(`ent: missing "UsernameBlacklist.id" for update`)}

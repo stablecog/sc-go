@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 	"github.com/google/uuid"
 	"github.com/stablecog/sc-go/database/ent/generationoutput"
@@ -27,7 +28,8 @@ type GenerationOutputLike struct {
 	CreatedAt time.Time `json:"created_at,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the GenerationOutputLikeQuery when eager-loading is set.
-	Edges GenerationOutputLikeEdges `json:"edges"`
+	Edges        GenerationOutputLikeEdges `json:"edges"`
+	selectValues sql.SelectValues
 }
 
 // GenerationOutputLikeEdges holds the relations/edges for other nodes in the graph.
@@ -44,12 +46,10 @@ type GenerationOutputLikeEdges struct {
 // GenerationOutputsOrErr returns the GenerationOutputs value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
 func (e GenerationOutputLikeEdges) GenerationOutputsOrErr() (*GenerationOutput, error) {
-	if e.loadedTypes[0] {
-		if e.GenerationOutputs == nil {
-			// Edge was loaded but was not found.
-			return nil, &NotFoundError{label: generationoutput.Label}
-		}
+	if e.GenerationOutputs != nil {
 		return e.GenerationOutputs, nil
+	} else if e.loadedTypes[0] {
+		return nil, &NotFoundError{label: generationoutput.Label}
 	}
 	return nil, &NotLoadedError{edge: "generation_outputs"}
 }
@@ -57,12 +57,10 @@ func (e GenerationOutputLikeEdges) GenerationOutputsOrErr() (*GenerationOutput, 
 // UsersOrErr returns the Users value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
 func (e GenerationOutputLikeEdges) UsersOrErr() (*User, error) {
-	if e.loadedTypes[1] {
-		if e.Users == nil {
-			// Edge was loaded but was not found.
-			return nil, &NotFoundError{label: user.Label}
-		}
+	if e.Users != nil {
 		return e.Users, nil
+	} else if e.loadedTypes[1] {
+		return nil, &NotFoundError{label: user.Label}
 	}
 	return nil, &NotLoadedError{edge: "users"}
 }
@@ -77,7 +75,7 @@ func (*GenerationOutputLike) scanValues(columns []string) ([]any, error) {
 		case generationoutputlike.FieldID, generationoutputlike.FieldOutputID, generationoutputlike.FieldLikedByUserID:
 			values[i] = new(uuid.UUID)
 		default:
-			return nil, fmt.Errorf("unexpected column %q for type GenerationOutputLike", columns[i])
+			values[i] = new(sql.UnknownType)
 		}
 	}
 	return values, nil
@@ -115,9 +113,17 @@ func (gol *GenerationOutputLike) assignValues(columns []string, values []any) er
 			} else if value.Valid {
 				gol.CreatedAt = value.Time
 			}
+		default:
+			gol.selectValues.Set(columns[i], values[i])
 		}
 	}
 	return nil
+}
+
+// Value returns the ent.Value that was dynamically selected and assigned to the GenerationOutputLike.
+// This includes values selected through modifiers, order, etc.
+func (gol *GenerationOutputLike) Value(name string) (ent.Value, error) {
+	return gol.selectValues.Get(name)
 }
 
 // QueryGenerationOutputs queries the "generation_outputs" edge of the GenerationOutputLike entity.
@@ -167,9 +173,3 @@ func (gol *GenerationOutputLike) String() string {
 
 // GenerationOutputLikes is a parsable slice of GenerationOutputLike.
 type GenerationOutputLikes []*GenerationOutputLike
-
-func (gol GenerationOutputLikes) config(cfg config) {
-	for _i := range gol {
-		gol[_i].config = cfg
-	}
-}

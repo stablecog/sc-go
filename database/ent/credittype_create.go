@@ -136,7 +136,7 @@ func (ctc *CreditTypeCreate) Mutation() *CreditTypeMutation {
 // Save creates the CreditType in the database.
 func (ctc *CreditTypeCreate) Save(ctx context.Context) (*CreditType, error) {
 	ctc.defaults()
-	return withHooks[*CreditType, CreditTypeMutation](ctx, ctc.sqlSave, ctc.mutation, ctc.hooks)
+	return withHooks(ctx, ctc.sqlSave, ctc.mutation, ctc.hooks)
 }
 
 // SaveX calls Save and panics if Save returns an error.
@@ -228,13 +228,7 @@ func (ctc *CreditTypeCreate) sqlSave(ctx context.Context) (*CreditType, error) {
 func (ctc *CreditTypeCreate) createSpec() (*CreditType, *sqlgraph.CreateSpec) {
 	var (
 		_node = &CreditType{config: ctc.config}
-		_spec = &sqlgraph.CreateSpec{
-			Table: credittype.Table,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeUUID,
-				Column: credittype.FieldID,
-			},
-		}
+		_spec = sqlgraph.NewCreateSpec(credittype.Table, sqlgraph.NewFieldSpec(credittype.FieldID, field.TypeUUID))
 	)
 	_spec.OnConflict = ctc.conflict
 	if id, ok := ctc.mutation.ID(); ok {
@@ -277,10 +271,7 @@ func (ctc *CreditTypeCreate) createSpec() (*CreditType, *sqlgraph.CreateSpec) {
 			Columns: []string{credittype.CreditsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: credit.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(credit.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -627,12 +618,16 @@ func (u *CreditTypeUpsertOne) IDX(ctx context.Context) uuid.UUID {
 // CreditTypeCreateBulk is the builder for creating many CreditType entities in bulk.
 type CreditTypeCreateBulk struct {
 	config
+	err      error
 	builders []*CreditTypeCreate
 	conflict []sql.ConflictOption
 }
 
 // Save creates the CreditType entities in the database.
 func (ctcb *CreditTypeCreateBulk) Save(ctx context.Context) ([]*CreditType, error) {
+	if ctcb.err != nil {
+		return nil, ctcb.err
+	}
 	specs := make([]*sqlgraph.CreateSpec, len(ctcb.builders))
 	nodes := make([]*CreditType, len(ctcb.builders))
 	mutators := make([]Mutator, len(ctcb.builders))
@@ -649,8 +644,8 @@ func (ctcb *CreditTypeCreateBulk) Save(ctx context.Context) ([]*CreditType, erro
 					return nil, err
 				}
 				builder.mutation = mutation
-				nodes[i], specs[i] = builder.createSpec()
 				var err error
+				nodes[i], specs[i] = builder.createSpec()
 				if i < len(mutators)-1 {
 					_, err = mutators[i+1].Mutate(root, ctcb.builders[i+1].mutation)
 				} else {
@@ -907,6 +902,9 @@ func (u *CreditTypeUpsertBulk) UpdateUpdatedAt() *CreditTypeUpsertBulk {
 
 // Exec executes the query.
 func (u *CreditTypeUpsertBulk) Exec(ctx context.Context) error {
+	if u.create.err != nil {
+		return u.create.err
+	}
 	for i, b := range u.create.builders {
 		if len(b.conflict) != 0 {
 			return fmt.Errorf("ent: OnConflict was set for builder %d. Set it on the CreditTypeCreateBulk instead", i)

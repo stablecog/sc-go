@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"math"
 
+	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
@@ -23,7 +24,7 @@ import (
 type DeviceInfoQuery struct {
 	config
 	ctx             *QueryContext
-	order           []OrderFunc
+	order           []deviceinfo.OrderOption
 	inters          []Interceptor
 	predicates      []predicate.DeviceInfo
 	withGenerations *GenerationQuery
@@ -61,7 +62,7 @@ func (diq *DeviceInfoQuery) Unique(unique bool) *DeviceInfoQuery {
 }
 
 // Order specifies how the records should be ordered.
-func (diq *DeviceInfoQuery) Order(o ...OrderFunc) *DeviceInfoQuery {
+func (diq *DeviceInfoQuery) Order(o ...deviceinfo.OrderOption) *DeviceInfoQuery {
 	diq.order = append(diq.order, o...)
 	return diq
 }
@@ -135,7 +136,7 @@ func (diq *DeviceInfoQuery) QueryVoiceovers() *VoiceoverQuery {
 // First returns the first DeviceInfo entity from the query.
 // Returns a *NotFoundError when no DeviceInfo was found.
 func (diq *DeviceInfoQuery) First(ctx context.Context) (*DeviceInfo, error) {
-	nodes, err := diq.Limit(1).All(setContextOp(ctx, diq.ctx, "First"))
+	nodes, err := diq.Limit(1).All(setContextOp(ctx, diq.ctx, ent.OpQueryFirst))
 	if err != nil {
 		return nil, err
 	}
@@ -158,7 +159,7 @@ func (diq *DeviceInfoQuery) FirstX(ctx context.Context) *DeviceInfo {
 // Returns a *NotFoundError when no DeviceInfo ID was found.
 func (diq *DeviceInfoQuery) FirstID(ctx context.Context) (id uuid.UUID, err error) {
 	var ids []uuid.UUID
-	if ids, err = diq.Limit(1).IDs(setContextOp(ctx, diq.ctx, "FirstID")); err != nil {
+	if ids, err = diq.Limit(1).IDs(setContextOp(ctx, diq.ctx, ent.OpQueryFirstID)); err != nil {
 		return
 	}
 	if len(ids) == 0 {
@@ -181,7 +182,7 @@ func (diq *DeviceInfoQuery) FirstIDX(ctx context.Context) uuid.UUID {
 // Returns a *NotSingularError when more than one DeviceInfo entity is found.
 // Returns a *NotFoundError when no DeviceInfo entities are found.
 func (diq *DeviceInfoQuery) Only(ctx context.Context) (*DeviceInfo, error) {
-	nodes, err := diq.Limit(2).All(setContextOp(ctx, diq.ctx, "Only"))
+	nodes, err := diq.Limit(2).All(setContextOp(ctx, diq.ctx, ent.OpQueryOnly))
 	if err != nil {
 		return nil, err
 	}
@@ -209,7 +210,7 @@ func (diq *DeviceInfoQuery) OnlyX(ctx context.Context) *DeviceInfo {
 // Returns a *NotFoundError when no entities are found.
 func (diq *DeviceInfoQuery) OnlyID(ctx context.Context) (id uuid.UUID, err error) {
 	var ids []uuid.UUID
-	if ids, err = diq.Limit(2).IDs(setContextOp(ctx, diq.ctx, "OnlyID")); err != nil {
+	if ids, err = diq.Limit(2).IDs(setContextOp(ctx, diq.ctx, ent.OpQueryOnlyID)); err != nil {
 		return
 	}
 	switch len(ids) {
@@ -234,7 +235,7 @@ func (diq *DeviceInfoQuery) OnlyIDX(ctx context.Context) uuid.UUID {
 
 // All executes the query and returns a list of DeviceInfos.
 func (diq *DeviceInfoQuery) All(ctx context.Context) ([]*DeviceInfo, error) {
-	ctx = setContextOp(ctx, diq.ctx, "All")
+	ctx = setContextOp(ctx, diq.ctx, ent.OpQueryAll)
 	if err := diq.prepareQuery(ctx); err != nil {
 		return nil, err
 	}
@@ -252,10 +253,12 @@ func (diq *DeviceInfoQuery) AllX(ctx context.Context) []*DeviceInfo {
 }
 
 // IDs executes the query and returns a list of DeviceInfo IDs.
-func (diq *DeviceInfoQuery) IDs(ctx context.Context) ([]uuid.UUID, error) {
-	var ids []uuid.UUID
-	ctx = setContextOp(ctx, diq.ctx, "IDs")
-	if err := diq.Select(deviceinfo.FieldID).Scan(ctx, &ids); err != nil {
+func (diq *DeviceInfoQuery) IDs(ctx context.Context) (ids []uuid.UUID, err error) {
+	if diq.ctx.Unique == nil && diq.path != nil {
+		diq.Unique(true)
+	}
+	ctx = setContextOp(ctx, diq.ctx, ent.OpQueryIDs)
+	if err = diq.Select(deviceinfo.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
 	return ids, nil
@@ -272,7 +275,7 @@ func (diq *DeviceInfoQuery) IDsX(ctx context.Context) []uuid.UUID {
 
 // Count returns the count of the given query.
 func (diq *DeviceInfoQuery) Count(ctx context.Context) (int, error) {
-	ctx = setContextOp(ctx, diq.ctx, "Count")
+	ctx = setContextOp(ctx, diq.ctx, ent.OpQueryCount)
 	if err := diq.prepareQuery(ctx); err != nil {
 		return 0, err
 	}
@@ -290,7 +293,7 @@ func (diq *DeviceInfoQuery) CountX(ctx context.Context) int {
 
 // Exist returns true if the query has elements in the graph.
 func (diq *DeviceInfoQuery) Exist(ctx context.Context) (bool, error) {
-	ctx = setContextOp(ctx, diq.ctx, "Exist")
+	ctx = setContextOp(ctx, diq.ctx, ent.OpQueryExist)
 	switch _, err := diq.FirstID(ctx); {
 	case IsNotFound(err):
 		return false, nil
@@ -319,7 +322,7 @@ func (diq *DeviceInfoQuery) Clone() *DeviceInfoQuery {
 	return &DeviceInfoQuery{
 		config:          diq.config,
 		ctx:             diq.ctx.Clone(),
-		order:           append([]OrderFunc{}, diq.order...),
+		order:           append([]deviceinfo.OrderOption{}, diq.order...),
 		inters:          append([]Interceptor{}, diq.inters...),
 		predicates:      append([]predicate.DeviceInfo{}, diq.predicates...),
 		withGenerations: diq.withGenerations.Clone(),
@@ -503,8 +506,11 @@ func (diq *DeviceInfoQuery) loadGenerations(ctx context.Context, query *Generati
 			init(nodes[i])
 		}
 	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(generation.FieldDeviceInfoID)
+	}
 	query.Where(predicate.Generation(func(s *sql.Selector) {
-		s.Where(sql.InValues(deviceinfo.GenerationsColumn, fks...))
+		s.Where(sql.InValues(s.C(deviceinfo.GenerationsColumn), fks...))
 	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {
@@ -514,7 +520,7 @@ func (diq *DeviceInfoQuery) loadGenerations(ctx context.Context, query *Generati
 		fk := n.DeviceInfoID
 		node, ok := nodeids[fk]
 		if !ok {
-			return fmt.Errorf(`unexpected foreign-key "device_info_id" returned %v for node %v`, fk, n.ID)
+			return fmt.Errorf(`unexpected referenced foreign-key "device_info_id" returned %v for node %v`, fk, n.ID)
 		}
 		assign(node, n)
 	}
@@ -530,8 +536,11 @@ func (diq *DeviceInfoQuery) loadUpscales(ctx context.Context, query *UpscaleQuer
 			init(nodes[i])
 		}
 	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(upscale.FieldDeviceInfoID)
+	}
 	query.Where(predicate.Upscale(func(s *sql.Selector) {
-		s.Where(sql.InValues(deviceinfo.UpscalesColumn, fks...))
+		s.Where(sql.InValues(s.C(deviceinfo.UpscalesColumn), fks...))
 	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {
@@ -541,7 +550,7 @@ func (diq *DeviceInfoQuery) loadUpscales(ctx context.Context, query *UpscaleQuer
 		fk := n.DeviceInfoID
 		node, ok := nodeids[fk]
 		if !ok {
-			return fmt.Errorf(`unexpected foreign-key "device_info_id" returned %v for node %v`, fk, n.ID)
+			return fmt.Errorf(`unexpected referenced foreign-key "device_info_id" returned %v for node %v`, fk, n.ID)
 		}
 		assign(node, n)
 	}
@@ -557,8 +566,11 @@ func (diq *DeviceInfoQuery) loadVoiceovers(ctx context.Context, query *Voiceover
 			init(nodes[i])
 		}
 	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(voiceover.FieldDeviceInfoID)
+	}
 	query.Where(predicate.Voiceover(func(s *sql.Selector) {
-		s.Where(sql.InValues(deviceinfo.VoiceoversColumn, fks...))
+		s.Where(sql.InValues(s.C(deviceinfo.VoiceoversColumn), fks...))
 	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {
@@ -568,7 +580,7 @@ func (diq *DeviceInfoQuery) loadVoiceovers(ctx context.Context, query *Voiceover
 		fk := n.DeviceInfoID
 		node, ok := nodeids[fk]
 		if !ok {
-			return fmt.Errorf(`unexpected foreign-key "device_info_id" returned %v for node %v`, fk, n.ID)
+			return fmt.Errorf(`unexpected referenced foreign-key "device_info_id" returned %v for node %v`, fk, n.ID)
 		}
 		assign(node, n)
 	}
@@ -588,20 +600,12 @@ func (diq *DeviceInfoQuery) sqlCount(ctx context.Context) (int, error) {
 }
 
 func (diq *DeviceInfoQuery) querySpec() *sqlgraph.QuerySpec {
-	_spec := &sqlgraph.QuerySpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   deviceinfo.Table,
-			Columns: deviceinfo.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeUUID,
-				Column: deviceinfo.FieldID,
-			},
-		},
-		From:   diq.sql,
-		Unique: true,
-	}
+	_spec := sqlgraph.NewQuerySpec(deviceinfo.Table, deviceinfo.Columns, sqlgraph.NewFieldSpec(deviceinfo.FieldID, field.TypeUUID))
+	_spec.From = diq.sql
 	if unique := diq.ctx.Unique; unique != nil {
 		_spec.Unique = *unique
+	} else if diq.path != nil {
+		_spec.Unique = true
 	}
 	if fields := diq.ctx.Fields; len(fields) > 0 {
 		_spec.Node.Columns = make([]string, 0, len(fields))
@@ -690,7 +694,7 @@ func (digb *DeviceInfoGroupBy) Aggregate(fns ...AggregateFunc) *DeviceInfoGroupB
 
 // Scan applies the selector query and scans the result into the given value.
 func (digb *DeviceInfoGroupBy) Scan(ctx context.Context, v any) error {
-	ctx = setContextOp(ctx, digb.build.ctx, "GroupBy")
+	ctx = setContextOp(ctx, digb.build.ctx, ent.OpQueryGroupBy)
 	if err := digb.build.prepareQuery(ctx); err != nil {
 		return err
 	}
@@ -738,7 +742,7 @@ func (dis *DeviceInfoSelect) Aggregate(fns ...AggregateFunc) *DeviceInfoSelect {
 
 // Scan applies the selector query and scans the result into the given value.
 func (dis *DeviceInfoSelect) Scan(ctx context.Context, v any) error {
-	ctx = setContextOp(ctx, dis.ctx, "Select")
+	ctx = setContextOp(ctx, dis.ctx, ent.OpQuerySelect)
 	if err := dis.prepareQuery(ctx); err != nil {
 		return err
 	}

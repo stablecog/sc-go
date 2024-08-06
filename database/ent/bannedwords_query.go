@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"math"
 
+	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
@@ -19,7 +20,7 @@ import (
 type BannedWordsQuery struct {
 	config
 	ctx        *QueryContext
-	order      []OrderFunc
+	order      []bannedwords.OrderOption
 	inters     []Interceptor
 	predicates []predicate.BannedWords
 	modifiers  []func(*sql.Selector)
@@ -54,7 +55,7 @@ func (bwq *BannedWordsQuery) Unique(unique bool) *BannedWordsQuery {
 }
 
 // Order specifies how the records should be ordered.
-func (bwq *BannedWordsQuery) Order(o ...OrderFunc) *BannedWordsQuery {
+func (bwq *BannedWordsQuery) Order(o ...bannedwords.OrderOption) *BannedWordsQuery {
 	bwq.order = append(bwq.order, o...)
 	return bwq
 }
@@ -62,7 +63,7 @@ func (bwq *BannedWordsQuery) Order(o ...OrderFunc) *BannedWordsQuery {
 // First returns the first BannedWords entity from the query.
 // Returns a *NotFoundError when no BannedWords was found.
 func (bwq *BannedWordsQuery) First(ctx context.Context) (*BannedWords, error) {
-	nodes, err := bwq.Limit(1).All(setContextOp(ctx, bwq.ctx, "First"))
+	nodes, err := bwq.Limit(1).All(setContextOp(ctx, bwq.ctx, ent.OpQueryFirst))
 	if err != nil {
 		return nil, err
 	}
@@ -85,7 +86,7 @@ func (bwq *BannedWordsQuery) FirstX(ctx context.Context) *BannedWords {
 // Returns a *NotFoundError when no BannedWords ID was found.
 func (bwq *BannedWordsQuery) FirstID(ctx context.Context) (id uuid.UUID, err error) {
 	var ids []uuid.UUID
-	if ids, err = bwq.Limit(1).IDs(setContextOp(ctx, bwq.ctx, "FirstID")); err != nil {
+	if ids, err = bwq.Limit(1).IDs(setContextOp(ctx, bwq.ctx, ent.OpQueryFirstID)); err != nil {
 		return
 	}
 	if len(ids) == 0 {
@@ -108,7 +109,7 @@ func (bwq *BannedWordsQuery) FirstIDX(ctx context.Context) uuid.UUID {
 // Returns a *NotSingularError when more than one BannedWords entity is found.
 // Returns a *NotFoundError when no BannedWords entities are found.
 func (bwq *BannedWordsQuery) Only(ctx context.Context) (*BannedWords, error) {
-	nodes, err := bwq.Limit(2).All(setContextOp(ctx, bwq.ctx, "Only"))
+	nodes, err := bwq.Limit(2).All(setContextOp(ctx, bwq.ctx, ent.OpQueryOnly))
 	if err != nil {
 		return nil, err
 	}
@@ -136,7 +137,7 @@ func (bwq *BannedWordsQuery) OnlyX(ctx context.Context) *BannedWords {
 // Returns a *NotFoundError when no entities are found.
 func (bwq *BannedWordsQuery) OnlyID(ctx context.Context) (id uuid.UUID, err error) {
 	var ids []uuid.UUID
-	if ids, err = bwq.Limit(2).IDs(setContextOp(ctx, bwq.ctx, "OnlyID")); err != nil {
+	if ids, err = bwq.Limit(2).IDs(setContextOp(ctx, bwq.ctx, ent.OpQueryOnlyID)); err != nil {
 		return
 	}
 	switch len(ids) {
@@ -161,7 +162,7 @@ func (bwq *BannedWordsQuery) OnlyIDX(ctx context.Context) uuid.UUID {
 
 // All executes the query and returns a list of BannedWordsSlice.
 func (bwq *BannedWordsQuery) All(ctx context.Context) ([]*BannedWords, error) {
-	ctx = setContextOp(ctx, bwq.ctx, "All")
+	ctx = setContextOp(ctx, bwq.ctx, ent.OpQueryAll)
 	if err := bwq.prepareQuery(ctx); err != nil {
 		return nil, err
 	}
@@ -179,10 +180,12 @@ func (bwq *BannedWordsQuery) AllX(ctx context.Context) []*BannedWords {
 }
 
 // IDs executes the query and returns a list of BannedWords IDs.
-func (bwq *BannedWordsQuery) IDs(ctx context.Context) ([]uuid.UUID, error) {
-	var ids []uuid.UUID
-	ctx = setContextOp(ctx, bwq.ctx, "IDs")
-	if err := bwq.Select(bannedwords.FieldID).Scan(ctx, &ids); err != nil {
+func (bwq *BannedWordsQuery) IDs(ctx context.Context) (ids []uuid.UUID, err error) {
+	if bwq.ctx.Unique == nil && bwq.path != nil {
+		bwq.Unique(true)
+	}
+	ctx = setContextOp(ctx, bwq.ctx, ent.OpQueryIDs)
+	if err = bwq.Select(bannedwords.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
 	return ids, nil
@@ -199,7 +202,7 @@ func (bwq *BannedWordsQuery) IDsX(ctx context.Context) []uuid.UUID {
 
 // Count returns the count of the given query.
 func (bwq *BannedWordsQuery) Count(ctx context.Context) (int, error) {
-	ctx = setContextOp(ctx, bwq.ctx, "Count")
+	ctx = setContextOp(ctx, bwq.ctx, ent.OpQueryCount)
 	if err := bwq.prepareQuery(ctx); err != nil {
 		return 0, err
 	}
@@ -217,7 +220,7 @@ func (bwq *BannedWordsQuery) CountX(ctx context.Context) int {
 
 // Exist returns true if the query has elements in the graph.
 func (bwq *BannedWordsQuery) Exist(ctx context.Context) (bool, error) {
-	ctx = setContextOp(ctx, bwq.ctx, "Exist")
+	ctx = setContextOp(ctx, bwq.ctx, ent.OpQueryExist)
 	switch _, err := bwq.FirstID(ctx); {
 	case IsNotFound(err):
 		return false, nil
@@ -246,7 +249,7 @@ func (bwq *BannedWordsQuery) Clone() *BannedWordsQuery {
 	return &BannedWordsQuery{
 		config:     bwq.config,
 		ctx:        bwq.ctx.Clone(),
-		order:      append([]OrderFunc{}, bwq.order...),
+		order:      append([]bannedwords.OrderOption{}, bwq.order...),
 		inters:     append([]Interceptor{}, bwq.inters...),
 		predicates: append([]predicate.BannedWords{}, bwq.predicates...),
 		// clone intermediate query.
@@ -370,20 +373,12 @@ func (bwq *BannedWordsQuery) sqlCount(ctx context.Context) (int, error) {
 }
 
 func (bwq *BannedWordsQuery) querySpec() *sqlgraph.QuerySpec {
-	_spec := &sqlgraph.QuerySpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   bannedwords.Table,
-			Columns: bannedwords.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeUUID,
-				Column: bannedwords.FieldID,
-			},
-		},
-		From:   bwq.sql,
-		Unique: true,
-	}
+	_spec := sqlgraph.NewQuerySpec(bannedwords.Table, bannedwords.Columns, sqlgraph.NewFieldSpec(bannedwords.FieldID, field.TypeUUID))
+	_spec.From = bwq.sql
 	if unique := bwq.ctx.Unique; unique != nil {
 		_spec.Unique = *unique
+	} else if bwq.path != nil {
+		_spec.Unique = true
 	}
 	if fields := bwq.ctx.Fields; len(fields) > 0 {
 		_spec.Node.Columns = make([]string, 0, len(fields))
@@ -472,7 +467,7 @@ func (bwgb *BannedWordsGroupBy) Aggregate(fns ...AggregateFunc) *BannedWordsGrou
 
 // Scan applies the selector query and scans the result into the given value.
 func (bwgb *BannedWordsGroupBy) Scan(ctx context.Context, v any) error {
-	ctx = setContextOp(ctx, bwgb.build.ctx, "GroupBy")
+	ctx = setContextOp(ctx, bwgb.build.ctx, ent.OpQueryGroupBy)
 	if err := bwgb.build.prepareQuery(ctx); err != nil {
 		return err
 	}
@@ -520,7 +515,7 @@ func (bws *BannedWordsSelect) Aggregate(fns ...AggregateFunc) *BannedWordsSelect
 
 // Scan applies the selector query and scans the result into the given value.
 func (bws *BannedWordsSelect) Scan(ctx context.Context, v any) error {
-	ctx = setContextOp(ctx, bws.ctx, "Select")
+	ctx = setContextOp(ctx, bws.ctx, ent.OpQuerySelect)
 	if err := bws.prepareQuery(ctx); err != nil {
 		return err
 	}

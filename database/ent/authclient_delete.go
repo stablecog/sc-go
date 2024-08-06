@@ -27,7 +27,7 @@ func (acd *AuthClientDelete) Where(ps ...predicate.AuthClient) *AuthClientDelete
 
 // Exec executes the deletion query and returns how many vertices were deleted.
 func (acd *AuthClientDelete) Exec(ctx context.Context) (int, error) {
-	return withHooks[int, AuthClientMutation](ctx, acd.sqlExec, acd.mutation, acd.hooks)
+	return withHooks(ctx, acd.sqlExec, acd.mutation, acd.hooks)
 }
 
 // ExecX is like Exec, but panics if an error occurs.
@@ -40,15 +40,7 @@ func (acd *AuthClientDelete) ExecX(ctx context.Context) int {
 }
 
 func (acd *AuthClientDelete) sqlExec(ctx context.Context) (int, error) {
-	_spec := &sqlgraph.DeleteSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table: authclient.Table,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeUUID,
-				Column: authclient.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewDeleteSpec(authclient.Table, sqlgraph.NewFieldSpec(authclient.FieldID, field.TypeUUID))
 	if ps := acd.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
@@ -69,6 +61,12 @@ type AuthClientDeleteOne struct {
 	acd *AuthClientDelete
 }
 
+// Where appends a list predicates to the AuthClientDelete builder.
+func (acdo *AuthClientDeleteOne) Where(ps ...predicate.AuthClient) *AuthClientDeleteOne {
+	acdo.acd.mutation.Where(ps...)
+	return acdo
+}
+
 // Exec executes the deletion query.
 func (acdo *AuthClientDeleteOne) Exec(ctx context.Context) error {
 	n, err := acdo.acd.Exec(ctx)
@@ -84,5 +82,7 @@ func (acdo *AuthClientDeleteOne) Exec(ctx context.Context) error {
 
 // ExecX is like Exec, but panics if an error occurs.
 func (acdo *AuthClientDeleteOne) ExecX(ctx context.Context) {
-	acdo.acd.ExecX(ctx)
+	if err := acdo.Exec(ctx); err != nil {
+		panic(err)
+	}
 }

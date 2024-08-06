@@ -35,10 +35,26 @@ func (mlu *MqLogUpdate) SetMessageID(s string) *MqLogUpdate {
 	return mlu
 }
 
+// SetNillableMessageID sets the "message_id" field if the given value is not nil.
+func (mlu *MqLogUpdate) SetNillableMessageID(s *string) *MqLogUpdate {
+	if s != nil {
+		mlu.SetMessageID(*s)
+	}
+	return mlu
+}
+
 // SetPriority sets the "priority" field.
 func (mlu *MqLogUpdate) SetPriority(i int) *MqLogUpdate {
 	mlu.mutation.ResetPriority()
 	mlu.mutation.SetPriority(i)
+	return mlu
+}
+
+// SetNillablePriority sets the "priority" field if the given value is not nil.
+func (mlu *MqLogUpdate) SetNillablePriority(i *int) *MqLogUpdate {
+	if i != nil {
+		mlu.SetPriority(*i)
+	}
 	return mlu
 }
 
@@ -76,7 +92,7 @@ func (mlu *MqLogUpdate) Mutation() *MqLogMutation {
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (mlu *MqLogUpdate) Save(ctx context.Context) (int, error) {
 	mlu.defaults()
-	return withHooks[int, MqLogMutation](ctx, mlu.sqlSave, mlu.mutation, mlu.hooks)
+	return withHooks(ctx, mlu.sqlSave, mlu.mutation, mlu.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -116,16 +132,7 @@ func (mlu *MqLogUpdate) Modify(modifiers ...func(u *sql.UpdateBuilder)) *MqLogUp
 }
 
 func (mlu *MqLogUpdate) sqlSave(ctx context.Context) (n int, err error) {
-	_spec := &sqlgraph.UpdateSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   mqlog.Table,
-			Columns: mqlog.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeUUID,
-				Column: mqlog.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewUpdateSpec(mqlog.Table, mqlog.Columns, sqlgraph.NewFieldSpec(mqlog.FieldID, field.TypeUUID))
 	if ps := mlu.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
@@ -176,10 +183,26 @@ func (mluo *MqLogUpdateOne) SetMessageID(s string) *MqLogUpdateOne {
 	return mluo
 }
 
+// SetNillableMessageID sets the "message_id" field if the given value is not nil.
+func (mluo *MqLogUpdateOne) SetNillableMessageID(s *string) *MqLogUpdateOne {
+	if s != nil {
+		mluo.SetMessageID(*s)
+	}
+	return mluo
+}
+
 // SetPriority sets the "priority" field.
 func (mluo *MqLogUpdateOne) SetPriority(i int) *MqLogUpdateOne {
 	mluo.mutation.ResetPriority()
 	mluo.mutation.SetPriority(i)
+	return mluo
+}
+
+// SetNillablePriority sets the "priority" field if the given value is not nil.
+func (mluo *MqLogUpdateOne) SetNillablePriority(i *int) *MqLogUpdateOne {
+	if i != nil {
+		mluo.SetPriority(*i)
+	}
 	return mluo
 }
 
@@ -214,6 +237,12 @@ func (mluo *MqLogUpdateOne) Mutation() *MqLogMutation {
 	return mluo.mutation
 }
 
+// Where appends a list predicates to the MqLogUpdate builder.
+func (mluo *MqLogUpdateOne) Where(ps ...predicate.MqLog) *MqLogUpdateOne {
+	mluo.mutation.Where(ps...)
+	return mluo
+}
+
 // Select allows selecting one or more fields (columns) of the returned entity.
 // The default is selecting all fields defined in the entity schema.
 func (mluo *MqLogUpdateOne) Select(field string, fields ...string) *MqLogUpdateOne {
@@ -224,7 +253,7 @@ func (mluo *MqLogUpdateOne) Select(field string, fields ...string) *MqLogUpdateO
 // Save executes the query and returns the updated MqLog entity.
 func (mluo *MqLogUpdateOne) Save(ctx context.Context) (*MqLog, error) {
 	mluo.defaults()
-	return withHooks[*MqLog, MqLogMutation](ctx, mluo.sqlSave, mluo.mutation, mluo.hooks)
+	return withHooks(ctx, mluo.sqlSave, mluo.mutation, mluo.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -264,16 +293,7 @@ func (mluo *MqLogUpdateOne) Modify(modifiers ...func(u *sql.UpdateBuilder)) *MqL
 }
 
 func (mluo *MqLogUpdateOne) sqlSave(ctx context.Context) (_node *MqLog, err error) {
-	_spec := &sqlgraph.UpdateSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   mqlog.Table,
-			Columns: mqlog.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeUUID,
-				Column: mqlog.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewUpdateSpec(mqlog.Table, mqlog.Columns, sqlgraph.NewFieldSpec(mqlog.FieldID, field.TypeUUID))
 	id, ok := mluo.mutation.ID()
 	if !ok {
 		return nil, &ValidationError{Name: "id", err: errors.New(`ent: missing "MqLog.id" for update`)}

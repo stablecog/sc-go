@@ -80,7 +80,7 @@ func (dec *DisposableEmailCreate) Mutation() *DisposableEmailMutation {
 // Save creates the DisposableEmail in the database.
 func (dec *DisposableEmailCreate) Save(ctx context.Context) (*DisposableEmail, error) {
 	dec.defaults()
-	return withHooks[*DisposableEmail, DisposableEmailMutation](ctx, dec.sqlSave, dec.mutation, dec.hooks)
+	return withHooks(ctx, dec.sqlSave, dec.mutation, dec.hooks)
 }
 
 // SaveX calls Save and panics if Save returns an error.
@@ -161,13 +161,7 @@ func (dec *DisposableEmailCreate) sqlSave(ctx context.Context) (*DisposableEmail
 func (dec *DisposableEmailCreate) createSpec() (*DisposableEmail, *sqlgraph.CreateSpec) {
 	var (
 		_node = &DisposableEmail{config: dec.config}
-		_spec = &sqlgraph.CreateSpec{
-			Table: disposableemail.Table,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeUUID,
-				Column: disposableemail.FieldID,
-			},
-		}
+		_spec = sqlgraph.NewCreateSpec(disposableemail.Table, sqlgraph.NewFieldSpec(disposableemail.FieldID, field.TypeUUID))
 	)
 	_spec.OnConflict = dec.conflict
 	if id, ok := dec.mutation.ID(); ok {
@@ -382,12 +376,16 @@ func (u *DisposableEmailUpsertOne) IDX(ctx context.Context) uuid.UUID {
 // DisposableEmailCreateBulk is the builder for creating many DisposableEmail entities in bulk.
 type DisposableEmailCreateBulk struct {
 	config
+	err      error
 	builders []*DisposableEmailCreate
 	conflict []sql.ConflictOption
 }
 
 // Save creates the DisposableEmail entities in the database.
 func (decb *DisposableEmailCreateBulk) Save(ctx context.Context) ([]*DisposableEmail, error) {
+	if decb.err != nil {
+		return nil, decb.err
+	}
 	specs := make([]*sqlgraph.CreateSpec, len(decb.builders))
 	nodes := make([]*DisposableEmail, len(decb.builders))
 	mutators := make([]Mutator, len(decb.builders))
@@ -404,8 +402,8 @@ func (decb *DisposableEmailCreateBulk) Save(ctx context.Context) ([]*DisposableE
 					return nil, err
 				}
 				builder.mutation = mutation
-				nodes[i], specs[i] = builder.createSpec()
 				var err error
+				nodes[i], specs[i] = builder.createSpec()
 				if i < len(mutators)-1 {
 					_, err = mutators[i+1].Mutate(root, decb.builders[i+1].mutation)
 				} else {
@@ -585,6 +583,9 @@ func (u *DisposableEmailUpsertBulk) UpdateUpdatedAt() *DisposableEmailUpsertBulk
 
 // Exec executes the query.
 func (u *DisposableEmailUpsertBulk) Exec(ctx context.Context) error {
+	if u.create.err != nil {
+		return u.create.err
+	}
 	for i, b := range u.create.builders {
 		if len(b.conflict) != 0 {
 			return fmt.Errorf("ent: OnConflict was set for builder %d. Set it on the DisposableEmailCreateBulk instead", i)

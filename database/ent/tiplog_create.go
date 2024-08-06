@@ -137,7 +137,7 @@ func (tlc *TipLogCreate) Mutation() *TipLogMutation {
 // Save creates the TipLog in the database.
 func (tlc *TipLogCreate) Save(ctx context.Context) (*TipLog, error) {
 	tlc.defaults()
-	return withHooks[*TipLog, TipLogMutation](ctx, tlc.sqlSave, tlc.mutation, tlc.hooks)
+	return withHooks(ctx, tlc.sqlSave, tlc.mutation, tlc.hooks)
 }
 
 // SaveX calls Save and panics if Save returns an error.
@@ -195,7 +195,7 @@ func (tlc *TipLogCreate) check() error {
 	if _, ok := tlc.mutation.UpdatedAt(); !ok {
 		return &ValidationError{Name: "updated_at", err: errors.New(`ent: missing required field "TipLog.updated_at"`)}
 	}
-	if _, ok := tlc.mutation.TipsGivenID(); !ok {
+	if len(tlc.mutation.TipsGivenIDs()) == 0 {
 		return &ValidationError{Name: "tips_given", err: errors.New(`ent: missing required edge "TipLog.tips_given"`)}
 	}
 	return nil
@@ -227,13 +227,7 @@ func (tlc *TipLogCreate) sqlSave(ctx context.Context) (*TipLog, error) {
 func (tlc *TipLogCreate) createSpec() (*TipLog, *sqlgraph.CreateSpec) {
 	var (
 		_node = &TipLog{config: tlc.config}
-		_spec = &sqlgraph.CreateSpec{
-			Table: tiplog.Table,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeUUID,
-				Column: tiplog.FieldID,
-			},
-		}
+		_spec = sqlgraph.NewCreateSpec(tiplog.Table, sqlgraph.NewFieldSpec(tiplog.FieldID, field.TypeUUID))
 	)
 	_spec.OnConflict = tlc.conflict
 	if id, ok := tlc.mutation.ID(); ok {
@@ -264,10 +258,7 @@ func (tlc *TipLogCreate) createSpec() (*TipLog, *sqlgraph.CreateSpec) {
 			Columns: []string{tiplog.TipsReceivedColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: user.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -284,10 +275,7 @@ func (tlc *TipLogCreate) createSpec() (*TipLog, *sqlgraph.CreateSpec) {
 			Columns: []string{tiplog.TipsGivenColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: user.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -596,12 +584,16 @@ func (u *TipLogUpsertOne) IDX(ctx context.Context) uuid.UUID {
 // TipLogCreateBulk is the builder for creating many TipLog entities in bulk.
 type TipLogCreateBulk struct {
 	config
+	err      error
 	builders []*TipLogCreate
 	conflict []sql.ConflictOption
 }
 
 // Save creates the TipLog entities in the database.
 func (tlcb *TipLogCreateBulk) Save(ctx context.Context) ([]*TipLog, error) {
+	if tlcb.err != nil {
+		return nil, tlcb.err
+	}
 	specs := make([]*sqlgraph.CreateSpec, len(tlcb.builders))
 	nodes := make([]*TipLog, len(tlcb.builders))
 	mutators := make([]Mutator, len(tlcb.builders))
@@ -618,8 +610,8 @@ func (tlcb *TipLogCreateBulk) Save(ctx context.Context) ([]*TipLog, error) {
 					return nil, err
 				}
 				builder.mutation = mutation
-				nodes[i], specs[i] = builder.createSpec()
 				var err error
+				nodes[i], specs[i] = builder.createSpec()
 				if i < len(mutators)-1 {
 					_, err = mutators[i+1].Mutate(root, tlcb.builders[i+1].mutation)
 				} else {
@@ -855,6 +847,9 @@ func (u *TipLogUpsertBulk) UpdateUpdatedAt() *TipLogUpsertBulk {
 
 // Exec executes the query.
 func (u *TipLogUpsertBulk) Exec(ctx context.Context) error {
+	if u.create.err != nil {
+		return u.create.err
+	}
 	for i, b := range u.create.builders {
 		if len(b.conflict) != 0 {
 			return fmt.Errorf("ent: OnConflict was set for builder %d. Set it on the TipLogCreateBulk instead", i)

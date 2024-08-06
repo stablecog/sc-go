@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 	"github.com/google/uuid"
 	"github.com/stablecog/sc-go/database/ent/tiplog"
@@ -32,7 +33,8 @@ type TipLog struct {
 	UpdatedAt time.Time `json:"updated_at,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the TipLogQuery when eager-loading is set.
-	Edges TipLogEdges `json:"edges"`
+	Edges        TipLogEdges `json:"edges"`
+	selectValues sql.SelectValues
 }
 
 // TipLogEdges holds the relations/edges for other nodes in the graph.
@@ -49,12 +51,10 @@ type TipLogEdges struct {
 // TipsReceivedOrErr returns the TipsReceived value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
 func (e TipLogEdges) TipsReceivedOrErr() (*User, error) {
-	if e.loadedTypes[0] {
-		if e.TipsReceived == nil {
-			// Edge was loaded but was not found.
-			return nil, &NotFoundError{label: user.Label}
-		}
+	if e.TipsReceived != nil {
 		return e.TipsReceived, nil
+	} else if e.loadedTypes[0] {
+		return nil, &NotFoundError{label: user.Label}
 	}
 	return nil, &NotLoadedError{edge: "tips_received"}
 }
@@ -62,12 +62,10 @@ func (e TipLogEdges) TipsReceivedOrErr() (*User, error) {
 // TipsGivenOrErr returns the TipsGiven value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
 func (e TipLogEdges) TipsGivenOrErr() (*User, error) {
-	if e.loadedTypes[1] {
-		if e.TipsGiven == nil {
-			// Edge was loaded but was not found.
-			return nil, &NotFoundError{label: user.Label}
-		}
+	if e.TipsGiven != nil {
 		return e.TipsGiven, nil
+	} else if e.loadedTypes[1] {
+		return nil, &NotFoundError{label: user.Label}
 	}
 	return nil, &NotLoadedError{edge: "tips_given"}
 }
@@ -88,7 +86,7 @@ func (*TipLog) scanValues(columns []string) ([]any, error) {
 		case tiplog.FieldID, tiplog.FieldTippedBy:
 			values[i] = new(uuid.UUID)
 		default:
-			return nil, fmt.Errorf("unexpected column %q for type TipLog", columns[i])
+			values[i] = new(sql.UnknownType)
 		}
 	}
 	return values, nil
@@ -145,9 +143,17 @@ func (tl *TipLog) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				tl.UpdatedAt = value.Time
 			}
+		default:
+			tl.selectValues.Set(columns[i], values[i])
 		}
 	}
 	return nil
+}
+
+// Value returns the ent.Value that was dynamically selected and assigned to the TipLog.
+// This includes values selected through modifiers, order, etc.
+func (tl *TipLog) Value(name string) (ent.Value, error) {
+	return tl.selectValues.Get(name)
 }
 
 // QueryTipsReceived queries the "tips_received" edge of the TipLog entity.
@@ -208,9 +214,3 @@ func (tl *TipLog) String() string {
 
 // TipLogs is a parsable slice of TipLog.
 type TipLogs []*TipLog
-
-func (tl TipLogs) config(cfg config) {
-	for _i := range tl {
-		tl[_i].config = cfg
-	}
-}

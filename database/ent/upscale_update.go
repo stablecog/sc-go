@@ -43,6 +43,14 @@ func (uu *UpscaleUpdate) SetWidth(i int32) *UpscaleUpdate {
 	return uu
 }
 
+// SetNillableWidth sets the "width" field if the given value is not nil.
+func (uu *UpscaleUpdate) SetNillableWidth(i *int32) *UpscaleUpdate {
+	if i != nil {
+		uu.SetWidth(*i)
+	}
+	return uu
+}
+
 // AddWidth adds i to the "width" field.
 func (uu *UpscaleUpdate) AddWidth(i int32) *UpscaleUpdate {
 	uu.mutation.AddWidth(i)
@@ -56,6 +64,14 @@ func (uu *UpscaleUpdate) SetHeight(i int32) *UpscaleUpdate {
 	return uu
 }
 
+// SetNillableHeight sets the "height" field if the given value is not nil.
+func (uu *UpscaleUpdate) SetNillableHeight(i *int32) *UpscaleUpdate {
+	if i != nil {
+		uu.SetHeight(*i)
+	}
+	return uu
+}
+
 // AddHeight adds i to the "height" field.
 func (uu *UpscaleUpdate) AddHeight(i int32) *UpscaleUpdate {
 	uu.mutation.AddHeight(i)
@@ -66,6 +82,14 @@ func (uu *UpscaleUpdate) AddHeight(i int32) *UpscaleUpdate {
 func (uu *UpscaleUpdate) SetScale(i int32) *UpscaleUpdate {
 	uu.mutation.ResetScale()
 	uu.mutation.SetScale(i)
+	return uu
+}
+
+// SetNillableScale sets the "scale" field if the given value is not nil.
+func (uu *UpscaleUpdate) SetNillableScale(i *int32) *UpscaleUpdate {
+	if i != nil {
+		uu.SetScale(*i)
+	}
 	return uu
 }
 
@@ -98,6 +122,14 @@ func (uu *UpscaleUpdate) ClearCountryCode() *UpscaleUpdate {
 // SetStatus sets the "status" field.
 func (uu *UpscaleUpdate) SetStatus(u upscale.Status) *UpscaleUpdate {
 	uu.mutation.SetStatus(u)
+	return uu
+}
+
+// SetNillableStatus sets the "status" field if the given value is not nil.
+func (uu *UpscaleUpdate) SetNillableStatus(u *upscale.Status) *UpscaleUpdate {
+	if u != nil {
+		uu.SetStatus(*u)
+	}
 	return uu
 }
 
@@ -189,15 +221,39 @@ func (uu *UpscaleUpdate) SetUserID(u uuid.UUID) *UpscaleUpdate {
 	return uu
 }
 
+// SetNillableUserID sets the "user_id" field if the given value is not nil.
+func (uu *UpscaleUpdate) SetNillableUserID(u *uuid.UUID) *UpscaleUpdate {
+	if u != nil {
+		uu.SetUserID(*u)
+	}
+	return uu
+}
+
 // SetDeviceInfoID sets the "device_info_id" field.
 func (uu *UpscaleUpdate) SetDeviceInfoID(u uuid.UUID) *UpscaleUpdate {
 	uu.mutation.SetDeviceInfoID(u)
 	return uu
 }
 
+// SetNillableDeviceInfoID sets the "device_info_id" field if the given value is not nil.
+func (uu *UpscaleUpdate) SetNillableDeviceInfoID(u *uuid.UUID) *UpscaleUpdate {
+	if u != nil {
+		uu.SetDeviceInfoID(*u)
+	}
+	return uu
+}
+
 // SetModelID sets the "model_id" field.
 func (uu *UpscaleUpdate) SetModelID(u uuid.UUID) *UpscaleUpdate {
 	uu.mutation.SetModelID(u)
+	return uu
+}
+
+// SetNillableModelID sets the "model_id" field if the given value is not nil.
+func (uu *UpscaleUpdate) SetNillableModelID(u *uuid.UUID) *UpscaleUpdate {
+	if u != nil {
+		uu.SetModelID(*u)
+	}
 	return uu
 }
 
@@ -375,7 +431,7 @@ func (uu *UpscaleUpdate) RemoveUpscaleOutputs(u ...*UpscaleOutput) *UpscaleUpdat
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (uu *UpscaleUpdate) Save(ctx context.Context) (int, error) {
 	uu.defaults()
-	return withHooks[int, UpscaleMutation](ctx, uu.sqlSave, uu.mutation, uu.hooks)
+	return withHooks(ctx, uu.sqlSave, uu.mutation, uu.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -420,13 +476,13 @@ func (uu *UpscaleUpdate) check() error {
 			return &ValidationError{Name: "source_type", err: fmt.Errorf(`ent: validator failed for field "Upscale.source_type": %w`, err)}
 		}
 	}
-	if _, ok := uu.mutation.UserID(); uu.mutation.UserCleared() && !ok {
+	if uu.mutation.UserCleared() && len(uu.mutation.UserIDs()) > 0 {
 		return errors.New(`ent: clearing a required unique edge "Upscale.user"`)
 	}
-	if _, ok := uu.mutation.DeviceInfoID(); uu.mutation.DeviceInfoCleared() && !ok {
+	if uu.mutation.DeviceInfoCleared() && len(uu.mutation.DeviceInfoIDs()) > 0 {
 		return errors.New(`ent: clearing a required unique edge "Upscale.device_info"`)
 	}
-	if _, ok := uu.mutation.UpscaleModelsID(); uu.mutation.UpscaleModelsCleared() && !ok {
+	if uu.mutation.UpscaleModelsCleared() && len(uu.mutation.UpscaleModelsIDs()) > 0 {
 		return errors.New(`ent: clearing a required unique edge "Upscale.upscale_models"`)
 	}
 	return nil
@@ -442,16 +498,7 @@ func (uu *UpscaleUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if err := uu.check(); err != nil {
 		return n, err
 	}
-	_spec := &sqlgraph.UpdateSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   upscale.Table,
-			Columns: upscale.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeUUID,
-				Column: upscale.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewUpdateSpec(upscale.Table, upscale.Columns, sqlgraph.NewFieldSpec(upscale.FieldID, field.TypeUUID))
 	if ps := uu.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
@@ -530,10 +577,7 @@ func (uu *UpscaleUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: []string{upscale.UserColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: user.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeUUID),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -546,10 +590,7 @@ func (uu *UpscaleUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: []string{upscale.UserColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: user.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -565,10 +606,7 @@ func (uu *UpscaleUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: []string{upscale.DeviceInfoColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: deviceinfo.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(deviceinfo.FieldID, field.TypeUUID),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -581,10 +619,7 @@ func (uu *UpscaleUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: []string{upscale.DeviceInfoColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: deviceinfo.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(deviceinfo.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -600,10 +635,7 @@ func (uu *UpscaleUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: []string{upscale.UpscaleModelsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: upscalemodel.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(upscalemodel.FieldID, field.TypeUUID),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -616,10 +648,7 @@ func (uu *UpscaleUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: []string{upscale.UpscaleModelsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: upscalemodel.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(upscalemodel.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -635,10 +664,7 @@ func (uu *UpscaleUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: []string{upscale.APITokensColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: apitoken.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(apitoken.FieldID, field.TypeUUID),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -651,10 +677,7 @@ func (uu *UpscaleUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: []string{upscale.APITokensColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: apitoken.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(apitoken.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -670,10 +693,7 @@ func (uu *UpscaleUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: []string{upscale.UpscaleOutputsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: upscaleoutput.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(upscaleoutput.FieldID, field.TypeUUID),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -686,10 +706,7 @@ func (uu *UpscaleUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: []string{upscale.UpscaleOutputsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: upscaleoutput.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(upscaleoutput.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -705,10 +722,7 @@ func (uu *UpscaleUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: []string{upscale.UpscaleOutputsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: upscaleoutput.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(upscaleoutput.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -745,6 +759,14 @@ func (uuo *UpscaleUpdateOne) SetWidth(i int32) *UpscaleUpdateOne {
 	return uuo
 }
 
+// SetNillableWidth sets the "width" field if the given value is not nil.
+func (uuo *UpscaleUpdateOne) SetNillableWidth(i *int32) *UpscaleUpdateOne {
+	if i != nil {
+		uuo.SetWidth(*i)
+	}
+	return uuo
+}
+
 // AddWidth adds i to the "width" field.
 func (uuo *UpscaleUpdateOne) AddWidth(i int32) *UpscaleUpdateOne {
 	uuo.mutation.AddWidth(i)
@@ -758,6 +780,14 @@ func (uuo *UpscaleUpdateOne) SetHeight(i int32) *UpscaleUpdateOne {
 	return uuo
 }
 
+// SetNillableHeight sets the "height" field if the given value is not nil.
+func (uuo *UpscaleUpdateOne) SetNillableHeight(i *int32) *UpscaleUpdateOne {
+	if i != nil {
+		uuo.SetHeight(*i)
+	}
+	return uuo
+}
+
 // AddHeight adds i to the "height" field.
 func (uuo *UpscaleUpdateOne) AddHeight(i int32) *UpscaleUpdateOne {
 	uuo.mutation.AddHeight(i)
@@ -768,6 +798,14 @@ func (uuo *UpscaleUpdateOne) AddHeight(i int32) *UpscaleUpdateOne {
 func (uuo *UpscaleUpdateOne) SetScale(i int32) *UpscaleUpdateOne {
 	uuo.mutation.ResetScale()
 	uuo.mutation.SetScale(i)
+	return uuo
+}
+
+// SetNillableScale sets the "scale" field if the given value is not nil.
+func (uuo *UpscaleUpdateOne) SetNillableScale(i *int32) *UpscaleUpdateOne {
+	if i != nil {
+		uuo.SetScale(*i)
+	}
 	return uuo
 }
 
@@ -800,6 +838,14 @@ func (uuo *UpscaleUpdateOne) ClearCountryCode() *UpscaleUpdateOne {
 // SetStatus sets the "status" field.
 func (uuo *UpscaleUpdateOne) SetStatus(u upscale.Status) *UpscaleUpdateOne {
 	uuo.mutation.SetStatus(u)
+	return uuo
+}
+
+// SetNillableStatus sets the "status" field if the given value is not nil.
+func (uuo *UpscaleUpdateOne) SetNillableStatus(u *upscale.Status) *UpscaleUpdateOne {
+	if u != nil {
+		uuo.SetStatus(*u)
+	}
 	return uuo
 }
 
@@ -891,15 +937,39 @@ func (uuo *UpscaleUpdateOne) SetUserID(u uuid.UUID) *UpscaleUpdateOne {
 	return uuo
 }
 
+// SetNillableUserID sets the "user_id" field if the given value is not nil.
+func (uuo *UpscaleUpdateOne) SetNillableUserID(u *uuid.UUID) *UpscaleUpdateOne {
+	if u != nil {
+		uuo.SetUserID(*u)
+	}
+	return uuo
+}
+
 // SetDeviceInfoID sets the "device_info_id" field.
 func (uuo *UpscaleUpdateOne) SetDeviceInfoID(u uuid.UUID) *UpscaleUpdateOne {
 	uuo.mutation.SetDeviceInfoID(u)
 	return uuo
 }
 
+// SetNillableDeviceInfoID sets the "device_info_id" field if the given value is not nil.
+func (uuo *UpscaleUpdateOne) SetNillableDeviceInfoID(u *uuid.UUID) *UpscaleUpdateOne {
+	if u != nil {
+		uuo.SetDeviceInfoID(*u)
+	}
+	return uuo
+}
+
 // SetModelID sets the "model_id" field.
 func (uuo *UpscaleUpdateOne) SetModelID(u uuid.UUID) *UpscaleUpdateOne {
 	uuo.mutation.SetModelID(u)
+	return uuo
+}
+
+// SetNillableModelID sets the "model_id" field if the given value is not nil.
+func (uuo *UpscaleUpdateOne) SetNillableModelID(u *uuid.UUID) *UpscaleUpdateOne {
+	if u != nil {
+		uuo.SetModelID(*u)
+	}
 	return uuo
 }
 
@@ -1074,6 +1144,12 @@ func (uuo *UpscaleUpdateOne) RemoveUpscaleOutputs(u ...*UpscaleOutput) *UpscaleU
 	return uuo.RemoveUpscaleOutputIDs(ids...)
 }
 
+// Where appends a list predicates to the UpscaleUpdate builder.
+func (uuo *UpscaleUpdateOne) Where(ps ...predicate.Upscale) *UpscaleUpdateOne {
+	uuo.mutation.Where(ps...)
+	return uuo
+}
+
 // Select allows selecting one or more fields (columns) of the returned entity.
 // The default is selecting all fields defined in the entity schema.
 func (uuo *UpscaleUpdateOne) Select(field string, fields ...string) *UpscaleUpdateOne {
@@ -1084,7 +1160,7 @@ func (uuo *UpscaleUpdateOne) Select(field string, fields ...string) *UpscaleUpda
 // Save executes the query and returns the updated Upscale entity.
 func (uuo *UpscaleUpdateOne) Save(ctx context.Context) (*Upscale, error) {
 	uuo.defaults()
-	return withHooks[*Upscale, UpscaleMutation](ctx, uuo.sqlSave, uuo.mutation, uuo.hooks)
+	return withHooks(ctx, uuo.sqlSave, uuo.mutation, uuo.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -1129,13 +1205,13 @@ func (uuo *UpscaleUpdateOne) check() error {
 			return &ValidationError{Name: "source_type", err: fmt.Errorf(`ent: validator failed for field "Upscale.source_type": %w`, err)}
 		}
 	}
-	if _, ok := uuo.mutation.UserID(); uuo.mutation.UserCleared() && !ok {
+	if uuo.mutation.UserCleared() && len(uuo.mutation.UserIDs()) > 0 {
 		return errors.New(`ent: clearing a required unique edge "Upscale.user"`)
 	}
-	if _, ok := uuo.mutation.DeviceInfoID(); uuo.mutation.DeviceInfoCleared() && !ok {
+	if uuo.mutation.DeviceInfoCleared() && len(uuo.mutation.DeviceInfoIDs()) > 0 {
 		return errors.New(`ent: clearing a required unique edge "Upscale.device_info"`)
 	}
-	if _, ok := uuo.mutation.UpscaleModelsID(); uuo.mutation.UpscaleModelsCleared() && !ok {
+	if uuo.mutation.UpscaleModelsCleared() && len(uuo.mutation.UpscaleModelsIDs()) > 0 {
 		return errors.New(`ent: clearing a required unique edge "Upscale.upscale_models"`)
 	}
 	return nil
@@ -1151,16 +1227,7 @@ func (uuo *UpscaleUpdateOne) sqlSave(ctx context.Context) (_node *Upscale, err e
 	if err := uuo.check(); err != nil {
 		return _node, err
 	}
-	_spec := &sqlgraph.UpdateSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   upscale.Table,
-			Columns: upscale.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeUUID,
-				Column: upscale.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewUpdateSpec(upscale.Table, upscale.Columns, sqlgraph.NewFieldSpec(upscale.FieldID, field.TypeUUID))
 	id, ok := uuo.mutation.ID()
 	if !ok {
 		return nil, &ValidationError{Name: "id", err: errors.New(`ent: missing "Upscale.id" for update`)}
@@ -1256,10 +1323,7 @@ func (uuo *UpscaleUpdateOne) sqlSave(ctx context.Context) (_node *Upscale, err e
 			Columns: []string{upscale.UserColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: user.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeUUID),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -1272,10 +1336,7 @@ func (uuo *UpscaleUpdateOne) sqlSave(ctx context.Context) (_node *Upscale, err e
 			Columns: []string{upscale.UserColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: user.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -1291,10 +1352,7 @@ func (uuo *UpscaleUpdateOne) sqlSave(ctx context.Context) (_node *Upscale, err e
 			Columns: []string{upscale.DeviceInfoColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: deviceinfo.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(deviceinfo.FieldID, field.TypeUUID),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -1307,10 +1365,7 @@ func (uuo *UpscaleUpdateOne) sqlSave(ctx context.Context) (_node *Upscale, err e
 			Columns: []string{upscale.DeviceInfoColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: deviceinfo.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(deviceinfo.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -1326,10 +1381,7 @@ func (uuo *UpscaleUpdateOne) sqlSave(ctx context.Context) (_node *Upscale, err e
 			Columns: []string{upscale.UpscaleModelsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: upscalemodel.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(upscalemodel.FieldID, field.TypeUUID),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -1342,10 +1394,7 @@ func (uuo *UpscaleUpdateOne) sqlSave(ctx context.Context) (_node *Upscale, err e
 			Columns: []string{upscale.UpscaleModelsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: upscalemodel.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(upscalemodel.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -1361,10 +1410,7 @@ func (uuo *UpscaleUpdateOne) sqlSave(ctx context.Context) (_node *Upscale, err e
 			Columns: []string{upscale.APITokensColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: apitoken.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(apitoken.FieldID, field.TypeUUID),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -1377,10 +1423,7 @@ func (uuo *UpscaleUpdateOne) sqlSave(ctx context.Context) (_node *Upscale, err e
 			Columns: []string{upscale.APITokensColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: apitoken.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(apitoken.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -1396,10 +1439,7 @@ func (uuo *UpscaleUpdateOne) sqlSave(ctx context.Context) (_node *Upscale, err e
 			Columns: []string{upscale.UpscaleOutputsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: upscaleoutput.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(upscaleoutput.FieldID, field.TypeUUID),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -1412,10 +1452,7 @@ func (uuo *UpscaleUpdateOne) sqlSave(ctx context.Context) (_node *Upscale, err e
 			Columns: []string{upscale.UpscaleOutputsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: upscaleoutput.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(upscaleoutput.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -1431,10 +1468,7 @@ func (uuo *UpscaleUpdateOne) sqlSave(ctx context.Context) (_node *Upscale, err e
 			Columns: []string{upscale.UpscaleOutputsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: upscaleoutput.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(upscaleoutput.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

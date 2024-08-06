@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 	"github.com/google/uuid"
 	"github.com/stablecog/sc-go/database/ent/scheduler"
@@ -31,7 +32,8 @@ type Scheduler struct {
 	UpdatedAt time.Time `json:"updated_at,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the SchedulerQuery when eager-loading is set.
-	Edges SchedulerEdges `json:"edges"`
+	Edges        SchedulerEdges `json:"edges"`
+	selectValues sql.SelectValues
 }
 
 // SchedulerEdges holds the relations/edges for other nodes in the graph.
@@ -77,7 +79,7 @@ func (*Scheduler) scanValues(columns []string) ([]any, error) {
 		case scheduler.FieldID:
 			values[i] = new(uuid.UUID)
 		default:
-			return nil, fmt.Errorf("unexpected column %q for type Scheduler", columns[i])
+			values[i] = new(sql.UnknownType)
 		}
 	}
 	return values, nil
@@ -133,9 +135,17 @@ func (s *Scheduler) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				s.UpdatedAt = value.Time
 			}
+		default:
+			s.selectValues.Set(columns[i], values[i])
 		}
 	}
 	return nil
+}
+
+// Value returns the ent.Value that was dynamically selected and assigned to the Scheduler.
+// This includes values selected through modifiers, order, etc.
+func (s *Scheduler) Value(name string) (ent.Value, error) {
+	return s.selectValues.Get(name)
 }
 
 // QueryGenerations queries the "generations" edge of the Scheduler entity.
@@ -194,9 +204,3 @@ func (s *Scheduler) String() string {
 
 // Schedulers is a parsable slice of Scheduler.
 type Schedulers []*Scheduler
-
-func (s Schedulers) config(cfg config) {
-	for _i := range s {
-		s[_i].config = cfg
-	}
-}

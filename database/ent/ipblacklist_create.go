@@ -80,7 +80,7 @@ func (iblc *IPBlackListCreate) Mutation() *IPBlackListMutation {
 // Save creates the IPBlackList in the database.
 func (iblc *IPBlackListCreate) Save(ctx context.Context) (*IPBlackList, error) {
 	iblc.defaults()
-	return withHooks[*IPBlackList, IPBlackListMutation](ctx, iblc.sqlSave, iblc.mutation, iblc.hooks)
+	return withHooks(ctx, iblc.sqlSave, iblc.mutation, iblc.hooks)
 }
 
 // SaveX calls Save and panics if Save returns an error.
@@ -161,13 +161,7 @@ func (iblc *IPBlackListCreate) sqlSave(ctx context.Context) (*IPBlackList, error
 func (iblc *IPBlackListCreate) createSpec() (*IPBlackList, *sqlgraph.CreateSpec) {
 	var (
 		_node = &IPBlackList{config: iblc.config}
-		_spec = &sqlgraph.CreateSpec{
-			Table: ipblacklist.Table,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeUUID,
-				Column: ipblacklist.FieldID,
-			},
-		}
+		_spec = sqlgraph.NewCreateSpec(ipblacklist.Table, sqlgraph.NewFieldSpec(ipblacklist.FieldID, field.TypeUUID))
 	)
 	_spec.OnConflict = iblc.conflict
 	if id, ok := iblc.mutation.ID(); ok {
@@ -382,12 +376,16 @@ func (u *IPBlackListUpsertOne) IDX(ctx context.Context) uuid.UUID {
 // IPBlackListCreateBulk is the builder for creating many IPBlackList entities in bulk.
 type IPBlackListCreateBulk struct {
 	config
+	err      error
 	builders []*IPBlackListCreate
 	conflict []sql.ConflictOption
 }
 
 // Save creates the IPBlackList entities in the database.
 func (iblcb *IPBlackListCreateBulk) Save(ctx context.Context) ([]*IPBlackList, error) {
+	if iblcb.err != nil {
+		return nil, iblcb.err
+	}
 	specs := make([]*sqlgraph.CreateSpec, len(iblcb.builders))
 	nodes := make([]*IPBlackList, len(iblcb.builders))
 	mutators := make([]Mutator, len(iblcb.builders))
@@ -404,8 +402,8 @@ func (iblcb *IPBlackListCreateBulk) Save(ctx context.Context) ([]*IPBlackList, e
 					return nil, err
 				}
 				builder.mutation = mutation
-				nodes[i], specs[i] = builder.createSpec()
 				var err error
+				nodes[i], specs[i] = builder.createSpec()
 				if i < len(mutators)-1 {
 					_, err = mutators[i+1].Mutate(root, iblcb.builders[i+1].mutation)
 				} else {
@@ -585,6 +583,9 @@ func (u *IPBlackListUpsertBulk) UpdateUpdatedAt() *IPBlackListUpsertBulk {
 
 // Exec executes the query.
 func (u *IPBlackListUpsertBulk) Exec(ctx context.Context) error {
+	if u.create.err != nil {
+		return u.create.err
+	}
 	for i, b := range u.create.builders {
 		if len(b.conflict) != 0 {
 			return fmt.Errorf("ent: OnConflict was set for builder %d. Set it on the IPBlackListCreateBulk instead", i)

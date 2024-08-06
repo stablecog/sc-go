@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"math"
 
+	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
@@ -19,7 +20,7 @@ import (
 type MqLogQuery struct {
 	config
 	ctx        *QueryContext
-	order      []OrderFunc
+	order      []mqlog.OrderOption
 	inters     []Interceptor
 	predicates []predicate.MqLog
 	modifiers  []func(*sql.Selector)
@@ -54,7 +55,7 @@ func (mlq *MqLogQuery) Unique(unique bool) *MqLogQuery {
 }
 
 // Order specifies how the records should be ordered.
-func (mlq *MqLogQuery) Order(o ...OrderFunc) *MqLogQuery {
+func (mlq *MqLogQuery) Order(o ...mqlog.OrderOption) *MqLogQuery {
 	mlq.order = append(mlq.order, o...)
 	return mlq
 }
@@ -62,7 +63,7 @@ func (mlq *MqLogQuery) Order(o ...OrderFunc) *MqLogQuery {
 // First returns the first MqLog entity from the query.
 // Returns a *NotFoundError when no MqLog was found.
 func (mlq *MqLogQuery) First(ctx context.Context) (*MqLog, error) {
-	nodes, err := mlq.Limit(1).All(setContextOp(ctx, mlq.ctx, "First"))
+	nodes, err := mlq.Limit(1).All(setContextOp(ctx, mlq.ctx, ent.OpQueryFirst))
 	if err != nil {
 		return nil, err
 	}
@@ -85,7 +86,7 @@ func (mlq *MqLogQuery) FirstX(ctx context.Context) *MqLog {
 // Returns a *NotFoundError when no MqLog ID was found.
 func (mlq *MqLogQuery) FirstID(ctx context.Context) (id uuid.UUID, err error) {
 	var ids []uuid.UUID
-	if ids, err = mlq.Limit(1).IDs(setContextOp(ctx, mlq.ctx, "FirstID")); err != nil {
+	if ids, err = mlq.Limit(1).IDs(setContextOp(ctx, mlq.ctx, ent.OpQueryFirstID)); err != nil {
 		return
 	}
 	if len(ids) == 0 {
@@ -108,7 +109,7 @@ func (mlq *MqLogQuery) FirstIDX(ctx context.Context) uuid.UUID {
 // Returns a *NotSingularError when more than one MqLog entity is found.
 // Returns a *NotFoundError when no MqLog entities are found.
 func (mlq *MqLogQuery) Only(ctx context.Context) (*MqLog, error) {
-	nodes, err := mlq.Limit(2).All(setContextOp(ctx, mlq.ctx, "Only"))
+	nodes, err := mlq.Limit(2).All(setContextOp(ctx, mlq.ctx, ent.OpQueryOnly))
 	if err != nil {
 		return nil, err
 	}
@@ -136,7 +137,7 @@ func (mlq *MqLogQuery) OnlyX(ctx context.Context) *MqLog {
 // Returns a *NotFoundError when no entities are found.
 func (mlq *MqLogQuery) OnlyID(ctx context.Context) (id uuid.UUID, err error) {
 	var ids []uuid.UUID
-	if ids, err = mlq.Limit(2).IDs(setContextOp(ctx, mlq.ctx, "OnlyID")); err != nil {
+	if ids, err = mlq.Limit(2).IDs(setContextOp(ctx, mlq.ctx, ent.OpQueryOnlyID)); err != nil {
 		return
 	}
 	switch len(ids) {
@@ -161,7 +162,7 @@ func (mlq *MqLogQuery) OnlyIDX(ctx context.Context) uuid.UUID {
 
 // All executes the query and returns a list of MqLogs.
 func (mlq *MqLogQuery) All(ctx context.Context) ([]*MqLog, error) {
-	ctx = setContextOp(ctx, mlq.ctx, "All")
+	ctx = setContextOp(ctx, mlq.ctx, ent.OpQueryAll)
 	if err := mlq.prepareQuery(ctx); err != nil {
 		return nil, err
 	}
@@ -179,10 +180,12 @@ func (mlq *MqLogQuery) AllX(ctx context.Context) []*MqLog {
 }
 
 // IDs executes the query and returns a list of MqLog IDs.
-func (mlq *MqLogQuery) IDs(ctx context.Context) ([]uuid.UUID, error) {
-	var ids []uuid.UUID
-	ctx = setContextOp(ctx, mlq.ctx, "IDs")
-	if err := mlq.Select(mqlog.FieldID).Scan(ctx, &ids); err != nil {
+func (mlq *MqLogQuery) IDs(ctx context.Context) (ids []uuid.UUID, err error) {
+	if mlq.ctx.Unique == nil && mlq.path != nil {
+		mlq.Unique(true)
+	}
+	ctx = setContextOp(ctx, mlq.ctx, ent.OpQueryIDs)
+	if err = mlq.Select(mqlog.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
 	return ids, nil
@@ -199,7 +202,7 @@ func (mlq *MqLogQuery) IDsX(ctx context.Context) []uuid.UUID {
 
 // Count returns the count of the given query.
 func (mlq *MqLogQuery) Count(ctx context.Context) (int, error) {
-	ctx = setContextOp(ctx, mlq.ctx, "Count")
+	ctx = setContextOp(ctx, mlq.ctx, ent.OpQueryCount)
 	if err := mlq.prepareQuery(ctx); err != nil {
 		return 0, err
 	}
@@ -217,7 +220,7 @@ func (mlq *MqLogQuery) CountX(ctx context.Context) int {
 
 // Exist returns true if the query has elements in the graph.
 func (mlq *MqLogQuery) Exist(ctx context.Context) (bool, error) {
-	ctx = setContextOp(ctx, mlq.ctx, "Exist")
+	ctx = setContextOp(ctx, mlq.ctx, ent.OpQueryExist)
 	switch _, err := mlq.FirstID(ctx); {
 	case IsNotFound(err):
 		return false, nil
@@ -246,7 +249,7 @@ func (mlq *MqLogQuery) Clone() *MqLogQuery {
 	return &MqLogQuery{
 		config:     mlq.config,
 		ctx:        mlq.ctx.Clone(),
-		order:      append([]OrderFunc{}, mlq.order...),
+		order:      append([]mqlog.OrderOption{}, mlq.order...),
 		inters:     append([]Interceptor{}, mlq.inters...),
 		predicates: append([]predicate.MqLog{}, mlq.predicates...),
 		// clone intermediate query.
@@ -370,20 +373,12 @@ func (mlq *MqLogQuery) sqlCount(ctx context.Context) (int, error) {
 }
 
 func (mlq *MqLogQuery) querySpec() *sqlgraph.QuerySpec {
-	_spec := &sqlgraph.QuerySpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   mqlog.Table,
-			Columns: mqlog.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeUUID,
-				Column: mqlog.FieldID,
-			},
-		},
-		From:   mlq.sql,
-		Unique: true,
-	}
+	_spec := sqlgraph.NewQuerySpec(mqlog.Table, mqlog.Columns, sqlgraph.NewFieldSpec(mqlog.FieldID, field.TypeUUID))
+	_spec.From = mlq.sql
 	if unique := mlq.ctx.Unique; unique != nil {
 		_spec.Unique = *unique
+	} else if mlq.path != nil {
+		_spec.Unique = true
 	}
 	if fields := mlq.ctx.Fields; len(fields) > 0 {
 		_spec.Node.Columns = make([]string, 0, len(fields))
@@ -472,7 +467,7 @@ func (mlgb *MqLogGroupBy) Aggregate(fns ...AggregateFunc) *MqLogGroupBy {
 
 // Scan applies the selector query and scans the result into the given value.
 func (mlgb *MqLogGroupBy) Scan(ctx context.Context, v any) error {
-	ctx = setContextOp(ctx, mlgb.build.ctx, "GroupBy")
+	ctx = setContextOp(ctx, mlgb.build.ctx, ent.OpQueryGroupBy)
 	if err := mlgb.build.prepareQuery(ctx); err != nil {
 		return err
 	}
@@ -520,7 +515,7 @@ func (mls *MqLogSelect) Aggregate(fns ...AggregateFunc) *MqLogSelect {
 
 // Scan applies the selector query and scans the result into the given value.
 func (mls *MqLogSelect) Scan(ctx context.Context, v any) error {
-	ctx = setContextOp(ctx, mls.ctx, "Select")
+	ctx = setContextOp(ctx, mls.ctx, ent.OpQuerySelect)
 	if err := mls.prepareQuery(ctx); err != nil {
 		return err
 	}

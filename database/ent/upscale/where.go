@@ -866,11 +866,7 @@ func HasUser() predicate.Upscale {
 // HasUserWith applies the HasEdge predicate on the "user" edge with a given conditions (other predicates).
 func HasUserWith(preds ...predicate.User) predicate.Upscale {
 	return predicate.Upscale(func(s *sql.Selector) {
-		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(UserInverseTable, FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, UserTable, UserColumn),
-		)
+		step := newUserStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)
@@ -893,11 +889,7 @@ func HasDeviceInfo() predicate.Upscale {
 // HasDeviceInfoWith applies the HasEdge predicate on the "device_info" edge with a given conditions (other predicates).
 func HasDeviceInfoWith(preds ...predicate.DeviceInfo) predicate.Upscale {
 	return predicate.Upscale(func(s *sql.Selector) {
-		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(DeviceInfoInverseTable, FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, DeviceInfoTable, DeviceInfoColumn),
-		)
+		step := newDeviceInfoStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)
@@ -920,11 +912,7 @@ func HasUpscaleModels() predicate.Upscale {
 // HasUpscaleModelsWith applies the HasEdge predicate on the "upscale_models" edge with a given conditions (other predicates).
 func HasUpscaleModelsWith(preds ...predicate.UpscaleModel) predicate.Upscale {
 	return predicate.Upscale(func(s *sql.Selector) {
-		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(UpscaleModelsInverseTable, FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, UpscaleModelsTable, UpscaleModelsColumn),
-		)
+		step := newUpscaleModelsStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)
@@ -947,11 +935,7 @@ func HasAPITokens() predicate.Upscale {
 // HasAPITokensWith applies the HasEdge predicate on the "api_tokens" edge with a given conditions (other predicates).
 func HasAPITokensWith(preds ...predicate.ApiToken) predicate.Upscale {
 	return predicate.Upscale(func(s *sql.Selector) {
-		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(APITokensInverseTable, FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, APITokensTable, APITokensColumn),
-		)
+		step := newAPITokensStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)
@@ -974,11 +958,7 @@ func HasUpscaleOutputs() predicate.Upscale {
 // HasUpscaleOutputsWith applies the HasEdge predicate on the "upscale_outputs" edge with a given conditions (other predicates).
 func HasUpscaleOutputsWith(preds ...predicate.UpscaleOutput) predicate.Upscale {
 	return predicate.Upscale(func(s *sql.Selector) {
-		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(UpscaleOutputsInverseTable, FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, UpscaleOutputsTable, UpscaleOutputsColumn),
-		)
+		step := newUpscaleOutputsStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)
@@ -989,32 +969,15 @@ func HasUpscaleOutputsWith(preds ...predicate.UpscaleOutput) predicate.Upscale {
 
 // And groups predicates with the AND operator between them.
 func And(predicates ...predicate.Upscale) predicate.Upscale {
-	return predicate.Upscale(func(s *sql.Selector) {
-		s1 := s.Clone().SetP(nil)
-		for _, p := range predicates {
-			p(s1)
-		}
-		s.Where(s1.P())
-	})
+	return predicate.Upscale(sql.AndPredicates(predicates...))
 }
 
 // Or groups predicates with the OR operator between them.
 func Or(predicates ...predicate.Upscale) predicate.Upscale {
-	return predicate.Upscale(func(s *sql.Selector) {
-		s1 := s.Clone().SetP(nil)
-		for i, p := range predicates {
-			if i > 0 {
-				s1.Or()
-			}
-			p(s1)
-		}
-		s.Where(s1.P())
-	})
+	return predicate.Upscale(sql.OrPredicates(predicates...))
 }
 
 // Not applies the not operator on the given predicate.
 func Not(p predicate.Upscale) predicate.Upscale {
-	return predicate.Upscale(func(s *sql.Selector) {
-		p(s.Not())
-	})
+	return predicate.Upscale(sql.NotPredicates(p))
 }

@@ -41,15 +41,39 @@ func (atu *ApiTokenUpdate) SetHashedToken(s string) *ApiTokenUpdate {
 	return atu
 }
 
+// SetNillableHashedToken sets the "hashed_token" field if the given value is not nil.
+func (atu *ApiTokenUpdate) SetNillableHashedToken(s *string) *ApiTokenUpdate {
+	if s != nil {
+		atu.SetHashedToken(*s)
+	}
+	return atu
+}
+
 // SetName sets the "name" field.
 func (atu *ApiTokenUpdate) SetName(s string) *ApiTokenUpdate {
 	atu.mutation.SetName(s)
 	return atu
 }
 
+// SetNillableName sets the "name" field if the given value is not nil.
+func (atu *ApiTokenUpdate) SetNillableName(s *string) *ApiTokenUpdate {
+	if s != nil {
+		atu.SetName(*s)
+	}
+	return atu
+}
+
 // SetShortString sets the "short_string" field.
 func (atu *ApiTokenUpdate) SetShortString(s string) *ApiTokenUpdate {
 	atu.mutation.SetShortString(s)
+	return atu
+}
+
+// SetNillableShortString sets the "short_string" field if the given value is not nil.
+func (atu *ApiTokenUpdate) SetNillableShortString(s *string) *ApiTokenUpdate {
+	if s != nil {
+		atu.SetShortString(*s)
+	}
 	return atu
 }
 
@@ -112,6 +136,14 @@ func (atu *ApiTokenUpdate) AddCreditsSpent(i int) *ApiTokenUpdate {
 // SetUserID sets the "user_id" field.
 func (atu *ApiTokenUpdate) SetUserID(u uuid.UUID) *ApiTokenUpdate {
 	atu.mutation.SetUserID(u)
+	return atu
+}
+
+// SetNillableUserID sets the "user_id" field if the given value is not nil.
+func (atu *ApiTokenUpdate) SetNillableUserID(u *uuid.UUID) *ApiTokenUpdate {
+	if u != nil {
+		atu.SetUserID(*u)
+	}
 	return atu
 }
 
@@ -313,7 +345,7 @@ func (atu *ApiTokenUpdate) ClearAuthClients() *ApiTokenUpdate {
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (atu *ApiTokenUpdate) Save(ctx context.Context) (int, error) {
 	atu.defaults()
-	return withHooks[int, ApiTokenMutation](ctx, atu.sqlSave, atu.mutation, atu.hooks)
+	return withHooks(ctx, atu.sqlSave, atu.mutation, atu.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -348,7 +380,7 @@ func (atu *ApiTokenUpdate) defaults() {
 
 // check runs all checks and user-defined validators on the builder.
 func (atu *ApiTokenUpdate) check() error {
-	if _, ok := atu.mutation.UserID(); atu.mutation.UserCleared() && !ok {
+	if atu.mutation.UserCleared() && len(atu.mutation.UserIDs()) > 0 {
 		return errors.New(`ent: clearing a required unique edge "ApiToken.user"`)
 	}
 	return nil
@@ -364,16 +396,7 @@ func (atu *ApiTokenUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if err := atu.check(); err != nil {
 		return n, err
 	}
-	_spec := &sqlgraph.UpdateSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   apitoken.Table,
-			Columns: apitoken.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeUUID,
-				Column: apitoken.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewUpdateSpec(apitoken.Table, apitoken.Columns, sqlgraph.NewFieldSpec(apitoken.FieldID, field.TypeUUID))
 	if ps := atu.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
@@ -422,10 +445,7 @@ func (atu *ApiTokenUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: []string{apitoken.UserColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: user.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeUUID),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -438,10 +458,7 @@ func (atu *ApiTokenUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: []string{apitoken.UserColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: user.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -457,10 +474,7 @@ func (atu *ApiTokenUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: []string{apitoken.GenerationsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: generation.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(generation.FieldID, field.TypeUUID),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -473,10 +487,7 @@ func (atu *ApiTokenUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: []string{apitoken.GenerationsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: generation.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(generation.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -492,10 +503,7 @@ func (atu *ApiTokenUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: []string{apitoken.GenerationsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: generation.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(generation.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -511,10 +519,7 @@ func (atu *ApiTokenUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: []string{apitoken.UpscalesColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: upscale.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(upscale.FieldID, field.TypeUUID),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -527,10 +532,7 @@ func (atu *ApiTokenUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: []string{apitoken.UpscalesColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: upscale.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(upscale.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -546,10 +548,7 @@ func (atu *ApiTokenUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: []string{apitoken.UpscalesColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: upscale.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(upscale.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -565,10 +564,7 @@ func (atu *ApiTokenUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: []string{apitoken.VoiceoversColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: voiceover.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(voiceover.FieldID, field.TypeUUID),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -581,10 +577,7 @@ func (atu *ApiTokenUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: []string{apitoken.VoiceoversColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: voiceover.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(voiceover.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -600,10 +593,7 @@ func (atu *ApiTokenUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: []string{apitoken.VoiceoversColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: voiceover.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(voiceover.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -619,10 +609,7 @@ func (atu *ApiTokenUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: []string{apitoken.AuthClientsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: authclient.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(authclient.FieldID, field.TypeUUID),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -635,10 +622,7 @@ func (atu *ApiTokenUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: []string{apitoken.AuthClientsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: authclient.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(authclient.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -674,15 +658,39 @@ func (atuo *ApiTokenUpdateOne) SetHashedToken(s string) *ApiTokenUpdateOne {
 	return atuo
 }
 
+// SetNillableHashedToken sets the "hashed_token" field if the given value is not nil.
+func (atuo *ApiTokenUpdateOne) SetNillableHashedToken(s *string) *ApiTokenUpdateOne {
+	if s != nil {
+		atuo.SetHashedToken(*s)
+	}
+	return atuo
+}
+
 // SetName sets the "name" field.
 func (atuo *ApiTokenUpdateOne) SetName(s string) *ApiTokenUpdateOne {
 	atuo.mutation.SetName(s)
 	return atuo
 }
 
+// SetNillableName sets the "name" field if the given value is not nil.
+func (atuo *ApiTokenUpdateOne) SetNillableName(s *string) *ApiTokenUpdateOne {
+	if s != nil {
+		atuo.SetName(*s)
+	}
+	return atuo
+}
+
 // SetShortString sets the "short_string" field.
 func (atuo *ApiTokenUpdateOne) SetShortString(s string) *ApiTokenUpdateOne {
 	atuo.mutation.SetShortString(s)
+	return atuo
+}
+
+// SetNillableShortString sets the "short_string" field if the given value is not nil.
+func (atuo *ApiTokenUpdateOne) SetNillableShortString(s *string) *ApiTokenUpdateOne {
+	if s != nil {
+		atuo.SetShortString(*s)
+	}
 	return atuo
 }
 
@@ -745,6 +753,14 @@ func (atuo *ApiTokenUpdateOne) AddCreditsSpent(i int) *ApiTokenUpdateOne {
 // SetUserID sets the "user_id" field.
 func (atuo *ApiTokenUpdateOne) SetUserID(u uuid.UUID) *ApiTokenUpdateOne {
 	atuo.mutation.SetUserID(u)
+	return atuo
+}
+
+// SetNillableUserID sets the "user_id" field if the given value is not nil.
+func (atuo *ApiTokenUpdateOne) SetNillableUserID(u *uuid.UUID) *ApiTokenUpdateOne {
+	if u != nil {
+		atuo.SetUserID(*u)
+	}
 	return atuo
 }
 
@@ -943,6 +959,12 @@ func (atuo *ApiTokenUpdateOne) ClearAuthClients() *ApiTokenUpdateOne {
 	return atuo
 }
 
+// Where appends a list predicates to the ApiTokenUpdate builder.
+func (atuo *ApiTokenUpdateOne) Where(ps ...predicate.ApiToken) *ApiTokenUpdateOne {
+	atuo.mutation.Where(ps...)
+	return atuo
+}
+
 // Select allows selecting one or more fields (columns) of the returned entity.
 // The default is selecting all fields defined in the entity schema.
 func (atuo *ApiTokenUpdateOne) Select(field string, fields ...string) *ApiTokenUpdateOne {
@@ -953,7 +975,7 @@ func (atuo *ApiTokenUpdateOne) Select(field string, fields ...string) *ApiTokenU
 // Save executes the query and returns the updated ApiToken entity.
 func (atuo *ApiTokenUpdateOne) Save(ctx context.Context) (*ApiToken, error) {
 	atuo.defaults()
-	return withHooks[*ApiToken, ApiTokenMutation](ctx, atuo.sqlSave, atuo.mutation, atuo.hooks)
+	return withHooks(ctx, atuo.sqlSave, atuo.mutation, atuo.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -988,7 +1010,7 @@ func (atuo *ApiTokenUpdateOne) defaults() {
 
 // check runs all checks and user-defined validators on the builder.
 func (atuo *ApiTokenUpdateOne) check() error {
-	if _, ok := atuo.mutation.UserID(); atuo.mutation.UserCleared() && !ok {
+	if atuo.mutation.UserCleared() && len(atuo.mutation.UserIDs()) > 0 {
 		return errors.New(`ent: clearing a required unique edge "ApiToken.user"`)
 	}
 	return nil
@@ -1004,16 +1026,7 @@ func (atuo *ApiTokenUpdateOne) sqlSave(ctx context.Context) (_node *ApiToken, er
 	if err := atuo.check(); err != nil {
 		return _node, err
 	}
-	_spec := &sqlgraph.UpdateSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   apitoken.Table,
-			Columns: apitoken.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeUUID,
-				Column: apitoken.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewUpdateSpec(apitoken.Table, apitoken.Columns, sqlgraph.NewFieldSpec(apitoken.FieldID, field.TypeUUID))
 	id, ok := atuo.mutation.ID()
 	if !ok {
 		return nil, &ValidationError{Name: "id", err: errors.New(`ent: missing "ApiToken.id" for update`)}
@@ -1079,10 +1092,7 @@ func (atuo *ApiTokenUpdateOne) sqlSave(ctx context.Context) (_node *ApiToken, er
 			Columns: []string{apitoken.UserColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: user.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeUUID),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -1095,10 +1105,7 @@ func (atuo *ApiTokenUpdateOne) sqlSave(ctx context.Context) (_node *ApiToken, er
 			Columns: []string{apitoken.UserColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: user.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -1114,10 +1121,7 @@ func (atuo *ApiTokenUpdateOne) sqlSave(ctx context.Context) (_node *ApiToken, er
 			Columns: []string{apitoken.GenerationsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: generation.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(generation.FieldID, field.TypeUUID),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -1130,10 +1134,7 @@ func (atuo *ApiTokenUpdateOne) sqlSave(ctx context.Context) (_node *ApiToken, er
 			Columns: []string{apitoken.GenerationsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: generation.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(generation.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -1149,10 +1150,7 @@ func (atuo *ApiTokenUpdateOne) sqlSave(ctx context.Context) (_node *ApiToken, er
 			Columns: []string{apitoken.GenerationsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: generation.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(generation.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -1168,10 +1166,7 @@ func (atuo *ApiTokenUpdateOne) sqlSave(ctx context.Context) (_node *ApiToken, er
 			Columns: []string{apitoken.UpscalesColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: upscale.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(upscale.FieldID, field.TypeUUID),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -1184,10 +1179,7 @@ func (atuo *ApiTokenUpdateOne) sqlSave(ctx context.Context) (_node *ApiToken, er
 			Columns: []string{apitoken.UpscalesColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: upscale.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(upscale.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -1203,10 +1195,7 @@ func (atuo *ApiTokenUpdateOne) sqlSave(ctx context.Context) (_node *ApiToken, er
 			Columns: []string{apitoken.UpscalesColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: upscale.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(upscale.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -1222,10 +1211,7 @@ func (atuo *ApiTokenUpdateOne) sqlSave(ctx context.Context) (_node *ApiToken, er
 			Columns: []string{apitoken.VoiceoversColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: voiceover.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(voiceover.FieldID, field.TypeUUID),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -1238,10 +1224,7 @@ func (atuo *ApiTokenUpdateOne) sqlSave(ctx context.Context) (_node *ApiToken, er
 			Columns: []string{apitoken.VoiceoversColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: voiceover.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(voiceover.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -1257,10 +1240,7 @@ func (atuo *ApiTokenUpdateOne) sqlSave(ctx context.Context) (_node *ApiToken, er
 			Columns: []string{apitoken.VoiceoversColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: voiceover.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(voiceover.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -1276,10 +1256,7 @@ func (atuo *ApiTokenUpdateOne) sqlSave(ctx context.Context) (_node *ApiToken, er
 			Columns: []string{apitoken.AuthClientsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: authclient.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(authclient.FieldID, field.TypeUUID),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -1292,10 +1269,7 @@ func (atuo *ApiTokenUpdateOne) sqlSave(ctx context.Context) (_node *ApiToken, er
 			Columns: []string{apitoken.AuthClientsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: authclient.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(authclient.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

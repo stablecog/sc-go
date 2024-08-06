@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 	"github.com/google/uuid"
 	"github.com/stablecog/sc-go/database/ent/apitoken"
@@ -43,7 +44,8 @@ type ApiToken struct {
 	UpdatedAt time.Time `json:"updated_at,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the ApiTokenQuery when eager-loading is set.
-	Edges ApiTokenEdges `json:"edges"`
+	Edges        ApiTokenEdges `json:"edges"`
+	selectValues sql.SelectValues
 }
 
 // ApiTokenEdges holds the relations/edges for other nodes in the graph.
@@ -66,12 +68,10 @@ type ApiTokenEdges struct {
 // UserOrErr returns the User value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
 func (e ApiTokenEdges) UserOrErr() (*User, error) {
-	if e.loadedTypes[0] {
-		if e.User == nil {
-			// Edge was loaded but was not found.
-			return nil, &NotFoundError{label: user.Label}
-		}
+	if e.User != nil {
 		return e.User, nil
+	} else if e.loadedTypes[0] {
+		return nil, &NotFoundError{label: user.Label}
 	}
 	return nil, &NotLoadedError{edge: "user"}
 }
@@ -106,12 +106,10 @@ func (e ApiTokenEdges) VoiceoversOrErr() ([]*Voiceover, error) {
 // AuthClientsOrErr returns the AuthClients value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
 func (e ApiTokenEdges) AuthClientsOrErr() (*AuthClient, error) {
-	if e.loadedTypes[4] {
-		if e.AuthClients == nil {
-			// Edge was loaded but was not found.
-			return nil, &NotFoundError{label: authclient.Label}
-		}
+	if e.AuthClients != nil {
 		return e.AuthClients, nil
+	} else if e.loadedTypes[4] {
+		return nil, &NotFoundError{label: authclient.Label}
 	}
 	return nil, &NotLoadedError{edge: "auth_clients"}
 }
@@ -134,7 +132,7 @@ func (*ApiToken) scanValues(columns []string) ([]any, error) {
 		case apitoken.FieldID, apitoken.FieldUserID:
 			values[i] = new(uuid.UUID)
 		default:
-			return nil, fmt.Errorf("unexpected column %q for type ApiToken", columns[i])
+			values[i] = new(sql.UnknownType)
 		}
 	}
 	return values, nil
@@ -222,9 +220,17 @@ func (at *ApiToken) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				at.UpdatedAt = value.Time
 			}
+		default:
+			at.selectValues.Set(columns[i], values[i])
 		}
 	}
 	return nil
+}
+
+// Value returns the ent.Value that was dynamically selected and assigned to the ApiToken.
+// This includes values selected through modifiers, order, etc.
+func (at *ApiToken) Value(name string) (ent.Value, error) {
+	return at.selectValues.Get(name)
 }
 
 // QueryUser queries the "user" edge of the ApiToken entity.
@@ -317,9 +323,3 @@ func (at *ApiToken) String() string {
 
 // ApiTokens is a parsable slice of ApiToken.
 type ApiTokens []*ApiToken
-
-func (at ApiTokens) config(cfg config) {
-	for _i := range at {
-		at[_i].config = cfg
-	}
-}

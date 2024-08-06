@@ -35,6 +35,14 @@ func (iblu *IPBlackListUpdate) SetIP(s string) *IPBlackListUpdate {
 	return iblu
 }
 
+// SetNillableIP sets the "ip" field if the given value is not nil.
+func (iblu *IPBlackListUpdate) SetNillableIP(s *string) *IPBlackListUpdate {
+	if s != nil {
+		iblu.SetIP(*s)
+	}
+	return iblu
+}
+
 // SetUpdatedAt sets the "updated_at" field.
 func (iblu *IPBlackListUpdate) SetUpdatedAt(t time.Time) *IPBlackListUpdate {
 	iblu.mutation.SetUpdatedAt(t)
@@ -49,7 +57,7 @@ func (iblu *IPBlackListUpdate) Mutation() *IPBlackListMutation {
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (iblu *IPBlackListUpdate) Save(ctx context.Context) (int, error) {
 	iblu.defaults()
-	return withHooks[int, IPBlackListMutation](ctx, iblu.sqlSave, iblu.mutation, iblu.hooks)
+	return withHooks(ctx, iblu.sqlSave, iblu.mutation, iblu.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -89,16 +97,7 @@ func (iblu *IPBlackListUpdate) Modify(modifiers ...func(u *sql.UpdateBuilder)) *
 }
 
 func (iblu *IPBlackListUpdate) sqlSave(ctx context.Context) (n int, err error) {
-	_spec := &sqlgraph.UpdateSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   ipblacklist.Table,
-			Columns: ipblacklist.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeUUID,
-				Column: ipblacklist.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewUpdateSpec(ipblacklist.Table, ipblacklist.Columns, sqlgraph.NewFieldSpec(ipblacklist.FieldID, field.TypeUUID))
 	if ps := iblu.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
@@ -140,6 +139,14 @@ func (ibluo *IPBlackListUpdateOne) SetIP(s string) *IPBlackListUpdateOne {
 	return ibluo
 }
 
+// SetNillableIP sets the "ip" field if the given value is not nil.
+func (ibluo *IPBlackListUpdateOne) SetNillableIP(s *string) *IPBlackListUpdateOne {
+	if s != nil {
+		ibluo.SetIP(*s)
+	}
+	return ibluo
+}
+
 // SetUpdatedAt sets the "updated_at" field.
 func (ibluo *IPBlackListUpdateOne) SetUpdatedAt(t time.Time) *IPBlackListUpdateOne {
 	ibluo.mutation.SetUpdatedAt(t)
@@ -149,6 +156,12 @@ func (ibluo *IPBlackListUpdateOne) SetUpdatedAt(t time.Time) *IPBlackListUpdateO
 // Mutation returns the IPBlackListMutation object of the builder.
 func (ibluo *IPBlackListUpdateOne) Mutation() *IPBlackListMutation {
 	return ibluo.mutation
+}
+
+// Where appends a list predicates to the IPBlackListUpdate builder.
+func (ibluo *IPBlackListUpdateOne) Where(ps ...predicate.IPBlackList) *IPBlackListUpdateOne {
+	ibluo.mutation.Where(ps...)
+	return ibluo
 }
 
 // Select allows selecting one or more fields (columns) of the returned entity.
@@ -161,7 +174,7 @@ func (ibluo *IPBlackListUpdateOne) Select(field string, fields ...string) *IPBla
 // Save executes the query and returns the updated IPBlackList entity.
 func (ibluo *IPBlackListUpdateOne) Save(ctx context.Context) (*IPBlackList, error) {
 	ibluo.defaults()
-	return withHooks[*IPBlackList, IPBlackListMutation](ctx, ibluo.sqlSave, ibluo.mutation, ibluo.hooks)
+	return withHooks(ctx, ibluo.sqlSave, ibluo.mutation, ibluo.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -201,16 +214,7 @@ func (ibluo *IPBlackListUpdateOne) Modify(modifiers ...func(u *sql.UpdateBuilder
 }
 
 func (ibluo *IPBlackListUpdateOne) sqlSave(ctx context.Context) (_node *IPBlackList, err error) {
-	_spec := &sqlgraph.UpdateSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   ipblacklist.Table,
-			Columns: ipblacklist.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeUUID,
-				Column: ipblacklist.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewUpdateSpec(ipblacklist.Table, ipblacklist.Columns, sqlgraph.NewFieldSpec(ipblacklist.FieldID, field.TypeUUID))
 	id, ok := ibluo.mutation.ID()
 	if !ok {
 		return nil, &ValidationError{Name: "id", err: errors.New(`ent: missing "IPBlackList.id" for update`)}

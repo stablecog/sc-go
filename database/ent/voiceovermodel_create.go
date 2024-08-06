@@ -154,7 +154,7 @@ func (vmc *VoiceoverModelCreate) Mutation() *VoiceoverModelMutation {
 // Save creates the VoiceoverModel in the database.
 func (vmc *VoiceoverModelCreate) Save(ctx context.Context) (*VoiceoverModel, error) {
 	vmc.defaults()
-	return withHooks[*VoiceoverModel, VoiceoverModelMutation](ctx, vmc.sqlSave, vmc.mutation, vmc.hooks)
+	return withHooks(ctx, vmc.sqlSave, vmc.mutation, vmc.hooks)
 }
 
 // SaveX calls Save and panics if Save returns an error.
@@ -256,13 +256,7 @@ func (vmc *VoiceoverModelCreate) sqlSave(ctx context.Context) (*VoiceoverModel, 
 func (vmc *VoiceoverModelCreate) createSpec() (*VoiceoverModel, *sqlgraph.CreateSpec) {
 	var (
 		_node = &VoiceoverModel{config: vmc.config}
-		_spec = &sqlgraph.CreateSpec{
-			Table: voiceovermodel.Table,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeUUID,
-				Column: voiceovermodel.FieldID,
-			},
-		}
+		_spec = sqlgraph.NewCreateSpec(voiceovermodel.Table, sqlgraph.NewFieldSpec(voiceovermodel.FieldID, field.TypeUUID))
 	)
 	_spec.OnConflict = vmc.conflict
 	if id, ok := vmc.mutation.ID(); ok {
@@ -301,10 +295,7 @@ func (vmc *VoiceoverModelCreate) createSpec() (*VoiceoverModel, *sqlgraph.Create
 			Columns: []string{voiceovermodel.VoiceoversColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: voiceover.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(voiceover.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -320,10 +311,7 @@ func (vmc *VoiceoverModelCreate) createSpec() (*VoiceoverModel, *sqlgraph.Create
 			Columns: []string{voiceovermodel.VoiceoverSpeakersColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: voiceoverspeaker.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(voiceoverspeaker.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -605,12 +593,16 @@ func (u *VoiceoverModelUpsertOne) IDX(ctx context.Context) uuid.UUID {
 // VoiceoverModelCreateBulk is the builder for creating many VoiceoverModel entities in bulk.
 type VoiceoverModelCreateBulk struct {
 	config
+	err      error
 	builders []*VoiceoverModelCreate
 	conflict []sql.ConflictOption
 }
 
 // Save creates the VoiceoverModel entities in the database.
 func (vmcb *VoiceoverModelCreateBulk) Save(ctx context.Context) ([]*VoiceoverModel, error) {
+	if vmcb.err != nil {
+		return nil, vmcb.err
+	}
 	specs := make([]*sqlgraph.CreateSpec, len(vmcb.builders))
 	nodes := make([]*VoiceoverModel, len(vmcb.builders))
 	mutators := make([]Mutator, len(vmcb.builders))
@@ -627,8 +619,8 @@ func (vmcb *VoiceoverModelCreateBulk) Save(ctx context.Context) ([]*VoiceoverMod
 					return nil, err
 				}
 				builder.mutation = mutation
-				nodes[i], specs[i] = builder.createSpec()
 				var err error
+				nodes[i], specs[i] = builder.createSpec()
 				if i < len(mutators)-1 {
 					_, err = mutators[i+1].Mutate(root, vmcb.builders[i+1].mutation)
 				} else {
@@ -850,6 +842,9 @@ func (u *VoiceoverModelUpsertBulk) UpdateUpdatedAt() *VoiceoverModelUpsertBulk {
 
 // Exec executes the query.
 func (u *VoiceoverModelUpsertBulk) Exec(ctx context.Context) error {
+	if u.create.err != nil {
+		return u.create.err
+	}
 	for i, b := range u.create.builders {
 		if len(b.conflict) != 0 {
 			return fmt.Errorf("ent: OnConflict was set for builder %d. Set it on the VoiceoverModelCreateBulk instead", i)

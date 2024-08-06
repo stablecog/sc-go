@@ -5,6 +5,8 @@ package apitoken
 import (
 	"time"
 
+	"entgo.io/ent/dialect/sql"
+	"entgo.io/ent/dialect/sql/sqlgraph"
 	"github.com/google/uuid"
 )
 
@@ -126,3 +128,157 @@ var (
 	// DefaultID holds the default value on creation for the "id" field.
 	DefaultID func() uuid.UUID
 )
+
+// OrderOption defines the ordering options for the ApiToken queries.
+type OrderOption func(*sql.Selector)
+
+// ByID orders the results by the id field.
+func ByID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldID, opts...).ToFunc()
+}
+
+// ByHashedToken orders the results by the hashed_token field.
+func ByHashedToken(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldHashedToken, opts...).ToFunc()
+}
+
+// ByName orders the results by the name field.
+func ByName(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldName, opts...).ToFunc()
+}
+
+// ByShortString orders the results by the short_string field.
+func ByShortString(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldShortString, opts...).ToFunc()
+}
+
+// ByIsActive orders the results by the is_active field.
+func ByIsActive(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldIsActive, opts...).ToFunc()
+}
+
+// ByUses orders the results by the uses field.
+func ByUses(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldUses, opts...).ToFunc()
+}
+
+// ByCreditsSpent orders the results by the credits_spent field.
+func ByCreditsSpent(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldCreditsSpent, opts...).ToFunc()
+}
+
+// ByUserID orders the results by the user_id field.
+func ByUserID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldUserID, opts...).ToFunc()
+}
+
+// ByAuthClientID orders the results by the auth_client_id field.
+func ByAuthClientID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldAuthClientID, opts...).ToFunc()
+}
+
+// ByLastUsedAt orders the results by the last_used_at field.
+func ByLastUsedAt(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldLastUsedAt, opts...).ToFunc()
+}
+
+// ByCreatedAt orders the results by the created_at field.
+func ByCreatedAt(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldCreatedAt, opts...).ToFunc()
+}
+
+// ByUpdatedAt orders the results by the updated_at field.
+func ByUpdatedAt(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldUpdatedAt, opts...).ToFunc()
+}
+
+// ByUserField orders the results by user field.
+func ByUserField(field string, opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newUserStep(), sql.OrderByField(field, opts...))
+	}
+}
+
+// ByGenerationsCount orders the results by generations count.
+func ByGenerationsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newGenerationsStep(), opts...)
+	}
+}
+
+// ByGenerations orders the results by generations terms.
+func ByGenerations(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newGenerationsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// ByUpscalesCount orders the results by upscales count.
+func ByUpscalesCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newUpscalesStep(), opts...)
+	}
+}
+
+// ByUpscales orders the results by upscales terms.
+func ByUpscales(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newUpscalesStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// ByVoiceoversCount orders the results by voiceovers count.
+func ByVoiceoversCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newVoiceoversStep(), opts...)
+	}
+}
+
+// ByVoiceovers orders the results by voiceovers terms.
+func ByVoiceovers(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newVoiceoversStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// ByAuthClientsField orders the results by auth_clients field.
+func ByAuthClientsField(field string, opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newAuthClientsStep(), sql.OrderByField(field, opts...))
+	}
+}
+func newUserStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(UserInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, true, UserTable, UserColumn),
+	)
+}
+func newGenerationsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(GenerationsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, GenerationsTable, GenerationsColumn),
+	)
+}
+func newUpscalesStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(UpscalesInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, UpscalesTable, UpscalesColumn),
+	)
+}
+func newVoiceoversStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(VoiceoversInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, VoiceoversTable, VoiceoversColumn),
+	)
+}
+func newAuthClientsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(AuthClientsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, true, AuthClientsTable, AuthClientsColumn),
+	)
+}

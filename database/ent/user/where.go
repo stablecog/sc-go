@@ -875,11 +875,7 @@ func HasGenerations() predicate.User {
 // HasGenerationsWith applies the HasEdge predicate on the "generations" edge with a given conditions (other predicates).
 func HasGenerationsWith(preds ...predicate.Generation) predicate.User {
 	return predicate.User(func(s *sql.Selector) {
-		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(GenerationsInverseTable, FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, GenerationsTable, GenerationsColumn),
-		)
+		step := newGenerationsStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)
@@ -902,11 +898,7 @@ func HasUpscales() predicate.User {
 // HasUpscalesWith applies the HasEdge predicate on the "upscales" edge with a given conditions (other predicates).
 func HasUpscalesWith(preds ...predicate.Upscale) predicate.User {
 	return predicate.User(func(s *sql.Selector) {
-		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(UpscalesInverseTable, FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, UpscalesTable, UpscalesColumn),
-		)
+		step := newUpscalesStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)
@@ -929,11 +921,7 @@ func HasVoiceovers() predicate.User {
 // HasVoiceoversWith applies the HasEdge predicate on the "voiceovers" edge with a given conditions (other predicates).
 func HasVoiceoversWith(preds ...predicate.Voiceover) predicate.User {
 	return predicate.User(func(s *sql.Selector) {
-		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(VoiceoversInverseTable, FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, VoiceoversTable, VoiceoversColumn),
-		)
+		step := newVoiceoversStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)
@@ -956,11 +944,7 @@ func HasCredits() predicate.User {
 // HasCreditsWith applies the HasEdge predicate on the "credits" edge with a given conditions (other predicates).
 func HasCreditsWith(preds ...predicate.Credit) predicate.User {
 	return predicate.User(func(s *sql.Selector) {
-		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(CreditsInverseTable, FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, CreditsTable, CreditsColumn),
-		)
+		step := newCreditsStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)
@@ -983,11 +967,7 @@ func HasAPITokens() predicate.User {
 // HasAPITokensWith applies the HasEdge predicate on the "api_tokens" edge with a given conditions (other predicates).
 func HasAPITokensWith(preds ...predicate.ApiToken) predicate.User {
 	return predicate.User(func(s *sql.Selector) {
-		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(APITokensInverseTable, FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, APITokensTable, APITokensColumn),
-		)
+		step := newAPITokensStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)
@@ -1010,11 +990,7 @@ func HasTipsGiven() predicate.User {
 // HasTipsGivenWith applies the HasEdge predicate on the "tips_given" edge with a given conditions (other predicates).
 func HasTipsGivenWith(preds ...predicate.TipLog) predicate.User {
 	return predicate.User(func(s *sql.Selector) {
-		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(TipsGivenInverseTable, FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, TipsGivenTable, TipsGivenColumn),
-		)
+		step := newTipsGivenStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)
@@ -1037,11 +1013,7 @@ func HasTipsReceived() predicate.User {
 // HasTipsReceivedWith applies the HasEdge predicate on the "tips_received" edge with a given conditions (other predicates).
 func HasTipsReceivedWith(preds ...predicate.TipLog) predicate.User {
 	return predicate.User(func(s *sql.Selector) {
-		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(TipsReceivedInverseTable, FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, TipsReceivedTable, TipsReceivedColumn),
-		)
+		step := newTipsReceivedStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)
@@ -1064,11 +1036,7 @@ func HasRoles() predicate.User {
 // HasRolesWith applies the HasEdge predicate on the "roles" edge with a given conditions (other predicates).
 func HasRolesWith(preds ...predicate.Role) predicate.User {
 	return predicate.User(func(s *sql.Selector) {
-		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(RolesInverseTable, FieldID),
-			sqlgraph.Edge(sqlgraph.M2M, true, RolesTable, RolesPrimaryKey...),
-		)
+		step := newRolesStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)
@@ -1091,11 +1059,7 @@ func HasGenerationOutputLikes() predicate.User {
 // HasGenerationOutputLikesWith applies the HasEdge predicate on the "generation_output_likes" edge with a given conditions (other predicates).
 func HasGenerationOutputLikesWith(preds ...predicate.GenerationOutputLike) predicate.User {
 	return predicate.User(func(s *sql.Selector) {
-		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(GenerationOutputLikesInverseTable, FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, GenerationOutputLikesTable, GenerationOutputLikesColumn),
-		)
+		step := newGenerationOutputLikesStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)
@@ -1106,32 +1070,15 @@ func HasGenerationOutputLikesWith(preds ...predicate.GenerationOutputLike) predi
 
 // And groups predicates with the AND operator between them.
 func And(predicates ...predicate.User) predicate.User {
-	return predicate.User(func(s *sql.Selector) {
-		s1 := s.Clone().SetP(nil)
-		for _, p := range predicates {
-			p(s1)
-		}
-		s.Where(s1.P())
-	})
+	return predicate.User(sql.AndPredicates(predicates...))
 }
 
 // Or groups predicates with the OR operator between them.
 func Or(predicates ...predicate.User) predicate.User {
-	return predicate.User(func(s *sql.Selector) {
-		s1 := s.Clone().SetP(nil)
-		for i, p := range predicates {
-			if i > 0 {
-				s1.Or()
-			}
-			p(s1)
-		}
-		s.Where(s1.P())
-	})
+	return predicate.User(sql.OrPredicates(predicates...))
 }
 
 // Not applies the not operator on the given predicate.
 func Not(p predicate.User) predicate.User {
-	return predicate.User(func(s *sql.Selector) {
-		p(s.Not())
-	})
+	return predicate.User(sql.NotPredicates(p))
 }

@@ -37,9 +37,25 @@ func (golu *GenerationOutputLikeUpdate) SetOutputID(u uuid.UUID) *GenerationOutp
 	return golu
 }
 
+// SetNillableOutputID sets the "output_id" field if the given value is not nil.
+func (golu *GenerationOutputLikeUpdate) SetNillableOutputID(u *uuid.UUID) *GenerationOutputLikeUpdate {
+	if u != nil {
+		golu.SetOutputID(*u)
+	}
+	return golu
+}
+
 // SetLikedByUserID sets the "liked_by_user_id" field.
 func (golu *GenerationOutputLikeUpdate) SetLikedByUserID(u uuid.UUID) *GenerationOutputLikeUpdate {
 	golu.mutation.SetLikedByUserID(u)
+	return golu
+}
+
+// SetNillableLikedByUserID sets the "liked_by_user_id" field if the given value is not nil.
+func (golu *GenerationOutputLikeUpdate) SetNillableLikedByUserID(u *uuid.UUID) *GenerationOutputLikeUpdate {
+	if u != nil {
+		golu.SetLikedByUserID(*u)
+	}
 	return golu
 }
 
@@ -84,7 +100,7 @@ func (golu *GenerationOutputLikeUpdate) ClearUsers() *GenerationOutputLikeUpdate
 
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (golu *GenerationOutputLikeUpdate) Save(ctx context.Context) (int, error) {
-	return withHooks[int, GenerationOutputLikeMutation](ctx, golu.sqlSave, golu.mutation, golu.hooks)
+	return withHooks(ctx, golu.sqlSave, golu.mutation, golu.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -111,10 +127,10 @@ func (golu *GenerationOutputLikeUpdate) ExecX(ctx context.Context) {
 
 // check runs all checks and user-defined validators on the builder.
 func (golu *GenerationOutputLikeUpdate) check() error {
-	if _, ok := golu.mutation.GenerationOutputsID(); golu.mutation.GenerationOutputsCleared() && !ok {
+	if golu.mutation.GenerationOutputsCleared() && len(golu.mutation.GenerationOutputsIDs()) > 0 {
 		return errors.New(`ent: clearing a required unique edge "GenerationOutputLike.generation_outputs"`)
 	}
-	if _, ok := golu.mutation.UsersID(); golu.mutation.UsersCleared() && !ok {
+	if golu.mutation.UsersCleared() && len(golu.mutation.UsersIDs()) > 0 {
 		return errors.New(`ent: clearing a required unique edge "GenerationOutputLike.users"`)
 	}
 	return nil
@@ -130,16 +146,7 @@ func (golu *GenerationOutputLikeUpdate) sqlSave(ctx context.Context) (n int, err
 	if err := golu.check(); err != nil {
 		return n, err
 	}
-	_spec := &sqlgraph.UpdateSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   generationoutputlike.Table,
-			Columns: generationoutputlike.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeUUID,
-				Column: generationoutputlike.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewUpdateSpec(generationoutputlike.Table, generationoutputlike.Columns, sqlgraph.NewFieldSpec(generationoutputlike.FieldID, field.TypeUUID))
 	if ps := golu.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
@@ -155,10 +162,7 @@ func (golu *GenerationOutputLikeUpdate) sqlSave(ctx context.Context) (n int, err
 			Columns: []string{generationoutputlike.GenerationOutputsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: generationoutput.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(generationoutput.FieldID, field.TypeUUID),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -171,10 +175,7 @@ func (golu *GenerationOutputLikeUpdate) sqlSave(ctx context.Context) (n int, err
 			Columns: []string{generationoutputlike.GenerationOutputsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: generationoutput.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(generationoutput.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -190,10 +191,7 @@ func (golu *GenerationOutputLikeUpdate) sqlSave(ctx context.Context) (n int, err
 			Columns: []string{generationoutputlike.UsersColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: user.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeUUID),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -206,10 +204,7 @@ func (golu *GenerationOutputLikeUpdate) sqlSave(ctx context.Context) (n int, err
 			Columns: []string{generationoutputlike.UsersColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: user.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -245,9 +240,25 @@ func (goluo *GenerationOutputLikeUpdateOne) SetOutputID(u uuid.UUID) *Generation
 	return goluo
 }
 
+// SetNillableOutputID sets the "output_id" field if the given value is not nil.
+func (goluo *GenerationOutputLikeUpdateOne) SetNillableOutputID(u *uuid.UUID) *GenerationOutputLikeUpdateOne {
+	if u != nil {
+		goluo.SetOutputID(*u)
+	}
+	return goluo
+}
+
 // SetLikedByUserID sets the "liked_by_user_id" field.
 func (goluo *GenerationOutputLikeUpdateOne) SetLikedByUserID(u uuid.UUID) *GenerationOutputLikeUpdateOne {
 	goluo.mutation.SetLikedByUserID(u)
+	return goluo
+}
+
+// SetNillableLikedByUserID sets the "liked_by_user_id" field if the given value is not nil.
+func (goluo *GenerationOutputLikeUpdateOne) SetNillableLikedByUserID(u *uuid.UUID) *GenerationOutputLikeUpdateOne {
+	if u != nil {
+		goluo.SetLikedByUserID(*u)
+	}
 	return goluo
 }
 
@@ -290,6 +301,12 @@ func (goluo *GenerationOutputLikeUpdateOne) ClearUsers() *GenerationOutputLikeUp
 	return goluo
 }
 
+// Where appends a list predicates to the GenerationOutputLikeUpdate builder.
+func (goluo *GenerationOutputLikeUpdateOne) Where(ps ...predicate.GenerationOutputLike) *GenerationOutputLikeUpdateOne {
+	goluo.mutation.Where(ps...)
+	return goluo
+}
+
 // Select allows selecting one or more fields (columns) of the returned entity.
 // The default is selecting all fields defined in the entity schema.
 func (goluo *GenerationOutputLikeUpdateOne) Select(field string, fields ...string) *GenerationOutputLikeUpdateOne {
@@ -299,7 +316,7 @@ func (goluo *GenerationOutputLikeUpdateOne) Select(field string, fields ...strin
 
 // Save executes the query and returns the updated GenerationOutputLike entity.
 func (goluo *GenerationOutputLikeUpdateOne) Save(ctx context.Context) (*GenerationOutputLike, error) {
-	return withHooks[*GenerationOutputLike, GenerationOutputLikeMutation](ctx, goluo.sqlSave, goluo.mutation, goluo.hooks)
+	return withHooks(ctx, goluo.sqlSave, goluo.mutation, goluo.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -326,10 +343,10 @@ func (goluo *GenerationOutputLikeUpdateOne) ExecX(ctx context.Context) {
 
 // check runs all checks and user-defined validators on the builder.
 func (goluo *GenerationOutputLikeUpdateOne) check() error {
-	if _, ok := goluo.mutation.GenerationOutputsID(); goluo.mutation.GenerationOutputsCleared() && !ok {
+	if goluo.mutation.GenerationOutputsCleared() && len(goluo.mutation.GenerationOutputsIDs()) > 0 {
 		return errors.New(`ent: clearing a required unique edge "GenerationOutputLike.generation_outputs"`)
 	}
-	if _, ok := goluo.mutation.UsersID(); goluo.mutation.UsersCleared() && !ok {
+	if goluo.mutation.UsersCleared() && len(goluo.mutation.UsersIDs()) > 0 {
 		return errors.New(`ent: clearing a required unique edge "GenerationOutputLike.users"`)
 	}
 	return nil
@@ -345,16 +362,7 @@ func (goluo *GenerationOutputLikeUpdateOne) sqlSave(ctx context.Context) (_node 
 	if err := goluo.check(); err != nil {
 		return _node, err
 	}
-	_spec := &sqlgraph.UpdateSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   generationoutputlike.Table,
-			Columns: generationoutputlike.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeUUID,
-				Column: generationoutputlike.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewUpdateSpec(generationoutputlike.Table, generationoutputlike.Columns, sqlgraph.NewFieldSpec(generationoutputlike.FieldID, field.TypeUUID))
 	id, ok := goluo.mutation.ID()
 	if !ok {
 		return nil, &ValidationError{Name: "id", err: errors.New(`ent: missing "GenerationOutputLike.id" for update`)}
@@ -387,10 +395,7 @@ func (goluo *GenerationOutputLikeUpdateOne) sqlSave(ctx context.Context) (_node 
 			Columns: []string{generationoutputlike.GenerationOutputsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: generationoutput.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(generationoutput.FieldID, field.TypeUUID),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -403,10 +408,7 @@ func (goluo *GenerationOutputLikeUpdateOne) sqlSave(ctx context.Context) (_node 
 			Columns: []string{generationoutputlike.GenerationOutputsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: generationoutput.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(generationoutput.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -422,10 +424,7 @@ func (goluo *GenerationOutputLikeUpdateOne) sqlSave(ctx context.Context) (_node 
 			Columns: []string{generationoutputlike.UsersColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: user.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeUUID),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -438,10 +437,7 @@ func (goluo *GenerationOutputLikeUpdateOne) sqlSave(ctx context.Context) (_node 
 			Columns: []string{generationoutputlike.UsersColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: user.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

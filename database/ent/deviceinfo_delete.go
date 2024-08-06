@@ -27,7 +27,7 @@ func (did *DeviceInfoDelete) Where(ps ...predicate.DeviceInfo) *DeviceInfoDelete
 
 // Exec executes the deletion query and returns how many vertices were deleted.
 func (did *DeviceInfoDelete) Exec(ctx context.Context) (int, error) {
-	return withHooks[int, DeviceInfoMutation](ctx, did.sqlExec, did.mutation, did.hooks)
+	return withHooks(ctx, did.sqlExec, did.mutation, did.hooks)
 }
 
 // ExecX is like Exec, but panics if an error occurs.
@@ -40,15 +40,7 @@ func (did *DeviceInfoDelete) ExecX(ctx context.Context) int {
 }
 
 func (did *DeviceInfoDelete) sqlExec(ctx context.Context) (int, error) {
-	_spec := &sqlgraph.DeleteSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table: deviceinfo.Table,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeUUID,
-				Column: deviceinfo.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewDeleteSpec(deviceinfo.Table, sqlgraph.NewFieldSpec(deviceinfo.FieldID, field.TypeUUID))
 	if ps := did.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
@@ -69,6 +61,12 @@ type DeviceInfoDeleteOne struct {
 	did *DeviceInfoDelete
 }
 
+// Where appends a list predicates to the DeviceInfoDelete builder.
+func (dido *DeviceInfoDeleteOne) Where(ps ...predicate.DeviceInfo) *DeviceInfoDeleteOne {
+	dido.did.mutation.Where(ps...)
+	return dido
+}
+
 // Exec executes the deletion query.
 func (dido *DeviceInfoDeleteOne) Exec(ctx context.Context) error {
 	n, err := dido.did.Exec(ctx)
@@ -84,5 +82,7 @@ func (dido *DeviceInfoDeleteOne) Exec(ctx context.Context) error {
 
 // ExecX is like Exec, but panics if an error occurs.
 func (dido *DeviceInfoDeleteOne) ExecX(ctx context.Context) {
-	dido.did.ExecX(ctx)
+	if err := dido.Exec(ctx); err != nil {
+		panic(err)
+	}
 }

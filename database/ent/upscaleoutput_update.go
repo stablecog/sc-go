@@ -38,6 +38,14 @@ func (uou *UpscaleOutputUpdate) SetImagePath(s string) *UpscaleOutputUpdate {
 	return uou
 }
 
+// SetNillableImagePath sets the "image_path" field if the given value is not nil.
+func (uou *UpscaleOutputUpdate) SetNillableImagePath(s *string) *UpscaleOutputUpdate {
+	if s != nil {
+		uou.SetImagePath(*s)
+	}
+	return uou
+}
+
 // SetInputImageURL sets the "input_image_url" field.
 func (uou *UpscaleOutputUpdate) SetInputImageURL(s string) *UpscaleOutputUpdate {
 	uou.mutation.SetInputImageURL(s)
@@ -61,6 +69,14 @@ func (uou *UpscaleOutputUpdate) ClearInputImageURL() *UpscaleOutputUpdate {
 // SetUpscaleID sets the "upscale_id" field.
 func (uou *UpscaleOutputUpdate) SetUpscaleID(u uuid.UUID) *UpscaleOutputUpdate {
 	uou.mutation.SetUpscaleID(u)
+	return uou
+}
+
+// SetNillableUpscaleID sets the "upscale_id" field if the given value is not nil.
+func (uou *UpscaleOutputUpdate) SetNillableUpscaleID(u *uuid.UUID) *UpscaleOutputUpdate {
+	if u != nil {
+		uou.SetUpscaleID(*u)
+	}
 	return uou
 }
 
@@ -146,7 +162,7 @@ func (uou *UpscaleOutputUpdate) ClearGenerationOutput() *UpscaleOutputUpdate {
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (uou *UpscaleOutputUpdate) Save(ctx context.Context) (int, error) {
 	uou.defaults()
-	return withHooks[int, UpscaleOutputMutation](ctx, uou.sqlSave, uou.mutation, uou.hooks)
+	return withHooks(ctx, uou.sqlSave, uou.mutation, uou.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -181,7 +197,7 @@ func (uou *UpscaleOutputUpdate) defaults() {
 
 // check runs all checks and user-defined validators on the builder.
 func (uou *UpscaleOutputUpdate) check() error {
-	if _, ok := uou.mutation.UpscalesID(); uou.mutation.UpscalesCleared() && !ok {
+	if uou.mutation.UpscalesCleared() && len(uou.mutation.UpscalesIDs()) > 0 {
 		return errors.New(`ent: clearing a required unique edge "UpscaleOutput.upscales"`)
 	}
 	return nil
@@ -197,16 +213,7 @@ func (uou *UpscaleOutputUpdate) sqlSave(ctx context.Context) (n int, err error) 
 	if err := uou.check(); err != nil {
 		return n, err
 	}
-	_spec := &sqlgraph.UpdateSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   upscaleoutput.Table,
-			Columns: upscaleoutput.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeUUID,
-				Column: upscaleoutput.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewUpdateSpec(upscaleoutput.Table, upscaleoutput.Columns, sqlgraph.NewFieldSpec(upscaleoutput.FieldID, field.TypeUUID))
 	if ps := uou.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
@@ -240,10 +247,7 @@ func (uou *UpscaleOutputUpdate) sqlSave(ctx context.Context) (n int, err error) 
 			Columns: []string{upscaleoutput.UpscalesColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: upscale.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(upscale.FieldID, field.TypeUUID),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -256,10 +260,7 @@ func (uou *UpscaleOutputUpdate) sqlSave(ctx context.Context) (n int, err error) 
 			Columns: []string{upscaleoutput.UpscalesColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: upscale.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(upscale.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -275,10 +276,7 @@ func (uou *UpscaleOutputUpdate) sqlSave(ctx context.Context) (n int, err error) 
 			Columns: []string{upscaleoutput.GenerationOutputColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: generationoutput.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(generationoutput.FieldID, field.TypeUUID),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -291,10 +289,7 @@ func (uou *UpscaleOutputUpdate) sqlSave(ctx context.Context) (n int, err error) 
 			Columns: []string{upscaleoutput.GenerationOutputColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: generationoutput.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(generationoutput.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -330,6 +325,14 @@ func (uouo *UpscaleOutputUpdateOne) SetImagePath(s string) *UpscaleOutputUpdateO
 	return uouo
 }
 
+// SetNillableImagePath sets the "image_path" field if the given value is not nil.
+func (uouo *UpscaleOutputUpdateOne) SetNillableImagePath(s *string) *UpscaleOutputUpdateOne {
+	if s != nil {
+		uouo.SetImagePath(*s)
+	}
+	return uouo
+}
+
 // SetInputImageURL sets the "input_image_url" field.
 func (uouo *UpscaleOutputUpdateOne) SetInputImageURL(s string) *UpscaleOutputUpdateOne {
 	uouo.mutation.SetInputImageURL(s)
@@ -353,6 +356,14 @@ func (uouo *UpscaleOutputUpdateOne) ClearInputImageURL() *UpscaleOutputUpdateOne
 // SetUpscaleID sets the "upscale_id" field.
 func (uouo *UpscaleOutputUpdateOne) SetUpscaleID(u uuid.UUID) *UpscaleOutputUpdateOne {
 	uouo.mutation.SetUpscaleID(u)
+	return uouo
+}
+
+// SetNillableUpscaleID sets the "upscale_id" field if the given value is not nil.
+func (uouo *UpscaleOutputUpdateOne) SetNillableUpscaleID(u *uuid.UUID) *UpscaleOutputUpdateOne {
+	if u != nil {
+		uouo.SetUpscaleID(*u)
+	}
 	return uouo
 }
 
@@ -435,6 +446,12 @@ func (uouo *UpscaleOutputUpdateOne) ClearGenerationOutput() *UpscaleOutputUpdate
 	return uouo
 }
 
+// Where appends a list predicates to the UpscaleOutputUpdate builder.
+func (uouo *UpscaleOutputUpdateOne) Where(ps ...predicate.UpscaleOutput) *UpscaleOutputUpdateOne {
+	uouo.mutation.Where(ps...)
+	return uouo
+}
+
 // Select allows selecting one or more fields (columns) of the returned entity.
 // The default is selecting all fields defined in the entity schema.
 func (uouo *UpscaleOutputUpdateOne) Select(field string, fields ...string) *UpscaleOutputUpdateOne {
@@ -445,7 +462,7 @@ func (uouo *UpscaleOutputUpdateOne) Select(field string, fields ...string) *Upsc
 // Save executes the query and returns the updated UpscaleOutput entity.
 func (uouo *UpscaleOutputUpdateOne) Save(ctx context.Context) (*UpscaleOutput, error) {
 	uouo.defaults()
-	return withHooks[*UpscaleOutput, UpscaleOutputMutation](ctx, uouo.sqlSave, uouo.mutation, uouo.hooks)
+	return withHooks(ctx, uouo.sqlSave, uouo.mutation, uouo.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -480,7 +497,7 @@ func (uouo *UpscaleOutputUpdateOne) defaults() {
 
 // check runs all checks and user-defined validators on the builder.
 func (uouo *UpscaleOutputUpdateOne) check() error {
-	if _, ok := uouo.mutation.UpscalesID(); uouo.mutation.UpscalesCleared() && !ok {
+	if uouo.mutation.UpscalesCleared() && len(uouo.mutation.UpscalesIDs()) > 0 {
 		return errors.New(`ent: clearing a required unique edge "UpscaleOutput.upscales"`)
 	}
 	return nil
@@ -496,16 +513,7 @@ func (uouo *UpscaleOutputUpdateOne) sqlSave(ctx context.Context) (_node *Upscale
 	if err := uouo.check(); err != nil {
 		return _node, err
 	}
-	_spec := &sqlgraph.UpdateSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   upscaleoutput.Table,
-			Columns: upscaleoutput.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeUUID,
-				Column: upscaleoutput.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewUpdateSpec(upscaleoutput.Table, upscaleoutput.Columns, sqlgraph.NewFieldSpec(upscaleoutput.FieldID, field.TypeUUID))
 	id, ok := uouo.mutation.ID()
 	if !ok {
 		return nil, &ValidationError{Name: "id", err: errors.New(`ent: missing "UpscaleOutput.id" for update`)}
@@ -556,10 +564,7 @@ func (uouo *UpscaleOutputUpdateOne) sqlSave(ctx context.Context) (_node *Upscale
 			Columns: []string{upscaleoutput.UpscalesColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: upscale.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(upscale.FieldID, field.TypeUUID),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -572,10 +577,7 @@ func (uouo *UpscaleOutputUpdateOne) sqlSave(ctx context.Context) (_node *Upscale
 			Columns: []string{upscaleoutput.UpscalesColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: upscale.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(upscale.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -591,10 +593,7 @@ func (uouo *UpscaleOutputUpdateOne) sqlSave(ctx context.Context) (_node *Upscale
 			Columns: []string{upscaleoutput.GenerationOutputColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: generationoutput.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(generationoutput.FieldID, field.TypeUUID),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -607,10 +606,7 @@ func (uouo *UpscaleOutputUpdateOne) sqlSave(ctx context.Context) (_node *Upscale
 			Columns: []string{upscaleoutput.GenerationOutputColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: generationoutput.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(generationoutput.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

@@ -429,7 +429,7 @@ func (gc *GenerationCreate) Mutation() *GenerationMutation {
 // Save creates the Generation in the database.
 func (gc *GenerationCreate) Save(ctx context.Context) (*Generation, error) {
 	gc.defaults()
-	return withHooks[*Generation, GenerationMutation](ctx, gc.sqlSave, gc.mutation, gc.hooks)
+	return withHooks(ctx, gc.sqlSave, gc.mutation, gc.hooks)
 }
 
 // SaveX calls Save and panics if Save returns an error.
@@ -549,16 +549,16 @@ func (gc *GenerationCreate) check() error {
 	if _, ok := gc.mutation.UpdatedAt(); !ok {
 		return &ValidationError{Name: "updated_at", err: errors.New(`ent: missing required field "Generation.updated_at"`)}
 	}
-	if _, ok := gc.mutation.DeviceInfoID(); !ok {
+	if len(gc.mutation.DeviceInfoIDs()) == 0 {
 		return &ValidationError{Name: "device_info", err: errors.New(`ent: missing required edge "Generation.device_info"`)}
 	}
-	if _, ok := gc.mutation.SchedulerID(); !ok {
+	if len(gc.mutation.SchedulerIDs()) == 0 {
 		return &ValidationError{Name: "scheduler", err: errors.New(`ent: missing required edge "Generation.scheduler"`)}
 	}
-	if _, ok := gc.mutation.GenerationModelID(); !ok {
+	if len(gc.mutation.GenerationModelIDs()) == 0 {
 		return &ValidationError{Name: "generation_model", err: errors.New(`ent: missing required edge "Generation.generation_model"`)}
 	}
-	if _, ok := gc.mutation.UserID(); !ok {
+	if len(gc.mutation.UserIDs()) == 0 {
 		return &ValidationError{Name: "user", err: errors.New(`ent: missing required edge "Generation.user"`)}
 	}
 	return nil
@@ -590,13 +590,7 @@ func (gc *GenerationCreate) sqlSave(ctx context.Context) (*Generation, error) {
 func (gc *GenerationCreate) createSpec() (*Generation, *sqlgraph.CreateSpec) {
 	var (
 		_node = &Generation{config: gc.config}
-		_spec = &sqlgraph.CreateSpec{
-			Table: generation.Table,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeUUID,
-				Column: generation.FieldID,
-			},
-		}
+		_spec = sqlgraph.NewCreateSpec(generation.Table, sqlgraph.NewFieldSpec(generation.FieldID, field.TypeUUID))
 	)
 	_spec.OnConflict = gc.conflict
 	if id, ok := gc.mutation.ID(); ok {
@@ -695,10 +689,7 @@ func (gc *GenerationCreate) createSpec() (*Generation, *sqlgraph.CreateSpec) {
 			Columns: []string{generation.DeviceInfoColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: deviceinfo.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(deviceinfo.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -715,10 +706,7 @@ func (gc *GenerationCreate) createSpec() (*Generation, *sqlgraph.CreateSpec) {
 			Columns: []string{generation.SchedulerColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: scheduler.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(scheduler.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -735,10 +723,7 @@ func (gc *GenerationCreate) createSpec() (*Generation, *sqlgraph.CreateSpec) {
 			Columns: []string{generation.PromptColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: prompt.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(prompt.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -755,10 +740,7 @@ func (gc *GenerationCreate) createSpec() (*Generation, *sqlgraph.CreateSpec) {
 			Columns: []string{generation.NegativePromptColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: negativeprompt.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(negativeprompt.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -775,10 +757,7 @@ func (gc *GenerationCreate) createSpec() (*Generation, *sqlgraph.CreateSpec) {
 			Columns: []string{generation.GenerationModelColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: generationmodel.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(generationmodel.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -795,10 +774,7 @@ func (gc *GenerationCreate) createSpec() (*Generation, *sqlgraph.CreateSpec) {
 			Columns: []string{generation.UserColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: user.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -815,10 +791,7 @@ func (gc *GenerationCreate) createSpec() (*Generation, *sqlgraph.CreateSpec) {
 			Columns: []string{generation.APITokensColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: apitoken.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(apitoken.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -835,10 +808,7 @@ func (gc *GenerationCreate) createSpec() (*Generation, *sqlgraph.CreateSpec) {
 			Columns: []string{generation.GenerationOutputsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: generationoutput.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(generationoutput.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -1939,12 +1909,16 @@ func (u *GenerationUpsertOne) IDX(ctx context.Context) uuid.UUID {
 // GenerationCreateBulk is the builder for creating many Generation entities in bulk.
 type GenerationCreateBulk struct {
 	config
+	err      error
 	builders []*GenerationCreate
 	conflict []sql.ConflictOption
 }
 
 // Save creates the Generation entities in the database.
 func (gcb *GenerationCreateBulk) Save(ctx context.Context) ([]*Generation, error) {
+	if gcb.err != nil {
+		return nil, gcb.err
+	}
 	specs := make([]*sqlgraph.CreateSpec, len(gcb.builders))
 	nodes := make([]*Generation, len(gcb.builders))
 	mutators := make([]Mutator, len(gcb.builders))
@@ -1961,8 +1935,8 @@ func (gcb *GenerationCreateBulk) Save(ctx context.Context) ([]*Generation, error
 					return nil, err
 				}
 				builder.mutation = mutation
-				nodes[i], specs[i] = builder.createSpec()
 				var err error
+				nodes[i], specs[i] = builder.createSpec()
 				if i < len(mutators)-1 {
 					_, err = mutators[i+1].Mutate(root, gcb.builders[i+1].mutation)
 				} else {
@@ -2625,6 +2599,9 @@ func (u *GenerationUpsertBulk) UpdateUpdatedAt() *GenerationUpsertBulk {
 
 // Exec executes the query.
 func (u *GenerationUpsertBulk) Exec(ctx context.Context) error {
+	if u.create.err != nil {
+		return u.create.err
+	}
 	for i, b := range u.create.builders {
 		if len(b.conflict) != 0 {
 			return fmt.Errorf("ent: OnConflict was set for builder %d. Set it on the GenerationCreateBulk instead", i)

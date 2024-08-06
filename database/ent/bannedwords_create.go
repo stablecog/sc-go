@@ -100,7 +100,7 @@ func (bwc *BannedWordsCreate) Mutation() *BannedWordsMutation {
 // Save creates the BannedWords in the database.
 func (bwc *BannedWordsCreate) Save(ctx context.Context) (*BannedWords, error) {
 	bwc.defaults()
-	return withHooks[*BannedWords, BannedWordsMutation](ctx, bwc.sqlSave, bwc.mutation, bwc.hooks)
+	return withHooks(ctx, bwc.sqlSave, bwc.mutation, bwc.hooks)
 }
 
 // SaveX calls Save and panics if Save returns an error.
@@ -191,13 +191,7 @@ func (bwc *BannedWordsCreate) sqlSave(ctx context.Context) (*BannedWords, error)
 func (bwc *BannedWordsCreate) createSpec() (*BannedWords, *sqlgraph.CreateSpec) {
 	var (
 		_node = &BannedWords{config: bwc.config}
-		_spec = &sqlgraph.CreateSpec{
-			Table: bannedwords.Table,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeUUID,
-				Column: bannedwords.FieldID,
-			},
-		}
+		_spec = sqlgraph.NewCreateSpec(bannedwords.Table, sqlgraph.NewFieldSpec(bannedwords.FieldID, field.TypeUUID))
 	)
 	_spec.OnConflict = bwc.conflict
 	if id, ok := bwc.mutation.ID(); ok {
@@ -472,12 +466,16 @@ func (u *BannedWordsUpsertOne) IDX(ctx context.Context) uuid.UUID {
 // BannedWordsCreateBulk is the builder for creating many BannedWords entities in bulk.
 type BannedWordsCreateBulk struct {
 	config
+	err      error
 	builders []*BannedWordsCreate
 	conflict []sql.ConflictOption
 }
 
 // Save creates the BannedWords entities in the database.
 func (bwcb *BannedWordsCreateBulk) Save(ctx context.Context) ([]*BannedWords, error) {
+	if bwcb.err != nil {
+		return nil, bwcb.err
+	}
 	specs := make([]*sqlgraph.CreateSpec, len(bwcb.builders))
 	nodes := make([]*BannedWords, len(bwcb.builders))
 	mutators := make([]Mutator, len(bwcb.builders))
@@ -494,8 +492,8 @@ func (bwcb *BannedWordsCreateBulk) Save(ctx context.Context) ([]*BannedWords, er
 					return nil, err
 				}
 				builder.mutation = mutation
-				nodes[i], specs[i] = builder.createSpec()
 				var err error
+				nodes[i], specs[i] = builder.createSpec()
 				if i < len(mutators)-1 {
 					_, err = mutators[i+1].Mutate(root, bwcb.builders[i+1].mutation)
 				} else {
@@ -703,6 +701,9 @@ func (u *BannedWordsUpsertBulk) UpdateUpdatedAt() *BannedWordsUpsertBulk {
 
 // Exec executes the query.
 func (u *BannedWordsUpsertBulk) Exec(ctx context.Context) error {
+	if u.create.err != nil {
+		return u.create.err
+	}
 	for i, b := range u.create.builders {
 		if len(b.conflict) != 0 {
 			return fmt.Errorf("ent: OnConflict was set for builder %d. Set it on the BannedWordsCreateBulk instead", i)

@@ -242,7 +242,7 @@ func (atc *ApiTokenCreate) Mutation() *ApiTokenMutation {
 // Save creates the ApiToken in the database.
 func (atc *ApiTokenCreate) Save(ctx context.Context) (*ApiToken, error) {
 	atc.defaults()
-	return withHooks[*ApiToken, ApiTokenMutation](ctx, atc.sqlSave, atc.mutation, atc.hooks)
+	return withHooks(ctx, atc.sqlSave, atc.mutation, atc.hooks)
 }
 
 // SaveX calls Save and panics if Save returns an error.
@@ -324,7 +324,7 @@ func (atc *ApiTokenCreate) check() error {
 	if _, ok := atc.mutation.UpdatedAt(); !ok {
 		return &ValidationError{Name: "updated_at", err: errors.New(`ent: missing required field "ApiToken.updated_at"`)}
 	}
-	if _, ok := atc.mutation.UserID(); !ok {
+	if len(atc.mutation.UserIDs()) == 0 {
 		return &ValidationError{Name: "user", err: errors.New(`ent: missing required edge "ApiToken.user"`)}
 	}
 	return nil
@@ -356,13 +356,7 @@ func (atc *ApiTokenCreate) sqlSave(ctx context.Context) (*ApiToken, error) {
 func (atc *ApiTokenCreate) createSpec() (*ApiToken, *sqlgraph.CreateSpec) {
 	var (
 		_node = &ApiToken{config: atc.config}
-		_spec = &sqlgraph.CreateSpec{
-			Table: apitoken.Table,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeUUID,
-				Column: apitoken.FieldID,
-			},
-		}
+		_spec = sqlgraph.NewCreateSpec(apitoken.Table, sqlgraph.NewFieldSpec(apitoken.FieldID, field.TypeUUID))
 	)
 	_spec.OnConflict = atc.conflict
 	if id, ok := atc.mutation.ID(); ok {
@@ -413,10 +407,7 @@ func (atc *ApiTokenCreate) createSpec() (*ApiToken, *sqlgraph.CreateSpec) {
 			Columns: []string{apitoken.UserColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: user.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -433,10 +424,7 @@ func (atc *ApiTokenCreate) createSpec() (*ApiToken, *sqlgraph.CreateSpec) {
 			Columns: []string{apitoken.GenerationsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: generation.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(generation.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -452,10 +440,7 @@ func (atc *ApiTokenCreate) createSpec() (*ApiToken, *sqlgraph.CreateSpec) {
 			Columns: []string{apitoken.UpscalesColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: upscale.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(upscale.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -471,10 +456,7 @@ func (atc *ApiTokenCreate) createSpec() (*ApiToken, *sqlgraph.CreateSpec) {
 			Columns: []string{apitoken.VoiceoversColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: voiceover.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(voiceover.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -490,10 +472,7 @@ func (atc *ApiTokenCreate) createSpec() (*ApiToken, *sqlgraph.CreateSpec) {
 			Columns: []string{apitoken.AuthClientsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: authclient.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(authclient.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -958,12 +937,16 @@ func (u *ApiTokenUpsertOne) IDX(ctx context.Context) uuid.UUID {
 // ApiTokenCreateBulk is the builder for creating many ApiToken entities in bulk.
 type ApiTokenCreateBulk struct {
 	config
+	err      error
 	builders []*ApiTokenCreate
 	conflict []sql.ConflictOption
 }
 
 // Save creates the ApiToken entities in the database.
 func (atcb *ApiTokenCreateBulk) Save(ctx context.Context) ([]*ApiToken, error) {
+	if atcb.err != nil {
+		return nil, atcb.err
+	}
 	specs := make([]*sqlgraph.CreateSpec, len(atcb.builders))
 	nodes := make([]*ApiToken, len(atcb.builders))
 	mutators := make([]Mutator, len(atcb.builders))
@@ -980,8 +963,8 @@ func (atcb *ApiTokenCreateBulk) Save(ctx context.Context) ([]*ApiToken, error) {
 					return nil, err
 				}
 				builder.mutation = mutation
-				nodes[i], specs[i] = builder.createSpec()
 				var err error
+				nodes[i], specs[i] = builder.createSpec()
 				if i < len(mutators)-1 {
 					_, err = mutators[i+1].Mutate(root, atcb.builders[i+1].mutation)
 				} else {
@@ -1301,6 +1284,9 @@ func (u *ApiTokenUpsertBulk) UpdateUpdatedAt() *ApiTokenUpsertBulk {
 
 // Exec executes the query.
 func (u *ApiTokenUpsertBulk) Exec(ctx context.Context) error {
+	if u.create.err != nil {
+		return u.create.err
+	}
 	for i, b := range u.create.builders {
 		if len(b.conflict) != 0 {
 			return fmt.Errorf("ent: OnConflict was set for builder %d. Set it on the ApiTokenCreateBulk instead", i)

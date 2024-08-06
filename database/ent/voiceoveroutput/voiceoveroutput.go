@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"time"
 
+	"entgo.io/ent/dialect/sql"
+	"entgo.io/ent/dialect/sql/sqlgraph"
 	"github.com/google/uuid"
 )
 
@@ -111,4 +113,71 @@ func GalleryStatusValidator(gs GalleryStatus) error {
 	default:
 		return fmt.Errorf("voiceoveroutput: invalid enum value for gallery_status field: %q", gs)
 	}
+}
+
+// OrderOption defines the ordering options for the VoiceoverOutput queries.
+type OrderOption func(*sql.Selector)
+
+// ByID orders the results by the id field.
+func ByID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldID, opts...).ToFunc()
+}
+
+// ByAudioPath orders the results by the audio_path field.
+func ByAudioPath(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldAudioPath, opts...).ToFunc()
+}
+
+// ByVideoPath orders the results by the video_path field.
+func ByVideoPath(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldVideoPath, opts...).ToFunc()
+}
+
+// ByIsFavorited orders the results by the is_favorited field.
+func ByIsFavorited(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldIsFavorited, opts...).ToFunc()
+}
+
+// ByAudioDuration orders the results by the audio_duration field.
+func ByAudioDuration(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldAudioDuration, opts...).ToFunc()
+}
+
+// ByGalleryStatus orders the results by the gallery_status field.
+func ByGalleryStatus(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldGalleryStatus, opts...).ToFunc()
+}
+
+// ByVoiceoverID orders the results by the voiceover_id field.
+func ByVoiceoverID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldVoiceoverID, opts...).ToFunc()
+}
+
+// ByDeletedAt orders the results by the deleted_at field.
+func ByDeletedAt(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldDeletedAt, opts...).ToFunc()
+}
+
+// ByCreatedAt orders the results by the created_at field.
+func ByCreatedAt(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldCreatedAt, opts...).ToFunc()
+}
+
+// ByUpdatedAt orders the results by the updated_at field.
+func ByUpdatedAt(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldUpdatedAt, opts...).ToFunc()
+}
+
+// ByVoiceoversField orders the results by voiceovers field.
+func ByVoiceoversField(field string, opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newVoiceoversStep(), sql.OrderByField(field, opts...))
+	}
+}
+func newVoiceoversStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(VoiceoversInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, true, VoiceoversTable, VoiceoversColumn),
+	)
 }

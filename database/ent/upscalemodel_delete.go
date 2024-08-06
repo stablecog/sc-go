@@ -27,7 +27,7 @@ func (umd *UpscaleModelDelete) Where(ps ...predicate.UpscaleModel) *UpscaleModel
 
 // Exec executes the deletion query and returns how many vertices were deleted.
 func (umd *UpscaleModelDelete) Exec(ctx context.Context) (int, error) {
-	return withHooks[int, UpscaleModelMutation](ctx, umd.sqlExec, umd.mutation, umd.hooks)
+	return withHooks(ctx, umd.sqlExec, umd.mutation, umd.hooks)
 }
 
 // ExecX is like Exec, but panics if an error occurs.
@@ -40,15 +40,7 @@ func (umd *UpscaleModelDelete) ExecX(ctx context.Context) int {
 }
 
 func (umd *UpscaleModelDelete) sqlExec(ctx context.Context) (int, error) {
-	_spec := &sqlgraph.DeleteSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table: upscalemodel.Table,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeUUID,
-				Column: upscalemodel.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewDeleteSpec(upscalemodel.Table, sqlgraph.NewFieldSpec(upscalemodel.FieldID, field.TypeUUID))
 	if ps := umd.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
@@ -69,6 +61,12 @@ type UpscaleModelDeleteOne struct {
 	umd *UpscaleModelDelete
 }
 
+// Where appends a list predicates to the UpscaleModelDelete builder.
+func (umdo *UpscaleModelDeleteOne) Where(ps ...predicate.UpscaleModel) *UpscaleModelDeleteOne {
+	umdo.umd.mutation.Where(ps...)
+	return umdo
+}
+
 // Exec executes the deletion query.
 func (umdo *UpscaleModelDeleteOne) Exec(ctx context.Context) error {
 	n, err := umdo.umd.Exec(ctx)
@@ -84,5 +82,7 @@ func (umdo *UpscaleModelDeleteOne) Exec(ctx context.Context) error {
 
 // ExecX is like Exec, but panics if an error occurs.
 func (umdo *UpscaleModelDeleteOne) ExecX(ctx context.Context) {
-	umdo.umd.ExecX(ctx)
+	if err := umdo.Exec(ctx); err != nil {
+		panic(err)
+	}
 }

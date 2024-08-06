@@ -37,6 +37,14 @@ func (acu *AuthClientUpdate) SetName(s string) *AuthClientUpdate {
 	return acu
 }
 
+// SetNillableName sets the "name" field if the given value is not nil.
+func (acu *AuthClientUpdate) SetNillableName(s *string) *AuthClientUpdate {
+	if s != nil {
+		acu.SetName(*s)
+	}
+	return acu
+}
+
 // SetUpdatedAt sets the "updated_at" field.
 func (acu *AuthClientUpdate) SetUpdatedAt(t time.Time) *AuthClientUpdate {
 	acu.mutation.SetUpdatedAt(t)
@@ -87,7 +95,7 @@ func (acu *AuthClientUpdate) RemoveAPITokens(a ...*ApiToken) *AuthClientUpdate {
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (acu *AuthClientUpdate) Save(ctx context.Context) (int, error) {
 	acu.defaults()
-	return withHooks[int, AuthClientMutation](ctx, acu.sqlSave, acu.mutation, acu.hooks)
+	return withHooks(ctx, acu.sqlSave, acu.mutation, acu.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -127,16 +135,7 @@ func (acu *AuthClientUpdate) Modify(modifiers ...func(u *sql.UpdateBuilder)) *Au
 }
 
 func (acu *AuthClientUpdate) sqlSave(ctx context.Context) (n int, err error) {
-	_spec := &sqlgraph.UpdateSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   authclient.Table,
-			Columns: authclient.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeUUID,
-				Column: authclient.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewUpdateSpec(authclient.Table, authclient.Columns, sqlgraph.NewFieldSpec(authclient.FieldID, field.TypeUUID))
 	if ps := acu.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
@@ -158,10 +157,7 @@ func (acu *AuthClientUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: []string{authclient.APITokensColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: apitoken.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(apitoken.FieldID, field.TypeUUID),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -174,10 +170,7 @@ func (acu *AuthClientUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: []string{authclient.APITokensColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: apitoken.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(apitoken.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -193,10 +186,7 @@ func (acu *AuthClientUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: []string{authclient.APITokensColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: apitoken.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(apitoken.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -229,6 +219,14 @@ type AuthClientUpdateOne struct {
 // SetName sets the "name" field.
 func (acuo *AuthClientUpdateOne) SetName(s string) *AuthClientUpdateOne {
 	acuo.mutation.SetName(s)
+	return acuo
+}
+
+// SetNillableName sets the "name" field if the given value is not nil.
+func (acuo *AuthClientUpdateOne) SetNillableName(s *string) *AuthClientUpdateOne {
+	if s != nil {
+		acuo.SetName(*s)
+	}
 	return acuo
 }
 
@@ -279,6 +277,12 @@ func (acuo *AuthClientUpdateOne) RemoveAPITokens(a ...*ApiToken) *AuthClientUpda
 	return acuo.RemoveAPITokenIDs(ids...)
 }
 
+// Where appends a list predicates to the AuthClientUpdate builder.
+func (acuo *AuthClientUpdateOne) Where(ps ...predicate.AuthClient) *AuthClientUpdateOne {
+	acuo.mutation.Where(ps...)
+	return acuo
+}
+
 // Select allows selecting one or more fields (columns) of the returned entity.
 // The default is selecting all fields defined in the entity schema.
 func (acuo *AuthClientUpdateOne) Select(field string, fields ...string) *AuthClientUpdateOne {
@@ -289,7 +293,7 @@ func (acuo *AuthClientUpdateOne) Select(field string, fields ...string) *AuthCli
 // Save executes the query and returns the updated AuthClient entity.
 func (acuo *AuthClientUpdateOne) Save(ctx context.Context) (*AuthClient, error) {
 	acuo.defaults()
-	return withHooks[*AuthClient, AuthClientMutation](ctx, acuo.sqlSave, acuo.mutation, acuo.hooks)
+	return withHooks(ctx, acuo.sqlSave, acuo.mutation, acuo.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -329,16 +333,7 @@ func (acuo *AuthClientUpdateOne) Modify(modifiers ...func(u *sql.UpdateBuilder))
 }
 
 func (acuo *AuthClientUpdateOne) sqlSave(ctx context.Context) (_node *AuthClient, err error) {
-	_spec := &sqlgraph.UpdateSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   authclient.Table,
-			Columns: authclient.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeUUID,
-				Column: authclient.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewUpdateSpec(authclient.Table, authclient.Columns, sqlgraph.NewFieldSpec(authclient.FieldID, field.TypeUUID))
 	id, ok := acuo.mutation.ID()
 	if !ok {
 		return nil, &ValidationError{Name: "id", err: errors.New(`ent: missing "AuthClient.id" for update`)}
@@ -377,10 +372,7 @@ func (acuo *AuthClientUpdateOne) sqlSave(ctx context.Context) (_node *AuthClient
 			Columns: []string{authclient.APITokensColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: apitoken.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(apitoken.FieldID, field.TypeUUID),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -393,10 +385,7 @@ func (acuo *AuthClientUpdateOne) sqlSave(ctx context.Context) (_node *AuthClient
 			Columns: []string{authclient.APITokensColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: apitoken.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(apitoken.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -412,10 +401,7 @@ func (acuo *AuthClientUpdateOne) sqlSave(ctx context.Context) (_node *AuthClient
 			Columns: []string{authclient.APITokensColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: apitoken.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(apitoken.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

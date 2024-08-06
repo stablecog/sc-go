@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"math"
 
+	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
@@ -22,7 +23,7 @@ import (
 type PromptQuery struct {
 	config
 	ctx             *QueryContext
-	order           []OrderFunc
+	order           []prompt.OrderOption
 	inters          []Interceptor
 	predicates      []predicate.Prompt
 	withGenerations *GenerationQuery
@@ -59,7 +60,7 @@ func (pq *PromptQuery) Unique(unique bool) *PromptQuery {
 }
 
 // Order specifies how the records should be ordered.
-func (pq *PromptQuery) Order(o ...OrderFunc) *PromptQuery {
+func (pq *PromptQuery) Order(o ...prompt.OrderOption) *PromptQuery {
 	pq.order = append(pq.order, o...)
 	return pq
 }
@@ -111,7 +112,7 @@ func (pq *PromptQuery) QueryVoiceovers() *VoiceoverQuery {
 // First returns the first Prompt entity from the query.
 // Returns a *NotFoundError when no Prompt was found.
 func (pq *PromptQuery) First(ctx context.Context) (*Prompt, error) {
-	nodes, err := pq.Limit(1).All(setContextOp(ctx, pq.ctx, "First"))
+	nodes, err := pq.Limit(1).All(setContextOp(ctx, pq.ctx, ent.OpQueryFirst))
 	if err != nil {
 		return nil, err
 	}
@@ -134,7 +135,7 @@ func (pq *PromptQuery) FirstX(ctx context.Context) *Prompt {
 // Returns a *NotFoundError when no Prompt ID was found.
 func (pq *PromptQuery) FirstID(ctx context.Context) (id uuid.UUID, err error) {
 	var ids []uuid.UUID
-	if ids, err = pq.Limit(1).IDs(setContextOp(ctx, pq.ctx, "FirstID")); err != nil {
+	if ids, err = pq.Limit(1).IDs(setContextOp(ctx, pq.ctx, ent.OpQueryFirstID)); err != nil {
 		return
 	}
 	if len(ids) == 0 {
@@ -157,7 +158,7 @@ func (pq *PromptQuery) FirstIDX(ctx context.Context) uuid.UUID {
 // Returns a *NotSingularError when more than one Prompt entity is found.
 // Returns a *NotFoundError when no Prompt entities are found.
 func (pq *PromptQuery) Only(ctx context.Context) (*Prompt, error) {
-	nodes, err := pq.Limit(2).All(setContextOp(ctx, pq.ctx, "Only"))
+	nodes, err := pq.Limit(2).All(setContextOp(ctx, pq.ctx, ent.OpQueryOnly))
 	if err != nil {
 		return nil, err
 	}
@@ -185,7 +186,7 @@ func (pq *PromptQuery) OnlyX(ctx context.Context) *Prompt {
 // Returns a *NotFoundError when no entities are found.
 func (pq *PromptQuery) OnlyID(ctx context.Context) (id uuid.UUID, err error) {
 	var ids []uuid.UUID
-	if ids, err = pq.Limit(2).IDs(setContextOp(ctx, pq.ctx, "OnlyID")); err != nil {
+	if ids, err = pq.Limit(2).IDs(setContextOp(ctx, pq.ctx, ent.OpQueryOnlyID)); err != nil {
 		return
 	}
 	switch len(ids) {
@@ -210,7 +211,7 @@ func (pq *PromptQuery) OnlyIDX(ctx context.Context) uuid.UUID {
 
 // All executes the query and returns a list of Prompts.
 func (pq *PromptQuery) All(ctx context.Context) ([]*Prompt, error) {
-	ctx = setContextOp(ctx, pq.ctx, "All")
+	ctx = setContextOp(ctx, pq.ctx, ent.OpQueryAll)
 	if err := pq.prepareQuery(ctx); err != nil {
 		return nil, err
 	}
@@ -228,10 +229,12 @@ func (pq *PromptQuery) AllX(ctx context.Context) []*Prompt {
 }
 
 // IDs executes the query and returns a list of Prompt IDs.
-func (pq *PromptQuery) IDs(ctx context.Context) ([]uuid.UUID, error) {
-	var ids []uuid.UUID
-	ctx = setContextOp(ctx, pq.ctx, "IDs")
-	if err := pq.Select(prompt.FieldID).Scan(ctx, &ids); err != nil {
+func (pq *PromptQuery) IDs(ctx context.Context) (ids []uuid.UUID, err error) {
+	if pq.ctx.Unique == nil && pq.path != nil {
+		pq.Unique(true)
+	}
+	ctx = setContextOp(ctx, pq.ctx, ent.OpQueryIDs)
+	if err = pq.Select(prompt.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
 	return ids, nil
@@ -248,7 +251,7 @@ func (pq *PromptQuery) IDsX(ctx context.Context) []uuid.UUID {
 
 // Count returns the count of the given query.
 func (pq *PromptQuery) Count(ctx context.Context) (int, error) {
-	ctx = setContextOp(ctx, pq.ctx, "Count")
+	ctx = setContextOp(ctx, pq.ctx, ent.OpQueryCount)
 	if err := pq.prepareQuery(ctx); err != nil {
 		return 0, err
 	}
@@ -266,7 +269,7 @@ func (pq *PromptQuery) CountX(ctx context.Context) int {
 
 // Exist returns true if the query has elements in the graph.
 func (pq *PromptQuery) Exist(ctx context.Context) (bool, error) {
-	ctx = setContextOp(ctx, pq.ctx, "Exist")
+	ctx = setContextOp(ctx, pq.ctx, ent.OpQueryExist)
 	switch _, err := pq.FirstID(ctx); {
 	case IsNotFound(err):
 		return false, nil
@@ -295,7 +298,7 @@ func (pq *PromptQuery) Clone() *PromptQuery {
 	return &PromptQuery{
 		config:          pq.config,
 		ctx:             pq.ctx.Clone(),
-		order:           append([]OrderFunc{}, pq.order...),
+		order:           append([]prompt.OrderOption{}, pq.order...),
 		inters:          append([]Interceptor{}, pq.inters...),
 		predicates:      append([]predicate.Prompt{}, pq.predicates...),
 		withGenerations: pq.withGenerations.Clone(),
@@ -459,8 +462,11 @@ func (pq *PromptQuery) loadGenerations(ctx context.Context, query *GenerationQue
 			init(nodes[i])
 		}
 	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(generation.FieldPromptID)
+	}
 	query.Where(predicate.Generation(func(s *sql.Selector) {
-		s.Where(sql.InValues(prompt.GenerationsColumn, fks...))
+		s.Where(sql.InValues(s.C(prompt.GenerationsColumn), fks...))
 	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {
@@ -473,7 +479,7 @@ func (pq *PromptQuery) loadGenerations(ctx context.Context, query *GenerationQue
 		}
 		node, ok := nodeids[*fk]
 		if !ok {
-			return fmt.Errorf(`unexpected foreign-key "prompt_id" returned %v for node %v`, *fk, n.ID)
+			return fmt.Errorf(`unexpected referenced foreign-key "prompt_id" returned %v for node %v`, *fk, n.ID)
 		}
 		assign(node, n)
 	}
@@ -489,8 +495,11 @@ func (pq *PromptQuery) loadVoiceovers(ctx context.Context, query *VoiceoverQuery
 			init(nodes[i])
 		}
 	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(voiceover.FieldPromptID)
+	}
 	query.Where(predicate.Voiceover(func(s *sql.Selector) {
-		s.Where(sql.InValues(prompt.VoiceoversColumn, fks...))
+		s.Where(sql.InValues(s.C(prompt.VoiceoversColumn), fks...))
 	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {
@@ -503,7 +512,7 @@ func (pq *PromptQuery) loadVoiceovers(ctx context.Context, query *VoiceoverQuery
 		}
 		node, ok := nodeids[*fk]
 		if !ok {
-			return fmt.Errorf(`unexpected foreign-key "prompt_id" returned %v for node %v`, *fk, n.ID)
+			return fmt.Errorf(`unexpected referenced foreign-key "prompt_id" returned %v for node %v`, *fk, n.ID)
 		}
 		assign(node, n)
 	}
@@ -523,20 +532,12 @@ func (pq *PromptQuery) sqlCount(ctx context.Context) (int, error) {
 }
 
 func (pq *PromptQuery) querySpec() *sqlgraph.QuerySpec {
-	_spec := &sqlgraph.QuerySpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   prompt.Table,
-			Columns: prompt.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeUUID,
-				Column: prompt.FieldID,
-			},
-		},
-		From:   pq.sql,
-		Unique: true,
-	}
+	_spec := sqlgraph.NewQuerySpec(prompt.Table, prompt.Columns, sqlgraph.NewFieldSpec(prompt.FieldID, field.TypeUUID))
+	_spec.From = pq.sql
 	if unique := pq.ctx.Unique; unique != nil {
 		_spec.Unique = *unique
+	} else if pq.path != nil {
+		_spec.Unique = true
 	}
 	if fields := pq.ctx.Fields; len(fields) > 0 {
 		_spec.Node.Columns = make([]string, 0, len(fields))
@@ -625,7 +626,7 @@ func (pgb *PromptGroupBy) Aggregate(fns ...AggregateFunc) *PromptGroupBy {
 
 // Scan applies the selector query and scans the result into the given value.
 func (pgb *PromptGroupBy) Scan(ctx context.Context, v any) error {
-	ctx = setContextOp(ctx, pgb.build.ctx, "GroupBy")
+	ctx = setContextOp(ctx, pgb.build.ctx, ent.OpQueryGroupBy)
 	if err := pgb.build.prepareQuery(ctx); err != nil {
 		return err
 	}
@@ -673,7 +674,7 @@ func (ps *PromptSelect) Aggregate(fns ...AggregateFunc) *PromptSelect {
 
 // Scan applies the selector query and scans the result into the given value.
 func (ps *PromptSelect) Scan(ctx context.Context, v any) error {
-	ctx = setContextOp(ctx, ps.ctx, "Select")
+	ctx = setContextOp(ctx, ps.ctx, ent.OpQuerySelect)
 	if err := ps.prepareQuery(ctx); err != nil {
 		return err
 	}

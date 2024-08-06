@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"time"
 
+	"entgo.io/ent/dialect/sql"
+	"entgo.io/ent/dialect/sql/sqlgraph"
 	"github.com/google/uuid"
 )
 
@@ -16,6 +18,10 @@ const (
 	FieldID = "id"
 	// FieldText holds the string denoting the text field in the database.
 	FieldText = "text"
+	// FieldTranslatedText holds the string denoting the translated_text field in the database.
+	FieldTranslatedText = "translated_text"
+	// FieldRanTranslation holds the string denoting the ran_translation field in the database.
+	FieldRanTranslation = "ran_translation"
 	// FieldType holds the string denoting the type field in the database.
 	FieldType = "type"
 	// FieldCreatedAt holds the string denoting the created_at field in the database.
@@ -48,6 +54,8 @@ const (
 var Columns = []string{
 	FieldID,
 	FieldText,
+	FieldTranslatedText,
+	FieldRanTranslation,
 	FieldType,
 	FieldCreatedAt,
 	FieldUpdatedAt,
@@ -64,6 +72,8 @@ func ValidColumn(column string) bool {
 }
 
 var (
+	// DefaultRanTranslation holds the default value on creation for the "ran_translation" field.
+	DefaultRanTranslation bool
 	// DefaultCreatedAt holds the default value on creation for the "created_at" field.
 	DefaultCreatedAt func() time.Time
 	// DefaultUpdatedAt holds the default value on creation for the "updated_at" field.
@@ -95,4 +105,84 @@ func TypeValidator(_type Type) error {
 	default:
 		return fmt.Errorf("prompt: invalid enum value for type field: %q", _type)
 	}
+}
+
+// OrderOption defines the ordering options for the Prompt queries.
+type OrderOption func(*sql.Selector)
+
+// ByID orders the results by the id field.
+func ByID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldID, opts...).ToFunc()
+}
+
+// ByText orders the results by the text field.
+func ByText(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldText, opts...).ToFunc()
+}
+
+// ByTranslatedText orders the results by the translated_text field.
+func ByTranslatedText(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldTranslatedText, opts...).ToFunc()
+}
+
+// ByRanTranslation orders the results by the ran_translation field.
+func ByRanTranslation(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldRanTranslation, opts...).ToFunc()
+}
+
+// ByType orders the results by the type field.
+func ByType(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldType, opts...).ToFunc()
+}
+
+// ByCreatedAt orders the results by the created_at field.
+func ByCreatedAt(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldCreatedAt, opts...).ToFunc()
+}
+
+// ByUpdatedAt orders the results by the updated_at field.
+func ByUpdatedAt(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldUpdatedAt, opts...).ToFunc()
+}
+
+// ByGenerationsCount orders the results by generations count.
+func ByGenerationsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newGenerationsStep(), opts...)
+	}
+}
+
+// ByGenerations orders the results by generations terms.
+func ByGenerations(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newGenerationsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// ByVoiceoversCount orders the results by voiceovers count.
+func ByVoiceoversCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newVoiceoversStep(), opts...)
+	}
+}
+
+// ByVoiceovers orders the results by voiceovers terms.
+func ByVoiceovers(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newVoiceoversStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+func newGenerationsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(GenerationsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, GenerationsTable, GenerationsColumn),
+	)
+}
+func newVoiceoversStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(VoiceoversInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, VoiceoversTable, VoiceoversColumn),
+	)
 }

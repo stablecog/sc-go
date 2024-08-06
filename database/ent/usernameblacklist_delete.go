@@ -27,7 +27,7 @@ func (ubd *UsernameBlacklistDelete) Where(ps ...predicate.UsernameBlacklist) *Us
 
 // Exec executes the deletion query and returns how many vertices were deleted.
 func (ubd *UsernameBlacklistDelete) Exec(ctx context.Context) (int, error) {
-	return withHooks[int, UsernameBlacklistMutation](ctx, ubd.sqlExec, ubd.mutation, ubd.hooks)
+	return withHooks(ctx, ubd.sqlExec, ubd.mutation, ubd.hooks)
 }
 
 // ExecX is like Exec, but panics if an error occurs.
@@ -40,15 +40,7 @@ func (ubd *UsernameBlacklistDelete) ExecX(ctx context.Context) int {
 }
 
 func (ubd *UsernameBlacklistDelete) sqlExec(ctx context.Context) (int, error) {
-	_spec := &sqlgraph.DeleteSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table: usernameblacklist.Table,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeUUID,
-				Column: usernameblacklist.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewDeleteSpec(usernameblacklist.Table, sqlgraph.NewFieldSpec(usernameblacklist.FieldID, field.TypeUUID))
 	if ps := ubd.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
@@ -69,6 +61,12 @@ type UsernameBlacklistDeleteOne struct {
 	ubd *UsernameBlacklistDelete
 }
 
+// Where appends a list predicates to the UsernameBlacklistDelete builder.
+func (ubdo *UsernameBlacklistDeleteOne) Where(ps ...predicate.UsernameBlacklist) *UsernameBlacklistDeleteOne {
+	ubdo.ubd.mutation.Where(ps...)
+	return ubdo
+}
+
 // Exec executes the deletion query.
 func (ubdo *UsernameBlacklistDeleteOne) Exec(ctx context.Context) error {
 	n, err := ubdo.ubd.Exec(ctx)
@@ -84,5 +82,7 @@ func (ubdo *UsernameBlacklistDeleteOne) Exec(ctx context.Context) error {
 
 // ExecX is like Exec, but panics if an error occurs.
 func (ubdo *UsernameBlacklistDeleteOne) ExecX(ctx context.Context) {
-	ubdo.ubd.ExecX(ctx)
+	if err := ubdo.Exec(ctx); err != nil {
+		panic(err)
+	}
 }

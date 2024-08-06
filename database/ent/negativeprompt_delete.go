@@ -27,7 +27,7 @@ func (npd *NegativePromptDelete) Where(ps ...predicate.NegativePrompt) *Negative
 
 // Exec executes the deletion query and returns how many vertices were deleted.
 func (npd *NegativePromptDelete) Exec(ctx context.Context) (int, error) {
-	return withHooks[int, NegativePromptMutation](ctx, npd.sqlExec, npd.mutation, npd.hooks)
+	return withHooks(ctx, npd.sqlExec, npd.mutation, npd.hooks)
 }
 
 // ExecX is like Exec, but panics if an error occurs.
@@ -40,15 +40,7 @@ func (npd *NegativePromptDelete) ExecX(ctx context.Context) int {
 }
 
 func (npd *NegativePromptDelete) sqlExec(ctx context.Context) (int, error) {
-	_spec := &sqlgraph.DeleteSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table: negativeprompt.Table,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeUUID,
-				Column: negativeprompt.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewDeleteSpec(negativeprompt.Table, sqlgraph.NewFieldSpec(negativeprompt.FieldID, field.TypeUUID))
 	if ps := npd.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
@@ -69,6 +61,12 @@ type NegativePromptDeleteOne struct {
 	npd *NegativePromptDelete
 }
 
+// Where appends a list predicates to the NegativePromptDelete builder.
+func (npdo *NegativePromptDeleteOne) Where(ps ...predicate.NegativePrompt) *NegativePromptDeleteOne {
+	npdo.npd.mutation.Where(ps...)
+	return npdo
+}
+
 // Exec executes the deletion query.
 func (npdo *NegativePromptDeleteOne) Exec(ctx context.Context) error {
 	n, err := npdo.npd.Exec(ctx)
@@ -84,5 +82,7 @@ func (npdo *NegativePromptDeleteOne) Exec(ctx context.Context) error {
 
 // ExecX is like Exec, but panics if an error occurs.
 func (npdo *NegativePromptDeleteOne) ExecX(ctx context.Context) {
-	npdo.npd.ExecX(ctx)
+	if err := npdo.Exec(ctx); err != nil {
+		panic(err)
+	}
 }

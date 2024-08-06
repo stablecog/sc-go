@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 	"github.com/google/uuid"
 	"github.com/stablecog/sc-go/database/ent/disposableemail"
@@ -22,7 +23,8 @@ type DisposableEmail struct {
 	// CreatedAt holds the value of the "created_at" field.
 	CreatedAt time.Time `json:"created_at,omitempty"`
 	// UpdatedAt holds the value of the "updated_at" field.
-	UpdatedAt time.Time `json:"updated_at,omitempty"`
+	UpdatedAt    time.Time `json:"updated_at,omitempty"`
+	selectValues sql.SelectValues
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -37,7 +39,7 @@ func (*DisposableEmail) scanValues(columns []string) ([]any, error) {
 		case disposableemail.FieldID:
 			values[i] = new(uuid.UUID)
 		default:
-			return nil, fmt.Errorf("unexpected column %q for type DisposableEmail", columns[i])
+			values[i] = new(sql.UnknownType)
 		}
 	}
 	return values, nil
@@ -75,9 +77,17 @@ func (de *DisposableEmail) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				de.UpdatedAt = value.Time
 			}
+		default:
+			de.selectValues.Set(columns[i], values[i])
 		}
 	}
 	return nil
+}
+
+// Value returns the ent.Value that was dynamically selected and assigned to the DisposableEmail.
+// This includes values selected through modifiers, order, etc.
+func (de *DisposableEmail) Value(name string) (ent.Value, error) {
+	return de.selectValues.Get(name)
 }
 
 // Update returns a builder for updating this DisposableEmail.
@@ -117,9 +127,3 @@ func (de *DisposableEmail) String() string {
 
 // DisposableEmails is a parsable slice of DisposableEmail.
 type DisposableEmails []*DisposableEmail
-
-func (de DisposableEmails) config(cfg config) {
-	for _i := range de {
-		de[_i].config = cfg
-	}
-}

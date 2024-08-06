@@ -100,7 +100,7 @@ func (mlc *MqLogCreate) Mutation() *MqLogMutation {
 // Save creates the MqLog in the database.
 func (mlc *MqLogCreate) Save(ctx context.Context) (*MqLog, error) {
 	mlc.defaults()
-	return withHooks[*MqLog, MqLogMutation](ctx, mlc.sqlSave, mlc.mutation, mlc.hooks)
+	return withHooks(ctx, mlc.sqlSave, mlc.mutation, mlc.hooks)
 }
 
 // SaveX calls Save and panics if Save returns an error.
@@ -191,13 +191,7 @@ func (mlc *MqLogCreate) sqlSave(ctx context.Context) (*MqLog, error) {
 func (mlc *MqLogCreate) createSpec() (*MqLog, *sqlgraph.CreateSpec) {
 	var (
 		_node = &MqLog{config: mlc.config}
-		_spec = &sqlgraph.CreateSpec{
-			Table: mqlog.Table,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeUUID,
-				Column: mqlog.FieldID,
-			},
-		}
+		_spec = sqlgraph.NewCreateSpec(mqlog.Table, sqlgraph.NewFieldSpec(mqlog.FieldID, field.TypeUUID))
 	)
 	_spec.OnConflict = mlc.conflict
 	if id, ok := mlc.mutation.ID(); ok {
@@ -485,12 +479,16 @@ func (u *MqLogUpsertOne) IDX(ctx context.Context) uuid.UUID {
 // MqLogCreateBulk is the builder for creating many MqLog entities in bulk.
 type MqLogCreateBulk struct {
 	config
+	err      error
 	builders []*MqLogCreate
 	conflict []sql.ConflictOption
 }
 
 // Save creates the MqLog entities in the database.
 func (mlcb *MqLogCreateBulk) Save(ctx context.Context) ([]*MqLog, error) {
+	if mlcb.err != nil {
+		return nil, mlcb.err
+	}
 	specs := make([]*sqlgraph.CreateSpec, len(mlcb.builders))
 	nodes := make([]*MqLog, len(mlcb.builders))
 	mutators := make([]Mutator, len(mlcb.builders))
@@ -507,8 +505,8 @@ func (mlcb *MqLogCreateBulk) Save(ctx context.Context) ([]*MqLog, error) {
 					return nil, err
 				}
 				builder.mutation = mutation
-				nodes[i], specs[i] = builder.createSpec()
 				var err error
+				nodes[i], specs[i] = builder.createSpec()
 				if i < len(mutators)-1 {
 					_, err = mutators[i+1].Mutate(root, mlcb.builders[i+1].mutation)
 				} else {
@@ -723,6 +721,9 @@ func (u *MqLogUpsertBulk) UpdateUpdatedAt() *MqLogUpsertBulk {
 
 // Exec executes the query.
 func (u *MqLogUpsertBulk) Exec(ctx context.Context) error {
+	if u.create.err != nil {
+		return u.create.err
+	}
 	for i, b := range u.create.builders {
 		if len(b.conflict) != 0 {
 			return fmt.Errorf("ent: OnConflict was set for builder %d. Set it on the MqLogCreateBulk instead", i)

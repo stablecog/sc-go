@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"math"
 
+	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
@@ -22,7 +23,7 @@ import (
 type VoiceoverSpeakerQuery struct {
 	config
 	ctx                 *QueryContext
-	order               []OrderFunc
+	order               []voiceoverspeaker.OrderOption
 	inters              []Interceptor
 	predicates          []predicate.VoiceoverSpeaker
 	withVoiceovers      *VoiceoverQuery
@@ -59,7 +60,7 @@ func (vsq *VoiceoverSpeakerQuery) Unique(unique bool) *VoiceoverSpeakerQuery {
 }
 
 // Order specifies how the records should be ordered.
-func (vsq *VoiceoverSpeakerQuery) Order(o ...OrderFunc) *VoiceoverSpeakerQuery {
+func (vsq *VoiceoverSpeakerQuery) Order(o ...voiceoverspeaker.OrderOption) *VoiceoverSpeakerQuery {
 	vsq.order = append(vsq.order, o...)
 	return vsq
 }
@@ -111,7 +112,7 @@ func (vsq *VoiceoverSpeakerQuery) QueryVoiceoverModels() *VoiceoverModelQuery {
 // First returns the first VoiceoverSpeaker entity from the query.
 // Returns a *NotFoundError when no VoiceoverSpeaker was found.
 func (vsq *VoiceoverSpeakerQuery) First(ctx context.Context) (*VoiceoverSpeaker, error) {
-	nodes, err := vsq.Limit(1).All(setContextOp(ctx, vsq.ctx, "First"))
+	nodes, err := vsq.Limit(1).All(setContextOp(ctx, vsq.ctx, ent.OpQueryFirst))
 	if err != nil {
 		return nil, err
 	}
@@ -134,7 +135,7 @@ func (vsq *VoiceoverSpeakerQuery) FirstX(ctx context.Context) *VoiceoverSpeaker 
 // Returns a *NotFoundError when no VoiceoverSpeaker ID was found.
 func (vsq *VoiceoverSpeakerQuery) FirstID(ctx context.Context) (id uuid.UUID, err error) {
 	var ids []uuid.UUID
-	if ids, err = vsq.Limit(1).IDs(setContextOp(ctx, vsq.ctx, "FirstID")); err != nil {
+	if ids, err = vsq.Limit(1).IDs(setContextOp(ctx, vsq.ctx, ent.OpQueryFirstID)); err != nil {
 		return
 	}
 	if len(ids) == 0 {
@@ -157,7 +158,7 @@ func (vsq *VoiceoverSpeakerQuery) FirstIDX(ctx context.Context) uuid.UUID {
 // Returns a *NotSingularError when more than one VoiceoverSpeaker entity is found.
 // Returns a *NotFoundError when no VoiceoverSpeaker entities are found.
 func (vsq *VoiceoverSpeakerQuery) Only(ctx context.Context) (*VoiceoverSpeaker, error) {
-	nodes, err := vsq.Limit(2).All(setContextOp(ctx, vsq.ctx, "Only"))
+	nodes, err := vsq.Limit(2).All(setContextOp(ctx, vsq.ctx, ent.OpQueryOnly))
 	if err != nil {
 		return nil, err
 	}
@@ -185,7 +186,7 @@ func (vsq *VoiceoverSpeakerQuery) OnlyX(ctx context.Context) *VoiceoverSpeaker {
 // Returns a *NotFoundError when no entities are found.
 func (vsq *VoiceoverSpeakerQuery) OnlyID(ctx context.Context) (id uuid.UUID, err error) {
 	var ids []uuid.UUID
-	if ids, err = vsq.Limit(2).IDs(setContextOp(ctx, vsq.ctx, "OnlyID")); err != nil {
+	if ids, err = vsq.Limit(2).IDs(setContextOp(ctx, vsq.ctx, ent.OpQueryOnlyID)); err != nil {
 		return
 	}
 	switch len(ids) {
@@ -210,7 +211,7 @@ func (vsq *VoiceoverSpeakerQuery) OnlyIDX(ctx context.Context) uuid.UUID {
 
 // All executes the query and returns a list of VoiceoverSpeakers.
 func (vsq *VoiceoverSpeakerQuery) All(ctx context.Context) ([]*VoiceoverSpeaker, error) {
-	ctx = setContextOp(ctx, vsq.ctx, "All")
+	ctx = setContextOp(ctx, vsq.ctx, ent.OpQueryAll)
 	if err := vsq.prepareQuery(ctx); err != nil {
 		return nil, err
 	}
@@ -228,10 +229,12 @@ func (vsq *VoiceoverSpeakerQuery) AllX(ctx context.Context) []*VoiceoverSpeaker 
 }
 
 // IDs executes the query and returns a list of VoiceoverSpeaker IDs.
-func (vsq *VoiceoverSpeakerQuery) IDs(ctx context.Context) ([]uuid.UUID, error) {
-	var ids []uuid.UUID
-	ctx = setContextOp(ctx, vsq.ctx, "IDs")
-	if err := vsq.Select(voiceoverspeaker.FieldID).Scan(ctx, &ids); err != nil {
+func (vsq *VoiceoverSpeakerQuery) IDs(ctx context.Context) (ids []uuid.UUID, err error) {
+	if vsq.ctx.Unique == nil && vsq.path != nil {
+		vsq.Unique(true)
+	}
+	ctx = setContextOp(ctx, vsq.ctx, ent.OpQueryIDs)
+	if err = vsq.Select(voiceoverspeaker.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
 	return ids, nil
@@ -248,7 +251,7 @@ func (vsq *VoiceoverSpeakerQuery) IDsX(ctx context.Context) []uuid.UUID {
 
 // Count returns the count of the given query.
 func (vsq *VoiceoverSpeakerQuery) Count(ctx context.Context) (int, error) {
-	ctx = setContextOp(ctx, vsq.ctx, "Count")
+	ctx = setContextOp(ctx, vsq.ctx, ent.OpQueryCount)
 	if err := vsq.prepareQuery(ctx); err != nil {
 		return 0, err
 	}
@@ -266,7 +269,7 @@ func (vsq *VoiceoverSpeakerQuery) CountX(ctx context.Context) int {
 
 // Exist returns true if the query has elements in the graph.
 func (vsq *VoiceoverSpeakerQuery) Exist(ctx context.Context) (bool, error) {
-	ctx = setContextOp(ctx, vsq.ctx, "Exist")
+	ctx = setContextOp(ctx, vsq.ctx, ent.OpQueryExist)
 	switch _, err := vsq.FirstID(ctx); {
 	case IsNotFound(err):
 		return false, nil
@@ -295,7 +298,7 @@ func (vsq *VoiceoverSpeakerQuery) Clone() *VoiceoverSpeakerQuery {
 	return &VoiceoverSpeakerQuery{
 		config:              vsq.config,
 		ctx:                 vsq.ctx.Clone(),
-		order:               append([]OrderFunc{}, vsq.order...),
+		order:               append([]voiceoverspeaker.OrderOption{}, vsq.order...),
 		inters:              append([]Interceptor{}, vsq.inters...),
 		predicates:          append([]predicate.VoiceoverSpeaker{}, vsq.predicates...),
 		withVoiceovers:      vsq.withVoiceovers.Clone(),
@@ -458,8 +461,11 @@ func (vsq *VoiceoverSpeakerQuery) loadVoiceovers(ctx context.Context, query *Voi
 			init(nodes[i])
 		}
 	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(voiceover.FieldSpeakerID)
+	}
 	query.Where(predicate.Voiceover(func(s *sql.Selector) {
-		s.Where(sql.InValues(voiceoverspeaker.VoiceoversColumn, fks...))
+		s.Where(sql.InValues(s.C(voiceoverspeaker.VoiceoversColumn), fks...))
 	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {
@@ -469,7 +475,7 @@ func (vsq *VoiceoverSpeakerQuery) loadVoiceovers(ctx context.Context, query *Voi
 		fk := n.SpeakerID
 		node, ok := nodeids[fk]
 		if !ok {
-			return fmt.Errorf(`unexpected foreign-key "speaker_id" returned %v for node %v`, fk, n.ID)
+			return fmt.Errorf(`unexpected referenced foreign-key "speaker_id" returned %v for node %v`, fk, n.ID)
 		}
 		assign(node, n)
 	}
@@ -518,20 +524,12 @@ func (vsq *VoiceoverSpeakerQuery) sqlCount(ctx context.Context) (int, error) {
 }
 
 func (vsq *VoiceoverSpeakerQuery) querySpec() *sqlgraph.QuerySpec {
-	_spec := &sqlgraph.QuerySpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   voiceoverspeaker.Table,
-			Columns: voiceoverspeaker.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeUUID,
-				Column: voiceoverspeaker.FieldID,
-			},
-		},
-		From:   vsq.sql,
-		Unique: true,
-	}
+	_spec := sqlgraph.NewQuerySpec(voiceoverspeaker.Table, voiceoverspeaker.Columns, sqlgraph.NewFieldSpec(voiceoverspeaker.FieldID, field.TypeUUID))
+	_spec.From = vsq.sql
 	if unique := vsq.ctx.Unique; unique != nil {
 		_spec.Unique = *unique
+	} else if vsq.path != nil {
+		_spec.Unique = true
 	}
 	if fields := vsq.ctx.Fields; len(fields) > 0 {
 		_spec.Node.Columns = make([]string, 0, len(fields))
@@ -540,6 +538,9 @@ func (vsq *VoiceoverSpeakerQuery) querySpec() *sqlgraph.QuerySpec {
 			if fields[i] != voiceoverspeaker.FieldID {
 				_spec.Node.Columns = append(_spec.Node.Columns, fields[i])
 			}
+		}
+		if vsq.withVoiceoverModels != nil {
+			_spec.Node.AddColumnOnce(voiceoverspeaker.FieldModelID)
 		}
 	}
 	if ps := vsq.predicates; len(ps) > 0 {
@@ -620,7 +621,7 @@ func (vsgb *VoiceoverSpeakerGroupBy) Aggregate(fns ...AggregateFunc) *VoiceoverS
 
 // Scan applies the selector query and scans the result into the given value.
 func (vsgb *VoiceoverSpeakerGroupBy) Scan(ctx context.Context, v any) error {
-	ctx = setContextOp(ctx, vsgb.build.ctx, "GroupBy")
+	ctx = setContextOp(ctx, vsgb.build.ctx, ent.OpQueryGroupBy)
 	if err := vsgb.build.prepareQuery(ctx); err != nil {
 		return err
 	}
@@ -668,7 +669,7 @@ func (vss *VoiceoverSpeakerSelect) Aggregate(fns ...AggregateFunc) *VoiceoverSpe
 
 // Scan applies the selector query and scans the result into the given value.
 func (vss *VoiceoverSpeakerSelect) Scan(ctx context.Context, v any) error {
-	ctx = setContextOp(ctx, vss.ctx, "Select")
+	ctx = setContextOp(ctx, vss.ctx, ent.OpQuerySelect)
 	if err := vss.prepareQuery(ctx); err != nil {
 		return err
 	}

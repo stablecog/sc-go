@@ -9,6 +9,8 @@ import (
 	"sync"
 	"time"
 
+	"entgo.io/ent"
+	"entgo.io/ent/dialect/sql"
 	"github.com/google/uuid"
 	"github.com/stablecog/sc-go/database/ent/apitoken"
 	"github.com/stablecog/sc-go/database/ent/authclient"
@@ -40,9 +42,6 @@ import (
 	"github.com/stablecog/sc-go/database/ent/voiceoveroutput"
 	"github.com/stablecog/sc-go/database/ent/voiceoverspeaker"
 	"github.com/stablecog/sc-go/database/enttypes"
-
-	"entgo.io/ent"
-	"entgo.io/ent/dialect/sql"
 )
 
 const (
@@ -689,6 +688,7 @@ func (m *ApiTokenMutation) ResetUpdatedAt() {
 // ClearUser clears the "user" edge to the User entity.
 func (m *ApiTokenMutation) ClearUser() {
 	m.cleareduser = true
+	m.clearedFields[apitoken.FieldUserID] = struct{}{}
 }
 
 // UserCleared reports if the "user" edge to the User entity was cleared.
@@ -882,6 +882,7 @@ func (m *ApiTokenMutation) SetAuthClientsID(id uuid.UUID) {
 // ClearAuthClients clears the "auth_clients" edge to the AuthClient entity.
 func (m *ApiTokenMutation) ClearAuthClients() {
 	m.clearedauth_clients = true
+	m.clearedFields[apitoken.FieldAuthClientID] = struct{}{}
 }
 
 // AuthClientsCleared reports if the "auth_clients" edge to the AuthClient entity was cleared.
@@ -2981,6 +2982,7 @@ func (m *CreditMutation) SetUsersID(id uuid.UUID) {
 // ClearUsers clears the "users" edge to the User entity.
 func (m *CreditMutation) ClearUsers() {
 	m.clearedusers = true
+	m.clearedFields[credit.FieldUserID] = struct{}{}
 }
 
 // UsersCleared reports if the "users" edge to the User entity was cleared.
@@ -3015,6 +3017,7 @@ func (m *CreditMutation) ResetUsers() {
 // ClearCreditType clears the "credit_type" edge to the CreditType entity.
 func (m *CreditMutation) ClearCreditType() {
 	m.clearedcredit_type = true
+	m.clearedFields[credit.FieldCreditTypeID] = struct{}{}
 }
 
 // CreditTypeCleared reports if the "credit_type" edge to the CreditType entity was cleared.
@@ -7014,6 +7017,7 @@ func (m *GenerationMutation) ResetUpdatedAt() {
 // ClearDeviceInfo clears the "device_info" edge to the DeviceInfo entity.
 func (m *GenerationMutation) ClearDeviceInfo() {
 	m.cleareddevice_info = true
+	m.clearedFields[generation.FieldDeviceInfoID] = struct{}{}
 }
 
 // DeviceInfoCleared reports if the "device_info" edge to the DeviceInfo entity was cleared.
@@ -7040,6 +7044,7 @@ func (m *GenerationMutation) ResetDeviceInfo() {
 // ClearScheduler clears the "scheduler" edge to the Scheduler entity.
 func (m *GenerationMutation) ClearScheduler() {
 	m.clearedscheduler = true
+	m.clearedFields[generation.FieldSchedulerID] = struct{}{}
 }
 
 // SchedulerCleared reports if the "scheduler" edge to the Scheduler entity was cleared.
@@ -7066,6 +7071,7 @@ func (m *GenerationMutation) ResetScheduler() {
 // ClearPrompt clears the "prompt" edge to the Prompt entity.
 func (m *GenerationMutation) ClearPrompt() {
 	m.clearedprompt = true
+	m.clearedFields[generation.FieldPromptID] = struct{}{}
 }
 
 // PromptCleared reports if the "prompt" edge to the Prompt entity was cleared.
@@ -7092,6 +7098,7 @@ func (m *GenerationMutation) ResetPrompt() {
 // ClearNegativePrompt clears the "negative_prompt" edge to the NegativePrompt entity.
 func (m *GenerationMutation) ClearNegativePrompt() {
 	m.clearednegative_prompt = true
+	m.clearedFields[generation.FieldNegativePromptID] = struct{}{}
 }
 
 // NegativePromptCleared reports if the "negative_prompt" edge to the NegativePrompt entity was cleared.
@@ -7123,6 +7130,7 @@ func (m *GenerationMutation) SetGenerationModelID(id uuid.UUID) {
 // ClearGenerationModel clears the "generation_model" edge to the GenerationModel entity.
 func (m *GenerationMutation) ClearGenerationModel() {
 	m.clearedgeneration_model = true
+	m.clearedFields[generation.FieldModelID] = struct{}{}
 }
 
 // GenerationModelCleared reports if the "generation_model" edge to the GenerationModel entity was cleared.
@@ -7157,6 +7165,7 @@ func (m *GenerationMutation) ResetGenerationModel() {
 // ClearUser clears the "user" edge to the User entity.
 func (m *GenerationMutation) ClearUser() {
 	m.cleareduser = true
+	m.clearedFields[generation.FieldUserID] = struct{}{}
 }
 
 // UserCleared reports if the "user" edge to the User entity was cleared.
@@ -7188,6 +7197,7 @@ func (m *GenerationMutation) SetAPITokensID(id uuid.UUID) {
 // ClearAPITokens clears the "api_tokens" edge to the ApiToken entity.
 func (m *GenerationMutation) ClearAPITokens() {
 	m.clearedapi_tokens = true
+	m.clearedFields[generation.FieldAPITokenID] = struct{}{}
 }
 
 // APITokensCleared reports if the "api_tokens" edge to the ApiToken entity was cleared.
@@ -10133,6 +10143,7 @@ func (m *GenerationOutputMutation) SetGenerationsID(id uuid.UUID) {
 // ClearGenerations clears the "generations" edge to the Generation entity.
 func (m *GenerationOutputMutation) ClearGenerations() {
 	m.clearedgenerations = true
+	m.clearedFields[generationoutput.FieldGenerationID] = struct{}{}
 }
 
 // GenerationsCleared reports if the "generations" edge to the Generation entity was cleared.
@@ -11037,6 +11048,7 @@ func (m *GenerationOutputLikeMutation) SetGenerationOutputsID(id uuid.UUID) {
 // ClearGenerationOutputs clears the "generation_outputs" edge to the GenerationOutput entity.
 func (m *GenerationOutputLikeMutation) ClearGenerationOutputs() {
 	m.clearedgeneration_outputs = true
+	m.clearedFields[generationoutputlike.FieldOutputID] = struct{}{}
 }
 
 // GenerationOutputsCleared reports if the "generation_outputs" edge to the GenerationOutput entity was cleared.
@@ -11076,6 +11088,7 @@ func (m *GenerationOutputLikeMutation) SetUsersID(id uuid.UUID) {
 // ClearUsers clears the "users" edge to the User entity.
 func (m *GenerationOutputLikeMutation) ClearUsers() {
 	m.clearedusers = true
+	m.clearedFields[generationoutputlike.FieldLikedByUserID] = struct{}{}
 }
 
 // UsersCleared reports if the "users" edge to the User entity was cleared.
@@ -12395,6 +12408,8 @@ type NegativePromptMutation struct {
 	typ                string
 	id                 *uuid.UUID
 	text               *string
+	translated_text    *string
+	ran_translation    *bool
 	created_at         *time.Time
 	updated_at         *time.Time
 	clearedFields      map[string]struct{}
@@ -12544,6 +12559,91 @@ func (m *NegativePromptMutation) OldText(ctx context.Context) (v string, err err
 // ResetText resets all changes to the "text" field.
 func (m *NegativePromptMutation) ResetText() {
 	m.text = nil
+}
+
+// SetTranslatedText sets the "translated_text" field.
+func (m *NegativePromptMutation) SetTranslatedText(s string) {
+	m.translated_text = &s
+}
+
+// TranslatedText returns the value of the "translated_text" field in the mutation.
+func (m *NegativePromptMutation) TranslatedText() (r string, exists bool) {
+	v := m.translated_text
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldTranslatedText returns the old "translated_text" field's value of the NegativePrompt entity.
+// If the NegativePrompt object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *NegativePromptMutation) OldTranslatedText(ctx context.Context) (v *string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldTranslatedText is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldTranslatedText requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldTranslatedText: %w", err)
+	}
+	return oldValue.TranslatedText, nil
+}
+
+// ClearTranslatedText clears the value of the "translated_text" field.
+func (m *NegativePromptMutation) ClearTranslatedText() {
+	m.translated_text = nil
+	m.clearedFields[negativeprompt.FieldTranslatedText] = struct{}{}
+}
+
+// TranslatedTextCleared returns if the "translated_text" field was cleared in this mutation.
+func (m *NegativePromptMutation) TranslatedTextCleared() bool {
+	_, ok := m.clearedFields[negativeprompt.FieldTranslatedText]
+	return ok
+}
+
+// ResetTranslatedText resets all changes to the "translated_text" field.
+func (m *NegativePromptMutation) ResetTranslatedText() {
+	m.translated_text = nil
+	delete(m.clearedFields, negativeprompt.FieldTranslatedText)
+}
+
+// SetRanTranslation sets the "ran_translation" field.
+func (m *NegativePromptMutation) SetRanTranslation(b bool) {
+	m.ran_translation = &b
+}
+
+// RanTranslation returns the value of the "ran_translation" field in the mutation.
+func (m *NegativePromptMutation) RanTranslation() (r bool, exists bool) {
+	v := m.ran_translation
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldRanTranslation returns the old "ran_translation" field's value of the NegativePrompt entity.
+// If the NegativePrompt object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *NegativePromptMutation) OldRanTranslation(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldRanTranslation is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldRanTranslation requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldRanTranslation: %w", err)
+	}
+	return oldValue.RanTranslation, nil
+}
+
+// ResetRanTranslation resets all changes to the "ran_translation" field.
+func (m *NegativePromptMutation) ResetRanTranslation() {
+	m.ran_translation = nil
 }
 
 // SetCreatedAt sets the "created_at" field.
@@ -12706,9 +12806,15 @@ func (m *NegativePromptMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *NegativePromptMutation) Fields() []string {
-	fields := make([]string, 0, 3)
+	fields := make([]string, 0, 5)
 	if m.text != nil {
 		fields = append(fields, negativeprompt.FieldText)
+	}
+	if m.translated_text != nil {
+		fields = append(fields, negativeprompt.FieldTranslatedText)
+	}
+	if m.ran_translation != nil {
+		fields = append(fields, negativeprompt.FieldRanTranslation)
 	}
 	if m.created_at != nil {
 		fields = append(fields, negativeprompt.FieldCreatedAt)
@@ -12726,6 +12832,10 @@ func (m *NegativePromptMutation) Field(name string) (ent.Value, bool) {
 	switch name {
 	case negativeprompt.FieldText:
 		return m.Text()
+	case negativeprompt.FieldTranslatedText:
+		return m.TranslatedText()
+	case negativeprompt.FieldRanTranslation:
+		return m.RanTranslation()
 	case negativeprompt.FieldCreatedAt:
 		return m.CreatedAt()
 	case negativeprompt.FieldUpdatedAt:
@@ -12741,6 +12851,10 @@ func (m *NegativePromptMutation) OldField(ctx context.Context, name string) (ent
 	switch name {
 	case negativeprompt.FieldText:
 		return m.OldText(ctx)
+	case negativeprompt.FieldTranslatedText:
+		return m.OldTranslatedText(ctx)
+	case negativeprompt.FieldRanTranslation:
+		return m.OldRanTranslation(ctx)
 	case negativeprompt.FieldCreatedAt:
 		return m.OldCreatedAt(ctx)
 	case negativeprompt.FieldUpdatedAt:
@@ -12760,6 +12874,20 @@ func (m *NegativePromptMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetText(v)
+		return nil
+	case negativeprompt.FieldTranslatedText:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetTranslatedText(v)
+		return nil
+	case negativeprompt.FieldRanTranslation:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetRanTranslation(v)
 		return nil
 	case negativeprompt.FieldCreatedAt:
 		v, ok := value.(time.Time)
@@ -12804,7 +12932,11 @@ func (m *NegativePromptMutation) AddField(name string, value ent.Value) error {
 // ClearedFields returns all nullable fields that were cleared during this
 // mutation.
 func (m *NegativePromptMutation) ClearedFields() []string {
-	return nil
+	var fields []string
+	if m.FieldCleared(negativeprompt.FieldTranslatedText) {
+		fields = append(fields, negativeprompt.FieldTranslatedText)
+	}
+	return fields
 }
 
 // FieldCleared returns a boolean indicating if a field with the given name was
@@ -12817,6 +12949,11 @@ func (m *NegativePromptMutation) FieldCleared(name string) bool {
 // ClearField clears the value of the field with the given name. It returns an
 // error if the field is not defined in the schema.
 func (m *NegativePromptMutation) ClearField(name string) error {
+	switch name {
+	case negativeprompt.FieldTranslatedText:
+		m.ClearTranslatedText()
+		return nil
+	}
 	return fmt.Errorf("unknown NegativePrompt nullable field %s", name)
 }
 
@@ -12826,6 +12963,12 @@ func (m *NegativePromptMutation) ResetField(name string) error {
 	switch name {
 	case negativeprompt.FieldText:
 		m.ResetText()
+		return nil
+	case negativeprompt.FieldTranslatedText:
+		m.ResetTranslatedText()
+		return nil
+	case negativeprompt.FieldRanTranslation:
+		m.ResetRanTranslation()
 		return nil
 	case negativeprompt.FieldCreatedAt:
 		m.ResetCreatedAt()
@@ -12928,6 +13071,8 @@ type PromptMutation struct {
 	typ                string
 	id                 *uuid.UUID
 	text               *string
+	translated_text    *string
+	ran_translation    *bool
 	_type              *prompt.Type
 	created_at         *time.Time
 	updated_at         *time.Time
@@ -13081,6 +13226,91 @@ func (m *PromptMutation) OldText(ctx context.Context) (v string, err error) {
 // ResetText resets all changes to the "text" field.
 func (m *PromptMutation) ResetText() {
 	m.text = nil
+}
+
+// SetTranslatedText sets the "translated_text" field.
+func (m *PromptMutation) SetTranslatedText(s string) {
+	m.translated_text = &s
+}
+
+// TranslatedText returns the value of the "translated_text" field in the mutation.
+func (m *PromptMutation) TranslatedText() (r string, exists bool) {
+	v := m.translated_text
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldTranslatedText returns the old "translated_text" field's value of the Prompt entity.
+// If the Prompt object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PromptMutation) OldTranslatedText(ctx context.Context) (v *string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldTranslatedText is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldTranslatedText requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldTranslatedText: %w", err)
+	}
+	return oldValue.TranslatedText, nil
+}
+
+// ClearTranslatedText clears the value of the "translated_text" field.
+func (m *PromptMutation) ClearTranslatedText() {
+	m.translated_text = nil
+	m.clearedFields[prompt.FieldTranslatedText] = struct{}{}
+}
+
+// TranslatedTextCleared returns if the "translated_text" field was cleared in this mutation.
+func (m *PromptMutation) TranslatedTextCleared() bool {
+	_, ok := m.clearedFields[prompt.FieldTranslatedText]
+	return ok
+}
+
+// ResetTranslatedText resets all changes to the "translated_text" field.
+func (m *PromptMutation) ResetTranslatedText() {
+	m.translated_text = nil
+	delete(m.clearedFields, prompt.FieldTranslatedText)
+}
+
+// SetRanTranslation sets the "ran_translation" field.
+func (m *PromptMutation) SetRanTranslation(b bool) {
+	m.ran_translation = &b
+}
+
+// RanTranslation returns the value of the "ran_translation" field in the mutation.
+func (m *PromptMutation) RanTranslation() (r bool, exists bool) {
+	v := m.ran_translation
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldRanTranslation returns the old "ran_translation" field's value of the Prompt entity.
+// If the Prompt object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PromptMutation) OldRanTranslation(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldRanTranslation is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldRanTranslation requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldRanTranslation: %w", err)
+	}
+	return oldValue.RanTranslation, nil
+}
+
+// ResetRanTranslation resets all changes to the "ran_translation" field.
+func (m *PromptMutation) ResetRanTranslation() {
+	m.ran_translation = nil
 }
 
 // SetType sets the "type" field.
@@ -13333,9 +13563,15 @@ func (m *PromptMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *PromptMutation) Fields() []string {
-	fields := make([]string, 0, 4)
+	fields := make([]string, 0, 6)
 	if m.text != nil {
 		fields = append(fields, prompt.FieldText)
+	}
+	if m.translated_text != nil {
+		fields = append(fields, prompt.FieldTranslatedText)
+	}
+	if m.ran_translation != nil {
+		fields = append(fields, prompt.FieldRanTranslation)
 	}
 	if m._type != nil {
 		fields = append(fields, prompt.FieldType)
@@ -13356,6 +13592,10 @@ func (m *PromptMutation) Field(name string) (ent.Value, bool) {
 	switch name {
 	case prompt.FieldText:
 		return m.Text()
+	case prompt.FieldTranslatedText:
+		return m.TranslatedText()
+	case prompt.FieldRanTranslation:
+		return m.RanTranslation()
 	case prompt.FieldType:
 		return m.GetType()
 	case prompt.FieldCreatedAt:
@@ -13373,6 +13613,10 @@ func (m *PromptMutation) OldField(ctx context.Context, name string) (ent.Value, 
 	switch name {
 	case prompt.FieldText:
 		return m.OldText(ctx)
+	case prompt.FieldTranslatedText:
+		return m.OldTranslatedText(ctx)
+	case prompt.FieldRanTranslation:
+		return m.OldRanTranslation(ctx)
 	case prompt.FieldType:
 		return m.OldType(ctx)
 	case prompt.FieldCreatedAt:
@@ -13394,6 +13638,20 @@ func (m *PromptMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetText(v)
+		return nil
+	case prompt.FieldTranslatedText:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetTranslatedText(v)
+		return nil
+	case prompt.FieldRanTranslation:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetRanTranslation(v)
 		return nil
 	case prompt.FieldType:
 		v, ok := value.(prompt.Type)
@@ -13445,7 +13703,11 @@ func (m *PromptMutation) AddField(name string, value ent.Value) error {
 // ClearedFields returns all nullable fields that were cleared during this
 // mutation.
 func (m *PromptMutation) ClearedFields() []string {
-	return nil
+	var fields []string
+	if m.FieldCleared(prompt.FieldTranslatedText) {
+		fields = append(fields, prompt.FieldTranslatedText)
+	}
+	return fields
 }
 
 // FieldCleared returns a boolean indicating if a field with the given name was
@@ -13458,6 +13720,11 @@ func (m *PromptMutation) FieldCleared(name string) bool {
 // ClearField clears the value of the field with the given name. It returns an
 // error if the field is not defined in the schema.
 func (m *PromptMutation) ClearField(name string) error {
+	switch name {
+	case prompt.FieldTranslatedText:
+		m.ClearTranslatedText()
+		return nil
+	}
 	return fmt.Errorf("unknown Prompt nullable field %s", name)
 }
 
@@ -13467,6 +13734,12 @@ func (m *PromptMutation) ResetField(name string) error {
 	switch name {
 	case prompt.FieldText:
 		m.ResetText()
+		return nil
+	case prompt.FieldTranslatedText:
+		m.ResetTranslatedText()
+		return nil
+	case prompt.FieldRanTranslation:
+		m.ResetRanTranslation()
 		return nil
 	case prompt.FieldType:
 		m.ResetType()
@@ -15724,6 +15997,7 @@ func (m *TipLogMutation) SetTipsReceivedID(id uuid.UUID) {
 // ClearTipsReceived clears the "tips_received" edge to the User entity.
 func (m *TipLogMutation) ClearTipsReceived() {
 	m.clearedtips_received = true
+	m.clearedFields[tiplog.FieldTippedTo] = struct{}{}
 }
 
 // TipsReceivedCleared reports if the "tips_received" edge to the User entity was cleared.
@@ -15763,6 +16037,7 @@ func (m *TipLogMutation) SetTipsGivenID(id uuid.UUID) {
 // ClearTipsGiven clears the "tips_given" edge to the User entity.
 func (m *TipLogMutation) ClearTipsGiven() {
 	m.clearedtips_given = true
+	m.clearedFields[tiplog.FieldTippedBy] = struct{}{}
 }
 
 // TipsGivenCleared reports if the "tips_given" edge to the User entity was cleared.
@@ -17059,6 +17334,7 @@ func (m *UpscaleMutation) ResetUpdatedAt() {
 // ClearUser clears the "user" edge to the User entity.
 func (m *UpscaleMutation) ClearUser() {
 	m.cleareduser = true
+	m.clearedFields[upscale.FieldUserID] = struct{}{}
 }
 
 // UserCleared reports if the "user" edge to the User entity was cleared.
@@ -17085,6 +17361,7 @@ func (m *UpscaleMutation) ResetUser() {
 // ClearDeviceInfo clears the "device_info" edge to the DeviceInfo entity.
 func (m *UpscaleMutation) ClearDeviceInfo() {
 	m.cleareddevice_info = true
+	m.clearedFields[upscale.FieldDeviceInfoID] = struct{}{}
 }
 
 // DeviceInfoCleared reports if the "device_info" edge to the DeviceInfo entity was cleared.
@@ -17116,6 +17393,7 @@ func (m *UpscaleMutation) SetUpscaleModelsID(id uuid.UUID) {
 // ClearUpscaleModels clears the "upscale_models" edge to the UpscaleModel entity.
 func (m *UpscaleMutation) ClearUpscaleModels() {
 	m.clearedupscale_models = true
+	m.clearedFields[upscale.FieldModelID] = struct{}{}
 }
 
 // UpscaleModelsCleared reports if the "upscale_models" edge to the UpscaleModel entity was cleared.
@@ -17155,6 +17433,7 @@ func (m *UpscaleMutation) SetAPITokensID(id uuid.UUID) {
 // ClearAPITokens clears the "api_tokens" edge to the ApiToken entity.
 func (m *UpscaleMutation) ClearAPITokens() {
 	m.clearedapi_tokens = true
+	m.clearedFields[upscale.FieldAPITokenID] = struct{}{}
 }
 
 // APITokensCleared reports if the "api_tokens" edge to the ApiToken entity was cleared.
@@ -19013,6 +19292,7 @@ func (m *UpscaleOutputMutation) SetUpscalesID(id uuid.UUID) {
 // ClearUpscales clears the "upscales" edge to the Upscale entity.
 func (m *UpscaleOutputMutation) ClearUpscales() {
 	m.clearedupscales = true
+	m.clearedFields[upscaleoutput.FieldUpscaleID] = struct{}{}
 }
 
 // UpscalesCleared reports if the "upscales" edge to the Upscale entity was cleared.
@@ -19047,6 +19327,7 @@ func (m *UpscaleOutputMutation) ResetUpscales() {
 // ClearGenerationOutput clears the "generation_output" edge to the GenerationOutput entity.
 func (m *UpscaleOutputMutation) ClearGenerationOutput() {
 	m.clearedgeneration_output = true
+	m.clearedFields[upscaleoutput.FieldGenerationOutputID] = struct{}{}
 }
 
 // GenerationOutputCleared reports if the "generation_output" edge to the GenerationOutput entity was cleared.
@@ -22861,6 +23142,7 @@ func (m *VoiceoverMutation) ResetUpdatedAt() {
 // ClearUser clears the "user" edge to the User entity.
 func (m *VoiceoverMutation) ClearUser() {
 	m.cleareduser = true
+	m.clearedFields[voiceover.FieldUserID] = struct{}{}
 }
 
 // UserCleared reports if the "user" edge to the User entity was cleared.
@@ -22887,6 +23169,7 @@ func (m *VoiceoverMutation) ResetUser() {
 // ClearPrompt clears the "prompt" edge to the Prompt entity.
 func (m *VoiceoverMutation) ClearPrompt() {
 	m.clearedprompt = true
+	m.clearedFields[voiceover.FieldPromptID] = struct{}{}
 }
 
 // PromptCleared reports if the "prompt" edge to the Prompt entity was cleared.
@@ -22913,6 +23196,7 @@ func (m *VoiceoverMutation) ResetPrompt() {
 // ClearDeviceInfo clears the "device_info" edge to the DeviceInfo entity.
 func (m *VoiceoverMutation) ClearDeviceInfo() {
 	m.cleareddevice_info = true
+	m.clearedFields[voiceover.FieldDeviceInfoID] = struct{}{}
 }
 
 // DeviceInfoCleared reports if the "device_info" edge to the DeviceInfo entity was cleared.
@@ -22944,6 +23228,7 @@ func (m *VoiceoverMutation) SetVoiceoverModelsID(id uuid.UUID) {
 // ClearVoiceoverModels clears the "voiceover_models" edge to the VoiceoverModel entity.
 func (m *VoiceoverMutation) ClearVoiceoverModels() {
 	m.clearedvoiceover_models = true
+	m.clearedFields[voiceover.FieldModelID] = struct{}{}
 }
 
 // VoiceoverModelsCleared reports if the "voiceover_models" edge to the VoiceoverModel entity was cleared.
@@ -22983,6 +23268,7 @@ func (m *VoiceoverMutation) SetVoiceoverSpeakersID(id uuid.UUID) {
 // ClearVoiceoverSpeakers clears the "voiceover_speakers" edge to the VoiceoverSpeaker entity.
 func (m *VoiceoverMutation) ClearVoiceoverSpeakers() {
 	m.clearedvoiceover_speakers = true
+	m.clearedFields[voiceover.FieldSpeakerID] = struct{}{}
 }
 
 // VoiceoverSpeakersCleared reports if the "voiceover_speakers" edge to the VoiceoverSpeaker entity was cleared.
@@ -23022,6 +23308,7 @@ func (m *VoiceoverMutation) SetAPITokensID(id uuid.UUID) {
 // ClearAPITokens clears the "api_tokens" edge to the ApiToken entity.
 func (m *VoiceoverMutation) ClearAPITokens() {
 	m.clearedapi_tokens = true
+	m.clearedFields[voiceover.FieldAPITokenID] = struct{}{}
 }
 
 // APITokensCleared reports if the "api_tokens" edge to the ApiToken entity was cleared.
@@ -25204,6 +25491,7 @@ func (m *VoiceoverOutputMutation) SetVoiceoversID(id uuid.UUID) {
 // ClearVoiceovers clears the "voiceovers" edge to the Voiceover entity.
 func (m *VoiceoverOutputMutation) ClearVoiceovers() {
 	m.clearedvoiceovers = true
+	m.clearedFields[voiceoveroutput.FieldVoiceoverID] = struct{}{}
 }
 
 // VoiceoversCleared reports if the "voiceovers" edge to the Voiceover entity was cleared.
@@ -26157,6 +26445,7 @@ func (m *VoiceoverSpeakerMutation) SetVoiceoverModelsID(id uuid.UUID) {
 // ClearVoiceoverModels clears the "voiceover_models" edge to the VoiceoverModel entity.
 func (m *VoiceoverSpeakerMutation) ClearVoiceoverModels() {
 	m.clearedvoiceover_models = true
+	m.clearedFields[voiceoverspeaker.FieldModelID] = struct{}{}
 }
 
 // VoiceoverModelsCleared reports if the "voiceover_models" edge to the VoiceoverModel entity was cleared.

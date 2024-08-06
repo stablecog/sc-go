@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 	"github.com/google/uuid"
 	"github.com/stablecog/sc-go/database/ent/apitoken"
@@ -68,7 +69,8 @@ type Voiceover struct {
 	UpdatedAt time.Time `json:"updated_at,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the VoiceoverQuery when eager-loading is set.
-	Edges VoiceoverEdges `json:"edges"`
+	Edges        VoiceoverEdges `json:"edges"`
+	selectValues sql.SelectValues
 }
 
 // VoiceoverEdges holds the relations/edges for other nodes in the graph.
@@ -95,12 +97,10 @@ type VoiceoverEdges struct {
 // UserOrErr returns the User value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
 func (e VoiceoverEdges) UserOrErr() (*User, error) {
-	if e.loadedTypes[0] {
-		if e.User == nil {
-			// Edge was loaded but was not found.
-			return nil, &NotFoundError{label: user.Label}
-		}
+	if e.User != nil {
 		return e.User, nil
+	} else if e.loadedTypes[0] {
+		return nil, &NotFoundError{label: user.Label}
 	}
 	return nil, &NotLoadedError{edge: "user"}
 }
@@ -108,12 +108,10 @@ func (e VoiceoverEdges) UserOrErr() (*User, error) {
 // PromptOrErr returns the Prompt value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
 func (e VoiceoverEdges) PromptOrErr() (*Prompt, error) {
-	if e.loadedTypes[1] {
-		if e.Prompt == nil {
-			// Edge was loaded but was not found.
-			return nil, &NotFoundError{label: prompt.Label}
-		}
+	if e.Prompt != nil {
 		return e.Prompt, nil
+	} else if e.loadedTypes[1] {
+		return nil, &NotFoundError{label: prompt.Label}
 	}
 	return nil, &NotLoadedError{edge: "prompt"}
 }
@@ -121,12 +119,10 @@ func (e VoiceoverEdges) PromptOrErr() (*Prompt, error) {
 // DeviceInfoOrErr returns the DeviceInfo value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
 func (e VoiceoverEdges) DeviceInfoOrErr() (*DeviceInfo, error) {
-	if e.loadedTypes[2] {
-		if e.DeviceInfo == nil {
-			// Edge was loaded but was not found.
-			return nil, &NotFoundError{label: deviceinfo.Label}
-		}
+	if e.DeviceInfo != nil {
 		return e.DeviceInfo, nil
+	} else if e.loadedTypes[2] {
+		return nil, &NotFoundError{label: deviceinfo.Label}
 	}
 	return nil, &NotLoadedError{edge: "device_info"}
 }
@@ -134,12 +130,10 @@ func (e VoiceoverEdges) DeviceInfoOrErr() (*DeviceInfo, error) {
 // VoiceoverModelsOrErr returns the VoiceoverModels value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
 func (e VoiceoverEdges) VoiceoverModelsOrErr() (*VoiceoverModel, error) {
-	if e.loadedTypes[3] {
-		if e.VoiceoverModels == nil {
-			// Edge was loaded but was not found.
-			return nil, &NotFoundError{label: voiceovermodel.Label}
-		}
+	if e.VoiceoverModels != nil {
 		return e.VoiceoverModels, nil
+	} else if e.loadedTypes[3] {
+		return nil, &NotFoundError{label: voiceovermodel.Label}
 	}
 	return nil, &NotLoadedError{edge: "voiceover_models"}
 }
@@ -147,12 +141,10 @@ func (e VoiceoverEdges) VoiceoverModelsOrErr() (*VoiceoverModel, error) {
 // VoiceoverSpeakersOrErr returns the VoiceoverSpeakers value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
 func (e VoiceoverEdges) VoiceoverSpeakersOrErr() (*VoiceoverSpeaker, error) {
-	if e.loadedTypes[4] {
-		if e.VoiceoverSpeakers == nil {
-			// Edge was loaded but was not found.
-			return nil, &NotFoundError{label: voiceoverspeaker.Label}
-		}
+	if e.VoiceoverSpeakers != nil {
 		return e.VoiceoverSpeakers, nil
+	} else if e.loadedTypes[4] {
+		return nil, &NotFoundError{label: voiceoverspeaker.Label}
 	}
 	return nil, &NotLoadedError{edge: "voiceover_speakers"}
 }
@@ -160,12 +152,10 @@ func (e VoiceoverEdges) VoiceoverSpeakersOrErr() (*VoiceoverSpeaker, error) {
 // APITokensOrErr returns the APITokens value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
 func (e VoiceoverEdges) APITokensOrErr() (*ApiToken, error) {
-	if e.loadedTypes[5] {
-		if e.APITokens == nil {
-			// Edge was loaded but was not found.
-			return nil, &NotFoundError{label: apitoken.Label}
-		}
+	if e.APITokens != nil {
 		return e.APITokens, nil
+	} else if e.loadedTypes[5] {
+		return nil, &NotFoundError{label: apitoken.Label}
 	}
 	return nil, &NotLoadedError{edge: "api_tokens"}
 }
@@ -199,7 +189,7 @@ func (*Voiceover) scanValues(columns []string) ([]any, error) {
 		case voiceover.FieldID, voiceover.FieldUserID, voiceover.FieldDeviceInfoID, voiceover.FieldModelID, voiceover.FieldSpeakerID:
 			values[i] = new(uuid.UUID)
 		default:
-			return nil, fmt.Errorf("unexpected column %q for type Voiceover", columns[i])
+			values[i] = new(sql.UnknownType)
 		}
 	}
 	return values, nil
@@ -352,9 +342,17 @@ func (v *Voiceover) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				v.UpdatedAt = value.Time
 			}
+		default:
+			v.selectValues.Set(columns[i], values[i])
 		}
 	}
 	return nil
+}
+
+// Value returns the ent.Value that was dynamically selected and assigned to the Voiceover.
+// This includes values selected through modifiers, order, etc.
+func (v *Voiceover) Value(name string) (ent.Value, error) {
+	return v.selectValues.Get(name)
 }
 
 // QueryUser queries the "user" edge of the Voiceover entity.
@@ -497,9 +495,3 @@ func (v *Voiceover) String() string {
 
 // Voiceovers is a parsable slice of Voiceover.
 type Voiceovers []*Voiceover
-
-func (v Voiceovers) config(cfg config) {
-	for _i := range v {
-		v[_i].config = cfg
-	}
-}

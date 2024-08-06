@@ -620,11 +620,7 @@ func HasGenerations() predicate.GenerationOutput {
 // HasGenerationsWith applies the HasEdge predicate on the "generations" edge with a given conditions (other predicates).
 func HasGenerationsWith(preds ...predicate.Generation) predicate.GenerationOutput {
 	return predicate.GenerationOutput(func(s *sql.Selector) {
-		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(GenerationsInverseTable, FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, GenerationsTable, GenerationsColumn),
-		)
+		step := newGenerationsStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)
@@ -647,11 +643,7 @@ func HasUpscaleOutputs() predicate.GenerationOutput {
 // HasUpscaleOutputsWith applies the HasEdge predicate on the "upscale_outputs" edge with a given conditions (other predicates).
 func HasUpscaleOutputsWith(preds ...predicate.UpscaleOutput) predicate.GenerationOutput {
 	return predicate.GenerationOutput(func(s *sql.Selector) {
-		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(UpscaleOutputsInverseTable, FieldID),
-			sqlgraph.Edge(sqlgraph.O2O, false, UpscaleOutputsTable, UpscaleOutputsColumn),
-		)
+		step := newUpscaleOutputsStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)
@@ -674,11 +666,7 @@ func HasGenerationOutputLikes() predicate.GenerationOutput {
 // HasGenerationOutputLikesWith applies the HasEdge predicate on the "generation_output_likes" edge with a given conditions (other predicates).
 func HasGenerationOutputLikesWith(preds ...predicate.GenerationOutputLike) predicate.GenerationOutput {
 	return predicate.GenerationOutput(func(s *sql.Selector) {
-		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(GenerationOutputLikesInverseTable, FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, GenerationOutputLikesTable, GenerationOutputLikesColumn),
-		)
+		step := newGenerationOutputLikesStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)
@@ -689,32 +677,15 @@ func HasGenerationOutputLikesWith(preds ...predicate.GenerationOutputLike) predi
 
 // And groups predicates with the AND operator between them.
 func And(predicates ...predicate.GenerationOutput) predicate.GenerationOutput {
-	return predicate.GenerationOutput(func(s *sql.Selector) {
-		s1 := s.Clone().SetP(nil)
-		for _, p := range predicates {
-			p(s1)
-		}
-		s.Where(s1.P())
-	})
+	return predicate.GenerationOutput(sql.AndPredicates(predicates...))
 }
 
 // Or groups predicates with the OR operator between them.
 func Or(predicates ...predicate.GenerationOutput) predicate.GenerationOutput {
-	return predicate.GenerationOutput(func(s *sql.Selector) {
-		s1 := s.Clone().SetP(nil)
-		for i, p := range predicates {
-			if i > 0 {
-				s1.Or()
-			}
-			p(s1)
-		}
-		s.Where(s1.P())
-	})
+	return predicate.GenerationOutput(sql.OrPredicates(predicates...))
 }
 
 // Not applies the not operator on the given predicate.
 func Not(p predicate.GenerationOutput) predicate.GenerationOutput {
-	return predicate.GenerationOutput(func(s *sql.Selector) {
-		p(s.Not())
-	})
+	return predicate.GenerationOutput(sql.NotPredicates(p))
 }

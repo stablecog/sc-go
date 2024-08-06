@@ -27,7 +27,7 @@ func (ded *DisposableEmailDelete) Where(ps ...predicate.DisposableEmail) *Dispos
 
 // Exec executes the deletion query and returns how many vertices were deleted.
 func (ded *DisposableEmailDelete) Exec(ctx context.Context) (int, error) {
-	return withHooks[int, DisposableEmailMutation](ctx, ded.sqlExec, ded.mutation, ded.hooks)
+	return withHooks(ctx, ded.sqlExec, ded.mutation, ded.hooks)
 }
 
 // ExecX is like Exec, but panics if an error occurs.
@@ -40,15 +40,7 @@ func (ded *DisposableEmailDelete) ExecX(ctx context.Context) int {
 }
 
 func (ded *DisposableEmailDelete) sqlExec(ctx context.Context) (int, error) {
-	_spec := &sqlgraph.DeleteSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table: disposableemail.Table,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeUUID,
-				Column: disposableemail.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewDeleteSpec(disposableemail.Table, sqlgraph.NewFieldSpec(disposableemail.FieldID, field.TypeUUID))
 	if ps := ded.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
@@ -69,6 +61,12 @@ type DisposableEmailDeleteOne struct {
 	ded *DisposableEmailDelete
 }
 
+// Where appends a list predicates to the DisposableEmailDelete builder.
+func (dedo *DisposableEmailDeleteOne) Where(ps ...predicate.DisposableEmail) *DisposableEmailDeleteOne {
+	dedo.ded.mutation.Where(ps...)
+	return dedo
+}
+
 // Exec executes the deletion query.
 func (dedo *DisposableEmailDeleteOne) Exec(ctx context.Context) error {
 	n, err := dedo.ded.Exec(ctx)
@@ -84,5 +82,7 @@ func (dedo *DisposableEmailDeleteOne) Exec(ctx context.Context) error {
 
 // ExecX is like Exec, but panics if an error occurs.
 func (dedo *DisposableEmailDeleteOne) ExecX(ctx context.Context) {
-	dedo.ded.ExecX(ctx)
+	if err := dedo.Exec(ctx); err != nil {
+		panic(err)
+	}
 }

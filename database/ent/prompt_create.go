@@ -32,6 +32,34 @@ func (pc *PromptCreate) SetText(s string) *PromptCreate {
 	return pc
 }
 
+// SetTranslatedText sets the "translated_text" field.
+func (pc *PromptCreate) SetTranslatedText(s string) *PromptCreate {
+	pc.mutation.SetTranslatedText(s)
+	return pc
+}
+
+// SetNillableTranslatedText sets the "translated_text" field if the given value is not nil.
+func (pc *PromptCreate) SetNillableTranslatedText(s *string) *PromptCreate {
+	if s != nil {
+		pc.SetTranslatedText(*s)
+	}
+	return pc
+}
+
+// SetRanTranslation sets the "ran_translation" field.
+func (pc *PromptCreate) SetRanTranslation(b bool) *PromptCreate {
+	pc.mutation.SetRanTranslation(b)
+	return pc
+}
+
+// SetNillableRanTranslation sets the "ran_translation" field if the given value is not nil.
+func (pc *PromptCreate) SetNillableRanTranslation(b *bool) *PromptCreate {
+	if b != nil {
+		pc.SetRanTranslation(*b)
+	}
+	return pc
+}
+
 // SetType sets the "type" field.
 func (pc *PromptCreate) SetType(pr prompt.Type) *PromptCreate {
 	pc.mutation.SetType(pr)
@@ -118,7 +146,7 @@ func (pc *PromptCreate) Mutation() *PromptMutation {
 // Save creates the Prompt in the database.
 func (pc *PromptCreate) Save(ctx context.Context) (*Prompt, error) {
 	pc.defaults()
-	return withHooks[*Prompt, PromptMutation](ctx, pc.sqlSave, pc.mutation, pc.hooks)
+	return withHooks(ctx, pc.sqlSave, pc.mutation, pc.hooks)
 }
 
 // SaveX calls Save and panics if Save returns an error.
@@ -145,6 +173,10 @@ func (pc *PromptCreate) ExecX(ctx context.Context) {
 
 // defaults sets the default values of the builder before save.
 func (pc *PromptCreate) defaults() {
+	if _, ok := pc.mutation.RanTranslation(); !ok {
+		v := prompt.DefaultRanTranslation
+		pc.mutation.SetRanTranslation(v)
+	}
 	if _, ok := pc.mutation.CreatedAt(); !ok {
 		v := prompt.DefaultCreatedAt()
 		pc.mutation.SetCreatedAt(v)
@@ -163,6 +195,9 @@ func (pc *PromptCreate) defaults() {
 func (pc *PromptCreate) check() error {
 	if _, ok := pc.mutation.Text(); !ok {
 		return &ValidationError{Name: "text", err: errors.New(`ent: missing required field "Prompt.text"`)}
+	}
+	if _, ok := pc.mutation.RanTranslation(); !ok {
+		return &ValidationError{Name: "ran_translation", err: errors.New(`ent: missing required field "Prompt.ran_translation"`)}
 	}
 	if _, ok := pc.mutation.GetType(); !ok {
 		return &ValidationError{Name: "type", err: errors.New(`ent: missing required field "Prompt.type"`)}
@@ -207,13 +242,7 @@ func (pc *PromptCreate) sqlSave(ctx context.Context) (*Prompt, error) {
 func (pc *PromptCreate) createSpec() (*Prompt, *sqlgraph.CreateSpec) {
 	var (
 		_node = &Prompt{config: pc.config}
-		_spec = &sqlgraph.CreateSpec{
-			Table: prompt.Table,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeUUID,
-				Column: prompt.FieldID,
-			},
-		}
+		_spec = sqlgraph.NewCreateSpec(prompt.Table, sqlgraph.NewFieldSpec(prompt.FieldID, field.TypeUUID))
 	)
 	_spec.OnConflict = pc.conflict
 	if id, ok := pc.mutation.ID(); ok {
@@ -223,6 +252,14 @@ func (pc *PromptCreate) createSpec() (*Prompt, *sqlgraph.CreateSpec) {
 	if value, ok := pc.mutation.Text(); ok {
 		_spec.SetField(prompt.FieldText, field.TypeString, value)
 		_node.Text = value
+	}
+	if value, ok := pc.mutation.TranslatedText(); ok {
+		_spec.SetField(prompt.FieldTranslatedText, field.TypeString, value)
+		_node.TranslatedText = &value
+	}
+	if value, ok := pc.mutation.RanTranslation(); ok {
+		_spec.SetField(prompt.FieldRanTranslation, field.TypeBool, value)
+		_node.RanTranslation = value
 	}
 	if value, ok := pc.mutation.GetType(); ok {
 		_spec.SetField(prompt.FieldType, field.TypeEnum, value)
@@ -244,10 +281,7 @@ func (pc *PromptCreate) createSpec() (*Prompt, *sqlgraph.CreateSpec) {
 			Columns: []string{prompt.GenerationsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: generation.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(generation.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -263,10 +297,7 @@ func (pc *PromptCreate) createSpec() (*Prompt, *sqlgraph.CreateSpec) {
 			Columns: []string{prompt.VoiceoversColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: voiceover.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(voiceover.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -335,6 +366,36 @@ func (u *PromptUpsert) SetText(v string) *PromptUpsert {
 // UpdateText sets the "text" field to the value that was provided on create.
 func (u *PromptUpsert) UpdateText() *PromptUpsert {
 	u.SetExcluded(prompt.FieldText)
+	return u
+}
+
+// SetTranslatedText sets the "translated_text" field.
+func (u *PromptUpsert) SetTranslatedText(v string) *PromptUpsert {
+	u.Set(prompt.FieldTranslatedText, v)
+	return u
+}
+
+// UpdateTranslatedText sets the "translated_text" field to the value that was provided on create.
+func (u *PromptUpsert) UpdateTranslatedText() *PromptUpsert {
+	u.SetExcluded(prompt.FieldTranslatedText)
+	return u
+}
+
+// ClearTranslatedText clears the value of the "translated_text" field.
+func (u *PromptUpsert) ClearTranslatedText() *PromptUpsert {
+	u.SetNull(prompt.FieldTranslatedText)
+	return u
+}
+
+// SetRanTranslation sets the "ran_translation" field.
+func (u *PromptUpsert) SetRanTranslation(v bool) *PromptUpsert {
+	u.Set(prompt.FieldRanTranslation, v)
+	return u
+}
+
+// UpdateRanTranslation sets the "ran_translation" field to the value that was provided on create.
+func (u *PromptUpsert) UpdateRanTranslation() *PromptUpsert {
+	u.SetExcluded(prompt.FieldRanTranslation)
 	return u
 }
 
@@ -427,6 +488,41 @@ func (u *PromptUpsertOne) UpdateText() *PromptUpsertOne {
 	})
 }
 
+// SetTranslatedText sets the "translated_text" field.
+func (u *PromptUpsertOne) SetTranslatedText(v string) *PromptUpsertOne {
+	return u.Update(func(s *PromptUpsert) {
+		s.SetTranslatedText(v)
+	})
+}
+
+// UpdateTranslatedText sets the "translated_text" field to the value that was provided on create.
+func (u *PromptUpsertOne) UpdateTranslatedText() *PromptUpsertOne {
+	return u.Update(func(s *PromptUpsert) {
+		s.UpdateTranslatedText()
+	})
+}
+
+// ClearTranslatedText clears the value of the "translated_text" field.
+func (u *PromptUpsertOne) ClearTranslatedText() *PromptUpsertOne {
+	return u.Update(func(s *PromptUpsert) {
+		s.ClearTranslatedText()
+	})
+}
+
+// SetRanTranslation sets the "ran_translation" field.
+func (u *PromptUpsertOne) SetRanTranslation(v bool) *PromptUpsertOne {
+	return u.Update(func(s *PromptUpsert) {
+		s.SetRanTranslation(v)
+	})
+}
+
+// UpdateRanTranslation sets the "ran_translation" field to the value that was provided on create.
+func (u *PromptUpsertOne) UpdateRanTranslation() *PromptUpsertOne {
+	return u.Update(func(s *PromptUpsert) {
+		s.UpdateRanTranslation()
+	})
+}
+
 // SetType sets the "type" field.
 func (u *PromptUpsertOne) SetType(v prompt.Type) *PromptUpsertOne {
 	return u.Update(func(s *PromptUpsert) {
@@ -496,12 +592,16 @@ func (u *PromptUpsertOne) IDX(ctx context.Context) uuid.UUID {
 // PromptCreateBulk is the builder for creating many Prompt entities in bulk.
 type PromptCreateBulk struct {
 	config
+	err      error
 	builders []*PromptCreate
 	conflict []sql.ConflictOption
 }
 
 // Save creates the Prompt entities in the database.
 func (pcb *PromptCreateBulk) Save(ctx context.Context) ([]*Prompt, error) {
+	if pcb.err != nil {
+		return nil, pcb.err
+	}
 	specs := make([]*sqlgraph.CreateSpec, len(pcb.builders))
 	nodes := make([]*Prompt, len(pcb.builders))
 	mutators := make([]Mutator, len(pcb.builders))
@@ -518,8 +618,8 @@ func (pcb *PromptCreateBulk) Save(ctx context.Context) ([]*Prompt, error) {
 					return nil, err
 				}
 				builder.mutation = mutation
-				nodes[i], specs[i] = builder.createSpec()
 				var err error
+				nodes[i], specs[i] = builder.createSpec()
 				if i < len(mutators)-1 {
 					_, err = mutators[i+1].Mutate(root, pcb.builders[i+1].mutation)
 				} else {
@@ -683,6 +783,41 @@ func (u *PromptUpsertBulk) UpdateText() *PromptUpsertBulk {
 	})
 }
 
+// SetTranslatedText sets the "translated_text" field.
+func (u *PromptUpsertBulk) SetTranslatedText(v string) *PromptUpsertBulk {
+	return u.Update(func(s *PromptUpsert) {
+		s.SetTranslatedText(v)
+	})
+}
+
+// UpdateTranslatedText sets the "translated_text" field to the value that was provided on create.
+func (u *PromptUpsertBulk) UpdateTranslatedText() *PromptUpsertBulk {
+	return u.Update(func(s *PromptUpsert) {
+		s.UpdateTranslatedText()
+	})
+}
+
+// ClearTranslatedText clears the value of the "translated_text" field.
+func (u *PromptUpsertBulk) ClearTranslatedText() *PromptUpsertBulk {
+	return u.Update(func(s *PromptUpsert) {
+		s.ClearTranslatedText()
+	})
+}
+
+// SetRanTranslation sets the "ran_translation" field.
+func (u *PromptUpsertBulk) SetRanTranslation(v bool) *PromptUpsertBulk {
+	return u.Update(func(s *PromptUpsert) {
+		s.SetRanTranslation(v)
+	})
+}
+
+// UpdateRanTranslation sets the "ran_translation" field to the value that was provided on create.
+func (u *PromptUpsertBulk) UpdateRanTranslation() *PromptUpsertBulk {
+	return u.Update(func(s *PromptUpsert) {
+		s.UpdateRanTranslation()
+	})
+}
+
 // SetType sets the "type" field.
 func (u *PromptUpsertBulk) SetType(v prompt.Type) *PromptUpsertBulk {
 	return u.Update(func(s *PromptUpsert) {
@@ -713,6 +848,9 @@ func (u *PromptUpsertBulk) UpdateUpdatedAt() *PromptUpsertBulk {
 
 // Exec executes the query.
 func (u *PromptUpsertBulk) Exec(ctx context.Context) error {
+	if u.create.err != nil {
+		return u.create.err
+	}
 	for i, b := range u.create.builders {
 		if len(b.conflict) != 0 {
 			return fmt.Errorf("ent: OnConflict was set for builder %d. Set it on the PromptCreateBulk instead", i)

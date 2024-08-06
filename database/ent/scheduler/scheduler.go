@@ -5,6 +5,8 @@ package scheduler
 import (
 	"time"
 
+	"entgo.io/ent/dialect/sql"
+	"entgo.io/ent/dialect/sql/sqlgraph"
 	"github.com/google/uuid"
 )
 
@@ -88,3 +90,83 @@ var (
 	// DefaultID holds the default value on creation for the "id" field.
 	DefaultID func() uuid.UUID
 )
+
+// OrderOption defines the ordering options for the Scheduler queries.
+type OrderOption func(*sql.Selector)
+
+// ByID orders the results by the id field.
+func ByID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldID, opts...).ToFunc()
+}
+
+// ByNameInWorker orders the results by the name_in_worker field.
+func ByNameInWorker(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldNameInWorker, opts...).ToFunc()
+}
+
+// ByIsActive orders the results by the is_active field.
+func ByIsActive(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldIsActive, opts...).ToFunc()
+}
+
+// ByIsDefault orders the results by the is_default field.
+func ByIsDefault(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldIsDefault, opts...).ToFunc()
+}
+
+// ByIsHidden orders the results by the is_hidden field.
+func ByIsHidden(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldIsHidden, opts...).ToFunc()
+}
+
+// ByCreatedAt orders the results by the created_at field.
+func ByCreatedAt(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldCreatedAt, opts...).ToFunc()
+}
+
+// ByUpdatedAt orders the results by the updated_at field.
+func ByUpdatedAt(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldUpdatedAt, opts...).ToFunc()
+}
+
+// ByGenerationsCount orders the results by generations count.
+func ByGenerationsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newGenerationsStep(), opts...)
+	}
+}
+
+// ByGenerations orders the results by generations terms.
+func ByGenerations(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newGenerationsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// ByGenerationModelsCount orders the results by generation_models count.
+func ByGenerationModelsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newGenerationModelsStep(), opts...)
+	}
+}
+
+// ByGenerationModels orders the results by generation_models terms.
+func ByGenerationModels(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newGenerationModelsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+func newGenerationsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(GenerationsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, GenerationsTable, GenerationsColumn),
+	)
+}
+func newGenerationModelsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(GenerationModelsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2M, true, GenerationModelsTable, GenerationModelsPrimaryKey...),
+	)
+}

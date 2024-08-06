@@ -911,11 +911,7 @@ func HasUser() predicate.Voiceover {
 // HasUserWith applies the HasEdge predicate on the "user" edge with a given conditions (other predicates).
 func HasUserWith(preds ...predicate.User) predicate.Voiceover {
 	return predicate.Voiceover(func(s *sql.Selector) {
-		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(UserInverseTable, FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, UserTable, UserColumn),
-		)
+		step := newUserStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)
@@ -938,11 +934,7 @@ func HasPrompt() predicate.Voiceover {
 // HasPromptWith applies the HasEdge predicate on the "prompt" edge with a given conditions (other predicates).
 func HasPromptWith(preds ...predicate.Prompt) predicate.Voiceover {
 	return predicate.Voiceover(func(s *sql.Selector) {
-		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(PromptInverseTable, FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, PromptTable, PromptColumn),
-		)
+		step := newPromptStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)
@@ -965,11 +957,7 @@ func HasDeviceInfo() predicate.Voiceover {
 // HasDeviceInfoWith applies the HasEdge predicate on the "device_info" edge with a given conditions (other predicates).
 func HasDeviceInfoWith(preds ...predicate.DeviceInfo) predicate.Voiceover {
 	return predicate.Voiceover(func(s *sql.Selector) {
-		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(DeviceInfoInverseTable, FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, DeviceInfoTable, DeviceInfoColumn),
-		)
+		step := newDeviceInfoStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)
@@ -992,11 +980,7 @@ func HasVoiceoverModels() predicate.Voiceover {
 // HasVoiceoverModelsWith applies the HasEdge predicate on the "voiceover_models" edge with a given conditions (other predicates).
 func HasVoiceoverModelsWith(preds ...predicate.VoiceoverModel) predicate.Voiceover {
 	return predicate.Voiceover(func(s *sql.Selector) {
-		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(VoiceoverModelsInverseTable, FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, VoiceoverModelsTable, VoiceoverModelsColumn),
-		)
+		step := newVoiceoverModelsStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)
@@ -1019,11 +1003,7 @@ func HasVoiceoverSpeakers() predicate.Voiceover {
 // HasVoiceoverSpeakersWith applies the HasEdge predicate on the "voiceover_speakers" edge with a given conditions (other predicates).
 func HasVoiceoverSpeakersWith(preds ...predicate.VoiceoverSpeaker) predicate.Voiceover {
 	return predicate.Voiceover(func(s *sql.Selector) {
-		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(VoiceoverSpeakersInverseTable, FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, VoiceoverSpeakersTable, VoiceoverSpeakersColumn),
-		)
+		step := newVoiceoverSpeakersStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)
@@ -1046,11 +1026,7 @@ func HasAPITokens() predicate.Voiceover {
 // HasAPITokensWith applies the HasEdge predicate on the "api_tokens" edge with a given conditions (other predicates).
 func HasAPITokensWith(preds ...predicate.ApiToken) predicate.Voiceover {
 	return predicate.Voiceover(func(s *sql.Selector) {
-		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(APITokensInverseTable, FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, APITokensTable, APITokensColumn),
-		)
+		step := newAPITokensStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)
@@ -1073,11 +1049,7 @@ func HasVoiceoverOutputs() predicate.Voiceover {
 // HasVoiceoverOutputsWith applies the HasEdge predicate on the "voiceover_outputs" edge with a given conditions (other predicates).
 func HasVoiceoverOutputsWith(preds ...predicate.VoiceoverOutput) predicate.Voiceover {
 	return predicate.Voiceover(func(s *sql.Selector) {
-		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(VoiceoverOutputsInverseTable, FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, VoiceoverOutputsTable, VoiceoverOutputsColumn),
-		)
+		step := newVoiceoverOutputsStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)
@@ -1088,32 +1060,15 @@ func HasVoiceoverOutputsWith(preds ...predicate.VoiceoverOutput) predicate.Voice
 
 // And groups predicates with the AND operator between them.
 func And(predicates ...predicate.Voiceover) predicate.Voiceover {
-	return predicate.Voiceover(func(s *sql.Selector) {
-		s1 := s.Clone().SetP(nil)
-		for _, p := range predicates {
-			p(s1)
-		}
-		s.Where(s1.P())
-	})
+	return predicate.Voiceover(sql.AndPredicates(predicates...))
 }
 
 // Or groups predicates with the OR operator between them.
 func Or(predicates ...predicate.Voiceover) predicate.Voiceover {
-	return predicate.Voiceover(func(s *sql.Selector) {
-		s1 := s.Clone().SetP(nil)
-		for i, p := range predicates {
-			if i > 0 {
-				s1.Or()
-			}
-			p(s1)
-		}
-		s.Where(s1.P())
-	})
+	return predicate.Voiceover(sql.OrPredicates(predicates...))
 }
 
 // Not applies the not operator on the given predicate.
 func Not(p predicate.Voiceover) predicate.Voiceover {
-	return predicate.Voiceover(func(s *sql.Selector) {
-		p(s.Not())
-	})
+	return predicate.Voiceover(sql.NotPredicates(p))
 }

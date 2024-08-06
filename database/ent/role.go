@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 	"github.com/google/uuid"
 	"github.com/stablecog/sc-go/database/ent/role"
@@ -25,7 +26,8 @@ type Role struct {
 	UpdatedAt time.Time `json:"updated_at,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the RoleQuery when eager-loading is set.
-	Edges RoleEdges `json:"edges"`
+	Edges        RoleEdges `json:"edges"`
+	selectValues sql.SelectValues
 }
 
 // RoleEdges holds the relations/edges for other nodes in the graph.
@@ -58,7 +60,7 @@ func (*Role) scanValues(columns []string) ([]any, error) {
 		case role.FieldID:
 			values[i] = new(uuid.UUID)
 		default:
-			return nil, fmt.Errorf("unexpected column %q for type Role", columns[i])
+			values[i] = new(sql.UnknownType)
 		}
 	}
 	return values, nil
@@ -96,9 +98,17 @@ func (r *Role) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				r.UpdatedAt = value.Time
 			}
+		default:
+			r.selectValues.Set(columns[i], values[i])
 		}
 	}
 	return nil
+}
+
+// Value returns the ent.Value that was dynamically selected and assigned to the Role.
+// This includes values selected through modifiers, order, etc.
+func (r *Role) Value(name string) (ent.Value, error) {
+	return r.selectValues.Get(name)
 }
 
 // QueryUsers queries the "users" edge of the Role entity.
@@ -143,9 +153,3 @@ func (r *Role) String() string {
 
 // Roles is a parsable slice of Role.
 type Roles []*Role
-
-func (r Roles) config(cfg config) {
-	for _i := range r {
-		r[_i].config = cfg
-	}
-}

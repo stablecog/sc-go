@@ -27,7 +27,7 @@ func (bwd *BannedWordsDelete) Where(ps ...predicate.BannedWords) *BannedWordsDel
 
 // Exec executes the deletion query and returns how many vertices were deleted.
 func (bwd *BannedWordsDelete) Exec(ctx context.Context) (int, error) {
-	return withHooks[int, BannedWordsMutation](ctx, bwd.sqlExec, bwd.mutation, bwd.hooks)
+	return withHooks(ctx, bwd.sqlExec, bwd.mutation, bwd.hooks)
 }
 
 // ExecX is like Exec, but panics if an error occurs.
@@ -40,15 +40,7 @@ func (bwd *BannedWordsDelete) ExecX(ctx context.Context) int {
 }
 
 func (bwd *BannedWordsDelete) sqlExec(ctx context.Context) (int, error) {
-	_spec := &sqlgraph.DeleteSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table: bannedwords.Table,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeUUID,
-				Column: bannedwords.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewDeleteSpec(bannedwords.Table, sqlgraph.NewFieldSpec(bannedwords.FieldID, field.TypeUUID))
 	if ps := bwd.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
@@ -69,6 +61,12 @@ type BannedWordsDeleteOne struct {
 	bwd *BannedWordsDelete
 }
 
+// Where appends a list predicates to the BannedWordsDelete builder.
+func (bwdo *BannedWordsDeleteOne) Where(ps ...predicate.BannedWords) *BannedWordsDeleteOne {
+	bwdo.bwd.mutation.Where(ps...)
+	return bwdo
+}
+
 // Exec executes the deletion query.
 func (bwdo *BannedWordsDeleteOne) Exec(ctx context.Context) error {
 	n, err := bwdo.bwd.Exec(ctx)
@@ -84,5 +82,7 @@ func (bwdo *BannedWordsDeleteOne) Exec(ctx context.Context) error {
 
 // ExecX is like Exec, but panics if an error occurs.
 func (bwdo *BannedWordsDeleteOne) ExecX(ctx context.Context) {
-	bwdo.bwd.ExecX(ctx)
+	if err := bwdo.Exec(ctx); err != nil {
+		panic(err)
+	}
 }

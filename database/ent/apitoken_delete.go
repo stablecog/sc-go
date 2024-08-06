@@ -27,7 +27,7 @@ func (atd *ApiTokenDelete) Where(ps ...predicate.ApiToken) *ApiTokenDelete {
 
 // Exec executes the deletion query and returns how many vertices were deleted.
 func (atd *ApiTokenDelete) Exec(ctx context.Context) (int, error) {
-	return withHooks[int, ApiTokenMutation](ctx, atd.sqlExec, atd.mutation, atd.hooks)
+	return withHooks(ctx, atd.sqlExec, atd.mutation, atd.hooks)
 }
 
 // ExecX is like Exec, but panics if an error occurs.
@@ -40,15 +40,7 @@ func (atd *ApiTokenDelete) ExecX(ctx context.Context) int {
 }
 
 func (atd *ApiTokenDelete) sqlExec(ctx context.Context) (int, error) {
-	_spec := &sqlgraph.DeleteSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table: apitoken.Table,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeUUID,
-				Column: apitoken.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewDeleteSpec(apitoken.Table, sqlgraph.NewFieldSpec(apitoken.FieldID, field.TypeUUID))
 	if ps := atd.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
@@ -69,6 +61,12 @@ type ApiTokenDeleteOne struct {
 	atd *ApiTokenDelete
 }
 
+// Where appends a list predicates to the ApiTokenDelete builder.
+func (atdo *ApiTokenDeleteOne) Where(ps ...predicate.ApiToken) *ApiTokenDeleteOne {
+	atdo.atd.mutation.Where(ps...)
+	return atdo
+}
+
 // Exec executes the deletion query.
 func (atdo *ApiTokenDeleteOne) Exec(ctx context.Context) error {
 	n, err := atdo.atd.Exec(ctx)
@@ -84,5 +82,7 @@ func (atdo *ApiTokenDeleteOne) Exec(ctx context.Context) error {
 
 // ExecX is like Exec, but panics if an error occurs.
 func (atdo *ApiTokenDeleteOne) ExecX(ctx context.Context) {
-	atdo.atd.ExecX(ctx)
+	if err := atdo.Exec(ctx); err != nil {
+		panic(err)
+	}
 }

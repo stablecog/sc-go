@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"time"
 
+	"entgo.io/ent/dialect/sql"
+	"entgo.io/ent/dialect/sql/sqlgraph"
 	"github.com/google/uuid"
 	"github.com/stablecog/sc-go/database/enttypes"
 )
@@ -212,4 +214,222 @@ func SourceTypeValidator(st enttypes.SourceType) error {
 	default:
 		return fmt.Errorf("voiceover: invalid enum value for source_type field: %q", st)
 	}
+}
+
+// OrderOption defines the ordering options for the Voiceover queries.
+type OrderOption func(*sql.Selector)
+
+// ByID orders the results by the id field.
+func ByID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldID, opts...).ToFunc()
+}
+
+// ByCountryCode orders the results by the country_code field.
+func ByCountryCode(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldCountryCode, opts...).ToFunc()
+}
+
+// ByStatus orders the results by the status field.
+func ByStatus(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldStatus, opts...).ToFunc()
+}
+
+// ByFailureReason orders the results by the failure_reason field.
+func ByFailureReason(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldFailureReason, opts...).ToFunc()
+}
+
+// ByStripeProductID orders the results by the stripe_product_id field.
+func ByStripeProductID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldStripeProductID, opts...).ToFunc()
+}
+
+// ByTemperature orders the results by the temperature field.
+func ByTemperature(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldTemperature, opts...).ToFunc()
+}
+
+// BySeed orders the results by the seed field.
+func BySeed(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldSeed, opts...).ToFunc()
+}
+
+// ByWasAutoSubmitted orders the results by the was_auto_submitted field.
+func ByWasAutoSubmitted(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldWasAutoSubmitted, opts...).ToFunc()
+}
+
+// ByDenoiseAudio orders the results by the denoise_audio field.
+func ByDenoiseAudio(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldDenoiseAudio, opts...).ToFunc()
+}
+
+// ByRemoveSilence orders the results by the remove_silence field.
+func ByRemoveSilence(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldRemoveSilence, opts...).ToFunc()
+}
+
+// ByCost orders the results by the cost field.
+func ByCost(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldCost, opts...).ToFunc()
+}
+
+// BySourceType orders the results by the source_type field.
+func BySourceType(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldSourceType, opts...).ToFunc()
+}
+
+// ByPromptID orders the results by the prompt_id field.
+func ByPromptID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldPromptID, opts...).ToFunc()
+}
+
+// ByUserID orders the results by the user_id field.
+func ByUserID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldUserID, opts...).ToFunc()
+}
+
+// ByDeviceInfoID orders the results by the device_info_id field.
+func ByDeviceInfoID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldDeviceInfoID, opts...).ToFunc()
+}
+
+// ByModelID orders the results by the model_id field.
+func ByModelID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldModelID, opts...).ToFunc()
+}
+
+// BySpeakerID orders the results by the speaker_id field.
+func BySpeakerID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldSpeakerID, opts...).ToFunc()
+}
+
+// ByAPITokenID orders the results by the api_token_id field.
+func ByAPITokenID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldAPITokenID, opts...).ToFunc()
+}
+
+// ByStartedAt orders the results by the started_at field.
+func ByStartedAt(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldStartedAt, opts...).ToFunc()
+}
+
+// ByCompletedAt orders the results by the completed_at field.
+func ByCompletedAt(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldCompletedAt, opts...).ToFunc()
+}
+
+// ByCreatedAt orders the results by the created_at field.
+func ByCreatedAt(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldCreatedAt, opts...).ToFunc()
+}
+
+// ByUpdatedAt orders the results by the updated_at field.
+func ByUpdatedAt(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldUpdatedAt, opts...).ToFunc()
+}
+
+// ByUserField orders the results by user field.
+func ByUserField(field string, opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newUserStep(), sql.OrderByField(field, opts...))
+	}
+}
+
+// ByPromptField orders the results by prompt field.
+func ByPromptField(field string, opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newPromptStep(), sql.OrderByField(field, opts...))
+	}
+}
+
+// ByDeviceInfoField orders the results by device_info field.
+func ByDeviceInfoField(field string, opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newDeviceInfoStep(), sql.OrderByField(field, opts...))
+	}
+}
+
+// ByVoiceoverModelsField orders the results by voiceover_models field.
+func ByVoiceoverModelsField(field string, opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newVoiceoverModelsStep(), sql.OrderByField(field, opts...))
+	}
+}
+
+// ByVoiceoverSpeakersField orders the results by voiceover_speakers field.
+func ByVoiceoverSpeakersField(field string, opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newVoiceoverSpeakersStep(), sql.OrderByField(field, opts...))
+	}
+}
+
+// ByAPITokensField orders the results by api_tokens field.
+func ByAPITokensField(field string, opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newAPITokensStep(), sql.OrderByField(field, opts...))
+	}
+}
+
+// ByVoiceoverOutputsCount orders the results by voiceover_outputs count.
+func ByVoiceoverOutputsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newVoiceoverOutputsStep(), opts...)
+	}
+}
+
+// ByVoiceoverOutputs orders the results by voiceover_outputs terms.
+func ByVoiceoverOutputs(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newVoiceoverOutputsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+func newUserStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(UserInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, true, UserTable, UserColumn),
+	)
+}
+func newPromptStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(PromptInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, true, PromptTable, PromptColumn),
+	)
+}
+func newDeviceInfoStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(DeviceInfoInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, true, DeviceInfoTable, DeviceInfoColumn),
+	)
+}
+func newVoiceoverModelsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(VoiceoverModelsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, true, VoiceoverModelsTable, VoiceoverModelsColumn),
+	)
+}
+func newVoiceoverSpeakersStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(VoiceoverSpeakersInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, true, VoiceoverSpeakersTable, VoiceoverSpeakersColumn),
+	)
+}
+func newAPITokensStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(APITokensInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, true, APITokensTable, APITokensColumn),
+	)
+}
+func newVoiceoverOutputsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(VoiceoverOutputsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, VoiceoverOutputsTable, VoiceoverOutputsColumn),
+	)
 }

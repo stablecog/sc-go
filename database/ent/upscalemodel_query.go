@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"math"
 
+	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
@@ -21,7 +22,7 @@ import (
 type UpscaleModelQuery struct {
 	config
 	ctx          *QueryContext
-	order        []OrderFunc
+	order        []upscalemodel.OrderOption
 	inters       []Interceptor
 	predicates   []predicate.UpscaleModel
 	withUpscales *UpscaleQuery
@@ -57,7 +58,7 @@ func (umq *UpscaleModelQuery) Unique(unique bool) *UpscaleModelQuery {
 }
 
 // Order specifies how the records should be ordered.
-func (umq *UpscaleModelQuery) Order(o ...OrderFunc) *UpscaleModelQuery {
+func (umq *UpscaleModelQuery) Order(o ...upscalemodel.OrderOption) *UpscaleModelQuery {
 	umq.order = append(umq.order, o...)
 	return umq
 }
@@ -87,7 +88,7 @@ func (umq *UpscaleModelQuery) QueryUpscales() *UpscaleQuery {
 // First returns the first UpscaleModel entity from the query.
 // Returns a *NotFoundError when no UpscaleModel was found.
 func (umq *UpscaleModelQuery) First(ctx context.Context) (*UpscaleModel, error) {
-	nodes, err := umq.Limit(1).All(setContextOp(ctx, umq.ctx, "First"))
+	nodes, err := umq.Limit(1).All(setContextOp(ctx, umq.ctx, ent.OpQueryFirst))
 	if err != nil {
 		return nil, err
 	}
@@ -110,7 +111,7 @@ func (umq *UpscaleModelQuery) FirstX(ctx context.Context) *UpscaleModel {
 // Returns a *NotFoundError when no UpscaleModel ID was found.
 func (umq *UpscaleModelQuery) FirstID(ctx context.Context) (id uuid.UUID, err error) {
 	var ids []uuid.UUID
-	if ids, err = umq.Limit(1).IDs(setContextOp(ctx, umq.ctx, "FirstID")); err != nil {
+	if ids, err = umq.Limit(1).IDs(setContextOp(ctx, umq.ctx, ent.OpQueryFirstID)); err != nil {
 		return
 	}
 	if len(ids) == 0 {
@@ -133,7 +134,7 @@ func (umq *UpscaleModelQuery) FirstIDX(ctx context.Context) uuid.UUID {
 // Returns a *NotSingularError when more than one UpscaleModel entity is found.
 // Returns a *NotFoundError when no UpscaleModel entities are found.
 func (umq *UpscaleModelQuery) Only(ctx context.Context) (*UpscaleModel, error) {
-	nodes, err := umq.Limit(2).All(setContextOp(ctx, umq.ctx, "Only"))
+	nodes, err := umq.Limit(2).All(setContextOp(ctx, umq.ctx, ent.OpQueryOnly))
 	if err != nil {
 		return nil, err
 	}
@@ -161,7 +162,7 @@ func (umq *UpscaleModelQuery) OnlyX(ctx context.Context) *UpscaleModel {
 // Returns a *NotFoundError when no entities are found.
 func (umq *UpscaleModelQuery) OnlyID(ctx context.Context) (id uuid.UUID, err error) {
 	var ids []uuid.UUID
-	if ids, err = umq.Limit(2).IDs(setContextOp(ctx, umq.ctx, "OnlyID")); err != nil {
+	if ids, err = umq.Limit(2).IDs(setContextOp(ctx, umq.ctx, ent.OpQueryOnlyID)); err != nil {
 		return
 	}
 	switch len(ids) {
@@ -186,7 +187,7 @@ func (umq *UpscaleModelQuery) OnlyIDX(ctx context.Context) uuid.UUID {
 
 // All executes the query and returns a list of UpscaleModels.
 func (umq *UpscaleModelQuery) All(ctx context.Context) ([]*UpscaleModel, error) {
-	ctx = setContextOp(ctx, umq.ctx, "All")
+	ctx = setContextOp(ctx, umq.ctx, ent.OpQueryAll)
 	if err := umq.prepareQuery(ctx); err != nil {
 		return nil, err
 	}
@@ -204,10 +205,12 @@ func (umq *UpscaleModelQuery) AllX(ctx context.Context) []*UpscaleModel {
 }
 
 // IDs executes the query and returns a list of UpscaleModel IDs.
-func (umq *UpscaleModelQuery) IDs(ctx context.Context) ([]uuid.UUID, error) {
-	var ids []uuid.UUID
-	ctx = setContextOp(ctx, umq.ctx, "IDs")
-	if err := umq.Select(upscalemodel.FieldID).Scan(ctx, &ids); err != nil {
+func (umq *UpscaleModelQuery) IDs(ctx context.Context) (ids []uuid.UUID, err error) {
+	if umq.ctx.Unique == nil && umq.path != nil {
+		umq.Unique(true)
+	}
+	ctx = setContextOp(ctx, umq.ctx, ent.OpQueryIDs)
+	if err = umq.Select(upscalemodel.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
 	return ids, nil
@@ -224,7 +227,7 @@ func (umq *UpscaleModelQuery) IDsX(ctx context.Context) []uuid.UUID {
 
 // Count returns the count of the given query.
 func (umq *UpscaleModelQuery) Count(ctx context.Context) (int, error) {
-	ctx = setContextOp(ctx, umq.ctx, "Count")
+	ctx = setContextOp(ctx, umq.ctx, ent.OpQueryCount)
 	if err := umq.prepareQuery(ctx); err != nil {
 		return 0, err
 	}
@@ -242,7 +245,7 @@ func (umq *UpscaleModelQuery) CountX(ctx context.Context) int {
 
 // Exist returns true if the query has elements in the graph.
 func (umq *UpscaleModelQuery) Exist(ctx context.Context) (bool, error) {
-	ctx = setContextOp(ctx, umq.ctx, "Exist")
+	ctx = setContextOp(ctx, umq.ctx, ent.OpQueryExist)
 	switch _, err := umq.FirstID(ctx); {
 	case IsNotFound(err):
 		return false, nil
@@ -271,7 +274,7 @@ func (umq *UpscaleModelQuery) Clone() *UpscaleModelQuery {
 	return &UpscaleModelQuery{
 		config:       umq.config,
 		ctx:          umq.ctx.Clone(),
-		order:        append([]OrderFunc{}, umq.order...),
+		order:        append([]upscalemodel.OrderOption{}, umq.order...),
 		inters:       append([]Interceptor{}, umq.inters...),
 		predicates:   append([]predicate.UpscaleModel{}, umq.predicates...),
 		withUpscales: umq.withUpscales.Clone(),
@@ -415,8 +418,11 @@ func (umq *UpscaleModelQuery) loadUpscales(ctx context.Context, query *UpscaleQu
 			init(nodes[i])
 		}
 	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(upscale.FieldModelID)
+	}
 	query.Where(predicate.Upscale(func(s *sql.Selector) {
-		s.Where(sql.InValues(upscalemodel.UpscalesColumn, fks...))
+		s.Where(sql.InValues(s.C(upscalemodel.UpscalesColumn), fks...))
 	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {
@@ -426,7 +432,7 @@ func (umq *UpscaleModelQuery) loadUpscales(ctx context.Context, query *UpscaleQu
 		fk := n.ModelID
 		node, ok := nodeids[fk]
 		if !ok {
-			return fmt.Errorf(`unexpected foreign-key "model_id" returned %v for node %v`, fk, n.ID)
+			return fmt.Errorf(`unexpected referenced foreign-key "model_id" returned %v for node %v`, fk, n.ID)
 		}
 		assign(node, n)
 	}
@@ -446,20 +452,12 @@ func (umq *UpscaleModelQuery) sqlCount(ctx context.Context) (int, error) {
 }
 
 func (umq *UpscaleModelQuery) querySpec() *sqlgraph.QuerySpec {
-	_spec := &sqlgraph.QuerySpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   upscalemodel.Table,
-			Columns: upscalemodel.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeUUID,
-				Column: upscalemodel.FieldID,
-			},
-		},
-		From:   umq.sql,
-		Unique: true,
-	}
+	_spec := sqlgraph.NewQuerySpec(upscalemodel.Table, upscalemodel.Columns, sqlgraph.NewFieldSpec(upscalemodel.FieldID, field.TypeUUID))
+	_spec.From = umq.sql
 	if unique := umq.ctx.Unique; unique != nil {
 		_spec.Unique = *unique
+	} else if umq.path != nil {
+		_spec.Unique = true
 	}
 	if fields := umq.ctx.Fields; len(fields) > 0 {
 		_spec.Node.Columns = make([]string, 0, len(fields))
@@ -548,7 +546,7 @@ func (umgb *UpscaleModelGroupBy) Aggregate(fns ...AggregateFunc) *UpscaleModelGr
 
 // Scan applies the selector query and scans the result into the given value.
 func (umgb *UpscaleModelGroupBy) Scan(ctx context.Context, v any) error {
-	ctx = setContextOp(ctx, umgb.build.ctx, "GroupBy")
+	ctx = setContextOp(ctx, umgb.build.ctx, ent.OpQueryGroupBy)
 	if err := umgb.build.prepareQuery(ctx); err != nil {
 		return err
 	}
@@ -596,7 +594,7 @@ func (ums *UpscaleModelSelect) Aggregate(fns ...AggregateFunc) *UpscaleModelSele
 
 // Scan applies the selector query and scans the result into the given value.
 func (ums *UpscaleModelSelect) Scan(ctx context.Context, v any) error {
-	ctx = setContextOp(ctx, ums.ctx, "Select")
+	ctx = setContextOp(ctx, ums.ctx, ent.OpQuerySelect)
 	if err := ums.prepareQuery(ctx); err != nil {
 		return err
 	}

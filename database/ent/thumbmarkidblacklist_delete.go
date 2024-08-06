@@ -27,7 +27,7 @@ func (tibld *ThumbmarkIdBlackListDelete) Where(ps ...predicate.ThumbmarkIdBlackL
 
 // Exec executes the deletion query and returns how many vertices were deleted.
 func (tibld *ThumbmarkIdBlackListDelete) Exec(ctx context.Context) (int, error) {
-	return withHooks[int, ThumbmarkIdBlackListMutation](ctx, tibld.sqlExec, tibld.mutation, tibld.hooks)
+	return withHooks(ctx, tibld.sqlExec, tibld.mutation, tibld.hooks)
 }
 
 // ExecX is like Exec, but panics if an error occurs.
@@ -40,15 +40,7 @@ func (tibld *ThumbmarkIdBlackListDelete) ExecX(ctx context.Context) int {
 }
 
 func (tibld *ThumbmarkIdBlackListDelete) sqlExec(ctx context.Context) (int, error) {
-	_spec := &sqlgraph.DeleteSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table: thumbmarkidblacklist.Table,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeUUID,
-				Column: thumbmarkidblacklist.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewDeleteSpec(thumbmarkidblacklist.Table, sqlgraph.NewFieldSpec(thumbmarkidblacklist.FieldID, field.TypeUUID))
 	if ps := tibld.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
@@ -69,6 +61,12 @@ type ThumbmarkIdBlackListDeleteOne struct {
 	tibld *ThumbmarkIdBlackListDelete
 }
 
+// Where appends a list predicates to the ThumbmarkIdBlackListDelete builder.
+func (tibldo *ThumbmarkIdBlackListDeleteOne) Where(ps ...predicate.ThumbmarkIdBlackList) *ThumbmarkIdBlackListDeleteOne {
+	tibldo.tibld.mutation.Where(ps...)
+	return tibldo
+}
+
 // Exec executes the deletion query.
 func (tibldo *ThumbmarkIdBlackListDeleteOne) Exec(ctx context.Context) error {
 	n, err := tibldo.tibld.Exec(ctx)
@@ -84,5 +82,7 @@ func (tibldo *ThumbmarkIdBlackListDeleteOne) Exec(ctx context.Context) error {
 
 // ExecX is like Exec, but panics if an error occurs.
 func (tibldo *ThumbmarkIdBlackListDeleteOne) ExecX(ctx context.Context) {
-	tibldo.tibld.ExecX(ctx)
+	if err := tibldo.Exec(ctx); err != nil {
+		panic(err)
+	}
 }

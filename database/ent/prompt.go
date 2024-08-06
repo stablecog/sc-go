@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 	"github.com/google/uuid"
 	"github.com/stablecog/sc-go/database/ent/prompt"
@@ -19,6 +20,10 @@ type Prompt struct {
 	ID uuid.UUID `json:"id,omitempty"`
 	// Text holds the value of the "text" field.
 	Text string `json:"text,omitempty"`
+	// TranslatedText holds the value of the "translated_text" field.
+	TranslatedText *string `json:"translated_text,omitempty"`
+	// RanTranslation holds the value of the "ran_translation" field.
+	RanTranslation bool `json:"ran_translation,omitempty"`
 	// Type holds the value of the "type" field.
 	Type prompt.Type `json:"type,omitempty"`
 	// CreatedAt holds the value of the "created_at" field.
@@ -27,7 +32,8 @@ type Prompt struct {
 	UpdatedAt time.Time `json:"updated_at,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the PromptQuery when eager-loading is set.
-	Edges PromptEdges `json:"edges"`
+	Edges        PromptEdges `json:"edges"`
+	selectValues sql.SelectValues
 }
 
 // PromptEdges holds the relations/edges for other nodes in the graph.
@@ -64,14 +70,16 @@ func (*Prompt) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case prompt.FieldText, prompt.FieldType:
+		case prompt.FieldRanTranslation:
+			values[i] = new(sql.NullBool)
+		case prompt.FieldText, prompt.FieldTranslatedText, prompt.FieldType:
 			values[i] = new(sql.NullString)
 		case prompt.FieldCreatedAt, prompt.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
 		case prompt.FieldID:
 			values[i] = new(uuid.UUID)
 		default:
-			return nil, fmt.Errorf("unexpected column %q for type Prompt", columns[i])
+			values[i] = new(sql.UnknownType)
 		}
 	}
 	return values, nil
@@ -97,6 +105,19 @@ func (pr *Prompt) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				pr.Text = value.String
 			}
+		case prompt.FieldTranslatedText:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field translated_text", values[i])
+			} else if value.Valid {
+				pr.TranslatedText = new(string)
+				*pr.TranslatedText = value.String
+			}
+		case prompt.FieldRanTranslation:
+			if value, ok := values[i].(*sql.NullBool); !ok {
+				return fmt.Errorf("unexpected type %T for field ran_translation", values[i])
+			} else if value.Valid {
+				pr.RanTranslation = value.Bool
+			}
 		case prompt.FieldType:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field type", values[i])
@@ -115,9 +136,17 @@ func (pr *Prompt) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				pr.UpdatedAt = value.Time
 			}
+		default:
+			pr.selectValues.Set(columns[i], values[i])
 		}
 	}
 	return nil
+}
+
+// Value returns the ent.Value that was dynamically selected and assigned to the Prompt.
+// This includes values selected through modifiers, order, etc.
+func (pr *Prompt) Value(name string) (ent.Value, error) {
+	return pr.selectValues.Get(name)
 }
 
 // QueryGenerations queries the "generations" edge of the Prompt entity.
@@ -156,6 +185,14 @@ func (pr *Prompt) String() string {
 	builder.WriteString("text=")
 	builder.WriteString(pr.Text)
 	builder.WriteString(", ")
+	if v := pr.TranslatedText; v != nil {
+		builder.WriteString("translated_text=")
+		builder.WriteString(*v)
+	}
+	builder.WriteString(", ")
+	builder.WriteString("ran_translation=")
+	builder.WriteString(fmt.Sprintf("%v", pr.RanTranslation))
+	builder.WriteString(", ")
 	builder.WriteString("type=")
 	builder.WriteString(fmt.Sprintf("%v", pr.Type))
 	builder.WriteString(", ")
@@ -170,9 +207,3 @@ func (pr *Prompt) String() string {
 
 // Prompts is a parsable slice of Prompt.
 type Prompts []*Prompt
-
-func (pr Prompts) config(cfg config) {
-	for _i := range pr {
-		pr[_i].config = cfg
-	}
-}

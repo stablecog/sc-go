@@ -38,6 +38,14 @@ func (vsu *VoiceoverSpeakerUpdate) SetNameInWorker(s string) *VoiceoverSpeakerUp
 	return vsu
 }
 
+// SetNillableNameInWorker sets the "name_in_worker" field if the given value is not nil.
+func (vsu *VoiceoverSpeakerUpdate) SetNillableNameInWorker(s *string) *VoiceoverSpeakerUpdate {
+	if s != nil {
+		vsu.SetNameInWorker(*s)
+	}
+	return vsu
+}
+
 // SetName sets the "name" field.
 func (vsu *VoiceoverSpeakerUpdate) SetName(s string) *VoiceoverSpeakerUpdate {
 	vsu.mutation.SetName(s)
@@ -120,6 +128,14 @@ func (vsu *VoiceoverSpeakerUpdate) SetModelID(u uuid.UUID) *VoiceoverSpeakerUpda
 	return vsu
 }
 
+// SetNillableModelID sets the "model_id" field if the given value is not nil.
+func (vsu *VoiceoverSpeakerUpdate) SetNillableModelID(u *uuid.UUID) *VoiceoverSpeakerUpdate {
+	if u != nil {
+		vsu.SetModelID(*u)
+	}
+	return vsu
+}
+
 // SetUpdatedAt sets the "updated_at" field.
 func (vsu *VoiceoverSpeakerUpdate) SetUpdatedAt(t time.Time) *VoiceoverSpeakerUpdate {
 	vsu.mutation.SetUpdatedAt(t)
@@ -187,7 +203,7 @@ func (vsu *VoiceoverSpeakerUpdate) ClearVoiceoverModels() *VoiceoverSpeakerUpdat
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (vsu *VoiceoverSpeakerUpdate) Save(ctx context.Context) (int, error) {
 	vsu.defaults()
-	return withHooks[int, VoiceoverSpeakerMutation](ctx, vsu.sqlSave, vsu.mutation, vsu.hooks)
+	return withHooks(ctx, vsu.sqlSave, vsu.mutation, vsu.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -222,7 +238,7 @@ func (vsu *VoiceoverSpeakerUpdate) defaults() {
 
 // check runs all checks and user-defined validators on the builder.
 func (vsu *VoiceoverSpeakerUpdate) check() error {
-	if _, ok := vsu.mutation.VoiceoverModelsID(); vsu.mutation.VoiceoverModelsCleared() && !ok {
+	if vsu.mutation.VoiceoverModelsCleared() && len(vsu.mutation.VoiceoverModelsIDs()) > 0 {
 		return errors.New(`ent: clearing a required unique edge "VoiceoverSpeaker.voiceover_models"`)
 	}
 	return nil
@@ -238,16 +254,7 @@ func (vsu *VoiceoverSpeakerUpdate) sqlSave(ctx context.Context) (n int, err erro
 	if err := vsu.check(); err != nil {
 		return n, err
 	}
-	_spec := &sqlgraph.UpdateSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   voiceoverspeaker.Table,
-			Columns: voiceoverspeaker.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeUUID,
-				Column: voiceoverspeaker.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewUpdateSpec(voiceoverspeaker.Table, voiceoverspeaker.Columns, sqlgraph.NewFieldSpec(voiceoverspeaker.FieldID, field.TypeUUID))
 	if ps := vsu.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
@@ -287,10 +294,7 @@ func (vsu *VoiceoverSpeakerUpdate) sqlSave(ctx context.Context) (n int, err erro
 			Columns: []string{voiceoverspeaker.VoiceoversColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: voiceover.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(voiceover.FieldID, field.TypeUUID),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -303,10 +307,7 @@ func (vsu *VoiceoverSpeakerUpdate) sqlSave(ctx context.Context) (n int, err erro
 			Columns: []string{voiceoverspeaker.VoiceoversColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: voiceover.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(voiceover.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -322,10 +323,7 @@ func (vsu *VoiceoverSpeakerUpdate) sqlSave(ctx context.Context) (n int, err erro
 			Columns: []string{voiceoverspeaker.VoiceoversColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: voiceover.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(voiceover.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -341,10 +339,7 @@ func (vsu *VoiceoverSpeakerUpdate) sqlSave(ctx context.Context) (n int, err erro
 			Columns: []string{voiceoverspeaker.VoiceoverModelsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: voiceovermodel.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(voiceovermodel.FieldID, field.TypeUUID),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -357,10 +352,7 @@ func (vsu *VoiceoverSpeakerUpdate) sqlSave(ctx context.Context) (n int, err erro
 			Columns: []string{voiceoverspeaker.VoiceoverModelsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: voiceovermodel.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(voiceovermodel.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -393,6 +385,14 @@ type VoiceoverSpeakerUpdateOne struct {
 // SetNameInWorker sets the "name_in_worker" field.
 func (vsuo *VoiceoverSpeakerUpdateOne) SetNameInWorker(s string) *VoiceoverSpeakerUpdateOne {
 	vsuo.mutation.SetNameInWorker(s)
+	return vsuo
+}
+
+// SetNillableNameInWorker sets the "name_in_worker" field if the given value is not nil.
+func (vsuo *VoiceoverSpeakerUpdateOne) SetNillableNameInWorker(s *string) *VoiceoverSpeakerUpdateOne {
+	if s != nil {
+		vsuo.SetNameInWorker(*s)
+	}
 	return vsuo
 }
 
@@ -478,6 +478,14 @@ func (vsuo *VoiceoverSpeakerUpdateOne) SetModelID(u uuid.UUID) *VoiceoverSpeaker
 	return vsuo
 }
 
+// SetNillableModelID sets the "model_id" field if the given value is not nil.
+func (vsuo *VoiceoverSpeakerUpdateOne) SetNillableModelID(u *uuid.UUID) *VoiceoverSpeakerUpdateOne {
+	if u != nil {
+		vsuo.SetModelID(*u)
+	}
+	return vsuo
+}
+
 // SetUpdatedAt sets the "updated_at" field.
 func (vsuo *VoiceoverSpeakerUpdateOne) SetUpdatedAt(t time.Time) *VoiceoverSpeakerUpdateOne {
 	vsuo.mutation.SetUpdatedAt(t)
@@ -542,6 +550,12 @@ func (vsuo *VoiceoverSpeakerUpdateOne) ClearVoiceoverModels() *VoiceoverSpeakerU
 	return vsuo
 }
 
+// Where appends a list predicates to the VoiceoverSpeakerUpdate builder.
+func (vsuo *VoiceoverSpeakerUpdateOne) Where(ps ...predicate.VoiceoverSpeaker) *VoiceoverSpeakerUpdateOne {
+	vsuo.mutation.Where(ps...)
+	return vsuo
+}
+
 // Select allows selecting one or more fields (columns) of the returned entity.
 // The default is selecting all fields defined in the entity schema.
 func (vsuo *VoiceoverSpeakerUpdateOne) Select(field string, fields ...string) *VoiceoverSpeakerUpdateOne {
@@ -552,7 +566,7 @@ func (vsuo *VoiceoverSpeakerUpdateOne) Select(field string, fields ...string) *V
 // Save executes the query and returns the updated VoiceoverSpeaker entity.
 func (vsuo *VoiceoverSpeakerUpdateOne) Save(ctx context.Context) (*VoiceoverSpeaker, error) {
 	vsuo.defaults()
-	return withHooks[*VoiceoverSpeaker, VoiceoverSpeakerMutation](ctx, vsuo.sqlSave, vsuo.mutation, vsuo.hooks)
+	return withHooks(ctx, vsuo.sqlSave, vsuo.mutation, vsuo.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -587,7 +601,7 @@ func (vsuo *VoiceoverSpeakerUpdateOne) defaults() {
 
 // check runs all checks and user-defined validators on the builder.
 func (vsuo *VoiceoverSpeakerUpdateOne) check() error {
-	if _, ok := vsuo.mutation.VoiceoverModelsID(); vsuo.mutation.VoiceoverModelsCleared() && !ok {
+	if vsuo.mutation.VoiceoverModelsCleared() && len(vsuo.mutation.VoiceoverModelsIDs()) > 0 {
 		return errors.New(`ent: clearing a required unique edge "VoiceoverSpeaker.voiceover_models"`)
 	}
 	return nil
@@ -603,16 +617,7 @@ func (vsuo *VoiceoverSpeakerUpdateOne) sqlSave(ctx context.Context) (_node *Voic
 	if err := vsuo.check(); err != nil {
 		return _node, err
 	}
-	_spec := &sqlgraph.UpdateSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   voiceoverspeaker.Table,
-			Columns: voiceoverspeaker.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeUUID,
-				Column: voiceoverspeaker.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewUpdateSpec(voiceoverspeaker.Table, voiceoverspeaker.Columns, sqlgraph.NewFieldSpec(voiceoverspeaker.FieldID, field.TypeUUID))
 	id, ok := vsuo.mutation.ID()
 	if !ok {
 		return nil, &ValidationError{Name: "id", err: errors.New(`ent: missing "VoiceoverSpeaker.id" for update`)}
@@ -669,10 +674,7 @@ func (vsuo *VoiceoverSpeakerUpdateOne) sqlSave(ctx context.Context) (_node *Voic
 			Columns: []string{voiceoverspeaker.VoiceoversColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: voiceover.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(voiceover.FieldID, field.TypeUUID),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -685,10 +687,7 @@ func (vsuo *VoiceoverSpeakerUpdateOne) sqlSave(ctx context.Context) (_node *Voic
 			Columns: []string{voiceoverspeaker.VoiceoversColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: voiceover.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(voiceover.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -704,10 +703,7 @@ func (vsuo *VoiceoverSpeakerUpdateOne) sqlSave(ctx context.Context) (_node *Voic
 			Columns: []string{voiceoverspeaker.VoiceoversColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: voiceover.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(voiceover.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -723,10 +719,7 @@ func (vsuo *VoiceoverSpeakerUpdateOne) sqlSave(ctx context.Context) (_node *Voic
 			Columns: []string{voiceoverspeaker.VoiceoverModelsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: voiceovermodel.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(voiceovermodel.FieldID, field.TypeUUID),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -739,10 +732,7 @@ func (vsuo *VoiceoverSpeakerUpdateOne) sqlSave(ctx context.Context) (_node *Voic
 			Columns: []string{voiceoverspeaker.VoiceoverModelsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: voiceovermodel.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(voiceovermodel.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

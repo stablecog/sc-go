@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 	"github.com/google/uuid"
 	"github.com/stablecog/sc-go/database/ent/generationmodel"
@@ -39,7 +40,8 @@ type GenerationModel struct {
 	UpdatedAt time.Time `json:"updated_at,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the GenerationModelQuery when eager-loading is set.
-	Edges GenerationModelEdges `json:"edges"`
+	Edges        GenerationModelEdges `json:"edges"`
+	selectValues sql.SelectValues
 }
 
 // GenerationModelEdges holds the relations/edges for other nodes in the graph.
@@ -89,7 +91,7 @@ func (*GenerationModel) scanValues(columns []string) ([]any, error) {
 		case generationmodel.FieldID:
 			values[i] = new(uuid.UUID)
 		default:
-			return nil, fmt.Errorf("unexpected column %q for type GenerationModel", columns[i])
+			values[i] = new(sql.UnknownType)
 		}
 	}
 	return values, nil
@@ -170,9 +172,17 @@ func (gm *GenerationModel) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				gm.UpdatedAt = value.Time
 			}
+		default:
+			gm.selectValues.Set(columns[i], values[i])
 		}
 	}
 	return nil
+}
+
+// Value returns the ent.Value that was dynamically selected and assigned to the GenerationModel.
+// This includes values selected through modifiers, order, etc.
+func (gm *GenerationModel) Value(name string) (ent.Value, error) {
+	return gm.selectValues.Get(name)
 }
 
 // QueryGenerations queries the "generations" edge of the GenerationModel entity.
@@ -245,9 +255,3 @@ func (gm *GenerationModel) String() string {
 
 // GenerationModels is a parsable slice of GenerationModel.
 type GenerationModels []*GenerationModel
-
-func (gm GenerationModels) config(cfg config) {
-	for _i := range gm {
-		gm[_i].config = cfg
-	}
-}

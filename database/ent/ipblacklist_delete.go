@@ -27,7 +27,7 @@ func (ibld *IPBlackListDelete) Where(ps ...predicate.IPBlackList) *IPBlackListDe
 
 // Exec executes the deletion query and returns how many vertices were deleted.
 func (ibld *IPBlackListDelete) Exec(ctx context.Context) (int, error) {
-	return withHooks[int, IPBlackListMutation](ctx, ibld.sqlExec, ibld.mutation, ibld.hooks)
+	return withHooks(ctx, ibld.sqlExec, ibld.mutation, ibld.hooks)
 }
 
 // ExecX is like Exec, but panics if an error occurs.
@@ -40,15 +40,7 @@ func (ibld *IPBlackListDelete) ExecX(ctx context.Context) int {
 }
 
 func (ibld *IPBlackListDelete) sqlExec(ctx context.Context) (int, error) {
-	_spec := &sqlgraph.DeleteSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table: ipblacklist.Table,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeUUID,
-				Column: ipblacklist.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewDeleteSpec(ipblacklist.Table, sqlgraph.NewFieldSpec(ipblacklist.FieldID, field.TypeUUID))
 	if ps := ibld.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
@@ -69,6 +61,12 @@ type IPBlackListDeleteOne struct {
 	ibld *IPBlackListDelete
 }
 
+// Where appends a list predicates to the IPBlackListDelete builder.
+func (ibldo *IPBlackListDeleteOne) Where(ps ...predicate.IPBlackList) *IPBlackListDeleteOne {
+	ibldo.ibld.mutation.Where(ps...)
+	return ibldo
+}
+
 // Exec executes the deletion query.
 func (ibldo *IPBlackListDeleteOne) Exec(ctx context.Context) error {
 	n, err := ibldo.ibld.Exec(ctx)
@@ -84,5 +82,7 @@ func (ibldo *IPBlackListDeleteOne) Exec(ctx context.Context) error {
 
 // ExecX is like Exec, but panics if an error occurs.
 func (ibldo *IPBlackListDeleteOne) ExecX(ctx context.Context) {
-	ibldo.ibld.ExecX(ctx)
+	if err := ibldo.Exec(ctx); err != nil {
+		panic(err)
+	}
 }

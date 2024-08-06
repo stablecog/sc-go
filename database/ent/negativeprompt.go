@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 	"github.com/google/uuid"
 	"github.com/stablecog/sc-go/database/ent/negativeprompt"
@@ -19,13 +20,18 @@ type NegativePrompt struct {
 	ID uuid.UUID `json:"id,omitempty"`
 	// Text holds the value of the "text" field.
 	Text string `json:"text,omitempty"`
+	// TranslatedText holds the value of the "translated_text" field.
+	TranslatedText *string `json:"translated_text,omitempty"`
+	// RanTranslation holds the value of the "ran_translation" field.
+	RanTranslation bool `json:"ran_translation,omitempty"`
 	// CreatedAt holds the value of the "created_at" field.
 	CreatedAt time.Time `json:"created_at,omitempty"`
 	// UpdatedAt holds the value of the "updated_at" field.
 	UpdatedAt time.Time `json:"updated_at,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the NegativePromptQuery when eager-loading is set.
-	Edges NegativePromptEdges `json:"edges"`
+	Edges        NegativePromptEdges `json:"edges"`
+	selectValues sql.SelectValues
 }
 
 // NegativePromptEdges holds the relations/edges for other nodes in the graph.
@@ -51,14 +57,16 @@ func (*NegativePrompt) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case negativeprompt.FieldText:
+		case negativeprompt.FieldRanTranslation:
+			values[i] = new(sql.NullBool)
+		case negativeprompt.FieldText, negativeprompt.FieldTranslatedText:
 			values[i] = new(sql.NullString)
 		case negativeprompt.FieldCreatedAt, negativeprompt.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
 		case negativeprompt.FieldID:
 			values[i] = new(uuid.UUID)
 		default:
-			return nil, fmt.Errorf("unexpected column %q for type NegativePrompt", columns[i])
+			values[i] = new(sql.UnknownType)
 		}
 	}
 	return values, nil
@@ -84,6 +92,19 @@ func (np *NegativePrompt) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				np.Text = value.String
 			}
+		case negativeprompt.FieldTranslatedText:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field translated_text", values[i])
+			} else if value.Valid {
+				np.TranslatedText = new(string)
+				*np.TranslatedText = value.String
+			}
+		case negativeprompt.FieldRanTranslation:
+			if value, ok := values[i].(*sql.NullBool); !ok {
+				return fmt.Errorf("unexpected type %T for field ran_translation", values[i])
+			} else if value.Valid {
+				np.RanTranslation = value.Bool
+			}
 		case negativeprompt.FieldCreatedAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
 				return fmt.Errorf("unexpected type %T for field created_at", values[i])
@@ -96,9 +117,17 @@ func (np *NegativePrompt) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				np.UpdatedAt = value.Time
 			}
+		default:
+			np.selectValues.Set(columns[i], values[i])
 		}
 	}
 	return nil
+}
+
+// Value returns the ent.Value that was dynamically selected and assigned to the NegativePrompt.
+// This includes values selected through modifiers, order, etc.
+func (np *NegativePrompt) Value(name string) (ent.Value, error) {
+	return np.selectValues.Get(name)
 }
 
 // QueryGenerations queries the "generations" edge of the NegativePrompt entity.
@@ -132,6 +161,14 @@ func (np *NegativePrompt) String() string {
 	builder.WriteString("text=")
 	builder.WriteString(np.Text)
 	builder.WriteString(", ")
+	if v := np.TranslatedText; v != nil {
+		builder.WriteString("translated_text=")
+		builder.WriteString(*v)
+	}
+	builder.WriteString(", ")
+	builder.WriteString("ran_translation=")
+	builder.WriteString(fmt.Sprintf("%v", np.RanTranslation))
+	builder.WriteString(", ")
 	builder.WriteString("created_at=")
 	builder.WriteString(np.CreatedAt.Format(time.ANSIC))
 	builder.WriteString(", ")
@@ -143,9 +180,3 @@ func (np *NegativePrompt) String() string {
 
 // NegativePrompts is a parsable slice of NegativePrompt.
 type NegativePrompts []*NegativePrompt
-
-func (np NegativePrompts) config(cfg config) {
-	for _i := range np {
-		np[_i].config = cfg
-	}
-}

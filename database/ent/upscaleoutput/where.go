@@ -425,11 +425,7 @@ func HasUpscales() predicate.UpscaleOutput {
 // HasUpscalesWith applies the HasEdge predicate on the "upscales" edge with a given conditions (other predicates).
 func HasUpscalesWith(preds ...predicate.Upscale) predicate.UpscaleOutput {
 	return predicate.UpscaleOutput(func(s *sql.Selector) {
-		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(UpscalesInverseTable, FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, UpscalesTable, UpscalesColumn),
-		)
+		step := newUpscalesStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)
@@ -452,11 +448,7 @@ func HasGenerationOutput() predicate.UpscaleOutput {
 // HasGenerationOutputWith applies the HasEdge predicate on the "generation_output" edge with a given conditions (other predicates).
 func HasGenerationOutputWith(preds ...predicate.GenerationOutput) predicate.UpscaleOutput {
 	return predicate.UpscaleOutput(func(s *sql.Selector) {
-		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(GenerationOutputInverseTable, FieldID),
-			sqlgraph.Edge(sqlgraph.O2O, true, GenerationOutputTable, GenerationOutputColumn),
-		)
+		step := newGenerationOutputStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)
@@ -467,32 +459,15 @@ func HasGenerationOutputWith(preds ...predicate.GenerationOutput) predicate.Upsc
 
 // And groups predicates with the AND operator between them.
 func And(predicates ...predicate.UpscaleOutput) predicate.UpscaleOutput {
-	return predicate.UpscaleOutput(func(s *sql.Selector) {
-		s1 := s.Clone().SetP(nil)
-		for _, p := range predicates {
-			p(s1)
-		}
-		s.Where(s1.P())
-	})
+	return predicate.UpscaleOutput(sql.AndPredicates(predicates...))
 }
 
 // Or groups predicates with the OR operator between them.
 func Or(predicates ...predicate.UpscaleOutput) predicate.UpscaleOutput {
-	return predicate.UpscaleOutput(func(s *sql.Selector) {
-		s1 := s.Clone().SetP(nil)
-		for i, p := range predicates {
-			if i > 0 {
-				s1.Or()
-			}
-			p(s1)
-		}
-		s.Where(s1.P())
-	})
+	return predicate.UpscaleOutput(sql.OrPredicates(predicates...))
 }
 
 // Not applies the not operator on the given predicate.
 func Not(p predicate.UpscaleOutput) predicate.UpscaleOutput {
-	return predicate.UpscaleOutput(func(s *sql.Selector) {
-		p(s.Not())
-	})
+	return predicate.UpscaleOutput(sql.NotPredicates(p))
 }

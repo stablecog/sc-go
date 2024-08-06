@@ -46,6 +46,14 @@ func (gu *GenerationUpdate) SetWidth(i int32) *GenerationUpdate {
 	return gu
 }
 
+// SetNillableWidth sets the "width" field if the given value is not nil.
+func (gu *GenerationUpdate) SetNillableWidth(i *int32) *GenerationUpdate {
+	if i != nil {
+		gu.SetWidth(*i)
+	}
+	return gu
+}
+
 // AddWidth adds i to the "width" field.
 func (gu *GenerationUpdate) AddWidth(i int32) *GenerationUpdate {
 	gu.mutation.AddWidth(i)
@@ -56,6 +64,14 @@ func (gu *GenerationUpdate) AddWidth(i int32) *GenerationUpdate {
 func (gu *GenerationUpdate) SetHeight(i int32) *GenerationUpdate {
 	gu.mutation.ResetHeight()
 	gu.mutation.SetHeight(i)
+	return gu
+}
+
+// SetNillableHeight sets the "height" field if the given value is not nil.
+func (gu *GenerationUpdate) SetNillableHeight(i *int32) *GenerationUpdate {
+	if i != nil {
+		gu.SetHeight(*i)
+	}
 	return gu
 }
 
@@ -72,6 +88,14 @@ func (gu *GenerationUpdate) SetInferenceSteps(i int32) *GenerationUpdate {
 	return gu
 }
 
+// SetNillableInferenceSteps sets the "inference_steps" field if the given value is not nil.
+func (gu *GenerationUpdate) SetNillableInferenceSteps(i *int32) *GenerationUpdate {
+	if i != nil {
+		gu.SetInferenceSteps(*i)
+	}
+	return gu
+}
+
 // AddInferenceSteps adds i to the "inference_steps" field.
 func (gu *GenerationUpdate) AddInferenceSteps(i int32) *GenerationUpdate {
 	gu.mutation.AddInferenceSteps(i)
@@ -85,6 +109,14 @@ func (gu *GenerationUpdate) SetGuidanceScale(f float32) *GenerationUpdate {
 	return gu
 }
 
+// SetNillableGuidanceScale sets the "guidance_scale" field if the given value is not nil.
+func (gu *GenerationUpdate) SetNillableGuidanceScale(f *float32) *GenerationUpdate {
+	if f != nil {
+		gu.SetGuidanceScale(*f)
+	}
+	return gu
+}
+
 // AddGuidanceScale adds f to the "guidance_scale" field.
 func (gu *GenerationUpdate) AddGuidanceScale(f float32) *GenerationUpdate {
 	gu.mutation.AddGuidanceScale(f)
@@ -95,6 +127,14 @@ func (gu *GenerationUpdate) AddGuidanceScale(f float32) *GenerationUpdate {
 func (gu *GenerationUpdate) SetNumOutputs(i int32) *GenerationUpdate {
 	gu.mutation.ResetNumOutputs()
 	gu.mutation.SetNumOutputs(i)
+	return gu
+}
+
+// SetNillableNumOutputs sets the "num_outputs" field if the given value is not nil.
+func (gu *GenerationUpdate) SetNillableNumOutputs(i *int32) *GenerationUpdate {
+	if i != nil {
+		gu.SetNumOutputs(*i)
+	}
 	return gu
 }
 
@@ -132,6 +172,14 @@ func (gu *GenerationUpdate) SetSeed(i int) *GenerationUpdate {
 	return gu
 }
 
+// SetNillableSeed sets the "seed" field if the given value is not nil.
+func (gu *GenerationUpdate) SetNillableSeed(i *int) *GenerationUpdate {
+	if i != nil {
+		gu.SetSeed(*i)
+	}
+	return gu
+}
+
 // AddSeed adds i to the "seed" field.
 func (gu *GenerationUpdate) AddSeed(i int) *GenerationUpdate {
 	gu.mutation.AddSeed(i)
@@ -141,6 +189,14 @@ func (gu *GenerationUpdate) AddSeed(i int) *GenerationUpdate {
 // SetStatus sets the "status" field.
 func (gu *GenerationUpdate) SetStatus(ge generation.Status) *GenerationUpdate {
 	gu.mutation.SetStatus(ge)
+	return gu
+}
+
+// SetNillableStatus sets the "status" field if the given value is not nil.
+func (gu *GenerationUpdate) SetNillableStatus(ge *generation.Status) *GenerationUpdate {
+	if ge != nil {
+		gu.SetStatus(*ge)
+	}
 	return gu
 }
 
@@ -359,9 +415,25 @@ func (gu *GenerationUpdate) SetModelID(u uuid.UUID) *GenerationUpdate {
 	return gu
 }
 
+// SetNillableModelID sets the "model_id" field if the given value is not nil.
+func (gu *GenerationUpdate) SetNillableModelID(u *uuid.UUID) *GenerationUpdate {
+	if u != nil {
+		gu.SetModelID(*u)
+	}
+	return gu
+}
+
 // SetSchedulerID sets the "scheduler_id" field.
 func (gu *GenerationUpdate) SetSchedulerID(u uuid.UUID) *GenerationUpdate {
 	gu.mutation.SetSchedulerID(u)
+	return gu
+}
+
+// SetNillableSchedulerID sets the "scheduler_id" field if the given value is not nil.
+func (gu *GenerationUpdate) SetNillableSchedulerID(u *uuid.UUID) *GenerationUpdate {
+	if u != nil {
+		gu.SetSchedulerID(*u)
+	}
 	return gu
 }
 
@@ -371,9 +443,25 @@ func (gu *GenerationUpdate) SetUserID(u uuid.UUID) *GenerationUpdate {
 	return gu
 }
 
+// SetNillableUserID sets the "user_id" field if the given value is not nil.
+func (gu *GenerationUpdate) SetNillableUserID(u *uuid.UUID) *GenerationUpdate {
+	if u != nil {
+		gu.SetUserID(*u)
+	}
+	return gu
+}
+
 // SetDeviceInfoID sets the "device_info_id" field.
 func (gu *GenerationUpdate) SetDeviceInfoID(u uuid.UUID) *GenerationUpdate {
 	gu.mutation.SetDeviceInfoID(u)
+	return gu
+}
+
+// SetNillableDeviceInfoID sets the "device_info_id" field if the given value is not nil.
+func (gu *GenerationUpdate) SetNillableDeviceInfoID(u *uuid.UUID) *GenerationUpdate {
+	if u != nil {
+		gu.SetDeviceInfoID(*u)
+	}
 	return gu
 }
 
@@ -584,7 +672,7 @@ func (gu *GenerationUpdate) RemoveGenerationOutputs(g ...*GenerationOutput) *Gen
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (gu *GenerationUpdate) Save(ctx context.Context) (int, error) {
 	gu.defaults()
-	return withHooks[int, GenerationMutation](ctx, gu.sqlSave, gu.mutation, gu.hooks)
+	return withHooks(ctx, gu.sqlSave, gu.mutation, gu.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -629,16 +717,16 @@ func (gu *GenerationUpdate) check() error {
 			return &ValidationError{Name: "source_type", err: fmt.Errorf(`ent: validator failed for field "Generation.source_type": %w`, err)}
 		}
 	}
-	if _, ok := gu.mutation.DeviceInfoID(); gu.mutation.DeviceInfoCleared() && !ok {
+	if gu.mutation.DeviceInfoCleared() && len(gu.mutation.DeviceInfoIDs()) > 0 {
 		return errors.New(`ent: clearing a required unique edge "Generation.device_info"`)
 	}
-	if _, ok := gu.mutation.SchedulerID(); gu.mutation.SchedulerCleared() && !ok {
+	if gu.mutation.SchedulerCleared() && len(gu.mutation.SchedulerIDs()) > 0 {
 		return errors.New(`ent: clearing a required unique edge "Generation.scheduler"`)
 	}
-	if _, ok := gu.mutation.GenerationModelID(); gu.mutation.GenerationModelCleared() && !ok {
+	if gu.mutation.GenerationModelCleared() && len(gu.mutation.GenerationModelIDs()) > 0 {
 		return errors.New(`ent: clearing a required unique edge "Generation.generation_model"`)
 	}
-	if _, ok := gu.mutation.UserID(); gu.mutation.UserCleared() && !ok {
+	if gu.mutation.UserCleared() && len(gu.mutation.UserIDs()) > 0 {
 		return errors.New(`ent: clearing a required unique edge "Generation.user"`)
 	}
 	return nil
@@ -654,16 +742,7 @@ func (gu *GenerationUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if err := gu.check(); err != nil {
 		return n, err
 	}
-	_spec := &sqlgraph.UpdateSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   generation.Table,
-			Columns: generation.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeUUID,
-				Column: generation.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewUpdateSpec(generation.Table, generation.Columns, sqlgraph.NewFieldSpec(generation.FieldID, field.TypeUUID))
 	if ps := gu.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
@@ -787,10 +866,7 @@ func (gu *GenerationUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: []string{generation.DeviceInfoColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: deviceinfo.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(deviceinfo.FieldID, field.TypeUUID),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -803,10 +879,7 @@ func (gu *GenerationUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: []string{generation.DeviceInfoColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: deviceinfo.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(deviceinfo.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -822,10 +895,7 @@ func (gu *GenerationUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: []string{generation.SchedulerColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: scheduler.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(scheduler.FieldID, field.TypeUUID),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -838,10 +908,7 @@ func (gu *GenerationUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: []string{generation.SchedulerColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: scheduler.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(scheduler.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -857,10 +924,7 @@ func (gu *GenerationUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: []string{generation.PromptColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: prompt.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(prompt.FieldID, field.TypeUUID),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -873,10 +937,7 @@ func (gu *GenerationUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: []string{generation.PromptColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: prompt.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(prompt.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -892,10 +953,7 @@ func (gu *GenerationUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: []string{generation.NegativePromptColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: negativeprompt.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(negativeprompt.FieldID, field.TypeUUID),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -908,10 +966,7 @@ func (gu *GenerationUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: []string{generation.NegativePromptColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: negativeprompt.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(negativeprompt.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -927,10 +982,7 @@ func (gu *GenerationUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: []string{generation.GenerationModelColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: generationmodel.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(generationmodel.FieldID, field.TypeUUID),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -943,10 +995,7 @@ func (gu *GenerationUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: []string{generation.GenerationModelColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: generationmodel.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(generationmodel.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -962,10 +1011,7 @@ func (gu *GenerationUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: []string{generation.UserColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: user.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeUUID),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -978,10 +1024,7 @@ func (gu *GenerationUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: []string{generation.UserColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: user.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -997,10 +1040,7 @@ func (gu *GenerationUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: []string{generation.APITokensColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: apitoken.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(apitoken.FieldID, field.TypeUUID),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -1013,10 +1053,7 @@ func (gu *GenerationUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: []string{generation.APITokensColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: apitoken.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(apitoken.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -1032,10 +1069,7 @@ func (gu *GenerationUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: []string{generation.GenerationOutputsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: generationoutput.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(generationoutput.FieldID, field.TypeUUID),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -1048,10 +1082,7 @@ func (gu *GenerationUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: []string{generation.GenerationOutputsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: generationoutput.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(generationoutput.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -1067,10 +1098,7 @@ func (gu *GenerationUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: []string{generation.GenerationOutputsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: generationoutput.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(generationoutput.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -1107,6 +1135,14 @@ func (guo *GenerationUpdateOne) SetWidth(i int32) *GenerationUpdateOne {
 	return guo
 }
 
+// SetNillableWidth sets the "width" field if the given value is not nil.
+func (guo *GenerationUpdateOne) SetNillableWidth(i *int32) *GenerationUpdateOne {
+	if i != nil {
+		guo.SetWidth(*i)
+	}
+	return guo
+}
+
 // AddWidth adds i to the "width" field.
 func (guo *GenerationUpdateOne) AddWidth(i int32) *GenerationUpdateOne {
 	guo.mutation.AddWidth(i)
@@ -1117,6 +1153,14 @@ func (guo *GenerationUpdateOne) AddWidth(i int32) *GenerationUpdateOne {
 func (guo *GenerationUpdateOne) SetHeight(i int32) *GenerationUpdateOne {
 	guo.mutation.ResetHeight()
 	guo.mutation.SetHeight(i)
+	return guo
+}
+
+// SetNillableHeight sets the "height" field if the given value is not nil.
+func (guo *GenerationUpdateOne) SetNillableHeight(i *int32) *GenerationUpdateOne {
+	if i != nil {
+		guo.SetHeight(*i)
+	}
 	return guo
 }
 
@@ -1133,6 +1177,14 @@ func (guo *GenerationUpdateOne) SetInferenceSteps(i int32) *GenerationUpdateOne 
 	return guo
 }
 
+// SetNillableInferenceSteps sets the "inference_steps" field if the given value is not nil.
+func (guo *GenerationUpdateOne) SetNillableInferenceSteps(i *int32) *GenerationUpdateOne {
+	if i != nil {
+		guo.SetInferenceSteps(*i)
+	}
+	return guo
+}
+
 // AddInferenceSteps adds i to the "inference_steps" field.
 func (guo *GenerationUpdateOne) AddInferenceSteps(i int32) *GenerationUpdateOne {
 	guo.mutation.AddInferenceSteps(i)
@@ -1146,6 +1198,14 @@ func (guo *GenerationUpdateOne) SetGuidanceScale(f float32) *GenerationUpdateOne
 	return guo
 }
 
+// SetNillableGuidanceScale sets the "guidance_scale" field if the given value is not nil.
+func (guo *GenerationUpdateOne) SetNillableGuidanceScale(f *float32) *GenerationUpdateOne {
+	if f != nil {
+		guo.SetGuidanceScale(*f)
+	}
+	return guo
+}
+
 // AddGuidanceScale adds f to the "guidance_scale" field.
 func (guo *GenerationUpdateOne) AddGuidanceScale(f float32) *GenerationUpdateOne {
 	guo.mutation.AddGuidanceScale(f)
@@ -1156,6 +1216,14 @@ func (guo *GenerationUpdateOne) AddGuidanceScale(f float32) *GenerationUpdateOne
 func (guo *GenerationUpdateOne) SetNumOutputs(i int32) *GenerationUpdateOne {
 	guo.mutation.ResetNumOutputs()
 	guo.mutation.SetNumOutputs(i)
+	return guo
+}
+
+// SetNillableNumOutputs sets the "num_outputs" field if the given value is not nil.
+func (guo *GenerationUpdateOne) SetNillableNumOutputs(i *int32) *GenerationUpdateOne {
+	if i != nil {
+		guo.SetNumOutputs(*i)
+	}
 	return guo
 }
 
@@ -1193,6 +1261,14 @@ func (guo *GenerationUpdateOne) SetSeed(i int) *GenerationUpdateOne {
 	return guo
 }
 
+// SetNillableSeed sets the "seed" field if the given value is not nil.
+func (guo *GenerationUpdateOne) SetNillableSeed(i *int) *GenerationUpdateOne {
+	if i != nil {
+		guo.SetSeed(*i)
+	}
+	return guo
+}
+
 // AddSeed adds i to the "seed" field.
 func (guo *GenerationUpdateOne) AddSeed(i int) *GenerationUpdateOne {
 	guo.mutation.AddSeed(i)
@@ -1202,6 +1278,14 @@ func (guo *GenerationUpdateOne) AddSeed(i int) *GenerationUpdateOne {
 // SetStatus sets the "status" field.
 func (guo *GenerationUpdateOne) SetStatus(ge generation.Status) *GenerationUpdateOne {
 	guo.mutation.SetStatus(ge)
+	return guo
+}
+
+// SetNillableStatus sets the "status" field if the given value is not nil.
+func (guo *GenerationUpdateOne) SetNillableStatus(ge *generation.Status) *GenerationUpdateOne {
+	if ge != nil {
+		guo.SetStatus(*ge)
+	}
 	return guo
 }
 
@@ -1420,9 +1504,25 @@ func (guo *GenerationUpdateOne) SetModelID(u uuid.UUID) *GenerationUpdateOne {
 	return guo
 }
 
+// SetNillableModelID sets the "model_id" field if the given value is not nil.
+func (guo *GenerationUpdateOne) SetNillableModelID(u *uuid.UUID) *GenerationUpdateOne {
+	if u != nil {
+		guo.SetModelID(*u)
+	}
+	return guo
+}
+
 // SetSchedulerID sets the "scheduler_id" field.
 func (guo *GenerationUpdateOne) SetSchedulerID(u uuid.UUID) *GenerationUpdateOne {
 	guo.mutation.SetSchedulerID(u)
+	return guo
+}
+
+// SetNillableSchedulerID sets the "scheduler_id" field if the given value is not nil.
+func (guo *GenerationUpdateOne) SetNillableSchedulerID(u *uuid.UUID) *GenerationUpdateOne {
+	if u != nil {
+		guo.SetSchedulerID(*u)
+	}
 	return guo
 }
 
@@ -1432,9 +1532,25 @@ func (guo *GenerationUpdateOne) SetUserID(u uuid.UUID) *GenerationUpdateOne {
 	return guo
 }
 
+// SetNillableUserID sets the "user_id" field if the given value is not nil.
+func (guo *GenerationUpdateOne) SetNillableUserID(u *uuid.UUID) *GenerationUpdateOne {
+	if u != nil {
+		guo.SetUserID(*u)
+	}
+	return guo
+}
+
 // SetDeviceInfoID sets the "device_info_id" field.
 func (guo *GenerationUpdateOne) SetDeviceInfoID(u uuid.UUID) *GenerationUpdateOne {
 	guo.mutation.SetDeviceInfoID(u)
+	return guo
+}
+
+// SetNillableDeviceInfoID sets the "device_info_id" field if the given value is not nil.
+func (guo *GenerationUpdateOne) SetNillableDeviceInfoID(u *uuid.UUID) *GenerationUpdateOne {
+	if u != nil {
+		guo.SetDeviceInfoID(*u)
+	}
 	return guo
 }
 
@@ -1642,6 +1758,12 @@ func (guo *GenerationUpdateOne) RemoveGenerationOutputs(g ...*GenerationOutput) 
 	return guo.RemoveGenerationOutputIDs(ids...)
 }
 
+// Where appends a list predicates to the GenerationUpdate builder.
+func (guo *GenerationUpdateOne) Where(ps ...predicate.Generation) *GenerationUpdateOne {
+	guo.mutation.Where(ps...)
+	return guo
+}
+
 // Select allows selecting one or more fields (columns) of the returned entity.
 // The default is selecting all fields defined in the entity schema.
 func (guo *GenerationUpdateOne) Select(field string, fields ...string) *GenerationUpdateOne {
@@ -1652,7 +1774,7 @@ func (guo *GenerationUpdateOne) Select(field string, fields ...string) *Generati
 // Save executes the query and returns the updated Generation entity.
 func (guo *GenerationUpdateOne) Save(ctx context.Context) (*Generation, error) {
 	guo.defaults()
-	return withHooks[*Generation, GenerationMutation](ctx, guo.sqlSave, guo.mutation, guo.hooks)
+	return withHooks(ctx, guo.sqlSave, guo.mutation, guo.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -1697,16 +1819,16 @@ func (guo *GenerationUpdateOne) check() error {
 			return &ValidationError{Name: "source_type", err: fmt.Errorf(`ent: validator failed for field "Generation.source_type": %w`, err)}
 		}
 	}
-	if _, ok := guo.mutation.DeviceInfoID(); guo.mutation.DeviceInfoCleared() && !ok {
+	if guo.mutation.DeviceInfoCleared() && len(guo.mutation.DeviceInfoIDs()) > 0 {
 		return errors.New(`ent: clearing a required unique edge "Generation.device_info"`)
 	}
-	if _, ok := guo.mutation.SchedulerID(); guo.mutation.SchedulerCleared() && !ok {
+	if guo.mutation.SchedulerCleared() && len(guo.mutation.SchedulerIDs()) > 0 {
 		return errors.New(`ent: clearing a required unique edge "Generation.scheduler"`)
 	}
-	if _, ok := guo.mutation.GenerationModelID(); guo.mutation.GenerationModelCleared() && !ok {
+	if guo.mutation.GenerationModelCleared() && len(guo.mutation.GenerationModelIDs()) > 0 {
 		return errors.New(`ent: clearing a required unique edge "Generation.generation_model"`)
 	}
-	if _, ok := guo.mutation.UserID(); guo.mutation.UserCleared() && !ok {
+	if guo.mutation.UserCleared() && len(guo.mutation.UserIDs()) > 0 {
 		return errors.New(`ent: clearing a required unique edge "Generation.user"`)
 	}
 	return nil
@@ -1722,16 +1844,7 @@ func (guo *GenerationUpdateOne) sqlSave(ctx context.Context) (_node *Generation,
 	if err := guo.check(); err != nil {
 		return _node, err
 	}
-	_spec := &sqlgraph.UpdateSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   generation.Table,
-			Columns: generation.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeUUID,
-				Column: generation.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewUpdateSpec(generation.Table, generation.Columns, sqlgraph.NewFieldSpec(generation.FieldID, field.TypeUUID))
 	id, ok := guo.mutation.ID()
 	if !ok {
 		return nil, &ValidationError{Name: "id", err: errors.New(`ent: missing "Generation.id" for update`)}
@@ -1872,10 +1985,7 @@ func (guo *GenerationUpdateOne) sqlSave(ctx context.Context) (_node *Generation,
 			Columns: []string{generation.DeviceInfoColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: deviceinfo.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(deviceinfo.FieldID, field.TypeUUID),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -1888,10 +1998,7 @@ func (guo *GenerationUpdateOne) sqlSave(ctx context.Context) (_node *Generation,
 			Columns: []string{generation.DeviceInfoColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: deviceinfo.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(deviceinfo.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -1907,10 +2014,7 @@ func (guo *GenerationUpdateOne) sqlSave(ctx context.Context) (_node *Generation,
 			Columns: []string{generation.SchedulerColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: scheduler.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(scheduler.FieldID, field.TypeUUID),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -1923,10 +2027,7 @@ func (guo *GenerationUpdateOne) sqlSave(ctx context.Context) (_node *Generation,
 			Columns: []string{generation.SchedulerColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: scheduler.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(scheduler.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -1942,10 +2043,7 @@ func (guo *GenerationUpdateOne) sqlSave(ctx context.Context) (_node *Generation,
 			Columns: []string{generation.PromptColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: prompt.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(prompt.FieldID, field.TypeUUID),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -1958,10 +2056,7 @@ func (guo *GenerationUpdateOne) sqlSave(ctx context.Context) (_node *Generation,
 			Columns: []string{generation.PromptColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: prompt.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(prompt.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -1977,10 +2072,7 @@ func (guo *GenerationUpdateOne) sqlSave(ctx context.Context) (_node *Generation,
 			Columns: []string{generation.NegativePromptColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: negativeprompt.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(negativeprompt.FieldID, field.TypeUUID),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -1993,10 +2085,7 @@ func (guo *GenerationUpdateOne) sqlSave(ctx context.Context) (_node *Generation,
 			Columns: []string{generation.NegativePromptColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: negativeprompt.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(negativeprompt.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -2012,10 +2101,7 @@ func (guo *GenerationUpdateOne) sqlSave(ctx context.Context) (_node *Generation,
 			Columns: []string{generation.GenerationModelColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: generationmodel.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(generationmodel.FieldID, field.TypeUUID),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -2028,10 +2114,7 @@ func (guo *GenerationUpdateOne) sqlSave(ctx context.Context) (_node *Generation,
 			Columns: []string{generation.GenerationModelColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: generationmodel.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(generationmodel.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -2047,10 +2130,7 @@ func (guo *GenerationUpdateOne) sqlSave(ctx context.Context) (_node *Generation,
 			Columns: []string{generation.UserColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: user.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeUUID),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -2063,10 +2143,7 @@ func (guo *GenerationUpdateOne) sqlSave(ctx context.Context) (_node *Generation,
 			Columns: []string{generation.UserColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: user.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -2082,10 +2159,7 @@ func (guo *GenerationUpdateOne) sqlSave(ctx context.Context) (_node *Generation,
 			Columns: []string{generation.APITokensColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: apitoken.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(apitoken.FieldID, field.TypeUUID),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -2098,10 +2172,7 @@ func (guo *GenerationUpdateOne) sqlSave(ctx context.Context) (_node *Generation,
 			Columns: []string{generation.APITokensColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: apitoken.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(apitoken.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -2117,10 +2188,7 @@ func (guo *GenerationUpdateOne) sqlSave(ctx context.Context) (_node *Generation,
 			Columns: []string{generation.GenerationOutputsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: generationoutput.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(generationoutput.FieldID, field.TypeUUID),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -2133,10 +2201,7 @@ func (guo *GenerationUpdateOne) sqlSave(ctx context.Context) (_node *Generation,
 			Columns: []string{generation.GenerationOutputsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: generationoutput.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(generationoutput.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -2152,10 +2217,7 @@ func (guo *GenerationUpdateOne) sqlSave(ctx context.Context) (_node *Generation,
 			Columns: []string{generation.GenerationOutputsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: generationoutput.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(generationoutput.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

@@ -27,7 +27,7 @@ func (sd *SchedulerDelete) Where(ps ...predicate.Scheduler) *SchedulerDelete {
 
 // Exec executes the deletion query and returns how many vertices were deleted.
 func (sd *SchedulerDelete) Exec(ctx context.Context) (int, error) {
-	return withHooks[int, SchedulerMutation](ctx, sd.sqlExec, sd.mutation, sd.hooks)
+	return withHooks(ctx, sd.sqlExec, sd.mutation, sd.hooks)
 }
 
 // ExecX is like Exec, but panics if an error occurs.
@@ -40,15 +40,7 @@ func (sd *SchedulerDelete) ExecX(ctx context.Context) int {
 }
 
 func (sd *SchedulerDelete) sqlExec(ctx context.Context) (int, error) {
-	_spec := &sqlgraph.DeleteSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table: scheduler.Table,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeUUID,
-				Column: scheduler.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewDeleteSpec(scheduler.Table, sqlgraph.NewFieldSpec(scheduler.FieldID, field.TypeUUID))
 	if ps := sd.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
@@ -69,6 +61,12 @@ type SchedulerDeleteOne struct {
 	sd *SchedulerDelete
 }
 
+// Where appends a list predicates to the SchedulerDelete builder.
+func (sdo *SchedulerDeleteOne) Where(ps ...predicate.Scheduler) *SchedulerDeleteOne {
+	sdo.sd.mutation.Where(ps...)
+	return sdo
+}
+
 // Exec executes the deletion query.
 func (sdo *SchedulerDeleteOne) Exec(ctx context.Context) error {
 	n, err := sdo.sd.Exec(ctx)
@@ -84,5 +82,7 @@ func (sdo *SchedulerDeleteOne) Exec(ctx context.Context) error {
 
 // ExecX is like Exec, but panics if an error occurs.
 func (sdo *SchedulerDeleteOne) ExecX(ctx context.Context) {
-	sdo.sd.ExecX(ctx)
+	if err := sdo.Exec(ctx); err != nil {
+		panic(err)
+	}
 }

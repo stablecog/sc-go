@@ -37,6 +37,14 @@ func (umu *UpscaleModelUpdate) SetNameInWorker(s string) *UpscaleModelUpdate {
 	return umu
 }
 
+// SetNillableNameInWorker sets the "name_in_worker" field if the given value is not nil.
+func (umu *UpscaleModelUpdate) SetNillableNameInWorker(s *string) *UpscaleModelUpdate {
+	if s != nil {
+		umu.SetNameInWorker(*s)
+	}
+	return umu
+}
+
 // SetIsActive sets the "is_active" field.
 func (umu *UpscaleModelUpdate) SetIsActive(b bool) *UpscaleModelUpdate {
 	umu.mutation.SetIsActive(b)
@@ -129,7 +137,7 @@ func (umu *UpscaleModelUpdate) RemoveUpscales(u ...*Upscale) *UpscaleModelUpdate
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (umu *UpscaleModelUpdate) Save(ctx context.Context) (int, error) {
 	umu.defaults()
-	return withHooks[int, UpscaleModelMutation](ctx, umu.sqlSave, umu.mutation, umu.hooks)
+	return withHooks(ctx, umu.sqlSave, umu.mutation, umu.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -169,16 +177,7 @@ func (umu *UpscaleModelUpdate) Modify(modifiers ...func(u *sql.UpdateBuilder)) *
 }
 
 func (umu *UpscaleModelUpdate) sqlSave(ctx context.Context) (n int, err error) {
-	_spec := &sqlgraph.UpdateSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   upscalemodel.Table,
-			Columns: upscalemodel.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeUUID,
-				Column: upscalemodel.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewUpdateSpec(upscalemodel.Table, upscalemodel.Columns, sqlgraph.NewFieldSpec(upscalemodel.FieldID, field.TypeUUID))
 	if ps := umu.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
@@ -209,10 +208,7 @@ func (umu *UpscaleModelUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: []string{upscalemodel.UpscalesColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: upscale.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(upscale.FieldID, field.TypeUUID),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -225,10 +221,7 @@ func (umu *UpscaleModelUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: []string{upscalemodel.UpscalesColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: upscale.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(upscale.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -244,10 +237,7 @@ func (umu *UpscaleModelUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: []string{upscalemodel.UpscalesColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: upscale.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(upscale.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -280,6 +270,14 @@ type UpscaleModelUpdateOne struct {
 // SetNameInWorker sets the "name_in_worker" field.
 func (umuo *UpscaleModelUpdateOne) SetNameInWorker(s string) *UpscaleModelUpdateOne {
 	umuo.mutation.SetNameInWorker(s)
+	return umuo
+}
+
+// SetNillableNameInWorker sets the "name_in_worker" field if the given value is not nil.
+func (umuo *UpscaleModelUpdateOne) SetNillableNameInWorker(s *string) *UpscaleModelUpdateOne {
+	if s != nil {
+		umuo.SetNameInWorker(*s)
+	}
 	return umuo
 }
 
@@ -372,6 +370,12 @@ func (umuo *UpscaleModelUpdateOne) RemoveUpscales(u ...*Upscale) *UpscaleModelUp
 	return umuo.RemoveUpscaleIDs(ids...)
 }
 
+// Where appends a list predicates to the UpscaleModelUpdate builder.
+func (umuo *UpscaleModelUpdateOne) Where(ps ...predicate.UpscaleModel) *UpscaleModelUpdateOne {
+	umuo.mutation.Where(ps...)
+	return umuo
+}
+
 // Select allows selecting one or more fields (columns) of the returned entity.
 // The default is selecting all fields defined in the entity schema.
 func (umuo *UpscaleModelUpdateOne) Select(field string, fields ...string) *UpscaleModelUpdateOne {
@@ -382,7 +386,7 @@ func (umuo *UpscaleModelUpdateOne) Select(field string, fields ...string) *Upsca
 // Save executes the query and returns the updated UpscaleModel entity.
 func (umuo *UpscaleModelUpdateOne) Save(ctx context.Context) (*UpscaleModel, error) {
 	umuo.defaults()
-	return withHooks[*UpscaleModel, UpscaleModelMutation](ctx, umuo.sqlSave, umuo.mutation, umuo.hooks)
+	return withHooks(ctx, umuo.sqlSave, umuo.mutation, umuo.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -422,16 +426,7 @@ func (umuo *UpscaleModelUpdateOne) Modify(modifiers ...func(u *sql.UpdateBuilder
 }
 
 func (umuo *UpscaleModelUpdateOne) sqlSave(ctx context.Context) (_node *UpscaleModel, err error) {
-	_spec := &sqlgraph.UpdateSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   upscalemodel.Table,
-			Columns: upscalemodel.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeUUID,
-				Column: upscalemodel.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewUpdateSpec(upscalemodel.Table, upscalemodel.Columns, sqlgraph.NewFieldSpec(upscalemodel.FieldID, field.TypeUUID))
 	id, ok := umuo.mutation.ID()
 	if !ok {
 		return nil, &ValidationError{Name: "id", err: errors.New(`ent: missing "UpscaleModel.id" for update`)}
@@ -479,10 +474,7 @@ func (umuo *UpscaleModelUpdateOne) sqlSave(ctx context.Context) (_node *UpscaleM
 			Columns: []string{upscalemodel.UpscalesColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: upscale.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(upscale.FieldID, field.TypeUUID),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -495,10 +487,7 @@ func (umuo *UpscaleModelUpdateOne) sqlSave(ctx context.Context) (_node *UpscaleM
 			Columns: []string{upscalemodel.UpscalesColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: upscale.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(upscale.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -514,10 +503,7 @@ func (umuo *UpscaleModelUpdateOne) sqlSave(ctx context.Context) (_node *UpscaleM
 			Columns: []string{upscalemodel.UpscalesColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: upscale.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(upscale.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

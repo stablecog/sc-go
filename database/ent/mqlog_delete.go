@@ -27,7 +27,7 @@ func (mld *MqLogDelete) Where(ps ...predicate.MqLog) *MqLogDelete {
 
 // Exec executes the deletion query and returns how many vertices were deleted.
 func (mld *MqLogDelete) Exec(ctx context.Context) (int, error) {
-	return withHooks[int, MqLogMutation](ctx, mld.sqlExec, mld.mutation, mld.hooks)
+	return withHooks(ctx, mld.sqlExec, mld.mutation, mld.hooks)
 }
 
 // ExecX is like Exec, but panics if an error occurs.
@@ -40,15 +40,7 @@ func (mld *MqLogDelete) ExecX(ctx context.Context) int {
 }
 
 func (mld *MqLogDelete) sqlExec(ctx context.Context) (int, error) {
-	_spec := &sqlgraph.DeleteSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table: mqlog.Table,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeUUID,
-				Column: mqlog.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewDeleteSpec(mqlog.Table, sqlgraph.NewFieldSpec(mqlog.FieldID, field.TypeUUID))
 	if ps := mld.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
@@ -69,6 +61,12 @@ type MqLogDeleteOne struct {
 	mld *MqLogDelete
 }
 
+// Where appends a list predicates to the MqLogDelete builder.
+func (mldo *MqLogDeleteOne) Where(ps ...predicate.MqLog) *MqLogDeleteOne {
+	mldo.mld.mutation.Where(ps...)
+	return mldo
+}
+
 // Exec executes the deletion query.
 func (mldo *MqLogDeleteOne) Exec(ctx context.Context) error {
 	n, err := mldo.mld.Exec(ctx)
@@ -84,5 +82,7 @@ func (mldo *MqLogDeleteOne) Exec(ctx context.Context) error {
 
 // ExecX is like Exec, but panics if an error occurs.
 func (mldo *MqLogDeleteOne) ExecX(ctx context.Context) {
-	mldo.mld.ExecX(ctx)
+	if err := mldo.Exec(ctx); err != nil {
+		panic(err)
+	}
 }

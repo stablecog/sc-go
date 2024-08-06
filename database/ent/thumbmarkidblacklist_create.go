@@ -80,7 +80,7 @@ func (tiblc *ThumbmarkIdBlackListCreate) Mutation() *ThumbmarkIdBlackListMutatio
 // Save creates the ThumbmarkIdBlackList in the database.
 func (tiblc *ThumbmarkIdBlackListCreate) Save(ctx context.Context) (*ThumbmarkIdBlackList, error) {
 	tiblc.defaults()
-	return withHooks[*ThumbmarkIdBlackList, ThumbmarkIdBlackListMutation](ctx, tiblc.sqlSave, tiblc.mutation, tiblc.hooks)
+	return withHooks(ctx, tiblc.sqlSave, tiblc.mutation, tiblc.hooks)
 }
 
 // SaveX calls Save and panics if Save returns an error.
@@ -161,13 +161,7 @@ func (tiblc *ThumbmarkIdBlackListCreate) sqlSave(ctx context.Context) (*Thumbmar
 func (tiblc *ThumbmarkIdBlackListCreate) createSpec() (*ThumbmarkIdBlackList, *sqlgraph.CreateSpec) {
 	var (
 		_node = &ThumbmarkIdBlackList{config: tiblc.config}
-		_spec = &sqlgraph.CreateSpec{
-			Table: thumbmarkidblacklist.Table,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeUUID,
-				Column: thumbmarkidblacklist.FieldID,
-			},
-		}
+		_spec = sqlgraph.NewCreateSpec(thumbmarkidblacklist.Table, sqlgraph.NewFieldSpec(thumbmarkidblacklist.FieldID, field.TypeUUID))
 	)
 	_spec.OnConflict = tiblc.conflict
 	if id, ok := tiblc.mutation.ID(); ok {
@@ -382,12 +376,16 @@ func (u *ThumbmarkIdBlackListUpsertOne) IDX(ctx context.Context) uuid.UUID {
 // ThumbmarkIdBlackListCreateBulk is the builder for creating many ThumbmarkIdBlackList entities in bulk.
 type ThumbmarkIdBlackListCreateBulk struct {
 	config
+	err      error
 	builders []*ThumbmarkIdBlackListCreate
 	conflict []sql.ConflictOption
 }
 
 // Save creates the ThumbmarkIdBlackList entities in the database.
 func (tiblcb *ThumbmarkIdBlackListCreateBulk) Save(ctx context.Context) ([]*ThumbmarkIdBlackList, error) {
+	if tiblcb.err != nil {
+		return nil, tiblcb.err
+	}
 	specs := make([]*sqlgraph.CreateSpec, len(tiblcb.builders))
 	nodes := make([]*ThumbmarkIdBlackList, len(tiblcb.builders))
 	mutators := make([]Mutator, len(tiblcb.builders))
@@ -404,8 +402,8 @@ func (tiblcb *ThumbmarkIdBlackListCreateBulk) Save(ctx context.Context) ([]*Thum
 					return nil, err
 				}
 				builder.mutation = mutation
-				nodes[i], specs[i] = builder.createSpec()
 				var err error
+				nodes[i], specs[i] = builder.createSpec()
 				if i < len(mutators)-1 {
 					_, err = mutators[i+1].Mutate(root, tiblcb.builders[i+1].mutation)
 				} else {
@@ -585,6 +583,9 @@ func (u *ThumbmarkIdBlackListUpsertBulk) UpdateUpdatedAt() *ThumbmarkIdBlackList
 
 // Exec executes the query.
 func (u *ThumbmarkIdBlackListUpsertBulk) Exec(ctx context.Context) error {
+	if u.create.err != nil {
+		return u.create.err
+	}
 	for i, b := range u.create.builders {
 		if len(b.conflict) != 0 {
 			return fmt.Errorf("ent: OnConflict was set for builder %d. Set it on the ThumbmarkIdBlackListCreateBulk instead", i)

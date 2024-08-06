@@ -27,7 +27,7 @@ func (vod *VoiceoverOutputDelete) Where(ps ...predicate.VoiceoverOutput) *Voiceo
 
 // Exec executes the deletion query and returns how many vertices were deleted.
 func (vod *VoiceoverOutputDelete) Exec(ctx context.Context) (int, error) {
-	return withHooks[int, VoiceoverOutputMutation](ctx, vod.sqlExec, vod.mutation, vod.hooks)
+	return withHooks(ctx, vod.sqlExec, vod.mutation, vod.hooks)
 }
 
 // ExecX is like Exec, but panics if an error occurs.
@@ -40,15 +40,7 @@ func (vod *VoiceoverOutputDelete) ExecX(ctx context.Context) int {
 }
 
 func (vod *VoiceoverOutputDelete) sqlExec(ctx context.Context) (int, error) {
-	_spec := &sqlgraph.DeleteSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table: voiceoveroutput.Table,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeUUID,
-				Column: voiceoveroutput.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewDeleteSpec(voiceoveroutput.Table, sqlgraph.NewFieldSpec(voiceoveroutput.FieldID, field.TypeUUID))
 	if ps := vod.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
@@ -69,6 +61,12 @@ type VoiceoverOutputDeleteOne struct {
 	vod *VoiceoverOutputDelete
 }
 
+// Where appends a list predicates to the VoiceoverOutputDelete builder.
+func (vodo *VoiceoverOutputDeleteOne) Where(ps ...predicate.VoiceoverOutput) *VoiceoverOutputDeleteOne {
+	vodo.vod.mutation.Where(ps...)
+	return vodo
+}
+
 // Exec executes the deletion query.
 func (vodo *VoiceoverOutputDeleteOne) Exec(ctx context.Context) error {
 	n, err := vodo.vod.Exec(ctx)
@@ -84,5 +82,7 @@ func (vodo *VoiceoverOutputDeleteOne) Exec(ctx context.Context) error {
 
 // ExecX is like Exec, but panics if an error occurs.
 func (vodo *VoiceoverOutputDeleteOne) ExecX(ctx context.Context) {
-	vodo.vod.ExecX(ctx)
+	if err := vodo.Exec(ctx); err != nil {
+		panic(err)
+	}
 }

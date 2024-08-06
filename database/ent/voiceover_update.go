@@ -64,6 +64,14 @@ func (vu *VoiceoverUpdate) SetStatus(v voiceover.Status) *VoiceoverUpdate {
 	return vu
 }
 
+// SetNillableStatus sets the "status" field if the given value is not nil.
+func (vu *VoiceoverUpdate) SetNillableStatus(v *voiceover.Status) *VoiceoverUpdate {
+	if v != nil {
+		vu.SetStatus(*v)
+	}
+	return vu
+}
+
 // SetFailureReason sets the "failure_reason" field.
 func (vu *VoiceoverUpdate) SetFailureReason(s string) *VoiceoverUpdate {
 	vu.mutation.SetFailureReason(s)
@@ -111,6 +119,14 @@ func (vu *VoiceoverUpdate) SetTemperature(f float32) *VoiceoverUpdate {
 	return vu
 }
 
+// SetNillableTemperature sets the "temperature" field if the given value is not nil.
+func (vu *VoiceoverUpdate) SetNillableTemperature(f *float32) *VoiceoverUpdate {
+	if f != nil {
+		vu.SetTemperature(*f)
+	}
+	return vu
+}
+
 // AddTemperature adds f to the "temperature" field.
 func (vu *VoiceoverUpdate) AddTemperature(f float32) *VoiceoverUpdate {
 	vu.mutation.AddTemperature(f)
@@ -121,6 +137,14 @@ func (vu *VoiceoverUpdate) AddTemperature(f float32) *VoiceoverUpdate {
 func (vu *VoiceoverUpdate) SetSeed(i int) *VoiceoverUpdate {
 	vu.mutation.ResetSeed()
 	vu.mutation.SetSeed(i)
+	return vu
+}
+
+// SetNillableSeed sets the "seed" field if the given value is not nil.
+func (vu *VoiceoverUpdate) SetNillableSeed(i *int) *VoiceoverUpdate {
+	if i != nil {
+		vu.SetSeed(*i)
+	}
 	return vu
 }
 
@@ -179,6 +203,14 @@ func (vu *VoiceoverUpdate) SetCost(i int32) *VoiceoverUpdate {
 	return vu
 }
 
+// SetNillableCost sets the "cost" field if the given value is not nil.
+func (vu *VoiceoverUpdate) SetNillableCost(i *int32) *VoiceoverUpdate {
+	if i != nil {
+		vu.SetCost(*i)
+	}
+	return vu
+}
+
 // AddCost adds i to the "cost" field.
 func (vu *VoiceoverUpdate) AddCost(i int32) *VoiceoverUpdate {
 	vu.mutation.AddCost(i)
@@ -225,9 +257,25 @@ func (vu *VoiceoverUpdate) SetUserID(u uuid.UUID) *VoiceoverUpdate {
 	return vu
 }
 
+// SetNillableUserID sets the "user_id" field if the given value is not nil.
+func (vu *VoiceoverUpdate) SetNillableUserID(u *uuid.UUID) *VoiceoverUpdate {
+	if u != nil {
+		vu.SetUserID(*u)
+	}
+	return vu
+}
+
 // SetDeviceInfoID sets the "device_info_id" field.
 func (vu *VoiceoverUpdate) SetDeviceInfoID(u uuid.UUID) *VoiceoverUpdate {
 	vu.mutation.SetDeviceInfoID(u)
+	return vu
+}
+
+// SetNillableDeviceInfoID sets the "device_info_id" field if the given value is not nil.
+func (vu *VoiceoverUpdate) SetNillableDeviceInfoID(u *uuid.UUID) *VoiceoverUpdate {
+	if u != nil {
+		vu.SetDeviceInfoID(*u)
+	}
 	return vu
 }
 
@@ -237,9 +285,25 @@ func (vu *VoiceoverUpdate) SetModelID(u uuid.UUID) *VoiceoverUpdate {
 	return vu
 }
 
+// SetNillableModelID sets the "model_id" field if the given value is not nil.
+func (vu *VoiceoverUpdate) SetNillableModelID(u *uuid.UUID) *VoiceoverUpdate {
+	if u != nil {
+		vu.SetModelID(*u)
+	}
+	return vu
+}
+
 // SetSpeakerID sets the "speaker_id" field.
 func (vu *VoiceoverUpdate) SetSpeakerID(u uuid.UUID) *VoiceoverUpdate {
 	vu.mutation.SetSpeakerID(u)
+	return vu
+}
+
+// SetNillableSpeakerID sets the "speaker_id" field if the given value is not nil.
+func (vu *VoiceoverUpdate) SetNillableSpeakerID(u *uuid.UUID) *VoiceoverUpdate {
+	if u != nil {
+		vu.SetSpeakerID(*u)
+	}
 	return vu
 }
 
@@ -445,7 +509,7 @@ func (vu *VoiceoverUpdate) RemoveVoiceoverOutputs(v ...*VoiceoverOutput) *Voiceo
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (vu *VoiceoverUpdate) Save(ctx context.Context) (int, error) {
 	vu.defaults()
-	return withHooks[int, VoiceoverMutation](ctx, vu.sqlSave, vu.mutation, vu.hooks)
+	return withHooks(ctx, vu.sqlSave, vu.mutation, vu.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -490,16 +554,16 @@ func (vu *VoiceoverUpdate) check() error {
 			return &ValidationError{Name: "source_type", err: fmt.Errorf(`ent: validator failed for field "Voiceover.source_type": %w`, err)}
 		}
 	}
-	if _, ok := vu.mutation.UserID(); vu.mutation.UserCleared() && !ok {
+	if vu.mutation.UserCleared() && len(vu.mutation.UserIDs()) > 0 {
 		return errors.New(`ent: clearing a required unique edge "Voiceover.user"`)
 	}
-	if _, ok := vu.mutation.DeviceInfoID(); vu.mutation.DeviceInfoCleared() && !ok {
+	if vu.mutation.DeviceInfoCleared() && len(vu.mutation.DeviceInfoIDs()) > 0 {
 		return errors.New(`ent: clearing a required unique edge "Voiceover.device_info"`)
 	}
-	if _, ok := vu.mutation.VoiceoverModelsID(); vu.mutation.VoiceoverModelsCleared() && !ok {
+	if vu.mutation.VoiceoverModelsCleared() && len(vu.mutation.VoiceoverModelsIDs()) > 0 {
 		return errors.New(`ent: clearing a required unique edge "Voiceover.voiceover_models"`)
 	}
-	if _, ok := vu.mutation.VoiceoverSpeakersID(); vu.mutation.VoiceoverSpeakersCleared() && !ok {
+	if vu.mutation.VoiceoverSpeakersCleared() && len(vu.mutation.VoiceoverSpeakersIDs()) > 0 {
 		return errors.New(`ent: clearing a required unique edge "Voiceover.voiceover_speakers"`)
 	}
 	return nil
@@ -515,16 +579,7 @@ func (vu *VoiceoverUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if err := vu.check(); err != nil {
 		return n, err
 	}
-	_spec := &sqlgraph.UpdateSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   voiceover.Table,
-			Columns: voiceover.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeUUID,
-				Column: voiceover.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewUpdateSpec(voiceover.Table, voiceover.Columns, sqlgraph.NewFieldSpec(voiceover.FieldID, field.TypeUUID))
 	if ps := vu.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
@@ -606,10 +661,7 @@ func (vu *VoiceoverUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: []string{voiceover.UserColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: user.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeUUID),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -622,10 +674,7 @@ func (vu *VoiceoverUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: []string{voiceover.UserColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: user.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -641,10 +690,7 @@ func (vu *VoiceoverUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: []string{voiceover.PromptColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: prompt.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(prompt.FieldID, field.TypeUUID),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -657,10 +703,7 @@ func (vu *VoiceoverUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: []string{voiceover.PromptColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: prompt.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(prompt.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -676,10 +719,7 @@ func (vu *VoiceoverUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: []string{voiceover.DeviceInfoColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: deviceinfo.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(deviceinfo.FieldID, field.TypeUUID),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -692,10 +732,7 @@ func (vu *VoiceoverUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: []string{voiceover.DeviceInfoColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: deviceinfo.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(deviceinfo.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -711,10 +748,7 @@ func (vu *VoiceoverUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: []string{voiceover.VoiceoverModelsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: voiceovermodel.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(voiceovermodel.FieldID, field.TypeUUID),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -727,10 +761,7 @@ func (vu *VoiceoverUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: []string{voiceover.VoiceoverModelsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: voiceovermodel.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(voiceovermodel.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -746,10 +777,7 @@ func (vu *VoiceoverUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: []string{voiceover.VoiceoverSpeakersColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: voiceoverspeaker.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(voiceoverspeaker.FieldID, field.TypeUUID),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -762,10 +790,7 @@ func (vu *VoiceoverUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: []string{voiceover.VoiceoverSpeakersColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: voiceoverspeaker.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(voiceoverspeaker.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -781,10 +806,7 @@ func (vu *VoiceoverUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: []string{voiceover.APITokensColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: apitoken.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(apitoken.FieldID, field.TypeUUID),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -797,10 +819,7 @@ func (vu *VoiceoverUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: []string{voiceover.APITokensColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: apitoken.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(apitoken.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -816,10 +835,7 @@ func (vu *VoiceoverUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: []string{voiceover.VoiceoverOutputsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: voiceoveroutput.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(voiceoveroutput.FieldID, field.TypeUUID),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -832,10 +848,7 @@ func (vu *VoiceoverUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: []string{voiceover.VoiceoverOutputsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: voiceoveroutput.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(voiceoveroutput.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -851,10 +864,7 @@ func (vu *VoiceoverUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: []string{voiceover.VoiceoverOutputsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: voiceoveroutput.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(voiceoveroutput.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -910,6 +920,14 @@ func (vuo *VoiceoverUpdateOne) SetStatus(v voiceover.Status) *VoiceoverUpdateOne
 	return vuo
 }
 
+// SetNillableStatus sets the "status" field if the given value is not nil.
+func (vuo *VoiceoverUpdateOne) SetNillableStatus(v *voiceover.Status) *VoiceoverUpdateOne {
+	if v != nil {
+		vuo.SetStatus(*v)
+	}
+	return vuo
+}
+
 // SetFailureReason sets the "failure_reason" field.
 func (vuo *VoiceoverUpdateOne) SetFailureReason(s string) *VoiceoverUpdateOne {
 	vuo.mutation.SetFailureReason(s)
@@ -957,6 +975,14 @@ func (vuo *VoiceoverUpdateOne) SetTemperature(f float32) *VoiceoverUpdateOne {
 	return vuo
 }
 
+// SetNillableTemperature sets the "temperature" field if the given value is not nil.
+func (vuo *VoiceoverUpdateOne) SetNillableTemperature(f *float32) *VoiceoverUpdateOne {
+	if f != nil {
+		vuo.SetTemperature(*f)
+	}
+	return vuo
+}
+
 // AddTemperature adds f to the "temperature" field.
 func (vuo *VoiceoverUpdateOne) AddTemperature(f float32) *VoiceoverUpdateOne {
 	vuo.mutation.AddTemperature(f)
@@ -967,6 +993,14 @@ func (vuo *VoiceoverUpdateOne) AddTemperature(f float32) *VoiceoverUpdateOne {
 func (vuo *VoiceoverUpdateOne) SetSeed(i int) *VoiceoverUpdateOne {
 	vuo.mutation.ResetSeed()
 	vuo.mutation.SetSeed(i)
+	return vuo
+}
+
+// SetNillableSeed sets the "seed" field if the given value is not nil.
+func (vuo *VoiceoverUpdateOne) SetNillableSeed(i *int) *VoiceoverUpdateOne {
+	if i != nil {
+		vuo.SetSeed(*i)
+	}
 	return vuo
 }
 
@@ -1025,6 +1059,14 @@ func (vuo *VoiceoverUpdateOne) SetCost(i int32) *VoiceoverUpdateOne {
 	return vuo
 }
 
+// SetNillableCost sets the "cost" field if the given value is not nil.
+func (vuo *VoiceoverUpdateOne) SetNillableCost(i *int32) *VoiceoverUpdateOne {
+	if i != nil {
+		vuo.SetCost(*i)
+	}
+	return vuo
+}
+
 // AddCost adds i to the "cost" field.
 func (vuo *VoiceoverUpdateOne) AddCost(i int32) *VoiceoverUpdateOne {
 	vuo.mutation.AddCost(i)
@@ -1071,9 +1113,25 @@ func (vuo *VoiceoverUpdateOne) SetUserID(u uuid.UUID) *VoiceoverUpdateOne {
 	return vuo
 }
 
+// SetNillableUserID sets the "user_id" field if the given value is not nil.
+func (vuo *VoiceoverUpdateOne) SetNillableUserID(u *uuid.UUID) *VoiceoverUpdateOne {
+	if u != nil {
+		vuo.SetUserID(*u)
+	}
+	return vuo
+}
+
 // SetDeviceInfoID sets the "device_info_id" field.
 func (vuo *VoiceoverUpdateOne) SetDeviceInfoID(u uuid.UUID) *VoiceoverUpdateOne {
 	vuo.mutation.SetDeviceInfoID(u)
+	return vuo
+}
+
+// SetNillableDeviceInfoID sets the "device_info_id" field if the given value is not nil.
+func (vuo *VoiceoverUpdateOne) SetNillableDeviceInfoID(u *uuid.UUID) *VoiceoverUpdateOne {
+	if u != nil {
+		vuo.SetDeviceInfoID(*u)
+	}
 	return vuo
 }
 
@@ -1083,9 +1141,25 @@ func (vuo *VoiceoverUpdateOne) SetModelID(u uuid.UUID) *VoiceoverUpdateOne {
 	return vuo
 }
 
+// SetNillableModelID sets the "model_id" field if the given value is not nil.
+func (vuo *VoiceoverUpdateOne) SetNillableModelID(u *uuid.UUID) *VoiceoverUpdateOne {
+	if u != nil {
+		vuo.SetModelID(*u)
+	}
+	return vuo
+}
+
 // SetSpeakerID sets the "speaker_id" field.
 func (vuo *VoiceoverUpdateOne) SetSpeakerID(u uuid.UUID) *VoiceoverUpdateOne {
 	vuo.mutation.SetSpeakerID(u)
+	return vuo
+}
+
+// SetNillableSpeakerID sets the "speaker_id" field if the given value is not nil.
+func (vuo *VoiceoverUpdateOne) SetNillableSpeakerID(u *uuid.UUID) *VoiceoverUpdateOne {
+	if u != nil {
+		vuo.SetSpeakerID(*u)
+	}
 	return vuo
 }
 
@@ -1288,6 +1362,12 @@ func (vuo *VoiceoverUpdateOne) RemoveVoiceoverOutputs(v ...*VoiceoverOutput) *Vo
 	return vuo.RemoveVoiceoverOutputIDs(ids...)
 }
 
+// Where appends a list predicates to the VoiceoverUpdate builder.
+func (vuo *VoiceoverUpdateOne) Where(ps ...predicate.Voiceover) *VoiceoverUpdateOne {
+	vuo.mutation.Where(ps...)
+	return vuo
+}
+
 // Select allows selecting one or more fields (columns) of the returned entity.
 // The default is selecting all fields defined in the entity schema.
 func (vuo *VoiceoverUpdateOne) Select(field string, fields ...string) *VoiceoverUpdateOne {
@@ -1298,7 +1378,7 @@ func (vuo *VoiceoverUpdateOne) Select(field string, fields ...string) *Voiceover
 // Save executes the query and returns the updated Voiceover entity.
 func (vuo *VoiceoverUpdateOne) Save(ctx context.Context) (*Voiceover, error) {
 	vuo.defaults()
-	return withHooks[*Voiceover, VoiceoverMutation](ctx, vuo.sqlSave, vuo.mutation, vuo.hooks)
+	return withHooks(ctx, vuo.sqlSave, vuo.mutation, vuo.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -1343,16 +1423,16 @@ func (vuo *VoiceoverUpdateOne) check() error {
 			return &ValidationError{Name: "source_type", err: fmt.Errorf(`ent: validator failed for field "Voiceover.source_type": %w`, err)}
 		}
 	}
-	if _, ok := vuo.mutation.UserID(); vuo.mutation.UserCleared() && !ok {
+	if vuo.mutation.UserCleared() && len(vuo.mutation.UserIDs()) > 0 {
 		return errors.New(`ent: clearing a required unique edge "Voiceover.user"`)
 	}
-	if _, ok := vuo.mutation.DeviceInfoID(); vuo.mutation.DeviceInfoCleared() && !ok {
+	if vuo.mutation.DeviceInfoCleared() && len(vuo.mutation.DeviceInfoIDs()) > 0 {
 		return errors.New(`ent: clearing a required unique edge "Voiceover.device_info"`)
 	}
-	if _, ok := vuo.mutation.VoiceoverModelsID(); vuo.mutation.VoiceoverModelsCleared() && !ok {
+	if vuo.mutation.VoiceoverModelsCleared() && len(vuo.mutation.VoiceoverModelsIDs()) > 0 {
 		return errors.New(`ent: clearing a required unique edge "Voiceover.voiceover_models"`)
 	}
-	if _, ok := vuo.mutation.VoiceoverSpeakersID(); vuo.mutation.VoiceoverSpeakersCleared() && !ok {
+	if vuo.mutation.VoiceoverSpeakersCleared() && len(vuo.mutation.VoiceoverSpeakersIDs()) > 0 {
 		return errors.New(`ent: clearing a required unique edge "Voiceover.voiceover_speakers"`)
 	}
 	return nil
@@ -1368,16 +1448,7 @@ func (vuo *VoiceoverUpdateOne) sqlSave(ctx context.Context) (_node *Voiceover, e
 	if err := vuo.check(); err != nil {
 		return _node, err
 	}
-	_spec := &sqlgraph.UpdateSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   voiceover.Table,
-			Columns: voiceover.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeUUID,
-				Column: voiceover.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewUpdateSpec(voiceover.Table, voiceover.Columns, sqlgraph.NewFieldSpec(voiceover.FieldID, field.TypeUUID))
 	id, ok := vuo.mutation.ID()
 	if !ok {
 		return nil, &ValidationError{Name: "id", err: errors.New(`ent: missing "Voiceover.id" for update`)}
@@ -1476,10 +1547,7 @@ func (vuo *VoiceoverUpdateOne) sqlSave(ctx context.Context) (_node *Voiceover, e
 			Columns: []string{voiceover.UserColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: user.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeUUID),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -1492,10 +1560,7 @@ func (vuo *VoiceoverUpdateOne) sqlSave(ctx context.Context) (_node *Voiceover, e
 			Columns: []string{voiceover.UserColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: user.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -1511,10 +1576,7 @@ func (vuo *VoiceoverUpdateOne) sqlSave(ctx context.Context) (_node *Voiceover, e
 			Columns: []string{voiceover.PromptColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: prompt.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(prompt.FieldID, field.TypeUUID),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -1527,10 +1589,7 @@ func (vuo *VoiceoverUpdateOne) sqlSave(ctx context.Context) (_node *Voiceover, e
 			Columns: []string{voiceover.PromptColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: prompt.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(prompt.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -1546,10 +1605,7 @@ func (vuo *VoiceoverUpdateOne) sqlSave(ctx context.Context) (_node *Voiceover, e
 			Columns: []string{voiceover.DeviceInfoColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: deviceinfo.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(deviceinfo.FieldID, field.TypeUUID),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -1562,10 +1618,7 @@ func (vuo *VoiceoverUpdateOne) sqlSave(ctx context.Context) (_node *Voiceover, e
 			Columns: []string{voiceover.DeviceInfoColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: deviceinfo.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(deviceinfo.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -1581,10 +1634,7 @@ func (vuo *VoiceoverUpdateOne) sqlSave(ctx context.Context) (_node *Voiceover, e
 			Columns: []string{voiceover.VoiceoverModelsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: voiceovermodel.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(voiceovermodel.FieldID, field.TypeUUID),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -1597,10 +1647,7 @@ func (vuo *VoiceoverUpdateOne) sqlSave(ctx context.Context) (_node *Voiceover, e
 			Columns: []string{voiceover.VoiceoverModelsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: voiceovermodel.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(voiceovermodel.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -1616,10 +1663,7 @@ func (vuo *VoiceoverUpdateOne) sqlSave(ctx context.Context) (_node *Voiceover, e
 			Columns: []string{voiceover.VoiceoverSpeakersColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: voiceoverspeaker.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(voiceoverspeaker.FieldID, field.TypeUUID),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -1632,10 +1676,7 @@ func (vuo *VoiceoverUpdateOne) sqlSave(ctx context.Context) (_node *Voiceover, e
 			Columns: []string{voiceover.VoiceoverSpeakersColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: voiceoverspeaker.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(voiceoverspeaker.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -1651,10 +1692,7 @@ func (vuo *VoiceoverUpdateOne) sqlSave(ctx context.Context) (_node *Voiceover, e
 			Columns: []string{voiceover.APITokensColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: apitoken.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(apitoken.FieldID, field.TypeUUID),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -1667,10 +1705,7 @@ func (vuo *VoiceoverUpdateOne) sqlSave(ctx context.Context) (_node *Voiceover, e
 			Columns: []string{voiceover.APITokensColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: apitoken.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(apitoken.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -1686,10 +1721,7 @@ func (vuo *VoiceoverUpdateOne) sqlSave(ctx context.Context) (_node *Voiceover, e
 			Columns: []string{voiceover.VoiceoverOutputsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: voiceoveroutput.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(voiceoveroutput.FieldID, field.TypeUUID),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -1702,10 +1734,7 @@ func (vuo *VoiceoverUpdateOne) sqlSave(ctx context.Context) (_node *Voiceover, e
 			Columns: []string{voiceover.VoiceoverOutputsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: voiceoveroutput.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(voiceoveroutput.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -1721,10 +1750,7 @@ func (vuo *VoiceoverUpdateOne) sqlSave(ctx context.Context) (_node *Voiceover, e
 			Columns: []string{voiceover.VoiceoverOutputsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: voiceoveroutput.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(voiceoveroutput.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

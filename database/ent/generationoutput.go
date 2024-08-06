@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 	"github.com/google/uuid"
 	"github.com/stablecog/sc-go/database/ent/generation"
@@ -51,7 +52,8 @@ type GenerationOutput struct {
 	UpdatedAt time.Time `json:"updated_at,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the GenerationOutputQuery when eager-loading is set.
-	Edges GenerationOutputEdges `json:"edges"`
+	Edges        GenerationOutputEdges `json:"edges"`
+	selectValues sql.SelectValues
 }
 
 // GenerationOutputEdges holds the relations/edges for other nodes in the graph.
@@ -70,12 +72,10 @@ type GenerationOutputEdges struct {
 // GenerationsOrErr returns the Generations value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
 func (e GenerationOutputEdges) GenerationsOrErr() (*Generation, error) {
-	if e.loadedTypes[0] {
-		if e.Generations == nil {
-			// Edge was loaded but was not found.
-			return nil, &NotFoundError{label: generation.Label}
-		}
+	if e.Generations != nil {
 		return e.Generations, nil
+	} else if e.loadedTypes[0] {
+		return nil, &NotFoundError{label: generation.Label}
 	}
 	return nil, &NotLoadedError{edge: "generations"}
 }
@@ -83,12 +83,10 @@ func (e GenerationOutputEdges) GenerationsOrErr() (*Generation, error) {
 // UpscaleOutputsOrErr returns the UpscaleOutputs value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
 func (e GenerationOutputEdges) UpscaleOutputsOrErr() (*UpscaleOutput, error) {
-	if e.loadedTypes[1] {
-		if e.UpscaleOutputs == nil {
-			// Edge was loaded but was not found.
-			return nil, &NotFoundError{label: upscaleoutput.Label}
-		}
+	if e.UpscaleOutputs != nil {
 		return e.UpscaleOutputs, nil
+	} else if e.loadedTypes[1] {
+		return nil, &NotFoundError{label: upscaleoutput.Label}
 	}
 	return nil, &NotLoadedError{edge: "upscale_outputs"}
 }
@@ -120,7 +118,7 @@ func (*GenerationOutput) scanValues(columns []string) ([]any, error) {
 		case generationoutput.FieldID, generationoutput.FieldGenerationID:
 			values[i] = new(uuid.UUID)
 		default:
-			return nil, fmt.Errorf("unexpected column %q for type GenerationOutput", columns[i])
+			values[i] = new(sql.UnknownType)
 		}
 	}
 	return values, nil
@@ -232,9 +230,17 @@ func (_go *GenerationOutput) assignValues(columns []string, values []any) error 
 			} else if value.Valid {
 				_go.UpdatedAt = value.Time
 			}
+		default:
+			_go.selectValues.Set(columns[i], values[i])
 		}
 	}
 	return nil
+}
+
+// Value returns the ent.Value that was dynamically selected and assigned to the GenerationOutput.
+// This includes values selected through modifiers, order, etc.
+func (_go *GenerationOutput) Value(name string) (ent.Value, error) {
+	return _go.selectValues.Get(name)
 }
 
 // QueryGenerations queries the "generations" edge of the GenerationOutput entity.
@@ -329,9 +335,3 @@ func (_go *GenerationOutput) String() string {
 
 // GenerationOutputs is a parsable slice of GenerationOutput.
 type GenerationOutputs []*GenerationOutput
-
-func (_go GenerationOutputs) config(cfg config) {
-	for _i := range _go {
-		_go[_i].config = cfg
-	}
-}

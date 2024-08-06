@@ -146,7 +146,7 @@ func (uoc *UpscaleOutputCreate) Mutation() *UpscaleOutputMutation {
 // Save creates the UpscaleOutput in the database.
 func (uoc *UpscaleOutputCreate) Save(ctx context.Context) (*UpscaleOutput, error) {
 	uoc.defaults()
-	return withHooks[*UpscaleOutput, UpscaleOutputMutation](ctx, uoc.sqlSave, uoc.mutation, uoc.hooks)
+	return withHooks(ctx, uoc.sqlSave, uoc.mutation, uoc.hooks)
 }
 
 // SaveX calls Save and panics if Save returns an error.
@@ -201,7 +201,7 @@ func (uoc *UpscaleOutputCreate) check() error {
 	if _, ok := uoc.mutation.UpdatedAt(); !ok {
 		return &ValidationError{Name: "updated_at", err: errors.New(`ent: missing required field "UpscaleOutput.updated_at"`)}
 	}
-	if _, ok := uoc.mutation.UpscalesID(); !ok {
+	if len(uoc.mutation.UpscalesIDs()) == 0 {
 		return &ValidationError{Name: "upscales", err: errors.New(`ent: missing required edge "UpscaleOutput.upscales"`)}
 	}
 	return nil
@@ -233,13 +233,7 @@ func (uoc *UpscaleOutputCreate) sqlSave(ctx context.Context) (*UpscaleOutput, er
 func (uoc *UpscaleOutputCreate) createSpec() (*UpscaleOutput, *sqlgraph.CreateSpec) {
 	var (
 		_node = &UpscaleOutput{config: uoc.config}
-		_spec = &sqlgraph.CreateSpec{
-			Table: upscaleoutput.Table,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeUUID,
-				Column: upscaleoutput.FieldID,
-			},
-		}
+		_spec = sqlgraph.NewCreateSpec(upscaleoutput.Table, sqlgraph.NewFieldSpec(upscaleoutput.FieldID, field.TypeUUID))
 	)
 	_spec.OnConflict = uoc.conflict
 	if id, ok := uoc.mutation.ID(); ok {
@@ -274,10 +268,7 @@ func (uoc *UpscaleOutputCreate) createSpec() (*UpscaleOutput, *sqlgraph.CreateSp
 			Columns: []string{upscaleoutput.UpscalesColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: upscale.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(upscale.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -294,10 +285,7 @@ func (uoc *UpscaleOutputCreate) createSpec() (*UpscaleOutput, *sqlgraph.CreateSp
 			Columns: []string{upscaleoutput.GenerationOutputColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: generationoutput.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(generationoutput.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -645,12 +633,16 @@ func (u *UpscaleOutputUpsertOne) IDX(ctx context.Context) uuid.UUID {
 // UpscaleOutputCreateBulk is the builder for creating many UpscaleOutput entities in bulk.
 type UpscaleOutputCreateBulk struct {
 	config
+	err      error
 	builders []*UpscaleOutputCreate
 	conflict []sql.ConflictOption
 }
 
 // Save creates the UpscaleOutput entities in the database.
 func (uocb *UpscaleOutputCreateBulk) Save(ctx context.Context) ([]*UpscaleOutput, error) {
+	if uocb.err != nil {
+		return nil, uocb.err
+	}
 	specs := make([]*sqlgraph.CreateSpec, len(uocb.builders))
 	nodes := make([]*UpscaleOutput, len(uocb.builders))
 	mutators := make([]Mutator, len(uocb.builders))
@@ -667,8 +659,8 @@ func (uocb *UpscaleOutputCreateBulk) Save(ctx context.Context) ([]*UpscaleOutput
 					return nil, err
 				}
 				builder.mutation = mutation
-				nodes[i], specs[i] = builder.createSpec()
 				var err error
+				nodes[i], specs[i] = builder.createSpec()
 				if i < len(mutators)-1 {
 					_, err = mutators[i+1].Mutate(root, uocb.builders[i+1].mutation)
 				} else {
@@ -925,6 +917,9 @@ func (u *UpscaleOutputUpsertBulk) UpdateUpdatedAt() *UpscaleOutputUpsertBulk {
 
 // Exec executes the query.
 func (u *UpscaleOutputUpsertBulk) Exec(ctx context.Context) error {
+	if u.create.err != nil {
+		return u.create.err
+	}
 	for i, b := range u.create.builders {
 		if len(b.conflict) != 0 {
 			return fmt.Errorf("ent: OnConflict was set for builder %d. Set it on the UpscaleOutputCreateBulk instead", i)

@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 	"github.com/google/uuid"
 	"github.com/stablecog/sc-go/database/ent/credit"
@@ -37,7 +38,8 @@ type Credit struct {
 	UpdatedAt time.Time `json:"updated_at,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the CreditQuery when eager-loading is set.
-	Edges CreditEdges `json:"edges"`
+	Edges        CreditEdges `json:"edges"`
+	selectValues sql.SelectValues
 }
 
 // CreditEdges holds the relations/edges for other nodes in the graph.
@@ -54,12 +56,10 @@ type CreditEdges struct {
 // UsersOrErr returns the Users value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
 func (e CreditEdges) UsersOrErr() (*User, error) {
-	if e.loadedTypes[0] {
-		if e.Users == nil {
-			// Edge was loaded but was not found.
-			return nil, &NotFoundError{label: user.Label}
-		}
+	if e.Users != nil {
 		return e.Users, nil
+	} else if e.loadedTypes[0] {
+		return nil, &NotFoundError{label: user.Label}
 	}
 	return nil, &NotLoadedError{edge: "users"}
 }
@@ -67,12 +67,10 @@ func (e CreditEdges) UsersOrErr() (*User, error) {
 // CreditTypeOrErr returns the CreditType value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
 func (e CreditEdges) CreditTypeOrErr() (*CreditType, error) {
-	if e.loadedTypes[1] {
-		if e.CreditType == nil {
-			// Edge was loaded but was not found.
-			return nil, &NotFoundError{label: credittype.Label}
-		}
+	if e.CreditType != nil {
 		return e.CreditType, nil
+	} else if e.loadedTypes[1] {
+		return nil, &NotFoundError{label: credittype.Label}
 	}
 	return nil, &NotLoadedError{edge: "credit_type"}
 }
@@ -91,7 +89,7 @@ func (*Credit) scanValues(columns []string) ([]any, error) {
 		case credit.FieldID, credit.FieldUserID, credit.FieldCreditTypeID:
 			values[i] = new(uuid.UUID)
 		default:
-			return nil, fmt.Errorf("unexpected column %q for type Credit", columns[i])
+			values[i] = new(sql.UnknownType)
 		}
 	}
 	return values, nil
@@ -160,9 +158,17 @@ func (c *Credit) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				c.UpdatedAt = value.Time
 			}
+		default:
+			c.selectValues.Set(columns[i], values[i])
 		}
 	}
 	return nil
+}
+
+// Value returns the ent.Value that was dynamically selected and assigned to the Credit.
+// This includes values selected through modifiers, order, etc.
+func (c *Credit) Value(name string) (ent.Value, error) {
+	return c.selectValues.Get(name)
 }
 
 // QueryUsers queries the "users" edge of the Credit entity.
@@ -229,9 +235,3 @@ func (c *Credit) String() string {
 
 // Credits is a parsable slice of Credit.
 type Credits []*Credit
-
-func (c Credits) config(cfg config) {
-	for _i := range c {
-		c[_i].config = cfg
-	}
-}

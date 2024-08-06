@@ -8,6 +8,7 @@ import (
 	"strings"
 	"time"
 
+	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 	"github.com/google/uuid"
 	"github.com/stablecog/sc-go/database/ent/voiceover"
@@ -41,7 +42,8 @@ type VoiceoverOutput struct {
 	UpdatedAt time.Time `json:"updated_at,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the VoiceoverOutputQuery when eager-loading is set.
-	Edges VoiceoverOutputEdges `json:"edges"`
+	Edges        VoiceoverOutputEdges `json:"edges"`
+	selectValues sql.SelectValues
 }
 
 // VoiceoverOutputEdges holds the relations/edges for other nodes in the graph.
@@ -56,12 +58,10 @@ type VoiceoverOutputEdges struct {
 // VoiceoversOrErr returns the Voiceovers value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
 func (e VoiceoverOutputEdges) VoiceoversOrErr() (*Voiceover, error) {
-	if e.loadedTypes[0] {
-		if e.Voiceovers == nil {
-			// Edge was loaded but was not found.
-			return nil, &NotFoundError{label: voiceover.Label}
-		}
+	if e.Voiceovers != nil {
 		return e.Voiceovers, nil
+	} else if e.loadedTypes[0] {
+		return nil, &NotFoundError{label: voiceover.Label}
 	}
 	return nil, &NotLoadedError{edge: "voiceovers"}
 }
@@ -84,7 +84,7 @@ func (*VoiceoverOutput) scanValues(columns []string) ([]any, error) {
 		case voiceoveroutput.FieldID, voiceoveroutput.FieldVoiceoverID:
 			values[i] = new(uuid.UUID)
 		default:
-			return nil, fmt.Errorf("unexpected column %q for type VoiceoverOutput", columns[i])
+			values[i] = new(sql.UnknownType)
 		}
 	}
 	return values, nil
@@ -168,9 +168,17 @@ func (vo *VoiceoverOutput) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				vo.UpdatedAt = value.Time
 			}
+		default:
+			vo.selectValues.Set(columns[i], values[i])
 		}
 	}
 	return nil
+}
+
+// Value returns the ent.Value that was dynamically selected and assigned to the VoiceoverOutput.
+// This includes values selected through modifiers, order, etc.
+func (vo *VoiceoverOutput) Value(name string) (ent.Value, error) {
+	return vo.selectValues.Get(name)
 }
 
 // QueryVoiceovers queries the "voiceovers" edge of the VoiceoverOutput entity.
@@ -240,9 +248,3 @@ func (vo *VoiceoverOutput) String() string {
 
 // VoiceoverOutputs is a parsable slice of VoiceoverOutput.
 type VoiceoverOutputs []*VoiceoverOutput
-
-func (vo VoiceoverOutputs) config(cfg config) {
-	for _i := range vo {
-		vo[_i].config = cfg
-	}
-}

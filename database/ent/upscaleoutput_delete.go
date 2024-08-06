@@ -27,7 +27,7 @@ func (uod *UpscaleOutputDelete) Where(ps ...predicate.UpscaleOutput) *UpscaleOut
 
 // Exec executes the deletion query and returns how many vertices were deleted.
 func (uod *UpscaleOutputDelete) Exec(ctx context.Context) (int, error) {
-	return withHooks[int, UpscaleOutputMutation](ctx, uod.sqlExec, uod.mutation, uod.hooks)
+	return withHooks(ctx, uod.sqlExec, uod.mutation, uod.hooks)
 }
 
 // ExecX is like Exec, but panics if an error occurs.
@@ -40,15 +40,7 @@ func (uod *UpscaleOutputDelete) ExecX(ctx context.Context) int {
 }
 
 func (uod *UpscaleOutputDelete) sqlExec(ctx context.Context) (int, error) {
-	_spec := &sqlgraph.DeleteSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table: upscaleoutput.Table,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeUUID,
-				Column: upscaleoutput.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewDeleteSpec(upscaleoutput.Table, sqlgraph.NewFieldSpec(upscaleoutput.FieldID, field.TypeUUID))
 	if ps := uod.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
@@ -69,6 +61,12 @@ type UpscaleOutputDeleteOne struct {
 	uod *UpscaleOutputDelete
 }
 
+// Where appends a list predicates to the UpscaleOutputDelete builder.
+func (uodo *UpscaleOutputDeleteOne) Where(ps ...predicate.UpscaleOutput) *UpscaleOutputDeleteOne {
+	uodo.uod.mutation.Where(ps...)
+	return uodo
+}
+
 // Exec executes the deletion query.
 func (uodo *UpscaleOutputDeleteOne) Exec(ctx context.Context) error {
 	n, err := uodo.uod.Exec(ctx)
@@ -84,5 +82,7 @@ func (uodo *UpscaleOutputDeleteOne) Exec(ctx context.Context) error {
 
 // ExecX is like Exec, but panics if an error occurs.
 func (uodo *UpscaleOutputDeleteOne) ExecX(ctx context.Context) {
-	uodo.uod.ExecX(ctx)
+	if err := uodo.Exec(ctx); err != nil {
+		panic(err)
+	}
 }

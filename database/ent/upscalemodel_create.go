@@ -138,7 +138,7 @@ func (umc *UpscaleModelCreate) Mutation() *UpscaleModelMutation {
 // Save creates the UpscaleModel in the database.
 func (umc *UpscaleModelCreate) Save(ctx context.Context) (*UpscaleModel, error) {
 	umc.defaults()
-	return withHooks[*UpscaleModel, UpscaleModelMutation](ctx, umc.sqlSave, umc.mutation, umc.hooks)
+	return withHooks(ctx, umc.sqlSave, umc.mutation, umc.hooks)
 }
 
 // SaveX calls Save and panics if Save returns an error.
@@ -240,13 +240,7 @@ func (umc *UpscaleModelCreate) sqlSave(ctx context.Context) (*UpscaleModel, erro
 func (umc *UpscaleModelCreate) createSpec() (*UpscaleModel, *sqlgraph.CreateSpec) {
 	var (
 		_node = &UpscaleModel{config: umc.config}
-		_spec = &sqlgraph.CreateSpec{
-			Table: upscalemodel.Table,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeUUID,
-				Column: upscalemodel.FieldID,
-			},
-		}
+		_spec = sqlgraph.NewCreateSpec(upscalemodel.Table, sqlgraph.NewFieldSpec(upscalemodel.FieldID, field.TypeUUID))
 	)
 	_spec.OnConflict = umc.conflict
 	if id, ok := umc.mutation.ID(); ok {
@@ -285,10 +279,7 @@ func (umc *UpscaleModelCreate) createSpec() (*UpscaleModel, *sqlgraph.CreateSpec
 			Columns: []string{upscalemodel.UpscalesColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: upscale.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(upscale.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -570,12 +561,16 @@ func (u *UpscaleModelUpsertOne) IDX(ctx context.Context) uuid.UUID {
 // UpscaleModelCreateBulk is the builder for creating many UpscaleModel entities in bulk.
 type UpscaleModelCreateBulk struct {
 	config
+	err      error
 	builders []*UpscaleModelCreate
 	conflict []sql.ConflictOption
 }
 
 // Save creates the UpscaleModel entities in the database.
 func (umcb *UpscaleModelCreateBulk) Save(ctx context.Context) ([]*UpscaleModel, error) {
+	if umcb.err != nil {
+		return nil, umcb.err
+	}
 	specs := make([]*sqlgraph.CreateSpec, len(umcb.builders))
 	nodes := make([]*UpscaleModel, len(umcb.builders))
 	mutators := make([]Mutator, len(umcb.builders))
@@ -592,8 +587,8 @@ func (umcb *UpscaleModelCreateBulk) Save(ctx context.Context) ([]*UpscaleModel, 
 					return nil, err
 				}
 				builder.mutation = mutation
-				nodes[i], specs[i] = builder.createSpec()
 				var err error
+				nodes[i], specs[i] = builder.createSpec()
 				if i < len(mutators)-1 {
 					_, err = mutators[i+1].Mutate(root, umcb.builders[i+1].mutation)
 				} else {
@@ -815,6 +810,9 @@ func (u *UpscaleModelUpsertBulk) UpdateUpdatedAt() *UpscaleModelUpsertBulk {
 
 // Exec executes the query.
 func (u *UpscaleModelUpsertBulk) Exec(ctx context.Context) error {
+	if u.create.err != nil {
+		return u.create.err
+	}
 	for i, b := range u.create.builders {
 		if len(b.conflict) != 0 {
 			return fmt.Errorf("ent: OnConflict was set for builder %d. Set it on the UpscaleModelCreateBulk instead", i)

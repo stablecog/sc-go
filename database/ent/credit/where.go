@@ -425,11 +425,7 @@ func HasUsers() predicate.Credit {
 // HasUsersWith applies the HasEdge predicate on the "users" edge with a given conditions (other predicates).
 func HasUsersWith(preds ...predicate.User) predicate.Credit {
 	return predicate.Credit(func(s *sql.Selector) {
-		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(UsersInverseTable, FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, UsersTable, UsersColumn),
-		)
+		step := newUsersStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)
@@ -452,11 +448,7 @@ func HasCreditType() predicate.Credit {
 // HasCreditTypeWith applies the HasEdge predicate on the "credit_type" edge with a given conditions (other predicates).
 func HasCreditTypeWith(preds ...predicate.CreditType) predicate.Credit {
 	return predicate.Credit(func(s *sql.Selector) {
-		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(CreditTypeInverseTable, FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, CreditTypeTable, CreditTypeColumn),
-		)
+		step := newCreditTypeStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)
@@ -467,32 +459,15 @@ func HasCreditTypeWith(preds ...predicate.CreditType) predicate.Credit {
 
 // And groups predicates with the AND operator between them.
 func And(predicates ...predicate.Credit) predicate.Credit {
-	return predicate.Credit(func(s *sql.Selector) {
-		s1 := s.Clone().SetP(nil)
-		for _, p := range predicates {
-			p(s1)
-		}
-		s.Where(s1.P())
-	})
+	return predicate.Credit(sql.AndPredicates(predicates...))
 }
 
 // Or groups predicates with the OR operator between them.
 func Or(predicates ...predicate.Credit) predicate.Credit {
-	return predicate.Credit(func(s *sql.Selector) {
-		s1 := s.Clone().SetP(nil)
-		for i, p := range predicates {
-			if i > 0 {
-				s1.Or()
-			}
-			p(s1)
-		}
-		s.Where(s1.P())
-	})
+	return predicate.Credit(sql.OrPredicates(predicates...))
 }
 
 // Not applies the not operator on the given predicate.
 func Not(p predicate.Credit) predicate.Credit {
-	return predicate.Credit(func(s *sql.Selector) {
-		p(s.Not())
-	})
+	return predicate.Credit(sql.NotPredicates(p))
 }

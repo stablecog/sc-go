@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"math"
 
+	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
@@ -22,7 +23,7 @@ import (
 type SchedulerQuery struct {
 	config
 	ctx                  *QueryContext
-	order                []OrderFunc
+	order                []scheduler.OrderOption
 	inters               []Interceptor
 	predicates           []predicate.Scheduler
 	withGenerations      *GenerationQuery
@@ -59,7 +60,7 @@ func (sq *SchedulerQuery) Unique(unique bool) *SchedulerQuery {
 }
 
 // Order specifies how the records should be ordered.
-func (sq *SchedulerQuery) Order(o ...OrderFunc) *SchedulerQuery {
+func (sq *SchedulerQuery) Order(o ...scheduler.OrderOption) *SchedulerQuery {
 	sq.order = append(sq.order, o...)
 	return sq
 }
@@ -111,7 +112,7 @@ func (sq *SchedulerQuery) QueryGenerationModels() *GenerationModelQuery {
 // First returns the first Scheduler entity from the query.
 // Returns a *NotFoundError when no Scheduler was found.
 func (sq *SchedulerQuery) First(ctx context.Context) (*Scheduler, error) {
-	nodes, err := sq.Limit(1).All(setContextOp(ctx, sq.ctx, "First"))
+	nodes, err := sq.Limit(1).All(setContextOp(ctx, sq.ctx, ent.OpQueryFirst))
 	if err != nil {
 		return nil, err
 	}
@@ -134,7 +135,7 @@ func (sq *SchedulerQuery) FirstX(ctx context.Context) *Scheduler {
 // Returns a *NotFoundError when no Scheduler ID was found.
 func (sq *SchedulerQuery) FirstID(ctx context.Context) (id uuid.UUID, err error) {
 	var ids []uuid.UUID
-	if ids, err = sq.Limit(1).IDs(setContextOp(ctx, sq.ctx, "FirstID")); err != nil {
+	if ids, err = sq.Limit(1).IDs(setContextOp(ctx, sq.ctx, ent.OpQueryFirstID)); err != nil {
 		return
 	}
 	if len(ids) == 0 {
@@ -157,7 +158,7 @@ func (sq *SchedulerQuery) FirstIDX(ctx context.Context) uuid.UUID {
 // Returns a *NotSingularError when more than one Scheduler entity is found.
 // Returns a *NotFoundError when no Scheduler entities are found.
 func (sq *SchedulerQuery) Only(ctx context.Context) (*Scheduler, error) {
-	nodes, err := sq.Limit(2).All(setContextOp(ctx, sq.ctx, "Only"))
+	nodes, err := sq.Limit(2).All(setContextOp(ctx, sq.ctx, ent.OpQueryOnly))
 	if err != nil {
 		return nil, err
 	}
@@ -185,7 +186,7 @@ func (sq *SchedulerQuery) OnlyX(ctx context.Context) *Scheduler {
 // Returns a *NotFoundError when no entities are found.
 func (sq *SchedulerQuery) OnlyID(ctx context.Context) (id uuid.UUID, err error) {
 	var ids []uuid.UUID
-	if ids, err = sq.Limit(2).IDs(setContextOp(ctx, sq.ctx, "OnlyID")); err != nil {
+	if ids, err = sq.Limit(2).IDs(setContextOp(ctx, sq.ctx, ent.OpQueryOnlyID)); err != nil {
 		return
 	}
 	switch len(ids) {
@@ -210,7 +211,7 @@ func (sq *SchedulerQuery) OnlyIDX(ctx context.Context) uuid.UUID {
 
 // All executes the query and returns a list of Schedulers.
 func (sq *SchedulerQuery) All(ctx context.Context) ([]*Scheduler, error) {
-	ctx = setContextOp(ctx, sq.ctx, "All")
+	ctx = setContextOp(ctx, sq.ctx, ent.OpQueryAll)
 	if err := sq.prepareQuery(ctx); err != nil {
 		return nil, err
 	}
@@ -228,10 +229,12 @@ func (sq *SchedulerQuery) AllX(ctx context.Context) []*Scheduler {
 }
 
 // IDs executes the query and returns a list of Scheduler IDs.
-func (sq *SchedulerQuery) IDs(ctx context.Context) ([]uuid.UUID, error) {
-	var ids []uuid.UUID
-	ctx = setContextOp(ctx, sq.ctx, "IDs")
-	if err := sq.Select(scheduler.FieldID).Scan(ctx, &ids); err != nil {
+func (sq *SchedulerQuery) IDs(ctx context.Context) (ids []uuid.UUID, err error) {
+	if sq.ctx.Unique == nil && sq.path != nil {
+		sq.Unique(true)
+	}
+	ctx = setContextOp(ctx, sq.ctx, ent.OpQueryIDs)
+	if err = sq.Select(scheduler.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
 	return ids, nil
@@ -248,7 +251,7 @@ func (sq *SchedulerQuery) IDsX(ctx context.Context) []uuid.UUID {
 
 // Count returns the count of the given query.
 func (sq *SchedulerQuery) Count(ctx context.Context) (int, error) {
-	ctx = setContextOp(ctx, sq.ctx, "Count")
+	ctx = setContextOp(ctx, sq.ctx, ent.OpQueryCount)
 	if err := sq.prepareQuery(ctx); err != nil {
 		return 0, err
 	}
@@ -266,7 +269,7 @@ func (sq *SchedulerQuery) CountX(ctx context.Context) int {
 
 // Exist returns true if the query has elements in the graph.
 func (sq *SchedulerQuery) Exist(ctx context.Context) (bool, error) {
-	ctx = setContextOp(ctx, sq.ctx, "Exist")
+	ctx = setContextOp(ctx, sq.ctx, ent.OpQueryExist)
 	switch _, err := sq.FirstID(ctx); {
 	case IsNotFound(err):
 		return false, nil
@@ -295,7 +298,7 @@ func (sq *SchedulerQuery) Clone() *SchedulerQuery {
 	return &SchedulerQuery{
 		config:               sq.config,
 		ctx:                  sq.ctx.Clone(),
-		order:                append([]OrderFunc{}, sq.order...),
+		order:                append([]scheduler.OrderOption{}, sq.order...),
 		inters:               append([]Interceptor{}, sq.inters...),
 		predicates:           append([]predicate.Scheduler{}, sq.predicates...),
 		withGenerations:      sq.withGenerations.Clone(),
@@ -459,8 +462,11 @@ func (sq *SchedulerQuery) loadGenerations(ctx context.Context, query *Generation
 			init(nodes[i])
 		}
 	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(generation.FieldSchedulerID)
+	}
 	query.Where(predicate.Generation(func(s *sql.Selector) {
-		s.Where(sql.InValues(scheduler.GenerationsColumn, fks...))
+		s.Where(sql.InValues(s.C(scheduler.GenerationsColumn), fks...))
 	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {
@@ -470,7 +476,7 @@ func (sq *SchedulerQuery) loadGenerations(ctx context.Context, query *Generation
 		fk := n.SchedulerID
 		node, ok := nodeids[fk]
 		if !ok {
-			return fmt.Errorf(`unexpected foreign-key "scheduler_id" returned %v for node %v`, fk, n.ID)
+			return fmt.Errorf(`unexpected referenced foreign-key "scheduler_id" returned %v for node %v`, fk, n.ID)
 		}
 		assign(node, n)
 	}
@@ -499,27 +505,30 @@ func (sq *SchedulerQuery) loadGenerationModels(ctx context.Context, query *Gener
 	if err := query.prepareQuery(ctx); err != nil {
 		return err
 	}
-	neighbors, err := query.sqlAll(ctx, func(_ context.Context, spec *sqlgraph.QuerySpec) {
-		assign := spec.Assign
-		values := spec.ScanValues
-		spec.ScanValues = func(columns []string) ([]any, error) {
-			values, err := values(columns[1:])
-			if err != nil {
-				return nil, err
+	qr := QuerierFunc(func(ctx context.Context, q Query) (Value, error) {
+		return query.sqlAll(ctx, func(_ context.Context, spec *sqlgraph.QuerySpec) {
+			assign := spec.Assign
+			values := spec.ScanValues
+			spec.ScanValues = func(columns []string) ([]any, error) {
+				values, err := values(columns[1:])
+				if err != nil {
+					return nil, err
+				}
+				return append([]any{new(uuid.UUID)}, values...), nil
 			}
-			return append([]any{new(uuid.UUID)}, values...), nil
-		}
-		spec.Assign = func(columns []string, values []any) error {
-			outValue := *values[0].(*uuid.UUID)
-			inValue := *values[1].(*uuid.UUID)
-			if nids[inValue] == nil {
-				nids[inValue] = map[*Scheduler]struct{}{byID[outValue]: {}}
-				return assign(columns[1:], values[1:])
+			spec.Assign = func(columns []string, values []any) error {
+				outValue := *values[0].(*uuid.UUID)
+				inValue := *values[1].(*uuid.UUID)
+				if nids[inValue] == nil {
+					nids[inValue] = map[*Scheduler]struct{}{byID[outValue]: {}}
+					return assign(columns[1:], values[1:])
+				}
+				nids[inValue][byID[outValue]] = struct{}{}
+				return nil
 			}
-			nids[inValue][byID[outValue]] = struct{}{}
-			return nil
-		}
+		})
 	})
+	neighbors, err := withInterceptors[[]*GenerationModel](ctx, query, qr, query.inters)
 	if err != nil {
 		return err
 	}
@@ -548,20 +557,12 @@ func (sq *SchedulerQuery) sqlCount(ctx context.Context) (int, error) {
 }
 
 func (sq *SchedulerQuery) querySpec() *sqlgraph.QuerySpec {
-	_spec := &sqlgraph.QuerySpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   scheduler.Table,
-			Columns: scheduler.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeUUID,
-				Column: scheduler.FieldID,
-			},
-		},
-		From:   sq.sql,
-		Unique: true,
-	}
+	_spec := sqlgraph.NewQuerySpec(scheduler.Table, scheduler.Columns, sqlgraph.NewFieldSpec(scheduler.FieldID, field.TypeUUID))
+	_spec.From = sq.sql
 	if unique := sq.ctx.Unique; unique != nil {
 		_spec.Unique = *unique
+	} else if sq.path != nil {
+		_spec.Unique = true
 	}
 	if fields := sq.ctx.Fields; len(fields) > 0 {
 		_spec.Node.Columns = make([]string, 0, len(fields))
@@ -650,7 +651,7 @@ func (sgb *SchedulerGroupBy) Aggregate(fns ...AggregateFunc) *SchedulerGroupBy {
 
 // Scan applies the selector query and scans the result into the given value.
 func (sgb *SchedulerGroupBy) Scan(ctx context.Context, v any) error {
-	ctx = setContextOp(ctx, sgb.build.ctx, "GroupBy")
+	ctx = setContextOp(ctx, sgb.build.ctx, ent.OpQueryGroupBy)
 	if err := sgb.build.prepareQuery(ctx); err != nil {
 		return err
 	}
@@ -698,7 +699,7 @@ func (ss *SchedulerSelect) Aggregate(fns ...AggregateFunc) *SchedulerSelect {
 
 // Scan applies the selector query and scans the result into the given value.
 func (ss *SchedulerSelect) Scan(ctx context.Context, v any) error {
-	ctx = setContextOp(ctx, ss.ctx, "Select")
+	ctx = setContextOp(ctx, ss.ctx, ent.OpQuerySelect)
 	if err := ss.prepareQuery(ctx); err != nil {
 		return err
 	}

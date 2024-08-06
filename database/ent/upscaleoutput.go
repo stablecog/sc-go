@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 	"github.com/google/uuid"
 	"github.com/stablecog/sc-go/database/ent/generationoutput"
@@ -35,7 +36,8 @@ type UpscaleOutput struct {
 	UpdatedAt time.Time `json:"updated_at,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the UpscaleOutputQuery when eager-loading is set.
-	Edges UpscaleOutputEdges `json:"edges"`
+	Edges        UpscaleOutputEdges `json:"edges"`
+	selectValues sql.SelectValues
 }
 
 // UpscaleOutputEdges holds the relations/edges for other nodes in the graph.
@@ -52,12 +54,10 @@ type UpscaleOutputEdges struct {
 // UpscalesOrErr returns the Upscales value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
 func (e UpscaleOutputEdges) UpscalesOrErr() (*Upscale, error) {
-	if e.loadedTypes[0] {
-		if e.Upscales == nil {
-			// Edge was loaded but was not found.
-			return nil, &NotFoundError{label: upscale.Label}
-		}
+	if e.Upscales != nil {
 		return e.Upscales, nil
+	} else if e.loadedTypes[0] {
+		return nil, &NotFoundError{label: upscale.Label}
 	}
 	return nil, &NotLoadedError{edge: "upscales"}
 }
@@ -65,12 +65,10 @@ func (e UpscaleOutputEdges) UpscalesOrErr() (*Upscale, error) {
 // GenerationOutputOrErr returns the GenerationOutput value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
 func (e UpscaleOutputEdges) GenerationOutputOrErr() (*GenerationOutput, error) {
-	if e.loadedTypes[1] {
-		if e.GenerationOutput == nil {
-			// Edge was loaded but was not found.
-			return nil, &NotFoundError{label: generationoutput.Label}
-		}
+	if e.GenerationOutput != nil {
 		return e.GenerationOutput, nil
+	} else if e.loadedTypes[1] {
+		return nil, &NotFoundError{label: generationoutput.Label}
 	}
 	return nil, &NotLoadedError{edge: "generation_output"}
 }
@@ -89,7 +87,7 @@ func (*UpscaleOutput) scanValues(columns []string) ([]any, error) {
 		case upscaleoutput.FieldID, upscaleoutput.FieldUpscaleID:
 			values[i] = new(uuid.UUID)
 		default:
-			return nil, fmt.Errorf("unexpected column %q for type UpscaleOutput", columns[i])
+			values[i] = new(sql.UnknownType)
 		}
 	}
 	return values, nil
@@ -154,9 +152,17 @@ func (uo *UpscaleOutput) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				uo.UpdatedAt = value.Time
 			}
+		default:
+			uo.selectValues.Set(columns[i], values[i])
 		}
 	}
 	return nil
+}
+
+// Value returns the ent.Value that was dynamically selected and assigned to the UpscaleOutput.
+// This includes values selected through modifiers, order, etc.
+func (uo *UpscaleOutput) Value(name string) (ent.Value, error) {
+	return uo.selectValues.Get(name)
 }
 
 // QueryUpscales queries the "upscales" edge of the UpscaleOutput entity.
@@ -224,9 +230,3 @@ func (uo *UpscaleOutput) String() string {
 
 // UpscaleOutputs is a parsable slice of UpscaleOutput.
 type UpscaleOutputs []*UpscaleOutput
-
-func (uo UpscaleOutputs) config(cfg config) {
-	for _i := range uo {
-		uo[_i].config = cfg
-	}
-}

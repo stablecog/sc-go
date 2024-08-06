@@ -355,7 +355,7 @@ func (vc *VoiceoverCreate) Mutation() *VoiceoverMutation {
 // Save creates the Voiceover in the database.
 func (vc *VoiceoverCreate) Save(ctx context.Context) (*Voiceover, error) {
 	vc.defaults()
-	return withHooks[*Voiceover, VoiceoverMutation](ctx, vc.sqlSave, vc.mutation, vc.hooks)
+	return withHooks(ctx, vc.sqlSave, vc.mutation, vc.hooks)
 }
 
 // SaveX calls Save and panics if Save returns an error.
@@ -466,16 +466,16 @@ func (vc *VoiceoverCreate) check() error {
 	if _, ok := vc.mutation.UpdatedAt(); !ok {
 		return &ValidationError{Name: "updated_at", err: errors.New(`ent: missing required field "Voiceover.updated_at"`)}
 	}
-	if _, ok := vc.mutation.UserID(); !ok {
+	if len(vc.mutation.UserIDs()) == 0 {
 		return &ValidationError{Name: "user", err: errors.New(`ent: missing required edge "Voiceover.user"`)}
 	}
-	if _, ok := vc.mutation.DeviceInfoID(); !ok {
+	if len(vc.mutation.DeviceInfoIDs()) == 0 {
 		return &ValidationError{Name: "device_info", err: errors.New(`ent: missing required edge "Voiceover.device_info"`)}
 	}
-	if _, ok := vc.mutation.VoiceoverModelsID(); !ok {
+	if len(vc.mutation.VoiceoverModelsIDs()) == 0 {
 		return &ValidationError{Name: "voiceover_models", err: errors.New(`ent: missing required edge "Voiceover.voiceover_models"`)}
 	}
-	if _, ok := vc.mutation.VoiceoverSpeakersID(); !ok {
+	if len(vc.mutation.VoiceoverSpeakersIDs()) == 0 {
 		return &ValidationError{Name: "voiceover_speakers", err: errors.New(`ent: missing required edge "Voiceover.voiceover_speakers"`)}
 	}
 	return nil
@@ -507,13 +507,7 @@ func (vc *VoiceoverCreate) sqlSave(ctx context.Context) (*Voiceover, error) {
 func (vc *VoiceoverCreate) createSpec() (*Voiceover, *sqlgraph.CreateSpec) {
 	var (
 		_node = &Voiceover{config: vc.config}
-		_spec = &sqlgraph.CreateSpec{
-			Table: voiceover.Table,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeUUID,
-				Column: voiceover.FieldID,
-			},
-		}
+		_spec = sqlgraph.NewCreateSpec(voiceover.Table, sqlgraph.NewFieldSpec(voiceover.FieldID, field.TypeUUID))
 	)
 	_spec.OnConflict = vc.conflict
 	if id, ok := vc.mutation.ID(); ok {
@@ -588,10 +582,7 @@ func (vc *VoiceoverCreate) createSpec() (*Voiceover, *sqlgraph.CreateSpec) {
 			Columns: []string{voiceover.UserColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: user.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -608,10 +599,7 @@ func (vc *VoiceoverCreate) createSpec() (*Voiceover, *sqlgraph.CreateSpec) {
 			Columns: []string{voiceover.PromptColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: prompt.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(prompt.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -628,10 +616,7 @@ func (vc *VoiceoverCreate) createSpec() (*Voiceover, *sqlgraph.CreateSpec) {
 			Columns: []string{voiceover.DeviceInfoColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: deviceinfo.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(deviceinfo.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -648,10 +633,7 @@ func (vc *VoiceoverCreate) createSpec() (*Voiceover, *sqlgraph.CreateSpec) {
 			Columns: []string{voiceover.VoiceoverModelsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: voiceovermodel.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(voiceovermodel.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -668,10 +650,7 @@ func (vc *VoiceoverCreate) createSpec() (*Voiceover, *sqlgraph.CreateSpec) {
 			Columns: []string{voiceover.VoiceoverSpeakersColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: voiceoverspeaker.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(voiceoverspeaker.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -688,10 +667,7 @@ func (vc *VoiceoverCreate) createSpec() (*Voiceover, *sqlgraph.CreateSpec) {
 			Columns: []string{voiceover.APITokensColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: apitoken.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(apitoken.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -708,10 +684,7 @@ func (vc *VoiceoverCreate) createSpec() (*Voiceover, *sqlgraph.CreateSpec) {
 			Columns: []string{voiceover.VoiceoverOutputsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: voiceoveroutput.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(voiceoveroutput.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -1513,12 +1486,16 @@ func (u *VoiceoverUpsertOne) IDX(ctx context.Context) uuid.UUID {
 // VoiceoverCreateBulk is the builder for creating many Voiceover entities in bulk.
 type VoiceoverCreateBulk struct {
 	config
+	err      error
 	builders []*VoiceoverCreate
 	conflict []sql.ConflictOption
 }
 
 // Save creates the Voiceover entities in the database.
 func (vcb *VoiceoverCreateBulk) Save(ctx context.Context) ([]*Voiceover, error) {
+	if vcb.err != nil {
+		return nil, vcb.err
+	}
 	specs := make([]*sqlgraph.CreateSpec, len(vcb.builders))
 	nodes := make([]*Voiceover, len(vcb.builders))
 	mutators := make([]Mutator, len(vcb.builders))
@@ -1535,8 +1512,8 @@ func (vcb *VoiceoverCreateBulk) Save(ctx context.Context) ([]*Voiceover, error) 
 					return nil, err
 				}
 				builder.mutation = mutation
-				nodes[i], specs[i] = builder.createSpec()
 				var err error
+				nodes[i], specs[i] = builder.createSpec()
 				if i < len(mutators)-1 {
 					_, err = mutators[i+1].Mutate(root, vcb.builders[i+1].mutation)
 				} else {
@@ -2038,6 +2015,9 @@ func (u *VoiceoverUpsertBulk) UpdateUpdatedAt() *VoiceoverUpsertBulk {
 
 // Exec executes the query.
 func (u *VoiceoverUpsertBulk) Exec(ctx context.Context) error {
+	if u.create.err != nil {
+		return u.create.err
+	}
 	for i, b := range u.create.builders {
 		if len(b.conflict) != 0 {
 			return fmt.Errorf("ent: OnConflict was set for builder %d. Set it on the VoiceoverCreateBulk instead", i)

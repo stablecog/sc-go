@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"math"
 
+	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
@@ -27,7 +28,7 @@ import (
 type VoiceoverQuery struct {
 	config
 	ctx                   *QueryContext
-	order                 []OrderFunc
+	order                 []voiceover.OrderOption
 	inters                []Interceptor
 	predicates            []predicate.Voiceover
 	withUser              *UserQuery
@@ -69,7 +70,7 @@ func (vq *VoiceoverQuery) Unique(unique bool) *VoiceoverQuery {
 }
 
 // Order specifies how the records should be ordered.
-func (vq *VoiceoverQuery) Order(o ...OrderFunc) *VoiceoverQuery {
+func (vq *VoiceoverQuery) Order(o ...voiceover.OrderOption) *VoiceoverQuery {
 	vq.order = append(vq.order, o...)
 	return vq
 }
@@ -231,7 +232,7 @@ func (vq *VoiceoverQuery) QueryVoiceoverOutputs() *VoiceoverOutputQuery {
 // First returns the first Voiceover entity from the query.
 // Returns a *NotFoundError when no Voiceover was found.
 func (vq *VoiceoverQuery) First(ctx context.Context) (*Voiceover, error) {
-	nodes, err := vq.Limit(1).All(setContextOp(ctx, vq.ctx, "First"))
+	nodes, err := vq.Limit(1).All(setContextOp(ctx, vq.ctx, ent.OpQueryFirst))
 	if err != nil {
 		return nil, err
 	}
@@ -254,7 +255,7 @@ func (vq *VoiceoverQuery) FirstX(ctx context.Context) *Voiceover {
 // Returns a *NotFoundError when no Voiceover ID was found.
 func (vq *VoiceoverQuery) FirstID(ctx context.Context) (id uuid.UUID, err error) {
 	var ids []uuid.UUID
-	if ids, err = vq.Limit(1).IDs(setContextOp(ctx, vq.ctx, "FirstID")); err != nil {
+	if ids, err = vq.Limit(1).IDs(setContextOp(ctx, vq.ctx, ent.OpQueryFirstID)); err != nil {
 		return
 	}
 	if len(ids) == 0 {
@@ -277,7 +278,7 @@ func (vq *VoiceoverQuery) FirstIDX(ctx context.Context) uuid.UUID {
 // Returns a *NotSingularError when more than one Voiceover entity is found.
 // Returns a *NotFoundError when no Voiceover entities are found.
 func (vq *VoiceoverQuery) Only(ctx context.Context) (*Voiceover, error) {
-	nodes, err := vq.Limit(2).All(setContextOp(ctx, vq.ctx, "Only"))
+	nodes, err := vq.Limit(2).All(setContextOp(ctx, vq.ctx, ent.OpQueryOnly))
 	if err != nil {
 		return nil, err
 	}
@@ -305,7 +306,7 @@ func (vq *VoiceoverQuery) OnlyX(ctx context.Context) *Voiceover {
 // Returns a *NotFoundError when no entities are found.
 func (vq *VoiceoverQuery) OnlyID(ctx context.Context) (id uuid.UUID, err error) {
 	var ids []uuid.UUID
-	if ids, err = vq.Limit(2).IDs(setContextOp(ctx, vq.ctx, "OnlyID")); err != nil {
+	if ids, err = vq.Limit(2).IDs(setContextOp(ctx, vq.ctx, ent.OpQueryOnlyID)); err != nil {
 		return
 	}
 	switch len(ids) {
@@ -330,7 +331,7 @@ func (vq *VoiceoverQuery) OnlyIDX(ctx context.Context) uuid.UUID {
 
 // All executes the query and returns a list of Voiceovers.
 func (vq *VoiceoverQuery) All(ctx context.Context) ([]*Voiceover, error) {
-	ctx = setContextOp(ctx, vq.ctx, "All")
+	ctx = setContextOp(ctx, vq.ctx, ent.OpQueryAll)
 	if err := vq.prepareQuery(ctx); err != nil {
 		return nil, err
 	}
@@ -348,10 +349,12 @@ func (vq *VoiceoverQuery) AllX(ctx context.Context) []*Voiceover {
 }
 
 // IDs executes the query and returns a list of Voiceover IDs.
-func (vq *VoiceoverQuery) IDs(ctx context.Context) ([]uuid.UUID, error) {
-	var ids []uuid.UUID
-	ctx = setContextOp(ctx, vq.ctx, "IDs")
-	if err := vq.Select(voiceover.FieldID).Scan(ctx, &ids); err != nil {
+func (vq *VoiceoverQuery) IDs(ctx context.Context) (ids []uuid.UUID, err error) {
+	if vq.ctx.Unique == nil && vq.path != nil {
+		vq.Unique(true)
+	}
+	ctx = setContextOp(ctx, vq.ctx, ent.OpQueryIDs)
+	if err = vq.Select(voiceover.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
 	return ids, nil
@@ -368,7 +371,7 @@ func (vq *VoiceoverQuery) IDsX(ctx context.Context) []uuid.UUID {
 
 // Count returns the count of the given query.
 func (vq *VoiceoverQuery) Count(ctx context.Context) (int, error) {
-	ctx = setContextOp(ctx, vq.ctx, "Count")
+	ctx = setContextOp(ctx, vq.ctx, ent.OpQueryCount)
 	if err := vq.prepareQuery(ctx); err != nil {
 		return 0, err
 	}
@@ -386,7 +389,7 @@ func (vq *VoiceoverQuery) CountX(ctx context.Context) int {
 
 // Exist returns true if the query has elements in the graph.
 func (vq *VoiceoverQuery) Exist(ctx context.Context) (bool, error) {
-	ctx = setContextOp(ctx, vq.ctx, "Exist")
+	ctx = setContextOp(ctx, vq.ctx, ent.OpQueryExist)
 	switch _, err := vq.FirstID(ctx); {
 	case IsNotFound(err):
 		return false, nil
@@ -415,7 +418,7 @@ func (vq *VoiceoverQuery) Clone() *VoiceoverQuery {
 	return &VoiceoverQuery{
 		config:                vq.config,
 		ctx:                   vq.ctx.Clone(),
-		order:                 append([]OrderFunc{}, vq.order...),
+		order:                 append([]voiceover.OrderOption{}, vq.order...),
 		inters:                append([]Interceptor{}, vq.inters...),
 		predicates:            append([]predicate.Voiceover{}, vq.predicates...),
 		withUser:              vq.withUser.Clone(),
@@ -853,8 +856,11 @@ func (vq *VoiceoverQuery) loadVoiceoverOutputs(ctx context.Context, query *Voice
 			init(nodes[i])
 		}
 	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(voiceoveroutput.FieldVoiceoverID)
+	}
 	query.Where(predicate.VoiceoverOutput(func(s *sql.Selector) {
-		s.Where(sql.InValues(voiceover.VoiceoverOutputsColumn, fks...))
+		s.Where(sql.InValues(s.C(voiceover.VoiceoverOutputsColumn), fks...))
 	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {
@@ -864,7 +870,7 @@ func (vq *VoiceoverQuery) loadVoiceoverOutputs(ctx context.Context, query *Voice
 		fk := n.VoiceoverID
 		node, ok := nodeids[fk]
 		if !ok {
-			return fmt.Errorf(`unexpected foreign-key "voiceover_id" returned %v for node %v`, fk, n.ID)
+			return fmt.Errorf(`unexpected referenced foreign-key "voiceover_id" returned %v for node %v`, fk, n.ID)
 		}
 		assign(node, n)
 	}
@@ -884,20 +890,12 @@ func (vq *VoiceoverQuery) sqlCount(ctx context.Context) (int, error) {
 }
 
 func (vq *VoiceoverQuery) querySpec() *sqlgraph.QuerySpec {
-	_spec := &sqlgraph.QuerySpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   voiceover.Table,
-			Columns: voiceover.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeUUID,
-				Column: voiceover.FieldID,
-			},
-		},
-		From:   vq.sql,
-		Unique: true,
-	}
+	_spec := sqlgraph.NewQuerySpec(voiceover.Table, voiceover.Columns, sqlgraph.NewFieldSpec(voiceover.FieldID, field.TypeUUID))
+	_spec.From = vq.sql
 	if unique := vq.ctx.Unique; unique != nil {
 		_spec.Unique = *unique
+	} else if vq.path != nil {
+		_spec.Unique = true
 	}
 	if fields := vq.ctx.Fields; len(fields) > 0 {
 		_spec.Node.Columns = make([]string, 0, len(fields))
@@ -906,6 +904,24 @@ func (vq *VoiceoverQuery) querySpec() *sqlgraph.QuerySpec {
 			if fields[i] != voiceover.FieldID {
 				_spec.Node.Columns = append(_spec.Node.Columns, fields[i])
 			}
+		}
+		if vq.withUser != nil {
+			_spec.Node.AddColumnOnce(voiceover.FieldUserID)
+		}
+		if vq.withPrompt != nil {
+			_spec.Node.AddColumnOnce(voiceover.FieldPromptID)
+		}
+		if vq.withDeviceInfo != nil {
+			_spec.Node.AddColumnOnce(voiceover.FieldDeviceInfoID)
+		}
+		if vq.withVoiceoverModels != nil {
+			_spec.Node.AddColumnOnce(voiceover.FieldModelID)
+		}
+		if vq.withVoiceoverSpeakers != nil {
+			_spec.Node.AddColumnOnce(voiceover.FieldSpeakerID)
+		}
+		if vq.withAPITokens != nil {
+			_spec.Node.AddColumnOnce(voiceover.FieldAPITokenID)
 		}
 	}
 	if ps := vq.predicates; len(ps) > 0 {
@@ -986,7 +1002,7 @@ func (vgb *VoiceoverGroupBy) Aggregate(fns ...AggregateFunc) *VoiceoverGroupBy {
 
 // Scan applies the selector query and scans the result into the given value.
 func (vgb *VoiceoverGroupBy) Scan(ctx context.Context, v any) error {
-	ctx = setContextOp(ctx, vgb.build.ctx, "GroupBy")
+	ctx = setContextOp(ctx, vgb.build.ctx, ent.OpQueryGroupBy)
 	if err := vgb.build.prepareQuery(ctx); err != nil {
 		return err
 	}
@@ -1034,7 +1050,7 @@ func (vs *VoiceoverSelect) Aggregate(fns ...AggregateFunc) *VoiceoverSelect {
 
 // Scan applies the selector query and scans the result into the given value.
 func (vs *VoiceoverSelect) Scan(ctx context.Context, v any) error {
-	ctx = setContextOp(ctx, vs.ctx, "Select")
+	ctx = setContextOp(ctx, vs.ctx, ent.OpQuerySelect)
 	if err := vs.prepareQuery(ctx); err != nil {
 		return err
 	}

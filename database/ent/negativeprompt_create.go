@@ -31,6 +31,34 @@ func (npc *NegativePromptCreate) SetText(s string) *NegativePromptCreate {
 	return npc
 }
 
+// SetTranslatedText sets the "translated_text" field.
+func (npc *NegativePromptCreate) SetTranslatedText(s string) *NegativePromptCreate {
+	npc.mutation.SetTranslatedText(s)
+	return npc
+}
+
+// SetNillableTranslatedText sets the "translated_text" field if the given value is not nil.
+func (npc *NegativePromptCreate) SetNillableTranslatedText(s *string) *NegativePromptCreate {
+	if s != nil {
+		npc.SetTranslatedText(*s)
+	}
+	return npc
+}
+
+// SetRanTranslation sets the "ran_translation" field.
+func (npc *NegativePromptCreate) SetRanTranslation(b bool) *NegativePromptCreate {
+	npc.mutation.SetRanTranslation(b)
+	return npc
+}
+
+// SetNillableRanTranslation sets the "ran_translation" field if the given value is not nil.
+func (npc *NegativePromptCreate) SetNillableRanTranslation(b *bool) *NegativePromptCreate {
+	if b != nil {
+		npc.SetRanTranslation(*b)
+	}
+	return npc
+}
+
 // SetCreatedAt sets the "created_at" field.
 func (npc *NegativePromptCreate) SetCreatedAt(t time.Time) *NegativePromptCreate {
 	npc.mutation.SetCreatedAt(t)
@@ -96,7 +124,7 @@ func (npc *NegativePromptCreate) Mutation() *NegativePromptMutation {
 // Save creates the NegativePrompt in the database.
 func (npc *NegativePromptCreate) Save(ctx context.Context) (*NegativePrompt, error) {
 	npc.defaults()
-	return withHooks[*NegativePrompt, NegativePromptMutation](ctx, npc.sqlSave, npc.mutation, npc.hooks)
+	return withHooks(ctx, npc.sqlSave, npc.mutation, npc.hooks)
 }
 
 // SaveX calls Save and panics if Save returns an error.
@@ -123,6 +151,10 @@ func (npc *NegativePromptCreate) ExecX(ctx context.Context) {
 
 // defaults sets the default values of the builder before save.
 func (npc *NegativePromptCreate) defaults() {
+	if _, ok := npc.mutation.RanTranslation(); !ok {
+		v := negativeprompt.DefaultRanTranslation
+		npc.mutation.SetRanTranslation(v)
+	}
 	if _, ok := npc.mutation.CreatedAt(); !ok {
 		v := negativeprompt.DefaultCreatedAt()
 		npc.mutation.SetCreatedAt(v)
@@ -141,6 +173,9 @@ func (npc *NegativePromptCreate) defaults() {
 func (npc *NegativePromptCreate) check() error {
 	if _, ok := npc.mutation.Text(); !ok {
 		return &ValidationError{Name: "text", err: errors.New(`ent: missing required field "NegativePrompt.text"`)}
+	}
+	if _, ok := npc.mutation.RanTranslation(); !ok {
+		return &ValidationError{Name: "ran_translation", err: errors.New(`ent: missing required field "NegativePrompt.ran_translation"`)}
 	}
 	if _, ok := npc.mutation.CreatedAt(); !ok {
 		return &ValidationError{Name: "created_at", err: errors.New(`ent: missing required field "NegativePrompt.created_at"`)}
@@ -177,13 +212,7 @@ func (npc *NegativePromptCreate) sqlSave(ctx context.Context) (*NegativePrompt, 
 func (npc *NegativePromptCreate) createSpec() (*NegativePrompt, *sqlgraph.CreateSpec) {
 	var (
 		_node = &NegativePrompt{config: npc.config}
-		_spec = &sqlgraph.CreateSpec{
-			Table: negativeprompt.Table,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeUUID,
-				Column: negativeprompt.FieldID,
-			},
-		}
+		_spec = sqlgraph.NewCreateSpec(negativeprompt.Table, sqlgraph.NewFieldSpec(negativeprompt.FieldID, field.TypeUUID))
 	)
 	_spec.OnConflict = npc.conflict
 	if id, ok := npc.mutation.ID(); ok {
@@ -193,6 +222,14 @@ func (npc *NegativePromptCreate) createSpec() (*NegativePrompt, *sqlgraph.Create
 	if value, ok := npc.mutation.Text(); ok {
 		_spec.SetField(negativeprompt.FieldText, field.TypeString, value)
 		_node.Text = value
+	}
+	if value, ok := npc.mutation.TranslatedText(); ok {
+		_spec.SetField(negativeprompt.FieldTranslatedText, field.TypeString, value)
+		_node.TranslatedText = &value
+	}
+	if value, ok := npc.mutation.RanTranslation(); ok {
+		_spec.SetField(negativeprompt.FieldRanTranslation, field.TypeBool, value)
+		_node.RanTranslation = value
 	}
 	if value, ok := npc.mutation.CreatedAt(); ok {
 		_spec.SetField(negativeprompt.FieldCreatedAt, field.TypeTime, value)
@@ -210,10 +247,7 @@ func (npc *NegativePromptCreate) createSpec() (*NegativePrompt, *sqlgraph.Create
 			Columns: []string{negativeprompt.GenerationsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: generation.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(generation.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -282,6 +316,36 @@ func (u *NegativePromptUpsert) SetText(v string) *NegativePromptUpsert {
 // UpdateText sets the "text" field to the value that was provided on create.
 func (u *NegativePromptUpsert) UpdateText() *NegativePromptUpsert {
 	u.SetExcluded(negativeprompt.FieldText)
+	return u
+}
+
+// SetTranslatedText sets the "translated_text" field.
+func (u *NegativePromptUpsert) SetTranslatedText(v string) *NegativePromptUpsert {
+	u.Set(negativeprompt.FieldTranslatedText, v)
+	return u
+}
+
+// UpdateTranslatedText sets the "translated_text" field to the value that was provided on create.
+func (u *NegativePromptUpsert) UpdateTranslatedText() *NegativePromptUpsert {
+	u.SetExcluded(negativeprompt.FieldTranslatedText)
+	return u
+}
+
+// ClearTranslatedText clears the value of the "translated_text" field.
+func (u *NegativePromptUpsert) ClearTranslatedText() *NegativePromptUpsert {
+	u.SetNull(negativeprompt.FieldTranslatedText)
+	return u
+}
+
+// SetRanTranslation sets the "ran_translation" field.
+func (u *NegativePromptUpsert) SetRanTranslation(v bool) *NegativePromptUpsert {
+	u.Set(negativeprompt.FieldRanTranslation, v)
+	return u
+}
+
+// UpdateRanTranslation sets the "ran_translation" field to the value that was provided on create.
+func (u *NegativePromptUpsert) UpdateRanTranslation() *NegativePromptUpsert {
+	u.SetExcluded(negativeprompt.FieldRanTranslation)
 	return u
 }
 
@@ -362,6 +426,41 @@ func (u *NegativePromptUpsertOne) UpdateText() *NegativePromptUpsertOne {
 	})
 }
 
+// SetTranslatedText sets the "translated_text" field.
+func (u *NegativePromptUpsertOne) SetTranslatedText(v string) *NegativePromptUpsertOne {
+	return u.Update(func(s *NegativePromptUpsert) {
+		s.SetTranslatedText(v)
+	})
+}
+
+// UpdateTranslatedText sets the "translated_text" field to the value that was provided on create.
+func (u *NegativePromptUpsertOne) UpdateTranslatedText() *NegativePromptUpsertOne {
+	return u.Update(func(s *NegativePromptUpsert) {
+		s.UpdateTranslatedText()
+	})
+}
+
+// ClearTranslatedText clears the value of the "translated_text" field.
+func (u *NegativePromptUpsertOne) ClearTranslatedText() *NegativePromptUpsertOne {
+	return u.Update(func(s *NegativePromptUpsert) {
+		s.ClearTranslatedText()
+	})
+}
+
+// SetRanTranslation sets the "ran_translation" field.
+func (u *NegativePromptUpsertOne) SetRanTranslation(v bool) *NegativePromptUpsertOne {
+	return u.Update(func(s *NegativePromptUpsert) {
+		s.SetRanTranslation(v)
+	})
+}
+
+// UpdateRanTranslation sets the "ran_translation" field to the value that was provided on create.
+func (u *NegativePromptUpsertOne) UpdateRanTranslation() *NegativePromptUpsertOne {
+	return u.Update(func(s *NegativePromptUpsert) {
+		s.UpdateRanTranslation()
+	})
+}
+
 // SetUpdatedAt sets the "updated_at" field.
 func (u *NegativePromptUpsertOne) SetUpdatedAt(v time.Time) *NegativePromptUpsertOne {
 	return u.Update(func(s *NegativePromptUpsert) {
@@ -417,12 +516,16 @@ func (u *NegativePromptUpsertOne) IDX(ctx context.Context) uuid.UUID {
 // NegativePromptCreateBulk is the builder for creating many NegativePrompt entities in bulk.
 type NegativePromptCreateBulk struct {
 	config
+	err      error
 	builders []*NegativePromptCreate
 	conflict []sql.ConflictOption
 }
 
 // Save creates the NegativePrompt entities in the database.
 func (npcb *NegativePromptCreateBulk) Save(ctx context.Context) ([]*NegativePrompt, error) {
+	if npcb.err != nil {
+		return nil, npcb.err
+	}
 	specs := make([]*sqlgraph.CreateSpec, len(npcb.builders))
 	nodes := make([]*NegativePrompt, len(npcb.builders))
 	mutators := make([]Mutator, len(npcb.builders))
@@ -439,8 +542,8 @@ func (npcb *NegativePromptCreateBulk) Save(ctx context.Context) ([]*NegativeProm
 					return nil, err
 				}
 				builder.mutation = mutation
-				nodes[i], specs[i] = builder.createSpec()
 				var err error
+				nodes[i], specs[i] = builder.createSpec()
 				if i < len(mutators)-1 {
 					_, err = mutators[i+1].Mutate(root, npcb.builders[i+1].mutation)
 				} else {
@@ -604,6 +707,41 @@ func (u *NegativePromptUpsertBulk) UpdateText() *NegativePromptUpsertBulk {
 	})
 }
 
+// SetTranslatedText sets the "translated_text" field.
+func (u *NegativePromptUpsertBulk) SetTranslatedText(v string) *NegativePromptUpsertBulk {
+	return u.Update(func(s *NegativePromptUpsert) {
+		s.SetTranslatedText(v)
+	})
+}
+
+// UpdateTranslatedText sets the "translated_text" field to the value that was provided on create.
+func (u *NegativePromptUpsertBulk) UpdateTranslatedText() *NegativePromptUpsertBulk {
+	return u.Update(func(s *NegativePromptUpsert) {
+		s.UpdateTranslatedText()
+	})
+}
+
+// ClearTranslatedText clears the value of the "translated_text" field.
+func (u *NegativePromptUpsertBulk) ClearTranslatedText() *NegativePromptUpsertBulk {
+	return u.Update(func(s *NegativePromptUpsert) {
+		s.ClearTranslatedText()
+	})
+}
+
+// SetRanTranslation sets the "ran_translation" field.
+func (u *NegativePromptUpsertBulk) SetRanTranslation(v bool) *NegativePromptUpsertBulk {
+	return u.Update(func(s *NegativePromptUpsert) {
+		s.SetRanTranslation(v)
+	})
+}
+
+// UpdateRanTranslation sets the "ran_translation" field to the value that was provided on create.
+func (u *NegativePromptUpsertBulk) UpdateRanTranslation() *NegativePromptUpsertBulk {
+	return u.Update(func(s *NegativePromptUpsert) {
+		s.UpdateRanTranslation()
+	})
+}
+
 // SetUpdatedAt sets the "updated_at" field.
 func (u *NegativePromptUpsertBulk) SetUpdatedAt(v time.Time) *NegativePromptUpsertBulk {
 	return u.Update(func(s *NegativePromptUpsert) {
@@ -620,6 +758,9 @@ func (u *NegativePromptUpsertBulk) UpdateUpdatedAt() *NegativePromptUpsertBulk {
 
 // Exec executes the query.
 func (u *NegativePromptUpsertBulk) Exec(ctx context.Context) error {
+	if u.create.err != nil {
+		return u.create.err
+	}
 	for i, b := range u.create.builders {
 		if len(b.conflict) != 0 {
 			return fmt.Errorf("ent: OnConflict was set for builder %d. Set it on the NegativePromptCreateBulk instead", i)

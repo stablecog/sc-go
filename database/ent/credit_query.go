@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"math"
 
+	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
@@ -21,7 +22,7 @@ import (
 type CreditQuery struct {
 	config
 	ctx            *QueryContext
-	order          []OrderFunc
+	order          []credit.OrderOption
 	inters         []Interceptor
 	predicates     []predicate.Credit
 	withUsers      *UserQuery
@@ -58,7 +59,7 @@ func (cq *CreditQuery) Unique(unique bool) *CreditQuery {
 }
 
 // Order specifies how the records should be ordered.
-func (cq *CreditQuery) Order(o ...OrderFunc) *CreditQuery {
+func (cq *CreditQuery) Order(o ...credit.OrderOption) *CreditQuery {
 	cq.order = append(cq.order, o...)
 	return cq
 }
@@ -110,7 +111,7 @@ func (cq *CreditQuery) QueryCreditType() *CreditTypeQuery {
 // First returns the first Credit entity from the query.
 // Returns a *NotFoundError when no Credit was found.
 func (cq *CreditQuery) First(ctx context.Context) (*Credit, error) {
-	nodes, err := cq.Limit(1).All(setContextOp(ctx, cq.ctx, "First"))
+	nodes, err := cq.Limit(1).All(setContextOp(ctx, cq.ctx, ent.OpQueryFirst))
 	if err != nil {
 		return nil, err
 	}
@@ -133,7 +134,7 @@ func (cq *CreditQuery) FirstX(ctx context.Context) *Credit {
 // Returns a *NotFoundError when no Credit ID was found.
 func (cq *CreditQuery) FirstID(ctx context.Context) (id uuid.UUID, err error) {
 	var ids []uuid.UUID
-	if ids, err = cq.Limit(1).IDs(setContextOp(ctx, cq.ctx, "FirstID")); err != nil {
+	if ids, err = cq.Limit(1).IDs(setContextOp(ctx, cq.ctx, ent.OpQueryFirstID)); err != nil {
 		return
 	}
 	if len(ids) == 0 {
@@ -156,7 +157,7 @@ func (cq *CreditQuery) FirstIDX(ctx context.Context) uuid.UUID {
 // Returns a *NotSingularError when more than one Credit entity is found.
 // Returns a *NotFoundError when no Credit entities are found.
 func (cq *CreditQuery) Only(ctx context.Context) (*Credit, error) {
-	nodes, err := cq.Limit(2).All(setContextOp(ctx, cq.ctx, "Only"))
+	nodes, err := cq.Limit(2).All(setContextOp(ctx, cq.ctx, ent.OpQueryOnly))
 	if err != nil {
 		return nil, err
 	}
@@ -184,7 +185,7 @@ func (cq *CreditQuery) OnlyX(ctx context.Context) *Credit {
 // Returns a *NotFoundError when no entities are found.
 func (cq *CreditQuery) OnlyID(ctx context.Context) (id uuid.UUID, err error) {
 	var ids []uuid.UUID
-	if ids, err = cq.Limit(2).IDs(setContextOp(ctx, cq.ctx, "OnlyID")); err != nil {
+	if ids, err = cq.Limit(2).IDs(setContextOp(ctx, cq.ctx, ent.OpQueryOnlyID)); err != nil {
 		return
 	}
 	switch len(ids) {
@@ -209,7 +210,7 @@ func (cq *CreditQuery) OnlyIDX(ctx context.Context) uuid.UUID {
 
 // All executes the query and returns a list of Credits.
 func (cq *CreditQuery) All(ctx context.Context) ([]*Credit, error) {
-	ctx = setContextOp(ctx, cq.ctx, "All")
+	ctx = setContextOp(ctx, cq.ctx, ent.OpQueryAll)
 	if err := cq.prepareQuery(ctx); err != nil {
 		return nil, err
 	}
@@ -227,10 +228,12 @@ func (cq *CreditQuery) AllX(ctx context.Context) []*Credit {
 }
 
 // IDs executes the query and returns a list of Credit IDs.
-func (cq *CreditQuery) IDs(ctx context.Context) ([]uuid.UUID, error) {
-	var ids []uuid.UUID
-	ctx = setContextOp(ctx, cq.ctx, "IDs")
-	if err := cq.Select(credit.FieldID).Scan(ctx, &ids); err != nil {
+func (cq *CreditQuery) IDs(ctx context.Context) (ids []uuid.UUID, err error) {
+	if cq.ctx.Unique == nil && cq.path != nil {
+		cq.Unique(true)
+	}
+	ctx = setContextOp(ctx, cq.ctx, ent.OpQueryIDs)
+	if err = cq.Select(credit.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
 	return ids, nil
@@ -247,7 +250,7 @@ func (cq *CreditQuery) IDsX(ctx context.Context) []uuid.UUID {
 
 // Count returns the count of the given query.
 func (cq *CreditQuery) Count(ctx context.Context) (int, error) {
-	ctx = setContextOp(ctx, cq.ctx, "Count")
+	ctx = setContextOp(ctx, cq.ctx, ent.OpQueryCount)
 	if err := cq.prepareQuery(ctx); err != nil {
 		return 0, err
 	}
@@ -265,7 +268,7 @@ func (cq *CreditQuery) CountX(ctx context.Context) int {
 
 // Exist returns true if the query has elements in the graph.
 func (cq *CreditQuery) Exist(ctx context.Context) (bool, error) {
-	ctx = setContextOp(ctx, cq.ctx, "Exist")
+	ctx = setContextOp(ctx, cq.ctx, ent.OpQueryExist)
 	switch _, err := cq.FirstID(ctx); {
 	case IsNotFound(err):
 		return false, nil
@@ -294,7 +297,7 @@ func (cq *CreditQuery) Clone() *CreditQuery {
 	return &CreditQuery{
 		config:         cq.config,
 		ctx:            cq.ctx.Clone(),
-		order:          append([]OrderFunc{}, cq.order...),
+		order:          append([]credit.OrderOption{}, cq.order...),
 		inters:         append([]Interceptor{}, cq.inters...),
 		predicates:     append([]predicate.Credit{}, cq.predicates...),
 		withUsers:      cq.withUsers.Clone(),
@@ -518,20 +521,12 @@ func (cq *CreditQuery) sqlCount(ctx context.Context) (int, error) {
 }
 
 func (cq *CreditQuery) querySpec() *sqlgraph.QuerySpec {
-	_spec := &sqlgraph.QuerySpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   credit.Table,
-			Columns: credit.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeUUID,
-				Column: credit.FieldID,
-			},
-		},
-		From:   cq.sql,
-		Unique: true,
-	}
+	_spec := sqlgraph.NewQuerySpec(credit.Table, credit.Columns, sqlgraph.NewFieldSpec(credit.FieldID, field.TypeUUID))
+	_spec.From = cq.sql
 	if unique := cq.ctx.Unique; unique != nil {
 		_spec.Unique = *unique
+	} else if cq.path != nil {
+		_spec.Unique = true
 	}
 	if fields := cq.ctx.Fields; len(fields) > 0 {
 		_spec.Node.Columns = make([]string, 0, len(fields))
@@ -540,6 +535,12 @@ func (cq *CreditQuery) querySpec() *sqlgraph.QuerySpec {
 			if fields[i] != credit.FieldID {
 				_spec.Node.Columns = append(_spec.Node.Columns, fields[i])
 			}
+		}
+		if cq.withUsers != nil {
+			_spec.Node.AddColumnOnce(credit.FieldUserID)
+		}
+		if cq.withCreditType != nil {
+			_spec.Node.AddColumnOnce(credit.FieldCreditTypeID)
 		}
 	}
 	if ps := cq.predicates; len(ps) > 0 {
@@ -620,7 +621,7 @@ func (cgb *CreditGroupBy) Aggregate(fns ...AggregateFunc) *CreditGroupBy {
 
 // Scan applies the selector query and scans the result into the given value.
 func (cgb *CreditGroupBy) Scan(ctx context.Context, v any) error {
-	ctx = setContextOp(ctx, cgb.build.ctx, "GroupBy")
+	ctx = setContextOp(ctx, cgb.build.ctx, ent.OpQueryGroupBy)
 	if err := cgb.build.prepareQuery(ctx); err != nil {
 		return err
 	}
@@ -668,7 +669,7 @@ func (cs *CreditSelect) Aggregate(fns ...AggregateFunc) *CreditSelect {
 
 // Scan applies the selector query and scans the result into the given value.
 func (cs *CreditSelect) Scan(ctx context.Context, v any) error {
-	ctx = setContextOp(ctx, cs.ctx, "Select")
+	ctx = setContextOp(ctx, cs.ctx, ent.OpQuerySelect)
 	if err := cs.prepareQuery(ctx); err != nil {
 		return err
 	}

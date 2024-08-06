@@ -288,7 +288,7 @@ func (goc *GenerationOutputCreate) Mutation() *GenerationOutputMutation {
 // Save creates the GenerationOutput in the database.
 func (goc *GenerationOutputCreate) Save(ctx context.Context) (*GenerationOutput, error) {
 	goc.defaults()
-	return withHooks[*GenerationOutput, GenerationOutputMutation](ctx, goc.sqlSave, goc.mutation, goc.hooks)
+	return withHooks(ctx, goc.sqlSave, goc.mutation, goc.hooks)
 }
 
 // SaveX calls Save and panics if Save returns an error.
@@ -411,7 +411,7 @@ func (goc *GenerationOutputCreate) check() error {
 	if _, ok := goc.mutation.UpdatedAt(); !ok {
 		return &ValidationError{Name: "updated_at", err: errors.New(`ent: missing required field "GenerationOutput.updated_at"`)}
 	}
-	if _, ok := goc.mutation.GenerationsID(); !ok {
+	if len(goc.mutation.GenerationsIDs()) == 0 {
 		return &ValidationError{Name: "generations", err: errors.New(`ent: missing required edge "GenerationOutput.generations"`)}
 	}
 	return nil
@@ -443,13 +443,7 @@ func (goc *GenerationOutputCreate) sqlSave(ctx context.Context) (*GenerationOutp
 func (goc *GenerationOutputCreate) createSpec() (*GenerationOutput, *sqlgraph.CreateSpec) {
 	var (
 		_node = &GenerationOutput{config: goc.config}
-		_spec = &sqlgraph.CreateSpec{
-			Table: generationoutput.Table,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeUUID,
-				Column: generationoutput.FieldID,
-			},
-		}
+		_spec = sqlgraph.NewCreateSpec(generationoutput.Table, sqlgraph.NewFieldSpec(generationoutput.FieldID, field.TypeUUID))
 	)
 	_spec.OnConflict = goc.conflict
 	if id, ok := goc.mutation.ID(); ok {
@@ -520,10 +514,7 @@ func (goc *GenerationOutputCreate) createSpec() (*GenerationOutput, *sqlgraph.Cr
 			Columns: []string{generationoutput.GenerationsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: generation.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(generation.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -540,10 +531,7 @@ func (goc *GenerationOutputCreate) createSpec() (*GenerationOutput, *sqlgraph.Cr
 			Columns: []string{generationoutput.UpscaleOutputsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: upscaleoutput.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(upscaleoutput.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -559,10 +547,7 @@ func (goc *GenerationOutputCreate) createSpec() (*GenerationOutput, *sqlgraph.Cr
 			Columns: []string{generationoutput.GenerationOutputLikesColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: generationoutputlike.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(generationoutputlike.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -1143,12 +1128,16 @@ func (u *GenerationOutputUpsertOne) IDX(ctx context.Context) uuid.UUID {
 // GenerationOutputCreateBulk is the builder for creating many GenerationOutput entities in bulk.
 type GenerationOutputCreateBulk struct {
 	config
+	err      error
 	builders []*GenerationOutputCreate
 	conflict []sql.ConflictOption
 }
 
 // Save creates the GenerationOutput entities in the database.
 func (gocb *GenerationOutputCreateBulk) Save(ctx context.Context) ([]*GenerationOutput, error) {
+	if gocb.err != nil {
+		return nil, gocb.err
+	}
 	specs := make([]*sqlgraph.CreateSpec, len(gocb.builders))
 	nodes := make([]*GenerationOutput, len(gocb.builders))
 	mutators := make([]Mutator, len(gocb.builders))
@@ -1165,8 +1154,8 @@ func (gocb *GenerationOutputCreateBulk) Save(ctx context.Context) ([]*Generation
 					return nil, err
 				}
 				builder.mutation = mutation
-				nodes[i], specs[i] = builder.createSpec()
 				var err error
+				nodes[i], specs[i] = builder.createSpec()
 				if i < len(mutators)-1 {
 					_, err = mutators[i+1].Mutate(root, gocb.builders[i+1].mutation)
 				} else {
@@ -1549,6 +1538,9 @@ func (u *GenerationOutputUpsertBulk) UpdateUpdatedAt() *GenerationOutputUpsertBu
 
 // Exec executes the query.
 func (u *GenerationOutputUpsertBulk) Exec(ctx context.Context) error {
+	if u.create.err != nil {
+		return u.create.err
+	}
 	for i, b := range u.create.builders {
 		if len(b.conflict) != 0 {
 			return fmt.Errorf("ent: OnConflict was set for builder %d. Set it on the GenerationOutputCreateBulk instead", i)

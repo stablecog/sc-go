@@ -38,6 +38,14 @@ func (su *SchedulerUpdate) SetNameInWorker(s string) *SchedulerUpdate {
 	return su
 }
 
+// SetNillableNameInWorker sets the "name_in_worker" field if the given value is not nil.
+func (su *SchedulerUpdate) SetNillableNameInWorker(s *string) *SchedulerUpdate {
+	if s != nil {
+		su.SetNameInWorker(*s)
+	}
+	return su
+}
+
 // SetIsActive sets the "is_active" field.
 func (su *SchedulerUpdate) SetIsActive(b bool) *SchedulerUpdate {
 	su.mutation.SetIsActive(b)
@@ -166,7 +174,7 @@ func (su *SchedulerUpdate) RemoveGenerationModels(g ...*GenerationModel) *Schedu
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (su *SchedulerUpdate) Save(ctx context.Context) (int, error) {
 	su.defaults()
-	return withHooks[int, SchedulerMutation](ctx, su.sqlSave, su.mutation, su.hooks)
+	return withHooks(ctx, su.sqlSave, su.mutation, su.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -206,16 +214,7 @@ func (su *SchedulerUpdate) Modify(modifiers ...func(u *sql.UpdateBuilder)) *Sche
 }
 
 func (su *SchedulerUpdate) sqlSave(ctx context.Context) (n int, err error) {
-	_spec := &sqlgraph.UpdateSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   scheduler.Table,
-			Columns: scheduler.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeUUID,
-				Column: scheduler.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewUpdateSpec(scheduler.Table, scheduler.Columns, sqlgraph.NewFieldSpec(scheduler.FieldID, field.TypeUUID))
 	if ps := su.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
@@ -246,10 +245,7 @@ func (su *SchedulerUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: []string{scheduler.GenerationsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: generation.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(generation.FieldID, field.TypeUUID),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -262,10 +258,7 @@ func (su *SchedulerUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: []string{scheduler.GenerationsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: generation.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(generation.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -281,10 +274,7 @@ func (su *SchedulerUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: []string{scheduler.GenerationsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: generation.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(generation.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -300,10 +290,7 @@ func (su *SchedulerUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: scheduler.GenerationModelsPrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: generationmodel.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(generationmodel.FieldID, field.TypeUUID),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -316,10 +303,7 @@ func (su *SchedulerUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: scheduler.GenerationModelsPrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: generationmodel.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(generationmodel.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -335,10 +319,7 @@ func (su *SchedulerUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: scheduler.GenerationModelsPrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: generationmodel.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(generationmodel.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -371,6 +352,14 @@ type SchedulerUpdateOne struct {
 // SetNameInWorker sets the "name_in_worker" field.
 func (suo *SchedulerUpdateOne) SetNameInWorker(s string) *SchedulerUpdateOne {
 	suo.mutation.SetNameInWorker(s)
+	return suo
+}
+
+// SetNillableNameInWorker sets the "name_in_worker" field if the given value is not nil.
+func (suo *SchedulerUpdateOne) SetNillableNameInWorker(s *string) *SchedulerUpdateOne {
+	if s != nil {
+		suo.SetNameInWorker(*s)
+	}
 	return suo
 }
 
@@ -499,6 +488,12 @@ func (suo *SchedulerUpdateOne) RemoveGenerationModels(g ...*GenerationModel) *Sc
 	return suo.RemoveGenerationModelIDs(ids...)
 }
 
+// Where appends a list predicates to the SchedulerUpdate builder.
+func (suo *SchedulerUpdateOne) Where(ps ...predicate.Scheduler) *SchedulerUpdateOne {
+	suo.mutation.Where(ps...)
+	return suo
+}
+
 // Select allows selecting one or more fields (columns) of the returned entity.
 // The default is selecting all fields defined in the entity schema.
 func (suo *SchedulerUpdateOne) Select(field string, fields ...string) *SchedulerUpdateOne {
@@ -509,7 +504,7 @@ func (suo *SchedulerUpdateOne) Select(field string, fields ...string) *Scheduler
 // Save executes the query and returns the updated Scheduler entity.
 func (suo *SchedulerUpdateOne) Save(ctx context.Context) (*Scheduler, error) {
 	suo.defaults()
-	return withHooks[*Scheduler, SchedulerMutation](ctx, suo.sqlSave, suo.mutation, suo.hooks)
+	return withHooks(ctx, suo.sqlSave, suo.mutation, suo.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -549,16 +544,7 @@ func (suo *SchedulerUpdateOne) Modify(modifiers ...func(u *sql.UpdateBuilder)) *
 }
 
 func (suo *SchedulerUpdateOne) sqlSave(ctx context.Context) (_node *Scheduler, err error) {
-	_spec := &sqlgraph.UpdateSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   scheduler.Table,
-			Columns: scheduler.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeUUID,
-				Column: scheduler.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewUpdateSpec(scheduler.Table, scheduler.Columns, sqlgraph.NewFieldSpec(scheduler.FieldID, field.TypeUUID))
 	id, ok := suo.mutation.ID()
 	if !ok {
 		return nil, &ValidationError{Name: "id", err: errors.New(`ent: missing "Scheduler.id" for update`)}
@@ -606,10 +592,7 @@ func (suo *SchedulerUpdateOne) sqlSave(ctx context.Context) (_node *Scheduler, e
 			Columns: []string{scheduler.GenerationsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: generation.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(generation.FieldID, field.TypeUUID),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -622,10 +605,7 @@ func (suo *SchedulerUpdateOne) sqlSave(ctx context.Context) (_node *Scheduler, e
 			Columns: []string{scheduler.GenerationsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: generation.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(generation.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -641,10 +621,7 @@ func (suo *SchedulerUpdateOne) sqlSave(ctx context.Context) (_node *Scheduler, e
 			Columns: []string{scheduler.GenerationsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: generation.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(generation.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -660,10 +637,7 @@ func (suo *SchedulerUpdateOne) sqlSave(ctx context.Context) (_node *Scheduler, e
 			Columns: scheduler.GenerationModelsPrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: generationmodel.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(generationmodel.FieldID, field.TypeUUID),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -676,10 +650,7 @@ func (suo *SchedulerUpdateOne) sqlSave(ctx context.Context) (_node *Scheduler, e
 			Columns: scheduler.GenerationModelsPrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: generationmodel.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(generationmodel.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -695,10 +666,7 @@ func (suo *SchedulerUpdateOne) sqlSave(ctx context.Context) (_node *Scheduler, e
 			Columns: scheduler.GenerationModelsPrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: generationmodel.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(generationmodel.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

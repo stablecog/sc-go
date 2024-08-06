@@ -48,6 +48,14 @@ func (bwu *BannedWordsUpdate) SetReason(s string) *BannedWordsUpdate {
 	return bwu
 }
 
+// SetNillableReason sets the "reason" field if the given value is not nil.
+func (bwu *BannedWordsUpdate) SetNillableReason(s *string) *BannedWordsUpdate {
+	if s != nil {
+		bwu.SetReason(*s)
+	}
+	return bwu
+}
+
 // SetSplitMatch sets the "split_match" field.
 func (bwu *BannedWordsUpdate) SetSplitMatch(b bool) *BannedWordsUpdate {
 	bwu.mutation.SetSplitMatch(b)
@@ -76,7 +84,7 @@ func (bwu *BannedWordsUpdate) Mutation() *BannedWordsMutation {
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (bwu *BannedWordsUpdate) Save(ctx context.Context) (int, error) {
 	bwu.defaults()
-	return withHooks[int, BannedWordsMutation](ctx, bwu.sqlSave, bwu.mutation, bwu.hooks)
+	return withHooks(ctx, bwu.sqlSave, bwu.mutation, bwu.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -116,16 +124,7 @@ func (bwu *BannedWordsUpdate) Modify(modifiers ...func(u *sql.UpdateBuilder)) *B
 }
 
 func (bwu *BannedWordsUpdate) sqlSave(ctx context.Context) (n int, err error) {
-	_spec := &sqlgraph.UpdateSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   bannedwords.Table,
-			Columns: bannedwords.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeUUID,
-				Column: bannedwords.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewUpdateSpec(bannedwords.Table, bannedwords.Columns, sqlgraph.NewFieldSpec(bannedwords.FieldID, field.TypeUUID))
 	if ps := bwu.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
@@ -190,6 +189,14 @@ func (bwuo *BannedWordsUpdateOne) SetReason(s string) *BannedWordsUpdateOne {
 	return bwuo
 }
 
+// SetNillableReason sets the "reason" field if the given value is not nil.
+func (bwuo *BannedWordsUpdateOne) SetNillableReason(s *string) *BannedWordsUpdateOne {
+	if s != nil {
+		bwuo.SetReason(*s)
+	}
+	return bwuo
+}
+
 // SetSplitMatch sets the "split_match" field.
 func (bwuo *BannedWordsUpdateOne) SetSplitMatch(b bool) *BannedWordsUpdateOne {
 	bwuo.mutation.SetSplitMatch(b)
@@ -215,6 +222,12 @@ func (bwuo *BannedWordsUpdateOne) Mutation() *BannedWordsMutation {
 	return bwuo.mutation
 }
 
+// Where appends a list predicates to the BannedWordsUpdate builder.
+func (bwuo *BannedWordsUpdateOne) Where(ps ...predicate.BannedWords) *BannedWordsUpdateOne {
+	bwuo.mutation.Where(ps...)
+	return bwuo
+}
+
 // Select allows selecting one or more fields (columns) of the returned entity.
 // The default is selecting all fields defined in the entity schema.
 func (bwuo *BannedWordsUpdateOne) Select(field string, fields ...string) *BannedWordsUpdateOne {
@@ -225,7 +238,7 @@ func (bwuo *BannedWordsUpdateOne) Select(field string, fields ...string) *Banned
 // Save executes the query and returns the updated BannedWords entity.
 func (bwuo *BannedWordsUpdateOne) Save(ctx context.Context) (*BannedWords, error) {
 	bwuo.defaults()
-	return withHooks[*BannedWords, BannedWordsMutation](ctx, bwuo.sqlSave, bwuo.mutation, bwuo.hooks)
+	return withHooks(ctx, bwuo.sqlSave, bwuo.mutation, bwuo.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -265,16 +278,7 @@ func (bwuo *BannedWordsUpdateOne) Modify(modifiers ...func(u *sql.UpdateBuilder)
 }
 
 func (bwuo *BannedWordsUpdateOne) sqlSave(ctx context.Context) (_node *BannedWords, err error) {
-	_spec := &sqlgraph.UpdateSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   bannedwords.Table,
-			Columns: bannedwords.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeUUID,
-				Column: bannedwords.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewUpdateSpec(bannedwords.Table, bannedwords.Columns, sqlgraph.NewFieldSpec(bannedwords.FieldID, field.TypeUUID))
 	id, ok := bwuo.mutation.ID()
 	if !ok {
 		return nil, &ValidationError{Name: "id", err: errors.New(`ent: missing "BannedWords.id" for update`)}

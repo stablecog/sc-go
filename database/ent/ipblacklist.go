@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 	"github.com/google/uuid"
 	"github.com/stablecog/sc-go/database/ent/ipblacklist"
@@ -22,7 +23,8 @@ type IPBlackList struct {
 	// CreatedAt holds the value of the "created_at" field.
 	CreatedAt time.Time `json:"created_at,omitempty"`
 	// UpdatedAt holds the value of the "updated_at" field.
-	UpdatedAt time.Time `json:"updated_at,omitempty"`
+	UpdatedAt    time.Time `json:"updated_at,omitempty"`
+	selectValues sql.SelectValues
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -37,7 +39,7 @@ func (*IPBlackList) scanValues(columns []string) ([]any, error) {
 		case ipblacklist.FieldID:
 			values[i] = new(uuid.UUID)
 		default:
-			return nil, fmt.Errorf("unexpected column %q for type IPBlackList", columns[i])
+			values[i] = new(sql.UnknownType)
 		}
 	}
 	return values, nil
@@ -75,9 +77,17 @@ func (ibl *IPBlackList) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				ibl.UpdatedAt = value.Time
 			}
+		default:
+			ibl.selectValues.Set(columns[i], values[i])
 		}
 	}
 	return nil
+}
+
+// Value returns the ent.Value that was dynamically selected and assigned to the IPBlackList.
+// This includes values selected through modifiers, order, etc.
+func (ibl *IPBlackList) Value(name string) (ent.Value, error) {
+	return ibl.selectValues.Get(name)
 }
 
 // Update returns a builder for updating this IPBlackList.
@@ -117,9 +127,3 @@ func (ibl *IPBlackList) String() string {
 
 // IPBlackLists is a parsable slice of IPBlackList.
 type IPBlackLists []*IPBlackList
-
-func (ibl IPBlackLists) config(cfg config) {
-	for _i := range ibl {
-		ibl[_i].config = cfg
-	}
-}

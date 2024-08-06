@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 	"github.com/google/uuid"
 	"github.com/stablecog/sc-go/database/ent/voiceovermodel"
@@ -31,7 +32,8 @@ type VoiceoverModel struct {
 	UpdatedAt time.Time `json:"updated_at,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the VoiceoverModelQuery when eager-loading is set.
-	Edges VoiceoverModelEdges `json:"edges"`
+	Edges        VoiceoverModelEdges `json:"edges"`
+	selectValues sql.SelectValues
 }
 
 // VoiceoverModelEdges holds the relations/edges for other nodes in the graph.
@@ -77,7 +79,7 @@ func (*VoiceoverModel) scanValues(columns []string) ([]any, error) {
 		case voiceovermodel.FieldID:
 			values[i] = new(uuid.UUID)
 		default:
-			return nil, fmt.Errorf("unexpected column %q for type VoiceoverModel", columns[i])
+			values[i] = new(sql.UnknownType)
 		}
 	}
 	return values, nil
@@ -133,9 +135,17 @@ func (vm *VoiceoverModel) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				vm.UpdatedAt = value.Time
 			}
+		default:
+			vm.selectValues.Set(columns[i], values[i])
 		}
 	}
 	return nil
+}
+
+// Value returns the ent.Value that was dynamically selected and assigned to the VoiceoverModel.
+// This includes values selected through modifiers, order, etc.
+func (vm *VoiceoverModel) Value(name string) (ent.Value, error) {
+	return vm.selectValues.Get(name)
 }
 
 // QueryVoiceovers queries the "voiceovers" edge of the VoiceoverModel entity.
@@ -194,9 +204,3 @@ func (vm *VoiceoverModel) String() string {
 
 // VoiceoverModels is a parsable slice of VoiceoverModel.
 type VoiceoverModels []*VoiceoverModel
-
-func (vm VoiceoverModels) config(cfg config) {
-	for _i := range vm {
-		vm[_i].config = cfg
-	}
-}

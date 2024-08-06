@@ -27,7 +27,7 @@ func (gold *GenerationOutputLikeDelete) Where(ps ...predicate.GenerationOutputLi
 
 // Exec executes the deletion query and returns how many vertices were deleted.
 func (gold *GenerationOutputLikeDelete) Exec(ctx context.Context) (int, error) {
-	return withHooks[int, GenerationOutputLikeMutation](ctx, gold.sqlExec, gold.mutation, gold.hooks)
+	return withHooks(ctx, gold.sqlExec, gold.mutation, gold.hooks)
 }
 
 // ExecX is like Exec, but panics if an error occurs.
@@ -40,15 +40,7 @@ func (gold *GenerationOutputLikeDelete) ExecX(ctx context.Context) int {
 }
 
 func (gold *GenerationOutputLikeDelete) sqlExec(ctx context.Context) (int, error) {
-	_spec := &sqlgraph.DeleteSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table: generationoutputlike.Table,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeUUID,
-				Column: generationoutputlike.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewDeleteSpec(generationoutputlike.Table, sqlgraph.NewFieldSpec(generationoutputlike.FieldID, field.TypeUUID))
 	if ps := gold.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
@@ -69,6 +61,12 @@ type GenerationOutputLikeDeleteOne struct {
 	gold *GenerationOutputLikeDelete
 }
 
+// Where appends a list predicates to the GenerationOutputLikeDelete builder.
+func (goldo *GenerationOutputLikeDeleteOne) Where(ps ...predicate.GenerationOutputLike) *GenerationOutputLikeDeleteOne {
+	goldo.gold.mutation.Where(ps...)
+	return goldo
+}
+
 // Exec executes the deletion query.
 func (goldo *GenerationOutputLikeDeleteOne) Exec(ctx context.Context) error {
 	n, err := goldo.gold.Exec(ctx)
@@ -84,5 +82,7 @@ func (goldo *GenerationOutputLikeDeleteOne) Exec(ctx context.Context) error {
 
 // ExecX is like Exec, but panics if an error occurs.
 func (goldo *GenerationOutputLikeDeleteOne) ExecX(ctx context.Context) {
-	goldo.gold.ExecX(ctx)
+	if err := goldo.Exec(ctx); err != nil {
+		panic(err)
+	}
 }

@@ -35,6 +35,14 @@ func (deu *DisposableEmailUpdate) SetDomain(s string) *DisposableEmailUpdate {
 	return deu
 }
 
+// SetNillableDomain sets the "domain" field if the given value is not nil.
+func (deu *DisposableEmailUpdate) SetNillableDomain(s *string) *DisposableEmailUpdate {
+	if s != nil {
+		deu.SetDomain(*s)
+	}
+	return deu
+}
+
 // SetUpdatedAt sets the "updated_at" field.
 func (deu *DisposableEmailUpdate) SetUpdatedAt(t time.Time) *DisposableEmailUpdate {
 	deu.mutation.SetUpdatedAt(t)
@@ -49,7 +57,7 @@ func (deu *DisposableEmailUpdate) Mutation() *DisposableEmailMutation {
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (deu *DisposableEmailUpdate) Save(ctx context.Context) (int, error) {
 	deu.defaults()
-	return withHooks[int, DisposableEmailMutation](ctx, deu.sqlSave, deu.mutation, deu.hooks)
+	return withHooks(ctx, deu.sqlSave, deu.mutation, deu.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -89,16 +97,7 @@ func (deu *DisposableEmailUpdate) Modify(modifiers ...func(u *sql.UpdateBuilder)
 }
 
 func (deu *DisposableEmailUpdate) sqlSave(ctx context.Context) (n int, err error) {
-	_spec := &sqlgraph.UpdateSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   disposableemail.Table,
-			Columns: disposableemail.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeUUID,
-				Column: disposableemail.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewUpdateSpec(disposableemail.Table, disposableemail.Columns, sqlgraph.NewFieldSpec(disposableemail.FieldID, field.TypeUUID))
 	if ps := deu.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
@@ -140,6 +139,14 @@ func (deuo *DisposableEmailUpdateOne) SetDomain(s string) *DisposableEmailUpdate
 	return deuo
 }
 
+// SetNillableDomain sets the "domain" field if the given value is not nil.
+func (deuo *DisposableEmailUpdateOne) SetNillableDomain(s *string) *DisposableEmailUpdateOne {
+	if s != nil {
+		deuo.SetDomain(*s)
+	}
+	return deuo
+}
+
 // SetUpdatedAt sets the "updated_at" field.
 func (deuo *DisposableEmailUpdateOne) SetUpdatedAt(t time.Time) *DisposableEmailUpdateOne {
 	deuo.mutation.SetUpdatedAt(t)
@@ -149,6 +156,12 @@ func (deuo *DisposableEmailUpdateOne) SetUpdatedAt(t time.Time) *DisposableEmail
 // Mutation returns the DisposableEmailMutation object of the builder.
 func (deuo *DisposableEmailUpdateOne) Mutation() *DisposableEmailMutation {
 	return deuo.mutation
+}
+
+// Where appends a list predicates to the DisposableEmailUpdate builder.
+func (deuo *DisposableEmailUpdateOne) Where(ps ...predicate.DisposableEmail) *DisposableEmailUpdateOne {
+	deuo.mutation.Where(ps...)
+	return deuo
 }
 
 // Select allows selecting one or more fields (columns) of the returned entity.
@@ -161,7 +174,7 @@ func (deuo *DisposableEmailUpdateOne) Select(field string, fields ...string) *Di
 // Save executes the query and returns the updated DisposableEmail entity.
 func (deuo *DisposableEmailUpdateOne) Save(ctx context.Context) (*DisposableEmail, error) {
 	deuo.defaults()
-	return withHooks[*DisposableEmail, DisposableEmailMutation](ctx, deuo.sqlSave, deuo.mutation, deuo.hooks)
+	return withHooks(ctx, deuo.sqlSave, deuo.mutation, deuo.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -201,16 +214,7 @@ func (deuo *DisposableEmailUpdateOne) Modify(modifiers ...func(u *sql.UpdateBuil
 }
 
 func (deuo *DisposableEmailUpdateOne) sqlSave(ctx context.Context) (_node *DisposableEmail, err error) {
-	_spec := &sqlgraph.UpdateSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   disposableemail.Table,
-			Columns: disposableemail.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeUUID,
-				Column: disposableemail.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewUpdateSpec(disposableemail.Table, disposableemail.Columns, sqlgraph.NewFieldSpec(disposableemail.FieldID, field.TypeUUID))
 	id, ok := deuo.mutation.ID()
 	if !ok {
 		return nil, &ValidationError{Name: "id", err: errors.New(`ent: missing "DisposableEmail.id" for update`)}

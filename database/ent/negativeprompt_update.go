@@ -37,6 +37,48 @@ func (npu *NegativePromptUpdate) SetText(s string) *NegativePromptUpdate {
 	return npu
 }
 
+// SetNillableText sets the "text" field if the given value is not nil.
+func (npu *NegativePromptUpdate) SetNillableText(s *string) *NegativePromptUpdate {
+	if s != nil {
+		npu.SetText(*s)
+	}
+	return npu
+}
+
+// SetTranslatedText sets the "translated_text" field.
+func (npu *NegativePromptUpdate) SetTranslatedText(s string) *NegativePromptUpdate {
+	npu.mutation.SetTranslatedText(s)
+	return npu
+}
+
+// SetNillableTranslatedText sets the "translated_text" field if the given value is not nil.
+func (npu *NegativePromptUpdate) SetNillableTranslatedText(s *string) *NegativePromptUpdate {
+	if s != nil {
+		npu.SetTranslatedText(*s)
+	}
+	return npu
+}
+
+// ClearTranslatedText clears the value of the "translated_text" field.
+func (npu *NegativePromptUpdate) ClearTranslatedText() *NegativePromptUpdate {
+	npu.mutation.ClearTranslatedText()
+	return npu
+}
+
+// SetRanTranslation sets the "ran_translation" field.
+func (npu *NegativePromptUpdate) SetRanTranslation(b bool) *NegativePromptUpdate {
+	npu.mutation.SetRanTranslation(b)
+	return npu
+}
+
+// SetNillableRanTranslation sets the "ran_translation" field if the given value is not nil.
+func (npu *NegativePromptUpdate) SetNillableRanTranslation(b *bool) *NegativePromptUpdate {
+	if b != nil {
+		npu.SetRanTranslation(*b)
+	}
+	return npu
+}
+
 // SetUpdatedAt sets the "updated_at" field.
 func (npu *NegativePromptUpdate) SetUpdatedAt(t time.Time) *NegativePromptUpdate {
 	npu.mutation.SetUpdatedAt(t)
@@ -87,7 +129,7 @@ func (npu *NegativePromptUpdate) RemoveGenerations(g ...*Generation) *NegativePr
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (npu *NegativePromptUpdate) Save(ctx context.Context) (int, error) {
 	npu.defaults()
-	return withHooks[int, NegativePromptMutation](ctx, npu.sqlSave, npu.mutation, npu.hooks)
+	return withHooks(ctx, npu.sqlSave, npu.mutation, npu.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -127,16 +169,7 @@ func (npu *NegativePromptUpdate) Modify(modifiers ...func(u *sql.UpdateBuilder))
 }
 
 func (npu *NegativePromptUpdate) sqlSave(ctx context.Context) (n int, err error) {
-	_spec := &sqlgraph.UpdateSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   negativeprompt.Table,
-			Columns: negativeprompt.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeUUID,
-				Column: negativeprompt.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewUpdateSpec(negativeprompt.Table, negativeprompt.Columns, sqlgraph.NewFieldSpec(negativeprompt.FieldID, field.TypeUUID))
 	if ps := npu.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
@@ -146,6 +179,15 @@ func (npu *NegativePromptUpdate) sqlSave(ctx context.Context) (n int, err error)
 	}
 	if value, ok := npu.mutation.Text(); ok {
 		_spec.SetField(negativeprompt.FieldText, field.TypeString, value)
+	}
+	if value, ok := npu.mutation.TranslatedText(); ok {
+		_spec.SetField(negativeprompt.FieldTranslatedText, field.TypeString, value)
+	}
+	if npu.mutation.TranslatedTextCleared() {
+		_spec.ClearField(negativeprompt.FieldTranslatedText, field.TypeString)
+	}
+	if value, ok := npu.mutation.RanTranslation(); ok {
+		_spec.SetField(negativeprompt.FieldRanTranslation, field.TypeBool, value)
 	}
 	if value, ok := npu.mutation.UpdatedAt(); ok {
 		_spec.SetField(negativeprompt.FieldUpdatedAt, field.TypeTime, value)
@@ -158,10 +200,7 @@ func (npu *NegativePromptUpdate) sqlSave(ctx context.Context) (n int, err error)
 			Columns: []string{negativeprompt.GenerationsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: generation.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(generation.FieldID, field.TypeUUID),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -174,10 +213,7 @@ func (npu *NegativePromptUpdate) sqlSave(ctx context.Context) (n int, err error)
 			Columns: []string{negativeprompt.GenerationsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: generation.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(generation.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -193,10 +229,7 @@ func (npu *NegativePromptUpdate) sqlSave(ctx context.Context) (n int, err error)
 			Columns: []string{negativeprompt.GenerationsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: generation.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(generation.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -229,6 +262,48 @@ type NegativePromptUpdateOne struct {
 // SetText sets the "text" field.
 func (npuo *NegativePromptUpdateOne) SetText(s string) *NegativePromptUpdateOne {
 	npuo.mutation.SetText(s)
+	return npuo
+}
+
+// SetNillableText sets the "text" field if the given value is not nil.
+func (npuo *NegativePromptUpdateOne) SetNillableText(s *string) *NegativePromptUpdateOne {
+	if s != nil {
+		npuo.SetText(*s)
+	}
+	return npuo
+}
+
+// SetTranslatedText sets the "translated_text" field.
+func (npuo *NegativePromptUpdateOne) SetTranslatedText(s string) *NegativePromptUpdateOne {
+	npuo.mutation.SetTranslatedText(s)
+	return npuo
+}
+
+// SetNillableTranslatedText sets the "translated_text" field if the given value is not nil.
+func (npuo *NegativePromptUpdateOne) SetNillableTranslatedText(s *string) *NegativePromptUpdateOne {
+	if s != nil {
+		npuo.SetTranslatedText(*s)
+	}
+	return npuo
+}
+
+// ClearTranslatedText clears the value of the "translated_text" field.
+func (npuo *NegativePromptUpdateOne) ClearTranslatedText() *NegativePromptUpdateOne {
+	npuo.mutation.ClearTranslatedText()
+	return npuo
+}
+
+// SetRanTranslation sets the "ran_translation" field.
+func (npuo *NegativePromptUpdateOne) SetRanTranslation(b bool) *NegativePromptUpdateOne {
+	npuo.mutation.SetRanTranslation(b)
+	return npuo
+}
+
+// SetNillableRanTranslation sets the "ran_translation" field if the given value is not nil.
+func (npuo *NegativePromptUpdateOne) SetNillableRanTranslation(b *bool) *NegativePromptUpdateOne {
+	if b != nil {
+		npuo.SetRanTranslation(*b)
+	}
 	return npuo
 }
 
@@ -279,6 +354,12 @@ func (npuo *NegativePromptUpdateOne) RemoveGenerations(g ...*Generation) *Negati
 	return npuo.RemoveGenerationIDs(ids...)
 }
 
+// Where appends a list predicates to the NegativePromptUpdate builder.
+func (npuo *NegativePromptUpdateOne) Where(ps ...predicate.NegativePrompt) *NegativePromptUpdateOne {
+	npuo.mutation.Where(ps...)
+	return npuo
+}
+
 // Select allows selecting one or more fields (columns) of the returned entity.
 // The default is selecting all fields defined in the entity schema.
 func (npuo *NegativePromptUpdateOne) Select(field string, fields ...string) *NegativePromptUpdateOne {
@@ -289,7 +370,7 @@ func (npuo *NegativePromptUpdateOne) Select(field string, fields ...string) *Neg
 // Save executes the query and returns the updated NegativePrompt entity.
 func (npuo *NegativePromptUpdateOne) Save(ctx context.Context) (*NegativePrompt, error) {
 	npuo.defaults()
-	return withHooks[*NegativePrompt, NegativePromptMutation](ctx, npuo.sqlSave, npuo.mutation, npuo.hooks)
+	return withHooks(ctx, npuo.sqlSave, npuo.mutation, npuo.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -329,16 +410,7 @@ func (npuo *NegativePromptUpdateOne) Modify(modifiers ...func(u *sql.UpdateBuild
 }
 
 func (npuo *NegativePromptUpdateOne) sqlSave(ctx context.Context) (_node *NegativePrompt, err error) {
-	_spec := &sqlgraph.UpdateSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   negativeprompt.Table,
-			Columns: negativeprompt.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeUUID,
-				Column: negativeprompt.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewUpdateSpec(negativeprompt.Table, negativeprompt.Columns, sqlgraph.NewFieldSpec(negativeprompt.FieldID, field.TypeUUID))
 	id, ok := npuo.mutation.ID()
 	if !ok {
 		return nil, &ValidationError{Name: "id", err: errors.New(`ent: missing "NegativePrompt.id" for update`)}
@@ -366,6 +438,15 @@ func (npuo *NegativePromptUpdateOne) sqlSave(ctx context.Context) (_node *Negati
 	if value, ok := npuo.mutation.Text(); ok {
 		_spec.SetField(negativeprompt.FieldText, field.TypeString, value)
 	}
+	if value, ok := npuo.mutation.TranslatedText(); ok {
+		_spec.SetField(negativeprompt.FieldTranslatedText, field.TypeString, value)
+	}
+	if npuo.mutation.TranslatedTextCleared() {
+		_spec.ClearField(negativeprompt.FieldTranslatedText, field.TypeString)
+	}
+	if value, ok := npuo.mutation.RanTranslation(); ok {
+		_spec.SetField(negativeprompt.FieldRanTranslation, field.TypeBool, value)
+	}
 	if value, ok := npuo.mutation.UpdatedAt(); ok {
 		_spec.SetField(negativeprompt.FieldUpdatedAt, field.TypeTime, value)
 	}
@@ -377,10 +458,7 @@ func (npuo *NegativePromptUpdateOne) sqlSave(ctx context.Context) (_node *Negati
 			Columns: []string{negativeprompt.GenerationsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: generation.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(generation.FieldID, field.TypeUUID),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -393,10 +471,7 @@ func (npuo *NegativePromptUpdateOne) sqlSave(ctx context.Context) (_node *Negati
 			Columns: []string{negativeprompt.GenerationsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: generation.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(generation.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -412,10 +487,7 @@ func (npuo *NegativePromptUpdateOne) sqlSave(ctx context.Context) (_node *Negati
 			Columns: []string{negativeprompt.GenerationsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: generation.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(generation.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

@@ -39,6 +39,14 @@ func (gou *GenerationOutputUpdate) SetImagePath(s string) *GenerationOutputUpdat
 	return gou
 }
 
+// SetNillableImagePath sets the "image_path" field if the given value is not nil.
+func (gou *GenerationOutputUpdate) SetNillableImagePath(s *string) *GenerationOutputUpdate {
+	if s != nil {
+		gou.SetImagePath(*s)
+	}
+	return gou
+}
+
 // SetUpscaledImagePath sets the "upscaled_image_path" field.
 func (gou *GenerationOutputUpdate) SetUpscaledImagePath(s string) *GenerationOutputUpdate {
 	gou.mutation.SetUpscaledImagePath(s)
@@ -212,6 +220,14 @@ func (gou *GenerationOutputUpdate) SetGenerationID(u uuid.UUID) *GenerationOutpu
 	return gou
 }
 
+// SetNillableGenerationID sets the "generation_id" field if the given value is not nil.
+func (gou *GenerationOutputUpdate) SetNillableGenerationID(u *uuid.UUID) *GenerationOutputUpdate {
+	if u != nil {
+		gou.SetGenerationID(*u)
+	}
+	return gou
+}
+
 // SetDeletedAt sets the "deleted_at" field.
 func (gou *GenerationOutputUpdate) SetDeletedAt(t time.Time) *GenerationOutputUpdate {
 	gou.mutation.SetDeletedAt(t)
@@ -324,7 +340,7 @@ func (gou *GenerationOutputUpdate) RemoveGenerationOutputLikes(g ...*GenerationO
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (gou *GenerationOutputUpdate) Save(ctx context.Context) (int, error) {
 	gou.defaults()
-	return withHooks[int, GenerationOutputMutation](ctx, gou.sqlSave, gou.mutation, gou.hooks)
+	return withHooks(ctx, gou.sqlSave, gou.mutation, gou.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -364,7 +380,7 @@ func (gou *GenerationOutputUpdate) check() error {
 			return &ValidationError{Name: "gallery_status", err: fmt.Errorf(`ent: validator failed for field "GenerationOutput.gallery_status": %w`, err)}
 		}
 	}
-	if _, ok := gou.mutation.GenerationsID(); gou.mutation.GenerationsCleared() && !ok {
+	if gou.mutation.GenerationsCleared() && len(gou.mutation.GenerationsIDs()) > 0 {
 		return errors.New(`ent: clearing a required unique edge "GenerationOutput.generations"`)
 	}
 	return nil
@@ -380,16 +396,7 @@ func (gou *GenerationOutputUpdate) sqlSave(ctx context.Context) (n int, err erro
 	if err := gou.check(); err != nil {
 		return n, err
 	}
-	_spec := &sqlgraph.UpdateSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   generationoutput.Table,
-			Columns: generationoutput.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeUUID,
-				Column: generationoutput.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewUpdateSpec(generationoutput.Table, generationoutput.Columns, sqlgraph.NewFieldSpec(generationoutput.FieldID, field.TypeUUID))
 	if ps := gou.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
@@ -459,10 +466,7 @@ func (gou *GenerationOutputUpdate) sqlSave(ctx context.Context) (n int, err erro
 			Columns: []string{generationoutput.GenerationsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: generation.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(generation.FieldID, field.TypeUUID),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -475,10 +479,7 @@ func (gou *GenerationOutputUpdate) sqlSave(ctx context.Context) (n int, err erro
 			Columns: []string{generationoutput.GenerationsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: generation.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(generation.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -494,10 +495,7 @@ func (gou *GenerationOutputUpdate) sqlSave(ctx context.Context) (n int, err erro
 			Columns: []string{generationoutput.UpscaleOutputsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: upscaleoutput.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(upscaleoutput.FieldID, field.TypeUUID),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -510,10 +508,7 @@ func (gou *GenerationOutputUpdate) sqlSave(ctx context.Context) (n int, err erro
 			Columns: []string{generationoutput.UpscaleOutputsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: upscaleoutput.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(upscaleoutput.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -529,10 +524,7 @@ func (gou *GenerationOutputUpdate) sqlSave(ctx context.Context) (n int, err erro
 			Columns: []string{generationoutput.GenerationOutputLikesColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: generationoutputlike.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(generationoutputlike.FieldID, field.TypeUUID),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -545,10 +537,7 @@ func (gou *GenerationOutputUpdate) sqlSave(ctx context.Context) (n int, err erro
 			Columns: []string{generationoutput.GenerationOutputLikesColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: generationoutputlike.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(generationoutputlike.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -564,10 +553,7 @@ func (gou *GenerationOutputUpdate) sqlSave(ctx context.Context) (n int, err erro
 			Columns: []string{generationoutput.GenerationOutputLikesColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: generationoutputlike.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(generationoutputlike.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -600,6 +586,14 @@ type GenerationOutputUpdateOne struct {
 // SetImagePath sets the "image_path" field.
 func (gouo *GenerationOutputUpdateOne) SetImagePath(s string) *GenerationOutputUpdateOne {
 	gouo.mutation.SetImagePath(s)
+	return gouo
+}
+
+// SetNillableImagePath sets the "image_path" field if the given value is not nil.
+func (gouo *GenerationOutputUpdateOne) SetNillableImagePath(s *string) *GenerationOutputUpdateOne {
+	if s != nil {
+		gouo.SetImagePath(*s)
+	}
 	return gouo
 }
 
@@ -776,6 +770,14 @@ func (gouo *GenerationOutputUpdateOne) SetGenerationID(u uuid.UUID) *GenerationO
 	return gouo
 }
 
+// SetNillableGenerationID sets the "generation_id" field if the given value is not nil.
+func (gouo *GenerationOutputUpdateOne) SetNillableGenerationID(u *uuid.UUID) *GenerationOutputUpdateOne {
+	if u != nil {
+		gouo.SetGenerationID(*u)
+	}
+	return gouo
+}
+
 // SetDeletedAt sets the "deleted_at" field.
 func (gouo *GenerationOutputUpdateOne) SetDeletedAt(t time.Time) *GenerationOutputUpdateOne {
 	gouo.mutation.SetDeletedAt(t)
@@ -885,6 +887,12 @@ func (gouo *GenerationOutputUpdateOne) RemoveGenerationOutputLikes(g ...*Generat
 	return gouo.RemoveGenerationOutputLikeIDs(ids...)
 }
 
+// Where appends a list predicates to the GenerationOutputUpdate builder.
+func (gouo *GenerationOutputUpdateOne) Where(ps ...predicate.GenerationOutput) *GenerationOutputUpdateOne {
+	gouo.mutation.Where(ps...)
+	return gouo
+}
+
 // Select allows selecting one or more fields (columns) of the returned entity.
 // The default is selecting all fields defined in the entity schema.
 func (gouo *GenerationOutputUpdateOne) Select(field string, fields ...string) *GenerationOutputUpdateOne {
@@ -895,7 +903,7 @@ func (gouo *GenerationOutputUpdateOne) Select(field string, fields ...string) *G
 // Save executes the query and returns the updated GenerationOutput entity.
 func (gouo *GenerationOutputUpdateOne) Save(ctx context.Context) (*GenerationOutput, error) {
 	gouo.defaults()
-	return withHooks[*GenerationOutput, GenerationOutputMutation](ctx, gouo.sqlSave, gouo.mutation, gouo.hooks)
+	return withHooks(ctx, gouo.sqlSave, gouo.mutation, gouo.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -935,7 +943,7 @@ func (gouo *GenerationOutputUpdateOne) check() error {
 			return &ValidationError{Name: "gallery_status", err: fmt.Errorf(`ent: validator failed for field "GenerationOutput.gallery_status": %w`, err)}
 		}
 	}
-	if _, ok := gouo.mutation.GenerationsID(); gouo.mutation.GenerationsCleared() && !ok {
+	if gouo.mutation.GenerationsCleared() && len(gouo.mutation.GenerationsIDs()) > 0 {
 		return errors.New(`ent: clearing a required unique edge "GenerationOutput.generations"`)
 	}
 	return nil
@@ -951,16 +959,7 @@ func (gouo *GenerationOutputUpdateOne) sqlSave(ctx context.Context) (_node *Gene
 	if err := gouo.check(); err != nil {
 		return _node, err
 	}
-	_spec := &sqlgraph.UpdateSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   generationoutput.Table,
-			Columns: generationoutput.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeUUID,
-				Column: generationoutput.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewUpdateSpec(generationoutput.Table, generationoutput.Columns, sqlgraph.NewFieldSpec(generationoutput.FieldID, field.TypeUUID))
 	id, ok := gouo.mutation.ID()
 	if !ok {
 		return nil, &ValidationError{Name: "id", err: errors.New(`ent: missing "GenerationOutput.id" for update`)}
@@ -1047,10 +1046,7 @@ func (gouo *GenerationOutputUpdateOne) sqlSave(ctx context.Context) (_node *Gene
 			Columns: []string{generationoutput.GenerationsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: generation.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(generation.FieldID, field.TypeUUID),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -1063,10 +1059,7 @@ func (gouo *GenerationOutputUpdateOne) sqlSave(ctx context.Context) (_node *Gene
 			Columns: []string{generationoutput.GenerationsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: generation.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(generation.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -1082,10 +1075,7 @@ func (gouo *GenerationOutputUpdateOne) sqlSave(ctx context.Context) (_node *Gene
 			Columns: []string{generationoutput.UpscaleOutputsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: upscaleoutput.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(upscaleoutput.FieldID, field.TypeUUID),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -1098,10 +1088,7 @@ func (gouo *GenerationOutputUpdateOne) sqlSave(ctx context.Context) (_node *Gene
 			Columns: []string{generationoutput.UpscaleOutputsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: upscaleoutput.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(upscaleoutput.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -1117,10 +1104,7 @@ func (gouo *GenerationOutputUpdateOne) sqlSave(ctx context.Context) (_node *Gene
 			Columns: []string{generationoutput.GenerationOutputLikesColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: generationoutputlike.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(generationoutputlike.FieldID, field.TypeUUID),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -1133,10 +1117,7 @@ func (gouo *GenerationOutputUpdateOne) sqlSave(ctx context.Context) (_node *Gene
 			Columns: []string{generationoutput.GenerationOutputLikesColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: generationoutputlike.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(generationoutputlike.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -1152,10 +1133,7 @@ func (gouo *GenerationOutputUpdateOne) sqlSave(ctx context.Context) (_node *Gene
 			Columns: []string{generationoutput.GenerationOutputLikesColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: generationoutputlike.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(generationoutputlike.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

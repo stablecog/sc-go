@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"math"
 
+	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
@@ -25,7 +26,7 @@ import (
 type ApiTokenQuery struct {
 	config
 	ctx             *QueryContext
-	order           []OrderFunc
+	order           []apitoken.OrderOption
 	inters          []Interceptor
 	predicates      []predicate.ApiToken
 	withUser        *UserQuery
@@ -65,7 +66,7 @@ func (atq *ApiTokenQuery) Unique(unique bool) *ApiTokenQuery {
 }
 
 // Order specifies how the records should be ordered.
-func (atq *ApiTokenQuery) Order(o ...OrderFunc) *ApiTokenQuery {
+func (atq *ApiTokenQuery) Order(o ...apitoken.OrderOption) *ApiTokenQuery {
 	atq.order = append(atq.order, o...)
 	return atq
 }
@@ -183,7 +184,7 @@ func (atq *ApiTokenQuery) QueryAuthClients() *AuthClientQuery {
 // First returns the first ApiToken entity from the query.
 // Returns a *NotFoundError when no ApiToken was found.
 func (atq *ApiTokenQuery) First(ctx context.Context) (*ApiToken, error) {
-	nodes, err := atq.Limit(1).All(setContextOp(ctx, atq.ctx, "First"))
+	nodes, err := atq.Limit(1).All(setContextOp(ctx, atq.ctx, ent.OpQueryFirst))
 	if err != nil {
 		return nil, err
 	}
@@ -206,7 +207,7 @@ func (atq *ApiTokenQuery) FirstX(ctx context.Context) *ApiToken {
 // Returns a *NotFoundError when no ApiToken ID was found.
 func (atq *ApiTokenQuery) FirstID(ctx context.Context) (id uuid.UUID, err error) {
 	var ids []uuid.UUID
-	if ids, err = atq.Limit(1).IDs(setContextOp(ctx, atq.ctx, "FirstID")); err != nil {
+	if ids, err = atq.Limit(1).IDs(setContextOp(ctx, atq.ctx, ent.OpQueryFirstID)); err != nil {
 		return
 	}
 	if len(ids) == 0 {
@@ -229,7 +230,7 @@ func (atq *ApiTokenQuery) FirstIDX(ctx context.Context) uuid.UUID {
 // Returns a *NotSingularError when more than one ApiToken entity is found.
 // Returns a *NotFoundError when no ApiToken entities are found.
 func (atq *ApiTokenQuery) Only(ctx context.Context) (*ApiToken, error) {
-	nodes, err := atq.Limit(2).All(setContextOp(ctx, atq.ctx, "Only"))
+	nodes, err := atq.Limit(2).All(setContextOp(ctx, atq.ctx, ent.OpQueryOnly))
 	if err != nil {
 		return nil, err
 	}
@@ -257,7 +258,7 @@ func (atq *ApiTokenQuery) OnlyX(ctx context.Context) *ApiToken {
 // Returns a *NotFoundError when no entities are found.
 func (atq *ApiTokenQuery) OnlyID(ctx context.Context) (id uuid.UUID, err error) {
 	var ids []uuid.UUID
-	if ids, err = atq.Limit(2).IDs(setContextOp(ctx, atq.ctx, "OnlyID")); err != nil {
+	if ids, err = atq.Limit(2).IDs(setContextOp(ctx, atq.ctx, ent.OpQueryOnlyID)); err != nil {
 		return
 	}
 	switch len(ids) {
@@ -282,7 +283,7 @@ func (atq *ApiTokenQuery) OnlyIDX(ctx context.Context) uuid.UUID {
 
 // All executes the query and returns a list of ApiTokens.
 func (atq *ApiTokenQuery) All(ctx context.Context) ([]*ApiToken, error) {
-	ctx = setContextOp(ctx, atq.ctx, "All")
+	ctx = setContextOp(ctx, atq.ctx, ent.OpQueryAll)
 	if err := atq.prepareQuery(ctx); err != nil {
 		return nil, err
 	}
@@ -300,10 +301,12 @@ func (atq *ApiTokenQuery) AllX(ctx context.Context) []*ApiToken {
 }
 
 // IDs executes the query and returns a list of ApiToken IDs.
-func (atq *ApiTokenQuery) IDs(ctx context.Context) ([]uuid.UUID, error) {
-	var ids []uuid.UUID
-	ctx = setContextOp(ctx, atq.ctx, "IDs")
-	if err := atq.Select(apitoken.FieldID).Scan(ctx, &ids); err != nil {
+func (atq *ApiTokenQuery) IDs(ctx context.Context) (ids []uuid.UUID, err error) {
+	if atq.ctx.Unique == nil && atq.path != nil {
+		atq.Unique(true)
+	}
+	ctx = setContextOp(ctx, atq.ctx, ent.OpQueryIDs)
+	if err = atq.Select(apitoken.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
 	return ids, nil
@@ -320,7 +323,7 @@ func (atq *ApiTokenQuery) IDsX(ctx context.Context) []uuid.UUID {
 
 // Count returns the count of the given query.
 func (atq *ApiTokenQuery) Count(ctx context.Context) (int, error) {
-	ctx = setContextOp(ctx, atq.ctx, "Count")
+	ctx = setContextOp(ctx, atq.ctx, ent.OpQueryCount)
 	if err := atq.prepareQuery(ctx); err != nil {
 		return 0, err
 	}
@@ -338,7 +341,7 @@ func (atq *ApiTokenQuery) CountX(ctx context.Context) int {
 
 // Exist returns true if the query has elements in the graph.
 func (atq *ApiTokenQuery) Exist(ctx context.Context) (bool, error) {
-	ctx = setContextOp(ctx, atq.ctx, "Exist")
+	ctx = setContextOp(ctx, atq.ctx, ent.OpQueryExist)
 	switch _, err := atq.FirstID(ctx); {
 	case IsNotFound(err):
 		return false, nil
@@ -367,7 +370,7 @@ func (atq *ApiTokenQuery) Clone() *ApiTokenQuery {
 	return &ApiTokenQuery{
 		config:          atq.config,
 		ctx:             atq.ctx.Clone(),
-		order:           append([]OrderFunc{}, atq.order...),
+		order:           append([]apitoken.OrderOption{}, atq.order...),
 		inters:          append([]Interceptor{}, atq.inters...),
 		predicates:      append([]predicate.ApiToken{}, atq.predicates...),
 		withUser:        atq.withUser.Clone(),
@@ -618,8 +621,11 @@ func (atq *ApiTokenQuery) loadGenerations(ctx context.Context, query *Generation
 			init(nodes[i])
 		}
 	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(generation.FieldAPITokenID)
+	}
 	query.Where(predicate.Generation(func(s *sql.Selector) {
-		s.Where(sql.InValues(apitoken.GenerationsColumn, fks...))
+		s.Where(sql.InValues(s.C(apitoken.GenerationsColumn), fks...))
 	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {
@@ -632,7 +638,7 @@ func (atq *ApiTokenQuery) loadGenerations(ctx context.Context, query *Generation
 		}
 		node, ok := nodeids[*fk]
 		if !ok {
-			return fmt.Errorf(`unexpected foreign-key "api_token_id" returned %v for node %v`, *fk, n.ID)
+			return fmt.Errorf(`unexpected referenced foreign-key "api_token_id" returned %v for node %v`, *fk, n.ID)
 		}
 		assign(node, n)
 	}
@@ -648,8 +654,11 @@ func (atq *ApiTokenQuery) loadUpscales(ctx context.Context, query *UpscaleQuery,
 			init(nodes[i])
 		}
 	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(upscale.FieldAPITokenID)
+	}
 	query.Where(predicate.Upscale(func(s *sql.Selector) {
-		s.Where(sql.InValues(apitoken.UpscalesColumn, fks...))
+		s.Where(sql.InValues(s.C(apitoken.UpscalesColumn), fks...))
 	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {
@@ -662,7 +671,7 @@ func (atq *ApiTokenQuery) loadUpscales(ctx context.Context, query *UpscaleQuery,
 		}
 		node, ok := nodeids[*fk]
 		if !ok {
-			return fmt.Errorf(`unexpected foreign-key "api_token_id" returned %v for node %v`, *fk, n.ID)
+			return fmt.Errorf(`unexpected referenced foreign-key "api_token_id" returned %v for node %v`, *fk, n.ID)
 		}
 		assign(node, n)
 	}
@@ -678,8 +687,11 @@ func (atq *ApiTokenQuery) loadVoiceovers(ctx context.Context, query *VoiceoverQu
 			init(nodes[i])
 		}
 	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(voiceover.FieldAPITokenID)
+	}
 	query.Where(predicate.Voiceover(func(s *sql.Selector) {
-		s.Where(sql.InValues(apitoken.VoiceoversColumn, fks...))
+		s.Where(sql.InValues(s.C(apitoken.VoiceoversColumn), fks...))
 	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {
@@ -692,7 +704,7 @@ func (atq *ApiTokenQuery) loadVoiceovers(ctx context.Context, query *VoiceoverQu
 		}
 		node, ok := nodeids[*fk]
 		if !ok {
-			return fmt.Errorf(`unexpected foreign-key "api_token_id" returned %v for node %v`, *fk, n.ID)
+			return fmt.Errorf(`unexpected referenced foreign-key "api_token_id" returned %v for node %v`, *fk, n.ID)
 		}
 		assign(node, n)
 	}
@@ -744,20 +756,12 @@ func (atq *ApiTokenQuery) sqlCount(ctx context.Context) (int, error) {
 }
 
 func (atq *ApiTokenQuery) querySpec() *sqlgraph.QuerySpec {
-	_spec := &sqlgraph.QuerySpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   apitoken.Table,
-			Columns: apitoken.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeUUID,
-				Column: apitoken.FieldID,
-			},
-		},
-		From:   atq.sql,
-		Unique: true,
-	}
+	_spec := sqlgraph.NewQuerySpec(apitoken.Table, apitoken.Columns, sqlgraph.NewFieldSpec(apitoken.FieldID, field.TypeUUID))
+	_spec.From = atq.sql
 	if unique := atq.ctx.Unique; unique != nil {
 		_spec.Unique = *unique
+	} else if atq.path != nil {
+		_spec.Unique = true
 	}
 	if fields := atq.ctx.Fields; len(fields) > 0 {
 		_spec.Node.Columns = make([]string, 0, len(fields))
@@ -766,6 +770,12 @@ func (atq *ApiTokenQuery) querySpec() *sqlgraph.QuerySpec {
 			if fields[i] != apitoken.FieldID {
 				_spec.Node.Columns = append(_spec.Node.Columns, fields[i])
 			}
+		}
+		if atq.withUser != nil {
+			_spec.Node.AddColumnOnce(apitoken.FieldUserID)
+		}
+		if atq.withAuthClients != nil {
+			_spec.Node.AddColumnOnce(apitoken.FieldAuthClientID)
 		}
 	}
 	if ps := atq.predicates; len(ps) > 0 {
@@ -846,7 +856,7 @@ func (atgb *ApiTokenGroupBy) Aggregate(fns ...AggregateFunc) *ApiTokenGroupBy {
 
 // Scan applies the selector query and scans the result into the given value.
 func (atgb *ApiTokenGroupBy) Scan(ctx context.Context, v any) error {
-	ctx = setContextOp(ctx, atgb.build.ctx, "GroupBy")
+	ctx = setContextOp(ctx, atgb.build.ctx, ent.OpQueryGroupBy)
 	if err := atgb.build.prepareQuery(ctx); err != nil {
 		return err
 	}
@@ -894,7 +904,7 @@ func (ats *ApiTokenSelect) Aggregate(fns ...AggregateFunc) *ApiTokenSelect {
 
 // Scan applies the selector query and scans the result into the given value.
 func (ats *ApiTokenSelect) Scan(ctx context.Context, v any) error {
-	ctx = setContextOp(ctx, ats.ctx, "Select")
+	ctx = setContextOp(ctx, ats.ctx, ent.OpQuerySelect)
 	if err := ats.prepareQuery(ctx); err != nil {
 		return err
 	}

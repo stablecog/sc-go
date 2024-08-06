@@ -8,6 +8,7 @@ import (
 	"strings"
 	"time"
 
+	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 	"github.com/google/uuid"
 	"github.com/stablecog/sc-go/database/ent/bannedwords"
@@ -27,7 +28,8 @@ type BannedWords struct {
 	// CreatedAt holds the value of the "created_at" field.
 	CreatedAt time.Time `json:"created_at,omitempty"`
 	// UpdatedAt holds the value of the "updated_at" field.
-	UpdatedAt time.Time `json:"updated_at,omitempty"`
+	UpdatedAt    time.Time `json:"updated_at,omitempty"`
+	selectValues sql.SelectValues
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -46,7 +48,7 @@ func (*BannedWords) scanValues(columns []string) ([]any, error) {
 		case bannedwords.FieldID:
 			values[i] = new(uuid.UUID)
 		default:
-			return nil, fmt.Errorf("unexpected column %q for type BannedWords", columns[i])
+			values[i] = new(sql.UnknownType)
 		}
 	}
 	return values, nil
@@ -98,9 +100,17 @@ func (bw *BannedWords) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				bw.UpdatedAt = value.Time
 			}
+		default:
+			bw.selectValues.Set(columns[i], values[i])
 		}
 	}
 	return nil
+}
+
+// Value returns the ent.Value that was dynamically selected and assigned to the BannedWords.
+// This includes values selected through modifiers, order, etc.
+func (bw *BannedWords) Value(name string) (ent.Value, error) {
+	return bw.selectValues.Get(name)
 }
 
 // Update returns a builder for updating this BannedWords.
@@ -146,9 +156,3 @@ func (bw *BannedWords) String() string {
 
 // BannedWordsSlice is a parsable slice of BannedWords.
 type BannedWordsSlice []*BannedWords
-
-func (bw BannedWordsSlice) config(cfg config) {
-	for _i := range bw {
-		bw[_i].config = cfg
-	}
-}

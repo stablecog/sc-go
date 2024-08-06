@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"math"
 
+	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
@@ -19,7 +20,7 @@ import (
 type ThumbmarkIdBlackListQuery struct {
 	config
 	ctx        *QueryContext
-	order      []OrderFunc
+	order      []thumbmarkidblacklist.OrderOption
 	inters     []Interceptor
 	predicates []predicate.ThumbmarkIdBlackList
 	modifiers  []func(*sql.Selector)
@@ -54,7 +55,7 @@ func (tiblq *ThumbmarkIdBlackListQuery) Unique(unique bool) *ThumbmarkIdBlackLis
 }
 
 // Order specifies how the records should be ordered.
-func (tiblq *ThumbmarkIdBlackListQuery) Order(o ...OrderFunc) *ThumbmarkIdBlackListQuery {
+func (tiblq *ThumbmarkIdBlackListQuery) Order(o ...thumbmarkidblacklist.OrderOption) *ThumbmarkIdBlackListQuery {
 	tiblq.order = append(tiblq.order, o...)
 	return tiblq
 }
@@ -62,7 +63,7 @@ func (tiblq *ThumbmarkIdBlackListQuery) Order(o ...OrderFunc) *ThumbmarkIdBlackL
 // First returns the first ThumbmarkIdBlackList entity from the query.
 // Returns a *NotFoundError when no ThumbmarkIdBlackList was found.
 func (tiblq *ThumbmarkIdBlackListQuery) First(ctx context.Context) (*ThumbmarkIdBlackList, error) {
-	nodes, err := tiblq.Limit(1).All(setContextOp(ctx, tiblq.ctx, "First"))
+	nodes, err := tiblq.Limit(1).All(setContextOp(ctx, tiblq.ctx, ent.OpQueryFirst))
 	if err != nil {
 		return nil, err
 	}
@@ -85,7 +86,7 @@ func (tiblq *ThumbmarkIdBlackListQuery) FirstX(ctx context.Context) *ThumbmarkId
 // Returns a *NotFoundError when no ThumbmarkIdBlackList ID was found.
 func (tiblq *ThumbmarkIdBlackListQuery) FirstID(ctx context.Context) (id uuid.UUID, err error) {
 	var ids []uuid.UUID
-	if ids, err = tiblq.Limit(1).IDs(setContextOp(ctx, tiblq.ctx, "FirstID")); err != nil {
+	if ids, err = tiblq.Limit(1).IDs(setContextOp(ctx, tiblq.ctx, ent.OpQueryFirstID)); err != nil {
 		return
 	}
 	if len(ids) == 0 {
@@ -108,7 +109,7 @@ func (tiblq *ThumbmarkIdBlackListQuery) FirstIDX(ctx context.Context) uuid.UUID 
 // Returns a *NotSingularError when more than one ThumbmarkIdBlackList entity is found.
 // Returns a *NotFoundError when no ThumbmarkIdBlackList entities are found.
 func (tiblq *ThumbmarkIdBlackListQuery) Only(ctx context.Context) (*ThumbmarkIdBlackList, error) {
-	nodes, err := tiblq.Limit(2).All(setContextOp(ctx, tiblq.ctx, "Only"))
+	nodes, err := tiblq.Limit(2).All(setContextOp(ctx, tiblq.ctx, ent.OpQueryOnly))
 	if err != nil {
 		return nil, err
 	}
@@ -136,7 +137,7 @@ func (tiblq *ThumbmarkIdBlackListQuery) OnlyX(ctx context.Context) *ThumbmarkIdB
 // Returns a *NotFoundError when no entities are found.
 func (tiblq *ThumbmarkIdBlackListQuery) OnlyID(ctx context.Context) (id uuid.UUID, err error) {
 	var ids []uuid.UUID
-	if ids, err = tiblq.Limit(2).IDs(setContextOp(ctx, tiblq.ctx, "OnlyID")); err != nil {
+	if ids, err = tiblq.Limit(2).IDs(setContextOp(ctx, tiblq.ctx, ent.OpQueryOnlyID)); err != nil {
 		return
 	}
 	switch len(ids) {
@@ -161,7 +162,7 @@ func (tiblq *ThumbmarkIdBlackListQuery) OnlyIDX(ctx context.Context) uuid.UUID {
 
 // All executes the query and returns a list of ThumbmarkIdBlackLists.
 func (tiblq *ThumbmarkIdBlackListQuery) All(ctx context.Context) ([]*ThumbmarkIdBlackList, error) {
-	ctx = setContextOp(ctx, tiblq.ctx, "All")
+	ctx = setContextOp(ctx, tiblq.ctx, ent.OpQueryAll)
 	if err := tiblq.prepareQuery(ctx); err != nil {
 		return nil, err
 	}
@@ -179,10 +180,12 @@ func (tiblq *ThumbmarkIdBlackListQuery) AllX(ctx context.Context) []*ThumbmarkId
 }
 
 // IDs executes the query and returns a list of ThumbmarkIdBlackList IDs.
-func (tiblq *ThumbmarkIdBlackListQuery) IDs(ctx context.Context) ([]uuid.UUID, error) {
-	var ids []uuid.UUID
-	ctx = setContextOp(ctx, tiblq.ctx, "IDs")
-	if err := tiblq.Select(thumbmarkidblacklist.FieldID).Scan(ctx, &ids); err != nil {
+func (tiblq *ThumbmarkIdBlackListQuery) IDs(ctx context.Context) (ids []uuid.UUID, err error) {
+	if tiblq.ctx.Unique == nil && tiblq.path != nil {
+		tiblq.Unique(true)
+	}
+	ctx = setContextOp(ctx, tiblq.ctx, ent.OpQueryIDs)
+	if err = tiblq.Select(thumbmarkidblacklist.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
 	return ids, nil
@@ -199,7 +202,7 @@ func (tiblq *ThumbmarkIdBlackListQuery) IDsX(ctx context.Context) []uuid.UUID {
 
 // Count returns the count of the given query.
 func (tiblq *ThumbmarkIdBlackListQuery) Count(ctx context.Context) (int, error) {
-	ctx = setContextOp(ctx, tiblq.ctx, "Count")
+	ctx = setContextOp(ctx, tiblq.ctx, ent.OpQueryCount)
 	if err := tiblq.prepareQuery(ctx); err != nil {
 		return 0, err
 	}
@@ -217,7 +220,7 @@ func (tiblq *ThumbmarkIdBlackListQuery) CountX(ctx context.Context) int {
 
 // Exist returns true if the query has elements in the graph.
 func (tiblq *ThumbmarkIdBlackListQuery) Exist(ctx context.Context) (bool, error) {
-	ctx = setContextOp(ctx, tiblq.ctx, "Exist")
+	ctx = setContextOp(ctx, tiblq.ctx, ent.OpQueryExist)
 	switch _, err := tiblq.FirstID(ctx); {
 	case IsNotFound(err):
 		return false, nil
@@ -246,7 +249,7 @@ func (tiblq *ThumbmarkIdBlackListQuery) Clone() *ThumbmarkIdBlackListQuery {
 	return &ThumbmarkIdBlackListQuery{
 		config:     tiblq.config,
 		ctx:        tiblq.ctx.Clone(),
-		order:      append([]OrderFunc{}, tiblq.order...),
+		order:      append([]thumbmarkidblacklist.OrderOption{}, tiblq.order...),
 		inters:     append([]Interceptor{}, tiblq.inters...),
 		predicates: append([]predicate.ThumbmarkIdBlackList{}, tiblq.predicates...),
 		// clone intermediate query.
@@ -370,20 +373,12 @@ func (tiblq *ThumbmarkIdBlackListQuery) sqlCount(ctx context.Context) (int, erro
 }
 
 func (tiblq *ThumbmarkIdBlackListQuery) querySpec() *sqlgraph.QuerySpec {
-	_spec := &sqlgraph.QuerySpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   thumbmarkidblacklist.Table,
-			Columns: thumbmarkidblacklist.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeUUID,
-				Column: thumbmarkidblacklist.FieldID,
-			},
-		},
-		From:   tiblq.sql,
-		Unique: true,
-	}
+	_spec := sqlgraph.NewQuerySpec(thumbmarkidblacklist.Table, thumbmarkidblacklist.Columns, sqlgraph.NewFieldSpec(thumbmarkidblacklist.FieldID, field.TypeUUID))
+	_spec.From = tiblq.sql
 	if unique := tiblq.ctx.Unique; unique != nil {
 		_spec.Unique = *unique
+	} else if tiblq.path != nil {
+		_spec.Unique = true
 	}
 	if fields := tiblq.ctx.Fields; len(fields) > 0 {
 		_spec.Node.Columns = make([]string, 0, len(fields))
@@ -472,7 +467,7 @@ func (tiblgb *ThumbmarkIdBlackListGroupBy) Aggregate(fns ...AggregateFunc) *Thum
 
 // Scan applies the selector query and scans the result into the given value.
 func (tiblgb *ThumbmarkIdBlackListGroupBy) Scan(ctx context.Context, v any) error {
-	ctx = setContextOp(ctx, tiblgb.build.ctx, "GroupBy")
+	ctx = setContextOp(ctx, tiblgb.build.ctx, ent.OpQueryGroupBy)
 	if err := tiblgb.build.prepareQuery(ctx); err != nil {
 		return err
 	}
@@ -520,7 +515,7 @@ func (tibls *ThumbmarkIdBlackListSelect) Aggregate(fns ...AggregateFunc) *Thumbm
 
 // Scan applies the selector query and scans the result into the given value.
 func (tibls *ThumbmarkIdBlackListSelect) Scan(ctx context.Context, v any) error {
-	ctx = setContextOp(ctx, tibls.ctx, "Select")
+	ctx = setContextOp(ctx, tibls.ctx, ent.OpQuerySelect)
 	if err := tibls.prepareQuery(ctx); err != nil {
 		return err
 	}

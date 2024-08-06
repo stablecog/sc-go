@@ -96,7 +96,7 @@ func (golc *GenerationOutputLikeCreate) Mutation() *GenerationOutputLikeMutation
 // Save creates the GenerationOutputLike in the database.
 func (golc *GenerationOutputLikeCreate) Save(ctx context.Context) (*GenerationOutputLike, error) {
 	golc.defaults()
-	return withHooks[*GenerationOutputLike, GenerationOutputLikeMutation](ctx, golc.sqlSave, golc.mutation, golc.hooks)
+	return withHooks(ctx, golc.sqlSave, golc.mutation, golc.hooks)
 }
 
 // SaveX calls Save and panics if Save returns an error.
@@ -144,10 +144,10 @@ func (golc *GenerationOutputLikeCreate) check() error {
 	if _, ok := golc.mutation.CreatedAt(); !ok {
 		return &ValidationError{Name: "created_at", err: errors.New(`ent: missing required field "GenerationOutputLike.created_at"`)}
 	}
-	if _, ok := golc.mutation.GenerationOutputsID(); !ok {
+	if len(golc.mutation.GenerationOutputsIDs()) == 0 {
 		return &ValidationError{Name: "generation_outputs", err: errors.New(`ent: missing required edge "GenerationOutputLike.generation_outputs"`)}
 	}
-	if _, ok := golc.mutation.UsersID(); !ok {
+	if len(golc.mutation.UsersIDs()) == 0 {
 		return &ValidationError{Name: "users", err: errors.New(`ent: missing required edge "GenerationOutputLike.users"`)}
 	}
 	return nil
@@ -179,13 +179,7 @@ func (golc *GenerationOutputLikeCreate) sqlSave(ctx context.Context) (*Generatio
 func (golc *GenerationOutputLikeCreate) createSpec() (*GenerationOutputLike, *sqlgraph.CreateSpec) {
 	var (
 		_node = &GenerationOutputLike{config: golc.config}
-		_spec = &sqlgraph.CreateSpec{
-			Table: generationoutputlike.Table,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeUUID,
-				Column: generationoutputlike.FieldID,
-			},
-		}
+		_spec = sqlgraph.NewCreateSpec(generationoutputlike.Table, sqlgraph.NewFieldSpec(generationoutputlike.FieldID, field.TypeUUID))
 	)
 	_spec.OnConflict = golc.conflict
 	if id, ok := golc.mutation.ID(); ok {
@@ -204,10 +198,7 @@ func (golc *GenerationOutputLikeCreate) createSpec() (*GenerationOutputLike, *sq
 			Columns: []string{generationoutputlike.GenerationOutputsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: generationoutput.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(generationoutput.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -224,10 +215,7 @@ func (golc *GenerationOutputLikeCreate) createSpec() (*GenerationOutputLike, *sq
 			Columns: []string{generationoutputlike.UsersColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: user.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -432,12 +420,16 @@ func (u *GenerationOutputLikeUpsertOne) IDX(ctx context.Context) uuid.UUID {
 // GenerationOutputLikeCreateBulk is the builder for creating many GenerationOutputLike entities in bulk.
 type GenerationOutputLikeCreateBulk struct {
 	config
+	err      error
 	builders []*GenerationOutputLikeCreate
 	conflict []sql.ConflictOption
 }
 
 // Save creates the GenerationOutputLike entities in the database.
 func (golcb *GenerationOutputLikeCreateBulk) Save(ctx context.Context) ([]*GenerationOutputLike, error) {
+	if golcb.err != nil {
+		return nil, golcb.err
+	}
 	specs := make([]*sqlgraph.CreateSpec, len(golcb.builders))
 	nodes := make([]*GenerationOutputLike, len(golcb.builders))
 	mutators := make([]Mutator, len(golcb.builders))
@@ -454,8 +446,8 @@ func (golcb *GenerationOutputLikeCreateBulk) Save(ctx context.Context) ([]*Gener
 					return nil, err
 				}
 				builder.mutation = mutation
-				nodes[i], specs[i] = builder.createSpec()
 				var err error
+				nodes[i], specs[i] = builder.createSpec()
 				if i < len(mutators)-1 {
 					_, err = mutators[i+1].Mutate(root, golcb.builders[i+1].mutation)
 				} else {
@@ -635,6 +627,9 @@ func (u *GenerationOutputLikeUpsertBulk) UpdateLikedByUserID() *GenerationOutput
 
 // Exec executes the query.
 func (u *GenerationOutputLikeUpsertBulk) Exec(ctx context.Context) error {
+	if u.create.err != nil {
+		return u.create.err
+	}
 	for i, b := range u.create.builders {
 		if len(b.conflict) != 0 {
 			return fmt.Errorf("ent: OnConflict was set for builder %d. Set it on the GenerationOutputLikeCreateBulk instead", i)

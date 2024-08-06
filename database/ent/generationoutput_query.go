@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"math"
 
+	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
@@ -23,7 +24,7 @@ import (
 type GenerationOutputQuery struct {
 	config
 	ctx                       *QueryContext
-	order                     []OrderFunc
+	order                     []generationoutput.OrderOption
 	inters                    []Interceptor
 	predicates                []predicate.GenerationOutput
 	withGenerations           *GenerationQuery
@@ -61,7 +62,7 @@ func (goq *GenerationOutputQuery) Unique(unique bool) *GenerationOutputQuery {
 }
 
 // Order specifies how the records should be ordered.
-func (goq *GenerationOutputQuery) Order(o ...OrderFunc) *GenerationOutputQuery {
+func (goq *GenerationOutputQuery) Order(o ...generationoutput.OrderOption) *GenerationOutputQuery {
 	goq.order = append(goq.order, o...)
 	return goq
 }
@@ -135,7 +136,7 @@ func (goq *GenerationOutputQuery) QueryGenerationOutputLikes() *GenerationOutput
 // First returns the first GenerationOutput entity from the query.
 // Returns a *NotFoundError when no GenerationOutput was found.
 func (goq *GenerationOutputQuery) First(ctx context.Context) (*GenerationOutput, error) {
-	nodes, err := goq.Limit(1).All(setContextOp(ctx, goq.ctx, "First"))
+	nodes, err := goq.Limit(1).All(setContextOp(ctx, goq.ctx, ent.OpQueryFirst))
 	if err != nil {
 		return nil, err
 	}
@@ -158,7 +159,7 @@ func (goq *GenerationOutputQuery) FirstX(ctx context.Context) *GenerationOutput 
 // Returns a *NotFoundError when no GenerationOutput ID was found.
 func (goq *GenerationOutputQuery) FirstID(ctx context.Context) (id uuid.UUID, err error) {
 	var ids []uuid.UUID
-	if ids, err = goq.Limit(1).IDs(setContextOp(ctx, goq.ctx, "FirstID")); err != nil {
+	if ids, err = goq.Limit(1).IDs(setContextOp(ctx, goq.ctx, ent.OpQueryFirstID)); err != nil {
 		return
 	}
 	if len(ids) == 0 {
@@ -181,7 +182,7 @@ func (goq *GenerationOutputQuery) FirstIDX(ctx context.Context) uuid.UUID {
 // Returns a *NotSingularError when more than one GenerationOutput entity is found.
 // Returns a *NotFoundError when no GenerationOutput entities are found.
 func (goq *GenerationOutputQuery) Only(ctx context.Context) (*GenerationOutput, error) {
-	nodes, err := goq.Limit(2).All(setContextOp(ctx, goq.ctx, "Only"))
+	nodes, err := goq.Limit(2).All(setContextOp(ctx, goq.ctx, ent.OpQueryOnly))
 	if err != nil {
 		return nil, err
 	}
@@ -209,7 +210,7 @@ func (goq *GenerationOutputQuery) OnlyX(ctx context.Context) *GenerationOutput {
 // Returns a *NotFoundError when no entities are found.
 func (goq *GenerationOutputQuery) OnlyID(ctx context.Context) (id uuid.UUID, err error) {
 	var ids []uuid.UUID
-	if ids, err = goq.Limit(2).IDs(setContextOp(ctx, goq.ctx, "OnlyID")); err != nil {
+	if ids, err = goq.Limit(2).IDs(setContextOp(ctx, goq.ctx, ent.OpQueryOnlyID)); err != nil {
 		return
 	}
 	switch len(ids) {
@@ -234,7 +235,7 @@ func (goq *GenerationOutputQuery) OnlyIDX(ctx context.Context) uuid.UUID {
 
 // All executes the query and returns a list of GenerationOutputs.
 func (goq *GenerationOutputQuery) All(ctx context.Context) ([]*GenerationOutput, error) {
-	ctx = setContextOp(ctx, goq.ctx, "All")
+	ctx = setContextOp(ctx, goq.ctx, ent.OpQueryAll)
 	if err := goq.prepareQuery(ctx); err != nil {
 		return nil, err
 	}
@@ -252,10 +253,12 @@ func (goq *GenerationOutputQuery) AllX(ctx context.Context) []*GenerationOutput 
 }
 
 // IDs executes the query and returns a list of GenerationOutput IDs.
-func (goq *GenerationOutputQuery) IDs(ctx context.Context) ([]uuid.UUID, error) {
-	var ids []uuid.UUID
-	ctx = setContextOp(ctx, goq.ctx, "IDs")
-	if err := goq.Select(generationoutput.FieldID).Scan(ctx, &ids); err != nil {
+func (goq *GenerationOutputQuery) IDs(ctx context.Context) (ids []uuid.UUID, err error) {
+	if goq.ctx.Unique == nil && goq.path != nil {
+		goq.Unique(true)
+	}
+	ctx = setContextOp(ctx, goq.ctx, ent.OpQueryIDs)
+	if err = goq.Select(generationoutput.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
 	return ids, nil
@@ -272,7 +275,7 @@ func (goq *GenerationOutputQuery) IDsX(ctx context.Context) []uuid.UUID {
 
 // Count returns the count of the given query.
 func (goq *GenerationOutputQuery) Count(ctx context.Context) (int, error) {
-	ctx = setContextOp(ctx, goq.ctx, "Count")
+	ctx = setContextOp(ctx, goq.ctx, ent.OpQueryCount)
 	if err := goq.prepareQuery(ctx); err != nil {
 		return 0, err
 	}
@@ -290,7 +293,7 @@ func (goq *GenerationOutputQuery) CountX(ctx context.Context) int {
 
 // Exist returns true if the query has elements in the graph.
 func (goq *GenerationOutputQuery) Exist(ctx context.Context) (bool, error) {
-	ctx = setContextOp(ctx, goq.ctx, "Exist")
+	ctx = setContextOp(ctx, goq.ctx, ent.OpQueryExist)
 	switch _, err := goq.FirstID(ctx); {
 	case IsNotFound(err):
 		return false, nil
@@ -319,7 +322,7 @@ func (goq *GenerationOutputQuery) Clone() *GenerationOutputQuery {
 	return &GenerationOutputQuery{
 		config:                    goq.config,
 		ctx:                       goq.ctx.Clone(),
-		order:                     append([]OrderFunc{}, goq.order...),
+		order:                     append([]generationoutput.OrderOption{}, goq.order...),
 		inters:                    append([]Interceptor{}, goq.inters...),
 		predicates:                append([]predicate.GenerationOutput{}, goq.predicates...),
 		withGenerations:           goq.withGenerations.Clone(),
@@ -529,8 +532,11 @@ func (goq *GenerationOutputQuery) loadUpscaleOutputs(ctx context.Context, query 
 		fks = append(fks, nodes[i].ID)
 		nodeids[nodes[i].ID] = nodes[i]
 	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(upscaleoutput.FieldGenerationOutputID)
+	}
 	query.Where(predicate.UpscaleOutput(func(s *sql.Selector) {
-		s.Where(sql.InValues(generationoutput.UpscaleOutputsColumn, fks...))
+		s.Where(sql.InValues(s.C(generationoutput.UpscaleOutputsColumn), fks...))
 	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {
@@ -543,7 +549,7 @@ func (goq *GenerationOutputQuery) loadUpscaleOutputs(ctx context.Context, query 
 		}
 		node, ok := nodeids[*fk]
 		if !ok {
-			return fmt.Errorf(`unexpected foreign-key "generation_output_id" returned %v for node %v`, *fk, n.ID)
+			return fmt.Errorf(`unexpected referenced foreign-key "generation_output_id" returned %v for node %v`, *fk, n.ID)
 		}
 		assign(node, n)
 	}
@@ -559,8 +565,11 @@ func (goq *GenerationOutputQuery) loadGenerationOutputLikes(ctx context.Context,
 			init(nodes[i])
 		}
 	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(generationoutputlike.FieldOutputID)
+	}
 	query.Where(predicate.GenerationOutputLike(func(s *sql.Selector) {
-		s.Where(sql.InValues(generationoutput.GenerationOutputLikesColumn, fks...))
+		s.Where(sql.InValues(s.C(generationoutput.GenerationOutputLikesColumn), fks...))
 	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {
@@ -570,7 +579,7 @@ func (goq *GenerationOutputQuery) loadGenerationOutputLikes(ctx context.Context,
 		fk := n.OutputID
 		node, ok := nodeids[fk]
 		if !ok {
-			return fmt.Errorf(`unexpected foreign-key "output_id" returned %v for node %v`, fk, n.ID)
+			return fmt.Errorf(`unexpected referenced foreign-key "output_id" returned %v for node %v`, fk, n.ID)
 		}
 		assign(node, n)
 	}
@@ -590,20 +599,12 @@ func (goq *GenerationOutputQuery) sqlCount(ctx context.Context) (int, error) {
 }
 
 func (goq *GenerationOutputQuery) querySpec() *sqlgraph.QuerySpec {
-	_spec := &sqlgraph.QuerySpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   generationoutput.Table,
-			Columns: generationoutput.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeUUID,
-				Column: generationoutput.FieldID,
-			},
-		},
-		From:   goq.sql,
-		Unique: true,
-	}
+	_spec := sqlgraph.NewQuerySpec(generationoutput.Table, generationoutput.Columns, sqlgraph.NewFieldSpec(generationoutput.FieldID, field.TypeUUID))
+	_spec.From = goq.sql
 	if unique := goq.ctx.Unique; unique != nil {
 		_spec.Unique = *unique
+	} else if goq.path != nil {
+		_spec.Unique = true
 	}
 	if fields := goq.ctx.Fields; len(fields) > 0 {
 		_spec.Node.Columns = make([]string, 0, len(fields))
@@ -612,6 +613,9 @@ func (goq *GenerationOutputQuery) querySpec() *sqlgraph.QuerySpec {
 			if fields[i] != generationoutput.FieldID {
 				_spec.Node.Columns = append(_spec.Node.Columns, fields[i])
 			}
+		}
+		if goq.withGenerations != nil {
+			_spec.Node.AddColumnOnce(generationoutput.FieldGenerationID)
 		}
 	}
 	if ps := goq.predicates; len(ps) > 0 {
@@ -692,7 +696,7 @@ func (gogb *GenerationOutputGroupBy) Aggregate(fns ...AggregateFunc) *Generation
 
 // Scan applies the selector query and scans the result into the given value.
 func (gogb *GenerationOutputGroupBy) Scan(ctx context.Context, v any) error {
-	ctx = setContextOp(ctx, gogb.build.ctx, "GroupBy")
+	ctx = setContextOp(ctx, gogb.build.ctx, ent.OpQueryGroupBy)
 	if err := gogb.build.prepareQuery(ctx); err != nil {
 		return err
 	}
@@ -740,7 +744,7 @@ func (gos *GenerationOutputSelect) Aggregate(fns ...AggregateFunc) *GenerationOu
 
 // Scan applies the selector query and scans the result into the given value.
 func (gos *GenerationOutputSelect) Scan(ctx context.Context, v any) error {
-	ctx = setContextOp(ctx, gos.ctx, "Select")
+	ctx = setContextOp(ctx, gos.ctx, ent.OpQuerySelect)
 	if err := gos.prepareQuery(ctx); err != nil {
 		return err
 	}

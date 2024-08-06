@@ -37,6 +37,14 @@ func (ctu *CreditTypeUpdate) SetName(s string) *CreditTypeUpdate {
 	return ctu
 }
 
+// SetNillableName sets the "name" field if the given value is not nil.
+func (ctu *CreditTypeUpdate) SetNillableName(s *string) *CreditTypeUpdate {
+	if s != nil {
+		ctu.SetName(*s)
+	}
+	return ctu
+}
+
 // SetDescription sets the "description" field.
 func (ctu *CreditTypeUpdate) SetDescription(s string) *CreditTypeUpdate {
 	ctu.mutation.SetDescription(s)
@@ -61,6 +69,14 @@ func (ctu *CreditTypeUpdate) ClearDescription() *CreditTypeUpdate {
 func (ctu *CreditTypeUpdate) SetAmount(i int32) *CreditTypeUpdate {
 	ctu.mutation.ResetAmount()
 	ctu.mutation.SetAmount(i)
+	return ctu
+}
+
+// SetNillableAmount sets the "amount" field if the given value is not nil.
+func (ctu *CreditTypeUpdate) SetNillableAmount(i *int32) *CreditTypeUpdate {
+	if i != nil {
+		ctu.SetAmount(*i)
+	}
 	return ctu
 }
 
@@ -93,6 +109,14 @@ func (ctu *CreditTypeUpdate) ClearStripeProductID() *CreditTypeUpdate {
 // SetType sets the "type" field.
 func (ctu *CreditTypeUpdate) SetType(c credittype.Type) *CreditTypeUpdate {
 	ctu.mutation.SetType(c)
+	return ctu
+}
+
+// SetNillableType sets the "type" field if the given value is not nil.
+func (ctu *CreditTypeUpdate) SetNillableType(c *credittype.Type) *CreditTypeUpdate {
+	if c != nil {
+		ctu.SetType(*c)
+	}
 	return ctu
 }
 
@@ -146,7 +170,7 @@ func (ctu *CreditTypeUpdate) RemoveCredits(c ...*Credit) *CreditTypeUpdate {
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (ctu *CreditTypeUpdate) Save(ctx context.Context) (int, error) {
 	ctu.defaults()
-	return withHooks[int, CreditTypeMutation](ctx, ctu.sqlSave, ctu.mutation, ctu.hooks)
+	return withHooks(ctx, ctu.sqlSave, ctu.mutation, ctu.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -199,16 +223,7 @@ func (ctu *CreditTypeUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if err := ctu.check(); err != nil {
 		return n, err
 	}
-	_spec := &sqlgraph.UpdateSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   credittype.Table,
-			Columns: credittype.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeUUID,
-				Column: credittype.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewUpdateSpec(credittype.Table, credittype.Columns, sqlgraph.NewFieldSpec(credittype.FieldID, field.TypeUUID))
 	if ps := ctu.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
@@ -251,10 +266,7 @@ func (ctu *CreditTypeUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: []string{credittype.CreditsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: credit.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(credit.FieldID, field.TypeUUID),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -267,10 +279,7 @@ func (ctu *CreditTypeUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: []string{credittype.CreditsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: credit.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(credit.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -286,10 +295,7 @@ func (ctu *CreditTypeUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: []string{credittype.CreditsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: credit.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(credit.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -325,6 +331,14 @@ func (ctuo *CreditTypeUpdateOne) SetName(s string) *CreditTypeUpdateOne {
 	return ctuo
 }
 
+// SetNillableName sets the "name" field if the given value is not nil.
+func (ctuo *CreditTypeUpdateOne) SetNillableName(s *string) *CreditTypeUpdateOne {
+	if s != nil {
+		ctuo.SetName(*s)
+	}
+	return ctuo
+}
+
 // SetDescription sets the "description" field.
 func (ctuo *CreditTypeUpdateOne) SetDescription(s string) *CreditTypeUpdateOne {
 	ctuo.mutation.SetDescription(s)
@@ -349,6 +363,14 @@ func (ctuo *CreditTypeUpdateOne) ClearDescription() *CreditTypeUpdateOne {
 func (ctuo *CreditTypeUpdateOne) SetAmount(i int32) *CreditTypeUpdateOne {
 	ctuo.mutation.ResetAmount()
 	ctuo.mutation.SetAmount(i)
+	return ctuo
+}
+
+// SetNillableAmount sets the "amount" field if the given value is not nil.
+func (ctuo *CreditTypeUpdateOne) SetNillableAmount(i *int32) *CreditTypeUpdateOne {
+	if i != nil {
+		ctuo.SetAmount(*i)
+	}
 	return ctuo
 }
 
@@ -381,6 +403,14 @@ func (ctuo *CreditTypeUpdateOne) ClearStripeProductID() *CreditTypeUpdateOne {
 // SetType sets the "type" field.
 func (ctuo *CreditTypeUpdateOne) SetType(c credittype.Type) *CreditTypeUpdateOne {
 	ctuo.mutation.SetType(c)
+	return ctuo
+}
+
+// SetNillableType sets the "type" field if the given value is not nil.
+func (ctuo *CreditTypeUpdateOne) SetNillableType(c *credittype.Type) *CreditTypeUpdateOne {
+	if c != nil {
+		ctuo.SetType(*c)
+	}
 	return ctuo
 }
 
@@ -431,6 +461,12 @@ func (ctuo *CreditTypeUpdateOne) RemoveCredits(c ...*Credit) *CreditTypeUpdateOn
 	return ctuo.RemoveCreditIDs(ids...)
 }
 
+// Where appends a list predicates to the CreditTypeUpdate builder.
+func (ctuo *CreditTypeUpdateOne) Where(ps ...predicate.CreditType) *CreditTypeUpdateOne {
+	ctuo.mutation.Where(ps...)
+	return ctuo
+}
+
 // Select allows selecting one or more fields (columns) of the returned entity.
 // The default is selecting all fields defined in the entity schema.
 func (ctuo *CreditTypeUpdateOne) Select(field string, fields ...string) *CreditTypeUpdateOne {
@@ -441,7 +477,7 @@ func (ctuo *CreditTypeUpdateOne) Select(field string, fields ...string) *CreditT
 // Save executes the query and returns the updated CreditType entity.
 func (ctuo *CreditTypeUpdateOne) Save(ctx context.Context) (*CreditType, error) {
 	ctuo.defaults()
-	return withHooks[*CreditType, CreditTypeMutation](ctx, ctuo.sqlSave, ctuo.mutation, ctuo.hooks)
+	return withHooks(ctx, ctuo.sqlSave, ctuo.mutation, ctuo.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -494,16 +530,7 @@ func (ctuo *CreditTypeUpdateOne) sqlSave(ctx context.Context) (_node *CreditType
 	if err := ctuo.check(); err != nil {
 		return _node, err
 	}
-	_spec := &sqlgraph.UpdateSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   credittype.Table,
-			Columns: credittype.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeUUID,
-				Column: credittype.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewUpdateSpec(credittype.Table, credittype.Columns, sqlgraph.NewFieldSpec(credittype.FieldID, field.TypeUUID))
 	id, ok := ctuo.mutation.ID()
 	if !ok {
 		return nil, &ValidationError{Name: "id", err: errors.New(`ent: missing "CreditType.id" for update`)}
@@ -563,10 +590,7 @@ func (ctuo *CreditTypeUpdateOne) sqlSave(ctx context.Context) (_node *CreditType
 			Columns: []string{credittype.CreditsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: credit.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(credit.FieldID, field.TypeUUID),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -579,10 +603,7 @@ func (ctuo *CreditTypeUpdateOne) sqlSave(ctx context.Context) (_node *CreditType
 			Columns: []string{credittype.CreditsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: credit.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(credit.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -598,10 +619,7 @@ func (ctuo *CreditTypeUpdateOne) sqlSave(ctx context.Context) (_node *CreditType
 			Columns: []string{credittype.CreditsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: credit.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(credit.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

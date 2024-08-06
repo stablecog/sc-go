@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"time"
 
+	"entgo.io/ent/dialect/sql"
+	"entgo.io/ent/dialect/sql/sqlgraph"
 	"github.com/google/uuid"
 	"github.com/stablecog/sc-go/database/enttypes"
 )
@@ -242,4 +244,271 @@ func SourceTypeValidator(st enttypes.SourceType) error {
 	default:
 		return fmt.Errorf("generation: invalid enum value for source_type field: %q", st)
 	}
+}
+
+// OrderOption defines the ordering options for the Generation queries.
+type OrderOption func(*sql.Selector)
+
+// ByID orders the results by the id field.
+func ByID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldID, opts...).ToFunc()
+}
+
+// ByWidth orders the results by the width field.
+func ByWidth(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldWidth, opts...).ToFunc()
+}
+
+// ByHeight orders the results by the height field.
+func ByHeight(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldHeight, opts...).ToFunc()
+}
+
+// ByInferenceSteps orders the results by the inference_steps field.
+func ByInferenceSteps(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldInferenceSteps, opts...).ToFunc()
+}
+
+// ByGuidanceScale orders the results by the guidance_scale field.
+func ByGuidanceScale(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldGuidanceScale, opts...).ToFunc()
+}
+
+// ByNumOutputs orders the results by the num_outputs field.
+func ByNumOutputs(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldNumOutputs, opts...).ToFunc()
+}
+
+// ByNsfwCount orders the results by the nsfw_count field.
+func ByNsfwCount(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldNsfwCount, opts...).ToFunc()
+}
+
+// BySeed orders the results by the seed field.
+func BySeed(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldSeed, opts...).ToFunc()
+}
+
+// ByStatus orders the results by the status field.
+func ByStatus(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldStatus, opts...).ToFunc()
+}
+
+// ByFailureReason orders the results by the failure_reason field.
+func ByFailureReason(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldFailureReason, opts...).ToFunc()
+}
+
+// ByCountryCode orders the results by the country_code field.
+func ByCountryCode(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldCountryCode, opts...).ToFunc()
+}
+
+// ByInitImageURL orders the results by the init_image_url field.
+func ByInitImageURL(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldInitImageURL, opts...).ToFunc()
+}
+
+// ByMaskImageURL orders the results by the mask_image_url field.
+func ByMaskImageURL(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldMaskImageURL, opts...).ToFunc()
+}
+
+// ByPromptStrength orders the results by the prompt_strength field.
+func ByPromptStrength(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldPromptStrength, opts...).ToFunc()
+}
+
+// ByWasAutoSubmitted orders the results by the was_auto_submitted field.
+func ByWasAutoSubmitted(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldWasAutoSubmitted, opts...).ToFunc()
+}
+
+// ByStripeProductID orders the results by the stripe_product_id field.
+func ByStripeProductID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldStripeProductID, opts...).ToFunc()
+}
+
+// BySourceType orders the results by the source_type field.
+func BySourceType(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldSourceType, opts...).ToFunc()
+}
+
+// ByWebhookToken orders the results by the webhook_token field.
+func ByWebhookToken(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldWebhookToken, opts...).ToFunc()
+}
+
+// ByPromptID orders the results by the prompt_id field.
+func ByPromptID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldPromptID, opts...).ToFunc()
+}
+
+// ByNegativePromptID orders the results by the negative_prompt_id field.
+func ByNegativePromptID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldNegativePromptID, opts...).ToFunc()
+}
+
+// ByModelID orders the results by the model_id field.
+func ByModelID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldModelID, opts...).ToFunc()
+}
+
+// BySchedulerID orders the results by the scheduler_id field.
+func BySchedulerID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldSchedulerID, opts...).ToFunc()
+}
+
+// ByUserID orders the results by the user_id field.
+func ByUserID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldUserID, opts...).ToFunc()
+}
+
+// ByDeviceInfoID orders the results by the device_info_id field.
+func ByDeviceInfoID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldDeviceInfoID, opts...).ToFunc()
+}
+
+// ByAPITokenID orders the results by the api_token_id field.
+func ByAPITokenID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldAPITokenID, opts...).ToFunc()
+}
+
+// ByStartedAt orders the results by the started_at field.
+func ByStartedAt(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldStartedAt, opts...).ToFunc()
+}
+
+// ByCompletedAt orders the results by the completed_at field.
+func ByCompletedAt(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldCompletedAt, opts...).ToFunc()
+}
+
+// ByCreatedAt orders the results by the created_at field.
+func ByCreatedAt(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldCreatedAt, opts...).ToFunc()
+}
+
+// ByUpdatedAt orders the results by the updated_at field.
+func ByUpdatedAt(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldUpdatedAt, opts...).ToFunc()
+}
+
+// ByDeviceInfoField orders the results by device_info field.
+func ByDeviceInfoField(field string, opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newDeviceInfoStep(), sql.OrderByField(field, opts...))
+	}
+}
+
+// BySchedulerField orders the results by scheduler field.
+func BySchedulerField(field string, opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newSchedulerStep(), sql.OrderByField(field, opts...))
+	}
+}
+
+// ByPromptField orders the results by prompt field.
+func ByPromptField(field string, opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newPromptStep(), sql.OrderByField(field, opts...))
+	}
+}
+
+// ByNegativePromptField orders the results by negative_prompt field.
+func ByNegativePromptField(field string, opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newNegativePromptStep(), sql.OrderByField(field, opts...))
+	}
+}
+
+// ByGenerationModelField orders the results by generation_model field.
+func ByGenerationModelField(field string, opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newGenerationModelStep(), sql.OrderByField(field, opts...))
+	}
+}
+
+// ByUserField orders the results by user field.
+func ByUserField(field string, opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newUserStep(), sql.OrderByField(field, opts...))
+	}
+}
+
+// ByAPITokensField orders the results by api_tokens field.
+func ByAPITokensField(field string, opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newAPITokensStep(), sql.OrderByField(field, opts...))
+	}
+}
+
+// ByGenerationOutputsCount orders the results by generation_outputs count.
+func ByGenerationOutputsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newGenerationOutputsStep(), opts...)
+	}
+}
+
+// ByGenerationOutputs orders the results by generation_outputs terms.
+func ByGenerationOutputs(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newGenerationOutputsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+func newDeviceInfoStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(DeviceInfoInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, true, DeviceInfoTable, DeviceInfoColumn),
+	)
+}
+func newSchedulerStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(SchedulerInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, true, SchedulerTable, SchedulerColumn),
+	)
+}
+func newPromptStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(PromptInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, true, PromptTable, PromptColumn),
+	)
+}
+func newNegativePromptStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(NegativePromptInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, true, NegativePromptTable, NegativePromptColumn),
+	)
+}
+func newGenerationModelStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(GenerationModelInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, true, GenerationModelTable, GenerationModelColumn),
+	)
+}
+func newUserStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(UserInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, true, UserTable, UserColumn),
+	)
+}
+func newAPITokensStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(APITokensInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, true, APITokensTable, APITokensColumn),
+	)
+}
+func newGenerationOutputsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(GenerationOutputsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, GenerationOutputsTable, GenerationOutputsColumn),
+	)
 }

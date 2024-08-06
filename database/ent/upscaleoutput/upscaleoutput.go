@@ -5,6 +5,8 @@ package upscaleoutput
 import (
 	"time"
 
+	"entgo.io/ent/dialect/sql"
+	"entgo.io/ent/dialect/sql/sqlgraph"
 	"github.com/google/uuid"
 )
 
@@ -81,3 +83,74 @@ var (
 	// DefaultID holds the default value on creation for the "id" field.
 	DefaultID func() uuid.UUID
 )
+
+// OrderOption defines the ordering options for the UpscaleOutput queries.
+type OrderOption func(*sql.Selector)
+
+// ByID orders the results by the id field.
+func ByID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldID, opts...).ToFunc()
+}
+
+// ByImagePath orders the results by the image_path field.
+func ByImagePath(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldImagePath, opts...).ToFunc()
+}
+
+// ByInputImageURL orders the results by the input_image_url field.
+func ByInputImageURL(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldInputImageURL, opts...).ToFunc()
+}
+
+// ByUpscaleID orders the results by the upscale_id field.
+func ByUpscaleID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldUpscaleID, opts...).ToFunc()
+}
+
+// ByGenerationOutputID orders the results by the generation_output_id field.
+func ByGenerationOutputID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldGenerationOutputID, opts...).ToFunc()
+}
+
+// ByDeletedAt orders the results by the deleted_at field.
+func ByDeletedAt(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldDeletedAt, opts...).ToFunc()
+}
+
+// ByCreatedAt orders the results by the created_at field.
+func ByCreatedAt(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldCreatedAt, opts...).ToFunc()
+}
+
+// ByUpdatedAt orders the results by the updated_at field.
+func ByUpdatedAt(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldUpdatedAt, opts...).ToFunc()
+}
+
+// ByUpscalesField orders the results by upscales field.
+func ByUpscalesField(field string, opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newUpscalesStep(), sql.OrderByField(field, opts...))
+	}
+}
+
+// ByGenerationOutputField orders the results by generation_output field.
+func ByGenerationOutputField(field string, opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newGenerationOutputStep(), sql.OrderByField(field, opts...))
+	}
+}
+func newUpscalesStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(UpscalesInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, true, UpscalesTable, UpscalesColumn),
+	)
+}
+func newGenerationOutputStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(GenerationOutputInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2O, true, GenerationOutputTable, GenerationOutputColumn),
+	)
+}

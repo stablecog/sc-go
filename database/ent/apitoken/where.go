@@ -590,11 +590,7 @@ func HasUser() predicate.ApiToken {
 // HasUserWith applies the HasEdge predicate on the "user" edge with a given conditions (other predicates).
 func HasUserWith(preds ...predicate.User) predicate.ApiToken {
 	return predicate.ApiToken(func(s *sql.Selector) {
-		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(UserInverseTable, FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, UserTable, UserColumn),
-		)
+		step := newUserStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)
@@ -617,11 +613,7 @@ func HasGenerations() predicate.ApiToken {
 // HasGenerationsWith applies the HasEdge predicate on the "generations" edge with a given conditions (other predicates).
 func HasGenerationsWith(preds ...predicate.Generation) predicate.ApiToken {
 	return predicate.ApiToken(func(s *sql.Selector) {
-		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(GenerationsInverseTable, FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, GenerationsTable, GenerationsColumn),
-		)
+		step := newGenerationsStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)
@@ -644,11 +636,7 @@ func HasUpscales() predicate.ApiToken {
 // HasUpscalesWith applies the HasEdge predicate on the "upscales" edge with a given conditions (other predicates).
 func HasUpscalesWith(preds ...predicate.Upscale) predicate.ApiToken {
 	return predicate.ApiToken(func(s *sql.Selector) {
-		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(UpscalesInverseTable, FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, UpscalesTable, UpscalesColumn),
-		)
+		step := newUpscalesStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)
@@ -671,11 +659,7 @@ func HasVoiceovers() predicate.ApiToken {
 // HasVoiceoversWith applies the HasEdge predicate on the "voiceovers" edge with a given conditions (other predicates).
 func HasVoiceoversWith(preds ...predicate.Voiceover) predicate.ApiToken {
 	return predicate.ApiToken(func(s *sql.Selector) {
-		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(VoiceoversInverseTable, FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, VoiceoversTable, VoiceoversColumn),
-		)
+		step := newVoiceoversStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)
@@ -698,11 +682,7 @@ func HasAuthClients() predicate.ApiToken {
 // HasAuthClientsWith applies the HasEdge predicate on the "auth_clients" edge with a given conditions (other predicates).
 func HasAuthClientsWith(preds ...predicate.AuthClient) predicate.ApiToken {
 	return predicate.ApiToken(func(s *sql.Selector) {
-		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(AuthClientsInverseTable, FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, AuthClientsTable, AuthClientsColumn),
-		)
+		step := newAuthClientsStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)
@@ -713,32 +693,15 @@ func HasAuthClientsWith(preds ...predicate.AuthClient) predicate.ApiToken {
 
 // And groups predicates with the AND operator between them.
 func And(predicates ...predicate.ApiToken) predicate.ApiToken {
-	return predicate.ApiToken(func(s *sql.Selector) {
-		s1 := s.Clone().SetP(nil)
-		for _, p := range predicates {
-			p(s1)
-		}
-		s.Where(s1.P())
-	})
+	return predicate.ApiToken(sql.AndPredicates(predicates...))
 }
 
 // Or groups predicates with the OR operator between them.
 func Or(predicates ...predicate.ApiToken) predicate.ApiToken {
-	return predicate.ApiToken(func(s *sql.Selector) {
-		s1 := s.Clone().SetP(nil)
-		for i, p := range predicates {
-			if i > 0 {
-				s1.Or()
-			}
-			p(s1)
-		}
-		s.Where(s1.P())
-	})
+	return predicate.ApiToken(sql.OrPredicates(predicates...))
 }
 
 // Not applies the not operator on the given predicate.
 func Not(p predicate.ApiToken) predicate.ApiToken {
-	return predicate.ApiToken(func(s *sql.Selector) {
-		p(s.Not())
-	})
+	return predicate.ApiToken(sql.NotPredicates(p))
 }
