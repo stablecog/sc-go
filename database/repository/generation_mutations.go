@@ -90,7 +90,7 @@ func (r *Repository) SetGenerationFailed(generationID string, reason string, nsf
 	return err
 }
 
-func (r *Repository) SetGenerationSucceeded(generationID string, promptStr string, negativePrompt string, submitToGallery bool, whOutput requests.CogWebhookOutput, nsfwCount int32) ([]*ent.GenerationOutput, error) {
+func (r *Repository) SetGenerationSucceeded(generationID string, promptStr string, translatedPrompt string, negativePrompt string, translatedNegativePrompt string, submitToGallery bool, whOutput requests.CogWebhookOutput, nsfwCount int32) ([]*ent.GenerationOutput, error) {
 	uid, err := uuid.Parse(generationID)
 	if err != nil {
 		log.Error("Error parsing generation id in SetGenerationSucceeded", "id", generationID, "err", err)
@@ -108,7 +108,7 @@ func (r *Repository) SetGenerationSucceeded(generationID string, promptStr strin
 		db := tx.Client()
 
 		// Get prompt IDs
-		promptId, negativePromptId, err := r.GetOrCreatePrompts(promptStr, negativePrompt, prompt.TypeImage, db)
+		promptId, negativePromptId, err := r.GetOrCreatePrompts(promptStr, translatedPrompt, negativePrompt, translatedNegativePrompt, prompt.TypeImage, db)
 		if err != nil {
 			log.Error("Error getting or creating prompts", "id", generationID, "err", err, "prompt", promptStr, "negativePrompt", negativePrompt)
 			return err

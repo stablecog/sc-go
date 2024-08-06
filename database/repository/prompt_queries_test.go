@@ -14,10 +14,10 @@ import (
 
 func TestGetUsersUniquePromptIds(t *testing.T) {
 	// Create 2 prompts
-	p1, _, err := MockRepo.GetOrCreatePrompts("TestGetUsersUniquePromptIds_1", "", prompt.TypeImage, nil)
+	p1, _, err := MockRepo.GetOrCreatePrompts("TestGetUsersUniquePromptIds_1", "TestGetUsersUniquePromptIds_1", "", "", prompt.TypeImage, nil)
 	assert.Nil(t, err)
 	assert.NotNil(t, p1)
-	p2, _, err := MockRepo.GetOrCreatePrompts("TestGetUsersUniquePromptIds_2", "", prompt.TypeImage, nil)
+	p2, _, err := MockRepo.GetOrCreatePrompts("TestGetUsersUniquePromptIds_2", "TestGetUsersUniquePromptIds_2", "", "", prompt.TypeImage, nil)
 	assert.Nil(t, err)
 	assert.NotNil(t, p2)
 
@@ -51,7 +51,7 @@ func TestGetUsersUniquePromptIds(t *testing.T) {
 	gen1, err := MockRepo.CreateGeneration(uuid.MustParse(MOCK_ADMIN_UUID), "browser", "macos", "chrome", "DE", g1, nil, nil, enttypes.SourceTypeWebUI, nil)
 	assert.Nil(t, err)
 	assert.NotNil(t, gen1)
-	_, err = MockRepo.SetGenerationSucceeded(gen1.ID.String(), "TestGetUsersUniquePromptIds_1", "", true, requests.CogWebhookOutput{
+	_, err = MockRepo.SetGenerationSucceeded(gen1.ID.String(), "TestGetUsersUniquePromptIds_1", "TestGetUsersUniquePromptIds_1", "", "", true, requests.CogWebhookOutput{
 		Images: []requests.CogWebhookOutputImage{{
 			Image: "1.jpeg",
 		}},
@@ -62,7 +62,7 @@ func TestGetUsersUniquePromptIds(t *testing.T) {
 	gen2, err := MockRepo.CreateGeneration(uuid.MustParse(MOCK_NORMAL_UUID), "browser", "macos", "chrome", "DE", g2, nil, nil, enttypes.SourceTypeWebUI, nil)
 	assert.Nil(t, err)
 	assert.NotNil(t, gen2)
-	_, err = MockRepo.SetGenerationSucceeded(gen2.ID.String(), "TestGetUsersUniquePromptIds_2", "", true, requests.CogWebhookOutput{
+	_, err = MockRepo.SetGenerationSucceeded(gen2.ID.String(), "TestGetUsersUniquePromptIds_2", "TestGetUsersUniquePromptIds_2", "", "", true, requests.CogWebhookOutput{
 		Images: []requests.CogWebhookOutputImage{{
 			Image: "2.jpeg",
 		}},
@@ -72,7 +72,7 @@ func TestGetUsersUniquePromptIds(t *testing.T) {
 	gen3, err := MockRepo.CreateGeneration(uuid.MustParse(MOCK_ADMIN_UUID), "browser", "macos", "chrome", "DE", g2, nil, nil, enttypes.SourceTypeWebUI, nil)
 	assert.Nil(t, err)
 	assert.NotNil(t, gen3)
-	_, err = MockRepo.SetGenerationSucceeded(gen3.ID.String(), "TestGetUsersUniquePromptIds_2", "", true, requests.CogWebhookOutput{
+	_, err = MockRepo.SetGenerationSucceeded(gen3.ID.String(), "TestGetUsersUniquePromptIds_2", "TestGetUsersUniquePromptIds_2", "", "", true, requests.CogWebhookOutput{
 		Images: []requests.CogWebhookOutputImage{{
 			Image: "3.jpeg",
 		}},

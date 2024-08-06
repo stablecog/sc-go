@@ -9,7 +9,7 @@ import (
 )
 
 // Create device info and prompts if they don't exist, otherwise get existing
-func (r *Repository) GetOrCreatePrompts(promptText, negativePromptText string, promptType prompt.Type, DB *ent.Client) (promptId *uuid.UUID, negativePromptId *uuid.UUID, err error) {
+func (r *Repository) GetOrCreatePrompts(promptText, translatedPromptText string, negativePromptText string, translatedNegativePromptText string, promptType prompt.Type, DB *ent.Client) (promptId *uuid.UUID, negativePromptId *uuid.UUID, err error) {
 	if DB == nil {
 		DB = r.DB
 	}
@@ -18,8 +18,11 @@ func (r *Repository) GetOrCreatePrompts(promptText, negativePromptText string, p
 	dbPrompt, err = DB.Prompt.Query().Where(prompt.TextEQ(promptText), prompt.TypeEQ(promptType)).First(r.Ctx)
 	if err != nil {
 		if ent.IsNotFound(err) {
-			// Create prompt
-			dbPrompt, err = DB.Prompt.Create().SetText(promptText).SetType(promptType).Save(r.Ctx)
+			query := DB.Prompt.Create().SetText(promptText).SetRanTranslation(true).SetType(promptType)
+			if promptText != translatedPromptText {
+				query.SetTranslatedText(translatedPromptText)
+			}
+			dbPrompt, err = query.Save(r.Ctx)
 			if err != nil {
 				return promptId, negativePromptId, err
 			}
@@ -34,8 +37,11 @@ func (r *Repository) GetOrCreatePrompts(promptText, negativePromptText string, p
 		dbNegativePrompt, err = DB.NegativePrompt.Query().Where(negativeprompt.TextEQ(negativePromptText)).First(r.Ctx)
 		if err != nil {
 			if ent.IsNotFound(err) {
-				// Create negative prompt
-				dbNegativePrompt, err = DB.NegativePrompt.Create().SetText(negativePromptText).Save(r.Ctx)
+				query := DB.NegativePrompt.Create().SetText(negativePromptText).SetRanTranslation(true)
+				if negativePromptText != translatedNegativePromptText {
+					query.SetTranslatedText(translatedNegativePromptText)
+				}
+				dbNegativePrompt, err = query.Save(r.Ctx)
 				if err != nil {
 					return promptId, negativePromptId, err
 				}

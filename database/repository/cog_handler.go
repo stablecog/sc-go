@@ -351,7 +351,7 @@ func (r *Repository) ProcessCogMessage(msg requests.CogWebhookMessage) error {
 			} else if msg.Input.ProcessType == shared.VOICEOVER {
 				voiceoverOutput, err = r.SetVoiceoverSucceeded(msg.Input.ID.String(), msg.Input.Prompt, msg.Input.SubmitToGallery, msg.Output)
 			} else {
-				generationOutputs, err = r.SetGenerationSucceeded(msg.Input.ID.String(), msg.Input.OriginalPrompt, msg.Input.OriginalNegativePrompt, msg.Input.SubmitToGallery, msg.Output, msg.NSFWCount)
+				generationOutputs, err = r.SetGenerationSucceeded(msg.Input.ID.String(), msg.Input.OriginalPrompt, msg.Input.Prompt, msg.Input.OriginalNegativePrompt, msg.Input.NegativePrompt, msg.Input.SubmitToGallery, msg.Output, msg.NSFWCount)
 			}
 			if err != nil {
 				log.Error("Error setting process succeeded", "process_type", msg.Input.ProcessType, "id", msg.Input.ID, "err", err)

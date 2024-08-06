@@ -18,7 +18,7 @@ func TestQueryUserOperations(t *testing.T) {
 	assert.Nil(t, err)
 	assert.NotNil(t, g)
 	assert.Nil(t, MockRepo.SetGenerationStarted(g.ID.String()))
-	outputs, err := MockRepo.SetGenerationSucceeded(g.ID.String(), "TestQueryUserOperations_!", "", true, requests.CogWebhookOutput{
+	outputs, err := MockRepo.SetGenerationSucceeded(g.ID.String(), "TestQueryUserOperations_!", "TestQueryUserOperations_!", "", "", true, requests.CogWebhookOutput{
 		Images: []requests.CogWebhookOutputImage{{
 			Image: "3.jpeg",
 		}},
