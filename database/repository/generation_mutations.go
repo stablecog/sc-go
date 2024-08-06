@@ -214,3 +214,78 @@ func (r *Repository) SetGenerationSucceeded(generationID string, promptStr strin
 
 	return outputRet, nil
 }
+
+func GetEmbeddingsAndInsertIntoQdrant(r *Repository, generation *ent.Generation, outputs []*ent.GenerationOutput, generationID string, promptStr string, negativePrompt string, isPublic bool) (err error) {
+	imageEmbedPlaceholder := []float32{0.0}
+	// Transaction
+	if err := r.WithTx(func(tx *ent.Tx) error {
+		if err != nil {
+			log.Error("Error starting transaction in GetEmbeddingsAndInsertIntoQdrant", "id", generationID, "err", err)
+			return err
+		}
+		db := tx.Client()
+		// Insert all generation outputs
+		for _, output := range outputs {
+			_, err := db.GenerationOutput.Update().
+				Where(generationoutput.IDEQ(output.ID)).
+				SetHasEmbeddings(true).
+				SetAestheticArtifactScore(output.AestheticArtifactScore).
+				SetAestheticRatingScore(output.AestheticRatingScore).
+				Save(r.Ctx)
+			if err != nil {
+				log.Error("Error updating generation output", "id", output.ID, "err", err)
+				return err
+			}
+			if r.Qdrant != nil {
+				payload := map[string]interface{}{
+					"image_path":               output.ImagePath,
+					"gallery_status":           output.GalleryStatus,
+					"is_favorited":             output.IsFavorited,
+					"created_at":               output.CreatedAt.Unix(),
+					"updated_at":               output.UpdatedAt.Unix(),
+					"was_auto_submitted":       generation.WasAutoSubmitted,
+					"guidance_scale":           generation.GuidanceScale,
+					"inference_steps":          generation.InferenceSteps,
+					"prompt_strength":          generation.PromptStrength,
+					"height":                   generation.Height,
+					"width":                    generation.Width,
+					"model":                    generation.ModelID.String(),
+					"scheduler":                generation.SchedulerID.String(),
+					"user_id":                  generation.UserID.String(),
+					"generation_id":            generation.ID.String(),
+					"prompt":                   promptStr,
+					"prompt_id":                generation.PromptID.String(),
+					"is_public":                isPublic,
+					"aesthetic_rating_score":   output.AestheticRatingScore,
+					"aesthetic_artifact_score": output.AestheticArtifactScore,
+				}
+				if output.UpscaledImagePath != nil {
+					payload["upscaled_image_path"] = *output.UpscaledImagePath
+				}
+				if generation.InitImageURL != nil {
+					payload["init_image_url"] = *generation.InitImageURL
+				}
+				if negativePrompt != "" {
+					payload["negative_prompt"] = negativePrompt
+				}
+				err = r.Qdrant.Upsert(
+					output.ID,
+					payload,
+					imageEmbedPlaceholder,
+					false,
+				)
+				if err != nil {
+					log.Error("Error upserting to qdrant", "id", generationID, "err", err)
+					return err
+				}
+			} else {
+				log.Warn("Qdrant client not initialized, not adding to qdrant")
+			}
+		}
+		return nil
+	}); err != nil {
+		log.Error("Error starting transaction in SetGenerationSucceeded", "id", generationID, "err", err)
+		return err
+	}
+	return nil
+}
