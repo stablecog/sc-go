@@ -97,6 +97,8 @@ type SCEnv struct {
 	VastAiKey string `env:"VASTAI_KEY"` // Vast.ai Key
 	// SC Worker Tester API Key
 	ScWorkerTesterApiKey string `env:"SC_WORKER_TESTER_API_KEY" envDefault:""` // SC Worker Tester API Key
+	ClipApiUrl           string `env:"CLIP_API_URL"`                           // Clip API URL
+	ClipApiAuthToken     string `env:"CLIP_API_AUTH_TOKEN"`                    // Clip API Auth Token
 }
 
 // The package-level instance and its initialization controls.
