@@ -21,6 +21,8 @@ func (Prompt) Fields() []ent.Field {
 	return []ent.Field{
 		field.UUID("id", uuid.UUID{}).Default(uuid.New),
 		field.Text("text"),
+		field.Text("translated_text").Optional().Nillable(),
+		field.Bool("ran_translation").Default(false),
 		field.Enum("type").Values("image", "voiceover"),
 		field.Time("created_at").Default(time.Now).Immutable(),
 		field.Time("updated_at").Default(time.Now).UpdateDefault(time.Now),
