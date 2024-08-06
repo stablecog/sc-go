@@ -230,6 +230,8 @@ ALTER TABLE public.generations OWNER TO postgres;
 CREATE TABLE public.negative_prompts (
     id uuid DEFAULT extensions.uuid_generate_v4() NOT NULL,
     text text NOT NULL,
+    translated_text text,
+    ran_translation boolean DEFAULT false NOT NULL,
     created_at timestamp with time zone DEFAULT (now() AT TIME ZONE 'utc'::text) NOT NULL,
     updated_at timestamp with time zone DEFAULT (now() AT TIME ZONE 'utc'::text) NOT NULL
 );
@@ -248,6 +250,8 @@ ALTER TABLE public.negative_prompts OWNER TO postgres;
 CREATE TABLE public.prompts (
     id uuid DEFAULT extensions.uuid_generate_v4() NOT NULL,
     text text NOT NULL,
+    translated_text text,
+    ran_translation boolean DEFAULT false NOT NULL,
     created_at timestamp with time zone DEFAULT (now() AT TIME ZONE 'utc'::text) NOT NULL,
     updated_at timestamp with time zone DEFAULT (now() AT TIME ZONE 'utc'::text) NOT NULL
 );
