@@ -43,10 +43,11 @@ func (r *Repository) GetPromptFromOutputID(outputID uuid.UUID) (string, error) {
 }
 
 func (r *Repository) GetOutputsWithNoEmbedding() ([]*ent.GenerationOutput, error) {
-	outputs, err := r.DB.GenerationOutput.Query().Where(
-		generationoutput.HasEmbeddings(false),
-		generationoutput.ImagePathNEQ("placeholder.webp"),
-	).
+	outputs, err := r.DB.GenerationOutput.Query().
+		Where(
+			generationoutput.HasEmbeddings(false),
+			generationoutput.ImagePathNEQ("placeholder.webp"),
+		).
 		WithGenerations(func(gen *ent.GenerationQuery) {
 			gen.
 				WithPrompt().
