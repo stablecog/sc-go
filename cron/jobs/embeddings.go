@@ -71,7 +71,7 @@ func (j *JobRunner) HandleOutputsWithNoEmbedding(log Logger) error {
 				return goErr
 			}
 
-			if r.Qdrant == nil {
+			if j.Qdrant == nil {
 				log.Infof("Qdrant client not initialized, not adding to qdrant")
 				return fmt.Errorf("Qdrant client not initialized")
 			}
@@ -127,7 +127,7 @@ func (j *JobRunner) HandleOutputsWithNoEmbedding(log Logger) error {
 			if negativePromptObj.Text != "" {
 				payload["negative_prompt"] = negativePromptObj.Text
 			}
-			err = r.Qdrant.Upsert(
+			err = j.Qdrant.Upsert(
 				output.ID,
 				payload,
 				embedding.Embedding,
