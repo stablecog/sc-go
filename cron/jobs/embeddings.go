@@ -144,7 +144,7 @@ func (j *JobRunner) HandleOutputsWithNoEmbedding(log Logger) error {
 
 	e := time.Since(s)
 
-	log.Infof("Job complete | %d item(s) | %dms", len(outputs), e.Milliseconds())
+	log.Infof("✅ Job complete | %d item(s) | %dms", len(outputs), e.Milliseconds())
 
 	return nil
 }
