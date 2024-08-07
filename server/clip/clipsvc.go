@@ -188,6 +188,7 @@ func (c *ClipService) GetEmbeddingsV2(toEmbedObjects []EmbeddingReqObject) (embe
 	url := c.apiUrl + "/embed"
 	request, _ := http.NewRequest(http.MethodPost, url, bytes.NewReader(b))
 	request.Header.Add("Authorization", c.apiAuthToken)
+	request.Header.Add("Content-Type", "application/json")
 
 	// Do
 	resp, err := c.client.Do(request)
@@ -198,7 +199,7 @@ func (c *ClipService) GetEmbeddingsV2(toEmbedObjects []EmbeddingReqObject) (embe
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		log.Error("[] Error sending clip request", "status", resp.StatusCode, "url", url, "response", resp.Body)
+		log.Error("[] Error sending clip request", "status", resp.StatusCode, "url", url, "response", resp.Body, "requestHeaders", request.Header)
 		return nil, errors.New("clip request failed")
 	}
 
