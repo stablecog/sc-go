@@ -45,7 +45,7 @@ func (r *Repository) GetOutputsWithNoEmbedding() ([]*ent.GenerationOutput, error
 	outputs, err := r.DB.GenerationOutput.Query().Where(
 		generationoutput.HasEmbeddings(false),
 	).WithGenerations(func(g *ent.GenerationQuery) {
-		g.WithPrompt().Where(generation.StatusEQ(generation.StatusSucceeded)).All(r.Ctx)
+		g.WithPrompt().Where(generation.StatusEQ(generation.StatusSucceeded))
 	}).Limit(50).All(r.Ctx)
 
 	if err != nil {
