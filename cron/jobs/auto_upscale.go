@@ -57,7 +57,7 @@ func (j *JobRunner) StartAutoUpscaleJob(log Logger) {
 				continue
 			}
 			if len(unscaledOutputs) == 0 {
-				log.Infof("No non-unscaled outputs found")
+				log.Infof("No not upscaled outputs found")
 				time.Sleep(shared.AUTO_UPSCALE_RETRY_DURATION)
 				continue
 			}
