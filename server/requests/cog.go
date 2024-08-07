@@ -101,10 +101,7 @@ const (
 
 // Msg from sc-worker to redis channel
 type CogWebhookOutputImage struct {
-	Image                  string    `json:"image"`
-	ImageEmbed             []float32 `json:"image_embed"`
-	AestheticRatingScore   float32   `json:"aesthetic_rating_score"`
-	AestheticArtifactScore float32   `json:"aesthetic_artifact_score"`
+	Image string `json:"image"`
 }
 
 type CogWebhookOutputAudio struct {
@@ -115,9 +112,8 @@ type CogWebhookOutputAudio struct {
 }
 
 type CogWebhookOutput struct {
-	PromptEmbed []float32               `json:"prompt_embed"`
-	Images      []CogWebhookOutputImage `json:"images"`
-	AudioFiles  []CogWebhookOutputAudio `json:"audio_files"`
+	Images     []CogWebhookOutputImage `json:"images"`
+	AudioFiles []CogWebhookOutputAudio `json:"audio_files"`
 }
 
 type CogWebhookMessage struct {
