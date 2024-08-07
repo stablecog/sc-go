@@ -42,7 +42,7 @@ func (r *Repository) GetPromptFromOutputID(outputID uuid.UUID) (string, error) {
 }
 
 func (r *Repository) GetOutputsWithNoEmbedding(limit int) ([]*ent.GenerationOutput, error) {
-	outputs, err := r.DB.GenerationOutput.Query().
+	query := r.DB.Debug().GenerationOutput.Query().
 		Where(
 			generationoutput.HasEmbeddings(false),
 			generationoutput.ImagePathNEQ("placeholder.webp"),
@@ -54,8 +54,9 @@ func (r *Repository) GetOutputsWithNoEmbedding(limit int) ([]*ent.GenerationOutp
 			q.WithPrompt().WithNegativePrompt()
 		}).
 		Order(ent.Asc(generationoutput.FieldCreatedAt)).
-		Limit(limit).
-		All(r.Ctx)
+		Limit(limit)
+
+	outputs, err := query.All(r.Ctx)
 
 	if err != nil {
 		return nil, err
