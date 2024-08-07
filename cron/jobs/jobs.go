@@ -11,6 +11,7 @@ import (
 	"github.com/stablecog/sc-go/database/repository"
 	"github.com/stablecog/sc-go/log"
 	"github.com/stablecog/sc-go/server/analytics"
+	"github.com/stablecog/sc-go/server/clip"
 	"github.com/stablecog/sc-go/shared/queue"
 	stripe "github.com/stripe/stripe-go/v74/client"
 )
@@ -26,6 +27,7 @@ type JobRunner struct {
 	S3Img2Img *s3.S3
 	Qdrant    *qdrant.QdrantClient
 	MQClient  queue.MQClient
+	CLIP      *clip.ClipService
 }
 
 // Just wrap logger so we can include the job name without repeating it

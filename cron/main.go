@@ -21,6 +21,8 @@ import (
 	"github.com/stablecog/sc-go/database/repository"
 	"github.com/stablecog/sc-go/log"
 	"github.com/stablecog/sc-go/server/analytics"
+	"github.com/stablecog/sc-go/server/clip"
+	"github.com/stablecog/sc-go/server/translator"
 	"github.com/stablecog/sc-go/shared/queue"
 	"github.com/stablecog/sc-go/utils"
 	stripe "github.com/stripe/stripe-go/v74/client"
@@ -135,6 +137,8 @@ func main() {
 		os.Exit(1)
 	}
 
+	safetyChecker := translator.NewTranslatorSafetyChecker(ctx, utils.GetEnv().OpenAIApiKey, false, redis)
+
 	// Setup rabbitmq client
 	rabbitmqClient, err := queue.NewRabbitMQClient(ctx, utils.GetEnv().RabbitMQAMQPUrl)
 	if err != nil {
@@ -154,6 +158,7 @@ func main() {
 		S3Img2Img: s3Img2ImgClient,
 		Qdrant:    qdrantClient,
 		MQClient:  rabbitmqClient,
+		CLIP:      clip.NewClipService(redis, safetyChecker),
 	}
 
 	if *healthCheck {

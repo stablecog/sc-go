@@ -1,6 +1,11 @@
 package jobs
 
-import "time"
+import (
+	"time"
+
+	"github.com/stablecog/sc-go/server/clip"
+	"github.com/stablecog/sc-go/utils"
+)
 
 const EMBEDDINGS_JOB_NAME = "EMBEDDINGS_JOB"
 
@@ -14,12 +19,38 @@ func (j *JobRunner) HandleOutputsWithNoEmbedding(log Logger) error {
 		return err
 	}
 
-	e := time.Since(s)
+	m := time.Since(s)
 	if len(outputs) > 0 {
-		log.Infof("Found %d outputs with no embeddings: %dms", len(outputs), e.Milliseconds())
+		log.Infof("Found %d outputs with no embeddings: %dms", len(outputs), m.Milliseconds())
 	} else {
-		log.Infof("No outputs found with no embeddings: %dms", e.Milliseconds())
+		log.Infof("No outputs found with no embeddings: %dms", m.Milliseconds())
 	}
+
+	log.Infof("Getting embeddings...")
+
+	for _, output := range outputs {
+		tOutput := time.Now()
+		res, err := j.CLIP.GetEmbeddingsV2([]clip.EmbeddingReqObject{
+			{
+				Image:          utils.GetEnv().GetURLFromImagePath(output.ImagePath),
+				CalculateScore: true,
+			},
+		})
+		if err != nil {
+			log.Errorf("Error getting embeddings for output %d: %v", output.ID, err)
+			continue
+		}
+		if len(res) != len(outputs) {
+			log.Errorf("Embedding response length mismatch: %d != %d", len(res), len(outputs))
+			continue
+		}
+		mOutput := time.Since(tOutput)
+		log.Infof("Got embeddings for output: %dms", output.ID, mOutput.Milliseconds())
+	}
+
+	e := time.Since(s)
+
+	log.Infof("Job complete: %dms", e.Milliseconds())
 
 	return nil
 }
