@@ -51,6 +51,7 @@ func (r *Repository) GetOutputsWithNoEmbedding(limit int) ([]*ent.GenerationOutp
 		WithGenerations(func(gen *ent.GenerationQuery) {
 			gen.
 				WithPrompt().
+				WithNegativePrompt().
 				Where(generation.StatusEQ(generation.StatusSucceeded))
 		}).
 		Order(generationoutput.ByCreatedAt(sql.OrderAsc())).
@@ -62,4 +63,22 @@ func (r *Repository) GetOutputsWithNoEmbedding(limit int) ([]*ent.GenerationOutp
 	}
 
 	return outputs, err
+}
+
+func (r *Repository) SetHasEmbeddingsAndScores(
+	id uuid.UUID,
+	hasEmbeddings bool,
+	ratingScore float32,
+	artifactScore float32,
+) (*ent.GenerationOutput, error) {
+	output, err := r.DB.GenerationOutput.
+		UpdateOneID(id).
+		SetAestheticArtifactScore(artifactScore).
+		SetAestheticRatingScore(ratingScore).
+		SetHasEmbeddings(true).
+		Save(r.Ctx)
+	if err != nil {
+		return nil, err
+	}
+	return output, err
 }

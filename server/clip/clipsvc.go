@@ -227,8 +227,9 @@ func (c *ClipService) GetEmbeddingsV2(toEmbedObjects []EmbeddingReqObject) (embe
 	for i, embedding := range clipAPIResponse.Embeddings {
 		input := toEmbedObjects[i]
 		result = append(result, EmbeddingResObject{
-			Embedding: embedding.Embedding,
-			Input:     input,
+			Embedding:      embedding.Embedding,
+			Input:          input,
+			AestheticScore: embedding.AestheticScore,
 		})
 	}
 
@@ -357,6 +358,7 @@ type EmbeddingReqObject struct {
 }
 
 type EmbeddingResObject struct {
-	Input     EmbeddingReqObject `json:"input"`
-	Embedding []float32          `json:"embedding"`
+	Input          EmbeddingReqObject `json:"input"`
+	Embedding      []float32          `json:"embedding"`
+	AestheticScore *AestheticScore    `json:"aesthetic_score,omitempty"`
 }
