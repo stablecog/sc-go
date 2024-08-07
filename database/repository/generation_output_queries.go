@@ -46,11 +46,14 @@ func (r *Repository) GetOutputsWithNoEmbedding() ([]*ent.GenerationOutput, error
 	outputs, err := r.DB.GenerationOutput.Query().Where(
 		generationoutput.HasEmbeddings(false),
 		generationoutput.ImagePathNEQ("placeholder.webp"),
-	).WithGenerations(func(gen *ent.GenerationQuery) {
-		gen.
-			WithPrompt().
-			Where(generation.StatusEQ(generation.StatusSucceeded))
-	}).Order(generationoutput.ByCreatedAt(sql.OrderAsc())).All(r.Ctx)
+	).
+		WithGenerations(func(gen *ent.GenerationQuery) {
+			gen.
+				WithPrompt().
+				Where(generation.StatusEQ(generation.StatusSucceeded))
+		}).
+		Order(generationoutput.ByCreatedAt(sql.OrderAsc())).
+		All(r.Ctx)
 
 	if err != nil {
 		return nil, err
