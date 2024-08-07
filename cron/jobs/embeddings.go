@@ -37,7 +37,7 @@ func (j *JobRunner) HandleOutputsWithNoEmbedding(log Logger) error {
 			},
 		})
 		if err != nil {
-			log.Errorf("Error getting embeddings for output %s: %v", output.ID.String(), err)
+			log.Errorf(`Error getting embeddings for "%s": %v`, output.ID.String(), err)
 			continue
 		}
 		if len(res) != len(outputs) {
@@ -45,7 +45,7 @@ func (j *JobRunner) HandleOutputsWithNoEmbedding(log Logger) error {
 			continue
 		}
 		mOutput := time.Since(tOutput)
-		log.Infof("Got embeddings for output: %dms", output.ID, mOutput.Milliseconds())
+		log.Infof(`Got embeddings for "%s": %dms`, output.ID.String(), mOutput.Milliseconds())
 	}
 
 	e := time.Since(s)
