@@ -177,49 +177,48 @@ func (c *ClipService) GetEmbeddingsV2(toEmbedObjects []EmbeddingReqObject) (embe
 		}
 	}
 
-	// Http POST to endpoint with auth token
-	// Marshal req
 	b, err := json.Marshal(req)
 	if err != nil {
-		log.Errorf("[] Error marshalling req %v", err)
+		log.Errorf("[] Error marshalling req: %v", err)
 		return nil, err
 	}
-
-	log.Infof("Request is %s", string(b))
 
 	url := c.apiUrl + "/embed"
 	request, _ := http.NewRequest(http.MethodPost, url, bytes.NewReader(b))
 	request.Header.Add("Authorization", c.apiAuthToken)
 	request.Header.Add("Content-Type", "application/json")
 
-	// Do
+	log.Infof("[] Sending request to URL: %s", url)
+	log.Infof("[] Request body: %s", string(b))
+	log.Infof("[] Request headers: %v", request.Header)
+
 	resp, err := c.client.Do(request)
 	if err != nil {
-		log.Errorf("[] Error getting response %v", err)
+		log.Errorf("[] Error sending request: %v", err)
 		return nil, err
 	}
 	defer resp.Body.Close()
 
-	if resp.StatusCode != http.StatusOK {
-		log.Error(
-			"[] Error sending CLIP request",
-			"status", resp.StatusCode,
-			"url", url,
-			"response", resp.Body,
-		)
-		return nil, errors.New("clip request failed")
-	}
-
-	readAll, err := io.ReadAll(resp.Body)
+	bodyBytes, err := io.ReadAll(resp.Body)
 	if err != nil {
-		log.Errorf("[] Error reading response body %v", err)
+		log.Errorf("[] Error reading response body: %v", err)
 		return nil, err
 	}
 
+	if resp.StatusCode != http.StatusOK {
+		log.Error(
+			"[] Error from CLIP API",
+			"status", resp.StatusCode,
+			"url", url,
+			"response", string(bodyBytes),
+		)
+		return nil, fmt.Errorf("CLIP API request failed with status %d: %s", resp.StatusCode, string(bodyBytes))
+	}
+
 	var clipAPIResponse CLIPAPIEmbeddingRes
-	err = json.Unmarshal(readAll, &clipAPIResponse)
+	err = json.Unmarshal(bodyBytes, &clipAPIResponse)
 	if err != nil {
-		log.Errorf("[] Error unmarshalling resp %v", err)
+		log.Errorf("[] Error unmarshalling response: %v", err)
 		return nil, err
 	}
 
