@@ -9,6 +9,6 @@ func (j *JobRunner) GetEmbeddingsAndUpdateQdrant(log Logger) error {
 		log.Errorf("Error getting outputs with no embeddings: %v", err)
 		return err
 	}
-	log.Infof("Found outputs with no embeddings", outputs)
+	log.Infof("Found outputs with no embeddings", outputs[0])
 	return nil
 }
