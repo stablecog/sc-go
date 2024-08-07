@@ -20,13 +20,14 @@ func (j *JobRunner) HandleOutputsWithNoEmbedding(log Logger) error {
 	}
 
 	m := time.Since(s)
-	if len(outputs) > 0 {
-		log.Infof("Found %d outputs with no embeddings: %dms", len(outputs), m.Milliseconds())
-	} else {
+
+	if len(outputs) < 1 {
 		log.Infof("No outputs found with no embeddings: %dms", m.Milliseconds())
+		return nil
 	}
 
-	log.Infof("Getting embeddings...")
+	log.Infof("Found %d outputs with no embeddings: %dms", len(outputs), m.Milliseconds())
+	log.Infof("Getting embeddings for outputs...")
 
 	for _, output := range outputs {
 		tOutput := time.Now()
