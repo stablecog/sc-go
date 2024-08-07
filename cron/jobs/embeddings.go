@@ -37,7 +37,7 @@ func (j *JobRunner) HandleOutputsWithNoEmbedding(log Logger) error {
 			},
 		})
 		if err != nil {
-			log.Errorf("Error getting embeddings for output %d: %v", output.ID, err)
+			log.Errorf("Error getting embeddings for output %s: %v", output.ID.String(), err)
 			continue
 		}
 		if len(res) != len(outputs) {
