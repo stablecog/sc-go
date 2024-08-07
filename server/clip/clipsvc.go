@@ -186,10 +186,7 @@ func (c *ClipService) GetEmbeddingsV2(toEmbedObjects []EmbeddingReqObject) (embe
 	url := c.apiUrl + "/embed"
 	request, _ := http.NewRequest(http.MethodPost, url, bytes.NewReader(b))
 	request.Header.Add("Authorization", c.apiAuthToken)
-
-	log.Infof("[] Sending request to URL: %s", url)
-	log.Infof("[] Request body: %s", string(b))
-	log.Infof("[] Request headers: %v", request.Header)
+	request.Header.Add("Content-Type", "application/json")
 
 	resp, err := http.DefaultClient.Do(request)
 	if err != nil {
