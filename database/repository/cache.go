@@ -1,8 +1,6 @@
 package repository
 
 import (
-	"os"
-
 	"github.com/stablecog/sc-go/database/ent/bannedwords"
 	"github.com/stablecog/sc-go/database/ent/disposableemail"
 	"github.com/stablecog/sc-go/database/ent/ipblacklist"
@@ -10,7 +8,6 @@ import (
 	"github.com/stablecog/sc-go/database/ent/usernameblacklist"
 	"github.com/stablecog/sc-go/log"
 	"github.com/stablecog/sc-go/shared"
-	"github.com/stablecog/sc-go/utils"
 )
 
 // Update the cache from the database
@@ -108,15 +105,6 @@ func (r *Repository) UpdateCache() error {
 		usernameBlacklistStr[i] = username.Username
 	}
 	shared.GetCache().UpdateUsernameBlacklist(usernameBlacklistStr)
-
-	// URLs
-	if os.Getenv("SKIP_VAST") != "true" {
-		err = shared.GetCache().UpdateWorkerURL(utils.GetEnv().VastAiKey)
-		if err != nil {
-			log.Error("Failed to update worker URL", "err", err)
-			return err
-		}
-	}
 
 	return nil
 }

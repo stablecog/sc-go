@@ -2,15 +2,11 @@ package shared
 
 import (
 	"context"
-	"encoding/json"
-	"fmt"
-	"io"
 	"net/http"
 	"strings"
 	"sync"
 	"time"
 
-	"github.com/charmbracelet/log"
 	"github.com/google/uuid"
 	"github.com/stablecog/sc-go/database/ent"
 	"golang.org/x/exp/slices"
@@ -441,84 +437,4 @@ func (f *Cache) GetDefaultSchedulerIDForModel(modelId uuid.UUID) uuid.UUID {
 		return m.Edges.Schedulers[0].ID
 	}
 	return uuid.Nil
-}
-
-func (f *Cache) UpdateWorkerURL(vastAiKey string) error {
-	url := fmt.Sprintf("https://console.vast.ai/api/v0/instances?api_key=%s", vastAiKey)
-
-	// HTTP get
-	req, err := http.NewRequest("GET", url, nil)
-	if err != nil {
-		log.Errorf("Error making creating request %s", err)
-		return err
-	}
-	req.Header.Set("Accept", "application/json")
-	req.Header.Set("Content-Type", "application/json")
-
-	resp, err := f.httpClient.Do(req)
-	if err != nil {
-		log.Error("Error making request:", "err", err)
-		return err
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode != http.StatusOK {
-		log.Error("Error making request:", "status", resp.Status)
-		return fmt.Errorf("Error making request: %s", resp.Status)
-	}
-
-	// Try to decode+deserialize
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		log.Errorf("Error decoding response body %s", err)
-		return err
-	}
-
-	// Deserialize
-	var vastInstances VastAIInstances
-	if err := json.Unmarshal(body, &vastInstances); err != nil {
-		log.Errorf("Error deserializing response body %s", err)
-		return err
-	}
-
-	// Update the vast ai worker urls
-	clipUrls := []string{}
-	for _, instance := range vastInstances.Instances {
-		if len(instance.Ports.One3339TCP) > 0 {
-			clipUrls = append(clipUrls, fmt.Sprintf("http://%s:%s/clip/embed", instance.PublicIP, instance.Ports.One3339TCP[0].HostPort))
-		}
-	}
-
-	f.Lock()
-	defer f.Unlock()
-	f.clipUrls = clipUrls
-
-	// Log URLs for debugging
-
-	return nil
-}
-
-func (f *Cache) GetClipUrls() []string {
-	f.RLock()
-	defer f.RUnlock()
-	return f.clipUrls
-}
-
-// Structs for vast ai
-type VastAIInstances struct {
-	Instances []VastAIInstance `json:"instances"`
-}
-
-type VastAIInstance struct {
-	PublicIP string `json:"public_ipaddr"`
-	Ports    struct {
-		One3339TCP []struct {
-			HostIP   string `json:"HostIp"`
-			HostPort string `json:"HostPort"`
-		} `json:"13339/tcp"`
-		One3349TCP []struct {
-			HostIP   string `json:"HostIp"`
-			HostPort string `json:"HostPort"`
-		} `json:"13349/tcp"`
-	} `json:"ports"`
 }
