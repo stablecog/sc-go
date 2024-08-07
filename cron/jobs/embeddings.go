@@ -10,12 +10,13 @@ import (
 )
 
 const EMBEDDINGS_JOB_NAME = "EMBEDDINGS_JOB"
+const OUTPUTS_LIMIT = 10
 
 func (j *JobRunner) HandleOutputsWithNoEmbedding(log Logger) error {
 	log.Infof("Running job...")
 	s := time.Now()
 
-	outputs, err := j.Repo.GetOutputsWithNoEmbedding(10)
+	outputs, err := j.Repo.GetOutputsWithNoEmbedding(OUTPUTS_LIMIT)
 	if err != nil {
 		log.Errorf("Error getting outputs with no embeddings: %v", err)
 		return err
@@ -143,7 +144,7 @@ func (j *JobRunner) HandleOutputsWithNoEmbedding(log Logger) error {
 
 	e := time.Since(s)
 
-	log.Infof("Job complete: %dms", e.Milliseconds())
+	log.Infof("Job complete | %d item(s) | %dms", len(outputs), e.Milliseconds())
 
 	return nil
 }
