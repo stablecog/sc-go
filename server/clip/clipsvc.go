@@ -191,7 +191,7 @@ func (c *ClipService) GetEmbeddingsV2(toEmbedObjects []EmbeddingReqObject) (embe
 	log.Infof("[] Request body: %s", string(b))
 	log.Infof("[] Request headers: %v", request.Header)
 
-	resp, err := c.client.Do(request)
+	resp, err := http.DefaultClient.Do(request)
 	if err != nil {
 		log.Errorf("[] Error sending request: %v", err)
 		return nil, err
