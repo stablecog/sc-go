@@ -137,7 +137,7 @@ func (j *JobRunner) HandleOutputsWithNoEmbedding(log Logger) error {
 			return nil
 		}); err != nil {
 			log.Errorf("Error starting transaction in HandleOutputsWithNoEmbedding: %s | Error: %v", output.ID.String(), err)
-			return err
+			continue
 		}
 	}
 
