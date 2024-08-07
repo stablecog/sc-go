@@ -50,9 +50,9 @@ func (r *Repository) GetOutputsWithNoEmbedding(limit int) ([]*ent.GenerationOutp
 		).
 		WithGenerations(func(gen *ent.GenerationQuery) {
 			gen.
+				Where(generation.StatusEQ(generation.StatusSucceeded)).
 				WithPrompt().
-				WithNegativePrompt().
-				Where(generation.StatusEQ(generation.StatusSucceeded))
+				WithNegativePrompt()
 		}).
 		Order(generationoutput.ByCreatedAt(sql.OrderAsc())).
 		Limit(limit).

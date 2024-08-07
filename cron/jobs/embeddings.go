@@ -91,11 +91,6 @@ func (j *JobRunner) HandleOutputsWithNoEmbedding(log Logger) error {
 				return fmt.Errorf("Prompt object not found for generation")
 			}
 
-			if negativePromptObj == nil {
-				log.Errorf("Negative prompt object not found for generation: %s", generation.ID.String())
-				return fmt.Errorf("Negative prompt object not found for generation")
-			}
-
 			payload := map[string]interface{}{
 				"image_path":               output.ImagePath,
 				"gallery_status":           output.GalleryStatus,
@@ -124,7 +119,7 @@ func (j *JobRunner) HandleOutputsWithNoEmbedding(log Logger) error {
 			if generation.InitImageURL != nil {
 				payload["init_image_url"] = generation.InitImageURL
 			}
-			if negativePromptObj.Text != "" {
+			if negativePromptObj != nil && negativePromptObj.Text != "" {
 				payload["negative_prompt"] = negativePromptObj.Text
 			}
 			err = j.Qdrant.Upsert(
