@@ -179,11 +179,13 @@ func (c *ClipService) GetEmbeddingsV2(toEmbedObjects []EmbeddingReqObject) (embe
 
 	// Http POST to endpoint with auth token
 	// Marshal req
-	b, err := json.Marshal(req)
+	b, err := json.MarshalIndent(req, "", "  ")
 	if err != nil {
 		log.Errorf("[] Error marshalling req %v", err)
 		return nil, err
 	}
+
+	log.Info("[] Sending request to CLIP API", "req", string(b))
 
 	url := c.apiUrl + "/embed"
 	request, _ := http.NewRequest(http.MethodPost, url, bytes.NewReader(b))
