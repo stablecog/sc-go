@@ -219,13 +219,13 @@ func main() {
 
 	if *loadQdrant {
 		log.Info("🏡 Loading qdrant data...")
-		secret := utils.GetEnv().ClipAPISecret
+		clipAuthToken := utils.GetEnv().ClipApiAuthToken
 		var clipUrl string
 		if *clipUrlOverride != "" {
 			clipUrl = *clipUrlOverride
 		}
 		if clipUrl == "" {
-			clipUrl = shared.GetCache().GetClipUrls()[0]
+			clipUrl = utils.GetEnv().ClipApiUrl + "/embed"
 		}
 		each := *batchSize
 		cur := 0
@@ -279,12 +279,12 @@ func main() {
 			}
 
 			ids := make([]uuid.UUID, len(gens))
-			var clipReq []requests.ClipAPIImageRequest
+			var clipReq []requests.ClipApiEmbeddingRequest
 			for i, gen := range gens {
 				ids[i] = gen.ID
-				clipReq = append(clipReq, requests.ClipAPIImageRequest{
-					ID:      gen.ID,
-					ImageID: gen.ImagePath,
+				clipReq = append(clipReq, requests.ClipApiEmbeddingRequest{
+					ID:    gen.ID.String(),
+					Image: gen.ImagePath,
 				})
 			}
 
@@ -297,7 +297,7 @@ func main() {
 			}
 			request, _ := http.NewRequest(http.MethodPost, clipUrl, bytes.NewReader(b))
 			urlIdx++
-			request.Header.Set("Authorization", secret)
+			request.Header.Set("Authorization", clipAuthToken)
 			request.Header.Set("Content-Type", "application/json")
 			// Do
 			resp, err := http.DefaultClient.Do(request)
@@ -314,7 +314,7 @@ func main() {
 				log.Infof("Last cursor: %v", cursor.Format(time.RFC3339Nano))
 				log.Fatal(err)
 			}
-			var clipAPIResponse responses.EmbeddingsResponse
+			var clipAPIResponse responses.ClipEmbeddingResponse
 			err = json.Unmarshal(readAll, &clipAPIResponse)
 			if err != nil {
 				log.Infof("Last cursor: %v", cursor.Format(time.RFC3339Nano))
@@ -329,7 +329,12 @@ func main() {
 					log.Warn("Error from clip api", "err", embedding.Error)
 					continue
 				}
-				embeddings[embedding.ID] = embedding.Embedding
+				embUuid, embErr := uuid.Parse(embedding.ID)
+				if embErr != nil {
+					log.Warn("Failed to parse uuid", "err", embErr)
+					continue
+				}
+				embeddings[embUuid] = embedding.Embedding
 			}
 
 			log.Infof("Retreived embeddings in %s", time.Since(start))
@@ -528,13 +533,13 @@ func main() {
 
 	if *testEmbeddings {
 		log.Info("🏡 Test test...")
-		secret := utils.GetEnv().ClipAPISecret
+		clipAuthToken := utils.GetEnv().ClipApiAuthToken
 		var clipUrl string
 		if *clipUrlOverride != "" {
 			clipUrl = *clipUrlOverride
 		}
 		if clipUrl == "" {
-			clipUrl = shared.GetCache().GetClipUrls()[0]
+			clipUrl = utils.GetEnv().ClipApiUrl + "/embed"
 		}
 		each := *batchSize
 		cur := 0
@@ -575,12 +580,12 @@ func main() {
 			}
 
 			ids := make([]uuid.UUID, len(gens))
-			var clipReq []requests.ClipAPIImageRequest
+			var clipReq []requests.ClipApiEmbeddingRequest
 			for i, gen := range gens {
 				ids[i] = gen.ID
-				clipReq = append(clipReq, requests.ClipAPIImageRequest{
-					ID:      gen.ID,
-					ImageID: gen.ImagePath,
+				clipReq = append(clipReq, requests.ClipApiEmbeddingRequest{
+					ID:    gen.ID.String(),
+					Image: gen.ImagePath,
 				})
 			}
 
@@ -593,7 +598,7 @@ func main() {
 			}
 			request, _ := http.NewRequest(http.MethodPost, clipUrl, bytes.NewReader(b))
 			urlIdx++
-			request.Header.Set("Authorization", secret)
+			request.Header.Set("Authorization", clipAuthToken)
 			request.Header.Set("Content-Type", "application/json")
 			// Do
 			resp, err := http.DefaultClient.Do(request)
@@ -610,7 +615,7 @@ func main() {
 				log.Infof("Last cursor: %v", cursor.Format(time.RFC3339Nano))
 				log.Fatal(err)
 			}
-			var clipAPIResponse responses.EmbeddingsResponse
+			var clipAPIResponse responses.ClipEmbeddingResponse
 			err = json.Unmarshal(readAll, &clipAPIResponse)
 			if err != nil {
 				log.Infof("Last cursor: %v", cursor.Format(time.RFC3339Nano))
@@ -633,7 +638,7 @@ func main() {
 
 	if *testClipService {
 		log.Info("🏡 Comparing clip...")
-		secret := utils.GetEnv().ClipAPISecret
+		clipAuthToken := utils.GetEnv().ClipApiAuthToken
 		clipUrl := *clipUrlOverride
 		clipUrl2 := *clipUrl2
 		if *clipUrlOverride != "" {
@@ -690,12 +695,12 @@ func main() {
 			}
 
 			ids := make([]uuid.UUID, len(gens))
-			var clipReq []requests.ClipAPIImageRequest
+			var clipReq []requests.ClipApiEmbeddingRequest
 			for i, gen := range gens {
 				ids[i] = gen.ID
-				clipReq = append(clipReq, requests.ClipAPIImageRequest{
-					ID:      gen.ID,
-					ImageID: gen.ImagePath,
+				clipReq = append(clipReq, requests.ClipApiEmbeddingRequest{
+					ID:    gen.ID.String(),
+					Image: gen.ImagePath,
 				})
 			}
 
@@ -708,7 +713,7 @@ func main() {
 			}
 			request, _ := http.NewRequest(http.MethodPost, clipUrl, bytes.NewReader(b))
 			urlIdx++
-			request.Header.Set("Authorization", secret)
+			request.Header.Set("Authorization", clipAuthToken)
 			request.Header.Set("Content-Type", "application/json")
 			// Do
 			resp, err := http.DefaultClient.Do(request)
@@ -725,7 +730,7 @@ func main() {
 				log.Infof("Last cursor: %v", cursor.Format(time.RFC3339Nano))
 				log.Fatal(err)
 			}
-			var clipAPIResponse responses.EmbeddingsResponse
+			var clipAPIResponse responses.ClipEmbeddingResponse
 			err = json.Unmarshal(readAll, &clipAPIResponse)
 			if err != nil {
 				log.Infof("Last cursor: %v", cursor.Format(time.RFC3339Nano))
@@ -740,13 +745,18 @@ func main() {
 					log.Warn("Error from clip api", "err", embedding.Error)
 					continue
 				}
-				embeddings[embedding.ID] = embedding.Embedding
+				embUuid, embErr := uuid.Parse(embedding.ID)
+				if embErr != nil {
+					log.Warn("Failed to parse uuid", "err", embErr)
+					continue
+				}
+				embeddings[embUuid] = embedding.Embedding
 			}
 
 			// Clip 2 request
 			request2, _ := http.NewRequest(http.MethodPost, clipUrl2, bytes.NewReader(b))
 			urlIdx++
-			request2.Header.Set("Authorization", secret)
+			request2.Header.Set("Authorization", clipAuthToken)
 			request2.Header.Set("Content-Type", "application/json")
 			// Do
 			resp2, err := http.DefaultClient.Do(request2)
@@ -763,7 +773,7 @@ func main() {
 				log.Infof("Last cursor: %v", cursor.Format(time.RFC3339Nano))
 				log.Fatal(err)
 			}
-			var clipAPIResponse2 responses.EmbeddingsResponse
+			var clipAPIResponse2 responses.ClipEmbeddingResponse
 			err = json.Unmarshal(readAll2, &clipAPIResponse2)
 			if err != nil {
 				log.Infof("Last cursor: %v", cursor.Format(time.RFC3339Nano))
@@ -778,7 +788,12 @@ func main() {
 					log.Warn("Error from clip api", "err", embedding.Error)
 					continue
 				}
-				embeddings2[embedding.ID] = embedding.Embedding
+				embUuid, embErr := uuid.Parse(embedding.ID)
+				if embErr != nil {
+					log.Warn("Failed to parse uuid", "err", embErr)
+					continue
+				}
+				embeddings2[embUuid] = embedding.Embedding
 			}
 
 			start = time.Now()
@@ -1300,7 +1315,6 @@ func main() {
 				r.Use(mw.AuthMiddleware(middleware.AuthLevelSuperAdmin, middleware.AuthLevelAPIToken))
 				r.Use(middleware.Logger)
 				r.Post("/text", hc.HandleEmbedText)
-				r.Post("/imageID", hc.HandleEmbedImagePath)
 			})
 		})
 

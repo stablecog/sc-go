@@ -410,7 +410,7 @@ func (w *SCWorker) CreateGeneration(source enttypes.SourceType,
 		// Goroutine to check banned embedding
 		if clipSvc != nil {
 			go func() {
-				embedding, err := clipSvc.GetEmbeddingFromText(translatedPrompt, 3, false)
+				embedding, err := clipSvc.GetEmbeddingFromText(translatedPrompt, false)
 				if err != nil {
 					log.Error("Error fetching embedding", "err", err)
 					errChan <- err

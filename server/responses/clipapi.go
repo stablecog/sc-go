@@ -1,19 +1,5 @@
 package responses
 
-import "github.com/google/uuid"
-
-type EmbeddingObject struct {
-	Embedding      []float32 `json:"embedding"`
-	InputText      string    `json:"input_text"`
-	TranslatedText string    `json:"translated_text,omitempty"`
-	ID             uuid.UUID `json:"id,omitempty"`
-	Error          string    `json:"error,omitempty"`
-}
-
-type EmbeddingsResponse struct {
-	Embeddings []EmbeddingObject `json:"embeddings"`
-}
-
 type QResponse struct {
 	Result []QResponseResult `json:"result"`
 	Status string            `json:"status"`
@@ -31,4 +17,22 @@ type QResponseResultPayload struct {
 	CreatedAt string `json:"created_at"`
 	ImagePath string `json:"image_path"`
 	Prompt    string `json:"prompt"`
+}
+
+type ClipEmbeddingResponse struct {
+	Embeddings []ClipEmbeddingItem `json:"embeddings"`
+}
+
+type ClipEmbeddingItem struct {
+	AestheticScore *ClipAestheticScore `json:"aesthetic_score,omitempty"`
+	Embedding      []float32           `json:"embedding"`
+	InputImage     string              `json:"input_image,omitempty"`
+	InputText      string              `json:"input_text,omitempty"`
+	ID             string              `json:"id,omitempty"`
+	Error          string              `json:"error,omitempty"`
+}
+
+type ClipAestheticScore struct {
+	Artifact float32 `json:"artifact"`
+	Rating   float32 `json:"rating"`
 }

@@ -283,7 +283,7 @@ func (c *RestAPI) HandleQueryGenerationsForAdmin(w http.ResponseWriter, r *http.
 	// For search, use qdrant semantic search
 	if search != "" {
 		// get embeddings from clip service
-		e, err := c.Clip.GetEmbeddingFromText(search, 2, true)
+		e, err := c.Clip.GetEmbeddingFromText(search, true)
 		if err != nil {
 			log.Error("Error getting embedding from clip service", "err", err)
 			responses.ErrInternalServerError(w, r, "An unknown error has occurred")
@@ -628,34 +628,7 @@ func (c *RestAPI) HandleEmbedText(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	embeddings, err := c.Clip.GetEmbeddingFromText(embedReq.Text, 2, embedReq.Translate)
-	if err != nil {
-		log.Errorf("Error getting embeddings %v", err)
-		responses.ErrInternalServerError(w, r, "An unknown error has occured")
-		return
-	}
-
-	render.Status(r, http.StatusOK)
-	render.JSON(w, r, EmbedTextResponse{
-		Embedding: embeddings,
-	})
-}
-
-func (c *RestAPI) HandleEmbedImagePath(w http.ResponseWriter, r *http.Request) {
-	if user, email := c.GetUserIDAndEmailIfAuthenticated(w, r); user == nil || email == "" {
-		return
-	}
-
-	// Parse request body
-	reqBody, _ := io.ReadAll(r.Body)
-	var embedReq EmbedImagePathRequest
-	err := json.Unmarshal(reqBody, &embedReq)
-	if err != nil {
-		responses.ErrUnableToParseJson(w, r)
-		return
-	}
-
-	embeddings, err := c.Clip.GetEmbeddingFromImagePath(embedReq.ImagePath, embedReq.NoCache, 2)
+	embeddings, err := c.Clip.GetEmbeddingFromText(embedReq.Text, embedReq.Translate)
 	if err != nil {
 		log.Errorf("Error getting embeddings %v", err)
 		responses.ErrInternalServerError(w, r, "An unknown error has occured")

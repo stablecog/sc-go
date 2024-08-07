@@ -33,7 +33,7 @@ func (j *JobRunner) HandleOutputsWithNoEmbedding(log Logger) error {
 
 	for _, output := range outputs {
 		tOutput := time.Now()
-		embeddingRes, err := j.CLIP.GetEmbeddingsV2([]clip.EmbeddingReqObject{
+		embeddingRes, err := j.CLIP.GetEmbeddings([]clip.EmbeddingReqObject{
 			{
 				Image:          utils.GetEnv().GetURLFromImagePath(output.ImagePath),
 				CalculateScore: true,
