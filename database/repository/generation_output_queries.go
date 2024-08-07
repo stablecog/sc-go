@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"entgo.io/ent/dialect/sql"
 	"github.com/google/uuid"
 	"github.com/stablecog/sc-go/database/ent"
 	"github.com/stablecog/sc-go/database/ent/generation"
@@ -49,7 +50,7 @@ func (r *Repository) GetOutputsWithNoEmbedding() ([]*ent.GenerationOutput, error
 		gen.
 			WithPrompt().
 			Where(generation.StatusEQ(generation.StatusSucceeded))
-	}).All(r.Ctx)
+	}).Order(generationoutput.ByCreatedAt(sql.OrderAsc())).All(r.Ctx)
 
 	if err != nil {
 		return nil, err
