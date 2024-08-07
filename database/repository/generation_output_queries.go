@@ -46,14 +46,10 @@ func (r *Repository) GetOutputsWithNoEmbedding(limit int) ([]*ent.GenerationOutp
 		Where(
 			generationoutput.HasEmbeddings(false),
 			generationoutput.ImagePathNEQ("placeholder.webp"),
-			generationoutput.HasGenerationsWith(
-				generation.StatusEQ(generation.StatusSucceeded),
-			),
 		).
 		WithGenerations(func(q *ent.GenerationQuery) {
 			q.WithPrompt().WithNegativePrompt()
 		}).
-		Order(ent.Asc(generationoutput.FieldCreatedAt)).
 		Limit(limit)
 
 	outputs, err := query.All(r.Ctx)
