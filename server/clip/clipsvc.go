@@ -163,7 +163,7 @@ func (c *ClipService) GetEmbeddingFromText(text string, retries int, translate b
 
 func (c *ClipService) GetEmbeddingsV2(toEmbedObjects []EmbeddingReqObject) (embeddings []EmbeddingResObject, err error) {
 	s := time.Now()
-	var req []CLIPAPIEmbeddingReqObject
+	var req []CLIPAPIEmbeddingReqObject = []CLIPAPIEmbeddingReqObject{}
 	for _, obj := range toEmbedObjects {
 		if obj.Text != "" {
 			req = append(req, CLIPAPIEmbeddingReqObject{
@@ -179,13 +179,11 @@ func (c *ClipService) GetEmbeddingsV2(toEmbedObjects []EmbeddingReqObject) (embe
 
 	// Http POST to endpoint with auth token
 	// Marshal req
-	b, err := json.MarshalIndent(req, "", "  ")
+	b, err := json.Marshal(req)
 	if err != nil {
 		log.Errorf("[] Error marshalling req %v", err)
 		return nil, err
 	}
-
-	log.Info("[] Sending request to CLIP API", "req", string(b))
 
 	url := c.apiUrl + "/embed"
 	request, _ := http.NewRequest(http.MethodPost, url, bytes.NewReader(b))
@@ -203,10 +201,8 @@ func (c *ClipService) GetEmbeddingsV2(toEmbedObjects []EmbeddingReqObject) (embe
 		log.Error(
 			"[] Error sending clip request",
 			"status", resp.StatusCode,
-			"url", url, "response",
-			resp.Body, "ContentType",
-			request.Header.Get("Content-Type"),
-			"Authorization", request.Header.Get("Authorization"),
+			"url", url,
+			"response", resp.Body,
 		)
 		return nil, errors.New("clip request failed")
 	}
