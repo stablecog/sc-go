@@ -1,29 +1,24 @@
 package jobs
 
-import "encoding/json"
+import "time"
 
-const GET_EMBEDDINGS_JOB_NAME = "GET_EMBEDDINGS_JOB"
+const EMBEDDINGS_JOB_NAME = "EMBEDDINGS_JOB"
 
-func (j *JobRunner) GetEmbeddingsAndUpdateQdrant(log Logger) error {
-	log.Infof("Running %s...", GET_EMBEDDINGS_JOB_NAME)
+func (j *JobRunner) HandleOutputsWithNoEmbedding(log Logger) error {
+	log.Infof("Running job...")
+	s := time.Now()
+
 	outputs, err := j.Repo.GetOutputsWithNoEmbedding()
 	if err != nil {
 		log.Errorf("Error getting outputs with no embeddings: %v", err)
 		return err
 	}
 
+	e := time.Since(s)
 	if len(outputs) > 0 {
-		// Convert the first output to JSON
-		jsonData, err := json.MarshalIndent(outputs[0], "", "    ")
-		if err != nil {
-			log.Errorf("Error marshaling output to JSON: %v", err)
-			return err
-		}
-
-		// Print the JSON-formatted output
-		log.Infof("Found outputs with no embeddings: %s", string(jsonData))
+		log.Infof("Found %d outputs with no embeddings: %dms", len(outputs), e.Milliseconds())
 	} else {
-		log.Infof("No outputs found with no embeddings")
+		log.Infof("No outputs found with no embeddings: %dms", e.Milliseconds())
 	}
 
 	return nil

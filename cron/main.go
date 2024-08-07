@@ -203,7 +203,7 @@ func main() {
 		log.Info("🏡 Starting all jobs...")
 		s := gocron.NewScheduler(time.UTC)
 		s.Every(60).Seconds().Do(jobRunner.GetAndSetStats, jobs.NewJobLogger("STATS"))
-		s.Every(30).Seconds().Do(jobRunner.GetEmbeddingsAndUpdateQdrant, jobs.NewJobLogger("EMBEDDINGS"))
+		s.Every(30).Seconds().Do(jobRunner.HandleOutputsWithNoEmbedding, jobs.NewJobLogger("EMBEDDINGS"))
 		if utils.GetEnv().DiscordWebhookUrl != "" {
 			s.Every(60).Seconds().Do(jobRunner.CheckSCWorkerHealth, jobs.NewJobLogger("HEALTH"))
 		}
