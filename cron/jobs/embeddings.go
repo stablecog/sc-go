@@ -31,7 +31,7 @@ func (j *JobRunner) HandleOutputsWithNoEmbedding(log Logger) error {
 
 	for _, output := range outputs {
 		tOutput := time.Now()
-		res, err := j.CLIP.GetEmbeddingsV2([]clip.EmbeddingReqObject{
+		_, err := j.CLIP.GetEmbeddingsV2([]clip.EmbeddingReqObject{
 			{
 				Image:          utils.GetEnv().GetURLFromImagePath(output.ImagePath),
 				CalculateScore: true,
@@ -39,10 +39,6 @@ func (j *JobRunner) HandleOutputsWithNoEmbedding(log Logger) error {
 		})
 		if err != nil {
 			log.Errorf(`Error getting embeddings for "%s": %v`, output.ID.String(), err)
-			continue
-		}
-		if len(res) != len(outputs) {
-			log.Errorf("Embedding response length mismatch: %d != %d", len(res), len(outputs))
 			continue
 		}
 		mOutput := time.Since(tOutput)

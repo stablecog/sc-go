@@ -233,7 +233,7 @@ func (c *ClipService) GetEmbeddingsV2(toEmbedObjects []EmbeddingReqObject) (embe
 	}
 
 	duration := time.Since(s)
-	log.Info("[] Successfully got %d embedding(s): %dms", len(result), duration.Milliseconds())
+	log.Infof("[] Successfully got %d embedding(s): %dms", len(result), duration.Milliseconds())
 	return result, nil
 }
 
