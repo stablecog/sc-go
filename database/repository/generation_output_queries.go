@@ -1,7 +1,6 @@
 package repository
 
 import (
-	"entgo.io/ent/dialect/sql"
 	"github.com/google/uuid"
 	"github.com/stablecog/sc-go/database/ent"
 	"github.com/stablecog/sc-go/database/ent/generation"
@@ -47,14 +46,14 @@ func (r *Repository) GetOutputsWithNoEmbedding(limit int) ([]*ent.GenerationOutp
 		Where(
 			generationoutput.HasEmbeddings(false),
 			generationoutput.ImagePathNEQ("placeholder.webp"),
+			generationoutput.HasGenerationsWith(
+				generation.StatusEQ(generation.StatusSucceeded),
+			),
 		).
-		WithGenerations(func(gen *ent.GenerationQuery) {
-			gen.
-				Where(generation.StatusEQ(generation.StatusSucceeded)).
-				WithPrompt().
-				WithNegativePrompt()
+		WithGenerations(func(q *ent.GenerationQuery) {
+			q.WithPrompt().WithNegativePrompt()
 		}).
-		Order(generationoutput.ByCreatedAt(sql.OrderAsc())).
+		Order(ent.Asc(generationoutput.FieldCreatedAt)).
 		Limit(limit).
 		All(r.Ctx)
 
