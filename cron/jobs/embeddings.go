@@ -13,7 +13,7 @@ func (j *JobRunner) HandleOutputsWithNoEmbedding(log Logger) error {
 	log.Infof("Running job...")
 	s := time.Now()
 
-	outputs, err := j.Repo.GetOutputsWithNoEmbedding()
+	outputs, err := j.Repo.GetOutputsWithNoEmbedding(10)
 	if err != nil {
 		log.Errorf("Error getting outputs with no embeddings: %v", err)
 		return err
