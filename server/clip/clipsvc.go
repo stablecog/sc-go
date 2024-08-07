@@ -165,11 +165,11 @@ func (c *ClipService) GetEmbeddingsV2(toEmbedObjects []EmbeddingReqObject) (embe
 	s := time.Now()
 	var req []CLIPAPIEmbeddingReqObject
 	for _, obj := range toEmbedObjects {
-		if obj.Text == "" {
+		if obj.Text != "" {
 			req = append(req, CLIPAPIEmbeddingReqObject{
 				Text: obj.Text,
 			})
-		} else if obj.Image == "" {
+		} else if obj.Image != "" {
 			req = append(req, CLIPAPIEmbeddingReqObject{
 				Image:          obj.Image,
 				CalculateScore: obj.CalculateScore,
