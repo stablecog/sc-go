@@ -81,6 +81,11 @@ func (j *JobRunner) HandleOutputsWithNoEmbedding(log Logger) error {
 			promptObj := generation.Edges.Prompt
 			negativePromptObj := generation.Edges.NegativePrompt
 
+			if generation == nil {
+				log.Errorf("Generation object not found for output: %s", output.ID.String())
+				return fmt.Errorf("Generation object not found for output")
+			}
+
 			if promptObj == nil {
 				log.Errorf("Prompt object not found for generation: %s", generation.ID.String())
 				return fmt.Errorf("Prompt object not found for generation")
