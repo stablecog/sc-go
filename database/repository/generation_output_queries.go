@@ -5,6 +5,7 @@ import (
 	"github.com/stablecog/sc-go/database/ent"
 	"github.com/stablecog/sc-go/database/ent/generation"
 	"github.com/stablecog/sc-go/database/ent/generationoutput"
+	"github.com/stablecog/sc-go/log"
 )
 
 func (r *Repository) GetNonUpscaledGalleryItems(limit int) ([]*ent.GenerationOutput, error) {
@@ -39,4 +40,20 @@ func (r *Repository) GetPromptFromOutputID(outputID uuid.UUID) (string, error) {
 	}
 
 	return prompt.Text, nil
+}
+
+func (r *Repository) GetOutputsWithNoEmbedding() error {
+	outputs, err := r.DB.GenerationOutput.Query().Where(
+		generationoutput.HasEmbeddings(false),
+	).WithGenerations(func(g *ent.GenerationQuery) {
+		g.WithPrompt().Where(generation.StatusEQ(generation.StatusSucceeded)).All(r.Ctx)
+	}).Limit(50).All(r.Ctx)
+
+	if err != nil {
+		return err
+	}
+
+	log.Info("Found outputs without embeddings", outputs)
+
+	return nil
 }
