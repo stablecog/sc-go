@@ -147,6 +147,7 @@ ALTER TABLE public.device_info OWNER TO postgres;
 CREATE TABLE public.generation_models (
     id uuid DEFAULT extensions.uuid_generate_v4() NOT NULL,
     name_in_worker text NOT NULL,
+    short_name text NOT NULL,
     is_active boolean DEFAULT true NOT NULL,
     is_default boolean DEFAULT false NOT NULL,
     is_hidden boolean DEFAULT false NOT NULL,

@@ -126,7 +126,7 @@ func (repo *Repository) CreateMockData(ctx context.Context) error {
 
 	// ! Mock generation models
 	// Create a generation model for the free user
-	_, err = repo.DB.GenerationModel.Create().SetID(uuid.MustParse(MOCK_GENERATION_MODEL_ID)).SetDefaultSchedulerID(uuid.MustParse(MOCK_SCHEDULER_ID)).SetNameInWorker("mockfreemodel").AddSchedulerIDs(uuid.MustParse(MOCK_SCHEDULER_ID)).SetIsActive(true).Save(ctx)
+	_, err = repo.DB.GenerationModel.Create().SetID(uuid.MustParse(MOCK_GENERATION_MODEL_ID)).SetDefaultSchedulerID(uuid.MustParse(MOCK_SCHEDULER_ID)).SetNameInWorker("mockfreemodel").SetShortName("mockfmo").AddSchedulerIDs(uuid.MustParse(MOCK_SCHEDULER_ID)).SetIsActive(true).Save(ctx)
 	if err != nil {
 		return err
 	}
