@@ -428,13 +428,5 @@ func (f *Cache) GetDefaultSchedulerIDForModel(modelId uuid.UUID) uuid.UUID {
 	if m == nil {
 		return uuid.Nil
 	}
-	for _, scheduler := range m.Edges.Schedulers {
-		if scheduler.IsDefault {
-			return scheduler.ID
-		}
-	}
-	if len(m.Edges.Schedulers) > 0 {
-		return m.Edges.Schedulers[0].ID
-	}
-	return uuid.Nil
+	return *m.DefaultSchedulerID
 }
