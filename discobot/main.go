@@ -129,6 +129,7 @@ func main() {
 			log.Error("Error updating cache", "err", err)
 		}
 	})
+	//
 	// Also delete records older than 10 minutes from loginInteractionMap
 	cronSscheduler.Every(10).Minutes().Do(func() {
 		items := loginInteractionMap.GetAll()
