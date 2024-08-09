@@ -61,6 +61,11 @@ func NameInWorker(v string) predicate.GenerationModel {
 	return predicate.GenerationModel(sql.FieldEQ(FieldNameInWorker, v))
 }
 
+// ShortName applies equality check predicate on the "short_name" field. It's identical to ShortNameEQ.
+func ShortName(v string) predicate.GenerationModel {
+	return predicate.GenerationModel(sql.FieldEQ(FieldShortName, v))
+}
+
 // IsActive applies equality check predicate on the "is_active" field. It's identical to IsActiveEQ.
 func IsActive(v bool) predicate.GenerationModel {
 	return predicate.GenerationModel(sql.FieldEQ(FieldIsActive, v))
@@ -169,6 +174,71 @@ func NameInWorkerEqualFold(v string) predicate.GenerationModel {
 // NameInWorkerContainsFold applies the ContainsFold predicate on the "name_in_worker" field.
 func NameInWorkerContainsFold(v string) predicate.GenerationModel {
 	return predicate.GenerationModel(sql.FieldContainsFold(FieldNameInWorker, v))
+}
+
+// ShortNameEQ applies the EQ predicate on the "short_name" field.
+func ShortNameEQ(v string) predicate.GenerationModel {
+	return predicate.GenerationModel(sql.FieldEQ(FieldShortName, v))
+}
+
+// ShortNameNEQ applies the NEQ predicate on the "short_name" field.
+func ShortNameNEQ(v string) predicate.GenerationModel {
+	return predicate.GenerationModel(sql.FieldNEQ(FieldShortName, v))
+}
+
+// ShortNameIn applies the In predicate on the "short_name" field.
+func ShortNameIn(vs ...string) predicate.GenerationModel {
+	return predicate.GenerationModel(sql.FieldIn(FieldShortName, vs...))
+}
+
+// ShortNameNotIn applies the NotIn predicate on the "short_name" field.
+func ShortNameNotIn(vs ...string) predicate.GenerationModel {
+	return predicate.GenerationModel(sql.FieldNotIn(FieldShortName, vs...))
+}
+
+// ShortNameGT applies the GT predicate on the "short_name" field.
+func ShortNameGT(v string) predicate.GenerationModel {
+	return predicate.GenerationModel(sql.FieldGT(FieldShortName, v))
+}
+
+// ShortNameGTE applies the GTE predicate on the "short_name" field.
+func ShortNameGTE(v string) predicate.GenerationModel {
+	return predicate.GenerationModel(sql.FieldGTE(FieldShortName, v))
+}
+
+// ShortNameLT applies the LT predicate on the "short_name" field.
+func ShortNameLT(v string) predicate.GenerationModel {
+	return predicate.GenerationModel(sql.FieldLT(FieldShortName, v))
+}
+
+// ShortNameLTE applies the LTE predicate on the "short_name" field.
+func ShortNameLTE(v string) predicate.GenerationModel {
+	return predicate.GenerationModel(sql.FieldLTE(FieldShortName, v))
+}
+
+// ShortNameContains applies the Contains predicate on the "short_name" field.
+func ShortNameContains(v string) predicate.GenerationModel {
+	return predicate.GenerationModel(sql.FieldContains(FieldShortName, v))
+}
+
+// ShortNameHasPrefix applies the HasPrefix predicate on the "short_name" field.
+func ShortNameHasPrefix(v string) predicate.GenerationModel {
+	return predicate.GenerationModel(sql.FieldHasPrefix(FieldShortName, v))
+}
+
+// ShortNameHasSuffix applies the HasSuffix predicate on the "short_name" field.
+func ShortNameHasSuffix(v string) predicate.GenerationModel {
+	return predicate.GenerationModel(sql.FieldHasSuffix(FieldShortName, v))
+}
+
+// ShortNameEqualFold applies the EqualFold predicate on the "short_name" field.
+func ShortNameEqualFold(v string) predicate.GenerationModel {
+	return predicate.GenerationModel(sql.FieldEqualFold(FieldShortName, v))
+}
+
+// ShortNameContainsFold applies the ContainsFold predicate on the "short_name" field.
+func ShortNameContainsFold(v string) predicate.GenerationModel {
+	return predicate.GenerationModel(sql.FieldContainsFold(FieldShortName, v))
 }
 
 // IsActiveEQ applies the EQ predicate on the "is_active" field.

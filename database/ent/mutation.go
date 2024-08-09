@@ -8258,6 +8258,7 @@ type GenerationModelMutation struct {
 	typ                  string
 	id                   *uuid.UUID
 	name_in_worker       *string
+	short_name           *string
 	is_active            *bool
 	is_default           *bool
 	is_hidden            *bool
@@ -8420,6 +8421,42 @@ func (m *GenerationModelMutation) OldNameInWorker(ctx context.Context) (v string
 // ResetNameInWorker resets all changes to the "name_in_worker" field.
 func (m *GenerationModelMutation) ResetNameInWorker() {
 	m.name_in_worker = nil
+}
+
+// SetShortName sets the "short_name" field.
+func (m *GenerationModelMutation) SetShortName(s string) {
+	m.short_name = &s
+}
+
+// ShortName returns the value of the "short_name" field in the mutation.
+func (m *GenerationModelMutation) ShortName() (r string, exists bool) {
+	v := m.short_name
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldShortName returns the old "short_name" field's value of the GenerationModel entity.
+// If the GenerationModel object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *GenerationModelMutation) OldShortName(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldShortName is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldShortName requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldShortName: %w", err)
+	}
+	return oldValue.ShortName, nil
+}
+
+// ResetShortName resets all changes to the "short_name" field.
+func (m *GenerationModelMutation) ResetShortName() {
+	m.short_name = nil
 }
 
 // SetIsActive sets the "is_active" field.
@@ -8961,9 +8998,12 @@ func (m *GenerationModelMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *GenerationModelMutation) Fields() []string {
-	fields := make([]string, 0, 10)
+	fields := make([]string, 0, 11)
 	if m.name_in_worker != nil {
 		fields = append(fields, generationmodel.FieldNameInWorker)
+	}
+	if m.short_name != nil {
+		fields = append(fields, generationmodel.FieldShortName)
 	}
 	if m.is_active != nil {
 		fields = append(fields, generationmodel.FieldIsActive)
@@ -9002,6 +9042,8 @@ func (m *GenerationModelMutation) Field(name string) (ent.Value, bool) {
 	switch name {
 	case generationmodel.FieldNameInWorker:
 		return m.NameInWorker()
+	case generationmodel.FieldShortName:
+		return m.ShortName()
 	case generationmodel.FieldIsActive:
 		return m.IsActive()
 	case generationmodel.FieldIsDefault:
@@ -9031,6 +9073,8 @@ func (m *GenerationModelMutation) OldField(ctx context.Context, name string) (en
 	switch name {
 	case generationmodel.FieldNameInWorker:
 		return m.OldNameInWorker(ctx)
+	case generationmodel.FieldShortName:
+		return m.OldShortName(ctx)
 	case generationmodel.FieldIsActive:
 		return m.OldIsActive(ctx)
 	case generationmodel.FieldIsDefault:
@@ -9064,6 +9108,13 @@ func (m *GenerationModelMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetNameInWorker(v)
+		return nil
+	case generationmodel.FieldShortName:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetShortName(v)
 		return nil
 	case generationmodel.FieldIsActive:
 		v, ok := value.(bool)
@@ -9227,6 +9278,9 @@ func (m *GenerationModelMutation) ResetField(name string) error {
 	switch name {
 	case generationmodel.FieldNameInWorker:
 		m.ResetNameInWorker()
+		return nil
+	case generationmodel.FieldShortName:
+		m.ResetShortName()
 		return nil
 	case generationmodel.FieldIsActive:
 		m.ResetIsActive()

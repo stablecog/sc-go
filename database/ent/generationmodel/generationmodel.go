@@ -17,6 +17,8 @@ const (
 	FieldID = "id"
 	// FieldNameInWorker holds the string denoting the name_in_worker field in the database.
 	FieldNameInWorker = "name_in_worker"
+	// FieldShortName holds the string denoting the short_name field in the database.
+	FieldShortName = "short_name"
 	// FieldIsActive holds the string denoting the is_active field in the database.
 	FieldIsActive = "is_active"
 	// FieldIsDefault holds the string denoting the is_default field in the database.
@@ -59,6 +61,7 @@ const (
 var Columns = []string{
 	FieldID,
 	FieldNameInWorker,
+	FieldShortName,
 	FieldIsActive,
 	FieldIsDefault,
 	FieldIsHidden,
@@ -120,6 +123,11 @@ func ByID(opts ...sql.OrderTermOption) OrderOption {
 // ByNameInWorker orders the results by the name_in_worker field.
 func ByNameInWorker(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldNameInWorker, opts...).ToFunc()
+}
+
+// ByShortName orders the results by the short_name field.
+func ByShortName(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldShortName, opts...).ToFunc()
 }
 
 // ByIsActive orders the results by the is_active field.

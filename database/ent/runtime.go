@@ -204,35 +204,35 @@ func init() {
 	generationmodelFields := schema.GenerationModel{}.Fields()
 	_ = generationmodelFields
 	// generationmodelDescIsActive is the schema descriptor for is_active field.
-	generationmodelDescIsActive := generationmodelFields[2].Descriptor()
+	generationmodelDescIsActive := generationmodelFields[3].Descriptor()
 	// generationmodel.DefaultIsActive holds the default value on creation for the is_active field.
 	generationmodel.DefaultIsActive = generationmodelDescIsActive.Default.(bool)
 	// generationmodelDescIsDefault is the schema descriptor for is_default field.
-	generationmodelDescIsDefault := generationmodelFields[3].Descriptor()
+	generationmodelDescIsDefault := generationmodelFields[4].Descriptor()
 	// generationmodel.DefaultIsDefault holds the default value on creation for the is_default field.
 	generationmodel.DefaultIsDefault = generationmodelDescIsDefault.Default.(bool)
 	// generationmodelDescIsHidden is the schema descriptor for is_hidden field.
-	generationmodelDescIsHidden := generationmodelFields[4].Descriptor()
+	generationmodelDescIsHidden := generationmodelFields[5].Descriptor()
 	// generationmodel.DefaultIsHidden holds the default value on creation for the is_hidden field.
 	generationmodel.DefaultIsHidden = generationmodelDescIsHidden.Default.(bool)
 	// generationmodelDescDisplayWeight is the schema descriptor for display_weight field.
-	generationmodelDescDisplayWeight := generationmodelFields[5].Descriptor()
+	generationmodelDescDisplayWeight := generationmodelFields[6].Descriptor()
 	// generationmodel.DefaultDisplayWeight holds the default value on creation for the display_weight field.
 	generationmodel.DefaultDisplayWeight = generationmodelDescDisplayWeight.Default.(int32)
 	// generationmodelDescDefaultWidth is the schema descriptor for default_width field.
-	generationmodelDescDefaultWidth := generationmodelFields[7].Descriptor()
+	generationmodelDescDefaultWidth := generationmodelFields[8].Descriptor()
 	// generationmodel.DefaultDefaultWidth holds the default value on creation for the default_width field.
 	generationmodel.DefaultDefaultWidth = generationmodelDescDefaultWidth.Default.(int32)
 	// generationmodelDescDefaultHeight is the schema descriptor for default_height field.
-	generationmodelDescDefaultHeight := generationmodelFields[8].Descriptor()
+	generationmodelDescDefaultHeight := generationmodelFields[9].Descriptor()
 	// generationmodel.DefaultDefaultHeight holds the default value on creation for the default_height field.
 	generationmodel.DefaultDefaultHeight = generationmodelDescDefaultHeight.Default.(int32)
 	// generationmodelDescCreatedAt is the schema descriptor for created_at field.
-	generationmodelDescCreatedAt := generationmodelFields[9].Descriptor()
+	generationmodelDescCreatedAt := generationmodelFields[10].Descriptor()
 	// generationmodel.DefaultCreatedAt holds the default value on creation for the created_at field.
 	generationmodel.DefaultCreatedAt = generationmodelDescCreatedAt.Default.(func() time.Time)
 	// generationmodelDescUpdatedAt is the schema descriptor for updated_at field.
-	generationmodelDescUpdatedAt := generationmodelFields[10].Descriptor()
+	generationmodelDescUpdatedAt := generationmodelFields[11].Descriptor()
 	// generationmodel.DefaultUpdatedAt holds the default value on creation for the updated_at field.
 	generationmodel.DefaultUpdatedAt = generationmodelDescUpdatedAt.Default.(func() time.Time)
 	// generationmodel.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.

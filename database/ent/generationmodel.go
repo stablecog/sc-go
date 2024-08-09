@@ -20,6 +20,8 @@ type GenerationModel struct {
 	ID uuid.UUID `json:"id,omitempty"`
 	// NameInWorker holds the value of the "name_in_worker" field.
 	NameInWorker string `json:"name_in_worker,omitempty"`
+	// ShortName holds the value of the "short_name" field.
+	ShortName string `json:"short_name,omitempty"`
 	// IsActive holds the value of the "is_active" field.
 	IsActive bool `json:"is_active,omitempty"`
 	// IsDefault holds the value of the "is_default" field.
@@ -84,7 +86,7 @@ func (*GenerationModel) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullBool)
 		case generationmodel.FieldDisplayWeight, generationmodel.FieldDefaultWidth, generationmodel.FieldDefaultHeight:
 			values[i] = new(sql.NullInt64)
-		case generationmodel.FieldNameInWorker:
+		case generationmodel.FieldNameInWorker, generationmodel.FieldShortName:
 			values[i] = new(sql.NullString)
 		case generationmodel.FieldCreatedAt, generationmodel.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
@@ -116,6 +118,12 @@ func (gm *GenerationModel) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field name_in_worker", values[i])
 			} else if value.Valid {
 				gm.NameInWorker = value.String
+			}
+		case generationmodel.FieldShortName:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field short_name", values[i])
+			} else if value.Valid {
+				gm.ShortName = value.String
 			}
 		case generationmodel.FieldIsActive:
 			if value, ok := values[i].(*sql.NullBool); !ok {
@@ -220,6 +228,9 @@ func (gm *GenerationModel) String() string {
 	builder.WriteString(fmt.Sprintf("id=%v, ", gm.ID))
 	builder.WriteString("name_in_worker=")
 	builder.WriteString(gm.NameInWorker)
+	builder.WriteString(", ")
+	builder.WriteString("short_name=")
+	builder.WriteString(gm.ShortName)
 	builder.WriteString(", ")
 	builder.WriteString("is_active=")
 	builder.WriteString(fmt.Sprintf("%v", gm.IsActive))

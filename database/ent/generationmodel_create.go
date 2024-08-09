@@ -32,6 +32,12 @@ func (gmc *GenerationModelCreate) SetNameInWorker(s string) *GenerationModelCrea
 	return gmc
 }
 
+// SetShortName sets the "short_name" field.
+func (gmc *GenerationModelCreate) SetShortName(s string) *GenerationModelCreate {
+	gmc.mutation.SetShortName(s)
+	return gmc
+}
+
 // SetIsActive sets the "is_active" field.
 func (gmc *GenerationModelCreate) SetIsActive(b bool) *GenerationModelCreate {
 	gmc.mutation.SetIsActive(b)
@@ -280,6 +286,9 @@ func (gmc *GenerationModelCreate) check() error {
 	if _, ok := gmc.mutation.NameInWorker(); !ok {
 		return &ValidationError{Name: "name_in_worker", err: errors.New(`ent: missing required field "GenerationModel.name_in_worker"`)}
 	}
+	if _, ok := gmc.mutation.ShortName(); !ok {
+		return &ValidationError{Name: "short_name", err: errors.New(`ent: missing required field "GenerationModel.short_name"`)}
+	}
 	if _, ok := gmc.mutation.IsActive(); !ok {
 		return &ValidationError{Name: "is_active", err: errors.New(`ent: missing required field "GenerationModel.is_active"`)}
 	}
@@ -343,6 +352,10 @@ func (gmc *GenerationModelCreate) createSpec() (*GenerationModel, *sqlgraph.Crea
 	if value, ok := gmc.mutation.NameInWorker(); ok {
 		_spec.SetField(generationmodel.FieldNameInWorker, field.TypeString, value)
 		_node.NameInWorker = value
+	}
+	if value, ok := gmc.mutation.ShortName(); ok {
+		_spec.SetField(generationmodel.FieldShortName, field.TypeString, value)
+		_node.ShortName = value
 	}
 	if value, ok := gmc.mutation.IsActive(); ok {
 		_spec.SetField(generationmodel.FieldIsActive, field.TypeBool, value)
@@ -473,6 +486,18 @@ func (u *GenerationModelUpsert) SetNameInWorker(v string) *GenerationModelUpsert
 // UpdateNameInWorker sets the "name_in_worker" field to the value that was provided on create.
 func (u *GenerationModelUpsert) UpdateNameInWorker() *GenerationModelUpsert {
 	u.SetExcluded(generationmodel.FieldNameInWorker)
+	return u
+}
+
+// SetShortName sets the "short_name" field.
+func (u *GenerationModelUpsert) SetShortName(v string) *GenerationModelUpsert {
+	u.Set(generationmodel.FieldShortName, v)
+	return u
+}
+
+// UpdateShortName sets the "short_name" field to the value that was provided on create.
+func (u *GenerationModelUpsert) UpdateShortName() *GenerationModelUpsert {
+	u.SetExcluded(generationmodel.FieldShortName)
 	return u
 }
 
@@ -658,6 +683,20 @@ func (u *GenerationModelUpsertOne) SetNameInWorker(v string) *GenerationModelUps
 func (u *GenerationModelUpsertOne) UpdateNameInWorker() *GenerationModelUpsertOne {
 	return u.Update(func(s *GenerationModelUpsert) {
 		s.UpdateNameInWorker()
+	})
+}
+
+// SetShortName sets the "short_name" field.
+func (u *GenerationModelUpsertOne) SetShortName(v string) *GenerationModelUpsertOne {
+	return u.Update(func(s *GenerationModelUpsert) {
+		s.SetShortName(v)
+	})
+}
+
+// UpdateShortName sets the "short_name" field to the value that was provided on create.
+func (u *GenerationModelUpsertOne) UpdateShortName() *GenerationModelUpsertOne {
+	return u.Update(func(s *GenerationModelUpsert) {
+		s.UpdateShortName()
 	})
 }
 
@@ -1030,6 +1069,20 @@ func (u *GenerationModelUpsertBulk) SetNameInWorker(v string) *GenerationModelUp
 func (u *GenerationModelUpsertBulk) UpdateNameInWorker() *GenerationModelUpsertBulk {
 	return u.Update(func(s *GenerationModelUpsert) {
 		s.UpdateNameInWorker()
+	})
+}
+
+// SetShortName sets the "short_name" field.
+func (u *GenerationModelUpsertBulk) SetShortName(v string) *GenerationModelUpsertBulk {
+	return u.Update(func(s *GenerationModelUpsert) {
+		s.SetShortName(v)
+	})
+}
+
+// UpdateShortName sets the "short_name" field to the value that was provided on create.
+func (u *GenerationModelUpsertBulk) UpdateShortName() *GenerationModelUpsertBulk {
+	return u.Update(func(s *GenerationModelUpsert) {
+		s.UpdateShortName()
 	})
 }
 

@@ -46,6 +46,20 @@ func (gmu *GenerationModelUpdate) SetNillableNameInWorker(s *string) *Generation
 	return gmu
 }
 
+// SetShortName sets the "short_name" field.
+func (gmu *GenerationModelUpdate) SetShortName(s string) *GenerationModelUpdate {
+	gmu.mutation.SetShortName(s)
+	return gmu
+}
+
+// SetNillableShortName sets the "short_name" field if the given value is not nil.
+func (gmu *GenerationModelUpdate) SetNillableShortName(s *string) *GenerationModelUpdate {
+	if s != nil {
+		gmu.SetShortName(*s)
+	}
+	return gmu
+}
+
 // SetIsActive sets the "is_active" field.
 func (gmu *GenerationModelUpdate) SetIsActive(b bool) *GenerationModelUpdate {
 	gmu.mutation.SetIsActive(b)
@@ -308,6 +322,9 @@ func (gmu *GenerationModelUpdate) sqlSave(ctx context.Context) (n int, err error
 	if value, ok := gmu.mutation.NameInWorker(); ok {
 		_spec.SetField(generationmodel.FieldNameInWorker, field.TypeString, value)
 	}
+	if value, ok := gmu.mutation.ShortName(); ok {
+		_spec.SetField(generationmodel.FieldShortName, field.TypeString, value)
+	}
 	if value, ok := gmu.mutation.IsActive(); ok {
 		_spec.SetField(generationmodel.FieldIsActive, field.TypeBool, value)
 	}
@@ -466,6 +483,20 @@ func (gmuo *GenerationModelUpdateOne) SetNameInWorker(s string) *GenerationModel
 func (gmuo *GenerationModelUpdateOne) SetNillableNameInWorker(s *string) *GenerationModelUpdateOne {
 	if s != nil {
 		gmuo.SetNameInWorker(*s)
+	}
+	return gmuo
+}
+
+// SetShortName sets the "short_name" field.
+func (gmuo *GenerationModelUpdateOne) SetShortName(s string) *GenerationModelUpdateOne {
+	gmuo.mutation.SetShortName(s)
+	return gmuo
+}
+
+// SetNillableShortName sets the "short_name" field if the given value is not nil.
+func (gmuo *GenerationModelUpdateOne) SetNillableShortName(s *string) *GenerationModelUpdateOne {
+	if s != nil {
+		gmuo.SetShortName(*s)
 	}
 	return gmuo
 }
@@ -761,6 +792,9 @@ func (gmuo *GenerationModelUpdateOne) sqlSave(ctx context.Context) (_node *Gener
 	}
 	if value, ok := gmuo.mutation.NameInWorker(); ok {
 		_spec.SetField(generationmodel.FieldNameInWorker, field.TypeString, value)
+	}
+	if value, ok := gmuo.mutation.ShortName(); ok {
+		_spec.SetField(generationmodel.FieldShortName, field.TypeString, value)
 	}
 	if value, ok := gmuo.mutation.IsActive(); ok {
 		_spec.SetField(generationmodel.FieldIsActive, field.TypeBool, value)
