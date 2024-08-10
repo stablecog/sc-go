@@ -17,9 +17,9 @@ const TIMEOUT_ERROR = "TIMEOUT"
 
 // After this period, a request will timeout and a user will be refunded
 // But the generation/upscale may still go through, if it takes longer than this
-const REQUEST_COG_TIMEOUT = 180 * time.Second
+const REQUEST_COG_TIMEOUT = 240 * time.Second
 
-const REQUEST_COG_TIMEOUT_VOICEOVER = 180 * time.Second
+const REQUEST_COG_TIMEOUT_VOICEOVER = 240 * time.Second
 
 // Generation related
 const MAX_GENERATE_WIDTH = 1536
