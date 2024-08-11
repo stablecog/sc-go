@@ -41,6 +41,11 @@ func (c *RestAPI) HandleGetUserProfileMetadata(w http.ResponseWriter, r *http.Re
 		return
 	}
 
+	if user.DataDeletedAt != nil {
+		responses.ErrNotFound(w, r, "user_not_found")
+		return
+	}
+
 	// Get like count
 	likes, err := c.Repo.GetGenerationOutputLikeCountForUserExcludingSelfLikes(user.ID)
 	if err != nil {
@@ -82,6 +87,11 @@ func (c *RestAPI) HandleUserProfileSemanticSearch(w http.ResponseWriter, r *http
 		}
 		log.Error("Error retrieving user", "err", err)
 		responses.ErrInternalServerError(w, r, "An unknown error has occurred")
+		return
+	}
+
+	if user.DataDeletedAt != nil {
+		responses.ErrNotFound(w, r, "user_not_found")
 		return
 	}
 
