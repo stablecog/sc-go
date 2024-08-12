@@ -65,9 +65,10 @@ func (r *Repository) GetOutputsWithNoNsfwCheck(limit int) ([]*ent.GenerationOutp
 	query := r.DB.GenerationOutput.Query().
 		Where(
 			generationoutput.CheckedForNsfw(false),
+			generationoutput.HasEmbeddings(true),
 			generationoutput.ImagePathNEQ("placeholder.webp"),
 		).
-		Order(ent.Asc(generationoutput.FieldCreatedAt)).
+		Order(ent.Desc(generationoutput.FieldCreatedAt)).
 		WithGenerations(func(q *ent.GenerationQuery) {
 			q.WithPrompt().WithNegativePrompt()
 		}).
