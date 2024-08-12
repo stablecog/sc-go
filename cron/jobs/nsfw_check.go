@@ -46,6 +46,8 @@ func (j *JobRunner) HandleOutputsWithNoNsfwCheck(log Logger) error {
 
 	log.Infof("Got NSFW scores for %d output(s): %dms", len(nsfwScores), time.Since(m).Milliseconds())
 
+	log.Infof("Updating outputs with NSFW scores...")
+	m = time.Now()
 	r := j.Repo
 	for i, output := range outputs {
 		if err := r.WithTx(func(tx *ent.Tx) error {
@@ -83,6 +85,7 @@ func (j *JobRunner) HandleOutputsWithNoNsfwCheck(log Logger) error {
 			continue
 		}
 	}
+	log.Infof("Updated %d output(s) with NSFW scores in Postgres & Qdrant: %dms", len(outputs), time.Since(m).Milliseconds())
 
 	e := time.Since(s)
 
