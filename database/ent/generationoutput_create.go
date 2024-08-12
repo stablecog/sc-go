@@ -159,6 +159,34 @@ func (goc *GenerationOutputCreate) SetNillableAestheticArtifactScore(f *float32)
 	return goc
 }
 
+// SetCheckedForNsfw sets the "checked_for_nsfw" field.
+func (goc *GenerationOutputCreate) SetCheckedForNsfw(b bool) *GenerationOutputCreate {
+	goc.mutation.SetCheckedForNsfw(b)
+	return goc
+}
+
+// SetNillableCheckedForNsfw sets the "checked_for_nsfw" field if the given value is not nil.
+func (goc *GenerationOutputCreate) SetNillableCheckedForNsfw(b *bool) *GenerationOutputCreate {
+	if b != nil {
+		goc.SetCheckedForNsfw(*b)
+	}
+	return goc
+}
+
+// SetNsfwScore sets the "nsfw_score" field.
+func (goc *GenerationOutputCreate) SetNsfwScore(f float32) *GenerationOutputCreate {
+	goc.mutation.SetNsfwScore(f)
+	return goc
+}
+
+// SetNillableNsfwScore sets the "nsfw_score" field if the given value is not nil.
+func (goc *GenerationOutputCreate) SetNillableNsfwScore(f *float32) *GenerationOutputCreate {
+	if f != nil {
+		goc.SetNsfwScore(*f)
+	}
+	return goc
+}
+
 // SetLikeCount sets the "like_count" field.
 func (goc *GenerationOutputCreate) SetLikeCount(i int) *GenerationOutputCreate {
 	goc.mutation.SetLikeCount(i)
@@ -347,6 +375,14 @@ func (goc *GenerationOutputCreate) defaults() {
 		v := generationoutput.DefaultAestheticArtifactScore
 		goc.mutation.SetAestheticArtifactScore(v)
 	}
+	if _, ok := goc.mutation.CheckedForNsfw(); !ok {
+		v := generationoutput.DefaultCheckedForNsfw
+		goc.mutation.SetCheckedForNsfw(v)
+	}
+	if _, ok := goc.mutation.NsfwScore(); !ok {
+		v := generationoutput.DefaultNsfwScore
+		goc.mutation.SetNsfwScore(v)
+	}
 	if _, ok := goc.mutation.LikeCount(); !ok {
 		v := generationoutput.DefaultLikeCount
 		goc.mutation.SetLikeCount(v)
@@ -398,6 +434,12 @@ func (goc *GenerationOutputCreate) check() error {
 	}
 	if _, ok := goc.mutation.AestheticArtifactScore(); !ok {
 		return &ValidationError{Name: "aesthetic_artifact_score", err: errors.New(`ent: missing required field "GenerationOutput.aesthetic_artifact_score"`)}
+	}
+	if _, ok := goc.mutation.CheckedForNsfw(); !ok {
+		return &ValidationError{Name: "checked_for_nsfw", err: errors.New(`ent: missing required field "GenerationOutput.checked_for_nsfw"`)}
+	}
+	if _, ok := goc.mutation.NsfwScore(); !ok {
+		return &ValidationError{Name: "nsfw_score", err: errors.New(`ent: missing required field "GenerationOutput.nsfw_score"`)}
 	}
 	if _, ok := goc.mutation.LikeCount(); !ok {
 		return &ValidationError{Name: "like_count", err: errors.New(`ent: missing required field "GenerationOutput.like_count"`)}
@@ -489,6 +531,14 @@ func (goc *GenerationOutputCreate) createSpec() (*GenerationOutput, *sqlgraph.Cr
 	if value, ok := goc.mutation.AestheticArtifactScore(); ok {
 		_spec.SetField(generationoutput.FieldAestheticArtifactScore, field.TypeFloat32, value)
 		_node.AestheticArtifactScore = value
+	}
+	if value, ok := goc.mutation.CheckedForNsfw(); ok {
+		_spec.SetField(generationoutput.FieldCheckedForNsfw, field.TypeBool, value)
+		_node.CheckedForNsfw = value
+	}
+	if value, ok := goc.mutation.NsfwScore(); ok {
+		_spec.SetField(generationoutput.FieldNsfwScore, field.TypeFloat32, value)
+		_node.NsfwScore = value
 	}
 	if value, ok := goc.mutation.LikeCount(); ok {
 		_spec.SetField(generationoutput.FieldLikeCount, field.TypeInt, value)
@@ -742,6 +792,36 @@ func (u *GenerationOutputUpsert) UpdateAestheticArtifactScore() *GenerationOutpu
 // AddAestheticArtifactScore adds v to the "aesthetic_artifact_score" field.
 func (u *GenerationOutputUpsert) AddAestheticArtifactScore(v float32) *GenerationOutputUpsert {
 	u.Add(generationoutput.FieldAestheticArtifactScore, v)
+	return u
+}
+
+// SetCheckedForNsfw sets the "checked_for_nsfw" field.
+func (u *GenerationOutputUpsert) SetCheckedForNsfw(v bool) *GenerationOutputUpsert {
+	u.Set(generationoutput.FieldCheckedForNsfw, v)
+	return u
+}
+
+// UpdateCheckedForNsfw sets the "checked_for_nsfw" field to the value that was provided on create.
+func (u *GenerationOutputUpsert) UpdateCheckedForNsfw() *GenerationOutputUpsert {
+	u.SetExcluded(generationoutput.FieldCheckedForNsfw)
+	return u
+}
+
+// SetNsfwScore sets the "nsfw_score" field.
+func (u *GenerationOutputUpsert) SetNsfwScore(v float32) *GenerationOutputUpsert {
+	u.Set(generationoutput.FieldNsfwScore, v)
+	return u
+}
+
+// UpdateNsfwScore sets the "nsfw_score" field to the value that was provided on create.
+func (u *GenerationOutputUpsert) UpdateNsfwScore() *GenerationOutputUpsert {
+	u.SetExcluded(generationoutput.FieldNsfwScore)
+	return u
+}
+
+// AddNsfwScore adds v to the "nsfw_score" field.
+func (u *GenerationOutputUpsert) AddNsfwScore(v float32) *GenerationOutputUpsert {
+	u.Add(generationoutput.FieldNsfwScore, v)
 	return u
 }
 
@@ -1014,6 +1094,41 @@ func (u *GenerationOutputUpsertOne) AddAestheticArtifactScore(v float32) *Genera
 func (u *GenerationOutputUpsertOne) UpdateAestheticArtifactScore() *GenerationOutputUpsertOne {
 	return u.Update(func(s *GenerationOutputUpsert) {
 		s.UpdateAestheticArtifactScore()
+	})
+}
+
+// SetCheckedForNsfw sets the "checked_for_nsfw" field.
+func (u *GenerationOutputUpsertOne) SetCheckedForNsfw(v bool) *GenerationOutputUpsertOne {
+	return u.Update(func(s *GenerationOutputUpsert) {
+		s.SetCheckedForNsfw(v)
+	})
+}
+
+// UpdateCheckedForNsfw sets the "checked_for_nsfw" field to the value that was provided on create.
+func (u *GenerationOutputUpsertOne) UpdateCheckedForNsfw() *GenerationOutputUpsertOne {
+	return u.Update(func(s *GenerationOutputUpsert) {
+		s.UpdateCheckedForNsfw()
+	})
+}
+
+// SetNsfwScore sets the "nsfw_score" field.
+func (u *GenerationOutputUpsertOne) SetNsfwScore(v float32) *GenerationOutputUpsertOne {
+	return u.Update(func(s *GenerationOutputUpsert) {
+		s.SetNsfwScore(v)
+	})
+}
+
+// AddNsfwScore adds v to the "nsfw_score" field.
+func (u *GenerationOutputUpsertOne) AddNsfwScore(v float32) *GenerationOutputUpsertOne {
+	return u.Update(func(s *GenerationOutputUpsert) {
+		s.AddNsfwScore(v)
+	})
+}
+
+// UpdateNsfwScore sets the "nsfw_score" field to the value that was provided on create.
+func (u *GenerationOutputUpsertOne) UpdateNsfwScore() *GenerationOutputUpsertOne {
+	return u.Update(func(s *GenerationOutputUpsert) {
+		s.UpdateNsfwScore()
 	})
 }
 
@@ -1463,6 +1578,41 @@ func (u *GenerationOutputUpsertBulk) AddAestheticArtifactScore(v float32) *Gener
 func (u *GenerationOutputUpsertBulk) UpdateAestheticArtifactScore() *GenerationOutputUpsertBulk {
 	return u.Update(func(s *GenerationOutputUpsert) {
 		s.UpdateAestheticArtifactScore()
+	})
+}
+
+// SetCheckedForNsfw sets the "checked_for_nsfw" field.
+func (u *GenerationOutputUpsertBulk) SetCheckedForNsfw(v bool) *GenerationOutputUpsertBulk {
+	return u.Update(func(s *GenerationOutputUpsert) {
+		s.SetCheckedForNsfw(v)
+	})
+}
+
+// UpdateCheckedForNsfw sets the "checked_for_nsfw" field to the value that was provided on create.
+func (u *GenerationOutputUpsertBulk) UpdateCheckedForNsfw() *GenerationOutputUpsertBulk {
+	return u.Update(func(s *GenerationOutputUpsert) {
+		s.UpdateCheckedForNsfw()
+	})
+}
+
+// SetNsfwScore sets the "nsfw_score" field.
+func (u *GenerationOutputUpsertBulk) SetNsfwScore(v float32) *GenerationOutputUpsertBulk {
+	return u.Update(func(s *GenerationOutputUpsert) {
+		s.SetNsfwScore(v)
+	})
+}
+
+// AddNsfwScore adds v to the "nsfw_score" field.
+func (u *GenerationOutputUpsertBulk) AddNsfwScore(v float32) *GenerationOutputUpsertBulk {
+	return u.Update(func(s *GenerationOutputUpsert) {
+		s.AddNsfwScore(v)
+	})
+}
+
+// UpdateNsfwScore sets the "nsfw_score" field to the value that was provided on create.
+func (u *GenerationOutputUpsertBulk) UpdateNsfwScore() *GenerationOutputUpsertBulk {
+	return u.Update(func(s *GenerationOutputUpsert) {
+		s.UpdateNsfwScore()
 	})
 }
 

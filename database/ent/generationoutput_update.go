@@ -193,6 +193,41 @@ func (gou *GenerationOutputUpdate) AddAestheticArtifactScore(f float32) *Generat
 	return gou
 }
 
+// SetCheckedForNsfw sets the "checked_for_nsfw" field.
+func (gou *GenerationOutputUpdate) SetCheckedForNsfw(b bool) *GenerationOutputUpdate {
+	gou.mutation.SetCheckedForNsfw(b)
+	return gou
+}
+
+// SetNillableCheckedForNsfw sets the "checked_for_nsfw" field if the given value is not nil.
+func (gou *GenerationOutputUpdate) SetNillableCheckedForNsfw(b *bool) *GenerationOutputUpdate {
+	if b != nil {
+		gou.SetCheckedForNsfw(*b)
+	}
+	return gou
+}
+
+// SetNsfwScore sets the "nsfw_score" field.
+func (gou *GenerationOutputUpdate) SetNsfwScore(f float32) *GenerationOutputUpdate {
+	gou.mutation.ResetNsfwScore()
+	gou.mutation.SetNsfwScore(f)
+	return gou
+}
+
+// SetNillableNsfwScore sets the "nsfw_score" field if the given value is not nil.
+func (gou *GenerationOutputUpdate) SetNillableNsfwScore(f *float32) *GenerationOutputUpdate {
+	if f != nil {
+		gou.SetNsfwScore(*f)
+	}
+	return gou
+}
+
+// AddNsfwScore adds f to the "nsfw_score" field.
+func (gou *GenerationOutputUpdate) AddNsfwScore(f float32) *GenerationOutputUpdate {
+	gou.mutation.AddNsfwScore(f)
+	return gou
+}
+
 // SetLikeCount sets the "like_count" field.
 func (gou *GenerationOutputUpdate) SetLikeCount(i int) *GenerationOutputUpdate {
 	gou.mutation.ResetLikeCount()
@@ -442,6 +477,15 @@ func (gou *GenerationOutputUpdate) sqlSave(ctx context.Context) (n int, err erro
 	}
 	if value, ok := gou.mutation.AddedAestheticArtifactScore(); ok {
 		_spec.AddField(generationoutput.FieldAestheticArtifactScore, field.TypeFloat32, value)
+	}
+	if value, ok := gou.mutation.CheckedForNsfw(); ok {
+		_spec.SetField(generationoutput.FieldCheckedForNsfw, field.TypeBool, value)
+	}
+	if value, ok := gou.mutation.NsfwScore(); ok {
+		_spec.SetField(generationoutput.FieldNsfwScore, field.TypeFloat32, value)
+	}
+	if value, ok := gou.mutation.AddedNsfwScore(); ok {
+		_spec.AddField(generationoutput.FieldNsfwScore, field.TypeFloat32, value)
 	}
 	if value, ok := gou.mutation.LikeCount(); ok {
 		_spec.SetField(generationoutput.FieldLikeCount, field.TypeInt, value)
@@ -743,6 +787,41 @@ func (gouo *GenerationOutputUpdateOne) AddAestheticArtifactScore(f float32) *Gen
 	return gouo
 }
 
+// SetCheckedForNsfw sets the "checked_for_nsfw" field.
+func (gouo *GenerationOutputUpdateOne) SetCheckedForNsfw(b bool) *GenerationOutputUpdateOne {
+	gouo.mutation.SetCheckedForNsfw(b)
+	return gouo
+}
+
+// SetNillableCheckedForNsfw sets the "checked_for_nsfw" field if the given value is not nil.
+func (gouo *GenerationOutputUpdateOne) SetNillableCheckedForNsfw(b *bool) *GenerationOutputUpdateOne {
+	if b != nil {
+		gouo.SetCheckedForNsfw(*b)
+	}
+	return gouo
+}
+
+// SetNsfwScore sets the "nsfw_score" field.
+func (gouo *GenerationOutputUpdateOne) SetNsfwScore(f float32) *GenerationOutputUpdateOne {
+	gouo.mutation.ResetNsfwScore()
+	gouo.mutation.SetNsfwScore(f)
+	return gouo
+}
+
+// SetNillableNsfwScore sets the "nsfw_score" field if the given value is not nil.
+func (gouo *GenerationOutputUpdateOne) SetNillableNsfwScore(f *float32) *GenerationOutputUpdateOne {
+	if f != nil {
+		gouo.SetNsfwScore(*f)
+	}
+	return gouo
+}
+
+// AddNsfwScore adds f to the "nsfw_score" field.
+func (gouo *GenerationOutputUpdateOne) AddNsfwScore(f float32) *GenerationOutputUpdateOne {
+	gouo.mutation.AddNsfwScore(f)
+	return gouo
+}
+
 // SetLikeCount sets the "like_count" field.
 func (gouo *GenerationOutputUpdateOne) SetLikeCount(i int) *GenerationOutputUpdateOne {
 	gouo.mutation.ResetLikeCount()
@@ -1022,6 +1101,15 @@ func (gouo *GenerationOutputUpdateOne) sqlSave(ctx context.Context) (_node *Gene
 	}
 	if value, ok := gouo.mutation.AddedAestheticArtifactScore(); ok {
 		_spec.AddField(generationoutput.FieldAestheticArtifactScore, field.TypeFloat32, value)
+	}
+	if value, ok := gouo.mutation.CheckedForNsfw(); ok {
+		_spec.SetField(generationoutput.FieldCheckedForNsfw, field.TypeBool, value)
+	}
+	if value, ok := gouo.mutation.NsfwScore(); ok {
+		_spec.SetField(generationoutput.FieldNsfwScore, field.TypeFloat32, value)
+	}
+	if value, ok := gouo.mutation.AddedNsfwScore(); ok {
+		_spec.AddField(generationoutput.FieldNsfwScore, field.TypeFloat32, value)
 	}
 	if value, ok := gouo.mutation.LikeCount(); ok {
 		_spec.SetField(generationoutput.FieldLikeCount, field.TypeInt, value)

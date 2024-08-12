@@ -271,16 +271,24 @@ func init() {
 	generationoutputDescAestheticArtifactScore := generationoutputFields[10].Descriptor()
 	// generationoutput.DefaultAestheticArtifactScore holds the default value on creation for the aesthetic_artifact_score field.
 	generationoutput.DefaultAestheticArtifactScore = generationoutputDescAestheticArtifactScore.Default.(float32)
+	// generationoutputDescCheckedForNsfw is the schema descriptor for checked_for_nsfw field.
+	generationoutputDescCheckedForNsfw := generationoutputFields[11].Descriptor()
+	// generationoutput.DefaultCheckedForNsfw holds the default value on creation for the checked_for_nsfw field.
+	generationoutput.DefaultCheckedForNsfw = generationoutputDescCheckedForNsfw.Default.(bool)
+	// generationoutputDescNsfwScore is the schema descriptor for nsfw_score field.
+	generationoutputDescNsfwScore := generationoutputFields[12].Descriptor()
+	// generationoutput.DefaultNsfwScore holds the default value on creation for the nsfw_score field.
+	generationoutput.DefaultNsfwScore = generationoutputDescNsfwScore.Default.(float32)
 	// generationoutputDescLikeCount is the schema descriptor for like_count field.
-	generationoutputDescLikeCount := generationoutputFields[11].Descriptor()
+	generationoutputDescLikeCount := generationoutputFields[13].Descriptor()
 	// generationoutput.DefaultLikeCount holds the default value on creation for the like_count field.
 	generationoutput.DefaultLikeCount = generationoutputDescLikeCount.Default.(int)
 	// generationoutputDescCreatedAt is the schema descriptor for created_at field.
-	generationoutputDescCreatedAt := generationoutputFields[14].Descriptor()
+	generationoutputDescCreatedAt := generationoutputFields[16].Descriptor()
 	// generationoutput.DefaultCreatedAt holds the default value on creation for the created_at field.
 	generationoutput.DefaultCreatedAt = generationoutputDescCreatedAt.Default.(func() time.Time)
 	// generationoutputDescUpdatedAt is the schema descriptor for updated_at field.
-	generationoutputDescUpdatedAt := generationoutputFields[15].Descriptor()
+	generationoutputDescUpdatedAt := generationoutputFields[17].Descriptor()
 	// generationoutput.DefaultUpdatedAt holds the default value on creation for the updated_at field.
 	generationoutput.DefaultUpdatedAt = generationoutputDescUpdatedAt.Default.(func() time.Time)
 	// generationoutput.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.

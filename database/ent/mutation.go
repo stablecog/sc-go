@@ -9441,6 +9441,9 @@ type GenerationOutputMutation struct {
 	addaesthetic_rating_score      *float32
 	aesthetic_artifact_score       *float32
 	addaesthetic_artifact_score    *float32
+	checked_for_nsfw               *bool
+	nsfw_score                     *float32
+	addnsfw_score                  *float32
 	like_count                     *int
 	addlike_count                  *int
 	deleted_at                     *time.Time
@@ -9976,6 +9979,98 @@ func (m *GenerationOutputMutation) ResetAestheticArtifactScore() {
 	m.addaesthetic_artifact_score = nil
 }
 
+// SetCheckedForNsfw sets the "checked_for_nsfw" field.
+func (m *GenerationOutputMutation) SetCheckedForNsfw(b bool) {
+	m.checked_for_nsfw = &b
+}
+
+// CheckedForNsfw returns the value of the "checked_for_nsfw" field in the mutation.
+func (m *GenerationOutputMutation) CheckedForNsfw() (r bool, exists bool) {
+	v := m.checked_for_nsfw
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCheckedForNsfw returns the old "checked_for_nsfw" field's value of the GenerationOutput entity.
+// If the GenerationOutput object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *GenerationOutputMutation) OldCheckedForNsfw(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCheckedForNsfw is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCheckedForNsfw requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCheckedForNsfw: %w", err)
+	}
+	return oldValue.CheckedForNsfw, nil
+}
+
+// ResetCheckedForNsfw resets all changes to the "checked_for_nsfw" field.
+func (m *GenerationOutputMutation) ResetCheckedForNsfw() {
+	m.checked_for_nsfw = nil
+}
+
+// SetNsfwScore sets the "nsfw_score" field.
+func (m *GenerationOutputMutation) SetNsfwScore(f float32) {
+	m.nsfw_score = &f
+	m.addnsfw_score = nil
+}
+
+// NsfwScore returns the value of the "nsfw_score" field in the mutation.
+func (m *GenerationOutputMutation) NsfwScore() (r float32, exists bool) {
+	v := m.nsfw_score
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldNsfwScore returns the old "nsfw_score" field's value of the GenerationOutput entity.
+// If the GenerationOutput object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *GenerationOutputMutation) OldNsfwScore(ctx context.Context) (v float32, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldNsfwScore is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldNsfwScore requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldNsfwScore: %w", err)
+	}
+	return oldValue.NsfwScore, nil
+}
+
+// AddNsfwScore adds f to the "nsfw_score" field.
+func (m *GenerationOutputMutation) AddNsfwScore(f float32) {
+	if m.addnsfw_score != nil {
+		*m.addnsfw_score += f
+	} else {
+		m.addnsfw_score = &f
+	}
+}
+
+// AddedNsfwScore returns the value that was added to the "nsfw_score" field in this mutation.
+func (m *GenerationOutputMutation) AddedNsfwScore() (r float32, exists bool) {
+	v := m.addnsfw_score
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetNsfwScore resets all changes to the "nsfw_score" field.
+func (m *GenerationOutputMutation) ResetNsfwScore() {
+	m.nsfw_score = nil
+	m.addnsfw_score = nil
+}
+
 // SetLikeCount sets the "like_count" field.
 func (m *GenerationOutputMutation) SetLikeCount(i int) {
 	m.like_count = &i
@@ -10356,7 +10451,7 @@ func (m *GenerationOutputMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *GenerationOutputMutation) Fields() []string {
-	fields := make([]string, 0, 15)
+	fields := make([]string, 0, 17)
 	if m.image_path != nil {
 		fields = append(fields, generationoutput.FieldImagePath)
 	}
@@ -10386,6 +10481,12 @@ func (m *GenerationOutputMutation) Fields() []string {
 	}
 	if m.aesthetic_artifact_score != nil {
 		fields = append(fields, generationoutput.FieldAestheticArtifactScore)
+	}
+	if m.checked_for_nsfw != nil {
+		fields = append(fields, generationoutput.FieldCheckedForNsfw)
+	}
+	if m.nsfw_score != nil {
+		fields = append(fields, generationoutput.FieldNsfwScore)
 	}
 	if m.like_count != nil {
 		fields = append(fields, generationoutput.FieldLikeCount)
@@ -10430,6 +10531,10 @@ func (m *GenerationOutputMutation) Field(name string) (ent.Value, bool) {
 		return m.AestheticRatingScore()
 	case generationoutput.FieldAestheticArtifactScore:
 		return m.AestheticArtifactScore()
+	case generationoutput.FieldCheckedForNsfw:
+		return m.CheckedForNsfw()
+	case generationoutput.FieldNsfwScore:
+		return m.NsfwScore()
 	case generationoutput.FieldLikeCount:
 		return m.LikeCount()
 	case generationoutput.FieldGenerationID:
@@ -10469,6 +10574,10 @@ func (m *GenerationOutputMutation) OldField(ctx context.Context, name string) (e
 		return m.OldAestheticRatingScore(ctx)
 	case generationoutput.FieldAestheticArtifactScore:
 		return m.OldAestheticArtifactScore(ctx)
+	case generationoutput.FieldCheckedForNsfw:
+		return m.OldCheckedForNsfw(ctx)
+	case generationoutput.FieldNsfwScore:
+		return m.OldNsfwScore(ctx)
 	case generationoutput.FieldLikeCount:
 		return m.OldLikeCount(ctx)
 	case generationoutput.FieldGenerationID:
@@ -10558,6 +10667,20 @@ func (m *GenerationOutputMutation) SetField(name string, value ent.Value) error 
 		}
 		m.SetAestheticArtifactScore(v)
 		return nil
+	case generationoutput.FieldCheckedForNsfw:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCheckedForNsfw(v)
+		return nil
+	case generationoutput.FieldNsfwScore:
+		v, ok := value.(float32)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetNsfwScore(v)
+		return nil
 	case generationoutput.FieldLikeCount:
 		v, ok := value.(int)
 		if !ok {
@@ -10607,6 +10730,9 @@ func (m *GenerationOutputMutation) AddedFields() []string {
 	if m.addaesthetic_artifact_score != nil {
 		fields = append(fields, generationoutput.FieldAestheticArtifactScore)
 	}
+	if m.addnsfw_score != nil {
+		fields = append(fields, generationoutput.FieldNsfwScore)
+	}
 	if m.addlike_count != nil {
 		fields = append(fields, generationoutput.FieldLikeCount)
 	}
@@ -10622,6 +10748,8 @@ func (m *GenerationOutputMutation) AddedField(name string) (ent.Value, bool) {
 		return m.AddedAestheticRatingScore()
 	case generationoutput.FieldAestheticArtifactScore:
 		return m.AddedAestheticArtifactScore()
+	case generationoutput.FieldNsfwScore:
+		return m.AddedNsfwScore()
 	case generationoutput.FieldLikeCount:
 		return m.AddedLikeCount()
 	}
@@ -10646,6 +10774,13 @@ func (m *GenerationOutputMutation) AddField(name string, value ent.Value) error 
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.AddAestheticArtifactScore(v)
+		return nil
+	case generationoutput.FieldNsfwScore:
+		v, ok := value.(float32)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddNsfwScore(v)
 		return nil
 	case generationoutput.FieldLikeCount:
 		v, ok := value.(int)
@@ -10725,6 +10860,12 @@ func (m *GenerationOutputMutation) ResetField(name string) error {
 		return nil
 	case generationoutput.FieldAestheticArtifactScore:
 		m.ResetAestheticArtifactScore()
+		return nil
+	case generationoutput.FieldCheckedForNsfw:
+		m.ResetCheckedForNsfw()
+		return nil
+	case generationoutput.FieldNsfwScore:
+		m.ResetNsfwScore()
 		return nil
 	case generationoutput.FieldLikeCount:
 		m.ResetLikeCount()

@@ -101,6 +101,16 @@ func AestheticArtifactScore(v float32) predicate.GenerationOutput {
 	return predicate.GenerationOutput(sql.FieldEQ(FieldAestheticArtifactScore, v))
 }
 
+// CheckedForNsfw applies equality check predicate on the "checked_for_nsfw" field. It's identical to CheckedForNsfwEQ.
+func CheckedForNsfw(v bool) predicate.GenerationOutput {
+	return predicate.GenerationOutput(sql.FieldEQ(FieldCheckedForNsfw, v))
+}
+
+// NsfwScore applies equality check predicate on the "nsfw_score" field. It's identical to NsfwScoreEQ.
+func NsfwScore(v float32) predicate.GenerationOutput {
+	return predicate.GenerationOutput(sql.FieldEQ(FieldNsfwScore, v))
+}
+
 // LikeCount applies equality check predicate on the "like_count" field. It's identical to LikeCountEQ.
 func LikeCount(v int) predicate.GenerationOutput {
 	return predicate.GenerationOutput(sql.FieldEQ(FieldLikeCount, v))
@@ -414,6 +424,56 @@ func AestheticArtifactScoreLT(v float32) predicate.GenerationOutput {
 // AestheticArtifactScoreLTE applies the LTE predicate on the "aesthetic_artifact_score" field.
 func AestheticArtifactScoreLTE(v float32) predicate.GenerationOutput {
 	return predicate.GenerationOutput(sql.FieldLTE(FieldAestheticArtifactScore, v))
+}
+
+// CheckedForNsfwEQ applies the EQ predicate on the "checked_for_nsfw" field.
+func CheckedForNsfwEQ(v bool) predicate.GenerationOutput {
+	return predicate.GenerationOutput(sql.FieldEQ(FieldCheckedForNsfw, v))
+}
+
+// CheckedForNsfwNEQ applies the NEQ predicate on the "checked_for_nsfw" field.
+func CheckedForNsfwNEQ(v bool) predicate.GenerationOutput {
+	return predicate.GenerationOutput(sql.FieldNEQ(FieldCheckedForNsfw, v))
+}
+
+// NsfwScoreEQ applies the EQ predicate on the "nsfw_score" field.
+func NsfwScoreEQ(v float32) predicate.GenerationOutput {
+	return predicate.GenerationOutput(sql.FieldEQ(FieldNsfwScore, v))
+}
+
+// NsfwScoreNEQ applies the NEQ predicate on the "nsfw_score" field.
+func NsfwScoreNEQ(v float32) predicate.GenerationOutput {
+	return predicate.GenerationOutput(sql.FieldNEQ(FieldNsfwScore, v))
+}
+
+// NsfwScoreIn applies the In predicate on the "nsfw_score" field.
+func NsfwScoreIn(vs ...float32) predicate.GenerationOutput {
+	return predicate.GenerationOutput(sql.FieldIn(FieldNsfwScore, vs...))
+}
+
+// NsfwScoreNotIn applies the NotIn predicate on the "nsfw_score" field.
+func NsfwScoreNotIn(vs ...float32) predicate.GenerationOutput {
+	return predicate.GenerationOutput(sql.FieldNotIn(FieldNsfwScore, vs...))
+}
+
+// NsfwScoreGT applies the GT predicate on the "nsfw_score" field.
+func NsfwScoreGT(v float32) predicate.GenerationOutput {
+	return predicate.GenerationOutput(sql.FieldGT(FieldNsfwScore, v))
+}
+
+// NsfwScoreGTE applies the GTE predicate on the "nsfw_score" field.
+func NsfwScoreGTE(v float32) predicate.GenerationOutput {
+	return predicate.GenerationOutput(sql.FieldGTE(FieldNsfwScore, v))
+}
+
+// NsfwScoreLT applies the LT predicate on the "nsfw_score" field.
+func NsfwScoreLT(v float32) predicate.GenerationOutput {
+	return predicate.GenerationOutput(sql.FieldLT(FieldNsfwScore, v))
+}
+
+// NsfwScoreLTE applies the LTE predicate on the "nsfw_score" field.
+func NsfwScoreLTE(v float32) predicate.GenerationOutput {
+	return predicate.GenerationOutput(sql.FieldLTE(FieldNsfwScore, v))
 }
 
 // LikeCountEQ applies the EQ predicate on the "like_count" field.

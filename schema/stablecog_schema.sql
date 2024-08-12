@@ -173,6 +173,8 @@ CREATE TABLE public.generation_outputs (
     gallery_status public.generation_output_gallery_status_enum DEFAULT 'not_submitted'::public.generation_output_gallery_status_enum NOT NULL,
     is_favorited DEFAULT false not null;
     has_embeddings DEFAULT false not null;
+    checked_for_nsfw boolean DEFAULT false not null;
+    nsfw_score real DEFAULT 0 not null;
     deleted_at timestamp with time zone,
     created_at timestamp with time zone DEFAULT (now() AT TIME ZONE 'utc'::text) NOT NULL,
     updated_at timestamp with time zone DEFAULT (now() AT TIME ZONE 'utc'::text) NOT NULL

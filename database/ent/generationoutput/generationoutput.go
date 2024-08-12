@@ -36,6 +36,10 @@ const (
 	FieldAestheticRatingScore = "aesthetic_rating_score"
 	// FieldAestheticArtifactScore holds the string denoting the aesthetic_artifact_score field in the database.
 	FieldAestheticArtifactScore = "aesthetic_artifact_score"
+	// FieldCheckedForNsfw holds the string denoting the checked_for_nsfw field in the database.
+	FieldCheckedForNsfw = "checked_for_nsfw"
+	// FieldNsfwScore holds the string denoting the nsfw_score field in the database.
+	FieldNsfwScore = "nsfw_score"
 	// FieldLikeCount holds the string denoting the like_count field in the database.
 	FieldLikeCount = "like_count"
 	// FieldGenerationID holds the string denoting the generation_id field in the database.
@@ -90,6 +94,8 @@ var Columns = []string{
 	FieldIsPublic,
 	FieldAestheticRatingScore,
 	FieldAestheticArtifactScore,
+	FieldCheckedForNsfw,
+	FieldNsfwScore,
 	FieldLikeCount,
 	FieldGenerationID,
 	FieldDeletedAt,
@@ -122,6 +128,10 @@ var (
 	DefaultAestheticRatingScore float32
 	// DefaultAestheticArtifactScore holds the default value on creation for the "aesthetic_artifact_score" field.
 	DefaultAestheticArtifactScore float32
+	// DefaultCheckedForNsfw holds the default value on creation for the "checked_for_nsfw" field.
+	DefaultCheckedForNsfw bool
+	// DefaultNsfwScore holds the default value on creation for the "nsfw_score" field.
+	DefaultNsfwScore float32
 	// DefaultLikeCount holds the default value on creation for the "like_count" field.
 	DefaultLikeCount int
 	// DefaultCreatedAt holds the default value on creation for the "created_at" field.
@@ -219,6 +229,16 @@ func ByAestheticRatingScore(opts ...sql.OrderTermOption) OrderOption {
 // ByAestheticArtifactScore orders the results by the aesthetic_artifact_score field.
 func ByAestheticArtifactScore(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldAestheticArtifactScore, opts...).ToFunc()
+}
+
+// ByCheckedForNsfw orders the results by the checked_for_nsfw field.
+func ByCheckedForNsfw(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldCheckedForNsfw, opts...).ToFunc()
+}
+
+// ByNsfwScore orders the results by the nsfw_score field.
+func ByNsfwScore(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldNsfwScore, opts...).ToFunc()
 }
 
 // ByLikeCount orders the results by the like_count field.

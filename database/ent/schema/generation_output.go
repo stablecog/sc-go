@@ -31,6 +31,8 @@ func (GenerationOutput) Fields() []ent.Field {
 		field.Bool("is_public").Default(false),
 		field.Float32("aesthetic_rating_score").Default(0),
 		field.Float32("aesthetic_artifact_score").Default(0),
+		field.Bool("checked_for_nsfw").Default(false),
+		field.Float32("nsfw_score").Default(0),
 		// Populated by the triggers based on generation_output_likes.
 		field.Int("like_count").Default(0),
 		// ! Relationships / many-to-one

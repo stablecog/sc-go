@@ -40,6 +40,10 @@ type GenerationOutput struct {
 	AestheticRatingScore float32 `json:"aesthetic_rating_score,omitempty"`
 	// AestheticArtifactScore holds the value of the "aesthetic_artifact_score" field.
 	AestheticArtifactScore float32 `json:"aesthetic_artifact_score,omitempty"`
+	// CheckedForNsfw holds the value of the "checked_for_nsfw" field.
+	CheckedForNsfw bool `json:"checked_for_nsfw,omitempty"`
+	// NsfwScore holds the value of the "nsfw_score" field.
+	NsfwScore float32 `json:"nsfw_score,omitempty"`
 	// LikeCount holds the value of the "like_count" field.
 	LikeCount int `json:"like_count,omitempty"`
 	// GenerationID holds the value of the "generation_id" field.
@@ -105,9 +109,9 @@ func (*GenerationOutput) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case generationoutput.FieldIsFavorited, generationoutput.FieldHasEmbeddings, generationoutput.FieldHasEmbeddingsNew, generationoutput.FieldIsMigrated, generationoutput.FieldIsPublic:
+		case generationoutput.FieldIsFavorited, generationoutput.FieldHasEmbeddings, generationoutput.FieldHasEmbeddingsNew, generationoutput.FieldIsMigrated, generationoutput.FieldIsPublic, generationoutput.FieldCheckedForNsfw:
 			values[i] = new(sql.NullBool)
-		case generationoutput.FieldAestheticRatingScore, generationoutput.FieldAestheticArtifactScore:
+		case generationoutput.FieldAestheticRatingScore, generationoutput.FieldAestheticArtifactScore, generationoutput.FieldNsfwScore:
 			values[i] = new(sql.NullFloat64)
 		case generationoutput.FieldLikeCount:
 			values[i] = new(sql.NullInt64)
@@ -198,6 +202,18 @@ func (_go *GenerationOutput) assignValues(columns []string, values []any) error 
 				return fmt.Errorf("unexpected type %T for field aesthetic_artifact_score", values[i])
 			} else if value.Valid {
 				_go.AestheticArtifactScore = float32(value.Float64)
+			}
+		case generationoutput.FieldCheckedForNsfw:
+			if value, ok := values[i].(*sql.NullBool); !ok {
+				return fmt.Errorf("unexpected type %T for field checked_for_nsfw", values[i])
+			} else if value.Valid {
+				_go.CheckedForNsfw = value.Bool
+			}
+		case generationoutput.FieldNsfwScore:
+			if value, ok := values[i].(*sql.NullFloat64); !ok {
+				return fmt.Errorf("unexpected type %T for field nsfw_score", values[i])
+			} else if value.Valid {
+				_go.NsfwScore = float32(value.Float64)
 			}
 		case generationoutput.FieldLikeCount:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
@@ -312,6 +328,12 @@ func (_go *GenerationOutput) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("aesthetic_artifact_score=")
 	builder.WriteString(fmt.Sprintf("%v", _go.AestheticArtifactScore))
+	builder.WriteString(", ")
+	builder.WriteString("checked_for_nsfw=")
+	builder.WriteString(fmt.Sprintf("%v", _go.CheckedForNsfw))
+	builder.WriteString(", ")
+	builder.WriteString("nsfw_score=")
+	builder.WriteString(fmt.Sprintf("%v", _go.NsfwScore))
 	builder.WriteString(", ")
 	builder.WriteString("like_count=")
 	builder.WriteString(fmt.Sprintf("%v", _go.LikeCount))
