@@ -198,10 +198,12 @@ type EmbeddingReqObject struct {
 	Text           string `json:"text,omitempty"`
 	Image          string `json:"image,omitempty"`
 	CalculateScore bool   `json:"calculate_score,omitempty"`
+	CheckNSFW      bool   `json:"check_nsfw,omitempty"`
 }
 
 type EmbeddingResObject struct {
 	Input          EmbeddingReqObject            `json:"input"`
 	Embedding      []float32                     `json:"embedding"`
 	AestheticScore *responses.ClipAestheticScore `json:"aesthetic_score,omitempty"`
+	NsfwScore      *responses.NsfwCheckScore     `json:"nsfw_score,omitempty"`
 }

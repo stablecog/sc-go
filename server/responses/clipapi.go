@@ -36,3 +36,7 @@ type ClipAestheticScore struct {
 	Artifact float32 `json:"artifact"`
 	Rating   float32 `json:"rating"`
 }
+
+type NsfwCheckScore struct {
+	Nsfw float32 `json:"nsfw"`
+}

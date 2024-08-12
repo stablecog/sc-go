@@ -38,6 +38,7 @@ func (j *JobRunner) HandleOutputsWithNoEmbedding(log Logger) error {
 			{
 				Image:          utils.GetEnv().GetURLFromImagePath(output.ImagePath),
 				CalculateScore: true,
+				CheckNSFW:      true,
 			},
 		})
 
@@ -65,6 +66,8 @@ func (j *JobRunner) HandleOutputsWithNoEmbedding(log Logger) error {
 				SetHasEmbeddings(true).
 				SetAestheticArtifactScore(embedding.AestheticScore.Artifact).
 				SetAestheticRatingScore(embedding.AestheticScore.Rating).
+				SetCheckedForNsfw(true).
+				SetNsfwScore(embedding.NsfwScore.Nsfw).
 				Save(r.Ctx)
 
 			if goErr != nil {
@@ -99,8 +102,9 @@ func (j *JobRunner) HandleOutputsWithNoEmbedding(log Logger) error {
 				"created_at":               output.CreatedAt.Unix(),
 				"updated_at":               output.UpdatedAt.Unix(),
 				"is_public":                output.IsPublic,
-				"aesthetic_rating_score":   output.AestheticRatingScore,
-				"aesthetic_artifact_score": output.AestheticArtifactScore,
+				"aesthetic_rating_score":   embedding.AestheticScore.Rating,
+				"aesthetic_artifact_score": embedding.AestheticScore.Artifact,
+				"nsfw_score":               embedding.NsfwScore.Nsfw,
 				"was_auto_submitted":       generation.WasAutoSubmitted,
 				"guidance_scale":           generation.GuidanceScale,
 				"inference_steps":          generation.InferenceSteps,
