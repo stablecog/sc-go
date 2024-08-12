@@ -25,6 +25,7 @@ type ClipEmbeddingResponse struct {
 
 type ClipEmbeddingItem struct {
 	AestheticScore *ClipAestheticScore `json:"aesthetic_score,omitempty"`
+	NsfwScore      *NsfwCheckScore     `json:"nsfw_score,omitempty"`
 	Embedding      []float32           `json:"embedding"`
 	InputImage     string              `json:"input_image,omitempty"`
 	InputText      string              `json:"input_text,omitempty"`

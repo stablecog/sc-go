@@ -187,6 +187,7 @@ func (c *ClipService) GetEmbeddings(toEmbedObjects []EmbeddingReqObject) (embedd
 			Embedding:      embedding.Embedding,
 			Input:          input,
 			AestheticScore: embedding.AestheticScore,
+			NsfwScore:      embedding.NsfwScore,
 		})
 	}
 

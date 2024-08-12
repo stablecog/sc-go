@@ -54,9 +54,6 @@ func (j *JobRunner) HandleOutputsWithNoEmbedding(log Logger) error {
 
 		embedding := embeddingRes[0]
 
-		log.Infof("NSFW object: %+v", embedding.NsfwScore)
-		log.Infof("NSFW Score: %f", embedding.NsfwScore.Nsfw)
-
 		mOutput := time.Since(tOutput)
 		log.Infof(`Got embeddings for "%s": %dms`, output.ID.String(), mOutput.Milliseconds())
 
