@@ -131,7 +131,7 @@ func (c *ClipService) GetEmbeddings(toEmbedObjects []EmbeddingReqObject) (embedd
 			req = append(req, requests.ClipApiEmbeddingRequest{
 				Image:          obj.Image,
 				CalculateScore: obj.CalculateScore,
-				CheckNSFW:      obj.CheckNSFW,
+				CheckNsfw:      obj.CheckNsfw,
 			})
 		}
 	}
@@ -199,7 +199,7 @@ type EmbeddingReqObject struct {
 	Text           string `json:"text,omitempty"`
 	Image          string `json:"image,omitempty"`
 	CalculateScore bool   `json:"calculate_score,omitempty"`
-	CheckNSFW      bool   `json:"check_nsfw,omitempty"`
+	CheckNsfw      bool   `json:"check_nsfw,omitempty"`
 }
 
 type EmbeddingResObject struct {

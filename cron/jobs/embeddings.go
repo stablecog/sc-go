@@ -38,7 +38,7 @@ func (j *JobRunner) HandleOutputsWithNoEmbedding(log Logger) error {
 			{
 				Image:          utils.GetEnv().GetURLFromImagePath(output.ImagePath),
 				CalculateScore: true,
-				CheckNSFW:      true,
+				CheckNsfw:      true,
 			},
 		})
 
