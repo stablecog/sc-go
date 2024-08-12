@@ -131,6 +131,7 @@ func (c *ClipService) GetEmbeddings(toEmbedObjects []EmbeddingReqObject) (embedd
 			req = append(req, requests.ClipApiEmbeddingRequest{
 				Image:          obj.Image,
 				CalculateScore: obj.CalculateScore,
+				CheckNSFW:      obj.CheckNSFW,
 			})
 		}
 	}
