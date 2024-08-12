@@ -7,13 +7,13 @@ import (
 )
 
 const NSFW_CHECK_JOB_NAME = "NSFW_CHECK_JOB"
-const NSFW_CHECK_OUTPUTS_LIMIT = 10
+const NSFW_CHECK_OUTPUTS_LIMIT = 25
 
 func (j *JobRunner) HandleOutputsWithNoNsfwCheck(log Logger) error {
 	log.Infof("Running job...")
 	s := time.Now()
 
-	outputs, err := j.Repo.GetOutputsWithNoNsfwCheck(OUTPUTS_LIMIT)
+	outputs, err := j.Repo.GetOutputsWithNoNsfwCheck(NSFW_CHECK_OUTPUTS_LIMIT)
 	if err != nil {
 		log.Errorf("Error getting outputs with no NSFW check: %v", err)
 		return err
