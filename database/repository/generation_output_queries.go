@@ -61,6 +61,27 @@ func (r *Repository) GetOutputsWithNoEmbedding(limit int) ([]*ent.GenerationOutp
 	return outputs, err
 }
 
+func (r *Repository) GetOutputsWithNoNsfwCheck(limit int) ([]*ent.GenerationOutput, error) {
+	query := r.DB.GenerationOutput.Query().
+		Where(
+			generationoutput.CheckedForNsfw(false),
+			generationoutput.ImagePathNEQ("placeholder.webp"),
+		).
+		Order(ent.Asc(generationoutput.FieldCreatedAt)).
+		WithGenerations(func(q *ent.GenerationQuery) {
+			q.WithPrompt().WithNegativePrompt()
+		}).
+		Limit(limit)
+
+	outputs, err := query.All(r.Ctx)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return outputs, err
+}
+
 func (r *Repository) SetHasEmbeddingsAndScores(
 	id uuid.UUID,
 	hasEmbeddings bool,

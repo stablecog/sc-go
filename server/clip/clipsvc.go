@@ -196,6 +196,67 @@ func (c *ClipService) GetEmbeddings(toEmbedObjects []EmbeddingReqObject) (embedd
 	return result, nil
 }
 
+func (c *ClipService) GetNsfwScores(imageUrls []string) (scores []float32, err error) {
+	s := time.Now()
+	var req []string
+	for _, url := range imageUrls {
+		req = append(req, url)
+	}
+
+	b, err := json.Marshal(req)
+	if err != nil {
+		log.Errorf("👙 Error marshalling req: %v", err)
+		return nil, err
+	}
+
+	url := c.apiUrl + "/nsfw-check"
+	request, _ := http.NewRequest(http.MethodPost, url, bytes.NewReader(b))
+
+	resp, err := c.client.Do(request)
+	if err != nil {
+		log.Errorf("👙 Error sending request: %v", err)
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	bodyBytes, err := io.ReadAll(resp.Body)
+	if err != nil {
+		log.Errorf("👙 Error reading response body: %v", err)
+		return nil, err
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		log.Error(
+			"👙 Error from CLIP API",
+			"status", resp.StatusCode,
+			"url", url,
+			"response", string(bodyBytes),
+		)
+		return nil, fmt.Errorf("CLIP API request failed with status %d: %s", resp.StatusCode, string(bodyBytes))
+	}
+
+	var clipAPIResponse responses.ClipNsfwCheckResponse
+	err = json.Unmarshal(bodyBytes, &clipAPIResponse)
+	if err != nil {
+		log.Errorf("👙 Error unmarshalling response: %v", err)
+		return nil, err
+	}
+
+	if len(clipAPIResponse.Data) != len(imageUrls) {
+		log.Errorf("👙 Mismatch in number of NSFW scores returned: %d vs %d", len(clipAPIResponse.Data), len(imageUrls))
+		return nil, fmt.Errorf("mismatch in number of NSFW scores returned from CLIP API")
+	}
+
+	var result []float32
+	for _, item := range clipAPIResponse.Data {
+		result = append(result, item.NsfwScore.Nsfw)
+	}
+
+	duration := time.Since(s)
+	log.Infof("👙 Successfully got %d NSFW score(s): %dms", len(result), duration.Milliseconds())
+	return result, nil
+}
+
 type EmbeddingReqObject struct {
 	Text           string `json:"text,omitempty"`
 	Image          string `json:"image,omitempty"`

@@ -23,6 +23,16 @@ type ClipEmbeddingResponse struct {
 	Embeddings []ClipEmbeddingItem `json:"embeddings"`
 }
 
+type ClipNsfwCheckResponse struct {
+	Data []ClipNsfwCheckItem `json:"data"`
+}
+
+type ClipNsfwCheckItem struct {
+	Input     string         `json:"input,omitempty"`
+	Error     string         `json:"error,omitempty"`
+	NsfwScore NsfwCheckScore `json:"nsfw_score"`
+}
+
 type ClipEmbeddingItem struct {
 	AestheticScore *ClipAestheticScore `json:"aesthetic_score,omitempty"`
 	NsfwScore      *NsfwCheckScore     `json:"nsfw_score,omitempty"`
