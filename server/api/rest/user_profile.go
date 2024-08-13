@@ -307,8 +307,12 @@ func (c *RestAPI) HandleUserProfileSemanticSearch(w http.ResponseWriter, r *http
 			filters.IsPublic = nil
 		}
 		filters.ForProfile = true
-		hideNsfw := !isSuperAdmin
-		galleryData, nextCursorPostgres, _, err = c.Repo.RetrieveMostRecentGalleryDataV3(filters, callingUserId, perPage, qCursor, nil, hideNsfw)
+
+		if !isSuperAdmin {
+			filters.HideNsfw = true
+		}
+
+		galleryData, nextCursorPostgres, _, err = c.Repo.RetrieveMostRecentGalleryDataV3(filters, callingUserId, perPage, qCursor, nil)
 		if err != nil {
 			log.Error("Error querying gallery data from postgres", "err", err)
 			responses.ErrInternalServerError(w, r, "An unknown error occurred")

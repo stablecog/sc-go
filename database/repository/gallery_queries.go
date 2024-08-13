@@ -82,7 +82,7 @@ func (r *Repository) RetrieveGalleryDataByID(id uuid.UUID, userId *uuid.UUID, ca
 	return &data, nil
 }
 
-func (r *Repository) RetrieveMostRecentGalleryDataV3(filters *requests.QueryGenerationFilters, callingUserId *uuid.UUID, per_page int, cursor *time.Time, offset *int, hideNsfw bool) ([]GalleryData, *time.Time, *int, error) {
+func (r *Repository) RetrieveMostRecentGalleryDataV3(filters *requests.QueryGenerationFilters, callingUserId *uuid.UUID, per_page int, cursor *time.Time, offset *int) ([]GalleryData, *time.Time, *int, error) {
 	// Base query parts
 	baseQuery := `
     WITH like_counts AS (
@@ -147,14 +147,12 @@ func (r *Repository) RetrieveMostRecentGalleryDataV3(filters *requests.QueryGene
         negative_prompts np
         ON g.negative_prompt_id = np.id
     WHERE 
-        g.status = $2
-		AND go.nsfw_score < $3`
+        g.status = $2`
 
 	// Arguments for the query
 	args := []interface{}{
 		time.Now().AddDate(0, 0, -7), // for like_counts CTE
 		"succeeded",                  // status
-		shared.MAX_NSFW_SCORE,        // nsfw_score
 	}
 
 	var galleryStatusFilter []generationoutput.GalleryStatus
@@ -166,6 +164,13 @@ func (r *Repository) RetrieveMostRecentGalleryDataV3(filters *requests.QueryGene
 	}
 
 	argPos := len(args) + 1
+
+	// Apply the nsfw score filter if it exists
+	if filters.HideNsfw {
+		baseQuery += fmt.Sprintf(" AND go.nsfw_score < $%d", argPos)
+		args = append(args, shared.MAX_NSFW_SCORE)
+		argPos++
+	}
 
 	// Apply is is_public filter if not for history
 	if filters == nil || !filters.ForHistory {

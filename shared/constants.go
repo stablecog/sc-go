@@ -35,7 +35,7 @@ const MAX_GUIDANCE_SCALE = 30.0
 const MIN_GUIDANCE_SCALE = 1.0
 const MAX_PROMPT_STRENGTH = 1.0
 const MIN_PROMPT_STRENGTH = 0.0
-const MAX_NSFW_SCORE = 0.9
+const MAX_NSFW_SCORE = 0.5
 
 // Prompt related
 const MAX_PROMPT_LENGTH = 500
