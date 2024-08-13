@@ -209,7 +209,6 @@ func main() {
 		s := gocron.NewScheduler(time.UTC)
 		s.Every(60).Seconds().Do(jobRunner.GetAndSetStats, jobs.NewJobLogger("STATS"))
 		s.Every(15).Seconds().SingletonMode().Do(jobRunner.HandleOutputsWithNoEmbedding, jobs.NewJobLogger("EMBEDDINGS"))
-		s.Every(4).SingletonMode().Do(jobRunner.HandleOutputsWithNoNsfwCheck, jobs.NewJobLogger("NSFW_CHECK"))
 		if utils.GetEnv().DiscordWebhookUrl != "" {
 			s.Every(60).Seconds().Do(jobRunner.CheckSCWorkerHealth, jobs.NewJobLogger("HEALTH"))
 		}
@@ -232,6 +231,16 @@ func main() {
 		if !*disableAutoUpscale {
 			go jobRunner.StartAutoUpscaleJob(jobs.NewJobLogger("AUTO_UPSCALE"))
 		}
+		// Temporary, run the nsfw check infinitely
+		go func() {
+			for {
+				nsfwErr := jobRunner.HandleOutputsWithNoNsfwCheck(jobs.NewJobLogger("NSFW_CHECK"))
+				if nsfwErr != nil {
+					log.Error("👙 🔴 Error running NSFW check:", nsfwErr)
+					continue
+				}
+			}
+		}()
 		s.StartBlocking()
 		os.Exit(0)
 	}
