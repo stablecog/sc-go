@@ -209,7 +209,7 @@ func main() {
 		s := gocron.NewScheduler(time.UTC)
 		s.Every(60).Seconds().Do(jobRunner.GetAndSetStats, jobs.NewJobLogger("STATS"))
 		s.Every(15).Seconds().SingletonMode().Do(jobRunner.HandleOutputsWithNoEmbedding, jobs.NewJobLogger("EMBEDDINGS"))
-		s.Every(5).Seconds().SingletonMode().Do(jobRunner.HandleOutputsWithNoNsfwCheck, jobs.NewJobLogger("NSFW_CHECK"))
+		s.SingletonMode().Do(jobRunner.HandleOutputsWithNoNsfwCheck, jobs.NewJobLogger("NSFW_CHECK"))
 		if utils.GetEnv().DiscordWebhookUrl != "" {
 			s.Every(60).Seconds().Do(jobRunner.CheckSCWorkerHealth, jobs.NewJobLogger("HEALTH"))
 		}
