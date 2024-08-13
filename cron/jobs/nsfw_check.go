@@ -10,7 +10,7 @@ import (
 )
 
 const NSFW_CHECK_JOB_NAME = "NSFW_CHECK_JOB"
-const NSFW_CHECK_OUTPUTS_LIMIT = 75
+const NSFW_CHECK_OUTPUTS_LIMIT = 50
 
 func (j *JobRunner) HandleOutputsWithNoNsfwCheck(log Logger) error {
 	log.Infof("Running job...")
