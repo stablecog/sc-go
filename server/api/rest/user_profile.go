@@ -16,6 +16,7 @@ import (
 	"github.com/stablecog/sc-go/log"
 	"github.com/stablecog/sc-go/server/requests"
 	"github.com/stablecog/sc-go/server/responses"
+	shared "github.com/stablecog/sc-go/shared"
 	"github.com/stablecog/sc-go/utils"
 )
 
@@ -191,6 +192,19 @@ func (c *RestAPI) HandleUserProfileSemanticSearch(w http.ResponseWriter, r *http
 		IsEmpty: &qdrant.SCIsEmpty{Key: "deleted_at"},
 	})
 
+	// Add NSFW filters if not super admin
+	if !isSuperAdmin {
+		qdrantFilters.Should = append(qdrantFilters.Should, qdrant.SCMatchCondition{
+			Key: "nsfw_score",
+			Range: qdrant.SCRange[float32]{
+				Lt: utils.ToPtr[float32](shared.MAX_NSFW_SCORE),
+			},
+		})
+		qdrantFilters.Should = append(qdrantFilters.Should, qdrant.SCMatchCondition{
+			IsEmpty: &qdrant.SCIsEmpty{Key: "nsfw_score"},
+		})
+	}
+
 	// Leverage qdrant for semantic search
 	if search != "" {
 		var offset *uint
@@ -293,7 +307,8 @@ func (c *RestAPI) HandleUserProfileSemanticSearch(w http.ResponseWriter, r *http
 			filters.IsPublic = nil
 		}
 		filters.ForProfile = true
-		galleryData, nextCursorPostgres, _, err = c.Repo.RetrieveMostRecentGalleryDataV3(filters, callingUserId, perPage, qCursor, nil)
+		hideNsfw := !isSuperAdmin
+		galleryData, nextCursorPostgres, _, err = c.Repo.RetrieveMostRecentGalleryDataV3(filters, callingUserId, perPage, qCursor, nil, hideNsfw)
 		if err != nil {
 			log.Error("Error querying gallery data from postgres", "err", err)
 			responses.ErrInternalServerError(w, r, "An unknown error occurred")

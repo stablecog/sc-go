@@ -246,7 +246,7 @@ func (c *RestAPI) HandleSemanticSearchGallery(w http.ResponseWriter, r *http.Req
 		// Retrieve from postgres
 		filters.GalleryStatus = []generationoutput.GalleryStatus{generationoutput.GalleryStatusApproved}
 		filters.IsPublic = utils.ToPtr(true)
-		galleryData, nextCursorPostgres, nextOffsetPostgres, err = c.Repo.RetrieveMostRecentGalleryDataV3(filters, callingUserId, perPage, qCursor, qOffset)
+		galleryData, nextCursorPostgres, nextOffsetPostgres, err = c.Repo.RetrieveMostRecentGalleryDataV3(filters, callingUserId, perPage, qCursor, qOffset, false)
 		if err != nil {
 			log.Error("Error querying gallery data from postgres", "err", err)
 			responses.ErrInternalServerError(w, r, "An unknown error occurred")

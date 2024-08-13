@@ -415,7 +415,7 @@ func (c *RestAPI) HandleQueryGenerationsForAdmin(w http.ResponseWriter, r *http.
 	filters.ForHistory = true
 
 	// Test flag
-	generations, nextCursor, _, err := c.Repo.RetrieveMostRecentGalleryDataV3(filters, filters.UserID, perPage, cursor, nil)
+	generations, nextCursor, _, err := c.Repo.RetrieveMostRecentGalleryDataV3(filters, filters.UserID, perPage, cursor, nil, false)
 	if err != nil {
 		log.Error("Error getting generations for user", "err", err)
 		responses.ErrInternalServerError(w, r, "Error getting generations")
