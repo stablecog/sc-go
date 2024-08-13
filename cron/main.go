@@ -236,7 +236,7 @@ func main() {
 			for {
 				nsfwErr := jobRunner.HandleOutputsWithNoNsfwCheck(jobs.NewJobLogger("NSFW_CHECK"))
 				if nsfwErr != nil {
-					log.Error("👙 🔴 Error running NSFW check:", nsfwErr)
+					log.Error("👙 🔴 Error running NSFW_CHECK job:", nsfwErr)
 					continue
 				}
 			}
