@@ -72,7 +72,6 @@ func NewHelpEmbed() *discordgo.MessageEmbed {
 				Value: "" +
 					"`/imagine` - Create an image with one of our generative AI models" + "\n" +
 					"`/upscale` - Upscale an image" + "\n" +
-					"`/speak` - Create a voiceover using a prompt" + "\n" +
 					"`/info` - Get information about your account" + "\n" +
 					"`/help` - Display this help message",
 			},

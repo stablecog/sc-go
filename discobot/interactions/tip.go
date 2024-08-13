@@ -178,7 +178,7 @@ func (c *DiscordInteractionWrapper) HandleTip(s *discordgo.Session, m *discordgo
 		_, err = s.ChannelMessageSendComplex(dmChl.ID, &discordgo.MessageSend{
 			Embeds: []*discordgo.MessageEmbed{responses.NewEmbed(
 				"Tip Received!",
-				prettyPrinter.Sprintf("You received a tip of %d credits from %s! You now have %d credits available to spend.\n\nTry using `/imagine` or `/speak` to create AI art and voiceovers!", amt, m.Author.Username, remainingCredits),
+				prettyPrinter.Sprintf("You received a tip of %d credits from %s! You now have %d credits available to spend.\n\nTry using `/imagine` to create AI art!", amt, m.Author.Username, remainingCredits),
 				"",
 			),
 			},
