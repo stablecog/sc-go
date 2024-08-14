@@ -30,7 +30,6 @@ const (
 func (m *Middleware) AuthMiddleware(levels ...AuthLevel) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			s := time.Now()
 			// Copy the levels array
 			levelsCopy := make([]AuthLevel, len(levels))
 			copy(levelsCopy, levels)
@@ -200,7 +199,6 @@ func (m *Middleware) AuthMiddleware(levels ...AuthLevel) func(next http.Handler)
 				responses.ErrUnauthorized(w, r)
 				return
 			}
-			log.Infof("AUTH_MIDDLEWARE: %dms", time.Since(s).Milliseconds())
 
 			next.ServeHTTP(w, r.WithContext(ctx))
 		})
