@@ -33,7 +33,7 @@ func (c *RestAPI) HandleGetUserV2(w http.ResponseWriter, r *http.Request) {
 	m := time.Now()
 
 	userID, email := c.GetUserIDAndEmailIfAuthenticated(w, r)
-	log.Infof("HandleGetUser - GetUserIDAndEmailIfAuthenticated: %dms", time.Since(m).Milliseconds())
+	log.Infof("HandleGetUserV2 - GetUserIDAndEmailIfAuthenticated: %dms", time.Since(m).Milliseconds())
 
 	if userID == nil || email == "" {
 		return
@@ -51,7 +51,7 @@ func (c *RestAPI) HandleGetUserV2(w http.ResponseWriter, r *http.Request) {
 	// Get user with roles
 	m = time.Now()
 	user, err := c.Repo.GetUserWithRoles(*userID)
-	log.Infof("HandleGetUser - GetUserWithRoles: %dms", time.Since(m).Milliseconds())
+	log.Infof("HandleGetUserV2 - GetUserWithRoles: %dms", time.Since(m).Milliseconds())
 
 	if err != nil {
 		log.Error("Error getting user", "err", err)
@@ -151,7 +151,7 @@ func (c *RestAPI) HandleGetUserV2(w http.ResponseWriter, r *http.Request) {
 			responses.ErrInternalServerError(w, r, "An unknown error has occurred")
 			return
 		}
-		log.Infof("HandleGetUser - %s: %dms", goroutineResult.operation, goroutineResult.duration.Milliseconds())
+		log.Infof("HandleGetUserV2 - %s: %dms", goroutineResult.operation, goroutineResult.duration.Milliseconds())
 		if goroutineResult.totalRemaining != 0 {
 			res.totalRemaining = goroutineResult.totalRemaining
 		}
@@ -174,18 +174,18 @@ func (c *RestAPI) HandleGetUserV2(w http.ResponseWriter, r *http.Request) {
 
 	m = time.Now()
 	highestProduct, highestPrice, cancelsAt, renewsAt := extractSubscriptionInfoFromCustomer(res.customer)
-	log.Infof("HandleGetUser - extractSubscriptionInfoFromCustomer: %dms", time.Since(m).Milliseconds())
+	log.Infof("HandleGetUserV2 - extractSubscriptionInfoFromCustomer: %dms", time.Since(m).Milliseconds())
 
 	m = time.Now()
 	moreCreditsAt, moreCreditsAtAmount, renewsAtAmount, freeCreditAmount := getMoreCreditsInfo(*userID, highestProduct, renewsAt, res.stripeHadError, c)
-	log.Infof("HandleGetUser - getMoreCreditsInfo: %dms", time.Since(m).Milliseconds())
+	log.Infof("HandleGetUserV2 - getMoreCreditsInfo: %dms", time.Since(m).Milliseconds())
 
 	roles := make([]string, len(user.Edges.Roles))
 	for i, role := range user.Edges.Roles {
 		roles[i] = role.Name
 	}
 
-	log.Infof("HandleGetUser - Total: %dms", time.Since(s).Milliseconds())
+	log.Infof("HandleGetUserV2 - Total: %dms", time.Since(s).Milliseconds())
 
 	render.Status(r, http.StatusOK)
 	render.JSON(w, r, responses.GetUserResponse{
