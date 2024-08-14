@@ -30,6 +30,7 @@ import (
 func (c *RestAPI) HandleGetUser(w http.ResponseWriter, r *http.Request) {
 	s := time.Now()
 	m := time.Now()
+
 	userID, email := c.GetUserIDAndEmailIfAuthenticated(w, r)
 	log.Infof("HandleGetUser - GetUserIDAndEmailIfAuthenticated: %dms", time.Since(m).Milliseconds())
 
@@ -45,10 +46,11 @@ func (c *RestAPI) HandleGetUser(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	m = time.Now()
 	// Get customer ID for user
+	m = time.Now()
 	user, err := c.Repo.GetUserWithRoles(*userID)
 	log.Infof("HandleGetUser - GetUserWithRoles: %dms", time.Since(m).Milliseconds())
+
 	if err != nil {
 		log.Error("Error getting user", "err", err)
 		responses.ErrInternalServerError(w, r, "An unknown error has occurred")
@@ -73,8 +75,8 @@ func (c *RestAPI) HandleGetUser(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	m = time.Now()
 	// Get total credits
+	m = time.Now()
 	totalRemaining, err := c.Repo.GetNonExpiredCreditTotalForUser(*userID, nil)
 	if err != nil {
 		log.Error("Error getting credits for user", "err", err)
@@ -108,39 +110,10 @@ func (c *RestAPI) HandleGetUser(w http.ResponseWriter, r *http.Request) {
 	}
 	log.Infof("HandleGetUser - UpdateLastSeenAt: %dms", time.Since(m).Milliseconds())
 
-	m = time.Now()
 	// Figure out when free credits will be replenished
-	var moreCreditsAt *time.Time
-	var moreCreditsAtAmount *int
-	var renewsAtAmount *int
-	var fcredit *ent.Credit
-	var ctype *ent.CreditType
-	var freeCreditAmount *int
-	if highestProduct == "" && !stripeHadError {
-		moreCreditsAt, fcredit, ctype, err = c.Repo.GetFreeCreditReplenishesAtForUser(*userID)
-		if err != nil {
-			log.Error("Error getting next free credit replenishment time", "err", err, "user", userID.String())
-		}
-		moreCreditsAtAmount = utils.ToPtr(shared.FREE_CREDIT_AMOUNT_DAILY)
-
-		if fcredit != nil && ctype != nil {
-			if shared.FREE_CREDIT_AMOUNT_DAILY+fcredit.RemainingAmount > ctype.Amount {
-				am := int(shared.FREE_CREDIT_AMOUNT_DAILY + fcredit.RemainingAmount - ctype.Amount)
-				freeCreditAmount = &am
-			} else {
-				am := shared.FREE_CREDIT_AMOUNT_DAILY
-				freeCreditAmount = &am
-			}
-		}
-	} else if !stripeHadError && renewsAt != nil {
-		creditType, err := c.Repo.GetCreditTypeByStripeProductID(highestProduct)
-		if err != nil {
-			log.Warnf("Error getting credit type from product id '%s' %v", highestProduct, err)
-		} else {
-			renewsAtAmount = utils.ToPtr(int(creditType.Amount))
-		}
-	}
-	log.Infof("HandleGetUser - Figure out when free credits will replenish: %dms", time.Since(m).Milliseconds())
+	m = time.Now()
+	moreCreditsAt, moreCreditsAtAmount, renewsAtAmount, freeCreditAmount := getMoreCreditsInfo(*userID, highestProduct, renewsAt, stripeHadError, c)
+	log.Infof("HandleGetUser - getMoreCreditsInfo: %dms", time.Since(m).Milliseconds())
 
 	// Get paid credits for user
 	m = time.Now()
@@ -186,6 +159,41 @@ func (c *RestAPI) HandleGetUser(w http.ResponseWriter, r *http.Request) {
 		UsernameChangedAt:       user.UsernameChangedAt,
 		PurchaseCount:           paymentsMadeByCustomer,
 	})
+}
+
+func getMoreCreditsInfo(userID uuid.UUID, highestProduct string, renewsAt *time.Time, stripeHadError bool, c *RestAPI) (*time.Time, *int, *int, *int) {
+	var moreCreditsAt *time.Time
+	var moreCreditsAtAmount *int
+	var renewsAtAmount *int
+	var fcredit *ent.Credit
+	var ctype *ent.CreditType
+	var freeCreditAmount *int
+	var err error
+	if highestProduct == "" && !stripeHadError {
+		moreCreditsAt, fcredit, ctype, err = c.Repo.GetFreeCreditReplenishesAtForUser(userID)
+		if err != nil {
+			log.Error("Error getting next free credit replenishment time", "err", err, "user", userID.String())
+		}
+		moreCreditsAtAmount = utils.ToPtr(shared.FREE_CREDIT_AMOUNT_DAILY)
+
+		if fcredit != nil && ctype != nil {
+			if shared.FREE_CREDIT_AMOUNT_DAILY+fcredit.RemainingAmount > ctype.Amount {
+				am := int(shared.FREE_CREDIT_AMOUNT_DAILY + fcredit.RemainingAmount - ctype.Amount)
+				freeCreditAmount = &am
+			} else {
+				am := shared.FREE_CREDIT_AMOUNT_DAILY
+				freeCreditAmount = &am
+			}
+		}
+	} else if !stripeHadError && renewsAt != nil {
+		creditType, err := c.Repo.GetCreditTypeByStripeProductID(highestProduct)
+		if err != nil {
+			log.Warnf("Error getting credit type from product id '%s' %v", highestProduct, err)
+		} else {
+			renewsAtAmount = utils.ToPtr(int(creditType.Amount))
+		}
+	}
+	return moreCreditsAt, moreCreditsAtAmount, renewsAtAmount, freeCreditAmount
 }
 
 func createNewUser(email string, userID *uuid.UUID, lastSignIn *time.Time, c *RestAPI) error {
