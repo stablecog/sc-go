@@ -256,20 +256,22 @@ func (c *RestAPI) HandleGetUser(w http.ResponseWriter, r *http.Request) {
 	}
 	log.Infof("HandleGetUser - Figure out when free credits will replenish: %dms", time.Since(m).Milliseconds())
 
-	m = time.Now()
 	// Get paid credits for user
+	m = time.Now()
 	paidCreditCount, err := c.Repo.GetNonFreeCreditSum(*userID)
 	if err != nil {
 		log.Error("Error getting paid credits for user", "err", err)
 		responses.ErrInternalServerError(w, r, "An unknown error has occurred")
 		return
 	}
+	log.Infof("HandleGetUser - GetNonFreeCreditSum: %dms", time.Since(m).Milliseconds())
 
 	roles := make([]string, len(user.Edges.Roles))
 	for i, role := range user.Edges.Roles {
 		roles[i] = role.Name
 	}
 
+	m = time.Now()
 	paymentsMadeByCustomer := 0
 	paymentIntents := c.StripeClient.PaymentIntents.List(&stripe.PaymentIntentListParams{
 		Customer: stripe.String(user.StripeCustomerID),
@@ -280,7 +282,8 @@ func (c *RestAPI) HandleGetUser(w http.ResponseWriter, r *http.Request) {
 			paymentsMadeByCustomer++
 		}
 	}
-	log.Infof("HandleGetUser - Get paid credits for user: %dms", time.Since(m).Milliseconds())
+	log.Infof("HandleGetUser - GetPaymentIntents: %dms", time.Since(m).Milliseconds())
+
 	log.Infof("HandleGetUser - Total: %dms", time.Since(s).Milliseconds())
 
 	render.Status(r, http.StatusOK)
