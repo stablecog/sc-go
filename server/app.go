@@ -1201,7 +1201,7 @@ func main() {
 			r.Use(mw.RateLimit(10, "srv", 1*time.Second))
 
 			// Get user summary
-			r.Get("/", hc.HandleGetUser)
+			r.Get("/", hc.HandleGetUserV2)
 
 			// Link to discord
 			r.Post("/connect/discord", hc.HandleAuthorizeDiscord)

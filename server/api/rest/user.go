@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -27,6 +28,190 @@ import (
 )
 
 // HTTP Get - user info
+func (c *RestAPI) HandleGetUserV2(w http.ResponseWriter, r *http.Request) {
+	s := time.Now()
+	m := time.Now()
+
+	userID, email := c.GetUserIDAndEmailIfAuthenticated(w, r)
+	log.Infof("HandleGetUser - GetUserIDAndEmailIfAuthenticated: %dms", time.Since(m).Milliseconds())
+
+	if userID == nil || email == "" {
+		return
+	}
+
+	var lastSignIn *time.Time
+	lastSignInStr, ok := r.Context().Value("user_last_sign_in").(string)
+	if ok {
+		lastSignInP, err := time.Parse(time.RFC3339, lastSignInStr)
+		if err == nil {
+			lastSignIn = &lastSignInP
+		}
+	}
+
+	// Get user with roles
+	m = time.Now()
+	user, err := c.Repo.GetUserWithRoles(*userID)
+	log.Infof("HandleGetUser - GetUserWithRoles: %dms", time.Since(m).Milliseconds())
+
+	if err != nil {
+		log.Error("Error getting user", "err", err)
+		responses.ErrInternalServerError(w, r, "An unknown error has occurred")
+		return
+	} else if user == nil {
+		// Handle create user flow
+		err := createNewUser(email, userID, lastSignIn, c)
+		if err != nil {
+			log.Error("Error creating user", "err", err)
+			responses.ErrInternalServerError(w, r, err.Error())
+			return
+		}
+		go c.Track.SignUp(*userID, email, utils.GetIPAddress(r), utils.GetClientDeviceInfo(r))
+
+		user, err = c.Repo.GetUserWithRoles(*userID)
+		if err != nil {
+			log.Error("Error getting user with roles", "err", err)
+			responses.ErrInternalServerError(w, r, "An unknown error has occurred")
+			return
+		}
+	}
+
+	type result struct {
+		totalRemaining     int
+		customer           *stripe.Customer
+		paidCreditCount    int
+		err                error
+		stripeHadError     bool
+		updateLastSeenErr  error
+		paymentsMadeByUser int
+		duration           time.Duration
+		operation          string
+	}
+
+	ch := make(chan result, 5)
+	var wg sync.WaitGroup
+
+	wg.Add(5)
+
+	// Get total credits
+	go func() {
+		defer wg.Done()
+		m := time.Now()
+		totalRemaining, err := c.Repo.GetNonExpiredCreditTotalForUser(*userID, nil)
+		ch <- result{totalRemaining: totalRemaining, err: err, duration: time.Since(m), operation: "GetNonExpiredCreditTotalForUser"}
+	}()
+
+	// Get customer from Stripe
+	go func() {
+		defer wg.Done()
+		m := time.Now()
+		customer, err := c.StripeClient.Customers.Get(user.StripeCustomerID, &stripe.CustomerParams{
+			Params: stripe.Params{
+				Expand: []*string{
+					stripe.String("subscriptions"),
+				},
+			},
+		})
+		stripeHadError := err != nil
+		ch <- result{customer: customer, stripeHadError: stripeHadError, duration: time.Since(m), operation: "GetStripeCustomer"}
+	}()
+
+	// Get paid credits
+	go func() {
+		defer wg.Done()
+		m := time.Now()
+		paidCreditCount, err := c.Repo.GetNonFreeCreditSum(*userID)
+		ch <- result{paidCreditCount: paidCreditCount, err: err, duration: time.Since(m), operation: "GetNonFreeCreditSum"}
+	}()
+
+	// Update last seen
+	go func() {
+		defer wg.Done()
+		m := time.Now()
+		err := c.Repo.UpdateLastSeenAt(*userID)
+		ch <- result{updateLastSeenErr: err, duration: time.Since(m), operation: "UpdateLastSeenAt"}
+	}()
+
+	// Get payments made by customer
+	go func() {
+		defer wg.Done()
+		m := time.Now()
+		paymentsMade := getPaymentsMadeByCustomer(user.StripeCustomerID, c)
+		ch <- result{paymentsMadeByUser: paymentsMade, duration: time.Since(m), operation: "GetPaymentMadeByCustomer"}
+	}()
+
+	go func() {
+		wg.Wait()
+		close(ch)
+	}()
+
+	var res result
+	for goroutineResult := range ch {
+		if goroutineResult.err != nil {
+			log.Error("Error in goroutine", "err", goroutineResult.err, "operation", goroutineResult.operation)
+			responses.ErrInternalServerError(w, r, "An unknown error has occurred")
+			return
+		}
+		log.Infof("HandleGetUser - %s: %dms", goroutineResult.operation, goroutineResult.duration.Milliseconds())
+		if goroutineResult.totalRemaining != 0 {
+			res.totalRemaining = goroutineResult.totalRemaining
+		}
+		if goroutineResult.customer != nil {
+			res.customer = goroutineResult.customer
+		}
+		if goroutineResult.paidCreditCount != 0 {
+			res.paidCreditCount = goroutineResult.paidCreditCount
+		}
+		if goroutineResult.stripeHadError {
+			res.stripeHadError = true
+		}
+		if goroutineResult.updateLastSeenErr != nil {
+			log.Warn("Error updating last seen at", "err", goroutineResult.updateLastSeenErr, "user", userID.String())
+		}
+		if goroutineResult.paymentsMadeByUser != 0 {
+			res.paymentsMadeByUser = goroutineResult.paymentsMadeByUser
+		}
+	}
+
+	m = time.Now()
+	highestProduct, highestPrice, cancelsAt, renewsAt := extractSubscriptionInfoFromCustomer(res.customer)
+	log.Infof("HandleGetUser - extractSubscriptionInfoFromCustomer: %dms", time.Since(m).Milliseconds())
+
+	m = time.Now()
+	moreCreditsAt, moreCreditsAtAmount, renewsAtAmount, freeCreditAmount := getMoreCreditsInfo(*userID, highestProduct, renewsAt, res.stripeHadError, c)
+	log.Infof("HandleGetUser - getMoreCreditsInfo: %dms", time.Since(m).Milliseconds())
+
+	roles := make([]string, len(user.Edges.Roles))
+	for i, role := range user.Edges.Roles {
+		roles[i] = role.Name
+	}
+
+	log.Infof("HandleGetUser - Total: %dms", time.Since(s).Milliseconds())
+
+	render.Status(r, http.StatusOK)
+	render.JSON(w, r, responses.GetUserResponse{
+		UserID:                  userID,
+		TotalRemainingCredits:   res.totalRemaining,
+		HasNonfreeCredits:       res.paidCreditCount > 0,
+		ProductID:               highestProduct,
+		PriceID:                 highestPrice,
+		CancelsAt:               cancelsAt,
+		RenewsAt:                renewsAt,
+		RenewsAtAmount:          renewsAtAmount,
+		FreeCreditAmount:        freeCreditAmount,
+		StripeHadError:          res.stripeHadError,
+		Roles:                   roles,
+		MoreCreditsAt:           moreCreditsAt,
+		MoreCreditsAtAmount:     moreCreditsAtAmount,
+		MoreFreeCreditsAt:       moreCreditsAt,
+		MoreFreeCreditsAtAmount: moreCreditsAtAmount,
+		WantsEmail:              user.WantsEmail,
+		Username:                user.Username,
+		CreatedAt:               user.CreatedAt,
+		UsernameChangedAt:       user.UsernameChangedAt,
+		PurchaseCount:           res.paymentsMadeByUser,
+	})
+}
+
 func (c *RestAPI) HandleGetUser(w http.ResponseWriter, r *http.Request) {
 	s := time.Now()
 	m := time.Now()
