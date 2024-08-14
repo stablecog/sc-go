@@ -55,88 +55,10 @@ func (c *RestAPI) HandleGetUser(w http.ResponseWriter, r *http.Request) {
 		return
 	} else if user == nil {
 		// Handle create user flow
-		freeCreditType, err := c.Repo.GetOrCreateFreeCreditType(nil)
+		err := createNewUser(email, userID, lastSignIn, c)
 		if err != nil {
-			log.Error("Error getting free credit type", "err", err)
-			responses.ErrInternalServerError(w, r, "An unknown error has occurred")
-			return
-		}
-		if freeCreditType == nil {
-			log.Error("Server misconfiguration: a credit_type with the name 'free' must exist")
-			responses.ErrInternalServerError(w, r, "An unknown error has occurred")
-			return
-		}
-		tippableCreditType, err := c.Repo.GetOrCreateTippableCreditType(nil)
-		if err != nil {
-			log.Error("Error getting tippable credit type", "err", err)
-			responses.ErrInternalServerError(w, r, "An unknown error has occurred")
-			return
-		}
-		if tippableCreditType == nil {
-			log.Error("Server misconfiguration: a credit_type with the name 'tippable' must exist")
-			responses.ErrInternalServerError(w, r, "An unknown error has occurred")
-			return
-		}
-
-		// See if email exists
-		_, exists, err := c.Repo.CheckIfEmailExists(email)
-		if err != nil {
-			log.Error("Error checking if email exists", "err", err)
-			responses.ErrInternalServerError(w, r, "An unknown error has occurred")
-			return
-		} else if exists {
-			responses.ErrUnauthorized(w, r)
-			return
-		}
-
-		var customer *stripe.Customer
-		if err := c.Repo.WithTx(func(tx *ent.Tx) error {
-			client := tx.Client()
-
-			customer, err = c.StripeClient.Customers.New(&stripe.CustomerParams{
-				Email: stripe.String(email),
-				Params: stripe.Params{
-					Metadata: map[string]string{
-						"supabase_id": (*userID).String(),
-					},
-				},
-			})
-			if err != nil {
-				log.Error("Error creating stripe customer", "err", err)
-				return err
-			}
-
-			u, err := c.Repo.CreateUser(*userID, email, customer.ID, lastSignIn, client)
-			if err != nil {
-				log.Error("Error creating user", "err", err)
-				return err
-			}
-
-			// Add free credits
-			added, err := c.Repo.GiveFreeCredits(u.ID, client)
-			if err != nil || !added {
-				log.Error("Error adding free credits", "err", err)
-				return err
-			}
-
-			// Add free tippable credits
-			added, err = c.Repo.GiveFreeTippableCredits(u.ID, client)
-			if err != nil || !added {
-				log.Error("Error adding free tippable credits", "err", err)
-				return err
-			}
-
-			return nil
-		}); err != nil {
 			log.Error("Error creating user", "err", err)
-			responses.ErrInternalServerError(w, r, "An unknown error has occurred")
-			// Delete stripe customer
-			if customer != nil {
-				_, err := c.StripeClient.Customers.Del(customer.ID, nil)
-				if err != nil {
-					log.Error("Error deleting stripe customer", "err", err)
-				}
-			}
+			responses.ErrInternalServerError(w, r, err.Error())
 			return
 		}
 		go c.Track.SignUp(*userID, email, utils.GetIPAddress(r), utils.GetClientDeviceInfo(r))
@@ -176,44 +98,8 @@ func (c *RestAPI) HandleGetUser(w http.ResponseWriter, r *http.Request) {
 	}
 	log.Infof("HandleGetUser - GetStripeCustomer: %dms", time.Since(m).Milliseconds())
 
-	// Get current time in ms since epoch
-	now := time.Now().UnixNano() / int64(time.Second)
-	var highestProduct string
-	var highestPrice string
-	var cancelsAt *time.Time
-	var renewsAt *time.Time
-	if customer != nil && customer.Subscriptions != nil && customer.Subscriptions.Data != nil {
-		// Find highest subscription tier
-		for _, subscription := range customer.Subscriptions.Data {
-			if subscription.Items == nil || subscription.Items.Data == nil {
-				continue
-			}
-
-			for _, item := range subscription.Items.Data {
-				if item.Price == nil || item.Price.Product == nil {
-					continue
-				}
-				// Not expired or cancelled
-				if now > subscription.CurrentPeriodEnd || subscription.CanceledAt > subscription.CurrentPeriodEnd {
-					continue
-				}
-				highestPrice = item.Price.ID
-				highestProduct = item.Price.Product.ID
-				// If not scheduled to be cancelled, we are done
-				if !subscription.CancelAtPeriodEnd {
-					cancelsAt = nil
-					break
-				}
-				cancelsAsTime := utils.SecondsSinceEpochToTime(subscription.CancelAt)
-				cancelsAt = &cancelsAsTime
-			}
-			if cancelsAt == nil && highestProduct != "" {
-				renewsAtTime := utils.SecondsSinceEpochToTime(subscription.CurrentPeriodEnd)
-				renewsAt = &renewsAtTime
-				break
-			}
-		}
-	}
+	// Get subscription info
+	highestProduct, highestPrice, cancelsAt, renewsAt := extractSubscriptionInfoFromCustomer(customer)
 
 	m = time.Now()
 	err = c.Repo.UpdateLastSeenAt(*userID)
@@ -272,17 +158,8 @@ func (c *RestAPI) HandleGetUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	m = time.Now()
-	paymentsMadeByCustomer := 0
-	paymentIntents := c.StripeClient.PaymentIntents.List(&stripe.PaymentIntentListParams{
-		Customer: stripe.String(user.StripeCustomerID),
-	})
-	for paymentIntents.Next() {
-		intent := paymentIntents.PaymentIntent()
-		if intent != nil && intent.Status == stripe.PaymentIntentStatusSucceeded {
-			paymentsMadeByCustomer++
-		}
-	}
-	log.Infof("HandleGetUser - GetPaymentIntents: %dms", time.Since(m).Milliseconds())
+	paymentsMadeByCustomer := getPaymentsMadeByCustomer(user.StripeCustomerID, c)
+	log.Infof("HandleGetUser - GetPaymentMadeByCustomer: %dms", time.Since(m).Milliseconds())
 
 	log.Infof("HandleGetUser - Total: %dms", time.Since(s).Milliseconds())
 
@@ -309,6 +186,146 @@ func (c *RestAPI) HandleGetUser(w http.ResponseWriter, r *http.Request) {
 		UsernameChangedAt:       user.UsernameChangedAt,
 		PurchaseCount:           paymentsMadeByCustomer,
 	})
+}
+
+func createNewUser(email string, userID *uuid.UUID, lastSignIn *time.Time, c *RestAPI) error {
+	unknownError := errors.New("An unknown error has occurred")
+	freeCreditType, err := c.Repo.GetOrCreateFreeCreditType(nil)
+	if err != nil {
+		log.Error("Error getting free credit type", "err", err)
+		return unknownError
+	}
+	if freeCreditType == nil {
+		log.Error("Server misconfiguration: a credit_type with the name 'free' must exist")
+		return unknownError
+	}
+	tippableCreditType, err := c.Repo.GetOrCreateTippableCreditType(nil)
+	if err != nil {
+		log.Error("Error getting tippable credit type", "err", err)
+		return unknownError
+	}
+	if tippableCreditType == nil {
+		log.Error("Server misconfiguration: a credit_type with the name 'tippable' must exist")
+		return unknownError
+	}
+
+	// See if email exists
+	_, exists, err := c.Repo.CheckIfEmailExists(email)
+	if err != nil {
+		log.Error("Error checking if email exists", "err", err)
+		return unknownError
+	} else if exists {
+		log.Error("Email already exists", "email", email)
+		return errors.New("Email already exists")
+	}
+
+	var customer *stripe.Customer
+	if err := c.Repo.WithTx(func(tx *ent.Tx) error {
+		client := tx.Client()
+
+		customer, err = c.StripeClient.Customers.New(&stripe.CustomerParams{
+			Email: stripe.String(email),
+			Params: stripe.Params{
+				Metadata: map[string]string{
+					"supabase_id": (*userID).String(),
+				},
+			},
+		})
+		if err != nil {
+			log.Error("Error creating stripe customer", "err", err)
+			return err
+		}
+
+		u, err := c.Repo.CreateUser(*userID, email, customer.ID, lastSignIn, client)
+		if err != nil {
+			log.Error("Error creating user", "err", err)
+			return err
+		}
+
+		// Add free credits
+		added, err := c.Repo.GiveFreeCredits(u.ID, client)
+		if err != nil || !added {
+			log.Error("Error adding free credits", "err", err)
+			return err
+		}
+
+		// Add free tippable credits
+		added, err = c.Repo.GiveFreeTippableCredits(u.ID, client)
+		if err != nil || !added {
+			log.Error("Error adding free tippable credits", "err", err)
+			return err
+		}
+
+		return nil
+	}); err != nil {
+		log.Error("Error creating user", "err", err)
+		// Delete stripe customer
+		if customer != nil {
+			_, err := c.StripeClient.Customers.Del(customer.ID, nil)
+			if err != nil {
+				log.Error("Error deleting stripe customer", "err", err)
+			}
+		}
+		return unknownError
+	}
+	return nil
+}
+
+func getPaymentsMadeByCustomer(customerId string, c *RestAPI) int {
+	paymentsMadeByCustomer := 0
+	paymentIntents := c.StripeClient.PaymentIntents.List(&stripe.PaymentIntentListParams{
+		Customer: stripe.String(customerId),
+	})
+	for paymentIntents.Next() {
+		intent := paymentIntents.PaymentIntent()
+		if intent != nil && intent.Status == stripe.PaymentIntentStatusSucceeded {
+			paymentsMadeByCustomer++
+		}
+	}
+	return paymentsMadeByCustomer
+}
+
+func extractSubscriptionInfoFromCustomer(customer *stripe.Customer) (string, string, *time.Time, *time.Time) {
+	now := time.Now().UnixNano() / int64(time.Second)
+
+	var highestProduct string
+	var highestPrice string
+	var cancelsAt *time.Time
+	var renewsAt *time.Time
+
+	if customer != nil && customer.Subscriptions != nil && customer.Subscriptions.Data != nil {
+		// Find highest subscription tier
+		for _, subscription := range customer.Subscriptions.Data {
+			if subscription.Items == nil || subscription.Items.Data == nil {
+				continue
+			}
+
+			for _, item := range subscription.Items.Data {
+				if item.Price == nil || item.Price.Product == nil {
+					continue
+				}
+				// Not expired or cancelled
+				if now > subscription.CurrentPeriodEnd || subscription.CanceledAt > subscription.CurrentPeriodEnd {
+					continue
+				}
+				highestPrice = item.Price.ID
+				highestProduct = item.Price.Product.ID
+				// If not scheduled to be cancelled, we are done
+				if !subscription.CancelAtPeriodEnd {
+					cancelsAt = nil
+					break
+				}
+				cancelsAsTime := utils.SecondsSinceEpochToTime(subscription.CancelAt)
+				cancelsAt = &cancelsAsTime
+			}
+			if cancelsAt == nil && highestProduct != "" {
+				renewsAtTime := utils.SecondsSinceEpochToTime(subscription.CurrentPeriodEnd)
+				renewsAt = &renewsAtTime
+				break
+			}
+		}
+	}
+	return highestProduct, highestPrice, cancelsAt, renewsAt
 }
 
 // HTTP Get - generations for user
