@@ -33,7 +33,6 @@ func (c *RestAPI) HandleGetUserV2(w http.ResponseWriter, r *http.Request) {
 	m := time.Now()
 
 	userID, email := c.GetUserIDAndEmailIfAuthenticated(w, r)
-	log.Infof("HandleGetUserV2 - GetUserIDAndEmailIfAuthenticated: %dms", time.Since(m).Milliseconds())
 
 	if userID == nil || email == "" {
 		return
@@ -49,9 +48,7 @@ func (c *RestAPI) HandleGetUserV2(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Get user with roles
-	m = time.Now()
 	user, err := c.Repo.GetUserWithRoles(*userID)
-	log.Infof("HandleGetUserV2 - GetUserWithRoles: %dms", time.Since(m).Milliseconds())
 
 	if err != nil {
 		log.Error("Error getting user", "err", err)
@@ -172,9 +169,7 @@ func (c *RestAPI) HandleGetUserV2(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	m = time.Now()
 	highestProduct, highestPrice, cancelsAt, renewsAt := extractSubscriptionInfoFromCustomer(res.customer)
-	log.Infof("HandleGetUserV2 - extractSubscriptionInfoFromCustomer: %dms", time.Since(m).Milliseconds())
 
 	m = time.Now()
 	moreCreditsAt, moreCreditsAtAmount, renewsAtAmount, freeCreditAmount := getMoreCreditsInfo(*userID, highestProduct, renewsAt, res.stripeHadError, c)
