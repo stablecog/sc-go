@@ -28,7 +28,11 @@ import (
 
 // HTTP Get - user info
 func (c *RestAPI) HandleGetUser(w http.ResponseWriter, r *http.Request) {
+	s := time.Now()
+	m := time.Now()
 	userID, email := c.GetUserIDAndEmailIfAuthenticated(w, r)
+	log.Infof("HandleGetUser - GetUserIDAndEmailIfAuthenticated: %dms", time.Since(m).Milliseconds())
+
 	if userID == nil || email == "" {
 		return
 	}
@@ -41,8 +45,10 @@ func (c *RestAPI) HandleGetUser(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	m = time.Now()
 	// Get customer ID for user
 	user, err := c.Repo.GetUserWithRoles(*userID)
+	log.Infof("HandleGetUser - GetUserWithRoles: %dms", time.Since(m).Milliseconds())
 	if err != nil {
 		log.Error("Error getting user", "err", err)
 		responses.ErrInternalServerError(w, r, "An unknown error has occurred")
@@ -145,6 +151,7 @@ func (c *RestAPI) HandleGetUser(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	m = time.Now()
 	// Get total credits
 	totalRemaining, err := c.Repo.GetNonExpiredCreditTotalForUser(*userID, nil)
 	if err != nil {
@@ -152,7 +159,9 @@ func (c *RestAPI) HandleGetUser(w http.ResponseWriter, r *http.Request) {
 		responses.ErrInternalServerError(w, r, "An unknown error has occurred")
 		return
 	}
+	log.Infof("HandleGetUser - GetNonExpiredCreditTotalForUser: %dms", time.Since(m).Milliseconds())
 
+	m = time.Now()
 	customer, err := c.StripeClient.Customers.Get(user.StripeCustomerID, &stripe.CustomerParams{
 		Params: stripe.Params{
 			Expand: []*string{
@@ -165,6 +174,7 @@ func (c *RestAPI) HandleGetUser(w http.ResponseWriter, r *http.Request) {
 		log.Error("Error getting customer from stripe, unknown error", "err", err)
 		stripeHadError = true
 	}
+	log.Infof("HandleGetUser - GetStripeCustomer: %dms", time.Since(m).Milliseconds())
 
 	// Get current time in ms since epoch
 	now := time.Now().UnixNano() / int64(time.Second)
@@ -205,11 +215,14 @@ func (c *RestAPI) HandleGetUser(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	m = time.Now()
 	err = c.Repo.UpdateLastSeenAt(*userID)
 	if err != nil {
 		log.Warn("Error updating last seen at", "err", err, "user", userID.String())
 	}
+	log.Infof("HandleGetUser - UpdateLastSeenAt: %dms", time.Since(m).Milliseconds())
 
+	m = time.Now()
 	// Figure out when free credits will be replenished
 	var moreCreditsAt *time.Time
 	var moreCreditsAtAmount *int
@@ -241,7 +254,9 @@ func (c *RestAPI) HandleGetUser(w http.ResponseWriter, r *http.Request) {
 			renewsAtAmount = utils.ToPtr(int(creditType.Amount))
 		}
 	}
+	log.Infof("HandleGetUser - Figure out when free credits will replenish: %dms", time.Since(m).Milliseconds())
 
+	m = time.Now()
 	// Get paid credits for user
 	paidCreditCount, err := c.Repo.GetNonFreeCreditSum(*userID)
 	if err != nil {
@@ -265,6 +280,8 @@ func (c *RestAPI) HandleGetUser(w http.ResponseWriter, r *http.Request) {
 			paymentsMadeByCustomer++
 		}
 	}
+	log.Infof("HandleGetUser - Get paid credits for user: %dms", time.Since(m).Milliseconds())
+	log.Infof("HandleGetUser - Total: %dms", time.Since(s).Milliseconds())
 
 	render.Status(r, http.StatusOK)
 	render.JSON(w, r, responses.GetUserResponse{
