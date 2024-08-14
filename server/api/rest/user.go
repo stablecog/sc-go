@@ -30,7 +30,6 @@ import (
 // HTTP Get - user info
 func (c *RestAPI) HandleGetUserV2(w http.ResponseWriter, r *http.Request) {
 	s := time.Now()
-	m := time.Now()
 
 	userID, email := c.GetUserIDAndEmailIfAuthenticated(w, r)
 
@@ -171,9 +170,7 @@ func (c *RestAPI) HandleGetUserV2(w http.ResponseWriter, r *http.Request) {
 
 	highestProduct, highestPrice, cancelsAt, renewsAt := extractSubscriptionInfoFromCustomer(res.customer)
 
-	m = time.Now()
 	moreCreditsAt, moreCreditsAtAmount, renewsAtAmount, freeCreditAmount := getMoreCreditsInfo(*userID, highestProduct, renewsAt, res.stripeHadError, c)
-	log.Infof("HandleGetUserV2 - getMoreCreditsInfo: %dms", time.Since(m).Milliseconds())
 
 	roles := make([]string, len(user.Edges.Roles))
 	for i, role := range user.Edges.Roles {
@@ -350,9 +347,7 @@ func getMoreCreditsInfo(userID uuid.UUID, highestProduct string, renewsAt *time.
 	var freeCreditAmount *int
 	var err error
 	if highestProduct == "" && !stripeHadError {
-		s := time.Now()
 		moreCreditsAt, fcredit, ctype, err = c.Repo.GetFreeCreditReplenishesAtForUser(userID)
-		log.Infof("HandleGetUserV2 - GetFreeCreditReplenishesAtForUser: %dms", time.Since(s).Milliseconds())
 		if err != nil {
 			log.Error("Error getting next free credit replenishment time", "err", err, "user", userID.String())
 		}
