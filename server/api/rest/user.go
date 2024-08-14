@@ -350,7 +350,9 @@ func getMoreCreditsInfo(userID uuid.UUID, highestProduct string, renewsAt *time.
 	var freeCreditAmount *int
 	var err error
 	if highestProduct == "" && !stripeHadError {
+		s := time.Now()
 		moreCreditsAt, fcredit, ctype, err = c.Repo.GetFreeCreditReplenishesAtForUser(userID)
+		log.Infof("HandleGetUserV2 - GetFreeCreditReplenishesAtForUser: %dms", time.Since(s).Milliseconds())
 		if err != nil {
 			log.Error("Error getting next free credit replenishment time", "err", err, "user", userID.String())
 		}
@@ -366,7 +368,9 @@ func getMoreCreditsInfo(userID uuid.UUID, highestProduct string, renewsAt *time.
 			}
 		}
 	} else if !stripeHadError && renewsAt != nil {
+		s := time.Now()
 		creditType, err := c.Repo.GetCreditTypeByStripeProductID(highestProduct)
+		log.Infof("HandleGetUserV2 - GetCreditTypeByStripeProductID: %dms", time.Since(s).Milliseconds())
 		if err != nil {
 			log.Warnf("Error getting credit type from product id '%s' %v", highestProduct, err)
 		} else {
