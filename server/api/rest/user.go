@@ -94,7 +94,7 @@ func (c *RestAPI) HandleGetUserV2(w http.ResponseWriter, r *http.Request) {
 		defer wg.Done()
 		m := time.Now()
 		totalRemaining, err := c.Repo.GetNonExpiredCreditTotalForUser(*userID, nil)
-		ch <- result{totalRemaining: totalRemaining, err: err, duration: time.Since(m), operation: "GetNonExpiredCreditTotalForUser"}
+		ch <- result{totalRemaining: totalRemaining, err: err, duration: time.Since(m), operation: "GO routine - GetNonExpiredCreditTotalForUser"}
 	}()
 
 	// Get customer from Stripe
@@ -109,7 +109,7 @@ func (c *RestAPI) HandleGetUserV2(w http.ResponseWriter, r *http.Request) {
 			},
 		})
 		stripeHadError := err != nil
-		ch <- result{customer: customer, stripeHadError: stripeHadError, duration: time.Since(m), operation: "GetStripeCustomer"}
+		ch <- result{customer: customer, stripeHadError: stripeHadError, duration: time.Since(m), operation: "GO routine - GetStripeCustomer"}
 	}()
 
 	// Get paid credits
@@ -117,7 +117,7 @@ func (c *RestAPI) HandleGetUserV2(w http.ResponseWriter, r *http.Request) {
 		defer wg.Done()
 		m := time.Now()
 		paidCreditCount, err := c.Repo.GetNonFreeCreditSum(*userID)
-		ch <- result{paidCreditCount: paidCreditCount, err: err, duration: time.Since(m), operation: "GetNonFreeCreditSum"}
+		ch <- result{paidCreditCount: paidCreditCount, err: err, duration: time.Since(m), operation: "GO routine - GetNonFreeCreditSum"}
 	}()
 
 	// Update last seen
@@ -125,7 +125,7 @@ func (c *RestAPI) HandleGetUserV2(w http.ResponseWriter, r *http.Request) {
 		defer wg.Done()
 		m := time.Now()
 		err := c.Repo.UpdateLastSeenAt(*userID)
-		ch <- result{updateLastSeenErr: err, duration: time.Since(m), operation: "UpdateLastSeenAt"}
+		ch <- result{updateLastSeenErr: err, duration: time.Since(m), operation: "GO routine - UpdateLastSeenAt"}
 	}()
 
 	// Get payments made by customer
@@ -133,7 +133,7 @@ func (c *RestAPI) HandleGetUserV2(w http.ResponseWriter, r *http.Request) {
 		defer wg.Done()
 		m := time.Now()
 		paymentsMade := getPaymentsMadeByCustomer(user.StripeCustomerID, c)
-		ch <- result{paymentsMadeByUser: paymentsMade, duration: time.Since(m), operation: "GetPaymentMadeByCustomer"}
+		ch <- result{paymentsMadeByUser: paymentsMade, duration: time.Since(m), operation: "GO routine - GetPaymentMadeByCustomer"}
 	}()
 
 	go func() {
