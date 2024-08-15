@@ -430,8 +430,11 @@ func getMoreCreditsInfo(userID uuid.UUID, highestProductID string, renewsAt *tim
 }
 
 func createNewUser(email string, userID *uuid.UUID, lastSignIn *time.Time, c *RestAPI) error {
+	s := time.Now()
+	m := time.Now()
 	unknownError := errors.New("An unknown error has occurred")
 	freeCreditType, err := c.Repo.GetOrCreateFreeCreditType(nil)
+	log.Infof("createNewUser - GetOrCreateFreeCreditType: %dms", time.Since(m).Milliseconds())
 	if err != nil {
 		log.Error("Error getting free credit type", "err", err)
 		return unknownError
@@ -440,7 +443,9 @@ func createNewUser(email string, userID *uuid.UUID, lastSignIn *time.Time, c *Re
 		log.Error("Server misconfiguration: a credit_type with the name 'free' must exist")
 		return unknownError
 	}
+	m = time.Now()
 	tippableCreditType, err := c.Repo.GetOrCreateTippableCreditType(nil)
+	log.Infof("createNewUser - GetOrCreateTippableCreditType: %dms", time.Since(m).Milliseconds())
 	if err != nil {
 		log.Error("Error getting tippable credit type", "err", err)
 		return unknownError
@@ -451,6 +456,7 @@ func createNewUser(email string, userID *uuid.UUID, lastSignIn *time.Time, c *Re
 	}
 
 	// See if email exists
+	m = time.Now()
 	_, exists, err := c.Repo.CheckIfEmailExists(email)
 	if err != nil {
 		log.Error("Error checking if email exists", "err", err)
@@ -459,11 +465,14 @@ func createNewUser(email string, userID *uuid.UUID, lastSignIn *time.Time, c *Re
 		log.Error("Email already exists", "email", email)
 		return errors.New("Email already exists")
 	}
+	log.Infof("createNewUser - CheckIfEmailExists: %dms", time.Since(m).Milliseconds())
 
 	var customer *stripe.Customer
 	if err := c.Repo.WithTx(func(tx *ent.Tx) error {
 		client := tx.Client()
 
+		// Create stripe customer
+		m = time.Now()
 		customer, err = c.StripeClient.Customers.New(&stripe.CustomerParams{
 			Email: stripe.String(email),
 			Params: stripe.Params{
@@ -476,26 +485,33 @@ func createNewUser(email string, userID *uuid.UUID, lastSignIn *time.Time, c *Re
 			log.Error("Error creating stripe customer", "err", err)
 			return err
 		}
+		log.Infof("createNewUser - CreateStripeCustomer: %dms", time.Since(m).Milliseconds())
 
+		m = time.Now()
 		u, err := c.Repo.CreateUser(*userID, email, customer.ID, lastSignIn, client)
 		if err != nil {
 			log.Error("Error creating user", "err", err)
 			return err
 		}
+		log.Infof("createNewUser - CreateUser: %dms", time.Since(m).Milliseconds())
 
 		// Add free credits
+		m = time.Now()
 		added, err := c.Repo.GiveFreeCredits(u.ID, client)
 		if err != nil || !added {
 			log.Error("Error adding free credits", "err", err)
 			return err
 		}
+		log.Infof("createNewUser - GiveFreeCredits: %dms", time.Since(m).Milliseconds())
 
 		// Add free tippable credits
+		m = time.Now()
 		added, err = c.Repo.GiveFreeTippableCredits(u.ID, client)
 		if err != nil || !added {
 			log.Error("Error adding free tippable credits", "err", err)
 			return err
 		}
+		log.Infof("createNewUser - GiveFreeTippableCredits: %dms", time.Since(m).Milliseconds())
 
 		return nil
 	}); err != nil {
@@ -509,6 +525,7 @@ func createNewUser(email string, userID *uuid.UUID, lastSignIn *time.Time, c *Re
 		}
 		return unknownError
 	}
+	log.Infof("createNewUser - Total: %dms", time.Since(s).Milliseconds())
 	return nil
 }
 

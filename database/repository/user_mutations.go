@@ -19,7 +19,7 @@ func (r *Repository) CreateUser(id uuid.UUID, email string, stripeCustomerId str
 	if db == nil {
 		db = r.DB
 	}
-	cq := db.User.Create().SetID(id).SetStripeCustomerID(stripeCustomerId).SetEmail(email).SetUsername(utils.GenerateUsername(nil))
+	cq := db.User.Create().SetID(id).SetStripeCustomerID(stripeCustomerId).SetEmail(email).SetUsername(utils.GenerateUsername(nil)).SetStripeSyncedAt(time.Now())
 	if lastSignIn != nil {
 		cq.SetLastSignInAt(*lastSignIn)
 	}
