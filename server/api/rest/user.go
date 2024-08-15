@@ -115,7 +115,7 @@ func (c *RestAPI) HandleGetUserV2(w http.ResponseWriter, r *http.Request) {
 
 		// If the user has info synced to the DB already, use that
 		if user.StripeSyncedAt != nil {
-			operation = "GO routine - GetStripeSubscriptionInfoFromDB"
+			operation = "GO routine - StripeSubscriptionInfoFromUserObject"
 			if user.StripeHighestProductID != nil {
 				highestProductID = *user.StripeHighestProductID
 			}
