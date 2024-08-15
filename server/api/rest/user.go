@@ -74,8 +74,11 @@ func (c *RestAPI) HandleGetUserV2(w http.ResponseWriter, r *http.Request) {
 	}
 
 	type result struct {
+		highestProductID  string
+		highestPriceID    string
+		cancelsAt         *time.Time
+		renewsAt          *time.Time
 		totalRemaining    int
-		customer          *stripe.Customer
 		paidCreditCount   int
 		err               error
 		stripeHadError    bool
@@ -102,15 +105,15 @@ func (c *RestAPI) HandleGetUserV2(w http.ResponseWriter, r *http.Request) {
 	go func() {
 		defer wg.Done()
 		m := time.Now()
-		customer, err := c.StripeClient.Customers.Get(user.StripeCustomerID, &stripe.CustomerParams{
-			Params: stripe.Params{
-				Expand: []*string{
-					stripe.String("subscriptions"),
-				},
-			},
-		})
+		highestProductID, highestPriceID, cancelsAt, renewsAt, err := c.GetAndSyncStripeSubscriptionInfo(user.StripeCustomerID)
 		stripeHadError := err != nil
-		ch <- result{customer: customer, stripeHadError: stripeHadError, duration: time.Since(m), operation: "GO routine - GetStripeCustomer"}
+		ch <- result{
+			highestProductID: highestProductID,
+			highestPriceID:   highestPriceID,
+			cancelsAt:        cancelsAt, renewsAt: renewsAt,
+			stripeHadError: stripeHadError,
+			duration:       time.Since(m),
+			operation:      "GO routine - GetStripeCustomer"}
 	}()
 
 	// Get paid credits
@@ -153,8 +156,17 @@ func (c *RestAPI) HandleGetUserV2(w http.ResponseWriter, r *http.Request) {
 		if goroutineResult.totalRemaining != 0 {
 			res.totalRemaining = goroutineResult.totalRemaining
 		}
-		if goroutineResult.customer != nil {
-			res.customer = goroutineResult.customer
+		if goroutineResult.highestProductID != "" {
+			res.highestProductID = goroutineResult.highestProductID
+		}
+		if goroutineResult.highestPriceID != "" {
+			res.highestPriceID = goroutineResult.highestPriceID
+		}
+		if goroutineResult.cancelsAt != nil {
+			res.cancelsAt = goroutineResult.cancelsAt
+		}
+		if goroutineResult.renewsAt != nil {
+			res.renewsAt = goroutineResult.renewsAt
 		}
 		if goroutineResult.paidCreditCount != 0 {
 			res.paidCreditCount = goroutineResult.paidCreditCount
@@ -170,9 +182,7 @@ func (c *RestAPI) HandleGetUserV2(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	highestProductID, highestPriceID, cancelsAt, renewsAt := extractSubscriptionInfoFromCustomer(res.customer)
-
-	moreCreditsAt, moreCreditsAtAmount, renewsAtAmount, freeCreditAmount := getMoreCreditsInfo(*userID, highestProductID, renewsAt, res.stripeHadError, c)
+	moreCreditsAt, moreCreditsAtAmount, renewsAtAmount, freeCreditAmount := getMoreCreditsInfo(*userID, res.highestProductID, res.renewsAt, res.stripeHadError, c)
 
 	roles := make([]string, len(user.Edges.Roles))
 	for i, role := range user.Edges.Roles {
@@ -186,10 +196,10 @@ func (c *RestAPI) HandleGetUserV2(w http.ResponseWriter, r *http.Request) {
 		UserID:                  userID,
 		TotalRemainingCredits:   res.totalRemaining,
 		HasNonfreeCredits:       res.paidCreditCount > 0,
-		ProductID:               highestProductID,
-		PriceID:                 highestPriceID,
-		CancelsAt:               cancelsAt,
-		RenewsAt:                renewsAt,
+		ProductID:               res.highestProductID,
+		PriceID:                 res.highestPriceID,
+		CancelsAt:               res.cancelsAt,
+		RenewsAt:                res.renewsAt,
 		RenewsAtAmount:          renewsAtAmount,
 		FreeCreditAmount:        freeCreditAmount,
 		StripeHadError:          res.stripeHadError,

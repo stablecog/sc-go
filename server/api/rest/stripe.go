@@ -426,7 +426,24 @@ func (c *RestAPI) HandleStripeWebhookSubscription(w http.ResponseWriter, r *http
 		customerID = subscription.Customer
 	}
 
-	customer, err := c.StripeClient.Customers.Get(customerID, &stripe.CustomerParams{
+	user, userErr := c.Repo.GetUserByStripeCustomerId(customerID)
+	if userErr != nil {
+		log.Error("🪝 Error getting user from stripe customer id", "err", userErr)
+		responses.ErrInternalServerError(w, r, "An unknown error has occurred")
+		return
+	}
+
+	highestProductID, highestPriceID, cancelsAt, renewsAt, err := c.GetAndSyncStripeSubscriptionInfo(customerID)
+
+	log.Infof("🪝 🟢 Updated Stripe subscription info in DB | %dms | userID: %s, customerID: %s, highestProductID: %s, highestPriceID: %s, cancelsAt: %v, renewsAt: %v", time.Since(s).Milliseconds(), user.ID, customerID, highestProductID, highestPriceID, cancelsAt, renewsAt)
+
+	render.Status(r, http.StatusOK)
+	render.PlainText(w, r, "OK")
+}
+
+func (c *RestAPI) GetAndSyncStripeSubscriptionInfo(stripeCustomerID string) (string, string, *time.Time, *time.Time, error) {
+	s := time.Now()
+	customer, err := c.StripeClient.Customers.Get(stripeCustomerID, &stripe.CustomerParams{
 		Params: stripe.Params{
 			Expand: []*string{
 				stripe.String("subscriptions"),
@@ -435,32 +452,27 @@ func (c *RestAPI) HandleStripeWebhookSubscription(w http.ResponseWriter, r *http
 	})
 
 	if err != nil {
-		log.Error("🪝 Error getting customer from stripe, unknown error", "err", err)
-		responses.ErrInternalServerError(w, r, "An unknown error has occurred")
-		return
-	}
-
-	user, userErr := c.Repo.GetUserByStripeCustomerId(customer.ID)
-	if userErr != nil {
-		log.Error("🪝 Error getting user from stripe customer id", "err", userErr)
-		responses.ErrInternalServerError(w, r, "An unknown error has occurred")
-		return
+		log.Error("🔴 GetAndSyncStripeSubscriptionInfo: Unable getting customer", err)
+		return "", "", nil, nil, err
 	}
 
 	// Get subscription info
 	highestProductID, highestPriceID, cancelsAt, renewsAt := extractSubscriptionInfoFromCustomer(customer)
 
-	_, updateErr := c.Repo.UpdateUserStripeSubscriptionInfo(user.ID, highestProductID, highestPriceID, cancelsAt, renewsAt)
-	if updateErr != nil {
-		log.Error("🪝 Error updating user stripe subscription info in the DB", "err", updateErr)
-		responses.ErrInternalServerError(w, r, "An unknown error has occurred")
-		return
+	user, userErr := c.Repo.GetUserByStripeCustomerId(stripeCustomerID)
+	if userErr != nil {
+		log.Error("🔴 GetAndSyncStripeSubscriptionInfo: Unable getting user from stripe customer id", userErr)
+		return "", "", nil, nil, userErr
 	}
 
-	log.Infof("🪝 🟢 Updated Stripe subscription info in DB | %dms | userID: %s, customerID: %s, highestProductID: %s, highestPriceID: %s, cancelsAt: %v, renewsAt: %v", time.Since(s).Milliseconds(), user.ID, customer.ID, highestProductID, highestPriceID, cancelsAt, renewsAt)
+	_, updateErr := c.Repo.UpdateUserStripeSubscriptionInfo(user.ID, highestProductID, highestPriceID, cancelsAt, renewsAt)
+	if updateErr != nil {
+		log.Error("🔴 GetAndSyncStripeSubscriptionInfo: Unable updating user stripe subscription info", updateErr)
+		return "", "", nil, nil, updateErr
+	}
 
-	render.Status(r, http.StatusOK)
-	render.PlainText(w, r, "OK")
+	log.Infof("🟢 GetAndSyncStripeSubscriptionInfo: %dms", time.Since(s).Milliseconds())
+	return highestProductID, highestPriceID, cancelsAt, renewsAt, nil
 }
 
 // Handle stripe webhooks in the following ways:
