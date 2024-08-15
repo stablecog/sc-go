@@ -22,6 +22,7 @@ func (User) Fields() []ent.Field {
 	return []ent.Field{
 		field.UUID("id", uuid.UUID{}).Default(uuid.New),
 		field.Text("email"),
+		field.Text("email_normalized").Optional().Nillable(),
 		field.Text("stripe_customer_id").Unique(),
 		field.Text("active_product_id").Optional().Nillable(),
 		field.Time("last_sign_in_at").Optional().Nillable(),

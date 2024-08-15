@@ -19899,6 +19899,7 @@ type UserMutation struct {
 	typ                            string
 	id                             *uuid.UUID
 	email                          *string
+	email_normalized               *string
 	stripe_customer_id             *string
 	active_product_id              *string
 	last_sign_in_at                *time.Time
@@ -20088,6 +20089,55 @@ func (m *UserMutation) OldEmail(ctx context.Context) (v string, err error) {
 // ResetEmail resets all changes to the "email" field.
 func (m *UserMutation) ResetEmail() {
 	m.email = nil
+}
+
+// SetEmailNormalized sets the "email_normalized" field.
+func (m *UserMutation) SetEmailNormalized(s string) {
+	m.email_normalized = &s
+}
+
+// EmailNormalized returns the value of the "email_normalized" field in the mutation.
+func (m *UserMutation) EmailNormalized() (r string, exists bool) {
+	v := m.email_normalized
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldEmailNormalized returns the old "email_normalized" field's value of the User entity.
+// If the User object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UserMutation) OldEmailNormalized(ctx context.Context) (v *string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldEmailNormalized is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldEmailNormalized requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldEmailNormalized: %w", err)
+	}
+	return oldValue.EmailNormalized, nil
+}
+
+// ClearEmailNormalized clears the value of the "email_normalized" field.
+func (m *UserMutation) ClearEmailNormalized() {
+	m.email_normalized = nil
+	m.clearedFields[user.FieldEmailNormalized] = struct{}{}
+}
+
+// EmailNormalizedCleared returns if the "email_normalized" field was cleared in this mutation.
+func (m *UserMutation) EmailNormalizedCleared() bool {
+	_, ok := m.clearedFields[user.FieldEmailNormalized]
+	return ok
+}
+
+// ResetEmailNormalized resets all changes to the "email_normalized" field.
+func (m *UserMutation) ResetEmailNormalized() {
+	m.email_normalized = nil
+	delete(m.clearedFields, user.FieldEmailNormalized)
 }
 
 // SetStripeCustomerID sets the "stripe_customer_id" field.
@@ -21427,9 +21477,12 @@ func (m *UserMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *UserMutation) Fields() []string {
-	fields := make([]string, 0, 19)
+	fields := make([]string, 0, 20)
 	if m.email != nil {
 		fields = append(fields, user.FieldEmail)
+	}
+	if m.email_normalized != nil {
+		fields = append(fields, user.FieldEmailNormalized)
 	}
 	if m.stripe_customer_id != nil {
 		fields = append(fields, user.FieldStripeCustomerID)
@@ -21495,6 +21548,8 @@ func (m *UserMutation) Field(name string) (ent.Value, bool) {
 	switch name {
 	case user.FieldEmail:
 		return m.Email()
+	case user.FieldEmailNormalized:
+		return m.EmailNormalized()
 	case user.FieldStripeCustomerID:
 		return m.StripeCustomerID()
 	case user.FieldActiveProductID:
@@ -21542,6 +21597,8 @@ func (m *UserMutation) OldField(ctx context.Context, name string) (ent.Value, er
 	switch name {
 	case user.FieldEmail:
 		return m.OldEmail(ctx)
+	case user.FieldEmailNormalized:
+		return m.OldEmailNormalized(ctx)
 	case user.FieldStripeCustomerID:
 		return m.OldStripeCustomerID(ctx)
 	case user.FieldActiveProductID:
@@ -21593,6 +21650,13 @@ func (m *UserMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetEmail(v)
+		return nil
+	case user.FieldEmailNormalized:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetEmailNormalized(v)
 		return nil
 	case user.FieldStripeCustomerID:
 		v, ok := value.(string)
@@ -21750,6 +21814,9 @@ func (m *UserMutation) AddField(name string, value ent.Value) error {
 // mutation.
 func (m *UserMutation) ClearedFields() []string {
 	var fields []string
+	if m.FieldCleared(user.FieldEmailNormalized) {
+		fields = append(fields, user.FieldEmailNormalized)
+	}
 	if m.FieldCleared(user.FieldActiveProductID) {
 		fields = append(fields, user.FieldActiveProductID)
 	}
@@ -21803,6 +21870,9 @@ func (m *UserMutation) FieldCleared(name string) bool {
 // error if the field is not defined in the schema.
 func (m *UserMutation) ClearField(name string) error {
 	switch name {
+	case user.FieldEmailNormalized:
+		m.ClearEmailNormalized()
+		return nil
 	case user.FieldActiveProductID:
 		m.ClearActiveProductID()
 		return nil
@@ -21852,6 +21922,9 @@ func (m *UserMutation) ResetField(name string) error {
 	switch name {
 	case user.FieldEmail:
 		m.ResetEmail()
+		return nil
+	case user.FieldEmailNormalized:
+		m.ResetEmailNormalized()
 		return nil
 	case user.FieldStripeCustomerID:
 		m.ResetStripeCustomerID()

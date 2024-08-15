@@ -61,6 +61,11 @@ func Email(v string) predicate.User {
 	return predicate.User(sql.FieldEQ(FieldEmail, v))
 }
 
+// EmailNormalized applies equality check predicate on the "email_normalized" field. It's identical to EmailNormalizedEQ.
+func EmailNormalized(v string) predicate.User {
+	return predicate.User(sql.FieldEQ(FieldEmailNormalized, v))
+}
+
 // StripeCustomerID applies equality check predicate on the "stripe_customer_id" field. It's identical to StripeCustomerIDEQ.
 func StripeCustomerID(v string) predicate.User {
 	return predicate.User(sql.FieldEQ(FieldStripeCustomerID, v))
@@ -214,6 +219,81 @@ func EmailEqualFold(v string) predicate.User {
 // EmailContainsFold applies the ContainsFold predicate on the "email" field.
 func EmailContainsFold(v string) predicate.User {
 	return predicate.User(sql.FieldContainsFold(FieldEmail, v))
+}
+
+// EmailNormalizedEQ applies the EQ predicate on the "email_normalized" field.
+func EmailNormalizedEQ(v string) predicate.User {
+	return predicate.User(sql.FieldEQ(FieldEmailNormalized, v))
+}
+
+// EmailNormalizedNEQ applies the NEQ predicate on the "email_normalized" field.
+func EmailNormalizedNEQ(v string) predicate.User {
+	return predicate.User(sql.FieldNEQ(FieldEmailNormalized, v))
+}
+
+// EmailNormalizedIn applies the In predicate on the "email_normalized" field.
+func EmailNormalizedIn(vs ...string) predicate.User {
+	return predicate.User(sql.FieldIn(FieldEmailNormalized, vs...))
+}
+
+// EmailNormalizedNotIn applies the NotIn predicate on the "email_normalized" field.
+func EmailNormalizedNotIn(vs ...string) predicate.User {
+	return predicate.User(sql.FieldNotIn(FieldEmailNormalized, vs...))
+}
+
+// EmailNormalizedGT applies the GT predicate on the "email_normalized" field.
+func EmailNormalizedGT(v string) predicate.User {
+	return predicate.User(sql.FieldGT(FieldEmailNormalized, v))
+}
+
+// EmailNormalizedGTE applies the GTE predicate on the "email_normalized" field.
+func EmailNormalizedGTE(v string) predicate.User {
+	return predicate.User(sql.FieldGTE(FieldEmailNormalized, v))
+}
+
+// EmailNormalizedLT applies the LT predicate on the "email_normalized" field.
+func EmailNormalizedLT(v string) predicate.User {
+	return predicate.User(sql.FieldLT(FieldEmailNormalized, v))
+}
+
+// EmailNormalizedLTE applies the LTE predicate on the "email_normalized" field.
+func EmailNormalizedLTE(v string) predicate.User {
+	return predicate.User(sql.FieldLTE(FieldEmailNormalized, v))
+}
+
+// EmailNormalizedContains applies the Contains predicate on the "email_normalized" field.
+func EmailNormalizedContains(v string) predicate.User {
+	return predicate.User(sql.FieldContains(FieldEmailNormalized, v))
+}
+
+// EmailNormalizedHasPrefix applies the HasPrefix predicate on the "email_normalized" field.
+func EmailNormalizedHasPrefix(v string) predicate.User {
+	return predicate.User(sql.FieldHasPrefix(FieldEmailNormalized, v))
+}
+
+// EmailNormalizedHasSuffix applies the HasSuffix predicate on the "email_normalized" field.
+func EmailNormalizedHasSuffix(v string) predicate.User {
+	return predicate.User(sql.FieldHasSuffix(FieldEmailNormalized, v))
+}
+
+// EmailNormalizedIsNil applies the IsNil predicate on the "email_normalized" field.
+func EmailNormalizedIsNil() predicate.User {
+	return predicate.User(sql.FieldIsNull(FieldEmailNormalized))
+}
+
+// EmailNormalizedNotNil applies the NotNil predicate on the "email_normalized" field.
+func EmailNormalizedNotNil() predicate.User {
+	return predicate.User(sql.FieldNotNull(FieldEmailNormalized))
+}
+
+// EmailNormalizedEqualFold applies the EqualFold predicate on the "email_normalized" field.
+func EmailNormalizedEqualFold(v string) predicate.User {
+	return predicate.User(sql.FieldEqualFold(FieldEmailNormalized, v))
+}
+
+// EmailNormalizedContainsFold applies the ContainsFold predicate on the "email_normalized" field.
+func EmailNormalizedContainsFold(v string) predicate.User {
+	return predicate.User(sql.FieldContainsFold(FieldEmailNormalized, v))
 }
 
 // StripeCustomerIDEQ applies the EQ predicate on the "stripe_customer_id" field.

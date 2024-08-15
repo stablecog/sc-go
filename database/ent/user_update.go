@@ -52,6 +52,26 @@ func (uu *UserUpdate) SetNillableEmail(s *string) *UserUpdate {
 	return uu
 }
 
+// SetEmailNormalized sets the "email_normalized" field.
+func (uu *UserUpdate) SetEmailNormalized(s string) *UserUpdate {
+	uu.mutation.SetEmailNormalized(s)
+	return uu
+}
+
+// SetNillableEmailNormalized sets the "email_normalized" field if the given value is not nil.
+func (uu *UserUpdate) SetNillableEmailNormalized(s *string) *UserUpdate {
+	if s != nil {
+		uu.SetEmailNormalized(*s)
+	}
+	return uu
+}
+
+// ClearEmailNormalized clears the value of the "email_normalized" field.
+func (uu *UserUpdate) ClearEmailNormalized() *UserUpdate {
+	uu.mutation.ClearEmailNormalized()
+	return uu
+}
+
 // SetStripeCustomerID sets the "stripe_customer_id" field.
 func (uu *UserUpdate) SetStripeCustomerID(s string) *UserUpdate {
 	uu.mutation.SetStripeCustomerID(s)
@@ -743,6 +763,12 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if value, ok := uu.mutation.Email(); ok {
 		_spec.SetField(user.FieldEmail, field.TypeString, value)
 	}
+	if value, ok := uu.mutation.EmailNormalized(); ok {
+		_spec.SetField(user.FieldEmailNormalized, field.TypeString, value)
+	}
+	if uu.mutation.EmailNormalizedCleared() {
+		_spec.ClearField(user.FieldEmailNormalized, field.TypeString)
+	}
 	if value, ok := uu.mutation.StripeCustomerID(); ok {
 		_spec.SetField(user.FieldStripeCustomerID, field.TypeString, value)
 	}
@@ -1271,6 +1297,26 @@ func (uuo *UserUpdateOne) SetNillableEmail(s *string) *UserUpdateOne {
 	if s != nil {
 		uuo.SetEmail(*s)
 	}
+	return uuo
+}
+
+// SetEmailNormalized sets the "email_normalized" field.
+func (uuo *UserUpdateOne) SetEmailNormalized(s string) *UserUpdateOne {
+	uuo.mutation.SetEmailNormalized(s)
+	return uuo
+}
+
+// SetNillableEmailNormalized sets the "email_normalized" field if the given value is not nil.
+func (uuo *UserUpdateOne) SetNillableEmailNormalized(s *string) *UserUpdateOne {
+	if s != nil {
+		uuo.SetEmailNormalized(*s)
+	}
+	return uuo
+}
+
+// ClearEmailNormalized clears the value of the "email_normalized" field.
+func (uuo *UserUpdateOne) ClearEmailNormalized() *UserUpdateOne {
+	uuo.mutation.ClearEmailNormalized()
 	return uuo
 }
 
@@ -1994,6 +2040,12 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 	}
 	if value, ok := uuo.mutation.Email(); ok {
 		_spec.SetField(user.FieldEmail, field.TypeString, value)
+	}
+	if value, ok := uuo.mutation.EmailNormalized(); ok {
+		_spec.SetField(user.FieldEmailNormalized, field.TypeString, value)
+	}
+	if uuo.mutation.EmailNormalizedCleared() {
+		_spec.ClearField(user.FieldEmailNormalized, field.TypeString)
 	}
 	if value, ok := uuo.mutation.StripeCustomerID(); ok {
 		_spec.SetField(user.FieldStripeCustomerID, field.TypeString, value)

@@ -530,15 +530,15 @@ func init() {
 	userFields := schema.User{}.Fields()
 	_ = userFields
 	// userDescLastSeenAt is the schema descriptor for last_seen_at field.
-	userDescLastSeenAt := userFields[5].Descriptor()
+	userDescLastSeenAt := userFields[6].Descriptor()
 	// user.DefaultLastSeenAt holds the default value on creation for the last_seen_at field.
 	user.DefaultLastSeenAt = userDescLastSeenAt.Default.(func() time.Time)
 	// userDescCreatedAt is the schema descriptor for created_at field.
-	userDescCreatedAt := userFields[18].Descriptor()
+	userDescCreatedAt := userFields[19].Descriptor()
 	// user.DefaultCreatedAt holds the default value on creation for the created_at field.
 	user.DefaultCreatedAt = userDescCreatedAt.Default.(func() time.Time)
 	// userDescUpdatedAt is the schema descriptor for updated_at field.
-	userDescUpdatedAt := userFields[19].Descriptor()
+	userDescUpdatedAt := userFields[20].Descriptor()
 	// user.DefaultUpdatedAt holds the default value on creation for the updated_at field.
 	user.DefaultUpdatedAt = userDescUpdatedAt.Default.(func() time.Time)
 	// user.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.

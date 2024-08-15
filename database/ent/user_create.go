@@ -38,6 +38,20 @@ func (uc *UserCreate) SetEmail(s string) *UserCreate {
 	return uc
 }
 
+// SetEmailNormalized sets the "email_normalized" field.
+func (uc *UserCreate) SetEmailNormalized(s string) *UserCreate {
+	uc.mutation.SetEmailNormalized(s)
+	return uc
+}
+
+// SetNillableEmailNormalized sets the "email_normalized" field if the given value is not nil.
+func (uc *UserCreate) SetNillableEmailNormalized(s *string) *UserCreate {
+	if s != nil {
+		uc.SetEmailNormalized(*s)
+	}
+	return uc
+}
+
 // SetStripeCustomerID sets the "stripe_customer_id" field.
 func (uc *UserCreate) SetStripeCustomerID(s string) *UserCreate {
 	uc.mutation.SetStripeCustomerID(s)
@@ -536,6 +550,10 @@ func (uc *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 		_spec.SetField(user.FieldEmail, field.TypeString, value)
 		_node.Email = value
 	}
+	if value, ok := uc.mutation.EmailNormalized(); ok {
+		_spec.SetField(user.FieldEmailNormalized, field.TypeString, value)
+		_node.EmailNormalized = &value
+	}
 	if value, ok := uc.mutation.StripeCustomerID(); ok {
 		_spec.SetField(user.FieldStripeCustomerID, field.TypeString, value)
 		_node.StripeCustomerID = value
@@ -813,6 +831,24 @@ func (u *UserUpsert) SetEmail(v string) *UserUpsert {
 // UpdateEmail sets the "email" field to the value that was provided on create.
 func (u *UserUpsert) UpdateEmail() *UserUpsert {
 	u.SetExcluded(user.FieldEmail)
+	return u
+}
+
+// SetEmailNormalized sets the "email_normalized" field.
+func (u *UserUpsert) SetEmailNormalized(v string) *UserUpsert {
+	u.Set(user.FieldEmailNormalized, v)
+	return u
+}
+
+// UpdateEmailNormalized sets the "email_normalized" field to the value that was provided on create.
+func (u *UserUpsert) UpdateEmailNormalized() *UserUpsert {
+	u.SetExcluded(user.FieldEmailNormalized)
+	return u
+}
+
+// ClearEmailNormalized clears the value of the "email_normalized" field.
+func (u *UserUpsert) ClearEmailNormalized() *UserUpsert {
+	u.SetNull(user.FieldEmailNormalized)
 	return u
 }
 
@@ -1160,6 +1196,27 @@ func (u *UserUpsertOne) SetEmail(v string) *UserUpsertOne {
 func (u *UserUpsertOne) UpdateEmail() *UserUpsertOne {
 	return u.Update(func(s *UserUpsert) {
 		s.UpdateEmail()
+	})
+}
+
+// SetEmailNormalized sets the "email_normalized" field.
+func (u *UserUpsertOne) SetEmailNormalized(v string) *UserUpsertOne {
+	return u.Update(func(s *UserUpsert) {
+		s.SetEmailNormalized(v)
+	})
+}
+
+// UpdateEmailNormalized sets the "email_normalized" field to the value that was provided on create.
+func (u *UserUpsertOne) UpdateEmailNormalized() *UserUpsertOne {
+	return u.Update(func(s *UserUpsert) {
+		s.UpdateEmailNormalized()
+	})
+}
+
+// ClearEmailNormalized clears the value of the "email_normalized" field.
+func (u *UserUpsertOne) ClearEmailNormalized() *UserUpsertOne {
+	return u.Update(func(s *UserUpsert) {
+		s.ClearEmailNormalized()
 	})
 }
 
@@ -1721,6 +1778,27 @@ func (u *UserUpsertBulk) SetEmail(v string) *UserUpsertBulk {
 func (u *UserUpsertBulk) UpdateEmail() *UserUpsertBulk {
 	return u.Update(func(s *UserUpsert) {
 		s.UpdateEmail()
+	})
+}
+
+// SetEmailNormalized sets the "email_normalized" field.
+func (u *UserUpsertBulk) SetEmailNormalized(v string) *UserUpsertBulk {
+	return u.Update(func(s *UserUpsert) {
+		s.SetEmailNormalized(v)
+	})
+}
+
+// UpdateEmailNormalized sets the "email_normalized" field to the value that was provided on create.
+func (u *UserUpsertBulk) UpdateEmailNormalized() *UserUpsertBulk {
+	return u.Update(func(s *UserUpsert) {
+		s.UpdateEmailNormalized()
+	})
+}
+
+// ClearEmailNormalized clears the value of the "email_normalized" field.
+func (u *UserUpsertBulk) ClearEmailNormalized() *UserUpsertBulk {
+	return u.Update(func(s *UserUpsert) {
+		s.ClearEmailNormalized()
 	})
 }
 

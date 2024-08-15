@@ -20,6 +20,8 @@ type User struct {
 	ID uuid.UUID `json:"id,omitempty"`
 	// Email holds the value of the "email" field.
 	Email string `json:"email,omitempty"`
+	// EmailNormalized holds the value of the "email_normalized" field.
+	EmailNormalized *string `json:"email_normalized,omitempty"`
 	// StripeCustomerID holds the value of the "stripe_customer_id" field.
 	StripeCustomerID string `json:"stripe_customer_id,omitempty"`
 	// ActiveProductID holds the value of the "active_product_id" field.
@@ -175,7 +177,7 @@ func (*User) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case user.FieldWantsEmail:
 			values[i] = new(sql.NullBool)
-		case user.FieldEmail, user.FieldStripeCustomerID, user.FieldActiveProductID, user.FieldDiscordID, user.FieldUsername, user.FieldStripeHighestProductID, user.FieldStripeHighestPriceID:
+		case user.FieldEmail, user.FieldEmailNormalized, user.FieldStripeCustomerID, user.FieldActiveProductID, user.FieldDiscordID, user.FieldUsername, user.FieldStripeHighestProductID, user.FieldStripeHighestPriceID:
 			values[i] = new(sql.NullString)
 		case user.FieldLastSignInAt, user.FieldLastSeenAt, user.FieldBannedAt, user.FieldScheduledForDeletionOn, user.FieldDataDeletedAt, user.FieldUsernameChangedAt, user.FieldStripeCancelsAt, user.FieldStripeSyncedAt, user.FieldStripeRenewsAt, user.FieldCreatedAt, user.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
@@ -207,6 +209,13 @@ func (u *User) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field email", values[i])
 			} else if value.Valid {
 				u.Email = value.String
+			}
+		case user.FieldEmailNormalized:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field email_normalized", values[i])
+			} else if value.Valid {
+				u.EmailNormalized = new(string)
+				*u.EmailNormalized = value.String
 			}
 		case user.FieldStripeCustomerID:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -412,6 +421,11 @@ func (u *User) String() string {
 	builder.WriteString(fmt.Sprintf("id=%v, ", u.ID))
 	builder.WriteString("email=")
 	builder.WriteString(u.Email)
+	builder.WriteString(", ")
+	if v := u.EmailNormalized; v != nil {
+		builder.WriteString("email_normalized=")
+		builder.WriteString(*v)
+	}
 	builder.WriteString(", ")
 	builder.WriteString("stripe_customer_id=")
 	builder.WriteString(u.StripeCustomerID)

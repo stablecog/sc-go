@@ -17,6 +17,8 @@ const (
 	FieldID = "id"
 	// FieldEmail holds the string denoting the email field in the database.
 	FieldEmail = "email"
+	// FieldEmailNormalized holds the string denoting the email_normalized field in the database.
+	FieldEmailNormalized = "email_normalized"
 	// FieldStripeCustomerID holds the string denoting the stripe_customer_id field in the database.
 	FieldStripeCustomerID = "stripe_customer_id"
 	// FieldActiveProductID holds the string denoting the active_product_id field in the database.
@@ -140,6 +142,7 @@ const (
 var Columns = []string{
 	FieldID,
 	FieldEmail,
+	FieldEmailNormalized,
 	FieldStripeCustomerID,
 	FieldActiveProductID,
 	FieldLastSignInAt,
@@ -200,6 +203,11 @@ func ByID(opts ...sql.OrderTermOption) OrderOption {
 // ByEmail orders the results by the email field.
 func ByEmail(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldEmail, opts...).ToFunc()
+}
+
+// ByEmailNormalized orders the results by the email_normalized field.
+func ByEmailNormalized(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldEmailNormalized, opts...).ToFunc()
 }
 
 // ByStripeCustomerID orders the results by the stripe_customer_id field.

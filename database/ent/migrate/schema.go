@@ -650,6 +650,7 @@ var (
 	UsersColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID},
 		{Name: "email", Type: field.TypeString, Size: 2147483647},
+		{Name: "email_normalized", Type: field.TypeString, Nullable: true, Size: 2147483647},
 		{Name: "stripe_customer_id", Type: field.TypeString, Unique: true, Size: 2147483647},
 		{Name: "active_product_id", Type: field.TypeString, Nullable: true, Size: 2147483647},
 		{Name: "last_sign_in_at", Type: field.TypeTime, Nullable: true},
