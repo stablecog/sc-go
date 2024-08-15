@@ -263,14 +263,14 @@ func (c *RestAPI) HandleGetUser(w http.ResponseWriter, r *http.Request) {
 	log.Infof("HandleGetUser - GetUserWithRoles: %dms", time.Since(m).Milliseconds())
 
 	if err != nil {
-		log.Error("Error getting user", "err", err)
+		log.Error("Error getting user", err)
 		responses.ErrInternalServerError(w, r, "An unknown error has occurred")
 		return
 	} else if user == nil {
 		// Handle create user flow
 		err := createNewUser(email, userID, lastSignIn, c)
 		if err != nil {
-			log.Error("Error creating user", "err", err)
+			log.Error("Error creating user", err)
 			responses.ErrInternalServerError(w, r, err.Error())
 			return
 		}
@@ -280,7 +280,7 @@ func (c *RestAPI) HandleGetUser(w http.ResponseWriter, r *http.Request) {
 	if user == nil {
 		user, err = c.Repo.GetUserWithRoles(*userID)
 		if err != nil {
-			log.Error("Error getting user with roles", "err", err)
+			log.Error("Error getting user with roles", err)
 			responses.ErrInternalServerError(w, r, "An unknown error has occurred")
 			return
 		}
@@ -462,7 +462,7 @@ func createNewUser(email string, userID *uuid.UUID, lastSignIn *time.Time, c *Re
 		log.Error("Error checking if email exists", "err", err)
 		return unknownError
 	} else if exists {
-		log.Error("Email already exists", "email", email)
+		log.Error("Email already exists", email)
 		return errors.New("Email already exists")
 	}
 	log.Infof("createNewUser - CheckIfEmailExists: %dms", time.Since(m).Milliseconds())
@@ -482,7 +482,7 @@ func createNewUser(email string, userID *uuid.UUID, lastSignIn *time.Time, c *Re
 			},
 		})
 		if err != nil {
-			log.Error("Error creating stripe customer", "err", err)
+			log.Error("Error creating stripe customer", err)
 			return err
 		}
 		log.Infof("createNewUser - CreateStripeCustomer: %dms", time.Since(m).Milliseconds())
@@ -490,7 +490,7 @@ func createNewUser(email string, userID *uuid.UUID, lastSignIn *time.Time, c *Re
 		m = time.Now()
 		u, err := c.Repo.CreateUser(*userID, email, customer.ID, lastSignIn, client)
 		if err != nil {
-			log.Error("Error creating user", "err", err)
+			log.Error("Error creating user", err)
 			return err
 		}
 		log.Infof("createNewUser - CreateUser: %dms", time.Since(m).Milliseconds())
@@ -508,14 +508,14 @@ func createNewUser(email string, userID *uuid.UUID, lastSignIn *time.Time, c *Re
 		m = time.Now()
 		added, err = c.Repo.GiveFreeTippableCredits(u.ID, client)
 		if err != nil || !added {
-			log.Error("Error adding free tippable credits", "err", err)
+			log.Error("Error adding free tippable credits", err)
 			return err
 		}
 		log.Infof("createNewUser - GiveFreeTippableCredits: %dms", time.Since(m).Milliseconds())
 
 		return nil
 	}); err != nil {
-		log.Error("Error creating user", "err", err)
+		log.Error("Error creating user", err)
 		// Delete stripe customer
 		if customer != nil {
 			_, err := c.StripeClient.Customers.Del(customer.ID, nil)
