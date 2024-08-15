@@ -441,7 +441,7 @@ func (c *RestAPI) HandleStripeWebhookSubscription(w http.ResponseWriter, r *http
 		return
 	}
 
-	log.Infof("🪝 🟢 Updated Stripe subscription info in DB | %dms | userID: %s, customerID: %s, highestProductID: %s, highestPriceID: %s, cancelsAt: %v, renewsAt: %v", time.Since(s).Milliseconds(), user.ID, customerID, highestProductID, highestPriceID, cancelsAt, renewsAt)
+	log.Infof("🪝 🟢 Updated Stripe subscription info in DB | %dms | %s | userID: %s, customerID: %s, highestProductID: %s, highestPriceID: %s, cancelsAt: %v, renewsAt: %v", time.Since(s).Milliseconds(), event.Type, user.ID, customerID, highestProductID, highestPriceID, cancelsAt, renewsAt)
 
 	render.Status(r, http.StatusOK)
 	render.PlainText(w, r, "OK")
