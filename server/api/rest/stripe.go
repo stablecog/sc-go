@@ -357,7 +357,7 @@ func (c *RestAPI) HandleStripeWebhookSubscription(w http.ResponseWriter, r *http
 	endpointSecret := utils.GetEnv().StripeWebhookSubscriptionSecret
 
 	event, err := webhook.ConstructEvent(reqBody, r.Header.Get("Stripe-Signature"), endpointSecret)
-	log.Infof("🪝 🟡 Stripe webhook event: %s", event.Type)
+	log.Infof("🪝 🟡 Processing Stripe webhook event: %s", event.Type)
 
 	if err != nil {
 		log.Error("🪝 🔴 Unable verifying stripe webhook signature", err)
