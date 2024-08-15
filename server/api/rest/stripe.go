@@ -345,8 +345,8 @@ func (c *RestAPI) HandleSubscriptionDowngrade(w http.ResponseWriter, r *http.Req
 
 func (c *RestAPI) HandleStripeWebhookSubscription(w http.ResponseWriter, r *http.Request) {
 	stripePaymentIntentEvents := []string{
-		"payment_intent.canceled",
 		"payment_intent.created",
+		"payment_intent.canceled",
 		"payment_intent.payment_failed",
 		"payment_intent.processing",
 		"payment_intent.succeeded",
@@ -354,21 +354,17 @@ func (c *RestAPI) HandleStripeWebhookSubscription(w http.ResponseWriter, r *http
 
 	stripeInvoiceEvents := []string{
 		"invoice.created",
+		"invoice.updated",
+		"invoice.deleted",
 		"invoice.finalization_failed",
+		"invoice.payment_failed",
 		"invoice.finalized",
 		"invoice.paid",
-		"invoice.payment_failed",
-		"invoice.updated",
 	}
 
 	stripeSubscriptionEvents := []string{
 		"customer.subscription.created",
 		"customer.subscription.deleted",
-		"customer.subscription.paused",
-		"customer.subscription.pending_update_applied",
-		"customer.subscription.pending_update_expired",
-		"customer.subscription.resumed",
-		"customer.subscription.trial_will_end",
 		"customer.subscription.updated",
 	}
 
