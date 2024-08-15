@@ -24,8 +24,9 @@ type SCEnv struct {
 	BucketBaseUrl     string `env:"BUCKET_BASE_URL" envDefault:"https://b.stablecog.com/"` // Public CDN URL
 	BucketVoiceverUrl string `env:"BUCKET_VOICEOVER_URL" envDefault:"https://bvoi.stablecog.com/"`
 	// Stripe
-	StripeSecretKey      string `env:"STRIPE_SECRET_KEY"`      // required
-	StripeEndpointSecret string `env:"STRIPE_ENDPOINT_SECRET"` // Required for stripe webhooks
+	StripeSecretKey                 string `env:"STRIPE_SECRET_KEY"`                  // required
+	StripeEndpointSecret            string `env:"STRIPE_ENDPOINT_SECRET"`             // Required for stripe webhooks
+	StripeWebhookSubscriptionSecret string `env:"STRIPE_WEBHOOK_SUBSCRIPTION_SECRET"` // Required for stripe webhooks
 	// Stripe subscription price + product IDs
 	StripeUltimatePriceID   string `env:"STRIPE_ULTIMATE_PRICE_ID" envDefault:"price_1Mf591ATa0ehBYTA6ggpEEkA"`
 	StripeProPriceID        string `env:"STRIPE_PRO_PRICE_ID" envDefault:"price_1Mf50bATa0ehBYTAPOcfnOjG"`

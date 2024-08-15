@@ -152,6 +152,7 @@ func TestInitEnvironment(t *testing.T) {
 		os.Setenv("QDRANT_URL", "qdrant-url")
 		os.Setenv("PUBLIC_SUPABASE_REFERENCE_ID", "public-supabase")
 		os.Setenv("SUPABASE_ADMIN_KEY", "admin-key")
+		os.Setenv("STRIPE_WEBHOOK_SUBSCRIPTION_SECRET", "stripe-webhook-subscription-secret")
 
 		os.Setenv("BUCKET_VOICEOVER_URL", "http://testv.com/")
 

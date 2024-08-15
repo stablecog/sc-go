@@ -343,6 +343,31 @@ func (c *RestAPI) HandleSubscriptionDowngrade(w http.ResponseWriter, r *http.Req
 	})
 }
 
+func (c *RestAPI) HandleStripeWebhookSubscription(w http.ResponseWriter, r *http.Request) {
+	// Parse request body
+	reqBody, err := io.ReadAll(r.Body)
+	if err != nil {
+		log.Error("Unable reading stripe webhook body", "err", err)
+		responses.ErrBadRequest(w, r, "invalid stripe webhook body", "")
+		return
+	}
+
+	// Verify signature
+	endpointSecret := utils.GetEnv().StripeWebhookSubscriptionSecret
+
+	event, err := webhook.ConstructEvent(reqBody, r.Header.Get("Stripe-Signature"), endpointSecret)
+	if err != nil {
+		log.Error("🪝 Unable verifying stripe webhook signature", "err", err)
+		responses.ErrBadRequest(w, r, "invalid stripe webhook signature", "")
+		return
+	}
+
+	log.Info("🪝 Stripe webhook event", "type", event.Type)
+
+	render.Status(r, http.StatusOK)
+	render.PlainText(w, r, "OK")
+}
+
 // Handle stripe webhooks in the following ways:
 // invoice.payment_succeeded
 //   - Apply credits to user depending on type (subscription, adhoc)

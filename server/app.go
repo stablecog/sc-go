@@ -1157,6 +1157,7 @@ func main() {
 		r.Route("/stripe", func(r chi.Router) {
 			r.Use(middleware.Logger)
 			r.Post("/webhook", hc.HandleStripeWebhook)
+			r.Post("/webhook-subscription", hc.HandleStripeWebhookSubscription)
 		})
 
 		// SCWorker
