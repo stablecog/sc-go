@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"io"
 	"net/http"
-	"strings"
 	"time"
 
 	"github.com/go-chi/render"
@@ -345,6 +344,34 @@ func (c *RestAPI) HandleSubscriptionDowngrade(w http.ResponseWriter, r *http.Req
 }
 
 func (c *RestAPI) HandleStripeWebhookSubscription(w http.ResponseWriter, r *http.Request) {
+	stripePaymentIntentEvents := []string{
+		"payment_intent.canceled",
+		"payment_intent.created",
+		"payment_intent.payment_failed",
+		"payment_intent.processing",
+		"payment_intent.succeeded",
+	}
+
+	stripeInvoiceEvents := []string{
+		"invoice.created",
+		"invoice.finalization_failed",
+		"invoice.finalized",
+		"invoice.paid",
+		"invoice.payment_failed",
+		"invoice.updated",
+	}
+
+	stripeSubscriptionEvents := []string{
+		"customer.subscription.created",
+		"customer.subscription.deleted",
+		"customer.subscription.paused",
+		"customer.subscription.pending_update_applied",
+		"customer.subscription.pending_update_expired",
+		"customer.subscription.resumed",
+		"customer.subscription.trial_will_end",
+		"customer.subscription.updated",
+	}
+
 	// Parse request body
 	reqBody, err := io.ReadAll(r.Body)
 	if err != nil {
@@ -365,20 +392,43 @@ func (c *RestAPI) HandleStripeWebhookSubscription(w http.ResponseWriter, r *http
 		return
 	}
 
-	if !strings.Contains(event.Type, "customer.subscription.") {
-		log.Infof(`🪝 🔵 Stripe webhook event is not a "customer.subscription" event, not handling: %s`, event.Type)
+	if !slices.Contains(stripeSubscriptionEvents, event.Type) &&
+		!slices.Contains(stripeInvoiceEvents, event.Type) &&
+		!slices.Contains(stripePaymentIntentEvents, event.Type) {
+		log.Infof(`🪝 🔵 Stripe webhook event is not a registered event, not handling: %s`, event.Type)
 		render.Status(r, http.StatusOK)
 		render.PlainText(w, r, "OK")
 	}
 
-	subscription, err := stripeObjectMapToCustomSubscriptionObject(event.Data.Object)
-	if err != nil || subscription == nil {
-		log.Error("🪝 Unable parsing stripe subscription object", "err", err)
-		responses.ErrInternalServerError(w, r, err.Error())
-		return
+	var customerID string
+
+	if slices.Contains(stripePaymentIntentEvents, event.Type) {
+		paymentIntent, err := stripeObjectMapToPaymentIntent(event.Data.Object)
+		if err != nil || paymentIntent == nil {
+			log.Error("🪝 Unable parsing Stripe payment intent object", "err", err)
+			responses.ErrInternalServerError(w, r, err.Error())
+			return
+		}
+		customerID = paymentIntent.Customer
+	} else if slices.Contains(stripeInvoiceEvents, event.Type) {
+		invoice, err := stripeObjectMapToInvoiceObject(event.Data.Object)
+		if err != nil || invoice == nil {
+			log.Error("🪝 Unable parsing Stripe invoice object", "err", err)
+			responses.ErrInternalServerError(w, r, err.Error())
+			return
+		}
+		customerID = invoice.Customer
+	} else {
+		subscription, err := stripeObjectMapToCustomSubscriptionObject(event.Data.Object)
+		if err != nil || subscription == nil {
+			log.Error("🪝 Unable parsing Stripe subscription object", "err", err)
+			responses.ErrInternalServerError(w, r, err.Error())
+			return
+		}
+		customerID = subscription.Customer
 	}
 
-	customer, err := c.StripeClient.Customers.Get(subscription.Customer, &stripe.CustomerParams{
+	customer, err := c.StripeClient.Customers.Get(customerID, &stripe.CustomerParams{
 		Params: stripe.Params{
 			Expand: []*string{
 				stripe.String("subscriptions"),
