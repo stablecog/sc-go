@@ -17,6 +17,32 @@ func RemovePlusFromEmail(email string) string {
 	return re.ReplaceAllString(email, "@")
 }
 
+func NormalizeEmail(email string) string {
+	// Convert to lowercase
+	email = strings.ToLower(email)
+
+	// Split email into local part and domain
+	parts := strings.SplitN(email, "@", 2)
+	if len(parts) != 2 {
+		return email // Return original email if it's not in a valid format
+	}
+
+	localPart, domain := parts[0], parts[1]
+
+	// Remove everything after '+' in the local part
+	if idx := strings.Index(localPart, "+"); idx != -1 {
+		localPart = localPart[:idx]
+	}
+
+	// Remove all dots from the local part if the domain is gmail.com
+	if domain == "gmail.com" {
+		localPart = strings.ReplaceAll(localPart, ".", "")
+	}
+
+	// Reconstruct the normalized email
+	return localPart + "@" + domain
+}
+
 // Extract integer from a string (ie. !tip 500 @bbedward -> 500)
 var AmountAmbiguousError = fmt.Errorf("amount_ambiguous")
 var AmountMissingError = fmt.Errorf("amount_not_found")

@@ -405,6 +405,34 @@ CREATE trigger handle_updated_at before
 UPDATE
     ON public.users FOR each ROW EXECUTE PROCEDURE moddatetime (updated_at);
 
+
+-- For public.users - Normalize email addresses
+CREATE OR REPLACE FUNCTION normalize_email(email TEXT) 
+RETURNS TEXT AS $$
+DECLARE
+    local_part TEXT;
+    domain TEXT;
+    normalized TEXT;
+BEGIN
+    email := LOWER(email);
+    local_part := SPLIT_PART(email, '@', 1);
+    domain := SPLIT_PART(email, '@', 2);
+    local_part := SPLIT_PART(local_part, '+', 1);
+    IF domain = 'gmail.com' THEN
+        local_part := REPLACE(local_part, '.', '');
+    END IF;
+    normalized := local_part || '@' || domain;
+    RETURN normalized;
+END;
+$$ LANGUAGE plpgsql IMMUTABLE;
+
+-- For public.users - Add email_normalized column
+ALTER TABLE public.users
+ADD COLUMN email_normalized TEXT GENERATED ALWAYS AS (normalize_email(email)) STORED;
+
+-- For public.users - Add index on normalized_email
+CREATE INDEX idx_users_normalized_email ON public.users (email_normalized);
+
 --
 -- Name: disposable_emails; Type: TABLE; Schema: public; Owner: postgres
 --
