@@ -179,6 +179,10 @@ func (r *Repository) QueryUsers(
 		user.FieldDataDeletedAt,
 		user.FieldScheduledForDeletionOn,
 		user.FieldUsername,
+		user.FieldStripeHighestProductID,
+		user.FieldStripeHighestPriceID,
+		user.FieldStripeCancelsAt,
+		user.FieldStripeRenewsAt,
 	}
 
 	var query *ent.UserQuery
@@ -248,6 +252,10 @@ func (r *Repository) QueryUsers(
 			Email:                  user.Email,
 			Username:               user.Username,
 			StripeCustomerID:       user.StripeCustomerID,
+			StripeHighestProductID: user.StripeHighestProductID,
+			StripeHighestPriceID:   user.StripeHighestPriceID,
+			StripeCancelsAt:        user.StripeCancelsAt,
+			StripeRenewsAt:         user.StripeRenewsAt,
 			CreatedAt:              user.CreatedAt,
 			StripeProductID:        user.ActiveProductID,
 			LastSignInAt:           user.LastSignInAt,
@@ -314,6 +322,10 @@ type UserQueryResult struct {
 	DataDeletedAt          *time.Time         `json:"data_deleted_at,omitempty"`
 	ScheduledForDeletionOn *time.Time         `json:"scheduled_for_deletion_on,omitempty"`
 	StripeProductID        *string            `json:"product_id,omitempty"`
+	StripeHighestProductID *string            `json:"highest_product_id,omitempty"`
+	StripeHighestPriceID   *string            `json:"highest_price_id,omitempty"`
+	StripeCancelsAt        *time.Time         `json:"cancels_at,omitempty"`
+	StripeRenewsAt         *time.Time         `json:"renews_at,omitempty"`
 }
 
 // For credit replenishment
