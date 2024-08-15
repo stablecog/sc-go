@@ -1,6 +1,8 @@
 package repository
 
 import (
+	"errors"
+	"fmt"
 	"strings"
 	"time"
 
@@ -369,8 +371,8 @@ func (r *Repository) GetUserByUsername(username string) (*ent.User, error) {
 	}).First(r.Ctx)
 }
 
-// Check if email already exists
-func (r *Repository) CheckIfEmailExists(email string) (string, bool, error) {
+// Check if email already exists V2
+func (r *Repository) CheckIfEmailExistsV2(email string) (string, bool, error) {
 	normalizedEmail := utils.NormalizeEmail(email)
 	emails, err := r.DB.User.Query().Where(user.EmailNormalized(normalizedEmail)).All(r.Ctx)
 	if err != nil {
@@ -381,6 +383,27 @@ func (r *Repository) CheckIfEmailExists(email string) (string, bool, error) {
 		foundEmail = emails[0].Email
 	}
 	return foundEmail, len(emails) > 0, nil
+}
+
+// Check if email already exists
+func (r *Repository) CheckIfEmailExists(email string) (string, bool, error) {
+	noPlus := utils.RemovePlusFromEmail(email)
+	splitStr := strings.Split(noPlus, "@")
+	if len(splitStr) != 2 {
+		return "", false, errors.New("invalid email")
+	}
+
+	total, err := r.DB.User.Query().Where(func(s *sql.Selector) {
+		s.Where(sql.Like(user.FieldEmail, fmt.Sprintf("%s%%_%s", splitStr[0], splitStr[1])))
+	}).All(r.Ctx)
+	if err != nil {
+		return "", false, err
+	}
+	var foundEmail string
+	if len(total) > 0 {
+		foundEmail = total[0].Email
+	}
+	return foundEmail, len(total) > 0, nil
 }
 
 // Get user ids by usernames

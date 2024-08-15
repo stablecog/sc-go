@@ -457,7 +457,7 @@ func createNewUser(email string, userID *uuid.UUID, lastSignIn *time.Time, c *Re
 
 	// See if email exists
 	m = time.Now()
-	_, exists, err := c.Repo.CheckIfEmailExists(email)
+	_, exists, err := c.Repo.CheckIfEmailExistsV2(email)
 	if err != nil {
 		log.Error("Error checking if email exists", "err", err)
 		return unknownError

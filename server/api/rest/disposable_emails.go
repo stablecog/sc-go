@@ -32,7 +32,7 @@ func (c *RestAPI) HandleVerifyEmailDomain(w http.ResponseWriter, r *http.Request
 	}
 
 	if valid {
-		email, exists, err := c.Repo.CheckIfEmailExists(emailReq.Email)
+		email, exists, err := c.Repo.CheckIfEmailExistsV2(emailReq.Email)
 		if err != nil {
 			log.Errorf("Error checking if email exists: %v", err)
 			responses.ErrInternalServerError(w, r, "An unknown error has occured")
